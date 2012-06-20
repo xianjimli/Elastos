@@ -1,0 +1,91 @@
+
+#include "server/ProcessRecord.h"
+
+ProcessRecord::ProcessRecord(
+    /* [in] */ BatteryStatsImpl::Uid::Proc* batteryStats,
+    /* [in] */ IApplicationApartment* appApartment,
+    /* [in] */ CApplicationInfo* info,
+    /* [in] */ String processName) :
+    mPid(0),
+    mPubProviders(5),
+    mConProviders(5),
+    mPersistent(FALSE),
+    mCrashing(FALSE),
+    mNotResponding(FALSE),
+    mRemoved(FALSE),
+    mDebugging(FALSE)
+{
+    mBatteryStats = batteryStats;
+    mInfo = info;
+    mProcessName = String::Duplicate(processName);
+    mAppApartment = appApartment;
+}
+
+ProcessRecord::~ProcessRecord()
+{
+    mPubProviders.Clear();
+    mConProviders.Clear();
+}
+
+void ProcessRecord::SetPid(
+    /* [in] */ Int32 pid)
+{
+}
+
+/*
+ *  Return true if package has been added false if not
+ */
+Boolean ProcessRecord::AddCapsule(
+    /* [in] */ String cap)
+{
+//    Set<String>::Iterator it =
+//            Find(mCapList.Begin(), mCapList.End(), cap);
+//    if (it == mCapList.End()) return FALSE;
+//    mCapList.Insert(cap);
+    return TRUE;
+}
+
+void ProcessRecord::ResetCapsuleList()
+{
+}
+
+ECode ProcessRecord::GetShortDescription(
+    /* [out] */ String* description)
+{
+    if (description == NULL) return E_INVALID_ARGUMENT;
+
+    if (!mShortStringName.IsNull()) {
+        *description = String::Duplicate(mShortStringName);
+        return NOERROR;
+    }
+    StringBuffer sb;
+    GetShortDescription(sb);
+    mShortStringName = String::Duplicate(sb);
+    *description = String::Duplicate(mShortStringName);
+    return NOERROR;
+}
+
+void ProcessRecord::GetShortDescription(
+    /* [in] */ StringBuffer& sb)
+{
+//    sb.append(Integer.toHexString(System.identityHashCode(this)));
+    sb = sb + " " + mPid + ":" + mProcessName + "/" + mInfo->mUid;
+}
+
+ECode ProcessRecord::GetDescription(
+    /* [out] */ String* description)
+{
+    if (description == NULL) return E_INVALID_ARGUMENT;
+
+    if (!mStringName.IsNull()) {
+        *description = String::Duplicate(mStringName);
+        return NOERROR;
+    }
+    StringBuffer sb;
+    sb += "ProcessRecord{";
+    GetShortDescription(sb);
+    sb += "}";
+    mStringName = String::Duplicate(sb);
+    *description = String::Duplicate(mStringName);
+    return NOERROR;
+}

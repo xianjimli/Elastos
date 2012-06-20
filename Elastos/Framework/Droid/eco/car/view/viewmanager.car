@@ -1,0 +1,20 @@
+
+module
+{
+    interface IView;
+    interface IViewGroupLayoutParams;
+
+    interface IViewManager {
+        //IViewGroup has AddView ~ AddViewEx4
+        AddViewEx5(
+            [in] IView* view,
+            [in] IViewGroupLayoutParams* params);
+
+        UpdateViewLayout(
+            [in] IView* view,
+            [in] IViewGroupLayoutParams* params);
+
+        RemoveView(
+            [in] IView* view);
+    }
+}

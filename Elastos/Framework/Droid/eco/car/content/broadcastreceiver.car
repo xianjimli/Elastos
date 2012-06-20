@@ -1,0 +1,49 @@
+
+module
+{
+    interface IContext;
+    interface IIntent;
+
+    interface IBroadcastReceiver {
+        ReceiveBroadcast(
+            [in] IContext* ctx,
+            [in] IIntent* intent);
+
+        SetResultCode(
+            [in] Int32 code);
+
+        GetResultCode(
+            [out] Int32* code);
+
+        SetResultData(
+            [in] String data);
+
+        GetResultData(
+            [out] String* data);
+
+        SetResultExtras(
+            [in] IBundle* extras);
+
+        GetResultExtras(
+            [in] Boolean makeMap,
+            [out] IBundle** extras);
+
+        SetResult(
+            [in] Int32 code,
+            [in] String data,
+            [in] IBundle* extras);
+
+        GetAbortBroadcast(
+            [out] Boolean* aborted);
+
+        AbortBroadcast();
+
+        ClearAbortBroadcast();
+
+        SetOrderedHint(
+            [in] Boolean isOrdered);
+
+        SetInitialStickyHint(
+            [in] Boolean isInitialSticky);
+    }
+}

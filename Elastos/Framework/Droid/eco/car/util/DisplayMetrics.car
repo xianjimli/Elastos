@@ -1,0 +1,38 @@
+
+module
+{
+    /**
+     * Standard quantized DPI for low-density screens.
+     */
+    const DisplayMetrics_DENSITY_LOW = 120;
+
+    /**
+     * Standard quantized DPI for medium-density screens.
+     */
+    const DisplayMetrics_DENSITY_MEDIUM = 160;
+
+    /**
+     * Standard quantized DPI for high-density screens.
+     */
+    const DisplayMetrics_DENSITY_HIGH = 240;
+
+    /**
+     * Standard quantized DPI for extra-high-density screens.
+     */
+    const DisplayMetrics_DENSITY_XHIGH = 320;
+
+    /**
+     * The reference density used throughout the system.
+     */
+    const DisplayMetrics_DENSITY_DEFAULT = 160; // DisplayMetrics_DENSITY_MEDIUM;
+
+    interface IDisplayMetrics {
+        SetTo(
+            [in] IDisplayMetrics* o);
+
+        SetToDefaults();
+
+        GetDescription(
+            [out] String* str);
+    }
+}

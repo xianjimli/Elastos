@@ -1,0 +1,36 @@
+TARGET_NAME= os
+TARGET_TYPE= lib
+
+include $(MAKEDIR)/../../../sources.inc
+
+INCLUDES += $(MAKEDIR)/../inc
+INCLUDES += ../
+
+SOURCES = BatteryStatsImpl.cpp
+SOURCES += SystemClock.cpp
+SOURCES += SystemProperties.cpp
+SOURCES += Process.cpp
+SOURCES += _PatternMatcher.cpp
+SOURCES += CPatternMatcher.cpp
+SOURCES += CParcelFileDescriptor.cpp
+SOURCES += Environment.cpp
+SOURCES += NativeMessageQueue.cpp
+SOURCES += CCallbackContextEx.cpp
+SOURCES += CClassLoader.cpp
+SOURCES += Runnable.cpp
+SOURCES += Build.cpp
+SOURCES += Message.cpp
+SOURCES += MemoryFile.cpp
+SOURCES += Handler.cpp
+
+ifeq "$(XDK_TARGET_CPU)" "arm"
+ifneq "$(XDK_COMPILER)" "gnu"
+SOURCES += invokeCallback_ievc.asm
+else
+SOURCES += invokeCallback_gnuc.S
+SOURCES += invokeCoalescer_gnuc.S
+endif
+else
+SOURCES += invokeCallback.cpp
+SOURCES += invokeCoalescer.cpp
+endif

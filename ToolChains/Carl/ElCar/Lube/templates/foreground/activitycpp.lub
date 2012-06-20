@@ -1,0 +1,53 @@
+$;;=========================================================================
+$;; Copyright (c) 2000-2005,  Elastos, Inc.  All Rights Reserved.
+$;;=========================================================================
+$
+$INPUT class
+$OUTPUT "${name}.cpp"
+
+#include "${name}.h"
+
+ECode ${name}::OnCreate(
+    /* [in] */ IBundle* savedInstanceState)
+{
+    // TODO: Add your code here
+    return NOERROR;
+}
+
+ECode ${name}::OnStart()
+{
+    // TODO: Add your code here
+    return NOERROR;
+}
+
+ECode ${name}::OnRestart()
+{
+    // TODO: Add your code here
+    return NOERROR;
+}
+
+ECode ${name}::OnResume()
+{
+    // TODO: Add your code here
+    return NOERROR;
+}
+
+ECode ${name}::OnPause()
+{
+    // TODO: Add your code here
+    return NOERROR;
+}
+
+ECode ${name}::OnStop()
+{
+    // TODO: Add your code here
+    return NOERROR;
+}
+
+ECode ${name}::OnDestroy()
+{
+    // TODO: Add your code here
+    return NOERROR;
+}
+
+$END OUTPUT

@@ -1,0 +1,20 @@
+
+module
+{
+    interface IBinder;
+    interface IIntent;
+    interface IBundle;
+
+    interface IIntentReceiver extends IBinder {
+        PerformReceive(
+            [in] IIntent* intent,
+            [in] Int32 resultCode,
+            [in] String dataStr,
+            [in] IBundle* extras,
+            [in] Boolean ordered,
+            [in] Boolean sticky);
+
+        GetHashCode(
+            [out] Int32* hashCode);
+    }
+}

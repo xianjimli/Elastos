@@ -1,0 +1,30 @@
+
+module
+{
+    interface IMatrix;
+
+    enum ShaderTileMode {
+        ShaderTileMode_CLAMP = 0,
+        ShaderTileMode_REPEAT = 1,
+        ShaderTileMode_MIRROR = 2,
+    }
+
+    interface IShader {
+        /**
+         * Return true if the shader has a non-identity local matrix.
+         * @param localM If not null, it is set to the shader's local matrix.
+         * @return true if the shader has a non-identity local matrix
+         */
+        GetLocalMatrix(
+            [in/* ,out*/] IMatrix* localM,
+            [out] Boolean* result);
+
+        /**
+         * Set the shader's local matrix. Passing null will reset the shader's
+         * matrix to identity
+         * @param localM The shader's new local matrix, or null to specify identity
+         */
+        SetLocalMatrix(
+            [in] IMatrix* localM);
+    }
+}

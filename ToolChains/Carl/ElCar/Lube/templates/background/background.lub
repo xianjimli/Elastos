@@ -1,0 +1,45 @@
+$;;=========================================================================
+$;; Copyright (c) 2000-2005,  Elastos, Inc.  All Rights Reserved.
+$;;=========================================================================
+$
+$INPUT module
+$
+$IF module.attrib is "hasSinkObject"
+$TEMPLATE "callbacksinkh.lub"
+$TEMPLATE "callbacksinkcpp.lub"
+$END IF
+$WITH all classes DO
+$   IF type is not "clsobj" and type is not "sink" and attrib is not "activity" and attrib is not "service" and attrib is not "receiver" and attrib is not "provider"
+$       TEMPLATE "backh.lub"
+$       TEMPLATE "backcpp.lub"
+$   END IF
+$   IF attrib is "activity"
+$       TEMPLATE "activitybackh.lub"
+$       TEMPLATE "activitybackcpp.lub"
+$   END IF
+$   IF attrib is "service"
+$       TEMPLATE "servicebackh.lub"
+$       TEMPLATE "servicebackcpp.lub"
+$   END IF
+$   IF attrib is "receiver"
+$       TEMPLATE "receiverbackh.lub"
+$       TEMPLATE "receiverbackcpp.lub"
+$   END IF
+$   IF attrib is "provider"
+$       TEMPLATE "providerbackh.lub"
+$       TEMPLATE "providerbackcpp.lub"
+$   END IF
+$   IF type is "clsobj"
+$     IF lubeoption is not "UseCustomClassObject"
+$       TEMPLATE "clsobjh.lub"
+$       TEMPLATE "clsobjcpp.lub"
+$     END IF
+$   END IF ;; clsobj
+$   IF type is "sink"
+$       TEMPLATE "sinkh.lub"
+$       TEMPLATE "sinkcpp.lub"
+$   END IF ;; sink
+$END DO ;; all classes
+$
+$TEMPLATE "modpub.lub"
+$TEMPLATE "makefile.lub"

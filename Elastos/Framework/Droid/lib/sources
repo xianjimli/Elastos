@@ -1,0 +1,16 @@
+TARGET_NAME= framework
+TARGET_TYPE= lib
+
+include $(MAKEDIR)/../sources.inc
+
+EXPORT_LIBRARY= 1
+
+IMPORTS = Elastos.Framework.eco
+
+SOURCES = CBaseObject.cpp
+SOURCES += CActivity.cpp
+SOURCES += CService.cpp
+SOURCES += CBroadcastReceiver.cpp
+SOURCES += CInstrumentation.cpp
+SOURCES += CContentProvider.cpp
+SOURCES += frameworkext.cpp

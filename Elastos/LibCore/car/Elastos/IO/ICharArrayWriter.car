@@ -1,0 +1,48 @@
+module
+{
+    interface IWriter;
+
+    interface ICharArrayWriter extends IWriter {
+        /**
+         * Resets this writer. The current write position is reset to the beginning
+         * of the buffer. All written characters are lost and the size of this
+         * writer is set to 0.
+         */
+        Reset();
+
+        /**
+         * Returns the size of this writer, that is the number of characters it
+         * stores. This number changes if this writer is reset or when more
+         * characters are written to it.
+         *
+         * @return this CharArrayWriter's current size in characters.
+         */
+        GetSize(
+            [out] Int32* size);
+
+        /**
+         * Returns the contents of the receiver as a char array. The array returned
+         * is a copy and any modifications made to this writer after calling this
+         * method are not reflected in the result.
+         *
+         * @return this CharArrayWriter's contents as a new char array.
+         */
+        ToCharArray(
+            [out, callee] BufferOf<Byte>* buffer);
+
+        /**
+         * Writes the contents of this {@code CharArrayWriter} to another {@code
+         * Writer}. The output is all the characters that have been written to the
+         * receiver since the last reset or since it was created.
+         *
+         * @param out
+         *            the non-null {@code Writer} on which to write the contents.
+         * @throws NullPointerException
+         *             if {@code out} is {@code null}.
+         * @throws IOException
+         *             if an error occurs attempting to write out the contents.
+         */
+        WriteTo(
+            [in] IWriter* ot);
+    }
+}

@@ -1,0 +1,66 @@
+$;;=========================================================================
+$;; Copyright (c) 2000-2005,  Elastos, Inc.  All Rights Reserved.
+$;;=========================================================================
+$
+$INPUT class
+$OUTPUT "${name}.cpp"
+
+#include "${name}.h"
+
+ECode ${name}::OnCreate()
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode ${name}::Delete(
+    /* [in] */ IUri* uri, 
+    /* [in] */ String selection, 
+    /* [in] */ ArrayOf<String> selectionArgs,
+    /* [out] */ Int32* rowsAffected)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode ${name}::GetType(
+    /* [in] */ IUri* uri,
+    /* [out] */ String* type)
+{
+    return E_NOT_IMPLEMENTED;
+}
+     
+ECode ${name}::Insert(
+    /* [in] */ IUri* uri, 
+    /* [in] */ IContentValues* values,
+    /* [out] */ IUri** insertedItemUri)
+{
+    return E_NOT_IMPLEMENTED;
+}
+    
+ECode ${name}::Query(
+    /* [in] */ IUri* uri, 
+    /* [in] */ ArrayOf<String> projection, 
+    /* [in] */ String selection, 
+    /* [in] */ ArrayOf<String> selectionArgs, 
+    /* [in] */ String sortOrder,
+    /* [out] */ ICursor** cursor)
+{
+    return E_NOT_IMPLEMENTED;
+}
+    
+ECode ${name}::Update(
+    /* [in] */ IUri* uri, 
+    /* [in] */ IContentValues* values, 
+    /* [in] */ String selection, 
+    /* [in] */ ArrayOf<String> selectionArgs,
+    /* [out] */ Int32* rowsAffected)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+$END OUTPUT
+
+
+
+
+    
+    

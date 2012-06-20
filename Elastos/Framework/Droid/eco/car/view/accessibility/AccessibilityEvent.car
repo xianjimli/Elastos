@@ -1,0 +1,60 @@
+
+module
+{
+    /**
+     * Invalid selection/focus position.
+     *
+     * @see #getCurrentItemIndex()
+     */
+    const AccessibilityEvent_INVALID_POSITION = -1;
+
+    /**
+     * Maximum length of the text fields.
+     *
+     * @see #getBeforeText()
+     * @see #getText()
+     */
+    const AccessibilityEvent_MAX_TEXT_LENGTH = 500;
+
+    /**
+     * Represents the event of clicking on a {@link android.view.View} like
+     * {@link android.widget.Button}, {@link android.widget.CompoundButton}, etc.
+     */
+    const AccessibilityEvent_TYPE_VIEW_CLICKED = 0x00000001;
+
+    /**
+     * Represents the event of long clicking on a {@link android.view.View} like
+     * {@link android.widget.Button}, {@link android.widget.CompoundButton}, etc.
+     */
+    const AccessibilityEvent_TYPE_VIEW_LONG_CLICKED = 0x00000002;
+
+    /**
+     * Represents the event of selecting an item usually in the context of an
+     * {@link android.widget.AdapterView}.
+     */
+    const AccessibilityEvent_TYPE_VIEW_SELECTED = 0x00000004;
+
+    /**
+     * Represents the event of focusing a {@link android.view.View}.
+     */
+    const AccessibilityEvent_TYPE_VIEW_FOCUSED = 0x00000008;
+
+    /**
+     * Represents the event of changing the text of an {@link android.widget.EditText}.
+     */
+    const AccessibilityEvent_TYPE_VIEW_TEXT_CHANGED = 0x00000010;
+
+    /**
+     * Represents the event of opening/closing a {@link android.widget.PopupWindow},
+     * {@link android.view.Menu}, {@link android.app.Dialog}, etc.
+     */
+    const AccessibilityEvent_TYPE_WINDOW_STATE_CHANGED = 0x00000020;
+
+    /**
+     * Represents the event showing/hiding a {@link android.app.Notification}.
+     */
+    const AccessibilityEvent_TYPE_NOTIFICATION_STATE_CHANGED = 0x00000040;
+
+    interface IAccessibilityEvent {
+    }
+}

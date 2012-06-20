@@ -1,0 +1,6 @@
+
+module
+{
+    interface ICheckBox extends ICompoundButton {
+    }
+}

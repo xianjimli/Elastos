@@ -1,0 +1,35 @@
+
+module
+{
+    interface IInputStream;
+
+    interface IFileChannel {
+    }
+
+    interface IFileInputStream extends IInputStream {
+        /**
+         * Returns the {@link FileChannel} equivalent to this input stream.
+         * <p>
+         * The file channel is read-only and has an initial position within the file
+         * that is the same as the current position of this stream within the file.
+         * All changes made to the underlying file descriptor state via the channel
+         * are visible by the input stream and vice versa.
+         *
+         * @return the file channel for this stream.
+         */
+        GetChannel(
+            [out] IFileChannel** channel);
+
+        /**
+         * Returns the {@link FileDescriptor} representing the operating system
+         * resource for this stream.
+         *
+         * @return the {@code FileDescriptor} for this stream.
+         * @throws IOException
+         *             if an error occurs while getting this stream's
+         *             {@code FileDescriptor}.
+         */
+        GetFD(
+            [out] IFileDescriptor** fd);
+    }
+}

@@ -1,0 +1,33 @@
+module
+{
+    interface IHello71 {
+        Hello71();
+    }
+
+    interface IHello72 {
+        Hello72();
+    }
+
+    interface IHello73 {
+        Hello73();
+    }
+
+    callbacks JCallback71 {
+        OnTrigger71();
+    }
+
+    class CClass71 {
+        interface IHello71;
+        callbacks JCallback71;
+    }
+
+    aspect AAspect72 {
+        interface IHello72;
+        callbacks JCallback71;
+    }
+
+    context KContext73 pertainsto AAspect72 {
+        interface IHello73;
+        callbacks JCallback71;
+    }
+}

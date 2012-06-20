@@ -1,0 +1,18 @@
+#==========================================================================
+# Copyright (c) 2000-2008,  Elastos, Inc.  All Rights Reserved.
+#==========================================================================
+
+TARGET_NAME= elapi
+TARGET_TYPE= lib
+
+C_DEFINES= -D_UNDEFDLLEXP
+
+INCLUDES += $(MAKEDIR)/../inc;
+INCLUDES += $(MAKEDIR)/../../Library/inc/elasys;
+ifeq "$(XDK_TARGET_PLATFORM)" "linux"
+INCLUDES += $(MAKEDIR)/../marshal/android_linux;
+else
+INCLUDES += $(MAKEDIR)/../marshal/others;
+endif
+
+SOURCES = elapi.cpp

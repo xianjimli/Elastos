@@ -1,0 +1,21 @@
+
+module
+{
+    interface IContext;
+    interface IWindow;
+    interface ILayoutInflater;
+    interface IWindowManagerPolicy;
+
+    interface IPolicyManager {
+        MakeNewWindow(
+            [in] IContext* ctx,
+            [out] IWindow** window);
+
+        MakeNewLayoutInflater(
+            [in] IContext* ctx,
+            [out] ILayoutInflater** inflater);
+
+        MakeNewWindowManager(
+            [out] IWindowManagerPolicy** wm);
+    }
+}

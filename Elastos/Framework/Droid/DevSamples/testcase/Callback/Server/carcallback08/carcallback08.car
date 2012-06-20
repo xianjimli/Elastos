@@ -1,0 +1,25 @@
+module
+{
+    interface IHello81 {
+        Hello81();
+    }
+
+    callbacks JCallback81 {
+        OnTrigger81();
+    }
+
+    class CCallback81 {
+        interface IHello81;
+        callbacks JCallback81;
+    }
+
+    interface IHello82 {
+        Hello82();
+        GetCount([out] Int32* pnCount);
+    }
+
+    class CCallback82 {
+        interface IHello82;
+        interface ICallback81;
+    }
+}

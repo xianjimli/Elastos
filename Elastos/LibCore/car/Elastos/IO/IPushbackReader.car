@@ -1,0 +1,80 @@
+
+module
+{
+    interface IReader;
+
+    interface IPushbackReader extends IReader {
+        /**
+         * Pushes the specified character {@code oneChar} back to this reader. This
+         * is done in such a way that the next character read from this reader is
+         * {@code (char) oneChar}.
+         * <p>
+         * If this reader's internal pushback buffer cannot store the character, an
+         * {@code IOException} is thrown.
+         *
+         * @param oneChar
+         *            the character to push back to this stream.
+         * @throws IOException
+         *             if this reader is closed or the internal pushback buffer is
+         *             full.
+         */
+        UnRead(
+            [in] Int32 oneChar);
+
+        /**
+         * Pushes all the characters in {@code buffer} back to this reader. The
+         * characters are pushed back in such a way that the next character read
+         * from this reader is buffer[0], then buffer[1] and so on.
+         * <p>
+         * If this reader's internal pushback buffer cannot store the entire
+         * contents of {@code buffer}, an {@code IOException} is thrown. Parts of
+         * {@code buffer} may have already been copied to the pushback buffer when
+         * the exception is thrown.
+         *
+         * @param buffer
+         *            the buffer containing the characters to push back to this
+         *            reader.
+         * @throws IOException
+         *             if this reader is closed or the free space in the internal
+         *             pushback buffer is not sufficient to store the contents of
+         *             {@code buffer}.
+         */
+        UnReadBuffer(
+            [in] BufferOf<Byte> buffer);
+
+        /**
+         * Pushes a subset of the characters in {@code buffer} back to this reader.
+         * The subset is defined by the start position {@code offset} within
+         * {@code buffer} and the number of characters specified by {@code length}.
+         * The bytes are pushed back in such a way that the next byte read from this
+         * stream is {@code buffer[offset]}, then {@code buffer[1]} and so on.
+         * <p>
+         * If this stream's internal pushback buffer cannot store the selected
+         * subset of {@code buffer}, an {@code IOException} is thrown. Parts of
+         * {@code buffer} may have already been copied to the pushback buffer when
+         * the exception is thrown.
+         *
+         * @param buffer
+         *            the buffer containing the characters to push back to this
+         *            reader.
+         * @param offset
+         *            the index of the first byte in {@code buffer} to push back.
+         * @param length
+         *            the number of bytes to push back.
+         * @throws IndexOutOfBoundsException
+         *             if {@code offset < 0} or {@code count < 0}, or if
+         *             {@code offset + count} is greater than the length of
+         *             {@code buffer}.
+         * @throws IOException
+         *             if this reader is closed or the free space in the internal
+         *             pushback buffer is not sufficient to store the selected
+         *             contents of {@code buffer}.
+         * @throws NullPointerException
+         *             if {@code buffer} is {@code null}.
+         */
+        UnReadBufferEx(
+            [in] Int32 offset,
+            [in] Int32 length,
+            [in] BufferOf<Byte> buffer);
+    }
+}

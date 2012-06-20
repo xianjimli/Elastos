@@ -1,0 +1,28 @@
+
+module
+{
+    interface IFilterInputStream;
+
+    interface ILineNumberInputStream extends IFilterInputStream {
+        /**
+         * Returns the current line number for this stream. Numbering starts at 0.
+         *
+         * @return the current line number.
+         */
+        GetLineNumber(
+            [out] Int32* lineNumber);
+
+        /**
+         * Sets the line number of this stream to the specified
+         * {@code lineNumber}. Note that this may have side effects on the
+         * line number associated with the last marked position.
+         *
+         * @param lineNumber
+         *            the new lineNumber value.
+         * @see #mark(int)
+         * @see #reset()
+         */
+        SetLineNumber(
+            [in] Int32 lineNumber);
+    }
+}

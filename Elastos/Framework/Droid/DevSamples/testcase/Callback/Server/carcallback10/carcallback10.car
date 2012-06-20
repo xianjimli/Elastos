@@ -1,0 +1,32 @@
+module
+{
+    interface ICBServer {
+        TriggerA();
+        TriggerB();
+        TriggerC();
+
+        Trigger1();
+        Trigger2();
+        Trigger3();
+        Trigger4();
+        Trigger5();
+        Trigger6([in] Int32 nIndex);
+    }
+
+    callbacks JCBTest1 {
+        OnTriggerA([in] Int32 cTimes);
+        OnTriggerC([in] Int32 cTimes);
+        OnTriggerD([in] Int32 cTimes);
+    }
+
+    callbacks JCBTest2 {
+        OnTriggerB([in] Int32 cTimes);
+        OnTrigger([in] Int32 a, [in] String c, [in] BufferOf<Byte> ebbBuf);
+    }
+
+    class CCBServer {
+        interface ICBServer;
+        callbacks JCBTest1;
+        callbacks JCBTest2;
+    }
+}

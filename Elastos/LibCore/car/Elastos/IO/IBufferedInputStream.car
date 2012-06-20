@@ -1,0 +1,8 @@
+
+module
+{
+    interface IFilterInputStream;
+
+    interface IBufferedInputStream extends IFilterInputStream {
+    }
+}

@@ -1,0 +1,11 @@
+
+
+DIRS = Utility
+DIRS += System
+DIRS += UtilityLib
+DIRS += IO
+#DIRS += Security
+DIRS += NIO
+DIRS += IO2
+DIRS += Xml
+DIRS += Test

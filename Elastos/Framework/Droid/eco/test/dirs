@@ -1,0 +1,2 @@
+DIRS += AutoString
+DIRS += AutoStringArray

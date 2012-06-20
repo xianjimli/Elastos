@@ -1,0 +1,170 @@
+
+module
+{
+    /** Constant indicating that no gravity has been set **/
+    const Gravity_NO_GRAVITY = 0x0000;
+
+    /** Raw bit indicating the gravity for an axis has been specified. */
+    const Gravity_AXIS_SPECIFIED = 0x0001;
+
+    /** Raw bit controlling how the left/top edge is placed. */
+    const Gravity_AXIS_PULL_BEFORE = 0x0002;
+    /** Raw bit controlling how the right/bottom edge is placed. */
+    const Gravity_AXIS_PULL_AFTER = 0x0004;
+    /** Raw bit controlling whether the right/bottom edge is clipped to its
+     * container, based on the gravity direction being applied. */
+    const Gravity_AXIS_CLIP = 0x0008;
+
+    /** Bits defining the horizontal axis. */
+    const Gravity_AXIS_X_SHIFT = 0;
+    /** Bits defining the vertical axis. */
+    const Gravity_AXIS_Y_SHIFT = 4;
+
+    /** Push object to the top of its container, not changing its size. */
+    const Gravity_TOP = 0x0030/*(AXIS_PULL_BEFORE|AXIS_SPECIFIED)<<AXIS_Y_SHIFT*/;
+    /** Push object to the bottom of its container, not changing its size. */
+    const Gravity_BOTTOM = 0x0050/*(AXIS_PULL_AFTER|AXIS_SPECIFIED)<<AXIS_Y_SHIFT*/;
+    /** Push object to the left of its container, not changing its size. */
+    const Gravity_LEFT = 0x0003/*(AXIS_PULL_BEFORE|AXIS_SPECIFIED)<<AXIS_X_SHIFT*/;
+    /** Push object to the right of its container, not changing its size. */
+    const Gravity_RIGHT = 0x0005/*(AXIS_PULL_AFTER|AXIS_SPECIFIED)<<AXIS_X_SHIFT*/;
+
+    /** Place object in the vertical center of its container, not changing its
+     *  size. */
+    const Gravity_CENTER_VERTICAL = 0x0010/*AXIS_SPECIFIED<<AXIS_Y_SHIFT*/;
+    /** Grow the vertical size of the object if needed so it completely fills
+     *  its container. */
+    const Gravity_FILL_VERTICAL = 0x0070/*TOP|BOTTOM*/;
+
+    /** Place object in the horizontal center of its container, not changing its
+     *  size. */
+    const Gravity_CENTER_HORIZONTAL = 0x0001/*AXIS_SPECIFIED<<AXIS_X_SHIFT*/;
+    /** Grow the horizontal size of the object if needed so it completely fills
+     *  its container. */
+    const Gravity_FILL_HORIZONTAL = 0x0007/*LEFT|RIGHT*/;
+
+    /** Place the object in the center of its container in both the vertical
+     *  and horizontal axis, not changing its size. */
+    const Gravity_CENTER = 0x0011/*CENTER_VERTICAL|CENTER_HORIZONTAL*/;
+
+    /** Grow the horizontal and vertical size of the object if needed so it
+     *  completely fills its container. */
+    const Gravity_FILL = 0x0077/* FILL_VERTICAL | FILL_HORIZONTAL*/;
+
+    /** Flag to clip the edges of the object to its container along the
+     *  vertical axis. */
+    const Gravity_CLIP_VERTICAL = 0x0080/*AXIS_CLIP<<AXIS_Y_SHIFT*/;
+
+    /** Flag to clip the edges of the object to its container along the
+     *  horizontal axis. */
+    const Gravity_CLIP_HORIZONTAL = 0x0008/*AXIS_CLIP<<AXIS_X_SHIFT*/;
+
+    /**
+     * Binary mask to get the horizontal gravity of a gravity.
+     */
+    const Gravity_HORIZONTAL_GRAVITY_MASK = 0x0007/*(AXIS_SPECIFIED |
+            AXIS_PULL_BEFORE | AXIS_PULL_AFTER) << AXIS_X_SHIFT*/;
+    /**
+     * Binary mask to get the vertical gravity of a gravity.
+     */
+    const Gravity_VERTICAL_GRAVITY_MASK = 0x0070/*(AXIS_SPECIFIED |
+            AXIS_PULL_BEFORE | AXIS_PULL_AFTER) << AXIS_Y_SHIFT*/;
+
+    /** Special constant to enable clipping to an overall display along the
+     *  vertical dimension.  This is not applied by default by
+     *  {@link #apply(int, int, int, Rect, int, int, Rect)}; you must do so
+     *  yourself by calling {@link #applyDisplay}.
+     */
+    const Gravity_DISPLAY_CLIP_VERTICAL = 0x10000000;
+
+    /** Special constant to enable clipping to an overall display along the
+     *  horizontal dimension.  This is not applied by default by
+     *  {@link #apply(int, int, int, Rect, int, int, Rect)}; you must do so
+     *  yourself by calling {@link #applyDisplay}.
+     */
+    const Gravity_DISPLAY_CLIP_HORIZONTAL = 0x01000000;
+
+
+    interface IRect;
+
+    interface IGravity {
+        /**
+         * Apply a gravity constant to an object.
+         *
+         * @param gravity The desired placement of the object, as defined by the
+         *                constants in this class.
+         * @param w The horizontal size of the object.
+         * @param h The vertical size of the object.
+         * @param container The frame of the containing space, in which the object
+         *                  will be placed.  Should be large enough to contain the
+         *                  width and height of the object.
+         * @param outRect Receives the computed frame of the object in its
+         *                container.
+         */
+        Apply(
+            [in] Int32 gravity,
+            [in] Int32 w,
+            [in] Int32 h,
+            [in] IRect* container,
+            [in] IRect* outRect);
+
+        /**
+         * Apply a gravity constant to an object.
+         *
+         * @param gravity The desired placement of the object, as defined by the
+         *                constants in this class.
+         * @param w The horizontal size of the object.
+         * @param h The vertical size of the object.
+         * @param container The frame of the containing space, in which the object
+         *                  will be placed.  Should be large enough to contain the
+         *                  width and height of the object.
+         * @param xAdj Offset to apply to the X axis.  If gravity is LEFT this
+         *             pushes it to the right; if gravity is RIGHT it pushes it to
+         *             the left; if gravity is CENTER_HORIZONTAL it pushes it to the
+         *             right or left; otherwise it is ignored.
+         * @param yAdj Offset to apply to the Y axis.  If gravity is TOP this pushes
+         *             it down; if gravity is BOTTOM it pushes it up; if gravity is
+         *             CENTER_VERTICAL it pushes it down or up; otherwise it is
+         *             ignored.
+         * @param outRect Receives the computed frame of the object in its
+         *                container.
+         */
+        ApplyEx(
+            [in] Int32 gravity,
+            [in] Int32 w,
+            [in] Int32 h,
+            [in] IRect* container,
+            [in] Int32 xAdj,
+            [in] Int32 yAdj,
+            [in] IRect* outRect);
+
+        /**
+         * Apply additional gravity behavior based on the overall "display" that an
+         * object exists in.  This can be used after
+         * {@link #apply(int, int, int, Rect, int, int, Rect)} to place the object
+         * within a visible display.  By default this moves or clips the object
+         * to be visible in the display; the gravity flags
+         * {@link #DISPLAY_CLIP_HORIZONTAL} and {@link #DISPLAY_CLIP_VERTICAL}
+         * can be used to change this behavior.
+         *
+         * @param gravity Gravity constants to modify the placement within the
+         * display.
+         * @param display The rectangle of the display in which the object is
+         * being placed.
+         * @param inoutObj Supplies the current object position; returns with it
+         * modified if needed to fit in the display.
+         */
+        ApplyDisplay(
+            [in] Int32 gravity,
+            [in] IRect* display,
+            [in] IRect* inoutObj);
+
+        IsVertical(
+            [in] Int32 gravity,
+            [out] Boolean* isVertical);
+
+        IsHorizontal(
+            [in] Int32 gravity,
+            [out] Boolean* isHorizontal);
+    }
+}

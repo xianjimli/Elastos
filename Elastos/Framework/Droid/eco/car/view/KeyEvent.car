@@ -1,0 +1,871 @@
+
+module
+{
+    /** Key code constant: Unknown key code. */
+    const KeyEvent_KEYCODE_UNKNOWN         = 0;
+    /** Key code constant: Soft Left key.
+     * Usually situated below the display on phones and used as a multi-function
+     * feature key for selecting a software defined function shown on the bottom left
+     * of the display. */
+    const KeyEvent_KEYCODE_SOFT_LEFT       = 1;
+    /** Key code constant: Soft Right key.
+     * Usually situated below the display on phones and used as a multi-function
+     * feature key for selecting a software defined function shown on the bottom right
+     * of the display. */
+    const KeyEvent_KEYCODE_SOFT_RIGHT      = 2;
+    /** Key code constant: Home key.
+     * This key is handled by the framework and is never delivered to applications. */
+    const KeyEvent_KEYCODE_HOME            = 3;
+    /** Key code constant: Back key. */
+    const KeyEvent_KEYCODE_BACK            = 4;
+    /** Key code constant: Call key. */
+    const KeyEvent_KEYCODE_CALL            = 5;
+    /** Key code constant: End Call key. */
+    const KeyEvent_KEYCODE_ENDCALL         = 6;
+    /** Key code constant: '0' key. */
+    const KeyEvent_KEYCODE_0               = 7;
+    /** Key code constant: '1' key. */
+    const KeyEvent_KEYCODE_1               = 8;
+    /** Key code constant: '2' key. */
+    const KeyEvent_KEYCODE_2               = 9;
+    /** Key code constant: '3' key. */
+    const KeyEvent_KEYCODE_3               = 10;
+    /** Key code constant: '4' key. */
+    const KeyEvent_KEYCODE_4               = 11;
+    /** Key code constant: '5' key. */
+    const KeyEvent_KEYCODE_5               = 12;
+    /** Key code constant: '6' key. */
+    const KeyEvent_KEYCODE_6               = 13;
+    /** Key code constant: '7' key. */
+    const KeyEvent_KEYCODE_7               = 14;
+    /** Key code constant: '8' key. */
+    const KeyEvent_KEYCODE_8               = 15;
+    /** Key code constant: '9' key. */
+    const KeyEvent_KEYCODE_9               = 16;
+    /** Key code constant: '*' key. */
+    const KeyEvent_KEYCODE_STAR            = 17;
+    /** Key code constant: '#' key. */
+    const KeyEvent_KEYCODE_POUND           = 18;
+    /** Key code constant: Directional Pad Up key.
+     * May also be synthesized from trackball motions. */
+    const KeyEvent_KEYCODE_DPAD_UP         = 19;
+    /** Key code constant: Directional Pad Down key.
+     * May also be synthesized from trackball motions. */
+    const KeyEvent_KEYCODE_DPAD_DOWN       = 20;
+    /** Key code constant: Directional Pad Left key.
+     * May also be synthesized from trackball motions. */
+    const KeyEvent_KEYCODE_DPAD_LEFT       = 21;
+    /** Key code constant: Directional Pad Right key.
+     * May also be synthesized from trackball motions. */
+    const KeyEvent_KEYCODE_DPAD_RIGHT      = 22;
+    /** Key code constant: Directional Pad Center key.
+     * May also be synthesized from trackball motions. */
+    const KeyEvent_KEYCODE_DPAD_CENTER     = 23;
+    /** Key code constant: Volume Up key. */
+    const KeyEvent_KEYCODE_VOLUME_UP       = 24;
+    /** Key code constant: Volume Down key. */
+    const KeyEvent_KEYCODE_VOLUME_DOWN     = 25;
+    /** Key code constant: Power key. */
+    const KeyEvent_KEYCODE_POWER           = 26;
+    /** Key code constant: Camera key.
+     * Used to launch a camera application or take pictures. */
+    const KeyEvent_KEYCODE_CAMERA          = 27;
+    /** Key code constant: Clear key. */
+    const KeyEvent_KEYCODE_CLEAR           = 28;
+    /** Key code constant: 'A' key. */
+    const KeyEvent_KEYCODE_A               = 29;
+    /** Key code constant: 'B' key. */
+    const KeyEvent_KEYCODE_B               = 30;
+    /** Key code constant: 'C' key. */
+    const KeyEvent_KEYCODE_C               = 31;
+    /** Key code constant: 'D' key. */
+    const KeyEvent_KEYCODE_D               = 32;
+    /** Key code constant: 'E' key. */
+    const KeyEvent_KEYCODE_E               = 33;
+    /** Key code constant: 'F' key. */
+    const KeyEvent_KEYCODE_F               = 34;
+    /** Key code constant: 'G' key. */
+    const KeyEvent_KEYCODE_G               = 35;
+    /** Key code constant: 'H' key. */
+    const KeyEvent_KEYCODE_H               = 36;
+    /** Key code constant: 'I' key. */
+    const KeyEvent_KEYCODE_I               = 37;
+    /** Key code constant: 'J' key. */
+    const KeyEvent_KEYCODE_J               = 38;
+    /** Key code constant: 'K' key. */
+    const KeyEvent_KEYCODE_K               = 39;
+    /** Key code constant: 'L' key. */
+    const KeyEvent_KEYCODE_L               = 40;
+    /** Key code constant: 'M' key. */
+    const KeyEvent_KEYCODE_M               = 41;
+    /** Key code constant: 'N' key. */
+    const KeyEvent_KEYCODE_N               = 42;
+    /** Key code constant: 'O' key. */
+    const KeyEvent_KEYCODE_O               = 43;
+    /** Key code constant: 'P' key. */
+    const KeyEvent_KEYCODE_P               = 44;
+    /** Key code constant: 'Q' key. */
+    const KeyEvent_KEYCODE_Q               = 45;
+    /** Key code constant: 'R' key. */
+    const KeyEvent_KEYCODE_R               = 46;
+    /** Key code constant: 'S' key. */
+    const KeyEvent_KEYCODE_S               = 47;
+    /** Key code constant: 'T' key. */
+    const KeyEvent_KEYCODE_T               = 48;
+    /** Key code constant: 'U' key. */
+    const KeyEvent_KEYCODE_U               = 49;
+    /** Key code constant: 'V' key. */
+    const KeyEvent_KEYCODE_V               = 50;
+    /** Key code constant: 'W' key. */
+    const KeyEvent_KEYCODE_W               = 51;
+    /** Key code constant: 'X' key. */
+    const KeyEvent_KEYCODE_X               = 52;
+    /** Key code constant: 'Y' key. */
+    const KeyEvent_KEYCODE_Y               = 53;
+    /** Key code constant: 'Z' key. */
+    const KeyEvent_KEYCODE_Z               = 54;
+    /** Key code constant: ',' key. */
+    const KeyEvent_KEYCODE_COMMA           = 55;
+    /** Key code constant: '.' key. */
+    const KeyEvent_KEYCODE_PERIOD          = 56;
+    /** Key code constant: Left Alt modifier key. */
+    const KeyEvent_KEYCODE_ALT_LEFT        = 57;
+    /** Key code constant: Right Alt modifier key. */
+    const KeyEvent_KEYCODE_ALT_RIGHT       = 58;
+    /** Key code constant: Left Shift modifier key. */
+    const KeyEvent_KEYCODE_SHIFT_LEFT      = 59;
+    /** Key code constant: Right Shift modifier key. */
+    const KeyEvent_KEYCODE_SHIFT_RIGHT     = 60;
+    /** Key code constant: Tab key. */
+    const KeyEvent_KEYCODE_TAB             = 61;
+    /** Key code constant: Space key. */
+    const KeyEvent_KEYCODE_SPACE           = 62;
+    /** Key code constant: Symbol modifier key.
+     * Used to enter alternate symbols. */
+    const KeyEvent_KEYCODE_SYM             = 63;
+    /** Key code constant: Explorer special function key.
+     * Used to launch a browser application. */
+    const KeyEvent_KEYCODE_EXPLORER        = 64;
+    /** Key code constant: Envelope special function key.
+     * Used to launch a mail application. */
+    const KeyEvent_KEYCODE_ENVELOPE        = 65;
+    /** Key code constant: Enter key. */
+    const KeyEvent_KEYCODE_ENTER           = 66;
+    /** Key code constant: Backspace key.
+     * Deletes characters before the insertion point. */
+    const KeyEvent_KEYCODE_DEL             = 67;
+    /** Key code constant: '`' (backtick) key. */
+    const KeyEvent_KEYCODE_GRAVE           = 68;
+    /** Key code constant: '-'. */
+    const KeyEvent_KEYCODE_MINUS           = 69;
+    /** Key code constant: '=' key. */
+    const KeyEvent_KEYCODE_EQUALS          = 70;
+    /** Key code constant: '[' key. */
+    const KeyEvent_KEYCODE_LEFT_BRACKET    = 71;
+    /** Key code constant: ']' key. */
+    const KeyEvent_KEYCODE_RIGHT_BRACKET   = 72;
+    /** Key code constant: '\' key. */
+    const KeyEvent_KEYCODE_BACKSLASH       = 73;
+    /** Key code constant: ';' key. */
+    const KeyEvent_KEYCODE_SEMICOLON       = 74;
+    /** Key code constant: ''' (apostrophe) key. */
+    const KeyEvent_KEYCODE_APOSTROPHE      = 75;
+    /** Key code constant: '/' key. */
+    const KeyEvent_KEYCODE_SLASH           = 76;
+    /** Key code constant: '@' key. */
+    const KeyEvent_KEYCODE_AT              = 77;
+    /** Key code constant: Number modifier key.
+     * Used to enter numeric symbols.
+     * This key is not Num Lock; it is more like {@link #KEYCODE_ALT_LEFT} and is
+     * interpreted as an ALT key by {@link android.text.method.MetaKeyKeyListener}. */
+    const KeyEvent_KEYCODE_NUM             = 78;
+    /** Key code constant: Headset Hook key.
+     * Used to hang up calls and stop media. */
+    const KeyEvent_KEYCODE_HEADSETHOOK     = 79;
+    /** Key code constant: Camera Focus key.
+     * Used to focus the camera. */
+    const KeyEvent_KEYCODE_FOCUS           = 80;   // *Camera* focus
+    /** Key code constant: '+' key. */
+    const KeyEvent_KEYCODE_PLUS            = 81;
+    /** Key code constant: Menu key. */
+    const KeyEvent_KEYCODE_MENU            = 82;
+    /** Key code constant: Notification key. */
+    const KeyEvent_KEYCODE_NOTIFICATION    = 83;
+    /** Key code constant: Search key. */
+    const KeyEvent_KEYCODE_SEARCH          = 84;
+    /** Key code constant: Play/Pause media key. */
+    const KeyEvent_KEYCODE_MEDIA_PLAY_PAUSE= 85;
+    /** Key code constant: Stop media key. */
+    const KeyEvent_KEYCODE_MEDIA_STOP      = 86;
+    /** Key code constant: Play Next media key. */
+    const KeyEvent_KEYCODE_MEDIA_NEXT      = 87;
+    /** Key code constant: Play Previous media key. */
+    const KeyEvent_KEYCODE_MEDIA_PREVIOUS  = 88;
+    /** Key code constant: Rewind media key. */
+    const KeyEvent_KEYCODE_MEDIA_REWIND    = 89;
+    /** Key code constant: Fast Forward media key. */
+    const KeyEvent_KEYCODE_MEDIA_FAST_FORWARD = 90;
+    /** Key code constant: Mute key. */
+    const KeyEvent_KEYCODE_MUTE            = 91;
+    /** Key code constant: Page Up key. */
+    const KeyEvent_KEYCODE_PAGE_UP         = 92;
+    /** Key code constant: Page Down key. */
+    const KeyEvent_KEYCODE_PAGE_DOWN       = 93;
+    /** Key code constant: Picture Symbols modifier key.
+     * Used to switch symbol sets (Emoji, Kao-moji). */
+    const KeyEvent_KEYCODE_PICTSYMBOLS     = 94;   // switch symbol-sets (Emoji,Kao-moji)
+    /** Key code constant: Switch Charset modifier key.
+     * Used to switch character sets (Kanji, Katakana). */
+    const KeyEvent_KEYCODE_SWITCH_CHARSET  = 95;   // switch char-sets (Kanji,Katakana)
+    /** Key code constant: A Button key.
+     * On a game controller, the A button should be either the button labeled A
+     * or the first button on the upper row of controller buttons. */
+    const KeyEvent_KEYCODE_BUTTON_A        = 96;
+    /** Key code constant: B Button key.
+     * On a game controller, the B button should be either the button labeled B
+     * or the second button on the upper row of controller buttons. */
+    const KeyEvent_KEYCODE_BUTTON_B        = 97;
+    /** Key code constant: C Button key.
+     * On a game controller, the C button should be either the button labeled C
+     * or the third button on the upper row of controller buttons. */
+    const KeyEvent_KEYCODE_BUTTON_C        = 98;
+    /** Key code constant: X Button key.
+     * On a game controller, the X button should be either the button labeled X
+     * or the first button on the lower row of controller buttons. */
+    const KeyEvent_KEYCODE_BUTTON_X        = 99;
+    /** Key code constant: Y Button key.
+     * On a game controller, the Y button should be either the button labeled Y
+     * or the second button on the lower row of controller buttons. */
+    const KeyEvent_KEYCODE_BUTTON_Y        = 100;
+    /** Key code constant: Z Button key.
+     * On a game controller, the Z button should be either the button labeled Z
+     * or the third button on the lower row of controller buttons. */
+    const KeyEvent_KEYCODE_BUTTON_Z        = 101;
+    /** Key code constant: L1 Button key.
+     * On a game controller, the L1 button should be either the button labeled L1 (or L)
+     * or the top left trigger button. */
+    const KeyEvent_KEYCODE_BUTTON_L1       = 102;
+    /** Key code constant: R1 Button key.
+     * On a game controller, the R1 button should be either the button labeled R1 (or R)
+     * or the top right trigger button. */
+    const KeyEvent_KEYCODE_BUTTON_R1       = 103;
+    /** Key code constant: L2 Button key.
+     * On a game controller, the L2 button should be either the button labeled L2
+     * or the bottom left trigger button. */
+    const KeyEvent_KEYCODE_BUTTON_L2       = 104;
+    /** Key code constant: R2 Button key.
+     * On a game controller, the R2 button should be either the button labeled R2
+     * or the bottom right trigger button. */
+    const KeyEvent_KEYCODE_BUTTON_R2       = 105;
+    /** Key code constant: Left Thumb Button key.
+     * On a game controller, the left thumb button indicates that the left (or only)
+     * joystick is pressed. */
+    const KeyEvent_KEYCODE_BUTTON_THUMBL   = 106;
+    /** Key code constant: Right Thumb Button key.
+     * On a game controller, the right thumb button indicates that the right
+     * joystick is pressed. */
+    const KeyEvent_KEYCODE_BUTTON_THUMBR   = 107;
+    /** Key code constant: Start Button key.
+     * On a game controller, the button labeled Start. */
+    const KeyEvent_KEYCODE_BUTTON_START    = 108;
+    /** Key code constant: Select Button key.
+     * On a game controller, the button labeled Select. */
+    const KeyEvent_KEYCODE_BUTTON_SELECT   = 109;
+    /** Key code constant: Mode Button key.
+     * On a game controller, the button labeled Mode. */
+    const KeyEvent_KEYCODE_BUTTON_MODE     = 110;
+
+    // NOTE: If you add a new keycode here you must also add it to:
+    //  isSystem()
+    //  native/include/android/keycodes.h
+    //  frameworks/base/include/ui/KeycodeLabels.h
+    //  external/webkit/WebKit/android/plugins/ANPKeyCodes.h
+    //  tools/puppet_master/PuppetMaster/nav_keys.py
+    //  frameworks/base/core/res/res/values/attrs.xml
+    //  commands/monkey/Monkey.java
+    //  emulator?
+    //
+    //  Also Android currently does not reserve code ranges for vendor-
+    //  specific key codes.  If you have new key codes to have, you
+    //  MUST contribute a patch to the open source project to define
+    //  those new codes.  This is intended to maintain a consistent
+    //  set of key code definitions across all Android devices.
+
+    /**
+     * @deprecated There are now more than MAX_KEYCODE keycodes.
+     * Use {@link #getMaxKeyCode()} instead.
+     */
+    //@Deprecated
+    const KeyEvent_MAX_KEYCODE             = 84;
+
+    /**
+     * {@link #getAction} value: the key has been pressed down.
+     */
+    const KeyEvent_ACTION_DOWN             = 0;
+    /**
+     * {@link #getAction} value: the key has been released.
+     */
+    const KeyEvent_ACTION_UP               = 1;
+    /**
+     * {@link #getAction} value: multiple duplicate key events have
+     * occurred in a row, or a complex string is being delivered.  If the
+     * key code is not {#link {@link #KEYCODE_UNKNOWN} then the
+     * {#link {@link #getRepeatCount()} method returns the number of times
+     * the given key code should be executed.
+     * Otherwise, if the key code is {@link #KEYCODE_UNKNOWN}, then
+     * this is a sequence of characters as returned by {@link #getCharacters}.
+     */
+    const KeyEvent_ACTION_MULTIPLE         = 2;
+
+    /**
+     * <p>This mask is used to check whether one of the ALT meta keys is pressed.</p>
+     *
+     * @see #isAltPressed()
+     * @see #getMetaState()
+     * @see #KEYCODE_ALT_LEFT
+     * @see #KEYCODE_ALT_RIGHT
+     */
+    const KeyEvent_META_ALT_ON = 0x02;
+
+    /**
+     * <p>This mask is used to check whether the left ALT meta key is pressed.</p>
+     *
+     * @see #isAltPressed()
+     * @see #getMetaState()
+     * @see #KEYCODE_ALT_LEFT
+     */
+    const KeyEvent_META_ALT_LEFT_ON = 0x10;
+
+    /**
+     * <p>This mask is used to check whether the right the ALT meta key is pressed.</p>
+     *
+     * @see #isAltPressed()
+     * @see #getMetaState()
+     * @see #KEYCODE_ALT_RIGHT
+     */
+    const KeyEvent_META_ALT_RIGHT_ON = 0x20;
+
+    /**
+     * <p>This mask is used to check whether one of the SHIFT meta keys is pressed.</p>
+     *
+     * @see #isShiftPressed()
+     * @see #getMetaState()
+     * @see #KEYCODE_SHIFT_LEFT
+     * @see #KEYCODE_SHIFT_RIGHT
+     */
+    const KeyEvent_META_SHIFT_ON = 0x1;
+
+    /**
+     * <p>This mask is used to check whether the left SHIFT meta key is pressed.</p>
+     *
+     * @see #isShiftPressed()
+     * @see #getMetaState()
+     * @see #KEYCODE_SHIFT_LEFT
+     */
+    const KeyEvent_META_SHIFT_LEFT_ON = 0x40;
+
+    /**
+     * <p>This mask is used to check whether the right SHIFT meta key is pressed.</p>
+     *
+     * @see #isShiftPressed()
+     * @see #getMetaState()
+     * @see #KEYCODE_SHIFT_RIGHT
+     */
+    const KeyEvent_META_SHIFT_RIGHT_ON = 0x80;
+
+    /**
+     * <p>This mask is used to check whether the SYM meta key is pressed.</p>
+     *
+     * @see #isSymPressed()
+     * @see #getMetaState()
+     */
+    const KeyEvent_META_SYM_ON = 0x4;
+
+    /**
+     * This mask is set if the device woke because of this key event.
+     */
+    const KeyEvent_FLAG_WOKE_HERE = 0x1;
+
+    /**
+     * This mask is set if the key event was generated by a software keyboard.
+     */
+    const KeyEvent_FLAG_SOFT_KEYBOARD = 0x2;
+
+    /**
+     * This mask is set if we don't want the key event to cause us to leave
+     * touch mode.
+     */
+    const KeyEvent_FLAG_KEEP_TOUCH_MODE = 0x4;
+
+    /**
+     * This mask is set if an event was known to come from a trusted part
+     * of the system.  That is, the event is known to come from the user,
+     * and could not have been spoofed by a third party component.
+     */
+    const KeyEvent_FLAG_FROM_SYSTEM = 0x8;
+
+    /**
+     * This mask is used for compatibility, to identify enter keys that are
+     * coming from an IME whose enter key has been auto-labelled "next" or
+     * "done".  This allows TextView to dispatch these as normal enter keys
+     * for old applications, but still do the appropriate action when
+     * receiving them.
+     */
+    const KeyEvent_FLAG_EDITOR_ACTION = 0x10;
+
+    /**
+     * When associated with up key events, this indicates that the key press
+     * has been canceled.  Typically this is used with virtual touch screen
+     * keys, where the user can slide from the virtual key area on to the
+     * display: in that case, the application will receive a canceled up
+     * event and should not perform the action normally associated with the
+     * key.  Note that for this to work, the application can not perform an
+     * action for a key until it receives an up or the long press timeout has
+     * expired.
+     */
+    const KeyEvent_FLAG_CANCELED = 0x20;
+
+    /**
+     * This key event was generated by a virtual (on-screen) hard key area.
+     * Typically this is an area of the touchscreen, outside of the regular
+     * display, dedicated to "hardware" buttons.
+     */
+    const KeyEvent_FLAG_VIRTUAL_HARD_KEY = 0x40;
+
+    /**
+     * This flag is set for the first key repeat that occurs after the
+     * long press timeout.
+     */
+    const KeyEvent_FLAG_LONG_PRESS = 0x80;
+
+    /**
+     * Set when a key event has {@link #FLAG_CANCELED} set because a long
+     * press action was executed while it was down.
+     */
+    const KeyEvent_FLAG_CANCELED_LONG_PRESS = 0x100;
+
+    /**
+     * Set for {@link #ACTION_UP} when this event's key code is still being
+     * tracked from its initial down.  That is, somebody requested that tracking
+     * started on the key down and a long press has not caused
+     * the tracking to be canceled.
+     */
+    const KeyEvent_FLAG_TRACKING = 0x200;
+
+    /**
+     * Private control to determine when an app is tracking a key sequence.
+     * @hide
+     */
+    const KeyEvent_FLAG_START_TRACKING = 0x40000000;
+
+
+    interface IKeyEvent;
+    interface IInputEvent;
+
+    interface IKeyEventCallback {
+        /**
+         * Called when a key down event has occurred.  If you return true,
+         * you can first call {@link KeyEvent#startTracking()
+         * KeyEvent.startTracking()} to have the framework track the event
+         * through its {@link #onKeyUp(Int32, KeyEvent)} and also call your
+         * {@link #onKeyLongPress(Int32, KeyEvent)} if it occurs.
+         *
+         * @param keyCode The value in event.getKeyCode().
+         * @param event Description of the key event.
+         *
+         * @return If you handled the event, return true.  If you want to allow
+         *         the event to be handled by the next receiver, return false.
+         */
+        OnKeyDown(
+            [in] Int32 keyCode,
+            [in] IKeyEvent* event,
+            [out] Boolean* result);
+
+        /**
+         * Called when a long press has occurred.  If you return true,
+         * the final key up will have {@link KeyEvent#FLAG_CANCELED} and
+         * {@link KeyEvent#FLAG_CANCELED_LONG_PRESS} set.  Note that in
+         * order to receive this callback, someone in the event change
+         * <em>must</em> return true from {@link #onKeyDown} <em>and</em>
+         * call {@link KeyEvent#startTracking()} on the event.
+         *
+         * @param keyCode The value in event.getKeyCode().
+         * @param event Description of the key event.
+         *
+         * @return If you handled the event, return true.  If you want to allow
+         *         the event to be handled by the next receiver, return false.
+         */
+        OnKeyLongPress(
+            [in] Int32 keyCode,
+            [in] IKeyEvent* event,
+            [out] Boolean* result);
+
+        /**
+         * Called when a key up event has occurred.
+         *
+         * @param keyCode The value in event.getKeyCode().
+         * @param event Description of the key event.
+         *
+         * @return If you handled the event, return true.  If you want to allow
+         *         the event to be handled by the next receiver, return false.
+         */
+        OnKeyUp(
+            [in] Int32 keyCode,
+            [in] IKeyEvent* event,
+            [out] Boolean* result);
+
+        /**
+         * Called when multiple down/up pairs of the same key have occurred
+         * in a row.
+         *
+         * @param keyCode The value in event.getKeyCode().
+         * @param count Number of pairs as returned by event.getRepeatCount().
+         * @param event Description of the key event.
+         *
+         * @return If you handled the event, return true.  If you want to allow
+         *         the event to be handled by the next receiver, return false.
+         */
+        OnKeyMultiple(
+            [in] Int32 keyCode,
+            [in] Int32 count,
+            [in] IKeyEvent* event,
+            [out] Boolean* result);
+    }
+
+    interface IDispatcherState {
+        Reset();
+
+        ResetEx(
+            [in] IInterface* target);
+
+        StartTracking(
+            [in] IKeyEvent* event,
+            [in] IInterface* target);
+
+        IsTracking(
+            [in] IKeyEvent* event,
+            [out] Boolean* isTracking);
+
+        PerformedLongPress(
+            [in] IKeyEvent* event);
+
+        HandleUpEvent(
+            [in] IKeyEvent* event);
+    }
+
+    interface IKeyEvent extends IInputEvent {
+        /**
+         * Don't use in new code, instead explicitly check
+         * {@link #getAction()}.
+         *
+         * @return If the action is ACTION_DOWN, returns true; else FALSE.
+         *
+         * @deprecated
+         * @hide
+         */
+        //@Deprecated
+        IsDown(
+            [out] Boolean* isDown);
+
+        /**
+         * Is this a system key?  System keys can not be used for menu shortcuts.
+         *
+         * TODO: this information should come from a table somewhere.
+         * TODO: should the dpad keys be here?  arguably, because they also shouldn't be menu shortcuts
+         */
+        IsSystem(
+            [out] Boolean* isSystem);
+
+        /** @hide */
+        HasDefaultAction(
+            [out] Boolean* hasDefaultAction);
+
+        /**
+         * <p>Returns the state of the meta keys.</p>
+         *
+         * @return an integer in which each bit set to 1 represents a pressed
+         *         meta key
+         *
+         * @see #isAltPressed()
+         * @see #isShiftPressed()
+         * @see #isSymPressed()
+         * @see #META_ALT_ON
+         * @see #META_SHIFT_ON
+         * @see #META_SYM_ON
+         */
+        GetMetaState(
+            [out] Int32* metaState);
+
+        /**
+         * Returns the flags for this key event.
+         *
+         * @see #FLAG_WOKE_HERE
+         */
+        GetFlags(
+            [out] Int32* flags);
+
+        /**
+         * <p>Returns the pressed state of the ALT meta key.</p>
+         *
+         * @return true if the ALT key is pressed, FALSE otherwise
+         *
+         * @see #KEYCODE_ALT_LEFT
+         * @see #KEYCODE_ALT_RIGHT
+         * @see #META_ALT_ON
+         */
+        IsAltPressed(
+            [out] Boolean* isAltPressed);
+
+        /**
+         * <p>Returns the pressed state of the SHIFT meta key.</p>
+         *
+         * @return true if the SHIFT key is pressed, FALSE otherwise
+         *
+         * @see #KEYCODE_SHIFT_LEFT
+         * @see #KEYCODE_SHIFT_RIGHT
+         * @see #META_SHIFT_ON
+         */
+        IsShiftPressed(
+            [out] Boolean* isShiftPressed);
+
+        /**
+         * <p>Returns the pressed state of the SYM meta key.</p>
+         *
+         * @return true if the SYM key is pressed, FALSE otherwise
+         *
+         * @see #KEYCODE_SYM
+         * @see #META_SYM_ON
+         */
+        IsSymPressed(
+            [out] Boolean* isSymPressed);
+
+        /**
+         * Retrieve the action of this key event.  May be either
+         * {@link #ACTION_DOWN}, {@link #ACTION_UP}, or {@link #ACTION_MULTIPLE}.
+         *
+         * @return The event action: ACTION_DOWN, ACTION_UP, or ACTION_MULTIPLE.
+         */
+        GetAction(
+            [out] Int32* action);
+
+        /**
+         * For {@link #ACTION_UP} events, indicates that the event has been
+         * canceled as per {@link #FLAG_CANCELED}.
+         */
+        IsCanceled(
+            [out] Boolean* isCanceled);
+
+        /**
+         * Call this during {@link Callback#onKeyDown} to have the system track
+         * the key through its final up (possibly including a Int64 press).  Note
+         * that only one key can be tracked at a time -- if another key down
+         * event is received while a previous one is being tracked, tracking is
+         * stopped on the previous event.
+         */
+        StartTracking();
+
+        /**
+         * For {@link #ACTION_UP} events, indicates that the event is still being
+         * tracked from its initial down event as per
+         * {@link #FLAG_TRACKING}.
+         */
+        IsTracking(
+            [out] Boolean* isTracking);
+
+        /**
+         * For {@link #ACTION_DOWN} events, indicates that the event has been
+         * canceled as per {@link #FLAG_LONG_PRESS}.
+         */
+        IsLongPress(
+            [out] Boolean* isLongPress);
+
+        /**
+         * Retrieve the key code of the key event.  This is the physical key that
+         * was pressed, <em>not</em> the Unicode character.
+         *
+         * @return The key code of the event.
+         */
+        GetKeyCode(
+            [out] Int32* keyCode);
+
+        /**
+         * For the special case of a {@link #ACTION_MULTIPLE} event with key
+         * code of {@link #KEYCODE_UNKNOWN}, this is a raw string of characters
+         * associated with the event.  In all other cases it is null.
+         *
+         * @return Returns a String of 1 or more characters associated with
+         * the event.
+         */
+        GetCharacters(
+            [out] String* characters);
+
+        /**
+         * Retrieve the hardware key id of this key event.  These values are not
+         * reliable and vary from device to device.
+         *
+         * {@more}
+         * Mostly this is here for debugging purposes.
+         */
+        GetScanCode(
+            [out] Int32* scanCode);
+
+        /**
+         * Retrieve the repeat count of the event.  For both key up and key down
+         * events, this is the number of times the key has repeated with the first
+         * down starting at 0 and counting up from there.  For multiple key
+         * events, this is the number of down/up pairs that have occurred.
+         *
+         * @return The number of times the key has repeated.
+         */
+        GetRepeatCount(
+            [out] Int32* repeatCount);
+
+        /**
+         * Retrieve the time of the most recent key down event,
+         * in the {@link android.os.SystemClock#uptimeMillis} time base.  If this
+         * is a down event, this will be the same as {@link #getEventTime()}.
+         * Note that when chording keys, this value is the down time of the
+         * most recently pressed key, which may <em>not</em> be the same physical
+         * key of this event.
+         *
+         * @return Returns the most recent key down time, in the
+         * {@link android.os.SystemClock#uptimeMillis} time base
+         */
+        GetDownTime(
+            [out] Int64* downTime);
+
+        /**
+         * Retrieve the time this event occurred,
+         * in the {@link android.os.SystemClock#uptimeMillis} time base.
+         *
+         * @return Returns the time this event occurred,
+         * in the {@link android.os.SystemClock#uptimeMillis} time base.
+         */
+        GetEventTime(
+            [out] Int64* eventTime);
+
+        /**
+         * Renamed to {@link #getDeviceId}.
+         *
+         * @hide
+         * @deprecated
+         */
+        GetKeyboardDevice(
+            [out] Int32* deviceId);
+
+        /**
+         * Get the primary character for this key.  In other words, the label
+         * that is physically printed on it.
+         */
+        GetDisplayLabel(
+            [out] Char16* displayLabel);
+
+        /**
+         * <p>
+         * Returns the Unicode character that the key would produce.
+         * </p><p>
+         * Returns 0 if the key is not one that is used to type Unicode
+         * characters.
+         * </p><p>
+         * If the return value has bit
+         * {@link KeyCharacterMap#COMBINING_ACCENT}
+         * set, the key is a "dead key" that should be combined with another to
+         * actually produce a character -- see {@link #getDeadChar} --
+         * after masking with
+         * {@link KeyCharacterMap#COMBINING_ACCENT_MASK}.
+         * </p>
+         */
+        GetUnicodeChar(
+            [out] Int32* unicodeChar);
+
+        /**
+         * <p>
+         * Returns the Unicode character that the key would produce.
+         * </p><p>
+         * Returns 0 if the key is not one that is used to type Unicode
+         * characters.
+         * </p><p>
+         * If the return value has bit
+         * {@link KeyCharacterMap#COMBINING_ACCENT}
+         * set, the key is a "dead key" that should be combined with another to
+         * actually produce a character -- see {@link #getDeadChar} -- after masking
+         * with {@link KeyCharacterMap#COMBINING_ACCENT_MASK}.
+         * </p>
+         */
+        GetUnicodeCharEx(
+            [in] Int32 meta,
+            [out] Int32* unicodeChar);
+
+        /**
+         * Get the characters conversion data for the key event..
+         *
+         * @param keyData a {@link KeyData} that will be filled with the results.
+         *        Handle32 -> KeyCharacterMap::KeyData
+         *
+         * @return whether the key was mapped or not.  If the key was not mapped,
+         *         results is not modified.
+         */
+        GetKeyData(
+            [in] Handle32 keyData,
+            [out] Boolean* result);
+
+        /**
+         * The same as {@link #getMatch(char[],Int32) getMatch(chars, 0)}.
+         */
+        GetMatch(
+            [in] ArrayOf<Char16> chars,
+            [out] Char16* match);
+
+        /**
+         * If one of the chars in the array can be generated by the keyCode of this
+         * key event, return the char; otherwise return '\0'.
+         * @param chars the characters to try to find
+         * @param modifiers the modifier bits to prefer.  If any of these bits
+         *                  are set, if there are multiple choices, that could
+         *                  work, the one for this modifier will be set.
+         */
+        GetMatchEx(
+            [in] ArrayOf<Char16> chars,
+            [in] Int32 modifiers,
+            [out] Char16* match);
+
+        /**
+         * Gets the number or symbol associated with the key.  The character value
+         * is returned, not the numeric value.  If the key is not a number, but is
+         * a symbol, the symbol is retuned.
+         */
+        GetNumber(
+            [out] Char16* ch);
+
+        /**
+         * Does the key code of this key produce a glyph?
+         */
+        IsPrintingKey(
+            [out] Boolean* result);
+
+        /**
+         * @deprecated Use {@link #dispatch(Callback, DispatcherState, Object)} instead.
+         */
+        //@Deprecated
+        Dispatch(
+            [in] IKeyEventCallback* receiver,
+            [out] Boolean* result);
+
+        /**
+         * Deliver this key event to a {@link Callback} interface.  If this is
+         * an ACTION_MULTIPLE event and it is not handled, then an attempt will
+         * be made to deliver a single normal event.
+         *
+         * @param receiver The Callback that will be given the event.
+         * @param dispatcherState State information retained across events.
+         * @param target The target of the dispatch, for use in tracking.
+         *
+         * @return The return value from the Callback method that was called.
+         */
+        DispatchEx(
+            [in] IKeyEventCallback* receiver,
+            [in] IDispatcherState* state,
+            [in] IInterface* target,
+            [out] Boolean* result);
+    }
+}

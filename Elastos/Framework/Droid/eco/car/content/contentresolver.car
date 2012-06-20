@@ -1,0 +1,102 @@
+
+module
+{
+    const ContentResolver_SCHEME_CONTENT = "content";
+    const ContentResolver_SCHEME_ANDROID_RESOURCE = "elastos.resource";
+    const ContentResolver_SCHEME_FILE = "file";
+
+
+    interface IResources;
+    interface IUri;
+    interface ICursor;
+    interface IContentValues;
+
+    //ContentResolver.OpenResourceIdResult
+    interface IOpenResourceIdResult {
+        GetResources(
+            [out] IResources** resources);
+
+        GetResourceId(
+            [out] Int32* id);
+    }
+
+    interface IContentResolver {
+        /**
+         * Return the MIME type of the data at the given URI.
+         */
+        GetType(
+            [in] IUri* uri,
+            [out] String* type);
+
+        /**
+         * Receives a query request from a client in a local process,
+         * and returns a Cursor.
+         */
+        Query(
+            [in] IUri* uri,
+            [in] ArrayOf<String> projection,
+            [in] String selection,
+            [in] ArrayOf<String> selectionArgs,
+            [in] String sortOrder,
+            [out] ICursor** cursor);
+
+        /**
+         * Open a stream on to the content associated with a content URI.  If there
+         * is no data associated with the URI, FileNotFoundException is thrown.
+         *
+         * <h5>Accepts the following URI schemes:</h5>
+         * <ul>
+         * <li>content ({@link #SCHEME_CONTENT})</li>
+         * <li>android.resource ({@link #SCHEME_ANDROID_RESOURCE})</li>
+         * <li>file ({@link #SCHEME_FILE})</li>
+         * </ul>
+         *
+         * <p>See {@link #openAssetFileDescriptor(Uri, String)} for more information
+         * on these schemes.
+         *
+         * @param uri The desired URI.
+         * @return InputStream
+         * @throws FileNotFoundException if the provided URI could not be opened.
+         * @see #openAssetFileDescriptor(Uri, String)
+         */
+        OpenInputStream(
+            [in] IUri* uri,
+            [out] IInputStream** istream);
+
+        /**
+         * Resolves an android.resource URI to a {@link Resources} and a resource id.
+         *
+         * @hide
+         */
+        GetResourceId(
+            [in] IUri* uri,
+            [out] IOpenResourceIdResult** result);
+
+        /**
+         * Implement this to insert a new row.
+         */
+        Insert(
+            [in] IUri* uri,
+            [in] IContentValues* values,
+            [out] IUri** insertedItemUri);
+
+        /**
+         * A request to delete one or more rows.
+         */
+        Delete(
+            [in] IUri* uri,
+            [in] String selection,
+            [in] ArrayOf<String> selectionArgs,
+            [out] Int32* rowsAffected);
+
+        /**
+         * Update a content URI.
+         */
+        Update(
+            [in] IUri* uri,
+            [in] IContentValues* values,
+            [in] String selection,
+            [in] ArrayOf<String> selectionArgs,
+            [out] Int32* rowsAffected);
+    }
+}

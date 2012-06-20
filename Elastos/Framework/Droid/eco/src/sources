@@ -1,0 +1,66 @@
+TARGET_NAME= Elastos.Framework
+TARGET_TYPE= eco
+
+include $(MAKEDIR)/../../sources.inc
+
+INCLUDES += $(MAKEDIR)/inc
+INCLUDES += $(MAKEDIR)/inc/app
+INCLUDES += $(MAKEDIR)/inc/capsule
+INCLUDES += $(MAKEDIR)/inc/content
+INCLUDES += $(MAKEDIR)/inc/ext
+INCLUDES += $(MAKEDIR)/inc/net
+INCLUDES += $(MAKEDIR)/inc/server
+INCLUDES += $(MAKEDIR)/inc/utils
+INCLUDES += $(MAKEDIR)/inc/xg
+INCLUDES += $(MAKEDIR)/inc/xmlparser
+INCLUDES += $(MAKEDIR)/inc/os
+INCLUDES += $(MAKEDIR)/inc/graphics
+INCLUDES += $(MAKEDIR)/inc/graphics/drawable
+INCLUDES += $(MAKEDIR)/inc/view
+INCLUDES += $(MAKEDIR)/inc/view/inputmethod
+INCLUDES += $(MAKEDIR)/inc/view/animation
+INCLUDES += $(MAKEDIR)/inc/impl
+INCLUDES += $(MAKEDIR)/inc/widget
+INCLUDES += $(MAKEDIR)/inc/text
+INCLUDES += $(MAKEDIR)/inc/database
+ifeq "$(XDK_TARGET_PLATFORM)" "linux"
+INCLUDES += $(PREBUILD_INC)/skia/utils
+INCLUDES += $(PREBUILD_INC)/skia/core
+endif
+
+SOURCES = Elastos.Framework.car
+SOURCES += utils.cpp
+
+LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.CarRuntime.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.System.lib
+LIBRARIES += capsule/capsule.lib
+LIBRARIES += net/net.lib
+LIBRARIES += content/content.lib
+LIBRARIES += app/application.lib
+LIBRARIES += server/server.lib
+LIBRARIES += utils/utils.lib
+LIBRARIES += ext/ext.lib
+LIBRARIES += os/os.lib
+LIBRARIES += graphics/graphics.lib
+LIBRARIES += view/view.lib
+LIBRARIES += impl/impl.lib
+LIBRARIES += widget/widget.lib
+LIBRARIES += text/text.lib
+LIBRARIES += emoji/emoji.lib
+LIBRARIES += database/database.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.Logging.lib
+
+ifeq "$(XDK_TARGET_PLATFORM)" "win32"
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Runtime.lib
+LIBRARIES += $(XDK_LIB_PATH)/KD.lib
+LIBRARIES += $(XDK_LIB_PATH)/dbus-1.lib
+LIBRARIES += $(XDK_USER_LIB)/libexpat.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Presentation.CompoundControls.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Presentation.Controls.lib
+else
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.CarRuntime.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
+LIBRARIES += $(XDK_USER_LIB)/crt0.lib
+LIBRARIES += -lexpat -llog -lutils -lbinder -lskia -lskiagl -lsurfaceflinger_client -lui
+endif

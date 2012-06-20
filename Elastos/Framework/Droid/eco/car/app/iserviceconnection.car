@@ -1,0 +1,13 @@
+
+module
+{
+    interface IDescribable;
+    interface IComponentName;
+    interface IBinder;
+
+    interface IServiceConnectionInner extends IDescribable{
+        Connected(
+            [in] IComponentName* name,
+            [in] IBinder* service);
+    }
+}

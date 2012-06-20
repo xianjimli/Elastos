@@ -1,0 +1,37 @@
+module
+{
+    [local]
+    interface IFoo {
+        Foo();
+    }
+
+    interface IHello {
+        GetCount([out] Int32* pnCount);
+        Bar();
+        Hello();
+    }
+
+    interface IHelloClient {
+        OnTrigger([in] PInterface pSender);
+        HelloClient([in] IHello* pIHello);
+    }
+
+    callbacks JCallbackLocal {
+        OnTriggerLocal();
+    }
+
+    callbacks JCallback {
+        OnTrigger();
+    }
+
+    class CCallback {
+        interface IHello;
+        interface IFoo;
+        callbacks JCallback;
+        callbacks JCallbackLocal;
+    }
+
+    class CHelloClient {
+        interface IHelloClient;
+    }
+}

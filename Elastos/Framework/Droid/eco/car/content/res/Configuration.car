@@ -1,0 +1,140 @@
+
+module
+{
+    const Configuration_SCREENLAYOUT_SIZE_MASK = 0x0f;
+    const Configuration_SCREENLAYOUT_SIZE_UNDEFINED = 0x00;
+    const Configuration_SCREENLAYOUT_SIZE_SMALL = 0x01;
+    const Configuration_SCREENLAYOUT_SIZE_NORMAL = 0x02;
+    const Configuration_SCREENLAYOUT_SIZE_LARGE = 0x03;
+    const Configuration_SCREENLAYOUT_SIZE_XLARGE = 0x04;
+
+    const Configuration_SCREENLAYOUT_LONG_MASK = 0x30;
+    const Configuration_SCREENLAYOUT_LONG_UNDEFINED = 0x00;
+    const Configuration_SCREENLAYOUT_LONG_NO = 0x10;
+    const Configuration_SCREENLAYOUT_LONG_YES = 0x20;
+
+    /**
+    * Special flag we generate to indicate that the screen layout requires
+    * us to use a compatibility mode for apps that are not modern layout
+    * aware.
+    * @hide
+    */
+    const Configuration_SCREENLAYOUT_COMPAT_NEEDED = 0x10000000;
+
+    const Configuration_TOUCHSCREEN_UNDEFINED = 0;
+    const Configuration_TOUCHSCREEN_NOTOUCH = 1;
+    const Configuration_TOUCHSCREEN_STYLUS = 2;
+    const Configuration_TOUCHSCREEN_FINGER = 3;
+
+    const Configuration_KEYBOARD_UNDEFINED = 0;
+    const Configuration_KEYBOARD_NOKEYS = 1;
+    const Configuration_KEYBOARD_QWERTY = 2;
+    const Configuration_KEYBOARD_12KEY = 3;
+
+    const Configuration_KEYBOARDHIDDEN_UNDEFINED = 0;
+    const Configuration_KEYBOARDHIDDEN_NO = 1;
+    const Configuration_KEYBOARDHIDDEN_YES = 2;
+    /** Constant matching actual resource implementation. {@hide} */
+    const Configuration_KEYBOARDHIDDEN_SOFT = 3;
+
+    const Configuration_HARDKEYBOARDHIDDEN_UNDEFINED = 0;
+    const Configuration_HARDKEYBOARDHIDDEN_NO = 1;
+    const Configuration_HARDKEYBOARDHIDDEN_YES = 2;
+
+    const Configuration_NAVIGATION_UNDEFINED = 0;
+    const Configuration_NAVIGATION_NONAV = 1;
+    const Configuration_NAVIGATION_DPAD = 2;
+    const Configuration_NAVIGATION_TRACKBALL = 3;
+    const Configuration_NAVIGATION_WHEEL = 4;
+
+    const Configuration_NAVIGATIONHIDDEN_UNDEFINED = 0;
+    const Configuration_NAVIGATIONHIDDEN_NO = 1;
+    const Configuration_NAVIGATIONHIDDEN_YES = 2;
+
+    const Configuration_ORIENTATION_UNDEFINED = 0;
+    const Configuration_ORIENTATION_PORTRAIT = 1;
+    const Configuration_ORIENTATION_LANDSCAPE = 2;
+    const Configuration_ORIENTATION_SQUARE = 3;
+
+    const Configuration_UI_MODE_TYPE_MASK = 0x0f;
+    const Configuration_UI_MODE_TYPE_UNDEFINED = 0x00;
+    const Configuration_UI_MODE_TYPE_NORMAL = 0x01;
+    const Configuration_UI_MODE_TYPE_DESK = 0x02;
+    const Configuration_UI_MODE_TYPE_CAR = 0x03;
+
+    const Configuration_UI_MODE_NIGHT_MASK = 0x30;
+    const Configuration_UI_MODE_NIGHT_UNDEFINED = 0x00;
+    const Configuration_UI_MODE_NIGHT_NO = 0x10;
+    const Configuration_UI_MODE_NIGHT_YES = 0x20;
+
+
+    interface IComparable;
+
+    interface IConfiguration extends IComparable {
+        SetTo(
+            [in] IConfiguration* source);
+
+        /**
+         * Set this object to the system defaults.
+         */
+        SetToDefaults();
+
+        /**
+         * Copy the fields from delta into this Configuration object, keeping
+         * track of which ones have changed.  Any undefined fields in
+         * <var>delta</var> are ignored and not copied in to the current
+         * Configuration.
+         * @return Returns a bit mask of the changed fields, as per
+         * {@link #diff}.
+         */
+        UpdateFrom(
+            [in] IConfiguration* delta,
+            [out] Int32* changes);
+
+        /**
+         * Return a bit mask of the differences between this Configuration
+         * object and the given one.  Does not change the values of either.  Any
+         * undefined fields in <var>delta</var> are ignored.
+         * @return Returns a bit mask indicating which configuration
+         * values has changed, containing any combination of
+         * {@link android.content.pm.ActivityInfo#CONFIG_FONT_SCALE
+         * PackageManager.ActivityInfo.CONFIG_FONT_SCALE},
+         * {@link android.content.pm.ActivityInfo#CONFIG_MCC
+         * PackageManager.ActivityInfo.CONFIG_MCC},
+         * {@link android.content.pm.ActivityInfo#CONFIG_MNC
+         * PackageManager.ActivityInfo.CONFIG_MNC},
+         * {@link android.content.pm.ActivityInfo#CONFIG_LOCALE
+         * PackageManager.ActivityInfo.CONFIG_LOCALE},
+         * {@link android.content.pm.ActivityInfo#CONFIG_TOUCHSCREEN
+         * PackageManager.ActivityInfo.CONFIG_TOUCHSCREEN},
+         * {@link android.content.pm.ActivityInfo#CONFIG_KEYBOARD
+         * PackageManager.ActivityInfo.CONFIG_KEYBOARD},
+         * {@link android.content.pm.ActivityInfo#CONFIG_NAVIGATION
+         * PackageManager.ActivityInfo.CONFIG_NAVIGATION},
+         * {@link android.content.pm.ActivityInfo#CONFIG_ORIENTATION
+         * PackageManager.ActivityInfo.CONFIG_ORIENTATION}, or
+         * {@link android.content.pm.ActivityInfo#CONFIG_SCREEN_LAYOUT
+         * PackageManager.ActivityInfo.CONFIG_SCREEN_LAYOUT}.
+         */
+        Diff(
+            [in] IConfiguration* delta,
+            [out] Boolean* isChanged);
+
+        /**
+         * @hide Return true if the sequence of 'other' is better than this.  Assumes
+         * that 'this' is your current sequence and 'other' is a new one you have
+         * received some how and want to compare with what you have.
+         */
+        IsOtherSeqNewer(
+            [in] IConfiguration* other,
+            [out] Boolean* isBetter);
+
+        Equals(
+            [in] IConfiguration* that,
+            [out] Boolean* isEqual);
+
+        EqualsEx(
+            [in] IInterface* that,
+            [out] Boolean* isEqual);
+    }
+}

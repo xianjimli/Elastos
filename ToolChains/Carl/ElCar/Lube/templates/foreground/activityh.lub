@@ -1,0 +1,41 @@
+$;;=========================================================================
+$;; Copyright (c) 2000-2005,  Elastos, Inc.  All Rights Reserved.
+$;;=========================================================================
+$
+$INPUT class
+$OUTPUT "${name}.h"
+$
+
+#ifndef __${Upper(name)}_H__
+#define __${Upper(name)}_H__
+
+#include "CActivity.h"
+#include "_${name}.h"
+
+class ${name} : public CActivity
+{
+public:
+
+protected:
+    CARAPI OnCreate(
+        /* [in] */ IBundle* savedInstanceState);
+    
+    CARAPI OnStart();
+    
+    CARAPI OnRestart();
+    
+    CARAPI OnResume();
+    
+    CARAPI OnPause();
+    
+    CARAPI OnStop();
+    
+    CARAPI OnDestroy();
+
+private:
+    // TODO: Add your private member variables here.
+};
+
+#endif // __${Upper(name)}_H__
+$
+$END OUTPUT

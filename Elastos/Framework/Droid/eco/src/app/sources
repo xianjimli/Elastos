@@ -1,0 +1,36 @@
+TARGET_NAME= application
+TARGET_TYPE= lib
+
+include $(MAKEDIR)/../../../sources.inc
+
+INCLUDES += $(MAKEDIR)/../inc
+INCLUDES += ../
+ifeq "$(XDK_TARGET_PLATFORM)" "linux"
+INCLUDES += $(PREBUILD_INC)/skia/utils
+INCLUDES += $(PREBUILD_INC)/skia/core
+endif
+
+SOURCES = CApplicationApartment.cpp
+SOURCES += CContextImpl.cpp
+SOURCES += CApplicationContentResolver.cpp
+SOURCES += CDefaultInstrumentation.cpp
+#SOURCES += CServiceApartment.cpp
+#SOURCES += CServiceResolver.cpp
+#SOURCES += metainfos.cpp
+#SOURCES += mshproc.cpp
+#SOURCES += invoke.cpp
+SOURCES += CContentProviderHolder.cpp
+SOURCES += ActivityManagerNative.cpp
+SOURCES += CApplication.cpp
+SOURCES += CResultInfo.cpp
+SOURCES += CActivityResult.cpp
+SOURCES += CWaitResult.cpp
+SOURCES += CNotification.cpp
+SOURCES += CPendingIntent.cpp
+SOURCES += LoadedCap.cpp
+SOURCES += CInnerConnection.cpp
+SOURCES += CRunningAppProcessInfo.cpp
+SOURCES += CCrashInfo.cpp
+SOURCES += CProcessErrorStateInfo.cpp
+SOURCES += CApplicationErrorReport.cpp
+SOURCES += CRunningServiceInfo.cpp

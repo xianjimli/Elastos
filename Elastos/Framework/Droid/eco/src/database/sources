@@ -1,0 +1,10 @@
+TARGET_NAME= database
+TARGET_TYPE= lib
+
+include $(MAKEDIR)/../../../sources.inc
+
+INCLUDES += $(MAKEDIR)/../inc
+INCLUDES += ../
+
+SOURCES = Observable.cpp
+SOURCES = DataSetObservable.cpp

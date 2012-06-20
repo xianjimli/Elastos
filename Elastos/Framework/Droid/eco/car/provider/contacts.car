@@ -1,0 +1,94 @@
+
+module
+{
+    /**
+     * The uri string for peoples of contacts provider.
+     */
+    const Contacts_People_CONTENT_URI = "content://contacts/people";
+
+    /**
+     * The uri string for phones of contacts provider.
+     */
+    const Contacts_Phones_CONTENT_URI = "content://contacts/phones";
+
+    /**
+     * The uri string for peoples extra information of contacts provider.
+     */
+    const Contacts_ContactMethods_CONTENT_URI = "content://contacts/people/contact_methods";
+
+    /**
+     * The person's name.
+     */
+    const Contacts_PeopleColumns_NAME = "name";
+
+    /**
+     * Notes about the person.
+     */
+    const Contacts_PeopleColumns_NOTES = "notes";
+
+    /**
+     * A custom ringtone associated with a person. Not always present.
+     */
+    const Contacts_PeopleColumns_CUSTOM_RINGTONE = "custom_ringtone";
+
+    /**
+     * The display name. If name is not null name,
+     * else if number is not null number,
+     * else if email is not null email.
+     */
+    const Contacts_PeopleColumns_DISPLAY_NAME = "display_name";
+
+    /**
+     * The last time a person was contacted.
+     */
+    const Contacts_PeopleColumns_LAST_TIME_CONTACTED = "last_time_contacted";
+
+    /**
+     * Is the contact starred?
+     */
+    const Contacts_PeopleColumns_STARRED = "starred";
+
+    /**
+     * The number of times a person has been contacted
+     */
+    const Contacts_PeopleColumns_TIMES_CONTACTED = "times_contacted";
+
+    /**
+     * The type of the contact method, must be one of the types below.
+     */
+    const Contacts_ContactMethodsColumns_TYPE = "type";
+    const Contacts_ContactMethodsColumns_TYPE_CUSTOM = 0;
+    const Contacts_ContactMethodsColumns_TYPE_HOME = 1;
+    const Contacts_ContactMethodsColumns_TYPE_WORK = 2;
+    const Contacts_ContactMethodsColumns_TYPE_OTHER = 3;
+
+    /**
+     * The data for contact mathod.
+     */
+    const Contacts_ContactMethodsColumns_DATA = "data";
+
+    /**
+     * The kind for contact mathod, must be one of kinds below.
+     */
+    const Contacts_ContactMethodsColumns_KIND = "kind";
+    const Contacts_KIND_EMAIL = 1;
+    const Contacts_KIND_POSTAL = 2;
+    const Contacts_KIND_IM = 3;
+    const Contacts_KIND_ORGANIZATION = 4;
+    const Contacts_KIND_PHONE = 5;
+
+    /**
+     * The phone number as the user entered it.
+     */
+    const Contacts_PhonesColumns_NUMBER = "number";
+
+    /**
+     * The type of the phone number.
+     */
+    const Contacts_PhonesColumns_TYPE = "type";
+
+    /**
+     * Whether this is the primary phone number. Type Int32,(if set, none zero means true)
+     */
+    const Contacts_PhonesColumns_ISPRIMARY = "isprimary";
+}

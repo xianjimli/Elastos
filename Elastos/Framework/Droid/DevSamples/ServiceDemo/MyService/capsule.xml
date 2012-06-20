@@ -1,0 +1,13 @@
+<!-- ================================================================== -->
+<!--  Copyright (c) 2011,  Elastos, Inc.  All Rights Reserved.          -->
+<!-- ================================================================== -->
+
+<manifest xmlns:elastos="http://schemas.elastos.com/capsule/res/elastos"
+          elastos:capsule="MyService">
+    <application elastos:label="@string/app_label"
+        elastos:icon="@drawable/app_icon">
+
+        <service elastos:name="CMyService"></service>
+
+    </application>
+</manifest>

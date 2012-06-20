@@ -1,0 +1,10 @@
+
+module
+{
+    interface IInputStream;
+
+    interface ISequenceInputStream extends IInputStream {
+
+    }
+
+}

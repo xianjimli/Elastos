@@ -1,0 +1,9 @@
+
+module
+{
+    interface ICapsuleStats
+    {
+        GetDescription(
+            [ out ] String * str);
+    }
+}

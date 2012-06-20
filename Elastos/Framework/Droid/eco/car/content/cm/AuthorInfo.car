@@ -1,0 +1,16 @@
+
+module
+{
+    /*
+     * authorInfo related
+     */
+    interface IAuthorInfo {
+        GetAuthorInfo(
+            [in] String attrName,
+            [out] String* attrValue);
+
+        SetAuthorInfo(
+            [in] String attrName,
+            [in] String attrValue);
+    }
+}

@@ -1,0 +1,23 @@
+
+module
+{
+    interface IParagraphStyle;
+    interface ICanvas;
+    interface IPaint;
+    interface ICharSequence;
+
+    interface ILineBackgroundSpan extends IParagraphStyle {
+        DrawBackground(
+            [in] ICanvas* c,
+            [in] IPaint* p,
+            [in] Int32 left,
+            [in] Int32 right,
+            [in] Int32 top,
+            [in] Int32 baseline,
+            [in] Int32 bottom,
+            [in] ICharSequence* text,
+            [in] Int32 start,
+            [in] Int32 end,
+            [in] Int32 lnum);
+    }
+}

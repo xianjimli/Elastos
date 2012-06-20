@@ -1,0 +1,9 @@
+
+module
+{
+    interface ICapsuleInstallObserver {
+        CapsuleInstalled(
+            [in] String capsuleName,
+            [in] Int32 returnCode);
+    }
+}

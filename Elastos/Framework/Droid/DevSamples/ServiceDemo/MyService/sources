@@ -1,0 +1,23 @@
+TARGET_NAME = MyService
+TARGET_TYPE = eco
+
+IMPORTS = Elastos.Framework.eco
+
+SOURCES  = MyService.car
+SOURCES += CMyService.cpp
+
+LIBRARIES  = $(XDK_USER_LIB)/Elastos.Runtime.CarRuntime.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
+LIBRARIES += $(XDK_USER_LIB)/framework.lib
+ifeq "$(XDK_TARGET_PLATFORM)" "win32"
+LIBRARIES += $(XDK_LIB_PATH)/Elastos.Runtime.lib
+else
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.CarRuntime.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
+LIBRARIES += $(XDK_USER_LIB)/crt0.lib
+endif
+
+APPPACK = 1
+DIRRESOURCES += $(MAKEDIR)/res;
+DIRRESOURCES += $(MAKEDIR)/data;
+FILERESOURCES += $(MAKEDIR)/capsule.xml;

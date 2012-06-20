@@ -1,0 +1,8 @@
+
+module
+{
+    /* oneway */ interface IRotationWatcher {
+        OnRotationChanged(
+            [in] Int32 rotation);
+    }
+}

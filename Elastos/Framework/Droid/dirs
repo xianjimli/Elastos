@@ -1,0 +1,17 @@
+
+ifneq "$(XDK_TARGET_PLATFORM)" "openkode"
+
+DIRS = inc
+DIRS += ServiceManager
+DIRS += eco
+DIRS += host
+DIRS += lib
+DIRS += DevSamples
+DIRS += Superexe
+
+endif
+
+ifeq "$(XDK_TARGET_PLATFORM)" "openkode"
+#PLATFORM_DIRS = eco host
+#PLATFORM_LIST = android linux
+endif

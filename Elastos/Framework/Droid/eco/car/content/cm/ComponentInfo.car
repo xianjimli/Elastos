@@ -1,0 +1,22 @@
+
+module
+{
+    interface IApplicationInfo;
+    interface ICapsuleItemInfo;
+
+    interface IComponentInfo extends ICapsuleItemInfo {
+        GetComponentName(
+            [out] String* capsuleName,
+            [out] String* className);
+
+        SetComponentName(
+            [in] String capsuleName,
+            [in] String className);
+
+        GetApplicationInfo(
+            [out] IApplicationInfo** info);
+
+        SetApplicationInfo(
+            [in] IApplicationInfo* info);
+    }
+}

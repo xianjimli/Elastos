@@ -1,0 +1,23 @@
+
+module
+{
+    merge("server/am.car");
+
+    interface IWindowManagerEx;
+    interface IContext;
+    interface ICapsuleManager;
+
+    class CWindowManagerService {
+        interface IWindowManagerEx;
+    }
+
+    class CCapsuleManagerService {
+        constructor();
+
+        constructor(
+            [in] IContext* ctx,
+            [in] Boolean factoryTest);
+
+        interface ICapsuleManager;
+    }
+}

@@ -1,0 +1,23 @@
+module
+{
+    interface IHello42 {
+        Hello42();
+    }
+
+    class CAspect42 {
+        interface IHello42;
+    }
+
+    interface IHello41 {
+        Hello41();
+    }
+
+    callbacks JCallback41 {
+        OnTrigger41();
+    }
+
+    aspect AAspect41 {
+        interface IHello41;
+        callbacks JCallback41;
+    }
+}

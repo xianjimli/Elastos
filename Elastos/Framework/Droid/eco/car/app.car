@@ -1,0 +1,107 @@
+
+module
+{
+    merge("app/activity.car");
+    merge("app/service.car");
+    merge("app/instrumentation.car");
+    merge("app/iinstrumentationwatcher.car");
+    merge("app/applicationapartment.car");
+    merge("app/iserviceconnection.car");
+    merge("app/application.car");
+    merge("app/notification.car");
+    merge("app/pendingintent.car");
+    merge("app/ithumbnailreceiver.car");
+    merge("app/iactivitywatcher.car");
+    merge("app/iactivitycontroller.car");
+    merge("app/activitymanager.car");
+    merge("app/IBatteryStats.car");
+    merge("app/IMediaContainerService.car");
+    merge("app/backup/ibackupmanager.car");
+    merge("app/backup/irestoreobserver.car");
+    merge("app/backup/irestoresession.car");
+
+
+    class CContentProviderHolder {
+        interface IContentProviderHolder;
+        interface IParcelable;
+    }
+
+    class CActivityResult {
+        interface IActivityResult;
+
+        constructor(
+            [in] Int32 resultCode,
+            [in] IIntent* resultData);
+    }
+
+    class CDefaultInstrumentation {
+        interface IInstrumentation;
+    }
+
+    class CInnerConnection {
+        interface IServiceConnectionInner;
+    }
+
+    class CApplicationApartment {
+        interface IApplicationApartment;
+    }
+
+    interface IContext;
+
+    class CContextImpl {
+        interface IContext;
+    }
+
+    class CApplication {
+        interface IApplication;
+    }
+
+    class CResultInfo {
+        constructor(
+            [in] String resultWho,
+            [in] Int32 requestCode,
+            [in] Int32 resultCode,
+            [in] IIntent* data);
+
+        interface IParcelable;
+    }
+
+    class CNotification {
+        interface INotification;
+        interface IParcelable;
+    }
+
+    class CPendingIntent {
+        interface IPendingIntent;
+        interface IParcelable;
+    }
+
+    class CCrashInfo {
+        interface IParcelable;
+    }
+
+    class CApplicationErrorReport {
+        interface IParcelable;
+    }
+
+    class CWaitResult {
+        constructor();
+        constructor(
+            [in] IParcel* source);
+
+        interface IWaitResult;
+        interface IParcelable;
+    }
+
+    class CRunningAppProcessInfo {
+        interface IParcelable;
+    }
+
+    class CProcessErrorStateInfo {
+        interface IParcelable;
+    }
+
+    class CRunningServiceInfo {
+        interface IParcelable;
+    }
+}

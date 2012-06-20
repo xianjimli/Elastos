@@ -1,0 +1,15 @@
+
+module
+{
+    merge("../../../../car/Elastos/System/Errors.car");
+    merge("../../../../car/Elastos/System/Exceptions.car");
+    merge("../../../../car/Elastos/System/ICharSequence.car");
+
+
+    class CStringWrapper {
+        constructor(
+            [in] String str);
+
+        interface ICharSequence;
+    }
+}

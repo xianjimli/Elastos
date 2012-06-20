@@ -1,0 +1,9 @@
+TARGET_NAME= carcallback03
+TARGET_TYPE= eco
+
+SOURCES = carcallback03.car
+SOURCES+= AAspect32.cpp
+SOURCES+= CCallback31.cpp
+
+LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.CarRuntime.lib
+LIBRARIES+= $(XDK_USER_LIB)/Elastos.Runtime.lib

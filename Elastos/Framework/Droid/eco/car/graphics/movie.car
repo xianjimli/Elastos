@@ -1,0 +1,35 @@
+
+module
+{
+    interface ICanvas;
+    interface IPaint;
+
+    interface IMovie {
+        Width(
+            [out] Int32* width);
+
+        Height(
+            [out] Int32* height);
+
+        IsOpaque(
+            [out] Boolean* isOpaque);
+
+        Duration(
+            [out] Int32* height);
+
+        SetTime(
+            [in] Int32 relativeMilliseconds,
+            [out] Boolean* isSet);
+
+        Draw(
+            [in] ICanvas* canvas,
+            [in] Float x,
+            [in] Float y,
+            [in] IPaint* paint);
+
+        DrawEx(
+            [in] ICanvas* canvas,
+            [in] Float x,
+            [in] Float y);
+    }
+}

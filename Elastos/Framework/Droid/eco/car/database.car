@@ -1,0 +1,7 @@
+
+module
+{
+    merge("database/cursor.car");
+    merge("database/DataSetObserver.car");
+    merge("database/Observable.car");
+}

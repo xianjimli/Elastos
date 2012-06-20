@@ -1,0 +1,18 @@
+
+module
+{
+    interface IComponentName;
+    interface IBundle;
+
+    /*oneway*/ interface IInstrumentationWatcher {
+        InstrumentationStatus(
+            [in] IComponentName* name,
+            [in] Int32 resultCode,
+            [in] IBundle* results);
+
+        InstrumentationFinished(
+            [in] IComponentName* name,
+            [in] Int32 resultCode,
+            [in] IBundle* results);
+    }
+}

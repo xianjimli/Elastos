@@ -1,0 +1,213 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+
+
+<!-- ======================================================================= -->
+<!--  Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.          -->
+<!-- ======================================================================= -->
+<!--
+<x:elastos xmlns="http://www.elastos.com/XmlGlue/Widgets"
+         xmlns:x="http://www.elastos.com/XmlGlue/2.1">
+
+    <form x:id="dialogBox" visible="TRUE" id="form">
+        <canvasPanel x:id="dialogBoxPanel" controlTemplate="CanvasPanelTemplate">
+            <pictureBox x:id="iconBox" />
+            <label x:id="titleLabel" text="水族馆"/>
+            <label x:id="msgLabel" />
+
+            <pictureBox x:id="returnButton" stylusLifted="OnDialogBoxClose()" />
+
+            <label x:id="doInfo" text="关于" click="OnDoInfoClick()"/>
+            <label x:id="doShare" text="分享" click="OnDoShareClick()"/>
+            <label x:id="doUninstall" text="卸载" click="OnDoUninstallClick()"/>
+        </canvasPanel>
+    </form>
+
+    <x:script>
+
+
+        DIALOGBOX_WIDTH = 284
+        DIALOGBOX_HEIGHT = 276
+        DIALOGBOX_LEFT = 20
+        DIALOGBOX_TOP =80
+        ICONBOX_WIDTH = 80
+        ICONBOX_HEIGHT = 80
+
+        function OnDialogBoxClose()
+            dialogBox:Hide()
+        end
+
+        function OnDoInfoClick()
+            Call:Info
+            titleLabel:SetText('aquarium')
+        end
+
+        function OnDoShareClick()
+           Call:Share
+            titleLabel:SetText('分享')
+        end
+
+        function OnDoUninstallClick()
+            Call:Uninstall
+            titleLabel:SetText('正在卸载...')
+        end
+
+        dialogBoxPanel:SetWidth(DIALOGBOX_WIDTH)
+        dialogBoxPanel:SetHeight(DIALOGBOX_HEIGHT)
+        dialogBoxPanel:SetPosition(DIALOGBOX_LEFT,DIALOGBOX_TOP)
+        dialogBoxPanel:SetElementImageAlignment("Panel.Background", "Controls.ImageAlign.Stretch")
+        dialogBoxPanel:SetElementImage("Panel.Background", "CapsuleWidgetDemo/Images/dialogBox_bg.png")
+
+        iconBox:SetPosition(70,70)
+        iconBox:SetWidth(ICONBOX_WIDTH);
+        iconBox:SetHeight(ICONBOX_HEIGHT);
+        iconBox:SetImageAlign(Controls.ImageAlign.Stretch)
+        iconBox:LoadImageFromFile("CapsuleWidgetDemo/Images/icon.png")
+
+        titleLabel:SetPosition(85,166)
+        msgLabel:SetPosition(70,42)
+
+        doShare:SetPosition(220,36)
+        doShare:SetTextForegroundColor(Controls.ColorChart.White)
+
+        doUninstall:SetPosition(220,92)
+        doUninstall:SetTextForegroundColor(Controls.ColorChart.White)
+
+        doInfo:SetPosition(220,148)
+        doInfo:SetTextForegroundColor(Controls.ColorChart.White)
+
+        returnButton:SetWidth(50);
+        returnButton:SetHeight(50);
+        returnButton:SetImageAlign(Controls.ImageAlign.Stretch)
+        returnButton:LoadImageFromFile("CapsuleWidgetDemo/Images/menu_button.png")
+        returnButton:SetPosition(DIALOGBOX_WIDTH-70,DIALOGBOX_HEIGHT-80)
+
+        dialogBox:Show()
+    </x:script>
+
+</x:elastos>
+-->
+
+<!--
+<form xmlns="http://www.elastos.com/grafix/3.0"
+			style="ControlStyle:IgnoreFocus FormStyle:PixelAlphaChannel" id="dialogBox">
+    <canvasPanel width="284" height="276" id="dialogBoxPanel"
+    			 controlTemplate="CanvasPanelTemplate">
+        <pictureBox width="70" height="70" id="iconBox" />
+
+        <label id="titleLabel" text="水族馆" alignment="HCenter" />
+
+        <label id="msgLabel"/>
+
+        <pictureBox width="50" height="50" id="returnButton" />
+
+        <label id="doShare" text="分享"
+        		textForegroundColor="0xFFFFFFFF"/>
+
+        <label id="doMove" text="移动"
+				textForegroundColor="0xFFFFFFFF"/>
+
+        <label id="doSetting" text="设置"
+				textForegroundColor="0xFFFFFFFF"/>
+
+        <label id="doUninstall" text="卸载"
+        		textForegroundColor="0xFFFFFFFF"/>
+
+        <label id="doInfo" text="关于"
+				textForegroundColor="0xFFFFFFFF"/>
+    </canvasPanel>
+</form>
+-->
+
+<form xmlns:elastos="http://schemas.elastos.com/capsule/res/elastos"
+    elastos:style="ControlStyle:IgnoreFocus FormStyle:PixelAlphaChannel"
+    elastos:id="form">
+
+    <stackPanel
+        elastos:width="284"
+        elastos:height="276"
+        elastos:id="dialogBoxPanel"
+        elastos:orientation="Horizontal"
+        elastos:controlTemplate="StackPanelTemplate">
+
+        <stackPanel
+            elastos:orientation="Vertical"
+            elastos:width="200"
+            elastos:sizeMode="HeightAdaptParent"
+            elastos:id="contextPanel">
+
+            <pictureBox
+                elastos:width="70"
+                elastos:height="70"
+                elastos:id="iconBox"
+                elastos:alignment="HCenter"/>
+
+            <label
+                elastos:id="titleLabel"
+                elastos:width="194"
+                elastos:text="水族馆"
+                elastos:textAlignment="TextAlign:HCenter" />
+
+            <label
+                elastos:id="msgLabel"
+                elastos:sizeMode="WidthAdaptParent"
+                elastos:textAlignment="TextAlign:HCenter"/>
+
+        </stackPanel>
+
+        <stackPanel
+            elastos:orientation="Vertical"
+            elastos:width="84"
+            elastos:sizeMode="HeightAdaptParent"
+            elastos:id="menuPanel">
+
+            <label
+                elastos:id="doShare"
+                elastos:sizeMode="WidthAdaptParent"
+                elastos:height="30"
+                elastos:text="分享"
+                elastos:textAlignment="TextAlign:HCenter"
+            	elastos:textForegroundColor="White" />
+
+            <label
+                elastos:id="doMove"
+                elastos:sizeMode="WidthAdaptParent"
+                elastos:height="30"
+                elastos:text="移动"
+    		    elastos:textAlignment="TextAlign:HCenter"
+    			elastos:textForegroundColor="White" />
+
+            <label
+                elastos:id="doSetting"
+                elastos:sizeMode="WidthAdaptParent"
+                elastos:height="30"
+                elastos:text="设置"
+    			elastos:textAlignment="TextAlign:HCenter"
+    			elastos:textForegroundColor="White" />
+
+            <label
+                elastos:id="doUninstall"
+                elastos:sizeMode="WidthAdaptParent"
+                elastos:height="30"
+                elastos:text="卸载"
+            	elastos:textAlignment="TextAlign:HCenter"
+            	elastos:textForegroundColor="White" />
+
+            <label
+                elastos:id="doInfo"
+                elastos:sizeMode="WidthAdaptParent"
+                elastos:height="30"
+                elastos:text="关于"
+    			elastos:textAlignment="TextAlign:HCenter"
+            	elastos:textForegroundColor="White" />
+
+    	    <pictureBox
+    	        elastos:width="50"
+    	        elastos:height="50"
+    	        elastos:id="returnButton"
+    	        elastos:alignment="HCenter"/>
+
+        </stackPanel>
+
+    </stackPanel>
+
+</form>

@@ -1,0 +1,8 @@
+
+module
+{
+    /* oneway */ interface IOnKeyguardExitResult {
+        OnKeyguardExitResult(
+            [in] Boolean success);
+    }
+}

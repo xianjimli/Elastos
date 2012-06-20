@@ -1,0 +1,21 @@
+
+module
+{
+    interface IReader;
+
+    interface IBufferedReader extends IReader {
+        /**
+         * Returns the next line of text available from this reader. A line is
+         * represented by zero or more characters followed by {@code '\n'},
+         * {@code '\r'}, {@code "\r\n"} or the end of the reader. The string does
+         * not include the newline sequence.
+         *
+         * @return the contents of the line or {@code null} if no characters were
+         *         read before the end of the reader has been reached.
+         * @throws IOException
+         *             if this reader is closed or some other I/O error occurs.
+         */
+        ReadLine(
+            [out] String* contents);
+    }
+}

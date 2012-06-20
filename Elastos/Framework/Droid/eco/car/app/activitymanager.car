@@ -1,0 +1,264 @@
+
+module
+{
+    /**
+     * Returned by startActivity() if the start request was canceled because
+     * app switches are temporarily canceled to ensure the user's last request
+     * (such as pressing home) is performed.
+     */
+    const ActivityManager_START_SWITCHES_CANCELED = 4;
+
+    /**
+     * Returned by startActivity() if an activity wasn't really started, but
+     * the given Intent was given to the existing top activity.
+     */
+    const ActivityManager_START_DELIVERED_TO_TOP = 3;
+
+    /**
+     * Returned by startActivity() if an activity wasn't really started, but
+     * a task was simply brought to the foreground.
+     */
+    const ActivityManager_START_TASK_TO_FRONT = 2;
+
+    /**
+     * Returned by startActivity() if the caller asked that the Intent not
+     * be executed if it is the recipient, and that is indeed the case.
+     */
+    const ActivityManager_START_RETURN_INTENT_TO_CALLER = 1;
+
+    /**
+     * Activity was started successfully as normal.
+     */
+    const ActivityManager_START_SUCCESS = 0;
+    const ActivityManager_START_INTENT_NOT_RESOLVED = -1;
+    const ActivityManager_START_CLASS_NOT_FOUND = -2;
+    const ActivityManager_START_FORWARD_AND_REQUEST_CONFLICT = -3;
+    const ActivityManager_START_PERMISSION_DENIED = -4;
+
+    const ActivityManager_INTENT_SENDER_BROADCAST = 1;
+    const ActivityManager_INTENT_SENDER_ACTIVITY = 2;
+    const ActivityManager_INTENT_SENDER_ACTIVITY_RESULT = 3;
+    const ActivityManager_INTENT_SENDER_SERVICE = 4;
+
+    interface IContentProvider;
+    interface IContentProviderInfo;
+
+    interface IApplicationApartment;
+    interface IIntent;
+    interface IObjectContainer;
+    interface IBinder;
+    interface IComponentName;
+    interface INotification;
+    interface IServiceConnectionInner;
+    interface IIntentReceiver;
+    interface IBundle;
+    interface IContentProviderHolder;
+    interface IUri;
+    interface IIntentSender;
+
+    interface IContentProviderHolder {
+        GetContentProvider(
+            [out] IContentProvider** provider);
+
+        GetContentProviderInfo(
+            [out] IContentProviderInfo** info);
+    }
+
+    interface IWaitResult {
+        DescribeContents(
+            [out] Int32* result);
+    }
+
+    interface IMemoryInfo {
+    }
+
+    interface IActivityManager {
+        AttachApplication(
+            [in] IApplicationApartment* appApartment,
+            [in] Int32 pid);
+
+        //Activity related
+        StartActivity(
+            [in] IApplicationApartment* caller,
+            [in] IIntent* intent,
+            [in] String resolvedType,
+            [in] IObjectContainer* grantedUriPermissions,
+            [in] Int32 grantedMode,
+            [in] IBinder* resultTo,
+            [in] String resultWho,
+            [in] Int32 requestCode,
+            [in] Boolean onlyIfNeeded,
+            [in] Boolean debug,
+            [out] Int32* status);
+
+        StartActivityAndWait(
+            [in] IApplicationApartment* caller,
+            [in] IIntent* intent,
+            [in] String resolvedType,
+            [in] IObjectContainer* grantedUriPermissions,
+            [in] Int32 grantedMode,
+            [in] IBinder* resultTo,
+            [in] String resultWho,
+            [in] Int32 requestCode,
+            [in] Boolean onlyIfNeeded,
+            [in] Boolean debug,
+            [out] IWaitResult** result);
+
+        StartActivityWithConfig(
+            [in] IApplicationApartment* caller,
+            [in] IIntent* intent,
+            [in] String resolvedType,
+            [in] IObjectContainer* grantedUriPermissions,
+            [in] Int32 grantedMode,
+            [in] IBinder* resultTo,
+            [in] String resultWho,
+            [in] Int32 requestCode,
+            [in] Boolean onlyIfNeeded,
+            [in] Boolean debug,
+            [in] IConfiguration* config,
+            [out] Int32* status);
+
+        StartActivityIntentSender(
+            [in] IApplicationApartment* caller,
+            [in] IIntentSender* sender,
+            [in] IIntent* fillInIntent,
+            [in] String resolvedType,
+            [in] IBinder* resultTo,
+            [in] String resultWho,
+            [in] Int32 requestCode,
+            [in] Int32 flagsMask,
+            [in] Int32 flagsValues,
+            [out] Int32* status);
+
+        FinishActivity(
+            [in] IBinder* token,
+            [in] Int32 resultCode,
+            [in] IIntent* resultData,
+            [out] Boolean* finished);
+
+        WillActivityBeVisible(
+            [in] IBinder* token,
+            [out] Boolean* visible);
+
+        //Service related
+        StartService(
+            [in] IApplicationApartment* caller,
+            [in] IIntent* service,
+            [in] String resolvedType,
+            [in] Int32 callingPid,
+            [in] Int32 callingUid,
+            [out] IComponentName** name);
+
+        StopService(
+            [in] IApplicationApartment* caller,
+            [in] IIntent* service,
+            [in] String resolvedType,
+            [in] Int32 callingPid,
+            [in] Int32 callingUid,
+            [out] Int32* result);
+
+        PeekService(
+            [in] IIntent* service,
+            [in] String resolvedType,
+            [in] Int32 callingPid,
+            [in] Int32 callingUid,
+            [out] IBinder** token);
+
+        StopServiceToken(
+            [in] IComponentName* className,
+            [in] IBinder* token,
+            [in] Int32 startId,
+            [out] Boolean* succeeded);
+
+        SetServiceForeground(
+            [in] IComponentName* className,
+            [in] IBinder* token,
+            [in] Int32 id,
+            [in] INotification* notification,
+            [in] Boolean removeNotification);
+
+        BindService(
+            [in] IApplicationApartment* caller,
+            [in] IBinder* token,
+            [in] IIntent* service,
+            [in] String resolvedType,
+            [in] IServiceConnectionInner* connection,
+            [in] Int32 flags,
+            [in] Int32 callingPid,
+            [in] Int32 callingUid,
+            [out] Int32* result);
+
+        UnbindService(
+            [in] IServiceConnectionInner* connection,
+            [out] Boolean* succeeded);
+
+        PublishService(
+            [in] IBinder* token,
+            [in] IIntent* intent,
+            [in] IBinder* service);
+
+        UnbindFinished(
+            [in] IBinder* token,
+            [in] IIntent* service,
+            [in] Boolean doRebind);
+
+        ServiceDoneExecuting(
+            [in] IBinder* token,
+            [in] Int32 type,
+            [in] Int32 startId,
+            [in] Int32 res);
+
+        //BroadcastReceiver related
+        BroadcastIntent(
+            [in] IApplicationApartment* caller,
+            [in] IIntent *intent,
+            [in] String resolvedType,
+            [in] IIntentReceiver* resultTo,
+            [in] Int32 resultCode,
+            [in] String resultData,
+            [in] IBundle* map,
+            [in] String requiredPermission,
+            [in] Boolean serialized,
+            [in] Boolean sticky,
+            [in] Int32 callingPid,
+            [in] Int32 callingUid,
+            [out] Int32* result);
+
+        FinishReceiver(
+            [in] IBinder* who,
+            [in] Int32 resultCode,
+            [in] String resultData,
+            [in] IBundle* resultExtras,
+            [in] Boolean resultAbort);
+
+        //ContentProvider related
+        GetContentProvider(
+            [in] IApplicationApartment* caller,
+            [in] String name,
+            [out] IContentProviderHolder** providerHolder);
+
+        PublishContentProviders(
+            [in] IApplicationApartment* caller,
+            [in] IObjectContainer* providers);
+
+        GetProviderMimeType(
+            [in] IUri* uri,
+            [out] String* type);
+
+        ActivityPaused(
+            [in] IBinder* token,
+            [in] IBundle* icicle);
+
+        ActivityStopped(
+            [in] IBinder* token,
+            [in] IBitmap* thumbnail, //Bitmap thumbnail
+            [in] String description);
+
+        ActivityDestroyed(
+            [in] IBinder* token);
+
+        KillApplicationWithUid(
+            [in] String capName,
+            [in] Int32 uid);
+    }
+}

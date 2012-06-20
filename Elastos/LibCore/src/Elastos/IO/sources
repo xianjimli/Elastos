@@ -1,0 +1,39 @@
+#==========================================================================
+# Copyright (c) 2000-2008,  Elastos, Inc.  All Rights Reserved.
+#==========================================================================
+TARGET_NAME= Elastos.IO
+TARGET_TYPE= eco
+
+INCLUDESTEMP := $(INCLUDES);
+INCLUDES := $(MAKEDIR)/../../../inc/Elastos/IO;
+INCLUDES += $(INCLUDESTEMP);
+
+SOURCES = Elastos.IO.car
+SOURCES += CByteArrayInputStream.cpp
+SOURCES += CByteArrayOutputStream.cpp
+SOURCES += CFileInputStream.cpp
+SOURCES += CFileOutputStream.cpp
+SOURCES += CStringInputStream.cpp
+SOURCES += CBufferedInputStream.cpp
+SOURCES += CBufferedOutputStream.cpp
+SOURCES += CDataInputStream.cpp
+SOURCES += CDataOutputStream.cpp
+SOURCES += CTextInputStream.cpp
+SOURCES += CTextOutputStream.cpp
+SOURCES += CGZipInputStream.cpp
+SOURCES += CGZipOutputStream.cpp
+SOURCES += CFileDescriptor.cpp
+SOURCES += CInputStreamReader.cpp
+SOURCES += CFile.cpp
+
+LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.CarRuntime.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
+ifeq "$(XDK_TARGET_PLATFORM)" "win32"
+LIBRARIES += $(XDK_LIB_PATH)/Elastos.Runtime.lib
+LIBRARIES += $(XDK_LIB_PATH)/Elastos.Archiving.zlib.lib
+else
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.CarRuntime.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
+LIBRARIES += $(XDK_USER_LIB)/crt0.lib
+LIBRARIES += -lz
+endif

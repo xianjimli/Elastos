@@ -1,0 +1,30 @@
+
+module
+{
+    enum ApartmentAttr {
+        ApartmentAttr_Current = 0x01,
+        ApartmentAttr_New     = 0x02,
+    }
+
+    interface IApartment {
+        Start(
+            [in] ApartmentAttr attr);
+
+        Finish();
+
+        PostCppCallback(
+            [in] Handle32 target,
+            [in] Handle32 func,
+            [in] IParcel* params);
+
+        PostCppCallbackAtTime(
+            [in] Handle32 target,
+            [in] Handle32 func,
+            [in] IParcel* params,
+            [in] Millisecond64 uptimeMillis);
+
+        RemoveCppCallbacks(
+            [in] Handle32 target,
+            [in] Handle32 func);
+    }
+}

@@ -1,0 +1,474 @@
+
+module
+{
+    merge("content/res/compatibilityinfo.car");
+    merge("content/res/colorstatelist.car");
+    merge("content/res/assetfiledescriptor.car");
+    merge("content/res/resources.car");
+    merge("content/res/assetmanager.car");
+    merge("content/res/typedarray.car");
+    merge("content/res/xmlresourceparser.car");
+    merge("content/res/Configuration.car");
+    merge("content/cm/CapsuleItemInfo.car");
+    merge("content/cm/ComponentInfo.car");
+    merge("content/cm/ActivityInfo.car");
+    merge("content/cm/ServiceInfo.car");
+    merge("content/cm/ContentProviderInfo.car");
+    merge("content/cm/AuthorInfo.car");
+    merge("content/cm/ResolveInfo.car");
+    merge("content/cm/InstrumentationInfo.car");
+    merge("content/cm/ApplicationInfo.car");
+    merge("content/cm/CapsuleInfo.car");
+    merge("content/cm/CapsuleInfoLite.car");
+    merge("content/cm/ConfigurationInfo.car");
+    merge("content/cm/PermissionInfo.car");
+    merge("content/cm/PermissionGroupInfo.car");
+    merge("content/cm/ParceledListSlice.car");
+    merge("content/cm/ICapsuleInstallObserver.car");
+    merge("content/cm/ICapsuleDeleteObserver.car");
+    merge("content/cm/ICapsuleDataObserver.car");
+    merge("content/cm/ICapsuleStatsObserver.car");
+    merge("content/cm/FeatureInfo.car");
+    merge("content/cm/ICapsuleMoveObserver.car");
+    merge("content/cm/capsulemanager.car");
+    merge("content/cm/CapsuleStats.car");
+    merge("content/context.car");
+    merge("content/contextwrapper.car");
+    merge("content/contentresolver.car");
+    merge("content/contentvalues.car");
+    merge("content/contentprovider.car");
+    merge("content/serviceconnection.car");
+    merge("content/iintentsender.car");
+    merge("content/iintentreceiver.car");
+    merge("content/broadcastreceiver.car");
+    merge("content/componentcallbacks.car");
+    merge("content/Intent.car");
+    merge("content/ComponentName.car");
+    merge("content/IntentFilter.car");
+
+    interface ICursor;
+
+    class CCursorWrapperInner {
+        constructor(
+            [in] ICursor* cursor,
+            [in] IContentProvider* provider);
+
+        interface ICursor;
+    }
+
+    class CContentValues {
+        constructor();
+
+        interface IContentValues;
+    }
+
+    interface IApplicationApartment;
+
+    class CApplicationContentResolver {
+        constructor(
+            [in] IContext* ctx,
+            [in] IApplicationApartment* apartment);
+
+        interface IContentResolver;
+    }
+
+    class CPathPermission {
+        constructor(
+            [in] String pattern,
+            [in] Int32 type,
+            [in] String readPermission,
+            [in] String writePermission);
+
+        constructor(
+            [in] IParcel* src);
+
+        interface IParcelable;
+    }
+
+    class CPermissionInfo
+    {
+        constructor();
+
+        constructor(
+            [in] IPermissionInfo* orig);
+
+        /*private*/ constructor(
+            [in] IParcel* source);
+
+        interface IPermissionInfo;
+        interface IParcelable;
+    }
+
+    class CPermissionGroupInfo
+    {
+        constructor();
+
+        constructor(
+            [in] IPermissionGroupInfo* orig);
+
+        /*private*/ constructor(
+            [in] IParcel* source);
+
+        interface IPermissionGroupInfo;
+        interface IParcelable;
+    }
+
+    class CIntentSender {
+        constructor(
+            [in] IIntentSender* target);
+
+        interface IParcelable;
+    }
+
+    class CColorStateList {
+        /*private*/ constructor();
+
+        /**
+         * Creates a ColorStateList that returns the specified mapping from
+         * states to colors.
+         */
+        constructor(
+            [in] ArrayOf<Handle32> states,
+            [in] ArrayOf<Int32> colors);
+
+        interface IColorStateList;
+    }
+
+
+    class CTheme {
+        /*package*/ constructor(
+            [in] IResources* res,
+            [in] IAssetManager* assets);
+
+        interface ITheme;
+    }
+
+    class CResources {
+        /**
+         * Create a new Resources object on top of an existing set of assets in an
+         * AssetManager.
+         *
+         * @param assets Previously created AssetManager.
+         * @param metrics Current display metrics to consider when
+         *                selecting/computing resource values.
+         * @param config Desired device configuration to consider when
+         *               selecting/computing resource values (optional).
+         */
+        constructor(
+            [in] IAssetManager* assets,
+            [in] IDisplayMetrics* metrics,
+            [in] IConfiguration* config);
+
+        /**
+         * Creates a new Resources object with CompatibilityInfo.
+         *
+         * @param assets Previously created AssetManager.
+         * @param metrics Current display metrics to consider when
+         *                selecting/computing resource values.
+         * @param config Desired device configuration to consider when
+         *               selecting/computing resource values (optional).
+         * @param compInfo this resource's compatibility info. It will use the default compatibility
+         *  info when it's null.
+         * @hide
+         */
+        constructor(
+            [in] IAssetManager* assets,
+            [in] IDisplayMetrics* metrics,
+            [in] IConfiguration* config,
+            [in] ICompatibilityInfo* compInfo);
+
+        /*private*/ constructor();
+
+        interface IResources;
+    }
+
+    singleton class CResourcesFactory {
+        interface IResourcesFactory;
+    }
+
+    interface IApplicationInfo;
+
+    class CCompatibilityInfo {
+        constructor(
+            [in] IApplicationInfo* appInfo);
+
+        /*private*/ constructor(
+            [in] Int32 appFlags,
+            [in] Int32 compFlags,
+            [in] Int32 dens,
+            [in] Float scale,
+            [in] Float invertedScale);
+
+        /*private*/ constructor();
+
+        interface ICompatibilityInfo;
+    }
+
+    class CAssetFileDescriptor {
+        /**
+         * Create a new AssetFileDescriptor from the given values.
+         * @param fd The underlying file descriptor.
+         * @param startOffset The location within the file that the asset starts.
+         * This must be 0 if length is UNKNOWN_LENGTH.
+         * @param length The number of bytes of the asset, or
+         * {@link #UNKNOWN_LENGTH if it extends to the end of the file.
+         */
+        constructor(
+            [in] IParcelFileDescriptor* fd,
+            [in] Int64 startOffset,
+            [in] Int64 length);
+
+        /*package*/ constructor(
+            [in] IParcel* src);
+
+        interface IAssetFileDescriptor;
+
+        interface IParcelable;
+    }
+
+    class CAssetManager {
+        /**
+         * Create a new AssetManager containing only the basic system assets.
+         * Applications will not generally use this method, instead retrieving the
+         * appropriate asset manager with {@link Resources#getAssets}.    Not for
+         * use by applications.
+         * {@hide}
+         */
+        constructor();
+
+        /*private*/ constructor(
+            [in] Boolean isSystem);
+
+        interface IAssetManager;
+    }
+
+    class CTypedArray {
+        /*package*/ constructor(
+            [in] IResources* resources,
+            [in] ArrayOf<Int32> data,
+            [in] ArrayOf<Int32> indices,
+            [in] Int32 len);
+
+        interface ITypedArray;
+    }
+
+    class CComponentName {
+        constructor();
+        constructor(
+            [in] String capsuleName,
+            [in] String className);
+
+        interface IComponentName;
+        interface IParcelable;
+    }
+
+    class CIntent {
+        constructor();
+
+        constructor(
+            [in] IIntent* intent);
+
+        constructor(
+            [in] IIntent* intent,
+            [in] Boolean all);
+
+        constructor(
+            [in] String action);
+
+        constructor(
+            [in] String action,
+            [in] IUri* uri);
+
+        constructor(
+            [in] Handle32 andIntent);
+
+        interface IIntent;
+        interface IParcelable;
+    }
+
+    class CIntentFilter {
+        /**
+         * New empty IntentFilter.
+         */
+        constructor();
+
+        /**
+         * New IntentFilter that matches a single action with no data.  If
+         * no data characteristics are subsequently specified, then the
+         * filter will only match intents that contain no data.
+         *
+         * @param action The action to match, i.e. Intent.ACTION_MAIN.
+         */
+        constructor(
+            [in] String action);
+
+        /**
+         * New IntentFilter that matches a single action and data type.
+         *
+         * <p><em>Note: MIME type matching in the Android framework is
+         * case-sensitive, unlike formal RFC MIME types.  As a result,
+         * you should always write your MIME types with lower case letters,
+         * and any MIME types you receive from outside of Android should be
+         * converted to lower case before supplying them here.</em></p>
+         *
+         * <p>Throws {@link MalformedMimeTypeException} if the given MIME type is
+         * not syntactically correct.
+         *
+         * @param action The action to match, i.e. Intent.ACTION_VIEW.
+         * @param dataType The type to match, i.e. "vnd.android.cursor.dir/person".
+         *
+         */
+        constructor(
+            [in] String action,
+            [in] String dataType);
+
+        /**
+         * New IntentFilter containing a copy of an existing filter.
+         *
+         * @param o The original filter to copy.
+         */
+        constructor(
+            [in] IIntentFilter* o);
+
+        interface IIntentFilter;
+        interface IParcelable;
+    }
+
+    class CActivityInfo {
+        constructor();
+        constructor(
+            [in] IActivityInfo* orig);
+
+        interface IActivityInfo;
+        interface IParcelable;
+    }
+
+    class CServiceInfo {
+        constructor();
+        constructor(
+            [in] IServiceInfo* orig);
+
+        interface IServiceInfo;
+        interface IParcelable;
+    }
+
+    class CContentProviderInfo {
+        constructor();
+        constructor(
+            [in] IContentProviderInfo* orig);
+
+        interface IContentProviderInfo;
+        interface IParcelable;
+    }
+
+    class CAuthorInfo {
+        interface IAuthorInfo;
+    }
+
+    class CResolveInfo {
+        interface IResolveInfo;
+        interface IParcelable;
+    }
+
+    class CInstrumentationInfo {
+        constructor();
+
+        constructor(
+            [in] IInstrumentationInfo* orig);
+
+        interface IInstrumentationInfo;
+        interface IParcelable;
+    }
+
+    class CApplicationInfo {
+        constructor();
+        constructor(
+            [in] IApplicationInfo* orig);
+
+        interface IApplicationInfo;
+        interface IParcelable;
+    }
+
+    class CCapsuleInfo {
+        interface ICapsuleInfo;
+        interface IParcelable;
+    }
+
+    class CConfiguration {
+        /**
+         * Construct an invalid Configuration.  You must call {@link #setToDefaults}
+         * for this object to be valid.  {@more}
+         */
+        constructor();
+
+        /**
+         * Makes a deep copy suitable for modification.
+         */
+        constructor(
+            [in] IConfiguration* o);
+
+        /**
+         * Construct this Configuration object, reading from the Parcel.
+         */
+        /*private*/ constructor(
+            [in] IParcel* source);
+
+        interface IConfiguration;
+        interface IParcelable;
+    }
+
+    class CConfigurationInfo {
+        constructor();
+
+        constructor(
+            [in] IConfigurationInfo* orig);
+
+        /*private*/ constructor(
+            [in] IParcel* source);
+
+        interface IConfigurationInfo;
+        interface IParcelable;
+    }
+
+    class CFeatureInfo {
+        constructor();
+
+        constructor(
+            [in] IFeatureInfo* orig);
+
+        /*private*/ constructor(
+            [in] IParcel* source);
+
+        interface IFeatureInfo;
+        interface IParcelable;
+    }
+
+    class CParceledListSlice {
+        constructor(
+            [in] IParcelable* t);
+
+        constructor(
+            [in] IParcelable* t,
+            [in] IParcel* p,
+            [in] Int32 numItems,
+            [in] Boolean lastSlice);
+
+        interface IParceledListSlice;
+        interface IParcelable;
+    }
+
+    class CCapsuleStats {
+        constructor(
+            [in] String capName);
+
+        constructor(
+            [in] IParcel* source);
+
+        constructor(
+            [in] ICapsuleStats* stats);
+
+        interface ICapsuleStats;
+        interface IParcelable;
+    }
+}
+

@@ -1,0 +1,86 @@
+<manifest xmlns:elastos="http://schemas.elastos.com/capsule/res/elastos"
+        elastos:capsule="CapsuleDemo">
+    
+    <author name="John Doe"
+            email="John.Doe@affiliation.com"
+            phone="021-1234-5678"
+            mobile="138-1234-5678"
+            address="ShangHai China"
+            affiliation="www.affiliation.com" />
+    
+    <publisher elastos:name="Jane Doe"
+            email="Jane.Doe@affiliation.com"
+            mobile="138-1234-5678"
+            address="ShangHai China"
+            affiliation="www.affiliation.com"
+            domainhost="elastos.affiliation.com" />       
+
+    <about title="MyFirstCapsuleApp"
+            description="A simple capsule application sample"
+            barcode="e68087b9-00046d34"
+            manufacturingDate="2010-08-01"
+            copyright="2010, Elastos, Inc. All Rights Reserved" />
+           
+    <requirement>
+        <processor type="*" minclockcycle="300MHz" />
+        <memory mincapacity="128MB" minfreespace="64MB"/>
+        <storage mincapacity="256MB" minfreespace="128MB"/>
+        <display resolution="320x480"/>
+        <touchPanel optional="yes"/>
+        <accelerometer optional="yes"/>
+        <frontcamera minresolution="0.3M"/>
+        <maincamera minresolution="3M" flashlight="*"/>
+        <network bandwidth="2.5G|2.75G|3G|4G" type="GPRS|EDGE|WCDMA|EV-DO"/>
+        <device type="speedometer" 
+                id="speedometer" 
+                barcode ="1234-5678-90"
+                domain="localhost"  
+                authentication="pronto|onDemand"/>
+    </requirement>
+
+    <dependency>
+        <module elastos:name="com.affiliation.grafix.BaseControl"
+                alias="Grafix" 
+                downloadpolicy="pronto|asap|onDemand"
+                barcode="*" 
+                manufacturingdate="*"/>
+        <service type="messaging" 
+                id="messaging" 
+                barcode ="0134-5678-91"
+                domain="skype.com" 
+                authentication="pronto|onDemand"/>
+		<scheme elastos:name="mp8player"
+                module="com.affiliation.mp8player.dll"
+                class="CMp8Player"
+                barcode="*"/>
+    </dependency>
+    
+    <installation animation=""
+            message=""
+            script="Scripts/installation.lua" />
+ 
+    <uninstallation animation=""
+            script="Scripts/installation.lua" />
+            
+    <application elastos:label="@string/app_label"
+                elastos:icon="@drawable/ic_launcher_alarmclock">
+
+        <activity elastos:name="CActivityDashboard"
+                 elastos:launchMode="SingleTask">
+            <intent-filter>
+                <action elastos:name="elastos.intent.action.MAIN"/>
+            </intent-filter>
+        </activity>           
+       
+        <activity elastos:name="CActivityDialogBox" />
+       
+        <activity elastos:name="CActivityAquarium" />
+               
+        <receiver elastos:name="CBroadcastReceiverOne">
+            <intent-filter>
+                <action elastos:name="com.kortide.alarmclock.ALARM_ALERT" />
+            </intent-filter>
+        </receiver>
+    </application>
+    
+</manifest>

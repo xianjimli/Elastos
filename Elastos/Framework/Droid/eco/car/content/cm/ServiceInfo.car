@@ -1,0 +1,9 @@
+
+module
+{
+    /**
+     * ServiceInfo related
+     */
+    interface IServiceInfo extends IComponentInfo {
+    }
+}

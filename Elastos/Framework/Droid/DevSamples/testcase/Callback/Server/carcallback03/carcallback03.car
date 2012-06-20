@@ -1,0 +1,24 @@
+module
+{
+    interface IHello32 {
+        Hello32();
+    }
+
+    aspect AAspect32 {
+        interface IHello32;
+    }
+
+    interface IHello31 {
+        Hello31();
+    }
+
+    callbacks JCallback31 {
+        OnTrigger31();
+    }
+
+//    [aggregate(AAspect32)]
+    singleton class CCallback31 {
+        interface IHello31;
+        callbacks JCallback31;
+    }
+}

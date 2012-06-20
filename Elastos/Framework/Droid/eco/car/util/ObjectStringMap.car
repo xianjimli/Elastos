@@ -1,0 +1,20 @@
+
+module
+{
+    interface IObjectStringMap {
+        Get(
+            [in] String key,
+            [out] IInterface** value);
+
+        Put(
+            [in] String key,
+            [in] IInterface* value);
+
+        GetSize(
+            [out] Int32* size);
+
+        GetAllItems(
+            [out, callee] ArrayOf<String>* keys,
+            [out] IObjectContainer** values);
+    }
+}

@@ -1,0 +1,40 @@
+$;;=========================================================================
+$;; Copyright (c) 2000-2005,  Elastos, Inc.  All Rights Reserved.
+$;;=========================================================================
+$
+$INPUT module
+$
+$
+$WITH all classes DO
+$	IF type is not "generic" and type is not "sink" and type is not "clsobj" and attrib is not "activity" and attrib is not "service" and attrib is not "receiver" and attrib is not "provider"
+$           TEMPLATE "foreh.lub"
+$           TEMPLATE "forecpp.lub"
+$   END IF
+$END DO
+$
+$WITH all classes DO
+$	IF attrib is "activity"
+$           TEMPLATE "activityh.lub"
+$           TEMPLATE "activitycpp.lub"
+$   END IF
+$	IF attrib is "service"
+$           TEMPLATE "serviceh.lub"
+$           TEMPLATE "servicecpp.lub"
+$   END IF
+$   IF attrib is "receiver"
+$           TEMPLATE "receiverh.lub"
+$           TEMPLATE "receivercpp.lub"
+$   END IF
+$   IF attrib is "provider"
+$           TEMPLATE "providerh.lub"
+$           TEMPLATE "providercpp.lub"
+$   END IF
+$END DO
+$
+$WITH all classes DO
+$	IF type is "generic" and type is not "clsobj" and attrib is not "activity" and attrib is not "receiver"
+$           TEMPLATE "foreh.lub"
+$           TEMPLATE "foregeneric.lub"
+$   END IF
+$END DO
+

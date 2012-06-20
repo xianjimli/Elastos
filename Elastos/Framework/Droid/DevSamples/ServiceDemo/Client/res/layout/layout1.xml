@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form xmlns:elastos="http://schemas.elastos.com/capsule/res/elastos"
+    elastos:style="ControlStyle:IgnoreFocus"
+    elastos:id="form">
+        <stackPanel
+            elastos:orientation="Vertical"
+            elastos:sizeMode="HeightAdaptContent"
+            elastos:id="stackPanel">
+            <button
+                elastos:text="StartMyService"
+                elastos:sizeMode="WidthAdaptParent"
+                elastos:id="btn_start"/>
+            <button
+                elastos:text="StopMyService"
+                elastos:sizeMode="WidthAdaptParent"
+                elastos:id="btn_stop" />
+            <button
+                elastos:text="BindMyService"
+                elastos:sizeMode="WidthAdaptParent"
+                elastos:id="btn_bind" />
+        </stackPanel>
+</form>

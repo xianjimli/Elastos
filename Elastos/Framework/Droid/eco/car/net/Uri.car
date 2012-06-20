@@ -1,0 +1,23 @@
+
+module
+{
+    interface IComparable;
+
+    interface IUri extends IComparable {
+        GetScheme(
+            [out] String* scheme);
+
+        GetSchemeSpecificPart(
+            [out] String* ssp);
+
+        GetAuthority(
+            [out] String* authority);
+
+        GetPath(
+            [out] String* path);
+
+        Equals(
+            [in] IUri* other,
+            [out] Boolean* isEqual);
+    }
+}

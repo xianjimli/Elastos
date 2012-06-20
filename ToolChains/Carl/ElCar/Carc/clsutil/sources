@@ -1,0 +1,20 @@
+#==========================================================================
+# Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.
+#==========================================================================
+
+TARGET_NAME= clsutil
+TARGET_TYPE= lib
+
+
+INCLUDESTEMP := $(INCLUDES);
+INCLUDES += $(MAKEDIR)/../../inc;
+INCLUDES += $(INCLUDESTEMP);
+
+
+
+SOURCES = strgen.cpp
+SOURCES += cls2car.cpp
+SOURCES += cls2abrg.cpp
+#SOURCES += chgpath.cpp
+SOURCES += rabin.cpp
+

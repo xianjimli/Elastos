@@ -1,0 +1,34 @@
+
+module
+{
+    interface IDataSetObserver;
+    /**
+     * Provides methods for (un)registering arbitrary observers in an ArrayList.
+     */
+    interface IObservable {
+        /**
+         * Adds an observer to the list. The observer cannot be NULL and it must not already
+         * be registered.
+         * @param observer the observer to register
+         * @throws IllegalArgumentException the observer is NULL
+         * @throws IllegalStateException the observer is already registered
+         */
+        RegisterObserver(
+            [in] IDataSetObserver* observer);
+
+        /**
+         * Removes a previously registered observer. The observer must not be NULL and it
+         * must already have been registered.
+         * @param observer the observer to unregister
+         * @throws IllegalArgumentException the observer is NULL
+         * @throws IllegalStateException the observer is not yet registered
+         */
+        UnregisterObserver(
+            [in] IDataSetObserver* observer);
+        
+        /**
+         * Remove all registered observer
+         */
+        UnregisterAll();
+    }
+}

@@ -1,0 +1,4 @@
+
+DIRS += Runtime
+DIRS += LibCore
+DIRS += Framework

@@ -1,0 +1,20 @@
+module
+{
+    interface IHello61 {
+        Hello61([in] Int32 nIndex);
+    }
+
+    callbacks JCallback61 {
+        OnTrigger61();
+    }
+
+    callbacks JCallback62 {
+        OnTrigger62();
+    }
+
+    class CCallback61 {
+        interface IHello61;
+        callbacks JCallback61;
+        callbacks JCallback62;
+    }
+}

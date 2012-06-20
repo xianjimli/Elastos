@@ -1,0 +1,15 @@
+
+module
+{
+    /**
+     * Callback interface to watch the user's traversal through activities.
+     * {@hide}
+     */
+    /* oneway */ interface IActivityWatcher {
+        ActivityResuming(
+            [in] Int32 activityId);
+
+        ClosingSystemDialogs(
+            [in] String reason);
+    }
+}

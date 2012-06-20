@@ -1,0 +1,22 @@
+TARGET_NAME= utils
+TARGET_TYPE= lib
+
+include $(MAKEDIR)/../../../sources.inc
+
+INCLUDES += $(MAKEDIR)/../inc
+INCLUDES += ../
+
+SOURCES = CApartment.cpp
+SOURCES += CBundle.cpp
+SOURCES += CObjectContainer.cpp
+SOURCES += CObjectEnumerator.cpp
+SOURCES += CObjectStringMap.cpp
+SOURCES += CObjectIntegerMap.cpp
+SOURCES += CDisplayMetrics.cpp
+SOURCES += CTypedValue.cpp
+SOURCES += Xml.cpp
+SOURCES += XmlUtils.cpp
+SOURCES += StateSet.cpp
+SOURCES += EventLogTags.cpp
+SOURCES += ArrayUtils.cpp
+SOURCES += ListUtils.cpp

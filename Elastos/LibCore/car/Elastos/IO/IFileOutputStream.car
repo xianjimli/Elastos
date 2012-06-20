@@ -1,0 +1,32 @@
+
+module
+{
+    interface IOutputStream;
+
+    interface IFileOutputStream extends IOutputStream {
+        /**
+         * Returns the FileChannel equivalent to this output stream.
+         * <p>
+         * The file channel is write-only and has an initial position within the
+         * file that is the same as the current position of this stream within the
+         * file. All changes made to the underlying file descriptor state via the
+         * channel are visible by the output stream and vice versa.
+         *
+         * @return the file channel representation for this stream.
+         */
+        GetChannel(
+            [out] IFileChannel** channel);
+
+        /**
+         * Returns a FileDescriptor which represents the lowest level representation
+         * of an operating system stream resource.
+         *
+         * @return a FileDescriptor representing this stream.
+         * @throws IOException
+         *             if an error occurs attempting to get the FileDescriptor of
+         *             this stream.
+         */
+        GetFD(
+            [out] IFileDescriptor** fd);
+    }
+}

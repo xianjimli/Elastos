@@ -1,0 +1,34 @@
+
+module
+{
+    merge("util/Describable.car");
+    merge("util/Comparable.car");
+    merge("util/ObjectStringMap.car");
+    merge("util/AttributeSet.car");
+    merge("util/DisplayMetrics.car");
+    merge("util/TypedValue.car");
+    merge("util/ObjectIntegerMap.car");
+    merge("util/Comparator.car");
+
+    class CObjectContainer {
+        interface IObjectContainer;
+        interface IParcelable;
+    }
+
+    class CObjectStringMap {
+        interface IObjectStringMap;
+        interface IParcelable;
+    }
+
+    class CDisplayMetrics {
+        interface IDisplayMetrics;
+    }
+
+    class CTypedValue {
+        interface ITypedValue;
+    }
+
+    class CObjectIntegerMap {
+        interface IObjectIntegerMap;
+    }
+}

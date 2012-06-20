@@ -1,0 +1,21 @@
+<!-- ================================================================== -->
+<!--  Copyright (c) 2010,  Elastos, Inc.  All Rights Reserved.          -->
+<!-- ================================================================== -->
+
+<manifest xmlns:elastos="http://schemas.elastos.com/capsule/res/elastos"
+        elastos:capsule="ContentProviderDemo">
+
+    <application>
+
+        <activity elastos:name="CActivityOne">
+            <intent-filter>
+                <action elastos:name="elastos.intent.action.MAIN"/>
+            </intent-filter>
+        </activity>
+
+        <provider elastos:name="CContentProviderOne"
+                  elastos:authorities="CContentProviderOne"
+                  elastos:syncable="true" />
+
+    </application>
+</manifest>

@@ -1,0 +1,29 @@
+
+module
+{
+    interface IViewGroup;
+    interface IDrawable;
+    interface IViewGroupMarginLayoutParams;
+
+    interface IFrameLayoutLayoutParams extends IViewGroupMarginLayoutParams {
+        GetGravity(
+            [out] Int32* gravity);
+    }
+
+    interface IFrameLayout extends IViewGroup {
+        SetForegroundGravity(
+            [in] Int32 foregroundGravity);
+
+        SetForeground(
+            [in] IDrawable* drawable);
+
+        GetForeground(
+            [out] IDrawable** foreground);
+
+        SetMeasureAllChildren(
+            [in] Boolean measureAll);
+
+        GetConsiderGoneChildrenWhenMeasuring(
+            [out] Boolean* measureAll);
+    }
+}

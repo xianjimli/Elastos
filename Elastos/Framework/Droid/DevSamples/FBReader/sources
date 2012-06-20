@@ -1,0 +1,91 @@
+TARGET_NAME = FBReader
+TARGET_TYPE = eco
+
+include $(MAKEDIR)/../../sources.inc
+
+#INCLUDES += $(MAKEDIR)/../fbreader-0.12.10/fbreader/src/bookmodel
+#INCLUDES += $(MAKEDIR)/../fbreader-0.12.10/zlibrary/core/include
+#INCLUDES += $(MAKEDIR)/../fbreader-0.12.10/zlibrary/text/include
+
+#INCLUDES += $(MAKEDIR)/../../../../Applications/fbreader-0.12.10/fbreader/src/bookmodel
+#INCLUDES += $(MAKEDIR)/../../../../Applications/fbreader-0.12.10/zlibrary/core/include
+#INCLUDES += $(MAKEDIR)/../../../../Applications/fbreader-0.12.10/zlibrary/text/include
+
+IMPORTS = Elastos.Framework.eco
+
+SOURCES  = FBReader.car
+SOURCES += CMainActivity.cpp
+SOURCES += CBook.cpp
+SOURCES += CText.cpp
+SOURCES += CParagraph.cpp
+SOURCES += CChapter.cpp
+SOURCES += CTextFactory.cpp
+
+LIBRARIES  = $(XDK_USER_LIB)/Elastos.Runtime.CarRuntime.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
+LIBRARIES += $(XDK_USER_LIB)/framework.lib
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.CarRuntime.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
+LIBRARIES += $(XDK_USER_LIB)/crt0.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.Logging.lib
+
+LIBRARIES += $(ANDROID_NDK_ROOT)/sources/cxx-stl/gnu-libstdc++/libs/armeabi/libstdc++.a
+
+LIBRARIES += $(XDK_USER_LIB)/ZLibrary.lib
+LIBRARIES += $(XDK_USER_LIB)/ZLModel.lib
+LIBRARIES += $(XDK_USER_LIB)/ZLFileSystem.lib
+LIBRARIES += $(XDK_USER_LIB)/ZLFileSystembzip.lib
+LIBRARIES += $(XDK_USER_LIB)/ZLFileSystemtar.lib
+LIBRARIES += $(XDK_USER_LIB)/ZLFileSystemZip.lib
+LIBRARIES += $(XDK_USER_LIB)/ZLOptions.lib
+LIBRARIES += $(XDK_USER_LIB)/ZLLogger.lib
+LIBRARIES += $(XDK_USER_LIB)/ZLNetwork.lib
+LIBRARIES += $(XDK_USER_LIB)/ZLNetworkRequest.lib
+LIBRARIES += $(XDK_USER_LIB)/ZLXML.lib
+LIBRARIES += $(XDK_USER_LIB)/ZLXMLexpat.lib
+LIBRARIES += $(XDK_USER_LIB)/ZLImage.lib
+LIBRARIES += $(XDK_USER_LIB)/ZLDialogs.lib
+LIBRARIES += $(XDK_USER_LIB)/ZLMessage.lib
+LIBRARIES += $(XDK_USER_LIB)/ZLRunnable.lib
+LIBRARIES += $(XDK_USER_LIB)/ZLResource.lib
+LIBRARIES += $(XDK_USER_LIB)/ZLTime.lib
+LIBRARIES += $(XDK_USER_LIB)/ZLEncoding.lib
+LIBRARIES += $(XDK_USER_LIB)/ZLTypeId.lib
+LIBRARIES += $(XDK_USER_LIB)/ZLLanguage.lib
+LIBRARIES += $(XDK_USER_LIB)/ZLOptionEntries.lib
+LIBRARIES += $(XDK_USER_LIB)/ZLUtil.lib
+
+LIBRARIES += $(XDK_USER_LIB)/ZLElFileSystem.lib
+LIBRARIES += $(XDK_USER_LIB)/ZLElXmlConfig.lib
+LIBRARIES += $(XDK_USER_LIB)/ZLElTime.lib
+
+LIBRARIES += $(XDK_USER_LIB)/FBLibrary.lib
+LIBRARIES += $(XDK_USER_LIB)/FBOptions.lib
+LIBRARIES += $(XDK_USER_LIB)/FBBookModel.lib
+LIBRARIES += $(XDK_USER_LIB)/FBMigration.lib
+LIBRARIES += $(XDK_USER_LIB)/FBConstants.lib
+LIBRARIES += $(XDK_USER_LIB)/FBFormats.lib
+LIBRARIES += $(XDK_USER_LIB)/FBFormatshtml.lib
+LIBRARIES += $(XDK_USER_LIB)/FBFormatsfb2.lib
+LIBRARIES += $(XDK_USER_LIB)/FBFormatstxt.lib
+LIBRARIES += $(XDK_USER_LIB)/FBFormatspdb.lib
+LIBRARIES += $(XDK_USER_LIB)/FBFormatstcr.lib
+LIBRARIES += $(XDK_USER_LIB)/FBFormatsoeb.lib
+LIBRARIES += $(XDK_USER_LIB)/FBFormatschm.lib
+LIBRARIES += $(XDK_USER_LIB)/FBFormatsrtf.lib
+LIBRARIES += $(XDK_USER_LIB)/FBFormatsopenreader.lib
+LIBRARIES += $(XDK_USER_LIB)/FBFormatsutil.lib
+LIBRARIES += $(XDK_USER_LIB)/FBFormatscss.lib
+LIBRARIES += $(XDK_USER_LIB)/FBFormatsxhtml.lib
+
+LIBRARIES += $(XDK_USER_LIB)/booksdb.lib
+LIBRARIES += $(XDK_USER_LIB)/sqldb.lib
+LIBRARIES += $(XDK_USER_LIB)/implsqlite.lib
+LIBRARIES += $(XDK_USER_LIB)/booksdb-runnables.lib
+LIBRARIES += $(XDK_USER_LIB)/libbz2.lib
+
+LIBRARIES += -llog -lutils -lexpat -lsqlite -lz
+
+APPPACK = 1
+DIRRESOURCES += $(MAKEDIR)/res;
+DIRRESOURCES += $(MAKEDIR)/data;

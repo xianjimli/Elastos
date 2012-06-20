@@ -1,0 +1,11 @@
+
+module
+{
+    const SoundEffectConstants_CLICK = 0;
+
+    const SoundEffectConstants_NAVIGATION_LEFT = 1;
+    const SoundEffectConstants_NAVIGATION_UP = 2;
+    const SoundEffectConstants_NAVIGATION_RIGHT = 3;
+    const SoundEffectConstants_NAVIGATION_DOWN = 4;
+}
+

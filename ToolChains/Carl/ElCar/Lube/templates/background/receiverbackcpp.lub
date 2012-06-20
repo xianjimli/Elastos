@@ -1,0 +1,37 @@
+$;;=========================================================================
+$;; Copyright (c) 2000-2005,  Elastos, Inc.  All Rights Reserved.
+$;;=========================================================================
+$
+$INPUT class
+$OUTPUT "_${name}.cpp"
+$
+#include <new>
+#include "${name}.h"
+
+CARAPI _${class.name}CreateObject(IInterface **ppObj)
+{
+    ECode ec = NOERROR;
+    ${class.name} *pObj = NULL;
+
+    void* pLocation = calloc(sizeof(${class.name}), 1);
+    if (!pLocation) {
+        ec = E_OUT_OF_MEMORY;
+        goto Exit;
+    }
+    pObj = (${class.name} *)new(pLocation) ${class.name};
+
+    ec = pObj->Initialize();
+    if (FAILED(ec)) goto Exit;
+
+    *ppObj = (_IInterface*)pObj;
+
+Exit:
+    if (FAILED(ec) && pObj) {
+        ((${class.name}*)pObj)->~${class.name}();
+        free(pObj);
+    }
+    return ec;
+}
+
+$
+$END OUTPUT

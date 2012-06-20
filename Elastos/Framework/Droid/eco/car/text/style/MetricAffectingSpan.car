@@ -1,0 +1,10 @@
+
+module
+{
+    interface ICharacterStyle;
+
+    interface IMetricAffectingSpan extends ICharacterStyle{
+        UpdateMeasureState(
+            [in] ITextPaint* p);
+    }
+}

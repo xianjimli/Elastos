@@ -1,0 +1,29 @@
+$;;=========================================================================
+$;; Copyright (c) 2000-2005,  Elastos, Inc.  All Rights Reserved.
+$;;=========================================================================
+$
+$INPUT class
+$OUTPUT "${name}.h"
+$
+
+#ifndef __${Upper(name)}_H__
+#define __${Upper(name)}_H__
+
+#include "CBroadcastReceiver.h"
+#include "_${name}.h"
+
+class ${name} : public CBroadcastReceiver
+{
+public:
+
+protected:
+    CARAPI OnReciever(
+        /* [in] */ IIntent *pIntent);
+
+private:
+    // TODO: Add your private member variables here.
+};
+
+#endif // __${Upper(name)}_H__
+$
+$END OUTPUT

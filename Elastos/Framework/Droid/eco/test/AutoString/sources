@@ -1,0 +1,19 @@
+TARGET_NAME = test_AutoString
+TARGET_TYPE = ecx
+
+INCLUDESTEMP := $(INCLUDES)
+INCLUDES := $(MAKEDIR)/../../src/inc;
+INCLUDES += $(INCLUDESTEMP)
+
+SOURCES := main.cpp
+
+ifeq "$(XDK_TARGET_PLATFORM)" "win32"
+LIBRARIES += $(XDK_LIB_PATH)/Elastos.Runtime.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Runtime.CarRuntime.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
+else
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Runtime.CarRuntime.lib
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.CarRuntime.eco
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
+LIBRARIES += $(XDK_USER_LIB)/crt0.lib
+endif

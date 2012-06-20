@@ -1,0 +1,22 @@
+SPECIAL_TARGET=copyfile
+
+TARGET_NAME= CapsuleDemo
+TARGET_TYPE= eco
+
+IMPORTS = Elastos.Framework.eco
+IMPORTS += Elastos.Presentation.Controls.eco
+
+SOURCES = CapsuleDemo.car
+SOURCES += CActivityDashboard.cpp
+SOURCES += CActivityDialogBox.cpp
+SOURCES += CActivityAquarium.cpp
+SOURCES += CBroadcastReceiverOne.cpp
+
+LIBRARIES= $(XDK_LIB_PATH)/Elastos.Runtime.CarRuntime.lib
+LIBRARIES+= $(XDK_LIB_PATH)/Elastos.Runtime.lib
+LIBRARIES += $(XDK_LIB_PATH)/framework.lib
+
+APPPACK = 1
+DIRRESOURCES += $(MAKEDIR)/res;
+DIRRESOURCES += $(MAKEDIR)/data;
+FILERESOURCES += $(MAKEDIR)/capsule.xml;

@@ -1,0 +1,16 @@
+
+module
+{
+    /** {@hide} */
+    interface IApplicationToken extends IBinder {
+        WindowsVisible();
+
+        WindowsGone();
+
+        KeyDispatchingTimedOut(
+            [out] Boolean* result);
+
+        GetKeyDispatchingTimeout(
+            [out] Millisecond64* timeout);
+    }
+}

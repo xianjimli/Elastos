@@ -1,0 +1,479 @@
+
+module
+{
+    interface IAdapter;
+    interface IAbsListView;
+    interface IView;
+    interface IObjectContainer;
+    interface IDrawable;
+
+    /**
+     * The view is not scrolling. Note navigating the list using the trackball counts as
+     * being in the idle state since these transitions are not animated.
+     */
+    const OnScrollListener_SCROLL_STATE_IDLE = 0;
+
+    /**
+     * The user is scrolling using touch, and their finger is still on the screen
+     */
+    const OnScrollListener_SCROLL_STATE_TOUCH_SCROLL = 1;
+
+    /**
+     * The user had previously been scrolling using touch and had performed a fling. The
+     * animation is now coasting to a stop
+     */
+    const OnScrollListener_SCROLL_STATE_FLING = 2;
+
+    /**
+     * Disables the transcript mode.
+     *
+     * @see #setTranscriptMode(Int32)
+     */
+    const AbsListView_TRANSCRIPT_MODE_DISABLED = 0;
+    /**
+     * The list will automatically scroll to the bottom when a data set change
+     * notification is received and only if the last item is already visible
+     * on screen.
+     *
+     * @see #setTranscriptMode(Int32)
+     */
+    const AbsListView_TRANSCRIPT_MODE_NORMAL = 1;
+    /**
+     * The list will automatically scroll to the bottom, no matter what items
+     * are currently visible.
+     *
+     * @see #setTranscriptMode(Int32)
+     */
+    const AbsListView_TRANSCRIPT_MODE_ALWAYS_SCROLL = 2;
+
+
+    /**
+     * Interface definition for a callback to be invoked when the list or grid
+     * has been scrolled.
+     */
+    interface IOnScrollListener {
+        /**
+         * Callback method to be invoked while the list view or grid view is being scrolled. If the
+         * view is being scrolled, this method will be called before the next frame of the scroll is
+         * rendered. In particular, it will be called before any calls to
+         * {@link Adapter#getView(Int32, View, ViewGroup)}.
+         *
+         * @param view The view whose scroll state is being reported
+         *
+         * @param scrollState The current scroll state. One of {@link #SCROLL_STATE_IDLE},
+         * {@link #SCROLL_STATE_TOUCH_SCROLL} or {@link #SCROLL_STATE_IDLE}.
+         */
+        OnScrollStateChanged(
+            [in] IAbsListView* view,
+            [in] Int32 scrollState);
+
+        /**
+         * Callback method to be invoked when the list or grid has been scrolled. This will be
+         * called after the scroll has completed
+         * @param view The view whose scroll state is being reported
+         * @param firstVisibleItem the index of the first visible cell (ignore if
+         *        visibleItemCount == 0)
+         * @param visibleItemCount the number of visible cells
+         * @param totalItemCount the number of items in the list adaptor
+         */
+        OnScroll(
+            [in] IAbsListView* view,
+            [in] Int32 firstVisibleItem,
+            [in] Int32 visibleItemCount,
+            [in] Int32 totalItemCount);
+    }
+
+    interface IAbsListViewSavedState extends IViewBaseSavedState {
+    }
+
+    interface IAbsListViewLayoutParams extends IViewGroupLayoutParams {
+        GetViewType(
+            [out] Int32* viewType);
+    }
+
+    /**
+     * A RecyclerListener is used to receive a notification whenever a View is placed
+     * inside the RecycleBin's scrap heap. This listener is used to free resources
+     * associated to Views placed in the RecycleBin.
+     *
+     * @see android.widget.AbsListView.RecycleBin
+     * @see android.widget.AbsListView#setRecyclerListener(android.widget.AbsListView.RecyclerListener)
+     */
+    interface IRecyclerListener {
+        /**
+         * Indicates that the specified View was moved into the recycler's scrap heap.
+         * The view is not displayed on screen any more and any expensive resource
+         * associated with the view should be discarded.
+         *
+         * @param view
+         */
+        OnMovedToScrapHeap(
+            [in] IView* view);
+    }
+
+    interface IAbsListView extends IAdapterView {
+        /**
+         * Enables fast scrolling by letting the user quickly scroll through lists by
+         * dragging the fast scroll thumb. The adapter attached to the list may want
+         * to implement {@link SectionIndexer} if it wishes to display alphabet preview and
+         * jump between sections of the list.
+         * @see SectionIndexer
+         * @see #isFastScrollEnabled()
+         * @param enabled whether or not to enable fast scrolling
+         */
+        SetFastScrollEnabled(
+            [in] Boolean enabled);
+
+        /**
+         * Returns the current state of the fast scroll feature.
+         * @see #setFastScrollEnabled(Boolean)
+         * @return TRUE if fast scroll is enabled, FALSE otherwise
+         */
+        IsFastScrollEnabled(
+            [out] Boolean* isEnabled);
+
+        /**
+         * When smooth scrollbar is enabled, the position and size of the scrollbar thumb
+         * is computed based on the number of visible pixels in the visible items. This
+         * however assumes that all list items have the same height. If you use a list in
+         * which items have different heights, the scrollbar will change appearance as the
+         * user scrolls through the list. To avoid this issue, you need to disable this
+         * property.
+         *
+         * When smooth scrollbar is disabled, the position and size of the scrollbar thumb
+         * is based solely on the number of items in the adapter and the position of the
+         * visible items inside the adapter. This provides a stable scrollbar as the user
+         * navigates through a list of items with varying heights.
+         *
+         * @param enabled Whether or not to enable smooth scrollbar.
+         *
+         * @see #setSmoothScrollbarEnabled(Boolean)
+         * @attr ref android.R.styleable#AbsListView_smoothScrollbar
+         */
+        SetSmoothScrollbarEnabled(
+            [in] Boolean enabled);
+
+        /**
+         * Returns the current state of the fast scroll feature.
+         *
+         * @return True if smooth scrollbar is enabled is enabled, FALSE otherwise.
+         *
+         * @see #setSmoothScrollbarEnabled(Boolean)
+         */
+        IsSmoothScrollbarEnabled(
+            [out] Boolean* isEnabled);
+
+        /**
+         * Set the listener that will receive notifications every time the list scrolls.
+         *
+         * @param l the scroll listener
+         */
+        SetOnScrollListener(
+            [in] IOnScrollListener* l);
+
+        /**
+         * Indicates whether the children's drawing cache is used during a scroll.
+         * By default, the drawing cache is enabled but this will consume more memory.
+         *
+         * @return TRUE if the scrolling cache is enabled, FALSE otherwise
+         *
+         * @see #setScrollingCacheEnabled(Boolean)
+         * @see View#setDrawingCacheEnabled(Boolean)
+         */
+        IsScrollingCacheEnabled(
+            [out] Boolean* isEnabled);
+
+        /**
+         * Enables or disables the children's drawing cache during a scroll.
+         * By default, the drawing cache is enabled but this will use more memory.
+         *
+         * When the scrolling cache is enabled, the caches are kept after the
+         * first scrolling. You can manually clear the cache by calling
+         * {@link android.view.ViewGroup#setChildrenDrawingCacheEnabled(Boolean)}.
+         *
+         * @param enabled TRUE to enable the scroll cache, FALSE otherwise
+         *
+         * @see #isScrollingCacheEnabled()
+         * @see View#setDrawingCacheEnabled(Boolean)
+         */
+        SetScrollingCacheEnabled(
+            [in] Boolean enabled);
+
+        /**
+         * Enables or disables the type filter window. If enabled, typing when
+         * this view has focus will filter the children to match the users input.
+         * Note that the {@link Adapter} used by this view must implement the
+         * {@link Filterable} interface.
+         *
+         * @param textFilterEnabled TRUE to enable type filtering, FALSE otherwise
+         *
+         * @see Filterable
+         */
+        SetTextFilterEnabled(
+            [in] Boolean textFilterEnabled);
+
+        /**
+         * Indicates whether type filtering is enabled for this view
+         *
+         * @return TRUE if type filtering is enabled, FALSE otherwise
+         *
+         * @see #setTextFilterEnabled(Boolean)
+         * @see Filterable
+         */
+        IsTextFilterEnabled(
+            [out] Boolean* isEnabled);
+
+        /**
+         * Indicates whether the content of this view is pinned to, or stacked from,
+         * the bottom edge.
+         *
+         * @return TRUE if the content is stacked from the bottom edge, FALSE otherwise
+         */
+        IsStackFromBottom(
+            [out] Boolean* isStackFromBottom);
+
+        /**
+         * When stack from bottom is set to TRUE, the list fills its content starting from
+         * the bottom of the view.
+         *
+         * @param stackFromBottom TRUE to pin the view's content to the bottom edge,
+         *        FALSE to pin the view's content to the top edge
+         */
+        SetStackFromBottom(
+            [in] Boolean stackFromBottom);
+
+        /**
+         * Sets the initial value for the text filter.
+         * @param filterText The text to use for the filter.
+         *
+         * @see #setTextFilterEnabled
+         */
+        SetFilterText(
+            [in] String filterText);
+
+        /**
+         * Returns the list's text filter, if available.
+         * @return the list's text filter or NULL if filtering isn't enabled
+         */
+        GetTextFilter(
+            [out] ICharSequence** textFilter);
+
+        /**
+         * List padding is the maximum of the normal view's padding and the padding of the selector.
+         *
+         * @see android.view.View#getPaddingTop()
+         * @see #getSelector()
+         *
+         * @return The top list padding.
+         */
+        GetListPaddingTop(
+            [out] Int32* top);
+
+        /**
+         * List padding is the maximum of the normal view's padding and the padding of the selector.
+         *
+         * @see android.view.View#getPaddingBottom()
+         * @see #getSelector()
+         *
+         * @return The bottom list padding.
+         */
+        GetListPaddingBottom(
+            [out] Int32* bottom);
+
+        /**
+         * List padding is the maximum of the normal view's padding and the padding of the selector.
+         *
+         * @see android.view.View#getPaddingLeft()
+         * @see #getSelector()
+         *
+         * @return The left list padding.
+         */
+        GetListPaddingLeft(
+            [out] Int32* left);
+
+        /**
+         * List padding is the maximum of the normal view's padding and the padding of the selector.
+         *
+         * @see android.view.View#getPaddingRight()
+         * @see #getSelector()
+         *
+         * @return The right list padding.
+         */
+        GetListPaddingRight(
+            [out] Int32* right);
+
+        /**
+         * Controls whether the selection highlight drawable should be drawn on top of the item or
+         * behind it.
+         *
+         * @param onTop If TRUE, the selector will be drawn on the item it is highlighting. The default
+         *        is FALSE.
+         *
+         * @attr ref android.R.styleable#AbsListView_drawSelectorOnTop
+         */
+        SetDrawSelectorOnTop(
+            [in] Boolean onTop);
+
+        /**
+         * Set a Drawable that should be used to highlight the currently selected item.
+         *
+         * @param resID A Drawable resource to use as the selection highlight.
+         *
+         * @attr ref android.R.styleable#AbsListView_listSelector
+         */
+        SetSelector(
+            [in] Int32 resID);
+
+        SetSelectorEx(
+            [in] IDrawable* sel);
+
+        /**
+         * Returns the selector {@link android.graphics.drawable.Drawable} that is used to draw the
+         * selection in the list.
+         *
+         * @return the drawable used to display the selector
+         */
+        GetSelector(
+            [out] IDrawable** selector);
+
+        SetScrollIndicators(
+            [in] IView* up,
+            [in] IView* down);
+
+        /**
+         * Maps a point to a position in the list.
+         *
+         * @param x X in local coordinate
+         * @param y Y in local coordinate
+         * @return The position of the item which contains the specified point, or
+         *         {@link #AdapterView_INVALID_POSITION} if the point does not intersect an item.
+         */
+        PointToPosition(
+            [in] Int32 x,
+            [in] Int32 y,
+            [out] Int32* position);
+
+        /**
+         * Maps a point to a the rowId of the item which intersects that point.
+         *
+         * @param x X in local coordinate
+         * @param y Y in local coordinate
+         * @return The rowId of the item which contains the specified point, or {@link #AdapterView_INVALID_ROW_ID}
+         *         if the point does not intersect an item.
+         */
+        PointToRowId(
+            [in] Int32 x,
+            [in] Int32 y,
+            [out] Int64* rowId);
+
+        /**
+         * Smoothly scroll to the specified adapter position. The view will
+         * scroll such that the indicated position is displayed.
+         * @param position Scroll to this adapter position.
+         */
+        SmoothScrollToPosition(
+            [in] Int32 position);
+
+        /**
+         * Smoothly scroll to the specified adapter position. The view will
+         * scroll such that the indicated position is displayed, but it will
+         * stop early if scrolling further would scroll boundPosition out of
+         * view.
+         * @param position Scroll to this adapter position.
+         * @param boundPosition Do not scroll if it would move this adapter
+         *          position out of view.
+         */
+        SmoothScrollToPositionEx(
+            [in] Int32 position,
+            [in] Int32 boundPosition);
+
+        /**
+         * Smoothly scroll by distance pixels over duration milliseconds.
+         * @param distance Distance to scroll in pixels.
+         * @param duration Duration of the scroll animation in milliseconds.
+         */
+        SmoothScrollBy(
+            [in] Int32 distance,
+            [in] Int32 duration);
+
+        /**
+         * Causes all the views to be rebuilt and redrawn.
+         */
+        InvalidateViews();
+
+        /**
+         * Clear the text filter.
+         */
+        ClearTextFilter();
+
+        /**
+         * Returns if the ListView currently has a text filter.
+         */
+        HasTextFilter(
+            [out] Boolean* hasTextFilter);
+
+        /**
+         * Puts the list or grid into transcript mode. In this mode the list or grid will always scroll
+         * to the bottom to show new items.
+         *
+         * @param mode the transcript mode to set
+         *
+         * @see #AbsListView_TRANSCRIPT_MODE_DISABLED
+         * @see #AbsListView_TRANSCRIPT_MODE_NORMAL
+         * @see #AbsListView_TRANSCRIPT_MODE_ALWAYS_SCROLL
+         */
+        SetTranscriptMode(
+            [in] Int32 mode);
+
+        /**
+         * Returns the current transcript mode.
+         *
+         * @return {@link #AbsListView_TRANSCRIPT_MODE_DISABLED}, {@link #AbsListView_TRANSCRIPT_MODE_NORMAL} or
+         *         {@link #AbsListView_TRANSCRIPT_MODE_ALWAYS_SCROLL}
+         */
+        GetTranscriptMode(
+            [out] Int32* mode);
+
+        /**
+         * When set to a non-zero value, the cache color hint indicates that this list is always drawn
+         * on top of a solid, single-color, opaque background
+         *
+         * @param color The background color
+         */
+        SetCacheColorHint(
+            [in] Int32 color);
+
+        /**
+         * When set to a non-zero value, the cache color hint indicates that this list is always drawn
+         * on top of a solid, single-color, opaque background
+         *
+         * @return The cache color hint
+         */
+        GetCacheColorHint(
+            [out] Int32* colorHint);
+
+        /**
+         * Move all views (excluding headers and footers) held by this AbsListView into the supplied
+         * List. This includes views displayed on the screen as well as views stored in AbsListView's
+         * internal view recycler.
+         *
+         * @param views A list into which to put the reclaimed views
+         */
+        ReclaimViews(
+            [in] IObjectContainer* views);
+
+        /**
+         * Sets the recycler listener to be notified whenever a View is set aside in
+         * the recycler for later reuse. This listener can be used to free resources
+         * associated to the View::
+         *
+         * @param listener The recycler listener to be notified of views set aside
+         *        in the recycler.
+         *
+         * @see android.widget.AbsListView.RecycleBin
+         * @see android.widget.AbsListView.RecyclerListener
+         */
+        SetRecyclerListener(
+            [in] IRecyclerListener* listener);
+    }
+}

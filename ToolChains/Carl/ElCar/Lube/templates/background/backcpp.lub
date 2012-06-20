@@ -1,0 +1,1181 @@
+$;;=========================================================================
+$;; Copyright (c) 2000-2005,  Elastos, Inc.  All Rights Reserved.
+$;;=========================================================================
+$
+$INPUT class
+$OUTPUT "_${name}.cpp"
+$
+#ifndef __CAR_${Upper(name)}_CPP__
+#define __CAR_${Upper(name)}_CPP__
+
+#include "${name}.h"
+$IF attrib is "hascallback" and type is not "generic"
+#include <${name}Sink.h>
+$END IF
+#include <unistd.h>
+
+class _CSandwich${name} : public ${name}
+{
+public:
+$IF lubeoption is not "inkernel"
+    _CSandwich${name}()
+    {
+    }
+    virtual ~_CSandwich${name}()
+    {
+    }
+$END IF;; not inkernel
+    void *operator new(size_t size) { return ::operator new(size); }
+    void *operator new(size_t size, void* _location) { return _location; }
+    void operator delete(void* _location) { ::operator delete(_location); }
+
+$    IF  class.type is not "generic"
+$   TEMPLATE "declsync.lub"
+$    END IF;; not generic
+$
+$IF class.type is not "sink" and attrib is "hasparent" and attrib is "hasctor" and attrib is not "hasTrivialCtor"
+$   WITH all interfaces DO
+$       IF attrib is "clsobj"
+$           WITH all methods DO
+    CARAPI constructor($^
+$               WITH all parameters DO
+$                   IF parameter is not last
+$                       IF parameter is not first
+,$^
+$                       END IF
+
+        /* [${attrib}] */ ${type} ${prefixingname(parameter)}$^
+$                   END IF
+$               END DO ;; all parameters
+);
+
+$           END DO ;; all methods
+$       END IF ;; is clsobj
+$   END DO ;; all interfaces
+$END IF ;;
+
+$IF class.attrib is "hasvirtual"
+$   WITH all interfaces DO
+$       IF attrib is "callback"
+
+$         WITH all parents_and_me DO
+$           WITH all methods DO
+    CARAPI ${name}($^
+$             WITH all parameters DO
+${type} ${prefixingname(parameter)}$^
+$                 IF parameter is not last
+, $^
+$                 END IF
+$           END DO ;; all parameters
+);
+    CARAPI ${name}WithPriority(Int32 cFlags$^
+$           WITH all parameters DO
+, ${type} ${prefixingname(parameter)}$^
+$           END DO ;; all parameters
+);
+    CARAPI Updating${name}($^
+$           WITH all parameters DO
+${type} ${prefixingname(parameter)}$^
+$               IF parameter is not last
+, $^
+$               END IF
+$           END DO ;; all parameters
+);
+    CARAPI Updating${name}WithPriority(Int32 cFlags$^
+$           WITH all parameters DO
+, ${type} ${prefixingname(parameter)}$^
+$           END DO ;; all parameters
+);
+
+$         END DO ;; all methods
+$       END DO ;; all parents_and_me
+$    END IF ;; attrib is "callback"
+$  END DO ;; all interfaces
+$END IF;; hasvirtual
+};
+
+$IF attrib is "singleton"
+#include <spinlock.h>
+
+static ${name} *_s_p${name}_ObjPtr_ = NULL;
+static SpinLock _s_${name}_spinlockObj_;
+static _SingletonObjState_ _s_${name}_ObjState_ = _SingletonObjState_Uninitialize;
+$END IF
+
+_${name}::_${name}() :
+$IF class.attrib is "hasparent" and super.type is not "generic"
+        _m_pSuper(NULL),
+$END IF
+        _m_ecCtor(NOERROR),
+$IF class.type is "aspect"
+        _m_pOuter(NULL),
+        _m_syncLock(NULL),
+$ELSE
+        _m_pChild(NULL),
+$END IF
+        m_cRef(1)$^
+$
+$IF class.type is "aspect"
+,
+        _m_bAggregated(TRUE)$^
+$ELSE
+$   IF class.attrib is "hasvirtual"
+$       WITH all interfaces DO
+$           IF attrib is "virtual"
+,
+        _m_p${name}(NULL)$^
+$           END IF
+$       END DO ;; all interfaces
+$   END IF ;; attrib is "hasvirtual"
+$END IF ;; type is "aspect"
+$
+$IF class.attrib is "hascallback" and class.type is not "generic"
+, _m_pChildCallbackTrigger(NULL)$^
+, _m_pCBConnector(NULL)$^
+$END IF
+
+{
+    _m_pAspects.Initialize();
+}
+
+_${name}::~_${name}()
+{
+    this->_Uninitialize_();
+$
+$IF attrib is "hascallback" and type is not "generic"
+
+    if (NULL != _m_pCBConnector) {
+        _m_pCBConnector->DisconnectCallbackSink();
+        delete _m_pCBConnector;
+        _m_pCBConnector = NULL;
+    }
+
+$END IF ;; attrib is "hascallback" and !generic
+$
+
+    DecrementDllLockCount();
+$
+$IF attrib is "hasparent" and super.type is not "generic"
+    if (NULL != _m_pSuper) {
+        _m_pSuper->Aggregate(AggrType_ChildDestruct, (IObject *)this);
+        _m_pSuper = NULL;
+    }
+$END IF
+}
+
+UInt32 _${name}::AddRef()
+{
+$IF type is "aspect"
+    assert(NULL != _m_pOuter);
+    return _m_pOuter->AddRef();
+$ELSE
+  $IF attrib is "hasvirtual"
+    if (NULL != _m_pChild) {
+        return _m_pChild->AddRef();
+    }
+    else {
+  $END IF
+  $IF attrib is not "singleton"
+#ifdef _linux
+    // atomic_inc of android bionic C library will return
+    // the old value of m_cRef before it is increased
+    Int32 nRef = atomic_inc(&m_cRef);
+    // so we should increase nRef;
+    nRef++;
+#else
+    Int32 nRef = atomic_inc(&m_cRef);
+#endif
+  $ELSE
+    _s_${name}_spinlockObj_.Lock();
+    Int32 nRef = ++m_cRef;
+    _s_${name}_spinlockObj_.Unlock();
+  $END IF
+
+    return (UInt32)nRef;
+  $IF attrib is "hasvirtual"
+    }
+  $END IF
+$END IF;; "aspect"
+}
+
+UInt32 _${name}::Release()
+{
+$IF type is "aspect"
+    assert(NULL != _m_pOuter);
+    return _m_pOuter->Release();
+$ELSE
+  $IF attrib is "hasvirtual"
+    if (NULL != _m_pChild) {
+        return _m_pChild->Release();
+    }
+    else {
+  $END IF
+  $IF attrib is not "singleton"
+#ifdef _linux
+    // atomic_dec of android bionic C library will return
+    // the old value of m_cRef before it is decreased.
+    Int32 nRef = atomic_dec(&m_cRef);
+    // so we should decrease nRef;
+    nRef--;
+#else
+    Int32 nRef = atomic_dec(&m_cRef);
+#endif
+  $ELSE
+    _s_${name}_spinlockObj_.Lock();
+    Int32 nRef = --m_cRef;
+  $END IF
+
+    if (0 == nRef) {
+  $IF attrib is "singleton"
+        _s_${name}_ObjState_ = _SingletonObjState_Uninitialize;
+        _s_p${name}_ObjPtr_ = NULL;
+        _s_${name}_spinlockObj_.Unlock();
+  $END IF
+
+#ifndef _NO_${Upper(name)}_CLASSOBJECT_
+        ((${name}*)this)->~${name}();
+        free(this);
+#else
+        delete this;
+#endif // _NO_${Upper(name)}_CLASSOBJECT_
+
+    }
+  $IF attrib is "singleton"
+    else {
+        _s_${name}_spinlockObj_.Unlock();
+    }
+  $END IF
+    assert(nRef >= 0);
+    return nRef;
+  $IF attrib is "hasvirtual"
+    }
+  $END IF
+$END IF ;; "aspect"
+}
+
+ECode _${name}::$^
+$IF type is "aspect"
+AspectAggregate(
+$ELSE
+Aggregate(
+$END IF
+    AggregateType type, PInterface pObj)
+{
+    ECode ec = NOERROR;
+    IAspect* pAspect = NULL;
+
+    switch (type) {
+    case AggrType_AspectAttach:
+$ IF class.type is not "aspect"
+        SelfLock();
+        ec = _AspectAttach((IAspect*)pObj);
+        SelfUnlock();
+$ END IF;;
+        goto Exit;
+    case AggrType_AspectDetach:
+        ec = _AspectDetach((IAspect*)pObj);
+        goto Exit;
+    case AggrType_AspectDetached:
+        pAspect = (IAspect*)pObj->Probe(EIID_IAspect);
+        assert(pAspect);
+        if (!_m_pAspects.IsEmpty()){
+            ObjectNode *pNode = (ObjectNode*)_m_pAspects.Next();
+            while (pNode != &_m_pAspects) {
+                if (pNode->mObject == (IInterface*)pAspect) {
+                    pAspect->AspectAggregate(AggrType_AspectDetached, pObj);
+                    pNode->Detach();
+                    delete pNode;
+                    break;
+                }
+                else {
+                    pNode = (ObjectNode*)pNode->Next();
+                }
+            }
+        }
+        goto Exit;
+$IF type is not "generic" and type is not "aspect"
+    case AggrType_EnteredRegime:
+        ec = OnEnteredRegime(pObj);
+        goto Exit;
+    case AggrType_LeftRegime:
+        ec = OnLeftRegime(pObj);
+        goto Exit;
+$END IF
+$IF attrib is "hascallback" and type is not "generic"
+    case AggrType_Connect:
+        ec = this->_Connect(pObj);
+        goto Exit;
+    case AggrType_AddConnection:
+        ec = this->_AddConnection(pObj);
+        goto Exit;
+    case AggrType_Disconnect:
+        ec = this->_Disconnect(pObj);
+        goto Exit;
+$END IF
+$IF attrib is "hasvirtual"
+    case AggrType_ChildConstruct:
+        ec = this->_ChildConstruct(pObj);
+        goto Exit;
+    case AggrType_ChildDestruct:
+        ec = this->_ChildDestruct(pObj);
+        goto Exit;
+$END IF ;; attrib is "hasvirtual"
+$IF type is "aspect"
+    case AggrType_Aggregate:
+        if (FALSE == _m_bAggregated) {
+            ec = E_ZOMBIE_ASPECT;
+            goto Exit;
+        }
+$  IF lubeoption is not "inkernel"
+        _Impl_EnterProtectedZone();
+$  END IF;;
+        ec = this->OnAspectAttaching(pObj);
+$  IF lubeoption is not "inkernel"
+        _Impl_LeaveProtectedZone();
+$  END IF;;
+        if (FAILED(ec)) {
+            ec = E_ASPECT_REFUSE_TO_ATTACH;
+            SelfUnlock();
+            goto Exit;
+        }
+        ec = this->_Aggregate(pObj);
+        goto Exit;
+    case AggrType_Unaggregate:
+        SelfLock();
+        ec = this->_Unaggregate((ClassID*)pObj);
+        SelfUnlock();
+        goto Exit;
+$ELSE ;; !(type is "aspect")
+    case AggrType_Unaggregate:
+        if (_m_pAspects.IsEmpty()) {
+            ec = E_CLASS_NO_AGGREGATION;
+            goto Exit;
+        }
+        else {
+            ClassID clsid;
+            ObjectNode *pNode = (ObjectNode*)_m_pAspects.Next();
+            while (pNode != &_m_pAspects) {
+                pAspect = (IAspect*)pNode->mObject;
+                ec = pAspect->GetAspectID(&clsid);
+                if (FAILED(ec)) goto Exit;
+                if (clsid.clsid == (*(ClassID*)pObj).clsid) {
+                    _AspectDetach(pAspect);
+                    pAspect->AspectAggregate(AggrType_AspectDetach, (IObject*)this);
+                    pNode->Detach();
+                    delete pNode;
+                    break;
+                }
+                else {
+                    pNode = (ObjectNode*)pNode->Next();
+                }
+            }
+            goto Exit;
+        }
+$END IF ;; type is "aspect"
+    default:
+        ec = E_INVALID_ARGUMENT;
+        break;
+    }
+Exit:
+    return ec;
+}
+
+ECode _${name}::$^
+$IF type is "aspect"
+AspectGetDomain(
+$ELSE
+GetDomain(
+$END IF
+    IInterface** ppObj)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+$IF type is not "aspect"
+ECode _${name}::GetClassID(
+$ELSE
+ECode _${name}::GetAspectID(
+$END IF;
+    _ELASTOS ClassID *pCLSID)
+{
+    if (NULL == pCLSID) return E_INVALID_ARGUMENT;
+
+    *pCLSID = ECLSID_${name};
+    return NOERROR;
+}
+
+PInterface _${name}::Probe(
+    _ELASTOS REIID riid)
+{
+$   IF type is "aspect"
+    if (FALSE == _m_bAggregated) return NULL;
+$   END IF ;; type is "aspect"
+
+$   IF attrib is not "hasparent" or super.type is "generic"
+$   IF type is not "aspect"
+    if (EIID_IInterface == riid) {
+        return (_IInterface *)this;
+    }
+$   END IF;;
+$   END IF
+$   IF attrib is "hascallback" and type is not "generic"
+$     WITH all interfaces DO
+$       IF attrib is "callback"
+    if (EIID_${name} == riid) {
+        return (IInterface *)(_I${class.name}CallbackTrigger *)this;
+    }
+$       END IF ;; callback
+$     END DO ;; all interfaces
+    if (EIID_CALLBACK_TRIGGER == riid) {
+        return (IInterface *)(_I${name}CallbackTrigger *)this;
+    }
+    if (EIID_CALLBACK_CONNECTOR == riid) {
+        if (NULL == _m_pCBConnector) {
+            _m_pCBConnector = new ${name}Connector($^
+$       WITH all interfaces DO
+$           IF attrib is not "callback" and attrib is not "clsobj" and attrib is not "filter"
+$               IF interface is first
+$                  IF class.type is "aspect"
+(IAspect *)this);
+$                  ELSE
+(IObject *)this);
+$                  END IF
+$               END IF
+$           END IF
+$       END DO
+            if (NULL == _m_pCBConnector) return NULL;
+        }
+        return (IInterface *)_m_pCBConnector;
+    }
+$   ELSE
+$   IF attrib is "hasfilter"
+    if (EIID_CALLBACK_TRIGGER == riid) {
+        return (IInterface *)(_I${name}CallbackTrigger *)this;
+    }
+$   END IF;; hasfilter
+$   END IF ;; hascallback and !generic
+$   IF type is not "aspect"
+    if (EIID_MUTEX_INFO == riid) {
+        return (IInterface *)&_m_syncLock;
+    }
+$   END IF ;; type is "aspect"
+    if (EIID_SUPER_OBJECT == riid) {
+$   IF attrib is "hasparent" and super.type is not "generic"
+        return (PInterface)_m_pSuper;
+$   ELSE
+        return NULL;
+$   END IF ;; hasparent && not generic
+    }
+$   IF attrib is "hasparent" and super.attrib is "hascallback" and super.type is not "generic"
+    if (EIID_SUPER_CALLBACK_CONNECTOR == riid) {
+        if (NULL == _m_pSuper) return NULL;
+        return _m_pSuper->Probe(
+                        EIID_CALLBACK_CONNECTOR);
+    }
+$   END IF ;; hasparent and super.attrib is hascallback and not generic
+$IF type is "aspect" or attrib is "hasvirtual"
+$   IF type is not "aspect"
+    if (NULL != _m_pChild) {
+$              IF lubeoption is not "inkernel"
+        Boolean bChildCallParent = FALSE;
+        bChildCallParent = _Impl_CheckHelperInfoFlag(HELPER_CHILD_CALL_PARENT);
+$              END IF
+        if (!bChildCallParent) {
+            IInterface *pObject = NULL;
+            pObject = ((IInterface *)_m_pChild)->Probe(riid);
+            if (NULL != pObject) return pObject;
+        }
+    }
+$   END IF
+$END IF ;; type is "aspect" or attrib is "hasvirtual"
+$WITH all interfaces DO
+$   IF attrib is not "callback" and attrib is not "clsobj" and attrib is not "filter"
+$
+$       WITH all parents DO
+    if (EIID_${name} == riid) {
+        return (${name} *)(${child.name} *)this;
+    }
+$       END DO ;; all parents
+$
+    if (EIID_${name} == riid) {
+$       IF interface.attrib is "privileged"
+        ECode ec = _Impl_InsideProtectedZone();
+        if (FAILED(ec)) return NULL;
+$       END IF;;
+        return (${name} *)this;
+    }
+$   END IF ;; !callback, !clsobj, !filter
+$END DO ;; all interfaces
+$
+    if (EIID_GENERIC_INFO == riid) {
+${GenericInfoQI(class)}
+    }
+$IF lubeoption is not "inkernel"
+$   IF attrib is "hasparent" and super.type is not "generic"
+    if (NULL != _m_pSuper) {
+        IInterface *pObject = NULL;
+        Boolean bChildNotCallParent = FALSE;
+        bChildNotCallParent = _Impl_CheckHelperInfoFlag(HELPER_CHILD_CALL_PARENT);
+        if (!bChildNotCallParent) {
+            _Impl_SetHelperInfoFlag(HELPER_CHILD_CALL_PARENT, TRUE);
+            pObject = (IInterface*)_m_pSuper->Probe(riid);
+            _Impl_SetHelperInfoFlag(HELPER_CHILD_CALL_PARENT, FALSE);
+        }
+        if (NULL != pObject) return pObject;
+    }
+$   END IF
+$   IF type is "aspect"
+    if (NULL != _m_pOuter) {
+        Boolean bChildCallParent = FALSE;
+        bChildCallParent = _Impl_CheckHelperInfoFlag(HELPER_CHILD_CALL_PARENT);
+        if (!bChildCallParent) {
+            IInterface *pObject = NULL;
+            pObject = ((IInterface *)_m_pOuter)->Probe(riid);
+            if (NULL != pObject) return pObject;
+        }
+    }
+$   ELSE
+    {
+        SelfLock();
+        if (!_m_pAspects.IsEmpty()) {
+            PInterface pObject = NULL;
+            _Impl_SetHelperInfoFlag(HELPER_CHILD_CALL_PARENT, TRUE);
+            ObjectNode *pNode = (ObjectNode*)_m_pAspects.Next();
+            while (pNode != &_m_pAspects) {
+                pObject = pNode->mObject->Probe(riid);
+                if (NULL != pObject) break;
+                else {
+                    pNode = (ObjectNode*)pNode->Next();
+                }
+            }
+            _Impl_SetHelperInfoFlag(HELPER_CHILD_CALL_PARENT, FALSE);
+            SelfUnlock();
+            if (NULL != pObject) return pObject;
+        }
+        else {
+            SelfUnlock();
+            return NULL;
+        }
+    }
+$   END IF
+$END IF  ;; not "inKernel"
+
+    return NULL;
+$
+}
+
+ECode _${name}::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    if (pIID == NULL) return E_INVALID_ARGUMENT;
+
+$WITH all interfaces DO
+$   IF attrib is not "callback" and attrib is not "callbacksink" and attrib is not "delegatesink" and attrib is not "clsobj" and attrib is not "filter"
+$       IF interfaces is first
+    if (pObject == (IInterface*)(${name}*)this) {
+$       ELSE
+    else if (pObject == (IInterface*)(${name}*)this) {
+$       END IF
+        *pIID = EIID_${name};
+    }
+$   END IF ;; !callback and !callbacksink and !delegatesink and !clsobj and !filter
+$END DO ;; all interfaces
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
+}
+
+ECode _${name}::_Initialize_()
+{
+    ECode ec = NOERROR;
+
+    if (FAILED(_m_ecCtor)) return _m_ecCtor;
+
+$IF attrib is "hasparent" and attrib is "hasTrivialCtor" and super.type is not "generic"
+$   IF super.attrib is not "hasctor" OR super.attrib is "hasDefaultCtor"
+    ec = Super::constructor();
+    if (FAILED(ec)) return ec;
+
+$   ELSE
+#error super class ${super.name} has no default constructor.
+$   END IF
+$END IF ;;
+$
+    IncrementDllLockCount();
+
+$
+$IF attrib is "aggregate"
+$   WITH all aggregates DO
+$
+    ec = _CObject_AttachAspect((_IInterface*)this, ECLSID_${name});
+    if (FAILED(ec)) return ec;
+$
+$   END DO ;; all aggregates
+$END IF ;; attrib is "aggregate"
+$
+$IF attrib is "hasasynchronous"
+$  WITH all interfaces DO
+$    IF interface.attrib is "async" and interface.attrib is not "callback" and interface.attrib is not "filter"
+$      WITH all methods DO
+    ${class.name}::Addbegin${method.name}Callback(
+        (_IInterface*)this,
+        (${interface.name}*)this,
+        &${interface.name}::${method.name});
+
+$      END DO;; methods
+$    END IF;; sync
+$  END DO;; interfaces
+$END IF;; hasasynchronous
+
+    return ec;
+}
+
+$WITH all interfaces DO
+$   IF attrib is "callbacksink" or attrib is "delegatesink"
+ECode _${class.name}::Add${name}Source(PInterface pServerObj)
+{
+    ECode ec = NOERROR;
+    ${name}Handler* pHandler;
+
+    ec = _Impl_AcquireCallbackHandler(pServerObj,
+            EIID_${name}Handler, (PInterface*)&pHandler);
+    if (FAILED(ec)) return ec;
+
+$    WITH all methods DO
+    ECode (CARAPICALLTYPE ${class.name}::*p${name}Func)($^
+IInterface *$^
+$    WITH all parameters DO
+,$^
+${type}$^
+$    END DO ;; all parameters
+$       IF interfaces.attrib is "callbacksink"
+) = &${class.name}::On${name};
+$       ELSE
+) = &${class.name}::Do${name};
+$       END IF
+    ec = pHandler->Add${name}Callback(
+            EventHandler::Make(this, *(PVoid*)&p${name}Func, CallbackType_CAR));
+    if (FAILED(ec)) goto ErrorExit;
+$    END DO ;; all methods
+
+    goto Exit;
+
+ErrorExit:
+$    WITH all methods DO
+    pHandler->Remove${name}Callback(
+            EventHandler::Make(this, *(PVoid*)&p${name}Func, CallbackType_CAR));
+$    END DO ;; all methods
+
+Exit:
+    pHandler->Release();
+    return ec;
+}
+
+$   END IF
+$END DO
+$
+void _${name}::_Uninitialize_()
+{
+$IF type is not "aspect"
+$IF attrib is "hasasynchronous"
+$  WITH all interfaces DO
+$    IF interface.attrib is "async" and interface.attrib is not "callback"
+$      WITH all methods DO
+    ${class.name}::Removebegin${method.name}Callback(
+        (_IInterface*)this,
+        (${interface.name}*)this,
+        &${interface.name}::${method.name});
+$      END DO;; methods
+$END IF;;
+$  END DO;; interfaces
+$END IF;; hasasynchronous
+$END IF;; "aspect"
+$
+$IF type is not "aspect"
+    SelfLock();
+    ClassID clsid;
+    ECode ec;
+
+    if (!_m_pAspects.IsEmpty()){
+        ObjectNode *pNode = (ObjectNode*)_m_pAspects.Next();
+        while (pNode != &_m_pAspects) {
+            ec = ((IAspect*)pNode->mObject)->GetAspectID(&clsid);
+            pNode = (ObjectNode*)pNode->Next();
+            if (FAILED(ec)) continue;
+            Aggregate(AggrType_Unaggregate, (PInterface)&clsid);
+        }
+    }
+    SelfUnlock();
+$END IF ;; type is not "aspect"
+}
+
+ECode _${name}::_AspectAttach(IAspect* pAspect)
+{
+    ECode ec = NOERROR;
+
+$IF attrib is "hasvirtual"
+    ClassID clsid;
+
+    ec = pAspect->GetAspectID(&clsid);
+    if(FAILED(ec)) return E_NO_INTERFACE;
+    if(ECLSID_${name} == clsid) return E_DUPLICATE_ASPECT;
+$END IF ;; attrib is "hasvirtual"
+
+$IF class.type is not "aspect"
+$    IF lubeoption is not "inkernel"
+    _Impl_EnterProtectedZone();
+$    END IF;; not InKernel
+     ec = this->OnAspectAttaching((PInterface)pAspect);
+$    IF lubeoption is not "inkernel"
+    _Impl_LeaveProtectedZone();
+$    END IF;; not InKernel
+    if (FAILED(ec)) return ec;
+
+    Boolean found = false;
+    ObjectNode *pNode = (ObjectNode*)_m_pAspects.Next();
+    IAspect *pAspect1;
+    ClassID clsid1, clsid2;
+    while (pNode != &_m_pAspects) {
+        pAspect1 = (IAspect*)(pNode->mObject);
+        pAspect1->GetAspectID(&clsid1);
+        pAspect->GetAspectID(&clsid2);
+        if (clsid1.clsid == clsid2.clsid) {
+            found = true;
+            break;
+        }
+        pNode = (ObjectNode*)pNode->Next();
+    }
+
+    if (!found) {
+        ObjectNode *pNode = new ObjectNode(pAspect);
+        _m_pAspects.InsertNext(pNode);
+    }
+    else {
+        return E_DUPLICATE_ASPECT;
+    }
+$END IF ;;class.type is not "aspect"
+
+    return ec;
+}
+
+ECode _${name}::_AspectDetach(IAspect* pAspect)
+{
+    ECode ec = NOERROR;
+
+$IF type is "aspect"
+    _m_pOuter = NULL;
+$IF attrib is "hasasynchronous"
+$  WITH all interfaces DO
+$    IF interface.attrib is "async" and interface.attrib is not "callback"
+$      WITH all methods DO
+    ${class.name}::Removebegin${method.name}Callback(
+        (_IInterface*)this,
+        (${interface.name}*)this,
+        &${interface.name}::${method.name});
+$      END DO;; methods
+$    END IF;;
+$  END DO;; interfaces
+$END IF;; hasasynchronous
+
+    _m_bAggregated = FALSE;
+$END IF;;aspect
+$IF attrib is "hasvirtual"
+$  WITH all interfaces DO
+$    IF attrib is "virtual"
+    _m_p${name} = NULL;
+$    END IF ;; attrib is "virtual"
+$  END DO ;; all interfaces
+
+$  IF class.attrib is "hascallback" and type is not "generic"
+    _m_pChildCallbackTrigger = NULL;
+$  END IF;; hascallback and !generic
+    _m_pChild = NULL;
+$END IF;; hasvirtual
+
+$IF lubeoption is not "inkernel"
+    _Impl_EnterProtectedZone();
+$END IF;; not in Kernel
+    this->OnAspectDetaching((PInterface)pAspect);
+$IF lubeoption is not "inkernel"
+    _Impl_LeaveProtectedZone();
+$END IF;; not in Kernel
+
+$IF type is "aspect"
+#ifndef _NO_${Upper(name)}_CLASSOBJECT_
+    ((${name}*)this)->~${name}();
+    free(this);
+#else
+    delete this;
+#endif // _NO_${Upper(name)}_CLASSOBJECT_
+$END IF
+
+    return ec;
+}
+
+$IF type is not "generic"
+
+#ifndef _NO_${Upper(name)}_CLASSOBJECT_
+
+$IF class.attrib is not "hasctor"
+CARAPI _${class.name}CreateObject(IInterface **ppObj)
+{
+$
+$IF class.attrib is not "singleton"
+    ECode ec = NOERROR;
+    _CSandwich${class.name} *pObj = NULL;
+
+    void* pLocation = calloc(sizeof(_CSandwich${class.name}), 1);
+    if (!pLocation) {
+        ec = E_OUT_OF_MEMORY;
+        goto Exit;
+    }
+    pObj = (_CSandwich${class.name} *)new(pLocation) _CSandwich${class.name};
+
+    ec = pObj->_Initialize_();
+    if (FAILED(ec)) goto Exit;
+
+    *ppObj = (_IInterface*)pObj;
+Exit:
+    if (FAILED(ec) && pObj) {
+        ((_CSandwich${class.name}*)pObj)->~_CSandwich${class.name}();
+        free(pObj);
+    }
+    return ec;
+$ELSE ;; singleton
+    ECode ec;
+    _IInterface *pObj;
+    _CSandwich${class.name} *pNewObj;
+    void* pLocation;
+BEGIN:
+    ec = NOERROR;
+    pObj = NULL;
+
+    _s_${class.name}_spinlockObj_.Lock();
+
+    switch (_s_${class.name}_ObjState_) {
+        case _SingletonObjState_Uninitialize:
+            _s_${class.name}_ObjState_ = _SingletonObjState_Initializing;
+            _s_${class.name}_spinlockObj_.Unlock();
+
+            pLocation = calloc(sizeof(_CSandwich${class.name}), 1);
+            if (!pLocation) {
+                _s_${class.name}_ObjState_ = _SingletonObjState_Uninitialize;
+                ec = E_OUT_OF_MEMORY;
+                goto Exit;
+            }
+            pNewObj = (_CSandwich${class.name} *)new(pLocation) _CSandwich${class.name};
+
+            ec = pNewObj->_Initialize_();
+            if (FAILED(ec)) {
+                _s_${class.name}_ObjState_ = _SingletonObjState_Uninitialize;
+                delete pNewObj;
+                goto Exit;
+            }
+            _s_p${class.name}_ObjPtr_ = pNewObj;
+            pObj = (_IInterface *)pNewObj;
+            _s_${class.name}_ObjState_ = _SingletonObjState_Initialized;
+            break;
+        case _SingletonObjState_Initializing:
+            do {
+                _s_${class.name}_spinlockObj_.Unlock();
+                usleep(1);
+
+                _s_${class.name}_spinlockObj_.Lock();
+                if (_SingletonObjState_Uninitialize
+                        == _s_${class.name}_ObjState_) {
+                    _s_${class.name}_spinlockObj_.Unlock();
+                    goto BEGIN;
+                }
+            } while(_SingletonObjState_Initialized
+                        != _s_${class.name}_ObjState_);
+            /* Don't break here */
+        case _SingletonObjState_Initialized:
+            _s_p${class.name}_ObjPtr_->m_cRef++;
+            pObj = (_IInterface *)_s_p${class.name}_ObjPtr_;
+            _s_${class.name}_spinlockObj_.Unlock();
+            break;
+    }
+    *ppObj = (_IInterface*)pObj;
+
+Exit:
+    return ec;
+$END IF  ;; singleton
+}
+
+$IF type is not "aspect"
+$    IF class.attrib is not "singleton"
+ECode _${class.name}::NewByFriend($^
+$    ELSE
+ECode _${class.name}::AcquireSingletonByFriend($^
+$    END IF ;; "singleton"
+ ${class.name} **ppNewObj)
+{
+    return _${class.name}CreateObject((IInterface**)ppNewObj);
+}
+$END IF
+
+$ELSE  ;; not "hasctor"
+$WITH all constructors DO
+CARAPI _${class.name}CreateObject(
+$    WITH all parameters DO
+$       IF parameter is not last
+    /* [${attrib}] */ ${type} ${prefixingname(parameter)},
+$       END IF
+$    END DO ;; all parameters
+    IInterface **ppObj)
+{
+$
+$IF class.attrib is not "singleton"
+    ECode ec = NOERROR;
+    _CSandwich${class.name} *pObj = NULL;
+
+    void* pLocation = calloc(sizeof(_CSandwich${class.name}), 1);
+    if (!pLocation) {
+        ec = E_OUT_OF_MEMORY;
+        goto Exit;
+    }
+    pObj = (_CSandwich${class.name} *)new(pLocation) _CSandwich${class.name};
+
+    ec = pObj->_Initialize_();
+    if (FAILED(ec)) goto Exit;
+$   IF method.attrib is not "TrivialCtor"
+    ec = pObj->constructor($^
+$   WITH all parameters DO
+$       IF parameter is first and parameter is last
+,$^
+$       END IF
+$       IF parameter is not last
+${prefixingname(parameter)},$^
+$       END IF
+$   END DO ;; all parameters
+$   Rewrite(")")
+;
+    if (FAILED(ec)) goto Exit;
+$   END IF;
+    *ppObj = (_IInterface*)pObj;
+Exit:
+    if (FAILED(ec) && pObj) {
+        ((_CSandwich${class.name}*)pObj)->~_CSandwich${class.name}();
+        free(pObj);
+    }
+    return ec;
+$ELSE ;; singleton
+    ECode ec;
+    _IInterface *pObj;
+    _CSandwich${class.name} *pNewObj;
+    void* pLocation;
+BEGIN:
+    ec = NOERROR;
+    pObj = NULL;
+
+    _s_${class.name}_spinlockObj_.Lock();
+
+    switch (_s_${class.name}_ObjState_) {
+        case _SingletonObjState_Uninitialize:
+            _s_${class.name}_ObjState_ = _SingletonObjState_Initializing;
+            _s_${class.name}_spinlockObj_.Unlock();
+
+            pLocation = calloc(sizeof(_CSandwich${class.name}), 1);
+            if (!pLocation) {
+                _s_${class.name}_ObjState_ = _SingletonObjState_Uninitialize;
+                ec = E_OUT_OF_MEMORY;
+                goto Exit;
+            }
+            pNewObj = (_CSandwich${class.name} *)new(pLocation) _CSandwich${class.name};
+
+            ec = pNewObj->_Initialize_();
+            if (FAILED(ec)) {
+                _s_${class.name}_ObjState_ = _SingletonObjState_Uninitialize;
+                delete pNewObj;
+                goto Exit;
+            }
+$   IF method.attrib is not "TrivialCtor"
+            ec = pNewObj->constructor($^
+$   WITH all parameters DO
+$       IF parameter is first and parameter is last
+,$^
+$       END IF
+$       IF parameter is not last
+${prefixingname(parameter)},$^
+$       END IF
+$   END DO ;; all parameters
+$   Rewrite(")")
+;
+            if (FAILED(ec)) {
+                _s_${class.name}_ObjState_ = _SingletonObjState_Uninitialize;
+                delete pNewObj;
+                goto Exit;
+            }
+$   END IF;
+            _s_p${class.name}_ObjPtr_ = pNewObj;
+            pObj = (_IInterface *)pNewObj;
+            _s_${class.name}_ObjState_ = _SingletonObjState_Initialized;
+            break;
+        case _SingletonObjState_Initializing:
+            do {
+                _s_${class.name}_spinlockObj_.Unlock();
+                usleep(1);
+
+                _s_${class.name}_spinlockObj_.Lock();
+                if (_SingletonObjState_Uninitialize
+                        == _s_${class.name}_ObjState_) {
+                    _s_${class.name}_spinlockObj_.Unlock();
+                    goto BEGIN;
+                }
+            } while(_SingletonObjState_Initialized
+                        != _s_${class.name}_ObjState_);
+            /* Don't break here */
+        case _SingletonObjState_Initialized:
+            _s_p${class.name}_ObjPtr_->m_cRef++;
+            pObj = (_IInterface *)_s_p${class.name}_ObjPtr_;
+            _s_${class.name}_spinlockObj_.Unlock();
+            break;
+    }
+    *ppObj = (_IInterface*)pObj;
+
+Exit:
+    return ec;
+$END IF
+}
+
+$END DO ;;
+$
+$IF attrib is "hasparent" and attrib is not "hasTrivialCtor"
+$   WITH all interfaces DO
+$       IF attrib is "clsobj"
+$           WITH all methods DO
+ECode _CSandwich${class.name}::constructor($^
+$               WITH all parameters DO
+$                   IF parameter is not last
+$                       IF parameter is not first
+,$^
+$                       END IF
+
+        /* [${attrib}] */ ${type} ${prefixingname(parameter)}$^
+$                   END IF
+$               END DO ;; all parameters
+)
+{
+    ECode ec = ${class.name}::constructor($^
+$               WITH all parameters DO
+$                   IF parameter is not last
+$                       IF parameter is not first
+,$^
+$                       END IF
+${PrefixingName(parameter)}$^
+$                   END IF
+$               END DO ;; all parameters
+);
+$IF super.type is not "generic"
+    if (FAILED(ec)) return ec;
+
+    if (NULL == _m_pSuper) {
+$               WITH class DO
+$                   IF super.attrib is "hasdefaultctor"
+        ec = Super::constructor();
+        if (FAILED(ec)) return ec;
+$                   ELSE
+        return E_NO_DEFAULT_CTOR;
+$                   END IF ;; is hasdefaultctor
+$               END DO ;; class
+    }
+$END IF;; !generic
+    return ec;
+}
+
+$           END DO
+$       END IF ;; is clsobj
+$   END DO ;; all interfaces
+$END IF ;; hasparent and not hasTrivialCtor
+$
+$IF type is not "aspect"
+$   WITH all interfaces DO
+$       IF attrib is "clsobj"
+$           WITH all methods DO
+$               IF class.attrib is not "singleton"
+ECode _${class.name}::NewByFriend($^
+$               ELSE
+ECode _${class.name}::AcquireSingletonByFriend($^
+$               END IF ;; "singleton"
+$               WITH all parameters DO
+$                   IF parameter is not last
+
+    /* [${attrib}] */ ${type} ${prefixingname(parameter)},$^
+$                   ELSE
+ ${class.name} **${prefixingname(parameter)})
+$                   END IF
+$               END DO ;; all parameters
+{
+    return _${class.name}CreateObject(
+$   WITH all parameters DO
+$       IF parameter is not last
+            ${prefixingname(parameter)},
+$       ELSE
+            (IInterface**)${prefixingname(parameter)});
+$       END IF
+$   END DO ;; all parameters
+}
+
+$           END DO ;; all methods
+$       END IF ;; attrib is "clsobj"
+$   END DO ;; all interfaces
+$END IF ;; not "aspect"
+$END IF ;; not "hasctor"
+$
+
+#endif // _NO_${Upper(name)}_CLASSOBJECT_
+
+$END IF ;; type is not "generic" and type is not "clsobj"
+
+$
+$IF attrib is "hasfilter"
+$  WITH all interfaces DO
+$    IF attrib is "filter"
+$        WITH ALL methods DO
+
+ECode _${class.name}::${name}Filter(Int32 cFlags$^
+$               WITH all parameters DO
+, ${type} ${prefixingname(parameter)}$^
+$               END DO ;; all parameters
+)
+{
+    return Super::Callback::${name}WithPriority(cFlags$^
+$           WITH all parameters DO
+, ${prefixingname(parameter)}$^
+$           END DO ;; all parameters
+);
+}
+
+$        END DO;; methods
+$    END IF;; filter
+$  END DO;; class interface
+$END IF;; hasfilter
+$
+$IF attrib is "hasvirtual"
+$   TEMPLATE "implbase.lub"
+$END IF
+$
+$IF type is "aspect"
+$   TEMPLATE "implaspect.lub"
+$END IF
+$
+$IF type is "regime"
+$   TEMPLATE "implregime.lub"
+$END IF
+$
+$IF attrib is "hascallback" and type is not "generic"
+$   TEMPLATE "implcallback.lub"
+$END IF
+$
+$IF attrib is "hasfilter"
+$   TEMPLATE "implfilter.lub"
+$END IF
+$
+$   TEMPLATE "implsync.lub"
+$
+
+#endif // __CAR_${Upper(name)}_CPP__
+$
+$END OUTPUT

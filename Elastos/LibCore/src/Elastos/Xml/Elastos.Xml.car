@@ -1,0 +1,22 @@
+
+module
+{
+    merge("../../../car/Org/XmlPull/V1/Org.XmlPull.V1.car");
+
+//    const FAMILY_XML = 0x23    // Framework Error codes
+
+//    #define FRAMEWORK_ERROR(c)      MAKE_ECODE(SEVERITY_ERROR, FAMILY_FRAMEWORK, c)
+//    #define FRAMEWORK_SUCCESS(c)    MAKE_SUCCESS(FAMILY_FRAMEWORK, c)
+
+    //==========================================================================
+    // Elastos XML error codes (Family: 0x23)
+    const E_XML_PULL_PARSER_EXCEPTION =             0xA3010000;
+
+    class CXmlPullParser {
+        interface IXmlPullParser;
+    }
+
+    class CXmlPullParserFactory {
+        interface IXmlPullParserFactory;
+    }
+}

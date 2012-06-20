@@ -1,0 +1,14 @@
+
+module
+{
+    importlib("Elastos.Framework.eco");
+
+    class CActivityOne {
+        interface IActivity;
+        interface IServiceConnection;
+    }
+
+    class CActivityOneServiceConnection {
+        interface IServiceConnection;
+    }
+}

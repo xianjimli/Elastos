@@ -1,0 +1,7 @@
+
+module
+{
+    merge("provider/contacts.car");
+    merge("provider/calllog.car");
+    merge("provider/basecolumns.car");
+}

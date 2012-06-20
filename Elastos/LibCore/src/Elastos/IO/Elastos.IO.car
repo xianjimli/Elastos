@@ -1,0 +1,1299 @@
+/** @addtogroup SystemRef
+  *   @{
+  */
+
+//==========================================================================
+// Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.
+//==========================================================================
+
+module
+{
+    enum CompressStrategy {
+        CompressStrategy_Default   = 00,
+        CompressStrategy_Filtered  = 01,
+        CompressStrategy_Huffman   = 02,
+        CompressStrategy_RLE       = 03,
+        CompressStrategy_Fixed     = 04
+    }
+
+    interface IPrintWriter {
+    }
+
+    interface IInputStream;
+    interface IOutputStream;
+
+    interface IDataInputStream;
+    interface IDataOutputStream;
+
+    interface IStringInputStream;
+
+    interface ITextInputStream;
+    interface ITextOutputStream;
+
+    interface IInputStream {
+        Available(
+            [out] Int32* bytes);
+
+        Close();
+
+        Mark(
+            [in] Int32 readLimit);
+
+        IsMarkSupported(
+            [out] Boolean* supported);
+
+        Read(
+            [out] Byte* value);
+
+        ReadBuffer(
+            [out] BufferOf<Byte> buffer);
+
+        ReadBufferEx(
+            [in] Int32 offset,
+            [in] Int32 length,
+            [out] BufferOf<Byte> buffer);
+
+        Reset();
+
+        Skip(
+            [in] Int32 length);
+    }
+
+    interface IOutputStream {
+        Close();
+
+        Flush();
+
+        Write(
+            [in] Byte value);
+
+        WriteBuffer(
+            [in] BufferOf<Byte> buffer,
+            [out] Int32* bytesWritten);
+
+        WriteBufferEx(
+            [in] Int32 offset,
+            [in] Int32 length,
+            [in] BufferOf<Byte> buffer,
+            [out] Int32* bytesWritten);
+    }
+
+    interface IDataInputStream extends IInputStream {
+        ReadInt16(
+            [out] Int16* value);
+
+        ReadInt32(
+            [out] Int32* value);
+
+        ReadInt64(
+            [out] Int64* value);
+
+        ReadFloat(
+            [out] Float* value);
+
+        ReadDouble(
+            [out] Double * value);
+
+        ReadChar8(
+            [out] Char8* value);
+
+        ReadChar16(
+            [out] Char16* value);
+
+        ReadBoolean(
+            [out] Boolean* value);
+
+        ReadEMuid(
+            [out] EMuid* value);
+
+        ReadEGuid(
+            [out] EGuid* value);
+
+        ReadECode(
+            [out] ECode* value);
+    }
+
+    interface IDataOutputStream extends IOutputStream {
+        WriteInt16(
+            [in] Int16 value);
+
+        WriteInt32(
+            [in] Int32 value);
+
+        WriteInt64(
+            [in] Int64 value);
+
+        WriteFloat(
+            [in] Float value);
+
+        WriteDouble(
+            [in] Double value);
+
+        WriteChar8(
+            [in] Char8 value);
+
+        WriteChar16(
+            [in] Char16 value);
+
+        WriteBoolean(
+            [in] Boolean value);
+
+        WriteEMuid(
+            [in] EMuid value);
+
+        WriteEGuid(
+            [in] EGuid value);
+
+        WriteECode(
+            [in] ECode value);
+    }
+
+    interface IStringInputStream extends IInputStream {
+        ReadChar8(
+            [out] Char8* character);
+
+        ReadChar8Array(
+            [out] BufferOf<Char8> charArray);
+
+        ReadChar8ArrayEx(
+            [in] Int32 offset,
+            [in] Int32 length,
+            [out] BufferOf<Char8> charArray);
+
+        ReadString(
+            [out] StringBuf<> string);
+    }
+
+    interface ITextInputStream extends IInputStream {
+        GetEncoding(
+            [out] Encoding* encoding);
+
+        ReadChar(
+            [out] Char16* character);
+
+        ReadCharArray(
+            [out] BufferOf<Char16> charArray);
+
+        ReadCharArrayEx(
+            [in] Int32 offset,
+            [in] Int32 length,
+            [out] BufferOf<Char16> charArray);
+
+        ReadString(
+            [out] StringBuf<> string);
+    }
+
+    interface ITextOutputStream extends IOutputStream {
+        GetEncoding(
+            [out] Encoding* encoding);
+
+        WriteChar(
+            [in] Char16 character);
+
+        WriteCharArray(
+            [in] BufferOf<Char16> charArray,
+            [out] Int32* charsWritten);
+
+        WriteCharArrayEx(
+            [in] Int32 offset,
+            [in] Int32 length,
+            [in] BufferOf<Char16> charArray,
+            [out] Int32* charsWritten);
+
+        WriteString(
+            [in] String string);
+    }
+
+    interface IGZipInputStream extends IInputStream { }
+
+    interface IGZipOutputStream extends IOutputStream { }
+
+    interface IFileDescriptor {
+        /**
+         * Ensures that data which is buffered within the underlying implementation
+         * is written out to the appropriate device before returning.
+         *
+         * @throws SyncFailedException
+         *             when the operation fails.
+         */
+        Sync();
+
+        /**
+         * Indicates whether this FileDescriptor is valid.
+         *
+         * @return {@code true} if this FileDescriptor is valid, {@code false}
+         *         otherwise.
+         */
+        Valid(
+            [out] Boolean* isValid);
+
+        GetDescription(
+            [out] String* des);
+
+        GetDescriptor(
+            [out] Int32* des);
+
+        SetDescriptor(
+            [in] Int32 fd);
+
+        GetNative(
+            [out] Int32* native);
+    }
+
+    interface IReader {
+        /**
+         * Closes this reader. Implementations of this method should free any
+         * resources associated with the reader.
+         *
+         * @throws IOException
+         *             if an error occurs while closing this reader.
+         */
+        Close();
+
+        /**
+         * Sets a mark position in this reader. The parameter {@code readLimit}
+         * indicates how many characters can be read before the mark is invalidated.
+         * Calling {@code reset()} will reposition the reader back to the marked
+         * position if {@code readLimit} has not been surpassed.
+         * <p>
+         * This default implementation simply throws an {@code IOException};
+         * subclasses must provide their own implementation.
+         *
+         * @param readLimit
+         *            the number of characters that can be read before the mark is
+         *            invalidated.
+         * @throws IllegalArgumentException
+         *             if {@code readLimit < 0}.
+         * @throws IOException
+         *             if an error occurs while setting a mark in this reader.
+         * @see #markSupported()
+         * @see #reset()
+         */
+        Mark(
+            [in] Int32 readLimit);
+
+        /**
+         * Indicates whether this reader supports the {@code mark()} and
+         * {@code reset()} methods. This default implementation returns
+         * {@code false}.
+         *
+         * @return always {@code false}.
+         */
+        IsMarkSupported(
+            [out] Boolean* supported);
+
+        /**
+         * Reads a single character from this reader and returns it as an integer
+         * with the two higher-order bytes set to 0. Returns -1 if the end of the
+         * reader has been reached.
+         *
+         * @return the character read or -1 if the end of the reader has been
+         *         reached.
+         * @throws IOException
+         *             if this reader is closed or some other I/O error occurs.
+         */
+        Read(
+            [out] Byte* value);
+
+         /**
+         * Reads characters from this reader and stores them in the character array
+         * {@code buf} starting at offset 0. Returns the number of characters
+         * actually read or -1 if the end of the reader has been reached.
+         *
+         * @param buf
+         *            character array to store the characters read.
+         * @return the number of characters read or -1 if the end of the reader has
+         *         been reached.
+         * @throws IOException
+         *             if this reader is closed or some other I/O error occurs.
+         */
+        ReadBuffer(
+            [out] ArrayOf<Byte> buffer,
+            [out] Int32* number);
+
+        /**
+         * Reads at most {@code count} characters from this reader and stores them
+         * at {@code offset} in the character array {@code buf}. Returns the number
+         * of characters actually read or -1 if the end of the reader has been
+         * reached.
+         *
+         * @param buf
+         *            the character array to store the characters read.
+         * @param offset
+         *            the initial position in {@code buffer} to store the characters
+         *            read from this reader.
+         * @param count
+         *            the maximum number of characters to read.
+         * @return the number of characters read or -1 if the end of the reader has
+         *         been reached.
+         * @throws IOException
+         *             if this reader is closed or some other I/O error occurs.
+         */
+        ReadBufferEx(
+            [in] Int32 offset,
+            [in] Int32 count,
+            [out] ArrayOf<Byte> buffer,
+            [out] Int32* number);
+
+        /**
+         * Indicates whether this reader is ready to be read without blocking.
+         * Returns {@code true} if this reader will not block when {@code read} is
+         * called, {@code false} if unknown or blocking will occur. This default
+         * implementation always returns {@code false}.
+         *
+         * @return always {@code false}.
+         * @throws IOException
+         *             if this reader is closed or some other I/O error occurs.
+         * @see #read()
+         * @see #read(char[])
+         * @see #read(char[], int, int)
+         */
+        IsReady(
+            [out] Boolean* ready);
+
+        /**
+         * Resets this reader's position to the last {@code mark()} location.
+         * Invocations of {@code read()} and {@code skip()} will occur from this new
+         * location. If this reader has not been marked, the behavior of
+         * {@code reset()} is implementation specific. This default
+         * implementation throws an {@code IOException}.
+         *
+         * @throws IOException
+         *             always thrown in this default implementation.
+         * @see #mark(int)
+         * @see #markSupported()
+         */
+        Reset();
+
+        /**
+         * Skips {@code amount} characters in this reader. Subsequent calls of
+         * {@code read} methods will not return these characters unless {@code
+         * reset()} is used. This method may perform multiple reads to read {@code
+         * count} characters.
+         *
+         * @param count
+         *            the maximum number of characters to skip.
+         * @return the number of characters actually skipped.
+         * @throws IllegalArgumentException
+         *             if {@code amount < 0}.
+         * @throws IOException
+         *             if this reader is closed or some other I/O error occurs.
+         * @see #mark(int)
+         * @see #markSupported()
+         * @see #reset()
+         */
+        Skip(
+            [in] Int64 count,
+            [out] Int64* skipped);
+    }
+
+    class CFileInputStream {
+        constructor(
+            [in] String fileName);
+
+        interface IInputStream;
+    }
+
+    class CFileOutputStream {
+        constructor(
+            [in] String fileName,
+            [in] Boolean append);
+
+        interface IOutputStream;
+    }
+
+    class CBufferedInputStream {
+        constructor(
+            [in] IInputStream* stream);
+
+        constructor(
+            [in] IInputStream* stream,
+            [in] Int32 defaultBufferSize);
+
+        interface IInputStream;
+    }
+
+    class CBufferedOutputStream {
+        constructor(
+            [in] IOutputStream* stream);
+
+        constructor(
+            [in] IOutputStream* stream,
+            [in] Int32 defaultBufferSize);
+
+        interface IOutputStream;
+    }
+
+    class CDataInputStream {
+        constructor(
+            [in] IInputStream* stream);
+
+        interface IDataInputStream;
+    }
+
+    class CDataOutputStream {
+        constructor(
+            [in] IOutputStream* stream);
+
+        interface IDataOutputStream;
+    }
+
+    class CByteArrayInputStream {
+        constructor(
+            [in] BufferOf<Byte> buffer);
+
+        constructor(
+            [in] BufferOf<Byte> buffer,
+            [in] Int32 offset,
+            [in] Int32 length);
+
+        interface IInputStream;
+    }
+
+    class CByteArrayOutputStream {
+        constructor(
+            [in] BufferOf<Byte> buffer);
+
+        constructor(
+            [in] BufferOf<Byte> buffer,
+            [in] Int32 offset,
+            [in] Int32 length);
+
+        interface IOutputStream;
+    }
+
+    class CStringInputStream {
+        constructor(
+            [in] String string);
+
+        interface IStringInputStream;
+    }
+
+    class CTextInputStream {
+        constructor(
+            [in] IInputStream* stream);
+
+        constructor(
+            [in] IInputStream* stream,
+            [in] Encoding encoding);
+
+        interface ITextInputStream;
+    }
+
+    class CTextOutputStream {
+        constructor(
+            [in] IOutputStream* stream);
+
+        constructor(
+            [in] IOutputStream* stream,
+            [in] Encoding encoding);
+
+        interface ITextOutputStream;
+    }
+
+    class CGZipInputStream {
+        constructor(
+            [in] IInputStream* stream);
+
+        constructor(
+            [in] IInputStream* stream,
+            [in] Int32 windowBits);
+
+        constructor(
+            [in] IInputStream* stream,
+            [in] Int32 windowBits,
+            [in] BufferOf<Byte> dictionary);
+
+        interface IGZipInputStream;
+    }
+
+    class CGZipOutputStream {
+        constructor(
+            [in] IOutputStream* stream);
+
+        constructor(
+            [in] IOutputStream* stream,
+            [in] Int32 windowBits,
+            [in] Int32 compressLevel,
+            [in] Int32 memoryUsageLevel,
+            [in] CompressStrategy strategy);
+
+        constructor(
+            [in] IOutputStream* stream,
+            [in] Int32 windowBits,
+            [in] Int32 compressLevel,
+            [in] Int32 memoryUsageLevel,
+            [in] CompressStrategy strategy,
+            [in] BufferOf<Byte> dictionary);
+
+        interface IGZipOutputStream;
+    }
+
+    class CFileDescriptor {
+        /**
+         * Constructs a new FileDescriptor containing an invalid handle. The
+         * contained handle is usually modified by native code at a later point.
+         */
+        constructor();
+
+        interface IFileDescriptor;
+    }
+
+    class CInputStreamReader {
+        constructor(
+            [in] IInputStream* is,
+            [in] String enc);
+
+        interface IReader;
+    }
+
+    interface IURI {
+    }
+
+    interface IURL {
+    }
+
+    interface IFilenameFilter {
+    }
+
+    interface IFileFilter {
+    }
+
+	interface IFile {
+        /**
+         * Tests whether or not this process is allowed to execute this file.
+         * Note that this is a best-effort result; the only way to be certain is
+         * to actually attempt the operation.
+         *
+         * @return {@code true} if this file can be executed, {@code false} otherwise.
+         * @throws SecurityException
+         *             If a security manager exists and
+         *             SecurityManager.checkExec(java.lang.String) disallows read
+         *             permission to this file object
+         * @see java.lang.SecurityManager#checkExec(String)
+         *
+         * @since 1.6
+         */
+        CanExecute(
+            [out] Boolean* IsCanExecute);
+
+        /**
+         * Indicates whether the current context is allowed to read from this file.
+         *
+         * @return {@code true} if this file can be read, {@code false} otherwise.
+         * @throws SecurityException
+         *             if a {@code SecurityManager} is installed and it denies the
+         *             read request.
+         */
+        CanRead(
+            [out] Boolean* IsCanRead);
+
+        /**
+         * Indicates whether the current context is allowed to write to this file.
+         *
+         * @return {@code true} if this file can be written, {@code false}
+         *         otherwise.
+         * @throws SecurityException
+         *             if a {@code SecurityManager} is installed and it denies the
+         *             write request.
+         */
+        CanWrite(
+            [out] Boolean* isCanWrite);
+
+        /**
+         * Returns the relative sort ordering of the paths for this file and the
+         * file {@code another}. The ordering is platform dependent.
+         *
+         * @param another
+         *            a file to compare this file to
+         * @return an int determined by comparing the two paths. Possible values are
+         *         described in the Comparable interface.
+         * @see Comparable
+         */
+        CompareTo(
+            [in] IFile* another,
+            [out] Int32* result);
+
+        /**
+         * Deletes this file. Directories must be empty before they will be deleted.
+         *
+         * <p>Note that this method does <i>not</i> throw {@code IOException} on failure.
+         * Callers must check the return value.
+         *
+         * @return {@code true} if this file was deleted, {@code false} otherwise.
+         * @throws SecurityException
+         *             if a {@code SecurityManager} is installed and it denies the
+         *             request.
+         * @see java.lang.SecurityManager#checkDelete
+         */
+        Delete(
+            [out] Boolean* isDeleted);
+
+        /**
+         * Schedules this file to be automatically deleted once the virtual machine
+         * terminates. This will only happen when the virtual machine terminates
+         * normally as described by the Java Language Specification section 12.9.
+         *
+         * @throws SecurityException
+         *             if a {@code SecurityManager} is installed and it denies the
+         *             request.
+         */
+        DeleteOnExit();
+
+        /**
+         * Compares {@code obj} to this file and returns {@code true} if they
+         * represent the <em>same</em> object using a path specific comparison.
+         *
+         * @param obj
+         *            the object to compare this file with.
+         * @return {@code true} if {@code obj} is the same as this object,
+         *         {@code false} otherwise.
+         */
+        Equals(
+            [in] IInterface* obj,
+            [out] Boolean* isEqual);
+
+        /**
+         * Returns a Boolean indicating whether this file can be found on the
+         * underlying file system.
+         *
+         * @return {@code true} if this file exists, {@code false} otherwise.
+         * @throws SecurityException
+         *             if a {@code SecurityManager} is installed and it denies read
+         *             access to this file.
+         * @see #getPath
+         * @see java.lang.SecurityManager#checkRead(FileDescriptor)
+         */
+        Exists(
+            [out] Boolean* isExist);
+
+        /**
+         * Returns the absolute path of this file.
+         *
+         * @return the absolute file path.
+         */
+        GetAbsolutePath(
+            [out] String* path);
+
+        /**
+         * Returns a new file constructed using the absolute path of this file.
+         *
+         * @return a new file from this file's absolute path.
+         * @see java.lang.SecurityManager#checkPropertyAccess
+         */
+        GetAbsoluteFile(
+            [out] IFile** file);
+
+        /**
+         * Returns the absolute path of this file with all references resolved. An
+         * <em>absolute</em> path is one that begins at the root of the file
+         * system. The canonical path is one in which all references have been
+         * resolved. For the cases of '..' and '.', where the file system supports
+         * parent and working directory respectively, these are removed and replaced
+         * with a direct directory reference. If the file does not exist,
+         * getCanonicalPath() may not resolve any references and simply returns an
+         * absolute path name or throws an IOException.
+         *
+         * @return the canonical path of this file.
+         * @throws IOException
+         *             if an I/O error occurs.
+         */
+        GetCanonicalPath(
+            [out] String* path);
+
+        /**
+         * Returns a new file created using the canonical path of this file.
+         * Equivalent to {@code new File(this.getCanonicalPath())}.
+         *
+         * @return the new file constructed from this file's canonical path.
+         * @throws IOException
+         *             if an I/O error occurs.
+         * @see java.lang.SecurityManager#checkPropertyAccess
+         */
+        GetCanonicalFile(
+            [out] IFile** file);
+
+        /**
+         * Returns the name of the file or directory represented by this file.
+         *
+         * @return this file's name or an empty string if there is no name part in
+         *         the file's path.
+         */
+        GetName(
+            [out] String* name);
+
+        /**
+         * Returns the pathname of the parent of this file. This is the path up to
+         * but not including the last name. {@code null} is returned if there is no
+         * parent.
+         *
+         * @return this file's parent pathname or {@code null}.
+         */
+        GetParent(
+            [out] String* parent);
+
+        /**
+         * Returns a new file made from the pathname of the parent of this file.
+         * This is the path up to but not including the last name. {@code null} is
+         * returned when there is no parent.
+         *
+         * @return a new file representing this file's parent or {@code null}.
+         */
+        GetParentFile(
+            [out] IFile** file);
+
+        /**
+         * Returns the path of this file.
+         *
+         * @return this file's path.
+         */
+        GetPath(
+            [out] String* path);
+
+        /**
+         * Returns an integer hash code for the receiver. Any two objects for which
+         * {@code equals} returns {@code true} must return the same hash code.
+         *
+         * @return this files's hash value.
+         * @see #equals
+         */
+        GetHashCode(
+            [out] Int32* code);
+
+        /**
+         * Indicates if this file's pathname is absolute. Whether a pathname is
+         * absolute is platform specific. On Android, absolute paths start with
+         * the character '/'.
+         *
+         * @return {@code true} if this file's pathname is absolute, {@code false}
+         *         otherwise.
+         * @see #getPath
+         */
+        IsAbsolute(
+            [out] Boolean* isAbsolute);
+
+        /**
+         * Indicates if this file represents a <em>directory</em> on the
+         * underlying file system.
+         *
+         * @return {@code true} if this file is a directory, {@code false}
+         *         otherwise.
+         * @throws SecurityException
+         *             if a {@code SecurityManager} is installed and it denies read
+         *             access to this file.
+         */
+        IsDirectory(
+            [out] Boolean* isDirectory);
+
+        /**
+         * Indicates if this file represents a <em>file</em> on the underlying
+         * file system.
+         *
+         * @return {@code true} if this file is a file, {@code false} otherwise.
+         * @throws SecurityException
+         *             if a {@code SecurityManager} is installed and it denies read
+         *             access to this file.
+         */
+        IsFile(
+            [out] Boolean* isFile);
+
+        /**
+         * Returns whether or not this file is a hidden file as defined by the
+         * operating system. The notion of "hidden" is system-dependent. For Unix
+         * systems a file is considered hidden if its name starts with a ".". For
+         * Windows systems there is an explicit flag in the file system for this
+         * purpose.
+         *
+         * @return {@code true} if the file is hidden, {@code false} otherwise.
+         * @throws SecurityException
+         *             if a {@code SecurityManager} is installed and it denies read
+         *             access to this file.
+         */
+        IsHidden(
+            [out] Boolean* isHidden);
+
+        /**
+         * Returns the time when this file was last modified, measured in
+         * milliseconds since January 1st, 1970, midnight.
+         * Returns 0 if the file does not exist.
+         *
+         * @return the time when this file was last modified.
+         * @throws SecurityException
+         *             if a {@code SecurityManager} is installed and it denies read
+         *             access to this file.
+         */
+        LastModified(
+            [out] Int64* time);
+
+        /**
+         * Sets the time this file was last modified, measured in milliseconds since
+         * January 1st, 1970, midnight.
+         *
+         * <p>Note that this method does <i>not</i> throw {@code IOException} on failure.
+         * Callers must check the return value.
+         *
+         * @param time
+         *            the last modification time for this file.
+         * @return {@code true} if the operation is successful, {@code false}
+         *         otherwise.
+         * @throws IllegalArgumentException
+         *             if {@code time < 0}.
+         * @throws SecurityException
+         *             if a {@code SecurityManager} is installed and it denies write
+         *             access to this file.
+         */
+        SetLastModified(
+            [in] Int64 time,
+            [out] Boolean* isSet);
+
+        /**
+         * Equivalent to setWritable(false, false).
+         *
+         * @see #setWritable(Boolean, Boolean)
+         */
+        SetReadOnly(
+            [out] Boolean* isSet);
+
+        /**
+         * Manipulates the execute permissions for the abstract path designated by
+         * this file.
+         *
+         * <p>Note that this method does <i>not</i> throw {@code IOException} on failure.
+         * Callers must check the return value.
+         *
+         * @param executable
+         *            To allow execute permission if true, otherwise disallow
+         * @param ownerOnly
+         *            To manipulate execute permission only for owner if true,
+         *            otherwise for everyone. The manipulation will apply to
+         *            everyone regardless of this value if the underlying system
+         *            does not distinguish owner and other users.
+         * @return true if and only if the operation succeeded. If the user does not
+         *         have permission to change the access permissions of this abstract
+         *         pathname the operation will fail. If the underlying file system
+         *         does not support execute permission and the value of executable
+         *         is false, this operation will fail.
+         * @throws SecurityException -
+         *             If a security manager exists and
+         *             SecurityManager.checkWrite(java.lang.String) disallows write
+         *             permission to this file object
+         * @since 1.6
+         */
+        SetExecutable(
+            [in] Boolean executable,
+            [in] Boolean ownerOnly,
+            [out] Boolean* isSet);
+
+        /**
+         * Equivalent to setExecutable(executable, true).
+         * @see #setExecutable(Boolean, Boolean)
+         * @since 1.6
+         */
+        SetExecutableEx(
+            [in] Boolean executable,
+            [out] Boolean* isSet);
+
+        /**
+         * Manipulates the read permissions for the abstract path designated by this
+         * file.
+         *
+         * @param readable
+         *            To allow read permission if true, otherwise disallow
+         * @param ownerOnly
+         *            To manipulate read permission only for owner if true,
+         *            otherwise for everyone. The manipulation will apply to
+         *            everyone regardless of this value if the underlying system
+         *            does not distinguish owner and other users.
+         * @return true if and only if the operation succeeded. If the user does not
+         *         have permission to change the access permissions of this abstract
+         *         pathname the operation will fail. If the underlying file system
+         *         does not support read permission and the value of readable is
+         *         false, this operation will fail.
+         * @throws SecurityException -
+         *             If a security manager exists and
+         *             SecurityManager.checkWrite(java.lang.String) disallows write
+         *             permission to this file object
+         * @since 1.6
+         */
+        SetReadable(
+            [in] Boolean readable,
+            [in] Boolean ownerOnly,
+            [out] Boolean* isSet);
+
+        /**
+         * Equivalent to setReadable(readable, true).
+         * @see #setReadable(Boolean, Boolean)
+         * @since 1.6
+         */
+        SetReadableEx(
+            [in] Boolean readable,
+            [out] Boolean* isSet);
+
+        /**
+         * Manipulates the write permissions for the abstract path designated by this
+         * file.
+         *
+         * @param writable
+         *            To allow write permission if true, otherwise disallow
+         * @param ownerOnly
+         *            To manipulate write permission only for owner if true,
+         *            otherwise for everyone. The manipulation will apply to
+         *            everyone regardless of this value if the underlying system
+         *            does not distinguish owner and other users.
+         * @return true if and only if the operation succeeded. If the user does not
+         *         have permission to change the access permissions of this abstract
+         *         pathname the operation will fail.
+         * @throws SecurityException -
+         *             If a security manager exists and
+         *             SecurityManager.checkWrite(java.lang.String) disallows write
+         *             permission to this file object
+         * @since 1.6
+         */
+        SetWritable(
+            [in] Boolean writable,
+            [in] Boolean ownerOnly,
+            [out] Boolean* isSet);
+
+        /**
+         * Equivalent to setWritable(writable, true).
+         * @see #setWritable(Boolean, Boolean)
+         * @since 1.6
+         */
+        SetWritableEx(
+            [in] Boolean writable,
+            [out] Boolean* isSet);
+
+        /**
+         * Returns the length of this file in bytes.
+         * Returns 0 if the file does not exist.
+         * The result for a directory is not defined.
+         *
+         * @return the number of bytes in this file.
+         * @throws SecurityException
+         *             if a {@code SecurityManager} is installed and it denies read
+         *             access to this file.
+         */
+        GetLength(
+            [out] Int64* length);
+
+        /**
+         * Gets a list of the files in the directory represented by this file. This
+         * list is then filtered through a FilenameFilter and the names of files
+         * with matching names are returned as an array of strings. Returns
+         * {@code null} if this file is not a directory. If {@code filter} is
+         * {@code null} then all filenames match.
+         * <p>
+         * The entries {@code .} and {@code ..} representing the current and parent
+         * directories are not returned as part of the list.
+         *
+         * @param filter
+         *            the filter to match names against, may be {@code null}.
+         * @return an array of files or {@code null}.
+         * @throws SecurityException
+         *             if a {@code SecurityManager} is installed and it denies read
+         *             access to this file.
+         * @see #getPath
+         * @see #isDirectory
+         * @see java.lang.SecurityManager#checkRead(FileDescriptor)
+         */
+        List(
+            [out, callee] ArrayOf<String>* files);
+
+        /**
+         * Gets a list of the files in the directory represented by this file. This
+         * list is then filtered through a FilenameFilter and the names of files
+         * with matching names are returned as an array of strings. Returns
+         * {@code null} if this file is not a directory. If {@code filter} is
+         * {@code null} then all filenames match.
+         * <p>
+         * The entries {@code .} and {@code ..} representing the current and parent
+         * directories are not returned as part of the list.
+         *
+         * @param filter
+         *            the filter to match names against, may be {@code null}.
+         * @return an array of files or {@code null}.
+         * @throws SecurityException
+         *             if a {@code SecurityManager} is installed and it denies read
+         *             access to this file.
+         * @see #getPath
+         * @see #isDirectory
+         * @see java.lang.SecurityManager#checkRead(FileDescriptor)
+         */
+        ListEx(
+            [in] IFilenameFilter* filter,
+            [out, callee] ArrayOf<String>* files);
+
+        /**
+         * Returns an array of files contained in the directory represented by this
+         * file. The result is {@code null} if this file is not a directory. The
+         * paths of the files in the array are absolute if the path of this file is
+         * absolute, they are relative otherwise.
+         *
+         * @return an array of files or {@code null}.
+         * @throws SecurityException
+         *             if a {@code SecurityManager} is installed and it denies read
+         *             access to this file.
+         * @see #list
+         * @see #isDirectory
+         */
+        ListFiles(
+            [out] IObjectContainer** files); /*IFile*/
+
+        /**
+         * Gets a list of the files in the directory represented by this file. This
+         * list is then filtered through a FilenameFilter and files with matching
+         * names are returned as an array of files. Returns {@code null} if this
+         * file is not a directory. If {@code filter} is {@code null} then all
+         * filenames match.
+         * <p>
+         * The entries {@code .} and {@code ..} representing the current and parent
+         * directories are not returned as part of the list.
+         *
+         * @param filter
+         *            the filter to match names against, may be {@code null}.
+         * @return an array of files or {@code null}.
+         * @throws SecurityException
+         *             if a {@code SecurityManager} is installed and it denies read
+         *             access to this file.
+         * @see #list(FilenameFilter filter)
+         * @see #getPath
+         * @see #isDirectory
+         * @see java.lang.SecurityManager#checkRead(FileDescriptor)
+         */
+        ListFilesEx(
+            [in] IFilenameFilter* filter,
+            [out] IObjectContainer** files); /*IFile*/
+
+        /**
+         * Gets a list of the files in the directory represented by this file. This
+         * list is then filtered through a FileFilter and matching files are
+         * returned as an array of files. Returns {@code null} if this file is not a
+         * directory. If {@code filter} is {@code null} then all files match.
+         * <p>
+         * The entries {@code .} and {@code ..} representing the current and parent
+         * directories are not returned as part of the list.
+         *
+         * @param filter
+         *            the filter to match names against, may be {@code null}.
+         * @return an array of files or {@code null}.
+         * @throws SecurityException
+         *             if a {@code SecurityManager} is installed and it denies read
+         *             access to this file.
+         * @see #getPath
+         * @see #isDirectory
+         * @see java.lang.SecurityManager#checkRead(FileDescriptor)
+         */
+        ListFilesEx2(
+            [in] IFileFilter* filter,
+            [out] IObjectContainer** files); /*IFile*/
+
+        /**
+         * Creates the directory named by the trailing filename of this file. Does
+         * not create the complete path required to create this directory.
+         *
+         * <p>Note that this method does <i>not</i> throw {@code IOException} on failure.
+         * Callers must check the return value.
+         *
+         * @return {@code true} if the directory has been created, {@code false}
+         *         otherwise.
+         * @throws SecurityException
+         *             if a {@code SecurityManager} is installed and it denies write
+         *             access for this file.
+         * @see #mkdirs
+         */
+        Mkdir(
+            [out] Boolean* isCreated);
+
+        /**
+         * Creates the directory named by the trailing filename of this file,
+         * including the complete directory path required to create this directory.
+         *
+         * <p>Note that this method does <i>not</i> throw {@code IOException} on failure.
+         * Callers must check the return value.
+         *
+         * @return {@code true} if the necessary directories have been created,
+         *         {@code false} if the target directory already exists or one of
+         *         the directories can not be created.
+         * @throws SecurityException
+         *             if a {@code SecurityManager} is installed and it denies write
+         *             access for this file.
+         * @see #mkdir
+         */
+        Mkdirs(
+            [out] Boolean* isCreated);
+
+        /**
+         * Creates a new, empty file on the file system according to the path
+         * information stored in this file.
+         *
+         * <p>Note that this method does <i>not</i> throw {@code IOException} on failure.
+         * Callers must check the return value.
+         *
+         * @return {@code true} if the file has been created, {@code false} if it
+         *         already exists.
+         * @throws IOException if it's not possible to create the file.
+         * @throws SecurityException
+         *             if a {@code SecurityManager} is installed and it denies write
+         *             access for this file.
+         */
+        CreateNewFile(
+            [out] Boolean* isCreated);
+
+        /**
+         * Renames this file to {@code newPath}. This operation is supported for both
+         * files and directories.
+         *
+         * <p>Many failures are possible. Some of the more likely failures include:
+         * <ul>
+         * <li>Write permission is required on the directories containing both the source and
+         * destination paths.
+         * <li>Search permission is required for all parents of both paths.
+         * <li>Both paths be on the same mount point. On Android, applications are most likely to hit
+         * this restriction when attempting to copy between internal storage and an SD card.
+         * </ul>
+         *
+         * <p>Note that this method does <i>not</i> throw {@code IOException} on failure.
+         * Callers must check the return value.
+         *
+         * @param newPath the new path.
+         * @return true on success.
+         * @throws SecurityException
+         *             if a {@code SecurityManager} is installed and it denies write
+         *             access for this file or {@code newPath}.
+         */
+        RenameTo(
+            [in] IFile* newPath,
+            [out] Boolean* isSucceeded);
+
+        /**
+         * Returns a string containing a concise, human-readable description of this
+         * file.
+         *
+         * @return a printable representation of this file.
+         */
+        GetDescription(
+            [ out ] String * des);
+
+        /**
+         * Returns a Uniform Resource Identifier for this file. The URI is system
+         * dependent and may not be transferable between different operating / file
+         * systems.
+         *
+         * @return an URI for this file.
+         */
+        ToURI(
+            [out] IURI** uri);
+
+        /**
+         * Returns a Uniform Resource Locator for this file. The URL is system
+         * dependent and may not be transferable between different operating / file
+         * systems.
+         *
+         * @return a URL for this file.
+         * @throws java.net.MalformedURLException
+         *             if the path cannot be transformed into a URL.
+         * @deprecated use {@link #toURI} and {@link java.net.URI#toURL} to get
+         * correct escaping of illegal characters.
+         */
+        ToURL(
+            [out] IURL** uri);
+
+        /**
+         * Returns the total size in bytes of the partition containing this path.
+         * Returns 0 if this path does not exist.
+         *
+         * @since 1.6
+         */
+        GetTotalSpace(
+            [out] Int64* space);
+
+        /**
+         * Returns the number of usable free bytes on the partition containing this path.
+         * Returns 0 if this path does not exist.
+         *
+         * <p>Note that this is likely to be an optimistic over-estimate and should not
+         * be taken as a guarantee your application can actually write this many bytes.
+         * On Android (and other Unix-based systems), this method returns the number of free bytes
+         * available to non-root users, regardless of whether you're actually running as root,
+         * and regardless of any quota or other restrictions that might apply to the user.
+         * (The {@code getFreeSpace} method returns the number of bytes potentially available to root.)
+         *
+         * @since 1.6
+         */
+        GetUsableSpace(
+            [out] Int64* space);
+
+        /**
+         * Returns the number of free bytes on the partition containing this path.
+         * Returns 0 if this path does not exist.
+         *
+         * <p>Note that this is likely to be an optimistic over-estimate and should not
+         * be taken as a guarantee your application can actually write this many bytes.
+         *
+         * @since 1.6
+         */
+        GetFreeSpace(
+            [out] Int64* space);
+	}
+
+	class CFile {
+        /**
+         * Constructs a new file using the specified directory and name.
+         *
+         * @param dir
+         *            the directory where the file is stored.
+         * @param name
+         *            the file's name.
+         * @throws NullPointerException
+         *             if {@code name} is {@code null}.
+         */
+        constructor(
+            [in] IFile* dir,
+            [in] String name);
+
+        /**
+         * Constructs a new file using the specified path.
+         *
+         * @param path
+         *            the path to be used for the file.
+         */
+        constructor(
+            [in] String path);
+
+        /**
+         * Constructs a new File using the specified directory path and file name,
+         * placing a path separator between the two.
+         *
+         * @param dirPath
+         *            the path to the directory where the file is stored.
+         * @param name
+         *            the file's name.
+         * @throws NullPointerException
+         *             if {@code name} is {@code null}.
+         */
+        constructor(
+            [in] String dirPath,
+            [in] String name);
+
+        /**
+         * Constructs a new File using the path of the specified URI. {@code uri}
+         * needs to be an absolute and hierarchical Unified Resource Identifier with
+         * file scheme and non-empty path component, but with undefined authority,
+         * query or fragment components.
+         *
+         * @param uri
+         *            the Unified Resource Identifier that is used to construct this
+         *            file.
+         * @throws IllegalArgumentException
+         *             if {@code uri} does not comply with the conditions above.
+         * @see #toURI
+         * @see java.net.URI
+         */
+        constructor(
+            [in] IURI* uri);
+
+        interface IFile;
+    }
+}
+/** @} */
+

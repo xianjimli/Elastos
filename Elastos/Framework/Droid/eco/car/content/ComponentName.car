@@ -1,0 +1,26 @@
+
+module
+{
+    interface IComparable;
+
+    interface IComponentName extends IComparable {
+        GetCapsuleName(
+            [out] String* capsuleName);
+
+        GetClassName(
+            [out] String* className);
+
+        FlattenToString(
+            [out] String* name);
+
+        FlattenToShortString(
+            [out] String* name);
+
+        Equals(
+            [in] IComponentName* other,
+            [out] Boolean* isEqual);
+
+        GetShortDescription(
+            [out] String* description);
+    }
+}

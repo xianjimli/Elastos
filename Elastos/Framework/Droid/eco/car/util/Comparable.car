@@ -1,0 +1,10 @@
+
+module
+{
+    interface IDescribable;
+
+    interface IComparable extends IDescribable {
+        GetHashCode(
+            [out] Int32* hashCode);
+    }
+}

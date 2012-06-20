@@ -1,0 +1,450 @@
+
+module
+{
+    /**
+     * Indicates that the bitmap was created for an unknown pixel density.
+     *
+     * @see Bitmap#getDensity()
+     * @see Bitmap#setDensity(int)
+     */
+    const Bitmap_DENSITY_NONE = 0x00;
+
+    enum BitmapConfig {
+        // these native values must match up with the enum in SkBitmap.h
+        BitmapConfig_ALPHA_8     = 0x02,
+        BitmapConfig_RGB_565     = 0x04,
+        BitmapConfig_ARGB_4444   = 0x05,
+        BitmapConfig_ARGB_8888   = 0x06,
+    }
+
+    /**
+     * Specifies the known formats a bitmap can be compressed into
+     */
+    enum BitmapCompressFormat {
+        BitmapCompressFormat_JPEG    = 0x00,
+        BitmapCompressFormat_PNG     = 0x01,
+    }
+
+    interface ICanvas;
+    interface IDisplayMetrics;
+    interface IPaint;
+    interface IBuffer;
+
+    interface IBitmap {
+        /**
+         * <p>Returns the density for this bitmap.</p>
+         *
+         * <p>The default density is the same density as the current display,
+         * unless the current application does not support different screen
+         * densities in which case it is
+         * {@link android.util.DisplayMetrics#DENSITY_DEFAULT}.  Note that
+         * compatibility mode is determined by the application that was initially
+         * loaded into a process -- applications that share the same process should
+         * all have the same compatibility, or ensure they explicitly set the
+         * density of their bitmaps appropriately.</p>
+         *
+         * @return A scaling factor of the default density or {@link #DENSITY_NONE}
+         *         if the scaling factor is unknown.
+         *
+         * @see #setDensity(int)
+         * @see android.util.DisplayMetrics#DENSITY_DEFAULT
+         * @see android.util.DisplayMetrics#densityDpi
+         * @see #DENSITY_NONE
+         */
+        GetDensity(
+            [out] Int32* density);
+
+        /**
+         * <p>Specifies the density for this bitmap.  When the bitmap is
+         * drawn to a Canvas that also has a density, it will be scaled
+         * appropriately.</p>
+         *
+         * @param density The density scaling factor to use with this bitmap or
+         *        {@link #DENSITY_NONE} if the density is unknown.
+         *
+         * @see #getDensity()
+         * @see android.util.DisplayMetrics#DENSITY_DEFAULT
+         * @see android.util.DisplayMetrics#densityDpi
+         * @see #DENSITY_NONE
+         */
+        SetDensity(
+            [in] Int32 density);
+
+        /**
+         * Sets the nine patch chunk.
+         *
+         * @param chunk The definition of the nine patch
+         *
+         * @hide
+         */
+        SetNinePatchChunk(
+            [in] ArrayOf<Byte> chunk);
+
+        /**
+         * Free up the memory associated with this bitmap's pixels, and mark the
+         * bitmap as "dead", meaning it will throw an exception if getPixels() or
+         * setPixels() is called, and will draw nothing. This operation cannot be
+         * reversed, so it should only be called if you are sure there are no
+         * further uses for the bitmap. This is an advanced call, and normally need
+         * not be called, since the normal GC process will free up this memory when
+         * there are no more references to this bitmap.
+         */
+        Recycle();
+
+        /**
+         * Returns true if this bitmap has been recycled. If so, then it is an error
+         * to try to access its pixels, and the bitmap will not draw.
+         *
+         * @return true if the bitmap has been recycled
+         */
+        IsRecycled(
+            [out] Boolean* isRecycled);
+
+        /**
+         * Copy the bitmap's pixels into the specified buffer (allocated by the
+         * caller). An exception is thrown if the buffer is not large enough to
+         * hold all of the pixels (taking into account the number of bytes per
+         * pixel) or if the Buffer subclass is not one of the support types
+         * (ByteBuffer, ShortBuffer, IntBuffer).
+         */
+        CopyPixelsToBuffer(
+            [in] IBuffer* dst);
+
+        /**
+         * Copy the pixels from the buffer, beginning at the current position,
+         * overwriting the bitmap's pixels. The data in the buffer is not changed
+         * in any way (unlike setPixels(), which converts from unpremultipled 32bit
+         * to whatever the bitmap's native format is.
+         */
+        CopyPixelsFromBuffer(
+            [in] IBuffer* src);
+
+        /**
+         * Tries to make a new bitmap based on the dimensions of this bitmap,
+         * setting the new bitmap's config to the one specified, and then copying
+         * this bitmap's pixels into the new bitmap. If the conversion is not
+         * supported, or the allocator fails, then this returns NULL.  The returned
+         * bitmap initially has the same density as the original.
+         *
+         * @param config    The desired config for the resulting bitmap
+         * @param isMutable True if the resulting bitmap should be mutable (i.e.
+         *                  its pixels can be modified)
+         * @return the new bitmap, or null if the copy could not be made.
+         */
+        Copy(
+            [in] BitmapConfig config,
+            [in] Boolean isMutable,
+            [out] IBitmap** bitmap);
+
+        /**
+         * Returns an optional array of private data, used by the UI system for
+         * some bitmaps. Not intended to be called by applications.
+         */
+        GetNinePatchChunk(
+            [out, callee] ArrayOf<Byte>* data);
+
+        /**
+         * Write a compressed version of the bitmap to the specified outputstream.
+         * If this returns true, the bitmap can be reconstructed by passing a
+         * corresponding inputstream to BitmapFactory.decodeStream(). Note: not
+         * all Formats support all bitmap configs directly, so it is possible that
+         * the returned bitmap from BitmapFactory could be in a different bitdepth,
+         * and/or may have lost per-pixel alpha (e.g. JPEG only supports opaque
+         * pixels).
+         *
+         * @param format   The format of the compressed image
+         * @param quality  Hint to the compressor, 0-100. 0 meaning compress for
+         *                 small size, 100 meaning compress for max quality. Some
+         *                 formats, like PNG which is lossless, will ignore the
+         *                 quality setting
+         * @param stream   The outputstream to write the compressed data.
+         * @return true if successfully compressed to the specified stream.
+         */
+        Compress(
+            [in] BitmapCompressFormat format,
+            [in] Int32 quality,
+            [in] IOutputStream* stream,
+            [out] Boolean* isSucceeded);
+
+        /**
+         * Returns true if the bitmap is marked as mutable (i.e. can be drawn into)
+         */
+        IsMutable(
+            [out] Boolean* isMutable);
+
+        /** Returns the bitmap's width */
+        GetWidth(
+            [out] Int32* width);
+
+        /** Returns the bitmap's height */
+        GetHeight(
+            [out] Int32* height);
+
+        /**
+         * Convenience for calling {@link #getScaledWidth(int)} with the target
+         * density of the given {@link Canvas}.
+         */
+        GetScaledWidth(
+            [in] ICanvas* canvas,
+            [out] Int32* width);
+
+        /**
+         * Convenience for calling {@link #getScaledHeight(int)} with the target
+         * density of the given {@link Canvas}.
+         */
+        GetScaledHeight(
+            [in] ICanvas* canvas,
+            [out] Int32* height);
+
+        /**
+         * Convenience for calling {@link #getScaledWidth(int)} with the target
+         * density of the given {@link DisplayMetrics}.
+         */
+        GetScaledWidthEx(
+            [in] IDisplayMetrics* metrics,
+            [out] Int32* width);
+
+        /**
+         * Convenience for calling {@link #getScaledHeight(int)} with the target
+         * density of the given {@link DisplayMetrics}.
+         */
+        GetScaledHeightEx(
+            [in] IDisplayMetrics* metrics,
+            [out] Int32* height);
+
+        /**
+         * Convenience method that returns the width of this bitmap divided
+         * by the density scale factor.
+         *
+         * @param targetDensity The density of the target canvas of the bitmap.
+         * @return The scaled width of this bitmap, according to the density scale factor.
+         */
+        GetScaledWidthEx2(
+            [in] Int32 targetDensity,
+            [out] Int32* width);
+
+        /**
+         * Convenience method that returns the height of this bitmap divided
+         * by the density scale factor.
+         *
+         * @param targetDensity The density of the target canvas of the bitmap.
+         * @return The scaled height of this bitmap, according to the density scale factor.
+         */
+        GetScaledHeightEx2(
+            [in] Int32 targetDensity,
+            [out] Int32* height);
+
+        /**
+         * Return the number of bytes between rows in the bitmap's pixels. Note that
+         * this refers to the pixels as stored natively by the bitmap. If you call
+         * getPixels() or setPixels(), then the pixels are uniformly treated as
+         * 32bit values, packed according to the Color class.
+         *
+         * @return number of bytes between rows of the native bitmap pixels.
+         */
+        GetRowBytes(
+            [out] Int32* bytes);
+
+        /**
+         * If the bitmap's internal config is in one of the public formats, return
+         * that config, otherwise return null.
+         */
+        GetConfig(
+            [out] BitmapConfig* config);
+
+        /** Returns true if the bitmap's config supports per-pixel alpha, and
+         * if the pixels may contain non-opaque alpha values. For some configs,
+         * this is always false (e.g. RGB_565), since they do not support per-pixel
+         * alpha. However, for configs that do, the bitmap may be flagged to be
+         * known that all of its pixels are opaque. In this case hasAlpha() will
+         * also return false. If a config such as ARGB_8888 is not so flagged,
+         * it will return true by default.
+         */
+        HasAlpha(
+            [out] Boolean* isAlpha);
+
+        /**
+         * Tell the bitmap if all of the pixels are known to be opaque (false)
+         * or if some of the pixels may contain non-opaque alpha values (true).
+         * Note, for some configs (e.g. RGB_565) this call is ignore, since it does
+         * not support per-pixel alpha values.
+         *
+         * This is meant as a drawing hint, as in some cases a bitmap that is known
+         * to be opaque can take a faster drawing case than one that may have
+         * non-opaque per-pixel alpha values.
+         *
+         * @hide
+         */
+        SetHasAlpha(
+            [in] Boolean hasAlpha);
+
+        /**
+         * Fills the bitmap's pixels with the specified {@link Color}.
+         *
+         * @throws IllegalStateException if the bitmap is not mutable.
+         */
+        EraseColor(
+            [in] Int32 c);
+
+        /**
+         * Returns the {@link Color} at the specified location. Throws an exception
+         * if x or y are out of bounds (negative or >= to the width or height
+         * respectively).
+         *
+         * @param x    The x coordinate (0...width-1) of the pixel to return
+         * @param y    The y coordinate (0...height-1) of the pixel to return
+         * @return     The argb {@link Color} at the specified coordinate
+         * @throws IllegalArgumentException if x, y exceed the bitmap's bounds
+         */
+        GetPixel(
+            [in] Int32 x,
+            [in] Int32 y,
+            [out] Int32* pixel);
+
+        /**
+         * Returns in pixels[] a copy of the data in the bitmap. Each value is
+         * a packed int representing a {@link Color}. The stride parameter allows
+         * the caller to allow for gaps in the returned pixels array between
+         * rows. For normal packed results, just pass width for the stride value.
+         *
+         * @param pixels   The array to receive the bitmap's colors
+         * @param offset   The first index to write into pixels[]
+         * @param stride   The number of entries in pixels[] to skip between
+         *                 rows (must be >= bitmap's width). Can be negative.
+         * @param x        The x coordinate of the first pixel to read from
+         *                 the bitmap
+         * @param y        The y coordinate of the first pixel to read from
+         *                 the bitmap
+         * @param width    The number of pixels to read from each row
+         * @param height   The number of rows to read
+         * @throws IllegalArgumentException if x, y, width, height exceed the
+         *         bounds of the bitmap, or if abs(stride) < width.
+         * @throws ArrayIndexOutOfBoundsException if the pixels array is too small
+         *         to receive the specified number of pixels.
+         */
+        GetPixels(
+            [in] ArrayOf<Int32> pixels,
+            [in] Int32 offset,
+            [in] Int32 stride,
+            [in] Int32 x,
+            [in] Int32 y,
+            [in] Int32 width,
+            [in] Int32 height);
+
+        /**
+         * Write the specified {@link Color} into the bitmap (assuming it is
+         * mutable) at the x,y coordinate.
+         *
+         * @param x     The x coordinate of the pixel to replace (0...width-1)
+         * @param y     The y coordinate of the pixel to replace (0...height-1)
+         * @param color The {@link Color} to write into the bitmap
+         * @throws IllegalStateException if the bitmap is not mutable
+         * @throws IllegalArgumentException if x, y are outside of the bitmap's
+         *         bounds.
+         */
+        SetPixel(
+            [in] Int32 x,
+            [in] Int32 y,
+            [in] Int32 color);
+
+        /**
+         * Replace pixels in the bitmap with the colors in the array. Each element
+         * in the array is a packed int prepresenting a {@link Color}
+         *
+         * @param pixels   The colors to write to the bitmap
+         * @param offset   The index of the first color to read from pixels[]
+         * @param stride   The number of colors in pixels[] to skip between rows.
+         *                 Normally this value will be the same as the width of
+         *                 the bitmap, but it can be larger (or negative).
+         * @param x        The x coordinate of the first pixel to write to in
+         *                 the bitmap.
+         * @param y        The y coordinate of the first pixel to write to in
+         *                 the bitmap.
+         * @param width    The number of colors to copy from pixels[] per row
+         * @param height   The number of rows to write to the bitmap
+         * @throws IllegalStateException if the bitmap is not mutable
+         * @throws IllegalArgumentException if x, y, width, height are outside of
+         *         the bitmap's bounds.
+         * @throws ArrayIndexOutOfBoundsException if the pixels array is too small
+         *         to receive the specified number of pixels.
+         */
+        SetPixels(
+            [in] ArrayOf<Int32> pixels,
+            [in] Int32 offset,
+            [in] Int32 stride,
+            [in] Int32 x,
+            [in] Int32 y,
+            [in] Int32 width,
+            [in] Int32 height);
+
+        /**
+         * No special parcel contents.
+         */
+        DescribeContents(
+            [out] Int32* contents);
+
+        /**
+         * Returns a new bitmap that captures the alpha values of the original.
+         * This may be drawn with Canvas.drawBitmap(), where the color(s) will be
+         * taken from the paint that is passed to the draw call.
+         *
+         * @return new bitmap containing the alpha channel of the original bitmap.
+         */
+        ExtractAlpha(
+            [out] IBitmap** bitmap);
+
+        /**
+         * Returns a new bitmap that captures the alpha values of the original.
+         * These values may be affected by the optional Paint parameter, which
+         * can contain its own alpha, and may also contain a MaskFilter which
+         * could change the actual dimensions of the resulting bitmap (e.g.
+         * a blur maskfilter might enlarge the resulting bitmap). If offsetXY
+         * is not null, it returns the amount to offset the returned bitmap so
+         * that it will logically align with the original. For example, if the
+         * paint contains a blur of radius 2, then offsetXY[] would contains
+         * -2, -2, so that drawing the alpha bitmap offset by (-2, -2) and then
+         * drawing the original would result in the blur visually aligning with
+         * the original.
+         *
+         * <p>The initial density of the returned bitmap is the same as the original's.
+         *
+         * @param paint Optional paint used to modify the alpha values in the
+         *              resulting bitmap. Pass null for default behavior.
+         * @param offsetXY Optional array that returns the X (index 0) and Y
+         *                 (index 1) offset needed to position the returned bitmap
+         *                 so that it visually lines up with the original.
+         * @return new bitmap containing the (optionally modified by paint) alpha
+         *         channel of the original bitmap. This may be drawn with
+         *         Canvas.drawBitmap(), where the color(s) will be taken from the
+         *         paint that is passed to the draw call.
+         */
+        ExtractAlphaEx(
+            [in] IPaint* paint,
+            [in] ArrayOf<Int32> offsetXY,
+            [out] IBitmap** bitmap);
+
+        /**
+         *  Given another bitmap, return true if it has the same dimensions, config,
+         *  and pixel data as this bitmap. If any of those differ, return false.
+         *  If other is null, return false.
+         *
+         * @hide (just needed internally right now)
+         */
+        SameAs(
+            [in] IBitmap* other,
+            [out] Boolean* isSame);
+
+        /**
+         * Rebuilds any caches associated with the bitmap that are used for
+         * drawing it. In the case of purgeable bitmaps, this call will attempt to
+         * ensure that the pixels have been decoded.
+         * If this is called on more than one bitmap in sequence, the priority is
+         * given in LRU order (i.e. the last bitmap called will be given highest
+         * priority).
+         *
+         * For bitmaps with no associated caches, this call is effectively a no-op,
+         * and therefore is harmless.
+         */
+        PrepareToDraw();
+    }
+}

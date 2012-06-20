@@ -1,0 +1,9 @@
+
+module
+{
+    interface IOutputStream;
+
+    interface IFilterOutputStream extends IOutputStream {
+
+    }
+}

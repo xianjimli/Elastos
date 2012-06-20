@@ -1,0 +1,19 @@
+
+module
+{
+    interface IDrawableConstantState;
+    interface IDrawable;
+
+    interface IColorState extends IDrawableConstantState {
+    }
+
+    interface IColorDrawable extends IDrawable {
+        /**
+         * Returns the alpha value of this drawable's color.
+         *
+         * @return A value between 0 and 255.
+         */
+        GetAlpha(
+            [out] Int32* alpha);
+    }
+}

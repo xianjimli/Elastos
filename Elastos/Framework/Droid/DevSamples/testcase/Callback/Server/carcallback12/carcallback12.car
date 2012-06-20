@@ -1,0 +1,101 @@
+module
+{
+    enum TestEnum {
+        TestEnum_One,
+        TestEnum_Two,
+        TestEnum_Three = 121,
+        TestEnum_Four,
+    }
+
+    struct TestStruct {
+        Int32 nType;
+        Int32 nx;
+        Int32 ny;
+    }
+
+    interface IHello121 {
+        Hello121([in] Int32 nType);
+    }
+
+    // callbacks JCallbackLocal121 {
+        // OnTriggerInt8(Int8 i8Info);
+        // OnTriggerUInt16(UInt16 u16Info);
+        // OnTriggerUInt32(UInt32 u32Info);
+        // OnTriggerUInt64(UInt64 u64Info);
+        // OnTriggerInt8Array(BufferOf<Int8> i8aInfo);
+        // OnTriggerUInt16Array(BufferOf<UInt16> u16aInfo);
+        // OnTriggerUInt32Array(BufferOf<UInt32> u32aInfo);
+        // OnTriggerUInt64Array(BufferOf<UInt64> u64aInfo);
+
+        // OnTriggerAllLocal(Int8 i8Info,
+                        // UInt16 u16Info,
+                        // UInt32 u32Info,
+                        // UInt64 u64Info,
+                        // BufferOf<Int8> i8aInfo,
+                        // BufferOf<UInt16> u16aInfo,
+                        // BufferOf<UInt32> u32aInfo,
+                        // BufferOf<UInt64> u64aInfo);
+    // }
+
+    callbacks JCallbackClass121 {
+        OnTriggerEnum([in] TestEnum emInfo);
+        OnTriggerStruct([in] TestStruct stInfo);
+        OnTriggerByte([in] Byte byInfo);
+        OnTriggerInt16([in] Int16 i16Info);
+        OnTriggerInt32([in] Int32 i32Info);
+        OnTriggerInt64([in] Int64 i64Info);
+        OnTriggerFloat([in] Float fInfo);
+        OnTriggerDouble([in] Double dInfo);
+        OnTriggerBoolean([in] Boolean bInfo);
+        OnTriggerChar8([in] Char8 acInfo);
+        OnTriggerChar16([in] Char16 wcInfo);
+        OnTriggerAString([in] String asInfo);
+        OnTriggerString([in] String wsInfo);
+        OnTriggerACArray([in] BufferOf<Char8> acaInfo);
+        OnTriggerWCArray([in] BufferOf<Char16> wcaInfo);
+        OnTriggerASArray([in] BufferOf<String> asaInfo);
+        OnTriggerWSArray([in] BufferOf<String> wsaInfo);
+        OnTriggerByteArray([in] BufferOf<Byte> baInfo);
+        OnTriggerInt16Array([in] BufferOf<Int16> i16aInfo);
+        OnTriggerInt32Array([in] BufferOf<Int32> i32aInfo);
+        OnTriggerInt64Array([in] BufferOf<Int64> i64aInfo);
+        OnTriggerFloatArray([in] BufferOf<Float> faInfo);
+        OnTriggerDoubleArray([in] BufferOf<Double> daInfo);
+        OnTriggerObjectArray([in] BufferOf<IInterface*> oaInfo);
+        OnTriggerArrayOf([in] BufferOf<TestStruct> saInfo);
+        OnTriggerInterface([in] IHello121* piInfo);
+
+        OnTriggerAll([in] TestEnum emInfo,
+                    [in] TestStruct stInfo,
+                    [in] Byte byInfo,
+                    [in] Int16 i16Info,
+                    [in] Int32 i32Info,
+                    [in] Int64 i64Info,
+                    [in] Float fInfo,
+                    [in] Double dInfo,
+                    [in] Boolean bInfo,
+                    [in] Char8 acInfo,
+                    [in] Char16 wcInfo,
+                    [in] String asInfo,
+                    [in] String wsInfo,
+                    [in] BufferOf<Char8> acaInfo,
+                    [in] BufferOf<Char16> wcaInfo,
+                    [in] BufferOf<String> asaInfo,
+                    [in] BufferOf<String> wsaInfo,
+                    [in] BufferOf<Byte> baInfo,
+                    [in] BufferOf<Int16> i16aInfo,
+                    [in] BufferOf<Int32> i32aInfo,
+                    [in] BufferOf<Int64> i64aInfo,
+                    [in] BufferOf<Float> faInfo,
+                    [in] BufferOf<Double> daInfo,
+                    [in] BufferOf<IInterface*> oaInfo,
+                    [in] BufferOf<TestStruct> saInfo,
+                    [in] IHello121* piInfo);
+    }
+
+    class CCallback121 {
+        interface IHello121;
+        callbacks JCallbackClass121;
+//        callbacks JCallbackLocal121;
+    }
+}

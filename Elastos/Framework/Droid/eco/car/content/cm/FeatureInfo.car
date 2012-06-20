@@ -1,0 +1,28 @@
+
+module
+{
+    /**
+     * Default value for {@link #reqGlEsVersion};
+     */
+    const FeatureInfo_GL_ES_VERSION_UNDEFINED = 0;
+
+    /**
+     * Set on {@link #flags} if this feature has been required by the application.
+     */
+    const FeatureInfo_FLAG_REQUIRED = 0x0001;
+
+    interface IFeatureInfo {
+        GetDescription(
+            [out] String* des);
+
+        /**
+         * This method extracts the major and minor version of reqGLEsVersion attribute
+         * and returns it as a string. Say reqGlEsVersion value of 0x00010002 is returned
+         * as 1.2
+         * @return String representation of the reqGlEsVersion attribute
+         */
+        GetGlEsVersion(
+            [out] String* ver);
+    }
+}
+

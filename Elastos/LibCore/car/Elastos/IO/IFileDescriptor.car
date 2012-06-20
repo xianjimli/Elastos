@@ -1,0 +1,26 @@
+
+module
+{
+    interface IFileDescriptor {
+        /**
+         * Ensures that data which is buffered within the underlying implementation
+         * is written out to the appropriate device before returning.
+         *
+         * @throws SyncFailedException
+         *             when the operation fails.
+         */
+        Sync();
+
+        /**
+         * Indicates whether this FileDescriptor is valid.
+         *
+         * @return {@code true} if this FileDescriptor is valid, {@code false}
+         *         otherwise.
+         */
+        Valid(
+            [out] Boolean* isValid);
+
+        ToString(
+            [out] String* str);
+    }
+}

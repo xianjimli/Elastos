@@ -1,0 +1,21 @@
+#==========================================================================
+# Copyright (c) 2000-2011,  Elastos, Inc.  All Rights Reserved.
+#==========================================================================
+
+TARGET_NAME = Elastos.Utility.Logging
+TARGET_TYPE = lib
+
+EXPORT_LIBRARY = 1
+
+C_FLAGS += -DHAVE_PTHREADS
+
+INCLUDESTEMP := $(INCLUDES);
+INCLUDES := $(MAKEDIR)/../../../../include/Elastos/Utility/Logging;
+INCLUDES += $(INCLUDESTEMP);
+
+SOURCES = Logger.cpp
+SOURCES += Slogger.cpp
+
+ifeq "$(XDK_TARGET_PLATFORM)" "win32"
+LIBRARIES += $(XDK_USER_LIB)/log.lib
+endif

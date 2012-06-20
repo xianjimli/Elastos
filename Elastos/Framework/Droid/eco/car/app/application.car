@@ -1,0 +1,9 @@
+
+module
+{
+    interface IContextWrapper;
+
+    interface IApplication extends IContextWrapper {
+        Create();
+    }
+}

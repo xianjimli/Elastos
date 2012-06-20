@@ -1,0 +1,50 @@
+
+#include "view/WindowManagerPolicy.h"
+
+const Int32 WindowManagerPolicy::FLAG_WAKE;
+const Int32 WindowManagerPolicy::FLAG_WAKE_DROPPED;
+const Int32 WindowManagerPolicy::FLAG_SHIFT;
+const Int32 WindowManagerPolicy::FLAG_CAPS_LOCK;
+const Int32 WindowManagerPolicy::FLAG_ALT;
+const Int32 WindowManagerPolicy::FLAG_ALT_GR;
+const Int32 WindowManagerPolicy::FLAG_MENU;
+const Int32 WindowManagerPolicy::FLAG_LAUNCHER;
+const Int32 WindowManagerPolicy::FLAG_VIRTUAL;
+const Int32 WindowManagerPolicy::FLAG_INJECTED;
+const Int32 WindowManagerPolicy::FLAG_TRUSTED;
+const Int32 WindowManagerPolicy::FLAG_WOKE_HERE;
+const Int32 WindowManagerPolicy::FLAG_BRIGHT_HERE;
+const Int32 WindowManagerPolicy::FLAG_PASS_TO_USER;
+const Boolean WindowManagerPolicy::WATCH_pointER;
+const Int32 WindowManagerPolicy::ACTION_PASS_TO_USER;
+const Int32 WindowManagerPolicy::ACTION_POKE_USER_ACTIVITY;
+const Int32 WindowManagerPolicy::ACTION_GO_TO_SLEEP;
+const Int32 WindowManagerPolicy::TRANSIT_ENTER_MASK;
+const Int32 WindowManagerPolicy::TRANSIT_EXIT_MASK;
+const Int32 WindowManagerPolicy::TRANSIT_UNSET;
+const Int32 WindowManagerPolicy::TRANSIT_NONE;
+const Int32 WindowManagerPolicy::TRANSIT_ENTER;
+const Int32 WindowManagerPolicy::TRANSIT_EXIT;
+const Int32 WindowManagerPolicy::TRANSIT_SHOW;
+const Int32 WindowManagerPolicy::TRANSIT_HIDE;
+const Int32 WindowManagerPolicy::TRANSIT_PREVIEW_DONE;
+const Int32 WindowManagerPolicy::TRANSIT_ACTIVITY_OPEN;
+const Int32 WindowManagerPolicy::TRANSIT_ACTIVITY_CLOSE;
+const Int32 WindowManagerPolicy::TRANSIT_TASK_OPEN;
+const Int32 WindowManagerPolicy::TRANSIT_TASK_CLOSE;
+const Int32 WindowManagerPolicy::TRANSIT_TASK_TO_FRONT;
+const Int32 WindowManagerPolicy::TRANSIT_TASK_TO_BACK;
+const Int32 WindowManagerPolicy::TRANSIT_WALLPAPER_CLOSE;
+const Int32 WindowManagerPolicy::TRANSIT_WALLPAPER_OPEN;
+const Int32 WindowManagerPolicy::TRANSIT_WALLPAPER_Int32RA_OPEN;
+const Int32 WindowManagerPolicy::TRANSIT_WALLPAPER_Int32RA_CLOSE;
+const Int32 WindowManagerPolicy::OFF_BECAUSE_OF_ADMIN;
+const Int32 WindowManagerPolicy::OFF_BECAUSE_OF_USER;
+const Int32 WindowManagerPolicy::OFF_BECAUSE_OF_TIMEOUT;
+const Int32 WindowManagerPolicy::OFF_BECAUSE_OF_PROX_SENSOR;
+const Int32 WindowManagerPolicy::USE_LAST_ROTATION;
+const Int32 WindowManagerPolicy::FINISH_LAYOUT_REDO_LAYOUT;
+const Int32 WindowManagerPolicy::FINISH_LAYOUT_REDO_CONFIG;
+const Int32 WindowManagerPolicy::FINISH_LAYOUT_REDO_WALLPAPER;
+const Int32 WindowManagerPolicy::FINISH_LAYOUT_REDO_ANIM;
+

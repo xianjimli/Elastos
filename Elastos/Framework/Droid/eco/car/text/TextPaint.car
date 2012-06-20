@@ -1,0 +1,14 @@
+
+module
+{
+    interface IPaint;
+
+    interface ITextPaint extends IPaint {
+        /**
+         * Copy the fields from tp into this TextPaint, including the
+         * fields inherited from Paint.
+         */
+        SetEx(
+            [in] ITextPaint* tp);
+    }
+}

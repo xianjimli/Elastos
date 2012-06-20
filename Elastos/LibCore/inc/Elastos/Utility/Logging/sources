@@ -1,0 +1,3 @@
+
+EXPORT_HEADERS = Logger.h
+EXPORT_HEADERS += Slogger.h

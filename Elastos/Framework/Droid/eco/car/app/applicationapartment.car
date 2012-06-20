@@ -1,0 +1,167 @@
+
+module
+{
+    const ApplicationApartment_DEBUG_OFF = 0;
+
+    const ApplicationApartment_DEBUG_ON = 1;
+
+    const ApplicationApartment_DEBUG_WAIT = 2;
+
+
+    enum ApartmentAttr;
+
+    interface IBinder;
+    interface IApplicationInfo;
+    interface IObjectContainer;
+    interface IComponentName;
+    interface IBundle;
+    interface IInstrumentationWatcher;
+    interface IActivityInfo;
+    interface IServiceInfo;
+    interface IConfiguration;
+    interface IObjectStringMap;
+    interface IContext;
+    interface IContentProvider;
+    interface IIntent;
+    interface IIntentReceiver;
+
+    interface IApplicationApartment extends IBinder{
+        BindApplication(
+            [in] String processName,
+            [in] IApplicationInfo* appInfo,
+            [in] IObjectContainer* providers,
+            [in] IComponentName* instrumentationName,
+            [in] String profileFile,
+            [in] IBundle* instrumentationArgs,
+            [in] IInstrumentationWatcher* instrumentationWatcher,
+            [in] Int32 debugMode,
+            [in] Boolean isRestrictedBackupMode,
+            [in] IConfiguration* config,
+            [in] IObjectStringMap* services);
+
+        AcquireProvider(
+            [in] IContext* ctx,
+            [in] String name,
+            [out] IContentProvider** provider);
+
+        AcquireExistingProvider(
+            [in] IContext* ctx,
+            [in] String name,
+            [out] IContentProvider** provider);
+
+        ReleaseProvider(
+            [in] IContentProvider* provider);
+
+        ScheduleExit();
+
+        ScheduleLaunchActivity(
+            [in] IIntent* intent,
+            [in] IBinder* token,
+            [in] Int32 ident,
+            [in] IActivityInfo* info,
+            [in] IBundle* state,
+            [in] IObjectContainer* pendingResults,
+            [in] IObjectContainer* pendingNewIntents,
+            [in] Boolean notResumed,
+            [in] Boolean isForward);
+
+        ScheduleRelaunchActivity(
+            [in] IBinder* token,
+            [in] IObjectContainer* pendingResults,
+            [in] IObjectContainer* pendingNewIntents,
+            [in] Int32 configChanges,
+            [in] Boolean notResumed,
+            [in] IConfiguration* config);
+
+        ScheduleSendResult(
+            [in] IBinder* token,
+            [in] IObjectContainer* results);
+
+        ScheduleResumeActivity(
+            [in] IBinder* token,
+            [in] Boolean isForward);
+
+        SchedulePauseActivity(
+            [in] IBinder* token,
+            [in] Boolean finished,
+            [in] Boolean userLeaving,
+            [in] Int32 configChanges);
+
+        ScheduleStopActivity(
+            [in] IBinder* token,
+            [in] Boolean showWindow,
+            [in] Int32 configChanges);
+
+        ScheduleWindowVisibility(
+            [in] IBinder* token,
+            [in] Boolean showWindow);
+
+        ScheduleDestroyActivity(
+            [in] IBinder* token,
+            [in] Boolean finishing,
+            [in] Int32 configChanges);
+
+        ScheduleReceiver(
+            [in] IIntent* intent,
+            [in] IActivityInfo* info,
+            [in] Int32 resultCode,
+            [in] String data,
+            [in] IBundle* extras,
+            [in] Boolean sync);
+
+        ScheduleRegisteredReceiver(
+            [in] IIntentReceiver* receiver,
+            [in] IIntent* intent,
+            [in] Int32 resultCode,
+            [in] String dataStr,
+            [in] IBundle* extras,
+            [in] Boolean ordered,
+            [in] Boolean sticky);
+
+        ScheduleNewIntent(
+            [in] IObjectContainer* intents,
+            [in] IBinder* token);
+
+        SendActivityResult(
+            [in] IBinder* token,
+            [in] String id,
+            [in] Int32 requestCode,
+            [in] Int32 resultCode,
+            [in] IIntent* data);
+
+        ScheduleCreateService(
+            [in] IBinder* token,
+            [in] IServiceInfo* info);
+
+        ScheduleBindService(
+            [in] IBinder* token,
+            [in] IIntent* intent,
+            [in] Boolean rebind);
+
+        ScheduleUnbindService(
+            [in] IBinder* token,
+            [in] IIntent* intent);
+
+        ScheduleServiceArgs(
+            [in] IBinder* token,
+            [in] Int32 startId,
+            [in] Int32 flags,
+            [in] IIntent* args);
+
+        ScheduleStopService(
+            [in] IBinder* token);
+
+        ScheduleConfigurationChanged(
+            [in] IConfiguration* config);
+
+        ScheduleActivityConfigurationChanged(
+            [in] IBinder* token);
+
+        DispatchCapsuleBroadcast(
+            [in] Int32 cmd,
+            [in] ArrayOf<String> capsules);
+
+        Startup(
+            [in] ApartmentAttr attr);
+    }
+}

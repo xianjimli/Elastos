@@ -1,0 +1,5 @@
+
+module
+{
+    interface IButton extends ITextView {}
+}

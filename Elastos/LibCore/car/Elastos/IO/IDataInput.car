@@ -1,0 +1,205 @@
+module
+{
+    interface IDataInput {
+        /**
+         * Reads a boolean.
+         *
+         * @return the next boolean value.
+         * @throws EOFException if the end of the input is reached before the read
+         *         request can be satisfied.
+         * @throws IOException
+         *             if an I/O error occurs while reading.
+         * @see DataOutput#writeBoolean(boolean)
+         */
+        ReadBoolean(
+           [out] Boolean* value);
+
+        /**
+         * Reads an 8-bit byte value.
+         *
+         * @return the next byte value.
+         * @throws EOFException if the end of the input is reached before the read
+         *         request can be satisfied.
+         * @throws IOException
+         *             if an I/O error occurs while reading.
+         * @see DataOutput#writeByte(int)
+         */
+        ReadByte(
+            [out] Byte* value);
+
+        /**
+         * Reads a 32-bit character value.
+         *
+         * @return the next char value.
+         * @throws EOFException if the end of the input is reached before the read
+         *         request can be satisfied.
+         * @throws IOException
+         *             if an I/O error occurs while reading.
+         * @see DataOutput#writeChar(int)
+         */
+        ReadChar(
+            [out] Char32* value);
+
+        /**
+         * Reads a 64-bit double value.
+         *
+         * @return the next double value.
+         * @throws EOFException if the end of the input is reached before the read
+         *         request can be satisfied.
+         * @throws IOException
+         *             if an I/O error occurs while reading.
+         * @see DataOutput#writeDouble(double)
+         */
+        ReadDouble(
+            [out] Double* value);
+
+        /**
+         * Reads a 32-bit float value.
+         *
+         * @return the next float value.
+         * @throws EOFException if the end of the input is reached before the read
+         *         request can be satisfied.
+         * @throws IOException
+         *             if an I/O error occurs while reading.
+         * @see DataOutput#writeFloat(float)
+         */
+        ReadFloat(
+            [out] Float* value);
+
+        /**
+         * Reads bytes into the byte array {@code buffer}. This method will block
+         * until {@code buffer.length} number of bytes have been read.
+         *
+         * @param buffer
+         *            the buffer to read bytes into.
+         * @throws EOFException if the end of the input is reached before the read
+         *         request can be satisfied.
+         * @throws IOException
+         *             if an I/O error occurs while reading.
+         * @see DataOutput#write(byte[])
+         * @see DataOutput#write(byte[], int, int)
+         */
+        ReadFully(
+           [out] BufferOf<Byte> buffer);
+
+        /**
+         * Reads bytes and stores them in the byte array {@code buffer} starting at
+         * offset {@code offset}. This method blocks until {@code count} number of
+         * bytes have been read.
+         *
+         * @param buffer
+         *            the byte array in which to store the bytes read.
+         * @param offset
+         *            the initial position in {@code buffer} to store the bytes
+         *            read.
+         * @param count
+         *            the maximum number of bytes to store in {@code buffer}.
+         * @throws EOFException if the end of the input is reached before the read
+         *         request can be satisfied.
+         * @throws IOException
+         *             if an I/O error occurs while reading.
+         * @see DataOutput#write(byte[])
+         * @see DataOutput#write(byte[], int, int)
+         */
+        ReadFullyEx(
+            [in] Int32 offset,
+            [in] Int32 count,
+            [out] BufferOf<Byte> buffer);
+
+        /**
+         * Reads a 32-bit integer value.
+         *
+         * @return the next int value.
+         * @throws EOFException if the end of the input is reached before the read
+         *         request can be satisfied.
+         * @throws IOException
+         *             if an I/O error occurs while reading.
+         * @see DataOutput#writeInt(int)
+         */
+        ReadInt32(
+            [out] Int32* value);
+
+        /**
+         * Returns a string containing the next line of text available from this
+         * stream. A line is made of zero or more characters followed by {@code
+         * '\n'}, {@code '\r'}, {@code "\r\n"} or the end of the stream. The string
+         * does not include the newline sequence.
+         *
+         * @return the contents of the line or null if no characters have been read
+         *         before the end of the stream.
+         * @throws EOFException if the end of the input is reached before the read
+         *         request can be satisfied.
+         * @throws IOException
+         *             if an I/O error occurs while reading.
+         */
+        ReadLine(
+            [out] String* str);
+
+        /**
+         * Reads a 64-bit long value.
+         *
+         * @return the next long value.
+         * @throws EOFException if the end of the input is reached before the read
+         *         request can be satisfied.
+         * @throws IOException
+         *             if an I/O error occurs while reading.
+         * @see DataOutput#writeLong(long)
+         */
+        ReadInt64(
+            [out] Int64* value);
+
+        /**
+         * Reads a 16-bit short value.
+         *
+         * @return the next short value.
+         * @throws EOFException if the end of the input is reached before the read
+         *         request can be satisfied.
+         * @throws IOException
+         *             if an I/O error occurs while reading.
+         * @see DataOutput#writeShort(int)
+         */
+        ReadInt16(
+            [out] Int16* value);
+
+        /**
+         * Reads an unsigned 8-bit byte value and returns it as an int.
+         *
+         * @return the next unsigned byte value.
+         * @throws EOFException if the end of the input is reached before the read
+         *         request can be satisfied.
+         * @throws IOException
+         *             if an I/O error occurs while reading.
+         * @see DataOutput#writeByte(int)
+         */
+        ReadUnsignedByte(
+            [out] Int32* value);
+
+        /**
+         * Reads a 16-bit unsigned short value and returns it as an int.
+         *
+         * @return the next unsigned short value.
+         * @throws EOFException if the end of the input is reached before the read
+         *         request can be satisfied.
+         * @throws IOException
+         *             if an I/O error occurs while reading.
+         * @see DataOutput#writeShort(int)
+         */
+        ReadUnsignedInt16(
+            [out] Int32* value);
+
+        /**
+         * Skips {@code count} number of bytes. This method will not throw an
+         * {@link EOFException} if the end of the input is reached before
+         * {@code count} bytes where skipped.
+         *
+         * @param count
+         *            the number of bytes to skip.
+         * @return the number of bytes actually skipped.
+         * @throws IOException
+         *             if a problem occurs during skipping.
+         */
+        SkipBytes(
+            [in] Int32 count,
+            [out] Int32* value);
+    }
+}

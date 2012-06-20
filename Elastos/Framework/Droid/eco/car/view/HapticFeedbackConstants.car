@@ -1,0 +1,46 @@
+
+module
+{
+    /**
+     * The user has performed a long press on an object that is resulting
+     * in an action being performed.
+     */
+    const HapticFeedbackConstants_LONG_PRESS = 0;
+
+    /**
+     * The user has pressed on a virtual on-screen key.
+     */
+    const HapticFeedbackConstants_VIRTUAL_KEY = 1;
+
+    /**
+     * The user has pressed a soft keyboard key.
+     */
+    const HapticFeedbackConstants_KEYBOARD_TAP = 3;
+
+    /**
+     * This is a private constant.  Feel free to renumber as desired.
+     * @hide
+     */
+    const HapticFeedbackConstants_SAFE_MODE_DISABLED = 10000;
+
+    /**
+     * This is a private constant.  Feel free to renumber as desired.
+     * @hide
+     */
+    const HapticFeedbackConstants_SAFE_MODE_ENABLED = 10001;
+
+    /**
+     * Flag for {@link View#performHapticFeedback(int, int)
+     * View.performHapticFeedback(int, int)}: Ignore the setting in the
+     * view for whether to perform haptic feedback, do it always.
+     */
+    const HapticFeedbackConstants_FLAG_IGNORE_VIEW_SETTING = 0x0001;
+
+    /**
+     * Flag for {@link View#performHapticFeedback(int, int)
+     * View.performHapticFeedback(int, int)}: Ignore the global setting
+     * for whether to perform haptic feedback, do it always.
+     */
+    const HapticFeedbackConstants_FLAG_IGNORE_GLOBAL_SETTING = 0x0002;
+}
+

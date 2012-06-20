@@ -1,0 +1,13 @@
+
+module
+{
+    interface IContentValues {
+        PutInt32(
+            [in] String key,
+            [in] Int32 value);
+
+        GetInt32(
+            [in] String key,
+            [out] Int32* value);
+    }
+}

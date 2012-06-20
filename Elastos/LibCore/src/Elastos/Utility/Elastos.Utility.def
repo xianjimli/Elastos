@@ -1,0 +1,57 @@
+;;==========================================================================
+;; Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.
+;;==========================================================================
+
+LIBRARY Elastos.Utility.eco
+
+EXPORTS
+    ;;ListNode
+    ListNodeAddNext
+    ListNodeAddPrev
+    ListNodeDetach
+    ListNodeAddListAfter
+    ListNodeAddListBefore
+    ListNodeDetachSublist
+
+    ;;QuickListNode
+    QuickListNodeDetach
+
+    ;;TreeNode
+    TreeNodeAddRight
+    TreeNodeAddLeft
+    TreeNodeRemoveWithReplacement
+    TreeNodeMoveCloserToRoot
+
+    ;;MultiTreeNode
+    MultiTreeNodeAddChild
+    MultiTreeNodeDetachChild
+    MultiTreeNodeFirstChild
+    MultiTreeNodeAddNext
+    MultiTreeNodeAddPrev
+    MultiTreeNodeAddChildren
+    MultiTreeNodeAddSiblingsAfter
+    MultiTreeNodeAddSiblingsBefore
+    MultiTreeNodeDetachChildAndSiblings
+    MultiTreeNodeDetachSelfAndSiblings
+
+    ;;DoubleLinkNode
+    DoubleLinkNodeInsertPrev
+    DoubleLinkNodeInsertNext
+    DoubleLinkNodeDetach
+
+    ;;SingleLinkNode
+    SingleLinkNodeInsertNext
+    SingleLinkNodeDetach
+
+    ;;SimpleContainer
+    SimpleContainerCurrent
+    SimpleContainerMoveNext
+    SimpleContainerReset
+    SimpleContainerAdd
+    SimpleContainerRemove
+
+    ;;ObjectContainer
+    ObjectContainerDispose
+    ObjectContainerCurrent
+    ObjectContainerAdd
+    ObjectContainerRemove

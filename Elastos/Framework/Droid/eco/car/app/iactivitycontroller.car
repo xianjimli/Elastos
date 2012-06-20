@@ -1,0 +1,63 @@
+
+module
+{
+    interface IIntent;
+
+    /**
+     * Testing interface to monitor what is happening in the activity manager
+     * while tests are running.  Not for normal application development.
+     * {@hide}
+     */
+    interface IActivityController{
+        /**
+         * The system is trying to start an activity.  Return true to allow
+         * it to be started as normal, or false to cancel/reject this activity.
+         */
+        ActivityStarting(
+            [in] IIntent* intent,
+            [in] String cap,
+            [out] Boolean* result);
+
+        /**
+         * The system is trying to return to an activity.  Return true to allow
+         * it to be resumed as normal, or false to cancel/reject this activity.
+         */
+        ActivityResuming(
+            [in] String cap,
+            [out] Boolean* result);
+
+        /**
+         * An application process has crashed (in Java).  Return true for the
+         * normal error recovery (app crash dialog) to occur, false to kill
+         * it immediately.
+         */
+        AppCrashed(
+            [in] String processName,
+            [in] Int32 pid,
+            [in] String shortMsg,
+            [in] String longMsg,
+            [in] Millisecond64 timeMillis,
+            [in] String stackTrace,
+            [out] Boolean* result);
+
+        /**
+         * Early call as soon as an ANR is detected.
+         */
+        AppEarlyNotResponding(
+            [in] String processName,
+            [in] Int32 pid,
+            [in] String annotation,
+            [out] Int32* result);
+
+        /**
+         * An application process is not responding.  Return 0 to show the "app
+         * not responding" dialog, 1 to continue waiting, or -1 to kill it
+         * immediately.
+         */
+        AppNotResponding(
+            [in] String processName,
+            [in] Int32 pid,
+            [in] String processStats,
+            [out] Int32* result);
+    }
+}

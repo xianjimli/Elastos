@@ -1,0 +1,18 @@
+
+module
+{
+    interface IBatteryStats {
+    }
+
+    interface IBatteryStatsUid {
+    }
+
+    interface IBatteryStatsUidProc {
+    }
+
+    interface IBatteryStatsUidCap {
+    }
+
+    interface IBatteryStatsUidCapServ {
+    }
+}

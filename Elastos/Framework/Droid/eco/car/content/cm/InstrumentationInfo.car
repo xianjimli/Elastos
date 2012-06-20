@@ -1,0 +1,11 @@
+
+module
+{
+    interface IInstrumentationInfo {
+        GetSourceDir(
+            [out] String* sourceDir);
+
+        SetSourceDir(
+            [in] String sourceDir);
+    }
+}

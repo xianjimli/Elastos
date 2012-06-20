@@ -1,0 +1,59 @@
+
+TARGET_NAME= graphics
+TARGET_TYPE= lib
+
+include $(MAKEDIR)/../../../sources.inc
+
+INCLUDES += $(MAKEDIR)/../inc
+INCLUDES += ../
+INCLUDES += $(PREBUILD_INC)/skia/utils
+INCLUDES += $(PREBUILD_INC)/skia/core
+INCLUDES += $(PREBUILD_INC)/skia/effects
+INCLUDES += $(PREBUILD_INC)/skia/images
+
+SOURCES = Graphics.cpp
+SOURCES += CBitmap.cpp
+SOURCES += BitmapDrawable.cpp
+SOURCES += Canvas.cpp
+SOURCES += CCanvas.cpp
+SOURCES += Paint.cpp
+SOURCES += CPaint.cpp
+SOURCES += CPaintFontMetrics.cpp
+SOURCES += CPaintFontMetricsInt.cpp
+SOURCES += CRect.cpp
+SOURCES += Interpolator.cpp
+SOURCES += CMatrix.cpp
+SOURCES += CBitmapDrawable.cpp
+SOURCES += Drawable.cpp
+SOURCES += DrawableContainer.cpp
+SOURCES += CRectF.cpp
+SOURCES += ColorFilter.cpp
+SOURCES += CPorterDuffColorFilter.cpp
+SOURCES += CRegion.cpp
+SOURCES += CBitmapFactoryOptions.cpp
+SOURCES += CBitmapFactory.cpp
+SOURCES += CMovie.cpp
+SOURCES += CColorDrawable.cpp
+SOURCES += InputStreamAdaptor.cpp
+SOURCES += CPoint.cpp
+SOURCES += Shader.cpp
+SOURCES += CLinearGradient.cpp
+SOURCES += Xfermode.cpp
+SOURCES += CPorterDuffXfermode.cpp
+SOURCES += ElPixelFormat.cpp
+SOURCES += CPath.cpp
+SOURCES += CreateOutputStreamAdaptor.cpp
+SOURCES += PathEffect.cpp
+SOURCES += MaskFilter.cpp
+SOURCES += Typeface.cpp
+SOURCES += Rasterizer.cpp
+SOURCES += Utils.cpp
+SOURCES += AutoDecoderCancel.cpp
+SOURCES += NinePatch.cpp
+SOURCES += CNinePatch.cpp
+SOURCES += NinePatchImpl.cpp
+SOURCES += CBitmapShader.cpp
+SOURCES += CTypeface.cpp
+SOURCES += CTypefaceFactory.cpp
+
+LIBRARIES += drawable/drawable.lib

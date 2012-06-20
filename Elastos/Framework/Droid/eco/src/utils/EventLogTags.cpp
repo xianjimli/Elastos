@@ -1,0 +1,42 @@
+
+#include "utils/EventLogTags.h"
+
+const Int32 EventLogTags::CONFIGURATION_CHANGED;
+const Int32 EventLogTags::CPU;
+const Int32 EventLogTags::BOOT_PROGRESS_AMS_READY;
+const Int32 EventLogTags::BOOT_PROGRESS_ENABLE_SCREEN;
+const Int32 EventLogTags::AM_FINISH_ACTIVITY;
+const Int32 EventLogTags::AM_TASK_TO_FRONT;
+const Int32 EventLogTags::AM_NEW_INTENT;
+const Int32 EventLogTags::AM_CREATE_TASK;
+const Int32 EventLogTags::AM_CREATE_ACTIVITY;
+const Int32 EventLogTags::AM_RESTART_ACTIVITY;
+const Int32 EventLogTags::AM_RESUME_ACTIVITY;
+const Int32 EventLogTags::AM_ANR;
+const Int32 EventLogTags::ACTIVITY_LAUNCH_TIME;
+const Int32 EventLogTags::AM_PROCESS_BOUND;
+const Int32 EventLogTags::AM_PROCESS_DIED;
+const Int32 EventLogTags::AM_FAILED_TO_PAUSE;
+const Int32 EventLogTags::AM_PAUSE_ACTIVITY;
+const Int32 EventLogTags::AM_PROCESS_START;
+const Int32 EventLogTags::AM_PROCESS_BAD;
+const Int32 EventLogTags::AM_PROCESS_GOOD;
+const Int32 EventLogTags::AM_LOW_MEMORY;
+const Int32 EventLogTags::AM_DESTROY_ACTIVITY;
+const Int32 EventLogTags::AM_RELAUNCH_RESUME_ACTIVITY;
+const Int32 EventLogTags::AM_RELAUNCH_ACTIVITY;
+const Int32 EventLogTags::AM_ON_PAUSED_CALLED;
+const Int32 EventLogTags::AM_ON_RESUME_CALLED;
+const Int32 EventLogTags::AM_KILL;
+const Int32 EventLogTags::AM_BROADCAST_DISCARD_FILTER;
+const Int32 EventLogTags::AM_BROADCAST_DISCARD_APP;
+const Int32 EventLogTags::AM_CREATE_SERVICE;
+const Int32 EventLogTags::AM_DESTROY_SERVICE;
+const Int32 EventLogTags::AM_PROCESS_CRASHED_TOO_MUCH;
+const Int32 EventLogTags::AM_DROP_PROCESS;
+const Int32 EventLogTags::AM_SERVICE_CRASHED_TOO_MUCH;
+const Int32 EventLogTags::AM_SCHEDULE_SERVICE_RESTART;
+const Int32 EventLogTags::AM_PROVIDER_LOST_PROCESS;
+const Int32 EventLogTags::AM_PROCESS_START_TIMEOUT;
+const Int32 EventLogTags::AM_CRASH;
+const Int32 EventLogTags::AM_WTF;

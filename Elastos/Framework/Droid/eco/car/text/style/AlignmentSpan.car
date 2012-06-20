@@ -1,0 +1,11 @@
+
+module
+{
+    interface IParagraphStyle;
+    enum LayoutAlignment;
+
+    interface IAlignmentSpan extends IParagraphStyle {
+        GetAlignment(
+            [out] LayoutAlignment* alignment);
+    }
+}

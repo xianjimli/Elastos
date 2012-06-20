@@ -1,0 +1,10 @@
+
+TARGET_NAME= inputmethod
+TARGET_TYPE= lib
+
+INCLUDES += $(MAKEDIR)/../../inc
+INCLUDES += ../../
+
+SOURCES = CExtractedText.cpp
+SOURCES += CExtractedTextRequest.cpp
+SOURCES += CCompletionInfo.cpp

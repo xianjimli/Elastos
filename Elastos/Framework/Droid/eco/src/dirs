@@ -1,0 +1,16 @@
+
+DIRS += utils
+DIRS += capsule
+DIRS += net
+DIRS += content
+DIRS += app
+DIRS += server
+DIRS += os
+DIRS += view
+DIRS += graphics
+DIRS += ext
+DIRS += impl
+DIRS += widget
+DIRS += text
+DIRS += emoji
+DIRS += database

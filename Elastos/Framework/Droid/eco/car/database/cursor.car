@@ -1,0 +1,232 @@
+
+module
+{
+    interface IBundle;
+
+    interface ICursor {
+        /**
+         * Returns the numbers of rows in the cursor.
+         */
+        GetCount(
+            [out] Int32* count);
+
+        /**
+         * Returns the current position of the cursor in the row set.
+         */
+        GetPosition(
+            [out] Int32* position);
+
+        /**
+         * Move the cursor by a relative amount, forward or backward, from the current position.
+         */
+        Move(
+            [in] Int32 offset,
+            [out] Boolean* value);
+
+        /**
+         * Move the cursor to an absolute position.
+         */
+        MoveToPosition(
+            [in] Int32 position,
+            [out] Boolean* value);
+
+        /**
+         * Move the cursor to the first row.
+         */
+        MoveToFirst(
+            [out] Boolean* value);
+
+        /**
+         * Move the cursor to the last row.
+         */
+        MoveToLast(
+            [out] Boolean* value);
+
+        /**
+         * Move the cursor to the next row.
+         */
+        MoveToNext(
+            [out] Boolean* value);
+
+        /**
+         * Move the cursor to the previous row.
+         */
+        MoveToPrevious(
+            [out] Boolean* value);
+
+        /**
+         * Returns whether the cursor is pointing to the first row.
+         */
+        IsFirst(
+            [out] Boolean* value);
+
+        /**
+         * Returns whether the cursor is pointing to the last row.
+         */
+        IsLast(
+            [out] Boolean* value);
+
+        /**
+         * Returns whether the cursor is pointing to the position before the first row.
+         */
+        IsBeforeFirst(
+            [out] Boolean* value);
+
+        /**
+         * Returns whether the cursor is pointing to the position after the last row.
+         */
+        IsAfterLast(
+            [out] Boolean* value);
+
+        /**
+         * Returns the zero-based index for the given column name, or -1 if the column doesn't exist.
+         */
+        GetColumnIndex(
+            [in] String columnName,
+            [out] Int32* columnIndex);
+
+        /**
+         * Returns the column name at the given zero-based column index.
+         */
+        GetColumnName(
+            [in] Int32 columnIndex,
+            [out] String* columnName);
+
+        /**
+         * Returns a string array holding the names of all of the columns in the result set in the order in which they were listed in the result.
+         */
+//        GetColumnNames(
+//            [out] String[]);
+
+        /**
+         * Return total number of columns.
+         */
+        GetColumnCount(
+            [out] Int32* columnCount);
+
+        /**
+         * Returns the value of the requested column as a byte array.
+         *
+         */
+//        GetBlob(
+//            [in] Int32 columnIndex,
+//            [out] byte[]);
+
+        /**
+         * Returns the value of the requested column as a String.
+         */
+        GetString(
+            [in] Int32 columnIndex,
+            [out] String* columnValue);
+
+        /**
+         * Retrieves the requested column text and stores it in the buffer provided.
+         */
+//        CopyStringToBuffer(
+//            [in] Int32 columnIndex,
+//            [out] CharArrayBuffer buffer);
+
+        /**
+         * Returns the value of the requested column as a short.
+         */
+        GetInt16(
+            [in] Int32 columnIndex,
+            [out] Int16* columnValue);
+
+        /**
+         * Returns the value of the requested column as an int.
+         */
+        GetInt32(
+            [in] Int32 columnIndex,
+            [out] Int32* columnValue);
+
+        /**
+         * Returns the value of the requested column as a long.
+         */
+        GetInt64(
+            [in] Int32 columnIndex,
+            [out] Int64* columnValue);
+
+        /**
+         * Returns the value of the requested column as a float.
+         */
+        GetFloat(
+            [in] Int32 columnIndex,
+            [out] Float* columnValue);
+
+        /**
+         * Returns the value of the requested column as a double.
+         */
+        GetDouble(
+            [in] Int32 columnIndex,
+            [out] Double* columnValue);
+
+        /**
+         * Returns true if the value in the indicated column is null.
+         */
+        IsNull(
+            [in] Int32 columnIndex,
+            [out] Boolean* value);
+
+        /**
+         * Deactivates the Cursor, making all calls on it fail until requery() is called.
+         */
+        Deactivate();
+
+        /**
+         * Performs the query that created the cursor again, refreshing its contents.
+         */
+        Requery(
+            [out] Boolean* value);
+
+        /**
+         * Closes the Cursor, releasing all of its resources and making it completely invalid.
+         */
+        Close();
+
+        /**
+         * return true if the cursor is closed.
+         */
+        IsClosed(
+            [out] Boolean* value);
+
+        /**
+         * Register an observer that is called when changes happen to the content backing this cursor.
+         */
+//        RegisterContentObserver(
+//            [in] ContentObserver observer);
+
+        /**
+         * Unregister an observer that has previously been registered with
+         * this cursor via registerContentObserver(ContentObserver).
+         */
+//        UnregisterContentObserver(
+//            [in] ContentObserver observer);
+
+        /**
+         * Register an observer that is called when changes happen to the contents of the this cursors data set,
+         * for example, when the data set is changed via requery(), deactivate(), or close().
+         */
+//        RegisterDataSetObserver(
+//            [in] DataSetObserver observer);
+
+        /**
+         * Unregister an observer that has previously been registered with
+         * this cursor via registerContentObserver(ContentObserver).
+         */
+//        UnregisterDataSetObserver(
+//            [in] DataSetObserver observer);
+
+        /**
+         * onMove() will only be called across processes if this method returns true.
+         */
+//        GetWantsAllOnMoveCalls(
+//            [out] Boolean* value);
+
+        /**
+         * Returns a bundle of extra values.
+         */
+        GetExtras(
+            [out] IBundle** extras);
+    }
+}

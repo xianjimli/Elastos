@@ -1,0 +1,104 @@
+<!-- ================================================================== -->
+<!--  Copyright (c) 2011,  Elastos, Inc.  All Rights Reserved.          -->
+<!-- ================================================================== -->
+
+<!--
+<capsule elastos:name="ButtonDemo"
+    xmlns:elastos="http://schemas.elastos.com/app/res/elastos">
+
+    <author elastos:name="John Doe"
+        email="John.Doe@kortide.com"
+        phone="021-1234-5678"
+        mobile="186-1234-5678"
+        address="177 Bibo Road, Zhangjiang Hi-Tech Park, Shanghai, China"
+        affiliation="Kortide Limited"/>
+
+    <publisher elastos:name="Jane Doe"
+        email="Jane.Doe@51widgets.com"
+        mobile="138-1234-5678"
+        address="Shanghai, China"
+        affiliation="51widgets Inc."
+        website="www.51widgets.com"/>
+
+    <about title="ButtonDemo"
+        description="A simple capsule application"
+        barcode="e68087b9-00046d34"
+        manufacturing-date="2011-01-27"
+        copyright="2011, Elastos, Inc. All Rights Reserved."/>
+
+    <requirements>
+        <processor type="*" clock-cycle="300MHz"/>
+        <memory capacity="128MB" free-space="64MB"/>
+        <storage capacity="256MB" free-space="128MB"/>
+        <display resolution="320x480"/>
+        <touch-panel optional="yes"/>
+        <accelerometer optional="yes"/>
+        <front-camera resolution="0.3M"/>
+        <camera resolution="3M" flashlight="*"/>
+        <network
+            bandwidth="2.5G|2.75G|3G|4G"
+            type="GPRS|EDGE|WCDMA|EV-DO"/>
+        <device
+            type="speedometer"
+            id="SDM-55"
+            barcode ="1234-5678-90"
+            domain="localhost"
+            authentication="pronto|on_demand"/>
+    </requirements>
+
+    <dependencies>
+        <module elastos:name="com.elastos.samples.ButtonDemo"
+            alias="ButtonDemo"
+            download-policy="pronto|asap|on_demand"
+            barcode="*"
+            manufacturing-date="*"/>
+        <service elastos:name="messaging"
+            id="messaging"
+            barcode ="0134-5678-91"
+            domain="skype.com"
+            authentication="pronto|on_demand"/>
+        <scheme elastos:name="mp8player"
+            module="com.affiliation.mp8player.dll"
+            class="CMp8Player"
+            barcode="*"/>
+    </dependencies>
+
+    <actions>
+        <installation animation=""
+            message=""
+            script="Scripts/installation.lua"/>
+
+        <uninstallation animation=""
+            script="Scripts/installation.lua"/>
+
+        <invocation>
+            <runas domain="roamning" user="guest"/>
+            <compatibility mode=""/>
+            <permissions>to be defined.</permissions>
+            <script src="Scripts/entry.lua"/>
+        </invocation>
+    </actions>
+</capsule>
+-->
+
+<manifest xmlns:elastos="http://schemas.elastos.com/capsule/res/elastos"
+          elastos:capsule="ActivityDemo">
+    <application elastos:label="@string/app_label"
+        elastos:icon="@drawable/ic_launcher_alarmclock">
+
+        <activity elastos:name="CActivityOne">
+            <intent-filter>
+                <action elastos:name="elastos.intent.action.MAIN"/>
+                <category elastos:name="elastos.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+        <activity elastos:name="CActivityTwo"/>
+        <activity elastos:name="CActivityThree"/>
+        <receiver elastos:name="CBroadcastReceiverOne">
+            <intent-filter>
+                <action elastos:name="com.kortide.alarmclock.ALARM_ALERT"/>
+                <action elastos:name="com.android.ButtonDemo.TEST_RECEIVER"/>
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

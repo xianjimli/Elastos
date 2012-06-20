@@ -1,0 +1,12 @@
+module
+{
+    interface IObjectInputValidation {
+        /**
+         * Validates this object.
+         *
+         * @throws InvalidObjectException
+         *             if this object fails to validate itself.
+         */
+        ValidateObject();
+    }
+}

@@ -1,0 +1,17 @@
+$;;=========================================================================
+$;; Copyright (c) 2000-2005,  Elastos, Inc.  All Rights Reserved.
+$;;=========================================================================
+$
+$INPUT class
+$OUTPUT "${name}.cpp"
+
+#include "${name}.h"
+
+ECode ${name}::OnReciever(
+    /* [in] */ IIntent *pIntent)
+{
+    // TODO: Add your code here
+    return NOERROR;
+}
+
+$END OUTPUT

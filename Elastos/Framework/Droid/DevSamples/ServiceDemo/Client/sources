@@ -1,0 +1,42 @@
+TARGET_NAME = ServiceDemo
+TARGET_TYPE = eco
+
+IMPORTS = Elastos.Framework.eco
+ifeq "$(XDK_TARGET_PLATFORM)" "win32"
+IMPORTS = MyService/MyService.eco
+else
+IMPORTS = MyService.eco
+endif
+
+SOURCES  = ServiceDemo.car
+SOURCES += CActivityOne.cpp
+SOURCES += CActivityOneServiceConnection.cpp
+
+LIBRARIES  = $(XDK_USER_LIB)/Elastos.Runtime.CarRuntime.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
+LIBRARIES += $(XDK_USER_LIB)/framework.lib
+LIBRARIES += $(XDK_USER_LIB)/GrafixEventHandle.lib
+ifeq "$(XDK_TARGET_PLATFORM)" "win32"
+LIBRARIES += $(XDK_LIB_PATH)/Elastos.Runtime.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Presentation.CompoundControls.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Presentation.Controls.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Presentation.HandleManager.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Presentation.MessagePool.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Presentation.MessageBufferManager.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Presentation.Global.lib
+else
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.CarRuntime.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Presentation.CompoundControls.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Presentation.Controls.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Presentation.HandleManager.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Presentation.MessagePool.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Presentation.MessageBufferManager.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Presentation.Global.eco
+LIBRARIES += $(XDK_USER_LIB)/crt0.lib
+endif
+
+APPPACK = 1
+DIRRESOURCES += $(MAKEDIR)/res;
+DIRRESOURCES += $(MAKEDIR)/data;
+FILERESOURCES += $(MAKEDIR)/capsule.xml;

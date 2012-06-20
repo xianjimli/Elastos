@@ -1,0 +1,24 @@
+module
+{
+    interface IHello52 {
+        Hello52();
+    }
+
+    aspect AAspect52 {
+        interface IHello52;
+    }
+
+    interface IHello51 {
+        Hello51();
+    }
+
+    callbacks JCallback51 {
+        OnTrigger51();
+    }
+
+    [sequenced]
+    singleton context KContext51 aggregates AAspect52, pertainsto AAspect52 {
+        interface IHello51;
+        callbacks JCallback51;
+    }
+}

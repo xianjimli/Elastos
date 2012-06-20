@@ -1,0 +1,792 @@
+
+module
+{
+    /**
+     * Bit mask that is set for all enter transition.
+     */
+    const WindowManagerPolicy_TRANSIT_ENTER_MASK = 0x1000;
+
+    /**
+     * Bit mask that is set for all exit transitions.
+     */
+    const WindowManagerPolicy_TRANSIT_EXIT_MASK = 0x2000;
+
+    /** Not set up for a transition. */
+    const WindowManagerPolicy_TRANSIT_UNSET = -1;
+
+    /** No animation for transition. */
+    const WindowManagerPolicy_TRANSIT_NONE = 0;
+
+    /** Window has been added to the screen. */
+    const WindowManagerPolicy_TRANSIT_ENTER = 0x1001; /* 1 | WindowManagerPolicy_TRANSIT_ENTER_MASK */
+
+    /** Window has been removed from the screen. */
+    const WindowManagerPolicy_TRANSIT_EXIT = 0x2002; /* 2 | WindowManagerPolicy_TRANSIT_EXIT_MASK */
+
+    /** Window has been made visible. */
+    const WindowManagerPolicy_TRANSIT_SHOW = 0x1003; /* 3 | WindowManagerPolicy_TRANSIT_ENTER_MASK */
+
+    /** Window has been made invisible. */
+    const WindowManagerPolicy_TRANSIT_HIDE = 0x2004; /* 4 | WindowManagerPolicy_TRANSIT_EXIT_MASK */
+
+    /** The "application starting" preview window is no longer needed, and will
+     * animate away to show the real window.
+     */
+    const WindowManagerPolicy_TRANSIT_PREVIEW_DONE = 5;
+
+    /** A window in a new activity is being opened on top of an existing one
+     * in the same task.
+     */
+    const WindowManagerPolicy_TRANSIT_ACTIVITY_OPEN = 0x1006; /* 6 | WindowManagerPolicy_TRANSIT_ENTER_MASK */
+
+    /** The window in the top-most activity is being closed to reveal the
+     * previous activity in the same task.
+     */
+    const WindowManagerPolicy_TRANSIT_ACTIVITY_CLOSE = 0x2007; /* 7 | WindowManagerPolicy_TRANSIT_EXIT_MASK */
+
+    /** A window in a new task is being opened on top of an existing one
+     * in another activity's task.
+     */
+    const WindowManagerPolicy_TRANSIT_TASK_OPEN = 0x1008; /* 8 | WindowManagerPolicy_TRANSIT_ENTER_MASK */
+
+    /** A window in the top-most activity is being closed to reveal the
+     * previous activity in a different task.
+     */
+    const WindowManagerPolicy_TRANSIT_TASK_CLOSE = 0x2009; /* 9 | WindowManagerPolicy_TRANSIT_EXIT_MASK */
+
+    /** A window in an existing task is being displayed on top of an existing one
+     * in another activity's task.
+     */
+    const WindowManagerPolicy_TRANSIT_TASK_TO_FRONT = 0x100a; /* 10 | WindowManagerPolicy_TRANSIT_ENTER_MASK */
+
+    /** A window in an existing task is being put below all other tasks. */
+    const WindowManagerPolicy_TRANSIT_TASK_TO_BACK = 0x200b; /* 11 | WindowManagerPolicy_TRANSIT_EXIT_MASK */
+
+    /** A window in a new activity that doesn't have a wallpaper is being
+     * opened on top of one that does, effectively closing the wallpaper.
+     */
+    const WindowManagerPolicy_TRANSIT_WALLPAPER_CLOSE = 0x200c; /* 12 | WindowManagerPolicy_TRANSIT_EXIT_MASK */
+
+    /** A window in a new activity that does have a wallpaper is being
+     * opened on one that didn't, effectively opening the wallpaper.
+     */
+    const WindowManagerPolicy_TRANSIT_WALLPAPER_OPEN = 0x100d; /* 13 | WindowManagerPolicy_TRANSIT_ENTER_MASK */
+
+    /** A window in a new activity is being opened on top of an existing one,
+     * and both are on top of the wallpaper.
+     */
+    const WindowManagerPolicy_TRANSIT_WALLPAPER_INTRA_OPEN = 0x100e; /* 14 | WindowManagerPolicy_TRANSIT_ENTER_MASK */
+
+    /** The window in the top-most activity is being closed to reveal the
+     * previous activity, and both are on top of he wallpaper.
+     */
+    const WindowManagerPolicy_TRANSIT_WALLPAPER_INTRA_CLOSE = 0x200f; /* 15 | WindowManagerPolicy_TRANSIT_EXIT_MASK */
+
+
+    interface IContext;
+    interface IWindowManagerEx;
+    interface IWindowManagerLayoutParams;
+    interface IConfiguration;
+    interface IWindowState;
+    interface IBinder;
+    interface IView;
+    interface IRect;
+    interface IApplicationToken;
+
+    /**
+     * Interface to the Window Manager state associated with a particular
+     * window.  You can hold on to an instance of this interface from the call
+     * to prepareAddWindow() until removeWindow().
+     */
+    interface IWindowState {
+        /**
+         * Perform standard frame computation.  The result can be obtained with
+         * getFrame() if so desired.  Must be called with the window manager
+         * lock held.
+         *
+         * @param parentFrame The frame of the parent container this window
+         * is in, used for computing its basic position.
+         * @param displayFrame The frame of the overall display in which this
+         * window can appear, used for constraining the overall dimensions
+         * of the window.
+         * @param contentFrame The frame within the display in which we would
+         * like active content to appear.  This will cause windows behind to
+         * be resized to match the given content frame.
+         * @param visibleFrame The frame within the display that the window
+         * is actually visible, used for computing its visible insets to be
+         * given to windows behind.
+         * This can be used as a hint for scrolling (avoiding resizing)
+         * the window to make certain that parts of its content
+         * are visible.
+         */
+        ComputeFrameLw(
+            [in] IRect* parentFrame,
+            [in] IRect* displayFrame,
+            [in] IRect* contentFrame,
+            [in] IRect* visibleFrame);
+
+        /**
+         * All or part of a child is dirty and needs to be redrawn.
+         *
+         * @param child The child which is dirty
+         * @param r The area within the child that is invalid
+         */
+        GetFrameLw(
+            [out] IRect** result);
+
+        /**
+         * Retrieve the current frame of the window that is actually shown.
+         * Must be called with the window manager lock held.
+         *
+         * @params result The rectangle holding the shown window frame.
+         */
+        GetShownFrameLw(
+            [out] IRect** result);
+
+        /**
+         * Retrieve the frame of the display that this window was last
+         * laid out in.  Must be called with the
+         * window manager lock held.
+         *
+         * @params result The rectangle holding the display frame.
+         */
+        GetDisplayFrameLw(
+            [out] IRect** result);
+
+        /**
+         * Retrieve the frame of the content area that this window was last
+         * laid out in.  This is the area in which the content of the window
+         * should be placed.  It will be smaller than the display frame to
+         * account for screen decorations such as a status bar or soft
+         * keyboard.  Must be called with the
+         * window manager lock held.
+         *
+         * @params result The rectangle holding the content frame.
+         */
+        GetContentFrameLw(
+            [out] IRect** result);
+
+        /**
+         * Retrieve the frame of the visible area that this window was last
+         * laid out in.  This is the area of the screen in which the window
+         * will actually be fully visible.  It will be smaller than the
+         * content frame to account for transient UI elements blocking it
+         * such as an input method's candidates UI.  Must be called with the
+         * window manager lock held.
+         *
+         * @params result The rectangle holding the visible frame.
+         */
+        GetVisibleFrameLw(
+            [out] IRect** result);
+
+        /**
+         * Returns true if this window is waiting to receive its given
+         * internal insets from the client app, and so should not impact the
+         * layout of other windows.
+         */
+        GetGivenInsetsPendingLw(
+            [out] Boolean* result);
+
+        /**
+         * Retrieve the insets given by this window's client for the content
+         * area of windows behind it.  Must be called with the
+         * window manager lock held.
+         *
+         * @params result The left, top, right, and bottom insets, relative
+         * to the window's frame, of the actual contents.
+         */
+        GetGivenContentInsetsLw(
+            [out] IRect** result);
+
+        /**
+         * Retrieve the insets given by this window's client for the visible
+         * area of windows behind it.  Must be called with the
+         * window manager lock held.
+         *
+         * @params result The left, top, right, and bottom insets, relative
+         * to the window's frame, of the actual visible area.
+         */
+        GetGivenVisibleInsetsLw(
+            [out] IRect** result);
+
+        /**
+         * Retrieve the current LayoutParams of the window.
+         *
+         * @params params The window's internal LayoutParams instance.
+         */
+        GetAttrs(
+            [out] IWindowManagerLayoutParams** params);
+
+        /**
+         * Get the layer at which this window's surface will be Z-ordered.
+         */
+        GetSurfaceLayer(
+            [out] Int32* result);
+
+        /**
+         * Return the token for the application (actually activity) that owns
+         * this window.  May return null for system windows.
+         *
+         * @params result An IApplicationToken identifying the owning activity.
+         */
+        GetAppToken(
+            [out] IApplicationToken** result);
+
+        /**
+         * Return true if, at any point, the application token associated with
+         * this window has actually displayed any windows.  This is most useful
+         * with the "starting up" window to determine if any windows were
+         * displayed when it is closed.
+         *
+         * @params result true if one or more windows have been displayed,
+         *         else false.
+         */
+        HasAppShownWindows(
+            [out] Boolean* result);
+
+        /**
+         * Is this window visible?  It is not visible if there is no
+         * surface, or we are in the process of running an exit animation
+         * that will remove the surface.
+         */
+        IsVisibleLw(
+            [out] Boolean* result);
+
+        /**
+         * Like {@link #isVisibleLw}, but also counts a window that is currently
+         * "hidden" behind the keyguard as visible.  This allows us to apply
+         * things like window flags that impact the keyguard.
+         */
+        IsVisibleOrBehindKeyguardLw(
+            [out] Boolean* result);
+
+        /**
+         * Is this window currently visible to the user on-screen?  It is
+         * displayed either if it is visible or it is currently running an
+         * animation before no longer being visible.  Must be called with the
+         * window manager lock held.
+         */
+        IsDisplayedLw(
+            [out] Boolean* result);
+
+        /**
+         * Returns true if this window has been shown on screen at some time in
+         * the past.  Must be called with the window manager lock held.
+         *
+         * @return boolean
+         */
+        HasDrawnLw(
+            [out] Boolean* result);
+
+        /**
+         * Can be called by the policy to force a window to be hidden,
+         * regardless of whether the client or window manager would like
+         * it shown.  Must be called with the window manager lock held.
+         * Returns true if {@link #showLw} was last called for the window.
+         */
+        HideLw(
+            [in] Boolean doAnimation,
+            [out] Boolean* result);
+
+        /**
+         * Can be called to undo the effect of {@link #hideLw}, allowing a
+         * window to be shown as long as the window manager and client would
+         * also like it to be shown.  Must be called with the window manager
+         * lock held.
+         * Returns true if {@link #hideLw} was last called for the window.
+         */
+        ShowLw(
+             [in] Boolean doAnimation,
+             [out] Boolean* result);
+    }
+
+//    /**
+//     * Callback used by {@link WindowManagerPolicy#exitKeyguardSecurely}
+//     */
+//    interface OnKeyguardExitResult {
+//        void onKeyguardExitResult(Boolean success);
+//    }
+
+    interface IWindowManagerPolicy {
+        /**
+         * Perform initialization of the policy.
+         *
+         * @param context The system context we are running in.
+         * @param powerManager
+         */
+        Init(
+            [in] IContext* ctx,
+            [in] IWindowManagerEx* windowManager
+            /*[in] LocalPowerManager powerManager*/);
+
+        /**
+         * Check permissions when adding a window.
+         *
+         * @param attrs The window's LayoutParams.
+         *
+         * @return {@link WindowManagerImpl#ADD_OKAY} if the add can proceed;
+         *      else an error code, usually
+         *      {@link WindowManagerImpl#ADD_PERMISSION_DENIED}, to abort the add.
+         */
+        CheckAddPermission(
+            [in] IWindowManagerLayoutParams* attrs,
+            [out] Int32* addPermission);
+
+        /**
+         * Sanitize the layout parameters coming from a client.  Allows the policy
+         * to do things like ensure that windows of a specific type can't take
+         * input focus.
+         *
+         * @param attrs The window layout parameters to be modified.  These values
+         * are modified in-place.
+         */
+        AdjustWindowParamsLw(
+            [in] IWindowManagerLayoutParams* attrs);
+
+        /**
+         * After the window manager has computed the current configuration based
+         * on its knowledge of the display and input devices, it gives the policy
+         * a chance to adjust the information contained in it.  If you want to
+         * leave it as-is, simply do nothing.
+         *
+         * <p>This method may be called by any thread in the window manager, but
+         * no internal locks in the window manager will be held.
+         *
+         * @param config The Configuration being computed, for you to change as
+         * desired.
+         */
+        AdjustConfigurationLw(
+            [in] IConfiguration* config);
+
+        /**
+         * Assign a window type to a layer.  Allows you to control how different
+         * kinds of windows are ordered on-screen.
+         *
+         * @param type The type of window being assigned.
+         *
+         * @return Int32 An arbitrary integer used to order windows, with lower
+         *         numbers below higher ones.
+         */
+        WindowTypeToLayerLw(
+            [in] Int32 type,
+            [out] Int32* layer);
+
+        /**
+         * Return how to Z-order sub-windows in relation to the window they are
+         * attached to.  Return positive to have them ordered in front, negative for
+         * behind.
+         *
+         * @param type The sub-window type code.
+         *
+         * @return Int32 Layer in relation to the attached window, where positive is
+         *         above and negative is below.
+         */
+        SubWindowTypeToLayerLw(
+            [in] Int32 type,
+            [out] Int32* layer);
+
+        /**
+         * Get the highest layer (actually one more than) that the wallpaper is
+         * allowed to be in.
+         */
+        GetMaxWallpaperLayer(
+            [out] Int32* layer);
+
+        /**
+         * Return whether the given window should forcibly hide everything
+         * behind it.  Typically returns true for the keyguard.
+         */
+        DoesForceHide(
+            [in] IWindowState* win,
+            [in] IWindowManagerLayoutParams* attrs,
+            [out] Boolean* hiden);
+
+        /**
+         * Determine if a window that is behind one that is force hiding
+         * (as determined by {@link #doesForceHide}) should actually be hidden.
+         * For example, typically returns false for the status bar.  Be careful
+         * to return false for any window that you may hide yourself, since this
+         * will conflict with what you set.
+         */
+        CanBeForceHidden(
+            [in] IWindowState* win,
+            [in] IWindowManagerLayoutParams* attrs,
+            [out] Boolean* canHiden);
+
+        /**
+         * Called when the system would like to show a UI to indicate that an
+         * application is starting.  You can use this to add a
+         * APPLICATION_STARTING_TYPE window with the given appToken to the window
+         * manager (using the normal window manager APIs) that will be shown until
+         * the application displays its own window.  This is called without the
+         * window manager locked so that you can call back into it.
+         *
+         * @param appToken Token of the application being started.
+         * @param packageName The name of the application package being started.
+         * @param theme Resource defining the application's overall visual theme.
+         * @param nonLocalizedLabel The default title label of the application if
+         *        no data is found in the resource.
+         * @param labelRes The resource ID the application would like to use as its name.
+         * @param icon The resource ID the application would like to use as its icon.
+         *
+         * @return Optionally you can return the View that was used to create the
+         *         window, for easy removal in removeStartingWindow.
+         *
+         * @see #removeStartingWindow
+         */
+        AddStartingWindow(
+            [in] IBinder* appToken,
+            [in] String capsuleName,
+            [in] Int32 theme,
+            [in] ArrayOf<Char8> nonLocalizedLabel,
+            [in] Int32 labelRes,
+            [in] Int32 icon,
+            [out] IView** window);
+
+        /**
+         * Called when the first window of an application has been displayed, while
+         * {@link #addStartingWindow} has created a temporary initial window for
+         * that application.  You should at this point remove the window from the
+         * window manager.  This is called without the window manager locked so
+         * that you can call back into it.
+         *
+         * <p>Note: due to the nature of these functions not being called with the
+         * window manager locked, you must be prepared for this function to be
+         * called multiple times and/or an initial time with a null View window
+         * even if you previously returned one.
+         *
+         * @param appToken Token of the application that has started.
+         * @param window Window View that was returned by createStartingWindow.
+         *
+         * @see #addStartingWindow
+         */
+        RemoveStartingWindow(
+            [in] IBinder* appToken,
+            [in] IView* window);
+
+        /**
+         * Prepare for a window being added to the window manager.  You can throw an
+         * exception here to prevent the window being added, or do whatever setup
+         * you need to keep track of the window.
+         *
+         * @param win The window being added.
+         * @param attrs The window's LayoutParams.
+         *
+         * @return {@link WindowManagerImpl#ADD_OKAY} if the add can proceed, else an
+         *         error code to abort the add.
+         */
+        PrepareAddWindowLw(
+            [in] IWindowState* win,
+            [in] IWindowManagerLayoutParams* attrs,
+            [out] Int32* added);
+
+        /**
+         * Called when a window is being removed from a window manager.  Must not
+         * throw an exception -- clean up as much as possible.
+         *
+         * @param win The window being removed.
+         */
+        RemoveWindowLw(
+            [in] IWindowState* win);
+
+        /**
+         * Control the animation to run when a window's state changes.  Return a
+         * non-0 number to force the animation to a specific resource ID, or 0
+         * to use the default animation.
+         *
+         * @param win The window that is changing.
+         * @param transit What is happening to the window: {@link #TRANSIT_ENTER},
+         *                {@link #TRANSIT_EXIT}, {@link #TRANSIT_SHOW}, or
+         *                {@link #TRANSIT_HIDE}.
+         *
+         * @return Resource ID of the actual animation to use, or 0 for none.
+         */
+        SelectAnimationLw(
+            [in] IWindowState* win,
+            [in] Int32 transit,
+            [out] Int32* id);
+
+    //    /**
+    //     * Create and return an animation to re-display a force hidden window.
+    //     */
+    //   Animation createForceHideEnterAnimation();
+
+        /**
+         * Called from the input reader thread before a key is enqueued.
+         *
+         * <p>There are some actions that need to be handled here because they
+         * affect the power state of the device, for example, the power keys.
+         * Generally, it's best to keep as little as possible in the queue thread
+         * because it's the most fragile.
+         * @param whenNanos The event time in uptime nanoseconds.
+         * @param action The key event action.
+         * @param flags The key event flags.
+         * @param keyCode The key code.
+         * @param scanCode The key's scan code.
+         * @param policyFlags The policy flags associated with the key.
+         * @param isScreenOn True if the screen is already on
+         *
+         * @return The bitwise or of the {@link #ACTION_PASS_TO_USER},
+         *          {@link #ACTION_POKE_USER_ACTIVITY} and {@link #ACTION_GO_TO_SLEEP} flags.
+         */
+        InterceptKeyBeforeQueueing(
+            [in] Int64 whenNanos,
+            [in] Int32 action,
+            [in] Int32 flags,
+            [in] Int32 keyCode,
+            [in] Int32 scanCode,
+            [in] Int32 policyFlags,
+            [in] Boolean isScreenOn,
+            [out] Int32* bitwise);
+
+        /**
+         * Called from the input dispatcher thread before a key is dispatched to a window.
+         *
+         * <p>Allows you to define
+         * behavior for keys that can not be overridden by applications or redirect
+         * key events to a different window.  This method is called from the
+         * input thread, with no locks held.
+         *
+         * <p>Note that if you change the window a key is dispatched to, the new
+         * target window will receive the key event without having input focus.
+         *
+         * @param win The window that currently has focus.  This is where the key
+         *            event will normally go.
+         * @param action The key event action.
+         * @param flags The key event flags.
+         * @param keyCode The key code.
+         * @param scanCode The key's scan code.
+         * @param metaState bit mask of meta keys that are held.
+         * @param repeatCount Number of times a key down has repeated.
+         * @param policyFlags The policy flags associated with the key.
+         * @return Returns true if the policy consumed the event and it should
+         * not be further dispatched.
+         */
+        InterceptKeyBeforeDispatching(
+            [in] IWindowState* win,
+            [in] Int32 action,
+            [in] Int32 flags,
+            [in] Int32 keyCode,
+            [in] Int32 scanCode,
+            [in] Int32 metaState,
+            [in] Int32 repeatCount,
+            [in] Int32 policyFlags,
+            [out] Boolean* consumed);
+
+        /**
+         * Called when layout of the windows is about to start.
+         *
+         * @param displayWidth The current full width of the screen.
+         * @param displayHeight The current full height of the screen.
+         */
+        BeginLayoutLw(
+            [in] Int32 displayWidth,
+            [in] Int32 displayHeight);
+
+        /**
+         * Called for each window attached to the window manager as layout is
+         * proceeding.  The implementation of this function must take care of
+         * setting the window's frame, either here or in finishLayout().
+         *
+         * @param win The window being positioned.
+         * @param attrs The LayoutParams of the window.
+         * @param attached For sub-windows, the window it is attached to; this
+         *                 window will already have had layoutWindow() called on it
+         *                 so you can use its Rect.  Otherwise null.
+         */
+        LayoutWindowLw(
+            [in] IWindowState* win,
+            [in] IWindowManagerLayoutParams* attrs,
+            [in] IWindowState* attached);
+
+        /**
+         * Return the insets for the areas covered by system windows. These values
+         * are computed on the most recent layout, so they are not guaranteed to
+         * be correct.
+         *
+         * @param attrs The LayoutParams of the window.
+         * @param contentInset The areas covered by system windows, expressed as positive insets
+         *
+         */
+        GetContentInsetHintLw(
+            [in] IWindowManagerLayoutParams* attrs,
+            [in] IRect* contentInset);
+
+        /**
+         * Called when layout of the windows is finished.  After this function has
+         * returned, all windows given to layoutWindow() <em>must</em> have had a
+         * frame assigned.
+         *
+         * @return Return any bit set of {@link #FINISH_LAYOUT_REDO_LAYOUT},
+         * {@link #FINISH_LAYOUT_REDO_CONFIG}, {@link #FINISH_LAYOUT_REDO_WALLPAPER},
+         * or {@link #FINISH_LAYOUT_REDO_ANIM}.
+         */
+        FinishLayoutLw(
+            [out] Int32* bitSet);
+
+        /**
+         * Called when animation of the windows is about to start.
+         *
+         * @param displayWidth The current full width of the screen.
+         * @param displayHeight The current full height of the screen.
+         */
+        BeginAnimationLw(
+            [in] Int32 displayWidth,
+            [in] Int32 displayHeight);
+
+        /**
+         * Called each time a window is animating.
+         *
+         * @param win The window being positioned.
+         * @param attrs The LayoutParams of the window.
+         */
+        AnimatingWindowLw(
+            [in] IWindowState* win,
+            [in] IWindowManagerLayoutParams* attrs);
+
+        /**
+         * Called when animation of the windows is finished.  If in this function you do
+         * something that may have modified the animation state of another window,
+         * be sure to return true in order to perform another animation frame.
+         *
+         * @return Return any bit set of {@link #FINISH_LAYOUT_REDO_LAYOUT},
+         * {@link #FINISH_LAYOUT_REDO_CONFIG}, {@link #FINISH_LAYOUT_REDO_WALLPAPER},
+         * or {@link #FINISH_LAYOUT_REDO_ANIM}.
+         */
+        FinishAnimationLw(
+            [out] Int32* bitSet);
+
+        /**
+         * Return true if it is okay to perform animations for an app transition
+         * that is about to occur.  You may return false for this if, for example,
+         * the lock screen is currently displayed so the switch should happen
+         * immediately.
+         */
+        AllowAppAnimationsLw(
+            [out] Boolean* allowed);
+
+        /**
+         * Called after the screen turns off.
+         *
+         * @param why {@link #OFF_BECAUSE_OF_USER} or
+         * {@link #OFF_BECAUSE_OF_TIMEOUT}.
+         */
+        ScreenTurnedOff(
+            [in] Int32 why);
+
+        /**
+         * Called after the screen turns on.
+         */
+        ScreenTurnedOn();
+
+        /**
+         * Return whether the screen is currently on.
+         */
+        IsScreenOn(
+            [out] Boolean* isScreenOn);
+
+        /**
+         * Tell the policy that the lid switch has changed state.
+         * @param whenNanos The time when the change occurred in uptime nanoseconds.
+         * @param lidOpen True if the lid is now open.
+         */
+        NotifyLidSwitchChanged(
+            [in] Int64 whenNanos,
+            [in] Boolean lidOpen);
+
+        /**
+         * Tell the policy if anyone is requesting that keyguard not come on.
+         *
+         * @param enabled Whether keyguard can be on or not.  does not actually
+         * turn it on, unless it was previously disabled with this function.
+         *
+         * @see android.app.KeyguardManager.KeyguardLock#disableKeyguard()
+         * @see android.app.KeyguardManager.KeyguardLock#reenableKeyguard()
+         */
+        EnableKeyguard(
+            [in] Boolean enabled);
+
+        /**
+         * Tell the policy if anyone is requesting the keyguard to exit securely
+         * (this would be called after the keyguard was disabled)
+         * @param callback Callback to send the result back.
+         * @see android.app.KeyguardManager#exitKeyguardSecurely(android.app.KeyguardManager.OnKeyguardExitResult)
+         */
+        //void exitKeyguardSecurely(OnKeyguardExitResult callback);
+
+        /**
+         * inKeyguardRestrictedKeyInputMode
+         *
+         * if keyguard screen is showing or in restricted key input mode (i.e. in
+         * keyguard password emergency screen). When in such mode, certain keys,
+         * such as the Home key and the right soft keys, don't work.
+         *
+         * @return true if in keyguard restricted input mode.
+         */
+        InKeyguardRestrictedKeyInputMode(
+            [out] Boolean* restricted);
+
+        /**
+         * Given an orientation constant
+         * ({@link android.content.pm.ActivityInfo#SCREEN_ORIENTATION_LANDSCAPE
+         * ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE} or
+         * {@link android.content.pm.ActivityInfo#SCREEN_ORIENTATION_PORTRAIT
+         * ActivityInfo.SCREEN_ORIENTATION_PORTRAIT}), return a surface
+         * rotation.
+         */
+        RotationForOrientationLw(
+            [in] Int32 orientation,
+            [in] Int32 lastRotation,
+            [in] Boolean displayEnabled,
+            [out] Int32* surfaceRotation);
+
+        /**
+         * Called when the system is mostly done booting to determine whether
+         * the system should go into safe mode.
+         */
+        DetectSafeMode(
+            [out] Boolean* isSafe);
+
+        /**
+         * Called when the system is mostly done booting.
+         */
+        SystemReady();
+
+        /**
+         * Called when userActivity is signalled in the power manager.
+         * This is safe to call from any thread, with any window manager locks held or not.
+         */
+        UserActivity();
+
+        /**
+         * Called when we have finished booting and can now display the home
+         * screen to the user.  This wilWl happen after systemReady(), and at
+         * this point the display is active.
+         */
+        EnableScreenAfterBoot();
+
+        SetCurrentOrientationLw(
+            [in] Int32 newOrientation);
+
+        /**
+         * Call from application to perform haptic feedback on its window.
+         */
+        PerformHapticFeedbackLw(
+            [in] IWindowState* win,
+            [in] Int32 effectId,
+            [in] Boolean always,
+            [out] Boolean* isSucceed);
+
+        /**
+         * Called when we have stopped keeping the screen on because a window
+         * requesting this is no longer visible.
+         */
+        ScreenOnStoppedLw();
+
+        /**
+         * Return false to disable key repeat events from being generated.
+         */
+        AllowKeyRepeat(
+            [out] Boolean* allowed);
+    }
+}

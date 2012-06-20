@@ -1,0 +1,17 @@
+
+module
+{
+    interface IWriter;
+
+    interface IBufferedWriter extends IWriter {
+        /**
+         * Writes a newline to this writer. A newline is determined by the System
+         * property "line.separator". The target writer may or may not be flushed
+         * when a newline is written.
+         *
+         * @throws IOException
+         *             if an error occurs attempting to write to this writer.
+         */
+        NewLine();
+    }
+}

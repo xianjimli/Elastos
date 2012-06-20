@@ -1,0 +1,9 @@
+
+module
+{
+    interface ICapsuleDeleteObserver {
+        CapsuleDeleted(
+            [in] Boolean succeeded);
+    }
+}
+

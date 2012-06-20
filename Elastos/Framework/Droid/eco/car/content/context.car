@@ -1,0 +1,591 @@
+
+module
+{
+    /**
+     * File creation mode: the default mode, where the created file can only
+     * be accessed by the calling application (or all applications sharing the
+     * same user ID).
+     * @see #MODE_WORLD_READABLE
+     * @see #MODE_WORLD_WRITEABLE
+     */
+    const Context_MODE_PRIVATE = 0x0000;
+
+    /**
+     * File creation mode: allow all other applications to have read access
+     * to the created file.
+     * @see #MODE_PRIVATE
+     * @see #MODE_WORLD_WRITEABLE
+     */
+    const Context_MODE_WORLD_READABLE = 0x0001;
+
+    /**
+     * File creation mode: allow all other applications to have write access
+     * to the created file.
+     * @see #MODE_PRIVATE
+     * @see #MODE_WORLD_READABLE
+     */
+    const Context_MODE_WORLD_WRITEABLE = 0x0002;
+
+    /**
+     * File creation mode: for use with {@link #openFileOutput}, if the file
+     * already exists then write data to the end of the existing file
+     * instead of erasing it.
+     * @see #openFileOutput
+     */
+    const Context_MODE_APPEND = 0x8000;
+
+    /**
+     * Flag for {@link #bindService}: automatically create the service as long
+     * as the binding exists.  Note that while this will create the service,
+     * its {@link android.app.Service#onStart} method will still only be called due to an
+     * explicit call to {@link #startService}.  Even without that, though,
+     * this still provides you with access to the service object while the
+     * service is created.
+     *
+     * <p>Specifying this flag also tells the system to treat the service
+     * as being as important as your own process -- that is, when deciding
+     * which process should be killed to free memory, the service will only
+     * be considered a candidate as long as the processes of any such bindings
+     * is also a candidate to be killed.  This is to avoid situations where
+     * the service is being continually created and killed due to low memory.
+     */
+    const Context_BIND_AUTO_CREATE = 0x0001;
+
+    /**
+     * Flag for {@link #bindService}: include debugging help for mismatched
+     * calls to unbind.  When this flag is set, the callstack of the following
+     * {@link #unbindService} call is retained, to be printed if a later
+     * incorrect unbind call is made.  Note that doing this requires retaining
+     * information about the binding that was made for the lifetime of the app,
+     * resulting in a leak -- this should only be used for debugging.
+     */
+    const Context_BIND_DEBUG_UNBIND = 0x0002;
+
+    /**
+     * Flag for {@link #bindService}: don't allow this binding to raise
+     * the target service's process to the foreground scheduling priority.
+     * It will still be raised to the at least the same memory priority
+     * as the client (so that its process will not be killable in any
+     * situation where the client is not killable), but for CPU scheduling
+     * purposes it may be left in the background.  This only has an impact
+     * in the situation where the binding client is a foreground process
+     * and the target service is in a background process.
+     */
+    const Context_BIND_NOT_FOREGROUND = 0x0004;
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a
+     * {@link android.os.PowerManager} for controlling power management,
+     * including "wake locks," which let you keep the device on while
+     * you're running long tasks.
+     */
+    const Context_POWER_SERVICE = "power";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a
+     * {@link android.view.WindowManager} for accessing the system's window
+     * manager.
+     *
+     * @see #getSystemService
+     * @see android.view.WindowManager
+     */
+    const Context_WINDOW_SERVICE = "window";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a
+     * {@link android.view.LayoutInflater} for inflating layout resources in this
+     * context.
+     *
+     * @see #getSystemService
+     * @see android.view.LayoutInflater
+     */
+    const Context_LAYOUT_INFLATER_SERVICE = "layout_inflater";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a
+     * {@link android.accounts.AccountManager} for receiving intents at a
+     * time of your choosing.
+     *
+     * @see #getSystemService
+     * @see android.accounts.AccountManager
+     */
+    const Context_ACCOUNT_SERVICE = "account";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a
+     * {@link android.app.ActivityManager} for interacting with the global
+     * system state.
+     *
+     * @see #getSystemService
+     * @see android.app.ActivityManager
+     */
+    const Context_ACTIVITY_SERVICE = "activity";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a
+     * {@link android.app.AlarmManager} for receiving intents at a
+     * time of your choosing.
+     *
+     * @see #getSystemService
+     * @see android.app.AlarmManager
+     */
+    const Context_ALARM_SERVICE = "alarm";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a
+     * {@link android.app.NotificationManager} for informing the user of
+     * background events.
+     *
+     * @see #getSystemService
+     * @see android.app.NotificationManager
+     */
+    const Context_NOTIFICATION_SERVICE = "notification";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a
+     * {@link android.view.accessibility.AccessibilityManager} for giving the user
+     * feedback for UI events through the registered event listeners.
+     *
+     * @see #getSystemService
+     * @see android.view.accessibility.AccessibilityManager
+     */
+    const Context_ACCESSIBILITY_SERVICE = "accessibility";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a
+     * {@link android.app.NotificationManager} for controlling keyguard.
+     *
+     * @see #getSystemService
+     * @see android.app.KeyguardManager
+     */
+    const Context_KEYGUARD_SERVICE = "keyguard";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a {@link
+     * android.location.LocationManager} for controlling location
+     * updates.
+     *
+     * @see #getSystemService
+     * @see android.location.LocationManager
+     */
+    const Context_LOCATION_SERVICE = "location";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a {@link
+     * android.app.SearchManager} for handling searches.
+     *
+     * @see #getSystemService
+     * @see android.app.SearchManager
+     */
+    const Context_SEARCH_SERVICE = "search";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a {@link
+     * android.hardware.SensorManager} for accessing sensors.
+     *
+     * @see #getSystemService
+     * @see android.hardware.SensorManager
+     */
+    const Context_SENSOR_SERVICE = "sensor";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a {@link
+     * android.os.storage.StorageManager} for accessing system storage
+     * functions.
+     *
+     * @see #getSystemService
+     * @see android.os.storage.StorageManager
+     */
+    const Context_STORAGE_SERVICE = "storage";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a
+     * com.android.server.WallpaperService for accessing wallpapers.
+     *
+     * @see #getSystemService
+     */
+    const Context_WALLPAPER_SERVICE = "wallpaper";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a {@link
+     * android.os.Vibrator} for interacting with the vibration hardware.
+     *
+     * @see #getSystemService
+     * @see android.os.Vibrator
+     */
+    const Context_VIBRATOR_SERVICE = "vibrator";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a {@link
+     * android.app.StatusBarManager} for interacting with the status bar.
+     *
+     * @see #getSystemService
+     * @see android.app.StatusBarManager
+     * @hide
+     */
+    const Context_STATUS_BAR_SERVICE = "statusbar";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a {@link
+     * android.net.ConnectivityManager} for handling management of
+     * network connections.
+     *
+     * @see #getSystemService
+     * @see android.net.ConnectivityManager
+     */
+    const Context_CONNECTIVITY_SERVICE = "connectivity";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a {@link
+     * android.net.ThrottleManager} for handling management of
+     * throttling.
+     *
+     * @hide
+     * @see #getSystemService
+     * @see android.net.ThrottleManager
+     */
+    const Context_THROTTLE_SERVICE = "throttle";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a {@link
+     * android.net.NetworkManagementService} for handling management of
+     * system network services
+     *
+     * @hide
+     * @see #getSystemService
+     * @see android.net.NetworkManagementService
+     */
+    const Context_NETWORKMANAGEMENT_SERVICE = "network_management";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a {@link
+     * android.net.wifi.WifiManager} for handling management of
+     * Wi-Fi access.
+     *
+     * @see #getSystemService
+     * @see android.net.wifi.WifiManager
+     */
+    const Context_WIFI_SERVICE = "wifi";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a
+     * {@link android.media.AudioManager} for handling management of volume,
+     * ringer modes and audio routing.
+     *
+     * @see #getSystemService
+     * @see android.media.AudioManager
+     */
+    const Context_AUDIO_SERVICE = "audio";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a
+     * {@link android.telephony.TelephonyManager} for handling management the
+     * telephony features of the device.
+     *
+     * @see #getSystemService
+     * @see android.telephony.TelephonyManager
+     */
+    const Context_TELEPHONY_SERVICE = "phone";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a
+     * {@link android.text.ClipboardManager} for accessing and modifying
+     * the contents of the global clipboard.
+     *
+     * @see #getSystemService
+     * @see android.text.ClipboardManager
+     */
+    const Context_CLIPBOARD_SERVICE = "clipboard";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a
+     * {@link android.view.inputmethod.InputMethodManager} for accessing input
+     * methods.
+     *
+     * @see #getSystemService
+     */
+    const Context_INPUT_METHOD_SERVICE = "input_method";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a
+     * {@link android.appwidget.AppWidgetManager} for accessing AppWidgets.
+     *
+     * @hide
+     * @see #getSystemService
+     */
+    const Context_APPWIDGET_SERVICE = "appwidget";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve an
+     * {@link android.app.backup.IBackupManager IBackupManager} for communicating
+     * with the backup mechanism.
+     * @hide
+     *
+     * @see #getSystemService
+     */
+    const Context_BACKUP_SERVICE = "backup";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a
+     * {@link android.os.DropBoxManager} instance for recording
+     * diagnostic logs.
+     * @see #getSystemService
+     */
+    const Context_DROPBOX_SERVICE = "dropbox";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a
+     * {@link android.app.admin.DevicePolicyManager} for working with global
+     * device policy management.
+     *
+     * @see #getSystemService
+     */
+    const Context_DEVICE_POLICY_SERVICE = "device_policy";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a
+     * {@link android.app.UiModeManager} for controlling UI modes.
+     *
+     * @see #getSystemService
+     */
+    const Context_UI_MODE_SERVICE = "uimode";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a
+     * {@link android.app.DownloadManager} for requesting HTTP downloads.
+     *
+     * @see #getSystemService
+     */
+    const Context_DOWNLOAD_SERVICE = "download";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a
+     * {@link android.nfc.NfcManager} for using NFC.
+     *
+     * @see #getSystemService
+     */
+    const Context_NFC_SERVICE = "nfc";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a
+     * {@link android.net.sip.SipManager} for accessing the SIP related service.
+     *
+     * @see #getSystemService
+     */
+    /** @hide */
+    const Context_SIP_SERVICE = "sip";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a {@link
+     * android.hardware.usb.UsbManager} for access to USB devices (as a USB host)
+     * and for controlling this device's behavior as a USB device.
+     *
+     * @see #getSystemService
+     * @see android.harware.usb.UsbManager
+     * @hide
+     */
+    const Context_USB_SERVICE = "usb";
+
+    /**
+     * Flag for use with {@link #createPackageContext}: include the application
+     * code with the context.  This means loading code into the caller's
+     * process, so that {@link #getClassLoader()} can be used to instantiate
+     * the application's classes.  Setting this flags imposes security
+     * restrictions on what application context you can access; if the
+     * requested application can not be safely loaded into your process,
+     * java.lang.SecurityException will be thrown.  If this flag is not set,
+     * there will be no restrictions on the packages that can be loaded,
+     * but {@link #getClassLoader} will always return the default system
+     * class loader.
+     */
+    const Context_CONTEXT_INCLUDE_CODE = 0x00000001;
+
+    /**
+     * Flag for use with {@link #createPackageContext}: ignore any security
+     * restrictions on the Context being requested, allowing it to always
+     * be loaded.  For use with {@link #CONTEXT_INCLUDE_CODE} to allow code
+     * to be loaded into a process even when it isn't safe to do so.  Use
+     * with extreme care!
+     */
+    const Context_CONTEXT_IGNORE_SECURITY = 0x00000002;
+
+    /**
+     * Flag for use with {@link #createPackageContext}: a restricted context may
+     * disable specific features. For instance, a View associated with a restricted
+     * context would ignore particular XML attributes.
+     */
+    const Context_CONTEXT_RESTRICTED = 0x00000004;
+
+
+    interface IResources;
+    interface IContentResolver;
+    interface ITheme;
+    interface ITypedArray;
+    interface IAttributeSet;
+    interface IClassLoader;
+    interface IIntent;
+    interface IComponentName;
+    interface IServiceConnection;
+
+    /*
+     * context related
+     */
+    interface IContext {
+        /** Return a Resources instance for your application's package. */
+        GetResources(
+            [out] IResources** resources);
+
+        GetContentResolver(
+            [out] IContentResolver** resolver);
+
+        /**
+         * Set the base theme for this context.  Note that this should be called
+         * before any views are instantiated in the Context (for example before
+         * calling {@link android.app.Activity#setContentView} or
+         * {@link android.view.LayoutInflater#inflate}).
+         *
+         * @param resid The style resource describing the theme.
+         */
+        SetTheme(
+            [in] Int32 resid);
+
+        /**
+         * Return the Theme object associated with this Context.
+         */
+        GetTheme(
+            [out] ITheme** theme);
+
+        /**
+         * Retrieve styled attribute information in this Context's theme.  See
+         * {@link Resources.Theme#obtainStyledAttributes(int[])}
+         * for more information.
+         *
+         * @see Resources.Theme#obtainStyledAttributes(int[])
+         */
+        ObtainStyledAttributes(
+            [in] ArrayOf<Int32> attrs,
+            [out] ITypedArray** styles);
+
+        /**
+         * Retrieve styled attribute information in this Context's theme.  See
+         * {@link Resources.Theme#obtainStyledAttributes(int, int[])}
+         * for more information.
+         *
+         * @see Resources.Theme#obtainStyledAttributes(int, int[])
+         */
+        ObtainStyledAttributesEx(
+            [in] Int32 resid,
+            [in] ArrayOf<Int32> attrs,
+            [out] ITypedArray** styles);
+
+        /**
+         * Retrieve styled attribute information in this Context's theme.  See
+         * {@link Resources.Theme#obtainStyledAttributes(AttributeSet, int[], int, int)}
+         * for more information.
+         *
+         * @see Resources.Theme#obtainStyledAttributes(AttributeSet, int[], int, int)
+         */
+        ObtainStyledAttributesEx2(
+            [in] IAttributeSet* set,
+            [in] ArrayOf<Int32> attrs,
+            [out] ITypedArray** styles);
+
+        /**
+         * Retrieve styled attribute information in this Context's theme.  See
+         * {@link Resources.Theme#obtainStyledAttributes(AttributeSet, int[], int, int)}
+         * for more information.
+         *
+         * @see Resources.Theme#obtainStyledAttributes(AttributeSet, int[], int, int)
+         */
+        ObtainStyledAttributesEx3(
+            [in] IAttributeSet* set,
+            [in] ArrayOf<Int32> attrs,
+            [in] Int32 defStyleAttr,
+            [in] Int32 defStyleRes,
+            [out] ITypedArray** styles);
+
+        /**
+         * Return a class loader you can use to retrieve classes in this package.
+         */
+        GetClassLoader(
+            [out] IClassLoader** loader);
+
+        GetCapsuleName(
+            [out] String* capsuleName);
+
+        StartActivity(
+            [in] IIntent* intent);
+
+        SendBroadcast(
+            [in] IIntent* intent);
+
+        StartService(
+            [in] IIntent* service,
+            [out] IComponentName** name);
+
+        StopService(
+            [in] IIntent* service,
+            [out] Boolean* succeeded);
+
+        BindService(
+            [in] IIntent* service,
+            [in] IServiceConnection* conn,
+            [in] Int32 flags,
+            [out] Boolean* succeeded);
+
+        UnbindService(
+            [in] IServiceConnection* conn);
+
+        GetSystemService(
+            [in] String name,
+            [out] IInterface** object);
+
+        CreateCapsuleContext(
+            [in] String capsuleName,
+            [in] Int32 flags,
+            [out] IContext** ctx);
+
+        /**
+         * Determine whether the calling process of an IPC you are handling has been
+         * granted a particular permission.  This is basically the same as calling
+         * {@link #checkPermission(String, int, int)} with the pid and uid returned
+         * by {@link android.os.Binder#getCallingPid} and
+         * {@link android.os.Binder#getCallingUid}.  One important difference
+         * is that if you are not currently processing an IPC, this function
+         * will always fail.  This is done to protect against accidentally
+         * leaking permissions; you can use {@link #checkCallingOrSelfPermission}
+         * to avoid this protection.
+         *
+         * @param permission The name of the permission being checked.
+         *
+         * @return Returns {@link PackageManager#PERMISSION_GRANTED} if the calling
+         * pid/uid is allowed that permission, or
+         * {@link PackageManager#PERMISSION_DENIED} if it is not.
+         *
+         * @see PackageManager#checkPermission(String, String)
+         * @see #checkPermission
+         * @see #checkCallingOrSelfPermission
+         */
+        CheckCallingPermission(
+            [in] String permission,
+            [out] Int32* value);
+
+        /**
+         * If neither you nor the calling process of an IPC you are
+         * handling has been granted a particular permission, throw a
+         * {@link SecurityException}.  This is the same as {@link
+         * #enforceCallingPermission}, except it grants your own
+         * permissions if you are not currently processing an IPC.  Use
+         * with care!
+         *
+         * @param permission The name of the permission being checked.
+         * @param message A message to include in the exception if it is thrown.
+         *
+         * @see #checkCallingOrSelfPermission(String)
+         */
+        EnforceCallingOrSelfPermission(
+            [in] String permission,
+            [in] String message);
+    }
+
+}

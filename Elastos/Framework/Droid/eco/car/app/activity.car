@@ -1,0 +1,194 @@
+
+module
+{
+    /** Standard activity result: operation canceled. */
+    const Activity_RESULT_CANCELED     = 0;
+
+    /** Standard activity result: operation succeeded. */
+    const Activity_RESULT_OK           = -1;
+
+    /** Start of user-defined activity results. */
+    const Activity_RESULT_FIRST_USER    = 1;
+
+    /*
+     * activity related
+     */
+    interface IContextWrapper;
+    interface IBinder;
+    interface IBundle;
+    interface IApplicationApartment;
+    interface IInstrumentation;
+    interface IWindow;
+    interface IWindowManager;
+    interface IView;
+    interface ICharSequence;
+    interface IApplication;
+    interface IIntent;
+    interface IActivityInfo;
+    interface IObjectStringMap;
+    interface IConfiguration;
+
+    interface IActivity extends IContextWrapper {
+        GetID(
+            [out] String* id);
+
+        Create(
+            [in] IBundle* savedInstanceState);
+
+        /**
+         * Called when activity start-up is complete (after {@link #onStart}
+         * and {@link #onRestoreInstanceState} have been called).  Applications will
+         * generally not implement this method; it is intended for system
+         * classes to do final initialization after application code has run.
+         *
+         * <p><em>Derived classes must call through to the super class's
+         * implementation of this method.  If they do not, an exception will be
+         * thrown.</em></p>
+         *
+         * @param savedInstanceState If the activity is being re-initialized after
+         *     previously being shut down then this Bundle contains the data it most
+         *     recently supplied in {@link #onSaveInstanceState}.  <b><i>Note: Otherwise it is null.</i></b>
+         * @see #onCreate
+         */
+        PostCreate(
+            [in] IBundle* savedInstanceState);
+
+        Start();
+
+        Restart();
+
+        Resume();
+
+        Pause();
+
+        Stop();
+
+        Destroy();
+
+        DispatchActivityResult(
+            [in] String who,
+            [in] Int32 requestCode,
+            [in] Int32 resultCode,
+            [in] IIntent *data);
+
+        Attach(
+            [in] IContext* ctx,
+            [in] IApplicationApartment* apartment,
+            [in] IInstrumentation* instr,
+            [in] IBinder* token,
+            [in] IApplication* application,
+            [in] IIntent* intent,
+            [in] IActivityInfo* info,
+            [in] ICharSequence* title,
+            [in] IActivity* parent,
+            [in] String id,
+            [in] IInterface* lastNonConfigurationInstance,
+            [in] IConfiguration* config);
+
+        AttachEx(
+            [in] IContext* context,
+            [in] IApplicationApartment* apartment,
+            [in] IInstrumentation* instr,
+            [in] IBinder* token,
+            [in] Int32 ident,
+            [in] IApplication* application,
+            [in] IIntent* intent,
+            [in] IActivityInfo* info,
+            [in] ICharSequence* title,
+            [in] IActivity* parent,
+            [in] String id,
+            [in] IInterface* lastNonConfigurationInstance,
+            [in] IObjectStringMap* lastNonConfigurationChildInstances,
+            [in] IConfiguration* config);
+
+        DispatchNewIntent(
+            [in] IIntent* intent);
+
+        SetCalled(
+            [in] Boolean called);
+
+        IsCalled(
+            [out] Boolean* called);
+
+        SetFinished(
+            [in] Boolean finished);
+
+        IsFinished(
+            [out] Boolean* finished);
+
+        MakeVisible();
+
+        GetActivityToken(
+            [out] IBinder** binder);
+
+        PerformStart();
+
+        PerformRestart();
+
+        PerformResume();
+
+        PerformPause();
+
+        PerformUserLeaving();
+
+        PerformStop();
+
+        PerformSaveInstanceState(
+            [in] IBundle* outState);
+
+        StartActivityFromChild(
+            [in] IActivity* child,
+            [in] IIntent* intent,
+            [in] Int32 requestCode);
+
+        // internal use.
+        IsStartedActivity(
+            [out] Boolean* isStartedActivity);
+
+        GetWindowEx(
+            [out] IWindow** window);
+
+        SetDecorView(
+            [in] IView* decor);
+
+        GetDecorView(
+            [out] IView** decor);
+
+        IsVisibleFromClient(
+            [out] Boolean* visible);
+
+        SetWindowAdded(
+            [in] Boolean added);
+
+        GetWindowManagerEx(
+            [out] IWindowManager** mgr);
+
+        /**
+         * Change the title associated with this activity.  If this is a
+         * top-level activity, the title for its window will change.  If it
+         * is an embedded activity, the parent can do whatever it wants
+         * with it.
+         */
+        SetTitle(
+            [in] ICharSequence* title);
+
+        /**
+         * Change the title associated with this activity.  If this is a
+         * top-level activity, the title for its window will change.  If it
+         * is an embedded activity, the parent can do whatever it wants
+         * with it.
+         */
+        SetTitleEx(
+            [in] Int32 titleId);
+
+        SetTitleColor(
+            [in] Int32 textColor);
+
+        GetTitle(
+            [out] ICharSequence** title);
+
+        GetTitleColor(
+            [out] Int32* textColor);
+    }
+}
+

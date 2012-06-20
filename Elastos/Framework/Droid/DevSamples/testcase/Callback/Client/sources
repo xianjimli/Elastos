@@ -1,0 +1,23 @@
+
+TARGET_NAME = cbclient
+TARGET_TYPE = ecx
+
+IMPORTS = carcallback01.eco
+IMPORTS+= carcallback02.eco
+IMPORTS+= carcallback03.eco
+IMPORTS+= carcallback04.eco
+IMPORTS+= carcallback05.eco
+IMPORTS+= carcallback06.eco
+IMPORTS+= carcallback07.eco
+IMPORTS+= carcallback09.eco
+IMPORTS+= carcallback10.eco
+IMPORTS+= carcallback12.eco
+IMPORTS+= carcallback13.eco
+
+
+SOURCES = test.cpp
+SOURCES+= main.cpp
+
+LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.CarRuntime.lib
+LIBRARIES+= $(XDK_USER_LIB)/Elastos.Runtime.lib
+LIBRARIES+= $(XDK_USER_LIB)/framework.lib

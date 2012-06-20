@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form xmlns:elastos="http://schemas.elastos.com/capsule/res/elastos"
+    elastos:style="ControlStyle:IgnoreFocus" 
+    elastos:id="form">
+    
+    <gridPanel 
+        elastos:sizeMode="AdaptParent" 
+        elastos:lastChildFill="true" 
+        elastos:id="gridPanel">
+        
+        <stackPanel 
+            elastos:orientation="Horizontal" 
+            elastos:sizeMode="HeightAdaptContent" 
+            elastos:id="stackPanel1">
+            
+            <button elastos:text="1"/>
+            
+            <button elastos:text="2"/>
+            
+        </stackPanel>
+        
+        <stackPanel 
+            elastos:orientation="Vertical" 
+            elastos:sizeMode="HeightAdaptContent" 
+            elastos:id="stackPanel2">
+            
+            <button 
+                elastos:text="3" 
+                elastos:sizeMode="WidthAdaptParent" 
+                elastos:id="btn3"/>
+                
+            <button 
+                elastos:text="4" 
+                elastos:sizeMode="WidthAdaptParent" 
+                elastos:id="btnGlow" />
+                
+        </stackPanel>
+        
+    </gridPanel>
+    
+</form>

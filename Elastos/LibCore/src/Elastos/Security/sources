@@ -1,0 +1,8 @@
+TARGET_NAME= Elastos.Security
+TARGET_TYPE= lib
+
+INCLUDESTEMP := $(INCLUDES);
+INCLUDES := $(MAKEDIR)/../../../include/Elastos/Security;
+INCLUDES += $(INCLUDESTEMP);
+
+SOURCES = Permission.cpp

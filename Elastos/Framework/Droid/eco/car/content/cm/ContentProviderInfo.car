@@ -1,0 +1,11 @@
+
+module
+{
+    interface IComponentInfo;
+
+    /**
+     * ContentProviderInfo related
+     */
+    interface IContentProviderInfo extends IComponentInfo {
+    }
+}

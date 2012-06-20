@@ -1,0 +1,81 @@
+
+module
+{
+    interface IIntent;
+    interface IContext;
+    interface IApplication;
+    interface IActivity;
+    interface IBundle;
+    interface IApplicationApartment;
+    interface IBinder;
+
+    interface IActivityResult {
+        GetResultCode(
+            [out] Int32* resultCode);
+
+        GetResultData(
+            [out] IIntent** resultData);
+    }
+
+    interface IInstrumentation {
+        NewApplication(
+            [in] String moduleName,
+            [in] String className,
+            [in] IContext* ctx,
+            [out] IApplication** app);
+
+        CallApplicationOnCreate(
+            [in] IApplication* app);
+
+        CallActivityOnCreate(
+            [in] IActivity* activity,
+            [in] IBundle* icicle);
+
+        /**
+         * Perform calling of an activity's {@link Activity#onPostCreate} method.
+         * The default implementation simply calls through to that method.
+         *
+         * @param activity The activity being created.
+         * @param icicle The previously frozen state (or null) to pass through to
+         *               onPostCreate().
+         */
+        CallActivityOnPostCreate(
+            [in] IActivity* activity,
+            [in] IBundle* icicle);
+
+        CallActivityOnNewIntent(
+            [in] IActivity* activity,
+            [in] IIntent* intent);
+
+        CallActivityOnStart(
+            [in] IActivity* activity);
+
+        CallActivityOnRestart(
+            [in] IActivity* activity);
+
+        CallActivityOnResume(
+            [in] IActivity* activity);
+
+        CallActivityOnStop(
+            [in] IActivity* activity);
+
+        CallActivityOnSaveInstanceState(
+            [in] IActivity* activity,
+            [in] IBundle* outState);
+
+        CallActivityOnPause(
+            [in] IActivity* activity);
+
+        CallActivityOnUserLeaving(
+            [in] IActivity* activity);
+
+        ExecStartActivity(
+            [in] IContext* who,
+            [in] IApplicationApartment* apartment,
+            [in] IBinder* token,
+            [in] IActivity* target,
+            [in] IIntent* intent,
+            [in] Int32 requestCode,
+            [out] IActivityResult** result);
+    }
+}

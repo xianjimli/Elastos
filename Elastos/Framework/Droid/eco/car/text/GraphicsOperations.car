@@ -1,0 +1,42 @@
+
+module
+{
+    /**
+     * Please implement this interface if your CharSequence can do quick
+     * draw/measure/widths calculations from an internal array.
+     * {@hide}
+     */
+    interface IGraphicsOperations extends ICharSequence
+    {
+        /**
+         * Just like {@link Canvas#drawText}.
+         */
+        DrawText(
+            [in] ICanvas* c, 
+            [in] Int32 start, 
+            [in] Int32 end,
+            [in] Float x, 
+            [in] Float y, 
+            [in] IPaint* p);
+
+        /**
+         * Just like {@link Paint#measureText}.
+         */
+        MeasureText(
+            [in] Int32 start, 
+            [in] Int32 end, 
+            [in] IPaint* p,
+            [out] Float* width);
+
+
+        /**
+         * Just like {@link Paint#getTextWidths}.
+         */
+        GetTextWidths(
+            [in] Int32 start, 
+            [in] Int32 end, 
+            [out] ArrayOf<Float> widths, 
+            [in] IPaint* p,
+            [out] Int32* count);
+    }
+}

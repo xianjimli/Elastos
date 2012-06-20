@@ -1,0 +1,10 @@
+
+module
+{
+    interface IContext;
+
+    interface IContextWrapper extends IContext{
+        GetBaseContext(
+            [out] IContext** ctx);
+    }
+}

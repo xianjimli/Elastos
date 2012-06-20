@@ -1,0 +1,40 @@
+
+module
+{
+    [deprecated]
+    interface IColorStateList {
+        /**
+         * Creates a new ColorStateList that has the same states and
+         * colors as this one but where each color has the specified alpha value
+         * (0-255).
+         */
+        WithAlpha(
+            [in] Int32 alpha,
+            [out] IColorStateList** colors);
+
+        IsStateful(
+            [out] Boolean* isStateful);
+
+        /**
+         * Return the color associated with the given set of {@link android.view.View} states.
+         *
+         * @param stateSet an array of {@link android.view.View} states
+         * @param defaultColor the color to return if there's not state spec in this
+         * {@link ColorStateList} that matches the stateSet.
+         *
+         * @return the color associated with that set of states in this {@link ColorStateList}.
+         */
+        GetColorForState(
+            [in] ArrayOf<Int32>* stateSet,
+            [in] Int32 defaultColor,
+            [out] Int32* color);
+
+        /**
+         * Return the default color in this {@link ColorStateList}.
+         *
+         * @return the default color in this {@link ColorStateList}.
+         */
+        GetDefaultColor(
+            [out] Int32* color);
+    }
+}

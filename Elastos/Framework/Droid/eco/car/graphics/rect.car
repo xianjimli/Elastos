@@ -1,0 +1,239 @@
+
+module
+{
+    interface IRect {
+        Equals(
+            [in] IRect* r,
+            [out] Boolean* result);
+
+        /**
+         * Returns true if the rectangle is empty (left >= right or top >= bottom)
+         */
+        IsEmpty(
+            [out] Boolean* result);
+
+        /**
+         * @param width the rectangle's width. This does not check for a valid rectangle
+         * (i.e. left <= right) so the result may be negative.
+         */
+        GetWidth(
+            [out] Int32* width);
+
+        /**
+         * @param height the rectangle's height. This does not check for a valid rectangle
+         * (i.e. top <= bottom) so the result may be negative.
+         */
+        GetHeight(
+            [out] Int32* height);
+
+        /**
+         * Set the rectangle to (0,0,0,0)
+         */
+        SetEmpty();
+
+        /**
+         * Set the rectangle's coordinates to the specified values. Note: no range
+         * checking is performed, so it is up to the caller to ensure that
+         * left <= right and top <= bottom.
+         *
+         * @param left   The X coordinate of the left side of the rectagle
+         * @param top    The Y coordinate of the top of the rectangle
+         * @param right  The X coordinate of the right side of the rectagle
+         * @param bottom The Y coordinate of the bottom of the rectangle
+         */
+        Set(
+            [in] Int32 left,
+            [in] Int32 top,
+            [in] Int32 right,
+            [in] Int32 bottom);
+
+        /**
+         * Copy the coordinates from src into this rectangle.
+         *
+         * @param src The rectangle whose coordinates are copied into this
+         *           rectangle.
+         */
+        SetEx(
+            [in] IRect* src);
+
+        /**
+         * Offset the rectangle by adding dx to its left and right coordinates, and
+         * adding dy to its top and bottom coordinates.
+         *
+         * @param dx The amount to add to the rectangle's left and right coordinates
+         * @param dy The amount to add to the rectangle's top and bottom coordinates
+         */
+        Offset(
+            [in] Int32 dx,
+            [in] Int32 dy);
+
+        /**
+         * Inset the rectangle by (dx,dy). If dx is positive, then the sides are
+         * moved inwards, making the rectangle narrower. If dx is negative, then the
+         * sides are moved outwards, making the rectangle wider. The same holds true
+         * for dy and the top and bottom.
+         *
+         * @param dx The amount to add(subtract) from the rectangle's left(right)
+         * @param dy The amount to add(subtract) from the rectangle's top(bottom)
+         */
+        Inset(
+            [in] Int32 dx,
+            [in] Int32 dy);
+
+        /**
+         * Returns true if (x,y) is inside the rectangle. The left and top are
+         * considered to be inside, while the right and bottom are not. This means
+         * that for a x,y to be contained: left <= x < right and top <= y < bottom.
+         * An empty rectangle never contains any point.
+         *
+         * @param x The X coordinate of the point being tested for containment
+         * @param y The Y coordinate of the point being tested for containment
+         * @return true iff (x,y) are contained by the rectangle, where containment
+         *              means left <= x < right and top <= y < bottom
+         */
+        Contains(
+            [in] Int32 x,
+            [in] Int32 y,
+            [out] Boolean* result);
+
+        /**
+         * Returns true iff the 4 specified sides of a rectangle are inside or equal
+         * to this rectangle. i.e. is this rectangle a superset of the specified
+         * rectangle. An empty rectangle never contains another rectangle.
+         *
+         * @param left The left side of the rectangle being tested for containment
+         * @param top The top of the rectangle being tested for containment
+         * @param right The right side of the rectangle being tested for containment
+         * @param bottom The bottom of the rectangle being tested for containment
+         * @return true iff the the 4 specified sides of a rectangle are inside or
+         *              equal to this rectangle
+         */
+        ContainsEx(
+            [in] Int32 left,
+            [in] Int32 top,
+            [in] Int32 right,
+            [in] Int32 bottom,
+            [out] Boolean* result);
+
+        /**
+         * Returns true iff the specified rectangle r is inside or equal to this
+         * rectangle. An empty rectangle never contains another rectangle.
+         *
+         * @param r The rectangle being tested for containment.
+         * @return true iff the specified rectangle r is inside or equal to this
+         *              rectangle
+         */
+        ContainsEx2(
+            [in] IRect* r,
+            [out] Boolean* result);
+
+        /**
+         * If the rectangle specified by left,top,right,bottom intersects this
+         * rectangle, return true and set this rectangle to that intersection,
+         * otherwise return false and do not change this rectangle. No check is
+         * performed to see if either rectangle is empty. Note: To just test for
+         * intersection, use {@link #intersects(Rect, Rect)}.
+         *
+         * @param left The left side of the rectangle being intersected with this
+         *             rectangle
+         * @param top The top of the rectangle being intersected with this rectangle
+         * @param right The right side of the rectangle being intersected with this
+         *              rectangle.
+         * @param bottom The bottom of the rectangle being intersected with this
+         *             rectangle.
+         * @return true if the specified rectangle and this rectangle intersect
+         *              (and this rectangle is then set to that intersection) else
+         *              return false and do not change this rectangle.
+         */
+        Intersect(
+            [in] Int32 left,
+            [in] Int32 top,
+            [in] Int32 right,
+            [in] Int32 bottom,
+            [out] Boolean* result);
+
+        /**
+         * If the specified rectangle intersects this rectangle, return true and set
+         * this rectangle to that intersection, otherwise return false and do not
+         * change this rectangle. No check is performed to see if either rectangle
+         * is empty. To just test for intersection, use intersects()
+         *
+         * @param r The rectangle being intersected with this rectangle.
+         * @return true if the specified rectangle and this rectangle intersect
+         *              (and this rectangle is then set to that intersection) else
+         *              return false and do not change this rectangle.
+         */
+        IntersectEx(
+            [in] IRect* r,
+            [out] Boolean* result);
+
+        /**
+         * Returns true if this rectangle intersects the specified rectangle.
+         * In no event is this rectangle modified. No check is performed to see
+         * if either rectangle is empty. To record the intersection, use intersect()
+         * or setIntersect().
+         *
+         * @param left The left side of the rectangle being tested for intersection
+         * @param top The top of the rectangle being tested for intersection
+         * @param right The right side of the rectangle being tested for
+         *              intersection
+         * @param bottom The bottom of the rectangle being tested for intersection
+         * @param result true iff the specified rectangle intersects this rectangle.
+         *              In no event is this rectangle modified.
+         */
+        Intersects(
+            [in] Int32 left,
+            [in] Int32 top,
+            [in] Int32 right,
+            [in] Int32 bottom,
+            [out] Boolean* result);
+
+        /**
+         * Returns true iff the two specified rectangles intersect. In no event are
+         * either of the rectangles modified. To record the intersection,
+         * use {@link #intersect(Rect)} or {@link #setIntersect(Rect, Rect)}.
+         *
+         * @param a The first rectangle being tested for intersection
+         * @param b The second rectangle being tested for intersection
+         * @param result true iff the two specified rectangles intersect. In no event
+         *             are either of the rectangles modified.
+         */
+        IntersectsEx(
+            [in] IRect* a,
+            [in] IRect* b,
+            [out] Boolean* result);
+
+        /**
+         * Update this Rect to enclose itself and the specified rectangle. If the
+         * specified rectangle is empty, nothing is done. If this rectangle is empty
+         * it is set to the specified rectangle.
+         *
+         * @param left The left edge being unioned with this rectangle
+         * @param top The top edge being unioned with this rectangle
+         * @param right The right edge being unioned with this rectangle
+         * @param bottom The bottom edge being unioned with this rectangle
+         */
+        Union(
+            [in] Int32 left,
+            [in] Int32 top,
+            [in] Int32 right,
+            [in] Int32 bottom);
+
+        /**
+         * Update this Rect to enclose itself and the specified rectangle. If the
+         * specified rectangle is empty, nothing is done. If this rectangle is empty
+         * it is set to the specified rectangle.
+         *
+         * @param r The rectangle being unioned with this rectangle
+         */
+        UnionEx(
+            [in] IRect* r);
+
+        /**
+         * Scales up the rect by the given scale.
+         * @hide
+         */
+        Scale(
+            [in] Float scale);
+    }
+}

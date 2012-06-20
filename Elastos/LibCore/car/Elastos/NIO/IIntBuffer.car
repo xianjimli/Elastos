@@ -1,0 +1,8 @@
+
+module
+{
+    interface IBuffer;
+
+    interface IIntBuffer extends IBuffer {
+    }
+}

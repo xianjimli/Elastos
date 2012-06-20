@@ -1,0 +1,11 @@
+#==========================================================================
+# Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.
+#==========================================================================
+
+DIRS = clsbase
+
+ifeq "$(XDK_TARGET_PLATFORM)" "linux"
+DIRS += clsutil
+DIRS += systypes
+DIRS += parser
+endif

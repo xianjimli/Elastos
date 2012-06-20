@@ -1,0 +1,146 @@
+
+module
+{
+    interface IDataOutput {
+        /**
+         * Writes the specified boolean.
+         *
+         * @param val
+         *            the boolean value to write.
+         * @throws IOException
+         *             if an I/O error occurs while writing.
+         * @see DataInput#readBoolean()
+         */
+        WriteBoolean(
+            [in] Boolean val);
+
+        /**
+         * Writes the specified 8-bit byte.
+         *
+         * @param val
+         *            the byte value to write.
+         * @throws IOException
+         *             if an I/O error occurs while writing.
+         * @see DataInput#readByte()
+         * @see DataInput#readUnsignedByte()
+         */
+        WriteByte(
+            [in] Int32 val);
+
+        /**
+         * Writes the low order 8-bit bytes from the specified string.
+         *
+         * @param str
+         *            the string containing the bytes to write.
+         * @throws IOException
+         *             if an I/O error occurs while writing.
+         * @see DataInput#readFully(byte[])
+         * @see DataInput#readFully(byte[],int,int)
+         */
+        WriteBytes(
+            [in] BufferOf<Byte> buffer);
+
+        /**
+         * Writes {@code count} bytes from the byte array {@code buffer} starting at
+         * offset {@code index}.
+         *
+         * @param buffer
+         *            the buffer to write.
+         * @param offset
+         *            the index of the first byte in {@code buffer} to write.
+         * @param count
+         *            the number of bytes from the {@code buffer} to write.
+         * @throws IOException
+         *             if an I/O error occurs while writing.
+         * @see DataInput#readFully(byte[])
+         * @see DataInput#readFully(byte[], int, int)
+         */
+        WriteBytesEx(
+            [in] Int32 offset,
+            [in] Int32 count,
+            [in] BufferOf<Byte> buffer);
+        // BEGIN android-note
+        // changed array notation to be consistent with the rest of harmony
+        // END android-note
+
+        /**
+         * Writes the specified 16-bit character. Only the two least significant
+         * bytes of the integer {@code oneByte} are written, with the higher one
+         * written first. This represents the Unicode value of the char.
+         *
+         * @param val
+         *            the character to write.
+         * @throws IOException
+         *             if an I/O error occurs while writing.
+         * @see DataInput#readChar()
+         */
+        WriteChar(
+            [in] Int32 val);
+
+        /**
+         * Writes the specified 64-bit double. The resulting output is the eight
+         * bytes returned by {@link Double#doubleToLongBits(double)}.
+         *
+         * @param val
+         *            the double to write.
+         * @throws IOException
+         *             if an I/O error occurs while writing.
+         * @see DataInput#readDouble()
+         */
+        WriteDouble(
+            [in] Double val);
+
+        /**
+         * Writes the specified 32-bit float. The resulting output is the four bytes
+         * returned by {@link Float#floatToIntBits(float)}.
+         *
+         * @param val
+         *            the float to write.
+         * @throws IOException
+         *             if an I/O error occurs while writing.
+         * @see DataInput#readFloat()
+         */
+        WriteFloat(
+            [in] Float val);
+
+        /**
+         * Writes the specified 32-bit int. The resulting output is the four bytes,
+         * highest order first, of {@code val}.
+         *
+         * @param val
+         *            the int to write.
+         * @throws IOException
+         *             if an I/O error occurs while writing.
+         * @see DataInput#readInt()
+         */
+        WriteInt32(
+            [in] Int32 val);
+
+        /**
+         * Writes the specified 64-bit long. The resulting output is the eight
+         * bytes, highest order first, of {@code val}.
+         *
+         * @param val
+         *            the long to write.
+         * @throws IOException
+         *             if an I/O error occurs while writing.
+         * @see DataInput#readLong()
+         */
+        WriteInt64(
+            [in] Int64 val);
+
+        /**
+         * Writes the specified 16-bit short. Only the lower two bytes of {@code
+         * val} are written with the higher one written first.
+         *
+         * @param val
+         *            the short to write.
+         * @throws IOException
+         *             if an I/O error occurs while writing.
+         * @see DataInput#readShort()
+         * @see DataInput#readUnsignedShort()
+         */
+        WriteInt16(
+            [in] Int32 val);
+    }
+}

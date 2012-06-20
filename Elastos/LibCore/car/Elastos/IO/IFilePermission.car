@@ -1,0 +1,62 @@
+module
+{
+
+    interface IFilePermission {
+
+       /**
+        * Returns the actions associated with this file permission.
+        *
+        * @return the actions associated with this file permission.
+        */
+        GetActions(
+            [out] String* actions);
+
+       /**
+        * Indicates if this file permission is equal to another. The two are equal
+        * if {@code obj} is a FilePermission, they have the same path, and they
+        * have the same actions.
+        *
+        * @param obj
+        *            the object to check equality with.
+        * @return {@code true} if this file permission is equal to {@code obj},
+        *         {@code false} otherwise.
+        */
+        Equals(
+            [in] IObject *obj,
+            [out] Boolean* isEqual);
+   
+       /**
+        * Indicates whether the permission {@code p} is implied by this file
+        * permission. This is the case if {@code p} is an instance of
+        * {@code FilePermission}, if {@code p}'s actions are a subset of this
+        * file permission's actions and if {@code p}'s path is implied by this
+        * file permission's path.
+        *
+        * @param p
+        *            the permission to check.
+        * @return {@code true} if the argument permission is implied by the
+        *         receiver, and {@code false} if it is not.
+        */
+        Implies(
+            //[in] IPermission *p,
+            [out] Boolean* isImplied);
+
+       /**
+        * Returns a new PermissionCollection in which to place FilePermission
+        * objects.
+        *
+        * @return A new PermissionCollection object suitable for storing
+        *         FilePermission objects.
+        */
+        NewPermissionCollection();
+//           [out] PermissionCollection* object);
+
+        /**
+        * Calculates the hash code value for this file permission.
+        *
+        * @return the hash code value for this file permission.
+        */
+        HashCode(
+            [out] Int32* hasCode);
+   }
+}

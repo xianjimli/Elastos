@@ -1,0 +1,36 @@
+
+module
+{
+    interface IPoint {
+        /**
+         * Set the point's x and y coordinates
+         */
+        Set(
+            [in] Int32 x,
+            [in] Int32 y);
+
+        /**
+         * Negate the point's coordinates
+         */
+        Negate();
+
+        /**
+         * Offset the point's coordinates by dx, dy
+         */
+        Offset(
+            [in] Int32 dx,
+            [in] Int32 dy);
+
+        /**
+         * Returns true if the point's coordinates equal (x,y)
+         */
+        Equals(
+            [in] Int32 x,
+            [in] Int32 y,
+            [out] Boolean* result);
+
+        EqualsEx(
+            [in] IInterface* p,
+            [out] Boolean* result);
+    }
+}

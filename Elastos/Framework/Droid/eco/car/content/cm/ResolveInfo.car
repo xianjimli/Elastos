@@ -1,0 +1,18 @@
+
+module
+{
+    interface IActivityInfo;
+    interface IServiceInfo;
+    interface IIntentFilter;
+
+    interface IResolveInfo {
+        GetActivityInfo(
+            [out] IActivityInfo** activityInfo);
+
+        GetServiceInfo(
+            [out] IServiceInfo** serviceInfo);
+
+        GetIntentFilter(
+            [out] IIntentFilter** intentFilter);
+    }
+}

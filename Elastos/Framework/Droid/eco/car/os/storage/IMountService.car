@@ -1,0 +1,12 @@
+
+module
+{
+    interface IMountService {
+        /**
+         * Call into MountService by PackageManager to notify that its done
+         * processing the media status update request.
+         */
+        FinishMediaUpdate();
+    }
+}
+

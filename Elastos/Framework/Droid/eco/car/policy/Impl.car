@@ -1,0 +1,32 @@
+
+module
+{
+    interface IContext;
+    interface IWindow;
+    interface ILayoutInflater;
+    interface IWindowManagerPolicy;
+
+    /**
+     * Android-specific Window.
+     * <p>
+     * todo: need to pull the generic functionality out into a base class
+     * in android.widget.
+     */
+    class CPhoneWindow {
+        constructor(
+            [in] IContext* ctx);
+
+        interface IWindow;
+    }
+
+    class CPhoneLayoutInflater {
+        constructor(
+            [in] IContext* ctx);
+
+        interface ILayoutInflater;
+    }
+
+    class CPhoneWindowManager {
+        interface IWindowManagerPolicy;
+    }
+}

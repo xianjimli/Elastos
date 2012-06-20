@@ -1,0 +1,119 @@
+
+module
+{
+    interface IRect;
+    interface IRegion;
+    interface ICanvas;
+    interface IWindowManagerLayoutParams;
+    interface IMotionEvent;
+    interface IDisplayMetrics;
+
+    interface ITranslator {
+        TranslateRectInScreenToAppWinFrame(
+            [in] IRect* rect);
+
+        TranslateRegionInWindowToScreen(
+            [in] IRegion* transparentRegion);
+
+        TranslateCanvas(
+            [in] ICanvas* canvas);
+
+        TranslateEventInScreenToAppWindow(
+            [in] IMotionEvent* event);
+
+        TranslateWindowLayout(
+            [in] IWindowManagerLayoutParams* params);
+
+        TranslateRectInAppWindowToScreen(
+            [in] IRect* rect);
+
+        TranslateRectInScreenToAppWindow(
+            [in] IRect* rect);
+
+        //TranslateLayoutParamsInAppWindowToScreen(
+        //    [in] LayoutParams params);
+
+        GetTranslatedContentInsets(
+            [in] IRect* contentInsets,
+            [out] IRect** rect);
+
+        GetTranslatedVisbileInsets(
+            [in] IRect* visibleInsets,
+            [out] IRect** rect);
+    }
+
+    interface ICompatibilityInfo {
+        /**
+         * Returns the copy of this instance.
+         */
+        Copy(
+            [out] ICompatibilityInfo** info);
+
+        /**
+         * Sets expandable bit in the compatibility flag.
+         */
+        SetExpandable(
+            [in] Boolean expandable);
+
+        /**
+         * Sets large screen bit in the compatibility flag.
+         */
+        SetLargeScreens(
+            [in] Boolean expandable);
+
+        /**
+         * Sets large screen bit in the compatibility flag.
+         */
+        SetXLargeScreens(
+            [in] Boolean expandable);
+
+        /**
+         * @return true if the application is configured to be expandable.
+         */
+        IsConfiguredExpandable(
+            [out] Boolean* isEnable);
+
+        /**
+         * @return true if the application is configured to be expandable.
+         */
+        IsConfiguredLargeScreens(
+            [out] Boolean* isLarge);
+
+        /**
+         * @return true if the application is configured to be expandable.
+         */
+        IsConfiguredXLargeScreens(
+            [out] Boolean* isLarge);
+
+        /**
+         * @return true if the scaling is required
+         */
+        IsScalingRequired(
+            [out] Boolean* isRequire);
+
+        SupportsScreen(
+            [out] Boolean* isSupport);
+
+        GetDescription(
+            [out] String* str);
+
+        /**
+         * Returns the translator which translates the coordinates in compatibility mode.
+         * @param params the window's parameter
+         */
+        GetTranslator(
+            [out] ITranslator** translator);
+
+        /**
+         * Returns the frame Rect for applications runs under compatibility mode.
+         *
+         * @param dm the display metrics used to compute the frame size.
+         * @param orientation the orientation of the screen.
+         * @param outRect the output parameter which will contain the result.
+         */
+        /*static*/ UpdateCompatibleScreenFrame(
+            [in] IDisplayMetrics* dm,
+            [in] Int32 orientation,
+            [in] IRect* outRect);
+    }
+}

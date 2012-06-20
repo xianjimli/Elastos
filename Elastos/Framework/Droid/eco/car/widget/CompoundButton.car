@@ -1,0 +1,42 @@
+
+module
+{
+    interface ICompoundButton;
+
+    /**
+     * Interface definition for a callback to be invoked when the checked state
+     * of a compound button changed.
+     */
+    interface IOnCheckedChangeListener
+    {
+        /**
+         * Called when the checked state of a compound button has changed.
+         *
+         * @param buttonView The compound button view whose state has changed.
+         * @param isChecked  The new checked state of buttonView.
+         */
+        OnCheckedChanged(
+            [in] ICompoundButton* buttonView,
+            [in] Boolean isChecked);
+    }
+
+    interface ICompoundButton extends IButton
+    {
+        Toggle();
+
+        IsChecked(
+            [out] Boolean* checked);
+
+        SetChecked(
+            [in] Boolean checked);
+
+        SetOnCheckedChangeListener(
+            [in] IOnCheckedChangeListener* listener);
+
+        SetButtonDrawable(
+            [in] Int32 resid);
+
+        SetButtonDrawableEx(
+            [in] IDrawable* d);
+    }
+}

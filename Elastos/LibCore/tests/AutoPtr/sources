@@ -1,0 +1,7 @@
+
+TARGET_NAME = testAutoPtr
+TARGET_TYPE = ecx
+
+SOURCES = test.cpp
+
+LIBRARIES += -lstdc++

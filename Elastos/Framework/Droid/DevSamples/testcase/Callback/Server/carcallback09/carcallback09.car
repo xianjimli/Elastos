@@ -1,0 +1,165 @@
+module
+{
+    interface ICBNormal0 {
+        Hello0();
+    }
+
+    callbacks JCBCallback0 {
+        OnTrigger0();
+    }
+
+    interface ICBNormal1 {
+        Hello1();
+    }
+
+    callbacks JCBCallback1 {
+        OnTrigger1();
+    }
+
+    interface ICBNormal2 {
+        Hello2();
+    }
+
+    callbacks JCBCallback2 {
+        OnTrigger2();
+    }
+
+    interface ICBNormal3 {
+        Hello3();
+    }
+
+    callbacks JCBCallback3 {
+        OnTrigger3();
+    }
+
+    interface ICBNormal4 {
+        Hello4();
+    }
+
+    callbacks JCBCallback4 {
+        OnTrigger4();
+    }
+
+    interface ICBNormal5 {
+        Hello5();
+    }
+
+    callbacks JCBCallback5 {
+        OnTrigger5();
+    }
+
+    interface ICBNormal6 {
+        Hello6();
+    }
+
+    callbacks JCBCallback6 {
+        OnTrigger6();
+    }
+
+    interface ICBNormal7 {
+        Hello7();
+    }
+
+    callbacks JCBCallback7 {
+        OnTrigger7();
+    }
+
+    interface ICBNormal8 {
+        Hello8();
+    }
+
+    callbacks JCBCallback8 {
+        OnTrigger8();
+    }
+
+    interface ICBNormal9 {
+        Hello9();
+    }
+
+    callbacks JCBCallback9 {
+        OnTrigger9();
+    }
+
+    interface ICBNormal10 {
+        Hello10();
+    }
+
+    callbacks JCBCallback10 {
+        OnTrigger10();
+    }
+
+    interface ICBNormal11 {
+        Hello11();
+    }
+
+    callbacks JCBCallback11 {
+        OnTrigger11();
+    }
+
+    interface ICBNormal12 {
+        Hello12();
+    }
+
+    callbacks JCBCallback12 {
+        OnTrigger12();
+    }
+
+    interface ICBNormal13 {
+        Hello13();
+    }
+
+    callbacks JCBCallback13 {
+        OnTrigger13();
+    }
+
+    interface ICBNormal14 {
+        Hello14();
+    }
+
+    callbacks JCBCallback14 {
+        OnTrigger14();
+    }
+
+    interface ICBNormal15 {
+        Hello15();
+    }
+
+    callbacks JCBCallback15 {
+        OnTrigger15();
+    }
+
+    class CCallback91 {
+        interface ICBNormal0;
+        interface ICBNormal1;
+        interface ICBNormal2;
+        interface ICBNormal3;
+        interface ICBNormal4;
+        interface ICBNormal5;
+        interface ICBNormal6;
+        interface ICBNormal7;
+        interface ICBNormal8;
+        interface ICBNormal9;
+        interface ICBNormal10;
+        interface ICBNormal11;
+        interface ICBNormal12;
+        interface ICBNormal13;
+        interface ICBNormal14;
+        interface ICBNormal15;
+        callbacks JCBCallback0;
+        callbacks JCBCallback1;
+        callbacks JCBCallback2;
+        callbacks JCBCallback3;
+        callbacks JCBCallback4;
+        callbacks JCBCallback5;
+        callbacks JCBCallback6;
+//        callbacks JCBCallback7;
+//        callbacks JCBCallback8;
+//        callbacks JCBCallback9;
+//        callbacks JCBCallback10;
+//        callbacks JCBCallback11;
+//        callbacks JCBCallback12;
+//        callbacks JCBCallback13;
+//        callbacks JCBCallback14;
+        callbacks JCBCallback15;
+    }
+}

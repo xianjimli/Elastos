@@ -1,0 +1,28 @@
+
+module
+{
+    interface IBufferedReader;
+
+    interface ILineNumberReader extends IBufferedReader {
+        /**
+         * Returns the current line number for this reader. Numbering starts at 0.
+         *
+         * @return the current line number.
+         */
+        GetLineNumber(
+            [out] Int32* lineNumber);
+
+        /**
+         * Sets the line number of this reader to the specified {@code lineNumber}.
+         * Note that this may have side effects on the line number associated with
+         * the last marked position.
+         *
+         * @param lineNumber
+         *            the new line number value.
+         * @see #mark(int)
+         * @see #reset()
+         */
+        SetLineNumber(
+            [in] Int32 lineNumber);
+    }
+}

@@ -1,0 +1,183 @@
+
+module
+{
+    merge("text/TextUtils.car");
+    merge("text/TextPaint.car");
+    merge("text/Layout.car");
+    merge("text/BoringLayout.car");
+    merge("text/StaticLayout.car");
+    merge("text/DynamicLayout.car");
+    merge("text/Spanned.car");
+    merge("text/Spannable.car");
+    merge("text/GetChars.car");
+    merge("text/GraphicsOperations.car");
+    merge("text/NoCopySpan.car");
+    merge("text/SpanWatcher.car");
+    merge("text/Editable.car");
+    merge("text/style/ParagraphStyle.car");
+    merge("text/style/LineBackgroundSpan.car");
+    merge("text/style/AlignmentSpan.car");
+    merge("text/style/LeadingMarginSpan.car");
+    merge("text/style/TabStopSpan.car");
+    merge("text/style/CharacterStyle.car");
+    merge("text/style/MetricAffectingSpan.car");
+    merge("text/style/ReplacementSpan.car");
+    merge("text/style/WrapTogetherSpan.car");
+    merge("text/style/LineHeightSpan.car");
+    merge("text/style/UpdateAppearance.car");
+    merge("text/style/UpdateLayout.car");
+    merge("text/method/KeyListener.car");
+    merge("text/method/TransformationMethod.car");
+
+
+    class CTextPaint {
+
+        constructor();
+
+        constructor(
+            [in] Int32 flags);
+
+        constructor(
+            [in] IPaint* paint);
+
+        interface ITextPaint;
+    }
+
+    class CBoringLayoutMetrics {
+        interface IBoringLayoutMetrics;
+    }
+
+    class CBoringLayout {
+
+        constructor(
+            [in] ICharSequence* source,
+            [in] ITextPaint* paint,
+            [in] Int32 outerwidth,
+            [in] LayoutAlignment align,
+            [in] Float spacingmult,
+            [in] Float spacingadd,
+            [in] IBoringLayoutMetrics* metrics,
+            [in] Boolean includepad);
+
+        constructor(
+            [in] ICharSequence* source,
+            [in] ITextPaint* paint,
+            [in] Int32 outerwidth,
+            [in] LayoutAlignment align,
+            [in] Float spacingmult,
+            [in] Float spacingadd,
+            [in] IBoringLayoutMetrics* metrics,
+            [in] Boolean includepad,
+            [in] TextUtilsTruncateAt ellipsize,
+            [in] Int32 ellipsizedWidth);
+
+        interface IBoringLayout;
+        interface IEllipsizeCallback;
+    }
+
+    class CStaticLayout {
+
+        constructor(
+            [in] ICharSequence* source,
+            [in] ITextPaint* paint,
+            [in] Int32 width,
+            [in] LayoutAlignment align,
+            [in] Float spacingmult,
+            [in] Float spacingadd,
+            [in] Boolean includepad);
+
+        constructor(
+            [in] ICharSequence* source,
+            [in] Int32 bufstart,
+            [in] Int32 bufend,
+            [in] ITextPaint* paint,
+            [in] Int32 outerwidth,
+            [in] LayoutAlignment align,
+            [in] Float spacingmult,
+            [in] Float spacingadd,
+            [in] Boolean includepad);
+
+        constructor(
+            [in] ICharSequence* source,
+            [in] Int32 bufstart,
+            [in] Int32 bufend,
+            [in] ITextPaint* paint,
+            [in] Int32 outerwidth,
+            [in] LayoutAlignment align,
+            [in] Float spacingmult,
+            [in] Float spacingadd,
+            [in] Boolean includepad,
+            [in] TextUtilsTruncateAt ellipsize,
+            [in] Int32 ellipsizedWidth);
+
+        constructor(
+            [in] Boolean ellipsize);
+
+        interface IStaticLayout;
+    }
+
+    class CDirections {
+        // The values in mDirections are the offsets from the first character
+        // in the line to the next flip in direction.  Runs at even indices
+        // are left-to-right, the others are right-to-left.  So, for example,
+        // a line that starts with a right-to-left run has 0 at mDirections[0],
+        // since the 'first' (ltr) run is zero length.
+        //
+        // The code currently assumes that each run is adjacent to the previous
+        // one, progressing in the base line direction.  This isn't sufficient
+        // to handle nested runs, for example numeric text in an rtl context
+        // in an ltr paragraph.
+        /* package */ constructor(
+            [in] ArrayOf<Int16> dirs);
+
+        interface IDirections;
+    }
+
+    class CSpannableString {
+        constructor(
+            [in] ICharSequence* source);
+
+        constructor(
+            [in] ICharSequence* source,
+            [in] Int32 start,
+            [in] Int32 end);
+
+        interface ISpannable;
+        interface IGetChars;
+    }
+
+    class CDynamicLayout {
+        constructor(
+            [in] ICharSequence* base,
+            [in] ITextPaint* paint,
+            [in] Int32 width,
+            [in] LayoutAlignment align,
+            [in] Float spacingmult,
+            [in] Float spacingadd,
+            [in] Boolean includepad);
+
+        constructor(
+            [in] ICharSequence* base,
+            [in] ICharSequence* display,
+            [in] ITextPaint* paint,
+            [in] Int32 width,
+            [in] LayoutAlignment align,
+            [in] Float spacingmult,
+            [in] Float spacingadd,
+            [in] Boolean includepad);
+
+        constructor(
+            [in] ICharSequence* base,
+            [in] ICharSequence* display,
+            [in] ITextPaint* paint,
+            [in] Int32 width,
+            [in] LayoutAlignment align,
+            [in] Float spacingmult,
+            [in] Float spacingadd,
+            [in] Boolean includepad,
+            [in] TextUtilsTruncateAt ellipsize,
+            [in] Int32 ellipsizedWidth);
+
+        interface IDynamicLayout;
+    }
+}

@@ -1,0 +1,16 @@
+#==========================================================================
+# Copyright (c) 2000-2008,  Elastos, Inc.  All Rights Reserved.
+#==========================================================================
+
+TARGET_NAME= Elastos.Utility
+TARGET_TYPE= lib
+
+EXPORT_LIBRARY= 1
+
+SOURCES += Locale.cpp
+
+LIBRARIES += $(XDK_USER_LIB)/Elastos.System.lib
+
+ifeq "$(XDK_TARGET_PLATFORM)" "win32"
+LIBRARIES += ../Utility/Elastos.Utility.lib
+endif

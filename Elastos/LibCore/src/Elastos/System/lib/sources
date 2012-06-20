@@ -1,0 +1,24 @@
+
+TARGET_NAME= Elastos.System
+TARGET_TYPE= lib
+
+EXPORT_LIBRARY= 1
+
+INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/common
+#ifeq "$(XDK_TARGET_PLATFORM)" "win32"
+#INCLUDES += $(MAKEDIR)/../../../../../../../Platform/Elastos/i18n/ICU/include
+#endif
+
+IMPORTS += Elastos.System.eco
+
+SOURCES += Math.cpp
+SOURCES += Character.cpp
+SOURCES += StringBuffer.cpp
+
+ifeq "$(XDK_TARGET_PLATFORM)" "win32"
+LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.i18n.ICU.lib
+else
+LIBRARIES += $(PREBUILD_LIB)/libm.a
+LIBRARIES += $(PREBUILD_LIB)/libicuuc.a
+endif

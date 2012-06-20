@@ -1,0 +1,13 @@
+#==========================================================================
+# Copyright (c) 2000-2008,  Elastos, Inc.  All Rights Reserved.
+#==========================================================================
+
+EXPORT_HEADERS = eltypes.h
+EXPORT_HEADERS += elstring.h
+EXPORT_HEADERS += elstrtoken.h
+EXPORT_HEADERS += elquintet.h
+EXPORT_HEADERS += elstrbuf.h
+EXPORT_HEADERS += elalloc.h
+EXPORT_HEADERS += elchar.h
+EXPORT_HEADERS += eltime.h
+EXPORT_HEADERS += _pubcrt.h

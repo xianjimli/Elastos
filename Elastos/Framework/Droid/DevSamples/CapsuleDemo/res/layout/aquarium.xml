@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ================================================================== -->
+<!--  Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.     -->
+<!-- ================================================================== -->
+
+<x:elastos xmlns:x="http://www.elastos.com/XmlGlue/2.1"
+    xmlns="http://www.elastos.com/XmlGlue/Widgets">
+
+    <form x:id="Window"  visible="TRUE">
+
+        <panel x:id="main_panel" controlTemplate="CanvasPanelTemplate">
+
+            <pictureBox x:id="bgPanel"/>
+            
+            <pictureBox x:id="bubble1"/>
+
+            <pictureBox x:id="bubble2"/>
+
+            <pictureBox x:id="bubble3"/>
+
+            <pictureBox x:id="bubble4"/>
+
+            <pictureBox x:id="bubble5"/>
+
+            <pictureBox x:id="fish1"/>
+
+            <pictureBox x:id="fish2"/>
+            
+            <pictureBox x:id="touch"/>
+
+        </panel>
+
+    </form>
+
+    <x:script src="Layouts/aquarium.lua" />
+
+</x:elastos>

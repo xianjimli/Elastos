@@ -1,0 +1,67 @@
+
+module
+{
+    interface IPaint;
+    interface ICanvas;
+    interface IRectF;
+    interface IRect;
+    interface IRegion;
+
+    interface INinePatch {
+        SetPaint(
+            [in] IPaint* p);
+
+        /**
+         * Draw a bitmap of nine patches.
+         *
+         * @param canvas    A container for the current matrix and clip used to draw the bitmap.
+         * @param location  Where to draw the bitmap.
+         */
+        Draw(
+            [in] ICanvas* canvas,
+            [in] IRectF* location);
+
+        /**
+         * Draw a bitmap of nine patches.
+         *
+         * @param canvas    A container for the current matrix and clip used to draw the bitmap.
+         * @param location  Where to draw the bitmap.
+         */
+        DrawEx(
+            [in] ICanvas* canvas,
+            [in] IRect* location);
+
+        /**
+         * Draw a bitmap of nine patches.
+         *
+         * @param canvas    A container for the current matrix and clip used to draw the bitmap.
+         * @param location  Where to draw the bitmap.
+         * @param paint     The Paint to draw through.
+         */
+        DrawEx2(
+            [in] ICanvas* canvas,
+            [in] IRect* location,
+            [in] IPaint* paint);
+
+        /**
+         * Return the underlying bitmap's density, as per
+         * {@link Bitmap#getDensity() Bitmap.getDensity()}.
+         */
+        GetDensity(
+            [out] Int32* density);
+
+        GetWidth(
+            [out] Int32* width);
+
+        GetHeight(
+            [out] Int32* height);
+
+        HasAlpha(
+            [out] Boolean* hasAlpha);
+
+        GetTransparentRegion(
+            [in] IRect* location,
+            [out] IRegion** region);
+    }
+}
+

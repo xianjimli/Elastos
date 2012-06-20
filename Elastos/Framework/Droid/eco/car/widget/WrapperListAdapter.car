@@ -1,0 +1,20 @@
+
+module
+{
+    interface IListAdapter;
+    /**
+     * List adapter that wraps another list adapter. The wrapped adapter can be retrieved
+     * by calling {@link #getWrappedAdapter()}.
+     *
+     * @see ListView
+     */
+    interface IWrapperListAdapter extends IListAdapter {
+        /**
+         * Returns the adapter wrapped by this list adapter.
+         *
+         * @return The {@link android.widget.ListAdapter} wrapped by this adapter.
+         */
+        GetWrappedAdapter(
+            [out] IListAdapter** adapter);
+    }
+}

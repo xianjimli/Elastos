@@ -1,0 +1,502 @@
+
+module
+{
+    merge("graphics/point.car");
+    merge("graphics/rect.car");
+    merge("graphics/rectf.car");
+    merge("graphics/region.car");
+    merge("graphics/bitmap.car");
+    merge("graphics/bitmapfactory.car");
+    merge("graphics/shader.car");
+    merge("graphics/xfermode.car");
+    merge("graphics/patheffect.car");
+    merge("graphics/maskfilter.car");
+    merge("graphics/typeface.car");
+    merge("graphics/rasterizer.car");
+    merge("graphics/paint.car");
+    merge("graphics/matrix.car");
+    merge("graphics/path.car");
+    merge("graphics/drawfilter.car");
+    merge("graphics/picture.car");
+    merge("graphics/porterduff.car");
+    merge("graphics/canvas.car");
+    merge("graphics/colorfilter.car");
+    merge("graphics/movie.car");
+    merge("graphics/ninepatch.car");
+    merge("graphics/drawable/drawable.car");
+    merge("graphics/drawable/bitmapdrawable.car");
+    merge("graphics/drawable/ninepatchdrawable.car");
+    merge("graphics/drawable/colordrawable.car");
+    merge("graphics/drawable/DrawableContainer.car");
+    merge("graphics/drawable/StateListDrawable.car");
+
+    class CPoint {
+        constructor();
+
+        constructor(
+            [in] Int32 x,
+            [in] Int32 y);
+
+        constructor(
+            [in] IPoint* p);
+
+        interface IPoint;
+    }
+
+    class CRect {
+        constructor();
+
+        constructor(
+            [in] Int32 left,
+            [in] Int32 top,
+            [in] Int32 right,
+            [in] Int32 bottom);
+
+        constructor(
+            [in] IRect* r);
+
+        interface IRect;
+        interface IParcelable;
+    }
+
+    class CRegion {
+        /** Create an empty region
+        */
+        constructor();
+
+        /** Return a copy of the specified region
+        */
+        constructor(
+            [in] IRegion* region);
+
+        /** Return a region set to the specified rectangle
+        */
+        constructor(
+            [in] IRect* r);
+
+        /** Return a region set to the specified rectangle
+        */
+        constructor(
+            [in] Int32 left,
+            [in] Int32 top,
+            [in] Int32 right,
+            [in] Int32 bottom);
+
+        /*private*/ constructor(
+            [in] Int32 ni);
+
+        interface IRegion;
+        interface IParcelable;
+    }
+
+    class CRectF {
+        /**
+         * Create a new empty RectF. All coordinates are initialized to 0.
+         */
+        constructor();
+
+        /**
+         * Create a new rectangle with the specified coordinates. Note: no range
+         * checking is performed, so the caller must ensure that left <= right and
+         * top <= bottom.
+         *
+         * @param left   The X coordinate of the left side of the rectagle
+         * @param top    The Y coordinate of the top of the rectangle
+         * @param right  The X coordinate of the right side of the rectagle
+         * @param bottom The Y coordinate of the bottom of the rectangle
+         */
+        constructor(
+            [in] Float left,
+            [in] Float top,
+            [in] Float right,
+            [in] Float bottom);
+
+        /**
+         * Create a new rectangle, initialized with the values in the specified
+         * rectangle (which is left unmodified).
+         *
+         * @param r The rectangle whose coordinates are copied into the new
+         *          rectangle.
+         */
+        constructor(
+            [in] IRectF* rf);
+
+        constructor(
+            [in] IRect* r);
+
+        interface IRectF;
+        interface IParcelable;
+    }
+
+    class CPaintFontMetrics {
+        interface IPaintFontMetrics;
+    }
+
+    class CPaintFontMetricsInt {
+        interface IPaintFontMetricsInt;
+    }
+
+    class CPaint {
+        /**
+         * Create a new paint with default settings.
+         */
+        constructor();
+
+        /**
+         * Create a new paint with the specified flags. Use setFlags() to change
+         * these after the paint is created.
+         *
+         * @param flags initial flag bits, as if they were passed via setFlags().
+         */
+        constructor(
+            [in] Int32 flags);
+
+        /**
+         * Create a new paint, initialized with the attributes in the specified
+         * paint parameter.
+         *
+         * @param paint Existing paint used to initialized the attributes of the
+         *              new paint.
+         */
+        constructor(
+            [in] IPaint * paint);
+
+        interface IPaint;
+    }
+
+    class CMatrix {
+        constructor();
+        constructor(
+            [in] IMatrix* src);
+
+        interface IMatrix;
+    }
+
+    class CBitmap {
+        /*private*/ constructor(
+            [in] Int32 nativeBitmap,
+            [in] Boolean isMutable,
+            [in] ArrayOf<Byte> ninePatchChunk,
+            [in] Int32 density);
+
+        interface IBitmap;
+        interface IParcelable;
+    }
+
+    class CBitmapFactoryOptions {
+        interface IBitmapFactoryOptions;
+    }
+
+    singleton class CBitmapFactory {
+        interface IBitmapFactory;
+    }
+
+    [deprecated]
+    class CLinearGradient {
+        /**	Create a shader that draws a linear gradient along a line.
+            @param x0           The x-coordinate for the start of the gradient line
+            @param y0           The y-coordinate for the start of the gradient line
+            @param x1           The x-coordinate for the end of the gradient line
+            @param y1           The y-coordinate for the end of the gradient line
+            @param  colors      The colors to be distributed along the gradient line
+            @param  positions   May be null. The relative positions [0..1] of
+                                each corresponding color in the colors array. If this is null,
+                                the the colors are distributed evenly along the gradient line.
+            @param  tile        The Shader tiling mode
+        */
+        constructor(
+            [in] Float x0,
+            [in] Float y0,
+            [in] Float x1,
+            [in] Float y1,
+            [in] ArrayOf<Int32> colors,
+            [in] ArrayOf<Float>* positions,
+            [in] ShaderTileMode tile);
+
+        /**	Create a shader that draws a linear gradient along a line.
+            @param x0       The x-coordinate for the start of the gradient line
+            @param y0       The y-coordinate for the start of the gradient line
+            @param x1       The x-coordinate for the end of the gradient line
+            @param y1       The y-coordinate for the end of the gradient line
+            @param  color0  The color at the start of the gradient line.
+            @param  color1  The color at the end of the gradient line.
+            @param  tile    The Shader tiling mode
+        */
+        constructor(
+            [in] Float x0,
+            [in] Float y0,
+            [in] Float x1,
+            [in] Float y1,
+            [in] Int32 color0,
+            [in] Int32 color1,
+            [in] ShaderTileMode tile);
+
+        interface IShader;
+    }
+
+    /**
+     * The Canvas class holds the "draw" calls. To draw something, you need
+     * 4 basic components: A Bitmap to hold the pixels, a Canvas to host
+     * the draw calls (writing into the bitmap), a drawing primitive (e.g. Rect,
+     * Path, text, Bitmap), and a paint (to describe the colors and styles for the
+     * drawing).
+     */
+    class CCanvas {
+        /**
+         * Construct an empty raster canvas. Use setBitmap() to specify a bitmap to
+         * draw into.  The initial target density is {@link Bitmap#DENSITY_NONE};
+         * this will typically be replaced when a target bitmap is set for the
+         * canvas.
+         */
+        constructor();
+
+        /**
+         * Construct a canvas with the specified bitmap to draw into. The bitmap
+         * must be mutable.
+         *
+         * <p>The initial target density of the canvas is the same as the given
+         * bitmap's density.
+         *
+         * @param bitmap Specifies a mutable bitmap for the canvas to draw into.
+         */
+        constructor(
+            [in] IBitmap * bitmap);
+
+        /*package*/ constructor(
+            [in] Int32 nativeCanvas);
+
+        /**
+         * Construct a canvas with the specified gl context. All drawing through
+         * this canvas will be redirected to OpenGL. Note: some features may not
+         * be supported in this mode (e.g. some GL implementations may not support
+         * antialiasing or certain effects like ColorMatrix or certain Xfermodes).
+         * However, no exception will be thrown in those cases.
+         *
+         * <p>The initial target density of the canvas is the same as the initial
+         * density of bitmaps as per {@link Bitmap#getDensity() Bitmap.getDensity()}.
+         */
+        constructor(
+            [in] IGL * gl);
+
+        interface ICanvas;
+    }
+
+    class CPorterDuffColorFilter {
+        constructor(
+            [in] Int32 srcColor,
+            [in] PorterDuffMode mode);
+
+        interface IColorFilter;
+    }
+
+    class CMovie {
+        /*private*/ constructor(
+            [in] Int32 nativeMovie);
+
+        interface IMovie;
+    }
+
+    class CBitmapDrawable {
+        /**
+         * Create an empty drawable, not dealing with density.
+         * @deprecated Use {@link #BitmapDrawable(Resources)} to ensure
+         * that the drawable has correctly set its target density.
+         */
+        constructor();
+
+        /**
+         * Create an empty drawable, setting initial target density based on
+         * the display metrics of the resources.
+         */
+        constructor(
+            [in] IResources* res);
+
+        /**
+         * Create drawable from a bitmap, not dealing with density.
+         * @deprecated Use {@link #BitmapDrawable(Resources, Bitmap)} to ensure
+         * that the drawable has correctly set its target density.
+         */
+        constructor(
+            [in] IBitmap* bitmap);
+
+        /**
+         * Create drawable from a bitmap, setting initial target density based on
+         * the display metrics of the resources.
+         */
+        constructor(
+            [in] IResources* res,
+            [in] IBitmap* bitmap);
+
+        /**
+         * Create a drawable by opening a given file path and decoding the bitmap.
+         * @deprecated Use {@link #BitmapDrawable(Resources, String)} to ensure
+         * that the drawable has correctly set its target density.
+         */
+        constructor(
+            [in] String filepath);
+
+        /**
+         * Create a drawable by opening a given file path and decoding the bitmap.
+         */
+        constructor(
+            [in] IResources* res,
+            [in] String filepath);
+
+        /**
+         * Create a drawable by decoding a bitmap from the given input stream.
+         * @deprecated Use {@link #BitmapDrawable(Resources, java.io.InputStream)} to ensure
+         * that the drawable has correctly set its target density.
+         */
+        constructor(
+            [in] IInputStream* is);
+
+        /**
+         * Create a drawable by decoding a bitmap from the given input stream.
+         */
+        constructor(
+            [in] IResources* res,
+            [in] IInputStream* is);
+
+        // private
+        constructor(
+            [in] IBitmapState* state,
+            [in] IResources* res);
+
+        interface IBitmapDrawable;
+    }
+
+    class CNinePatchDrawable {
+        constructor();
+
+        /**
+         * Create drawable from raw nine-patch data, not dealing with density.
+         * @deprecated Use {@link #NinePatchDrawable(Resources, Bitmap, byte[], Rect, String)}
+         * to ensure that the drawable has correctly set its target density.
+         */
+        constructor(
+            [in] IBitmap* bitmap,
+            [in] ArrayOf<Byte> chunk,
+            [in] IRect* padding,
+            [in] String srcName);
+
+        /**
+         * Create drawable from raw nine-patch data, setting initial target density
+         * based on the display metrics of the resources.
+         */
+        constructor(
+            [in] IResources* res,
+            [in] IBitmap* bitmap,
+            [in] ArrayOf<Byte> chunk,
+            [in] IRect* padding,
+            [in] String srcName);
+
+        /**
+         * Create drawable from existing nine-patch, not dealing with density.
+         * @deprecated Use {@link #NinePatchDrawable(Resources, NinePatch)}
+         * to ensure that the drawable has correctly set its target density.
+         */
+        constructor(
+            [in] INinePatch* patch);
+
+        /**
+         * Create drawable from existing nine-patch, setting initial target density
+         * based on the display metrics of the resources.
+         */
+        constructor(
+            [in] IResources* res,
+            [in] INinePatch* patch);
+
+        constructor(
+            [in] INinePatchState* state,
+            [in] IResources* res);
+
+        interface INinePatchDrawable;
+    }
+
+    class CColorDrawable {
+        /**
+         * Creates a new black ColorDrawable.
+         */
+        constructor();
+
+        /**
+         * Creates a new ColorDrawable with the specified color.
+         *
+         * @param color The color to draw.
+         */
+        constructor(
+            [in] Int32 color);
+
+        /*private*/ constructor(
+            [in] IColorState* state);
+
+        interface IColorDrawable;
+    }
+
+    class CStateListDrawable {
+        constructor();
+
+        constructor(
+            [in] IStateListState* state,
+            [in] IResources* res);
+
+        interface IStateListDrawable;
+    }
+
+    class CNinePatch {
+        /**
+         * Create a drawable projection from a bitmap to nine patches.
+         *
+         * @param bitmap    The bitmap describing the patches.
+         * @param chunk     The 9-patch data chunk describing how the underlying
+         *                  bitmap is split apart and drawn.
+         * @param srcName   The name of the source for the bitmap. Might be null.
+         */
+        constructor(
+            [in] IBitmap* bitmap,
+            [in] ArrayOf<Byte> chunk,
+            [in] String srcName);
+
+        /**
+         * @hide
+         */
+        constructor(
+            [in] INinePatch* patch);
+
+        interface INinePatch;
+    }
+
+    class CPorterDuffXfermode {
+        constructor(
+            [in] PorterDuffMode mode);
+
+        interface IXfermode;
+    }
+
+    class CPath {
+        constructor();
+
+        constructor(
+            [in] IPath* path);
+
+        interface IPath;
+    }
+
+    class CBitmapShader {
+        constructor(
+            [in] IBitmap* bitmap,
+            [in] ShaderTileMode tileX,
+            [in] ShaderTileMode tileY);
+
+        interface IShader;
+    }
+
+    class CTypeface {
+        interface ITypeface;
+    }
+
+    singleton class CTypefaceFactory {
+        interface ITypefaceFactory;
+    }
+}
+

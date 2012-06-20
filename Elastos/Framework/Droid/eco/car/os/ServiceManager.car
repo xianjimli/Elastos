@@ -1,0 +1,16 @@
+
+module
+{
+    interface IServiceManager {
+        AddService(
+            [in] String name,
+            [in] IInterface* service);
+
+        GetService(
+            [in] String name,
+            [out] IInterface** service);
+
+        RemoveService(
+            [in] String name);
+    }
+}

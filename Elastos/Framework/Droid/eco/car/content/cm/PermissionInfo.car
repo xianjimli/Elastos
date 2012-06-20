@@ -1,0 +1,53 @@
+
+module
+{
+    /**
+     * A normal application value for {@link #protectionLevel}, corresponding
+     * to the <code>normal</code> value of
+     * {@link android.R.attr#protectionLevel}.
+     */
+    const PermissionInfo_PROTECTION_NORMAL = 0;
+
+    /**
+     * Dangerous value for {@link #protectionLevel}, corresponding
+     * to the <code>dangerous</code> value of
+     * {@link android.R.attr#protectionLevel}.
+     */
+    const PermissionInfo_PROTECTION_DANGEROUS = 1;
+
+    /**
+     * System-level value for {@link #protectionLevel}, corresponding
+     * to the <code>signature</code> value of
+     * {@link android.R.attr#protectionLevel}.
+     */
+    const PermissionInfo_PROTECTION_SIGNATURE = 2;
+
+    /**
+     * System-level value for {@link #protectionLevel}, corresponding
+     * to the <code>signatureOrSystem</code> value of
+     * {@link android.R.attr#protectionLevel}.
+     */
+    const PermissionInfo_PROTECTION_SIGNATURE_OR_SYSTEM = 3;
+
+    interface ICapsuleManager;
+
+    interface IPermissionInfo {
+        /**
+         * Retrieve the textual description of this permission.  This
+         * will call back on the given PackageManager to load the description from
+         * the application.
+         *
+         * @param pm A PackageManager from which the label can be loaded; usually
+         * the PackageManager from which you originally retrieved this item.
+         *
+         * @return Returns a CharSequence containing the permission's description.
+         * If there is no description, null is returned.
+         */
+        LoadDescription(
+            [in] ICapsuleManager* cm,
+            [out, callee] ArrayOf<Char8>* des);
+
+        GetDescription(
+            [out] String* des);
+    }
+}

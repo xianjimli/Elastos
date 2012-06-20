@@ -1,0 +1,19 @@
+
+module
+{
+    interface IMotionEvent;
+
+    interface ITouchDelegate {
+        /**
+         * Will forward touch events to the delegate view if the event is within the bounds
+         * specified in the constructor.
+         * 
+         * @param event The touch event to forward
+         * @return True if the event was forwarded to the delegate, FALSE otherwise.
+         */
+        OnTouchEvent(
+            [in] IMotionEvent* event,
+            [out] Boolean* result);
+
+    }
+}

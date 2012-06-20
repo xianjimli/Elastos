@@ -1,0 +1,16 @@
+
+module
+{
+    interface IComponentInfo;
+
+    /*
+     * activityInfo related
+     */
+    interface IActivityInfo extends IComponentInfo {
+        GetLaunchMode(
+            [out] Int32* mode);
+
+        SetLaunchMode(
+            [in] Int32 mode);
+    }
+}

@@ -1,0 +1,20 @@
+
+module
+{
+    merge("policy/IPolicy.car");
+    merge("policy/PolicyManager.car");
+    merge("policy/Impl.car");
+
+    /**
+     * Simple implementation of the policy interface that spawns the right
+     * set of objects
+     */
+    class CPolicy {
+        interface IPolicy;
+    }
+
+    singleton class CPolicyManager {
+        interface IPolicyManager;
+    }
+
+}

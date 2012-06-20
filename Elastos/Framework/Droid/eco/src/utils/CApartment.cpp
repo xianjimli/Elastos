@@ -1,0 +1,186 @@
+
+#include "utils/CApartment.h"
+#include <new>
+
+pthread_key_t CApartment::sKey;
+
+#ifdef _linux
+// --- InputDispatcherThread ---
+
+NativeMessageQueueThread::NativeMessageQueueThread(
+    /* [in] */ NativeMessageQueue* messageQueue) :
+    Thread(/*canCallJava*/ FALSE),
+    mMessageQueue(messageQueue)
+{
+}
+
+NativeMessageQueueThread::~NativeMessageQueueThread()
+{
+}
+
+bool NativeMessageQueueThread::threadLoop()
+{
+    mMessageQueue->PollOnce(-1);
+    return true;
+}
+#endif
+
+// --- CApartment ---
+
+CApartment::CApartment() :
+    mFinished(FALSE)
+{
+}
+
+CApartment::~CApartment()
+{
+    if (mFinished == FALSE) {
+        Finish();
+    }
+}
+
+ECode CApartment::constructor(
+    /* [in] */ Boolean usingNativeMessageQueue)
+{
+#ifdef _linux
+    mUsingNativeMessageQueue = usingNativeMessageQueue;
+    if (mUsingNativeMessageQueue) {
+        mMessageQueue = new NativeMessageQueue();
+        mNativeMessageQueueThread = new NativeMessageQueueThread(mMessageQueue);
+    }
+#endif
+
+    mCallbackContext = new CCallbackContextEx();
+    assert(mCallbackContext != NULL);
+    assert(SUCCEEDED(mCallbackContext->Initialize()));
+
+    assert(pthread_key_create(&sKey, NULL) == 0);
+    assert(pthread_setspecific(sKey, this) == 0);
+
+    return NOERROR;
+}
+
+void* CApartment::EntryRoutine(void *arg)
+{
+    ECode ec;
+
+    if (arg == NULL) {
+        pthread_exit((void*)E_THREAD_ABORTED);
+    }
+
+    ec = ((CApartment*)arg)->mCallbackContext->HandleCallbackEvents(INFINITE, NULL, NULL, 0);
+    ((CApartment*)arg)->mCallbackContext->m_Status = CallbackContextStatus_Finishing;
+
+    return (void*)ec;
+}
+
+ECode CApartment::Start(
+    /* [in] */ ApartmentAttr attr)
+{
+#ifdef _linux
+    if (mUsingNativeMessageQueue) {
+        android::status_t result = mNativeMessageQueueThread->run(
+                "NativeMessageQueue", android::PRIORITY_URGENT_DISPLAY);
+        if (result) {
+//            LOGE("Could not start InputDispatcher thread due to error %d.", result);
+            return E_THREAD_ABORTED;
+        }
+    }
+#endif
+
+    if (attr == ApartmentAttr_New) {
+        if (pthread_create(&mThread, NULL, EntryRoutine, (void*)this)) {
+            return E_THREAD_ABORTED;
+        }
+    }
+    else if (attr == ApartmentAttr_Current){
+        mThread = pthread_self();
+        CApartment::EntryRoutine((void*)this);
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+
+    return NOERROR;
+}
+
+ECode CApartment::Finish()
+{
+    ECode ec;
+    void *ret;
+
+    assert(mCallbackContext != NULL);
+    ec = mCallbackContext->RequestToFinish(CallbackContextFinish_ASAP);
+
+    pthread_join(mThread, &ret);
+    mFinished = TRUE;
+
+    return ec;
+}
+
+ECode CApartment::PostCppCallback(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params)
+{
+    return PostCppCallbackAtTime(target, func, params, 0);
+}
+
+ECode CApartment::PostCppCallbackAtTime(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Millisecond64 uptimeMillis)
+{
+    PCallbackEvent pCallbackEvent = NULL;
+    AutoPtr<IInterface> callbackContext;
+    EventHandler delegate(EventHandler::Make((PVoid)target, *(PVoid*)&func, CallbackType_CPP));
+
+    pCallbackEvent = _Impl_CallbackSink_AllocCallbackEvent(sizeof(_EzCallbackEvent));
+    pCallbackEvent = new(pCallbackEvent) _EzCallbackEvent(
+            0,
+            CallbackEventFlag_DirectCall | CallbackEventFlag_SyncCall | CallbackPriority_Normal,
+            NULL,
+            delegate.m_pCarObjClient,
+            NULL,
+            delegate.GetThisPtr(), delegate.GetFuncPtr(),
+            delegate.GetFuncType(), params);
+    if (!pCallbackEvent) {
+        return E_OUT_OF_MEMORY;
+    }
+
+    pCallbackEvent->m_when = uptimeMillis;
+    return mCallbackContext->PostCallbackEvent(pCallbackEvent);
+}
+
+ECode CApartment::GetDefaultApartment(
+    /* [out] */ IApartment** apartment)
+{
+    if (apartment == NULL) return E_INVALID_ARGUMENT;
+
+    *apartment = (CApartment*)pthread_getspecific(sKey);
+    if (*apartment != NULL) (*apartment)->AddRef();
+
+    return NOERROR;
+}
+
+NativeMessageQueue* CApartment::GetNativeMessageQueue()
+{
+    AutoPtr<CApartment> apartment = (CApartment*)pthread_getspecific(sKey);
+    if (apartment != NULL) {
+        return apartment->mMessageQueue;
+    }
+    else {
+        return NULL;
+    }
+}
+
+ECode CApartment::RemoveCppCallbacks(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func)
+{
+    return mCallbackContext->RemoveCppCallbacks(
+        CallbackEventFlag_DirectCall | CallbackEventFlag_SyncCall | CallbackPriority_Normal,
+        (PVoid)target, *(PVoid*)&func);
+}
+

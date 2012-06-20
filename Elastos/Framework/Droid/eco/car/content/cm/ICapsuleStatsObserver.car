@@ -1,0 +1,11 @@
+
+module
+{
+    interface ICapsuleStats;
+
+    interface ICapsuleStatsObserver {
+        OnGetStatsCompleted(
+            [in] ICapsuleStats* stats,
+            [in] Boolean succeeded);
+    }
+}

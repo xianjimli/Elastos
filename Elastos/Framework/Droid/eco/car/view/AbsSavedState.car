@@ -1,0 +1,14 @@
+
+module
+{
+    interface IParcelable;
+
+    /**
+     * A {@link Parcelable} implementation that should be used by inheritance
+     * hierarchies to ensure the state of all classes along the chain is saved.
+     */
+    interface IAbsSavedState {
+        GetSuperState(
+            [out] IParcelable** superState);
+    }
+}

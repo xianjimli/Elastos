@@ -1,0 +1,77 @@
+
+module
+{
+    interface IPermission {
+        /**
+         * Compares the specified object with this {@code Permission} for equality
+         * and returns {@code true} if the specified object is equal, {@code false}
+         * otherwise.
+         * <p>
+         * The {@link #implies(Permission)} method should be used for making access
+         * control checks.
+         *
+         * @param obj
+         *            object to be compared for equality with this {@code
+         *            Permission}.
+         * @return {@code true} if the specified object is equal to this {@code
+         *         Permission}, otherwise {@code false}.
+         */
+        Equals(
+            [in] IInterface* obj,
+            [out] Boolean* result);
+
+        /**
+         * Returns the hash code value for this {@code Permission}. Returns the same
+         * hash code for {@code Permission}s that are equal to each other as
+         * required by the general contract of {@link Object#hashCode}.
+         *
+         * @return the hash code value for this {@code Permission}.
+         * @see Object#equals(Object)
+         * @see Permission#equals(Object)
+         */
+        GetHashCode(
+            [out] Int32* hashCode);
+
+        /**
+         * Returns a comma separated string identifying the actions associated with
+         * this permission. The returned actions are in canonical form. For example:
+         *
+         * <pre>
+         * sp0 = new SocketPermission(&quot;www.example.com&quot;, &quot;connect,resolve&quot;)
+         * sp1 = new SocketPermission(&quot;www.example.com&quot;, &quot;resolve,connect&quot;)
+         * sp0.getActions().equals(sp1.getActions()) //yields true
+         * </pre>
+         *
+         * Both permissions return "connect,resolve" (in that order) if {@code
+         * #getActions()} is invoked. Returns an empty String, if no actions are
+         * associated with this permission.
+         *
+         * @return the actions associated with this permission or an empty string if
+         *         no actions are associated with this permission.
+         */
+        GetActions(
+            [out] String* actions);
+
+        /**
+         * Indicates whether the specified permission is implied by this permission.
+         * The {@link AccessController} uses this method to check whether permission
+         * protected access is allowed with the present policy.
+         *
+         * @param permission
+         *            the permission to check against this permission.
+         * @return {@code true} if the specified permission is implied by this
+         *         permission, {@code false} otherwise.
+         */
+        Implies(
+            [in] IPermission* permission,
+            [out] Boolean* result);
+
+        /**
+         * Returns the name of this permission.
+         *
+         * @return the name of this permission.
+         */
+        GetName(
+            [out] String* name);
+    }
+}

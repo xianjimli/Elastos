@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ================================================================== -->
+<!--  Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.     -->
+<!-- ================================================================== -->
+<!--
+<x:elastos xmlns:x="http://www.elastos.com/XmlGlue/2.1"
+    xmlns="http://www.elastos.com/XmlGlue/Widgets">
+
+    <form x:id="Window"  visible="TRUE">
+        <canvasPanel x:id="Panel" controlTemplate="CanvasPanelTemplate">
+            <pictureBox x:id="bgPanel"/>
+            <pictureBox x:id="bubble1"/>
+            <pictureBox x:id="bubble2"/>
+            <pictureBox x:id="bubble3"/>
+            <pictureBox x:id="bubble4"/>
+            <pictureBox x:id="bubble5"/>
+            <pictureBox x:id="fish1"/>
+            <pictureBox x:id="fish2"/>
+            <pictureBox x:id="touch"/>
+        </canvasPanel>
+    </form>
+
+    <x:script src="Scripts/aquarium.lua" />
+
+</x:elastos>
+-->
+
+<form xmlns:elastos="http://schemas.elastos.com/capsule/res/elastos"
+    elastos:style="ControlStyle:IgnoreFocus"
+    elastos:id="Window">
+
+    <canvasPanel
+        elastos:sizeMode="AdaptParent"
+        elastos:controlTemplate="CanvasPanelTemplate"
+        elastos:id="Panel">
+
+        <pictureBox
+            elastos:width="320"
+            elastos:height="480"
+            elastos:id="bgPanel" />
+
+        <pictureBox
+            elastos:width="15"
+            elastos:height="15"
+            elastos:id="bubble1" />
+
+        <pictureBox
+            elastos:width="15"
+            elastos:height="15"
+            elastos:id="bubble2" />
+
+        <pictureBox
+            elastos:width="15"
+            elastos:height="15"
+            elastos:id="bubble3" />
+
+        <pictureBox
+            elastos:width="15"
+            elastos:height="15"
+            elastos:id="bubble4" />
+
+        <pictureBox
+            elastos:width="15"
+            elastos:height="15"
+            elastos:id="bubble5" />
+
+        <pictureBox
+            elastos:width="45"
+            elastos:height="28"
+            elastos:id="fish1" />
+
+        <pictureBox
+            elastos:width="48"
+            elastos:height="30"
+            elastos:id="fish2" />
+
+        <!-- pictureBox
+            elastos:width="320"
+            elastos:height="480"
+            elastos:id="touch"/ -->
+
+    </canvasPanel>
+
+</form>

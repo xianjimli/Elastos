@@ -1,0 +1,19 @@
+
+module
+{
+    interface IBitmap;
+
+    /**
+     * System private API for receiving updated thumbnails from a checkpoint.
+     *
+     * {@hide}
+     */
+    interface IThumbnailReceiver {
+        NewThumbnail(
+            [in] Int32 id,
+            [in] IBitmap* thumbnail,
+            [in] ArrayOf<Char8> description);
+
+        Finished();
+    }
+}

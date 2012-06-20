@@ -1,0 +1,23 @@
+
+module
+{
+    interface IFile;
+
+    interface IFilenameFilter {
+        /**
+         * Indicates if a specific filename matches this filter.
+         *
+         * @param dir
+         *            the directory in which the {@code filename} was found.
+         * @param filename
+         *            the name of the file in {@code dir} to test.
+         * @return  {@code true} if the filename matches the filter
+         *            and can be included in the list, {@code false}
+         *            otherwise.
+         */
+        Accept(
+            [in] IFile *dir,
+            [in] String filename,
+            [out] Boolean *success);
+    }
+}

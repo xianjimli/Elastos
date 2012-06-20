@@ -1,0 +1,15 @@
+
+module
+{
+    interface IComponentName;
+    interface IBinder;
+
+    interface IServiceConnection {
+        OnServiceConnected(
+            [in] IComponentName* name,
+            [in] IBinder* service);
+
+        OnServiceDisconnected(
+            [in] IComponentName* name);
+    }
+}

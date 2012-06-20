@@ -1,0 +1,53 @@
+
+module
+{
+    interface IDrawable;
+    interface IDrawableConstantState;
+    interface ICanvas;
+    interface IDisplayMetrics;
+    interface IPaint;
+
+    interface INinePatchState extends IDrawableConstantState {
+    }
+
+    interface INinePatchDrawable extends IDrawable {
+        /**
+         * Set the density scale at which this drawable will be rendered. This
+         * method assumes the drawable will be rendered at the same density as the
+         * specified canvas.
+         *
+         * @param canvas The Canvas from which the density scale must be obtained.
+         *
+         * @see android.graphics.Bitmap#setDensity(int)
+         * @see android.graphics.Bitmap#getDensity()
+         */
+        SetTargetDensity(
+            [in] ICanvas* canvas);
+
+        /**
+         * Set the density scale at which this drawable will be rendered.
+         *
+         * @param metrics The DisplayMetrics indicating the density scale for this drawable.
+         *
+         * @see android.graphics.Bitmap#setDensity(int)
+         * @see android.graphics.Bitmap#getDensity()
+         */
+        SetTargetDensityEx(
+            [in] IDisplayMetrics* metrics);
+
+        /**
+         * Set the density at which this drawable will be rendered.
+         *
+         * @param density The density scale for this drawable.
+         *
+         * @see android.graphics.Bitmap#setDensity(int)
+         * @see android.graphics.Bitmap#getDensity()
+         */
+        SetTargetDensityEx2(
+            [in] Int32 density);
+
+        GetPaint(
+            [out] IPaint** paint);
+    }
+}
+

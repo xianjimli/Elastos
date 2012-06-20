@@ -1,0 +1,468 @@
+
+module
+{
+    merge("view/AbsSavedState.car");
+    merge("view/menu.car");
+    merge("view/menuitem.car");
+    merge("view/submenu.car");
+    merge("view/contextmenu.car");
+    merge("view/surface.car");
+    merge("view/surfacesession.car");
+    merge("view/view.car");
+    merge("view/viewgroup.car");
+    merge("view/viewparent.car");
+    merge("view/viewmanager.car");
+    merge("view/windowmanager.car");
+    merge("view/windowmanagerpolicy.car");
+    merge("view/gravity.car");
+    merge("view/surfaceholder.car");
+    merge("view/window.car");
+    merge("view/display.car");
+    merge("view/layoutinflater.car");
+    merge("view/viewtreeobserver.car");
+    merge("view/animation/Interpolator.car");
+    merge("view/animation/Animation.car");
+    merge("view/animation/Transformation.car");
+    merge("view/animation/LayoutAnimationController.car");
+    merge("view/InputEvent.car");
+    merge("view/KeyEvent.car");
+    merge("view/MotionEvent.car");
+    merge("view/accessibility/AccessibilityEvent.car");
+    merge("view/inputmethod/ExtractedText.car");
+    merge("view/inputmethod/ExtractedTextRequest.car");
+    merge("view/inputmethod/CompletionInfo.car");
+    merge("view/InputBindResult.car");
+    merge("view/IInputMethodClient.car");
+    merge("view/IInputContextCallback.car");
+    merge("view/IInputContext.car");
+    merge("view/InputChannel.car");
+    merge("view/InputDevice.car");
+    merge("view/IInputMethodCallback.car");
+    merge("view/IOnKeyguardExitResult.car");
+    merge("view/IRotationWatcher.car");
+    merge("view/IInnerWindow.car");
+    merge("view/IWindowSession.car");
+    merge("view/IApplicationToken.car");
+    merge("view/IWindowManagerEx.car");
+    merge("view/TouchDelegate.car");
+    merge("view/SoundEffectConstants.car");
+    merge("view/HapticFeedbackConstants.car");
+
+    /**
+     * Handle on to a raw buffer that is being managed by the screen compositor.
+     */
+    class CSurface {
+        /**
+         * create a surface
+         * {@hide}
+         */
+        constructor(
+            [in] ISurfaceSession * s,
+            [in] Int32 pid,
+            [in] Int32 display,
+            [in] Int32 w,
+            [in] Int32 h,
+            [in] Int32 format,
+            [in] Int32 flags);
+
+        /**
+         * create a surface with a name
+         * {@hide}
+         */
+        constructor(
+            [in] ISurfaceSession * s,
+            [in] Int32 pid,
+            [in] String name,
+            [in] Int32 display,
+            [in] Int32 w,
+            [in] Int32 h,
+            [in] Int32 format,
+            [in] Int32 flags);
+
+        /**
+         * Create an empty surface, which will later be filled in by
+         * readFromParcel().
+         * {@hide}
+         */
+        constructor();
+
+        interface ISurface;
+        interface IParcelable;
+    }
+
+    class CSurfaceSession {
+        interface ISurfaceSession;
+    }
+
+    class CViewGroupLayoutParams {
+        constructor();
+
+        constructor(
+            [in] IContext* c,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] Int32 width,
+            [in] Int32 height);
+
+        constructor(
+            [in] IViewGroupLayoutParams* source);
+
+        interface IViewGroupLayoutParams;
+    }
+
+    /**
+     * Per-child layout information for layouts that support margins.
+     * See
+     * {@link android.R.styleable#ViewGroup_MarginLayout ViewGroup Margin Layout Attributes}
+     * for a list of all child view attributes that this class supports.
+     */
+    class CViewGroupMarginLayoutParams {
+        constructor();
+
+        constructor(
+            [in] IContext* c,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] Int32 width,
+            [in] Int32 height);
+
+        constructor(
+            [in] IViewGroupMarginLayoutParams* src);
+
+        constructor(
+            [in] IViewGroupLayoutParams* source);
+
+        interface IViewGroupMarginLayoutParams;
+    }
+
+    class CWindowManagerLayoutParams {
+        constructor();
+
+        interface IWindowManagerLayoutParams;
+        interface IParcelable;
+    }
+
+    class CDisplay {
+        constructor(
+            [in] Int32 display);
+
+        interface IDisplay;
+    }
+
+    singleton class CWindowManagerImpl {
+        interface IWindowManager;
+    }
+
+    singleton class CGravity {
+        interface IGravity;
+    }
+
+    interface IInnerWindow;
+
+    class CViewRootW {
+        constructor(
+            [in] Handle32 viewRoot,
+            [in] IContext* ctx);
+
+        interface IInnerWindow;
+    }
+
+    class CDispatcherState {
+        interface IDispatcherState;
+    }
+
+    class CKeyEvent {
+        /**
+         * Create a new key event.
+         *
+         * @param action Action code: either {@link #ACTION_DOWN},
+         * {@link #ACTION_UP}, or {@link #ACTION_MULTIPLE}.
+         * @param code The key code.
+         */
+        constructor(
+            [in] Int32 action,
+            [in] Int32 code);
+
+        /**
+         * Create a new key event.
+         *
+         * @param downTime The time (in {@link android.os.SystemClock#uptimeMillis})
+         * at which this key code originally went down.
+         * @param eventTime The time (in {@link android.os.SystemClock#uptimeMillis})
+         * at which this event happened.
+         * @param action Action code: either {@link #ACTION_DOWN},
+         * {@link #ACTION_UP}, or {@link #ACTION_MULTIPLE}.
+         * @param code The key code.
+         * @param repeat A repeat count for down events (> 0 if this is after the
+         * initial down) or event count for multiple events.
+         */
+        constructor(
+            [in] Int64 downTime,
+            [in] Int64 eventTime,
+            [in] Int32 action,
+            [in] Int32 code,
+            [in] Int32 repeat);
+
+        /**
+         * Create a new key event.
+         *
+         * @param downTime The time (in {@link android.os.SystemClock#uptimeMillis})
+         * at which this key code originally went down.
+         * @param eventTime The time (in {@link android.os.SystemClock#uptimeMillis})
+         * at which this event happened.
+         * @param action Action code: either {@link #ACTION_DOWN},
+         * {@link #ACTION_UP}, or {@link #ACTION_MULTIPLE}.
+         * @param code The key code.
+         * @param repeat A repeat count for down events (> 0 if this is after the
+         * initial down) or event count for multiple events.
+         * @param metaState Flags indicating which meta keys are currently pressed.
+         */
+        constructor(
+            [in] Int64 downTime,
+            [in] Int64 eventTime,
+            [in] Int32 action,
+            [in] Int32 code,
+            [in] Int32 repeat,
+            [in] Int32 metaState);
+
+        /**
+         * Create a new key event.
+         *
+         * @param downTime The time (in {@link android.os.SystemClock#uptimeMillis})
+         * at which this key code originally went down.
+         * @param eventTime The time (in {@link android.os.SystemClock#uptimeMillis})
+         * at which this event happened.
+         * @param action Action code: either {@link #ACTION_DOWN},
+         * {@link #ACTION_UP}, or {@link #ACTION_MULTIPLE}.
+         * @param code The key code.
+         * @param repeat A repeat count for down events (> 0 if this is after the
+         * initial down) or event count for multiple events.
+         * @param metaState Flags indicating which meta keys are currently pressed.
+         * @param deviceId The device ID that generated the key event.
+         * @param scancode Raw device scan code of the event.
+         */
+        constructor(
+            [in] Int64 downTime,
+            [in] Int64 eventTime,
+            [in] Int32 action,
+            [in] Int32 code,
+            [in] Int32 repeat,
+            [in] Int32 metaState,
+            [in] Int32 deviceId,
+            [in] Int32 scancode);
+
+        /**
+         * Create a new key event.
+         *
+         * @param downTime The time (in {@link android.os.SystemClock#uptimeMillis})
+         * at which this key code originally went down.
+         * @param eventTime The time (in {@link android.os.SystemClock#uptimeMillis})
+         * at which this event happened.
+         * @param action Action code: either {@link #ACTION_DOWN},
+         * {@link #ACTION_UP}, or {@link #ACTION_MULTIPLE}.
+         * @param code The key code.
+         * @param repeat A repeat count for down events (> 0 if this is after the
+         * initial down) or event count for multiple events.
+         * @param metaState Flags indicating which meta keys are currently pressed.
+         * @param deviceId The device ID that generated the key event.
+         * @param scancode Raw device scan code of the event.
+         * @param flags The flags for this key event
+         */
+        constructor(
+            [in] Int64 downTime,
+            [in] Int64 eventTime,
+            [in] Int32 action,
+            [in] Int32 code,
+            [in] Int32 repeat,
+            [in] Int32 metaState,
+            [in] Int32 deviceId,
+            [in] Int32 scancode,
+            [in] Int32 flags);
+
+        /**
+         * Create a new key event.
+         *
+         * @param downTime The time (in {@link android.os.SystemClock#uptimeMillis})
+         * at which this key code originally went down.
+         * @param eventTime The time (in {@link android.os.SystemClock#uptimeMillis})
+         * at which this event happened.
+         * @param action Action code: either {@link #ACTION_DOWN},
+         * {@link #ACTION_UP}, or {@link #ACTION_MULTIPLE}.
+         * @param code The key code.
+         * @param repeat A repeat count for down events (> 0 if this is after the
+         * initial down) or event count for multiple events.
+         * @param metaState Flags indicating which meta keys are currently pressed.
+         * @param deviceId The device ID that generated the key event.
+         * @param scancode Raw device scan code of the event.
+         * @param flags The flags for this key event
+         * @param source The input source such as {@link InputDevice#SOURCE_KEYBOARD}.
+         */
+        constructor(
+            [in] Int64 downTime,
+            [in] Int64 eventTime,
+            [in] Int32 action,
+            [in] Int32 code,
+            [in] Int32 repeat,
+            [in] Int32 metaState,
+            [in] Int32 deviceId,
+            [in] Int32 scancode,
+            [in] Int32 flags,
+            [in] Int32 source);
+
+        /**
+         * Create a new key event for a string of characters.  The key code,
+         * action, repeat count and source will automatically be set to
+         * {@link #KEYCODE_UNKNOWN}, {@link #ACTION_MULTIPLE}, 0, and
+         * {@link InputDevice#SOURCE_KEYBOARD} for you.
+         *
+         * @param time The time (in {@link android.os.SystemClock#uptimeMillis})
+         * at which this event occured.
+         * @param characters The string of characters.
+         * @param deviceId The device ID that generated the key event.
+         * @param flags The flags for this key event
+         */
+        constructor(
+            [in] Int64 time,
+            [in] String characters,
+            [in] Int32 deviceId,
+            [in] Int32 flags);
+
+        /**
+         * Make an exact copy of an existing key event.
+         */
+        constructor(
+            [in] IKeyEvent* origEvent);
+
+        /**
+         * Copy an existing key event, modifying its time and repeat count.
+         *
+         * @deprecated Use {@link #changeTimeRepeat(KeyEvent, Int64, Int32)}
+         * instead.
+         *
+         * @param origEvent The existing event to be copied.
+         * @param eventTime The new event time
+         * (in {@link android.os.SystemClock#uptimeMillis}) of the event.
+         * @param newRepeat The new repeat count of the event.
+         */
+        //@Deprecated
+        constructor(
+            [in] IKeyEvent* origEvent,
+            [in] Int64 eventTime,
+            [in] Int32 newRepeat);
+
+        // private
+        constructor(
+            [in] IKeyEvent* origEvent,
+            [in] Int32 action);
+
+        // private
+        constructor(
+            [in] IParcel* parcel);
+
+        interface IKeyEvent;
+        interface IParcelable;
+    }
+
+    class CMotionEvent {
+        constructor(
+        [in] Int32 pointerCount,
+        [in] Int32 sampleCount);
+
+        interface IMotionEvent;
+        interface IParcelable;
+    }
+
+    class CExtractedText {
+        interface IExtractedText;
+        interface IParcelable;
+    }
+
+    class CExtractedTextRequest {
+        interface IExtractedTextRequest;
+        interface IParcelable;
+    }
+
+    class CCompletionInfo {
+        interface ICompletionInfo;
+        interface IParcelable;
+    }
+
+    class CInputBindResult {
+        interface IInputBindResult;
+        interface IParcelable;
+    }
+
+    class CInputChannel {
+        interface IInputChannel;
+        interface IParcelable;
+    }
+
+    class CInputDevice {
+        interface IInputDevice;
+        interface IParcelable;
+    }
+
+    class CInputMethodCallback {
+        constructor(
+            [in] Handle32 viewRoot);
+
+        interface IInputMethodCallback;
+    }
+
+    class CWindowSession {
+        constructor(
+            [in] IWindowManagerEx * wmService,
+            [in] IInputMethodClient * client,
+            [in] IInputContext * inputContext);
+
+        interface IWindowSession;
+    }
+
+    class CTouchDelegate {
+        /**
+         * Constructor
+         *
+         * @param bounds Bounds in local coordinates of the containing view that should be mapped to
+         *        the delegate view
+         * @param delegateView The view that should receive motion events
+         */
+        constructor(
+            [in] IRect* bounds,
+            [in] IView* delegateView);
+
+        interface ITouchDelegate;
+    }
+
+    class CViewBaseSavedState {
+        constructor(
+            [in] IParcelable* superState);
+
+        constructor(
+            [in] IParcel* source);
+
+        interface IViewBaseSavedState;
+        interface IParcelable;
+    }
+
+    class CDecelerateInterpolator {
+        constructor();
+
+        /**
+         * Constructor
+         *
+         * @param factor Degree to which the animation should be eased. Setting factor to 1.0f produces
+         *        an upside-down y=x^2 parabola. Increasing factor above 1.0f makes exaggerates the
+         *        ease-out effect (i.e., it starts even faster and ends evens slower)
+         */
+        constructor(
+            [in] Float factor);
+
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs);
+
+        interface IInterpolator;
+    }
+}

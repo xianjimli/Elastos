@@ -1,0 +1,10 @@
+
+TARGET_NAME = host
+TARGET_TYPE = ecx
+
+SOURCES = main.cpp
+
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Runtime.CarRuntime.lib
+ifneq "$(XDK_TARGET_PLATFORM)" "win32"
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.CarRuntime.eco
+endif

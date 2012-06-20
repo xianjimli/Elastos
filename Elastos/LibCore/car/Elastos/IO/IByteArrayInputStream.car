@@ -1,0 +1,8 @@
+
+module
+{
+    interface IInputStream;
+
+    interface IByteArrayInputStream extends IInputStream {
+    }
+}

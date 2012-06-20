@@ -1,0 +1,24 @@
+
+module
+{
+    interface ICharSequence;
+
+    /**
+     * Please implement this interface if your CharSequence has a
+     * getChars() method like the one in String that is faster than
+     * calling charAt() multiple times.
+     */
+    interface IGetChars extends ICharSequence
+    {
+        /**
+         * Exactly like String.getChars(): copy chars <code>start</code>
+         * through <code>end - 1</code> from this CharSequence into <code>dest</code>
+         * beginning at offset <code>destoff</code>.
+         */
+        GetChars(
+            [in] Int32 start,
+            [in] Int32 end,
+            [out] BufferOf<Byte> dest,
+            [in] Int32 destoff);
+    }
+}

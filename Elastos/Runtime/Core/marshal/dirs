@@ -1,0 +1,6 @@
+
+ifeq "$(XDK_TARGET_PLATFORM)" "linux"
+DIRS += android_linux
+else
+DIRS += others
+endif

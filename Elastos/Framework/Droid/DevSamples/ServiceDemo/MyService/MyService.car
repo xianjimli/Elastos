@@ -1,0 +1,13 @@
+
+module
+{
+    importlib("Elastos.Framework.eco");
+
+    class CMyService {
+        interface IService;
+    }
+
+    class CMyServiceBinder {
+        interface IBinder;
+    }
+}

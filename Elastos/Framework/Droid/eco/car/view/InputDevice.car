@@ -1,0 +1,95 @@
+
+module
+{
+    interface IMotionRange {
+        /**
+         * Gets the minimum value for the coordinate.
+         * @return The minimum value.
+         */
+        GetMin(
+            [out] Float* minimum);
+
+        /**
+         * Gets the maximum value for the coordinate.
+         * @return The minimum value.
+         */
+        GetMax(
+            [out] Float* maximum);
+
+        /**
+         * Gets the range of the coordinate (difference between maximum and minimum).
+         * @return The range of values.
+         */
+        GetRange(
+            [out] Float* range);
+
+        /**
+         * Gets the extent of the center flat position with respect to this coordinate.
+         * For example, a flat value of 8 means that the center position is between -8 and +8.
+         * This value is mainly useful for calibrating self-centering devices.
+         * @return The extent of the center flat position.
+         */
+        GetFlat(
+            [out] Float* flat);
+
+        /**
+         * Gets the error tolerance for input device measurements with respect to this coordinate.
+         * For example, a value of 2 indicates that the measured value may be up to +/- 2 units
+         * away from the actual value due to noise and device sensitivity limitations.
+         * @return The error tolerance.
+         */
+        GetFuzz(
+            [out] Float* fuzz);
+    }
+
+    interface IInputDevice {
+        /**
+         * Gets the input device id.
+         * @return The input device id.
+         */
+        GetId(
+            [out] Int32* id);
+
+        /**
+         * Gets the name of this input device.
+         * @return The input device name.
+         */
+        GetName(
+            [out] String* name);
+
+        /**
+         * Gets the input sources supported by this input device as a combined bitfield.
+         * @return The supported input sources.
+         */
+        GetSources(
+            [out] Int32* sources);
+
+        /**
+         * Gets the keyboard type.
+         * @return The keyboard type.
+         */
+        GetKeyboardType(
+            [out] Int32* type);
+
+        /**
+         * Gets the key character map associated with this input device.
+         * @return The key character map.
+         */
+        //CARAPI_(ElKeyCharacterMap*) GetKeyCharacterMap();
+
+        /**
+         * Gets information about the range of values for a particular {@link MotionEvent}
+         * coordinate.
+         * @param rangeType The motion range constant.
+         * @return The range of values, or NULL if the requested coordinate is not
+         * supported by the device.
+         */
+        GetMotionRange(
+            [in] Int32 rangeType,
+            [out] IMotionRange** motionRange);
+
+
+        DescribeContents(
+            [out] Int32* describe);
+    }
+}

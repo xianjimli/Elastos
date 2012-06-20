@@ -1,0 +1,41 @@
+
+module
+{
+    interface IApplicationToken;
+    interface IBinder;
+    interface IIntentSender;
+    interface IRunnable;
+    interface IWindowManagerEx;
+    interface IActivityManager;
+    interface IBatteryStats;
+
+    class CActivityRecord {
+        interface IApplicationToken;
+    }
+
+    class CServiceRecord {
+        interface IBinder;
+    }
+
+    class CPendingIntentRecord {
+        interface IIntentSender;
+    }
+
+    class CServiceRestarter {
+        interface IRunnable;
+    }
+
+    class CActivityManagerService {
+        constructor(
+            [in] IWindowManagerEx* wm);
+
+        interface IActivityManager;
+    }
+
+    class CBatteryStatsService {
+        constructor(
+            [in] String fileName);
+
+        interface IBatteryStats;
+    }
+}

@@ -1,0 +1,19 @@
+
+module
+{
+    interface IFile;
+
+    interface IFileFilter {
+        /**
+         * Indicating whether a specific file should be included in a pathname list.
+         *
+         * @param pathname
+         *            the abstract file to check.
+         * @return {@code true} if the file should be included, {@code false}
+         *         otherwise.
+         */
+        Accept(
+            [in] IFile *pathname,
+            [out] Boolean *success);
+    }
+}

@@ -1,0 +1,13 @@
+
+module
+{
+//    const FAMILY_SYSTEM = 0x25    // IO exception codes
+
+//    #define FRAMEWORK_ERROR(c)      MAKE_ECODE(SEVERITY_ERROR, FAMILY_FRAMEWORK, c)
+//    #define FRAMEWORK_SUCCESS(c)    MAKE_SUCCESS(FAMILY_FRAMEWORK, c)
+
+    //==========================================================================
+    // Elastos IO exception codes (Family: 0x25)
+    const E_IO_EXCEPTION                                = 0xA5010000;
+    const E_EOF_EXCEPTION                               = 0xA5020000;
+}

@@ -1,0 +1,23 @@
+
+ifneq "$(PLATFORM_BUILD)" "android"
+
+TARGET_NAME = marshal
+TARGET_TYPE = lib
+
+C_DEFINES+=-D_UNDEFDLLEXP
+
+SOURCES = metainfos.cpp
+SOURCES += rot.cpp
+SOURCES += mshproc.cpp
+SOURCES += imarshal.cpp
+SOURCES += proxy.cpp
+SOURCES += stub.cpp
+SOURCES += CRemoteParcel.cpp
+
+INCLUDES += $(MAKEDIR)/../../../Library/inc/elasys
+
+ifeq "$(XDK_TARGET_PLATFORM)" "win32"
+LIBRARIES += $(XDK_LIB_PATH)/dbus-1.lib
+endif
+
+endif

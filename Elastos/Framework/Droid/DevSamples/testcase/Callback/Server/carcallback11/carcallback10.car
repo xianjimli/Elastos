@@ -1,0 +1,44 @@
+module
+{
+    interface IHello1 {
+        Hello1([in] Int32 nIndex);
+        Hello2();
+    }
+
+    interface IHello2 {
+        Hello2();
+    }
+
+    interface IHello3 {
+        Hello3();
+    }
+
+    callbacks JCallbackClass {
+        OnTriggerClass([out] Int32* pnIndex);
+    }
+
+    callbacks JCallbackAspect {
+        OnTriggerAspect();
+    }
+
+    callbacks JCallbackContext {
+        OnTriggerContext();
+    }
+
+    class CCallbackClass {
+        interface IHello2;
+    }
+
+    aspect ACallbackAspect {
+        interface IHello2;
+        callbacks JCallbackClass;
+        callbacks JCallbackAspect;
+    }
+
+    context KCallbackContext pertainsto ACallbackAspect {
+        interface IHello1;
+        interface IHello3;
+        callbacks JCallbackClass;
+        callbacks JCallbackContext;
+    }
+}

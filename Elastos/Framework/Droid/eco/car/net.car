@@ -1,0 +1,15 @@
+
+module
+{
+    merge("net/Uri.car");
+
+    class CStringUri {
+        constructor(
+            [in] String uriString);
+
+        constructor(
+            [in] Handle32 uri);
+
+        interface IUri;
+    }
+}

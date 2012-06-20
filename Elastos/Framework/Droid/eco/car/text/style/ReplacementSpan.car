@@ -1,0 +1,24 @@
+
+module
+{
+    interface IReplacementSpan extends IMetricAffectingSpan {
+        GetSize(
+            [in] IPaint* paint,
+            [in] ICharSequence* text,
+            [in] Int32 start,
+            [in] Int32 end,
+            [in] IPaintFontMetricsInt* fm,
+            [out] Int32* size);
+
+        Draw(
+            [in] ICanvas* canvas,
+            [in] ICharSequence* text,
+            [in] Int32 start,
+            [in] Int32 end,
+            [in] Float x,
+            [in] Int32 top,
+            [in] Int32 y,
+            [in] Int32 bottom,
+            [in] IPaint* paint);
+    }
+}

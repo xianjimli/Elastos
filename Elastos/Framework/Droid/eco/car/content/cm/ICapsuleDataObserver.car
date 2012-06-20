@@ -1,0 +1,15 @@
+
+module
+{
+    /**
+     * API for package data change related callbacks from the Package Manager.
+     * Some usage scenarios include deletion of cache directory, generate
+     * statistics related to code, data, cache usage(TODO)
+     * {@hide}
+     */
+    /* oneway */ interface ICapsuleDataObserver {
+        OnRemoveCompleted(
+            [in] String capsuleName,
+            [in] Boolean succeeded);
+    }
+}

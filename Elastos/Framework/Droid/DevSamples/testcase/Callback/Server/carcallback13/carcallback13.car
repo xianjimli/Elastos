@@ -1,0 +1,32 @@
+module
+{
+    interface ICalBakSvr {
+        Trigger(
+            [in] Int32 nTriggerTimes,
+            [in] String wstr);
+    }
+
+    callbacks JCBTest1 {
+        OnTrigger([in] Int32 cTimes);
+    }
+
+    callbacks JCBTest2 {
+        OnEnter([in] String wstr);
+        OnLeave([in] PInterface pObj);
+    }
+
+    callbacks JCBTest3 {
+        OnRect([in] Int32 x, [in] Int32 y, [in] Int32 width, [in] Int32 height);
+        OnArray([in] BufferOf<Int32> i32aInfo);
+    }
+
+    class CCalBakSvr {
+        interface ICalBakSvr;
+        callbacks JCBTest1;
+        callbacks JCBTest2;
+        callbacks JCBTest3;
+        coalesce callback OnEnter;
+        coalesce callback OnRect;
+        coalesce callback OnArray;
+    }
+}

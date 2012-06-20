@@ -1,0 +1,137 @@
+<?xml version = "1.0" encoding="GB2312" ?>
+
+<!--和欣3.0帮助手册-->
+<manual>
+<environment>
+    <volume> </volume>
+    <outpath> </outpath>
+    <sample_path> </sample_path>
+    <language>中文</language>
+</environment>
+
+<module name = "carcallback03">
+    <index> </index>
+    <description> </description>
+    <copyright> </copyright>
+    <requirements system = "《和欣 3.0》或更高版本" dll = "" header = "" lib = ""/>
+    <remarks> </remarks>
+    <seealso>
+        <reference name = "" url = ""/>
+    </seealso>
+</module>
+
+<aspect name = "AAspect32">
+    <index> </index>
+    <description> </description>
+    <requirements system = "《和欣 3.0》或更高版本" dll = "" header = "" lib = ""/>
+    <remarks> </remarks>
+    <seealso>
+        <reference name = "" url = ""/>
+    </seealso>
+</aspect>
+
+<class name = "CCallback31">
+    <index> </index>
+    <description> </description>
+    <requirements system = "《和欣 3.0》或更高版本" dll = "" header = "" lib = ""/>
+    <remarks> </remarks>
+    <seealso>
+        <reference name = "" url = ""/>
+    </seealso>
+</class>
+
+
+
+<interface name = "IHello32">
+    <index> </index>
+    <description> </description>
+    <requirements system = "《和欣 3.0》或更高版本" dll = "" header = "" lib = ""/>
+    <remarks> </remarks>
+    <seealso>
+        <reference name = "" url = ""/>
+    </seealso>
+</interface>
+
+<!--*************************************
+ECode IHello32::Hello32()
+************************************* -->
+<method interface = "IHello32" name = "Hello32">
+    <index> </index>
+    <description> </description>
+    <parameters>
+    </parameters>
+    <return> </return>
+    <remarks> </remarks>
+    <sample path = "">
+        <include> </include>
+    </sample>
+    <result> </result>
+    <seealso>
+        <reference name = "" url = ""/>
+    </seealso>
+</method>
+
+
+<interface name = "IHello31">
+    <index> </index>
+    <description> </description>
+    <requirements system = "《和欣 3.0》或更高版本" dll = "" header = "" lib = ""/>
+    <remarks> </remarks>
+    <seealso>
+        <reference name = "" url = ""/>
+    </seealso>
+</interface>
+
+<!--*************************************
+ECode IHello31::Hello31()
+************************************* -->
+<method interface = "IHello31" name = "Hello31">
+    <index> </index>
+    <description> </description>
+    <parameters>
+    </parameters>
+    <return> </return>
+    <remarks> </remarks>
+    <sample path = "">
+        <include> </include>
+    </sample>
+    <result> </result>
+    <seealso>
+        <reference name = "" url = ""/>
+    </seealso>
+</method>
+
+
+<callbacks name = "JCallback31">
+    <index> </index>
+    <description> </description>
+    <requirements system = "《和欣 3.0》或更高版本" dll = "" header = "" lib = ""/>
+    <remarks> </remarks>
+    <seealso>
+        <reference name = "" url = ""/>
+    </seealso>
+</callbacks>
+
+<!--*************************************
+ECode JCallback31::OnTrigger31()
+************************************* -->
+<method callbacks = "JCallback31" name = "OnTrigger31">
+    <index> </index>
+    <description> </description>
+    <parameters>
+    </parameters>
+    <return> </return>
+    <remarks> </remarks>
+    <sample path = "">
+        <include> </include>
+    </sample>
+    <result> </result>
+    <seealso>
+        <reference name = "" url = ""/>
+    </seealso>
+</method>
+
+
+
+
+</manual>

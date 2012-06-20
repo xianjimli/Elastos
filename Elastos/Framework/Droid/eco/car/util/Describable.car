@@ -1,0 +1,8 @@
+
+module
+{
+    interface IDescribable {
+        GetDescription(
+            [out] String* description);
+    }
+}

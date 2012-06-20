@@ -1,0 +1,21 @@
+
+module
+{
+    enum TextUtilsTruncateAt {
+        TextUtilsTruncateAt_START,
+        TextUtilsTruncateAt_MIDDLE,
+        TextUtilsTruncateAt_END,
+        TextUtilsTruncateAt_MARQUEE,
+    }
+
+    interface IEllipsizeCallback {
+        /**
+         * This method is called to report that the specified region of
+         * text was ellipsized away by a call to {@link #ellipsize}.
+         */
+        Ellipsized(
+            [in] Int32 start,
+            [in] Int32 end);
+    }
+
+}

@@ -1,0 +1,605 @@
+
+module
+{
+    /**
+     * Start of window types that represent normal application windows.
+     */
+    const WindowManagerLayoutParams_FIRST_APPLICATION_WINDOW = 1;
+
+    /**
+     * Window type: an application window that serves as the "base" window
+     * of the overall application; all other application windows will
+     * appear on top of it.
+     */
+    const WindowManagerLayoutParams_TYPE_BASE_APPLICATION = 1;
+
+    /**
+     * Window type: a normal application window.  The {@link #token} must be
+     * an Activity token identifying who the window belongs to.
+     */
+    const WindowManagerLayoutParams_TYPE_APPLICATION = 2;
+
+    /**
+     * Window type: special application window that is displayed while the
+     * application is starting.  Not for use by applications themselves;
+     * this is used by the system to display something until the
+     * application can show its own windows.
+     */
+    const WindowManagerLayoutParams_TYPE_APPLICATION_STARTING = 3;
+
+    /**
+     * End of types of application windows.
+     */
+    const WindowManagerLayoutParams_LAST_APPLICATION_WINDOW = 99;
+
+    /**
+     * Start of types of sub-windows.  The {@link #token} of these windows
+     * must be set to the window they are attached to.  These types of
+     * windows are kept next to their attached window in Z-order, and their
+     * coordinate space is relative to their attached window.
+     */
+    const WindowManagerLayoutParams_FIRST_SUB_WINDOW = 1000;
+
+    /**
+     * Window type: a panel on top of an application window.  These windows
+     * appear on top of their attached window.
+     */
+    const WindowManagerLayoutParams_TYPE_APPLICATION_PANEL = 1000;
+
+    /**
+     * Window type: window for showing media (e.g. video).  These windows
+     * are displayed behind their attached window.
+     */
+    const WindowManagerLayoutParams_TYPE_APPLICATION_MEDIA = 1001;
+
+    /**
+     * Window type: a sub-panel on top of an application window.  These
+     * windows are displayed on top their attached window and any
+     * {@link #TYPE_APPLICATION_PANEL} panels.
+     */
+    const WindowManagerLayoutParams_TYPE_APPLICATION_SUB_PANEL = 1002;
+
+    /** Window type: like {@link #TYPE_APPLICATION_PANEL}, but layout
+     * of the window happens as that of a top-level window, <em>not</em>
+     * as a child of its container.
+     */
+    const WindowManagerLayoutParams_TYPE_APPLICATION_ATTACHED_DIALOG = 1003;
+
+    /**
+     * Window type: window for showing overlays on top of media windows.
+     * These windows are displayed between TYPE_APPLICATION_MEDIA and the
+     * application window.  They should be translucent to be useful.  This
+     * is a big ugly hack so:
+     * @hide
+     */
+    const WindowManagerLayoutParams_TYPE_APPLICATION_MEDIA_OVERLAY = 1004;
+
+    /**
+     * End of types of sub-windows.
+     */
+    const WindowManagerLayoutParams_LAST_SUB_WINDOW = 1999;
+
+    /**
+     * Start of system-specific window types.  These are not normally
+     * created by applications.
+     */
+    const WindowManagerLayoutParams_FIRST_SYSTEM_WINDOW = 2000;
+
+    /**
+     * Window type: the status bar.  There can be only one status bar
+     * window; it is placed at the top of the screen, and all other
+     * windows are shifted down so they are below it.
+     */
+    const WindowManagerLayoutParams_TYPE_STATUS_BAR = 2000;
+
+    /**
+     * Window type: the search bar.  There can be only one search bar
+     * window; it is placed at the top of the screen.
+     */
+    const WindowManagerLayoutParams_TYPE_SEARCH_BAR = 2001;
+
+    /**
+     * Window type: phone.  These are non-application windows providing
+     * user interaction with the phone (in particular incoming calls).
+     * These windows are normally placed above all applications, but behind
+     * the status bar.
+     */
+    const WindowManagerLayoutParams_TYPE_PHONE = 2002;
+
+    /**
+     * Window type: system window, such as low power alert. These windows
+     * are always on top of application windows.
+     */
+    const WindowManagerLayoutParams_TYPE_SYSTEM_ALERT = 2003;
+
+    /**
+     * Window type: keyguard window.
+     */
+    const WindowManagerLayoutParams_TYPE_KEYGUARD = 2004;
+
+    /**
+     * Window type: transient notifications.
+     */
+    const WindowManagerLayoutParams_TYPE_TOAST = 2005;
+
+    /**
+     * Window type: system overlay windows, which need to be displayed
+     * on top of everything else.  These windows must not take input
+     * focus, or they will interfere with the keyguard.
+     */
+    const WindowManagerLayoutParams_TYPE_SYSTEM_OVERLAY = 2006;
+
+    /**
+     * Window type: priority phone UI, which needs to be displayed even if
+     * the keyguard is active.  These windows must not take input
+     * focus, or they will interfere with the keyguard.
+     */
+    const WindowManagerLayoutParams_TYPE_PRIORITY_PHONE = 2007;
+
+    /**
+     * Window type: panel that slides out from the status bar
+     */
+    const WindowManagerLayoutParams_TYPE_SYSTEM_DIALOG = 2008;
+
+    /**
+     * Window type: dialogs that the keyguard shows
+     */
+    const WindowManagerLayoutParams_TYPE_KEYGUARD_DIALOG = 2009;
+
+    /**
+     * Window type: internal system error windows, appear on top of
+     * everything they can.
+     */
+    const WindowManagerLayoutParams_TYPE_SYSTEM_ERROR = 2010;
+
+    /**
+     * Window type: internal input methods windows, which appear above
+     * the normal UI.  Application windows may be resized or panned to keep
+     * the input focus visible while this window is displayed.
+     */
+    const WindowManagerLayoutParams_TYPE_INPUT_METHOD = 2011;
+
+    /**
+     * Window type: internal input methods dialog windows, which appear above
+     * the current input method window.
+     */
+    const WindowManagerLayoutParams_TYPE_INPUT_METHOD_DIALOG = 2012;
+
+    /**
+     * Window type: wallpaper window, placed behind any window that wants
+     * to sit on top of the wallpaper.
+     */
+    const WindowManagerLayoutParams_TYPE_WALLPAPER = 2013;
+
+    /**
+     * Window type: panel that slides out from the status bar
+     */
+    const WindowManagerLayoutParams_TYPE_STATUS_BAR_PANEL = 2014;
+
+    /**
+     * Window type: secure system overlay windows, which need to be displayed
+     * on top of everything else.  These windows must not take input
+     * focus, or they will interfere with the keyguard.
+     *
+     * This is exactly like {@link #TYPE_SYSTEM_OVERLAY} except that only the
+     * system itself is allowed to create these overlays.  Applications cannot
+     * obtain permission to create secure system overlays.
+     * @hide
+     */
+    const WindowManagerLayoutParams_TYPE_SECURE_SYSTEM_OVERLAY = 2015;
+
+    /**
+     * End of types of system windows.
+     */
+    const WindowManagerLayoutParams_LAST_SYSTEM_WINDOW = 2999;
+
+     /** Memory type: The window's surface is allocated in main memory.*/
+    const WindowManagerLayoutParams_MEMORY_TYPE_NORMAL = 0;
+
+    /** Memory type: The window's surface is configured to be accessible
+     * by DMA engines and hardware accelerators.
+     * @deprecated this is ignored, this value is set automatically when needed.
+     */
+    const WindowManagerLayoutParams_MEMORY_TYPE_HARDWARE = 1;
+
+    /** Memory type: The window's surface is configured to be accessible
+     * by graphics accelerators.
+     * @deprecated this is ignored, this value is set automatically when needed.
+     */
+    const WindowManagerLayoutParams_MEMORY_TYPE_GPU = 2;
+
+    /** Memory type: The window's surface doesn't own its buffers and
+     * therefore cannot be locked. Instead the buffers are pushed to
+     * it through native binder calls.
+     */
+    const WindowManagerLayoutParams_MEMORY_TYPE_PUSH_BUFFERS = 3;
+
+     /** Window flag: as long as this window is visible to the user, allow
+     *  the lock screen to activate while the screen is on.
+     *  This can be used independently, or in combination with
+     *  {@link #FLAG_KEEP_SCREEN_ON} and/or {@link #FLAG_SHOW_WHEN_LOCKED}
+     */
+    const WindowManagerLayoutParams_FLAG_ALLOW_LOCK_WHILE_SCREEN_ON = 0x00000001;
+
+    /** Window flag: everything behind this window will be dimmed.
+     *  Use {@link #dimAmount} to control the amount of dim.
+     */
+    const WindowManagerLayoutParams_FLAG_DIM_BEHIND = 0x00000002;
+
+    /** Window flag: blur everything behind this window.*/
+    const WindowManagerLayoutParams_FLAG_BLUR_BEHIND = 0x00000004;
+
+    /** Window flag: this window won't ever get key input focus, so the
+     * user can not send key or other button events to it.  Those will
+     * instead go to whatever focusable window is behind it.  This flag
+     * will also enable {@link #FLAG_NOT_TOUCH_MODAL} whether or not that
+     * is explicitly set.
+     *
+     * <p>Setting this flag also implies that the window will not need to
+     * interact with
+     * a soft input method, so it will be Z-ordered and positioned
+     * independently of any active input method (typically this means it
+     * gets Z-ordered on top of the input method, so it can use the full
+     * screen for its content and cover the input method if needed.  You
+     * can use {@link #FLAG_ALT_FOCUSABLE_IM} to modify this behavior.
+     */
+    const WindowManagerLayoutParams_FLAG_NOT_FOCUSABLE = 0x00000008;
+
+    /** Window flag: this window can never receive touch events.
+    */
+    const WindowManagerLayoutParams_FLAG_NOT_TOUCHABLE = 0x00000010;
+
+    /** Window flag: Even when this window is focusable (its
+     * {@link #FLAG_NOT_FOCUSABLE is not set), allow any pointer events
+     * outside of the window to be sent to the windows behind it.  Otherwise
+     * it will consume all pointer events itself, regardless of whether they
+     * are inside of the window.
+     */
+    const WindowManagerLayoutParams_FLAG_NOT_TOUCH_MODAL = 0x00000020;
+
+    /** Window flag: When set, if the device is asleep when the touch
+     * screen is pressed, you will receive this first touch event.  Usually
+     * the first touch event is consumed by the system since the user can
+     * not see what they are pressing on.
+     */
+    const WindowManagerLayoutParams_FLAG_TOUCHABLE_WHEN_WAKING = 0x00000040;
+
+    /** Window flag: as long as this window is visible to the user, keep
+     *  the device's screen turned on and bright.
+     */
+    const WindowManagerLayoutParams_FLAG_KEEP_SCREEN_ON = 0x00000080;
+
+    /** Window flag: place the window within the entire screen, ignoring
+     *  decorations around the border (a.k.a. the status bar).  The
+     *  window must correctly position its contents to take the screen
+     *  decoration into account.  This flag is normally set for you
+     *  by Window as described in {@link Window#setFlags}.
+     */
+    const WindowManagerLayoutParams_FLAG_LAYOUT_IN_SCREEN = 0x00000100;
+
+    /** Window flag: allow window to extend outside of the screen.
+    */
+    const WindowManagerLayoutParams_FLAG_LAYOUT_NO_LIMITS = 0x00000200;
+
+    /** Window flag: Hide all screen decorations (e.g. status bar) while
+     * this window is displayed.  This allows the window to use the entire
+     * display space for itself -- the status bar will be hidden when
+     * an app window with this flag set is on the top layer.
+     */
+    const WindowManagerLayoutParams_FLAG_FULLSCREEN = 0x00000400;
+
+    /** Window flag: Override {@link #FLAG_FULLSCREEN and force the
+     *  screen decorations (such as status bar) to be shown.
+     */
+    const WindowManagerLayoutParams_FLAG_FORCE_NOT_FULLSCREEN = 0x00000800;
+
+    /** Window flag: turn on dithering when compositing this window to
+     *  the screen.
+     */
+    const WindowManagerLayoutParams_FLAG_DITHER = 0x00001000;
+
+    /** Window flag: don't allow screen shots while this window is
+     * displayed.
+     */
+    const WindowManagerLayoutParams_FLAG_SECURE = 0x00002000;
+
+    /** Window flag: a special mode where the layout parameters are used
+     * to perform scaling of the surface when it is composited to the
+     * screen.
+     */
+    const WindowManagerLayoutParams_FLAG_SCALED = 0x00004000;
+
+    /** Window flag: intended for windows that will often be used when the user is
+     * holding the screen against their face, it will aggressively filter the event
+     * stream to prevent unintended presses in this situation that may not be
+     * desired for a particular window, when such an event stream is detected, the
+     * application will receive a CANCEL motion event to indicate this so applications
+     * can handle this accordingly by taking no action on the event
+     * until the finger is released.
+     */
+    const WindowManagerLayoutParams_FLAG_IGNORE_CHEEK_PRESSES = 0x00008000;
+
+    /** Window flag: a special option only for use in combination with
+     * {@link #FLAG_LAYOUT_IN_SCREEN}.  When requesting layout in the
+     * screen your window may appear on top of or behind screen decorations
+     * such as the status bar.  By also including this flag, the window
+     * manager will report the inset rectangle needed to ensure your
+     * content is not covered by screen decorations.  This flag is normally
+     * set for you by Window as described in {@link Window#setFlags}.
+     */
+    const WindowManagerLayoutParams_FLAG_LAYOUT_INSET_DECOR = 0x00010000;
+
+    /** Window flag: invert the state of {@link #FLAG_NOT_FOCUSABLE} with
+     * respect to how this window interacts with the current method.  That
+     * is, if FLAG_NOT_FOCUSABLE is set and this flag is set, then the
+     * window will behave as if it needs to interact with the input method
+     * and thus be placed behind/away from it; if FLAG_NOT_FOCUSABLE is
+     * not set and this flag is set, then the window will behave as if it
+     * doesn't need to interact with the input method and can be placed
+     * to use more space and cover the input method.
+     */
+    const WindowManagerLayoutParams_FLAG_ALT_FOCUSABLE_IM = 0x00020000;
+
+    /** Window flag: if you have set {@link #FLAG_NOT_TOUCH_MODAL}, you
+     * can set this flag to receive a single special MotionEvent with
+     * the action
+     * {@link MotionEvent#ACTION_OUTSIDE MotionEvent.ACTION_OUTSIDE} for
+     * touches that occur outside of your window.  Note that you will not
+     * receive the full down/move/up gesture, only the location of the
+     * first down as an ACTION_OUTSIDE.
+     */
+    const WindowManagerLayoutParams_FLAG_WATCH_OUTSIDE_TOUCH = 0x00040000;
+
+    /** Window flag: special flag to let windows be shown when the screen
+     * is locked. This will let application windows take precedence over
+     * key guard or any other lock screens. Can be used with
+     * {@link #FLAG_KEEP_SCREEN_ON} to turn screen on and display windows
+     * directly before showing the key guard window.  Can be used with
+     * {@link #FLAG_DISMISS_KEYGUARD} to automatically fully dismisss
+     * non-secure keyguards.  This flag only applies to the top-most
+     * full-screen window.
+     */
+    const WindowManagerLayoutParams_FLAG_SHOW_WHEN_LOCKED = 0x00080000;
+
+    /** Window flag: ask that the system wallpaper be shown behind
+     * your window.  The window surface must be translucent to be able
+     * to actually see the wallpaper behind it; this flag just ensures
+     * that the wallpaper surface will be there if this window actually
+     * has translucent regions.
+     */
+    const WindowManagerLayoutParams_FLAG_SHOW_WALLPAPER = 0x00100000;
+
+    /** Window flag: when set as a window is being added or made
+     * visible, once the window has been shown then the system will
+     * poke the power manager's user activity (as if the user had woken
+     * up the device) to turn the screen on.
+     */
+    const WindowManagerLayoutParams_FLAG_TURN_SCREEN_ON = 0x00200000;
+
+    /** Window flag: when set the window will cause the keyguard to
+     * be dismissed, only if it is not a secure lock keyguard.  Because such
+     * a keyguard is not needed for security, it will never re-appear if
+     * the user navigates to another window (in contrast to
+     * {@link #FLAG_SHOW_WHEN_LOCKED}, which will only temporarily
+     * hide both secure and non-secure keyguards but ensure they reappear
+     * when the user moves to another UI that doesn't hide them).
+     * If the keyguard is currently active and is secure (requires an
+     * unlock pattern) than the user will still need to confirm it before
+     * seeing this window, unless {@link #FLAG_SHOW_WHEN_LOCKED} has
+     * also been set.
+     */
+    const WindowManagerLayoutParams_FLAG_DISMISS_KEYGUARD = 0x00400000;
+
+    /** Window flag: when set the window will accept for touch events
+     * outside of its bounds to be sent to other windows that also
+     * support split touch.  When this flag is not set, the first pointer
+     * that goes down determines the window to which all subsequent touches
+     * go until all pointers go up.  When this flag is set, each pointer
+     * (not necessarily the first) that goes down determines the window
+     * to which all subsequent touches of that pointer will go until that
+     * pointer goes up thereby enabling touches with multiple pointers
+     * to be split across multiple windows.
+     *
+     * {@hide}
+     */
+    const WindowManagerLayoutParams_FLAG_SPLIT_TOUCH = 0x00800000;
+
+    /** Window flag: *sigh* The lock screen wants to continue running its
+     * animation while it is fading.  A kind-of hack to allow this.  Maybe
+     * in the future we just make this the default behavior.
+     *
+     * {@hide}
+     */
+    const WindowManagerLayoutParams_FLAG_KEEP_SURFACE_WHILE_ANIMATING = 0x10000000;
+
+    /** Window flag: special flag to limit the size of the window to be
+     * original size ([320x480] x density). Used to create window for applications
+     * running under compatibility mode.
+     *
+     * {@hide}
+     */
+    const WindowManagerLayoutParams_FLAG_COMPATIBLE_WINDOW = 0x20000000;
+
+    /** Window flag: a special option intended for system dialogs.  When
+     * this flag is set, the window will demand focus unconditionally when
+     * it is created.
+     * {@hide}
+     */
+    const WindowManagerLayoutParams_FLAG_SYSTEM_ERROR = 0x40000000;
+
+    /**
+     * Mask for {@link #softInputMode} of the bits that determine the
+     * desired visibility state of the soft input area for this window.
+     */
+    const WindowManagerLayoutParams_SOFT_INPUT_MASK_STATE = 0x0f;
+
+    /**
+     * Visibility state for {@link #softInputMode}: no state has been specified.
+     */
+    const WindowManagerLayoutParams_SOFT_INPUT_STATE_UNSPECIFIED = 0;
+
+    /**
+     * Visibility state for {@link #softInputMode}: please don't change the state of
+     * the soft input area.
+     */
+    const WindowManagerLayoutParams_SOFT_INPUT_STATE_UNCHANGED = 1;
+
+    /**
+     * Visibility state for {@link #softInputMode}: please hide any soft input
+     * area when normally appropriate (when the user is navigating
+     * forward to your window).
+     */
+    const WindowManagerLayoutParams_SOFT_INPUT_STATE_HIDDEN = 2;
+
+    /**
+     * Visibility state for {@link #softInputMode}: please always hide any
+     * soft input area when this window receives focus.
+     */
+    const WindowManagerLayoutParams_SOFT_INPUT_STATE_ALWAYS_HIDDEN = 3;
+
+    /**
+     * Visibility state for {@link #softInputMode}: please show the soft
+     * input area when normally appropriate (when the user is navigating
+     * forward to your window).
+     */
+    const WindowManagerLayoutParams_SOFT_INPUT_STATE_VISIBLE = 4;
+
+    /**
+     * Visibility state for {@link #softInputMode}: please always make the
+     * soft input area visible when this window receives input focus.
+     */
+    const WindowManagerLayoutParams_SOFT_INPUT_STATE_ALWAYS_VISIBLE = 5;
+
+    /**
+     * Mask for {@link #softInputMode} of the bits that determine the
+     * way that the window should be adjusted to accommodate the soft
+     * input window.
+     */
+    const WindowManagerLayoutParams_SOFT_INPUT_MASK_ADJUST = 0xf0;
+
+    /** Adjustment option for {@link #softInputMode}: nothing specified.
+     * The system will try to pick one or
+     * the other depending on the contents of the window.
+     */
+    const WindowManagerLayoutParams_SOFT_INPUT_ADJUST_UNSPECIFIED = 0x00;
+
+    /** Adjustment option for {@link #softInputMode}: set to allow the
+     * window to be resized when an input
+     * method is shown, so that its contents are not covered by the input
+     * method.  This can <em>not</em> be combined with
+     * {@link #SOFT_INPUT_ADJUST_PAN}; if
+     * neither of these are set, then the system will try to pick one or
+     * the other depending on the contents of the window.
+     */
+    const WindowManagerLayoutParams_SOFT_INPUT_ADJUST_RESIZE = 0x10;
+
+    /** Adjustment option for {@link #softInputMode}: set to have a window
+     * pan when an input method is
+     * shown, so it doesn't need to deal with resizing but just panned
+     * by the framework to ensure the current input focus is visible.  This
+     * can <em>not</em> be combined with {@link #SOFT_INPUT_ADJUST_RESIZE}; if
+     * neither of these are set, then the system will try to pick one or
+     * the other depending on the contents of the window.
+     */
+    const WindowManagerLayoutParams_SOFT_INPUT_ADJUST_PAN = 0x20;
+
+    /**
+     * Bit for {@link #softInputMode}: set when the user has navigated
+     * forward to the window.  This is normally set automatically for
+     * you by the system, though you may want to set it in certain cases
+     * when you are displaying a window yourself.  This flag will always
+     * be cleared automatically after the window is displayed.
+     */
+    const WindowManagerLayoutParams_SOFT_INPUT_IS_FORWARD_NAVIGATION = 0x100;
+
+    /**
+     * Default value for {@link #screenBrightness} and {@link #buttonBrightness}
+     * indicating that the brightness value is not overridden for this window
+     * and normal brightness policy should be used.
+     */
+    //It's real type is float.
+    const WindowManagerLayoutParams_BRIGHTNESS_OVERRIDE_NONE = -1;
+
+    /**
+     * Value for {@link #screenBrightness} and {@link #buttonBrightness}
+     * indicating that the screen or button backlight brightness should be set
+     * to the lowest value when this window is in front.
+     */
+    //It's real type is float.
+    const WindowManagerLayoutParams_BRIGHTNESS_OVERRIDE_OFF = 0;
+
+    /**
+     * Value for {@link #screenBrightness} and {@link #buttonBrightness}
+     * indicating that the screen or button backlight brightness should be set
+     * to the hightest value when this window is in front.
+     */
+    //It's real type is float.
+    const WindowManagerLayoutParams_BRIGHTNESS_OVERRIDE_FULL = 1;
+
+    const WindowManagerLayoutParams_LAYOUT_CHANGED = 1;
+    const WindowManagerLayoutParams_TYPE_CHANGED = 2;
+    const WindowManagerLayoutParams_FLAGS_CHANGED = 4;
+    const WindowManagerLayoutParams_FORMAT_CHANGED = 8;
+    const WindowManagerLayoutParams_ANIMATION_CHANGED = 16;
+    const WindowManagerLayoutParams_DIM_AMOUNT_CHANGED = 32;
+    const WindowManagerLayoutParams_TITLE_CHANGED = 64;
+    const WindowManagerLayoutParams_ALPHA_CHANGED = 128;
+    const WindowManagerLayoutParams_MEMORY_TYPE_CHANGED = 256;
+    const WindowManagerLayoutParams_SOFT_INPUT_MODE_CHANGED = 512;
+    const WindowManagerLayoutParams_SCREEN_ORIENTATION_CHANGED = 1024;
+    const WindowManagerLayoutParams_SCREEN_BRIGHTNESS_CHANGED = 2048;
+    const WindowManagerLayoutParams_BUTTON_BRIGHTNESS_CHANGED = 4096;
+
+
+    interface IViewGroupLayoutParams;
+    interface IViewManager;
+    interface IDisplay;
+    interface IView;
+
+    interface IWindowManagerLayoutParams extends IViewGroupLayoutParams{
+        SetTitle(
+            [in] ArrayOf<Char8> title);
+
+        GetTitle(
+            [out, callee] ArrayOf<Char8>* title);
+
+        CopyFrom(
+            [in] IWindowManagerLayoutParams* source);
+
+        Scale(
+            [in] Float scale);
+
+        /**
+         * Backup the layout parameters used in compatibility mode.
+         * @see LayoutParams#restore()
+         */
+        Backup();
+
+        /**
+         * Restore the layout params' coordinates, size and gravity
+         * @see LayoutParams#backup()
+         */
+        Restore();
+    }
+
+    interface IWindowManager extends IViewManager {
+        /**
+         * Use this method to get the default Display object.
+         *
+         * @param display default Display object
+         */
+        GetDefaultDisplay(
+            [out] IDisplay** display);
+
+        /**
+         * Special variation of {@link #removeView} that immediately invokes
+         * the given view hierarchy's {@link View#onDetachedFromWindow()
+         * View.onDetachedFromWindow()} methods before returning.  This is not
+         * for normal applications; using it correctly requires great care.
+         *
+         * @param view The view to be removed.
+         */
+        RemoveViewImmediate(
+            [in] IView* view);
+    }
+}

@@ -1,0 +1,35 @@
+
+module
+{
+    /**
+     * Value for {@link #reqInputFeatures}: if set, indicates that the application
+     * requires a hard keyboard
+     */
+    const ConfigurationInfo_INPUT_FEATURE_HARD_KEYBOARD = 0x00000001;
+
+    /**
+     * Value for {@link #reqInputFeatures}: if set, indicates that the application
+     * requires a five way navigation device
+     */
+    const ConfigurationInfo_INPUT_FEATURE_FIVE_WAY_NAV = 0x00000002;
+
+    /**
+     * Default value for {@link #reqGlEsVersion};
+     */
+    const ConfigurationInfo_GL_ES_VERSION_UNDEFINED = 0;
+
+    interface IConfigurationInfo {
+        GetDescription(
+            [out] String* des);
+
+        /**
+         * This method extracts the major and minor version of reqGLEsVersion attribute
+         * and returns it as a string. Say reqGlEsVersion value of 0x00010002 is returned
+         * as 1.2
+         * @return String representation of the reqGlEsVersion attribute
+         */
+        GetGlEsVersion(
+            [out] String* ver);
+    }
+}
+

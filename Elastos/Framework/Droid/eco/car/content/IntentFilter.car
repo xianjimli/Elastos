@@ -1,0 +1,235 @@
+
+module
+{
+    interface IUri;
+
+    /**
+     * The filter {@link #setPriority} value at which system high-priority
+     * receivers are placed; that is, receivers that should execute before
+     * application code. Applications should never use filters with this or
+     * higher priorities.
+     *
+     * @see #setPriority
+     */
+    const IntentFilter_SYSTEM_HIGH_PRIORITY = 1000;
+
+    /**
+     * The filter {@link #setPriority} value at which system low-priority
+     * receivers are placed; that is, receivers that should execute after
+     * application code. Applications should never use filters with this or
+     * lower priorities.
+     *
+     * @see #setPriority
+     */
+    const IntentFilter_SYSTEM_LOW_PRIORITY = -1000;
+
+    /**
+     * The part of a match constant that describes the category of match
+     * that occurred.  May be either {@link #MATCH_CATEGORY_EMPTY},
+     * {@link #MATCH_CATEGORY_SCHEME}, {@link #MATCH_CATEGORY_HOST},
+     * {@link #MATCH_CATEGORY_PORT},
+     * {@link #MATCH_CATEGORY_PATH}, or {@link #MATCH_CATEGORY_TYPE}.  Higher
+     * values indicate a better match.
+     */
+    const IntentFilter_MATCH_CATEGORY_MASK = 0xfff0000;
+
+    /**
+     * The part of a match constant that applies a quality adjustment to the
+     * basic category of match.  The value {@link #MATCH_ADJUSTMENT_NORMAL}
+     * is no adjustment; higher numbers than that improve the quality, while
+     * lower numbers reduce it.
+     */
+    const IntentFilter_MATCH_ADJUSTMENT_MASK = 0x000ffff;
+
+    /**
+     * Quality adjustment applied to the category of match that signifies
+     * the default, base value; higher numbers improve the quality while
+     * lower numbers reduce it.
+     */
+    const IntentFilter_MATCH_ADJUSTMENT_NORMAL = 0x8000;
+
+    /**
+     * The filter matched an intent that had no data specified.
+     */
+    const IntentFilter_MATCH_CATEGORY_EMPTY = 0x0100000;
+
+    /**
+     * The filter matched an intent with the same data URI scheme.
+     */
+    const IntentFilter_MATCH_CATEGORY_SCHEME = 0x0200000;
+
+    /**
+     * The filter matched an intent with the same data URI scheme and
+     * authority host.
+     */
+    const IntentFilter_MATCH_CATEGORY_HOST = 0x0300000;
+
+    /**
+     * The filter matched an intent with the same data URI scheme and
+     * authority host and port.
+     */
+    const IntentFilter_MATCH_CATEGORY_PORT = 0x0400000;
+
+    /**
+     * The filter matched an intent with the same data URI scheme,
+     * authority, and path.
+     */
+    const IntentFilter_MATCH_CATEGORY_PATH = 0x0500000;
+
+    /**
+     * The filter matched an intent with the same data MIME type.
+     */
+    const IntentFilter_MATCH_CATEGORY_TYPE = 0x0600000;
+
+    /**
+     * The filter didn't match due to different MIME types.
+     */
+    const IntentFilter_NO_MATCH_TYPE = -1;
+
+    /**
+     * The filter didn't match due to different data URIs.
+     */
+    const IntentFilter_NO_MATCH_DATA = -2;
+
+    /**
+     * The filter didn't match due to different actions.
+     */
+    const IntentFilter_NO_MATCH_ACTION = -3;
+
+    /**
+     * The filter didn't match because it required one or more categories
+     * that were not in the Intent.
+     */
+    const IntentFilter_NO_MATCH_CATEGORY = -4;
+
+    [deprecated]
+    interface IIntentFilter {
+        SetPriority(
+            [in] Int32 priority);
+
+        GetPriority(
+            [out] Int32* priority);
+
+        AddAction(
+            [in] String action);
+
+        CountActions(
+            [out] Int32* count);
+
+        GetAction(
+            [in] Int32 index,
+            [out] String* action);
+
+        /**
+         * Add a new Intent data type to match against.  If any types are
+         * included in the filter, then an Intent's data must be <em>either</em>
+         * one of these types <em>or</em> a matching scheme.  If no data types
+         * are included, then an Intent will only match if it specifies no data.
+         *
+         * <p><em>Note: MIME type matching in the Android framework is
+         * case-sensitive, unlike formal RFC MIME types.  As a result,
+         * you should always write your MIME types with lower case letters,
+         * and any MIME types you receive from outside of Android should be
+         * converted to lower case before supplying them here.</em></p>
+         *
+         * <p>Throws {@link MalformedMimeTypeException} if the given MIME type is
+         * not syntactically correct.
+         *
+         * @param type Name of the data type to match, i.e. "vnd.android.cursor.dir/person".
+         *
+         * @see #matchData
+         */
+        AddDataType(
+            [in] String type);
+
+        /**
+         * Add a new Intent data scheme to match against.  If any schemes are
+         * included in the filter, then an Intent's data must be <em>either</em>
+         * one of these schemes <em>or</em> a matching data type.  If no schemes
+         * are included, then an Intent will match only if it includes no data.
+         *
+         * <p><em>Note: scheme matching in the Android framework is
+         * case-sensitive, unlike formal RFC schemes.  As a result,
+         * you should always write your schemes with lower case letters,
+         * and any schemes you receive from outside of Android should be
+         * converted to lower case before supplying them here.</em></p>
+         *
+         * @param scheme Name of the scheme to match, i.e. "http".
+         *
+         * @see #matchData
+         */
+        AddDataScheme(
+            [in] String scheme);
+
+        /**
+         * Add a new Intent data authority to match against.  The filter must
+         * include one or more schemes (via {@link #addDataScheme}) for the
+         * authority to be considered.  If any authorities are
+         * included in the filter, then an Intent's data must match one of
+         * them.  If no authorities are included, then only the scheme must match.
+         *
+         * <p><em>Note: host name in the Android framework is
+         * case-sensitive, unlike formal RFC host names.  As a result,
+         * you should always write your host names with lower case letters,
+         * and any host names you receive from outside of Android should be
+         * converted to lower case before supplying them here.</em></p>
+         *
+         * @param host The host part of the authority to match.  May start with a
+         *             single '*' to wildcard the front of the host name.
+         * @param port Optional port part of the authority to match.  If null, any
+         *             port is allowed.
+         *
+         * @see #matchData
+         * @see #addDataScheme
+         */
+        AddDataAuthority(
+            [in] String host,
+            [in] String port);
+
+        /**
+         * Add a new Intent data oath to match against.  The filter must
+         * include one or more schemes (via {@link #addDataScheme}) <em>and</em>
+         * one or more authorities (via {@link #addDataAuthority}) for the
+         * path to be considered.  If any paths are
+         * included in the filter, then an Intent's data must match one of
+         * them.  If no paths are included, then only the scheme/authority must
+         * match.
+         *
+         * <p>The path given here can either be a literal that must directly
+         * match or match against a prefix, or it can be a simple globbing pattern.
+         * If the latter, you can use '*' anywhere in the pattern to match zero
+         * or more instances of the previous character, '.' as a wildcard to match
+         * any character, and '\' to escape the next character.
+         *
+         * @param path Either a raw string that must exactly match the file
+         * path, or a simple pattern, depending on <var>type</var>.
+         * @param type Determines how <var>path</var> will be compared to
+         * determine a match: either {@link PatternMatcher#PATTERN_LITERAL},
+         * {@link PatternMatcher#PATTERN_PREFIX}, or
+         * {@link PatternMatcher#PATTERN_SIMPLE_GLOB}.
+         *
+         * @see #matchData
+         * @see #addDataScheme
+         * @see #addDataAuthority
+         */
+        AddDataPath(
+            [in] String path,
+            [in] Int32 type);
+
+        AddCategory(
+            [in] String category);
+
+        HasCategory(
+            [in] String category,
+            [out] Boolean* hasCategory);
+
+        Match(
+            [in] String action,
+            [in] String type,
+            [in] String scheme,
+            [in] IUri* data,
+            [in] ArrayOf<String>* categories,
+            [in] String logTag,
+            [out] Int32* result);
+    }
+}

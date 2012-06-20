@@ -1,0 +1,40 @@
+$;;=========================================================================
+$;; Copyright (c) 2000-2005,  Elastos, Inc.  All Rights Reserved.
+$;;=========================================================================
+$
+$INPUT class
+$OUTPUT "${name}.cpp"
+
+#include "${name}.h"
+
+ECode ${name}::OnCreate()
+{
+    // TODO: Add your code here
+    return NOERROR;
+}
+        
+ECode ${name}::OnStart(
+    /* [in] */ IIntent* intent,
+    /* [in] */ Int32 startId)
+{
+    // TODO: Add your code here
+    return NOERROR;
+}
+    
+ECode ${name}::OnBind(
+    /* [in] */ IIntent* intent,
+    /* [out] */ IBinder** binder)
+{
+    // TODO: Add your code here
+    return NOERROR;
+}
+
+ECode ${name}::OnUnbind(
+    /* [in] */ IIntent* intent,
+    /* [out] */ Boolean* succeeded)
+{
+    // TODO: Add your code here
+    return NOERROR;
+}    
+
+$END OUTPUT

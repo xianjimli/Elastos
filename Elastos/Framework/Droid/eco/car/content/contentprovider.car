@@ -1,0 +1,61 @@
+
+module
+{
+    interface IContext;
+    interface IContentProviderInfo;
+    interface IUri;
+    interface IContentValues;
+    interface ICursor;
+
+    interface IContentProvider {
+        /**
+         * Receives a query request from a client in a local process,
+         * and returns a Cursor.
+         */
+        Query(
+            [in] IUri* uri,
+            [in] ArrayOf<String> projection,
+            [in] String selection,
+            [in] ArrayOf<String> selectionArgs,
+            [in] String sortOrder,
+            [out] ICursor** cursor);
+
+        /**
+         * Return the MIME type of the data at the given URI.
+         */
+        GetType(
+            [in] IUri* uri,
+            [out] String* type);
+
+        /**
+         * Implement this to insert a new row.
+         */
+        Insert(
+            [in] IUri* uri,
+            [in] IContentValues* values,
+            [out] IUri** insertedItemUri);
+
+        /**
+         * A request to delete one or more rows.
+         */
+        Delete(
+            [in] IUri* uri,
+            [in] String selection,
+            [in] ArrayOf<String> selectionArgs,
+            [out] Int32* rowsAffected);
+
+        /**
+         * Update a content URI.
+         */
+        Update(
+            [in] IUri* uri,
+            [in] IContentValues* values,
+            [in] String selection,
+            [in] ArrayOf<String> selectionArgs,
+            [out] Int32* rowsAffected);
+
+        AttachInfo(
+            [in] IContext* ctx,
+            [in] IContentProviderInfo* providerInfo);
+    }
+}

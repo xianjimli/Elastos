@@ -1,0 +1,128 @@
+
+module
+{
+    interface IDescribable;
+
+    interface IBundle extends IDescribable {
+        PutBoolean(
+            [in] String key,
+            [in] Boolean value);
+
+        GetBoolean(
+            [in] String key,
+            [out] Boolean* value);
+
+        PutByte(
+            [in] String key,
+            [in] Byte value);
+
+        GetByte(
+            [in] String key,
+            [out] Byte* value);
+
+        PutChar(
+            [in] String key,
+            [in] Char16 value);
+
+        GetChar(
+            [in] String key,
+            [out] Char16* value);
+
+        PutInt16(
+            [in] String key,
+            [in] Int16 value);
+
+        GetInt16(
+            [in] String key,
+            [out] Int16* value);
+
+        PutInt32(
+            [in] String key,
+            [in] Int32 value);
+
+        GetInt32(
+            [in] String key,
+            [out] Int32* value);
+
+        PutInt64(
+            [in] String key,
+            [in] Int64 value);
+
+        GetInt64(
+            [in] String key,
+            [out] Int64* value);
+
+        PutFloat(
+            [in] String key,
+            [in] Float value);
+
+        GetFloat(
+            [in] String key,
+            [out] Float* value);
+
+        PutDouble(
+            [in] String key,
+            [in] Double value);
+
+        GetDouble(
+            [in] String key,
+            [out] Double* value);
+
+        PutString(
+            [in] String key,
+            [in] String value);
+
+        GetString(
+            [in] String key,
+            [out] String* value);
+
+        /**
+         * Inserts a String array value into the mapping of this Bundle, replacing
+         * any existing value for the given key.  Either key or value may be null.
+         *
+         * @param key a String, or null
+         * @param value a String array object, or null
+         */
+        PutStringArray(
+            [in] String key,
+            [in] ArrayOf<String> value);
+
+        /**
+         * Returns the value associated with the given key, or null if
+         * no mapping of the desired type exists for the given key or a null
+         * value is explicitly associated with the key.
+         *
+         * @param key a String, or null
+         * @return a String[] value, or null
+         */
+        GetStringArray(
+            [in] String key,
+            [out, callee] ArrayOf<String>* value);
+
+        /**
+         * Inserts an int array value into the mapping of this Bundle, replacing
+         * any existing value for the given key.  Either key or value may be null.
+         *
+         * @param key a String, or null
+         * @param value an int array object, or null
+         */
+        PutInt32Array(
+            [in] String key,
+            [in] ArrayOf<Int32> value);
+
+        /**
+         * Returns the value associated with the given key, or null if
+         * no mapping of the desired type exists for the given key or a null
+         * value is explicitly associated with the key.
+         *
+         * @param key a String, or null
+         * @return an int[] value, or null
+         */
+        GetInt32Array(
+            [in] String key,
+            [out, callee] ArrayOf<Int32>* value);
+
+        HasFileDescriptors(
+            [out] Boolean* hasFD);
+    }
+}

@@ -1,0 +1,13 @@
+
+module
+{
+    /**
+     * The count of rows in a directory.
+     */
+    const BaseColumns_COUNT = "_count";
+
+    /**
+     * The unique id for a row.
+     */
+    const BaseColumns_ID = "_id";
+}

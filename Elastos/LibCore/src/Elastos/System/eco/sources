@@ -1,0 +1,19 @@
+TARGET_NAME= Elastos.System
+TARGET_TYPE= eco
+
+INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/common;
+INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/System/eco;
+
+SOURCES = Elastos.System.car
+SOURCES += CStringWrapper.cpp
+
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Runtime.CarRuntime.lib
+
+ifeq "$(XDK_TARGET_PLATFORM)" "win32"
+LIBRARIES += $(XDK_LIB_PATH)/Elastos.Runtime.lib
+LIBRARIES += ../../Utility/Elastos.Utility.lib
+else
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.CarRuntime.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
+LIBRARIES += $(XDK_USER_LIB)/crt0.lib
+endif

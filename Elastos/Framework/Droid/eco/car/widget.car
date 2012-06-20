@@ -1,0 +1,450 @@
+
+module
+{
+    merge("widget/scrollbardrawable.car");
+    merge("widget/FrameLayout.car");
+    merge("widget/ImageView.car");
+    merge("widget/LinearLayout.car");
+    merge("widget/RelativeLayout.car");
+    merge("widget/TextView.car");
+    merge("widget/Adapter.car");
+    merge("widget/ListAdapter.car");
+    merge("widget/AdapterView.car");
+    merge("widget/AbsListView.car");
+    merge("widget/SectionIndexer.car");
+    merge("widget/Filter.car");
+    merge("widget/TextWatcher.car");
+    merge("widget/Button.car");
+    merge("widget/CompoundButton.car");
+    merge("widget/CheckBox.car");
+    merge("widget/RadioButton.car");
+    merge("widget/ToggleButton.car");
+    merge("widget/ListView.car");
+    merge("widget/Filterable.car");
+    merge("widget/WrapperListAdapter.car");
+    merge("widget/HeaderViewListAdapter.car");
+    merge("widget/SpinnerAdapter.car");
+    merge("widget/BaseAdapter.car");
+    merge("widget/ArrayAdapter.car");
+    merge("widget/SimpleAdapter.car");
+    merge("widget/Checkable.car");
+    merge("widget/ScrollView.car");
+
+    class CScrollBarDrawable {
+        interface IScrollBarDrawable;
+    }
+
+    class CFrameLayoutLayoutParams {
+        constructor(
+            [in] IContext* c,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] Int32 width,
+            [in] Int32 height);
+
+        constructor(
+            [in] Int32 width,
+            [in] Int32 height,
+            [in] Int32 gravity);
+
+        constructor(
+            [in] IViewGroupLayoutParams* p);
+
+        constructor(
+            [in] IViewGroupMarginLayoutParams* source);
+
+        interface IFrameLayoutLayoutParams;
+    }
+    /**
+     * FrameLayout is designed to block out an area on the screen to display
+     * a single item. You can add multiple children to a FrameLayout, but all
+     * children are pegged to the top left of the screen.
+     * Children are drawn in a stack, with the most recently added child on top.
+     * The size of the frame layout is the size of its largest child (plus padding), visible
+     * or not (if the FrameLayout's parent permits). Views that are GONE are used for sizing
+     * only if {@link #setMeasureAllChildren(boolean) setConsiderGoneChildrenWhenMeasuring()}
+     * is set to true.
+     *
+     * @attr ref android.R.styleable#FrameLayout_foreground
+     * @attr ref android.R.styleable#FrameLayout_foregroundGravity
+     * @attr ref android.R.styleable#FrameLayout_measureAllChildren
+     */
+    class CFrameLayout {
+        constructor(
+            [in] IContext* ctx);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
+
+        interface IFrameLayout;
+        interface IViewParent;
+        interface IViewManager;
+        interface IKeyEventCallback;
+    }
+
+    class CImageView {
+        constructor(
+            [in] IContext* ctx);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
+
+        interface IImageView;
+        interface IKeyEventCallback;
+    }
+
+    class CLinearLayoutLayoutParams {
+        constructor(
+            [in] IContext* c,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] Int32 width,
+            [in] Int32 height);
+
+        constructor(
+            [in] Int32 width,
+            [in] Int32 height,
+            [in] Float weight);
+
+        constructor(
+            [in] IViewGroupLayoutParams* p);
+
+        constructor(
+            [in] IViewGroupMarginLayoutParams* source);
+
+        interface ILinearLayoutLayoutParams;
+    }
+
+    class CLinearLayout {
+        constructor(
+            [in] IContext* ctx);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+
+        interface ILinearLayout;
+        interface IViewParent;
+        interface IViewManager;
+    }
+
+    class CRelativeLayoutLayoutParams {
+        constructor(
+            [in] IContext* c,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] Int32 width,
+            [in] Int32 height);
+
+        constructor(
+            [in] IViewGroupLayoutParams* p);
+
+        constructor(
+            [in] IViewGroupMarginLayoutParams* source);
+
+        interface IRelativeLayoutLayoutParams;
+    }
+
+    class CRelativeLayout {
+        constructor(
+            [in] IContext* ctx);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
+
+        interface IRelativeLayout;
+    }
+
+    class CTextView {
+        constructor(
+            [in] IContext* ctx);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
+
+        interface ITextView;
+    }
+
+    class CButton {
+        constructor(
+            [in] IContext* ctx);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
+
+        interface IButton;
+    }
+
+    class CCheckBox {
+        constructor(
+            [in] IContext* ctx);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
+
+        interface ICheckBox;
+    }
+
+    class CRadioButton {
+        constructor(
+            [in] IContext* ctx);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
+
+        interface IRadioButton;
+    }
+
+    class CToggleButton {
+        constructor(
+            [in] IContext* ctx);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
+
+        interface IToggleButton;
+    }
+
+    class CAbsListViewSavedState {
+        constructor(
+            [in] IParcelable* superState);
+
+        constructor(
+            [in] IParcel* source);
+
+        interface IAbsListViewSavedState;
+        interface IParcelable;
+    }
+
+    class CAbsListViewLayoutParams {
+        constructor(
+            [in] IContext* c,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] Int32 width,
+            [in] Int32 height);
+
+        constructor(
+            [in] Int32 width,
+            [in] Int32 height,
+            [in] Int32 viewType);
+
+        constructor(
+            [in] IViewGroupLayoutParams* p);
+
+        interface IAbsListViewLayoutParams;
+    }
+
+    class CListViewSavedState {
+        //TODO:
+        constructor(
+            [in] IParcelable* superState);
+
+        constructor(
+            [in] IParcel* source);
+
+        interface IListViewSavedState;
+        interface IParcelable;
+    }
+
+    class CListView {
+        constructor(
+            [in] IContext* ctx);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
+
+        interface IListView;
+        interface ITextWatcher;
+        interface IOnGlobalLayoutListener;
+        interface IOnTouchModeChangeListener;
+        interface IFilterListener;
+    }
+
+    class CHeaderViewListAdapter {
+        constructor(
+            [in] IObjectContainer* headerViewInfos,
+            [in] IObjectContainer* footerViewInfos,
+            [in] IListAdapter* adapter);
+
+        interface IHeaderViewListAdapter;
+        interface IFilterable;
+    }
+
+    class CArrayAdapter {
+        /**
+         * Constructor
+         *
+         * @param context The current context.
+         * @param textViewResourceId The resource ID for a layout file containing a TextView to use when
+         *                 instantiating views.
+         */
+        constructor(
+            [in] IContext* context,
+            [in] Int32 textViewResourceId);
+
+        /**
+         * Constructor
+         *
+         * @param context The current context.
+         * @param resource The resource ID for a layout file containing a layout to use when
+         *                 instantiating views.
+         * @param textViewResourceId The id of the TextView within the layout resource to be populated
+         */
+        constructor(
+            [in] IContext* context,
+            [in] Int32 resource,
+            [in] Int32 textViewResourceId);
+
+        /**
+         * Constructor
+         *
+         * @param context The current context.
+         * @param textViewResourceId The resource ID for a layout file containing a TextView to use when
+         *                 instantiating views.
+         * @param objects The objects to represent in the ListView.
+         */
+        constructor(
+            [in] IContext* context,
+            [in] Int32 textViewResourceId,
+            [in] IObjectContainer* objects);
+
+        /**
+         * Constructor
+         *
+         * @param context The current context.
+         * @param resource The resource ID for a layout file containing a layout to use when
+         *                 instantiating views.
+         * @param textViewResourceId The id of the TextView within the layout resource to be populated
+         * @param objects The objects to represent in the ListView.
+         */
+        constructor(
+            [in] IContext* context,
+            [in] Int32 resource,
+            [in] Int32 textViewResourceId,
+            [in] IObjectContainer* objects);
+
+        interface IArrayAdapter;
+        interface ISpinnerAdapter;
+        interface IFilterable;
+    }
+
+    class CSimpleAdapter {
+        /**
+         * Constructor
+         *
+         * @param context The context where the View associated with this SimpleAdapter is running
+         * @param data A List of Maps. Each entry in the List corresponds to one row in the list. The
+         *        Maps contain the data for each row, and should include all the entries specified in
+         *        "from"
+         * @param resource Resource identifier of a view layout that defines the views for this list
+         *        item. The layout file should include at least those named views defined in "to"
+         * @param from A list of column names that will be added to the Map associated with each
+         *        item.
+         * @param to The views that should display column in the "from" parameter. These should all be
+         *        TextViews. The first N views in this list are given the values of the first N columns
+         *        in the from parameter.
+         */
+        constructor(
+            [in] IContext* context,
+            [in] IObjectContainer* data,
+            [in] Int32 resource,
+            [in] ArrayOf<String> from,
+            [in] ArrayOf<Int32> to);
+
+        interface ISimpleAdapter;
+        interface ISpinnerAdapter;
+        interface IFilterable;
+    }
+
+    /**
+     * Layout container for a view hierarchy that can be scrolled by the user,
+     * allowing it to be larger than the physical display.  A ScrollView
+     * is a {@link FrameLayout}, meaning you should place one child in it
+     * containing the entire contents to scroll; this child may itself be a layout
+     * manager with a complex hierarchy of objects.  A child that is often used
+     * is a {@link LinearLayout} in a vertical orientation, presenting a vertical
+     * array of top-level items that the user can scroll through.
+     *
+     * <p>The {@link TextView} class also
+     * takes care of its own scrolling, so does not require a ScrollView, but
+     * using the two together is possible to achieve the effect of a text view
+     * within a larger container.
+     *
+     * <p>ScrollView only supports vertical scrolling.
+     */
+    class CScrollView {
+        constructor(
+            [in] IContext* ctx);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
+
+        interface IScrollView;
+    }
+}
+

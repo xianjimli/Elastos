@@ -1,0 +1,68 @@
+
+module
+{
+    interface IParcelFileDescriptor;
+    interface IRect;
+    interface IConfiguration;
+    interface IBundle;
+
+    /**
+     * API back to a client window that the Window Manager uses to inform it of
+     * interesting things happening.
+     *
+     * {@hide}
+     */
+    /* oneway */ interface IInnerWindow extends IBinder {
+        /**
+         * Invoked by the view server to tell a window to execute the specified
+         * command. Any response from the receiver must be sent through the
+         * specified file descriptor.
+         */
+        ExecuteCommand(
+            [in] String command,
+            [in] String parameters,
+            [in] IParcelFileDescriptor* descriptor);
+
+        Resized(
+            [in] Int32 w,
+            [in] Int32 h,
+            [in] IRect* coveredInsets,
+            [in] IRect* visibleInsets,
+            [in] Boolean reportDraw,
+            [in] IConfiguration* newConfig);
+
+        DispatchAppVisibility(
+            [in] Boolean visible);
+
+        DispatchGetNewSurface();
+
+        /**
+         * Tell the window that it is either gaining or losing focus.  Keep it up
+         * to date on the current state showing navigational focus (touch mode) too.
+         */
+        WindowFocusChanged(
+            [in] Boolean hasFocus,
+            [in] Boolean inTouchMode);
+
+        CloseSystemDialogs(
+            [in] String reason);
+
+        /**
+         * Called for wallpaper windows when their offsets change.
+         */
+        DispatchWallpaperOffsets(
+            [in] Float x,
+            [in] Float y,
+            [in] Float xStep,
+            [in] Float yStep,
+            [in] Boolean sync);
+
+        DispatchWallpaperCommand(
+            [in] String action,
+            [in] Int32 x,
+            [in] Int32 y,
+            [in] Int32 z,
+            [in] IBundle* extras,
+            [in] Boolean sync);
+    }
+}

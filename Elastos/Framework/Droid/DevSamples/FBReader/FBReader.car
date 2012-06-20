@@ -1,0 +1,92 @@
+
+module
+{
+    importlib("Elastos.Framework.eco");
+
+    interface IText {
+    }
+
+    interface IParagraph {
+        Append(
+            [in] String text,
+            [in] Int32 length);
+
+        GetData(
+            [out] Handle32* data);
+
+        GetLength(
+            [out] Int32* size);
+    }
+
+    interface IChapter {
+        Append(
+            [in] IParagraph* paragraph);
+
+        BuildTexts(
+            [in] Int32 width,
+            [in] Int32 height,
+            [out] IObjectContainer** texts);
+
+        Flush();
+
+        GetOrder(
+            [out] Int32* order);
+
+        SetOrder(
+            [in] Int32 order);
+    }
+
+    interface IBook {
+        GetTitle(
+            [out] String* title);
+
+        GetPath(
+            [out] String* path);
+    }
+
+    [deprecated]
+    interface ITextFactory {
+        ProcessText(
+            [in] ArrayOf<Byte>* text,
+            [in] Int32 width,
+            [in] Int32 height,
+            [out] IObjectContainer** texts);
+    }
+
+    class CText {
+        constructor();
+
+        constructor(
+            [in] String text,
+            [in] Int32 index);
+
+        interface IText;
+    }
+
+    class CParagraph {
+        constructor(
+            [in] Int32 size);
+
+        interface IParagraph;
+    }
+
+    class CChapter {
+        interface IChapter;
+    }
+
+    class CBook {
+        constructor(
+            [in] Int32 width,
+            [in] Int32 height);
+
+        interface IBook;
+    }
+
+    singleton class CTextFactory {
+        interface ITextFactory;
+    }
+
+    class CMainActivity {
+        interface IActivity;
+    }
+}

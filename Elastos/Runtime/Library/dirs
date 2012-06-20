@@ -1,0 +1,11 @@
+#==========================================================================
+# Copyright (c) 2000-2008,  Elastos, Inc.  All Rights Reserved.
+#==========================================================================
+
+ifeq "$(XDK_TARGET_PLATFORM)" "linux"
+DIRS = inc
+endif
+DIRS += syscar
+DIRS += elasys
+DIRS += eltypes
+DIRS += clsmodule

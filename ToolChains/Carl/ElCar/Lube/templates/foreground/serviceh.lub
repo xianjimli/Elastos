@@ -1,0 +1,40 @@
+$;;=========================================================================
+$;; Copyright (c) 2000-2005,  Elastos, Inc.  All Rights Reserved.
+$;;=========================================================================
+$
+$INPUT class
+$OUTPUT "${name}.h"
+$
+
+#ifndef __${Upper(name)}_H__
+#define __${Upper(name)}_H__
+
+#include "CService.h"
+#include "_${name}.h"
+
+class ${name} : public CService
+{
+public:
+
+protected:
+    CARAPI OnCreate();
+        
+    CARAPI OnStart(
+        /* [in] */ IIntent* intent,
+        /* [in] */ Int32 startId);
+        
+    CARAPI OnBind(
+        /* [in] */ IIntent* intent,
+        /* [out] */ IBinder** binder); 
+    
+    CARAPI OnUnbind(
+        /* [in] */ IIntent* intent,
+        /* [out] */ Boolean* succeeded);  
+
+private:
+    // TODO: Add your private member variables here.
+};
+
+#endif // __${Upper(name)}_H__
+$
+$END OUTPUT

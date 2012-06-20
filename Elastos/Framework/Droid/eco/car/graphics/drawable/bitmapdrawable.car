@@ -1,0 +1,89 @@
+
+module
+{
+    interface IDrawable;
+    interface IDrawableConstantState;
+    interface IPaint;
+    interface IBitmap;
+    interface ICanvas;
+    interface IDisplayMetrics;
+
+    interface IBitmapState extends IDrawableConstantState {
+    }
+
+    interface IBitmapDrawable extends IDrawable {
+        GetPaint(
+            [out] IPaint** paint);
+
+        GetBitmap(
+            [out] IBitmap** bitmap);
+
+        /**
+         * Set the density scale at which this drawable will be rendered. This
+         * method assumes the drawable will be rendered at the same density as the
+         * specified canvas.
+         *
+         * @param canvas The Canvas from which the density scale must be obtained.
+         *
+         * @see android.graphics.Bitmap#setDensity(Int32)
+         * @see android.graphics.Bitmap#getDensity()
+         */
+        SetTargetDensity(
+            [in] ICanvas* canvas);
+
+        /**
+         * Set the density scale at which this drawable will be rendered.
+         *
+         * @param metrics The DisplayMetrics indicating the density scale for this drawable.
+         *
+         * @see android.graphics.Bitmap#setDensity(Int32)
+         * @see android.graphics.Bitmap#getDensity()
+         */
+        SetTargetDensityEx(
+            [in] IDisplayMetrics* metrics);
+
+        /**
+         * Set the density at which this drawable will be rendered.
+         *
+         * @param density The density scale for this drawable.
+         *
+         * @see android.graphics.Bitmap#setDensity(Int32)
+         * @see android.graphics.Bitmap#getDensity()
+         */
+        SetTargetDensityEx2(
+            [in] Int32 density);
+
+        /** Get the gravity used to position/stretch the bitmap within its bounds.
+         * See android.view.Gravity
+         * @return the gravity applied to the bitmap
+         */
+        GetGravity(
+            [out] Int32* gravity);
+
+        /** Set the gravity used to position/stretch the bitmap within its bounds.
+         *  See android.view.Gravity
+         * @param gravity the gravity
+         */
+        SetGravity(
+            [in] Int32 gravity);
+
+        SetAntiAlias(
+            [in] Boolean aa);
+
+        GetTileModeX(
+            [out] ShaderTileMode* tileModeX);
+
+        GetTileModeY(
+            [out] ShaderTileMode* tileModeY);
+
+        SetTileModeX(
+            [in] ShaderTileMode mode);
+
+        SetTileModeY(
+            [in] ShaderTileMode mode);
+
+        SetTileModeXY(
+            [in] ShaderTileMode xmode,
+            [in] ShaderTileMode ymode);
+    }
+}

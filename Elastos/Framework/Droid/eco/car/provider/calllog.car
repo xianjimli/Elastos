@@ -1,0 +1,36 @@
+
+module
+{
+    /**
+     * The uri string for calllogs of contacts provider.
+     */
+    const CallLog_CONTENT_URI = "content://call_log";
+
+    /**
+     * Whether or not the call has been acknowledged. Type: Int32(Boolean)
+     */
+    const CallLog_Calls_NEW = "new";
+
+    /**
+     * The phone number as the user entered it.
+     */
+    const CallLog_Calls_NUMBER = "number";
+
+    /**
+     * The type of the phone number.
+     */
+    const CallLog_Calls_TYPE = "type";
+    const CallLog_Calls_INCOMING_TYPE = 1;
+    const CallLog_Calls_OUTGOING_TYPE = 2;
+    const CallLog_Calls_MISSED_TYPE = 3;
+
+    /**
+     * The date the call occured, in milliseconds since the epoch.
+     */
+    const CallLog_Calls_DATE = "date";
+
+    /**
+     * The duration of the call in seconds.
+     */
+    const CallLog_Calls_DURATION = "duration";
+}

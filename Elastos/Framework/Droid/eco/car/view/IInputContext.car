@@ -1,0 +1,87 @@
+
+module
+{
+    interface IInputContextCallback;
+    interface IExtractedTextRequest;
+    interface ICompletionInfo;
+    interface IKeyEvent;
+    interface IBundle;
+
+    interface IInputContext {
+        GetTextBeforeCursor(
+            [in] Int32 length,
+            [in] Int32 flags,
+            [in] Int32 seq,
+            [in] IInputContextCallback* icCallback);
+
+        GetTextAfterCursor(
+            [in] Int32 length,
+            [in] Int32 flags,
+            [in] Int32 seq,
+            [in] IInputContextCallback* icCallback);
+
+        GetCursorCapsMode(
+            [in] Int32 reqModes,
+            [in] Int32 seq,
+            [in] IInputContextCallback* icCallback);
+
+        GetExtractedText(
+            [in] IExtractedTextRequest* request,
+            [in] Int32 flags,
+            [in] Int32 seq,
+            [in] IInputContextCallback* icCallback);
+
+        DeleteSurroundingText(
+            [in] Int32 leftLength,
+            [in] Int32 rightLength);
+
+        SetComposingText(
+            [in] ArrayOf<Char8> text,
+            [in] Int32 newCursorPosition);
+
+        FinishComposingText();
+
+        CommitText(
+            [in] ArrayOf<Char8> text,
+            [in] Int32 newCursorPosition);
+
+        CommitCompletion(
+            [in] ICompletionInfo* completion);
+
+        SetSelection(
+            [in] Int32 start,
+            [in] Int32 end);
+
+        PerformEditorAction(
+            [in] Int32 actionCode);
+
+        PerformContextMenuAction(
+            [in] Int32 id);
+
+        BeginBatchEdit();
+
+        EndBatchEdit();
+
+        ReportFullscreenMode(
+            [in] Boolean enabled);
+
+        SendKeyEvent(
+            [in] IKeyEvent* event);
+
+        ClearMetaKeyStates(
+            [in] Int32 states);
+
+        PerformPrivateCommand(
+            [in] String action,
+            [in] IBundle* data);
+
+        SetComposingRegion(
+            [in] Int32 start,
+            [in] Int32 end);
+
+        GetSelectedText(
+            [in] Int32 flags,
+            [in] Int32 seq,
+            [in] IInputContextCallback* icCallback);
+    }
+}

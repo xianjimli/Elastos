@@ -1,0 +1,133 @@
+//==========================================================================
+// Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.
+//==========================================================================
+
+library
+{
+/** @addtogroup ControlsRef
+  *   @{
+  */
+    typedef Handle32 Color;
+
+    //
+    // Pixel format of a GrafixSurface.
+    //
+    enum PixelFormat {
+        // unknown or unspecified format
+        //
+        PixelFormat_Unknown = 0x00000000,
+
+        // 8 bit alpha (1 byte, alpha 8@0), e.g. anti-aliased glyphs
+        // (1, 0, 8, 1, 0, 1, 0, 0, 0, 0, 0)
+        //
+        PixelFormat_A8 = 0x00118001,
+
+        // 16 bit ARGB (2 byte, T 1@15, red 5@10, green 5@5, blue 5@0)
+        // (2, 15, 0, 0, 0, 2, 0, 0, 0, 0, 0)
+        //
+        PixelFormat_RGBT555 = 0x00200782,
+
+        // 16 bit RGB  (2 byte, red 5@11, green 6@5, blue 5@0)
+        // (3, 16, 0, 0, 0, 2, 0, 0, 0, 0, 0)
+        //
+        PixelFormat_RGB565 = 0x00200803,
+
+        // 19 bit  RGBT666(4 bytes, nothing 13@19,
+        // T 1@18, red 6@12, green 6@6, blue 6@0 )
+        // (4, 18, 0, 0, 0, 4, 0, 0, 0, 0, 0)
+        //
+        PixelFormat_RGBT666 = 0x00400904,
+
+        // 24 bit   RGB (3 byte, red 8@16, green 8@8, blue 8@0)
+        // (5, 24, 0, 0, 0, 4, 0, 0, 0, 0, 0)
+        //
+        PixelFormat_RGB24 = 0x00400c05,
+
+        // 32 bit   ARGB (4 byte, alpha 8@24, red 8@16, green 8@8, blue 8@0)
+        // (6, 24, 8, 1, 0, 4, 0, 0, 0, 0, 0)
+        //
+        PixelFormat_ARGB = 0x00418c06,
+
+        PixelFormat_YUV422 = 0x00000007,
+
+        PixelFormat_YUV420 = 0x00000008,
+
+        // 1 bit
+        // (9, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0)
+        //
+        PixelFormat_A1 = 0x00111009,
+
+        // 16 bit ARGB
+        // (10, 12, 4, 1, 0, 2, 0 ,0, 0, 0, 0)
+        //
+        PixelFormat_ARGB4444 = 0x0021460a,
+
+        //  4 bit   LUT (4 bit color and alpha lookup from palette)
+        // ( 9, 8, 0, 1, 0, 1, 0, 0, 0, 1, 0 )
+        PixelFormat_LUT4 = 0x40010209,
+
+        //  5 bit   LUT (5 bit color and alpha lookup from palette)
+        // ( 10, 5, 0, 1, 0, 1, 0, 0, 0, 1, 0 )
+        PixelFormat_LUT5 = 0x4011028a,
+
+        //  8 bit   LUT (8 bit color and alpha lookup from palette)
+        // ( 11,  8, 0, 1, 0, 1, 0, 0, 0, 1, 0 )
+        PixelFormat_LUT8 = 0x4011040b,
+    }
+
+
+    //
+    // Flags specifying which modifier keys are currently pressed.
+    //
+    enum InputMask {
+        InputMask_None     = 0x0,
+        InputMask_Ctrl     = 0x1,
+        InputMask_Alt      = 0x2,
+        InputMask_Shift    = 0x4,
+        InputMask_Num      = 0x20000,
+        InputMask_Caps     = 0x40000,
+        InputMask_LButton  = 0x20,
+        InputMask_RButton  = 0x40,
+        InputMask_MButton  = 0x80,
+        InputMask_KeyChar  = 0x10,
+
+        // used by IME, to indicate that the sent char is to
+        // replace the previous char, i.e., the application will
+        // delete the previous char according to this mask.
+        //
+        InputMask_Substitute = 0x100
+    }
+
+    struct Rectangle {
+        Int32 x;
+        Int32 y;
+        Int32 width;
+        Int32 height;
+    }
+
+    struct Region {
+        Int32 left;
+        Int32 top;
+        Int32 right;
+        Int32 bottom;
+    }
+
+    struct Point {
+        Int32 x;
+        Int32 y;
+    }
+
+    struct Size {
+        Int32 width;
+        Int32 height;
+    }
+
+    struct Pixel {
+        Byte b;
+        Byte g;
+        Byte r;
+        Byte a;
+    }
+
+/** @} */
+}

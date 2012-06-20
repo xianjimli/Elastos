@@ -1,0 +1,9 @@
+TARGET_NAME= ext
+TARGET_TYPE= lib
+
+include $(MAKEDIR)/../../../sources.inc
+
+INCLUDES += $(MAKEDIR)/../inc
+INCLUDES += ../
+
+SOURCES = frameworkext.cpp

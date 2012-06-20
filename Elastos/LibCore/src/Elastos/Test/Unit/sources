@@ -1,0 +1,6 @@
+TARGET_NAME= Elastos.Test.Unit
+TARGET_TYPE= lib
+
+EXPORT_LIBRARY= 1
+
+SOURCES = CTestUnit.cpp

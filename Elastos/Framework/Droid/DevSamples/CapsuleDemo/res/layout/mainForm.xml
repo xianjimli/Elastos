@@ -1,0 +1,210 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!-- ================================================================== -->
+<!--  Copyright (c) 2010,  Elastos, Inc.  All Rights Reserved.          -->
+<!-- ================================================================== -->
+<!--
+<x:elastos xmlns="http://www.elastos.com/XmlGlue/Widgets"
+         xmlns:x="http://www.elastos.com/XmlGlue/2.1">
+
+    <form  x:id="Window" visible="TRUE" id="form">
+        <stackPanel x:id="stackPanel" controlTemplate="StackPanelTemplate">
+            <canvasPanel x:id="topBarPanel" controlTemplate="CanvasPanelTemplate">
+                <pictureBox x:id="topBar" />
+            </canvasPanel>
+            <gridPanel x:id="gridPanel" controlTemplate="GridPanelTemplate">
+                <stackPanel x:id="capsulePanel" controlTemplate="StackPanelTemplate">
+                    <pictureBox x:id="capsuleBox"/>
+                    <label x:id="capsuleTitle" text="水族馆"/>
+                </stackPanel>
+            </gridPanel>
+            <canvasPanel x:id="pageBarPanel" controlTemplate="CanvasPanelTemplate">
+                <pictureBox x:id="pageBar" />
+            </canvasPanel>
+            <canvasPanel x:id="bottomBarPanel" controlTemplate="CanvasPanelTemplate">
+                <pictureBox x:id="exitButton" click="Window:Close()"/>
+            </canvasPanel>
+        </stackPanel>
+    </form>
+    <x:script src="Scripts/capsule.lua" />
+</x:elastos>
+
+<form xmlns="http://www.elastos.com/grafix/3.0"
+			style="FormStyle:LayeredAlphaChannel" id="Window" visible="TRUE">
+    <stackPanel id="formPanel" controlTemplate="StackPanelTemplate" >
+	    <canvasPanel width="320" height="20" id="topBarPanel"
+					controlTemplate="CanvasPanelTemplate" >
+     	    <pictureBox width="320" height="20" id="topBar" />
+        </canvasPanel>
+        <gridPanel width="320" height="360" id="closetPanel"
+        				controlTemplate="GridPanelTemplate" >
+            <stackPanel width="80" height="80" id="capsulePanel"
+            		controlTemplate="StackPanelTemplate" >
+                <pictureBox  width="65" height="65" id="capsuleBox"
+                		alignment="Alignment:HCenter"
+        				imageAlignment="ImageAlign:Stretch" />
+                <label  width="80" height="15" id="capsuleTitle"
+                		alignment="Alignment:HCenter"
+                		TextAlignment="Alignment:HCenter"
+                		FontSize="12"
+                		TextForegroundColor="ColorChart:White"
+                		text="水族馆"/>
+            </stackPanel>
+        </gridPanel>
+        <canvasPanel width="320" height="28" id="pageBarPanel"
+        				controlTemplate="CanvasPanelTemplate" >
+            <pictureBox width="100" height="28" id="pageBar"
+      					imageAlignment="ImageAlign:HCenter" />
+        </canvasPanel>
+        <canvasPanel width="320" height="70" id="bottomBarPanel"
+        				controlTemplate="CanvasPanelTemplate" >
+            <pictureBox  width="65" height="65"
+          				id="exitButton"
+      					imageAlignment="ImageAlign:Stretch" />
+        </canvasPanel>
+    </stackPanel>
+</form>
+
+
+<form xmlns="http://www.elastos.com/grafix/3.0" style="ControlStyle:IgnoreFocus" id="Window">
+    <stackPanel sizeMode="AdaptParent" lastChildFill="true" id="formPanel"
+        controlTemplate="StackPanelTemplate">
+        <stackPanel orientation="Horizontal" sizeMode="HeightAdaptContent" id="topBarPanel"
+            column="0" row="0">
+            <pictureBox width="320" height="20" id="topBar" />
+        </stackPanel>
+        <gridPanel sizeMode="AdaptParent" lastChildFill="true" id="closetPanel"
+                   width="320" height="360"
+                   columns="Star,1 Star,1 Star,1 Star,1"
+                   rows="Star,1 Star,1 Star,1 Star,1"
+                   column="0" row="1">
+            <stackPanel width="80" height="80" id="capsulePanel"
+                        controlTemplate="StackPanelTemplate"
+                        column="0" row="0">
+                <pictureBox  width="65" height="65" id="capsuleBox"
+                		alignment="Alignment:HCenter"
+                		imageByPath="CapsuleDemo/Images/icon.png"
+        				imageAlignment="ImageAlign:Stretch" />
+                <label  width="80" height="15" id="capsuleTitle"
+                		alignment="Alignment:HCenter"
+                		textAlignment="Alignment:HCenter"
+                		fontSize="12"
+                		textForegroundColor="ColorChart:White"
+                		text="水族馆"/>
+            </stackPanel>
+        </gridPanel>
+        <stackPanel orientation="Horizontal" sizeMode="HeightAdaptContent" id="pageBarPanel"
+                    column="0" row="2">
+            <pictureBox width="100" height="28"  id="pageBar"
+                        imageByPath="CapsuleDemo/Images/page_bar.png"
+      					imageAlignment="ImageAlign:HCenter" />
+        </stackPanel>
+        <stackPanel orientation="Horizontal" sizeMode="HeightAdaptContent" id="bottomBarPanel"
+            column="0" row="3">
+            <pictureBox  width="65" height="65"
+          				id="exitButton"
+      					imageByPath="CapsuleDemo/Images/core_button.png"
+      					imageAlignment="ImageAlign:Stretch" />
+        </stackPanel>
+    </stackPanel>
+</form>
+
+-->
+<form xmlns:elastos="http://schemas.elastos.com/capsule/res/elastos"
+    elastos:style="ControlStyle:IgnoreFocus"
+    elastos:id="Window">
+
+    <stackPanel
+        elastos:sizeMode="AdaptParent"
+        elastos:lastChildFill="true"
+        elastos:id="formPanel"
+        elastos:controlTemplate="StackPanelTemplate">
+
+        <stackPanel
+            elastos:orientation="Horizontal"
+            elastos:width="320"
+            elastos:height="20"
+            elastos:id="topBarPanel"
+            elastos:column="0"
+            elastos:row="0">
+
+            <pictureBox
+                elastos:sizeMode="WidthAdaptParent"
+                elastos:height="20"
+                elastos:id="topBar" />
+
+        </stackPanel>
+
+        <gridPanel
+            elastos:lastChildFill="true"
+            elastos:id="closetPanel"
+            elastos:sizeMode="WidthAdaptParent"
+            elastos:height="360"
+            elastos:columns="Star,1 Star,1 Star,1 Star,1"
+            elastos:rows="Star,1 Star,1 Star,1 Star,1"
+            elastos:column="0"
+            elastos:row="1">
+
+            <stackPanel
+                elastos:width="80"
+                elastos:height="80"
+                elastos:id="capsulePanel"
+                elastos:orientation="Vertical"
+                elastos:controlTemplate="StackPanelTemplate"
+                elastos:column="0"
+                elastos:row="0">
+
+                <pictureBox
+                    elastos:width="70"
+                    elastos:height="68"
+                    elastos:id="capsuleBox"
+                    elastos:alignment="0x00000001" />
+
+                <label
+                    elastos:sizeMode="WidthAdaptParent"
+                    elastos:height="12"
+                    elastos:id="capsuleTitle"
+                	elastos:textAlignment="0x00000001"
+                	elastos:fontSize="12"
+                	elastos:textForegroundColor="White"
+                	elastos:text="水族馆"/>
+
+            </stackPanel>
+
+        </gridPanel>
+
+        <stackPanel
+            elastos:orientation="Vertical"
+            elastos:sizeMode="WidthAdaptParent"
+            elastos:height="28"
+            elastos:id="pageBarPanel"
+            elastos:column="0"
+            elastos:row="2">
+
+            <pictureBox
+                elastos:width="100"
+                elastos:height="28"
+                elastos:id="pageBar"
+                elastos:alignment="0x00000001" />
+
+        </stackPanel>
+
+        <stackPanel
+            elastos:orientation="Vertical"
+            elastos:sizeMode="WidthAdaptParent"
+            elastos:height="70"
+            elastos:id="bottomBarPanel"
+            elastos:column="0"
+            elastos:row="3">
+
+            <pictureBox
+                elastos:width="68"
+                elastos:height="68"
+                elastos:id="exitButton"
+                elastos:alignment="HCenter" />
+
+        </stackPanel>
+
+    </stackPanel>
+
+</form>

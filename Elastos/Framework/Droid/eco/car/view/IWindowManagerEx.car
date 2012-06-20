@@ -1,0 +1,293 @@
+
+module
+{
+    interface IInputMethodClient;
+    interface IInputContext;
+    interface IWindowSession;
+    interface IKeyEvent;
+    interface IMotionEvent;
+    interface IInputEvent;
+    interface IBinder;
+    interface IApplicationToken;
+    interface IObjectContainer;
+    interface IConfiguration;
+    interface IOnKeyguardExitResult;
+    interface IInputChannel;
+    interface IInputDevice;
+    interface IRotationWatcher;
+
+    interface IWindowManagerEx {
+        // This is used for debugging
+        StartViewServer(
+            [in] Int32 port,
+            [out] Boolean* result);
+
+        StopViewServer(
+            [out] Boolean* result);
+
+        IsViewServerRunning(
+            [out] Boolean* result);
+
+        OpenSession(
+            [in] IInputMethodClient* client,
+            [in] IInputContext* inputContext,
+            [out] IWindowSession** session);
+
+        InputMethodClientHasFocus(
+            [in] IInputMethodClient* client,
+            [out] Boolean* result);
+
+        // These can only be called when injecting events to your own window,
+        // or by holding the INJECT_EVENTS permission.  These methods may block
+        // until pending input events are finished being dispatched even when 'sync' is false.
+        // Avoid calling these methods on your UI thread or use the 'NoWait' version instead.
+        InjectKeyEvent(
+            [in] IKeyEvent* ev,
+            [in] Boolean sync,
+            [out] Boolean* result);
+
+        InjectPointerEvent(
+            [in] IMotionEvent* ev,
+            [in] Boolean sync,
+            [out] Boolean* result);
+
+        InjectTrackballEvent(
+            [in] IMotionEvent* ev,
+            [in] Boolean sync,
+            [out] Boolean* result);
+
+        InjectInputEventNoWait(
+            [in] IInputEvent* ev,
+            [out] Boolean* result);
+
+        // These can only be called when holding the MANAGE_APP_TOKENS permission.
+        PauseKeyDispatching(
+            [in] IBinder* token);
+
+        ResumeKeyDispatching(
+            [in] IBinder* token);
+
+        SetEventDispatching(
+            [in] Boolean enabled);
+
+        AddWindowToken(
+            [in] IBinder* token,
+            [in] Int32 type);
+
+        RemoveWindowToken(
+            [in] IBinder* token);
+
+        AddAppToken(
+            [in] Int32 addPos,
+            [in] IApplicationToken* token,
+            [in] Int32 groupId,
+            [in] Int32 requestedOrientation,
+            [in] Boolean fullscreen);
+
+        SetAppGroupId(
+            [in] IBinder* token,
+            [in] Int32 groupId);
+
+        SetAppOrientation(
+            [in] IApplicationToken* token,
+            [in] Int32 requestedOrientation);
+
+        GetAppOrientation(
+            [in] IApplicationToken* token,
+            [out] Int32* orientation);
+
+        SetFocusedApp(
+            [in] IBinder* token,
+            [in] Boolean moveFocusNow);
+
+        PrepareAppTransition(
+            [in] Int32 transit);
+
+        GetPendingAppTransition(
+            [out] Int32* transit);
+
+        OverridePendingAppTransition(
+            [in] String capsuleName,
+            [in] Int32 enterAnim,
+            [in] Int32 exitAnim);
+
+        ExecuteAppTransition();
+
+        SetAppStartingWindow(
+            [in] IBinder* token,
+            [in] String cap,
+            [in] Int32 theme,
+            [in] ArrayOf<Char8> nonLocalizedLabel,
+            [in] Int32 labelRes,
+            [in] Int32 icon,
+            [in] IBinder* transferFrom,
+            [in] Boolean createIfNeeded);
+
+        SetAppWillBeHidden(
+            [in] IBinder* token);
+
+        SetAppVisibility(
+            [in] IBinder* token,
+            [in] Boolean visible);
+
+        StartAppFreezingScreen(
+            [in] IBinder* token,
+            [in] Int32 configChanges);
+
+        StopAppFreezingScreen(
+            [in] IBinder* token,
+            [in] Boolean force);
+
+        RemoveAppToken(
+            [in] IBinder* token);
+
+        MoveAppToken(
+            [in] Int32 index,
+            [in] IBinder* token);
+
+        MoveAppTokensToTop(
+            [in] IObjectContainer* tokens);
+
+        MoveAppTokensToBottom(
+            [in] IObjectContainer* tokens);
+
+        // Re-evaluate the current orientation from the caller's state.
+        // If there is a change, the new Configuration is returned and the
+        // caller must call setNewConfiguration() sometime later.
+        UpdateOrientationFromAppTokens(
+            [in] IConfiguration* currentConfig,
+            [in] IBinder* freezeThisOneIfNeeded,
+            [out] IConfiguration** config);
+
+        SetNewConfiguration(
+            [in] IConfiguration* config);
+
+        // these require DISABLE_KEYGUARD permission
+        DisableKeyguard(
+            [in] IBinder* token,
+            [in] String tag);
+
+        ReenableKeyguard(
+            [in] IBinder* token);
+
+        ExitKeyguardSecurely(
+            [in] IOnKeyguardExitResult* keyguardCallback);
+
+        InKeyguardRestrictedInputMode(
+            [out] Boolean* result);
+
+        CloseSystemDialogs(
+            [in] String reason);
+
+        // These can only be called with the SET_ANIMATON_SCALE permission.
+        GetAnimationScale(
+            [in] Int32 which,
+            [out] Float* scale);
+
+//        GetAnimationScales(
+//            [out] float[] scales);
+
+        SetAnimationScale(
+            [in] Int32 which,
+            [in] Float scale);
+
+//        SetAnimationScales(
+//            [in] float[] scales);
+
+        // These require the READ_INPUT_STATE permission.
+        GetSwitchState(
+            [in] Int32 sw,
+            [out] Int32* state);
+
+        GetSwitchStateForDevice(
+            [in] Int32 devid,
+            [in] Int32 sw,
+            [out] Int32* state);
+
+        GetScancodeState(
+            [in] Int32 sw,
+            [out] Int32* state);
+
+        GetScancodeStateForDevice(
+            [in] Int32 devid,
+            [in] Int32 sw,
+            [out] Int32* state);
+
+        GetTrackballScancodeState(
+            [in] Int32 sw,
+            [out] Int32* state);
+
+        GetDPadScancodeState(
+            [in] Int32 sw,
+            [out] Int32* state);
+
+        GetKeycodeState(
+            [in] Int32 sw,
+            [out] Int32* state);
+
+        GetKeycodeStateForDevice(
+            [in] Int32 devid,
+            [in] Int32 sw,
+            [out] Int32* state);
+
+        GetTrackballKeycodeState(
+            [in] Int32 sw,
+            [out] Int32* state);
+
+        GetDPadKeycodeState(
+            [in] Int32 sw,
+            [out] Int32* state);
+
+        MonitorInput(
+            [in] String inputChannelName,
+            [out] IInputChannel** channel);
+
+        // Report whether the hardware supports the given keys; returns true if successful
+//        HasKeys(
+//            [in] int[] keycodes,
+//            [inout] boolean[] keyExists,
+//            [out] Boolean* result);
+
+        // Get input device information.
+        GetInputDevice(
+            [in] Int32 deviceId,
+            [out] IInputDevice** device);
+
+//        GetInputDeviceIds(
+//            [out] int[] ids);
+
+        // For testing
+        SetInTouchMode(
+            [in] Boolean showFocus);
+
+        // These can only be called with the SET_ORIENTATION permission.
+        /**
+         * Change the current screen rotation, constants as per
+         * {@link android.view.Surface}.
+         * @param rotation the intended rotation.
+         * @param alwaysSendConfiguration Flag to force a new configuration to
+         * be evaluated.  This can be used when there are other parameters in
+         * configuration that are changing.
+         * @param animFlags Animation flags as per {@link android.view.Surface}.
+         */
+        SetRotation(
+            [in] Int32 rotation,
+            [in] Boolean alwaysSendConfiguration,
+            [in] Int32 animFlags);
+
+        /**
+         * Retrieve the current screen orientation, constants as per
+         * {@link android.view.Surface}.
+         */
+        GetRotation(
+            [out] Int32* rotation);
+
+        /**
+         * Watch the rotation of the screen.  Returns the current rotation,
+         * calls back when it changes.
+         */
+        WatchRotation(
+            [in] IRotationWatcher* watcher,
+            [out] Int32* rotation);
+    }
+}

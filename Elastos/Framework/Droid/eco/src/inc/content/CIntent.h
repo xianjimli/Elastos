@@ -1,0 +1,318 @@
+
+#ifndef __CINTENT_H__
+#define __CINTENT_H__
+
+#include "ext/frameworkdef.h"
+#include "_CIntent.h"
+#include "content/CComponentName.h"
+#include <elastos/AutoPtr.h>
+#include <elastos/Set.h>
+
+CarClass(CIntent)
+{
+public:
+    /**
+     * @hide
+     * Magic extra system code can use when binding, to give a label for
+     * who it is that has bound to a service.  This is an integer giving
+     * a framework string resource that can be displayed to the user.
+     */
+    static const String EXTRA_CLIENT_LABEL;
+
+    /**
+     * @hide
+     * Magic extra system code can use when binding, to give a PendingIntent object
+     * that can be launched for the user to disable the system's use of this
+     * service.
+     */
+    static const String EXTRA_CLIENT_INTENT;
+
+public:
+    /**
+     * Wrapper class holding an Intent and implementing comparisons on it for
+     * the purpose of filtering.  The class implements its
+     * {@link #equals equals()} and {@link #hashCode hashCode()} methods as
+     * simple calls to {@link Intent#filterEquals(Intent)}  filterEquals()} and
+     * {@link android.content.Intent#filterHashCode()}  filterHashCode()}
+     * on the wrapped Intent.
+     */
+    class FilterComparison
+    {
+    public:
+        FilterComparison(
+            /* [in] */ IIntent* intent);
+
+        /**
+         * Return the Intent that this FilterComparison represents.
+         * @return Returns the Intent held by the FilterComparison.  Do
+         * not modify!
+         */
+        CARAPI_(IIntent*) GetIntent();
+
+        CARAPI_(Int32) GetHashCode();
+
+        CARAPI_(Boolean) Equals(
+            /* [in] */ FilterComparison* obj);
+
+        CARAPI GetDescription(
+            /* [out] */ String* description);
+
+    private:
+        AutoPtr<IIntent> mIntent;
+        Int32 mHashCode;
+    };
+
+public:
+    CIntent();
+
+    ~CIntent();
+
+    CARAPI CloneFilter(
+        /* [out] */ IIntent** intent);
+
+    CARAPI GetComponent(
+        /* [out] */ IComponentName** component);
+
+    CARAPI SetComponent(
+        /* [in] */ IComponentName* component);
+
+    CARAPI GetCapsule(
+        /* [out] */ String* capsuleName);
+
+    CARAPI SetCapsule(
+        /* [in] */ String capsuleName);
+
+    CARAPI GetAction(
+        /* [out] */ String *pAction);
+
+    CARAPI SetAction(
+        /* [in] */ String action);
+
+    CARAPI GetData(
+        /* [out] */ IUri **pData);
+
+    CARAPI SetData(
+        /* [in] */ IUri *pData);
+
+    CARAPI SetFlags(
+        /* [in] */ Int32 flags);
+
+    CARAPI AddFlags(
+        /* [in] */ Int32 flags);
+
+    CARAPI GetFlags(
+        /* [out] */ Int32* flags);
+
+    CARAPI SetClassName(
+        /* [in] */ String capsuleName,
+        /* [in] */ String className);
+
+    CARAPI GetScheme(
+        /* [out] */ String* scheme);
+
+    CARAPI AddCategory(
+        /* [in] */ String category);
+
+    CARAPI HasCategory(
+        /* [in] */ String category,
+        /* [out] */ Boolean* hasCategory);
+
+    CARAPI GetCategories(
+        /* [out, callee] */ ArrayOf<String>** categories);
+
+    CARAPI HasFileDescriptors(
+        /* [out] */ Boolean* hasFD);
+
+    CARAPI PutBooleanExtra(
+        /* [in] */ String name,
+        /* [out] */ Boolean value);
+
+    CARAPI GetBooleanExtra(
+        /* [in] */ String name,
+        /* [out] */ Boolean *pValue);
+
+    CARAPI PutByteExtra(
+        /* [in] */ String name,
+        /* [in] */ Byte value);
+
+    CARAPI GetByteExtra(
+        /* [in] */ String name,
+        /* [out] */ Byte * pValue);
+
+    CARAPI PutCharExtra(
+        /* [in] */ String name,
+        /* [in] */ Char16 value);
+
+    CARAPI GetCharExtra(
+        /* [in] */ String name,
+        /* [out] */ Char16 * pValue);
+
+    CARAPI PutInt16Extra(
+        /* [in] */ String name,
+        /* [in] */ Int16 value);
+
+    CARAPI GetInt16Extra(
+        /* [in] */ String name,
+        /* [out] */ Int16 * pValue);
+
+    CARAPI PutInt32Extra(
+        /* [in] */ String name,
+        /* [in] */ Int32 value);
+
+    CARAPI GetInt32Extra(
+        /* [in] */ String name,
+        /* [out] */ Int32 *pValue);
+
+    CARAPI PutInt64Extra(
+        /* [in] */ String name,
+        /* [in] */ Int64 value);
+
+    CARAPI GetInt64Extra(
+        /* [in] */ String name,
+        /* [out] */ Int64 * pValue);
+
+    CARAPI PutFloatExtra(
+        /* [in] */ String name,
+        /* [in] */ Float value);
+
+    CARAPI GetFloatExtra(
+        /* [in] */ String name,
+        /* [out] */ Float * pValue);
+
+    CARAPI PutDoubleExtra(
+        /* [in] */ String name,
+        /* [in] */ Double value);
+
+    CARAPI GetDoubleExtra(
+        /* [in] */ String name,
+        /* [out] */ Double * pValue);
+
+    CARAPI PutStringExtra(
+        /* [in] */ String name,
+        /* [in] */ String value);
+
+    CARAPI GetStringExtra(
+        /* [in] */ String name,
+        /* [out] */ String * pValue);
+
+    CARAPI PutExtras(
+        /* [in] */ IBundle * pExtras);
+
+    CARAPI GetExtras(
+        /* [out] */ IBundle ** ppValue);
+
+    CARAPI PutParcelableExtra(
+        /* [in] */ String name,
+        /* [in] */ IParcelable* value);
+
+    CARAPI GetParcelableExtra(
+        /* [in] */ String name,
+        /* [out] */ IParcelable** value);
+
+    CARAPI GetStringArrayExtra(
+        /* [in] */ String name,
+        /* [out, callee] */ ArrayOf<String>** array);
+
+    CARAPI ResolveActivityInfo(
+        /* [in] */ ICapsuleManager* pm,
+        /* [in] */ Int32 flags,
+        /* [out] */ IActivityInfo** info);
+
+    CARAPI ResolveType(
+        /* [in] */ IContentResolver* resolver,
+        /* [out] */ String* type);
+
+    CARAPI ResolveTypeIfNeeded(
+        /* [in] */ IContentResolver* resolver,
+        /* [out] */ String* type);
+
+    CARAPI FilterEquals(
+        /* [in] */ IIntent* other,
+        /* [out] */ Boolean* isEqual);
+
+    CARAPI GetFilterHashCode(
+        /* [out] */ Int32* hashCode);
+
+    CARAPI GetDescription(
+        /* [out] */ String* description);
+
+    CARAPI ReadFromParcel(
+        /* [in] */ IParcel *source);
+
+    CARAPI WriteToParcel(
+        /* [in] */ IParcel *dest);
+
+    CARAPI constructor();
+
+    CARAPI constructor(
+        /* [in] */ IIntent* intent);
+
+    CARAPI constructor(
+        /* [in] */ IIntent* intent,
+        /* [in] */ Boolean all);
+
+    CARAPI constructor(
+        /* [in] */ String action);
+
+    CARAPI constructor(
+        /* [in] */ String action,
+        /* [in] */ IUri* uri);
+
+    CARAPI constructor(
+        /* [in] */ Handle32 intent);
+
+public:
+    CARAPI CloneFilter(
+        /* [out] */ CIntent** intent);
+
+    CARAPI ReplaceExtras(
+        /* [in] */ CIntent* src);
+
+private:
+/*
+    android intent:
+
+    private String mAction;
+    private Uri mData;
+    private String mType;
+    private String mPackage;
+    private ComponentName mComponent;
+    private Int32 mFlags;
+    private HashSet<String> mCategories;
+    private Bundle mExtras;
+*/
+
+    String mAction;
+    AutoPtr<IUri> mData;
+    String mType;
+    String mCapsule;
+    AutoPtr<CComponentName> mComponent;
+    Int32 mFlags;
+    Set<String>* mCategories;
+    AutoPtr<IBundle> mExtras;
+};
+
+_ELASTOS_NAMESPACE_BEGIN
+
+template<> struct Hash<CIntent::FilterComparison*>
+{
+    size_t operator()(CIntent::FilterComparison* filter) const
+    {
+        assert(filter != NULL);
+        return (size_t)filter->GetHashCode();
+    }
+};
+
+template<> struct EqualTo<CIntent::FilterComparison*>
+{
+    Boolean operator()(CIntent::FilterComparison* x,
+                       CIntent::FilterComparison* y) const
+    {
+        assert(x != NULL);
+        return x->Equals(y);
+    }
+};
+
+_ELASTOS_NAMESPACE_END
+
+#endif // __CINTENT_H__

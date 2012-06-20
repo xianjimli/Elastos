@@ -1,0 +1,252 @@
+
+module
+{
+    interface IBitmap;
+    interface IResources;
+    interface ITypedValue;
+    interface IRect;
+    interface IMatrix;
+
+    interface IBitmapFactoryOptions {
+    }
+
+    interface IBitmapFactory {
+        CreateBitmap(
+            [in] IBitmap* source,
+            [out] IBitmap** bitmap);
+
+        CreateBitmapEx(
+            [in] IBitmap* source,
+            [in] Int32 x,
+            [in] Int32 y,
+            [in] Int32 width,
+            [in] Int32 height,
+            [out] IBitmap** bitmap);
+
+        CreateBitmapEx2(
+            [in] IBitmap* source,
+            [in] Int32 x,
+            [in] Int32 y,
+            [in] Int32 width,
+            [in] Int32 height,
+            [in] IMatrix* m,
+            [in] Boolean filter,
+            [out] IBitmap** bitmap);
+
+        CreateBitmapEx3(
+            [in] Int32 width,
+            [in] Int32 height,
+            [in] BitmapConfig config,
+            [out] IBitmap** bitmap);
+
+        CreateBitmapEx4(
+            [in] ArrayOf<Int32> colors,
+            [in] Int32 offset,
+            [in] Int32 stride,
+            [in] Int32 width,
+            [in] Int32 height,
+            [in] BitmapConfig config,
+            [out] IBitmap** bitmap);
+
+        CreateBitmapEx5(
+            [in] ArrayOf<Int32> colors,
+            [in] Int32 width,
+            [in] Int32 height,
+            [in] BitmapConfig config,
+            [out] IBitmap** bitmap);
+
+        /**
+         * Decode a file path into a bitmap. If the specified file name is null,
+         * or cannot be decoded into a bitmap, the function returns null.
+         *
+         * @param pathName complete path name for the file to be decoded.
+         * @param opts null-ok; Options that control downsampling and whether the
+         *             image should be completely decoded, or just is size returned.
+         * @return The decoded bitmap, or null if the image data could not be
+         *         decoded, or, if opts is non-null, if opts requested only the
+         *         size be returned (in opts.outWidth and opts.outHeight)
+         */
+        DecodeFile(
+            [in] String pathName,
+            [in] IBitmapFactoryOptions* opts,
+            [out] IBitmap** bitmap);
+
+        /**
+         * Decode a file path into a bitmap. If the specified file name is null,
+         * or cannot be decoded into a bitmap, the function returns null.
+         *
+         * @param pathName complete path name for the file to be decoded.
+         * @return the resulting decoded bitmap, or null if it could not be decoded.
+         */
+        DecodeFileEx(
+            [in] String pathName,
+            [out] IBitmap** bitmap);
+
+        /**
+         * Decode a new Bitmap from an InputStream. This InputStream was obtained from
+         * resources, which we pass to be able to scale the bitmap accordingly.
+         */
+        DecodeResourceStream(
+            [in] IResources* res,
+            [in] ITypedValue* value,
+            [in] IInputStream* is,
+            [in] IRect* pad,
+            [in] IBitmapFactoryOptions* opts,
+            [out] IBitmap** bitmap);
+
+        /**
+         * Synonym for opening the given resource and calling
+         * {@link #decodeResourceStream}.
+         *
+         * @param res   The resources object containing the image data
+         * @param id The resource id of the image data
+         * @param opts null-ok; Options that control downsampling and whether the
+         *             image should be completely decoded, or just is size returned.
+         * @return The decoded bitmap, or null if the image data could not be
+         *         decoded, or, if opts is non-null, if opts requested only the
+         *         size be returned (in opts.outWidth and opts.outHeight)
+         */
+        DecodeResource(
+            [in] IResources* res,
+            [in] Int32 id,
+            [in] IBitmapFactoryOptions* opts,
+            [out] IBitmap** bitmap);
+
+        /**
+         * Synonym for {@link #decodeResource(Resources, int, android.graphics.BitmapFactory.Options)}
+         * will null Options.
+         *
+         * @param res The resources object containing the image data
+         * @param id The resource id of the image data
+         * @return The decoded bitmap, or null if the image could not be decode.
+         */
+        DecodeResourceEx(
+            [in] IResources* res,
+            [in] Int32 id,
+            [out] IBitmap** bitmap);
+
+        /**
+         * Decode an immutable bitmap from the specified byte array.
+         *
+         * @param data byte array of compressed image data
+         * @param offset offset into imageData for where the decoder should begin
+         *               parsing.
+         * @param length the number of bytes, beginning at offset, to parse
+         * @param opts null-ok; Options that control downsampling and whether the
+         *             image should be completely decoded, or just is size returned.
+         * @return The decoded bitmap, or null if the image data could not be
+         *         decoded, or, if opts is non-null, if opts requested only the
+         *         size be returned (in opts.outWidth and opts.outHeight)
+         */
+        DecodeByteArray(
+            [in] ArrayOf<Byte> data,
+            [in] Int32 offset,
+            [in] Int32 length,
+            [in] IBitmapFactoryOptions* opts,
+            [out] IBitmap** bitmap);
+
+        /**
+         * Decode an immutable bitmap from the specified byte array.
+         *
+         * @param data byte array of compressed image data
+         * @param offset offset into imageData for where the decoder should begin
+         *               parsing.
+         * @param length the number of bytes, beginning at offset, to parse
+         * @return The decoded bitmap, or null if the image could not be decode.
+         */
+        DecodeByteArrayEx(
+            [in] ArrayOf<Byte> data,
+            [in] Int32 offset,
+            [in] Int32 length,
+            [out] IBitmap** bitmap);
+
+        /**
+         * Decode an input stream into a bitmap. If the input stream is null, or
+         * cannot be used to decode a bitmap, the function returns null.
+         * The stream's position will be where ever it was after the encoded data
+         * was read.
+         *
+         * @param is The input stream that holds the raw data to be decoded into a
+         *           bitmap.
+         * @param outPadding If not null, return the padding rect for the bitmap if
+         *                   it exists, otherwise set padding to [-1,-1,-1,-1]. If
+         *                   no bitmap is returned (null) then padding is
+         *                   unchanged.
+         * @param opts null-ok; Options that control downsampling and whether the
+         *             image should be completely decoded, or just is size returned.
+         * @return The decoded bitmap, or null if the image data could not be
+         *         decoded, or, if opts is non-null, if opts requested only the
+         *         size be returned (in opts.outWidth and opts.outHeight)
+         */
+        DecodeStream(
+            [in] IInputStream* is,
+            [in] IRect* outPadding,
+            [in] IBitmapFactoryOptions* opts,
+            [out] IBitmap** bitmap);
+
+        /**
+         * Decode an input stream into a bitmap. If the input stream is null, or
+         * cannot be used to decode a bitmap, the function returns null.
+         * The stream's position will be where ever it was after the encoded data
+         * was read.
+         *
+         * @param is The input stream that holds the raw data to be decoded into a
+         *           bitmap.
+         * @return The decoded bitmap, or null if the image data could not be
+         *         decoded, or, if opts is non-null, if opts requested only the
+         *         size be returned (in opts.outWidth and opts.outHeight)
+         */
+        DecodeStreamEx(
+            [in] IInputStream* is,
+            [out] IBitmap** bitmap);
+
+        /**
+         * Decode a bitmap from the file descriptor. If the bitmap cannot be decoded
+         * return null. The position within the descriptor will not be changed when
+         * this returns, so the descriptor can be used again as-is.
+         *
+         * @param fd The file descriptor containing the bitmap data to decode
+         * @param outPadding If not null, return the padding rect for the bitmap if
+         *                   it exists, otherwise set padding to [-1,-1,-1,-1]. If
+         *                   no bitmap is returned (null) then padding is
+         *                   unchanged.
+         * @param opts null-ok; Options that control downsampling and whether the
+         *             image should be completely decoded, or just is size returned.
+         * @return the decoded bitmap, or null
+         */
+        DecodeFileDescriptor(
+            [in] IFileDescriptor* fd,
+            [in] IRect* outPadding,
+            [in] IBitmapFactoryOptions* opts,
+            [out] IBitmap** bitmap);
+
+        /**
+         * Decode a bitmap from the file descriptor. If the bitmap cannot be decoded
+         * return null. The position within the descriptor will not be changed when
+         * this returns, so the descriptor can be used again as is.
+         *
+         * @param fd The file descriptor containing the bitmap data to decode
+         * @return the decoded bitmap, or null
+         */
+        DecodeFileDescriptorEx(
+            [in] IFileDescriptor* fd,
+            [out] IBitmap** bitmap);
+
+        /**
+         * Set the default config used for decoding bitmaps. This config is
+         * presented to the codec if the caller did not specify a preferred config
+         * in their call to decode...
+         *
+         * The default value is chosen by the system to best match the device's
+         * screen and memory constraints.
+         *
+         * @param config The preferred config for decoding bitmaps. If null, then
+         *               a suitable default is chosen by the system.
+         *
+         * @hide - only called by the browser at the moment, but should be stable
+         *   enough to expose if needed
+         */
+        SetDefaultConfig(
+            [in] BitmapConfig config);
+    }
+}

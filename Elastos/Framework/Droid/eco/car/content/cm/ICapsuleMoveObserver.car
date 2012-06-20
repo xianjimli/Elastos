@@ -1,0 +1,9 @@
+
+module
+{
+    interface ICapsuleMoveObserver {
+        CapsuleMoved(
+            [in] String capName,
+            [in] Int32 retCode);
+    }
+}

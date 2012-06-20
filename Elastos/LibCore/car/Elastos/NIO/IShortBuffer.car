@@ -1,0 +1,8 @@
+
+module
+{
+    interface IBuffer;
+
+    interface IShortBuffer extends IBuffer {
+    }
+}

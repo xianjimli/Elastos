@@ -1,0 +1,13 @@
+
+module
+{
+    interface IObjectIntegerMap {
+        Get(
+            [in] Int32 key,
+            [out] IInterface** value);
+
+        Put(
+            [in] Int32 key,
+            [in] IInterface* value);
+    }
+}
