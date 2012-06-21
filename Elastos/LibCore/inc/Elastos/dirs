@@ -1,5 +1,4 @@
 
 DIRS = System
 DIRS += Utility
-DIRS += UtilityLib
 DIRS += Test
