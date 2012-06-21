@@ -9,7 +9,7 @@ SOURCES = carcode.cpp
 
 LIBRARIES = ../ElCar/Carc/clsbase/clsbase.lib
 LIBRARIES += ../ElCar/Carc/clsutil/clsutil.lib
-LIBRARIES += $(XDK_BUILD_PATH)/Tools/zlib.so
+LIBRARIES += -lz
 LIBRARIES += -lstdc++
 
 #EXTERN_LIBS += msvcrt

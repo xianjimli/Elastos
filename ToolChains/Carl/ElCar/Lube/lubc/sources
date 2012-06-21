@@ -24,7 +24,7 @@ LIBRARIES = ../userfunc/userfunc.lib
 LIBRARIES += ../lubase/lubase.lib
 LIBRARIES += ../../Carc/clsutil/clsutil.lib
 LIBRARIES += ../../Carc/clsbase/clsbase.lib
-LIBRARIES += $(XDK_BUILD_PATH)/Tools/zlib.so
+LIBRARIES += -lz
 LIBRARIES += -lstdc++
 
 #EXTERN_LIBS += user32

@@ -18,7 +18,7 @@ SOURCES += carc.rc
 
 LIBRARIES = ../clsutil/clsutil.lib
 LIBRARIES += ../clsbase/clsbase.lib
-LIBRARIES += $(XDK_BUILD_PATH)/Tools/zlib.so
+LIBRARIES += -lz
 LIBRARIES += -lstdc++
 
 #EXTERN_LIBS = user32
