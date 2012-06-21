@@ -1,4 +1,4 @@
-TARGET_NAME=zlib
+TARGET_NAME=libz
 ifeq "$(XDK_TARGET_PRODUCT)" "devtools"
 TARGET_TYPE=so
 else
