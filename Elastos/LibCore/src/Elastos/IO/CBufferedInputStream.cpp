@@ -1,304 +1,102 @@
-//==========================================================================
-// Copyright (c) 2000-2008,  Elastos, Inc.  All Rights Reserved.
-//==========================================================================
-#include <stdio.h>
-#include "CBufferedInputStream.h"
-#include "local.h"
 
-ECode CBufferedInputStream::fill()
-{
-    if (m_markpos < 0) {
-        m_pos = 0;  /* no mark: throw away the buffer */
-    }
-    else if (m_pos >= m_pBuf->GetCapacity()) { /* no room left in m_pBuf */
-        if (m_markpos > 0) { /* can throw away early part of the buffer */
-            Int32 sz = m_pos - m_markpos;
-            PByte pBuf = m_pBuf->GetPayload();
-            memmove(pBuf, pBuf + m_markpos, sz);
-            m_pos = sz;
-            m_pBuf->SetUsed(sz);
-            m_markpos = 0;
-        }
-        else if (m_pBuf->GetCapacity() >= m_markLimit) {
-            m_markpos = -1; /* m_pBuf got too big, invalidate mark */
-            m_pos = 0; /* drop buffer contents */
-        }
-        else {  /* grow buffer */
-            Int32 nsz = m_pos * 2;
-            if (nsz > m_markLimit) nsz = m_markLimit;
-            BufferOf<Byte>* pNewBuf = BufferOf<Byte>::Alloc(nsz);
-            if (!pNewBuf) {
-                return E_OUT_OF_MEMORY;
-            }
-            pNewBuf->Copy(m_pBuf->GetPayload(), m_pos);
-            BufferOf<Byte>::Free(m_pBuf);
-            m_pBuf = pNewBuf;
-        }
-    }
-    return m_pIis->ReadBufferEx(m_pos, m_pBuf->GetCapacity() - m_pos, m_pBuf);
-}
+#include "cmdef.h"
+#include "CBufferedInputStream.h"
 
 ECode CBufferedInputStream::Available(
-    /* [out] */ Int32 * pBytes)
+    /* [out] */ Int32* number)
 {
-    Int32 available;
-    if (!pBytes) {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(number);
 
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
+    Mutex::Autolock lock(_m_syncLock);
 
-    ECode ec = m_pIis->Available(&available);
-    if (FAILED(ec))  return ec;
-
-    *pBytes = available + (m_pBuf->GetUsed() - m_pos);
-    return NOERROR;
+    return BufferedInputStream::Available(number);
 }
 
 ECode CBufferedInputStream::Close()
 {
-    if (m_pIis) {
-        m_pIis->Release();
-        m_pIis = NULL;
-    }
-
-    if (m_pBuf) {
-        BufferOf<Byte>::Free(m_pBuf);
-        m_pBuf = NULL;
-    }
-
-    return NOERROR;
+    return BufferedInputStream::Close();
 }
 
 ECode CBufferedInputStream::Mark(
     /* [in] */ Int32 readLimit)
 {
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
+    Mutex::Autolock lock(_m_syncLock);
 
-    m_markLimit = readLimit;
-    m_markpos = m_pos;
-    return NOERROR;
+    return BufferedInputStream::Mark(readLimit);
 }
 
 ECode CBufferedInputStream::IsMarkSupported(
-    /* [out] */ Boolean * pSupported)
+    /* [out] */ Boolean* supported)
 {
-    if (!pSupported) {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(supported);
 
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
-
-    *pSupported = TRUE;
-    return NOERROR;
+    return BufferedInputStream::IsMarkSupported(supported);
 }
 
 ECode CBufferedInputStream::Read(
-    /* [out] */ Byte * pByte)
+    /* [out] */ Int32* value)
 {
-    ECode ec = NOERROR;
-    if (!pByte) {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(value);
 
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
+    Mutex::Autolock lock(_m_syncLock);
 
-    if (m_pos >= m_pBuf->GetUsed()) {
-        ec = fill();
-        if (FAILED(ec)) {
-            return ec;
-        }
-        if (m_pos >= m_pBuf->GetUsed()) {
-            return E_OUT_OF_STREAM;
-        }
-    }
-
-    *pByte = (*m_pBuf)[m_pos++];
-    return ec;
-}
-
-/**
-  * Read characters into a portion of an array, reading from the underlying
-  * stream at most once if necessary.
-  */
-ECode CBufferedInputStream::read(BufferOf<Byte> *pBuf, Int32 offset, Int32 len,
-     Int32 *pRead)
-{
-    Int32 avail = m_pBuf->GetUsed() - m_pos;
-
-    if (avail <= 0) {
-        /* If the requested length is at least as large as the buffer, and
-           if there is no mark/reset activity, do not bother to copy the
-           bytes into the local buffer.  In this way buffered streams will
-           cascade harmlessly. */
-        ECode ec;
-        if (len >= m_pBuf->GetCapacity() && m_markpos < 0) {
-            ec = m_pIis->ReadBufferEx(offset, len, pBuf);
-            if (FAILED(ec)) {
-                return ec;
-            }
-
-            *pRead = pBuf->GetUsed() - offset;
-            return NOERROR;
-        }
-        ec = fill();
-        if (FAILED(ec)) {
-            return ec;
-        }
-        avail = m_pBuf->GetUsed() - m_pos;
-        if (avail <= 0) {
-            return E_OUT_OF_STREAM;
-        }
-    }
-
-    Int32 cnt = (avail < len) ? avail : len;
-    pBuf->Replace(offset, m_pBuf->GetPayload() + m_pos, cnt);
-    m_pos += cnt;
-    *pRead = cnt;
-    return NOERROR;
+    return BufferedInputStream::Read(value);
 }
 
 ECode CBufferedInputStream::ReadBuffer(
-    /* [out] */ BufferOf<Byte> * pBuffer)
+    /* [out] */ ArrayOf<Byte>* buffer,
+    /* [out] */ Int32* number)
 {
-    if (pBuffer == NULL || !pBuffer->GetCapacity()) {
-        return E_INVALID_ARGUMENT;
-    }
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
-    return ReadBufferEx(0, pBuffer->GetCapacity(), pBuffer);
+    VALIDATE_NOT_NULL(number);
+
+    return BufferedInputStream::ReadBuffer(buffer, number);
 }
 
 ECode CBufferedInputStream::ReadBufferEx(
     /* [in] */ Int32 offset,
     /* [in] */ Int32 length,
-    /* [out] */ BufferOf<Byte> * pBuffer)
+    /* [out] */ ArrayOf<Byte>* buffer,
+    /* [out] */ Int32* number)
 {
-    if (pBuffer == NULL || offset < 0 || length < 0
-        || (pBuffer->GetCapacity() < length + offset)
-        || (pBuffer->GetUsed() < offset)) {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(number);
 
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
+    Mutex::Autolock lock(_m_syncLock);
 
-    if (length == 0)
-        return NOERROR;
-
-    Int32 n = 0;
-    Int32 avail;
-    ECode ec;
-    while (TRUE) {
-        Int32 nRead;
-        ec = read(pBuffer, offset + n, length - n, &nRead);
-        if (FAILED(ec)) {
-            return ec;
-        }
-        n += nRead;
-
-        if (n >= length) {
-            break;
-        }
-
-        ec = m_pIis->Available(&avail);
-        if (FAILED(ec)) {
-            return ec;
-        }
-
-        if (avail <= 0)
-            break;
-    }
-    return NOERROR;
+    return BufferedInputStream::ReadBufferEx(offset, length, buffer, number);
 }
 
 ECode CBufferedInputStream::Reset()
 {
-    if (m_markpos < 0) {
-        return E_INVALID_OPTIONS;
-    }
+    Mutex::Autolock lock(_m_syncLock);
 
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
-
-    m_pos = m_markpos;
-    return NOERROR;
+    return BufferedInputStream::Reset();
 }
 
 ECode CBufferedInputStream::Skip(
-    /* [in] */ Int32 length)
+    /* [in] */ Int64 length,
+    /* [out] */ Int64* number)
 {
-    if (length <= 0) {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(number);
 
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
+    Mutex::Autolock lock(_m_syncLock);
 
-    Int32 avail = m_pBuf->GetUsed() - m_pos;
-
-    if (avail <= 0) {
-        if (m_markpos < 0) {
-            return m_pIis->Skip(length);
-        }
-
-        // Fill in buffer to save bytes for reset
-        ECode ec = fill();
-        if (FAILED(ec)) {
-            return ec;
-        }
-        avail = m_pBuf->GetUsed() - m_pos;
-        if (avail <= 0)
-            return E_OUT_OF_STREAM;
-    }
-
-    Int32 skipped = (avail < length) ? avail : length;
-    m_pos += skipped;
-    return NOERROR;
+    return BufferedInputStream::Skip(length, number);
 }
 
 ECode CBufferedInputStream::constructor(
-    /* [in] */ IInputStream * pStream)
+    /* [in] */ IInputStream* is)
 {
-    return constructor(pStream, STREAM_BUFFER_SIZE);
+    return BufferedInputStream::Init(is, 8192);
 }
 
 ECode CBufferedInputStream::constructor(
-    /* [in] */ IInputStream * pStream,
-    /* [in] */ Int32 bufferSize)
+    /* [in] */ IInputStream* is,
+    /* [in] */ Int32 size)
 {
-    if (!pStream || bufferSize <= 0)
-        return E_INVALID_ARGUMENT;
-
-    bufferSize = bufferSize > STREAM_BUFFER_SIZE ?
-                 bufferSize : STREAM_BUFFER_SIZE;
-    m_pBuf = BufferOf<Byte>::Alloc(bufferSize);
-    if (!m_pBuf) {
-        return E_OUT_OF_MEMORY;
-    }
-
-    m_pIis = pStream;
-    m_pIis->AddRef();
-
-    m_pos = 0;
-    m_markLimit = -1;
-    m_markpos = -1;
-    return NOERROR;
+    return BufferedInputStream::Init(is, size);
 }
 
-CBufferedInputStream::~CBufferedInputStream()
+Mutex* CBufferedInputStream::GetSelfLock()
 {
-    Close();
+    return &_m_syncLock;
 }

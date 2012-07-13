@@ -13,7 +13,7 @@ ECode LookupClassInfo(
     /* [out] */ CIClassInfo **ppClassInfo);
 
 ECode GetRemoteClassInfo(
-    /* [in] */ String connectionName,
+    /* [in] */ const char* connectionName,
     /* [in] */ REMuid clsId,
     /* [out] */ CIClassInfo ** ppClassInfo);
 
@@ -779,7 +779,7 @@ ECode CObjectProxy::GetClassInfo(
 
 ECode CObjectProxy::S_CreateObject(
     /* [in] */ REMuid rclsid,
-    /* [in] */ String stubConnName,
+    /* [in] */ const char* stubConnName,
     /* [out] */ IProxy **ppIProxy)
 {
     CObjectProxy *pProxy;
@@ -796,7 +796,7 @@ ECode CObjectProxy::S_CreateObject(
         return E_OUT_OF_MEMORY;
     }
 
-    pProxy->m_stubConnName = String::Duplicate(stubConnName);
+    pProxy->m_stubConnName = stubConnName;
 
     ec = LookupClassInfo(rclsid, &(pProxy->m_pInfo));
     if (FAILED(ec)) {

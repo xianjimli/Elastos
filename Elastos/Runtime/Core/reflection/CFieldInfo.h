@@ -29,7 +29,7 @@ public:
 
     CFieldInfo(
         /* [in] */ IStructInfo * pStructInfo,
-        /* [in] */ String name,
+        /* [in] */ CString name,
         /* [in] */ IDataTypeInfo *pTypeInfo);
 
     virtual ~CFieldInfo();

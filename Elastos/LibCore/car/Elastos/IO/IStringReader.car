@@ -1,0 +1,7 @@
+module
+{
+    interface IReader;
+
+    interface IStringReader extends IReader {
+    }
+}

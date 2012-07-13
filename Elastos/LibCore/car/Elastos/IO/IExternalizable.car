@@ -1,0 +1,30 @@
+module
+{
+    interface ISerializable;
+
+    interface IDataInput extends ISerializable{
+        /**
+         * Reads the next object from the ObjectInput <code>input</code>.
+         *
+         * @param input
+         *            the ObjectInput from which the next object is read.
+         * @throws IOException
+         *             if an error occurs attempting to read from {@code input}.
+         * @throws ClassNotFoundException
+         *             if the class of the instance being loaded cannot be found.
+         */
+        ReadExternal(
+            [in] IObjectInput* input);
+    
+        /**
+         * Writes the receiver to the ObjectOutput <code>output</code>.
+         *
+         * @param output
+         *            the ObjectOutput to write the object to.
+         * @throws IOException
+         *             if an error occurs attempting to write to {@code output}.
+         */
+        WwriteExternal(
+            [in] IObjectOutput* output);
+    }
+}

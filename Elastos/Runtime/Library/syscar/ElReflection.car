@@ -50,21 +50,22 @@ library
         CarDataType_Double      = 6,
         CarDataType_Char8       = 7,
         CarDataType_Char16      = 8,
-        CarDataType_String      = 9,
-        CarDataType_Boolean     = 10,
-        CarDataType_EMuid       = 11,
-        CarDataType_EGuid       = 12,
-        CarDataType_ECode       = 13,
-        CarDataType_LocalPtr    = 14,
-        CarDataType_LocalType   = 15,
-        CarDataType_Enum        = 16,
-        CarDataType_StringBuf   = 17,
-        CarDataType_ArrayOf     = 18,
-        CarDataType_BufferOf    = 19,
-        CarDataType_MemoryBuf   = 20,
-        CarDataType_CppVector   = 21,
-        CarDataType_Struct      = 22,
-        CarDataType_Interface   = 23
+        CarDataType_CString     = 9,
+        CarDataType_String      = 10,
+        CarDataType_Boolean     = 11,
+        CarDataType_EMuid       = 12,
+        CarDataType_EGuid       = 13,
+        CarDataType_ECode       = 14,
+        CarDataType_LocalPtr    = 15,
+        CarDataType_LocalType   = 16,
+        CarDataType_Enum        = 17,
+        CarDataType_StringBuf   = 18,
+        CarDataType_ArrayOf     = 19,
+        CarDataType_BufferOf    = 20,
+        CarDataType_MemoryBuf   = 21,
+        CarDataType_CppVector   = 22,
+        CarDataType_Struct      = 23,
+        CarDataType_Interface   = 24
     }
 
     enum ParamIOAttribute {
@@ -113,7 +114,7 @@ library
             [out] BufferOf<IEnumItemInfo*> itemInfos);
 
         GetItemInfo(
-            [in] String name,
+            [in] CString name,
             [out] IEnumItemInfo** enumItemInfo);
     }
 
@@ -175,7 +176,7 @@ library
             [out] BufferOf<IFieldInfo*> fieldInfos);
 
         GetFieldInfo(
-            [in] String name,
+            [in] CString name,
             [out] IFieldInfo** fieldInfo);
 
         CreateVariable(
@@ -219,7 +220,7 @@ library
             [out] BufferOf<IMethodInfo*> methodInfos);
 
         GetMethodInfo(
-            [in] String name,
+            [in] CString name,
             [out] IMethodInfo** methodInfo);
     }
 
@@ -240,7 +241,7 @@ library
             [out] IParamInfo** paramInfo);
 
         GetParamInfoByName(
-            [in] String name,
+            [in] CString name,
             [out] IParamInfo** paramInfo);
     }
 
@@ -338,6 +339,10 @@ library
         SetInputArgumentOfChar16(
             [in] Int32 index,
             [in] Char16 value);
+
+        SetInputArgumentOfCString(
+            [in] Int32 index,
+            [in] CString value);
 
         SetInputArgumentOfString(
             [in] Int32 index,
@@ -558,6 +563,10 @@ library
             [in] Int32 index,
             [in] Char16 value);
 
+        SetCStringElement(
+            [in] Int32 index,
+            [in] CString value);
+
         SetStringElement(
             [in] Int32 index,
             [in] String value);
@@ -635,6 +644,10 @@ library
             [in] Int32 index,
             [out] Char16* value);
 
+        GetCStringElement(
+            [in] Int32 index,
+            [out] CString* value);
+
         GetStringElement(
             [in] Int32 index,
             [out] String* value);
@@ -675,7 +688,7 @@ library
             [in] Char8 character);
 
         SetData (
-            [in] String str);
+            [in] CString str);
     }
 
     [local]
@@ -699,142 +712,142 @@ library
         ZeroAllFields();
 
         SetInt16Field(
-            [in] String name,
+            [in] CString name,
             [in] Int16 value);
 
         SetInt32Field(
-            [in] String name,
+            [in] CString name,
             [in] Int32 value);
 
         SetInt64Field(
-            [in] String name,
+            [in] CString name,
             [in] Int64 value);
 
         SetByteField(
-            [in] String name,
+            [in] CString name,
             [in] Byte value);
 
         SetFloatField(
-            [in] String name,
+            [in] CString name,
             [in] Float value);
 
         SetDoubleField(
-            [in] String name,
+            [in] CString name,
             [in] Double value);
 
         SetChar8Field(
-            [in] String name,
+            [in] CString name,
             [in] Char8 value);
 
         SetChar16Field(
-            [in] String name,
+            [in] CString name,
             [in] Char16 value);
 
         SetBooleanField(
-            [in] String name,
+            [in] CString name,
             [in] Boolean value);
 
         SetEMuidField(
-            [in] String name,
+            [in] CString name,
             [in] EMuid* value);
 
         SetEGuidField(
-            [in] String name,
+            [in] CString name,
             [in] EGuid* value);
 
         SetECodeField(
-            [in] String name,
+            [in] CString name,
             [in] ECode value);
 
         SetLocalPtrField(
-            [in] String name,
+            [in] CString name,
             [in] LocalPtr value);
 
         SetLocalTypeField(
-            [in] String name,
+            [in] CString name,
             [in] PVoid value);
 
         SetEnumField(
-            [in] String name,
+            [in] CString name,
             [in] Int32 value);
 
         GetStructFieldSetter(
-            [in] String name,
+            [in] CString name,
             [out] IStructSetter** setter);
 
         GetCppVectorFieldSetter(
-            [in] String name,
+            [in] CString name,
             [out] ICppVectorSetter** setter);
     }
 
     [local]
     interface IStructGetter {
         GetInt16Field(
-            [in] String name,
+            [in] CString name,
             [out] Int16* value);
 
         GetInt32Field(
-            [in] String name,
+            [in] CString name,
             [out] Int32* value);
 
         GetInt64Field(
-            [in] String name,
+            [in] CString name,
             [out] Int64* value);
 
         GetByteField(
-            [in] String name,
+            [in] CString name,
             [out] Byte* value);
 
         GetFloatField(
-            [in] String name,
+            [in] CString name,
             [out] Float* value);
 
         GetDoubleField(
-            [in] String name,
+            [in] CString name,
             [out] Double* value);
 
         GetChar8Field(
-            [in] String name,
+            [in] CString name,
             [out] Char8* value);
 
         GetChar16Field(
-            [in] String name,
+            [in] CString name,
             [out] Char16* value);
 
         GetBooleanField(
-            [in] String name,
+            [in] CString name,
             [out] Boolean* value);
 
         GetEMuidField(
-            [in] String name,
+            [in] CString name,
             [out] EMuid* value);
 
         GetEGuidField(
-            [in] String name,
+            [in] CString name,
             [out] EGuid* value);
 
         GetECodeField(
-            [in] String name,
+            [in] CString name,
             [out] ECode* value);
 
         GetLocalPtrField(
-            [in] String name,
+            [in] CString name,
             [out] LocalPtr* value);
 
         GetLocalTypeField(
-            [in] String name,
+            [in] CString name,
             [out] PVoid value);
 
         GetEnumField(
-            [in] String name,
+            [in] CString name,
             [out] Int32* value);
 
         GetStructFieldGetter(
-            [in] String name,
+            [in] CString name,
             [out] IStructGetter** getter);
 
         GetCppVectorFieldGetter(
-            [in] String name,
+            [in] CString name,
             [out] ICppVectorGetter** getter);
     }
 
@@ -1010,7 +1023,7 @@ library
             [out] BufferOf<IClassInfo*> classInfos);
 
         GetClassInfo(
-            [in] String name,
+            [in] CString name,
             [out] IClassInfo** classInfo);
 
         GetInterfaceCount(
@@ -1020,7 +1033,7 @@ library
             [out] BufferOf<IInterfaceInfo*> interfaceInfos);
 
         GetInterfaceInfo(
-            [in] String name,
+            [in] CString name,
             [out] IInterfaceInfo** interfaceInfo);
 
         GetStructCount(
@@ -1030,7 +1043,7 @@ library
             [out] BufferOf<IStructInfo*> structInfos);
 
         GetStructInfo(
-            [in] String name,
+            [in] CString name,
             [out] IStructInfo** structInfo);
 
         GetEnumCount(
@@ -1040,7 +1053,7 @@ library
             [out] BufferOf<IEnumInfo*> enumInfos);
 
         GetEnumInfo(
-            [in] String name,
+            [in] CString name,
             [out] IEnumInfo** enumInfo);
 
         GetTypeAliasCount(
@@ -1050,7 +1063,7 @@ library
             [out] BufferOf<ITypeAliasInfo*> typeAliasInfos);
 
         GetTypeAliasInfo(
-            [in] String name,
+            [in] CString name,
             [out] ITypeAliasInfo** typeAliasInfo);
 
         GetConstantCount(
@@ -1060,7 +1073,7 @@ library
             [out] BufferOf<IConstantInfo*> constantInfos);
 
         GetConstantInfo(
-            [in] String name,
+            [in] CString name,
             [out] IConstantInfo** constantInfo);
 
         GetImportModuleInfoCount(
@@ -1133,7 +1146,7 @@ library
             [out] BufferOf<IClassInfo*> aspectInfos);
 
         GetAspectInfo(
-            [in] String name,
+            [in] CString name,
             [out] IClassInfo** aspectInfo);
 
         IsAspect(
@@ -1146,7 +1159,7 @@ library
             [out] BufferOf<IClassInfo*> aggregateeInfos);
 
         GetAggregateeInfo(
-            [in] String name,
+            [in] CString name,
             [out] IClassInfo** aggregateeInfo);
 
         GetConstructorCount(
@@ -1156,7 +1169,7 @@ library
             [out] BufferOf<IConstructorInfo*> constructorInfos);
 
         GetConstructorInfoByParamNames(
-            [in] String name,
+            [in] CString name,
             [out] IConstructorInfo** constructorInfo);
 
         GetConstructorInfoByParamCount(
@@ -1170,7 +1183,7 @@ library
             [out] BufferOf<IInterfaceInfo*> interfaceInfos);
 
         GetInterfaceInfo(
-            [in] String name,
+            [in] CString name,
             [out] IInterfaceInfo** interfaceInfo);
 
         GetCallbackInterfaceCount(
@@ -1180,7 +1193,7 @@ library
             [out] BufferOf<IInterfaceInfo*> callbackInterfaceInfos);
 
         GetCallbackInterfaceInfo(
-            [in] String name,
+            [in] CString name,
             [out] IInterfaceInfo** callbackInterfaceInfo);
 
         GetMethodCount(
@@ -1190,7 +1203,7 @@ library
             [out] BufferOf<IMethodInfo*> methodInfos);
 
         GetMethodInfo(
-            [in] String name,
+            [in] CString name,
             [out] IMethodInfo** methodInfo);
 
         GetCallbackMethodCount(
@@ -1200,7 +1213,7 @@ library
             [out] BufferOf<ICallbackMethodInfo*> callbackMethodInfos);
 
         GetCallbackMethodInfo(
-            [in] String name,
+            [in] CString name,
             [out] ICallbackMethodInfo** callbackMethodInfo);
 
         RemoveAllCallbackHandlers(
@@ -1311,6 +1324,10 @@ library
         GetChar16Argument(
             [in] Int32 index,
             [out] Char16* value);
+
+        GetCStringArgument(
+            [in] Int32 index,
+            [out] CString* value);
 
         GetStringArgument(
             [in] Int32 index,

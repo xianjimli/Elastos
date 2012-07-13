@@ -37,6 +37,7 @@ const char *AbrgParamType(AbridgedParamsInfo param)
         ABRG_TYPE(uint32);
         ABRG_TYPE(uint64);
         ABRG_TYPE(guid);
+        ABRG_TYPE(CString);
         ABRG_TYPE(String);
         ABRG_TYPE(StringBuf);
         ABRG_TYPE(ArrayOf);
@@ -56,6 +57,7 @@ const char *AbrgParamType(AbridgedParamsInfo param)
         ABRG_TYPE(pinterface);
         ABRG_TYPE(pclsid);
         ABRG_TYPE(pstructure);
+        ABRG_TYPE(pCString);
         ABRG_TYPE(pString);
 
         default: break;

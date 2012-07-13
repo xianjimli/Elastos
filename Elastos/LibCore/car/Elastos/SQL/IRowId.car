@@ -1,0 +1,26 @@
+
+module
+{
+    /**
+     * Maps SQL's ROWID type into Java.
+     * @since 1.6
+     */
+    interface IRowId {
+
+        Equals(
+            [in] IRowId* obj,
+            [out] Boolean* isEqual);
+
+        /**
+         * Returns an array of bytes representing the value of the corresponding SQL ROWID.
+         */
+        GetBytes(
+            [out, callee] ArrayOf<Byte>* bytes);
+
+        ToString(
+            [out] String* str);
+
+        GetHashCode(
+            [out] Int32* hashCode);
+    }
+}

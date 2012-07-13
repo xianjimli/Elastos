@@ -13,8 +13,9 @@
 #include <stdarg.h>
 
 #include <elatypes.h>
-#include <elquintet.h>
+#include <elcstring.h>
 #include <elstring.h>
+#include <elquintet.h>
 #include <eltime.h>
 #include <elstrbuf.h>
 #include <elstrtoken.h>

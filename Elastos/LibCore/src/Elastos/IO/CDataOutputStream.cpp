@@ -1,184 +1,120 @@
-//==========================================================================
-// Copyright (c) 2000-2008,  Elastos, Inc.  All Rights Reserved.
-//==========================================================================
+#include "cmdef.h"
 #include "CDataOutputStream.h"
+
+CDataOutputStream::CDataOutputStream()
+{
+}
+CDataOutputStream::~CDataOutputStream()
+{
+}
+
+ECode CDataOutputStream::constructor(
+    /* [in] */ IOutputStream* out)
+{
+    return DataOutputStream::Init(out);
+}
 
 ECode CDataOutputStream::Close()
 {
-    if (m_pIos) {
-        m_pIos->Close();
-        m_pIos->Release();
-        m_pIos = NULL;
-    }
-
-    return NOERROR;
+    return DataOutputStream::Close();
 }
 
 ECode CDataOutputStream::Flush()
 {
-    if (!m_pIos) {
-        return E_CLOSED_STREAM;
-    }
-    return m_pIos->Flush();
+    return DataOutputStream::Flush();
 }
 
 ECode CDataOutputStream::Write(
-    /* [in] */ Byte byte)
+    /* [in] */ Int32 oneByte)
 {
-    if (!m_pIos) {
-        return E_CLOSED_STREAM;
-    }
-    return m_pIos->Write(byte);
+    return DataOutputStream::Write(oneByte);
 }
 
 ECode CDataOutputStream::WriteBuffer(
-    /* [in] */ const BufferOf<Byte> & buffer,
-    /* [out] */ Int32 * pBytesWritten)
+    /* [in] */ const ArrayOf<Byte> & buffer)
 {
-    if (!m_pIos) {
-        return E_CLOSED_STREAM;
-    }
-    return m_pIos->WriteBuffer(buffer, pBytesWritten);
+    return DataOutputStream::WriteBuffer(buffer);
 }
 
 ECode CDataOutputStream::WriteBufferEx(
     /* [in] */ Int32 offset,
-    /* [in] */ Int32 length,
-    /* [in] */ const BufferOf<Byte> & buffer,
-    /* [out] */ Int32 * pBytesWritten)
+    /* [in] */ Int32 count,
+    /* [in] */ const ArrayOf<Byte> & buffer)
 {
-    if (!m_pIos) {
-        return E_CLOSED_STREAM;
-    }
-    return m_pIos->WriteBufferEx(offset, length, buffer, pBytesWritten);
+    return DataOutputStream::WriteBufferEx(offset, count, buffer);
 }
 
-ECode CDataOutputStream::WriteInt16(
-    /* [in] */ Int16 value)
+ECode CDataOutputStream::CheckError(
+     /* [out] */ Boolean* checkerror)
 {
-    if (!m_pIos) {
-        return E_CLOSED_STREAM;
-    }
-    BufferOf<Byte> tmp((Byte *)&value, sizeof(Int16));
-    Int32 nWrite;
-    return m_pIos->WriteBuffer(tmp, &nWrite);
-}
+    VALIDATE_NOT_NULL(checkerror);
 
-ECode CDataOutputStream::WriteInt32(
-    /* [in] */ Int32 value)
-{
-    if (!m_pIos) {
-        return E_CLOSED_STREAM;
-    }
-    BufferOf<Byte> tmp((Byte *)&value, sizeof(Int32));
-    Int32 nWrite;
-    return m_pIos->WriteBuffer(tmp, &nWrite);
-}
-
-ECode CDataOutputStream::WriteInt64(
-    /* [in] */ Int64 value)
-{
-    if (!m_pIos) {
-        return E_CLOSED_STREAM;
-    }
-    BufferOf<Byte> tmp((Byte *)&value, sizeof(Int64));
-    Int32 nWrite;
-    return m_pIos->WriteBuffer(tmp, &nWrite);
-}
-
-ECode CDataOutputStream::WriteFloat(
-    /* [in] */ Float value)
-{
-    if (!m_pIos) {
-        return E_CLOSED_STREAM;
-    }
-    BufferOf<Byte> tmp((Byte *)&value, sizeof(Float));
-    Int32 nWrite;
-    return m_pIos->WriteBuffer(tmp, &nWrite);
-}
-
-ECode CDataOutputStream::WriteDouble(
-    /* [in] */ Double value)
-{
-    if (!m_pIos) {
-        return E_CLOSED_STREAM;
-    }
-    BufferOf<Byte> tmp((Byte *)&value, sizeof(Double));
-    Int32 nWrite;
-    return m_pIos->WriteBuffer(tmp, &nWrite);
-}
-
-ECode CDataOutputStream::WriteChar8(
-    /* [in] */ Char8 value)
-{
-    if (!m_pIos) {
-        return E_CLOSED_STREAM;
-    }
-    return m_pIos->Write(value);
-}
-
-ECode CDataOutputStream::WriteChar16(
-    /* [in] */ Char16 value)
-{
-    if (!m_pIos) {
-        return E_CLOSED_STREAM;
-    }
-    BufferOf<Byte> tmp((Byte *)&value, sizeof(Char16));
-    Int32 nWrite;
-    return m_pIos->WriteBuffer(tmp, &nWrite);
+    return DataOutputStream::CheckError(checkerror);
 }
 
 ECode CDataOutputStream::WriteBoolean(
-    /* [in] */ Boolean value)
+    /*[in]*/ Boolean val)
 {
-    if (!m_pIos) {
-        return E_CLOSED_STREAM;
-    }
-    Byte tmp = value ? 1 : 0;
-    return m_pIos->Write(tmp);
+    return DataOutputStream::WriteBoolean(val);
 }
 
-ECode CDataOutputStream::WriteEMuid(
-    /* [in] */ const EMuid& value)
+ECode CDataOutputStream::WriteByte(
+    /*[in]*/ Int32 val)
 {
-    if (!m_pIos) {
-        return E_CLOSED_STREAM;
-    }
-    return E_NOT_IMPLEMENTED;
+    return DataOutputStream::WriteByte(val);
 }
 
-ECode CDataOutputStream::WriteEGuid(
-    /* [in] */ const EGuid& value)
+ECode CDataOutputStream::WriteBytes(
+    /*[in]*/ const ArrayOf<Byte>& buffer)
 {
-    if (!m_pIos) {
-        return E_CLOSED_STREAM;
-    }
-    return E_NOT_IMPLEMENTED;
+    return DataOutputStream::WriteBytes(buffer);
 }
 
-ECode CDataOutputStream::WriteECode(
-    /* [in] */ ECode value)
+ECode CDataOutputStream::WriteBytesEx(
+    /* [in] */ Int32 offset,
+    /* [in] */ Int32 count,
+    /* [in] */ const ArrayOf<Byte>& buffer)
 {
-    if (!m_pIos) {
-        return E_CLOSED_STREAM;
-    }
-    BufferOf<Byte> tmp((Byte *)&value, sizeof(ECode));
-    Int32 nWrite;
-    return m_pIos->WriteBuffer(tmp, &nWrite);
+    return DataOutputStream::WriteBytesEx(offset, count, buffer);
 }
 
-ECode CDataOutputStream::constructor(
-    /* [in] */ IOutputStream * pStream)
+ECode CDataOutputStream::WriteChar(
+    /*[in]*/ Int32 val)
 {
-    if (!pStream) {
-        return E_INVALID_ARGUMENT;
-    }
-    m_pIos = pStream;
-    m_pIos->AddRef();
-    return NOERROR;
+    return DataOutputStream::WriteChar(val);
 }
 
-CDataOutputStream::~CDataOutputStream()
+ECode CDataOutputStream::WriteDouble(
+    /*[in]*/ Double val)
 {
-    Close();
+    return DataOutputStream::WriteDouble(val);
+}
+
+ECode CDataOutputStream::WriteFloat(
+    /*[in]*/ Float val)
+{
+    return DataOutputStream::WriteFloat(val);
+}
+
+ECode CDataOutputStream::WriteInt32(
+    /*[in]*/ Int32 val)
+{
+    return DataOutputStream::WriteInt32(val);
+}
+
+ECode CDataOutputStream::WriteInt64(
+    /*[in]*/ Int64 val)
+{
+    return DataOutputStream::WriteInt64(val);
+}
+
+ECode CDataOutputStream::WriteInt16(
+    /*[in]*/ Int32 val)
+{
+    return DataOutputStream::WriteInt16(val);
+}
+
+Mutex* CDataOutputStream::GetSelfLock()
+{
+    return &_m_syncLock;
 }

@@ -9,7 +9,7 @@
 
 _ELASTOS_NAMESPACE_USING
 
-class CVariableOfStringBuf  : 
+class CVariableOfStringBuf  :
     public IVariableOfStringBuf,
     public IStringBufSetter,
     public IStringBufGetter
@@ -46,7 +46,7 @@ public:
         /* [in] */ Char8 character);
 
     CARAPI SetData(
-        /* [in] */ String str);
+        /* [in] */ CString str);
 
     CARAPI GetCapacity(
         /* [out] */ Int32 * pCapacity);

@@ -12,12 +12,12 @@ Locale* Locale::GetDefault()
 
 String Locale::GetCountry()
 {
-    return NULL; // E_NOT_IMPLEMENTED
+    return String(NULL); // E_NOT_IMPLEMENTED
 }
 
 String Locale::GetLanguage()
 {
-    return NULL; // E_NOT_IMPLEMENTED
+    return String(NULL); // E_NOT_IMPLEMENTED
 }
 
 Locale* Locale::Clone()

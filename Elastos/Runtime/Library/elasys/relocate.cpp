@@ -7,8 +7,6 @@
 
 _ELASTOS_NAMESPACE_USING
 
-CARAPI_(void) fun1();
-
 CAR_INLINE void RelocateUnalignedPtr(void *pPtr, size_t offset)
 {
 #ifdef _x86

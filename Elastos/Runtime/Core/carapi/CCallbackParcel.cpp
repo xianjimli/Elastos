@@ -14,8 +14,9 @@ enum Type {
 
     Type_Byte, Type_Boolean, Type_Char8, Type_Char16,
     Type_Int16, Type_Int32, Type_Int64, Type_Float, Type_Double,
-    Type_String, Type_Struct, Type_EMuid, Type_EGuid,
-    Type_ArrayOf, Type_ArrayOfString, Type_BufferOf, Type_BufferOfString,
+    Type_String, Type_CString, Type_Struct, Type_EMuid, Type_EGuid,
+    Type_ArrayOf, Type_ArrayOfCString, Type_ArrayOfString,
+    Type_BufferOf, Type_BufferOfCString, Type_BufferOfString,
     Type_StringBuf, Type_MemoryBuf, Type_InterfacePtr,
 
     Type_BytePtr, Type_BooleanPtr, Type_Char8Ptr,  Type_Char16Ptr,
@@ -60,6 +61,13 @@ CCallbackParcel::~CCallbackParcel()
 #endif
 				m_elemPtr += 8;
 				break;
+
+            case Type_String: {
+                String* p = *(String**)m_elemPtr;
+                delete p;
+                *(String**)m_elemPtr = NULL;
+                break;
+            }
 
             default:
                 m_elemPtr += 4;
@@ -312,7 +320,7 @@ ECode CCallbackParcel::WriteValue(PVoid pValue, Int32 type, Int32 size)
             m_elemPtr += 8;
             break;
 
-        case Type_String:
+        case Type_CString:
             if (m_dataPtr - m_dataBuf + ROUND4(size) > m_dataBufCapacity) {
                 ec = GrowDataBuffer(ROUND4(size));
                 if (FAILED(ec)) return ec;
@@ -333,6 +341,13 @@ ECode CCallbackParcel::WriteValue(PVoid pValue, Int32 type, Int32 size)
             m_dataPtr += ROUND4(size * sizeof(char));
             break;
 
+        case Type_String: {
+            String* p = new String();
+            *p = *(String*)pValue;
+            *(String**)m_elemPtr = p;
+            m_elemPtr += 4;
+            break;
+        }
         case Type_InterfacePtr:
             *(IInterface**)m_elemPtr = *(IInterface**)pValue;
             if ((*(IInterface**)m_elemPtr) != NULL) {
@@ -412,6 +427,35 @@ ECode CCallbackParcel::WriteValue(PVoid pValue, Int32 type, Int32 size)
             m_dataPtr += ROUND4(size - sizeof(CarQuintet));
             break;
 
+        case Type_ArrayOfCString:
+            used = ((ArrayOf<CString>*)pValue)->GetLength();
+            if (m_dataPtr - m_dataBuf + ROUND4(size) + 4 > m_dataBufCapacity) {
+                ec = GrowDataBuffer(ROUND4(size) + 4);
+                if (FAILED(ec)) return ec;
+            }
+
+            *(Int32*)m_dataPtr = size;
+            m_dataPtr += 4;
+            *(Byte**)(m_elemPtr) = m_dataPtr;
+            m_elemPtr += 4;
+
+            memcpy(m_dataPtr, pValue, sizeof(CarQuintet));
+            m_dataPtr += ROUND4(sizeof(CarQuintet));
+            (*(CarQuintet**)(m_elemPtr - 4))->m_pBuf = (PVoid)(m_dataPtr);
+            m_dataPtr += ROUND4(((CarQuintet*)pValue)->m_size);
+
+            for(Int32 i = 0; i < used; i++) {
+                (**(ArrayOf<CString>**)(m_elemPtr - 4))[i] = (const char*)m_dataPtr;
+                if ((*(ArrayOf<CString>*)pValue)[i]) {
+                    len = (strlen((*(ArrayOf<CString>*)pValue)[i]) + 1);
+                    memcpy((void*)(const char*)(**(ArrayOf<CString>**)(m_elemPtr - 4))[i],
+                            (*(ArrayOf<CString>*)pValue)[i], len);
+                    m_dataPtr += ROUND4(len);
+                }
+                else (**(ArrayOf<CString>**)(m_elemPtr - 4))[i] = NULL;
+            }
+            break;
+
         case Type_ArrayOfString:
             used = ((ArrayOf<String>*)pValue)->GetLength();
             if (m_dataPtr - m_dataBuf + ROUND4(size) + 4 > m_dataBufCapacity) {
@@ -438,6 +482,35 @@ ECode CCallbackParcel::WriteValue(PVoid pValue, Int32 type, Int32 size)
                     m_dataPtr += ROUND4(len);
                 }
                 else (**(ArrayOf<String>**)(m_elemPtr - 4))[i] = NULL;
+            }
+            break;
+
+        case Type_BufferOfCString:
+            used = ((BufferOf<CString>*)pValue)->GetUsed();
+            if (m_dataPtr - m_dataBuf + ROUND4(size) + 4> m_dataBufCapacity) {
+                ec = GrowDataBuffer(ROUND4(size) + 4);
+                if (FAILED(ec)) return ec;
+            }
+
+            *(Int32*)m_dataPtr = size;
+            m_dataPtr += 4;
+            *(Byte**)(m_elemPtr) = m_dataPtr;
+            m_elemPtr += 4;
+
+            memcpy(m_dataPtr, pValue, sizeof(CarQuintet));
+            m_dataPtr += ROUND4(sizeof(CarQuintet));
+            (*(CarQuintet**)(m_elemPtr - 4))->m_pBuf = (PVoid)(m_dataPtr);
+            m_dataPtr += ROUND4(((CarQuintet*)pValue)->m_size);
+
+            for(Int32 i = 0; i < used; i++) {
+                (**(BufferOf<CString>**)(m_elemPtr - 4))[i] = (const char*)m_dataPtr;
+                if ((*(BufferOf<CString>*)pValue)[i]) {
+                    len = (strlen((*(BufferOf<CString>*)pValue)[i]) + 1);
+                    memcpy((void*)(const char*)(**(BufferOf<CString>**)(m_elemPtr - 4))[i],
+                            (*(BufferOf<CString>*)pValue)[i], len);
+                    m_dataPtr += ROUND4(len);
+                }
+                else (**(BufferOf<CString>**)(m_elemPtr - 4))[i] = NULL;
             }
             break;
 
@@ -662,6 +735,12 @@ ECode CCallbackParcel::ReadDouble(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode CCallbackParcel::ReadCString(
+    /* [out] */ CString *pStr)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
 ECode CCallbackParcel::ReadString(
     /* [out] */ String *pStr)
 {
@@ -696,6 +775,12 @@ ECode CCallbackParcel::ReadArrayOf(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode CCallbackParcel::ReadArrayOfCString(
+    /* [out] */ Handle32 *ppArray)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
 ECode CCallbackParcel::ReadArrayOfString(
     /* [out] */ Handle32 *ppArray)
 {
@@ -703,6 +788,12 @@ ECode CCallbackParcel::ReadArrayOfString(
 }
 
 ECode CCallbackParcel::ReadBufferOf(
+    /* [out] */ Handle32 *ppBuffer)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CCallbackParcel::ReadBufferOfCString(
     /* [out] */ Handle32 *ppBuffer)
 {
     return E_NOT_IMPLEMENTED;
@@ -873,7 +964,7 @@ ECode CCallbackParcel::WriteDouble(
     return WriteValue((PVoid)&value, Type_Double, sizeof(Double));
 }
 
-ECode CCallbackParcel::WriteString(String str)
+ECode CCallbackParcel::WriteCString(CString str)
 {
     Int32 size;
 
@@ -887,7 +978,12 @@ ECode CCallbackParcel::WriteString(String str)
         size = strlen(str) + 1;
     }
 
-    return WriteValue((PVoid)(const char*)(str), Type_String, size);
+    return WriteValue((PVoid)(const char*)(str), Type_CString, size);
+}
+
+ECode CCallbackParcel::WriteString(const String& str)
+{
+    return WriteValue((PVoid)&str, Type_String, sizeof(String));
 }
 
 ECode CCallbackParcel::WriteBytePtr(
@@ -989,6 +1085,20 @@ ECode CCallbackParcel::WriteArrayOf(
     return WriteValue((PVoid)pArray, Type_ArrayOf, size);
 }
 
+ECode CCallbackParcel::WriteArrayOfCString(
+    /* [in] */ const ArrayOf<CString> & array)
+{
+    Int32 size = sizeof(CarQuintet) + array.m_size;
+    Int32 len = array.GetLength();
+
+    for (Int32 i = 0; i < len; i++) {
+        if(!array[i].IsNull())
+            size += strlen(array[i]) + 1;
+    }
+
+    return WriteValue((PVoid)&array, Type_ArrayOfCString, size);
+}
+
 ECode CCallbackParcel::WriteArrayOfString(
     /* [in] */ const ArrayOf<String> & array)
 {
@@ -1008,6 +1118,20 @@ ECode CCallbackParcel::WriteBufferOf(
 {
     Int32 size = sizeof(CarQuintet) + ((CarQuintet*)pBuffer)->m_size;
     return WriteValue((PVoid)pBuffer, Type_BufferOf, size);
+}
+
+ECode CCallbackParcel::WriteBufferOfCString(
+    /* [in] */ const BufferOf<CString> & pBuffer)
+{
+    Int32 size = sizeof(CarQuintet) + pBuffer.m_size;
+    Int32 used = pBuffer.GetUsed();
+
+    for (Int32 i = 0; i < used; i++) {
+        if(!pBuffer[i].IsNull())
+            size += strlen(pBuffer[i]) + 1;
+    }
+
+    return WriteValue((PVoid)&pBuffer, Type_BufferOfCString, size);
 }
 
 ECode CCallbackParcel::WriteBufferOfString(

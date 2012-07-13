@@ -167,7 +167,7 @@ ECode CMethodInfo::GetParamInfoByIndex(
 }
 
 ECode CMethodInfo::GetParamInfoByName(
-    /* [in] */ String name,
+    /* [in] */ CString name,
     /* [out] */ IParamInfo ** ppParamInfo)
 {
     if (name.IsNull() || !ppParamInfo) {
@@ -226,7 +226,7 @@ ECode CMethodInfo::SetParamElem(
             pParmElement->pointer -= 1;
         }
         else if (pParmElement->pointer == 2 && type != CarDataType_Interface) {
-            if (type == CarDataType_String) {
+            if (type == CarDataType_CString || type == CarDataType_String) {
                 pParmElement->attrib = ParamIOAttribute_CalleeAllocOut;
             }
             else {

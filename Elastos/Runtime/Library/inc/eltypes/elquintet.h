@@ -41,15 +41,16 @@ typedef enum _CarQuintetFlag
     CarQuintetFlag_Type_Char8       = 11,
     CarQuintetFlag_Type_Char16      = CarQuintetFlag_Type_UInt16,
     CarQuintetFlag_Type_Char32      = CarQuintetFlag_Type_UInt32,
-    CarQuintetFlag_Type_String      = 12,
+    CarQuintetFlag_Type_CString     = 12,
+    CarQuintetFlag_Type_String      = 13,
 
-    CarQuintetFlag_Type_EMuid       = 13,
-    CarQuintetFlag_Type_EGuid       = 14,
+    CarQuintetFlag_Type_EMuid       = 14,
+    CarQuintetFlag_Type_EGuid       = 15,
     CarQuintetFlag_Type_ECode       = CarQuintetFlag_Type_Int32,
     CarQuintetFlag_Type_Enum        = CarQuintetFlag_Type_Int32,
-    CarQuintetFlag_Type_Struct      = 15,
-    CarQuintetFlag_Type_IObject     = 16,
-    CarQuintetFlag_Type_Point       = 17,
+    CarQuintetFlag_Type_Struct      = 16,
+    CarQuintetFlag_Type_IObject     = 17,
+    CarQuintetFlag_Type_Point       = 18,
 
     CarQuintetFlag_TypeMask         = 0x0000ffff
 } CarQuintetFlag;
@@ -133,6 +134,7 @@ extern "C" {
 
 _ELASTOS_NAMESPACE_BEGIN
 
+class CString;
 class String;
 
 // NOTE1: MS CL compiler can't support function's template specialization well,
@@ -174,6 +176,7 @@ DECL_TYPE2FLAG_TMPL(Double,             CarQuintetFlag_Type_Double);
 
 DECL_TYPE2FLAG_TMPL(Char8,              CarQuintetFlag_Type_Char8);
 //DECL_TYPE2FLAG_TMPL(Char16,             CarQuintetFlag_Type_Char16);
+DECL_TYPE2FLAG_TMPL(CString,            CarQuintetFlag_Type_CString);
 DECL_TYPE2FLAG_TMPL(String,             CarQuintetFlag_Type_String);
 
 DECL_TYPE2FLAG_TMPL(EMuid,              CarQuintetFlag_Type_EMuid);

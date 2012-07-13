@@ -4,7 +4,7 @@
 const Int64 Permission::sSerialVersionUID = -5636570222231596674LL;
 
 Permission(
-    /* [in] */ String name)
+    /* [in] */ const String& name)
     : mName(AutoString::Duplicate(name))
 {}
 

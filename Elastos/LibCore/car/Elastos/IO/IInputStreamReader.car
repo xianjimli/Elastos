@@ -1,0 +1,17 @@
+
+module
+{
+    interface IReader;
+
+    interface IInputStreamReader extends IReader {
+        /**
+         * Returns the name of the encoding used to convert bytes into characters.
+         * The value {@code null} is returned if this reader has been closed.
+         *
+         * @return the name of the character converter or {@code null} if this
+         *         reader is closed.
+         */
+        GetEncoding(
+            [out] String* encoding);
+    }
+}

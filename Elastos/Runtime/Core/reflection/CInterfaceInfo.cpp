@@ -227,7 +227,7 @@ ECode CInterfaceInfo::GetAllMethodInfos(
 }
 
 ECode CInterfaceInfo::GetMethodInfo(
-    /* [in] */ String name,
+    /* [in] */ CString name,
     /* [out] */ IMethodInfo ** ppMethodInfo)
 {
     if (name.IsNull() || !ppMethodInfo) {

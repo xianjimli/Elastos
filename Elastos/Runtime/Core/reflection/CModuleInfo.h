@@ -37,7 +37,7 @@ public:
         /* [out] */ BufferOf<IClassInfo *> * pClassInfos);
 
     CARAPI GetClassInfo(
-        /* [in] */ String name,
+        /* [in] */ CString name,
         /* [out] */ IClassInfo ** ppClassInfo);
 
     CARAPI GetInterfaceCount(
@@ -47,7 +47,7 @@ public:
         /* [out] */ BufferOf<IInterfaceInfo *> * pInterfaceInfos);
 
     CARAPI GetInterfaceInfo(
-        /* [in] */ String name,
+        /* [in] */ CString name,
         /* [out] */ IInterfaceInfo ** ppInterfaceInfo);
 
     CARAPI GetStructCount(
@@ -57,7 +57,7 @@ public:
         /* [out] */ BufferOf<IStructInfo *> * pStructInfos);
 
     CARAPI GetStructInfo(
-        /* [in] */ String name,
+        /* [in] */ CString name,
         /* [out] */ IStructInfo ** ppStructInfo);
 
     CARAPI GetEnumCount(
@@ -67,7 +67,7 @@ public:
         /* [out] */ BufferOf<IEnumInfo *> * pEnumInfos);
 
     CARAPI GetEnumInfo(
-        /* [in] */ String name,
+        /* [in] */ CString name,
         /* [out] */ IEnumInfo ** ppEnumInfo);
 
     CARAPI GetTypeAliasCount(
@@ -77,7 +77,7 @@ public:
         /* [out] */ BufferOf<ITypeAliasInfo *> * pTypeAliasInfos);
 
     CARAPI GetTypeAliasInfo(
-        /* [in] */ String name,
+        /* [in] */ CString name,
         /* [out] */ ITypeAliasInfo ** ppTypeAliasInfo);
 
     CARAPI GetConstantCount(
@@ -87,7 +87,7 @@ public:
         /* [out] */ BufferOf<IConstantInfo *> * pConstantInfos);
 
     CARAPI GetConstantInfo(
-        /* [in] */ String name,
+        /* [in] */ CString name,
         /* [out] */ IConstantInfo ** ppConstantInfo);
 
     CARAPI GetImportModuleInfoCount(
@@ -110,7 +110,7 @@ public:
 
     CModuleRefInfo(
         /* [in] */ CClsModule * pCClsModule,
-        /* [in] */ String path);
+        /* [in] */ CString path);
 
     virtual ~CModuleRefInfo();
 

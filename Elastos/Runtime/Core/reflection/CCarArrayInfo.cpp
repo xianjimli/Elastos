@@ -89,7 +89,7 @@ ECode CCarArrayRefInfo::GetName(
         if (FAILED(ec)) return ec;
 
         pName->Append("<");
-        pName->Append(elementName);
+        pName->Append((char*)elementName);
         if (m_elementDataType == CarDataType_Interface) {
             pName->Append("*");
         }

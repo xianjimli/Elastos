@@ -1,197 +1,121 @@
-//==========================================================================
-// Copyright (c) 2000-2008,  Elastos, Inc.  All Rights Reserved.
-//==========================================================================
-#include <elasys_server.h>
-#include <elapi.h>
-#include <stdlib.h>
-#include <_pubcrt.h>
+#include "cmdef.h"
 #include "CFileInputStream.h"
 
-ECode CFileInputStream::Available(
-    /* [out] */ Int32 * pBytes)
+CFileInputStream::~CFileInputStream()
 {
-    if (!pBytes) {
-        return E_INVALID_ARGUMENT;
-    }
+    CFileInputStream::Close();
+}
 
-    if (!m_pIab) {
-        return E_CLOSED_STREAM;
-    }
+ECode CFileInputStream::Available(
+    /* [out] */ Int32* number)
+{
+    VALIDATE_NOT_NULL(number);
 
-    Int32 size;
-    ECode ec = m_pIab->GetSize(&size);
-    if(FAILED(ec)) {
-        return ec;
-    }
-
-    *pBytes = size - m_pos;
-    return NOERROR;
+    return FileInputStream::Available(number);
 }
 
 ECode CFileInputStream::Close()
 {
-    if (m_pIab) {
-        m_pIab->Release();
-        m_pIab = NULL;
-    }
+    return FileInputStream::Close();
+}
 
-    return NOERROR;
+ECode CFileInputStream::GetChannel(
+    /* [out] */ IFileChannel** channel)
+{
+    VALIDATE_NOT_NULL(channel);
+
+    return FileInputStream::GetChannel(channel);
+}
+
+ECode CFileInputStream::GetFD(
+    /* [out] */ IFileDescriptor** fd)
+{
+    VALIDATE_NOT_NULL(fd);
+
+    return FileInputStream::GetFD(fd);
 }
 
 ECode CFileInputStream::Mark(
     /* [in] */ Int32 readLimit)
 {
-    if (!m_pIab) {
-        return E_CLOSED_STREAM;
-    }
-
-    m_mark = m_pos;
-    return NOERROR;
+    return FileInputStream::Mark(readLimit);
 }
 
 ECode CFileInputStream::IsMarkSupported(
-    /* [out] */ Boolean * pSupported)
+    /* [out] */ Boolean* supported)
 {
-    if (!pSupported) {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(supported);
 
-    if (!m_pIab) {
-        return E_CLOSED_STREAM;
-    }
-
-    *pSupported = TRUE;
-    return NOERROR;
+    return FileInputStream::IsMarkSupported(supported);
 }
 
-/**
- * Read a byte from File InputStream when success, whereas return null;
- */
 ECode CFileInputStream::Read(
-    /* [out] */ Byte * pByte)
+    /* [out] */ Int32* value)
 {
-    if (!pByte) {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(value);
 
-    if (!m_pIab) {
-        return E_CLOSED_STREAM;
-    }
-
-    BufferOf<Byte> tmp(pByte, 1);
-    return ReadBufferEx(0, 1, &tmp);
+    return FileInputStream::Read(value);
 }
 
 ECode CFileInputStream::ReadBuffer(
-    /* [out] */ BufferOf<Byte> * pBuffer)
+    /* [out] */ ArrayOf<Byte>* buffer,
+    /* [out] */ Int32* number)
 {
-    if (pBuffer == NULL || !pBuffer->GetCapacity()) {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(buffer);
+    VALIDATE_NOT_NULL(number);
 
-    if (!m_pIab) {
-        return E_CLOSED_STREAM;
-    }
-
-    return ReadBufferEx(0, pBuffer->GetCapacity(), pBuffer);
+    return FileInputStream::ReadBuffer(buffer, number);
 }
 
-/**
-  * Reads up to <code>len</code> bytes of data from this input stream
-  * into an array of bytes. If <code>len</code> is not zero, the method
-  * blocks until some input is available; otherwise, no
-  * bytes are read and <code>0</code> is returned.
-  *
-  * @param      buffer     the buffer into which the data is read.
-  * @param      offset   the start offset in the destination array
-  *                      <code>buffer</code>
-  * @param      len   the maximum number of bytes read.
-  */
 ECode CFileInputStream::ReadBufferEx(
     /* [in] */ Int32 offset,
     /* [in] */ Int32 length,
-    /* [out] */ BufferOf<Byte> * pBuffer)
+    /* [out] */ ArrayOf<Byte>* buffer,
+    /* [out] */ Int32* number)
 {
-    if (pBuffer == NULL || offset < 0 || length < 0
-        || (pBuffer->GetCapacity() < length + offset)
-        || (pBuffer->GetUsed() < offset)) {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(buffer);
+    VALIDATE_NOT_NULL(number);
 
-    if (!m_pIab) {
-        return E_CLOSED_STREAM;
-    }
-
-    if (length > 0) {
-        MemoryBuf tmp(pBuffer->GetPayload() + offset, length);
-        ECode ec = m_pIab->Read(m_pos, length, &tmp);
-        if (FAILED(ec)) {
-            return ec;
-        }
-
-        if (tmp.GetUsed() == 0)
-            return E_OUT_OF_STREAM;
-
-        pBuffer->SetUsed(offset + tmp.GetUsed());
-        m_pos += tmp.GetUsed();
-    }
-    return NOERROR;
+    return FileInputStream::ReadBufferEx(offset, length, buffer, number);
 }
 
 ECode CFileInputStream::Reset()
 {
-    if (!m_pIab) {
-        return E_CLOSED_STREAM;
-    }
-
-    m_pos = m_mark;
-    return NOERROR;
+    return FileInputStream::Reset();
 }
 
 ECode CFileInputStream::Skip(
-    /* [in] */ Int32 length)
+    /* [in] */ Int64 count,
+    /* [out] */ Int64* number)
 {
-    if (length <= 0) {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(number);
 
-    if (!m_pIab) {
-        return E_CLOSED_STREAM;
-    }
-
-    Int32 size;
-    ECode ec = m_pIab->GetSize(&size);
-    if (FAILED(ec))  {
-        return ec;
-    }
-
-    if (m_pos + length > size)
-        m_pos = size;
-    else
-        m_pos += length;
-
-    return NOERROR;
+    return FileInputStream::Skip(count, number);
 }
 
-CFileInputStream::~CFileInputStream()
-{
-    Close();
-}
-
-/*
- * If the named file does not exist, is a directory rather than a regular
- * file, or for some other reason cannot be opened for reading then a
- * <code>FileNotFoundException</code> is thrown.
- */
 ECode CFileInputStream::constructor(
-    /* [in] */ String fileName)
+    /* [in] */ IFile* file)
 {
-    if (fileName.IsNullOrEmpty())
-        return E_INVALID_ARGUMENT;
+    VALIDATE_NOT_NULL(file);
 
-    m_pIab = new FileStream;
-    if (!m_pIab) {
-        return E_OUT_OF_MEMORY;
-    }
-	return m_pIab->OpenRead(fileName);
+    return FileInputStream::Init(file);
+}
+
+ECode CFileInputStream::constructor(
+    /* [in] */ IFileDescriptor* fd)
+{
+    VALIDATE_NOT_NULL(fd);
+
+    return FileInputStream::Init(fd);
+}
+
+ECode CFileInputStream::constructor(
+    /* [in] */ const String& fileName)
+{
+    return FileInputStream::Init(fileName);
+}
+
+Mutex* CFileInputStream::GetSelfLock()
+{
+    return &_m_syncLock;
 }

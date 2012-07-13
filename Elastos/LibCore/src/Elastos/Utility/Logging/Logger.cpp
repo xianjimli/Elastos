@@ -58,42 +58,42 @@ const Int32 Logger::LOG_ID_RADIO;
 const Int32 Logger::LOG_ID_EVENTS;
 const Int32 Logger::LOG_ID_SYSTEM;
 
-ECode Logger::D(String tag, String msg)
+ECode Logger::D(CString tag, CString msg)
 {
     return PrintlnImpl(LOG_ID_MAIN, ANDROID_LOG_DEBUG, tag, msg);
 }
 
-ECode Logger::E(String tag, String msg)
+ECode Logger::E(CString tag, CString msg)
 {
     return PrintlnImpl(LOG_ID_MAIN, ANDROID_LOG_ERROR, tag, msg);
 }
 
-ECode Logger::I(String tag, String msg)
+ECode Logger::I(CString tag, CString msg)
 {
     return PrintlnImpl(LOG_ID_MAIN, ANDROID_LOG_INFO, tag, msg);
 }
 
-ECode Logger::V(String tag, String msg)
+ECode Logger::V(CString tag, CString msg)
 {
     return PrintlnImpl(LOG_ID_MAIN, ANDROID_LOG_VERBOSE, tag, msg);
 }
 
-ECode Logger::W(String tag, String msg)
+ECode Logger::W(CString tag, CString msg)
 {
     return PrintlnImpl(LOG_ID_MAIN, ANDROID_LOG_WARN, tag, msg);
 }
 
-ECode Logger::IsLoggable(String tag, Int32 level, Boolean * pIsLoggable)
+ECode Logger::IsLoggable(CString tag, Int32 level, Boolean * pIsLoggable)
 {
     return E_NOT_IMPLEMENTED;
 }
 
-ECode Logger::Println(Int32 priority, String tag, String msg)
+ECode Logger::Println(Int32 priority, CString tag, CString msg)
 {
     return PrintlnImpl(LOG_ID_MAIN, priority, tag, msg);
 }
 
-ECode Logger::PrintlnImpl(Int32 bufID, Int32 priority, String tag, String msg)
+ECode Logger::PrintlnImpl(Int32 bufID, Int32 priority, CString tag, CString msg)
 {
     if (bufID < LOG_ID_MAIN || bufID > LOG_ID_SYSTEM || tag.IsNull()
         || msg.IsNull() || priority < VERBOSE || priority > ASSERT) {

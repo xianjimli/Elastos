@@ -1,7 +1,12 @@
 module
 {
+    interface IPermission {
+    }
 
-    interface IFilePermission {
+    interface IPermissionCollection {
+    }
+
+    interface IFilePermission extends IPermission {
 
        /**
         * Returns the actions associated with this file permission.
@@ -22,9 +27,9 @@ module
         *         {@code false} otherwise.
         */
         Equals(
-            [in] IObject *obj,
+            [in] IFilePermission* fp,
             [out] Boolean* isEqual);
-   
+
        /**
         * Indicates whether the permission {@code p} is implied by this file
         * permission. This is the case if {@code p} is an instance of
@@ -38,8 +43,8 @@ module
         *         receiver, and {@code false} if it is not.
         */
         Implies(
-            //[in] IPermission *p,
-            [out] Boolean* isImplied);
+            [in] IPermission* p,
+            [out] Boolean* result);
 
        /**
         * Returns a new PermissionCollection in which to place FilePermission
@@ -48,15 +53,15 @@ module
         * @return A new PermissionCollection object suitable for storing
         *         FilePermission objects.
         */
-        NewPermissionCollection();
-//           [out] PermissionCollection* object);
+        NewPermissionCollection(
+            [out] IPermissionCollection** object);
 
         /**
         * Calculates the hash code value for this file permission.
         *
         * @return the hash code value for this file permission.
         */
-        HashCode(
+        GetHashCode(
             [out] Int32* hasCode);
-   }
+    }
 }

@@ -40,7 +40,7 @@ public:
         /* [out] */ BufferOf<IEnumItemInfo *> * pItemInfos);
 
     CARAPI GetItemInfo(
-        /* [in] */ String name,
+        /* [in] */ CString name,
         /* [out] */ IEnumItemInfo ** ppEnumItemInfo);
 
     CARAPI InitItemInfos();
@@ -50,15 +50,15 @@ public:
         /* [in] */ EnumDirEntry *pEnumDirEntry);
 
     CARAPI InitDynamic(
-        /* [in] */ String name,
-        /* [in] */ const BufferOf<String>& itemNames,
+        /* [in] */ CString name,
+        /* [in] */ const BufferOf<CString>& itemNames,
         /* [in] */ const BufferOf<Int32>& itemValues);
 
     CEnumRefInfo();
 
     virtual ~CEnumRefInfo();
 
-    BufferOf<String>     *m_pItemNames;
+    BufferOf<CString>     *m_pItemNames;
     BufferOf<Int32>      *m_pItemValues;
 
 private:

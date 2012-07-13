@@ -27,7 +27,7 @@ module
          * @return this stream's current contents as a byte array.
          */
         ToByteArray(
-            [out, callee] BufferOf<Byte>* bytes);
+            [out, callee] ArrayOf<Byte>* bytes);
 
         /**
          * Returns the contents of this ByteArrayOutputStream as a string. Any

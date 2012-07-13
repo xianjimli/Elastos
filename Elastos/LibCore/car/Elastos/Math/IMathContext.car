@@ -1,0 +1,72 @@
+
+module
+{
+		/**
+		 * A {@code MathContext} which corresponds to the IEEE 754r quadruple
+		 * decimal precision format: 34 digit precision and
+		 * {@link RoundingMode#HALF_EVEN} rounding.
+		 */
+//		public static final MathContext DECIMAL128 = new MathContext(34,
+//				RoundingMode.HALF_EVEN);
+
+		/**
+		 * A {@code MathContext} which corresponds to the IEEE 754r single decimal
+		 * precision format: 7 digit precision and {@link RoundingMode#HALF_EVEN}
+		 * rounding.
+		 */
+//		public static final MathContext DECIMAL32 = new MathContext(7,
+//				RoundingMode.HALF_EVEN);
+
+		/**
+		 * A {@code MathContext} which corresponds to the IEEE 754r double decimal
+		 * precision format: 16 digit precision and {@link RoundingMode#HALF_EVEN}
+		 * rounding.
+		 */
+//		public static final MathContext DECIMAL64 = new MathContext(16,
+//				RoundingMode.HALF_EVEN);
+
+		/**
+		 * A {@code MathContext} for unlimited precision with
+		 * {@link RoundingMode#HALF_UP} rounding.
+		 */
+//		public static final MathContext UNLIMITED = new MathContext(0,
+//				RoundingMode.HALF_UP);
+
+	/**
+	 * Immutable objects describing settings such as rounding mode and digit
+	 * precision for the numerical operations provided by class {@link BigDecimal}.
+	 */
+    interface IMathContext
+	{
+		/**
+		 * Returns the precision. The precision is the number of digits used for an
+		 * operation. Results are rounded to this precision. The precision is
+		 * guaranteed to be non negative. If the precision is zero, then the
+		 * computations have to be performed exact, results are not rounded in this
+		 * case.
+		 *
+		 * @return the precision.
+		 */
+		GetPrecision(
+            [out] Int32* precision);
+
+		/**
+		 * Returns the rounding mode. The rounding mode is the strategy to be used
+		 * to round results.
+		 * <p>
+		 * The rounding mode is one of
+		 * {@link RoundingMode#UP},
+		 * {@link RoundingMode#DOWN},
+		 * {@link RoundingMode#CEILING},
+		 * {@link RoundingMode#FLOOR},
+		 * {@link RoundingMode#HALF_UP},
+		 * {@link RoundingMode#HALF_DOWN},
+		 * {@link RoundingMode#HALF_EVEN}, or
+		 * {@link RoundingMode#UNNECESSARY}.
+		 *
+		 * @return the rounding mode.
+		 */
+		GetRoundingMode(
+            [out] IRoundingMode** roundingMode);
+	}
+}

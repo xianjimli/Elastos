@@ -27,34 +27,34 @@ public:
     CARAPI_(void) KeepNamespaceAttributes();
 
     CARAPI SetFeature(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [in] */ Boolean state);
 
     CARAPI GetFeature(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ Boolean* value);
 
     CARAPI SetProperty(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [in] */ IInterface* value);
 
     CARAPI GetProperty(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ IInterface** value);
 
     CARAPI SetInput(
         /* [in]*/ IReader* reader);
 
-    CARAPI SetInput(
+    CARAPI SetInputEx(
         /* [in] */ IInputStream* inputStream,
-        /* [in] */ String inputEncoding);
+        /* [in] */ const String& inputEncoding);
 
     CARAPI GetInputEncoding(
         /* [out] */ String* inputEncoding);
 
     CARAPI DefineEntityReplacementText(
-        /* [in] */ String entityName,
-        /* [in] */ String replacementText);
+        /* [in] */ const String& entityName,
+        /* [in] */ const String& replacementText);
 
     CARAPI GetNamespaceCount(
         /* [in] */ Int32 depth,
@@ -69,7 +69,7 @@ public:
         /* [out] */ String* uri);
 
     CARAPI GetNamespaceEx(
-        /* [in] */ String prefix,
+        /* [in] */ const String& prefix,
         /* [out] */ String* ns);
 
     CARAPI GetDepth(
@@ -130,8 +130,8 @@ public:
         /* [out] */ String* attrValue);
 
     CARAPI GetAttributeValueEx(
-        /* [in] */ String ns,
-        /* [in] */ String name,
+        /* [in] */ CString ns,
+        /* [in] */ CString name,
         /* [out] */ String* attrValue);
 
     CARAPI GetEventType(
@@ -145,8 +145,8 @@ public:
 
     CARAPI Require(
         /* [in] */ Int32 type,
-        /* [in] */ String ns,
-        /* [in] */ String name);
+        /* [in] */ const String& ns,
+        /* [in] */ const String& name);
 
     CARAPI NextText(
         /* [out] */ String* text);
@@ -171,9 +171,9 @@ public:
 
 private:
     CARAPI_(Boolean) IsProp(
-        /* [in] */ String n1,
+        /* [in] */ const String& n1,
         /* [in] */ Boolean prop,
-        /* [in] */ String n2);
+        /* [in] */ const char* n2);
 
     CARAPI AdjustNsp(
         /* [in] */ Boolean* result);
@@ -184,7 +184,7 @@ private:
         /* [out] */ ArrayOf<String>** newArr);
 
     CARAPI Exception(
-        /* [in] */ String desc);
+        /* [in] */ const char* desc);
 
     CARAPI NextImpl();
 
@@ -253,7 +253,7 @@ private:
 
     AutoPtr<IReader> mReader;
     String mEncoding;
-    ArrayOf<Byte>* mSrcBuf;
+    ArrayOf<Char8>* mSrcBuf;
 
     Int32 mSrcPos;
     Int32 mSrcCount;

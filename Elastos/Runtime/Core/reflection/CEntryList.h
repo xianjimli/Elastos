@@ -42,7 +42,7 @@ public:
     CARAPI_(UInt32) Release();
 
     CARAPI AcquireObjByName(
-        /* [in] */ String name,
+        /* [in] */ CString name,
         /* [out] */ IInterface ** ppObject);
 
     CARAPI AcquireObjByIndex(

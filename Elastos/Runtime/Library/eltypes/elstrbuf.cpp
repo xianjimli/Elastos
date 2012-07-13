@@ -10,6 +10,40 @@
 #ifdef  __cplusplus
 extern "C" {
 #endif
+_ELASTOS Int32 __cdecl _String_GetLength(const char *string,
+    _ELASTOS Int32 nMaxLen);
+
+char* __cdecl _String_Duplicate(const char *strSource);
+void __cdecl _String_Free(char * str);
+
+_ELASTOS Int32 __cdecl _String_IndexOf_Char8(const char *string, char ch,
+    _ELASTOS StringCase stringCase);
+_ELASTOS Int32 __cdecl _String_IndexOf_AnyChar8(const char *string,
+    const char* strCharSet, _ELASTOS StringCase stringCase);
+_ELASTOS Int32 __cdecl _String_IndexOf_AnyChar(const char *string,
+    _ELASTOS Char32 *strCharSet, _ELASTOS StringCase stringCase);
+
+_ELASTOS Int32 __cdecl _String_LastIndexOf_Char8(const char *string, char ch,
+    _ELASTOS StringCase stringCase);
+_ELASTOS Int32 __cdecl _String_LastIndexOf_AnyChar8(const char *string,
+    const char* strCharSet, _ELASTOS StringCase stringCase);
+_ELASTOS Int32 __cdecl _String_LastIndexOf_AnyChar(const char *string,
+    _ELASTOS Char32 *strCharSet, _ELASTOS StringCase stringCase);
+
+char* __cdecl _String_Substring_Buffer(const char *string, _ELASTOS Int32 start,
+        _ELASTOS PCarQuintet pCq);
+char* __cdecl _String_Substring_Length_Buffer(const char *string,
+        _ELASTOS Int32 start, _ELASTOS Int32 len, _ELASTOS PCarQuintet pCq);
+
+char* __cdecl _String_ToLowerCase(const char *string, _ELASTOS PCarQuintet pCq);
+char* __cdecl _String_ToUpperCase(const char *string,
+        _ELASTOS PCarQuintet pCq);
+
+char* __cdecl _String_TrimStart(const char *string, _ELASTOS PCarQuintet pCq);
+
+char* __cdecl _String_TrimEnd(const char *string, _ELASTOS PCarQuintet pCq);
+char* __cdecl _String_Trim(const char *string, _ELASTOS PCarQuintet pCq);
+
 
 _ELASTOS_NAMESPACE_USING
 
@@ -55,21 +89,21 @@ PCarQuintet __cdecl _StringBuf_Alloc_Box(char *pstr, Int32 size)
     return pCq;
 }
 
-Int32 __cdecl _StringBuf_Insert(PCarQuintet pCq, Int32 offset, String s)
+Int32 __cdecl _StringBuf_Insert(PCarQuintet pCq, Int32 offset, const char* s)
 {
-    if (!pCq || !pCq->m_pBuf || s.IsNull()) return -1;
+    if (!pCq || !pCq->m_pBuf || s == NULL) return -1;
 
     Int32 nLen = pCq->m_used - sizeof(Char8);  //original string length
     Int32 nCap = pCq->m_size - sizeof(Char8);
     offset *= sizeof(Char8);
 
-    if ((offset < 0) || (offset > nLen) || s.IsNull()) {
+    if ((offset < 0) || (offset > nLen)) {
         return -1;
     }
 
     Int32 nInsert = strlen(s) * sizeof(Char8);
 
-    Int32 nRet = _BufferOf_Insert(pCq, offset, (Byte *)(const char *)s, nInsert);
+    Int32 nRet = _BufferOf_Insert(pCq, offset, (Byte *)s, nInsert);
 
     if (pCq->m_used == pCq->m_size) {
         *(Char8 *)((Byte *)pCq->m_pBuf + nCap) = '\0';
@@ -79,14 +113,14 @@ Int32 __cdecl _StringBuf_Insert(PCarQuintet pCq, Int32 offset, String s)
     return nRet / sizeof(Char8);
 }
 
-Int32 __cdecl _StringBuf_Copy(PCarQuintet pCq, String s)
+Int32 __cdecl _StringBuf_Copy(PCarQuintet pCq, const char* s)
 {
-    if (!pCq || !pCq->m_pBuf || s.IsNull()) return -1;
+    if (!pCq || !pCq->m_pBuf || s == NULL) return -1;
 
     Int32 nLen = (strlen(s) + 1) * sizeof(Char8);
     Int32 nCap = pCq->m_size - sizeof(Char8);
 
-    Int32 nRet =  _BufferOf_CopyEx(pCq, (Byte *)(const char *)s, nLen);
+    Int32 nRet =  _BufferOf_CopyEx(pCq, (Byte *)s, nLen);
 
     if (nRet > nCap) {
         *(Char8 *)((Byte *)pCq->m_pBuf + nCap) = '\0';
@@ -96,10 +130,10 @@ Int32 __cdecl _StringBuf_Copy(PCarQuintet pCq, String s)
     return nRet / sizeof(Char8) - 1;
 }
 
-Int32 __cdecl _StringBuf_Append_String(PCarQuintet pCq, String s,
+Int32 __cdecl _StringBuf_Append_String(PCarQuintet pCq, const char* s,
     Int32 offset, Int32 count)
 {
-    if (!pCq || !pCq->m_pBuf || s.IsNull() || offset < 0 || count < 0) {
+    if (!pCq || !pCq->m_pBuf || s == NULL || offset < 0 || count < 0) {
         return -1;
     }
 
@@ -116,7 +150,7 @@ Int32 __cdecl _StringBuf_Append_String(PCarQuintet pCq, String s,
 
     offset *= sizeof(Char8);
     count *= sizeof(Char8);
-    Int32 nRet = _BufferOf_Insert(pCq, nLen, (Byte *)(const char *)s + offset,
+    Int32 nRet = _BufferOf_Insert(pCq, nLen, (Byte *)s + offset,
         count);
     if (nRet == -1) {
         return -1;
@@ -137,7 +171,7 @@ Int32 __cdecl _StringBuf_Append_Char16(PCarQuintet pCq, Char16 wc)
     StringBuf_<4> sb;
     sb.FromUnicode(ch);
 
-    return _StringBuf_Append_String(pCq, sb, sb.GetLength(), 1);
+    return _StringBuf_Append_String(pCq, sb.GetPayload(), sb.GetLength(), 1);
 }
 
 Int32 __cdecl _StringBuf_Append_Char8(PCarQuintet pCq, Char8 ch)
@@ -212,9 +246,9 @@ Int32 __cdecl _StringBuf_Append_Double(PCarQuintet pCq, Double value,
 }
 
 Int32 __cdecl _StringBuf_Replace(PCarQuintet pCq, Int32 offset,
-    Int32 count, String s)
+    Int32 count, const char* s)
 {
-    if (!pCq || !pCq->m_pBuf || s.IsNull() || count < 0 || offset < 0 || offset >= pCq->m_used)
+    if (!pCq || !pCq->m_pBuf || s == NULL || count < 0 || offset < 0 || offset >= pCq->m_used)
         return -1;
 
     Int32 nLen = _String_GetLength(s, count);
@@ -224,7 +258,7 @@ Int32 __cdecl _StringBuf_Replace(PCarQuintet pCq, Int32 offset,
     offset *= sizeof(Char8);
 
 
-    Int32 nRet = _BufferOf_Replace(pCq, offset, (PByte)(const char *)s, nLen);
+    Int32 nRet = _BufferOf_Replace(pCq, offset, (PByte)s, nLen);
     char *pBuf = (char *)pCq->m_pBuf + pCq->m_used;
     nRet = nRet / sizeof(Char8);
 
@@ -558,17 +592,17 @@ PCarQuintet _StringBuf_PadRight_Char8(PCarQuintet pCq, Int32 width, Char8 ch)
     {if (digit < 10) ch = (char)('0' + digit); \
      else ch = (char)('a' - 10 + digit);}
 
-PCarQuintet __cdecl _StringBuf_EncodeURL(PCarQuintet pCq, String s,
-    String Reserved)
+PCarQuintet __cdecl _StringBuf_EncodeURL(PCarQuintet pCq, const char* s,
+    const char* Reserved)
 {
-    if (!pCq || !pCq->m_pBuf || s.IsNull()) return NULL;
+    if (!pCq || !pCq->m_pBuf || s == NULL) return NULL;
     Char8 *str = (Char8 *)pCq->m_pBuf;
 
     for (Int32 i = 0; i < (Int32)strlen(s) && pCq->m_used < pCq->m_size; ) {
-        const char *c = (const char *)s + i;
+        const char *c = s + i;
         if ((*c >= 'a' && *c <= 'z') || (*c >= 'A' && *c <= 'Z') ||
             (*c >= '0' && *c <= '9') || !!strchr(" -_.*", *c) ||
-            (!Reserved.IsNullOrEmpty() && !!strchr(Reserved, *c))) {
+            (Reserved != NULL && Reserved[0] != '\0' && !!strchr(Reserved, *c))) {
             if (*c == ' ') {
                 *str++ = '+';
             }
@@ -619,11 +653,11 @@ PCarQuintet __cdecl _StringBuf_EncodeURL(PCarQuintet pCq, String s,
          else buf[pos] = '\0'; \
          start++;}}
 
-PCarQuintet __cdecl _StringBuf_DecodeURL(PCarQuintet pCq, String s)
+PCarQuintet __cdecl _StringBuf_DecodeURL(PCarQuintet pCq, const char* s)
 {
-    if (!pCq || !pCq->m_pBuf || s.IsNull()) return NULL;
+    if (!pCq || !pCq->m_pBuf || s == NULL) return NULL;
 
-    Int32 numChars = s.GetLength();
+    Int32 numChars = strlen(s);
     Int32 i = 0;
     Char8 *str = (Char8 *)pCq->m_pBuf;
 
@@ -642,8 +676,8 @@ PCarQuintet __cdecl _StringBuf_DecodeURL(PCarQuintet pCq, String s)
                 int pos = 0;
 
                 while (((i + 2) < numChars) && (c == '%')) {
-                    const char *start = (const char *)s + i + 1;
-                    StrToHex(start, ((const char *)s + i + 3));
+                    const char *start = s + i + 1;
+                    StrToHex(start, (s + i + 3));
                     pos++;
                     i += 3;
 

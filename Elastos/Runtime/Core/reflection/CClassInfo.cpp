@@ -386,7 +386,7 @@ ECode CClassInfo::GetAllAspectInfos(
 }
 
 ECode CClassInfo::GetAspectInfo(
-    /* [in] */ String name,
+    /* [in] */ CString name,
     /* [out] */ IClassInfo ** ppAspectInfo)
 {
     if (name.IsNull() || !ppAspectInfo) {
@@ -458,7 +458,7 @@ ECode CClassInfo::GetAllAggregateeInfos(
 }
 
 ECode CClassInfo::GetAggregateeInfo(
-    /* [in] */ String name,
+    /* [in] */ CString name,
     /* [out] */ IClassInfo ** ppAggregateeInfo)
 {
     if (name.IsNull() || !ppAggregateeInfo) {
@@ -557,7 +557,7 @@ ECode CClassInfo::GetAllConstructorInfos(
 }
 
 ECode CClassInfo::GetConstructorInfoByParamNames(
-    /* [in] */ String name,
+    /* [in] */ CString name,
     /* [out] */ IConstructorInfo **ppConstructorInfo)
 {
     if (name.IsNull() || !ppConstructorInfo) {
@@ -677,7 +677,7 @@ ECode CClassInfo::GetAllInterfaceInfos(
 }
 
 ECode CClassInfo::GetInterfaceInfo(
-    /* [in] */ String name,
+    /* [in] */ CString name,
     /* [out] */ IInterfaceInfo ** ppInterfaceInfo)
 {
     if (name.IsNull() || !ppInterfaceInfo) {
@@ -733,7 +733,7 @@ ECode CClassInfo::GetAllCallbackInterfaceInfos(
 }
 
 ECode CClassInfo::GetCallbackInterfaceInfo(
-    /* [in] */ String name,
+    /* [in] */ CString name,
     /* [out] */ IInterfaceInfo ** ppCallbackInterfaceInfo)
 {
     if (name.IsNull() || !ppCallbackInterfaceInfo) {
@@ -818,7 +818,7 @@ ECode CClassInfo::GetAllMethodInfos(
 }
 
 ECode CClassInfo::GetMethodInfo(
-    /* [in] */ String name,
+    /* [in] */ CString name,
     /* [out] */ IMethodInfo ** ppMethodInfo)
 {
     if (name.IsNull() || !ppMethodInfo) {
@@ -875,7 +875,7 @@ ECode CClassInfo::GetAllCallbackMethodInfos(
 }
 
 ECode CClassInfo::GetCallbackMethodInfo(
-    /* [in] */ String name,
+    /* [in] */ CString name,
     /* [out] */ ICallbackMethodInfo ** ppCallbackMethodInfo)
 {
     if (name.IsNull() || !ppCallbackMethodInfo) {

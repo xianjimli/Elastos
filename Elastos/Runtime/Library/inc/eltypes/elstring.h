@@ -1,3 +1,4 @@
+
 //==========================================================================
 // Copyright (c) 2000-2008,  Elastos, Inc.  All Rights Reserved.
 //==========================================================================
@@ -6,352 +7,482 @@
 #pragma once
 #endif
 
-#ifndef __EZSTRING_H__
-#define __EZSTRING_H__
+#ifndef __ELSTRING_H__
+#define __ELSTRING_H__
 
-#include <elquintet.h>
-
-_ELASTOS_NAMESPACE_BEGIN
-
-/** @addtogroup BaseTypesRef
-  *   @{
-  */
-typedef enum _StringCase
-{
-    StringCase_Sensitive         = 0x0000,
-    StringCase_Insensitive       = 0x0001,
-} StringCase;
-
-typedef enum _Encoding
-{
-    Encoding_Default             = 0x0000,
-    Encoding_ASCII               = 0x0001,
-    Encoding_UTF7                = 0x0002,
-    Encoding_UTF8                = 0x0003,
-    Encoding_GB18030             = 0x0004,
-    Encoding_LATIN_1             = 0x0005,
-    Encoding_BIG5                = 0x0006,
-    Encoding_EUC_JP              = 0x0007,
-} Encoding;
-/** @} */
-
-_ELASTOS_NAMESPACE_END
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-    _ELASTOS Int32 __cdecl _String_GetLength(const char *string,
-        _ELASTOS Int32 nMaxLen);
-    _ELASTOS Int32 __cdecl _String_EstimateWStringLength(const char *str);
-    _ELASTOS Int32 __cdecl _String_Compare(const char *string1,
-        const char *string2, _ELASTOS StringCase stringCase);
-    char* __cdecl _String_Duplicate(const char *strSource);
-
-	void __cdecl _String_Free(char * str);
-
-    _ELASTOS Int32 __cdecl _String_ToInt32(const char *string);
-    _ELASTOS Int64 __cdecl _String_ToInt64(const char *string);
-    _ELASTOS Boolean __cdecl _String_ToBoolean(const char *string);
-    _ELASTOS Double __cdecl _String_ToDouble(const char *string);
-
-    _ELASTOS Int32 __cdecl _String_GetCharCount(const char *string);
-    _ELASTOS Char32 __cdecl _String_GetChar(const char *string,
-        _ELASTOS Int32 index);
-
-    _ELASTOS Boolean __cdecl _String_Contains(const char *string,
-        const char *substr, _ELASTOS StringCase stringCase);
-
-    _ELASTOS Boolean __cdecl _String_StartWith(const char *string,
-        const char *substr, _ELASTOS StringCase stringCase);
-    _ELASTOS Boolean __cdecl _String_EndWith(const char *string,
-        const char *substr, _ELASTOS StringCase stringCase);
-
-    _ELASTOS Int32 __cdecl _String_IndexOf_Char8(const char *string, char ch,
-        _ELASTOS StringCase stringCase);
-    _ELASTOS Int32 __cdecl _String_IndexOf_AnyChar8(const char *string,
-        const char* strCharSet, _ELASTOS StringCase stringCase);
-    _ELASTOS Int32 __cdecl _String_IndexOf_Char(const char *string,
-        _ELASTOS Char32 ch, _ELASTOS StringCase stringCase);
-    _ELASTOS Int32 __cdecl _String_IndexOf_AnyChar(const char *string,
-        _ELASTOS Char32 *strCharSet, _ELASTOS StringCase stringCase);
-    _ELASTOS Int32 __cdecl _String_IndexOf_Substring(const char *string,
-        const char *substr, _ELASTOS StringCase stringCase);
-
-    _ELASTOS Int32 __cdecl _String_LastIndexOf_Char8(const char *string, char ch,
-        _ELASTOS StringCase stringCase);
-    _ELASTOS Int32 __cdecl _String_LastIndexOf_AnyChar8(const char *string,
-        const char* strCharSet, _ELASTOS StringCase stringCase);
-    _ELASTOS Int32 __cdecl _String_LastIndexOf_Char(const char *string,
-        _ELASTOS Char32 ch, _ELASTOS StringCase stringCase);
-    _ELASTOS Int32 __cdecl _String_LastIndexOf_AnyChar(const char *string,
-        _ELASTOS Char32 *strCharSet, _ELASTOS StringCase stringCase);
-    _ELASTOS Int32 __cdecl _String_LastIndexOf_Substring(const char *string,
-        const char *substr, _ELASTOS StringCase stringCase);
-
-    char* __cdecl _String_Substring_Buffer(const char *string, _ELASTOS Int32 start,
-        _ELASTOS PCarQuintet pCq);
-    char* __cdecl _String_Substring(const char *string, _ELASTOS Int32 start);
-    char* __cdecl _String_Substring_Length_Buffer(const char *string,
-        _ELASTOS Int32 start, _ELASTOS Int32 len, _ELASTOS PCarQuintet pCq);
-
-    char* __cdecl _String_ToLowerCase(const char *string, _ELASTOS PCarQuintet pCq);
-    char* __cdecl _String_ToUpperCase(const char *string,
-        _ELASTOS PCarQuintet pCq);
-
-    char* __cdecl _String_TrimStart(const char *string, _ELASTOS PCarQuintet pCq);
-
-    char* __cdecl _String_TrimEnd(const char *string, _ELASTOS PCarQuintet pCq);
-    char* __cdecl _String_Trim(const char *string, _ELASTOS PCarQuintet pCq);
-    _ELASTOS Int32 __cdecl _String_GetHashCode(const char *string);
-
-    _ELASTOS Int32 __cdecl _String_ConvertString(const char *string, _ELASTOS PCarQuintet pCq);
-
-    _ELASTOS PCarQuintet  __cdecl _StringBuf_Box_Init(_ELASTOS PCarQuintet pCq,
-        char *str, _ELASTOS Int32 size, _ELASTOS Boolean bHeapAlloced);
-
-    _ELASTOS Int32 _StringBuf_ToUnicode(_ELASTOS PChar16 u16str, const char *string,
-        _ELASTOS Int32 count);
-
-#ifdef __cplusplus
-}
-#endif
+#include <elstringapi.h>
+#include <elcstring.h>
+#include <elsharedbuf.h>
 
 #ifdef __cplusplus
 
 _ELASTOS_NAMESPACE_BEGIN
 
-class StringBuf;
 
-/** @addtogroup CARTypesRef
-  *   @{
-  */
+//! This is a string holding UTF-8 characters. Does not allow the value more
+// than 0x10FFFF, which is not valid unicode codepoint.
 class String
 {
 public:
-    // e.g., String as;
-    String() : m_string(NULL) {}
+    String();
+    String(const String& o);
+    explicit String(const char* o);
+    explicit String(const char* o, UInt32 numChars);
 
-//  This class accords with bitwise copy semantics, and needn't declare copy
-//  contructor.
-//  //e.g., String as(str);
-//  String(const String& str) : m_string(str.m_string) {};
+    ~String();
 
-    // e.g., String as("Hello");
-    String(const char* pch) : m_string(pch) {}
+    inline const char* string() const;
+    inline UInt32 GetSize() const;
+    inline UInt32 GetLength() const;
+    inline UInt32 GetBytes() const;
+    inline Boolean IsNull() const;
+    inline Boolean IsEmpty() const;
+    inline Boolean IsNullOrEmpty() const;
 
-    Int32 GetLength(Int32 maxLen = -1) const { // e.g., as.Length(64);
-        return _String_GetLength(m_string, maxLen);
-    }
+    inline const SharedBuffer* GetSharedBuffer() const;
 
-    Int32 Compare(const String& str, StringCase stringCase = StringCase_Sensitive) const { //e.g., as.Compare(str);
-        return _String_Compare(m_string, str.m_string, stringCase);
-    }
+    void SetTo(const String& other);
+    ECode SetTo(const char* other);
+    ECode SetTo(const char* other, UInt32 numChars);
 
-	Int32 Equals(const String& str) const {
-		return !Compare(str,StringCase_Sensitive);
-	}
+    ECode Append(const String& other);
+    ECode Append(const char* other);
+    ECode Append(const char* other, UInt32 numChars);
 
-	Int32 EqualsIgnoreCase(const String& str) const {
-		return !Compare(str,StringCase_Insensitive);
-	}
+    String Replace(const char* oldStr, const char* newStr) const;
 
-    Boolean IsNull() const {  // e.g., if (str.IsNull()) {...} or Boolean b = str.IsNull();
-        return m_string == NULL;
-    }
+#ifdef _GNUC_
+    ECode AppendFormat(const char* fmt, ...)
+            __attribute__((format (printf, 2, 3)));
+#else
+    ECode AppendFormat(const char* fmt, ...);
+#endif
 
-    Boolean IsEmpty() const {
-        assert(m_string);
-        return m_string[0] == '\0';
-    }
+    // Note that this function takes O(N) time to calculate the value.
+    // No cache value is stored.
+    UInt32 GetCharCount() const;
+    Int32 GetChar(UInt32 index) const;
+    Int32 GetCharByOffset(UInt32 offset, UInt32 *nextOffset = NULL) const;
 
-    Boolean IsNullOrEmpty() const {
-        return (m_string == NULL || m_string[0] == '\0');
-    }
+    inline String& operator=(const String& other);
+    inline String& operator=(const char* other);
 
-    Int32 ToInt32() const {
-        return _String_ToInt32(m_string);
-    }
+    inline String& operator+=(const String& other);
+    inline String operator+(const String& other) const;
 
-    Int64 ToInt64() const {
-        return _String_ToInt64(m_string);
-    }
+    inline String& operator+=(const char* other);
+    inline String operator+(const char* other) const;
 
-    Boolean ToBoolean() const {
-        return _String_ToBoolean(m_string);
-    }
+    inline const Char8 operator[](Int32 idx) const;
 
-    Double ToDouble() const {
-        return _String_ToDouble(m_string);
-    }
+    inline Int32 Compare(const String& other,
+            StringCase stringCase = StringCase_Sensitive) const;
+    inline Int32 Compare(const char* other,
+            StringCase stringCase = StringCase_Sensitive) const;
 
-    Int32 GetCharCount() const {
-        return _String_GetCharCount(m_string);
-    }
+    inline Int32 Equals(const String& str) const;
+    inline Int32 Equals(const char* str) const;
+    inline Int32 EqualsIgnoreCase(const String& str) const;
+    inline Int32 EqualsIgnoreCase(const char* str) const;
 
-    Char32 GetChar(Int32 index) const {
-        return _String_GetChar(m_string, index);
-    }
+    inline Boolean operator<(const String& other) const;
+    inline Boolean operator<=(const String& other) const;
+    inline Boolean operator==(const String& other) const;
+    inline Boolean operator!=(const String& other) const;
+    inline Boolean operator>=(const String& other) const;
+    inline Boolean operator>(const String& other) const;
+
+    inline Boolean operator<(const char* other) const;
+    inline Boolean operator<=(const char* other) const;
+    inline Boolean operator==(const char* other) const;
+    inline Boolean operator!=(const char* other) const;
+    inline Boolean operator>=(const char* other) const;
+    inline Boolean operator>(const char* other) const;
+
+    inline operator const char*() const;
+    inline operator CString() const;
+
+    char* LockBuffer(UInt32 size);
+    void UnlockBuffer();
+    ECode UnlockBuffer(UInt32 size);
+
+    // return the index of the first byte of other in this at or after
+    // start, or -1 if not found
+    Int32 Find(const char* other, UInt32 start = 0) const;
+
+    void ToLowerCase();
+    void ToLowerCase(UInt32 start, UInt32 numChars);
+    void ToUpperCase();
+    void ToUpperCase(UInt32 start, UInt32 numChars);
+
+    inline Int32 ToInt32() const;
+    inline Int64 ToInt64() const;
+    inline Boolean ToBoolean() const;
+    inline Double ToDouble() const;
+
+    static String FromInt32(Int32 value);
+    static String FromInt64(Int64 value);
+    static String FromBoolean(Boolean value);
+    static String FromDouble(Double value);
 
     //---- Contains ----
-    Boolean Contains(const String&  substr, StringCase stringCase = StringCase_Sensitive) const {
-        return _String_Contains(m_string, substr, stringCase);
-    }
+    inline Boolean Contains(const String& substr,
+            StringCase stringCase = StringCase_Sensitive) const;
 
-    Boolean StartWith(const String&  substr,
-            StringCase stringCase = StringCase_Sensitive) const {
-        return _String_StartWith(m_string, substr, stringCase);
-    }
+    inline Boolean StartWith(const String& substr,
+            StringCase stringCase = StringCase_Sensitive) const;
 
-    Boolean EndWith(const String& substr,
-            StringCase stringCase = StringCase_Sensitive) const {
-        return _String_EndWith(m_string, substr, stringCase);
-    }
+    inline Boolean EndWith(const String& substr,
+            StringCase stringCase = StringCase_Sensitive) const;
+
+    inline Boolean Contains(const char* substr,
+            StringCase stringCase = StringCase_Sensitive) const;
+
+    inline Boolean StartWith(const char* substr,
+            StringCase stringCase = StringCase_Sensitive) const;
+
+    inline Boolean EndWith(const char* substr,
+            StringCase stringCase = StringCase_Sensitive) const;
 
     //---- IndexOf ----
-    Int32 IndexOf(Char8 ch, StringCase stringCase = StringCase_Sensitive) const {
-        return _String_IndexOf_Char8(m_string, ch, stringCase);
-    }
+    inline Int32 IndexOf(Char32 ch,
+            StringCase stringCase = StringCase_Sensitive) const;
 
-    Int32 IndexOfAny(const String& strCharSet,
-            StringCase stringCase = StringCase_Sensitive) const {
-        return _String_IndexOf_AnyChar8(m_string, strCharSet, stringCase);
-    }
+    inline Int32 IndexOf(const String& str,
+            StringCase stringCase = StringCase_Sensitive) const;
 
-    Int32 IndexOfChar(Char32 ch, StringCase stringCase  = StringCase_Sensitive) const {
-        return _String_IndexOf_Char(m_string, ch, stringCase);
-    }
-
-    Int32 IndexOfAnyChar(Char32 *strCharSet,
-            StringCase stringCase = StringCase_Sensitive) const {
-        return _String_IndexOf_AnyChar(m_string, strCharSet, stringCase);
-    }
-
-    Int32 IndexOf(const String& str, StringCase stringCase  = StringCase_Sensitive) const {
-        return _String_IndexOf_Substring(m_string, str, stringCase);
-    }
+    inline Int32 IndexOf(const char* str,
+            StringCase stringCase = StringCase_Sensitive) const;
 
     //---- LastIndexOf ----
-    Int32 LastIndexOf(Char8 ch,
-            StringCase stringCase = StringCase_Sensitive) const {
-        return _String_LastIndexOf_Char8(m_string, ch, stringCase);
-    }
+    inline Int32 LastIndexOf(Char32 ch,
+            StringCase stringCase = StringCase_Sensitive) const;
 
-    Int32 LastIndexOfAny(const String& strCharSet,
-            StringCase stringCase = StringCase_Sensitive) const {
-        return _String_LastIndexOf_AnyChar8(m_string, strCharSet, stringCase);
-    }
+    inline Int32 LastIndexOf(const String& str,
+            StringCase stringCase = StringCase_Sensitive) const;
 
-    Int32 LastIndexOfChar(Char32 ch, StringCase stringCase  = StringCase_Sensitive) const {
-        return _String_LastIndexOf_Char(m_string, ch, stringCase);
-    }
-
-    Int32 LastIndexOfAnyChar(Char32 *strCharSet,
-            StringCase stringCase = StringCase_Sensitive) const {
-        return _String_LastIndexOf_AnyChar(m_string, strCharSet,
-            stringCase);
-    }
-
-    Int32 LastIndexOf(const String& str, StringCase stringCase  = StringCase_Sensitive) const {
-        return _String_LastIndexOf_Substring(m_string, str, stringCase);
-    }
+    inline Int32 LastIndexOf(const char* str,
+            StringCase stringCase = StringCase_Sensitive) const;
 
     //---- Substring ----
-    String Substring(Int32 start, StringBuf& sub) {
-        return _String_Substring_Buffer(m_string, start,
-            (PCarQuintet)&sub);
-    }
+    String Substring(Int32 start) const;
 
-    String Substring(Int32 start) {
-        return _String_Substring(m_string, start);
-    }
-
-    String Substring(Int32 start, Int32 len, StringBuf& sub) {
-        return _String_Substring_Length_Buffer(m_string, start, len,
-            (PCarQuintet)&sub);
-    }
-
-    //---- ToLowerCase ----
-    String ToLowerCase(StringBuf& lowser) {
-        return _String_ToLowerCase(m_string, (PCarQuintet)&lowser);
-    }
-
-    //---- ToUpperCase ----
-    String ToUpperCase(StringBuf& upper) {
-        return _String_ToUpperCase(m_string, (PCarQuintet)&upper);
-    }
+    String Substring(Int32 start, Int32 len) const;
 
     //---- TrimStart ----
-    String TrimStart(StringBuf& str) const {
-        return _String_TrimStart(m_string, (PCarQuintet)&str);
-    }
+    String TrimStart() const;
 
     //---- TrimEnd ----
-    String TrimEnd(StringBuf& str) const {
-        return _String_TrimEnd(m_string, (PCarQuintet)&str);
-    }
+    String TrimEnd() const;
 
     //---- Trim ----
-    String Trim(StringBuf& str) const {
-        return _String_Trim(m_string, (PCarQuintet)&str);
-    }
+    String Trim() const;
 
-    operator const char*() const
-    {  //  for 3rd party API such as foo(char* pch);
-        return (char *)m_string;
-    }
+    inline Int32 GetHashCode();
 
-    void operator=(const String& str) { // e.g., str1 = str2;
-        m_string = str.m_string;
-    }
+private:
+    ECode RealAppend(const char* other, UInt32 numChars);
 
-    void operator=(const StringBuf& asb) { // e.g., str = asb;
-        m_string = (char *)((PCarQuintet)&asb)->m_pBuf;
-    }
-
-    void operator=(const char* pch) {  // e.g., str = "Hello";
-        m_string = pch;
-    }
-
-    const Char8 operator[](Int32 idx) const {
-        assert(idx >= 0);
-        return m_string[idx];
-    }
-
-    Int32 GetHashCode() {
-        return _String_GetHashCode(m_string);
-    }
-
-    static String Duplicate(const String& strSource) {
-        return _String_Duplicate(strSource);
-    }
-
-    static void Free(String& str) {
-        _String_Free((char *)str.m_string);
-    }
-
-    Char16 *ToUnicode(Char16 *u16str, Int32 count) {
-        _StringBuf_ToUnicode(u16str, m_string, count);
-        return u16str;
-    }
-
-protected:
-    void operator==(const char *) {}
-    void operator!=(const char *) {}
-    void operator!() {}
-    void operator*() {}
-
-    void operator+=(const char *) {}
-    void operator+(const char *) {}
-    void operator+=(const int) {}
-    void operator-=(const int) {}
-    void operator+(const int) {}
-    void operator-(const int) {}
-
-    const char* m_string;
+    const char* mString;
 };
-/** @} */
+
+
+inline const char* String::string() const
+{
+    return mString;
+}
+
+inline UInt32 String::GetLength() const
+{
+    assert(mString != NULL);
+    return (Int32)SharedBuffer::GetSizeFromData(mString) - 1;
+}
+
+inline UInt32 String::GetSize() const
+{
+    return GetLength();
+}
+
+inline UInt32 String::GetBytes() const
+{
+    assert(mString != NULL);
+    return (Int32)SharedBuffer::GetSizeFromData(mString) - 1;
+}
+
+inline Boolean String::IsNull() const
+{   // e.g., if (str.IsNull()) {...} or Boolean b = str.IsNull();
+    return mString == NULL;
+}
+
+inline Boolean String::IsEmpty() const
+{
+    assert(mString);
+    return mString[0] == '\0';
+}
+
+inline Boolean String::IsNullOrEmpty() const
+{
+    return (mString == NULL || mString[0] == '\0');
+}
+
+inline const SharedBuffer* String::GetSharedBuffer() const
+{
+    return SharedBuffer::GetBufferFromData(mString);
+}
+
+inline String& String::operator=(const String& other)
+{
+    SetTo(other);
+    return *this;
+}
+
+inline String& String::operator=(const char* other)
+{
+    SetTo(other);
+    return *this;
+}
+
+inline String& String::operator+=(const String& other)
+{
+    Append(other);
+    return *this;
+}
+
+inline String String::operator+(const String& other) const
+{
+    String tmp(*this);
+    tmp += other;
+    return tmp;
+}
+
+inline String& String::operator+=(const char* other)
+{
+    Append(other);
+    return *this;
+}
+
+inline String String::operator+(const char* other) const
+{
+    String tmp(*this);
+    tmp += other;
+    return tmp;
+}
+
+inline const Char8 String::operator[](Int32 idx) const
+{
+    assert(0 <= idx && (UInt32)idx < GetSize());
+    return mString[idx];
+}
+
+inline Int32 String::Compare(const String& other, StringCase stringCase) const
+{
+    return _String_Compare(mString, other.mString, stringCase);
+}
+
+inline Int32 String::Compare(const char* other, StringCase stringCase) const
+{
+    return _String_Compare(mString, other, stringCase);
+}
+
+inline Int32 String::Equals(const String& str) const
+{
+    return !Compare(str, StringCase_Sensitive);
+}
+
+inline Int32 String::Equals(const char* str) const
+{
+    return !Compare(str, StringCase_Sensitive);
+}
+
+inline Int32 String::EqualsIgnoreCase(const String& str) const
+{
+    return !Compare(str, StringCase_Insensitive);
+}
+
+inline Int32 String::EqualsIgnoreCase(const char* str) const
+{
+    return !Compare(str, StringCase_Insensitive);
+}
+
+inline Boolean String::operator<(const String& other) const
+{
+    assert(mString != NULL && other.mString != NULL);
+    return strcmp(mString, other.mString) < 0;
+}
+
+inline Boolean String::operator<=(const String& other) const
+{
+    assert(mString != NULL && other.mString != NULL);
+    return strcmp(mString, other.mString) <= 0;
+}
+
+inline Boolean String::operator==(const String& other) const
+{
+    assert(mString != NULL && other.mString != NULL);
+    return strcmp(mString, other.mString) == 0;
+}
+
+inline Boolean String::operator!=(const String& other) const
+{
+    assert(mString != NULL && other.mString != NULL);
+    return strcmp(mString, other.mString) != 0;
+}
+
+inline Boolean String::operator>=(const String& other) const
+{
+    assert(mString != NULL && other.mString != NULL);
+    return strcmp(mString, other.mString) >= 0;
+}
+
+inline Boolean String::operator>(const String& other) const
+{
+    assert(mString != NULL && other.mString != NULL);
+    return strcmp(mString, other.mString) > 0;
+}
+
+inline Boolean String::operator<(const char* other) const
+{
+    assert(mString != NULL && other != NULL);
+    return strcmp(mString, other) < 0;
+}
+
+inline Boolean String::operator<=(const char* other) const
+{
+    assert(mString != NULL && other != NULL);
+    return strcmp(mString, other) <= 0;
+}
+
+inline Boolean String::operator==(const char* other) const
+{
+    assert(mString != NULL && other != NULL);
+    return strcmp(mString, other) == 0;
+}
+
+inline Boolean String::operator!=(const char* other) const
+{
+    assert(mString != NULL && other != NULL);
+    return strcmp(mString, other) != 0;
+}
+
+inline Boolean String::operator>=(const char* other) const
+{
+    assert(mString != NULL && other != NULL);
+    return strcmp(mString, other) >= 0;
+}
+
+inline Boolean String::operator>(const char* other) const
+{
+    assert(mString != NULL && other != NULL);
+    return strcmp(mString, other) > 0;
+}
+
+inline String::operator const char*() const
+{
+    return mString;
+}
+
+inline String::operator CString() const
+{
+    return mString;
+}
+
+inline Int32 String::ToInt32() const
+{
+    return _String_ToInt32(mString);
+}
+
+inline Int64 String::ToInt64() const
+{
+    return _String_ToInt64(mString);
+}
+
+inline Boolean String::ToBoolean() const
+{
+    return _String_ToBoolean(mString);
+}
+
+inline Double String::ToDouble() const
+{
+    return _String_ToDouble(mString);
+}
+
+//---- Contains ----
+inline Boolean String::Contains(const String& substr,
+        StringCase stringCase) const
+{
+    return _String_Contains(mString, substr.mString, stringCase);
+}
+
+inline Boolean String::StartWith(const String& substr,
+        StringCase stringCase) const
+{
+    return _String_StartWith(mString, substr.mString, stringCase);
+}
+
+inline Boolean String::EndWith(const String& substr,
+        StringCase stringCase) const
+{
+    return _String_EndWith(mString, substr.mString, stringCase);
+}
+
+inline Boolean String::Contains(const char* substr,
+        StringCase stringCase) const
+{
+    return _String_Contains(mString, substr, stringCase);
+}
+
+inline Boolean String::StartWith(const char* substr,
+        StringCase stringCase) const
+{
+    return _String_StartWith(mString, substr, stringCase);
+}
+
+inline Boolean String::EndWith(const char* substr,
+        StringCase stringCase) const
+{
+    return _String_EndWith(mString, substr, stringCase);
+}
+
+//---- IndexOf ----
+inline Int32 String::IndexOf(Char32 ch, StringCase stringCase) const
+{
+    return _String_IndexOf_Char(mString, ch, stringCase);
+}
+
+inline Int32 String::IndexOf(const String& str, StringCase stringCase) const
+{
+    return _String_IndexOf_Substring(mString, str.mString, stringCase);
+}
+
+inline Int32 String::IndexOf(const char* str, StringCase stringCase) const
+{
+    return _String_IndexOf_Substring(mString, str, stringCase);
+}
+
+//---- LastIndexOf ----
+inline Int32 String::LastIndexOf(Char32 ch, StringCase stringCase) const
+{
+    return _String_LastIndexOf_Char(mString, ch, stringCase);
+}
+
+inline Int32 String::LastIndexOf(const String& str, StringCase stringCase) const
+{
+    return _String_LastIndexOf_Substring(mString, str.mString, stringCase);
+}
+
+inline Int32 String::LastIndexOf(const char* str, StringCase stringCase) const
+{
+    return _String_LastIndexOf_Substring(mString, str, stringCase);
+}
+
+inline Int32 String::GetHashCode()
+{
+    return _String_GetHashCode(mString);
+}
+
 
 _ELASTOS_NAMESPACE_END
+
 
 #else //!__cplusplus
 
@@ -359,4 +490,4 @@ typedef const char* String;
 
 #endif //__cplusplus
 
-#endif //__EZSTRING_H__
+#endif // __ELSTRING_H__

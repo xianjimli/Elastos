@@ -40,7 +40,7 @@ public:
         /* [out] */ BufferOf<IFieldInfo *> * pFieldInfos);
 
     CARAPI GetFieldInfo(
-        /* [in] */ String name,
+        /* [in] */ CString name,
         /* [out] */ IFieldInfo ** ppFieldInfo);
 
     CARAPI CreateVariable(
@@ -66,15 +66,15 @@ public:
         /* [in] */ StructDirEntry *pStructDirEntry);
 
     CARAPI InitDynamic(
-        /* [in] */ String name,
-        /* [in] */ const BufferOf<String>& fieldNames,
+        /* [in] */ CString name,
+        /* [in] */ const BufferOf<CString>& fieldNames,
         /* [in] */ const BufferOf<IDataTypeInfo *>& fieldTypeInfos);
 
     CStructRefInfo();
 
     virtual ~CStructRefInfo();
 
-    BufferOf<String>    *m_pFieldNames;
+    BufferOf<CString>    *m_pFieldNames;
     BufferOf<IDataTypeInfo *>     *m_pFieldTypeInfos;
     StructFieldDesc *m_pStructFieldDesc;
     UInt32           m_uSize;

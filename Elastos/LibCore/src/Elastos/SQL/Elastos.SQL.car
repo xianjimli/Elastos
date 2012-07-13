@@ -1,0 +1,44 @@
+
+module
+{
+    importlib("Elastos.System.eco");
+	importlib("Elastos.IO.eco");
+    merge("..\..\..\car\Elastos\SQL\Exception.car");
+    merge("..\..\..\car\Elastos\SQL\IArray.car");
+    merge("..\..\..\car\Elastos\SQL\IBlob.car");
+    merge("..\..\..\car\Elastos\SQL\IClob.car");
+    merge("..\..\..\car\Elastos\SQL\IWrapper.car");	
+	merge("..\..\..\car\Elastos\SQL\IConnection.car");
+	merge("..\..\..\car\Elastos\SQL\IDatabaseMetaData.car");	
+    merge("..\..\..\car\Elastos\SQL\IResultSet.car");
+    merge("..\..\..\car\Elastos\SQL\IResultSetMetaData.car");	
+    merge("..\..\..\car\Elastos\SQL\IStatement.car");
+    merge("..\..\..\car\Elastos\SQL\IParameterMetaData.car");
+    merge("..\..\..\car\Elastos\SQL\IPreparedStatement.car");
+    merge("..\..\..\car\Elastos\SQL\ISavepoint.car");
+    merge("..\..\..\car\Elastos\SQL\INClob.car");
+    merge("..\..\..\car\Elastos\SQL\ISQLXML.car");
+    merge("..\..\..\car\Elastos\SQL\IStruct.car");
+    merge("..\..\..\car\Elastos\SQL\IRef.car");
+    merge("..\..\..\car\Elastos\SQL\IRowId.car");
+    merge("..\..\..\car\Elastos\SQL\IRowIdLifetime.car");
+    merge("..\..\..\car\Elastos\Utility\IDate.car");
+    merge("..\..\..\car\Elastos\SQL\ITime.car");
+    merge("..\..\..\car\Elastos\SQL\ITimestamp.car");
+    merge("..\..\..\car\Elastos\Lang\INumber.car");
+    merge("..\..\..\car\Elastos\Math\IRoundingMode.car");
+    merge("..\..\..\car\Elastos\Math\IMathContext.car");
+    merge("..\..\..\car\Elastos\Utility\IRandom.car");
+    merge("..\..\..\car\Elastos\Math\IBigInt.car");
+    merge("..\..\..\car\Elastos\Math\IBigInteger.car");
+    merge("..\..\..\car\Elastos\Math\IBigDecimal.car");
+    merge("..\..\..\car\Elastos\Utility\ICalendar.car");
+    //merge("..\..\..\car\Elastos\SQL\ICallableStatement.car");
+
+    class CJDBCStatement {
+        constructor(
+            [in] IJDBCConnection* conn);
+
+        interface IStatement;
+    }
+}

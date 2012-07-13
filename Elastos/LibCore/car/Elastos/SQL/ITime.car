@@ -1,0 +1,8 @@
+
+module
+{
+    interface IDate;
+
+    interface ITime extends IDate {
+    }
+}

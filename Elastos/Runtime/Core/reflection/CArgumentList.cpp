@@ -201,11 +201,20 @@ ECode CArgumentList::SetInputArgumentOfChar16(
     return SetParamValue(index, &nParam, CarDataType_Char16, ParamIOAttribute_In);
 }
 
+ECode CArgumentList::SetInputArgumentOfCString(
+    /* [in] */ Int32 index,
+    /* [in] */ CString value)
+{
+    return SetParamValue(index, reinterpret_cast<PVoid>(const_cast<CString*>(&value)),
+            CarDataType_CString, ParamIOAttribute_In);
+}
+
 ECode CArgumentList::SetInputArgumentOfString(
     /* [in] */ Int32 index,
-    /* [in] */ String value)
+    /* [in] */ const String& value)
 {
-    return SetParamValue(index, &value, CarDataType_String, ParamIOAttribute_In);
+    return SetParamValue(index, reinterpret_cast<PVoid>(const_cast<String*>(&value)),
+            CarDataType_String, ParamIOAttribute_In);
 }
 
 ECode CArgumentList::SetInputArgumentOfBoolean(

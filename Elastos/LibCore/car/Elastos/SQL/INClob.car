@@ -1,0 +1,8 @@
+
+module
+{
+    interface IClob;
+
+    interface INClob extends IClob {
+    }
+}

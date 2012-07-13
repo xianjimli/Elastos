@@ -281,7 +281,7 @@ ECode AcquireClassInfo(
 }
 
 ECode GetRemoteClassInfo(
-    /* [in] */ String connectionName,
+    /* [in] */ const char* connectionName,
     /* [in] */ REMuid clsId,
     /* [out] */ CIClassInfo ** ppClassInfo)
 {

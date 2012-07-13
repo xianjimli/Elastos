@@ -107,7 +107,7 @@ ECode CConstructorInfo::GetParamInfoByIndex(
 }
 
 ECode CConstructorInfo::GetParamInfoByName(
-    /* [in] */ String name,
+    /* [in] */ CString name,
     /* [out] */ IParamInfo ** ppParamInfo)
 {
     return m_pMethodInfo->GetParamInfoByName(name, ppParamInfo);

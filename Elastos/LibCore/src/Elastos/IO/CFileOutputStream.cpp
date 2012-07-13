@@ -1,101 +1,105 @@
-//==========================================================================
-// Copyright (c) 2000-2008,  Elastos, Inc.  All Rights Reserved.
-//==========================================================================
-#include <stdlib.h>
-#include <elasys_server.h>
-#include <elapi.h>
-#include <_pubcrt.h>
+#include "cmdef.h"
 #include "CFileOutputStream.h"
+
 
 CFileOutputStream::~CFileOutputStream()
 {
-    Close();
+    FileOutputStream::Close();
 }
 
 ECode CFileOutputStream::Close()
 {
-    if (m_pIab) {
-        m_pIab->Release();
-        m_pIab = NULL;
-    }
+    return FileOutputStream::Close();
+}
 
-    return NOERROR;
+ECode CFileOutputStream::GetChannel(
+    /* [out] */ IFileChannel** channel)
+{
+    VALIDATE_NOT_NULL(channel);
+
+    return FileOutputStream::GetChannel(channel);
+}
+
+ECode CFileOutputStream::GetFD(
+    /* [out] */ IFileDescriptor** fd)
+{
+    VALIDATE_NOT_NULL(fd);
+
+    return FileOutputStream::GetFD(fd);
 }
 
 ECode CFileOutputStream::Flush()
 {
-    if (!m_pIab) {
-        return E_CLOSED_STREAM;
-    }
-
-    return m_pIab->Flush();
+    return FileOutputStream::Flush();
 }
 
 ECode CFileOutputStream::Write(
-    /* [in] */ Byte byte)
+    /* [in] */ Int32 oneByte)
 {
-    if (!m_pIab) {
-        return E_CLOSED_STREAM;
-    }
-
-    BufferOf<Byte> tmp(&byte, 1);
-    Int32 nWritten;
-    return WriteBufferEx(0, 1, tmp, &nWritten);
+    return FileOutputStream::Write(oneByte);
 }
 
 ECode CFileOutputStream::WriteBuffer(
-    /* [in] */ const BufferOf<Byte> & buffer,
-    /* [out] */ Int32 * pBytesWritten)
+    /* [in] */ const ArrayOf<Byte>& buffer)
 {
-    if (buffer.IsNullOrEmpty() || !pBytesWritten) {
-        return E_INVALID_ARGUMENT;
-    }
-
-    if (!m_pIab) {
-        return E_CLOSED_STREAM;
-    }
-
-    return WriteBufferEx(0, buffer.GetUsed(), buffer, pBytesWritten);
+    return FileOutputStream::WriteBuffer(buffer);
 }
 
-/**
-  * Writes <code>len</code> bytes from the specified byte array
-  * starting at offset <code>offset</code> to this file output stream.
-  */
 ECode CFileOutputStream::WriteBufferEx(
     /* [in] */ Int32 offset,
-    /* [in] */ Int32 length,
-    /* [in] */ const BufferOf<Byte> & buffer,
-    /* [out] */ Int32 * pBytesWritten)
+    /* [in] */ Int32 count,
+    /* [in] */ const ArrayOf<Byte>& buffer)
 {
-    if (offset < 0 || length <= 0 || offset+length > buffer.GetUsed() || !pBytesWritten) {
-        return E_INVALID_ARGUMENT;
-    }
+    return FileOutputStream::WriteBufferEx(offset, count, buffer);
+}
 
-    if (!m_pIab) {
-        return E_CLOSED_STREAM;
-    }
+ECode CFileOutputStream::CheckError(
+    /* [out] */ Boolean* hasError)
+{
+    VALIDATE_NOT_NULL(hasError);
 
-    MemoryBuf tmp(buffer.GetPayload() + offset, length);
-
-    ECode ec = m_pIab->Write(m_pos, tmp, pBytesWritten);
-    if (SUCCEEDED(ec)) {
-        m_pos += *pBytesWritten;
-    }
-
-    return ec;
+    return FileOutputStream::CheckError(hasError);
 }
 
 ECode CFileOutputStream::constructor(
-    /* [in] */ String fileName,
+    /* [in] */ IFile* file)
+{
+    VALIDATE_NOT_NULL(file);
+
+    return FileOutputStream::Init(file);
+}
+
+ECode CFileOutputStream::constructor(
+    /* [in] */ IFile* file,
     /* [in] */ Boolean append)
 {
-    if (fileName.IsNullOrEmpty())
-        return E_INVALID_ARGUMENT;
+    VALIDATE_NOT_NULL(file);
 
-    m_pIab = new FileStream;
-    if (!m_pIab) {
-        return E_OUT_OF_MEMORY;
-    }
-    return m_pIab->OpenWrite(fileName, append);
+    return FileOutputStream::Init(file, append);
+}
+
+ECode CFileOutputStream::constructor(
+    /* [in] */ IFileDescriptor* fd)
+{
+    VALIDATE_NOT_NULL(fd);
+
+    return FileOutputStream::Init(fd);
+}
+
+ECode CFileOutputStream::constructor(
+    /* [in] */ const String& fileName)
+{
+    return FileOutputStream::Init(fileName);
+}
+
+ECode CFileOutputStream::constructor(
+    /* [in] */ const String& fileName,
+    /* [in] */ Boolean append)
+{
+    return FileOutputStream::Init(fileName, append);
+}
+
+Mutex* CFileOutputStream::GetSelfLock()
+{
+    return &_m_syncLock;
 }

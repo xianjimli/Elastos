@@ -1,66 +1,99 @@
-
+#include "cmdef.h"
 #include "CInputStreamReader.h"
 
 ECode CInputStreamReader::constructor(
-    /* [in] */ IInputStream* is,
-    /* [in] */ String enc)
+    /* [in] */ IInputStream *in)
 {
-    return E_NOT_IMPLEMENTED;
+    return InputStreamReader::Init(in);
+}
+
+ECode CInputStreamReader::constructor(
+    /* [in] */ IInputStream *in,
+    /* [in] */ const String &enc)
+{
+    return InputStreamReader::Init(in, enc);
 }
 
 ECode CInputStreamReader::Close()
 {
-    return E_NOT_IMPLEMENTED;
+    return InputStreamReader::Close();
+}
+
+ECode CInputStreamReader::GetEncoding(
+    /* [out] */ String *encoding)
+{
+    VALIDATE_NOT_NULL(encoding);
+
+    return InputStreamReader::GetEncoding(encoding);
 }
 
 ECode CInputStreamReader::Mark(
     /* [in] */ Int32 readLimit)
 {
-    return E_NOT_IMPLEMENTED;
+    return InputStreamReader::Mark(readLimit);
 }
 
 ECode CInputStreamReader::IsMarkSupported(
-    /* [out] */ Boolean* supported)
+    /* [out] */ Boolean *supported)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(supported);
+
+    return InputStreamReader::IsMarkSupported(supported);
 }
 
 ECode CInputStreamReader::Read(
-    /* [out] */ Byte* value)
+    /* [out] */ Int32 *value)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(value);
+
+    return InputStreamReader::Read(value);
 }
 
 ECode CInputStreamReader::ReadBuffer(
-    /* [out] */ ArrayOf<Byte>* buffer,
-    /* [out] */ Int32* number)
+    /* [out] */ ArrayOf<Char8> *buffer,
+    /* [out] */ Int32 *number)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(buffer);
+    VALIDATE_NOT_NULL(number);
+
+    return InputStreamReader::ReadBuffer(buffer, number);
 }
 
 ECode CInputStreamReader::ReadBufferEx(
     /* [in] */ Int32 offset,
     /* [in] */ Int32 count,
-    /* [out] */ ArrayOf<Byte>* buffer,
-    /* [out] */ Int32* number)
+    /* [out] */ ArrayOf<Char8> *buffer,
+    /* [out] */ Int32 *number)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(buffer);
+    VALIDATE_NOT_NULL(number);
+
+    return InputStreamReader::ReadBufferEx(offset, count, buffer, number);
 }
 
 ECode CInputStreamReader::IsReady(
-    /* [out] */ Boolean* ready)
+    /* [out] */ Boolean *ready)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(ready);
+
+    return InputStreamReader::IsReady(ready);
 }
 
 ECode CInputStreamReader::Reset()
 {
-    return E_NOT_IMPLEMENTED;
+    return InputStreamReader::Reset();
 }
 
 ECode CInputStreamReader::Skip(
     /* [in] */ Int64 count,
-    /* [out] */ Int64* skipped)
+    /* [out] */ Int64 *number)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(number);
+
+    return InputStreamReader::Skip(count, number);
+}
+
+Mutex* CInputStreamReader::GetSelfLock()
+{
+    return &_m_syncLock;
 }

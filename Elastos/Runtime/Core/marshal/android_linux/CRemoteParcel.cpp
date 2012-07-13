@@ -19,8 +19,9 @@ enum Type {
 
     Type_Byte, Type_Boolean, Type_Char8, Type_Char16,
     Type_Int16, Type_Int32, Type_Int64, Type_Float, Type_Double,
-    Type_String, Type_Struct, Type_EMuid, Type_EGuid,
-    Type_ArrayOf, Type_ArrayOfString, Type_BufferOf, Type_BufferOfString,
+    Type_CString, Type_String, Type_Struct, Type_EMuid, Type_EGuid,
+    Type_ArrayOf, Type_ArrayOfCString, Type_ArrayOfString,
+    Type_BufferOf, Type_BufferOfCString, Type_BufferOfString,
     Type_StringBuf, Type_MemoryBuf, Type_InterfacePtr,
 
     Type_BytePtr, Type_BooleanPtr, Type_Char8Ptr,  Type_Char16Ptr,
@@ -142,12 +143,25 @@ ECode CRemoteParcel::ReadValue(PVoid pValue, Int32 type)
             *(Float*)pValue = (Float)m_pData->readFloat();
             break;
 
+        case Type_CString:
+            {
+                Int32 tag = m_pData->readInt32();
+                if (tag != MSH_NULL) {
+                    const char* str = m_pData->readCString();
+                    *(CString*)pValue = CString::Duplicate(str);
+                }
+                else {
+                    *(CString*)pValue = NULL;
+                }
+            }
+            break;
+
         case Type_String:
             {
                 Int32 tag = m_pData->readInt32();
                 if (tag != MSH_NULL) {
                     const char* str = m_pData->readCString();
-                    *(String*)pValue = String::Duplicate(String(str));
+                    *(String*)pValue = str;
                 }
                 else {
                     *(String*)pValue = NULL;
@@ -159,11 +173,13 @@ ECode CRemoteParcel::ReadValue(PVoid pValue, Int32 type)
             {
                 Int32 tag = m_pData->readInt32();
                 if (tag != MSH_NULL) {
-                    const char* str = m_pData->readCString();
-                    *(String*)pValue = str;
+                    const char* cstr = m_pData->readCString();
+                    String* str = new String(cstr);
+                    *(String**)pValue = str;
                 }
                 else {
-                    *(String*)pValue = NULL;
+                    String* str = new String(NULL);
+                    *(String**)pValue = str;
                 }
             }
             break;
@@ -221,8 +237,10 @@ ECode CRemoteParcel::ReadValue(PVoid pValue, Int32 type)
             {
                 Int32 tag = (Int32)m_pData->readInt32();
                 if (tag != MSH_NULL) {
-                    *(EGuid**)pValue = (EGuid*)m_pData->readInplace(sizeof(EGuid));
-                    (*(EGuid**)pValue)->pUunm = (char*)m_pData->readCString();
+                    EGuid* guid = new EGuid();
+                    m_pData->read((void*)guid, sizeof(EGuid));
+                    guid->pUunm = (char*)m_pData->readCString();
+                    *(EGuid**)pValue = guid;
                 }
                 else {
                     *(EGuid**)pValue = NULL;
@@ -232,12 +250,15 @@ ECode CRemoteParcel::ReadValue(PVoid pValue, Int32 type)
 
         case Type_BufferOf:
             {
-                CarQuintet buf;
+                Int32 tag = (Int32)m_pData->readInt32();
+                if (tag != MSH_NULL) {
+                    CarQuintet buf;
 
-                m_pData->read((void*)&buf, sizeof(buf));
-                ((PCARQUINTET)(UInt32*)pValue)->m_used = buf.m_used;
-                m_pData->read(((PCARQUINTET)(UInt32*)pValue)->m_pBuf, \
-                        buf.m_used);
+                    m_pData->read((void*)&buf, sizeof(buf));
+                    ((PCARQUINTET)(UInt32*)pValue)->m_used = buf.m_used;
+                    m_pData->read(((PCARQUINTET)(UInt32*)pValue)->m_pBuf, \
+                        buf.m_size);
+                }
             }
             break;
 
@@ -245,8 +266,9 @@ ECode CRemoteParcel::ReadValue(PVoid pValue, Int32 type)
             {
                 Int32 tag = (Int32)m_pData->readInt32();
                 if (tag != MSH_NULL) {
-                    *(PCARQUINTET*)pValue = \
-                        (PCARQUINTET)m_pData->readInplace(sizeof(CarQuintet));
+                    PCARQUINTET q = new CarQuintet();
+                    *(PCARQUINTET*)pValue = q;
+                    m_pData->read((void*)q, sizeof(CarQuintet));
                     Int32 size = (*(PCARQUINTET*)pValue)->m_size;
                     if (size == 0) {
                         (*(PCARQUINTET*)pValue)->m_pBuf = NULL;
@@ -255,13 +277,15 @@ ECode CRemoteParcel::ReadValue(PVoid pValue, Int32 type)
                         if (CarQuintetFlag_Type_IObject
                             != ((*(PCARQUINTET*)pValue)->m_flags
                                     & CarQuintetFlag_TypeMask)) {
-                            (*(PCARQUINTET*)pValue)->m_pBuf = \
-                                (Byte *)m_pData->readInplace(size);
+                            Byte* buf = (Byte*)malloc(size);
+                            m_pData->read((void*)buf, size);
+                            (*(PCARQUINTET*)pValue)->m_pBuf = buf;
                         }
                         else {
                             Int32 used = (*(PCARQUINTET*)pValue)->m_used
                                 / sizeof(IInterface *);
-                            Int32 *pBuf = (int*)(*(PCARQUINTET*)pValue)->m_pBuf;
+                            IInterface** pBuf = (IInterface**)calloc(size, sizeof(IInterface*));
+                            (*(PCARQUINTET*)pValue)->m_pBuf = pBuf;
                             for (int i = 0; i < used; i++) {
                                 tag = (Int32)m_pData->readInt32();
                                 if (tag != MSH_NULL) {
@@ -285,7 +309,7 @@ ECode CRemoteParcel::ReadValue(PVoid pValue, Int32 type)
 
                                         pParcelable->ReadFromParcel(this);
                                         iid = pClassInfo->interfaces[ipack.m_uIndex]->iid;
-                                        *(IInterface**)&pBuf[i] = pParcelable->Probe(iid);
+                                        *((IInterface**)pBuf + i) = pParcelable->Probe(iid);
                                     }
                                     else {
                                         ec = StdUnmarshalInterface(
@@ -361,7 +385,9 @@ ECode CRemoteParcel::ReadValue(PVoid pValue, Int32 type)
             {
                 Int32 tag = (Int32)m_pData->readInt32();
                 if (tag != MSH_NULL) {
-                    *(Int32**)pValue = (Int32*)m_pData->readInplace(sizeof(Int32));
+                    Int32* pv = (Int32*)malloc(sizeof(Int32));
+                    *pv = m_pData->readInt32();
+                    *(Int32**)pValue = pv;
                 }
                 else {
                     *(Int32**)pValue = NULL;
@@ -373,7 +399,9 @@ ECode CRemoteParcel::ReadValue(PVoid pValue, Int32 type)
             {
                 Int32 tag = (Int32)m_pData->readInt32();
                 if (tag != MSH_NULL) {
-                    *(Int64**)pValue = (Int64*)m_pData->readInplace(sizeof(Int64));
+                    Int64* pv = (Int64*)malloc(sizeof(Int64));
+                    *pv = m_pData->readInt64();
+                    *(Int64**)pValue = pv;
                 }
                 else {
                     *(Int64**)pValue = NULL;
@@ -475,6 +503,14 @@ ECode CRemoteParcel::WriteValue(PVoid pValue, Int32 type, Int32 size)
             m_pData->writeDouble(*((Double*)pValue));
             break;
 
+        case Type_CString:
+            m_pData->writeInt32(pValue ? MSH_NOT_NULL : MSH_NULL);
+
+            if (pValue) {
+                m_pData->writeCString((const char*)pValue);
+            }
+            break;
+
         case Type_String:
             m_pData->writeInt32(pValue ? MSH_NOT_NULL : MSH_NULL);
 
@@ -562,6 +598,7 @@ ECode CRemoteParcel::WriteValue(PVoid pValue, Int32 type, Int32 size)
             m_pData->writeInt32(pValue ? MSH_NOT_NULL : MSH_NULL);
 
             if (pValue) {
+                m_pData->writeInt32(size);
                 m_pData->write(pValue, size);
             }
             break;
@@ -635,7 +672,7 @@ ECode CRemoteParcel::WriteValue(PVoid pValue, Int32 type, Int32 size)
                             m_pData->write((void*)&itfPack, sizeof(itfPack));
 
                             IParcelable *pParcelable = \
-                                    (IParcelable*)(*(IInterface**)pValue)->Probe(EIID_IParcelable);
+                                    (IParcelable*)((IInterface*)pBuf[i])->Probe(EIID_IParcelable);
                             if (pParcelable != NULL) pParcelable->WriteToParcel(this);
                         }
                         else {  // null pointer
@@ -739,8 +776,16 @@ ECode CRemoteParcel::ReadDouble(
     return ReadValue((PVoid)pValue, Type_Double);
 }
 
+ECode CRemoteParcel::ReadCString(
+    /* [out] */ CString* pStr)
+{
+    if (pStr == NULL) return E_INVALID_ARGUMENT;
+
+    return ReadValue((PVoid)pStr, Type_CString);
+}
+
 ECode CRemoteParcel::ReadString(
-    /* [out] */ String *pStr)
+    /* [out] */ String* pStr)
 {
     if (pStr == NULL) return E_INVALID_ARGUMENT;
 
@@ -755,12 +800,12 @@ ECode CRemoteParcel::ReadStruct(
 
 ECode CRemoteParcel::ReadEMuid(EMuid *pId)
 {
-    return E_NOT_IMPLEMENTED;
+    return ReadValue((PVoid)pId, Type_EMuid);
 }
 
 ECode CRemoteParcel::ReadEGuid(EGuid *pId)
 {
-    return E_NOT_IMPLEMENTED;
+    return ReadValue((PVoid)pId, Type_EGuid);
 }
 
 ECode CRemoteParcel::ReadInterfacePtr(
@@ -777,6 +822,12 @@ ECode CRemoteParcel::ReadArrayOf(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode CRemoteParcel::ReadArrayOfCString(
+    /* [out] */ Handle32 *ppArray)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
 ECode CRemoteParcel::ReadArrayOfString(
     /* [out] */ Handle32 *ppArray)
 {
@@ -787,6 +838,12 @@ ECode CRemoteParcel::ReadBufferOf(
     /* [out] */ Handle32 *ppBuffer)
 {
     return ReadValue((PVoid)ppBuffer, Type_BufferOf);
+}
+
+ECode CRemoteParcel::ReadBufferOfCString(
+    /* [out] */ Handle32 *ppBuffer)
+{
+    return E_NOT_IMPLEMENTED;
 }
 
 ECode CRemoteParcel::ReadBufferOfString(
@@ -960,7 +1017,7 @@ ECode CRemoteParcel::WriteDouble(
     return WriteValue((PVoid)&value, Type_Double, 8);
 }
 
-ECode CRemoteParcel::WriteString(String str)
+ECode CRemoteParcel::WriteCString(CString str)
 {
     Int32 size = sizeof(UInt32);
 
@@ -968,7 +1025,18 @@ ECode CRemoteParcel::WriteString(String str)
         size += MSH_ALIGN_4(strlen((const char*)(str)) + 1) + sizeof(UInt32);
     }
 
-    return WriteValue((PVoid)(const char*)(str), Type_String, size);
+    return WriteValue((PVoid)(const char*)(str), Type_CString, size);
+}
+
+ECode CRemoteParcel::WriteString(const String& str)
+{
+    Int32 size = sizeof(UInt32);
+
+    if (!str.IsNull()) {
+        size += MSH_ALIGN_4(str.GetLength()+ 1) + sizeof(UInt32);
+    }
+
+    return WriteValue((PVoid)str.string(), Type_String, size);
 }
 
 ECode CRemoteParcel::WriteInterfacePtr(IInterface* pValue)
@@ -999,6 +1067,12 @@ ECode CRemoteParcel::WriteArrayOf(
     return WriteValue((PVoid)pArray, Type_ArrayOf, size);
 }
 
+ECode CRemoteParcel::WriteArrayOfCString(
+    /* [in] */ const ArrayOf<CString> & array)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
 ECode CRemoteParcel::WriteArrayOfString(
     /* [in] */ const ArrayOf<String> & array)
 {
@@ -1010,6 +1084,12 @@ ECode CRemoteParcel::WriteBufferOf(
 {
     Int32 size = sizeof(UInt32) + sizeof(CarQuintet) + ((CarQuintet*)pBuffer)->m_size;
     return WriteValue((PVoid)pBuffer, Type_BufferOf, size);
+}
+
+ECode CRemoteParcel::WriteBufferOfCString(
+    /* [in] */ const BufferOf<CString> & pBuffer)
+{
+    return E_NOT_IMPLEMENTED;
 }
 
 ECode CRemoteParcel::WriteBufferOfString(

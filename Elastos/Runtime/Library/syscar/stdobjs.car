@@ -82,8 +82,14 @@ library
         WriteDouble(
             [in] Double value);
 
+        ReadCString(
+            [out] CString* str);
+
+        WriteCString(
+            [in] CString str);
+
         ReadString(
-            [out] String *str);
+            [out] String* str);
 
         WriteString(
             [in] String str);
@@ -113,6 +119,12 @@ library
         WriteArrayOf(
             [in] Handle32 array);
 
+        ReadArrayOfCString(
+            [out] Handle32 *array);
+
+        WriteArrayOfCString(
+            [in] ArrayOf<CString> array);
+
         ReadArrayOfString(
             [out] Handle32 *array);
 
@@ -124,6 +136,12 @@ library
 
         WriteBufferOf(
             [in] Handle32 buffer);
+
+        ReadBufferOfCString(
+            [out] Handle32 *buffer);
+
+        WriteBufferOfCString(
+            [in] BufferOf<CString> buffer);
 
         ReadBufferOfString(
             [out] Handle32 *buffer);

@@ -8,6 +8,7 @@ TARGET_TYPE= lib
 EXPORT_LIBRARY= 1
 
 LIBRARIES = ../../libusr/lib4car/lib4car.lib
+LIBRARIES += ../../../Library/eltypes/elstring/elstring.lib
 ifeq "$(XDK_TARGET_PLATFORM)" "win32"
 LIBRARIES += ../dll/Elastos.Runtime.CarRuntime.lib
 endif

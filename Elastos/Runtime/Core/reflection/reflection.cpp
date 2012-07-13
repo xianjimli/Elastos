@@ -8,7 +8,7 @@
 CObjInfoList g_objInfoList;
 
 ELAPI _CReflector_AcquireModuleInfo(
-    /* [in] */ String name,
+    /* [in] */ CString name,
     /* [out] */ IModuleInfo **ppModuleInfo)
 {
     return g_objInfoList.AcquireModuleInfo(name, ppModuleInfo);
@@ -22,8 +22,8 @@ ELAPI _CReflector_AcquireIntrinsicTypeInfo(
 }
 
 ELAPI _CReflector_AcquireEnumInfo(
-    /* [in] */ String name,
-    /* [in] */ const BufferOf<String>* pItemNames,
+    /* [in] */ CString name,
+    /* [in] */ const BufferOf<CString>* pItemNames,
     /* [in] */ const BufferOf<Int32>* pItemValues,
     /* [out] */ IEnumInfo **ppEnumInfo)
 {
@@ -41,8 +41,8 @@ ELAPI _CReflector_AcquireCppVectorInfo(
 }
 
 ELAPI _CReflector_AcquireStructInfo(
-    /* [in] */ String name,
-    /* [in] */ const BufferOf<String> * pFieldNames,
+    /* [in] */ CString name,
+    /* [in] */ const BufferOf<CString> * pFieldNames,
     /* [in] */ const BufferOf<IDataTypeInfo *> * pFieldTypeInfos,
     /* [out] */ IStructInfo **ppStructInfo)
 {
@@ -139,7 +139,7 @@ ELAPI _CObject_ReflectInterfaceInfo(
 
     ClassID clsid;
     EIID iid;
-    IObject *pObject;	
+    IObject *pObject;
     ECode ec;
 
     ec = pObj->GetInterfaceID(pObj, &iid);

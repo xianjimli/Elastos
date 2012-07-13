@@ -15,6 +15,7 @@ const DateTypeDesc g_cDataTypeList[] = {
    {"Double",        sizeof(Double),   },
    {"Char8",         sizeof(Char8),    },
    {"Char16",        sizeof(Char16),   },
+   {"CString",       sizeof(CString),  },
    {"String",        sizeof(String),   },
    {"Boolean",       sizeof(Boolean),  },
    {"EMuid",         sizeof(EMuid),    },
@@ -62,6 +63,9 @@ CarDataType GetCarDataType(CARDataType type)
             break;
         case Type_Char16:
             dataType = CarDataType_Char16;
+            break;
+        case Type_CString:
+            dataType = CarDataType_CString;
             break;
         case Type_String:
             dataType = CarDataType_String;
@@ -219,6 +223,9 @@ UInt32 GetDataTypeSize(const CClsModule *pCClsModule, TypeDescriptor *pTypeDesc)
         case Type_EventHandler:
             uSize = sizeof(EventHandler);
             break;
+        case Type_CString:
+            uSize = sizeof(CString);
+            break;
         case Type_String:
             uSize = sizeof(String);
             break;
@@ -365,6 +372,9 @@ CarQuintetFlag DataTypeToFlag(CarDataType type)
             break;
         case CarDataType_Char16:
             flag = CarQuintetFlag_Type_Char16;
+            break;
+        case CarDataType_CString:
+            flag = CarQuintetFlag_Type_CString;
             break;
         case CarDataType_String:
             flag = CarQuintetFlag_Type_String;

@@ -9,7 +9,7 @@ namespace Elastos {
 namespace Utility {
 namespace Logging {
 /*!
-  @brief 
+  @brief
   @since
   @sa
 */
@@ -21,43 +21,43 @@ public:
 	 * @param tag
 	 * @param msg
      */
-    static ECode D(String tag, String msg);
+    static ECode D(CString tag, CString msg);
 
     /*!
      * @brief Send an ERROR log message.
 	 * @param tag
-	 * @param msg	 
+	 * @param msg
      */
-    static ECode E(String tag, String msg);
+    static ECode E(CString tag, CString msg);
 
     /*!
      * @brief Send an INFO log message.
 	 * @param tag
-	 * @param msg	 
+	 * @param msg
      */
-    static ECode I(String tag, String msg);
+    static ECode I(CString tag, CString msg);
 
     /*!
      * @brief Send an VERBOSE log message.
 	 * @param tag
-	 * @param msg	 
+	 * @param msg
      */
-    static ECode V(String tag, String msg);
+    static ECode V(CString tag, CString msg);
 
     /*!
      * @brief Send a WARN log message.
 	 * @param tag
-	 * @param msg	 
+	 * @param msg
      */
-    static ECode W(String tag, String msg);
+    static ECode W(CString tag, CString msg);
 
     /*!
      * @brief Low-level logging call.
 	 * @param priority
 	 * @param tag
-	 * @param msg	 
+	 * @param msg
      */
-    static ECode Println(Int32 priority, String tag, String msg);
+    static ECode Println(Int32 priority, CString tag, CString msg);
 };
 
 } // Logging

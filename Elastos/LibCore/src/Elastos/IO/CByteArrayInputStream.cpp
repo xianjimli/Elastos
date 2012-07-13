@@ -1,167 +1,107 @@
-//==========================================================================
-// Copyright (c) 2000-2008,  Elastos, Inc.  All Rights Reserved.
-//==========================================================================
+
+#include "cmdef.h"
 #include "CByteArrayInputStream.h"
 
 ECode CByteArrayInputStream::Available(
-    /* [out] */ Int32 * pBytes)
+    /* [out] */ Int32* number)
 {
-    if (!pBytes) {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(number);
 
-    if (!m_pBuf) {
-        return E_CLOSED_STREAM;
-    }
+    Mutex::Autolock lock(_m_syncLock);
 
-    *pBytes = m_tail - m_pos;
-    return NOERROR;
+    return ByteArrayInputStream::Available(number);
 }
 
 ECode CByteArrayInputStream::Close()
 {
-    m_pBuf = NULL;
-    return NOERROR;
+    return ByteArrayInputStream::Close();
 }
 
 ECode CByteArrayInputStream::Mark(
     /* [in] */ Int32 readLimit)
 {
-    if (!m_pBuf) {
-        return E_CLOSED_STREAM;
-    }
+    Mutex::Autolock lock(_m_syncLock);
 
-    return E_NOT_SUPPORTED;
+    return ByteArrayInputStream::Mark(readLimit);
 }
 
 ECode CByteArrayInputStream::IsMarkSupported(
-    /* [out] */ Boolean * pSupported)
+    /* [out] */ Boolean* supported)
 {
-    if (!pSupported) {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(supported);
 
-    if (!m_pBuf) {
-        return E_CLOSED_STREAM;
-    }
-    *pSupported = FALSE;
-    return NOERROR;
+    return ByteArrayInputStream::IsMarkSupported(supported);
 }
 
 ECode CByteArrayInputStream::Read(
-    /* [out] */ Byte * pByte)
+    /* [out] */ Int32* value)
 {
-    if (!pByte) {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(value);
 
-    if (!m_pBuf) {
-        return E_CLOSED_STREAM;
-    }
+    Mutex::Autolock lock(_m_syncLock);
 
-    if (m_pos >= m_tail) {
-        return E_OUT_OF_STREAM;
-    }
-
-    *pByte = (*m_pBuf)[m_pos++];
-    return NOERROR;
+    return ByteArrayInputStream::Read(value);
 }
 
 ECode CByteArrayInputStream::ReadBuffer(
-    /* [out] */ BufferOf<Byte> * pBuffer)
+    /* [out] */ ArrayOf<Byte>* buffer,
+    /* [out] */ Int32* number)
 {
-    if (pBuffer == NULL || !pBuffer->GetCapacity()) {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(buffer);
+    VALIDATE_NOT_NULL(number);
 
-    if (!m_pBuf) {
-        return E_CLOSED_STREAM;
-    }
+    Mutex::Autolock lock(_m_syncLock);
 
-    return ReadBufferEx(0, pBuffer->GetCapacity(), pBuffer);
+    return ByteArrayInputStream::ReadBuffer(buffer, number);
 }
 
 ECode CByteArrayInputStream::ReadBufferEx(
     /* [in] */ Int32 offset,
     /* [in] */ Int32 length,
-    /* [out] */ BufferOf<Byte> * pBuffer)
+    /* [out] */ ArrayOf<Byte>* buffer,
+    /* [out] */ Int32* number)
 {
-    if (pBuffer == NULL || offset < 0 || length < 0
-        || (pBuffer->GetCapacity() < length + offset)
-        || (pBuffer->GetUsed() < offset)) {
-        return E_INVALID_ARGUMENT;
-    }
-    if (!m_pBuf) {
-        return E_CLOSED_STREAM;
-    }
+    VALIDATE_NOT_NULL(buffer);
+    VALIDATE_NOT_NULL(number);
 
-    if (m_pos >= m_tail) {
-        return E_OUT_OF_STREAM;
-    }
-    if (m_pos + length > m_tail) {
-        length = m_tail - m_pos;
-    }
+    Mutex::Autolock lock(_m_syncLock);
 
-    if (length > 0) {
-        pBuffer->Replace(offset, m_pBuf->GetPayload() + m_pos, length);
-        m_pos += length;
-    }
-    pBuffer->SetUsed(offset + length);
-    return NOERROR;
+    return ByteArrayInputStream::ReadBufferEx(offset, length, buffer, number);
 }
 
 ECode CByteArrayInputStream::Reset()
 {
-    if (!m_pBuf) {
-        return E_CLOSED_STREAM;
-    }
+    Mutex::Autolock lock(_m_syncLock);
 
-    m_pos = m_mark;
-    return NOERROR;
+    return ByteArrayInputStream::Reset();
 }
 
 ECode CByteArrayInputStream::Skip(
-    /* [in] */ Int32 length)
+    /* [in] */ Int64 count,
+    /* [out] */ Int64* number)
 {
-    if (length <= 0) {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(number);
 
-    if (!m_pBuf) {
-        return E_CLOSED_STREAM;
-    }
+    Mutex::Autolock lock(_m_syncLock);
 
-    if (m_pos + length > m_tail) {
-        m_pos = m_tail;
-    } else {
-        m_pos += length;
-    }
-    return NOERROR;
+    return ByteArrayInputStream::Skip(count, number);
 }
 
 ECode CByteArrayInputStream::constructor(
-    /* [in] */ const BufferOf<Byte> & buffer)
+    /* [in] */ const ArrayOf<Byte>& buffer)
 {
-    if (buffer.IsNull()) {
-        return E_INVALID_ARGUMENT;
-    }
-
-    return constructor(buffer, 0, buffer.GetUsed());
+    return ByteArrayInputStream::Init(buffer);
 }
 
 ECode CByteArrayInputStream::constructor(
-    /* [in] */ const BufferOf<Byte> & buffer,
+    /* [in] */ const ArrayOf<Byte>& buffer,
     /* [in] */ Int32 offset,
     /* [in] */ Int32 length)
 {
-    if (buffer.IsNull() || length < 0 || offset < 0
-                || offset + length > buffer.GetUsed()) {
-        return E_INVALID_ARGUMENT;
-    }
+    return ByteArrayInputStream::Init(buffer, offset, length);
+}
 
-    m_pBuf = (BufferOf<Byte> *)&buffer;
-    m_pos = offset;
-    m_mark = offset;
-    m_tail = offset + length;
-    return NOERROR;
+Mutex* CByteArrayInputStream::GetSelfLock()
+{
+    return &_m_syncLock;
 }

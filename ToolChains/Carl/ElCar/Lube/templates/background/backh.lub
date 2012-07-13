@@ -17,7 +17,7 @@ $END IF
 #include <elastos/Mutex.h>
 #include <sys/atomics.h>
 
-using namespace Elastos::System::Threading;
+using namespace Elastos::Core::Threading;
 
 $IF class.type is not "sink"
 $  IF class.attrib is not "hasctor"

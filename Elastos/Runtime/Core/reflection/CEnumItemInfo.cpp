@@ -38,7 +38,7 @@ ECode CEnumItemInfo::GetInterfaceID(
 
 CEnumItemInfo::CEnumItemInfo(
     /* [in] */ IEnumInfo * pEnumInfo,
-    /* [in] */ String name,
+    /* [in] */ CString name,
     /* [in] */ Int32 value)
 {
     m_pEnumInfo = pEnumInfo;

@@ -62,7 +62,7 @@ typedef enum CARDataType
     Type_Array,          Type_PVoid,         Type_const,       Type_DateTime,
     Type_interface,      Type_struct,       Type_enum,        Type_alias,
 
-    Type_String,
+    Type_String,         Type_CString,
     Type_ArrayOf,        Type_BufferOf,     Type_MemoryBuf,
     Type_StringBuf,
 

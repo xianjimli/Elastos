@@ -104,7 +104,7 @@ module
          *             if this stream is closed or another IOException occurs.
          */
         ReadBuffer(
-            [out] BufferOf<Byte> buffer,
+            [out] ArrayOf<Byte> buffer,
             [out] Int32* number);
 
         /**
@@ -130,7 +130,7 @@ module
         ReadBufferEx(
             [in] Int32 offset,
             [in] Int32 length,
-            [out] BufferOf<Byte> buffer,
+            [out] ArrayOf<Byte> buffer,
             [out] Int32* number);
 
         /**

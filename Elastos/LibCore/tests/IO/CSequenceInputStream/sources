@@ -1,0 +1,15 @@
+
+TARGET_NAME = testCSequenceInputStream
+TARGET_TYPE = ecx
+
+IMPORTS = Elastos.IO.eco
+
+SOURCES = test.cpp
+
+LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.CarRuntime.lib
+ifeq "$(XDK_TARGET_PLATFORM)" "win32"
+LIBRARIES += $(XDK_LIB_PATH)/Elastos.Runtime.lib
+else
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.CarRuntime.eco
+LIBRARIES += -lstdc++
+endif

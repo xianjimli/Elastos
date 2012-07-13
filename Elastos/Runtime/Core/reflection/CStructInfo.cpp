@@ -71,7 +71,7 @@ CStructRefInfo::~CStructRefInfo()
     if (m_pStructFieldDesc) delete [] m_pStructFieldDesc;
     if (m_pCClsModule) m_pCClsModule->Release();
     if (m_pBuf) free(m_pBuf);
-    if (m_pFieldNames) BufferOf<String>::Free(m_pFieldNames);
+    if (m_pFieldNames) BufferOf<CString>::Free(m_pFieldNames);
 
     Int32 i = 0;
     if (m_pFieldTypeInfos) {
@@ -110,14 +110,14 @@ ECode CStructRefInfo::InitStatic(
         goto EExit;
     }
 
-    m_pFieldNames = BufferOf<String>::Alloc(pDesc->cElems);
+    m_pFieldNames = BufferOf<CString>::Alloc(pDesc->cElems);
     if (!m_pFieldNames) {
         ec = E_OUT_OF_MEMORY;
         goto EExit;
     }
 
     memset(m_pFieldTypeInfos->GetPayload(), 0, sizeof(PInterface) * pDesc->cElems);
-    memset(m_pFieldNames->GetPayload(), 0, sizeof(String) * pDesc->cElems);
+    memset(m_pFieldNames->GetPayload(), 0, sizeof(CString) * pDesc->cElems);
     m_pFieldTypeInfos->SetUsed(pDesc->cElems);
     m_pFieldNames->SetUsed(pDesc->cElems);
 
@@ -141,7 +141,7 @@ ECode CStructRefInfo::InitStatic(
 
 EExit:
     if (m_pFieldNames) {
-        BufferOf<String>::Free(m_pFieldNames);
+        BufferOf<CString>::Free(m_pFieldNames);
         m_pFieldNames = NULL;
     }
 
@@ -158,8 +158,8 @@ EExit:
 }
 
 ECode CStructRefInfo::InitDynamic(
-    /* [in] */ String name,
-    /* [in] */ const BufferOf<String>& fieldNames,
+    /* [in] */ CString name,
+    /* [in] */ const BufferOf<CString>& fieldNames,
     /* [in] */ const BufferOf<IDataTypeInfo *>& fieldTypeInfos)
 {
     ECode ec = NOERROR;
@@ -178,7 +178,7 @@ ECode CStructRefInfo::InitDynamic(
     }
 
     //
-    m_pFieldNames = BufferOf<String>::Alloc(fieldNames.GetUsed());
+    m_pFieldNames = BufferOf<CString>::Alloc(fieldNames.GetUsed());
     if (!m_pFieldNames) {
         ec = E_OUT_OF_MEMORY;
         goto EExit;
@@ -223,7 +223,7 @@ EExit:
     }
 
     if (m_pFieldNames) {
-        BufferOf<String>::Free(m_pFieldNames);
+        BufferOf<CString>::Free(m_pFieldNames);
         m_pFieldNames = NULL;
     }
 
@@ -311,7 +311,7 @@ ECode CStructRefInfo::GetAllFieldInfos(
 }
 
 ECode CStructRefInfo::GetFieldInfo(
-    /* [in] */ String name,
+    /* [in] */ CString name,
     /* [out] */ IFieldInfo ** ppFieldInfo)
 {
     if (name.IsNull() || !ppFieldInfo) {

@@ -80,8 +80,6 @@ CObjectStub::~CObjectStub()
     }
 
     UnregisterExportObject(m_connName);
-    String::Free(m_connName);
-
 
     sem_destroy(&m_sem);
     pthread_exit((void*)0);
@@ -672,7 +670,7 @@ void* CObjectStub::S_ServiceRoutine(void *arg)
                 printf("Get connection name fail.\n"));
         pthread_exit((void*)E_FAIL);
     }
-    ((CObjectStub*)arg)->m_connName = String::Duplicate(String(uname));
+    ((CObjectStub*)arg)->m_connName = uname;
 
     objectPathVTable.unregister_function = NULL;
     objectPathVTable.message_function = S_HandleMessage;

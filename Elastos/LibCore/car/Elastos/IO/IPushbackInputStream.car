@@ -39,7 +39,7 @@ module
          *             sufficient to store the contents of {@code buffer}.
          */
         UnReadBuffer(
-            [in] BufferOf<Byte> buffer);
+            [in] ArrayOf<Byte> buffer);
 
         /**
          * Pushes a subset of the bytes in {@code buffer} back to this stream. The
@@ -70,6 +70,6 @@ module
         UnReadBufferEx(
             [in] Int32 offset,
             [in] Int32 length,
-            [in] BufferOf<Byte> buffer);
+            [in] ArrayOf<Byte> buffer);
     }
 }

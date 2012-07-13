@@ -1,0 +1,9 @@
+
+module
+{
+    merge("../../../car/Elastos/Utility/IComparator.car");
+
+    class CObjectContainer {
+        interface IObjectContainer;
+    }
+}

@@ -67,7 +67,7 @@ CEnumRefInfo::~CEnumRefInfo()
 {
     if (m_pCClsModule) m_pCClsModule->Release();
     if (m_pBuf) delete m_pBuf;
-    if (m_pItemNames) BufferOf<String>::Free(m_pItemNames);
+    if (m_pItemNames) BufferOf<CString>::Free(m_pItemNames);
     if (m_pItemValues) BufferOf<Int32>::Free(m_pItemValues);
 
     if (m_pItemInfos) {
@@ -95,7 +95,7 @@ ECode CEnumRefInfo::InitStatic(
         return E_OUT_OF_MEMORY;
     }
 
-    m_pItemNames = BufferOf<String>::Alloc(pDesc->cElems);
+    m_pItemNames = BufferOf<CString>::Alloc(pDesc->cElems);
     if (!m_pItemNames) {
         BufferOf<Int32>::Free(m_pItemValues);
         m_pItemValues = NULL;
@@ -103,7 +103,7 @@ ECode CEnumRefInfo::InitStatic(
     }
 
     memset(m_pItemValues->GetPayload(), 0, sizeof(Int32) * pDesc->cElems);
-    memset(m_pItemNames->GetPayload(), 0, sizeof(String) * pDesc->cElems);
+    memset(m_pItemNames->GetPayload(), 0, sizeof(CString) * pDesc->cElems);
     m_pItemValues->SetUsed(pDesc->cElems);
     m_pItemNames->SetUsed(pDesc->cElems);
 
@@ -116,7 +116,7 @@ ECode CEnumRefInfo::InitStatic(
 
     ECode ec = InitItemInfos();
     if (FAILED(ec)) {
-        BufferOf<String>::Free(m_pItemNames);
+        BufferOf<CString>::Free(m_pItemNames);
         m_pItemNames = NULL;
         BufferOf<Int32>::Free(m_pItemValues);
         m_pItemValues = NULL;
@@ -126,8 +126,8 @@ ECode CEnumRefInfo::InitStatic(
 }
 
 ECode CEnumRefInfo::InitDynamic(
-    /* [in] */ String name,
-    /* [in] */ const BufferOf<String>& itemNames,
+    /* [in] */ CString name,
+    /* [in] */ const BufferOf<CString>& itemNames,
     /* [in] */ const BufferOf<Int32>& itemValues)
 {
     ECode ec = NOERROR;
@@ -146,7 +146,7 @@ ECode CEnumRefInfo::InitDynamic(
     }
 
     //
-    m_pItemNames = BufferOf<String>::Alloc(itemNames.GetUsed());
+    m_pItemNames = BufferOf<CString>::Alloc(itemNames.GetUsed());
     if (!m_pItemNames) {
         ec = E_OUT_OF_MEMORY;
         goto EExit;
@@ -183,7 +183,7 @@ EExit:
     }
 
     if (m_pItemNames) {
-        BufferOf<String>::Free(m_pItemNames);
+        BufferOf<CString>::Free(m_pItemNames);
         m_pItemNames = NULL;
     }
 
@@ -294,7 +294,7 @@ ECode CEnumRefInfo::GetAllItemInfos(
 }
 
 ECode CEnumRefInfo::GetItemInfo(
-    /* [in] */ String name,
+    /* [in] */ CString name,
     /* [out] */ IEnumItemInfo ** ppEnumItemInfo)
 {
     if (name.IsNull() || !ppEnumItemInfo) {

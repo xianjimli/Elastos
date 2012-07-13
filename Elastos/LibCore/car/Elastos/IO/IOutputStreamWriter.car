@@ -1,0 +1,17 @@
+
+module
+{
+    interface IWriter;
+
+    interface IOutputStreamWriter extends IWriter {
+        /**
+         * Gets the name of the encoding that is used to convert characters to
+         * bytes.
+         *
+         * @return the string describing the converter or {@code null} if this
+         *         writer is closed.
+         */
+        GetEncoding(
+            [out] String* encoding);
+    }
+}

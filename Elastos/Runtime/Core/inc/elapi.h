@@ -56,7 +56,7 @@ ELAPI _CSystem_QueryPerformanceFrequency(
 #include <callback.h>
 
 ELAPI _CReflector_AcquireModuleInfo(
-    /* [in] */ _ELASTOS String name,
+    /* [in] */ _ELASTOS CString name,
     /* [out] */ IModuleInfo **piModuleInfo);
 
 ELAPI _CReflector_AcquireIntrinsicTypeInfo(
@@ -65,28 +65,28 @@ ELAPI _CReflector_AcquireIntrinsicTypeInfo(
 
 #ifdef __cplusplus
 ELAPI _CReflector_AcquireEnumInfo(
-    /* [in] */ _ELASTOS String name,
-    /* [in] */ const _ELASTOS BufferOf<_ELASTOS String> *pItemNames,
+    /* [in] */ _ELASTOS CString name,
+    /* [in] */ const _ELASTOS BufferOf<_ELASTOS CString> *pItemNames,
     /* [in] */ const _ELASTOS BufferOf<_ELASTOS Int32> *pItemValues,
     /* [out] */ IEnumInfo **ppEnumInfo);
 
 
 ELAPI _CReflector_AcquireStructInfo(
-    /* [in] */ _ELASTOS String name,
-    /* [in] */ const _ELASTOS BufferOf<_ELASTOS String> *pFieldNames,
+    /* [in] */ _ELASTOS CString name,
+    /* [in] */ const _ELASTOS BufferOf<_ELASTOS CString> *pFieldNames,
     /* [in] */ const _ELASTOS BufferOf<IDataTypeInfo *> *pFieldTypeInfos,
     /* [out] */ IStructInfo **ppStructInfo);
 #else
 
 ELAPI _CReflector_AcquireEnumInfo(
-    /* [in] */ _ELASTOS String name,
+    /* [in] */ _ELASTOS CString name,
     /* [in] */ const _ELASTOS PCarQuintet pItemNames,
     /* [in] */ const _ELASTOS PCarQuintet pItemValues,
     /* [out] */ IEnumInfo **ppEnumInfo);
 
 
 ELAPI _CReflector_AcquireStructInfo(
-    /* [in] */ _ELASTOS String name,
+    /* [in] */ _ELASTOS CString name,
     /* [in] */ const _ELASTOS PCarQuintet pFieldNames,
     /* [in] */ const _ELASTOS PCarQuintet pFieldTypeInfos,
     /* [out] */ IStructInfo **ppStructInfo);
@@ -116,7 +116,7 @@ ELAPI _CObject_ReflectInterfaceInfo(
     /* [out] */ IInterfaceInfo **piInterfaceInfo);
 
 ELAPI _CScheme_Instantiate(
-    /* [in] */ _ELASTOS String uri,
+    /* [in] */ const _ELASTOS String& uri,
     /* [out] */ PInterface *object);
 
 ELAPI_(_ELASTOS Boolean) _Impl_CheckHelperInfoFlag(_ELASTOS Flags32 flag);
@@ -142,17 +142,17 @@ ELAPI _Impl_AcquireCallbackHandler(
 
 ELAPI _CCallbackParcel_New(
     /* [out] */ IParcel **ppObj);
-    
+
 ELAPI _CObject_MarshalInterface(
     /* [in] */ IInterface *pObj,
     /* [out] */ void **ppBuf,
     /* [out] */ _ELASTOS Int32 *pSize);
-    
+
 ELAPI _CObject_UnmarshalInterface(
     /* [in] */ UnmarshalFlag flag,
     /* [in] */ void *pBuf,
     /* [out] */ IInterface **ppObj,
-    /* [out] */ _ELASTOS Int32 *pSize);    
+    /* [out] */ _ELASTOS Int32 *pSize);
 
 #endif // __ELAPI_H__
 /** @} */

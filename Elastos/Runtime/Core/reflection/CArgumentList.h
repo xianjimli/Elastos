@@ -56,9 +56,13 @@ public:
         /* [in] */ Int32 index,
         /* [in] */ Char16 value);
 
+    CARAPI SetInputArgumentOfCString(
+        /* [in] */ Int32 index,
+        /* [in] */ CString value);
+
     CARAPI SetInputArgumentOfString(
         /* [in] */ Int32 index,
-        /* [in] */ String value);
+        /* [in] */ const String& value);
 
     CARAPI SetInputArgumentOfBoolean(
         /* [in] */ Int32 index,

@@ -23,7 +23,7 @@ public:
      *            the name of the permission.
      */
     Permission(
-        /* [in] */ String name);
+        /* [in] */ const String& name);
 
     ~Permission();
 

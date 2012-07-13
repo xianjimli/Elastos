@@ -439,6 +439,26 @@ IMPL_USERFUNC(CStyleParamType)(PLUBECTX pCtx, PSTATEDESC pDesc, PVOID pvArg)
             else pszType = "StringBuf *";
             break;
 
+        case Type_CString:
+            assert(pType->nPointer <= 1);
+            if (1 == pType->nPointer) {
+                pszType = "CString*";
+            }
+            else if (0 == pType->nPointer) {
+                pszType = "CString";
+            }
+            break;
+
+        case Type_String:
+            assert(pType->nPointer <= 1);
+            if (1 == pType->nPointer) {
+                pszType = "String*";
+            }
+            else if (0 == pType->nPointer) {
+                pszType = "String";
+            }
+            break;
+
         default:
             pszType = Type2CString(pCtx->m_pModule, pType);
             break;
@@ -490,7 +510,10 @@ Restart:
             break;
 
         case Type_ArrayOf:
-            if (Type_String == pType->pNestedType->type) {
+            if (Type_CString == pType->pNestedType->type) {
+                pszType = "ArrayOfCString";
+            }
+            else if (Type_String == pType->pNestedType->type) {
                 pszType = "ArrayOfString";
             }
             else {
@@ -498,7 +521,10 @@ Restart:
             }
             break;
         case Type_BufferOf:
-            if (Type_String == pType->pNestedType->type) {
+            if (Type_CString == pType->pNestedType->type) {
+                pszType = "BufferOfCString";
+            }
+            else if (Type_String == pType->pNestedType->type) {
                 pszType = "BufferOfString";
             }
             else {
@@ -518,6 +544,10 @@ Restart:
 
         case Type_struct:
             pszType = "Struct";
+            break;
+
+        case Type_CString:
+            pszType = "CString";
             break;
 
         case Type_String:
@@ -1111,6 +1141,7 @@ IMPL_USERFUNC(PrefixingNameByName)(PLUBECTX pCtx, PSTATEDESC pDesc, PVOID pvArg)
         TYPE_CASE(Type_Char8, NULL, "p", NULL)
         TYPE_CASE(Type_Char16, NULL, "p", NULL)
         TYPE_CASE(Type_PVoid, "p", "pp", NULL)
+        TYPE_CASE(Type_CString, NULL, "p", NULL)
         TYPE_CASE(Type_String, NULL, "p", NULL)
         TYPE_CASE(Type_StringBuf, "p", "pp", NULL)
         TYPE_CASE(Type_ArrayOf, "p", "pp", NULL)
@@ -1188,6 +1219,7 @@ IMPL_USERFUNC(PrefixingName)(PLUBECTX pCtx, PSTATEDESC pDesc, PVOID pvArg)
         TYPE_CASE(Type_Char8, NULL, "p", NULL)
         TYPE_CASE(Type_Char16, NULL, "p", NULL)
         TYPE_CASE(Type_PVoid, "p", "pp", NULL)
+        TYPE_CASE(Type_CString, NULL, "p", NULL)
         TYPE_CASE(Type_String, NULL, "p", NULL)
         TYPE_CASE(Type_ArrayOf, "p", "pp", NULL)
         TYPE_CASE(Type_BufferOf, "p", "pp", NULL)
@@ -1726,6 +1758,7 @@ IMPL_USERFUNC(AndriodType)(PLUBECTX pCtx, PSTATEDESC pDesc, PVOID pvArg)
     TypeDescriptor *pType = (TypeDescriptor *)pvArg;
 
      switch (pType->type) {
+        case Type_CString:
         case Type_String:
             assert(0 == pType->nPointer);
             sprintf(szType, "const char*");
@@ -1852,6 +1885,7 @@ IMPL_USERFUNC(WriteToAndriodParcel)(PLUBECTX pCtx, PSTATEDESC pDesc, PVOID pvArg
     char szType[256];
 
     switch (pCtx->m_pParam->type.type) {
+        case Type_CString:
         case Type_String:
             sprintf(szType, "data.writeString16(String16(%s));\n", pCtx->m_pParam->pszName);
             pszType = szType;
@@ -1918,6 +1952,7 @@ void ReadFromParcel(PLUBECTX pCtx, ParamDescriptor* pParamDesc)
     char szType[512];
 
     switch (pParamDesc->type.type) {
+        case Type_CString:
         case Type_String:
             assert(0);
             break;
@@ -2092,6 +2127,7 @@ IMPL_USERFUNC(CallSoMethod)(PLUBECTX pCtx, PSTATEDESC pDesc, PVOID pvArg)
         pParamDesc = pCtx->m_pMethod->ppParams[i];
 
         switch (pParamDesc->type.type) {
+            case Type_CString:
             case Type_String:
                 sprintf(szBuffer, "    const char* p%sTmp = (const char*)%s;\n",
                         pParamDesc->pszName, pParamDesc->pszName);
@@ -2223,6 +2259,7 @@ IMPL_USERFUNC(CallSoMethod)(PLUBECTX pCtx, PSTATEDESC pDesc, PVOID pvArg)
         pParamDesc = pCtx->m_pMethod->ppParams[i];
 
         switch (pParamDesc->type.type) {
+            case Type_CString:
             case Type_String:
                 assert(0 == pParamDesc->type.nPointer);
                 sprintf(szBuffer, "p%sTmp", pParamDesc->pszName);
@@ -2516,6 +2553,11 @@ IMPL_USERFUNC(GenerateAndriodParameter)(PLUBECTX pCtx, PSTATEDESC pDesc, PVOID p
     ParamDescriptor* pParamDesc = pCtx->m_pParam;
 
     switch(pParamDesc->type.type) {
+        case Type_CString:
+            assert(0 == pParamDesc->type.nPointer);
+            sprintf(szBuffer, "const char* %s", pParamDesc->pszName);
+            break;
+
         case Type_String:
             assert(0 == pParamDesc->type.nPointer);
             sprintf(szBuffer, "const char* %s", pParamDesc->pszName);
@@ -2624,6 +2666,10 @@ IMPL_USERFUNC(GenerateCBDataParameter)(PLUBECTX pCtx, PSTATEDESC pDesc, PVOID pv
     ParamDescriptor* pParamDesc = pCtx->m_pParam;
 
     switch(pParamDesc->type.type) {
+        case Type_CString:
+            assert(0 == pParamDesc->type.nPointer);
+            sprintf(szBuffer, "char* %s", pParamDesc->pszName);
+            break;
         case Type_String:
             assert(0 == pParamDesc->type.nPointer);
             sprintf(szBuffer, "char* %s", pParamDesc->pszName);
@@ -2699,6 +2745,18 @@ IMPL_USERFUNC(ReadFromAndriodParcelOnTransact)(PLUBECTX pCtx, PSTATEDESC pDesc, 
         pParamDesc = pCtx->m_pMethod->ppParams[i];
 
         switch (pParamDesc->type.type) {
+            case Type_CString:
+                sprintf(szBuffer,
+                    "            str16 = data.readString16Inplace(&strlen);\n"
+                    "            if (str16 != NULL && str16[0] != '\\0'){\n"
+                    "                m_p%sData->%s = strndup16to8(str16, strlen);\n"
+                    "            } \n"
+                    "            else {\n"
+                    "                m_p%sData->%s = NULL;\n"
+                    "            }\n",
+                    pCtx->m_pMethod->pszName, pParamDesc->pszName,
+                    pCtx->m_pMethod->pszName, pParamDesc->pszName);
+                break;
             case Type_String:
                 sprintf(szBuffer,
                     "            str16 = data.readString16Inplace(&strlen);\n"
@@ -2757,6 +2815,11 @@ IMPL_USERFUNC(PrepareParamForResponseCallback)(PLUBECTX pCtx, PSTATEDESC pDesc, 
             break;
         case Type_Byte:
             sprintf(szBuffer, "    Byte %s = (Byte)(_%s & 0xff);\n",
+                    pParamDesc->pszName, pParamDesc->pszName);
+            pCtx->PutString(szBuffer);
+            break;
+        case Type_CString:
+            sprintf(szBuffer, "    CString %s(_%s);\n",
                     pParamDesc->pszName, pParamDesc->pszName);
             pCtx->PutString(szBuffer);
             break;
@@ -2926,6 +2989,15 @@ Restart:
                 pCtx->PutString(");");
             }
             break;
+
+        case Type_CString:
+            assert(0 == pType->nPointer);
+
+            pCtx->PutString("pParams->WriteCString(");
+            UserFunc_PrefixingName(pCtx, pDesc, pvArg);
+            pCtx->PutString(");");
+            break;
+
 
         case Type_String:
             assert(0 == pType->nPointer);
@@ -3098,7 +3170,10 @@ Restart:
         case Type_ArrayOf:
             assert(0 == pType->nPointer);
 
-            if (Type_String == pType->pNestedType->type) {
+            if (Type_CString == pType->pNestedType->type) {
+                pCtx->PutString("pParams->WriteArrayOfCString(");
+            }
+            else if (Type_String == pType->pNestedType->type) {
                 pCtx->PutString("pParams->WriteArrayOfString(");
             }
             else {
@@ -3111,7 +3186,10 @@ Restart:
         case Type_BufferOf:
             assert(0 == pType->nPointer);
 
-            if (Type_String == pType->pNestedType->type) {
+            if (Type_CString == pType->pNestedType->type) {
+                pCtx->PutString("pParams->WriteBufferOfCString(");
+            }
+            else if (Type_String == pType->pNestedType->type) {
                 pCtx->PutString("pParams->WriteBufferOfString(");
             }
             else {

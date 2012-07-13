@@ -1,0 +1,83 @@
+
+module
+{
+	/**
+	 * Specifies the rounding behavior for operations whose results cannot be
+	 * represented exactly.
+	 */
+    enum RoundingMode {
+		/**
+		 * Rounding mode where the values are rounded towards zero.
+		 * <br>
+		 * Rule: {@code x.round().abs() <= x.abs()}
+		 */
+//		RoundingMode_DOWN = BigDecimal_ROUND_DOWN,
+        RoundingMode_DOWN = 0,
+
+		/**
+		 * Rounding mode to round towards positive infinity. For positive values
+		 * this rounding mode behaves as {@link #UP}, for negative values as
+		 * {@link #DOWN}.
+		 * <br>
+		 * Rule: {@code x.round() >= x}
+		 */
+//		RoundingMode_CEILING = BigDecimal_ROUND_CEILING,
+		RoundingMode_CEILING = 1,
+		
+		/**
+		 * Rounding mode to round towards negative infinity. For positive values
+		 * this rounding mode behaves as {@link #DOWN}, for negative values as
+		 * {@link #UP}.
+		 * <br>
+		 * Rule: {@code x.round() <= x}
+		 */
+//		RoundingMode_FLOOR = BigDecimal_ROUND_FLOOR,
+		RoundingMode_FLOOR = 2,
+		
+		/**
+		 * Rounding mode where values are rounded towards the nearest neighbor. Ties
+		 * are broken by rounding up.
+		 */
+//		RoundingMode_HALF_UP = BigDecimal_ROUND_HALF_UP,
+		RoundingMode_HALF_UP = 3,
+
+		/**
+		 * Rounding mode where values are rounded towards the nearest neighbor. Ties
+		 * are broken by rounding down.
+		 */
+//		RoundingMode_HALF_DOWN = BigDecimal_ROUND_HALF_DOWN,
+		RoundingMode_HALF_DOWN = 4,
+
+		/**
+		 * Rounding mode where values are rounded towards the nearest neighbor. Ties
+		 * are broken by rounding to the even neighbor.
+		 */
+//		RoundingMode_HALF_EVEN = BigDecimal_ROUND_HALF_EVEN,
+		RoundingMode_HALF_EVEN = 5,
+
+		/**
+		 * Rounding mode where the rounding operations throws an ArithmeticException
+		 * for the case that rounding is necessary, i.e. for the case that the value
+		 * cannot be represented exactly.
+		 */
+//		RoundingMode_UNNECESSARY = BigDecimal_ROUND_UNNECESSARY,
+		RoundingMode_UNNECESSARY = 6,			
+	}
+    interface IRoundingMode
+	{
+		/**
+		 * Converts rounding mode constants from class {@code BigDecimal} into
+		 * {@code RoundingMode} values.
+		 *
+		 * @param mode
+		 *            rounding mode constant as defined in class {@code BigDecimal}
+		 * @return corresponding rounding mode object
+		 */
+		ValueOf(
+            [in] Int32 mode,
+            [out] IRoundingMode** newObj);
+		
+        Func(
+            [in] RoundingMode roundingModeEnum);
+	}
+}

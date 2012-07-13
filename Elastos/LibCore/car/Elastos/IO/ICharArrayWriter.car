@@ -28,7 +28,7 @@ module
          * @return this CharArrayWriter's contents as a new char array.
          */
         ToCharArray(
-            [out, callee] BufferOf<Byte>* buffer);
+            [out, callee] ArrayOf<Char8>* buffer);
 
         /**
          * Writes the contents of this {@code CharArrayWriter} to another {@code

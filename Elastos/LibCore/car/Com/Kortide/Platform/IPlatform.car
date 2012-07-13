@@ -1,0 +1,10 @@
+
+module
+{
+    interface IFileSystem;
+
+    interface IPlatform {
+        GetFileSystem(
+            [out] IFileSystem** fs);
+    }
+}

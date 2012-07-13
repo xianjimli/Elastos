@@ -1,162 +1,71 @@
-//==========================================================================
-// Copyright (c) 2000-2008,  Elastos, Inc.  All Rights Reserved.
-//==========================================================================
-#include <stdio.h>
+
+#include "cmdef.h"
 #include "CBufferedOutputStream.h"
-#include "local.h"
 
 ECode CBufferedOutputStream::Close()
 {
-    if (m_pIos) {
-        ECode ec = flushBuffer();
-        if (FAILED(ec)) {
-            return ec;
-        }
+    Mutex::Autolock lock(_m_syncLock);
 
-        m_pIos->Release();
-        m_pIos = NULL;
-    }
-
-    if (m_pBuf) {
-        BufferOf<Byte>::Free(m_pBuf);
-        m_pBuf = NULL;
-    }
-
-    return NOERROR;
+    return BufferedOutputStream::Close();
 }
 
 ECode CBufferedOutputStream::Flush()
 {
-    if (!m_pIos) {
-        return E_CLOSED_STREAM;
-    }
+    Mutex::Autolock lock(_m_syncLock);
 
-    ECode ec = flushBuffer();
-    if (FAILED(ec)) {
-        return ec;
-    }
-
-    return m_pIos->Flush();
+    return BufferedOutputStream::Flush();
 }
 
 ECode CBufferedOutputStream::Write(
-    /* [in] */ Byte byte)
+    /* [in] */ Int32 oneByte)
 {
-    if (!m_pIos) {
-        return E_CLOSED_STREAM;
-    }
+    Mutex::Autolock lock(_m_syncLock);
 
-    if (m_pBuf->GetUsed() >= m_pBuf->GetCapacity()) {
-        ECode ec = flushBuffer();
-        if (FAILED(ec)) {
-            return ec;
-        }
-    }
-
-    m_pBuf->Append(byte);
-    return NOERROR;
+    return BufferedOutputStream::Write(oneByte);
 }
 
 ECode CBufferedOutputStream::WriteBuffer(
-    /* [in] */ const BufferOf<Byte> & buffer,
-    /* [out] */ Int32 * pBytesWritten)
+    /* [in] */ const ArrayOf<Byte> & buffer)
 {
-    if (buffer.IsNullOrEmpty() || !pBytesWritten) {
-        return E_INVALID_ARGUMENT;
-    }
-
-    if (!m_pIos) {
-        return E_CLOSED_STREAM;
-    }
-
-    return WriteBufferEx(0, buffer.GetUsed(), buffer, pBytesWritten);
+    return BufferedOutputStream::WriteBuffer(buffer);
 }
 
 ECode CBufferedOutputStream::WriteBufferEx(
     /* [in] */ Int32 offset,
-    /* [in] */ Int32 length,
-    /* [in] */ const BufferOf<Byte> & buffer,
-    /* [out] */ Int32 * pBytesWritten)
+    /* [in] */ Int32 count,
+    /* [in] */ const ArrayOf<Byte> & buffer)
 {
-    if (offset < 0 || buffer.IsNullOrEmpty() || length < 0
-        || (offset + length > buffer.GetUsed()) || (!pBytesWritten)) {
-        return E_INVALID_ARGUMENT;
-    }
-    if (!m_pIos) {
-        return E_CLOSED_STREAM;
-    }
-    else if (length == 0) {
-        *pBytesWritten = 0;
-        return NOERROR;
-    }
+    Mutex::Autolock lock(_m_syncLock);
 
-    ECode ec;
-    if (length >= m_pBuf->GetCapacity()) {
-        /* If the request length exceeds the size of the output buffer,
-           flush the output buffer and then write the data directly.
-           In this way buffered streams will cascade harmlessly. */
-        ec = flushBuffer();
-        if (FAILED(ec)) {
-            return ec;
-        }
+    return BufferedOutputStream::WriteBufferEx(offset, count, buffer);
+}
 
-        return m_pIos->WriteBufferEx(offset, length, buffer, pBytesWritten);
-    }
-    if (length > m_pBuf->GetCapacity() - m_pBuf->GetUsed()) {
-        ec = flushBuffer();
-        if (FAILED(ec)) {
-            return ec;
-        }
-    }
+ECode CBufferedOutputStream::CheckError(
+    /* [out] */ Boolean* hasError)
+{
+    VALIDATE_NOT_NULL(hasError);
 
-    m_pBuf->Append(buffer.GetPayload() + offset, length);
-    *pBytesWritten = length;
-    return NOERROR;
+    return BufferedOutputStream::CheckError(hasError);
 }
 
 ECode CBufferedOutputStream::constructor(
-    /* [in] */ IOutputStream * pStream)
+    /* [in] */ IOutputStream* out)
 {
-    return constructor(pStream, STREAM_BUFFER_SIZE);
+    VALIDATE_NOT_NULL(out);
+
+    return BufferedOutputStream::Init(out, 8192);
 }
 
 ECode CBufferedOutputStream::constructor(
-    /* [in] */ IOutputStream * pStream,
-    /* [in] */ Int32 bufferSize)
+    /* [in] */ IOutputStream* out,
+    /* [in] */ Int32 size)
 {
-    if (bufferSize <= 0 || !pStream) {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(out);
 
-    bufferSize = bufferSize > STREAM_BUFFER_SIZE ?
-                 bufferSize : STREAM_BUFFER_SIZE;
-    m_pBuf = BufferOf<Byte>::Alloc(bufferSize);
-    if (!m_pBuf) {
-        return E_OUT_OF_MEMORY;
-    }
-
-    m_pIos = pStream;
-    m_pIos->AddRef();
-
-    return NOERROR;
+    return BufferedOutputStream::Init(out, size);
 }
 
-CBufferedOutputStream::~CBufferedOutputStream()
+Mutex* CBufferedOutputStream::GetSelfLock()
 {
-    Close();
-}
-
-ECode CBufferedOutputStream::flushBuffer()
-{
-    Int32 written;
-
-    if (m_pBuf->GetUsed() > 0) {
-        ECode ec = m_pIos->WriteBufferEx(0, m_pBuf->GetUsed(),
-            *m_pBuf, &written);
-        if (FAILED(ec)) {
-            return ec;
-        }
-        m_pBuf->SetUsed(0);
-    }
-    return NOERROR;
+    return &_m_syncLock;
 }

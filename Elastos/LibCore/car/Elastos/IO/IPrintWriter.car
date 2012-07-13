@@ -1,0 +1,8 @@
+
+module
+{
+    interface IWriter;
+
+    interface IPrintWriter extends IWriter {
+    }
+}

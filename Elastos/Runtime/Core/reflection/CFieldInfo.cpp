@@ -38,7 +38,7 @@ ECode CFieldInfo::GetInterfaceID(
 
 CFieldInfo::CFieldInfo(
     /* [in] */ IStructInfo * pStructInfo,
-    /* [in] */ String name,
+    /* [in] */ CString name,
     /* [in] */ IDataTypeInfo *pTypeInfo)
 {
     m_pStructInfo = pStructInfo;

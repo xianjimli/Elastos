@@ -8,7 +8,7 @@ ECode LookupClassInfo(
     /* [out] */ CIClassInfo **ppClassInfo);
 
 ECode GetRemoteClassInfo(
-    /* [in] */ String connectionName,
+    /* [in] */ const char* connectionName,
     /* [in] */ REMuid clsId,
     /* [out] */ CIClassInfo ** ppClassInfo);
 
@@ -20,8 +20,9 @@ enum Type {
 
     Type_Byte, Type_Boolean, Type_Char8, Type_Char16,
     Type_Int16, Type_Int32, Type_Int64, Type_Float, Type_Double,
-    Type_String, Type_Struct, Type_EMuid, Type_EGuid,
-    Type_ArrayOf, Type_ArrayOfString, Type_BufferOf, Type_BufferOfString,
+    Type_CString, Type_String, Type_Struct, Type_EMuid, Type_EGuid,
+    Type_ArrayOf, Type_ArrayOfCString, Type_ArrayOfString,
+    Type_BufferOf, Type_BufferOfCString, Type_BufferOfString,
     Type_StringBuf, Type_MemoryBuf, Type_InterfacePtr,
 
     Type_BytePtr, Type_BooleanPtr, Type_Char8Ptr,  Type_Char16Ptr,
@@ -174,6 +175,25 @@ ECode CRemoteParcel::ReadValue(PVoid pValue, Int32 type)
             m_elemPtr++;
             break;
 
+        case Type_CString:
+            if (*m_elemPtr == MSH_NOT_NULL) {
+                m_elemPtr++;
+
+                Int32 len = (Int32)*m_elemPtr;
+                m_elemPtr++;
+
+                //todo: should check memory leak
+                *(CString*)pValue = CString::Duplicate((char*)m_elemPtr);
+                assert(len == (Int32) MSH_ALIGN_4(strlen((char*)m_elemPtr) + 1));
+                m_elemPtr += len / 4;
+            }
+            else {
+                assert(*m_elemPtr == MSH_NULL);
+                m_elemPtr++;
+                *(CString*)pValue = NULL;
+            }
+            break;
+
         case Type_String:
             if (*m_elemPtr == MSH_NOT_NULL) {
                 m_elemPtr++;
@@ -181,7 +201,7 @@ ECode CRemoteParcel::ReadValue(PVoid pValue, Int32 type)
                 Int32 len = (Int32)*m_elemPtr;
                 m_elemPtr++;
 
-                *(String*)pValue = String::Duplicate(String((char*)m_elemPtr));
+                *(String*)pValue = (char*)m_elemPtr;
                 assert(len == (Int32) MSH_ALIGN_4(strlen((char*)m_elemPtr) + 1));
                 m_elemPtr += len / 4;
             }
@@ -553,6 +573,20 @@ ECode CRemoteParcel::WriteValue(PVoid pValue, Int32 type, Int32 size)
             m_elemPtr++;
             break;
 
+        case Type_CString:
+            *m_elemPtr = pValue ? MSH_NOT_NULL : MSH_NULL;
+            m_elemPtr++;
+
+            if (pValue) {
+                Int32 len = size - sizeof(UInt32) * 2;
+                *m_elemPtr = len;
+                m_elemPtr++;
+
+                memcpy(m_elemPtr, (const void *)pValue, len);
+                m_elemPtr = (UInt32 *)((Byte *)m_elemPtr + len);
+            }
+            break;
+
         case Type_String:
             *m_elemPtr = pValue ? MSH_NOT_NULL : MSH_NULL;
             m_elemPtr++;
@@ -849,8 +883,16 @@ ECode CRemoteParcel::ReadDouble(
     return ReadValue((PVoid)pValue, Type_Double);
 }
 
+ECode CRemoteParcel::ReadCString(
+    /* [out] */ CString *pStr)
+{
+    if (pStr == NULL) return E_INVALID_ARGUMENT;
+
+    return ReadValue((PVoid)pStr, Type_CString);
+}
+
 ECode CRemoteParcel::ReadString(
-    /* [out] */ String *pStr)
+    /* [out] */ String* pStr)
 {
     if (pStr == NULL) return E_INVALID_ARGUMENT;
 
@@ -887,6 +929,12 @@ ECode CRemoteParcel::ReadArrayOf(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode CRemoteParcel::ReadArrayOfCString(
+    /* [out] */ Handle32 *ppArray)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
 ECode CRemoteParcel::ReadArrayOfString(
     /* [out] */ Handle32 *ppArray)
 {
@@ -897,6 +945,12 @@ ECode CRemoteParcel::ReadBufferOf(
     /* [out] */ Handle32 *ppBuffer)
 {
     return ReadValue((PVoid)ppBuffer, Type_BufferOf);
+}
+
+ECode CRemoteParcel::ReadBufferOfCString(
+    /* [out] */ Handle32 *ppBuffer)
+{
+    return E_NOT_IMPLEMENTED;
 }
 
 ECode CRemoteParcel::ReadBufferOfString(
@@ -1066,7 +1120,18 @@ ECode CRemoteParcel::WriteDouble(
     return WriteValue((PVoid)&value, Type_Double, 8);
 }
 
-ECode CRemoteParcel::WriteString(String str)
+ECode CRemoteParcel::WriteCString(CString str)
+{
+    Int32 size = sizeof(UInt32);
+
+    if (!str.IsNull()) {
+        size += MSH_ALIGN_4(strlen((const char*)(str)) + 1) + sizeof(UInt32);
+    }
+
+    return WriteValue((PVoid)(const char*)(str), Type_CString, size);
+}
+
+ECode CRemoteParcel::WriteString(const String& str)
 {
     Int32 size = sizeof(UInt32);
 
@@ -1105,6 +1170,12 @@ ECode CRemoteParcel::WriteArrayOf(
     return WriteValue((PVoid)pArray, Type_ArrayOf, size);
 }
 
+ECode CRemoteParcel::WriteArrayOfCString(
+    /* [in] */ const ArrayOf<CString> & array)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
 ECode CRemoteParcel::WriteArrayOfString(
     /* [in] */ const ArrayOf<String> & array)
 {
@@ -1116,6 +1187,12 @@ ECode CRemoteParcel::WriteBufferOf(
 {
     Int32 size = sizeof(UInt32) + sizeof(CarQuintet) + ((CarQuintet*)pBuffer)->m_size;
     return WriteValue((PVoid)pBuffer, Type_BufferOf, size);
+}
+
+ECode CRemoteParcel::WriteBufferOfCString(
+    /* [in] */ const BufferOf<CString> & pBuffer)
+{
+    return E_NOT_IMPLEMENTED;
 }
 
 ECode CRemoteParcel::WriteBufferOfString(

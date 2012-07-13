@@ -9,7 +9,7 @@
 #ifndef __EZSTRBUF_H__
 #define __EZSTRBUF_H__
 
-#include <elstring.h>
+#include <elcstring.h>
 
 /** @addtogroup BaseTypesRef
   *   @{
@@ -80,14 +80,14 @@ extern "C" {
         _ELASTOS Int32 index);
 
     _ELASTOS Int32 __cdecl _StringBuf_Insert(_ELASTOS PCarQuintet pCq,
-        _ELASTOS Int32 offset, _ELASTOS String s);
+        _ELASTOS Int32 offset, const char* s);
     _ELASTOS Int32 __cdecl _StringBuf_Copy(_ELASTOS PCarQuintet pCq,
-        _ELASTOS String s);
+        const char *s);
     _ELASTOS Int32 __cdecl _StringBuf_Replace(_ELASTOS PCarQuintet pCq,
-        _ELASTOS Int32 index, _ELASTOS Int32 count, _ELASTOS String s);
+        _ELASTOS Int32 index, _ELASTOS Int32 count, const char* s);
 
     _ELASTOS Int32 __cdecl _StringBuf_Append_String(_ELASTOS PCarQuintet pCq,
-        _ELASTOS String s, _ELASTOS Int32 offset, _ELASTOS Int32 count);
+        const char *s, _ELASTOS Int32 offset, _ELASTOS Int32 count);
     _ELASTOS Int32 __cdecl _StringBuf_Append_Char16(_ELASTOS PCarQuintet pCq,
         _ELASTOS Char16 wc);
     _ELASTOS Int32 __cdecl _StringBuf_Append_Char8(_ELASTOS PCarQuintet pCq,
@@ -164,9 +164,9 @@ extern "C" {
         _ELASTOS PCarQuintet pCq, _ELASTOS Int32 width, _ELASTOS Char8 ch);
 
     _ELASTOS PCarQuintet __cdecl _StringBuf_EncodeURL(_ELASTOS PCarQuintet pCq,
-        _ELASTOS String s, _ELASTOS String Reserved);
+        const char* s, const char* Reserved);
     _ELASTOS PCarQuintet __cdecl _StringBuf_DecodeURL(_ELASTOS PCarQuintet pCq,
-        _ELASTOS String s);
+        const char* s);
 
     _ELASTOS Int32 _StringBuf_ToUnicode(_ELASTOS PChar16 u16str, const char *string,
         _ELASTOS Int32 count);
@@ -251,18 +251,18 @@ public:
     }
 
     //---- Contains ----
-    Boolean Contains(const String& substr,
+    Boolean Contains(const char* substr,
             StringCase stringCase = StringCase_Sensitive) const {
         return _StringBuf_Contains((const PCarQuintet)this, substr,
             stringCase);
     }
 
-    Boolean StartWith(const String& substr,
+    Boolean StartWith(const char* substr,
             StringCase stringCase = StringCase_Sensitive) const {
         return _StringBuf_StartWith((const PCarQuintet)this, substr, stringCase);
     }
 
-    Boolean EndWith(const String& substr,
+    Boolean EndWith(const char* substr,
             StringCase stringCase = StringCase_Sensitive) const {
         return _StringBuf_EndWith((const PCarQuintet)this, substr, stringCase);
     }
@@ -272,7 +272,7 @@ public:
         return _StringBuf_IndexOf_Char8((const PCarQuintet)this, ch, stringCase);
     }
 
-    Int32 IndexOfAny(const String& strCharSet,
+    Int32 IndexOfAny(const char* strCharSet,
             StringCase stringCase  = StringCase_Sensitive) const {
         return _StringBuf_IndexOf_AnyChar8((const PCarQuintet)this, strCharSet,
             stringCase);
@@ -289,7 +289,7 @@ public:
             stringCase);
     }
 
-    Int32 IndexOf(const String& str,
+    Int32 IndexOf(const char* str,
             StringCase stringCase  = StringCase_Sensitive) const {
         return _StringBuf_IndexOf_Substring((const PCarQuintet)this, str,
             stringCase);
@@ -301,7 +301,7 @@ public:
         return _StringBuf_LastIndexOf_Char8((const PCarQuintet)this, ch, stringCase);
     }
 
-    Int32 LastIndexOfAny(const String& strCharSet,
+    Int32 LastIndexOfAny(const char* strCharSet,
             StringCase stringCase  = StringCase_Sensitive) const {
         return _StringBuf_LastIndexOf_AnyChar8((const PCarQuintet)this, strCharSet,
             stringCase);
@@ -318,19 +318,19 @@ public:
             stringCase);
     }
 
-    Int32 LastIndexOf(const String& str,
+    Int32 LastIndexOf(const char* str,
             StringCase stringCase  = StringCase_Sensitive) const {
         return _StringBuf_LastIndexOf_Substring((const PCarQuintet)this, str,
             stringCase);
     }
 
     //---- Substring ----
-    String Substring(Int32 start, StringBuf& sub) {
+    char* Substring(Int32 start, StringBuf& sub) {
         return _StringBuf_Substring((const PCarQuintet)this, start,
-        	(PCarQuintet)&sub);
+            (PCarQuintet)&sub);
     }
 
-    String Substring(Int32 start, Int32 len, StringBuf& sub) {
+    char* Substring(Int32 start, Int32 len, StringBuf& sub) {
         return _StringBuf_Substring_Length((const PCarQuintet)this, start,
             len, (PCarQuintet)&sub);
     }
@@ -392,7 +392,7 @@ public:
         return (char *)m_pBuf;
     }
 
-    operator String() const
+    operator CString() const
     {
         return (char *)m_pBuf;
     }
@@ -421,18 +421,18 @@ public:
         *(Char8 *)m_pBuf = '\0';
     }
 
-    StringBuf& Insert(Int32 offset, const String& s)
+    StringBuf& Insert(Int32 offset, const char* s)
     {
-        _StringBuf_Insert(this, offset, s);
+        _StringBuf_Insert(this, offset, (const char*)s);
         return *this;
     }
 
-    StringBuf& Append(const String& s)
+    StringBuf& Append(const char* s)
     {
         return Insert(GetLength(), s);
     }
 
-    StringBuf& Append(const String& s, Int32 offset, Int32 count)
+    StringBuf& Append(const char* s, Int32 offset, Int32 count)
     {
         _StringBuf_Append_String(this, s, offset, count);
         return *this;
@@ -490,12 +490,12 @@ public:
         return *this;
     }
 
-    StringBuf& Append(const String& fmt, const DateTime& dateTime){
+    StringBuf& Append(const char* fmt, const DateTime& dateTime){
         _StringBuf_Append_DateTime(this, fmt, (PDateTime)&dateTime);
         return *this;
     }
 
-    StringBuf& operator<<(String s)
+    StringBuf& operator<<(const char* s)
     {
         return Append(s);
     }
@@ -535,20 +535,20 @@ public:
         return Append(value);
     }
 
-    StringBuf& Replace(Int32 offset, Int32 count, const String& s)
+    StringBuf& Replace(Int32 offset, Int32 count, const char* s)
     {
         _StringBuf_Replace(this, offset, count, s);
         return *this;
     }
 
-    StringBuf& Copy(String s)
+    StringBuf& Copy(const char* s)
     {
-        if (s.IsNull()) SetEmpty();
+        if (s == NULL) SetEmpty();
         _StringBuf_Copy(this, s);
         return *this;
     }
 
-    StringBuf& Copy(String s, Int32 len)
+    StringBuf& Copy(const char* s, Int32 len)
     {
         SetEmpty();
         _StringBuf_Append_String(this, s, 0, len);
@@ -556,9 +556,9 @@ public:
     }
 
     // append multiple char string to StringBuf
-    StringBuf& __cdecl Concatenate(String firststr, ...);
+    StringBuf& __cdecl Concatenate(const char* firststr, ...);
 
-    Int32 Compare(const String& s, StringCase stringCase = StringCase_Sensitive) const {
+    Int32 Compare(const char* s, StringCase stringCase = StringCase_Sensitive) const {
         return _String_Compare((char *)m_pBuf, s, stringCase);
     }
 
@@ -598,13 +598,13 @@ public:
         _StringBuf_Box_Init(this, pstr, size, FALSE);
     }
 
-    StringBuf& EncodeURL(String str, String Reserved = NULL) {
+    StringBuf& EncodeURL(const char* str, const char* Reserved = NULL) {
         SetEmpty();
         _StringBuf_EncodeURL(this, str, Reserved);
         return *this;
     }
 
-    StringBuf& DecodeURL(const String& s) {
+    StringBuf& DecodeURL(const char* s) {
         SetEmpty();
         _StringBuf_DecodeURL(this, s);
         return *this;
@@ -635,19 +635,12 @@ private:
     _ELASTOS Boolean operator<=(const StringBuf& str) const {return FALSE;}
     _ELASTOS Boolean operator>=(const StringBuf& str) const {return FALSE;}
 
-    _ELASTOS Boolean operator<(String str) const {return FALSE;} // comparisons String
-    _ELASTOS Boolean operator>(String str) const {return FALSE;}
-    _ELASTOS Boolean operator==(String str) const {return FALSE;}
-    _ELASTOS Boolean operator!=(String str) const {return FALSE;}
-    _ELASTOS Boolean operator<=(String str) const {return FALSE;}
-    _ELASTOS Boolean operator>=(String str) const {return FALSE;}
-
-    _ELASTOS Boolean operator<(char * str) const {return FALSE;} // comparisons char *
-    _ELASTOS Boolean operator>(char * str) const {return FALSE;}
-    _ELASTOS Boolean operator==(char * str) const {return FALSE;}
-    _ELASTOS Boolean operator!=(char * str) const {return FALSE;}
-    _ELASTOS Boolean operator<=(char * str) const {return FALSE;}
-    _ELASTOS Boolean operator>=(char * str) const {return FALSE;}
+    _ELASTOS Boolean operator<(const char* str) const {return FALSE;} // comparisons String
+    _ELASTOS Boolean operator>(const char* str) const {return FALSE;}
+    _ELASTOS Boolean operator==(const char* str) const {return FALSE;}
+    _ELASTOS Boolean operator!=(const char* str) const {return FALSE;}
+    _ELASTOS Boolean operator<=(const char* str) const {return FALSE;}
+    _ELASTOS Boolean operator>=(const char* str) const {return FALSE;}
 
 protected:
     StringBuf() {}
@@ -686,12 +679,12 @@ private:
 // StringBuf CAR_INLINE functions for CPP style
 //
 
-CAR_INLINE StringBuf& __cdecl StringBuf::Concatenate(String firststr,...)
+CAR_INLINE StringBuf& __cdecl StringBuf::Concatenate(const char* firststr,...)
 {
     va_list argptr;
     va_start(argptr, firststr);
 
-    const char* pstr = (const char *)firststr;
+    const char* pstr = firststr;
     while (pstr != NULL) {
         Insert(GetLength(), pstr);
         pstr = va_arg(argptr, const char*);

@@ -1,0 +1,28 @@
+
+module
+{
+//    const FAMILY_SYSTEM = 0x28    // SQL exception codes
+
+//    #define FRAMEWORK_ERROR(c)      MAKE_ECODE(SEVERITY_ERROR, FAMILY_FRAMEWORK, c)
+//    #define FRAMEWORK_SUCCESS(c)    MAKE_SUCCESS(FAMILY_FRAMEWORK, c)
+
+    //==========================================================================
+    // Elastos SQL exception codes (Family: 0x28)
+    const E_SQL_EXCEPTION                                   = 0xA8010000;
+    const E_BATCH_UPDATE_EXCEPTION                          = 0xA8020000;
+    const E_SQL_CLIENT_INFO_EXCEPTION                       = 0xA8030000;
+    const E_SQL_NON_TRANSIENT_EXCEPTION                     = 0xA8040000;
+    const E_SQL_INTEGRITY_CONSTRAINT_VIOLATION_EXCEPTION    = 0xA8050000;
+    const E_SQL_NON_TRANSIENT_CONNECTION_EXCEPTION          = 0xA8060000;
+    const E_SQL_INVALID_AUTHORIZATION_SPEC_EXCEPTION        = 0xA8070000;
+    const E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION             = 0xA8080000;
+    const E_SQL_TRANSIENT_CONNECTION_EXCEPTION              = 0xA8090000;
+    const E_SQL_TRANSACTION_ROLLBACK_EXCEPTION              = 0xA80A0000;
+    const E_SQL_DATA_EXCEPTION                              = 0xA80B0000;
+    const E_SQL_NON_TRANSIENT_EXCEPTION                     = 0xA80C0000;
+    const E_SQL_SYNTAX_ERROR_EXCEPTION                      = 0xA80D0000;
+    const E_SQL_RECOVERABLE_EXCEPTION                       = 0xA80E0000;
+    const E_SQL_TRANSIENT_EXCEPTION                         = 0xA80F0000;
+    const E_SQL_TIMEOUT_EXCEPTION                           = 0xA8100000;
+    const E_SQL_WARNING                                     = 0xA8110000;
+}

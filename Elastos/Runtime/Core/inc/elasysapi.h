@@ -91,7 +91,7 @@ class CReflector
 {
 public:
     STATIC CARAPI AcquireModuleInfo(
-        /* [in] */ String name,
+        /* [in] */ CString name,
         /* [out] */ IModuleInfo **ppModuleInfo)
     {
         return _CReflector_AcquireModuleInfo(name, ppModuleInfo);
@@ -106,8 +106,8 @@ public:
     }
 
     STATIC CARAPI AcquireEnumInfo(
-        /* [in] */ String name,
-        /* [in] */ const BufferOf<String>& itemNames,
+        /* [in] */ CString name,
+        /* [in] */ const BufferOf<CString>& itemNames,
         /* [in] */ const BufferOf<Int32>& itemValues,
         /* [out] */ IEnumInfo **ppEnumInfo)
     {
@@ -125,8 +125,8 @@ public:
     }
 
     STATIC CARAPI AcquireStructInfo(
-        /* [in] */ String name,
-        /* [in] */ const BufferOf<String>& fieldNames,
+        /* [in] */ CString name,
+        /* [in] */ const BufferOf<CString>& fieldNames,
         /* [in] */ const BufferOf<IDataTypeInfo *>& fieldTypeInfos,
         /* [out] */ IStructInfo **ppStructInfo)
     {

@@ -1,0 +1,12 @@
+
+module
+{
+    importlib("Elastos.Core.eco");
+
+    merge("../../../car/Droid/System/IPolicy.car");
+    merge("../../../car/Droid/System/IBlockGuard.car");
+
+    singleton class CBlockGuard {
+        interface IBlockGuard;
+    }
+}

@@ -123,7 +123,8 @@ EXPORTS
     _String_ToDouble                                @245    NONAME
 
     _String_GetCharCount                            @247    NONAME
-    _String_GetChar                                 @249    NONAME
+    _String_GetChar                                 @248    NONAME
+    _String_GetCharByOffset                         @249    NONAME
 
     _String_Contains                                @250    NONAME
     _String_StartWith                               @252    NONAME
@@ -338,6 +339,9 @@ EXPORTS
     EIID_ICallbackArgumentList                      @645    NONAME  DATA
 
     EIID_IParcelable                                @689    NONAME  DATA
+
+    gElEmptyStringBuf                               @700    NONAME  DATA
+    gElEmptyString                                  @701    NONAME  DATA
 
     ;;============================================================
     ;; callback helper APIs for making parameters

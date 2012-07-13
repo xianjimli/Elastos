@@ -1,0 +1,188 @@
+
+module
+{
+    interface ICharSequence;
+
+	/*
+	 * In contrast to BigIntegers this class doesn't fake two's complement representation.
+	 * Any Bit-Operations, including Shifting, solely regard the unsigned magnitude.
+	 * Moreover BigInt objects are mutable and offer efficient in-place-operations.
+	 */
+    interface IBigInt
+	{
+		Dispose();
+		
+		GetNativeBIGNUM(
+            [out] Int32* bignum);
+
+		ConsumeErrors(
+            [in] ICharSequence* sb,
+            [out] Int32* cnt); 
+
+		Cmp(
+            [in] IBigInt* a, 
+            [in] IBigInt* b,
+            [out] Int32* value);
+
+
+		PutCopy(
+            [in] IBigInt* from);
+
+		Copy(
+            [out] IBigInt** bi); 
+
+		PutLongInt(
+            [in] Int64 val);
+
+		PutULongInt(
+		    [in] Int64 val,
+			[in] Boolean neg);
+
+		PutDecString(
+            [in] CString original);
+
+		PutHexString(
+            [in] CString original);
+
+		/**
+		 * Returns a string suitable for passing to OpenSSL.
+		 * Throws if 's' doesn't match Java's rules for valid BigInteger strings.
+		 * BN_dec2bn and BN_hex2bn do very little checking, so we need to manually
+		 * ensure we comply with Java's rules.
+		 * http://code.google.com/p/android/issues/detail?id=7036
+		 */
+		CheckString(
+            [in] CString s,
+            [in] Int32 base,
+            [out] String* result);
+		
+		PutBigEndian(
+		    [in] ArrayOf<Byte> a,
+            [in] Boolean neg);
+
+		PutLittleEndianInts(
+            [in] ArrayOf<Int32> a, 
+            [in] Boolean neg);
+
+		PutBigEndianTwosComplement(
+            [in] ArrayOf<Byte> a);
+
+		LongInt(
+            [out] Int64* value);
+
+		DecString(
+            [out] String* value);
+
+		HexString(
+            [out] String* value);
+
+		BigEndianMagnitude(
+            [out] ArrayOf<Byte> byteArray);
+
+		LittleEndianIntsMagnitude(
+            [out] ArrayOf<Int32> intArray);
+
+		Sign(
+            [out] Int32* value);
+
+		SetSign(
+		    [in] Int32 val);
+
+		TwosCompFitsIntoBytes(
+            [in] Int32 desiredByteCount,
+            [out] Boolean* result);
+
+		BitLength(
+            [out] Int32* length);
+
+		IsBitSet(
+            [in] Int32 n,
+            [out] Boolean* result);
+
+		// n > 0: shift left (multiply)
+		Shift(
+            [in] IBigInt* a, 
+			[in] Int32 n,
+			[out] IBigInt** newObj);
+
+		Shift2(
+            [in] Int32 n);
+
+		AddPositiveInt(
+            [in] Int32 w);
+
+		MultiplyByPositiveInt(
+            [in] Int32 w);
+
+		RemainderByPositiveInt(
+            [in] IBigInt* a, 
+            [in] Int32 w,
+            [out] Int32* rem);
+
+		Addition(
+            [in] IBigInt* a, 
+			[in] IBigInt* b,
+			[out] IBigInt** r);
+
+		Add(
+            [in] IBigInt* a);
+
+		Subtraction(
+            [in] IBigInt* a, 
+			[in] IBigInt* b,
+			[out] IBigInt** r);
+
+
+		Gcd(
+            [in] IBigInt* a, 
+			[in] IBigInt* b,
+			[out] IBigInt** r);
+
+		Product(
+            [in] IBigInt* a, 
+			[in] IBigInt* b,
+			[out] IBigInt** r);
+
+		BigExp(
+            [in] IBigInt* a, 
+			[in] IBigInt* p,
+			[out] IBigInt** r);
+
+		Exp(
+            [in] IBigInt* a, 
+			[in] IBigInt* p,
+			[out] IBigInt** r);
+
+		Division(
+            [in] IBigInt* dividend,
+            [in] IBigInt* divisor,
+            [in] IBigInt* quotient,
+            [in] IBigInt* remainder);
+
+		Modulus(
+            [in] IBigInt* a, 
+			[in] IBigInt* m,
+			[out] IBigInt** r);
+
+		ModExp(
+            [in] IBigInt* a,
+            [in] IBigInt* p, 
+            [in] IBigInt* m,
+            [out] IBigInt** r);
+
+
+		ModInverse(
+            [in] IBigInt* a,
+            [in] IBigInt* m,
+            [out] IBigInt** r);
+
+
+		GeneratePrimeDefault(
+            [in] Int32 bitLength,
+            [out] IBigInt** r);
+
+		IsPrime(
+            [in] Int32 certainty,
+            [out] Boolean* result); 
+	}
+}

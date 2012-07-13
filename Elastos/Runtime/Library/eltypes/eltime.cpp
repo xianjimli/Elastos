@@ -11,6 +11,9 @@
 extern "C" {
 #endif
 
+_ELASTOS Int32 __cdecl _String_GetLength(const char *string,
+    _ELASTOS Int32 nMaxLen);
+
 _ELASTOS_NAMESPACE_USING
 
 typedef enum _DateTimeFlag

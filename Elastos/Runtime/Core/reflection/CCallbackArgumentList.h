@@ -64,9 +64,13 @@ public:
         /* [in] */ Int32 index,
         /* [out] */ Char16 * pValue);
 
+    CARAPI GetCStringArgument(
+        /* [in] */ Int32 index,
+        /* [out] */ CString* value);
+
     CARAPI GetStringArgument(
         /* [in] */ Int32 index,
-        /* [out] */ String * value);
+        /* [out] */ String* value);
 
     CARAPI GetBooleanArgument(
         /* [in] */ Int32 index,

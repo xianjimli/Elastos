@@ -206,7 +206,7 @@ ECode CEntryList::InitElemList()
 }
 
 ECode CEntryList::AcquireObjByName(
-    /* [in] */ String name,
+    /* [in] */ CString name,
     /* [out] */ IInterface ** ppObject)
 {
     if (!ppObject || name.IsNull()) {

@@ -7,7 +7,7 @@
 
 #include "CClsModule.h"
 
-class CVariableOfCarArray : 
+class CVariableOfCarArray :
     public IVariableOfCarArray,
     public ICarArraySetter,
     public ICarArrayGetter
@@ -78,9 +78,13 @@ public:
         /* [in] */ Int32 index,
         /* [in] */ Char16 value);
 
+    CARAPI SetCStringElement(
+        /* [in] */ Int32 index,
+        /* [in] */ CString value);
+
     CARAPI SetStringElement(
         /* [in] */ Int32 index,
-        /* [in] */ String value);
+        /* [in] */ const String& value);
 
     CARAPI SetBooleanElement(
         /* [in] */ Int32 index,
@@ -155,9 +159,13 @@ public:
         /* [in] */ Int32 index,
         /* [out] */ Char16 * pValue);
 
+    CARAPI GetCStringElement(
+        /* [in] */ Int32 index,
+        /* [out] */ CString* pValue);
+
     CARAPI GetStringElement(
         /* [in] */ Int32 index,
-        /* [out] */ String * pValue);
+        /* [out] */ String* pValue);
 
     CARAPI GetBooleanElement(
         /* [in] */ Int32 index,

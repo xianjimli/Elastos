@@ -16,7 +16,7 @@ public:
     CClsModule():m_cRef(0){}
 
     CClsModule(CLSModule *pClsMod, Boolean bAllocedClsMod,
-                    String path, Void *pIModule);
+                    CString path, Void *pIModule);
 
     CARAPI GetModuleInfo(
         /* [out] */ IModuleInfo ** ppModuleInfo);

@@ -4,7 +4,7 @@
 #include <elastos.h>
 
 using namespace Elastos;
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 void test_constructor()
 {

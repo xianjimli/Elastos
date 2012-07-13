@@ -1,39 +1,84 @@
-#==========================================================================
-# Copyright (c) 2000-2008,  Elastos, Inc.  All Rights Reserved.
-#==========================================================================
+
 TARGET_NAME= Elastos.IO
 TARGET_TYPE= eco
 
-INCLUDESTEMP := $(INCLUDES);
-INCLUDES := $(MAKEDIR)/../../../inc/Elastos/IO;
-INCLUDES += $(INCLUDESTEMP);
+INCLUDES += $(MAKEDIR)/../../../inc/Elastos/common;
+INCLUDES += $(MAKEDIR)/../../../inc/Elastos/IO;
+
+IMPORTS = Elastos.Core.eco
+IMPORTS += Elastos.Utility.eco
+IMPORTS += Com.Kortide.Platform.eco
 
 SOURCES = Elastos.IO.car
-SOURCES += CByteArrayInputStream.cpp
-SOURCES += CByteArrayOutputStream.cpp
-SOURCES += CFileInputStream.cpp
-SOURCES += CFileOutputStream.cpp
-SOURCES += CStringInputStream.cpp
+SOURCES += InputStream.cpp
+SOURCES += FilterInputStream.cpp
+SOURCES += CFilterInputStream.cpp
+SOURCES += BufferedInputStream.cpp
 SOURCES += CBufferedInputStream.cpp
+SOURCES += OutputStream.cpp
+SOURCES += FilterOutputStream.cpp
+SOURCES += CFilterOutputStream.cpp
+SOURCES += BufferedOutputStream.cpp
 SOURCES += CBufferedOutputStream.cpp
+SOURCES += DataInputStream.cpp
 SOURCES += CDataInputStream.cpp
+SOURCES += DataOutputStream.cpp
 SOURCES += CDataOutputStream.cpp
-SOURCES += CTextInputStream.cpp
-SOURCES += CTextOutputStream.cpp
-SOURCES += CGZipInputStream.cpp
-SOURCES += CGZipOutputStream.cpp
+SOURCES += Reader.cpp
+SOURCES += Writer.cpp
+SOURCES += CharArrayReader.cpp
+SOURCES += CCharArrayReader.cpp
+SOURCES += BufferedReader.cpp
+SOURCES += CBufferedReader.cpp
+SOURCES += CharArrayWriter.cpp
+SOURCES += CCharArrayWriter.cpp
+SOURCES += BufferedWriter.cpp
+SOURCES += CBufferedWriter.cpp
+SOURCES += ByteArrayInputStream.cpp
+SOURCES += CByteArrayInputStream.cpp
+SOURCES += ByteArrayOutputStream.cpp
+SOURCES += CByteArrayOutputStream.cpp
 SOURCES += CFileDescriptor.cpp
-SOURCES += CInputStreamReader.cpp
+SOURCES += File.cpp
 SOURCES += CFile.cpp
+SOURCES += FileInputStream.cpp
+SOURCES += CFileInputStream.cpp
+SOURCES += FileOutputStream.cpp
+SOURCES += CFileOutputStream.cpp
+SOURCES += StringBufferInputStream.cpp
+SOURCES += CStringBufferInputStream.cpp
+SOURCES += LineNumberInputStream.cpp
+SOURCES += CLineNumberInputStream.cpp
+SOURCES += LineNumberReader.cpp
+SOURCES += CLineNumberReader.cpp
+SOURCES += FilterReader.cpp
+SOURCES += FilterWriter.cpp
+SOURCES += PushbackInputStream.cpp
+SOURCES += CPushbackInputStream.cpp
+SOURCES += PushbackReader.cpp
+SOURCES += CPushbackReader.cpp
+SOURCES += CFilePermission.cpp
+SOURCES += CFilePermissionCollection.cpp
+SOURCES += SequenceInputStream.cpp
+SOURCES += CSequenceInputStream.cpp
+SOURCES += InputStreamReader.cpp
+SOURCES += CInputStreamReader.cpp
+SOURCES += OutputStreamWriter.cpp
+SOURCES += COutputStreamWriter.cpp
+SOURCES += FileReader.cpp
+SOURCES += CFileReader.cpp
+SOURCES += StringReader.cpp
+SOURCES += CStringReader.cpp
+SOURCES += StringWriter.cpp
+SOURCES += CStringWriter.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.CarRuntime.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Core.lib
 ifeq "$(XDK_TARGET_PLATFORM)" "win32"
 LIBRARIES += $(XDK_LIB_PATH)/Elastos.Runtime.lib
-LIBRARIES += $(XDK_LIB_PATH)/Elastos.Archiving.zlib.lib
 else
 LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.CarRuntime.eco
 LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
 LIBRARIES += $(XDK_USER_LIB)/crt0.lib
-LIBRARIES += -lz
 endif

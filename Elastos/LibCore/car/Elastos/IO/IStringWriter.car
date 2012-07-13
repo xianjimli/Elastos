@@ -1,0 +1,15 @@
+module
+{
+    interface IWriter;
+
+    interface IStringWriter extends IWriter {
+        /**
+         * Gets a reference to this writer's internal {@link StringBuffer}. Any
+         * changes made to the returned buffer are reflected in this writer.
+         *
+         * @return a reference to this writer's internal {@code StringBuffer}.
+         */
+//        GetBuffer(
+//            [out] StringBuf* buff);
+    }
+}

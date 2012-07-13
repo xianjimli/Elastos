@@ -19,11 +19,11 @@ public:
     CARAPI_(UInt32) Release();
 
     CARAPI AcquireModuleInfo(
-        /* [in] */ String name,
+        /* [in] */ CString name,
         /* [out] */ IModuleInfo **ppModuleInfo);
 
     CARAPI RemoveModuleInfo(
-        /* [in] */ String path);
+        /* [in] */ CString path);
 
     CARAPI AcquireClassInfo(
         /* [in] */ CClsModule * pCClsModule,
@@ -39,8 +39,8 @@ public:
         /* [out] */ IInterface ** ppObject);
 
     CARAPI AcquireDynamicStructInfo(
-        /* [in] */ String name,
-        /* [in] */ const BufferOf<String>& fieldNames,
+        /* [in] */ CString name,
+        /* [in] */ const BufferOf<CString>& fieldNames,
         /* [in] */ const BufferOf<IDataTypeInfo *>& fieldTypeInfos,
         /* [out] */ IStructInfo **ppStructInfo);
 
@@ -56,8 +56,8 @@ public:
         /* [in] */ EnumDirEntry *pEnumDirEntry);
 
     CARAPI AcquireDynamicEnumInfo(
-        /* [in] */ String name,
-        /* [in] */ const BufferOf<String>& itemNames,
+        /* [in] */ CString name,
+        /* [in] */ const BufferOf<CString>& itemNames,
         /* [in] */ const BufferOf<Int32>& itemValues,
         /* [out] */  IEnumInfo **ppEnumInfo);
 
@@ -174,7 +174,7 @@ public:
         /* [in] */ EntryType type);
 
     CARAPI RemoveClsModule(
-        /* [in] */ String path);
+        /* [in] */ CString path);
 
     CObjInfoList();
 

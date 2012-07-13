@@ -10,4 +10,6 @@ module
     // Elastos IO exception codes (Family: 0x25)
     const E_IO_EXCEPTION                                = 0xA5010000;
     const E_EOF_EXCEPTION                               = 0xA5020000;
+    const E_FILE_NOT_FOUND_EXCEPTION                    = 0xA5030000;
+    const E_SYNC_FAILED_EXCEPTION                       = 0xA5040000;
 }

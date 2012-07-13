@@ -2,6 +2,7 @@
 // Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.
 //==========================================================================
 
+#include <stdlib.h>
 #include <sys/io.h>
 #include <malloc.h>
 #include <lube.h>
@@ -207,7 +208,10 @@ int LoadLubeFromELF(const char *pszName, PLUBEHEADER *ppLube)
     int             nRet          = CLS_NoError;
 
     if (pszName == NULL) {
-        pFile = fopen("/home/jingcao/workspace/Elastos3.0/DevKit/tools/lube", "rb");
+        char path[256];
+        strcpy(path, getenv("XDK_TOOLS"));
+        strcat(path, "/lube");
+        pFile = fopen(path, "rb");
     }
     else {
         pFile = fopen(pszName, "rb");

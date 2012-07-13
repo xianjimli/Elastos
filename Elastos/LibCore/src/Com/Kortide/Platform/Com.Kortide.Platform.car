@@ -1,0 +1,12 @@
+
+module
+{
+    importlib("Elastos.Core.eco");
+
+    merge("../../../../car/Com/Kortide/Platform/IFileSystem.car");
+    merge("../../../../car/Com/Kortide/Platform/IPlatform.car");
+
+    singleton class CPlatform {
+        interface IPlatform;
+    }
+}

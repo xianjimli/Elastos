@@ -107,7 +107,10 @@ int LoadResourceFromELF(const char *pszName, CLSModule **ppDest)
     int             nRet          = CLS_NoError;
 
     if (pszName == NULL) {
-        pFile = fopen("/home/jingcao/workspace/Elastos3.0/DevKit/tools/carc", "rb");
+        char path[256];
+        strcpy(path, getenv("XDK_TOOLS"));
+        strcat(path, "/carc");
+        pFile = fopen(path, "rb");
     }
     else {
         pFile = fopen(pszName, "rb");

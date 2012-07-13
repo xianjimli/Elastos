@@ -10,6 +10,7 @@ EXPORT_HEADERS += treenode.h
 EXPORT_HEADERS += multitreenode.h
 EXPORT_HEADERS += ElUtilities.h
 
+EXPORT_HEADERS += elastos/ElRefBase.h
 EXPORT_HEADERS += elastos/Algorithm.h
 EXPORT_HEADERS += elastos/AutoPtr.h
 EXPORT_HEADERS += elastos/AutoFree.h

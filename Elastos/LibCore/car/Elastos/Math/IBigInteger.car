@@ -1,0 +1,476 @@
+
+module
+{
+    interface INumber;
+    interface IBigInt;
+    interface IRandom;
+
+    /** The {@code BigInteger} constant 0. */
+//    public static final BigInteger ZERO = new BigInteger(0, 0);
+
+    /** The {@code BigInteger} constant 1. */
+//    public static final BigInteger ONE = new BigInteger(1, 1);
+
+    /** The {@code BigInteger} constant 10. */
+//    public static final BigInteger TEN = new BigInteger(1, 10);
+	
+	interface IBigInteger
+	{
+		/** Returns a {@code BigInteger} whose value is equal to {@code value}. */
+		ValueOf(
+            [in] Int64 value,
+            [out] IBigInteger** newObj);
+
+		/**
+		 * Returns the two's complement representation of this {@code BigInteger} in
+		 * a byte array.
+		 */
+		ToByteArray(
+            [out] ArrayOf<Byte> byteArray);
+
+		/**
+		 * Returns a {@code BigInteger} whose value is the absolute value of {@code
+		 * this}.
+		 */
+		Abs(
+            [out] IBigInteger** newObj);
+
+		/**
+		 * Returns a {@code BigInteger} whose value is the {@code -this}.
+		 */
+		Negate(
+            [out] IBigInteger** newObj);
+
+		/**
+		 * Returns a {@code BigInteger} whose value is {@code this + value}.
+		 */
+		Add(
+            [in] IBigInteger* value,
+            [out] IBigInteger** newObj);
+
+		/**
+		 * Returns a {@code BigInteger} whose value is {@code this - value}.
+		 */
+		Subtract(
+            [in] IBigInteger* value,
+            [out] IBigInteger** newObj);
+
+		/**
+		 * Returns the sign of this {@code BigInteger}.
+		 *
+		 * @return {@code -1} if {@code this < 0}, {@code 0} if {@code this == 0},
+		 *     {@code 1} if {@code this > 0}.
+		 */
+		Signum(
+            [out] Int32* sign); 
+
+		/**
+		 * Returns a {@code BigInteger} whose value is {@code this >> n}. For
+		 * negative arguments, the result is also negative. The shift distance may
+		 * be negative which means that {@code this} is shifted left.
+		 *
+		 * <p><b>Implementation Note:</b> Usage of this method on negative values is
+		 * not recommended as the current implementation is not efficient.
+		 *
+		 * @param n shift distance
+		 * @return {@code this >> n} if {@code n >= 0}; {@code this << (-n)}
+		 *     otherwise
+		 */
+		ShiftRight(
+            [in] Int32 n,
+            [out] IBigInteger** newObj);
+
+		/**
+		 * Returns a {@code BigInteger} whose value is {@code this << n}. The
+		 * result is equivalent to {@code this * pow(2, n)} if n >= 0. The shift
+		 * distance may be negative which means that {@code this} is shifted right.
+		 * The result then corresponds to {@code floor(this / pow(2, -n))}.
+		 *
+		 * <p><b>Implementation Note:</b> Usage of this method on negative values is
+		 * not recommended as the current implementation is not efficient.
+		 *
+		 * @param n shift distance.
+		 * @return {@code this << n} if {@code n >= 0}; {@code this >> (-n)}.
+		 *     otherwise
+		 */
+		ShiftLeft(
+            [in] Int32 n,
+            [out] IBigInteger** newObj);
+
+		/**
+		 * Returns the length of the value's two's complement representation without
+		 * leading zeros for positive numbers / without leading ones for negative
+		 * values.
+		 *
+		 * <p>The two's complement representation of {@code this} will be at least
+		 * {@code bitLength() + 1} bits long.
+		 *
+		 * <p>The value will fit into an {@code int} if {@code bitLength() < 32} or
+		 * into a {@code long} if {@code bitLength() < 64}.
+		 *
+		 * @return the length of the minimal two's complement representation for
+		 *     {@code this} without the sign bit.
+		 */		
+		BitLength(
+		    [out] Int32* length);
+
+		/**
+		 * Tests whether the bit at position n in {@code this} is set. The result is
+		 * equivalent to {@code this & pow(2, n) != 0}.
+		 *
+		 * <p><b>Implementation Note:</b> Usage of this method is not recommended as
+		 * the current implementation is not efficient.
+		 *
+		 * @param n position where the bit in {@code this} has to be inspected.
+		 * @throws ArithmeticException if {@code n < 0}.
+		 */
+		TestBit(
+            [in] Int32 n,
+            [out] Boolean* result);
+
+		/**
+		 * Returns a {@code BigInteger} which has the same binary representation
+		 * as {@code this} but with the bit at position n set. The result is
+		 * equivalent to {@code this | pow(2, n)}.
+		 *
+		 * <p><b>Implementation Note:</b> Usage of this method is not recommended as
+		 * the current implementation is not efficient.
+		 *
+		 * @param n position where the bit in {@code this} has to be set.
+		 * @throws ArithmeticException if {@code n < 0}.
+		 */
+		SetBit(
+            [in] Int32 n,
+            [out] IBigInteger** newObj); 
+
+		/**
+		 * Returns a {@code BigInteger} which has the same binary representation
+		 * as {@code this} but with the bit at position n cleared. The result is
+		 * equivalent to {@code this & ~pow(2, n)}.
+		 *
+		 * <p><b>Implementation Note:</b> Usage of this method is not recommended as
+		 * the current implementation is not efficient.
+		 *
+		 * @param n position where the bit in {@code this} has to be cleared.
+		 * @throws ArithmeticException if {@code n < 0}.
+		 */
+		ClearBit(
+            [in] Int32 n,
+            [out] IBigInteger** newObj); 
+
+		/**
+		 * Returns a {@code BigInteger} which has the same binary representation
+		 * as {@code this} but with the bit at position n flipped. The result is
+		 * equivalent to {@code this ^ pow(2, n)}.
+		 *
+		 * <p><b>Implementation Note:</b> Usage of this method is not recommended as
+		 * the current implementation is not efficient.
+		 *
+		 * @param n position where the bit in {@code this} has to be flipped.
+		 * @throws ArithmeticException if {@code n < 0}.
+		 */
+		FlipBit(
+            [in] Int32 n,
+            [out] IBigInteger** newObj); 
+
+		/**
+		 * Returns the position of the lowest set bit in the two's complement
+		 * representation of this {@code BigInteger}. If all bits are zero (this==0)
+		 * then -1 is returned as result.
+		 *
+		 * <p><b>Implementation Note:</b> Usage of this method is not recommended as
+		 * the current implementation is not efficient.
+		 */
+		GetLowestSetBit(
+		    [out] Int32* position);
+
+		/**
+		 * Returns the number of bits in the two's complement representation of
+		 * {@code this} which differ from the sign bit. If {@code this} is negative,
+		 * the result is equivalent to the number of bits set in the two's
+		 * complement representation of {@code -this - 1}.
+		 *
+		 * <p>Use {@code bitLength(0)} to find the length of the binary value in
+		 * bits.
+		 *
+		 * <p><b>Implementation Note:</b> Usage of this method is not recommended as
+		 * the current implementation is not efficient.
+		 */
+		BitCount(
+		    [out] Int32* number);
+
+		/**
+		 * Returns a {@code BigInteger} whose value is {@code ~this}. The result
+		 * of this operation is {@code -this-1}.
+		 *
+		 * <p><b>Implementation Note:</b> Usage of this method is not recommended as
+		 * the current implementation is not efficient.
+		 */
+		Not(
+            [out] IBigInteger** newObj);
+
+		/**
+		 * Returns a {@code BigInteger} whose value is {@code this & value}.
+		 *
+		 * <p><b>Implementation Note:</b> Usage of this method is not recommended
+		 * as the current implementation is not efficient.
+		 *
+		 * @param value value to be and'ed with {@code this}.
+		 * @throws NullPointerException if {@code value == null}.
+		 */
+		And(
+            [in] IBigInteger* value,
+            [out] IBigInteger** newObj);
+
+		/**
+		 * Returns a {@code BigInteger} whose value is {@code this | value}.
+		 *
+		 * <p><b>Implementation Note:</b> Usage of this method is not recommended as
+		 * the current implementation is not efficient.
+		 *
+		 * @param value value to be or'ed with {@code this}.
+		 * @throws NullPointerException if {@code value == null}.
+		 */
+		Or(
+            [in] IBigInteger* value,
+            [out] IBigInteger** newObj);
+
+		/**
+		 * Returns a {@code BigInteger} whose value is {@code this ^ value}.
+		 *
+		 * <p><b>Implementation Note:</b> Usage of this method is not recommended as
+		 * the current implementation is not efficient.
+		 *
+		 * @param value value to be xor'ed with {@code this}
+		 * @throws NullPointerException if {@code value == null}
+		 */
+		Xor(
+            [in] IBigInteger* value,
+            [out] IBigInteger** newObj);
+
+		/**
+		 * Returns a {@code BigInteger} whose value is {@code this & ~value}.
+		 * Evaluating {@code x.andNot(value)} returns the same result as {@code
+		 * x.and(value.not())}.
+		 *
+		 * <p><b>Implementation Note:</b> Usage of this method is not recommended
+		 * as the current implementation is not efficient.
+		 *
+		 * @param value value to be not'ed and then and'ed with {@code this}.
+		 * @throws NullPointerException if {@code value == null}.
+		 */
+		AndNot(
+            [in] IBigInteger* value,
+            [out] IBigInteger** newObj);
+
+		/**
+		 * Compares this {@code BigInteger} with {@code value}. Returns {@code -1}
+		 * if {@code this < value}, {@code 0} if {@code this == value} and {@code 1}
+		 * if {@code this > value}, .
+		 *
+		 * @param value value to be compared with {@code this}.
+		 * @throws NullPointerException if {@code value == null}.
+		 */
+		CompareTo(
+            [in] IBigInteger* value,
+            [out] Int32* result);
+
+		/**
+		 * Returns the minimum of this {@code BigInteger} and {@code value}.
+		 *
+		 * @param value value to be used to compute the minimum with {@code this}.
+		 * @throws NullPointerException if {@code value == null}.
+		 */
+		Min(
+            [in] IBigInteger* value,
+            [out] IBigInteger** newObj);
+
+		/**
+		 * Returns the maximum of this {@code BigInteger} and {@code value}.
+		 *
+		 * @param value value to be used to compute the maximum with {@code this}
+		 * @throws NullPointerException if {@code value == null}
+		 */
+		Max(
+            [in] IBigInteger* value,
+            [out] IBigInteger** newObj);
+
+		/**
+		 * Returns a string containing a string representation of this {@code
+		 * BigInteger} with base radix. If {@code radix < Character.MIN_RADIX} or
+		 * {@code radix > Character.MAX_RADIX} then a decimal representation is
+		 * returned. The characters of the string representation are generated with
+		 * method {@code Character.forDigit}.
+		 *
+		 * @param radix base to be used for the string representation.
+		 */
+		ToString(
+            [in] Int32 radix,
+            [out] String* result);
+
+		/**
+		 * Returns a {@code BigInteger} whose value is greatest common divisor
+		 * of {@code this} and {@code value}. If {@code this == 0} and {@code
+		 * value == 0} then zero is returned, otherwise the result is positive.
+		 *
+		 * @param value value with which the greatest common divisor is computed.
+		 * @throws NullPointerException if {@code value == null}.
+		 */
+		Gcd(
+            [in] IBigInteger* value,
+            [out] IBigInteger** newObj);
+
+		/**
+		 * Returns a {@code BigInteger} whose value is {@code this * value}.
+		 *
+		 * @throws NullPointerException if {@code value == null}.
+		 */
+		Multiply(
+            [in] IBigInteger* value,
+            [out] IBigInteger** newObj);
+
+		/**
+		 * Returns a {@code BigInteger} whose value is {@code pow(this, exp)}.
+		 *
+		 * @throws ArithmeticException if {@code exp < 0}.
+		 */
+		Pow(
+            [in] Int32 exp,
+            [out] IBigInteger** newObj);
+
+		/**
+		 * Returns a two element {@code BigInteger} array containing
+		 * {@code this / divisor} at index 0 and {@code this % divisor} at index 1.
+		 *
+		 * @param divisor value by which {@code this} is divided.
+		 * @throws NullPointerException if {@code divisor == null}.
+		 * @throws ArithmeticException if {@code divisor == 0}.
+		 * @see #divide
+		 * @see #remainder
+		 */
+		DivideAndRemainder(
+           [in] IBigInteger* divisor,
+           [out] ArrayOf<IBigInteger*> bigIntegerArray);
+
+		/**
+		 * Returns a {@code BigInteger} whose value is {@code this / divisor}.
+		 *
+		 * @param divisor value by which {@code this} is divided.
+		 * @return {@code this / divisor}.
+		 * @throws NullPointerException if {@code divisor == null}.
+		 * @throws ArithmeticException if {@code divisor == 0}.
+		 */
+		Divide(
+            [in] IBigInteger* divisor,
+            [out] IBigInteger** newObj);
+
+		/**
+		 * Returns a {@code BigInteger} whose value is {@code this % divisor}.
+		 * Regarding signs this methods has the same behavior as the % operator on
+		 * ints: the sign of the remainder is the same as the sign of this.
+		 *
+		 * @param divisor value by which {@code this} is divided.
+		 * @throws NullPointerException if {@code divisor == null}.
+		 * @throws ArithmeticException if {@code divisor == 0}.
+		 */
+		Remainder(
+            [in] IBigInteger* divisor,
+            [out] IBigInteger** newObj);
+
+		/**
+		 * Returns a {@code BigInteger} whose value is {@code 1/this mod m}. The
+		 * modulus {@code m} must be positive. The result is guaranteed to be in the
+		 * interval {@code [0, m)} (0 inclusive, m exclusive). If {@code this} is
+		 * not relatively prime to m, then an exception is thrown.
+		 *
+		 * @param m the modulus.
+		 * @throws NullPointerException if {@code m == null}
+		 * @throws ArithmeticException if {@code m < 0 or} if {@code this} is not
+		 *     relatively prime to {@code m}
+		 */
+		ModInverse(
+            [in] IBigInteger* divisor,
+            [out] IBigInteger** newObj);
+
+		/**
+		 * Returns a {@code BigInteger} whose value is {@code
+		 * pow(this, exponent) mod m}. The modulus {@code m} must be positive. The
+		 * result is guaranteed to be in the interval {@code [0, m)} (0 inclusive,
+		 * m exclusive). If the exponent is negative, then {@code
+		 * pow(this.modInverse(m), -exponent) mod m} is computed. The inverse of
+		 * this only exists if {@code this} is relatively prime to m, otherwise an
+		 * exception is thrown.
+		 *
+		 * @param exponent the exponent.
+		 * @param m the modulus.
+		 * @throws NullPointerException if {@code m == null} or {@code exponent ==
+		 *     null}.
+		 * @throws ArithmeticException if {@code m < 0} or if {@code exponent<0} and
+		 *     this is not relatively prime to {@code m}.
+		 */
+		ModPow(
+            [in] IBigInteger* exponent, 
+            [in] IBigInteger* m,
+            [out] IBigInteger** newObj);
+
+		/**
+		 * Returns a {@code BigInteger} whose value is {@code this mod m}. The
+		 * modulus {@code m} must be positive. The result is guaranteed to be in the
+		 * interval {@code [0, m)} (0 inclusive, m exclusive). The behavior of this
+		 * function is not equivalent to the behavior of the % operator defined for
+		 * the built-in {@code int}'s.
+		 *
+		 * @param m the modulus.
+		 * @return {@code this mod m}.
+		 * @throws NullPointerException if {@code m == null}.
+		 * @throws ArithmeticException if {@code m < 0}.
+		 */
+		Mod(
+            [in] IBigInteger* m,
+            [out] IBigInteger** newObj);
+
+		/**
+		 * Tests whether this {@code BigInteger} is probably prime. If {@code true}
+		 * is returned, then this is prime with a probability beyond
+		 * {@code 1 - 1/pow(2, certainty)}. If {@code false} is returned, then this
+		 * is definitely composite. If the argument {@code certainty} <= 0, then
+		 * this method returns true.
+		 *
+		 * @param certainty tolerated primality uncertainty.
+		 * @return {@code true}, if {@code this} is probably prime, {@code false}
+		 *     otherwise.
+		 */
+		IsProbablePrime(
+            [in] Int32 certainty,
+            [out] Boolean* result);
+
+		/**
+		 * Returns the smallest integer x > {@code this} which is probably prime as
+		 * a {@code BigInteger} instance. The probability that the returned {@code
+		 * BigInteger} is prime is beyond {@code 1 - 1/pow(2, 80)}.
+		 *
+		 * @return smallest integer > {@code this} which is probably prime.
+		 * @throws ArithmeticException if {@code this < 0}.
+		 */
+		NextProbablePrime(
+            [out] IBigInteger** newObj);
+
+		/**
+		 * Returns a random positive {@code BigInteger} instance in the range {@code
+		 * [0, pow(2, bitLength)-1]} which is probably prime. The probability that
+		 * the returned {@code BigInteger} is prime is beyond {@code
+		 * 1 - 1/pow(2, 80)}.
+		 *
+		 * <p><b>Implementation Note:</b> Currently {@code random} is ignored.
+		 *
+		 * @param bitLength length of the new {@code BigInteger} in bits.
+		 * @return probably prime random {@code BigInteger} instance.
+		 * @throws IllegalArgumentException if {@code bitLength < 2}.
+		 */
+		ProbablePrime(
+            [in] Int32 bitLength,
+            [in] IRandom* unused,
+            [out] IBigInteger** newObj);
+		
+	}
+}

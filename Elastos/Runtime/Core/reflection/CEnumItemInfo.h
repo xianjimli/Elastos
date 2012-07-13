@@ -32,7 +32,7 @@ public:
 
     CEnumItemInfo(
         /* [in] */ IEnumInfo  * pEnumInfo,
-        /* [in] */ String name,
+        /* [in] */ CString name,
         /* [in] */ Int32 value);
 
     virtual ~CEnumItemInfo();

@@ -42,7 +42,7 @@ module
          *             if an error occurs while writing to this stream.
          */
         WriteBuffer(
-            [in] BufferOf<Byte> buffer);
+            [in] ArrayOf<Byte> buffer);
 
         /**
          * Writes {@code count} bytes from the byte array {@code buffer} starting at
@@ -65,7 +65,7 @@ module
         WriteBufferEx(
             [in] Int32 offset,
             [in] Int32 count,
-            [in] BufferOf<Byte> buffer);
+            [in] ArrayOf<Byte> buffer);
 
         /**
          * Returns true if this writer has encountered and suppressed an error. Used

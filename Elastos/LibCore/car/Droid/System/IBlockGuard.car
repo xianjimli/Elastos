@@ -1,0 +1,25 @@
+
+module
+{
+    interface IPolicy;
+
+    interface IBlockGuard {
+        /**
+         * Get the current thread's policy.
+         *
+         * @return the current thread's policy.  Never returns null.
+         *     Will return the LAX_POLICY instance if nothing else is set.
+         */
+        GetThreadPolicy(
+            [out] IPolicy** policy);
+
+        /**
+         * Sets the current thread's block guard policy.
+         *
+         * @param policy policy to set.  May not be null.  Use the public LAX_POLICY
+         *   if you want to unset the active policy.
+         */
+        SetThreadPolicy(
+            [in] IPolicy* policy);
+    }
+}

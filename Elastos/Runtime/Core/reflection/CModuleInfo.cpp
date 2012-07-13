@@ -47,7 +47,7 @@ ECode CModuleRefInfo::GetInterfaceID(
 
 CModuleRefInfo::CModuleRefInfo(
     /* [in] */ CClsModule * pCClsModule,
-    /* [in] */ String path)
+    /* [in] */ CString path)
 {
     m_pCClsModule = pCClsModule;
     m_pCClsModule->AddRef();
@@ -80,7 +80,7 @@ CModuleRefInfo::~CModuleRefInfo()
 ECode CModuleRefInfo::GetPath(
     /* [out] */ StringBuf * pPath)
 {
-    pPath->Copy(m_sbPath);
+    pPath->Copy((const char*)m_sbPath);
     return NOERROR;
 }
 
@@ -133,7 +133,7 @@ ECode CModuleRefInfo::GetAllClassInfos(
 }
 
 ECode CModuleRefInfo::GetClassInfo(
-    /* [in] */ String name,
+    /* [in] */ CString name,
     /* [out] */ IClassInfo ** ppClassInfo)
 {
     if (name.IsNull() || NULL == ppClassInfo) {
@@ -184,7 +184,7 @@ ECode CModuleRefInfo::GetAllInterfaceInfos(
 }
 
 ECode CModuleRefInfo::GetInterfaceInfo(
-    /* [in] */ String name,
+    /* [in] */ CString name,
     /* [out] */ IInterfaceInfo ** ppInterfaceInfo)
 {
     if (name.IsNull() || NULL == ppInterfaceInfo) {
@@ -236,7 +236,7 @@ ECode CModuleRefInfo::GetAllStructInfos(
 }
 
 ECode CModuleRefInfo::GetStructInfo(
-    /* [in] */ String name,
+    /* [in] */ CString name,
     /* [out] */ IStructInfo ** ppStructInfo)
 {
     if (name.IsNull() || !ppStructInfo) {
@@ -291,7 +291,7 @@ ECode CModuleRefInfo::GetAllEnumInfos(
 }
 
 ECode CModuleRefInfo::GetEnumInfo(
-    /* [in] */ String name,
+    /* [in] */ CString name,
     /* [out] */ IEnumInfo ** ppEnumInfo)
 {
     if (name.IsNull() || !ppEnumInfo) {
@@ -356,7 +356,7 @@ ECode CModuleRefInfo::GetAllTypeAliasInfos(
 }
 
 ECode CModuleRefInfo::GetTypeAliasInfo(
-    /* [in] */ String name,
+    /* [in] */ CString name,
     /* [out] */ ITypeAliasInfo ** ppTypeAliasInfo)
 {
     if (name.IsNull() || !ppTypeAliasInfo) {
@@ -411,7 +411,7 @@ ECode CModuleRefInfo::GetAllConstantInfos(
 }
 
 ECode CModuleRefInfo::GetConstantInfo(
-    /* [in] */ String name,
+    /* [in] */ CString name,
     /* [out] */ IConstantInfo ** ppConstantInfo)
 {
     if (name.IsNull() || !ppConstantInfo) {

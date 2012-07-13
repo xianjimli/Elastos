@@ -1,251 +1,205 @@
-//==========================================================================
-// Copyright (c) 2000-2008,  Elastos, Inc.  All Rights Reserved.
-//==========================================================================
+#include "cmdef.h"
 #include "CDataInputStream.h"
 
-ECode CDataInputStream::Available(
-    /* [out] */ Int32 * pBytes)
+CDataInputStream::CDataInputStream()
 {
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
-    return m_pIis->Available(pBytes);
+}
+
+CDataInputStream::~CDataInputStream()
+{
+}
+
+ECode CDataInputStream::constructor(
+    /* [in] */ IInputStream* is)
+{
+    return DataInputStream::Init(is);
+}
+
+ECode CDataInputStream::Available(
+    /* [out] */ Int32* number)
+{
+    VALIDATE_NOT_NULL(number);
+
+    return DataInputStream::Available(number);
 }
 
 ECode CDataInputStream::Close()
 {
-    if (m_pIis) {
-        m_pIis->Close();
-        m_pIis->Release();
-        m_pIis = NULL;
-    }
-
-    return NOERROR;
+    return DataInputStream::Close();
 }
 
 ECode CDataInputStream::Mark(
     /* [in] */ Int32 readLimit)
 {
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
-    return m_pIis->Mark(readLimit);
+    return DataInputStream::Mark(readLimit);
 }
 
 ECode CDataInputStream::IsMarkSupported(
-    /* [out] */ Boolean * pSupported)
+    /* [out] */ Boolean* supported)
 {
-    if (!pSupported) {
-        return E_INVALID_ARGUMENT;
-    }
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
+    VALIDATE_NOT_NULL(supported);
 
-    return m_pIis->IsMarkSupported(pSupported);
+    return DataInputStream::IsMarkSupported(supported);
 }
 
 ECode CDataInputStream::Read(
-    /* [out] */ Byte * pValue)
+    /* [out] */ Int32* value)
 {
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
-    return m_pIis->Read(pValue);
+    VALIDATE_NOT_NULL(value);
+
+    return DataInputStream::Read(value);
 }
 
 ECode CDataInputStream::ReadBuffer(
-    /* [out] */ BufferOf<Byte> * pBuffer)
+    /* [out] */ ArrayOf<Byte>* buffer,
+    /* [out] */ Int32* number)
 {
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
-    return m_pIis->ReadBuffer(pBuffer);
+    VALIDATE_NOT_NULL(buffer);
+    VALIDATE_NOT_NULL(number);
+
+    return DataInputStream::ReadBuffer(buffer, number);
 }
 
 ECode CDataInputStream::ReadBufferEx(
     /* [in] */ Int32 offset,
     /* [in] */ Int32 length,
-    /* [out] */ BufferOf<Byte> * pBuffer)
+    /* [out] */ ArrayOf<Byte>* buffer,
+    /* [out] */ Int32* number)
 {
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
-    return m_pIis->ReadBufferEx(offset, length, pBuffer);
+    VALIDATE_NOT_NULL(buffer);
+    VALIDATE_NOT_NULL(number);
+
+    return DataInputStream::ReadBufferEx(offset, length, buffer, number);
 }
 
 ECode CDataInputStream::Reset()
 {
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
-    return m_pIis->Reset();
+    return DataInputStream::Reset();
 }
 
 ECode CDataInputStream::Skip(
-    /* [in] */ Int32 length)
+    /* [in] */ Int64 count,
+    /* [out] */ Int64* number)
 {
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
-    return m_pIis->Skip(length);
-}
+    VALIDATE_NOT_NULL(number);
 
-ECode CDataInputStream::ReadInt16(
-    /* [out] */ Int16 * pValue)
-{
-    if (!pValue) {
-        return E_INVALID_ARGUMENT;
-    }
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
-    BufferOf<Byte> tmp((Byte *)pValue, sizeof(Int16));
-    return m_pIis->ReadBuffer(&tmp);
-}
-
-ECode CDataInputStream::ReadInt32(
-    /* [out] */ Int32 * pValue)
-{
-    if (!pValue) {
-        return E_INVALID_ARGUMENT;
-    }
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
-    BufferOf<Byte> tmp((Byte *)pValue, sizeof(Int32));
-    return m_pIis->ReadBuffer(&tmp);
-}
-
-ECode CDataInputStream::ReadInt64(
-    /* [out] */ Int64 * pValue)
-{
-    if (!pValue) {
-        return E_INVALID_ARGUMENT;
-    }
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
-    BufferOf<Byte> tmp((Byte *)pValue, sizeof(Int64));
-    return m_pIis->ReadBuffer(&tmp);
-}
-
-ECode CDataInputStream::ReadFloat(
-    /* [out] */ Float * pValue)
-{
-    if (!pValue) {
-        return E_INVALID_ARGUMENT;
-    }
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
-    BufferOf<Byte> tmp((Byte *)pValue, sizeof(Float));
-    return m_pIis->ReadBuffer(&tmp);
-}
-
-ECode CDataInputStream::ReadDouble(
-    /* [out] */ Double * pValue)
-{
-    if (!pValue) {
-        return E_INVALID_ARGUMENT;
-    }
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
-    BufferOf<Byte> tmp((Byte *)pValue, sizeof(Double));
-    return m_pIis->ReadBuffer(&tmp);
-}
-
-ECode CDataInputStream::ReadChar8(
-    /* [out] */ Char8 * pValue)
-{
-    if (!pValue) {
-        return E_INVALID_ARGUMENT;
-    }
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
-    BufferOf<Byte> tmp((Byte *)pValue, sizeof(Char8));
-    return m_pIis->ReadBuffer(&tmp);
-}
-
-ECode CDataInputStream::ReadChar16(
-    /* [out] */ Char16 * pValue)
-{
-    if (!pValue) {
-        return E_INVALID_ARGUMENT;
-    }
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
-    BufferOf<Byte> tmp((Byte *)pValue, sizeof(Char16));
-    return m_pIis->ReadBuffer(&tmp);
+    return DataInputStream::Skip(count, number);
 }
 
 ECode CDataInputStream::ReadBoolean(
-    /* [out] */ Boolean * pValue)
+    /* [out] */ Boolean* value)
 {
-    if (!pValue) {
-        return E_INVALID_ARGUMENT;
-    }
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
+    VALIDATE_NOT_NULL(value);
 
-    Byte value;
-    ECode ec = m_pIis->Read(&value);
-    if (FAILED(ec)) {
-        return ec;
-    }
-
-    *pValue = (value != 0);
-    return NOERROR;
+    return DataInputStream::ReadBoolean(value);
 }
 
-ECode CDataInputStream::ReadEMuid(
-    /* [out] */ EMuid * pValue)
+ECode CDataInputStream::ReadByte(
+    /* [out] */ Byte* value)
 {
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(value);
+
+    return DataInputStream::ReadByte(value);
 }
 
-ECode CDataInputStream::ReadEGuid(
-    /* [out] */ EGuid * pValue)
+ECode CDataInputStream::ReadChar(
+    /* [out] */ Char32* value)
 {
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(value);
+
+    return DataInputStream::ReadChar(value);
 }
 
-ECode CDataInputStream::ReadECode(
-    /* [out] */ ECode * pValue)
+ECode CDataInputStream::ReadDouble(
+    /* [out] */ Double* value)
 {
-    if (!pValue) {
-        return E_INVALID_ARGUMENT;
-    }
-    if (!m_pIis) {
-        return E_CLOSED_STREAM;
-    }
-    BufferOf<Byte> tmp((Byte *)pValue, sizeof(ECode));
-    return m_pIis->ReadBuffer(&tmp);
+    VALIDATE_NOT_NULL(value);
+
+    return DataInputStream::ReadDouble(value);
 }
 
-ECode CDataInputStream::constructor(
-    /* [in] */ IInputStream * pStream)
+ECode CDataInputStream::ReadFloat(
+    /* [out] */ Float* value)
 {
-    if (!pStream) {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(value);
 
-    m_pIis = pStream;
-    m_pIis->AddRef();
-    return NOERROR;
+    return DataInputStream::ReadFloat(value);
 }
 
-CDataInputStream::~CDataInputStream()
+ECode CDataInputStream::ReadFully(
+    /* [out] */ ArrayOf<Byte> * buffer)
 {
-    Close();
+    VALIDATE_NOT_NULL(buffer);
+
+    return DataInputStream::ReadFully(buffer);
+}
+
+ECode CDataInputStream::ReadFullyEx(
+    /* [in] */ Int32 offset,
+    /* [in] */ Int32 length,
+    /* [out] */ ArrayOf<Byte> * buffer)
+{
+    VALIDATE_NOT_NULL(buffer);
+
+    return DataInputStream::ReadFullyEx(offset, length, buffer);
+}
+
+ECode CDataInputStream::ReadInt32(
+    /* [out] */ Int32* value)
+{
+    VALIDATE_NOT_NULL(value);
+
+    return DataInputStream::ReadInt32(value);
+}
+
+ECode CDataInputStream::ReadLine(
+     /* [out] */ String* value)
+{
+    return DataInputStream::ReadLine(value);
+}
+
+ECode CDataInputStream::ReadInt64(
+    /* [out] */ Int64* value)
+{
+    VALIDATE_NOT_NULL(value);
+
+    return DataInputStream::ReadInt64(value);
+}
+
+ECode CDataInputStream::ReadInt16(
+    /* [out] */ Int16* value)
+{
+    VALIDATE_NOT_NULL(value);
+
+    return DataInputStream::ReadInt16(value);
+}
+
+ECode CDataInputStream::ReadUnsignedByte(
+    /* [out] */ Int32* value)
+{
+    VALIDATE_NOT_NULL(value);
+
+    return DataInputStream::ReadUnsignedByte(value);
+}
+
+ECode CDataInputStream::ReadUnsignedInt16(
+    /* [out] */ Int32* value)
+{
+    VALIDATE_NOT_NULL(value);
+
+    return DataInputStream::ReadUnsignedInt16(value);
+}
+
+ECode CDataInputStream::SkipBytes(
+    /* [in] */ Int32 count,
+    /* [out] */ Int32* number)
+{
+    VALIDATE_NOT_NULL(number);
+
+    return DataInputStream::SkipBytes(count, number);
+}
+
+Mutex* CDataInputStream::GetSelfLock()
+{
+    return &_m_syncLock;
 }

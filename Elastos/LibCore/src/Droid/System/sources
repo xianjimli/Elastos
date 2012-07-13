@@ -1,0 +1,22 @@
+
+#==========================================================================
+# Copyright (c) 2000-2008,  Elastos, Inc.  All Rights Reserved.
+#==========================================================================
+
+TARGET_NAME= Droid.System
+TARGET_TYPE= eco
+
+INCLUDES += $(MAKEDIR)/../../../inc/Elastos/common;
+INCLUDES += $(MAKEDIR)/../../../inc/Droid/System;
+
+SOURCES = Droid.System.car
+SOURCES += CBlockGuard.cpp
+
+LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.CarRuntime.lib
+ifeq "$(XDK_TARGET_PLATFORM)" "win32"
+LIBRARIES += $(XDK_LIB_PATH)/Elastos.Runtime.lib
+else
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.CarRuntime.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
+LIBRARIES += $(XDK_USER_LIB)/crt0.lib
+endif

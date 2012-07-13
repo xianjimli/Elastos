@@ -38,7 +38,7 @@ module
          * @see DataInput#readFully(byte[],int,int)
          */
         WriteBytes(
-            [in] BufferOf<Byte> buffer);
+            [in] ArrayOf<Byte> buffer);
 
         /**
          * Writes {@code count} bytes from the byte array {@code buffer} starting at
@@ -58,7 +58,7 @@ module
         WriteBytesEx(
             [in] Int32 offset,
             [in] Int32 count,
-            [in] BufferOf<Byte> buffer);
+            [in] ArrayOf<Byte> buffer);
         // BEGIN android-note
         // changed array notation to be consistent with the rest of harmony
         // END android-note

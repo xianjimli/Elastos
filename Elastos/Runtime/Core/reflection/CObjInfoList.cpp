@@ -280,7 +280,7 @@ ECode CObjInfoList::UnlockHashTable(
 }
 
 ECode CObjInfoList::AcquireModuleInfo(
-    /* [in] */ String name,
+    /* [in] */ CString name,
     /* [out] */ IModuleInfo **ppModuleInfo)
 {
     if (name.IsNull() || !ppModuleInfo) {
@@ -354,7 +354,7 @@ ECode CObjInfoList::AcquireModuleInfo(
         }
     }
 
-    pModInfo = new CModuleRefInfo(pCClsModule, (char *)(const char*)name);
+    pModInfo = new CModuleRefInfo(pCClsModule, name);
     if (pModInfo == NULL) {
         if (!ppCClsModule && pCClsModule) delete pCClsModule;
         ec = E_OUT_OF_MEMORY;
@@ -384,7 +384,7 @@ Exit:
 }
 
 ECode CObjInfoList:: RemoveModuleInfo(
-    /* [in] */ String path)
+    /* [in] */ CString path)
 {
     if (path.IsNull()) {
         return E_INVALID_ARGUMENT;
@@ -394,7 +394,7 @@ ECode CObjInfoList:: RemoveModuleInfo(
 }
 
 ECode CObjInfoList:: RemoveClsModule(
-    /* [in] */ String path)
+    /* [in] */ CString path)
 {
     if (path.IsNull()) {
         return E_INVALID_ARGUMENT;
@@ -511,8 +511,8 @@ ECode CObjInfoList::AcquireStaticStructInfo(
 }
 
 ECode CObjInfoList::AcquireDynamicStructInfo(
-    /* [in] */ String name,
-    /* [in] */ const BufferOf<String>& fieldNames,
+    /* [in] */ CString name,
+    /* [in] */ const BufferOf<CString>& fieldNames,
     /* [in] */ const BufferOf<IDataTypeInfo *>& fieldTypeInfos,
     /* [out] */ IStructInfo **ppStructInfo)
 {
@@ -527,14 +527,14 @@ ECode CObjInfoList::AcquireDynamicStructInfo(
     StringBuf_<_MAX_PATH> structName;
     CStructRefInfo *pStructInfo = NULL;
     Int32 count = 0, i = 0;
-    BufferOf<String>    *pFieldNames = NULL;
+    BufferOf<CString>    *pFieldNames = NULL;
     BufferOf<IDataTypeInfo *>     *pFieldTypeInfos = NULL;
     LockHashTable(EntryType_Struct);
     for (; pNode; pNode = pNode->pNext) {
         pStructInfo = (CStructRefInfo *)pNode->pInfo;
         pStructInfo->GetName(&structName);
 
-        if (name.Compare(structName) == 0) {
+        if (name.Compare((char*)structName) == 0) {
             pStructInfo->GetFieldCount(&count);
             if (count != fieldNames.GetUsed()) {
                 UnlockHashTable(EntryType_Struct);
@@ -660,8 +660,8 @@ ECode CObjInfoList::RemoveEnumInfo(
 }
 
 ECode CObjInfoList::AcquireDynamicEnumInfo(
-    /* [in] */ String name,
-    /* [in] */ const BufferOf<String>& itemNames,
+    /* [in] */ CString name,
+    /* [in] */ const BufferOf<CString>& itemNames,
     /* [in] */ const BufferOf<Int32>& itemValues,
     /* [out] */ IEnumInfo **ppEnumInfo)
 {
@@ -676,7 +676,7 @@ ECode CObjInfoList::AcquireDynamicEnumInfo(
     StringBuf_<_MAX_PATH> enumName;
     CEnumRefInfo *pEnumInfo = NULL;
     Int32 count = 0, i = 0;
-    BufferOf<String>    *pItemNames;
+    BufferOf<CString>    *pItemNames;
     BufferOf<Int32>      *pItemValues;
 
     LockHashTable(EntryType_Enum);
@@ -684,7 +684,7 @@ ECode CObjInfoList::AcquireDynamicEnumInfo(
         pEnumInfo = (CEnumRefInfo *)pNode->pInfo;
         pEnumInfo->GetName(&enumName);
 
-        if (name.Compare(enumName) == 0) {
+        if (name.Compare((char*)enumName) == 0) {
             pEnumInfo->GetItemCount(&count);
             if (count != itemNames.GetUsed()) {
                 if (!name.IsEmpty()) {

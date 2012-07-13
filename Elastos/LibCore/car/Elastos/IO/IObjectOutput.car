@@ -30,7 +30,7 @@ module
          *             if an error occurs while writing to the target stream.
          */
         WriteBuffer(
-            [in] BufferOf<Byte> buffer);
+            [in] ArrayOf<Byte> buffer);
 
         /**
          * Writes {@code count} bytes from the byte array {@code buffer} starting at
@@ -50,7 +50,7 @@ module
         WriteBufferEx(
             [in] Int32 offset,
             [in] Int32 count,
-            [in] BufferOf<Byte> buffer);
+            [in] ArrayOf<Byte> buffer);
 
         /**
          * Writes a single byte to the target stream. Only the least significant

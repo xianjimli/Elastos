@@ -35,7 +35,7 @@ public:
         /* [out] */ IParamInfo ** ppParamInfo);
 
     CARAPI GetParamInfoByName(
-        /* [in] */ String name,
+        /* [in] */ CString name,
         /* [out] */ IParamInfo ** ppParamInfo);
 
     CARAPI CreateArgumentList(
@@ -68,7 +68,7 @@ public:
     virtual ~CConstructorInfo();
 
     CMethodInfo    *m_pMethodInfo;
-    
+
     char m_szUrn2[_MAX_PATH];
     ClassID m_instClsId;
 
@@ -76,7 +76,7 @@ private:
     Int32           m_nOutParamIndex;
 
     char    m_szUrn[_MAX_PATH];
-    ClassID m_clsId;  
+    ClassID m_clsId;
     Int32     m_cRef;
 };
 

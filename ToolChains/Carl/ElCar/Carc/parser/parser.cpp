@@ -504,6 +504,7 @@ int P_CarQuient(TypeDescriptor *pType)
             return Ret_AbortOnError;
         }
         memset(pType->pNestedType, 0, sizeof(TypeDescriptor));
+        pType->pNestedType->bNested = 1;
 
         if (Type_MemoryBuf == pType->type) {
             pType->pNestedType->type = Type_Byte;
@@ -629,6 +630,9 @@ int P_BaseType(CARToken token, TypeDescriptor *pType)
             break;
         case Token_K_EventHandler:
             pType->type = Type_EventHandler;
+            break;
+        case Token_K_CString:
+            pType->type = Type_CString;
             break;
         case Token_K_String:
             pType->type = Type_String;

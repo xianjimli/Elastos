@@ -12,9 +12,11 @@ endif
 SOURCES = elquintet.cpp
 SOURCES += elstrbuf.cpp
 SOURCES += elstrtoken.cpp
-SOURCES += elstring.cpp
+SOURCES += elstringapi.cpp
 SOURCES += elchar.cpp
 SOURCES += eltime.cpp
 SOURCES += convertstr.cpp
 SOURCES += unicode.c
 SOURCES += ucase.c
+
+LIBRARIES = elstring/elstring.lib

@@ -1,0 +1,12 @@
+
+module
+{
+//    const FAMILY_CORE = 0x22    // Core error codes
+
+//    #define FRAMEWORK_ERROR(c)      MAKE_ECODE(SEVERITY_ERROR, FAMILY_FRAMEWORK, c)
+//    #define FRAMEWORK_SUCCESS(c)    MAKE_SUCCESS(FAMILY_FRAMEWORK, c)
+
+    //==========================================================================
+    // Elastos Core error codes (Family: 0x22)
+    const E_OUT_OF_MEMORY_ERROR                         = 0xA2010000;
+}

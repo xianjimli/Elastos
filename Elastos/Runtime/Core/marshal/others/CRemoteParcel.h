@@ -80,11 +80,17 @@ public:
     CARAPI WriteDouble(
         /* [in] */ Double value);
 
+    CARAPI ReadCString(
+        /* [out] */ CString* pStr);
+
+    CARAPI WriteCString(
+        /* [in] */ CString str);
+
     CARAPI ReadString(
-        /* [out] */ String *pStr);
+        /* [out] */ String* pStr);
 
     CARAPI WriteString(
-        /* [in] */ String str);
+        /* [in] */ const String& str);
 
     CARAPI ReadStruct(
         /* [out] */ Handle32 *pAddress);
@@ -111,6 +117,12 @@ public:
     CARAPI WriteArrayOf(
         /* [in] */ Handle32 pArray);
 
+    CARAPI ReadArrayOfCString(
+        /* [out] */ Handle32 *ppArray);
+
+    CARAPI WriteArrayOfCString(
+        /* [in] */ const ArrayOf<CString> & array);
+
     CARAPI ReadArrayOfString(
         /* [out] */ Handle32 *ppArray);
 
@@ -122,6 +134,12 @@ public:
 
     CARAPI WriteBufferOf(
         /* [in] */ Handle32 pBuffer);
+
+    CARAPI ReadBufferOfCString(
+        /* [out] */ Handle32 *ppBuffer);
+
+    CARAPI WriteBufferOfCString(
+        /* [in] */ const BufferOf<CString> & buffer);
 
     CARAPI ReadBufferOfString(
         /* [out] */ Handle32 *ppBuffer);

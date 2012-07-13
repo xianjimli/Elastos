@@ -3,6 +3,8 @@
 #include <eltypes.h>
 #include "marshal.h"
 
+#define ROUND8(n)       (((n)+7)&~7)   // round up to multiple of 8 bytes
+
 ECode Proxy_ProcessMsh_BufferSize(
     /* [in] */ const CIMethodInfo *pMethodInfo,
     /* [in] */ UInt32 *puArgs,
@@ -106,6 +108,9 @@ ECode Proxy_ProcessMsh_BufferSize(
                         uInSize += 4;
                         puArgs += 1;
                     }
+#endif
+#if defined(_arm) && defined(__GNUC__) && (__GNUC__ >= 4)
+                    puArgs = (UInt32*)ROUND8((Int32)puArgs);
 #endif
                     uInSize += sizeof(UInt64);
                     puArgs += 2;
@@ -295,6 +300,9 @@ ECode Proxy_ProcessMsh_In(
                     // Adjust for 64bits align on mips
                     if (!(n % 2)) puArgs += 1;
 #endif
+#if defined(_arm) && defined(__GNUC__) && (__GNUC__ >= 4)
+                    puArgs = (UInt32*)ROUND8((Int32)puArgs);
+#endif
                     pParcel->WriteInt64((Int64)(*(UInt64 *)puArgs));
                     puArgs += 2;
                     break;
@@ -346,7 +354,7 @@ ECode Proxy_ProcessMsh_In(
                     break;
 
                 case BT_TYPE_STRING:
-                    pParcel->WriteString(String((char*)*puArgs));
+                    pParcel->WriteString(**(String**)puArgs);
                     puArgs++;
                     break;
 
@@ -484,6 +492,9 @@ ECode Proxy_ProcessUnmsh_Out(
                         puArgs += 1;
                     }
 #endif
+#if defined(_arm) && defined(__GNUC__) && (__GNUC__ >= 4)
+                    puArgs = (UInt32*)ROUND8((Int32)puArgs);
+#endif
                     puArgs += 2;
                     break;
 
@@ -563,6 +574,7 @@ ECode Stub_ProcessUnmsh_In(
 
                     case BT_TYPE_PSTRING:
                         *puArgs = (UInt32)puOutBuffer;
+                        new((void*)puOutBuffer) String();
                         puOutBuffer++;
                         break;
 
@@ -641,6 +653,9 @@ ECode Stub_ProcessUnmsh_In(
                     if (!(n % 2)) {
                         puArgs += 1;
                     }
+#endif
+#if defined(_arm) && defined(__GNUC__) && (__GNUC__ >= 4)
+                    puArgs = (UInt32*)ROUND8((Int32)puArgs);
 #endif
                     pParcel->ReadInt64((Int64*)puArgs);
                     puArgs += 2;
@@ -757,14 +772,15 @@ ECode Stub_ProcessMsh_Out(
 
                 switch (BT_TYPE(pParams[n])) {
                     case BT_TYPE_PUINT64:
-                        pParcel->WriteInt64((Int64)*puOutBuffer);
+                        pParcel->WriteInt64(*(Int64*)puOutBuffer);
                         puOutBuffer += 2;
                         break;
 
                     case BT_TYPE_PSTRING:
                         if (*puOutBuffer) {
-                            pParcel->WriteString(String((char*)*puOutBuffer));
-                            free((void*)*puOutBuffer);
+                            String* p = (String*)puOutBuffer;
+                            pParcel->WriteString(*p);
+                            p->~String();
                         }
                         else {
                             pParcel->WriteInt32(MSH_NULL);
@@ -846,8 +862,30 @@ ECode Stub_ProcessMsh_Out(
                     // Adjust for 64bits align on mips
                     if (!(n % 2)) puArgs += 1;
 #endif
+#if defined(_arm) && defined(__GNUC__) && (__GNUC__ >= 4)
+                    puArgs = (UInt32*)ROUND8((Int32)puArgs);
+#endif
                     puArgs += 2;
                     break;
+
+                case BT_TYPE_PUINT8:
+                case BT_TYPE_PUINT16:
+                case BT_TYPE_PUINT32:
+                    free(*(Int32**)puArgs);
+                    puArgs++;
+                    break;
+
+                case BT_TYPE_PUINT64:
+                    free(*(Int64**)puArgs);
+                    puArgs++;
+                    break;
+
+                case BT_TYPE_STRING: {
+                    String* p = *(String**)puArgs;
+                    delete p;
+                    puArgs++;
+                    break;
+                }
 
                 case BT_TYPE_EMUID:
                     puArgs += sizeof(EMuid) / 4;
@@ -857,18 +895,23 @@ ECode Stub_ProcessMsh_Out(
                     puArgs += sizeof(EMuid) / 4 + sizeof(char*) / 4;
                     break;
 
+                case BT_TYPE_PEGUID:
+                    free(*(EGuid**)puArgs);
+                    puArgs++;
+                    break;
+
                 case BT_TYPE_PINTERFACE:
                     if (*puArgs && *(UInt32 *)(*puArgs)) {
                         ((IInterface *)*(UInt32 *)*puArgs)->Release();
                     }
-                    *puArgs++;
+                    puArgs++;
                     break;
 
                 case BT_TYPE_INTERFACE:
                     if (*puArgs) {
                         ((IInterface *)*puArgs)->Release();
                     }
-                    *puArgs++;
+                    puArgs++;
                     break;
 
                 case BT_TYPE_STRINGBUF:
@@ -887,12 +930,14 @@ ECode Stub_ProcessMsh_Out(
                                 }
                             }
                         }
+                        free(((PCARQUINTET)*puArgs)->m_pBuf);
+                        free((PCARQUINTET)*puArgs);
                     }
-                    *puArgs++;
+                    puArgs++;
                     break;
 
                 default:
-                    *puArgs++;
+                    puArgs++;
                     break;
             }
         }

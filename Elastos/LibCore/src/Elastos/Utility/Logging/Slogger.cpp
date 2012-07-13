@@ -6,7 +6,7 @@ namespace Elastos {
 namespace Utility {
 namespace Logging {
 
-ECode Slogger::D(String tag, String msg)
+ECode Slogger::D(CString tag, CString msg)
 {
     return Logger::PrintlnImpl(Logger::LOG_ID_SYSTEM, Logger::___DEBUG, tag, msg);
 }
@@ -14,7 +14,7 @@ ECode Slogger::D(String tag, String msg)
 /**
  * Send an ERROR log message.
  */
-ECode Slogger::E(String tag, String msg)
+ECode Slogger::E(CString tag, CString msg)
 {
     return Logger::PrintlnImpl(Logger::LOG_ID_SYSTEM, Logger::ERROR, tag, msg);
 }
@@ -22,7 +22,7 @@ ECode Slogger::E(String tag, String msg)
 /**
  * Send an INFO log message.
  */
-ECode Slogger::I(String tag, String msg)
+ECode Slogger::I(CString tag, CString msg)
 {
     return Logger::PrintlnImpl(Logger::LOG_ID_SYSTEM, Logger::INFO, tag, msg);
 }
@@ -30,7 +30,7 @@ ECode Slogger::I(String tag, String msg)
 /**
  * Send an VERBOSE log message.
  */
-ECode Slogger::V(String tag, String msg)
+ECode Slogger::V(CString tag, CString msg)
 {
     return Logger::PrintlnImpl(Logger::LOG_ID_SYSTEM, Logger::VERBOSE, tag, msg);
 }
@@ -38,7 +38,7 @@ ECode Slogger::V(String tag, String msg)
 /**
  * Send a WARN log message.
  */
-ECode Slogger::W(String tag, String msg)
+ECode Slogger::W(CString tag, CString msg)
 {
     return Logger::PrintlnImpl(Logger::LOG_ID_SYSTEM, Logger::WARN, tag, msg);
 }
@@ -46,7 +46,7 @@ ECode Slogger::W(String tag, String msg)
 /**
  * Low-level logging call.
  */
-ECode Slogger::Println(Int32 priority, String tag, String msg)
+ECode Slogger::Println(Int32 priority, CString tag, CString msg)
 {
     return Logger::PrintlnImpl(Logger::LOG_ID_SYSTEM, priority, tag, msg);
 }

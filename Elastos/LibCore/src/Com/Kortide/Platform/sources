@@ -1,0 +1,30 @@
+
+#==========================================================================
+# Copyright (c) 2000-2008,  Elastos, Inc.  All Rights Reserved.
+#==========================================================================
+
+TARGET_NAME= Com.Kortide.Platform
+TARGET_TYPE= eco
+
+ifeq "$(XDK_TARGET_PLATFORM)" "linux"
+C_DEFINES += -DHAVE_SYS_SENDFILE_H
+endif
+
+INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/common;
+INCLUDES += $(MAKEDIR)/../../../../inc/Com/Kortide/Platform;
+
+IMPORTS = Droid.System.eco
+
+SOURCES = Com.Kortide.Platform.car
+SOURCES += CPlatform.cpp
+SOURCES += OSFileSystem.cpp
+SOURCES += WrappedFileSystem.cpp
+
+LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.CarRuntime.lib
+ifeq "$(XDK_TARGET_PLATFORM)" "win32"
+LIBRARIES += $(XDK_LIB_PATH)/Elastos.Runtime.lib
+else
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.CarRuntime.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
+LIBRARIES += $(XDK_USER_LIB)/crt0.lib
+endif

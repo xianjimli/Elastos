@@ -1,2 +1,11 @@
 
-DIRS = Elastos
+DIRS = Elastos/Utility
+DIRS += Elastos/Core
+DIRS += Droid
+DIRS += Com
+DIRS += Elastos/UtilityLib
+DIRS += Elastos/IO
+#DIRS += Elastos/Security
+DIRS += Elastos/NIO
+DIRS += Elastos/Xml
+DIRS += Elastos/Test

@@ -1,10 +1,11 @@
 
-#include <Elastos.System.h>
+#include <Elastos.Core.h>
 #include "CXmlPullParser.h"
 #include <elastos/AutoFree.h>
 #include <StringBuffer.h>
+#include <Elastos.IO.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 #define FAIL_RETURN(expr) \
     do { \
@@ -16,9 +17,9 @@ using namespace Elastos::System;
     do { \
         if (mRelaxed) { \
             if (mError.IsNull()) { \
-                StringBuffer sb("ERR: "); \
-                sb += desc;\
-                mError = String::Duplicate(sb); \
+                String error("ERR: "); \
+                error += desc;\
+                mError = error; \
             } \
         } \
         else { \
@@ -26,28 +27,28 @@ using namespace Elastos::System;
         } \
     } while(0);
 
-#define STRING_ASSIGN(dst, src) \
-    do { \
-        String::Free(dst); \
-        dst = String::Duplicate(src); \
-    } while(0);
+//#define STRING_ASSIGN(dst, src) \
+//    do { \
+//        String::Free(dst); \
+//        dst = String::Duplicate(src); \
+//    } while(0);
 
 
-const String CXmlPullParser::UNEXPECTED_EOF = "Unexpected EOF";
-const String CXmlPullParser::ILLEGAL_TYPE = "Wrong event type";
+const String CXmlPullParser::UNEXPECTED_EOF = String("Unexpected EOF");
+const String CXmlPullParser::ILLEGAL_TYPE = String("Wrong event type");
 
 const String CXmlPullParser::TYPES[TYPES_LENGTH] = {
-    "XmlPullParser_START_DOCUMENT",
-    "XmlPullParser_END_DOCUMENT",
-    "XmlPullParser_START_TAG",
-    "XmlPullParser_END_TAG",
-    "XmlPullParser_TEXT",
-    "XmlPullParser_CDSECT",
-    "XmlPullParser_ENTITY_REF",
-    "XmlPullParser_IGNORABLE_WHITESPACE",
-    "XmlPullParser_PROCESSING_INSTRUCTION",
-    "XmlPullParser_COMMENT",
-    "XmlPullParser_DOCDECL"
+    String("IXmlPullParser_START_DOCUMENT"),
+    String("IXmlPullParser_END_DOCUMENT"),
+    String("IXmlPullParser_START_TAG"),
+    String("IXmlPullParser_END_TAG"),
+    String("IXmlPullParser_TEXT"),
+    String("IXmlPullParser_CDSECT"),
+    String("IXmlPullParser_ENTITY_REF"),
+    String("IXmlPullParser_IGNORABLE_WHITESPACE"),
+    String("IXmlPullParser_PROCESSING_INSTRUCTION"),
+    String("IXmlPullParser_COMMENT"),
+    String("IXmlPullParser_DOCDECL")
 };
 
 CXmlPullParser::CXmlPullParser()
@@ -56,9 +57,8 @@ CXmlPullParser::CXmlPullParser()
 
 CXmlPullParser::~CXmlPullParser()
 {
-    for (Int32 i = 0; i < 16; i++) String::Free((*mAttributes)[i]);
+    for (Int32 i = 0; i < 16; i++) ((*mAttributes)[i]).~String();
     ArrayOf<String>::Free(mAttributes);
-    String::Free(mError);
 }
 
 // BEGIN android-added
@@ -76,9 +76,9 @@ void CXmlPullParser::KeepNamespaceAttributes()
 // END android-added
 
 Boolean CXmlPullParser::IsProp(
-    /* [in] */ String n1,
+    /* [in] */ const String& n1,
     /* [in] */ Boolean prop,
-    /* [in] */ String n2)
+    /* [in] */ const char* n2)
 {
     if (!n1.StartWith("http://xmlpull.org/v1/doc/")) {
         return FALSE;
@@ -101,14 +101,12 @@ ECode CXmlPullParser::AdjustNsp(
     for (Int32 i = 0; i < mAttributeCount << 2; i += 4) {
         // * 4 - 4; i >= 0; i -= 4) {
 
-        String attrName = (*mAttributes)[i + 2];
+        String& attrName = (*mAttributes)[i + 2];
         Int32 cut = attrName.IndexOf(':');
         String prefix;
 
         if (cut != -1) {
-            buf1 = StringBuf::Alloc(cut);
-            attrName.Substring(0, cut, *buf1);
-            prefix = buf1->GetPayload();
+            prefix = attrName.Substring(0, cut);
             attrName = attrName.Substring(cut + 1);
         }
         else if (!attrName.Compare("xmlns")) {
@@ -124,8 +122,8 @@ ECode CXmlPullParser::AdjustNsp(
             Int32 j = ((*mNspCounts)[mDepth]++) << 1;
 
             EnsureCapacity(mNspStack, j + 2, &mNspStack);
-            STRING_ASSIGN((*mNspStack)[j], attrName);
-            STRING_ASSIGN((*mNspStack)[j + 1], (*mAttributes)[i + 3]);
+            (*mNspStack)[j] = attrName;
+            (*mNspStack)[j + 1] = (*mAttributes)[i + 3];
 
             if (!attrName.IsNull() && (*mAttributes)[i + 3].IsEmpty()) {
                 XPP_ERROR("illegal empty namespace");
@@ -139,12 +137,13 @@ ECode CXmlPullParser::AdjustNsp(
             if (mKeepNamespaceAttributes) {
                 // explicitly set the namespace for unprefixed attributes
                 // such as xmlns="http://foo"
-                STRING_ASSIGN((*mAttributes)[i], "http://www.w3.org/2000/xmlns/");
+                (*mAttributes)[i] = "http://www.w3.org/2000/xmlns/";
                 any = TRUE;
-            } else {
+            }
+            else {
                 Int32 length = ((--mAttributeCount) << 2) - i;
                 for (Int32 j = 0; j < length; j++) {
-                    STRING_ASSIGN((*mAttributes)[i + j], (*mAttributes)[i + 4 + j]);
+                    (*mAttributes)[i + j] = (*mAttributes)[i + 4 + j];
                 }
 
                 i -= 4;
@@ -164,9 +163,7 @@ ECode CXmlPullParser::AdjustNsp(
                 return E_RUNTIME_EXCEPTION;
             }
             else if (cut != -1) {
-                buf2 = StringBuf::Alloc(cut);
-                attrName.Substring(0, cut, *buf2);
-                String attrPrefix = buf2->GetPayload();
+                String attrPrefix = attrName.Substring(0, cut);
 
                 attrName = attrName.Substring(cut + 1);
 
@@ -179,9 +176,9 @@ ECode CXmlPullParser::AdjustNsp(
                     return E_RUNTIME_EXCEPTION;
                 }
 
-                STRING_ASSIGN((*mAttributes)[i], attrNs);
-                STRING_ASSIGN((*mAttributes)[i + 1], attrPrefix);
-                STRING_ASSIGN((*mAttributes)[i + 2], attrName);
+                (*mAttributes)[i] = attrNs;
+                (*mAttributes)[i + 1] = attrPrefix;
+                (*mAttributes)[i + 2] = attrName;
 
                 /*
                                     if (!relaxed) {
@@ -202,32 +199,25 @@ ECode CXmlPullParser::AdjustNsp(
     Int32 cut = mName.IndexOf(':');
 
     if (cut == 0) {
-        StringBuffer sb("illegal tag name: ");
-        sb += mName;
-        XPP_ERROR(sb);
+        String error("illegal tag name: ");
+        error += mName;
+        XPP_ERROR(error);
     }
 
     if (cut != -1) {
-        String tmpStr1 = mName;
-        String tmpStr2 = mPrefix;
-        buf3 = StringBuf::Alloc(cut);
-        mName.Substring(0, cut, *buf3);
-        mPrefix = String::Duplicate(buf3->GetPayload());
-        mName = String::Duplicate(mName.Substring(cut + 1));
-        String::Free(tmpStr1);
-        String::Free(tmpStr2);
+        mPrefix = mName.Substring(0, cut);
+        mName = mName.Substring(cut + 1);
     }
 
-    String::Free(mNamespace);
     GetNamespaceEx(mPrefix, &mNamespace);
 
     if (mNamespace.IsNull()) {
         if (!mPrefix.IsNull()) {
-            StringBuffer sb("undefined prefix: ");
-            sb += mPrefix;
-            XPP_ERROR(sb);
+            String error("undefined prefix: ");
+            error += mPrefix;
+            XPP_ERROR(error);
         }
-        mNamespace = String::Duplicate(XmlPullParser_NO_NAMESPACE);
+        mNamespace = IXmlPullParser_NO_NAMESPACE;
     }
 
     return any;
@@ -253,7 +243,7 @@ void CXmlPullParser::EnsureCapacity(
 }
 
 ECode CXmlPullParser::Exception(
-    /* [in] */ String desc)
+    /* [in] */ const char* desc)
 {
 //    throw new XmlPullParserException(
 //        desc.length() < 100 ? desc : desc.substring(0, 100) + "\n",
@@ -268,10 +258,10 @@ ECode CXmlPullParser::Exception(
 ECode CXmlPullParser::NextImpl()
 {
     if (mReader == NULL) {
-        return Exception("No Input specified");
+        return Exception(String("No Input specified"));
     }
 
-    if (mType == XmlPullParser_END_TAG) mDepth--;
+    if (mType == IXmlPullParser_END_TAG) mDepth--;
 
     while (TRUE) {
         mAttributeCount = -1;
@@ -281,19 +271,19 @@ ECode CXmlPullParser::NextImpl()
 
         if (mDegenerated) {
             mDegenerated = FALSE;
-            mType = XmlPullParser_END_TAG;
+            mType = IXmlPullParser_END_TAG;
             return NOERROR;
         }
 
 
         if (!mError.IsNull()) {
-            Int32 length = mError.GetLength();
-            for (Int32 i = 0; i < length; i++) {
+            Int32 count = mError.GetCharCount();
+            for (Int32 i = 0; i < count; i++) {
                 Push(mError.GetChar(i));
             }
             //text = error;
-            STRING_ASSIGN(mError, NULL);
-            mType = XmlPullParser_COMMENT;
+            mError = NULL;
+            mType = IXmlPullParser_COMMENT;
             return NOERROR;
         }
 
@@ -301,7 +291,7 @@ ECode CXmlPullParser::NextImpl()
 //        if (relaxed
 //            && (stackMismatch > 0 || (peek(0) == -1 && depth > 0))) {
 //            int sp = (depth - 1) << 2;
-//            type = XmlPullParser_END_TAG;
+//            type = IXmlPullParser_END_TAG;
 //            namespace = elementStack[sp];
 //            prefix = elementStack[sp + 1];
 //            name = elementStack[sp + 2];
@@ -312,33 +302,33 @@ ECode CXmlPullParser::NextImpl()
 //            return;
 //        }
 
-        STRING_ASSIGN(mPrefix, NULL);
-        STRING_ASSIGN(mName, NULL);
-        STRING_ASSIGN(mNamespace, NULL);
+        mPrefix = NULL;
+        mName = NULL;
+        mNamespace = NULL;
         //            text = null;
 
         FAIL_RETURN(PeekType(&mType));
 
         switch (mType) {
-            case XmlPullParser_ENTITY_REF :
+            case IXmlPullParser_ENTITY_REF :
                 return PushEntity();
 
-            case XmlPullParser_START_TAG :
+            case IXmlPullParser_START_TAG :
                 return ParseStartTag(FALSE);
 
-            case XmlPullParser_END_TAG :
+            case IXmlPullParser_END_TAG :
                 return ParseEndTag();
 
-            case XmlPullParser_END_DOCUMENT :
+            case IXmlPullParser_END_DOCUMENT :
                 return NOERROR;
 
-            case XmlPullParser_TEXT :
+            case IXmlPullParser_TEXT :
                 // BEGIN android-changed: distinguish attribute values from normal text.
                 FAIL_RETURN(PushText('<', !mToken, FALSE));
                 // END android-changed
                 if (mDepth == 0) {
                     if (mIsWhitespace)
-                        mType = XmlPullParser_IGNORABLE_WHITESPACE;
+                        mType = IXmlPullParser_IGNORABLE_WHITESPACE;
                     // make exception switchable for instances.chg... !!!!
                     // else
                     //    exception ("text '"+getText ()+"' not allowed outside root element");
@@ -356,7 +346,7 @@ ECode CXmlPullParser::ParseLegacy(
     /* [in] */ Boolean push,
     /* [out] */ Int32* value)
 {
-    String req = "";
+    String req;
     Int32 term;
     Int32 result;
     Int32 prev = 0;
@@ -388,33 +378,33 @@ ECode CXmlPullParser::ParseLegacy(
 
                 FAIL_RETURN(ParseStartTag(TRUE));
 
-                if (mAttributeCount < 1 || String("version").Compare((*mAttributes)[2])) {
+                if (mAttributeCount < 1 || ((*mAttributes)[2]).Compare("version")) {
                     XPP_ERROR("version expected");
                 }
 
-                STRING_ASSIGN(mVersion, (*mAttributes)[3]);
+                mVersion = (*mAttributes)[3];
 
                 Int32 pos = 1;
 
                 if (pos < mAttributeCount
-                    && !String("encoding").Compare((*mAttributes)[2 + 4])) {
-                    mEncoding = String::Duplicate((*mAttributes)[3 + 4]);
+                    && !((*mAttributes)[2 + 4]).Compare("encoding")) {
+                    mEncoding = (*mAttributes)[3 + 4];
                     pos++;
                 }
 
                 if (pos < mAttributeCount
-                    && !String("standalone").Compare((*mAttributes)[4 * pos + 2])) {
+                    && !((*mAttributes)[4 * pos + 2]).Compare("standalone")) {
                     String st = (*mAttributes)[3 + 4 * pos];
-                    if (!String("yes").Compare(st)) {
+                    if (!st.Compare("yes")) {
                         mStandalone = TRUE;
                     }
-                    else if (!String("no").Compare(st)) {
+                    else if (!st.Compare("no")) {
                         mStandalone = FALSE;
                     }
                     else {
-                        StringBuffer sb("illegal standalone value: ");
-                        sb += st;
-                        XPP_ERROR(sb);
+                        String error("illegal standalone value: ");
+                        error += st;
+                        XPP_ERROR(error);
                     }
                     pos++;
                 }
@@ -436,24 +426,24 @@ ECode CXmlPullParser::ParseLegacy(
                     int */
 
         term = '?';
-        result = XmlPullParser_PROCESSING_INSTRUCTION;
+        result = IXmlPullParser_PROCESSING_INSTRUCTION;
     }
     else if (c == '!') {
         Int32 p0;
         FAIL_RETURN(Peek(0, &p0));
         if (p0 == '-') {
-            result = XmlPullParser_COMMENT;
+            result = IXmlPullParser_COMMENT;
             req = "--";
             term = '-';
         }
         else if (p0 == '[') {
-            result = XmlPullParser_CDSECT;
+            result = IXmlPullParser_CDSECT;
             req = "[CDATA[";
             term = ']';
             push = TRUE;
         }
         else {
-            result = XmlPullParser_DOCDECL;
+            result = IXmlPullParser_DOCDECL;
             req = "DOCTYPE";
             term = -1;
         }
@@ -461,17 +451,17 @@ ECode CXmlPullParser::ParseLegacy(
     else {
         StringBuffer sb("illegal: <");
         sb += c;
-        XPP_ERROR(sb);
-        *value = XmlPullParser_COMMENT;
+        XPP_ERROR((const char*)sb);
+        *value = IXmlPullParser_COMMENT;
         return NOERROR;
     }
 
-    Int32 length = req.GetLength();
-    for (Int32 i = 0; i < length; i++) {
+    Int32 count = req.GetCharCount();
+    for (Int32 i = 0; i < count; i++) {
         FAIL_RETURN(Read(req.GetChar(i)));
     }
 
-    if (result == XmlPullParser_DOCDECL) {
+    if (result == IXmlPullParser_DOCDECL) {
         FAIL_RETURN(ParseDoctype(push));
     }
     else {
@@ -479,7 +469,7 @@ ECode CXmlPullParser::ParseLegacy(
             FAIL_RETURN(Read(&c));
             if (c == -1){
                 XPP_ERROR(UNEXPECTED_EOF);
-                *value = XmlPullParser_COMMENT;
+                *value = IXmlPullParser_COMMENT;
                 return NOERROR;
             }
 
@@ -564,7 +554,6 @@ ECode CXmlPullParser::ParseEndTag()
 
     FAIL_RETURN(Read(&c)); // '<'
     FAIL_RETURN(Read(&c)); // '/'
-    String::Free(mName);
     FAIL_RETURN(ReadName(&mName));
     FAIL_RETURN(Skip());
     FAIL_RETURN(Read('>'));
@@ -573,7 +562,7 @@ ECode CXmlPullParser::ParseEndTag()
 
     if (mDepth == 0) {
         XPP_ERROR("element stack empty");
-        mType = XmlPullParser_COMMENT;
+        mType = IXmlPullParser_COMMENT;
         return NOERROR;
     }
 
@@ -583,7 +572,7 @@ ECode CXmlPullParser::ParseEndTag()
         sb += (*mElementStack)[sp + 3];
         sb += StringBuffer(" read: ") + mName;
 
-        XPP_ERROR(sb);
+        XPP_ERROR((const char*)sb);
 
           // become case insensitive in relaxed mode
 
@@ -596,14 +585,14 @@ ECode CXmlPullParser::ParseEndTag()
 //        if (probe < 0) {
 //            stackMismatch = 0;
 //            // text = "unexpected end tag ignored";
-//            type = XmlPullParser_COMMENT;
+//            type = IXmlPullParser_COMMENT;
 //            return;
 //        }
         }
 
-        STRING_ASSIGN(mNamespace, (*mElementStack)[sp]);
-        STRING_ASSIGN(mPrefix, (*mElementStack)[sp + 1]);
-        STRING_ASSIGN(mName, (*mElementStack)[sp + 2]);
+        mNamespace = (*mElementStack)[sp];
+        mPrefix = (*mElementStack)[sp + 1];
+        mName = (*mElementStack)[sp + 2];
     }
     return NOERROR;
 }
@@ -615,27 +604,27 @@ ECode CXmlPullParser::PeekType(
     FAIL_RETURN(Peek(0, &c));
     switch (c) {
         case -1 :
-            *type = XmlPullParser_END_DOCUMENT;
+            *type = IXmlPullParser_END_DOCUMENT;
             return NOERROR;
         case '&' :
-            *type = XmlPullParser_ENTITY_REF;
+            *type = IXmlPullParser_ENTITY_REF;
             return NOERROR;
         case '<' :
             FAIL_RETURN(Peek(1, &c));
             switch (c) {
                 case '/' :
-                    *type = XmlPullParser_END_TAG;
+                    *type = IXmlPullParser_END_TAG;
                     return NOERROR;
                 case '?' :
                 case '!' :
                     *type = LEGACY;
                     return NOERROR;
                 default :
-                    *type = XmlPullParser_START_TAG;
+                    *type = IXmlPullParser_START_TAG;
                     return NOERROR;
             }
         default :
-            *type = XmlPullParser_TEXT;
+            *type = IXmlPullParser_TEXT;
             return NOERROR;
     }
 }
@@ -682,7 +671,6 @@ ECode CXmlPullParser::ParseStartTag(
     if (!xmldecl) {
         FAIL_RETURN(Read(&cc));
     }
-    String::Free(mName);
     FAIL_RETURN(ReadName(&mName));
     mAttributeCount = 0;
 
@@ -715,7 +703,7 @@ ECode CXmlPullParser::ParseStartTag(
 
         if (c == -1) {
             XPP_ERROR(UNEXPECTED_EOF);
-            //type = XmlPullParser_COMMENT;
+            //type = IXmlPullParser_COMMENT;
             return NOERROR;
         }
 
@@ -724,7 +712,7 @@ ECode CXmlPullParser::ParseStartTag(
 
         if (attrName.GetLength() == 0) {
             XPP_ERROR("attr name expected");
-           //type = XmlPullParser_COMMENT;
+           //type = IXmlPullParser_COMMENT;
             break;
         }
 
@@ -732,21 +720,22 @@ ECode CXmlPullParser::ParseStartTag(
 
         EnsureCapacity(mAttributes, i + 4, &mAttributes);
 
-        STRING_ASSIGN((*mAttributes)[i++], "");
-        STRING_ASSIGN((*mAttributes)[i++], NULL);
-        STRING_ASSIGN((*mAttributes)[i++], attrName);
+        (*mAttributes)[i++] = "";
+        (*mAttributes)[i++] = NULL;
+        (*mAttributes)[i++] = attrName;
 
         FAIL_RETURN(Skip());
 
         FAIL_RETURN(Peek(0, &c));
         if (c != '=') {
             if(!mRelaxed){
-                StringBuffer sb("Attr.value missing f. ");
-                sb += attrName;
-                XPP_ERROR(sb);
+                String error("Attr.value missing f. ");
+                error += attrName;
+                XPP_ERROR(error);
             }
-            STRING_ASSIGN((*mAttributes)[i], attrName);
-        } else {
+            (*mAttributes)[i] = attrName;
+        }
+        else {
             FAIL_RETURN(Read('='));
             FAIL_RETURN(Skip());
             Int32 delimiter;
@@ -757,7 +746,8 @@ ECode CXmlPullParser::ParseStartTag(
                     XPP_ERROR("attr value delimiter missing!");
                 }
                 delimiter = ' ';
-            } else {
+            }
+            else {
                 FAIL_RETURN(Read(&cc));
             }
 
@@ -766,7 +756,6 @@ ECode CXmlPullParser::ParseStartTag(
             FAIL_RETURN(PushText(delimiter, TRUE, TRUE));
             // END android-changed
 
-            String::Free((*mAttributes)[i]);
             Get(p, &((*mAttributes)[i]));
             mTxtPos = p;
 
@@ -779,7 +768,7 @@ ECode CXmlPullParser::ParseStartTag(
     Int32 sp = mDepth++ << 2;
 
     EnsureCapacity(mElementStack, sp + 4, &mElementStack);
-    STRING_ASSIGN((*mElementStack)[sp + 3], mName);
+    (*mElementStack)[sp + 3] = mName;
 
     if (mDepth >= mNspCounts->GetLength()) {
         ArrayOf<Int32>* bigger = ArrayOf<Int32>::Alloc(mDepth + 16);
@@ -808,12 +797,12 @@ ECode CXmlPullParser::ParseStartTag(
         FAIL_RETURN(AdjustNsp(&adjusted));
     }
     else {
-        STRING_ASSIGN(mNamespace, "");
+        mNamespace = "";
     }
 
-    STRING_ASSIGN((*mElementStack)[sp], mNamespace);
-    STRING_ASSIGN((*mElementStack)[sp + 1], mPrefix);
-    STRING_ASSIGN((*mElementStack)[sp + 2], mName);
+    (*mElementStack)[sp] = mNamespace;
+    (*mElementStack)[sp + 1] = mPrefix;
+    (*mElementStack)[sp + 2] = mName;
     return NOERROR;
 }
 
@@ -860,8 +849,7 @@ ECode CXmlPullParser::PushEntity()
     String code;
     Get(pos, &code);
     mTxtPos = pos - 1;
-    if (mToken && mType == XmlPullParser_ENTITY_REF){
-        String::Free(mName);
+    if (mToken && mType == IXmlPullParser_ENTITY_REF){
         mName = code;
     }
 
@@ -883,12 +871,12 @@ ECode CXmlPullParser::PushEntity()
             StringBuffer sb("unresolved: &");
             sb += code;
             sb += ";";
-            XPP_ERROR(sb);
+            XPP_ERROR((const char*)sb);
         }
     }
     else {
-        Int32 length = result.GetLength();
-        for (Int32 i = 0; i < length; i++) {
+        Int32 count = result.GetCharCount();
+        for (Int32 i = 0; i < count; i++) {
             Push(result.GetChar(i));
         }
     }
@@ -929,7 +917,7 @@ ECode CXmlPullParser::PushText(
         else if (next == '<' && inAttributeValue) {
             XPP_ERROR("Illegal: \"<\" inside attribute value");
         }
-        else if (next == '\n' && mType == XmlPullParser_START_TAG) {
+        else if (next == '\n' && mType == IXmlPullParser_START_TAG) {
             FAIL_RETURN(Read(&c));
             Push(' ');
         }
@@ -970,7 +958,7 @@ ECode CXmlPullParser::Read(
         sb += "' actual: '";
         sb += (char)a;
         sb += "'";
-        XPP_ERROR(sb);
+        XPP_ERROR((const char*)sb);
     }
     return NOERROR;
 }
@@ -1008,7 +996,7 @@ ECode CXmlPullParser::Peek(
     /* [out] */ Int32* value)
 {
     while (pos >= mPeekCount) {
-        Byte nw;
+        Int32 nw;
 
         if (mSrcBuf->GetLength() <= 1) {
             FAIL_RETURN(mReader->Read(&nw));
@@ -1104,13 +1092,13 @@ ECode CXmlPullParser::SetInput(
 
     mLine = 1;
     mColumn = 0;
-    mType = XmlPullParser_START_DOCUMENT;
-    STRING_ASSIGN(mName, NULL);
-    STRING_ASSIGN(mNamespace, NULL);
+    mType = IXmlPullParser_START_DOCUMENT;
+    mName = NULL;
+    mNamespace = NULL;
     mDegenerated = FALSE;
     mAttributeCount = -1;
-    STRING_ASSIGN(mEncoding, NULL);
-    STRING_ASSIGN(mVersion, NULL);
+    mEncoding = NULL;
+    mVersion = NULL;
 //    standalone = null;
 
     if (reader == NULL) return NOERROR;
@@ -1121,23 +1109,22 @@ ECode CXmlPullParser::SetInput(
     mDepth = 0;
 
     mEntityMap = new HashMap<String, String>(50);
-    (*mEntityMap)[String::Duplicate("amp")] = String::Duplicate("&");
-    (*mEntityMap)[String::Duplicate("apos")] = String::Duplicate("'");
-    (*mEntityMap)[String::Duplicate("gt")] = String::Duplicate(">");
-    (*mEntityMap)[String::Duplicate("lt")] = String::Duplicate("<");
-    (*mEntityMap)[String::Duplicate("quot")] = String::Duplicate("\"");
+    (*mEntityMap)[String("amp")] = "&";
+    (*mEntityMap)[String("apos")] = "'";
+    (*mEntityMap)[String("gt")] = ">";
+    (*mEntityMap)[String("lt")] = "<";
+    (*mEntityMap)[String("quot")] = "\"";
     return NOERROR;
 }
 
-ECode CXmlPullParser::SetInput(
+ECode CXmlPullParser::SetInputEx(
     /* [in] */ IInputStream* is,
-    /* [in] */ String inputEncoding)
+    /* [in] */ const String& inputEncoding)
 {
     AutoFree<StringBuf> buf1;
     mSrcPos = 0;
     mSrcCount = 0;
     String enc = inputEncoding;
-    char* str = NULL;
 
     if (is == NULL) return E_INVALID_ARGUMENT;
 
@@ -1149,7 +1136,7 @@ ECode CXmlPullParser::SetInput(
         Int32 chk = 0;
 
         while (mSrcCount < 4) {
-            Byte b;
+            Int32 b;
             FAIL_RETURN(is->Read(&b));
             if (b == -1) break;
             chk = (chk << 8) | b;
@@ -1196,14 +1183,12 @@ ECode CXmlPullParser::SetInput(
 
                 case 0x03c3f786d :
                     while(TRUE) {
-                        Byte b;
+                        Int32 b;
                         FAIL_RETURN(is->Read(&b));
                         if (b == -1) break;
                         (*mSrcBuf)[mSrcCount++] = b;
                         if (b == '>') {
-                            str = (char*)malloc(mSrcCount);
-                            strncpy(str, (char*)mSrcBuf->GetPayload(), mSrcCount);
-                            String s(str);
+                            String s((char*)mSrcBuf->GetPayload(), mSrcCount);
                             Int32 i0 = s.IndexOf("encoding");
                             if (i0 != -1) {
                                 while ((Char8)s.GetChar(i0) != '"'
@@ -1211,10 +1196,8 @@ ECode CXmlPullParser::SetInput(
                                     i0++;
                                 }
                                 Char8 deli = (Char8)s.GetChar(i0++);
-                                Int32 i1 = String(str + i0).IndexOf(deli);
-                                buf1 = StringBuf::Alloc(i1);
-                                s.Substring(i0, i1, *buf1);
-                                enc = buf1->GetPayload();
+                                Int32 i1 = s.Substring(i0).IndexOf(deli);
+                                enc = s.Substring(i0, i1);
                             }
                             break;
                         }
@@ -1243,13 +1226,12 @@ ECode CXmlPullParser::SetInput(
     if (enc.IsNull()) enc = "UTF-8";
 
     Int32 sc = mSrcCount;
-    AutoPtr<IReader> reader;
-    CInputStreamReader::New(is, enc, (IReader**)&reader);
-    SetInput(reader.Get());
-    STRING_ASSIGN(mEncoding, inputEncoding);
+    AutoPtr<IInputStreamReader> reader;
+    CInputStreamReader::New(is, enc, (IInputStreamReader**)&reader);
+    SetInput((IReader*)reader.Get());
+    mEncoding = inputEncoding;
     mSrcCount = sc;
 
-    if (str != NULL) free(str);
 //    }
 //    catch (Exception e) {
 //        throw new XmlPullParserException(
@@ -1262,12 +1244,12 @@ ECode CXmlPullParser::SetInput(
 }
 
 ECode CXmlPullParser::GetFeature(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ Boolean* value)
 {
     if (value == NULL) return E_INVALID_ARGUMENT;
 
-    if (!String(XmlPullParser_FEATURE_PROCESS_NAMESPACES).Compare(name)) {
+    if (!String(IXmlPullParser_FEATURE_PROCESS_NAMESPACES).Compare(name)) {
         *value = mProcessNsp;
     }
     else if (IsProp(name, FALSE, "relaxed")) {
@@ -1285,24 +1267,24 @@ ECode CXmlPullParser::GetInputEncoding(
 {
     if (inputEncoding == NULL) return E_INVALID_ARGUMENT;
 
-    *inputEncoding = String::Duplicate(mEncoding);
+    *inputEncoding = mEncoding;
     return NOERROR;
 }
 
 ECode CXmlPullParser::DefineEntityReplacementText(
-    /* [in] */ String entityName,
-    /* [in] */ String replacementText)
+    /* [in] */ const String& entityName,
+    /* [in] */ const String& replacementText)
 {
     if (mEntityMap == NULL) {
 //        throw new RuntimeException("entity replacement text must be defined after setInput!");
         return E_RUNTIME_EXCEPTION;
     }
-    (*mEntityMap)[String::Duplicate(entityName)] = String::Duplicate(replacementText);
+    (*mEntityMap)[entityName] = replacementText;
     return NOERROR;
 }
 
 ECode CXmlPullParser::GetProperty(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ IInterface** value)
 {
 //    if (value == NULL) return E_INVALID_ARGUMENT;
@@ -1339,7 +1321,7 @@ ECode CXmlPullParser::GetNamespacePrefix(
 {
     if (prefix == NULL) return E_INVALID_ARGUMENT;
 
-    *prefix = String::Duplicate((*mNspStack)[pos << 1]);
+    *prefix = (*mNspStack)[pos << 1];
     return NOERROR;
 }
 
@@ -1349,22 +1331,22 @@ ECode CXmlPullParser::GetNamespaceUri(
 {
     if (uri == NULL) return E_INVALID_ARGUMENT;
 
-    *uri = String::Duplicate((*mNspStack)[(pos << 1) + 1]);
+    *uri = (*mNspStack)[(pos << 1) + 1];
     return NOERROR;
 }
 
 ECode CXmlPullParser::GetNamespaceEx(
-    /* [in] */ String prefix,
+    /* [in] */ const String& prefix,
     /* [out] */ String* ns)
 {
     if (ns == NULL) return E_INVALID_ARGUMENT;
 
-    if (!String("xml").Compare(prefix)) {
-        *ns = String::Duplicate("http://www.w3.org/XML/1998/namespace");
+    if (!prefix.Compare("xml")) {
+        *ns = "http://www.w3.org/XML/1998/namespace";
         return NOERROR;
     }
-    if (!String("xmlns").Compare(prefix)) {
-        *ns = String::Duplicate("http://www.w3.org/2000/xmlns/");
+    if (!prefix.Compare("xmlns")) {
+        *ns = "http://www.w3.org/2000/xmlns/";
         return NOERROR;
     }
 
@@ -1374,12 +1356,12 @@ ECode CXmlPullParser::GetNamespaceEx(
     for (; i >= 0; i -= 2) {
         if (prefix.IsNull()) {
             if ((*mNspStack)[i].IsNull()) {
-                *ns = String::Duplicate((*mNspStack)[i + 1]);
+                *ns = (*mNspStack)[i + 1];
                 return NOERROR;
             }
         }
         else if (!prefix.Compare((*mNspStack)[i])) {
-            *ns = String::Duplicate((*mNspStack)[i + 1]);
+            *ns = (*mNspStack)[i + 1];
             return NOERROR;
         }
     }
@@ -1403,15 +1385,15 @@ ECode CXmlPullParser::GetPositionDescription(
 
     if (des == NULL) return E_INVALID_ARGUMENT;
 
-    StringBuffer buf(mType < TYPES_LENGTH ? TYPES[mType] : "unknown");
+    StringBuffer buf(mType < TYPES_LENGTH ? (const char*)TYPES[mType] : "unknown");
     buf += ' ';
 
-    if (mType == XmlPullParser_START_TAG || mType == XmlPullParser_END_TAG) {
+    if (mType == IXmlPullParser_START_TAG || mType == IXmlPullParser_END_TAG) {
         if (mDegenerated) {
             buf += "(empty) ";
         }
         buf += '<';
-        if (mType == XmlPullParser_END_TAG) {
+        if (mType == IXmlPullParser_END_TAG) {
             buf += '/';
         }
 
@@ -1432,8 +1414,8 @@ ECode CXmlPullParser::GetPositionDescription(
 
         buf += '>';
     }
-    else if (mType == XmlPullParser_IGNORABLE_WHITESPACE);
-    else if (mType != XmlPullParser_TEXT) {
+    else if (mType == IXmlPullParser_IGNORABLE_WHITESPACE);
+    else if (mType != IXmlPullParser_TEXT) {
         GetText(&text);
         buf += text;
     }
@@ -1442,9 +1424,7 @@ ECode CXmlPullParser::GetPositionDescription(
     else {
         GetText(&text);
         if (text.GetLength() > 16) {
-            AutoFree<StringBuf> buf1 = StringBuf::Alloc(16);
-            text.Substring(0, 16, *buf1);
-            buf += buf1->GetPayload();
+            buf += (const char*)text.Substring(0, 16);
             buf += "...";
         }
         else {
@@ -1462,8 +1442,7 @@ ECode CXmlPullParser::GetPositionDescription(
         buf += " in ";
 //        buf.append(reader.toString());
     }
-    *des = String::Duplicate(buf);
-    String::Free(text);
+    *des = (const char*)buf;
     return NOERROR;
 }
 
@@ -1490,7 +1469,7 @@ ECode CXmlPullParser::IsWhitespace(
 {
     if (result == NULL) return E_INVALID_ARGUMENT;
 
-    if (mType != XmlPullParser_TEXT && mType != XmlPullParser_IGNORABLE_WHITESPACE && mType != XmlPullParser_CDSECT) {
+    if (mType != IXmlPullParser_TEXT && mType != IXmlPullParser_IGNORABLE_WHITESPACE && mType != IXmlPullParser_CDSECT) {
         return Exception(ILLEGAL_TYPE);
     }
     *result = mIsWhitespace;
@@ -1502,7 +1481,7 @@ ECode CXmlPullParser::GetText(
 {
     if (text == NULL) return E_INVALID_ARGUMENT;
 
-    if ((mType < XmlPullParser_TEXT) || (mType == XmlPullParser_ENTITY_REF && mUnresolved)) {
+    if ((mType < IXmlPullParser_TEXT) || (mType == IXmlPullParser_ENTITY_REF && mUnresolved)) {
         *text = NULL;
         return NOERROR;
     }
@@ -1517,7 +1496,7 @@ ECode CXmlPullParser::GetNamespace(
 {
     if (ns == NULL) return E_INVALID_ARGUMENT;
 
-    *ns = String::Duplicate(mNamespace);
+    *ns = mNamespace;
     return NOERROR;
 }
 
@@ -1526,7 +1505,7 @@ ECode CXmlPullParser::GetName(
 {
     if (name == NULL) return E_INVALID_ARGUMENT;
 
-    *name = String::Duplicate(mName);
+    *name = mName;
     return NOERROR;
 }
 
@@ -1535,7 +1514,7 @@ ECode CXmlPullParser::GetPrefix(
 {
     if (prefix == NULL) return E_INVALID_ARGUMENT;
 
-    *prefix = String::Duplicate(mPrefix);
+    *prefix = mPrefix;
     return NOERROR;
 }
 
@@ -1544,7 +1523,7 @@ ECode CXmlPullParser::IsEmptyElementTag(
 {
     if (result == NULL) return E_INVALID_ARGUMENT;
 
-    if (mType != XmlPullParser_START_TAG) {
+    if (mType != IXmlPullParser_START_TAG) {
         return Exception(ILLEGAL_TYPE);
     }
     *result = mDegenerated;
@@ -1566,7 +1545,7 @@ ECode CXmlPullParser::GetAttributeType(
 {
     if (attrType == NULL) return E_INVALID_ARGUMENT;
 
-    *attrType = String::Duplicate("CDATA");
+    *attrType = "CDATA";
     return NOERROR;
 }
 
@@ -1588,7 +1567,7 @@ ECode CXmlPullParser::GetAttributeNamespace(
         return E_INVALID_ARGUMENT;
     }
 
-    *attrNamespace = String::Duplicate((*mAttributes)[index << 2]);
+    *attrNamespace = (*mAttributes)[index << 2];
     return NOERROR;
 }
 
@@ -1600,7 +1579,7 @@ ECode CXmlPullParser::GetAttributeName(
         return E_INVALID_ARGUMENT;
     }
 
-    *attrName = String::Duplicate((*mAttributes)[(index << 2) + 2]);
+    *attrName = (*mAttributes)[(index << 2) + 2];
     return NOERROR;
 }
 
@@ -1612,7 +1591,7 @@ ECode CXmlPullParser::GetAttributePrefix(
         return E_INVALID_ARGUMENT;
     }
 
-    *attrPrefix = String::Duplicate((*mAttributes)[(index << 2) + 1]);
+    *attrPrefix = (*mAttributes)[(index << 2) + 1];
     return NOERROR;
 }
 
@@ -1624,13 +1603,13 @@ ECode CXmlPullParser::GetAttributeValue(
         return E_INVALID_ARGUMENT;
     }
 
-    *attrValue = String::Duplicate((*mAttributes)[(index << 2) + 3]);
+    *attrValue = (*mAttributes)[(index << 2) + 3];
     return NOERROR;
 }
 
 ECode CXmlPullParser::GetAttributeValueEx(
-    /* [in] */ String ns,
-    /* [in] */ String name,
+    /* [in] */ CString ns,
+    /* [in] */ CString name,
     /* [out] */ String* attrValue)
 {
     if (attrValue == NULL) return E_INVALID_ARGUMENT;
@@ -1638,7 +1617,7 @@ ECode CXmlPullParser::GetAttributeValueEx(
     for (Int32 i = (mAttributeCount << 2) - 4; i >= 0; i -= 4) {
         if (!(*mAttributes)[i + 2].Compare(name)
             && (ns.IsNull() || !(*mAttributes)[i].Compare(ns))) {
-            *attrValue = String::Duplicate((*mAttributes)[i + 3]);
+            *attrValue = (*mAttributes)[i + 3];
             return NOERROR;
         }
     }
@@ -1670,15 +1649,15 @@ ECode CXmlPullParser::Next(
     do {
         FAIL_RETURN(NextImpl());
         if (mType < minType) minType = mType;
-        //    if (curr <= XmlPullParser_TEXT) type = curr;
+        //    if (curr <= IXmlPullParser_TEXT) type = curr;
 
         FAIL_RETURN(PeekType(&type));
     }
-    while (minType > XmlPullParser_ENTITY_REF // ignorable
-        || (minType >= XmlPullParser_TEXT && type >= XmlPullParser_TEXT));
+    while (minType > IXmlPullParser_ENTITY_REF // ignorable
+        || (minType >= IXmlPullParser_TEXT && type >= IXmlPullParser_TEXT));
 
     mType = minType;
-    if (mType > XmlPullParser_TEXT) mType = XmlPullParser_TEXT;
+    if (mType > IXmlPullParser_TEXT) mType = IXmlPullParser_TEXT;
 
     *event = mType;
     return NOERROR;
@@ -1705,11 +1684,11 @@ ECode CXmlPullParser::NextTag(
 
     Int32 event;
     FAIL_RETURN(Next(&event));
-    if (mType == XmlPullParser_TEXT && mIsWhitespace) {
+    if (mType == IXmlPullParser_TEXT && mIsWhitespace) {
         FAIL_RETURN(Next(&event));
     }
 
-    if (mType != XmlPullParser_END_TAG && mType != XmlPullParser_START_TAG) {
+    if (mType != IXmlPullParser_END_TAG && mType != IXmlPullParser_START_TAG) {
         return Exception("unexpected type");
     }
 
@@ -1719,8 +1698,8 @@ ECode CXmlPullParser::NextTag(
 
 ECode CXmlPullParser::Require(
     /* [in] */ Int32 type,
-    /* [in] */ String ns,
-    /* [in] */ String name)
+    /* [in] */ const String& ns,
+    /* [in] */ const String& name)
 {
     String _ns, _name;
     GetNamespace(&_ns);
@@ -1730,12 +1709,8 @@ ECode CXmlPullParser::Require(
             || (!name.IsNull() && name.Compare(_name))) {
         StringBuffer sb("expected: ");
         sb += TYPES[type] + " {" + mNamespace + "}" + mName;
-        String::Free(_ns);
-        String::Free(_name);
         return Exception(sb);
     }
-    String::Free(_ns);
-    String::Free(_name);
     return NOERROR;
 }
 
@@ -1744,31 +1719,31 @@ ECode CXmlPullParser::NextText(
 {
     if (text == NULL) return E_INVALID_ARGUMENT;
 
-    if (mType != XmlPullParser_START_TAG) {
-        return Exception("precondition: XmlPullParser_START_TAG");
+    if (mType != IXmlPullParser_START_TAG) {
+        return Exception("precondition: IXmlPullParser_START_TAG");
     }
 
     Int32 event;
     FAIL_RETURN(Next(&event));
 
-    if (mType == XmlPullParser_TEXT) {
+    if (mType == IXmlPullParser_TEXT) {
         GetText(text);
         FAIL_RETURN(Next(&event));
     }
-    else *text = String::Duplicate("");
+    else *text = "";
 
-    if (mType != XmlPullParser_END_TAG) {
-        return Exception("XmlPullParser_END_TAG expected");
+    if (mType != IXmlPullParser_END_TAG) {
+        return Exception("IXmlPullParser_END_TAG expected");
     }
 
     return NOERROR;
 }
 
 ECode CXmlPullParser::SetFeature(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in] */ Boolean value)
 {
-    if (!String(XmlPullParser_FEATURE_PROCESS_NAMESPACES).Compare(name)) {
+    if (!String(IXmlPullParser_FEATURE_PROCESS_NAMESPACES).Compare(name)) {
         mProcessNsp = value;
         return NOERROR;
     }
@@ -1777,23 +1752,23 @@ ECode CXmlPullParser::SetFeature(
         return NOERROR;
     }
     else {
-        StringBuffer sb("unsupported feature: ");
-        sb += name;
-        return Exception(sb);
+        String error("unsupported feature: ");
+        error += name;
+        return Exception(error);
     }
 
 }
 
 ECode CXmlPullParser::SetProperty(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in] */ IInterface* value)
 {
     if(IsProp(name, TRUE, "location")) {
         mLocation = value;
         return NOERROR;
     } else {
-        StringBuffer sb("unsupported property: ");
-        sb += name;
-        return Exception(sb);
+        String error("unsupported property: ");
+        error += name;
+        return Exception(error);
     }
 }

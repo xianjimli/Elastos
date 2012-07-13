@@ -1,13 +1,16 @@
 TARGET_NAME= Elastos.Xml
 TARGET_TYPE= eco
 
+INCLUDES += $(MAKEDIR)/../../../inc/Elastos/common;
 INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Xml;
 
-IMPORTS = Elastos.System.eco
+IMPORTS = Elastos.Core.eco
+IMPORTS += Elastos.IO.eco
 
 SOURCES = Elastos.Xml.car
 SOURCES += CXmlPullParser.cpp
 SOURCES += CXmlPullParserFactory.cpp
+SOURCES += CXmlSerializer.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.CarRuntime.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib

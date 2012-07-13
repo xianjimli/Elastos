@@ -80,7 +80,7 @@ module
          * @see DataOutput#write(byte[], int, int)
          */
         ReadFully(
-           [out] BufferOf<Byte> buffer);
+           [out] ArrayOf<Byte> buffer);
 
         /**
          * Reads bytes and stores them in the byte array {@code buffer} starting at
@@ -104,7 +104,7 @@ module
         ReadFullyEx(
             [in] Int32 offset,
             [in] Int32 count,
-            [out] BufferOf<Byte> buffer);
+            [out] ArrayOf<Byte> buffer);
 
         /**
          * Reads a 32-bit integer value.

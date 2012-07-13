@@ -36,7 +36,7 @@ public:
         /* [out] */ IParamInfo ** ppParamInfo);
 
     CARAPI GetParamInfoByName(
-        /* [in] */ String name,
+        /* [in] */ CString name,
         /* [out] */ IParamInfo ** ppParamInfo);
 
     CARAPI CreateArgumentList(

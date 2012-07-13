@@ -494,7 +494,7 @@ android::status_t CObjectStub::onTransact(
                 return android::NO_ERROR;
             }
         case RELEASE: {
-                break;
+                return android::NO_ERROR;
             }
         default:
             return BBinder::onTransact(code, data, reply, flags);

@@ -51,35 +51,35 @@ public:
 	 * @param tag
 	 * @param msg
      */
-    static ECode D(String tag, String msg);
+    static ECode D(CString tag, CString msg);
 
     /*!
      * @brief Send an ERROR log message.
 	 * @param tag
 	 * @param msg
      */
-    static ECode E(String tag, String msg);
+    static ECode E(CString tag, CString msg);
 
     /*!
      * @brief Send an INFO log message.
 	 * @param tag
 	 * @param msg
      */
-    static ECode I(String tag, String msg);
+    static ECode I(CString tag, CString msg);
 
     /*!
      * @brief Send an VERBOSE log message.
 	 * @param tag
 	 * @param msg
      */
-    static ECode V(String tag, String msg);
+    static ECode V(CString tag, CString msg);
 
     /*!
      * @brief Send a WARN log message.
 	 * @param tag
 	 * @param msg
      */
-    static ECode W(String tag, String msg);
+    static ECode W(CString tag, CString msg);
 
     /*!
      * @brief Checks to see whether or not a log for the specified tag is
@@ -88,7 +88,7 @@ public:
 	 * @param level
      * @param pIsLoggable
      */
-    static ECode IsLoggable(String tag, Int32 level, Boolean * pIsLoggable);
+    static ECode IsLoggable(CString tag, Int32 level, Boolean * pIsLoggable);
 
     /*!
      * @brief Low-level logging call.
@@ -96,7 +96,7 @@ public:
 	 * @param tag
 	 * @param msg
      */
-    static ECode Println(Int32 priority, String tag, String msg);
+    static ECode Println(Int32 priority, CString tag, CString msg);
 
     /*!
      * @brief
@@ -121,7 +121,7 @@ public:
      * @param tag
      * @param msg
 	 */
-    static ECode PrintlnImpl(Int32 bufID, Int32 priority, String tag, String msg);
+    static ECode PrintlnImpl(Int32 bufID, Int32 priority, CString tag, CString msg);
 };
 
 } // Logging

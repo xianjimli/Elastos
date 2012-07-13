@@ -1,7 +1,8 @@
 
 module
 {
-    merge("../../../car/Org/XmlPull/V1/Org.XmlPull.V1.car");
+    merge("../../../car/Org/XmlPull/V1/IXmlPullParser.car");
+    merge("../../../car/Org/XmlPull/V1/IXmlSerializer.car");
 
 //    const FAMILY_XML = 0x23    // Framework Error codes
 
@@ -18,5 +19,9 @@ module
 
     class CXmlPullParserFactory {
         interface IXmlPullParserFactory;
+    }
+
+    class CXmlSerializer {
+        interface IXmlSerializer;
     }
 }

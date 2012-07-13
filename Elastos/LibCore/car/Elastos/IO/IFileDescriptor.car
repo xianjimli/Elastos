@@ -22,5 +22,12 @@ module
 
         ToString(
             [out] String* str);
+
+        //////addition////
+        GetDescriptor(
+            [out] Int32* fd);
+
+        SetDescriptor(
+            [in] Int32 fd);
     }
 }

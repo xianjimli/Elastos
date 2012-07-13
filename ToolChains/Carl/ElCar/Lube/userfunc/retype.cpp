@@ -19,7 +19,7 @@ static char * s_elatypes[] = {
     "Handle32", "Handle64",
     "PHandle32", "PHandle64",
     "Boolean",  "PBoolean",
-    "String",
+    "CString", "String",
     "StringBuf",
 
     "CarQuintet",  "BufferOf",      "ArrayOf",

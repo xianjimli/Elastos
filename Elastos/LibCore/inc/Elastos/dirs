@@ -1,4 +1,4 @@
 
-DIRS = System
+DIRS = Core
 DIRS += Utility
 DIRS += Test

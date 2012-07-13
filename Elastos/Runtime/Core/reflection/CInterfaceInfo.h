@@ -52,7 +52,7 @@ public:
         /* [out] */ BufferOf<IMethodInfo *> * pMethodInfos);
 
     CARAPI GetMethodInfo(
-        /* [in] */ String name,
+        /* [in] */ CString name,
         /* [out] */ IMethodInfo ** ppMethodInfo);
 
     CARAPI CreateIFList();

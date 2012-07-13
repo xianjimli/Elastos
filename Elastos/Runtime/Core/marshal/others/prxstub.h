@@ -119,7 +119,7 @@ public:
 
     static CARAPI S_CreateObject(
             /* [in] */ REMuid rclsid,
-            /* [in] */ String stubConnName,
+            /* [in] */ const char* stubConnName,
             /* [out] */ IProxy **ppIProxy);
             
 public:

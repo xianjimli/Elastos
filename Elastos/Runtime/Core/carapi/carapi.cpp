@@ -230,15 +230,3 @@ ELAPI _CObject_AcquireCallbackSink(
     return pConnector->AcquireCallbackSink(ppSink);
 }
 
-//will be insteaded by Capsule
-ECode getString(String str, String key, StringBuf *buf)
-{
-    char *start = strstr(str, key);
-    if (!start) return E_INVALID_ARGUMENT;
-
-    start += strlen(key) + 3;
-    char *end = strchr(start, '\n');
-    buf->Copy(start, end - start - 1);
-
-    return NOERROR;
-}

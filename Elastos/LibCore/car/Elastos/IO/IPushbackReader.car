@@ -40,7 +40,7 @@ module
          *             {@code buffer}.
          */
         UnReadBuffer(
-            [in] BufferOf<Byte> buffer);
+            [in] ArrayOf<Char8> buffer);
 
         /**
          * Pushes a subset of the characters in {@code buffer} back to this reader.
@@ -75,6 +75,6 @@ module
         UnReadBufferEx(
             [in] Int32 offset,
             [in] Int32 length,
-            [in] BufferOf<Byte> buffer);
+            [in] ArrayOf<Char8> buffer);
     }
 }

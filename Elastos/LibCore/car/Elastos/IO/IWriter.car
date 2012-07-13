@@ -42,7 +42,7 @@ module
          *             if this writer is closed or another I/O error occurs.
          */
         WriteBuffer(
-            [in] BufferOf<Byte> buffer);
+            [in] ArrayOf<Char8> buffer);
 
         /**
          * Writes {@code count} characters starting at {@code offset} in {@code buf}
@@ -63,7 +63,7 @@ module
         WriteBufferEx(
             [in] Int32 offset,
             [in] Int32 count,
-            [in] BufferOf<Byte> buffer);
+            [in] ArrayOf<Char8> buffer);
 
         /**
          * Writes the characters from the specified string to the target.
@@ -74,7 +74,7 @@ module
          *             if this writer is closed or another I/O error occurs.
          */
         WriteString(
-            [in] String str);
+            [in] CString str);
 
         /**
          * Writes {@code count} characters from {@code str} starting at {@code
@@ -95,7 +95,7 @@ module
         WriteStringEx(
             [in] Int32 offset,
             [in] Int32 count,
-            [in] String str);
+            [in] CString str);
 
         /**
          * Appends the character {@code c} to the target. This method works the same

@@ -1,7 +1,0 @@
-#==========================================================================
-# Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.
-#==========================================================================
-
-EXPORT_HEADERS = elastos/Math.h
-EXPORT_HEADERS += elastos/Character.h
-EXPORT_HEADERS += StringBuffer.h

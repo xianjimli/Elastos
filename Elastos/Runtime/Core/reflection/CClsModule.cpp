@@ -47,7 +47,7 @@ CClsModule::~CClsModule()
 }
 
 CClsModule::CClsModule(CLSModule *pClsMod, Boolean bAllocedClsMod,
-                String path, Void *pIModule)
+                CString path, Void *pIModule)
 {
     m_pClsMod = pClsMod;
     m_bAllocedClsMode = bAllocedClsMod;

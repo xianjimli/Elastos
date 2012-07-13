@@ -3,23 +3,22 @@
 #define __CFILE_H__
 
 #include "_CFile.h"
+#include "File.h"
 
-CarClass(CFile)
+CarClass(CFile), public File
 {
 public:
-    CFile();
+    CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid);
 
-    ~CFile();
-
-public:
     CARAPI CanExecute(
-        /* [out] */ Boolean* canExecute);
+        /* [out] */ Boolean* isCanExecute);
 
     CARAPI CanRead(
-        /* [out] */ Boolean* canRead);
+        /* [out] */ Boolean* isCanRead);
 
     CARAPI CanWrite(
-        /* [out] */ Boolean* canWrite);
+        /* [out] */ Boolean* isCanWrite);
 
     CARAPI CompareTo(
         /* [in] */ IFile* another,
@@ -27,8 +26,6 @@ public:
 
     CARAPI Delete(
         /* [out] */ Boolean* isDeleted);
-
-    CARAPI DeleteOnExit();
 
     CARAPI Equals(
         /* [in] */ IInterface* obj,
@@ -119,18 +116,18 @@ public:
     CARAPI List(
         /* [out, callee] */ ArrayOf<String>** files);
 
-    CARAPI ListEx(
+    CARAPI ListWithFilenameFilter(
         /* [in] */ IFilenameFilter* filter,
         /* [out, callee] */ ArrayOf<String>** files);
 
     CARAPI ListFiles(
         /* [out] */ IObjectContainer** files);
 
-    CARAPI ListFilesEx(
+    CARAPI ListFilesWithFilenameFilter(
         /* [in] */ IFilenameFilter* filter,
-        /* [out] */ IObjectContainer** files);
+        /* [out] */ IObjectContainer ** files);
 
-    CARAPI ListFilesEx2(
+    CARAPI ListFilesWithFileFilter(
         /* [in] */ IFileFilter* filter,
         /* [out] */ IObjectContainer** files);
 
@@ -147,8 +144,8 @@ public:
         /* [in] */ IFile* newPath,
         /* [out] */ Boolean* succeeded);
 
-    CARAPI GetDescription(
-        /* [out] */ String* des);
+    CARAPI ToString(
+        /* [out] */ String* str);
 
     CARAPI ToURI(
         /* [out] */ IURI** uri);
@@ -167,77 +164,20 @@ public:
 
     CARAPI constructor(
         /* [in] */ IFile* dir,
-        /* [in] */ String name);
+        /* [in] */ const String& name);
 
     CARAPI constructor(
-        /* [in] */ String path);
+        /* [in] */ const String& path);
 
     CARAPI constructor(
-        /* [in] */ String dirPath,
-        /* [in] */ String name);
+        /* [in] */ const String& dirPath,
+        /* [in] */ const String& name);
 
     CARAPI constructor(
         /* [in] */ IURI* uri);
 
 private:
-    CARAPI_(Boolean) IsFileImpl(
-        /* [in] */ const String& path);
-
-    CARAPI_(void) Init(
-        /* [in] */ String dirtyPath);
-
-    CARAPI_(void) FixSlashes(
-        /* [in] */ String origPath,
-        /* [out] */ String* newPath);
-
-private:
-    static const Int64 mSerialVersionUID;
-
-public:
-    /**
-     * The system-dependent character used to separate components in filenames ('/').
-     * Use of this (rather than hard-coding '/') helps portability to other operating systems.
-     *
-     * <p>This field is initialized from the system property "file.separator".
-     * Later changes to that property will have no effect on this field or this class.
-     */
-    static const Char8 mSeparatorChar;
-
-    /**
-     * The system-dependent string used to separate components in filenames ('/').
-     * See {@link #separatorChar}.
-     */
-    static const String mSeparator;
-
-    /**
-     * The system-dependent character used to separate components in search paths (':').
-     * This is used to split such things as the PATH environment variable and classpath
-     * system properties into lists of directories to be searched.
-     *
-     * <p>This field is initialized from the system property "path.separator".
-     * Later changes to that property will have no effect on this field or this class.
-     */
-    static const Char8 mPathSeparatorChar;
-
-    /**
-     * The system-dependent string used to separate components in search paths (":").
-     * See {@link #pathSeparatorChar}.
-     */
-    static const String mPathSeparator;
-
-private:
-    /**
-     * The path we return from getPath. This is almost the path we were
-     * given, but without duplicate adjacent slashes and without trailing
-     * slashes (except for the special case of the root directory). This
-     * path may be the empty string.
-     */
-    String mPath;
-
-    /**
-     * The path we return from getAbsolutePath, and pass down to native code.
-     */
-    String mAbsolutePath;
+    // TODO: Add your private member variables here.
 };
 
 #endif // __CFILE_H__

@@ -138,7 +138,7 @@ ECode CVariableOfStringBuf::SetElement(
 }
 
 ECode CVariableOfStringBuf::SetData(
-    /* [in] */ String str)
+    /* [in] */ CString str)
 {
     if (str.IsNull()) {
         return E_INVALID_ARGUMENT;

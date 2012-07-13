@@ -1,118 +1,113 @@
-//==========================================================================
-// Copyright (c) 2000-2008,  Elastos, Inc.  All Rights Reserved.
-//==========================================================================
-#include <stdio.h>
-#include <stdlib.h>
+
+#include "cmdef.h"
 #include "CByteArrayOutputStream.h"
 
 ECode CByteArrayOutputStream::Close()
 {
-    m_pBuf = NULL;
-    return NOERROR;
+    return ByteArrayOutputStream::Close();
+}
+
+ECode CByteArrayOutputStream::Reset()
+{
+    Mutex::Autolock lock(_m_syncLock);
+
+    return ByteArrayOutputStream::Reset();
+}
+
+ECode CByteArrayOutputStream::GetSize(
+    /* [out] */ Int32* size)
+{
+    VALIDATE_NOT_NULL(size);
+
+    return ByteArrayOutputStream::GetSize(size);
+}
+
+ECode CByteArrayOutputStream::ToByteArray(
+    /* [out, callee] */ ArrayOf<Byte>** bytes)
+{
+    VALIDATE_NOT_NULL(bytes);
+
+    Mutex::Autolock lock(_m_syncLock);
+
+    return ByteArrayOutputStream::ToByteArray(bytes);
+}
+
+ECode CByteArrayOutputStream::ToString(
+    /* [out] */ String* str)
+{
+    VALIDATE_NOT_NULL(str);
+
+    return ByteArrayOutputStream::ToString(str);
+}
+
+ECode CByteArrayOutputStream::ToStringEx(
+    /* [in] */ const String& enc,
+    /* [out] */ String* str)
+{
+    VALIDATE_NOT_NULL(str);
+
+    return ByteArrayOutputStream::ToStringEx(enc, str);
+}
+
+ECode CByteArrayOutputStream::WriteBufferEx(
+    /* [in] */ Int32 offset,
+    /* [in] */ Int32 count,
+    /* [in] */ const ArrayOf<Byte>& buffer)
+{
+    Mutex::Autolock lock(_m_syncLock);
+
+    return ByteArrayOutputStream::WriteBufferEx(offset, count, buffer);
+}
+
+ECode CByteArrayOutputStream::Write(
+    /* [in] */ Int32 oneByte)
+{
+    Mutex::Autolock lock(_m_syncLock);
+
+    return ByteArrayOutputStream::Write(oneByte);
+}
+
+ECode CByteArrayOutputStream::WriteTo(
+    /* [in] */ IOutputStream* os)
+{
+    Mutex::Autolock lock(_m_syncLock);
+
+    return ByteArrayOutputStream::WriteTo(os);
 }
 
 ECode CByteArrayOutputStream::Flush()
 {
-    if (!m_pBuf) {
-        return E_CLOSED_STREAM;
-    }
-    return NOERROR;
-}
-
-/**
-  * @param   byte the Byte to be written
-  */
-ECode CByteArrayOutputStream::Write(
-    /* [in] */ Byte byte)
-{
-    if (!m_pBuf) {
-        return E_CLOSED_STREAM;
-    }
-    if (m_pos >= m_tail) {
-        return E_OUT_OF_STREAM;
-    }
-
-    m_pBuf->Replace(m_pos, &byte, 1);
-    m_pos++;
-
-    return NOERROR;
+    return ByteArrayOutputStream::Flush();
 }
 
 ECode CByteArrayOutputStream::WriteBuffer(
-    /* [in] */ const BufferOf<Byte> & buffer,
-    /* [out] */ Int32 * pBytesWritten)
+    /* [in] */ const ArrayOf<Byte>& buffer)
 {
-    if (buffer.IsNullOrEmpty() || !pBytesWritten) {
-        return E_INVALID_ARGUMENT;
-    }
-    if (!m_pBuf) {
-        return E_CLOSED_STREAM;
-    }
+    Mutex::Autolock lock(_m_syncLock);
 
-    return WriteBufferEx(0, buffer.GetUsed(), buffer, pBytesWritten);
+    return ByteArrayOutputStream::WriteBuffer(buffer);
 }
 
-/**
-  * Writes <code>len</code> bytes from the specified byte array
-  * starting at offset <code>offset</code> to this byte array output stream.
-  */
-ECode CByteArrayOutputStream::WriteBufferEx(
-    /* [in] */ Int32 offset,
-    /* [in] */ Int32 length,
-    /* [in] */ const BufferOf<Byte> & buffer,
-    /* [out] */ Int32 * pBytesWritten)
+ECode CByteArrayOutputStream::CheckError(
+    /* [out] */ Boolean* hasError)
 {
-    if (offset < 0 || buffer.IsNullOrEmpty() || length < 0 || (!pBytesWritten)
-        || (offset + length > buffer.GetUsed())) {
-        return E_INVALID_ARGUMENT;
-    }
-    else if (!m_pBuf) {
-        return E_CLOSED_STREAM;
-    }
-    else if (length == 0) {
-        *pBytesWritten = 0;
-        return NOERROR;
-    }
+    VALIDATE_NOT_NULL(hasError);
 
-    if (m_pos >= m_tail) {
-        return E_OUT_OF_STREAM;
-    }
-
-    if (length + m_pos > m_tail) {
-        length = m_tail - m_pos;
-    }
-
-    m_pBuf->Replace(m_pos, buffer.GetPayload() + offset, length);
-    m_pos += length;
-    *pBytesWritten = length;
-    return NOERROR;
+    return ByteArrayOutputStream::CheckError(hasError);
 }
 
-/*
- * m_pBuf->GetUsed() presents the capacity for write.
- * default value = 32;
- */
-ECode CByteArrayOutputStream::constructor(
-    /* [in] */ const BufferOf<Byte> & buffer)
+ECode CByteArrayOutputStream::constructor()
 {
-    if (buffer.IsNull()) {
-        return E_INVALID_ARGUMENT;
-    }
-    return constructor(buffer, 0, buffer.GetCapacity());
+    return ByteArrayOutputStream::Init(32);
 }
 
 ECode CByteArrayOutputStream::constructor(
-    /* [in] */ const BufferOf<Byte> & buffer,
-    /* [in] */ Int32 offset,
-    /* [in] */ Int32 length)
+    /* [in] */ Int32 size)
 {
-    if (buffer.IsNull() || offset < 0 || length < 0
-        || (offset + length > buffer.GetCapacity())) {
-        return E_INVALID_ARGUMENT;
-    }
+    return ByteArrayOutputStream::Init(size);
+}
 
-    m_pBuf = (BufferOf<Byte> *)&buffer;
-    m_pos = offset;
-    m_tail = offset + length;
-    return NOERROR;
+Mutex* CByteArrayOutputStream::GetSelfLock()
+{
+    return &_m_syncLock;
 }

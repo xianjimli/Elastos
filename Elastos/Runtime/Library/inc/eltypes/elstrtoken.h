@@ -32,7 +32,7 @@ friend char* __cdecl _StringTokenizer_NextToken(
         StringTokenizer *pTokenizer);
 
 public:
-    StringTokenizer(_ELASTOS String str, _ELASTOS String delim = " \t\n\r\f",
+    StringTokenizer(const char* str, const char* delim = " \t\n\r\f",
         _ELASTOS Boolean returnDelims = FALSE)
     {
         m_curPos = str;
@@ -58,8 +58,8 @@ public:
 
     _ELASTOS String NextToken()
     {
-        if (!m_curPos || *m_curPos == '\0') return NULL;
-        return _StringTokenizer_NextToken(this);
+        if (!m_curPos || *m_curPos == '\0') return _ELASTOS String(NULL);
+        return _ELASTOS String(_StringTokenizer_NextToken(this));
     }
 
     _ELASTOS String NextToken(_ELASTOS String delim)
