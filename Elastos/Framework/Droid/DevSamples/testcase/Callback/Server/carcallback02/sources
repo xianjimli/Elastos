@@ -6,4 +6,3 @@ SOURCES+= CCallback.cpp
 SOURCES+= CHelloClient.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
-LIBRARIES+= $(XDK_USER_LIB)/Elastos.Runtime.lib

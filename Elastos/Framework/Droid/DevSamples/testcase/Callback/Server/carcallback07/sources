@@ -7,4 +7,3 @@ SOURCES+= AAspect72.cpp
 SOURCES+= KContext73.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
-LIBRARIES+= $(XDK_USER_LIB)/Elastos.Runtime.lib

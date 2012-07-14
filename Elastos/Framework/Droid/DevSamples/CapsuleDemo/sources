@@ -13,7 +13,6 @@ SOURCES += CActivityAquarium.cpp
 SOURCES += CBroadcastReceiverOne.cpp
 
 LIBRARIES= $(XDK_LIB_PATH)/Elastos.Runtime.lib
-LIBRARIES+= $(XDK_LIB_PATH)/Elastos.Runtime.lib
 LIBRARIES += $(XDK_LIB_PATH)/framework.lib
 
 APPPACK = 1

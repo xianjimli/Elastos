@@ -5,4 +5,3 @@ SOURCES = carcallback10.car
 SOURCES+= CCBServer.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
-LIBRARIES+= $(XDK_USER_LIB)/Elastos.Runtime.lib

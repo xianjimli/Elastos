@@ -7,5 +7,4 @@ IMPORTS = carcallback10.eco
 SOURCES = main.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
-LIBRARIES+= $(XDK_USER_LIB)/Elastos.Runtime.lib
 
