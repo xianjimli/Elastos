@@ -19,10 +19,10 @@ SOURCES += container.cpp
 SOURCES += CObjectEnumerator.cpp
 SOURCES += CObjectContainer.cpp
 
-LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.CarRuntime.lib
+LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 ifeq "$(XDK_TARGET_PLATFORM)" "win32"
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Runtime.lib
 else
-LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.CarRuntime.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
 LIBRARIES += $(XDK_USER_LIB)/crt0.lib
 endif

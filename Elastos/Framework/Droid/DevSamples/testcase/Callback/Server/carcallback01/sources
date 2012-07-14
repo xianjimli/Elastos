@@ -6,5 +6,5 @@ SOURCES+= CCallbackClass.cpp
 SOURCES+= ACallbackAspect.cpp
 SOURCES+= KCallbackContext.cpp
 
-LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.CarRuntime.lib
+LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 LIBRARIES+= $(XDK_USER_LIB)/Elastos.Runtime.lib

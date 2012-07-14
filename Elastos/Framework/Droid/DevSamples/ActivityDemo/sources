@@ -11,7 +11,7 @@ SOURCES += CActivityTwo.cpp
 SOURCES += CBroadcastReceiverOne.cpp
 SOURCES += CActivityThree.cpp
 
-LIBRARIES  = $(XDK_USER_LIB)/Elastos.Runtime.CarRuntime.lib
+LIBRARIES  = $(XDK_USER_LIB)/Elastos.Runtime.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
 LIBRARIES += $(XDK_USER_LIB)/framework.lib
 ifeq "$(XDK_TARGET_PLATFORM)" "win32"
@@ -24,7 +24,7 @@ LIBRARIES += $(XDK_USER_LIB)/Elastos.Presentation.MessagePool.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Presentation.MessageBufferManager.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Presentation.Global.lib
 else
-LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.CarRuntime.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
 LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
 LIBRARIES += $(XDK_USER_LIB)/crt0.lib
 endif

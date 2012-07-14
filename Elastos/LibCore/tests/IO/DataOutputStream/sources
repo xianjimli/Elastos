@@ -7,10 +7,10 @@ IMPORTS = Elastos.IO.eco
 SOURCES = test.cpp
 SOURCES += main.cpp
 
-LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.CarRuntime.lib
+LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 ifeq "$(XDK_TARGET_PLATFORM)" "win32"
 LIBRARIES += $(XDK_LIB_PATH)/Elastos.Runtime.lib
 else
-LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.CarRuntime.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
 LIBRARIES += -lstdc++
 endif

@@ -4,9 +4,9 @@ TARGET_TYPE= exe
 SOURCES += ServiceManager.cpp
 SOURCES += main.cpp
 
-LIBRARIES += $(XDK_USER_LIB)/Elastos.Runtime.CarRuntime.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Runtime.lib
 ifneq "$(XDK_TARGET_PLATFORM)" "win32"
-LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.CarRuntime.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
 endif
 LIBRARIES += $(XDK_USER_LIB)/crt0.lib
 LIBRARIES += -llog -lm -lutils -lbinder

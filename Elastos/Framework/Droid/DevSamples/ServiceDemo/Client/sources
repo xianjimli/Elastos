@@ -12,7 +12,7 @@ SOURCES  = ServiceDemo.car
 SOURCES += CActivityOne.cpp
 SOURCES += CActivityOneServiceConnection.cpp
 
-LIBRARIES  = $(XDK_USER_LIB)/Elastos.Runtime.CarRuntime.lib
+LIBRARIES  = $(XDK_USER_LIB)/Elastos.Runtime.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
 LIBRARIES += $(XDK_USER_LIB)/framework.lib
 LIBRARIES += $(XDK_USER_LIB)/GrafixEventHandle.lib
@@ -25,7 +25,7 @@ LIBRARIES += $(XDK_USER_LIB)/Elastos.Presentation.MessagePool.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Presentation.MessageBufferManager.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Presentation.Global.lib
 else
-LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.CarRuntime.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
 LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
 LIBRARIES += $(XDK_TARGETS)/Elastos.Presentation.CompoundControls.eco
 LIBRARIES += $(XDK_TARGETS)/Elastos.Presentation.Controls.eco

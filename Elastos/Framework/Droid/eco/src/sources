@@ -33,7 +33,7 @@ endif
 SOURCES = Elastos.Framework.car
 SOURCES += utils.cpp
 
-LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.CarRuntime.lib
+LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Core.lib
 LIBRARIES += capsule/capsule.lib
@@ -62,7 +62,7 @@ LIBRARIES += $(XDK_USER_LIB)/libexpat.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Presentation.CompoundControls.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Presentation.Controls.lib
 else
-LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.CarRuntime.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
 LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
 LIBRARIES += $(XDK_USER_LIB)/crt0.lib
 LIBRARIES += -lexpat -llog -lutils -lbinder -lskia -lskiagl -lsurfaceflinger_client -lui -lcutils

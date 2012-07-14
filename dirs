@@ -1,6 +1,6 @@
 ifneq "$(XDK_TARGET_PRODUCT)" "devtools"
-  DIRS = External
-  DIRS += Elastos
+  DIRS = Elastos
+  DIRS += External/cURL
 else
   DIRS=Elastos/Runtime/Library/inc
   DIRS+=External/zlib

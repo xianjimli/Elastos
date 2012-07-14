@@ -2,7 +2,7 @@
 # Copyright (c) 2000-2008,  Elastos, Inc.  All Rights Reserved.
 #==========================================================================
 
-TARGET_NAME= Elastos.Runtime.CarRuntime
+TARGET_NAME= Elastos.Runtime
 TARGET_TYPE= eco
 
 SPECIAL_TARGET= cpfile
