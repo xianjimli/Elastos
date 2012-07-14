@@ -3,17 +3,13 @@
 #define __CINTENTFILTER_H__
 
 #include "_CIntentFilter.h"
-
 #include "content/IntentFilter.h"
-#include "ext/frameworkdef.h"
-#include <elastos/List.h>
+
 
 CarClass(CIntentFilter), public IntentFilter
 {
 public:
-    CIntentFilter();
-
-    ~CIntentFilter();
+    using IntentFilter::MatchAction;
 
     CARAPI SetPriority(
         /* [in] */ Int32 priority);
@@ -22,7 +18,7 @@ public:
         /* [out] */ Int32* priority);
 
     CARAPI AddAction(
-        /* [in] */ String action);
+        /* [in] */ const String& action);
 
     CARAPI CountActions(
         /* [out] */ Int32 *count);
@@ -31,35 +27,121 @@ public:
         /* [in] */ Int32 index,
         /* [out] */ String *action);
 
+    CARAPI HasAction(
+        /* [in] */ const String& action,
+        /* [out] */ Boolean* hasAction);
+
+    CARAPI MatchAction(
+        /* [in] */ const String& action,
+        /* [out] */ Boolean* isMatched);
+
     CARAPI AddDataType(
-        /* [in] */ String type);
+        /* [in] */ const String& type);
+
+    CARAPI HasDataType(
+        /* [in] */ const String& type,
+        /* [out] */ Boolean* hasDataType);
+
+    CARAPI CountDataTypes(
+        /* [out] */ Int32* count);
+
+    CARAPI GetDataType(
+        /* [in] */ Int32 index,
+        /* [out] */ String* type);
 
     CARAPI AddDataScheme(
-        /* [in] */ String scheme);
+        /* [in] */ const String& scheme);
+
+    CARAPI CountDataSchemes(
+        /* [out] */ Int32* count);
+
+    CARAPI GetDataScheme(
+        /* [in] */ Int32 index,
+        /* [out] */ String* scheme);
+
+    CARAPI HasDataScheme(
+        /* [in] */ const String& scheme,
+        /* [out] */ Boolean* result);
 
     CARAPI AddDataAuthority(
-        /* [in] */ String host,
-        /* [in] */ String port);
+        /* [in] */ const String& host,
+        /* [in] */ const String& port);
+
+    CARAPI CountDataAuthorities(
+        /* [out] */ Int32* count);
+
+    CARAPI GetDataAuthority(
+        /* [in] */ Int32 index,
+        /* [out] */ IAuthorityEntry** authority);
+
+    CARAPI HasDataAuthority(
+        /* [in] */ IUri* data,
+        /* [out] */ Boolean* result);
 
     CARAPI AddDataPath(
-        /* [in] */ String path,
+        /* [in] */ const String& path,
         /* [in] */ Int32 type);
 
+    CARAPI CountDataPaths(
+        /* [out] */ Int32* count);
+
+    CARAPI GetDataPath(
+        /* [in] */ Int32 index,
+        /* [out] */ IPatternMatcher** path);
+
+    CARAPI HasDataPath(
+        /* [in] */ const String& data,
+        /* [out] */ Boolean* result);
+
+    CARAPI MatchDataAuthority(
+        /* [in] */ IUri* data,
+        /* [out] */ Int32* result);
+
+    CARAPI MatchData(
+        /* [in] */ const String& type,
+        /* [in] */ const String& scheme,
+        /* [in] */ IUri* data,
+        /* [out] */ Int32* result);
+
     CARAPI AddCategory(
-        /* [in] */ String category);
+        /* [in] */ const String& category);
+
+    CARAPI CountCategories(
+        /* [out] */ Int32* count);
+
+    CARAPI GetCategory(
+        /* [in] */ Int32 index,
+        /* [out] */ String* category);
 
     CARAPI HasCategory(
-        /* [in] */ String category,
+        /* [in] */ const String& category,
         /* [out] */ Boolean* hasCategory);
 
+    CARAPI MatchCategories(
+        /* [in] */ ArrayOf<String>* categories,
+        /* [out] */ String* result);
+
     CARAPI Match(
-        /* [in] */ String action,
-        /* [in] */ String type,
-        /* [in] */ String scheme,
+        /* [in] */ const String& action,
+        /* [in] */ const String& type,
+        /* [in] */ const String& scheme,
         /* [in] */ IUri* data,
         /* [in] */ ArrayOf<String>* categories,
-        /* [in] */ String logTag,
+        /* [in] */ CString logTag,
         /* [out] */ Int32* result);
+
+    CARAPI MatchEx(
+        /* [in] */ IContentResolver* resolver,
+        /* [in] */ IIntent* intent,
+        /* [in] */ Boolean resolve,
+        /* [in] */ CString logTag,
+        /* [out] */ Int32* result);
+
+    CARAPI WriteToXml(
+        /* [in] */ IXmlSerializer* serializer);
+
+    CARAPI ReadFromXml(
+        /* [in] */ IXmlPullParser* parser);
 
     CARAPI ReadFromParcel(
         /* [in] */ IParcel *source);
@@ -70,94 +152,21 @@ public:
     CARAPI constructor();
 
     CARAPI constructor(
-        /* [in] */ String action);
+        /* [in] */ const String& action);
 
     CARAPI constructor(
-        /* [in] */ String action,
-        /* [in] */ String dataType);
+        /* [in] */ const String& action,
+        /* [in] */ const String& dataType);
 
     CARAPI constructor(
         /* [in] */ IIntentFilter* o);
 
 public:
-    CARAPI_(Boolean) MatchAction(
-        /* [in] */ String action);
-
-    CARAPI_(Int32) MatchData(
-        /* [in] */ String type,
-        /* [in] */ String scheme,
-        /* [in] */ IUri* data);
-
-    CARAPI_(String) MatchCategories(
-        /* [in] */ ArrayOf<String>* categories);
-
     CARAPI_(List<String>*) GetActions();
 
     CARAPI_(List<String>*) GetSchemes();
 
     CARAPI_(List<String>*) GetTypes();
-
-public:
-    /**
-     * Quality adjustment applied to the category of match that signifies
-     * the default, base value; higher numbers improve the quality while
-     * lower numbers reduce it.
-     */
-    static const Int32 Match_Adjustment_Normal = 0x8000;
-
-    /**
-     * The filter matched an intent that had no data specified.
-     */
-    static const Int32 Match_Category_Empty = 0x0100000;
-    /**
-     * The filter matched an intent with the same data URI scheme.
-     */
-    static const Int32 Match_Category_Scheme = 0x0200000;
-    /**
-     * The filter matched an intent with the same data URI scheme and
-     * authority host.
-     */
-    static const Int32 Match_Category_Host = 0x0300000;
-    /**
-     * The filter matched an intent with the same data URI scheme and
-     * authority host and port.
-     */
-    static const Int32 Match_Category_Port = 0x0400000;
-    /**
-     * The filter matched an intent with the same data URI scheme,
-     * authority, and path.
-     */
-    static const Int32 Match_Category_Path = 0x0500000;
-    /**
-     * The filter matched an intent with the same data MIME type.
-     */
-    static const Int32 Match_Category_Type = 0x0600000;
-
-    /**
-     * The filter didn't match due to different MIME types.
-     */
-    static const Int32 No_Match_Type = -1;
-    /**
-     * The filter didn't match due to different data URIs.
-     */
-    static const Int32 No_Match_Data = -2;
-    /**
-     * The filter didn't match due to different actions.
-     */
-    static const Int32 No_Match_Action = -3;
-    /**
-     * The filter didn't match because it required one or more categories
-     * that were not in the Intent.
-     */
-    static const Int32 No_Match_Category = -4;
-
-private:
-    Int32 mPriority;
-    List<String>* mActions;
-    List<String>* mCategories;
-    List<String>* mDataSchemes;
-
-    List<String>* mDataTypes;
 };
 
 #endif // __CINTENTFILTER_H__

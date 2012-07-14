@@ -42,8 +42,8 @@ public:
 
     CARAPI Dump(
         /* [in] */ Int32 priority,
-        /* [in] */ String tag,
-        /* [in] */ String prefix);
+        /* [in] */ const String& tag,
+        /* [in] */ const String& prefix);
 
     CARAPI constructor(
         /* [in] */ IResources* res,

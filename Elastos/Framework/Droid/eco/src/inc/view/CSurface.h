@@ -3,7 +3,7 @@
 #define __CSURFACE_H__
 
 #include "_CSurface.h"
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 #include "graphics/Canvas.h"
 #include <elastos/AutoPtr.h>
 #include <surfaceflinger/Surface.h>
@@ -400,7 +400,7 @@ public:
             /* [in] */ IPaint * pPaint);
 
         CARAPI DrawTextInBuffer(
-            /* [in] */ const BufferOf<Byte> & text,
+            /* [in] */ const ArrayOf<Char8> & text,
             /* [in] */ Int32 index,
             /* [in] */ Int32 count,
             /* [in] */ Float x,
@@ -408,13 +408,13 @@ public:
             /* [in] */ IPaint * pPaint);
 
         CARAPI DrawTextInString(
-            /* [in] */ String text,
+            /* [in] */ const String& text,
             /* [in] */ Float x,
             /* [in] */ Float y,
             /* [in] */ IPaint * pPaint);
 
         CARAPI DrawTextInStringEx(
-            /* [in] */ String text,
+            /* [in] */ const String& text,
             /* [in] */ Int32 start,
             /* [in] */ Int32 end,
             /* [in] */ Float x,
@@ -430,19 +430,19 @@ public:
             /* [in] */ IPaint * pPaint);
 
         CARAPI DrawPosTextInBuffer(
-            /* [in] */ const BufferOf<Byte> & text,
+            /* [in] */ const ArrayOf<Char8> & text,
             /* [in] */ Int32 index,
             /* [in] */ Int32 count,
             /* [in] */ const ArrayOf<Float> & pos,
             /* [in] */ IPaint * pPaint);
 
         CARAPI DrawPosTextInString(
-            /* [in] */ String text,
+            /* [in] */ const String& text,
             /* [in] */ const ArrayOf<Float> & pos,
             /* [in] */ IPaint * pPaint);
 
         CARAPI DrawTextOnPathInBuffer(
-            /* [in] */ const BufferOf<Byte> & text,
+            /* [in] */ const ArrayOf<Char8> & text,
             /* [in] */ Int32 index,
             /* [in] */ Int32 count,
             /* [in] */ IPath * pPath,
@@ -451,7 +451,7 @@ public:
             /* [in] */ IPaint * pPaint);
 
         CARAPI DrawTextOnPathInString(
-            /* [in] */ String text,
+            /* [in] */ const String& text,
             /* [in] */ IPath * pPath,
             /* [in] */ Float hOffset,
             /* [in] */ Float vOffset,
@@ -495,6 +495,8 @@ public:
         /* [out] */ Boolean * pIsValid);
 
     CARAPI Destroy();
+
+    CARAPI ReleaseSurface();
 
     CARAPI LockCanvas(
         /* [in] */ IRect * pDirty,
@@ -575,7 +577,7 @@ public:
     CARAPI constructor(
         /* [in] */ ISurfaceSession * pS,
         /* [in] */ Int32 pid,
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [in] */ Int32 display,
         /* [in] */ Int32 w,
         /* [in] */ Int32 h,
@@ -594,19 +596,20 @@ private:
     ECode Init(
         /* [in] */ ISurfaceSession * pS,
         /* [in] */ Int32 pid,
-        /* [in] */ String name,
+        /* [in] */ const char* name,
         /* [in] */ Int32 display,
         /* [in] */ Int32 w,
         /* [in] */ Int32 h,
         /* [in] */ Int32 format,
         /* [in] */ Int32 flags);
 
-#ifdef _linux
     void SetSurfaceControl(
-        /* [in] */ android::sp<android::SurfaceControl> & surface);
-#endif
+        /* [in] */ const android::sp<android::SurfaceControl>& surface);
 
     void GetSurface();
+
+    void SetSurface(
+        /* [in] */ const android::sp<android::Surface>& surface);
 
 private:
     String                      mName;

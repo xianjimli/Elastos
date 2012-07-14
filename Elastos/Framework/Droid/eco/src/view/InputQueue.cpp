@@ -5,9 +5,9 @@
 #include <elastos/Mutex.h>
 #include <StringBuffer.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
-using namespace Elastos::System::Threading;
+using namespace Elastos::Core::Threading;
 
 static NativeInputQueue gNativeInputQueue;
 
@@ -16,7 +16,7 @@ static Mutex sLock;
 const Boolean InputQueue::FinishedCallback::DEBUG_RECYCLING;
 const Int32 InputQueue::FinishedCallback::RECYCLE_MAX_COUNT;
 
-const String InputQueue::TAG = "InputQueue";
+const char* InputQueue::TAG = "InputQueue";
 const Boolean InputQueue::DEBUG;
 
 AutoPtr<InputQueue::FinishedCallback> InputQueue::FinishedCallback::sRecycleHead;

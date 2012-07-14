@@ -18,7 +18,7 @@ private:
 
     public:
         CharWrapper(
-            /* [in] */ const BufferOf<Byte>& chars,
+            /* [in] */ const ArrayOf<Char8>& chars,
             /* [in] */ Int32 start,
             /* [in] */ Int32 len);
 
@@ -36,7 +36,7 @@ private:
             /* [out] */ InterfaceID *pIID);
 
         CARAPI_(void) Set(
-            /* [in] */ const BufferOf<Byte>& chars,
+            /* [in] */ const ArrayOf<Char8>& chars,
             /* [in] */ Int32 start,
             /* [in] */ Int32 len);
 
@@ -58,32 +58,32 @@ private:
         CARAPI GetChars(
             /* [in] */ Int32 start,
             /* [in] */ Int32 end,
-            /* [out] */ BufferOf<Byte>* dest,
+            /* [out] */ ArrayOf<Char8>* dest,
             /* [in] */ Int32 destoff);
 
         CARAPI DrawText(
-            /* [in] */ ICanvas* c, 
-            /* [in] */ Int32 start, 
+            /* [in] */ ICanvas* c,
+            /* [in] */ Int32 start,
             /* [in] */ Int32 end,
-            /* [in] */ Float x, 
-            /* [in] */ Float y, 
+            /* [in] */ Float x,
+            /* [in] */ Float y,
             /* [in] */ IPaint* p);
 
         CARAPI MeasureText(
-            /* [in] */ Int32 start, 
-            /* [in] */ Int32 end, 
+            /* [in] */ Int32 start,
+            /* [in] */ Int32 end,
             /* [in] */ IPaint* p,
             /* [out] */ Float* width);
 
         CARAPI GetTextWidths(
-            /* [in] */ Int32 start, 
-            /* [in] */ Int32 end, 
-            /* [out] */ ArrayOf<Float>* widths, 
+            /* [in] */ Int32 start,
+            /* [in] */ Int32 end,
+            /* [out] */ ArrayOf<Float>* widths,
             /* [in] */ IPaint* p,
             /* [out] */ Int32* count);
 
     private:
-        BufferOf<Byte>* mChars;
+        ArrayOf<Char8>* mChars;
         Int32 mStart, mLength;
     };
 
@@ -860,7 +860,7 @@ public:
      * has changed and that it needs to invalidate and re-layout.
      */
     CARAPI SetText(
-        /* [in] */ const BufferOf<Byte>& text,
+        /* [in] */ const ArrayOf<Char8>& text,
         /* [in] */ Int32 start,
         /* [in] */ Int32 len);
 
@@ -1034,7 +1034,7 @@ public:
      * @attr ref android.R.styleable#TextView_privateImeOptions
      */
     virtual CARAPI SetPrivateImeOptions(
-        /* [in] */ String type);
+        /* [in] */ const String& type);
 
     /**
      * Get the private type of the content.
@@ -1256,7 +1256,7 @@ public:
      * @return Return true if you handled the command, else false.
      */
     virtual CARAPI_(Boolean) OnPrivateIMECommand(
-        /* [in] */ String action,
+        /* [in] */ const String& action,
         /* [in] */ IBundle* data);
 
     /**
@@ -2571,7 +2571,7 @@ private:
         /* [in] */ Int32 defStyle);
 
 public:
-    static const String TEXT_VIEW_LOG_TAG;
+    static const char* TEXT_VIEW_LOG_TAG;
     static const Boolean DEBUG_EXTRACT;
     Int32 mTempCoords[2];
     AutoPtr<CRect> mTempRect;

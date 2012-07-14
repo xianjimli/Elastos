@@ -1,7 +1,11 @@
 
 module
 {
-    interface ICapsuleInfoLite
-    {
+    interface ICapsuleInfoLite {
+        ToString(
+            [out] String* des);
+
+        DescribeContents(
+            [out] Int32* ret);
     }
 }

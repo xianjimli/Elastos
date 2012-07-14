@@ -102,7 +102,7 @@ ECode CConfiguration::GetDescription(
         sb.Append(mSeq);
     }
     sb.Append('}');
-    *description = String::Duplicate((const char*)sb);
+    *description = (const char*)sb;
     return NOERROR;
 }
 

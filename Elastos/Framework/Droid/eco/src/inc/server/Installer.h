@@ -4,9 +4,10 @@
 
 #include "ext/frameworkext.h"
 #include <elastos/AutoPtr.h>
-#include <elastos.h>
+#include <elastos/Mutex.h>
 
 using namespace Elastos;
+using namespace Elastos::Core::Threading;
 
 class Installer
 {
@@ -16,38 +17,39 @@ public:
     ~Installer();
 
     CARAPI_(Int32) Install(
-        /* [in] */ String name,
+        /* [in] */ CString name,
         /* [in] */ Boolean useEncryptedFilesystem,
         /* [in] */ Int32 uid,
         /* [in] */ Int32 gid);
 
-    CARAPI_(Int32) Dexopt(
-        /* [in] */ String apkPath,
+    CARAPI_(Int32) DexOpt(
+        /* [in] */ CString apkPath,
         /* [in] */ Int32 uid,
         /* [in] */ Boolean isPublic);
 
-    CARAPI_(Int32) Movedex(
-        /* [in] */ String srcPath,
-        /* [in] */ String dstPath);
+    CARAPI_(Int32) MoveDex(
+        /* [in] */ CString srcPath,
+        /* [in] */ CString dstPath);
 
-    CARAPI_(Int32) Rmdex(
-        /* [in] */ String codePath);
+    //todo: should rename to RmEco
+    CARAPI_(Int32) RmDex(
+        /* [in] */ CString codePath);
 
     CARAPI_(Int32) Remove(
-        /* [in] */ String name,
+        /* [in] */ CString name,
         /* [in] */ Boolean useEncryptedFilesystem);
 
     CARAPI_(Int32) Rename(
-        /* [in] */ String oldname,
-        /* [in] */ String newname,
+        /* [in] */ CString oldname,
+        /* [in] */ CString newname,
         /* [in] */ Boolean useEncryptedFilesystem);
 
     CARAPI_(Int32) DeleteCacheFiles(
-        /* [in] */ String name,
+        /* [in] */ CString name,
         /* [in] */ Boolean useEncryptedFilesystem);
 
     CARAPI_(Int32) ClearUserData(
-        /* [in] */ String name,
+        /* [in] */ CString name,
         /* [in] */ Boolean useEncryptedFilesystem);
 
     CARAPI_(Boolean) Ping();
@@ -61,38 +63,57 @@ public:
      * the package suffix path will be com.test-1
      */
     CARAPI_(Int32) SetForwardLockPerm(
-        /* [in] */ String capsulePathSuffix,
+        /* [in] */ CString capsulePathSuffix,
         /* [in] */ Int32 gid);
 
     CARAPI_(Int32) GetSizeInfo(
-        /* [in] */ String capName,
-        /* [in] */ String apkPath,
-        /* [in] */ String fwdLockApkPath,
+        /* [in] */ CString capName,
+        /* [in] */ CString capPath,
+        /* [in] */ CString fwdLockCapPath,
         /* [in] */ ICapsuleStats* stats,
         /* [in] */ Boolean useEncryptedFilesystem);
 
     CARAPI_(Int32) MoveFiles();
 
     CARAPI_(Int32) LinkNativeLibraryDirectory(
-        /* [in] */ String dataPath,
-        /* [in] */ String nativeLibPath);
+        /* [in] */ CString dataPath,
+        /* [in] */ CString nativeLibPath);
 
     CARAPI_(Int32) UnlinkNativeLibraryDirectory(
-        /* [in] */ String dataPath);
+        /* [in] */ CString dataPath);
 
 private:
-    static const String TAG;
+    CARAPI_(Boolean) Connect();
+
+    CARAPI_(void) Disconnect();
+
+    CARAPI_(Boolean) ReadBytes(
+        /* [in] */ ArrayOf<Byte>* buffer,
+        /* [in] */ Int32 len);
+
+    CARAPI_(Boolean) ReadReply();
+
+    CARAPI_(Boolean) WriteCommand(
+        /* [in] */ CString _cmd);
+
+    CARAPI_(String) Transaction(
+        /* [in] */ CString cmd);
+
+    CARAPI_(Int32) Execute(
+        /* [in] */ CString cmd);
 
 public:
-	AutoPtr<IInputStream> mIn;
-	AutoPtr<IOutputStream> mOut;
-//		LocalSocket mSocket;
+    AutoPtr<IInputStream> mIn;
+    AutoPtr<IOutputStream> mOut;
+    AutoPtr<ILocalSocket> mSocket;
 
-//		byte buf[] = new byte[1024];
-//		int buflen = 0;
-//	    AutoFree< ArrayOf<Byte> > mBuf;
-    Byte* mBuf;
-    Int32 mBufLen;
+    ArrayOf<Byte>* mBuf;
+    Int32 mBuflen;
+
+private:
+    static CString TAG;
+
+    Mutex mLock;
 };
 
 #endif // __HH_INSTALLER_H

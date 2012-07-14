@@ -4,7 +4,6 @@
 
 #include "_CCapsuleInfo.h"
 #include "ext/frameworkdef.h"
-#include "utils/AutoString.h"
 #include "utils/AutoStringArray.h"
 #include "content/Signature.h"
 #include <elastos/AutoPtr.h>
@@ -62,7 +61,7 @@ public:
      * The name of this package.  From the &lt;manifest&gt; tag's "name"
      * attribute.
      */
-    AutoString mCapsuleName;
+    String mCapsuleName;
 
     /**
      * The version number of this package, as specified by the &lt;manifest&gt;
@@ -76,14 +75,14 @@ public:
      * tag's {@link android.R.styleable#AndroidManifest_versionName versionName}
      * attribute.
      */
-    AutoString mVersionName;
+    String mVersionName;
 
     /**
      * The shared user ID name of this package, as specified by the &lt;manifest&gt;
      * tag's {@link android.R.styleable#AndroidManifest_sharedUserId sharedUserId}
      * attribute.
      */
-    AutoString mSharedUserId;
+    String mSharedUserId;
 
     /**
      * The shared user ID label of this package, as specified by the &lt;manifest&gt;
@@ -178,7 +177,7 @@ public:
      * Array of all signatures read from the package file.  This is only filled
      * in if the flag {@link PackageManager#GET_SIGNATURES} was set.
      */
-    List<Signature*> mSignatures;
+    List< AutoPtr<ISignature> > mSignatures;
 
     /**
      * Application specified preferred configuration

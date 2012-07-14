@@ -7,12 +7,12 @@ class TCallback31 : public _TCallback31
 {
 public:
     CARAPI RequestService(
-        /* [in] */ String serviceName,
-        /* [in] */ String arguments,
+        /* [in] */ const String& serviceName,
+        /* [in] */ const String& arguments,
         /* [in] */ IAppletSession * pSession);
 
     CARAPI Notify(
-        /* [in] */ String eventName,
+        /* [in] */ const String& eventName,
         /* [in] */ const MemoryBuf & arguments);
 
     CARAPI ObjectEnter(

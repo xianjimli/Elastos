@@ -32,6 +32,7 @@ module
     merge("content/cm/ICapsuleMoveObserver.car");
     merge("content/cm/capsulemanager.car");
     merge("content/cm/CapsuleStats.car");
+    merge("content/cm/Signature.car");
     merge("content/context.car");
     merge("content/contextwrapper.car");
     merge("content/contentresolver.car");
@@ -45,6 +46,8 @@ module
     merge("content/Intent.car");
     merge("content/ComponentName.car");
     merge("content/IntentFilter.car");
+    merge("content/DialogInterface.car");
+    merge("content/ContextThemeWrapper.car");
 
     interface ICursor;
 
@@ -286,6 +289,15 @@ module
         interface IParcelable;
     }
 
+    class CAuthorityEntry {
+        constructor(
+            [in] String host,
+            [in] String port);
+
+        interface IAuthorityEntry;
+        interface IParcelable;
+    }
+
     class CIntentFilter {
         /**
          * New empty IntentFilter.
@@ -468,6 +480,44 @@ module
             [in] ICapsuleStats* stats);
 
         interface ICapsuleStats;
+        interface IParcelable;
+    }
+
+    class CCapsuleInfoLite {
+        constructor();
+
+        /*private*/ constructor(
+            [in] IParcel* source);
+
+        interface ICapsuleInfoLite;
+        interface IParcelable;
+    }
+
+    class CContextWrapper {
+        constructor(
+            [in] IContext* context);
+
+        interface IContextWrapper;
+    }
+
+    class CContextThemeWrapper {
+        constructor();
+
+        constructor(
+            [in] IContext* base,
+            [in] Int32 themeres);
+
+        interface IContextThemeWrapper;
+    }
+
+    class CSignature {
+        constructor(
+            [in] ArrayOf<Byte> signature);
+
+        constructor(
+            [in] CString text);
+
+        interface ISignature;
         interface IParcelable;
     }
 }

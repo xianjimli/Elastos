@@ -35,10 +35,10 @@ public:
         /* [out] */ String* description);
 
     CARAPI SetTitle(
-        /* [in] */ const ArrayOf<Char8>& title);
+        /* [in] */ ICharSequence* title);
 
     CARAPI GetTitle(
-        /* [out, callee] */ ArrayOf<Char8>** title);
+        /* [out] */ ICharSequence** title);
 
     CARAPI CopyFrom(
         /* [in] */ IWindowManagerLayoutParams* source);
@@ -224,7 +224,7 @@ private:
     // internal buffer to backup/restore parameters under compatibility mode.
     Int32* mCompatibilityParamsBackup;
 
-    ArrayOf<Char8>* mTitle;
+    AutoPtr<ICharSequence> mTitle;
 };
 
 #endif //__CWINDOWMANAGERLAYOUTPARAMS_H__

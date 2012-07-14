@@ -90,7 +90,7 @@ public:
 
     CARAPI GetLayoutDimension(
         /* [in] */ Int32 index,
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ Int32* dimension);
 
     CARAPI GetLayoutDimensionEx(

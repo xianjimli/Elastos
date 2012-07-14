@@ -1,7 +1,5 @@
 
 #include "widget/SimpleAdapter.h"
-#include "utils/CObjectContainer.h"
-#include "utils/AutoString.h"
 #include "os/ElDataInterface.h"
 
 SimpleAdapter::SimpleFilter::SimpleFilter(
@@ -31,7 +29,7 @@ ECode SimpleAdapter::SimpleFilter::PerformFiltering(
         results->mCount = mHost->mUnfilteredData->GetSize();
     }
     else {
-        AutoString prefixString;
+        String prefixString;
         prefix->ToString(&prefixString);
 
         Vector<AutoPtr<IObjectStringMap> > newValues;
@@ -45,9 +43,8 @@ ECode SimpleAdapter::SimpleFilter::PerformFiltering(
                     //String str =  (String)h.get(mFrom[j]);
                     AutoPtr<ICharSequence> cs;
                     h->Get((*mHost->mFrom)[i], (IInterface**)&cs);
-                    AutoString str;
+                    String str;
                     cs->ToString(&str);
-                    StringBuf* temp = StringBuf::Alloc(str.GetLength() + 1);
 
                     Int32 start = 0;
                     Int32 index = str.IndexOf(' ');
@@ -56,7 +53,7 @@ ECode SimpleAdapter::SimpleFilter::PerformFiltering(
                         if (index < 0) {
                             index = subStr.GetLength();
                         }
-                        String word = subStr.Substring(start, index - start, *temp);
+                        String word = subStr.Substring(start, index - start);
                         subStr = subStr.Substring(index + 1);
                         start = index + 1;
                         if (word.StartWith(prefixString, StringCase_Insensitive)) {
@@ -239,13 +236,13 @@ ECode SimpleAdapter::BindView(
             AutoPtr<IInterface> data;
             dataSet->Get((*mFrom)[i], (IInterface**)&data);
 
-            AutoString text;
+            String text;
             if (data != NULL) {
                 //data->ToString(&text);
             }
 
             if (text.IsNull()) {
-                text = String::Duplicate("");
+                text = "";
             }
 
             Boolean bound = FALSE;
@@ -363,7 +360,7 @@ ECode SimpleAdapter::SetViewImage(
  */
 ECode SimpleAdapter::SetViewImage(
     /* [in] */ IImageView* v,
-    /* [in] */ String value)
+    /* [in] */ const String& value)
 {
     Int32 intValue = value.ToInt32();
     if (!value.Equals("0") || intValue != 0) {
@@ -388,10 +385,10 @@ ECode SimpleAdapter::SetViewImage(
  */
 ECode SimpleAdapter::SetViewText(
     /* [in] */ ITextView* v,
-    /* [in] */ String text)
+    /* [in] */ const String& text)
 {
     AutoPtr<ICharSequence> cs;
-    CStringWrapper::New(String::Duplicate(text), (ICharSequence**)&cs);
+    CStringWrapper::New(text, (ICharSequence**)&cs);
 
     return v->SetText(cs);
 }
@@ -427,7 +424,7 @@ ECode SimpleAdapter::Init(
     mTo = to.Clone();
 
     context->GetSystemService(
-        Context_LAYOUT_INFLATER_SERVICE, (IInterface**)&mInflater);
+        String(Context_LAYOUT_INFLATER_SERVICE), (IInterface**)&mInflater);
 
     return NOERROR;
 }

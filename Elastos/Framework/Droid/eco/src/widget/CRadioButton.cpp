@@ -3,10 +3,13 @@
 
 IVIEW_METHODS_IMPL(CRadioButton, RadioButton, RadioButton);
 
-ITEXTVIEW_METHODS_IMPL(CRadioButton, RadioButton, RadioButton);
+IDrawableCallback_METHODS_IMPL(CRadioButton, RadioButton, RadioButton);
 
-CRadioButton::CRadioButton()
-{}
+IKeyEventCallback_METHODS_IMPL(CRadioButton, RadioButton, RadioButton);
+
+IAccessibilityEventSource_METHODS_IMPL(CRadioButton, RadioButton, RadioButton);
+
+ITEXTVIEW_METHODS_IMPL(CRadioButton, RadioButton, RadioButton);
 
 PInterface CRadioButton::Probe(
     /* [in] */ REIID riid)
@@ -82,3 +85,11 @@ ECode CRadioButton::constructor(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode CRadioButton::OnPreDraw(
+    /* [out] */ Boolean* result)
+{
+    VALIDATE_NOT_NULL(result);
+    *result = RadioButton::OnPreDraw();
+
+    return NOERROR;
+}

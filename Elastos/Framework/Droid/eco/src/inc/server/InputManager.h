@@ -100,7 +100,7 @@ public:
 //        /* [in] */ Boolean[] keyExists);
 
     CARAPI MonitorInput(
-        /* [in] */ String inputChannelName,
+        /* [in] */ const String& inputChannelName,
         /* [out] */ IInputChannel** inputChannel);
 
     CARAPI RegisterInputChannel(
@@ -123,7 +123,7 @@ private:
     CARAPI Init();
 
 private:
-    static const String TAG;
+    static const char* TAG;
 
     static const Boolean DEBUG = FALSE;
 

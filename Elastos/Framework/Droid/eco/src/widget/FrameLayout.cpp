@@ -4,7 +4,7 @@
 #include "widget/CFrameLayoutLayoutParams.h"
 #include <elastos/Math.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 #define UNUSED(x) ((void)x)
 
@@ -82,7 +82,7 @@ FrameLayout::FrameLayout(
   *
   * @attr ref android.R.styleable#FrameLayout_foregroundGravity
   */
-void FrameLayout::SetForegroundGravity(
+ECode FrameLayout::SetForegroundGravity(
     /* [in] */ Int32 foregroundGravity)
 {
     if (mForegroundGravity != foregroundGravity) {
@@ -117,6 +117,7 @@ void FrameLayout::SetForegroundGravity(
 
         RequestLayout();
     }
+    return NOERROR;
 }
 
 Boolean FrameLayout::VerifyDrawable(
@@ -157,7 +158,7 @@ ECode FrameLayout::GenerateDefaultLayoutParams(
   *
   * @attr ref android.R.styleable#FrameLayout_foreground
   */
-void FrameLayout::SetForeground(
+ECode FrameLayout::SetForeground(
     /* [in] */ IDrawable* drawable)
 {
     if (mForeground.Get() != drawable) {
@@ -198,6 +199,7 @@ void FrameLayout::SetForeground(
         RequestLayout();
         Invalidate();
     }
+    return NOERROR;
 }
 
 /**
@@ -398,10 +400,11 @@ Boolean FrameLayout::GatherTransparentRegion(
   *
   * @attr ref android.R.styleable#FrameLayout_measureAllChildren
   */
-void FrameLayout::SetMeasureAllChildren(
+ECode FrameLayout::SetMeasureAllChildren(
     /* [in] */ Boolean measureAll)
 {
     mMeasureAllChildren = measureAll;
+    return NOERROR;
 }
 
 /**

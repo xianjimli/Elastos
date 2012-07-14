@@ -117,21 +117,20 @@ int LaunchApp(void *handle, char *appName)
     }
 
     Elastos::GetServiceManager((IServiceManager**)&serviceManager);
-    serviceManager->GetService("capsule", (IInterface**)&capsuleManager);
+    serviceManager->GetService(String("capsule"), (IInterface**)&capsuleManager);
 
-    serviceManager->GetService("ActivityManagerService", (IInterface**)&activityManagerService);
+    serviceManager->GetService(String("ActivityManagerService"), (IInterface**)&activityManagerService);
 
     AutoPtr<IIntent> intent;
     CIntent::New((IIntent**)&intent);
-    intent->SetCapsule(appName);
-    intent->SetAction("elastos.intent.action.MAIN");
+    intent->SetCapsule(String(appName));
+    intent->SetAction(String("elastos.intent.action.MAIN"));
     if (option != 0){
-        intent->PutInt32Extra("ARG",option);
+        intent->PutInt32Extra(String("ARG"), option);
     }
     Int32 status;
-    ec = activityManagerService->StartActivity(NULL, (IIntent*)intent, NULL,
-            NULL, 0, NULL, NULL, -1, FALSE, FALSE, &status);
-
+    ec = activityManagerService->StartActivity(NULL, (IIntent*)intent, String(NULL),
+            NULL, 0, NULL, String(NULL), -1, FALSE, FALSE, &status);
     if (FAILED(ec)) goto Exit;
 
     sem_t m_event;

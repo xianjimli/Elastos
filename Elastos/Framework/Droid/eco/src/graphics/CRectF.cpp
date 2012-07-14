@@ -3,9 +3,8 @@
 #include "graphics/CRect.h"
 #include "ext/frameworkdef.h"
 #include <elastos/Math.h>
-#include <stdio.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 ECode CRectF::IsEmpty(
     /* [out] */ Boolean* isEmpty)
@@ -188,6 +187,7 @@ ECode CRectF::Intersect(
             this->mBottom = bottom;
         }
         *isIntersected = TRUE;
+        return NOERROR;
     }
     *isIntersected = FALSE;
     return NOERROR;
@@ -217,6 +217,7 @@ ECode CRectF::SetIntersect(
         mRight = Math::Min(ca->mRight, cb->mRight);
         mBottom = Math::Min(ca->mBottom, cb->mBottom);
         *isIntersected = TRUE;
+        return NOERROR;
     }
     *isIntersected = FALSE;
     return NOERROR;

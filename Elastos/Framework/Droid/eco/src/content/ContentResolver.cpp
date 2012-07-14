@@ -3,9 +3,9 @@
 #include "content/CCursorWrapperInner.h"
 #include "app/ActivityManagerNative.h"
 
-const String ContentResolver::SCHEME_CONTENT  = "content";
-const String ContentResolver::SCHEME_ELASTOS_RESOURCE  = "elastos.resource";
-const String ContentResolver::SCHEME_FILE  = "file";
+const char* ContentResolver::SCHEME_CONTENT  = "content";
+const char* ContentResolver::SCHEME_ELASTOS_RESOURCE  = "elastos.resource";
+const char* ContentResolver::SCHEME_FILE  = "file";
 
 ContentResolver::ContentResolver(
     /* [in] */ IContext* context) :
@@ -28,20 +28,16 @@ ECode ContentResolver::AcquireProvider(
     String scheme;
     uri->GetScheme(&scheme);
     if (String(ContentResolver_SCHEME_CONTENT).Compare(scheme)) {
-        String::Free(scheme);
         *provider = NULL;
         return E_DOES_NOT_EXIST;
     }
-    String::Free(scheme);
 
     String auth;
     uri->GetAuthority(&auth);
     if (!auth.IsNull()) {
         ECode ec = AcquireProvider(mContext, auth, provider);
-        String::Free(auth);
         return ec;
     }
-    String::Free(auth);
     *provider = NULL;
     return E_DOES_NOT_EXIST;
 }
@@ -63,20 +59,16 @@ ECode ContentResolver::AcquireExistingProvider(
     String scheme;
     uri->GetScheme(&scheme);
     if (String(ContentResolver_SCHEME_CONTENT).Compare(scheme)) {
-        String::Free(scheme);
         *provider = NULL;
         return E_DOES_NOT_EXIST;
     }
-    String::Free(scheme);
 
     String auth;
     uri->GetAuthority(&auth);
     if (!auth.IsNull()) {
         ECode ec = AcquireExistingProvider(mContext, auth, provider);
-        String::Free(auth);
         return ec;
     }
-    String::Free(auth);
     *provider = NULL;
     return E_DOES_NOT_EXIST;
 }
@@ -121,7 +113,7 @@ ECode ContentResolver::GetResourceId(
 
 ECode ContentResolver::Delete(
     /* [in] */ IUri* uri,
-    /* [in] */ String selection,
+    /* [in] */ const String& selection,
     /* [in] */ const ArrayOf<String>& selectionArgs,
     /* [out] */ Int32* rowsAffected)
 {
@@ -160,11 +152,9 @@ ECode ContentResolver::GetType(
     String scheme;
     uri->GetScheme(&scheme);
     if (String(ContentResolver_SCHEME_CONTENT).Compare(scheme)) {
-        String::Free(scheme);
         *type = NULL;
         return E_DOES_NOT_EXIST;
     }
-    String::Free(scheme);
 
 //    try {
     AutoPtr<IActivityManager> am;
@@ -206,9 +196,9 @@ ECode ContentResolver::Insert(
 ECode ContentResolver::Query(
     /* [in] */ IUri* uri,
     /* [in] */ const ArrayOf<String>& projection,
-    /* [in] */ String selection,
+    /* [in] */ const String& selection,
     /* [in] */ const ArrayOf<String>& selectionArgs,
-    /* [in] */ String sortOrder,
+    /* [in] */ const String& sortOrder,
     /* [out] */ ICursor** cursor)
 {
     if (cursor == NULL) return E_INVALID_ARGUMENT;
@@ -240,7 +230,7 @@ ECode ContentResolver::Query(
 ECode ContentResolver::Update(
     /* [in] */ IUri* uri,
     /* [in] */ IContentValues* values,
-    /* [in] */ String selection,
+    /* [in] */ const String& selection,
     /* [in] */ const ArrayOf<String>& selectionArgs,
     /* [out] */ Int32* rowsAffected)
 {

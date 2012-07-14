@@ -13,7 +13,7 @@ ECode CContentProviderOne::GetClassID(
 
 ECode CContentProviderOne::Delete(
     /* [in] */ IUri* uri, 
-    /* [in] */ String selection, 
+    /* [in] */ const String& selection, 
     /* [in] */ const ArrayOf<String>& selectionArgs,
     /* [out] */ Int32* rowsAffected)
 {
@@ -39,9 +39,9 @@ ECode CContentProviderOne::Insert(
 ECode CContentProviderOne::Query(
     /* [in] */ IUri* uri, 
     /* [in] */ const ArrayOf<String>& projection, 
-    /* [in] */ String selection, 
+    /* [in] */ const String& selection, 
     /* [in] */ const ArrayOf<String>& selectionArgs, 
-    /* [in] */ String sortOrder,
+    /* [in] */ const String& sortOrder,
     /* [out] */ ICursor** cursor)
 {
     return NOERROR;
@@ -50,7 +50,7 @@ ECode CContentProviderOne::Query(
 ECode CContentProviderOne::Update(
     /* [in] */ IUri* uri, 
     /* [in] */ IContentValues* values, 
-    /* [in] */ String selection, 
+    /* [in] */ const String& selection, 
     /* [in] */ const ArrayOf<String>& selectionArgs,
     /* [out] */ Int32* rowsAffected)
 {

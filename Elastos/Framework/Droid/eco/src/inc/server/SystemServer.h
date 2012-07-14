@@ -7,7 +7,7 @@
 class SystemServer
 {
 public:
-    static const String TAG;
+    static const char* TAG;
 
     static const Int32 FACTORY_TEST_OFF = 0;
     static const Int32 FACTORY_TEST_LOW_LEVEL = 1;

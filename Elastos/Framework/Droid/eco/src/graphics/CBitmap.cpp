@@ -17,23 +17,23 @@
 #include <skia/images/SkImageEncoder.h>
 #include <skia/core/SkDither.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
-const String CBitmap::TAG = "CBitmap";
+const char* CBitmap::TAG = "CBitmap";
 Mutex CBitmap::sClsLock;
 AutoPtr<IMatrix> CBitmap::sScaleMatrix;
 Int32 CBitmap::sDefaultDensity = -1;
 Int32 CBitmap::WORKING_COMPRESS_STORAGE = 4096;
 
 CBitmap::CBitmap()
-    : mNativeBitmap(NULL)
+    : mDensity(-1)
+    , mNativeBitmap(NULL)
     , mIsMutable(FALSE)
     , mNinePatchChunk(NULL)
     , mWidth(-1)
     , mHeight(-1)
     , mRecycled(FALSE)
-    , mDensity(-1)
 {
 }
 

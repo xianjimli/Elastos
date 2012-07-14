@@ -3,7 +3,7 @@
 #include <new>
 #include "ext/frameworkext.h"
 #include "utils/CApartment.h"
-#include "utils/CObjectContainer.h"
+#include "utils/CParcelableObjectContainer.h"
 #include "app/CApplicationApartment.h"
 #include "app/LoadedCap.h"
 #include "app/CContextImpl.h"
@@ -20,12 +20,12 @@
 #include <Slogger.h>
 #include <StringBuffer.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
 #define UNUSED(x) (void)x
 
-const String CApplicationApartment::TAG = "CApplicationApartment";
+const char* CApplicationApartment::TAG = "CApplicationApartment";
 const Boolean CApplicationApartment::DEBUG;
 const Boolean CApplicationApartment::localLOGV;
 const Boolean CApplicationApartment::DEBUG_MESSAGES;
@@ -50,22 +50,19 @@ ActivityClientRecord::GetDescription(
 
     StringBuffer sb;
     sb += "ActivityRecord{ token=" + tkDes + " " + nmDes + "}";
-    *description = String::Duplicate(sb);
-    String::Free(tkDes);
-    String::Free(nmDes);
+    *description = (const char*)sb;
     return NOERROR;
 }
 
 CApplicationApartment::
 ProviderClientRecord::ProviderClientRecord(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in] */ IContentProvider* provider,
-    /* [in] */ IContentProvider* localProvider) :
-    mProvider(provider),
-    mLocalProvider(localProvider)
-{
-    mName = String::Duplicate(name);
-}
+    /* [in] */ IContentProvider* localProvider)
+    : mName(name)
+    , mProvider(provider)
+    , mLocalProvider(localProvider)
+{}
 
 CApplicationApartment::CApplicationApartment() :
     mCapsules(11),
@@ -98,10 +95,10 @@ ICapsuleManager* CApplicationApartment::GetCapsuleManager()
     AutoPtr<ICapsuleManager> capsuleManager;
     Elastos::GetServiceManager((IServiceManager**)&serviceManager);
     assert(serviceManager != NULL);
-	serviceManager->GetService("capsule",
-	        (IInterface**)(ICapsuleManager**)&capsuleManager);
+    serviceManager->GetService(String("capsule"),
+            (IInterface**)(ICapsuleManager**)&capsuleManager);
     assert(capsuleManager != NULL);
-	return capsuleManager;
+    return capsuleManager;
 }
 
 ECode CApplicationApartment::GetDescription(
@@ -111,11 +108,11 @@ ECode CApplicationApartment::GetDescription(
 }
 
 ECode CApplicationApartment::BindApplication(
-    /* [in] */ String processName,
+    /* [in] */ const String& processName,
     /* [in] */ IApplicationInfo* appInfo,
     /* [in] */ IObjectContainer* providers,
     /* [in] */ IComponentName* instrumentationName,
-    /* [in] */ String profileFile,
+    /* [in] */ const String& profileFile,
     /* [in] */ IBundle* instrumentationArgs,
     /* [in] */ IInstrumentationWatcher* instrumentationWatcher,
     /* [in] */ Int32 debugMode,
@@ -133,9 +130,8 @@ ECode CApplicationApartment::BindApplication(
         CServiceManager::AcquireSingletonByFriend((CServiceManager**)&serviceManager);
         serviceManager->InitServiceCache(services);
     }
-
     AppBindData* data = new AppBindData();
-    data->mProcessName = String::Duplicate(processName);
+    data->mProcessName = processName;
     data->mAppInfo = (CApplicationInfo*)appInfo;
     data->mProviders = providers;
     data->mInstrumentationName = instrumentationName;
@@ -150,7 +146,7 @@ ECode CApplicationApartment::BindApplication(
     CCallbackParcel::New((IParcel**)&params);
     params->WriteInt32((Handle32)data);
 
-    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params);
+    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 ECode CApplicationApartment::ScheduleLaunchActivity(
@@ -215,7 +211,7 @@ ECode CApplicationApartment::ScheduleLaunchActivity(
     params->WriteInt32((Handle32)r);
     params->WriteInterfacePtr(NULL);
 
-    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params);
+    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 ECode CApplicationApartment::ScheduleRelaunchActivity(
@@ -277,7 +273,7 @@ ECode CApplicationApartment::ScheduleRelaunchActivity(
     params->WriteInt32((Handle32)r);
     params->WriteInt32(configChanges);
 
-    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params);
+    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 ECode CApplicationApartment::ScheduleSendResult(
@@ -303,7 +299,7 @@ ECode CApplicationApartment::ScheduleSendResult(
     CCallbackParcel::New((IParcel**)&params);
     params->WriteInt32((Handle32)res);
 
-    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params);
+    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 ECode CApplicationApartment::ScheduleResumeActivity(
@@ -320,7 +316,7 @@ ECode CApplicationApartment::ScheduleResumeActivity(
     params->WriteBoolean(TRUE);
     params->WriteBoolean(isForward);
 
-    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params);
+    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 ECode CApplicationApartment::SchedulePauseActivity(
@@ -341,7 +337,7 @@ ECode CApplicationApartment::SchedulePauseActivity(
     params->WriteBoolean(userLeaving);
     params->WriteInt32(configChanges);
 
-    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params);
+    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 ECode CApplicationApartment::ScheduleStopActivity(
@@ -359,7 +355,7 @@ ECode CApplicationApartment::ScheduleStopActivity(
     params->WriteBoolean(showWindow);
     params->WriteInt32(configChanges);
 
-    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params);
+    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 ECode CApplicationApartment::ScheduleWindowVisibility(
@@ -375,7 +371,7 @@ ECode CApplicationApartment::ScheduleWindowVisibility(
     params->WriteInterfacePtr(token);
     params->WriteBoolean(showWindow);
 
-    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params);
+    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 ECode CApplicationApartment::ScheduleDestroyActivity(
@@ -395,14 +391,14 @@ ECode CApplicationApartment::ScheduleDestroyActivity(
     params->WriteInt32(configChanges);
     params->WriteBoolean(FALSE);
 
-    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params);
+    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 ECode CApplicationApartment::ScheduleReceiver(
     /* [in] */ IIntent* intent,
     /* [in] */ IActivityInfo* info,
     /* [in] */ Int32 resultCode,
-    /* [in] */ String data,
+    /* [in] */ const String& data,
     /* [in] */ IBundle* extras,
     /* [in] */ Boolean sync)
 {
@@ -421,14 +417,14 @@ ECode CApplicationApartment::ScheduleReceiver(
     AutoPtr<IParcel> params;
     CCallbackParcel::New((IParcel**)&params);
     params->WriteInt32((Handle32)r);
-    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params);
+    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 ECode CApplicationApartment::ScheduleRegisteredReceiver(
     /* [in] */ IIntentReceiver* receiver,
     /* [in] */ IIntent* intent,
     /* [in] */ Int32 resultCode,
-    /* [in] */ String dataStr,
+    /* [in] */ const String& dataStr,
     /* [in] */ IBundle* extras,
     /* [in] */ Boolean ordered,
     /* [in] */ Boolean sticky)
@@ -458,12 +454,12 @@ ECode CApplicationApartment::ScheduleNewIntent(
     AutoPtr<IParcel> params;
     CCallbackParcel::New((IParcel**)&params);
     params->WriteInt32((Handle32)data);
-    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params);
+    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 ECode CApplicationApartment::SendActivityResult(
     /* [in] */ IBinder* token,
-    /* [in] */ String id,
+    /* [in] */ const String& id,
     /* [in] */ Int32 requestCode,
     /* [in] */ Int32 resultCode,
     /* [in] */ IIntent* data)
@@ -473,7 +469,7 @@ ECode CApplicationApartment::SendActivityResult(
                 " req=" + requestCode + " res=" + resultCode + " data=" + (Int32)data);
     }
     AutoPtr<IObjectContainer> list;
-    CObjectContainer::New((IObjectContainer**)&list);
+    CParcelableObjectContainer::New((IObjectContainer**)&list);
     AutoPtr<CResultInfo> info;
     CResultInfo::NewByFriend(id, requestCode, resultCode, data, (CResultInfo**)&info);
     list->Add((IParcelable*)(CResultInfo*)info);
@@ -495,7 +491,7 @@ ECode CApplicationApartment::ScheduleCreateService(
     AutoPtr<IParcel> params;
     CCallbackParcel::New((IParcel**)&params);
     params->WriteInt32((Handle32)s);
-    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params);
+    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 ECode CApplicationApartment::ScheduleBindService(
@@ -515,7 +511,7 @@ ECode CApplicationApartment::ScheduleBindService(
     AutoPtr<IParcel> params;
     CCallbackParcel::New((IParcel**)&params);
     params->WriteInt32((Handle32)s);
-    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params);
+    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 ECode CApplicationApartment::ScheduleUnbindService(
@@ -533,7 +529,7 @@ ECode CApplicationApartment::ScheduleUnbindService(
     AutoPtr<IParcel> params;
     CCallbackParcel::New((IParcel**)&params);
     params->WriteInt32((Handle32)s);
-    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params);
+    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 ECode CApplicationApartment::ScheduleServiceArgs(
@@ -555,7 +551,7 @@ ECode CApplicationApartment::ScheduleServiceArgs(
     AutoPtr<IParcel> params;
     CCallbackParcel::New((IParcel**)&params);
     params->WriteInt32((Handle32)s);
-    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params);
+    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 ECode CApplicationApartment::ScheduleStopService(
@@ -567,7 +563,7 @@ ECode CApplicationApartment::ScheduleStopService(
     AutoPtr<IParcel> params;
     CCallbackParcel::New((IParcel**)&params);
     params->WriteInterfacePtr(token);
-    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params);
+    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 ECode CApplicationApartment::ScheduleConfigurationChanged(
@@ -591,8 +587,8 @@ ECode CApplicationApartment::DispatchCapsuleBroadcast(
 
 ECode CApplicationApartment::ScheduleContextCleanup(
     /* [in] */ IContext* context,
-    /* [in] */ String who,
-    /* [in] */ String what)
+    /* [in] */ const String& who,
+    /* [in] */ const String& what)
 {
     ECode (STDCALL CApplicationApartment::*pHandlerFunc)(
         ContextCleanupInfo* cci);
@@ -600,13 +596,13 @@ ECode CApplicationApartment::ScheduleContextCleanup(
 
     ContextCleanupInfo* cci = new ContextCleanupInfo();
     cci->mContext = context;
-    cci->mWho = String::Duplicate(who);
-    cci->mWhat = String::Duplicate(what);
+    cci->mWho = who;
+    cci->mWhat = what;
 
     AutoPtr<IParcel> params;
     CCallbackParcel::New((IParcel**)&params);
     params->WriteInt32((Handle32)cci);
-    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params);
+    return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 ECode CApplicationApartment::HandleBindApplication(
@@ -614,11 +610,7 @@ ECode CApplicationApartment::HandleBindApplication(
 {
     String wdir;
     data->mAppInfo->GetSourceDir(&wdir);
-#ifdef _MSVC
-	kdChdirKT((const char*)wdir);
-#else
     chdir((const char*)wdir);
-#endif
 
 //    mBoundApplication = data;
 //    mConfiguration = new Configuration(data.config);
@@ -706,22 +698,21 @@ ECode CApplicationApartment::HandleBindApplication(
                 data->mInstrumentationName->FlattenToShortString(&instName);
                 Slogger::E(TAG,
                         StringBuffer("Unable to find instrumentation info for: ") + instName);
-                String::Free(instName);
             }
             return E_RUNTIME_EXCEPTION;
         }
 
         CInstrumentationInfo* ci = (CInstrumentationInfo*)(IInstrumentationInfo*)ii;
-        mInstrumentationAppDir = String::Duplicate(ci->mSourceDir);
-        mInstrumentationAppPackage = String::Duplicate(ci->mCapsuleName);
+        mInstrumentationAppDir = ci->mSourceDir;
+        mInstrumentationAppPackage = ci->mCapsuleName;
         data->mInfo->GetAppDir(&mInstrumentedAppDir);
 
         AutoPtr<CApplicationInfo> instrApp;
         CApplicationInfo::NewByFriend((CApplicationInfo**)&instrApp);
-        instrApp->mCapsuleName = String::Duplicate(ci->mCapsuleName);
-        instrApp->mSourceDir = String::Duplicate(ci->mSourceDir);
-        instrApp->mPublicSourceDir = String::Duplicate(ci->mPublicSourceDir);
-        instrApp->mDataDir = String::Duplicate(ci->mDataDir);
+        instrApp->mCapsuleName = ci->mCapsuleName;
+        instrApp->mSourceDir = ci->mSourceDir;
+        instrApp->mPublicSourceDir = ci->mPublicSourceDir;
+        instrApp->mDataDir = ci->mDataDir;
         LoadedCap* pi = GetCapsuleInfo(instrApp, FALSE, TRUE);
         UNUSED(pi);
 //        ContextImpl instrContext = new ContextImpl();
@@ -802,7 +793,6 @@ ECode CApplicationApartment::HandleLaunchActivity(
         String acrDes;
         r->GetDescription(&acrDes);
         Slogger::V(TAG, StringBuffer("Handling launch of ") + acrDes);
-        String::Free(acrDes);
     }
     AutoPtr<IActivity> a;
     PerformLaunchActivity(r, customIntent, (IActivity**)&a);
@@ -889,13 +879,9 @@ ECode CApplicationApartment::PerformLaunchActivity(
     assert(!className.IsNull());
 
     char path[256];
-#ifdef _linux
     strcpy(path, "/data/data/com.elastos.runtime/elastos/");
-	strcat(path, capsuleName);
+    strcat(path, capsuleName);
     strcat(path, "/");
-#else
-    strcpy(path, "/native/");
-#endif
     strcat(path, capsuleName);
     strcat(path, ".eco");
 
@@ -913,8 +899,6 @@ ECode CApplicationApartment::PerformLaunchActivity(
     classInfo->CreateObject((IInterface**)&object);
     AutoPtr<IActivity> a;
     a = (IActivity*)object->Probe(EIID_IActivity);
-    String::Free(capsuleName);
-    String::Free(className);
 
 //    try {
     AutoPtr<IApplication> app;// = r.packageInfo.makeApplication(false, mInstrumentation);
@@ -1131,7 +1115,6 @@ ECode CApplicationApartment::HandleResumeActivity(
             Slogger::V(TAG, StringBuffer("Resume ") + rdes + " started activity: "
                     /*+ a.mStartedActivity*/ + ", hideForNow: " + r->mHideForNow
                     + ", finished: " /*+ a.mFinished*/);
-            String::Free(rdes);
         }
 
         Int32 forwardBit = isForward ?
@@ -1425,7 +1408,7 @@ ECode CApplicationApartment::HandleStopActivity(
     // Tell activity manager we have been stopped.c
     AutoPtr<IActivityManager> amService;
     ActivityManagerNative::GetDefault((IActivityManager**)&amService);
-    ec = amService->ActivityStopped(r->mToken, NULL /*info.thumbnail*/, NULL /*info.description*/);
+    ec = amService->ActivityStopped(r->mToken, NULL /*info.thumbnail*/, String(NULL) /*info.description*/);
 
     return NOERROR;
 }
@@ -1825,10 +1808,7 @@ ECode CApplicationApartment::HandleReceiver(
 
     AutoPtr<IBroadcastReceiver> receiver;
 //    try {
-    char *path = (char*)malloc(capsuleName.GetLength() + 10 + 1);
-    strcpy(path, "/native/");
-    strcat(path, capsuleName);
-    strcat(path, ".eco");
+    String path = capsuleName + ".eco";
 
     AutoPtr<IModuleInfo> moduleInfo;
     AutoPtr<IClassInfo> classInfo;
@@ -1836,9 +1816,6 @@ ECode CApplicationApartment::HandleReceiver(
     CReflector::AcquireModuleInfo(path, (IModuleInfo**)&moduleInfo);
     moduleInfo->GetClassInfo(className, (IClassInfo**)&classInfo);
     classInfo->CreateObject((IInterface**)&object);
-    String::Free(capsuleName);
-    String::Free(className);
-    free(path);
 
     receiver = (IBroadcastReceiver*)object->Probe(EIID_IBroadcastReceiver);
 //    } catch (Exception e) {
@@ -1903,11 +1880,11 @@ ECode CApplicationApartment::HandleReceiver(
         receiver->GetResultExtras(FALSE, (IBundle**)&re);
         receiver->GetAbortBroadcast(&ab);
         mgr->FinishReceiver((IApplicationApartment*)this, rc, rd, re, ab);
-        String::Free(rd);
-    } else {
+    }
+    else {
 //        if (DEBUG_BROADCAST) Slog.i(TAG,
 //                "Finishing broadcast to " + data.intent.getComponent());
-        mgr->FinishReceiver((IApplicationApartment*)this, 0, NULL, NULL, FALSE);
+        mgr->FinishReceiver((IApplicationApartment*)this, 0, String(NULL), NULL, FALSE);
     }
 //    } catch (RemoteException ex) {
 //    }
@@ -1925,10 +1902,7 @@ ECode CApplicationApartment::HandleCreateService(
     LoadedCap* capsuleInfo = GetCapsuleInfoNoCheck(
             data->mInfo->mApplicationInfo);
 
-    char path[256];
-    strcpy(path, "/native/");
-    strcat(path, data->mInfo->mCapsuleName);
-    strcat(path, ".eco");
+    String path = data->mInfo->mCapsuleName + ".eco";
 
     AutoPtr<IModuleInfo> moduleInfo;
     ECode ec = CReflector::AcquireModuleInfo(path, (IModuleInfo**)&moduleInfo);
@@ -2088,8 +2062,7 @@ ECode CApplicationApartment::HandleStopService(
             String who;
             s->GetClassName(&who);
             ((CContextImpl*)(IContext*)context)->ScheduleFinalCleanup(
-                    who, "Service");
-            String::Free(who);
+                    who, String("Service"));
         }
 //        QueuedWork.waitToFinish();
 //        try {
@@ -2139,7 +2112,7 @@ ECode CApplicationApartment::GetDisplayMetricsLocked(
 }
 
 ECode CApplicationApartment::GetTopLevelResources(
-    /* [in] */ String resDir,
+    /* [in] */ const String& resDir,
     /* [in] */ CCompatibilityInfo* compInfo,
     /* [out] */ CResources** res)
 {
@@ -2239,7 +2212,7 @@ ECode CApplicationApartment::GetTopLevelResources(
 }
 
 ECode CApplicationApartment::GetTopLevelResources(
-    /* [in] */ String resDir,
+    /* [in] */ const String& resDir,
     /* [in] */ LoadedCap* capInfo,
     /* [out] */ CResources** res)
 {
@@ -2277,9 +2250,9 @@ LoadedCap* CApplicationApartment::GetCapsuleInfo(
                 aInfo, this, securityViolation, includeCode /* &&
                 (aInfo.flags&ApplicationInfo.FLAG_HAS_CODE) != 0 */);
         if (includeCode) {
-            mCapsules[String::Duplicate(aInfo->mCapsuleName)] = capsuleInfo;
+            mCapsules[aInfo->mCapsuleName] = capsuleInfo;
         } else {
-            mResourceCapsules[String::Duplicate(aInfo->mCapsuleName)] = capsuleInfo;
+            mResourceCapsules[aInfo->mCapsuleName] = capsuleInfo;
         }
     }
 
@@ -2312,7 +2285,7 @@ LoadedCap* CApplicationApartment::GetCapsuleInfo(
 }
 
 LoadedCap* CApplicationApartment::GetCapsuleInfo(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ Int32 flags)
 {
     {
@@ -2361,7 +2334,7 @@ ECode CApplicationApartment::InstallContentProviders(
 {
     ECode ec;
     AutoPtr<IObjectContainer> results;
-    CObjectContainer::New((IObjectContainer**)&results);
+    CParcelableObjectContainer::New((IObjectContainer**)&results);
 
     Boolean hasNext = FALSE;
     AutoPtr<IObjectEnumerator> enumerator;
@@ -2401,7 +2374,7 @@ ECode CApplicationApartment::InstallContentProviders(
 
 ECode CApplicationApartment::GetExistingProvider(
     /* [in] */ IContext* context,
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ IContentProvider** provider)
 {
     Mutex::Autolock lock(mProviderMapLock);
@@ -2417,7 +2390,7 @@ ECode CApplicationApartment::GetExistingProvider(
 
 ECode CApplicationApartment::GetProvider(
     /* [in] */ IContext* context,
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ IContentProvider** provider)
 {
     ECode ec = GetExistingProvider(context, name, provider);
@@ -2457,7 +2430,7 @@ ECode CApplicationApartment::GetProvider(
 
 ECode CApplicationApartment::AcquireProvider(
     /* [in] */ IContext* context,
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ IContentProvider** provider)
 {
     if (provider == NULL) return E_INVALID_ARGUMENT;
@@ -2481,7 +2454,7 @@ ECode CApplicationApartment::AcquireProvider(
 
 ECode CApplicationApartment::AcquireExistingProvider(
     /* [in] */ IContext* context,
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ IContentProvider** provider)
 {
     if (provider == NULL) return E_INVALID_ARGUMENT;
@@ -2527,13 +2500,11 @@ ECode CApplicationApartment::InstallProvider(
             c = context;
         }
         else if (mInitialApplication != NULL) {
-            String::Free(capName);
             mInitialApplication->GetCapsuleName(&capName);
             if (!capName.Compare(((CApplicationInfo*)
                     (IApplicationInfo*)ai)->mCapsuleName)) {
                 c = (IContext*)mInitialApplication;
             }
-            String::Free(capName);
         }
         else {
             context->CreateCapsuleContext(
@@ -2554,10 +2525,7 @@ ECode CApplicationApartment::InstallProvider(
         AutoPtr<IInterface> object;
         String className = ((CContentProviderInfo*)info)->mName;
         String capsuleName = ((CContentProviderInfo*)info)->mCapsuleName;
-        char *path = (char*)malloc(capsuleName.GetLength() + 10 + 1);
-        strcpy(path, "/native/");
-        strcat(path, capsuleName);
-        strcat(path, ".eco");
+        String path = capsuleName + ".eco";
 
         CReflector::AcquireModuleInfo(path /* info.name */, (IModuleInfo**)&moduleInfo);
         moduleInfo->GetClassInfo(className, (IClassInfo**)&classInfo);
@@ -2595,7 +2563,7 @@ ECode CApplicationApartment::InstallProvider(
             String name = tokens->NextToken();
             ProviderClientRecord* pr = new ProviderClientRecord(name,
                     provider, localProvider);
-            mProviderMap[String::Duplicate(name)] = pr;
+            mProviderMap[name] = pr;
         }
         if (localProvider != NULL) {
     //        mLocalProviders.put(provider.asBinder(),
@@ -2655,7 +2623,7 @@ ECode CApplicationApartment::Startup(
     AutoPtr<IServiceManager> serviceManager;
 
     Elastos::GetServiceManager((IServiceManager**)&serviceManager);
-    serviceManager->GetService("ActivityManagerService", (IInterface**)&obj);
+    serviceManager->GetService(String("ActivityManagerService"), (IInterface**)&obj);
 
     AutoPtr<IActivityManager> ams;
     ams = (IActivityManager*)obj->Probe(EIID_IActivityManager);

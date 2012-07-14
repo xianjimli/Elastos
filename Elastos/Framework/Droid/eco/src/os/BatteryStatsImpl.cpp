@@ -337,7 +337,7 @@ void BatteryStatsImpl::RemoveUidStatsLocked(
 BatteryStatsImpl::Uid::Proc*
 BatteryStatsImpl::GetProcessStatsLocked(
     /* [in] */ Int32 uid,
-    /* [in] */ String name)
+    /* [in] */ const String& name)
 {
 //    Uid u = getUidStatsLocked(uid);
 //    return u.getProcessStatsLocked(name);
@@ -351,8 +351,8 @@ BatteryStatsImpl::GetProcessStatsLocked(
 BatteryStatsImpl::Uid::Cap::Serv*
 BatteryStatsImpl::GetServiceStatsLocked(
     /* [in] */ Int32 uid,
-    /* [in] */ String pkg,
-    /* [in] */ String name)
+    /* [in] */ const String& pkg,
+    /* [in] */ const String& name)
 {
 //    Uid u = getUidStatsLocked(uid);
 //        return u.getServiceStatsLocked(pkg, name);

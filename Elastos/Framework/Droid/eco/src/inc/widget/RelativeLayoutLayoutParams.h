@@ -31,13 +31,15 @@ public:
      * {@inheritDoc}
      */
     RelativeLayoutLayoutParams(
-        /* [in] */ ViewGroupLayoutParams* p);
+        /* [in] */ ViewGroupLayoutParams* source);
 
     /**
      * {@inheritDoc}
      */
     RelativeLayoutLayoutParams(
         /* [in] */ ViewGroupMarginLayoutParams* source);
+
+    ~RelativeLayoutLayoutParams();
 
     CARAPI Init(
         /* [in] */ IContext* c,
@@ -63,21 +65,23 @@ public:
     CARAPI_(ArrayOf<Int32>*) GetRules();
 
 private:
-    const static Int32 VERB_COUNT = 16;
+    CARAPI InitFromAttributes(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs);
 
 public:
-    /**
-     * When true, uses the parent as the anchor if the anchor doesn't exist or if
-     * the anchor's visibility is GONE.
-     */
-    Boolean mAlignWithParent;
-    ArrayOf_<Int32, VERB_COUNT> mRules;
+    ArrayOf<Int32>* mRules;
 
     Int32 mLeft;
     Int32 mTop;
     Int32 mRight;
     Int32 mBottom;
 
+    /**
+     * When true, uses the parent as the anchor if the anchor doesn't exist or if
+     * the anchor's visibility is GONE.
+     */
+    Boolean mAlignWithParent;
 };
 
 

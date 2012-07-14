@@ -6,7 +6,7 @@ using namespace Elastos::Utility::Logging;
 
 #define UNUSED(x) ((void)x)
 
-const String NativeInputManager::TAG = "NativeInputManager";
+const char* NativeInputManager::TAG = "NativeInputManager";
 
 NativeInputManager::NativeInputManager(
     /* [in] */ InputManagerCallbacks* callbacks) :
@@ -211,7 +211,7 @@ void NativeInputManager::getVirtualKeyDefinitions(
     outVirtualKeyDefinitions.clear();
 
     ArrayOf<VirtualKeyDefinition>* result;
-    if (SUCCEEDED(mCallbacks->GetVirtualKeyDefinitions(deviceName.string(), &result))) {
+    if (SUCCEEDED(mCallbacks->GetVirtualKeyDefinitions(String(deviceName.string()), &result))) {
         for (Int32 i = 0; i < result->GetLength(); i++) {
             VirtualKeyDefinition item = (*result)[i];
 
@@ -236,7 +236,7 @@ void NativeInputManager::getInputDeviceCalibration(
     outCalibration.clear();
 
     InputDeviceCalibration* result;
-    if (SUCCEEDED(mCallbacks->GetInputDeviceCalibration(deviceName.string(), &result))) {
+    if (SUCCEEDED(mCallbacks->GetInputDeviceCalibration(String(deviceName.string()), &result))) {
         ArrayOf<String>* keys = result->mKeys;
         ArrayOf<String>* values = result->mValues;
 

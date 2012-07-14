@@ -5,9 +5,9 @@
 #include "ext/frameworkdef.h"
 #include <elastos/List.h>
 #include <elastos/AutoPtr.h>
+#include <elastos/ElRefBase.h>
 
 #include "utils/CBundle.h"
-#include "utils/AutoString.h"
 #include "content/CComponentName.h"
 #include "content/CIntentFilter.h"
 #include "content/CPermissionInfo.h"
@@ -31,17 +31,27 @@ public:
     class NewPermissionInfo {
         public:
             NewPermissionInfo(
-                /* [in] */ String name,
+                /* [in] */ const String& name,
                 /* [in] */ Int32 sdkVersion,
                 /* [in] */ Int32 fileVersion)
             {
-                mName = String::Duplicate(name);
+                mName = name;
+                mSdkVersion = sdkVersion;
+                mFileVersion = fileVersion;
+            }
+
+            NewPermissionInfo(
+                /* [in] */ const char* name,
+                /* [in] */ Int32 sdkVersion,
+                /* [in] */ Int32 fileVersion)
+            {
+                mName = name;
                 mSdkVersion = sdkVersion;
                 mFileVersion = fileVersion;
             }
 
         public:
-            AutoString mName;
+            String mName;
             Int32 mSdkVersion;
             Int32 mFileVersion;
     };
@@ -54,27 +64,46 @@ public:
     {
     public:
         Component()
-            : mOwner(NULL) {}
+            : mOwner(NULL)
+            , mIntents(NULL) {}
 
         Component(
             /* [in] */ Capsule* owner)
-            : mOwner(owner) {}
+            : mOwner(owner)
+            , mIntents(NULL) {}
+
+        Component(
+            /* [in] */ Component<II>* clone)
+        {
+            mOwner = clone->mOwner;
+            //todo: mIntents should be copied deeply;
+            mIntents = clone->mIntents;
+            mClassName = clone->mClassName;
+            mComponentName = clone->mComponentName;
+            mComponentShortName = clone->mComponentShortName;
+        }
 
         Component(
             /* [in] */ ParseCapsuleItemArgs* args,
             /* [in, out] */ CapsuleItemInfo* outInfo);
 
-        virtual ~Component() {}
+        virtual ~Component()
+        {
+            if (mIntents != NULL) {
+                mIntents->Clear();
+                mIntents = NULL;
+            }
+        }
 
         virtual CARAPI GetComponentName(
             /* [out] */ IComponentName** component);
 
         virtual CARAPI_(void) SetCapsuleName(
-            /* [in] */ String capsuleName);
+            /* [in] */ const String& capsuleName);
 
     public:
         Capsule* mOwner;
-        List<II*> mIntents;
+        List<II*>* mIntents;
         String mClassName;
         AutoPtr<CBundle> mMetaData;
         AutoPtr<IComponentName> mComponentName;
@@ -97,7 +126,7 @@ public:
         ~Permission();
 
         CARAPI_(void) SetCapsuleName(
-            /* [in] */ String capsuleName);
+            /* [in] */ const String& capsuleName);
 
         CARAPI_(String) GetDescription();
 
@@ -120,7 +149,7 @@ public:
         ~PermissionGroup();
 
         CARAPI_(void) SetCapsuleName(
-            /* [in] */ String capsuleName);
+            /* [in] */ const String& capsuleName);
 
         CARAPI GetDescription(
             /* [out] */ String* des);
@@ -141,7 +170,7 @@ public:
             /* [out] */ Int32* priority);
 
         CARAPI AddAction(
-            /* [in] */ String action);
+            /* [in] */ const String& action);
 
         CARAPI CountActions(
             /* [out] */ Int32 *count);
@@ -151,24 +180,24 @@ public:
             /* [out] */ String *action);
 
         CARAPI AddCategory(
-            /* [in] */ String category);
+            /* [in] */ const String& category);
 
         CARAPI AddDataType(
-            /* [in] */ String type);
+            /* [in] */ const String& type);
 
         CARAPI AddDataScheme(
-            /* [in] */ String scheme);
+            /* [in] */ const String& scheme);
 
         CARAPI AddDataAuthority(
-            /* [in] */ String host,
-            /* [in] */ String port);
+            /* [in] */ const String& host,
+            /* [in] */ const String& port);
 
         CARAPI AddDataPath(
-            /* [in] */ String path,
+            /* [in] */ const String& path,
             /* [in] */ Int32 type);
 
         CARAPI HasCategory(
-            /* [in] */ String category,
+            /* [in] */ const String& category,
             /* [out] */ Boolean* hasCategory);
 
     public:
@@ -242,6 +271,14 @@ public:
     {
     public:
         ContentProvider() : mSyncable(FALSE) {}
+
+        ContentProvider(
+            /* [in] */ ContentProvider* existingProvider)
+            : Component<IntentInfo>(existingProvider)
+        {
+            this->mInfo = existingProvider->mInfo;
+            this->mSyncable = existingProvider->mSyncable;
+        }
 
         ContentProvider(
             /* [in] */ ParseComponentArgs* args,
@@ -350,13 +387,14 @@ public:
         Int32 mFlags;
     };
 
-    class Capsule
+    class Capsule : public ElRefBase, public IInterface
     {
     public:
         Capsule()
             : mCapsuleName(NULL)
             , mVersionCode(0)
             , mSharedUserLabel(0)
+            , mPreferredOrder(0)
             , mSetEnabled(CapsuleManager_COMPONENT_ENABLED_STATE_DEFAULT)
             , mExtras(NULL)
             , mOperationPending(FALSE)
@@ -368,10 +406,11 @@ public:
         }
 
         Capsule(
-            /* [in] */ String name)
-            : mCapsuleName(String::Duplicate(name))
+            /* [in] */ const String& name)
+            : mCapsuleName(name)
             , mVersionCode(0)
             , mSharedUserLabel(0)
+            , mPreferredOrder(0)
             , mSetEnabled(CapsuleManager_COMPONENT_ENABLED_STATE_DEFAULT)
             , mExtras(NULL)
             , mOperationPending(FALSE)
@@ -383,11 +422,22 @@ public:
             mApplicationInfo->Release();
         }
 
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
         CARAPI_(void) SetCapsuleName(
-            /* [in] */ String newName);
+            /* [in] */ const String& newName);
 
     public:
-        AutoString mCapsuleName;
+        String mCapsuleName;
 
         AutoPtr<CApplicationInfo> mApplicationInfo;
 
@@ -408,7 +458,7 @@ public:
         AutoFree< ArrayOf<String> > mUsesLibraryFiles;
 
         List<String> mOriginalCapsules;
-        AutoString mRealCapsule;
+        String mRealCapsule;
         List<String> mAdoptPermissions;
 
         // We store the application meta-data independently to avoid multiple unwanted references
@@ -421,20 +471,20 @@ public:
         Int32 mVersionCode;
 
         // The version name declared for this package.
-        AutoString mVersionName;
+        String mVersionName;
 
         // The shared user id that this package wants to use.
-        AutoString mSharedUserId;
+        String mSharedUserId;
 
         // The shared user label that this package wants to use.
         Int32 mSharedUserLabel;
 
         // Signatures that were read from the package.
-        List<Signature*> mSignatures;
+        AutoFree< ArrayOf< AutoPtr<ISignature> > > mSignatures;
 
         // For use by package manager service for quick lookup of
         // preferred up order.
-//	        public int mPreferredOrder = 0;
+        Int32 mPreferredOrder;
 
         // For use by the package manager to keep track of the path to the
         // file an app came from.
@@ -469,7 +519,7 @@ public:
     CapsuleParser();
 
     CapsuleParser(
-        /* [in] */ String archiveSourcePath);
+        /* [in] */ const String& archiveSourcePath);
 
     ~CapsuleParser();
 
@@ -479,24 +529,23 @@ public:
      * @param p the parsed package.
      * @param flags indicating which optional information is included.
      */
-    static CARAPI GenerateCapsuleInfo(
+    static CARAPI_(AutoPtr<CCapsuleInfo>) GenerateCapsuleInfo(
         /* [in] */ Capsule* c,
         /* [in] */ const ArrayOf<Int32>* gids,
         /* [in] */ Int32 flags,
         /* [in] */ Int64 firstInstallTime,
-        /* [in] */ Int64 lastUpdateTime,
-        /* [out] */ ICapsuleInfo** capInfo);
+        /* [in] */ Int64 lastUpdateTime);
 
     CARAPI_(Int32) GetParseError();
 
     CARAPI_(CapsuleParser::Capsule*) ParseCapsule(
         /* [in] */ IFile* sourceFile,
-        /* [in] */ String destCodePath,
+        /* [in] */ const String& destCodePath,
         /* [in] */ IDisplayMetrics* metrics,
         /* [in] */ Int32 flags);
 
     CARAPI ParseCapsule(
-        /* [in] */ String capPath,
+        /* [in] */ const String& capPath,
         /* [in] */ CapsuleParser::Capsule* capsule,
         /* [out] */ String* errMsg);
 
@@ -505,15 +554,13 @@ public:
         /* [in] */ CapsuleParser::Capsule* capsule,
         /* [in] */ CBundle* metaData);
 
-    static CARAPI GenerateApplicationInfo(
+    static CARAPI_(AutoPtr<CApplicationInfo>) GenerateApplicationInfo(
         /* [in] */ Capsule* capsule,
-        /* [in] */ Int32 flags,
-        /* [out] */ CApplicationInfo** info);
+        /* [in] */ Int32 flags);
 
-    static CARAPI GeneratePermissionInfo(
+    static CARAPI_(AutoPtr<IPermissionInfo>) GeneratePermissionInfo(
         /* [in] */ Permission* p,
-        /* [in] */ Int32 flags,
-        /* [out] */ IPermissionInfo** info);
+        /* [in] */ Int32 flags);
 
     static CARAPI GeneratePermissionGroupInfo(
         /* [in] */ PermissionGroup* pg,
@@ -543,24 +590,28 @@ public:
     static CARAPI_(void) SetCompatibilityModeEnabled(
         /* [in] */ Boolean compatibilityModeEnabled);
 
+    CARAPI_(Boolean) CollectCertificates(
+        /* [in] */ Capsule* cap,
+        /* [in] */ Int32 flags);
+
 private:
     static CARAPI_(Boolean) IsCapsuleFilename(
-        /* [in] */ String name);
+        /* [in] */ const String& name);
 
     static CARAPI_(void) ValidateName(
         /* [in] */ const String& name,
         /* [in] */ Boolean requiresSeparator,
-        /* [in] */ String* error);
+        /* [out] */ String* error);
 
     CARAPI BuildClassName(
-        /* [in] */ String cap,
+        /* [in] */ const String& cap,
         /* [in] */ ICharSequence* clsSeq,
         /* [in] */ ArrayOf<String>* outError,
         /* [out] */ String* name);
 
     CARAPI BuildProcessName(
-        /* [in] */ String cap,
-        /* [in] */ String defProc,
+        /* [in] */ const String& cap,
+        /* [in] */ const String& defProc,
         /* [in] */ ICharSequence* procSeq,
         /* [in] */ Int32 flags,
         /* [in] */ ArrayOf<String>* separateProcesses,
@@ -568,8 +619,8 @@ private:
         /* [out] */ String* name);
 
     CARAPI BuildTaskAffinityName(
-        /* [in] */ String cap,
-        /* [in] */ String defProc,
+        /* [in] */ const String& cap,
+        /* [in] */ const String& defProc,
         /* [in] */ ICharSequence* procSeq,
         /* [in] */ ArrayOf<String>* outError,
         /* [out] */ String* name);
@@ -579,12 +630,12 @@ private:
         /* [in] */ IAttributeSet* attrs,
         /* [in] */ Int32 flags,
         /* [in] */ ArrayOf<String>* outError,
-        /* [in] */ String* name);
+        /* [out] */ String* name);
 
     CARAPI ParseCapsule(
         /* [in] */ CapsuleParser::Capsule* capsule,
-        /* [in] */ String capPath,
-        /* [in] */ String destCodePath,
+        /* [in] */ const String& capPath,
+        /* [in] */ const String& destCodePath,
         /* [in] */ IDisplayMetrics* metrics,
         /* [in] */ Int32 flags);
 
@@ -627,7 +678,7 @@ private:
         /* [in] */ Capsule* owner,
         /* [in] */ CapsuleItemInfo* outInfo,
         /* [in] */ ArrayOf<String>* outError,
-        /* [in] */ String tag,
+        /* [in] */ const char* tag,
         /* [in] */ ITypedArray* sa,
         /* [in] */ Int32 nameRes,
         /* [in] */ Int32 labelRes,
@@ -691,7 +742,7 @@ private:
         /* [in] */ IResources* res,
         /* [in] */ IXmlPullParser* parser,
         /* [in] */ IAttributeSet* attrs,
-        /* [in] */ String tag,
+        /* [in] */ const char* tag,
         /* [in] */ Component<T>* outInfo,
         /* [in] */ ArrayOf<String>* outError);
 
@@ -720,7 +771,6 @@ public:
     static const Int32 PARSE_ON_SDCARD = 1<<5;
     static const Int32 PARSE_IS_SYSTEM_DIR = 1<<6;
 
-private:
     /**
      * List of new permissions that have been added since 1.0.
      * NOTE: These must be declared in SDK version order, with permissions
@@ -729,7 +779,10 @@ private:
      */
     static const NewPermissionInfo* NEW_PERMISSIONS[];
 
-    AutoString mArchiveSourcePath;
+    static Int32 GetNewPermissionsLength();
+
+private:
+    String mArchiveSourcePath;
 
     AutoFree< ArrayOf<String> > mSeparateProcesses;
 
@@ -754,9 +807,9 @@ private:
      *  support extensions to the DTD in future versions. */
     static const Boolean RIGID_PARSER = FALSE;
 
-    static const String TAG;
+    static const char* TAG;
 
-    static const String ANDROID_RESOURCES;
+    static const char* ANDROID_RESOURCES;
 };
 
 #endif //__CAPSULEMANIFESTPARSER_H__

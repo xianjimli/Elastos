@@ -11,7 +11,7 @@
 #include <StringBuffer.h>
 #include <elastos/Math.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
 const Int32 ViewGroup::FOCUS_BEFORE_DESCENDANTS;
@@ -22,7 +22,7 @@ const Int32 ViewGroup::PERSISTENT_ANIMATION_CACHE;
 const Int32 ViewGroup::PERSISTENT_SCROLLING_CACHE;
 const Int32 ViewGroup::PERSISTENT_ALL_CACHES;
 const Boolean ViewGroup::DBG;
-const String ViewGroup::VG_TAG = "ViewGroup";
+const char* ViewGroup::VG_TAG = "ViewGroup";
 const Int32 ViewGroup::FLAG_CLIP_CHILDREN;
 const Int32 ViewGroup::FLAG_CLIP_TO_PADDING;
 const Int32 ViewGroup::FLAG_INVALIDATE_REQUIRED;
@@ -1257,7 +1257,6 @@ void ViewGroup::DispatchDraw(
     if ((flags & FLAG_INVALIDATE_REQUIRED) == FLAG_INVALIDATE_REQUIRED) {
         Invalidate();
     }
-
 //      if ((flags & FLAG_ANIMATION_DONE) == 0 && (flags & FLAG_NOTIFY_ANIMATION_LISTENER) == 0 &&
 //              mLayoutAnimationController.isDone() && !more) {
 //          // We want to erase the drawing cache and notify the listener after the
@@ -1341,6 +1340,7 @@ Boolean ViewGroup::DrawChild(
     const Int32 cr = child->mRight;
     const Int32 cb = child->mBottom;
 
+    //printf("child = 0x%08x, top = %d, bottom = %d\n", child, ct, cb);
     const Int32 flags = mGroupFlags;
 
     if ((flags & FLAG_CLEAR_TRANSFORMATION) == FLAG_CLEAR_TRANSFORMATION) {
@@ -1431,10 +1431,13 @@ Boolean ViewGroup::DrawChild(
     if ((flags & FLAG_CHILDREN_DRAWN_WITH_CACHE) == FLAG_CHILDREN_DRAWN_WITH_CACHE ||
             (flags & FLAG_ALWAYS_DRAWN_WITH_CACHE) == FLAG_ALWAYS_DRAWN_WITH_CACHE) {
         cache = child->GetDrawingCache(TRUE);
-        if (mAttachInfo != NULL) scalingRequired = mAttachInfo->mScalingRequired;
+        if (mAttachInfo != NULL) {
+            scalingRequired = mAttachInfo->mScalingRequired;
+        }
     }
 
-    const Boolean hasNoCache = cache == NULL;
+    //TODO:
+    const Boolean hasNoCache = TRUE;//cache == NULL;
 
     Int32 restoreTo;
     canvas->Save(&restoreTo);
@@ -1515,7 +1518,7 @@ Boolean ViewGroup::DrawChild(
             child->DispatchDraw(canvas);
         }
         else {
-          child->Draw(canvas);
+            child->Draw(canvas);
         }
     }
     else {
@@ -1935,10 +1938,8 @@ ECode ViewGroup::RemoveFromArray(
     /* [in] */ Int32 start,
     /* [in] */ Int32 count)
 {
-    const Int32 childrenCount = mChildren.GetSize();
-
     start = Math::Max(0, start);
-    const Int32 end = Math::Min(childrenCount, start + count);
+    const Int32 end = Math::Min(mChildren.GetSize(), start + count);
 
     if (start == end) {
         return NOERROR;
@@ -1946,11 +1947,12 @@ ECode ViewGroup::RemoveFromArray(
 
     Vector<AutoPtr<IView> >::Iterator it = mChildren.Begin() + start;
     Vector<AutoPtr<IView> >::Iterator endPos = mChildren.Begin() + end;
-    while(it != endPos) {
+    for (; it != endPos; ++it) {
         View* v = (View*)(*it)->Probe(EIID_View);
         v->mParent = NULL;
-        it = mChildren.Erase(it);
     }
+
+    mChildren.Erase(mChildren.Begin() + start, mChildren.Begin() + end);
 
     return NOERROR;
 }
@@ -2435,7 +2437,7 @@ ECode ViewGroup::OffsetChildrenTopAndBottom(
     /* [in] */ Int32 offset)
 {
     Vector<AutoPtr<IView> >::Iterator it;
-    for (it = mChildren.Begin(); it != mChildren.End(); it++) {
+    for (it = mChildren.Begin(); it != mChildren.End(); ++it) {
         View* v = (View*)(*it)->Probe(EIID_View);
         v->mTop += offset;
         v->mBottom += offset;

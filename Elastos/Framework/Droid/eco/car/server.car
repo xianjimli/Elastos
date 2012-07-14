@@ -2,10 +2,13 @@
 module
 {
     merge("server/am.car");
+    merge("server/LightsService.car");
 
     interface IWindowManagerEx;
     interface IContext;
     interface ICapsuleManager;
+    interface INotificationManager;
+    interface IStatusBarService;
 
     class CWindowManagerService {
         interface IWindowManagerEx;
@@ -19,5 +22,21 @@ module
             [in] Boolean factoryTest);
 
         interface ICapsuleManager;
+    }
+
+    class CNotificationManagerService {
+        constructor(
+            [in] IContext* ctx,
+            [in] IStatusBarService* statusBar,
+            [in] ILightsManager* lights);
+
+        interface INotificationManager;
+    }
+
+    class CStatusBarManagerService {
+        constructor(
+            [in] IContext* ctx);
+
+        interface IStatusBarService;
     }
 }

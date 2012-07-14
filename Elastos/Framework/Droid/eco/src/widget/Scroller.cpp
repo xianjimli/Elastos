@@ -4,7 +4,7 @@
 #include "os/SystemClock.h"
 #include <elastos/Math.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 const Int32 Scroller::DEFAULT_DURATION;
 const Int32 Scroller::SCROLL_MODE;

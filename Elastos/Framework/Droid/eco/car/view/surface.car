@@ -144,6 +144,9 @@ module
          * release this object's reference. {@hide} */
         Destroy();
 
+        /** Release the local reference to the server-side surface. @hide */
+        ReleaseSurface();   // primitive name is Release() in android
+
         /** draw into a surface */
         LockCanvas(
             [in] IRect * dirty,

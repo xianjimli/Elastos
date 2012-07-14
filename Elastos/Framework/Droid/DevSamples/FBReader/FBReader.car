@@ -4,6 +4,11 @@ module
     importlib("Elastos.Framework.eco");
 
     interface IText {
+        GetText(
+            [out] String* text);
+
+        GetOrder(
+            [out] Int32* order);
     }
 
     interface IParagraph {
@@ -25,6 +30,8 @@ module
         BuildTexts(
             [in] Int32 width,
             [in] Int32 height,
+            [in] Int32 lineHeight,
+				    [in] ITextPaint* textPaint,
             [out] IObjectContainer** texts);
 
         Flush();
@@ -34,6 +41,12 @@ module
 
         SetOrder(
             [in] Int32 order);
+
+        GetStartPageIndex(
+            [out] Int32* pageIndex);
+
+        SetStartPageIndex(
+            [in] Int32 pageIndex);
     }
 
     interface IBook {
@@ -42,6 +55,31 @@ module
 
         GetPath(
             [out] String* path);
+            
+	      GetTextNodeCount(
+						[out] Int32* count);
+
+				GetTextNodeByIndex(
+						[in] Int32 index,
+						[out] String* nodeText);
+
+				GetTextNodeByChapterIndex(
+						[in] Int32 chapterIndex,
+						[out] Int32* index,
+						[out] String* nodeText);
+
+        SetProperty(
+            [in] Int32 width,
+            [in] Int32 height,
+            [in] Int32 lineHeight,
+				    [in] ITextPaint* textPaint);
+
+				GetContentItemByIndex(
+						[in] Int32 index,
+						[out] String* itemText);
+
+	      GetContentItemCount(
+						[out] Int32* count);
     }
 
     [deprecated]
@@ -50,6 +88,8 @@ module
             [in] ArrayOf<Byte>* text,
             [in] Int32 width,
             [in] Int32 height,
+            [in] Int32 lineHeight,
+				    [in] ITextPaint* textPaint,
             [out] IObjectContainer** texts);
     }
 
@@ -77,7 +117,9 @@ module
     class CBook {
         constructor(
             [in] Int32 width,
-            [in] Int32 height);
+            [in] Int32 height,
+            [in] Int32 lineHeight,
+				    [in] ITextPaint* textPaint);
 
         interface IBook;
     }

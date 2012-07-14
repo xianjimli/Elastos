@@ -4,7 +4,7 @@
 #include <Logger.h>
 #include <StringBuffer.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
 const Int32 CWindowManagerImpl::RELAYOUT_IN_TOUCH_MODE;
@@ -142,8 +142,8 @@ void CWindowManagerImpl::FinishRemoveViewLocked(
 
 ECode CWindowManagerImpl::CloseAll(
     /* [in] */ IBinder* token,
-    /* [in] */ String who,
-    /* [in] */ String what)
+    /* [in] */ const String& who,
+    /* [in] */ const String& what)
 {
     Mutex::Autolock lock(_m_syncLock);
 

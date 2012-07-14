@@ -3,11 +3,11 @@
 
 String _PatternMatcher::GetPath()
 {
-    return NULL;
+    return String(NULL);
 }
 
 Boolean _PatternMatcher::Match(
-    /* [in] */ String str)
+    /* [in] */ const String& str)
 {
     return FALSE;
 }

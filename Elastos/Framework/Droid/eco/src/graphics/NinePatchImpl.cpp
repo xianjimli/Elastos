@@ -50,12 +50,12 @@ static bool getColor(const SkBitmap& bitmap, int x, int y, SkColor* c)
             break;
         case SkBitmap::kARGB_4444_Config:
             *c = SkUnPreMultiply::PMColorToColor(
-                                SkPixel4444ToPixel32(*bitmap.getAddr16(x, y)));
+                    SkPixel4444ToPixel32(*bitmap.getAddr16(x, y)));
             break;
         case SkBitmap::kIndex8_Config: {
             SkColorTable* ctable = bitmap.getColorTable();
             *c = SkUnPreMultiply::PMColorToColor(
-                                            (*ctable)[*bitmap.getAddr8(x, y)]);
+                    (*ctable)[*bitmap.getAddr8(x, y)]);
             break;
         }
         default:
@@ -72,9 +72,8 @@ static SkColor modAlpha(SkColor c, int alpha)
 }
 
 static void drawStretchyPatch(SkCanvas* canvas, SkIRect& src, const SkRect& dst,
-                              const SkBitmap& bitmap, const SkPaint& paint,
-                              SkColor initColor, uint32_t colorHint,
-                              bool hasXfer)
+        const SkBitmap& bitmap, const SkPaint& paint,
+        SkColor initColor, uint32_t colorHint, bool hasXfer)
 {
     if (colorHint !=  android::Res_png_9patch::NO_COLOR) {
         ((SkPaint*)&paint)->setColor(modAlpha(colorHint, paint.getAlpha()));
@@ -98,19 +97,19 @@ static void drawStretchyPatch(SkCanvas* canvas, SkIRect& src, const SkRect& dst,
 }
 
 SkScalar calculateStretch(SkScalar boundsLimit, SkScalar startingPoint,
-                          int srcSpace, int numStrechyPixelsRemaining,
-                          int numFixedPixelsRemaining)
+        int srcSpace, int numStrechyPixelsRemaining,
+        int numFixedPixelsRemaining)
 {
     SkScalar spaceRemaining = boundsLimit - startingPoint;
     SkScalar stretchySpaceRemaining =
                 spaceRemaining - SkIntToScalar(numFixedPixelsRemaining);
     return SkScalarMulDiv(srcSpace, stretchySpaceRemaining,
-                          numStrechyPixelsRemaining);
+            numStrechyPixelsRemaining);
 }
 
 ECode NinePatch_Draw(SkCanvas* canvas, const SkRect& bounds,
-                       const SkBitmap& bitmap, const android::Res_png_9patch& chunk,
-                       const SkPaint* paint, SkRegion** outRegion)
+        const SkBitmap& bitmap, const android::Res_png_9patch& chunk,
+        const SkPaint* paint, SkRegion** outRegion)
 {
     if (canvas && canvas->quickReject(bounds, SkCanvas::kBW_EdgeType)) {
         return E_RUNTIME_EXCEPTION;
@@ -188,7 +187,7 @@ ECode NinePatch_Draw(SkCanvas* canvas, const SkRect& bounds,
     int colorIndex = 0;
     uint32_t color;
     bool xIsStretchable;
-    const bool initialXIsStretchable =  (x0 == 0);
+    const bool initialXIsStretchable = (x0 == 0);
     bool yIsStretchable = (y0 == 0);
     const int bitmapWidth = bitmap.width();
     const int bitmapHeight = bitmap.height();

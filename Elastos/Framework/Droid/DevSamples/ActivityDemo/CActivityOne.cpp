@@ -141,7 +141,6 @@ ECode CActivityOne::OnCreate(
     res->GetString(id, &str);
     assert(!str.IsNull());
     printf("<%s, %d>string gotten, %s\n", __FILE__, __LINE__, (const char*)str);
-    String::Free(str);
 
     res->GetDrawable(0x7f020003, (IDrawable**)&mDrawable1);
     assert(mDrawable1 != NULL);

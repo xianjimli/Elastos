@@ -9,7 +9,7 @@
 #include <elastos/Character.h>
 #include <utils/String8.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 const Char32 StaticLayout::FIRST_CJK;
 const Int32 StaticLayout::COLUMNS_NORMAL;
@@ -110,7 +110,7 @@ StaticLayout::~StaticLayout()
     }
 
     ArrayOf<Byte>::Free(mChdirs);
-    BufferOf<Byte>::Free(mChs);
+    ArrayOf<Char8>::Free(mChs);
     ArrayOf<Float>::Free(mWidths);
 }
 
@@ -130,6 +130,7 @@ void StaticLayout::Generate(
     /* [in] */ TextUtilsTruncateAt where)
 {
     mLineCount = 0;
+	//printf("==== File: %s, Function: %s, Line: %d ==== , bufstart == [%d], bufend = [%d]\n", __FILE__, __FUNCTION__, __LINE__, bufstart, bufend);
 
     Int32 v = 0;
     Boolean needMultiply = (spacingmult != 1 || spacingadd != 0);
@@ -143,12 +144,12 @@ void StaticLayout::Generate(
 
     if (mChdirs == NULL) {
         mChdirs = ArrayOf<Byte>::Alloc(ArrayUtils::IdealByteArraySize(bufsiz + 1));
-        mChs = BufferOf<Byte>::Alloc(ArrayUtils::IdealChar8ArraySize(4 * (bufsiz + 1)));
+        mChs = ArrayOf<Char8>::Alloc(ArrayUtils::IdealChar8ArraySize(4 * (bufsiz + 1)));
         mWidths = ArrayOf<Float>::Alloc(ArrayUtils::IdealInt32ArraySize((bufsiz + 1) * 2));
     }
 
     ArrayOf<Byte>* chdirs = mChdirs;
-    BufferOf<Byte>* chs = mChs;
+    ArrayOf<Char8>* chs = mChs;
     ArrayOf<Float>* widths = mWidths;
 
 //    AlteredCharSequence alter = NULL;
@@ -160,6 +161,9 @@ void StaticLayout::Generate(
 
     Int32 DEFAULT_DIR = DIR_LEFT_TO_RIGHT; // XXX
 
+	Int32 endCharIndex = 0, startCharIndex = 0;
+	String tempStr;
+	source->ToString(&tempStr);
     for (Int32 start = bufstart; start <= bufend; start = end) {
         if (first) {
             first = FALSE;
@@ -234,9 +238,12 @@ void StaticLayout::Generate(
             ArrayOf<Byte>::Free(mChdirs);
             mChdirs = chdirs;
         }
-        if (end - start > chs->GetCapacity()) {
-            chs = BufferOf<Byte>::Alloc(ArrayUtils::IdealChar8ArraySize(4 * (end - start)));
-            BufferOf<Byte>::Free(mChs);
+
+		Character::GetOffsetByChars(tempStr, 0, end, &endCharIndex);
+		Character::GetOffsetByChars(tempStr, 0, start, &startCharIndex);
+        if (endCharIndex - startCharIndex >= chs->GetLength()) {
+            chs = ArrayOf<Char8>::Alloc(ArrayUtils::IdealChar8ArraySize(endCharIndex - startCharIndex + 1));
+            ArrayOf<Char8>::Free(mChs);
             mChs = chs;
         }
         if ((end - start) * 2 > widths->GetLength()) {
@@ -261,7 +268,6 @@ void StaticLayout::Generate(
             }
         }
 
-
         // Ensure that none of the underlying characters are treated
         // as viable breakpoints, and that the entire run gets the
         // same bidi direction.
@@ -283,7 +289,6 @@ void StaticLayout::Generate(
             }
             ArrayOf<IInterface*>::Free(spans);
         }
-
 
         if (!easy) {
             // XXX put override flags, etc. into chdirs
@@ -486,30 +491,30 @@ void StaticLayout::Generate(
                     * after but not before.
                     */
 
-//                    if (c == ' ' || c == '\t' ||
-//                        ((c == '.'  || c == ',' || c == ':' || c == ';') &&
-//                        (j - 1 < here || !Character.isDigit(chs[j - 1 - start])) &&
-//                        (j + 1 >= next || !Character.isDigit(chs[j + 1 - start]))) ||
-//                        ((c == '/' || c == '-') &&
-//                        (j + 1 >= next || !Character.isDigit(chs[j + 1 - start]))) ||
-//                        (c >= FIRST_CJK && isIdeographic(c, TRUE) &&
-//                        j + 1 < next && isIdeographic(chs[j + 1 - start], FALSE))) {
-//                            okwidth = w;
-//                            ok = j + 1;
-//
-//                            if (fittop < oktop) {
-//                                oktop = fittop;
-//                            }
-//                            if (fitascent < okascent) {
-//                                okascent = fitascent;
-//                            }
-//                            if (fitdescent > okdescent) {
-//                                okdescent = fitdescent;
-//                            }
-//                            if (fitbottom > okbottom) {
-//                                okbottom = fitbottom;
-//                            }
-//                    }
+                    if (c == ' ' || c == '\t' ||
+                        ((c == '.'  || c == ',' || c == ':' || c == ';') &&
+                        (j - 1 < here || !Character::IsDigit(String((char*)chs->GetPayload()).GetChar(j - 1 - start))) &&
+                        (j + 1 >= next || !Character::IsDigit(String((char*)chs->GetPayload()).GetChar(j + 1 - start)))) ||
+                        ((c == '/' || c == '-') &&
+                        (j + 1 >= next || !Character::IsDigit(String((char*)chs->GetPayload()).GetChar(j + 1 - start)))) ||
+                        (c >= FIRST_CJK && IsIdeographic(c, TRUE) &&
+                        j + 1 < next && IsIdeographic(String((char*)chs->GetPayload()).GetChar(j + 1 - start), FALSE))) {
+                            okwidth = w;
+                            ok = j + 1;
+
+                            if (fittop < oktop) {
+                                oktop = fittop;
+                            }
+                            if (fitascent < okascent) {
+                                okascent = fitascent;
+                            }
+                            if (fitdescent > okdescent) {
+                                okdescent = fitdescent;
+                            }
+                            if (fitbottom > okbottom) {
+                                okbottom = fitbottom;
+                            }
+                    }
                 }
                 else if (breakOnlyAtSpaces) {
                     if (ok != here) {
@@ -723,7 +728,7 @@ void StaticLayout::Generate(
  */
 Int32 StaticLayout::Bidi(
     /* [in] */ Int32 dir,
-    /* [in] */ BufferOf<Byte>* chs,
+    /* [in] */ ArrayOf<Char8>* chs,
     /* [in] */ ArrayOf<Byte>* chInfo,
     /* [in] */ Int32 n,
     /* [in] */ Boolean hasInfo)

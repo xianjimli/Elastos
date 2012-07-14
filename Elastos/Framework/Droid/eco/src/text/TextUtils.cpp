@@ -1,19 +1,18 @@
 
 #include "text/TextUtils.h"
 #include "utils/ArrayUtils.h"
-#include "utils/AutoString.h"
 #include <elastos/Character.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 Mutex TextUtils::sLock;
-BufferOf<Byte>* TextUtils::sTemp = NULL;
+ArrayOf<Char8>* TextUtils::sTemp = NULL;
 
 void TextUtils::GetChars(
     /* [in] */ ICharSequence* s,
     /* [in] */ Int32 start,
     /* [in] */ Int32 end,
-    /* [out] */ BufferOf<Byte>* dest,
+    /* [out] */ ArrayOf<Char8>* dest,
     /* [in] */ Int32 destoff)
 {
 //    Class c = s.getClass();
@@ -592,7 +591,7 @@ AutoPtr<ICharSequence> TextUtils::Ellipsize(
 /* package */
 void TextUtils::Obtain(
     /* [in] */ Int32 len,
-    /* [out] */ BufferOf<Byte>** buf)
+    /* [out] */ ArrayOf<Char8>** buf)
 {
     assert(buf != NULL);
 
@@ -602,25 +601,25 @@ void TextUtils::Obtain(
         sTemp = NULL;
     }
 
-    if (*buf == NULL || (*buf)->GetCapacity() < len) {
-        *buf = BufferOf<Byte>::Alloc(ArrayUtils::IdealChar8ArraySize(len));
+    if (*buf == NULL || (*buf)->GetLength() < len) {
+        *buf = ArrayOf<Char8>::Alloc(ArrayUtils::IdealChar8ArraySize(len));
     }
 }
 
 /* package */
 void TextUtils::Recycle(
-    /* [in] */ BufferOf<Byte>** temp)
+    /* [in] */ ArrayOf<Char8>** temp)
 {
     if (*temp == NULL) return;
 
-    if ((*temp)->GetCapacity() > 1000) {
-        BufferOf<Byte>::Free(*temp);
+    if ((*temp)->GetLength() > 1000) {
+        ArrayOf<Char8>::Free(*temp);
         *temp = NULL;
         return;
     }
 
     Mutex::Autolock lock(sLock);
-    if (sTemp != NULL) BufferOf<Byte>::Free(sTemp);
+    if (sTemp != NULL) ArrayOf<Char8>::Free(sTemp);
     sTemp = *temp;
     *temp = NULL;
 }

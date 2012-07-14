@@ -2,7 +2,7 @@
 #ifndef __VIEWTREEOBSERVER_H__
 #define __VIEWTREEOBSERVER_H__
 
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 #include "graphics/CRect.h"
 #include <elastos/AutoPtr.h>
 

@@ -1,6 +1,6 @@
 
 module
-{
+{
     /**
      * Pattern type: the given pattern must exactly match the string it is
      * tested against.
@@ -29,7 +29,7 @@ module
             [out] String* path);
 
         GetType(
-            [out] Int32* path);
+            [out] Int32* type);
 
         Match(
             [in] String str,

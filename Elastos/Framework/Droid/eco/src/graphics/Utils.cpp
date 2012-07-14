@@ -3,14 +3,15 @@
 #include <Logger.h>
 #include <StringBuffer.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
 namespace Elastos {
 
-const String AssetStreamAdaptor::TAG = "AssetStreamAdaptor";
+const char* AssetStreamAdaptor::TAG = "AssetStreamAdaptor";
 
-bool AssetStreamAdaptor::rewind() {
+bool AssetStreamAdaptor::rewind()
+{
     off_t pos = mAsset->seek(0, SEEK_SET);
     if (pos == (off_t)-1) {
         Logger::E(TAG, "----- mAsset->seek(rewind) failed");
@@ -19,7 +20,8 @@ bool AssetStreamAdaptor::rewind() {
     return true;
 }
 
-size_t AssetStreamAdaptor::read(void* buffer, size_t size) {
+size_t AssetStreamAdaptor::read(void* buffer, size_t size)
+{
     ssize_t amount;
 
     if (NULL == buffer) {

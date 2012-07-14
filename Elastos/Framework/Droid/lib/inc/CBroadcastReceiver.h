@@ -43,7 +43,7 @@ public:
         /* [out] */ Int32* code);
 
     CARAPI SetResultData(
-        /* [in] */ String data);
+        /* [in] */ const String& data);
 
     CARAPI GetResultData(
         /* [out] */ String* data);
@@ -57,7 +57,7 @@ public:
 
     CARAPI SetResult(
         /* [in] */ Int32 code,
-        /* [in] */ String data,
+        /* [in] */ const String& data,
         /* [in] */ IBundle* extras);
 
     CARAPI GetAbortBroadcast(

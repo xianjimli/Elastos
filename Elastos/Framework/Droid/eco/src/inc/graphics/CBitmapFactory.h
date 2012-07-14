@@ -55,12 +55,12 @@ public:
         /* [out] */ IBitmap** bitmap);
 
     CARAPI DecodeFile(
-        /* [in] */ String pathName,
+        /* [in] */ const String& pathName,
         /* [in] */ IBitmapFactoryOptions * pOpts,
         /* [out] */ IBitmap ** ppBitmap);
 
     CARAPI DecodeFileEx(
-        /* [in] */ String pathName,
+        /* [in] */ const String& pathName,
         /* [out] */ IBitmap ** ppBitmap);
 
     CARAPI DecodeResourceStream(
@@ -125,9 +125,9 @@ private:
         /* [in] */ IBitmapFactoryOptions* opts,
         /* [out] */ IBitmap ** ppBitmap);
 
-    CARAPI DecodeStreamInner(
+    CARAPI NativeDecodeStream(
         /* [in] */ IInputStream* pIs,
-        /* [in] */ BufferOf<Byte>* tempStorage,
+        /* [in] */ ArrayOf<Byte>* tempStorage,
         /* [in] */ IRect* pOutPadding,
         /* [in] */ IBitmapFactoryOptions* pOpts,
         /* [out] */ IBitmap ** ppBitmap);
@@ -184,7 +184,7 @@ private:
         /* [in] */ IRect* padding);
 
 private:
-    static const String TAG;
+    static const char* TAG;
 };
 
 #endif //_CBITMAPFACTORY_H__

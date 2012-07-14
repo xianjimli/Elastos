@@ -558,10 +558,10 @@ module
 
     interface IWindowManagerLayoutParams extends IViewGroupLayoutParams{
         SetTitle(
-            [in] ArrayOf<Char8> title);
+            [in] ICharSequence* title);
 
         GetTitle(
-            [out, callee] ArrayOf<Char8>* title);
+            [out] ICharSequence** title);
 
         CopyFrom(
             [in] IWindowManagerLayoutParams* source);

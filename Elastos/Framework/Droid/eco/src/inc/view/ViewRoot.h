@@ -13,7 +13,7 @@
 #include "view/ViewTreeObserver.h"
 #include "graphics/CRect.h"
 #include "graphics/CRegion.h"
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 #include "content/CConfiguration.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/List.h>
@@ -35,7 +35,7 @@ class ViewRoot :
     friend class CWindowManagerImpl;
 
 private:
-    static const String TAG;
+    static const char* TAG;
     static const Boolean DBG = TRUE;
     static const Boolean SHOW_FPS = TRUE;
     static const Boolean LOCAL_LOGV = TRUE; //FALSE ? Config.LOGD : Config.LOGV;
@@ -75,6 +75,8 @@ private:
     static Mutex sConfigCallbacksLock;
 
     static Int32 sDrawTime;
+
+    static pthread_key_t sKeyRunQueues;
 
 private:
     class CSurfaceHolder : public ElRefBase, public ISurfaceHolder
@@ -228,7 +230,7 @@ private:
         CARAPI_(Float) Collect(
             /* [in] */ Float off,
             /* [in] */ Int64 time,
-            /* [in] */ String axis);
+            /* [in] */ const char* axis);
 
         /**
          * Generate the number of discrete movement events appropriate for
@@ -274,6 +276,34 @@ private:
         Int32 mNonAccelMovement;
     };
 
+    class RunQueue
+    {
+    public:
+        CARAPI_(void) Post(
+            /* [in] */ IRunnable* action);
+
+        CARAPI_(void) PostDelayed(
+            /* [in] */ IRunnable* action,
+            /* [in] */ Int32 delayMillis);
+
+        CARAPI_(void) RemoveCallbacks(
+            /* [in] */ IRunnable* action);
+
+        CARAPI_(void) ExecuteActions(
+            /* [in] */ IApartment* apartment);
+
+    private:
+        class HandlerAction : public ElRefBase
+        {
+        public:
+            AutoPtr<IRunnable> mAction;
+            Int32 mDelay;
+        };
+
+    private:
+        List<AutoPtr<HandlerAction> > mActions;
+        Mutex mLock;
+    };
 public:
     static CARAPI_(IWindowSession*) GetWindowSession(
         /* [in] */ /*Looper mainLooper*/);
@@ -295,6 +325,8 @@ public:
     * @hide
     */
     static CARAPI_(Boolean) IsInTouchMode();
+
+    static CARAPI_(RunQueue*) GetRunQueue();
 
 private:
     /**
@@ -326,14 +358,14 @@ private:
     * log motion events
     */
     static CARAPI_(void) CaptureMotionLog(
-        /* [in] */ String subTag,
+        /* [in] */ const char* subTag,
         /* [in] */ IMotionEvent* ev);
 
     /**
     * log motion events
     */
     static CARAPI_(void) CaptureKeyLog(
-        /* [in] */ String subTag,
+        /* [in] */ const char* subTag,
         /* [in] */ IKeyEvent* ev);
 
 public:
@@ -485,7 +517,7 @@ public:
         /* [in] */ Boolean inTouchMode);
 
     CARAPI_(void) DispatchCloseSystemDialogs(
-        /* [in] */ String reason);
+        /* [in] */ const String& reason);
 
     CARAPI ShowContextMenuForChild(
         /* [in] */ IView* originalView,
@@ -680,6 +712,9 @@ private:
         /* [in] */ IParcel* params,
         /* [in] */ Millisecond64 uptimeMillis);
 
+    CARAPI RemoveMessage(
+        /* [in] */ Handle32 func);
+
     CARAPI HandleResized(
         /* [in] */ Int32 w,
         /* [in] */ Int32 h,
@@ -703,7 +738,7 @@ private:
         /* [in] */ Boolean inTouchMode);
 
     CARAPI HandleCloseSystemDialogs(
-        /* [in] */ String reason);
+        /* [in] */ const String& reason);
 
 public:
     Int32 mLastTrackballTime;

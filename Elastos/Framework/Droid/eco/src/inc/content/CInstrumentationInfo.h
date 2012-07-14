@@ -17,7 +17,7 @@ public:
         /* [out] */ String* sourceDir);
 
     CARAPI SetSourceDir(
-        /* [in] */ String sourceDir);
+        /* [in] */ const String& sourceDir);
 
     CARAPI ReadFromParcel(
         /* [in] */ IParcel* source);
@@ -48,6 +48,13 @@ public:
      * data.
      */
     String mDataDir;
+
+    /**
+     * Full path to the directory where the native JNI libraries are stored.
+     *
+     * {@hide}
+     */
+    String mNativeLibraryDir;
 
     /**
      * Specifies whether or not this instrumentation will handle profiling.

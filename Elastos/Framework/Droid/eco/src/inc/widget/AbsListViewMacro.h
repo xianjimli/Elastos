@@ -37,7 +37,7 @@
         /* [in] */ Boolean stackFromBottom);                            \
                                                                         \
     CARAPI SetFilterText(                                               \
-        /* [in] */ String filterText);                                  \
+        /* [in] */ const String& filterText);                                  \
                                                                         \
     CARAPI GetTextFilter(                                               \
         /* [out] */ ICharSequence** textFilter);                        \
@@ -200,7 +200,7 @@ ECode className::SetStackFromBottom(                                    \
 }                                                                       \
                                                                         \
 ECode className::SetFilterText(                                         \
-    /* [in] */ String filterText)                                       \
+    /* [in] */ const String& filterText)                                       \
 {                                                                       \
     return superClass::SetFilterText(filterText);                       \
 }                                                                       \

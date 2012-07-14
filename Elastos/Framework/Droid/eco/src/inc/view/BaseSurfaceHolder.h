@@ -3,7 +3,7 @@
 #define __BASESURFACEHOLDER_H__
 
 #include "ext/frameworkext.h"
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 #include "graphics/CRect.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/List.h>
@@ -102,7 +102,7 @@ protected:
     AutoPtr<CRect> mSurfaceFrame;
 
 private:
-    static const String TAG;
+    static const char* TAG;
     Mutex mCallbackLock;
 };
 #endif //__BASESURFACEHOLDER_H__

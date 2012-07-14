@@ -42,7 +42,7 @@ module
         ScheduleDrawable(
             [in] IDrawable* who,
             [in] IRunnable* what,
-            [in] Int32 when);
+            [in] Int64 when);
 
         /**
          * A Drawable can call this to unschedule an action previously

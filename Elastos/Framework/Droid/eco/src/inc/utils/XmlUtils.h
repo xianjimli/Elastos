@@ -25,6 +25,13 @@ public:
     static CARAPI_(Int32) ConvertValueToInt32(
         /* [in] */ ICharSequence* charSeq,
         /* [in] */ Int32 defaultValue);
+
+    static CARAPI_(void) BeginDocument(
+        /* [in] */ IXmlPullParser* parser,
+        /* [in] */ const String& firstElementName);
+
+    static CARAPI_(void) NextElement(
+        /* [in] */ IXmlPullParser* parser);
 };
 
 #endif // __HH_XMLUTILS_H

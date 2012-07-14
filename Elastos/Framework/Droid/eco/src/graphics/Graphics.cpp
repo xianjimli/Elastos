@@ -73,7 +73,17 @@ bool Graphics::PixelAllocator::allocPixelRef(
     return SUCCEEDED(Graphics::SetPixelRef(bitmap, ctable));
 }
 
-const String Graphics::TAG = "Graphics";
+const char* Graphics::TAG = "Graphics";
+
+SkRect* Graphics::IRect2SkRect(
+    /* [in] */ IRect* obj,
+    /* [in] */ SkRect* sr)
+{
+    CRect* r = (CRect*)obj;
+    sr->set(SkIntToScalar(r->mLeft), SkIntToScalar(r->mTop),
+           SkIntToScalar(r->mRight), SkIntToScalar(r->mBottom));
+    return sr;
+}
 
 void Graphics::SkIRect2IRect(
         /* [in] */ const SkIRect& ir,
@@ -106,6 +116,19 @@ void Graphics::SkRect2IRectF(
     rf->mTop = r.fTop;
     rf->mRight = r.fRight;
     rf->mBottom = r.fBottom;
+}
+
+SkBitmap::Config Graphics::GetNativeBitmapConfig(
+        /* [in] */ BitmapConfig config)
+{
+    if (-1 == config) {
+        return SkBitmap::kNo_Config;
+    }
+    Int32 c = config;
+    if (c < 0 || c >= SkBitmap::kConfigCount) {
+        c = SkBitmap::kNo_Config;
+    }
+    return static_cast<SkBitmap::Config>(c);
 }
 
 ECode Graphics::SetPixelRef(

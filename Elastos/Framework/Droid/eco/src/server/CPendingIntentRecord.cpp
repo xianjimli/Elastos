@@ -10,7 +10,7 @@ CPendingIntentRecord::CPendingIntentRecord() :
 ECode CPendingIntentRecord::Send(
     /* [in] */ Int32 code,
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ IIntentReceiver* finishedReceiver,
     /* [out] */ Int32* result)
 {
@@ -38,10 +38,10 @@ ECode CPendingIntentRecord::Initialize(
 Int32 CPendingIntentRecord::SendInner(
     /* [in] */ Int32 code,
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ IIntentReceiver* finishedReceiver,
     /* [in] */ IBinder* resultTo,
-    /* [in] */ String resultWho,
+    /* [in] */ const String& resultWho,
     /* [in] */ Int32 requestCode,
     /* [in] */ Int32 flagsMask,
     /* [in] */ Int32 flagsValues)

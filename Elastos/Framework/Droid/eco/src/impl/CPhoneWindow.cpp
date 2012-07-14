@@ -13,7 +13,7 @@ using namespace Elastos::Utility::Logging;
 extern "C" const InterfaceID EIID_RootViewSurfaceTaker =
     {0x45cf35ea, 0x34d4, 0x43a3, {0xa1, 0xc7, 0x26, 0x49, 0x41, 0x1b, 0xaa, 0x61}};
 
-const String CPhoneWindow::TAG = "PhoneWindow";
+const char* CPhoneWindow::TAG = "PhoneWindow";
 
 IVIEW_METHODS_IMPL(
     CPhoneWindow::DecorView, FrameLayout, CPhoneWindow::DecorView);
@@ -21,7 +21,13 @@ IVIEW_METHODS_IMPL(
 IVIEWGROUP_METHODS_IMPL(
     CPhoneWindow::DecorView, FrameLayout, CPhoneWindow::DecorView);
 
+IDrawableCallback_METHODS_IMPL(
+    CPhoneWindow::DecorView, FrameLayout, CPhoneWindow::DecorView);
+
 IKeyEventCallback_METHODS_IMPL(
+    CPhoneWindow::DecorView, FrameLayout, CPhoneWindow::DecorView);
+
+IAccessibilityEventSource_METHODS_IMPL(
     CPhoneWindow::DecorView, FrameLayout, CPhoneWindow::DecorView);
 
 CPhoneWindow::DecorView::DecorView(
@@ -60,8 +66,14 @@ PInterface CPhoneWindow::DecorView::Probe(
     else if (riid == EIID_IViewManager) {
         return (IViewManager*)this;
     }
+    else if (riid == EIID_IDrawableCallback) {
+        return (IDrawableCallback*)this;
+    }
     else if (riid == EIID_IKeyEventCallback) {
         return (IKeyEventCallback*)this;
+    }
+    else if (riid == EIID_IAccessibilityEvent) {
+        return (IAccessibilityEvent*)this;
     }
     else if (riid == EIID_View) {
         return reinterpret_cast<PInterface>((View*)(FrameLayout*)this);
@@ -249,17 +261,13 @@ ECode CPhoneWindow::DecorView::RemoveView(
 ECode CPhoneWindow::DecorView::SetForegroundGravity(
     /* [in] */ Int32 foregroundGravity)
 {
-    FrameLayout::SetForegroundGravity(foregroundGravity);
-
-    return NOERROR;
+    return FrameLayout::SetForegroundGravity(foregroundGravity);
 }
 
 ECode CPhoneWindow::DecorView::SetForeground(
     /* [in] */ IDrawable* drawable)
 {
-    FrameLayout::SetForeground(drawable);
-
-    return NOERROR;
+    return FrameLayout::SetForeground(drawable);
 }
 
 ECode CPhoneWindow::DecorView::GetForeground(
@@ -278,9 +286,7 @@ ECode CPhoneWindow::DecorView::GetForeground(
 ECode CPhoneWindow::DecorView::SetMeasureAllChildren(
     /* [in] */ Boolean measureAll)
 {
-    FrameLayout::SetMeasureAllChildren(measureAll);
-
-    return NOERROR;
+    return FrameLayout::SetMeasureAllChildren(measureAll);
 }
 
 ECode CPhoneWindow::DecorView::GetConsiderGoneChildrenWhenMeasuring(
@@ -298,13 +304,12 @@ ECode CPhoneWindow::DecorView::WillYouTakeTheSurface(
     VALIDATE_NOT_NULL(cback);
     if (mFeatureId < 0) {
         *cback = mHost->mTakeSurfaceCallback;
+        if (*cback) {
+            (*cback)->AddRef();
+        }
     }
     else {
         *cback = NULL;
-    }
-
-    if (*cback) {
-        (*cback)->AddRef();
     }
 
     return NOERROR;
@@ -1705,7 +1710,7 @@ ECode CPhoneWindow::HasChildren(
 ECode CPhoneWindow::SetWindowManager(
     /* [in] */ IWindowManager* wm,
     /* [in] */ IBinder* appToken,
-    /* [in] */ String appName)
+    /* [in] */ const String& appName)
 {
     return Window::SetWindowManager(wm, appToken, appName);
 }

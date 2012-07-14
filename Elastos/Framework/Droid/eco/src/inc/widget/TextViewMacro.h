@@ -162,6 +162,9 @@
     CARAPI GetPaintFlags(                                                   \
         /* [out] */ Int32 * pFlags);                                        \
                                                                             \
+    CARAPI GetPaint(                                                        \
+        /* [out] */ ITextPaint** pFlags);                                   \
+                                                                            \
     CARAPI SetPaintFlags(                                                   \
         /* [in] */ Int32 flags);                                            \
                                                                             \
@@ -233,7 +236,7 @@
         /* [in] */ BufferType type);                                        \
                                                                             \
     CARAPI SetTextEx2(                                                      \
-        /* [in] */ const BufferOf<Byte> & text,                             \
+        /* [in] */ const ArrayOf<Char8> & text,                             \
         /* [in] */ Int32 start,                                             \
         /* [in] */ Int32 len);                                              \
                                                                             \
@@ -286,7 +289,7 @@
         /* [in] */ Int32 actionCode);                                       \
                                                                             \
     CARAPI SetPrivateImeOptions(                                            \
-        /* [in] */ String type);                                            \
+        /* [in] */ const String& type);                                            \
                                                                             \
     CARAPI GetPrivateImeOptions(                                            \
         /* [out] */ String * pOptions);                                     \
@@ -339,7 +342,7 @@
     CARAPI OnEndBatchEdit();                                                \
                                                                             \
     CARAPI OnPrivateIMECommand(                                             \
-        /* [in] */ String action,                                           \
+        /* [in] */ const String& action,                                           \
         /* [in] */ IBundle * pData,                                         \
         /* [out] */ Boolean * pResult);                                     \
                                                                             \
@@ -773,7 +776,19 @@ ECode className::GetPaintFlags(                                                 
                                                                                                 \
     return NOERROR;                                                                             \
 }                                                                                               \
-                                                                                                \
+																								\
+ECode className::GetPaint( 																        \
+	/* [out] */ ITextPaint** textPaint) 															\
+{																								\
+	VALIDATE_NOT_NULL(textPaint);																\
+	*textPaint = superClass::GetPaint();														\
+	if (*textPaint) {																			\
+		(*textPaint)->AddRef();																	\
+	}																							\
+																								\
+	return NOERROR; 																			\
+}																								\
+																								\
 ECode className::SetPaintFlags(                                                                 \
     /* [in] */ Int32 flags)                                                                     \
 {                                                                                               \
@@ -914,7 +929,7 @@ ECode className::SetTextEx(                                                     
 }                                                                                               \
                                                                                                 \
 ECode className::SetTextEx2(                                                                    \
-    /* [in] */ const BufferOf<Byte> & text,                                                     \
+    /* [in] */ const ArrayOf<Char8> & text,                                                     \
     /* [in] */ Int32 start,                                                                     \
     /* [in] */ Int32 len)                                                                       \
 {                                                                                               \
@@ -1036,7 +1051,7 @@ ECode className::OnEditorAction(                                                
 }                                                                                               \
                                                                                                 \
 ECode className::SetPrivateImeOptions(                                                          \
-    /* [in] */ String type)                                                                     \
+    /* [in] */ const String& type)                                                                     \
 {                                                                                               \
     return superClass::SetPrivateImeOptions(type);                                              \
 }                                                                                               \
@@ -1164,7 +1179,7 @@ ECode className::OnEndBatchEdit()                                               
 }                                                                                               \
                                                                                                 \
 ECode className::OnPrivateIMECommand(                                                           \
-    /* [in] */ String action,                                                                   \
+    /* [in] */ const String& action,                                                                   \
     /* [in] */ IBundle * pData,                                                                 \
     /* [out] */ Boolean * pResult)                                                              \
 {                                                                                               \

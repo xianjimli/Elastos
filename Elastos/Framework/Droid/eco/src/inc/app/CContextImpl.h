@@ -1,6 +1,6 @@
 
-#ifndef __CAPPLICATIONCONTEXT_H__
-#define __CAPPLICATIONCONTEXT_H__
+#ifndef __CCONTEXTIMPL_H__
+#define __CCONTEXTIMPL_H__
 
 #include "_CContextImpl.h"
 #include <elastos/AutoPtr.h>
@@ -9,13 +9,34 @@
 #include "app/CApplicationContentResolver.h"
 #include "content/Context.h"
 #include "content/ContextWrapper.h"
+#include "content/ContextMacro.h"
 #include <elastos/Mutex.h>
+#include <elastos/ElRefBase.h>
 
-class ReceiverRestrictedContext : public ContextWrapper
+class ReceiverRestrictedContext
+    : public ElRefBase
+    , public ContextWrapper
+    , public IContextWrapper
 {
 public:
+    ICONTEXT_METHODS_DECL();
+
     ReceiverRestrictedContext(
-        /* [in] */ IContext* base);
+        /* [in] */ IContext* context);
+
+    CARAPI_(PInterface) Probe(
+        /* [in]  */ REIID riid);
+
+    CARAPI_(UInt32) AddRef();
+
+    CARAPI_(UInt32) Release();
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface *pObject,
+        /* [out] */ InterfaceID *pIID);
+
+    CARAPI GetBaseContext(
+        /* [out] */ IContext** context);
 
 //    ReceiverRestrictedContext(Context base) {
 //        super(base);
@@ -54,14 +75,21 @@ public:
 
     ~CContextImpl();
 
-    CARAPI GetCapsuleName(
-        /* [out] */ String* capsuleName);
+    CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid);
+
+    CARAPI GetAssets(
+        /* [out] */ IAssetManager** assetManager);
 
     CARAPI GetResources(
         /* [out] */ IResources** resources);
 
     CARAPI GetContentResolver(
         /* [out] */ IContentResolver** resolver);
+
+    CARAPI GetText(
+        /* [in] */ Int32 resId,
+        /* [out] */ ICharSequence** text);
 
     CARAPI SetTheme(
         /* [in] */ Int32 resid);
@@ -93,6 +121,9 @@ public:
     CARAPI GetClassLoader(
         /* [out] */ IClassLoader** loader);
 
+    CARAPI GetCapsuleName(
+        /* [out] */ String* capsuleName);
+
     CARAPI StartActivity(
         /* [in] */ IIntent *intent);
 
@@ -117,21 +148,34 @@ public:
         /* [in] */ IServiceConnection* conn);
 
     CARAPI GetSystemService(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ IInterface** object);
 
     CARAPI CreateCapsuleContext(
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ Int32 flags,
         /* [out] */ IContext** context);
 
     CARAPI CheckCallingPermission(
-        /* [in] */ String permission,
+        /* [in] */ const String& permission,
         /* [out] */ Int32* value);
 
     CARAPI EnforceCallingOrSelfPermission(
-        /* [in] */ String permission,
-        /* [in] */ String message);
+        /* [in] */ const String& permission,
+        /* [in] */ const String& message);
+
+    CARAPI RevokeUriPermission(
+        /* [in] */ IUri* uri,
+        /* [in] */ Int32 modeFlags);
+
+    CARAPI CheckCallingOrSelfPermission(
+        /* [in] */ const String& permission,
+        /* [out] */ Int32* perm);
+
+    CARAPI GrantUriPermission(
+        /* [in] */ const String& toCapsule,
+        /* [in] */ IUri* uri,
+        /* [in] */ Int32 modeFlags);
 
 public:
     CARAPI Init(
@@ -158,15 +202,15 @@ public:
     CARAPI_(IBinder*) GetActivityToken();
 
     CARAPI_(void) ScheduleFinalCleanup(
-        /* [in] */ String who,
-        /* [in] */ String what);
+        /* [in] */ const String& who,
+        /* [in] */ const String& what);
 
     CARAPI PerformFinalCleanup(
-        /* [in] */ String who,
-        /* [in] */ String what);
+        /* [in] */ const String& who,
+        /* [in] */ const String& what);
 
 private:
-    static const String TAG;
+    static const char* TAG;
 
     LoadedCap* mCapsuleInfo;
     AutoPtr<IResources> mResources;
@@ -182,4 +226,4 @@ private:
     Mutex mSync;
 };
 
-#endif // __CAPPLICATIONCONTEXT_H__
+#endif // __CCONTEXTIMPL_H__

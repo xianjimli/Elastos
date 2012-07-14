@@ -10,7 +10,7 @@
 #include "content/CCompatibilityInfo.h"
 #include <elastos/Mutex.h>
 
-using namespace Elastos::System::Threading;
+using namespace Elastos::Core::Threading;
 
 class CInnerConnection;
 
@@ -28,7 +28,7 @@ public:
             CARAPI PerformReceive(
                 /* [in] */ IIntent* intent,
                 /* [in] */ Int32 resultCode,
-                /* [in] */ String data,
+                /* [in] */ const String& data,
                 /* [in] */ IBundle* extras,
                 /* [in] */ Boolean ordered,
                 /* [in] */ Boolean sticky);
@@ -59,7 +59,7 @@ public:
         CARAPI PerformReceive(
             /* [in] */ IIntent* intent,
             /* [in] */ Int32 resultCode,
-            /* [in] */ String data,
+            /* [in] */ const String& data,
             /* [in] */ IBundle* extras,
             /* [in] */ Boolean ordered,
             /* [in] */ Boolean sticky);
@@ -276,8 +276,8 @@ public:
 
     CARAPI RemoveContextRegistrations(
         /* [in] */ IContext* context,
-        /* [in] */ String who,
-        /* [in] */ String what);
+        /* [in] */ const String& who,
+        /* [in] */ const String& what);
 
     CARAPI_(IServiceConnectionInner*) GetServiceDispatcher(
         /* [in] */ IServiceConnection* c,

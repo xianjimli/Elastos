@@ -61,15 +61,15 @@ protected:
 
 private:
     ECode AddService(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [in] */ InterfacePack * ip);
         
     ECode GetService(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ InterfacePack * pIp);
     
     ECode RemoveService(
-        /* [in] */ String name);
+        /* [in] */ const String& name);
 
 private:
     HashMap<String, InterfacePack*, 

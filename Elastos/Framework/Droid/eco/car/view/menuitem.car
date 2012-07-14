@@ -81,7 +81,7 @@ module
          * @return This Item so additional setters can be called.
          */
         SetTitle(
-            [in] ArrayOf<Char8> title);
+            [in] ICharSequence* title);
 
         /**
          * Change the title associated with this item.
@@ -103,7 +103,7 @@ module
          * @return The title.
          */
         GetTitle(
-            [out, callee] ArrayOf<Char8>* title);
+            [out] ICharSequence** title);
 
         /**
          * Change the condensed title associated with this item. The condensed
@@ -114,7 +114,7 @@ module
          * @return This Item so additional setters can be called.
          */
         SetTitleCondensed(
-            [in] ArrayOf<Char8> title);
+            [in] ICharSequence* title);
 
         /**
          * Retrieve the current condensed title of the item. If a condensed
@@ -124,7 +124,7 @@ module
          *         Otherwise the normal title.
          */
         GetTitleCondensed(
-            [out, callee] ArrayOf<Char8>* title);
+            [out] ICharSequence** title);
 
         /**
          * Change the icon associated with this item. This icon will not always be

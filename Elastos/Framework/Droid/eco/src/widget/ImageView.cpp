@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <graphics/CPaint.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
 const ImageViewScaleType ImageView::sScaleTypeArray[] = {
@@ -438,7 +438,7 @@ void ImageView::ResolveUri()
                 mContext->GetContentResolver((IContentResolver**)&resolver);
                 AutoPtr<IInputStream> istream;
                 resolver->OpenInputStream(mUri.Get(), (IInputStream**)&istream);
-                Drawable::CreateFromStream(istream.Get(), NULL, (IDrawable**)&d);
+                Drawable::CreateFromStream(istream.Get(), String(NULL), (IDrawable**)&d);
 //            } catch (Exception e) {
 //                Log.w("ImageView", "Unable to open content: " + mUri, e);
 //            }
@@ -447,7 +447,6 @@ void ImageView::ResolveUri()
             String uriDes;
             mUri->GetDescription(&uriDes);
             Drawable::CreateFromPath(uriDes, (IDrawable**)&d);
-            String::Free(uriDes);
         }
 
         if (d == NULL) {
@@ -455,7 +454,6 @@ void ImageView::ResolveUri()
             mUri->GetDescription(&uriDes);
             Logger::W("ImageView",
                     StringBuffer("resolveUri failed on bad bitmap uri: ") + uriDes);
-            String::Free(uriDes);
             // Don't try again.
             mUri = NULL;
         }
@@ -786,9 +784,8 @@ void ImageView::ConfigureBounds()
         }
         else {
             // Generate the required transform.
-            // TODO:
-//	            mTempSrc->Set(0, 0, dwidth, dheight);
-//	            mTempDst->Set(0, 0, vwidth, vheight);
+            mTempSrc->Set(0, 0, dwidth, dheight);
+            mTempDst->Set(0, 0, vwidth, vheight);
 
             mDrawMatrix = mMatrix;
             mDrawMatrix->SetRectToRect(mTempSrc, mTempDst,

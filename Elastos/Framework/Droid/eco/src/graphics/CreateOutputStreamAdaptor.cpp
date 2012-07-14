@@ -34,11 +34,8 @@ public:
 
             storage->Replace(0, (const Byte*)buffer, requested);
 
-            Int32 bytesWritten = 0;
             if (FAILED(mOutputStream->WriteBufferEx(
-                0, (Int32)requested,
-                BufferOf<Byte>(storage->GetPayload(), requested),
-                &bytesWritten))) {
+                0, (Int32)requested, *storage))) {
                 return false;
             }
 

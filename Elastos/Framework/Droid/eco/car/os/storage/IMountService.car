@@ -1,12 +1,212 @@
 
 module
 {
+    interface IObbActionListener;
+    interface IMountServiceListener;
+    interface IMountShutdownObserver;
+
+
     interface IMountService {
+        /*
+         * Creates a secure container with the specified parameters. Returns an int
+         * consistent with MountServiceResultCode
+         */
+        CreateSecureContainer(
+            [in] String id,
+            [in] Int32 sizeMb,
+            [in] String fstype,
+            [in] String key,
+            [in] Int32 ownerUid,
+            [out] Int32* result);
+
+        /*
+         * Destroy a secure container, and free up all resources associated with it.
+         * NOTE: Ensure all references are released prior to deleting. Returns an
+         * int consistent with MountServiceResultCode
+         */
+        DestroySecureContainer(
+            [in] CString id,
+            [in] Boolean force,
+            [out] Int32* result);
+
+        /*
+         * Finalize a container which has just been created and populated. After
+         * finalization, the container is immutable. Returns an int consistent with
+         * MountServiceResultCode
+         */
+        FinalizeSecureContainer(
+            [in] CString id,
+            [out] Int32* result);
+
         /**
          * Call into MountService by PackageManager to notify that its done
          * processing the media status update request.
          */
         FinishMediaUpdate();
+
+        /**
+         * Format external storage given a mount point. Returns an int consistent
+         * with MountServiceResultCode
+         */
+        FormatVolume(
+            [in] CString mountPoint,
+            [out] Int32* result);
+
+        /**
+         * Gets the path to the mounted Opaque Binary Blob (OBB).
+         */
+        GetMountedObbPath(
+            [in] CString filename,
+            [out] String* obbPath);
+
+        /**
+         * Gets an Array of currently known secure container IDs
+         */
+        GetSecureContainerList(
+            [out, callee] ArrayOf<String>* ids);
+
+        /*
+         * Returns the filesystem path of a mounted secure container.
+         */
+        GetSecureContainerPath(
+            [in] CString id,
+            [out] String* path);
+
+        /**
+         * Returns an array of pids with open files on the specified path.
+         */
+        GetStorageUsers(
+            [in] CString path,
+            [out, callee] ArrayOf<Int32>* pids);
+
+        /**
+         * Gets the state of a volume via its mountpoint.
+         */
+        GetVolumeState(
+            [in] CString mountPoint,
+            [out] String* state);
+
+        /**
+         * Checks whether the specified Opaque Binary Blob (OBB) is mounted
+         * somewhere.
+         */
+        IsObbMounted(
+            [in] CString filename,
+            [out] Boolean* isMounted);
+
+        /*
+         * Returns true if the specified container is mounted
+         */
+        IsSecureContainerMounted(
+            [in] CString id,
+            [out] Boolean* isMounted);
+
+        /**
+         * Returns true if a USB mass storage host is connected
+         */
+        IsUsbMassStorageConnected(
+            [out] Boolean* isConnected);
+
+        /**
+         * Returns true if a USB mass storage host is enabled (media is shared)
+         */
+        IsUsbMassStorageEnabled(
+            [out] Boolean* isEnabled);
+
+        /**
+         * Mounts an Opaque Binary Blob (OBB) with the specified decryption key and
+         * only allows the calling process's UID access to the contents.
+         * MountService will call back to the supplied IObbActionListener to inform
+         * it of the terminal state of the call.
+         */
+        MountObb(
+            [in] String filename,
+            [in] String key,
+            [in] IObbActionListener* token,
+            [in] Int32 nonce);
+
+        /*
+         * Mount a secure container with the specified key and owner UID. Returns an
+         * int consistent with MountServiceResultCode
+         */
+        MountSecureContainer(
+            [in] String id,
+            [in] String key,
+            [in] Int32 ownerUid,
+            [out] Int32* result);
+
+        /**
+         * Mount external storage at given mount point. Returns an int consistent
+         * with MountServiceResultCode
+         */
+        MountVolume(
+            [in] String mountPoint,
+            [out] Int32* result);
+
+        /**
+         * Registers an IMountServiceListener for receiving async notifications.
+         */
+        RegisterListener(
+            [in] IMountServiceListener* listener);
+
+        /*
+         * Rename an unmounted secure container. Returns an int consistent with
+         * MountServiceResultCode
+         */
+        RenameSecureContainer(
+            [in] String oldId,
+            [in] String newId,
+            [out] Int32* result);
+
+        /**
+         * Enables / disables USB mass storage. The caller should check actual
+         * status of enabling/disabling USB mass storage via StorageEventListener.
+         */
+        SetUsbMassStorageEnabled(
+            [in] Boolean value);
+
+        /**
+         * Shuts down the MountService and gracefully unmounts all external media.
+         * Invokes call back once the shutdown is complete.
+         */
+        Shutdown(
+            [in] IMountShutdownObserver* observer);
+
+        /**
+         * Unmounts an Opaque Binary Blob (OBB). When the force flag is specified,
+         * any program using it will be forcibly killed to unmount the image.
+         * MountService will call back to the supplied IObbActionListener to inform
+         * it of the terminal state of the call.
+         */
+        UnmountObb(
+            [in] CString filename,
+            [in] Boolean force,
+            [in] IObbActionListener* token,
+            [in] Int32 nonce);
+
+        /*
+         * Unount a secure container. Returns an int consistent with
+         * MountServiceResultCode
+         */
+        UnmountSecureContainer(
+            [in] CString id,
+            [in] Boolean force,
+            [out] Int32* result);
+
+        /**
+         * Safely unmount external storage at given mount point. The unmount is an
+         * asynchronous operation. Applications should register StorageEventListener
+         * for storage related status changes.
+         */
+        UnmountVolume(
+            [in] CString mountPoint,
+            [in] Boolean force);
+
+        /**
+         * Unregisters an IMountServiceListener
+         */
+        UnregisterListener(
+            [in] IMountServiceListener* listener);
     }
 }
 

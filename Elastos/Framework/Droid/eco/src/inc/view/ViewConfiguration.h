@@ -3,7 +3,7 @@
 #define __VIEWCONFIGURATION_H__
 
 #include "ext/frameworkext.h"
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>
 #include <elastos/Map.h>
 

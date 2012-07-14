@@ -1,0 +1,14 @@
+
+module
+{
+    interface IPoolable;
+
+    interface IPool {
+        Acquire(
+            [out] IPoolable** element);
+
+        // Method name Release is duplicated in class, Release->ReleaseElement
+        ReleaseElement(
+            [in] IPoolable* element);
+    }
+}

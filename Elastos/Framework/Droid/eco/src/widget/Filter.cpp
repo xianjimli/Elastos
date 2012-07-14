@@ -3,8 +3,8 @@
 #include "utils/CApartment.h"
 #include "os/SystemClock.h"
 
-const String Filter::TAG;
-const String Filter::THREAD_NAME = "Filter";
+const char* Filter::TAG = "Filter";
+const char* Filter::THREAD_NAME = "Filter";
 const Int32 Filter::FILTER_TOKEN;
 const Int32 Filter::FINISH_TOKEN;
 
@@ -177,9 +177,8 @@ ECode Filter::DoFilterEx(
     //mThreadHandler.removeMessages(FILTER_TOKEN);
     //mThreadHandler.removeMessages(FINISH_TOKEN);
 
-    return mRequestApartment->PostCppCallbackAtTime(
-        (Handle32)this, *(Handle32*)&pHandlerFunc, params,
-        SystemClock::GetUptimeMillis() + delay);
+    return mRequestApartment->PostCppCallbackDelayed(
+        (Handle32)this, *(Handle32*)&pHandlerFunc, params, 0, delay);
 }
 
 /**
@@ -221,7 +220,7 @@ ECode Filter::HandleFilterMessage(
     params->WriteInt32((Handle32)args);
 
     mDefaultApartment->PostCppCallback(
-        (Handle32)this, *(Handle32*)&pHandlerFunc, params);
+        (Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 
     Mutex::Autolock lock(mLock);
     if (mRequestApartment != NULL) {
@@ -229,9 +228,8 @@ ECode Filter::HandleFilterMessage(
 
         pHandlerFunc = &Filter::HandleFinishMessage;
 
-        mRequestApartment->PostCppCallbackAtTime(
-            (Handle32)this, *(Handle32*)&pHandlerFunc, params,
-            SystemClock::GetUptimeMillis() + 3000);
+        mRequestApartment->PostCppCallbackDelayed(
+            (Handle32)this, *(Handle32*)&pHandlerFunc, params, 0, 3000);
     }
 
     return NOERROR;

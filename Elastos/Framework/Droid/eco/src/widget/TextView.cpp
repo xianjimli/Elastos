@@ -96,7 +96,6 @@
 #include "content/CCompatibilityInfo.h"
 #include "utils/CTypedValue.h"
 #include "utils/CDisplayMetrics.h"
-#include "utils/AutoString.h"
 #include "text/CTextPaint.h"
 #include "text/CBoringLayoutMetrics.h"
 #include "text/CBoringLayout.h"
@@ -111,11 +110,11 @@
 
 //using namespace Elastos::Utility;
 //using namespace Elastos::Utility::Logging;
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 
 TextView::CharWrapper::CharWrapper(
-    /* [in] */ const BufferOf<Byte>& chars,
+    /* [in] */ const ArrayOf<Char8>& chars,
     /* [in] */ Int32 start,
     /* [in] */ Int32 len)
     : mChars(chars.Clone())
@@ -125,7 +124,7 @@ TextView::CharWrapper::CharWrapper(
 
 TextView::CharWrapper::~CharWrapper()
 {
-    BufferOf<Byte>::Free(mChars);
+    ArrayOf<Char8>::Free(mChars);
 }
 
 PInterface TextView::CharWrapper::Probe(
@@ -159,11 +158,11 @@ ECode TextView::CharWrapper::GetInterfaceID(
 }
 
 void TextView::CharWrapper::Set(
-    /* [in] */ const BufferOf<Byte>& chars,
+    /* [in] */ const ArrayOf<Char8>& chars,
     /* [in] */ Int32 start,
     /* [in] */ Int32 len)
 {
-    BufferOf<Byte>::Free(mChars);
+    ArrayOf<Char8>::Free(mChars);
     mChars = chars.Clone();
     mStart = start;
     mLength = len;
@@ -209,7 +208,7 @@ ECode TextView::CharWrapper::SubSequence(
 ECode TextView::CharWrapper::GetChars(
     /* [in] */ Int32 start,
     /* [in] */ Int32 end,
-    /* [out] */ BufferOf<Byte>* dest,
+    /* [out] */ ArrayOf<Char8>* dest,
     /* [in] */ Int32 destoff)
 {
     /*if (start < 0 || end < 0 || start > mLength || end > mLength) {
@@ -272,7 +271,7 @@ AutoPtr<IBoringLayoutMetrics> InitUNKNOWN_BORING()
     return (IBoringLayoutMetrics*)metris.Get();
 }
 
-const String TextView::TEXT_VIEW_LOG_TAG = "TextView";
+const char* TextView::TEXT_VIEW_LOG_TAG = "TextView";
 const Boolean TextView::DEBUG_EXTRACT = FALSE;
 const Int32 TextView::PRIORITY = 100;
 const Int32 TextView::PREDRAW_NOT_REGISTERED = 0;
@@ -305,24 +304,37 @@ const Int32 TextView::EXTRACT_UNKNOWN = -1;
 const AutoPtr<IBoringLayoutMetrics> TextView::UNKNOWN_BORING = InitUNKNOWN_BORING();
 
 TextView::TextView()
-    : mEatTouchRelease(FALSE)
+    : mCurTextColor(0)
+    , mFreezesText(FALSE)
+    , mFrozenWithFocus(FALSE)
+    , mTemporaryDetach(FALSE)
+    , mDispatchTemporaryDetach(FALSE)
+    , mEatTouchRelease(FALSE)
     , mScrolled(FALSE)
     , mPreDrawState(PREDRAW_NOT_REGISTERED)
     , mEllipsize(-1)
+    , mErrorWasChanged(FALSE)
+    , mShowErrorAfterAttach(FALSE)
     , mSelectionMoved(FALSE)
     , mTouchFocusSelected(FALSE)
+    , mRestartMarquee(FALSE)
     , mMarqueeRepeatLimit(3)
     , mCreatedWithASelection(FALSE)
     , mNoContextMenuOnUp(FALSE)
     , mBufferType(BufferType_NORMAL)
+    , mUserSetTextScaleX(FALSE)
     , mHighlightColor(0xCC475925)
     , mCursorVisible(TRUE)
+    , mInsertionControllerEnabled(FALSE)
+    , mSelectionControllerEnabled(FALSE)
+    , mInBatchEditControllers(FALSE)
     , mIsInTextSelectionMode(FALSE)
     , mDPadCenterIsDown(FALSE)
     , mEnterKeyIsDown(FALSE)
     , mContextMenuTriggeredByKey(FALSE)
     , mSelectAllOnFocus(FALSE)
     , mGravity(Gravity_TOP | Gravity_LEFT)
+    , mHorizontallyScrolling(FALSE)
     , mLinksClickable(TRUE)
     , mSpacingMult(1)
     , mSpacingAdd(0)
@@ -334,6 +346,7 @@ TextView::TextView()
     , mMaxWidthMode(PIXELS)
     , mMinWidth(0)
     , mMinWidthMode(PIXELS)
+    , mSingleLine(FALSE)
     , mDesiredHeightAtMeasure(-1)
     , mIncludePad(TRUE)
     , mHighlightPathBogus(TRUE)
@@ -345,24 +358,37 @@ TextView::TextView(
     /* [in] */ IAttributeSet* attrs,
     /* [in] */ Int32 defStyle)
     : View(context, attrs, defStyle)
+    , mCurTextColor(0)
+    , mFreezesText(FALSE)
+    , mFrozenWithFocus(FALSE)
+    , mTemporaryDetach(FALSE)
+    , mDispatchTemporaryDetach(FALSE)
     , mEatTouchRelease(FALSE)
     , mScrolled(FALSE)
     , mPreDrawState(PREDRAW_NOT_REGISTERED)
     , mEllipsize(-1)
+    , mErrorWasChanged(FALSE)
+    , mShowErrorAfterAttach(FALSE)
     , mSelectionMoved(FALSE)
     , mTouchFocusSelected(FALSE)
+    , mRestartMarquee(FALSE)
     , mMarqueeRepeatLimit(3)
     , mCreatedWithASelection(FALSE)
     , mNoContextMenuOnUp(FALSE)
     , mBufferType(BufferType_NORMAL)
+    , mUserSetTextScaleX(FALSE)
     , mHighlightColor(0xCC475925)
     , mCursorVisible(TRUE)
+    , mInsertionControllerEnabled(FALSE)
+    , mSelectionControllerEnabled(FALSE)
+    , mInBatchEditControllers(FALSE)
     , mIsInTextSelectionMode(FALSE)
     , mDPadCenterIsDown(FALSE)
     , mEnterKeyIsDown(FALSE)
     , mContextMenuTriggeredByKey(FALSE)
     , mSelectAllOnFocus(FALSE)
     , mGravity(Gravity_TOP | Gravity_LEFT)
+    , mHorizontallyScrolling(FALSE)
     , mLinksClickable(TRUE)
     , mSpacingMult(1)
     , mSpacingAdd(0)
@@ -374,6 +400,7 @@ TextView::TextView(
     , mMaxWidthMode(PIXELS)
     , mMinWidth(0)
     , mMinWidthMode(PIXELS)
+    , mSingleLine(FALSE)
     , mDesiredHeightAtMeasure(-1)
     , mIncludePad(TRUE)
     , mHighlightPathBogus(TRUE)
@@ -2256,7 +2283,7 @@ ECode TextView::SetText(
     AutoPtr<ICharSequence> text = _text;
 
     if (text == NULL) {
-        CStringWrapper::New(String::Duplicate(String("")), (ICharSequence**)&text);
+        CStringWrapper::New(String(""), (ICharSequence**)&text);
     }
 
     if (!mUserSetTextScaleX) mTextPaint->SetTextScaleX(1.0f);
@@ -2396,7 +2423,6 @@ ECode TextView::SetText(
 //        sendAfterTextChanged((Editable) text);
 //    }
 
-
     // SelectionModifierCursorController depends on textCanBeSelected, which depends on text
     PrepareCursorControllers();
 
@@ -2411,7 +2437,7 @@ ECode TextView::SetText(
  * has changed and that it needs to invalidate and re-layout.
  */
 ECode TextView::SetText(
-    /* [in] */ const BufferOf<Byte>& text,
+    /* [in] */ const ArrayOf<Char8>& text,
     /* [in] */ Int32 start,
     /* [in] */ Int32 len)
 {
@@ -2433,7 +2459,7 @@ ECode TextView::SetText(
     }
     else {
         AutoPtr<ICharSequence> temp;
-        CStringWrapper::New(String::Duplicate(String("")), (ICharSequence**)&temp);
+        CStringWrapper::New(String(""), (ICharSequence**)&temp);
         SendBeforeTextChanged(temp, 0, 0, len);
     }
 
@@ -2898,7 +2924,8 @@ ECode TextView::OnEditorAction(
  * @see EditorInfo#privateImeOptions
  * @attr ref android.R.styleable#TextView_privateImeOptions
  */
-ECode TextView::SetPrivateImeOptions(String type)
+ECode TextView::SetPrivateImeOptions(
+    /* [in] */ const String& type)
 {
 //    if (mInputContentType == NULL) mInputContentType = new InputContentType();
 //    mInputContentType.privateImeOptions = type;
@@ -2915,7 +2942,7 @@ String TextView::GetPrivateImeOptions()
 {
     /*return mInputContentType != NULL
             ? mInputContentType.privateImeOptions : NULL;*/
-    return NULL;
+    return String(NULL);
 }
 
 /**
@@ -3735,7 +3762,7 @@ void TextView::OnDraw(
         }
     }
 
-    Int32 color = 0xFFFFFFFF;//mCurTextColor;
+    Int32 color = mCurTextColor;
 
     if (mLayout == NULL) {
         AssumeLayout();
@@ -4750,7 +4777,7 @@ ECode TextView::OnEndBatchEdit()
  * @return Return TRUE if you handled the command, else FALSE.
  */
 Boolean TextView::OnPrivateIMECommand(
-    /* [in] */ String action,
+    /* [in] */ const String& action,
     /* [in] */ IBundle* data)
 {
     return FALSE;
@@ -4759,12 +4786,12 @@ Boolean TextView::OnPrivateIMECommand(
 void TextView::NullLayouts()
 {
     if (mLayout != NULL &&IBoringLayout::Probe(mLayout) != NULL
-        && mSavedLayout.Get() == NULL) {
+        && mSavedLayout == NULL) {
         mSavedLayout = IBoringLayout::Probe(mLayout);
     }
 
     if (mHintLayout != NULL && IBoringLayout::Probe(mHintLayout) != NULL
-        && mSavedHintLayout.Get() == NULL) {
+        && mSavedHintLayout == NULL) {
         mSavedHintLayout = IBoringLayout::Probe(mHintLayout);
     }
 
@@ -6552,17 +6579,18 @@ ECode TextView::ClearComposingText()
 ECode TextView::SetSelected(
     /* [in] */ Boolean selected)
 {
-    /*Boolean wasSelected = isSelected();
+    Boolean wasSelected = IsSelected();
 
-    super.setSelected(selected);
+    View::SetSelected(selected);
 
-    if (selected != wasSelected && mEllipsize == TextUtils.TruncateAt.MARQUEE) {
+    if (selected != wasSelected && mEllipsize == TextUtilsTruncateAt_MARQUEE) {
         if (selected) {
-            startMarquee();
-        } else {
-            stopMarquee();
+            StartMarquee();
         }
-    }*/
+        else {
+            StopMarquee();
+        }
+    }
     return NOERROR;
 }
 
@@ -6598,32 +6626,35 @@ void TextView::OnTapUpEvent(
 Boolean TextView::OnTouchEvent(
     /* [in] */ IMotionEvent* event)
 {
-    //final Int32 action = event.getActionMasked();
+    Int32 action;
+    event->GetActionMasked(&action);
 
-    //if (hasInsertionController()) {
-    //    getInsertionController().onTouchEvent(event);
-    //}
-    //if (hasSelectionController()) {
-    //    getSelectionController().onTouchEvent(event);
-    //}
+    if (HasInsertionController()) {
+        //GetInsertionController()->OnTouchEvent(event);
+    }
 
-    //if (action == MotionEvent.ACTION_DOWN) {
-    //// Reset this state; it will be re-set if super.onTouchEvent
-    //// causes focus to move to the view.
-    //    mTouchFocusSelected = FALSE;
-    //    mScrolled = FALSE;
-    //}
+    if (HasSelectionController()) {
+        //GetSelectionController()->OnTouchEvent(event);
+    }
 
-    //Boolean result = super.onTouchEvent(event);
+    if (action == MotionEvent_ACTION_DOWN) {
+    // Reset this state; it will be re-set if super.onTouchEvent
+    // causes focus to move to the view.
+        mTouchFocusSelected = FALSE;
+        mScrolled = FALSE;
+    }
 
-    ///*
-    //    * Don't handle the release after a Int64 press, because it will
-    //    * move the selection away from whatever the menu action was
-    //    * trying to affect.
-    //    */
-    //if (mEatTouchRelease && action == MotionEvent.ACTION_UP) {
-    //    mEatTouchRelease = FALSE;
-    //} else if ((mMovement != NULL || onCheckIsTextEditor()) && mText instanceof Spannable &&
+    Boolean result = View::OnTouchEvent(event);
+
+    /*
+     * Don't handle the release after a Int64 press, because it will
+     * move the selection away from whatever the menu action was
+     * trying to affect.
+     */
+    if (mEatTouchRelease && action == MotionEvent_ACTION_UP) {
+        mEatTouchRelease = FALSE;
+    }
+    //else if ((mMovement != NULL || onCheckIsTextEditor()) && mText instanceof Spannable &&
     //        mLayout != NULL) {
     //    Boolean handled = FALSE;
 
@@ -6665,15 +6696,15 @@ Boolean TextView::OnTouchEvent(
     //        }
     //    }
 
-    //    if (handled) result = TRUE;
+    //    if (handled)
+    //        result = TRUE;
     //}
 
-    //if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
-    //    mNoContextMenuOnUp = FALSE;
-    //}
+    if (action == MotionEvent_ACTION_UP || action == MotionEvent_ACTION_CANCEL) {
+        mNoContextMenuOnUp = FALSE;
+    }
 
-    //return result;
-    return FALSE;
+    return result;
 }
 
 void TextView::PrepareCursorControllers()
@@ -7670,7 +7701,7 @@ ECode TextView::InitFromAttributes(
     /* [in] */ IAttributeSet* attrs,
     /* [in] */ Int32 defStyle)
 {
-    CStringWrapper::New(String::Duplicate(String("")), (ICharSequence**)&mText);
+    CStringWrapper::New(String(""), (ICharSequence**)&mText);
 
     AutoPtr<IDisplayMetrics> dm;
     AutoPtr<ICompatibilityInfo> ci;
@@ -7782,7 +7813,7 @@ ECode TextView::InitFromAttributes(
     Boolean singleLine = FALSE;
     Int32 maxlength = -1;
     AutoPtr<ICharSequence> text;
-    CStringWrapper::New(String::Duplicate(String("")), (ICharSequence**)&text);
+    CStringWrapper::New(String(""), (ICharSequence**)&text);
     AutoPtr<ICharSequence> hint;
     Int32 shadowcolor = 0;
     Float dx = 0, dy = 0, r = 0;
@@ -8076,7 +8107,7 @@ ECode TextView::InitFromAttributes(
 
         case 57/*com.android.internal.R.styleable.TextView_privateImeOptions*/:
         {
-            AutoString str;
+            String str;
             a->GetString(attr, &str);
             SetPrivateImeOptions(str);
             break;

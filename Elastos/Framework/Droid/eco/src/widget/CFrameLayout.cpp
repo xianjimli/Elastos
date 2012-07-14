@@ -9,7 +9,11 @@ IVIEWPARENT_METHODS_IMPL(CFrameLayout, FrameLayout, FrameLayout);
 
 IVIEWMANAGER_METHODS_IMPL(CFrameLayout, FrameLayout, FrameLayout);
 
+IDrawableCallback_METHODS_IMPL(CFrameLayout, FrameLayout, FrameLayout);
+
 IKeyEventCallback_METHODS_IMPL(CFrameLayout, FrameLayout, FrameLayout);
+
+IAccessibilityEventSource_METHODS_IMPL(CFrameLayout, FrameLayout, FrameLayout);
 
 PInterface CFrameLayout::Probe(
     /* [in] */ REIID riid)
@@ -25,17 +29,13 @@ PInterface CFrameLayout::Probe(
 ECode CFrameLayout::SetForegroundGravity(
     /* [in] */ Int32 foregroundGravity)
 {
-    FrameLayout::SetForegroundGravity(foregroundGravity);
-
-    return NOERROR;
+    return FrameLayout::SetForegroundGravity(foregroundGravity);
 }
 
 ECode CFrameLayout::SetForeground(
     /* [in] */ IDrawable* drawable)
 {
-    FrameLayout::SetForeground(drawable);
-
-    return NOERROR;
+    return FrameLayout::SetForeground(drawable);
 }
 
 ECode CFrameLayout::GetForeground(
@@ -54,9 +54,7 @@ ECode CFrameLayout::GetForeground(
 ECode CFrameLayout::SetMeasureAllChildren(
     /* [in] */ Boolean measureAll)
 {
-    FrameLayout::SetMeasureAllChildren(measureAll);
-
-    return NOERROR;
+    return FrameLayout::SetMeasureAllChildren(measureAll);
 }
 
 ECode CFrameLayout::GetConsiderGoneChildrenWhenMeasuring(

@@ -17,14 +17,14 @@
 #include "utils/CBundle.h"
 #include <elastos/Mutex.h>
 
-using namespace Elastos::System::Threading;
+using namespace Elastos::Core::Threading;
 
 class LoadedCap;
 
 CarClass(CApplicationApartment)
 {
 public:
-    static const String TAG;
+    static const char* TAG;
     static const Boolean DEBUG = TRUE;
     static const Boolean localLOGV = DEBUG /*? Config.LOGD : Config.LOGV*/;
     static const Boolean DEBUG_MESSAGES = FALSE;
@@ -79,7 +79,7 @@ public:
     {
     public:
         ProviderClientRecord(
-            /* [in] */ String name,
+            /* [in] */ const String& name,
             /* [in] */ IContentProvider* provider,
             /* [in] */ IContentProvider* localProvider);
 
@@ -172,18 +172,16 @@ public:
     {
     public:
         ResourcesKey(
-            /* [in] */ String resDir,
+            /* [in] */ const String& resDir,
             /* [in] */ Float scale)
         {
-            mResDir = String::Duplicate(resDir);
+            mResDir = resDir;
             mScale = scale;
             mHash = ((Int32)HashString(mResDir) << 2) + (Int32)(mScale * 2);
         }
 
         ~ResourcesKey()
-        {
-            String::Free(mResDir);
-        }
+        {}
 
         CARAPI_(Int32) GetHashCode() const
         {
@@ -218,11 +216,11 @@ public:
         /* [out] */ String* description);
 
     CARAPI BindApplication(
-        /* [in] */ String processName,
+        /* [in] */ const String& processName,
         /* [in] */ IApplicationInfo* appInfo,
         /* [in] */ IObjectContainer* providers,
         /* [in] */ IComponentName* instrumentationName,
-        /* [in] */ String profileFile,
+        /* [in] */ const String& profileFile,
         /* [in] */ IBundle* instrumentationArgs,
         /* [in] */ IInstrumentationWatcher* instrumentationWatcher,
         /* [in] */ Int32 debugMode,
@@ -232,12 +230,12 @@ public:
 
     CARAPI AcquireProvider(
         /* [in] */ IContext* context,
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ IContentProvider** provider);
 
     CARAPI AcquireExistingProvider(
         /* [in] */ IContext* context,
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ IContentProvider** provider);
 
     CARAPI ReleaseProvider(
@@ -304,7 +302,7 @@ public:
         /* [in] */ IIntent* intent,
         /* [in] */ IActivityInfo* info,
         /* [in] */ Int32 resultCode,
-        /* [in] */ String data,
+        /* [in] */ const String& data,
         /* [in] */ IBundle* extras,
         /* [in] */ Boolean sync);
 
@@ -312,7 +310,7 @@ public:
         /* [in] */ IIntentReceiver* receiver,
         /* [in] */ IIntent* intent,
         /* [in] */ Int32 resultCode,
-        /* [in] */ String dataStr,
+        /* [in] */ const String& dataStr,
         /* [in] */ IBundle* extras,
         /* [in] */ Boolean ordered,
         /* [in] */ Boolean sticky);
@@ -323,7 +321,7 @@ public:
 
     CARAPI SendActivityResult(
         /* [in] */ IBinder* token,
-        /* [in] */ String id,
+        /* [in] */ const String& id,
         /* [in] */ Int32 requestCode,
         /* [in] */ Int32 resultCode,
         /* [in] */ IIntent* data);
@@ -376,7 +374,7 @@ public:
      * null.
      */
     CARAPI GetTopLevelResources(
-        /* [in] */ String resDir,
+        /* [in] */ const String& resDir,
         /* [in] */ CCompatibilityInfo* compInfo,
         /* [out] */ CResources** res);
 
@@ -384,12 +382,12 @@ public:
      * Creates the top level resources for the given package.
      */
     CARAPI GetTopLevelResources(
-        /* [in] */ String resDir,
+        /* [in] */ const String& resDir,
         /* [in] */ LoadedCap* capInfo,
         /* [out] */ CResources** res);
 
     CARAPI_(LoadedCap*) GetCapsuleInfo(
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ Int32 flags);
 
     CARAPI_(LoadedCap*) GetCapsuleInfo(
@@ -402,8 +400,8 @@ public:
 
     CARAPI ScheduleContextCleanup(
         /* [in] */ IContext* context,
-        /* [in] */ String who,
-        /* [in] */ String what);
+        /* [in] */ const String& who,
+        /* [in] */ const String& what);
 
 private:
     CARAPI HandleBindApplication(
@@ -547,12 +545,12 @@ private:
 
     CARAPI GetExistingProvider(
         /* [in] */ IContext* context,
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ IContentProvider** provider);
 
     CARAPI GetProvider(
         /* [in] */ IContext* context,
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ IContentProvider** provider);
 
     CARAPI InstallProvider(

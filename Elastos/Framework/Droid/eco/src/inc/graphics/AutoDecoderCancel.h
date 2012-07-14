@@ -1,7 +1,6 @@
 #ifndef __HH_AUTODECODERCANCEL_H
 #define __HH_AUTODECODERCANCEL_H
 
-//	#include <jni.h>
 #include <ext/frameworkext.h>
 #include <elastos/AutoPtr.h>
 #include <skia/images/SkImageDecoder.h>

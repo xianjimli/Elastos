@@ -4,10 +4,14 @@
 #include "server/Config.h"
 #include "capsule/CActivityInfo.h"
 #include "capsule/CCapsuleInfo.h"
-#include "utils/CObjectContainer.h"
+#include "utils/CParcelableObjectContainer.h"
 #include "utils/CDisplayMetrics.h"
 #include "utils/CApartment.h"
 #include "utils/ListUtils.h"
+#include "utils/Xml.h"
+#include "utils/XmlUtils.h"
+#include "app/ActivityManagerNative.h"
+#include "net/Uri.h"
 #include "content/CapsuleManager.h"
 #include "content/CPermissionInfo.h"
 #include "content/CapsuleHelper.h"
@@ -16,10 +20,14 @@
 #include "content/NativeLibraryHelper.h"
 #include "content/CCapsuleStats.h"
 #include "content/CFeatureInfo.h"
+#include "content/cm/CCapsuleInfoLite.h"
+#include "content/cm/CSignature.h"
 #include "os/Environment.h"
 #include "os/Process.h"
 #include "os/SystemClock.h"
 #include "os/SystemProperties.h"
+#include "os/FileUtils.h"
+#include "os/CParcelFileDescriptor.h"
 #include <dirent.h>
 #include "sys/stat.h"
 #include <elastos/AutoFree.h>
@@ -29,7 +37,7 @@
 #include <StringBuffer.h>
 
 using namespace Elastos;
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
 #define UNUSED(x) (void)x
@@ -80,13 +88,19 @@ ECode CCapsuleManagerService::DefaultContainerConnection::OnServiceConnected(
     /* [in] */ IBinder* service)
 {
     if (CCapsuleManagerService::DEBUG_SD_INSTALL) Logger::I(TAG, "onServiceConnected");
-    AutoPtr<IMediaContainerService> imcs = (IMediaContainerService*)service->Probe(EIID_IMediaContainerService);
-    if (imcs == NULL) return NOERROR;
-    Message* msg = new Message();
-    msg->mWhat = CCapsuleManagerService::MCS_BOUND;
-    msg->mObj = imcs.Get();
-    mOwner->mHandler->SendMessage(msg);
-    return NOERROR;
+
+    IMediaContainerService* imcs = IMediaContainerService::Probe(service);
+    assert(imcs != NULL);
+
+    void (STDCALL CCapsuleManagerService::*pHandlerFunc)(IMediaContainerService*);
+
+    pHandlerFunc = &CCapsuleManagerService::HandleMediaContainerServiceBound;
+
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    params->WriteInterfacePtr(imcs);
+
+    return mOwner->SendMessage(*(Handle32*)&pHandlerFunc, params);
 }
 
 ECode CCapsuleManagerService::DefaultContainerConnection::OnServiceDisconnected(
@@ -97,10 +111,1083 @@ ECode CCapsuleManagerService::DefaultContainerConnection::OnServiceDisconnected(
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// CCapsuleManagerService::HandlerParams
+
+const Int32 CCapsuleManagerService::HandlerParams::MAX_RETRIES;
+
+PInterface CCapsuleManagerService::HandlerParams::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (PInterface)this;
+    }
+    return NULL;
+}
+
+UInt32 CCapsuleManagerService::HandlerParams::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CCapsuleManagerService::HandlerParams::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode CCapsuleManagerService::HandlerParams::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    VALIDATE_NOT_NULL(pIID);
+
+    if (pObject == (IInterface*)this) {
+        *pIID = EIID_IInterface;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+
+    return NOERROR;
+}
+
+void CCapsuleManagerService::HandlerParams::StartCopy()
+{
+//	    try {
+    if (DEBUG_SD_INSTALL) Logger::I(TAG, "startCopy");
+    mRetry++;
+    if (mRetry > MAX_RETRIES) {
+        Slogger::W(TAG, "Failed to invoke remote methods on default container service. Giving up");
+
+        void (STDCALL CCapsuleManagerService::*pHandlerFunc)();
+
+        pHandlerFunc = &CCapsuleManagerService::HandleMediaContainerServiceGiveUp;
+        mOwner->SendMessage(*(Handle32*)&pHandlerFunc, NULL);
+        HandleServiceError();
+        return;
+    }
+    else {
+        ECode ec = HandleStartCopy();
+        if (SUCCEEDED(ec)) {
+            if (DEBUG_SD_INSTALL) Logger::I(TAG, "Posting install MCS_UNBIND");
+
+            void (STDCALL CCapsuleManagerService::*pHandlerFunc)();
+
+            pHandlerFunc = &CCapsuleManagerService::HandleMediaContainerServiceUnbind;
+            mOwner->SendMessage(*(Handle32*)&pHandlerFunc, NULL);
+        }
+        else {
+	        if (DEBUG_SD_INSTALL) Logger::I(TAG, "Posting install MCS_RECONNECT");
+
+	        void (STDCALL CCapsuleManagerService::*pHandlerFunc)();
+
+            pHandlerFunc = &CCapsuleManagerService::HandleMediaContainerServiceReconnect;
+            mOwner->SendMessage(*(Handle32*)&pHandlerFunc, NULL);
+        }
+    }
+//	    } catch (RemoteException e) {
+//	        if (DEBUG_SD_INSTALL) Logger::I(TAG, "Posting install MCS_RECONNECT");
+//	        mHandler->SendEmptyMessage(MCS_RECONNECT);
+//	    }
+    HandleReturnCode();
+}
+
+void CCapsuleManagerService::HandlerParams::ServiceError()
+{
+    if (DEBUG_SD_INSTALL) Logger::I(TAG, "serviceError");
+    HandleServiceError();
+    HandleReturnCode();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// CCapsuleManagerService::InstallParams
+
+Int32 CCapsuleManagerService::InstallParams::InstallLocationPolicy(
+    /* [in] */ ICapsuleInfoLite* capLite,
+    /* [in] */ Int32 flags)
+{
+    assert(capLite);
+    CCapsuleInfoLite* ccapLite = (CCapsuleInfoLite*)capLite;
+    String capsuleName = ccapLite->mCapsuleName;
+    Int32 installLocation = ccapLite->mInstallLocation;
+    Boolean onSd = (flags & CapsuleManager::INSTALL_EXTERNAL) != 0;
+    {
+        Mutex::Autolock lock(mOwner->mCapsulesLock);
+
+        HashMap<String, CapsuleParser::Capsule*>::Iterator it
+                            = mOwner->mCapsules.Find(capsuleName);
+        CapsuleParser::Capsule* cap = it->mSecond;
+        if (cap != NULL) {
+            if ((flags & CapsuleManager::INSTALL_REPLACE_EXISTING) != 0) {
+                // Check for updated system application.
+                if ((cap->mApplicationInfo->mFlags & CApplicationInfo::FLAG_SYSTEM) != 0) {
+                    if (onSd) {
+                        Slogger::W(TAG, "Cannot install update to system app on sdcard");
+                        return CapsuleHelper::RECOMMEND_FAILED_INVALID_LOCATION;
+                    }
+                    return CapsuleHelper::RECOMMEND_INSTALL_INTERNAL;
+                }
+                else {
+                    if (onSd) {
+                        // Install flag overrides everything.
+                        return CapsuleHelper::RECOMMEND_INSTALL_EXTERNAL;
+                    }
+                    // If current upgrade specifies particular preference
+                    if (installLocation == CCapsuleInfo::INSTALL_LOCATION_INTERNAL_ONLY) {
+                        // Application explicitly specified internal.
+                        return CapsuleHelper::RECOMMEND_INSTALL_INTERNAL;
+                    }
+                    else if (installLocation == CCapsuleInfo::INSTALL_LOCATION_PREFER_EXTERNAL) {
+                        // App explictly prefers external. Let policy decide
+                    }
+                    else {
+                        // Prefer previous location
+                        if (mOwner->IsExternal(cap)) {
+                            return CapsuleHelper::RECOMMEND_INSTALL_EXTERNAL;
+                        }
+                        return CapsuleHelper::RECOMMEND_INSTALL_INTERNAL;
+                    }
+                }
+            }
+            else {
+                // Invalid install. Return error code
+                return CapsuleHelper::RECOMMEND_FAILED_ALREADY_EXISTS;
+            }
+        }
+    }
+    // All the special cases have been taken care of.
+    // Return result based on recommended install location.
+    if (onSd) {
+        return CapsuleHelper::RECOMMEND_INSTALL_EXTERNAL;
+    }
+    return ccapLite->mRecommendedInstallLocation;
+}
+
+ECode CCapsuleManagerService::InstallParams::HandleStartCopy()
+{
+    Int32 ret = CapsuleManager::INSTALL_SUCCEEDED;
+    Boolean fwdLocked = (mFlags & CapsuleManager::INSTALL_FORWARD_LOCK) != 0;
+    Boolean onSd = (mFlags & CapsuleManager::INSTALL_EXTERNAL) != 0;
+    Boolean onInt = (mFlags & CapsuleManager::INSTALL_INTERNAL) != 0;
+    if (onInt && onSd) {
+        // Check if both bits are set.
+        Slogger::W(TAG, "Conflicting flags specified for installing on both internal and external");
+        ret = CapsuleManager::INSTALL_FAILED_INVALID_INSTALL_LOCATION;
+    }
+    else if (fwdLocked && onSd) {
+        // Check for forward locked apps
+        Slogger::W(TAG, "Cannot install fwd locked apps on sdcard");
+        ret = CapsuleManager::INSTALL_FAILED_INVALID_INSTALL_LOCATION;
+    }
+    else {
+        // Remote call to find out default install location
+        mOwner->mContext->GrantUriPermission(
+            String(DEFAULT_CONTAINER_CAPSULE),
+            mCapsuleURI, Intent_FLAG_GRANT_READ_URI_PERMISSION);
+        AutoPtr<ICapsuleInfoLite> capLite;
+        mOwner->mContainerService->GetMinimalCapsuleInfo(
+            mCapsuleURI, mFlags, (ICapsuleInfoLite**)&capLite);
+        mOwner->mContext->RevokeUriPermission(mCapsuleURI,
+            Intent_FLAG_GRANT_READ_URI_PERMISSION);
+
+        Int32 loc = ((CCapsuleInfoLite*)capLite.Get())->mRecommendedInstallLocation;
+        if (loc == CapsuleHelper::RECOMMEND_FAILED_INVALID_LOCATION){
+            ret = CapsuleManager::INSTALL_FAILED_INVALID_INSTALL_LOCATION;
+        }
+        else if (loc == CapsuleHelper::RECOMMEND_FAILED_ALREADY_EXISTS){
+            ret = CapsuleManager::INSTALL_FAILED_ALREADY_EXISTS;
+        }
+        else if (loc == CapsuleHelper::RECOMMEND_FAILED_INSUFFICIENT_STORAGE){
+            ret = CapsuleManager::INSTALL_FAILED_INSUFFICIENT_STORAGE;
+        }
+        else if (loc == CapsuleHelper::RECOMMEND_FAILED_INVALID_APK) {
+            ret = CapsuleManager::INSTALL_FAILED_INVALID_APK;
+        }
+        else if (loc == CapsuleHelper::RECOMMEND_MEDIA_UNAVAILABLE) {
+            ret = CapsuleManager::INSTALL_FAILED_MEDIA_UNAVAILABLE;
+        }
+        else {
+            // Override with defaults if needed.
+            loc = InstallLocationPolicy(capLite, mFlags);
+            if (!onSd && !onInt) {
+                // Override install location with flags
+                if (loc == CapsuleHelper::RECOMMEND_INSTALL_EXTERNAL) {
+                    // Set the flag to install on external media.
+                    mFlags |= CapsuleManager::INSTALL_EXTERNAL;
+                    mFlags &= ~CapsuleManager::INSTALL_INTERNAL;
+                }
+                else {
+                    // Make sure the flag for installing on external
+                    // media is unset
+                    mFlags |= CapsuleManager::INSTALL_INTERNAL;
+                    mFlags &= ~CapsuleManager::INSTALL_EXTERNAL;
+                }
+            }
+        }
+    }
+    // Create the file args now.
+    mArgs = mOwner->CreateInstallArgs(this);
+    if (ret == CapsuleManager::INSTALL_SUCCEEDED) {
+        // Create copy only if we are not in an erroneous state.
+        // Remote call to initiate copy using temporary file
+        ret = mArgs->CopyCap(mOwner->mContainerService, TRUE);
+    }
+    mRet = ret;
+    return NOERROR;
+}
+
+void CCapsuleManagerService::InstallParams::HandleReturnCode()
+{
+    // If mArgs is null, then MCS couldn't be reached. When it
+    // reconnects, it will try again to install. At that point, this
+    // will succeed.
+    if (mArgs != NULL) {
+        mOwner->ProcessPendingInstall(mArgs, mRet);
+    }
+}
+
+void CCapsuleManagerService::InstallParams::HandleServiceError()
+{
+    mArgs = mOwner->CreateInstallArgs(this);
+    mRet = CapsuleManager::INSTALL_FAILED_INTERNAL_ERROR;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// CCapsuleManagerService::MoveParams
+CCapsuleManagerService::MoveParams::MoveParams(
+    /* [in] */ InstallArgs* srcArgs,
+    /* [in] */ ICapsuleMoveObserver* observer,
+    /* [in] */ Int32 flags,
+    /* [in] */ const String& capsuleName,
+    /* [in] */ const String& dataDir,
+    /* [in] */ CCapsuleManagerService* owner)
+    : HandlerParams(owner)
+    , mObserver(observer)
+    , mFlags(flags)
+    , mCapsuleName(capsuleName)
+    , mSrcArgs(srcArgs)
+    , mTargetArgs(NULL)
+    , mRet(0)
+{
+    if (srcArgs != NULL) {
+        AutoPtr<IFile> file;
+        CFile::New(srcArgs->GetCodePath(), (IFile**)&file);
+        AutoPtr<IUri> capsuleUri = Uri::FromFile(file);
+        mTargetArgs = mOwner->CreateInstallArgs(capsuleUri, flags, capsuleName, dataDir);
+    }
+}
+
+//@Override
+ECode CCapsuleManagerService::MoveParams::HandleStartCopy()
+{
+    mRet = CapsuleManager::INSTALL_FAILED_INSUFFICIENT_STORAGE;
+    // Check for storage space on target medium
+    if (!mTargetArgs->CheckFreeStorage(mOwner->mContainerService)) {
+        Slogger::W(TAG, "Insufficient storage to install");
+        return E_FAIL;
+    }
+    // Create the file args now.
+    mRet = mTargetArgs->CopyCap(mOwner->mContainerService, FALSE);
+    mTargetArgs->DoPreInstall(mRet);
+//    if (DEBUG_SD_INSTALL) {
+//        StringBuilder builder = new StringBuilder();
+//        if (srcArgs != null) {
+//            builder.append("src: ");
+//            builder.append(srcArgs.getCodePath());
+//        }
+//        if (targetArgs != null) {
+//            builder.append(" target : ");
+//            builder.append(targetArgs.getCodePath());
+//        }
+//        Log.i(TAG, builder.toString());
+//    }
+    return NOERROR;
+}
+
+//@Override
+void CCapsuleManagerService::MoveParams::HandleReturnCode()
+{
+    mTargetArgs->DoPostInstall(mRet);
+    Int32 currentStatus = CapsuleManager_MOVE_FAILED_INTERNAL_ERROR;
+    if (mRet == CapsuleManager::INSTALL_SUCCEEDED) {
+        currentStatus = CapsuleManager_MOVE_SUCCEEDED;
+    }
+    else if (mRet == CapsuleManager::INSTALL_FAILED_INSUFFICIENT_STORAGE){
+        currentStatus = CapsuleManager_MOVE_FAILED_INSUFFICIENT_STORAGE;
+    }
+    mOwner->ProcessPendingMove(this, currentStatus);
+}
+
+//@Override
+void CCapsuleManagerService::MoveParams::HandleServiceError()
+{
+    mRet = CapsuleManager::INSTALL_FAILED_INTERNAL_ERROR;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// CCapsuleManagerService::InstallArgs
+
+PInterface CCapsuleManagerService::InstallArgs::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (PInterface)this;
+    }
+    return NULL;
+}
+
+UInt32 CCapsuleManagerService::InstallArgs::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CCapsuleManagerService::InstallArgs::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode CCapsuleManagerService::InstallArgs::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    VALIDATE_NOT_NULL(pIID);
+
+    if (pObject == (IInterface*)this) {
+        *pIID = EIID_IInterface;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+
+    return NOERROR;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// CCapsuleManagerService::FileInstallArgs
+
+CCapsuleManagerService::FileInstallArgs::FileInstallArgs(
+    /* [in] */ const String& fullCodePath,
+    /* [in] */ const String& fullResourcePath,
+    /* [in] */ const String& nativeLibraryPath,
+    /* [in] */ CCapsuleManagerService* owner)
+    : InstallArgs(NULL, NULL, 0, String(NULL), owner)
+    , mCreated(FALSE)
+{
+    AutoPtr<IFile> codeFile;
+    CFile::New(fullCodePath, (IFile**)&codeFile);
+    codeFile->GetParentFile((IFile**)&mInstallDir);
+    mCodeFileName = fullCodePath;
+    mResourceFileName = fullResourcePath;
+    mLibraryPath = nativeLibraryPath;
+}
+
+CCapsuleManagerService::FileInstallArgs::FileInstallArgs(
+    /* [in] */ IUri* capsuleURI,
+    /* [in] */ const String& capName,
+    /* [in] */ const String& dataDir,
+    /* [in] */ CCapsuleManagerService* owner)
+    : InstallArgs(capsuleURI, NULL, 0, String(NULL), owner)
+    , mCreated(FALSE)
+{
+    mInstallDir = IsFwdLocked() ? mOwner->mDrmAppPrivateInstallDir : mOwner->mAppInstallDir;
+    String name = mOwner->GetNextCodePath(String(NULL), capName, String(".apk"));
+    AutoPtr<IFile> codeFile;
+    CFile::New(mInstallDir, name + ".apk", (IFile**)&codeFile);
+    codeFile->GetPath(&mCodeFileName);
+    mResourceFileName = GetResourcePathFromCodePath();
+    AutoPtr<IFile> library;
+    CFile::New(dataDir, String(LIB_DIR_NAME), (IFile**)&library);
+    library->GetPath(&mLibraryPath);
+}
+
+Boolean CCapsuleManagerService::FileInstallArgs::CheckFreeStorage(
+    /* [in] */ IMediaContainerService* imcs)
+{
+//    try {
+    mOwner->mContext->GrantUriPermission(
+        String(DEFAULT_CONTAINER_CAPSULE),
+        mCapsuleURI, Intent_FLAG_GRANT_READ_URI_PERMISSION);
+    Boolean ret;
+    imcs->CheckFreeStorage(FALSE, mCapsuleURI, &ret);
+    mOwner->mContext->RevokeUriPermission(mCapsuleURI,
+        Intent_FLAG_GRANT_READ_URI_PERMISSION);
+    return ret;
+//    } finally {
+//        mContext.revokeUriPermission(packageURI, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+//    }
+}
+
+String CCapsuleManagerService::FileInstallArgs::GetCodePath()
+{
+    return mCodeFileName;
+}
+
+void CCapsuleManagerService::FileInstallArgs::CreateCopyFile()
+{
+    mInstallDir = IsFwdLocked() ? mOwner->mDrmAppPrivateInstallDir : mOwner->mAppInstallDir;
+    mOwner->CreateTempCapsuleFile(mInstallDir)->GetPath(&mCodeFileName);
+    mResourceFileName = GetResourcePathFromCodePath();
+    mCreated = TRUE;
+}
+
+Int32 CCapsuleManagerService::FileInstallArgs::CopyCap(
+    /* [in] */ IMediaContainerService* imcs,
+    /* [in] */ Boolean temp)
+{
+    if (temp) {
+        // Generate temp file name
+        CreateCopyFile();
+    }
+    // Get a ParcelFileDescriptor to write to the output file
+    AutoPtr<IFile> codeFile;
+    CFile::New(mCodeFileName, (IFile**)&codeFile);
+    Boolean succeeded;
+    ECode ec;
+    if (!mCreated) {
+//        try {
+        ec = codeFile->CreateNewFile(&succeeded);
+        if (SUCCEEDED(ec) && succeeded) {
+            // Set permissions
+            if (!SetPermissions()) {
+                // Failed setting permissions.
+                return CapsuleManager::INSTALL_FAILED_INSUFFICIENT_STORAGE;
+            }
+        }
+        else {
+//            Slogger::W(TAG, "Failed to create file " + codeFile);
+            return CapsuleManager::INSTALL_FAILED_INSUFFICIENT_STORAGE;
+        }
+//        } catch (IOException e) {
+//           Slog.w(TAG, "Failed to create file " + codeFile);
+//           return PackageManager.INSTALL_FAILED_INSUFFICIENT_STORAGE;
+//        }
+    }
+    AutoPtr<IParcelFileDescriptor> out;
+//    try {
+    ec = CParcelFileDescriptor::Open(codeFile, ParcelFileDescriptor_MODE_READ_WRITE, (IParcelFileDescriptor**)&out);
+    if (FAILED(ec)) {
+//        Slog.e(TAG, "Failed to create file descritpor for : " + codeFileName);
+        return CapsuleManager::INSTALL_FAILED_INSUFFICIENT_STORAGE;
+    }
+//    } catch (FileNotFoundException e) {
+//        Slog.e(TAG, "Failed to create file descritpor for : " + codeFileName);
+//        return PackageManager.INSTALL_FAILED_INSUFFICIENT_STORAGE;
+//    }
+    // Copy the resource now
+    Int32 ret = CapsuleManager::INSTALL_FAILED_INSUFFICIENT_STORAGE;
+//    try {
+    mOwner->mContext->GrantUriPermission(
+        String(DEFAULT_CONTAINER_CAPSULE), mCapsuleURI,
+        Intent_FLAG_GRANT_READ_URI_PERMISSION);
+    imcs->CopyResource(mCapsuleURI, out, &succeeded);
+    if (succeeded) {
+        ret = CapsuleManager::INSTALL_SUCCEEDED;
+    }
+    if (out != NULL) out->Close();
+    mOwner->mContext->RevokeUriPermission(mCapsuleURI,
+        Intent_FLAG_GRANT_READ_URI_PERMISSION);
+//    } finally {
+//        try { if (out != null) out.close(); } catch (IOException e) {}
+//        mContext.revokeUriPermission(packageURI, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+//    }
+//
+    return ret;
+}
+
+Int32 CCapsuleManagerService::FileInstallArgs::DoPreInstall(
+    /* [in] */ Int32 status)
+{
+    if (status != CapsuleManager::INSTALL_SUCCEEDED) {
+        CleanUp();
+    }
+    return status;
+}
+
+Boolean CCapsuleManagerService::FileInstallArgs::DoRename(
+    /* [in] */ Int32 status,
+    /* [in] */ const String& capName,
+    /* [in] */ const String& oldCodePath)
+{
+    if (status != CapsuleManager::INSTALL_SUCCEEDED) {
+        CleanUp();
+        return FALSE;
+    }
+    else {
+        // Rename based on packageName
+        AutoPtr<IFile> codeFile;
+        CFile::New(GetCodePath(), (IFile**)&codeFile);
+        String name = mOwner->GetNextCodePath(oldCodePath, capName, String(".apk"));
+        AutoPtr<IFile> desFile;
+        CFile::New(mInstallDir, name + ".apk", (IFile**)&desFile);
+        Boolean succeeded;
+        if (codeFile->RenameTo(desFile, &succeeded), !succeeded) {
+            return FALSE;
+        }
+        // Reset paths since the file has been renamed.
+        desFile->GetPath(&mCodeFileName);
+        mResourceFileName = GetResourcePathFromCodePath();
+        // Set permissions
+        if (!SetPermissions()) {
+            // Failed setting permissions.
+            return FALSE;
+        }
+        return TRUE;
+    }
+}
+
+Int32 CCapsuleManagerService::FileInstallArgs::DoPostInstall(
+    /* [in] */ Int32 status)
+{
+    if (status != CapsuleManager::INSTALL_SUCCEEDED) {
+        CleanUp();
+    }
+    return status;
+}
+
+String CCapsuleManagerService::FileInstallArgs::GetResourcePath()
+{
+    return mResourceFileName;
+}
+
+String CCapsuleManagerService::FileInstallArgs::GetResourcePathFromCodePath()
+{
+    String codePath = GetCodePath();
+    if ((mFlags & CapsuleManager::INSTALL_FORWARD_LOCK) != 0) {
+        String capNameOnly = GetCapName(codePath);
+        String resPath;
+        mOwner->mAppInstallDir->GetPath(&resPath);
+        return resPath + "/" + capNameOnly + ".zip";
+    }
+    else {
+        return codePath;
+    }
+}
+
+String CCapsuleManagerService::FileInstallArgs::GetNativeLibraryPath()
+{
+    return mLibraryPath;
+}
+
+Boolean CCapsuleManagerService::FileInstallArgs::CleanUp()
+{
+    Boolean ret = TRUE;
+    String sourceDir = GetCodePath();
+    String publicSourceDir = GetResourcePath();
+    if (!sourceDir.IsNull()) {
+        AutoPtr<IFile> sourceFile;
+        CFile::New(sourceDir, (IFile**)&sourceFile);
+        Boolean result;
+        if (sourceFile->Exists(&result), !result) {
+//            Slog.w(TAG, "Package source " + sourceDir + " does not exist.");
+            ret = FALSE;
+        }
+        // Delete application's code and resources
+        sourceFile->Delete(&result);
+    }
+    if (!publicSourceDir.IsNull() && !publicSourceDir.Equals(sourceDir)) {
+        AutoPtr<IFile> publicSourceFile;
+        CFile::New(publicSourceDir, (IFile**)&publicSourceFile);
+        Boolean result;
+        if (publicSourceFile->Exists(&result), !result) {
+//            Slog.w(TAG, "Package public source " + publicSourceFile + " does not exist.");
+        }
+        else {
+            publicSourceFile->Delete(&result);
+        }
+    }
+    return ret;
+}
+
+void CCapsuleManagerService::FileInstallArgs::CleanUpResourcesLI()
+{
+    String sourceDir = GetCodePath();
+    if (CleanUp() && mOwner->mInstaller != NULL) {
+        //todo: RmDex should rename to RmEco
+        Int32 retCode = mOwner->mInstaller->RmDex(sourceDir);
+        if (retCode < 0) {
+//            Slog.w(TAG, "Couldn't remove dex file for package: "
+//                    +  " at location "
+//                    + sourceDir + ", retcode=" + retCode);
+            // we don't consider this to be a failure of the core package deletion
+        }
+    }
+}
+
+Boolean CCapsuleManagerService::FileInstallArgs::SetPermissions()
+{
+    // TODO Do this in a more elegant way later on. for now just a hack
+    if (!IsFwdLocked()) {
+        Int32 filePermissions = FileUtils::IRUSR | FileUtils::IWUSR
+            | FileUtils::IRGRP | FileUtils::IROTH;
+        Int32 retCode = FileUtils::SetPermissions(GetCodePath(), filePermissions, -1, -1);
+        if (retCode != 0) {
+//            Slog.e(TAG, "Couldn't set new package file permissions for " +
+//                    getCodePath()
+//                    + ". The return code was: " + retCode);
+            // TODO Define new internal error
+            return FALSE;
+        }
+        return TRUE;
+    }
+    return TRUE;
+}
+
+Boolean CCapsuleManagerService::FileInstallArgs::DoPostDeleteLI(
+    /* [in] */ Boolean del)
+{
+    // XXX err, shouldn't we respect the delete flag?
+    CleanUpResourcesLI();
+    return TRUE;
+}
+
+Boolean CCapsuleManagerService::FileInstallArgs::IsFwdLocked()
+{
+    return (mFlags & CapsuleManager::INSTALL_FORWARD_LOCK) != 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// CCapsuleManagerService::SdInstallArgs
+
+const char* CCapsuleManagerService::SdInstallArgs::RES_FILE_NAME = "cap.apk";
+
+CCapsuleManagerService::SdInstallArgs::SdInstallArgs(
+    /* [in] */ const String& fullCodePath,
+    /* [in] */ const String& fullResourcePath,
+    /* [in] */ const String& nativeLibraryPath,
+    /* [in] */ CCapsuleManagerService* owner)
+    : InstallArgs(NULL, NULL, CapsuleManager::INSTALL_EXTERNAL, String(NULL), owner)
+{
+    // Extract cid from fullCodePath
+    Int32 eidx = fullCodePath.LastIndexOf("/");
+    String subStr1 = fullCodePath.Substring(0, eidx);
+    Int32 sidx = subStr1.LastIndexOf("/");
+    mCid = subStr1.Substring(sidx + 1, eidx);
+    SetCachePath(subStr1);
+}
+
+CCapsuleManagerService::SdInstallArgs::SdInstallArgs(
+    /* [in] */ const String& cid,
+    /* [in] */ CCapsuleManagerService* owner)
+    : InstallArgs(NULL, NULL, CapsuleManager::INSTALL_EXTERNAL, String(NULL), owner)
+    , mCid(cid)
+{
+    SetCachePath(CapsuleHelper::GetSdDir(cid));
+}
+
+void CCapsuleManagerService::SdInstallArgs::CreateCopyFile()
+{
+    mCid = GetTempContainerId();
+}
+
+Boolean CCapsuleManagerService::SdInstallArgs::CheckFreeStorage(
+    /* [in] */ IMediaContainerService* imcs)
+{
+//    try {
+    mOwner->mContext->GrantUriPermission(
+        String(DEFAULT_CONTAINER_CAPSULE), mCapsuleURI,
+        Intent_FLAG_GRANT_READ_URI_PERMISSION);
+    Boolean ret;
+    imcs->CheckFreeStorage(TRUE, mCapsuleURI, &ret);
+    mOwner->mContext->RevokeUriPermission(mCapsuleURI,
+        Intent_FLAG_GRANT_READ_URI_PERMISSION);
+    return ret;
+//    } finally {
+//        mContext.revokeUriPermission(packageURI, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+//    }
+}
+
+Int32 CCapsuleManagerService::SdInstallArgs::CopyCap(
+    /* [in] */ IMediaContainerService* imcs,
+    /* [in] */ Boolean temp)
+{
+    if (temp) {
+        CreateCopyFile();
+    }
+
+    String newCachePath;
+//    try {
+    mOwner->mContext->GrantUriPermission(
+        String(DEFAULT_CONTAINER_CAPSULE), mCapsuleURI,
+        Intent_FLAG_GRANT_READ_URI_PERMISSION);
+    imcs->CopyResourceToContainer(mCapsuleURI, mCid,
+        mOwner->GetEncryptKey(), String(RES_FILE_NAME), &newCachePath);
+    mOwner->mContext->RevokeUriPermission(mCapsuleURI,
+        Intent_FLAG_GRANT_READ_URI_PERMISSION);
+//    } finally {
+//        mContext.revokeUriPermission(packageURI, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+//    }
+
+    if (!newCachePath.IsNull()) {
+        SetCachePath(newCachePath);
+        return CapsuleManager::INSTALL_SUCCEEDED;
+    }
+    else {
+        return CapsuleManager::INSTALL_FAILED_CONTAINER_ERROR;
+    }
+}
+
+String CCapsuleManagerService::SdInstallArgs::GetCodePath()
+{
+    return mCapsulePath;
+}
+
+String CCapsuleManagerService::SdInstallArgs::GetResourcePath()
+{
+    return mCapsulePath;
+}
+
+String CCapsuleManagerService::SdInstallArgs::GetNativeLibraryPath()
+{
+    return mLibraryPath;
+}
+
+Int32 CCapsuleManagerService::SdInstallArgs::DoPreInstall(
+    /* [in] */ Int32 status)
+{
+    if (status != CapsuleManager::INSTALL_SUCCEEDED) {
+        // Destroy container
+        CapsuleHelper::DestroySdDir(mCid);
+    }
+    else {
+        Boolean mounted = CapsuleHelper::IsContainerMounted(mCid);
+        if (!mounted) {
+            String newCachePath = CapsuleHelper::MountSdDir(mCid, mOwner->GetEncryptKey(),
+                    Process::SYSTEM_UID);
+            if (!newCachePath.IsNull()) {
+                SetCachePath(newCachePath);
+            }
+            else {
+                return CapsuleManager::INSTALL_FAILED_CONTAINER_ERROR;
+            }
+        }
+    }
+    return status;
+}
+
+Boolean CCapsuleManagerService::SdInstallArgs::DoRename(
+    /* [in] */ Int32 status,
+    /* [in] */ const String& capName,
+    /* [in] */ const String& oldCodePath)
+{
+    String newCacheId = mOwner->GetNextCodePath(oldCodePath,
+        capName, String("/") + String(RES_FILE_NAME));
+    String newCachePath(NULL);
+    if (CapsuleHelper::IsContainerMounted(mCid)) {
+        // Unmount the container
+        if (!CapsuleHelper::UnMountSdDir(mCid)) {
+//            Slog.i(TAG, "Failed to unmount " + cid + " before renaming");
+            return FALSE;
+        }
+    }
+    if (!CapsuleHelper::RenameSdDir(mCid, newCacheId)) {
+//        Slog.e(TAG, "Failed to rename " + cid + " to " + newCacheId +
+//                " which might be stale. Will try to clean up.");
+        // Clean up the stale container and proceed to recreate.
+        if (!CapsuleHelper::DestroySdDir(newCacheId)) {
+//            Slog.e(TAG, "Very strange. Cannot clean up stale container " + newCacheId);
+            return FALSE;
+        }
+        // Successfully cleaned up stale container. Try to rename again.
+        if (!CapsuleHelper::RenameSdDir(mCid, newCacheId)) {
+//            Slog.e(TAG, "Failed to rename " + cid + " to " + newCacheId
+//                    + " inspite of cleaning it up.");
+            return FALSE;
+        }
+    }
+    if (!CapsuleHelper::IsContainerMounted(newCacheId)) {
+//        Slog.w(TAG, "Mounting container " + newCacheId);
+        newCachePath = CapsuleHelper::MountSdDir(newCacheId,
+                mOwner->GetEncryptKey(), Process::SYSTEM_UID);
+    }
+    else {
+        newCachePath = CapsuleHelper::GetSdDir(newCacheId);
+    }
+    if (newCachePath.IsNull()) {
+//        Slog.w(TAG, "Failed to get cache path for  " + newCacheId);
+        return FALSE;
+    }
+//    Log.i(TAG, "Succesfully renamed " + cid +
+//            " to " + newCacheId +
+//            " at new path: " + newCachePath);
+    mCid = newCacheId;
+    SetCachePath(newCachePath);
+    return TRUE;
+}
+
+void CCapsuleManagerService::SdInstallArgs::SetCachePath(
+    /* [in] */ String newCachePath)
+{
+    AutoPtr<IFile> cachePath;
+    CFile::New(newCachePath, (IFile**)&cachePath);
+    AutoPtr<IFile> library, capsule;
+    CFile::New(cachePath, String(LIB_DIR_NAME), (IFile**)&library);
+    library->GetPath(&mLibraryPath);
+    CFile::New(cachePath, String(RES_FILE_NAME), (IFile**)&capsule);
+    capsule->GetPath(&mCapsulePath);
+}
+
+Int32 CCapsuleManagerService::SdInstallArgs::DoPostInstall(
+    /* [in] */ Int32 status)
+{
+    if (status != CapsuleManager::INSTALL_SUCCEEDED) {
+        CleanUp();
+    }
+    else {
+        Boolean mounted = CapsuleHelper::IsContainerMounted(mCid);
+        if (!mounted) {
+            CapsuleHelper::MountSdDir(mCid,
+                mOwner->GetEncryptKey(), Process::MyUid());
+        }
+    }
+    return status;
+}
+
+void CCapsuleManagerService::SdInstallArgs::CleanUp()
+{
+    // Destroy secure container
+    CapsuleHelper::DestroySdDir(mCid);
+}
+
+void CCapsuleManagerService::SdInstallArgs::CleanUpResourcesLI()
+{
+    String sourceFile = GetCodePath();
+    // Remove dex file
+    if (mOwner->mInstaller != NULL) {
+        Int32 retCode = mOwner->mInstaller->RmDex(sourceFile);
+        if (retCode < 0) {
+//            Slog.w(TAG, "Couldn't remove dex file for package: "
+//                    + " at location "
+//                    + sourceFile.toString() + ", retcode=" + retCode);
+            // we don't consider this to be a failure of the core package deletion
+        }
+    }
+    CleanUp();
+}
+
+Boolean CCapsuleManagerService::SdInstallArgs::MatchContainer(
+    /* [in] */ String app)
+{
+    if (mCid.StartWith(app)) {
+        return TRUE;
+    }
+    return FALSE;
+}
+
+String CCapsuleManagerService::SdInstallArgs::GetCapsuleName()
+{
+    Int32 idx = mCid.LastIndexOf("-");
+    if (idx == -1) {
+        return mCid;
+    }
+    return mCid.Substring(0, idx);
+}
+
+Boolean CCapsuleManagerService::SdInstallArgs::DoPostDeleteLI(
+    /* [in] */ Boolean del)
+{
+    Boolean ret = FALSE;
+    Boolean mounted = CapsuleHelper::IsContainerMounted(mCid);
+    if (mounted) {
+        // Unmount first
+        ret = CapsuleHelper::UnMountSdDir(mCid);
+    }
+    if (ret && del) {
+        CleanUpResourcesLI();
+    }
+    return ret;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// CCapsuleManagerService::CapsuleRemovedInfo
+
+void CCapsuleManagerService::CapsuleRemovedInfo::SendBroadcast(
+    /* [in] */ Boolean fullRemove,
+    /* [in] */ Boolean replacing)
+{
+    AutoPtr<IBundle> extras;
+    ASSERT_SUCCEEDED(CBundle::New(1, (IBundle**)&extras));
+    extras->PutInt32(
+        String(Intent_EXTRA_UID), mRemovedUid >= 0 ? mRemovedUid : mUid);
+    extras->PutBoolean(String(Intent_EXTRA_DATA_REMOVED), fullRemove);
+    if (replacing) {
+        extras->PutBoolean(String(Intent_EXTRA_REPLACING), TRUE);
+    }
+    if (!mRemovedCapsule.IsNull()) {
+        mOwner->SendCapsuleBroadcast(
+            String(Intent_ACTION_CAPSULE_REMOVED),
+            mRemovedCapsule, extras, NULL);
+    }
+    if (mRemovedUid >= 0) {
+        mOwner->SendCapsuleBroadcast(
+            String(Intent_ACTION_UID_REMOVED),
+            String(NULL), extras, NULL);
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// CCapsuleManagerService::AppDirObserver
+
+CCapsuleManagerService::AppDirObserver::AppDirObserver(
+    /* [in] */ const String& path,
+    /* [in] */ Int32 mask,
+    /* [in] */ Boolean isrom,
+    /* [in] */ CCapsuleManagerService* owner)
+    : FileObserver(path, mask)
+    , mRootDir(path)
+    , mIsRom(FALSE)
+    , mOwner(owner)
+{}
+
+PInterface CCapsuleManagerService::AppDirObserver::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IFileObserver) {
+        return (IFileObserver*)this;
+    }
+    else if (riid == EIID_IInterface) {
+        return (IInterface*)(IFileObserver*)this;
+    }
+    return NULL;
+}
+
+UInt32 CCapsuleManagerService::AppDirObserver::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CCapsuleManagerService::AppDirObserver::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode CCapsuleManagerService::AppDirObserver::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CCapsuleManagerService::AppDirObserver::StartWatching()
+{
+    return FileObserver::StartWatching();
+}
+
+ECode CCapsuleManagerService::AppDirObserver::StopWatching()
+{
+    return FileObserver::StopWatching();
+}
+
+ECode CCapsuleManagerService::AppDirObserver::OnEvent(
+    /* [in] */ Int32 event,
+    /* [in] */ const String& path)
+{
+    String removedCapsule, addedCapsule;
+    Int32 removedUid = -1, addedUid = -1;
+
+    {
+        Mutex::Autolock lock(mOwner->mInstallLock);
+
+        String fullPathStr;
+        AutoPtr<IFile> fullPath;
+        if (!path.IsNull()) {
+            CFile::New(mRootDir, path, (IFile**)&fullPath);
+            fullPath->GetPath(&fullPathStr);
+        }
+
+        if (Config::LOGV) {
+            Logger::V(TAG, StringBuffer("File ") + fullPathStr + " changed: "
+                + event /*+ Integer::ToHexString(event)*/);
+        }
+
+        if (!IsCapsuleFilename(path)) {
+            if (Config::LOGV) {
+                Logger::V(TAG,
+                    StringBuffer("Ignoring change of non-capsule file: ")
+                    + fullPathStr);
+            }
+            return NOERROR;
+        }
+
+        // Ignore packages that are being installed or
+        // have just been installed.
+        if (mOwner->IgnoreCodePath(fullPathStr)) {
+            return NOERROR;
+        }
+
+        CapsuleParser::Capsule* c = NULL;
+        {
+            Mutex::Autolock l(mOwner->mCapsulesLock);
+
+            HashMap<String, CapsuleParser::Capsule*>::Iterator it
+                = mOwner->mAppDirs.Find(fullPathStr);
+            c = it->mSecond;
+        }
+
+        if ((event & REMOVE_EVENTS) != 0) {
+            if (c != NULL) {
+                mOwner->RemoveCapsuleLI(c, TRUE);
+                removedCapsule = c->mApplicationInfo->mCapsuleName;
+                removedUid = c->mApplicationInfo->mUid;
+            }
+        }
+
+        if ((event & ADD_EVENTS) != 0) {
+            if (c == NULL) {
+                c = mOwner->ScanCapsuleLI(fullPath.Get(),
+                        (mIsRom ? CapsuleParser::PARSE_IS_SYSTEM
+                                | CapsuleParser::PARSE_IS_SYSTEM_DIR: 0) |
+                        CapsuleParser::PARSE_CHATTY |
+                        CapsuleParser::PARSE_MUST_BE_APK,
+                        SCAN_MONITOR | SCAN_NO_PATHS | SCAN_UPDATE_TIME,
+                        0 /*System::CurrentTimeMillis()*/);
+                if (c != NULL) {
+                    {
+                        Mutex::Autolock l(mOwner->mCapsulesLock);
+
+                        mOwner->UpdatePermissionsLP(c->mCapsuleName, c,
+                            c->mPermissions.GetSize() > 0, FALSE, FALSE);
+                    }
+                    addedCapsule = c->mApplicationInfo->mCapsuleName;
+                    addedUid = c->mApplicationInfo->mUid;
+                }
+            }
+        }
+
+        {
+            Mutex::Autolock l(mOwner->mCapsulesLock);
+            mOwner->mSettings->WriteLP();
+        }
+    }
+
+    if (removedCapsule != NULL) {
+        AutoPtr<IBundle> extras;
+        CBundle::New(1, (IBundle**)&extras);
+        extras->PutInt32(String(Intent_EXTRA_UID), removedUid);
+        extras->PutBoolean(String(Intent_EXTRA_DATA_REMOVED), FALSE);
+        mOwner->SendCapsuleBroadcast(
+            String(Intent_ACTION_CAPSULE_REMOVED),
+            removedCapsule, extras.Get(), NULL);
+    }
+
+    if (!addedCapsule.IsNull()) {
+        AutoPtr<IBundle> extras;
+        CBundle::New(1, (IBundle**)&extras);
+        extras->PutInt32(String(Intent_EXTRA_UID), addedUid);
+        mOwner->SendCapsuleBroadcast(
+            String(Intent_ACTION_CAPSULE_ADDED),
+            addedCapsule, extras, NULL);
+    }
+
+    return NOERROR;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // CCapsuleManagerService::ActivityIntentResolver
 
-CCapsuleManagerService::ActivityIntentResolver::ActivityIntentResolver() :
-    mActivities(23)
+CCapsuleManagerService::ActivityIntentResolver::ActivityIntentResolver(
+    /* [in] */ CCapsuleManagerService* owner)
+    : mActivities(23)
+    , mOwner(owner)
 {
 }
 
@@ -112,7 +1199,17 @@ CCapsuleManagerService::ActivityIntentResolver::~ActivityIntentResolver()
 List<AutoPtr<CResolveInfo>*>*
 CCapsuleManagerService::ActivityIntentResolver::QueryIntent(
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
+    /* [in] */ Boolean defaultOnly)
+{
+    mFlags = defaultOnly ? CapsuleManager_MATCH_DEFAULT_ONLY : 0;
+    return Super::QueryIntent(intent, resolvedType, defaultOnly);
+}
+
+List<AutoPtr<CResolveInfo>*>*
+CCapsuleManagerService::ActivityIntentResolver::QueryIntent(
+    /* [in] */ IIntent* intent,
+    /* [in] */ const String& resolvedType,
     /* [in] */ Int32 flags)
 {
     mFlags = flags;
@@ -123,7 +1220,7 @@ CCapsuleManagerService::ActivityIntentResolver::QueryIntent(
 List<AutoPtr<CResolveInfo>*>*
 CCapsuleManagerService::ActivityIntentResolver::QueryIntentForCapsule(
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ Int32 flags,
     /* [in] */ List<CapsuleParser::Activity*>* capsuleActivities)
 {
@@ -133,14 +1230,15 @@ CCapsuleManagerService::ActivityIntentResolver::QueryIntentForCapsule(
 
     mFlags = flags;
     Boolean defaultOnly = (flags & CapsuleManager_MATCH_DEFAULT_ONLY) != 0;
+    //todo: listCut maybe cause memory leak;
     List<List<CapsuleParser::ActivityIntentInfo*>* >* listCut =
             new List<List<CapsuleParser::ActivityIntentInfo*>* >();
 
     List<CapsuleParser::ActivityIntentInfo*>* intentFilters;
     List<CapsuleParser::Activity*>::Iterator it;
     for (it = capsuleActivities->Begin(); it != capsuleActivities->End(); ++it) {
-        intentFilters = &((*it)->mIntents);
-        if (intentFilters != NULL && intentFilters->GetSize() > 0) {
+        intentFilters = (*it)->mIntents;
+        if (intentFilters != NULL && intentFilters->Begin() != intentFilters->End()) {
             listCut->PushBack(intentFilters);
         }
     }
@@ -149,59 +1247,110 @@ CCapsuleManagerService::ActivityIntentResolver::QueryIntentForCapsule(
 
 void CCapsuleManagerService::ActivityIntentResolver::AddActivity(
     /* [in] */ CapsuleParser::Activity* activity,
-    /* [in] */ String type)
+    /* [in] */ const char* type)
 {
     assert(activity);
-    assert(!type.IsNull());
+    assert(type != NULL);
 
     Boolean systemApp = CCapsuleManagerService::IsSystemApp(
             activity->mInfo->mApplicationInfo);
     AutoPtr<IComponentName> componentName;
     activity->GetComponentName((IComponentName**)&componentName);
     mActivities[componentName] = activity;
-//    if (SHOW_INFO || Config.LOGV) Slog.v(
-//        TAG, "  " + type + " " +
-//        (a.info.nonLocalizedLabel != null ? a.info.nonLocalizedLabel : a.info.name) + ":");
-//    if (SHOW_INFO || Config.LOGV) Slog.v(TAG, "    Class=" + a.info.name);
-    List<CapsuleParser::ActivityIntentInfo*>::Iterator it;
-    for (it = activity->mIntents.Begin(); it != activity->mIntents.End(); ++it) {
-        Int32 pri;
-        if (!systemApp && ((*it)->GetPriority(&pri), pri > 0) &&
-                String("activity").Equals(type)) {
-            (*it)->SetPriority(0);
-//            Log.w(TAG, "Package " + a.info.applicationInfo.packageName + " has activity "
-//                    + a.className + " with priority > 0, forcing to 0");
+/*
+    if (SHOW_INFO || Config::LOGV) {
+        String str;
+        if (activity->mInfo->mNonLocalizedLabel != NULL) {
+            activity->mInfo->mNonLocalizedLabel->ToString(&str);
         }
-//        if (SHOW_INFO || Config.LOGV) {
-//            Slog.v(TAG, "    IntentFilter:");
-//            intent.dump(new LogPrinter(Slog.VERBOSE, TAG), "      ");
+        else {
+            str = activity->mInfo->mName;
+        }
+        Slogger::V(TAG, StringBuffer("  ") + type + " " + str + ":");
+    }
+    if (SHOW_INFO || Config::LOGV) {
+        Slogger::V(TAG, StringBuffer("    Class=") + activity->mInfo->mName);
+    }
+*/
+    List<CapsuleParser::ActivityIntentInfo*>::Iterator it;
+    assert(activity->mIntents != NULL);
+    for (it = activity->mIntents->Begin(); it != activity->mIntents->End(); ++it) {
+        CapsuleParser::ActivityIntentInfo* intent = *it;
+        Int32 pri;
+        if (!systemApp && (intent->GetPriority(&pri), pri > 0) &&
+                !strcmp("activity", type)) {
+            intent->SetPriority(0);
+/*
+            Logger::W(TAG, StringBuffer("Capsule ")
+                + activity->mInfo->mApplicationInfo->mCapsuleName
+                + " has activity "
+                + activity->mClassName + " with priority > 0, forcing to 0");
+*/
+        }
+//        if (SHOW_INFO || Config::LOGV) {
+//            Slogger::V(TAG, "    IntentFilter:");
+////	            intent->Dump(new LogPrinter(Slog::VERBOSE, TAG), "      ");
 //        }
-//        if (!intent.debugCheck()) {
-//            Slog.w(TAG, "==> For Activity " + a.info.name);
+//        if (FALSE /*!(*it)->DebugCheck()*/) {
+//            Slogger::W(TAG, "==> For Activity " + activity->mInfo->mName);
 //        }
-        AddFilter(*it);
+        AddFilter(intent);
     }
 }
 
 void CCapsuleManagerService::ActivityIntentResolver::RemoveActivity(
     /* [in] */ CapsuleParser::Activity* activity,
-    /* [in] */ String type)
+    /* [in] */ const char* type)
 {
     AutoPtr<IComponentName> componentName;
     activity->GetComponentName((IComponentName**)&componentName);
     mActivities.Erase(componentName);
-//    if (SHOW_INFO || Config.LOGV) Slog.v(
-//        TAG, "  " + type + " " +
-//        (a.info.nonLocalizedLabel != null ? a.info.nonLocalizedLabel : a.info.name) + ":");
-//    if (SHOW_INFO || Config.LOGV) Slog.v(TAG, "    Class=" + a.info.name);
+/*
+    if (SHOW_INFO || Config::LOGV) {
+        String str;
+        if (activity->mInfo->mNonLocalizedLabel != NULL) {
+            activity->mInfo->mNonLocalizedLabel->ToString(&str);
+        }
+        else {
+            str = activity->mInfo->mName;
+        }
+        Slogger::V(TAG, StringBuffer("  ") + type + " " + str + ":");
+    }
+    if (SHOW_INFO || Config::LOGV) {
+        Slogger::V(TAG, StringBuffer("    Class=") + activity->mInfo->mName);
+    }
+*/
     List<CapsuleParser::ActivityIntentInfo*>::Iterator it;
-    for (it = activity->mIntents.Begin(); it != activity->mIntents.End(); ++it) {
-//        if (SHOW_INFO || Config.LOGV) {
-//            Slog.v(TAG, "    IntentFilter:");
+    for (it = activity->mIntents->Begin(); it != activity->mIntents->End(); ++it) {
+/*
+        if (SHOW_INFO || Config::LOGV) {
+            Slogger::V(TAG, "    IntentFilter:");
 //            intent.dump(new LogPrinter(Slog.VERBOSE, TAG), "      ");
-//        }
+        }
+*/
         RemoveFilter(*it);
     }
+}
+
+Boolean CCapsuleManagerService::ActivityIntentResolver::AllowFilterResult(
+    /* [in] */ CapsuleParser::ActivityIntentInfo* filter,
+    /* [in] */ List<AutoPtr<CResolveInfo>*>* dest)
+{
+//    ActivityInfo filterAi = filter.activity.info;
+//    for (int i=dest.size()-1; i>=0; i--) {
+//        ActivityInfo destAi = dest.get(i).activityInfo;
+//        if (destAi.name == filterAi.name
+//                && destAi.packageName == filterAi.packageName) {
+//            return false;
+//        }
+//    }
+    return TRUE;
+}
+
+String CCapsuleManagerService::ActivityIntentResolver::CapsuleForFilter(
+    /* [in] */ CapsuleParser::ActivityIntentInfo* info)
+{
+    return info->mActivity->mOwner->mCapsuleName;
 }
 
 ECode CCapsuleManagerService::ActivityIntentResolver::NewResult(
@@ -209,31 +1358,40 @@ ECode CCapsuleManagerService::ActivityIntentResolver::NewResult(
     /* [in] */ Int32 match,
     /* [out] */ AutoPtr<CResolveInfo>** res)
 {
+//    assert(info);
     assert(res != NULL);
-//    if (!mSettings.isEnabledLP(info.activity.info, mFlags)) {
-//        return null;
-//    }
+/*
+    if (!mOwner->mSettings->IsEnabledLP(info->mActivity->mInfo, mFlags)) {
+        *res = NULL;
+        return E_FAIL;
+    }
+*/
     CapsuleParser::Activity* activity = info->mActivity;
-//    if (mSafeMode && (activity.info.applicationInfo.flags
-//            &ApplicationInfo.FLAG_SYSTEM) == 0) {
-//        return null;
-//    }
+/*
+    if (mOwner->mSafeMode && (activity->mInfo->mApplicationInfo->mFlags
+        & CApplicationInfo::FLAG_SYSTEM) == 0) {
+        *res = NULL;
+        return E_FAIL;
+    }
+*/
     AutoPtr<CResolveInfo> rinfo;
     CResolveInfo::NewByFriend((CResolveInfo**)&rinfo);
     CapsuleParser::GenerateActivityInfo(activity, mFlags,
             (CActivityInfo**)&(rinfo->mActivityInfo));
-//    if ((mFlags&PackageManager.GET_RESOLVED_FILTER) != 0) {
-//        res.filter = info;
-//    }
-//    res.priority = info.getPriority();
-//    res.preferredOrder = activity.owner.mPreferredOrder;
-//    //System.out.println("Result: " + res.activityInfo.className +
-//    //                   " = " + res.priority);
-//    res.match = match;
-//    res.isDefault = info.hasDefault;
-//    res.labelRes = info.labelRes;
-//    res.nonLocalizedLabel = info.nonLocalizedLabel;
-//    res.icon = info.icon;
+/*
+    if ((mFlags & CapsuleManager_GET_RESOLVED_FILTER) != 0) {
+//	        rinfo->mFilter = info;
+    }
+    info->GetPriority(&rinfo->mPriority);
+    rinfo->mPreferredOrder = activity->mOwner->mPreferredOrder;
+    //System.out.println("Result: " + res.activityInfo.className +
+    //                   " = " + res.priority);
+    rinfo->mMatch = match;
+    rinfo->mIsDefault = info->mHasDefault;
+    rinfo->mLabelRes = info->mLabelRes;
+    rinfo->mNonLocalizedLabel = info->mNonLocalizedLabel;
+    rinfo->mIcon = info->mIcon;
+*/
     *res = new AutoPtr<CResolveInfo>();
     **res = rinfo;
     return NOERROR;
@@ -242,10 +1400,16 @@ ECode CCapsuleManagerService::ActivityIntentResolver::NewResult(
 void CCapsuleManagerService::ActivityIntentResolver::SortResults(
     /* [in] */ List<AutoPtr<CResolveInfo>*>* results)
 {
+//	    Collections.sort(results, mResolvePrioritySorter);
 }
 
-CCapsuleManagerService::ServiceIntentResolver::ServiceIntentResolver() :
-    mServices(11)
+////////////////////////////////////////////////////////////////////////////////
+// CCapsuleManagerService::ServiceIntentResolver
+
+CCapsuleManagerService::ServiceIntentResolver::ServiceIntentResolver(
+    /* [in] */ CCapsuleManagerService* owner)
+    : mServices(11)
+    , mOwner(owner)
 {
 }
 
@@ -257,7 +1421,7 @@ CCapsuleManagerService::ServiceIntentResolver::~ServiceIntentResolver()
 List<AutoPtr<CResolveInfo>*>*
 CCapsuleManagerService::ServiceIntentResolver::QueryIntent(
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ Int32 flags)
 {
     mFlags = flags;
@@ -268,7 +1432,7 @@ CCapsuleManagerService::ServiceIntentResolver::QueryIntent(
 List<AutoPtr<CResolveInfo>*>*
 CCapsuleManagerService::ServiceIntentResolver::QueryIntentForCapsule(
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ Int32 flags,
     /* [in] */ List<CapsuleParser::Service*>* capsuleServices)
 {
@@ -283,7 +1447,7 @@ CCapsuleManagerService::ServiceIntentResolver::QueryIntentForCapsule(
     List<CapsuleParser::ServiceIntentInfo*>* intentFilters;
     List<CapsuleParser::Service*>::Iterator it;
     for (it = capsuleServices->Begin(); it != capsuleServices->End(); ++it) {
-        intentFilters = &((*it)->mIntents);
+        intentFilters = (*it)->mIntents;
         if (intentFilters != NULL && intentFilters->GetSize() > 0) {
             listCut->PushBack(intentFilters);
         }
@@ -297,20 +1461,29 @@ void CCapsuleManagerService::ServiceIntentResolver::AddService(
     AutoPtr<IComponentName> componentName;
     service->GetComponentName((IComponentName**)&componentName);
     mServices[componentName] = service;
-//    if (SHOW_INFO || Config.LOGV) Slog.v(
-//        TAG, "  " + (s.info.nonLocalizedLabel != null
-//                ? s.info.nonLocalizedLabel : s.info.name) + ":");
-//    if (SHOW_INFO || Config.LOGV) Slog.v(
-//            TAG, "    Class=" + s.info.name);
+    if (SHOW_INFO || Config::LOGV) {
+        String str;
+        if (service->mInfo->mNonLocalizedLabel != NULL) {
+            service->mInfo->mNonLocalizedLabel->ToString(&str);
+        }
+        else {
+            str = service->mInfo->mName;
+        }
+        Slogger::V(TAG, StringBuffer("  ") + str + ":");
+    }
+    if (SHOW_INFO || Config::LOGV) {
+        Slogger::V(TAG, StringBuffer("    Class=") + service->mInfo->mName);
+    }
     List<CapsuleParser::ServiceIntentInfo*>::Iterator it;
-    for (it = service->mIntents.Begin(); it != service->mIntents.End(); ++it) {
-//        if (SHOW_INFO || Config.LOGV) {
-//            Slog.v(TAG, "    IntentFilter:");
-//            intent.dump(new LogPrinter(Slog.VERBOSE, TAG), "      ");
-//        }
-//        if (!intent.debugCheck()) {
-//            Slog.w(TAG, "==> For Service " + s.info.name);
-//        }
+    for (it = service->mIntents->Begin(); it != service->mIntents->End(); ++it) {
+        if (SHOW_INFO || Config::LOGV) {
+            Slogger::V(TAG, "    IntentFilter:");
+//	            intent.dump(new LogPrinter(Slog.VERBOSE, TAG), "      ");
+        }
+        if (FALSE /*!intent->DebugCheck()*/) {
+            Slogger::W(TAG, StringBuffer("==> For Service ")
+                + service->mInfo->mName);
+        }
         AddFilter(*it);
     }
 }
@@ -321,19 +1494,50 @@ void CCapsuleManagerService::ServiceIntentResolver::RemoveService(
     AutoPtr<IComponentName> componentName;
     service->GetComponentName((IComponentName**)&componentName);
     mServices.Erase(componentName);
-//    if (SHOW_INFO || Config.LOGV) Slog.v(
-//        TAG, "  " + (s.info.nonLocalizedLabel != null
-//                ? s.info.nonLocalizedLabel : s.info.name) + ":");
-//    if (SHOW_INFO || Config.LOGV) Slog.v(
-//            TAG, "    Class=" + s.info.name);
+    if (SHOW_INFO || Config::LOGV) {
+        String str;
+        if (service->mInfo->mNonLocalizedLabel != NULL) {
+            service->mInfo->mNonLocalizedLabel->ToString(&str);
+        }
+        else {
+            str = service->mInfo->mName;
+        }
+        Slogger::V(TAG, StringBuffer("  ") + str + ":");
+    }
+    if (SHOW_INFO || Config::LOGV) {
+        Slogger::V(TAG, StringBuffer("    Class=") + service->mInfo->mName);
+    }
     List<CapsuleParser::ServiceIntentInfo*>::Iterator it;
-    for (it = service->mIntents.Begin(); it != service->mIntents.End(); ++it) {
-//        if (SHOW_INFO || Config.LOGV) {
-//            Slog.v(TAG, "    IntentFilter:");
-//            intent.dump(new LogPrinter(Slog.VERBOSE, TAG), "      ");
-//        }
+    for (it = service->mIntents->Begin(); it != service->mIntents->End(); ++it) {
+        if (SHOW_INFO || Config::LOGV) {
+            Slogger::V(TAG, "    IntentFilter:");
+//	            intent->Dump(new LogPrinter(Slog::VERBOSE, TAG), "      ");
+        }
         RemoveFilter(*it);
     }
+}
+
+//@Override
+Boolean CCapsuleManagerService::ServiceIntentResolver::AllowFilterResult(
+    /* [in] */ CapsuleParser::ServiceIntentInfo* filter,
+    /* [in] */ List<AutoPtr<CResolveInfo>*>* dest)
+{
+//    ServiceInfo filterSi = filter.service.info;
+//    for (int i=dest.size()-1; i>=0; i--) {
+//        ServiceInfo destAi = dest.get(i).serviceInfo;
+//        if (destAi.name == filterSi.name
+//                && destAi.packageName == filterSi.packageName) {
+//            return false;
+//        }
+//    }
+    return TRUE;
+}
+
+//@Override
+String CCapsuleManagerService::ServiceIntentResolver::CapsuleForFilter(
+    /* [in] */ CapsuleParser::ServiceIntentInfo* info)
+{
+    return info->mService->mOwner->mCapsuleName;
 }
 
 ECode CCapsuleManagerService::ServiceIntentResolver::NewResult(
@@ -341,31 +1545,33 @@ ECode CCapsuleManagerService::ServiceIntentResolver::NewResult(
     /* [in] */ Int32 match,
     /* [out] */ AutoPtr<CResolveInfo>** res)
 {
+    assert(info);
     assert(res != NULL);
-//    if (!mSettings.isEnabledLP(info.service.info, mFlags)) {
-//        return null;
-//    }
+    if (!mOwner->mSettings->IsEnabledLP(info->mService->mInfo, mFlags)) {
+        *res = NULL;
+        return E_FAIL;
+    }
     CapsuleParser::Service* service = info->mService;
-//    if (mSafeMode && (service.info.applicationInfo.flags
-//            &ApplicationInfo.FLAG_SYSTEM) == 0) {
-//        return null;
-//    }
+    if (mOwner->mSafeMode && (service->mInfo->mApplicationInfo->mFlags
+        & CApplicationInfo::FLAG_SYSTEM) == 0) {
+        return NULL;
+    }
     AutoPtr<CResolveInfo> rinfo;
     CResolveInfo::NewByFriend((CResolveInfo**)&rinfo);
     CapsuleParser::GenerateServiceInfo(service, mFlags,
             (CServiceInfo**)&(rinfo->mServiceInfo));
-//    if ((mFlags&PackageManager.GET_RESOLVED_FILTER) != 0) {
-//        res.filter = filter;
-//    }
-//    res.priority = info.getPriority();
-//    res.preferredOrder = service.owner.mPreferredOrder;
-//    //System.out.println("Result: " + res.activityInfo.className +
-//    //                   " = " + res.priority);
-//    res.match = match;
-//    res.isDefault = info.hasDefault;
-//    res.labelRes = info.labelRes;
-//    res.nonLocalizedLabel = info.nonLocalizedLabel;
-//    res.icon = info.icon;
+    if ((mFlags & CapsuleManager_GET_RESOLVED_FILTER) != 0) {
+//	        res->mFilter = filter;
+    }
+    info->GetPriority(&rinfo->mPriority);
+    rinfo->mPreferredOrder = service->mOwner->mPreferredOrder;
+    //System.out.println("Result: " + res.activityInfo.className +
+    //                   " = " + res.priority);
+    rinfo->mMatch = match;
+    rinfo->mIsDefault = info->mHasDefault;
+    rinfo->mLabelRes = info->mLabelRes;
+    rinfo->mNonLocalizedLabel = info->mNonLocalizedLabel;
+    rinfo->mIcon = info->mIcon;
     *res = new AutoPtr<CResolveInfo>();
     **res = rinfo;
     return NOERROR;
@@ -374,7 +1580,7 @@ ECode CCapsuleManagerService::ServiceIntentResolver::NewResult(
 void CCapsuleManagerService::ServiceIntentResolver::SortResults(
     /* [in] */ List<AutoPtr<CResolveInfo>*>* results)
 {
-
+//	    Collections.sort(results, mResolvePrioritySorter);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -384,54 +1590,383 @@ const Int32 CCapsuleManagerService::BasePermission::TYPE_NORMAL;
 const Int32 CCapsuleManagerService::BasePermission::TYPE_BUILTIN;
 const Int32 CCapsuleManagerService::BasePermission::TYPE_DYNAMIC;
 
-CCapsuleManagerService::BasePermission::BasePermission(
-    /* [in] */ String _name,
-    /* [in] */ String _sourcePackage,
-    /* [in] */ int _type)
-    : mCapsuleSetting(NULL)
-    , mType(0)
-    , mProtectionLevel(0)
-    , mPerm(NULL)
-    , mUid(0)
+String CCapsuleManagerService::BasePermission::ToString()
 {
-    // E_NOT_IMPLEMENTED
-}
-
-CCapsuleManagerService::BasePermission::~BasePermission()
-{
-}
-
-String CCapsuleManagerService::BasePermission::GetDescription()
-{
-    return NULL; // E_NOT_IMPLEMENTED
+    return String((const char*)(StringBuffer("BasePermission{")
+        + this /*Integer.toHexString(System.identityHashCode(this))*/
+        + " " + mName + "}"));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // CCapsuleManagerService::CapsuleSignatures
 
 CCapsuleManagerService::CapsuleSignatures::CapsuleSignatures(
-    /* [in] */ const CapsuleSignatures& orig)
+    /* [in] */ const CapsuleSignatures* orig)
 {
-    // E_NOT_IMPLEMENTED
+    if (orig != NULL && orig->mSignatures != NULL) {
+        Int32 size = orig->mSignatures->GetLength();
+        mSignatures = ArrayOf< AutoPtr<ISignature> >::Alloc(size);
+        for (Int32 i = 0; i < size; ++i) {
+            (*mSignatures.Get())[i] = (*orig->mSignatures.Get())[i];
+        }
+    }
 }
 
 CCapsuleManagerService::CapsuleSignatures::CapsuleSignatures(
-    /* [in] */ const ArrayOf<Signature>& sigs)
+    /* [in] */ const ArrayOf< AutoPtr<ISignature> >& sigs)
 {
-    // E_NOT_IMPLEMENTED
+    AssignSignatures(sigs);
 }
 
 CCapsuleManagerService::CapsuleSignatures::CapsuleSignatures()
 {
-    // E_NOT_IMPLEMENTED
 }
 
 CCapsuleManagerService::CapsuleSignatures::~CapsuleSignatures()
 {
 }
 
+PInterface CCapsuleManagerService::CapsuleSignatures::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (PInterface)this;
+    }
+    return NULL;
+}
+
+UInt32 CCapsuleManagerService::CapsuleSignatures::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CCapsuleManagerService::CapsuleSignatures::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode CCapsuleManagerService::CapsuleSignatures::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    VALIDATE_NOT_NULL(pIID);
+
+    if (pObject == (IInterface*)this) {
+        *pIID = EIID_IInterface;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+
+    return NOERROR;
+}
+
+void CCapsuleManagerService::CapsuleSignatures::WriteXml(
+    /* [in] */ IXmlSerializer* serializer,
+    /* [in] */ CString tagName,
+    /* [in] */ List< AutoPtr<ISignature> >* pastSignatures)
+{
+    if (mSignatures == NULL) {
+        return;
+    }
+    serializer->WriteStartTag(NULL, tagName);
+    serializer->WriteAttribute(NULL, "count",
+            String::FromInt32(mSignatures->GetLength()));
+    for (Int32 i = 0; i < mSignatures->GetLength(); i++) {
+        serializer->WriteStartTag(NULL, "cert");
+        ISignature* sig = (*mSignatures.Get())[i];
+        Int32 sigHash;
+        sig->GetHashCode(&sigHash);
+        Int32 j;
+        List< AutoPtr<ISignature> >::Iterator it;
+        for (it = pastSignatures->Begin(), j = 0;
+             it != pastSignatures->End(); ++it, ++j) {
+            ISignature* pastSig = *it;
+            Int32 pastSigHash;
+            pastSig->GetHashCode(&pastSigHash);
+            Boolean isEqual;
+            pastSig->Equals(sig, &isEqual);
+            if (pastSigHash == sigHash && isEqual) {
+                serializer->WriteAttribute(NULL, "index", String::FromInt32(j));
+                break;
+            }
+        }
+        if (it == pastSignatures->End()) {
+            pastSignatures->PushBack(sig);
+            serializer->WriteAttribute(NULL, "index", String::FromInt32(j));
+            String chars;
+            sig->ToCharsString(&chars);
+            serializer->WriteAttribute(NULL, "key", chars);
+        }
+        serializer->WriteEndTag(NULL, "cert");
+    }
+    serializer->WriteEndTag(NULL, tagName);
+}
+
+void CCapsuleManagerService::CapsuleSignatures::ReadXml(
+    /* [in] */ IXmlPullParser* parser,
+    /* [in] */ List< AutoPtr<ISignature> >* pastSignatures)
+{
+    String countStr;
+    parser->GetAttributeValueEx(NULL, "count", &countStr);
+    if (countStr.IsNull()) {
+//        reportSettingsProblem(Log.WARN,
+//                "Error in package manager settings: <signatures> has"
+//                   + " no count at " + parser.getPositionDescription());
+        XmlUtils::SkipCurrentTag(parser);
+    }
+    Int32 count = countStr.ToInt32();
+    //todo: maybe have memory leak
+    mSignatures = ArrayOf< AutoPtr<ISignature> >::Alloc(count);
+    Int32 pos = 0;
+
+    Int32 outerDepth;
+    parser->GetDepth(&outerDepth);
+    Int32 type, depth;
+    while ((parser->Next(&type), type != IXmlPullParser_END_DOCUMENT)
+           && (type != IXmlPullParser_END_TAG
+                   || (parser->GetDepth(&depth), depth > outerDepth))) {
+        if (type == IXmlPullParser_END_TAG
+                || type == IXmlPullParser_TEXT) {
+            continue;
+        }
+
+        String tagName;
+        parser->GetName(&tagName);
+        if (tagName.Equals("cert")) {
+            if (pos < count) {
+                String index;
+                parser->GetAttributeValueEx(NULL, "index", &index);
+                if (!index.IsNull()) {
+//                    try {
+                        Int32 idx = index.ToInt32();
+                        String key;
+                        parser->GetAttributeValueEx(NULL, "key", &key);
+                        if (key.IsNull()) {
+                            if (idx >= 0) {
+                                List< AutoPtr<ISignature> >::Iterator it =
+                                    pastSignatures->Begin();
+                                for (Int32 i = 0; it != pastSignatures->End(), i <= idx; ++it, ++i) {}
+                                if (it != pastSignatures->End()) {
+                                    ISignature* sig = *it;
+                                    if (sig != NULL) {
+                                        (*mSignatures)[pos] = sig;
+                                        pos++;
+                                    }
+                                    else {
+//                                        reportSettingsProblem(Log.WARN,
+//                                                "Error in package manager settings: <cert> "
+//                                                   + "index " + index + " is not defined at "
+//                                                   + parser.getPositionDescription());
+                                    }
+                                }
+                            }
+                            else {
+//                                reportSettingsProblem(Log.WARN,
+//                                        "Error in package manager settings: <cert> "
+//                                           + "index " + index + " is out of bounds at "
+//                                           + parser.getPositionDescription());
+                            }
+                        }
+                        else {
+                            Int32 size = pastSignatures->GetSize();
+                            for (Int32 i = 0; i < idx - size; ++i) {
+                                pastSignatures->PushBack(NULL);
+                            }
+                            AutoPtr<ISignature> sig;
+                            CSignature::New(key, (ISignature**)&sig);
+                            pastSignatures->PushBack(sig);
+                            (*mSignatures)[pos] = sig;
+                            pos++;
+                        }
+//                    } catch (NumberFormatException e) {
+//                        reportSettingsProblem(Log.WARN,
+//                                "Error in package manager settings: <cert> "
+//                                   + "index " + index + " is not a number at "
+//                                   + parser.getPositionDescription());
+//                    }
+                }
+                else {
+//                    reportSettingsProblem(Log.WARN,
+//                            "Error in package manager settings: <cert> has"
+//                               + " no index at " + parser.getPositionDescription());
+                }
+            }
+            else {
+//                reportSettingsProblem(Log.WARN,
+//                        "Error in package manager settings: too "
+//                           + "many <cert> tags, expected " + count
+//                           + " at " + parser.getPositionDescription());
+            }
+        }
+        else {
+//            reportSettingsProblem(Log.WARN,
+//                    "Unknown element under <cert>: "
+//                    + parser.getName());
+        }
+        XmlUtils::SkipCurrentTag(parser);
+    }
+
+    if (pos < count) {
+        // Should never happen -- there is an error in the written
+        // settings -- but if it does we don't want to generate
+        // a bad array.
+        ArrayOf< AutoPtr<ISignature> >* newSigs = ArrayOf< AutoPtr<ISignature> >::Alloc(pos);
+        memcpy(newSigs->GetPayload(), mSignatures->GetPayload(), pos * sizeof(AutoPtr<ISignature>));
+        ArrayOf< AutoPtr<ISignature> >::Free(mSignatures);
+        mSignatures = newSigs;
+    }
+}
+
+void CCapsuleManagerService::CapsuleSignatures::AssignSignatures(
+    /* [in] */ const ArrayOf< AutoPtr<ISignature> >& sigs)
+{
+    Int32 size = sigs.GetLength();
+    if (size == 0) {
+        mSignatures = NULL;
+        return;
+    }
+    mSignatures = ArrayOf< AutoPtr<ISignature> >::Alloc(size);
+    for (Int32 i = 0; i < size; ++i) {
+        (*mSignatures.Get())[i] = sigs[i];
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // CCapsuleManagerService::PreferredActivity
+
+CCapsuleManagerService::PreferredActivity::PreferredActivity(
+    /* [in] */ IIntentFilter* filter,
+    /* [in] */ Int32 match,
+    /* [in] */ IObjectContainer* set, /*IComponentName*/
+    /* [in] */ IComponentName* activity)
+    : IntentFilter(filter)
+{
+    mMatch = match & IntentFilter_MATCH_CATEGORY_MASK;
+    mActivity = activity;
+    activity->FlattenToShortString(&mShortActivity);
+    if (set != NULL) {
+//        Int32 N = set->GetLength();
+//        ArrayOf<String>* myCapsules = ArrayOf<String>::Alloc(N);
+//        ArrayOf<String>* myClasses = ArrayOf<String>::Alloc(N);
+//        ArrayOf<String>* myComponents = ArrayOf<String>::Alloc(N);
+//        for (Int32 i = 0; i < N; i++) {
+//            IComponentName* cn = (*set)[i];
+//            if (cn == NULL) {
+//                mSetCapsules = NULL;
+//                mSetClasses = NULL;
+//                mSetComponents = NULL;
+//                //todo: memory leak;
+//                return;
+//            }
+//            cn->GetCapsuleName(&(*myCapsules)[i]);
+//            cn->GetClassName(&(*myClasses)[i]);
+//            cn->FlattenToShortString(&(*myComponents)[i]);
+//        }
+//        mSetCapsules = myCapsules;
+//        mSetClasses = myClasses;
+//        mSetComponents = myComponents;
+    }
+    else {
+        mSetCapsules = NULL;
+        mSetClasses = NULL;
+        mSetComponents = NULL;
+    }
+}
+
+CCapsuleManagerService::PreferredActivity::PreferredActivity(
+    /* [in] */ IXmlPullParser* parser)
+{
+    parser->GetAttributeValueEx(NULL, "name", &mShortActivity);
+    mActivity = CComponentName::UnflattenFromString(mShortActivity);
+    if (mActivity == NULL) {
+        mParseError = String("Bad activity name ") + mShortActivity;
+    }
+    String matchStr;
+    parser->GetAttributeValueEx(NULL, "match", &matchStr);
+    mMatch = !matchStr.IsNull() ? matchStr.ToInt32()/*Integer.parseInt(matchStr, 16)*/ : 0;
+    String setCountStr;
+    parser->GetAttributeValueEx(NULL, "set", &setCountStr);
+    Int32 setCount = !setCountStr.IsNull() ? setCountStr.ToInt32() : 0;
+
+    ArrayOf<String>* myCapsules = setCount > 0 ? ArrayOf<String>::Alloc(setCount) : NULL;
+    ArrayOf<String>* myClasses = setCount > 0 ? ArrayOf<String>::Alloc(setCount) : NULL;
+    ArrayOf<String>* myComponents = setCount > 0 ? ArrayOf<String>::Alloc(setCount) : NULL;
+
+    Int32 setPos = 0;
+
+    Int32 outerDepth;
+    parser->GetDepth(&outerDepth);
+    Int32 type, depth;
+    while ((parser->Next(&type), type != IXmlPullParser_END_DOCUMENT)
+           && (type != IXmlPullParser_END_TAG
+                   || (parser->GetDepth(&depth), depth > outerDepth))) {
+        if (type == IXmlPullParser_END_TAG
+                || type == IXmlPullParser_TEXT) {
+            continue;
+        }
+
+        String tagName;
+        parser->GetName(&tagName);
+        //Log.i(TAG, "Parse outerDepth=" + outerDepth + " depth="
+        //        + parser.getDepth() + " tag=" + tagName);
+        if (tagName.Equals("set")) {
+            String name;
+            parser->GetAttributeValueEx(NULL, "name", &name);
+            if (name.IsNull()) {
+                if (mParseError.IsNull()) {
+                    mParseError = "No name in set tag in preferred activity "
+                        + mShortActivity;
+                }
+            }
+            else if (setPos >= setCount) {
+                if (mParseError.IsNull()) {
+                    mParseError = "Too many set tags in preferred activity "
+                        + mShortActivity;
+                }
+            }
+            else {
+                AutoPtr<IComponentName> cn = CComponentName::UnflattenFromString(name);
+                if (cn == NULL) {
+                    if (mParseError.IsNull()) {
+                        mParseError = "Bad set name " + name + " in preferred activity "
+                            + mShortActivity;
+                    }
+                }
+                else {
+                    cn->GetCapsuleName(&(*myCapsules)[setPos]);
+                    cn->GetClassName(&(*myClasses)[setPos]);
+                    (*myComponents)[setPos] = name;
+                    setPos++;
+                }
+            }
+            XmlUtils::SkipCurrentTag(parser);
+        }
+        else if (tagName.Equals("filter")) {
+            //Log.i(TAG, "Starting to parse filter...");
+            IntentFilter::ReadFromXml(parser);
+            //Log.i(TAG, "Finished filter: outerDepth=" + outerDepth + " depth="
+            //        + parser.getDepth() + " tag=" + parser.getName());
+        }
+        else {
+//            reportSettingsProblem(Log.WARN,
+//                    "Unknown element under <preferred-activities>: "
+//                    + parser.getName());
+            XmlUtils::SkipCurrentTag(parser);
+        }
+    }
+
+    if (setPos != setCount) {
+        if (mParseError.IsNull()) {
+            mParseError = StringBuffer("Not enough set tags (expected ") + setCount
+                + " but found " + setPos + ") in " + mShortActivity;
+        }
+    }
+
+    mSetCapsules = myCapsules;
+    mSetClasses = myClasses;
+    mSetComponents = myComponents;
+}
 
 PInterface CCapsuleManagerService::PreferredActivity::Probe(
     /* [in] */ REIID riid)
@@ -474,95 +2009,363 @@ ECode CCapsuleManagerService::PreferredActivity::GetInterfaceID(
 ECode CCapsuleManagerService::PreferredActivity::SetPriority(
     /* [in] */ Int32 priority)
 {
-    return E_NOT_IMPLEMENTED;
+    return IntentFilter::SetPriority(priority);
 }
 
 ECode CCapsuleManagerService::PreferredActivity::GetPriority(
     /* [out] */ Int32* priority)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(priority);
+    *priority = IntentFilter::GetPriority();
+
+    return NOERROR;
 }
 
 ECode CCapsuleManagerService::PreferredActivity::AddAction(
-    /* [in] */ String action)
+    /* [in] */ const String& action)
 {
-    return E_NOT_IMPLEMENTED;
+    return IntentFilter::AddAction(action);
 }
 
 ECode CCapsuleManagerService::PreferredActivity::CountActions(
-    /* [out] */ Int32 *count)
+    /* [out] */ Int32* count)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(count);
+    *count = IntentFilter::CountActions();
+
+    return NOERROR;
 }
 
 ECode CCapsuleManagerService::PreferredActivity::GetAction(
     /* [in] */ Int32 index,
     /* [out] */ String *action)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(action);
+    *action = IntentFilter::GetAction(index);
+
+    return NOERROR;
+}
+
+ECode CCapsuleManagerService::PreferredActivity::HasAction(
+    /* [in] */ const String& action,
+    /* [out] */ Boolean* hasAction)
+{
+    VALIDATE_NOT_NULL(hasAction);
+    *hasAction = IntentFilter::HasAction(action);
+
+    return NOERROR;
+}
+
+ECode CCapsuleManagerService::PreferredActivity::MatchAction(
+    /* [in] */ const String& action,
+    /* [out] */ Boolean* isMatched)
+{
+    VALIDATE_NOT_NULL(isMatched);
+    *isMatched = IntentFilter::MatchAction(action);
+
+    return NOERROR;
 }
 
 ECode CCapsuleManagerService::PreferredActivity::AddDataType(
-    /* [in] */ String type)
+    /* [in] */ const String& type)
 {
-    return E_NOT_IMPLEMENTED;
+    return IntentFilter::AddDataType(type);
+}
+
+ECode CCapsuleManagerService::PreferredActivity::HasDataType(
+    /* [in] */ const String& type,
+    /* [out] */ Boolean* hasDataType)
+{
+    VALIDATE_NOT_NULL(hasDataType);
+    *hasDataType = IntentFilter::HasDataType(type);
+
+    return NOERROR;
+}
+
+ECode CCapsuleManagerService::PreferredActivity::CountDataTypes(
+    /* [out] */ Int32 *count)
+{
+    VALIDATE_NOT_NULL(count);
+    *count = IntentFilter::CountDataTypes();
+
+    return NOERROR;
+}
+
+ECode CCapsuleManagerService::PreferredActivity::GetDataType(
+    /* [in] */ Int32 index,
+    /* [out] */ String* type)
+{
+    VALIDATE_NOT_NULL(type);
+    *type = IntentFilter::GetDataType(index);
+
+    return NOERROR;
 }
 
 ECode CCapsuleManagerService::PreferredActivity::AddDataScheme(
-	/* [in] */ String scheme)
+    /* [in] */ const String& scheme)
 {
-	return E_NOT_IMPLEMENTED;
+    return IntentFilter::AddDataScheme(scheme);
+}
+
+ECode CCapsuleManagerService::PreferredActivity::CountDataSchemes(
+    /* [out] */ Int32 *count)
+{
+    VALIDATE_NOT_NULL(count);
+    *count = IntentFilter::CountDataSchemes();
+
+    return NOERROR;
+}
+
+ECode CCapsuleManagerService::PreferredActivity::GetDataScheme(
+    /* [in] */ Int32 index,
+    /* [out] */ String* scheme)
+{
+    VALIDATE_NOT_NULL(scheme);
+    *scheme = IntentFilter::GetDataScheme(index);
+
+    return NOERROR;
+}
+
+ECode CCapsuleManagerService::PreferredActivity::HasDataScheme(
+    /* [in] */ const String& scheme,
+    /* [out] */ Boolean* result)
+{
+    VALIDATE_NOT_NULL(result);
+    *result = IntentFilter::HasDataScheme(scheme);
+
+    return NOERROR;
 }
 
 ECode CCapsuleManagerService::PreferredActivity::AddDataAuthority(
-	/* [in] */ String host,
-	/* [in] */ String port)
+    /* [in] */ const String& host,
+    /* [in] */ const String& port)
 {
-	return E_NOT_IMPLEMENTED;
+    return IntentFilter::AddDataAuthority(host, port);
+}
+
+ECode CCapsuleManagerService::PreferredActivity::CountDataAuthorities(
+    /* [out] */ Int32 *count)
+{
+    VALIDATE_NOT_NULL(count);
+    *count = IntentFilter::CountDataAuthorities();
+
+    return NOERROR;
+}
+
+ECode CCapsuleManagerService::PreferredActivity::GetDataAuthority(
+    /* [in] */ Int32 index,
+    /* [out] */ IAuthorityEntry** authority)
+{
+    VALIDATE_NOT_NULL(authority);
+
+    AutoPtr<IAuthorityEntry> tmp = IntentFilter::GetDataAuthority(index);
+    *authority = tmp.Get();
+    if (*authority != NULL) (*authority)->AddRef();
+    return NOERROR;
+}
+
+ECode CCapsuleManagerService::PreferredActivity::HasDataAuthority(
+    /* [in] */ IUri* data,
+    /* [out] */ Boolean* result)
+{
+    VALIDATE_NOT_NULL(result);
+
+    *result = IntentFilter::HasDataAuthority(data);
+    return NOERROR;
 }
 
 ECode CCapsuleManagerService::PreferredActivity::AddDataPath(
-	/* [in] */ String path,
+	/* [in] */ const String& path,
 	/* [in] */ Int32 type)
 {
-	return E_NOT_IMPLEMENTED;
+	return IntentFilter::AddDataPath(path, type);
+}
+
+ECode CCapsuleManagerService::PreferredActivity::CountDataPaths(
+    /* [out] */ Int32 *count)
+{
+    VALIDATE_NOT_NULL(count);
+    *count = IntentFilter::CountDataPaths();
+
+    return NOERROR;
+}
+
+ECode CCapsuleManagerService::PreferredActivity::GetDataPath(
+    /* [in] */ Int32 index,
+    /* [out] */ IPatternMatcher** path)
+{
+    VALIDATE_NOT_NULL(path);
+
+    AutoPtr<IPatternMatcher> tmp = IntentFilter::GetDataPath(index);
+    *path = tmp.Get();
+    if (*path != NULL) (*path)->AddRef();
+    return NOERROR;
+}
+
+ECode CCapsuleManagerService::PreferredActivity::HasDataPath(
+    /* [in] */ const String& data,
+    /* [out] */ Boolean* result)
+{
+    VALIDATE_NOT_NULL(result);
+
+    *result = IntentFilter::HasDataPath(data);
+    return NOERROR;
+}
+
+ECode CCapsuleManagerService::PreferredActivity::MatchDataAuthority(
+    /* [in] */ IUri* data,
+    /* [out] */ Int32* result)
+{
+    VALIDATE_NOT_NULL(result);
+
+    *result = IntentFilter::MatchDataAuthority(data);
+    return NOERROR;
+}
+
+ECode CCapsuleManagerService::PreferredActivity::MatchData(
+    /* [in] */ const String& type,
+    /* [in] */ const String& scheme,
+    /* [in] */ IUri* data,
+    /* [out] */ Int32* result)
+{
+    VALIDATE_NOT_NULL(result);
+
+    *result = IntentFilter::MatchData(type, scheme, data);
+    return NOERROR;
 }
 
 ECode CCapsuleManagerService::PreferredActivity::AddCategory(
-    /* [in] */ String category)
+    /* [in] */ const String& category)
 {
-    return E_NOT_IMPLEMENTED;
+    return IntentFilter::AddCategory(category);
+}
+
+ECode CCapsuleManagerService::PreferredActivity::CountCategories(
+    /* [out] */ Int32* count)
+{
+    VALIDATE_NOT_NULL(count);
+    *count = IntentFilter::CountCategories();
+
+    return NOERROR;
+}
+
+ECode CCapsuleManagerService::PreferredActivity::GetCategory(
+    /* [in] */ Int32 index,
+    /* [out] */ String* category)
+{
+    VALIDATE_NOT_NULL(category);
+    *category = IntentFilter::GetCategory(index);
+
+    return NOERROR;
 }
 
 ECode CCapsuleManagerService::PreferredActivity::HasCategory(
-    /* [in] */ String category,
+    /* [in] */ const String& category,
     /* [out] */ Boolean* hasCategory)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(hasCategory);
+    *hasCategory = IntentFilter::HasCategory(category);
+
+    return NOERROR;
+}
+
+ECode CCapsuleManagerService::PreferredActivity::MatchCategories(
+    /* [in] */ ArrayOf<String>* categories,
+    /* [out] */ String* result)
+{
+    VALIDATE_NOT_NULL(result);
+
+    *result = IntentFilter::MatchCategories(categories);
+    return NOERROR;
 }
 
 ECode CCapsuleManagerService::PreferredActivity::Match(
-    /* [in] */ String action,
-    /* [in] */ String type,
-    /* [in] */ String scheme,
+    /* [in] */ const String& action,
+    /* [in] */ const String& type,
+    /* [in] */ const String& scheme,
     /* [in] */ IUri* data,
     /* [in] */ ArrayOf<String>* categories,
-    /* [in] */ String logTag,
+    /* [in] */ CString logTag,
     /* [out] */ Int32* result)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(result);
+
+    *result = IntentFilter::Match(action, type, scheme, data, categories, logTag);
+    return NOERROR;
+}
+
+ECode CCapsuleManagerService::PreferredActivity::MatchEx(
+    /* [in] */ IContentResolver* resolver,
+    /* [in] */ IIntent* intent,
+    /* [in] */ Boolean resolve,
+    /* [in] */ CString logTag,
+    /* [out] */ Int32* result)
+{
+    VALIDATE_NOT_NULL(result);
+
+    *result = IntentFilter::Match(resolver, intent, resolve, logTag);
+    return NOERROR;
+}
+
+ECode CCapsuleManagerService::PreferredActivity::WriteToXml(
+    /* [in] */ IXmlSerializer* serializer)
+{
+    const Int32 NS = mSetClasses != NULL ? mSetClasses->GetLength() : 0;
+    FAIL_RETURN(serializer->WriteAttribute(NULL, "name", mShortActivity));
+    FAIL_RETURN(serializer->WriteAttribute(NULL, "match", String::FromInt32(mMatch)/*Integer.toHexString(mMatch)*/));
+    FAIL_RETURN(serializer->WriteAttribute(NULL, "set", String::FromInt32(NS)));
+    for (Int32 s = 0; s < NS; s++) {
+        FAIL_RETURN(serializer->WriteStartTag(NULL, "set"));
+        FAIL_RETURN(serializer->WriteAttribute(NULL, "name", (*mSetComponents)[s]));
+        FAIL_RETURN(serializer->WriteEndTag(NULL, "set"));
+    }
+    FAIL_RETURN(serializer->WriteStartTag(NULL, "filter"));
+    FAIL_RETURN(IntentFilter::WriteToXml(serializer));
+    return serializer->WriteEndTag(NULL, "filter");
+}
+
+ECode CCapsuleManagerService::PreferredActivity::ReadFromXml(
+    /* [in] */ IXmlPullParser* parser)
+{
+    return IntentFilter::ReadFromXml(parser);
 }
 
 ECode CCapsuleManagerService::PreferredActivity::ReadFromParcel(
     /* [in] */ IParcel *source)
 {
-    return E_NOT_IMPLEMENTED;
+    return IntentFilter::ReadFromParcel(source);
 }
 
 ECode CCapsuleManagerService::PreferredActivity::WriteToParcel(
     /* [in] */ IParcel *dest)
 {
-    return E_NOT_IMPLEMENTED;
+    return IntentFilter::WriteToParcel(dest);
+}
+
+Boolean CCapsuleManagerService::PreferredActivity::SameSet(
+    /* [in] */ List< AutoPtr<CResolveInfo> >* query,
+    /* [in] */ Int32 priority)
+{
+    if (mSetCapsules == NULL) return FALSE;
+    const Int32 NS = mSetCapsules->GetLength();
+    Int32 numMatch = 0;
+    List< AutoPtr<CResolveInfo> >::Iterator it;
+    for (it = query->Begin(); it != query->End(); ++it) {
+        CResolveInfo* ri = *it;
+        if (ri->mPriority != priority) continue;
+        CActivityInfo* ai = ri->mActivityInfo;
+        Boolean good = FALSE;
+        for (Int32 j = 0; j < NS; j++) {
+            if ((*mSetCapsules)[j].Equals(ai->mCapsuleName)
+                    && (*mSetClasses)[j].Equals(ai->mName)) {
+                numMatch++;
+                good = TRUE;
+                break;
+            }
+        }
+        if (!good) return FALSE;
+    }
+    return numMatch == NS;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -576,19 +2379,61 @@ CCapsuleManagerService::GrantedPermissions::GrantedPermissions(
 }
 
 CCapsuleManagerService::GrantedPermissions::GrantedPermissions(
-    /* [in] */ const GrantedPermissions& base)
+    /* [in] */ const GrantedPermissions* base)
     : mGrantedPermissions(11)
 {
-    mCapFlags = base.mCapFlags;
-//	    mGrantedPermissions = (HashSet<String>) base.grantedPermissions.clone();
+    assert(base != NULL);
+    mCapFlags = base->mCapFlags;
 
-    if (base.mGids != NULL) {
-        mGids = base.mGids->Clone();
+    HashSet<String>::Iterator it;
+    for (it = base->mGrantedPermissions.Begin();
+         it != base->mGrantedPermissions.End(); it++) {
+        mGrantedPermissions.Insert(*it);
+    }
+
+    if (base->mGids != NULL) {
+        mGids = base->mGids->Clone();
     }
 }
 
 CCapsuleManagerService::GrantedPermissions::~GrantedPermissions()
 {
+    mGrantedPermissions.Clear();
+}
+
+PInterface CCapsuleManagerService::GrantedPermissions::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (PInterface)this;
+    }
+    return NULL;
+}
+
+UInt32 CCapsuleManagerService::GrantedPermissions::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CCapsuleManagerService::GrantedPermissions::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode CCapsuleManagerService::GrantedPermissions::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    VALIDATE_NOT_NULL(pIID);
+
+    if (pObject == (IInterface*)this) {
+        *pIID = EIID_IInterface;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+
+    return NOERROR;
 }
 
 void CCapsuleManagerService::GrantedPermissions::SetFlags(
@@ -605,19 +2450,22 @@ void CCapsuleManagerService::GrantedPermissions::SetFlags(
 // CCapsuleManagerService::CapsuleSettingBase
 
 CCapsuleManagerService::CapsuleSettingBase::CapsuleSettingBase(
-    /* [in] */ String name,
-    /* [in] */ String realName,
+    /* [in] */ const String& name,
+    /* [in] */ const String& realName,
     /* [in] */ IFile* codePath,
     /* [in] */ IFile* resourcePath,
-    /* [in] */ String nativeLibraryPathString,
-    /* [in] */ Int32 pVersionCode,
+    /* [in] */ const String& nativeLibraryPathString,
+    /* [in] */ Int32 cVersionCode,
     /* [in] */ Int32 capFlags)
     : GrantedPermissions(capFlags)
+    , mName(name)
+    , mRealName(realName)
     , mTimeStamp(0)
     , mFirstInstallTime(0)
     , mLastUpdateTime(0)
     , mVersionCode(0)
     , mUidError(FALSE)
+    , mSignatures(new CapsuleSignatures())
     , mPermissionsFixed(FALSE)
     , mHaveGids(FALSE)
     , mDisabledComponents(0)
@@ -626,108 +2474,204 @@ CCapsuleManagerService::CapsuleSettingBase::CapsuleSettingBase(
     , mInstallStatus(CCapsuleManagerService::CAP_INSTALL_COMPLETE)
     , mOrigCapsule(NULL)
 {
-    // E_NOT_IMPLEMENTED
+    Init(codePath, resourcePath, nativeLibraryPathString, cVersionCode);
 }
 
 CCapsuleManagerService::CapsuleSettingBase::CapsuleSettingBase(
-    /* [in] */ const CapsuleSettingBase& base)
+    /* [in] */ const CapsuleSettingBase* base)
     : GrantedPermissions(base)
-    , mTimeStamp(0)
-    , mFirstInstallTime(0)
-    , mLastUpdateTime(0)
-    , mVersionCode(0)
-    , mUidError(FALSE)
-    , mPermissionsFixed(FALSE)
-    , mHaveGids(FALSE)
+    , mName(base->mName)
+    , mRealName(base->mRealName)
+    , mCodePath(base->mCodePath)
+    , mCodePathString(base->mCodePathString)
+    , mResourcePath(base->mResourcePath)
+    , mResourcePathString(base->mResourcePathString)
+    , mNativeLibraryPathString(base->mNativeLibraryPathString)
+    , mTimeStamp(base->mTimeStamp)
+    , mFirstInstallTime(base->mFirstInstallTime)
+    , mLastUpdateTime(base->mLastUpdateTime)
+    , mVersionCode(base->mVersionCode)
+    , mUidError(base->mUidError)
+    , mSignatures(new CapsuleSignatures(base->mSignatures))
+    , mPermissionsFixed(base->mPermissionsFixed)
+    , mHaveGids(base->mHaveGids)
     , mDisabledComponents(0)
     , mEnabledComponents(0)
-    , mEnabled(CapsuleManager_COMPONENT_ENABLED_STATE_DEFAULT)
-    , mInstallStatus(CCapsuleManagerService::CAP_INSTALL_COMPLETE)
-    , mOrigCapsule(NULL)
+    , mEnabled(base->mEnabled)
+    , mInstallStatus(base->mInstallStatus)
+    , mOrigCapsule(base->mOrigCapsule)
+    , mInstallerCapsuleName(base->mInstallerCapsuleName)
 {
-    // E_NOT_IMPLEMENTED
+    HashSet<String>::Iterator it;
+    for (it = base->mDisabledComponents.Begin();
+         it != base->mDisabledComponents.End(); it++) {
+        mDisabledComponents.Insert(*it);
+    }
+
+    for (it = base->mEnabledComponents.Begin();
+         it != base->mEnabledComponents.End(); it++) {
+        mEnabledComponents.Insert(*it);
+    }
 }
 
 CCapsuleManagerService::CapsuleSettingBase::~CapsuleSettingBase()
 {
+    if (mSignatures != NULL) delete mSignatures;
+    mDisabledComponents.Clear();
+    mEnabledComponents.Clear();
 }
 
 void CCapsuleManagerService::CapsuleSettingBase::Init(
     /* [in] */ IFile* codePath,
     /* [in] */ IFile* resourcePath,
-    /* [in] */ String nativeLibraryPathString,
-    /* [in] */ Int32 pVersionCode)
+    /* [in] */ const String& nativeLibraryPathString,
+    /* [in] */ Int32 cVersionCode)
 {
-    // E_NOT_IMPLEMENTED
+    mCodePath = codePath;
+    codePath->ToString(&mCodePathString);
+    mResourcePath = resourcePath;
+    resourcePath->ToString(&mResourcePathString);
+    mNativeLibraryPathString = nativeLibraryPathString;
+    mVersionCode = cVersionCode;
 }
 
 void CCapsuleManagerService::CapsuleSettingBase::SetInstallerCapsuleName(
-    /* [in] */ String packageName)
+    /* [in] */ const String& capsuleName)
 {
-    // E_NOT_IMPLEMENTED
+    mInstallerCapsuleName = capsuleName;
 }
 
-String CCapsuleManagerService::CapsuleSettingBase::GetInstallerPackageName()
+String CCapsuleManagerService::CapsuleSettingBase::GetInstallerCapsuleName()
 {
-    return NULL; // E_NOT_IMPLEMENTED
+    return mInstallerCapsuleName;
 }
 
 void CCapsuleManagerService::CapsuleSettingBase::SetInstallStatus(
     /* [in] */ Int32 newStatus)
 {
-    // E_NOT_IMPLEMENTED
+    mInstallStatus = newStatus;
 }
 
-String CCapsuleManagerService::CapsuleSettingBase::GetInstallStatus()
+Int32 CCapsuleManagerService::CapsuleSettingBase::GetInstallStatus()
 {
-    return NULL; // E_NOT_IMPLEMENTED
+    return mInstallStatus;
 }
 
 void CCapsuleManagerService::CapsuleSettingBase::SetTimeStamp(
     /* [in] */ Int64 newStamp)
 {
-    // E_NOT_IMPLEMENTED
+    mTimeStamp = newStamp;
 }
 
 void CCapsuleManagerService::CapsuleSettingBase::CopyFrom(
-    /* [in] */ CapsuleSettingBase& base)
+    /* [in] */ const CapsuleSettingBase* base)
 {
-    // E_NOT_IMPLEMENTED
+    assert(base != NULL);
+    mGrantedPermissions = base->mGrantedPermissions;
+    mGids = base->mGids != NULL ? base->mGids->Clone() : NULL;
+
+    mTimeStamp = base->mTimeStamp;
+    mFirstInstallTime = base->mFirstInstallTime;
+    mLastUpdateTime = base->mLastUpdateTime;
+    mSignatures = base->mSignatures;
+    mPermissionsFixed = base->mPermissionsFixed;
+    mHaveGids = base->mHaveGids;
+    mDisabledComponents = base->mDisabledComponents;
+    mEnabledComponents = base->mEnabledComponents;
+    mEnabled = base->mEnabled;
+    mInstallStatus = base->mInstallStatus;
 }
 
 Boolean CCapsuleManagerService::CapsuleSettingBase::EnableComponentLP(
-    /* [in] */ String componentClassName)
+    /* [in] */ const String& componentClassName)
 {
-    return FALSE; // E_NOT_IMPLEMENTED
+    Boolean changed = FALSE;
+    HashSet<String>::Iterator it;
+
+    it = mDisabledComponents.Find(componentClassName);
+    if (it != mDisabledComponents.End()) {
+        mDisabledComponents.Erase(it);
+        changed = TRUE;
+    }
+
+    it = mEnabledComponents.Find(componentClassName);
+    if (it == mEnabledComponents.End()) {
+        mEnabledComponents.Insert(componentClassName);
+        changed |= TRUE;
+    }
+
+    return changed;
 }
 
 Boolean CCapsuleManagerService::CapsuleSettingBase::DisableComponentLP(
-    /* [in] */ String componentClassName)
+    /* [in] */ const String& componentClassName)
 {
-    return FALSE; // E_NOT_IMPLEMENTED
+    Boolean changed = FALSE;
+    HashSet<String>::Iterator it;
+
+    it = mEnabledComponents.Find(componentClassName);
+    if (it != mEnabledComponents.End()) {
+        mEnabledComponents.Erase(it);
+        changed = TRUE;
+    }
+
+    it = mDisabledComponents.Find(componentClassName);
+    if (it == mDisabledComponents.End()) {
+        mDisabledComponents.Insert(componentClassName);
+        changed |= TRUE;
+    }
+
+    return changed;
 }
 
 Boolean CCapsuleManagerService::CapsuleSettingBase::RestoreComponentLP(
-    /* [in] */ String componentClassName)
+    /* [in] */ const String& componentClassName)
 {
-    return FALSE; // E_NOT_IMPLEMENTED
+    Boolean changed = FALSE;
+    HashSet<String>::Iterator it;
+
+    it = mEnabledComponents.Find(componentClassName);
+    if (it != mEnabledComponents.End()) {
+        mEnabledComponents.Erase(it);
+        changed = TRUE;
+    }
+
+    it = mDisabledComponents.Find(componentClassName);
+    if (it != mDisabledComponents.End()) {
+        mDisabledComponents.Erase(it);
+        changed |= TRUE;
+    }
+
+    return changed;
 }
 
 Int32 CCapsuleManagerService::CapsuleSettingBase::CurrentEnabledStateLP(
-    /* [in] */ String componentName)
+    /* [in] */ const String& componentName)
 {
-    return 0; // E_NOT_IMPLEMENTED
+    HashSet<String>::Iterator it;
+
+    it = mEnabledComponents.Find(componentName);
+    if (it != mEnabledComponents.End()) {
+        return CapsuleManager_COMPONENT_ENABLED_STATE_ENABLED;
+    }
+
+    it = mDisabledComponents.Find(componentName);
+    if (it != mDisabledComponents.End()) {
+        return CapsuleManager_COMPONENT_ENABLED_STATE_DISABLED;
+    }
+
+    return CapsuleManager_COMPONENT_ENABLED_STATE_DEFAULT;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // CCapsuleManagerService::CapsuleSetting
 
 CCapsuleManagerService::CapsuleSetting::CapsuleSetting(
-    /* [in] */ String name,
-    /* [in] */ String realName,
+    /* [in] */ const String& name,
+    /* [in] */ const String& realName,
     /* [in] */ IFile* codePath,
     /* [in] */ IFile* resourcePath,
-    /* [in] */ String nativeLibraryPathString,
+    /* [in] */ const String& nativeLibraryPathString,
     /* [in] */ Int32 pVersionCode,
     /* [in] */ Int32 capFlags)
     : CapsuleSettingBase(name, realName, codePath,
@@ -735,55 +2679,2082 @@ CCapsuleManagerService::CapsuleSetting::CapsuleSetting(
     , mUserId(0)
     , mCap(NULL)
     , mSharedUser(NULL)
-{
-    // E_NOT_IMPLEMENTED
-}
+{}
 
 CCapsuleManagerService::CapsuleSetting::CapsuleSetting(
-    /* [in] */ const CapsuleSetting& orig)
+    /* [in] */ const CapsuleSetting* orig)
     : CapsuleSettingBase(orig)
-    , mUserId(0)
-    , mCap(NULL)
-    , mSharedUser(NULL)
-{
-    // E_NOT_IMPLEMENTED
-}
+    , mUserId(orig->mUserId)
+    , mCap(orig->mCap)
+    , mSharedUser(orig->mSharedUser)
+{}
 
 CCapsuleManagerService::CapsuleSetting::~CapsuleSetting()
+{}
+
+String CCapsuleManagerService::CapsuleSetting::ToString()
 {
+    return String((const char*)(StringBuffer("CapsuleSetting{")
+        + this /*Integer.toHexString(System.identityHashCode(this))*/
+        + " " + mName + "/" + mUserId + "}"));
 }
 
-String CCapsuleManagerService::CapsuleSetting::GetDescription()
+Int32 CCapsuleManagerService::CapsuleSetting::GetHashCode() const
 {
-    return NULL; // E_NOT_IMPLEMENTED
+    return (Int32)this;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // CCapsuleManagerService::SharedUserSetting
 
 CCapsuleManagerService::SharedUserSetting::SharedUserSetting(
-    /* [in] */ String _name,
-    /* [in] */ Int32 _pkgFlags)
-    : GrantedPermissions(_pkgFlags)
+    /* [in] */ const String& name,
+    /* [in] */ Int32 capFlags)
+    : GrantedPermissions(capFlags)
+    , mName(name)
     , mUserId(0)
     , mCapsules(5)
-{
-    mSignatures = new CCapsuleManagerService::CapsuleSignatures;
-    // E_NOT_IMPLEMENTED
-}
+    , mSignatures(new CapsuleSignatures())
+{}
 
 CCapsuleManagerService::SharedUserSetting::~SharedUserSetting()
 {
+    mCapsules.Clear();
 }
 
-String CCapsuleManagerService::SharedUserSetting::GetDescription()
+String CCapsuleManagerService::SharedUserSetting::ToString()
 {
-    return NULL; // E_NOT_IMPLEMENTED
+    return String((const char*)(StringBuffer("SharedUserSetting{")
+        + this /*Integer.toHexString(System.identityHashCode(this))*/
+        + " " + mName + "/" + mUserId + "}"));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// CCapsuleManagerService::Settings::SettingsIntentResolver
+
+String CCapsuleManagerService::Settings::SettingsIntentResolver::CapsuleForFilter(
+    /* [in] */ PreferredActivity* filter)
+{
+    String name;
+    filter->mActivity->GetCapsuleName(&name);
+    return name;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// CCapsuleManagerService::Settings
+
+CCapsuleManagerService::Settings::Settings(
+    /* [in] */ CCapsuleManagerService* owner)
+    : mCapsules(5)
+    , mDisabledSysCapsules(5)
+    , mInternalSdkPlatform(0)
+    , mExternalSdkPlatform(0)
+    , mPreferredActivities(new SettingsIntentResolver())
+    , mSharedUsers(5)
+    , mUserIds(10)
+    , mOtherUserIds(10)
+    , mPermissions(5)
+    , mPermissionTrees(5)
+    , mRenamedCapsules(5)
+    , mPendingCapsules(5)
+    , mOwner(owner)
+{
+    AutoPtr<IFile> dataDir = Environment::GetDataDirectory();
+    AutoPtr<IFile> systemDir;
+    CFile::New(dataDir, String("system"), (IFile**)&systemDir);
+    // TODO(oam): This secure dir creation needs to be moved somewhere else (later)
+    AutoPtr<IFile> systemSecureDir;
+    CFile::New(dataDir, String("secure/system"), (IFile**)&systemSecureDir);
+    Boolean isSucceeded = FALSE;
+    systemDir->Mkdirs(&isSucceeded);
+    systemSecureDir->Mkdirs(&isSucceeded);
+    String des;
+    systemDir->ToString(&des);
+    FileUtils::SetPermissions(des,
+        FileUtils::IRWXU | FileUtils::IRWXG
+        | FileUtils::IROTH | FileUtils::IXOTH,
+        -1, -1);
+    systemSecureDir->ToString(&des);
+    FileUtils::SetPermissions(des,
+        FileUtils::IRWXU | FileUtils::IRWXG
+        | FileUtils::IROTH | FileUtils::IXOTH,
+        -1, -1);
+    CFile::New(systemDir, String("capsules.xml"), (IFile**)&mSettingsFilename);
+    CFile::New(systemDir, String("capsules-backup.xml"), (IFile**)&mBackupSettingsFilename);
+    CFile::New(systemDir, String("capsules.list"), (IFile**)&mCapsuleListFilename);
+}
+
+CCapsuleManagerService::Settings::~Settings()
+{
+    //todo:
+}
+
+AutoPtr<CCapsuleManagerService::CapsuleSetting>
+CCapsuleManagerService::Settings::GetCapsuleLP(
+    /* [in] */ CapsuleParser::Capsule* cap,
+    /* [in] */ CapsuleSetting* origCapsule,
+    /* [in] */ const String& realName,
+    /* [in] */ SharedUserSetting* sharedUser,
+    /* [in] */ IFile* codePath,
+    /* [in] */ IFile* resourcePath,
+    /* [in] */ const String& nativeLibraryPathString,
+    /* [in] */ Int32 capFlags,
+    /* [in] */ Boolean create,
+    /* [in] */ Boolean add)
+{
+    return GetCapsuleLP(cap->mCapsuleName, origCapsule, realName, sharedUser, codePath,
+        resourcePath, nativeLibraryPathString, cap->mVersionCode, capFlags, create, add);
+}
+
+AutoPtr<CCapsuleManagerService::CapsuleSetting>
+CCapsuleManagerService::Settings::PeekCapsuleLP(
+    /* [in] */ const String& name)
+{
+    HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it = mCapsules.Find(name);
+    if (it != mCapsules.End()) {
+        return it->mSecond;
+    }
+    else return NULL;
+    /*
+    PackageSetting p = mPackages.get(name);
+    if (p != null && p.codePath.getPath().equals(codePath)) {
+        return p;
+    }
+    return null;
+    */
+}
+
+void CCapsuleManagerService::Settings::SetInstallStatus(
+    /* [in] */ String capName,
+    /* [in] */ Int32 status)
+{
+    HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it = mCapsules.Find(capName);
+    if (it != mCapsules.End()) {
+        CapsuleSetting* p = it->mSecond;
+        if(p->GetInstallStatus() != status) {
+            p->SetInstallStatus(status);
+        }
+    }
+}
+
+void CCapsuleManagerService::Settings::SetInstallerCapsuleName(
+    /* [in] */ String capName,
+    /* [in] */ String installerCapName)
+{
+    HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it = mCapsules.Find(capName);
+    if (it != mCapsules.End()) {
+        CapsuleSetting* p = it->mSecond;
+        p->SetInstallerCapsuleName(installerCapName);
+    }
+}
+
+String CCapsuleManagerService::Settings::GetInstallerCapsuleName(
+    /* [in] */ String capName)
+{
+    HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it = mCapsules.Find(capName);
+    return it == mCapsules.End() ? String(NULL) : it->mSecond->GetInstallerCapsuleName();
+}
+
+Int32 CCapsuleManagerService::Settings::GetInstallStatus(
+    /* [in] */ String capName)
+{
+    HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it = mCapsules.Find(capName);
+    if (it != mCapsules.End()) {
+        CapsuleSetting* p = it->mSecond;
+        return p->GetInstallStatus();
+    }
+    return -1;
+}
+
+AutoPtr<CCapsuleManagerService::SharedUserSetting>
+CCapsuleManagerService::Settings::GetSharedUserLP(
+    /* [in] */ const String& name,
+    /* [in] */ Int32 capFlags,
+    /* [in] */ Boolean create)
+{
+    AutoPtr<SharedUserSetting> s;
+    HashMap<String, AutoPtr<SharedUserSetting> >::Iterator it = mSharedUsers.Find(name);
+    if (it != mSharedUsers.End()) {
+        s = it->mSecond;
+    }
+    if (s == NULL) {
+        if (!create) {
+            return NULL;
+        }
+        s = new SharedUserSetting(name, capFlags);
+        if (MULTIPLE_APPLICATION_UIDS) {
+            s->mUserId = NewUserIdLP(s);
+        }
+        else {
+            s->mUserId = FIRST_APPLICATION_UID;
+        }
+        Logger::I(TAG, "New shared user " + name + ": id=" + s->mUserId);
+        // < 0 means we couldn't assign a userid; fall out and return
+        // s, which is currently null
+        if (s->mUserId >= 0) {
+            mSharedUsers[name] = s;
+        }
+    }
+
+    return s;
+}
+
+Boolean CCapsuleManagerService::Settings::DisableSystemCapsuleLP(
+    /* [in] */ String name)
+{
+    HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it;
+
+    CapsuleSetting* p = NULL;
+    it = mCapsules.Find(name);
+    if (it != mCapsules.End()) {
+        p = it->mSecond;
+    }
+    if(p == NULL) {
+        Logger::W(TAG, StringBuffer("Capsule:") + name + " is not an installed capsule");
+        return FALSE;
+    }
+    CapsuleSetting* dp = NULL;
+    it = mDisabledSysCapsules.Find(name);
+    if (it != mDisabledSysCapsules.End()) {
+        dp = it->mSecond;
+    }
+    // always make sure the system package code and resource paths dont change
+    if (dp == NULL) {
+        if((p->mCap != NULL) && (p->mCap->mApplicationInfo != NULL)) {
+            p->mCap->mApplicationInfo->mFlags |= CApplicationInfo::FLAG_UPDATED_SYSTEM_APP;
+        }
+        mDisabledSysCapsules[name] = p;
+
+        // a little trick...  when we install the new package, we don't
+        // want to modify the existing PackageSetting for the built-in
+        // version.  so at this point we need a new PackageSetting that
+        // is okay to muck with.
+        AutoPtr<CapsuleSetting> newp = new CapsuleSetting(p);
+        ReplaceCapsuleLP(name, newp);
+        return TRUE;
+    }
+    return FALSE;
+}
+
+AutoPtr<CCapsuleManagerService::CapsuleSetting>
+CCapsuleManagerService::Settings::EnableSystemCapsuleLP(
+    /* [in] */ const String& name)
+{
+    HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it;
+
+    CapsuleSetting* p = NULL;
+    it = mDisabledSysCapsules.Find(name);
+    if (it != mDisabledSysCapsules.End()) {
+        p = it->mSecond;
+    }
+    if (p == NULL) {
+        Logger::W(TAG, StringBuffer("Capsule:") + name + " is not disabled");
+        return NULL;
+    }
+    // Reset flag in ApplicationInfo object
+    if ((p->mCap != NULL) && (p->mCap->mApplicationInfo != NULL)) {
+        p->mCap->mApplicationInfo->mFlags &= ~CApplicationInfo::FLAG_UPDATED_SYSTEM_APP;
+    }
+    AutoPtr<CapsuleSetting> ret = AddCapsuleLP(
+        name, p->mRealName, p->mCodePath, p->mResourcePath,
+        p->mNativeLibraryPathString, p->mUserId, p->mVersionCode, p->mCapFlags);
+    mDisabledSysCapsules.Erase(it);
+    return ret;
+}
+
+AutoPtr<CCapsuleManagerService::CapsuleSetting>
+CCapsuleManagerService::Settings::AddCapsuleLP(
+    /* [in] */ const String& name,
+    /* [in] */ const String& realName,
+    /* [in] */ IFile* codePath,
+    /* [in] */ IFile* resourcePath,
+    /* [in] */ const String& nativeLibraryPathString,
+    /* [in] */ Int32 uid,
+    /* [in] */ Int32 vc,
+    /* [in] */ Int32 capFlags)
+{
+    AutoPtr<CapsuleSetting> p;
+    HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it = mCapsules.Find(name);
+    if (it != mCapsules.End()) {
+        p = it->mSecond;
+    }
+    if (p != NULL) {
+        if (p->mUserId == uid) {
+            return p;
+        }
+        mOwner->ReportSettingsProblem(6 /*Log::ERROR*/,
+            String("Adding duplicate capsule, keeping first: ") + name);
+        return NULL;
+    }
+    p = new CapsuleSetting(name, realName,
+        codePath, resourcePath, nativeLibraryPathString, vc, capFlags);
+    p->mUserId = uid;
+    AutoPtr<ICharSequence> nameWrapper;
+    CStringWrapper::New(name, (ICharSequence**)&nameWrapper);
+    if (AddUserIdLP(uid, p.Get(), nameWrapper.Get())) {
+        mCapsules[name] = p;
+        return p;
+    }
+    return NULL;
+}
+
+AutoPtr<CCapsuleManagerService::SharedUserSetting>
+CCapsuleManagerService::Settings::AddSharedUserLP(
+    /* [in] */ const String& name,
+    /* [in] */ Int32 uid,
+    /* [in] */ Int32 capFlags)
+{
+    AutoPtr<SharedUserSetting> s;
+    HashMap<String, AutoPtr<SharedUserSetting> >::Iterator it = mSharedUsers.Find(name);
+    if (it != mSharedUsers.End()) {
+        s = it->mSecond;
+    }
+    if (s != NULL) {
+        if (s->mUserId == uid) {
+            return s;
+        }
+        mOwner->ReportSettingsProblem(6 /*Log::ERROR*/,
+            String("Adding duplicate shared user, keeping first: ") + name);
+        return NULL;
+    }
+    s = new SharedUserSetting(name, capFlags);
+    s->mUserId = uid;
+    AutoPtr<ICharSequence> nameWrapper;
+    CStringWrapper::New(name, (ICharSequence**)&nameWrapper);
+    if (AddUserIdLP(uid, s.Get(), nameWrapper.Get())) {
+        mSharedUsers[name] = s;
+        return s;
+    }
+    return NULL;
+}
+
+void CCapsuleManagerService::Settings::TransferPermissions(
+    /* [in] */ const String& origCap,
+    /* [in] */ const String& newCap)
+{
+    // Transfer ownership of permissions to the new package.
+    for (Int32 i = 0; i < 2; i++) {
+        HashMap<String, BasePermission*>& permissions =
+                i == 0 ? mPermissionTrees : mPermissions;
+        HashMap<String, BasePermission*>::Iterator it;
+        for (it = permissions.Begin(); it != permissions.End(); it++) {
+            BasePermission* bp = it->mSecond;
+            if (origCap.Equals(bp->mSourceCapsule)) {
+                if (DEBUG_UPGRADE) {
+                    Logger::V(TAG, "Moving permission " + bp->mName
+                        + " from cap " + bp->mSourceCapsule
+                        + " to " + newCap);
+                }
+                bp->mSourceCapsule = newCap;
+                bp->mCapsuleSetting = NULL;
+                bp->mPerm = NULL;
+                if (bp->mPendingInfo != NULL) {
+                    ((CPermissionInfo*)bp->mPendingInfo.Get())->mCapsuleName = newCap;
+                }
+                bp->mUid = 0;
+                bp->mGids = NULL;
+            }
+        }
+    }
+}
+
+AutoPtr<CCapsuleManagerService::CapsuleSetting>
+CCapsuleManagerService::Settings::GetCapsuleLP(
+    /* [in] */ const String& _name,
+    /* [in] */ CapsuleSetting* origCapsule,
+    /* [in] */ const String& realName,
+    /* [in] */ SharedUserSetting* sharedUser,
+    /* [in] */ IFile* codePath,
+    /* [in] */ IFile* resourcePath,
+    /* [in] */ const String& nativeLibraryPathString,
+    /* [in] */ Int32 vc,
+    /* [in] */ Int32 capFlags,
+    /* [in] */ Boolean create,
+    /* [in] */ Boolean add)
+{
+    String name = _name;
+    AutoPtr<CapsuleSetting> c;
+    HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it = mCapsules.Find(name);
+    if (it != mCapsules.End()) {
+        c = it->mSecond;
+    }
+    if (c != NULL) {
+        Boolean isEqual = FALSE;
+        c->mCodePath->Equals(codePath, &isEqual);
+        if (!isEqual) {
+            // Check to see if its a disabled system app
+            if ((c->mCapFlags & CApplicationInfo::FLAG_SYSTEM) != 0) {
+                // This is an updated system app with versions in both system
+                // and data partition. Just let the most recent version
+                // take precedence.
+                String str;
+                codePath->ToString(&str);
+                Slogger::W(TAG, StringBuffer("Trying to update system app code path from ")
+                    + c->mCodePathString + " to " + str);
+            }
+            else {
+                // Just a change in the code path is not an issue, but
+                // let's log a message about it.
+                Slogger::I(TAG, String("Capsule ") + name
+                    + " codePath changed from " + c->mCodePath
+                    + " to " + codePath + "; Retaining data and using new");
+                /*
+                 * Since we've changed paths, we need to prefer the new
+                 * native library path over the one stored in the
+                 * capsule settings since we might have moved from
+                 * internal to external storage or vice versa->
+                 */
+                c->mNativeLibraryPathString = nativeLibraryPathString;
+            }
+        }
+        if (c->mSharedUser.Get() != sharedUser) {
+            mOwner->ReportSettingsProblem(5/*Log::WARN*/,
+                StringBuffer("Capsule ") + name + " shared user changed from "
+                + (c->mSharedUser != NULL ? c->mSharedUser->mName : String("<nothing>"))
+                + " to "
+                + (sharedUser != NULL ? sharedUser->mName : String("<nothing>"))
+                + "; replacing with new");
+            c = NULL;
+        }
+        else {
+            if ((capFlags & CApplicationInfo::FLAG_SYSTEM) != 0) {
+                // If what we are scanning is a system package, then
+                // make it so, regardless of whether it was previously
+                // installed only in the data partition.
+                c->mCapFlags |= CApplicationInfo::FLAG_SYSTEM;
+            }
+        }
+    }
+    if (c == NULL) {
+        // Create a new PackageSettings entry. this can end up here because
+        // of code path mismatch or user id mismatch of an updated system partition
+        if (!create) {
+            return NULL;
+        }
+        if (origCapsule != NULL) {
+            // We are consuming the data from an existing package.
+            c = new CapsuleSetting(origCapsule->mName, name,
+                codePath, resourcePath, nativeLibraryPathString, vc, capFlags);
+            if (DEBUG_UPGRADE) {
+                Logger::V(TAG, StringBuffer("Capsule ") + name
+                    + " is adopting original capsule " + origCapsule->mName);
+            }
+            // Note that we will retain the new package's signature so
+            // that we can keep its data.
+            AutoPtr<CapsuleSignatures> s = c->mSignatures;
+            c->CopyFrom(origCapsule);
+            c->mSignatures = s;
+            c->mSharedUser = origCapsule->mSharedUser;
+            c->mUserId = origCapsule->mUserId;
+            c->mOrigCapsule = origCapsule;
+            mRenamedCapsules[name] = origCapsule->mName;
+            name = origCapsule->mName;
+            // Update new package state.
+            Int64 timeStamp = 0;
+            codePath->LastModified(&timeStamp);
+            c->SetTimeStamp(timeStamp);
+        }
+        else {
+            c = new CapsuleSetting(name, realName,
+                codePath, resourcePath, nativeLibraryPathString, vc, capFlags);
+            Int64 timeStamp = 0;
+            codePath->LastModified(&timeStamp);
+            c->SetTimeStamp(timeStamp);
+            c->mSharedUser = sharedUser;
+            if (sharedUser != NULL) {
+                c->mUserId = sharedUser->mUserId;
+            }
+            else if (MULTIPLE_APPLICATION_UIDS) {
+                // Clone the setting here for disabled system packages
+                CapsuleSetting* dis = NULL;
+                it = mDisabledSysCapsules.Find(name);
+                if (it != mDisabledSysCapsules.End()) {
+                    dis = it->mSecond;
+                }
+                if (dis != NULL) {
+                    // For disabled packages a new setting is created
+                    // from the existing user id. This still has to be
+                    // added to list of user id's
+                    // Copy signatures from previous setting
+                    if (dis->mSignatures->mSignatures != NULL) {
+                        //todo: maybe should call element's AddRef
+                        c->mSignatures->mSignatures = dis->mSignatures->mSignatures->Clone();
+                    }
+                    c->mUserId = dis->mUserId;
+                    // Clone permissions
+                    c->mGrantedPermissions = dis->mGrantedPermissions;
+                    // Clone component info
+                    c->mDisabledComponents = dis->mDisabledComponents;
+                    c->mEnabledComponents = dis->mEnabledComponents;
+                    // Add new setting to list of user ids
+                    AutoPtr<ICharSequence> nameWrapper;
+                    CStringWrapper::New(name, (ICharSequence**)&nameWrapper);
+                    AddUserIdLP(c->mUserId, c.Get(), nameWrapper.Get());
+                }
+                else {
+                    // Assign new user id
+                    c->mUserId = NewUserIdLP(c);
+                }
+            }
+            else {
+                c->mUserId = FIRST_APPLICATION_UID;
+            }
+        }
+        if (c->mUserId < 0) {
+            mOwner->ReportSettingsProblem(5/*Log::WARN*/,
+                "Capsule " + name + " could not be assigned a valid uid");
+            return NULL;
+        }
+        if (add) {
+            // Finish adding new package by adding it and updating shared
+            // user preferences
+            AddCapsuleSettingLP(c, name, sharedUser);
+        }
+    }
+    return c;
+}
+
+void CCapsuleManagerService::Settings::InsertCapsuleSettingLP(
+    /* [in] */ CapsuleSetting* c,
+    /* [in] */ CapsuleParser::Capsule* cap)
+{
+    c->mCap = cap;
+    cap->mSetEnabled = c->mEnabled;
+    const String& codePath = cap->mApplicationInfo->mSourceDir;
+    const String& resourcePath = cap->mApplicationInfo->mPublicSourceDir;
+    // Update code path if needed
+    if (!codePath.EqualsIgnoreCase(c->mCodePathString)) {
+        Slogger::W(TAG, StringBuffer("Code path for cap : ") + c->mCap->mCapsuleName
+            + " changing from " + c->mCodePathString + " to " + codePath);
+        CFile::New(codePath, (IFile**)&c->mCodePath);
+        c->mCodePathString = codePath;
+    }
+    //Update resource path if needed
+    if (!resourcePath.EqualsIgnoreCase(c->mResourcePathString)) {
+        Slogger::W(TAG, "Resource path for cap : " + c->mCap->mCapsuleName
+            + " changing from " + c->mResourcePathString + " to " + resourcePath);
+        CFile::New(resourcePath, (IFile**)&c->mResourcePath);
+        c->mResourcePathString = resourcePath;
+    }
+    // Update the native library path if needed
+    const String& nativeLibraryPath = cap->mApplicationInfo->mNativeLibraryDir;
+    if (!nativeLibraryPath.IsNull()
+        && !nativeLibraryPath.EqualsIgnoreCase(c->mNativeLibraryPathString)) {
+        c->mNativeLibraryPathString = nativeLibraryPath;
+    }
+    // Update version code if needed
+     if (cap->mVersionCode != c->mVersionCode) {
+        c->mVersionCode = cap->mVersionCode;
+    }
+     // Update signatures if needed.
+     if (c->mSignatures->mSignatures == NULL) {
+         c->mSignatures->AssignSignatures(*(cap->mSignatures));
+     }
+     // If this app defines a shared user id initialize
+     // the shared user signatures as well.
+     if (c->mSharedUser != NULL && c->mSharedUser->mSignatures->mSignatures == NULL) {
+         c->mSharedUser->mSignatures->AssignSignatures(*(cap->mSignatures));
+     }
+     AddCapsuleSettingLP(c, cap->mCapsuleName, c->mSharedUser);
+}
+
+void CCapsuleManagerService::Settings::AddCapsuleSettingLP(
+    /* [in] */ CapsuleSetting* c,
+    /* [in] */ const String& name,
+    /* [in] */ SharedUserSetting* sharedUser)
+{
+    assert(c);
+
+    mCapsules[name] = c;
+    if (sharedUser != NULL) {
+        if (c->mSharedUser != NULL && c->mSharedUser.Get() != sharedUser) {
+            ReportSettingsProblem(6 /*Log::ERROR*/,
+                StringBuffer("Capsule ") + c->mName + " was user "
+                + c->mSharedUser + " but is now " + sharedUser
+                + "; I am not changing its files so it will probably fail!");
+            c->mSharedUser->mCapsules.Erase(c);
+        }
+        else if (c->mUserId != sharedUser->mUserId) {
+            ReportSettingsProblem(6 /*Log::ERROR*/,
+                "Capsule " + c->mName + " was user id " + c->mUserId
+                + " but is now user " + sharedUser
+                + " with id " + sharedUser->mUserId
+                + "; I am not changing its files so it will probably fail!");
+        }
+
+        sharedUser->mCapsules.Insert(c);
+        c->mSharedUser = sharedUser;
+        c->mUserId = sharedUser->mUserId;
+    }
+}
+
+ECode CCapsuleManagerService::Settings::UpdateSharedUserPermsLP(
+    /* [in] */ CapsuleSetting* deletedPs,
+    /* [in] */ ArrayOf<Int32>* globalGids)
+{
+    if ((deletedPs == NULL) || (deletedPs->mCap == NULL)) {
+        Slogger::I(TAG, "Trying to update info for NULL capsule. Just ignoring");
+        return E_FAIL;
+    }
+    // No sharedUserId
+    if (deletedPs->mSharedUser == NULL) {
+        return E_FAIL;
+    }
+    SharedUserSetting* sus = deletedPs->mSharedUser;
+    // Update permissions
+    List<String>::Iterator it;
+    for (it = deletedPs->mCap->mRequestedPermissions.Begin();
+         it != deletedPs->mCap->mRequestedPermissions.End(); it++) {
+        const String& eachPerm = *it;
+        Boolean used = FALSE;
+        if (sus->mGrantedPermissions.Find(eachPerm) ==
+            sus->mGrantedPermissions.End()) {
+            continue;
+        }
+        HashSet<AutoPtr<CapsuleSetting>, CapsuleSetting::HashKey>::Iterator csit;
+        for (csit = sus->mCapsules.Begin();
+             csit != sus->mCapsules.End(); csit++) {
+            CapsuleSetting* cap = *csit;
+            if (cap->mCap != NULL &&
+                !cap->mCap->mCapsuleName.Equals(deletedPs->mCap->mCapsuleName) &&
+                Find(cap->mCap->mRequestedPermissions.Begin(),
+                    cap->mCap->mRequestedPermissions.End(), eachPerm)
+                    != cap->mCap->mRequestedPermissions.End()) {
+                used = TRUE;
+                break;
+            }
+        }
+        if (!used) {
+            // can safely delete this permission from list
+            sus->mGrantedPermissions.Erase(eachPerm);
+        }
+    }
+    // Update gids
+    ArrayOf<Int32>* newGids = globalGids;
+    HashSet<String>::Iterator gpit;
+    for (gpit = sus->mGrantedPermissions.Begin();
+         gpit != sus->mGrantedPermissions.End(); gpit++) {
+        BasePermission* bp = NULL;
+        HashMap<String, BasePermission*>::Iterator pit = mPermissions.Find(*it);
+        if (pit != mPermissions.End()) {
+            bp = pit->mSecond;
+        }
+        if (bp != NULL) {
+//            newGids = mOwner->AppendInts(newGids, bp->mGids.Get());
+        }
+    }
+    //todo: memory leak
+    sus->mGids = newGids->Clone();
+    return NOERROR;
+}
+
+Int32 CCapsuleManagerService::Settings::RemoveCapsuleLP(
+    /* [in] */ const String& name)
+{
+    AutoPtr<CapsuleSetting> c;
+    HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it = mCapsules.Find(name);
+    if (it != mCapsules.End()) {
+        c = it->mSecond;
+    }
+    if (c != NULL) {
+        mCapsules.Erase(it);
+        if (c->mSharedUser != NULL) {
+            c->mSharedUser->mCapsules.Erase(c);
+            if (c->mSharedUser->mCapsules.Begin() == c->mSharedUser->mCapsules.End()) {
+                mSharedUsers.Erase(c->mSharedUser->mName);
+                RemoveUserIdLP(c->mSharedUser->mUserId);
+                return c->mSharedUser->mUserId;
+            }
+        }
+        else {
+            RemoveUserIdLP(c->mUserId);
+            return c->mUserId;
+        }
+    }
+    return -1;
+}
+
+void CCapsuleManagerService::Settings::ReplaceCapsuleLP(
+    /* [in] */ const String& name,
+    /* [in] */ CapsuleSetting* newp)
+{
+    CapsuleSetting* c;
+    HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it = mCapsules.Find(name);
+    if (it != mCapsules.End()) {
+        c = it->mSecond;
+    }
+    if (c != NULL) {
+        if (c->mSharedUser != NULL) {
+            c->mSharedUser->mCapsules.Erase(c);
+            c->mSharedUser->mCapsules.Insert(newp);
+        }
+        else {
+            ReplaceUserIdLP(c->mUserId, newp);
+        }
+    }
+    mCapsules[name] = newp;
+}
+
+Boolean CCapsuleManagerService::Settings::AddUserIdLP(
+    /* [in] */ Int32 uid,
+    /* [in] */ IInterface* obj,
+    /* [in] */ IInterface* name)
+{
+    if (uid >= FIRST_APPLICATION_UID + MAX_APPLICATION_UIDS) {
+        return FALSE;
+    }
+
+    if (uid >= FIRST_APPLICATION_UID) {
+        Int32 N = mUserIds.GetSize();
+        const Int32 index = uid - FIRST_APPLICATION_UID;
+        while (index >= N) {
+            mUserIds.PushBack(NULL);
+            N++;
+        }
+        if (mUserIds[index] != NULL) {
+            ReportSettingsProblem(6 /*Log.ERROR*/,
+                    StringBuffer("Adding duplicate user id: ") + uid
+                    + " name=" /*+ name*/);
+            return FALSE;
+        }
+        mUserIds[index] = obj;
+    }
+    else {
+        IInterface* obj = NULL;
+        HashMap<Int32, AutoPtr<IInterface> >::Iterator it = mOtherUserIds.Find(uid);
+        if (it != mOtherUserIds.End()) obj = it->mSecond;
+        if (obj != NULL) {
+            ReportSettingsProblem(6 /*Log.ERROR */,
+                    StringBuffer("Adding duplicate shared id: ") + uid
+                    + " name=" /*+ name*/);
+            return FALSE;
+        }
+        mOtherUserIds[uid] = obj;
+    }
+    return TRUE;
+}
+
+AutoPtr<IInterface> CCapsuleManagerService::Settings::GetUserIdLP(
+    /* [in] */ Int32 uid)
+{
+    if (uid >= FIRST_APPLICATION_UID) {
+        Int32 N = mUserIds.GetSize();
+        const Int32 index = uid - FIRST_APPLICATION_UID;
+        return index < N ? mUserIds[index] : NULL;
+    }
+    else {
+        AutoPtr<IInterface> obj;
+        HashMap<Int32, AutoPtr<IInterface> >::Iterator it = mOtherUserIds.Find(uid);
+        if (it != mOtherUserIds.End()) obj = it->mSecond;
+        return obj;
+    }
+}
+
+HashSet<String>* CCapsuleManagerService::Settings::FindCapsulesWithFlag(
+    /* [in] */ Int32 flag)
+{
+    HashSet<String>* ret = new HashSet<String>();
+    HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it;
+    for (it = mCapsules.Begin(); it != mCapsules.End(); it++) {
+        CapsuleSetting* cs = it->mSecond;
+        // Has to match atleast all the flag bits set on flag
+        if ((cs->mCapFlags & flag) == flag) {
+            ret->Insert(cs->mName);
+        }
+    }
+    return ret;
+}
+
+void CCapsuleManagerService::Settings::RemoveUserIdLP(
+    /* [in] */ Int32 uid)
+{
+    if (uid >= FIRST_APPLICATION_UID) {
+        Int32 N = mUserIds.GetSize();
+        const Int32 index = uid - FIRST_APPLICATION_UID;
+        if (index < N) mUserIds[index] = NULL;
+    }
+    else {
+        mOtherUserIds.Erase(uid);
+    }
+}
+
+void CCapsuleManagerService::Settings::ReplaceUserIdLP(
+    /* [in] */ Int32 uid,
+    /* [in] */ IInterface* obj)
+{
+    if (uid >= FIRST_APPLICATION_UID) {
+        Int32 N = mUserIds.GetSize();
+        const Int32 index = uid - FIRST_APPLICATION_UID;
+        if (index < N) mUserIds[index] = obj;
+    }
+    else {
+        mOtherUserIds[uid] = obj;
+    }
+}
+
+void CCapsuleManagerService::Settings::WriteLP()
+{
+    //Debug.startMethodTracing("/data/system/packageprof", 8 * 1024 * 1024);
+
+    // Keep the old settings around until we know the new ones have
+    // been successfully written.
+    Boolean value;
+    if (mSettingsFilename->Exists(&value), value) {
+        // Presence of backup settings file indicates that we failed
+        // to persist settings earlier. So preserve the older
+        // backup for future reference since the current settings
+        // might have been corrupted.
+        if (mBackupSettingsFilename->Exists(&value), !value) {
+            if (mSettingsFilename->RenameTo(mBackupSettingsFilename, &value), !value) {
+                Slogger::W(TAG, "Unable to backup package manager settings, current changes will be lost at reboot");
+                return;
+            }
+        }
+        else {
+            mSettingsFilename->Delete(&value);
+            Slogger::W(TAG, "Preserving older settings backup");
+        }
+    }
+
+    mPastSignatures.Clear();
+
+//    try {
+        AutoPtr<IFileOutputStream> fstr;
+        CFileOutputStream::New(mSettingsFilename, (IFileOutputStream**)&fstr);
+        AutoPtr<IBufferedOutputStream> str;
+        CBufferedOutputStream::New(fstr, (IBufferedOutputStream**)&str);
+
+        //XmlSerializer serializer = XmlUtils.serializerInstance();
+        AutoPtr<IXmlSerializer> serializer;
+//        CFastXmlSerializer::New((IXmlSerializer**)&serializer);
+        serializer->SetOutput(str, String("utf-8"));
+        serializer->StartDocument(String(NULL), TRUE);
+        serializer->SetFeature("http://xmlpull.org/v1/doc/features.html#indent-output", TRUE);
+
+        serializer->WriteStartTag(NULL, "packages");
+
+        serializer->WriteStartTag(NULL, "last-platform-version");
+        serializer->WriteAttribute(NULL, "internal", String::FromInt32(mInternalSdkPlatform));
+        serializer->WriteAttribute(NULL, "external", String::FromInt32(mExternalSdkPlatform));
+        serializer->WriteEndTag(NULL, "last-platform-version");
+
+        serializer->WriteStartTag(NULL, "permission-trees");
+        HashMap<String, BasePermission*>::Iterator bpit = mPermissionTrees.Begin();
+        for (; bpit != mPermissionTrees.End(); ++bpit) {
+            WritePermission(serializer, bpit->mSecond);
+        }
+        serializer->WriteEndTag(NULL, "permission-trees");
+
+        serializer->WriteStartTag(NULL, "permissions");
+        bpit = mPermissions.Begin();
+        for (; bpit != mPermissions.End(); ++bpit) {
+            WritePermission(serializer, bpit->mSecond);
+        }
+        serializer->WriteEndTag(NULL, "permissions");
+
+        HashMap<String, AutoPtr<CapsuleSetting> >::Iterator csit = mCapsules.Begin();
+        for (; csit != mCapsules.End(); ++csit) {
+            WriteCapsule(serializer, csit->mSecond);
+        }
+
+        csit = mDisabledSysCapsules.Begin();
+        for (; csit != mDisabledSysCapsules.End(); ++csit) {
+            WriteDisabledSysCapsule(serializer, csit->mSecond);
+        }
+
+        serializer->WriteStartTag(NULL, "preferred-activities");
+        Set<PreferredActivity*>* list = mPreferredActivities->FilterSet();
+        Set<PreferredActivity*>::Iterator pait = list->Begin();
+        for (; pait != list->End(); ++pait) {
+            serializer->WriteStartTag(NULL, "item");
+            (*pait)->WriteToXml(serializer);
+            serializer->WriteEndTag(NULL, "item");
+        }
+        serializer->WriteEndTag(NULL, "preferred-activities");
+
+        HashMap<String, AutoPtr<SharedUserSetting> >::Iterator susit = mSharedUsers.Begin();
+        for (; susit != mSharedUsers.End(); ++susit) {
+            SharedUserSetting* usr = susit->mSecond;
+            serializer->WriteStartTag(NULL, "shared-user");
+            serializer->WriteAttribute(NULL, "name", usr->mName);
+            serializer->WriteAttribute(NULL, "userId",
+                    String::FromInt32(usr->mUserId));
+            usr->mSignatures->WriteXml(serializer, "sigs", &mPastSignatures);
+            serializer->WriteStartTag(NULL, "perms");
+            HashSet<String>::Iterator sit = usr->mGrantedPermissions.Begin();
+            for (; sit != usr->mGrantedPermissions.End(); ++sit) {
+                serializer->WriteStartTag(NULL, "item");
+                serializer->WriteAttribute(NULL, "name", *sit);
+                serializer->WriteEndTag(NULL, "item");
+            }
+            serializer->WriteEndTag(NULL, "perms");
+            serializer->WriteEndTag(NULL, "shared-user");
+        }
+
+        List<String>::Iterator sit = mCapsulesToBeCleaned.Begin();
+        for (; sit != mCapsulesToBeCleaned.End(); ++sit) {
+            serializer->WriteStartTag(NULL, "cleaning-package");
+            serializer->WriteAttribute(NULL, "name", *sit);
+            serializer->WriteEndTag(NULL, "cleaning-package");
+        }
+
+        HashMap<String, String>::Iterator ssit = mRenamedCapsules.Begin();
+        for (; ssit != mRenamedCapsules.End(); ++ssit) {
+            serializer->WriteStartTag(NULL, "renamed-package");
+            serializer->WriteAttribute(NULL, "new", ssit->mFirst);
+            serializer->WriteAttribute(NULL, "old", ssit->mSecond);
+            serializer->WriteEndTag(NULL, "renamed-package");
+        }
+
+        serializer->WriteEndTag(NULL, "packages");
+
+        serializer->EndDocument();
+
+        str->Flush();
+        FileUtils::Sync(fstr);
+        str->Close();
+
+        // New settings successfully written, old ones are no longer
+        // needed.
+        mBackupSettingsFilename->Delete(&value);
+        String fileStr;
+        mSettingsFilename->ToString(&fileStr);
+        FileUtils::SetPermissions(fileStr,
+                FileUtils::IRUSR|FileUtils::IWUSR
+                |FileUtils::IRGRP|FileUtils::IWGRP
+                |FileUtils::IROTH,
+                -1, -1);
+
+//        // Write package list file now, use a JournaledFile.
+//        //
+//        File tempFile = new File(mPackageListFilename.toString() + ".tmp");
+//        JournaledFile journal = new JournaledFile(mPackageListFilename, tempFile);
+//
+//        fstr = new FileOutputStream(journal.chooseForWrite());
+//        str = new BufferedOutputStream(fstr);
+//        try {
+//            StringBuilder sb = new StringBuilder();
+//            for (PackageSetting pkg : mPackages.values()) {
+//                ApplicationInfo ai = pkg.pkg.applicationInfo;
+//                String dataPath = ai.dataDir;
+//                boolean isDebug  = (ai.flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+//
+//                // Avoid any application that has a space in its path
+//                // or that is handled by the system.
+//                if (dataPath.indexOf(" ") >= 0 || ai.uid <= Process.FIRST_APPLICATION_UID)
+//                    continue;
+//
+//                // we store on each line the following information for now:
+//                //
+//                // pkgName    - package name
+//                // userId     - application-specific user id
+//                // debugFlag  - 0 or 1 if the package is debuggable.
+//                // dataPath   - path to package's data path
+//                //
+//                // NOTE: We prefer not to expose all ApplicationInfo flags for now.
+//                //
+//                // DO NOT MODIFY THIS FORMAT UNLESS YOU CAN ALSO MODIFY ITS USERS
+//                // FROM NATIVE CODE. AT THE MOMENT, LOOK AT THE FOLLOWING SOURCES:
+//                //   system/core/run-as/run-as.c
+//                //
+//                sb.setLength(0);
+//                sb.append(ai.packageName);
+//                sb.append(" ");
+//                sb.append((int)ai.uid);
+//                sb.append(isDebug ? " 1 " : " 0 ");
+//                sb.append(dataPath);
+//                sb.append("\n");
+//                str.write(sb.toString().getBytes());
+//            }
+//            str.flush();
+//            FileUtils.sync(fstr);
+//            str.close();
+//            journal.commit();
+//        }
+//        catch (Exception  e) {
+//            journal.rollback();
+//        }
+
+        mCapsuleListFilename->ToString(&fileStr);
+        FileUtils::SetPermissions(fileStr,
+                FileUtils::IRUSR|FileUtils::IWUSR
+                |FileUtils::IRGRP|FileUtils::IWGRP
+                |FileUtils::IROTH,
+                -1, -1);
+
+        return;
+
+//    } catch(XmlPullParserException e) {
+//        Slog.w(TAG, "Unable to write package manager settings, current changes will be lost at reboot", e);
+//    } catch(java.io.IOException e) {
+//        Slog.w(TAG, "Unable to write package manager settings, current changes will be lost at reboot", e);
+//    }
+    // Clean up partially written files
+    if (mSettingsFilename->Exists(&value), value) {
+        if (mSettingsFilename->Delete(&value), !value) {
+            Logger::I(TAG, "Failed to clean up mangled file: " + mSettingsFilename);
+        }
+    }
+    //Debug.stopMethodTracing();
+}
+
+void CCapsuleManagerService::Settings::WriteDisabledSysCapsule(
+    /* [in] */ IXmlSerializer* serializer,
+    /* [in] */ const CapsuleSetting* cap)
+{
+    serializer->WriteStartTag(NULL, "updated-package");
+    serializer->WriteAttribute(NULL, "name", cap->mName);
+    if (!cap->mRealName.IsNull()) {
+        serializer->WriteAttribute(NULL, "realName", cap->mRealName);
+    }
+    serializer->WriteAttribute(NULL, "codePath", cap->mCodePathString);
+    serializer->WriteAttribute(NULL, "ft", /*Long.toHexString*/String::FromInt64(cap->mTimeStamp));
+    serializer->WriteAttribute(NULL, "it", /*Long.toHexString*/String::FromInt64(cap->mFirstInstallTime));
+    serializer->WriteAttribute(NULL, "ut", /*Long.toHexString*/String::FromInt64(cap->mLastUpdateTime));
+    serializer->WriteAttribute(NULL, "version", String::FromInt32(cap->mVersionCode));
+    if (!cap->mResourcePathString.Equals(cap->mCodePathString)) {
+        serializer->WriteAttribute(NULL, "resourcePath", cap->mResourcePathString);
+    }
+    if (!cap->mNativeLibraryPathString.IsNull()) {
+        serializer->WriteAttribute(NULL, "nativeLibraryPath", cap->mNativeLibraryPathString);
+    }
+    if (cap->mSharedUser == NULL) {
+        serializer->WriteAttribute(NULL, "userId",
+                String::FromInt32(cap->mUserId));
+    }
+    else {
+        serializer->WriteAttribute(NULL, "sharedUserId",
+                String::FromInt32(cap->mUserId));
+    }
+    serializer->WriteStartTag(NULL, "perms");
+    if (cap->mSharedUser == NULL) {
+        // If this is a shared user, the permissions will
+        // be written there.  We still need to write an
+        // empty permissions list so permissionsFixed will
+        // be set.
+        HashSet<String>::Iterator it = cap->mGrantedPermissions.Begin();
+        for (; it != cap->mGrantedPermissions.End(); ++it) {
+            BasePermission* bp = NULL;
+            HashMap<String, BasePermission*>::Iterator bpit = mPermissions.Find(*it);
+            if (bpit != mPermissions.End()) bp = bpit->mSecond;
+            if (bp != NULL) {
+                // We only need to write signature or system permissions but this wont
+                // match the semantics of grantedPermissions. So write all permissions.
+                serializer->WriteStartTag(NULL, "item");
+                serializer->WriteAttribute(NULL, "name", *it);
+                serializer->WriteEndTag(NULL, "item");
+            }
+        }
+    }
+    serializer->WriteEndTag(NULL, "perms");
+    serializer->WriteEndTag(NULL, "updated-package");
+}
+
+void CCapsuleManagerService::Settings::WriteCapsule(
+    /* [in] */ IXmlSerializer* serializer,
+    /* [in] */ const CapsuleSetting* cap)
+{
+    serializer->WriteStartTag(NULL, "package");
+    serializer->WriteAttribute(NULL, "name", cap->mName);
+    if (!cap->mRealName.IsNull()) {
+        serializer->WriteAttribute(NULL, "realName", cap->mRealName);
+    }
+    serializer->WriteAttribute(NULL, "codePath", cap->mCodePathString);
+    if (!cap->mResourcePathString.Equals(cap->mCodePathString)) {
+        serializer->WriteAttribute(NULL, "resourcePath", cap->mResourcePathString);
+    }
+    if (!cap->mNativeLibraryPathString.IsNull()) {
+        serializer->WriteAttribute(NULL, "nativeLibraryPath", cap->mNativeLibraryPathString);
+    }
+    serializer->WriteAttribute(NULL, "flags",
+            String::FromInt32(cap->mCapFlags));
+    serializer->WriteAttribute(NULL, "ft", /*Long.toHexString*/String::FromInt64(cap->mTimeStamp));
+    serializer->WriteAttribute(NULL, "it", /*Long.toHexString*/String::FromInt64(cap->mFirstInstallTime));
+    serializer->WriteAttribute(NULL, "ut", /*Long.toHexString*/String::FromInt64(cap->mLastUpdateTime));
+    serializer->WriteAttribute(NULL, "version", String::FromInt32(cap->mVersionCode));
+    if (cap->mSharedUser == NULL) {
+        serializer->WriteAttribute(NULL, "userId",
+                String::FromInt32(cap->mUserId));
+    }
+    else {
+        serializer->WriteAttribute(NULL, "sharedUserId",
+                String::FromInt32(cap->mUserId));
+    }
+    if (cap->mUidError) {
+        serializer->WriteAttribute(NULL, "uidError", "true");
+    }
+    if (cap->mEnabled != CapsuleManager_COMPONENT_ENABLED_STATE_DEFAULT) {
+        serializer->WriteAttribute(NULL, "enabled",
+                cap->mEnabled == CapsuleManager_COMPONENT_ENABLED_STATE_ENABLED
+                ? "true" : "false");
+    }
+    if(cap->mInstallStatus == CAP_INSTALL_INCOMPLETE) {
+        serializer->WriteAttribute(NULL, "installStatus", "false");
+    }
+    if (!cap->mInstallerCapsuleName.IsNull()) {
+        serializer->WriteAttribute(NULL, "installer", cap->mInstallerCapsuleName);
+    }
+    cap->mSignatures->WriteXml(serializer, "sigs", &mPastSignatures);
+    HashSet<String>::Iterator it;
+    if ((cap->mCapFlags & CApplicationInfo::FLAG_SYSTEM) == 0) {
+        serializer->WriteStartTag(NULL, "perms");
+        if (cap->mSharedUser == NULL) {
+            // If this is a shared user, the permissions will
+            // be written there.  We still need to write an
+            // empty permissions list so permissionsFixed will
+            // be set.
+            it = cap->mGrantedPermissions.Begin();
+            for (; it != cap->mGrantedPermissions.End(); ++it) {
+                serializer->WriteStartTag(NULL, "item");
+                serializer->WriteAttribute(NULL, "name", *it);
+                serializer->WriteEndTag(NULL, "item");
+            }
+        }
+        serializer->WriteEndTag(NULL, "perms");
+    }
+    it = cap->mDisabledComponents.Begin();
+    if (it != cap->mDisabledComponents.End()) {
+        serializer->WriteStartTag(NULL, "disabled-components");
+        for (; it != cap->mDisabledComponents.End(); ++it) {
+            serializer->WriteStartTag(NULL, "item");
+            serializer->WriteAttribute(NULL, "name", *it);
+            serializer->WriteEndTag(NULL, "item");
+        }
+        serializer->WriteEndTag(NULL, "disabled-components");
+
+    }
+    it = cap->mEnabledComponents.Begin();
+    if (it != cap->mEnabledComponents.End()) {
+        serializer->WriteStartTag(NULL, "enabled-components");
+        for (; it != cap->mEnabledComponents.End(); ++it) {
+            serializer->WriteStartTag(NULL, "item");
+            serializer->WriteAttribute(NULL, "name", *it);
+            serializer->WriteEndTag(NULL, "item");
+        }
+        serializer->WriteEndTag(NULL, "enabled-components");
+
+    }
+
+    serializer->WriteEndTag(NULL, "package");
+}
+
+void CCapsuleManagerService::Settings::WritePermission(
+    /* [in] */ IXmlSerializer* serializer,
+    /* [in] */ BasePermission* bp)
+{
+    if (bp->mType != BasePermission::TYPE_BUILTIN
+            && !bp->mSourceCapsule.IsNull()) {
+        serializer->WriteStartTag(NULL, "item");
+        serializer->WriteAttribute(NULL, "name", bp->mName);
+        serializer->WriteAttribute(NULL, "package", bp->mSourceCapsule);
+        if (bp->mProtectionLevel !=
+                PermissionInfo_PROTECTION_NORMAL) {
+            serializer->WriteAttribute(NULL, "protection",
+                    String::FromInt32(bp->mProtectionLevel));
+        }
+        if (DEBUG_SETTINGS) Logger::W(TAG,
+                StringBuffer("Writing perm: name=") + bp->mName + " type=" + bp->mType);
+        if (bp->mType == BasePermission::TYPE_DYNAMIC) {
+            CPermissionInfo* pi = bp->mPerm != NULL ? bp->mPerm->mInfo
+                    : bp->mPendingInfo;
+            if (pi != NULL) {
+                serializer->WriteAttribute(NULL, "type", "dynamic");
+                if (pi->mIcon != 0) {
+                    serializer->WriteAttribute(NULL, "icon",
+                            String::FromInt32(pi->mIcon));
+                }
+                if (pi->mNonLocalizedLabel != NULL) {
+                    String str;
+                    pi->mNonLocalizedLabel->ToString(&str);
+                    serializer->WriteAttribute(NULL, "label", str);
+                }
+            }
+        }
+        serializer->WriteEndTag(NULL, "item");
+    }
+}
+
+String CCapsuleManagerService::Settings::GetReadMessagesLP()
+{
+    return String(mReadMessages);
+}
+
+List< AutoPtr<CCapsuleManagerService::CapsuleSetting> >*
+CCapsuleManagerService::Settings::GetListOfIncompleteInstallCapsules()
+{
+    List< AutoPtr<CapsuleSetting> >* ret = new List< AutoPtr<CapsuleSetting> >();
+    HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it = mCapsules.Begin();
+    for (; it != mCapsules.End(); ++it) {
+        CapsuleSetting* ps = it->mSecond;
+        if(ps->GetInstallStatus() == CAP_INSTALL_INCOMPLETE) {
+            ret->PushBack(ps);
+        }
+    }
+    return ret;
+}
+
+Boolean CCapsuleManagerService::Settings::ReadLP()
+{
+    AutoPtr<IFileInputStream> str;
+    Boolean value;
+    if (mBackupSettingsFilename->Exists(&value), value) {
+//        try {
+        CFileInputStream::New(mBackupSettingsFilename, (IFileInputStream**)&str);
+        mReadMessages += "Reading from backup settings file\n";
+        ReportSettingsProblem(4 /*Log.INFO*/, "Need to read from backup settings file");
+        if (mSettingsFilename->Exists(&value), value) {
+            // If both the backup and settings file exist, we
+            // ignore the settings since it might have been
+            // corrupted.
+            Slogger::W(TAG, "Cleaning up settings file " + mSettingsFilename);
+            mSettingsFilename->Delete(&value);
+        }
+//        } catch (java.io.IOException e) {
+//            // We'll try for the normal settings file.
+//        }
+    }
+
+    mPastSignatures.Clear();
+
+//    try {
+    if (str == NULL) {
+        if (mSettingsFilename->Exists(&value), !value) {
+            mReadMessages += "No settings file found\n";
+            ReportSettingsProblem(4 /*Log.INFO*/, "No settings file; creating initial state");
+            return FALSE;
+        }
+        CFileInputStream::New(mSettingsFilename, (IFileInputStream**)&str);
+    }
+    AutoPtr<IXmlPullParser> parser = Xml::NewPullParser();
+    parser->SetInputEx(str, String(NULL));
+
+    Int32 type;
+    while ((parser->Next(&type), type != IXmlPullParser_START_TAG)
+            && type != IXmlPullParser_END_DOCUMENT) {
+    }
+
+    if (type != IXmlPullParser_START_TAG) {
+        mReadMessages += "No start tag found in settings file\n";
+        ReportSettingsProblem(5 /*Log.WARN*/, "No start tag found in package manager settings");
+        return FALSE;
+    }
+
+    Int32 outerDepth, depth;
+    parser->GetDepth(&outerDepth);
+    while ((parser->Next(&type), type != IXmlPullParser_END_DOCUMENT)
+           && (type != IXmlPullParser_END_TAG
+                   || (parser->GetDepth(&depth), depth > outerDepth))) {
+        if (type == IXmlPullParser_END_TAG
+                || type == IXmlPullParser_TEXT) {
+            continue;
+        }
+
+        String tagName;
+        parser->GetName(&tagName);
+        if (tagName.Equals("package")) {
+            ReadCapsuleLP(parser);
+        }
+        else if (tagName.Equals("permissions")) {
+            ReadPermissionsLP(&mPermissions, parser);
+        }
+        else if (tagName.Equals("permission-trees")) {
+            ReadPermissionsLP(&mPermissionTrees, parser);
+        }
+        else if (tagName.Equals("shared-user")) {
+            ReadSharedUserLP(parser);
+        }
+        else if (tagName.Equals("preferred-packages")) {
+            // no longer used.
+        }
+        else if (tagName.Equals("preferred-activities")) {
+            ReadPreferredActivitiesLP(parser);
+        }
+        else if(tagName.Equals("updated-package")) {
+            ReadDisabledSysCapsuleLP(parser);
+        }
+        else if (tagName.Equals("cleaning-package")) {
+            String name;
+            parser->GetAttributeValueEx(NULL, "name", &name);
+            if (!name.IsNull()) {
+                mCapsulesToBeCleaned.PushBack(name);
+            }
+        }
+        else if (tagName.Equals("renamed-package")) {
+            String nname, oname;
+            parser->GetAttributeValueEx(NULL, "new", &nname);
+            parser->GetAttributeValueEx(NULL, "old", &oname);
+            if (!nname.IsNull() && !oname.IsNull()) {
+                mRenamedCapsules[nname] = oname;
+            }
+        }
+        else if (tagName.Equals("last-platform-version")) {
+            mInternalSdkPlatform = mExternalSdkPlatform = 0;
+//            try {
+            String internal;
+            parser->GetAttributeValueEx(NULL, "internal", &internal);
+            if (!internal.IsNull()) {
+                mInternalSdkPlatform = internal.ToInt32();
+            }
+            String external;
+            parser->GetAttributeValueEx(NULL, "external", &external);
+            if (!external.IsNull()) {
+                mExternalSdkPlatform = external.ToInt32();
+            }
+//            } catch (NumberFormatException e) {
+//            }
+        }
+        else {
+//            Slog.w(TAG, "Unknown element under <packages>: "
+//                  + parser.getName());
+            XmlUtils::SkipCurrentTag(parser);
+        }
+    }
+
+    str->Close();
+
+//    } catch(XmlPullParserException e) {
+//        mReadMessages.append("Error reading: " + e.toString());
+//        reportSettingsProblem(Log.ERROR, "Error reading settings: " + e);
+//        Slog.e(TAG, "Error reading package manager settings", e);
+//    } catch(java.io.IOException e) {
+//        mReadMessages.append("Error reading: " + e.toString());
+//        reportSettingsProblem(Log.ERROR, "Error reading settings: " + e);
+//        Slog.e(TAG, "Error reading package manager settings", e);
+//    }
+
+    List< AutoPtr<PendingCapsule> >::Iterator it = mPendingCapsules.Begin();
+    for (; it != mPendingCapsules.End(); ++it) {
+        const PendingCapsule* pp = *it;
+//        Object idObj = getUserIdLP(pp.sharedId);
+//        if (idObj != null && idObj instanceof SharedUserSetting) {
+//            PackageSetting p = getPackageLP(pp.name, null, pp.realName,
+//                    (SharedUserSetting) idObj, pp.codePath, pp.resourcePath,
+//                    pp.nativeLibraryPathString, pp.versionCode, pp.pkgFlags, true, true);
+//            if (p == null) {
+//                reportSettingsProblem(Log.WARN, "Unable to create application package for "
+//                        + pp.name);
+//                continue;
+//            }
+//            p.copyFrom(pp);
+//        }
+//        else if (idObj != null) {
+//            String msg = "Bad package setting: package " + pp.name
+//                    + " has shared uid " + pp.sharedId
+//                    + " that is not a shared uid\n";
+//            mReadMessages.append(msg);
+//            reportSettingsProblem(Log.ERROR, msg);
+//        }
+//        else {
+//            String msg = "Bad package setting: package " + pp.name
+//                    + " has shared uid " + pp.sharedId
+//                    + " that is not defined\n";
+//            mReadMessages.append(msg);
+//            reportSettingsProblem(Log.ERROR, msg);
+//        }
+    }
+    mPendingCapsules.Clear();
+
+//    /*
+//     * Make sure all the updated system packages have their shared users
+//     * associated with them.
+//     */
+//    final Iterator<PackageSetting> disabledIt = mDisabledSysPackages.values().iterator();
+//    while (disabledIt.hasNext()) {
+//        final PackageSetting disabledPs = disabledIt.next();
+//        final Object id = getUserIdLP(disabledPs.userId);
+//        if (id != null && id instanceof SharedUserSetting) {
+//          disabledPs.sharedUser = (SharedUserSetting) id;
+//        }
+//    }
+
+    mReadMessages += StringBuffer("Read completed successfully: ")
+            + mCapsules.GetSize() + " packages, "
+            + mSharedUsers.GetSize() + " shared uids\n";
+
+    return TRUE;
+}
+
+Int32 CCapsuleManagerService::Settings::ReadInt(
+    /* [in] */ IXmlPullParser* parser,
+    /* [in] */ String ns,
+    /* [in] */ String name,
+    /* [in] */ Int32 defValue)
+{
+    String v;
+    parser->GetAttributeValueEx(ns, name, &v);
+//    try {
+    if (v.IsNull()) {
+        return defValue;
+    }
+    return v.ToInt32();
+//    } catch (NumberFormatException e) {
+//        reportSettingsProblem(Log.WARN,
+//                "Error in package manager settings: attribute " +
+//                name + " has bad integer value " + v + " at "
+//                + parser.getPositionDescription());
+//    }
+//    return defValue;
+}
+
+void CCapsuleManagerService::Settings::ReadPermissionsLP(
+    /* [in] */ HashMap<String, BasePermission*>* out,
+    /* [in] */ IXmlPullParser* parser)
+{
+//    int outerDepth = parser.getDepth();
+//    int type;
+//    while ((type=parser.next()) != XmlPullParser.END_DOCUMENT
+//           && (type != XmlPullParser.END_TAG
+//                   || parser.getDepth() > outerDepth)) {
+//        if (type == XmlPullParser.END_TAG
+//                || type == XmlPullParser.TEXT) {
+//            continue;
+//        }
+//
+//        String tagName = parser.getName();
+//        if (tagName.equals("item")) {
+//            String name = parser.getAttributeValue(null, "name");
+//            String sourcePackage = parser.getAttributeValue(null, "package");
+//            String ptype = parser.getAttributeValue(null, "type");
+//            if (name != null && sourcePackage != null) {
+//                boolean dynamic = "dynamic".equals(ptype);
+//                BasePermission bp = new BasePermission(name, sourcePackage,
+//                        dynamic
+//                        ? BasePermission.TYPE_DYNAMIC
+//                        : BasePermission.TYPE_NORMAL);
+//                bp.protectionLevel = readInt(parser, null, "protection",
+//                        PermissionInfo.PROTECTION_NORMAL);
+//                if (dynamic) {
+//                    PermissionInfo pi = new PermissionInfo();
+//                    pi.packageName = sourcePackage.intern();
+//                    pi.name = name.intern();
+//                    pi.icon = readInt(parser, null, "icon", 0);
+//                    pi.nonLocalizedLabel = parser.getAttributeValue(
+//                            null, "label");
+//                    pi.protectionLevel = bp.protectionLevel;
+//                    bp.pendingInfo = pi;
+//                }
+//                out.put(bp.name, bp);
+//            } else {
+//                reportSettingsProblem(Log.WARN,
+//                        "Error in package manager settings: permissions has"
+//                        + " no name at " + parser.getPositionDescription());
+//            }
+//        } else {
+//            reportSettingsProblem(Log.WARN,
+//                    "Unknown element reading permissions: "
+//                    + parser.getName() + " at "
+//                    + parser.getPositionDescription());
+//        }
+//        XmlUtils.skipCurrentTag(parser);
+//    }
+}
+
+void CCapsuleManagerService::Settings::ReadDisabledSysCapsuleLP(
+    /* [in] */ IXmlPullParser* parser)
+{
+    String name, realName, codePathStr;
+    String resourcePathStr, nativeLibraryPathStr;
+    parser->GetAttributeValueEx(NULL, "name", &name);
+    parser->GetAttributeValueEx(NULL, "realName", &realName);
+    parser->GetAttributeValueEx(NULL, "codePath", &codePathStr);
+    parser->GetAttributeValueEx(NULL, "resourcePath", &resourcePathStr);
+    parser->GetAttributeValueEx(NULL, "nativeLibraryPath", &nativeLibraryPathStr);
+    if (resourcePathStr.IsNull()) {
+        resourcePathStr = codePathStr;
+    }
+    String version;
+    parser->GetAttributeValueEx(NULL, "version", &version);
+    Int32 versionCode = 0;
+    if (!version.IsNull()) {
+//        try {
+        versionCode = version.ToInt32();
+//        } catch (NumberFormatException e) {
+//        }
+    }
+
+    Int32 capFlags = 0;
+    capFlags |= CApplicationInfo::FLAG_SYSTEM;
+    AutoPtr<IFile> file1, file2;
+    CFile::New(codePathStr, (IFile**)&file1);
+    CFile::New(resourcePathStr, (IFile**)&file2);
+    AutoPtr<CapsuleSetting> ps = new CapsuleSetting(name, realName, file1,
+            file2, nativeLibraryPathStr, versionCode, capFlags);
+    String timeStampStr;
+    parser->GetAttributeValueEx(NULL, "ft", &timeStampStr);
+    if (!timeStampStr.IsNull()) {
+//        try {
+        Int64 timeStamp = timeStampStr.ToInt64(); /*Long.parseLong(timeStampStr, 16);*/
+        ps->SetTimeStamp(timeStamp);
+//        } catch (NumberFormatException e) {
+//        }
+    }
+    else {
+        parser->GetAttributeValueEx(NULL, "ts", &timeStampStr);
+        if (!timeStampStr.IsNull()) {
+//            try {
+            Int64 timeStamp = timeStampStr.ToInt64();
+            ps->SetTimeStamp(timeStamp);
+//            } catch (NumberFormatException e) {
+//            }
+        }
+    }
+    parser->GetAttributeValueEx(NULL, "it", &timeStampStr);
+    if (!timeStampStr.IsNull()) {
+//        try {
+        ps->mFirstInstallTime = timeStampStr.ToInt64(); /*Long.parseLong(timeStampStr, 16);*/
+//        } catch (NumberFormatException e) {
+//        }
+    }
+    parser->GetAttributeValueEx(NULL, "ut", &timeStampStr);
+    if (!timeStampStr.IsNull()) {
+//        try {
+        ps->mLastUpdateTime = timeStampStr.ToInt64(); /*Long.parseLong(timeStampStr, 16);*/
+//        } catch (NumberFormatException e) {
+//        }
+    }
+    String idStr;
+    parser->GetAttributeValueEx(NULL, "userId", &idStr);
+    ps->mUserId = !idStr.IsNull() ? idStr.ToInt32() : 0;
+    if(ps->mUserId <= 0) {
+        String sharedIdStr;
+        parser->GetAttributeValueEx(NULL, "sharedUserId", &sharedIdStr);
+        ps->mUserId = !sharedIdStr.IsNull() ? sharedIdStr.ToInt32() : 0;
+    }
+    Int32 type, outerDepth, depth;
+    parser->GetDepth(&outerDepth);
+    while ((parser->Next(&type), type != IXmlPullParser_END_DOCUMENT)
+           && (type != IXmlPullParser_END_TAG
+                   || (parser->GetDepth(&depth), depth > outerDepth))) {
+        if (type == IXmlPullParser_END_TAG
+                || type == IXmlPullParser_TEXT) {
+            continue;
+        }
+
+        String tagName;
+        parser->GetName(&tagName);
+        if (tagName.Equals("perms")) {
+            ReadGrantedPermissionsLP(parser,
+                    &ps->mGrantedPermissions);
+        }
+        else {
+//            ReportSettingsProblem(Log.WARN,
+//                    "Unknown element under <updated-package>: "
+//                    + parser.getName());
+            XmlUtils::SkipCurrentTag(parser);
+        }
+    }
+    mDisabledSysCapsules[name] = ps;
+}
+
+void CCapsuleManagerService::Settings::ReadCapsuleLP(
+    /* [in] */ IXmlPullParser* parser)
+{
+    String name;
+    String realName;
+    String idStr;
+    String sharedIdStr;
+    String codePathStr;
+    String resourcePathStr;
+    String nativeLibraryPathStr;
+    String systemStr;
+    String installerCapsuleName;
+    String uidError;
+    Int32 capFlags = 0;
+    Int64 timeStamp = 0;
+    Int64 firstInstallTime = 0;
+    Int64 lastUpdateTime = 0;
+    AutoPtr<CapsuleSettingBase> capsuleSetting;
+    String version;
+    Int32 versionCode = 0;
+//    try {
+    parser->GetAttributeValueEx(NULL, "name", &name);
+    parser->GetAttributeValueEx(NULL, "realName", &realName);
+    parser->GetAttributeValueEx(NULL, "userId", &idStr);
+    parser->GetAttributeValueEx(NULL, "uidError", &uidError);
+    parser->GetAttributeValueEx(NULL, "sharedUserId", &sharedIdStr);
+    parser->GetAttributeValueEx(NULL, "codePath", &codePathStr);
+    parser->GetAttributeValueEx(NULL, "resourcePath", &resourcePathStr);
+    parser->GetAttributeValueEx(NULL, "nativeLibraryPath", &nativeLibraryPathStr);
+    parser->GetAttributeValueEx(NULL, "version", &version);
+    if (!version.IsNull()) {
+//        try {
+        versionCode = version.ToInt32();
+//        } catch (NumberFormatException e) {
+//        }
+    }
+    parser->GetAttributeValueEx(NULL, "installer", &installerCapsuleName);
+
+    parser->GetAttributeValueEx(NULL, "flags", &systemStr);
+    if (!systemStr.IsNull()) {
+//        try {
+        capFlags = systemStr.ToInt32();
+//        } catch (NumberFormatException e) {
+//        }
+    }
+    else {
+        // For backward compatibility
+        parser->GetAttributeValueEx(NULL, "system", &systemStr);
+        if (!systemStr.IsNull()) {
+            capFlags |= CString("true").EqualsIgnoreCase(systemStr) ? CApplicationInfo::FLAG_SYSTEM : 0;
+        }
+        else {
+            // Old settings that don't specify system...  just treat
+            // them as system, good enough.
+            capFlags |= CApplicationInfo::FLAG_SYSTEM;
+        }
+    }
+    String timeStampStr;
+    parser->GetAttributeValueEx(NULL, "ft", &timeStampStr);
+    if (!timeStampStr.IsNull()) {
+//        try {
+        timeStamp = timeStampStr.ToInt64(); /* Long.parseLong(timeStampStr, 16); */
+//        } catch (NumberFormatException e) {
+//        }
+    }
+    else {
+        parser->GetAttributeValueEx(NULL, "ts", &timeStampStr);
+        if (!timeStampStr.IsNull()) {
+//            try {
+            timeStamp = timeStampStr.ToInt64();
+//            } catch (NumberFormatException e) {
+//            }
+        }
+    }
+    parser->GetAttributeValueEx(NULL, "it", &timeStampStr);
+    if (!timeStampStr.IsNull()) {
+//        try {
+        firstInstallTime = timeStampStr.ToInt64(); /* Long.parseLong(timeStampStr, 16); */
+//        } catch (NumberFormatException e) {
+//        }
+    }
+    parser->GetAttributeValueEx(NULL, "ut", &timeStampStr);
+    if (!timeStampStr.IsNull()) {
+//        try {
+        lastUpdateTime = timeStampStr.ToInt64(); /* Long.parseLong(timeStampStr, 16); */
+//        } catch (NumberFormatException e) {
+//        }
+    }
+    if (DEBUG_SETTINGS) Logger::V(TAG, String("Reading package: ") + name
+            + " userId=" + idStr + " sharedUserId=" + sharedIdStr);
+    Int32 userId = !idStr.IsNull() ? idStr.ToInt32() : 0;
+    if (resourcePathStr.IsNull()) {
+        resourcePathStr = codePathStr;
+    }
+//    if (realName != null) {
+//        realName = realName.intern();
+//    }
+    if (name.IsNull()) {
+//        reportSettingsProblem(Log.WARN,
+//                "Error in package manager settings: <package> has no name at "
+//                + parser.getPositionDescription());
+    }
+    else if (codePathStr.IsNull()) {
+//        reportSettingsProblem(Log.WARN,
+//                "Error in package manager settings: <package> has no codePath at "
+//                + parser.getPositionDescription());
+    }
+    else if (userId > 0) {
+        AutoPtr<IFile> file1, file2;
+        CFile::New(codePathStr, (IFile**)&file1);
+        CFile::New(resourcePathStr, (IFile**)&file2);
+        capsuleSetting = AddCapsuleLP(name, realName, file1, file2,
+                nativeLibraryPathStr, userId, versionCode, capFlags);
+        if (DEBUG_SETTINGS) Logger::I(TAG, StringBuffer("Reading package ") + name
+                + ": userId=" + userId + " pkg=" /*+ packageSetting*/);
+        if (capsuleSetting == NULL) {
+//            reportSettingsProblem(Log.ERROR,
+//                    "Failure adding uid " + userId
+//                    + " while parsing settings at "
+//                    + parser.getPositionDescription());
+        }
+        else {
+            capsuleSetting->SetTimeStamp(timeStamp);
+            capsuleSetting->mFirstInstallTime = firstInstallTime;
+            capsuleSetting->mLastUpdateTime = lastUpdateTime;
+        }
+    }
+    else if (!sharedIdStr.IsNull()) {
+        userId = !sharedIdStr.IsNull() ?
+                sharedIdStr.ToInt32() : 0;
+        if (userId > 0) {
+            AutoPtr<IFile> file1, file2;
+            CFile::New(codePathStr, (IFile**)&file1);
+            CFile::New(resourcePathStr, (IFile**)&file2);
+            capsuleSetting = new PendingCapsule(name, realName,
+                    file1, file2, nativeLibraryPathStr, userId,
+                    versionCode, capFlags);
+            capsuleSetting->SetTimeStamp(timeStamp);
+            capsuleSetting->mFirstInstallTime = firstInstallTime;
+            capsuleSetting->mLastUpdateTime = lastUpdateTime;
+            mPendingCapsules.PushBack((PendingCapsule*)capsuleSetting.Get());
+            if (DEBUG_SETTINGS) Logger::I(TAG, StringBuffer("Reading package ") + name
+                    + ": sharedUserId=" + userId + " pkg=" /*+ packageSetting*/);
+        }
+        else {
+//            reportSettingsProblem(Log.WARN,
+//                    "Error in package manager settings: package "
+//                    + name + " has bad sharedId " + sharedIdStr
+//                    + " at " + parser.getPositionDescription());
+        }
+    }
+    else {
+//        reportSettingsProblem(Log.WARN,
+//                "Error in package manager settings: package "
+//                + name + " has bad userId " + idStr + " at "
+//                + parser.getPositionDescription());
+    }
+//    } catch (NumberFormatException e) {
+//        reportSettingsProblem(Log.WARN,
+//                "Error in package manager settings: package "
+//                + name + " has bad userId " + idStr + " at "
+//                + parser.getPositionDescription());
+//    }
+    if (capsuleSetting != NULL) {
+        capsuleSetting->mUidError = CString("true").Equals(uidError);
+        capsuleSetting->mInstallerCapsuleName = installerCapsuleName;
+        capsuleSetting->mNativeLibraryPathString = nativeLibraryPathStr;
+        String enabledStr;
+        parser->GetAttributeValueEx(NULL, "enabled", &enabledStr);
+        if (!enabledStr.IsNull()) {
+            if (enabledStr.EqualsIgnoreCase("true")) {
+                capsuleSetting->mEnabled = CapsuleManager_COMPONENT_ENABLED_STATE_ENABLED;
+            }
+            else if (enabledStr.EqualsIgnoreCase("false")) {
+                capsuleSetting->mEnabled = CapsuleManager_COMPONENT_ENABLED_STATE_DISABLED;
+            }
+            else if (enabledStr.EqualsIgnoreCase("default")) {
+                capsuleSetting->mEnabled = CapsuleManager_COMPONENT_ENABLED_STATE_DEFAULT;
+            }
+            else {
+//                reportSettingsProblem(Log.WARN,
+//                        "Error in package manager settings: package "
+//                        + name + " has bad enabled value: " + idStr
+//                        + " at " + parser.getPositionDescription());
+            }
+        }
+        else {
+            capsuleSetting->mEnabled = CapsuleManager_COMPONENT_ENABLED_STATE_DEFAULT;
+        }
+        String installStatusStr;
+        parser->GetAttributeValueEx(NULL, "installStatus", &installStatusStr);
+        if (!installStatusStr.IsNull()) {
+            if (installStatusStr.EqualsIgnoreCase("false")) {
+                capsuleSetting->mInstallStatus = CAP_INSTALL_INCOMPLETE;
+            }
+            else {
+                capsuleSetting->mInstallStatus = CAP_INSTALL_COMPLETE;
+            }
+        }
+
+        Int32 type, outerDepth, depth;
+        parser->GetDepth(&outerDepth);
+        while ((parser->Next(&type), type != IXmlPullParser_END_DOCUMENT)
+               && (type != IXmlPullParser_END_TAG
+                       || (parser->GetDepth(&depth), depth > outerDepth))) {
+            if (type == IXmlPullParser_END_TAG
+                    || type == IXmlPullParser_TEXT) {
+                continue;
+            }
+
+            String tagName;
+            parser->GetName(&tagName);
+            if (tagName.Equals("disabled-components")) {
+                ReadDisabledComponentsLP(capsuleSetting, parser);
+            }
+            else if (tagName.Equals("enabled-components")) {
+                ReadEnabledComponentsLP(capsuleSetting, parser);
+            }
+            else if (tagName.Equals("sigs")) {
+                capsuleSetting->mSignatures->ReadXml(parser, &mPastSignatures);
+            }
+            else if (tagName.Equals("perms")) {
+                ReadGrantedPermissionsLP(parser,
+                        &capsuleSetting->mGrantedPermissions);
+                capsuleSetting->mPermissionsFixed = TRUE;
+            }
+            else {
+//                reportSettingsProblem(Log.WARN,
+//                        "Unknown element under <package>: "
+//                        + parser.getName());
+                XmlUtils::SkipCurrentTag(parser);
+            }
+        }
+    }
+    else {
+        XmlUtils::SkipCurrentTag(parser);
+    }
+}
+
+void CCapsuleManagerService::Settings::ReadDisabledComponentsLP(
+    /* [in] */ CapsuleSettingBase* capsuleSetting,
+    /* [in] */ IXmlPullParser* parser)
+{
+//    int outerDepth = parser.getDepth();
+//    int type;
+//    while ((type=parser.next()) != XmlPullParser.END_DOCUMENT
+//           && (type != XmlPullParser.END_TAG
+//                   || parser.getDepth() > outerDepth)) {
+//        if (type == XmlPullParser.END_TAG
+//                || type == XmlPullParser.TEXT) {
+//            continue;
+//        }
+//
+//        String tagName = parser.getName();
+//        if (tagName.equals("item")) {
+//            String name = parser.getAttributeValue(null, "name");
+//            if (name != null) {
+//                packageSetting.disabledComponents.add(name.intern());
+//            } else {
+//                reportSettingsProblem(Log.WARN,
+//                        "Error in package manager settings: <disabled-components> has"
+//                        + " no name at " + parser.getPositionDescription());
+//            }
+//        } else {
+//            reportSettingsProblem(Log.WARN,
+//                    "Unknown element under <disabled-components>: "
+//                    + parser.getName());
+//        }
+//        XmlUtils.skipCurrentTag(parser);
+//    }
+}
+
+void CCapsuleManagerService::Settings::ReadEnabledComponentsLP(
+    /* [in] */ CapsuleSettingBase* capsuleSetting,
+    /* [in] */ IXmlPullParser* parser)
+{
+//    int outerDepth = parser.getDepth();
+//    int type;
+//    while ((type=parser.next()) != XmlPullParser.END_DOCUMENT
+//           && (type != XmlPullParser.END_TAG
+//                   || parser.getDepth() > outerDepth)) {
+//        if (type == XmlPullParser.END_TAG
+//                || type == XmlPullParser.TEXT) {
+//            continue;
+//        }
+//
+//        String tagName = parser.getName();
+//        if (tagName.equals("item")) {
+//            String name = parser.getAttributeValue(null, "name");
+//            if (name != null) {
+//                packageSetting.enabledComponents.add(name.intern());
+//            } else {
+//                reportSettingsProblem(Log.WARN,
+//                        "Error in package manager settings: <enabled-components> has"
+//                           + " no name at " + parser.getPositionDescription());
+//            }
+//        } else {
+//            reportSettingsProblem(Log.WARN,
+//                    "Unknown element under <enabled-components>: "
+//                    + parser.getName());
+//        }
+//        XmlUtils.skipCurrentTag(parser);
+//    }
+}
+
+void CCapsuleManagerService::Settings::ReadSharedUserLP(
+    /* [in] */ IXmlPullParser* parser)
+{
+//    String name = null;
+//    String idStr = null;
+//    int pkgFlags = 0;
+//    SharedUserSetting su = null;
+//    try {
+//        name = parser.getAttributeValue(null, "name");
+//        idStr = parser.getAttributeValue(null, "userId");
+//        int userId = idStr != null ? Integer.parseInt(idStr) : 0;
+//        if ("true".equals(parser.getAttributeValue(null, "system"))) {
+//            pkgFlags |= ApplicationInfo.FLAG_SYSTEM;
+//        }
+//        if (name == null) {
+//            reportSettingsProblem(Log.WARN,
+//                    "Error in package manager settings: <shared-user> has no name at "
+//                    + parser.getPositionDescription());
+//        } else if (userId == 0) {
+//            reportSettingsProblem(Log.WARN,
+//                    "Error in package manager settings: shared-user "
+//                    + name + " has bad userId " + idStr + " at "
+//                    + parser.getPositionDescription());
+//        } else {
+//            if ((su=addSharedUserLP(name.intern(), userId, pkgFlags)) == null) {
+//                reportSettingsProblem(Log.ERROR,
+//                        "Occurred while parsing settings at "
+//                        + parser.getPositionDescription());
+//            }
+//        }
+//    } catch (NumberFormatException e) {
+//        reportSettingsProblem(Log.WARN,
+//                "Error in package manager settings: package "
+//                + name + " has bad userId " + idStr + " at "
+//                + parser.getPositionDescription());
+//    };
+//
+//    if (su != null) {
+//        int outerDepth = parser.getDepth();
+//        int type;
+//        while ((type=parser.next()) != XmlPullParser.END_DOCUMENT
+//               && (type != XmlPullParser.END_TAG
+//                       || parser.getDepth() > outerDepth)) {
+//            if (type == XmlPullParser.END_TAG
+//                    || type == XmlPullParser.TEXT) {
+//                continue;
+//            }
+//
+//            String tagName = parser.getName();
+//            if (tagName.equals("sigs")) {
+//                su.signatures.readXml(parser, mPastSignatures);
+//            } else if (tagName.equals("perms")) {
+//                readGrantedPermissionsLP(parser, su.grantedPermissions);
+//            } else {
+//                reportSettingsProblem(Log.WARN,
+//                        "Unknown element under <shared-user>: "
+//                        + parser.getName());
+//                XmlUtils.skipCurrentTag(parser);
+//            }
+//        }
+//
+//    } else {
+//        XmlUtils.skipCurrentTag(parser);
+//    }
+}
+
+void CCapsuleManagerService::Settings::ReadGrantedPermissionsLP(
+    /* [in] */ IXmlPullParser* parser,
+    /* [in] */ HashSet<String>* outPerms)
+{
+//    int outerDepth = parser.getDepth();
+//    int type;
+//    while ((type=parser.next()) != XmlPullParser.END_DOCUMENT
+//           && (type != XmlPullParser.END_TAG
+//                   || parser.getDepth() > outerDepth)) {
+//        if (type == XmlPullParser.END_TAG
+//                || type == XmlPullParser.TEXT) {
+//            continue;
+//        }
+//
+//        String tagName = parser.getName();
+//        if (tagName.equals("item")) {
+//            String name = parser.getAttributeValue(null, "name");
+//            if (name != null) {
+//                outPerms.add(name.intern());
+//            } else {
+//                reportSettingsProblem(Log.WARN,
+//                        "Error in package manager settings: <perms> has"
+//                           + " no name at " + parser.getPositionDescription());
+//            }
+//        } else {
+//            reportSettingsProblem(Log.WARN,
+//                    "Unknown element under <perms>: "
+//                    + parser.getName());
+//        }
+//        XmlUtils.skipCurrentTag(parser);
+//    }
+}
+
+void CCapsuleManagerService::Settings::ReadPreferredActivitiesLP(
+    /* [in] */ IXmlPullParser* parser)
+{
+//    int outerDepth = parser.getDepth();
+//    int type;
+//    while ((type=parser.next()) != XmlPullParser.END_DOCUMENT
+//           && (type != XmlPullParser.END_TAG
+//                   || parser.getDepth() > outerDepth)) {
+//        if (type == XmlPullParser.END_TAG
+//                || type == XmlPullParser.TEXT) {
+//            continue;
+//        }
+//
+//        String tagName = parser.getName();
+//        if (tagName.equals("item")) {
+//            PreferredActivity pa = new PreferredActivity(parser);
+//            if (pa.mParseError == null) {
+//                mPreferredActivities.addFilter(pa);
+//            } else {
+//                reportSettingsProblem(Log.WARN,
+//                        "Error in package manager settings: <preferred-activity> "
+//                        + pa.mParseError + " at "
+//                        + parser.getPositionDescription());
+//            }
+//        } else {
+//            reportSettingsProblem(Log.WARN,
+//                    "Unknown element under <preferred-activities>: "
+//                    + parser.getName());
+//            XmlUtils.skipCurrentTag(parser);
+//        }
+//    }
+}
+
+Int32 CCapsuleManagerService::Settings::NewUserIdLP(
+    /* [in] */ IInterface* obj)
+{
+//    // Let's be stupidly inefficient for now...
+//    final int N = mUserIds.size();
+//    for (int i=0; i<N; i++) {
+//        if (mUserIds.get(i) == null) {
+//            mUserIds.set(i, obj);
+//            return FIRST_APPLICATION_UID + i;
+//        }
+//    }
+//
+//    // None left?
+//    if (N >= MAX_APPLICATION_UIDS) {
+//        return -1;
+//    }
+//
+//    mUserIds.add(obj);
+//    return FIRST_APPLICATION_UID + N;
+    return -1;
+}
+
+AutoPtr<CCapsuleManagerService::CapsuleSetting>
+CCapsuleManagerService::Settings::GetDisabledSystemCap(
+    /* [in] */ const String& name)
+{
+    Mutex::Autolock lock(mCapsulesLock);
+    HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it = mDisabledSysCapsules.Find(name);
+    return it != mDisabledSysCapsules.End() ? it->mSecond : NULL;
+}
+
+Boolean CCapsuleManagerService::Settings::IsEnabledLP(
+    /* [in] */ IComponentInfo* componentInfo,
+    /* [in] */ Int32 flags)
+{
+//    if ((flags&PackageManager.GET_DISABLED_COMPONENTS) != 0) {
+//        return true;
+//    }
+//    final PackageSetting packageSettings = mPackages.get(componentInfo.packageName);
+//    if (Config.LOGV) {
+//        Log.v(TAG, "isEnabledLock - packageName = " + componentInfo.packageName
+//                   + " componentName = " + componentInfo.name);
+//        Log.v(TAG, "enabledComponents: "
+//                   + Arrays.toString(packageSettings.enabledComponents.toArray()));
+//        Log.v(TAG, "disabledComponents: "
+//                   + Arrays.toString(packageSettings.disabledComponents.toArray()));
+//    }
+//    if (packageSettings == null) {
+//        if (false) {
+//            Log.w(TAG, "WAITING FOR DEBUGGER");
+//            Debug.waitForDebugger();
+//            Log.i(TAG, "We will crash!");
+//        }
+//        return false;
+//    }
+//    if (packageSettings.enabled == COMPONENT_ENABLED_STATE_DISABLED
+//            || (packageSettings.pkg != null && !packageSettings.pkg.applicationInfo.enabled
+//                    && packageSettings.enabled == COMPONENT_ENABLED_STATE_DEFAULT)) {
+//        return false;
+//    }
+//    if (packageSettings.enabledComponents.contains(componentInfo.name)) {
+//        return true;
+//    }
+//    if (packageSettings.disabledComponents.contains(componentInfo.name)) {
+//        return false;
+//    }
+//    return componentInfo.enabled;
+    return FALSE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // CCapsuleManagerService::CapsuleHandler
-
 
 Boolean CCapsuleManagerService::CapsuleHandler::ConnectToService()
 {
@@ -946,7 +4917,7 @@ void CCapsuleManagerService::CapsuleHandler::DoHandleMessage(
             break;
         }
         case CCapsuleManagerService::SEND_PENDING_BROADCAST : {
-            AutoString* capsules = NULL;
+            String* capsules = NULL;
             List<String>* components = NULL;
             Int32 size = 0;
             Int32* uids = NULL;
@@ -959,27 +4930,27 @@ void CCapsuleManagerService::CapsuleHandler::DoHandleMessage(
                     delete msg;
                     return;
                 }
-                capsules = new AutoString[size];
-                components = new List<String>[size];
-                uids = new Int32[size];
-                Int32 i = 0;
-                HashMap< String, List<String> >::Iterator it;
-                for (it = mOwner->mPendingBroadcasts.Begin();
-                     it != mOwner->mPendingBroadcasts.End();
-                     it++) {
-                    capsules[i] = String::Duplicate(it->mFirst);
-                    components[i] = it->mSecond;
-                    HashMap<String, CapsuleSetting*>::Iterator t =
-                        mOwner->mSettings->mCapsules.Find(it->mFirst);
-                    if (t != mOwner->mSettings->mCapsules.End()
-                        && t->mSecond != NULL) {
-                        uids[i] = t->mSecond->mUserId;
-                    }
-                    else {
-                        uids[i] = -1;
-                    }
-                    i++;
-                }
+//                capsules = new String[size];
+//                components = new List<String>[size];
+//                uids = new Int32[size];
+//                Int32 i = 0;
+//                HashMap< String, List<String>* >::Iterator it;
+//                for (it = mOwner->mPendingBroadcasts.Begin();
+//                     it != mOwner->mPendingBroadcasts.End();
+//                     it++) {
+//                    capsules[i] = it->mFirst;
+//                    components[i] = it->mSecond;
+//                    HashMap<String, AutoPtr<CapsuleSetting> >::Iterator t =
+//                        mOwner->mSettings->mCapsules.Find(it->mFirst);
+//                    if (t != mOwner->mSettings->mCapsules.End()
+//                        && t->mSecond != NULL) {
+//                        uids[i] = t->mSecond->mUserId;
+//                    }
+//                    else {
+//                        uids[i] = -1;
+//                    }
+//                    i++;
+//                }
                 mOwner->mPendingBroadcasts.Clear();
             }
             // Send broadcasts
@@ -1025,15 +4996,15 @@ void CCapsuleManagerService::CapsuleHandler::DoHandleMessage(
                     res->mRemovedInfo->SendBroadcast(FALSE, TRUE);
                     AutoPtr<CBundle> extras;
                     CBundle::NewByFriend(1, (CBundle**)&extras);
-                    extras->PutInt32(Intent_EXTRA_UID, res->mUid);
+                    extras->PutInt32(String(Intent_EXTRA_UID), res->mUid);
                     Boolean update = !res->mRemovedInfo->mRemovedCapsule.IsNull();
                     if (update) {
-                        extras->PutBoolean(Intent_EXTRA_REPLACING, TRUE);
+                        extras->PutBoolean(String(Intent_EXTRA_REPLACING), TRUE);
                     }
-                    mOwner->SendCapsuleBroadcast(Intent_ACTION_CAPSULE_ADDED,
+                    mOwner->SendCapsuleBroadcast(String(Intent_ACTION_CAPSULE_ADDED),
                         res->mCap->mApplicationInfo->mCapsuleName, (IBundle*)extras.Get(), NULL);
                     if (update) {
-                        mOwner->SendCapsuleBroadcast(Intent_ACTION_CAPSULE_REPLACED,
+                        mOwner->SendCapsuleBroadcast(String(Intent_ACTION_CAPSULE_REPLACED),
                             res->mCap->mApplicationInfo->mCapsuleName, (IBundle*)extras.Get(), NULL);
                     }
                     if (res->mRemovedInfo->mArgs != NULL) {
@@ -1101,7 +5072,6 @@ void CCapsuleManagerService::CapsuleHandler::DoHandleMessage(
             ICapsuleDeleteObserver* observer = (ICapsuleDeleteObserver*)msg->mObj;
             RemoveMessages(DELETE_CAPSULE);
             Boolean succeded = mOwner->DeleteCapsuleX(*capName, TRUE, TRUE, flags);
-            String::Free(*capName);
             delete capName;
             if (observer != NULL) {
                 if (FAILED(observer->CapsuleDeleted(succeded))) {
@@ -1125,7 +5095,7 @@ ECode CCapsuleManagerService::CapsuleHandler::SendMessage(
     CCallbackParcel::New((IParcel**)&params);
     params->WriteInt32((Handle32)msg);
     return mOwner->mApartment->PostCppCallback(
-        (Handle32)this, *(Handle32*)&pHandlerFunc, params.Get());
+        (Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 Boolean CCapsuleManagerService::CapsuleHandler::IsMessageRemoved(
@@ -1159,213 +5129,9 @@ ECode CCapsuleManagerService::CapsuleHandler::RemoveMessages(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// CCapsuleManagerService::HandlerParams
-
-const Int32 CCapsuleManagerService::HandlerParams::MAX_RETRIES;
-
-void CCapsuleManagerService::HandlerParams::StartCopy()
-{
-//	    try {
-//	        if (DEBUG_SD_INSTALL) Log.i(TAG, "startCopy");
-//	        retry++;
-//	        if (retry > MAX_RETRIES) {
-//	            Slog.w(TAG, "Failed to invoke remote methods on default container service. Giving up");
-//	            mHandler.sendEmptyMessage(MCS_GIVE_UP);
-//	            handleServiceError();
-//	            return;
-//	        } else {
-//	            handleStartCopy();
-//	            if (DEBUG_SD_INSTALL) Log.i(TAG, "Posting install MCS_UNBIND");
-//	            mHandler.sendEmptyMessage(MCS_UNBIND);
-//	        }
-//	    } catch (RemoteException e) {
-//	        if (DEBUG_SD_INSTALL) Log.i(TAG, "Posting install MCS_RECONNECT");
-//	        mHandler.sendEmptyMessage(MCS_RECONNECT);
-//	    }
-//	    handleReturnCode();
-}
-
-void CCapsuleManagerService::HandlerParams::ServiceError()
-{
-//	    if (DEBUG_SD_INSTALL) Log.i(TAG, "serviceError");
-//	        handleServiceError();
-//	        handleReturnCode();
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// CCapsuleManagerService::SdInstallArgs
-
-const String CCapsuleManagerService::SdInstallArgs::RES_FILE_NAME = "cap.apk";
-
-///////////////////////////////////////////////////////////////////////////////
-// CCapsuleManagerService::InstallParams
-
-Int32 CCapsuleManagerService::InstallParams::InstallLocationPolicy(
-    /* [in] */ ICapsuleInfoLite* capLite,
-    /* [in] */ Int32 flags)
-{
-//	    String packageName = pkgLite.packageName;
-//	    int installLocation = pkgLite.installLocation;
-//	    boolean onSd = (flags & PackageManager.INSTALL_EXTERNAL) != 0;
-//	    synchronized (mPackages) {
-//	        PackageParser.Package pkg = mPackages.get(packageName);
-//	        if (pkg != null) {
-//	            if ((flags & PackageManager.INSTALL_REPLACE_EXISTING) != 0) {
-//	                // Check for updated system application.
-//	                if ((pkg.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0) {
-//	                    if (onSd) {
-//	                        Slog.w(TAG, "Cannot install update to system app on sdcard");
-//	                        return PackageHelper.RECOMMEND_FAILED_INVALID_LOCATION;
-//	                    }
-//	                    return PackageHelper.RECOMMEND_INSTALL_INTERNAL;
-//	                } else {
-//	                    if (onSd) {
-//	                        // Install flag overrides everything.
-//	                        return PackageHelper.RECOMMEND_INSTALL_EXTERNAL;
-//	                    }
-//	                    // If current upgrade specifies particular preference
-//	                    if (installLocation == PackageInfo.INSTALL_LOCATION_INTERNAL_ONLY) {
-//	                        // Application explicitly specified internal.
-//	                        return PackageHelper.RECOMMEND_INSTALL_INTERNAL;
-//	                    } else if (installLocation == PackageInfo.INSTALL_LOCATION_PREFER_EXTERNAL) {
-//	                        // App explictly prefers external. Let policy decide
-//	                    } else {
-//	                        // Prefer previous location
-//	                        if (isExternal(pkg)) {
-//	                            return PackageHelper.RECOMMEND_INSTALL_EXTERNAL;
-//	                        }
-//	                        return PackageHelper.RECOMMEND_INSTALL_INTERNAL;
-//	                    }
-//	                }
-//	            } else {
-//	                // Invalid install. Return error code
-//	                return PackageHelper.RECOMMEND_FAILED_ALREADY_EXISTS;
-//	            }
-//	        }
-//	    }
-//	    // All the special cases have been taken care of.
-//	    // Return result based on recommended install location.
-//	    if (onSd) {
-//	        return PackageHelper.RECOMMEND_INSTALL_EXTERNAL;
-//	    }
-//	    return pkgLite.recommendedInstallLocation;
-    return -1;
-}
-
-void CCapsuleManagerService::InstallParams::HandleStartCopy()
-{
-//	    int ret = PackageManager.INSTALL_SUCCEEDED;
-//	    boolean fwdLocked = (flags & PackageManager.INSTALL_FORWARD_LOCK) != 0;
-//	    boolean onSd = (flags & PackageManager.INSTALL_EXTERNAL) != 0;
-//	    boolean onInt = (flags & PackageManager.INSTALL_INTERNAL) != 0;
-//	    if (onInt && onSd) {
-//	        // Check if both bits are set.
-//	        Slog.w(TAG, "Conflicting flags specified for installing on both internal and external");
-//	        ret = PackageManager.INSTALL_FAILED_INVALID_INSTALL_LOCATION;
-//	    } else if (fwdLocked && onSd) {
-//	        // Check for forward locked apps
-//	        Slog.w(TAG, "Cannot install fwd locked apps on sdcard");
-//	        ret = PackageManager.INSTALL_FAILED_INVALID_INSTALL_LOCATION;
-//	    } else {
-//	        // Remote call to find out default install location
-//	        final PackageInfoLite pkgLite;
-//	        try {
-//	            mContext.grantUriPermission(DEFAULT_CONTAINER_PACKAGE, packageURI,
-//	                    Intent.FLAG_GRANT_READ_URI_PERMISSION);
-//	            pkgLite = mContainerService.getMinimalPackageInfo(packageURI, flags);
-//	        } finally {
-//	            mContext.revokeUriPermission(packageURI, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-//	        }
-//
-//	        int loc = pkgLite.recommendedInstallLocation;
-//	        if (loc == PackageHelper.RECOMMEND_FAILED_INVALID_LOCATION){
-//	            ret = PackageManager.INSTALL_FAILED_INVALID_INSTALL_LOCATION;
-//	        } else if (loc == PackageHelper.RECOMMEND_FAILED_ALREADY_EXISTS){
-//	            ret = PackageManager.INSTALL_FAILED_ALREADY_EXISTS;
-//	        } else if (loc == PackageHelper.RECOMMEND_FAILED_INSUFFICIENT_STORAGE){
-//	            ret = PackageManager.INSTALL_FAILED_INSUFFICIENT_STORAGE;
-//	        } else if (loc == PackageHelper.RECOMMEND_FAILED_INVALID_APK) {
-//	            ret = PackageManager.INSTALL_FAILED_INVALID_APK;
-//	        } else if (loc == PackageHelper.RECOMMEND_MEDIA_UNAVAILABLE) {
-//	          ret = PackageManager.INSTALL_FAILED_MEDIA_UNAVAILABLE;
-//	        } else {
-//	            // Override with defaults if needed.
-//	            loc = installLocationPolicy(pkgLite, flags);
-//	            if (!onSd && !onInt) {
-//	                // Override install location with flags
-//	                if (loc == PackageHelper.RECOMMEND_INSTALL_EXTERNAL) {
-//	                    // Set the flag to install on external media.
-//	                    flags |= PackageManager.INSTALL_EXTERNAL;
-//	                    flags &= ~PackageManager.INSTALL_INTERNAL;
-//	                } else {
-//	                    // Make sure the flag for installing on external
-//	                    // media is unset
-//	                    flags |= PackageManager.INSTALL_INTERNAL;
-//	                    flags &= ~PackageManager.INSTALL_EXTERNAL;
-//	                }
-//	            }
-//	        }
-//	    }
-//	    // Create the file args now.
-//	    mArgs = createInstallArgs(this);
-//	    if (ret == PackageManager.INSTALL_SUCCEEDED) {
-//	        // Create copy only if we are not in an erroneous state.
-//	        // Remote call to initiate copy using temporary file
-//	        ret = mArgs.copyApk(mContainerService, true);
-//	    }
-//	    mRet = ret;
-}
-
-void CCapsuleManagerService::InstallParams::HandleReturnCode()
-{
-//	    // If mArgs is null, then MCS couldn't be reached. When it
-//	    // reconnects, it will try again to install. At that point, this
-//	    // will succeed.
-//	    if (mArgs != null) {
-//	        processPendingInstall(mArgs, mRet);
-//	    }
-}
-
-void CCapsuleManagerService::InstallParams::HandleServiceError()
-{
-//	    mArgs = createInstallArgs(this);
-//	    mRet = PackageManager.INSTALL_FAILED_INTERNAL_ERROR;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// CCapsuleManagerService::CapsuleRemovedInfo
-
-void CCapsuleManagerService::CapsuleRemovedInfo::SendBroadcast(
-    /* [in] */ Boolean fullRemove,
-    /* [in] */ Boolean replacing)
-{
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// CCapsuleManagerService::Settings
-
-CCapsuleManagerService::Settings::Settings()
-    : mCapsules(5)
-    , mDisabledSysCapsules(5)
-    , mInternalSdkPlatform(0)
-    , mExternalSdkPlatform(0)
-    , mPreferredActivities(new MyIntentResolver())
-    , mSharedUsers(5)
-    , mPermissions(5)
-    , mPermissionTrees(5)
-    , mRenamedPackages(5)
-{
-    // E_NOT_IMPLEMENTED
-}
-
-CCapsuleManagerService::Settings::~Settings()
-{
-}
-
-///////////////////////////////////////////////////////////////////////////////
 // CCapsuleManagerService
 
-const String CCapsuleManagerService::TAG = "CCapsuleManagerService";
+const char* CCapsuleManagerService::TAG = "CCapsuleManagerService";
 const Boolean CCapsuleManagerService::DEBUG_SETTINGS;
 const Boolean CCapsuleManagerService::DEBUG_PREFERRED;
 const Boolean CCapsuleManagerService::DEBUG_UPGRADE;
@@ -1378,16 +5144,18 @@ const Int32 CCapsuleManagerService::FIRST_APPLICATION_UID;
 const Int32 CCapsuleManagerService::MAX_APPLICATION_UIDS;
 const Boolean CCapsuleManagerService::SHOW_INFO;
 const Boolean CCapsuleManagerService::GET_CERTIFICATES;
-const String CCapsuleManagerService::SYSTEM_PROPERTY_EFS_ENABLED = "persist.security.efs.enabled";
+const char* CCapsuleManagerService::SYSTEM_PROPERTY_EFS_ENABLED = "persist.security.efs.enabled";
+const Int32 CCapsuleManagerService::REMOVE_EVENTS;
+const Int32 CCapsuleManagerService::ADD_EVENTS;
 //const int REMOVE_EVENTS =
 //	  FileObserver.CLOSE_WRITE | FileObserver.DELETE | FileObserver.MOVED_FROM;
 //	  const int ADD_EVENTS =
 //	      FileObserver.CLOSE_WRITE /*| FileObserver.CREATE*/ | FileObserver.MOVED_TO;
 
-//const int OBSERVER_EVENTS = REMOVE_EVENTS | ADD_EVENTS;
+const Int32 CCapsuleManagerService::OBSERVER_EVENTS;
 // Suffix used during package installation when copying/moving
 // package apks to install directory.
-const String CCapsuleManagerService::INSTALL_PACKAGE_SUFFIX = "-";
+const char* CCapsuleManagerService::INSTALL_CAPSULE_SUFFIX = "-";
 const Int32 CCapsuleManagerService::CAP_INSTALL_INCOMPLETE;
 const Int32 CCapsuleManagerService::CAP_INSTALL_COMPLETE;
 const Int32 CCapsuleManagerService::SCAN_MONITOR;
@@ -1398,12 +5166,12 @@ const Int32 CCapsuleManagerService::SCAN_NEW_INSTALL;
 const Int32 CCapsuleManagerService::SCAN_NO_PATHS;
 const Int32 CCapsuleManagerService::SCAN_UPDATE_TIME;
 const Int32 CCapsuleManagerService::REMOVE_CHATTY;
-const String CCapsuleManagerService::DEFAULT_CONTAINER_CAPSULE = "com.android.defcontainer";
+const char* CCapsuleManagerService::DEFAULT_CONTAINER_CAPSULE = "com.android.defcontainer";
 //	    const ComponentName DEFAULT_CONTAINER_COMPONENT = new ComponentName(
 //	            DEFAULT_CONTAINER_PACKAGE,
 //	            "com.android.defcontainer.DefaultContainerService");
-const String CCapsuleManagerService::LIB_DIR_NAME = "lib";
-const String CCapsuleManagerService::mTempContainerPrefix = "smdl2tmp";
+const char* CCapsuleManagerService::LIB_DIR_NAME = "lib";
+const char* CCapsuleManagerService::mTempContainerPrefix = "smdl2tmp";
 const Int32 CCapsuleManagerService::SEND_PENDING_BROADCAST;
 const Int32 CCapsuleManagerService::MCS_BOUND;
 const Int32 CCapsuleManagerService::END_COPY;
@@ -1419,9 +5187,6 @@ const Int32 CCapsuleManagerService::WRITE_SETTINGS;
 const Int32 CCapsuleManagerService::DELETE_CAPSULE;
 const Int32 CCapsuleManagerService::WRITE_SETTINGS_DELAY;
 const Int32 CCapsuleManagerService::BROADCAST_DELAY;
-const Int32 CCapsuleManagerService::DEX_OPT_SKIPPED;
-const Int32 CCapsuleManagerService::DEX_OPT_PERFORMED;
-const Int32 CCapsuleManagerService::DEX_OPT_FAILED;
 const Int32 CCapsuleManagerService::MAX_CONTAINERS;
 //	    private static final Comparator<ResolveInfo> mResolvePrioritySorter =
 //	            new Comparator<ResolveInfo>() {
@@ -1429,9 +5194,9 @@ const Int32 CCapsuleManagerService::MAX_CONTAINERS;
 //	    private static final Comparator<ProviderInfo> mProviderInitOrderSorter =
 //	            new Comparator<ProviderInfo>() {
 const Boolean CCapsuleManagerService::DEBUG_SD_INSTALL;
-const String CCapsuleManagerService::SD_ENCRYPTION_KEYSTORE_NAME = "AppsOnSD";
-const String CCapsuleManagerService::SD_ENCRYPTION_ALGORITHM = "AES";
-const String CCapsuleManagerService::DEFAULT_RESOURCES_FILE_NAME = "hello.apk";
+const char* CCapsuleManagerService::SD_ENCRYPTION_KEYSTORE_NAME = "AppsOnSD";
+const char* CCapsuleManagerService::SD_ENCRYPTION_ALGORITHM = "AES";
+const char* CCapsuleManagerService::DEFAULT_RESOURCES_FILE_NAME = "hello.apk";
 const AutoPtr<IComponentName> CCapsuleManagerService::DEFAULT_CONTAINER_COMPONENT;
 
 CCapsuleManagerService::CCapsuleManagerService() :
@@ -1440,6 +5205,11 @@ CCapsuleManagerService::CCapsuleManagerService() :
     mFactoryTest(FALSE),
     mNoDexOpt(FALSE),
     mDefParseFlags(0),
+    mFrameworkInstallObserver(NULL),
+    mSystemInstallObserver(NULL),
+    mVendorInstallObserver(NULL),
+    mAppInstallObserver(NULL),
+    mDrmAppInstallObserver(NULL),
     mInstaller(NULL),
     mLastScanError(0),
     mCapsules(23),
@@ -1447,7 +5217,7 @@ CCapsuleManagerService::CCapsuleManagerService() :
     mRestoredSettings(FALSE),
     mSharedLibraries(11),
     mProvidersByComponent(11),
-    mProviders(11),
+    mContentProviders(11),
     mInstrumentation(11),
     mTransferedCapsules(11),
     mProtectedBroadcasts(11),
@@ -1461,18 +5231,19 @@ CCapsuleManagerService::CCapsuleManagerService() :
 {
     if (DEFAULT_CONTAINER_COMPONENT == NULL) {
         ASSERT_SUCCEEDED(CComponentName::New(
-            DEFAULT_CONTAINER_CAPSULE,
-            "com.android.defcontainer.DefaultContainerService",
+            String(DEFAULT_CONTAINER_CAPSULE),
+            String("com.android.defcontainer.DefaultContainerService"),
             (IComponentName**)&DEFAULT_CONTAINER_COMPONENT));
     }
 
     char cwd[512];
 
-    mActivities = new ActivityIntentResolver();
-    mReceivers = new ActivityIntentResolver();
-    mServices = new ServiceIntentResolver();
+    mActivities = new ActivityIntentResolver(this);
+    mReceivers = new ActivityIntentResolver(this);
+    mServices = new ServiceIntentResolver(this);
     CActivityInfo::NewByFriend((CActivityInfo**)&mResolveActivity);
     CResolveInfo::NewByFriend((CResolveInfo**)&mResolveInfo);
+    mOutPermissions = ArrayOf<Int32>::Alloc(3);
 
     getcwd(cwd, 512);
     ScanDir(String(cwd));
@@ -1485,7 +5256,7 @@ CCapsuleManagerService::~CCapsuleManagerService()
     mCapsules.Clear();
     delete mActivities;
     delete mReceivers;
-    mProviders.Clear();
+    mContentProviders.Clear();
     mProvidersByComponent.Clear();
     mInstrumentation.Clear();
 }
@@ -1503,26 +5274,24 @@ ECode CCapsuleManagerService::constructor(
 
     mContext = context;
     mFactoryTest = factoryTest;
-    AutoString str;
-    SystemProperties::Get("ro.build.type", &str);
+    String str = SystemProperties::Get("ro.build.type");
     mNoDexOpt = str.Equals("eng");
     FAIL_RETURN(CDisplayMetrics::New((IDisplayMetrics**)&mMetrics));
-    mSettings = new Settings();
+    mSettings = new Settings(this);
     if (!mSettings) return E_OUT_OF_MEMORY;
-    mSettings->AddSharedUserLP("android.uid.system",
+    mSettings->AddSharedUserLP(String("android.uid.system"),
             Process::SYSTEM_UID, CApplicationInfo::FLAG_SYSTEM);
-    mSettings->AddSharedUserLP("android.uid.phone",
+    mSettings->AddSharedUserLP(String("android.uid.phone"),
             MULTIPLE_APPLICATION_UIDS ? RADIO_UID : FIRST_APPLICATION_UID,
             CApplicationInfo::FLAG_SYSTEM);
-    mSettings->AddSharedUserLP("android.uid.log",
+    mSettings->AddSharedUserLP(String("android.uid.log"),
             MULTIPLE_APPLICATION_UIDS ? LOG_UID : FIRST_APPLICATION_UID,
             CApplicationInfo::FLAG_SYSTEM);
-    mSettings->AddSharedUserLP("android.uid.nfc",
+    mSettings->AddSharedUserLP(String("android.uid.nfc"),
             MULTIPLE_APPLICATION_UIDS ? NFC_UID : FIRST_APPLICATION_UID,
             CApplicationInfo::FLAG_SYSTEM);
 
-    AutoString separateProcesses;
-	SystemProperties::Get("debug->mSeparate_processes", &separateProcesses);
+    String separateProcesses = SystemProperties::Get("debug->mSeparate_processes");
     if (!separateProcesses.IsNull() && separateProcesses.GetLength() > 0) {
         if (separateProcesses.Equals("*")) {
             mDefParseFlags = CapsuleParser::PARSE_IGNORE_PROCESSES;
@@ -1557,7 +5326,7 @@ ECode CCapsuleManagerService::constructor(
 
     GetServiceManager((IServiceManager**)&serviceManager);
 
-    serviceManager->GetService(Context_WINDOW_SERVICE, (IInterface**)&wm);
+    serviceManager->GetService(String(Context_WINDOW_SERVICE), (IInterface**)&wm);
     wm->GetDefaultDisplay((IDisplay**)&d);
     d->GetMetrics(mMetrics.Get());
 
@@ -1570,18 +5339,17 @@ ECode CCapsuleManagerService::constructor(
         mApartment->Start(ApartmentAttr_New);
         mHandler = new CapsuleHandler(this);
 
-        AutoPtr<IFile> dataDir;
-        Environment::GetDataDirectory((IFile**)&dataDir);
-        FAIL_RETURN(CFile::New(dataDir.Get(), "data", (IFile**)&mAppDataDir));
-        FAIL_RETURN(CFile::New(dataDir.Get(), "secure/data", (IFile**)&mSecureAppDataDir));
-        FAIL_RETURN(CFile::New(dataDir.Get(), "app-private", (IFile**)&mDrmAppPrivateInstallDir));
+        AutoPtr<IFile> dataDir = Environment::GetDataDirectory();
+        FAIL_RETURN(CFile::New(dataDir.Get(), String("data"), (IFile**)&mAppDataDir));
+        FAIL_RETURN(CFile::New(dataDir.Get(), String("secure/data"), (IFile**)&mSecureAppDataDir));
+        FAIL_RETURN(CFile::New(dataDir.Get(), String("app-private"), (IFile**)&mDrmAppPrivateInstallDir));
 
         if (mInstaller == NULL) {
             // Make sure these dirs exist, when we are running in
             // the simulator.
             // Make a wide-open directory for random misc stuff.
             AutoPtr<IFile> miscDir;
-            FAIL_RETURN(CFile::New(dataDir, "misc", (IFile**)&miscDir));
+            FAIL_RETURN(CFile::New(dataDir, String("misc"), (IFile**)&miscDir));
             Boolean isCreated = FALSE;
             miscDir->Mkdirs(&isCreated);
             mAppDataDir->Mkdirs(&isCreated);
@@ -1608,10 +5376,9 @@ ECode CCapsuleManagerService::constructor(
         //HashSet<String> libFiles(11);
         HashSet<String> libFiles;
 
-        AutoPtr<IFile> rootDir;
-        Environment::GetRootDirectory((IFile**)&rootDir);
-        FAIL_RETURN(CFile::New(rootDir.Get(), "framework", (IFile**)&mFrameworkDir));
-        FAIL_RETURN(CFile::New(dataDir.Get(), "dalvik-cache", (IFile**)&mDalvikCacheDir));
+        AutoPtr<IFile> rootDir = Environment::GetRootDirectory();
+        FAIL_RETURN(CFile::New(rootDir.Get(), String("framework"), (IFile**)&mFrameworkDir));
+        FAIL_RETURN(CFile::New(dataDir.Get(), String("dalvik-cache"), (IFile**)&mDalvikCacheDir));
 
         if (mInstaller != NULL) {
             Boolean didDexOpt = FALSE;
@@ -1621,7 +5388,7 @@ ECode CCapsuleManagerService::constructor(
              * Out of paranoia, ensure that everything in the boot class
              * path has been dexed.
              */
-//	            AutoString bootClassPath;
+//	            String bootClassPath;
 //	            System::GetProperty("java->mBoot.class->mPath", &bootClassPath);
 //	            if (!bootClassPath.IsNull()) {
 //	                AutoStringArray paths;
@@ -1666,15 +5433,15 @@ ECode CCapsuleManagerService::constructor(
 
             // Gross hack for now: we know this file doesn't contain any
             // code, so don't dexopt it to avoid the resulting log spew.
-            AutoString path;
+            String path;
             mFrameworkDir->GetPath(&path);
-            libFiles.Insert(String::Duplicate(StringBuffer(path) + "/framework-res.apk"));
+            libFiles.Insert(String((const char*)(StringBuffer(path) + "/framework-res.apk")));
 
-//	            /**
-//	             * And there are a number of commands implemented in Java, which
-//	             * we currently need to do the dexopt on so that they can be
-//	             * run from a non-root shell.
-//	             */
+            /**
+             * And there are a number of commands implemented in Java, which
+             * we currently need to do the dexopt on so that they can be
+             * run from a non-root shell.
+             */
 //	            String[] frameworkFiles = mFrameworkDir.list();
 //	            if (frameworkFiles != null) {
 //	                for (int i=0; i<frameworkFiles.length; i++) {
@@ -1722,26 +5489,43 @@ ECode CCapsuleManagerService::constructor(
         }
 
         // Find base frameworks (resource packages without code).
-//	        mFrameworkInstallObserver = new AppDirObserver(
-//	            mFrameworkDir.getPath(), OBSERVER_EVENTS, true);
-//	        mFrameworkInstallObserver.startWatching();
+        {
+            String path;
+            mFrameworkDir->GetPath(&path);
+            mFrameworkInstallObserver
+                = new AppDirObserver(path, OBSERVER_EVENTS, TRUE, this);
+            mFrameworkInstallObserver->StartWatching();
+        }
+
         ScanDirLI(mFrameworkDir.Get(), CapsuleParser::PARSE_IS_SYSTEM
             | CapsuleParser::PARSE_IS_SYSTEM_DIR,
             scanMode | SCAN_NO_DEX, 0);
 
         // Collect all system packages.
-        FAIL_RETURN(CFile::New(rootDir.Get(), "app", (IFile**)&mSystemAppDir));
-//	        mSystemInstallObserver = new AppDirObserver(
-//	            mSystemAppDir.getPath(), OBSERVER_EVENTS, true);
-//	        mSystemInstallObserver.startWatching();
+        FAIL_RETURN(CFile::New(rootDir.Get(), String("app"), (IFile**)&mSystemAppDir));
+
+        {
+            String path;
+            mSystemAppDir->GetPath(&path);
+            mSystemInstallObserver
+                = new AppDirObserver(path, OBSERVER_EVENTS, TRUE, this);
+            mSystemInstallObserver->StartWatching();
+        }
+
         ScanDirLI(mSystemAppDir.Get(), CapsuleParser::PARSE_IS_SYSTEM
             | CapsuleParser::PARSE_IS_SYSTEM_DIR, scanMode, 0);
 
         // Collect all vendor packages.
-        FAIL_RETURN(CFile::New("/vendor/app", (IFile**)&mVendorAppDir));
-//	        mVendorInstallObserver = new AppDirObserver(
-//	            mVendorAppDir.getPath(), OBSERVER_EVENTS, true);
-//	        mVendorInstallObserver.startWatching();
+        FAIL_RETURN(CFile::New(String("/vendor/app"), (IFile**)&mVendorAppDir));
+
+        {
+            String path;
+            mVendorAppDir->GetPath(&path);
+            mVendorInstallObserver
+                = new AppDirObserver(path, OBSERVER_EVENTS, TRUE, this);
+            mVendorInstallObserver->StartWatching();
+        }
+
         ScanDirLI(mVendorAppDir.Get(), CapsuleParser::PARSE_IS_SYSTEM
             | CapsuleParser::PARSE_IS_SYSTEM_DIR, scanMode, 0);
 
@@ -1750,26 +5534,33 @@ ECode CCapsuleManagerService::constructor(
             mInstaller->MoveFiles();
         }
 
-//	        // Prune any system packages that no longer exist.
-//	        Iterator<PackageSetting> psit = mSettings.mPackages.values().iterator();
-//	        while (psit.hasNext()) {
-//	            PackageSetting ps = psit.next();
-//	            if ((ps.pkgFlags&ApplicationInfo.FLAG_SYSTEM) != 0
-//	                    && !mPackages.containsKey(ps.name)
-//	                    && !mSettings.mDisabledSysPackages.containsKey(ps.name)) {
-//	                psit.remove();
-//	                String msg = "System package " + ps.name
-//	                        + " no longer exists; wiping its data";
-//	                reportSettingsProblem(Log.WARN, msg);
-//	                if (mInstaller != null) {
-//	                    // XXX how to set useEncryptedFSDir for packages that
-//	                    // are not encrypted?
-//	                    mInstaller.remove(ps.name, true);
-//	                }
-//	            }
-//	        }
+        // Prune any system packages that no longer exist.
+        HashMap<String, AutoPtr<CapsuleSetting> >::Iterator csit;
+        for (csit = mSettings->mCapsules.Begin();
+             csit != mSettings->mCapsules.End();) {
+            CapsuleSetting* cs = csit->mSecond;
+            HashMap<String, CapsuleParser::Capsule*>::Iterator it1 = mCapsules.Find(cs->mName);
+            HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it2
+                = mSettings->mDisabledSysCapsules.Find(cs->mName);
+            if ((cs->mCapFlags & CApplicationInfo::FLAG_SYSTEM) != 0
+                && it1 == mCapsules.End()
+                && it2 == mSettings->mDisabledSysCapsules.End()) {
+                mSettings->mCapsules.Erase(csit++);
+                StringBuffer msg = StringBuffer("System capsule ")
+                    + cs->mName + " no Int64er exists; wiping its data";
+                ReportSettingsProblem(5 /*Log::WARN*/, (String)(const char*)msg);
+                if (mInstaller != NULL) {
+                    // XXX how to set useEncryptedFSDir for packages that
+                    // are not encrypted?
+                    mInstaller->Remove(cs->mName, TRUE);
+                }
+            }
+            else {
+                csit++;
+            }
+        }
 
-        FAIL_RETURN(CFile::New(dataDir.Get(), "app", (IFile**)&mAppInstallDir));
+        FAIL_RETURN(CFile::New(dataDir.Get(), String("app"), (IFile**)&mAppInstallDir));
 
         if (mInstaller == NULL) {
             // Make sure these dirs exist, when we are running in
@@ -1777,26 +5568,36 @@ ECode CCapsuleManagerService::constructor(
             Boolean isCreated = FALSE;
             mAppInstallDir->Mkdirs(&isCreated); // ScanDirLI() assumes this dir exists
         }
-//	        //look for any incomplete package installations
-//	        ArrayList<PackageSetting> deletePkgsList = mSettings.getListOfIncompleteInstallPackages();
-//	        //clean up list
-//	        for(int i = 0; i < deletePkgsList.size(); i++) {
-//	            //clean up here
-//	            cleanupInstallFailedPackage(deletePkgsList.get(i));
-//	        }
-//	        //delete tmp files
-//	        deleteTempPackageFiles();
+        //look for any incomplete package installations
+        //todo: deleteCapsList memory leak
+        List< AutoPtr<CapsuleSetting> >* deleteCapsList = mSettings->GetListOfIncompleteInstallCapsules();
+        //clean up list
+        List< AutoPtr<CapsuleSetting> >::Iterator dclit;
+        for (dclit = deleteCapsList->Begin();
+             dclit != deleteCapsList->End(); dclit++) {
+            //clean up here
+            CleanupInstallFailedCapsule(*dclit);
+        }
+        //delete tmp files
+        DeleteTempCapsuleFiles();
 
 //	        EventLog.writeEvent(EventLogTags.BOOT_PROGRESS_PMS_DATA_SCAN_START,
 //	                SystemClock.uptimeMillis());
-//	        mAppInstallObserver = new AppDirObserver(
-//	            mAppInstallDir.getPath(), OBSERVER_EVENTS, false);
-//	        mAppInstallObserver.startWatching();
+        {
+            String path;
+            mAppInstallDir->GetPath(&path);
+            mAppInstallObserver
+                = new AppDirObserver(path, OBSERVER_EVENTS, FALSE, this);
+            mAppInstallObserver->StartWatching();
+        }
         ScanDirLI(mAppInstallDir.Get(), 0, scanMode, 0);
-
-//	        mDrmAppInstallObserver = new AppDirObserver(
-//	            mDrmAppPrivateInstallDir.getPath(), OBSERVER_EVENTS, false);
-//	        mDrmAppInstallObserver.startWatching();
+        {
+            String path;
+            mDrmAppPrivateInstallDir->GetPath(&path);
+            mDrmAppInstallObserver
+                = new AppDirObserver(path, OBSERVER_EVENTS, FALSE, this);
+            mDrmAppInstallObserver->StartWatching();
+        }
         ScanDirLI(mDrmAppPrivateInstallDir.Get(), CapsuleParser::PARSE_FORWARD_LOCK,
             scanMode, 0);
 
@@ -1834,9 +5635,88 @@ ECode CCapsuleManagerService::constructor(
     return NOERROR;
 }
 
-ECode CCapsuleManagerService::SplitString(
-    /* [in] */ String str,
-    /* [in] */ Char8 sep,
+void CCapsuleManagerService::ReportSettingsProblem(
+    /* [in] */ Int32 priority,
+    /* [in] */ CString msg)
+{
+//	    try {
+//	        File fname = getSettingsProblemFile();
+//	        FileOutputStream out = new FileOutputStream(fname, true);
+//	        PrintWriter pw = new PrintWriter(out);
+//	        SimpleDateFormat formatter = new SimpleDateFormat();
+//	        String dateString = formatter.format(new Date(System.currentTimeMillis()));
+//	        pw.println(dateString + ": " + msg);
+//	        pw.close();
+//	        FileUtils.setPermissions(
+//	                fname.toString(),
+//	                FileUtils.S_IRWXU|FileUtils.S_IRWXG|FileUtils.S_IROTH,
+//	                -1, -1);
+//	    } catch (java.io.IOException e) {
+//	    }
+//	    Slog.println(priority, TAG, msg);
+}
+
+void CCapsuleManagerService::CleanupInstallFailedCapsule(
+    /* [in] */ CapsuleSetting* cs)
+{
+    Slogger::I(TAG, StringBuffer("Cleaning up incompletely installed app: ") + cs->mName);
+    if (mInstaller != NULL) {
+        Boolean useSecureFS = UseEncryptedFilesystemForCapsule(cs->mCap);
+        Int32 retCode = mInstaller->Remove(cs->mName, useSecureFS);
+        if (retCode < 0) {
+            Slogger::W(TAG,
+                StringBuffer("Couldn't remove app data directory for capsule: ")
+                + cs->mName + ", retcode=" + retCode);
+        }
+    } else {
+        //for emulator
+        HashMap<String, CapsuleParser::Capsule*>::Iterator it = mCapsules.Find(cs->mName);
+        CapsuleParser::Capsule* cap = it->mSecond;
+        AutoPtr<IFile> dataDir;
+        ASSERT_SUCCEEDED(CFile::New(cap->mApplicationInfo->mDataDir, (IFile**)&dataDir));
+        Boolean isSucceeded = FALSE;
+        dataDir->Delete(&isSucceeded);
+    }
+    if (cs->mCodePath != NULL) {
+        Boolean isSucceeded = FALSE;
+        cs->mCodePath->Delete(&isSucceeded);
+        if (!isSucceeded) {
+            Slogger::W(TAG, StringBuffer("Unable to remove old code file: ")
+                + cs->mCodePath);
+        }
+    }
+    if (cs->mResourcePath != NULL) {
+        Boolean isSucceeded = FALSE, isSame = FALSE;
+        cs->mResourcePath->Delete(&isSucceeded);
+        cs->mResourcePath->Equals(cs->mCodePath, &isSame);
+        if (!isSucceeded && !isSame) {
+            Slogger::W(TAG, StringBuffer("Unable to remove old code file: ")
+                + cs->mResourcePath);
+        }
+    }
+    mSettings->RemoveCapsuleLP(cs->mName);
+}
+
+void CCapsuleManagerService::DeleteTempCapsuleFiles()
+{
+//	    FilenameFilter filter = new FilenameFilter() {
+//	        public boolean accept(File dir, String name) {
+//	            return name.startsWith("vmdl") && name.endsWith(".tmp");
+//	        }
+//	    };
+//	    String tmpFilesList[] = mAppInstallDir.list(filter);
+//	    if(tmpFilesList == null) {
+//	        return;
+//	    }
+//	    for(int i = 0; i < tmpFilesList.length; i++) {
+//	        File tmpFile = new File(mAppInstallDir, tmpFilesList[i]);
+//	        tmpFile.delete();
+//	    }
+}
+
+void CCapsuleManagerService::SplitString(
+    /* [in] */ const String& str,
+    /* [in] */ Char32 sep,
     /* [out] */ ArrayOf<String>** outStrs)
 {
     assert(outStrs);
@@ -1848,43 +5728,364 @@ ECode CCapsuleManagerService::SplitString(
     ArrayOf<String>* res = ArrayOf<String>::Alloc(count);
     Int32 i = 0;
     while (tokens->HasMoreTokens()) {
-        (*res)[i++] = String::Duplicate(tokens->NextToken());
+        (*res)[i++] = tokens->NextToken();
     }
     delete tokens;
     *outStrs = res;
-    return NOERROR;
 }
 
 ECode CCapsuleManagerService::ReadPermissions()
 {
-    return E_NOT_IMPLEMENTED;
+	// Read permissions from .../etc/permission directory.
+	AutoPtr<IFile> rootDir = Environment::GetRootDirectory();
+	AutoPtr<IFile> libraryDir;
+	FAIL_RETURN(CFile::New(rootDir.Get(), String("etc/permissions"), (IFile**)&libraryDir));
+	Boolean isExist = FALSE, isDir = FALSE;
+	libraryDir->Exists(&isExist);
+	libraryDir->IsDirectory(&isDir);
+	if (!isExist || !isDir) {
+		Slogger::W(TAG, StringBuffer("No directory ") + libraryDir + ", skipping");
+		return E_FAIL;
+	}
+	Boolean isReadable = FALSE;
+	libraryDir->CanRead(&isReadable);
+	if (!isReadable) {
+		Slogger::W(TAG, StringBuffer("Directory ") + libraryDir + " cannot be read");
+		return E_FAIL;
+	}
+
+	// Iterate over the files in the directory and scan .xml files
+	AutoPtr<IObjectContainer> files;
+	AutoPtr<IObjectEnumerator> filesEmu;
+	AutoPtr<IFile> f;
+	libraryDir->ListFiles((IObjectContainer**)&files);
+	files->GetObjectEnumerator((IObjectEnumerator**)&filesEmu);
+	Boolean hasNext = FALSE;
+	while (filesEmu->MoveNext(&hasNext), hasNext) {
+		AutoPtr<IInterface> obj;
+		filesEmu->Current((IInterface**)&obj);
+		f = (IFile*)obj.Get();
+
+		String path;
+        f->GetPath(&path);
+
+		// We'll read platform->mXml last
+		if (path.EndWith("etc/permissions/platform.xml")) {
+			continue;
+		}
+
+		if (!path.EndWith(".xml")) {
+			Slogger::I(TAG, StringBuffer("Non-xml file ")
+               + f + " in " + libraryDir + " directory, ignoring");
+			continue;
+		}
+
+        Boolean isReadable = FALSE;
+        f->CanRead(&isReadable);
+		if (!isReadable) {
+			Slogger::W(TAG, StringBuffer("Permissions library file ")
+               + f + " cannot be read");
+			continue;
+		}
+
+		FAIL_RETURN(ReadPermissionsFromXml(f.Get()));
+	}
+
+	// Read permissions from .../etc/permissions/platform.xml last so it will take precedence
+	AutoPtr<IFile> permFile;
+    FAIL_RETURN(CFile::New(rootDir.Get(), String("etc/permissions/platform.xml"), (IFile**)&permFile));
+    return ReadPermissionsFromXml(permFile);
 }
 
-ECode CCapsuleManagerService::GenerateCapsuleInfo(
-    /* [in] */ CapsuleParser::Capsule* c,
-    /* [in] */ Int32 flags,
-    /* [out] */ ICapsuleInfo** capInfo)
+ECode CCapsuleManagerService::ReadPermissionsFromXml(
+    /* [in] */ IFile* permFile)
 {
-    assert(capInfo);
+    AutoPtr<IInputStreamReader> permReader;
+    if (FAILED(CFileReader::New(permFile, (IInputStreamReader**)&permReader))) {
+        Slogger::W(TAG, StringBuffer("Couldn't find or open permissions file ") + permFile);
+        return E_FILE_NOT_FOUND_EXCEPTION;
+    }
 
+    ECode ec = NOERROR;
+    AutoPtr<IXmlPullParser> parser = Xml::NewPullParser();
+//	    parser->SetInput(permReader.Get());
+
+    XmlUtils::BeginDocument(parser.Get(), String("permissions"));
+
+    while (TRUE) {
+        XmlUtils::NextElement(parser.Get());
+        Int32 type = 0;
+        parser->GetEventType(&type);
+        if (type == IXmlPullParser_END_DOCUMENT) {
+            break;
+        }
+
+        String name;
+        parser->GetName(&name);
+        if (CString("group").Equals(name)) {
+            String gidStr;
+            parser->GetAttributeValueEx(NULL, "gid", &gidStr);
+            if (!gidStr.IsNull()) {
+                Int32 gid = gidStr.ToInt32();
+//                mGlobalGids = AppendInt(mGlobalGids.Get(), gid);
+            }
+            else {
+                String des;
+                parser->GetPositionDescription(&des);
+                Slogger::W(TAG, StringBuffer("<group> without gid at ") + des);
+            }
+
+            XmlUtils::SkipCurrentTag(parser);
+            continue;
+        }
+        else if (CString("permission").Equals(name)) {
+            String perm;
+            parser->GetAttributeValueEx(NULL, "name", &perm);
+            if (perm.IsNull()) {
+                String des;
+                parser->GetPositionDescription(&des);
+                Slogger::W(TAG, StringBuffer("<permission> without name at ") + des);
+                XmlUtils::SkipCurrentTag(parser);
+                continue;
+            }
+            // perm = perm->Intern();
+            ReadPermission(parser.Get(), perm);
+
+        }
+        else if (CString("assign-permission").Equals(name)) {
+            String perm;
+            parser->GetAttributeValueEx(NULL, "name", &perm);
+            if (perm.IsNull()) {
+                String des;
+                parser->GetPositionDescription(&des);
+                Slogger::W(TAG, StringBuffer("<assign-permission> without name at ") + des);
+                XmlUtils::SkipCurrentTag(parser);
+                continue;
+            }
+            String uidStr;
+            parser->GetAttributeValueEx(NULL, "uid", &uidStr);
+            if (uidStr.IsNull()) {
+                String des;
+                parser->GetPositionDescription(&des);
+                Slogger::W(TAG, StringBuffer("<assign-permission> without uid at ") + des);
+                XmlUtils::SkipCurrentTag(parser);
+                continue;
+            }
+            Int32 uid = Process::GetUidForName(uidStr);
+            if (uid < 0) {
+                String des;
+                parser->GetPositionDescription(&des);
+                Slogger::W(TAG, StringBuffer("<assign-permission> with unknown uid \"")
+                        + uidStr + "\" at " + des);
+                XmlUtils::SkipCurrentTag(parser);
+                continue;
+            }
+            HashMap<Int32, HashSet<String>* >::Iterator it = mSystemPermissions.Find(uid);
+            HashSet<String>* perms = it->mSecond;
+            if (perms == NULL) {
+                perms = new HashSet<String>();
+                mSystemPermissions[uid] = perms;
+            }
+            perms->Insert(perm);
+            XmlUtils::SkipCurrentTag(parser);
+
+        }
+        else if (CString("library").Equals(name)) {
+            String lname;
+            parser->GetAttributeValueEx(NULL, "name", &lname);
+            String lfile;
+            parser->GetAttributeValueEx(NULL, "file", &lfile);
+            if (lname.IsNull()) {
+                String des;
+                parser->GetPositionDescription(&des);
+                Slogger::W(TAG, StringBuffer("<library> without name at ") + des);
+            }
+            else if (lfile.IsNull()) {
+                String des;
+                parser->GetPositionDescription(&des);
+                Slogger::W(TAG, StringBuffer("<library> without file at ") + des);
+            }
+            else {
+                //Logger::I(TAG, "Got library " + lname + " in " + lfile);
+                mSharedLibraries[lname] = lfile;
+            }
+            XmlUtils::SkipCurrentTag(parser);
+            continue;
+
+        }
+        else if (CString("feature").Equals(name)) {
+            String fname;
+            parser->GetAttributeValueEx(NULL, "name", &fname);
+            if (fname.IsNull()) {
+                String des;
+                parser->GetPositionDescription(&des);
+                Slogger::W(TAG, StringBuffer("<feature> without name at ") + des);
+            }
+            else {
+                //Logger::I(TAG, "Got feature " + fname);
+                AutoPtr<CFeatureInfo> fi;
+                ec = CFeatureInfo::NewByFriend((CFeatureInfo**)&fi);
+                if (FAILED(ec)) break;
+                fi->mName = fname;
+                mAvailableFeatures[fname] = (IFeatureInfo*)fi.Get();
+            }
+            XmlUtils::SkipCurrentTag(parser);
+            continue;
+
+        } else {
+            XmlUtils::SkipCurrentTag(parser);
+            continue;
+        }
+    }
+
+    if (FAILED(ec)) {
+        Slogger::W(TAG, StringBuffer("Got execption parsing permissions.") + ec);
+    }
+
+    return ec;
+}
+
+void CCapsuleManagerService::AppendInt(
+    /* [in] */ ArrayOf<Int32>* cur,
+    /* [in] */ Int32 val,
+    /* [ou] */ ArrayOf<Int32>** ret)
+{
+//    if (cur == NULL) {
+//        cur = ArrayOf<Int32>::Alloc(1);
+//        if (cur == NULL) return NULL;
+//        (*cur)[0] = val;
+//        return cur;
+//    }
+//
+//    const Int32 N = cur->GetLength();
+//    for (Int32 i = 0; i < N; i++) {
+//        if ((*cur)[i] == val) {
+//            return cur;
+//        }
+//    }
+//
+//    ArrayOf<Int32>* ret = ArrayOf<Int32>::Alloc(N + 1);
+//    ret->Copy(cur);
+//    (*ret)[N] = val;
+//    return ret;
+}
+
+void CCapsuleManagerService::AppendInts(
+    /* [in] */ ArrayOf<Int32>* cur,
+    /* [in] */ ArrayOf<Int32>* add,
+    /* [ou] */ ArrayOf<Int32>** ret)
+{
+//    if (add == NULL) return cur;
+//    if (cur == NULL) return add;
+//    const Int32 N = add->GetLength();
+//    for (Int32 i=0; i < N; i++) {
+//        cur = AppendInt(cur, (*add)[i]);
+//    }
+//    return cur;
+}
+
+void CCapsuleManagerService::RemoveInt(
+    /* [in] */ ArrayOf<Int32>* cur,
+    /* [in] */ Int32 val,
+    /* [ou] */ ArrayOf<Int32>** ret)
+{
+//    if (cur == NULL) {
+//        return NULL;
+//    }
+//    const Int32 N = cur->GetLength();
+//    for (Int32 i = 0; i < N; i++) {
+//        if ((*cur)[i] == val) {
+//            ArrayOf<Int32>* ret = ArrayOf<Int32>::Alloc(N - 1); // new Int32[N-1];
+//            if (!ret) return NULL;
+//            if (i > 0) {
+//                memcpy(ret->GetPayload(), cur->GetPayload(), i * sizeof(Int32));
+//            }
+//            if (i < (N - 1)) {
+//                memcpy(ret->GetPayload() + i,
+//                    cur->GetPayload() + i + 1, (N - i - 1) * sizeof(Int32));
+//            }
+//            return ret;
+//        }
+//    }
+//    return cur;
+}
+
+void CCapsuleManagerService::RemoveInts(
+    /* [in] */ ArrayOf<Int32>* cur,
+    /* [in] */ ArrayOf<Int32>* rem,
+    /* [ou] */ ArrayOf<Int32>** ret)
+{
+//    if (rem == NULL) return cur;
+//    if (cur == NULL) return cur;
+//    const Int32 N = rem->GetLength();
+//    for (Int32 i = 0; i < N; i++) {
+//        cur = RemoveInt(cur, (*rem)[i]);
+//    }
+//    return cur;
+}
+
+ECode CCapsuleManagerService::ReadPermission(
+    /* [in] */ IXmlPullParser* parser,
+    /* [in] */ const String& name)
+{
+    HashMap<String, BasePermission*>::Iterator it = mSettings->mPermissions.Find(name);
+    BasePermission* bp = it->mSecond;
+    if (bp == NULL) {
+        bp = new BasePermission(name, String(NULL), BasePermission::TYPE_BUILTIN);
+        mSettings->mPermissions[name] = bp;
+    }
+
+    Int32 outerDepth = 0, depth = 0;
+    parser->GetDepth(&outerDepth);
+    Int32 type = 0;
+    while ((parser->Next(&type), type) != IXmlPullParser_END_DOCUMENT
+       && (type != IXmlPullParser_END_TAG
+           || (parser->GetDepth(&depth), depth) > outerDepth)) {
+        if (type == IXmlPullParser_END_TAG || type == IXmlPullParser_TEXT) {
+            continue;
+        }
+
+        String tagName;
+        parser->GetName(&tagName);
+        if (CString("group").Equals(tagName)) {
+            String gidStr;
+            parser->GetAttributeValueEx(NULL, "gid", &gidStr);
+            if (!gidStr.IsNull()) {
+                Int32 gid = Process::GetGidForName(gidStr);
+//                bp->mGids = AppendInt(bp->mGids.Get(), gid);
+            } else {
+                String des;
+                parser->GetPositionDescription(&des);
+                Slogger::W(TAG, StringBuffer("<group> without gid at ") + des);
+            }
+        }
+        XmlUtils::SkipCurrentTag(parser);
+    }
+
+    return NOERROR;
+}
+
+AutoPtr<CCapsuleInfo> CCapsuleManagerService::GenerateCapsuleInfo(
+    /* [in] */ CapsuleParser::Capsule* c,
+    /* [in] */ Int32 flags)
+{
     if ((flags & CapsuleManager_GET_UNINSTALLED_CAPSULES) != 0) {
         // The package has been uninstalled but has retained data and resources.
-        return CapsuleParser::GenerateCapsuleInfo(c, NULL, flags, 0, 0, capInfo);
+        return CapsuleParser::GenerateCapsuleInfo(c, NULL, flags, 0, 0);
     }
     CapsuleSetting* cs = (CapsuleSetting*)c->mExtras;
     if (cs == NULL) {
-        *capInfo = NULL;
-        return E_FAIL;
+        return NULL;
     }
     GrantedPermissions* gp = cs->mSharedUser != NULL
         ? (GrantedPermissions*)cs->mSharedUser
         : (GrantedPermissions*)cs;
     return CapsuleParser::GenerateCapsuleInfo(c, gp->mGids, flags,
-            cs->mFirstInstallTime, cs->mLastUpdateTime, capInfo);
+            cs->mFirstInstallTime, cs->mLastUpdateTime);
 }
 
 ECode CCapsuleManagerService::GetCapsuleInfo(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ Int32 flags,
     /* [out] */ ICapsuleInfo** capInfo)
 {
@@ -1897,14 +6098,16 @@ ECode CCapsuleManagerService::GetCapsuleInfo(
         Slogger::V(TAG, StringBuffer("getPackageInfo ")
             + capsuleName + ": " + (Int32)(*itor).mSecond);
     }
+    AutoPtr<ICapsuleInfo> ci;
     if (itor != mCapsules.End()) {
-        return GenerateCapsuleInfo((*itor).mSecond, flags, capInfo);
+        ci = GenerateCapsuleInfo((*itor).mSecond, flags);
     }
     if((flags & CapsuleManager_GET_UNINSTALLED_CAPSULES) != 0) {
-        return GenerateCapsuleInfoFromSettingsLP(capsuleName, flags, capInfo);
+        ci = GenerateCapsuleInfoFromSettingsLP(capsuleName, flags);
     }
-    *capInfo = NULL;
-    return E_FAIL;
+    *capInfo = ci;
+    if (*capInfo != NULL)(*capInfo)->AddRef();
+    return NOERROR;
 }
 
 ECode CCapsuleManagerService::CurrentToCanonicalCapsuleNames(
@@ -1918,11 +6121,10 @@ ECode CCapsuleManagerService::CurrentToCanonicalCapsuleNames(
     {
         Mutex::Autolock lock(mCapsulesLock);
         for (Int32 i = names.GetLength() - 1; i >= 0; i--) {
-            HashMap<String, CapsuleSetting*>::Iterator itor =
-                                    mSettings->mCapsules.Find(names[i]);
+            HashMap<String, AutoPtr<CapsuleSetting> >::Iterator itor =
+                    mSettings->mCapsules.Find(names[i]);
             (*out)[i] = itor != mSettings->mCapsules.End() && !(*itor).mSecond->mRealName.IsNull()
-                ? String::Duplicate((*itor).mSecond->mRealName)
-                : String::Duplicate(names[i]);
+                ? (*itor).mSecond->mRealName : names[i];
         }
     }
     *pnames = out;
@@ -1941,9 +6143,9 @@ ECode CCapsuleManagerService::CanonicalToCurrentCapsuleNames(
         Mutex::Autolock lock(mCapsulesLock);
         for (Int32 i = names.GetLength() - 1; i >= 0; i--) {
             HashMap<String, String>::Iterator itor =
-                                mSettings->mRenamedPackages.Find(names[i]);
-            (*out)[i] = itor != mSettings->mRenamedPackages.End()
-                ? String::Duplicate((*itor).mSecond) : String::Duplicate(names[i]);
+                                mSettings->mRenamedCapsules.Find(names[i]);
+            (*out)[i] = itor != mSettings->mRenamedCapsules.End()
+                ? (*itor).mSecond : names[i];
         }
     }
     *pnames = out;
@@ -1951,7 +6153,7 @@ ECode CCapsuleManagerService::CanonicalToCurrentCapsuleNames(
 }
 
 ECode CCapsuleManagerService::GetCapsuleUid(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [out] */ Int32* uid)
 {
     VALIDATE_STRING_NOT_NULL(capsuleName);
@@ -1963,7 +6165,7 @@ ECode CCapsuleManagerService::GetCapsuleUid(
         *uid = (*myItor).mSecond->mApplicationInfo->mUid;
         return NOERROR;
     }
-    HashMap<String, CapsuleSetting*>::Iterator itor = mSettings->mCapsules.Find(capsuleName);
+    HashMap<String, AutoPtr<CapsuleSetting> >::Iterator itor = mSettings->mCapsules.Find(capsuleName);
     if( itor == mSettings->mCapsules.End()
         || (*itor).mSecond == NULL
         || (*itor).mSecond->mCap == NULL
@@ -1976,7 +6178,7 @@ ECode CCapsuleManagerService::GetCapsuleUid(
 }
 
 ECode CCapsuleManagerService::GetCapsuleGids(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [out, callee] */ ArrayOf<Int32>** gids)
 {
     VALIDATE_STRING_NOT_NULL(capsuleName);
@@ -1999,30 +6201,26 @@ ECode CCapsuleManagerService::GetCapsuleGids(
     return E_FAIL;
 }
 
-ECode CCapsuleManagerService::GeneratePermissionInfo(
+AutoPtr<IPermissionInfo> CCapsuleManagerService::GeneratePermissionInfo(
     /* [in] */ BasePermission* bp,
-    /* [in] */ Int32 flags,
-    /* [out] */ IPermissionInfo** info)
+    /* [in] */ Int32 flags)
 {
     assert(bp);
-    assert(info);
 
     if (bp->mPerm != NULL) {
-        return CapsuleParser::GeneratePermissionInfo(bp->mPerm, flags, info);
+        return CapsuleParser::GeneratePermissionInfo(bp->mPerm, flags);
     }
     AutoPtr<CPermissionInfo> pi;
-    FAIL_RETURN(CPermissionInfo::NewByFriend((CPermissionInfo**)&pi));
-    pi->mName = String::Duplicate(bp->mName);
-    pi->mCapsuleName = String::Duplicate(bp->mSourceCapsule);
-    CStringWrapper::New(String::Duplicate(bp->mName), (ICharSequence**)&pi->mNonLocalizedLabel);
+    ASSERT_SUCCEEDED(CPermissionInfo::NewByFriend((CPermissionInfo**)&pi));
+    pi->mName = bp->mName;
+    pi->mCapsuleName = bp->mSourceCapsule;
+    CStringWrapper::New(bp->mName, (ICharSequence**)&pi->mNonLocalizedLabel);
     pi->mProtectionLevel = bp->mProtectionLevel;
-    *info = (IPermissionInfo*)pi.Get();
-    (*info)->AddRef();
-    return NOERROR;
+    return (IPermissionInfo*)pi.Get();
 }
 
 ECode CCapsuleManagerService::GetPermissionInfo(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in] */ Int32 flags,
     /* [out] */ IPermissionInfo** info)
 {
@@ -2033,14 +6231,17 @@ ECode CCapsuleManagerService::GetPermissionInfo(
     HashMap<String, BasePermission*>::Iterator itor =
                                 mSettings->mPermissions.Find(name);
     if (itor != mSettings->mPermissions.End()) {
-        return GeneratePermissionInfo((*itor).mSecond, flags, info);
+        AutoPtr<IPermissionInfo> pi = GeneratePermissionInfo((*itor).mSecond, flags);
+        *info = pi;
+        if (*info != NULL) (*info)->AddRef();
+        return NOERROR;
     }
     *info = NULL;
     return E_FAIL;
 }
 
 ECode CCapsuleManagerService::QueryPermissionsByGroup(
-    /* [in] */ String group,
+    /* [in] */ const String& group,
     /* [in] */ Int32 flags,
     /* [out, callee] */ IObjectContainer** infos)
 {
@@ -2050,7 +6251,7 @@ ECode CCapsuleManagerService::QueryPermissionsByGroup(
     Mutex::Autolock lock(mCapsulesLock);
 
     AutoPtr<IObjectContainer> out;
-    FAIL_RETURN( CObjectContainer::New((IObjectContainer**)&out) );
+    FAIL_RETURN( CParcelableObjectContainer::New((IObjectContainer**)&out) );
 
     HashMap<String, BasePermission*>::Iterator itor;
     for (itor = mSettings->mPermissions.Begin();
@@ -2062,14 +6263,13 @@ ECode CCapsuleManagerService::QueryPermissionsByGroup(
         if (group.IsNull()) {
             if (p->mPerm == NULL
                 || p->mPerm->mInfo->mGroup.IsNull()) {
-                FAIL_RETURN( GeneratePermissionInfo(
-                    p, flags, (IPermissionInfo**)&info) );
+                info = GeneratePermissionInfo(p, flags);
                 out->Add(info.Get());
             }
-        } else {
+        }
+        else {
             if (p->mPerm == NULL && group.Equals(p->mPerm->mInfo->mGroup)) {
-                FAIL_RETURN( CapsuleParser::GeneratePermissionInfo(
-                    p->mPerm, flags, (IPermissionInfo**)&info) );
+                info = CapsuleParser::GeneratePermissionInfo(p->mPerm, flags);
                 out->Add(info.Get());
             }
         }
@@ -2093,7 +6293,7 @@ ECode CCapsuleManagerService::QueryPermissionsByGroup(
 }
 
 ECode CCapsuleManagerService::GetPermissionGroupInfo(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in] */ Int32 flags,
     /* [out] */ IPermissionGroupInfo** info)
 {
@@ -2117,7 +6317,7 @@ ECode CCapsuleManagerService::GetAllPermissionGroups(
     Mutex::Autolock lock(mCapsulesLock);
 
     AutoPtr<IObjectContainer> out;
-    FAIL_RETURN( CObjectContainer::New((IObjectContainer**)&out) );
+    FAIL_RETURN( CParcelableObjectContainer::New((IObjectContainer**)&out) );
 
     HashMap<String, CapsuleParser::PermissionGroup*>::Iterator itor;
     for (itor = mPermissionGroups.Begin();
@@ -2134,71 +6334,59 @@ ECode CCapsuleManagerService::GetAllPermissionGroups(
     return NOERROR;
 }
 
-ECode CCapsuleManagerService::GenerateApplicationInfoFromSettingsLP(
-    /* [in] */ String capsuleName,
-    /* [in] */ Int32 flags,
-    /* [out] */ IApplicationInfo** info)
+AutoPtr<CApplicationInfo> CCapsuleManagerService::GenerateApplicationInfoFromSettingsLP(
+    /* [in] */ const String& capsuleName,
+    /* [in] */ Int32 flags)
 {
-    VALIDATE_STRING_NOT_NULL(capsuleName);
-    VALIDATE_NOT_NULL(info);
-    *info = NULL;
+    assert(!capsuleName.IsNull());
 
-    HashMap<String, CapsuleSetting*>::Iterator itor
-                            = mSettings->mCapsules.Find(capsuleName);
+    HashMap<String, AutoPtr<CapsuleSetting> >::Iterator itor
+            = mSettings->mCapsules.Find(capsuleName);
     CapsuleSetting* cs = itor->mSecond;
 
     if(cs != NULL) {
         if(cs->mCap == NULL) {
-            AutoPtr<ICapsuleInfo> capInfo;
-
-            FAIL_RETURN( GenerateCapsuleInfoFromSettingsLP(
-                capsuleName, flags, (ICapsuleInfo**)&capInfo) );
+            AutoPtr<CCapsuleInfo> capInfo = GenerateCapsuleInfoFromSettingsLP(
+                    capsuleName, flags);
             if(capInfo != NULL) {
-                *info = ((CCapsuleInfo*)capInfo.Get())->mApplicationInfo.Get();
-                if (*info) (*info)->AddRef();
-                return NOERROR;
+                return (CApplicationInfo*)capInfo->mApplicationInfo.Get();
             }
-            return E_FAIL;
+            return NULL;
         }
-        return CapsuleParser
-            ::GenerateApplicationInfo(cs->mCap, flags, (CApplicationInfo**)info);
+        return CapsuleParser::GenerateApplicationInfo(cs->mCap, flags);
     }
 
-    return E_FAIL;
+    return NULL;
 }
 
-ECode CCapsuleManagerService::GenerateCapsuleInfoFromSettingsLP(
-    /* [in] */ String capsuleName,
-    /* [in] */ Int32 flags,
-    /* [out] */ ICapsuleInfo** capInfo)
+AutoPtr<CCapsuleInfo> CCapsuleManagerService::GenerateCapsuleInfoFromSettingsLP(
+    /* [in] */ const String& capsuleName,
+    /* [in] */ Int32 flags)
 {
-    VALIDATE_STRING_NOT_NULL(capsuleName);
-    VALIDATE_NOT_NULL(capInfo);
-    *capInfo = NULL;
+    assert(!capsuleName.IsNull());
 
-    HashMap<String, CapsuleSetting*>::Iterator itor
-                                = mSettings->mCapsules.Find(capsuleName);
+    HashMap<String, AutoPtr<CapsuleSetting> >::Iterator itor
+            = mSettings->mCapsules.Find(capsuleName);
     CapsuleSetting* cs = itor->mSecond;
     if(cs != NULL) {
         if(cs->mCap == NULL) {
             cs->mCap = new CapsuleParser::Capsule(capsuleName);
-            cs->mCap->mApplicationInfo->mCapsuleName = String::Duplicate(capsuleName);
+            cs->mCap->mApplicationInfo->mCapsuleName = capsuleName;
             cs->mCap->mApplicationInfo->mFlags = cs->mCapFlags;
-            cs->mCap->mApplicationInfo->mPublicSourceDir = String::Duplicate(cs->mResourcePathString);
-            cs->mCap->mApplicationInfo->mSourceDir = String::Duplicate(cs->mCodePathString);
-            AutoPtr<IFile> path;
-            FAIL_RETURN( GetDataPathForCapsule(*cs->mCap, (IFile**)&path) );
+            cs->mCap->mApplicationInfo->mPublicSourceDir = cs->mResourcePathString;
+            cs->mCap->mApplicationInfo->mSourceDir = cs->mCodePathString;
+            AutoPtr<IFile> path = GetDataPathForCapsule(cs->mCap);
             path->GetPath(&cs->mCap->mApplicationInfo->mDataDir);
             cs->mCap->mApplicationInfo->mNativeLibraryDir = cs->mNativeLibraryPathString;
             cs->mCap->mSetEnabled = cs->mEnabled;
         }
-        return GenerateCapsuleInfo(cs->mCap, flags, capInfo);
+        return GenerateCapsuleInfo(cs->mCap, flags);
     }
-    return E_FAIL;
+    return NULL;
 }
 
 ECode CCapsuleManagerService::GetApplicationInfo(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ Int32 flags,
     /* [out] */ IApplicationInfo** appInfo)
 {
@@ -2219,10 +6407,8 @@ ECode CCapsuleManagerService::GetApplicationInfo(
     if (c != NULL) {
         AutoPtr<CApplicationInfo> cinfo;
         // Note: isEnabledLP() does not apply here - always return info
-        FAIL_RETURN( CapsuleParser::GenerateApplicationInfo(c, flags,
-                (CApplicationInfo**)&cinfo) );
-
-        *appInfo = (IApplicationInfo*)(CApplicationInfo*)cinfo;
+        cinfo = CapsuleParser::GenerateApplicationInfo(c, flags);
+        *appInfo = (IApplicationInfo*)cinfo.Get();
         (*appInfo)->AddRef();
         return NOERROR;
     }
@@ -2235,7 +6421,10 @@ ECode CCapsuleManagerService::GetApplicationInfo(
     }
 
     if((flags & CapsuleManager_GET_UNINSTALLED_CAPSULES) != 0) {
-        return GenerateApplicationInfoFromSettingsLP(capsuleName, flags, appInfo);
+        AutoPtr<CApplicationInfo> cinfo = GenerateApplicationInfoFromSettingsLP(capsuleName, flags);
+        *appInfo = (IApplicationInfo*)cinfo.Get();
+        (*appInfo)->AddRef();
+        return NOERROR;
     }
 
     return E_FAIL;
@@ -2330,7 +6519,7 @@ ECode CCapsuleManagerService::GetContentProviderInfo(
 
     Mutex::Autolock lock(mCapsulesLock);
 
-    AutoString name;
+    String name;
     component->GetClassName(&name);
 
     HashMap<String, CapsuleParser::ContentProvider*>::Iterator itor
@@ -2349,8 +6538,8 @@ ECode CCapsuleManagerService::GetContentProviderInfo(
 }
 
 ECode CCapsuleManagerService::CheckPermission(
-    /* [in] */ String permName,
-    /* [in] */ String capName,
+    /* [in] */ const String& permName,
+    /* [in] */ const String& capName,
     /* [out] */ Int32* perm)
 {
     VALIDATE_STRING_NOT_NULL(permName);
@@ -2386,30 +6575,70 @@ ECode CCapsuleManagerService::CheckPermission(
 }
 
 ECode CCapsuleManagerService::CheckUidPermission(
-    /* [in] */ String permName,
+    /* [in] */ const String& permName,
     /* [in] */ Int32 uid,
     /* [out] */ Int32* perm)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(perm);
+
+    Mutex::Autolock lock(mCapsulesLock);
+
+    //todo: check;
+    GrantedPermissions* gp = (GrantedPermissions*)mSettings->GetUserIdLP(uid).Get();
+    if (gp != NULL) {
+        HashSet<String>::Iterator it = gp->mGrantedPermissions.Find(permName);
+        if (it != gp->mGrantedPermissions.End()) {
+            *perm = CapsuleManager_PERMISSION_GRANTED;
+            return NOERROR;
+        }
+    } else {
+        HashMap<Int32, HashSet<String>* >::Iterator it = mSystemPermissions.Find(uid);
+        HashSet<String>* perms = it->mSecond;
+        if (perms != NULL) {
+            HashSet<String>::Iterator pit = perms->Find(permName);
+            if (pit != perms->End()) {
+                *perm = CapsuleManager_PERMISSION_GRANTED;
+                return NOERROR;
+            }
+        }
+    }
+
+    *perm = CapsuleManager_PERMISSION_DENIED;
+    return NOERROR;
 }
 
 ECode CCapsuleManagerService::AddPermission(
     /* [in] */ IPermissionInfo* info,
     /* [out] */ Boolean* isAdded)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(info);
+    VALIDATE_NOT_NULL(isAdded);
+    Mutex::Autolock lock(mCapsulesLock);
+    return AddPermissionLocked(info, FALSE, isAdded);
 }
 
 ECode CCapsuleManagerService::RemovePermission(
-    /* [in] */ String name)
+    /* [in] */ const String& name)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    Mutex::Autolock lock(mCapsulesLock);
+
+    CheckPermissionTreeLP(name, NULL);
+    HashMap<String, BasePermission*>::Iterator it = mSettings->mPermissions.Find(name);
+    BasePermission* bp = it->mSecond;
+    if (bp != NULL) {
+        if (bp->mType != BasePermission::TYPE_DYNAMIC) {
+            Logger::E(TAG, StringBuffer("Not allowed to modify non-dynamic permission ") + name);
+            return E_SECURITY_EXCEPTION;
+        }
+        mSettings->mPermissions.Erase(name);
+        mSettings->WriteLP();
+    }
+
+    return NOERROR;
 }
 
 ECode CCapsuleManagerService::IsProtectedBroadcast(
-    /* [in] */ String actionName,
+    /* [in] */ const String& actionName,
     /* [out] */ Boolean* result)
 {
     VALIDATE_NOT_NULL(result);
@@ -2421,8 +6650,8 @@ ECode CCapsuleManagerService::IsProtectedBroadcast(
 }
 
 ECode CCapsuleManagerService::CheckSignatures(
-    /* [in] */ String cap1,
-    /* [in] */ String cap2,
+    /* [in] */ const String& cap1,
+    /* [in] */ const String& cap2,
     /* [out] */ Int32* sig)
 {
     VALIDATE_NOT_NULL(sig);
@@ -2435,7 +6664,9 @@ ECode CCapsuleManagerService::CheckSignatures(
         *sig = CapsuleManager_SIGNATURE_UNKNOWN_CAPSULE;
         return NOERROR;
     }
-    return CheckSignaturesLP(p1->mSecond->mSignatures, p2->mSecond->mSignatures, sig);
+    return CheckSignaturesLP(
+        p1->mSecond->mSignatures.Get(),
+        p2->mSecond->mSignatures.Get(), sig);
 }
 
 ECode CCapsuleManagerService::CheckUidSignatures(
@@ -2443,34 +6674,61 @@ ECode CCapsuleManagerService::CheckUidSignatures(
     /* [in] */ Int32 uid2,
     /* [out] */ Int32* sig)
 {
-    // TODO: Add your code here
+//	    synchronized (mCapsules) {
+//	        Signature[] s1;
+//	        Signature[] s2;
+//	        Object obj = mSettings->GetUserIdLP(uid1);
+//	        if (obj != NULL) {
+//	            if (obj instanceof SharedUserSetting) {
+//	                s1 = ((SharedUserSetting)obj)->signatures->mSignatures;
+//	            } else if (obj instanceof CapsuleSetting) {
+//	                s1 = ((CapsuleSetting)obj)->signatures->mSignatures;
+//	            } else {
+//	                return CapsuleManager::SIGNATURE_UNKNOWN_CAPSULE;
+//	            }
+//	        } else {
+//	            return CapsuleManager::SIGNATURE_UNKNOWN_CAPSULE;
+//	        }
+//	        obj = mSettings->GetUserIdLP(uid2);
+//	        if (obj != NULL) {
+//	            if (obj instanceof SharedUserSetting) {
+//	                s2 = ((SharedUserSetting)obj)->signatures->mSignatures;
+//	            } else if (obj instanceof CapsuleSetting) {
+//	                s2 = ((CapsuleSetting)obj)->signatures->mSignatures;
+//	            } else {
+//	                return CapsuleManager::SIGNATURE_UNKNOWN_CAPSULE;
+//	            }
+//	        } else {
+//	            return CapsuleManager::SIGNATURE_UNKNOWN_CAPSULE;
+//	        }
+//	        return CheckSignaturesLP(s1, s2);
+//	    }
+
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CCapsuleManagerService::CheckSignaturesLP(
-    /* [in] */ List<Signature*>& s1,
-    /* [in] */ List<Signature*>& s2,
+    /* [in] */ ArrayOf< AutoPtr<ISignature> >* s1,
+    /* [in] */ ArrayOf< AutoPtr<ISignature> >* s2,
     /* [out] */ Int32* sig)
 {
-    if (s1.IsEmpty()) {
-        return s2.IsEmpty()
+    if (s1 == NULL || s1->GetLength() == 0) {
+        return s2 == NULL || s2->GetLength() == 0
                 ? CapsuleManager_SIGNATURE_NEITHER_SIGNED
                 : CapsuleManager_SIGNATURE_FIRST_NOT_SIGNED;
     }
-    if (s2.IsEmpty()) {
+    if (s2 == NULL || s2->GetLength() == 0) {
         return CapsuleManager_SIGNATURE_SECOND_NOT_SIGNED;
     }
 
     Boolean isContained = TRUE;
-    List<Signature*>::Iterator it1;
-    List<Signature*>::Iterator it2;
-    for (it1 = s1.Begin(); it1 != s1.End(); it1++) {
+    for (Int32 i = 0; i < s1->GetLength(); i++) {
         Boolean is = FALSE;
-        for (it2 = s2.Begin(); it2 != s2.End(); it2++) {
-            if ((*it1)->Equals(*it2)) {
-                is = TRUE;
-                break;
-            }
+        for (Int32 j = 0; j < s1->GetLength(); j++) {
+//            if ((*s1)[i]->Equals((*s1)[j])) {
+//                is = TRUE;
+//                break;
+//            }
         }
         if (!is) {
             isContained = FALSE;
@@ -2491,7 +6749,8 @@ ECode CCapsuleManagerService::GetCapsulesForUid(
     VALIDATE_NOT_NULL(capsules);
 
     Mutex::Autolock Lock(mCapsulesLock);
-    GrantedPermissions* obj = mSettings->GetUserIdLP(uid);
+    //todo: check
+    GrantedPermissions* obj = (GrantedPermissions*)mSettings->GetUserIdLP(uid).Get();
 //	    if (dynamic_cast<SharedUserSetting*>(obj)) {
     if (obj) {
         SharedUserSetting* sus = (SharedUserSetting*)obj;
@@ -2501,7 +6760,7 @@ ECode CCapsuleManagerService::GetCapsulesForUid(
         Int32 i = 0;
         HashMap<String, CapsuleParser::Capsule*>::Iterator it;
         for (it = mCapsules.Begin(); it != mCapsules.End(); it++) {
-            (*res)[i++] = String::Duplicate(it->mFirst);
+            (*res)[i++] = it->mFirst;
         }
         *capsules = res;
         return NOERROR;
@@ -2520,11 +6779,11 @@ ECode CCapsuleManagerService::GetNameForUid(
     VALIDATE_NOT_NULL(name);
 
     Mutex::Autolock Lock(mCapsulesLock);
-    GrantedPermissions* obj = mSettings->GetUserIdLP(uid);
+    GrantedPermissions* obj = (GrantedPermissions*)mSettings->GetUserIdLP(uid).Get();
 //	    if (obj instanceof SharedUserSetting) {
     if (obj) {
         SharedUserSetting* sus = (SharedUserSetting*)obj;
-        *name = String::Duplicate(StringBuffer(sus->mName) + ":" + sus->mUserId);
+        *name = (const char*)(StringBuffer(sus->mName) + ":" + sus->mUserId);
 //	    } else if (obj instanceof PackageSetting) {
 //	        PackageSetting ps = (PackageSetting)obj;
 //	        return ps.name;
@@ -2534,7 +6793,7 @@ ECode CCapsuleManagerService::GetNameForUid(
 }
 
 ECode CCapsuleManagerService::GetUidForSharedUser(
-    /* [in] */ String sharedUserName,
+    /* [in] */ const String& sharedUserName,
     /* [out] */ Int32* uid)
 {
     VALIDATE_NOT_NULL(uid);
@@ -2555,7 +6814,7 @@ ECode CCapsuleManagerService::GetUidForSharedUser(
 
 ECode CCapsuleManagerService::ResolveIntent(
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ Int32 flags,
     /* [out] */ IResolveInfo** resolveInfo)
 {
@@ -2568,7 +6827,7 @@ ECode CCapsuleManagerService::ResolveIntent(
 
 ECode CCapsuleManagerService::QueryIntentActivities(
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ Int32 flags,
     /* [out, callee] */ IObjectContainer** infos)
 {
@@ -2578,7 +6837,7 @@ ECode CCapsuleManagerService::QueryIntentActivities(
     intent->GetComponent((IComponentName**)&comp);
     if (comp != NULL) {
         AutoPtr<IObjectContainer> list;
-        FAIL_RETURN(CObjectContainer::New((IObjectContainer**)&list));
+        FAIL_RETURN(CParcelableObjectContainer::New((IObjectContainer**)&list));
         AutoPtr<IActivityInfo> ai;
         GetActivityInfo(comp, flags, (IActivityInfo**)&ai);
         if (ai != NULL) {
@@ -2602,7 +6861,7 @@ ECode CCapsuleManagerService::QueryIntentActivities(
             if (!items) return E_RUNTIME_EXCEPTION;
 
             AutoPtr<IObjectContainer> list;
-            FAIL_RETURN(CObjectContainer::New((IObjectContainer**)&list));
+            FAIL_RETURN(CParcelableObjectContainer::New((IObjectContainer**)&list));
             List<AutoPtr<CResolveInfo>*>::Iterator it;
             for (it = items->Begin(); it != items->End(); it++) {
                 list->Add((IResolveInfo*)*it);
@@ -2620,7 +6879,7 @@ ECode CCapsuleManagerService::QueryIntentActivities(
             if (!items) return E_RUNTIME_EXCEPTION;
 
             AutoPtr<IObjectContainer> list;
-            FAIL_RETURN(CObjectContainer::New((IObjectContainer**)&list));
+            FAIL_RETURN(CParcelableObjectContainer::New((IObjectContainer**)&list));
             List<AutoPtr<CResolveInfo>*>::Iterator it;
             for (it = items->Begin(); it != items->End(); it++) {
                 list->Add((IResolveInfo*)*it);
@@ -2641,7 +6900,7 @@ ECode CCapsuleManagerService::QueryIntentActivityOptions(
     /* [in] */ const ArrayOf<IIntent*>& specifics,
     /* [in] */ const ArrayOf<String>& specificTypes,
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ Int32 flags,
     /* [out, callee] */ IObjectContainer** infos)
 {
@@ -2678,12 +6937,11 @@ ECode CCapsuleManagerService::QueryIntentActivityOptions(
                 Logger::V(TAG, StringBuffer("Specific #") + i + ": " + sintent);
             }
 
-            AutoString action;
+            String action;
             sintent->GetAction(&action);
             if (!resultsAction.IsNull() && resultsAction.Equals(action)) {
                 // If this action was explicitly requested, then don't
                 // remove things that have it.
-                String::Free(action);
                 action = String(NULL);
             }
             AutoPtr<IComponentName> comp;
@@ -2692,7 +6950,7 @@ ECode CCapsuleManagerService::QueryIntentActivityOptions(
             AutoPtr<IActivityInfo> ai;
             if (comp == NULL) {
                 ResolveIntent(sintent,
-                    specificTypes.GetPayload()!= NULL ? specificTypes[i] : NULL,
+                    specificTypes.GetPayload()!= NULL ? specificTypes[i] : String(NULL),
                     flags, (IResolveInfo**)&ri);
                 if (ri == NULL) {
                     continue;
@@ -2726,7 +6984,7 @@ ECode CCapsuleManagerService::QueryIntentActivityOptions(
                 }
 
                 AutoPtr<CResolveInfo> sri = **it;
-                AutoString clsName, capName;
+                String clsName, capName;
                 comp->GetClassName(&clsName);
                 comp->GetCapsuleName(&capName);
                 if ((sri->mActivityInfo->mName.Equals(clsName)
@@ -2817,7 +7075,7 @@ ECode CCapsuleManagerService::QueryIntentActivityOptions(
         List<AutoPtr<CResolveInfo>*>::Iterator it;
         for (it = results->Begin(); it != results->End();) {
             AutoPtr<CActivityInfo> ainfo = (**it)->mActivityInfo;
-            AutoString capName, clsName;
+            String capName, clsName;
             caller->GetCapsuleName(&capName);
             caller->GetClassName(&clsName);
             if (capName.Equals(ainfo->mApplicationInfo->mCapsuleName)
@@ -2847,9 +7105,8 @@ ECode CCapsuleManagerService::QueryIntentActivityOptions(
     }
 
     AutoPtr<IObjectContainer> container;
-    FAIL_RETURN(CObjectContainer::New((IObjectContainer**)&container));
+    FAIL_RETURN(CParcelableObjectContainer::New((IObjectContainer**)&container));
 
-//	    List<AutoPtr<CResolveInfo>*>::Iterator it;
     for (it = results->Begin(); it != results->End(); it++) {
         container->Add(((IResolveInfo*)(**it).Get()));
     }
@@ -2862,7 +7119,7 @@ ECode CCapsuleManagerService::QueryIntentActivityOptions(
 List<AutoPtr<CResolveInfo>*>*
 CCapsuleManagerService::QueryIntentActivities(
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ int flags)
 {
     AutoPtr<IComponentName> comp;
@@ -2882,7 +7139,7 @@ CCapsuleManagerService::QueryIntentActivities(
 
     Mutex::Autolock lock(mCapsulesLock);
 
-    AutoString capName;
+    String capName;
     intent->GetCapsule(&capName);
     if (capName.IsNull()) {
         return mActivities->QueryIntent(intent,
@@ -2903,7 +7160,7 @@ CCapsuleManagerService::QueryIntentActivities(
 
 ECode CCapsuleManagerService::ChooseBestActivity(
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ Int32 flags,
     /* [in] */ List<AutoPtr<CResolveInfo>*>* query,
     /* [out] */ IResolveInfo** resolveInfo)
@@ -2913,7 +7170,8 @@ ECode CCapsuleManagerService::ChooseBestActivity(
         if (size == 1) {
             *resolveInfo = (IResolveInfo*)(CResolveInfo*)(*(*(query->Begin())));
             return NOERROR;
-        } else if (size > 1) {
+        }
+        else if (size > 1) {
             // If there is more than one activity with the same priority,
             // then let the user decide between them.
             AutoPtr<CResolveInfo>* r0 = *(query->Begin());
@@ -2948,9 +7206,9 @@ ECode CCapsuleManagerService::ChooseBestActivity(
     return NOERROR;
 }
 
-CResolveInfo* CCapsuleManagerService::FindPreferredActivity(
+AutoPtr<CResolveInfo> CCapsuleManagerService::FindPreferredActivity(
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ Int32 flags,
     /* [in] */ List<AutoPtr<CResolveInfo>*>* query,
     /* [in] */ Int32 priority)
@@ -3017,15 +7275,15 @@ CResolveInfo* CCapsuleManagerService::FindPreferredActivity(
                     // If the result set is different from when this
                     // was created, we need to clear it and re-ask the
                     // user their preference.
-                    if (!pa->SameSet(query, priority)) {
-                        Slogger::I(TAG, StringBuffer("Result set changed, dropping preferred activity for ")
-                            + intent + " type " + resolvedType);
+//                    if (!pa->SameSet(query, priority)) {
+//                        Slogger::I(TAG, StringBuffer("Result set changed, dropping preferred activity for ")
+//                            + intent + " type " + resolvedType);
 //	                        mSettings->mPreferredActivities->RemoveFilter(pa);
-                        return NULL;
-                    }
+//                        return NULL;
+//                    }
 
                     // Yay!
-                    return ri.Get();
+                    return ri;
                 }
             }
         }
@@ -3035,7 +7293,7 @@ CResolveInfo* CCapsuleManagerService::FindPreferredActivity(
 
 ECode CCapsuleManagerService::QueryIntentReceivers(
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ Int32 flags,
     /* [out] */ IObjectContainer** receivers)
 {
@@ -3044,7 +7302,7 @@ ECode CCapsuleManagerService::QueryIntentReceivers(
     AutoPtr<IComponentName> comp;
     intent->GetComponent((IComponentName**)&comp);
     if (comp != NULL) {
-        CObjectContainer::New(receivers);
+        CParcelableObjectContainer::New(receivers);
         AutoPtr<IActivityInfo> ai;
         GetReceiverInfo(comp, flags, (IActivityInfo**)&ai);
         if (ai != NULL) {
@@ -3061,7 +7319,7 @@ ECode CCapsuleManagerService::QueryIntentReceivers(
     String capName;
     intent->GetCapsule(&capName);
     if (capName.IsNull()) {
-        CObjectContainer::New(receivers);
+        CParcelableObjectContainer::New(receivers);
         List<AutoPtr<CResolveInfo>*>* list = mReceivers->QueryIntent(
                 intent, resolvedType, flags);
         List<AutoPtr<CResolveInfo>*>::Iterator it1 = list->Begin();
@@ -3080,7 +7338,7 @@ ECode CCapsuleManagerService::QueryIntentReceivers(
         cap = it->mSecond;
     }
     if (cap != NULL) {
-        CObjectContainer::New(receivers);
+        CParcelableObjectContainer::New(receivers);
         List<AutoPtr<CResolveInfo>*>* list = mReceivers->QueryIntentForCapsule(
                 intent, resolvedType, flags, &(cap->mReceivers));
         List<AutoPtr<CResolveInfo>*>::Iterator it1 = list->Begin();
@@ -3098,7 +7356,7 @@ ECode CCapsuleManagerService::QueryIntentReceivers(
 
 ECode CCapsuleManagerService::ResolveService(
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ Int32 flags,
     /* [out] */ IResolveInfo** resolveInfo)
 {
@@ -3124,14 +7382,14 @@ ECode CCapsuleManagerService::ResolveService(
 
 ECode CCapsuleManagerService::QueryIntentServices(
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ Int32 flags,
     /* [out] */ IObjectContainer** services)
 {
     AutoPtr<IComponentName> comp;
     intent->GetComponent((IComponentName**)&comp);
     if (comp != NULL) {
-        CObjectContainer::New(services);
+        CParcelableObjectContainer::New(services);
         AutoPtr<IServiceInfo> si;
         GetServiceInfo(comp, flags, (IServiceInfo**)&si);
         if (si != NULL) {
@@ -3148,14 +7406,12 @@ ECode CCapsuleManagerService::QueryIntentServices(
     String capName;
     intent->GetCapsule(&capName);
     if (capName.IsNull()) {
-        CObjectContainer::New(services);
+        CParcelableObjectContainer::New(services);
         List<AutoPtr<CResolveInfo>*>* list = mServices->QueryIntent(
                 intent, resolvedType, flags);
         List<AutoPtr<CResolveInfo>*>::Iterator it1 = list->Begin();
         List<AutoPtr<CResolveInfo>*>::Iterator it2 = list->End();
         for(; it1 != it2; ++it1) {
-//            AutoPtr<CResolveInfo>* rinfo = *it1;
-//            IResolveInfo* iinfo = (IResolveInfo*)(*rinfo)->Probe(EIID_IResolveInfo);
             (*services)->Add((IResolveInfo*)**it1);
         }
         return NOERROR;
@@ -3166,7 +7422,7 @@ ECode CCapsuleManagerService::QueryIntentServices(
         cap = it->mSecond;
     }
     if (cap != NULL) {
-        CObjectContainer::New(services);
+        CParcelableObjectContainer::New(services);
         List<AutoPtr<CResolveInfo>*>* list = mServices->QueryIntentForCapsule(
                 intent, resolvedType, flags, &(cap->mServices));
         List<AutoPtr<CResolveInfo>*>::Iterator it1 = list->Begin();
@@ -3181,8 +7437,8 @@ ECode CCapsuleManagerService::QueryIntentServices(
 }
 
 String CCapsuleManagerService::FixProcessName(
-    /* [in] */ String defProcessName,
-    /* [in] */ String processName,
+    /* [in] */ const String& defProcessName,
+    /* [in] */ const String& processName,
     /* [in] */ Int32 uid)
 {
     if (processName.IsNull()) {
@@ -3212,7 +7468,7 @@ Int32 CCapsuleManagerService::GetContinuationPoint(
 
 ECode CCapsuleManagerService::GetInstalledCapsules(
     /* [in] */ Int32 flags,
-    /* [in] */ String lastRead,
+    /* [in] */ const String& lastRead,
     /* [out] */ IParceledListSlice** slice)
 {
     VALIDATE_NOT_NULL(slice);
@@ -3228,19 +7484,19 @@ ECode CCapsuleManagerService::GetInstalledCapsules(
         Mutex::Autolock lock(mCapsulesLock);
         if (listUninstalled) {
             keys = ArrayOf<String>::Alloc(mSettings->mCapsules.GetSize());
-            HashMap<String, CapsuleSetting*>::Iterator it;
+            HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it;
             Int32 i = 0;
             for (it = mSettings->mCapsules.Begin();
                  it != mSettings->mCapsules.End();
                  it++, i++) {
-                (*keys)[i] = String::Duplicate(it->mFirst);
+                (*keys)[i] = it->mFirst;
             }
         } else {
             keys = ArrayOf<String>::Alloc(mCapsules.GetSize());
             HashMap<String, CapsuleParser::Capsule*>::Iterator it;
             Int32 i = 0;
             for (it = mCapsules.Begin(); it != mCapsules.End(); it++, i++) {
-                (*keys)[i] = String::Duplicate(it->mFirst);
+                (*keys)[i] = it->mFirst;
             }
         }
 
@@ -3251,20 +7507,20 @@ ECode CCapsuleManagerService::GetInstalledCapsules(
         while (i < N) {
             String capsuleName = (*keys)[i++];
 
-            AutoPtr<ICapsuleInfo> ci;
+            AutoPtr<CCapsuleInfo> ci;
             if (listUninstalled) {
-                HashMap<String, CapsuleSetting*>::Iterator it
+                HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it
                                     = mSettings->mCapsules.Find(capsuleName);
                 CapsuleSetting* cs = it->mSecond;
                 if (cs != NULL) {
-                    GenerateCapsuleInfoFromSettingsLP(cs->mName, flags, (ICapsuleInfo**)&ci);
+                    ci = GenerateCapsuleInfoFromSettingsLP(cs->mName, flags);
                 }
             } else {
                 HashMap<String, CapsuleParser::Capsule*>::Iterator it
                                             = mCapsules.Find(capsuleName);
                 CapsuleParser::Capsule* c = it->mSecond;
                 if (c != NULL) {
-                    GenerateCapsuleInfo(c, flags, (ICapsuleInfo**)&ci);
+                    ci = GenerateCapsuleInfo(c, flags);
                 }
             }
 
@@ -3287,7 +7543,7 @@ ECode CCapsuleManagerService::GetInstalledCapsules(
 
 ECode CCapsuleManagerService::GetInstalledApplications(
     /* [in] */ Int32 flags,
-    /* [in] */ String lastRead,
+    /* [in] */ const String& lastRead,
     /* [out] */ IParceledListSlice** slice)
 {
     VALIDATE_NOT_NULL(slice);
@@ -3304,19 +7560,19 @@ ECode CCapsuleManagerService::GetInstalledApplications(
 
         if (listUninstalled) {
             keys = ArrayOf<String>::Alloc(mSettings->mCapsules.GetSize());
-            HashMap<String, CapsuleSetting*>::Iterator it;
+            HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it;
             Int32 i = 0;
             for (it = mSettings->mCapsules.Begin();
                  it != mSettings->mCapsules.End();
                  it++, i++) {
-                (*keys)[i] = String::Duplicate(it->mFirst);
+                (*keys)[i] = it->mFirst;
             }
         } else {
             keys = ArrayOf<String>::Alloc(mCapsules.GetSize());
             HashMap<String, CapsuleParser::Capsule*>::Iterator it;
             Int32 i = 0;
             for (it = mCapsules.Begin(); it != mCapsules.End(); it++, i++) {
-                (*keys)[i] = String::Duplicate(it->mFirst);
+                (*keys)[i] = it->mFirst;
             }
         }
 
@@ -3327,13 +7583,13 @@ ECode CCapsuleManagerService::GetInstalledApplications(
         while (i < N) {
             String capsuleName = (*keys)[i++];
 
-            AutoPtr<IApplicationInfo> ai;
+            AutoPtr<CApplicationInfo> ai;
             if (listUninstalled) {
-                HashMap<String, CapsuleSetting*>::Iterator it
+                HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it
                                     = mSettings->mCapsules.Find(capsuleName);
                 CapsuleSetting* cs = it->mSecond;
                 if (cs != NULL) {
-                    GenerateApplicationInfoFromSettingsLP(cs->mName, flags, (IApplicationInfo**)&ai);
+                    ai = GenerateApplicationInfoFromSettingsLP(cs->mName, flags);
                 }
             } else {
                 HashMap<String, CapsuleParser::Capsule*>::Iterator it
@@ -3341,8 +7597,7 @@ ECode CCapsuleManagerService::GetInstalledApplications(
                 CapsuleParser::Capsule* c = it->mSecond;
                 AutoPtr<CApplicationInfo> cai;
                 if (c != NULL) {
-                    CapsuleParser::GenerateApplicationInfo(c, flags, (CApplicationInfo**)&cai);
-                    ai = (IApplicationInfo*)cai.Get();
+                    ai = CapsuleParser::GenerateApplicationInfo(c, flags);
                 }
             }
 
@@ -3380,8 +7635,7 @@ ECode CCapsuleManagerService::GetPersistentApplications(
             if (c->mApplicationInfo != NULL
                 && (c->mApplicationInfo->mFlags & CApplicationInfo::FLAG_PERSISTENT) != 0
                 && (!mSafeMode || IsSystemApp(c))) {
-                AutoPtr<CApplicationInfo> cinfo;
-                FAIL_RETURN(CapsuleParser::GenerateApplicationInfo(c, flags, (CApplicationInfo**)&cinfo));
+                AutoPtr<CApplicationInfo> cinfo = CapsuleParser::GenerateApplicationInfo(c, flags);
                 finalList->Add((IApplicationInfo*)cinfo.Get());
             }
         }
@@ -3393,14 +7647,14 @@ ECode CCapsuleManagerService::GetPersistentApplications(
 }
 
 ECode CCapsuleManagerService::ResolveContentProvider(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in] */ Int32 flags,
     /* [out] */ IContentProviderInfo** info)
 {
     VALIDATE_NOT_NULL(info);
 
     Mutex::Autolock lock(mCapsulesLock);
-    HashMap<String, CapsuleParser::ContentProvider*>::Iterator it = mProviders.Find(name);
+    HashMap<String, CapsuleParser::ContentProvider*>::Iterator it = mContentProviders.Find(name);
     CapsuleParser::ContentProvider* provider = it->mSecond;
     if (provider != NULL
         && mSettings->IsEnabledLP(provider->mInfo, flags)
@@ -3417,11 +7671,28 @@ ECode CCapsuleManagerService::QuerySyncProviders(
     /* [in] */ IObjectContainer* outNames,
     /* [in] */ IObjectContainer* outInfo)
 {
+//	    synchronized (mPackages) {
+//	        Iterator<Map.Entry<String, PackageParser.Provider>> i
+//	            = mProviders.entrySet().iterator();
+//
+//	        while (i.hasNext()) {
+//	            Map.Entry<String, PackageParser.Provider> entry = i.next();
+//	            PackageParser.Provider p = entry.getValue();
+//
+//	            if (p.syncable
+//	                    && (!mSafeMode || (p.info.applicationInfo.flags
+//	                            &ApplicationInfo.FLAG_SYSTEM) != 0)) {
+//	                outNames.add(entry.getKey());
+//	                outInfo.add(PackageParser.generateProviderInfo(p, 0));
+//	            }
+//	        }
+//	    }
+
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CCapsuleManagerService::QueryContentProviders(
-    /* [in] */ String processName,
+    /* [in] */ const String& processName,
     /* [in] */ Int32 uid,
     /* [in] */ Int32 flags,
     /* [out] */ IObjectContainer** providers)
@@ -3435,17 +7706,17 @@ ECode CCapsuleManagerService::QueryContentProviders(
                 mProvidersByComponent.Begin();
         for (; it != mProvidersByComponent.End(); ++it) {
             CapsuleParser::ContentProvider* p = it->mSecond;
-    //        if (p.info.authority != null
-    //                    && (processName == null ||
-    //                            (p.info.processName.equals(processName)
-    //                                    && p.info.applicationInfo.uid == uid))
-    //                    && mSettings.isEnabledLP(p.info, flags)
-    //                    && (!mSafeMode || (p.info.applicationInfo.flags
-    //                            &ApplicationInfo.FLAG_SYSTEM) != 0))
-    //        {}
+//	            if (p.info.authority != null
+//	                        && (processName == null ||
+//	                                (p.info.processName.equals(processName)
+//	                                        && p.info.applicationInfo.uid == uid))
+//	                        && mSettings.isEnabledLP(p.info, flags)
+//	                        && (!mSafeMode || (p.info.applicationInfo.flags
+//	                                &ApplicationInfo.FLAG_SYSTEM) != 0))
+//	            {}
             if (processName.IsNull() || (!p->mInfo->mProcessName.Compare(processName))) {
                 if (*providers == NULL) {
-                    CObjectContainer::New(providers);
+                    CParcelableObjectContainer::New(providers);
                 }
                 AutoPtr<IContentProviderInfo> provider;
                 CapsuleParser::GenerateContentProviderInfo(p, flags,
@@ -3479,14 +7750,14 @@ ECode CCapsuleManagerService::GetInstrumentationInfo(
 }
 
 ECode CCapsuleManagerService::QueryInstrumentation(
-    /* [in] */ String targetCapsule,
+    /* [in] */ const String& targetCapsule,
     /* [in] */ Int32 flags,
     /* [out, callee] */ IObjectContainer** infos)
 {
     VALIDATE_NOT_NULL(infos);
 
     AutoPtr<IObjectContainer> finalList;
-    CObjectContainer::New((IObjectContainer**)&finalList);
+    CParcelableObjectContainer::New((IObjectContainer**)&finalList);
 
     {
         HashMap<AutoPtr<IComponentName>, CapsuleParser::Instrumentation*>::Iterator it;
@@ -3519,15 +7790,15 @@ ECode CCapsuleManagerService::ScanDirLI(
     AutoStringArray files;
     dir->List((ArrayOf<String>**)&files);
     if (files == NULL) {
-        AutoString des;
-        dir->GetDescription(&des);
+        String des;
+        dir->ToString(&des);
         Logger::D(TAG, StringBuffer("No files in app dir ") + des);
         return NOERROR;
     }
 
     if (FALSE) {
-        AutoString des;
-        dir->GetDescription(&des);
+        String des;
+        dir->ToString(&des);
         Logger::D(TAG, StringBuffer("Scanning app dir ") + des);
     }
 
@@ -3543,13 +7814,13 @@ ECode CCapsuleManagerService::ScanDirLI(
             continue;
         }
         CapsuleParser::Capsule* cap = ScanCapsuleLI(file.Get(),
-                flags | CapsuleParser::PARSE_MUST_BE_APK, scanMode, currentTime);
+            flags | CapsuleParser::PARSE_MUST_BE_APK, scanMode, currentTime);
         // Don't mess around with apps in system partition.
         if (cap == NULL && (flags & CapsuleParser::PARSE_IS_SYSTEM) == 0 &&
-                mLastScanError == CapsuleManager::INSTALL_FAILED_INVALID_APK) {
+            mLastScanError == CapsuleManager::INSTALL_FAILED_INVALID_APK) {
             // Delete the apk
-            AutoString des;
-            file->GetDescription(&des);
+            String des;
+            file->ToString(&des);
             Slogger::D(TAG, StringBuffer("Cleaning up failed install of ") + des);
 
             Boolean isDeleted = FALSE;
@@ -3560,8 +7831,8 @@ ECode CCapsuleManagerService::ScanDirLI(
     return NOERROR;
 }
 
-ECode CCapsuleManagerService::KillApplication(
-    /* [in] */ String capName,
+void CCapsuleManagerService::KillApplication(
+    /* [in] */ const String& capName,
     /* [in] */ Int32 uid)
 {
     // Request the ActivityManager to kill the process(only for existing packages)
@@ -3571,11 +7842,10 @@ ECode CCapsuleManagerService::KillApplication(
     AutoPtr<IActivityManager> am;
     Elastos::GetServiceManager((IServiceManager**)&serviceManager);
     assert(serviceManager != NULL);
-    serviceManager->GetService("ActivityManagerService", (IInterface**)&am);
+    serviceManager->GetService(String("ActivityManagerService"), (IInterface**)&am);
     if (am != NULL) {
         am->KillApplicationWithUid(capName, uid);
     }
-    return NOERROR;
 }
 
 CapsuleParser::Capsule* CCapsuleManagerService::ScanCapsuleLI(
@@ -3587,123 +7857,182 @@ CapsuleParser::Capsule* CCapsuleManagerService::ScanCapsuleLI(
     assert(scanFile);
 
     mLastScanError = CapsuleManager::INSTALL_SUCCEEDED;
-    AutoString scanPath;
+    String scanPath;
     scanFile->GetPath(&scanPath);
     parseFlags |= mDefParseFlags;
-    CapsuleParser pp(scanPath);
-//	    pp.setSeparateProcesses(mSeparateProcesses);
-    CapsuleParser::Capsule* cap = pp.ParseCapsule(scanFile,
+    CapsuleParser cp(scanPath);
+//	    cp.setSeparateProcesses(mSeparateProcesses);
+    CapsuleParser::Capsule* cap = cp.ParseCapsule(scanFile,
             scanPath, mMetrics.Get(), parseFlags);
     if (cap == NULL) {
-        mLastScanError = pp.GetParseError();
+        mLastScanError = cp.GetParseError();
         return NULL;
     }
-//	    PackageSetting ps = null;
-//	    PackageSetting updatedPkg;
-//	    synchronized (mPackages) {
-//	        // Look to see if we already know about this package.
-//	        String oldName = mSettings.mRenamedPackages.get(pkg.packageName);
-//	        if (pkg.mOriginalPackages != null && pkg.mOriginalPackages.contains(oldName)) {
-//	            // This package has been renamed to its original name.  Let's
-//	            // use that.
-//	            ps = mSettings.peekPackageLP(oldName);
-//	        }
-//	        // If there was no original package, see one for the real package name.
-//	        if (ps == null) {
-//	            ps = mSettings.peekPackageLP(pkg.packageName);
-//	        }
-//	        // Check to see if this package could be hiding/updating a system
-//	        // package.  Must look for it either under the original or real
-//	        // package name depending on our state.
-//	        updatedPkg = mSettings.mDisabledSysPackages.get(
-//	                ps != null ? ps.name : pkg.packageName);
-//	    }
-//	    // First check if this is a system package that may involve an update
-//	    if (updatedPkg != null && (parseFlags&PackageParser.PARSE_IS_SYSTEM) != 0) {
-//	        if (ps != null && !ps.codePath.equals(scanFile)) {
-//	            // The path has changed from what was last scanned...  check the
-//	            // version of the new path against what we have stored to determine
-//	            // what to do.
-//	            if (pkg.mVersionCode < ps.versionCode) {
-//	                // The system package has been updated and the code path does not match
-//	                // Ignore entry. Skip it.
-//	                Log.i(TAG, "Package " + ps.name + " at " + scanFile
-//	                        + " ignored: updated version " + ps.versionCode
-//	                        + " better than this " + pkg.mVersionCode);
-//	                mLastScanError = PackageManager.INSTALL_FAILED_DUPLICATE_PACKAGE;
-//	                return null;
-//	            } else {
-//	                // The current app on the system partion is better than
-//	                // what we have updated to on the data partition; switch
-//	                // back to the system partition version.
-//	                // At this point, its safely assumed that package installation for
-//	                // apps in system partition will go through. If not there won't be a working
-//	                // version of the app
-//	                synchronized (mPackages) {
-//	                    // Just remove the loaded entries from package lists.
-//	                    mPackages.remove(ps.name);
-//	                }
-//	                Slog.w(TAG, "Package " + ps.name + " at " + scanFile
-//	                        + "reverting from " + ps.codePathString
-//	                        + ": new version " + pkg.mVersionCode
-//	                        + " better than installed " + ps.versionCode);
-//	                InstallArgs args = new FileInstallArgs(ps.codePathString,
-//	                        ps.resourcePathString, ps.nativeLibraryPathString);
-//	                args.cleanUpResourcesLI();
-//	                mSettings.enableSystemPackageLP(ps.name);
-//	            }
-//	        }
-//	    }
-//	    if (updatedPkg != null) {
-//	        // An updated system app will not have the PARSE_IS_SYSTEM flag set initially
-//	        parseFlags |= PackageParser.PARSE_IS_SYSTEM;
-//	    }
-//	    // Verify certificates against what was last scanned
-//	    if (!collectCertificatesLI(pp, ps, pkg, scanFile, parseFlags)) {
-//	        Slog.w(TAG, "Failed verifying certificates for package:" + pkg.packageName);
-//	        return null;
-//	    }
-//	    // The apk is forward locked (not public) if its code and resources
-//	    // are kept in different files.
-//	    // TODO grab this value from PackageSettings
-//	    if (ps != null && !ps.codePath.equals(ps.resourcePath)) {
-//	        parseFlags |= PackageParser.PARSE_FORWARD_LOCK;
-//	    }
 
-    AutoString codePath;
-    AutoString resPath;
-//	    if ((parseFlags & CapsuleParser::PARSE_FORWARD_LOCK) != 0) {
-//	        if (ps != null && ps.resourcePathString != null) {
-//	            resPath = ps.resourcePathString;
-//	        } else {
-//	            // Should not happen at all. Just log an error.
-//	            Slog.e(TAG, "Resource path not set for pkg : " + pkg.packageName);
-//	        }
-//	    } else {
-        resPath = String::Duplicate(cap->mScanPath);
-//	    }
-    codePath = String::Duplicate(cap->mScanPath);
+    CapsuleSetting* cs = NULL;
+    CapsuleSetting* updatedCap = NULL;
+    {
+        Mutex::Autolock Lock(mCapsulesLock);
+
+        // Look to see if we already know about this package.
+        HashMap<String, String>::Iterator it = mSettings->mRenamedCapsules.Find(cap->mCapsuleName);
+        String oldName = it->mSecond;
+        List<String>::Iterator oit;
+        for (oit = cap->mOriginalCapsules.Begin();
+             oit != cap->mOriginalCapsules.End(); oit++) {
+            if ((*oit).Equals(oldName)) {
+                break;
+            }
+        }
+        if (oit != cap->mOriginalCapsules.End()) {
+            // This package has been renamed to its original name.  Let's
+            // use that.
+            cs = mSettings->PeekCapsuleLP(oldName);
+        }
+        // If there was no original package, see one for the real package name.
+        if (cs == NULL) {
+            cs = mSettings->PeekCapsuleLP(cap->mCapsuleName);
+        }
+        // Check to see if this package could be hiding/updating a system
+        // package.  Must look for it either under the original or real
+        // package name depending on our state.
+        HashMap<String, AutoPtr<CapsuleSetting> >::Iterator dit
+            = mSettings->mDisabledSysCapsules.Find(
+                cs != NULL ? cs->mName : cap->mCapsuleName);
+        updatedCap = dit->mSecond;
+    }
+
+    // First check if this is a system package that may involve an update
+    if (updatedCap != NULL && (parseFlags & CapsuleParser::PARSE_IS_SYSTEM) != 0) {
+        Boolean isSame = FALSE;
+        cs->mCodePath->Equals(scanFile, &isSame);
+        if (cs != NULL && !isSame) {
+            // The path has changed from what was last scanned...  check the
+            // version of the new path against what we have stored to determine
+            // what to do.
+            if (cap->mVersionCode < cs->mVersionCode) {
+                // The system package has been updated and the code path does not match
+                // Ignore entry. Skip it.
+                Logger::I(TAG, StringBuffer("Capsule ")
+                    + cs->mName + " at " + scanFile
+                    + " ignored: updated version " + cs->mVersionCode
+                    + " better than this " + cap->mVersionCode);
+                mLastScanError = CapsuleManager::INSTALL_FAILED_DUPLICATE_CAPSULE;
+                return NULL;
+            } else {
+                // The current app on the system partion is better than
+                // what we have updated to on the data partition; switch
+                // back to the system partition version.
+                // At this point, its safely assumed that package installation for
+                // apps in system partition will go through. If not there won't be a working
+                // version of the app
+                {
+                    Mutex::Autolock lock(mCapsulesLock);
+
+                    // Just remove the loaded entries from package lists.
+                    mCapsules.Erase(cs->mName);
+                }
+                Slogger::W(TAG, StringBuffer("Capsule ")
+                    + cs->mName + " at " + scanFile
+                    + "reverting from " + cs->mCodePathString
+                    + ": new version " + cap->mVersionCode
+                    + " better than installed " + cs->mVersionCode);
+                InstallArgs* args = new FileInstallArgs(cs->mCodePathString,
+                        cs->mResourcePathString, cs->mNativeLibraryPathString, this);
+                args->CleanUpResourcesLI();
+                mSettings->EnableSystemCapsuleLP(cs->mName);
+            }
+        }
+    }
+    if (updatedCap != NULL) {
+        // An updated system app will not have the PARSE_IS_SYSTEM flag set initially
+        parseFlags |= CapsuleParser::PARSE_IS_SYSTEM;
+    }
+    // Verify certificates against what was last scanned
+    if (!CollectCertificatesLI(&cp, cs, cap, scanFile, parseFlags)) {
+        Slogger::W(TAG,
+            StringBuffer("Failed verifying certificates for capsule:")
+            + cap->mCapsuleName);
+        return NULL;
+    }
+    // The apk is forward locked (not public) if its code and resources
+    // are kept in different files.
+    // TODO grab this value from PackageSettings
+    Boolean isSame = FALSE;
+    cs->mCodePath->Equals(cs->mResourcePath, &isSame);
+    if (cs != NULL && !isSame) {
+        parseFlags |= CapsuleParser::PARSE_FORWARD_LOCK;
+    }
+
+    String codePath;
+    String resPath;
+    if ((parseFlags & CapsuleParser::PARSE_FORWARD_LOCK) != 0) {
+        if (cs != NULL && !cs->mResourcePathString.IsNull()) {
+            resPath = cs->mResourcePathString;
+        } else {
+            // Should not happen at all. Just log an error.
+            Slogger::E(TAG, StringBuffer("Resource path not set for cap : ")
+                + cap->mCapsuleName);
+        }
+    } else {
+        resPath = cap->mScanPath;
+    }
+    codePath = cap->mScanPath;
     // Set application objects path explicitly.
     SetApplicationInfoPaths(cap, codePath, resPath);
     // Note that we invoke the following method only if we are about to unpack an application
     return ScanCapsuleLI(cap, parseFlags, scanMode | SCAN_UPDATE_SIGNATURE, currentTime);
 }
 
+Boolean CCapsuleManagerService::CollectCertificatesLI(
+    /* [in] */ CapsuleParser* cp,
+    /* [in] */ CapsuleSetting* cs,
+    /* [in] */ CapsuleParser::Capsule* cap,
+    /* [in] */ IFile* srcFile,
+    /* [in] */ Int32 parseFlags)
+{
+    if (GET_CERTIFICATES) {
+        Boolean isSame = FALSE;
+        cs->mCodePath->Equals(srcFile, &isSame);
+        Int64 timeStamp = 0;
+        srcFile->LastModified(&timeStamp);
+        if (cs != NULL && isSame && cs->mTimeStamp == timeStamp) {
+            if (cs->mSignatures->mSignatures != NULL
+                && cs->mSignatures->mSignatures->GetLength() != 0) {
+                // Optimization: reuse the existing cached certificates
+                // if the package appears to be unchanged.
+                cap->mSignatures = cs->mSignatures->mSignatures->Clone();
+                return TRUE;
+            }
+
+            Slogger::W(TAG, StringBuffer("CapsuleSetting for ")
+                + cs->mName
+                + " is missing signatures.  Collecting certs again to recover them.");
+        } else {
+            String des;
+            srcFile->ToString(&des);
+            Logger::I(TAG, StringBuffer(des) + " changed; collecting certs");
+        }
+
+        if (!cp->CollectCertificates(cap, parseFlags)) {
+            mLastScanError = cp->GetParseError();
+            return FALSE;
+        }
+    }
+    return TRUE;
+}
+
 void CCapsuleManagerService::SetApplicationInfoPaths(
     /* [in] */ CapsuleParser::Capsule* cap,
-    /* [in] */ String destCodePath,
-    /* [in] */ String destResPath)
+    /* [in] */ const String& destCodePath,
+    /* [in] */ const String& destResPath)
 {
     assert(cap);
 
-    String::Free(cap->mScanPath);
-    cap->mScanPath = String::Duplicate(destCodePath);
-    String::Free(cap->mPath);
-    cap->mPath = String::Duplicate(destCodePath);
-    String::Free(cap->mApplicationInfo->mSourceDir);
-    cap->mApplicationInfo->mSourceDir = String::Duplicate(destCodePath);
-    String::Free(cap->mApplicationInfo->mPublicSourceDir);
-    cap->mApplicationInfo->mPublicSourceDir = String::Duplicate(destResPath);
+    cap->mScanPath = destCodePath;
+    cap->mPath = destCodePath;
+    cap->mApplicationInfo->mSourceDir = destCodePath;
+    cap->mApplicationInfo->mPublicSourceDir = destResPath;
 }
 
 Boolean CCapsuleManagerService::UseEncryptedFilesystemForCapsule(
@@ -3713,20 +8042,22 @@ Boolean CCapsuleManagerService::UseEncryptedFilesystemForCapsule(
         ((cap->mApplicationInfo->mFlags & CApplicationInfo::FLAG_NEVER_ENCRYPT) == 0);
 }
 
-ECode CCapsuleManagerService::GetDataPathForCapsule(
-    /* [in] */ const CapsuleParser::Capsule& cap,
-    /* [out] */ IFile** path)
+AutoPtr<IFile> CCapsuleManagerService::GetDataPathForCapsule(
+    /* [in] */ CapsuleParser::Capsule* cap)
 {
-    assert(path);
+    AutoPtr<IFile> path;
 
-    Boolean useEncryptedFSDir = UseEncryptedFilesystemForCapsule((CapsuleParser::Capsule*)&cap);
+    Boolean useEncryptedFSDir = UseEncryptedFilesystemForCapsule(cap);
     if (useEncryptedFSDir) {
-        FAIL_RETURN(CFile::New(mSecureAppDataDir.Get(), cap.mCapsuleName, path));
-    } else {
-        FAIL_RETURN(CFile::New(mAppDataDir.Get(), cap.mCapsuleName, path));
+        ASSERT_SUCCEEDED(CFile::New(mSecureAppDataDir, cap->mCapsuleName, (IFile**)&path));
+        return path;
+    }
+    else {
+        ASSERT_SUCCEEDED(CFile::New(mAppDataDir, cap->mCapsuleName, (IFile**)&path));
+        return path;
     }
 
-    return NOERROR;
+    return NULL;
 }
 
 CapsuleParser::Capsule* CCapsuleManagerService::ScanCapsuleLI(
@@ -3764,7 +8095,7 @@ CapsuleParser::Capsule* CCapsuleManagerService::ScanCapsuleLI(
                 Slogger::W(TAG, "Core android package being redefined.  Skipping.");
                 Slogger::W(TAG, StringBuffer(" file=") + (Int32)mScanningPath.Get());
                 Slogger::W(TAG, "*************************************************");
-                mLastScanError = CapsuleManager::INSTALL_FAILED_DUPLICATE_PACKAGE;
+                mLastScanError = CapsuleManager::INSTALL_FAILED_DUPLICATE_CAPSULE;
                 return NULL;
             }
 
@@ -3774,21 +8105,19 @@ CapsuleParser::Capsule* CCapsuleManagerService::ScanCapsuleLI(
             cap->mVersionCode = mSdkVersion;
             mElastosApplication = cap->mApplicationInfo;
             mResolveActivity->mApplicationInfo = mElastosApplication;
-//	            mResolveActivity->mName = ResolverActivity.class.getName();
+            mResolveActivity->mName = String("") /*ResolverActivity.class.getName()*/;
             mResolveActivity->mCapsuleName = mElastosApplication->mCapsuleName;
             mResolveActivity->mProcessName = mElastosApplication->mProcessName;
             mResolveActivity->mLaunchMode = CActivityInfo::LAUNCH_MULTIPLE;
             mResolveActivity->mFlags = CActivityInfo::FLAG_EXCLUDE_FROM_RECENTS;
-//	            mResolveActivity->mTheme = com.android.internal.R.style.Theme_Dialog_Alert;
+            mResolveActivity->mTheme = 0 /*com.android.internal.R.style.Theme_Dialog_Alert*/;
             mResolveActivity->mExported = TRUE;
             mResolveActivity->mEnabled = TRUE;
             mResolveInfo->mActivityInfo = mResolveActivity;
             mResolveInfo->mPriority = 0;
             mResolveInfo->mPreferredOrder = 0;
             mResolveInfo->mMatch = 0;
-//	            mResolveComponentName = new ComponentName(
-//	                    mAndroidApplication.packageName, mResolveActivity.name);
-            if (mResolveComponentName != NULL) mResolveComponentName->Release();
+            INTERFACE_RELEASE(mResolveComponentName);
             ec = CComponentName::New(
                 mElastosApplication->mCapsuleName, mResolveActivity->mName,
                 (IComponentName**)&mResolveComponentName);
@@ -3796,15 +8125,17 @@ CapsuleParser::Capsule* CCapsuleManagerService::ScanCapsuleLI(
         }
     }
 
-//	    if ((parseFlags&PackageParser.PARSE_CHATTY) != 0 && Config.LOGD) Log.d(
-//	            TAG, "Scanning package " + pkg.packageName);
+    if ((parseFlags & CapsuleParser::PARSE_CHATTY) != 0 && Config::LOGD) {
+        Logger::D(TAG, StringBuffer("Scanning capsule ") + cap->mCapsuleName);
+    }
+
     HashMap<String, CapsuleParser::Capsule*>::Iterator nIter
             = mCapsules.Find(cap->mCapsuleName);
     HashMap<String, String>::Iterator sIter = mSharedLibraries.Find(cap->mCapsuleName);
     if (nIter != mCapsules.End() || sIter != mSharedLibraries.End()) {
         Slogger::W(TAG, StringBuffer("Application package ") + cap->mCapsuleName
                 + " already installed.  Skipping duplicate.");
-        mLastScanError = CapsuleManager::INSTALL_FAILED_DUPLICATE_PACKAGE;
+        mLastScanError = CapsuleManager::INSTALL_FAILED_DUPLICATE_CAPSULE;
         return NULL;
     }
 
@@ -3816,361 +8147,444 @@ CapsuleParser::Capsule* CCapsuleManagerService::ScanCapsuleLI(
     ec = CFile::New(cap->mApplicationInfo->mPublicSourceDir, (IFile**)&destResourceFile);
     if (FAILED(ec)) return NULL;
 
-//	    SharedUserSetting suid = null;
-//	    PackageSetting pkgSetting = null;
+    SharedUserSetting* suid = NULL;
+    CapsuleSetting* capSetting = NULL;
 
-//	    if (!isSystemApp(pkg)) {
-//	        // Only system apps can use these features.
-//	        pkg.mOriginalPackages = null;
-//	        pkg.mRealPackage = null;
-//	        pkg.mAdoptPermissions = null;
-//	    }
+    if (!IsSystemApp(cap)) {
+        // Only system apps can use these features.
+        cap->mOriginalCapsules.Clear();
+        cap->mRealCapsule = NULL;
+        cap->mAdoptPermissions.Clear();
+    }
 
     {
         Mutex::Autolock lock(mCapsulesLock);
         // Check all shared libraries and map to their actual file path.
-//	        if (pkg.usesLibraries != null || pkg.usesOptionalLibraries != null) {
-//	            if (mTmpSharedLibraries == null ||
-//	                    mTmpSharedLibraries.length < mSharedLibraries.size()) {
-//	                mTmpSharedLibraries = new String[mSharedLibraries.size()];
-//	            }
-//	            int num = 0;
-//	            int N = pkg.usesLibraries != null ? pkg.usesLibraries.size() : 0;
-//	            for (int i=0; i<N; i++) {
-//	                String file = mSharedLibraries.get(pkg.usesLibraries.get(i));
-//	                if (file == null) {
-//	                    Slog.e(TAG, "Package " + pkg.packageName
-//	                            + " requires unavailable shared library "
-//	                            + pkg.usesLibraries.get(i) + "; failing!");
-//	                    mLastScanError = PackageManager.INSTALL_FAILED_MISSING_SHARED_LIBRARY;
-//	                    return null;
-//	                }
-//	                mTmpSharedLibraries[num] = file;
-//	                num++;
-//	            }
-//	            N = pkg.usesOptionalLibraries != null ? pkg.usesOptionalLibraries.size() : 0;
-//	            for (int i=0; i<N; i++) {
-//	                String file = mSharedLibraries.get(pkg.usesOptionalLibraries.get(i));
-//	                if (file == null) {
-//	                    Slog.w(TAG, "Package " + pkg.packageName
-//	                            + " desires unavailable shared library "
-//	                            + pkg.usesOptionalLibraries.get(i) + "; ignoring!");
-//	                } else {
-//	                    mTmpSharedLibraries[num] = file;
-//	                    num++;
-//	                }
-//	            }
-//	            if (num > 0) {
-//	                pkg.usesLibraryFiles = new String[num];
-//	                System.arraycopy(mTmpSharedLibraries, 0,
-//	                        pkg.usesLibraryFiles, 0, num);
-//	            }
-//	        }
+        if (true) {
+            if (mTmpSharedLibraries == NULL ||
+                mTmpSharedLibraries->GetLength() < (Int32)mSharedLibraries.GetSize()) {
+                if (mTmpSharedLibraries != NULL) {
+                    ArrayOf<String>::Free(mTmpSharedLibraries);
+                }
+                mTmpSharedLibraries = ArrayOf<String>::Alloc((Int32)mSharedLibraries.GetSize());
+            }
+            Int32 num = 0;
+            List<String>::Iterator it;
+            for (it = cap->mUsesLibraries.Begin();
+                 it != cap->mUsesLibraries.End(); it++) {
+                HashMap<String, String>::Iterator it1 = mSharedLibraries.Find(*it);
+                String file = it1->mSecond;
+                if (file.IsNull()) {
+                    Slogger::E(TAG, StringBuffer("Capsule ") + cap->mCapsuleName
+                        + " requires unavailable shared library " + *it + "; failing!");
+                    mLastScanError = CapsuleManager::INSTALL_FAILED_MISSING_SHARED_LIBRARY;
+                    return NULL;
+                }
+                (*mTmpSharedLibraries)[num++] = file;
+            }
+            for (it = cap->mUsesOptionalLibraries.Begin();
+                 it != cap->mUsesOptionalLibraries.End(); it++) {
+                HashMap<String, String>::Iterator it1 = mSharedLibraries.Find(*it);
+                String file = it1->mSecond;
+                if (file.IsNull()) {
+                    Slogger::W(TAG, StringBuffer("Capsule ") + cap->mCapsuleName
+                        + " desires unavailable shared library " + *it + "; ignoring!");
+                }
+                else {
+                    (*mTmpSharedLibraries)[num++] = file;
+                }
+            }
+            if (num > 0) {
+                cap->mUsesLibraryFiles = ArrayOf<String>::Alloc(num);
+                for (Int32 i = 0; i < num; i++) {
+                    (*cap->mUsesLibraryFiles)[i] = (*mTmpSharedLibraries)[i];
+                }
+            }
+        }
 
-//	        if (pkg.mSharedUserId != null) {
-//	            suid = mSettings.getSharedUserLP(pkg.mSharedUserId,
-//	                    pkg.applicationInfo.flags, true);
-//	            if (suid == null) {
-//	                Slog.w(TAG, "Creating application package " + pkg.packageName
-//	                        + " for shared user failed");
-//	                mLastScanError = PackageManager.INSTALL_FAILED_INSUFFICIENT_STORAGE;
-//	                return null;
-//	            }
-//	            if ((parseFlags&PackageParser.PARSE_CHATTY) != 0 && Config.LOGD) {
-//	                Log.d(TAG, "Shared UserID " + pkg.mSharedUserId + " (uid="
-//	                        + suid.userId + "): packages=" + suid.packages);
-//	            }
-//	        }
+        if (cap->mSharedUserId != NULL) {
+            suid = mSettings->GetSharedUserLP(cap->mSharedUserId,
+                                        cap->mApplicationInfo->mFlags, TRUE);
+            if (suid == NULL) {
+                Slogger::W(TAG, StringBuffer("Creating application capsule ")
+                    + cap->mCapsuleName + " for shared user failed");
+                mLastScanError = CapsuleManager::INSTALL_FAILED_INSUFFICIENT_STORAGE;
+                return NULL;
+            }
+            if ((parseFlags & CapsuleParser::PARSE_CHATTY) != 0 && Config::LOGD) {
+                Logger::D(TAG, StringBuffer("Shared UserID ")
+                    + cap->mSharedUserId + " (uid="
+                    + suid->mUserId + "): capsules=" /*+ suid->mCapsules*/);
+            }
+        }
 
-//	        if (false) {
-//	            if (pkg.mOriginalPackages != null) {
-//	                Log.w(TAG, "WAITING FOR DEBUGGER");
-//	                Debug.waitForDebugger();
-//	                Log.i(TAG, "Package " + pkg.packageName + " from original packages"
-//	                        + pkg.mOriginalPackages);
-//	            }
-//	        }
+        if (FALSE) {
+            Logger::W(TAG, "WAITING FOR DEBUGGER");
+//	            Debug::WaitForDebugger();
+            Logger::I(TAG, StringBuffer("Capsule ")
+                + cap->mCapsuleName + " from original capsules"
+                /*+ cap->mOriginalCapsules*/);
+        }
 
-//	        // Check if we are renaming from an original package name.
-//	        PackageSetting origPackage = null;
-//	        String realName = null;
-//	        if (pkg.mOriginalPackages != null) {
-//	            // This package may need to be renamed to a previously
-//	            // installed name.  Let's check on that...
-//	            String renamed = mSettings.mRenamedPackages.get(pkg.mRealPackage);
-//	            if (pkg.mOriginalPackages.contains(renamed)) {
-//	                // This package had originally been installed as the
-//	                // original name, and we have already taken care of
-//	                // transitioning to the new one.  Just update the new
-//	                // one to continue using the old name.
-//	                realName = pkg.mRealPackage;
-//	                if (!pkg.packageName.equals(renamed)) {
-//	                    // Callers into this function may have already taken
-//	                    // care of renaming the package; only do it here if
-//	                    // it is not already done.
-//	                    pkg.setPackageName(renamed);
-//	                }
-//
-//	            } else {
-//	                for (int i=pkg.mOriginalPackages.size()-1; i>=0; i--) {
-//	                    if ((origPackage=mSettings.peekPackageLP(
-//	                            pkg.mOriginalPackages.get(i))) != null) {
-//	                        // We do have the package already installed under its
-//	                        // original name...  should we use it?
-//	                        if (!verifyPackageUpdate(origPackage, pkg)) {
-//	                            // New package is not compatible with original.
-//	                            origPackage = null;
-//	                            continue;
-//	                        } else if (origPackage.sharedUser != null) {
-//	                            // Make sure uid is compatible between packages.
-//	                            if (!origPackage.sharedUser.name.equals(pkg.mSharedUserId)) {
-//	                                Slog.w(TAG, "Unable to migrate data from " + origPackage.name
-//	                                        + " to " + pkg.packageName + ": old uid "
-//	                                        + origPackage.sharedUser.name
-//	                                        + " differs from " + pkg.mSharedUserId);
-//	                                origPackage = null;
-//	                                continue;
-//	                            }
-//	                        } else {
-//	                            if (DEBUG_UPGRADE) Log.v(TAG, "Renaming new package "
-//	                                    + pkg.packageName + " to old name " + origPackage.name);
-//	                        }
-//	                        break;
-//	                    }
-//	                }
-//	            }
-//	        }
+        // Check if we are renaming from an original package name.
+        CapsuleSetting* origCapsule = NULL;
+        String realName;
+        {
+            // This package may need to be renamed to a previously
+            // installed name.  Let's check on that...
+            HashMap<String, String>::Iterator it = mSettings->mRenamedCapsules.Find(cap->mRealCapsule);
+            String renamed = it->mSecond;
+            List<String>::Iterator it1;
+            for (it1 = cap->mOriginalCapsules.Begin();
+                 it1 != cap->mOriginalCapsules.End(); it1++) {
+                if ((*it1).Equals(renamed)) {
+                    break;
+                }
+            }
+            if (it1 != cap->mOriginalCapsules.End()) {
+                // This package had originally been installed as the
+                // original name, and we have already taken care of
+                // transitioning to the new one.  Just update the new
+                // one to continue using the old name.
+                realName = cap->mRealCapsule;
+                if (!cap->mCapsuleName.Equals(renamed)) {
+                    // Callers into this function may have already taken
+                    // care of renaming the package; only do it here if
+                    // it is not already done.
+                    cap->SetCapsuleName(renamed);
+                }
 
-//	        if (mTransferedPackages.contains(pkg.packageName)) {
-//	            Slog.w(TAG, "Package " + pkg.packageName
-//	                    + " was transferred to another, but its .apk remains");
-//	        }
+            }
+            else {
+                for (it1 = cap->mOriginalCapsules.Begin();
+                     it1 != cap->mOriginalCapsules.End(); it1++) {
+                    if ((origCapsule = mSettings->PeekCapsuleLP(*it1)) != NULL) {
+                        // We do have the package already installed under its
+                        // original name...  should we use it?
+                        if (!VerifyCapsuleUpdate(origCapsule, cap)) {
+                            // New package is not compatible with original.
+                            origCapsule = NULL;
+                            continue;
+                        }
+                        else if (origCapsule->mSharedUser != NULL) {
+                            // Make sure uid is compatible between packages.
+                            if (!origCapsule->mSharedUser->mName.Equals(cap->mSharedUserId)) {
+                                Slogger::W(TAG,
+                                    StringBuffer("Unable to migrate data from ")
+                                    + origCapsule->mName
+                                    + " to " + cap->mCapsuleName + ": old uid "
+                                    + origCapsule->mSharedUser->mName
+                                    + " differs from " + cap->mSharedUserId);
+                                origCapsule = NULL;
+                                continue;
+                            }
+                        }
+                        else {
+                            if (DEBUG_UPGRADE) {
+                                Logger::V(TAG,
+                                    StringBuffer("Renaming new capsule ")
+                                    + cap->mCapsuleName + " to old name "
+                                    + origCapsule->mName);
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
 
-//	        // Just create the setting, don't add it yet. For already existing packages
-//	        // the PkgSetting exists already and doesn't have to be created.
-//	        pkgSetting = mSettings.getPackageLP(pkg, origPackage, realName, suid, destCodeFile,
-//	                destResourceFile, pkg.applicationInfo.nativeLibraryDir,
-//	                pkg.applicationInfo.flags, true, false);
-//	        if (pkgSetting == null) {
-//	            Slog.w(TAG, "Creating application package " + pkg.packageName + " failed");
-//	            mLastScanError = PackageManager.INSTALL_FAILED_INSUFFICIENT_STORAGE;
-//	            return null;
-//	        }
+        {
+            HashSet<String>::Iterator it;
+            for (it = mTransferedCapsules.Begin();
+                 it != mTransferedCapsules.End(); it++) {
+                if ((*it).Equals(cap->mCapsuleName)) {
+                    break;
+                }
+            }
+            if (it != mTransferedCapsules.End()) {
+                Slogger::W(TAG, StringBuffer("Capsule ")
+                    + cap->mCapsuleName
+                    + " was transferred to another, but its .apk remains");
+            }
+        }
 
-//	        if (pkgSetting.origPackage != null) {
-//	            // If we are first transitioning from an original package,
-//	            // fix up the new package's name now.  We need to do this after
-//	            // looking up the package under its new name, so getPackageLP
-//	            // can take care of fiddling things correctly.
-//	            pkg.setPackageName(origPackage.name);
-//
-//	            // File a report about this.
-//	            String msg = "New package " + pkgSetting.realName
-//	                    + " renamed to replace old package " + pkgSetting.name;
-//	            reportSettingsProblem(Log.WARN, msg);
-//
-//	            // Make a note of it.
-//	            mTransferedPackages.add(origPackage.name);
-//
-//	            // No longer need to retain this.
-//	            pkgSetting.origPackage = null;
-//	        }
+        // Just create the setting, don't add it yet. For already existing packages
+        // the PkgSetting exists already and doesn't have to be created.
+        capSetting = mSettings->GetCapsuleLP(
+            cap, origCapsule, realName, suid, destCodeFile.Get(),
+            destResourceFile.Get(), cap->mApplicationInfo->mNativeLibraryDir,
+            cap->mApplicationInfo->mFlags, TRUE, FALSE);
+        if (capSetting == NULL) {
+            Slogger::W(TAG, StringBuffer("Creating application capsule ")
+                + cap->mCapsuleName + " failed");
+            mLastScanError = CapsuleManager::INSTALL_FAILED_INSUFFICIENT_STORAGE;
+            return NULL;
+        }
 
-//	        if (realName != null) {
-//	            // Make a note of it.
-//	            mTransferedPackages.add(pkg.packageName);
-//	        }
+        if (capSetting->mOrigCapsule != NULL) {
+            // If we are first transitioning from an original package,
+            // fix up the new package's name now.  We need to do this after
+            // looking up the package under its new name, so getPackageLP
+            // can take care of fiddling things correctly.
+            cap->SetCapsuleName(origCapsule->mName);
 
-//	        if (mSettings.mDisabledSysPackages.get(pkg.packageName) != null) {
-//	            pkg.applicationInfo.flags |= ApplicationInfo.FLAG_UPDATED_SYSTEM_APP;
-//	        }
+            // File a report about this.
+            String msg = String((const char*)(StringBuffer("New capsule ")
+                + capSetting->mRealName
+                + " renamed to replace old capsule " + capSetting->mName));
+            ReportSettingsProblem(5 /*Log::WARN*/, msg);
 
-//	        pkg.applicationInfo.uid = pkgSetting.userId;
-//	        pkg.mExtras = pkgSetting;
+            // Make a note of it.
+            mTransferedCapsules.Insert(origCapsule->mName);
 
-//	        if (!verifySignaturesLP(pkgSetting, pkg)) {
-//	            if ((parseFlags&PackageParser.PARSE_IS_SYSTEM_DIR) == 0) {
-//	                return null;
-//	            }
-//	            // The signature has changed, but this package is in the system
-//	            // image...  let's recover!
-//	            pkgSetting.signatures.mSignatures = pkg.mSignatures;
-//	            // However...  if this package is part of a shared user, but it
-//	            // doesn't match the signature of the shared user, let's fail.
-//	            // What this means is that you can't change the signatures
-//	            // associated with an overall shared user, which doesn't seem all
-//	            // that unreasonable.
-//	            if (pkgSetting.sharedUser != null) {
-//	                if (checkSignaturesLP(pkgSetting.sharedUser.signatures.mSignatures,
-//	                        pkg.mSignatures) != PackageManager.SIGNATURE_MATCH) {
-//	                    Log.w(TAG, "Signature mismatch for shared user : " + pkgSetting.sharedUser);
-//	                    mLastScanError = PackageManager.INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES;
-//	                    return null;
-//	                }
-//	            }
-//	            // File a report about this.
-//	            String msg = "System package " + pkg.packageName
-//	                    + " signature changed; retaining data.";
-//	            reportSettingsProblem(Log.WARN, msg);
-//	        }
+            // No longer need to retain this.
+            capSetting->mOrigCapsule = NULL;
+        }
 
-//	        // Verify that this new package doesn't have any content providers
-//	        // that conflict with existing packages.  Only do this if the
-//	        // package isn't already installed, since we don't want to break
-//	        // things that are installed.
-//	        if ((scanMode&SCAN_NEW_INSTALL) != 0) {
-//	            int N = pkg.providers.size();
-//	            int i;
-//	            for (i=0; i<N; i++) {
-//	                PackageParser.Provider p = pkg.providers.get(i);
-//	                if (p.info.authority != null) {
-//	                    String names[] = p.info.authority.split(";");
-//	                    for (int j = 0; j < names.length; j++) {
-//	                        if (mProviders.containsKey(names[j])) {
-//	                            PackageParser.Provider other = mProviders.get(names[j]);
-//	                            Slog.w(TAG, "Can't install because provider name " + names[j] +
-//	                                    " (in package " + pkg.applicationInfo.packageName +
-//	                                    ") is already used by "
-//	                                    + ((other != null && other.getComponentName() != null)
-//	                                            ? other.getComponentName().getPackageName() : "?"));
-//	                            mLastScanError = PackageManager.INSTALL_FAILED_CONFLICTING_PROVIDER;
-//	                            return null;
-//	                        }
-//	                    }
-//	                }
-//	            }
-//	        }
+        if (realName != NULL) {
+            // Make a note of it.
+            mTransferedCapsules.Insert(cap->mCapsuleName);
+        }
+
+        {
+            HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it
+                = mSettings->mDisabledSysCapsules.Find(cap->mCapsuleName);
+            if (it->mSecond != NULL) {
+                cap->mApplicationInfo->mFlags |= CApplicationInfo::FLAG_UPDATED_SYSTEM_APP;
+            }
+        }
+
+        cap->mApplicationInfo->mUid = capSetting->mUserId;
+        cap->mExtras = capSetting;
+
+        if (!VerifySignaturesLP(capSetting, cap)) {
+            if ((parseFlags & CapsuleParser::PARSE_IS_SYSTEM_DIR) == 0) {
+                return NULL;
+            }
+            // The signature has changed, but this package is in the system
+            // image...  let's recover!
+            ArrayOf< AutoPtr<ISignature> >::Free(capSetting->mSignatures->mSignatures.Get());
+            capSetting->mSignatures->mSignatures
+                = ArrayOf< AutoPtr<ISignature> >::Alloc(cap->mSignatures->GetLength());
+            capSetting->mSignatures->mSignatures = cap->mSignatures->Clone();
+            // However...  if this package is part of a shared user, but it
+            // doesn't match the signature of the shared user, let's fail.
+            // What this means is that you can't change the signatures
+            // associated with an overall shared user, which doesn't seem all
+            // that unreasonable.
+            Int32 sig = 0;
+            if (capSetting->mSharedUser != NULL) {
+                CheckSignaturesLP(
+                    capSetting->mSharedUser->mSignatures->mSignatures,
+                    cap->mSignatures, &sig);
+                if (sig != CapsuleManager_SIGNATURE_MATCH) {
+                    Logger::W(TAG,
+                        StringBuffer("Signature mismatch for shared user : ")
+                        + capSetting->mSharedUser);
+                    mLastScanError = CapsuleManager::INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES;
+                    return NULL;
+                }
+            }
+            // File a report about this.
+            String msg = String(
+                (const char*)(StringBuffer("System capsule ")
+                + cap->mCapsuleName + " signature changed; retaining data."));
+            ReportSettingsProblem(5 /*Log::WARN*/, msg);
+        }
+
+        // Verify that this new package doesn't have any content providers
+        // that conflict with existing packages.  Only do this if the
+        // package isn't already installed, since we don't want to break
+        // things that are installed.
+        if ((scanMode & SCAN_NEW_INSTALL) != 0) {
+            List<CapsuleParser::ContentProvider*>::Iterator it;
+            for (it = cap->mContentProviders.Begin();
+                 it != cap->mContentProviders.End(); it++) {
+                CapsuleParser::ContentProvider* c = *it;
+                if (!c->mInfo->mAuthority.IsNull()) {
+                    StringTokenizer token((const char*)c->mInfo->mAuthority, ";");
+                    while (token.HasMoreTokens()) {
+                        String name = token.NextToken();
+                        HashMap<String, CapsuleParser::ContentProvider*>::Iterator
+                            it = mContentProviders.Find(name);
+                        if (it != mContentProviders.End()) {
+                            CapsuleParser::ContentProvider* other = it->mSecond;
+                            String capsuleName("?");
+                            if (other) {
+                                AutoPtr<IComponentName> cn;
+                                other->GetComponentName((IComponentName**)&cn);
+                                if (cn != NULL) {
+                                    cn->GetCapsuleName(&capsuleName);
+                                }
+                            }
+                            Slogger::W(TAG,
+                                StringBuffer("Can't install because provider name ")
+                                + name + " (in capsule "
+                                + cap->mApplicationInfo->mCapsuleName
+                                + ") is already used by " + capsuleName);
+                            mLastScanError = CapsuleManager::INSTALL_FAILED_CONFLICTING_PROVIDER;
+                            return NULL;
+                        }
+
+                    }
+                }
+            }
+        }
     }
 
-//	    final String pkgName = pkg.packageName;
+    String capName = cap->mCapsuleName;
 
-//	    if (pkg.mAdoptPermissions != null) {
-//	        // This package wants to adopt ownership of permissions from
-//	        // another package.
-//	        for (int i=pkg.mAdoptPermissions.size()-1; i>=0; i--) {
-//	            String origName = pkg.mAdoptPermissions.get(i);
-//	            PackageSetting orig = mSettings.peekPackageLP(origName);
-//	            if (orig != null) {
-//	                if (verifyPackageUpdate(orig, pkg)) {
-//	                    Slog.i(TAG, "Adopting permissions from "
-//	                            + origName + " to " + pkg.packageName);
-//	                    mSettings.transferPermissions(origName, pkg.packageName);
-//	                }
-//	            }
-//	        }
-//	    }
+    if (true /*cap->mAdoptPermissions != NULL*/) {
+        // This package wants to adopt ownership of permissions from
+        // another package.
+        List<String>::Iterator it;
+        for (it = cap->mAdoptPermissions.Begin();
+             it != cap->mAdoptPermissions.End(); it++) {
+            String origName = *it;
+            CapsuleSetting* orig = mSettings->PeekCapsuleLP(origName);
+            if (orig != NULL) {
+                if (VerifyCapsuleUpdate(orig, cap)) {
+                    Slogger::I(TAG, StringBuffer("Adopting permissions from ")
+                        + origName + " to " + cap->mCapsuleName);
+                    mSettings->TransferPermissions(origName, cap->mCapsuleName);
+                }
+            }
+        }
+    }
 
-//	    final long scanFileTime = scanFile.lastModified();
-//	    final boolean forceDex = (scanMode&SCAN_FORCE_DEX) != 0;
-//	    final boolean scanFileNewer = forceDex || scanFileTime != pkgSetting.timeStamp;
-//	    pkg.applicationInfo.processName = fixProcessName(
-//	            pkg.applicationInfo.packageName,
-//	            pkg.applicationInfo.processName,
-//	            pkg.applicationInfo.uid);
+    Int64 scanFileTime = 0;
+    scanFile->LastModified(&scanFileTime);
+    Boolean forceDex = (scanMode & SCAN_FORCE_DEX) != 0;
+    Boolean scanFileNewer = forceDex || scanFileTime != capSetting->mTimeStamp;
+    (void)scanFileNewer;
+    cap->mApplicationInfo->mProcessName = FixProcessName(
+            cap->mApplicationInfo->mCapsuleName,
+            cap->mApplicationInfo->mProcessName,
+            cap->mApplicationInfo->mUid);
 
     AutoPtr<IFile> dataPath;
-    if (mPlatformCapsule == cap) {
+    if (mPlatformCapsule.Get() == cap) {
         // The system package is special.
-        AutoPtr<IFile> f;
-        ASSERT_SUCCEEDED(Environment::GetDataDirectory((IFile**)&f));
-        ASSERT_SUCCEEDED(CFile::New(f.Get(), "system", (IFile**)&dataPath));
-        String::Free(cap->mApplicationInfo->mDataDir);
+        AutoPtr<IFile> f = Environment::GetDataDirectory();
+        ASSERT_SUCCEEDED(CFile::New(f.Get(), String("system"), (IFile**)&dataPath));
         dataPath->GetPath(&cap->mApplicationInfo->mDataDir);
-    } else {
+    }
+    else {
         // This is a normal package, need to make its data directory.
-//	        boolean useEncryptedFSDir = useEncryptedFilesystemForPackage(pkg);
-        GetDataPathForCapsule(*cap, (IFile**)&dataPath);
+        Boolean useEncryptedFSDir = UseEncryptedFilesystemForCapsule(cap);
+        dataPath = GetDataPathForCapsule(cap);
 
-//	        Boolean uidError = FALSE;
+        Boolean uidError = FALSE;
 
         Boolean isExists = FALSE;
         dataPath->Exists(&isExists);
         if (isExists) {
-//	            mOutPermissions[1] = 0;
-//	            FileUtils.getPermissions(dataPath.getPath(), mOutPermissions);
+            (*mOutPermissions)[1] = 0;
+            String path;
+            dataPath->GetPath(&path);
+            FileUtils::GetPermissions(path, mOutPermissions.Get());
 
-//	            // If we have mismatched owners for the data path, we have a
-//	            // problem (unless we're running in the simulator.)
-//	            if (mOutPermissions[1] != pkg.applicationInfo.uid && Process.supportsProcesses()) {
-//	                boolean recovered = false;
-//	                if ((parseFlags&PackageParser.PARSE_IS_SYSTEM) != 0) {
-//	                    // If this is a system app, we can at least delete its
-//	                    // current data so the application will still work.
-//	                    if (mInstaller != null) {
-//	                        int ret = mInstaller.remove(pkgName, useEncryptedFSDir);
-//	                        if (ret >= 0) {
-//	                            // Old data gone!
-//	                            String msg = "System package " + pkg.packageName
-//	                                    + " has changed from uid: "
-//	                                    + mOutPermissions[1] + " to "
-//	                                    + pkg.applicationInfo.uid + "; old data erased";
-//	                            reportSettingsProblem(Log.WARN, msg);
-//	                            recovered = true;
-//
-//	                            // And now re-install the app.
-//	                            ret = mInstaller.install(pkgName, useEncryptedFSDir, pkg.applicationInfo.uid,
-//	                                    pkg.applicationInfo.uid);
-//	                            if (ret == -1) {
-//	                                // Ack should not happen!
-//	                                msg = "System package " + pkg.packageName
-//	                                        + " could not have data directory re-created after delete.";
-//	                                reportSettingsProblem(Log.WARN, msg);
-//	                                mLastScanError = PackageManager.INSTALL_FAILED_INSUFFICIENT_STORAGE;
-//	                                return null;
-//	                            }
-//	                        }
-//	                    }
-//	                    if (!recovered) {
-//	                        mHasSystemUidErrors = true;
-//	                    }
-//	                }
-//	                if (!recovered) {
-//	                    pkg.applicationInfo.dataDir = "/mismatched_uid/settings_"
-//	                        + pkg.applicationInfo.uid + "/fs_"
-//	                        + mOutPermissions[1];
-//	                    pkg.applicationInfo.nativeLibraryDir = pkg.applicationInfo.dataDir;
-//	                    String msg = "Package " + pkg.packageName
-//	                            + " has mismatched uid: "
-//	                            + mOutPermissions[1] + " on disk, "
-//	                            + pkg.applicationInfo.uid + " in settings";
-//	                    synchronized (mPackages) {
-//	                        mSettings.mReadMessages.append(msg);
-//	                        mSettings.mReadMessages.append('\n');
-//	                        uidError = true;
-//	                        if (!pkgSetting.uidError) {
-//	                            reportSettingsProblem(Log.ERROR, msg);
-//	                        }
-//	                    }
-//	                }
-//	            }
-//	            pkg.applicationInfo.dataDir = dataPath.getPath();
-        } else {
-//	            if ((parseFlags&PackageParser.PARSE_CHATTY) != 0 && Config.LOGV)
-//	                Log.v(TAG, "Want this data dir: " + dataPath);
-//	            //invoke installer to do the actual installation
-//	            if (mInstaller != null) {
-//	                int ret = mInstaller.install(pkgName, useEncryptedFSDir, pkg.applicationInfo.uid,
-//	                        pkg.applicationInfo.uid);
-//	                if(ret < 0) {
-//	                    // Error from installer
-//	                    mLastScanError = PackageManager.INSTALL_FAILED_INSUFFICIENT_STORAGE;
-//	                    return null;
-//	                }
-//	            } else {
-//	                dataPath.mkdirs();
-//	                if (dataPath.exists()) {
-//	                    FileUtils.setPermissions(
-//	                        dataPath.toString(),
-//	                        FileUtils.S_IRWXU|FileUtils.S_IRWXG|FileUtils.S_IXOTH,
-//	                        pkg.applicationInfo.uid, pkg.applicationInfo.uid);
-//	                }
-//	            }
-//	            if (dataPath.exists()) {
-//	                pkg.applicationInfo.dataDir = dataPath.getPath();
-//	            } else {
-//	                Slog.w(TAG, "Unable to create data directory: " + dataPath);
-//	                pkg.applicationInfo.dataDir = null;
-//	            }
+            // If we have mismatched owners for the data path, we have a
+            // problem (unless we're running in the simulator.)
+            if ((*mOutPermissions)[1] != cap->mApplicationInfo->mUid && Process::SupportsProcesses()) {
+                Boolean recovered = FALSE;
+                if ((parseFlags & CapsuleParser::PARSE_IS_SYSTEM) != 0) {
+                    // If this is a system app, we can at least delete its
+                    // current data so the application will still work.
+                    if (mInstaller != NULL) {
+                        Int32 ret = mInstaller->Remove(capName, useEncryptedFSDir);
+                        if (ret >= 0) {
+                            // Old data gone!
+                            String msg = String((const char*)(
+                                StringBuffer("System capsule ")
+                                + cap->mCapsuleName
+                                + " has changed from uid: "
+                                + mOutPermissions[1] + " to "
+                                + cap->mApplicationInfo->mUid + "; old data erased"));
+                            ReportSettingsProblem(5 /*Log::WARN*/, msg);
+                            recovered = TRUE;
+
+                            // And now re-install the app.
+                            ret = mInstaller->Install(
+                                capName, useEncryptedFSDir,
+                                cap->mApplicationInfo->mUid,
+                                cap->mApplicationInfo->mUid);
+                            if (ret == -1) {
+                                // Ack should not happen!
+                                msg = String((const char*)(
+                                    StringBuffer("System capsule ")
+                                    + cap->mCapsuleName
+                                    + " could not have data directory re-created after delete."));
+                                ReportSettingsProblem(5 /*Log::WARN*/, msg);
+                                mLastScanError = CapsuleManager::INSTALL_FAILED_INSUFFICIENT_STORAGE;
+                                return NULL;
+                            }
+                        }
+                    }
+                    if (!recovered) {
+                        mHasSystemUidErrors = TRUE;
+                    }
+                }
+                if (!recovered) {
+                    cap->mApplicationInfo->mDataDir = String((const char*)(
+                        StringBuffer("/mismatched_uid/settings_")
+                        + cap->mApplicationInfo->mUid + "/fs_"
+                        + mOutPermissions[1]));
+                    cap->mApplicationInfo->mNativeLibraryDir = cap->mApplicationInfo->mDataDir;
+                    String msg = String((const char*)("Capsule " + cap->mCapsuleName
+                            + " has mismatched uid: "
+                            + mOutPermissions[1] + " on disk, "
+                            + cap->mApplicationInfo->mUid + " in settings"));
+                    {
+                        Mutex::Autolock lock(mCapsulesLock);
+
+                        mSettings->mReadMessages = msg;
+                        mSettings->mReadMessages += "\n";
+                        uidError = TRUE;
+                        if (!capSetting->mUidError) {
+                            ReportSettingsProblem(6 /*Log::ERROR*/, msg);
+                        }
+                    }
+                }
+            }
+            dataPath->GetPath(&cap->mApplicationInfo->mDataDir);
+        }
+        else {
+            if ((parseFlags & CapsuleParser::PARSE_CHATTY) != 0 && Config::LOGV) {
+                Logger::V(TAG, StringBuffer("Want this data dir: ") + dataPath);
+            }
+            //invoke installer to do the actual installation
+            if (mInstaller != NULL) {
+                Int32 ret = mInstaller->Install(
+                    capName, useEncryptedFSDir, cap->mApplicationInfo->mUid,
+                    cap->mApplicationInfo->mUid);
+                if (ret < 0) {
+                    // Error from installer
+                    mLastScanError = CapsuleManager::INSTALL_FAILED_INSUFFICIENT_STORAGE;
+                    return NULL;
+                }
+            } else {
+                Boolean isSucceeded = FALSE, isExist = FALSE;
+                dataPath->Mkdirs(&isSucceeded);
+                dataPath->Exists(&isExist);
+                if (isExist) {
+                    String des;
+                    dataPath->ToString(&des);
+                    FileUtils::SetPermissions(des,
+                        FileUtils::IRWXU | FileUtils::IRWXG | FileUtils::IXOTH,
+                        cap->mApplicationInfo->mUid,
+                        cap->mApplicationInfo->mUid);
+                }
+            }
+            Boolean isExist = FALSE;
+            dataPath->Exists(&isExist);
+            if (isExist) {
+                dataPath->GetPath(&cap->mApplicationInfo->mDataDir);
+            } else {
+                Slogger::W(TAG,
+                    StringBuffer("Unable to create data directory: ") + dataPath);
+                cap->mApplicationInfo->mDataDir = String(NULL);
+            }
         }
 
         /*
@@ -4182,230 +8596,283 @@ CapsuleParser::Capsule* CCapsuleManagerService::ScanCapsuleLI(
          * This happens during an upgrade from a package settings file that
          * doesn't have a native library path attribute at all.
          */
-//	        if (pkg.applicationInfo.nativeLibraryDir == null && pkg.applicationInfo.dataDir != null) {
-//	            if (pkgSetting.nativeLibraryPathString == null) {
-//	                final String nativeLibraryPath = new File(dataPath, LIB_DIR_NAME).getPath();
-//	                pkg.applicationInfo.nativeLibraryDir = nativeLibraryPath;
-//	                pkgSetting.nativeLibraryPathString = nativeLibraryPath;
-//	            } else {
-//	                pkg.applicationInfo.nativeLibraryDir = pkgSetting.nativeLibraryPathString;
-//	            }
-//	        }
+        if (cap->mApplicationInfo->mNativeLibraryDir.IsNull()
+            && cap->mApplicationInfo->mDataDir.IsNull()) {
+            if (capSetting->mNativeLibraryPathString.IsNull()) {
+                AutoPtr<IFile> f;
+                String nativeLibraryPath;
+                ASSERT_SUCCEEDED(CFile::New(dataPath.Get(), String(LIB_DIR_NAME), (IFile**)&f));
+                f->GetPath(&nativeLibraryPath);
+                cap->mApplicationInfo->mNativeLibraryDir = nativeLibraryPath;
+                capSetting->mNativeLibraryPathString = nativeLibraryPath;
+            } else {
+                cap->mApplicationInfo->mNativeLibraryDir = capSetting->mNativeLibraryPathString;
+            }
+        }
 
-//	        pkgSetting.uidError = uidError;
+        capSetting->mUidError = uidError;
     }
 
-//	    // If we're running in the simulator, we don't need to unpack anything.
-//	    if (mInstaller != null) {
-//	        String path = scanFile.getPath();
-//	        /* Note: We don't want to unpack the native binaries for
-//	         *        system applications, unless they have been updated
-//	         *        (the binaries are already under /system/lib).
-//	         *        Also, don't unpack libs for apps on the external card
-//	         *        since they should have their libraries in the ASEC
-//	         *        container already.
-//	         *
-//	         *        In other words, we're going to unpack the binaries
-//	         *        only for non-system apps and system app upgrades.
-//	         */
-//	        if (pkg.applicationInfo.nativeLibraryDir != null) {
-//	            final File nativeLibraryDir = new File(pkg.applicationInfo.nativeLibraryDir);
-//	            final String dataPathString = dataPath.getPath();
-//
-//	            if (isSystemApp(pkg) && !isUpdatedSystemApp(pkg)) {
-//	                /*
-//	                 * Upgrading from a previous version of the OS sometimes
-//	                 * leaves native libraries in the /data/data/<app>/lib
-//	                 * directory for system apps even when they shouldn't be.
-//	                 * Recent changes in the JNI library search path
-//	                 * necessitates we remove those to match previous behavior.
-//	                 */
-//	                if (NativeLibraryHelper.removeNativeBinariesFromDirLI(nativeLibraryDir)) {
-//	                    Log.i(TAG, "removed obsolete native libraries for system package " + path);
-//	                }
-//	            } else if (nativeLibraryDir.getParent().equals(dataPathString)) {
-//	                /*
-//	                 * If this is an internal application or our
-//	                 * nativeLibraryPath points to our data directory, unpack
-//	                 * the libraries. The native library path pointing to the
-//	                 * data directory for an application in an ASEC container
-//	                 * can happen for older apps that existed before an OTA to
-//	                 * Gingerbread.
-//	                 */
-//	                Slog.i(TAG, "Unpacking native libraries for " + path);
-//	                mInstaller.unlinkNativeLibraryDirectory(dataPathString);
-//	                NativeLibraryHelper.copyNativeBinariesLI(scanFile, nativeLibraryDir);
-//	            } else {
-//	                Slog.i(TAG, "Linking native library dir for " + path);
-//	                mInstaller.linkNativeLibraryDirectory(dataPathString,
-//	                        pkg.applicationInfo.nativeLibraryDir);
-//	            }
-//	        }
-//	        pkg.mScanPath = path;
-//
-//	        if ((scanMode&SCAN_NO_DEX) == 0) {
-//	            if (performDexOptLI(pkg, forceDex) == DEX_OPT_FAILED) {
-//	                mLastScanError = PackageManager.INSTALL_FAILED_DEXOPT;
-//	                return null;
-//	            }
-//	        }
-//	    }
+    // If we're running in the simulator, we don't need to unpack anything.
+    if (mInstaller != NULL) {
+        String path;
+        scanFile->GetPath(&path);
+        /* Note: We don't want to unpack the native binaries for
+         *        system applications, unless they have been updated
+         *        (the binaries are already under /system/lib)->
+         *        Also, don't unpack libs for apps on the external card
+         *        since they should have their libraries in the ASEC
+         *        container already->
+         *
+         *        In other words, we're going to unpack the binaries
+         *        only for non-system apps and system app upgrades->
+         */
+        if (cap->mApplicationInfo->mNativeLibraryDir != NULL) {
+            AutoPtr<IFile> nativeLibraryDir;
+            String dataPathString;
+            String parentPath;
 
-//	    if (mFactoryTest && pkg.requestedPermissions.contains(
-//	            android.Manifest.permission.FACTORY_TEST)) {
-//	        pkg.applicationInfo.flags |= ApplicationInfo.FLAG_FACTORY_TEST;
-//	    }
+            ASSERT_SUCCEEDED(CFile::New(cap->mApplicationInfo->mNativeLibraryDir, (IFile**)&nativeLibraryDir));
+            dataPath->GetPath(&dataPathString);
+            nativeLibraryDir->GetParent(&parentPath);
 
-//	    // Request the ActivityManager to kill the process(only for existing packages)
-//	    // so that we do not end up in a confused state while the user is still using the older
-//	    // version of the application while the new one gets installed.
-//	    if ((parseFlags & PackageManager.INSTALL_REPLACE_EXISTING) != 0) {
-//	        killApplication(pkg.applicationInfo.packageName,
-//	                    pkg.applicationInfo.uid);
-//	    }
+            if (IsSystemApp(cap) && !IsUpdatedSystemApp(cap)) {
+                /*
+                 * Upgrading from a previous version of the OS sometimes
+                 * leaves native libraries in the /data/data/<app>/lib
+                 * directory for system apps even when they shouldn't be->
+                 * Recent changes in the JNI library search path
+                 * necessitates we remove those to match previous behavior->
+                 */
+                if (NativeLibraryHelper::RemoveNativeBinariesFromDirLI(nativeLibraryDir.Get())) {
+                    Logger::I(TAG,
+                        StringBuffer("removed obsolete native libraries for system capsule ")
+                        + path);
+                }
+            }
+            else if (parentPath.Equals(dataPathString)) {
+                /*
+                 * If this is an internal application or our
+                 * nativeLibraryPath points to our data directory, unpack
+                 * the libraries-> The native library path pointing to the
+                 * data directory for an application in an ASEC container
+                 * can happen for older apps that existed before an OTA to
+                 * Gingerbread->
+                 */
+                Slogger::I(TAG, StringBuffer("Unpacking native libraries for ")
+                    + path);
+                mInstaller->UnlinkNativeLibraryDirectory(dataPathString);
+                NativeLibraryHelper::CopyNativeBinariesLI(scanFile.Get(), nativeLibraryDir.Get());
+            }
+            else {
+                Slogger::I(TAG, StringBuffer("Linking native library dir for ")
+                    + path);
+                mInstaller->LinkNativeLibraryDirectory(dataPathString,
+                        cap->mApplicationInfo->mNativeLibraryDir);
+            }
+        }
+        cap->mScanPath = path;
+
+//        if ((scanMode & SCAN_NO_DEX) == 0) {
+//            if (PerformDexOptLI(cap, forceDex) == DEX_OPT_FAILED) {
+//                mLastScanError = CapsuleManager::INSTALL_FAILED_DEXOPT;
+//                return NULL;
+//            }
+//        }
+    }
+
+    List<String>::Iterator it;
+    for (it = cap->mRequestedPermissions.Begin();
+         it != cap->mRequestedPermissions.End(); it++) {
+        if ((*it).Equals("" /*android.Manifest.permission.FACTORY_TEST*/)) {
+            break;
+        }
+    }
+    if (mFactoryTest && it != cap->mRequestedPermissions.End()) {
+        cap->mApplicationInfo->mFlags |= CApplicationInfo::FLAG_FACTORY_TEST;
+    }
+
+    // Request the ActivityManager to kill the process(only for existing packages)
+    // so that we do not end up in a confused state while the user is still using the older
+    // version of the application while the new one gets installed.
+    if ((parseFlags & CapsuleManager::INSTALL_REPLACE_EXISTING) != 0) {
+        KillApplication(cap->mApplicationInfo->mCapsuleName, cap->mApplicationInfo->mUid);
+    }
 
     {
         Mutex::Autolock lock(mCapsulesLock);
-//	        // We don't expect installation to fail beyond this point,
-//	        if ((scanMode&SCAN_MONITOR) != 0) {
-//	            mAppDirs.put(pkg.mPath, pkg);
-//	        }
-//	        // Add the new setting to mSettings
-//	        mSettings.insertPackageSettingLP(pkgSetting, pkg);
-//	        // Add the new setting to mPackages
-//	        mPackages.put(pkg.applicationInfo.packageName, pkg);
-//	        // Make sure we don't accidentally delete its data.
-//	        mSettings.mPackagesToBeCleaned.remove(pkgName);
-//
-//	        // Take care of first install / last update times.
-//	        if (currentTime != 0) {
-//	            if (pkgSetting.firstInstallTime == 0) {
-//	                pkgSetting.firstInstallTime = pkgSetting.lastUpdateTime = currentTime;
-//	            } else if ((scanMode&SCAN_UPDATE_TIME) != 0) {
-//	                pkgSetting.lastUpdateTime = currentTime;
-//	            }
-//	        } else if (pkgSetting.firstInstallTime == 0) {
-//	            // We need *something*.  Take time time stamp of the file.
-//	            pkgSetting.firstInstallTime = pkgSetting.lastUpdateTime = scanFileTime;
-//	        } else if ((parseFlags&PackageParser.PARSE_IS_SYSTEM_DIR) != 0) {
-//	            if (scanFileTime != pkgSetting.timeStamp) {
-//	                // A package on the system image has changed; consider this
-//	                // to be an update.
-//	                pkgSetting.lastUpdateTime = scanFileTime;
-//	            }
-//	        }
-//
-        Int32 N = cap->mContentProviders.GetSize();
-//	        StringBuilder r = null;
-        StringBuffer* r = NULL;
-        Int32 i = 0;
-//	        for (i=0; i<N; i++) {
-//	            PackageParser.Provider p = pkg.providers.get(i);
-//	            p.info.processName = fixProcessName(pkg.applicationInfo.processName,
-//	                    p.info.processName, pkg.applicationInfo.uid);
-//	            mProvidersByComponent.put(new ComponentName(p.info.packageName,
-//	                    p.info.name), p);
-//	            p.syncable = p.info.isSyncable;
-//	            if (p.info.authority != null) {
-//	                String names[] = p.info.authority.split(";");
-//	                p.info.authority = null;
-//	                for (int j = 0; j < names.length; j++) {
-//	                    if (j == 1 && p.syncable) {
-//	                        // We only want the first authority for a provider to possibly be
-//	                        // syncable, so if we already added this provider using a different
-//	                        // authority clear the syncable flag. We copy the provider before
-//	                        // changing it because the mProviders object contains a reference
-//	                        // to a provider that we don't want to change.
-//	                        // Only do this for the second authority since the resulting provider
-//	                        // object can be the same for all future authorities for this provider.
-//	                        p = new PackageParser.Provider(p);
-//	                        p.syncable = false;
-//	                    }
-//	                    if (!mProviders.containsKey(names[j])) {
-//	                        mProviders.put(names[j], p);
-//	                        if (p.info.authority == null) {
-//	                            p.info.authority = names[j];
-//	                        } else {
-//	                            p.info.authority = p.info.authority + ";" + names[j];
-//	                        }
-//	                        if ((parseFlags&PackageParser.PARSE_CHATTY) != 0 && Config.LOGD)
-//	                            Log.d(TAG, "Registered content provider: " + names[j] +
-//	                                    ", className = " + p.info.name +
-//	                                    ", isSyncable = " + p.info.isSyncable);
-//	                    } else {
-//	                        PackageParser.Provider other = mProviders.get(names[j]);
-//	                        Slog.w(TAG, "Skipping provider name " + names[j] +
-//	                                " (in package " + pkg.applicationInfo.packageName +
-//	                                "): name already used by "
-//	                                + ((other != null && other.getComponentName() != null)
-//	                                        ? other.getComponentName().getPackageName() : "?"));
-//	                    }
-//	                }
-//	            }
-//	            if ((parseFlags&PackageParser.PARSE_CHATTY) != 0) {
-//	                if (r == null) {
-//	                    r = new StringBuilder(256);
-//	                } else {
-//	                    r.append(' ');
-//	                }
-//	                r.append(p.info.name);
-//	            }
-//	        }
-//	        if (r != null) {
-//	            if (Config.LOGD) Log.d(TAG, "  Providers: " + r);
-//	        }
-//
-//	        N = pkg.services.size();
-//	        r = null;
-//	        for (i=0; i<N; i++) {
-//	            PackageParser.Service s = pkg.services.get(i);
-//	            s.info.processName = fixProcessName(pkg.applicationInfo.processName,
-//	                    s.info.processName, pkg.applicationInfo.uid);
-//	            mServices.addService(s);
-//	            if ((parseFlags&PackageParser.PARSE_CHATTY) != 0) {
-//	                if (r == null) {
-//	                    r = new StringBuilder(256);
-//	                } else {
-//	                    r.append(' ');
-//	                }
-//	                r.append(s.info.name);
-//	            }
-//	        }
-//	        if (r != null) {
-//	            if (Config.LOGD) Log.d(TAG, "  Services: " + r);
-//	        }
-//
-//	        N = pkg.receivers.size();
-//	        r = null;
-//	        for (i=0; i<N; i++) {
-//	            PackageParser.Activity a = pkg.receivers.get(i);
-//	            a.info.processName = fixProcessName(pkg.applicationInfo.processName,
-//	                    a.info.processName, pkg.applicationInfo.uid);
-//	            mReceivers.addActivity(a, "receiver");
-//	            if ((parseFlags&PackageParser.PARSE_CHATTY) != 0) {
-//	                if (r == null) {
-//	                    r = new StringBuilder(256);
-//	                } else {
-//	                    r.append(' ');
-//	                }
-//	                r.append(a.info.name);
-//	            }
-//	        }
-//	        if (r != null) {
-//	            if (Config.LOGD) Log.d(TAG, "  Receivers: " + r);
-//	        }
+        // We don't expect installation to fail beyond this point,
+        if ((scanMode & SCAN_MONITOR) != 0) {
+            mAppDirs[cap->mPath] = cap;
+        }
+        // Add the new setting to mSettings
+        mSettings->InsertCapsuleSettingLP(capSetting, cap);
+        // Add the new setting to mPackages
+        mCapsules[cap->mApplicationInfo->mCapsuleName] = cap;
+        // Make sure we don't accidentally delete its data.
+        mSettings->mCapsulesToBeCleaned.Remove(capName);
 
-        N = cap->mActivities.GetSize();
+        // Take care of first install / last update times.
+        if (currentTime != 0) {
+            if (capSetting->mFirstInstallTime == 0) {
+                capSetting->mFirstInstallTime = capSetting->mLastUpdateTime = currentTime;
+            }
+            else if ((scanMode & SCAN_UPDATE_TIME) != 0) {
+                capSetting->mLastUpdateTime = currentTime;
+            }
+        }
+        else if (capSetting->mFirstInstallTime == 0) {
+            // We need *something*.  Take time time stamp of the file.
+            capSetting->mFirstInstallTime = capSetting->mLastUpdateTime = scanFileTime;
+        }
+        else if ((parseFlags & CapsuleParser::PARSE_IS_SYSTEM_DIR) != 0) {
+            if (scanFileTime != capSetting->mTimeStamp) {
+                // A package on the system image has changed; consider this
+                // to be an update.
+                capSetting->mLastUpdateTime = scanFileTime;
+            }
+        }
+
+        StringBuffer* r = NULL;
+        List<CapsuleParser::ContentProvider*>::Iterator cpit;
+        for (cpit = cap->mContentProviders.Begin();
+             cpit != cap->mContentProviders.End(); cpit++) {
+            CapsuleParser::ContentProvider* p = *cpit;
+            p->mInfo->mProcessName = FixProcessName(
+                cap->mApplicationInfo->mProcessName,
+                p->mInfo->mProcessName,
+                cap->mApplicationInfo->mUid);
+            mProvidersByComponent[p->mInfo->mCapsuleName] = p;
+            p->mSyncable = p->mInfo->mIsSyncable;
+            if (p->mInfo->mAuthority != NULL) {
+                StringTokenizer tokenizer(p->mInfo->mAuthority, String(";"));
+                Int32 j = -1;
+                while (tokenizer.HasMoreTokens(), j++) {
+                    String name = tokenizer.NextToken();
+                    if (j == 1 && p->mSyncable) {
+                        // We only want the first authority for a provider to possibly be
+                        // syncable, so if we already added this provider using a different
+                        // authority clear the syncable flag. We copy the provider before
+                        // changing it because the mContentProviders object contains a reference
+                        // to a provider that we don't want to change.
+                        // Only do this for the second authority since the resulting provider
+                        // object can be the same for all future authorities for this provider.
+                        p = new CapsuleParser::ContentProvider(p);
+                        p->mSyncable = FALSE;
+                    }
+                    HashMap<String, CapsuleParser::ContentProvider*>::Iterator it
+                        = mContentProviders.Find(name);
+                    if (it == mContentProviders.End()) { // TODO: mContentProviders
+                        mContentProviders[name] = p;
+                        if (p->mInfo->mAuthority.IsNull()) {
+                            p->mInfo->mAuthority = name;
+                        } else {
+                            p->mInfo->mAuthority = p->mInfo->mAuthority + ";" + name;
+                        }
+                        if ((parseFlags&CapsuleParser::PARSE_CHATTY) != 0 && Config::LOGD)
+                            Logger::D(TAG, StringBuffer("Registered content provider: ")
+                                + name
+                                + ", className = " + p->mInfo->mName
+                                + ", isSyncable = " + p->mInfo->mIsSyncable);
+                    }
+                    else {
+                        HashMap<String, CapsuleParser::ContentProvider*>::Iterator it
+                            = mContentProviders.Find(name);
+                        CapsuleParser::ContentProvider* other = it->mSecond;
+                        String capsuleName(";");
+                        if (other) {
+                            AutoPtr<IComponentName> comName;
+                            other->GetComponentName((IComponentName**)&comName);
+                            if (comName != NULL) {
+                                comName->GetCapsuleName(&capsuleName);
+                            }
+                        }
+                        Slogger::W(TAG,
+                            StringBuffer("Skipping provider name ")
+                            + name
+                            + " (in capsule "
+                            + cap->mApplicationInfo->mCapsuleName
+                            + "): name already used by "
+                            + capsuleName);
+                    }
+                }
+            }
+            if ((parseFlags & CapsuleParser::PARSE_CHATTY) != 0) {
+                if (r == NULL) {
+                    r = new StringBuffer;
+                } else {
+                    *r += " ";
+                }
+                *r += p->mInfo->mName;
+            }
+        }
+        if (r != NULL) {
+            if (Config::LOGD) {
+                Logger::D(TAG, StringBuffer("  Providers: ") + *r);
+            }
+        }
+
         delete r;
         r = NULL;
-        for (i = 0; i < N; i++) {
-            CapsuleParser::Activity* a = cap->mActivities[i];
-            String n = FixProcessName(cap->mApplicationInfo->mProcessName,
-                    a->mInfo->mProcessName, cap->mApplicationInfo->mUid);
-            if ((const char*)n != (const char*)a->mInfo->mProcessName) {
-                String::Free(a->mInfo->mProcessName);
-                a->mInfo->mProcessName = String::Duplicate(n);
+        List<CapsuleParser::Service*>::Iterator csit;
+        for (csit = cap->mServices.Begin();
+             csit != cap->mServices.End(); csit++) {
+            CapsuleParser::Service* s = *csit; // cap->mServices->Get(i);
+            s->mInfo->mProcessName = FixProcessName(
+                cap->mApplicationInfo->mProcessName,
+                s->mInfo->mProcessName,
+                cap->mApplicationInfo->mUid);
+            mServices->AddService(s);
+            if ((parseFlags & CapsuleParser::PARSE_CHATTY) != 0) {
+                if (r == NULL) {
+                    r = new StringBuffer;
+                } else {
+                    *r += " ";
+                }
+                *r = s->mInfo->mName;
             }
+        }
+        if (r != NULL) {
+            if (Config::LOGD) {
+                Logger::D(TAG, StringBuffer("  Services: ") + *r);
+            }
+        }
+
+        delete r;
+        r = NULL;
+        List<CapsuleParser::Activity*>::Iterator cait;
+        for (cait = cap->mReceivers.Begin();
+             cait != cap->mReceivers.End(); cait++) {
+            CapsuleParser::Activity* a = *cait;
+            a->mInfo->mProcessName = FixProcessName(
+                cap->mApplicationInfo->mProcessName,
+                a->mInfo->mProcessName,
+                cap->mApplicationInfo->mUid);
+            mReceivers->AddActivity(a, String("receiver"));
+            if ((parseFlags & CapsuleParser::PARSE_CHATTY) != 0) {
+                if (r == NULL) {
+                    r = new StringBuffer;
+                } else {
+                    *r += " ";
+                }
+                *r += a->mInfo->mName;
+            }
+        }
+        if (r != NULL) {
+            if (Config::LOGD) {
+                Logger::D(TAG, StringBuffer("  Receivers: ") + *r);
+            }
+        }
+
+        delete r;
+        r = NULL;
+        for (cait = cap->mActivities.Begin();
+             cait != cap->mActivities.End(); cait++) {
+            CapsuleParser::Activity* a = *cait;
+            String n = FixProcessName(
+                cap->mApplicationInfo->mProcessName,
+                a->mInfo->mProcessName,
+                cap->mApplicationInfo->mUid);
             mActivities->AddActivity(a, "activity");
             if ((parseFlags & CapsuleParser::PARSE_CHATTY) != 0) {
                 if (r == NULL) {
@@ -4417,143 +8884,275 @@ CapsuleParser::Capsule* CCapsuleManagerService::ScanCapsuleLI(
             }
         }
         if (r != NULL) {
-            if (Config::LOGD) Logger::D(TAG, StringBuffer("  Activities: ") + *r);
+            if (Config::LOGD) {
+                Logger::D(TAG, StringBuffer("  Activities: ") + *r);
+            }
         }
 
-//	        N = pkg.permissionGroups.size();
         delete r;
         r = NULL;
-//	        for (i=0; i<N; i++) {
-//	            PackageParser.PermissionGroup pg = pkg.permissionGroups.get(i);
-//	            PackageParser.PermissionGroup cur = mPermissionGroups.get(pg.info.name);
-//	            if (cur == null) {
-//	                mPermissionGroups.put(pg.info.name, pg);
-//	                if ((parseFlags&PackageParser.PARSE_CHATTY) != 0) {
-//	                    if (r == null) {
-//	                        r = new StringBuilder(256);
-//	                    } else {
-//	                        r.append(' ');
-//	                    }
-//	                    r.append(pg.info.name);
-//	                }
-//	            } else {
-//	                Slog.w(TAG, "Permission group " + pg.info.name + " from package "
-//	                        + pg.info.packageName + " ignored: original from "
-//	                        + cur.info.packageName);
-//	                if ((parseFlags&PackageParser.PARSE_CHATTY) != 0) {
-//	                    if (r == null) {
-//	                        r = new StringBuilder(256);
-//	                    } else {
-//	                        r.append(' ');
-//	                    }
-//	                    r.append("DUP:");
-//	                    r.append(pg.info.name);
-//	                }
-//	            }
-//	        }
-//	        if (r != null) {
-//	            if (Config.LOGD) Log.d(TAG, "  Permission Groups: " + r);
-//	        }
-//
-//	        N = pkg.permissions.size();
-//	        r = null;
-//	        for (i=0; i<N; i++) {
-//	            PackageParser.Permission p = pkg.permissions.get(i);
-//	            HashMap<String, BasePermission> permissionMap =
-//	                    p.tree ? mSettings.mPermissionTrees
-//	                    : mSettings.mPermissions;
-//	            p.group = mPermissionGroups.get(p.info.group);
-//	            if (p.info.group == null || p.group != null) {
-//	                BasePermission bp = permissionMap.get(p.info.name);
-//	                if (bp == null) {
-//	                    bp = new BasePermission(p.info.name, p.info.packageName,
-//	                            BasePermission.TYPE_NORMAL);
-//	                    permissionMap.put(p.info.name, bp);
-//	                }
-//	                if (bp.perm == null) {
-//	                    if (bp.sourcePackage == null
-//	                            || bp.sourcePackage.equals(p.info.packageName)) {
-//	                        BasePermission tree = findPermissionTreeLP(p.info.name);
-//	                        if (tree == null
-//	                                || tree.sourcePackage.equals(p.info.packageName)) {
-//	                            bp.packageSetting = pkgSetting;
-//	                            bp.perm = p;
-//	                            bp.uid = pkg.applicationInfo.uid;
-//	                            if ((parseFlags&PackageParser.PARSE_CHATTY) != 0) {
-//	                                if (r == null) {
-//	                                    r = new StringBuilder(256);
-//	                                } else {
-//	                                    r.append(' ');
-//	                                }
-//	                                r.append(p.info.name);
-//	                            }
-//	                        } else {
-//	                            Slog.w(TAG, "Permission " + p.info.name + " from package "
-//	                                    + p.info.packageName + " ignored: base tree "
-//	                                    + tree.name + " is from package "
-//	                                    + tree.sourcePackage);
-//	                        }
-//	                    } else {
-//	                        Slog.w(TAG, "Permission " + p.info.name + " from package "
-//	                                + p.info.packageName + " ignored: original from "
-//	                                + bp.sourcePackage);
-//	                    }
-//	                } else if ((parseFlags&PackageParser.PARSE_CHATTY) != 0) {
-//	                    if (r == null) {
-//	                        r = new StringBuilder(256);
-//	                    } else {
-//	                        r.append(' ');
-//	                    }
-//	                    r.append("DUP:");
-//	                    r.append(p.info.name);
-//	                }
-//	                if (bp.perm == p) {
-//	                    bp.protectionLevel = p.info.protectionLevel;
-//	                }
-//	            } else {
-//	                Slog.w(TAG, "Permission " + p.info.name + " from package "
-//	                        + p.info.packageName + " ignored: no group "
-//	                        + p.group);
-//	            }
-//	        }
-//	        if (r != null) {
-//	            if (Config.LOGD) Log.d(TAG, "  Permissions: " + r);
-//	        }
-//
-//	        N = pkg.instrumentation.size();
-//	        r = null;
-//	        for (i=0; i<N; i++) {
-//	            PackageParser.Instrumentation a = pkg.instrumentation.get(i);
-//	            a.info.packageName = pkg.applicationInfo.packageName;
-//	            a.info.sourceDir = pkg.applicationInfo.sourceDir;
-//	            a.info.publicSourceDir = pkg.applicationInfo.publicSourceDir;
-//	            a.info.dataDir = pkg.applicationInfo.dataDir;
-//	            a.info.nativeLibraryDir = pkg.applicationInfo.nativeLibraryDir;
-//	            mInstrumentation.put(a.getComponentName(), a);
-//	            if ((parseFlags&PackageParser.PARSE_CHATTY) != 0) {
-//	                if (r == null) {
-//	                    r = new StringBuilder(256);
-//	                } else {
-//	                    r.append(' ');
-//	                }
-//	                r.append(a.info.name);
-//	            }
-//	        }
-//	        if (r != null) {
-//	            if (Config.LOGD) Log.d(TAG, "  Instrumentation: " + r);
-//	        }
-//
-//	        if (pkg.protectedBroadcasts != null) {
-//	            N = pkg.protectedBroadcasts.size();
-//	            for (i=0; i<N; i++) {
-//	                mProtectedBroadcasts.add(pkg.protectedBroadcasts.get(i));
-//	            }
-//	        }
-//
-//	        pkgSetting.setTimeStamp(scanFileTime);
+        List<CapsuleParser::PermissionGroup*>::Iterator cpgit;
+        for (cpgit = cap->mPermissionGroups.Begin();
+             cpgit != cap->mPermissionGroups.End(); cpgit++) {
+            CapsuleParser::PermissionGroup* pg = *cpgit; // cap->mPermissionGroups->Get(i);
+            HashMap<String, CapsuleParser::PermissionGroup*>::Iterator it
+                = mPermissionGroups.Find(pg->mInfo->mName);
+            CapsuleParser::PermissionGroup* cur = it->mSecond;
+            if (cur == NULL) {
+                mPermissionGroups[pg->mInfo->mName] = pg;
+                if ((parseFlags & CapsuleParser::PARSE_CHATTY) != 0) {
+                    if (r == NULL) {
+                        r = new StringBuffer;
+                    } else {
+                        *r += " ";
+                    }
+                        *r += pg->mInfo->mName;
+                }
+            }
+            else {
+                Slogger::W(TAG, StringBuffer("Permission group ")
+                    + pg->mInfo->mName + " from capsule "
+                    + pg->mInfo->mCapsuleName + " ignored: original from "
+                    + cur->mInfo->mCapsuleName);
+                if ((parseFlags & CapsuleParser::PARSE_CHATTY) != 0) {
+                    if (r == NULL) {
+                        r = new StringBuffer;
+                    } else {
+                        *r += " ";
+                    }
+                    *r += "DUP:";
+                    *r += pg->mInfo->mName;
+                }
+            }
+        }
+        if (r != NULL) {
+            if (Config::LOGD) {
+                Logger::D(TAG, StringBuffer("  Permission Groups: ") + *r);
+            }
+        }
+
+        delete r;
+        r = NULL;
+        List<CapsuleParser::Permission*>::Iterator cpermit;
+        for (cpermit = cap->mPermissions.Begin();
+             cpermit != cap->mPermissions.End(); cpermit++) {
+            CapsuleParser::Permission* p = *cpermit;
+            HashMap<String, BasePermission*>& permissionMap = p->mTree
+                ? mSettings->mPermissionTrees : mSettings->mPermissions;
+            HashMap<String, CapsuleParser::PermissionGroup*>::Iterator it
+                = mPermissionGroups.Find(p->mInfo->mGroup);
+            p->mGroup = it->mSecond;
+            if (p->mInfo->mGroup.IsNull() || p->mGroup != NULL) {
+                HashMap<String, BasePermission*>::Iterator it1 =
+                    permissionMap.Find(p->mInfo->mName);
+                BasePermission* bp = it1->mSecond;
+                if (bp == NULL) {
+                    bp = new BasePermission(p->mInfo->mName,
+                        p->mInfo->mCapsuleName, BasePermission::TYPE_NORMAL);
+                    permissionMap[p->mInfo->mName] = bp;
+                }
+                if (bp->mPerm == NULL) {
+                    if (bp->mSourceCapsule.IsNull()
+                        || bp->mSourceCapsule.Equals(p->mInfo->mCapsuleName)) {
+                        BasePermission* tree = FindPermissionTreeLP(p->mInfo->mName);
+                        if (tree == NULL
+                            || tree->mSourceCapsule.Equals(p->mInfo->mCapsuleName)) {
+                            bp->mCapsuleSetting = capSetting;
+                            bp->mPerm = p;
+                            bp->mUid = cap->mApplicationInfo->mUid;
+                            if ((parseFlags & CapsuleParser::PARSE_CHATTY) != 0) {
+                                if (r == NULL) {
+                                    r = new StringBuffer;
+                                }
+                                else {
+                                    *r += " ";
+                                }
+                                *r += p->mInfo->mName;
+                            }
+                        }
+                        else {
+                            Slogger::W(TAG, StringBuffer("Permission ")
+                                + p->mInfo->mName + " from capsule "
+                                + p->mInfo->mCapsuleName + " ignored: base tree "
+                                + tree->mName + " is from capsule "
+                                + tree->mSourceCapsule);
+                        }
+                    }
+                    else {
+                        Slogger::W(TAG, StringBuffer("Permission ")
+                            + p->mInfo->mName + " from capsule "
+                            + p->mInfo->mCapsuleName + " ignored: original from "
+                            + bp->mSourceCapsule);
+                    }
+                }
+                else if ((parseFlags & CapsuleParser::PARSE_CHATTY) != 0) {
+                    if (r == NULL) {
+                        r = new StringBuffer;
+                    } else {
+                        *r += " ";
+                    }
+                    *r += "DUP:";
+                    *r += p->mInfo->mName;
+                }
+                if (bp->mPerm == p) {
+                    bp->mProtectionLevel = p->mInfo->mProtectionLevel;
+                }
+            }
+            else {
+                Slogger::W(TAG, StringBuffer("Permission ")
+                    + p->mInfo->mName + " from capsule "
+                    + p->mInfo->mCapsuleName + " ignored: no group "
+                    + p->mGroup);
+            }
+        }
+        if (r != NULL) {
+            if (Config::LOGD) {
+                Logger::D(TAG, StringBuffer("  Permissions: ") + r);
+            }
+        }
+
+        delete r;
+        r = NULL;
+        List<CapsuleParser::Instrumentation*>::Iterator ciit;
+        for (ciit = cap->mInstrumentation.Begin();
+             ciit != cap->mInstrumentation.End(); ciit++) {
+            CapsuleParser::Instrumentation* a = *ciit;
+            if (!a) continue;
+            a->mInfo->mCapsuleName = cap->mApplicationInfo->mCapsuleName;
+            a->mInfo->mSourceDir = cap->mApplicationInfo->mSourceDir;
+            a->mInfo->mPublicSourceDir = cap->mApplicationInfo->mPublicSourceDir;
+            a->mInfo->mDataDir = cap->mApplicationInfo->mDataDir;
+            a->mInfo->mNativeLibraryDir = cap->mApplicationInfo->mNativeLibraryDir;
+            AutoPtr<IComponentName> comName;
+            a->GetComponentName((IComponentName**)&comName);
+            mInstrumentation[comName] = a;
+            if ((parseFlags & CapsuleParser::PARSE_CHATTY) != 0) {
+                if (r == NULL) {
+                    r = new StringBuffer;
+                } else {
+                    *r += " ";
+                }
+                *r += a->mInfo->mName;
+            }
+        }
+        if (r != NULL) {
+            if (Config::LOGD) {
+                Logger::D(TAG, StringBuffer("  Instrumentation: ") + r);
+            }
+        }
+
+        if (true) {
+            List<String>::Iterator it;
+            for (it = cap->mProtectedBroadcasts.Begin();
+                 it != cap->mProtectedBroadcasts.End(); it++) {
+                mProtectedBroadcasts.Insert(*it);
+            }
+        }
+
+        capSetting->SetTimeStamp(scanFileTime);
     }
 
     return cap;
+}
+
+//Int32 CCapsuleManagerService::PerformDexOptLI(
+//    /* [in] */ CapsuleParser::Capsule* cap,
+//    /* [in] */ Boolean forceDex)
+//{
+//	    boolean performed = false;
+//	    if ((pkg.applicationInfo.flags&ApplicationInfo.FLAG_HAS_CODE) != 0 && mInstaller != null) {
+//	        String path = pkg.mScanPath;
+//	        int ret = 0;
+//	        try {
+//	            if (forceDex || dalvik.system.DexFile.isDexOptNeeded(path)) {
+//	                ret = mInstaller.dexopt(path, pkg.applicationInfo.uid,
+//	                        !isForwardLocked(pkg));
+//	                pkg.mDidDexOpt = true;
+//	                performed = true;
+//	            }
+//	        } catch (FileNotFoundException e) {
+//	            Slog.w(TAG, "Apk not found for dexopt: " + path);
+//	            ret = -1;
+//	        } catch (IOException e) {
+//	            Slog.w(TAG, "IOException reading apk: " + path, e);
+//	            ret = -1;
+//	        } catch (dalvik.system.StaleDexCacheError e) {
+//	            Slog.w(TAG, "StaleDexCacheError when reading apk: " + path, e);
+//	            ret = -1;
+//	        } catch (Exception e) {
+//	            Slog.w(TAG, "Exception when doing dexopt : ", e);
+//	            ret = -1;
+//	        }
+//	        if (ret < 0) {
+//	            //error from installer
+//	            return DEX_OPT_FAILED;
+//	        }
+//	    }
+//
+//	    return performed ? DEX_OPT_PERFORMED : DEX_OPT_SKIPPED;
+//
+//    return -1;
+//}
+
+Boolean CCapsuleManagerService::VerifyCapsuleUpdate(
+    /* [in] */ CapsuleSetting* oldCap,
+    /* [in] */ CapsuleParser::Capsule* newCap)
+{
+    assert(oldCap);
+    assert(newCap);
+
+    if ((oldCap->mCapFlags & CApplicationInfo::FLAG_SYSTEM) == 0) {
+        Slogger::W(TAG, StringBuffer("Unable to update from ")
+            + oldCap->mName + " to " + newCap->mCapsuleName
+            + ": old capsule not in system partition");
+        return FALSE;
+    }
+    else {
+        HashMap<String, CapsuleParser::Capsule*>::Iterator it
+            = mCapsules.Find(oldCap->mName);
+        if (it->mSecond != NULL) {
+            Slogger::W(TAG, StringBuffer("Unable to update from ")
+                + oldCap->mName + " to " + newCap->mCapsuleName
+                + ": old capsule still exists");
+            return FALSE;
+        }
+    }
+    return TRUE;
+}
+
+Boolean CCapsuleManagerService::VerifySignaturesLP(
+    /* [in] */ CapsuleSetting* capSetting,
+    /* [in] */ CapsuleParser::Capsule* cap)
+{
+    assert(capSetting);
+    assert(cap);
+
+    if (capSetting->mSignatures->mSignatures != NULL) {
+        // Already existing package. Make sure signatures match
+        Int32 sig = 0;
+        CheckSignaturesLP(capSetting->mSignatures->mSignatures, cap->mSignatures, &sig);
+        if (sig != CapsuleManager_SIGNATURE_MATCH) {
+            Slogger::E(TAG, StringBuffer("Capsule ") + cap->mCapsuleName
+                + " signatures do not match the previously installed version; ignoring!");
+            mLastScanError = CapsuleManager::INSTALL_FAILED_UPDATE_INCOMPATIBLE;
+            return FALSE;
+        }
+    }
+    // Check for shared user signatures
+    if (capSetting->mSharedUser != NULL
+        && capSetting->mSharedUser->mSignatures->mSignatures != NULL) {
+        Int32 sig = 0;
+        CheckSignaturesLP(capSetting->mSharedUser->mSignatures->mSignatures,
+            cap->mSignatures, &sig);
+        if (sig != CapsuleManager_SIGNATURE_MATCH) {
+            Slogger::E(TAG, StringBuffer("Capsule ") + cap->mCapsuleName
+                + " has no signatures that match those in shared user "
+                + capSetting->mSharedUser->mName + "; ignoring!");
+            mLastScanError = CapsuleManager::INSTALL_FAILED_SHARED_USER_INCOMPATIBLE;
+            return FALSE;
+        }
+    }
+    return TRUE;
 }
 
 ECode CCapsuleManagerService::RemoveCapsuleLI(
@@ -4581,7 +9180,7 @@ ECode CCapsuleManagerService::RemoveCapsuleLI(
         for (providerIt = cap->mContentProviders.Begin();
              providerIt != cap->mContentProviders.End(); providerIt++) {
             CapsuleParser::ContentProvider* p = *providerIt;
-            AutoString compName;
+            String compName;
             GenerateComponentNameKey(p->mInfo->mCapsuleName, p->mInfo->mName, &compName);
             mProvidersByComponent.Erase(compName);
             if (p->mInfo->mAuthority.IsNull()) {
@@ -4597,9 +9196,9 @@ ECode CCapsuleManagerService::RemoveCapsuleLI(
             StringTokenizer* names = new StringTokenizer(p->mInfo->mAuthority, delim);
             while (names->HasMoreTokens()) {
                 String name = names->NextToken();
-                HashMap<String, CapsuleParser::ContentProvider*>::Iterator it = mProviders.Find(name);
+                HashMap<String, CapsuleParser::ContentProvider*>::Iterator it = mContentProviders.Find(name);
                 if (it->mSecond == p) {
-                    mProviders.Erase(name);
+                    mContentProviders.Erase(name);
                     if (chatty && Config::LOGD) {
                         Logger::D(TAG,
                             StringBuffer("Unregistered content provider: ")
@@ -4739,178 +9338,400 @@ ECode CCapsuleManagerService::RemoveCapsuleLI(
 }
 
 ECode CCapsuleManagerService::GenerateComponentNameKey(
-    /* [in] */ String capsuleName,
-    /* [in] */ String name,
+    /* [in] */ const String& capsuleName,
+    /* [in] */ const String& name,
     /* [out] */ String* compName)
 {
-    StringBuffer buf;
-    buf += capsuleName;
-    buf += ".";
-    buf += name;
-    *compName = String::Duplicate(buf);
+    *compName = capsuleName + "." + name;
     return NOERROR;
 }
 
 Boolean CCapsuleManagerService::IsCapsuleFilename(
-    /* [in] */ String name)
+    /* [in] */ const String& name)
 {
     return !name.IsNull() && name.EndWith(".cap");
 }
 
 ECode CCapsuleManagerService::UpdatePermissionsLP(
-    /* [in] */ String changingPkg,
+    /* [in] */ const String& changingCap,
     /* [in] */ CapsuleParser::Capsule* capInfo,
     /* [in] */ Boolean grantPermissions,
     /* [in] */ Boolean replace,
     /* [in] */ Boolean replaceAll)
 {
-//	    // Make sure there are no dangling permission trees.
-//	    Iterator<BasePermission> it = mSettings->mPermissionTrees
-//	            .values().iterator();
-//	    while (it.hasNext()) {
-//	        BasePermission bp = it.next();
-//	        if (bp.packageSetting == null) {
-//	            // We may not yet have parsed the package, so just see if
-//	            // we still know about its settings.
-//	            bp.packageSetting = mSettings.mPackages.get(bp.sourcePackage);
-//	        }
-//	        if (bp.packageSetting == null) {
-//	            Slog.w(TAG, "Removing dangling permission tree: " + bp.name
-//	                    + " from package " + bp.sourcePackage);
-//	            it.remove();
-//	        } else if (changingPkg != null && changingPkg.equals(bp.sourcePackage)) {
-//	            if (pkgInfo == null || !hasPermission(pkgInfo, bp.name)) {
-//	                Slog.i(TAG, "Removing old permission tree: " + bp.name
-//	                        + " from package " + bp.sourcePackage);
-//	                grantPermissions = true;
-//	                it.remove();
-//	            }
-//	        }
-//	    }
-//
-//	    // Make sure all dynamic permissions have been assigned to a package,
-//	    // and make sure there are no dangling permissions.
-//	    it = mSettings.mPermissions.values().iterator();
-//	    while (it.hasNext()) {
-//	        BasePermission bp = it.next();
-//	        if (bp.type == BasePermission.TYPE_DYNAMIC) {
-//	            if (DEBUG_SETTINGS) Log.v(TAG, "Dynamic permission: name="
-//	                    + bp.name + " pkg=" + bp.sourcePackage
-//	                    + " info=" + bp.pendingInfo);
-//	            if (bp.packageSetting == null && bp.pendingInfo != null) {
-//	                BasePermission tree = findPermissionTreeLP(bp.name);
-//	                if (tree != null) {
-//	                    bp.packageSetting = tree.packageSetting;
-//	                    bp.perm = new PackageParser.Permission(tree.perm.owner,
-//	                            new PermissionInfo(bp.pendingInfo));
-//	                    bp.perm.info.packageName = tree.perm.info.packageName;
-//	                    bp.perm.info.name = bp.name;
-//	                    bp.uid = tree.uid;
-//	                }
-//	            }
-//	        }
-//	        if (bp.packageSetting == null) {
-//	            // We may not yet have parsed the package, so just see if
-//	            // we still know about its settings.
-//	            bp.packageSetting = mSettings.mPackages.get(bp.sourcePackage);
-//	        }
-//	        if (bp.packageSetting == null) {
-//	            Slog.w(TAG, "Removing dangling permission: " + bp.name
-//	                    + " from package " + bp.sourcePackage);
-//	            it.remove();
-//	        } else if (changingPkg != null && changingPkg.equals(bp.sourcePackage)) {
-//	            if (pkgInfo == null || !hasPermission(pkgInfo, bp.name)) {
-//	                Slog.i(TAG, "Removing old permission: " + bp.name
-//	                        + " from package " + bp.sourcePackage);
-//	                grantPermissions = true;
-//	                it.remove();
-//	            }
-//	        }
-//	    }
-//
-//	    // Now update the permissions for all packages, in particular
-//	    // replace the granted permissions of the system packages.
-//	    if (grantPermissions) {
-//	        for (PackageParser.Package pkg : mPackages.values()) {
-//	            if (pkg != pkgInfo) {
-//	                grantPermissionsLP(pkg, replaceAll);
-//	            }
-//	        }
-//	    }
-//
-//	    if (pkgInfo != null) {
-//	        grantPermissionsLP(pkgInfo, replace);
-//	    }
+    // Make sure there are no dangling permission trees.
+    HashMap<String, BasePermission*>::Iterator pit;
+    for (pit = mSettings->mPermissionTrees.Begin();
+         pit != mSettings->mPermissionTrees.End();) {
+        BasePermission* bp = pit->mSecond;
+        if (bp->mCapsuleSetting == NULL) {
+            // We may not yet have parsed the capsule, so just see if
+            // we still know about its settings->
+            HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it
+                    = mSettings->mCapsules.Find(bp->mSourceCapsule);
+            bp->mCapsuleSetting = it->mSecond;
+        }
+        if (bp->mCapsuleSetting == NULL) {
+            Slogger::W(TAG, StringBuffer("Removing dangling permission tree: ")
+                + bp->mName + " from capsule " + bp->mSourceCapsule);
+            mSettings->mPermissionTrees.Erase(pit++);
+        }
+        else if (!changingCap.IsNull() && changingCap.Equals(bp->mSourceCapsule)) {
+            if (capInfo == NULL || !HasPermission(capInfo, bp->mName)) {
+                Slogger::I(TAG, StringBuffer("Removing old permission tree: ")
+                    + bp->mName + " from capsule " + bp->mSourceCapsule);
+                grantPermissions = TRUE;
+                mSettings->mPermissionTrees.Erase(pit++);
+            }
+            else {
+                pit++;
+            }
+        }
+        else {
+            pit++;
+        }
+    }
 
-    return E_NOT_IMPLEMENTED;
+    // Make sure all dynamic permissions have been assigned to a package,
+    // and make sure there are no dangling permissions.
+    for (pit = mSettings->mPermissions.Begin();
+         pit != mSettings->mPermissions.End(); pit++) {
+        BasePermission* bp = pit->mSecond;
+        if (bp->mType == BasePermission::TYPE_DYNAMIC) {
+            if (DEBUG_SETTINGS) {
+                Logger::V(TAG, StringBuffer("Dynamic permission: name=")
+                    + bp->mName + " cap=" + bp->mSourceCapsule
+                    + " info=" + bp->mPendingInfo);
+            }
+            if (bp->mCapsuleSetting == NULL && bp->mPendingInfo != NULL) {
+                BasePermission* tree = FindPermissionTreeLP(bp->mName);
+                if (tree != NULL) {
+                    bp->mCapsuleSetting = tree->mCapsuleSetting;
+                    AutoPtr<IPermissionInfo> info;
+                    CPermissionInfo::New(bp->mPendingInfo.Get(), (IPermissionInfo**)&info);
+                    bp->mPerm = new CapsuleParser::Permission(tree->mPerm->mOwner, info.Get());
+                    bp->mPerm->mInfo->mCapsuleName = tree->mPerm->mInfo->mCapsuleName;
+                    bp->mPerm->mInfo->mName = bp->mName;
+                    bp->mUid = tree->mUid;
+                }
+            }
+        }
+        if (bp->mCapsuleSetting == NULL) {
+            // We may not yet have parsed the capsule, so just see if
+            // we still know about its settings->
+            HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it
+                        = mSettings->mCapsules.Find(bp->mSourceCapsule);
+            bp->mCapsuleSetting = it->mSecond;
+        }
+        if (bp->mCapsuleSetting == NULL) {
+            Slogger::W(TAG, StringBuffer("Removing dangling permission: ")
+                + bp->mName + " from capsule " + bp->mSourceCapsule);
+            mSettings->mPermissions.Erase(pit++);
+        }
+        else if (!changingCap.IsNull() && changingCap.Equals(bp->mSourceCapsule)) {
+            if (capInfo == NULL || !HasPermission(capInfo, bp->mName)) {
+                Slogger::I(TAG, StringBuffer("Removing old permission: ")
+                    + bp->mName + " from capsule " + bp->mSourceCapsule);
+                grantPermissions = TRUE;
+                mSettings->mPermissions.Erase(pit++);
+            }
+            else {
+                pit++;
+            }
+        }
+        else {
+            pit++;
+        }
+    }
+
+    // Now update the permissions for all packages, in particular
+    // replace the granted permissions of the system packages.
+    if (grantPermissions) {
+        HashMap<String, CapsuleParser::Capsule*>::Iterator it;
+        for (it = mCapsules.Begin(); it != mCapsules.End(); it++) {
+            CapsuleParser::Capsule* cap = it->mSecond;
+            if (cap != capInfo) {
+                GrantPermissionsLP(cap, replaceAll);
+            }
+        }
+    }
+
+    if (capInfo != NULL) {
+        GrantPermissionsLP(capInfo, replace);
+    }
+
+    return NOERROR;
+}
+
+Boolean CCapsuleManagerService::HasPermission(
+    /* [in] */ CapsuleParser::Capsule* capInfo,
+    /* [in] */ const String& perm)
+{
+    assert(capInfo);
+
+    List<CapsuleParser::Permission*>::Iterator it;
+    for (it = capInfo->mPermissions.Begin();
+         it != capInfo->mPermissions.End(); it++) {
+        CapsuleParser::Permission* p = *it;
+        if (p && p->mInfo->mName.Equals(perm)) {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+void CCapsuleManagerService::GrantPermissionsLP(
+    /* [in] */ CapsuleParser::Capsule* cap,
+    /* [in] */ Boolean replace)
+{
+    assert(cap);
+
+    CapsuleSetting* ps = (CapsuleSetting*)cap->mExtras;
+    if (ps == NULL) {
+        return;
+    }
+    GrantedPermissions* gp = ps->mSharedUser != NULL
+        ? (GrantedPermissions*)ps->mSharedUser : (GrantedPermissions*)ps;
+    Boolean changedPermission = FALSE;
+
+    if (replace) {
+        ps->mPermissionsFixed = FALSE;
+        if (gp == (GrantedPermissions*)ps) {
+            gp->mGrantedPermissions.Clear();
+            gp->mGids = mGlobalGids->Clone();
+        }
+    }
+
+    if (gp->mGids == NULL) {
+        gp->mGids = mGlobalGids->Clone();
+    }
+
+    List<String>::Iterator rpit;
+    for (rpit = cap->mRequestedPermissions.Begin();
+         rpit != cap->mRequestedPermissions.End(); rpit++) {
+        String name = *rpit;
+        HashMap<String, BasePermission*>::Iterator it
+                            = mSettings->mPermissions.Find(name);
+        BasePermission* bp = it->mSecond;
+        if (FALSE) {
+            if (gp != (GrantedPermissions*)ps) {
+                Logger::I(TAG, StringBuffer("Capsule ")
+                    + cap->mCapsuleName + " checking " + name + ": " + bp);
+            }
+        }
+        if (bp != NULL && bp->mCapsuleSetting != NULL) {
+            String perm = bp->mName;
+            Boolean allowed = FALSE;
+            Boolean allowedSig = FALSE;
+            if (bp->mProtectionLevel == PermissionInfo_PROTECTION_NORMAL
+                || bp->mProtectionLevel == PermissionInfo_PROTECTION_DANGEROUS) {
+                allowed = TRUE;
+            }
+            else if (bp->mCapsuleSetting == NULL) {
+                // This permission is invalid; skip it.
+                allowed = FALSE;
+            }
+            else if (bp->mProtectionLevel == PermissionInfo_PROTECTION_SIGNATURE
+                || bp->mProtectionLevel == PermissionInfo_PROTECTION_SIGNATURE_OR_SYSTEM) {
+                Int32 sig1 = 0, sig2 = 0;
+                CheckSignaturesLP(
+                    bp->mCapsuleSetting->mSignatures->mSignatures.Get(),
+                    cap->mSignatures, &sig1);
+                CheckSignaturesLP(mPlatformCapsule->mSignatures, cap->mSignatures, &sig2);
+                allowed = (sig1 == CapsuleManager_SIGNATURE_MATCH)
+                        || (sig2 == CapsuleManager_SIGNATURE_MATCH);
+                if (!allowed && bp->mProtectionLevel
+                    == PermissionInfo_PROTECTION_SIGNATURE_OR_SYSTEM) {
+                    if (IsSystemApp(cap)) {
+                        // For updated system applications, the signatureOrSystem permission
+                        // is granted only if it had been defined by the original application->
+                        if (IsUpdatedSystemApp(cap)) {
+                            CapsuleSetting* sysPs = mSettings->GetDisabledSystemCap(cap->mCapsuleName);
+                            GrantedPermissions* origGp = sysPs->mSharedUser != NULL
+                                ? (GrantedPermissions*)sysPs->mSharedUser
+                                : (GrantedPermissions*)sysPs;
+                            HashSet<String>::Iterator i = origGp->mGrantedPermissions.Find(perm);
+                            allowed = i != origGp->mGrantedPermissions.End();
+                        }
+                        else {
+                            allowed = TRUE;
+                        }
+                    }
+                }
+                if (allowed) {
+                    allowedSig = TRUE;
+                }
+            }
+            else {
+                allowed = FALSE;
+            }
+            if (FALSE) {
+                if (gp != (GrantedPermissions*)ps) {
+                    Logger::I(TAG, StringBuffer("Capsule ")
+                        + cap->mCapsuleName + " granting " + perm);
+                }
+            }
+            if (allowed) {
+                if ((ps->mCapFlags & CApplicationInfo::FLAG_SYSTEM) == 0
+                    && ps->mPermissionsFixed) {
+                    // If this is an existing, non-system capsule, then
+                    // we can't add any new permissions to it.
+                    HashSet<String>::Iterator it = gp->mGrantedPermissions.Find(perm);
+                    if (!allowedSig && it == gp->mGrantedPermissions.End()) {
+                        allowed = FALSE;
+                        // Except...  if this is a permission that was added
+                        // to the platform (note: need to only do this when
+                        // updating the platform).
+                        const Int32 NP = CapsuleParser::GetNewPermissionsLength();
+                        for (Int32 ip = 0; ip < NP; ip++) {
+                            const CapsuleParser::NewPermissionInfo* npi
+                                        = CapsuleParser::NEW_PERMISSIONS[ip];
+                            if (npi->mName.Equals(perm)
+                                && cap->mApplicationInfo->mTargetSdkVersion
+                                < npi->mSdkVersion) {
+                                allowed = TRUE;
+                                Logger::I(TAG, StringBuffer("Auto-granting ")
+                                    + perm + " to old cap " + cap->mCapsuleName);
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (allowed) {
+                    HashSet<String>::Iterator it = gp->mGrantedPermissions.Find(perm);
+                    if (it == gp->mGrantedPermissions.End()) {
+                        changedPermission = TRUE;
+                        gp->mGrantedPermissions.Insert(perm);
+//                        gp->mGids = AppendInts(gp->mGids.Get(), bp->mGids.Get());
+                    }
+                    else if (!ps->mHaveGids) {
+//                        gp->mGids = AppendInts(gp->mGids.Get(), bp->mGids.Get());
+                    }
+                }
+                else {
+                    Slogger::W(TAG, StringBuffer("Not granting permission ")
+                        + perm + " to capsule " + cap->mCapsuleName
+                        + " because it was previously installed without");
+                }
+            }
+            else {
+                HashSet<String>::Iterator it = gp->mGrantedPermissions.Find(perm);
+                if (it != gp->mGrantedPermissions.End()) {
+                    gp->mGrantedPermissions.Erase(it);
+                    changedPermission = TRUE;
+//                    gp->mGids = RemoveInts(gp->mGids, bp->mGids);
+                    Slogger::I(TAG, StringBuffer("Un-granting permission ") + perm
+                        + " from capsule " + cap->mCapsuleName
+                        + " (protectionLevel=" + bp->mProtectionLevel
+                        + " flags=0x" + /*Integer::ToHexString(cap->mApplicationInfo->flags)*/
+                        + cap->mApplicationInfo->mFlags
+                        + ")");
+                }
+                else {
+                    Slogger::W(TAG, StringBuffer("Not granting permission ") + perm
+                        + " to capsule " + cap->mCapsuleName
+                        + " (protectionLevel=" + bp->mProtectionLevel
+                        + " flags=0x" + /*Integer::ToHexString(cap->mApplicationInfo->flags)*/
+                        + cap->mApplicationInfo->mFlags
+                        + ")");
+                }
+            }
+        }
+        else {
+            Slogger::W(TAG, StringBuffer("Unknown permission ")
+                + name + " in capsule " + cap->mCapsuleName);
+        }
+    }
+
+    if ((changedPermission || replace) && !ps->mPermissionsFixed &&
+        (((ps->mCapFlags & CApplicationInfo::FLAG_SYSTEM) == 0) ||
+        ((ps->mCapFlags & CApplicationInfo::FLAG_UPDATED_SYSTEM_APP) != 0))) {
+        // This is the first that we have heard about this package, so the
+        // permissions we have now selected are fixed until explicitly
+        // changed.
+        ps->mPermissionsFixed = TRUE;
+    }
+    ps->mHaveGids = TRUE;
 }
 
 void CCapsuleManagerService::SendCapsuleBroadcast(
-    /* [in] */ String action,
-    /* [in] */ String cap,
+    /* [in] */ const String& action,
+    /* [in] */ const String& cap,
     /* [in] */ IBundle* extras,
     /* [in] */ IIntentReceiver* finishedReceiver)
 {
-//	    IActivityManager am = ActivityManagerNative.getDefault();
-//	    if (am != null) {
-//	        try {
-//	            final Intent intent = new Intent(action,
-//	                    pkg != null ? Uri.fromParts("package", pkg, null) : null);
-//	            if (extras != null) {
-//	                intent.putExtras(extras);
-//	            }
-//	            intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-//	            am.broadcastIntent(null, intent, null, finishedReceiver,
-//	                    0, null, null, null, finishedReceiver != null, false);
-//	        } catch (RemoteException ex) {
-//	        }
-//	    }
+    AutoPtr<IActivityManager> am;
+    ActivityManagerNative::GetDefault((IActivityManager**)&am);
+    if (am != NULL) {
+        AutoPtr<IIntent> intent;
+        AutoPtr<IUri> uri;
+        if (!cap.IsNull()) {
+            Uri::FromParts(String("capsule"), cap, String(NULL), (IUri**)&uri);
+        }
+        CIntent::New(action, uri.Get(), (IIntent**)&intent);
+        if (extras != NULL) {
+            intent->PutExtras(extras);
+        }
+        intent->AddFlags(Intent_FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
+        Int32 res = 0;
+        am->BroadcastIntent(NULL, intent.Get(), String(NULL), finishedReceiver,
+            0, String(NULL), NULL, String(NULL),
+            finishedReceiver != NULL, FALSE, -1, -1, &res);
+    }
 }
 
 void CCapsuleManagerService::ScheduleCapsuleCleaning(
-    /* [in] */ String capsuleName)
+    /* [in] */ const String& capsuleName)
 {
-    String* name = new String(String::Duplicate(capsuleName));
+    String* name = new String(capsuleName);
     Message* msg = mHandler->ObtainMessage(START_CLEANING_CAPSULE, name);
     mHandler->SendMessage(msg);
 }
 
 void CCapsuleManagerService::StartCleaningCapsules()
 {
-//	    synchronized (mPackages) {
-//	        if (!mMediaMounted) {
-//	            return;
-//	        }
-//	        if (mSettings.mPackagesToBeCleaned.size() <= 0) {
-//	            return;
-//	        }
-//	    }
-//	    Intent intent = new Intent(PackageManager.ACTION_CLEAN_EXTERNAL_STORAGE);
-//	    intent.setComponent(DEFAULT_CONTAINER_COMPONENT);
-//	    IActivityManager am = ActivityManagerNative.getDefault();
-//	    if (am != null) {
-//	        try {
-//	            am.startService(null, intent, null);
-//	        } catch (RemoteException e) {
-//	        }
-//	    }
+    {
+        Mutex::Autolock lock(mCapsulesLock);
+
+        if (!mMediaMounted) {
+            return;
+        }
+        if (mSettings->mCapsulesToBeCleaned.GetSize() <= 0) {
+            return;
+        }
+    }
+    AutoPtr<IIntent> intent;
+    CIntent::New(String(CapsuleManager::ACTION_CLEAN_EXTERNAL_STORAGE), (IIntent**)&intent);
+    intent->SetComponent(DEFAULT_CONTAINER_COMPONENT.Get());
+    AutoPtr<IActivityManager> am;
+    ActivityManagerNative::GetDefault((IActivityManager**)&am);
+    if (am != NULL) {
+        AutoPtr<IComponentName> name;
+        am->StartService(NULL, intent, String(NULL), -1, -1, (IComponentName**)&name);
+    }
 }
 
 ECode CCapsuleManagerService::InstallCapsuleEx(
-    /* [in] */ String path)
+    /* [in] */ IUri* capsuleURI,
+    /* [in] */ ICapsuleInstallObserver* observer,
+    /* [in] */ Int32 flags)
+{
+    return InstallCapsule(capsuleURI, observer, flags, String(NULL));
+}
+
+ECode CCapsuleManagerService::InstallCapsuleEx2(
+    /* [in] */ const String& path)
 {
     ECode ec;
-    AutoString err;
+    String err;
     CapsuleParser p;
-    char* fname;
 
-    fname = (char*)malloc(path.GetLength() + strlen("/capsule.xml") + 1);
-    strcpy(fname, path);
-    strcat(fname, "/capsule.xml");
+    String fname = path + "/capsule.xml";
 
     CapsuleParser::Capsule* capsule = new CapsuleParser::Capsule();
     if (SUCCEEDED(p.ParseCapsule(fname, capsule, &err))) {
-        mCapsules[String::Duplicate(capsule->mCapsuleName)] = capsule;
+        mCapsules[capsule->mCapsuleName] = capsule;
         ec = NOERROR;
     }
     else {
@@ -4920,8 +9741,6 @@ ECode CCapsuleManagerService::InstallCapsuleEx(
         ec = E_FAIL;
     }
 
-    free(fname);
-
     return ec;
 }
 
@@ -4929,13 +9748,13 @@ ECode CCapsuleManagerService::InstallCapsule(
     /* [in] */ IUri* capsuleURI,
     /* [in] */ ICapsuleInstallObserver* observer,
     /* [in] */ Int32 flags,
-    /* [in] */ String installerCapsuleName)
+    /* [in] */ const String& installerCapsuleName)
 {
-//	    mContext->EnforceCallingOrSelfPermission(
-//	            android.Manifest.permission.INSTALL_PACKAGES, NULL);
+    mContext->EnforceCallingOrSelfPermission(
+        String("") /*android.Manifest.permission.INSTALL_PACKAGES*/, String(NULL));
 
     Message* msg = mHandler->ObtainMessage(INIT_COPY);
-    msg->mObj = new InstallParams(capsuleURI, observer, flags, installerCapsuleName);
+    msg->mObj = new InstallParams(capsuleURI, observer, flags, installerCapsuleName, this);
     return mHandler->SendMessage(msg);
 }
 
@@ -4947,45 +9766,85 @@ ECode CCapsuleManagerService::FinishCapsuleInstall(
     return mHandler->SendMessage(msg);
 }
 
-ECode CCapsuleManagerService::CreateInstallArgs(
-    /* [in] */ Int32 flags,
-    /* [in] */ String fullCodePath,
-    /* [in] */ String fullResourcePath,
-    /* [in] */ String nativeLibraryPath,
-    /* [out] */ InstallArgs** args)
+CCapsuleManagerService::InstallArgs*
+CCapsuleManagerService::CreateInstallArgs(
+    /* [in] */ InstallParams* params)
 {
-//	    if (installOnSd(flags)) {
-//	        return new SdInstallArgs(fullCodePath, fullResourcePath, nativeLibraryPath);
-//	    } else {
-//	        return new FileInstallArgs(fullCodePath, fullResourcePath, nativeLibraryPath);
-//	    }
-	return E_NOT_IMPLEMENTED;
+    assert(params);
+
+    if (InstallOnSd(params->mFlags)) {
+        return new SdInstallArgs(params, this);
+    }
+    return new FileInstallArgs(params, this);
+}
+
+CCapsuleManagerService::InstallArgs* CCapsuleManagerService::CreateInstallArgs(
+    /* [in] */ Int32 flags,
+    /* [in] */ const String& fullCodePath,
+    /* [in] */ const String& fullResourcePath,
+    /* [in] */ const String& nativeLibraryPath)
+{
+    if (InstallOnSd(flags)) {
+        return new SdInstallArgs(fullCodePath, fullResourcePath, nativeLibraryPath, this);
+    } else {
+        return new FileInstallArgs(fullCodePath, fullResourcePath, nativeLibraryPath, this);
+    }
+}
+
+CCapsuleManagerService::InstallArgs* CCapsuleManagerService::CreateInstallArgs(
+    /* [in] */ IUri* capsuleURI,
+    /* [in] */ Int32 flags,
+    /* [in] */ const String& capName,
+    /* [in] */ String dataDir)
+{
+    return NULL;
+}
+
+String CCapsuleManagerService::GetNextCodePath(
+    /* [in] */ const String& oldCodePath,
+    /* [in] */ const String& prefix,
+    /* [in] */ const String& suffix)
+{
+    return String(NULL);
+}
+
+Boolean CCapsuleManagerService::InstallOnSd(
+    /* [in] */ Int32 flags)
+{
+    if (((flags & CapsuleManager::INSTALL_FORWARD_LOCK) != 0) ||
+            ((flags & CapsuleManager::INSTALL_INTERNAL) != 0)) {
+        return FALSE;
+    }
+    if ((flags & CapsuleManager::INSTALL_EXTERNAL) != 0) {
+        return TRUE;
+    }
+    return FALSE;
 }
 
 ECode CCapsuleManagerService::DeleteCapsule(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ ICapsuleDeleteObserver* observer,
     /* [in] */ Int32 flags)
 {
     VALIDATE_STRING_NOT_NULL(capsuleName);
 
-//	    mContext.enforceCallingOrSelfPermission(
-//	            android.Manifest.permission.DELETE_PACKAGES, null);
+    mContext->EnforceCallingOrSelfPermission(
+        String("") /*android.Manifest.permission.DELETE_CAPSULES*/, String(NULL));
 
     // Queue up an async operation since the package deletion may take a little while.
     if (observer) observer->AddRef();
     Message* msg = mHandler->ObtainMessage(DELETE_CAPSULE,
-        (Int32)new String(String::Duplicate(capsuleName)), flags, (void*)observer);
+        (Int32)new String(capsuleName), flags, (void*)observer);
     return mHandler->SendMessage(msg);
 }
 
 Boolean CCapsuleManagerService::DeleteCapsuleX(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ Boolean sendBroadCast,
     /* [in] */ Boolean deleteCodeAndResources,
     /* [in] */ Int32 flags)
 {
-    CapsuleRemovedInfo* info = new CapsuleRemovedInfo();
+    CapsuleRemovedInfo* info = new CapsuleRemovedInfo(this);
     Boolean res = FALSE;
 
 //	    IDevicePolicyManager dpm = IDevicePolicyManager::Stub::AsInterface(
@@ -5013,11 +9872,11 @@ Boolean CCapsuleManagerService::DeleteCapsuleX(
         if (systemUpdate) {
             AutoPtr<CBundle> extras;
             ASSERT_SUCCEEDED(CBundle::NewByFriend(1, (CBundle**)&extras));
-            extras->PutInt32(Intent_EXTRA_UID, info->mRemovedUid >= 0 ? info->mRemovedUid : info->mUid);
-            extras->PutBoolean(Intent_EXTRA_REPLACING, TRUE);
+            extras->PutInt32(String(Intent_EXTRA_UID), info->mRemovedUid >= 0 ? info->mRemovedUid : info->mUid);
+            extras->PutBoolean(String(Intent_EXTRA_REPLACING), TRUE);
 
-            SendCapsuleBroadcast(Intent_ACTION_CAPSULE_ADDED, capsuleName, (IBundle*)extras.Get(), NULL);
-            SendCapsuleBroadcast(Intent_ACTION_CAPSULE_REPLACED, capsuleName, (IBundle*)extras.Get(), NULL);
+            SendCapsuleBroadcast(String(Intent_ACTION_CAPSULE_ADDED), capsuleName, (IBundle*)extras.Get(), NULL);
+            SendCapsuleBroadcast(String(Intent_ACTION_CAPSULE_REPLACED), capsuleName, (IBundle*)extras.Get(), NULL);
         }
     }
     // Force a gc here.
@@ -5031,22 +9890,22 @@ Boolean CCapsuleManagerService::DeleteCapsuleX(
     return res;
 }
 
-ECode CCapsuleManagerService::RemoveCapsuleDataLI(
+void CCapsuleManagerService::RemoveCapsuleDataLI(
     /* [in] */ CapsuleParser::Capsule* p,
     /* [in] */ CapsuleRemovedInfo* outInfo,
     /* [in] */ Int32 flags,
     /* [in] */ Boolean writeSettings)
 {
-    AutoString capsuleName(String::Duplicate(p->mCapsuleName));
+    String capsuleName(p->mCapsuleName);
     if (outInfo != NULL) {
-        outInfo->mRemovedCapsule = String::Duplicate(capsuleName);
+        outInfo->mRemovedCapsule = capsuleName;
     }
     RemoveCapsuleLI(p, (flags & REMOVE_CHATTY) != 0);
     // Retrieve object to delete permissions for shared user later on
     CapsuleSetting* deletedCs = NULL;
     {
         Mutex::Autolock lock(mCapsulesLock);
-        HashMap<String, CapsuleSetting*>::Iterator itor
+        HashMap<String, AutoPtr<CapsuleSetting> >::Iterator itor
                                 = mSettings->mCapsules.Find(capsuleName);
         deletedCs = itor->mSecond;
     }
@@ -5066,7 +9925,7 @@ ECode CCapsuleManagerService::RemoveCapsuleDataLI(
             CapsuleParser::Capsule* cap = it->mSecond;
             assert(cap);
             AutoPtr<IFile> dataDir;
-            FAIL_RETURN(CFile::New(cap->mApplicationInfo->mDataDir, (IFile**)&dataDir));
+            ASSERT_SUCCEEDED(CFile::New(cap->mApplicationInfo->mDataDir, (IFile**)&dataDir));
             Boolean isDeleted = FALSE;
             dataDir->Delete(&isDeleted);
         }
@@ -5083,15 +9942,15 @@ ECode CCapsuleManagerService::RemoveCapsuleDataLI(
                     UpdatePermissionsLP(deletedCs->mName, NULL, FALSE, FALSE, FALSE);
                     if (deletedCs->mSharedUser != NULL) {
                         // remove permissions associated with capsule
-                        mSettings->UpdateSharedUserPermsLP(deletedCs, *mGlobalGids);
+                        mSettings->UpdateSharedUserPermsLP(deletedCs, mGlobalGids);
                     }
                 }
             }
             // remove from preferred activities.
             List< AutoPtr<PreferredActivity> > removed;
-            List<PreferredActivity*>* list = mSettings->mPreferredActivities->FilterSet();
+            Set<PreferredActivity*>* list = mSettings->mPreferredActivities->FilterSet();
             if (list) {
-                List<PreferredActivity*>::Iterator it;
+                Set<PreferredActivity*>::Iterator it;
                 for (it = list->Begin(); it != list->End(); it++) {
                     AutoPtr<PreferredActivity> pa = *it;
                     String name;
@@ -5112,7 +9971,6 @@ ECode CCapsuleManagerService::RemoveCapsuleDataLI(
             mSettings->WriteLP();
         }
     }
-    return NOERROR;
 }
 
 Boolean CCapsuleManagerService::DeleteSystemCapsuleLI(
@@ -5205,16 +10063,15 @@ Boolean CCapsuleManagerService::DeleteInstalledCapsuleLI(
         // TODO can pick up from CapsuleSettings as well
         Int32 installFlags = IsExternal(c) ? CapsuleManager::INSTALL_EXTERNAL : 0;
         installFlags |= IsForwardLocked(c) ? CapsuleManager::INSTALL_FORWARD_LOCK : 0;
-        CreateInstallArgs(
+        outInfo->mArgs = CreateInstallArgs(
 			installFlags, applicationInfo->mSourceDir,
-            applicationInfo->mPublicSourceDir, applicationInfo->mNativeLibraryDir,
-            &outInfo->mArgs);
+            applicationInfo->mPublicSourceDir, applicationInfo->mNativeLibraryDir);
     }
     return TRUE;
 }
 
 Boolean CCapsuleManagerService::DeleteCapsuleLI(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ Boolean deleteCodeAndResources,
     /* [in] */ Int32 flags,
     /* [in] */ CapsuleRemovedInfo* outInfo,
@@ -5232,7 +10089,7 @@ Boolean CCapsuleManagerService::DeleteCapsuleLI(
         if (itor == mCapsules.End()) {
             //this retrieves partially installed apps
             dataOnly = TRUE;
-            HashMap<String, CapsuleSetting*>::Iterator it = mSettings->mCapsules.Find(capsuleName);
+            HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it = mSettings->mCapsules.Find(capsuleName);
             if (it == mSettings->mCapsules.End()) {
                 Slogger::W(TAG, StringBuffer("Capsule named '") + capsuleName +"' doesn't exist.");
                 return FALSE;
@@ -5274,24 +10131,34 @@ Boolean CCapsuleManagerService::DeleteCapsuleLI(
 }
 
 ECode CCapsuleManagerService::GetInstallerCapsuleName(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [out] */ String* name)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(name);
+
+    Mutex::Autolock Lock(mCapsulesLock);
+
+    HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it = mSettings->mCapsules.Find(capsuleName);
+    CapsuleSetting* cap = it->mSecond;
+    if (cap == NULL) {
+        Logger::E(TAG, StringBuffer("Unknown capsule: ") + capsuleName);
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+    *name = cap->mInstallerCapsuleName;
+    return NOERROR;
 }
 
 ECode CCapsuleManagerService::AddCapsuleToPreferred(
-    /* [in] */ String capsuleName)
+    /* [in] */ const String& capsuleName)
 {
-    // TODO: Add your code here
+    Slogger::W(TAG, "addCapsuleToPreferred: this is now a no-op");
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CCapsuleManagerService::RemoveCapsuleFromPreferred(
-    /* [in] */ String capsuleName)
+    /* [in] */ const String& capsuleName)
 {
-    // TODO: Add your code here
+    Slogger::W(TAG, "removeCapsuleFromPreferred: this is now a no-op");
     return E_NOT_IMPLEMENTED;
 }
 
@@ -5299,50 +10166,199 @@ ECode CCapsuleManagerService::GetPreferredCapsules(
     /* [in] */ Int32 flags,
     /* [out, callee] */ IObjectContainer** infos)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(infos);
+    AutoPtr<IObjectContainer> ret;
+    FAIL_RETURN(CParcelableObjectContainer::New((IObjectContainer**)&ret));
+    *infos = ret.Get();
+    INTERFACE_ADDREF(*infos);
+    return NOERROR;
 }
 
 ECode CCapsuleManagerService::AddPreferredActivity(
     /* [in] */ IIntentFilter* filter,
     /* [in] */ Int32 match,
-    /* [in] */ const ArrayOf<IComponentName> & set,
+    /* [in] */ IObjectContainer* set, /*IComponentName*/
     /* [in] */ IComponentName* activity)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    Mutex::Autolock lock(mCapsulesLock);
+
+    Int32 perm = 0;
+    mContext->CheckCallingOrSelfPermission(
+        String("") /*android.Manifest.permission.SET_PREFERRED_APPLICATIONS*/, &perm);
+    if (perm != CapsuleManager_PERMISSION_GRANTED) {
+        if (GetUidTargetSdkVersionLockedLP(-1 /*Binder::GetCallingUid()*/)
+                < Build::VERSION_CODES::FROYO) {
+            Slogger::W(TAG, StringBuffer("Ignoring AddPreferredActivity() from uid ")
+                    + -1 /*Binder::GetCallingUid()*/);
+            return E_FAIL;
+        }
+        mContext->EnforceCallingOrSelfPermission(
+            String("") /*android.Manifest.permission.SET_PREFERRED_APPLICATIONS*/, String(NULL));
+    }
+
+    Slogger::I(TAG, StringBuffer("Adding preferred activity ") + activity + ":");
+
+//	    filter->Dump(new LogPrinter(Log::INFO, TAG), "  ");
+
+    AutoPtr<PreferredActivity> pa = new PreferredActivity(filter, match, set, activity);
+    if (pa == NULL) return E_OUT_OF_MEMORY_ERROR;
+    mSettings->mPreferredActivities->AddFilter(pa.Get());
+    ScheduleWriteSettingsLocked();
+
+    return NOERROR;
 }
+
+Int32 CCapsuleManagerService::GetUidTargetSdkVersionLockedLP(
+    /* [in] */ Int32 uid)
+{
+//	    Object obj = mSettings.getUserIdLP(uid);
+//	    if (obj instanceof SharedUserSetting) {
+//	        SharedUserSetting sus = (SharedUserSetting)obj;
+//	        final int N = sus.packages.size();
+//	        int vers = Build.VERSION_CODES.CUR_DEVELOPMENT;
+//	        Iterator<PackageSetting> it = sus.packages.iterator();
+//	        int i=0;
+//	        while (it.hasNext()) {
+//	            PackageSetting ps = it.next();
+//	            if (ps.pkg != null) {
+//	                int v = ps.pkg.applicationInfo.targetSdkVersion;
+//	                if (v < vers) vers = v;
+//	            }
+//	        }
+//	        return vers;
+//	    } else if (obj instanceof PackageSetting) {
+//	        PackageSetting ps = (PackageSetting)obj;
+//	        if (ps.pkg != null) {
+//	            return ps.pkg.applicationInfo.targetSdkVersion;
+//	        }
+//	    }
+//	    return Build.VERSION_CODES.CUR_DEVELOPMENT;
+    return -1;
+}
+
 
 ECode CCapsuleManagerService::ReplacePreferredActivity(
     /* [in] */ IIntentFilter* filter,
     /* [in] */ Int32 match,
-    /* [in] */ const ArrayOf<IComponentName> & set,
+    /* [in] */ IObjectContainer* set, /*IComponentName*/
     /* [in] */ IComponentName* activity)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(filter);
+
+    Int32 count = 0;
+    filter->CountActions(&count);
+    if (count != 1) {
+        Logger::E(TAG, "replacePreferredActivity expects filter to have only 1 action.");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+    filter->CountCategories(&count);
+    if (count != 1) {
+        Logger::E(TAG, "replacePreferredActivity expects filter to have only 1 category.");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+    Int32 countA = 0, countP = 0, countS = 0, countT = 0;
+    filter->CountDataAuthorities(&countA);
+    filter->CountDataPaths(&countP);
+    filter->CountDataSchemes(&countS);
+    filter->CountDataTypes(&countT);
+    if (countA != 0 || countP != 0 || countS != 0 || countT != 0) {
+        Logger::E(TAG,
+            "replacePreferredActivity expects filter to have no data authorities, "
+            "paths, schemes or types.");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+    {
+        Mutex::Autolock lock(mCapsulesLock);
+
+        Int32 perm = 0;
+        mContext->CheckCallingOrSelfPermission(
+            String("") /*android.Manifest.permission.SET_PREFERRED_APPLICATIONS*/, &perm);
+        if (perm != CapsuleManager_PERMISSION_GRANTED) {
+            if (GetUidTargetSdkVersionLockedLP(-1 /*Binder::GetCallingUid()*/)
+                    < Build::VERSION_CODES::FROYO) {
+                Slogger::W(TAG,
+                    StringBuffer("Ignoring ReplacePreferredActivity() from uid ")
+                    + -1 /*Binder::GetCallingUid()*/);
+                return E_FAIL;
+            }
+            mContext->EnforceCallingOrSelfPermission(
+                String("") /*android.Manifest.permission.SET_PREFERRED_APPLICATIONS*/, String(NULL));
+        }
+
+        Set<PreferredActivity*>* pas = mSettings->mPreferredActivities->FilterSet();
+        if (pas) {
+            Set<PreferredActivity*>::Iterator it;
+
+            String action;
+            filter->GetAction(0, &action);
+            String category;
+            filter->GetCategory(0, &category);
+            for (it = pas->Begin(); it != pas->End();) {
+                PreferredActivity* pa = *it;
+                String a, g;
+                pa->GetAction(0, &a);
+                pa->GetCategory(0, &g);
+                if (a.Equals(action) && g.Equals(category)) {
+                    pas->Erase(it++);
+                    Logger::I(TAG, StringBuffer("Removed preferred activity ")
+                        + pa->mActivity + ":");
+//	                    filter->Dump(new LogPrinter(Log::INFO, TAG), "  ");
+                }
+                else {
+                    it++;
+                }
+            }
+        }
+        AddPreferredActivity(filter, match, set, activity);
+    }
+    return NOERROR;
 }
 
 ECode CCapsuleManagerService::ClearCapsulePreferredActivities(
-    /* [in] */ String capsuleName)
+    /* [in] */ const String& capsuleName)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    Mutex::Autolock lock(mCapsulesLock);
+
+    Int32 uid = -1 /*Binder::GetCallingUid()*/;
+    HashMap<String, CapsuleParser::Capsule*>::Iterator it = mCapsules.Find(capsuleName);
+    CapsuleParser::Capsule* cap = it->mSecond;
+    if (cap == NULL || cap->mApplicationInfo->mUid != uid) {
+        Int32 perm = 0;
+        mContext->CheckCallingOrSelfPermission(
+            String("") /*android.Manifest.permission.SET_PREFERRED_APPLICATIONS*/, &perm);
+        if (perm != CapsuleManager_PERMISSION_GRANTED) {
+            if (GetUidTargetSdkVersionLockedLP(-1 /*Binder::GetCallingUid()*/)
+                    < Build::VERSION_CODES::FROYO) {
+                Slogger::W(TAG,
+                    StringBuffer("Ignoring ClearCapsulePreferredActivities() from uid ")
+                    + -1 /*Binder::GetCallingUid()*/);
+                return E_FAIL;
+            }
+            mContext->EnforceCallingOrSelfPermission(
+                String("") /*android.Manifest.permission.SET_PREFERRED_APPLICATIONS*/, String(NULL));
+        }
+    }
+
+    if (ClearCapsulePreferredActivitiesLP(capsuleName)) {
+        ScheduleWriteSettingsLocked();
+    }
+
+    return NOERROR;
 }
 
 Boolean CCapsuleManagerService::ClearCapsulePreferredActivitiesLP(
-    /* [in] */ String capsuleName)
+    /* [in] */ const String& capsuleName)
 {
     Boolean changed = FALSE;
-    List<PreferredActivity*>* list = mSettings->mPreferredActivities->FilterIterator();
-    List<PreferredActivity*>::Iterator it;
-    for (it = list->Begin(); it != list->End();) {
+    Set<PreferredActivity*>* set = mSettings->mPreferredActivities->FilterSet();
+    Set<PreferredActivity*>::Iterator it;
+    for (it = set->Begin(); it != set->End();) {
         PreferredActivity* pa = *it;
-        AutoString name;
+        String name;
         pa->mActivity->GetCapsuleName(&name);
         if (name.Equals(capsuleName)) {
-            List<PreferredActivity*>::Iterator iit = it++;
-            list->Erase(iit);
+            Set<PreferredActivity*>::Iterator iit = it++;
+            set->Erase(iit);
             changed = TRUE;
         }
         else {
@@ -5355,7 +10371,7 @@ Boolean CCapsuleManagerService::ClearCapsulePreferredActivitiesLP(
 ECode CCapsuleManagerService::GetPreferredActivities(
     /* [in] */ IObjectContainer* outFilters,
     /* [in] */ IObjectContainer* outActivities,
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [out] */ Int32* count)
 {
     VALIDATE_NOT_NULL(count);
@@ -5363,11 +10379,11 @@ ECode CCapsuleManagerService::GetPreferredActivities(
     Int32 num = 0;
     {
         Mutex::Autolock lock(mCapsulesLock);
-        List<PreferredActivity*>* list = mSettings->mPreferredActivities->FilterIterator();
-        List<PreferredActivity*>::Iterator it;
-        for (it = list->Begin(); it != list->End();) {
+        Set<PreferredActivity*>* set = mSettings->mPreferredActivities->FilterSet();
+        Set<PreferredActivity*>::Iterator it;
+        for (it = set->Begin(); it != set->End();) {
             PreferredActivity* pa = *it; // it->Next();
-            AutoString name;
+            String name;
             pa->mActivity->GetCapsuleName(&name);
             if (capsuleName.IsNull() || name.Equals(capsuleName)) {
                 if (outFilters != NULL) {
@@ -5394,15 +10410,15 @@ ECode CCapsuleManagerService::SetComponentEnabledSetting(
 {
     VALIDATE_NOT_NULL(componentName);
 
-    AutoString capName, clsName;
+    String capName, clsName;
     componentName->GetCapsuleName(&capName);
     componentName->GetClassName(&clsName);
     return SetEnabledSetting(capName, clsName, newState, flags);
 }
 
 ECode CCapsuleManagerService::SetEnabledSetting(
-    /* [in] */ String capsuleName,
-    /* [in] */ String className,
+    /* [in] */ const String& capsuleName,
+    /* [in] */ const String& className,
     /* [in] */ Int32 newState,
     /* [in] */ Int32 flags)
 {
@@ -5416,18 +10432,18 @@ ECode CCapsuleManagerService::SetEnabledSetting(
     const Int32 uid = -1 /*Binder::GetCallingUid()*/;
     Int32 permission = 0;
     mContext->CheckCallingPermission(
-        "" /*android.Manifest.permission.CHANGE_COMPONENT_ENABLED_STATE*/,
+        String("") /*android.Manifest.permission.CHANGE_COMPONENT_ENABLED_STATE*/,
         &permission);
     const Boolean allowedByPermission = (permission == CapsuleManager_PERMISSION_GRANTED);
     Boolean sendNow = FALSE;
     Boolean isApp = (className.IsNull());
     String componentName = isApp ? capsuleName : className;
     Int32 capsuleUid = -1;
-    List<String> components;
+    List<String>* components;
     {
         Mutex::Autolock lock(mCapsulesLock);
 
-        HashMap<String, CapsuleSetting*>::Iterator csIt = mSettings->mCapsules.Find(capsuleName);
+        HashMap<String, AutoPtr<CapsuleSetting> >::Iterator csIt = mSettings->mCapsules.Find(capsuleName);
         capSetting = csIt->mSecond;
         if (capSetting == NULL) {
             if (className.IsNull()) {
@@ -5476,19 +10492,19 @@ ECode CCapsuleManagerService::SetEnabledSetting(
         }
         mSettings->WriteLP();
         capsuleUid = capSetting->mUserId;
-        HashMap< String, List<String> >::Iterator pbIt = mPendingBroadcasts.Find(capsuleName);
+        HashMap< String, List<String>* >::Iterator pbIt = mPendingBroadcasts.Find(capsuleName);
         components = pbIt->mSecond;
         Boolean newCapsule = pbIt == mPendingBroadcasts.End();
         List<String>::Iterator comIt;
         Boolean isContained = FALSE;
-        for (comIt = components.Begin(); comIt != components.End(); comIt++) {
+        for (comIt = components->Begin(); comIt != components->End(); comIt++) {
             if (componentName.Equals(*comIt)) {
                 isContained = TRUE;
                 break;
             }
         }
         if (!isContained) {
-            components.PushBack(componentName);
+            components->PushBack(componentName);
         }
         if ((flags & CapsuleManager::DONT_KILL_APP) == 0) {
             sendNow = TRUE;
@@ -5510,7 +10526,7 @@ ECode CCapsuleManagerService::SetEnabledSetting(
     (void)callingId;
     if (sendNow) {
         SendCapsuleChangedBroadcast(capsuleName,
-            (flags & CapsuleManager::DONT_KILL_APP) != 0, components, capsuleUid);
+            (flags & CapsuleManager::DONT_KILL_APP) != 0, *components, capsuleUid);
     }
 //	    Binder::RestoreCallingIdentity(callingId);
     return NOERROR;
@@ -5525,21 +10541,21 @@ ECode CCapsuleManagerService::GetComponentEnabledSetting(
 
     Mutex::Autolock Lock(mCapsulesLock);
 
-    AutoString capsuleNameStr;
+    String capsuleNameStr;
     componentName->GetCapsuleName(&capsuleNameStr);
-    HashMap<String, CapsuleSetting*>::Iterator it = mSettings->mCapsules.Find(capsuleNameStr);
+    HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it = mSettings->mCapsules.Find(capsuleNameStr);
     CapsuleSetting* cap = it->mSecond;
     if (cap == NULL) {
         Logger::E(TAG, StringBuffer("Unknown component: ") + componentName);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
-    AutoString classNameStr;
+    String classNameStr;
     componentName->GetClassName(&classNameStr);
     return cap->CurrentEnabledStateLP(classNameStr);
 }
 
 ECode CCapsuleManagerService::SetApplicationEnabledSetting(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ Int32 newState,
     /* [in] */ Int32 flags)
 {
@@ -5547,14 +10563,14 @@ ECode CCapsuleManagerService::SetApplicationEnabledSetting(
 }
 
 ECode CCapsuleManagerService::GetApplicationEnabledSetting(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [out] */ Int32* setting)
 {
     VALIDATE_NOT_NULL(setting);
 
     Mutex::Autolock Lock(mCapsulesLock);
 
-    HashMap<String, CapsuleSetting*>::Iterator it = mSettings->mCapsules.Find(capsuleName);
+    HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it = mSettings->mCapsules.Find(capsuleName);
     CapsuleSetting* cap = it->mSecond;
     if (cap == NULL) {
         Logger::E(TAG, StringBuffer("Unknown capsule: ") + capsuleName);
@@ -5577,7 +10593,7 @@ void CCapsuleManagerService::HandleFreeStorageAndNotify(
         }
     } //end if mInstaller
     if (observer != NULL) {
-        if (FAILED(observer->OnRemoveCompleted(NULL, (retCode >= 0)))) {
+        if (FAILED(observer->OnRemoveCompleted(String(NULL), (retCode >= 0)))) {
             Slogger::W(TAG, "RemoveException when invoking call back");
         }
     }
@@ -5588,7 +10604,7 @@ ECode CCapsuleManagerService::FreeStorageAndNotify(
     /* [in] */ ICapsuleDataObserver* observer)
 {
     mContext->EnforceCallingOrSelfPermission(
-        "" /*android.Manifest.permission.CLEAR_APP_CACHE*/, String(NULL));
+        String("") /*android.Manifest.permission.CLEAR_APP_CACHE*/, String(NULL));
     // Queue up an async operation since clearing cache may take a little while.
     void (STDCALL CCapsuleManagerService::*pHandlerFunc)(Int64, ICapsuleDataObserver*);
     pHandlerFunc = &CCapsuleManagerService::HandleFreeStorageAndNotify;
@@ -5598,7 +10614,7 @@ ECode CCapsuleManagerService::FreeStorageAndNotify(
     params->WriteInt64(freeStorageSize);
     params->WriteInt32((Handle32)observer);
     return mApartment->PostCppCallback(
-        (Handle32)this, *(Handle32*)&pHandlerFunc, params.Get());
+        (Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 void CCapsuleManagerService::HandleFreeStorage(
@@ -5631,7 +10647,7 @@ ECode CCapsuleManagerService::FreeStorage(
     /* [in] */ IIntentSender* pi)
 {
     mContext->EnforceCallingOrSelfPermission(
-        "" /*android.Manifest.permission.CLEAR_APP_CACHE*/, String(NULL));
+        String("") /*android.Manifest.permission.CLEAR_APP_CACHE*/, String(NULL));
     // Queue up an async operation since clearing cache may take a little while.
     void (STDCALL CCapsuleManagerService::*pHandlerFunc)(Int64, IIntentSender*);
     pHandlerFunc = &CCapsuleManagerService::HandleFreeStorage;
@@ -5641,14 +10657,14 @@ ECode CCapsuleManagerService::FreeStorage(
     params->WriteInt64(freeStorageSize);
     params->WriteInt32((Handle32)pi);
     return mApartment->PostCppCallback(
-        (Handle32)this, *(Handle32*)&pHandlerFunc, params.Get());
+        (Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 void CCapsuleManagerService::HandleDeleteApplicationCacheFiles(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ ICapsuleDataObserver* observer)
 {
-    void (STDCALL CCapsuleManagerService::*pHandlerFunc)(String, ICapsuleDataObserver*);
+    void (STDCALL CCapsuleManagerService::*pHandlerFunc)(const String&, ICapsuleDataObserver*);
     pHandlerFunc = &CCapsuleManagerService::HandleDeleteApplicationCacheFiles;
     mApartment->RemoveCppCallbacks((Handle32)this, *(Handle32*)&pHandlerFunc);
 
@@ -5666,13 +10682,13 @@ void CCapsuleManagerService::HandleDeleteApplicationCacheFiles(
 }
 
 ECode CCapsuleManagerService::DeleteApplicationCacheFiles(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ ICapsuleDataObserver* observer)
 {
     mContext->EnforceCallingOrSelfPermission(
-        "" /*android.Manifest.permission.DELETE_CACHE_FILES*/, String(NULL));
+        String("") /*android.Manifest.permission.DELETE_CACHE_FILES*/, String(NULL));
     // Queue up an async operation since the package deletion may take a little while.
-    void (STDCALL CCapsuleManagerService::*pHandlerFunc)(String, ICapsuleDataObserver*);
+    void (STDCALL CCapsuleManagerService::*pHandlerFunc)(const String&, ICapsuleDataObserver*);
     pHandlerFunc = &CCapsuleManagerService::HandleDeleteApplicationCacheFiles;
 
     AutoPtr<IParcel> params;
@@ -5680,11 +10696,11 @@ ECode CCapsuleManagerService::DeleteApplicationCacheFiles(
     params->WriteString(capsuleName);
     params->WriteInt32((Handle32)observer);
     return mApartment->PostCppCallback(
-        (Handle32)this, *(Handle32*)&pHandlerFunc, params.Get());
+        (Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 Boolean CCapsuleManagerService::DeleteApplicationCacheFilesLI(
-    /* [in] */ String capsuleName)
+    /* [in] */ const String& capsuleName)
 {
     if (capsuleName.IsNull()) {
         Slogger::W(TAG, "Attempt to delete NULL capsuleName->");
@@ -5719,10 +10735,10 @@ Boolean CCapsuleManagerService::DeleteApplicationCacheFilesLI(
 }
 
 void CCapsuleManagerService::HandleClearApplicationUserData(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ ICapsuleDataObserver* observer)
 {
-    void (STDCALL CCapsuleManagerService::*pHandlerFunc)(String, ICapsuleDataObserver*);
+    void (STDCALL CCapsuleManagerService::*pHandlerFunc)(const String&, ICapsuleDataObserver*);
     pHandlerFunc = &CCapsuleManagerService::HandleClearApplicationUserData;
     mApartment->RemoveCppCallbacks((Handle32)this, *(Handle32*)&pHandlerFunc);
 
@@ -5749,13 +10765,13 @@ void CCapsuleManagerService::HandleClearApplicationUserData(
 }
 
 ECode CCapsuleManagerService::ClearApplicationUserData(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ ICapsuleDataObserver* observer)
 {
     mContext->EnforceCallingOrSelfPermission(
-        "" /*android.Manifest.permission.CLEAR_APP_USER_DATA*/, String(NULL));
+        String("") /*android.Manifest.permission.CLEAR_APP_USER_DATA*/, String(NULL));
     // Queue up an async operation since the package deletion may take a little while.
-    void (STDCALL CCapsuleManagerService::*pHandlerFunc)(String, ICapsuleDataObserver*);
+    void (STDCALL CCapsuleManagerService::*pHandlerFunc)(const String&, ICapsuleDataObserver*);
     pHandlerFunc = &CCapsuleManagerService::HandleClearApplicationUserData;
 
     AutoPtr<IParcel> params;
@@ -5763,11 +10779,11 @@ ECode CCapsuleManagerService::ClearApplicationUserData(
     params->WriteString(capsuleName);
     params->WriteInt32((Handle32)observer);
     return mApartment->PostCppCallback(
-        (Handle32)this, *(Handle32*)&pHandlerFunc, params.Get());
+        (Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 Boolean CCapsuleManagerService::ClearApplicationUserDataLI(
-    /* [in] */ String capsuleName)
+    /* [in] */ const String& capsuleName)
 {
     if (capsuleName.IsNull()) {
         Slogger::W(TAG, "Attempt to delete NULL capsuleName->");
@@ -5781,7 +10797,7 @@ Boolean CCapsuleManagerService::ClearApplicationUserDataLI(
         c = it->mSecond;
         if (c == NULL) {
             dataOnly = TRUE;
-            HashMap<String, CapsuleSetting*>::Iterator csIt = mSettings->mCapsules.Find(capsuleName);
+            HashMap<String, AutoPtr<CapsuleSetting> >::Iterator csIt = mSettings->mCapsules.Find(capsuleName);
             CapsuleSetting* cs = csIt->mSecond;
             if ((cs == NULL) || (cs->mCap == NULL)) {
                 Slogger::W(TAG, StringBuffer("Capsule named '") + capsuleName + "' doesn't exist->");
@@ -5819,10 +10835,10 @@ Boolean CCapsuleManagerService::ClearApplicationUserDataLI(
 }
 
 void CCapsuleManagerService::HandleGetCapsuleSizeInfo(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ ICapsuleStatsObserver* observer)
 {
-    void (STDCALL CCapsuleManagerService::*pHandlerFunc)(String, ICapsuleStatsObserver*);
+    void (STDCALL CCapsuleManagerService::*pHandlerFunc)(const String&, ICapsuleStatsObserver*);
     pHandlerFunc = &CCapsuleManagerService::HandleGetCapsuleSizeInfo;
     mApartment->RemoveCppCallbacks((Handle32)this, *(Handle32*)&pHandlerFunc);
 
@@ -5843,13 +10859,13 @@ void CCapsuleManagerService::HandleGetCapsuleSizeInfo(
 }
 
 ECode CCapsuleManagerService::GetCapsuleSizeInfo(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ ICapsuleStatsObserver* observer)
 {
     mContext->EnforceCallingOrSelfPermission(
-        "" /*android.Manifest.permission.GET_PACKAGE_SIZE*/, String(NULL));
+        String("") /*android.Manifest.permission.GET_PACKAGE_SIZE*/, String(NULL));
     // Queue up an async operation since the package deletion may take a little while.
-    void (STDCALL CCapsuleManagerService::*pHandlerFunc)(String, ICapsuleStatsObserver*);
+    void (STDCALL CCapsuleManagerService::*pHandlerFunc)(const String&, ICapsuleStatsObserver*);
     pHandlerFunc = &CCapsuleManagerService::HandleGetCapsuleSizeInfo;
 
     AutoPtr<IParcel> params;
@@ -5857,11 +10873,11 @@ ECode CCapsuleManagerService::GetCapsuleSizeInfo(
     params->WriteString(capsuleName);
     params->WriteInt32((Handle32)observer);
     return mApartment->PostCppCallback(
-        (Handle32)this, *(Handle32*)&pHandlerFunc, params.Get());
+        (Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 Boolean CCapsuleManagerService::GetCapsuleSizeInfoLI(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ ICapsuleStats* stats)
 {
     if (capsuleName.IsNull()) {
@@ -5876,7 +10892,7 @@ Boolean CCapsuleManagerService::GetCapsuleSizeInfoLI(
         c = it->mSecond;
         if (c == NULL) {
             dataOnly = TRUE;
-            HashMap<String, CapsuleSetting*>::Iterator csIt = mSettings->mCapsules.Find(capsuleName);
+            HashMap<String, AutoPtr<CapsuleSetting> >::Iterator csIt = mSettings->mCapsules.Find(capsuleName);
             CapsuleSetting* cs = csIt->mSecond;
             if ((cs == NULL) || (cs->mCap == NULL)) {
                 Slogger::W(TAG, StringBuffer("Capsule named '") + capsuleName + "' doesn't exist->");
@@ -5885,7 +10901,7 @@ Boolean CCapsuleManagerService::GetCapsuleSizeInfoLI(
             c = cs->mCap;
         }
     }
-    AutoString publicSrcDir;
+    String publicSrcDir;
     if (!dataOnly) {
         AutoPtr<CApplicationInfo> applicationInfo = c->mApplicationInfo;
         if (applicationInfo == NULL) {
@@ -5893,8 +10909,7 @@ Boolean CCapsuleManagerService::GetCapsuleSizeInfoLI(
             return FALSE;
         }
         publicSrcDir = IsForwardLocked(c)
-            ? String::Duplicate(applicationInfo->mPublicSourceDir)
-            : String(NULL);
+            ? applicationInfo->mPublicSourceDir : String(NULL);
     }
     Boolean useEncryptedFSDir = UseEncryptedFilesystemForCapsule(c);
     if (mInstaller != NULL) {
@@ -5923,7 +10938,7 @@ ECode CCapsuleManagerService::GetSystemSharedLibraryNames(
         HashMap<String, String>::Iterator it;
         for (it = mSharedLibraries.Begin();
              it != mSharedLibraries.End(); it++) {
-            (*libs)[i++] = String::Duplicate(it->mFirst);
+            (*libs)[i++] = it->mFirst;
         }
     }
 
@@ -5939,11 +10954,11 @@ ECode CCapsuleManagerService::GetSystemAvailableFeatures(
     Mutex::Autolock lock(mCapsulesLock);
 
     AutoPtr<IObjectContainer> featSet;
-    FAIL_RETURN(CObjectContainer::New((IObjectContainer**)&featSet));
+    FAIL_RETURN(CParcelableObjectContainer::New((IObjectContainer**)&featSet));
 
     Int32 size = mAvailableFeatures.GetSize();
     if (size > 0) {
-        HashMap<String, IFeatureInfo*>::Iterator it;
+        HashMap<String, AutoPtr<IFeatureInfo> >::Iterator it;
         for (it = mAvailableFeatures.Begin();
              it != mAvailableFeatures.End(); it++) {
             featSet->Add(it->mSecond);
@@ -5961,21 +10976,21 @@ ECode CCapsuleManagerService::GetSystemAvailableFeatures(
 }
 
 ECode CCapsuleManagerService::HasSystemFeature(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ Boolean* result)
 {
     VALIDATE_NOT_NULL(result);
 
     Mutex::Autolock lock(mCapsulesLock);
-    HashMap<String, IFeatureInfo*>::Iterator it = mAvailableFeatures.Find(name);
+    HashMap<String, AutoPtr<IFeatureInfo> >::Iterator it = mAvailableFeatures.Find(name);
     *result = it != mAvailableFeatures.End();
     return NOERROR;
 }
 
 void CCapsuleManagerService::SendCapsuleChangedBroadcast(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ Boolean killFlag,
-    /* [in] */ List<String>& componentNames,
+    /* [in] */ const List<String>& componentNames,
     /* [in] */ Int32 capsuleUid)
 {
     if (FALSE) {
@@ -5986,20 +11001,20 @@ void CCapsuleManagerService::SendCapsuleChangedBroadcast(
     ASSERT_SUCCEEDED(CBundle::New((IBundle**)&extras));
     AutoStringArray nameList = ArrayOf<String>::Alloc(componentNames.GetSize());
     assert(nameList != NULL);
-    AutoString first;
+    String first;
     Int32 i = 0;
-    List<String>::Iterator it;
+    List<String>::ConstIterator it;
     for (it = componentNames.Begin(); it != componentNames.End(); it++) {
         if (i == 0) {
-            first = String::Duplicate(*it);
+            first = *it;
         }
-        (*nameList)[i++] = String::Duplicate(*it);
+        (*nameList)[i++] = *it;
     }
-    extras->PutString(Intent_EXTRA_CHANGED_COMPONENT_NAME, first);
-    extras->PutStringArray(Intent_EXTRA_CHANGED_COMPONENT_NAME_LIST, *nameList);
-    extras->PutBoolean(Intent_EXTRA_DONT_KILL_APP, killFlag);
-    extras->PutInt32(Intent_EXTRA_UID, capsuleUid);
-    SendCapsuleBroadcast(Intent_ACTION_CAPSULE_CHANGED, capsuleName, extras.Get(), NULL);
+    extras->PutString(String(Intent_EXTRA_CHANGED_COMPONENT_NAME), first);
+    extras->PutStringArray(String(Intent_EXTRA_CHANGED_COMPONENT_NAME_LIST), *nameList);
+    extras->PutBoolean(String(Intent_EXTRA_DONT_KILL_APP), killFlag);
+    extras->PutInt32(String(Intent_EXTRA_UID), capsuleUid);
+    SendCapsuleBroadcast(String(Intent_ACTION_CAPSULE_CHANGED), capsuleName, extras.Get(), NULL);
 }
 
 ECode CCapsuleManagerService::EnterSafeMode()
@@ -6089,7 +11104,7 @@ ECode CCapsuleManagerService::UpdateExternalMediaStatus(
     params->WriteBoolean(mediaStatus);
     params->WriteBoolean(reportStatus);
     return mApartment->PostCppCallback(
-        (Handle32)this, *(Handle32*)&pHandlerFunc, params.Get());
+        (Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 ECode CCapsuleManagerService::UpdateExternalMediaStatusInner(
@@ -6120,13 +11135,12 @@ ECode CCapsuleManagerService::UpdateExternalMediaStatusInner(
 
             for (Int32 i = 0; i < list->GetLength(); i++) {
                 String cid = (*list)[i];
-                SdInstallArgs* args = new SdInstallArgs(cid);
+                SdInstallArgs* args = new SdInstallArgs(cid, this);
                 if (!args) return E_OUT_OF_MEMORY_ERROR;
                 if (DEBUG_SD_INSTALL) {
                     Logger::I(TAG, StringBuffer("Processing container ") + cid);
                 }
-                AutoString capName;
-                args->GetCapsuleName(&capName);
+                String capName = args->GetCapsuleName();
                 if (capName.IsNull()) {
                     if (DEBUG_SD_INSTALL) {
                         Logger::I(TAG, StringBuffer("Container : ") + cid + " stale");
@@ -6137,7 +11151,7 @@ ECode CCapsuleManagerService::UpdateExternalMediaStatusInner(
                 if (DEBUG_SD_INSTALL) {
                     Logger::I(TAG, StringBuffer("Looking for cap : ") + capName);
                 }
-                HashMap<String, CapsuleSetting*>::Iterator it
+                HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it
                                         = mSettings->mCapsules.Find(capName);
                 CapsuleSetting* cs = it->mSecond;
                 // The capsule status is changed only if the code path
@@ -6272,7 +11286,7 @@ ECode CCapsuleManagerService::LoadMediaCapsules(
 
         // Make sure group IDs have been assigned, and any permission
         // changes in other apps are accounted for
-        UpdatePermissionsLP(NULL, NULL, TRUE, regrantPermissions, regrantPermissions);
+        UpdatePermissionsLP(String(NULL), NULL, TRUE, regrantPermissions, regrantPermissions);
         // Persist settings
         mSettings->WriteLP();
     }
@@ -6288,12 +11302,12 @@ ECode CCapsuleManagerService::LoadMediaCapsules(
     List<String>::Iterator rcIt;
     for (rcIt = removeCids.Begin(); rcIt != removeCids.End(); rcIt++) {
         String cid = *rcIt;
-        StringBuf_<16> subStr;
-        cid.Substring(0, mTempContainerPrefix.GetLength(), subStr);
-        if ((String((const char*)subStr)).Equals(mTempContainerPrefix)) {
+        String subStr = cid.Substring(0, strlen(mTempContainerPrefix));
+        if (subStr.Equals(mTempContainerPrefix)) {
              Logger::I(TAG, StringBuffer("Destroying stale temporary container ") + cid);
              CapsuleHelper::DestroySdDir(cid);
-        } else {
+        }
+        else {
              Logger::W(TAG, StringBuffer("Container ") + cid + " is stale");
         }
     }
@@ -6302,7 +11316,7 @@ ECode CCapsuleManagerService::LoadMediaCapsules(
 
 void CCapsuleManagerService::SendResourcesChangedBroadcast(
     /* [in] */ Boolean mediaStatus,
-    /* [in] */ List<String>& capList,
+    /* [in] */ const List<String>& capList,
     /* [in] */ const ArrayOf<Int32>& uidArr,
     /* [in] */ IIntentReceiver* finishedReceiver)
 {
@@ -6311,19 +11325,19 @@ void CCapsuleManagerService::SendResourcesChangedBroadcast(
         AutoStringArray caps = ArrayOf<String>::Alloc(size);
         assert(caps != NULL);
         Int32 i = 0;
-        List<String>::Iterator it;
+        List<String>::ConstIterator it;
         for (it = capList.Begin(); it != capList.End(); it++) {
-            (*caps)[i++] = String::Duplicate(*it);
+            (*caps)[i++] = *it;
         }
         // Send broadcasts here
         AutoPtr<IBundle> extras; // = new Bundle();
         ASSERT_SUCCEEDED(CBundle::New((IBundle**)&extras));
-        extras->PutStringArray(Intent_EXTRA_CHANGED_CAPSULE_LIST, *caps);
-        extras->PutInt32Array(Intent_EXTRA_CHANGED_UID_LIST, uidArr);
+        extras->PutStringArray(String(Intent_EXTRA_CHANGED_CAPSULE_LIST), *caps);
+        extras->PutInt32Array(String(Intent_EXTRA_CHANGED_UID_LIST), uidArr);
         String action = mediaStatus
-            ? Intent_ACTION_EXTERNAL_APPLICATIONS_AVAILABLE
-            : Intent_ACTION_EXTERNAL_APPLICATIONS_UNAVAILABLE;
-        SendCapsuleBroadcast(action, NULL, extras.Get(), finishedReceiver);
+            ? String(Intent_ACTION_EXTERNAL_APPLICATIONS_AVAILABLE)
+            : String(Intent_ACTION_EXTERNAL_APPLICATIONS_UNAVAILABLE);
+        SendCapsuleBroadcast(action, String(NULL), extras.Get(), finishedReceiver);
     }
 }
 
@@ -6343,13 +11357,12 @@ ECode CCapsuleManagerService::UnloadMediaCapsules(
         keys->PushBack(args);
 
         String cid = args->mCid;
-        AutoString capName;
-        args->GetCapsuleName(&capName);
+        String capName = args->GetCapsuleName();
         if (DEBUG_SD_INSTALL) {
             Logger::I(TAG, StringBuffer("Trying to unload cap : ") + capName);
         }
         // Delete capsule internally
-        CapsuleRemovedInfo* outInfo = new CapsuleRemovedInfo();
+        CapsuleRemovedInfo* outInfo = new CapsuleRemovedInfo(this);
         assert(outInfo);
         {
             Mutex::Autolock lock(mInstallLock);
@@ -6397,7 +11410,7 @@ ECode CCapsuleManagerService::UnloadMediaCapsules(
 }
 
 ECode CCapsuleManagerService::NextCapsuleToClean(
-    /* [in] */ String lastCapsule,
+    /* [in] */ const String& lastCapsule,
     /* [out] */ String* nextCapsule)
 {
     VALIDATE_NOT_NULL(nextCapsule);
@@ -6425,7 +11438,7 @@ ECode CCapsuleManagerService::NextCapsuleToClean(
         *nextCapsule = NULL;
         return E_DOES_NOT_EXIST;
     }
-    *nextCapsule = String::Duplicate(*mSettings->mCapsulesToBeCleaned.Begin());
+    *nextCapsule = *mSettings->mCapsulesToBeCleaned.Begin();
     return NOERROR;
 }
 
@@ -6442,12 +11455,12 @@ void CCapsuleManagerService::UnloadAllContainers(
 }
 
 ECode CCapsuleManagerService::MoveCapsule(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ ICapsuleMoveObserver* observer,
     /* [in] */ Int32 flags)
 {
     mContext->EnforceCallingOrSelfPermission(
-           "" /*android.Manifest.permission.MOVE_CAPSULE*/, NULL);
+           String("") /*android.Manifest.permission.MOVE_CAPSULE*/, String(NULL));
     Int32 returnCode = CapsuleManager_MOVE_SUCCEEDED;
     Int32 currFlags = 0;
     Int32 newFlags = 0;
@@ -6458,24 +11471,29 @@ ECode CCapsuleManagerService::MoveCapsule(
         CapsuleParser::Capsule* cap = it->mSecond;
         if (cap == NULL) {
             returnCode =  CapsuleManager_MOVE_FAILED_DOESNT_EXIST;
-        } else {
+        }
+        else {
             // Disable moving fwd locked apps and system capsules
             if (cap->mApplicationInfo != NULL && IsSystemApp(cap)) {
                 Slogger::W(TAG, "Cannot move system application");
                 returnCode = CapsuleManager_MOVE_FAILED_SYSTEM_CAPSULE;
-            } else if (cap->mApplicationInfo != NULL && IsForwardLocked(cap)) {
+            }
+            else if (cap->mApplicationInfo != NULL && IsForwardLocked(cap)) {
                 Slogger::W(TAG, "Cannot move forward locked app->");
                 returnCode = CapsuleManager_MOVE_FAILED_FORWARD_LOCKED;
-            } else if (cap->mOperationPending) {
+            }
+            else if (cap->mOperationPending) {
                 Slogger::W(TAG, "Attempt to move capsule which has pending operations");
                 returnCode = CapsuleManager_MOVE_FAILED_OPERATION_PENDING;
-            } else {
+            }
+            else {
                 // Find install location first
                 if ((flags & CapsuleManager_MOVE_EXTERNAL_MEDIA) != 0
                     && (flags & CapsuleManager_MOVE_INTERNAL) != 0) {
                     Slogger::W(TAG, "Ambigous flags specified for move location.");
                     returnCode = CapsuleManager_MOVE_FAILED_INVALID_LOCATION;
-                } else {
+                }
+                else {
                     newFlags = (flags & CapsuleManager_MOVE_EXTERNAL_MEDIA) != 0
                         ? CapsuleManager::INSTALL_EXTERNAL
                         : CapsuleManager::INSTALL_INTERNAL;
@@ -6493,19 +11511,21 @@ ECode CCapsuleManagerService::MoveCapsule(
             }
         }
         if (returnCode != CapsuleManager_MOVE_SUCCEEDED) {
-            MoveParams* params = new MoveParams(NULL, observer, 0, capsuleName, NULL);
+            MoveParams* params = new MoveParams(
+                NULL, observer, 0, capsuleName, String(NULL), this);
             ProcessPendingMove(params, returnCode);
-        } else {
+        }
+        else {
             Message* msg = new Message(); // mHandler->ObtainMessage(INIT_COPY);
             msg->mWhat = INIT_COPY;
             InstallArgs* srcArgs;
-            CreateInstallArgs(currFlags,
-                cap->mApplicationInfo->mSourceDir,
-                cap->mApplicationInfo->mPublicSourceDir,
-                cap->mApplicationInfo->mNativeLibraryDir, &srcArgs);
+//            CreateInstallArgs(currFlags,
+//                cap->mApplicationInfo->mSourceDir,
+//                cap->mApplicationInfo->mPublicSourceDir,
+//                cap->mApplicationInfo->mNativeLibraryDir, &srcArgs);
             MoveParams* mp = new MoveParams(
                 srcArgs, observer, newFlags, capsuleName,
-                cap->mApplicationInfo->mDataDir);
+                cap->mApplicationInfo->mDataDir, this);
             msg->mObj = mp;
             mHandler->SendMessage(msg);
         }
@@ -6587,7 +11607,8 @@ void CCapsuleManagerService::HandleProcessPendingMove(
                             if (mInstaller->UnlinkNativeLibraryDirectory(cap->mApplicationInfo->mDataDir) < 0) {
                                 returnCode = CapsuleManager_MOVE_FAILED_INSUFFICIENT_STORAGE;
                             }
-                            else {
+                            else {
+
                                 AutoPtr<IFile> codeFile, nativeFile;
                                 CFile::New(newCodePath, (IFile**)&codeFile);
                                 CFile::New(newNativePath, (IFile**)&nativeFile);
@@ -6602,7 +11623,7 @@ void CCapsuleManagerService::HandleProcessPendingMove(
                         }
 
                         if (returnCode == CapsuleManager_MOVE_SUCCEEDED) {
-                            cap->mPath = String::Duplicate(newCodePath);
+                            cap->mPath = newCodePath;
                             // Move dex files around
 //	                            if (MoveDexFilesLI(cap) != CapsuleManager::INSTALL_SUCCEEDED) {
 //	                                // Moving of dex files failed-> Set
@@ -6613,16 +11634,16 @@ void CCapsuleManagerService::HandleProcessPendingMove(
                         }
 
                         if (returnCode == CapsuleManager_MOVE_SUCCEEDED) {
-                            cap->mScanPath = String::Duplicate(newCodePath);
-                            cap->mApplicationInfo->mSourceDir = String::Duplicate(newCodePath);
-                            cap->mApplicationInfo->mPublicSourceDir = String::Duplicate(newResPath);
-                            cap->mApplicationInfo->mNativeLibraryDir = String::Duplicate(newNativePath);
+                            cap->mScanPath = newCodePath;
+                            cap->mApplicationInfo->mSourceDir = newCodePath;
+                            cap->mApplicationInfo->mPublicSourceDir = newResPath;
+                            cap->mApplicationInfo->mNativeLibraryDir = newNativePath;
                             CapsuleSetting* ps = (CapsuleSetting*)cap->mExtras;
                             CFile::New(cap->mApplicationInfo->mSourceDir, (IFile**)&ps->mCodePath);
                             ps->mCodePath->GetPath(&ps->mCodePathString);
                             CFile::New(cap->mApplicationInfo->mPublicSourceDir, (IFile**)&ps->mResourcePath);
                             ps->mResourcePath->GetPath(&ps->mResourcePathString);
-                            ps->mNativeLibraryPathString = String::Duplicate(newNativePath);
+                            ps->mNativeLibraryPathString = newNativePath;
                             // Set the application info flag correctly.
                             if ((mp->mFlags & CapsuleManager::INSTALL_EXTERNAL) != 0) {
                                 cap->mApplicationInfo->mFlags |= CApplicationInfo::FLAG_EXTERNAL_STORAGE;
@@ -6687,7 +11708,7 @@ void CCapsuleManagerService::ProcessPendingMove(
     CCallbackParcel::New((IParcel**)&params);
     params->WriteInt32((Handle32)mp);
     params->WriteInt32(currentStatus);
-    mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params.Get());
+    mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 ECode CCapsuleManagerService::AddPermissionAsync(
@@ -6761,17 +11782,14 @@ ECode CCapsuleManagerService::AddPermissionLocked(
 }
 
 ECode CCapsuleManagerService::CheckPermissionTreeLP(
-    /* [in] */ String permName,
+    /* [in] */ const String& permName,
     /* [out] */ BasePermission** basePerm)
 {
-    assert(basePerm);
-
     if (!permName.IsNull()) {
-        BasePermission* bp = NULL;
-        FAIL_RETURN(FindPermissionTreeLP(permName, &bp));
+        BasePermission* bp = FindPermissionTreeLP(permName);
         if (bp != NULL) {
             if (TRUE /*bp->mUid == Binder::GetCallingUid()*/) {
-                *basePerm = bp;
+                if (basePerm) *basePerm = bp;
                 return NOERROR;
             }
             Logger::E(TAG, StringBuffer("Calling uid ")
@@ -6784,15 +11802,11 @@ ECode CCapsuleManagerService::CheckPermissionTreeLP(
     return E_SECURITY_EXCEPTION;
 }
 
-ECode CCapsuleManagerService::FindPermissionTreeLP(
-    /* [in] */ String permName,
-    /* [out] */ BasePermission** basePerm)
+CCapsuleManagerService::BasePermission*
+CCapsuleManagerService::FindPermissionTreeLP(
+    /* [in] */ const String& permName)
 {
-    VALIDATE_STRING_NOT_NULL(permName);
-    assert(basePerm);
-
-    StringBuf* buf = StringBuf::Alloc(permName.GetLength() + 1);
-    if (!buf) return E_OUT_OF_MEMORY_ERROR;
+    assert(!permName.IsNull());
 
     HashMap<String, BasePermission*>::Iterator it;
     for (it = mSettings->mPermissionTrees.Begin();
@@ -6805,15 +11819,14 @@ ECode CCapsuleManagerService::FindPermissionTreeLP(
             continue;
         }
 
-        permName.Substring(0, bp->mName.GetLength(), *buf);
+        String str = permName.Substring(0, bp->mName.GetLength());
 
-        if (String((const char*)(*buf)).Equals(bp->mName)
+        if (str.Equals(bp->mName)
             && permName.GetChar(bp->mName.GetLength()) == '.') {
-            *basePerm = bp;
-            return NOERROR;
+            return bp;
         }
     }
-    return E_DOES_NOT_EXIST;
+    return NULL;
 }
 
 Boolean CCapsuleManagerService::ComparePermissionInfos(
@@ -6829,13 +11842,13 @@ Boolean CCapsuleManagerService::ComparePermissionInfos(
     if (cpi1->mIcon != cpi2->mIcon) return FALSE;
     if (cpi1->mLogo != cpi2->mLogo) return FALSE;
     if (cpi1->mProtectionLevel != cpi2->mProtectionLevel) return FALSE;
-    if (!CompareStrings(cpi1->mName, cpi2->mName)) return FALSE;
-    AutoString str1, str2;
+//    if (!CompareStrings(cpi1->mName, cpi2->mName)) return FALSE;
+    String str1, str2;
     cpi1->mNonLocalizedLabel->ToString(&str1);
     cpi2->mNonLocalizedLabel->ToString(&str2);
-    if (!CompareStrings(str1, str2)) return FALSE;
+//    if (!CompareStrings(str1, str2)) return FALSE;
     // We'll take care of setting this one.
-    if (!CompareStrings(cpi1->mCapsuleName, cpi2->mCapsuleName)) return FALSE;
+//    if (!CompareStrings(cpi1->mCapsuleName, cpi2->mCapsuleName)) return FALSE;
     // These are not currently stored in settings.
     //if (!CompareStrings(pi1->mGroup, pi2->mGroup)) return FALSE;
     //if (!CompareStrings(pi1->mNonLocalizedDescription, pi2->mNonLocalizedDescription)) return FALSE;
@@ -6845,16 +11858,17 @@ Boolean CCapsuleManagerService::ComparePermissionInfos(
 }
 
 Boolean CCapsuleManagerService::CompareStrings(
-    /* [in] */ String s1,
-    /* [in] */ String s2)
+    /* [in] */ ICharSequence* s1,
+    /* [in] */ ICharSequence* s2)
 {
-    if (s1.IsNull()) {
-        return s2.IsNull();
-    }
-    if (s2.IsNull()) {
-        return FALSE;
-    }
-    return s1.Equals(s2);
+//    if (s1.IsNull()) {
+//        return s2.IsNull();
+//    }
+//    if (s2.IsNull()) {
+//        return FALSE;
+//    }
+//    return s1.Equals(s2);
+    return FALSE;
 }
 
 void CCapsuleManagerService::ScheduleWriteSettingsLocked()
@@ -6871,7 +11885,7 @@ ECode CCapsuleManagerService::SetInstallLocation(
     VALIDATE_NOT_NULL(isSetted);
 
     mContext->EnforceCallingOrSelfPermission(
-        "" /*android.Manifest.permission.WRITE_SECURE_SETTINGS*/, NULL);
+        String("") /*android.Manifest.permission.WRITE_SECURE_SETTINGS*/, String(NULL));
     Int32 location = 0;
     GetInstallLocation(&location);
     if (location == loc) {
@@ -6908,7 +11922,7 @@ ECode CCapsuleManagerService::constructor()
 }
 
 void CCapsuleManagerService::ScanDir(
-    /* [in] */ String path)
+    /* [in] */ CString path)
 {
     DIR* dir;
     struct dirent* dp;
@@ -6944,23 +11958,21 @@ void CCapsuleManagerService::ScanDir(
 }
 
 CapsuleParser::Capsule* CCapsuleManagerService::ScanCapsule(
-    /* [in] */ String capfile)
+    /* [in] */ const String& capfile)
 {
-    StringBuf_<512> buf;
     String dir;
     Int32 len;
     CapsuleParser p;
-    AutoString err;
+    String err;
     CapsuleParser::Capsule* capsule;
 
     len = capfile.GetLength();
-    dir = capfile.Substring(0, len - strlen(DEFAULT_RESOURCES_FILE_NAME) - 1, buf);
+    dir = capfile.Substring(0, len - strlen(DEFAULT_RESOURCES_FILE_NAME) - 1);
     capsule = new CapsuleParser::Capsule();
     assert(capsule != NULL);
     capsule->mApplicationInfo->SetSourceDir(dir);
     if (SUCCEEDED(p.ParseCapsule(capfile, capsule, &err))) {
-        mCapsules[String::Duplicate(
-                capsule->mApplicationInfo->mCapsuleName)] = capsule;
+        mCapsules[capsule->mApplicationInfo->mCapsuleName] = capsule;
 
 #ifdef _HAS_PARSED_MORE // TODO: temporary comment.
         //ContentProvider
@@ -6970,38 +11982,35 @@ CapsuleParser::Capsule* CCapsuleManagerService::ScanCapsule(
             CapsuleParser::ContentProvider* p = *cit;
             p->mInfo->mProcessName = FixProcessName(
                     capsule->mApplicationInfo->mProcessName,
-                    (*cit)->mInfo->mProcessName, -1 /*capsule->mApplicationInfo->mUid*/);
-            char* strKey = (char*)malloc(p->mInfo->mCapsuleName.GetLength() +
-                    p->mInfo->mName.GetLength() + 2);
-            assert(strKey != NULL);
-            strcpy(strKey, (const char*)p->mInfo->mCapsuleName);
-            strcat(strKey, ".");
-            strcat(strKey, (const char*)p->mInfo->mName);
-            mProvidersByComponent[String(strKey)] = p;
+                    (*cit)->mInfo->mProcessName,
+                    capsule->mApplicationInfo->mUid);
+            String strKey = p->mInfo->mCapsuleName + "." + p->mInfo->mName;
+            mProvidersByComponent[strKey] = p;
             p->mSyncable = p->mInfo->mIsSyncable;
             if (!p->mInfo->mAuthority.IsNull()) {
                 String authority = p->mInfo->mAuthority;
                 p->mInfo->mAuthority = NULL;
                 StringTokenizer* names = new StringTokenizer(
-                        authority, String(";"));
-                while(names->HasMoreTokens()) {
+                        authority, ";");
+                Int32 j = -1;
+                while(names->HasMoreTokens(), j++) {
                     String token = names->NextToken();
-//                    if (j == 1 && p.syncable) {
-//                        // We only want the first authority for a provider to possibly be
-//                        // syncable, so if we already added this provider using a different
-//                        // authority clear the syncable flag. We copy the provider before
-//                        // changing it because the mProviders object contains a reference
-//                        // to a provider that we don't want to change.
-//                        // Only do this for the second authority since the resulting provider
-//                        // object can be the same for all future authorities for this provider.
-//                        p = new PackageParser.Provider(p);
-//                        p.syncable = false;
-//                    }
+                    if (j == 1 && p->mSyncable) {
+                        // We only want the first authority for a provider to possibly be
+                        // syncable, so if we already added this provider using a different
+                        // authority clear the syncable flag. We copy the provider before
+                        // changing it because the mContentProviders object contains a reference
+                        // to a provider that we don't want to change.
+                        // Only do this for the second authority since the resulting provider
+                        // object can be the same for all future authorities for this provider.
+                        p = new CapsuleParser::ContentProvider(p);
+                        p->mSyncable = FALSE;
+                    }
 
-                    if (mProviders[token] == NULL) {
-                        mProviders[String::Duplicate(token)] = p;
+                    if (mContentProviders[token] == NULL) {
+                        mContentProviders[token] = p;
                         if (p->mInfo->mAuthority.IsNull()) {
-                            p->mInfo->mAuthority = String::Duplicate(token);
+                            p->mInfo->mAuthority = token;
                         }
                         else {
                             char* auth = (char*)malloc(
@@ -7013,20 +12022,22 @@ CapsuleParser::Capsule* CCapsuleManagerService::ScanCapsule(
                             String::Free(p->mInfo->mAuthority);
                             p->mInfo->mAuthority = String(auth);
                         }
-//                        if ((parseFlags&PackageParser.PARSE_CHATTY) != 0 && Config.LOGD)
-//                                Slog.d(TAG, "Registered content provider: " + names[j] +
-//                                ", className = " + p.info.name +
-//                                ", isSyncable = " + p.info.isSyncable);
+                        if ((parseFlags & CapsuleParser::PARSE_CHATTY) != 0 && Config::LOGD) {
+                            Slogger::D(TAG, StringBuffer("Registered content provider: ")
+                                + names[j] + ", className = " + p->mInfo->mName
+                                + ", isSyncable = " + p->mInfo->mIsSyncable);
+                        }
                     }
-                    else {
-                        CapsuleParser::ContentProvider* other = mProviders[token];
-                        UNUSED(other);
-//                        Slog.w(TAG, "Skipping provider name " + names[j] +
-//                                    " (in package " + pkg.applicationInfo.packageName +
-//                                    "): name already used by "
-//                                    + ((other != null && other.getComponentName() != null)
-//                                            ? other.getComponentName().getPackageName() : "?"));
-                    }
+//	                    else {
+//	                        CapsuleParser::ContentProvider* other = mContentProviders[token];
+//	                        UNUSED(other);
+//	                        Slogger::W(TAG, StringBuffer("Skipping provider name ")
+//	                            + names[j] + " (in capsule "
+//	                            + cap->mApplicationInfo->capsuleName +
+//	                                    "): name already used by "
+//	                                    + ((other != NULL && other->GetComponentName() != NULL)
+//	                                            ? other->GetComponentName()->GetCapsuleName() : "?"));
+//	                    }
                 }
             }
 //            if ((parseFlags&PackageParser.PARSE_CHATTY) != 0) {
@@ -7143,5 +12154,161 @@ Boolean CCapsuleManagerService::IsSystemApp(
     /* [in] */ CApplicationInfo* info)
 {
     return (info->mFlags & CApplicationInfo::FLAG_SYSTEM) != 0;
+}
+
+Boolean CCapsuleManagerService::IsUpdatedSystemApp(
+    /* [in] */ CapsuleParser::Capsule* cap)
+{
+    return (cap->mApplicationInfo->mFlags & CApplicationInfo::FLAG_UPDATED_SYSTEM_APP) != 0;
+}
+
+Boolean CCapsuleManagerService::IgnoreCodePath(
+    /* [in] */ const String& fullPathStr)
+{
+    if (fullPathStr.IsNull()) return FALSE;
+
+    String capName = GetCapName(fullPathStr);
+    Int32 idx = capName.LastIndexOf(INSTALL_CAPSULE_SUFFIX);
+    if (idx != -1 && ((idx + 1) < (Int32)capName.GetLength())) {
+        // Make sure the package ends with a numeral
+        String version = capName.Substring(idx + 1);
+        return version.ToInt32() == 0 ? FALSE : TRUE;
+    }
+    return FALSE;
+}
+
+String CCapsuleManagerService::GetCapName(
+    /* [in] */ const String& codePath)
+{
+    if (codePath == NULL) {
+        return String(NULL);
+    }
+    Int32 sidx = codePath.LastIndexOf("/");
+    Int32 eidx = codePath.LastIndexOf(".");
+    if (eidx == -1) {
+        eidx = codePath.GetLength();
+    }
+    else if (eidx == 0) {
+        Slogger::W(TAG, StringBuffer(" Invalid code path, ")
+            + codePath + " Not a valid apk name");
+        return String(NULL);
+    }
+    return codePath.Substring(sidx + 1, eidx - sidx + 1);
+}
+
+void CCapsuleManagerService::ProcessPendingInstall(
+    /* [in] */ InstallArgs* args,
+    /* [in] */ Int32 currentStatus)
+{
+//	    // Queue up an async operation since the package installation may take a little while.
+//	    mHandler.post(new Runnable() {
+//	        public void run() {
+//	            mHandler.removeCallbacks(this);
+//	             // Result object to be returned
+//	            PackageInstalledInfo res = new PackageInstalledInfo();
+//	            res.returnCode = currentStatus;
+//	            res.uid = -1;
+//	            res.pkg = null;
+//	            res.removedInfo = new PackageRemovedInfo();
+//	            if (res.returnCode == PackageManager.INSTALL_SUCCEEDED) {
+//	                args.doPreInstall(res.returnCode);
+//	                synchronized (mInstallLock) {
+//	                    installPackageLI(args, true, res);
+//	                }
+//	                args.doPostInstall(res.returnCode);
+//	            }
+//
+//	            // A restore should be performed at this point if (a) the install
+//	            // succeeded, (b) the operation is not an update, and (c) the new
+//	            // package has a backupAgent defined.
+//	            final boolean update = res.removedInfo.removedPackage != null;
+//	            boolean doRestore = (!update
+//	                    && res.pkg != null
+//	                    && res.pkg.applicationInfo.backupAgentName != null);
+//
+//	            // Set up the post-install work request bookkeeping.  This will be used
+//	            // and cleaned up by the post-install event handling regardless of whether
+//	            // there's a restore pass performed.  Token values are >= 1.
+//	            int token;
+//	            if (mNextInstallToken < 0) mNextInstallToken = 1;
+//	            token = mNextInstallToken++;
+//
+//	            PostInstallData data = new PostInstallData(args, res);
+//	            mRunningInstalls.put(token, data);
+//	            if (DEBUG_INSTALL) Log.v(TAG, "+ starting restore round-trip " + token);
+//
+//	            if (res.returnCode == PackageManager.INSTALL_SUCCEEDED && doRestore) {
+//	                // Pass responsibility to the Backup Manager.  It will perform a
+//	                // restore if appropriate, then pass responsibility back to the
+//	                // Package Manager to run the post-install observer callbacks
+//	                // and broadcasts.
+//	                IBackupManager bm = IBackupManager.Stub.asInterface(
+//	                        ServiceManager.getService(Context.BACKUP_SERVICE));
+//	                if (bm != null) {
+//	                    if (DEBUG_INSTALL) Log.v(TAG, "token " + token
+//	                            + " to BM for possible restore");
+//	                    try {
+//	                        bm.restoreAtInstall(res.pkg.applicationInfo.packageName, token);
+//	                    } catch (RemoteException e) {
+//	                        // can't happen; the backup manager is local
+//	                    } catch (Exception e) {
+//	                        Slog.e(TAG, "Exception trying to enqueue restore", e);
+//	                        doRestore = false;
+//	                    }
+//	                } else {
+//	                    Slog.e(TAG, "Backup Manager not found!");
+//	                    doRestore = false;
+//	                }
+//	            }
+//
+//	            if (!doRestore) {
+//	                // No restore possible, or the Backup Manager was mysteriously not
+//	                // available -- just fire the post-install work request directly.
+//	                if (DEBUG_INSTALL) Log.v(TAG, "No restore - queue post-install for " + token);
+//	                Message msg = mHandler.obtainMessage(POST_INSTALL, token, 0);
+//	                mHandler.sendMessage(msg);
+//	            }
+//	        }
+//	    });
+}
+
+ECode CCapsuleManagerService::SendMessage(
+    /* [in] */ Handle32 pvFunc,
+    /* [in] */ IParcel* params)
+{
+    return mApartment->PostCppCallback((Handle32)this, pvFunc, params, 0);
+}
+
+AutoPtr<IFile> CCapsuleManagerService::CreateTempCapsuleFile(
+    /* [in] */ IFile* installDir)
+{
+    return NULL;
+}
+
+void CCapsuleManagerService::HandleMediaContainerServiceBound(
+    /* [in] */ IMediaContainerService* mcs)
+{
+}
+
+void CCapsuleManagerService::HandleMediaContainerServiceUnbind()
+{
+}
+
+void CCapsuleManagerService::HandleMediaContainerServiceGiveUp()
+{
+}
+
+void CCapsuleManagerService::HandleMediaContainerServiceReconnect()
+{
+}
+
+String CCapsuleManagerService::GetEncryptKey()
+{
+    return String(NULL);
+}
+
+String CCapsuleManagerService::GetTempContainerId()
+{
+    return String(NULL);
 }
 

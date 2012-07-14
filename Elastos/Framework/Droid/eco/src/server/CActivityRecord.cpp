@@ -1,7 +1,7 @@
 
 #include "server/CActivityRecord.h"
 #include "server/CActivityManagerService.h"
-#include "utils/CObjectContainer.h"
+#include "utils/CParcelableObjectContainer.h"
 
 CActivityRecord::CActivityRecord() :
     mRealActivity(NULL),
@@ -43,11 +43,11 @@ ECode CActivityRecord::Init(
     /* [in] */ ProcessRecord* caller,
     /* [in] */ Int32 launchedFromUid,
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ IActivityInfo* aInfo,
     /* [in] */ CConfiguration* configuration,
     /* [in] */ CActivityRecord* resultTo,
-    /* [in] */ String resultWho,
+    /* [in] */ const String& resultWho,
     /* [in] */ Int32 reqCode,
     /* [in] */ Boolean componentSpecified)
 {
@@ -61,7 +61,7 @@ ECode CActivityRecord::Init(
 //    componentSpecified = _componentSpecified;
     mConfiguration = configuration;
     mResultTo = resultTo;
-    mResultWho = String::Duplicate(resultWho);
+    mResultWho = resultWho;
     mRequestCode = reqCode;
 
     if (mInfo != NULL) {
@@ -92,16 +92,16 @@ ECode CActivityRecord::Init(
                 && caller != NULL
                 && (/*mInfo->mApplicationInfo->mUid == Process.SYSTEM_UID
                         ||*/ mInfo->mApplicationInfo->mUid == caller->mInfo->mUid)) {
-            mProcessName = String::Duplicate(caller->mProcessName);
+            mProcessName = caller->mProcessName;
         } else {
-            mProcessName = String::Duplicate(mInfo->mProcessName);
+            mProcessName = mInfo->mProcessName;
         }
 
         if (intent != NULL && (mInfo->mFlags & CActivityInfo::FLAG_EXCLUDE_FROM_RECENTS) != 0) {
             intent->AddFlags(Intent_FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
         }
 
-        mCapsuleName = String::Duplicate(mInfo->mApplicationInfo->mCapsuleName);
+        mCapsuleName = mInfo->mApplicationInfo->mCapsuleName;
         mLaunchMode = mInfo->mLaunchMode;
 
 //        AttributeCache.Entry ent = AttributeCache.instance().get(packageName,
@@ -150,13 +150,13 @@ UriPermissionOwner* CActivityRecord::GetUriPermissionsLocked()
 
 void CActivityRecord::AddResultLocked(
     /* [in] */ CActivityRecord* from,
-    /* [in] */ String resultWho,
+    /* [in] */ const String& resultWho,
     /* [in] */ Int32 requestCode,
     /* [in] */ Int32 resultCode,
     /* [in] */ IIntent* resultData)
 {
     ActivityResult* r = new ActivityResult(from, resultWho,
-    		requestCode, resultCode, resultData);
+            requestCode, resultCode, resultData);
     if (mResults == NULL) {
         mResults = new List<ActivityResult*>();
     }
@@ -165,7 +165,7 @@ void CActivityRecord::AddResultLocked(
 
 void CActivityRecord::RemoveResultsLocked(
     /* [in] */ CActivityRecord* from,
-    /* [in] */ String resultWho,
+    /* [in] */ const String& resultWho,
     /* [in] */ Int32 requestCode)
 {
     if (mResults != NULL) {
@@ -220,7 +220,7 @@ void CActivityRecord::DeliverNewIntentLocked(
         AutoPtr<IIntent> intent;
         CIntent::New(intent, (IIntent**)&intent);
         AutoPtr<IObjectContainer> ar;
-        CObjectContainer::New((IObjectContainer**)&ar);
+        CParcelableObjectContainer::New((IObjectContainer**)&ar);
         ar->Add((IIntent*)intent);
 //        service.grantUriPermissionFromIntentLocked(callingUid, packageName,
 //                        intent, getUriPermissionsLocked());

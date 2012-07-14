@@ -1,5 +1,7 @@
 
-DIRS = ActivityDemo
+DIRS = TextViewDemo
+#DIRS += ActivityDemo
 #DIRS += ServiceDemo
 #DIRS += ContentProviderDemo
 #DIRS += testcase
+#DIRS += FBReader

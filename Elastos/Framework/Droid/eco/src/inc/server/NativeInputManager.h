@@ -14,7 +14,7 @@ class NativeInputManager :
     public virtual android::InputDispatcherPolicyInterface
 {
 private:
-    static const String TAG;
+    static const char* TAG;
 
 private:
     class ApplicationToken : public android::InputApplicationHandle

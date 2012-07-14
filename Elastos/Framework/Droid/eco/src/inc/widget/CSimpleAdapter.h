@@ -33,11 +33,11 @@ public:
 
     CARAPI SetViewImageEx(
         /* [in] */ IImageView* v,
-        /* [in] */ String value);
+        /* [in] */ const String& value);
 
     CARAPI SetViewText(
         /* [in] */ ITextView* v,
-        /* [in] */ String text);
+        /* [in] */ const String& text);
 
     CARAPI GetFilter(
         /* [out] */ IFilter** filter);

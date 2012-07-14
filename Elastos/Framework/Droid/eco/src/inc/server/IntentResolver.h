@@ -22,39 +22,41 @@ public:
     CARAPI_(void) RemoveFilter(
         /* [in] */ F* f);
 
+    /**
+     * Returns a read-only set of the filters.
+     */
+    Set<F*>* FilterSet() {
+//	        return Collections.unmodifiableSet(mFilters);
+        return mFilters;
+    }
+
     CARAPI_(List<R*>*) QueryIntentFromList(
         /* [in] */ IIntent* intent,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ Boolean defaultOnly,
         /* [in] */ List<List<F*>*>* listCut);
 
     CARAPI_(List<R*>*) QueryIntent(
         /* [in] */ IIntent* intent,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ Boolean defaultOnly);
 
-    /**
-     * Returns a read-only set of the filters.
-     */
-    List<F*>* FilterSet() {
-//	        return Collections.unmodifiableSet(mFilters);
-        return NULL;
-    }
-
-    List<F*>* FilterIterator() {
-        return NULL;
-    }
-
 protected:
+    /**
+     * Control whether the given filter is allowed to go into the result
+     * list.  Mainly intended to prevent adding multiple filters for the
+     * same target object.
+     */
+    virtual CARAPI_(Boolean) AllowFilterResult(
+        /* [in] */ F* filter,
+        /* [in] */ List<R*>* dest)
+    {
+        return TRUE;
+    }
+
     virtual CARAPI_(String) CapsuleForFilter(
         /* [in] */ F* filter);
 
-    virtual CARAPI DumpFilter(
-        /* [in] */ IPrintWriter* out,
-        /* [in] */ String prefix,
-        /* [in] */ F* filter);
-
-private:
     virtual CARAPI NewResult(
         /* [in] */ F* f,
         /* [in] */ Int32 match,
@@ -63,28 +65,35 @@ private:
     virtual CARAPI_(void) SortResults(
         /* [in] */ List<R*>* results);
 
+
+    virtual CARAPI DumpFilter(
+        /* [in] */ IPrintWriter* out,
+        /* [in] */ const String& prefix,
+        /* [in] */ F* filter);
+
+private:
     CARAPI_(void) RemoveFilterInternal(
         /* [in] */ F* f);
 
     CARAPI_(Int32) RegisterMimeTypes(
         /* [in] */ F* f,
-        /* [in] */ String prefix);
+        /* [in] */ const char* prefix);
 
     CARAPI_(Int32) UnregisterMimeTypes(
         /* [in] */ F* f,
-        /* [in] */ String prefix);
+        /* [in] */ const char* prefix);
 
     CARAPI_(Int32) RegisterIntentFilter(
         /* [in] */ F* f,
         /* [in] */ List<String>* slist,
         /* [in] */ HashMap<String, List<F*>*>* dest,
-        /* [in] */ String prefix);
+        /* [in] */ const char* prefix);
 
     CARAPI_(Int32) UnregisterIntentFilter(
         /* [in] */ F* f,
         /* [in] */ List<String>* slist,
         /* [in] */ HashMap<String, List<F*>*>* dest,
-        /* [in] */ String prefix);
+        /* [in] */ const char* prefix);
 
     CARAPI_(Boolean) RemoveAllObjects(
         /* [in] */ List<F*>* list,
@@ -94,8 +103,8 @@ private:
         /* [in] */ IIntent* intent,
         /* [in] */ Boolean debug,
         /* [in] */ Boolean defaultOnly,
-        /* [in] */ String resolvedType,
-        /* [in] */ String scheme,
+        /* [in] */ const String& resolvedType,
+        /* [in] */ const String& scheme,
         /* [in] */ List<F*>* src,
         /* [in] */ List<R*>* dest);
 
@@ -235,7 +244,7 @@ void IntentResolver<F, R>::RemoveFilterInternal(
 template <typename F, typename R>
 List<R*>* IntentResolver<F, R>::QueryIntentFromList(
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ Boolean defaultOnly,
     /* [in] */ List<List<F*>*>* listCut)
 {
@@ -253,17 +262,16 @@ List<R*>* IntentResolver<F, R>::QueryIntentFromList(
                 scheme, *it, resultList);
     }
     SortResults(resultList);
-    String::Free(scheme);
     return resultList;
 }
 
 template <typename F, typename R>
 List<R*>* IntentResolver<F, R>::QueryIntent(
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ Boolean defaultOnly)
 {
-    String scheme = NULL;
+    String scheme(NULL);
     intent->GetScheme(&scheme);
 
     List<R*>* finalList = new List<R*>();
@@ -281,7 +289,10 @@ List<R*>* IntentResolver<F, R>::QueryIntent(
     String action;
     intent->GetAction(&action);
     if (resolvedType.IsNull() && !action.IsNull()) {
-        firstTypeCut = mActionToFilter[action];
+        typename HashMap<String, List<F*>*>::Iterator it = mActionToFilter.Find(action);
+        if (it != mActionToFilter.End()) {
+            firstTypeCut = it->mSecond;
+        }
     }
 
     if (firstTypeCut != NULL) {
@@ -297,13 +308,13 @@ template <typename F, typename R>
 String IntentResolver<F, R>::CapsuleForFilter(
     /* [in] */ F* filter)
 {
-    return NULL;
+    return String(NULL);
 }
 
 template <typename F, typename R>
 ECode IntentResolver<F, R>::DumpFilter(
     /* [in] */ IPrintWriter* out,
-    /* [in] */ String prefix,
+    /* [in] */ const String& prefix,
     /* [in] */ F* filter)
 {
 //	    out.print(prefix); out.println(filter);
@@ -330,7 +341,7 @@ void IntentResolver<F, R>::SortResults(
 template <typename F, typename R>
 Int32 IntentResolver<F, R>::RegisterMimeTypes(
     /* [in] */ F* f,
-    /* [in] */ String prefix)
+    /* [in] */ const char* prefix)
 {
     List<String>* types = f->mFilter->GetTypes();
     if (types == NULL) return 0;
@@ -343,49 +354,54 @@ Int32 IntentResolver<F, R>::RegisterMimeTypes(
 
     Int32 num = 0;
     for(; it1 != it2; ++it1) {
-        const char* str = (const char*)*it1;
+        const String& str = *it1;
         num++;
-        char* name = NULL;
-        char* baseName = NULL;
-        Int32 slashpos = (strchr(str, '/') - str);
+        String name, baseName;
+        Int32 slashpos = str.IndexOf('/');
         if (slashpos > 0) {
-            name = (char*)malloc(strlen(str) + 1);
-            strcpy(name, str);
-            baseName = (char*)malloc(slashpos + 1);
-            strncpy(baseName, name, slashpos);
-        } else {
-            baseName = (char*)malloc(strlen(str) + 1);
-            strcpy(baseName, str);
-            name = (char*)malloc(strlen(str) + strlen("/*") + 1);
-            strcpy(name, str);
-            strcat(name, "/*");
+            name = str;
+            baseName = name.Substring(0, slashpos);
+        }
+        else {
+            baseName = str;
+            name = baseName + "/*";
         }
 
-        List<F*>* array = mTypeToFilter[String(name)];
+        List<F*>* array = NULL;
+        typename HashMap<String, List<F*>*>::Iterator it = mTypeToFilter.Find(name);
+        if (it != mTypeToFilter.End()) {
+            array = it->mSecond;
+        }
         if (array == NULL) {
             array = new List<F*>();
-            mTypeToFilter[String::Duplicate(String(name))] = array;
+            mTypeToFilter[name] = array;
         }
         array->PushBack(f);
 
         if (slashpos > 0) {
-            array = mBaseTypeToFilter[String(baseName)];
-            if (array == NULL) {
-                array = new List<F*>();
-                mBaseTypeToFilter[String::Duplicate(String(baseName))] = array;
+            array = NULL;
+            it = mBaseTypeToFilter.Find(baseName);
+            if (it != mBaseTypeToFilter.End()) {
+                array = it->mSecond;
             }
-            array->PushBack(f);
-        } else {
-            array = mWildTypeToFilter[String(baseName)];
             if (array == NULL) {
                 array = new List<F*>();
-                mWildTypeToFilter[String::Duplicate(String(baseName))] = array;
+                mBaseTypeToFilter[baseName] = array;
             }
             array->PushBack(f);
         }
-
-        free(name);
-        free(baseName);
+        else {
+            array = NULL;
+            it = mWildTypeToFilter.Find(baseName);
+            if (it != mWildTypeToFilter.End()) {
+                array = it->mSecond;
+            }
+            if (array == NULL) {
+                array = new List<F*>();
+                mWildTypeToFilter[baseName] = array;
+            }
+            array->PushBack(f);
+        }
     }
     return num;
 }
@@ -393,7 +409,7 @@ Int32 IntentResolver<F, R>::RegisterMimeTypes(
 template <typename F, typename R>
 Int32 IntentResolver<F, R>::UnregisterMimeTypes(
     /* [in] */ F* f,
-    /* [in] */ String prefix)
+    /* [in] */ const char* prefix)
 {
     List<String>* types = f->mFilter->GetTypes();
     if (types == NULL) return 0;
@@ -406,40 +422,48 @@ Int32 IntentResolver<F, R>::UnregisterMimeTypes(
 
     Int32 num = 0;
     for(; it1 != it2; ++it1) {
-        const char* str = (const char*)*it1;
+        const String& str = *it1;
         num++;
-        char* name = NULL;
-        char* baseName = NULL;
-        Int32 slashpos = (strchr(str, '/') - str);
+        String name, baseName;
+        Int32 slashpos = str.IndexOf('/');
         if (slashpos > 0) {
-            name = (char*)malloc(strlen(str) + 1);
-            strcpy(name, str);
-            baseName = (char*)malloc(slashpos + 1);
-            strncpy(baseName, name, slashpos);
-        } else {
-            baseName = (char*)malloc(strlen(str) + 1);
-            strcpy(baseName, str);
-            name = (char*)malloc(strlen(str) + strlen("/*") + 1);
-            strcpy(name, str);
-            strcat(name, "/*");
+            name = str;
+            baseName = name.Substring(0, slashpos);
+        }
+        else {
+            baseName = str;
+            name = baseName + "/*";
         }
 
-        if (!RemoveAllObjects(mTypeToFilter[String(name)], f)) {
-            mTypeToFilter.Erase(String(name));
+        List<F*>* array = NULL;
+        typename HashMap<String, List<F*>*>::Iterator it = mTypeToFilter.Find(name);
+        if (it != mTypeToFilter.End()) {
+            array = it->mSecond;
+        }
+        if (!RemoveAllObjects(array, f)) {
+            mTypeToFilter.Erase(name);
         }
 
         if (slashpos > 0) {
-            if (!RemoveAllObjects(mBaseTypeToFilter[String(baseName)], f)) {
-                mBaseTypeToFilter.Erase(String(baseName));
+            array = NULL;
+            it = mBaseTypeToFilter.Find(baseName);
+            if (it != mBaseTypeToFilter.End()) {
+                array = it->mSecond;
             }
-        } else {
-            if (!RemoveAllObjects(mWildTypeToFilter[String(baseName)], f)) {
-                mWildTypeToFilter.Erase(String(baseName));
+            if (!RemoveAllObjects(array, f)) {
+                mBaseTypeToFilter.Erase(baseName);
             }
         }
-
-        free(name);
-        free(baseName);
+        else {
+            array = NULL;
+            it = mWildTypeToFilter.Find(baseName);
+            if (it != mWildTypeToFilter.End()) {
+                array = it->mSecond;
+            }
+            if (!RemoveAllObjects(array, f)) {
+                mWildTypeToFilter.Erase(baseName);
+            }
+        }
     }
     return num;
 }
@@ -449,7 +473,7 @@ Int32 IntentResolver<F, R>::RegisterIntentFilter(
     /* [in] */ F* f,
     /* [in] */ List<String>* slist,
     /* [in] */ HashMap<String, List<F*>*>* dest,
-    /* [in] */ String prefix)
+    /* [in] */ const char* prefix)
 {
     if (slist == NULL) return 0;
 
@@ -463,10 +487,14 @@ Int32 IntentResolver<F, R>::RegisterIntentFilter(
     for(; itBegin != itEnd; ++itBegin) {
         String name = *itBegin;
         num++;
-        List<F*>* array = (*dest)[name];
+        List<F*>* array = NULL;
+        typename HashMap<String, List<F*>*>::Iterator it = dest->Find(name);
+        if (it != dest->End()) {
+            array = it->mSecond;
+        }
         if (array == NULL) {
             array = new List<F*>();
-            (*dest)[String::Duplicate(name)] = array;
+            (*dest)[name] = array;
         }
         array->PushBack(f);
     }
@@ -478,7 +506,7 @@ Int32 IntentResolver<F, R>::UnregisterIntentFilter(
     /* [in] */ F* f,
     /* [in] */ List<String>* slist,
     /* [in] */ HashMap<String, List<F*>*>* dest,
-    /* [in] */ String prefix)
+    /* [in] */ const char* prefix)
 {
     if (slist == NULL) return 0;
 
@@ -492,7 +520,12 @@ Int32 IntentResolver<F, R>::UnregisterIntentFilter(
     for(; itBegin != itEnd; ++itBegin) {
         String name = *itBegin;
         num++;
-        if (!RemoveAllObjects((*dest)[name], f)) {
+        List<F*>* array = NULL;
+        typename HashMap<String, List<F*>*>::Iterator it = dest->Find(name);
+        if (it != dest->End()) {
+            array = it->mSecond;
+        }
+        if (!RemoveAllObjects(array, f)) {
             dest->Erase(name);
             itEnd = slist->End();
         }
@@ -516,7 +549,7 @@ Boolean IntentResolver<F, R>::RemoveAllObjects(
         }
         return list->GetSize() > 0;
     }
-    return false;
+    return FALSE;
 }
 
 template <typename F, typename R>
@@ -524,8 +557,8 @@ void IntentResolver<F, R>::BuildResolveList(
     /* [in] */ IIntent* intent,
     /* [in] */ Boolean debug,
     /* [in] */ Boolean defaultOnly,
-    /* [in] */ String resolvedType,
-    /* [in] */ String scheme,
+    /* [in] */ const String& resolvedType,
+    /* [in] */ const String& scheme,
     /* [in] */ List<F*>* src,
     /* [in] */ List<R*>* dest)
 {
@@ -541,12 +574,12 @@ void IntentResolver<F, R>::BuildResolveList(
 //            if (debug) Log.v(TAG, "Matching against filter " + filter);
 
             // Do we already have this one?
-//            if (!allowFilterResult(filter, dest)) {
+            if (!AllowFilterResult(f, dest)) {
 //                if (debug) {
 //                    Log.v(TAG, "  Filter's target already added");
 //                }
-//                continue;
-//            }
+                continue;
+            }
 
             String action;
             intent->GetAction(&action);
@@ -561,16 +594,18 @@ void IntentResolver<F, R>::BuildResolveList(
 //                        Integer.toHexString(match));
                 Boolean hasCategory;
                 if (!defaultOnly || (f->mFilter->HasCategory(
-                        Intent_CATEGORY_DEFAULT, &hasCategory), hasCategory)) {
+                        String(Intent_CATEGORY_DEFAULT), &hasCategory), hasCategory)) {
                     R* oneResult;
                     NewResult(f, match, &oneResult);
                     if (oneResult != NULL) {
                         dest->PushBack(oneResult);
                     }
-                } else {
+                }
+                else {
                     hasNonDefaults = TRUE;
                 }
-            } else {
+            }
+            else {
 //                if (debug) {
 //                    String reason;
 //                    switch (match) {

@@ -13,7 +13,7 @@ ECode CNinePatchDrawable::constructor(
     /* [in] */ IBitmap* bitmap,
     /* [in] */ const ArrayOf<Byte> & chunk,
     /* [in] */ IRect* padding,
-    /* [in] */ String srcName)
+    /* [in] */ const String& srcName)
 {
     return NinePatchDrawable::Init(bitmap, chunk, padding, srcName);
 }
@@ -23,7 +23,7 @@ ECode CNinePatchDrawable::constructor(
     /* [in] */ IBitmap* bitmap,
     /* [in] */ const ArrayOf<Byte> & chunk,
     /* [in] */ IRect* padding,
-    /* [in] */ String srcName)
+    /* [in] */ const String& srcName)
 {
     return NinePatchDrawable::Init(res, bitmap, chunk, padding, srcName);
 }
@@ -42,10 +42,11 @@ ECode CNinePatchDrawable::constructor(
 }
 
 ECode CNinePatchDrawable::constructor(
-    /* [in] */ INinePatchState* state,
+    /* [in] */ Handle32 state,
     /* [in] */ IResources* res)
 {
-    return NinePatchDrawable::Init(state, res);
+    return NinePatchDrawable::Init(
+            reinterpret_cast<NinePatchDrawable::NinePatchState*>(state), res);
 }
 
 PInterface CNinePatchDrawable::Probe(

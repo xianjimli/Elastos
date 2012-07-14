@@ -28,6 +28,8 @@ public:
      */
     static CARAPI_(AutoPtr<IAttributeSet>) AsAttributeSet(
         /* [in] */ IXmlPullParser* parser);
+
+    static CARAPI_(AutoPtr<IXmlPullParser>) NewPullParser();
 };
 
 #endif //__XML_H__

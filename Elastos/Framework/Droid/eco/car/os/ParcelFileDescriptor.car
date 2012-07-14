@@ -1,6 +1,58 @@
 
 module
 {
+    /**
+     * For use with {@link #open}: if {@link #MODE_CREATE} has been supplied
+     * and this file doesn't already exist, then create the file with
+     * permissions such that any application can read it.
+     */
+    const ParcelFileDescriptor_MODE_WORLD_READABLE = 0x00000001;
+
+    /**
+     * For use with {@link #open}: if {@link #MODE_CREATE} has been supplied
+     * and this file doesn't already exist, then create the file with
+     * permissions such that any application can write it.
+     */
+    const ParcelFileDescriptor_MODE_WORLD_WRITEABLE = 0x00000002;
+
+    /**
+     * For use with {@link #open}: open the file with read-only access.
+     */
+    const ParcelFileDescriptor_MODE_READ_ONLY = 0x10000000;
+
+    /**
+     * For use with {@link #open}: open the file with write-only access.
+     */
+    const ParcelFileDescriptor_MODE_WRITE_ONLY = 0x20000000;
+
+    /**
+     * For use with {@link #open}: open the file with read and write access.
+     */
+    const ParcelFileDescriptor_MODE_READ_WRITE = 0x30000000;
+
+    /**
+     * For use with {@link #open}: create the file if it doesn't already exist.
+     */
+    const ParcelFileDescriptor_MODE_CREATE = 0x08000000;
+
+    /**
+     * For use with {@link #open}: erase contents of file when opening.
+     */
+    const ParcelFileDescriptor_MODE_TRUNCATE = 0x04000000;
+
+    /**
+     * For use with {@link #open}: append to end of file while writing.
+     */
+    const ParcelFileDescriptor_MODE_APPEND = 0x02000000;
+
     interface IParcelFileDescriptor {
+        /**
+         * Close the ParcelFileDescriptor. This implementation closes the underlying
+         * OS resources allocated to represent this stream.
+         *
+         * @throws IOException
+         *             If an error occurs attempting to close this ParcelFileDescriptor.
+         */
+        Close();
     }
 }

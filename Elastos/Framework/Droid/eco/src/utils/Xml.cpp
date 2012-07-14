@@ -13,3 +13,8 @@ AutoPtr<IAttributeSet> Xml::AsAttributeSet(
         return AutoPtr<IAttributeSet>(NULL);
     }
 }
+
+AutoPtr<IXmlPullParser> Xml::NewPullParser()
+{
+    return NULL;
+}

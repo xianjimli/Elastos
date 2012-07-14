@@ -699,7 +699,7 @@ ECode CMotionEvent::GetY(
         return E_INVALID_ARGUMENT;
     }
 
-    *y = mDataSamples[mLastDataSampleIndex + SAMPLE_Y] + mXOffset;
+    *y = mDataSamples[mLastDataSampleIndex + SAMPLE_Y] + mYOffset;
 
     return NOERROR;
 }

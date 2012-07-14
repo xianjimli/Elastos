@@ -234,7 +234,7 @@ public:
         /* [out] */ String* sourceDir);
 
     CARAPI SetSourceDir(
-        /* [in] */ String sourceDir);
+        /* [in] */ const String& sourceDir);
 
     CARAPI ReadFromParcel(
         /* [in] */ IParcel* source);

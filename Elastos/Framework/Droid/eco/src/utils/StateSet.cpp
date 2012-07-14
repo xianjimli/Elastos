@@ -5,25 +5,25 @@ const ArrayOf<Int32>* StateSet::WILD_CARD = ArrayOf<Int32>::Alloc(0);
 
 /**
  * Return whether the stateSetOrSpec is matched by all StateSets.
- * 
+ *
  * @param stateSetOrSpec a state set or state spec.
  */
 Boolean StateSet::IsWildCard(
-    /* [in] */ ArrayOf<Int32>* stateSetOrSpec) 
+    /* [in] */ const ArrayOf<Int32>* stateSetOrSpec)
 {
     return stateSetOrSpec->GetLength() == 0 || (*stateSetOrSpec)[0] == 0;
 }
 
 /**
  * Return whether the stateSet matches the desired stateSpec.
- * 
+ *
  * @param stateSpec an array of required (if positive) or
  *        prohibited (if negative) {@link android.view.View} states.
  * @param stateSet an array of {@link android.view.View} states
  */
 Boolean StateSet::StateSetMatches(
-    /* [in] */ ArrayOf<Int32>* stateSpec, 
-    /* [in] */ ArrayOf<Int32>* stateSet) 
+    /* [in] */ const ArrayOf<Int32>* stateSpec,
+    /* [in] */ const ArrayOf<Int32>* stateSet)
 {
     if (stateSet == NULL) {
         return (stateSpec == NULL || IsWildCard(stateSpec));
@@ -79,14 +79,14 @@ Boolean StateSet::StateSetMatches(
 
 /**
  * Return whether the state matches the desired stateSpec.
- * 
+ *
  * @param stateSpec an array of required (if positive) or
  *        prohibited (if negative) {@link android.view.View} states.
  * @param state a {@link android.view.View} state
  */
 Boolean StateSet::StateSetMatches(
-    /* [in] */ ArrayOf<Int32>* stateSpec, 
-    /* [in] */ Int32 state) 
+    /* [in] */ const ArrayOf<Int32>* stateSpec,
+    /* [in] */ Int32 state)
 {
     Int32 stateSpecSize = stateSpec->GetLength();
     for (Int32 i = 0; i < stateSpecSize; i++) {
@@ -111,13 +111,14 @@ Boolean StateSet::StateSetMatches(
 }
 
 ArrayOf<Int32>* StateSet::TrimStateSet(
-    /* [in] */ ArrayOf<Int32>* states, 
-    /* [in] */ Int32 newSize) 
+    /* [in] */ const ArrayOf<Int32>* states,
+    /* [in] */ Int32 newSize)
 {
     if (states->GetLength() == newSize) {
-        return states;
+        return states->Clone();
     }
 
+    assert(newSize < states->GetLength());
     ArrayOf<Int32>* trimmedStates = ArrayOf<Int32>::Alloc(newSize);
     memcpy(trimmedStates->GetPayload(), states->GetPayload(), newSize * sizeof(Int32));
 
@@ -126,10 +127,10 @@ ArrayOf<Int32>* StateSet::TrimStateSet(
 
 //public static String dump(Int32[] states) {
 //    StringBuilder sb = new StringBuilder();
-//    
+//
 //    Int32 count = states.length;
 //    for (Int32 i = 0; i < count; i++) {
-//        
+//
 //        switch (states[i]) {
 //        case R.attr.state_window_focused:
 //            sb.append("W ");
@@ -148,7 +149,7 @@ ArrayOf<Int32>* StateSet::TrimStateSet(
 //            break;
 //        }
 //    }
-//    
+//
 //    return sb.toString();
 //}
 

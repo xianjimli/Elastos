@@ -96,11 +96,11 @@ Boolean DrawableContainer::IsStateful()
 
 
 Boolean DrawableContainer::OnStateChange(
-    /* [in] */ ArrayOf<Int32>* state)
+    /* [in] */ const ArrayOf<Int32>* state)
 {
     if (mCurrDrawable.Get() != NULL) {
         Boolean isStateful;
-        mCurrDrawable->SetState(state, &isStateful);
+        mCurrDrawable->SetState(const_cast<ArrayOf<Int32>*>(state), &isStateful);
         return isStateful;
     }
     return FALSE;
@@ -125,10 +125,12 @@ Int32 DrawableContainer::GetIntrinsicWidth()
         return mDrawableContainerState->GetConstantWidth();
     }
 
-    Int32 width;
-    mCurrDrawable->GetIntrinsicWidth(&width);
+    Int32 width = -1;
+    if (mCurrDrawable != NULL) {
+        mCurrDrawable->GetIntrinsicWidth(&width);
+    }
 
-    return mCurrDrawable != NULL ? width : -1;
+    return width;
 }
 
 
@@ -138,10 +140,12 @@ Int32 DrawableContainer::GetIntrinsicHeight()
         return mDrawableContainerState->GetConstantHeight();
     }
 
-    Int32 height;
-    mCurrDrawable->GetIntrinsicHeight(&height);
+    Int32 height = -1;
+    if (mCurrDrawable != NULL) {
+        mCurrDrawable->GetIntrinsicHeight(&height);
+    }
 
-    return mCurrDrawable != NULL ? height : -1;
+    return height;
 }
 
 
@@ -151,10 +155,12 @@ Int32 DrawableContainer::GetMinimumWidth()
         return mDrawableContainerState->GetConstantMinimumWidth();
     }
 
-    Int32 width;
-    mCurrDrawable->GetMinimumWidth(&width);
+    Int32 width = 0;
+    if (mCurrDrawable != NULL) {
+        mCurrDrawable->GetMinimumWidth(&width);
+    }
 
-    return mCurrDrawable != NULL ? width : 0;
+    return width;
 }
 
 
@@ -164,10 +170,12 @@ Int32 DrawableContainer::GetMinimumHeight()
         return mDrawableContainerState->GetConstantMinimumHeight();
     }
 
-    Int32 height;
-    mCurrDrawable->GetMinimumHeight(&height);
+    Int32 height = 0;
+    if (mCurrDrawable != NULL) {
+        mCurrDrawable->GetMinimumHeight(&height);
+    }
 
-    return mCurrDrawable != NULL ? height : 0;
+    return height;
 }
 
 ECode DrawableContainer::InvalidateDrawable(
@@ -220,7 +228,9 @@ Boolean DrawableContainer::SetVisible(
 Int32 DrawableContainer::GetOpacity()
 {
     Boolean visible;
-    mCurrDrawable->IsVisible(&visible);
+    if (mCurrDrawable != NULL) {
+        mCurrDrawable->IsVisible(&visible);
+    }
 
     return mCurrDrawable == NULL || !visible ? ElPixelFormat::TRANSPARENT :
             mDrawableContainerState->GetOpacity();
@@ -250,7 +260,8 @@ Boolean DrawableContainer::SelectDrawable(
             d->SetLevel(GetLevel(), &isDifferent);
             d->SetBoundsEx(GetBounds());
         }
-    } else {
+    }
+    else {
         if (mCurrDrawable != NULL) {
             mCurrDrawable->SetVisible(FALSE, FALSE, &isDifferent);
         }
@@ -271,7 +282,9 @@ AutoPtr<IDrawableConstantState> DrawableContainer::GetConstantState()
 {
     if (mDrawableContainerState->CanConstantState()) {
         mDrawableContainerState->mChangingConfigurations = Drawable::GetChangingConfigurations();
-        return (IDrawableConstantState*)mDrawableContainerState->Probe(EIID_IDrawableConstantState);
+        AutoPtr<IDrawableConstantState> ret =
+                (IDrawableConstantState*)mDrawableContainerState->Probe(EIID_IDrawableConstantState);
+        return ret;
     }
     return NULL;
 }
@@ -296,18 +309,20 @@ void DrawableContainer::SetConstantState(
     mDrawableContainerState = state;
 }
 
-
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-
-
-
-Mutex DrawableContainer::DrawableContainerState::sTempLock;
-
 DrawableContainer::DrawableContainerState::DrawableContainerState(
     /* [in] */ DrawableContainerState* orig,
-    /* [in] */ DrawableContainer* owner,
+    /* [in] */ IDrawableContainer* owner,
     /* [in] */ IResources* res)
+    : mDrawables(NULL)
+    , mVariablePadding(FALSE)
+    , mConstantSize(FALSE)
+    , mComputedConstantSize(FALSE)
+    , mHaveOpacity(FALSE)
+    , mHaveStateful(FALSE)
+    , mPaddingChecked(FALSE)
+    , mDither(DrawableContainer::DEFAULT_DITHER)
 {
     mOwner = owner;
 
@@ -325,15 +340,14 @@ DrawableContainer::DrawableContainerState::DrawableContainerState(
             if (res != NULL) {
                 AutoPtr<IDrawableConstantState> state;
                 (*origDr)[i]->GetConstantState((IDrawableConstantState**)&state);
-
                 state->NewDrawableEx(res, &(*mDrawables)[i]);
-            } else {
+            }
+            else {
                 AutoPtr<IDrawableConstantState> state;
                 (*origDr)[i]->GetConstantState((IDrawableConstantState**)&state);
-
                 state->NewDrawable(&(*mDrawables)[i]);
             }
-            (*mDrawables)[i]->SetCallback((IDrawableCallback*)owner->Probe(EIID_IDrawableCallback));
+            (*mDrawables)[i]->SetCallback(owner ? IDrawableCallback::Probe(owner) : NULL);
         }
 
         mCheckedConstantState = mCanConstantState = TRUE;
@@ -352,12 +366,23 @@ DrawableContainer::DrawableContainerState::DrawableContainerState(
         mStateful = orig->mStateful;
 
         mDither = orig->mDither;
-
-    } else {
+    }
+    else {
         mDrawables = ArrayOf<IDrawable*>::Alloc(10);
         mNumChildren = 0;
         mCheckedConstantState = mCanConstantState = FALSE;
     }
+}
+
+DrawableContainer::DrawableContainerState::~DrawableContainerState()
+{
+    for (Int32 i = 0; i < mDrawables->GetLength(); i++) {
+        if ((*mDrawables)[i]) {
+            (*mDrawables)[i]->Release();
+        }
+    }
+
+    ArrayOf<IDrawable*>::Free(mDrawables);
 }
 
 PInterface DrawableContainer::DrawableContainerState::Probe(
@@ -368,9 +393,6 @@ PInterface DrawableContainer::DrawableContainerState::Probe(
     }
     else if (riid == EIID_IDrawableConstantState) {
         return (IDrawableConstantState*)this;
-    }
-    else if (riid == EIID_IDrawableContainerState) {
-        return (IDrawableContainerState*)this;
     }
 
     return NULL;
@@ -392,8 +414,8 @@ ECode DrawableContainer::DrawableContainerState::GetInterfaceID(
 {
     VALIDATE_NOT_NULL(pIID);
 
-    if (pObject == (IInterface*)(IDrawableContainerState*)this) {
-        *pIID = EIID_IDrawableContainerState;
+    if (pObject == (IInterface*)(IDrawableConstantState*)this) {
+        *pIID = EIID_IDrawableConstantState;
     }
     else {
         return E_INVALID_ARGUMENT;
@@ -401,32 +423,11 @@ ECode DrawableContainer::DrawableContainerState::GetInterfaceID(
     return NOERROR;
 }
 
-void DrawableContainer::DrawableContainerState::Destroy()
-{
-    for (Int32 i = 0; i < mDrawables->GetLength(); i++) {
-        if ((*mDrawables)[i]) {
-            (*mDrawables)[i]->Release();
-            (*mDrawables)[i] = NULL;
-        }
-    }
-
-    ArrayOf<IDrawable*>::Free(mDrawables);
-}
-
-DrawableContainer::DrawableContainerState::~DrawableContainerState()
-{
-    Destroy();
-}
-
-Int32 DrawableContainer::DrawableContainerState::GetChangingConfigurations()
-{
-    return mChangingConfigurations;
-}
-
 ECode DrawableContainer::DrawableContainerState::GetChangingConfigurations(
-    /* [out] */ Int32* changingConfigrations)
+    /* [out] */ Int32* configurations)
 {
-    *changingConfigrations = mChangingConfigurations;
+    VALIDATE_NOT_NULL(configurations);
+    *configurations = mChangingConfigurations;
 
     return NOERROR;
 }
@@ -437,16 +438,23 @@ Int32 DrawableContainer::DrawableContainerState::AddChild(
     Int32 pos = mNumChildren;
 
     if (pos >= mDrawables->GetLength()) {
-        GrowArray(pos, pos+10);
+        GrowArray(pos, pos + 10);
     }
 
     Boolean isDifferent;
     dr->SetVisible(FALSE, TRUE, &isDifferent);
-    dr->SetCallback((IDrawableCallback*)mOwner->Probe(EIID_IDrawableCallback));
+    IDrawableCallback* cb = NULL;
+    if (mOwner != NULL) cb = IDrawableCallback::Probe(mOwner);
+    dr->SetCallback(cb);
 
+    if ((*mDrawables)[pos] != NULL) {
+        (*mDrawables)[pos]->Release();
+    }
     (*mDrawables)[pos] = dr;
+    if (dr != NULL) {
+        dr->AddRef();
+    }
     mNumChildren++;
-
     Int32 config;
     dr->GetChangingConfigurations(&config);
     mChildrenChangingConfigurations |= config;
@@ -470,19 +478,13 @@ ArrayOf<IDrawable*>* DrawableContainer::DrawableContainerState::GetChildren()
     return mDrawables;
 }
 
-/** A Boolean value indicating whether to use the maximum padding value of
- * all frames in the set (FALSE), or to use the padding value of the frame
- * being shown (TRUE). Default value is FALSE.
- */
-ECode DrawableContainer::DrawableContainerState::SetVariablePadding(
+void DrawableContainer::DrawableContainerState::SetVariablePadding(
     /* [in] */ Boolean variable)
 {
     mVariablePadding = variable;
-
-    return NOERROR;
 }
 
-IRect* DrawableContainer::DrawableContainerState::GetConstantPadding()
+AutoPtr<IRect> DrawableContainer::DrawableContainerState::GetConstantPadding()
 {
     if (mVariablePadding) {
         return NULL;
@@ -496,30 +498,28 @@ IRect* DrawableContainer::DrawableContainerState::GetConstantPadding()
     ASSERT_SUCCEEDED(CRect::New((IRect**)&t));
 
     Int32 N = GetChildCount();
-    ArrayOf<IDrawable*>* drawables = mDrawables;
     for (Int32 i = 0; i < N; i++) {
-
         Boolean isPadding;
-        (*drawables)[i]->GetPadding(t, &isPadding);
+        (*mDrawables)[i]->GetPadding(t, &isPadding);
         if (isPadding) {
-            if (r.Get() == NULL) ASSERT_SUCCEEDED(CRect::New(0, 0, 0, 0, (IRect**)&r));
-            if ((*(CRect**)&t)->mLeft > (*(CRect**)&r)->mLeft) (*(CRect**)&r)->mLeft = (*(CRect**)&t)->mLeft;
-            if ((*(CRect**)&t)->mTop > (*(CRect**)&r)->mTop) (*(CRect**)&r)->mTop = (*(CRect**)&t)->mTop;
-            if ((*(CRect**)&t)->mRight > (*(CRect**)&r)->mRight) (*(CRect**)&r)->mRight = (*(CRect**)&t)->mRight;
-            if ((*(CRect**)&t)->mBottom > (*(CRect**)&r)->mBottom) (*(CRect**)&r)->mBottom = (*(CRect**)&t)->mBottom;
+            if (r == NULL) ASSERT_SUCCEEDED(CRect::New(0, 0, 0, 0, (IRect**)&r));
+            CRect* t_ = (CRect*)t.Get();
+            CRect* r_ = (CRect*)r.Get();
+            if (t_->mLeft > r_->mLeft) r_->mLeft = t_->mLeft;
+            if (t_->mTop > r_->mTop) r_->mTop = t_->mTop;
+            if (t_->mRight > r_->mRight) r_->mRight = t_->mRight;
+            if (t_->mBottom > r_->mBottom) r_->mBottom = t_->mBottom;
         }
     }
     mPaddingChecked = TRUE;
     mConstantPadding = r;
-    return mConstantPadding.Get();
+    return mConstantPadding;
 }
 
-ECode DrawableContainer::DrawableContainerState::SetConstantSize(
+void DrawableContainer::DrawableContainerState::SetConstantSize(
     /* [in] */ Boolean constant)
 {
     mConstantSize = constant;
-
-    return NOERROR;
 }
 
 Boolean DrawableContainer::DrawableContainerState::IsConstantSize()
@@ -568,11 +568,10 @@ void DrawableContainer::DrawableContainerState::ComputeConstantSize()
     mComputedConstantSize = TRUE;
 
     Int32 N = GetChildCount();
-    ArrayOf<IDrawable*>* drawables = mDrawables;
     mConstantWidth = mConstantHeight = 0;
     mConstantMinimumWidth = mConstantMinimumHeight = 0;
     for (Int32 i = 0; i < N; i++) {
-        IDrawable* dr = (*drawables)[i];
+        IDrawable* dr = (*mDrawables)[i];
         Int32 s;
         dr->GetIntrinsicWidth(&s);
         if (s > mConstantWidth) mConstantWidth = s;
@@ -592,14 +591,16 @@ Int32 DrawableContainer::DrawableContainerState::GetOpacity()
     }
 
     Int32 N = GetChildCount();
-    ArrayOf<IDrawable*>* drawables = mDrawables;
-
-    Int32 opacity;
-    (*drawables)[0]->GetOpacity(&opacity);
-
-    Int32 op = N > 0 ? opacity : ElPixelFormat::TRANSPARENT;
+    Int32 op;
+    if (N > 0) {
+        Int32 opacity;
+        (*mDrawables)[0]->GetOpacity(&opacity);
+        op = opacity;
+    }
+    else op = ElPixelFormat::TRANSPARENT;
     for (Int32 i = 1; i < N; i++) {
-        (*drawables)[i]->GetOpacity(&opacity);
+        Int32 opacity;
+        (*mDrawables)[i]->GetOpacity(&opacity);
         op = Drawable::ResolveOpacity(op, opacity);
     }
     mOpacity = op;
@@ -629,7 +630,7 @@ Boolean DrawableContainer::DrawableContainerState::IsStateful()
     return stateful;
 }
 
-ECode DrawableContainer::DrawableContainerState::GrowArray(
+void DrawableContainer::DrawableContainerState::GrowArray(
     /* [in] */ Int32 oldSize,
     /* [in] */ Int32 newSize)
 {
@@ -638,24 +639,21 @@ ECode DrawableContainer::DrawableContainerState::GrowArray(
         (*newDrawables)[i] = (*mDrawables)[i];
     }
 
-    Destroy();
+    ArrayOf<IDrawable*>::Free(mDrawables);
     mDrawables = newDrawables;
-
-    return NOERROR;
 }
 
 Boolean DrawableContainer::DrawableContainerState::CanConstantState()
 {
-    Mutex::Autolock lock(&sTempLock);
+    Mutex::Autolock lock(&mLock);
 
     if (!mCheckedConstantState) {
         mCanConstantState = TRUE;
         Int32 N = mNumChildren;
         for (Int32 i = 0; i < N; i++) {
-
             AutoPtr<IDrawableConstantState> state;
             (*mDrawables)[i]->GetConstantState((IDrawableConstantState**)&state);
-            if (state.Get() == NULL) {
+            if (state == NULL) {
                 mCanConstantState = FALSE;
                 break;
             }
@@ -665,3 +663,4 @@ Boolean DrawableContainer::DrawableContainerState::CanConstantState()
 
     return mCanConstantState;
 }
+

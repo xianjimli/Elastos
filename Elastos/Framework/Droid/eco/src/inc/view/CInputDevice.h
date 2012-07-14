@@ -4,7 +4,7 @@
 
 #include "_CInputDevice.h"
 #include "ext/frameworkext.h"
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 
 class ElKeyCharacterMap;
 

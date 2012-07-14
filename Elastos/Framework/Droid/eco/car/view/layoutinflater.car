@@ -54,6 +54,22 @@ module
 
     interface ILayoutInflater {
         /**
+         * Create a copy of the existing LayoutInflater object, with the copy
+         * pointing to a different Context than the original.  This is used by
+         * {@link ContextThemeWrapper} to create a new LayoutInflater to go along
+         * with the new Context theme.
+         * 
+         * @param newContext The new Context to associate with the new LayoutInflater.
+         * May be the same as the original Context if desired.
+         * 
+         * @return Returns a brand spanking new LayoutInflater object associated with
+         * the given Context.
+         */
+        CloneInContext(
+            [in] IContext* newContext,
+            [out] ILayoutInflater** newInflater);
+
+        /**
          * Return the context we are running in, for access to resources, class
          * loader, etc.
          */

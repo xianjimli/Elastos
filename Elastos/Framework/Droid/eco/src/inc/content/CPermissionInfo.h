@@ -4,7 +4,6 @@
 
 #include "_CPermissionInfo.h"
 #include "content/CapsuleItemInfo.h"
-#include "utils/AutoString.h"
 #include <ext/frameworkext.h>
 #include <elastos/AutoFree.h>
 #include <elastos/AutoPtr.h>
@@ -47,7 +46,7 @@ public:
      * The group this permission is a part of, as per
      * {@link android.R.attr#permissionGroup}.
      */
-    AutoString mGroup;
+    String mGroup;
 
     /**
      * A string resource identifier (in the package's resources) of this

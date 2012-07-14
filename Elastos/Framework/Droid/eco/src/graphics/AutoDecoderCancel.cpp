@@ -1,7 +1,7 @@
 #include "graphics/AutoDecoderCancel.h"
 #include <elastos/Mutex.h>
 
-using namespace Elastos::System::Threading;
+using namespace Elastos::Core::Threading;
 
 static Mutex  gAutoDecoderCancelMutex;
 static AutoDecoderCancel* gAutoDecoderCancel;
@@ -32,7 +32,8 @@ AutoDecoderCancel::AutoDecoderCancel(
     }
 }
 
-AutoDecoderCancel::~AutoDecoderCancel() {
+AutoDecoderCancel::~AutoDecoderCancel()
+{
     if (NULL != mOptions) {
         Mutex::Autolock lock(gAutoDecoderCancelMutex);
 
@@ -77,7 +78,8 @@ bool AutoDecoderCancel::RequestCancel(
 
 #ifdef SK_DEBUG
 // can only call this inside a lock on gAutoDecoderCancelMutex
-void AutoDecoderCancel::Validate() {
+void AutoDecoderCancel::Validate()
+{
     const int gCount = gAutoDecoderCancelCount;
 
     if (gCount == 0) {

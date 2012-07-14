@@ -5,7 +5,7 @@
 #include <elastos/AutoPtr.h>
 
 ECode CTypefaceFactory::Create(
-    /* [in] */ String familyName,
+    /* [in] */ const String& familyName,
     /* [in] */ Int32 style,
     /* [out] */ ITypeface** typeface)
 {
@@ -29,7 +29,7 @@ ECode CTypefaceFactory::DefaultFromStyle(
 
 ECode CTypefaceFactory::CreateFromAsset(
     /* [in] */ IAssetManager* mgr,
-    /* [in] */ String path,
+    /* [in] */ const String& path,
     /* [out] */ ITypeface** typeface)
 {
     return Typeface::CreateFromAsset(mgr, path, typeface);
@@ -43,7 +43,7 @@ ECode CTypefaceFactory::CreateFromFile(
 }
 
 ECode CTypefaceFactory::CreateFromFileEx(
-    /* [in]*/ String path,
+    /* [in]*/ const String& path,
     /* [out] */ ITypeface** typeface)
 {
     return Typeface::CreateFromFile(path, typeface);

@@ -21,7 +21,7 @@ public:
         /* [out] */ Int32* path);
 
     CARAPI Match(
-        /* [in] */ String str,
+        /* [in] */ const String& str,
         /* [out] */ Boolean* isMatch);
 
     CARAPI GetDescription(
@@ -31,7 +31,7 @@ public:
         /* [out] */ Int32* count);
 
     CARAPI constructor(
-        /* [in] */ String pattern,
+        /* [in] */ const String& pattern,
         /* [in] */ Int32 type);
 
     CARAPI constructor(

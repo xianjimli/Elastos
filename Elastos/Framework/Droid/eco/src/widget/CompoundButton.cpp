@@ -1,6 +1,5 @@
 
 #include "widget/CompoundButton.h"
-#include "utils/AutoString.h"
 
 const Int32 CompoundButton::CHECKED_STATE_SET[1] =
     {0x010100a0/*R.attr.state_checked*/};
@@ -165,7 +164,7 @@ Boolean CompoundButton::DispatchPopulateAccessibilityEvent(
         else {
             resourceId = 0x01040365;/*R.string.accessibility_compound_button_unselected*/
         }
-        AutoString state;
+        String state;
         GetResources()->GetString(resourceId, &state);
         //event.getText().add(state);
         //event.setChecked(mChecked);

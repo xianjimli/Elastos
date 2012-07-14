@@ -11,9 +11,7 @@ CContentProviderInfo::CContentProviderInfo() :
 {}
 
 CContentProviderInfo::~CContentProviderInfo()
-{
-    String::Free(mAuthority);
-}
+{}
 
 ECode CContentProviderInfo::constructor()
 {
@@ -25,7 +23,7 @@ ECode CContentProviderInfo::constructor(
 {
     AutoPtr<CContentProviderInfo> corig = (CContentProviderInfo*)orig;
     ComponentInfo::constructor((ComponentInfo*)(CContentProviderInfo*)corig);
-    mAuthority = String::Duplicate(corig->mAuthority);
+    mAuthority = corig->mAuthority;
 //    readPermission = orig.readPermission;
 //    writePermission = orig.writePermission;
 //    grantUriPermissions = orig.grantUriPermissions;
@@ -63,7 +61,7 @@ ECode CContentProviderInfo::LoadLogo(
 
 ECode CContentProviderInfo::LoadXmlMetaData(
     /* [in] */ ICapsuleManager* pm,
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ IXmlResourceParser** resource)
 {
     VALIDATE_NOT_NULL(resource);
@@ -74,18 +72,18 @@ ECode CContentProviderInfo::GetComponentName(
     /* [out] */ String * pCapsuleName,
     /* [out] */ String * pClassName)
 {
-    *pCapsuleName = String::Duplicate(mCapsuleName);
-    *pClassName = String::Duplicate(mName);
+    *pCapsuleName = mCapsuleName;
+    *pClassName = mName;
 
     return NOERROR;
 }
 
 ECode CContentProviderInfo::SetComponentName(
-    /* [in] */ String capsuleName,
-    /* [in] */ String className)
+    /* [in] */ const String& capsuleName,
+    /* [in] */ const String& className)
 {
-    mCapsuleName = String::Duplicate(capsuleName);
-    mName = String::Duplicate(className);
+    mCapsuleName = capsuleName;
+    mName = className;
 
     return NOERROR;
 }

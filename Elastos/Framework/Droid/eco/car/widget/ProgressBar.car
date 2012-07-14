@@ -1,0 +1,60 @@
+
+module
+{
+    interface IProgressBarSavedState extends IViewBaseSavedState {
+    }
+
+    interface IProgressBar extends IView {
+        IsIndeterminate(
+            [out] Boolean* indeterminate);
+
+        SetIndeterminate(
+            [in] Boolean indeterminate);
+
+        GetIndeterminateDrawable(
+            [out] IDrawable** d);
+
+        SetIndeterminateDrawable(
+            [in] IDrawable* d);
+
+        GetProgressDrawable(
+            [out] IDrawable** d);
+
+        SetProgressDrawable(
+            [in] IDrawable* d);
+
+        SetProgress(
+            [in] Int32 progress);
+
+        SetSecondaryProgress(
+            [in] Int32 secondaryProgress);
+
+        GetProgress(
+            [out] Int32* progress);
+
+        GetSecondaryProgress(
+            [out] Int32* secondaryProgress);
+
+        GetMax(
+            [out] Int32* max);
+
+        SetMax(
+            [in] Int32 max);
+
+        IncrementProgressBy(
+            [in] Int32 diff);
+
+        IncrementSecondaryProgressBy(
+            [in] Int32 diff);
+
+        SetInterpolator(
+            [in] IContext* ctx,
+            [in] Int32 resID);
+
+        SetInterpolatorEx(
+            [in] IInterpolator* interpolator);
+
+        GetInterpolator(
+            [out] IInterpolator** interpolator);
+    }
+}

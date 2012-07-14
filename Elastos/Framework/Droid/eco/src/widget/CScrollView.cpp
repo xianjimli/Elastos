@@ -1,6 +1,5 @@
 
 #include "widget/CScrollView.h"
-#include "widget/FrameLayout.h"
 
 IVIEW_METHODS_IMPL(CScrollView, ScrollView, ScrollView);
 
@@ -10,7 +9,11 @@ IVIEWPARENT_METHODS_IMPL(CScrollView, ScrollView, ScrollView);
 
 IVIEWMANAGER_METHODS_IMPL(CScrollView, ScrollView, ScrollView);
 
+IDrawableCallback_METHODS_IMPL(CScrollView, ScrollView, ScrollView);
+
 IKeyEventCallback_METHODS_IMPL(CScrollView, ScrollView, ScrollView);
+
+IAccessibilityEventSource_METHODS_IMPL(CScrollView, ScrollView, ScrollView);
 
 PInterface CScrollView::Probe(
     /* [in] */ REIID riid)
@@ -24,17 +27,13 @@ PInterface CScrollView::Probe(
 ECode CScrollView::SetForegroundGravity(
     /* [in] */ Int32 foregroundGravity)
 {
-    FrameLayout::SetForegroundGravity(foregroundGravity);
-
-    return NOERROR;
+    return FrameLayout::SetForegroundGravity(foregroundGravity);
 }
 
 ECode CScrollView::SetForeground(
     /* [in] */ IDrawable* drawable)
 {
-    FrameLayout::SetForeground(drawable);
-
-    return NOERROR;
+    return FrameLayout::SetForeground(drawable);
 }
 
 ECode CScrollView::GetForeground(
@@ -53,9 +52,7 @@ ECode CScrollView::GetForeground(
 ECode CScrollView::SetMeasureAllChildren(
     /* [in] */ Boolean measureAll)
 {
-    FrameLayout::SetMeasureAllChildren(measureAll);
-
-    return NOERROR;
+    return FrameLayout::SetMeasureAllChildren(measureAll);
 }
 
 ECode CScrollView::GetConsiderGoneChildrenWhenMeasuring(
@@ -63,7 +60,6 @@ ECode CScrollView::GetConsiderGoneChildrenWhenMeasuring(
 {
     VALIDATE_NOT_NULL(measureAll);
     *measureAll = FrameLayout::GetConsiderGoneChildrenWhenMeasuring();
-
     return NOERROR;
 }
 
@@ -78,7 +74,9 @@ ECode CScrollView::ArrowScroll(
     /* [in] */ Int32 direction,
     /* [out] */ Boolean* consumed)
 {
-    return ScrollView::ArrowScroll(direction, consumed);
+    VALIDATE_NOT_NULL(consumed);
+    *consumed = ScrollView::ArrowScroll(direction);
+    return NOERROR;
 }
 
 /**
@@ -93,7 +91,9 @@ ECode CScrollView::ExecuteKeyEvent(
     /* [in] */ IKeyEvent* event,
     /* [out] */ Boolean* handled)
 {
-    return ScrollView::ExecuteKeyEvent(event, handled);
+    VALIDATE_NOT_NULL(handled);
+    *handled = ScrollView::ExecuteKeyEvent(event);
+    return NOERROR;
 }
 
 /**
@@ -125,7 +125,9 @@ ECode CScrollView::FullScroll(
     /* [in] */ Int32 direction,
     /* [out] */ Boolean* consumed)
 {
-    return ScrollView::FullScroll(direction, consumed);
+    VALIDATE_NOT_NULL(consumed);
+    *consumed = ScrollView::FullScroll(direction);
+    return NOERROR;
 }
 
 /**
@@ -135,7 +137,9 @@ ECode CScrollView::FullScroll(
 ECode CScrollView::GetMaxScrollAmount(
     /* [out] */ Int32* maxAmount)
 {
-    return ScrollView::GetMaxScrollAmount(maxAmount);
+    VALIDATE_NOT_NULL(maxAmount);
+    *maxAmount = ScrollView::GetMaxScrollAmount();
+    return NOERROR;
 }
 
 /**
@@ -146,7 +150,9 @@ ECode CScrollView::GetMaxScrollAmount(
 ECode CScrollView::IsFillViewport(
     /* [out] */ Boolean* isFilled)
 {
-    return ScrollView::IsFillViewport(isFilled);
+    VALIDATE_NOT_NULL(isFilled);
+    *isFilled = ScrollView::IsFillViewport();
+    return NOERROR;
 }
 
 /**
@@ -155,7 +161,9 @@ ECode CScrollView::IsFillViewport(
 ECode CScrollView::IsSmoothScrollingEnabled(
     /* [out] */ Boolean* enabled)
 {
-    return ScrollView::IsSmoothScrollingEnabled(enabled);
+    VALIDATE_NOT_NULL(enabled);
+    *enabled = ScrollView::IsSmoothScrollingEnabled();
+    return NOERROR;
 }
 
 /**
@@ -174,7 +182,9 @@ ECode CScrollView::PageScroll(
     /* [in] */ Int32 direction,
     /* [out] */ Boolean* consumed)
 {
-    return ScrollView::PageScroll(direction, consumed);
+    VALIDATE_NOT_NULL(consumed);
+    *consumed = ScrollView::PageScroll(direction);
+    return NOERROR;
 }
 
 /**

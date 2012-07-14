@@ -7,9 +7,6 @@ module
     interface IDisplayMetrics;
     interface IPaint;
 
-    interface INinePatchState extends IDrawableConstantState {
-    }
-
     interface INinePatchDrawable extends IDrawable {
         /**
          * Set the density scale at which this drawable will be rendered. This

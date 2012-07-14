@@ -3,13 +3,12 @@
 #include "graphics/CRectF.h"
 #include "graphics/CPaint.h"
 #include "utils/CApartment.h"
-#include "utils/CObjectContainer.h"
 #include "os/SystemClock.h"
 #include "view/CMotionEvent.h"
 #include "widget/AbsListView.h"
 #include <elastos/Math.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 Int32 FastScroller::MIN_PAGES = 4;
 const Int32 FastScroller::STATE_NONE;
@@ -346,13 +345,20 @@ void FastScroller::GetSectionsFromIndexer()
         if (sectionIndexer) {
             mListAdapter = IBaseAdapter::Probe(adapter);
             mSectionIndexer = sectionIndexer;
-            IObjectContainer* sections = NULL;
-            mSectionIndexer->GetSections(&sections);
 
-            ObjectNode *pNode;
-            ForEachDLinkNode(ObjectNode*, pNode,
-                &((CObjectContainer*)sections)->mHead) {
-                mSections.PushBack(pNode->mObject);
+            AutoPtr<IObjectContainer> sections;
+            mSectionIndexer->GetSections((IObjectContainer**)&sections);
+
+            AutoPtr<IObjectEnumerator> objEmu;
+            sections->GetObjectEnumerator((IObjectEnumerator**)&objEmu);
+
+            Boolean isSucceeded;
+            objEmu->MoveNext(&isSucceeded);
+            while (isSucceeded) {
+                AutoPtr<IInterface> obj;
+                objEmu->Current((IInterface**)&obj);
+                mSections.PushBack(obj);
+                objEmu->MoveNext(&isSucceeded);
             }
         }
         else {
@@ -605,9 +611,8 @@ Boolean FastScroller::PostDelayed(
     ECode (STDCALL IRunnable::*pHandlerFunc)();
     pHandlerFunc = &IRunnable::Run;
 
-    ECode ec = mApartment->PostCppCallbackAtTime(
-        (Handle32)mScrollFade.Get(), *(Handle32*)&pHandlerFunc, NULL,
-        SystemClock::GetUptimeMillis() + delayMillis);
+    ECode ec = mApartment->PostCppCallbackDelayed(
+        (Handle32)mScrollFade.Get(), *(Handle32*)&pHandlerFunc, NULL, 0, delayMillis);
 
     if (FAILED(ec)) {
         return FALSE;

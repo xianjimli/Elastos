@@ -16,7 +16,7 @@
 #include "graphics/CBitmapFactory.h"
 #include "graphics/ElPixelFormat.h"
 #include "widget/CScrollBarDrawable.h"
-#include "utils/CObjectContainer.h"
+#include "utils/CParcelableObjectContainer.h"
 #include "utils/CDisplayMetrics.h"
 #include "utils/CApartment.h"
 #include "os/SystemClock.h"
@@ -24,7 +24,7 @@
 #include <Logger.h>
 #include <StringBuffer.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
 extern "C" const InterfaceID EIID_View =
@@ -128,7 +128,7 @@ const Int32 View::ScrollabilityCache::OFF;
 const Int32 View::ScrollabilityCache::ON;
 const Int32 View::ScrollabilityCache::FADING;
 
-const String View::VIEW_LOG_TAG = "View";
+const char* View::VIEW_LOG_TAG = "View";
 Int64 View::sInstanceCount = 0;
 
 const Int32 View::VISIBILITY_FLAGS[] = {VISIBLE, INVISIBLE, GONE};
@@ -137,50 +137,142 @@ const Int32 View::DRAWING_CACHE_QUALITY_FLAGS[] = {
     DRAWING_CACHE_QUALITY_AUTO, DRAWING_CACHE_QUALITY_LOW, DRAWING_CACHE_QUALITY_HIGH
 };
 
-const ArrayOf<Int32>** View::VIEW_STATE_SETS = InitViewStateSets();
+const ArrayOf<ArrayOf<Int32>*>* View::VIEW_STATE_SETS = InitViewStateSets();
 
 pthread_key_t View::sKey;
 
-const ArrayOf<Int32>** View::InitViewStateSets()
+const ArrayOf<ArrayOf<Int32>*>* View::InitViewStateSets()
 {
     pthread_key_create(&sKey, NULL);
     pthread_setspecific(sKey, NULL);
 
-//private static final int[][] VIEW_STATE_SETS = {
-//    EMPTY_STATE_SET,                                           // 0 0 0 0 0
-//    WINDOW_FOCUSED_STATE_SET,                                  // 0 0 0 0 1
-//    SELECTED_STATE_SET,                                        // 0 0 0 1 0
-//    SELECTED_WINDOW_FOCUSED_STATE_SET,                         // 0 0 0 1 1
-//    FOCUSED_STATE_SET,                                         // 0 0 1 0 0
-//    FOCUSED_WINDOW_FOCUSED_STATE_SET,                          // 0 0 1 0 1
-//    FOCUSED_SELECTED_STATE_SET,                                // 0 0 1 1 0
-//    FOCUSED_SELECTED_WINDOW_FOCUSED_STATE_SET,                 // 0 0 1 1 1
-//    ENABLED_STATE_SET,                                         // 0 1 0 0 0
-//    ENABLED_WINDOW_FOCUSED_STATE_SET,                          // 0 1 0 0 1
-//    ENABLED_SELECTED_STATE_SET,                                // 0 1 0 1 0
-//    ENABLED_SELECTED_WINDOW_FOCUSED_STATE_SET,                 // 0 1 0 1 1
-//    ENABLED_FOCUSED_STATE_SET,                                 // 0 1 1 0 0
-//    ENABLED_FOCUSED_WINDOW_FOCUSED_STATE_SET,                  // 0 1 1 0 1
-//    ENABLED_FOCUSED_SELECTED_STATE_SET,                        // 0 1 1 1 0
-//    ENABLED_FOCUSED_SELECTED_WINDOW_FOCUSED_STATE_SET,         // 0 1 1 1 1
-//    PRESSED_STATE_SET,                                         // 1 0 0 0 0
-//    PRESSED_WINDOW_FOCUSED_STATE_SET,                          // 1 0 0 0 1
-//    PRESSED_SELECTED_STATE_SET,                                // 1 0 0 1 0
-//    PRESSED_SELECTED_WINDOW_FOCUSED_STATE_SET,                 // 1 0 0 1 1
-//    PRESSED_FOCUSED_STATE_SET,                                 // 1 0 1 0 0
-//    PRESSED_FOCUSED_WINDOW_FOCUSED_STATE_SET,                  // 1 0 1 0 1
-//    PRESSED_FOCUSED_SELECTED_STATE_SET,                        // 1 0 1 1 0
-//    PRESSED_FOCUSED_SELECTED_WINDOW_FOCUSED_STATE_SET,         // 1 0 1 1 1
-//    PRESSED_ENABLED_STATE_SET,                                 // 1 1 0 0 0
-//    PRESSED_ENABLED_WINDOW_FOCUSED_STATE_SET,                  // 1 1 0 0 1
-//    PRESSED_ENABLED_SELECTED_STATE_SET,                        // 1 1 0 1 0
-//    PRESSED_ENABLED_SELECTED_WINDOW_FOCUSED_STATE_SET,         // 1 1 0 1 1
-//    PRESSED_ENABLED_FOCUSED_STATE_SET,                         // 1 1 1 0 0
-//    PRESSED_ENABLED_FOCUSED_WINDOW_FOCUSED_STATE_SET,          // 1 1 1 0 1
-//    PRESSED_ENABLED_FOCUSED_SELECTED_STATE_SET,                // 1 1 1 1 0
-//    PRESSED_ENABLED_FOCUSED_SELECTED_WINDOW_FOCUSED_STATE_SET, // 1 1 1 1 1
-//};
-    return NULL;
+    const Int32 S_ENABLED = 0x0101009e; //R.attr.state_enabled
+    const Int32 S_FOCUSED = 0x0101009c; //R.attr.state_focused
+    const Int32 S_SELECTED = 0x010100a1; //R.attr.state_selected
+    const Int32 S_PRESSED = 0x010100a7; //R.attr.state_pressed
+    const Int32 S_WINDOW_FOCUSED = 0x0101009d; //R.attr.state_window_focused
+
+    ArrayOf<ArrayOf<Int32>*>* stateSets = ArrayOf<ArrayOf<Int32>*>::Alloc(32);
+    (*stateSets)[0] = ArrayOf<Int32>::Alloc(0);
+
+    Int32 WINDOW_FOCUSED_STATE_SET[] = {S_WINDOW_FOCUSED};
+    (*stateSets)[1] = ArrayOf<Int32>::Alloc(WINDOW_FOCUSED_STATE_SET, 1)->Clone();
+
+    Int32 SELECTED_STATE_SET[] = {S_SELECTED};
+    (*stateSets)[2] = ArrayOf<Int32>::Alloc(SELECTED_STATE_SET, 1)->Clone();
+
+    Int32 SELECTED_WINDOW_FOCUSED_STATE_SET[] = {S_SELECTED, S_WINDOW_FOCUSED};
+    (*stateSets)[3] = ArrayOf<Int32>::Alloc(SELECTED_WINDOW_FOCUSED_STATE_SET, 2)->Clone();
+
+    Int32 FOCUSED_STATE_SET[] = {S_FOCUSED};
+    (*stateSets)[4] = ArrayOf<Int32>::Alloc(FOCUSED_STATE_SET, 1)->Clone();
+
+    Int32 FOCUSED_WINDOW_FOCUSED_STATE_SET[] = {S_FOCUSED, S_WINDOW_FOCUSED};
+    (*stateSets)[5] = ArrayOf<Int32>::Alloc(FOCUSED_WINDOW_FOCUSED_STATE_SET, 2)->Clone();
+
+    Int32 FOCUSED_SELECTED_STATE_SET[] = {S_FOCUSED, S_SELECTED};
+    (*stateSets)[6] = ArrayOf<Int32>::Alloc(FOCUSED_SELECTED_STATE_SET, 2)->Clone();
+
+    Int32 FOCUSED_SELECTED_WINDOW_FOCUSED_STATE_SET[] =
+        {S_FOCUSED, S_SELECTED, S_WINDOW_FOCUSED};
+    (*stateSets)[7] = ArrayOf<Int32>::Alloc(
+        FOCUSED_SELECTED_WINDOW_FOCUSED_STATE_SET, 1)->Clone();
+
+    Int32 ENABLED_STATE_SET[] = {S_ENABLED};
+    (*stateSets)[8] = ArrayOf<Int32>::Alloc(ENABLED_STATE_SET, 1)->Clone();
+
+    Int32 ENABLED_WINDOW_FOCUSED_STATE_SET[] = {S_ENABLED, S_WINDOW_FOCUSED};
+    (*stateSets)[9] = ArrayOf<Int32>::Alloc(ENABLED_WINDOW_FOCUSED_STATE_SET, 2)->Clone();
+
+    Int32 ENABLED_SELECTED_STATE_SET[] = {S_ENABLED, S_SELECTED};
+    (*stateSets)[10] = ArrayOf<Int32>::Alloc(ENABLED_SELECTED_STATE_SET, 2)->Clone();
+
+    Int32 ENABLED_SELECTED_WINDOW_FOCUSED_STATE_SET[] =
+        {S_ENABLED, S_SELECTED, S_WINDOW_FOCUSED};
+    (*stateSets)[11] = ArrayOf<Int32>::Alloc(
+        ENABLED_SELECTED_WINDOW_FOCUSED_STATE_SET, 3)->Clone();
+
+    Int32 ENABLED_FOCUSED_STATE_SET[] = {S_ENABLED, S_FOCUSED};
+    (*stateSets)[12] = ArrayOf<Int32>::Alloc(ENABLED_FOCUSED_STATE_SET, 2)->Clone();
+
+    Int32 ENABLED_FOCUSED_WINDOW_FOCUSED_STATE_SET[] =
+        {S_ENABLED, S_FOCUSED, S_WINDOW_FOCUSED};
+    (*stateSets)[13] = ArrayOf<Int32>::Alloc
+        (ENABLED_FOCUSED_WINDOW_FOCUSED_STATE_SET, 3)->Clone();
+
+    Int32 ENABLED_FOCUSED_SELECTED_STATE_SET[] = {S_ENABLED, S_FOCUSED, S_SELECTED};
+    (*stateSets)[14] = ArrayOf<Int32>::Alloc(ENABLED_FOCUSED_SELECTED_STATE_SET, 3)->Clone();
+
+    Int32 ENABLED_FOCUSED_SELECTED_WINDOW_FOCUSED_STATE_SET[] =
+        {S_ENABLED, S_FOCUSED, S_SELECTED, S_WINDOW_FOCUSED};
+    (*stateSets)[15] = ArrayOf<Int32>::Alloc(
+        ENABLED_FOCUSED_SELECTED_WINDOW_FOCUSED_STATE_SET, 4)->Clone();
+
+    Int32 PRESSED_STATE_SET[] = {S_PRESSED};
+    (*stateSets)[16] = ArrayOf<Int32>::Alloc(PRESSED_STATE_SET, 1)->Clone();
+
+    Int32 PRESSED_WINDOW_FOCUSED_STATE_SET[] = {S_PRESSED, S_WINDOW_FOCUSED};
+    (*stateSets)[17] = ArrayOf<Int32>::Alloc(PRESSED_WINDOW_FOCUSED_STATE_SET, 2)->Clone();
+
+    Int32 PRESSED_SELECTED_STATE_SET[] = {S_PRESSED, S_SELECTED};
+    (*stateSets)[18] = ArrayOf<Int32>::Alloc(PRESSED_SELECTED_STATE_SET, 2)->Clone();
+
+    Int32 PRESSED_SELECTED_WINDOW_FOCUSED_STATE_SET[] =
+        {S_PRESSED, S_SELECTED, S_WINDOW_FOCUSED};
+    (*stateSets)[19] = ArrayOf<Int32>::Alloc(
+        PRESSED_SELECTED_WINDOW_FOCUSED_STATE_SET, 3)->Clone();
+
+    Int32 PRESSED_FOCUSED_STATE_SET[] = {S_PRESSED, S_FOCUSED};
+    (*stateSets)[20] = ArrayOf<Int32>::Alloc(PRESSED_FOCUSED_STATE_SET, 2)->Clone();
+
+    Int32 PRESSED_FOCUSED_WINDOW_FOCUSED_STATE_SET[] =
+        {S_PRESSED, S_FOCUSED, S_WINDOW_FOCUSED};
+    (*stateSets)[21] = ArrayOf<Int32>::Alloc(
+        PRESSED_FOCUSED_WINDOW_FOCUSED_STATE_SET, 3)->Clone();
+
+    Int32 PRESSED_FOCUSED_SELECTED_STATE_SET[] = {S_PRESSED, S_FOCUSED, S_SELECTED};
+    (*stateSets)[22] = ArrayOf<Int32>::Alloc(PRESSED_FOCUSED_SELECTED_STATE_SET, 3)->Clone();
+
+    Int32 PRESSED_FOCUSED_SELECTED_WINDOW_FOCUSED_STATE_SET[] =
+        {S_PRESSED, S_FOCUSED, S_SELECTED, S_WINDOW_FOCUSED};
+    (*stateSets)[23] = ArrayOf<Int32>::Alloc(
+        PRESSED_FOCUSED_SELECTED_WINDOW_FOCUSED_STATE_SET, 4)->Clone();
+
+    Int32 PRESSED_ENABLED_STATE_SET[] = {S_PRESSED, S_ENABLED};
+    (*stateSets)[24] = ArrayOf<Int32>::Alloc(PRESSED_ENABLED_STATE_SET, 2)->Clone();
+
+    Int32 PRESSED_ENABLED_WINDOW_FOCUSED_STATE_SET[] =
+        {S_PRESSED, S_ENABLED, S_WINDOW_FOCUSED};
+    (*stateSets)[25] = ArrayOf<Int32>::Alloc(
+        PRESSED_ENABLED_WINDOW_FOCUSED_STATE_SET, 3)->Clone();
+
+    Int32 PRESSED_ENABLED_SELECTED_STATE_SET[] = {S_PRESSED, S_ENABLED, S_SELECTED};
+    (*stateSets)[26] = ArrayOf<Int32>::Alloc(PRESSED_ENABLED_SELECTED_STATE_SET, 3)->Clone();
+
+    Int32 PRESSED_ENABLED_SELECTED_WINDOW_FOCUSED_STATE_SET[] =
+        {S_PRESSED, S_ENABLED, S_SELECTED, S_WINDOW_FOCUSED};
+    (*stateSets)[27] = ArrayOf<Int32>::Alloc(
+        PRESSED_ENABLED_SELECTED_WINDOW_FOCUSED_STATE_SET, 4)->Clone();
+
+    Int32 PRESSED_ENABLED_FOCUSED_STATE_SET[] = {S_PRESSED, S_ENABLED, S_FOCUSED};
+    (*stateSets)[28] = ArrayOf<Int32>::Alloc(PRESSED_ENABLED_FOCUSED_STATE_SET, 3)->Clone();
+
+    Int32 PRESSED_ENABLED_FOCUSED_WINDOW_FOCUSED_STATE_SET[] =
+        {S_PRESSED, S_ENABLED, S_FOCUSED, S_WINDOW_FOCUSED};
+    (*stateSets)[29] = ArrayOf<Int32>::Alloc(
+        PRESSED_ENABLED_FOCUSED_WINDOW_FOCUSED_STATE_SET, 4)->Clone();
+
+    Int32 PRESSED_ENABLED_FOCUSED_SELECTED_STATE_SET[] =
+        {S_PRESSED, S_ENABLED, S_FOCUSED, S_SELECTED};
+    (*stateSets)[30] = ArrayOf<Int32>::Alloc(
+        PRESSED_ENABLED_FOCUSED_SELECTED_STATE_SET, 4)->Clone();
+
+    Int32 PRESSED_ENABLED_FOCUSED_SELECTED_WINDOW_FOCUSED_STATE_SET[] =
+        {S_PRESSED, S_ENABLED, S_FOCUSED, S_SELECTED, S_WINDOW_FOCUSED};
+    (*stateSets)[31] = ArrayOf<Int32>::Alloc(
+        PRESSED_ENABLED_FOCUSED_SELECTED_WINDOW_FOCUSED_STATE_SET, 5)->Clone();
+
+    return stateSets;
 }
 
 ECode View::CheckForLongPress::Run()
@@ -207,7 +299,6 @@ void View::CheckForLongPress::RememberWindowAttachCount()
 
 ECode View::CheckForTap::Run()
 {
-    printf("CheckForTap::Run\n");
     View* view = (View*)mView->Probe(EIID_View);
     assert(view != NULL);
     view->mPrivateFlags &= ~PREPRESSED;
@@ -222,18 +313,25 @@ ECode View::CheckForTap::Run()
 
 ECode View::ViewPerformClick::Run()
 {
-    printf("ViewPerformClick::Run\n");
     Boolean result;
     return mView->PerformClick(&result);
 }
 
 ECode View::UnsetPressedState::Run()
 {
-    printf("UnsetPressedState::Run\n");
     return mView->SetPressed(FALSE);
 }
 
-View::AttachInfo::AttachInfo()
+View::AttachInfo::AttachInfo(
+    /* [in] */ IWindowSession* session,
+    /* [in] */ IInnerWindow* window,
+    /* [in] */ IApartment* handler,
+    /* [in] */ Callbacks* effectPlayer)
+    : mSession(session)
+    , mWindow(window)
+    , mWindowToken(IBinder::Probe(window))
+    , mRootCallbacks(effectPlayer)
+    , mHandler(handler)
 {
     assert(SUCCEEDED(CRect::NewByFriend((CRect**)&mContentInsets)));
     assert(SUCCEEDED(CRect::NewByFriend((CRect**)&mVisibleInsets)));
@@ -297,7 +395,7 @@ ECode View::ScrollabilityCache::Run()
 //        // Kick off the fade animation
 //        host.invalidate();
 //    }
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 void View::ScrollabilityCache::SetFadeColor(
@@ -479,6 +577,13 @@ View::View(
     mTouchSlop(0)
 {
     Init(context, attrs, defStyle);
+}
+
+View::~View()
+{
+    if (mDrawableState) {
+        ArrayOf<Int32>::Free(mDrawableState);
+    }
 }
 
 /**
@@ -776,7 +881,7 @@ ECode View::SetOnLongClickListener(
  *
  */
 ECode View::SetOnCreateContextMenuListener(
-    /* [in] */ IViewOnCreateContextMenuListener* l)
+    /* [in] */ IOnCreateContextMenuListener* l)
 {
     if (!IsLongClickable()) {
         SetLongClickable(TRUE);
@@ -2050,7 +2155,7 @@ ECode View::GetFocusables(
 {
     assert(views != NULL);
 
-    FAIL_RETURN(CObjectContainer::New(views));
+    FAIL_RETURN(CParcelableObjectContainer::New(views));
     return AddFocusables(*views, direction);
 }
 
@@ -2116,7 +2221,7 @@ ECode View::GetTouchables(
 {
     assert(views != NULL);
 
-    FAIL_RETURN(CObjectContainer::New(views));
+    FAIL_RETURN(CParcelableObjectContainer::New(views));
     return AddTouchables(*views);
 }
 
@@ -2330,7 +2435,7 @@ ECode View::OnFinishTemporaryDetach()
  * when ViewDebug.SYSTEM_PROPERTY_CAPTURE_VIEW) is set
  */
 void View::CaptureViewInfo(
-    /* [in] */ String subTag,
+    /* [in] */ const char* subTag,
     /* [in] */ IView* v)
 {
     //if (v == NULL || SystemProperties.getInt(ViewDebug.SYSTEM_PROPERTY_CAPTURE_VIEW, 0) == 0) {
@@ -2439,6 +2544,7 @@ Boolean View::DispatchKeyShortcutEvent(
 Boolean View::DispatchTouchEvent(
     /* [in] */ IMotionEvent* event)
 {
+    //printf("View::DispatchTouchEvent, ID = 0x%08x\n", mID);
     if (!OnFilterTouchEventForSecurity(event)) {
         return FALSE;
     }
@@ -3945,7 +4051,7 @@ Boolean View::AwakenScrollBars(
     }
 
     if (scrollCache->mScrollBar == NULL) {
-         CScrollBarDrawable::New((IScrollBarDrawable**)&(scrollCache->mScrollBar));
+        CScrollBarDrawable::New((IScrollBarDrawable**)&(scrollCache->mScrollBar));
     }
 
     if (IsHorizontalScrollBarEnabled() || IsVerticalScrollBarEnabled()) {
@@ -3965,14 +4071,20 @@ Boolean View::AwakenScrollBars(
 
         // Tell mScrollCache when we should start fading. This may
         // extend the fade start time if one was already scheduled
-        Int64 fadeStartTime = 0;// = AnimationUtils::CurrentAnimationTimeMillis() + startDelay;
+        Int64 fadeStartTime = SystemClock::GetUptimeMillis() + startDelay;/*AnimationUtils::CurrentAnimationTimeMillis()*/
         scrollCache->mFadeStartTime = fadeStartTime;
         scrollCache->mState = ScrollabilityCache::ON;
 
         // Schedule our fader to run, unscheduling any old ones first
         if (mAttachInfo != NULL) {
-//            mAttachInfo->mHandler->RemoveCallbacks(scrollCache);
-//            mAttachInfo->mHandler->PostAtTime(scrollCache, fadeStartTime);
+            ECode (STDCALL IRunnable::*pHandlerFunc)();
+            pHandlerFunc = &IRunnable::Run;
+
+            //mAttachInfo->mHandler->RemoveCppCallbacks(
+            //    (Handle32)scrollCache.Get(), *(Handle32*)&pHandlerFunc);
+            //mAttachInfo->mHandler->PostCppCallbackAtTime(
+            //    (Handle32)scrollCache.Get(), *(Handle32*)&pHandlerFunc,
+            //    NULL, 0, fadeStartTime);
         }
 
         return TRUE;
@@ -4158,25 +4270,20 @@ AutoPtr<IApartment> View::GetHandler()
 Boolean View::Post(
     /* [in] */ IRunnable* action)
 {
-    //Handler handler;
-    //if (mAttachInfo != NULL) {
-    //    handler = mAttachInfo->mHandler;
-    //} else {
-    //    // Assume that post will succeed later
-    //    ViewRoot.getRunQueue().post(action);
-    //    return TRUE;
-    //}
+    if (mAttachInfo != NULL) {
+        ECode (STDCALL IRunnable::*pHandlerFunc)();
+        pHandlerFunc = &IRunnable::Run;
 
-    //return handler.post(action);
+        ECode ec = mAttachInfo->mHandler->PostCppCallback(
+            (Handle32)action, *(Handle32*)&pHandlerFunc, NULL, 0);
 
-    ECode (STDCALL IRunnable::*pHandlerFunc)();
-    pHandlerFunc = &IRunnable::Run;
-
-    ECode ec = mApartment->PostCppCallback(
-        (Handle32)action, *(Handle32*)&pHandlerFunc, NULL);
-
-    if (FAILED(ec)) {
-        return FALSE;
+        if (FAILED(ec)) {
+            return FALSE;
+        }
+    }
+    else {
+        // Assume that post will succeed later
+        ViewRoot::GetRunQueue()->Post(action);
     }
 
     return TRUE;
@@ -4202,30 +4309,25 @@ Boolean View::PostDelayed(
     /* [in] */ IRunnable* action,
     /* [in] */ Int64 delayMillis)
 {
-    //IHandler* handler;
-    //if (mAttachInfo != NULL) {
-    //    handler = mAttachInfo->mHandler;
-    //} else {
-    //    // Assume that post will succeed later
-    //    ViewRoot::GetRunQueue()->PostDelayed(action, delayMillis);
-    //    return TRUE;
-    //}
-
-    //return handler->postDelayed(action, delayMillis);
-
     if (delayMillis <0 ) {
         delayMillis = 0;
     }
 
-    ECode (STDCALL IRunnable::*pHandlerFunc)();
-    pHandlerFunc = &IRunnable::Run;
+    if (mAttachInfo != NULL) {
+        ECode (STDCALL IRunnable::*pHandlerFunc)();
+        pHandlerFunc = &IRunnable::Run;
 
-    ECode ec = mApartment->PostCppCallbackAtTime(
-        (Handle32)action, *(Handle32*)&pHandlerFunc, NULL,
-        SystemClock::GetUptimeMillis() + delayMillis);
+        ECode ec = mAttachInfo->mHandler->PostCppCallbackDelayed(
+            (Handle32)action, *(Handle32*)&pHandlerFunc, NULL, 0, delayMillis);
 
-    if (FAILED(ec)) {
-        return FALSE;
+        if (FAILED(ec)) {
+            return FALSE;
+        }
+
+    }
+    else {
+        // Assume that post will succeed later
+        ViewRoot::GetRunQueue()->PostDelayed(action, delayMillis);
     }
 
     return TRUE;
@@ -4244,16 +4346,22 @@ Boolean View::PostDelayed(
 Boolean View::RemoveCallbacks(
     /* [in] */ IRunnable* action)
 {
-    //Handler handler;
-    //if (mAttachInfo != NULL) {
-    //    handler = mAttachInfo->mHandler;
-    //} else {
-    //    // Assume that post will succeed later
-    //    ViewRoot::GetRunQueue()->RemoveCallbacks(action);
-    //    return TRUE;
-    //}
+    if (mAttachInfo != NULL) {
+        ECode (STDCALL IRunnable::*pHandlerFunc)();
+        pHandlerFunc = &IRunnable::Run;
 
-    //handler->RemoveCallbacks(action);
+        ECode ec = mAttachInfo->mHandler->RemoveCppCallbacks(
+            (Handle32)action, *(Handle32*)&pHandlerFunc);
+
+        if (FAILED(ec)) {
+            return FALSE;
+        }
+    }
+    else {
+        // Assume that post will succeed later
+        ViewRoot::GetRunQueue()->RemoveCallbacks(action);
+    }
+
     return TRUE;
 }
 
@@ -4304,10 +4412,12 @@ ECode View::PostInvalidateDelayed(
     // We try only with the AttachInfo because there's no point in invalidating
     // if we are not attached to our window
     if (mAttachInfo != NULL) {
-        /*IMessage* msg = Message::Obtain();
-        msg->what = AttachInfo:;INVALIDATE_MSG;
-        msg->obj = this;
-        mAttachInfo->mHandler->SendMessageDelayed(msg, delayMilliseconds);*/
+        ECode (STDCALL View::*pHandlerFunc)();
+        pHandlerFunc = &View::HandleInvalidate;
+
+        mAttachInfo->mHandler->PostCppCallbackDelayed(
+            (Handle32)this, *(Handle32*)&pHandlerFunc,
+            NULL, 0, delayMilliseconds);
     }
     return NOERROR;
 }
@@ -4330,21 +4440,23 @@ ECode View::PostInvalidateDelayed(
     /* [in] */ Int32 right,
     /* [in] */ Int32 bottom)
 {
-
     // We try only with the AttachInfo because there's no point in invalidating
     // if we are not attached to our window
     if (mAttachInfo != NULL) {
-        //AttachInfo::InvalidateInfo info = AttachInfo::InvalidateInfo::Acquire();
-        /*info.target = this;
-        info.left = left;
-        info.top = top;
-        info.right = right;
-        info.bottom = bottom;*/
+        ECode (STDCALL View::*pHandlerFunc)(
+            Int32, Int32, Int32, Int32);
+        pHandlerFunc = &View::HandleInvalidateRect;
 
-        /*Message msg = Message.obtain();
-        msg.what = AttachInfo.INVALIDATE_RECT_MSG;
-        msg.obj = info;
-        mAttachInfo->mHandler.sendMessageDelayed(msg, delayMilliseconds);*/
+        AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        params->WriteInt32(left);
+        params->WriteInt32(top);
+        params->WriteInt32(right);
+        params->WriteInt32(bottom);
+
+        mAttachInfo->mHandler->PostCppCallbackDelayed(
+            (Handle32)this, *(Handle32*)&pHandlerFunc,
+            params, 0, delayMilliseconds);
     }
     return NOERROR;
 }
@@ -4832,7 +4944,6 @@ void View::OnDrawScrollBars(
             // reset alpha
             cache->mScrollBar->SetAlpha(255);
         }
-
 
         Int32 viewFlags = mViewFlags;
 
@@ -5395,9 +5506,11 @@ AutoPtr<IBitmap> View::GetDrawingCache(
     if ((mViewFlags & WILL_NOT_CACHE_DRAWING) == WILL_NOT_CACHE_DRAWING) {
         return AutoPtr<IBitmap>(NULL);
     }
+
     if ((mViewFlags & DRAWING_CACHE_ENABLED) == DRAWING_CACHE_ENABLED) {
         BuildDrawingCache(autoScale);
     }
+
     if (autoScale) {
         return (mDrawingCache == NULL ? AutoPtr<IBitmap>(NULL) : mDrawingCache);
     }
@@ -5536,10 +5649,8 @@ void View::BuildDrawingCache(
                 (mUnscaledDrawingCache == NULL ? NULL : mUnscaledDrawingCache);
 
         Int32 bitmapWidth, bitmapHeight;
-        bitmap->GetWidth(&bitmapHeight);
-        bitmap->GetHeight(&bitmapWidth);
-
-        if (bitmap == NULL || bitmapWidth != width || bitmapHeight != height) {
+        if (bitmap == NULL || (bitmap->GetWidth(&bitmapWidth), bitmapWidth) != width
+            || (bitmap->GetHeight(&bitmapHeight), bitmapHeight) != height) {
             BitmapConfig quality;
             if (!opaque) {
                 switch (mViewFlags & DRAWING_CACHE_QUALITY_MASK) {
@@ -5564,7 +5675,9 @@ void View::BuildDrawingCache(
             }
 
             // Try to cleanup memory
-            if (bitmap != NULL) bitmap->Recycle();
+            if (bitmap != NULL) {
+                bitmap->Recycle();
+            }
 
             AutoPtr<IBitmapFactory> factory;
             CBitmapFactory::AcquireSingleton((IBitmapFactory**)&factory);
@@ -5583,6 +5696,7 @@ void View::BuildDrawingCache(
                 }
                 return;
             }
+
             AutoPtr<IResources> resource = GetResources();
             AutoPtr<IDisplayMetrics> metrics;
             resource->GetDisplayMetrics((IDisplayMetrics**)&metrics);
@@ -5644,6 +5758,20 @@ void View::BuildDrawingCache(
         }
         else {
             Draw(canvas);
+            //TODO: delete
+            //
+            //AutoPtr<IPaintEx> paint;
+            //CPaintEx::New((IPaintEx**)&paint);
+            //paint->SetColor(0xFF000000 | Int32(this));
+            //Int32 w, h;
+            //canvas->GetWidth(&w);
+            //canvas->GetHeight(&h);
+            //printf("canvas w = %d, h = %d\n", w, h);
+            ////canvas->DrawLine(0.0, 0.0, 200.0, 20.0, paint);
+            ////canvas->DrawCircle(20.0, 20.0, 10.0, paint);
+            //AutoPtr<IRect> rc;
+            //CRect::New(0, 0, w/2, h/2, (IRect**)&rc);
+            //canvas->DrawRectEx(rc, paint);
         }
 
         canvas->RestoreToCount(restoreCount);
@@ -5861,6 +5989,7 @@ ECode View::Draw(
 //        ViewDebug.trace(this, ViewDebug.HierarchyTraceType.DRAW);
 //    }
 
+    //printf("View::Draw ID = 0x%08x, this = 0x%08x----------------1\n", mID, this);
     Int32 privateFlags = mPrivateFlags;
     Boolean dirtyOpaque = (privateFlags & DIRTY_MASK) == DIRTY_OPAQUE &&
             (mAttachInfo == NULL || !mAttachInfo->mIgnoreDirtyState);
@@ -5908,15 +6037,20 @@ ECode View::Draw(
     Boolean horizontalEdges = (viewFlags & FADING_EDGE_HORIZONTAL) != 0;
     Boolean verticalEdges = (viewFlags & FADING_EDGE_VERTICAL) != 0;
     if (!verticalEdges && !horizontalEdges) {
+        //printf("View::Draw ID = 0x%08x, this = 0x%08x----------------2\n", mID, this);
         // Step 3, draw the content
-        if (!dirtyOpaque) OnDraw(canvas);
+        if (!dirtyOpaque) {
+            OnDraw(canvas);
+        }
 
+        //printf("View::Draw ID = 0x%08x, this = 0x%08x----------------3\n", mID, this);
         // Step 4, draw the children
         DispatchDraw(canvas);
 
         // Step 6, draw decorations (scrollbars)
         OnDrawScrollBars(canvas);
 
+        //printf("View::Draw ID = 0x%08x, this = 0x%08x----------------4\n", mID, this);
         // we're done...
         return NOERROR;
     }
@@ -6016,8 +6150,10 @@ ECode View::Draw(
     // Step 3, draw the content
     if (!dirtyOpaque) OnDraw(canvas);
 
+    //printf("View::Draw ID = 0x%08x, this = 0x%08x----------------5\n", mID, this);
     // Step 4, draw the children
     DispatchDraw(canvas);
+    //printf("View::Draw ID = 0x%08x, this = 0x%08x----------------6\n", mID, this);
 
     // Step 5, draw the fade effect and restore layers
     AutoPtr<IPaint> p = scrollabilityCache->mPaint;
@@ -6059,8 +6195,10 @@ ECode View::Draw(
 
     canvas->RestoreToCount(saveCount);
 
+    //printf("View::Draw ID = 0x%08x, this = 0x%08x----------------7\n", mID, this);
     // Step 6, draw decorations (scrollbars)
     OnDrawScrollBars(canvas);
+    //printf("View::Draw ID = 0x%08x, this = 0x%08x----------------8\n", mID, this);
 
     return NOERROR;
 }
@@ -6118,7 +6256,7 @@ ECode View::PrintFlags(
     default:
         break;
     }
-    *output = String::Duplicate(sb);
+    *output = (const char*)sb;
     return NOERROR;
 }
 
@@ -6182,7 +6320,7 @@ ECode View::PrintPrivateFlags(
         sb += "DRAWN";
         // USELESS HERE numFlags++;
     }
-    *output = String::Duplicate(sb);
+    *output = (const char*)sb;
     return NOERROR;
 }
 
@@ -6387,7 +6525,11 @@ ECode View::ScheduleDrawable(
     /* [in] */ Int64 when)
 {
     if (VerifyDrawable(who) && what != NULL && mAttachInfo != NULL) {
-//        mAttachInfo->mHandler->postAtTime(what, who, when);
+        ECode (STDCALL IRunnable::*pHandlerFunc)();
+        pHandlerFunc = &IRunnable::Run;
+
+        mAttachInfo->mHandler->PostCppCallbackAtTime(
+            (Handle32)what, *(Handle32*)&pHandlerFunc, NULL, Int32(who), when);
     }
     return NOERROR;
 }
@@ -6403,7 +6545,11 @@ ECode View::UnscheduleDrawable(
     /* [in] */ IRunnable* what)
 {
     if (VerifyDrawable(who) && what != NULL && mAttachInfo != NULL) {
-//        mAttachInfo.mHandler.removeCallbacks(what, who);
+        ECode (STDCALL IRunnable::*pHandlerFunc)();
+        pHandlerFunc = &IRunnable::Run;
+
+        mAttachInfo->mHandler->RemoveCppCallbacksEx(
+            (Handle32)what, *(Handle32*)&pHandlerFunc, Int32(who));
     }
     return NOERROR;
 }
@@ -6421,7 +6567,7 @@ ECode View::UnscheduleDrawable(
     /* [in] */ IDrawable* who)
 {
     if (mAttachInfo != NULL) {
-//        mAttachInfo.mHandler.removeCallbacksAndMessages(who);
+        mAttachInfo->mHandler->RemoveCppCallbacksEx(NULL, NULL, Int32(who));
     }
     return NOERROR;
 }
@@ -6505,14 +6651,18 @@ ECode View::RefreshDrawableState()
  */
 ArrayOf<Int32>* View::GetDrawableState()
 {
-//    if ((mDrawableState != NULL) && ((mPrivateFlags & DRAWABLE_STATE_DIRTY) == 0)) {
-//        return mDrawableState;
-//    } else {
-//        OnCreateDrawableState(0, &mDrawableState);
-//        mPrivateFlags &= ~DRAWABLE_STATE_DIRTY;
-//        return mDrawableState;
-//    }
-    return NULL;
+    if ((mDrawableState != NULL) && ((mPrivateFlags & DRAWABLE_STATE_DIRTY) == 0)) {
+        return mDrawableState;
+    }
+    else {
+        if (mDrawableState) {
+            ArrayOf<Int32>::Free(mDrawableState);
+            mDrawableState = NULL;
+        }
+        OnCreateDrawableState(0, &mDrawableState);
+        mPrivateFlags &= ~DRAWABLE_STATE_DIRTY;
+        return mDrawableState;
+    }
 }
 
 /**
@@ -6552,10 +6702,9 @@ ECode View::OnCreateDrawableState(
     viewStateIndex = (viewStateIndex << 1)
             + (((privateFlags & SELECTED) != 0) ? 1 : 0);
 
-    const Boolean hasWindowFocus = HasWindowFocus();
-    viewStateIndex = (viewStateIndex << 1) + (hasWindowFocus ? 1 : 0);
+    viewStateIndex = (viewStateIndex << 1) + (HasWindowFocus() ? 1 : 0);
 
-    const ArrayOf<Int32>*drawableState = VIEW_STATE_SETS[viewStateIndex];
+    const ArrayOf<Int32>* drawableState = (*VIEW_STATE_SETS)[viewStateIndex];
 
     //noinspection ConstantIfStatement
 //    if (FALSE) {
@@ -7026,17 +7175,27 @@ ECode View::GetLocationInWindow(
     *y = mTop;
 
     AutoPtr<IViewParent> viewParent = mParent;
-    while (viewParent->Probe(EIID_View) != NULL) {
+    while (viewParent && viewParent->Probe(EIID_View) != NULL) {
         View* view = (View*)viewParent->Probe(EIID_View);
         *x += view->mLeft - view->mScrollX;
         *y += view->mTop - view->mScrollY;
         viewParent = view->mParent;
     }
 
-    ViewRoot* viewRoot = (ViewRoot*)viewParent->Probe(EIID_ViewRoot);
-    if (viewRoot) {
-        // *cough*
-        *y -= viewRoot->mCurScrollY;
+    if (viewParent) {
+        ViewRoot* viewRoot = (ViewRoot*)viewParent->Probe(EIID_ViewRoot);
+        if (viewRoot) {
+            // *cough*
+            *y -= viewRoot->mCurScrollY;
+        }
+
+        if (viewParent) {
+            ViewRoot* viewRoot = (ViewRoot*)viewParent->Probe(EIID_ViewRoot);
+            if (viewRoot) {
+                // *cough*
+                *y -= viewRoot->mCurScrollY;
+            }
+        }
     }
 
     return NOERROR;
@@ -7994,7 +8153,7 @@ Boolean View::PerformHapticFeedback(
  * @hide
  */
 ECode View::OnCloseSystemDialogs(
-    /* [in] */ String reason)
+    /* [in] */ const String& reason)
 {
     return NOERROR;
 }
@@ -8271,9 +8430,6 @@ ECode View::SetOverScrollMode(
 ECode View::Init(
     /* [in] */ IContext* context)
 {
-    assert(SUCCEEDED(CApartment::GetDefaultApartment((IApartment**)&mApartment))
-        && (mApartment != NULL));
-
     mContext = context;
     if (context != NULL) {
         context->GetResources((IResources**)&mResources);
@@ -8284,6 +8440,7 @@ ECode View::Init(
     mTouchSlop = ViewConfiguration::Get(context)->GetScaledTouchSlop();
     SetOverScrollMode(OVER_SCROLL_IF_CONTENT_SCROLLS);
     mPrivateFlags = 0;
+
     return NOERROR;
 }
 
@@ -8456,7 +8613,6 @@ ECode View::Init(
                 if (!str.IsNull()) {
                     mContentDescription = ArrayOf<Char8>::Alloc(str.GetLength() + 1);
                     strcpy(mContentDescription->GetPayload(), (const char*)str);
-                    String::Free(str);
                 }
                 else {
                     mContentDescription = NULL;
@@ -8638,6 +8794,19 @@ ECode View::Init(
     a->Recycle();
 
     //printf("View::Init----END 0x%08x, ID = 0x%08x\n", (Int32)this->Probe(EIID_IView), mID);
-
     return NOERROR;
+}
+
+ECode View::HandleInvalidate()
+{
+    return Invalidate();
+}
+
+ECode View::HandleInvalidateRect(
+    /* [in] */ Int32 left,
+    /* [in] */ Int32 top,
+    /* [in] */ Int32 right,
+    /* [in] */ Int32 bottom)
+{
+    return Invalidate(left, top, right, bottom);
 }

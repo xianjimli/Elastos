@@ -42,8 +42,8 @@
 #include <StringBuffer.h>
 
 using namespace Elastos;
-using namespace Elastos::System;
-using namespace Elastos::System::Threading;
+using namespace Elastos::Core;
+using namespace Elastos::Core::Threading;
 
 class ActivityStack;
 class CServiceRecord;
@@ -56,7 +56,7 @@ class ReceiverList;
 CarClass(CActivityManagerService)
 {
 public:
-    static const String TAG;
+    static const char* TAG;
     static const Boolean DEBUG = FALSE;
     static const Boolean localLOGV = DEBUG;
     static const Boolean DEBUG_SWITCH = localLOGV || FALSE;
@@ -227,16 +227,14 @@ public:
     public:
         ServiceLookupResult(
             /* [in] */ CServiceRecord* record,
-            /* [in] */ String permission)
+            /* [in] */ const String& permission)
         {
             mRecord = record;
-            mPermission = String::Duplicate(permission);
+            mPermission = permission;
         }
 
         ~ServiceLookupResult()
-        {
-            String::Free(mPermission);
-        }
+        {}
 
     public:
         AutoPtr<CServiceRecord> mRecord;
@@ -273,11 +271,11 @@ public:
     CARAPI StartActivity(
         /* [in] */ IApplicationApartment* caller,
         /* [in] */ IIntent* intent,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ IObjectContainer* grantedUriPermissions,
         /* [in] */ Int32 grantedMode,
         /* [in] */ IBinder* resultTo,
-        /* [in] */ String resultWho,
+        /* [in] */ const String& resultWho,
         /* [in] */ Int32 requestCode,
         /* [in] */ Boolean onlyIfNeeded,
         /* [in] */ Boolean debug,
@@ -286,11 +284,11 @@ public:
     CARAPI StartActivityAndWait(
         /* [in] */ IApplicationApartment* caller,
         /* [in] */ IIntent* intent,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ IObjectContainer* grantedUriPermissions,
         /* [in] */ Int32 grantedMode,
         /* [in] */ IBinder* resultTo,
-        /* [in] */ String resultWho,
+        /* [in] */ const String& resultWho,
         /* [in] */ Int32 requestCode,
         /* [in] */ Boolean onlyIfNeeded,
         /* [in] */ Boolean debug,
@@ -299,11 +297,11 @@ public:
     CARAPI StartActivityWithConfig(
         /* [in] */ IApplicationApartment* caller,
         /* [in] */ IIntent* intent,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ IObjectContainer* grantedUriPermissions,
         /* [in] */ Int32 grantedMode,
         /* [in] */ IBinder* resultTo,
-        /* [in] */ String resultWho,
+        /* [in] */ const String& resultWho,
         /* [in] */ Int32 requestCode,
         /* [in] */ Boolean onlyIfNeeded,
         /* [in] */ Boolean debug,
@@ -314,9 +312,9 @@ public:
         /* [in] */ IApplicationApartment* caller,
         /* [in] */ IIntentSender* sender,
         /* [in] */ IIntent* fillInIntent,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ IBinder* resultTo,
-        /* [in] */ String resultWho,
+        /* [in] */ const String& resultWho,
         /* [in] */ Int32 requestCode,
         /* [in] */ Int32 flagsMask,
         /* [in] */ Int32 flagsValues,
@@ -330,9 +328,9 @@ public:
     CARAPI StartActivityInCapsule(
         /* [in] */ Int32 uid,
         /* [in] */ IIntent* intent,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ IBinder* resultTo,
-        /* [in] */ String resultWho,
+        /* [in] */ const String& resultWho,
         /* [in] */ Int32 requestCode,
         /* [in] */ Boolean onlyIfNeeded,
         /* [out] */ Int32* result);
@@ -356,12 +354,12 @@ public:
     CARAPI CrashApplication(
         /* [in] */ Int32 uid,
         /* [in] */ Int32 initialPid,
-        /* [in] */ String capsuleName,
-        /* [in] */ String message);
+        /* [in] */ const String& capsuleName,
+        /* [in] */ CString message);
 
     CARAPI FinishSubActivity(
         /* [in] */ IBinder* token,
-        /* [in] */ String resultWho,
+        /* [in] */ const String& resultWho,
         /* [in] */ Int32 requestCode);
 
     CARAPI WillActivityBeVisible(
@@ -370,30 +368,30 @@ public:
 
     CARAPI OverridePendingTransition(
         /* [in] */ IBinder* token,
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ Int32 enterAnim,
         /* [in] */ Int32 exitAnim);
 
     CARAPI ClearApplicationUserData(
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ ICapsuleDataObserver* observer,
         /* [out] */ Boolean* result);
 
     CARAPI KillBackgroundProcesses(
-        /* [in] */ String capsuleName);
+        /* [in] */ const String& capsuleName);
 
     CARAPI ForceStopCapsule(
-        /* [in] */ String capsuleName);
+        /* [in] */ const String& capsuleName);
 
     CARAPI KillApplicationWithUid(
-        /* [in] */ String cap,
+        /* [in] */ const String& cap,
         /* [in] */ Int32 uid);
 
     CARAPI CloseSystemDialogs(
-        /* [in] */ String reason);
+        /* [in] */ const String& reason);
 
     CARAPI KillApplicationProcess(
-        /* [in] */ String processName,
+        /* [in] */ const String& processName,
         /* [in] */ Int32 uid);
 
     CARAPI AttachApplication(
@@ -411,7 +409,7 @@ public:
     CARAPI ActivityStopped(
         /* [in] */ IBinder* token,
         /* [in] */ IBitmap* thumbnail, //Bitmap thumbnail
-        /* [in] */ String description);
+        /* [in] */ const String& description);
 
     CARAPI ActivityDestroyed(
         /* [in] */ IBinder* token);
@@ -434,12 +432,12 @@ public:
 
     CARAPI GetIntentSender(
         /* [in] */ Int32 type,
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ IBinder* token,
-        /* [in] */ String resultWho,
+        /* [in] */ const String& resultWho,
         /* [in] */ Int32 requestCode,
         /* [in] */ IIntent* intent,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ Int32 flags,
         /* [out] */ IIntentSender** sender);
 
@@ -470,7 +468,7 @@ public:
 
     CARAPI GrantUriPermission(
         /* [in] */ IApplicationApartment* caller,
-        /* [in] */ String targetPkg,
+        /* [in] */ const String& targetPkg,
         /* [in] */ IUri* uri,
         /* [in] */ Int32 modeFlags);
 
@@ -480,13 +478,13 @@ public:
         /* [in]*/ Int32 modeFlags);
 
     CARAPI NewUriPermissionOwner(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ IBinder** token);
 
     CARAPI GrantUriPermissionFromOwner(
         /* [in] */ IBinder* token,
         /* [in] */ Int32 fromUid,
-        /* [in] */ String targetPkg,
+        /* [in] */ const String& targetPkg,
         /* [in] */ IUri* uri,
         /* [in] */ Int32 modeFlags);
 
@@ -543,12 +541,12 @@ public:
 
     CARAPI GetContentProvider(
         /* [in] */ IApplicationApartment* caller,
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ IContentProviderHolder** providerHolder);
 
     CARAPI RemoveContentProvider(
         /* [in] */ IApplicationApartment* caller,
-        /* [in] */ String name);
+        /* [in] */ const String& name);
 
     CARAPI PublishContentProviders(
         /* [in] */ IApplicationApartment* caller,
@@ -579,7 +577,7 @@ public:
     CARAPI ResumeAppSwitches();
 
     CARAPI SetDebugApp(
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ Boolean waitForDebugger,
         /* [in] */ Boolean persistent);
 
@@ -605,14 +603,14 @@ public:
 
     CARAPI KillPids(
         /* [in] */ const ArrayOf<Int32>& pids,
-        /* [in] */ String pReason,
+        /* [in] */ const String& pReason,
         /* [out] */ Boolean* result);
 
     CARAPI StartRunning(
-        /* [in] */ String cap,
-        /* [in] */ String cls,
-        /* [in] */ String action,
-        /* [in] */ String data);
+        /* [in] */ const String& cap,
+        /* [in] */ const String& cls,
+        /* [in] */ const String& action,
+        /* [in] */ const String& data);
 
     CARAPI_(Boolean) TestIsSystemReady();
 
@@ -630,17 +628,17 @@ public:
 
     CARAPI HandleApplicationWtf(
         /* [in] */ IBinder* app,
-        /* [in] */ String tag,
+        /* [in] */ const String& tag,
         /* [in] */ CCrashInfo* crashInfo,
         /* [out] */ Boolean* result);
 
     CARAPI_(void) AddErrorToDropBox(
-        /* [in] */ String eventType,
+        /* [in] */ const String& eventType,
         /* [in] */ ProcessRecord* process,
         /* [in] */ CActivityRecord* activity,
         /* [in] */ CActivityRecord* parent,
-        /* [in] */ String subject,
-        /* [in] */ String report,
+        /* [in] */ const String& subject,
+        /* [in] */ const String& report,
 //        final File logFile,
         /* [in] */ CCrashInfo* crashInfo);
 
@@ -665,7 +663,7 @@ public:
     CARAPI StartService(
         /* [in] */ IApplicationApartment* caller,
         /* [in] */ IIntent* service,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ Int32 callingPid,
         /* [in] */ Int32 callingUid,
         /* [out] */ IComponentName** name);
@@ -673,14 +671,14 @@ public:
     CARAPI StopService(
         /* [in] */ IApplicationApartment* caller,
         /* [in] */ IIntent* service,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ Int32 callingPid,
         /* [in] */ Int32 callingUid,
         /* [out] */ Int32* result);
 
     CARAPI PeekService(
         /* [in] */ IIntent* service,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ Int32 callingPid,
         /* [in] */ Int32 callingUid,
         /* [out] */ IBinder** token);
@@ -702,7 +700,7 @@ public:
         /* [in] */ IApplicationApartment* caller,
         /* [in] */ IBinder* token,
         /* [in] */ IIntent* service,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ IServiceConnectionInner* connection,
         /* [in] */ Int32 flags,
         /* [in] */ Int32 callingPid,
@@ -735,7 +733,7 @@ public:
         /* [out] */ Boolean* result);
 
     CARAPI BackupAgentCreated(
-        /* [in] */ String agentCapsuleName,
+        /* [in] */ const String& agentCapsuleName,
         /* [in] */ IBinder* agent);
 
     CARAPI UnbindBackupAgent(
@@ -745,7 +743,7 @@ public:
         /* [in] */ IApplicationApartment* caller,
         /* [in] */ IIntentReceiver* receiver,
         /* [in] */ IIntentFilter* filter,
-        /* [in] */ String permission,
+        /* [in] */ const String& permission,
         /* [out] */ IIntent** intent);
 
     CARAPI UnregisterReceiver(
@@ -754,12 +752,12 @@ public:
     CARAPI BroadcastIntent(
         /* [in] */ IApplicationApartment* caller,
         /* [in] */ IIntent* intent,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ IIntentReceiver* resultTo,
         /* [in] */ Int32 resultCode,
-        /* [in] */ String resultData,
+        /* [in] */ const String& resultData,
         /* [in] */ IBundle* map,
-        /* [in] */ String requiredPermission,
+        /* [in] */ const String& requiredPermission,
         /* [in] */ Boolean serialized,
         /* [in] */ Boolean sticky,
         /* [in] */ Int32 callingPid,
@@ -767,15 +765,15 @@ public:
         /* [out] */ Int32* result);
 
     CARAPI BroadcastIntentInCapsuel(
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ Int32 uid,
         /* [in] */ IIntent* intent,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ IIntentReceiver* resultTo,
         /* [in] */ Int32 resultCode,
-        /* [in] */ String resultData,
+        /* [in] */ const String& resultData,
         /* [in] */ IBundle* map,
-        /* [in] */ String requiredPermission,
+        /* [in] */ const String& requiredPermission,
         /* [in] */ Boolean serialized,
         /* [in] */ Boolean sticky,
         /* [out] */ Int32* result);
@@ -787,13 +785,13 @@ public:
     CARAPI FinishReceiver(
         /* [in] */ IBinder* who,
         /* [in] */ Int32 resultCode,
-        /* [in] */ String resultData,
+        /* [in] */ const String& resultData,
         /* [in] */ IBundle* resultExtras,
         /* [in] */ Boolean resultAbort);
 
     CARAPI StartInstrumentation(
         /* [in] */ IComponentName* className,
-        /* [in] */ String profileFile,
+        /* [in] */ const String& profileFile,
         /* [in] */ Int32 flags,
         /* [in] */ IBundle* arguments,
         /* [in] */ IInstrumentationWatcher* watcher,
@@ -839,17 +837,17 @@ private:
         /* [in] */ Boolean updateActivityTime);
 
     CARAPI_(ProcessRecord*) GetProcessRecordLocked(
-        /* [in] */ String processName,
+        /* [in] */ const String& processName,
         /* [in] */ Int32 uid);
 
     CARAPI_(Boolean) IsNextTransitionForward();
 
     CARAPI_(ProcessRecord*) StartProcessLocked(
-        /* [in] */ String processName,
+        /* [in] */ const String& processName,
         /* [in] */ CApplicationInfo* info,
         /* [in] */ Boolean knownToBeDead,
         /* [in] */ Int32 intentFlags,
-        /* [in] */ String hostingType,
+        /* [in] */ const char* hostingType,
         /* [in] */ IComponentName* hostingName,
         /* [in] */ Boolean allowWhileBooting);
 
@@ -858,8 +856,8 @@ private:
 
     CARAPI_(void) StartProcessLocked(
         /* [in] */ ProcessRecord* app,
-        /* [in] */ String hostingType,
-        /* [in] */ String hostingNameStr);
+        /* [in] */ const char* hostingType,
+        /* [in] */ const char* hostingNameStr);
 
     CARAPI_(void) UpdateUsageStats(
         /* [in] */ CActivityRecord* resumedComponent,
@@ -897,25 +895,25 @@ private:
         /* [in] */ ProcessRecord* app,
         /* [in] */ CActivityRecord* activity,
         /* [in] */ CActivityRecord* parent,
-        /* [in] */ String annotation);
+        /* [in] */ CString annotation);
 
     CARAPI_(void) ShowLaunchWarningLocked(
         /* [in] */ CActivityRecord* cur,
         /* [in] */ CActivityRecord* next);
 
     CARAPI_(void) ForceStopCapsuleLocked(
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ Int32 uid);
 
     CARAPI_(Boolean) KillCapsuleProcessesLocked(
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ Int32 uid,
         /* [in] */ Int32 minOomAdj,
         /* [in] */ Boolean callerWillRestart,
         /* [in] */ Boolean doit);
 
     CARAPI_(Boolean) ForceStopCapsuleLocked(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [in] */ Int32 uid,
         /* [in] */ Boolean callerWillRestart,
         /* [in] */ Boolean purgeCache,
@@ -943,13 +941,13 @@ private:
 
     CARAPI GetIntentSenderLocked(
         /* [in] */ Int32 type,
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ Int32 callingUid,
         /* [in] */ IBinder* token,
-        /* [in] */ String resultWho,
+        /* [in] */ const String& resultWho,
         /* [in] */ Int32 requestCode,
         /* [in] */ IIntent* intent,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ Int32 flags,
         /* [out] */ IIntentSender** sender);
 
@@ -961,22 +959,22 @@ private:
         /* [in] */ /*ForegroundToken token*/);
 
     CARAPI_(Int32) CheckComponentPermission(
-        /* [in] */ String permission,
+        /* [in] */ const String& permission,
         /* [in] */ Int32 pid,
         /* [in] */ Int32 uid,
         /* [in] */ Int32 reqUid);
 
     CARAPI_(Int32) CheckPermission(
-        /* [in] */ String permission,
+        /* [in] */ const String& permission,
         /* [in] */ Int32 pid,
         /* [in] */ Int32 uid);
 
     CARAPI_(Int32) CheckCallingPermission(
-        /* [in] */ String permission);
+        /* [in] */ const String& permission);
 
     CARAPI EnforceCallingPermission(
-        /* [in] */ String permission,
-        /* [in] */ String func);
+        /* [in] */ const String& permission,
+        /* [in] */ const char* func);
 
     CARAPI_(Boolean) CheckHoldingPermissionsLocked(
         /* [in] */ ICapsuleManager* pm,
@@ -992,39 +990,39 @@ private:
 
     CARAPI CheckGrantUriPermissionLocked(
         /* [in] */ Int32 callingUid,
-        /* [in] */ String targetCap,
+        /* [in] */ const String& targetCap,
         /* [in] */ IUri* uri,
         /* [in] */ Int32 modeFlags,
         /* [out] */ Int32* permission);
 
     CARAPI_(void) GrantUriPermissionUncheckedLocked(
         /* [in] */ Int32 targetUid,
-        /* [in] */ String targetCap,
+        /* [in] */ const String& targetCap,
         /* [in] */ IUri* uri,
         /* [in] */ Int32 modeFlags,
         /* [in] */ UriPermissionOwner* owner);
 
     CARAPI_(void) GrantUriPermissionLocked(
         /* [in] */ Int32 callingUid,
-        /* [in] */ String targetCap,
+        /* [in] */ const String& targetCap,
         /* [in] */ IUri* uri,
         /* [in] */ Int32 modeFlags,
         /* [in] */ UriPermissionOwner* owner);
 
     CARAPI_(Int32) CheckGrantUriPermissionFromIntentLocked(
         /* [in] */ Int32 callingUid,
-        /* [in] */ String targetCap,
+        /* [in] */ const String& targetCap,
         /* [in] */ IIntent* intent);
 
     CARAPI_(void) GrantUriPermissionUncheckedFromIntentLocked(
         /* [in] */ Int32 targetUid,
-        /* [in] */ String targetCap,
+        /* [in] */ const String& targetCap,
         /* [in] */ IIntent* intent,
         /* [in] */ UriPermissionOwner* owner);
 
     CARAPI_(void) GrantUriPermissionFromIntentLocked(
         /* [in] */ Int32 callingUid,
-        /* [in] */ String targetCap,
+        /* [in] */ const String& targetCap,
         /* [in] */ IIntent* intent,
         /* [in] */ UriPermissionOwner* owner);
 
@@ -1038,7 +1036,7 @@ private:
 
     CARAPI_(Int32) FindAffinityTaskTopLocked(
         /* [in] */ Int32 startIndex,
-        /* [in] */ String affinity);
+        /* [in] */ const String& affinity);
 
     CARAPI_(void) MoveTaskBackwardsLocked(
         /* [in] */ Int32 task);
@@ -1064,20 +1062,20 @@ private:
 
     CARAPI GetContentProviderImpl(
         /* [in] */ IApplicationApartment* caller,
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ IContentProviderHolder** providerHolder);
 
     CARAPI GetContentProviderExternal(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ IContentProviderHolder** providerHolder);
 
     CARAPI_(void) RemoveContentProviderExternal(
-        /* [in] */ String name);
+        /* [in] */ const String& name);
 
     CARAPI_(ProcessRecord*) NewProcessRecordLocked(
         /* [in] */ IApplicationApartment* apartment,
         /* [in] */ CApplicationInfo* info,
-        /* [in] */ String customProcess);
+        /* [in] */ const String& customProcess);
 
     CARAPI_(ProcessRecord*) AddAppLocked(
         /* [in] */ CApplicationInfo* info);
@@ -1085,7 +1083,7 @@ private:
     CARAPI_(Boolean) CheckAppSwitchAllowedLocked(
         /* [in] */ Int32 callingPid,
         /* [in] */ Int32 callingUid,
-        /* [in] */ String name);
+        /* [in] */ const char* name);
 
     CARAPI_(void) RetrieveSettings();
 
@@ -1096,23 +1094,23 @@ private:
 
     CARAPI_(Boolean) MakeAppCrashingLocked(
         /* [in] */ ProcessRecord* app,
-        /* [in] */ String shortMsg,
-        /* [in] */ String longMsg,
-        /* [in] */ String stackTrace);
+        /* [in] */ const String& shortMsg,
+        /* [in] */ const String& longMsg,
+        /* [in] */ const String& stackTrace);
 
     CARAPI_(void) MakeAppNotRespondingLocked(
         /* [in] */ ProcessRecord* app,
-        /* [in] */ String activity,
-        /* [in] */ String shortMsg,
-        /* [in] */ String longMsg);
+        /* [in] */ const String& activity,
+        /* [in] */ const String& shortMsg,
+        /* [in] */ const String& longMsg);
 
     CARAPI_(void) GenerateProcessError(
         /* [in] */ ProcessRecord* app,
         /* [in] */ Int32 condition,
-        /* [in] */ String activity,
-        /* [in] */ String shortMsg,
-        /* [in] */ String longMsg,
-        /* [in] */ String stackTrace,
+        /* [in] */ const String& activity,
+        /* [in] */ const String& shortMsg,
+        /* [in] */ const String& longMsg,
+        /* [in] */ const String& stackTrace,
         /* [out] */ CProcessErrorStateInfo** report);
 
     CARAPI_(void) KillAppAtUsersRequest(
@@ -1181,19 +1179,19 @@ private:
 
     CARAPI_(ServiceLookupResult*) FindServiceLocked(
         /* [in] */ IIntent* service,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ Int32 callingPid,
         /* [in] */ Int32 callingUid);
 
     CARAPI_(ServiceLookupResult*) RetrieveServiceLocked(
         /* [in] */ IIntent* service,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ Int32 callingPid,
         /* [in] */ Int32 callingUid);
 
     CARAPI_(void) BumpServiceExecutingLocked(
         /* [in] */ CServiceRecord* r,
-        /* [in] */ String why);
+        /* [in] */ const char* why);
 
     CARAPI_(void) SendServiceArgsLocked(
         /* [in] */ CServiceRecord* r,
@@ -1233,7 +1231,7 @@ private:
     CARAPI StartServiceLocked(
         /* [in] */ IApplicationApartment* caller,
         /* [in] */ IIntent* service,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ Int32 callingPid,
         /* [in] */ Int32 callingUid,
         /* [out] */ IComponentName** name);
@@ -1241,7 +1239,7 @@ private:
     CARAPI StartServiceInCapsule(
         /* [in] */ Int32 uid,
         /* [in] */ IIntent* service,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [out] */ IComponentName** name);
 
     CARAPI UpdateServiceForegroundLocked(
@@ -1264,7 +1262,7 @@ private:
         /* [in] */ ProcessRecord* proc);
 
     CARAPI_(List<AutoPtr<IIntent> >*) GetStickiesLocked(
-        /* [in] */ String action,
+        /* [in] */ const String& action,
         /* [in] */ IIntentFilter* filter,
         /* [in] */ List<AutoPtr<IIntent> >* cur);
 
@@ -1283,14 +1281,14 @@ private:
 
     CARAPI BroadcastIntentLocked(
         /* [in] */ ProcessRecord* callerApp,
-        /* [in] */ String callerCapsule,
+        /* [in] */ const String& callerCapsule,
         /* [in] */ IIntent *intent,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ IIntentReceiver* resultTo,
         /* [in] */ Int32 resultCode,
-        /* [in] */ String resultData,
+        /* [in] */ const String& resultData,
         /* [in] */ IBundle* map,
-        /* [in] */ String requiredPermission,
+        /* [in] */ const String& requiredPermission,
         /* [in] */ Boolean ordered,
         /* [in] */ Boolean sticky,
         /* [in] */ Int32 callingPid,
@@ -1300,7 +1298,7 @@ private:
     CARAPI_(Boolean) FinishReceiverLocked(
         /* [in] */ IBinder* receiver,
         /* [in] */ Int32 resultCode,
-        /* [in] */ String resultData,
+        /* [in] */ const String& resultData,
         /* [in] */ IBundle* resultExtras,
         /* [in] */ Boolean resultAbort,
         /* [in] */ Boolean _explicit);
@@ -1325,7 +1323,7 @@ private:
         /* [in] */ IIntentReceiver* receiver,
         /* [in] */ IIntent* intent,
         /* [in] */ Int32 resultCode,
-        /* [in] */ String data,
+        /* [in] */ const String& data,
         /* [in] */ IBundle* extras,
         /* [in] */ Boolean ordered,
         /* [in] */ Boolean sticky);
@@ -1344,7 +1342,7 @@ private:
     CARAPI_(void) ReportStartInstrumentationFailure(
         /* [in] */ IInstrumentationWatcher* watcher,
         /* [in] */ IComponentName* cn,
-        /* [in] */ String report);
+        /* [in] */ const String& report);
 
     CARAPI_(void) FinishInstrumentationLocked(
         /* [in] */ ProcessRecord* app,

@@ -32,12 +32,12 @@ public:
         /* [in] */ Boolean inTouchMode);
 
     CARAPI ExecuteCommand(
-        /* [in] */ String command,
-        /* [in] */ String parameters,
+        /* [in] */ const String& command,
+        /* [in] */ const String& parameters,
         /* [in] */ IParcelFileDescriptor* descriptor);
 
     CARAPI CloseSystemDialogs(
-        /* [in] */ String reason);
+        /* [in] */ const String& reason);
 
     CARAPI DispatchWallpaperOffsets(
         /* [in] */ Float x,
@@ -47,7 +47,7 @@ public:
         /* [in] */ Boolean sync);
 
     CARAPI DispatchWallpaperCommand(
-        /* [in] */ String action,
+        /* [in] */ const String& action,
         /* [in] */ Int32 x,
         /* [in] */ Int32 y,
         /* [in] */ Int32 z,
@@ -59,7 +59,7 @@ public:
 
 private:
     static CARAPI_(Int32) CheckCallingPermission(
-        /* [in] */ String permission);
+        /* [in] */ const String& permission);
 
 private:
     AutoPtr<ViewRoot> mViewRoot;

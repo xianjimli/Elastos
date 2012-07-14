@@ -12,7 +12,7 @@
 #include <semaphore.h>
 #include <elastos/Mutex.h>
 
-using namespace Elastos::System::Threading;
+using namespace Elastos::Core::Threading;
 
 class ProcessRecord;
 

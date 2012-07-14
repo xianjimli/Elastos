@@ -4,19 +4,19 @@
 
 #include <utils/ResourceTypes.h>
 #include "ext/frameworkext.h"
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 #include "content/StringBlock.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/Mutex.h>
 #include <elastos.h>
 
 using namespace Elastos;
-using namespace Elastos::System::Threading;
+using namespace Elastos::Core::Threading;
 
 class XmlBlock
 {
 public:
-    static const String TAG;
+    static const char* TAG;
 
     XmlBlock(
         /* [in] */ const ArrayOf<Byte>& data);
@@ -73,31 +73,34 @@ public: /*package*/
 
     public:
         CARAPI SetFeature(
-            /* [in] */ String name,
+            /* [in] */ const String& name,
             /* [in] */ Boolean state);
 
         CARAPI GetFeature(
-            /* [in] */ String name,
+            /* [in] */ const String& name,
             /* [out] */ Boolean * value);
 
         CARAPI SetProperty(
-            /* [in] */ String name,
+            /* [in] */ const String& name,
             /* [in] */ IInterface * value);
 
         CARAPI GetProperty(
-            /* [in] */ String name,
+            /* [in] */ const String& name,
             /* [out] */ IInterface ** value);
 
         CARAPI SetInput(
+            /* [in]*/ IReader* reader);
+
+        CARAPI SetInputEx(
             /* [in] */ IInputStream * pInputStream,
-            /* [in] */ String inputEncoding);
+            /* [in] */ const String& inputEncoding);
 
         CARAPI GetInputEncoding(
             /* [out] */ String * inputEncoding);
 
         CARAPI DefineEntityReplacementText(
-            /* [in] */ String entityName,
-            /* [in] */ String replacementText);
+            /* [in] */ const String& entityName,
+            /* [in] */ const String& replacementText);
 
         CARAPI GetNamespaceCount(
             /* [in] */ Int32 depth,
@@ -112,7 +115,7 @@ public: /*package*/
             /* [out] */ String * uri);
 
         CARAPI GetNamespaceEx(
-            /* [in] */ String prefix,
+            /* [in] */ const String& prefix,
             /* [out] */ String * ns);
 
         CARAPI GetDepth(
@@ -173,8 +176,8 @@ public: /*package*/
             /* [out] */ String * attrValue);
 
         CARAPI GetAttributeValueEx(
-            /* [in] */ String ns,
-            /* [in] */ String name,
+            /* [in] */ CString ns,
+            /* [in] */ CString name,
             /* [out] */ String * attrValue);
 
         CARAPI GetEventType(
@@ -188,8 +191,8 @@ public: /*package*/
 
         CARAPI Require(
             /* [in] */ Int32 type,
-            /* [in] */ String ns,
-            /* [in] */ String name);
+            /* [in] */ const String& ns,
+            /* [in] */ const String& name);
 
         CARAPI NextText(
             /* [out] */ String * text);
@@ -205,39 +208,39 @@ public: /*package*/
             /* [out] */ Int32 * resId);
 
         CARAPI GetAttributeListValue(
-            /* [in] */ String ns,
-            /* [in] */ String attribute,
+            /* [in] */ const String& ns,
+            /* [in] */ const String& attribute,
             /* [in] */ const ArrayOf<String> & options,
             /* [in] */ Int32 defaultValue,
             /* [out] */ Int32 * value);
 
         CARAPI GetAttributeBooleanValue(
-            /* [in] */ String ns,
-            /* [in] */ String attribute,
+            /* [in] */ const String& ns,
+            /* [in] */ const String& attribute,
             /* [in] */ Boolean defaultValue,
             /* [out] */ Boolean * value);
 
         CARAPI GetAttributeResourceValue(
-            /* [in] */ String ns,
-            /* [in] */ String attribute,
+            /* [in] */ const String& ns,
+            /* [in] */ const String& attribute,
             /* [in] */ Int32 defaultValue,
             /* [out] */ Int32 * value);
 
         CARAPI GetAttributeIntValue(
-            /* [in] */ String ns,
-            /* [in] */ String attribute,
+            /* [in] */ const String& ns,
+            /* [in] */ const String& attribute,
             /* [in] */ Int32 defaultValue,
             /* [out] */ Int32 * value);
 
         CARAPI GetAttributeUnsignedIntValue(
-            /* [in] */ String ns,
-            /* [in] */ String attribute,
+            /* [in] */ const String& ns,
+            /* [in] */ const String& attribute,
             /* [in] */ Int32 defaultValue,
             /* [out] */ Int32 * value);
 
         CARAPI GetAttributeFloatValue(
-            /* [in] */ String ns,
-            /* [in] */ String attribute,
+            /* [in] */ const String& ns,
+            /* [in] */ const String& attribute,
             /* [in] */ Float defaultValue,
             /* [out] */ Float * value);
 
@@ -369,8 +372,8 @@ public: /*package*/
 
         CARAPI_(Int32) NativeGetAttributeIndex(
             /* [in] */ android::ResXMLParser* parser,
-            /* [in] */ String ns,
-            /* [in] */ String name);
+            /* [in] */ CString ns,
+            /* [in] */ CString name);
 
         CARAPI_(void) NativeDestroyParseState(
             /* [in] */ android::ResXMLParser* parser);

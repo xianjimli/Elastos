@@ -13,7 +13,6 @@ ECode CRelativeLayoutLayoutParams::SetWidth(
     /* [in] */ Int32 width)
 {
     mWidth = width;
-
     return NOERROR;
 }
 
@@ -21,7 +20,6 @@ ECode CRelativeLayoutLayoutParams::SetHeight(
     /* [in] */ Int32 height)
 {
     mHeight = height;
-
     return NOERROR;
 }
 
@@ -49,7 +47,6 @@ ECode CRelativeLayoutLayoutParams::SetMargins(
     /* [in] */ Int32 right,
     /* [in] */ Int32 bottom)
 {
-    return NOERROR;
     return RelativeLayoutLayoutParams::SetMargins(left, top, right, bottom);
 }
 
@@ -68,7 +65,6 @@ ECode CRelativeLayoutLayoutParams::GetMargins(
     *top = mTopMargin;
     *right = mRightMargin;
     *bottom = mBottomMargin;
-
     return NOERROR;
 }
 
@@ -124,8 +120,7 @@ ECode CRelativeLayoutLayoutParams::GetRules(
 {
     VALIDATE_NOT_NULL(rules);
 
-    *rules = RelativeLayoutLayoutParams::GetRules();
-
+    *rules = RelativeLayoutLayoutParams::GetRules()->Clone();
     return NOERROR;
 }
 

@@ -15,7 +15,7 @@
 #include <SkBlurDrawLooper.h>
 #include <elastos/Character.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 // {4407AE9E-A61A-4FE3-8F99-12BFFDD68E56}
 extern "C" const InterfaceID EIID_Paint =
@@ -1036,7 +1036,7 @@ Float Paint::GetFontSpacing()
  * @return      The width of the text
  */
 Float Paint::MeasureText(
-    /* [in] */ const BufferOf<Byte>& text,
+    /* [in] */ const ArrayOf<Char8>& text,
     /* [in] */ Int32 index,
     /* [in] */ Int32 count)
 {
@@ -1059,7 +1059,7 @@ Float Paint::MeasureText(
  * @return      The width of the text
  */
 Float Paint::MeasureText(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ Int32 start,
     /* [in] */ Int32 end)
 {
@@ -1080,7 +1080,7 @@ Float Paint::MeasureText(
  * @return      The width of the text
  */
 Float Paint::MeasureText(
-    /* [in] */ String text)
+    /* [in] */ const String& text)
 {
     if (!mHasCompatScaling) {
         return NativeMeasureText(text);
@@ -1116,7 +1116,7 @@ Float Paint::MeasureText(
 //        return ((GraphicsOperations)text).measureText(start, end, this);
 //    }
 
-    BufferOf<Byte>* buf;
+    ArrayOf<Char8>* buf;
     TextUtils::Obtain(4 * (end - start), &buf);
     TextUtils::GetChars(text, start, end, buf, 0);
     Float result = MeasureText(*buf, 0, end - start);
@@ -1142,7 +1142,7 @@ Float Paint::MeasureText(
  *         abs(count).
  */
 Int32 Paint::BreakText(
-    /* [in] */ const BufferOf<Byte>& text,
+    /* [in] */ const ArrayOf<Char8>& text,
     /* [in] */ Int32 index,
     /* [in] */ Int32 count,
     /* [in] */ Float maxWidth,
@@ -1189,7 +1189,7 @@ Int32 Paint::BreakText(
 //                         measuredWidth);
 //    }
 
-    BufferOf<Byte>* buf;
+    ArrayOf<Char8>* buf;
     TextUtils::Obtain(4 * (end - start), &buf);
     Int32 result;
 
@@ -1223,7 +1223,7 @@ Int32 Paint::BreakText(
  *         abs(count).
  */
 Int32 Paint::BreakText(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ Boolean measureForwards,
     /* [in] */ Float maxWidth,
     /* [in] */ ArrayOf<Float>* measuredWidth)
@@ -1251,7 +1251,7 @@ Int32 Paint::BreakText(
  * @return         the actual number of widths returned.
  */
 Int32 Paint::GetTextWidths(
-    /* [in] */ const BufferOf<Byte>& text,
+    /* [in] */ const ArrayOf<Char8>& text,
     /* [in] */ Int32 index,
     /* [in] */ Int32 count,
     /* [out] */ ArrayOf<Float>* widths)
@@ -1263,7 +1263,7 @@ Int32 Paint::GetTextWidths(
 
     Int32 offset;
     ECode ec = Character::GetOffsetByChars(text, 0,
-            text.GetCapacity(), index, count, &offset);
+            text.GetLength(), index, count, &offset);
     if (FAILED(ec)) {
 //        throw new ArrayIndexOutOfBoundsException();
         assert(0);
@@ -1310,7 +1310,7 @@ Int32 Paint::GetTextWidths(
 //                                                             widths, this);
 //    }
 
-    BufferOf<Byte>* buf;
+    ArrayOf<Char8>* buf;
     TextUtils::Obtain(4 * (end - start), &buf);
     TextUtils::GetChars(text, start, end, buf, 0);
     Int32 result = GetTextWidths(*buf, 0, end - start, widths);
@@ -1329,7 +1329,7 @@ Int32 Paint::GetTextWidths(
  * @return       the number of unichars in the specified text.
  */
 Int32 Paint::GetTextWidths(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ Int32 start,
     /* [in] */ Int32 end,
     /* [out] */ ArrayOf<Float>* widths)
@@ -1365,7 +1365,7 @@ Int32 Paint::GetTextWidths(
  * @return       the number of unichars in the specified text.
  */
 Int32 Paint::GetTextWidths(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [out] */ ArrayOf<Float>* widths)
 {
     return GetTextWidths(text, 0, text.GetCharCount(), widths);
@@ -1385,7 +1385,7 @@ Int32 Paint::GetTextWidths(
  *                 be allocated by the caller.
  */
 ECode Paint::GetTextPath(
-    /* [in] */ const BufferOf<Byte>& text,
+    /* [in] */ const ArrayOf<Char8>& text,
     /* [in] */ Int32 index,
     /* [in] */ Int32 count,
     /* [in] */ Float x,
@@ -1398,7 +1398,7 @@ ECode Paint::GetTextPath(
     }
     Int32 offset;
     FAIL_RETURN(Character::GetOffsetByChars(text, 0,
-            text.GetCapacity(), index, count, &offset));
+            text.GetLength(), index, count, &offset));
     NativeGetTextPath(mNativePaint, text, index, count, x, y, ((CPath*)path)->Ni());
     return NOERROR;
 }
@@ -1417,7 +1417,7 @@ ECode Paint::GetTextPath(
  *              be allocated by the caller.
  */
 ECode Paint::GetTextPath(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ Int32 start,
     /* [in] */ Int32 end,
     /* [in] */ Float x,
@@ -1443,7 +1443,7 @@ ECode Paint::GetTextPath(
  *               allocated by the caller.
  */
 ECode Paint::GetTextBounds(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ Int32 start,
     /* [in] */ Int32 end,
     /* [in] */ IRect* bounds)
@@ -1471,7 +1471,7 @@ ECode Paint::GetTextBounds(
  *               allocated by the caller.
  */
 ECode Paint::GetTextBounds(
-    /* [in] */ const BufferOf<Byte>& text,
+    /* [in] */ const ArrayOf<Char8>& text,
     /* [in] */ Int32 index,
     /* [in] */ Int32 count,
     /* [in] */ IRect* bounds)
@@ -1486,7 +1486,7 @@ ECode Paint::GetTextBounds(
     }
     Int32 offset;
     FAIL_RETURN(Character::GetOffsetByChars(text, 0,
-            text.GetCapacity(), index, count, &offset));
+            text.GetLength(), index, count, &offset));
     NativeGetCharArrayBounds(mNativePaint, text, index, count, bounds);
     return NOERROR;
 }
@@ -1629,7 +1629,7 @@ void Paint::NativeSetTextAlign(
 }
 
 Float Paint::NativeMeasureText(
-    /* [in] */ const BufferOf<Byte>& text,
+    /* [in] */ const ArrayOf<Char8>& text,
     /* [in] */ Int32 index,
     /* [in] */ Int32 count)
 {
@@ -1642,7 +1642,7 @@ Float Paint::NativeMeasureText(
 
     Int32 offset;
     ECode ec = Character::GetOffsetByChars(text, 0,
-            text.GetCapacity(), index, count, &offset);
+            text.GetLength(), index, count, &offset);
     if (FAILED(ec)) {
 //        doThrow(env, "java/lang/ArrayIndexOutOfBoundsException");
         assert(0);
@@ -1655,7 +1655,7 @@ Float Paint::NativeMeasureText(
 }
 
 Float Paint::NativeMeasureText(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ Int32 start,
     /* [in] */ Int32 end)
 {
@@ -1686,7 +1686,7 @@ Float Paint::NativeMeasureText(
 }
 
 Float Paint::NativeMeasureText(
-    /* [in] */ String text)
+    /* [in] */ const String& text)
 {
     const char* textArray = (const char*)text;
     size_t textLength = (size_t)text.GetLength();
@@ -1697,7 +1697,7 @@ Float Paint::NativeMeasureText(
 
 Int32 Paint::DoBreakText(
     /* [in] */ const SkPaint& paint,
-    /* [in] */ const BufferOf<Byte>& text,
+    /* [in] */ const ArrayOf<Char8>& text,
     /* [in] */ Int32 count,
     /* [in] */ Float maxWidth,
     /* [in] */ ArrayOf<Float>* measuredWidth,
@@ -1707,7 +1707,7 @@ Int32 Paint::DoBreakText(
 
     Int32 offset;
     ECode ec = Character::GetOffsetByChars(text, 0,
-            text.GetCapacity(), 0, count, &offset);
+            text.GetLength(), 0, count, &offset);
     if (FAILED(ec)) {
         assert(0);
     }
@@ -1725,7 +1725,7 @@ Int32 Paint::DoBreakText(
 }
 
 Int32 Paint::NativeBreakText(
-    /* [in] */ const BufferOf<Byte>& text,
+    /* [in] */ const ArrayOf<Char8>& text,
     /* [in] */ Int32 index,
     /* [in] */ Int32 count,
     /* [in] */ Float maxWidth,
@@ -1747,19 +1747,19 @@ Int32 Paint::NativeBreakText(
 
     Int32 offset;
     ECode ec = Character::GetOffsetByChars(text, 0,
-            text.GetCapacity(), index, count, &offset);
+            text.GetLength(), index, count, &offset);
     if (FAILED(ec)) {
 //        doThrow(env, "java/lang/ArrayIndexOutOfBoundsException");
         return 0;
     }
 
-    BufferOf<Byte> buf(text.GetPayload() + index, text.GetCapacity() - index);
+    ArrayOf<Char8> buf(text.GetPayload() + index, text.GetLength() - index);
     count = DoBreakText(*mNativePaint, buf, count, maxWidth, measuredWidth, tbd);
     return count;
 }
 
 Int32 Paint::NativeBreakText(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ Boolean measureForwards,
     /* [in] */ Float maxWidth,
     /* [in] */ ArrayOf<Float>* measuredWidth)
@@ -1770,14 +1770,14 @@ Int32 Paint::NativeBreakText(
 
 
     Int32 count = text.GetCharCount();
-    BufferOf<Byte> buf((Byte*)(const char*)text, text.GetLength());
+    ArrayOf<Char8> buf(const_cast<char*>((const char*)text), text.GetLength());
     count = DoBreakText(*mNativePaint, buf, count, maxWidth, measuredWidth, tbd);
     return count;
 }
 
 Int32 Paint::DoTextWidths(
     /* [in] */ SkPaint* paint,
-    /* [in] */ const BufferOf<Byte>& text,
+    /* [in] */ const ArrayOf<Char8>& text,
     /* [in] */ Int32 count,
     /* [in] */ ArrayOf<Float>* widths)
 {
@@ -1786,7 +1786,7 @@ Int32 Paint::DoTextWidths(
     SkScalar* scalarArray = (SkScalar*)widths->GetPayload();
 
     Int32 offset;
-    Character::GetOffsetByChars(text, 0, text.GetCapacity(), 0, count, &offset);
+    Character::GetOffsetByChars(text, 0, text.GetLength(), 0, count, &offset);
     count = paint->getTextWidths(text.GetPayload(), offset, scalarArray);
     for (Int32 i = 0; i < count; i++) {
         (*widths)[i] = SkScalarToFloat(scalarArray[i]);
@@ -1796,19 +1796,19 @@ Int32 Paint::DoTextWidths(
 
 Int32 Paint::NativeGetTextWidths(
     /* [in] */ SkPaint* nObj,
-    /* [in] */ const BufferOf<Byte>& text,
+    /* [in] */ const ArrayOf<Char8>& text,
     /* [in] */ Int32 index,
     /* [in] */ Int32 count,
     /* [out] */ ArrayOf<Float>* widths)
 {
-    BufferOf<Byte> buf(text.GetPayload() + index, text.GetCapacity() - index);
+    ArrayOf<Char8> buf(text.GetPayload() + index, text.GetLength() - index);
     count = DoTextWidths(nObj, buf, count, widths);
     return count;
 }
 
 Int32 Paint::NativeGetTextWidths(
     /* [in] */ SkPaint* nObj,
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ Int32 start,
     /* [in] */ Int32 end,
     /* [out] */ ArrayOf<Float>* widths)
@@ -1816,14 +1816,14 @@ Int32 Paint::NativeGetTextWidths(
     Int32 offset;
     Character::GetOffsetByChars(text, 0, start, &offset);
 
-    BufferOf<Byte> buf((Byte*)(const char*)text + offset, text.GetLength() - offset);
+    ArrayOf<Char8> buf(const_cast<char*>((const char*)text) + offset, text.GetLength() - offset);
     Int32 count = DoTextWidths(nObj, buf, end - start, widths);
     return count;
 }
 
 void Paint::NativeGetTextPath(
     /* [in] */ SkPaint* nObj,
-    /* [in] */ const BufferOf<Byte>& text,
+    /* [in] */ const ArrayOf<Char8>& text,
     /* [in] */ Int32 index,
     /* [in] */ Int32 count,
     /* [in] */ Float x,
@@ -1831,7 +1831,7 @@ void Paint::NativeGetTextPath(
     /* [in] */ SkPath* path)
 {
     Int32 offset;
-    Character::GetOffsetByChars(text, 0, text.GetCapacity(), index, count, &offset);
+    Character::GetOffsetByChars(text, 0, text.GetLength(), index, count, &offset);
     const char* textArray = (const char*)text.GetPayload();
     nObj->getTextPath(textArray + index, offset - index,
             SkFloatToScalar(x), SkFloatToScalar(y), path);
@@ -1839,7 +1839,7 @@ void Paint::NativeGetTextPath(
 
 void Paint::NativeGetTextPath(
     /* [in] */ SkPaint* nObj,
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ Int32 start,
     /* [in] */ Int32 end,
     /* [in] */ Float x,
@@ -1856,7 +1856,7 @@ void Paint::NativeGetTextPath(
 }
 
 void Paint::DoTextBounds(
-    /* [in] */ const BufferOf<Byte>& text,
+    /* [in] */ const ArrayOf<Char8>& text,
     /* [in] */ Int32 count,
     /* [in] */ IRect* bounds,
     /* [in] */ const SkPaint& paint)
@@ -1865,7 +1865,7 @@ void Paint::DoTextBounds(
     SkIRect ir;
 
     Int32 offset;
-    Character::GetOffsetByChars(text, 0, text.GetCapacity(), 0, count, &offset);
+    Character::GetOffsetByChars(text, 0, text.GetLength(), 0, count, &offset);
 
     paint.measureText(text.GetPayload(), offset, &r);
     r.roundOut(&ir);
@@ -1874,7 +1874,7 @@ void Paint::DoTextBounds(
 
 void Paint::NativeGetStringBounds(
     /* [in] */ SkPaint* nObj,
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ Int32 start,
     /* [in] */ Int32 end,
     /* [in] */ IRect* bounds)
@@ -1883,19 +1883,19 @@ void Paint::NativeGetStringBounds(
     Character::GetOffsetByChars(text, 0, start, &startOffset);
     Character::GetOffsetByChars(text, 0, end, &endOffset);
 
-    BufferOf<Byte> buf((Byte*)(const char*)text + startOffset,
+    ArrayOf<Char8> buf(const_cast<char*>((const char*)text) + startOffset,
                        text.GetLength() - startOffset);
     DoTextBounds(buf, end - start, bounds, *nObj);
 }
 
 void Paint::NativeGetCharArrayBounds(
     /* [in] */ SkPaint* nObj,
-    /* [in] */ const BufferOf<Byte>& text,
+    /* [in] */ const ArrayOf<Char8>& text,
     /* [in] */ int index,
     /* [in] */ int count,
     /* [in] */ IRect* bounds)
 {
-    BufferOf<Byte> buf(text.GetPayload() + index, text.GetCapacity() - index);
+    ArrayOf<Char8> buf(text.GetPayload() + index, text.GetLength() - index);
     DoTextBounds(buf, count, bounds, *nObj);
 }
 

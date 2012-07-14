@@ -13,7 +13,7 @@ class ListUtils
 public:
     static CARAPI_(Boolean) Contains(
         /* [in] */ const List<String>& strs,
-        /* [in] */ String str);
+        /* [in] */ const String& str);
 };
 
 #endif // __HH_LISTUTILS_H

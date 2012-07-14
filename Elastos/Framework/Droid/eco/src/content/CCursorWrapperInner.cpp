@@ -26,7 +26,7 @@ ECode CCursorWrapperInner::GetColumnCount(
 }
 
 ECode CCursorWrapperInner::GetColumnIndex(
-    /* [in] */ String columnName,
+    /* [in] */ const String& columnName,
     /* [out] */ Int32* columnIndex)
 {
     return E_NOT_IMPLEMENTED;

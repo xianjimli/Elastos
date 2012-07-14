@@ -1,0 +1,35 @@
+
+module
+{
+    interface IVibrator {
+        /**
+         * Turn the vibrator on.
+         *
+         * @param milliseconds How long to vibrate for.
+         */
+        Vibrate(
+            [in] Int64 milliseconds);
+
+        /**
+         * Vibrate with a given pattern.
+         *
+         * <p>
+         * Pass in an array of ints that are the times at which to turn on or off
+         * the vibrator.  The first one is how long to wait before turning it on,
+         * and then after that it alternates.  If you want to repeat, pass the
+         * index into the pattern at which to start the repeat.
+         *
+         * @param pattern an array of longs of times to turn the vibrator on or off.
+         * @param repeat the index into pattern at which to repeat, or -1 if
+         *        you don't want to repeat.
+         */
+        VibrateEx(
+            [in] ArrayOf<Int64> pattern,
+            [in] Int32 repeat);
+
+        /**
+         * Turn the vibrator off.
+         */
+        Cancel();
+    }
+}

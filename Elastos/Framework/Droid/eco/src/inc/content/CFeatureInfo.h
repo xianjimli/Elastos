@@ -3,7 +3,6 @@
 #define __CFEATUREINFO_H__
 
 #include "_CFeatureInfo.h"
-#include "utils/AutoString.h"
 
 CarClass(CFeatureInfo)
 {
@@ -41,7 +40,7 @@ public:
      * this is null, then this is an OpenGL ES version feature as described
      * in {@link #reqGlEsVersion}.
      */
-    AutoString mName;
+    String mName;
 
     /**
      * The GLES version used by an application. The upper order 16 bits represent the

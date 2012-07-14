@@ -3,29 +3,19 @@
 #define __CONTEXTWRAPPER_H__
 
 #include "ext/frameworkext.h"
-#include "utils/ElRefBase.h"
 #include "content/Context.h"
 #include <elastos/AutoPtr.h>
 
-class ContextWrapper :
-    public ElRefBase,
-    public Context,
-    public IContext
+class ContextWrapper : public Context
 {
 public:
+    ContextWrapper();
+
     ContextWrapper(
         /* [in] */ IContext* base);
 
-    CARAPI_(PInterface) Probe(
-        /* [in]  */ REIID riid);
-
-    CARAPI_(UInt32) AddRef();
-
-    CARAPI_(UInt32) Release();
-
-    CARAPI GetInterfaceID(
-        /* [in] */ IInterface *pObject,
-        /* [out] */ InterfaceID *pIID);
+    CARAPI GetAssets(
+        /* [out] */ IAssetManager** assetManager);
 
     CARAPI GetResources(
         /* [out] */ IResources** resources);
@@ -38,27 +28,6 @@ public:
 
     CARAPI GetTheme(
         /* [out] */ ITheme** theme);
-
-    CARAPI ObtainStyledAttributes(
-        /* [in] */ const ArrayOf<Int32>& attrs,
-        /* [out] */ ITypedArray** styles);
-
-    CARAPI ObtainStyledAttributesEx(
-        /* [in] */ Int32 resid,
-        /* [in] */ const ArrayOf<Int32>& attrs,
-        /* [out] */ ITypedArray** styles);
-
-    CARAPI ObtainStyledAttributesEx2(
-        /* [in] */ IAttributeSet* set,
-        /* [in] */ const ArrayOf<Int32>& attrs,
-        /* [out] */ ITypedArray** styles);
-
-    CARAPI ObtainStyledAttributesEx3(
-        /* [in] */ IAttributeSet* set,
-        /* [in] */ const ArrayOf<Int32>& attrs,
-        /* [in] */ Int32 defStyleAttr,
-        /* [in] */ Int32 defStyleRes,
-        /* [out] */ ITypedArray** styles);
 
     CARAPI GetClassLoader(
         /* [out] */ IClassLoader** loader);
@@ -90,21 +59,44 @@ public:
         /* [in] */ IServiceConnection* conn);
 
     CARAPI GetSystemService(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ IInterface** object);
 
     CARAPI CreateCapsuleContext(
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ Int32 flags,
         /* [out] */ IContext** ctx);
 
     CARAPI CheckCallingPermission(
-        /* [in] */ String permission,
+        /* [in] */ const String& permission,
         /* [out] */ Int32* value);
 
     CARAPI EnforceCallingOrSelfPermission(
-        /* [in] */ String permission,
-        /* [in] */ String message);
+        /* [in] */ const String& permission,
+        /* [in] */ const String& message);
+
+    CARAPI RevokeUriPermission(
+        /* [in] */ IUri* uri,
+        /* [in] */ Int32 modeFlags);
+
+    CARAPI CheckCallingOrSelfPermission(
+        /* [in] */ const String& permission,
+        /* [out] */ Int32* perm);
+
+    CARAPI GrantUriPermission(
+        /* [in] */ const String& toCapsule,
+        /* [in] */ IUri* uri,
+        /* [in] */ Int32 modeFlags);
+
+    virtual CARAPI GetBaseContext(
+        /* [out] */ IContext** context);
+
+protected:
+    virtual CARAPI AttachBaseContext(
+        /* [in] */ IContext* base);
+
+    CARAPI Init(
+        /* [in] */ IContext* base);
 
 private:
     AutoPtr<IContext> mBase;

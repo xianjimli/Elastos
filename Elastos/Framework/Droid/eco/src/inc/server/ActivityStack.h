@@ -17,7 +17,7 @@ class CActivityRecord;
 class ActivityStack
 {
 public:
-    static const String TAG;
+    static const char* TAG;
     static const Boolean localLOGV;
     static const Boolean DEBUG_SWITCH;
     static const Boolean DEBUG_PAUSE;
@@ -114,7 +114,7 @@ public:
     CARAPI_(void) EnsureActivitiesVisibleLocked(
         /* [in] */ CActivityRecord* top,
         /* [in] */ CActivityRecord* starting,
-        /* [in] */ String onlyThisProcess,
+        /* [in] */ const char* onlyThisProcess,
         /* [in] */ Int32 configChanges);
 
     CARAPI_(void) EnsureActivitiesVisibleLocked(
@@ -149,7 +149,7 @@ public:
     CARAPI StartActivityLocked(
         /* [in] */ IApplicationApartment* caller,
         /* [in] */ IIntent* intent,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ List<AutoPtr<IUri> >* grantedUriPermissions,
         /* [in] */ Int32 grantedMode,
         /* [in] */ IActivityInfo* aInfo,
@@ -178,7 +178,7 @@ public:
         /* [in] */ IObjectContainer* grantedUriPermissions,
         /* [in] */ Int32 grantedMode,
         /* [in] */ IBinder* resultTo,
-        /* [in] */ String resultWho,
+        /* [in] */ const String& resultWho,
         /* [in] */ Int32 requestCode,
         /* [in] */ Boolean onlyIfNeeded,
         /* [in] */ Boolean debug,
@@ -189,7 +189,7 @@ public:
     CARAPI SendActivityResultLocked(
         /* [in] */ Int32 callingUid,
         /* [in] */ CActivityRecord* r,
-        /* [in] */ String resultWho,
+        /* [in] */ const String& resultWho,
         /* [in] */ Int32 requestCode,
         /* [in] */ Int32 resultCode,
         /* [in] */ IIntent* data);
@@ -198,14 +198,14 @@ public:
         /* [in] */ IBinder* token,
         /* [in] */ Int32 resultCode,
         /* [in] */ IIntent* resultData,
-        /* [in] */ String reason);
+        /* [in] */ const char* reason);
 
     CARAPI_(Boolean)FinishActivityLocked(
         /* [in] */ CActivityRecord* r,
         /* [in] */ Int32 index,
         /* [in] */ Int32 resultCode,
         /* [in] */ IIntent* resultData,
-        /* [in] */ String reason);
+        /* [in] */ const char* reason);
 
     CARAPI FinishCurrentActivityLocked(
         /* [in] */ CActivityRecord* r,

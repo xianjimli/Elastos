@@ -2,7 +2,6 @@
 #include "graphics/Typeface.h"
 #include "graphics/CTypeface.h"
 #include "content/CAssetManager.h"
-#include "utils/AutoString.h"
 #include <SkStream.h>
 #include <utils/AssetManager.h>
 
@@ -58,7 +57,7 @@ Boolean Typeface::IsItalic()
 }
 
 ECode Typeface::Create(
-    /* [in] */ String familyName,
+    /* [in] */ const char* familyName,
     /* [in] */ Int32 style,
     /* [out] */ ITypeface** typeface)
 {
@@ -100,7 +99,7 @@ ECode Typeface::DefaultFromStyle(
 
 ECode Typeface::CreateFromAsset(
     /* [in] */ IAssetManager* mgr,
-    /* [in] */ String path,
+    /* [in] */ const char* path,
     /* [out] */ ITypeface** typeface)
 {
     SkTypeface* nObj = Typeface::NativeCreateFromAsset(mgr, path);
@@ -116,7 +115,7 @@ ECode Typeface::CreateFromFile(
     /* [in] */ IFile* path,
     /* [out] */ ITypeface** typeface)
 {
-    AutoString absPath;
+    String absPath;
     path->GetAbsolutePath(&absPath);
     SkTypeface* nObj = Typeface::NativeCreateFromFile(absPath);
     AutoPtr<CTypeface> obj;
@@ -128,7 +127,7 @@ ECode Typeface::CreateFromFile(
 }
 
 ECode Typeface::CreateFromFile(
-    /* [in]*/ String path,
+    /* [in]*/ const char* path,
     /* [out] */ ITypeface** typeface)
 {
     SkTypeface* nObj = Typeface::NativeCreateFromFile(path);
@@ -152,12 +151,12 @@ ECode Typeface::Init(
 }
 
 SkTypeface* Typeface::NativeCreate(
-    /* [in] */ String familyName,
+    /* [in] */ const char* familyName,
     /* [in] */ Int32 style)
 {
     SkTypeface* face;
 
-    if (familyName.IsNull()) {
+    if (familyName == NULL) {
         face = SkTypeface::CreateFromName(NULL, (SkTypeface::Style)style);
     }
     else {
@@ -247,9 +246,9 @@ private:
 
 SkTypeface* Typeface::NativeCreateFromAsset(
     /* [in] */ IAssetManager* mgr,
-    /* [in] */ String path)
+    /* [in] */ const char* path)
 {
-    if (mgr == NULL || path.IsNull()) return NULL;
+    if (mgr == NULL || path == NULL) return NULL;
 
     android::AssetManager* amgr = ((CAssetManager*)mgr)->mNative;
     if (NULL == mgr) {
@@ -257,7 +256,7 @@ SkTypeface* Typeface::NativeCreateFromAsset(
     }
 
     android::Asset* asset = amgr->open(
-            (const char*)path, android::Asset::ACCESS_BUFFER);
+            path, android::Asset::ACCESS_BUFFER);
     if (NULL == asset) {
         return NULL;
     }
@@ -266,11 +265,11 @@ SkTypeface* Typeface::NativeCreateFromAsset(
 }
 
 SkTypeface* Typeface::NativeCreateFromFile(
-    /* [in] */ String path)
+    /* [in] */ const char* path)
 {
-    if (path.IsNull()) return NULL;
+    if (path == NULL) return NULL;
 
-    return SkTypeface::CreateFromFile((const char*)path);
+    return SkTypeface::CreateFromFile(path);
 }
 
 #define MIN_GAMMA   (0.1f)

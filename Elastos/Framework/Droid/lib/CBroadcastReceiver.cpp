@@ -129,10 +129,10 @@ ECode CBroadcastReceiver::GetResultCode(
  * @see #setResult(int, String, Bundle)
  */
 ECode CBroadcastReceiver::SetResultData(
-    /* [in] */ String data)
+    /* [in] */ const String& data)
 {
     CheckSynchronousHint();
-    mResultData = String::Duplicate(data);
+    mResultData = data;
     return NOERROR;
 }
 
@@ -147,7 +147,7 @@ ECode CBroadcastReceiver::GetResultData(
 {
     if (data == NULL) return E_INVALID_ARGUMENT;
 
-    *data = String::Duplicate(mResultData);
+    *data = mResultData;
     return NOERROR;
 }
 
@@ -226,7 +226,7 @@ ECode CBroadcastReceiver::GetResultExtras(
  */
 ECode CBroadcastReceiver::SetResult(
     /* [in] */ Int32 code,
-    /* [in] */ String data,
+    /* [in] */ const String& data,
     /* [in] */ IBundle* extras)
 {
     CheckSynchronousHint();

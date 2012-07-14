@@ -302,11 +302,11 @@ module
 
         CurrentToCanonicalCapsuleNames(
             [in] ArrayOf<String> names,
-            [out, callee] ArrayOf<String>* pnames);
+            [out, callee] ArrayOf<String>* cnames);
 
         CanonicalToCurrentCapsuleNames(
             [in] ArrayOf<String> names,
-            [out, callee] ArrayOf<String>* pnames);
+            [out, callee] ArrayOf<String>* cnames);
 
         GetPermissionInfo(
             [in] String name,
@@ -499,9 +499,6 @@ module
             [in] Int32 flags,
             [out] IObjectContainer** infos);
 
-        InstallCapsuleEx(
-            [in] String path);
-
         /**
          * Install a package.
          *
@@ -517,6 +514,10 @@ module
             [in] ICapsuleInstallObserver* observer,
             [in] Int32 flags,
             [in] String installerCapsuleName);
+
+        //todo: should be removed
+        InstallCapsuleEx2(
+            [in] String path);
 
         FinishCapsuleInstall(
             [in] Int32 token);
@@ -550,13 +551,13 @@ module
         AddPreferredActivity(
             [in] IIntentFilter* filter,
             [in] Int32 match,
-            [in] ArrayOf<IComponentName> set,
+            [in] IObjectContainer* set, /*IComponentName*/
             [in] IComponentName* activity);
 
         ReplacePreferredActivity(
             [in] IIntentFilter* filter,
             [in] Int32 match,
-            [in] ArrayOf<IComponentName> set,
+            [in] IObjectContainer* set, /*IComponentName*/
             [in] IComponentName* activity);
 
         ClearCapsulePreferredActivities(

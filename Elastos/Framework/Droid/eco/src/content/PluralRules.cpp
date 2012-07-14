@@ -18,7 +18,7 @@ Int32 PluralRules::AttrForNumber(
 String PluralRules::StringForQuantity(
     /* [in] */ Int32 quantity)
 {
-    return ""; // E_NOT_IMPLEMENTED
+    return String(""); // E_NOT_IMPLEMENTED
 }
 
 PluralRules* PluralRules::RuleForLocale(

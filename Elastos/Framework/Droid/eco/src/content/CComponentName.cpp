@@ -2,16 +2,13 @@
 #include "content/CComponentName.h"
 #include <StringBuffer.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 CComponentName::CComponentName()
 {}
 
 CComponentName::~CComponentName()
-{
-    String::Free(mCapsule);
-    String::Free(mClass);
-}
+{}
 
 ECode CComponentName::constructor()
 {
@@ -19,11 +16,11 @@ ECode CComponentName::constructor()
 }
 
 ECode CComponentName::constructor(
-    /* [in] */ String capsuleName,
-    /* [in] */ String className)
+    /* [in] */ const String& capsuleName,
+    /* [in] */ const String& className)
 {
-    mCapsule = String::Duplicate(capsuleName);
-    mClass = String::Duplicate(className);
+    mCapsule = capsuleName;
+    mClass = className;
 
     return NOERROR;
 }
@@ -33,7 +30,7 @@ ECode CComponentName::GetCapsuleName(
 {
     if (capsuleName == NULL) return E_INVALID_ARGUMENT;
 
-    *capsuleName = String::Duplicate(mCapsule);
+    *capsuleName = mCapsule;
 
     return NOERROR;
 }
@@ -43,7 +40,7 @@ ECode CComponentName::GetClassName(
 {
     if (className == NULL) return E_INVALID_ARGUMENT;
 
-    *className = String::Duplicate(mClass);
+    *className = mClass;
 
     return NOERROR;
 }
@@ -55,8 +52,8 @@ ECode CComponentName::GetClassName(
 String CComponentName::GetShortClassName()
 {
     if (strstr(mClass, mCapsule) != NULL) {
-        Int32 PN = mCapsule.GetLength();
-        Int32 CN = mClass.GetLength();
+        Int32 PN = mCapsule.GetCharCount();
+        Int32 CN = mClass.GetCharCount();
         if (CN > PN && mClass.GetChar(PN) == '.') {
             return mClass.Substring(PN + 1);
         }
@@ -82,7 +79,7 @@ ECode CComponentName::FlattenToString(
 {
     StringBuffer sb;
     sb = sb + mCapsule + "/" + mClass;
-    *name = String::Duplicate(sb);
+    *name = (const char*)sb;
     return NOERROR;
 }
 
@@ -171,6 +168,12 @@ ECode CComponentName::WriteToParcel(
     return NOERROR;
 }
 
+AutoPtr<IComponentName> CComponentName::UnflattenFromString(
+    /* [in] */ const String& str)
+{
+    return NULL;
+}
+
 ECode CComponentName::ReadFromParcel(
     /* [in] */ IParcel *source,
     /* [out] */ CComponentName** component)
@@ -198,7 +201,7 @@ ECode CComponentName::WriteToParcel(
         component->WriteToParcel(dest);
     }
     else {
-        dest->WriteString(NULL);
+        dest->WriteString(String(NULL));
     }
 
     return NOERROR;

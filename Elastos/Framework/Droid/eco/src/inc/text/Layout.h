@@ -5,11 +5,11 @@
 #include "graphics/CRect.h"
 #include "graphics/CRectF.h"
 #include "emoji/EmojiFactory.h"
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>
 #include <elastos/Mutex.h>
 
-using namespace Elastos::System::Threading;
+using namespace Elastos::Core::Threading;
 
 /**
  * A base class that manages text layout in visual elements on
@@ -48,7 +48,7 @@ public:
         CARAPI GetChars(
             /* [in] */ Int32 start,
             /* [in] */ Int32 end,
-            /* [out] */ BufferOf<Byte>* dest,
+            /* [out] */ ArrayOf<Char8>* dest,
             /* [in] */ Int32 destoff);
 
         CARAPI GetLength(
@@ -632,7 +632,7 @@ private:
         /* [in] */ Int32 start,
         /* [in] */ Int32 end,
         /* [in] */ Int32 line,
-        /* [out] */ BufferOf<Byte>* dest,
+        /* [out] */ ArrayOf<Char8>* dest,
         /* [in] */ Int32 destoff);
 
 public:

@@ -1,10 +1,10 @@
 
 #include "utils/CApartment.h"
+#include "os/SystemClock.h"
 #include <new>
 
 pthread_key_t CApartment::sKey;
 
-#ifdef _linux
 // --- InputDispatcherThread ---
 
 NativeMessageQueueThread::NativeMessageQueueThread(
@@ -23,7 +23,6 @@ bool NativeMessageQueueThread::threadLoop()
     mMessageQueue->PollOnce(-1);
     return true;
 }
-#endif
 
 // --- CApartment ---
 
@@ -42,13 +41,11 @@ CApartment::~CApartment()
 ECode CApartment::constructor(
     /* [in] */ Boolean usingNativeMessageQueue)
 {
-#ifdef _linux
     mUsingNativeMessageQueue = usingNativeMessageQueue;
     if (mUsingNativeMessageQueue) {
         mMessageQueue = new NativeMessageQueue();
         mNativeMessageQueueThread = new NativeMessageQueueThread(mMessageQueue);
     }
-#endif
 
     mCallbackContext = new CCallbackContextEx();
     assert(mCallbackContext != NULL);
@@ -77,7 +74,7 @@ void* CApartment::EntryRoutine(void *arg)
 ECode CApartment::Start(
     /* [in] */ ApartmentAttr attr)
 {
-#ifdef _linux
+
     if (mUsingNativeMessageQueue) {
         android::status_t result = mNativeMessageQueueThread->run(
                 "NativeMessageQueue", android::PRIORITY_URGENT_DISPLAY);
@@ -86,7 +83,6 @@ ECode CApartment::Start(
             return E_THREAD_ABORTED;
         }
     }
-#endif
 
     if (attr == ApartmentAttr_New) {
         if (pthread_create(&mThread, NULL, EntryRoutine, (void*)this)) {
@@ -121,15 +117,17 @@ ECode CApartment::Finish()
 ECode CApartment::PostCppCallback(
     /* [in] */ Handle32 target,
     /* [in] */ Handle32 func,
-    /* [in] */ IParcel* params)
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id)
 {
-    return PostCppCallbackAtTime(target, func, params, 0);
+    return PostCppCallbackDelayed(target, func, params, id, 0);
 }
 
 ECode CApartment::PostCppCallbackAtTime(
     /* [in] */ Handle32 target,
     /* [in] */ Handle32 func,
     /* [in] */ IParcel* params,
+    /* [in] */ Int32 id,
     /* [in] */ Millisecond64 uptimeMillis)
 {
     PCallbackEvent pCallbackEvent = NULL;
@@ -138,7 +136,7 @@ ECode CApartment::PostCppCallbackAtTime(
 
     pCallbackEvent = _Impl_CallbackSink_AllocCallbackEvent(sizeof(_EzCallbackEvent));
     pCallbackEvent = new(pCallbackEvent) _EzCallbackEvent(
-            0,
+            id,
             CallbackEventFlag_DirectCall | CallbackEventFlag_SyncCall | CallbackPriority_Normal,
             NULL,
             delegate.m_pCarObjClient,
@@ -151,6 +149,65 @@ ECode CApartment::PostCppCallbackAtTime(
 
     pCallbackEvent->m_when = uptimeMillis;
     return mCallbackContext->PostCallbackEvent(pCallbackEvent);
+}
+
+ECode CApartment::PostCppCallbackDelayed(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id,
+    /* [in] */ Millisecond64 delayMillis)
+{
+    if (delayMillis < 0) {
+        delayMillis = 0;
+    }
+    return PostCppCallbackAtTime(target, func, params, id, SystemClock::GetUptimeMillis() + delayMillis);
+}
+
+ECode CApartment::PostCppCallbackAtFrontOfQueue(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id)
+{
+    return PostCppCallbackAtTime(target, func, params, id, 0);
+}
+
+ECode CApartment::RemoveCppCallbacks(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func)
+{
+    return mCallbackContext->CancelCallbackEvents(
+            NULL, 0, (PVoid)target, (PVoid)func);
+}
+
+ECode CApartment::RemoveCppCallbacksEx(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ Int32 id)
+{
+    return mCallbackContext->CancelCallbackEvents(
+            NULL, id, (PVoid)target, (PVoid)func);
+}
+
+ECode CApartment::HasCppCallbacks(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [out] */ Boolean* result)
+{
+    return HasCppCallbacksEx(target, func, 0, result);
+}
+
+ECode CApartment::HasCppCallbacksEx(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ Int32 id,
+    /* [out] */ Boolean* result)
+{
+    VALIDATE_NOT_NULL(result);
+    *result = mCallbackContext->HasCallbackEvent(
+            NULL, id, (PVoid)target, (PVoid)func);
+    return NOERROR;
 }
 
 ECode CApartment::GetDefaultApartment(
@@ -174,13 +231,3 @@ NativeMessageQueue* CApartment::GetNativeMessageQueue()
         return NULL;
     }
 }
-
-ECode CApartment::RemoveCppCallbacks(
-    /* [in] */ Handle32 target,
-    /* [in] */ Handle32 func)
-{
-    return mCallbackContext->RemoveCppCallbacks(
-        CallbackEventFlag_DirectCall | CallbackEventFlag_SyncCall | CallbackPriority_Normal,
-        (PVoid)target, *(PVoid*)&func);
-}
-

@@ -3,10 +3,13 @@
 
 IVIEW_METHODS_IMPL(CToggleButton, ToggleButton, ToggleButton);
 
-ITEXTVIEW_METHODS_IMPL(CToggleButton, ToggleButton, ToggleButton);
+IDrawableCallback_METHODS_IMPL(CToggleButton, ToggleButton, ToggleButton);
 
-CToggleButton::CToggleButton()
-{}
+IKeyEventCallback_METHODS_IMPL(CToggleButton, ToggleButton, ToggleButton);
+
+IAccessibilityEventSource_METHODS_IMPL(CToggleButton, ToggleButton, ToggleButton);
+
+ITEXTVIEW_METHODS_IMPL(CToggleButton, ToggleButton, ToggleButton);
 
 PInterface CToggleButton::Probe(
     /* [in] */ REIID riid)
@@ -110,3 +113,11 @@ ECode CToggleButton::constructor(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode CToggleButton::OnPreDraw(
+    /* [out] */ Boolean* result)
+{
+    VALIDATE_NOT_NULL(result);
+    *result = ToggleButton::OnPreDraw();
+
+    return NOERROR;
+}

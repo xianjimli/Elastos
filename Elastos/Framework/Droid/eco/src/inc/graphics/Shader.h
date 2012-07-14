@@ -5,7 +5,7 @@
 #include <sys/atomics.h>
 #include <SkShader.h>
 #include "ext/frameworkext.h"
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 
 extern "C" const InterfaceID EIID_Shader;
 

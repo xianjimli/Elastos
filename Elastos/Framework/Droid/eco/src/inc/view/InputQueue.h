@@ -88,7 +88,7 @@ private:
         /* [in] */ Int64 finishedToken);
 
 private:
-    static const String TAG;
+    static const char* TAG;
 
     static const Boolean DEBUG = FALSE;
 

@@ -5,7 +5,6 @@
 #include <elastos.h>
 #include <skia/core/SkStream.h>
 #include <utils/Asset.h>
-#include <stdio.h>
 #include <unistd.h>
 
 namespace Elastos {
@@ -18,7 +17,7 @@ public:
     virtual size_t read(void* buffer, size_t size);
 
 private:
-    static const String TAG;
+    static const char* TAG;
 
     android::Asset*  mAsset;
 };
@@ -27,10 +26,13 @@ private:
  */
 class AutoFDSeek {
 public:
-    AutoFDSeek(int fd) : mFD(fd) {
+    AutoFDSeek(int fd) : mFD(fd)
+    {
         mCurr = lseek(fd, 0, SEEK_CUR);
     }
-    ~AutoFDSeek() {
+
+    ~AutoFDSeek()
+    {
         if (mCurr >= 0) {
             lseek(mFD, mCurr, SEEK_SET);
         }

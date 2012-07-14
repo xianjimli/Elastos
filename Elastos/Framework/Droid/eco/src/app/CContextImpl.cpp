@@ -11,11 +11,61 @@
 
 using namespace Elastos::Utility::Logging;
 
-const String CContextImpl::TAG  = "CContextImpl";
+const char* CContextImpl::TAG  = "CContextImpl";
+
+ICONTEXT_METHODS_IMPL(ReceiverRestrictedContext, ContextWrapper, ContextWrapper);
 
 ReceiverRestrictedContext::ReceiverRestrictedContext(
-    /* [in] */ IContext* base) : ContextWrapper(base)
+    /* [in] */ IContext* base)
+    : ContextWrapper(base)
 {}
+
+IInterface* ReceiverRestrictedContext::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (IInterface*)this;
+    }
+    else if (riid == EIID_IContext) {
+        return (IContext*)this;
+    }
+    else if (riid == EIID_IContextWrapper) {
+        return (IContextWrapper*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 ReceiverRestrictedContext::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 ReceiverRestrictedContext::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode ReceiverRestrictedContext::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    if (NULL == pIID) return E_INVALID_ARGUMENT;
+
+    if (pObject == (IInterface*)(IContextWrapper*)this) {
+        *pIID = EIID_IContextWrapper;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
+}
+
+ECode ReceiverRestrictedContext::GetBaseContext(
+    /* [out] */ IContext** context)
+{
+    return ContextWrapper::GetBaseContext(context);
+}
 
 CContextImpl::CContextImpl() :
     mCapsuleInfo(NULL),
@@ -24,6 +74,18 @@ CContextImpl::CContextImpl() :
 
 CContextImpl::~CContextImpl()
 {}
+
+PInterface CContextImpl::Probe(
+    /* [in] */ REIID riid)
+{
+    return _CContextImpl::Probe(riid);
+}
+
+ECode CContextImpl::GetAssets(
+    /* [out] */ IAssetManager** assetManager)
+{
+    return mResources->GetAssets(assetManager);
+}
 
 ECode CContextImpl::GetResources(
     /* [out] */ IResources** resources)
@@ -45,6 +107,14 @@ ECode CContextImpl::GetContentResolver(
     (*resolver)->AddRef();
 
     return NOERROR;
+}
+
+ECode CContextImpl::GetText(
+    /* [in] */ Int32 resId,
+    /* [out] */ ICharSequence** text)
+{
+    VALIDATE_NOT_NULL(text);
+    return Context::GetText(resId, text);
 }
 
 ECode CContextImpl::SetTheme(
@@ -160,8 +230,8 @@ ECode CContextImpl::SendBroadcast(
     if (FAILED(ec)) return ec;
     Int32 result;
     return mgr->BroadcastIntent(
-            (IApplicationApartment*)mApartment, pIntent, NULL /*resolvedType*/, NULL,
-            Activity_RESULT_OK, NULL, NULL, NULL, FALSE, FALSE, getpid(), getuid(), &result);
+            (IApplicationApartment*)mApartment, pIntent, String(NULL) /*resolvedType*/, NULL,
+            Activity_RESULT_OK, String(NULL), NULL, String(NULL), FALSE, FALSE, getpid(), getuid(), &result);
 //    } catch (RemoteException e) {
 //    }
 }
@@ -181,7 +251,6 @@ ECode CContextImpl::StartService(
     ECode ec = activityManager->StartService(
             (IApplicationApartment*)(CApplicationApartment*)mApartment,
             service, type, getpid(), getuid(), name);
-    String::Free(type);
     if (FAILED(ec)) {
         *name = NULL;
         return ec;
@@ -215,7 +284,6 @@ ECode CContextImpl::StopService(
     ECode ec = activityManager->StopService(
             (IApplicationApartment*)(CApplicationApartment*)mApartment,
             service, type, getpid(), getuid(), &res);
-    String::Free(type);
     if (FAILED(ec)) {
         *succeeded = FALSE;
         return NOERROR;
@@ -259,7 +327,6 @@ ECode CContextImpl::BindService(
     ECode ec = activityManager->BindService(
         (IApplicationApartment*)(CApplicationApartment*)mApartment,
         GetActivityToken(), service, type, sd, flags, getpid(), getuid(), &res);
-    String::Free(type);
     if (FAILED(ec)) {
         *succeeded = FALSE;
         return NOERROR;
@@ -297,7 +364,7 @@ ECode CContextImpl::UnbindService(
 }
 
 ECode CContextImpl::GetSystemService(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ IInterface** object)
 {
     ECode ec = NOERROR;
@@ -461,7 +528,7 @@ ECode CContextImpl::Init(
 }
 
 ECode CContextImpl::CreateCapsuleContext(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ Int32 flags,
     /* [out] */ IContext** context)
 {
@@ -491,29 +558,51 @@ ECode CContextImpl::CreateCapsuleContext(
 }
 
 ECode CContextImpl::CheckCallingPermission(
-    /* [in] */ String permission,
+    /* [in] */ const String& permission,
     /* [out] */ Int32* value)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CContextImpl::EnforceCallingOrSelfPermission(
-    /* [in] */ String permission,
-    /* [in] */ String message)
+    /* [in] */ const String& permission,
+    /* [in] */ const String& message)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CContextImpl::RevokeUriPermission(
+    /* [in] */ IUri* uri,
+    /* [in] */ Int32 modeFlags)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CContextImpl::CheckCallingOrSelfPermission(
+    /* [in] */ const String& permission,
+    /* [out] */ Int32* perm)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CContextImpl::GrantUriPermission(
+    /* [in] */ const String& toCapsule,
+    /* [in] */ IUri* uri,
+    /* [in] */ Int32 modeFlags)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 void CContextImpl::ScheduleFinalCleanup(
-    /* [in] */ String who,
-    /* [in] */ String what)
+    /* [in] */ const String& who,
+    /* [in] */ const String& what)
 {
      mApartment->ScheduleContextCleanup(this, who, what);
 }
 
 ECode CContextImpl::PerformFinalCleanup(
-    /* [in] */ String who,
-    /* [in] */ String what)
+    /* [in] */ const String& who,
+    /* [in] */ const String& what)
 {
     //Slog.i(TAG, "Cleanup up context: " + this);
     ECode ec = mCapsuleInfo->RemoveContextRegistrations(GetOuterContext(), who, what);
@@ -549,4 +638,3 @@ IBinder* CContextImpl::GetActivityToken()
 {
     return mActivityToken;
 }
-

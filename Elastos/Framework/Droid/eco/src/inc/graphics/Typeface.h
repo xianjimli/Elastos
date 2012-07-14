@@ -43,7 +43,7 @@ public:
      * @return The best matching typeface.
      */
     static CARAPI Create(
-        /* [in] */ String familyName,
+        /* [in] */ const char* familyName,
         /* [in] */ Int32 style,
         /* [out] */ ITypeface** typeface);
 
@@ -80,7 +80,7 @@ public:
      */
     static CARAPI CreateFromAsset(
         /* [in] */ IAssetManager* mgr,
-        /* [in] */ String path,
+        /* [in] */ const char* path,
         /* [out] */ ITypeface** typeface);
 
     /**
@@ -100,7 +100,7 @@ public:
      * @return The new typeface.
      */
     static CARAPI CreateFromFile(
-        /* [in]*/ String path,
+        /* [in]*/ const char* path,
         /* [out] */ ITypeface** typeface);
 
     /**
@@ -126,7 +126,7 @@ protected:
 
 private:
     static CARAPI_(SkTypeface*) NativeCreate(
-        /* [in] */ String familyName,
+        /* [in] */ const char* familyName,
         /* [in] */ Int32 style);
 
     static CARAPI_(SkTypeface*) NativeCreateFromTypeface(
@@ -141,10 +141,10 @@ private:
 
     static CARAPI_(SkTypeface*) NativeCreateFromAsset(
         /* [in] */ IAssetManager* mgr,
-        /* [in] */ String path);
+        /* [in] */ const char* path);
 
     static CARAPI_(SkTypeface*) NativeCreateFromFile(
-        /* [in] */ String path);
+        /* [in] */ const char* path);
 
 public:
     /** The default NORMAL typeface object */

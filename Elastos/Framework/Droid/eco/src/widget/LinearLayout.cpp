@@ -2,7 +2,7 @@
 #include "widget/LinearLayout.h"
 #include <elastos/Math.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 const Int32 LinearLayout::HORIZONTAL;
 const Int32 LinearLayout::VERTICAL;

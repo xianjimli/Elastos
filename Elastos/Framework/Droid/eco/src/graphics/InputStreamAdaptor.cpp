@@ -8,12 +8,12 @@ class InputStreamAdaptor : public SkStream
 public:
     InputStreamAdaptor(
         /* [in] */ IInputStream* is,
-        /* [in] */ BufferOf<Byte>* ar)
+        /* [in] */ ArrayOf<Byte>* ar)
         : mInputStream(is)
         , mByteArray(ar)
     {
         SkASSERT(ar);
-        mCapacity = ar->GetCapacity();
+        mCapacity = ar->GetLength();
         SkASSERT(mCapacity > 0);
         mBytesRead  = 0;
     }
@@ -36,21 +36,21 @@ public:
             if (requested > mCapacity) {
                 requested = mCapacity;
             }
-            ec = mInputStream->ReadBufferEx(0, requested, mByteArray);
+            Int32 number;
+            ec = mInputStream->ReadBufferEx(0, requested, mByteArray, &number);
             if (FAILED(ec)) {
                 return 0;
             }
 
-            Int32 n = mByteArray->GetUsed();
-            if (n < 0) { // n == 0 should not be possible, see InputStream read() specifications.
+            if (number < 0) { // n == 0 should not be possible, see InputStream read() specifications.
                 break;  // eof
             }
 
-            memcpy(buffer, mByteArray->GetPayload(), n);
-            buffer = (void*)((char*)buffer + n);
-            bytesRead += n;
-            size -= n;
-            mBytesRead += n;
+            memcpy(buffer, mByteArray->GetPayload(), number);
+            buffer = (void*)((char*)buffer + number);
+            bytesRead += number;
+            size -= number;
+            mBytesRead += number;
         } while (size != 0);
 
         return bytesRead;
@@ -129,14 +129,14 @@ private:
 //	    jobject     fJavaInputStream;   // the caller owns this object
 //	    jbyteArray  fJavaByteArray;     // the caller owns this object
     IInputStream*   mInputStream;   // the caller owns this object
-    BufferOf<Byte>* mByteArray;     // the caller owns this object
+    ArrayOf<Byte>*  mByteArray;     // the caller owns this object
     size_t          mCapacity;
     size_t          mBytesRead;
 };
 
 SkStream* CreateInputStreamAdaptor(
     /* [in] */ IInputStream* stream,
-    /* [in] */ BufferOf<Byte>* storage,
+    /* [in] */ ArrayOf<Byte>* storage,
     /* [in] */ Int32 markSize)
 {
 //	    static bool gInited;

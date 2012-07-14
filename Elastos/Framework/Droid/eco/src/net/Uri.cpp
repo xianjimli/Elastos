@@ -2,14 +2,14 @@
 #include "net/Uri.h"
 #include "net/CStringUri.h"
 
-const String Uri::NOT_CACHED = "NOT_CACHED";
+const String Uri::NOT_CACHED = String("NOT_CACHED");
 
 Uri::AbstractPart::AbstractPart(
-    /* [in] */ String encoded,
-    /* [in] */ String decoded)
+    /* [in] */ const String& encoded,
+    /* [in] */ const String& decoded)
 {
-    mEncoded = String::Duplicate(encoded);
-    mDecoded = String::Duplicate(decoded);
+    mEncoded = encoded;
+    mDecoded = decoded;
 }
 
 ECode Uri::AbstractPart::GetDecoded(
@@ -20,24 +20,26 @@ ECode Uri::AbstractPart::GetDecoded(
     if (!mDecoded.Compare(NOT_CACHED)) {
         return Decode(mEncoded, decoded);
     } else {
-        *decoded = String::Duplicate(mDecoded);
+        *decoded = mDecoded;
         return NOERROR;
     }
 }
 
-Uri::Part::Part(String encoded, String decoded) :
+Uri::Part::Part(
+    /* [in] */ const String& encoded,
+    /* [in] */ const String& decoded) :
     AbstractPart(encoded, decoded)
 {}
 
 Uri::Part* Uri::Part::FromEncoded(
-    /* [in] */ String encoded)
+    /* [in] */ const String& encoded)
 {
     return From(encoded, NOT_CACHED);
 }
 
 Uri::Part* Uri::Part::From(
-    /* [in] */ String encoded,
-    /* [in] */ String decoded)
+    /* [in] */ const String& encoded,
+    /* [in] */ const String& decoded)
 {
     // We have to check both encoded and decoded in case one is
     // NOT_CACHED.
@@ -50,7 +52,7 @@ Uri::Part* Uri::Part::From(
 }
 
 ECode Uri::Parse(
-    /* [in] */ String uriString,
+    /* [in] */ const String& uriString,
     /* [out] */ IUri** uri)
 {
     if (uri == NULL) return E_INVALID_ARGUMENT;
@@ -59,7 +61,7 @@ ECode Uri::Parse(
 }
 
 ECode Uri::Decode(
-    /* [in] */ String str,
+    /* [in] */ const String& str,
     /* [out] */ String* decoded)
 {
     if (decoded == NULL ||
@@ -67,7 +69,7 @@ ECode Uri::Decode(
         return E_INVALID_ARGUMENT;
     }
 
-    *decoded = String::Duplicate(str);
+    *decoded = str;
     return NOERROR;
 
 //    // Lazily-initialized buffers.
@@ -158,3 +160,19 @@ ECode Uri::Decode(
 //    // If we don't have a buffer, we didn't have to decode anything.
 //    return decoded == null ? s : decoded.toString();
 }
+
+AutoPtr<IUri> Uri::FromFile(
+    /* [in] */ IFile* file)
+{
+    return NULL;
+}
+
+ECode Uri::FromParts(
+    /* [in] */ const String& scheme,
+    /* [in] */ const String& ssp,
+    /* [in] */ const String& fragment,
+    /* [out] */ IUri** uri)
+{
+    return E_NOT_IMPLEMENTED;
+}
+

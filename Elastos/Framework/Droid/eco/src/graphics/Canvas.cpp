@@ -8,7 +8,6 @@
 #include "graphics/CMatrix.h"
 #include "graphics/CPath.h"
 #include "graphics/CRegion.h"
-#include "utils/AutoString.h"
 #include <skia/core/SkDevice.h>
 #include <skia/core/SkScalar.h>
 #include <skia/core/SkMatrix.h>
@@ -22,7 +21,7 @@
 #include <elastos/Character.h>
 #include <Logger.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
 // {CC4FB366-48F0-48FF-A6B6-670E64F46A7B}
@@ -1154,7 +1153,7 @@ ECode Canvas::DrawVertices(
 }
 
 ECode Canvas::DrawTextInBuffer(
-    /* [in] */ const BufferOf<Byte>& text,
+    /* [in] */ const ArrayOf<Char8>& text,
     /* [in] */ Int32 index,
     /* [in] */ Int32 count,
     /* [in] */ Float x,
@@ -1175,7 +1174,7 @@ ECode Canvas::DrawTextInBuffer(
 }
 
 ECode Canvas::DrawTextInString(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ Float x,
     /* [in] */ Float y,
     /* [in] */ IPaint* paint)
@@ -1193,7 +1192,7 @@ ECode Canvas::DrawTextInString(
 }
 
 ECode Canvas::DrawTextInStringEx(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ Int32 start,
     /* [in] */ Int32 end,
     /* [in] */ Float x,
@@ -1236,14 +1235,14 @@ ECode Canvas::DrawTextInCharSequence(
 //        TemporaryBuffer.recycle(buf);
 //    }
     //TODO:
-    AutoString str;
+    String str;
     text->ToString(&str);
 
     return DrawTextInStringEx(str, start, end, x, y, paint);
 }
 
 ECode Canvas::DrawPosTextInBuffer(
-    /* [in] */ const BufferOf<Byte>& text,
+    /* [in] */ const ArrayOf<Char8>& text,
     /* [in] */ Int32 index,
     /* [in] */ Int32 count,
     /* [in] */ const ArrayOf<Float>& pos,
@@ -1264,14 +1263,14 @@ ECode Canvas::DrawPosTextInBuffer(
 }
 
 ECode Canvas::DrawPosTextInString(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ const ArrayOf<Float>& pos,
     /* [in] */ IPaint* paint)
 {
     assert(paint != NULL);
 
     //TODO: text.GetLength() > pos.GetLength()?
-    if (text.GetLength() > pos.GetLength()) {
+    if (text.GetLength() > (UInt32)pos.GetLength()) {
 //        throw new ArrayIndexOutOfBoundsException();
         return E_ARRAY_INDEX_OUT_OF_BOUNDS_EXCEPTION;
     }
@@ -1281,7 +1280,7 @@ ECode Canvas::DrawPosTextInString(
 }
 
 ECode Canvas::DrawTextOnPathInBuffer(
-    /* [in] */ const BufferOf<Byte>& text,
+    /* [in] */ const ArrayOf<Char8>& text,
     /* [in] */ Int32 index,
     /* [in] */ Int32 count,
     /* [in] */ IPath* path,
@@ -1306,7 +1305,7 @@ ECode Canvas::DrawTextOnPathInBuffer(
 }
 
 ECode Canvas::DrawTextOnPathInString(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ IPath* path,
     /* [in] */ Float hOffset,
     /* [in] */ Float vOffset,
@@ -2071,7 +2070,7 @@ void Canvas::NativeDrawVertices(
 
 void Canvas::NativeDrawText(
     /* [in] */ SkCanvas* canvas,
-    /* [in] */ const BufferOf<Byte>& text,
+    /* [in] */ const ArrayOf<Char8>& text,
     /* [in] */ Int32 index,
     /* [in] */ Int32 count,
     /* [in] */ Float x,
@@ -2079,8 +2078,8 @@ void Canvas::NativeDrawText(
     /* [in] */ SkPaint* paint)
 {
     Int32 startOff, endOff;
-    Character::GetOffsetByChars(text, 0, text.GetCapacity(), 0, index, &startOff);
-    Character::GetOffsetByChars(text, 0, text.GetCapacity(), 0, index + count, &endOff);
+    Character::GetOffsetByChars(text, 0, text.GetLength(), 0, index, &startOff);
+    Character::GetOffsetByChars(text, 0, text.GetLength(), 0, index + count, &endOff);
     SkScalar x_ = SkFloatToScalar(x);
     SkScalar y_ = SkFloatToScalar(y);
     canvas->drawText(text.GetPayload() + startOff, endOff - startOff, x_, y_, *paint);
@@ -2088,7 +2087,7 @@ void Canvas::NativeDrawText(
 
 void Canvas::NativeDrawText(
     /* [in] */ SkCanvas* canvas,
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ Int32 start,
     /* [in] */ Int32 end,
     /* [in] */ Float x,
@@ -2105,7 +2104,7 @@ void Canvas::NativeDrawText(
 
 void Canvas::NativeDrawPosText(
     /* [in] */ SkCanvas* nativeCanvas,
-    /* [in] */ const BufferOf<Byte>& text,
+    /* [in] */ const ArrayOf<Char8>& text,
     /* [in] */ Int32 index,
     /* [in] */ Int32 count,
     /* [in] */ const ArrayOf<Float>& pos,
@@ -2133,7 +2132,7 @@ void Canvas::NativeDrawPosText(
 
 void Canvas::NativeDrawPosText(
     /* [in] */ SkCanvas* nativeCanvas,
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ const ArrayOf<Float>& pos,
     /* [in] */ SkPaint* nativePaint)
 {
@@ -2159,7 +2158,7 @@ void Canvas::NativeDrawPosText(
 
 void Canvas::NativeDrawTextOnPath(
     /* [in] */ SkCanvas* nativeCanvas,
-    /* [in] */ const BufferOf<Byte>& text,
+    /* [in] */ const ArrayOf<Char8>& text,
     /* [in] */ Int32 index,
     /* [in] */ Int32 count,
     /* [in] */ SkPath* nativePath,
@@ -2175,7 +2174,7 @@ void Canvas::NativeDrawTextOnPath(
 
 void Canvas::NativeDrawTextOnPath(
     /* [in] */ SkCanvas* nativeCanvas,
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ SkPath* nativePath,
     /* [in] */ Float hOffset,
     /* [in] */ Float vOffset,

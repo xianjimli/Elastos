@@ -2,6 +2,9 @@
 module
 {
     merge("net/Uri.car");
+    merge("net/Credentials.car");
+    merge("net/LocalSocketAddress.car");
+    merge("net/LocalSocket.car");
 
     class CStringUri {
         constructor(
@@ -11,5 +14,55 @@ module
             [in] Handle32 uri);
 
         interface IUri;
+    }
+
+    class CCredentials {
+        constructor(
+            [in] Int32 pid,
+            [in] Int32 uid,
+            [in] Int32 gid);
+
+        interface ICredentials;
+    }
+
+    class CLocalSocketAddress {
+        /**
+         * Creates an instance with a given name.
+         *
+         * @param name non-null name
+         * @param namespace namespace the name should be created in.
+         */
+        constructor(
+            [in] String name,
+            [in] LocalSocketAddressNamespace ns);
+
+        /**
+         * Creates an instance with a given name in the {@link Namespace#ABSTRACT}
+         * namespace
+         *
+         * @param name non-null name
+         */
+        constructor(
+            [in] String name);
+
+        interface ILocalSocketAddress;
+    }
+
+    class CLocalSocket {
+        /**
+         * Creates a AF_LOCAL/UNIX domain stream socket.
+         */
+        constructor();
+
+        /**
+         * for use with AndroidServerSocket
+         * @param impl a SocketImpl
+         *
+         * package
+         */
+        constructor(
+            [in] Handle32 socketImpl);
+
+        interface ILocalSocket;
     }
 }

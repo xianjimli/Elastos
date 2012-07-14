@@ -92,14 +92,14 @@ ECode InputManagerCallbacks::GetVirtualKeyQuietTimeMillis(
 }
 
 ECode InputManagerCallbacks::GetVirtualKeyDefinitions(
-    /* [in] */ String deviceName,
+    /* [in] */ const String& deviceName,
     /* [out] */ ArrayOf<VirtualKeyDefinition>** result)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 ECode InputManagerCallbacks::GetInputDeviceCalibration(
-    /* [in] */ String deviceName,
+    /* [in] */ const String& deviceName,
     /* [out] */ InputDeviceCalibration** result)
 {
     return E_NOT_IMPLEMENTED;

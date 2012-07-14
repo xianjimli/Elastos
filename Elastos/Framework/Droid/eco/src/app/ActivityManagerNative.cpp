@@ -4,10 +4,10 @@
 
 ECode ActivityManagerNative::GetDefault(
     /* [out] */ IActivityManager** service)
-{ 
+{
     if (service == NULL) return E_INVALID_ARGUMENT;
-    
+
     AutoPtr<IServiceManager> sm;
     Elastos::GetServiceManager((IServiceManager**)&sm);
-    return sm->GetService("ActivityManagerService", (IInterface**)service);
+    return sm->GetService(String("ActivityManagerService"), (IInterface**)service);
 }

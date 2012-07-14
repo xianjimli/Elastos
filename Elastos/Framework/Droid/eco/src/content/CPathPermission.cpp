@@ -14,10 +14,10 @@ ECode CPathPermission::WriteToParcel(
 }
 
 ECode CPathPermission::constructor(
-    /* [in] */ String pattern,
+    /* [in] */ const String& pattern,
     /* [in] */ Int32 type,
-    /* [in] */ String readPermission,
-    /* [in] */ String writePermission)
+    /* [in] */ const String& readPermission,
+    /* [in] */ const String& writePermission)
 {
     return NOERROR;
 }
@@ -30,10 +30,10 @@ ECode CPathPermission::constructor(
 
 String CPathPermission::GetReadPermission()
 {
-    return NULL;
+    return String(NULL);
 }
 
 String CPathPermission::GetWritePermission()
 {
-    return NULL;
+    return String(NULL);
 }

@@ -169,7 +169,7 @@ CInputDevice* CInputDevice::GetDevice(
     GetServiceManager((IServiceManager**)&sm);
 
     AutoPtr<IWindowManagerEx> wm;
-    sm->GetService("window", (IInterface**)(IWindowManagerEx**)&wm);
+    sm->GetService(String("window"), (IInterface**)(IWindowManagerEx**)&wm);
 
     AutoPtr<CInputDevice> inputDevice;
     if (FAILED(wm->GetInputDevice(id, (IInputDevice**)&inputDevice))) {
@@ -216,7 +216,7 @@ ECode CInputDevice::GetName(
 {
     VALIDATE_NOT_NULL(name);
 
-    *name = String::Duplicate(mName);
+    *name = mName;
 
     return NOERROR;
 }

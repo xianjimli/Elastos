@@ -1,7 +1,5 @@
 
 #include "widget/ArrayAdapter.h"
-#include "utils/CObjectContainer.h"
-#include "utils/AutoString.h"
 #include "os/ElDataInterface.h"
 
 ArrayAdapter::ArrayFilter::ArrayFilter(
@@ -34,7 +32,7 @@ ECode ArrayAdapter::ArrayFilter::PerformFiltering(
         results->mCount = mHost->mOriginalValues->GetSize();
     }
     else {
-        AutoString prefixString;
+        String prefixString;
         prefix->ToString(&prefixString);
 
         Vector<AutoPtr<IInterface> > newValues;
@@ -42,7 +40,7 @@ ECode ArrayAdapter::ArrayFilter::PerformFiltering(
                         mHost->mOriginalValues->Begin();
         for (; iter!=mHost->mOriginalValues->End(); ++iter) {
             AutoPtr<IInterface> value = *iter;
-            AutoString valueText;
+            String valueText;
             //value->ToString(&valueText);
 
             // First match against the whole, non-splitted value
@@ -50,8 +48,6 @@ ECode ArrayAdapter::ArrayFilter::PerformFiltering(
                 newValues.PushBack(value);
             }
             else {
-                StringBuf* temp = StringBuf::Alloc(valueText.GetLength() + 1);
-
                 Int32 start = 0;
                 Int32 index = valueText.IndexOf(' ');
                 String subStr = valueText;
@@ -59,7 +55,7 @@ ECode ArrayAdapter::ArrayFilter::PerformFiltering(
                     if (index < 0) {
                         index = subStr.GetLength();
                     }
-                    String word = subStr.Substring(start, index - start, *temp);
+                    String word = subStr.Substring(start, index - start);
                     subStr = subStr.Substring(index + 1);
                     start = index + 1;
                     if (word.StartWith(prefixString, StringCase_Insensitive)) {
@@ -365,7 +361,7 @@ ECode ArrayAdapter::Init(
 {
     mContext = context;
     context->GetSystemService(
-        Context_LAYOUT_INFLATER_SERVICE, (IInterface**)&mInflater);
+        String(Context_LAYOUT_INFLATER_SERVICE), (IInterface**)&mInflater);
     mResource = mDropDownResource = resource;
     mFieldId = textViewResourceId;
 

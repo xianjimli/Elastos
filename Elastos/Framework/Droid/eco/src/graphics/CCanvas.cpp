@@ -670,7 +670,7 @@ ECode CCanvas::DrawVertices(
 }
 
 ECode CCanvas::DrawTextInBuffer(
-    /* [in] */ const BufferOf<Byte>& text,
+    /* [in] */ const ArrayOf<Char8>& text,
     /* [in] */ Int32 index,
     /* [in] */ Int32 count,
     /* [in] */ Float x,
@@ -682,7 +682,7 @@ ECode CCanvas::DrawTextInBuffer(
 }
 
 ECode CCanvas::DrawTextInString(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ Float x,
     /* [in] */ Float y,
     /* [in] */ IPaint* paint)
@@ -692,7 +692,7 @@ ECode CCanvas::DrawTextInString(
 }
 
 ECode CCanvas::DrawTextInStringEx(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ Int32 start,
     /* [in] */ Int32 end,
     /* [in] */ Float x,
@@ -716,7 +716,7 @@ ECode CCanvas::DrawTextInCharSequence(
 }
 
 ECode CCanvas::DrawPosTextInBuffer(
-    /* [in] */ const BufferOf<Byte>& text,
+    /* [in] */ const ArrayOf<Char8>& text,
     /* [in] */ Int32 index,
     /* [in] */ Int32 count,
     /* [in] */ const ArrayOf<Float>& pos,
@@ -727,7 +727,7 @@ ECode CCanvas::DrawPosTextInBuffer(
 }
 
 ECode CCanvas::DrawPosTextInString(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ const ArrayOf<Float>& pos,
     /* [in] */ IPaint* paint)
 {
@@ -737,7 +737,7 @@ ECode CCanvas::DrawPosTextInString(
 }
 
 ECode CCanvas::DrawTextOnPathInBuffer(
-    /* [in] */ const BufferOf<Byte>& text,
+    /* [in] */ const ArrayOf<Char8>& text,
     /* [in] */ Int32 index,
     /* [in] */ Int32 count,
     /* [in] */ IPath* path,
@@ -750,7 +750,7 @@ ECode CCanvas::DrawTextOnPathInBuffer(
 }
 
 ECode CCanvas::DrawTextOnPathInString(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ IPath* path,
     /* [in] */ Float hOffset,
     /* [in] */ Float vOffset,

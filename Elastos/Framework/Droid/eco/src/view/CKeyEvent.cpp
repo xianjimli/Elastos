@@ -9,7 +9,7 @@ using namespace Elastos::Utility::Logging;
 
 const Int32 CKeyEvent::LAST_KEYCODE;
 const Boolean CKeyEvent::DEBUG;
-const String CKeyEvent::TAG = "KeyEvent";
+const char* CKeyEvent::TAG = "KeyEvent";
 
 /**
  * Create a new key event.
@@ -227,13 +227,13 @@ ECode CKeyEvent::constructor(
  */
 ECode CKeyEvent::constructor(
     /* [in] */ Int64 time,
-    /* [in] */ String characters,
+    /* [in] */ const String& characters,
     /* [in] */ Int32 deviceId,
     /* [in] */ Int32 flags)
 {
     mDownTime = time;
     mEventTime = time;
-    mCharacters = String::Duplicate(characters);
+    mCharacters = characters;
     mAction = KeyEvent_ACTION_MULTIPLE;
     mKeyCode = KeyEvent_KEYCODE_UNKNOWN;
     mRepeatCount = 0;
@@ -265,7 +265,7 @@ ECode CKeyEvent::constructor(
     mSource = event->mSource;
     mScanCode = event->mScanCode;
     mFlags = event->mFlags;
-    mCharacters = String::Duplicate(event->mCharacters);
+    mCharacters = event->mCharacters;
 
     return NOERROR;
 }
@@ -302,7 +302,7 @@ ECode CKeyEvent::constructor(
     mSource = event->mSource;
     mScanCode = event->mScanCode;
     mFlags = event->mFlags;
-    mCharacters = String::Duplicate(event->mCharacters);
+    mCharacters = event->mCharacters;
 
     return NOERROR;
 }
@@ -753,7 +753,7 @@ ECode CKeyEvent::GetCharacters(
         return E_INVALID_ARGUMENT;
     }
 
-    *characters = String::Duplicate(mCharacters);
+    *characters = mCharacters;
 
     return NOERROR;
 }

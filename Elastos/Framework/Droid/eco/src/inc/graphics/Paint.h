@@ -636,7 +636,7 @@ public:
      * @return      The width of the text
      */
     virtual CARAPI_(Float) MeasureText(
-        /* [in] */ const BufferOf<Byte>& text,
+        /* [in] */ const ArrayOf<Char8>& text,
         /* [in] */ Int32 index,
         /* [in] */ Int32 count);
 
@@ -649,7 +649,7 @@ public:
      * @return      The width of the text
      */
     virtual CARAPI_(Float) MeasureText(
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ Int32 start,
         /* [in] */ Int32 end);
 
@@ -660,7 +660,7 @@ public:
      * @return      The width of the text
      */
     virtual CARAPI_(Float) MeasureText(
-        /* [in] */ String text);
+        /* [in] */ const String& text);
 
     /**
      * Return the width of the text.
@@ -693,7 +693,7 @@ public:
      *         abs(count).
      */
     virtual CARAPI_(Int32) BreakText(
-        /* [in] */ const BufferOf<Byte>& text,
+        /* [in] */ const ArrayOf<Char8>& text,
         /* [in] */ Int32 index,
         /* [in] */ Int32 count,
         /* [in] */ Float maxWidth,
@@ -740,7 +740,7 @@ public:
      *         abs(count).
      */
     virtual CARAPI_(Int32) BreakText(
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ Boolean measureForwards,
         /* [in] */ Float maxWidth,
         /* [in] */ ArrayOf<Float>* measuredWidth);
@@ -756,7 +756,7 @@ public:
      * @return         the actual number of widths returned.
      */
     virtual CARAPI_(Int32) GetTextWidths(
-        /* [in] */ const BufferOf<Byte>& text,
+        /* [in] */ const ArrayOf<Char8>& text,
         /* [in] */ Int32 index,
         /* [in] */ Int32 count,
         /* [out] */ ArrayOf<Float>* widths);
@@ -788,7 +788,7 @@ public:
      * @return       the number of unichars in the specified text.
      */
     virtual CARAPI_(Int32) GetTextWidths(
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ Int32 start,
         /* [in] */ Int32 end,
         /* [out] */ ArrayOf<Float>* widths);
@@ -802,7 +802,7 @@ public:
      * @return       the number of unichars in the specified text.
      */
     virtual CARAPI_(Int32) GetTextWidths(
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [out] */ ArrayOf<Float>* widths);
 
     /**
@@ -819,7 +819,7 @@ public:
      *                 be allocated by the caller.
      */
     virtual CARAPI GetTextPath(
-        /* [in] */ const BufferOf<Byte>& text,
+        /* [in] */ const ArrayOf<Char8>& text,
         /* [in] */ Int32 index,
         /* [in] */ Int32 count,
         /* [in] */ Float x,
@@ -840,7 +840,7 @@ public:
      *              be allocated by the caller.
      */
     virtual CARAPI GetTextPath(
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ Int32 start,
         /* [in] */ Int32 end,
         /* [in] */ Float x,
@@ -858,7 +858,7 @@ public:
      *               allocated by the caller.
      */
     virtual CARAPI GetTextBounds(
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ Int32 start,
         /* [in] */ Int32 end,
         /* [in] */ IRect* bounds);
@@ -874,7 +874,7 @@ public:
      *               allocated by the caller.
      */
     virtual CARAPI GetTextBounds(
-        /* [in] */ const BufferOf<Byte>& text,
+        /* [in] */ const ArrayOf<Char8>& text,
         /* [in] */ Int32 index,
         /* [in] */ Int32 count,
         /* [in] */ IRect* bounds);
@@ -964,27 +964,27 @@ private:
 
     static CARAPI_(Int32) DoTextWidths(
         /* [in] */ SkPaint* paint,
-        /* [in] */ const BufferOf<Byte>& text,
+        /* [in] */ const ArrayOf<Char8>& text,
         /* [in] */ Int32 count,
         /* [in] */ ArrayOf<Float>* widths);
 
     static CARAPI_(Int32) NativeGetTextWidths(
         /* [in] */ SkPaint* nObj,
-        /* [in] */ const BufferOf<Byte>& text,
+        /* [in] */ const ArrayOf<Char8>& text,
         /* [in] */ Int32 index,
         /* [in] */ Int32 count,
         /* [out] */ ArrayOf<Float>* widths);
 
     static CARAPI_(Int32) NativeGetTextWidths(
         /* [in] */ SkPaint* nObj,
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ Int32 start,
         /* [in] */ Int32 end,
         /* [out] */ ArrayOf<Float>* widths);
 
     static CARAPI_(void) NativeGetTextPath(
         /* [in] */ SkPaint* nObj,
-        /* [in] */ const BufferOf<Byte>& text,
+        /* [in] */ const ArrayOf<Char8>& text,
         /* [in] */ Int32 index,
         /* [in] */ Int32 count,
         /* [in] */ Float x,
@@ -993,7 +993,7 @@ private:
 
     static CARAPI_(void) NativeGetTextPath(
         /* [in] */ SkPaint* nObj,
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ Int32 start,
         /* [in] */ Int32 end,
         /* [in] */ Float x,
@@ -1001,21 +1001,21 @@ private:
         /* [in] */ SkPath* path);
 
     static CARAPI_(void) DoTextBounds(
-        /* [in] */ const BufferOf<Byte>& text,
+        /* [in] */ const ArrayOf<Char8>& text,
         /* [in] */ Int32 count,
         /* [in] */ IRect* bounds,
         /* [in] */ const SkPaint& paint);
 
     static CARAPI_(void) NativeGetStringBounds(
         /* [in] */ SkPaint* nObj,
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ Int32 start,
         /* [in] */ Int32 end,
         /* [in] */ IRect* bounds);
 
     static CARAPI_(void) NativeGetCharArrayBounds(
         /* [in] */ SkPaint* nObj,
-        /* [in] */ const BufferOf<Byte>& text,
+        /* [in] */ const ArrayOf<Char8>& text,
         /* [in] */ Int32 index,
         /* [in] */ Int32 count,
         /* [in] */ IRect* bounds);
@@ -1024,35 +1024,35 @@ private:
         /* [in] */ SkPaint* nativePaint);
 
     CARAPI_(Float) NativeMeasureText(
-        /* [in] */ const BufferOf<Byte>& text,
+        /* [in] */ const ArrayOf<Char8>& text,
         /* [in] */ Int32 index,
         /* [in] */ Int32 count);
 
     CARAPI_(Float) NativeMeasureText(
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ Int32 start,
         /* [in] */ Int32 end);
 
     CARAPI_(Float) NativeMeasureText(
-        /* [in] */ String text);
+        /* [in] */ const String& text);
 
     static CARAPI_(Int32) DoBreakText(
         /* [in] */ const SkPaint& paint,
-        /* [in] */ const BufferOf<Byte>& text,
+        /* [in] */ const ArrayOf<Char8>& text,
         /* [in] */ Int32 count,
         /* [in] */ Float maxWidth,
         /* [in] */ ArrayOf<Float>* measuredWidth,
         /* [in] */ SkPaint::TextBufferDirection tbd);
 
     CARAPI_(Int32) NativeBreakText(
-        /* [in] */ const BufferOf<Byte>& text,
+        /* [in] */ const ArrayOf<Char8>& text,
         /* [in] */ Int32 index,
         /* [in] */ Int32 count,
         /* [in] */ Float maxWidth,
         /* [in] */ ArrayOf<Float>* measuredWidth);
 
     CARAPI_(Int32) NativeBreakText(
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ Boolean measureForwards,
         /* [in] */ Float maxWidth,
         /* [in] */ ArrayOf<Float>* measuredWidth);

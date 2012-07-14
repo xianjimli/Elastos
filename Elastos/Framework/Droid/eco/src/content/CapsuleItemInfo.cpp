@@ -8,17 +8,14 @@ CapsuleItemInfo::CapsuleItemInfo()
 {}
 
 CapsuleItemInfo::~CapsuleItemInfo()
-{
-    String::Free(mName);
-    String::Free(mCapsuleName);
-}
+{}
 
 ECode CapsuleItemInfo::constructor(
     /* [in] */ CapsuleItemInfo* orig)
 {
-    mName = String::Duplicate(orig->mName);
+    mName = orig->mName;
 //    if (name != null) name = name.trim();
-    mCapsuleName = String::Duplicate(orig->mCapsuleName);
+    mCapsuleName = orig->mCapsuleName;
     return NOERROR;
 }
 
@@ -39,9 +36,9 @@ ECode CapsuleItemInfo::LoadLabel(
         assert(0);
     }
     if (mName.IsNull()) {
-        return CStringWrapper::New(String::Duplicate(mName), label);
+        return CStringWrapper::New(mName, label);
     }
-    return CStringWrapper::New(String::Duplicate(mCapsuleName), label);
+    return CStringWrapper::New(mCapsuleName, label);
 }
 
 ECode CapsuleItemInfo::LoadIcon(
@@ -74,7 +71,7 @@ ECode CapsuleItemInfo::LoadLogo(
 
 ECode CapsuleItemInfo::LoadXmlMetaData(
     /* [in] */ ICapsuleManager* pm,
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ IXmlResourceParser** resource)
 {
 //    if (metaData != null) {

@@ -1,0 +1,18 @@
+
+module
+{
+    /**
+     * Callback class for receiving events related to shutdown.
+     *
+     * @hide - For internal consumption only.
+     */
+    interface IMountShutdownObserver {
+        /**
+         * This method is called when the shutdown of MountService completed.
+         *
+         * @param statusCode indicates success or failure of the shutdown.
+         */
+        OnShutDownComplete(
+            [in] Int32 statusCode);
+    }
+}

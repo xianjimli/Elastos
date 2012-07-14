@@ -1,10 +1,10 @@
 #include <elastos.h>
 #include <container.h>
 #include <elastos/Mutex.h>
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 
 using namespace Elastos;
-using namespace Elastos::System::Threading;
+using namespace Elastos::Core::Threading;
 
 class CObjectEnumerator :
     public ElRefBase,

@@ -5,10 +5,9 @@
 #include "ext/frameworkext.h"
 #include "text/Layout.h"
 #include "text/CTextPaint.h"
-#include "utils/AutoString.h"
 #include <elastos/Mutex.h>
 
-using namespace Elastos::System::Threading;
+using namespace Elastos::Core::Threading;
 
 class BoringLayout : public Layout
 {
@@ -220,7 +219,7 @@ public:
 private:
     static const Char32 FIRST_RIGHT_TO_LEFT;
 
-    AutoString mDirect;
+    String mDirect;
     AutoPtr<IPaint> mPaint;
 
     Int32 mTopPadding, mBottomPadding;

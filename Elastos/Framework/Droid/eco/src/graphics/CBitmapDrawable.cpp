@@ -28,14 +28,14 @@ ECode CBitmapDrawable::constructor(
 }
 
 ECode CBitmapDrawable::constructor(
-    /* [in] */ String filepath)
+    /* [in] */ const String& filepath)
 {
     return BitmapDrawable::Init(filepath);
 }
 
 ECode CBitmapDrawable::constructor(
     /* [in] */ IResources* res,
-    /* [in] */ String filepath)
+    /* [in] */ const String& filepath)
 {
     return BitmapDrawable::Init(res, filepath);
 }
@@ -73,7 +73,7 @@ ECode CBitmapDrawable::GetPaint(
     AutoPtr<IPaint> temp = BitmapDrawable::GetPaint();
     *paint = temp;
     if (*paint) {
-	    (*paint)->AddRef();
+        (*paint)->AddRef();
     }
 
     return NOERROR;
@@ -86,7 +86,7 @@ ECode CBitmapDrawable::GetBitmap(
     AutoPtr<IBitmap> temp = BitmapDrawable::GetBitmap();
     *bitmap = temp;
     if (*bitmap) {
-	    (*bitmap)->AddRef();
+        (*bitmap)->AddRef();
     }
 
     return NOERROR;

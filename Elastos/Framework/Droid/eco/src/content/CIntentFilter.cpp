@@ -2,87 +2,33 @@
 #include "content/CIntentFilter.h"
 
 
-const Int32 CIntentFilter::Match_Adjustment_Normal;
-const Int32 CIntentFilter::Match_Category_Empty;
-const Int32 CIntentFilter::Match_Category_Scheme;
-const Int32 CIntentFilter::Match_Category_Host;
-const Int32 CIntentFilter::Match_Category_Port;
-const Int32 CIntentFilter::Match_Category_Path;
-const Int32 CIntentFilter::Match_Category_Type;
-const Int32 CIntentFilter::No_Match_Type;
-const Int32 CIntentFilter::No_Match_Data;
-const Int32 CIntentFilter::No_Match_Action;
-const Int32 CIntentFilter::No_Match_Category;
-
-CIntentFilter::CIntentFilter()
-{
-}
-
-CIntentFilter::~CIntentFilter()
-{
-    if (mActions != NULL) {
-        mActions->Clear();
-        delete mActions;
-    }
-
-    if (mCategories != NULL) {
-        mCategories->Clear();
-        delete mCategories;
-    }
-
-    if (mDataSchemes != NULL) {
-        mDataSchemes->Clear();
-        delete mDataSchemes;
-    }
-
-    if (mDataTypes != NULL) {
-        mDataTypes->Clear();
-        delete mDataTypes;
-    }
-}
-
 ECode CIntentFilter::SetPriority(
     /* [in] */ Int32 priority)
 {
-    mPriority = priority;
-    return NOERROR;
+    return IntentFilter::SetPriority(priority);
 }
 
 ECode CIntentFilter::GetPriority(
     /* [out] */ Int32* priority)
 {
-    if (priority == NULL) return E_INVALID_ARGUMENT;
+    VALIDATE_NOT_NULL(priority);
 
-    *priority = mPriority;
+    *priority = IntentFilter::GetPriority();
     return NOERROR;
 }
 
 ECode CIntentFilter::AddAction(
-    /* [in] */ String action)
+    /* [in] */ const String& action)
 {
-    if (action.IsNull() || action.IsEmpty()) return NOERROR;
-
-    if (mActions == NULL) {
-        mActions = new List<String>;
-    }
-
-    List<String>::Iterator it;
-    for (it = mActions->Begin(); it != mActions->End(); ++it) {
-        if (!(*it).Compare(action)) return NOERROR;
-    }
-    mActions->PushBack(String::Duplicate(action));
-
-    return NOERROR;
+    return IntentFilter::AddAction(action);
 }
 
 ECode CIntentFilter::CountActions(
     /* [out] */ Int32 *count)
 {
-    if (NULL == count) return E_INVALID_ARGUMENT;
+    VALIDATE_NOT_NULL(count);
 
-    *count = mActions != NULL ?
-            (Int32)mActions->GetSize() : -1;
-
+    *count = IntentFilter::CountActions();
     return NOERROR;
 }
 
@@ -90,358 +36,295 @@ ECode CIntentFilter::GetAction(
     /* [in] */ Int32 index,
     /* [out] */ String *action)
 {
-    if (NULL == action || mActions == NULL ||
-        (mActions != NULL && index >= (Int32)mActions->GetSize())) {
-            return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(action);
 
-    List<String>::Iterator it;
-    for(it = mActions->Begin(); index > 0; --index) ++it;
-    *action = String::Duplicate(*it);
+    *action = IntentFilter::GetAction(index);
+    return NOERROR;
+}
 
+ECode CIntentFilter::HasAction(
+    /* [in] */ const String& action,
+    /* [out] */ Boolean* hasAction)
+{
+    VALIDATE_NOT_NULL(hasAction);
+
+    *hasAction = IntentFilter::HasAction(action);
+    return NOERROR;
+}
+
+ECode CIntentFilter::MatchAction(
+    /* [in] */ const String& action,
+    /* [out] */ Boolean* isMatched)
+{
+    VALIDATE_NOT_NULL(isMatched);
+
+    *isMatched = IntentFilter::MatchAction(action);
     return NOERROR;
 }
 
 ECode CIntentFilter::AddDataType(
-    /* [in] */ String type)
+    /* [in] */ const String& type)
 {
-//		Int32 slashpos = type.IndexOf('/');
-//		Int32 typelen = type->GetLength();
-//		if (slashpos > 0 && typelen >= slashpos + 2) {
-//			if (mDataTypes == NULL) mDataTypes = new ArrayList<String>();
-//			if (typelen == slashpos+2 && type->CharAt(slashpos+1) == '*') {
-//				String str = type->Substring(0, slashpos);
-//				if (!mDataTypes->Contains(str)) {
-//					mDataTypes->Add(str->Intern());
-//				}
-//				mHasPartialTypes = true;
-//			} else {
-//				if (!mDataTypes->Contains(type)) {
-//					mDataTypes->Add(type->Intern());
-//				}
-//			}
-//			return;
-//		}
+    return IntentFilter::AddDataType(type);
+}
 
-//		throw new MalformedMimeTypeException(type);
-	return E_NOT_IMPLEMENTED;
+ECode CIntentFilter::HasDataType(
+    /* [in] */ const String& type,
+    /* [out] */ Boolean* hasDataType)
+{
+    VALIDATE_NOT_NULL(hasDataType);
+
+    *hasDataType = IntentFilter::HasDataType(type);
+    return NOERROR;
+}
+
+ECode CIntentFilter::CountDataTypes(
+    /* [out] */ Int32 *count)
+{
+    VALIDATE_NOT_NULL(count);
+
+    *count = IntentFilter::CountDataTypes();
+    return NOERROR;
+}
+
+ECode CIntentFilter::GetDataType(
+    /* [in] */ Int32 index,
+    /* [out] */ String* type)
+{
+    VALIDATE_NOT_NULL(type);
+
+    *type = IntentFilter::GetDataType(index);
+    return NOERROR;
 }
 
 ECode CIntentFilter::AddDataScheme(
-	/* [in] */ String scheme)
+	/* [in] */ const String& scheme)
 {
-	return E_NOT_IMPLEMENTED;
+	return IntentFilter::AddDataScheme(scheme);
+}
+
+ECode CIntentFilter::CountDataSchemes(
+    /* [out] */ Int32 *count)
+{
+    VALIDATE_NOT_NULL(count);
+
+    *count = IntentFilter::CountDataSchemes();
+    return NOERROR;
+}
+
+ECode CIntentFilter::GetDataScheme(
+    /* [in] */ Int32 index,
+    /* [out] */ String* scheme)
+{
+    VALIDATE_NOT_NULL(scheme);
+
+    *scheme = IntentFilter::GetDataScheme(index);
+    return NOERROR;
+}
+
+ECode CIntentFilter::HasDataScheme(
+    /* [in] */ const String& scheme,
+    /* [out] */ Boolean* result)
+{
+    VALIDATE_NOT_NULL(result);
+
+    *result = IntentFilter::HasDataScheme(scheme);
+    return NOERROR;
 }
 
 ECode CIntentFilter::AddDataAuthority(
-	/* [in] */ String host,
-	/* [in] */ String port)
+	/* [in] */ const String& host,
+	/* [in] */ const String& port)
 {
-	return E_NOT_IMPLEMENTED;
+	return IntentFilter::AddDataAuthority(host, port);
+}
+
+ECode CIntentFilter::CountDataAuthorities(
+    /* [out] */ Int32 *count)
+{
+    VALIDATE_NOT_NULL(count);
+
+    *count = IntentFilter::CountDataAuthorities();
+    return NOERROR;
+}
+
+ECode CIntentFilter::GetDataAuthority(
+    /* [in] */ Int32 index,
+    /* [out] */ IAuthorityEntry** authority)
+{
+    VALIDATE_NOT_NULL(authority);
+
+    AutoPtr<IAuthorityEntry> tmp = IntentFilter::GetDataAuthority(index);
+    *authority = tmp.Get();
+    if (*authority != NULL) (*authority)->AddRef();
+    return NOERROR;
+}
+
+ECode CIntentFilter::HasDataAuthority(
+    /* [in] */ IUri* data,
+    /* [out] */ Boolean* result)
+{
+    VALIDATE_NOT_NULL(result);
+
+    *result = IntentFilter::HasDataAuthority(data);
+    return NOERROR;
 }
 
 ECode CIntentFilter::AddDataPath(
-	/* [in] */ String path,
+	/* [in] */ const String& path,
 	/* [in] */ Int32 type)
 {
-	return E_NOT_IMPLEMENTED;
+	return IntentFilter::AddDataPath(path, type);
+}
+
+ECode CIntentFilter::CountDataPaths(
+    /* [out] */ Int32 *count)
+{
+    VALIDATE_NOT_NULL(count);
+
+    *count = IntentFilter::CountDataPaths();
+    return NOERROR;
+}
+
+ECode CIntentFilter::GetDataPath(
+    /* [in] */ Int32 index,
+    /* [out] */ IPatternMatcher** path)
+{
+    VALIDATE_NOT_NULL(path);
+
+    AutoPtr<IPatternMatcher> tmp = IntentFilter::GetDataPath(index);
+    *path = tmp.Get();
+    if (*path != NULL) (*path)->AddRef();
+    return NOERROR;
+}
+
+ECode CIntentFilter::HasDataPath(
+    /* [in] */ const String& data,
+    /* [out] */ Boolean* result)
+{
+    VALIDATE_NOT_NULL(result);
+
+    *result = IntentFilter::HasDataPath(data);
+    return NOERROR;
+}
+
+ECode CIntentFilter::MatchDataAuthority(
+    /* [in] */ IUri* data,
+    /* [out] */ Int32* result)
+{
+    VALIDATE_NOT_NULL(result);
+
+    *result = IntentFilter::MatchDataAuthority(data);
+    return NOERROR;
+}
+
+ECode CIntentFilter::MatchData(
+    /* [in] */ const String& type,
+    /* [in] */ const String& scheme,
+    /* [in] */ IUri* data,
+    /* [out] */ Int32* result)
+{
+    VALIDATE_NOT_NULL(result);
+
+    *result = IntentFilter::MatchData(type, scheme, data);
+    return NOERROR;
 }
 
 ECode CIntentFilter::AddCategory(
-    /* [in] */ String category)
+    /* [in] */ const String& category)
 {
-    if (category.IsNull() || category.IsEmpty()) return NOERROR;
+    return IntentFilter::AddCategory(category);
+}
 
-    if (mCategories == NULL) {
-        mCategories = new List<String>;
-    }
+ECode CIntentFilter::CountCategories(
+    /* [out] */ Int32* count)
+{
+    VALIDATE_NOT_NULL(count);
 
-    List<String>::Iterator it;
-    for (it = mCategories->Begin(); it != mCategories->End(); ++it) {
-        if (!(*it).Compare(category)) return NOERROR;
-    }
-    mCategories->PushBack(String::Duplicate(category));
+    *count = IntentFilter::CountCategories();
+    return NOERROR;
+}
 
+ECode CIntentFilter::GetCategory(
+    /* [in] */ Int32 index,
+    /* [out] */ String* category)
+{
+    VALIDATE_NOT_NULL(category);
+
+    *category = IntentFilter::GetCategory(index);
     return NOERROR;
 }
 
 ECode CIntentFilter::HasCategory(
-    /* [in] */ String category,
+    /* [in] */ const String& category,
     /* [out] */ Boolean* hasCategory)
 {
-    if (hasCategory == NULL) return E_INVALID_ARGUMENT;
+    VALIDATE_NOT_NULL(hasCategory);
 
-    *hasCategory = FALSE;
-    if (mCategories != NULL) {
-        List<String>::Iterator it;
-        for (it = mCategories->Begin(); it != mCategories->End(); ++it) {
-            if (!(*it).Compare(category)) {
-                *hasCategory = TRUE;
-                break;
-            }
-        }
-    }
+    *hasCategory = IntentFilter::HasCategory(category);
     return NOERROR;
 }
 
-/**
- * Match this filter against an Intent's action.  If the filter does not
- * specify any actions, the match will always fail.
- *
- * @param action The desired action to look for.
- *
- * @return True if the action is listed in the filter or the filter does
- *         not specify any actions.
- */
-Boolean CIntentFilter::MatchAction(
-    /* [in] */ String action)
+ECode CIntentFilter::MatchCategories(
+    /* [in] */ ArrayOf<String>* categories,
+    /* [out] */ String* result)
 {
-    if (action.IsNull() || mActions == NULL ||
-        (mActions != NULL && mActions->GetSize() == 0)) {
-        return FALSE;
-    }
+    VALIDATE_NOT_NULL(result);
 
-    List<String>::Iterator it;
-    for (it = mActions->Begin(); it != mActions->End(); ++it) {
-        if (!(*it).Compare(action)) return TRUE;
-    }
-    return FALSE;
+    *result = IntentFilter::MatchCategories(categories);
+    return NOERROR;
 }
 
-/**
- * Match this filter against an Intent's data (type, scheme and path). If
- * the filter does not specify any types and does not specify any
- * schemes/paths, the match will only succeed if the intent does not
- * also specify a type or data.
- *
- * <p>Be aware that to match against an authority, you must also specify a base
- * scheme the authority is in.  To match against a data path, both a scheme
- * and authority must be specified.  If the filter does not specify any
- * types or schemes that it matches against, it is considered to be empty
- * (any authority or data path given is ignored, as if it were empty as
- * well).
- *
- * <p><em>Note: MIME type, Uri scheme, and host name matching in the
- * Android framework is case-sensitive, unlike the formal RFC definitions.
- * As a result, you should always write these elements with lower case letters,
- * and normalize any MIME types or Uris you receive from
- * outside of Android to ensure these elements are lower case before
- * supplying them here.</em></p>
- *
- * @param type The desired data type to look for, as returned by
- *             Intent.resolveType().
- * @param scheme The desired data scheme to look for, as returned by
- *               Intent.getScheme().
- * @param data The full data string to match against, as supplied in
- *             Intent.data.
- *
- * @return Returns either a valid match constant (a combination of
- * {@link #MATCH_CATEGORY_MASK} and {@link #MATCH_ADJUSTMENT_MASK}),
- * or one of the error codes {@link #NO_MATCH_TYPE} if the type didn't match
- * or {@link #NO_MATCH_DATA} if the scheme/path didn't match.
- *
- * @see #match
- */
-Int32 CIntentFilter::MatchData(
-    /* [in] */ String type,
-    /* [in] */ String scheme,
-    /* [in] */ IUri* data)
-{
-//    return Match_Category_Empty;
-
-    List<String>* types = mDataTypes;
-    List<String>* schemes = mDataSchemes;
-//    List<AuthorityEntry>* authorities = mDataAuthorities;
-//    List<PatternMatcher>* paths = mDataPaths;
-
-    Int32 match = Match_Category_Empty;
-
-    if (types == NULL && schemes == NULL) {
-        return ((type.IsNull() && data == NULL)
-            ? (Match_Category_Empty + Match_Adjustment_Normal) : No_Match_Data);
-    }
-
-    if (schemes != NULL) {
-        List<String>::Iterator it;
-        for (it = schemes->Begin(); it != schemes->End(); ++it) {
-            if (!(*it).Compare(!scheme.IsNull() ? scheme : "")) {
-                match = Match_Category_Scheme;
-                break;
-            }
-        }
-        if (it == schemes->End()) return No_Match_Data;
-
-//        if (authorities != null) {
-//            int authMatch = matchDataAuthority(data);
-//            if (authMatch >= 0) {
-//                if (paths == null) {
-//                    match = authMatch;
-//                } else if (hasDataPath(data.getPath())) {
-//                    match = MATCH_CATEGORY_PATH;
-//                } else {
-//                    return NO_MATCH_DATA;
-//                }
-//            } else {
-//                return NO_MATCH_DATA;
-//            }
-//        }
-    } else {
-        // Special case: match either an Intent with no data URI,
-        // or with a scheme: URI.  This is to give a convenience for
-        // the common case where you want to deal with data in a
-        // content provider, which is done by type, and we don't want
-        // to force everyone to say they handle content: or file: URIs.
-        if (!scheme.IsNull() && scheme.Compare("")
-                && scheme.Compare("content")
-                && scheme.Compare("file")) {
-            return No_Match_Data;
-        }
-    }
-
-//    if (types != NULL) {
-//        if (findMimeType(type)) {
-//            match = Match_Category_Type;
-//        } else {
-//            return No_Match_Type;
-//        }
-//    } else {
-//        // If no MIME types are specified, then we will only match against
-//        // an Intent that does not have a MIME type.
-//        if (!type.IsNull()) {
-//            return No_Match_Type;
-//        }
-//    }
-
-    return match + Match_Adjustment_Normal;
-}
-
-/**
- * Match this filter against an Intent's categories.  Each category in
- * the Intent must be specified by the filter; if any are not in the
- * filter, the match fails.
- *
- * @param categories The categories included in the intent, as returned by
- *                   Intent.getCategories().
- *
- * @return If all categories match (success), null; else the name of the
- *         first category that didn't match.
- */
-String CIntentFilter::MatchCategories(
-    /* [in] */ ArrayOf<String>* categories)
-{
-    if (categories == NULL || categories->GetLength() <= 0) {
-        return NULL;
-    }
-
-    if (mCategories == NULL) {
-        return (*categories)[0];
-    }
-
-    for (Int32 i = 0; i < categories->GetLength(); i++) {
-        String category = (*categories)[i];
-        List<String>::Iterator it;
-        for (it = mCategories->Begin(); it != mCategories->End(); ++it) {
-            if ((*it).Compare(category)) return category;
-        }
-    }
-
-    return NULL;
-
-}
-
-/**
- * Test whether this filter matches the given intent data.  A match is
- * only successful if the actions and categories in the Intent match
- * against the filter, as described in {@link IntentFilter}; in that case,
- * the match result returned will be as per {@link #matchData}.
- *
- * @param action The intent action to match against (Intent.getAction).
- * @param type The intent type to match against (Intent.resolveType()).
- * @param scheme The data scheme to match against (Intent.getScheme()).
- * @param data The data URI to match against (Intent.getData()).
- * @param categories The categories to match against
- *                   (Intent.getCategories()).
- * @param logTag Tag to use in debugging messages.
- *
- * @return Returns either a valid match constant (a combination of
- * {@link #MATCH_CATEGORY_MASK} and {@link #MATCH_ADJUSTMENT_MASK}),
- * or one of the error codes {@link #NO_MATCH_TYPE} if the type didn't match,
- * {@link #NO_MATCH_DATA} if the scheme/path didn't match,
- * {@link #NO_MATCH_ACTION if the action didn't match, or
- * {@link #NO_MATCH_CATEGORY} if one or more categories didn't match.
- *
- * @see #matchData
- * @see Intent#getAction
- * @see Intent#resolveType
- * @see Intent#getScheme
- * @see Intent#getData
- * @see Intent#getCategories
- */
 ECode CIntentFilter::Match(
-    /* [in] */ String action,
-    /* [in] */ String type,
-    /* [in] */ String scheme,
+    /* [in] */ const String& action,
+    /* [in] */ const String& type,
+    /* [in] */ const String& scheme,
     /* [in] */ IUri* data,
     /* [in] */ ArrayOf<String>* categories,
-    /* [in] */ String logTag,
+    /* [in] */ CString logTag,
     /* [out] */ Int32* result)
 {
-    if (!action.IsNull() && !MatchAction(action)) {
-//        if (Config.LOGV) Log.v(
-//            logTag, "No matching action " + action + " for " + this);
-        *result = No_Match_Action;
-        return NOERROR;
-    }
+    VALIDATE_NOT_NULL(result);
 
-//    return MATCH_CATEGORY_EMPTY + MATCH_ADJUSTMENT_NORMAL;
-
-    Int32 dataMatch = MatchData(type, scheme, data);
-    if (dataMatch < 0) {
-//        if (Config.LOGV) {
-//            if (dataMatch == NO_MATCH_TYPE) {
-//                Log.v(logTag, "No matching type " + type
-//                      + " for " + this);
-//            }
-//            if (dataMatch == NO_MATCH_DATA) {
-//                Log.v(logTag, "No matching scheme/path " + data
-//                      + " for " + this);
-//            }
-//        }
-        *result = dataMatch;
-        return NOERROR;
-    }
-
-    String categoryMatch = MatchCategories(categories);
-    if (!categoryMatch.IsNull()) {
-//        if (Config.LOGV) Log.v(
-//            logTag, "No matching category "
-//            + categoryMatch + " for " + this);
-        *result = No_Match_Category;
-        return NOERROR;
-    }
-
-    // It would be nice to treat container activities as more
-    // important than ones that can be embedded, but this is not the way...
-//    if (FALSE) {
-//        if (categories != NULL) {
-//            dataMatch -= mCategories.size() - categories.size();
-//        }
-//    }
-
-    *result = dataMatch;
+    *result = IntentFilter::Match(action, type, scheme, data, categories, logTag);
     return NOERROR;
+}
+
+ECode CIntentFilter::MatchEx(
+    /* [in] */ IContentResolver* resolver,
+    /* [in] */ IIntent* intent,
+    /* [in] */ Boolean resolve,
+    /* [in] */ CString logTag,
+    /* [out] */ Int32* result)
+{
+    VALIDATE_NOT_NULL(result);
+
+    *result = IntentFilter::Match(resolver, intent, resolve, logTag);
+    return NOERROR;
+}
+
+ECode CIntentFilter::WriteToXml(
+    /* [in] */ IXmlSerializer* serializer)
+{
+    return IntentFilter::WriteToXml(serializer);
+}
+
+ECode CIntentFilter::ReadFromXml(
+    /* [in] */ IXmlPullParser* parser)
+{
+    return IntentFilter::ReadFromXml(parser);
 }
 
 ECode CIntentFilter::ReadFromParcel(
     /* [in] */ IParcel *source)
 {
-    return E_NOT_IMPLEMENTED;
+    return IntentFilter::ReadFromParcel(source);
 }
 
 ECode CIntentFilter::WriteToParcel(
     /* [in] */ IParcel *dest)
 {
-    return E_NOT_IMPLEMENTED;
+    return IntentFilter::WriteToParcel(dest);
 }
 
 ECode CIntentFilter::constructor()
@@ -450,22 +333,22 @@ ECode CIntentFilter::constructor()
 }
 
 ECode CIntentFilter::constructor(
-    /* [in] */ String action)
+    /* [in] */ const String& action)
 {
-    return NOERROR;
+    return IntentFilter::Init(action);
 }
 
 ECode CIntentFilter::constructor(
-    /* [in] */ String action,
-    /* [in] */ String dataType)
+    /* [in] */ const String& action,
+    /* [in] */ const String& dataType)
 {
-    return NOERROR;
+    return IntentFilter::Init(action, dataType);
 }
 
 ECode CIntentFilter::constructor(
     /* [in] */ IIntentFilter* o)
 {
-    return NOERROR;
+    return IntentFilter::Init(o);
 }
 
 List<String>* CIntentFilter::GetActions()

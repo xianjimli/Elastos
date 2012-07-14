@@ -5,7 +5,7 @@
 #include <elastos.h>
 #include <clsdef.h>
 #include <semaphore.h>
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 
 _ELASTOS_NAMESPACE_USING
 
@@ -53,7 +53,7 @@ public:
 
     virtual ~CCallbackContextEx()
     {
-        CancelAllCallbackEvents();
+        CancelAllCallbackEvents(NULL);
 
         pthread_mutex_destroy(&m_workingLock);
         pthread_mutex_destroy(&m_queueLock);
@@ -70,14 +70,16 @@ public:
 
     ECode RequestToFinish(Int32 flag);
 
-    ECode CancelAllPendingCallbacks(
+    ECode CancelAllCallbackEvents(
         PInterface pSender);
 
-    ECode CancelPendingCallback(
-        PInterface pSender,
-        CallbackEventId id);
-
     ECode CancelCallbackEvents(
+        PInterface pSender,
+        CallbackEventId id,
+        PVoid pHandlerThis,
+        PVoid pHandlerFunc);
+
+    Boolean HasCallbackEvent(
         PInterface pSender,
         CallbackEventId id,
         PVoid pHandlerThis,
@@ -89,26 +91,11 @@ public:
         Boolean * pbOccured = NULL,
         Flags32 fPriority = 0);
 
-    void CancelAllCallbackEvents();
-
-    ECode RemoveCppCallbacks(
-        CallbackEventFlags cFlags,
-        PVoid sender,
-        PVoid func);
-
 private:
 
     PCallbackEvent PopEvent();
 
     void PushEvent(PCallbackEvent pEvent);
-
-    Boolean IsExistEvent(PCallbackEvent pEvent);
-
-    Boolean IsExistEvent(
-        PInterface pSender,
-        CallbackEventId id,
-        PVoid pHandlerThis,
-        PVoid pHandlerFunc);
 
     PCallbackEvent GetEvent(Flags32 fPriority);
 

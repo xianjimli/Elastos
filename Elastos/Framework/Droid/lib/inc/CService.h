@@ -34,7 +34,7 @@ public:
     CARAPI Attach(
         /* [in] */ IContext* ctx,
         /* [in] */ IApplicationApartment* apartment,
-        /* [in] */ String className,
+        /* [in] */ const String& className,
         /* [in] */ IBinder* token,
         /* [in] */ IApplication* application,
         /* [in] */ IActivityManager* activityManager);
@@ -88,27 +88,47 @@ public:
         /* [in] */ IServiceConnection* conn);
 
     CARAPI GetSystemService(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ IInterface** object);
 
     CARAPI CreateCapsuleContext(
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ Int32 flags,
         /* [out] */ IContext** ctx);
 
     CARAPI CheckCallingPermission(
-        /* [in] */ String permission,
+        /* [in] */ const String& permission,
         /* [out] */ Int32* value);
 
     CARAPI EnforceCallingOrSelfPermission(
-        /* [in] */ String permission,
-        /* [in] */ String message);
+        /* [in] */ const String& permission,
+        /* [in] */ const String& message);
+
+    CARAPI RevokeUriPermission(
+        /* [in] */ IUri* uri,
+        /* [in] */ Int32 modeFlags);
+
+    CARAPI CheckCallingOrSelfPermission(
+        /* [in] */ const String& permission,
+        /* [out] */ Int32* perm);
+
+    CARAPI GrantUriPermission(
+        /* [in] */ const String& toCapsule,
+        /* [in] */ IUri* uri,
+        /* [in] */ Int32 modeFlags);
+
+    CARAPI GetAssets(
+        /* [out] */ IAssetManager** assetManager);
 
     CARAPI GetResources(
         /* [out] */ IResources** resources);
 
     CARAPI GetContentResolver(
         /* [out] */ IContentResolver** resolver);
+
+    CARAPI GetText(
+        /* [in] */ Int32 resId,
+        /* [out] */ ICharSequence** text);
 
     CARAPI SetTheme(
         /* [in] */ Int32 resid);
@@ -178,6 +198,17 @@ protected:
     virtual CARAPI OnRebind(
         /* [in] */ IIntent* intent);
 
+    virtual CARAPI AttachBaseContext(
+        /* [in] */ IContext* base);
+
+    virtual CARAPI OnApplyThemeResource(
+        /* [in] */ ITheme* theme,
+        /* [in] */ Int32 resid,
+        /* [in] */ Boolean first);
+
+private:
+    CARAPI InitializeTheme();
+
 private:
     // set by the thread after the constructor and before onCreate(Bundle icicle) is called.
     AutoPtr<IApplicationApartment> mApartment;
@@ -187,6 +218,9 @@ private:
     AutoPtr<IActivityManager> mActivityManager;
 
     AutoPtr<IContext> mBase;
+    Int32 mThemeResource;
+    AutoPtr<ITheme> mTheme;
+    AutoPtr<ILayoutInflater> mInflater;
 
     Boolean mStartCompatibility;
 };

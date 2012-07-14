@@ -1,0 +1,34 @@
+
+module
+{
+    interface IBinder;
+    interface IStatusBarIcon;
+    interface IStatusBarNotification;
+
+    interface IStatusBar {
+        SetIcon(
+            [in] Int32 index,
+            [in] IStatusBarIcon* icon);
+
+        RemoveIcon(
+            [in] Int32 index);
+
+        AddNotification(
+            [in] IBinder* key,
+            [in] IStatusBarNotification* notification);
+
+        UpdateNotification(
+            [in] IBinder* key,
+            [in] IStatusBarNotification* notification);
+
+        RemoveNotification(
+            [in] IBinder* key);
+
+        Disable(
+            [in] Int32 state);
+
+        AnimateExpand();
+
+        AnimateCollapse();
+    }
+}

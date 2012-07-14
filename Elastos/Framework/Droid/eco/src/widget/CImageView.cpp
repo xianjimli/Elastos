@@ -3,7 +3,11 @@
 
 IVIEW_METHODS_IMPL(CImageView, ImageView, ImageView);
 
+IDrawableCallback_METHODS_IMPL(CImageView, ImageView, ImageView);
+
 IKeyEventCallback_METHODS_IMPL(CImageView, ImageView, ImageView);
+
+IAccessibilityEventSource_METHODS_IMPL(CImageView, ImageView, ImageView);
 
 ECode CImageView::constructor(
     /* [in] */ IContext * pCtx)

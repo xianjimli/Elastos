@@ -55,8 +55,8 @@ void ViewGroupLayoutParams::SetBaseAttributes(
     /* [in] */ Int32 widthAttr,
     /* [in] */ Int32 heightAttr)
 {
-    a->GetLayoutDimension(widthAttr, "layout_width", &mWidth);
-    a->GetLayoutDimension(heightAttr, "layout_height", &mHeight);
+    a->GetLayoutDimension(widthAttr, String("layout_width"), &mWidth);
+    a->GetLayoutDimension(heightAttr, String("layout_height"), &mHeight);
 }
 
 ECode ViewGroupLayoutParams::SizeToString(
@@ -66,11 +66,11 @@ ECode ViewGroupLayoutParams::SizeToString(
     VALIDATE_NOT_NULL(des);
 
     if (size == WRAP_CONTENT) {
-        *des = String::Duplicate("wrap-content");
+        *des = "wrap-content";
         return NOERROR;
     }
     if (size == MATCH_PARENT) {
-        *des = String::Duplicate("match-parent");
+        *des = "match-parent";
         return NOERROR;
     }
 //    return String.valueOf(size);

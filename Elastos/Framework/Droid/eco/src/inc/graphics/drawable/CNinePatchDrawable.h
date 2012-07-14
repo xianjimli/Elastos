@@ -17,14 +17,14 @@ public:
         /* [in] */ IBitmap* bitmap,
         /* [in] */ const ArrayOf<Byte> & chunk,
         /* [in] */ IRect* padding,
-        /* [in] */ String srcName);
+        /* [in] */ const String& srcName);
 
     CARAPI constructor(
         /* [in] */ IResources* res,
         /* [in] */ IBitmap* bitmap,
         /* [in] */ const ArrayOf<Byte> & chunk,
         /* [in] */ IRect* padding,
-        /* [in] */ String srcName);
+        /* [in] */ const String& srcName);
 
     CARAPI constructor(
         /* [in] */ INinePatch* patch);
@@ -34,7 +34,7 @@ public:
         /* [in] */ INinePatch* patch);
 
     CARAPI constructor(
-        /* [in] */ INinePatchState* state,
+        /* [in] */ Handle32 state,
         /* [in] */ IResources* res);
 
     CARAPI_(PInterface) Probe(

@@ -233,19 +233,19 @@ public:
         /* [out] */ Float * pSpacing);
 
     CARAPI MeasureText(
-        /* [in] */ const BufferOf<Byte> & text,
+        /* [in] */ const ArrayOf<Char8> & text,
         /* [in] */ Int32 index,
         /* [in] */ Int32 count,
         /* [out] */ Float * pWidth);
 
     CARAPI MeasureTextEx(
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ Int32 start,
         /* [in] */ Int32 end,
         /* [out] */ Float * pWidth);
 
     CARAPI MeasureTextEx2(
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [out] */ Float * pWidth);
 
     CARAPI MeasureTextEx3(
@@ -255,7 +255,7 @@ public:
         /* [out] */ Float * pWidth);
 
     CARAPI BreakText(
-        /* [in] */ const BufferOf<Byte> & text,
+        /* [in] */ const ArrayOf<Char8> & text,
         /* [in] */ Int32 index,
         /* [in] */ Int32 count,
         /* [in] */ Float maxWidth,
@@ -272,14 +272,14 @@ public:
         /* [out] */ Int32 * pNumber);
 
     CARAPI BreakTextEx2(
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ Boolean measureForwards,
         /* [in] */ Float maxWidth,
         /* [in] */ ArrayOf<Float>* measuredWidth,
         /* [out] */ Int32 * pNumber);
 
     CARAPI GetTextWidths(
-        /* [in] */ const BufferOf<Byte> & text,
+        /* [in] */ const ArrayOf<Char8> & text,
         /* [in] */ Int32 index,
         /* [in] */ Int32 count,
         /* [in] */ ArrayOf<Float>* widths,
@@ -293,19 +293,19 @@ public:
         /* [out] */ Int32 * pWidth);
 
     CARAPI GetTextWidthsEx2(
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ Int32 start,
         /* [in] */ Int32 end,
         /* [in] */ ArrayOf<Float>* widths,
         /* [out] */ Int32 * pWidth);
 
     CARAPI GetTextWidthsEx3(
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ ArrayOf<Float>* widths,
         /* [out] */ Int32 * pWidth);
 
     CARAPI GetTextPath(
-        /* [in] */ const BufferOf<Byte> & text,
+        /* [in] */ const ArrayOf<Char8> & text,
         /* [in] */ Int32 index,
         /* [in] */ Int32 count,
         /* [in] */ Float x,
@@ -313,7 +313,7 @@ public:
         /* [in] */ IPath * pPath);
 
     CARAPI GetTextPathEx(
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ Int32 start,
         /* [in] */ Int32 end,
         /* [in] */ Float x,
@@ -321,13 +321,13 @@ public:
         /* [in] */ IPath * pPath);
 
     CARAPI GetTextBounds(
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ Int32 start,
         /* [in] */ Int32 end,
         /* [in] */ IRect * pBounds);
 
     CARAPI GetTextBoundsEx(
-        /* [in] */ const BufferOf<Byte> & text,
+        /* [in] */ const ArrayOf<Char8> & text,
         /* [in] */ Int32 index,
         /* [in] */ Int32 count,
         /* [in] */ IRect * pBounds);

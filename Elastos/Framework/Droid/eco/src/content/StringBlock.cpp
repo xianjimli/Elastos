@@ -3,7 +3,7 @@
 #include <elastos/Mutex.h>
 #include <string.h>
 
-const String StringBlock::TAG = "CAssetManager";
+const char* StringBlock::TAG = "CAssetManager";
 const Boolean StringBlock::sLocalLOGV;
 
 StringBlock::StringBlock(
@@ -124,7 +124,7 @@ ECode StringBlock::NativeGetString(
     size_t len;
     const char* str8 = pool->string8At(idx, &len);
     if (str8 != NULL) {
-        *str = String::Duplicate(str8);
+        *str = str8;
         return NOERROR;
     }
 
@@ -136,7 +136,7 @@ ECode StringBlock::NativeGetString(
     }
 
     android::String8 s8(str16);
-    *str = String::Duplicate(s8.string());
+    *str = s8.string();
     return NOERROR;
 }
 
@@ -149,7 +149,7 @@ const ArrayOf<Int32>* StringBlock::NativeGetStyle(
 
 Int32 StringBlock::NativeIndexOfString(
     /* [in] */ const android::ResStringPool* pool,
-    /* [in] */ String str)
+    /* [in] */ const String& str)
 {
     return -1;
 }

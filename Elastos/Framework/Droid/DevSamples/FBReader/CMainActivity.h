@@ -9,7 +9,7 @@
 class CMainActivity : public CActivity
 {
 public:
-    class MyListener : public IViewOnTouchListener, public IViewOnKeyListener
+    class MyListener : public IViewOnTouchListener, public IViewOnKeyListener, public IOnItemClickListener
     {
     public:
         MyListener(
@@ -37,6 +37,12 @@ public:
             /* [in] */ IKeyEvent* event,
             /* [out] */ Boolean* result);
 
+		CARAPI OnItemClick(
+			/* [in] */ IAdapterView* parent,
+			/* [in] */ IView* view,
+			/* [in] */ Int32 position,
+			/* [in] */ Int64 id);
+
     private:
         AutoPtr<CMainActivity> mHost;
         Int32 mRef;
@@ -56,14 +62,32 @@ protected:
 
     CARAPI OnDestroy();
 
+	Int32 GetPageCount();
+
 private:
     CARAPI OnActivityResult(
         /* [in] */ Int32 requestCode,
         /* [in] */ Int32 resultCode,
         /* [in] */ IIntent *data);
 
+	ECode GetPageText(
+		 /* [in] */ Int32 index,
+		 /* [out] */ String* text);
+
+	ECode LoadContentsListView();
+
+	ECode ShowContentList(
+		 /* [in] */ Int32 pos = -1);
+
 private:
     AutoPtr<IBook> mBook;
+    AutoPtr<ITextView> m_textView1;
+    AutoPtr<ITextView> m_textView2;
+	AutoPtr<IListView> m_contentsListView;
+
+	Int32 			   m_pageCount;
+	static Int32 	   m_currentPageIndex;
 };
+
 
 #endif // __CMAINACTIVITY_H__

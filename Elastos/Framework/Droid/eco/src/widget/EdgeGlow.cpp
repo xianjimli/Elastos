@@ -4,9 +4,9 @@
 #include "view/animation/CDecelerateInterpolator.h"
 #include <elastos/Math.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
-const String EdgeGlow::TAG = "EdgeGlow";
+const char* EdgeGlow::TAG = "EdgeGlow";
 const Int32 EdgeGlow::RECEDE_TIME;
 const Int32 EdgeGlow::PULL_TIME;
 const Int32 EdgeGlow::PULL_DECAY_TIME;
@@ -36,7 +36,24 @@ EdgeGlow::EdgeGlow(
     /* [in] */ IDrawable* glow)
     : mEdge(edge)
     , mGlow(glow)
+    , mWidth(0)
+    , mHeight(0)
+    , mEdgeAlpha(0.0)
+    , mEdgeScaleY(0.0)
+    , mGlowAlpha(0.0)
+    , mGlowScaleY(0.0)
+    , mEdgeAlphaStart(0.0)
+    , mEdgeAlphaFinish(0.0)
+    , mEdgeScaleYStart(0.0)
+    , mEdgeScaleYFinish(0.0)
+    , mGlowAlphaStart(0.0)
+    , mGlowAlphaFinish(0.0)
+    , mGlowScaleYStart(0.0)
+    , mGlowScaleYFinish(0.0)
+    , mStartTime(0)
+    , mDuration(0.0)
     , mState(STATE_IDLE)
+    , mPullDistance(0.0)
 {
     ASSERT_SUCCEEDED(CDecelerateInterpolator::New((IInterpolator**)&mInterpolator));
 }

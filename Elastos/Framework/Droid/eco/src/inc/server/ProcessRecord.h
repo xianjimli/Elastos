@@ -16,7 +16,7 @@
 #include <StringBuffer.h>
 
 using namespace Elastos;
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 class BroadcastRecord;
 class ContentProviderRecord;
@@ -30,7 +30,7 @@ public:
         /* [in] */ BatteryStatsImpl::Uid::Proc* batteryStats,
         /* [in] */ IApplicationApartment* appApartment,
         /* [in] */ CApplicationInfo* info,
-        /* [in] */ String processName);
+        /* [in] */ const String& processName);
 
     ~ProcessRecord();
 
@@ -41,7 +41,7 @@ public:
      *  Return true if package has been added false if not
      */
     CARAPI_(Boolean) AddCapsule(
-        /* [in] */ String cap);
+        /* [in] */ const String& cap);
 
     /*
      *  Delete all packages from list except the package indicated in info

@@ -2,7 +2,7 @@
 #ifndef __ELDATAINTERFACE_H__
 #define __ELDATAINTERFACE_H__
 
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 
 template<typename T>
 class ElDataInterface : public ElRefBase, public IInterface

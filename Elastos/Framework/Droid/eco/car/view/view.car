@@ -37,6 +37,7 @@ module
     interface IDispatcherState;
     interface IAbsSavedState;
     interface IView;
+    interface IAccessibilityEvent;
 
     /**
      * Interface definition for a callback to be invoked when a key event is
@@ -131,7 +132,7 @@ module
      * Interface definition for a callback to be invoked when the context menu
      * for this view is being built.
      */
-    interface IViewOnCreateContextMenuListener {
+    interface IOnCreateContextMenuListener {
         /**
          * Called when the context menu for this view is being built. It is not
          * safe to hold onto the menu after this method returns.
@@ -250,7 +251,7 @@ module
          *
          */
         SetOnCreateContextMenuListener(
-            [in] IViewOnCreateContextMenuListener* l);
+            [in] IOnCreateContextMenuListener* l);
 
         /**
          * Call this view's OnClickListener, if it is defined.
@@ -357,8 +358,17 @@ module
         HasFocusable(
             [out] Boolean* hasFocusable);
 
-        SendAccessibilityEvent(
-            [in] Int32 eventType);
+        /**
+         * Dispatches an {@link AccessibilityEvent} to the {@link View} children
+         * to be populated.
+         *
+         * @param event The event.
+         *
+         * @return True if the event population was completed.
+         */
+        DispatchPopulateAccessibilityEvent(
+            [in] IAccessibilityEvent* event,
+            [out] Boolean* result);
 
         /**
          * Gets the {@link View} description. It briefly describes the view and is
@@ -1904,7 +1914,7 @@ module
          * @see #onSaveInstanceState
          */
         SaveHierarchyState(
-            [in/*, out*/] IObjectContainer* container);
+            [in/*, out*/] IObjectIntegerMap* container);
 
         /**
          * Restore this view hierarchy's frozen state from the given container.
@@ -1916,7 +1926,7 @@ module
          * @see #onRestoreInstanceState
          */
         RestoreHierarchyState(
-            [in] IObjectContainer* container);
+            [in] IObjectIntegerMap* container);
 
         /**
          * <p>Return the time at which the drawing of the view hierarchy started.</p>
@@ -2195,37 +2205,6 @@ module
             [out] IResources** resources);
 
         /**
-         * Invalidates the specified Drawable.
-         *
-         * @param drawable the drawable to invalidate
-         */
-        InvalidateDrawable(
-            [in] IDrawable* drawable);
-
-        /**
-         * Schedules an action on a drawable to occur at a specified time.
-         *
-         * @param who the recipient of the action
-         * @param what the action to run on the drawable
-         * @param when the time at which the action must occur. Uses the
-         *        {@link SystemClock#uptimeMillis} timebase.
-         */
-        ScheduleDrawable(
-            [in] IDrawable* who,
-            [in] IRunnable* what,
-            [in] Int64 when);
-
-        /**
-         * Cancels a scheduled action on a drawable.
-         *
-         * @param who the recipient of the action
-         * @param what the action to cancel
-         */
-        UnscheduleDrawable(
-            [in] IDrawable* who,
-            [in] IRunnable* what);
-
-        /**
          * Unschedule any events associated with the given Drawable.  This can be
          * used when selecting a new Drawable into a view, so that the previous
          * one is completely unscheduled.
@@ -2432,6 +2411,19 @@ module
          */
         SetId(
             [in] Int32 id);
+
+        /**
+         * Returns this view's identifier.
+         *
+         * @return a positive integer used to identify the view or {@link #NO_ID}
+         *         if the view has no ID
+         *
+         * @see #setId
+         * @see #findViewById
+         * @attr ref android.R.styleable#View_id
+         */
+        GetId(
+            [out] Int32* id);
 
         /**
          * {@hide}

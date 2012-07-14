@@ -1,11 +1,11 @@
 #include "os/MemoryFile.h"
 
-const String MemoryFile::TAG = "MemoryFile";
+const char* MemoryFile::TAG = "MemoryFile";
 const Int32 MemoryFile::PROT_READ;
 const Int32 MemoryFile::PROT_WRITE;
 
 MemoryFile::MemoryFile(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in] */ Int32 length)
     : mAddress(0)
     , mLength(0)
@@ -17,7 +17,7 @@ MemoryFile::MemoryFile(
 MemoryFile::MemoryFile(
     /* [in] */ IFileDescriptor* fd,
     /* [in] */ Int32 length,
-    /* [in] */ String mode)
+    /* [in] */ const char* mode)
     : mAddress(0)
     , mLength(0)
     , mAllowPurging(FALSE)
@@ -117,7 +117,7 @@ Int32 MemoryFile::GetSize(
 }
 
 Int32 MemoryFile::ModeToProt(
-    /* [in] */ String mode)
+    /* [in] */ const String& mode)
 {
     return -1;
 }

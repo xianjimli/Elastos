@@ -12,6 +12,12 @@ CarClass(CTextView), public TextView
 public:
     IVIEW_METHODS_DECL();
 
+    IDrawableCallback_METHODS_DECL();
+
+    IKeyEventCallback_METHODS_DECL();
+
+    IAccessibilityEventSource_METHODS_DECL();
+
     ITEXTVIEW_METHODS_DECL();
 
     CARAPI_(PInterface) Probe(
@@ -28,6 +34,9 @@ public:
         /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs,
         /* [in] */ Int32 defStyle);
+
+    CARAPI OnPreDraw(
+        /* [out] */ Boolean* result);
 
 private:
     // TODO: Add your private member variables here.

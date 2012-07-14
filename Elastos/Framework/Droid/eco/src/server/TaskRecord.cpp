@@ -8,7 +8,7 @@ TaskRecord::TaskRecord(
     /* [in] */ Boolean clearOnBackground)
 {
     mTaskId = taskId;
-    mAffinity = String::Duplicate(info->mTaskAffinity);
+    mAffinity = info->mTaskAffinity;
     mClearOnBackground = clearOnBackground;
     SetIntent(intent, (IActivityInfo*)info);
 }

@@ -53,7 +53,7 @@ private:
     };
 
 private:
-    static const String TAG;
+    static const char* TAG;
 
 public:
     NativeInputQueue();

@@ -10,7 +10,7 @@
 #include <elastos/Mutex.h>
 #include <elastos/Vector.h>
 
-using namespace Elastos::System::Threading;
+using namespace Elastos::Core::Threading;
 
 /**
  * DynamicLayout is a text layout that updates itself as the text is edited.

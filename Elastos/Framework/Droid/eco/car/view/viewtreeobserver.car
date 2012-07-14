@@ -14,6 +14,25 @@ module
     }
 
     /**
+     * Interface definition for a callback to be invoked when the view tree is about to be drawn.
+     */
+    interface IOnPreDrawListener {
+        /**
+         * Callback method to be invoked when the view tree is about to be drawn. At this point, all
+         * views in the tree have been measured and given a frame. Clients can use this to adjust
+         * their scroll bounds or even to request a new layout before drawing occurs.
+         *
+         * @return Return true to proceed with the current drawing pass, or false to cancel.
+         *
+         * @see android.view.View#onMeasure
+         * @see android.view.View#onLayout
+         * @see android.view.View#onDraw
+         */
+        OnPreDraw(
+            [out] Boolean* result);
+    }
+
+    /**
      * Interface definition for a callback to be invoked when the touch mode changes.
      */
     interface IOnTouchModeChangeListener {
@@ -24,6 +43,14 @@ module
          */
         OnTouchModeChanged(
             [in] Boolean isInTouchMode);
+    }
+
+    interface IOnScrollChangedListener {
+        /**
+         * Callback method to be invoked when something in the view tree
+         * has been scrolled.
+         */
+        OnScrollChanged();
     }
 
     interface IViewTreeObserver {

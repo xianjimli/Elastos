@@ -2,6 +2,10 @@
 module
 {
     interface IUri;
+    interface IContentResolver;
+    interface IIntent;
+    interface IXmlSerializer;
+    interface IXmlPullParser;
 
     /**
      * The filter {@link #setPriority} value at which system high-priority
@@ -102,23 +106,104 @@ module
      */
     const IntentFilter_NO_MATCH_CATEGORY = -4;
 
+
+    interface IAuthorityEntry {
+        GetHost(
+            [out] String* host);
+
+        GetPort(
+            [out] Int32* port);
+
+        /**
+         * Determine whether this AuthorityEntry matches the given data Uri.
+         * <em>Note that this comparison is case-sensitive, unlike formal
+         * RFC host names.  You thus should always normalize to lower-case.</em>
+         *
+         * @param data The Uri to match.
+         * @return Returns either {@link IntentFilter#NO_MATCH_DATA},
+         * {@link IntentFilter#MATCH_CATEGORY_PORT}, or
+         * {@link IntentFilter#MATCH_CATEGORY_HOST}.
+         */
+        Match(
+            [in] IUri* data,
+            [out] Int32* result);
+    }
+
     [deprecated]
     interface IIntentFilter {
+        /**
+         * Modify priority of this filter.  The default priority is 0. Positive
+         * values will be before the default, lower values will be after it.
+         * Applications must use a value that is larger than
+         * {@link #SYSTEM_LOW_PRIORITY} and smaller than
+         * {@link #SYSTEM_HIGH_PRIORITY} .
+         *
+         * @param priority The new priority value.
+         *
+         * @see #getPriority
+         * @see #SYSTEM_LOW_PRIORITY
+         * @see #SYSTEM_HIGH_PRIORITY
+         */
         SetPriority(
             [in] Int32 priority);
 
+        /**
+         * Return the priority of this filter.
+         *
+         * @return The priority of the filter.
+         *
+         * @see #setPriority
+         */
         GetPriority(
             [out] Int32* priority);
 
+        /**
+         * Add a new Intent action to match against.  If any actions are included
+         * in the filter, then an Intent's action must be one of those values for
+         * it to match.  If no actions are included, the Intent action is ignored.
+         *
+         * @param action Name of the action to match, i.e. Intent.ACTION_VIEW.
+         */
         AddAction(
             [in] String action);
 
+        /**
+         * Return the number of actions in the filter.
+         */
         CountActions(
             [out] Int32* count);
 
+        /**
+         * Return an action in the filter.
+         */
         GetAction(
             [in] Int32 index,
             [out] String* action);
+
+        /**
+         * Is the given action included in the filter?  Note that if the filter
+         * does not include any actions, false will <em>always</em> be returned.
+         *
+         * @param action The action to look for.
+         *
+         * @return True if the action is explicitly mentioned in the filter.
+         */
+        HasAction(
+            [in] String action,
+            [out] Boolean* hasAction);
+
+        /**
+         * Match this filter against an Intent's action.  If the filter does not
+         * specify any actions, the match will always fail.
+         *
+         * @param action The desired action to look for.
+         *
+         * @return True if the action is listed in the filter or the filter does
+         *         not specify any actions.
+         */
+        MatchAction(
+            [in] String action,
+            [out] Boolean* isMatched);
 
         /**
          * Add a new Intent data type to match against.  If any types are
@@ -143,6 +228,31 @@ module
             [in] String type);
 
         /**
+         * Is the given data type included in the filter?  Note that if the filter
+         * does not include any type, false will <em>always</em> be returned.
+         *
+         * @param type The data type to look for.
+         *
+         * @return True if the type is explicitly mentioned in the filter.
+         */
+        HasDataType(
+            [in] String type,
+            [out] Boolean* hasDataType);
+
+        /**
+         * Return the number of data types in the filter.
+         */
+        CountDataTypes(
+            [out] Int32* count);
+
+        /**
+         * Return a data type in the filter.
+         */
+        GetDataType(
+            [in] Int32 index,
+            [out] String* type);
+
+        /**
          * Add a new Intent data scheme to match against.  If any schemes are
          * included in the filter, then an Intent's data must be <em>either</em>
          * one of these schemes <em>or</em> a matching data type.  If no schemes
@@ -160,6 +270,32 @@ module
          */
         AddDataScheme(
             [in] String scheme);
+
+        /**
+         * Return the number of data schemes in the filter.
+         */
+        CountDataSchemes(
+            [out] Int32* count);
+
+        /**
+         * Return a data scheme in the filter.
+         */
+        GetDataScheme(
+            [in] Int32 index,
+            [out] String* scheme);
+
+        /**
+         * Is the given data scheme included in the filter?  Note that if the
+         * filter does not include any scheme, false will <em>always</em> be
+         * returned.
+         *
+         * @param scheme The data scheme to look for.
+         *
+         * @return True if the scheme is explicitly mentioned in the filter.
+         */
+        HasDataScheme(
+            [in] String scheme,
+            [out] Boolean* result);
 
         /**
          * Add a new Intent data authority to match against.  The filter must
@@ -185,6 +321,33 @@ module
         AddDataAuthority(
             [in] String host,
             [in] String port);
+
+        /**
+         * Return the number of data authorities in the filter.
+         */
+        CountDataAuthorities(
+            [out] Int32* count);
+
+        /**
+         * Return a data authority in the filter.
+         */
+        GetDataAuthority(
+            [in] Int32 index,
+            [out] IAuthorityEntry** authority);
+
+        /**
+         * Is the given data authority included in the filter?  Note that if the
+         * filter does not include any authorities, false will <em>always</em> be
+         * returned.
+         *
+         * @param data The data whose authority is being looked for.
+         *
+         * @return Returns true if the data string matches an authority listed in the
+         *         filter.
+         */
+        HasDataAuthority(
+            [in] IUri* data,
+            [out] Boolean* result);
 
         /**
          * Add a new Intent data oath to match against.  The filter must
@@ -216,20 +379,196 @@ module
             [in] String path,
             [in] Int32 type);
 
+        /**
+         * Return the number of data paths in the filter.
+         */
+        CountDataPaths(
+            [out] Int32* count);
+
+        /**
+         * Return a data path in the filter.
+         */
+        GetDataPath(
+            [in] Int32 index,
+            [out] IPatternMatcher** path);
+
+        /**
+         * Is the given data path included in the filter?  Note that if the
+         * filter does not include any paths, false will <em>always</em> be
+         * returned.
+         *
+         * @param data The data path to look for.  This is without the scheme
+         *             prefix.
+         *
+         * @return True if the data string matches a path listed in the
+         *         filter.
+         */
+        HasDataPath(
+            [in] String data,
+            [out] Boolean* result);
+
+        /**
+         * Match this intent filter against the given Intent data.  This ignores
+         * the data scheme -- unlike {@link #matchData}, the authority will match
+         * regardless of whether there is a matching scheme.
+         *
+         * @param data The data whose authority is being looked for.
+         *
+         * @return Returns either {@link #MATCH_CATEGORY_HOST},
+         * {@link #MATCH_CATEGORY_PORT}, {@link #NO_MATCH_DATA}.
+         */
+        MatchDataAuthority(
+            [in] IUri* data,
+            [out] Int32* result);
+
+        /**
+         * Match this filter against an Intent's data (type, scheme and path). If
+         * the filter does not specify any types and does not specify any
+         * schemes/paths, the match will only succeed if the intent does not
+         * also specify a type or data.
+         *
+         * <p>Be aware that to match against an authority, you must also specify a base
+         * scheme the authority is in.  To match against a data path, both a scheme
+         * and authority must be specified.  If the filter does not specify any
+         * types or schemes that it matches against, it is considered to be empty
+         * (any authority or data path given is ignored, as if it were empty as
+         * well).
+         *
+         * <p><em>Note: MIME type, Uri scheme, and host name matching in the
+         * Android framework is case-sensitive, unlike the formal RFC definitions.
+         * As a result, you should always write these elements with lower case letters,
+         * and normalize any MIME types or Uris you receive from
+         * outside of Android to ensure these elements are lower case before
+         * supplying them here.</em></p>
+         *
+         * @param type The desired data type to look for, as returned by
+         *             Intent.resolveType().
+         * @param scheme The desired data scheme to look for, as returned by
+         *               Intent.getScheme().
+         * @param data The full data string to match against, as supplied in
+         *             Intent.data.
+         *
+         * @return Returns either a valid match constant (a combination of
+         * {@link #MATCH_CATEGORY_MASK} and {@link #MATCH_ADJUSTMENT_MASK}),
+         * or one of the error codes {@link #NO_MATCH_TYPE} if the type didn't match
+         * or {@link #NO_MATCH_DATA} if the scheme/path didn't match.
+         *
+         * @see #match
+         */
+        MatchData(
+            [in] String type,
+            [in] String scheme,
+            [in] IUri* data,
+            [out] Int32* result);
+
         AddCategory(
             [in] String category);
+
+        /**
+         * Return the number of categories in the filter.
+         */
+        CountCategories(
+            [out] Int32* count);
+
+        /**
+         * Return a category in the filter.
+         */
+        GetCategory(
+            [in] Int32 index,
+            [out] String* category);
 
         HasCategory(
             [in] String category,
             [out] Boolean* hasCategory);
 
+        /**
+         * Match this filter against an Intent's categories.  Each category in
+         * the Intent must be specified by the filter; if any are not in the
+         * filter, the match fails.
+         *
+         * @param categories The categories included in the intent, as returned by
+         *                   Intent.getCategories().
+         *
+         * @return If all categories match (success), null; else the name of the
+         *         first category that didn't match.
+         */
+        MatchCategories(
+            [in] ArrayOf<String>* categories,
+            [out] String* result);
+
+        /**
+         * Test whether this filter matches the given intent data.  A match is
+         * only successful if the actions and categories in the Intent match
+         * against the filter, as described in {@link IntentFilter}; in that case,
+         * the match result returned will be as per {@link #matchData}.
+         *
+         * @param action The intent action to match against (Intent.getAction).
+         * @param type The intent type to match against (Intent.resolveType()).
+         * @param scheme The data scheme to match against (Intent.getScheme()).
+         * @param data The data URI to match against (Intent.getData()).
+         * @param categories The categories to match against
+         *                   (Intent.getCategories()).
+         * @param logTag Tag to use in debugging messages.
+         *
+         * @return Returns either a valid match constant (a combination of
+         * {@link #MATCH_CATEGORY_MASK} and {@link #MATCH_ADJUSTMENT_MASK}),
+         * or one of the error codes {@link #NO_MATCH_TYPE} if the type didn't match,
+         * {@link #NO_MATCH_DATA} if the scheme/path didn't match,
+         * {@link #NO_MATCH_ACTION if the action didn't match, or
+         * {@link #NO_MATCH_CATEGORY} if one or more categories didn't match.
+         *
+         * @see #matchData
+         * @see Intent#getAction
+         * @see Intent#resolveType
+         * @see Intent#getScheme
+         * @see Intent#getData
+         * @see Intent#getCategories
+         */
         Match(
             [in] String action,
             [in] String type,
             [in] String scheme,
             [in] IUri* data,
             [in] ArrayOf<String>* categories,
-            [in] String logTag,
+            [in] CString logTag,
             [out] Int32* result);
+
+        /**
+         * Test whether this filter matches the given <var>intent</var>.
+         *
+         * @param intent The Intent to compare against.
+         * @param resolve If true, the intent's type will be resolved by calling
+         *                Intent.resolveType(); otherwise a simple match against
+         *                Intent.type will be performed.
+         * @param logTag Tag to use in debugging messages.
+         *
+         * @return Returns either a valid match constant (a combination of
+         * {@link #MATCH_CATEGORY_MASK} and {@link #MATCH_ADJUSTMENT_MASK}),
+         * or one of the error codes {@link #NO_MATCH_TYPE} if the type didn't match,
+         * {@link #NO_MATCH_DATA} if the scheme/path didn't match,
+         * {@link #NO_MATCH_ACTION if the action didn't match, or
+         * {@link #NO_MATCH_CATEGORY} if one or more categories didn't match.
+         *
+         * @return How well the filter matches.  Negative if it doesn't match,
+         *         zero or positive positive value if it does with a higher
+         *         value representing a better match.
+         *
+         * @see #match(String, String, String, android.net.Uri , Set, String)
+         */
+        MatchEx(
+            [in] IContentResolver* resolver,
+            [in] IIntent* intent,
+            [in] Boolean resolve,
+            [in] CString logTag,
+            [out] Int32* result);
+
+        /**
+         * Write the contents of the IntentFilter as an XML stream.
+         */
+        WriteToXml(
+            [in] IXmlSerializer* serializer);
+
+        ReadFromXml(
+            [in] IXmlPullParser* parser);
     }
 }

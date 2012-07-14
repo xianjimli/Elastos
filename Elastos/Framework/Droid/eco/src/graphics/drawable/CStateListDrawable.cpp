@@ -3,62 +3,65 @@
 
 IDRAWABLE_METHODS_IMPL(CStateListDrawable, StateListDrawable, StateListDrawable);
 
-ECode CStateListDrawable::AddState(
-    /* [in] */ const ArrayOf<Int32> & stateSet,
-    /* [in] */ IDrawable * pDrawable)
+PInterface CStateListDrawable::Probe(
+    /* [in] */ REIID riid)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return _CStateListDrawable::Probe(riid);
 }
 
-ECode CStateListDrawable::GetStateListState(
-    /* [out] */ IStateListState ** ppState)
+ECode CStateListDrawable::AddState(
+    /* [in] */ const ArrayOf<Int32> & stateSet,
+    /* [in] */ IDrawable* drawable)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return StateListDrawable::AddState(stateSet, drawable);
 }
 
 ECode CStateListDrawable::GetStateCount(
-    /* [out] */ Int32 * pCount)
+    /* [out] */ Int32* count)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(count);
+    *count = StateListDrawable::GetStateCount();
+    return NOERROR;
 }
 
 ECode CStateListDrawable::GetStateSet(
     /* [in] */ Int32 index,
-    /* [out, callee] */ ArrayOf<Int32> ** ppStateSet)
+    /* [out, callee] */ ArrayOf<Int32> ** stateSet)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(stateSet);
+    *stateSet = StateListDrawable::GetStateSet(index);
+    return NOERROR;
 }
 
 ECode CStateListDrawable::GetStateDrawable(
     /* [in] */ Int32 index,
-    /* [out] */ IDrawable ** ppDrawable)
+    /* [out] */ IDrawable ** drawable)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(drawable);
+    *drawable = StateListDrawable::GetStateDrawable(index);
+
+    return NOERROR;
 }
 
 ECode CStateListDrawable::GetStateDrawableIndex(
     /* [in] */ const ArrayOf<Int32> & stateSet,
-    /* [out] */ Int32 * pIndex)
+    /* [out] */ Int32 * index)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(index);
+    *index = StateListDrawable::GetStateDrawableIndex(stateSet);
+
+    return NOERROR;
 }
 
 ECode CStateListDrawable::constructor()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return StateListDrawable::Init(NULL, NULL);
 }
 
 ECode CStateListDrawable::constructor(
-    /* [in] */ IStateListState* state,
+    /* [in] */ Handle32 state,
     /* [in] */ IResources* res)
 {
-    return NOERROR;
+    return StateListDrawable::Init((StateListDrawable::StateListState*)state, res);
 }
 

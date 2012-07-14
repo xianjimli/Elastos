@@ -95,7 +95,7 @@ public:
 
     CARAPI SendWallpaperCommand(
         /* [in] */ IBinder* window,
-        /* [in] */ String action,
+        /* [in] */ const String& action,
         /* [in] */ Int32 x,
         /* [in] */ Int32 y,
         /* [in] */ Int32 z,

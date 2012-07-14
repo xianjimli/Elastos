@@ -153,7 +153,7 @@ public:
 
     CARAPI constructor(
         /* [in] */ Int64 time,
-        /* [in] */ String characters,
+        /* [in] */ const String& characters,
         /* [in] */ Int32 deviceId,
         /* [in] */ Int32 flags);
 
@@ -314,7 +314,7 @@ private:
     static const Int32 LAST_KEYCODE = KeyEvent_KEYCODE_BUTTON_MODE;
 
     static const Boolean DEBUG = FALSE;
-    static const String TAG;
+    static const char* TAG;
 
     Int32 mMetaState;
     Int32 mAction;

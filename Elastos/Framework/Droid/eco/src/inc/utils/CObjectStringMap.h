@@ -17,11 +17,11 @@ public:
     ~CObjectStringMap();
 
     CARAPI Get(
-        /* [in] */ String key,
+        /* [in] */ const String& key,
         /* [out] */ IInterface** value);
 
     CARAPI Put(
-        /* [in] */ String key,
+        /* [in] */ const String& key,
         /* [in] */ IInterface* value);
 
     CARAPI GetSize(

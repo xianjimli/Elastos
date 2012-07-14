@@ -3,7 +3,7 @@
 
 Boolean ListUtils::Contains(
     /* [in] */ const List<String>& strs,
-    /* [in] */ String str)
+    /* [in] */ const String& str)
 {
     Boolean result = FALSE;
     List<String>::ConstIterator itor;

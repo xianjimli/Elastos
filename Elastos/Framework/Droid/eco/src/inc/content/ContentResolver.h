@@ -10,9 +10,9 @@ using namespace Elastos;
 class ContentResolver
 {
 public:
-    static const String SCHEME_CONTENT;
-    static const String SCHEME_ELASTOS_RESOURCE;
-    static const String SCHEME_FILE;
+    static const char* SCHEME_CONTENT;
+    static const char* SCHEME_ELASTOS_RESOURCE;
+    static const char* SCHEME_FILE;
 
 public:
     ContentResolver(
@@ -20,12 +20,12 @@ public:
 
     virtual CARAPI AcquireProvider(
         /* [in] */ IContext* context,
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ IContentProvider** provider) = 0;
 
     virtual CARAPI AcquireExistingProvider(
         /* [in] */ IContext* context,
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ IContentProvider** provider) = 0;
 
     CARAPI AcquireProvider(
@@ -49,7 +49,7 @@ public:
 
     CARAPI Delete(
         /* [in] */ IUri* uri,
-        /* [in] */ String selection,
+        /* [in] */ const String& selection,
         /* [in] */ const ArrayOf<String>& selectionArgs,
         /* [out] */ Int32* rowsAffected);
 
@@ -72,15 +72,15 @@ public:
     CARAPI Query(
         /* [in] */ IUri* uri,
         /* [in] */ const ArrayOf<String>& projection,
-        /* [in] */ String selection,
+        /* [in] */ const String& selection,
         /* [in] */ const ArrayOf<String>& selectionArgs,
-        /* [in] */ String sortOrder,
+        /* [in] */ const String& sortOrder,
         /* [out] */ ICursor** cursor);
 
     CARAPI Update(
         /* [in] */ IUri* uri,
         /* [in] */ IContentValues* values,
-        /* [in] */ String selection,
+        /* [in] */ const String& selection,
         /* [in] */ const ArrayOf<String>& selectionArgs,
         /* [out] */ Int32* rowsAffected);
 

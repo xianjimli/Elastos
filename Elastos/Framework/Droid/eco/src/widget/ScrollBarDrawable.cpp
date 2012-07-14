@@ -4,7 +4,7 @@
 #include "graphics/ElPixelFormat.h"
 #include <elastos/Math.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 ScrollBarDrawable::ScrollBarDrawable()
     : mRange(0)
@@ -158,13 +158,20 @@ void ScrollBarDrawable::DrawThumb(
     }
 
     if (vertical) {
-        const AutoPtr<IDrawable> thumb = mVerticalThumb;
-        if (changed) thumb->SetBoundsEx(thumbRect);
-        thumb->Draw(canvas);
-    } else {
-        const AutoPtr<IDrawable> thumb = mHorizontalThumb;
-        if (changed) thumb->SetBoundsEx(thumbRect);
-        thumb->Draw(canvas);
+        if (mVerticalThumb != NULL) {
+            if (changed) {
+                mVerticalThumb->SetBoundsEx(thumbRect);
+            }
+            mVerticalThumb->Draw(canvas);
+        }
+    }
+    else {
+        if (mHorizontalThumb != NULL) {
+            if (changed) {
+                mHorizontalThumb->SetBoundsEx(thumbRect);
+            }
+            mHorizontalThumb->Draw(canvas);
+        }
     }
 }
 
@@ -199,13 +206,22 @@ void ScrollBarDrawable::SetHorizontalTrackDrawable(
 Int32 ScrollBarDrawable::GetSize(
     /* [in] */ Boolean vertical)
 {
-    Int32 value;
+    Int32 value = 0;
     if (vertical) {
-        if (mVerticalTrack != NULL) mVerticalTrack->GetIntrinsicWidth(&value);
-        else mVerticalThumb->GetIntrinsicWidth(&value);
-    } else {
-        if (mHorizontalTrack != NULL) mHorizontalTrack->GetIntrinsicHeight(&value);
-        else mHorizontalThumb->GetIntrinsicHeight(&value);
+        if (mVerticalTrack != NULL) {
+            mVerticalTrack->GetIntrinsicWidth(&value);
+        }
+        else if (mVerticalThumb != NULL) {
+            mVerticalThumb->GetIntrinsicWidth(&value);
+        }
+    }
+    else {
+        if (mHorizontalTrack != NULL) {
+            mHorizontalTrack->GetIntrinsicHeight(&value);
+        }
+        else if (mHorizontalThumb != NULL) {
+            mHorizontalThumb->GetIntrinsicHeight(&value);
+        }
     }
     return value;
 }
@@ -216,11 +232,19 @@ ECode ScrollBarDrawable::SetAlpha(
     if (mVerticalTrack != NULL) {
         mVerticalTrack->SetAlpha(alpha);
     }
-    mVerticalThumb->SetAlpha(alpha);
+
+    if (mVerticalThumb != NULL) {
+        mVerticalThumb->SetAlpha(alpha);
+    }
+
     if (mHorizontalTrack != NULL) {
         mHorizontalTrack->SetAlpha(alpha);
     }
-    mHorizontalThumb->SetAlpha(alpha);
+
+    if (mHorizontalThumb != NULL) {
+        mHorizontalThumb->SetAlpha(alpha);
+    }
+
     return NOERROR;
 }
 
@@ -230,11 +254,19 @@ ECode ScrollBarDrawable::SetColorFilter(
     if (mVerticalTrack != NULL) {
         mVerticalTrack->SetColorFilter(cf);
     }
-    mVerticalThumb->SetColorFilter(cf);
+
+    if (mVerticalThumb != NULL) {
+        mVerticalThumb->SetColorFilter(cf);
+    }
+
     if (mHorizontalTrack != NULL) {
         mHorizontalTrack->SetColorFilter(cf);
     }
-    mHorizontalThumb->SetColorFilter(cf);
+
+    if (mHorizontalThumb != NULL) {
+        mHorizontalThumb->SetColorFilter(cf);
+    }
+
     return NOERROR;
 }
 

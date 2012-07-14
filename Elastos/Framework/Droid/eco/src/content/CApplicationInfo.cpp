@@ -40,13 +40,7 @@ CApplicationInfo::CApplicationInfo()
 {}
 
 CApplicationInfo::~CApplicationInfo()
-{
-    String::Free(mProcessName);
-    String::Free(mClassName);
-    String::Free(mSourceDir);
-    String::Free(mPublicSourceDir);
-    String::Free(mDataDir);
-}
+{}
 
 ECode CApplicationInfo::constructor()
 {
@@ -62,15 +56,15 @@ ECode CApplicationInfo::constructor(
     CapsuleItemInfo::constructor((CapsuleItemInfo*)(CApplicationInfo*)corig);
 //    taskAffinity = orig.taskAffinity;
 //    permission = orig.permission;
-    mProcessName = String::Duplicate(corig->mProcessName);
-    mClassName = String::Duplicate(corig->mClassName);
+    mProcessName = corig->mProcessName;
+    mClassName = corig->mClassName;
 //    theme = orig.theme;
 //    flags = orig.flags;
-    mSourceDir = String::Duplicate(corig->mSourceDir);
-    mPublicSourceDir = String::Duplicate(corig->mPublicSourceDir);
+    mSourceDir = corig->mSourceDir;
+    mPublicSourceDir = corig->mPublicSourceDir;
 //    resourceDirs = orig.resourceDirs;
 //    sharedLibraryFiles = orig.sharedLibraryFiles;
-    mDataDir = String::Duplicate(corig->mDataDir);
+    mDataDir = corig->mDataDir;
     mUid = corig->mUid;
 //    targetSdkVersion = orig.targetSdkVersion;
 //    enabled = orig.enabled;
@@ -82,15 +76,15 @@ ECode CApplicationInfo::constructor(
 ECode CApplicationInfo::GetSourceDir(
     /* [out] */ String* sourceDir)
 {
-    *sourceDir = String::Duplicate(mSourceDir);
+    *sourceDir = mSourceDir;
 
     return NOERROR;
 }
 
 ECode CApplicationInfo::SetSourceDir(
-    /* [in] */ String sourceDir)
+    /* [in] */ const String& sourceDir)
 {
-    mSourceDir = String::Duplicate(sourceDir);
+    mSourceDir = sourceDir;
 
     return NOERROR;
 }

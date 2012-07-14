@@ -45,14 +45,14 @@ ECode CSimpleAdapter::SetViewImage(
 
 ECode CSimpleAdapter::SetViewImageEx(
     /* [in] */ IImageView* v,
-    /* [in] */ String value)
+    /* [in] */ const String& value)
 {
     return SimpleAdapter::SetViewImage(v, value);
 }
 
 ECode CSimpleAdapter::SetViewText(
     /* [in] */ ITextView* v,
-    /* [in] */ String text)
+    /* [in] */ const String& text)
 {
     return SimpleAdapter::SetViewText(v, text);
 }

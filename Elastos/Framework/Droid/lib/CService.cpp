@@ -20,6 +20,15 @@ PInterface CService::Probe(
    if (riid == EIID_IService) {
         return (IService *)this;
    }
+   else if (riid == EIID_IContextThemeWrapper) {
+       return (IContextThemeWrapper*)this;
+   }
+   else if (riid == EIID_IContextWrapper) {
+       return (IContextWrapper*)this;
+   }
+   else if (riid == EIID_IContext) {
+       return (IContext*)this;
+   }
    else {
        return CBaseObject::Probe(riid);
    }
@@ -66,14 +75,14 @@ ECode CService::GetClassID(
 ECode CService::Attach(
     /* [in] */ IContext* ctx,
     /* [in] */ IApplicationApartment* apartment,
-    /* [in] */ String className,
+    /* [in] */ const String& className,
     /* [in] */ IBinder* token,
     /* [in] */ IApplication* application,
     /* [in] */ IActivityManager* activityManager)
 {
     mBase = ctx;
     mApartment = apartment;           // NOTE:  unused - remove?
-    mClassName = String::Duplicate(className);
+    mClassName = className;
     mToken = token;
     mApplication = application;
     mActivityManager = activityManager;
@@ -218,14 +227,36 @@ ECode CService::UnbindService(
 }
 
 ECode CService::GetSystemService(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ IInterface** object)
 {
-    return E_NOT_IMPLEMENTED;
+    if (!String(Context_LAYOUT_INFLATER_SERVICE).Compare(name)) {
+        if (mInflater == NULL) {
+            AutoPtr<ILayoutInflater> inflater;
+            mBase->GetSystemService(
+                String(Context_LAYOUT_INFLATER_SERVICE), (IInterface**)&inflater);
+
+            if (inflater == NULL) {
+                return E_INVALID_ARGUMENT;
+            }
+
+            inflater->CloneInContext(
+                (IContext*)this->Probe(EIID_IContext),
+                (ILayoutInflater**)&mInflater);
+        }
+        *object = mInflater;
+        if (*object) {
+            (*object)->AddRef();
+        }
+
+        return NOERROR;
+    }
+
+    return mBase->GetSystemService(name, object);
 }
 
 ECode CService::CreateCapsuleContext(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ Int32 flags,
     /* [out] */ IContext** ctx)
 {
@@ -233,17 +264,45 @@ ECode CService::CreateCapsuleContext(
 }
 
 ECode CService::CheckCallingPermission(
-    /* [in] */ String permission,
+    /* [in] */ const String& permission,
     /* [out] */ Int32* value)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CService::EnforceCallingOrSelfPermission(
-    /* [in] */ String permission,
-    /* [in] */ String message)
+    /* [in] */ const String& permission,
+    /* [in] */ const String& message)
 {
     return E_NOT_IMPLEMENTED;
+}
+
+ECode CService::RevokeUriPermission(
+    /* [in] */ IUri* uri,
+    /* [in] */ Int32 modeFlags)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CService::CheckCallingOrSelfPermission(
+    /* [in] */ const String& permission,
+    /* [out] */ Int32* perm)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CService::GrantUriPermission(
+    /* [in] */ const String& toCapsule,
+    /* [in] */ IUri* uri,
+    /* [in] */ Int32 modeFlags)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CService::GetAssets(
+    /* [out] */ IAssetManager** assetManager)
+{
+    return mBase->GetAssets(assetManager);
 }
 
 ECode CService::GetResources(
@@ -258,23 +317,41 @@ ECode CService::GetContentResolver(
     return mBase->GetContentResolver(resolver);
 }
 
+ECode CService::GetText(
+    /* [in] */ Int32 resId,
+    /* [out] */ ICharSequence** text)
+{
+    return mBase->GetText(resId, text);
+}
+
 ECode CService::SetTheme(
     /* [in] */ Int32 resid)
 {
-    return E_NOT_IMPLEMENTED;
+    mThemeResource = resid;
+    return InitializeTheme();
 }
 
 ECode CService::GetTheme(
     /* [out] */ ITheme** theme)
 {
-    return E_NOT_IMPLEMENTED;
+    if (mTheme == NULL) {
+        if (mThemeResource == 0) {
+            mThemeResource = 0x01030005/*com.android.internal.R.style.Theme*/;
+        }
+        InitializeTheme();
+    }
+
+    *theme = mTheme;
+    mTheme->AddRef();
+
+    return NOERROR;
 }
 
 ECode CService::ObtainStyledAttributes(
     /* [in] */ const ArrayOf<Int32>& attrs,
     /* [out] */ ITypedArray** styles)
 {
-    return E_NOT_IMPLEMENTED;
+    return mBase->ObtainStyledAttributes(attrs, styles);
 }
 
 ECode CService::ObtainStyledAttributesEx(
@@ -282,7 +359,7 @@ ECode CService::ObtainStyledAttributesEx(
     /* [in] */ const ArrayOf<Int32>& attrs,
     /* [out] */ ITypedArray** styles)
 {
-    return E_NOT_IMPLEMENTED;
+    return mBase->ObtainStyledAttributesEx(resid, attrs, styles);
 }
 
 ECode CService::ObtainStyledAttributesEx2(
@@ -290,7 +367,7 @@ ECode CService::ObtainStyledAttributesEx2(
     /* [in] */ const ArrayOf<Int32>& attrs,
     /* [out] */ ITypedArray** styles)
 {
-    return E_NOT_IMPLEMENTED;
+    return mBase->ObtainStyledAttributesEx2(set, attrs, styles);
 }
 
 ECode CService::ObtainStyledAttributesEx3(
@@ -300,13 +377,14 @@ ECode CService::ObtainStyledAttributesEx3(
     /* [in] */ Int32 defStyleRes,
     /* [out] */ ITypedArray** styles)
 {
-    return E_NOT_IMPLEMENTED;
+    return mBase->ObtainStyledAttributesEx3(set, attrs,
+            defStyleAttr, defStyleRes, styles);
 }
 
 ECode CService::GetClassLoader(
     /* [out] */ IClassLoader** loader)
 {
-    return E_NOT_IMPLEMENTED;
+    return mBase->GetClassLoader(loader);
 }
 
 ECode CService::GetCapsuleName(
@@ -333,6 +411,43 @@ ECode CService::GetClassName(
 {
     if (className == NULL) return E_INVALID_ARGUMENT;
 
-    *className = String::Duplicate(mClassName);
+    *className = mClassName;
     return NOERROR;
+}
+
+ECode CService::AttachBaseContext(
+    /* [in] */ IContext* newBase)
+{
+    if (mBase != NULL) {
+        //throw new IllegalStateException("Base context already set");
+        return E_INVALID_ARGUMENT;
+    }
+    mBase = newBase;
+
+    return NOERROR;
+}
+
+ECode CService::OnApplyThemeResource(
+    /* [in] */ ITheme* theme,
+    /* [in] */ Int32 resid,
+    /* [in] */ Boolean first)
+{
+    return theme->ApplyStyle(resid, TRUE);
+}
+
+ECode CService::InitializeTheme()
+{
+    Boolean first = mTheme == NULL;
+    if (first) {
+        AutoPtr<IResources> resources;
+        GetResources((IResources**)&resources);
+        resources->NewTheme((ITheme**)&mTheme);
+        AutoPtr<ITheme> theme;
+        mBase->GetTheme((ITheme**)&theme);
+        if (theme != NULL) {
+            mTheme->SetTo(theme);
+        }
+    }
+
+    return OnApplyThemeResource(mTheme, mThemeResource, first);
 }

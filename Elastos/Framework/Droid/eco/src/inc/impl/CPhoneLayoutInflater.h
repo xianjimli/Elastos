@@ -11,6 +11,10 @@ public:
     CARAPI constructor(
         /* [in] */ IContext* context);
 
+    CARAPI CloneInContext(
+        /* [in] */ IContext* newContext,
+        /* [out] */ ILayoutInflater** newInflater);
+
     CARAPI GetContext(
         /* [out] */ IContext** context);
 

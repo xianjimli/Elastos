@@ -3,12 +3,12 @@
 #define __OBSERVABLE_H__
 
 #include "ext/frameworkext.h"
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>
 #include <elastos/Set.h>
 #include <elastos/Mutex.h>
 
-using namespace Elastos::System::Threading;
+using namespace Elastos::Core::Threading;
 
 class Observable : public ElRefBase, public IObservable
 {

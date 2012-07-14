@@ -1,0 +1,8 @@
+
+module
+{
+    interface IContextWrapper;
+
+    interface IContextThemeWrapper extends IContextWrapper{
+    }
+}

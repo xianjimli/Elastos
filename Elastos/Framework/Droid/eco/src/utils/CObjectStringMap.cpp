@@ -1,6 +1,6 @@
 
 #include "utils/CObjectStringMap.h"
-#include "utils/CObjectContainer.h"
+#include "utils/CParcelableObjectContainer.h"
 
 CObjectStringMap::CObjectStringMap() :
     mMap(11)
@@ -12,7 +12,7 @@ CObjectStringMap::~CObjectStringMap()
 }
 
 ECode CObjectStringMap::Get(
-    /* [in] */ String key,
+    /* [in] */ const String& key,
     /* [out] */ IInterface** value)
 {
     VALIDATE_NOT_NULL(value);
@@ -29,12 +29,12 @@ ECode CObjectStringMap::Get(
 }
 
 ECode CObjectStringMap::Put(
-    /* [in] */ String key,
+    /* [in] */ const String& key,
     /* [in] */ IInterface* value)
 {
     if (key.IsNull() || key.IsEmpty() || value == NULL) return NOERROR;
 
-    mMap[String::Duplicate(key)] = value;
+    mMap[key] = value;
     return NOERROR;
 }
 
@@ -60,11 +60,11 @@ ECode CObjectStringMap::GetAllItems(
     }
 
     *keys = ArrayOf<String>::Alloc(size);
-    ASSERT_SUCCEEDED(CObjectContainer::New(values));
+    ASSERT_SUCCEEDED(CParcelableObjectContainer::New(values));
 
     HashMap<String, AutoPtr<IInterface> >::Iterator iter = mMap.Begin();
     for (Int32 i=0; iter!=mMap.End(); ++iter, ++i) {
-        (**keys)[i] = String::Duplicate(iter->mFirst);
+        (**keys)[i] = iter->mFirst;
         (*values)->Add(iter->mSecond);
     }
 

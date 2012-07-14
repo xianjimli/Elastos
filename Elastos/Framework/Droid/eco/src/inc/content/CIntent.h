@@ -80,13 +80,13 @@ public:
         /* [out] */ String* capsuleName);
 
     CARAPI SetCapsule(
-        /* [in] */ String capsuleName);
+        /* [in] */ const String& capsuleName);
 
     CARAPI GetAction(
         /* [out] */ String *pAction);
 
     CARAPI SetAction(
-        /* [in] */ String action);
+        /* [in] */ const String& action);
 
     CARAPI GetData(
         /* [out] */ IUri **pData);
@@ -104,17 +104,20 @@ public:
         /* [out] */ Int32* flags);
 
     CARAPI SetClassName(
-        /* [in] */ String capsuleName,
-        /* [in] */ String className);
+        /* [in] */ const String& capsuleName,
+        /* [in] */ const String& className);
 
     CARAPI GetScheme(
         /* [out] */ String* scheme);
 
+    CARAPI GetType(
+        /* [out] */ String* type);
+
     CARAPI AddCategory(
-        /* [in] */ String category);
+        /* [in] */ const String& category);
 
     CARAPI HasCategory(
-        /* [in] */ String category,
+        /* [in] */ const String& category,
         /* [out] */ Boolean* hasCategory);
 
     CARAPI GetCategories(
@@ -124,75 +127,75 @@ public:
         /* [out] */ Boolean* hasFD);
 
     CARAPI PutBooleanExtra(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ Boolean value);
 
     CARAPI GetBooleanExtra(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ Boolean *pValue);
 
     CARAPI PutByteExtra(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [in] */ Byte value);
 
     CARAPI GetByteExtra(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ Byte * pValue);
 
     CARAPI PutCharExtra(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [in] */ Char16 value);
 
     CARAPI GetCharExtra(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ Char16 * pValue);
 
     CARAPI PutInt16Extra(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [in] */ Int16 value);
 
     CARAPI GetInt16Extra(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ Int16 * pValue);
 
     CARAPI PutInt32Extra(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [in] */ Int32 value);
 
     CARAPI GetInt32Extra(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ Int32 *pValue);
 
     CARAPI PutInt64Extra(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [in] */ Int64 value);
 
     CARAPI GetInt64Extra(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ Int64 * pValue);
 
     CARAPI PutFloatExtra(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [in] */ Float value);
 
     CARAPI GetFloatExtra(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ Float * pValue);
 
     CARAPI PutDoubleExtra(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [in] */ Double value);
 
     CARAPI GetDoubleExtra(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ Double * pValue);
 
     CARAPI PutStringExtra(
-        /* [in] */ String name,
-        /* [in] */ String value);
+        /* [in] */ const String& name,
+        /* [in] */ const String& value);
 
     CARAPI GetStringExtra(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ String * pValue);
 
     CARAPI PutExtras(
@@ -202,15 +205,15 @@ public:
         /* [out] */ IBundle ** ppValue);
 
     CARAPI PutParcelableExtra(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [in] */ IParcelable* value);
 
     CARAPI GetParcelableExtra(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ IParcelable** value);
 
     CARAPI GetStringArrayExtra(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out, callee] */ ArrayOf<String>** array);
 
     CARAPI ResolveActivityInfo(
@@ -252,10 +255,10 @@ public:
         /* [in] */ Boolean all);
 
     CARAPI constructor(
-        /* [in] */ String action);
+        /* [in] */ const String& action);
 
     CARAPI constructor(
-        /* [in] */ String action,
+        /* [in] */ const String& action,
         /* [in] */ IUri* uri);
 
     CARAPI constructor(

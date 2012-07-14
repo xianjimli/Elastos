@@ -97,7 +97,7 @@ public:
      * package is already installed with the same name.
      * @hide
      */
-    static const Int32 INSTALL_FAILED_DUPLICATE_PACKAGE = -5;
+    static const Int32 INSTALL_FAILED_DUPLICATE_CAPSULE = -5;
 
     /**
      * Installation return code: this is passed to the {@link IPackageInstallObserver} by
@@ -321,6 +321,12 @@ public:
      * @hide
      */
     static const Int32 INSTALL_FAILED_INTERNAL_ERROR = -110;
+
+    /**
+     * Action to external storage service to clean out removed apps.
+     * @hide
+     */
+    static const char* ACTION_CLEAN_EXTERNAL_STORAGE;
 };
 
 #endif // __HH_CAPSULEMANAGER_H

@@ -15,7 +15,7 @@
 class BaseAdapter
 {
 protected:
-    BaseAdapter() {}
+    BaseAdapter();
 
 public: 
     virtual CARAPI NotifyDataSetChanged();

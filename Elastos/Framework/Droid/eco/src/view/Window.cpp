@@ -5,7 +5,7 @@
 #include <StringBuffer.h>
 #include <stdio.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 extern "C" const InterfaceID EIID_Window =
         {0xdddddddd,0xdddd,0xdddd,{0xdd,0xdd,0xdd,0xdd,0xdd,0xdd,0xdd,0xdd}};
@@ -58,8 +58,8 @@ ECode Window::LocalWindowManager::AddViewEx5(
 {
     // Let this throw an exception on a bad params.
     CWindowManagerLayoutParams* wp = (CWindowManagerLayoutParams*)params;
-    ArrayOf<Char8>* curTitle;
-    wp->GetTitle(&curTitle);
+    AutoPtr<ICharSequence> curTitle;
+    wp->GetTitle((ICharSequence**)&curTitle);
     if (wp->mType >= WindowManagerLayoutParams_FIRST_SUB_WINDOW &&
         wp->mType <= WindowManagerLayoutParams_LAST_SUB_WINDOW) {
         if (wp->mToken == NULL) {
@@ -69,7 +69,8 @@ ECode Window::LocalWindowManager::AddViewEx5(
                 decor->GetWindowToken((IBinder**)&(wp->mToken));
             }
         }
-        if (curTitle == NULL || (curTitle->GetLength() - 1) == 0) {
+        Int32 len;
+        if (curTitle == NULL || ((curTitle->GetLength(&len), len) - 1) == 0) {
             StringBuffer title;
             if (wp->mType == WindowManagerLayoutParams_TYPE_APPLICATION_MEDIA) {
                 title += "Media";
@@ -89,23 +90,22 @@ ECode Window::LocalWindowManager::AddViewEx5(
             if (!mWindow->mAppName.IsNull()) {
                 title = title + ":" + mWindow->mAppName;
             }
-            ArrayOf<Char8>* tl = ArrayOf<Char8>::Alloc(
-                    const_cast<char*>((const char*)title), title.GetLength());
-            wp->SetTitle(*tl);
-            ArrayOf<Char8>::Free(tl);
+            AutoPtr<ICharSequence> tl;
+            CStringWrapper::New(String(title), (ICharSequence**)&tl);
+            wp->SetTitle(tl);
         }
-    } else {
+    }
+    else {
         if (wp->mToken == NULL) {
             wp->mToken = mWindow->mContainer == NULL ?
                     mWindow->mAppToken : mWindow->mContainer->mAppToken;
         }
-        if ((curTitle == NULL || (curTitle->GetLength() - 1) == 0)
+        Int32 len;
+        if (curTitle == NULL || ((curTitle->GetLength(&len), len) - 1) == 0
                 && !mWindow->mAppName.IsNull()) {
-            ArrayOf<Char8>* tl = ArrayOf<Char8>::Alloc(
-                    const_cast<char*>((const char*)mWindow->mAppName),
-                    mWindow->mAppName.GetLength());
-            wp->SetTitle(*tl);
-            ArrayOf<Char8>::Free(tl);
+            AutoPtr<ICharSequence> tl;
+            CStringWrapper::New(mWindow->mAppName, (ICharSequence**)&tl);
+            wp->SetTitle(tl);
         }
     }
     if (wp->mCapsuleName.IsNull()) {
@@ -119,25 +119,31 @@ ECode Window::LocalWindowManager::UpdateViewLayout(
     /* [in] */ IView* view,
     /* [in] */ IViewGroupLayoutParams* params)
 {
-    return E_NOT_IMPLEMENTED;
+    return mWindowManager->UpdateViewLayout(view, params);
 }
 
 ECode Window::LocalWindowManager::RemoveView(
     /* [in] */ IView* view)
 {
-    return E_NOT_IMPLEMENTED;
+    return mWindowManager->RemoveView(view);
 }
 
 ECode Window::LocalWindowManager::RemoveViewImmediate(
     /* [in] */ IView* view)
 {
-    return E_NOT_IMPLEMENTED;
+    return mWindowManager->RemoveViewImmediate(view);
 }
 
 ECode Window::LocalWindowManager::GetDefaultDisplay(
     /* [out] */ IDisplay** display)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(display);
+    *display = mDefaultDisplay.Get();
+    if (*display) {
+        (*display)->AddRef();
+    }
+
+    return NOERROR;
 }
 
 Window::Window()
@@ -251,10 +257,10 @@ ECode Window::HasChildren(
 ECode Window::SetWindowManager(
     /* [in] */ IWindowManager* wm,
     /* [in] */ IBinder* appToken,
-    /* [in] */ String appName)
+    /* [in] */ const String& appName)
 {
     mAppToken = appToken;
-    mAppName = String::Duplicate(appName);
+    mAppName = appName;
     if (wm == NULL) {
         CWindowManagerImpl::AcquireSingleton((IWindowManager**)&wm);
     }

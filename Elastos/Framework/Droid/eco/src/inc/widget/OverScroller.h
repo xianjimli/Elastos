@@ -6,7 +6,7 @@
 #include <elastos/AutoPtr.h>
 #include <elastos/Math.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 /**
  * This class encapsulates scrolling with the ability to overshoot the bounds

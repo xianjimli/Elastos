@@ -67,11 +67,11 @@ public:
         /* [in] */ Int32* result);
 
     CARAPI GetVirtualKeyDefinitions(
-        /* [in] */ String deviceName,
+        /* [in] */ const String& deviceName,
         /* [out] */ ArrayOf<VirtualKeyDefinition>** result);
 
     CARAPI GetInputDeviceCalibration(
-        /* [in] */ String deviceName,
+        /* [in] */ const String& deviceName,
         /* [out] */ InputDeviceCalibration** result);
 
     CARAPI GetExcludedDeviceNames(

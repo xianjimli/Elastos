@@ -6,3 +6,4 @@ INCLUDES += $(MAKEDIR)/../../inc
 INCLUDES += ../../
 
 SOURCES = CDecelerateInterpolator.cpp
+SOURCES += AnimationUtils.cpp

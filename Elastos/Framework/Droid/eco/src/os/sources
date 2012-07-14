@@ -7,6 +7,8 @@ INCLUDES += $(MAKEDIR)/../inc
 INCLUDES += ../
 
 SOURCES = BatteryStatsImpl.cpp
+SOURCES += StorageResultCode.cpp
+SOURCES += ServiceManager.cpp
 SOURCES += SystemClock.cpp
 SOURCES += SystemProperties.cpp
 SOURCES += Process.cpp
@@ -22,6 +24,9 @@ SOURCES += Build.cpp
 SOURCES += Message.cpp
 SOURCES += MemoryFile.cpp
 SOURCES += Handler.cpp
+SOURCES += FileObserver.cpp
+SOURCES += FileUtils.cpp
+SOURCES += CVibrator.cpp
 
 ifeq "$(XDK_TARGET_CPU)" "arm"
 ifneq "$(XDK_COMPILER)" "gnu"

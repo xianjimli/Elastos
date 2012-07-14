@@ -1,0 +1,47 @@
+
+module
+{
+    [deprecated]
+    interface ISignature {
+        /**
+         * Encode the Signature as ASCII text.
+         */
+        ToChars(
+            [out, callee] ArrayOf<Char8>* text);
+
+        /**
+         * Encode the Signature as ASCII text in to an existing array.
+         *
+         * @param existingArray Existing char array or null.
+         * @param outLen Output parameter for the number of characters written in
+         * to the array.
+         * @return Returns either <var>existingArray</var> if it was large enough
+         * to hold the ASCII representation, or a newly created char[] array if
+         * needed.
+         */
+        ToCharsEx(
+            [in] ArrayOf<Char8>* existingArray,
+            [in] ArrayOf<Int32>* outLen,
+            [out, callee] ArrayOf<Char8>* text);
+
+        /**
+         * Return the result of {@link #toChars()} as a String.  This result is
+         * cached so future calls will return the same String.
+         */
+        ToCharsString(
+            [out] String* str);
+
+        /**
+         * @return the contents of this signature as a byte array.
+         */
+        ToByteArray(
+            [out, callee] ArrayOf<Byte>* bytes);
+
+        Equals(
+            [in] ISignature* obj,
+            [out] Boolean* isEqual);
+
+        GetHashCode(
+            [out] Int32* hashCode);
+    }
+}

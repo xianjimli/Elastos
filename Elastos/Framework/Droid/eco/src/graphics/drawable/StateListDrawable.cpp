@@ -1,29 +1,28 @@
 
 #include "graphics/drawable/StateListDrawable.h"
+#include "graphics/drawable/CStateListDrawable.h"
 
 const Boolean StateListDrawable::DEFAULT_DITHER;
 
 StateListDrawable::StateListDrawable()
 {
-    Init();
 }
 
-StateListDrawable::~StateListDrawable()
+StateListDrawable::StateListDrawable(
+    /* [in] */ StateListState* state,
+    /* [in] */ IResources* res)
 {
-    delete mStateListState;
+    Init(state, res);
 }
 
-PInterface StateListDrawable::Probe(
-    /* [in] */ REIID riid)
+ECode StateListDrawable::Init(
+    /* [in] */ StateListState* state,
+    /* [in] */ IResources* res)
 {
-    if (riid == EIID_IInterface) {
-        return (PInterface)this;
-    }
-    else if (riid == EIID_IStateListDrawable) {
-        return (IStateListDrawable*)this;
-    }
-
-    return NULL;
+    mStateListState = new StateListState(state, NULL, res);
+    SetConstantState(mStateListState);
+    OnStateChange(GetState());
+    return NOERROR;
 }
 
 /**
@@ -38,7 +37,7 @@ ECode StateListDrawable::AddState(
     /* [in] */ IDrawable* drawable)
 {
     if (drawable != NULL) {
-        mStateListState->AddStateSet(stateSet, drawable);
+        mStateListState->AddStateSet(&stateSet, drawable);
         // in case the new state matches our current state...
         OnStateChange(GetState());
     }
@@ -50,13 +49,14 @@ Boolean StateListDrawable::IsStateful()
 {
     return TRUE;
 }
-
+//#include <stdio.h>
 Boolean StateListDrawable::OnStateChange(
-    /* [in] */ ArrayOf<Int32>* stateSet)
+    /* [in] */ const ArrayOf<Int32>* stateSet)
 {
     Int32 idx = mStateListState->IndexOfStateSet(stateSet);
+    //printf("StateListDrawable::OnStateChange idx = %d\n", idx);
     if (idx < 0) {
-        idx = mStateListState->IndexOfStateSet((ArrayOf<Int32>*)StateSet::WILD_CARD);
+        idx = mStateListState->IndexOfStateSet(const_cast<ArrayOf<Int32>*>(StateSet::WILD_CARD));
     }
     if (SelectDrawable(idx)) {
         return TRUE;
@@ -64,40 +64,59 @@ Boolean StateListDrawable::OnStateChange(
     return DrawableContainer::OnStateChange(stateSet);
 }
 
+static Int32 R_Styleable_StateListDrawable[] = {
+    0x0101011c, 0x01010194, 0x01010195, 0x01010196
+};
+
 ECode StateListDrawable::Inflate(
     /* [in] */ IResources* r,
     /* [in] */ IXmlPullParser* parser,
     /* [in] */ IAttributeSet* attrs)
 {
+    AutoPtr<ITypedArray> a;
+    FAIL_RETURN(r->ObtainAttributes(attrs,
+            ArrayOf<Int32>(R_Styleable_StateListDrawable, sizeof(R_Styleable_StateListDrawable) / sizeof(Int32)),/*com.android.internal.R.styleable.StateListDrawable*/
+            (ITypedArray**)&a));
 
-    /*TypedArray a = r.obtainAttributes(attrs,
-            com.android.internal.R.styleable.StateListDrawable);
+    Drawable::InflateWithAttributes(r, parser, a,
+            1/*com.android.internal.R.styleable.StateListDrawable_visible*/);
 
-    super.inflateWithAttributes(r, parser, a,
-            com.android.internal.R.styleable.StateListDrawable_visible);
+    Boolean value;
+    a->GetBoolean(
+            2,/*com.android.internal.R.styleable.StateListDrawable_variablePadding*/
+            FALSE, &value);
+    mStateListState->SetVariablePadding(value);
+    a->GetBoolean(
+            3,/*com.android.internal.R.styleable.StateListDrawable_constantSize*/
+            FALSE, &value);
+    mStateListState->SetConstantSize(value);
+    a->GetBoolean(
+            0,/*com.android.internal.R.styleable.StateListDrawable_dither*/
+            DEFAULT_DITHER, &value);
+    SetDither(value);
+    a->Recycle();
 
-    mStateListState.setVariablePadding(a.getBoolean(
-            com.android.internal.R.styleable.StateListDrawable_variablePadding, FALSE));
-    mStateListState.setConstantSize(a.getBoolean(
-            com.android.internal.R.styleable.StateListDrawable_constantSize, FALSE));
+    Int32 innerDepth;
+    parser->GetDepth(&innerDepth);
+    innerDepth += 1;
+    Int32 type, depth;
+    FAIL_RETURN(parser->Next(&type));
+    FAIL_RETURN(parser->GetDepth(&depth));
+    while(type != IXmlPullParser_END_DOCUMENT &&
+            (depth >= innerDepth || type != IXmlPullParser_END_TAG)) {
 
-    setDither(a.getBoolean(com.android.internal.R.styleable.StateListDrawable_dither,
-                           DEFAULT_DITHER));
-
-    a.recycle();
-
-    Int32 type;
-
-    final Int32 innerDepth = parser.getDepth() + 1;
-    Int32 depth;
-    while ((type = parser.next()) != XmlPullParser.END_DOCUMENT
-            && ((depth = parser.getDepth()) >= innerDepth
-            || type != XmlPullParser.END_TAG)) {
-        if (type != XmlPullParser.START_TAG) {
+        if (type != IXmlPullParser_START_TAG) {
+            FAIL_RETURN(parser->Next(&type));
+            FAIL_RETURN(parser->GetDepth(&depth));
             continue;
         }
 
-        if (depth > innerDepth || !parser.getName().equals("item")) {
+        String name;
+        parser->GetName(&name);
+
+        if (depth > innerDepth || !name.Equals("item")) {
+            FAIL_RETURN(parser->Next(&type));
+            FAIL_RETURN(parser->GetDepth(&depth));
             continue;
         }
 
@@ -105,41 +124,62 @@ ECode StateListDrawable::Inflate(
 
         Int32 i;
         Int32 j = 0;
-        final Int32 numAttrs = attrs.getAttributeCount();
-        Int32[] states = new Int32[numAttrs];
+        Int32 numAttrs;
+        attrs->GetAttributeCount(&numAttrs);
+        ArrayOf<Int32>* states = ArrayOf<Int32>::Alloc(numAttrs);
         for (i = 0; i < numAttrs; i++) {
-            final Int32 stateResId = attrs.getAttributeNameResource(i);
+            Int32 stateResId;
+            attrs->GetAttributeNameResource(i, &stateResId);
             if (stateResId == 0) break;
-            if (stateResId == com.android.internal.R.attr.drawable) {
-                drawableRes = attrs.getAttributeResourceValue(i, 0);
-            } else {
-                states[j++] = attrs.getAttributeBooleanValue(i, FALSE)
-                        ? stateResId
-                        : -stateResId;
+            if (stateResId == 0x01010199/*com.android.internal.R.attr.drawable*/) {
+                attrs->GetAttributeResourceValueEx(i, 0, &drawableRes);
+            }
+            else {
+                Boolean value;
+                attrs->GetAttributeBooleanValueEx(i, FALSE, &value);
+                if (value) {
+                    (*states)[j++] = stateResId;
+                }
+                else {
+                    (*states)[j++] = -stateResId;
+                }
             }
         }
-        states = StateSet.trimStateSet(states, j);
+        ArrayOf<Int32>* temp = StateSet::TrimStateSet(states, j);
+        ArrayOf<Int32>::Free(states);
+        states = temp;
 
-        Drawable dr;
+        AutoPtr<IDrawable> dr;
         if (drawableRes != 0) {
-            dr = r.getDrawable(drawableRes);
-        } else {
-            while ((type = parser.next()) == XmlPullParser.TEXT) {
+            r->GetDrawable(drawableRes, (IDrawable**)&dr);
+            //printf("StateListDrawable::Inflate drawable = 0x%08x\n", dr.Get());
+        }
+        else {
+            FAIL_RETURN(parser->Next(&type));
+            while (type == IXmlPullParser_TEXT) {
+                FAIL_RETURN(parser->Next(&type));
             }
-            if (type != XmlPullParser.START_TAG) {
-                throw new XmlPullParserException(
-                        parser.getPositionDescription()
-                                + ": <item> tag requires a 'drawable' attribute or "
-                                + "child tag defining a drawable");
+            if (type != IXmlPullParser_START_TAG) {
+//                throw new XmlPullParserException(
+//                        parser.getPositionDescription()
+//                                + ": <item> tag requires a 'drawable' attribute or "
+//                                + "child tag defining a drawable");
+                return E_XML_PULL_PARSER_EXCEPTION;
             }
-            dr = Drawable.createFromXmlInner(r, parser, attrs);
+            Drawable::CreateFromXmlInner(r, parser, attrs, (IDrawable**)&dr);
         }
 
-        mStateListState.addStateSet(states, dr);
+        //TODO:
+        //
+        if (dr != NULL) {
+            mStateListState->AddStateSet(states, dr);
+        }
+
+        FAIL_RETURN(parser->Next(&type));
+        FAIL_RETURN(parser->GetDepth(&depth));
     }
 
-    onStateChange(getState());*/
-
+    OnStateChange(GetState());
     return NOERROR;
 }
 
@@ -228,12 +268,22 @@ AutoPtr<IDrawable> StateListDrawable::Mutate()
 
 StateListDrawable::StateListState::StateListState(
     /* [in] */ StateListState* orig,
-    /* [in] */ StateListDrawable* owner,
-    /* [in] */ IResources* res) : DrawableContainerState(orig, owner, res)
+    /* [in] */ IStateListDrawable* owner,
+    /* [in] */ IResources* res)
+    : DrawableContainerState(orig, owner, res)
+    , mStateSets(NULL)
 {
     if (orig != NULL) {
-        mStateSets = orig->mStateSets;
-    } else {
+        ArrayOf<ArrayOf<Int32>*>* origSS = orig->mStateSets;
+        if (origSS != NULL) {
+            Int32 N = origSS->GetLength();
+            mStateSets = ArrayOf<ArrayOf<Int32>*>::Alloc(N);
+            for (Int32 i = 0; i < N; i++) {
+                (*mStateSets)[i] = (*origSS)[i]->Clone();
+            }
+        }
+    }
+    else {
         mStateSets = ArrayOf<ArrayOf<Int32>*>::Alloc(GetChildren()->GetLength());
     }
 }
@@ -248,73 +298,53 @@ StateListDrawable::StateListState::~StateListState()
 }
 
 Int32 StateListDrawable::StateListState::AddStateSet(
-    /* [in] */ const ArrayOf<Int32>& stateSet,
+    /* [in] */ const ArrayOf<Int32>* stateSet,
     /* [in] */ IDrawable* drawable)
 {
     Int32 pos = AddChild(drawable);
-    (*mStateSets)[pos] = (ArrayOf<Int32>*)&stateSet;
+    (*mStateSets)[pos] = const_cast<ArrayOf<Int32>*>(stateSet);
     return pos;
 }
 
 Int32 StateListDrawable::StateListState::IndexOfStateSet(
-    /* [in] */ ArrayOf<Int32>* stateSet)
+    /* [in] */ const ArrayOf<Int32>* stateSet)
 {
-    ArrayOf<ArrayOf<Int32>*>* stateSets = mStateSets;
     Int32 N = GetChildCount();
     for (Int32 i = 0; i < N; i++) {
-        if (StateSet::StateSetMatches((*stateSets)[i], stateSet)) {
+        if (StateSet::StateSetMatches((*mStateSets)[i], stateSet)) {
             return i;
         }
     }
     return -1;
 }
 
+// IDrawableConstantState
+//
 ECode StateListDrawable::StateListState::NewDrawable(
     /* [out] */ IDrawable** drawable)
 {
-    //return CStateListDrawable::New((IStateListState*)this->Probe(EIID_IStateListState), NULL, drawable);
-    StateListDrawable* as = new StateListDrawable(this, NULL);
-    *drawable = (IDrawable*)as->Probe(EIID_IDrawable);
-
-    return NOERROR;
+    return CStateListDrawable::New((Handle32)this, NULL,
+        (IStateListDrawable**)drawable);
 }
 
 ECode StateListDrawable::StateListState::NewDrawableEx(
     /* [in] */ IResources* res,
     /* [out] */ IDrawable** drawable)
 {
-    //return CStateListDrawable::New((IStateListState*)this->Probe(EIID_IStateListState), res, drawable);
-    StateListDrawable* as = new StateListDrawable(this, res);
-    *drawable = (IDrawable*)as->Probe(EIID_IDrawable);
-
-    return NOERROR;
+    return CStateListDrawable::New((Handle32)this, res,
+        (IStateListDrawable**)drawable);
 }
 
-ECode StateListDrawable::StateListState::GrowArray(
+void StateListDrawable::StateListState::GrowArray(
     /* [in] */ Int32 oldSize,
     /* [in] */ Int32 newSize)
 {
     DrawableContainerState::GrowArray(oldSize, newSize);
     ArrayOf<ArrayOf<Int32>*>* newStateSets = ArrayOf<ArrayOf<Int32>*>::Alloc(newSize);
-    memcpy(newStateSets->GetPayload(), mStateSets->GetPayload(), oldSize * sizeof(ArrayOf<Int32>*));
+    for (Int32 i = 0; i < oldSize; i++) {
+        (*newStateSets)[i] = (*mStateSets)[i];
+    }
+    ArrayOf<ArrayOf<Int32>*>::Free(mStateSets);
     mStateSets = newStateSets;
-
-    return NOERROR;
 }
 
-StateListDrawable::StateListDrawable(
-    /* [in] */ StateListState* state,
-    /* [in] */ IResources* res)
-{
-    Init(state, res);
-}
-
-void StateListDrawable::Init(
-    /* [in] */ StateListState* state,
-    /* [in] */ IResources* res)
-{
-    StateListState* as = new StateListState(state, this, res);
-    mStateListState = as;
-    SetConstantState(as);
-    OnStateChange(GetState());
-}

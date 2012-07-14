@@ -2,9 +2,40 @@
 module
 {
     interface IBinder;
+    interface IUri;
+    interface IParcelFileDescriptor;
+    interface ICapsuleInfoLite;
+
+    interface IObbInfo {
+    }
 
     interface IMediaContainerService extends IBinder
     {
+        CopyResourceToContainer(
+            [in] IUri* capsuleURI,
+            [in] String containerId,
+            [in] String key,
+            [in] String resFileName,
+            [out] String* value);
+
+        CopyResource(
+            [in] IUri* capsuleURI,
+            [in] IParcelFileDescriptor* outStream,
+            [out] Boolean* isSucceeded);
+
+        GetMinimalCapsuleInfo(
+            [in] IUri* fileUri,
+            [in] Int32 flags,
+            [out] ICapsuleInfoLite** info);
+
+        CheckFreeStorage(
+            [in] Boolean external,
+            [in] IUri* fileUri,
+            [out] Boolean* isSucceeded);
+
+        GetObbInfo(
+            [in] String filename,
+            [out] IObbInfo** info);
     }
 }
 

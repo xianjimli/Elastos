@@ -31,7 +31,7 @@
         /* [in] */ IViewOnLongClickListener* l);                        \
                                                                         \
     CARAPI SetOnCreateContextMenuListener(                              \
-        /* [in] */ IViewOnCreateContextMenuListener* l);                \
+        /* [in] */ IOnCreateContextMenuListener* l);                    \
                                                                         \
     CARAPI PerformClick(                                                \
         /* [out] */ Boolean* result);                                   \
@@ -65,8 +65,9 @@
     CARAPI HasFocusable(                                                \
         /* [out] */ Boolean* hasFocusable);                             \
                                                                         \
-    CARAPI SendAccessibilityEvent(                                      \
-        /* [in] */ Int32 eventType);                                    \
+    CARAPI DispatchPopulateAccessibilityEvent(                          \
+        /* [in] */ IAccessibilityEvent* event,                          \
+        /* [out] */ Boolean* result);                                   \
                                                                         \
     CARAPI GetContentDescription(                                       \
         /* [out, callee] */ ArrayOf<Char8>** description);              \
@@ -504,10 +505,10 @@
         /* [out] */ IBinder** token);                                   \
                                                                         \
     CARAPI SaveHierarchyState(                                          \
-        /* [in, out] */ IObjectContainer* container);                   \
+        /* [in, out] */ IObjectIntegerMap* container);                  \
                                                                         \
     CARAPI RestoreHierarchyState(                                       \
-        /* [in] */ IObjectContainer* container);                        \
+        /* [in] */ IObjectIntegerMap* container);                       \
                                                                         \
     CARAPI GetDrawingTime(                                              \
         /* [out] */ Int64* time);                                       \
@@ -573,18 +574,6 @@
     CARAPI GetResources(                                                \
         /* [out] */ IResources** resources);                            \
                                                                         \
-    CARAPI InvalidateDrawable(                                          \
-        /* [in] */ IDrawable* drawable);                                \
-                                                                        \
-    CARAPI ScheduleDrawable(                                            \
-        /* [in] */ IDrawable* who,                                      \
-        /* [in] */ IRunnable* what,                                     \
-        /* [in] */ Int64 when);                                         \
-                                                                        \
-    CARAPI UnscheduleDrawable(                                          \
-        /* [in] */ IDrawable* who,                                      \
-        /* [in] */ IRunnable* what);                                    \
-                                                                        \
     CARAPI UnscheduleDrawableEx(                                        \
         /* [in] */ IDrawable* who);                                     \
                                                                         \
@@ -647,6 +636,9 @@
     CARAPI SetId(                                                       \
         /* [in] */ Int32 id);                                           \
                                                                         \
+    CARAPI GetId(                                                       \
+        /* [out] */ Int32* id);                                         \
+                                                                        \
     CARAPI IsRootNamespace(                                             \
         /* [out] */ Boolean* result);                                   \
                                                                         \
@@ -684,7 +676,7 @@
         /* [out] */ Boolean* result);                                   \
                                                                         \
     CARAPI OnCloseSystemDialogs(                                        \
-        /* [in] */ String reason);                                      \
+        /* [in] */ const String& reason);                                      \
                                                                         \
     CARAPI ApplyDrawableToTransparentRegion(                            \
         /* [in] */ IDrawable* dr,                                       \
@@ -765,7 +757,7 @@ ECode className::SetOnLongClickListener(                                \
 }                                                                       \
                                                                         \
 ECode className::SetOnCreateContextMenuListener(                        \
-    /* [in] */ IViewOnCreateContextMenuListener* l)                     \
+    /* [in] */ IOnCreateContextMenuListener* l)                         \
 {                                                                       \
     return superClass::SetOnCreateContextMenuListener(l);               \
 }                                                                       \
@@ -853,10 +845,14 @@ ECode className::HasFocusable(                                          \
     return NOERROR;                                                     \
 }                                                                       \
                                                                         \
-ECode className::SendAccessibilityEvent(                                \
-    /* [in] */ Int32 eventType)                                         \
+ECode className::DispatchPopulateAccessibilityEvent(                    \
+    /* [in] */ IAccessibilityEvent* event,                              \
+    /* [out] */ Boolean* result)                                        \
 {                                                                       \
-    return superClass::SendAccessibilityEvent(eventType);               \
+    VALIDATE_NOT_NULL(result);                                          \
+    *result = superClass::DispatchPopulateAccessibilityEvent(event);    \
+                                                                        \
+    return NOERROR;                                                     \
 }                                                                       \
                                                                         \
 ECode className::GetContentDescription(                                 \
@@ -1937,17 +1933,15 @@ ECode className::GetApplicationWindowToken(                             \
 }                                                                       \
                                                                         \
 ECode className::SaveHierarchyState(                                    \
-    /* [in, out] */ IObjectContainer* container)                        \
+    /* [in, out] */ IObjectIntegerMap* container)                       \
 {                                                                       \
-    /*return superClass::SaveHierarchyState(container);*/               \
-    return E_NOT_IMPLEMENTED;                                           \
+    return superClass::SaveHierarchyState(container);                   \
 }                                                                       \
                                                                         \
 ECode className::RestoreHierarchyState(                                 \
-    /* [in] */ IObjectContainer* container)                             \
+    /* [in] */ IObjectIntegerMap* container)                            \
 {                                                                       \
-    /*return superClass::RestoreHierarchyState(container);*/            \
-    return E_NOT_IMPLEMENTED;                                           \
+    return superClass::RestoreHierarchyState(container);                \
 }                                                                       \
                                                                         \
 ECode className::GetDrawingTime(                                        \
@@ -2116,27 +2110,6 @@ ECode className::GetResources(                                          \
     return NOERROR;                                                     \
 }                                                                       \
                                                                         \
-ECode className::InvalidateDrawable(                                    \
-    /* [in] */ IDrawable* drawable)                                     \
-{                                                                       \
-    return superClass::InvalidateDrawable(drawable);                    \
-}                                                                       \
-                                                                        \
-ECode className::ScheduleDrawable(                                      \
-    /* [in] */ IDrawable* who,                                          \
-    /* [in] */ IRunnable* what,                                         \
-    /* [in] */ Int64 when)                                              \
-{                                                                       \
-    return superClass::ScheduleDrawable(who, what, when);               \
-}                                                                       \
-                                                                        \
-ECode className::UnscheduleDrawable(                                    \
-    /* [in] */ IDrawable* who,                                          \
-    /* [in] */ IRunnable* what)                                         \
-{                                                                       \
-    return superClass::UnscheduleDrawable(who, what);                   \
-}                                                                       \
-                                                                        \
 ECode className::UnscheduleDrawableEx(                                  \
     /* [in] */ IDrawable* who)                                          \
 {                                                                       \
@@ -2296,6 +2269,15 @@ ECode className::SetId(                                                 \
     return superClass::SetId(id);                                       \
 }                                                                       \
                                                                         \
+ECode className::GetId(                                                 \
+    /* [out] */ Int32* id)                                              \
+{                                                                       \
+    VALIDATE_NOT_NULL(id);                                              \
+                                                                        \
+    *id = superClass::GetId();                                          \
+    return NOERROR;                                                     \
+}                                                                       \
+                                                                        \
 ECode className::IsRootNamespace(                                       \
     /* [out] */ Boolean* result)                                        \
 {                                                                       \
@@ -2379,7 +2361,7 @@ ECode className::PerformHapticFeedbackEx(                               \
 }                                                                       \
                                                                         \
 ECode className::OnCloseSystemDialogs(                                  \
-    /* [in] */ String reason)                                           \
+    /* [in] */ const String& reason)                                           \
 {                                                                       \
     return superClass::OnCloseSystemDialogs(reason);                    \
 }                                                                       \
@@ -2673,30 +2655,30 @@ ECode className::OffsetDescendantRectToMyCoords(                        \
     /* [in] */ IView* descendant,                                       \
     /* [in] */ IRect* rect)                                             \
 {                                                                       \
-    return E_NOT_IMPLEMENTED;                                           \
+    return superClass::OffsetDescendantRectToMyCoords(descendant, rect);\
 }                                                                       \
                                                                         \
 ECode className::OffsetRectIntoDescendantCoords(                        \
     /* [in] */ IView* descendant,                                       \
     /* [in] */ IRect* rect)                                             \
 {                                                                       \
-    return E_NOT_IMPLEMENTED;                                           \
+    return superClass::OffsetRectIntoDescendantCoords(descendant, rect);\
 }                                                                       \
                                                                         \
 ECode className::OffsetChildrenTopAndBottom(                            \
     /* [in] */ Int32 offset)                                            \
 {                                                                       \
-    return E_NOT_IMPLEMENTED;                                           \
+    return superClass::OffsetChildrenTopAndBottom(offset);              \
 }                                                                       \
                                                                         \
 ECode className::StartLayoutAnimation()                                 \
 {                                                                       \
-    return E_NOT_IMPLEMENTED;                                           \
+    return superClass::StartLayoutAnimation();                          \
 }                                                                       \
                                                                         \
 ECode className::ScheduleLayoutAnimation()                              \
 {                                                                       \
-    return E_NOT_IMPLEMENTED;                                           \
+    return superClass::ScheduleLayoutAnimation();                       \
 }                                                                       \
                                                                         \
 ECode className::SetLayoutAnimation(                                    \
@@ -2719,37 +2701,46 @@ ECode className::GetLayoutAnimation(                                    \
 ECode className::IsAnimationCacheEnabled(                               \
     /* [out] */ Boolean* enabled)                                       \
 {                                                                       \
-    return E_NOT_IMPLEMENTED;                                           \
+    VALIDATE_NOT_NULL(enabled);                                         \
+    *enabled = superClass::IsAnimationCacheEnabled();                   \
+                                                                        \
+    return NOERROR;                                                     \
 }                                                                       \
                                                                         \
 ECode className::SetAnimationCacheEnabled(                              \
     /* [in] */ Boolean enabled)                                         \
 {                                                                       \
-    return E_NOT_IMPLEMENTED;                                           \
+    return superClass::SetAnimationCacheEnabled(enabled);               \
 }                                                                       \
                                                                         \
 ECode className::IsAlwaysDrawnWithCacheEnabled(                         \
     /* [out] */ Boolean* always)                                        \
 {                                                                       \
-    return E_NOT_IMPLEMENTED;                                           \
+    VALIDATE_NOT_NULL(always);                                          \
+    *always = superClass::IsAlwaysDrawnWithCacheEnabled();              \
+                                                                        \
+    return NOERROR;                                                     \
 }                                                                       \
                                                                         \
 ECode className::SetAlwaysDrawnWithCacheEnabled(                        \
     /* [in] */ Boolean always)                                          \
 {                                                                       \
-    return E_NOT_IMPLEMENTED;                                           \
+    return superClass::SetAlwaysDrawnWithCacheEnabled(always);          \
 }                                                                       \
                                                                         \
 ECode className::GetPersistentDrawingCache(                             \
     /* [out] */ Int32* drawingCacheToKeep)                              \
 {                                                                       \
-    return E_NOT_IMPLEMENTED;                                           \
+    VALIDATE_NOT_NULL(drawingCacheToKeep);                              \
+    *drawingCacheToKeep = superClass::GetPersistentDrawingCache();      \
+                                                                        \
+    return NOERROR;                                                     \
 }                                                                       \
                                                                         \
 ECode className::SetPersistentDrawingCache(                             \
     /* [in] */ Int32 drawingCacheToKeep)                                \
 {                                                                       \
-    return E_NOT_IMPLEMENTED;                                           \
+    return superClass::IsAnimationCacheEnabled();                                           \
 }                                                                       \
                                                                         \
 ECode className::GenerateLayoutParams(                                  \
@@ -2805,7 +2796,7 @@ ECode className::GetChildAt(                                            \
                                                                         \
 ECode className::ClearDisappearingChildren()                            \
 {                                                                       \
-    return E_NOT_IMPLEMENTED;                                           \
+    return superClass::ClearDisappearingChildren();                     \
 }                                                                       \
                                                                         \
 ECode className::GetLayoutAnimationListener(                            \
@@ -2822,13 +2813,16 @@ ECode className::GetLayoutAnimationListener(                            \
 ECode className::SetAddStatesFromChildren(                              \
     /* [in] */ Boolean addsStates)                                      \
 {                                                                       \
-    return E_NOT_IMPLEMENTED;                                           \
+    return superClass::SetAddStatesFromChildren(addsStates);            \
 }                                                                       \
                                                                         \
 ECode className::AddStatesFromChildren(                                 \
     /* [out] */ Boolean* drawable)                                      \
 {                                                                       \
-    return E_NOT_IMPLEMENTED;                                           \
+    VALIDATE_NOT_NULL(drawable);                                        \
+    *drawable = superClass::AddStatesFromChildren();                    \
+                                                                        \
+    return NOERROR;                                                     \
 }                                                                       \
                                                                         \
 ECode className::SetLayoutAnimationListener(                            \
@@ -3074,6 +3068,41 @@ ECode className::RemoveView(                                            \
     return superClass::RemoveView(view);                                \
 }
 
+#define IDrawableCallback_METHODS_DECL()                                \
+    CARAPI InvalidateDrawable(                                          \
+        /* [in] */ IDrawable* drawable);                                \
+                                                                        \
+    CARAPI ScheduleDrawable(                                            \
+        /* [in] */ IDrawable* who,                                      \
+        /* [in] */ IRunnable* what,                                     \
+        /* [in] */ Int64 when);                                         \
+                                                                        \
+    CARAPI UnscheduleDrawable(                                          \
+        /* [in] */ IDrawable* who,                                      \
+        /* [in] */ IRunnable* what);
+
+#define IDrawableCallback_METHODS_IMPL(className, superClass, overRideClass) \
+ECode className::InvalidateDrawable(                                    \
+    /* [in] */ IDrawable* drawable)                                     \
+{                                                                       \
+    return superClass::InvalidateDrawable(drawable);                    \
+}                                                                       \
+                                                                        \
+ECode className::ScheduleDrawable(                                      \
+    /* [in] */ IDrawable* who,                                          \
+    /* [in] */ IRunnable* what,                                         \
+    /* [in] */ Int64 when)                                              \
+{                                                                       \
+    return superClass::ScheduleDrawable(who, what, when);               \
+}                                                                       \
+                                                                        \
+ECode className::UnscheduleDrawable(                                    \
+    /* [in] */ IDrawable* who,                                          \
+    /* [in] */ IRunnable* what)                                         \
+{                                                                       \
+    return superClass::UnscheduleDrawable(who, what);                   \
+}
+
 #define IKeyEventCallback_METHODS_DECL()                                \
     CARAPI OnKeyDown(                                                   \
         /* [in] */ Int32 keyCode,                                       \
@@ -3140,6 +3169,26 @@ ECode className::OnKeyMultiple(                                         \
     *result = superClass::OnKeyMultiple(keyCode, repeatCount, event);   \
                                                                         \
     return NOERROR;                                                     \
+}
+
+#define IAccessibilityEventSource_METHODS_DECL()                        \
+    CARAPI SendAccessibilityEvent(                                      \
+        /* [in] */ Int32 eventType);                                    \
+                                                                        \
+    CARAPI SendAccessibilityEventUnchecked(                             \
+        /* [in] */ IAccessibilityEvent* event);
+
+#define IAccessibilityEventSource_METHODS_IMPL(className, superClass, overRideClass) \
+ECode className::SendAccessibilityEvent(                                \
+    /* [in] */ Int32 eventType)                                         \
+{                                                                       \
+    return superClass::SendAccessibilityEvent(eventType);               \
+}                                                                       \
+                                                                        \
+ECode className::SendAccessibilityEventUnchecked(                       \
+    /* [in] */ IAccessibilityEvent* event)                              \
+{                                                                       \
+    return superClass::SendAccessibilityEventUnchecked(event);          \
 }
 
 #endif  //__VIEWMACRO_H__

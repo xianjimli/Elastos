@@ -70,7 +70,7 @@ ECode CNinePatch::GetTransparentRegion(
 ECode CNinePatch::constructor(
     /* [in] */ IBitmap* bitmap,
     /* [in] */ const ArrayOf<Byte> & chunk,
-    /* [in] */ String srcName)
+    /* [in] */ const String& srcName)
 {
     return NinePatch::constructor(bitmap, chunk, srcName);
 }
@@ -79,8 +79,8 @@ ECode CNinePatch::constructor(
     /* [in] */ INinePatch* patch)
 {
     VALIDATE_NOT_NULL(patch);
-    AutoPtr<CNinePatch> cpatch = (CNinePatch*)patch;
-    return NinePatch::constructor((NinePatch*)cpatch.Get());
+    CNinePatch* cpatch = (CNinePatch*)patch;
+    return NinePatch::constructor((NinePatch*)cpatch);
 }
 
 

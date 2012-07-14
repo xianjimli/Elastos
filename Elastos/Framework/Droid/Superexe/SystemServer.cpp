@@ -20,13 +20,13 @@ ECode SystemServer::Init()
     Elastos::GetServiceManager((IServiceManager**)&serviceManager);
 
     CCapsuleManagerService::New((ICapsuleManager**)&capsuleManager);
-    ec = serviceManager->AddService("capsule", capsuleManager.Get());
+    ec = serviceManager->AddService(String("capsule"), capsuleManager.Get());
     if (FAILED(ec)) return ec;
 
     CWindowManagerService::New((IWindowManagerEx**)&windowManager);
-    ec = serviceManager->AddService("window", windowManager.Get());
+    ec = serviceManager->AddService(String("window"), windowManager.Get());
     if (FAILED(ec)) return ec;
 
     CActivityManagerService::New(windowManager.Get(), (IActivityManager**)&activityManagerService);
-    return serviceManager->AddService("ActivityManagerService", activityManagerService.Get());
+    return serviceManager->AddService(String("ActivityManagerService"), activityManagerService.Get());
 }

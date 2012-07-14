@@ -71,7 +71,7 @@ void RelocateModuleInfo(
 }
 
 CIModuleInfo* AcquireModuleInfo(
-    /* [in] */ String moduleName)
+    /* [in] */ const String& moduleName)
 {
     CIModuleInfo* moduleInfoSrc;
     CIModuleInfo* moduleInfoDest;

@@ -3,13 +3,12 @@
 #include "graphics/CRect.h"
 #include "view/View.h"
 #include "view/ViewGroup.h"
-#include "utils/CObjectContainer.h"
 #include <elastos/Math.h>
 #include <Logger.h>
 
 using namespace Elastos::Utility;
 using namespace Elastos::Utility::Logging;
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 pthread_key_t FocusFinder::sKeyFocusFinder;
 
@@ -126,7 +125,7 @@ AutoPtr<IView> FocusFinder::FindNextFocus(
     /* [in] */ IRect* focusedRect,
     /* [in] */ Int32 direction)
 {
-    AutoPtr<CObjectContainer> focusables;
+    AutoPtr<IObjectContainer> focusables;
     root->GetFocusables(direction, (IObjectContainer**)&focusables);
 
     // initialize the best candidate to something impossible
@@ -156,9 +155,15 @@ AutoPtr<IView> FocusFinder::FindNextFocus(
 
     AutoPtr<IView> closest;
 
-    ObjectNode *pNode;
-    ForEachDLinkNode(ObjectNode*, pNode, &focusables->mHead) {
-        IView* focusable = (IView*)pNode->mObject->Probe(EIID_IView);
+    AutoPtr<IObjectEnumerator> objEmu;
+    focusables->GetObjectEnumerator((IObjectEnumerator**)&objEmu);
+
+    Boolean isSucceeded;
+    objEmu->MoveNext(&isSucceeded);
+    while (isSucceeded) {
+        AutoPtr<IInterface> obj;
+        objEmu->Current((IInterface**)&obj);
+        IView* focusable = (IView*)obj->Probe(EIID_IView);
 
         // only interested in other non-root views
         if (focusable == focused
@@ -173,6 +178,8 @@ AutoPtr<IView> FocusFinder::FindNextFocus(
             mBestCandidateRect->SetEx(mOtherRect);
             closest = focusable;
         }
+
+        objEmu->MoveNext(&isSucceeded);
     }
 
     return closest;
@@ -520,7 +527,7 @@ AutoPtr<IView> FocusFinder::FindNearestTouchable(
     /* [in] */ Int32 direction,
     /* [in] */ Int32* deltas)
 {
-    AutoPtr<CObjectContainer> touchables;
+    AutoPtr<IObjectContainer> touchables;
     root->GetTouchables((IObjectContainer**)&touchables);
 
     Int32 minDistance = Math::INT32_MAX_VALUE;
@@ -537,9 +544,15 @@ AutoPtr<IView> FocusFinder::FindNearestTouchable(
 
     AutoPtr<IView> closest;
 
-    ObjectNode *pNode;
-    ForEachDLinkNode(ObjectNode*, pNode, &touchables->mHead) {
-        IView* touchable = (IView*)pNode->mObject->Probe(EIID_IView);
+    AutoPtr<IObjectEnumerator> objEmu;
+    touchables->GetObjectEnumerator((IObjectEnumerator**)&objEmu);
+
+    Boolean isSucceeded;
+    objEmu->MoveNext(&isSucceeded);
+    while (isSucceeded) {
+        AutoPtr<IInterface> obj;
+        objEmu->Current((IInterface**)&obj);
+        IView* touchable = (IView*)obj->Probe(EIID_IView);
 
         // get visible bounds of other view in same coordinate system
         touchable->GetDrawingRect((IRect*)touchableBounds);
@@ -593,6 +606,8 @@ AutoPtr<IView> FocusFinder::FindNearestTouchable(
                 }
             }
         }
+
+        objEmu->MoveNext(&isSucceeded);
     }
 
     return closest;

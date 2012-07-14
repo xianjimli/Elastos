@@ -3,18 +3,13 @@
 //==========================================================================
 
 #include "os/CCallbackContextEx.h"
-//#include "CCallbackParcel.h"
+#include "os/SystemClock.h"
 #include <pthread.h>
-#include <time.h>
 #include <errno.h>
 #include <unistd.h>
 
 #define MillisecPerSec 1000
 #define MicrosecPerSec 1000000
-
-#define NanoSecPerMicrosec 1000
-#define NanoSecPerMilliSec 1000000
-#define NanoSecPerSec 1000000000
 
 #define ForEachDLinkNode(t, p, h) \
         for (p = (t)((h)->m_pNext); p != (t)h; p = (t)(p->m_pNext))
@@ -101,13 +96,7 @@ PCallbackEvent CCallbackContextEx::PopEvent()
     return pCallbackEvent;
 }
 
-Boolean CCallbackContextEx::IsExistEvent(PCallbackEvent pEvent)
-{
-    return IsExistEvent(pEvent->m_pSender, pEvent->m_id,
-                            pEvent->m_pHandlerThis, pEvent->m_pHandlerFunc);
-}
-
-Boolean CCallbackContextEx::IsExistEvent(
+Boolean CCallbackContextEx::HasCallbackEvent(
     PInterface pSender,
     CallbackEventId id,
     PVoid pHandlerThis,
@@ -115,13 +104,11 @@ Boolean CCallbackContextEx::IsExistEvent(
 {
     PCallbackEvent pCurtEvent;
     pthread_mutex_lock(&m_queueLock);
-    ForEachDLinkNode(PCallbackEvent, pCurtEvent, &m_currentEvents) {
-        if ( (pSender == pCurtEvent->m_pSender || pSender == (PInterface)-1)
-            && (id == pCurtEvent->m_id || id == (CallbackEventId)-1)
-            && (pHandlerThis == pCurtEvent->m_pHandlerThis
-                                               || pHandlerThis == (PVoid)-1)
-            && (pHandlerFunc == pCurtEvent->m_pHandlerFunc
-                                               || pHandlerFunc == (PVoid)-1) ) {
+    ForEachDLinkNode(PCallbackEvent, pCurtEvent, &m_eventQueue) {
+        if ((pSender == NULL || pSender == pCurtEvent->m_pSender)
+            && (id == (CallbackEventId)0 || id == pCurtEvent->m_id)
+            && (pHandlerThis == (PVoid)NULL || pHandlerThis == pCurtEvent->m_pHandlerThis)
+            && (pHandlerFunc == (PVoid)NULL || pHandlerFunc == pCurtEvent->m_pHandlerFunc)) {
             pthread_mutex_unlock(&m_queueLock);
             return TRUE;
         }
@@ -242,16 +229,10 @@ ECode CCallbackContextEx::SendCallbackEvent(
     PInterface _pOrgCallbackContext_;
     Boolean bCancelled = FALSE;
     struct timespec ts;
-    struct timeval  tp;
 
     if (INFINITE != timeOut) {
-        long long temp1, temp2;
-        gettimeofday(&tp, NULL);
-        ts.tv_sec  = tp.tv_sec;
-        temp1 = (long long)tp.tv_usec * NanoSecPerMicrosec;
-        temp2 = (long long)timeOut * NanoSecPerMilliSec;
-        ts.tv_nsec = (long)((temp1 + temp2) % NanoSecPerSec);
-        ts.tv_sec += (long)((temp1 + temp2) / NanoSecPerSec);
+        ts.tv_sec = ts.tv_nsec = 0;
+        clock_gettime(CLOCK_MONOTONIC, &ts);
     }
 
     _pOrgCallbackContext_ = (PInterface)pthread_getspecific(TL_ORG_CALLBACK_SLOT);
@@ -341,7 +322,7 @@ ECode CCallbackContextEx::RequestToFinish(Int32 flag)
     return NOERROR;
 }
 
-ECode CCallbackContextEx::CancelAllPendingCallbacks(
+ECode CCallbackContextEx::CancelAllCallbackEvents(
     PInterface pSender)
 {
     register PCallbackEvent pCBEvent;
@@ -349,7 +330,7 @@ ECode CCallbackContextEx::CancelAllPendingCallbacks(
 
     pthread_mutex_lock(&m_queueLock);
     ForEachDLinkNode(PCallbackEvent, pCBEvent, &m_eventQueue) {
-        if (pCBEvent->m_pSender == pSender) {
+        if (pSender == NULL || pCBEvent->m_pSender == pSender) {
             pCancelingCBEvent = pCBEvent;
             pCBEvent = (PCallbackEvent)pCancelingCBEvent->Prev();
             pCancelingCBEvent->Detach();
@@ -363,35 +344,6 @@ ECode CCallbackContextEx::CancelAllPendingCallbacks(
     }
 
     pthread_mutex_unlock(&m_queueLock);
-
-    return NOERROR;
-}
-
-ECode CCallbackContextEx::CancelPendingCallback(
-    PInterface pSender,
-    CallbackEventId id)
-{
-    register PCallbackEvent pCBEvent;
-    PCallbackEvent pCancelingCBEvent;
-
-    pthread_mutex_lock(&m_queueLock);
-    ForEachDLinkNode(PCallbackEvent, pCBEvent, &m_eventQueue) {
-        if (pCBEvent->m_pSender == pSender
-            && pCBEvent->m_id == id) {
-            pCancelingCBEvent = pCBEvent;
-            pCBEvent = (PCallbackEvent)pCancelingCBEvent->Prev();
-            pCancelingCBEvent->Detach();
-            --m_nEventsCount;
-
-            pCancelingCBEvent->m_Status = CallingStatus_Cancelled;
-            pCancelingCBEvent->m_bCompleted = TRUE;
-            sem_post(&pCancelingCBEvent->m_pSyncEvent);
-            pCancelingCBEvent->Release();
-        }
-    }
-
-    pthread_mutex_unlock(&m_queueLock);
-
     return NOERROR;
 }
 
@@ -406,10 +358,10 @@ ECode CCallbackContextEx::CancelCallbackEvents(
 
     pthread_mutex_lock(&m_queueLock);
     ForEachDLinkNode(PCallbackEvent, pCBEvent, &m_eventQueue) {
-        if (pCBEvent->m_pSender == pSender
-            && pCBEvent->m_id == id
-            && pCBEvent->m_pHandlerThis == pHandlerThis
-            && pCBEvent->m_pHandlerFunc == pHandlerFunc) {
+        if ((pSender == NULL || pSender == pCBEvent->m_pSender)
+            && (id == (CallbackEventId)0 || id == pCBEvent->m_id)
+            && (pHandlerThis == NULL || pHandlerThis == pCBEvent->m_pHandlerThis)
+            && (pHandlerFunc == NULL || pHandlerFunc == pCBEvent->m_pHandlerFunc)) {
             pCancelingCBEvent = pCBEvent;
             pCBEvent = (PCallbackEvent)pCancelingCBEvent->Prev();
             pCancelingCBEvent->Detach();
@@ -421,66 +373,6 @@ ECode CCallbackContextEx::CancelCallbackEvents(
             pCancelingCBEvent->Release();
         }
     }
-    if (!IsExistEvent(pSender, id, pHandlerThis, pHandlerFunc)) {
-        pthread_mutex_unlock(&m_queueLock);
-        return NOERROR;
-    }
-    pthread_mutex_unlock(&m_queueLock);
-
-    // 'm_workingLock' be used waiting for msg loop idled
-    if (!pthread_mutex_trylock(&m_workingLock)) {
-        pthread_mutex_unlock(&m_workingLock);
-    }
-    else {
-        return E_CALLBACK_IS_BUSY;
-    }
-
-    return NOERROR;
-}
-
-void CCallbackContextEx::CancelAllCallbackEvents()
-{
-    pthread_mutex_lock(&m_queueLock);
-    while (!m_eventQueue.IsEmpty()) {
-        PCallbackEvent pCallbackEvent = (PCallbackEvent)m_eventQueue.First();
-
-        pCallbackEvent->Detach();
-        --m_nEventsCount;
-
-        pCallbackEvent->m_Status = CallingStatus_Cancelled;
-        pCallbackEvent->m_bCompleted = TRUE;
-        sem_post(&pCallbackEvent->m_pSyncEvent);
-        pCallbackEvent->Release();
-
-    }
-
-    pthread_mutex_unlock(&m_queueLock);
-
-}
-
-ECode CCallbackContextEx::RemoveCppCallbacks(
-    CallbackEventFlags cFlags,
-    PVoid sender,
-    PVoid func)
-{
-    pthread_mutex_lock(&m_queueLock);
-    while (!m_eventQueue.IsEmpty()) {
-        PCallbackEvent pCallbackEvent = (PCallbackEvent)m_eventQueue.First();
-
-        void* pParam = &pCallbackEvent->m_pParameters;
-        Int32 nSize = pCallbackEvent->m_pParameters == NULL
-                        ? 0 : sizeof(pCallbackEvent->m_pParameters);
-        int res = invokeCallback(cFlags, NULL, sender, func, pParam, nSize);
-        if (res) {
-            pCallbackEvent->Detach();
-            --m_nEventsCount;
-
-            pCallbackEvent->m_Status = CallingStatus_Cancelled;
-            pCallbackEvent->m_bCompleted = TRUE;
-            sem_post(&pCallbackEvent->m_pSyncEvent);
-            pCallbackEvent->Release();
-        }
-    }
 
     pthread_mutex_unlock(&m_queueLock);
     return NOERROR;
@@ -488,11 +380,7 @@ ECode CCallbackContextEx::RemoveCppCallbacks(
 
 PCallbackEvent CCallbackContextEx::GetEvent(Flags32 fPriority)
 {
-    struct timeval  tp;
-    long long now;
-    gettimeofday(&tp, NULL);
-    now = (long long)tp.tv_sec * MillisecPerSec;
-    now += (long long)tp.tv_usec / (MicrosecPerSec / MillisecPerSec);
+    Int64 now = SystemClock::GetUptimeMillis();
 
     PCallbackEvent pCallbackEvent = m_eventQueue.First();
     if (fPriority) {
@@ -539,7 +427,6 @@ Int32 CCallbackContextEx::HandleCallbackEvents(
     IObject* pClientObj = NULL;
     PVoid pLock = NULL;
     struct timespec ts;
-    struct timeval  tp;
 
     Millisecond32 msBegPoint = clock();
     Millisecond32 msLapsedTime = 0;
@@ -550,13 +437,8 @@ Int32 CCallbackContextEx::HandleCallbackEvents(
     pthread_setspecific(TL_CALLBACK_SLOT, (PInterface)this);
 
     if (INFINITE != msTimeOut) {
-        long long temp1, temp2;
-        gettimeofday(&tp, NULL);
-        ts.tv_sec  = tp.tv_sec;
-        temp1 = (long long)tp.tv_usec * NanoSecPerMicrosec;
-        temp2 = (long long)(msTimeOut - msLapsedTime) * NanoSecPerMilliSec;
-        ts.tv_nsec = (long)((temp1 + temp2) % NanoSecPerSec);
-        ts.tv_sec += (long)((temp1 + temp2) / NanoSecPerSec);
+        ts.tv_sec = ts.tv_nsec = 0;
+        clock_gettime(CLOCK_MONOTONIC, &ts);
     }
 
     while (TRUE) {

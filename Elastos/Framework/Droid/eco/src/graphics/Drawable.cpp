@@ -9,10 +9,10 @@
 #include "graphics/CColorDrawable.h"
 #include "graphics/NinePatch.h"
 #include "graphics/drawable/CNinePatchDrawable.h"
+#include "graphics/drawable/CStateListDrawable.h"
 #include "utils/StateSet.h"
 #include "utils/CDisplayMetrics.h"
 #include "utils/Xml.h"
-#include "utils/AutoString.h"
 #include <elastos/AutoFree.h>
 #include <elastos/AutoPtr.h>
 
@@ -318,7 +318,7 @@ AutoPtr<IDrawable> Drawable::Mutate()
 
 ECode Drawable::CreateFromStream(
     /* [in] */ IInputStream* is,
-    /* [in] */ String srcName,
+    /* [in] */ const String& srcName,
     /* [out] */ IDrawable** drawable)
 {
     return CreateFromResourceStream(NULL, NULL, is, srcName, NULL, drawable);
@@ -328,7 +328,7 @@ ECode Drawable::CreateFromResourceStream(
     /* [in] */ IResources* res,
     /* [in] */ ITypedValue* value,
     /* [in] */ IInputStream* is,
-    /* [in] */ String srcName,
+    /* [in] */ const String& srcName,
     /* [out] */ IDrawable** drawable)
 {
     return CreateFromResourceStream(res, value, is, srcName, NULL, drawable);
@@ -338,7 +338,7 @@ ECode Drawable::CreateFromResourceStream(
     /* [in] */ IResources* res,
     /* [in] */ ITypedValue* value,
     /* [in] */ IInputStream* is,
-    /* [in] */ String srcName,
+    /* [in] */ const String& srcName,
     /* [in] */ IBitmapFactoryOptions* _opts,
     /* [out] */ IDrawable** drawable)
 {
@@ -377,9 +377,6 @@ ECode Drawable::CreateFromResourceStream(
     FAIL_RETURN(factory->DecodeResourceStream(
             res, value, is, pad.Get(), opts.Get(), (IBitmap**)&bm));
     if (bm != NULL) {
-        Int32 iwidth = 0, iheight = 0;
-        bm->GetWidth(&iwidth);
-        bm->GetHeight(&iheight);
         AutoFree< ArrayOf<Byte> > np;
         FAIL_RETURN(bm->GetNinePatchChunk((ArrayOf<Byte>**)&np));
         if (np == NULL || !NinePatch::IsNinePatchChunk(*np)) {
@@ -401,13 +398,13 @@ ECode Drawable::CreateFromXml(
 
     Int32 type;
     FAIL_RETURN(parser->Next(&type));
-    while (type != XmlPullParser_START_TAG &&
-            type != XmlPullParser_END_DOCUMENT) {
+    while (type != IXmlPullParser_START_TAG &&
+            type != IXmlPullParser_END_DOCUMENT) {
         // Empty loop
         FAIL_RETURN(parser->Next(&type));
     }
 
-    if (type != XmlPullParser_START_TAG) {
+    if (type != IXmlPullParser_START_TAG) {
 //        throw new XmlPullParserException("No start tag found");
         return E_XML_PULL_PARSER_EXCEPTION;
     }
@@ -428,44 +425,55 @@ ECode Drawable::CreateFromXmlInner(
     /* [in] */ IAttributeSet* attrs,
     /* [out] */ IDrawable** drawable)
 {
-    AutoString name;
+    String name;
     FAIL_RETURN(parser->GetName((String*)&name));
 
+    //printf("Drawable::CreateFromXmlInner, name = %s\n", (const char*)name);
     if (name.Equals("selector")) {
-//        drawable = new StateListDrawable();
+          FAIL_RETURN(CStateListDrawable::New((IStateListDrawable**)drawable));
     }
     else if (name.Equals("level-list")) {
 //        drawable = new LevelListDrawable();
+        assert(0);
     }
     else if (name.Equals("layer-list")) {
 //        drawable = new LayerDrawable();
+        assert(0);
     }
     else if (name.Equals("transition")) {
 //        drawable = new TransitionDrawable();
+//        assert(0);
     }
     else if (name.Equals("color")) {
         FAIL_RETURN(CColorDrawable::New((IColorDrawable**)drawable));
     }
     else if (name.Equals("shape")) {
 //        drawable = new GradientDrawable();
+        assert(0);
     }
     else if (name.Equals("scale")) {
 //        drawable = new ScaleDrawable();
+        assert(0);
     }
     else if (name.Equals("clip")) {
 //        drawable = new ClipDrawable();
+        assert(0);
     }
     else if (name.Equals("rotate")) {
 //        drawable = new RotateDrawable();
+        assert(0);
     }
     else if (name.Equals("animated-rotate")) {
 //        drawable = new AnimatedRotateDrawable();
+        assert(0);
     }
     else if (name.Equals("animation-list")) {
 //        drawable = new AnimationDrawable();
+        assert(0);
     }
     else if (name.Equals("inset")) {
 //        drawable = new InsetDrawable();
+        assert(0);
     }
     else if (name.Equals("bitmap")) {
         FAIL_RETURN(CBitmapDrawable::New((IBitmapDrawable**)drawable));
@@ -484,11 +492,16 @@ ECode Drawable::CreateFromXmlInner(
         return E_XML_PULL_PARSER_EXCEPTION;
     }
 
+    //TODO:
+    if (*drawable == NULL) {
+        return NOERROR;
+    }
+
     return (*drawable)->Inflate(r, parser, attrs);
 }
 
 ECode Drawable::CreateFromPath(
-    /* [in] */ String pathName,
+    /* [in] */ const String& pathName,
     /* [out] */ IDrawable** drawable)
 {
     if (pathName.IsNull()) {
@@ -545,14 +558,14 @@ ECode Drawable::DrawableFromBitmap(
     /* [in] */ IBitmap* bm,
     /* [in] */ ArrayOf<Byte>* np,
     /* [in] */ IRect* pad,
-    /* [in] */ String srcName,
+    /* [in] */ const String& srcName,
     /* [out] */ IDrawable** drawable)
 {
     assert(drawable != NULL);
 
     if (np != NULL) {
         return CNinePatchDrawable::New(
-            res, bm, *np, pad, srcName, (INinePatchDrawable**)&drawable);
+            res, bm, *np, pad, srcName, (INinePatchDrawable**)drawable);
     }
 
     return CBitmapDrawable::New(res, bm, (IBitmapDrawable**)drawable);

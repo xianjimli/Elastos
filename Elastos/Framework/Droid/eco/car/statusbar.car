@@ -1,0 +1,56 @@
+
+module
+{
+    merge("statusbar/IStatusBar.car");
+    merge("statusbar/IStatusBarService.car");
+    merge("statusbar/StatusBarIcon.car");
+    merge("statusbar/StatusBarIconList.car");
+    merge("statusbar/StatusBarNotification.car");
+
+    class CStatusBarIcon {
+        constructor(
+            [in] String iconPackage,
+            [in] Int32 iconId,
+            [in] Int32 iconLevel);
+
+        constructor(
+            [in] String iconPackage,
+            [in] Int32 iconId,
+            [in] Int32 iconLevel,
+            [in] Int32 number);
+
+        constructor(
+            [in] IParcel* source);
+
+        interface IStatusBarIcon;
+        interface IParcelable;
+    }
+
+    class CStatusBarIconList {
+        constructor();
+
+        constructor(
+            [in] IParcel* source);
+
+        interface IStatusBarIconList;
+        interface IParcelable;
+    }
+
+    class CStatusBarNotification {
+        constructor();
+
+        constructor(
+            [in] IParcel* source,
+            [in] Int32 id,
+            [in] String tag,
+            [in] Int32 uid,
+            [in] Int32 initialPid,
+            [in] INotification* notification);
+
+        constructor(
+            [in] IParcel* source);
+
+        interface IStatusBarNotification;
+        interface IParcelable;
+    }
+}

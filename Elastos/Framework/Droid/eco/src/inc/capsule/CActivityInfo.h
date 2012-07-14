@@ -273,7 +273,7 @@ public:
 
     CARAPI LoadXmlMetaData(
         /* [in] */ ICapsuleManager* pm,
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ IXmlResourceParser** resource);
 
     CARAPI GetComponentName(
@@ -281,8 +281,8 @@ public:
         /* [out] */ String *name);
 
     CARAPI SetComponentName(
-        /* [in] */ String capsuleName,
-        /* [in] */ String name);
+        /* [in] */ const String& capsuleName,
+        /* [in] */ const String& name);
 
     CARAPI GetApplicationInfo(
         /* [out] */ IApplicationInfo** info);

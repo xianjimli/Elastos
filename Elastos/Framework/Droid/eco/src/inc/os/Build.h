@@ -2,7 +2,6 @@
 #ifndef __HH_BUILD_H
 #define __HH_BUILD_H
 
-#include "utils/AutoString.h"
 #include "os/SystemProperties.h"
 #include <elastos.h>
 using namespace Elastos;
@@ -151,71 +150,71 @@ public:
 private:
     // return value is buffered.
     static CARAPI_(String) GetString(
-        /* [in] */ String property);
+        /* [in] */ const char* property);
 
     static CARAPI_(Int64) GetLong(
-        /* [in] */ String property);
+        /* [in] */ const char* property);
 
 public:
     /** Value used for when a build property is unknown. */
-    static const String UNKNOWN;
+    static const char* UNKNOWN;
 
     /** Either a changelist number, or a label like "M4-rc20". */
-    static const AutoString ID;
+    static const String ID;
 
     /** A build ID string meant for displaying to the user */
-    static const AutoString DISPLAY;
+    static const String DISPLAY;
 
     /** The name of the overall product. */
-    static const AutoString PRODUCT;
+    static const String PRODUCT;
 
     /** The name of the industrial design. */
-    static const AutoString DEVICE;
+    static const String DEVICE;
 
     /** The name of the underlying board, like "goldfish". */
-    static const AutoString BOARD;
+    static const String BOARD;
 
     /** The name of the instruction set (CPU type + ABI convention) of native code. */
-    static const AutoString CPU_ABI;
+    static const String CPU_ABI;
 
     /** The name of the second instruction set (CPU type + ABI convention) of native code. */
-    static const AutoString CPU_ABI2;
+    static const String CPU_ABI2;
 
     /** The manufacturer of the product/hardware. */
-    static const AutoString MANUFACTURER;
+    static const String MANUFACTURER;
 
     /** The brand (e.g., carrier) the software is customized for, if any. */
-    static const AutoString BRAND;
+    static const String BRAND;
 
     /** The end-user-visible name for the end product. */
-    static const AutoString MODEL;
+    static const String MODEL;
 
     /** The system bootloader version number. */
-    static const AutoString BOOTLOADER;
+    static const String BOOTLOADER;
 
     /** The radio firmware version number. */
-    static const AutoString RADIO;
+    static const String RADIO;
 
     /** The name of the hardware (from the kernel command line or /proc). */
-    static const AutoString HARDWARE;
+    static const String HARDWARE;
 
     /** A hardware serial number, if available.  Alphanumeric only, case-insensitive. */
-    static const AutoString SERIAL;
+    static const String SERIAL;
 
 public:
     /** The type of build, like "user" or "eng". */
-    static const AutoString TYPE;
+    static const String TYPE;
 
     /** Comma-separated tags describing the build, like "unsigned,debug". */
-    static const AutoString TAGS;
+    static const String TAGS;
 
     /** A string that uniquely identifies this build.  Do not attempt to parse this value. */
-    static const AutoString FINGERPRINT;
+    static const String FINGERPRINT;
 
     // The following properties only make sense for internal engineering builds.
     static const Int64 TIME;
-    static const AutoString USER;
-    static const AutoString HOST;
+    static const String USER;
+    static const String HOST;
 };
 
 #endif // __HH_BUILD_H

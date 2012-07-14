@@ -2,8 +2,8 @@
 #include "TCallback31.h"
 
 ECode TCallback31::RequestService(
-    /* [in] */ String serviceName,
-    /* [in] */ String arguments,
+    /* [in] */ const String& serviceName,
+    /* [in] */ const String& arguments,
     /* [in] */ IAppletSession * pSession)
 {
     // TODO: Add your code here
@@ -11,7 +11,7 @@ ECode TCallback31::RequestService(
 }
 
 ECode TCallback31::Notify(
-    /* [in] */ String eventName,
+    /* [in] */ const String& eventName,
     /* [in] */ const MemoryBuf & arguments)
 {
     // TODO: Add your code here

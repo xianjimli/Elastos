@@ -6,7 +6,7 @@
 #include "text/CBoringLayoutMetrics.h"
 #include <elastos/Math.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 AutoPtr<CTextPaint> InitsTemp()
 {
@@ -212,12 +212,10 @@ void BoringLayout::Init(
     ClassID clsid;
     obj->GetClassID(&clsid);
     if (clsid == ECLSID_CStringWrapper && align == LayoutAlignment_ALIGN_NORMAL) {
-        AutoString::Free(mDirect);
         source->ToString(&mDirect);
     }
     else {
-        AutoString::Free(mDirect);
-        mDirect = AutoString(NULL);
+        mDirect = String(NULL);
     }
 
     mPaint = paint;
@@ -291,7 +289,7 @@ AutoPtr<IBoringLayoutMetrics> BoringLayout::IsBoring(
     /* [in] */ ITextPaint* paint,
     /* [in] */ IBoringLayoutMetrics* metrics)
 {
-    BufferOf<Byte>* temp;
+    ArrayOf<Char8>* temp;
     TextUtils::Obtain(4 * 500, &temp);
     Int32 len;
     text->GetLength(&len);

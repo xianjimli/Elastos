@@ -74,3 +74,22 @@ void Process::KillProcessQuiet(
 {
     //not implemented;
 }
+
+Int32 Process::MyUid()
+{
+    return -1;
+}
+
+Int32 Process::GetUidForName(
+    /* [in] */ const String& name)
+{
+    return -1;
+}
+
+Int32 Process::GetGidForName(
+    /* [in] */ const String& name)
+{
+    return -1;
+}
+
+

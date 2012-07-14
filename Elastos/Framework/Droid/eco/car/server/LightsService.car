@@ -1,0 +1,21 @@
+
+module
+{
+    interface IContext;
+
+    interface ILight {
+    }
+
+    interface ILightsManager {
+        GetLight(
+            [in] Int32 id,
+            [out] ILight** light);
+    }
+
+    class CLightsService {
+        constructor(
+            [in] IContext* ctx);
+
+        interface ILightsManager;
+    }
+}

@@ -15,7 +15,7 @@ public:
         /* [in] */ Int32 size);
 
     CARAPI Append(
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ Int32 length);
 
     CARAPI GetData(

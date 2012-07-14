@@ -19,6 +19,10 @@ module
     merge("app/backup/ibackupmanager.car");
     merge("app/backup/irestoreobserver.car");
     merge("app/backup/irestoresession.car");
+    merge("app/Dialog.car");
+    merge("app/AlertDialog.car");
+    merge("app/INotificationManager.car");
+    merge("app/ITransientNotification.car");
 
 
     class CContentProviderHolder {
@@ -103,5 +107,77 @@ module
 
     class CRunningServiceInfo {
         interface IParcelable;
+    }
+
+    class CDialog {
+        /**
+         * Create a Dialog window that uses a custom dialog style.
+         *
+         * @param context The Context in which the Dialog should run. In particular, it
+         *                uses the window manager and theme from this context to
+         *                present its UI.
+         * @param theme A style resource describing the theme to use for the
+         * window. See <a href="{@docRoot}guide/topics/resources/available-resources.html#stylesandthemes">Style
+         * and Theme Resources</a> for more information about defining and using
+         * styles.  This theme is applied on top of the current theme in
+         * <var>context</var>.  If 0, the default dialog theme will be used.
+         */
+        constructor(
+            [in] IContext* context);
+
+        /**
+         * Create a Dialog window that uses a custom dialog style.
+         *
+         * @param context The Context in which the Dialog should run. In particular, it
+         *                uses the window manager and theme from this context to
+         *                present its UI.
+         * @param theme A style resource describing the theme to use for the
+         * window. See <a href="{@docRoot}guide/topics/resources/available-resources.html#stylesandthemes">Style
+         * and Theme Resources</a> for more information about defining and using
+         * styles.  This theme is applied on top of the current theme in
+         * <var>context</var>.  If 0, the default dialog theme will be used.
+         */
+        constructor(
+            [in] IContext* context,
+            [in] Int32 theme);
+
+        constructor(
+            [in] IContext* context,
+            [in] Boolean cancelable,
+            [in] IDialogInterfaceOnCancelListener* cancelListener);
+
+        interface IDialog;
+        interface IWindowCallback;
+        interface IKeyEventCallback;
+        interface IOnCreateContextMenuListener;
+    }
+
+    class CAlertDialog {
+        constructor(
+            [in] IContext* context);
+
+        constructor(
+            [in] IContext* context,
+            [in] Int32 theme);
+
+        constructor(
+            [in] IContext* context,
+            [in] Boolean cancelable,
+            [in] IDialogInterfaceOnCancelListener* cancelListener);
+
+        interface IAlertDialog;
+        interface IWindowCallback;
+        interface IKeyEventCallback;
+        interface IOnCreateContextMenuListener;
+    }
+
+    class CAlertDialogBuilder {
+        /**
+         * Constructor using a context for this builder and the {@link AlertDialog} it creates.
+         */
+        constructor(
+            [in] IContext* context);
+
+        interface IAlertDialogBuilder;
     }
 }

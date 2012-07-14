@@ -7,7 +7,7 @@
 #endif
 
 #include <elastos.h>
-#include <Elastos.System.h>
+#include <Elastos.Core.h>
 #include <elastos/etl_hash_fun.h>
 #include <elastos/etl_function.h>
 

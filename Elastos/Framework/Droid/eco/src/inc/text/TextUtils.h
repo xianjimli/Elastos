@@ -6,7 +6,7 @@
 #include <elastos/AutoPtr.h>
 #include <elastos/Mutex.h>
 
-using namespace Elastos::System::Threading;
+using namespace Elastos::Core::Threading;
 
 class TextUtils
 {
@@ -15,7 +15,7 @@ public:
         /* [in] */ ICharSequence* s,
         /* [in] */ Int32 start,
         /* [in] */ Int32 end,
-        /* [out] */ BufferOf<Byte>* dest,
+        /* [out] */ ArrayOf<Char8>* dest,
         /* [in] */ Int32 destoff);
 
     static CARAPI_(Int32) IndexOf(
@@ -218,15 +218,15 @@ public:
     /* package */
     static CARAPI_(void) Obtain(
         /* [in] */ Int32 len,
-        /* [out] */ BufferOf<Byte>** buf);
+        /* [out] */ ArrayOf<Char8>** buf);
 
     /* package */
     static CARAPI_(void) Recycle(
-        /* [in] */ BufferOf<Byte>** temp);
+        /* [in] */ ArrayOf<Char8>** temp);
 
 private:
     static Mutex sLock;
-    static BufferOf<Byte>* sTemp;
+    static ArrayOf<Char8>* sTemp;
 };
 
 #endif //__TEXTUTILS_H__

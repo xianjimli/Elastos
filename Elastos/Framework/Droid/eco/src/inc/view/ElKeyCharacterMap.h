@@ -2,13 +2,13 @@
 #define __KEYCHARACTERMAP_H__
 
 #include "ext/frameworkext.h"
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 #include <elastos/HashMap.h>
 #include <elastos/Vector.h>
 #include <elastos/Mutex.h>
 #include <elastos/AutoPtr.h>
 
-using namespace Elastos::System::Threading;
+using namespace Elastos::Core::Threading;
 
 class KeyCharacterMap;
 

@@ -1,0 +1,14 @@
+
+module
+{
+    interface IPoolableManager {
+        NewInstance(
+            [out] IPoolable** element);
+
+        OnAcquired(
+            [in] IPoolable* element);
+
+        OnReleased(
+            [in] IPoolable* element);
+    }
+}

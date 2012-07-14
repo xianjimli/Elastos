@@ -19,7 +19,7 @@
 #include <assert.h>
 #include <elastos/Math.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
 extern "C" const InterfaceID EIID_ViewRoot =
@@ -305,7 +305,7 @@ void ViewRoot::TrackballAxis::Reset(
 Float ViewRoot::TrackballAxis::Collect(
     /* [in] */ Float off,
     /* [in] */ Int64 time,
-    /* [in] */ String axis)
+    /* [in] */ const char* axis)
 {
     Int64 normTime;
     if (off > 0) {
@@ -445,7 +445,58 @@ Int32 ViewRoot::TrackballAxis::Generate(
     } while (TRUE);
 }
 
-const String ViewRoot::TAG = "ViewRoot";
+void ViewRoot::RunQueue::Post(
+    /* [in] */ IRunnable* action)
+{
+    PostDelayed(action, 0);
+}
+
+void ViewRoot::RunQueue::PostDelayed(
+    /* [in] */ IRunnable* action,
+    /* [in] */ Int32 delayMillis)
+{
+    AutoPtr<HandlerAction> handlerAction = new HandlerAction();
+    handlerAction->mAction = action;
+    handlerAction->mDelay = delayMillis;
+
+    Mutex::Autolock lock(mLock);
+
+    mActions.PushBack(handlerAction);
+}
+
+void ViewRoot::RunQueue::RemoveCallbacks(
+    /* [in] */ IRunnable* action)
+{
+    Mutex::Autolock lock(mLock);
+
+    List<AutoPtr<HandlerAction> >::Iterator iter;
+    for (iter=mActions.Begin(); iter!=mActions.End(); ++iter) {
+        if ((*iter)->mAction.Get() == action) {
+            iter = mActions.Erase(iter);
+            iter--;
+        }
+    }
+}
+
+void ViewRoot::RunQueue::ExecuteActions(
+    /* [in] */ IApartment* apartment)
+{
+    Mutex::Autolock lock(mLock);
+
+    ECode (STDCALL IRunnable::*pHandlerFunc)();
+    pHandlerFunc = &IRunnable::Run;
+
+    List<AutoPtr<HandlerAction> >::Iterator iter;
+    for (iter=mActions.Begin(); iter!=mActions.End(); ++iter) {
+        apartment->PostCppCallbackDelayed(
+            (Handle32)(*iter)->mAction.Get(), *(Handle32*)&pHandlerFunc,
+            NULL, 0, (*iter)->mDelay);
+    }
+
+    mActions.Clear();
+}
+
+const char* ViewRoot::TAG = "ViewRoot";
 const Boolean ViewRoot::DBG;
 const Boolean ViewRoot::SHOW_FPS;
 const Boolean ViewRoot::LOCAL_LOGV;
@@ -473,6 +524,8 @@ Mutex ViewRoot::sFirstDrawHandlersLock;
 
 List<AutoPtr<IComponentCallbacks> > ViewRoot::sConfigCallbacks;
 Mutex ViewRoot::sConfigCallbacksLock;
+
+pthread_key_t ViewRoot::sKeyRunQueues;
 
 ViewRoot::ViewRoot(
     /* [in] */ IContext* context) :
@@ -547,11 +600,18 @@ ViewRoot::ViewRoot(
     assert(SUCCEEDED(CInputMethodCallback::NewByFriend(
             (Handle32)this, (CInputMethodCallback**)&mInputMethodCallback)));
 
-    mAttachInfo = new View::AttachInfo();//sWindowSession, mWindow, this, this);
+    mAttachInfo = new View::AttachInfo(
+        sWindowSession, (IInnerWindow*)mWindow->Probe(EIID_IInnerWindow),
+        mApartment, this);
 
-    //mViewConfiguration = ViewConfiguration::Get(context);
+    mViewConfiguration = ViewConfiguration::Get(context);
 
-    //mDensity = context.getResources().getDisplayMetrics().densityDpi;
+    AutoPtr<IResources> rc;
+    context->GetResources((IResources**)&rc);
+    AutoPtr<IDisplayMetrics> dm;
+    rc->GetDisplayMetrics((IDisplayMetrics**)&dm);
+
+    mDensity = ((CDisplayMetrics*)dm.Get())->mDensityDpi;
 
     assert(SUCCEEDED(CSurface::NewByFriend((CSurface**)&mSurface)));
 
@@ -608,6 +668,20 @@ ECode ViewRoot::GetInterfaceID(
     return E_NOT_IMPLEMENTED;
 }
 
+ViewRoot::RunQueue* ViewRoot::GetRunQueue()
+{
+    RunQueue* runQueue = (RunQueue*)pthread_getspecific(sKeyRunQueues);
+    if (runQueue == NULL) {
+        runQueue = new RunQueue();
+        assert(pthread_key_create(&sKeyRunQueues, NULL) == 0);
+        assert(pthread_setspecific(sKeyRunQueues, runQueue) == 0);
+
+    }
+    assert(runQueue);
+
+    return runQueue;
+}
+
 IWindowSession* ViewRoot::GetWindowSession(
     /* [in] */ /*Looper mainLooper*/)
 {
@@ -620,7 +694,7 @@ IWindowSession* ViewRoot::GetWindowSession(
         GetServiceManager((IServiceManager**)&sm);
 
         AutoPtr<IWindowManagerEx> wm;
-        sm->GetService("window", (IInterface**)(IWindowManagerEx**)&wm);
+        sm->GetService(String("window"), (IInterface**)(IWindowManagerEx**)&wm);
 
         IInputMethodClient* client = NULL; // imm.getClient()
         IInputContext* ctx = NULL; // imm.getInputContext()
@@ -1201,10 +1275,8 @@ void ViewRoot::ScheduleTraversals()
     if (!mTraversalScheduled) {
         mTraversalScheduled = TRUE;
         void (STDCALL ViewRoot::*pHandlerFunc)();
-        AutoPtr<IParcel> params;
         pHandlerFunc = &ViewRoot::PerformTraversals;
-        CCallbackParcel::New((IParcel**)&params);
-        mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params);
+        SendMessage(*(Handle32*)&pHandlerFunc, NULL);
     }
 }
 
@@ -1212,7 +1284,9 @@ void ViewRoot::UnscheduleTraversals()
 {
     if (mTraversalScheduled) {
         mTraversalScheduled = FALSE;
-//        RemoveMessages(DO_TRAVERSAL);
+        void (STDCALL ViewRoot::*pHandlerFunc)();
+        pHandlerFunc = &ViewRoot::PerformTraversals;
+        RemoveMessage(*(Handle32*)&pHandlerFunc);
     }
 }
 
@@ -1298,10 +1372,6 @@ void ViewRoot::PerformTraversals()
         desiredWindowWidth = ((CDisplayMetrics*)packageMetrics.Get())->mWidthPixels;
         desiredWindowHeight = ((CDisplayMetrics*)packageMetrics.Get())->mHeightPixels;
 
-        //printf("mWidthPixels = %d, mHeightPixels = %d\n",
-        //    ((CDisplayMetrics*)packageMetrics.Get())->mWidthPixels,
-        //    ((CDisplayMetrics*)packageMetrics.Get())->mHeightPixels);
-
         // For the very first time, tell the view hierarchy that it
         // is attached to the window.  Note that at this point the surface
         // object is not initialized to its backing store, but soon it
@@ -1363,7 +1433,7 @@ void ViewRoot::PerformTraversals()
         // Execute enqueued actions on every layout in case a view that was detached
         // enqueued an action after being detached
         //
-        //GetRunQueue()->ExecuteActions(attachInfo->mHandler);
+        GetRunQueue()->ExecuteActions(attachInfo->mHandler);
 
         if (mFirst) {
             host->FitSystemWindows(mAttachInfo->mContentInsets);
@@ -1967,16 +2037,16 @@ void ViewRoot::TestSurface()
     CRect * rect = NULL;
     ECode ec = CRect::NewByFriend(0, 0, 320, 480, &rect);
     printf("=====%s, %d=====ec=%p\n", __FILE__, __LINE__, ec);
-//	    assert(CRect::NewByFriend(0, 0, 320, 480, &rect));
-//	    assert(SUCCEEDED(mSurface->LockCanvas(NULL, (ICanvas**)&canvas))); // ok
+//      assert(CRect::NewByFriend(0, 0, 320, 480, &rect));
+//      assert(SUCCEEDED(mSurface->LockCanvas(NULL, (ICanvas**)&canvas))); // ok
     assert(SUCCEEDED(mSurface->LockCanvas((IRect*)rect, (ICanvas**)&canvas))); // ok
     assert(SUCCEEDED(canvas->DrawColor(0))); // ok
-//	    ec = canvas->DrawColorWithMode(0, 0);
-//	    assert(SUCCEEDED(canvas->DrawColorWithMode(0, 0)));
+//      ec = canvas->DrawColorWithMode(0, 0);
+//      assert(SUCCEEDED(canvas->DrawColorWithMode(0, 0)));
     Int32 saveCount = 0;
     ec = canvas->SaveEx(CCanvas::MATRIX_SAVE_FLAG, &saveCount); // ok
     printf("=====%s, %d=====ec=%p\n", __FILE__, __LINE__, ec);
-//	    assert(SUCCEEDED(canvas->SaveWithFlags(CCanvas::MATRIX_SAVE_FLAG, &saveCount)));
+//      assert(SUCCEEDED(canvas->SaveWithFlags(CCanvas::MATRIX_SAVE_FLAG, &saveCount)));
 
     AutoPtr<IPaint> paint;
     assert(SUCCEEDED(CPaint::New((IPaint**)&paint))); // ok
@@ -1985,7 +2055,7 @@ void ViewRoot::TestSurface()
     assert(SUCCEEDED(canvas->DrawLine(240, 0, 0, 320, paint.Get()))); // ok
     ec = canvas->RestoreToCount(saveCount); // ok
     printf("=====%s, %d=====ec=%p\n", __FILE__, __LINE__, ec);
-//	    assert(SUCCEEDED(canvas->RestoreToCount(saveCount)));
+//      assert(SUCCEEDED(canvas->RestoreToCount(saveCount)));
     assert(SUCCEEDED(mSurface->UnlockCanvasAndPost(canvas))); // ok
 }
 
@@ -2084,7 +2154,7 @@ void ViewRoot::Draw(
         List<AutoPtr<IRunnable> >::Iterator iter = sFirstDrawHandlers.Begin();
         for (; iter != sFirstDrawHandlers.End(); ++iter) {
             mApartment->PostCppCallback(
-                (Handle32)iter->Get(), *(Handle32*)&pHandlerFunc, NULL);
+                (Handle32)iter->Get(), *(Handle32*)&pHandlerFunc, NULL, 0);
         }
     }
 
@@ -2111,7 +2181,7 @@ void ViewRoot::Draw(
     }
 
     Float appScale = mAttachInfo->mApplicationScale;
-    //Boolean scalingRequired = mAttachInfo->mScalingRequired;
+    Boolean scalingRequired = mAttachInfo->mScalingRequired;
 
     CRect* dirty = mDirty;
     if (mSurfaceHolder != NULL) {
@@ -2186,125 +2256,104 @@ void ViewRoot::Draw(
     //        appScale + ", width=" + mWidth + ", height=" + mHeight);
     //}
 
-    //if (!dirty->IsEmpty() || mIsAnimating) {
-
+    if (!dirty->IsEmpty() || mIsAnimating) {
         AutoPtr<ICanvas> canvas;
-        //try {
-            Int32 left = dirty->mLeft;
-            Int32 top = dirty->mTop;
-            Int32 right = dirty->mRight;
-            Int32 bottom = dirty->mBottom;
 
-//	            if (FAILED(surface->LockCanvas(dirty, (ICanvas**)&canvas))) {
-            // TODO:
-            CRect* rect;
-            assert(SUCCEEDED(CRect::NewByFriend(0, 0, 320, 480, &rect)));
-            if (FAILED(surface->LockCanvas((IRect*)rect, (ICanvas**)&canvas))) {
-                return;
+        Int32 left = dirty->mLeft;
+        Int32 top = dirty->mTop;
+        Int32 right = dirty->mRight;
+        Int32 bottom = dirty->mBottom;
+
+        if (FAILED(surface->LockCanvas(dirty, (ICanvas**)&canvas))) {
+            return;
+        }
+
+        if (left != dirty->mLeft || top != dirty->mTop || right != dirty->mRight ||
+            bottom != dirty->mBottom) {
+            mAttachInfo->mIgnoreDirtyState = TRUE;
+        }
+
+        // TODO: Do this in native
+        canvas->SetDensity(mDensity);
+
+        if (!dirty->IsEmpty() || mIsAnimating) {
+            //Int64 startTime = 0L;
+
+            //if (DEBUG_ORIENTATION || DEBUG_DRAW) {
+            //    Log.v(TAG, "Surface " + surface + " drawing to bitmap w="
+            //        + canvas.getWidth() + ", h=" + canvas.getHeight());
+            //    //canvas.drawARGB(255, 255, 0, 0);
+            //}
+
+            //if (Config.DEBUG && ViewDebug.profileDrawing) {
+            //    startTime = SystemClock.elapsedRealtime();
+            //}
+
+            // If this bitmap's format includes an alpha channel, we
+            // need to clear it before drawing so that the child will
+            // properly re-composite its drawing on a transparent
+            // background. This automatically respects the clip/dirty region
+            // or
+            // If we are applying an offset, we need to clear the area
+            // where the offset doesn't appear to avoid having garbage
+            // left in the blank areas.
+            //
+            Boolean isOpaque = FALSE;
+            canvas->IsOpaque(&isOpaque);
+            if (!isOpaque || yoff != 0) {
+                canvas->DrawColorEx(0, PorterDuffMode_CLEAR);
             }
 
-            if (left != dirty->mLeft || top != dirty->mTop || right != dirty->mRight ||
-                bottom != dirty->mBottom) {
-                mAttachInfo->mIgnoreDirtyState = TRUE;
+            dirty->SetEmpty();
+            mIsAnimating = FALSE;
+            mAttachInfo->mDrawingTime = SystemClock::GetUptimeMillis();
+            (reinterpret_cast<View*>(mView->Probe(EIID_View)))->mPrivateFlags |= View::DRAWN;
+
+            //if (DEBUG_DRAW) {
+            //    AutoPtr<IContext> cxt;
+            //    mView->GetContext((IContext**)&cxt);
+
+            //    Log.i(TAG, "Drawing: package:" + cxt.getPackageName() +
+            //        ", metrics=" + cxt.getResources().getDisplayMetrics() +
+            //        ", compatibilityInfo=" + cxt.getResources().getCompatibilityInfo());
+            //}
+
+            Int32 saveCount = 0;
+            canvas->SaveEx(CCanvas::MATRIX_SAVE_FLAG, &saveCount);
+
+            canvas->Translate(0, (Float)-yoff);
+
+            if (mTranslator != NULL) {
+                mTranslator->TranslateCanvas(canvas);
             }
 
-            // TODO: Do this in native
-            canvas->SetDensity(mDensity);
-        //} catch (Surface.OutOfResourcesException e) {
-        //    Log.e(TAG, "OutOfResourcesException locking surface", e);
-        //    // TODO: we should ask the window manager to do something!
-        //    // for now we just do nothing
-        //    return;
-        //} catch (IllegalArgumentException e) {
-        //    Log.e(TAG, "IllegalArgumentException locking surface", e);
-        //    // TODO: we should ask the window manager to do something!
-        //    // for now we just do nothing
-        //    return;
-        //}
+            canvas->SetScreenDensity(scalingRequired
+                ? CDisplayMetrics::DENSITY_DEVICE : 0);
+            mView->Draw(canvas);
 
-        //try {
-            if (TRUE/*!dirty->IsEmpty() || mIsAnimating*/) {
-                //Int64 startTime = 0L;
+            mAttachInfo->mIgnoreDirtyState = FALSE;
+            canvas->RestoreToCount(saveCount);
 
-                //if (DEBUG_ORIENTATION || DEBUG_DRAW) {
-                //    Log.v(TAG, "Surface " + surface + " drawing to bitmap w="
-                //        + canvas.getWidth() + ", h=" + canvas.getHeight());
-                //    //canvas.drawARGB(255, 255, 0, 0);
-                //}
 
-                //if (Config.DEBUG && ViewDebug.profileDrawing) {
-                //    startTime = SystemClock.elapsedRealtime();
-                //}
+            //if (Config.DEBUG && ViewDebug.consistencyCheckEnabled) {
+            //    mView.dispatchConsistencyCheck(ViewDebug.CONSISTENCY_DRAWING);
+            //}
 
-                // If this bitmap's format includes an alpha channel, we
-                // need to clear it before drawing so that the child will
-                // properly re-composite its drawing on a transparent
-                // background. This automatically respects the clip/dirty region
-                // or
-                // If we are applying an offset, we need to clear the area
-                // where the offset doesn't appear to avoid having garbage
-                // left in the blank areas.
-                //
-                Boolean isOpaque = FALSE;
-                canvas->IsOpaque(&isOpaque);
-                if (!isOpaque || yoff != 0) {
-                    canvas->DrawColorEx(0, PorterDuffMode_CLEAR);
-                }
+            //if (SHOW_FPS || Config.DEBUG && ViewDebug.showFps) {
+            //    Int32 now = (Int32)SystemClock.elapsedRealtime();
+            //    if (sDrawTime != 0) {
+            //        nativeShowFPS(canvas, now - sDrawTime);
+            //    }
+            //    sDrawTime = now;
+            //}
 
-                dirty->SetEmpty();
-                mIsAnimating = FALSE;
-                //mAttachInfo->mDrawingTime = SystemClock.uptimeMillis();
-                (reinterpret_cast<View*>(mView->Probe(EIID_View)))->mPrivateFlags |= View::DRAWN;
+            //if (Config.DEBUG && ViewDebug.profileDrawing) {
+            //    EventLog.writeEvent(60000, SystemClock.elapsedRealtime() - startTime);
+            //}
+        }
 
-                //if (DEBUG_DRAW) {
-                //    AutoPtr<IContext> cxt;
-                //    mView->GetContext((IContext**)&cxt);
-
-                //    Log.i(TAG, "Drawing: package:" + cxt.getPackageName() +
-                //        ", metrics=" + cxt.getResources().getDisplayMetrics() +
-                //        ", compatibilityInfo=" + cxt.getResources().getCompatibilityInfo());
-                //}
-
-                Int32 saveCount = 0;
-                canvas->SaveEx(CCanvas::MATRIX_SAVE_FLAG, &saveCount);
-
-                //try {
-                    canvas->Translate(0, (Float)-yoff);
-
-                    //if (mTranslator != NULL) {
-                    //    mTranslator->TranslateCanvas(canvas);
-                    //}
-
-                    //canvas->SetScreenDensity(scalingRequired
-                    //    ? DisplayMetrics.DENSITY_DEVICE : 0);
-                    canvas->SetScreenDensity(0);
-                    mView->Draw(canvas);
-                //} finally {
-                    mAttachInfo->mIgnoreDirtyState = FALSE;
-                    canvas->RestoreToCount(saveCount);
-                //}
-
-                //if (Config.DEBUG && ViewDebug.consistencyCheckEnabled) {
-                //    mView.dispatchConsistencyCheck(ViewDebug.CONSISTENCY_DRAWING);
-                //}
-
-                //if (SHOW_FPS || Config.DEBUG && ViewDebug.showFps) {
-                //    Int32 now = (Int32)SystemClock.elapsedRealtime();
-                //    if (sDrawTime != 0) {
-                //        nativeShowFPS(canvas, now - sDrawTime);
-                //    }
-                //    sDrawTime = now;
-                //}
-
-                //if (Config.DEBUG && ViewDebug.profileDrawing) {
-                //    EventLog.writeEvent(60000, SystemClock.elapsedRealtime() - startTime);
-                //}
-            }
-
-        //} finally {
-            assert(SUCCEEDED(surface->UnlockCanvasAndPost(canvas)));
-        //}
-    //}
+        assert(SUCCEEDED(surface->UnlockCanvasAndPost(canvas)));
+    }
 
     //if (LOCAL_LOGV) {
     //    Log.v(TAG, "Surface " + surface + " unlockCanvasAndPost");
@@ -2342,8 +2391,9 @@ Boolean ViewRoot::ScrollToRectOrFocus(
         // is non-NULL and we just want to scroll to whatever that
         // rectangle is).
         //
-        View* focus = reinterpret_cast<View*>(mRealFocusedView->Probe(EIID_View));
-
+        View* focus = NULL;
+        if (mRealFocusedView != NULL)
+             focus = reinterpret_cast<View*>(mRealFocusedView->Probe(EIID_View));
         // When in touch mode, focus points to the previously focused view,
         // which may have been removed from the view hierarchy. The following
         // line checks whether the view is still in our hierarchy.
@@ -2529,9 +2579,9 @@ ECode ViewRoot::ClearChildFocus(
     if (mView != NULL && !hasFocus) {
         // If a view gets the focus, the listener will be invoked from requestChildFocus()
         //
-        //if (!mView->RequestFocus(View::FOCUS_FORWARD)) {
-        //    mAttachInfo->mTreeObserver.dispatchOnGlobalFocusChange(oldFocus, NULL);
-        //}
+        if (!((View*)mView->Probe(EIID_View))->RequestFocus(View::FOCUS_FORWARD)) {
+            //mAttachInfo->mTreeObserver.dispatchOnGlobalFocusChange(oldFocus, NULL);
+        }
     }
     else if (oldFocus != NULL) {
         //mAttachInfo->mTreeObserver.dispatchOnGlobalFocusChange(oldFocus, NULL);
@@ -2621,7 +2671,7 @@ void ViewRoot::DispatchDetachedFromWindow()
     if (mUseGL) {
         DestroyGL();
     }
-    //mSurface->Release();
+    mSurface->ReleaseSurface();
 
     if (mInputChannel != NULL) {
         if (mInputQueueCallback != NULL) {
@@ -2947,11 +2997,11 @@ void ViewRoot::DeliverPointerEvent(
         event->GetPressure(&pressure);
         event->GetSize(&size);
         event->GetOrientation(&orientation);
-        printf("event = 0x%08x, downtime = %d, eventtime = %d,\n",
-            event, downTime, eventTime);
+        //printf("event = 0x%08x, downtime = %d, eventtime = %d,\n",
+        //    event, downTime, eventTime);
 
-        printf("x = %f, y = %f, pressure = %f, size = %f, orientation = %f\n",
-            x, y, pressure, size, orientation);
+        //printf("x = %f, y = %f, pressure = %f, size = %f, orientation = %f\n",
+        //    x, y, pressure, size, orientation);
 
         printf("\n");
     }
@@ -3329,7 +3379,7 @@ Boolean ViewRoot::CheckForLeavingTouchModeAndConsume(
 //* log motion events
 //*/
 void ViewRoot::CaptureMotionLog(
-    /* [in] */ String subTag,
+    /* [in] */ const char* subTag,
     /* [in] */ IMotionEvent* ev)
 {
 //    //check dynamic switch
@@ -3358,7 +3408,7 @@ void ViewRoot::CaptureMotionLog(
 //* log motion events
 //*/
 void ViewRoot::CaptureKeyLog(
-    /* [in] */ String subTag,
+    /* [in] */ const char* subTag,
     /* [in] */ IKeyEvent* ev)
 {
 //    //check dynamic switch
@@ -3647,6 +3697,7 @@ Int32 ViewRoot::RelayoutWindow(
 
     mView->GetMeasuredWidth(&measuredWidth);
     mView->GetMeasuredHeight(&measuredHeight);
+
     sWindowSession->Relayout(
         (IInnerWindow*)mWindow, params,
         (Int32)(measuredWidth * appScale + 0.5f),
@@ -3808,7 +3859,7 @@ ECode ViewRoot::DoDie()
             }
         }
 
-        //mSurface->Release();
+        mSurface->ReleaseSurface();
     }
 
     if (mAdded) {
@@ -4047,9 +4098,9 @@ void ViewRoot::WindowFocusChanged(
 }
 
 void ViewRoot::DispatchCloseSystemDialogs(
-    /* [in] */ String reason)
+    /* [in] */ const String& reason)
 {
-    ECode (STDCALL ViewRoot::*pHandlerFunc)(String reason);
+    ECode (STDCALL ViewRoot::*pHandlerFunc)(const String& reason);
 
     pHandlerFunc = &ViewRoot::HandleCloseSystemDialogs;
 
@@ -4140,7 +4191,7 @@ ECode ViewRoot::SendMessage(
     /* [in] */ Handle32 pvFunc,
     /* [in] */ IParcel* params)
 {
-    return mApartment->PostCppCallback((Handle32)this, pvFunc, params);
+    return mApartment->PostCppCallback((Handle32)this, pvFunc, params, 0);
 }
 
 ECode ViewRoot::SendMessageAtTime(
@@ -4148,7 +4199,14 @@ ECode ViewRoot::SendMessageAtTime(
     /* [in] */ IParcel* params,
     /* [in] */ Millisecond64 uptimeMillis)
 {
-    return mApartment->PostCppCallbackAtTime((Handle32)this, pvFunc, params, uptimeMillis);
+    return mApartment->PostCppCallbackAtTime(
+        (Handle32)this, pvFunc, params, 0, uptimeMillis);
+}
+
+ECode ViewRoot::RemoveMessage(
+    /* [in] */ Handle32 func)
+{
+    return mApartment->RemoveCppCallbacks((Handle32)this, func);
 }
 
 ECode ViewRoot::HandleResized(
@@ -4205,7 +4263,7 @@ ECode ViewRoot::HandleKey(
 
     DeliverKeyEvent(event, sendDone);
 
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode ViewRoot::HandlePointer(
@@ -4270,13 +4328,13 @@ ECode ViewRoot::HandleWindowFocusChanged(
             ::MayUseInputMethod(mWindowAttributes->mFlags);
 
         //InputMethodManager imm = InputMethodManager.peekInstance();
-        //if (mView != NULL) {
+        if (mView != NULL) {
         //    if (hasFocus && imm != NULL && mLastWasImTarget) {
         //        imm.startGettingWindowFocus(mView);
         //    }
-        //    mAttachInfo.mKeyDispatchState.reset();
-        //    mView.dispatchWindowFocusChanged(hasFocus);
-        //}
+            mAttachInfo->mKeyDispatchState->Reset();
+            mView->DispatchWindowFocusChanged(hasFocus);
+        }
 
         // Note: must be done after the focus change callbacks,
         // so all of the view state is set up correctly.
@@ -4294,7 +4352,7 @@ ECode ViewRoot::HandleWindowFocusChanged(
                 ~WindowManagerLayoutParams_SOFT_INPUT_IS_FORWARD_NAVIGATION;
 
             AutoPtr<IWindowManagerLayoutParams> params;
-            //mView->GetLayoutParams((IViewGroupLayoutParams**)&params);
+            mView->GetLayoutParams((IViewGroupLayoutParams**)&params);
 
             ((CWindowManagerLayoutParams*)params.Get())->mSoftInputMode &=
                 ~WindowManagerLayoutParams_SOFT_INPUT_IS_FORWARD_NAVIGATION;
@@ -4309,7 +4367,7 @@ ECode ViewRoot::HandleWindowFocusChanged(
 }
 
 ECode ViewRoot::HandleCloseSystemDialogs(
-    /* [in] */ String reason)
+    /* [in] */ const String& reason)
 {
     if (mView != NULL) {
         mView->OnCloseSystemDialogs(reason);

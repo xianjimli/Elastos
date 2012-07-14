@@ -6,11 +6,11 @@
 #include <Logger.h>
 #include <StringBuffer.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
 const Boolean BaseSurfaceHolder::DEBUG;
-const String BaseSurfaceHolder::TAG = "BaseSurfaceHolder";
+const char* BaseSurfaceHolder::TAG = "BaseSurfaceHolder";
 
 BaseSurfaceHolder::BaseSurfaceHolder() :
     mHaveGottenCallbacks(FALSE),

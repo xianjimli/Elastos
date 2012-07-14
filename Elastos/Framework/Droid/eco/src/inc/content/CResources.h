@@ -14,7 +14,7 @@
 #include <elastos/HashMap.h>
 #include <elastos/AutoPtr.h>
 
-using namespace Elastos::System::Threading;
+using namespace Elastos::Core::Threading;
 
 CarClass(CResources)
 {
@@ -139,7 +139,7 @@ public:
         /* [in] */ Boolean resolveRefs);
 
     CARAPI GetValueEx(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [in, out] */ ITypedValue* outValue,
         /* [in] */ Boolean resolveRefs);
 
@@ -168,9 +168,9 @@ public:
         /* [in] */ ICompatibilityInfo* ci);
 
     CARAPI GetIdentifier(
-        /* [in] */ String name,
-        /* [in] */ String defType,
-        /* [in] */ String defCapsule,
+        /* [in] */ const String& name,
+        /* [in] */ const String& defType,
+        /* [in] */ const String& defCapsule,
         /* [out] */ Int32* id);
 
     CARAPI GetResourceName(
@@ -194,7 +194,7 @@ public:
         /* [in, out] */ IBundle* outBundle);
 
     CARAPI ParseBundleExtra(
-        /* [in] */ String tagName,
+        /* [in] */ const String& tagName,
         /* [in] */ IAttributeSet* attrs,
         /* [in, out] */ IBundle* outBundle);
 
@@ -237,14 +237,14 @@ public: /*package*/
 
     CARAPI LoadXmlResourceParser(
         /* [in] */ Int32 id,
-        /* [in] */ String type,
+        /* [in] */ const char* type,
         /* [out] */ IXmlResourceParser** parser);
 
     CARAPI LoadXmlResourceParser(
-        /* [in] */ String file,
+        /* [in] */ const String& file,
         /* [in] */ Int32 id,
         /* [in] */ Int32 assetCookie,
-        /* [in] */ String type,
+        /* [in] */ const char* type,
         /* [out] */ IXmlResourceParser** parser);
 
 private:
@@ -263,7 +263,7 @@ private:
         /* [out] */ ITypedArray** attrs);
 
 public: /*package*/
-    static const String TAG;
+    static const char* TAG;
 
     AutoPtr<ITypedValue> mTmpValue;
     Mutex mTmpValueLock;
@@ -296,8 +296,9 @@ private:
     static Boolean mPreloaded;
 
     // These are protected by the mTmpValue lock.
-    HashMap<Int64, IDrawableConstantState*> mDrawableCache;
-    HashMap<Int32, IColorStateList*> mColorStateListCache;
+    //todo: the following reference should use weak reference
+    HashMap<Int64, AutoPtr<IDrawableConstantState> > mDrawableCache;
+    HashMap<Int32, AutoPtr<IColorStateList> > mColorStateListCache;
     Boolean mPreloading;
 
     Int32 mLastCachedXmlBlockIndex;

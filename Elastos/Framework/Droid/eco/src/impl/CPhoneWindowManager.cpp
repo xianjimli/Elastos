@@ -10,14 +10,14 @@
 #include <Logger.h>
 #include <StringBuffer.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
-const String CPhoneWindowManager::SYSTEM_DIALOG_REASON_KEY = "reason";
-const String CPhoneWindowManager::SYSTEM_DIALOG_REASON_GLOBAL_ACTIONS = "globalactions";
-const String CPhoneWindowManager::SYSTEM_DIALOG_REASON_RECENT_APPS = "recentapps";
-const String CPhoneWindowManager::SYSTEM_DIALOG_REASON_HOME_KEY = "homekey";
-const String CPhoneWindowManager::TAG = "WindowManager";
+const char* CPhoneWindowManager::SYSTEM_DIALOG_REASON_KEY = "reason";
+const char* CPhoneWindowManager::SYSTEM_DIALOG_REASON_GLOBAL_ACTIONS = "globalactions";
+const char* CPhoneWindowManager::SYSTEM_DIALOG_REASON_RECENT_APPS = "recentapps";
+const char* CPhoneWindowManager::SYSTEM_DIALOG_REASON_HOME_KEY = "homekey";
+const char* CPhoneWindowManager::TAG = "WindowManager";
 const Boolean CPhoneWindowManager::DEBUG;
 const Boolean CPhoneWindowManager::localLOGV;
 const Boolean CPhoneWindowManager::DEBUG_LAYOUT;
@@ -281,32 +281,32 @@ ECode CPhoneWindowManager::Init(
     //mShortcutManager = new ShortcutManager(context, mHandler);
     //mShortcutManager.observe();
     ECode ec = CIntent::New(
-        Intent_ACTION_MAIN, NULL, (IIntent**)&mHomeIntent);
+        String(Intent_ACTION_MAIN), NULL, (IIntent**)&mHomeIntent);
     if (FAILED(ec)) {
         return ec;
     }
 
-    mHomeIntent->AddCategory(Intent_CATEGORY_HOME);
+    mHomeIntent->AddCategory(String(Intent_CATEGORY_HOME));
     mHomeIntent->AddFlags(Intent_FLAG_ACTIVITY_NEW_TASK
         | Intent_FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
 
     ec = CIntent::New(
-        Intent_ACTION_MAIN, NULL, (IIntent**)&mCarDockIntent);
+        String(Intent_ACTION_MAIN), NULL, (IIntent**)&mCarDockIntent);
     if (FAILED(ec)) {
         return ec;
     }
 
-    mCarDockIntent->AddCategory(Intent_CATEGORY_CAR_DOCK);
+    mCarDockIntent->AddCategory(String(Intent_CATEGORY_CAR_DOCK));
     mCarDockIntent->AddFlags(Intent_FLAG_ACTIVITY_NEW_TASK
         | Intent_FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
 
     ec = CIntent::New(
-        Intent_ACTION_MAIN, NULL, (IIntent**)&mDeskDockIntent);
+        String(Intent_ACTION_MAIN), NULL, (IIntent**)&mDeskDockIntent);
     if (FAILED(ec)) {
         return ec;
     }
 
-    mDeskDockIntent->AddCategory(Intent_CATEGORY_DESK_DOCK);
+    mDeskDockIntent->AddCategory(String(Intent_CATEGORY_DESK_DOCK));
     mDeskDockIntent->AddFlags(Intent_FLAG_ACTIVITY_NEW_TASK
         | Intent_FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
 
@@ -743,7 +743,7 @@ ECode CPhoneWindowManager::CanBeForceHidden(
 /** {@inheritDoc} */
 ECode CPhoneWindowManager::AddStartingWindow(
     /* [in] */ IBinder* appToken,
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ Int32 theme,
     /* [in] */ const ArrayOf<Char8>& nonLocalizedLabel,
     /* [in] */ Int32 labelRes,
@@ -827,18 +827,15 @@ ECode CPhoneWindowManager::AddStartingWindow(
         AutoPtr<CWindowManagerLayoutParams> params;
         win->GetAttributes((IWindowManagerLayoutParams**)&params);
         params->mToken = appToken;
-        String::Free(params->mCapsuleName);
-        params->mCapsuleName = String::Duplicate(capsuleName);
+        params->mCapsuleName = capsuleName;
         //params->mWindowAnimations = win.getWindowStyle().getResourceId(
         //    com.android.internal.R.styleable.Window_windowAnimationStyle, 0);
-        StringBuffer title = "Starting ";
-        title += capsuleName;
-        ArrayOf<Char8>* tl = ArrayOf<Char8>::Alloc(
-            const_cast<char*>((const char*)title), title.GetLength());
-        params->SetTitle(*tl);
+        AutoPtr<ICharSequence> tl;
+        CStringWrapper::New(String("Starting ") + capsuleName, (ICharSequence**)&tl);
+        params->SetTitle(tl);
 
         AutoPtr<IWindowManager> wm;
-        context->GetSystemService(Context_WINDOW_SERVICE, (IInterface**)&wm);
+        context->GetSystemService(String(Context_WINDOW_SERVICE), (IInterface**)&wm);
 
         AutoPtr<IView> view;
         win->GetDecorView((IView**)&view);
@@ -895,7 +892,7 @@ ECode CPhoneWindowManager::RemoveStartingWindow(
 
     if (window != NULL) {
         AutoPtr<IWindowManager> wm;
-        mContext->GetSystemService(Context_WINDOW_SERVICE, (IInterface**)&wm);
+        mContext->GetSystemService(String(Context_WINDOW_SERVICE), (IInterface**)&wm);
         wm->RemoveView(window);
     }
 
@@ -2092,14 +2089,14 @@ void CPhoneWindowManager::SendCloseSystemWindows()
 }
 
 void CPhoneWindowManager::SendCloseSystemWindows(
-    /* [in] */ String reason)
+    /* [in] */ const char* reason)
 {
     SendCloseSystemWindows(mContext, reason);
 }
 
 void CPhoneWindowManager::SendCloseSystemWindows(
     /* [in] */ IContext* context,
-    /* [in] */ String reason)
+    /* [in] */ const char* reason)
 {
     //if (ActivityManagerNative.isSystemReady()) {
     //    try {

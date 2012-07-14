@@ -14,7 +14,7 @@ LoadedCap::ReceiverDispatcher::
 InnerReceiver::PerformReceive(
     /* [in] */ IIntent* intent,
     /* [in] */ Int32 resultCode,
-    /* [in] */ String data,
+    /* [in] */ const String& data,
     /* [in] */ IBundle* extras,
     /* [in] */ Boolean ordered,
     /* [in] */ Boolean sticky)
@@ -27,12 +27,12 @@ InnerReceiver::PerformReceive(
         Slogger::I(CApplicationApartment::TAG,
                 StringBuffer("Receiving broadcast ") + action +
                 " seq=" + seq + " to " + (Int32)mDispatcher);
-        String::Free(action);
     }
     if (mDispatcher != NULL) {
         return mDispatcher->PerformReceive(intent, resultCode, data, extras,
                 ordered, sticky);
-    }else {
+    }
+    else {
         // The activity manager dispatched a broadcast to a registered
         // receiver in this process, but before it could be delivered the
         // receiver was unregistered.  Acknowledge the broadcast on its
@@ -65,7 +65,7 @@ LoadedCap::ReceiverDispatcher::ReceiverDispatcher(
 ECode LoadedCap::ReceiverDispatcher::PerformReceive(
     /* [in] */ IIntent* intent,
     /* [in] */ Int32 resultCode,
-    /* [in] */ String data,
+    /* [in] */ const String& data,
     /* [in] */ IBundle* extras,
     /* [in] */ Boolean ordered,
     /* [in] */ Boolean sticky)
@@ -78,7 +78,6 @@ ECode LoadedCap::ReceiverDispatcher::PerformReceive(
         Slogger::I(CApplicationApartment::TAG,
                 StringBuffer("Enqueueing broadcast ") + action +
                 " seq=" + seq + " to " + (Int32)(IBroadcastReceiver*)mReceiver);
-        String::Free(action);
     }
 
     ECode (STDCALL LoadedCap::ReceiverDispatcher::*pHandlerFunc)(
@@ -96,7 +95,7 @@ ECode LoadedCap::ReceiverDispatcher::PerformReceive(
     AutoPtr<IParcel> params;
     CCallbackParcel::New((IParcel**)&params);
     params->WriteInt32((Handle32)args);
-    ECode ec = mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params);
+    ECode ec = mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 
     if (FAILED(ec)) {
 //        if (mRegistered && ordered) {
@@ -128,7 +127,6 @@ ECode LoadedCap::ReceiverDispatcher::HandleReceive(
         Slogger::I(CApplicationApartment::TAG,
                 StringBuffer("  mRegistered=") + mRegistered +
                 " mCurOrdered=" + args->mCurOrdered);
-        String::Free(action);
     }
 
     ECode ec;
@@ -200,7 +198,10 @@ LoadedCap::LoadedCap(
 {
     mAppApartment = appApartment;
     mApplicationInfo = aInfo;
-    mCapsuleName = String::Duplicate(aInfo->mCapsuleName);
+    mCapsuleName = aInfo->mCapsuleName;
+//    mResDir = aInfo.uid == Process.myUid() ? aInfo.sourceDir
+//                : aInfo.publicSourceDir;
+    mResDir = aInfo->mSourceDir;
     mSecurityViolation = securityViolation;
     mIncludeCode = includeCode;
     CCompatibilityInfo::NewByFriend((IApplicationInfo*)aInfo,
@@ -220,7 +221,7 @@ ECode LoadedCap::GetCapsuleName(
     /* [out] */ String* capsuleName)
 {
     if (capsuleName == NULL) return E_INVALID_ARGUMENT;
-    *capsuleName = String::Duplicate(mCapsuleName);
+    *capsuleName = mCapsuleName;
     return NOERROR;
 }
 
@@ -303,7 +304,7 @@ ECode LoadedCap::GetAppDir(
     /* [out] */ String* appDir)
 {
     if (appDir == NULL) return E_INVALID_ARGUMENT;
-    *appDir = String::Duplicate(mAppDir);
+    *appDir = mAppDir;
     return NOERROR;
 }
 
@@ -316,9 +317,9 @@ ECode LoadedCap::GetResources(
 
     if (mResources == NULL) {
         // TODO: delete this line.
-        mResDir = "/data/data/com.elastos.runtime/elastos/ActivityDemo/data/hello.apk";
+        String resPath = mResDir + "/hello.apk";
         ECode ec = apartment->GetTopLevelResources(
-            mResDir, this, (CResources**)&mResources);
+            resPath/*mResDir*/, this, (CResources**)&mResources);
         if (FAILED(ec)) return ec;
     }
     *res = mResources.Get();
@@ -381,8 +382,8 @@ ECode LoadedCap::MakeApplication(
 
 ECode LoadedCap::RemoveContextRegistrations(
     /* [in] */ IContext* context,
-    /* [in] */ String who,
-    /* [in] */ String what)
+    /* [in] */ const String& who,
+    /* [in] */ const String& what)
 {
 //    HashMap<BroadcastReceiver, ReceiverDispatcher> rmap =
 //        mReceivers.remove(context);
@@ -544,7 +545,7 @@ ECode LoadedCap::ServiceDispatcher::PerformServiceConnected(
     CCallbackParcel::New((IParcel**)&params);
     params->WriteInt32((Handle32)con);
     return ((CApplicationApartment*)mAppApartment.Get())->mApartment->PostCppCallback(
-            (Handle32)this, *(Handle32*)&pHandlerFunc, params);
+            (Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 ECode LoadedCap::ServiceDispatcher::HandleServiceConnected(

@@ -1,0 +1,44 @@
+
+module
+{
+    interface INotification;
+    interface ITransientNotification;
+
+    interface INotificationManager {
+        /** @deprecated use {@link #enqueueNotificationWithTag} instead */
+        EnqueueNotification(
+            [in] String cap,
+            [in] Int32 id,
+            [in] INotification* notification,
+            [in /*,out*/] ArrayOf<Int32> idReceived);
+
+        /** @deprecated use {@link #cancelNotificationWithTag} instead */
+        CancelNotification(
+            [in] String cap,
+            [in] Int32 id);
+
+        CancelAllNotifications(
+            [in] String cap);
+
+        EnqueueToast(
+            [in] String cap,
+            [in] ITransientNotification* cb,
+            [in] Int32 duration);
+
+        CancelToast(
+            [in] String cap,
+            [in] ITransientNotification* cb);
+
+        EnqueueNotificationWithTag(
+            [in] String cap,
+            [in] String tag,
+            [in] Int32 id,
+            [in] INotification* notification,
+            [in/*, out*/] ArrayOf<Int32> idReceived);
+
+        CancelNotificationWithTag(
+            [in] String cap,
+            [in] String tag,
+            [in] Int32 id);
+    }
+}

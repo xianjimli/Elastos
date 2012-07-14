@@ -2,7 +2,7 @@
 #define __COMPATIBILITYINFO_H__
 
 #include "ext/frameworkext.h"
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>
 #include "graphics/CRect.h"
 
@@ -34,7 +34,7 @@ public:
      */
     static const Int32 DEFAULT_PORTRAIT_HEIGHT = 480;
 
-    static const String TAG;
+    static const char* TAG;
 
 private:
     static const Boolean DBG = FALSE;

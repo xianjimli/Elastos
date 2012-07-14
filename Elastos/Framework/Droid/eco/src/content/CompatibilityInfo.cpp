@@ -6,7 +6,7 @@
 #include <StringBuffer.h>
 #include <Logger.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
 CompatibilityInfo::Translator::Translator(
@@ -371,7 +371,7 @@ CARAPI CompatibilityInfo::GetDefaultCompatibilityInfo(
 
 const Int32 CompatibilityInfo::DEFAULT_PORTRAIT_WIDTH;
 const Int32 CompatibilityInfo::DEFAULT_PORTRAIT_HEIGHT;
-const String CompatibilityInfo::TAG = "CompatibilityInfo";
+const char* CompatibilityInfo::TAG = "CompatibilityInfo";
 const Boolean CompatibilityInfo::DBG;
 const Int32 CompatibilityInfo::SCALING_REQUIRED;
 const Int32 CompatibilityInfo::EXPANDABLE;
@@ -552,7 +552,7 @@ String CompatibilityInfo::GetDescription()
     s += ", supports screen=";
     s += (Int32)SupportsScreen();
     s += "}";
-    return String::Duplicate((const char*)s);
+    return String((const char*)s);
 }
 
 /**

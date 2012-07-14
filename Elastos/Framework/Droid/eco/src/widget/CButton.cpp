@@ -3,6 +3,12 @@
 
 IVIEW_METHODS_IMPL(CButton, Button, Button);
 
+IDrawableCallback_METHODS_IMPL(CButton, Button, Button);
+
+IKeyEventCallback_METHODS_IMPL(CButton, Button, Button);
+
+IAccessibilityEventSource_METHODS_IMPL(CButton, Button, Button);
+
 ITEXTVIEW_METHODS_IMPL(CButton, Button, Button);
 
 PInterface CButton::Probe(
@@ -17,16 +23,14 @@ PInterface CButton::Probe(
 ECode CButton::constructor(
     /* [in] */ IContext * pCtx)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return Init(pCtx);
 }
 
 ECode CButton::constructor(
     /* [in] */ IContext * pCtx,
     /* [in] */ IAttributeSet * pAttrs)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return Init(pCtx, pAttrs);
 }
 
 ECode CButton::constructor(
@@ -34,6 +38,14 @@ ECode CButton::constructor(
     /* [in] */ IAttributeSet * pAttrs,
     /* [in] */ Int32 defStyle)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return Init(pContext, pAttrs, defStyle);
+}
+
+ECode CButton::OnPreDraw(
+    /* [out] */ Boolean* result)
+{
+    VALIDATE_NOT_NULL(result);
+    *result = Button::OnPreDraw();
+
+    return NOERROR;
 }

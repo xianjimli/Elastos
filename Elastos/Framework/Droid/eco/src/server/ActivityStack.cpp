@@ -1,6 +1,6 @@
 
 #include "server/ActivityStack.h"
-#include "utils/CObjectContainer.h"
+#include "utils/CParcelableObjectContainer.h"
 #include "utils/EventLogTags.h"
 #include "os/SystemClock.h"
 #include "os/Process.h"
@@ -9,12 +9,12 @@
 #include <StringBuffer.h>
 #include <Slogger.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
 #define UNUSED(x) (void)x
 
-const String ActivityStack::TAG  = CActivityManagerService::TAG;
+const char* ActivityStack::TAG  = CActivityManagerService::TAG;
 const Boolean ActivityStack::localLOGV = CActivityManagerService::localLOGV;
 const Boolean ActivityStack::DEBUG_SWITCH = CActivityManagerService::DEBUG_SWITCH;
 const Boolean ActivityStack::DEBUG_PAUSE = CActivityManagerService::DEBUG_PAUSE;
@@ -55,7 +55,7 @@ ICapsuleManager* ActivityStack::GetCapsuleManager()
     AutoPtr<ICapsuleManager> capsuleManager;
     Elastos::GetServiceManager((IServiceManager**)&serviceManager);
     assert(serviceManager != NULL);
-	serviceManager->GetService("capsule",
+	serviceManager->GetService(String("capsule"),
 	        (IInterface**)(ICapsuleManager**)&capsuleManager);
     assert(capsuleManager != NULL);
 	return capsuleManager;
@@ -271,7 +271,6 @@ ECode ActivityStack::RealStartActivityLocked(
         String arDes;
         r->GetDescription(&arDes);
         Slogger::V(TAG, StringBuffer("Launching: ") + arDes);
-        String::Free(arDes);
     }
 
     List<AutoPtr<CActivityRecord> >::Iterator it = Find(
@@ -290,14 +289,14 @@ ECode ActivityStack::RealStartActivityLocked(
     AutoPtr<IObjectContainer> newIntents;
     if (andResume) {
         if (r->mResults != NULL && r->mResults->GetSize() > 0) {
-            CObjectContainer::New((IObjectContainer**)&results);
+            CParcelableObjectContainer::New((IObjectContainer**)&results);
             List<ActivityResult*>::Iterator it;
             for(it = r->mResults->Begin(); it != r->mResults->End(); ++it) {
                 results->Add((IParcelable*)((*it)->mResultInfo));
             }
         }
         if (r->mNewIntents != NULL && r->mNewIntents->GetSize() > 0) {
-            CObjectContainer::New((IObjectContainer**)&newIntents);
+            CParcelableObjectContainer::New((IObjectContainer**)&newIntents);
             List<AutoPtr<IIntent> >::Iterator it;
             for(it = r->mNewIntents->Begin(); it != r->mNewIntents->End(); ++it) {
                 results->Add((IIntent*)*it);
@@ -312,8 +311,6 @@ ECode ActivityStack::RealStartActivityLocked(
             + " icicle=" + bdDes
 //            + " with results=" + results + " newIntents=" + newIntents
             + " andResume=" + andResume);
-        String::Free(arDes);
-        String::Free(bdDes);
     }
     if (andResume) {
 //        EventLog.writeEvent(EventLogTags.AM_RESTART_ACTIVITY,
@@ -362,8 +359,6 @@ ECode ActivityStack::RealStartActivityLocked(
         Slogger::D(TAG, StringBuffer("Schedule launch ") + capsuleName + "." +
                 className + " activity.");
 
-        String::Free(capsuleName);
-        String::Free(className);
     }
 #endif
 //    } catch (RemoteException e) {
@@ -391,7 +386,6 @@ ECode ActivityStack::RealStartActivityLocked(
         r->GetDescription(&arDes);
         Slogger::W(TAG, StringBuffer("Activity ") + arDes
               + " being launched, but already in LRU list");
-        String::Free(arDes);
     }
 
     if (andResume) {
@@ -456,8 +450,7 @@ ECode ActivityStack::StartSpecificActivityLocked(
             r->mIntent->GetComponent((IComponentName**)&component);
             component->FlattenToShortString(&acDes);
             Slogger::W(TAG, StringBuffer("Exception when starting activity ") + acDes);
-            String::Free(acDes);
-        }
+    }
 
         // If a dead object exception was thrown -- fall through to
         // restart the application.
@@ -505,7 +498,6 @@ ECode ActivityStack::StartPausingLocked(
         mPausingActivity->GetDescription(&arDes);
         Slogger::E(TAG, StringBuffer("Trying to pause when pause is already pending for ")
                 + arDes);
-        String::Free(arDes);
     }
     AutoPtr<CActivityRecord> prev = mResumedActivity;
     if (prev == NULL) {
@@ -517,7 +509,6 @@ ECode ActivityStack::StartPausingLocked(
         String arDes;
         prev->GetDescription(&arDes);
         Slogger::V(TAG, StringBuffer("Start pausing: ") + arDes);
-        String::Free(arDes);
     }
     mResumedActivity = NULL;
     mPausingActivity = prev;
@@ -532,7 +523,6 @@ ECode ActivityStack::StartPausingLocked(
             String arDes;
             prev->GetDescription(&arDes);
             Slogger::V(TAG, StringBuffer("Enqueueing pending pause: ") + arDes);
-            String::Free(arDes);
         }
 //        EventLog.writeEvent(EventLogTags.AM_PAUSE_ACTIVITY,
 //                System.identityHashCode(prev),
@@ -608,8 +598,6 @@ ECode ActivityStack::ActivityPaused(
         icicle->GetDescription(&bdDes);
         Slogger::V(TAG, StringBuffer("Activity paused: token=") + tokenDes
                 + ", icicle=" + bdDes + ", timeout=" + timeout);
-        String::Free(tokenDes);
-        String::Free(bdDes);
     }
 
     AutoPtr<CActivityRecord> r;
@@ -644,7 +632,6 @@ void ActivityStack::CompletePauseLocked()
         String arDes;
         prev->GetDescription(&arDes);
         Slogger::V(TAG, StringBuffer("Complete pause: ") + arDes);
-        String::Free(arDes);
     }
 
     if (prev != NULL) {
@@ -653,7 +640,6 @@ void ActivityStack::CompletePauseLocked()
                 String arDes;
                 prev->GetDescription(&arDes);
                 Slogger::V(TAG, StringBuffer("Executing finish of activity: ") + arDes);
-                String::Free(arDes);
             }
             AutoPtr<CActivityRecord> r;
             FinishCurrentActivityLocked(prev,
@@ -664,7 +650,6 @@ void ActivityStack::CompletePauseLocked()
                 String arDes;
                 prev->GetDescription(&arDes);
                 Slogger::V(TAG, StringBuffer("Enqueueing pending stop: ") + arDes);
-                String::Free(arDes);
             }
             if (prev->mWaitingVisible) {
                 prev->mWaitingVisible = FALSE;
@@ -674,7 +659,6 @@ void ActivityStack::CompletePauseLocked()
                     prev->GetDescription(&arDes);
                     Slogger::V(TAG, StringBuffer("Complete pause, no longer waiting: ")
                             + arDes);
-                    String::Free(arDes);
                 }
             }
             if (prev->mConfigDestroy) {
@@ -687,7 +671,6 @@ void ActivityStack::CompletePauseLocked()
                     String arDes;
                     prev->GetDescription(&arDes);
                     Slogger::V(TAG, StringBuffer("Destroying after pause: ") + arDes);
-                    String::Free(arDes);
                 }
                 DestroyActivityLocked(prev, TRUE);
             } else {
@@ -707,7 +690,6 @@ void ActivityStack::CompletePauseLocked()
                 String arDes;
                 prev->GetDescription(&arDes);
                 Slogger::V(TAG, StringBuffer("App died during pause, not stopping: ") + arDes);
-                String::Free(arDes);
             }
             prev = NULL;
         }
@@ -811,7 +793,7 @@ void ActivityStack::CompleteResumeLocked(
 void ActivityStack::EnsureActivitiesVisibleLocked(
     /* [in] */ CActivityRecord* top,
     /* [in] */ CActivityRecord* starting,
-    /* [in] */ String onlyThisProcess,
+    /* [in] */ const char* onlyThisProcess,
     /* [in] */ Int32 configChanges)
 {
     if (DEBUG_VISBILITY) {
@@ -819,7 +801,6 @@ void ActivityStack::EnsureActivitiesVisibleLocked(
         top->GetDescription(&arDes);
         Slogger::V(TAG, StringBuffer("ensureActivitiesVisible behind ")
                 + arDes + " configChanges=" + configChanges);
-        String::Free(arDes);
     }
 
     // If the top activity is not fullscreen, then we need to
@@ -837,14 +818,13 @@ void ActivityStack::EnsureActivitiesVisibleLocked(
             r->GetDescription(&arDes);
             Slogger::V(TAG, StringBuffer("Make visible? ") + arDes
                     + " finishing=" + r->mFinishing + " state=" + r->mState);
-            String::Free(arDes);
-        }
+    }
         if (r->mFinishing) {
             continue;
         }
 
-        Boolean doThisProcess = onlyThisProcess.IsNull()
-                || !onlyThisProcess.Compare(r->mProcessName);
+        Boolean doThisProcess = onlyThisProcess == NULL
+                || r->mProcessName.Equals(onlyThisProcess);
 
         // First: if this is not the current activity being started, make
         // sure it matches the current configuration.
@@ -853,8 +833,8 @@ void ActivityStack::EnsureActivitiesVisibleLocked(
         }
 
         if (r->mApp == NULL || r->mApp->mAppApartment == NULL) {
-            if (onlyThisProcess.IsNull()
-                    || !onlyThisProcess.Compare(r->mProcessName)) {
+            if (onlyThisProcess == NULL
+                    || r->mProcessName.Equals(onlyThisProcess)) {
                 // This activity needs to be visible, but isn't even
                 // running...  get it started, but don't resume it
                 // at this point.
@@ -863,7 +843,6 @@ void ActivityStack::EnsureActivitiesVisibleLocked(
                     r->GetDescription(&arDes);
                     Slogger::V(TAG,
                             StringBuffer("Start and freeze screen for ") + arDes);
-                    String::Free(arDes);
                 }
                 if (r != starting) {
                     r->StartFreezingScreenLocked(r->mApp, configChanges);
@@ -874,7 +853,6 @@ void ActivityStack::EnsureActivitiesVisibleLocked(
                         r->GetDescription(&arDes);
                         Slogger::V(TAG,
                                 StringBuffer("Starting and making visible: ") + arDes);
-                        String::Free(arDes);
                     }
                     mService->mWindowManager->SetAppVisibility(r, TRUE);
                 }
@@ -890,10 +868,9 @@ void ActivityStack::EnsureActivitiesVisibleLocked(
                 r->GetDescription(&arDes);
                 Slogger::V(TAG,
                         StringBuffer("Skipping: already visible at ") + arDes);
-                String::Free(arDes);
             }
             r->StopFreezingScreenLocked(FALSE);
-        } else if (onlyThisProcess.IsNull()) {
+        } else if (onlyThisProcess == NULL) {
             // This activity is not currently visible, but is running.
             // Tell it to become visible.
             r->mVisible = TRUE;
@@ -906,7 +883,6 @@ void ActivityStack::EnsureActivitiesVisibleLocked(
                     Slogger::V(TAG,
                             StringBuffer("Making visible and scheduling visibility: ")
                             + arDes);
-                    String::Free(arDes);
                 }
 //                try {
                     mService->mWindowManager->SetAppVisibility(r, TRUE);
@@ -930,7 +906,7 @@ void ActivityStack::EnsureActivitiesVisibleLocked(
                 String arDes;
                 r->GetDescription(&arDes);
                 Slogger::V(TAG, StringBuffer("Stopping: fullscreen at ") + arDes);
-                String::Free(arDes);
+
             }
             behindFullscreen = TRUE;
             ++rit;
@@ -949,7 +925,7 @@ void ActivityStack::EnsureActivitiesVisibleLocked(
                 + " finishing=" + r->mFinishing
                 + " state=" + r->mState
                 + " behindFullscreen=" + behindFullscreen);
-            String::Free(arDes);
+
         }
         if (!r->mFinishing) {
             if (behindFullscreen) {
@@ -958,7 +934,6 @@ void ActivityStack::EnsureActivitiesVisibleLocked(
                         String arDes;
                         r->GetDescription(&arDes);
                         Slogger::V(TAG, StringBuffer("Making invisible: ") + arDes);
-                        String::Free(arDes);
                     }
                     r->mVisible = FALSE;
 //                    try {
@@ -971,7 +946,6 @@ void ActivityStack::EnsureActivitiesVisibleLocked(
                                 r->GetDescription(&arDes);
                                 Slogger::V(TAG,
                                         StringBuffer("Scheduling invisibility: ") + arDes);
-                                String::Free(arDes);
                             }
                             r->mApp->mAppApartment->ScheduleWindowVisibility(r, FALSE);
                         }
@@ -987,7 +961,6 @@ void ActivityStack::EnsureActivitiesVisibleLocked(
                         r->GetDescription(&arDes);
                         Slogger::V(TAG,
                                 StringBuffer("Already invisible: ") + arDes);
-                        String::Free(arDes);
                     }
                 }
             } else if (r->mFullscreen) {
@@ -996,7 +969,6 @@ void ActivityStack::EnsureActivitiesVisibleLocked(
                     r->GetDescription(&arDes);
                     Slogger::V(TAG,
                             StringBuffer("Now behindFullscreen: ") + arDes);
-                    String::Free(arDes);
                 }
                 behindFullscreen = TRUE;
             }
@@ -1077,7 +1049,6 @@ Boolean ActivityStack::ResumeTopActivityLocked(
         String arDes;
         next->GetDescription(&arDes);
         Slogger::V(TAG, StringBuffer("Resuming ") + arDes);
-        String::Free(arDes);
     }
 
     // If we are currently pausing an activity, then don't do anything
@@ -1087,7 +1058,6 @@ Boolean ActivityStack::ResumeTopActivityLocked(
             String arDes;
             mPausingActivity->GetDescription(&arDes);
             Slogger::V(TAG, "Skip resume: pausing=" + arDes);
-            String::Free(arDes);
         }
         return FALSE;
     }
@@ -1140,7 +1110,6 @@ Boolean ActivityStack::ResumeTopActivityLocked(
                 prev->GetDescription(&arDes);
                 Slogger::V(TAG, StringBuffer("Resuming top, waiting visible to hide: ")
                         + arDes);
-                String::Free(arDes);
             }
         } else {
             // The next activity is already visible, so hide the previous
@@ -1159,7 +1128,6 @@ Boolean ActivityStack::ResumeTopActivityLocked(
                     Slogger::V(TAG, StringBuffer("Not waiting for visible to hide: ")
                             + arDes + ", waitingVisible=" + prev->mWaitingVisible
                             + ", nowVisible=" + next->mNowVisible);
-                    String::Free(arDes);
                 }
             } else {
                 if (DEBUG_SWITCH) {
@@ -1169,7 +1137,6 @@ Boolean ActivityStack::ResumeTopActivityLocked(
                         StringBuffer("Previous already visible but still waiting to hide: ")
                         + arDes + ", waitingVisible=" + prev->mWaitingVisible
                         + ", nowVisible=" + next->mNowVisible);
-                    String::Free(arDes);
                 }
             }
         }
@@ -1184,7 +1151,6 @@ Boolean ActivityStack::ResumeTopActivityLocked(
                 String arDes;
                 prev->GetDescription(&arDes);
                 Slogger::V(TAG, StringBuffer("Prepare close transition: prev=") + arDes);
-                String::Free(arDes);
             }
             if (Find(mNoAnimActivities.Begin(), mNoAnimActivities.End(),
                     AutoPtr<CActivityRecord>(prev)) != mNoAnimActivities.End()) {
@@ -1204,7 +1170,6 @@ Boolean ActivityStack::ResumeTopActivityLocked(
                 String arDes;
                 prev->GetDescription(&arDes);
                 Slogger::V(TAG, StringBuffer("Prepare open transition: prev=") + arDes);
-                String::Free(arDes);
             }
             if (Find(mNoAnimActivities.Begin(), mNoAnimActivities.End(), next) !=
                     mNoAnimActivities.End()) {
@@ -1240,7 +1205,6 @@ Boolean ActivityStack::ResumeTopActivityLocked(
             String arDes;
             next->GetDescription(&arDes);
             Slogger::V(TAG, "Resume running: " + arDes);
-            String::Free(arDes);
         }
 
         // This activity is now becoming visible.
@@ -1287,8 +1251,6 @@ Boolean ActivityStack::ResumeTopActivityLocked(
                 nextNext->GetDescription(&nnDes);
                 Slogger::I(TAG, StringBuffer("Activity config changed during resume: ")
                         + nDes + ", new next: " + nnDes);
-                String::Free(nDes);
-                String::Free(nnDes);
             }
 //            if (nextNext != next) {
 //                // Do over!
@@ -1309,7 +1271,7 @@ Boolean ActivityStack::ResumeTopActivityLocked(
             List<ActivityResult*>::Iterator it = next->mResults->Begin();
             if (!next->mFinishing && it != next->mResults->End()) {
                 AutoPtr<IObjectContainer> res;
-                CObjectContainer::New((IObjectContainer**)&res);
+                CParcelableObjectContainer::New((IObjectContainer**)&res);
                 for (; it != next->mResults->End(); ++it) {
                     res->Add((IParcelable*)(CResultInfo*)
                             ((*it)->mResultInfo));
@@ -1324,7 +1286,7 @@ Boolean ActivityStack::ResumeTopActivityLocked(
 
         if (next->mNewIntents != NULL) {
             AutoPtr<IObjectContainer> res;
-            CObjectContainer::New((IObjectContainer**)&res);
+            CParcelableObjectContainer::New((IObjectContainer**)&res);
             List<AutoPtr<IIntent> >::Iterator it;
             for (it = next->mNewIntents->Begin();
                  it != next->mNewIntents->End(); ++it) {
@@ -1374,7 +1336,6 @@ Boolean ActivityStack::ResumeTopActivityLocked(
 //            String arDes;
 //            next->GetDescription(&arDes);
 //            Slogger::W(TAG, StringBuffer("Exception thrown during resume of ") + arDes);
-//            String::Free(arDes);
 //            RequestFinishActivityLocked(next, Activity_RESULT_CANCELED, NULL,
 //                    "resume-exception");
 //            return TRUE;
@@ -1400,7 +1361,6 @@ Boolean ActivityStack::ResumeTopActivityLocked(
                 String arDes;
                 next->GetDescription(&arDes);
                 Slogger::V(TAG, StringBuffer("Restarting: ") + arDes);
-                String::Free(arDes);
             }
         }
         StartSpecificActivityLocked(next, TRUE, TRUE);
@@ -1487,7 +1447,6 @@ void ActivityStack::StartActivityLocked(
             String arDes;
             r->GetDescription(&arDes);
             Slogger::V(TAG, StringBuffer("Prepare open transition: starting ") + arDes);
-            String::Free(arDes);
         }
         Int32 flags;
         r->mIntent->GetFlags(&flags);
@@ -1646,8 +1605,6 @@ CActivityRecord* ActivityStack::ResetTaskIfNeededLocked(
                             p->mTask->GetDescription(&trDes);
                             Slogger::V(TAG, StringBuffer("Start pushing activity ") + arDes
                                 + " out to bottom task " + trDes);
-                            String::Free(arDes);
-                            String::Free(trDes);
                         }
                     } else {
                         mService->mCurTask++;
@@ -1663,8 +1620,6 @@ CActivityRecord* ActivityStack::ResetTaskIfNeededLocked(
                             target->mTask->GetDescription(&trDes);
                             Slogger::V(TAG, StringBuffer("Start pushing activity ") + arDes
                                 + " out to new task " + trDes);
-                            String::Free(arDes);
-                            String::Free(trDes);
                         }
                     }
                     mService->mWindowManager->SetAppGroupId(target, task->mTaskId);
@@ -1683,8 +1638,6 @@ CActivityRecord* ActivityStack::ResetTaskIfNeededLocked(
                             target->mTask->GetDescription(&trDes);
                             Slogger::V(TAG, StringBuffer("Pushing next activity ") + arDes
                                 + " out to target's task " + trDes);
-                            String::Free(arDes);
-                            String::Free(trDes);
                         }
                         task->mNumActivities--;
                         p->mTask = target->mTask;
@@ -1836,8 +1789,6 @@ CActivityRecord* ActivityStack::ResetTaskIfNeededLocked(
                         task->GetDescription(&trDes);
                         Slogger::V(TAG, StringBuffer("Pulling activity ") + arDes
                             + " in to resetting task " + trDes);
-                        String::Free(arDes);
-                        String::Free(trDes);
                     }
                     task->mNumActivities++;
                     mService->mWindowManager->MoveAppToken(lastReparentPos, p);
@@ -2012,7 +1963,7 @@ CActivityRecord* ActivityStack::MoveActivityToFrontLocked(
 ECode ActivityStack::StartActivityLocked(
     /* [in] */ IApplicationApartment* caller,
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ List<AutoPtr<IUri> >* grantedUriPermissions,
     /* [in] */ Int32 grantedMode,
     /* [in] */ IActivityInfo* aInfo,
@@ -2040,8 +1991,6 @@ ECode ActivityStack::StartActivityLocked(
             Slogger::W(TAG, StringBuffer("Unable to find app for caller ")
                     + appApDes + " (pid=" + callingPid + ") when starting: "
                     + intDes);
-            String::Free(appApDes);
-            String::Free(intDes);
             err = ActivityManager_START_PERMISSION_DENIED;
         }
     }
@@ -2051,7 +2000,6 @@ ECode ActivityStack::StartActivityLocked(
         intent->GetDescription(&intDes);
         Slogger::I(TAG, StringBuffer("Starting: ") + intDes + " from pid "
                 + (callerApp != NULL ? callerApp->mPid : callingPid));
-        String::Free(intDes);
     }
 
     AutoPtr<CActivityRecord> sourceRecord;
@@ -2063,7 +2011,6 @@ ECode ActivityStack::StartActivityLocked(
             resultTo->GetDescription(&ibDes);
             Slogger::V(TAG, StringBuffer("Sending result to ") + ibDes
                     + " (index " + index + ")");
-            String::Free(ibDes);
         }
         if (index >= 0) {
             sourceRecord = mHistory[index];
@@ -2084,7 +2031,7 @@ ECode ActivityStack::StartActivityLocked(
             return NOERROR;
         }
         resultRecord = sourceRecord->mResultTo;
-        resultWho = String::Duplicate(sourceRecord->mResultWho);
+        resultWho = sourceRecord->mResultWho;
         requestCode = sourceRecord->mRequestCode;
         sourceRecord->mResultTo = NULL;
         if (resultRecord != NULL) {
@@ -2137,8 +2084,6 @@ ECode ActivityStack::StartActivityLocked(
                 + ", uid=" + callingUid + ")"
                 + " requires " + ((CActivityInfo*)aInfo)->mPermission;
         Slogger::W(TAG, msg);
-        String::Free(intDes);
-        String::Free(appDes);
         return E_SECURITY_EXCEPTION;
     }
 
@@ -2268,7 +2213,6 @@ ECode ActivityStack::StartActivityUncheckedLocked(
             Slogger::W(TAG,
                 StringBuffer("startActivity called from non-Activity context; forcing Intent.FLAG_ACTIVITY_NEW_TASK for: ")
                 + intDes);
-            String::Free(intDes);
             launchFlags |= Intent_FLAG_ACTIVITY_NEW_TASK;
         }
     } else if (sourceRecord->mLaunchMode == CActivityInfo::LAUNCH_SINGLE_INSTANCE) {
@@ -2498,8 +2442,6 @@ ECode ActivityStack::StartActivityUncheckedLocked(
             r->mTask->GetDescription(&trDes);
             Slogger::V(TAG, StringBuffer("Starting new activity ") + arDes
                     + " in new task " + trDes);
-            String::Free(arDes);
-            String::Free(trDes);
         }
         newTask = TRUE;
         if (mMainStack) {
@@ -2551,8 +2493,6 @@ ECode ActivityStack::StartActivityUncheckedLocked(
             r->mTask->GetDescription(&trDes);
             Slogger::V(TAG, StringBuffer("Starting new activity ") + arDes
                     + " in existing task " + trDes);
-            String::Free(arDes);
-            String::Free(trDes);
         }
     } else {
         // This not being started from an existing activity, and not part
@@ -2569,8 +2509,6 @@ ECode ActivityStack::StartActivityUncheckedLocked(
             r->mTask->GetDescription(&trDes);
             Slogger::V(TAG, StringBuffer("Starting new activity ") + arDes
                     + " in new guessed " + trDes);
-            String::Free(arDes);
-            String::Free(trDes);
         }
     }
 
@@ -2601,7 +2539,7 @@ ECode ActivityStack::StartActivityMayWait(
     /* [in] */ IObjectContainer* grantedUriPermissions,
     /* [in] */ Int32 grantedMode,
     /* [in] */ IBinder* resultTo,
-    /* [in] */ String resultWho,
+    /* [in] */ const String& resultWho,
     /* [in] */ Int32 requestCode,
     /* [in] */ Boolean onlyIfNeeded,
     /* [in] */ Boolean debug,
@@ -2694,16 +2632,14 @@ ECode ActivityStack::StartActivityMayWait(
                         intent->GetDescription(&intDes);
                         Slogger::W(TAG, StringBuffer("Unable to find app for caller ") + appApDes
                                 + " (pid=" + realCallingPid + ") when starting: " + intDes);
-                        String::Free(appApDes);
-                        String::Free(intDes);
                         return ActivityManager_START_PERMISSION_DENIED;
                     }
                 }
 
                 AutoPtr<IIntentSender> target;
                 mService->GetIntentSenderLocked(
-                        ActivityManager_INTENT_SENDER_ACTIVITY, "elastos",
-                        realCallingUid, NULL, NULL, 0, intent,
+                        ActivityManager_INTENT_SENDER_ACTIVITY, String("elastos"),
+                        realCallingUid, NULL, String(NULL), 0, intent,
                         resolvedType, CPendingIntent::FLAG_CANCEL_CURRENT
                         | CPendingIntent::FLAG_ONE_SHOT, (IIntentSender**)&target);
 
@@ -2712,25 +2648,25 @@ ECode ActivityStack::StartActivityMayWait(
                 if (requestCode >= 0) {
                     // Caller is requesting a result.
                     newIntent->PutBooleanExtra(
-                            "has_result"/*HeavyWeightSwitcherActivity.KEY_HAS_RESULT*/,
+                            String("has_result")/*HeavyWeightSwitcherActivity.KEY_HAS_RESULT*/,
                             TRUE);
                 }
                 AutoPtr<IParcelable> is;
                 CIntentSender::New(target.Get(), (IParcelable**)&is);
                 newIntent->PutParcelableExtra(
-                        "intent"/*HeavyWeightSwitcherActivity.KEY_INTENT*/,
+                        String("intent")/*HeavyWeightSwitcherActivity.KEY_INTENT*/,
                         is.Get());
                 if (mService->mHeavyWeightProcess->mActivities.GetSize() > 0) {
                     CActivityRecord* hist = mService->mHeavyWeightProcess->mActivities.GetFront();
                     newIntent->PutStringExtra(
-                            "cur_app"/*HeavyWeightSwitcherActivity.KEY_CUR_APP*/,
+                            String("cur_app")/*HeavyWeightSwitcherActivity.KEY_CUR_APP*/,
                             hist->mCapsuleName);
                     newIntent->PutInt32Extra(
-                            "cur_task"/*HeavyWeightSwitcherActivity.KEY_CUR_TASK*/,
+                            String("cur_task")/*HeavyWeightSwitcherActivity.KEY_CUR_TASK*/,
                             hist->mTask->mTaskId);
                 }
                 newIntent->PutStringExtra(
-                        "new_app"/*HeavyWeightSwitcherActivity.KEY_NEW_APP*/,
+                        String("new_app")/*HeavyWeightSwitcherActivity.KEY_NEW_APP*/,
                         aInfoObj->mCapsuleName);
                 Int32 flags;
                 intent->GetFlags(&flags);
@@ -2789,7 +2725,7 @@ ECode ActivityStack::StartActivityMayWait(
         // for the current activity to pause (so we will not destroy
         // it), and have not yet started the next activity.
         mService->EnforceCallingPermission(
-                "elastos.permission.CHANGE_CONFIGURATION"/*android.Manifest.permission.CHANGE_CONFIGURATION*/,
+                String("elastos.permission.CHANGE_CONFIGURATION")/*android.Manifest.permission.CHANGE_CONFIGURATION*/,
                 "updateConfiguration()");
         mConfigWillChange = FALSE;
         if (DEBUG_CONFIGURATION) {
@@ -2831,7 +2767,7 @@ ECode ActivityStack::StartActivityMayWait(
 ECode ActivityStack::SendActivityResultLocked(
     /* [in] */ Int32 callingUid,
     /* [in] */ CActivityRecord* r,
-    /* [in] */ String resultWho,
+    /* [in] */ const String& resultWho,
     /* [in] */ Int32 requestCode,
     /* [in] */ Int32 resultCode,
     /* [in] */ IIntent* data)
@@ -2849,8 +2785,6 @@ ECode ActivityStack::SendActivityResultLocked(
         Slogger::V(TAG, StringBuffer("Send activity result to ") + arDes
             + " : who=" + resultWho + " req=" + requestCode
             + " res=" + resultCode + " data=" + intDes);
-        String::Free(arDes);
-        String::Free(intDes);
     }
     if ((CActivityRecord*)mResumedActivity == r &&
             r->mApp != NULL && r->mApp->mAppApartment != NULL) {
@@ -2859,7 +2793,7 @@ ECode ActivityStack::SendActivityResultLocked(
                 resultCode, data, (CResultInfo**)&info);
 
         AutoPtr<IObjectContainer> list;
-        CObjectContainer::New((IObjectContainer**)&list);
+        CParcelableObjectContainer::New((IObjectContainer**)&list);
         list->Add((IParcelable*)(CResultInfo*)info);
 
         ec = r->mApp->mAppApartment->ScheduleSendResult(r, list);
@@ -2868,7 +2802,6 @@ ECode ActivityStack::SendActivityResultLocked(
             String arDes;
             r->GetDescription(&arDes);
             Slogger::W(TAG, StringBuffer("Exception thrown sending result to ") + arDes);
-            String::Free(arDes);
         }
     }
 
@@ -2884,7 +2817,7 @@ Boolean ActivityStack::RequestFinishActivityLocked(
     /* [in] */ IBinder* token,
     /* [in] */ Int32 resultCode,
     /* [in] */ IIntent* resultData,
-    /* [in] */ String reason)
+    /* [in] */ const char* reason)
 {
     if (DEBUG_RESULTS) {
         String tkDes, intDes;
@@ -2892,8 +2825,6 @@ Boolean ActivityStack::RequestFinishActivityLocked(
         resultData->GetDescription(&intDes);
         Slogger::V(TAG, StringBuffer("Finishing activity: token=") + tkDes
                 + ", result=" + resultCode + ", data=" + intDes);
-        String::Free(tkDes);
-        String::Free(intDes);
     }
 
     Int32 index = GetIndexOfTokenLocked(token);
@@ -2918,7 +2849,7 @@ Boolean ActivityStack::RequestFinishActivityLocked(
     // just don't finish it.
     if (lastActivity) {
         Boolean result;
-        if (r->mIntent->HasCategory(Intent_CATEGORY_HOME, &result), result) {
+        if (r->mIntent->HasCategory(String(Intent_CATEGORY_HOME), &result), result) {
             return FALSE;
         }
     }
@@ -2936,13 +2867,12 @@ Boolean ActivityStack::FinishActivityLocked(
     /* [in] */ Int32 index,
     /* [in] */ Int32 resultCode,
     /* [in] */ IIntent* resultData,
-    /* [in] */ String reason)
+    /* [in] */ const char* reason)
 {
     if (r->mFinishing) {
         String arDes;
         r->GetDescription(&arDes);
         Slogger::W(TAG, StringBuffer("Duplicate finish request for ") + arDes);
-        String::Free(arDes);
         return TRUE;
     }
 
@@ -2986,8 +2916,6 @@ Boolean ActivityStack::FinishActivityLocked(
             Slogger::V(TAG, StringBuffer("Adding result to ") + arDes
                 + " who=" + r->mResultWho + " req=" + r->mRequestCode
                 + " res=" + resultCode + " data=" + intDes);
-            String::Free(arDes);
-            String::Free(intDes);
         }
         if (r->mInfo->mApplicationInfo->mUid > 0) {
             mService->GrantUriPermissionFromIntentLocked(
@@ -3003,7 +2931,6 @@ Boolean ActivityStack::FinishActivityLocked(
         String arDes;
         r->GetDescription(&arDes);
         Slogger::V(TAG, StringBuffer("No result destination from ") + arDes);
-        String::Free(arDes);
     }
 
     // Make sure this HistoryRecord is not holding on to other resources,
@@ -3032,7 +2959,6 @@ Boolean ActivityStack::FinishActivityLocked(
             String arDes;
             r->GetDescription(&arDes);
             Slogger::V(TAG, StringBuffer("Prepare close transition: finishing ") + arDes);
-            String::Free(arDes);
         }
 
         Int32 activityClose = WindowManagerPolicy::TRANSIT_ACTIVITY_CLOSE;
@@ -3048,7 +2974,6 @@ Boolean ActivityStack::FinishActivityLocked(
                 String arDes;
                 r->GetDescription(&arDes);
                 Slogger::V(TAG, StringBuffer("Finish needs to pause: ") + arDes);
-                String::Free(arDes);
             }
             if (DEBUG_USER_LEAVING) {
                 Slogger::V(TAG, StringBuffer("finish() => pause with userLeaving=false"));
@@ -3063,7 +2988,6 @@ Boolean ActivityStack::FinishActivityLocked(
             String arDes;
             r->GetDescription(&arDes);
             Slogger::V(TAG, StringBuffer("Finish not pausing: ") + arDes);
-            String::Free(arDes);
         }
         AutoPtr<CActivityRecord> r;
         FinishCurrentActivityLocked(r, index,
@@ -3074,7 +2998,6 @@ Boolean ActivityStack::FinishActivityLocked(
             String arDes;
             r->GetDescription(&arDes);
             Slogger::V(TAG, StringBuffer("Finish waiting for pause of: ") + arDes);
-            String::Free(arDes);
         }
     }
 
@@ -3153,7 +3076,6 @@ ECode ActivityStack::FinishCurrentActivityLocked(
             String arDes;
             r->GetDescription(&arDes);
             Slogger::V(TAG, StringBuffer("Enqueueing pending finish: ") + arDes);
-            String::Free(arDes);
         }
         mFinishingActivities.PushBack(r);
         ResumeTopActivityLocked(NULL);
@@ -3271,8 +3193,7 @@ Boolean ActivityStack::DestroyActivityLocked(
         String arDes;
         r->GetDescription(&arDes);
         Slogger::V(TAG, StringBuffer("Removing activity: token=") + arDes
-                + ", app=" + (r->mApp != NULL ? r->mApp->mProcessName : "(null)"));
-        String::Free(arDes);
+                + ", app=" + (r->mApp != NULL ? r->mApp->mProcessName : String("(null)")));
     }
 //    EventLog.writeEvent(EventLogTags.AM_DESTROY_ACTIVITY,
 //            System.identityHashCode(r),
@@ -3306,7 +3227,6 @@ Boolean ActivityStack::DestroyActivityLocked(
             String arDes;
             r->GetDescription(&arDes);
             Slogger::I(TAG, StringBuffer("Destroying: ") + arDes);
-            String::Free(arDes);
         }
         if (FAILED(r->mApp->mAppApartment->ScheduleDestroyActivity(r, r->mFinishing,
                     r->mConfigChangeFlags))) {
@@ -3351,7 +3271,6 @@ Boolean ActivityStack::DestroyActivityLocked(
         r->GetDescription(&arDes);
         Slogger::W(TAG, StringBuffer("Activity ") + arDes
                 + " being finished, but not in LRU list");
-        String::Free(arDes);
     }
     else {
         mLRUActivities.Erase(it);
@@ -3390,7 +3309,6 @@ void ActivityStack::RemoveHistoryRecordsForAppLocked(
         Slogger::V(TAG, StringBuffer("Removing app ") + appDes
                 + " from list " /*+ list*/
                 + " with " + (Int32)list.GetSize() + " entries");
-        String::Free(appDes);
     }
 
     List<AutoPtr<CActivityRecord> >::ReverseIterator rit = list.RBegin();
@@ -3401,8 +3319,6 @@ void ActivityStack::RemoveHistoryRecordsForAppLocked(
             r->GetDescription(&arDes);
             r->mApp->GetDescription(&appDes);
             Slogger::V(TAG, StringBuffer("Record ") + arDes + ": app=" + appDes);
-            String::Free(arDes);
-            String::Free(appDes);
         }
         if (r->mApp == app) {
             if (localLOGV) {
@@ -3430,7 +3346,6 @@ void ActivityStack::MoveTaskToFrontLocked(
         String trDes;
         tr->GetDescription(&trDes);
         Slogger::V(TAG, StringBuffer("moveTaskToFront: ") + trDes);
-        String::Free(trDes);
     }
 
     Int32 task = tr->mTaskId;
@@ -3442,7 +3357,7 @@ void ActivityStack::MoveTaskToFrontLocked(
     }
 
     AutoPtr<IObjectContainer> moved;
-    CObjectContainer::New((IObjectContainer**)&moved);
+    CParcelableObjectContainer::New((IObjectContainer**)&moved);
 
     // Applying the affinities may have removed entries from the history,
     // so get the size again.
@@ -3459,8 +3374,6 @@ void ActivityStack::MoveTaskToFrontLocked(
             r->GetDescription(&arDes);
             Slogger::V(TAG, StringBuffer("At ") + pos + " ckp "
                     + trDes + ": " + arDes);
-            String::Free(trDes);
-            String::Free(arDes);
         }
         Boolean first = TRUE;
         if (r->mTask->mTaskId == task) {
@@ -3487,7 +3400,6 @@ void ActivityStack::MoveTaskToFrontLocked(
         String trDes;
         tr->GetDescription(&trDes);
         Slogger::V(TAG, StringBuffer("Prepare to front transition: task=") + trDes);
-        String::Free(trDes);
     }
     if (reason != NULL) {
         Int32 flags;
@@ -3551,7 +3463,6 @@ Boolean ActivityStack::EnsureActivityConfigurationLocked(
             r->GetDescription(&arDes);
             Slogger::V(TAG, StringBuffer("Skipping config check (will change): ")
                     + arDes);
-            String::Free(arDes);
         }
         return TRUE;
     }
@@ -3560,7 +3471,6 @@ Boolean ActivityStack::EnsureActivityConfigurationLocked(
         String arDes;
         r->GetDescription(&arDes);
         Slogger::V(TAG, StringBuffer("Ensuring correct configuration: ") + arDes);
-        String::Free(arDes);
     }
 
     // Short circuit: if the two configurations are the exact same
@@ -3571,7 +3481,6 @@ Boolean ActivityStack::EnsureActivityConfigurationLocked(
             String arDes;
             r->GetDescription(&arDes);
             Slogger::V(TAG, StringBuffer("Configuration unchanged in ") + arDes);
-            String::Free(arDes);
         }
         return TRUE;
     }
@@ -3583,7 +3492,6 @@ Boolean ActivityStack::EnsureActivityConfigurationLocked(
             r->GetDescription(&arDes);
             Slogger::V(TAG, StringBuffer("Configuration doesn't matter in finishing ")
                     + arDes);
-            String::Free(arDes);
         }
         r->StopFreezingScreenLocked(FALSE);
         return TRUE;
@@ -3602,7 +3510,6 @@ Boolean ActivityStack::EnsureActivityConfigurationLocked(
             r->GetDescription(&arDes);
             Slogger::V(TAG, StringBuffer("Configuration doesn't matter not running ")
                     + arDes);
-            String::Free(arDes);
         }
         r->StopFreezingScreenLocked(FALSE);
         return TRUE;
@@ -3618,7 +3525,6 @@ Boolean ActivityStack::EnsureActivityConfigurationLocked(
                 + changes + ", handles="
                 + r->mInfo->mConfigChanges
                 + ", newConfig=" + cfgDes);
-        String::Free(cfgDes);
     }
     if ((changes & (~r->mInfo->mConfigChanges)) != 0) {
         // Aha, the activity isn't handling the change, so DIE DIE DIE.
@@ -3630,7 +3536,6 @@ Boolean ActivityStack::EnsureActivityConfigurationLocked(
                 r->GetDescription(&arDes);
                 Slogger::V(TAG,
                         StringBuffer("Switch is destroying non-running ") + arDes);
-                String::Free(arDes);
             }
             DestroyActivityLocked(r, TRUE);
         } else if (r->mState == ActivityState_PAUSING) {
@@ -3642,7 +3547,6 @@ Boolean ActivityStack::EnsureActivityConfigurationLocked(
                 r->GetDescription(&arDes);
                 Slogger::V(TAG,
                         StringBuffer("Switch is skipping already pausing ") + arDes);
-                String::Free(arDes);
             }
             r->mConfigDestroy = TRUE;
             return TRUE;
@@ -3656,7 +3560,6 @@ Boolean ActivityStack::EnsureActivityConfigurationLocked(
                 r->GetDescription(&arDes);
                 Slogger::V(TAG,
                         StringBuffer("Switch is restarting resumed ") + arDes);
-                String::Free(arDes);
             }
             RelaunchActivityLocked(r, r->mConfigChangeFlags, TRUE);
             r->mConfigChangeFlags = 0;
@@ -3666,7 +3569,6 @@ Boolean ActivityStack::EnsureActivityConfigurationLocked(
                 r->GetDescription(&arDes);
                 Slogger::V(TAG,
                         StringBuffer("Switch is restarting non-resumed ") + arDes);
-                String::Free(arDes);
             }
             RelaunchActivityLocked(r, r->mConfigChangeFlags, FALSE);
             r->mConfigChangeFlags = 0;
@@ -3687,7 +3589,6 @@ Boolean ActivityStack::EnsureActivityConfigurationLocked(
             String arDes;
             r->GetDescription(&arDes);
             Slogger::V(TAG, StringBuffer("Sending new config to ") + arDes);
-            String::Free(arDes);
         }
         r->mApp->mAppApartment->ScheduleActivityConfigurationChanged(r);
     }
@@ -3704,7 +3605,7 @@ Boolean ActivityStack::RelaunchActivityLocked(
     AutoPtr<IObjectContainer> results, newIntents;
     if (andResume) {
         if (r->mResults != NULL && r->mResults->GetSize() > 0) {
-            CObjectContainer::New((IObjectContainer**)&results);
+            CParcelableObjectContainer::New((IObjectContainer**)&results);
             List<ActivityResult*>::Iterator it = r->mResults->Begin();
             for (; it != r->mResults->End(); ++it) {
                 ActivityResult* ar = *it;
@@ -3712,7 +3613,7 @@ Boolean ActivityStack::RelaunchActivityLocked(
             }
         }
         if (r->mNewIntents != NULL && r->mNewIntents->GetSize() > 0) {
-            CObjectContainer::New((IObjectContainer**)&newIntents);
+            CParcelableObjectContainer::New((IObjectContainer**)&newIntents);
             List<AutoPtr<IIntent> >::Iterator it = r->mNewIntents->Begin();
             for (; it != r->mNewIntents->End(); ++it) {
                 newIntents->Add((*it).Get());
@@ -3726,7 +3627,6 @@ Boolean ActivityStack::RelaunchActivityLocked(
         Slogger::V(TAG, StringBuffer("Relaunching: ") + arDes
 //            + " with results=" + results + " newIntents=" + newIntents
                 + " andResume=" + andResume);
-        String::Free(arDes);
     }
 //    EventLog.writeEvent(andResume ? EventLogTags.AM_RELAUNCH_RESUME_ACTIVITY
 //            : EventLogTags.AM_RELAUNCH_ACTIVITY, System.identityHashCode(r),
@@ -3738,7 +3638,6 @@ Boolean ActivityStack::RelaunchActivityLocked(
         String arDes;
         r->GetDescription(&arDes);
         Slogger::I(TAG, StringBuffer("Switch is restarting resumed ") + arDes);
-        String::Free(arDes);
     }
     if (SUCCEEDED(r->mApp->mAppApartment->ScheduleRelaunchActivity(
             r, results, newIntents, changes, !andResume, mService->mConfiguration))) {

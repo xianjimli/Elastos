@@ -12,7 +12,7 @@ CarClass(CBatteryStatsService)
 {
 public:
     CARAPI constructor(
-        /* [in] */ String fileName);
+        /* [in] */ const String& fileName);
 
 public:
     /**

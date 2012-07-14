@@ -13,7 +13,7 @@ module
     /*
      * activity related
      */
-    interface IContextWrapper;
+    interface IContextThemeWrapper;
     interface IBinder;
     interface IBundle;
     interface IApplicationApartment;
@@ -28,7 +28,7 @@ module
     interface IObjectStringMap;
     interface IConfiguration;
 
-    interface IActivity extends IContextWrapper {
+    interface IActivity extends IContextThemeWrapper {
         GetID(
             [out] String* id);
 
@@ -189,6 +189,20 @@ module
 
         GetTitleColor(
             [out] Int32* textColor);
+
+        ShowDialog(
+            [in] Int32 id);
+
+        ShowDialogEx(
+            [in] Int32 id,
+            [in] IBundle* args,
+            [out] Boolean* res);
+
+        DismissDialog(
+            [in] Int32 id);
+
+        RemoveDialog(
+            [in] Int32 id);
     }
 }
 

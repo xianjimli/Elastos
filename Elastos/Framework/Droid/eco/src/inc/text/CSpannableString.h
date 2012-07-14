@@ -37,7 +37,7 @@ public:
     CARAPI GetChars(
         /* [in] */ Int32 start,
         /* [in] */ Int32 end,
-        /* [out] */ BufferOf<Byte>* dest,
+        /* [out] */ ArrayOf<Char8>* dest,
         /* [in] */ Int32 destoff);
 
     CARAPI GetSpans(

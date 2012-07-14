@@ -7,12 +7,12 @@ const Int32 Key::ODD_PRIME_NUMBER;
 
 Key::Key(
     /* [in] */ Int32 t,
-    /* [in] */ String p,
+    /* [in] */ const String& p,
     /* [in] */ CActivityRecord* a,
-    /* [in] */ String w,
+    /* [in] */ const String& w,
     /* [in] */ Int32 r,
     /* [in] */ CIntent* i,
-    /* [in] */ String it,
+    /* [in] */ const String& it,
     /* [in] */ Int32 f) :
     mType(t),
     mActivity(a),
@@ -20,9 +20,9 @@ Key::Key(
     mRequestIntent(i),
     mFlags(f)
 {
-    mCapsuleName = String::Duplicate(p);
-    mWho = String::Duplicate(w);
-    mRequestResolvedType = String::Duplicate(it);
+    mCapsuleName = p;
+    mWho = w;
+    mRequestResolvedType = it;
 
     Int32 hash = 23;
     hash = (ODD_PRIME_NUMBER * hash) + f;

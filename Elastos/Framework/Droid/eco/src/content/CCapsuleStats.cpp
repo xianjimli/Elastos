@@ -23,7 +23,7 @@ ECode CCapsuleStats::WriteToParcel(
 }
 
 ECode CCapsuleStats::constructor(
-    /* [in] */ String capName)
+    /* [in] */ const String& capName)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;

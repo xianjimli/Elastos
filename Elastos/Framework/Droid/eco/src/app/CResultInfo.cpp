@@ -2,16 +2,16 @@
 #include "app/CResultInfo.h"
 
 ECode CResultInfo::constructor(
-    /* [in] */ String resultWho,
+    /* [in] */ const String& resultWho,
     /* [in] */ Int32 requestCode,
     /* [in] */ Int32 resultCode,
     /* [in] */ IIntent* data)
 {
-    mResultWho = String::Duplicate(resultWho);
+    mResultWho = resultWho;
     mRequestCode = requestCode;
     mResultCode = resultCode;
     mData = data;
-    
+
     return NOERROR;
 }
 
@@ -23,9 +23,9 @@ ECode CResultInfo::ReadFromParcel(
     source->ReadInt32(&mRequestCode);
     source->ReadInt32(&mResultCode);
     source->ReadInterfacePtrPtr((Handle32*)&obj);
-    mData = obj != NULL ? 
+    mData = obj != NULL ?
             (IIntent*)obj->Probe(EIID_IIntent) : NULL;
-    
+
     return NOERROR;
 }
 
@@ -36,6 +36,6 @@ ECode CResultInfo::WriteToParcel(
     dest->WriteInt32(mRequestCode);
     dest->WriteInt32(mResultCode);
     dest->WriteInterfacePtr((IIntent*)mData);
-    
+
     return NOERROR;
 }

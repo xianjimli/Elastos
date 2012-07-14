@@ -11,10 +11,10 @@
 
 #define CASSETMANAGER(x) ((CAssetManager*)x.Get())
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
-const String XmlBlock::TAG = "XmlBlock";
+const char* XmlBlock::TAG = "XmlBlock";
 const Boolean XmlBlock::DEBUG;
 
 XmlBlock::XmlBlock(
@@ -95,7 +95,7 @@ XmlBlock::Parser::Parser(
     , mStarted(FALSE)
     , mDecNextDepth(FALSE)
     , mDepth(0)
-    , mEventType(XmlPullParser_START_DOCUMENT)
+    , mEventType(IXmlPullParser_START_DOCUMENT)
 {
     assert(block);
     block->mOpenCount++;
@@ -149,15 +149,15 @@ ECode XmlBlock::Parser::GetInterfaceID(
 }
 
 ECode XmlBlock::Parser::SetFeature(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in] */ Boolean state)
 {
     VALIDATE_STRING_NOT_NULL(name);
 
-    if (name.Compare(XmlPullParser_FEATURE_PROCESS_NAMESPACES) == 0 && state) {
+    if (name.Compare(IXmlPullParser_FEATURE_PROCESS_NAMESPACES) == 0 && state) {
         return NOERROR;
     }
-    if (name.Compare(XmlPullParser_FEATURE_REPORT_NAMESPACE_ATTRIBUTES) == 0 && state) {
+    if (name.Compare(IXmlPullParser_FEATURE_REPORT_NAMESPACE_ATTRIBUTES) == 0 && state) {
         return NOERROR;
     }
     Logger::E(TAG, StringBuffer("Unsupported feature: ") + name);
@@ -165,17 +165,17 @@ ECode XmlBlock::Parser::SetFeature(
 }
 
 ECode XmlBlock::Parser::GetFeature(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ Boolean * value)
 {
     VALIDATE_NOT_NULL(value);
     VALIDATE_STRING_NOT_NULL(name);
 
-    if (name.Compare(XmlPullParser_FEATURE_PROCESS_NAMESPACES) == 0) {
+    if (name.Compare(IXmlPullParser_FEATURE_PROCESS_NAMESPACES) == 0) {
         *value = TRUE;
         return NOERROR;
     }
-    if (name.Compare(XmlPullParser_FEATURE_REPORT_NAMESPACE_ATTRIBUTES) == 0) {
+    if (name.Compare(IXmlPullParser_FEATURE_REPORT_NAMESPACE_ATTRIBUTES) == 0) {
         *value = TRUE;
         return NOERROR;
     }
@@ -184,7 +184,7 @@ ECode XmlBlock::Parser::GetFeature(
 }
 
 ECode XmlBlock::Parser::SetProperty(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in] */ IInterface * value)
 {
     Logger::E(TAG, "setProperty() not supported");
@@ -192,7 +192,7 @@ ECode XmlBlock::Parser::SetProperty(
 }
 
 ECode XmlBlock::Parser::GetProperty(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ IInterface ** value)
 {
     VALIDATE_STRING_NOT_NULL(name);
@@ -203,16 +203,22 @@ ECode XmlBlock::Parser::GetProperty(
 }
 
 ECode XmlBlock::Parser::SetInput(
+    /* [in]*/ IReader* reader)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode XmlBlock::Parser::SetInputEx(
     /* [in] */ IInputStream * inputStream,
-    /* [in] */ String inputEncoding)
+    /* [in] */ const String& inputEncoding)
 {
     Logger::E(TAG, "setInput() not supported");
     return NOERROR;
 }
 
 ECode XmlBlock::Parser::DefineEntityReplacementText(
-    /* [in] */ String entityName,
-    /* [in] */ String replacementText)
+    /* [in] */ const String& entityName,
+    /* [in] */ const String& replacementText)
 {
     Logger::E(TAG, "defineEntityReplacementText() not supported");
     return E_XML_PULL_PARSER_EXCEPTION;
@@ -236,7 +242,7 @@ ECode XmlBlock::Parser::GetInputEncoding(
 }
 
 ECode XmlBlock::Parser::GetNamespaceEx(
-    /* [in] */ String prefix,
+    /* [in] */ const String& prefix,
     /* [out] */ String * ns)
 {
     Logger::E(TAG, "getNamespace() not supported");
@@ -260,7 +266,7 @@ ECode XmlBlock::Parser::GetPositionDescription(
     Int32 line = 0;
     GetLineNumber(&line);
     buf += line;
-    *des = String::Duplicate((const char*)buf);
+    *des = (const char*)buf;
     return NOERROR;
 }
 
@@ -431,7 +437,7 @@ ECode XmlBlock::Parser::GetAttributeCount(
 {
     VALIDATE_NOT_NULL(attrCount);
 
-    *attrCount = mEventType == XmlPullParser_START_TAG
+    *attrCount = mEventType == IXmlPullParser_START_TAG
         ? mBlock->NativeGetAttributeCount(mParseState) : -1;
     return NOERROR;
 }
@@ -467,7 +473,7 @@ ECode XmlBlock::Parser::GetAttributeType(
 {
     VALIDATE_NOT_NULL(attrType);
 
-    *attrType = String::Duplicate("CDATA");
+    *attrType = "CDATA";
     return NOERROR;
 }
 
@@ -490,8 +496,8 @@ ECode XmlBlock::Parser::NextToken(
 }
 
 ECode XmlBlock::Parser::GetAttributeValueEx(
-    /* [in] */ String ns,
-    /* [in] */ String name,
+    /* [in] */ CString ns,
+    /* [in] */ CString name,
     /* [out] */ String * attrValue)
 {
     VALIDATE_NOT_NULL(attrValue);
@@ -517,11 +523,11 @@ ECode XmlBlock::Parser::Next(
 
     if (!mStarted) {
         mStarted = true;
-        *event = XmlPullParser_START_DOCUMENT;
+        *event = IXmlPullParser_START_DOCUMENT;
         return NOERROR;
     }
     if (mParseState == 0) {
-        *event = XmlPullParser_END_DOCUMENT;
+        *event = IXmlPullParser_END_DOCUMENT;
         return NOERROR;
     }
     Int32 ev = mBlock->NativeNext(mParseState);
@@ -530,15 +536,15 @@ ECode XmlBlock::Parser::Next(
         mDecNextDepth = FALSE;
     }
     switch (ev) {
-    case XmlPullParser_START_TAG:
+    case IXmlPullParser_START_TAG:
         mDepth++;
         break;
-    case XmlPullParser_END_TAG:
+    case IXmlPullParser_END_TAG:
         mDecNextDepth = TRUE;
         break;
     }
     mEventType = ev;
-    if (ev == XmlPullParser_END_DOCUMENT) {
+    if (ev == IXmlPullParser_END_DOCUMENT) {
         // Automatically close the parse when we reach the end of
         // a document, since the standard XmlPullParser interface
         // doesn't have such an API so most clients will leave us
@@ -551,8 +557,8 @@ ECode XmlBlock::Parser::Next(
 
 ECode XmlBlock::Parser::Require(
     /* [in] */ Int32 type,
-    /* [in] */ String ns,
-    /* [in] */ String name)
+    /* [in] */ const String& ns,
+    /* [in] */ const String& name)
 {
     VALIDATE_STRING_NOT_NULL(ns);
     VALIDATE_STRING_NOT_NULL(name);
@@ -568,8 +574,7 @@ ECode XmlBlock::Parser::Require(
         || (!name.IsNull() && name.Compare(na) != 0) ) {
         String des;
         GetPositionDescription(&des);
-        Logger::E(TAG, StringBuffer("expected ") + /*XmlPullParser_TYPES[type] + */ des);
-        String::Free(des);
+        Logger::E(TAG, StringBuffer("expected ") + /*IXmlPullParser_TYPES[type] + */ des);
         return E_XML_PULL_PARSER_EXCEPTION;
     }
     return NOERROR;
@@ -582,36 +587,35 @@ ECode XmlBlock::Parser::NextText(
 
     Int32 t = 0;
     GetEventType(&t);
-    if(t != XmlPullParser_START_TAG) {
+    if(t != IXmlPullParser_START_TAG) {
         String des;
         GetPositionDescription(&des);
         Logger::E(TAG, StringBuffer(des) + ": parser must be on START_TAG to read next text");
-        String::Free(des);
         return E_XML_PULL_PARSER_EXCEPTION;
     }
     Int32 eventType = 0;
     Next(&eventType);
-    if(eventType == XmlPullParser_TEXT) {
+    if(eventType == IXmlPullParser_TEXT) {
         String result;
         GetText(&result);
         Next(&eventType);
-        if(eventType != XmlPullParser_END_TAG) {
+        if(eventType != IXmlPullParser_END_TAG) {
             String des;
             GetPositionDescription(&des);
             Logger::E(TAG, StringBuffer(des) + ": event TEXT it must be immediately followed by END_TAG");
-            String::Free(des);
             return E_XML_PULL_PARSER_EXCEPTION;
         }
         *text = result;
         return NOERROR;
-    } else if(eventType == XmlPullParser_END_TAG) {
-       *text = String::Duplicate("");
+    }
+    else if(eventType == IXmlPullParser_END_TAG) {
+       *text = "";
        return NOERROR;
-    } else {
+    }
+    else {
         String des;
         GetPositionDescription(&des);
         Logger::E(TAG, StringBuffer(des) + ": parser must be on START_TAG or TEXT to read text");
-        String::Free(des);
         return E_XML_PULL_PARSER_EXCEPTION;
     }
 }
@@ -625,14 +629,13 @@ ECode XmlBlock::Parser::NextTag(
     Next(&eventType);
     Boolean isWhitespace;
     IsWhitespace(&isWhitespace);
-    if(eventType == XmlPullParser_TEXT && isWhitespace) {   // skip whitespace
+    if(eventType == IXmlPullParser_TEXT && isWhitespace) {   // skip whitespace
         Next(&eventType);
     }
-    if (eventType != XmlPullParser_START_TAG && eventType != XmlPullParser_END_TAG) {
+    if (eventType != IXmlPullParser_START_TAG && eventType != IXmlPullParser_END_TAG) {
         String des;
         GetPositionDescription(&des);
         Logger::E(TAG, StringBuffer(des) + ": expected start or end tag");
-        String::Free(des);
         return E_XML_PULL_PARSER_EXCEPTION;
     }
     *tag = eventType;
@@ -650,8 +653,8 @@ ECode XmlBlock::Parser::GetAttributeNameResource(
 }
 
 ECode XmlBlock::Parser::GetAttributeListValue(
-    /* [in] */ String ns,
-    /* [in] */ String attribute,
+    /* [in] */ const String& ns,
+    /* [in] */ const String& attribute,
     /* [in] */ const ArrayOf<String> & options,
     /* [in] */ Int32 defaultValue,
     /* [out] */ Int32 * value)
@@ -667,8 +670,8 @@ ECode XmlBlock::Parser::GetAttributeListValue(
 }
 
 ECode XmlBlock::Parser::GetAttributeBooleanValue(
-    /* [in] */ String ns,
-    /* [in] */ String attribute,
+    /* [in] */ const String& ns,
+    /* [in] */ const String& attribute,
     /* [in] */ Boolean defaultValue,
     /* [out] */ Boolean * value)
 {
@@ -683,8 +686,8 @@ ECode XmlBlock::Parser::GetAttributeBooleanValue(
 }
 
 ECode XmlBlock::Parser::GetAttributeResourceValue(
-    /* [in] */ String ns,
-    /* [in] */ String attribute,
+    /* [in] */ const String& ns,
+    /* [in] */ const String& attribute,
     /* [in] */ Int32 defaultValue,
     /* [out] */ Int32 * value)
 {
@@ -699,8 +702,8 @@ ECode XmlBlock::Parser::GetAttributeResourceValue(
 }
 
 ECode XmlBlock::Parser::GetAttributeIntValue(
-    /* [in] */ String ns,
-    /* [in] */ String attribute,
+    /* [in] */ const String& ns,
+    /* [in] */ const String& attribute,
     /* [in] */ Int32 defaultValue,
     /* [out] */ Int32 * value)
 {
@@ -715,8 +718,8 @@ ECode XmlBlock::Parser::GetAttributeIntValue(
 }
 
 ECode XmlBlock::Parser::GetAttributeUnsignedIntValue(
-    /* [in] */ String ns,
-    /* [in] */ String attribute,
+    /* [in] */ const String& ns,
+    /* [in] */ const String& attribute,
     /* [in] */ Int32 defaultValue,
     /* [out] */ Int32 * value)
 {
@@ -731,8 +734,8 @@ ECode XmlBlock::Parser::GetAttributeUnsignedIntValue(
 }
 
 ECode XmlBlock::Parser::GetAttributeFloatValue(
-    /* [in] */ String ns,
-    /* [in] */ String attribute,
+    /* [in] */ const String& ns,
+    /* [in] */ const String& attribute,
     /* [in] */ Float defaultValue,
     /* [out] */ Float * value)
 {
@@ -896,7 +899,7 @@ ECode XmlBlock::Parser::GetIdAttributeResourceValue(
     VALIDATE_NOT_NULL(value);
 
     //todo: create and use native method
-    return GetAttributeResourceValue(NULL, String("id"), defaultValue, value);
+    return GetAttributeResourceValue(String(NULL), String("id"), defaultValue, value);
 }
 
 ECode XmlBlock::Parser::GetStyleAttribute(
@@ -1160,8 +1163,8 @@ Int32 XmlBlock::NativeGetStyleAttribute(
 
 Int32 XmlBlock::NativeGetAttributeIndex(
     /* [in] */ android::ResXMLParser* parser,
-    /* [in] */ String ns,
-    /* [in] */ String name)
+    /* [in] */ CString ns,
+    /* [in] */ CString name)
 {
     assert(parser);
     assert(!name.IsNull());

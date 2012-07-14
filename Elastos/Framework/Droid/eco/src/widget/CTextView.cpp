@@ -3,6 +3,12 @@
 
 IVIEW_METHODS_IMPL(CTextView, TextView, TextView);
 
+IDrawableCallback_METHODS_IMPL(CTextView, TextView, TextView);
+
+IKeyEventCallback_METHODS_IMPL(CTextView, TextView, TextView);
+
+IAccessibilityEventSource_METHODS_IMPL(CTextView, TextView, TextView);
+
 ITEXTVIEW_METHODS_IMPL(CTextView, TextView, TextView);
 
 PInterface CTextView::Probe(
@@ -17,8 +23,7 @@ PInterface CTextView::Probe(
 ECode CTextView::constructor(
     /* [in] */ IContext* contxt)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TextView::Init(contxt);
 }
 
 ECode CTextView::constructor(
@@ -33,7 +38,14 @@ ECode CTextView::constructor(
     /* [in] */ IAttributeSet* attrs,
     /* [in] */ Int32 defStyle)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TextView::Init(contxt, attrs, defStyle);
 }
 
+ECode CTextView::OnPreDraw(
+    /* [out] */ Boolean* result)
+{
+    VALIDATE_NOT_NULL(result);
+    *result = TextView::OnPreDraw();
+
+    return NOERROR;
+}

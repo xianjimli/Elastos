@@ -13,7 +13,7 @@
 #include <elastos/List.h>
 #include <elastos/HashMap.h>
 
-using namespace Elastos::System::Threading;
+using namespace Elastos::Core::Threading;
 
 CarClass(CAssetManager)
 {
@@ -69,62 +69,62 @@ public:
         /* [out, callee] */ ArrayOf<String>** textArray);
 
     CARAPI Open(
-        /* [in] */ String fileName,
+        /* [in] */ const String& fileName,
         /* [out] */ IInputStream** stream);
 
     CARAPI OpenEx(
-        /* [in] */ String fileName,
+        /* [in] */ const String& fileName,
         /* [in] */ Int32 accessMode,
         /* [out] */ IInputStream** stream);
 
     CARAPI OpenFd(
-        /* [in] */ String fileName,
+        /* [in] */ const String& fileName,
         /* [out] */ IAssetFileDescriptor** fd);
 
     CARAPI List(
-        /* [in] */ String path,
+        /* [in] */ const String& path,
         /* [out, callee] */ ArrayOf<String>** names);
 
     CARAPI OpenNonAsset(
-        /* [in] */ String fileName,
+        /* [in] */ const String& fileName,
         /* [out] */ IInputStream** stream);
 
     CARAPI OpenNonAssetEx(
-        /* [in] */ String fileName,
+        /* [in] */ const String& fileName,
         /* [in] */ Int32 accessMode,
         /* [out] */ IInputStream** stream);
 
     CARAPI OpenNonAssetEx2(
         /* [in] */ Int32 cookie,
-        /* [in] */ String fileName,
+        /* [in] */ const String& fileName,
         /* [out] */ IInputStream** stream);
 
     CARAPI OpenNonAssetEx3(
         /* [in] */ Int32 cookie,
-        /* [in] */ String fileName,
+        /* [in] */ const String& fileName,
         /* [in] */ Int32 accessMode,
         /* [out] */ IInputStream** stream);
 
     CARAPI OpenNonAssetFd(
-        /* [in] */ String fileName,
+        /* [in] */ const String& fileName,
         /* [out] */ IAssetFileDescriptor** fd);
 
     CARAPI OpenNonAssetFdEx(
         /* [in] */ Int32 cookie,
-        /* [in] */ String fileName,
+        /* [in] */ const String& fileName,
         /* [out] */ IAssetFileDescriptor** fd);
 
     CARAPI OpenXmlResourceParser(
-        /* [in] */ String fileName,
+        /* [in] */ const String& fileName,
         /* [out] */ IXmlResourceParser** parser);
 
     CARAPI OpenXmlResourceParserEx(
         /* [in] */ Int32 cookie,
-        /* [in] */ String fileName,
+        /* [in] */ const String& fileName,
         /* [out] */ IXmlResourceParser** parser);
 
     CARAPI AddAssetPath(
-        /* [in] */ String path,
+        /* [in] */ const String& path,
         /* [out] */ Int32* cookie);
 
     CARAPI AddAssetPaths(
@@ -135,7 +135,7 @@ public:
         /* [out] */ Boolean* isUpdated);
 
     CARAPI SetLocale(
-        /* [in] */ String locale);
+        /* [in] */ const String& locale);
 
     CARAPI GetLocales(
         /* [out, callee] */ ArrayOf<String>** locales);
@@ -143,7 +143,7 @@ public:
     CARAPI SetConfiguration(
         /* [in] */ Int32 mcc,
         /* [in] */ Int32 mnc,
-        /* [in] */ String locale,
+        /* [in] */ const String& locale,
         /* [in] */ Int32 orientation,
         /* [in] */ Int32 touchscreen,
         /* [in] */ Int32 density,
@@ -157,9 +157,9 @@ public:
         /* [in] */ Int32 majorVersion);
 
     CARAPI_(Int32) GetResourceIdentifier(
-        /* [in] */ String type,
-        /* [in] */ String name,
-        /* [in] */ String defCapsule);
+        /* [in] */ const char* type,
+        /* [in] */ const char* name,
+        /* [in] */ const char* defCapsule);
 
     CARAPI GetResourceName(
         /* [in] */ Int32 resid,
@@ -219,11 +219,11 @@ public:
         /* [out] */ ICharSequence** csq);
 
     /*package*/ CARAPI_(XmlBlock*) OpenXmlBlockAsset(
-        /* [in] */ String fileName);
+        /* [in] */ const String& fileName);
 
     /*package*/ CARAPI_(XmlBlock*) OpenXmlBlockAsset(
         /* [in] */ Int32 cookie,
-        /* [in] */ String fileName);
+        /* [in] */ const String& fileName);
 
     /*package*/ CARAPI_(void) XmlBlockGone(
         /* [in] */ Int32 id);
@@ -266,8 +266,8 @@ public:
     /*package*/ static CARAPI_(void) DumpTheme(
         /* [in] */ Int32 theme,
         /* [in] */ Int32 priority,
-        /* [in] */ String tag,
-        /* [in] */ String prefix);
+        /* [in] */ const String& tag,
+        /* [in] */ const String& prefix);
 
     CARAPI GetHashCode(
         /* [out] */ Int32* code);
@@ -282,7 +282,7 @@ private:
     static CARAPI EnsureSystemAssets();
 
     CARAPI_(android::Asset*) OpenAsset(
-        /* [in] */ String fileName,
+        /* [in] */ const String& fileName,
         /* [in] */ Int32 accessMode);
 
     ECode ReturnParcelFileDescriptor(
@@ -291,19 +291,19 @@ private:
         /* [out] */ IParcelFileDescriptor** pfd);
 
     CARAPI OpenAssetFd(
-        /* [in] */ String fileName,
+        /* [in] */ const String& fileName,
         /* [in, out] */ ArrayOf<Int64>* outOffsets,
         /* [out] */ IParcelFileDescriptor** pfd);
 
     CARAPI OpenNonAssetNative(
         /* [in] */ Int32 cookie,
-        /* [in] */ String fileName,
+        /* [in] */ const String& fileName,
         /* [in] */ Int32 mode,
         /* [out] */ android::Asset** asset);
 
     CARAPI OpenNonAssetFdNative(
         /* [in] */ Int32 cookie,
-        /* [in] */ String fileName,
+        /* [in] */ const String& fileName,
         /* [in] */ ArrayOf<Int64>* outOffsets,
         /* [out] */ IParcelFileDescriptor** fd);
 
@@ -353,7 +353,7 @@ private:
 
     CARAPI_(android::ResXMLTree*) OpenXmlAssetNative(
         /* [in] */ Int32 cookie,
-        /* [in] */ String fileName);
+        /* [in] */ const String& fileName);
 
     CARAPI GetArrayStringResource(
         /* [in] */ Int32 arrayResId,
@@ -374,7 +374,7 @@ private:
         /* [in] */ Int32 id);
 
 private:
-    static const String TAG;
+    static const char* TAG;
     static const Boolean localLOGV = FALSE; // Config.LOGV || false;
     static const Boolean DEBUG_REFS = FALSE;
 

@@ -18,7 +18,7 @@
 #include <StringBuffer.h>
 #include <stdlib.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -31,16 +31,17 @@ CapsuleParser::Component<II>::Component(
 {
     ECode ec = NOERROR;
     mOwner = args->mOwner;
+    mIntents = new List<II*>();
     ec = args->mSa->GetNonConfigurationString(args->mNameRes, 0, &mClassName);
     if (FAILED(ec)) {
-        (*args->mOutError)[0] = String::Duplicate(
-            StringBuffer(args->mTag) + " does not specify android:name");
+        (*args->mOutError)[0] = (const char*)(StringBuffer(args->mTag)
+                + " does not specify android:name");
         return;
     }
 
 //        outInfo.name
 //            = buildClassName(owner.applicationInfo.packageName, name, args.outError);
-    outInfo->mName = String::Duplicate(mClassName);
+    outInfo->mName = mClassName;
 //        if (outInfo.name == null) {
 //            className = null;
 //            args.outError[0] = args.tag + " does not have valid android:name";
@@ -85,7 +86,7 @@ ECode CapsuleParser::Component<II>::GetComponentName(
 
 template <typename II>
 void CapsuleParser::Component<II>::SetCapsuleName(
-    /* [in] */ String capsuleName)
+    /* [in] */ const String& capsuleName)
 {
     mComponentName = NULL;
     mComponentShortName = NULL;
@@ -116,14 +117,14 @@ CapsuleParser::Permission::~Permission()
 }
 
 void CapsuleParser::Permission::SetCapsuleName(
-    /* [in] */ String capsuleName)
+    /* [in] */ const String& capsuleName)
 {
     // E_NOT_IMPLEMENTED
 }
 
 String CapsuleParser::Permission::GetDescription()
 {
-    return NULL; // E_NOT_IMPLEMENTED
+    return String(NULL); // E_NOT_IMPLEMENTED
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -148,20 +149,19 @@ CapsuleParser::PermissionGroup::~PermissionGroup()
 }
 
 void CapsuleParser::PermissionGroup::SetCapsuleName(
-    /* [in] */ String capsuleName)
+    /* [in] */ const String& capsuleName)
 {
     Component<IntentInfo>::SetCapsuleName(capsuleName);
-    mInfo->mCapsuleName = String::Duplicate(capsuleName);
+    mInfo->mCapsuleName = capsuleName;
 }
 
 ECode CapsuleParser::PermissionGroup::GetDescription(
     /* [out] */ String* des)
 {
     assert(des);
-    *des = String::Duplicate(
-        StringBuffer("PermissionGroup{")
+    *des = (const char*)(StringBuffer("PermissionGroup{")
             + this /*Integer::toHexString(System->IdentityHashCode(this))*/
-            + " " + mInfo->mName + "}");
+            + " " + (const char*)mInfo->mName + "}");
     return NOERROR;
 }
 
@@ -187,7 +187,7 @@ ECode CapsuleParser::IntentInfo::GetPriority(
 }
 
 ECode CapsuleParser::IntentInfo::AddAction(
-    /* [in] */ String action)
+    /* [in] */ const String& action)
 {
     return mFilter->AddAction(action);
 }
@@ -206,39 +206,39 @@ ECode CapsuleParser::IntentInfo::GetAction(
 }
 
 ECode CapsuleParser::IntentInfo::AddCategory(
-    /* [in] */ String category)
+    /* [in] */ const String& category)
 {
     return mFilter->AddCategory(category);
 }
 
 ECode CapsuleParser::IntentInfo::AddDataType(
-    /* [in] */ String type)
+    /* [in] */ const String& type)
 {
     return mFilter->AddDataType(type);
 }
 
 ECode CapsuleParser::IntentInfo::AddDataScheme(
-    /* [in] */ String scheme)
+    /* [in] */ const String& scheme)
 {
     return mFilter->AddDataScheme(scheme);
 }
 
 ECode CapsuleParser::IntentInfo::AddDataAuthority(
-    /* [in] */ String host,
-    /* [in] */ String port)
+    /* [in] */ const String& host,
+    /* [in] */ const String& port)
 {
     return mFilter->AddDataAuthority(host, port);
 }
 
 ECode CapsuleParser::IntentInfo::AddDataPath(
-    /* [in] */ String path,
+    /* [in] */ const String& path,
     /* [in] */ Int32 type)
 {
     return mFilter->AddDataPath(path, type);
 }
 
 ECode CapsuleParser::IntentInfo::HasCategory(
-    /* [in] */ String category,
+    /* [in] */ const String& category,
     /* [out] */ Boolean* hasCategory)
 {
     return mFilter->HasCategory(category, hasCategory);
@@ -252,13 +252,46 @@ CapsuleParser::ActivityIntentInfo::ActivityIntentInfo(
 ///////////////////////////////////////////////////////////////////////////////
 // CapsuleParser::Capsule
 
-void CapsuleParser::Capsule::SetCapsuleName(
-    /* [in] */ String newName)
+PInterface CapsuleParser::Capsule::Probe(
+    /* [in]  */ REIID riid)
 {
-    String::Free(mCapsuleName);
-    mCapsuleName = String::Duplicate(newName);
-    String::Free(mApplicationInfo->mCapsuleName);
-    mApplicationInfo->mCapsuleName = String::Duplicate(newName);
+    if (riid == EIID_IInterface) {
+        return (PInterface)this;
+    }
+    return NULL;
+}
+
+UInt32 CapsuleParser::Capsule::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CapsuleParser::Capsule::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode CapsuleParser::Capsule::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    VALIDATE_NOT_NULL(pIID);
+
+    if (pObject == (IInterface*)this) {
+        *pIID = EIID_IInterface;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+
+    return NOERROR;
+}
+
+void CapsuleParser::Capsule::SetCapsuleName(
+    /* [in] */ const String& newName)
+{
+    mCapsuleName = newName;
+    mApplicationInfo->mCapsuleName = newName;
 //        for (int i=permissions.size()-1; i>=0; i--) {
 //            permissions.get(i).setPackageName(newName);
 //        }
@@ -293,14 +326,23 @@ const CapsuleParser::NewPermissionInfo* CapsuleParser::NEW_PERMISSIONS[] = {
         /*android.Manifest.permission.READ_PHONE_STATE*/,
         Build::VERSION_CODES::DONUT, 0),
 };
+
+Int32 CapsuleParser::GetNewPermissionsLength()
+{
+    return sizeof(NEW_PERMISSIONS)
+         / sizeof(CapsuleParser::NewPermissionInfo*);
+}
+
 const Int32 CapsuleParser::SDK_VERSION = Build::VERSION::SDK_INT;
-const String CapsuleParser::SDK_CODENAME = String("REL").Equals(Build::VERSION::CODENAME)
-            ? NULL : Build::VERSION::CODENAME;
+const String CapsuleParser::SDK_CODENAME(NULL);
+//todo: we cann't control the satic init sequence. so the following program will enter debug.
+//    String("REL").Equals(Build::VERSION::CODENAME)
+//            ? String(NULL) : Build::VERSION::CODENAME;
 Boolean CapsuleParser::sCompatibilityModeEnabled = TRUE;
 const Int32 CapsuleParser::PARSE_DEFAULT_INSTALL_LOCATION;
 const Boolean CapsuleParser::RIGID_PARSER;
-const String CapsuleParser::TAG = "CapsuleParser";
-const String CapsuleParser::ANDROID_RESOURCES = "http://schemas.android.com/apk/res/android";
+const char* CapsuleParser::TAG = "CapsuleParser";
+const char* CapsuleParser::ANDROID_RESOURCES = "http://schemas.android.com/apk/res/android";
 
 CapsuleParser::CapsuleParser()
     : mParseError(CapsuleManager::INSTALL_SUCCEEDED)
@@ -313,8 +355,8 @@ CapsuleParser::CapsuleParser()
 }
 
 CapsuleParser::CapsuleParser(
-    /* [in] */ String archiveSourcePath)
-    : mArchiveSourcePath((const char*)String::Duplicate(archiveSourcePath))
+    /* [in] */ const String& archiveSourcePath)
+    : mArchiveSourcePath(archiveSourcePath)
     , mParseError(CapsuleManager::INSTALL_SUCCEEDED)
     , mParseInstrumentationArgs(NULL)
     , mParseActivityArgs(NULL)
@@ -330,7 +372,7 @@ CapsuleParser::~CapsuleParser()
 }
 
 Boolean CapsuleParser::IsCapsuleFilename(
-    /* [in] */ String name)
+    /* [in] */ const String& name)
 {
     return name.EndWith(String(".cap"));
 }
@@ -338,7 +380,7 @@ Boolean CapsuleParser::IsCapsuleFilename(
 void CapsuleParser::ValidateName(
     /* [in] */ const String& name,
     /* [in] */ Boolean requiresSeparator,
-    /* [in] */ String* error)
+    /* [out] */ String* error)
 {
     const Int32 N = name.GetCharCount();
     Boolean hasSep = FALSE;
@@ -360,35 +402,30 @@ void CapsuleParser::ValidateName(
             front = TRUE;
             continue;
         }
-        *error = String::Duplicate(StringBuffer("bad character '") + c + "'");
+        *error = (const char*)(StringBuffer("bad character '") + c + "'");
         return;
     }
 
     if (requiresSeparator && !hasSep) {
-        *error = String::Duplicate("must have at least one '.' separator");
+        *error = "must have at least one '.' separator";
     }
 }
 
-ECode CapsuleParser::GenerateCapsuleInfo(
+AutoPtr<CCapsuleInfo> CapsuleParser::GenerateCapsuleInfo(
     /* [in] */ Capsule* c,
     /* [in] */ const ArrayOf<Int32>* gids,
     /* [in] */ Int32 flags,
     /* [in] */ Int64 firstInstallTime,
-    /* [in] */ Int64 lastUpdateTime,
-    /* [out] */ ICapsuleInfo** capInfo)
+    /* [in] */ Int64 lastUpdateTime)
 {
-    assert(capInfo);
-    *capInfo = NULL;
-
     AutoPtr<CCapsuleInfo> ci;
     CCapsuleInfo::NewByFriend((CCapsuleInfo**)&ci);
-    ci->mCapsuleName = String::Duplicate(c->mCapsuleName);
+    ci->mCapsuleName = c->mCapsuleName;
     ci->mVersionCode = c->mVersionCode;
-    ci->mVersionName = String::Duplicate(c->mVersionName);
-    ci->mSharedUserId = String::Duplicate(c->mSharedUserId);
+    ci->mVersionName = c->mVersionName;
+    ci->mSharedUserId = c->mSharedUserId;
     ci->mSharedUserLabel = c->mSharedUserLabel;
-    AutoPtr<CApplicationInfo> info;
-    GenerateApplicationInfo(c, flags, (CApplicationInfo**)&info);
+    AutoPtr<CApplicationInfo> info = GenerateApplicationInfo(c, flags);
     ci->mApplicationInfo = (IApplicationInfo*)info;
     ci->mInstallLocation = c->mInstallLocation;
     ci->mFirstInstallTime = firstInstallTime;
@@ -497,8 +534,7 @@ ECode CapsuleParser::GenerateCapsuleInfo(
             for (itor = c->mPermissions.Begin();
                  itor != c->mPermissions.End();
                  itor++) {
-                AutoPtr<IPermissionInfo> info;
-                GeneratePermissionInfo(*itor, flags, (IPermissionInfo**)&info);
+                AutoPtr<IPermissionInfo> info= GeneratePermissionInfo(*itor, flags);
                 ci->mPermissions.PushBack(info);
             }
         }
@@ -507,48 +543,34 @@ ECode CapsuleParser::GenerateCapsuleInfo(
             for (itor = c->mRequestedPermissions.Begin();
                  itor != c->mRequestedPermissions.End();
                  itor++) {
-                ci->mRequestedPermissions.PushBack(String::Duplicate(*itor));
+                ci->mRequestedPermissions.PushBack(*itor);
             }
         }
     }
     if ((flags & CapsuleManager_GET_SIGNATURES) != 0) {
-        if (c->mSignatures.Begin() != c->mSignatures.End()) {
-            List<Signature*>::Iterator itor;
-            for (itor = c->mSignatures.Begin();
-                 itor != c->mSignatures.End();
-                 itor++) {
-                ci->mSignatures.PushBack(*itor);
-            }
+        for (Int32 i = 0; i < c->mSignatures->GetLength(); i++) {
+            ci->mSignatures.PushBack((*c->mSignatures)[i]);
         }
     }
-    *capInfo = (ICapsuleInfo*)ci.Get();
-    return NOERROR;
+    return ci;
 }
 
-ECode CapsuleParser::GeneratePermissionInfo(
+AutoPtr<IPermissionInfo> CapsuleParser::GeneratePermissionInfo(
     /* [in] */ Permission* p,
-    /* [in] */ Int32 flags,
-    /* [out] */ IPermissionInfo** info)
+    /* [in] */ Int32 flags)
 {
-    assert(info);
-    *info = NULL;
-
-    if (p == NULL) return NOERROR;
+    if (p == NULL) return NULL;
 
     if ((flags & CapsuleManager_GET_META_DATA) == 0) {
-        *info = (IPermissionInfo*)p->mInfo.Get();
-        if (*info != NULL) (*info)->AddRef();
-        return NOERROR;
+        return (IPermissionInfo*)p->mInfo.Get();
     }
 
     AutoPtr<CPermissionInfo> pi;
-    FAIL_RETURN(CPermissionInfo::NewByFriend(
-                        (IPermissionInfo*)p->mInfo.Get(),
-                        (CPermissionInfo**)&pi));
+    ASSERT_SUCCEEDED(CPermissionInfo::NewByFriend(
+            (IPermissionInfo*)p->mInfo.Get(),
+            (CPermissionInfo**)&pi));
     pi->mMetaData = (IBundle*)p->mMetaData.Get();
-    *info = pi;
-    (*info)->AddRef();
-    return NOERROR;
+    return (IPermissionInfo*)pi.Get();
 }
 
 ECode CapsuleParser::GeneratePermissionGroupInfo(
@@ -586,7 +608,7 @@ ECode CapsuleParser::ParseCapsuleName(
     /* [in] */ IAttributeSet* attrs,
     /* [in] */ Int32 flags,
     /* [in] */ ArrayOf<String>* outError,
-    /* [in] */ String* name)
+    /* [out] */ String* name)
 {
     assert(parser);
     assert(attrs);
@@ -595,39 +617,39 @@ ECode CapsuleParser::ParseCapsuleName(
 
     ECode ec = NOERROR;
     Int32 type = 0;
-    while ((parser->Next(&type), type) != XmlPullParser_START_TAG
-               && type != XmlPullParser_END_DOCUMENT) {
+    while ((parser->Next(&type), type) != IXmlPullParser_START_TAG
+               && type != IXmlPullParser_END_DOCUMENT) {
         ;
     }
 
-    if (type != XmlPullParser_START_TAG) {
-        (*outError)[0] = String::Duplicate("No start tag found");
+    if (type != IXmlPullParser_START_TAG) {
+        (*outError)[0] = "No start tag found";
         return E_XML_PULL_PARSER_EXCEPTION;
     }
 
     if ((flags & PARSE_CHATTY) != 0 && Config::LOGV) {
-        AutoString name;
+        String name;
         parser->GetName(&name);
         Logger::V(TAG, StringBuffer("Root element name: '") + name + "'");
     }
 
-    AutoString n;
+    String n;
     parser->GetName(&n);
     if (!n.Equals("manifest")) {
-        (*outError)[0] = String::Duplicate("No <manifest> tag");
+        (*outError)[0] = "No <manifest> tag";
         return E_XML_PULL_PARSER_EXCEPTION;
     }
 
     ec = attrs->GetAttributeValueEx(NULL, "package", name);
     if (FAILED(ec) || name->IsNullOrEmpty()) {
-        (*outError)[0] = String::Duplicate("<manifest> does not specify package");
+        (*outError)[0] = "<manifest> does not specify package";
         return E_XML_PULL_PARSER_EXCEPTION;
     }
 
-    AutoString nameError;
+    String nameError;
     ValidateName(*name, false, &nameError);
     if (!nameError.IsNull() /*&& !"android".equals(pkgName)*/) {
-        (*outError)[0] = String::Duplicate(
+        (*outError)[0] = (const char*)(
             StringBuffer("<manifest> specifies bad package name \"")
             + *name + "\": " + nameError);
         return E_RUNTIME_EXCEPTION;
@@ -639,7 +661,7 @@ ECode CapsuleParser::ParseCapsuleName(
 
 CapsuleParser::Capsule* CapsuleParser::ParseCapsule(
     /* [in] */ IFile* sourceFile,
-    /* [in] */ String destCodePath,
+    /* [in] */ const String& destCodePath,
     /* [in] */ IDisplayMetrics* metrics,
     /* [in] */ Int32 flags)
 {
@@ -647,7 +669,7 @@ CapsuleParser::Capsule* CapsuleParser::ParseCapsule(
 }
 
 ECode CapsuleParser::BuildClassName(
-    /* [in] */ String cap,
+    /* [in] */ const String& cap,
     /* [in] */ ICharSequence* clsSeq,
     /* [in] */ ArrayOf<String>* outError,
     /* [out] */ String* name)
@@ -675,8 +697,8 @@ ECode CapsuleParser::BuildClassName(
 }
 
 ECode CapsuleParser::BuildProcessName(
-    /* [in] */ String cap,
-    /* [in] */ String defProc,
+    /* [in] */ const String& cap,
+    /* [in] */ const String& defProc,
     /* [in] */ ICharSequence* procSeq,
     /* [in] */ Int32 flags,
     /* [in] */ ArrayOf<String>* separateProcesses,
@@ -699,13 +721,13 @@ ECode CapsuleParser::BuildProcessName(
 //	    }
 //	    return buildCompoundName(pkg, procSeq, "process", outError);
     //todo:
-    *name = String::Duplicate(cap);
+    *name = cap;
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CapsuleParser::BuildTaskAffinityName(
-    /* [in] */ String cap,
-    /* [in] */ String defProc,
+    /* [in] */ const String& cap,
+    /* [in] */ const String& defProc,
     /* [in] */ ICharSequence* procSeq,
     /* [in] */ ArrayOf<String>* outError,
     /* [out] */ String* name)
@@ -723,7 +745,7 @@ ECode CapsuleParser::BuildTaskAffinityName(
 
 // TODO: replace this by ParseCapsule with four parameters.
 ECode CapsuleParser::ParseCapsule(
-    /* [in] */ String capPath,
+    /* [in] */ const String& capPath,
     /* [in] */ CapsuleParser::Capsule* capsule,
     /* [out] */ String* errMsg)
 {
@@ -732,8 +754,8 @@ ECode CapsuleParser::ParseCapsule(
 
 ECode CapsuleParser::ParseCapsule(
     /* [in] */ CapsuleParser::Capsule* capsule, // TODO: delete it
-    /* [in] */ String capPath,
-    /* [in] */ String destCodePath,
+    /* [in] */ const String& capPath,
+    /* [in] */ const String& destCodePath,
     /* [in] */ IDisplayMetrics* metrics,
     /* [in] */ Int32 flags)
 {
@@ -742,7 +764,7 @@ ECode CapsuleParser::ParseCapsule(
     mParseError = CapsuleManager::INSTALL_SUCCEEDED;
 
     // mArchiveSourcePath = sourceFile.getPath();
-    mArchiveSourcePath = String::Duplicate(capPath);
+    mArchiveSourcePath = capPath;
     AutoPtr<IFile> sourceFile;
     FAIL_RETURN(CFile::New(mArchiveSourcePath, (IFile**)&sourceFile));
 
@@ -754,7 +776,7 @@ ECode CapsuleParser::ParseCapsule(
         return E_RUNTIME_EXCEPTION;
     }
 
-    AutoString name;
+    String name;
     sourceFile->GetName(&name);
     if (!IsCapsuleFilename(name) && (flags & PARSE_MUST_BE_APK) != 0) {
         if ((flags & PARSE_IS_SYSTEM) == 0) {
@@ -781,7 +803,7 @@ ECode CapsuleParser::ParseCapsule(
     ec = assmgr->AddAssetPath(mArchiveSourcePath, &cookie);
     if(SUCCEEDED(ec)) {
         ec = assmgr->OpenXmlResourceParserEx(
-            cookie, "AndroidManifest.xml", (IXmlResourceParser**)&parser);
+            cookie, String("AndroidManifest.xml"), (IXmlResourceParser**)&parser);
         if (FAILED(ec)) {
             Logger::W(TAG, StringBuffer("Unable to read AndroidManifest.xml of ")
                     + mArchiveSourcePath);
@@ -798,8 +820,7 @@ ECode CapsuleParser::ParseCapsule(
         return E_RUNTIME_EXCEPTION;
     }
 
-    //todo: when to free errorText;
-    ArrayOf<String>* errorText = ArrayOf<String>::Alloc(1);
+    AutoStringArray errorText = ArrayOf<String>::Alloc(1);
     if (errorText == NULL) return E_OUT_OF_MEMORY_ERROR;
 
     // XXXX todo: need to figure out correct configuration.
@@ -810,7 +831,7 @@ ECode CapsuleParser::ParseCapsule(
     parser->Close();
     assmgr->Close();
     if (FAILED(ec)) {
-        AutoString des;
+        String des;
         parser->GetPositionDescription(&des); // TODO: need probe ?
         Logger::W(TAG, StringBuffer(mArchiveSourcePath) + " (at "
                 + (String)des + "): " + (*errorText)[0]);
@@ -826,11 +847,11 @@ ECode CapsuleParser::ParseCapsule(
     }
 
     // Set code and resource paths
-    capsule->mPath = String::Duplicate(destCodePath);
-    capsule->mScanPath = String::Duplicate(mArchiveSourcePath);
+    capsule->mPath = destCodePath;
+    capsule->mScanPath = mArchiveSourcePath;
     //capsule.applicationInfo.sourceDir = destCodePath;
     //capsule.applicationInfo.publicSourceDir = destRes;
-    capsule->mSignatures.Clear();
+    capsule->mSignatures = NULL;
 
     return NOERROR;
 }
@@ -897,7 +918,7 @@ ECode CapsuleParser::ParseCapsule(
     mParseServiceArgs = NULL;
     mParseProviderArgs = NULL;
 
-    AutoString capName;
+    String capName;
     ec = ParseCapsuleName(parser, attrs.Get(), flags, outError, &capName);
     if (FAILED(ec)) {
         mParseError = CapsuleManager::INSTALL_PARSE_FAILED_BAD_PACKAGE_NAME;
@@ -921,21 +942,21 @@ ECode CapsuleParser::ParseCapsule(
             2 /*com.android.internal.R.styleable.AndroidManifest_versionName*/, 0,
             &cap->mVersionName);
 
-    AutoString str;
+    String str;
     sa->GetNonConfigurationString(
             0 /* com.android.internal.R.styleable.AndroidManifest_sharedUserId*/, 0,
             &str);
     if (!str.IsNullOrEmpty()) {
-        AutoString nameError;
+        String nameError;
         ValidateName(str, true, &nameError);
         if (!nameError.IsNull() /*&& !"android".equals(pkgName)*/) {
-            (*outError)[0] = String::Duplicate(
+            (*outError)[0] = (const char*)(
                 StringBuffer("<manifest> specifies bad sharedUserId name \"")
                 + str + "\": " + nameError);
             mParseError = CapsuleManager::INSTALL_PARSE_FAILED_BAD_SHARED_USER_ID;
             return E_RUNTIME_EXCEPTION;
         }
-        cap->mSharedUserId = String::Duplicate(str);
+        cap->mSharedUserId = str;
         sa->GetResourceId(
                 3 /*com.android.internal.R.styleable.AndroidManifest_sharedUserLabel*/, 0,
                 &cap->mSharedUserLabel);
@@ -960,19 +981,19 @@ ECode CapsuleParser::ParseCapsule(
 
     Int32 type = 0;
     Int32 depth = 0;
-    while ((parser->Next(&type), type) != XmlPullParser_END_DOCUMENT
-           && (type != XmlPullParser_END_TAG
+    while ((parser->Next(&type), type) != IXmlPullParser_END_DOCUMENT
+           && (type != IXmlPullParser_END_TAG
            || (parser->GetDepth(&depth), depth) > outerDepth)) {
-        if (type == XmlPullParser_END_TAG || type == XmlPullParser_TEXT) {
+        if (type == IXmlPullParser_END_TAG || type == IXmlPullParser_TEXT) {
             continue;
         }
 
-        AutoString tagName;
+        String tagName;
         parser->GetName(&tagName);
         if (tagName.Equals("application")) {
             if (foundApp) {
                 if (RIGID_PARSER) {
-                    (*outError)[0] = String::Duplicate("<manifest> has more than one <application>");
+                    (*outError)[0] = "<manifest> has more than one <application>";
                     mParseError = CapsuleManager::INSTALL_PARSE_FAILED_MANIFEST_MALFORMED;
                     return E_RUNTIME_EXCEPTION;
                 }
@@ -1013,7 +1034,7 @@ ECode CapsuleParser::ParseCapsule(
 
             // Note: don't allow this value to be a reference to a resource
             // that may change
-            AutoString name;
+            String name;
             sa->GetNonResourceString(
                 0 /*com.android.internal.R.styleable.AndroidManifestUsesPermission_name*/,
                 &name);
@@ -1022,7 +1043,7 @@ ECode CapsuleParser::ParseCapsule(
 
             if (!name.IsNull()
                 && !ListUtils::Contains(cap->mRequestedPermissions, name)) {
-                cap->mRequestedPermissions.PushBack(String::Duplicate(name));
+                cap->mRequestedPermissions.PushBack(name);
             }
 
             XmlUtils::SkipCurrentTag(parser);
@@ -1114,9 +1135,9 @@ ECode CapsuleParser::ParseCapsule(
                     (ITypedArray**)&sa));
 
                 Int32 minVers = 0;
-                AutoString minCode = NULL;
+                String minCode(NULL);
                 Int32 targetVers = 0;
-                AutoString targetCode = NULL;
+                String targetCode(NULL);
 
                 AutoPtr<ITypedValue> val;
                 sa->PeekValue(
@@ -1125,10 +1146,10 @@ ECode CapsuleParser::ParseCapsule(
                 if (val != NULL) {
                     if (((CTypedValue*)val.Get())->mType == TypedValue_TYPE_STRING
                         && ((CTypedValue*)val.Get())->mString != NULL) {
-                        AutoString str;
+                        String str;
                         ((CTypedValue*)val.Get())->mString->ToString(&str);
-                        minCode = String::Duplicate(str);
-                        targetCode = String::Duplicate(str);
+                        minCode = str;
+                        targetCode = str;
                     } else {
                         // If it's not a string, it's an integer.
                         targetVers = minVers = ((CTypedValue*)val.Get())->mData;
@@ -1142,10 +1163,10 @@ ECode CapsuleParser::ParseCapsule(
                 if (val != NULL) {
                     if (((CTypedValue*)val.Get())->mType == TypedValue_TYPE_STRING
                         && ((CTypedValue*)val.Get())->mString != NULL) {
-                        AutoString str;
+                        String str;
                         ((CTypedValue*)val.Get())->mString->ToString(&str);
-                        minCode = String::Duplicate(str);
-                        targetCode = String::Duplicate(str);
+                        minCode = str;
+                        targetCode = str;
                     } else {
                         // If it's not a string, it's an integer.
                         targetVers = ((CTypedValue*)val.Get())->mData;
@@ -1157,11 +1178,11 @@ ECode CapsuleParser::ParseCapsule(
                 if (!minCode.IsNull()) {
                     if (!minCode.Equals(SDK_CODENAME)) {
                         if (SDK_CODENAME != NULL) {
-                            (*outError)[0] = String::Duplicate(
+                            (*outError)[0] = (const char*)(
                                 StringBuffer("Requires development platform ") + minCode
                                     + " (current platform is " + SDK_CODENAME + ")");
                         } else {
-                            (*outError)[0] = String::Duplicate(
+                            (*outError)[0] = (const char*)(
                                 StringBuffer("Requires development platform ") + minCode
                                     + " but this is a release platform->m");
                         }
@@ -1169,7 +1190,7 @@ ECode CapsuleParser::ParseCapsule(
                         return E_RUNTIME_EXCEPTION;
                     }
                 } else if (minVers > SDK_VERSION) {
-                    (*outError)[0] = String::Duplicate(
+                    (*outError)[0] = (const char*)(
                         StringBuffer("Requires newer sdk version #") + minVers
                             + " (current version is #" + SDK_VERSION + ")");
                     mParseError = CapsuleManager::INSTALL_FAILED_OLDER_SDK;
@@ -1179,11 +1200,11 @@ ECode CapsuleParser::ParseCapsule(
                 if (!targetCode.IsNull()) {
                     if (!targetCode.Equals(SDK_CODENAME)) {
                         if (!SDK_CODENAME.IsNull()) {
-                            (*outError)[0] = String::Duplicate(
+                            (*outError)[0] = (const char*)(
                                 StringBuffer("Requires development platform ") + targetCode
                                     + " (current platform is " + SDK_CODENAME + ")");
                         } else {
-                            (*outError)[0] = String::Duplicate(
+                            (*outError)[0] = (const char*)(
                                 StringBuffer("Requires development platform ") + targetCode
                                     + " but this is a release platform->m");
                         }
@@ -1245,7 +1266,7 @@ ECode CapsuleParser::ParseCapsule(
 
             // Note: don't allow this value to be a reference to a resource
             // that may change
-            AutoString name;
+            String name;
             sa->GetNonResourceString(
                 0 /*com.android.internal.R.styleable.AndroidManifestProtectedBroadcast_name*/,
                 &name);
@@ -1254,7 +1275,7 @@ ECode CapsuleParser::ParseCapsule(
 
             if (!name.IsNull() && (flags & PARSE_IS_SYSTEM) != 0) {
                 if (!ListUtils::Contains(cap->mProtectedBroadcasts, name)) {
-                    cap->mProtectedBroadcasts.PushBack(String::Duplicate(name));
+                    cap->mProtectedBroadcasts.PushBack(name);
                 }
             }
 
@@ -1275,15 +1296,15 @@ ECode CapsuleParser::ParseCapsule(
                 /*com.android.internal.R.styleable.AndroidManifestOriginalPackage*/,
                 (ITypedArray**)&sa));
 
-            AutoString orig;
+            String orig;
             sa->GetNonConfigurationString(
                 0 /*com.android.internal.R.styleable.AndroidManifestOriginalPackage_name*/,
                 0, &orig);
             if (!cap->mCapsuleName.Equals(orig)) {
                 if (cap->mOriginalCapsules.Begin() == cap->mOriginalCapsules.End()) {
-                    cap->mRealCapsule = String::Duplicate(cap->mCapsuleName);
+                    cap->mRealCapsule = cap->mCapsuleName;
                 }
-                cap->mOriginalCapsules.PushBack(String::Duplicate(orig));
+                cap->mOriginalCapsules.PushBack(orig);
             }
 
             sa->Recycle();
@@ -1299,7 +1320,7 @@ ECode CapsuleParser::ParseCapsule(
                 /*com.android.internal.R.styleable.AndroidManifestOriginalPackage*/,
                 (ITypedArray**)&sa));
 
-            AutoString name;
+            String name;
             sa->GetNonConfigurationString(
                 0 /*com.android.internal.R.styleable.AndroidManifestOriginalPackage_name*/,
                 0, &name);
@@ -1307,7 +1328,7 @@ ECode CapsuleParser::ParseCapsule(
             sa->Recycle();
 
             if (!name.IsNull()) {
-                cap->mAdoptPermissions.PushBack(String::Duplicate(name));
+                cap->mAdoptPermissions.PushBack(name);
             }
 
             XmlUtils::SkipCurrentTag(parser);
@@ -1330,15 +1351,16 @@ ECode CapsuleParser::ParseCapsule(
             XmlUtils::SkipCurrentTag(parser);
             continue;
 
-        } else if (RIGID_PARSER) {
-            (*outError)[0] = String::Duplicate(
+        }
+        else if (RIGID_PARSER) {
+            (*outError)[0] = (const char*)(
                 StringBuffer("Bad element under <manifest>: ") + tagName);
             mParseError = CapsuleManager::INSTALL_PARSE_FAILED_MANIFEST_MALFORMED;
             return NULL;
 
         }
         else {
-            AutoString des;
+            String des;
             parser->GetPositionDescription(&des);
             Logger::W(TAG, StringBuffer("Unknown element under <manifest>: ") + tagName
                 + " at " + mArchiveSourcePath + " " + des);
@@ -1348,8 +1370,7 @@ ECode CapsuleParser::ParseCapsule(
     }
 
     if (!foundApp && cap->mInstrumentation.Begin() == cap->mInstrumentation.End()) {
-        (*outError)[0] = String::Duplicate(
-            "<manifest> does not contain an <application> or <instrumentation>");
+        (*outError)[0] = "<manifest> does not contain an <application> or <instrumentation>";
         mParseError = CapsuleManager::INSTALL_PARSE_FAILED_MANIFEST_EMPTY;
     }
 
@@ -1365,11 +1386,12 @@ ECode CapsuleParser::ParseCapsule(
             if (implicitPerms.IsNull()) {
                 implicitPerms += cap->mCapsuleName;
                 implicitPerms += ": compat added ";
-            } else {
+            }
+            else {
                 implicitPerms += " ";
             }
             implicitPerms += npi->mName;
-            cap->mRequestedPermissions.PushBack(String::Duplicate(npi->mName));
+            cap->mRequestedPermissions.PushBack(npi->mName);
         }
     }
     if (!implicitPerms.IsNull()) {
@@ -1501,7 +1523,7 @@ CapsuleParser::Permission* CapsuleParser::ParsePermission(
     sa->Recycle();
 
     if (perm->mInfo->mProtectionLevel == -1) {
-        (*outError)[0] = String::Duplicate("<permission> does not specify protectionLevel");
+        (*outError)[0] = "<permission> does not specify protectionLevel";
         mParseError = CapsuleManager::INSTALL_PARSE_FAILED_MANIFEST_MALFORMED;
         return NULL;
     }
@@ -1551,12 +1573,12 @@ CapsuleParser::Permission* CapsuleParser::ParsePermissionTree(
 
     sa->Recycle();
 
-    Int32 index = perm->mInfo->mName.IndexOfChar('.');
+    Int32 index = perm->mInfo->mName.IndexOf('.');
     if (index > 0) {
-        index = perm->mInfo->mName.Substring(index + 1).IndexOfChar('.');
+        index = perm->mInfo->mName.Substring(index + 1).IndexOf('.');
     }
     if (index < 0) {
-        (*outError)[0] = String::Duplicate(
+        (*outError)[0] = (const char*)(
             StringBuffer("<permission-tree> name has less than three segments: ")
             + perm->mInfo->mName);
         mParseError = CapsuleManager::INSTALL_PARSE_FAILED_MANIFEST_MALFORMED;
@@ -1604,7 +1626,7 @@ CapsuleParser::Instrumentation* CapsuleParser::ParseInstrumentation(
             0 /*com.android.internal.R.styleable.AndroidManifestInstrumentation_label*/,
             1 /*com.android.internal.R.styleable.AndroidManifestInstrumentation_icon*/,
             0);
-        mParseInstrumentationArgs->mTag = String::Duplicate("<instrumentation>");
+        mParseInstrumentationArgs->mTag = "<instrumentation>";
     }
 
     mParseInstrumentationArgs->mSa = sa;
@@ -1635,7 +1657,7 @@ CapsuleParser::Instrumentation* CapsuleParser::ParseInstrumentation(
     sa->Recycle();
 
     if (a->mInfo->mTargetCapsule.IsNull()) {
-        (*outError)[0] = String::Duplicate("<instrumentation> does not specify targetCapsule");
+        (*outError)[0] = "<instrumentation> does not specify targetCapsule";
         mParseError = CapsuleManager::INSTALL_PARSE_FAILED_MANIFEST_MALFORMED;
         return NULL;
     }
@@ -1655,23 +1677,23 @@ Boolean CapsuleParser::ParseCapsuleItemInfo(
     /* [in] */ Capsule* owner,
     /* [in] */ CapsuleItemInfo* outInfo,
     /* [in] */ ArrayOf<String>* outError,
-    /* [in] */ String tag,
+    /* [in] */ const char* tag,
     /* [in] */ ITypedArray* sa,
     /* [in] */ Int32 nameRes,
     /* [in] */ Int32 labelRes,
     /* [in] */ Int32 iconRes,
     /* [in] */ Int32 logoRes)
 {
-    AutoString name;
+    String name;
     sa->GetNonConfigurationString(nameRes, 0, &name);
     if (name.IsNull()) {
-        (*outError)[0] = String::Duplicate(
+        (*outError)[0] = (const char*)(
             StringBuffer(tag) + " does not specify android:name");
         return FALSE;
     }
 
     AutoPtr<ICharSequence> cs;
-    CStringWrapper::New(String::Duplicate(name), (ICharSequence**)&cs);
+    CStringWrapper::New(name, (ICharSequence**)&cs);
     BuildClassName(owner->mApplicationInfo->mCapsuleName, cs, outError, &outInfo->mName);
     if (outInfo->mName.IsNull()) {
         return FALSE;
@@ -1691,7 +1713,7 @@ Boolean CapsuleParser::ParseCapsuleItemInfo(
         v->CoerceToString((ICharSequence**)&outInfo->mNonLocalizedLabel);
     }
 
-    outInfo->mCapsuleName = String::Duplicate(owner->mCapsuleName);
+    outInfo->mCapsuleName = owner->mCapsuleName;
 
     return TRUE;
 }
@@ -1728,13 +1750,13 @@ Boolean CapsuleParser::ParseApplication(
         sizeof(R_Styleable_AndroidManifestApplication) / sizeof(Int32)),/*com.android.internal.R.styleable.AndroidManifestApplication*/
         (ITypedArray**)&sa));
 
-    AutoString name;
+    String name;
     sa->GetNonConfigurationString(
         3 /*com.android.internal.R.styleable.AndroidManifestApplication_name*/, 0,
         &name);
     if (!name.IsNull()) {
         AutoPtr<ICharSequence> cname;
-        CStringWrapper::New(String::Duplicate(name), (ICharSequence**)&cname);
+        CStringWrapper::New(name, (ICharSequence**)&cname);
         BuildClassName(capName, cname.Get(), outError, &ai->mClassName);
         if (ai->mClassName.IsNull()) {
             sa->Recycle();
@@ -1743,13 +1765,13 @@ Boolean CapsuleParser::ParseApplication(
         }
     }
 
-    AutoString manageSpaceActivity;
+    String manageSpaceActivity;
     sa->GetNonConfigurationString(
         4 /*com.android.internal.R.styleable.AndroidManifestApplication_manageSpaceActivity*/, 0,
         &manageSpaceActivity);
     if (!manageSpaceActivity.IsNull()) {
         AutoPtr<ICharSequence> ca;
-        CStringWrapper::New(String::Duplicate(manageSpaceActivity), (ICharSequence**)&ca);
+        CStringWrapper::New(manageSpaceActivity, (ICharSequence**)&ca);
         BuildClassName(capName, ca.Get(), outError, &ai->mManageSpaceActivityName);
     }
 
@@ -1762,16 +1784,16 @@ Boolean CapsuleParser::ParseApplication(
 
         // backupAgent, killAfterRestore, and restoreAnyVersion are only relevant
         // if backup is possible for the given application.
-        AutoString backupAgent;
+        String backupAgent;
         sa->GetNonConfigurationString(
             16 /*com.android.internal.R.styleable.AndroidManifestApplication_backupAgent*/, 0,
             &backupAgent);
         if (!backupAgent.IsNull()) {
             AutoPtr<ICharSequence> cb;
-            CStringWrapper::New(String::Duplicate(backupAgent), (ICharSequence**)&cb);
+            CStringWrapper::New(backupAgent, (ICharSequence**)&cb);
             BuildClassName(capName, cb.Get(), outError, &ai->mBackupAgentName);
             if (FALSE) {
-                AutoString cbStr;
+                String cbStr;
                 cb->ToString(&cbStr);
                 Logger::V(TAG, StringBuffer("android:backupAgent = ") + ai->mBackupAgentName
                         + " from " + capName + "+" + cbStr);
@@ -1880,16 +1902,16 @@ Boolean CapsuleParser::ParseApplication(
         ai->mFlags |= CApplicationInfo::FLAG_NEVER_ENCRYPT;
     }
 
-    AutoString str;
+    String str;
     sa->GetNonConfigurationString(
         6 /*com.android.internal.R.styleable.AndroidManifestApplication_permission*/, 0, &str);
-    ai->mPermission = (!str.IsNullOrEmpty()) ? String::Duplicate(str) : String(NULL);
+    ai->mPermission = (!str.IsNullOrEmpty()) ? str : String(NULL);
 
-    String::Free(str);
     if (owner->mApplicationInfo->mTargetSdkVersion >= Build::VERSION_CODES::FROYO) {
         sa->GetNonConfigurationString(
             12 /*com.android.internal.R.styleable.AndroidManifestApplication_taskAffinity*/, 0, &str);
-    } else {
+    }
+    else {
         // Some older apps have been seen to use a resource reference
         // here that on older builds was ignored (with a warning).  We
         // need to continue to do this for them so they don't break.
@@ -1897,17 +1919,18 @@ Boolean CapsuleParser::ParseApplication(
             12 /*com.android.internal.R.styleable.AndroidManifestApplication_taskAffinity*/, &str);
     }
     AutoPtr<ICharSequence> cStr;
-    CStringWrapper::New(String::Duplicate(str), (ICharSequence**)&cStr);
+    CStringWrapper::New(str, (ICharSequence**)&cStr);
     BuildTaskAffinityName(ai->mCapsuleName, ai->mCapsuleName,
             cStr.Get(), outError, &ai->mTaskAffinity);
 
     if ((*outError)[0].IsNull()) {
-        AutoString pname;
+        String pname;
         if (owner->mApplicationInfo->mTargetSdkVersion >= Build::VERSION_CODES::FROYO) {
             sa->GetNonConfigurationString(
                 11 /*com.android.internal.R.styleable.AndroidManifestApplication_process*/, 0,
                 &pname);
-        } else {
+        }
+        else {
             // Some older apps have been seen to use a resource reference
             // here that on older builds was ignored (with a warning).  We
             // need to continue to do this for them so they don't break.
@@ -1916,8 +1939,8 @@ Boolean CapsuleParser::ParseApplication(
                 &pname);
         }
         AutoPtr<ICharSequence> cpname;
-        CStringWrapper::New(String::Duplicate(pname), (ICharSequence**)&cpname);
-        BuildProcessName(ai->mCapsuleName, NULL,
+        CStringWrapper::New(pname, (ICharSequence**)&cpname);
+        BuildProcessName(ai->mCapsuleName, String(NULL),
             cpname.Get(), flags, mSeparateProcesses.Get(), outError, &ai->mProcessName);
 
         sa->GetBoolean(
@@ -1935,8 +1958,7 @@ Boolean CapsuleParser::ParseApplication(
                 // A heavy-weight application can not be in a custom process.
                 // We can do direct compare because we intern all strings.
                 if (!ai->mProcessName.IsNull() && !ai->mProcessName.Equals(ai->mCapsuleName)) {
-                    (*outError)[0] = String::Duplicate(
-                        "cantSaveState applications can not use custom processes");
+                    (*outError)[0] = "cantSaveState applications can not use custom processes";
                 }
             }
         }
@@ -1954,15 +1976,15 @@ Boolean CapsuleParser::ParseApplication(
 
     Int32 type = 0;
     Int32 depth = 0;
-    while ((parser->Next(&type), type) != XmlPullParser_END_DOCUMENT
-           && (type != XmlPullParser_END_TAG
+    while ((parser->Next(&type), type) != IXmlPullParser_END_DOCUMENT
+           && (type != IXmlPullParser_END_TAG
            || (parser->GetDepth(&depth), depth) > innerDepth)) {
-        if (type == XmlPullParser_END_TAG || type == XmlPullParser_TEXT) {
+        if (type == IXmlPullParser_END_TAG || type == IXmlPullParser_TEXT) {
             continue;
         }
 
-        AutoString tagName;
-        AutoString tmpName;
+        String tagName;
+        String tmpName;
         parser->GetName(&tagName);
         if (tagName.Equals("activity")) {
             Activity* a = NULL;
@@ -2033,7 +2055,7 @@ Boolean CapsuleParser::ParseApplication(
 
             // Note: don't allow this value to be a reference to a resource
             // that may change
-            AutoString lname;
+            String lname;
             sa->GetNonResourceString(
                 0 /*com.android.internal.R.styleable.AndroidManifestUsesLibrary_name*/, &lname);
             Boolean req = FALSE;
@@ -2056,7 +2078,7 @@ Boolean CapsuleParser::ParseApplication(
                         }
                     }
                     if (!bContain) {
-                        owner->mUsesLibraries.PushBack(String::Duplicate(lname));
+                        owner->mUsesLibraries.PushBack(lname);
                     }
                 } else {
                     Boolean bContain = FALSE;
@@ -2070,7 +2092,7 @@ Boolean CapsuleParser::ParseApplication(
                         }
                     }
                     if (!bContain) {
-                        owner->mUsesOptionalLibraries.PushBack(String::Duplicate(lname));
+                        owner->mUsesOptionalLibraries.PushBack(lname);
                     }
                 }
             }
@@ -2084,14 +2106,14 @@ Boolean CapsuleParser::ParseApplication(
 
         } else {
             if (!RIGID_PARSER) {
-                AutoString des;
+                String des;
                 parser->GetPositionDescription(&des);
                 Logger::W(TAG, StringBuffer("Unknown element under <application>: ") + tagName
                         + " at " + mArchiveSourcePath + " " + des);
                 XmlUtils::SkipCurrentTag(parser);
                 continue;
             } else {
-                (*outError)[0] = String::Duplicate(StringBuffer("Bad element under <application>: ") + tagName);
+                (*outError)[0] = (const char*)(StringBuffer("Bad element under <application>: ") + tagName);
                 mParseError = CapsuleManager::INSTALL_PARSE_FAILED_MANIFEST_MALFORMED;
                 return FALSE;
             }
@@ -2144,8 +2166,7 @@ ECode CapsuleParser::ParseActivity(
                 );
     }
 
-    mParseActivityArgs->mTag = receiver ?
-            String::Duplicate("<receiver>") : String::Duplicate("<activity>");
+    mParseActivityArgs->mTag = receiver ? "<receiver>" : "<activity>";
     mParseActivityArgs->mSa = sa;
     mParseActivityArgs->mFlags = flags;
 
@@ -2170,23 +2191,21 @@ ECode CapsuleParser::ParseActivity(
         0 /*com.android.internal.R.styleable.AndroidManifestActivity_theme*/, 0,
         &a->mInfo->mTheme);
 
-    AutoString str;
+    String str;
     sa->GetNonConfigurationString(
         4 /*com.android.internal.R.styleable.AndroidManifestActivity_permission*/, 0,
         &str);
     if (str.IsNull()) {
         a->mInfo->mPermission = owner->mApplicationInfo->mPermission;
     } else {
-        a->mInfo->mPermission = str.GetLength() > 0
-            ? String::Duplicate(str) : String(NULL);
+        a->mInfo->mPermission = str.GetLength() > 0 ? str : String(NULL);
     }
 
-    String::Free(str);
     sa->GetNonConfigurationString(
         8 /*com.android.internal.R.styleable.AndroidManifestActivity_taskAffinity*/, 0,
         &str);
     AutoPtr<ICharSequence> cStr;
-    CStringWrapper::New(String::Duplicate(str), (ICharSequence**)&cStr);
+    CStringWrapper::New(str, (ICharSequence**)&cStr);
     BuildTaskAffinityName(owner->mApplicationInfo->mCapsuleName,
         owner->mApplicationInfo->mTaskAffinity, cStr.Get(), outError, &a->mInfo->mTaskAffinity);
 
@@ -2280,7 +2299,7 @@ ECode CapsuleParser::ParseActivity(
         // A heavy-weight application can not have receives in its main process
         // We can do direct compare because we intern all strings.
         if (a->mInfo->mProcessName.Equals(owner->mCapsuleName)) {
-            (*outError)[0] = String::Duplicate("Heavy-weight applications can not have receivers in main process");
+            (*outError)[0] = "Heavy-weight applications can not have receivers in main process";
         }
     }
 
@@ -2293,14 +2312,14 @@ ECode CapsuleParser::ParseActivity(
 
     Int32 type = 0;
     Int32 depth = 0;
-    while ((parser->Next(&type), type) != XmlPullParser_END_DOCUMENT
-           && (type != XmlPullParser_END_TAG
+    while ((parser->Next(&type), type) != IXmlPullParser_END_DOCUMENT
+           && (type != IXmlPullParser_END_TAG
                    || (parser->GetDepth(&depth), depth) > outerDepth)) {
-        if (type == XmlPullParser_END_TAG || type == XmlPullParser_TEXT) {
+        if (type == IXmlPullParser_END_TAG || type == IXmlPullParser_TEXT) {
             continue;
         }
 
-        AutoString name;
+        String name;
         parser->GetName(&name);
         if (name.Equals("intent-filter")) {
             ActivityIntentInfo* intent = new ActivityIntentInfo(a);
@@ -2310,13 +2329,13 @@ ECode CapsuleParser::ParseActivity(
             Int32 count;
             intent->CountActions(&count);
             if (count == 0) {
-                AutoString des;
+                String des;
                 parser->GetPositionDescription(&des);
                 Logger::W(TAG, StringBuffer("No actions in intent filter at ")
                         + mArchiveSourcePath + " " + des);
             }
             else {
-                a->mIntents.PushBack(intent);
+                a->mIntents->PushBack(intent);
             }
         }
         else if (name.Equals("meta-data")) {
@@ -2326,11 +2345,11 @@ ECode CapsuleParser::ParseActivity(
             }
         }
         else {
-            AutoString name;
+            String name;
             parser->GetName(&name);
             if (!RIGID_PARSER) {
                 Logger::W(TAG, StringBuffer("Problem in package ") + mArchiveSourcePath + ":");
-                AutoString des;
+                String des;
                 parser->GetPositionDescription(&des);
                 if (receiver) {
                     Logger::W(TAG, StringBuffer("Unknown element under <receiver>: ") + name
@@ -2344,17 +2363,17 @@ ECode CapsuleParser::ParseActivity(
                 continue;
             }
             if (receiver) {
-                (*outError)[0] = String::Duplicate(StringBuffer("Bad element under <receiver>: ") + name);
+                (*outError)[0] = (const char*)(StringBuffer("Bad element under <receiver>: ") + name);
             }
             else {
-                (*outError)[0] = String::Duplicate(StringBuffer("Bad element under <activity>: ") + name);
+                (*outError)[0] = (const char*)(StringBuffer("Bad element under <activity>: ") + name);
             }
             return E_XML_PULL_PARSER_EXCEPTION;
         }
     }
 
     if (!setExported) {
-        a->mInfo->mExported = a->mIntents.GetSize() > 0;
+        a->mInfo->mExported = a->mIntents->Begin() != a->mIntents->End();
     }
 
     *activity = a;
@@ -2386,18 +2405,18 @@ ECode CapsuleParser::ParseActivityAlias(
         /*com.android.internal.R.styleable.AndroidManifestActivityAlias*/),
         (ITypedArray**)&sa));
 
-    AutoString targetActivity;
+    String targetActivity;
     sa->GetNonConfigurationString(
         7 /*com.android.internal.R.styleable.AndroidManifestActivityAlias_targetActivity*/, 0,
         &targetActivity);
     if (targetActivity.IsNull()) {
-        (*outError)[0] = String::Duplicate("<activity-alias> does not specify android:targetActivity");
+        (*outError)[0] = "<activity-alias> does not specify android:targetActivity";
         sa->Recycle();
         return E_RUNTIME_EXCEPTION;
     }
 
     AutoPtr<ICharSequence> c;
-    CStringWrapper::New(String::Duplicate(targetActivity), (ICharSequence**)&c);
+    CStringWrapper::New(targetActivity, (ICharSequence**)&c);
     BuildClassName(owner->mApplicationInfo->mCapsuleName,
             c.Get(), outError, &targetActivity);
     if (targetActivity.IsNull()) {
@@ -2415,7 +2434,7 @@ ECode CapsuleParser::ParseActivityAlias(
                 0,
                 6 /*com.android.internal.R.styleable.AndroidManifestActivityAlias_description*/,
                 4 /*com.android.internal.R.styleable.AndroidManifestActivityAlias_enabled*/);
-        mParseActivityAliasArgs->mTag = String::Duplicate("<activity-alias>");
+        mParseActivityAliasArgs->mTag = "<activity-alias>";
     }
 
     mParseActivityAliasArgs->mSa = sa;
@@ -2434,7 +2453,7 @@ ECode CapsuleParser::ParseActivityAlias(
     }
 
     if (target == NULL) {
-        (*outError)[0] = String::Duplicate(
+        (*outError)[0] = (const char*)(
             StringBuffer("<activity-alias> target activity ") + targetActivity
             + " not found in manifest");
         sa->Recycle();
@@ -2475,13 +2494,12 @@ ECode CapsuleParser::ParseActivityAlias(
             FALSE, &a->mInfo->mExported);
     }
 
-    AutoString str;
+    String str;
     sa->GetNonConfigurationString(
         3 /*com.android.internal.R.styleable.AndroidManifestActivityAlias_permission*/,
         0, &str);
     if (!str.IsNull()) {
-        a->mInfo->mPermission = str.GetLength() > 0
-            ? String::Duplicate(str) : String(NULL);
+        a->mInfo->mPermission = str.GetLength() > 0 ? str : String(NULL);
     }
 
     sa->Recycle();
@@ -2494,14 +2512,14 @@ ECode CapsuleParser::ParseActivityAlias(
     parser->GetDepth(&outerDepth);
     Int32 type = 0;
     Int32 depth = 0;
-    while ((parser->Next(&type), type) != XmlPullParser_END_DOCUMENT
-           && (type != XmlPullParser_END_TAG
+    while ((parser->Next(&type), type) != IXmlPullParser_END_DOCUMENT
+           && (type != IXmlPullParser_END_TAG
                    || (parser->GetDepth(&depth), depth) > outerDepth)) {
-        if (type == XmlPullParser_END_TAG || type == XmlPullParser_TEXT) {
+        if (type == IXmlPullParser_END_TAG || type == IXmlPullParser_TEXT) {
             continue;
         }
 
-        AutoString name;
+        String name;
         parser->GetName(&name);
         if (name.Equals("intent-filter")) {
             ActivityIntentInfo* intent = new ActivityIntentInfo(a);
@@ -2511,12 +2529,12 @@ ECode CapsuleParser::ParseActivityAlias(
             Int32 actions = 0;
             intent->CountActions(&actions);
             if (actions == 0) {
-                AutoString des;
+                String des;
                 parser->GetPositionDescription(&des);
                 Logger::W(TAG, StringBuffer("No actions in intent filter at ")
                         + mArchiveSourcePath + " " + des);
             } else {
-                a->mIntents.PushBack(intent);
+                a->mIntents->PushBack(intent);
             }
         } else if (name.Equals("meta-data")) {
             if ((a->mMetaData = ParseMetaData(res, parser, attrs, a->mMetaData,
@@ -2525,21 +2543,21 @@ ECode CapsuleParser::ParseActivityAlias(
             }
         } else {
             if (!RIGID_PARSER) {
-                AutoString des;
+                String des;
                 parser->GetPositionDescription(&des);
                 Logger::W(TAG, StringBuffer("Unknown element under <activity-alias>: ")
                         + name + " at " + mArchiveSourcePath + " " + des);
                 XmlUtils::SkipCurrentTag(parser);
                 continue;
             }
-            (*outError)[0] = String::Duplicate(
+            (*outError)[0] = (const char*)(
                 StringBuffer("Bad element under <activity-alias>: ") + name);
             return E_RUNTIME_EXCEPTION;
         }
     }
 
     if (!setExported) {
-        a->mInfo->mExported = a->mIntents.GetSize() > 0;
+        a->mInfo->mExported = a->mIntents->Begin() != a->mIntents->End();
     }
 
     *alias = a;
@@ -2583,7 +2601,7 @@ ECode CapsuleParser::ParseContentProvider(
                 8 /*com.android.internal.R.styleable.AndroidManifestProvider_process*/,
                 14 /*com.android.internal.R.styleable.AndroidManifestProvider_description*/,
                 6 /*com.android.internal.R.styleable.AndroidManifestProvider_enabled*/);
-        mParseProviderArgs->mTag = String::Duplicate("<provider>");
+        mParseProviderArgs->mTag = "<provider>";
     }
 
     mParseProviderArgs->mSa = sa;
@@ -2601,7 +2619,7 @@ ECode CapsuleParser::ParseContentProvider(
             7 /*com.android.internal.R.styleable.AndroidManifestProvider_exported*/,
             TRUE, &p->mInfo->mExported);
 
-    AutoString cpname;
+    String cpname;
     sa->GetNonConfigurationString(
             10 /*com.android.internal.R.styleable.AndroidManifestProvider_authorities*/,
             0, &cpname);
@@ -2610,35 +2628,34 @@ ECode CapsuleParser::ParseContentProvider(
             11 /*com.android.internal.R.styleable.AndroidManifestProvider_syncable*/,
             FALSE, &p->mInfo->mIsSyncable);
 
-    AutoString permission;
+    String permission;
     sa->GetNonConfigurationString(
             3 /*com.android.internal.R.styleable.AndroidManifestProvider_permission*/,
             0, &permission);
-    AutoString str;
+    String str;
     sa->GetNonConfigurationString(
             4 /*com.android.internal.R.styleable.AndroidManifestProvider_readPermission*/,
             0, &str);
     if (str.IsNull()) {
-        str = String::Duplicate(permission);
+        str = permission;
     }
     if (str.IsNull()) {
-        p->mInfo->mReadPermission = String::Duplicate(owner->mApplicationInfo->mPermission);
-    } else {
-        p->mInfo->mReadPermission = str.GetLength() > 0
-                ? String::Duplicate(str) : String(NULL);
+        p->mInfo->mReadPermission = owner->mApplicationInfo->mPermission;
     }
-    AutoString::Free(str);
+    else {
+        p->mInfo->mReadPermission = str.GetLength() > 0 ? str : String(NULL);
+    }
     sa->GetNonConfigurationString(
             5 /*com.android.internal.R.styleable.AndroidManifestProvider_writePermission*/,
             0, &str);
     if (str.IsNull()) {
-        str = String::Duplicate(permission);
+        str = permission;
     }
     if (str.IsNull()) {
-        p->mInfo->mWritePermission = String::Duplicate(owner->mApplicationInfo->mPermission);
-    } else {
-        p->mInfo->mWritePermission = str.GetLength() > 0
-                ? String::Duplicate(str) : String(NULL);
+        p->mInfo->mWritePermission = owner->mApplicationInfo->mPermission;
+    }
+    else {
+        p->mInfo->mWritePermission = str.GetLength() > 0 ? str : String(NULL);
     }
 
     sa->GetBoolean(
@@ -2659,16 +2676,16 @@ ECode CapsuleParser::ParseContentProvider(
         // A heavy-weight application can not have providers in its main process
         // We can do direct compare because we intern all strings.
         if (p->mInfo->mProcessName.Equals(owner->mCapsuleName)) {
-            (*outError)[0] = String::Duplicate("Heavy-weight applications can not have providers in main process");
+            (*outError)[0] = "Heavy-weight applications can not have providers in main process";
             return E_RUNTIME_EXCEPTION;
         }
     }
 
     if (cpname.IsNull()) {
-        (*outError)[0] = String::Duplicate("<provider> does not incude authorities attribute");
+        (*outError)[0] = "<provider> does not incude authorities attribute";
         return E_RUNTIME_EXCEPTION;
     }
-    p->mInfo->mAuthority = String::Duplicate(cpname);
+    p->mInfo->mAuthority = cpname;
 
     if (!ParseContentProviderTags(res, parser, attrs, p, outError)) {
         return E_XML_PULL_PARSER_EXCEPTION;
@@ -2700,14 +2717,14 @@ Boolean CapsuleParser::ParseContentProviderTags(
     parser->GetDepth(&outerDepth);
     Int32 type = 0;
     Int32 depth = 0;
-    while ((parser->Next(&type), type) != XmlPullParser_END_DOCUMENT
-           && (type != XmlPullParser_END_TAG
+    while ((parser->Next(&type), type) != IXmlPullParser_END_DOCUMENT
+           && (type != IXmlPullParser_END_TAG
                    || (parser->GetDepth(&depth), depth) > outerDepth)) {
-        if (type == XmlPullParser_END_TAG || type == XmlPullParser_TEXT) {
+        if (type == IXmlPullParser_END_TAG || type == IXmlPullParser_TEXT) {
             continue;
         }
 
-        AutoString name;
+        String name;
         parser->GetName(&name);
         if (name.Equals("meta-data")) {
             if ((outInfo->mMetaData = ParseMetaData(res, parser, attrs,
@@ -2726,7 +2743,7 @@ Boolean CapsuleParser::ParseContentProviderTags(
 
             AutoPtr<CPatternMatcher> pa;
 
-            AutoString str;
+            String str;
             sa->GetNonConfigurationString(
                     0 /*com.android.internal.R.styleable.AndroidManifestGrantUriPermission_path*/,
                     0, &str);
@@ -2735,7 +2752,6 @@ Boolean CapsuleParser::ParseContentProviderTags(
                     (IPatternMatcher**)&pa);
             }
 
-            AutoString::Free(str);
             sa->GetNonConfigurationString(
                 1 /*com.android.internal.R.styleable.AndroidManifestGrantUriPermission_pathPrefix*/,
                 0, &str);
@@ -2744,7 +2760,6 @@ Boolean CapsuleParser::ParseContentProviderTags(
                     (IPatternMatcher**)&pa);
             }
 
-            AutoString::Free(str);
             sa->GetNonConfigurationString(
                 2 /*com.android.internal.R.styleable.AndroidManifestGrantUriPermission_pathPattern*/,
                 0, &str);
@@ -2764,15 +2779,14 @@ Boolean CapsuleParser::ParseContentProviderTags(
             }
             else {
                 if (!RIGID_PARSER) {
-                    AutoString des;
+                    String des;
                     parser->GetPositionDescription(&des);
                     Logger::W(TAG, StringBuffer("Unknown element under <path-permission>: ")
                             + name + " at " + mArchiveSourcePath + " " + des);
                     XmlUtils::SkipCurrentTag(parser);
                     continue;
                 }
-                (*outError)[0] = String::Duplicate(
-                    StringBuffer("No path, pathPrefix, or pathPattern for <path-permission>"));
+                (*outError)[0] = "No path, pathPrefix, or pathPattern for <path-permission>";
                 return FALSE;
             }
             XmlUtils::SkipCurrentTag(parser);
@@ -2788,23 +2802,23 @@ Boolean CapsuleParser::ParseContentProviderTags(
 
             AutoPtr<CPathPermission> pa = NULL;
 
-            AutoString permission;
+            String permission;
             sa->GetNonConfigurationString(
                 0 /*com.android.internal.R.styleable.AndroidManifestPathPermission_permission*/,
                 0, &permission);
-            AutoString readPermission;
+            String readPermission;
             sa->GetNonConfigurationString(
                 1 /*com.android.internal.R.styleable.AndroidManifestPathPermission_readPermission*/,
                 0, &readPermission);
             if (readPermission.IsNull()) {
-                readPermission = String::Duplicate(permission);
+                readPermission = permission;
             }
-            AutoString writePermission;
+            String writePermission;
             sa->GetNonConfigurationString(
                 2 /*com.android.internal.R.styleable.AndroidManifestPathPermission_writePermission*/,
                 0, &writePermission);
             if (writePermission.IsNull()) {
-                writePermission = String::Duplicate(permission);
+                writePermission = permission;
             }
 
             Boolean havePerm = FALSE;
@@ -2817,19 +2831,18 @@ Boolean CapsuleParser::ParseContentProviderTags(
 
             if (!havePerm) {
                 if (!RIGID_PARSER) {
-                    AutoString des;
+                    String des;
                     parser->GetPositionDescription(&des);
                     Logger::W(TAG, StringBuffer("No readPermission or writePermssion for <path-permission>: ")
                             + name + " at " + mArchiveSourcePath + " " + des);
                     XmlUtils::SkipCurrentTag(parser);
                     continue;
                 }
-                (*outError)[0] = String::Duplicate(
-                    StringBuffer("No readPermission or writePermssion for <path-permission>"));
+                (*outError)[0] = "No readPermission or writePermssion for <path-permission>";
                 return FALSE;
             }
 
-            AutoString path;
+            String path;
             sa->GetNonConfigurationString(
                 3 /*com.android.internal.R.styleable.AndroidManifestPathPermission_path*/,
                 0, &path);
@@ -2839,7 +2852,6 @@ Boolean CapsuleParser::ParseContentProviderTags(
                     (CPathPermission**)&pa);
             }
 
-            AutoString::Free(path);
             sa->GetNonConfigurationString(
                 4 /*com.android.internal.R.styleable.AndroidManifestPathPermission_pathPrefix*/,
                 0, &path);
@@ -2849,7 +2861,6 @@ Boolean CapsuleParser::ParseContentProviderTags(
                     (CPathPermission**)&pa);
             }
 
-            AutoString::Free(path);
             sa->GetNonConfigurationString(
                 5 /*com.android.internal.R.styleable.AndroidManifestPathPermission_pathPattern*/,
                 0, &path);
@@ -2869,15 +2880,14 @@ Boolean CapsuleParser::ParseContentProviderTags(
             }
             else {
                 if (!RIGID_PARSER) {
-                    AutoString des;
+                    String des;
                     parser->GetPositionDescription(&des);
                     Logger::W(TAG, StringBuffer("No path, pathPrefix, or pathPattern for <path-permission>: ")
                             + name + " at " + mArchiveSourcePath + " " + des);
                     XmlUtils::SkipCurrentTag(parser);
                     continue;
                 }
-                (*outError)[0] = String::Duplicate(
-                    StringBuffer("No path, pathPrefix, or pathPattern for <path-permission>"));
+                (*outError)[0] = "No path, pathPrefix, or pathPattern for <path-permission>";
                 return FALSE;
             }
             XmlUtils::SkipCurrentTag(parser);
@@ -2885,14 +2895,14 @@ Boolean CapsuleParser::ParseContentProviderTags(
         }
         else {
             if (!RIGID_PARSER) {
-                AutoString des;
+                String des;
                 parser->GetPositionDescription(&des);
                 Logger::W(TAG, StringBuffer("Unknown element under <provider>: ")
                         + name + " at " + mArchiveSourcePath + " " + des);
                 XmlUtils::SkipCurrentTag(parser);
                 continue;
             }
-            (*outError)[0] = String::Duplicate(
+            (*outError)[0] = (const char*)(
                 StringBuffer("Bad element under <provider>: ") + name);
             return FALSE;
         }
@@ -2935,7 +2945,7 @@ ECode CapsuleParser::ParseService(
             6 /*com.android.internal.R.styleable.AndroidManifestService_process*/,
             7 /*com.android.internal.R.styleable.AndroidManifestService_description*/,
             4 /*com.android.internal.R.styleable.AndroidManifestService_enabled*/);
-        mParseServiceArgs->mTag = String::Duplicate("<service>");
+        mParseServiceArgs->mTag = "<service>";
     }
 
     mParseServiceArgs->mSa = sa;
@@ -2959,15 +2969,14 @@ ECode CapsuleParser::ParseService(
             FALSE, &s->mInfo->mExported);
     }
 
-    AutoString str;
+    String str;
     sa->GetNonConfigurationString(
         3 /*com.android.internal.R.styleable.AndroidManifestService_permission*/,
         0, &str);
     if (str.IsNull()) {
-        s->mInfo->mPermission = String::Duplicate(owner->mApplicationInfo->mPermission);
+        s->mInfo->mPermission = owner->mApplicationInfo->mPermission;
     } else {
-        s->mInfo->mPermission = str.GetLength() > 0
-            ? String::Duplicate(str) : String(NULL);
+        s->mInfo->mPermission = str.GetLength() > 0 ? str : String(NULL);
     }
 
     sa->Recycle();
@@ -2976,7 +2985,7 @@ ECode CapsuleParser::ParseService(
         // A heavy-weight application can not have services in its main process
         // We can do direct compare because we intern all strings
         if (s->mInfo->mProcessName.Equals(owner->mCapsuleName)) {
-            (*outError)[0] = String::Duplicate("Heavy-weight applications can not have services in main process");
+            (*outError)[0] = "Heavy-weight applications can not have services in main process";
             return E_RUNTIME_EXCEPTION;
         }
     }
@@ -2985,14 +2994,14 @@ ECode CapsuleParser::ParseService(
     parser->GetDepth(&outerDepth);
     Int32 type = 0;
     Int32 depth = 0;
-    while ((parser->Next(&type), type) != XmlPullParser_END_DOCUMENT
-           && (type != XmlPullParser_END_TAG
+    while ((parser->Next(&type), type) != IXmlPullParser_END_DOCUMENT
+           && (type != IXmlPullParser_END_TAG
                    || (parser->GetDepth(&depth), depth) > outerDepth)) {
-        if (type == XmlPullParser_END_TAG || type == XmlPullParser_TEXT) {
+        if (type == IXmlPullParser_END_TAG || type == IXmlPullParser_TEXT) {
             continue;
         }
 
-        AutoString name;
+        String name;
         parser->GetName(&name);
         if (name.Equals("intent-filter")) {
             ServiceIntentInfo* intent = new ServiceIntentInfo(s);
@@ -3000,7 +3009,7 @@ ECode CapsuleParser::ParseService(
                 return E_XML_PULL_PARSER_EXCEPTION;
             }
 
-            s->mIntents.PushBack(intent);
+            s->mIntents->PushBack(intent);
         }
         else if (name.Equals("meta-data")) {
             if ((s->mMetaData = ParseMetaData(res, parser, attrs, s->mMetaData,
@@ -3010,21 +3019,21 @@ ECode CapsuleParser::ParseService(
         }
         else {
             if (!RIGID_PARSER) {
-                AutoString des;
+                String des;
                 parser->GetPositionDescription(&des);
                 Logger::W(TAG, StringBuffer("Unknown element under <service>: ")
                         + name + " at " + mArchiveSourcePath + " " + des);
                 XmlUtils::SkipCurrentTag(parser);
                 continue;
             }
-            (*outError)[0] = String::Duplicate(
+            (*outError)[0] = (const char*)(
                 StringBuffer("Bad element under <service>: ") + name);
             return E_RUNTIME_EXCEPTION;
         }
     }
 
     if (!setExported) {
-        s->mInfo->mExported = s->mIntents.GetSize() > 0;
+        s->mInfo->mExported = s->mIntents->Begin() != s->mIntents->End();
     }
 
     *service = s;
@@ -3036,7 +3045,7 @@ Boolean CapsuleParser::ParseAllMetaData(
     /* [in] */ IResources* res,
     /* [in] */ IXmlPullParser* parser,
     /* [in] */ IAttributeSet* attrs,
-    /* [in] */ String tag,
+    /* [in] */ const char* tag,
     /* [in] */ Component<T>* outInfo,
     /* [in] */ ArrayOf<String>* outError)
 {
@@ -3044,14 +3053,14 @@ Boolean CapsuleParser::ParseAllMetaData(
     parser->GetDepth(&outerDepth);
     Int32 type = 0;
     Int32 depth = 0;
-    while ((parser->Next(&type), type) != XmlPullParser_END_DOCUMENT
-        && (type != XmlPullParser_END_TAG
+    while ((parser->Next(&type), type) != IXmlPullParser_END_DOCUMENT
+        && (type != IXmlPullParser_END_TAG
         || (parser->GetDepth(&depth), depth) > outerDepth)) {
-        if (type == XmlPullParser_END_TAG || type == XmlPullParser_TEXT) {
+        if (type == IXmlPullParser_END_TAG || type == IXmlPullParser_TEXT) {
             continue;
         }
 
-        AutoString name;
+        String name;
         parser->GetName(&name);
         if (name.Equals("meta-data")) {
             if ((outInfo->mMetaData = ParseMetaData(res, parser, attrs,
@@ -3060,14 +3069,14 @@ Boolean CapsuleParser::ParseAllMetaData(
             }
         } else {
             if (!RIGID_PARSER) {
-                AutoString des;
+                String des;
                 parser->GetPositionDescription(&des);
                 Logger::W(TAG, StringBuffer("Unknown element under ") + tag + ": "
                     + name + " at " + mArchiveSourcePath + " "+ des);
                 XmlUtils::SkipCurrentTag(parser);
                 continue;
             }
-            (*outError)[0] = String::Duplicate(
+            (*outError)[0] = (const char*)(
                 StringBuffer("Bad element under ") + tag + ": " + name);
             return FALSE;
         }
@@ -3097,12 +3106,12 @@ AutoPtr<CBundle> CapsuleParser::ParseMetaData(
         FAIL_RETURN_NULL(CBundle::NewByFriend(&data));
     }
 
-    AutoString name;
+    String name;
     sa->GetNonConfigurationString(
         0 /*com.android.internal.R.styleable.AndroidManifestMetaData_name*/, 0,
         &name);
     if (name.IsNull()) {
-        (*outError)[0] = String::Duplicate("<meta-data> requires an android:name attribute");
+        (*outError)[0] = "<meta-data> requires an android:name attribute";
         sa->Recycle();
         return NULL;
     }
@@ -3123,7 +3132,7 @@ AutoPtr<CBundle> CapsuleParser::ParseMetaData(
             if (((CTypedValue*)v.Get())->mType == TypedValue_TYPE_STRING) {
                 AutoPtr<ICharSequence> cs;
                 v->CoerceToString((ICharSequence**)&cs);
-                AutoString csStr;
+                String csStr;
                 cs->ToString(&csStr);
                 data->PutString(name, csStr);
             } else if (((CTypedValue*)v.Get())->mType == TypedValue_TYPE_INT_BOOLEAN) {
@@ -3137,8 +3146,8 @@ AutoPtr<CBundle> CapsuleParser::ParseMetaData(
                 data->PutFloat(name, f);
             } else {
                 if (!RIGID_PARSER) {
-                    AutoString name;
-                    AutoString des;
+                    String name;
+                    String des;
                     parser->GetName(&name);
                     parser->GetPositionDescription(&des);
                     Logger::W(TAG,
@@ -3146,12 +3155,12 @@ AutoPtr<CBundle> CapsuleParser::ParseMetaData(
                         + name + " at " + (String)mArchiveSourcePath + " " + des);
                 } else {
                     (*outError)[0] =
-                         String::Duplicate("<meta-data> only supports string, integer, float, color, boolean, and resource reference types");
+                            "<meta-data> only supports string, integer, float, color, boolean, and resource reference types";
                     data = NULL;
                 }
             }
         } else {
-            (*outError)[0] = String::Duplicate("<meta-data> requires an android:value or android:resource attribute");
+            (*outError)[0] = "<meta-data> requires an android:value or android:resource attribute";
             data = NULL;
         }
     }
@@ -3214,20 +3223,20 @@ Boolean CapsuleParser::ParseIntent(
 
     Int32 type = 0;
     Int32 depth = 0;
-    while ((parser->Next(&type), type) != XmlPullParser_END_DOCUMENT
-           && (type != XmlPullParser_END_TAG
+    while ((parser->Next(&type), type) != IXmlPullParser_END_DOCUMENT
+           && (type != IXmlPullParser_END_TAG
            || (parser->GetDepth(&depth), depth) > outerDepth)) {
-        if (type == XmlPullParser_END_TAG || type == XmlPullParser_TEXT) {
+        if (type == IXmlPullParser_END_TAG || type == IXmlPullParser_TEXT) {
             continue;
         }
 
-        AutoString nodeName;
+        String nodeName;
         parser->GetName(&nodeName);
         if (nodeName.Equals("action")) {
-            AutoString value;
+            String value;
             ec = attrs->GetAttributeValueEx(ANDROID_RESOURCES, "name", &value);
             if (FAILED(ec) || value.IsNullOrEmpty()) {
-                (*outError)[0] = String::Duplicate("No value supplied for <android:name>");
+                (*outError)[0] = "No value supplied for <android:name>";
                 return FALSE;
             }
             XmlUtils::SkipCurrentTag(parser);
@@ -3235,10 +3244,10 @@ Boolean CapsuleParser::ParseIntent(
             outInfo->AddAction(value);
 
         } else if (nodeName.Equals("category")) {
-            AutoString value;
+            String value;
             ec = attrs->GetAttributeValueEx(ANDROID_RESOURCES, "name", &value);
             if (FAILED(ec) || value.IsNullOrEmpty()) {
-                (*outError)[0] = String::Duplicate("No value supplied for <android:name>");
+                (*outError)[0] = "No value supplied for <android:name>";
                 return FALSE;
             }
             XmlUtils::SkipCurrentTag(parser);
@@ -3251,49 +3260,45 @@ Boolean CapsuleParser::ParseIntent(
                     sizeof(R_Styleable_AndroidManifestData) / sizeof(Int32))
                 /*com.android.internal.R.styleable.AndroidManifestData*/, (ITypedArray**)&sa);
 
-            AutoString str;
+            String str;
             sa->GetNonConfigurationString(
                 0 /*com.android.internal.R.styleable.AndroidManifestData_mimeType*/, 0, &str);
             if (!str.IsNull()) {
                 if (FAILED(outInfo->AddDataType(str))) {
-                    (*outError)[0] = String::Duplicate("E_RUNTIME_EXCEPTION");
+                    (*outError)[0] = "E_RUNTIME_EXCEPTION";
                     sa->Recycle();
                     return FALSE;
                 }
             }
 
-            String::Free(str);
             sa->GetNonConfigurationString(
                 1 /*com.android.internal.R.styleable.AndroidManifestData_scheme*/, 0, &str);
             if (!str.IsNull()) {
                 outInfo->AddDataScheme(str);
             }
 
-            AutoString host;
+            String host;
             sa->GetNonConfigurationString(
                 2 /*com.android.internal.R.styleable.AndroidManifestData_host*/, 0, &host);
-            AutoString port;
+            String port;
             sa->GetNonConfigurationString(
                 3 /*com.android.internal.R.styleable.AndroidManifestData_port*/, 0, &port);
             if (!host.IsNull()) {
                 outInfo->AddDataAuthority(host, port);
             }
 
-            String::Free(str);
             sa->GetNonConfigurationString(
                 4 /*com.android.internal.R.styleable.AndroidManifestData_path*/, 0, &str);
             if (!str.IsNull()) {
                 outInfo->AddDataPath(str, PatternMatcher_PATTERN_LITERAL);
             }
 
-            String::Free(str);
             sa->GetNonConfigurationString(
                 5 /*com.android.internal.R.styleable.AndroidManifestData_pathPrefix*/, 0, &str);
             if (!str.IsNull()) {
                 outInfo->AddDataPath(str, PatternMatcher_PATTERN_PREFIX);
             }
 
-            String::Free(str);
             sa->GetNonConfigurationString(
                 6 /*com.android.internal.R.styleable.AndroidManifestData_pathPattern*/, 0, &str);
             if (!str.IsNull()) {
@@ -3302,25 +3307,27 @@ Boolean CapsuleParser::ParseIntent(
 
             sa->Recycle();
             XmlUtils::SkipCurrentTag(parser);
-        } else if (!RIGID_PARSER) {
-            AutoString name;
-            AutoString des;
+        }
+        else if (!RIGID_PARSER) {
+            String name;
+            String des;
             parser->GetName(&name);
             parser->GetPositionDescription(&des);
             Logger::W(TAG, StringBuffer("Unknown element under <intent-filter>: ")
                     + name + " at " + (String)mArchiveSourcePath + " " + des);
             XmlUtils::SkipCurrentTag(parser);
-        } else {
-            AutoString name;
+        }
+        else {
+            String name;
             parser->GetName(&name);
-            (*outError)[0] = String::Duplicate(
+            (*outError)[0] = (const char*)(
                 StringBuffer("Bad element under <intent-filter>: ") + name);
             return FALSE;
         }
     }
 
-    outInfo->HasCategory(Intent_CATEGORY_DEFAULT,
-        &outInfo->mHasDefault);
+    outInfo->HasCategory(String(Intent_CATEGORY_DEFAULT),
+            &outInfo->mHasDefault);
 
 //	    if (false) {
 //	        String cats = "";
@@ -3352,15 +3359,12 @@ Boolean CapsuleParser::CopyNeeded(
     return FALSE;
 }
 
-ECode CapsuleParser::GenerateApplicationInfo(
+AutoPtr<CApplicationInfo> CapsuleParser::GenerateApplicationInfo(
     /* [in] */ Capsule* capsule,
-    /* [in] */ Int32 flags,
-    /* [out] */ CApplicationInfo** info)
+    /* [in] */ Int32 flags)
 {
-    assert(info != NULL);
     if (capsule == NULL) {
-        *info = NULL;
-        return E_DOES_NOT_EXIST;
+        return NULL;
     }
     if (!CopyNeeded(flags, capsule, NULL)) {
         // CompatibilityMode is global state. It's safe to modify the instance
@@ -3368,25 +3372,24 @@ ECode CapsuleParser::GenerateApplicationInfo(
         if (!sCompatibilityModeEnabled) {
             capsule->mApplicationInfo->DisableCompatibilityMode();
         }
-        *info = (CApplicationInfo*)(capsule->mApplicationInfo);
-        if (*info != NULL) (*info)->AddRef();
-        return NOERROR;
+        return capsule->mApplicationInfo;
     }
 
     // Make shallow copy so we can store the metadata/libraries safely
-    FAIL_RETURN(CApplicationInfo::NewByFriend(
-        (IApplicationInfo*)capsule->mApplicationInfo.Get(), info));
+    AutoPtr<CApplicationInfo> ai;
+    ASSERT_SUCCEEDED(CApplicationInfo::NewByFriend(
+        (IApplicationInfo*)capsule->mApplicationInfo.Get(), (CApplicationInfo**)&ai));
     if ((flags & CapsuleManager_GET_META_DATA) != 0) {
-        (*info)->mMetaData = capsule->mAppMetaData.Get();
+        ai->mMetaData = capsule->mAppMetaData.Get();
     }
     if ((flags & CapsuleManager_GET_SHARED_LIBRARY_FILES) != 0
         && capsule->mUsesLibraryFiles != NULL) {
-        (*info)->mSharedLibraryFiles = capsule->mUsesLibraryFiles->Clone();
+        ai->mSharedLibraryFiles = capsule->mUsesLibraryFiles->Clone();
     }
     if (!sCompatibilityModeEnabled) {
-        (*info)->DisableCompatibilityMode();
+        ai->DisableCompatibilityMode();
     }
-    return NOERROR;
+    return ai;
 }
 
 ECode CapsuleParser::GenerateActivityInfo(
@@ -3408,8 +3411,7 @@ ECode CapsuleParser::GenerateActivityInfo(
     // Make shallow copies so we can store the metadata safely
     FAIL_RETURN(CActivityInfo::NewByFriend((IActivityInfo*)activity->mInfo.Get(), info));
     (*info)->mMetaData = activity->mMetaData;
-    GenerateApplicationInfo(
-        activity->mOwner, flags, (CApplicationInfo**)&((*info)->mApplicationInfo));
+    (*info)->mApplicationInfo = GenerateApplicationInfo(activity->mOwner, flags);
     return NOERROR;
 }
 
@@ -3432,8 +3434,7 @@ ECode CapsuleParser::GenerateServiceInfo(
     // Make shallow copies so we can store the metadata safely
     CServiceInfo::NewByFriend((IServiceInfo*)service->mInfo.Get(), info);
     (*info)->mMetaData = service->mMetaData;
-    GenerateApplicationInfo(
-        service->mOwner, flags, (CApplicationInfo**)&((*info)->mApplicationInfo));
+    (*info)->mApplicationInfo = GenerateApplicationInfo(service->mOwner, flags);
     return NOERROR;
 }
 
@@ -3469,8 +3470,7 @@ ECode CapsuleParser::GenerateContentProviderInfo(
         delete pi->mUriPermissionPatterns;
         pi->mUriPermissionPatterns = NULL;
     }
-    GenerateApplicationInfo(
-        provider->mOwner, flags, (CApplicationInfo**)&pi->mApplicationInfo);
+    pi->mApplicationInfo = GenerateApplicationInfo(provider->mOwner, flags);
     *info = (IContentProviderInfo*)pi.Get();
     if (*info != NULL) (*info)->AddRef();
     return NOERROR;
@@ -3500,4 +3500,12 @@ void CapsuleParser::SetCompatibilityModeEnabled(
     /* [in] */ Boolean compatibilityModeEnabled)
 {
 }
+
+Boolean CapsuleParser::CollectCertificates(
+    /* [in] */ Capsule* cap,
+    /* [in] */ Int32 flags)
+{
+    return FALSE;
+}
+
 

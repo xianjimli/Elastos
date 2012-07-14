@@ -44,3 +44,6 @@ SOURCES += InputManagerCallbacks.cpp
 SOURCES += InputWindowList.cpp
 SOURCES += Config.cpp
 SOURCES += SystemServer.cpp
+SOURCES += CLightsService.cpp
+SOURCES += CStatusBarManagerService.cpp
+SOURCES += CNotificationManagerService.cpp

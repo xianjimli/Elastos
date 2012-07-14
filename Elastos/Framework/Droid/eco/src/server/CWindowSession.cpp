@@ -96,7 +96,13 @@ ECode CWindowSession::GetDisplayFrame(
     /* [in] */ IInnerWindow* window,
     /* [out] */ IRect** outDisplayFrame)
 {
-    return E_NOT_IMPLEMENTED;
+    IRect* r;
+    assert(SUCCEEDED(CRect::New(&r)));
+
+    mWMService->GetWindowDisplayFrame(this, window, r);
+    *outDisplayFrame = r;
+
+    return NOERROR;
 }
 
 ECode CWindowSession::FinishDrawing(
@@ -144,7 +150,7 @@ ECode CWindowSession::WallpaperOffsetsComplete(
 
 ECode CWindowSession::SendWallpaperCommand(
     /* [in] */ IBinder* window,
-    /* [in] */ String action,
+    /* [in] */ const String& action,
     /* [in] */ Int32 x,
     /* [in] */ Int32 y,
     /* [in] */ Int32 z,

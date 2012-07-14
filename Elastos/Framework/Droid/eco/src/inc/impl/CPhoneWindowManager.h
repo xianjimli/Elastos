@@ -11,13 +11,13 @@
 CarClass(CPhoneWindowManager)
 {
 public:
-    static const String SYSTEM_DIALOG_REASON_KEY;
-    static const String SYSTEM_DIALOG_REASON_GLOBAL_ACTIONS;
-    static const String SYSTEM_DIALOG_REASON_RECENT_APPS;
-    static const String SYSTEM_DIALOG_REASON_HOME_KEY;
+    static const char* SYSTEM_DIALOG_REASON_KEY;
+    static const char* SYSTEM_DIALOG_REASON_GLOBAL_ACTIONS;
+    static const char* SYSTEM_DIALOG_REASON_RECENT_APPS;
+    static const char* SYSTEM_DIALOG_REASON_HOME_KEY;
 
 private:
-    static const String TAG;
+    static const char* TAG;
     static const Boolean DEBUG = FALSE;
     static const Boolean localLOGV = DEBUG; //? Config.LOGD : Config.LOGV;
     static const Boolean DEBUG_LAYOUT = FALSE;
@@ -111,7 +111,7 @@ public:
 
     CARAPI AddStartingWindow(
         /* [in] */ IBinder* appToken,
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ Int32 theme,
         /* [in] */ const ArrayOf<Char8>& nonLocalizedLabel,
         /* [in] */ Int32 labelRes,
@@ -247,7 +247,7 @@ protected:
 
     static CARAPI_(void) SendCloseSystemWindows(
         /* [in] */ IContext* context,
-        /* [in] */ String reason);
+        /* [in] */ const char* reason);
 
     static CARAPI_(ArrayOf<Int64>*) GetLongIntArray(
         /* [in] */ IResources* r,
@@ -321,7 +321,7 @@ protected:
     CARAPI_(void) SendCloseSystemWindows();
 
     CARAPI_(void) SendCloseSystemWindows(
-        /* [in] */ String reason);
+        /* [in] */ const char* reason);
 
     CARAPI_(void) UpdateRotation(
         /* [in] */ Int32 animFlags);

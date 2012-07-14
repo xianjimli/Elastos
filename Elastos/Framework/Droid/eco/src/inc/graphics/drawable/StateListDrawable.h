@@ -8,34 +8,37 @@
 class StateListDrawable : public DrawableContainer
 {
 public:
-    class StateListState : public DrawableContainerState
+    class StateListState : public DrawableContainer::DrawableContainerState
     {
+        friend class StateListDrawable;
+
     public:
         StateListState(
             /* [in] */ StateListState* orig,
-            /* [in] */ StateListDrawable* owner,
+            /* [in] */ IStateListDrawable* owner,
             /* [in] */ IResources* res);
 
         ~StateListState();
 
-        virtual CARAPI_(Int32) AddStateSet(
-            /* [in] */ const ArrayOf<Int32>& stateSet,
+        CARAPI_(Int32) AddStateSet(
+            /* [in] */ const ArrayOf<Int32>* stateSet,
             /* [in] */ IDrawable* drawable);
 
-        virtual CARAPI NewDrawable(
+        CARAPI_(Int32) IndexOfStateSet(
+            /* [in] */ const ArrayOf<Int32>* stateSet);
+
+        CARAPI NewDrawable(
             /* [out] */ IDrawable** drawable);
 
-        virtual CARAPI NewDrawableEx(
+        CARAPI NewDrawableEx(
             /* [in] */ IResources* res,
             /* [out] */ IDrawable** drawable);
 
-        virtual CARAPI GrowArray(
+        CARAPI_(void) GrowArray(
             /* [in] */ Int32 oldSize,
             /* [in] */ Int32 newSize);
 
-        virtual CARAPI_(Int32) IndexOfStateSet(
-            /* [in] */ ArrayOf<Int32>* stateSet);
-
+    private:
         ArrayOf<ArrayOf<Int32>*>* mStateSets;
     };
 
@@ -45,11 +48,6 @@ public:
     StateListDrawable(
         /* [in] */ StateListState* state,
         /* [in] */ IResources* res);
-
-    ~StateListDrawable();
-
-    virtual CARAPI_(PInterface) Probe(
-        /* [in] */ REIID riid);
 
     /**
      * Add a new image/string ID to the set of images.
@@ -121,14 +119,14 @@ public:
 
 protected:
     virtual CARAPI_(Boolean) OnStateChange(
-        /* [in] */ ArrayOf<Int32>* stateSet);
+        /* [in] */ const ArrayOf<Int32>* stateSet);
+
+    CARAPI Init(
+        /* [in] */ StateListState* state,
+        /* [in] */ IResources* res);
 
 private:
-    CARAPI_(void) Init(
-        /* [in] */ StateListState* state = NULL,
-        /* [in] */ IResources* res = NULL);
-
-    StateListState* mStateListState;
+    AutoPtr<StateListState> mStateListState;
 
 private:
     /**

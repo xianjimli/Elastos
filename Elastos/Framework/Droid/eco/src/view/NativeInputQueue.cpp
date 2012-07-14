@@ -7,10 +7,10 @@
 #include <StringBuffer.h>
 #include <elastos/AutoPtr.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
-const String NativeInputQueue::TAG = "NativeInputQueue";
+const char* NativeInputQueue::TAG = "NativeInputQueue";
 
 ECode create_CKeyEvent_fromNative(
     /* [in] */ const android::KeyEvent* event,

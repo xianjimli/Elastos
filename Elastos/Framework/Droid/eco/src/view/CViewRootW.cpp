@@ -57,8 +57,8 @@ ECode CViewRootW::WindowFocusChanged(
 }
 
 ECode CViewRootW::ExecuteCommand(
-    /* [in] */ String command,
-    /* [in] */ String parameters,
+    /* [in] */ const String& command,
+    /* [in] */ const String& parameters,
     /* [in] */ IParcelFileDescriptor* descriptor)
 {
 //    final ViewRoot viewRoot = mViewRoot.get();
@@ -93,7 +93,7 @@ ECode CViewRootW::ExecuteCommand(
 }
 
 ECode CViewRootW::CloseSystemDialogs(
-    /* [in] */ String reason)
+    /* [in] */ const String& reason)
 {
     if (mViewRoot != NULL) {
         mViewRoot->DispatchCloseSystemDialogs(reason);
@@ -118,7 +118,7 @@ ECode CViewRootW::DispatchWallpaperOffsets(
 }
 
 ECode CViewRootW::DispatchWallpaperCommand(
-    /* [in] */ String action,
+    /* [in] */ const String& action,
     /* [in] */ Int32 x,
     /* [in] */ Int32 y,
     /* [in] */ Int32 z,

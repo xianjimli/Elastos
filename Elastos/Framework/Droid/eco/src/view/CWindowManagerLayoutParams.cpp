@@ -9,8 +9,6 @@ CWindowManagerLayoutParams::CWindowManagerLayoutParams()
     , mDimAmount(1.0f)
     , mCompatibilityParamsBackup(NULL)
 {
-    mTitle = ArrayOf<Char8>::Alloc(1);
-
     mScreenBrightness = WindowManagerLayoutParams_BRIGHTNESS_OVERRIDE_NONE;
     mButtonBrightness = WindowManagerLayoutParams_BRIGHTNESS_OVERRIDE_NONE;
     mScreenOrientation = CActivityInfo::SCREEN_ORIENTATION_UNSPECIFIED;
@@ -19,7 +17,6 @@ CWindowManagerLayoutParams::CWindowManagerLayoutParams()
 
 CWindowManagerLayoutParams::~CWindowManagerLayoutParams()
 {
-    ArrayOf<Char8>::Free(mTitle);
     delete[] mCompatibilityParamsBackup;
 }
 
@@ -44,25 +41,26 @@ ECode CWindowManagerLayoutParams::GetDescription(
 }
 
 ECode CWindowManagerLayoutParams::SetTitle(
-    /* [in] */ const ArrayOf<Char8>& title)
+    /* [in] */ ICharSequence* title)
 {
 //    if (null == title)
 //        title = "";
 //
-//    mTitle = TextUtils.stringOrSpannedString(title);
-
-    ArrayOf<Char8>::Free(mTitle);
-    mTitle = title.Clone();
+    //mTitle = TextUtils::StringOrSpannedString(title);
+    mTitle = title;
 
     return NOERROR;
 }
 
 ECode CWindowManagerLayoutParams::GetTitle(
-    /* [out, callee] */ ArrayOf<Char8>** title)
+    /* [out] */ ICharSequence** title)
 {
-    if (title == NULL) return E_INVALID_ARGUMENT;
+    VALIDATE_NOT_NULL(title);
 
-    *title = mTitle->Clone();
+    *title = mTitle;
+    if (*title) {
+        (*title)->AddRef();
+    }
 
     return NOERROR;
 }
@@ -158,11 +156,17 @@ ECode CWindowManagerLayoutParams::CopyFrom(
     if (mCapsuleName.IsNull()) {
         // NOTE: packageName only copied if the recipient doesn't
         // already have one.
-        mCapsuleName = String::Duplicate(src->mCapsuleName);
+        mCapsuleName = src->mCapsuleName;
     }
-    if (strcmp((const char*)mTitle, (const char*)src->mTitle) != 0) {
-        ArrayOf<Char8>::Free(mTitle);
-        mTitle = src->mTitle->Clone();
+    String title1, title2;
+    if (mTitle != NULL) {
+        mTitle->ToString(&title1);
+    }
+    if (src->mTitle != NULL) {
+        src->mTitle->ToString(&title2);
+    }
+    if (title1.Compare(title2) != 0) {
+        mTitle = src->mTitle;
         changes |= WindowManagerLayoutParams_TITLE_CHANGED;
     }
 
@@ -306,11 +310,7 @@ ECode CWindowManagerLayoutParams::ReadFromParcel(
     source->ReadFloat(&mButtonBrightness);
     source->ReadInterfacePtr((Handle32*)&mToken);
     source->ReadString(&mCapsuleName);
-
-    String title;
-    source->ReadString(&title);
-    mTitle->Copy((const char*)title, title.GetLength());
-
+    source->ReadInterfacePtr((Handle32*)&mTitle);
     source->ReadInt32(&mScreenOrientation);
 
     return NOERROR;
@@ -342,7 +342,7 @@ ECode CWindowManagerLayoutParams::WriteToParcel(
     dest->WriteFloat(mButtonBrightness);
     dest->WriteInterfacePtr((IInterface*)mToken.Get());
     dest->WriteString(mCapsuleName);
-    dest->WriteString((const char*)mTitle);
+    dest->WriteInterfacePtr((IInterface*)mTitle.Get());
     dest->WriteInt32(mScreenOrientation);
 
     return NOERROR;

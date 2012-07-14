@@ -8,11 +8,10 @@
 #include "graphics/ElPixelFormat.h"
 #include "view/CGravity.h"
 #include "utils/CDisplayMetrics.h"
-#include "utils/AutoString.h"
 #include <Logger.h>
 #include <StringBuffer.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
 
@@ -89,8 +88,7 @@ ECode BitmapDrawable::BitmapState::NewDrawable(
     /* [out] */ IDrawable** drawable)
 {
     VALIDATE_NOT_NULL(drawable);
-    //return CBitmapDrawable::New((IBitmapState*)this, NULL, drawable);
-    return NOERROR;
+    return CBitmapDrawable::New((IBitmapState*)this, NULL, (IBitmapDrawable**)drawable);
 }
 
 ECode BitmapDrawable::BitmapState::NewDrawableEx(
@@ -98,8 +96,7 @@ ECode BitmapDrawable::BitmapState::NewDrawableEx(
     /* [out] */ IDrawable** drawable)
 {
     VALIDATE_NOT_NULL(drawable);
-    //return CBitmapDrawable::New((IBitmapState*)this, res, drawable);
-    return NOERROR;
+    return CBitmapDrawable::New((IBitmapState*)this, res, (IBitmapDrawable**)drawable);
 }
 
 ECode BitmapDrawable::BitmapState::GetChangingConfigurations(
@@ -155,7 +152,7 @@ BitmapDrawable::BitmapDrawable(
 }
 
 BitmapDrawable::BitmapDrawable(
-    /* [in] */ String filepath)
+    /* [in] */ const String& filepath)
 {
     CRect::New((IRect**)&mDstRect);
     Init(filepath);
@@ -163,7 +160,7 @@ BitmapDrawable::BitmapDrawable(
 
 BitmapDrawable::BitmapDrawable(
     /* [in] */ IResources* res,
-    /* [in] */ String filepath)
+    /* [in] */ const String& filepath)
 {
     CRect::New((IRect**)&mDstRect);
     Init(res, filepath);
@@ -456,14 +453,14 @@ ECode BitmapDrawable::Inflate(
 
     AutoPtr<ITypedArray> a;
     FAIL_RETURN(r->ObtainAttributes(
-        attrs, ArrayOf<Int32>(R_Styleable_BitmapDrawable, 6),/*com.android.internal.R.styleable.BitmapDrawable*/
+        attrs, ArrayOf<Int32>(R_Styleable_BitmapDrawable, sizeof(R_Styleable_BitmapDrawable) / sizeof(Int32)),/*com.android.internal.R.styleable.BitmapDrawable*/
         (ITypedArray**)&a));
 
     Int32 id;
     a->GetResourceId(
         1/*com.android.internal.R.styleable.BitmapDrawable_src*/, 0, &id);
     if (id == 0) {
-        AutoString str;
+        String str;
         parser->GetPositionDescription(&str);
         Logger::E("BitmapDrawable",
             StringBuffer(str) + ": <bitmap> requires a valid src attribute");
@@ -477,7 +474,7 @@ ECode BitmapDrawable::Inflate(
     bmFactory->DecodeResourceEx(r, id, (IBitmap**)&bitmap);
 
     if (bitmap == NULL) {
-        AutoString str;
+        String str;
         parser->GetPositionDescription(&str);
         Logger::E("BitmapDrawable",
             StringBuffer(str) + ": <bitmap> requires a valid src attribute");
@@ -624,7 +621,7 @@ ECode BitmapDrawable::Init(
 }
 
 ECode BitmapDrawable::Init(
-    /* [in] */ String filepath)
+    /* [in] */ const String& filepath)
 {
     AutoPtr<IBitmapFactory> factory;
     AutoPtr<IBitmap> bitmap;
@@ -645,7 +642,7 @@ ECode BitmapDrawable::Init(
 
 ECode BitmapDrawable::Init(
     /* [in] */ IResources* res,
-    /* [in] */ String filepath)
+    /* [in] */ const String& filepath)
 {
     FAIL_RETURN(Init(filepath));
     mBitmapState->mTargetDensity = mTargetDensity;

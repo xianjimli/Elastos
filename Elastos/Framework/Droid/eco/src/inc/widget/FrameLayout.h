@@ -25,10 +25,10 @@ public:
         /* [in] */ IAttributeSet* attrs,
         /* [in] */ Int32 defStyle);
 
-    CARAPI_(void) SetForegroundGravity(
+    CARAPI SetForegroundGravity(
         /* [in] */ Int32 foregroundGravity);
 
-    CARAPI_(void) SetForeground(
+    CARAPI SetForeground(
         /* [in] */ IDrawable* drawable);
 
     CARAPI_(AutoPtr<IDrawable>) GetForeground();
@@ -39,7 +39,7 @@ public:
     virtual CARAPI_(Boolean) GatherTransparentRegion(
         /* [in] */ IRegion* region);
 
-    CARAPI_(void) SetMeasureAllChildren(
+    CARAPI SetMeasureAllChildren(
         /* [in] */ Boolean measureAll);
 
     CARAPI_(Boolean) GetConsiderGoneChildrenWhenMeasuring();

@@ -9,14 +9,14 @@
 CarClass(CStateListDrawable), public StateListDrawable
 {
 public:
+    CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid);
+
     IDRAWABLE_METHODS_DECL();
 
     CARAPI AddState(
         /* [in] */ const ArrayOf<Int32> & stateSet,
         /* [in] */ IDrawable * pDrawable);
-
-    CARAPI GetStateListState(
-        /* [out] */ IStateListState ** ppState);
 
     CARAPI GetStateCount(
         /* [out] */ Int32 * pCount);
@@ -36,7 +36,7 @@ public:
     CARAPI constructor();
 
     CARAPI constructor(
-        /* [in] */ IStateListState* state,
+        /* [in] */ Handle32 state,
         /* [in] */ IResources* res);
 
 private:

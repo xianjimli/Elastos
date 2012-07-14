@@ -68,6 +68,8 @@ public:
         /* [in] */ Int32 verb,
         /* [in] */ Int32 anchor);
 
+    using RelativeLayoutLayoutParams::GetRules;
+
     /**
      * Retrieves a complete list of all supported rules, where the index is the rule
      * verb, and the element value is the value specified, or "false" if it was never

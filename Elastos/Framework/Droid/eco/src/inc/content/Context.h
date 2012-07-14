@@ -16,6 +16,13 @@
 class Context
 {
 public:
+    virtual CARAPI_(PInterface) Probe(
+        /* [in]  */ REIID riid) = 0;
+
+    /** Return an AssetManager instance for your application's package. */
+    virtual CARAPI GetAssets(
+        /* [out] */ IAssetManager** assetManager) = 0;
+
     /** Return a Resources instance for your application's package. */
     virtual CARAPI GetResources(
         /* [out] */ IResources** resources) = 0;
@@ -23,6 +30,21 @@ public:
     /** Return a ContentResolver instance for your application's package. */
     virtual CARAPI GetContentResolver(
         /* [out] */ IContentResolver** resolver) = 0;
+
+    /**
+     * Return a localized, styled CharSequence from the application's package's
+     * default string table.
+     *
+     * @param resId Resource id for the CharSequence text
+     */
+    CARAPI GetText(
+        /* [in] */ Int32 resId,
+        /* [out] */ ICharSequence** text)
+    {
+        AutoPtr<IResources> resources;
+        GetResources((IResources**)&resources);
+        return resources->GetText(resId, text);
+    }
 
     /**
      * Set the base theme for this context.  Note that this should be called
@@ -48,7 +70,7 @@ public:
      *
      * @see Resources.Theme#obtainStyledAttributes(int[])
      */
-    virtual CARAPI ObtainStyledAttributes(
+    CARAPI ObtainStyledAttributes(
         /* [in] */ const ArrayOf<Int32>& attrs,
         /* [out] */ ITypedArray** styles)
     {
@@ -64,7 +86,7 @@ public:
      *
      * @see Resources.Theme#obtainStyledAttributes(int, int[])
      */
-    virtual CARAPI ObtainStyledAttributesEx(
+    CARAPI ObtainStyledAttributesEx(
         /* [in] */ Int32 resid,
         /* [in] */ const ArrayOf<Int32>& attrs,
         /* [out] */ ITypedArray** styles)
@@ -81,7 +103,7 @@ public:
      *
      * @see Resources.Theme#obtainStyledAttributes(AttributeSet, int[], int, int)
      */
-    virtual CARAPI ObtainStyledAttributesEx2(
+    CARAPI ObtainStyledAttributesEx2(
         /* [in] */ IAttributeSet* set,
         /* [in] */ const ArrayOf<Int32>& attrs,
         /* [out] */ ITypedArray** styles)
@@ -98,7 +120,7 @@ public:
      *
      * @see Resources.Theme#obtainStyledAttributes(AttributeSet, int[], int, int)
      */
-    virtual CARAPI ObtainStyledAttributesEx3(
+    CARAPI ObtainStyledAttributesEx3(
         /* [in] */ IAttributeSet* set,
         /* [in] */ const ArrayOf<Int32>& attrs,
         /* [in] */ Int32 defStyleAttr,
@@ -408,7 +430,7 @@ public:
      * @see android.app.DownloadManager
      */
     virtual CARAPI GetSystemService(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ IInterface** object) = 0;
 
     /**
@@ -437,17 +459,30 @@ public:
      * the given package name
      */
     virtual CARAPI CreateCapsuleContext(
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ Int32 flags,
         /* [out] */ IContext** ctx) = 0;
 
     virtual CARAPI CheckCallingPermission(
-        /* [in] */ String permission,
+        /* [in] */ const String& permission,
         /* [out] */ Int32* value) = 0;
 
     virtual CARAPI EnforceCallingOrSelfPermission(
-        /* [in] */ String permission,
-        /* [in] */ String message) = 0;
+        /* [in] */ const String& permission,
+        /* [in] */ const String& message) = 0;
+
+    virtual CARAPI RevokeUriPermission(
+        /* [in] */ IUri* uri,
+        /* [in] */ Int32 modeFlags) = 0;
+
+    virtual CARAPI CheckCallingOrSelfPermission(
+        /* [in] */ const String& permission,
+        /* [out] */ Int32* perm) = 0;
+
+    virtual CARAPI GrantUriPermission(
+        /* [in] */ const String& toCapsule,
+        /* [in] */ IUri* uri,
+        /* [in] */ Int32 modeFlags) = 0;
 };
 
 #endif //__CONTEXT_H__

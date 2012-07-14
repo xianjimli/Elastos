@@ -8,8 +8,8 @@ CarClass(CDefaultInstrumentation)
 {
 public:
     CARAPI NewApplication(
-        /* [in] */ String moduleName,
-        /* [in] */ String className,
+        /* [in] */ const String& moduleName,
+        /* [in] */ const String& className,
         /* [in] */ IContext* context,
         /* [out] */ IApplication** app);
 

@@ -3,6 +3,7 @@
 module
 {
     interface IBaseAdapter;
+    interface IComparator;
 
     /**
      * Common base class of common implementation for an {@link Adapter} that can be

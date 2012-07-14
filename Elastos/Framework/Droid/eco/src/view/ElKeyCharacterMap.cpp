@@ -5,7 +5,7 @@
 #include "text/method/MetaKeyKeyListener.h"
 #include "os/SystemClock.h"
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 const Int32 ElKeyCharacterMap::BUILT_IN_KEYBOARD;
 const Int32 ElKeyCharacterMap::NUMERIC;
@@ -541,7 +541,7 @@ ECode ElKeyCharacterMap::DeviceHasKeys(
     FAIL_RETURN(GetServiceManager((IServiceManager**)&sm));
 
     AutoPtr<IWindowManagerEx> wm;
-    FAIL_RETURN(sm->GetService("window", (IInterface**)(IWindowManagerEx**)&wm));
+    FAIL_RETURN(sm->GetService(String("window"), (IInterface**)(IWindowManagerEx**)&wm));
 
     //wm->HasKeys(keyCodes, *results);
 

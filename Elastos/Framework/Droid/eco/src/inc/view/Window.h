@@ -3,7 +3,7 @@
 #define __WINDOW_H__
 
 #include "ext/frameworkext.h"
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 #include "view/CWindowManagerLayoutParams.h"
 #include <elastos/AutoPtr.h>
 
@@ -119,7 +119,7 @@ public:
     CARAPI SetWindowManager(
         /* [in] */ IWindowManager* wm,
         /* [in] */ IBinder* appToken,
-        /* [in] */ String appName);
+        /* [in] */ const String& appName);
 
     /**
      * Return the window manager allowing this Window to display its own

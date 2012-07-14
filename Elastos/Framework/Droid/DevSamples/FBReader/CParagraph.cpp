@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 
-const String CParagraph::INDENT = "    ";
+const String CParagraph::INDENT("    ");
 
 CParagraph::CParagraph()
     : mText(NULL)
@@ -38,7 +38,7 @@ ECode CParagraph::constructor(
 }
 
 ECode CParagraph::Append(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ Int32 length)
 {
 //    printf("<%s, %d, [Append]>, [%d], [len==[%d]], , [m_length==[%d]], [%s]\n",  __FILE__, __LINE__, m_currentIndex, len, m_length, text);
@@ -60,6 +60,7 @@ ECode CParagraph::Append(
 
     memcpy(mText->GetPayload() + mIndex, (const char*)text, length);
     mIndex += length;
+	//printf("<%s, %s, %d, [Append]>, [text==[%s]], length = [%d]\n",  __FILE__, __FUNCTION__, __LINE__, mText->GetPayload(), length);
 
     return NOERROR;
 }

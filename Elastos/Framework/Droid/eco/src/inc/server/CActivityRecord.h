@@ -51,11 +51,11 @@ public:
         /* [in] */ ProcessRecord* caller,
         /* [in] */ Int32 launchedFromUid,
         /* [in] */ IIntent* intent,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ IActivityInfo* aInfo,
         /* [in] */ CConfiguration* configuration,
         /* [in] */ CActivityRecord* resultTo,
-        /* [in] */ String resultWho,
+        /* [in] */ const String& resultWho,
         /* [in] */ Int32 reqCode,
         /* [in] */ Boolean componentSpecified);
 
@@ -63,14 +63,14 @@ public:
 
     CARAPI_(void) AddResultLocked(
         /* [in] */ CActivityRecord* from,
-        /* [in] */ String resultWho,
+        /* [in] */ const String& resultWho,
         /* [in] */ Int32 requestCode,
         /* [in] */ Int32 resultCode,
         /* [in] */ IIntent* resultData);
 
     CARAPI_(void) RemoveResultsLocked(
         /* [in] */ CActivityRecord* from,
-        /* [in] */ String resultWho,
+        /* [in] */ const String& resultWho,
         /* [in] */ Int32 requestCode);
 
     CARAPI_(void) AddNewIntentLocked(

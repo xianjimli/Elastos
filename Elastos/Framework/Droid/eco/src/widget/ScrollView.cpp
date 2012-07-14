@@ -4,51 +4,35 @@
 #include "view/FocusFinder.h"
 #include "view/CViewGroupLayoutParams.h"
 #include "view/CViewGroupMarginLayoutParams.h"
+#include "view/animation/AnimationUtils.h"
 #include <elastos/Math.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
-#define UNUSED(x) ((void)x)
 
 const Int32 ScrollView::ANIMATED_SCROLL_GAP;
-
 const Float ScrollView::MAX_SCROLL_FACTOR;
-
 const Int32 ScrollView::INVALID_POINTER;
 
-ScrollView::ScrollView() :
-    mLastScroll(0),
-    mScrollViewMovedFocus(FALSE),
-    mIsLayoutDirty(TRUE),
-    mIsBeingDragged(FALSE),
-    mFillViewport(FALSE),
-    mSmoothScrollingEnabled(TRUE),
-    mTouchSlop(0),
-    mMinimumVelocity(0),
-    mMaximumVelocity(0),
-    mOverscrollDistance(0),
-    mOverflingDistance(0),
-    mActivePointerId(INVALID_POINTER)
+ScrollView::ScrollView()
+    : mLastScroll(0)
+    , mScroller(NULL)
+    , mEdgeGlowTop(NULL)
+    , mEdgeGlowBottom(NULL)
+    , mScrollViewMovedFocus(FALSE)
+    , mIsLayoutDirty(TRUE)
+    , mIsBeingDragged(FALSE)
+    , mFillViewport(FALSE)
+    , mSmoothScrollingEnabled(TRUE)
+    , mTouchSlop(0)
+    , mMinimumVelocity(0)
+    , mMaximumVelocity(0)
+    , mOverscrollDistance(0)
+    , mOverflingDistance(0)
+    , mActivePointerId(INVALID_POINTER)
 
 {
-    ASSERT_SUCCEEDED(CRect::New((IRect**)&mTempRect));
-}
-
-static Int32 R_Styleable_ScrollView[] = {
-    0x0101017a
-};
-
-ScrollView::ScrollView(
-    /* [in] */ IContext* context)
-{
-    ASSERT_SUCCEEDED(Init(context, NULL));
-}
-
-ScrollView::ScrollView(
-    /* [in] */ IContext* context,
-    /* [in] */ IAttributeSet* attrs)
-{
-    ASSERT_SUCCEEDED(Init(context, attrs, 0x01010080/*com.android.internal.R.attr.scrollViewStyle*/));
+    ASSERT_SUCCEEDED(CRect::NewByFriend((CRect**)&mTempRect));
 }
 
 ScrollView::ScrollView(
@@ -56,21 +40,32 @@ ScrollView::ScrollView(
     /* [in] */ IAttributeSet* attrs,
     /* [in] */ Int32 defStyle)
     : FrameLayout(context, attrs, defStyle)
+    , mLastScroll(0)
+    , mScroller(NULL)
+    , mEdgeGlowTop(NULL)
+    , mEdgeGlowBottom(NULL)
+    , mScrollViewMovedFocus(FALSE)
+    , mIsLayoutDirty(TRUE)
+    , mIsBeingDragged(FALSE)
+    , mFillViewport(FALSE)
+    , mSmoothScrollingEnabled(TRUE)
+    , mTouchSlop(0)
+    , mMinimumVelocity(0)
+    , mMaximumVelocity(0)
+    , mOverscrollDistance(0)
+    , mOverflingDistance(0)
+    , mActivePointerId(INVALID_POINTER)
 {
-    ASSERT_SUCCEEDED(Init(context, attrs, defStyle));
+    ASSERT_SUCCEEDED(CRect::NewByFriend((CRect**)&mTempRect));
+    InitScrollView();
+    ASSERT_SUCCEEDED(InitFromAttributes(context, attrs, defStyle));
 }
 
-ECode ScrollView::Init(
-    /* [in] */ IContext* context)
+ScrollView::~ScrollView()
 {
-    return Init(context, NULL);
-}
-
-ECode ScrollView::Init(
-    /* [in] */ IContext* context,
-    /* [in] */ IAttributeSet* attrs)
-{
-    return Init(context, attrs, 0x01010080/*com.android.internal.R.attr.scrollViewStyle*/);
+    if (mScroller != NULL) delete mScroller;
+    if (mEdgeGlowTop != NULL) delete mEdgeGlowTop;
+    if (mEdgeGlowBottom != NULL) delete mEdgeGlowBottom;
 }
 
 ECode ScrollView::Init(
@@ -79,15 +74,23 @@ ECode ScrollView::Init(
     /* [in] */ Int32 defStyle)
 {
     ASSERT_SUCCEEDED(FrameLayout::Init(context, attrs, defStyle));
-
     InitScrollView();
+    return InitFromAttributes(context, attrs, defStyle);
+}
 
-    assert(context != NULL);
+static Int32 R_Styleable_ScrollView[] = {
+    0x0101017a
+};
 
+ECode ScrollView::InitFromAttributes(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs,
+    /* [in] */ Int32 defStyle)
+{
     AutoPtr<ITypedArray> a;
 
     FAIL_RETURN(context->ObtainStyledAttributesEx3(attrs,
-            ArrayOf<Int32>(R_Styleable_ScrollView, 1)/*com.android.internal.R.styleable.ScrollView*/,
+            ArrayOf<Int32>(R_Styleable_ScrollView, sizeof(R_Styleable_ScrollView) / sizeof(Int32))/*com.android.internal.R.styleable.ScrollView*/,
             defStyle, 0,
             (ITypedArray**)&a));
 
@@ -108,7 +111,6 @@ Float ScrollView::GetTopFadingEdgeStrength()
     }
 
     Int32 length = GetVerticalFadingEdgeLength();
-
     if (mScrollY < length) {
         return mScrollY / (Float) length;
     }
@@ -128,18 +130,15 @@ Float ScrollView::GetBottomFadingEdgeStrength()
     GetChildAt(0)->GetBottom(&bottom);
     Int32 span = bottom - mScrollY - bottomEdge;
     if (span < length) {
-        return span / (Float) length;
+        return span / (Float)length;
     }
 
     return 1.0;
 }
 
-ECode ScrollView::GetMaxScrollAmount(
-    /* [out] */ Int32* maxAmount)
+Int32 ScrollView::GetMaxScrollAmount()
 {
-    *maxAmount = (Int32) (MAX_SCROLL_FACTOR * (mBottom - mTop));
-
-    return NOERROR;
+    return (Int32)(MAX_SCROLL_FACTOR * (mBottom - mTop));
 }
 
 void ScrollView::InitScrollView()
@@ -156,53 +155,61 @@ void ScrollView::InitScrollView()
     mOverflingDistance = configuration->GetScaledOverflingDistance();
 }
 
-//ECode ScrollView::AddView(
-//    /* [in] */ IView* child)
-//{
-//    if (GetChildCount() > 0) {
-//        //throw new IllegalStateException("ScrollView can host only one direct child");
-//        return E_ILLEGAL_STATE_EXCEPTION;
-//    }
-//
-//    return FrameLayout::AddView(child);
-//}
+ECode ScrollView::AddView(
+    /* [in] */ IView* child)
+{
+    if (GetChildCount() > 0) {
+//        throw new IllegalStateException("ScrollView can host only one direct child");
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
 
-//ECode ScrollView::AddView(
-//    /* [in] */ IView* child,
-//    /* [in] */ Int32 index)
-//{
-//    if (GetChildCount() > 0) {
-//        //throw new IllegalStateException("ScrollView can host only one direct child");
-//        return E_ILLEGAL_STATE_EXCEPTION;
-//    }
-//
-//    return FrameLayout::AddView(child, index);
-//}
+    return FrameLayout::AddView(child);
+}
 
-//ECode ScrollView::AddView(
-//    /* [in] */ IView* child,
-//    /* [in] */ IViewGroupLayoutParams* params)
-//{
-//    if (GetChildCount() > 0) {
-//        //throw new IllegalStateException("ScrollView can host only one direct child");
-//        return E_ILLEGAL_STATE_EXCEPTION;
-//    }
-//
-//    return FrameLayout::AddView(child, params);
-//}
+ECode ScrollView::AddView(
+    /* [in] */ IView* child,
+    /* [in] */ Int32 index)
+{
+    if (GetChildCount() > 0) {
+//        throw new IllegalStateException("ScrollView can host only one direct child");
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
 
-//ECode ScrollView::AddView(
-//    /* [in] */ IView* child,
-//    /* [in] */ Int32 index,
-//    /* [in] */ IViewGroupLayoutParams* params)
-//{
-//    if (GetChildCount() > 0) {
-//        //throw new IllegalStateException("ScrollView can host only one direct child");
-//        return E_ILLEGAL_STATE_EXCEPTION;
-//    }
-//
-//    return FrameLayout::AddView(child, index, params);
-//}
+    return FrameLayout::AddView(child, index);
+}
+
+ECode ScrollView::AddView(
+    /* [in] */ IView* child,
+    /* [in] */ Int32 width,
+    /* [in] */ Int32 height)
+{
+    return ViewGroup::AddView(child, width, height);
+}
+
+ECode ScrollView::AddView(
+    /* [in] */ IView* child,
+    /* [in] */ IViewGroupLayoutParams* params)
+{
+    if (GetChildCount() > 0) {
+//        throw new IllegalStateException("ScrollView can host only one direct child");
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+
+    return FrameLayout::AddView(child, params);
+}
+
+ECode ScrollView::AddView(
+    /* [in] */ IView* child,
+    /* [in] */ Int32 index,
+    /* [in] */ IViewGroupLayoutParams* params)
+{
+    if (GetChildCount() > 0) {
+//        throw new IllegalStateException("ScrollView can host only one direct child");
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+
+    return FrameLayout::AddView(child, index, params);
+}
 
 Boolean ScrollView::CanScroll()
 {
@@ -215,12 +222,9 @@ Boolean ScrollView::CanScroll()
     return FALSE;
 }
 
-ECode ScrollView::IsFillViewport(
-    /* [out] */ Boolean* isFilled)
+Boolean ScrollView::IsFillViewport()
 {
-    *isFilled = mFillViewport;
-
-    return NOERROR;
+    return mFillViewport;
 }
 
 ECode ScrollView::SetFillViewport(
@@ -234,12 +238,9 @@ ECode ScrollView::SetFillViewport(
     return NOERROR;
 }
 
-ECode ScrollView::IsSmoothScrollingEnabled(
-    /* [out] */ Boolean* enabled)
+Boolean ScrollView::IsSmoothScrollingEnabled()
 {
-    *enabled =  mSmoothScrollingEnabled;
-
-    return NOERROR;
+    return mSmoothScrollingEnabled;
 }
 
 ECode ScrollView::SetSmoothScrollingEnabled(
@@ -271,13 +272,12 @@ void ScrollView::OnMeasure(
         Int32 childHeight;
         child->GetMeasuredHeight(&childHeight);
         if (childHeight < height) {
-            AutoPtr<IViewGroupLayoutParams> params;
+            AutoPtr<IFrameLayoutLayoutParams> params;
             child->GetLayoutParams((IViewGroupLayoutParams**)&params);
-            IFrameLayoutLayoutParams* lp = (IFrameLayoutLayoutParams*)params.Get();
 
             Int32 childWidthMeasureSpec = GetChildMeasureSpec(widthMeasureSpec,
                     mPaddingLeft + mPaddingRight,
-                    ((CFrameLayoutLayoutParams*)lp)->mWidth);
+                    ((CFrameLayoutLayoutParams*)params.Get())->mWidth);
             height -= mPaddingTop;
             height -= mPaddingBottom;
             Int32 childHeightMeasureSpec =
@@ -286,22 +286,17 @@ void ScrollView::OnMeasure(
             child->Measure(childWidthMeasureSpec, childHeightMeasureSpec);
         }
     }
-
-    return;
 }
 
 Boolean ScrollView::DispatchKeyEvent(
     /* [in] */ IKeyEvent* event)
 {
     // Let the focused view and/or our descendants get the key first
-    Boolean handled;
-    ExecuteKeyEvent(event, &handled);
-    return FrameLayout::DispatchKeyEvent(event) || handled;
+    return FrameLayout::DispatchKeyEvent(event) || ExecuteKeyEvent(event);
 }
 
-ECode ScrollView::ExecuteKeyEvent(
-    /* [in] */ IKeyEvent* event,
-    /* [out] */ Boolean* handled)
+Boolean ScrollView::ExecuteKeyEvent(
+    /* [in] */ IKeyEvent* event)
 {
     mTempRect->SetEmpty();
 
@@ -310,18 +305,24 @@ ECode ScrollView::ExecuteKeyEvent(
         event->GetKeyCode(&keyCode);
         if (IsFocused() && keyCode != KeyEvent_KEYCODE_BACK) {
             AutoPtr<IView> currentFocused = FindFocus();
-            if ((ScrollView*)currentFocused.Get() == this) currentFocused = NULL;
+            if (currentFocused.Get() == (IView*)this->Probe(EIID_IView)) {
+                currentFocused = NULL;
+            }
             AutoPtr<IView> nextFocused = FocusFinder::GetInstance()->FindNextFocus(
-                    (IViewGroup*)this, currentFocused.Get(), View::FOCUS_DOWN);
-            Boolean isFocus;
-            nextFocused->RequestFocusEx(View::FOCUS_DOWN, &isFocus);
-            return nextFocused.Get() != NULL
-                    && (ScrollView*)nextFocused.Get() != this && isFocus;
+                    (IViewGroup*)this->Probe(EIID_IViewGroup),
+                    currentFocused, View::FOCUS_DOWN);
+
+            if (nextFocused != NULL && nextFocused.Get() != (IView*)this->Probe(EIID_IView)) {
+                Boolean isFocus;
+                nextFocused->RequestFocusEx(View::FOCUS_DOWN, &isFocus);
+                return isFocus;
+            }
+            else return FALSE;
         }
-        *handled = FALSE;
+        return FALSE;
     }
 
-    Boolean value = FALSE;
+    Boolean handled = FALSE;
     Int32 action;
     event->GetAction(&action);
     if (action == KeyEvent_ACTION_DOWN) {
@@ -332,32 +333,29 @@ ECode ScrollView::ExecuteKeyEvent(
             case KeyEvent_KEYCODE_DPAD_UP:
                 event->IsAltPressed(&isPressed);
                 if (!isPressed) {
-                    ArrowScroll(View::FOCUS_UP, &value);
+                    handled = ArrowScroll(View::FOCUS_UP);
                 }
                 else {
-                    FullScroll(View::FOCUS_UP, &value);
+                    handled = FullScroll(View::FOCUS_UP);
                 }
                 break;
             case KeyEvent_KEYCODE_DPAD_DOWN:
                 event->IsAltPressed(&isPressed);
                 if (!isPressed) {
-                    ArrowScroll(View::FOCUS_DOWN, &value);
+                    handled = ArrowScroll(View::FOCUS_DOWN);
                 }
                 else {
-                    FullScroll(View::FOCUS_DOWN, &value);
+                    handled = FullScroll(View::FOCUS_DOWN);
                 }
                 break;
             case KeyEvent_KEYCODE_SPACE:
                 event->IsShiftPressed(&isPressed);
-                Boolean consumed;
-                PageScroll(isPressed ? View::FOCUS_UP : View::FOCUS_DOWN, &consumed);
+                PageScroll(isPressed ? View::FOCUS_UP : View::FOCUS_DOWN);
                 break;
         }
     }
 
-    *handled = value;
-
-    return NOERROR;
+    return handled;
 }
 
 Boolean ScrollView::InChild(
@@ -488,10 +486,10 @@ Boolean ScrollView::OnTouchEvent(
         return FALSE;
     }
 
-//    if (mVelocityTracker == NULL) {
-//       mVelocityTracker = VelocityTracker.obtain();
-//    }
-//    mVelocityTracker.addMovement(ev);
+    if (mVelocityTracker == NULL) {
+        mVelocityTracker = VelocityTracker::Obtain();
+    }
+    mVelocityTracker->AddMovement(ev);
 
     switch (action & MotionEvent_ACTION_MASK) {
         case MotionEvent_ACTION_DOWN: {
@@ -520,7 +518,7 @@ Boolean ScrollView::OnTouchEvent(
                 ev->FindPointerIndex(mActivePointerId, &activePointerIndex);
                 Float y;
                 ev->GetYEx(activePointerIndex, &y);
-                Int32 deltaY = (Int32) (mLastMotionY - y);
+                Int32 deltaY = (Int32)(mLastMotionY - y);
                 mLastMotionY = y;
 
                 Int32 oldX = mScrollX;
@@ -529,7 +527,7 @@ Boolean ScrollView::OnTouchEvent(
                 if (OverScrollBy(0, deltaY, 0, mScrollY, 0, range,
                         0, mOverscrollDistance, TRUE)) {
                     // Break our velocity if we hit a scroll barrier.
-//                    mVelocityTracker->Clear();
+                    mVelocityTracker->Clear();
                 }
                 OnScrollChanged(mScrollX, mScrollY, oldX, oldY);
 
@@ -538,13 +536,13 @@ Boolean ScrollView::OnTouchEvent(
                         (overscrollMode == OVER_SCROLL_IF_CONTENT_SCROLLS && range > 0)) {
                     Int32 pulledToY = oldY + deltaY;
                     if (pulledToY < 0) {
-                        mEdgeGlowTop->OnPull((Float) deltaY / GetHeight());
+                        mEdgeGlowTop->OnPull((Float)deltaY / GetHeight());
                         if (!mEdgeGlowBottom->IsFinished()) {
                             mEdgeGlowBottom->OnRelease();
                         }
                     }
                     else if (pulledToY > range) {
-                        mEdgeGlowBottom->OnPull((Float) deltaY / GetHeight());
+                        mEdgeGlowBottom->OnPull((Float)deltaY / GetHeight());
                         if (!mEdgeGlowTop->IsFinished()) {
                             mEdgeGlowTop->OnRelease();
                         }
@@ -558,29 +556,28 @@ Boolean ScrollView::OnTouchEvent(
             break;
         case MotionEvent_ACTION_UP:
             if (mIsBeingDragged) {
-//                VelocityTracker velocityTracker = mVelocityTracker;
-//                velocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
-//                int initialVelocity = (int) velocityTracker.getYVelocity(mActivePointerId);
+                mVelocityTracker->ComputeCurrentVelocity(1000, mMaximumVelocity);
+                Int32 initialVelocity = (Int32)mVelocityTracker->GetYVelocity(mActivePointerId);
 
                 if (GetChildCount() > 0) {
-//                    if ((Math::Abs(initialVelocity) > mMinimumVelocity)) {
-//                        Fling(-initialVelocity);
-//                    }
-//                    else {
-                    Int32 bottom = GetScrollRange();
-                    if (mScroller->SpringBack(mScrollX, mScrollY, 0, 0, 0, bottom)) {
-                        Invalidate();
+                    if ((Math::Abs(initialVelocity) > mMinimumVelocity)) {
+                        Fling(-initialVelocity);
                     }
-//                    }
+                    else {
+                        Int32 bottom = GetScrollRange();
+                        if (mScroller->SpringBack(mScrollX, mScrollY, 0, 0, 0, bottom)) {
+                            Invalidate();
+                        }
+                    }
                 }
 
                 mActivePointerId = INVALID_POINTER;
                 mIsBeingDragged = FALSE;
 
-//                if (mVelocityTracker != NULL) {
-//                    mVelocityTracker.recycle();
-//                    mVelocityTracker = NULL;
-//                }
+                if (mVelocityTracker != NULL) {
+                    mVelocityTracker->Recycle();
+                    mVelocityTracker = NULL;
+                }
                 if (mEdgeGlowTop != NULL) {
                     mEdgeGlowTop->OnRelease();
                     mEdgeGlowBottom->OnRelease();
@@ -594,10 +591,10 @@ Boolean ScrollView::OnTouchEvent(
                 }
                 mActivePointerId = INVALID_POINTER;
                 mIsBeingDragged = FALSE;
-//                if (mVelocityTracker != NULL) {
-//                    mVelocityTracker.recycle();
-//                    mVelocityTracker = NULL;
-//                }
+                if (mVelocityTracker != NULL) {
+                    mVelocityTracker->Recycle();
+                    mVelocityTracker = NULL;
+                }
                 if (mEdgeGlowTop != NULL) {
                     mEdgeGlowTop->OnRelease();
                     mEdgeGlowBottom->OnRelease();
@@ -628,9 +625,9 @@ void ScrollView::OnSecondaryPointerUp(
         Int32 newPointerIndex = pointerIndex == 0 ? 1 : 0;
         ev->GetYEx(newPointerIndex, &mLastMotionY);
         ev->GetPointerId(newPointerIndex, &mActivePointerId);
-//        if (mVelocityTracker != NULL) {
-//            mVelocityTracker.clear();
-//        }
+        if (mVelocityTracker != NULL) {
+            mVelocityTracker->Clear();
+        }
     }
 }
 
@@ -660,12 +657,11 @@ Int32 ScrollView::GetScrollRange()
     Int32 scrollRange = 0;
     if (GetChildCount() > 0) {
         AutoPtr<IView> child = GetChildAt(0);
-        Int32 height;
-        child->GetHeight(&height);
+        Int32 childHeight;
+        child->GetHeight(&childHeight);
         scrollRange = Math::Max(0,
-                 height- (GetHeight() - mPaddingBottom - mPaddingTop));
+                 childHeight- (GetHeight() - mPaddingBottom - mPaddingTop));
     }
-
     return scrollRange;
 }
 
@@ -700,13 +696,14 @@ AutoPtr<IView> ScrollView::FindFocusableViewInMyBounds(
     Int32 topWithoutFadingEdge = top + fadingEdgeLength;
     Int32 bottomWithoutFadingEdge = top + GetHeight() - fadingEdgeLength;
 
-    Int32 preferredTop, preferredBottom;
-    preferredFocusable->GetTop(&preferredTop);
-    preferredFocusable->GetBottom(&preferredBottom);
-    if ((preferredFocusable != NULL)
-            && (preferredTop < bottomWithoutFadingEdge)
-            && (preferredBottom > topWithoutFadingEdge)) {
-        return preferredFocusable;
+    if (preferredFocusable != NULL) {
+        Int32 preferredTop, preferredBottom;
+        preferredFocusable->GetTop(&preferredTop);
+        preferredFocusable->GetBottom(&preferredBottom);
+        if ((preferredTop < bottomWithoutFadingEdge)
+                && (preferredBottom > topWithoutFadingEdge)) {
+            return preferredFocusable;
+        }
     }
 
     return FindFocusableViewInBounds(topFocus, topWithoutFadingEdge,
@@ -755,6 +752,7 @@ AutoPtr<IView> ScrollView::FindFocusableViewInBounds(
     while (isSucceeded) {
         AutoPtr<IView> view;
         objEmu->Current((IInterface**)&view);
+
         Int32 viewTop, viewBottom;
         view->GetTop(&viewTop);
         view->GetBottom(&viewBottom);
@@ -778,8 +776,7 @@ AutoPtr<IView> ScrollView::FindFocusableViewInBounds(
                 focusCandidate->GetTop(&t);
                 focusCandidate->GetBottom(&b);
                 Boolean viewIsCloserToBoundary =
-                        (topFocus && viewTop < t) ||
-                                (!topFocus && viewBottom > b);
+                        (topFocus && viewTop < t) || (!topFocus && viewBottom > b);
 
                 if (foundFullyContainedFocusable) {
                     if (viewIsFullyContained && viewIsCloserToBoundary) {
@@ -813,62 +810,56 @@ AutoPtr<IView> ScrollView::FindFocusableViewInBounds(
     return focusCandidate;
 }
 
-ECode ScrollView::PageScroll(
-    /* [in] */ Int32 direction,
-    /* [out] */ Boolean* consumed)
+Boolean ScrollView::PageScroll(
+    /* [in] */ Int32 direction)
 {
     Boolean down = direction == View::FOCUS_DOWN;
     Int32 height = GetHeight();
 
     if (down) {
-        ((CRect*)mTempRect.Get())->mTop = GetScrollY() + height;
+        mTempRect->mTop = GetScrollY() + height;
         Int32 count = GetChildCount();
         if (count > 0) {
             AutoPtr<IView> view = GetChildAt(count - 1);
             Int32 bottom;
             view->GetBottom(&bottom);
-            if (((CRect*)mTempRect.Get())->mTop + height > bottom) {
-                ((CRect*)mTempRect.Get())->mTop = bottom - height;
+            if (mTempRect->mTop + height > bottom) {
+                mTempRect->mTop = bottom - height;
             }
         }
     }
     else {
-        ((CRect*)mTempRect.Get())->mTop = GetScrollY() - height;
-        if (((CRect*)mTempRect.Get())->mTop < 0) {
-            ((CRect*)mTempRect.Get())->mTop = 0;
+        mTempRect->mTop = GetScrollY() - height;
+        if (mTempRect->mTop < 0) {
+            mTempRect->mTop = 0;
         }
     }
-    ((CRect*)mTempRect.Get())->mBottom = ((CRect*)mTempRect.Get())->mTop + height;
+    mTempRect->mBottom = mTempRect->mTop + height;
 
-    *consumed = ScrollAndFocus(direction,
-            ((CRect*)mTempRect.Get())->mTop, ((CRect*)mTempRect.Get())->mBottom);
-
-    return NOERROR;
+    return ScrollAndFocus(direction,
+            mTempRect->mTop, mTempRect->mBottom);
 }
 
-ECode ScrollView::FullScroll(
-    /* [in] */ Int32 direction,
-    /* [out] */ Boolean* consumed)
+Boolean ScrollView::FullScroll(
+    /* [in] */ Int32 direction)
 {
     Boolean down = direction == View::FOCUS_DOWN;
     Int32 height = GetHeight();
 
-    ((CRect*)mTempRect.Get())->mTop = 0;
-    ((CRect*)mTempRect.Get())->mBottom = height;
+    mTempRect->mTop = 0;
+    mTempRect->mBottom = height;
 
     if (down) {
         Int32 count = GetChildCount();
         if (count > 0) {
             AutoPtr<IView> view = GetChildAt(count - 1);
-            view->GetBottom(&((CRect*)mTempRect.Get())->mBottom);
-            ((CRect*)mTempRect.Get())->mTop = ((CRect*)mTempRect.Get())->mBottom - height;
+            view->GetBottom(&mTempRect->mBottom);
+            mTempRect->mTop = mTempRect->mBottom - height;
         }
     }
 
-    *consumed = ScrollAndFocus(direction,
-            ((CRect*)mTempRect.Get())->mTop, ((CRect*)mTempRect.Get())->mBottom);
-
-    return NOERROR;
+    return ScrollAndFocus(direction,
+            mTempRect->mTop, mTempRect->mBottom);
 }
 
 Boolean ScrollView::ScrollAndFocus(
@@ -884,8 +875,8 @@ Boolean ScrollView::ScrollAndFocus(
     Boolean up = direction == View::FOCUS_UP;
 
     AutoPtr<IView> newFocused = FindFocusableViewInBounds(up, top, bottom);
-    if (newFocused.Get() == NULL) {
-        newFocused = (IView*)this;
+    if (newFocused == NULL) {
+        newFocused = (IView*)this->Probe(EIID_IView);
     }
 
     if (top >= containerTop && bottom <= containerBottom) {
@@ -897,8 +888,8 @@ Boolean ScrollView::ScrollAndFocus(
     }
 
     Boolean result;
-    newFocused->RequestFocusEx(direction, &result);
-    if (newFocused != FindFocus() && result) {
+    if (newFocused != FindFocus() &&
+            (newFocused->RequestFocusEx(direction, &result), result)) {
         mScrollViewMovedFocus = TRUE;
         mScrollViewMovedFocus = FALSE;
     }
@@ -906,20 +897,20 @@ Boolean ScrollView::ScrollAndFocus(
     return handled;
 }
 
-ECode ScrollView::ArrowScroll(
-    /* [in] */ Int32 direction,
-    /* [out] */ Boolean* consumed)
+Boolean ScrollView::ArrowScroll(
+    /* [in] */ Int32 direction)
 {
     AutoPtr<IView> currentFocused = FindFocus();
-    if ((ScrollView*)currentFocused.Get() == this) currentFocused = NULL;
+    if (currentFocused.Get() == (IView*)this->Probe(EIID_IView)) {
+        currentFocused = NULL;
+    }
 
     AutoPtr<IView> nextFocused = FocusFinder::GetInstance()->FindNextFocus(
-                    (IViewGroup*)this, currentFocused.Get(), direction);
+            (IViewGroup*)this->Probe(EIID_IViewGroup), currentFocused, direction);
 
-    Int32 maxJump;
-    GetMaxScrollAmount(&maxJump);
+    Int32 maxJump = GetMaxScrollAmount();
 
-    if (nextFocused.Get() != NULL && IsWithinDeltaOfScreen(nextFocused, maxJump, GetHeight())) {
+    if (nextFocused != NULL && IsWithinDeltaOfScreen(nextFocused, maxJump, GetHeight())) {
         nextFocused->GetDrawingRect(mTempRect);
         OffsetDescendantRectToMyCoords(nextFocused, mTempRect);
         Int32 scrollDelta = ComputeScrollDeltaToGetChildRectOnScreen(mTempRect);
@@ -947,15 +938,13 @@ ECode ScrollView::ArrowScroll(
             }
         }
         if (scrollDelta == 0) {
-            *consumed = FALSE;
-            return NOERROR;
+            return FALSE;
         }
         DoScrollY(direction == View::FOCUS_DOWN ? scrollDelta : -scrollDelta);
     }
 
     Boolean isFocused;
-    currentFocused->IsFocused(&isFocused);
-    if (currentFocused != NULL && isFocused
+    if (currentFocused != NULL && (currentFocused->IsFocused(&isFocused), isFocused)
             && IsOffScreen(currentFocused)) {
         // previously focused item still has focus and is off screen, give
         // it up (take it back to ourselves)
@@ -967,10 +956,7 @@ ECode ScrollView::ArrowScroll(
         View::RequestFocus();
         SetDescendantFocusability(descendantFocusability);  // restore
     }
-
-    *consumed = TRUE;
-
-    return NOERROR;
+    return TRUE;
 }
 
 /**
@@ -995,8 +981,8 @@ Boolean ScrollView::IsWithinDeltaOfScreen(
     descendant->GetDrawingRect(mTempRect);
     OffsetDescendantRectToMyCoords(descendant, mTempRect);
 
-    return (((CRect*)mTempRect.Get())->mBottom + delta) >= GetScrollY()
-            && (((CRect*)mTempRect.Get())->mTop - delta) <= (GetScrollY() + height);
+    return (mTempRect->mBottom + delta) >= GetScrollY()
+            && (mTempRect->mTop - delta) <= (GetScrollY() + height);
 }
 
 /**
@@ -1025,24 +1011,25 @@ ECode ScrollView::SmoothScrollBy(
         // Nothing to do.
         return NOERROR;
     }
-//    Int64 duration = AnimationUtils.currentAnimationTimeMillis() - mLastScroll;
-//    if (duration > ANIMATED_SCROLL_GAP) {
-    Int32 height = GetHeight() - mPaddingBottom - mPaddingTop;
-    Int32 bottom;
-    GetChildAt(0)->GetHeight(&bottom);
-    Int32 maxY = Math::Max(0, bottom - height);
-    Int32 scrollY = mScrollY;
-    dy = Math::Max(0, Math::Min(scrollY + dy, maxY)) - scrollY;
+    Int64 duration = AnimationUtils::CurrentAnimationTimeMillis() - mLastScroll;
+    if (duration > ANIMATED_SCROLL_GAP) {
+        Int32 height = GetHeight() - mPaddingBottom - mPaddingTop;
+        Int32 bottom;
+        GetChildAt(0)->GetHeight(&bottom);
+        Int32 maxY = Math::Max(0, bottom - height);
+        Int32 scrollY = mScrollY;
+        dy = Math::Max(0, Math::Min(scrollY + dy, maxY)) - scrollY;
 
-    mScroller->StartScroll(mScrollX, scrollY, 0, dy);
-    Invalidate();
-//    } else {
-//    if (!mScroller->IsFinished()) {
-//        mScroller->AbortAnimation();
-//    }
-//    ScrollBy(dx, dy);
-//    }
-//    mLastScroll = AnimationUtils.currentAnimationTimeMillis();
+        mScroller->StartScroll(mScrollX, scrollY, 0, dy);
+        Invalidate();
+    }
+    else {
+        if (!mScroller->IsFinished()) {
+            mScroller->AbortAnimation();
+        }
+        ScrollBy(dx, dy);
+    }
+    mLastScroll = AnimationUtils::CurrentAnimationTimeMillis();
     return NOERROR;
 }
 
@@ -1091,8 +1078,10 @@ void ScrollView::MeasureChild(
     Int32 childWidthMeasureSpec;
     Int32 childHeightMeasureSpec;
 
-    childWidthMeasureSpec = GetChildMeasureSpec(parentWidthMeasureSpec, mPaddingLeft
-            + mPaddingRight, ((CViewGroupLayoutParams*)lp.Get())->mWidth);
+    Int32 width;
+    lp->GetWidth(&width);
+    childWidthMeasureSpec = GetChildMeasureSpec(parentWidthMeasureSpec,
+            mPaddingLeft + mPaddingRight, width);
 
     childHeightMeasureSpec = MeasureSpec::MakeMeasureSpec(0, MeasureSpec::UNSPECIFIED);
 
@@ -1106,19 +1095,15 @@ void ScrollView::MeasureChildWithMargins(
     /* [in] */ Int32 parentHeightMeasureSpec,
     /* [in] */ Int32 heightUsed)
 {
-    AutoPtr<IViewGroupLayoutParams> params;
+    AutoPtr<IViewGroupMarginLayoutParams> params;
     child->GetLayoutParams((IViewGroupLayoutParams**)&params);
-    IViewGroupMarginLayoutParams* lp = (IViewGroupMarginLayoutParams*)params.Get();
+    CViewGroupMarginLayoutParams* lp = (CViewGroupMarginLayoutParams*)params.Get();
 
     Int32 childWidthMeasureSpec = GetChildMeasureSpec(parentWidthMeasureSpec,
-            mPaddingLeft + mPaddingRight +
-            ((CViewGroupMarginLayoutParams*)lp)->mLeftMargin +
-            ((CViewGroupMarginLayoutParams*)lp)->mRightMargin + widthUsed,
-            ((CViewGroupMarginLayoutParams*)lp)->mWidth);
+            mPaddingLeft + mPaddingRight + lp->mLeftMargin + lp->mRightMargin
+            + widthUsed, lp->mWidth);
     Int32 childHeightMeasureSpec = MeasureSpec::MakeMeasureSpec(
-            ((CViewGroupMarginLayoutParams*)lp)->mTopMargin +
-            ((CViewGroupMarginLayoutParams*)lp)->mBottomMargin,
-            MeasureSpec::UNSPECIFIED);
+            lp->mTopMargin + lp->mBottomMargin, MeasureSpec::UNSPECIFIED);
 
     child->Measure(childWidthMeasureSpec, childHeightMeasureSpec);
 }
@@ -1157,10 +1142,10 @@ ECode ScrollView::ComputeScroll()
             if (overscrollMode == OVER_SCROLL_ALWAYS ||
                     (overscrollMode == OVER_SCROLL_IF_CONTENT_SCROLLS && range > 0)) {
                 if (y < 0 && oldY >= 0) {
-                    mEdgeGlowTop->OnAbsorb((Int32) mScroller->GetCurrVelocity());
+                    mEdgeGlowTop->OnAbsorb((Int32)mScroller->GetCurrVelocity());
                 }
                 else if (y > range && oldY <= range) {
-                    mEdgeGlowBottom->OnAbsorb((Int32) mScroller->GetCurrVelocity());
+                    mEdgeGlowBottom->OnAbsorb((Int32)mScroller->GetCurrVelocity());
                 }
             }
         }
@@ -1217,6 +1202,8 @@ Boolean ScrollView::ScrollToChildRect(
 Int32 ScrollView::ComputeScrollDeltaToGetChildRectOnScreen(
     /* [in] */ IRect* rect)
 {
+    CRect* _rect = (CRect*)rect;
+
     if (GetChildCount() == 0) return 0;
 
     Int32 height = GetHeight();
@@ -1226,33 +1213,31 @@ Int32 ScrollView::ComputeScrollDeltaToGetChildRectOnScreen(
     Int32 fadingEdge = GetVerticalFadingEdgeLength();
 
     // leave room for top fading edge as long as rect isn't at very top
-    if (((CRect*)rect)->mTop > 0) {
+    if (_rect->mTop > 0) {
         screenTop += fadingEdge;
     }
 
     // leave room for bottom fading edge as long as rect isn't at very bottom
     Int32 childHeight;
     GetChildAt(0)->GetHeight(&childHeight);
-    if (((CRect*)rect)->mBottom < childHeight) {
+    if (_rect->mBottom < childHeight) {
         screenBottom -= fadingEdge;
     }
 
     Int32 scrollYDelta = 0;
 
-    if (((CRect*)rect)->mBottom > screenBottom && ((CRect*)rect)->mTop > screenTop) {
+    if (_rect->mBottom > screenBottom && _rect->mTop > screenTop) {
         // need to move down to get it in view: move down just enough so
         // that the entire rectangle is in view (or at least the first
         // screen size chunk).
 
-        Int32 rectHeight;
-        rect->GetHeight(&rectHeight);
-        if (rectHeight > height) {
+        if (_rect->GetHeight() > height) {
             // just enough to get screen size chunk on
-            scrollYDelta += (((CRect*)rect)->mTop - screenTop);
+            scrollYDelta += (_rect->mTop - screenTop);
         }
         else {
             // get entire rect at bottom of screen
-            scrollYDelta += (((CRect*)rect)->mBottom - screenBottom);
+            scrollYDelta += (_rect->mBottom - screenBottom);
         }
 
         // make sure we aren't scrolling beyond the end of our content
@@ -1262,26 +1247,23 @@ Int32 ScrollView::ComputeScrollDeltaToGetChildRectOnScreen(
         scrollYDelta = Math::Min(scrollYDelta, distanceToBottom);
 
     }
-    else if (((CRect*)rect)->mTop < screenTop && ((CRect*)rect)->mBottom < screenBottom) {
+    else if (_rect->mTop < screenTop && _rect->mBottom < screenBottom) {
         // need to move up to get it in view: move up just enough so that
         // entire rectangle is in view (or at least the first screen
         // size chunk of it).
 
-        Int32 rectHeight;
-        rect->GetHeight(&rectHeight);
-        if (rectHeight > height) {
+        if (_rect->GetHeight() > height) {
             // screen size chunk
-            scrollYDelta -= (screenBottom - ((CRect*)rect)->mBottom);
+            scrollYDelta -= (screenBottom - _rect->mBottom);
         }
         else {
             // entire rect at top
-            scrollYDelta -= (screenTop - ((CRect*)rect)->mTop);
+            scrollYDelta -= (screenTop - _rect->mTop);
         }
 
         // make sure we aren't scrolling any further than the top our content
         scrollYDelta = Math::Max(scrollYDelta, -GetScrollY());
     }
-
     return scrollYDelta;
 }
 
@@ -1298,7 +1280,6 @@ ECode ScrollView::RequestChildFocus(
             mChildToScrollTo = focused;
         }
     }
-
     return FrameLayout::RequestChildFocus(child, focused);
 }
 
@@ -1323,9 +1304,10 @@ Boolean ScrollView::OnRequestFocusInDescendants(
     }
 
     AutoPtr<IView> nextFocus = previouslyFocusedRect == NULL ?
-            FocusFinder::GetInstance()->FindNextFocus((IViewGroup*)this, NULL, direction) :
-            FocusFinder::GetInstance()->FindNextFocusFromRect((IViewGroup*)this,
-                    previouslyFocusedRect, direction);
+            FocusFinder::GetInstance()->FindNextFocus(
+                (IViewGroup*)this->Probe(EIID_IViewGroup), NULL, direction) :
+            FocusFinder::GetInstance()->FindNextFocusFromRect(
+                (IViewGroup*)this->Probe(EIID_IViewGroup), previouslyFocusedRect, direction);
 
     if (nextFocus == NULL) {
         return FALSE;
@@ -1361,7 +1343,6 @@ Boolean ScrollView::RequestChildRectangleOnScreen(
 ECode ScrollView::RequestLayout()
 {
     mIsLayoutDirty = TRUE;
-
     return FrameLayout::RequestLayout();
 }
 
@@ -1375,7 +1356,8 @@ void ScrollView::OnLayout(
     FrameLayout::OnLayout(changed, left, top, right, bottom);
     mIsLayoutDirty = FALSE;
     // Give a child focus if it needs it
-    if (mChildToScrollTo != NULL && IsViewDescendantOf(mChildToScrollTo.Get(), (IView*)this)) {
+    if (mChildToScrollTo != NULL &&
+            IsViewDescendantOf(mChildToScrollTo, (IView*)this->Probe(EIID_IView))) {
         ScrollToChild(mChildToScrollTo);
     }
     mChildToScrollTo = NULL;
@@ -1393,8 +1375,9 @@ void ScrollView::OnSizeChanged(
     FrameLayout::OnSizeChanged(w, h, oldw, oldh);
 
     AutoPtr<IView> currentFocused = FindFocus();
-    if (NULL == currentFocused || this == (ScrollView*)currentFocused.Get())
+    if (NULL == currentFocused || (IView*)this->Probe(EIID_IView) == currentFocused.Get()) {
         return;
+    }
 
     // If the currently-focused view was visible on the screen when the
     // screen was at the old height, then scroll the screen to make that
@@ -1421,10 +1404,8 @@ Boolean ScrollView::IsViewDescendantOf(
     AutoPtr<IViewParent> theParent;
     child->GetParent((IViewParent**)&theParent);
 
-    return FALSE;
-
-//    return (theParent instanceof ViewGroup) &&
-//            IsViewDescendantOf((View) theParent, parent);
+    return (IViewGroup::Probe(theParent.Get()) != NULL) &&
+            IsViewDescendantOf(IView::Probe(theParent.Get()), parent);
 }
 
 ECode ScrollView::Fling(
@@ -1442,20 +1423,20 @@ ECode ScrollView::Fling(
 
         AutoPtr<IView> newFocused =
                 FindFocusableViewInMyBounds(movingDown, mScroller->GetFinalY(), FindFocus());
+
         if (newFocused == NULL) {
-            newFocused = (IView*)this;
+            newFocused = (IView*)this->Probe(EIID_IView);
         }
 
         Boolean result;
-        newFocused->RequestFocusEx(movingDown ? View::FOCUS_DOWN : View::FOCUS_UP, &result);
-        if (newFocused != FindFocus() && result) {
+        if (newFocused != FindFocus() &&
+                (newFocused->RequestFocusEx(movingDown ? View::FOCUS_DOWN : View::FOCUS_UP, &result), result)) {
             mScrollViewMovedFocus = TRUE;
             mScrollViewMovedFocus = FALSE;
         }
 
         Invalidate();
     }
-
     return NOERROR;
 }
 
@@ -1475,7 +1456,6 @@ ECode ScrollView::ScrollTo(
             FAIL_RETURN(FrameLayout::ScrollTo(x, y));
         }
     }
-
     return NOERROR;
 }
 
@@ -1489,7 +1469,7 @@ ECode ScrollView::SetOverScrollMode(
 
             AutoPtr<IDrawable> edge;
             //com.android.internal.R.drawable.overscroll_edge
-            res->GetDrawable(0x01080237, (IDrawable**)&edge);
+            res->GetDrawable(0x01080238, (IDrawable**)&edge);
             AutoPtr<IDrawable> glow;
             //com.android.internal.R.drawable.overscroll_glow
             res->GetDrawable(0x01080239, (IDrawable**)&glow);
@@ -1498,10 +1478,11 @@ ECode ScrollView::SetOverScrollMode(
         }
     }
     else {
+        if (mEdgeGlowTop != NULL) delete mEdgeGlowTop;
+        if (mEdgeGlowBottom != NULL) delete mEdgeGlowBottom;
         mEdgeGlowTop = NULL;
         mEdgeGlowBottom = NULL;
     }
-
     return FrameLayout::SetOverScrollMode(overScrollMode);
 }
 
@@ -1509,7 +1490,6 @@ ECode ScrollView::Draw(
     /* [in] */ ICanvas* canvas)
 {
     FAIL_RETURN(FrameLayout::Draw(canvas));
-
     if (mEdgeGlowTop != NULL) {
         Int32 scrollY = mScrollY;
         if (!mEdgeGlowTop->IsFinished()) {
@@ -1539,7 +1519,6 @@ ECode ScrollView::Draw(
             canvas->RestoreToCount(restoreCount);
         }
     }
-
     return NOERROR;
 }
 
@@ -1566,13 +1545,13 @@ Int32 ScrollView::Clamp(
          */
         return 0;
     }
-    if ((my+n) > child) {
+    if ((my + n) > child) {
         /* this case:
          *                    |------ me ------|
          *     |------ child ------|
          *     |-- mScrollX --|
          */
-        return child-my;
+        return child - my;
     }
     return n;
 }

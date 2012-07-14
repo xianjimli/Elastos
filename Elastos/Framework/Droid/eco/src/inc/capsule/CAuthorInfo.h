@@ -12,12 +12,12 @@ public:
     ~CAuthorInfo();
     
     CARAPI GetAuthorInfo(
-        /* [in] */ String attrName,
+        /* [in] */ const String& attrName,
         /* [out] */ String * pAttrValue);
 
     CARAPI SetAuthorInfo(
-        /* [in] */ String attrName,
-        /* [in] */ String attrValue);
+        /* [in] */ const String& attrName,
+        /* [in] */ const String& attrValue);
 
 private:
     String m_Name;

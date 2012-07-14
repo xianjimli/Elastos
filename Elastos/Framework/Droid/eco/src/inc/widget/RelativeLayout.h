@@ -5,9 +5,10 @@
 #include "view/ViewGroup.h"
 #include "widget/CRelativeLayoutLayoutParams.h"
 #include <elastos/AutoPtr.h>
-#include <elastos/Vector.h>
 #include <elastos/Set.h>
-#include <elastos/HashSet.h>
+#include <elastos/HashMap.h>
+#include <elastos/ElRefBase.h>
+#include <Elastos.Utility.h>
 
 using namespace Elastos;
 
@@ -17,8 +18,28 @@ private:
     /**
      * Compares two views in left-to-right and top-to-bottom fashion.
      */
-    class TopToBottomLeftToRightComparator
+    class TopToBottomLeftToRightComparator : public ElRefBase, public IComparator
     {
+    public:
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI Compare(
+            /* [in] */ IInterface* object1,
+            /* [in] */ IInterface* object2,
+            /* [out] */ Int32* result);
+
+        CARAPI Equals(
+            /* [in] */ IInterface* object,
+            /* [out] */ Boolean* isEqual);
     };
 
     class DependencyGraph
@@ -30,18 +51,35 @@ private:
          *
          * A node with no dependent is considered a root of the graph.
          */
-        class Node
+        class Node : public ElRefBase, public IPoolable
         {
         public:
-            CARAPI_(void) SetNextPoolable(
-                /* [in] */ Node* element);
+            Node();
 
-            CARAPI_(Node*) GetNextPoolable();
+            ~Node();
 
-            static CARAPI_(Node*) Acquire(
+            CARAPI_(PInterface) Probe(
+                /* [in]  */ REIID riid);
+
+            CARAPI_(UInt32) AddRef();
+
+            CARAPI_(UInt32) Release();
+
+            CARAPI GetInterfaceID(
+                /* [in] */ IInterface* pObject,
+                /* [out] */ InterfaceID* pIID);
+
+            CARAPI SetNextPoolable(
+                /* [in] */ IPoolable* element);
+
+            CARAPI GetNextPoolable(
+                /* [out] */ IPoolable** element);
+
+            static CARAPI_(AutoPtr<Node>) Acquire(
                 /* [in] */ IView* view);
 
-            CARAPI_(void) Release();
+            // Method name Release is conflic with IInterface->Release, rename Release to ReleaseNode
+            CARAPI_(void) ReleaseNode();
 
         public:
             /**
@@ -53,39 +91,56 @@ private:
              * The list of dependents for this node; a dependent is a node
              * that needs this node to be processed first.
              */
-            Set<Node*> mDependents;
+            Set< AutoPtr<Node> >* mDependents;
 
             /**
              * The list of dependencies for this node.
              */
-            List<Node*> mDependencies;
+            HashMap<Int32, AutoPtr<Node> >* mDependencies;
 
         /*
          * START POOL IMPLEMENTATION
          */
         private:
+            class NodePoolableManager : public ElRefBase, public IPoolableManager
+            {
+            public:
+                CARAPI_(PInterface) Probe(
+                    /* [in]  */ REIID riid);
+
+                CARAPI_(UInt32) AddRef();
+
+                CARAPI_(UInt32) Release();
+
+                CARAPI GetInterfaceID(
+                    /* [in] */ IInterface *pObject,
+                    /* [out] */ InterfaceID *pIID);
+
+                CARAPI NewInstance(
+                    /* [out] */ IPoolable** element);
+
+                CARAPI OnAcquired(
+                    /* [in] */ IPoolable* element);
+
+                CARAPI OnReleased(
+                    /* [in] */ IPoolable* element);
+            };
+
+        private:
             // The pool is static, so all nodes instances are shared across
             // activities, that's why we give it a rather high limit
             const static Int32 POOL_LIMIT = 100;
 
-//            static final Pool<Node> sPool = Pools.synchronizedPool(
-//                    Pools.finitePool(new PoolableManager<Node>() {
-//                        public Node newInstance() {
-//                            return new Node();
-//                        }
-//
-//                        public void onAcquired(Node element) {
-//                        }
-//
-//                        public void onReleased(Node element) {
-//                        }
-//                    }, POOL_LIMIT)
-//            );
+            static const AutoPtr<IPool> sPool;
 
-            Node* mNext;
+            AutoPtr<IPoolable> mNext;
         };
 
     public:
+        DependencyGraph();
+
+        ~DependencyGraph();
+
         /**
          * Clears the graph.
          */
@@ -109,8 +164,8 @@ private:
          *        be equal to getChildCount().
          * @param rules The list of rules to take into account.
          */
-        CARAPI_(void) GetSortedViews(
-            /* [in] */ Vector<AutoPtr<IView> >* sorted,
+        CARAPI GetSortedViews(
+            /* [in] */ ArrayOf< AutoPtr<IView> >* sorted,
             /* [in] */ ArrayOf<Int32>* rules);
 
         /**
@@ -137,7 +192,7 @@ private:
          *
          * @return A list of node, each being a root of the graph
          */
-        CARAPI_(List<Node*>&) FindRoots(
+        CARAPI_(List< AutoPtr<Node> >*) FindRoots(
             /* [in] */ ArrayOf<Int32>* rulesFilter);
 
         static CARAPI_(void) AppendViewId(
@@ -154,26 +209,27 @@ private:
             /* [in] */ Node* node,
             /* [in] */ StringBuffer& buffer);
 
-    public:
+    private:
+        friend class RelativeLayout;
+
+        /**
+         * List of all views in the graph.
+         */
+        List< AutoPtr<Node> >* mNodes;
+
         /**
          * List of nodes in the graph. Each node is identified by its
          * view id (see View#getId()).
          */
         //SparseArray<Node> mKeyNodes = new SparseArray<Node>();
-        List<Node*> mKeyNodes;
+        HashMap<Int32, AutoPtr<Node> >* mKeyNodes;
 
-
-    private:
-        /**
-         * List of all views in the graph.
-         */
-        List<Node*> mNodes;
 
         /**
          * Temporary data structure used to build the list of roots
          * for this graph.
          */
-        List<Node*> mRoots;
+        List< AutoPtr<Node> >* mRoots;
     };
 
 public:
@@ -190,6 +246,8 @@ public:
         /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs,
         /* [in] */ Int32 defStyle);
+
+    ~RelativeLayout();
 
     CARAPI Init(
         /* [in] */ IContext* context);
@@ -224,7 +282,7 @@ public:
         /* [in] */ IAttributeSet* attrs);
 
     CARAPI_(AutoPtr<IViewGroupLayoutParams>) GenerateLayoutParams(
-        /* [in] */ IRelativeLayoutLayoutParams* p);
+        /* [in] */ IViewGroupLayoutParams* p);
 
     CARAPI_(Boolean) DispatchPopulateAccessibilityEvent(
         /* [in] */ IAccessibilityEvent* event);
@@ -249,18 +307,18 @@ protected:
      * a height of {@link android.view.ViewGroup.LayoutParams#WRAP_CONTENT} and no spanning.
      */
     CARAPI GenerateDefaultLayoutParams(
-        /* [out] */ IRelativeLayoutLayoutParams** lp);
+        /* [out] */ IViewGroupLayoutParams** lp);
 
     // Override to allow type-checking of LayoutParams.
     CARAPI_(Boolean) CheckLayoutParams(
-        /* [in] */ IRelativeLayoutLayoutParams* p);
+        /* [in] */ IViewGroupLayoutParams* p);
 
 private:
     CARAPI_(void) SortChildren();
 
     CARAPI_(void) AlignBaseline(
         /* [in] */ IView* child,
-        /* [in] */ IRelativeLayoutLayoutParams* params);
+        /* [in] */ CRelativeLayoutLayoutParams* params);
 
     /**
      * Measure a child. The child should have left, top, right and bottom information
@@ -274,13 +332,13 @@ private:
      */
     CARAPI_(void) MeasureChild(
         /* [in] */ IView* child,
-        /* [in] */ IRelativeLayoutLayoutParams* params,
+        /* [in] */ CRelativeLayoutLayoutParams* params,
         /* [in] */ Int32 myWidth,
         /* [in] */ Int32 myHeight);
 
     CARAPI_(void) MeasureChildHorizontal(
         /* [in] */ IView* child,
-        /* [in] */ IRelativeLayoutLayoutParams* params,
+        /* [in] */ CRelativeLayoutLayoutParams* params,
         /* [in] */ Int32 myWidth,
         /* [in] */ Int32 myHeight);
 
@@ -312,29 +370,29 @@ private:
 
     CARAPI_(Boolean) PositionChildHorizontal(
         /* [in] */ IView* child,
-        /* [in] */ IRelativeLayoutLayoutParams* params,
+        /* [in] */ CRelativeLayoutLayoutParams* params,
         /* [in] */ Int32 myWidth,
         /* [in] */ Boolean wrapContent);
 
     CARAPI_(Boolean) PositionChildVertical(
         /* [in] */ IView* child,
-        /* [in] */ IRelativeLayoutLayoutParams* params,
+        /* [in] */ CRelativeLayoutLayoutParams* params,
         /* [in] */ Int32 myHeight,
         /* [in] */ Boolean wrapContent);
 
     CARAPI_(void) ApplyHorizontalSizeRules(
-        /* [in] */ IRelativeLayoutLayoutParams* childParams,
+        /* [in] */ CRelativeLayoutLayoutParams* childParams,
         /* [in] */ Int32 myWidth);
 
     CARAPI_(void) ApplyVerticalSizeRules(
-        /* [in] */ IRelativeLayoutLayoutParams* childParams,
+        /* [in] */ CRelativeLayoutLayoutParams* childParams,
         /* [in] */ Int32 myHeight);
 
     CARAPI_(AutoPtr<IView>) GetRelatedView(
         /* [in] */ ArrayOf<Int32>* rules,
         /* [in] */ Int32 relation);
 
-    CARAPI_(AutoPtr<IRelativeLayoutLayoutParams>) GetRelatedViewParams(
+    CARAPI_(AutoPtr<CRelativeLayoutLayoutParams>) GetRelatedViewParams(
         /* [in] */ ArrayOf<Int32>* rules,
         /* [in] */ Int32 relation);
 
@@ -344,12 +402,12 @@ private:
 
     CARAPI_(void) CenterHorizontal(
         /* [in] */ IView* child,
-        /* [in] */ IRelativeLayoutLayoutParams* params,
+        /* [in] */ CRelativeLayoutLayoutParams* params,
         /* [in] */ Int32 myWidth);
 
     CARAPI_(void) CenterVertical(
         /* [in] */ IView* child,
-        /* [in] */ IRelativeLayoutLayoutParams* params,
+        /* [in] */ CRelativeLayoutLayoutParams* params,
         /* [in] */ Int32 myHeight);
 
     CARAPI InitFromAttributes(
@@ -357,16 +415,22 @@ private:
         /* [in] */ IAttributeSet* attrs);
 
 private:
+    friend class RelativeLayoutLayoutParams;
+
+    static const Int32 VERB_COUNT = 16;
+
     AutoPtr<IView> mBaselineView;
     Boolean mHasBaselineAlignedChild;
     Int32 mGravity;
     AutoPtr<IRect> mContentBounds;
     AutoPtr<IRect> mSelfBounds;
     Int32 mIgnoreGravity;
-    Set<AutoPtr<IView> >* mTopToBottomLeftToRightSet;
+    //todo:
+    //private SortedSet<View> mTopToBottomLeftToRightSet = null;
+    Set< AutoPtr<IView> >* mTopToBottomLeftToRightSet;
     Boolean mDirtyHierarchy;
-    Vector<AutoPtr<IView> >* mSortedHorizontalChildren;
-    Vector<AutoPtr<IView> >* mSortedVerticalChildren;
+    ArrayOf< AutoPtr<IView> >* mSortedHorizontalChildren;
+    ArrayOf< AutoPtr<IView> >* mSortedVerticalChildren;
     DependencyGraph* mGraph;
 };
 

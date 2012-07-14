@@ -6,7 +6,7 @@
 
 #include <stdio.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
 #define LAYOUT_INFLATOR_CATCH_EXCEPTION1(expr) \
@@ -89,17 +89,17 @@ using namespace Elastos::Utility::Logging;
         } \
     } while(0);
 
-const String LayoutInflater::TAG  = "LayoutInflater";
-const String LayoutInflater::TAG_MERGE = "merge";
-const String LayoutInflater::TAG_INCLUDE = "include";
-const String LayoutInflater::TAG_REQUEST_FOCUS = "requestFocus";
+const char* LayoutInflater::TAG  = "LayoutInflater";
+const char* LayoutInflater::TAG_MERGE = "merge";
+const char* LayoutInflater::TAG_INCLUDE = "include";
+const char* LayoutInflater::TAG_REQUEST_FOCUS = "requestFocus";
 
 /*
  * to be careful: the value of mConstructorSignature should be
  * be consistent with constructor methods of all widgets declared
  * in *.car.
  */
-String LayoutInflater::mConstructorSignature = "CtxAttrs";
+CString LayoutInflater::mConstructorSignature = "CtxAttrs";
 
 HashMap<String, AutoPtr<IConstructorInfo> >* LayoutInflater::sConstructorMap = \
     new HashMap<String, AutoPtr<IConstructorInfo> >(30);
@@ -118,7 +118,7 @@ ECode LayoutInflater::From(
     if (inflater == NULL) return E_INVALID_ARGUMENT;
 
     ECode ec = context->GetSystemService(
-            Context_LAYOUT_INFLATER_SERVICE, (IInterface**)inflater);
+            String(Context_LAYOUT_INFLATER_SERVICE), (IInterface**)inflater);
     if (FAILED(ec) || (*inflater == NULL)) {
         Slogger::W(TAG, "LayoutInflater not found.");
         return E_ASSERTION_ERROR;
@@ -205,12 +205,12 @@ ECode LayoutInflater::InflateEx3(
     // Look for the root node.
     Int32 type;
     LAYOUT_INFLATOR_CATCH_EXCEPTION2(parser->Next(&type));
-    while (type != XmlPullParser_START_TAG &&
-            type != XmlPullParser_END_DOCUMENT) {
+    while (type != IXmlPullParser_START_TAG &&
+            type != IXmlPullParser_END_DOCUMENT) {
         LAYOUT_INFLATOR_CATCH_EXCEPTION2(parser->Next(&type));
     }
 
-    if (type != XmlPullParser_START_TAG) {
+    if (type != IXmlPullParser_START_TAG) {
 //        throw new InflateException(parser.getPositionDescription()
 //                + ": No start tag found!");
         mConstructorArgs[0] = lastContext;
@@ -228,7 +228,7 @@ ECode LayoutInflater::InflateEx3(
 //        System.out.println("**************************");
     }
 
-    if (!TAG_MERGE.Compare(name)) {
+    if (name.Equals(TAG_MERGE)) {
         if (root == NULL || !attachToRoot) {
 //            throw new InflateException("<merge /> can be used only with a valid "
 //                    + "ViewGroup root and attachToRoot=true");
@@ -309,8 +309,8 @@ ECode LayoutInflater::InflateEx3(
 }
 
 ECode LayoutInflater::CreateView(
-    /* [in] */ String name,
-    /* [in] */ String prefix,
+    /* [in] */ const String& name,
+    /* [in] */ const String& prefix,
     /* [in] */ IAttributeSet* attrs,
     /* [out] */ IView** view)
 {
@@ -326,9 +326,7 @@ ECode LayoutInflater::CreateView(
         AutoPtr<IClassLoader> cl;
         LAYOUT_INFLATOR_CATCH_EXCEPTION1(mContext->GetClassLoader((IClassLoader**)&cl));
         if (!prefix.IsNull()) {
-            StringBuffer sb(prefix);
-            sb += name;
-            LAYOUT_INFLATOR_CATCH_EXCEPTION1(cl->LoadClass(sb, (Handle32*)&clazz));
+            LAYOUT_INFLATOR_CATCH_EXCEPTION1(cl->LoadClass(prefix + name, (Handle32*)&clazz));
         }
         else {
             LAYOUT_INFLATOR_CATCH_EXCEPTION1(cl->LoadClass(name, (Handle32*)&clazz));
@@ -343,7 +341,7 @@ ECode LayoutInflater::CreateView(
         }
         LAYOUT_INFLATOR_CATCH_EXCEPTION1(clazz->GetConstructorInfoByParamNames(
                 mConstructorSignature, (IConstructorInfo**)&constructor));
-        (*sConstructorMap)[String::Duplicate(name)] = constructor;
+        (*sConstructorMap)[name] = constructor;
     }
     else {
         constructor = it->mSecond;
@@ -357,9 +355,7 @@ ECode LayoutInflater::CreateView(
                 AutoPtr<IClassLoader> cl;
                 LAYOUT_INFLATOR_CATCH_EXCEPTION1(mContext->GetClassLoader((IClassLoader**)&cl));
                 if (!prefix.IsNull()) {
-                    StringBuffer sb(prefix);
-                    sb += name;
-                    LAYOUT_INFLATOR_CATCH_EXCEPTION1(cl->LoadClass(sb, (Handle32*)&clazz));
+                    LAYOUT_INFLATOR_CATCH_EXCEPTION1(cl->LoadClass(prefix + name, (Handle32*)&clazz));
                 }
                 else {
                     LAYOUT_INFLATOR_CATCH_EXCEPTION1(cl->LoadClass(name, (Handle32*)&clazz));
@@ -368,7 +364,7 @@ ECode LayoutInflater::CreateView(
                 Boolean allowed;
                 mFilter->OnLoadClass((Handle32)clazz.Get(), &allowed);
                 allowed = allowed && (clazz != NULL);
-                (*mFilterMap)[String::Duplicate(name)] = allowed;
+                (*mFilterMap)[name] = allowed;
                 if (!allowed) {
                     LAYOUT_INFLATOR_CATCH_EXCEPTION1(FailNotAllowed(name, prefix, attrs));
                 }
@@ -415,8 +411,8 @@ ECode LayoutInflater::CreateView(
 }
 
 ECode LayoutInflater::FailNotAllowed(
-    /* [in] */ String name,
-    /* [in] */ String prefix,
+    /* [in] */ const String& name,
+    /* [in] */ const String& prefix,
     /* [in] */ IAttributeSet* attrs)
 {
 //    InflateException ie = new InflateException(attrs.getPositionDescription()
@@ -427,15 +423,15 @@ ECode LayoutInflater::FailNotAllowed(
 }
 
 ECode LayoutInflater::OnCreateView(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in] */ IAttributeSet* attrs,
     /* [out] */ IView** view)
 {
-    return CreateView(name, "elastos.view.", attrs, view);
+    return CreateView(name, String("elastos.view."), attrs, view);
 }
 
 ECode LayoutInflater::CreateViewFromTag(
-    /* [in] */ String _name,
+    /* [in] */ const String& _name,
     /* [in] */ IAttributeSet* attrs,
     /* [out] */ IView** view)
 {
@@ -445,7 +441,7 @@ ECode LayoutInflater::CreateViewFromTag(
         attrs->GetAttributeValueEx(NULL, "class", &name);
     }
     else {
-        name = String::Duplicate(_name);
+        name = _name;
     }
 
     if (DEBUG) {
@@ -462,7 +458,7 @@ ECode LayoutInflater::CreateViewFromTag(
         if (-1 == name.IndexOf('.')) {
             LAYOUT_INFLATOR_CATCH_EXCEPTION3(OnCreateView(name, attrs, view));
         } else {
-            LAYOUT_INFLATOR_CATCH_EXCEPTION3(CreateView(name, NULL, attrs, view));
+            LAYOUT_INFLATOR_CATCH_EXCEPTION3(CreateView(name, String(NULL), attrs, view));
         }
     }
 
@@ -470,7 +466,6 @@ ECode LayoutInflater::CreateViewFromTag(
 //        System.out.println("Created view is: " + view);
     }
 
-    String::Free(name);
     return NOERROR;
 
 //    } catch (InflateException e) {
@@ -502,16 +497,15 @@ ECode LayoutInflater::RInflate(
     FAIL_RETURN(parser->GetDepth(&orgDepth));
     FAIL_RETURN(parser->Next(&type));
     FAIL_RETURN(parser->GetDepth(&depth));
-    while ((type != XmlPullParser_END_TAG ||
-            depth > orgDepth) && type != XmlPullParser_END_DOCUMENT) {
+    while ((type != IXmlPullParser_END_TAG ||
+            depth > orgDepth) && type != IXmlPullParser_END_DOCUMENT) {
 
-        if (type != XmlPullParser_START_TAG) {
+        if (type != IXmlPullParser_START_TAG) {
             FAIL_RETURN(parser->Next(&type));
             FAIL_RETURN(parser->GetDepth(&depth));
             continue;
         }
 
-        String::Free(name);
         FAIL_RETURN(parser->GetName(&name));
 
         if (String(TAG_REQUEST_FOCUS).Equals(name)) {
@@ -560,8 +554,8 @@ ECode LayoutInflater::ParseRequestFocus(
     FAIL_RETURN(parser->GetDepth(&currentDepth));
     FAIL_RETURN(parser->Next(&type));
     FAIL_RETURN(parser->GetDepth(&depth));
-    while ((type != XmlPullParser_END_TAG ||
-            depth > currentDepth) && type != XmlPullParser_END_DOCUMENT) {
+    while ((type != IXmlPullParser_END_TAG ||
+            depth > currentDepth) && type != IXmlPullParser_END_DOCUMENT) {
         // Empty
         FAIL_RETURN(parser->Next(&type));
         FAIL_RETURN(parser->GetDepth(&depth));
@@ -579,7 +573,7 @@ ECode LayoutInflater::ParseInclude(
     AutoPtr<IViewGroup> group = (IViewGroup*)parent->Probe(EIID_IViewGroup);
     if (group != NULL) {
         Int32 layout;
-        attrs->GetAttributeResourceValue(NULL, "layout", 0, &layout);
+        attrs->GetAttributeResourceValue(String(NULL), String("layout"), 0, &layout);
         if (layout == 0) {
             String value;
             attrs->GetAttributeValueEx(NULL, "layout", &value);
@@ -590,7 +584,6 @@ ECode LayoutInflater::ParseInclude(
             } else {
 //                throw new InflateException("You must specifiy a valid layout "
 //                        + "reference. The layout ID " + value + " is not valid.");
-                String::Free(value);
                 return E_INFLATE_EXCEPTION;
             }
         } else {
@@ -604,12 +597,12 @@ ECode LayoutInflater::ParseInclude(
             AutoPtr<IAttributeSet> childAttrs = Xml::AsAttributeSet(childParser);
 
             FAIL_RETURN_WITH_CLOSE(childParser->Next(&type));
-            while (type != XmlPullParser_START_TAG && type != XmlPullParser_END_DOCUMENT) {
+            while (type != IXmlPullParser_START_TAG && type != IXmlPullParser_END_DOCUMENT) {
                 // Empty.
                 FAIL_RETURN_WITH_CLOSE(childParser->Next(&type));
             }
 
-            if (type != XmlPullParser_START_TAG) {
+            if (type != IXmlPullParser_START_TAG) {
 //                throw new InflateException(childParser.getPositionDescription() +
 //                        ": No start tag found!");
                 childParser->Close();
@@ -696,9 +689,9 @@ ECode LayoutInflater::ParseInclude(
     FAIL_RETURN(parser->GetDepth(&currentDepth));
     FAIL_RETURN(parser->Next(&type));
     FAIL_RETURN(parser->GetDepth(&depth));
-    while ((type != XmlPullParser_END_TAG ||
+    while ((type != IXmlPullParser_END_TAG ||
             depth > currentDepth) &&
-            type != XmlPullParser_END_DOCUMENT) {
+            type != IXmlPullParser_END_DOCUMENT) {
         // Empty
         FAIL_RETURN(parser->Next(&type));
         FAIL_RETURN(parser->GetDepth(&depth));

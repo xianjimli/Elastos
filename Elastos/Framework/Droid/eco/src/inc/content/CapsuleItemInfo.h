@@ -88,7 +88,7 @@ public:
      */
     virtual CARAPI LoadXmlMetaData(
         /* [in] */ ICapsuleManager* pm,
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ IXmlResourceParser** resource);
 
     CARAPI ReadFromParcel(

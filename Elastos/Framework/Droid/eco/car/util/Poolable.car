@@ -1,0 +1,11 @@
+
+module
+{
+    interface IPoolable {
+        SetNextPoolable(
+            [in] IPoolable* element);
+
+        GetNextPoolable(
+            [out] IPoolable** element);
+    }
+}

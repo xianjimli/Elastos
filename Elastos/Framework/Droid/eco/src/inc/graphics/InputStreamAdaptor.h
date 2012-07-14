@@ -9,7 +9,7 @@ using namespace Elastos;
 
 ELAPI_(SkStream*) CreateInputStreamAdaptor(
     /* [in] */ IInputStream* stream,
-    /* [in] */ BufferOf<Byte>* storage,
+    /* [in] */ ArrayOf<Byte>* storage,
     /* [in] */ Int32 markSize);
 
 #endif // __HH_INPUTSTREAMADAPTOR_H

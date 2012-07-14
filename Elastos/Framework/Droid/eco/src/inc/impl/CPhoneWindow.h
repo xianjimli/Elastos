@@ -24,7 +24,9 @@ private:
         public IViewParent,
         public IViewManager,
         public RootViewSurfaceTaker,
-        public IKeyEventCallback
+        public IDrawableCallback,
+        public IKeyEventCallback,
+        public IAccessibilityEventSource
     {
     public:
         DecorView(
@@ -63,7 +65,11 @@ private:
         // =========================================================
         IVIEWMANAGER_METHODS_DECL();
 
+        IDrawableCallback_METHODS_DECL();
+
         IKeyEventCallback_METHODS_DECL();
+
+        IAccessibilityEventSource_METHODS_DECL();
 
         CARAPI SetForegroundGravity(
             /* [in] */ Int32 foregroundGravity);
@@ -193,7 +199,7 @@ public:
     CARAPI SetWindowManager(
         /* [in] */ IWindowManager* wm,
         /* [in] */ IBinder* appToken,
-        /* [in] */ String appName);
+        /* [in] */ const String& appName);
 
     CARAPI GetWindowManager(
         /* [out] */ IWindowManager** wm);
@@ -432,7 +438,7 @@ private:
     CARAPI_(void) InstallDecor();
 
 private:
-    static const String TAG;
+    static const char* TAG;
 
     static const Boolean SWEEP_OPEN_MENU = FALSE;
 

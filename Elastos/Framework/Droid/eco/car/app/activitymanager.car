@@ -260,5 +260,11 @@ module
         KillApplicationWithUid(
             [in] String capName,
             [in] Int32 uid);
+
+        CrashApplication(
+            [in] Int32 uid,
+            [in] Int32 initialPid,
+            [in] String capsuleName,
+            [in] CString message);
     }
 }

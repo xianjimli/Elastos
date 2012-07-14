@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
     char path[260];
     sprintf(path, "/data/data/com.elastos.runtime/elastos/%s", moduleName);
     ECode ec = _CReflector_AcquireModuleInfo(
-            String(path), (IModuleInfo**)&moduleInfo);
+            path, (IModuleInfo**)&moduleInfo);
     if (FAILED(ec)) {
         printf("Acquire \"%s\" module info failed!\n", moduleName);
         return 1;
@@ -47,14 +47,14 @@ int main(int argc, char* argv[])
     }
 
     ec = enumInfo->GetItemInfo("ApartmentAttr_Current",
-                               (IEnumItemInfo**)&emumItemInfo);
+            (IEnumItemInfo**)&emumItemInfo);
     if (FAILED(ec)) {
         printf("Acquire enum item\"ApartmentAttr_Current\" failed!\n");
         return 1;
     }
 
     ec = moduleInfo->GetClassInfo(
-            String(klassName), (IClassInfo**)&classInfo);
+            klassName, (IClassInfo**)&classInfo);
     if (FAILED(ec)) {
         printf("Acquire \"%s\" class info failed!\n", klassName);
         return 1;
@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
     }
 
     ec = classInfo->GetMethodInfo(
-            String("Startup"), (IMethodInfo**)&methodInfo);
+            "Startup", (IMethodInfo**)&methodInfo);
     if (FAILED(ec)) {
         printf("Acquire \"Startup\" method info failed!\n");
         return 1;

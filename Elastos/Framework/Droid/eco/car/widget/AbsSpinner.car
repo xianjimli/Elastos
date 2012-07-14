@@ -1,0 +1,21 @@
+
+module
+{
+    interface IAbsSpinnerSavedState extends IViewBaseSavedState {
+    }
+
+    interface IAbsSpinner extends IAdapterView {
+         SetSelectionEx(
+             [in] Int32 position,
+             [in] Boolean animate);
+
+         PointToPosition(
+             [in] Int32 x,
+             [in] Int32 y,
+             [out] Int32* pos);
+
+         LayoutEx(
+            [in] Int32 delta,
+            [in] Boolean animate);
+    }
+}

@@ -17,7 +17,7 @@ public:
         /* [in] */ IParcel* dest);
 
     CARAPI constructor(
-        /* [in] */ String capName);
+        /* [in] */ const String& capName);
 
     CARAPI constructor(
         /* [in] */ IParcel* source);

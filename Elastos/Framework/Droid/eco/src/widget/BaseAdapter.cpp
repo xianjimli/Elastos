@@ -1,6 +1,11 @@
 
 #include "widget/BaseAdapter.h"
 
+BaseAdapter::BaseAdapter()
+{
+    mDataSetObservable = new DataSetObservable();
+}
+
 Boolean BaseAdapter::HasStableIds()
 {
     return FALSE;

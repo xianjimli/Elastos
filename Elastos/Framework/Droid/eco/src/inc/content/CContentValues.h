@@ -8,11 +8,11 @@ CarClass(CContentValues)
 {
 public:
     CARAPI PutInt32(
-        /* [in] */ String key,
+        /* [in] */ const String& key,
         /* [in] */ Int32 value);
         
     CARAPI GetInt32(
-        /* [in] */ String key,
+        /* [in] */ const String& key,
         /* [out] */ Int32* value);
     
     CARAPI constructor();

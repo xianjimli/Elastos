@@ -17,91 +17,91 @@ public:
     ~CBundle();
 
     CARAPI PutBoolean(
-        /* [in] */ String key,
+        /* [in] */ const String& key,
         /* [in] */ Boolean value);
 
     CARAPI GetBoolean(
-        /* [in] */ String key,
+        /* [in] */ const String& key,
         /* [out] */ Boolean * pValue);
 
     CARAPI PutByte(
-        /* [in] */ String key,
+        /* [in] */ const String& key,
         /* [in] */ Byte value);
 
     CARAPI GetByte(
-        /* [in] */ String key,
+        /* [in] */ const String& key,
         /* [out] */ Byte * pValue);
 
     CARAPI PutChar(
-        /* [in] */ String key,
+        /* [in] */ const String& key,
         /* [in] */ Char16 value);
 
     CARAPI GetChar(
-        /* [in] */ String key,
+        /* [in] */ const String& key,
         /* [out] */ Char16 * pValue);
 
     CARAPI PutInt16(
-        /* [in] */ String key,
+        /* [in] */ const String& key,
         /* [in] */ Int16 value);
 
     CARAPI GetInt16(
-        /* [in] */ String key,
+        /* [in] */ const String& key,
         /* [out] */ Int16 * pValue);
 
     CARAPI PutInt32(
-        /* [in] */ String key,
+        /* [in] */ const String& key,
         /* [in] */ Int32 value);
 
     CARAPI GetInt32(
-        /* [in] */ String key,
+        /* [in] */ const String& key,
         /* [out] */ Int32 * pValue);
 
     CARAPI PutInt64(
-        /* [in] */ String key,
+        /* [in] */ const String& key,
         /* [in] */ Int64 value);
 
     CARAPI GetInt64(
-        /* [in] */ String key,
+        /* [in] */ const String& key,
         /* [out] */ Int64 * pValue);
 
     CARAPI PutFloat(
-        /* [in] */ String key,
+        /* [in] */ const String& key,
         /* [in] */ Float value);
 
     CARAPI GetFloat(
-        /* [in] */ String key,
+        /* [in] */ const String& key,
         /* [out] */ Float * pValue);
 
     CARAPI PutDouble(
-        /* [in] */ String key,
+        /* [in] */ const String& key,
         /* [in] */ Double value);
 
     CARAPI GetDouble(
-        /* [in] */ String key,
+        /* [in] */ const String& key,
         /* [out] */ Double * pValue);
 
     CARAPI PutString(
-        /* [in] */ String key,
-        /* [in] */ String value);
+        /* [in] */ const String& key,
+        /* [in] */ const String& value);
 
     CARAPI GetString(
-        /* [in] */ String key,
+        /* [in] */ const String& key,
         /* [out] */ String * pValue);
 
     CARAPI PutStringArray(
-        /* [in] */ String key,
+        /* [in] */ const String& key,
         /* [in] */ const ArrayOf<String>& value);
 
     CARAPI GetStringArray(
-        /* [in] */ String key,
+        /* [in] */ const String& key,
         /* [out, callee] */ ArrayOf<String>** value);
 
     CARAPI PutInt32Array(
-        /* [in] */ String key,
+        /* [in] */ const String& key,
         /* [in] */ const ArrayOf<Int32>& value);
 
     CARAPI GetInt32Array(
-        /* [in] */ String key,
+        /* [in] */ const String& key,
         /* [out, callee] */ ArrayOf<Int32>** value);
 
     CARAPI HasFileDescriptors(

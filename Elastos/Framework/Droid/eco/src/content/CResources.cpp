@@ -9,7 +9,6 @@
 #include "content/XmlBlock.h"
 #include "utils/CDisplayMetrics.h"
 #include "utils/CTypedValue.h"
-#include "utils/AutoString.h"
 #include "view/CDisplay.h"
 #include "graphics/CMovie.h"
 #include "graphics/CColorDrawable.h"
@@ -18,13 +17,13 @@
 #include <StringBuffer.h>
 #include <assert.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
 #define CTYPEDARRAY(x) ((CTypedArray*)x.Get())
 #define CTYPEDVALUE(x) ((CTypedValue*)x.Get())
 
-const String CResources::TAG = "CResources";
+const char* CResources::TAG = "CResources";
 const Boolean CResources::DEBUG_LOAD;
 const Boolean CResources::DEBUG_CONFIG;
 const Boolean CResources::TRACE_FOR_PRELOAD;
@@ -512,7 +511,7 @@ ECode CResources::OpenRawResourceEx(
     GetValue(id, value, TRUE);
 
 //    try {
-    AutoString str;
+    String str;
     ((CTypedValue*)value)->mString->ToString(&str);
     return mAssets->OpenNonAssetEx3(
             ((CTypedValue*)value)->mAssetCookie,
@@ -538,7 +537,7 @@ ECode CResources::OpenRawResourceFd(
     GetValue(id, mTmpValue.Get(), TRUE);
 
 //    try {
-    AutoString str;
+    String str;
     CTYPEDVALUE(mTmpValue)->mString->ToString(&str);
     return mAssets->OpenNonAssetFdEx(
             CTYPEDVALUE(mTmpValue)->mAssetCookie, str, des);
@@ -572,12 +571,12 @@ ECode CResources::GetValue(
 }
 
 ECode CResources::GetValueEx(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in, out] */ ITypedValue* outValue,
     /* [in] */ Boolean resolveRefs)
 {
     Int32 id = 0;
-    GetIdentifier(name, "string", NULL, &id);
+    GetIdentifier(name, String("string"), String(NULL), &id);
     if (id != 0) {
         return GetValue(id, outValue, resolveRefs);
     }
@@ -667,7 +666,7 @@ ECode CResources::UpdateConfiguration(
             keyboardHidden = Configuration_KEYBOARDHIDDEN_SOFT;
         }
         mAssets->SetConfiguration(mConfiguration->mMcc, mConfiguration->mMnc,
-                (const char *)locale, mConfiguration->mOrientation,
+                String((const char *)locale), mConfiguration->mOrientation,
                 mConfiguration->mTouchscreen,
                 (Int32)(mMetrics->mDensity * 160), mConfiguration->mKeyboard,
                 keyboardHidden, mConfiguration->mNavigation, width, height,
@@ -763,9 +762,9 @@ ECode CResources::SetCompatibilityInfo(
 }
 
 ECode CResources::GetIdentifier(
-    /* [in] */ String name,
-    /* [in] */ String defType,
-    /* [in] */ String defPackage,
+    /* [in] */ const String& name,
+    /* [in] */ const String& defType,
+    /* [in] */ const String& defPackage,
     /* [out] */ Int32* id)
 {
     if (!id) {
@@ -873,7 +872,7 @@ ECode CResources::ParseBundleExtras(
 }
 
 ECode CResources::ParseBundleExtra(
-    /* [in] */ String tagName,
+    /* [in] */ const String& tagName,
     /* [in] */ IAttributeSet* attrs,
     /* [in, out] */ IBundle* outBundle)
 {
@@ -1010,7 +1009,7 @@ ECode CResources::LoadDrawable(
                 return E_NOT_FOUND_EXCEPTION;
             }
 
-            AutoString file;
+            String file;
             ((CTypedValue*)value)->mString->ToString(&file);
 
             if (DEBUG_LOAD) {
@@ -1057,17 +1056,19 @@ ECode CResources::LoadDrawable(
     }
 
     if (*drawable != NULL) {
+        AutoPtr<IDrawableConstantState> cs2;
         (*drawable)->SetChangingConfigurations(((CTypedValue*)value)->mChangingConfigurations);
-        (*drawable)->GetConstantState((IDrawableConstantState**)&cs);
-        if (cs != NULL) {
+        (*drawable)->GetConstantState((IDrawableConstantState**)&cs2);
+        if (cs2 != NULL) {
             if (mPreloading) {
-                (*sPreloadedDrawables)[key] = cs;
-            } else {
+                (*sPreloadedDrawables)[key] = cs2;
+            }
+            else {
                 Mutex::Autolock lock(mTmpValueLock);
                 //Log.i(TAG, "Saving cached drawable @ #" +
                 //        Integer.toHexString(key.intValue())
-                //        + " in " + this + ": " + cs);
-                mDrawableCache[key] = cs.Get();
+                //        + " in " + this + ": " + cs2);
+                mDrawableCache[key] = cs2;
             }
         }
     }
@@ -1081,7 +1082,7 @@ ECode CResources::GetCachedDrawable(
 {
     Mutex::Autolock lock(mTmpValueLock);
 
-    HashMap<Int64, IDrawableConstantState*>::Iterator it = mDrawableCache.Find(key);
+    HashMap<Int64, AutoPtr<IDrawableConstantState> >::Iterator it = mDrawableCache.Find(key);
     if (it != mDrawableCache.End()) {
         IDrawableConstantState* wr = it->mSecond;
         if (wr != NULL) {   // we have the key
@@ -1156,7 +1157,7 @@ ECode CResources::LoadColorStateList(
         return E_NOT_FOUND_EXCEPTION;
     }
 
-    AutoString file;
+    String file;
     ((CTypedValue*)value)->mString->ToString(&file);
 
 //	    if (file.endsWith(".xml")) {
@@ -1200,7 +1201,7 @@ ECode CResources::GetCachedColorStateList(
 {
     Mutex::Autolock lock(mTmpValueLock);
 
-    HashMap<Int32, IColorStateList*>::Iterator it = mColorStateListCache.Find(key);
+    HashMap<Int32, AutoPtr<IColorStateList> >::Iterator it = mColorStateListCache.Find(key);
     *csl = it != mColorStateListCache.End()? it->mSecond : NULL;
     if (*csl != NULL) {   // we have the key
 //	        ColorStateList entry = wr.get();
@@ -1221,14 +1222,14 @@ ECode CResources::GetCachedColorStateList(
 
 ECode CResources::LoadXmlResourceParser(
     /* [in] */ Int32 id,
-    /* [in] */ String type,
+    /* [in] */ const char* type,
     /* [out] */ IXmlResourceParser** parser)
 {
     Mutex::Autolock lock(mTmpValueLock);
 
     GetValue(id, mTmpValue.Get(), TRUE);
     if (CTYPEDVALUE(mTmpValue)->mType == TypedValue_TYPE_STRING) {
-        AutoString str;
+        String str;
         CTYPEDVALUE(mTmpValue)->mString->ToString(&str);
         return LoadXmlResourceParser(str, id,
                 CTYPEDVALUE(mTmpValue)->mAssetCookie, type, parser);
@@ -1240,10 +1241,10 @@ ECode CResources::LoadXmlResourceParser(
 }
 
 ECode CResources::LoadXmlResourceParser(
-    /* [in] */ String file,
+    /* [in] */ const String& file,
     /* [in] */ Int32 id,
     /* [in] */ Int32 assetCookie,
-    /* [in] */ String type,
+    /* [in] */ const char* type,
     /* [out] */ IXmlResourceParser** parser)
 {
     if (id != 0) {

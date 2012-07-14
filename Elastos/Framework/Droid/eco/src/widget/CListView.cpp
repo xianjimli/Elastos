@@ -9,6 +9,12 @@ IVIEWPARENT_METHODS_IMPL(CListView, ListView, ListView);
 
 IVIEWMANAGER_METHODS_IMPL(CListView, ListView, ListView);
 
+IDrawableCallback_METHODS_IMPL(CListView, ListView, ListView);
+
+IKeyEventCallback_METHODS_IMPL(CListView, ListView, ListView);
+
+IAccessibilityEventSource_METHODS_IMPL(CListView, ListView, ListView);
+
 IADAPTERVIEW_METHODS_IMPL(CListView, ListView, ListView);
 
 IABSLISTVIEW_METHODS_IMPL(CListView, ListView, ListView);

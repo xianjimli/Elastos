@@ -19,7 +19,7 @@ public:
      * @return The best matching typeface.
      */
     CARAPI Create(
-        /* [in] */ String familyName,
+        /* [in] */ const String& familyName,
         /* [in] */ Int32 style,
         /* [out] */ ITypeface** typeface);
 
@@ -56,7 +56,7 @@ public:
      */
     CARAPI CreateFromAsset(
         /* [in] */ IAssetManager* mgr,
-        /* [in] */ String path,
+        /* [in] */ const String& path,
         /* [out] */ ITypeface** typeface);
 
     /**
@@ -76,7 +76,7 @@ public:
      * @return The new typeface.
      */
     CARAPI CreateFromFileEx(
-        /* [in]*/ String path,
+        /* [in]*/ const String& path,
         /* [out] */ ITypeface** typeface);
 
     /**

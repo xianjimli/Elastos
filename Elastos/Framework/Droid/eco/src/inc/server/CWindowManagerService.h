@@ -3,7 +3,7 @@
 #define __CWINDOWMANAGERSERVICE_H__
 
 #include "ext/frameworkdef.h"
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 #include "_CWindowManagerService.h"
 #include "server/CServiceRecord.h"
 #include "server/CWindowSession.h"
@@ -18,6 +18,7 @@
 #include "graphics/CRect.h"
 #include "graphics/CPaint.h"
 #include "utils/CDisplayMetrics.h"
+#include "utils/AutoStringArray.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/List.h>
 #include <elastos/HashSet.h>
@@ -50,7 +51,7 @@ _ELASTOS_NAMESPACE_END
 CarClass(CWindowManagerService)
 {
 public:
-    static const String TAG;
+    static const char* TAG;
 
     /** How much to multiply the policy's type layer, to reserve room
      * for multiple windows of the same type and Z-ordering adjustment
@@ -210,10 +211,10 @@ private:
             /* [in] */ Boolean enabled);
 
     private:
-        CARAPI_(WindowState*) GetWindowStateForInputChannel(
+        CARAPI_(AutoPtr<WindowState>) GetWindowStateForInputChannel(
             CInputChannel* inputChannel);
 
-        CARAPI_(WindowState*) GetWindowStateForInputChannelLocked(
+        CARAPI_(AutoPtr<WindowState>) GetWindowStateForInputChannelLocked(
             CInputChannel* inputChannel);
 
         CARAPI_(void) UpdateInputDispatchModeLw();
@@ -222,7 +223,7 @@ private:
         AutoPtr<CWindowManagerService> mService;
 
         // Current window with input focus for keys and other non-touch events.  May be null.
-        WindowState* mInputFocus;
+        AutoPtr<WindowState> mInputFocus;
 
         // When true, prevents input dispatch from proceeding until set to false again.
         Boolean mInputDispatchFrozen;
@@ -267,7 +268,7 @@ private:
         AppWindowToken* mAppWindowToken;
 
         // All of the windows associated with this token.
-        List<WindowState*> mWindows;
+        List<AutoPtr<WindowState> > mWindows;
 
         // Is key dispatching paused for this token?
         Boolean mPaused;
@@ -325,7 +326,7 @@ private:
 
         CARAPI_(void) UpdateReportedVisibilityLocked();
 
-        CARAPI_(WindowState*) FindMainWindow();
+        CARAPI_(AutoPtr<WindowState>) FindMainWindow();
 
         CARAPI_(void) GetDescription(
             /* [out] */ String* des);
@@ -336,7 +337,7 @@ private:
 
         // All of the windows and child windows that are included in this
         // application token.  Note this list is NOT sorted!
-        List<WindowState*> mAllAppWindows;
+        List<AutoPtr<WindowState> > mAllAppWindows;
 
         Int32 mGroupId;
         Boolean mAppFullscreen;
@@ -387,7 +388,7 @@ private:
 
         // Information about an application starting window if displayed.
         StartingData* mStartingData;
-        WindowState* mStartingWindow;
+        AutoPtr<WindowState> mStartingWindow;
         AutoPtr<IView> mStartingView;
         Boolean mStartingDisplayed;
         Boolean mStartingMoved;
@@ -663,8 +664,8 @@ private:
         AppWindowToken* mTargetAppToken;
         AutoPtr<CWindowManagerLayoutParams> mAttrs;
 //        DeathRecipient mDeathRecipient;
-        WindowState* mAttachedWindow;
-        List<WindowState*> mChildWindows;
+        AutoPtr<WindowState> mAttachedWindow;
+        List<AutoPtr<WindowState> > mChildWindows;
         Int32 mBaseLayer;
         Int32 mSubLayer;
         Boolean mLayoutAttached;
@@ -872,7 +873,7 @@ private:
     {
     public:
         StartingData(
-            /* [in] */ String cap,
+            /* [in] */ const String& cap,
             /* [in] */ Int32 theme,
             /* [in] */ const ArrayOf<Char8> & nonLocalizedLabel,
             /* [in] */ Int32 labelRes,
@@ -902,7 +903,7 @@ private:
 
     public:
         AutoPtr<CWindowManagerService> mWMService;
-        ArrayOf<String>* mTokens;
+        AutoStringArray mTokens;
         String mText;
         AutoPtr<CPaint> mTextPaint;
         Int32 mTextWidth;
@@ -1001,20 +1002,20 @@ public:
     static CARAPI_(Boolean) CanBeImeTarget(
         /* [in] */ WindowState* w);
 
-    CARAPI_(List<WindowState*>::Iterator) FindDesiredInputMethodWindowIndexLocked(
+    CARAPI_(List<AutoPtr<WindowState> >::Iterator) FindDesiredInputMethodWindowIndexLocked(
         /* [in] */ Boolean willMove);
 
     CARAPI_(void) AddInputMethodWindowToListLocked(
         /* [in] */ WindowState* win);
 
     CARAPI_(void) LogWindowList(
-        /* [in] */ String prefix);
+        /* [in] */ const String& prefix);
 
     CARAPI_(void) SetInputMethodAnimLayerAdjustment(
         /* [in] */ Int32 adj);
 
     CARAPI_(void) MoveInputMethodDialogsLocked(
-        /* [in] */ List<WindowState*>::Iterator posIt);
+        /* [in] */ List<AutoPtr<WindowState> >::Iterator posIt);
 
     CARAPI_(Boolean) MoveInputMethodWindowsIfNeededLocked(
         /* [in] */ Boolean needAssignLayers);
@@ -1087,7 +1088,7 @@ public:
 
     CARAPI_(AutoPtr<IBundle>) SendWindowWallpaperCommandLocked(
         /* [in] */ WindowState* window,
-        /* [in] */ String action,
+        /* [in] */ const String& action,
         /* [in] */ Int32 x,
         /* [in] */ Int32 y,
         /* [in] */ Int32 z,
@@ -1121,8 +1122,8 @@ public:
         /* [in] */ const List<AutoPtr<CActivityRecord> > & tokens);
 
     CARAPI_(Boolean) CheckCallingPermission(
-        /* [in] */ String permission,
-        /* [in] */ String func);
+        /* [in] */ const String& permission,
+        /* [in] */ const String& func);
 
     CARAPI_(AppWindowToken*) FindAppWindowToken(
         /* [in] */ IBinder* token);
@@ -1197,7 +1198,7 @@ public:
         /* [out] */ Int32* transit);
 
     CARAPI OverridePendingAppTransition(
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ Int32 enterAnim,
         /* [in] */ Int32 exitAnim);
 
@@ -1205,7 +1206,7 @@ public:
 
     CARAPI SetAppStartingWindow(
         /* [in] */ IBinder* token,
-        /* [in] */ String cap,
+        /* [in] */ const String& cap,
         /* [in] */ Int32 theme,
         /* [in] */ const ArrayOf<Char8> & nonLocalizedLabel,
         /* [in] */ Int32 labelRes,
@@ -1264,7 +1265,7 @@ public:
     // these require DISABLE_KEYGUARD permission
     CARAPI DisableKeyguard(
         /* [in] */ IBinder* token,
-        /* [in] */ String tag);
+        /* [in] */ const String& tag);
 
     CARAPI ReenableKeyguard(
         /* [in] */ IBinder* token);
@@ -1276,7 +1277,7 @@ public:
         /* [out] */ Boolean* result);
 
     CARAPI CloseSystemDialogs(
-        /* [in] */ String reason);
+        /* [in] */ const String& reason);
 
     static CARAPI_(Float) FixScale(
         /* [in] */ Float scale);
@@ -1347,7 +1348,7 @@ public:
 //        [out] Boolean* result);
 
     CARAPI MonitorInput(
-        /* [in] */ String inputChannelName,
+        /* [in] */ const String& inputChannelName,
         /* [out] */ IInputChannel** channel);
 
     // Get input device information.
@@ -1494,8 +1495,8 @@ public:
      */
 //    CARAPI_(Boolean) ViewServerWindowCommand(
 //        /* [in] */ Socket client,
-//        /* [in] */ String command,
-//        /* [in] */ String parameters);
+//        /* [in] */ const String& command,
+//        /* [in] */ const String& parameters);
 
     CARAPI_(void) AddWindowChangeListener(
         /* [in] */ WindowChangeListener* listener);
@@ -1547,12 +1548,12 @@ public:
     // Internals
     // -------------------------------------------------------------
 
-    CARAPI_(WindowState*) WindowForClientLocked(
+    CARAPI_(AutoPtr<WindowState>) WindowForClientLocked(
         /* [in] */ CWindowSession* session,
         /* [in] */ IInnerWindow* client,
         /* [in] */ Boolean throwOnError);
 
-    CARAPI_(WindowState*) WindowForClientLocked(
+    CARAPI_(AutoPtr<WindowState>) WindowForClientLocked(
         /* [in] */ CWindowSession* session,
         /* [in] */ IBinder* client,
         /* [in] */ Boolean throwOnError);
@@ -1581,7 +1582,7 @@ public:
 
     CARAPI_(void) ReclaimSomeSurfaceMemoryLocked(
         /* [in] */ WindowState* win,
-        /* [in] */ String operation);
+        /* [in] */ const char* operation);
 
     // These can only be called when injecting events to your own window,
     // or by holding the INJECT_EVENTS permission.  These methods may block
@@ -1657,15 +1658,15 @@ private:
 
     //This method finds out the index of a window that has the same app token as
     //win. used for z ordering the windows in mWindows
-    CARAPI_(List<WindowState*>::Iterator) FindIteratorBasedOnAppTokens(
+    CARAPI_(List<AutoPtr<WindowState> >::Iterator) FindIteratorBasedOnAppTokens(
         /* [in] */ WindowState* win);
 
     CARAPI_(void) AddWindowToListInOrderLocked(
         /* [in] */ WindowState* win,
         /* [in] */ Boolean addToToken);
 
-    CARAPI_(List<WindowState*>::Iterator) TmpRemoveWindowLocked(
-        /* [in] */ List<WindowState*>::Iterator interestingPosIt,
+    CARAPI_(List<AutoPtr<WindowState> >::Iterator) TmpRemoveWindowLocked(
+        /* [in] */ List<AutoPtr<WindowState> >::Iterator interestingPosIt,
         /* [in] */ WindowState* win);
 
     CARAPI_(void) ReAddWindowToListInOrderLocked(
@@ -1677,7 +1678,7 @@ private:
 
 //    CARAPI_(void) LogSurface(
 //        /* [in] */ WindowState* w,
-//        /* [in] */ String msg,
+//        /* [in] */ const String& msg,
 //        /* [in] */ RuntimeException where);
 
     CARAPI_(void) SetTransparentRegionWindow(
@@ -1708,21 +1709,21 @@ private:
 //        /* [in] */ Int32 animAttr);
 
 //    CARAPI_(AutoPtr<IAnimation>) LoadAnimation(
-//        /* [in] */ String packageName,
+//        /* [in] */ const String& packageName,
 //        /* [in] */ Int32 resId);
 
     CARAPI_(Boolean) TmpRemoveAppWindowsLocked(
         /* [in] */ WindowToken* token);
 
-    CARAPI_(List<WindowState*>::Iterator) FindWindowOffsetLocked(
+    CARAPI_(List<AutoPtr<WindowState> >::Iterator) FindWindowOffsetLocked(
         /* [in] */ List<AppWindowToken*>::Iterator tokenPosIt);
 
-    CARAPI_(List<WindowState*>::Iterator) ReAddWindowLocked(
-        /* [in] */ List<WindowState*>::Iterator it,
+    CARAPI_(List<AutoPtr<WindowState> >::Iterator) ReAddWindowLocked(
+        /* [in] */ List<AutoPtr<WindowState> >::Iterator it,
         /* [in] */ WindowState* win);
 
-    CARAPI_(List<WindowState*>::Iterator) ReAddAppWindowsLocked(
-        /* [in] */ List<WindowState*>::Iterator it,
+    CARAPI_(List<AutoPtr<WindowState> >::Iterator) ReAddAppWindowsLocked(
+        /* [in] */ List<AutoPtr<WindowState> >::Iterator it,
         /* [in] */ WindowToken* token);
 
     CARAPI_(void) RemoveAppTokensLocked(
@@ -1749,16 +1750,16 @@ private:
 
     CARAPI_(void) NotifyFocusChanged();
 
-    CARAPI_(WindowState*) FindWindow(
+    CARAPI_(AutoPtr<WindowState>) FindWindow(
         /* [in] */ Int32 hashCode);
 
     CARAPI ReportInjectionResult(
         /* [in] */ Int32 result,
         /* [out] */ Boolean* succeeded);
 
-    CARAPI_(WindowState*) GetFocusedWindow();
+    CARAPI_(AutoPtr<WindowState>) GetFocusedWindow();
 
-    CARAPI_(WindowState*) GetFocusedWindowLocked();
+    CARAPI_(AutoPtr<WindowState>) GetFocusedWindowLocked();
 
     CARAPI_(void) AssignLayersLocked();
 
@@ -1774,7 +1775,7 @@ private:
 
     CARAPI_(void) FinishUpdateFocusedWindowAfterAssignLayersLocked();
 
-    CARAPI_(WindowState*) ComputeFocusedWindowLocked();
+    CARAPI_(AutoPtr<WindowState>) ComputeFocusedWindowLocked();
 
     CARAPI_(void) StartFreezingDisplayLocked();
 
@@ -1787,8 +1788,55 @@ private:
         /* [in] */ Int32 defDps,
         /* [in] */ CDisplayMetrics* dm);
 
+    CARAPI SendMessage(
+        /* [in] */ Handle32 pvFunc,
+        /* [in] */ IParcel* params);
+
+    CARAPI SendMessageDelayed(
+        /* [in] */ Handle32 pvFunc,
+        /* [in] */ IParcel* params,
+        /* [in] */ Millisecond64 delayMillis);
+
+    CARAPI RemoveMessage(
+        /* [in] */ Handle32 func);
+
+    CARAPI HandleReportFocusChange();
+
+    CARAPI HandleReportLosingFocus();
+
+    CARAPI HandleAnimate();
+
+    CARAPI HandleStarting(
+        /* [in] */ AppWindowToken* wtoken);
+
     CARAPI HandleRemoveStarting(
-        /* [in] */ AppWindowToken* atoken);
+        /* [in] */ AppWindowToken* wtoken);
+
+    CARAPI HandleFinishedStarting();
+
+    CARAPI HandleReportAppTokenWindows(
+        /* [in] */ Boolean nowVisible,
+        /* [in] */ Boolean nowGone,
+        /* [in] */ AppWindowToken* wtoken);
+
+    CARAPI HandleWindowFreezeTimeout();
+
+    CARAPI HandleHoldScreenChanged(
+        /* [in] */ IWindowSession* newHold);
+
+    CARAPI HandleAppTransitionTimeout();
+
+    CARAPI HandlePersistAnimationScale();
+
+    CARAPI HandleForceGc();
+
+    CARAPI HandleEnableScreen();
+
+    CARAPI HandleAppFreezeTimeout();
+
+    CARAPI HandleSendNewConfiguration();
+
+    CARAPI HandleReportWindowsChange();
 
 public:
     CARAPI_(void) CreateWatermark();
@@ -1819,6 +1867,8 @@ private:
 
     AutoPtr<IActivityManager> mActivityManager;
 
+    AutoPtr<IBatteryStats> mBatteryStats;
+
     /**
      * All currently active sessions with clients.
      */
@@ -1828,7 +1878,7 @@ private:
      * Mapping from an IWindow IBinder to the server's Window object.
      * This is also used as the lock for all of our state.
      */
-    HashMap<AutoPtr<IBinder>, WindowState*> mWindowMap;
+    HashMap<AutoPtr<IBinder>, AutoPtr<WindowState> > mWindowMap;
     Mutex mWindowMapLock;
 
     /**
@@ -1882,36 +1932,36 @@ private:
     /**
      * Z-ordered (bottom-most first) list of all Window objects.
      */
-    List<WindowState*> mWindows;
+    List<AutoPtr<WindowState> > mWindows;
 
     /**
      * Windows that are being resized.  Used so we can tell the client about
      * the resize after closing the transaction in which we resized the
      * underlying surface.
      */
-    List<WindowState*> mResizingWindows;
+    List<AutoPtr<WindowState> > mResizingWindows;
 
     /**
      * Windows whose animations have ended and now must be removed.
      */
-    List<WindowState*> mPendingRemove;
+    List<AutoPtr<WindowState> > mPendingRemove;
 
     /**
      * Windows whose surface should be destroyed.
      */
-    List<WindowState*> mDestroySurface;
+    List<AutoPtr<WindowState> > mDestroySurface;
 
     /**
      * Windows that have lost input focus and are waiting for the new
      * focus window to be displayed before they are told about this.
      */
-    List<WindowState*> mLosingFocus;
+    List<AutoPtr<WindowState> > mLosingFocus;
 
      /**
      * This is set when we have run out of memory, and will either be an empty
      * list or contain windows that need to be force removed.
      */
-    List<WindowState*>* mForceRemoves;
+    List<AutoPtr<WindowState> >* mForceRemoves;
 
     AutoPtr<CSurfaceSession> mFxSession;
     DimAnimator* mDimAnimator;
@@ -1975,30 +2025,30 @@ private:
 
     AutoPtr<IDisplay> mDisplay;
 
-    WindowState* mCurrentFocus;
-    WindowState* mLastFocus;
+    AutoPtr<WindowState> mCurrentFocus;
+    AutoPtr<WindowState> mLastFocus;
 
     // This just indicates the window the input method is on top of, not
     // necessarily the window its input is going to.
-    WindowState* mInputMethodTarget;
-    WindowState* mUpcomingInputMethodTarget;
+    AutoPtr<WindowState> mInputMethodTarget;
+    AutoPtr<WindowState> mUpcomingInputMethodTarget;
     Boolean mInputMethodTargetWaitingAnim;
     Int32 mInputMethodAnimLayerAdjustment;
 
-    WindowState* mInputMethodWindow;
-    List<WindowState*> mInputMethodDialogs;
+    AutoPtr<WindowState> mInputMethodWindow;
+    List<AutoPtr<WindowState> > mInputMethodDialogs;
 
     List<WindowToken*> mWallpaperTokens;
 
     // If non-null, this is the currently visible window that is associated
     // with the wallpaper.
-    WindowState* mWallpaperTarget;
+    AutoPtr<WindowState> mWallpaperTarget;
     // If non-null, we are in the middle of animating from one wallpaper target
     // to another, and this is the lower one in Z-order.
-    WindowState* mLowerWallpaperTarget;
+    AutoPtr<WindowState> mLowerWallpaperTarget;
     // If non-null, we are in the middle of animating from one wallpaper target
     // to another, and this is the higher one in Z-order.
-    WindowState* mUpperWallpaperTarget;
+    AutoPtr<WindowState> mUpperWallpaperTarget;
     Int32 mWallpaperAnimLayerAdjustment;
     Float mLastWallpaperX;
     Float mLastWallpaperY;
@@ -2006,7 +2056,7 @@ private:
     Float mLastWallpaperYStep;
     // This is set when we are waiting for a wallpaper to tell us it is done
     // changing its scroll position.
-    WindowState* mWaitingOnWallpaper;
+    AutoPtr<WindowState> mWaitingOnWallpaper;
     // The last time we had a timeout when waiting for a wallpaper.
     Millisecond64 mLastWallpaperTimeoutTime;
 
@@ -2045,6 +2095,8 @@ private:
     Boolean mInLayout;
 
     InputMonitor* mInputMonitor;
+
+    AutoPtr<IWindowSession> mLastReportedHold;
 };
 
 #endif //__CWINDOWMANAGERSERVICE_H__

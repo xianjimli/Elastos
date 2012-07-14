@@ -1,6 +1,5 @@
 
 #include "widget/CHeaderViewListAdapter.h"
-#include "utils/CObjectContainer.h"
 
 CHeaderViewListAdapter::CHeaderViewListAdapter()
     : mIsFilterable(FALSE)

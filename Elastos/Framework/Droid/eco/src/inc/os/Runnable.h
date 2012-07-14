@@ -3,7 +3,7 @@
 #define __RUNNABLE_H__
 
 #include "ext/frameworkext.h"
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 
 class Runnable : public ElRefBase, public IRunnable
 {

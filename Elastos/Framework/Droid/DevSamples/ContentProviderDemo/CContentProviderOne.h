@@ -15,7 +15,7 @@ public:
     
     CARAPI Delete(
         /* [in] */ IUri* uri, 
-        /* [in] */ String selection, 
+        /* [in] */ const String& selection, 
         /* [in] */ const ArrayOf<String>& selectionArgs,
         /* [out] */ Int32* rowsAffected);
     
@@ -31,15 +31,15 @@ public:
     CARAPI Query(
         /* [in] */ IUri* uri, 
         /* [in] */ const ArrayOf<String>& projection, 
-        /* [in] */ String selection, 
+        /* [in] */ const String& selection, 
         /* [in] */ const ArrayOf<String>& selectionArgs, 
-        /* [in] */ String sortOrder,
+        /* [in] */ const String& sortOrder,
         /* [out] */ ICursor** cursor);
     
     CARAPI Update(
         /* [in] */ IUri* uri, 
         /* [in] */ IContentValues* values, 
-        /* [in] */ String selection, 
+        /* [in] */ const String& selection, 
         /* [in] */ const ArrayOf<String>& selectionArgs,
         /* [out] */ Int32* rowsAffected);
 };

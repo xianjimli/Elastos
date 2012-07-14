@@ -11,7 +11,11 @@ CarClass(CImageView), public ImageView
 public:
     IVIEW_METHODS_DECL();
 
+    IDrawableCallback_METHODS_DECL();
+
     IKeyEventCallback_METHODS_DECL();
+
+    IAccessibilityEventSource_METHODS_DECL();
 
     CARAPI constructor(
         /* [in] */ IContext* ctx);

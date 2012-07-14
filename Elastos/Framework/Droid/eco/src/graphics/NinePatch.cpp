@@ -2,21 +2,20 @@
 #include "graphics/NinePatch.h"
 #include "graphics/CBitmap.h"
 #include "graphics/Canvas.h"
-#include "graphics/CRect.h"
-#include "graphics/CRectF.h"
 #include "graphics/CPaint.h"
 #include "graphics/CRegion.h"
+#include "graphics/Graphics.h"
 #include <Logger.h>
 #include <StringBuffer.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
 extern ECode NinePatch_Draw(SkCanvas* canvas, const SkRect& bounds,
-                const SkBitmap& bitmap, const android::Res_png_9patch& chunk,
-                           const SkPaint* paint, SkRegion** outRegion);
+        const SkBitmap& bitmap, const android::Res_png_9patch& chunk,
+        const SkPaint* paint, SkRegion** outRegion);
 
-const String NinePatch::TAG = "NinePatch";
+const char* NinePatch::TAG = "NinePatch";
 
 NinePatch::NinePatch()
 {
@@ -63,9 +62,16 @@ ECode NinePatch::Draw(
 {
     VALIDATE_NOT_NULL(canvas);
 
+    //printf("NinePatch::Draw---name = %s, left = %f, right = %f, top = %f, bottom = %f, destDensity = %d, srcDensity = %d\n",
+    //    (const char*)mSrcName, ((CRect*)location)->mLeft, ((CRect*)location)->mRight,
+    //    ((CRect*)location)->mTop, ((CRect*)location)->mBottom,
+    //    ((Canvas*)canvas->Probe(EIID_Canvas))->mDensity,
+    //    ((CBitmap*)mBitmap.Get())->mDensity);
+
+    Logger::D("NinePatch", StringBuffer("Draw") + mSrcName);
     return NativeDrawI(((Canvas*)canvas->Probe(EIID_Canvas))->mNativeCanvas, location,
         ((CBitmap*)mBitmap.Get())->Ni(), *mChunk,
-        paint != NULL ? ((Paint*)mPaint->Probe(EIID_Paint))->mNativePaint : NULL,
+        paint != NULL ? ((Paint*)paint->Probe(EIID_Paint))->mNativePaint : NULL,
         ((Canvas*)canvas->Probe(EIID_Canvas))->mDensity,
         ((CBitmap*)mBitmap.Get())->mDensity);
 }
@@ -118,7 +124,7 @@ Boolean NinePatch::IsNinePatchChunk(
         const android::Res_png_9patch* chunk =
             reinterpret_cast<const android::Res_png_9patch*>(array);
         int8_t wasDeserialized = chunk->wasDeserialized;
-        return wasDeserialized != -1 ? TRUE : FALSE;
+        return wasDeserialized != -1;
     }
     return FALSE;
 }
@@ -126,7 +132,7 @@ Boolean NinePatch::IsNinePatchChunk(
 ECode NinePatch::constructor(
     /* [in] */ IBitmap* bitmap,
     /* [in] */ const ArrayOf<Byte> & chunk,
-    /* [in] */ String srcName)
+    /* [in] */ const String& srcName)
 {
     VALIDATE_NOT_NULL(bitmap);
 
@@ -136,7 +142,7 @@ ECode NinePatch::constructor(
 
     mBitmap = bitmap;
     mChunk = chunk.Clone();
-    mSrcName = String::Duplicate(srcName);
+    mSrcName = srcName;
     return ValidateNinePatchChunk(((CBitmap*)mBitmap.Get())->Ni(), chunk);
 }
 
@@ -147,7 +153,7 @@ ECode NinePatch::constructor(
 
     mBitmap = patch->mBitmap;
     mChunk = patch->mChunk->Clone();
-    mSrcName = String::Duplicate(patch->mSrcName);
+    mSrcName = patch->mSrcName;
     if (patch->mPaint != NULL) {
         FAIL_RETURN(CPaint::New(patch->mPaint.Get(), (IPaint**)&mPaint));
     }
@@ -180,12 +186,9 @@ ECode NinePatch::NativeDrawF(
     assert(chunk.GetPayload());
     // paint is optional
 
-    SkRect      bounds;
-    AutoPtr<CRectF> cboundsRect = (CRectF*)boundsRect;
-    bounds.set(SkFloatToScalar(cboundsRect->mLeft),
-               SkFloatToScalar(cboundsRect->mTop),
-               SkFloatToScalar(cboundsRect->mRight),
-               SkFloatToScalar(cboundsRect->mBottom));
+    SkRect bounds;
+    Graphics::IRectF2SkRect(boundsRect, &bounds);
+
     return NativeDraw(canvas, bounds, bitmap, chunk, paint, destDensity, srcDensity);
 }
 
@@ -204,12 +207,9 @@ ECode NinePatch::NativeDrawI(
     assert(chunk.GetPayload());
     // paint is optional
 
-    SkRect      bounds;
-    AutoPtr<CRect> cboundsRect = (CRect*)boundsRect;
-    bounds.set(SkIntToScalar(cboundsRect->mLeft),
-               SkIntToScalar(cboundsRect->mTop),
-               SkIntToScalar(cboundsRect->mRight),
-               SkIntToScalar(cboundsRect->mBottom));
+    SkRect bounds;
+    Graphics::IRect2SkRect(boundsRect, &bounds);
+
     return NativeDraw(canvas, bounds, bitmap, chunk, paint, destDensity, srcDensity);
 }
 
@@ -233,9 +233,11 @@ ECode NinePatch::NativeDraw(
 
     if (destDensity == srcDensity || destDensity == 0
             || srcDensity == 0) {
-        Logger::V(TAG, StringBuffer("Drawing unscaled 9-patch: (%g,%g)-(%g,%g)")
-                + (Int32)SkScalarToFloat(bounds.fLeft) + (Int32)SkScalarToFloat(bounds.fTop)
-                + (Int32)SkScalarToFloat(bounds.fRight) + (Int32)SkScalarToFloat(bounds.fBottom));
+        Logger::V(TAG, StringBuffer("Drawing unscaled 9-patch: (")
+            + (Int32)SkScalarToFloat(bounds.fLeft) + ","
+            + (Int32)SkScalarToFloat(bounds.fTop) + ")-("
+            + (Int32)SkScalarToFloat(bounds.fRight)+ ","
+            + (Int32)SkScalarToFloat(bounds.fBottom) + ")=");
 
         ec = NinePatch_Draw(canvas, bounds, *bitmap, *chunk, paint, NULL);
     }
@@ -250,10 +252,12 @@ ECode NinePatch::NativeDraw(
         bounds.fBottom = SkScalarDiv(bounds.fBottom-bounds.fTop, scale);
         bounds.fLeft = bounds.fTop = 0;
 
-        Logger::V(TAG, StringBuffer("Drawing scaled 9-patch: (%g,%g)-(%g,%g) srcDensity=%d destDensity=%d")
-                + (Int32)SkScalarToFloat(bounds.fLeft) + (Int32)SkScalarToFloat(bounds.fTop)
-                + (Int32)SkScalarToFloat(bounds.fRight) + (Int32)SkScalarToFloat(bounds.fBottom)
-                + srcDensity + destDensity);
+        Logger::V(TAG, StringBuffer("Drawing scaled 9-patch: (")
+                + (Int32)SkScalarToFloat(bounds.fLeft) + ","
+                + (Int32)SkScalarToFloat(bounds.fTop) + ")-("
+                + (Int32)SkScalarToFloat(bounds.fRight)+ ","
+                + (Int32)SkScalarToFloat(bounds.fBottom) + ") srcDensity="
+                + srcDensity + " destDensity="+ destDensity);
 
         ec = NinePatch_Draw(canvas, bounds, *bitmap, *chunk, paint, NULL);
 
@@ -272,12 +276,8 @@ Int32 NinePatch::NativeGetTransparentRegion(
     assert(chunkObj.GetPayload() != NULL);
     assert(boundsRect);
 
-    SkRect          bounds;
-    AutoPtr<CRect>  cboundsRect;
-    bounds.set(SkIntToScalar(cboundsRect->mLeft),
-               SkIntToScalar(cboundsRect->mTop),
-               SkIntToScalar(cboundsRect->mRight),
-               SkIntToScalar(cboundsRect->mBottom));
+    SkRect bounds;
+    Graphics::IRect2SkRect(boundsRect, &bounds);
     Int32 chunkSize = chunkObj.GetLength();
     void* storage = chunkObj.GetPayload();
     // need to deserialize the chunk

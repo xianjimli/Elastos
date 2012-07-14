@@ -9,16 +9,16 @@
 #include <elastos/HashMap.h>
 
 using namespace Elastos;
-using namespace Elastos::System::Threading;
+using namespace Elastos::Core::Threading;
 
 class LayoutInflater
 {
 public:
-    static const String TAG;
+    static const char* TAG;
 
-    static const String TAG_MERGE;
-    static const String TAG_INCLUDE;
-    static const String TAG_REQUEST_FOCUS;
+    static const char* TAG_MERGE;
+    static const char* TAG_INCLUDE;
+    static const char* TAG_REQUEST_FOCUS;
 
 public:
     LayoutInflater();
@@ -78,8 +78,8 @@ public:
      * @return View The newly instantied view, or null.
      */
     CARAPI CreateView(
-        /* [in] */ String name,
-        /* [in] */ String prefix,
+        /* [in] */ const String& name,
+        /* [in] */ const String& prefix,
         /* [in] */ IAttributeSet* attrs,
         /* [out] */ IView** view);
 
@@ -96,7 +96,7 @@ protected:
      * @return View The View created.
      */
     CARAPI OnCreateView(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [in] */ IAttributeSet* attrs,
         /* [out] */ IView** view);
 
@@ -104,7 +104,7 @@ protected:
      * default visibility so the BridgeInflater can override it.
      */
     CARAPI CreateViewFromTag(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [in] */ IAttributeSet* attrs,
         /* [out] */ IView** view);
 
@@ -116,8 +116,8 @@ private:
      * Throw an excpetion because the specified class is not allowed to be inflated.
      */
     CARAPI FailNotAllowed(
-        /* [in] */ String name,
-        /* [in] */ String prefix,
+        /* [in] */ const String& name,
+        /* [in] */ const String& prefix,
         /* [in] */ IAttributeSet* attrs);
 
     /**
@@ -151,7 +151,7 @@ private:
     AutoPtr<IInterface> mConstructorArgs[2];
     Mutex mConstructorArgsLock;
 
-    static String mConstructorSignature;
+    static CString mConstructorSignature;
 
     static HashMap<String, AutoPtr<IConstructorInfo> >* sConstructorMap;
 

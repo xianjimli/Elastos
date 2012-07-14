@@ -28,7 +28,7 @@ public:
     CARAPI GetChars(
         /* [in] */ Int32 start,
         /* [in] */ Int32 end,
-        /* [out] */ BufferOf<Byte>* dest,
+        /* [out] */ ArrayOf<Char8>* dest,
         /* [in] */ Int32 off);
 
     /* package */
@@ -94,7 +94,7 @@ private:
         /* [out] */ String* str);
 
     CARAPI CheckRange(
-        /* [in] */ String operation,
+        /* [in] */ const char* operation,
         /* [in] */ Int32 start,
         /* [in] */ Int32 end);
 

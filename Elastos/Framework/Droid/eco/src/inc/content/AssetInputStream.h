@@ -4,7 +4,7 @@
 
 #include <utils/AssetManager.h>
 #include "ext/frameworkext.h"
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 #include "content/CAssetManager.h"
 #include <elastos/AutoPtr.h>
 
@@ -38,20 +38,23 @@ public:
         /* [out] */ Boolean* supported);
 
     CARAPI Read(
-        /* [out] */ Byte* value);
+        /* [out] */ Int32* value);
 
     CARAPI ReadBuffer(
-        /* [out] */ BufferOf<Byte>* buffer);
+        /* [out] */ ArrayOf<Byte>* buffer,
+        /* [out] */ Int32* number);
 
     CARAPI ReadBufferEx(
         /* [in] */ Int32 offset,
         /* [in] */ Int32 length,
-        /* [out] */ BufferOf<Byte>* buffer);
+        /* [out] */ ArrayOf<Byte>* buffer,
+        /* [out] */ Int32* number);
 
     CARAPI Reset();
 
     CARAPI Skip(
-        /* [in] */ Int32 length);
+        /* [in] */ Int64 count,
+        /* [out] */ Int64* number);
 
     CARAPI GetAssetInt32(
         /* [out] */ Int32* value);

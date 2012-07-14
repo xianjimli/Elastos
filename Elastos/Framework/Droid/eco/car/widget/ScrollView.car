@@ -3,7 +3,6 @@ module
 {
     interface IFrameLayout;
     interface IKeyEvent;
-    interface IRect;
 
     interface IScrollView extends IFrameLayout {
         /**

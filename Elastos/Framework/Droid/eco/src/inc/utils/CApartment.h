@@ -45,19 +45,48 @@ public:
     CARAPI PostCppCallback(
         /* [in] */ Handle32 target,
         /* [in] */ Handle32 func,
-        /* [in] */ IParcel* params);
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id);
 
     CARAPI PostCppCallbackAtTime(
         /* [in] */ Handle32 target,
         /* [in] */ Handle32 func,
         /* [in] */ IParcel* params,
+        /* [in] */ Int32 id,
         /* [in] */ Millisecond64 uptimeMillis);
 
-    // func : Boolean xxx::xxx(IParcel** params)
-    //          return true if cancelled event.
+    CARAPI PostCppCallbackDelayed(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id,
+        /* [in] */ Millisecond64 delayMillis);
+
+    CARAPI PostCppCallbackAtFrontOfQueue(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id);
+
     CARAPI RemoveCppCallbacks(
         /* [in] */ Handle32 target,
         /* [in] */ Handle32 func);
+
+    CARAPI RemoveCppCallbacksEx(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ Int32 id);
+
+    CARAPI HasCppCallbacks(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [out] */ Boolean* result);
+
+    CARAPI HasCppCallbacksEx(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ Int32 id,
+        /* [out] */ Boolean* result);
 
 public:
     static CARAPI GetDefaultApartment(
@@ -75,11 +104,9 @@ private:
     pthread_t   mThread;
     Boolean     mFinished;
     AutoPtr<CCallbackContextEx> mCallbackContext;
-#ifdef _linux
     Boolean mUsingNativeMessageQueue;
     NativeMessageQueue* mMessageQueue;
     android::sp<NativeMessageQueueThread> mNativeMessageQueueThread;
-#endif
 };
 
 #endif // __CAPARTMENT_H__

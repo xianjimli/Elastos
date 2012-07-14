@@ -4,16 +4,14 @@
 #include <Slogger.h>
 #include <StringBuffer.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
-const String CInputChannel::TAG = "InputChannel";
+const char* CInputChannel::TAG = "InputChannel";
 const Boolean CInputChannel::DEBUG;
 
 CInputChannel::CInputChannel() :
-#ifdef _linux
     mPtr(NULL),
-#endif
     mDisposeAfterWriteToParcel(FALSE)
 {
 }
@@ -25,11 +23,10 @@ CInputChannel::CInputChannel() :
  * @return A pair of input channels.  They are symmetric and indistinguishable.
  */
 ECode CInputChannel::OpenInputChannelPair(
-    /* [in] */ String _name,
+    /* [in] */ const String& _name,
     /* [out] */ CInputChannel** inputChannel0,
     /* [out] */ CInputChannel** inputChannel1)
 {
-#ifdef _linux
     assert(inputChannel0 != NULL && inputChannel1 != NULL);
 
     if (_name.IsNull()) {
@@ -60,9 +57,6 @@ ECode CInputChannel::OpenInputChannelPair(
     (*inputChannel1)->mPtr = new NativeInputChannel(clientChannel);
 
     return NOERROR;
-#else
-    return E_NOT_IMPLEMENTED;
-#endif
 }
 
 /**
@@ -72,7 +66,6 @@ ECode CInputChannel::OpenInputChannelPair(
  */
 void CInputChannel::Dispose()
 {
-#ifdef _linux
     NativeInputChannel* nativeInputChannel = mPtr;
     if (nativeInputChannel) {
         nativeInputChannel->invokeAndRemoveDisposeCallback(this);
@@ -80,7 +73,6 @@ void CInputChannel::Dispose()
         mPtr = NULL;
         delete nativeInputChannel;
     }
-#endif
 }
 
 /**
@@ -92,7 +84,6 @@ void CInputChannel::Dispose()
 ECode CInputChannel::TransferToBinderOutParameter(
     /* [in] */ CInputChannel* outParameter)
 {
-#ifdef _linux
     if (outParameter == NULL) {
         Slogger::E(TAG, "outParameter must not be null.");
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
@@ -107,15 +98,11 @@ ECode CInputChannel::TransferToBinderOutParameter(
     mPtr = NULL;
     outParameter->mDisposeAfterWriteToParcel = TRUE;
     return NOERROR;
-#else
-    return E_NOT_IMPLEMENTED;
-#endif
 }
 
 ECode CInputChannel::ReadFromParcel(
     /* [in] */ IParcel *source)
 {
-#ifdef _linux
     if (source == NULL) {
         Slogger::E(TAG, "source must not be null.");
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
@@ -154,15 +141,11 @@ ECode CInputChannel::ReadFromParcel(
         mPtr = nativeInputChannel;
     }
     return NOERROR;
-#else
-    return E_NOT_IMPLEMENTED;
-#endif
 }
 
 ECode CInputChannel::WriteToParcel(
     /* [in] */ IParcel *dest)
 {
-#ifdef _linux
     if (dest == NULL) {
         Slogger::E(TAG, "dest must not be null.");
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
@@ -173,11 +156,12 @@ ECode CInputChannel::WriteToParcel(
         android::sp<android::InputChannel> inputChannel = nativeInputChannel->getInputChannel();
 
         dest->WriteInt32(1);
-        dest->WriteString(inputChannel->getName().string());
+        dest->WriteString(String(inputChannel->getName().string()));
         dest->WriteDupFileDescriptor(inputChannel->getAshmemFd());
         dest->WriteDupFileDescriptor(inputChannel->getReceivePipeFd());
         dest->WriteDupFileDescriptor(inputChannel->getSendPipeFd());
-    } else {
+    }
+    else {
         dest->WriteInt32(0);
     }
 
@@ -185,7 +169,4 @@ ECode CInputChannel::WriteToParcel(
         Dispose();
     }
     return NOERROR;
-#else
-    return E_NOT_IMPLEMENTED;
-#endif
 }

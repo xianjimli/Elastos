@@ -5,20 +5,20 @@
 #include <elastos/Math.h>
 #include <string.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 const Float CTypedValue::MANTISSA_MULT =
     1.0f / (1<<TypedValue_COMPLEX_MANTISSA_SHIFT);
 const Float CTypedValue::RADIX_MULTS[] = {
-        1.0f*MANTISSA_MULT, 1.0f/(1<<7)*MANTISSA_MULT,
-        1.0f/(1<<15)*MANTISSA_MULT, 1.0f/(1<<23)*MANTISSA_MULT
-    };
+    1.0f*MANTISSA_MULT, 1.0f/(1<<7)*MANTISSA_MULT,
+    1.0f/(1<<15)*MANTISSA_MULT, 1.0f/(1<<23)*MANTISSA_MULT
+};
 const String CTypedValue::DIMENSION_UNIT_STRS[] = {
-        "px", "dip", "sp", "pt", "in", "mm"
-    };
+    String("px"), String("dip"), String("sp"), String("pt"), String("in"), String("mm")
+};
 const String CTypedValue::FRACTION_UNIT_STRS[] = {
-        "%", "%p"
-    };
+    String("%"), String("%p")
+};
 
 CTypedValue::CTypedValue()
     : mType(0)
@@ -203,21 +203,21 @@ ECode CTypedValue::CoerceToStringEx(
             StringBuf_<16> s;
             s.Append("@");
             s.Append(data);
-            *str = String::Duplicate((const char*)s);
+            *str = (const char*)s;
             return NOERROR;
         }
         case TypedValue_TYPE_ATTRIBUTE: {
             StringBuf_<16> s;
             s.Append("?");
             s.Append(data);
-            *str = String::Duplicate((const char*)s);
+            *str = (const char*)s;
             return NOERROR;
         }
         case TypedValue_TYPE_FLOAT: {
             Float f = Math::Int32BitsToFloat(data);
             StringBuf_<32> s;
             s.Append((Double)f);
-            *str = String::Duplicate((const char*)s);
+            *str = (const char*)s;
             return NOERROR;
         }
         case TypedValue_TYPE_DIMENSION: {
@@ -225,7 +225,7 @@ ECode CTypedValue::CoerceToStringEx(
             s.Append((Double)ComplexToFloat(data));
             s.Append(DIMENSION_UNIT_STRS[
                 (data>>TypedValue_COMPLEX_UNIT_SHIFT)&TypedValue_COMPLEX_UNIT_MASK]);
-            *str = String::Duplicate((const char*)s);
+            *str = (const char*)s;
             return NOERROR;
         }
         case TypedValue_TYPE_FRACTION: {
@@ -233,20 +233,20 @@ ECode CTypedValue::CoerceToStringEx(
             s.Append((Double)(ComplexToFloat(data)*100));
             s.Append(FRACTION_UNIT_STRS[
                 (data>>TypedValue_COMPLEX_UNIT_SHIFT)&TypedValue_COMPLEX_UNIT_MASK]);
-            *str = String::Duplicate((const char*)s);
+            *str = (const char*)s;
             return NOERROR;
         }
         case TypedValue_TYPE_INT_HEX: {
             StringBuf_<32> s;
             s.Append("0x");
             s.Append(data, NumberFormat_Hex);
-            *str = String::Duplicate((const char*)s);
+            *str = (const char*)s;
             return NOERROR;
         }
         case TypedValue_TYPE_INT_BOOLEAN: {
             StringBuf_<32> s;
             s.Copy(data != 0 ? "TRUE" : "FALSE");
-            *str = String::Duplicate((const char*)s);
+            *str = (const char*)s;
             return NOERROR;
         }
     }
@@ -255,12 +255,13 @@ ECode CTypedValue::CoerceToStringEx(
         StringBuf_<16> s;
         s.Append("#");
         s.Append(data, NumberFormat_Hex);
-        *str = String::Duplicate((const char*)s);
+        *str = (const char*)s;
         return NOERROR;
-    } else if (type >= TypedValue_TYPE_FIRST_INT && type <= TypedValue_TYPE_LAST_INT) {
+    }
+    else if (type >= TypedValue_TYPE_FIRST_INT && type <= TypedValue_TYPE_LAST_INT) {
         StringBuf_<16> s;
         s.Append(data);
-        *str = String::Duplicate((const char*)s);
+        *str = (const char*)s;
         return NOERROR;
     }
 

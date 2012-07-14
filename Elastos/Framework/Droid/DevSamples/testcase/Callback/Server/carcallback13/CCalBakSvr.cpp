@@ -77,7 +77,7 @@ char * __cdecl _itoa(
 
 ECode CCalBakSvr::Trigger(
     /* [in] */ Int32 nTriggerTimes,
-    /* [in] */ String wstr)
+    /* [in] */ const String& wstr)
 {
     char wcstr[5] = "";
     printf("Trigger Start!\n");

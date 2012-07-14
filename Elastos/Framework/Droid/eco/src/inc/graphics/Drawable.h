@@ -416,7 +416,7 @@ public:
      */
     static CARAPI CreateFromStream(
         /* [in] */ IInputStream* is,
-        /* [in] */ String srcName,
+        /* [in] */ const String& srcName,
         /* [out] */ IDrawable** drawable);
 
     /**
@@ -427,7 +427,7 @@ public:
         /* [in] */ IResources* res,
         /* [in] */ ITypedValue* value,
         /* [in] */ IInputStream* is,
-        /* [in] */ String srcName,
+        /* [in] */ const String& srcName,
         /* [out] */ IDrawable** drawable);
 
     /**
@@ -438,7 +438,7 @@ public:
         /* [in] */ IResources* res,
         /* [in] */ ITypedValue* value,
         /* [in] */ IInputStream* is,
-        /* [in] */ String srcName,
+        /* [in] */ const String& srcName,
         /* [in] */ IBitmapFactoryOptions* opts,
         /* [out] */ IDrawable** drawable);
 
@@ -467,7 +467,7 @@ public:
      * Create a drawable from file path name.
      */
     static CARAPI CreateFromPath(
-        /* [in] */ String pathName,
+        /* [in] */ const String& pathName,
         /* [out] */ IDrawable** drawable);
 
     virtual CARAPI Inflate(
@@ -519,7 +519,7 @@ private:
         /* [in] */ IBitmap* bm,
         /* [in] */ ArrayOf<Byte>* np,
         /* [in] */ IRect* pad,
-        /* [in] */ String srcName,
+        /* [in] */ const String& srcName,
         /* [out] */ IDrawable** drawable);
 
 protected:

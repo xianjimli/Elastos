@@ -2,7 +2,8 @@
 #ifndef __URI_H__
 #define __URI_H__
 
-#include "Elastos.Framework_server.h"
+#include "ext/frameworkext.h"
+#include <elastos/AutoPtr.h>
 #include <elastos/etl_hash_fun.h>
 
 using namespace Elastos;
@@ -18,8 +19,8 @@ public:
 
     public:
         AbstractPart(
-        /* [in] */ String encoded,
-        /* [in] */ String decoded);
+        /* [in] */ const String& encoded,
+        /* [in] */ const String& decoded);
 
         CARAPI GetDecoded(
             /* [out] */ String* decoded);
@@ -29,8 +30,8 @@ public:
     {
     public:
         Part(
-            /* [in] */ String encoded,
-            /* [in] */ String decoded);
+            /* [in] */ const String& encoded,
+            /* [in] */ const String& decoded);
 
         /**
          * Creates a part from the encoded string.
@@ -38,7 +39,7 @@ public:
          * @param encoded part string
          */
         static CARAPI_(Part*) FromEncoded(
-            /* [in] */ String encoded);
+            /* [in] */ const String& encoded);
 
     private:
         /**
@@ -48,18 +49,53 @@ public:
          * @param decoded part string
          */
         static CARAPI_(Part*) From(
-            /* [in] */ String encoded,
-            /* [in] */ String decoded);
+            /* [in] */ const String& encoded,
+            /* [in] */ const String& decoded);
     };
 
 public:
     static CARAPI Parse(
-        /* [in] */ String uriString,
+        /* [in] */ const String& uriString,
         /* [out] */ IUri **ppUri);
 
     static CARAPI Decode(
-        /* [in] */ String str,
+        /* [in] */ const String& str,
         /* [out] */ String* decoded);
+
+    /**
+     * Creates a Uri from a file. The URI has the form
+     * "file://<absolute path>". Encodes path characters with the exception of
+     * '/'.
+     *
+     * <p>Example: "file:///tmp/android.txt"
+     *
+     * @throws NullPointerException if file is null
+     * @return a Uri for the given file
+     */
+    static CARAPI_(AutoPtr<IUri>) FromFile(
+        /* [in] */ IFile* file);
+
+    /**
+     * Creates an opaque Uri from the given components. Encodes the ssp
+     * which means this method cannot be used to create hierarchical URIs.
+     *
+     * @param scheme of the URI
+     * @param ssp scheme-specific-part, everything between the
+     *  scheme separator (':') and the fragment separator ('#'), which will
+     *  get encoded
+     * @param fragment fragment, everything after the '#', null if undefined,
+     *  will get encoded
+     *
+     * @throws NullPointerException if scheme or ssp is null
+     * @return Uri composed of the given scheme, ssp, and fragment
+     *
+     * @see Builder if you don't want the ssp and fragment to be encoded
+     */
+    static CARAPI FromParts(
+        /* [in] */ const String& scheme,
+        /* [in] */ const String& ssp,
+        /* [in] */ const String& fragment,
+        /* [out] */ IUri** uri);
 
 private:
     /**

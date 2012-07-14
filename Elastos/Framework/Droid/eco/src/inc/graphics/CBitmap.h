@@ -339,8 +339,11 @@ private:
         /* [in] */ SkBitmap* nb0,
         /* [in] */ SkBitmap* nb1);
 
+public:
+    Int32           mDensity;
+
 private:
-    static const String TAG;
+    static const char* TAG;
 
     static Mutex sClsLock;
 
@@ -353,10 +356,6 @@ private:
     Int32           mHeight;
     Boolean         mRecycled;
 
-public:
-    Int32           mDensity;
-
-private:
     static AutoPtr<IMatrix> sScaleMatrix;
 
     static Int32 sDefaultDensity;

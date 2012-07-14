@@ -14,8 +14,14 @@ public:
     constructor();
 
     constructor(
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ Int32 index);
+
+    CARAPI GetText(
+        /* [out] */ String* text);
+
+	CARAPI GetOrder(
+		/* [out] */  Int32* order);
 
 private:
     String mText;

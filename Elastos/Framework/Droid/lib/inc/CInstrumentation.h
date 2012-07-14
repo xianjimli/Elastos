@@ -11,8 +11,8 @@ class CInstrumentation : public CBaseObject, public IInstrumentation
 {
 public:
     CARAPI NewApplication(
-        /* [in] */ String moduleName,
-        /* [in] */ String className, 
+        /* [in] */ const String& moduleName,
+        /* [in] */ const String& className, 
         /* [in] */ IContext* ctx, 
         /* [out] */ IApplication** app);
             

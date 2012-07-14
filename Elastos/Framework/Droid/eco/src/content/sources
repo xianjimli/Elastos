@@ -7,6 +7,7 @@ INCLUDES += $(MAKEDIR)/../inc
 INCLUDES += ../
 
 SOURCES = CIntent.cpp
+SOURCES += CAuthorityEntry.cpp
 SOURCES += IntentFilter.cpp
 SOURCES += CIntentFilter.cpp
 SOURCES += CComponentName.cpp
@@ -21,6 +22,7 @@ SOURCES += CContentValues.cpp
 SOURCES += CConfiguration.cpp
 SOURCES += CInstrumentationInfo.cpp
 SOURCES += ContextWrapper.cpp
+SOURCES += CContextWrapper.cpp
 SOURCES += CPathPermission.cpp
 SOURCES += CIntentSender.cpp
 SOURCES += CompatibilityInfo.cpp
@@ -43,3 +45,8 @@ SOURCES += NativeLibraryHelper.cpp
 SOURCES += CParceledListSlice.cpp
 SOURCES += CCapsuleStats.cpp
 SOURCES += CapsuleHelper.cpp
+SOURCES += ContextThemeWrapper.cpp
+SOURCES += CContextThemeWrapper.cpp
+
+
+LIBRARIES += cm/cm.lib

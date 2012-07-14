@@ -9,7 +9,7 @@
 #include <elastos/Math.h>
 #include <elastos/Character.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 Layout::Ellipsizer::Ellipsizer(
     /* [in] */ ICharSequence* s)
@@ -58,7 +58,7 @@ ECode Layout::Ellipsizer::GetCharAt(
 {
     VALIDATE_NOT_NULL(ch);
 
-    BufferOf<Byte>* buf;
+    ArrayOf<Char8>* buf;
     TextUtils::Obtain(5, &buf);
     GetChars(off, off + 1, buf, 0);
     *ch = String((const char*)buf->GetPayload()).GetChar(0);
@@ -70,7 +70,7 @@ ECode Layout::Ellipsizer::GetCharAt(
 ECode Layout::Ellipsizer::GetChars(
     /* [in] */ Int32 start,
     /* [in] */ Int32 end,
-    /* [out] */ BufferOf<Byte>* dest,
+    /* [out] */ ArrayOf<Char8>* dest,
     /* [in] */ Int32 destoff)
 {
     Int32 line1 = mLayout->GetLineForOffset(start);
@@ -99,12 +99,12 @@ ECode Layout::Ellipsizer::SubSequence(
 {
     VALIDATE_NOT_NULL(subcsq);
 
-    BufferOf<Byte>* buf;
+    ArrayOf<Char8>* buf;
     //todo: 5 * (end - start) is not the accurate size
     TextUtils::Obtain(4 * (end - start) + 1, &buf);
     GetChars(start, end, buf, 0);
     FAIL_RETURN(CStringWrapper::New(
-            String::Duplicate((const char*)buf->GetPayload()), subcsq));
+            String((const char*)buf->GetPayload()), subcsq));
 
     TextUtils::Recycle(&buf);
     return NOERROR;
@@ -117,11 +117,11 @@ ECode Layout::Ellipsizer::ToString(
 
     Int32 len;
     GetLength(&len);
-    BufferOf<Byte>* buf;
+    ArrayOf<Char8>* buf;
     //todo: 5 * len is not the accurate size
     TextUtils::Obtain(4 * len + 1, &buf);
     GetChars(0, len, buf, 0);
-    *str = String::Duplicate((const char*)buf->GetPayload());
+    *str = (const char*)buf->GetPayload();
 
     TextUtils::Recycle(&buf);
     return NOERROR;
@@ -223,13 +223,13 @@ ECode Layout::SpannedEllipsizer::SubSequence(
     /* [in] */ Int32 end,
     /* [out] */ ICharSequence** subcsq)
 {
-    BufferOf<Byte>* buf;
+    ArrayOf<Char8>* buf;
     //todo: 5 * len is not the accurate size
     TextUtils::Obtain(4 * (end - start) + 1, &buf);
     GetChars(start, end, buf, 0);
 
     AutoPtr<ICharSequence> tmp;
-    CStringWrapper::New(String::Duplicate((char*)buf->GetPayload()),
+    CStringWrapper::New(String((char*)buf->GetPayload()),
             (ICharSequence**)&tmp);
     AutoPtr<ISpannable> ret;
     FAIL_RETURN(CSpannableString::New(tmp, (ISpannable**)&ret));
@@ -463,7 +463,6 @@ ECode Layout::Draw(
         dbottom = sTempRect->mBottom;
     }
 
-
     Int32 top = 0;
     Int32 bottom = GetLineTop(GetLineCount());
 
@@ -523,7 +522,9 @@ ECode Layout::Draw(
                                      buf, start, end, i);
                 back->Release();
             }
-            ArrayOf<IInterface*>::Free(spans);
+            if (spans != (ArrayOf<IInterface*>*)NO_PARA_SPANS) {
+                ArrayOf<IInterface*>::Free(spans);
+            }
         }
         // reset to their original values
         spanend = 0;
@@ -676,10 +677,13 @@ ECode Layout::Draw(
                      hasTab, spans);
         }
 
-        for (Int32 i = 0; i < spans->GetLength(); i++) {
-            if ((*spans)[i] != NULL) (*spans)[i]->Release();
+        if (spans != (ArrayOf<IInterface*>*)NO_PARA_SPANS) {
+            for (Int32 i = 0; i < spans->GetLength(); i++) {
+                if ((*spans)[i] != NULL)
+                    (*spans)[i]->Release();
+            }
+            ArrayOf<IInterface*>::Free(spans);
         }
-        ArrayOf<IInterface*>::Free(spans);
     }
 
     return NOERROR;
@@ -1832,7 +1836,7 @@ void Layout::DrawText(
     /* [in] */ Boolean hasTabs,
     /* [in] */ ArrayOf<IInterface*>* parspans)
 {
-    BufferOf<Byte>* buf;
+    ArrayOf<Char8>* buf;
     if (!hasTabs) {
         if (directions == DIRS_ALL_LEFT_TO_RIGHT) {
             if (DEBUG) {
@@ -1945,7 +1949,7 @@ Float Layout::MeasureText(
     /* [in] */ Boolean hasTabs,
     /* [in] */ ArrayOf<IInterface*>* tabs)
 {
-    BufferOf<Byte>* buf = NULL;
+    ArrayOf<Char8>* buf = NULL;
 
     if (hasTabs) {
         TextUtils::Obtain(4 * (end - start) + 1, &buf);
@@ -2112,7 +2116,7 @@ Float Layout::MeasureText(
     /* [in] */ Boolean hasTabs,
     /* [in] */ ArrayOf<IInterface*>* tabs)
 {
-    BufferOf<Byte>* buf = NULL;
+    ArrayOf<Char8>* buf = NULL;
 
     if (hasTabs) {
         TextUtils::Obtain(4 * (end - start) + 1, &buf);
@@ -2309,7 +2313,7 @@ void Layout::Ellipsize(
     /* [in] */ Int32 start,
     /* [in] */ Int32 end,
     /* [in] */ Int32 line,
-    /* [out] */ BufferOf<Byte>* dest,
+    /* [out] */ ArrayOf<Char8>* dest,
     /* [in] */ Int32 destoff)
 {
     Int32 ellipsisCount = GetEllipsisCount(line);

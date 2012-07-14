@@ -19,7 +19,7 @@ ECode CInstrumentationInfo::GetSourceDir(
 }
 
 ECode CInstrumentationInfo::SetSourceDir(
-    /* [in] */ String sourceDir)
+    /* [in] */ const String& sourceDir)
 {
     return E_NOT_IMPLEMENTED;
 }

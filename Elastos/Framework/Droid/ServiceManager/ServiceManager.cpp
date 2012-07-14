@@ -13,7 +13,7 @@ ServiceManager::ServiceManager()
 
 ServiceManager::~ServiceManager()
 {
-    HashMap<String, InterfacePack*, 
+    HashMap<String, InterfacePack*,
         Hash<String>, StringEq>::Iterator it = mServices.Begin();
     while (it != mServices.End()) {
         //Pair<const String, InterfacePack*> & pair = *iterator;
@@ -26,14 +26,14 @@ ServiceManager::~ServiceManager()
 }
 
 android::status_t ServiceManager::onTransact(
-    /* [in] */ uint32_t code, 
-    /* [in] */ const android::Parcel& data, 
-    /* [in] */ android::Parcel* reply, 
-    /* [in] */ uint32_t flags) 
+    /* [in] */ uint32_t code,
+    /* [in] */ const android::Parcel& data,
+    /* [in] */ android::Parcel* reply,
+    /* [in] */ uint32_t flags)
 {
     ECode ec = NOERROR;
     const char * name;
-    
+
     switch (code) {
         case ADD_SERVICE: {
             InterfacePack * ip = NULL;
@@ -77,16 +77,16 @@ android::status_t ServiceManager::onTransact(
 }
 
 ECode ServiceManager::AddService(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in] */ InterfacePack * ip)
 {
     // TODO: release key.
-    mServices[String::Duplicate(name)] = ip;
+    mServices[name] = ip;
     return NOERROR;
 }
-        
+
 ECode ServiceManager::GetService(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ InterfacePack * pIp)
 {
     InterfacePack * ip = mServices[name];
@@ -99,7 +99,7 @@ ECode ServiceManager::GetService(
 }
 
 ECode ServiceManager::RemoveService(
-    /* [in] */ String name)
+    /* [in] */ const String& name)
 {
     void * buf = mServices[name];
     if (buf) {

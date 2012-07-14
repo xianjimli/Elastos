@@ -8,13 +8,12 @@
 #include "widget/OverScroller.h"
 #include "widget/FastScroller.h"
 #include "utils/CDisplayMetrics.h"
-#include "utils/CObjectContainer.h"
 #include <elastos/Math.h>
 #include <Logger.h>
 #include <StringBuffer.h>
 
 using namespace Elastos::Utility::Logging;
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 const Int32 AbsListView::TOUCH_MODE_REST;
 const Int32 AbsListView::TOUCH_MODE_DOWN;
@@ -59,12 +58,8 @@ ECode AbsListView::CheckForTap::Run()
             mHost->mMotionPosition - mHost->mFirstPosition);
 
         Boolean hasFocusable = TRUE;
-        if (child != NULL) {
-            child->HasFocusable(&hasFocusable);
-        }
-        if (!hasFocusable) {
+        if (child != NULL && (child->HasFocusable(&hasFocusable), !hasFocusable)) {
             mHost->mLayoutMode = mHost->LAYOUT_NORMAL;
-
             if (!mHost->mDataChanged) {
                 mHost->LayoutChildren();
                 child->SetPressed(TRUE);
@@ -483,9 +478,9 @@ ECode AbsListView::AbsListViewPerformClick::Run()
         if (mHost->mItemCount > 0 && motionPosition < count &&
             motionPosition != AdapterView_INVALID_POSITION &&
             SameWindow()) {
-                Int64 itemId;
-                adapter->GetItemId(motionPosition, &itemId);
-                mHost->PerformItemClick(mChild, motionPosition, itemId);
+            Int64 itemId;
+            adapter->GetItemId(motionPosition, &itemId);
+            mHost->PerformItemClick(mChild, motionPosition, itemId);
         }
     }
 
@@ -565,7 +560,8 @@ AbsListView::OnTouchEventRunnable::OnTouchEventRunnable(
     /* [in] */ IView* child)
     : mHost(host)
     , mChild(child)
-{}
+{
+}
 
 ECode AbsListView::OnTouchEventRunnable::Run()
 {
@@ -576,6 +572,7 @@ ECode AbsListView::OnTouchEventRunnable::Run()
             (IRunnable*)mHost->mPerformClick->Probe(EIID_IRunnable));
     }
     mHost->mTouchMode = mHost->TOUCH_MODE_REST;
+    Release();
 
     return NOERROR;
 }
@@ -1230,9 +1227,13 @@ ECode AbsListView::SetOverScrollMode(
             AutoPtr<IResources> res;
             GetContext()->GetResources((IResources**)&res);
             AutoPtr<IDrawable> edge;
-            //res.getDrawable(R.drawable.overscroll_edge);
+            res->GetDrawable(
+                0x01080238/*R.drawable.overscroll_edge*/, (IDrawable**)&edge);
             AutoPtr<IDrawable> glow;
-            //res.getDrawable(R.drawable.overscroll_glow);
+            res->GetDrawable(
+                0x01080239/*R.drawable.overscroll_glow*/, (IDrawable**)&glow);
+            //printf("AbsListView::SetOverScrollMode edge = 0x%08x, glow = 0x%08x\n",
+                //edge.Get(), glow.Get());
             mEdgeGlowTop = new EdgeGlow(edge, glow);
             mEdgeGlowBottom = new EdgeGlow(edge, glow);
         }
@@ -1483,8 +1484,11 @@ ECode AbsListView::GetFocusedRect(
 
 void AbsListView::UseDefaultSelector()
 {
-    //SetSelector(getResources().getDrawable(
-    //        com.android.internal.R.drawable.list_selector_background));
+    AutoPtr<IDrawable> drawable;
+    GetResources()->GetDrawable(
+        0x01080062/*com.android.internal.R.drawable.list_selector_background*/,
+        (IDrawable**)&drawable);
+    SetSelector(drawable);
 }
 
 /**
@@ -1583,7 +1587,6 @@ AutoPtr<IParcelable> AbsListView::OnSaveInstanceState()
         }
     }
 
-    String::Free(ss->mFilter);
     if (mFiltered) {
         //final EditText textFilter = mTextFilter;
         //if (textFilter != NULL) {
@@ -1650,7 +1653,7 @@ Boolean AbsListView::AcceptFilter()
  * @see #setTextFilterEnabled
  */
 ECode AbsListView::SetFilterText(
-    /* [in] */ String filterText)
+    /* [in] */ const String& filterText)
 {
     // TODO: Should we check for acceptFilter()?
     if (mTextFilterEnabled && !filterText.IsNullOrEmpty()) {
@@ -2211,6 +2214,12 @@ Boolean AbsListView::ShouldShowSelector()
 void AbsListView::DrawSelector(
     /* [in] */ ICanvas* canvas)
 {
+    //TODO:
+    //
+    if (mSelector == NULL) {
+        return;
+    }
+
     Boolean isEmpty = TRUE;
     if (mSelectorRect != NULL) {
         mSelectorRect->IsEmpty(&isEmpty);
@@ -2264,6 +2273,12 @@ ECode AbsListView::SetSelector(
     }
 
     mSelector = sel;
+    //TODO:
+    //
+    if (sel == NULL) {
+        return NOERROR;
+    }
+
     AutoPtr<CRect> padding;
     assert(SUCCEEDED(CRect::NewByFriend((CRect**)&padding)));
 
@@ -2680,7 +2695,6 @@ Int32 AbsListView::PointToPosition(
     return AdapterView_INVALID_POSITION;
 }
 
-
 /**
  * Maps a point to a the rowId of the item which intersects that point.
  *
@@ -2777,6 +2791,7 @@ ECode AbsListView::OnTouchModeChanged(
 Boolean AbsListView::OnTouchEvent(
     /* [in] */ IMotionEvent* ev)
 {
+    //printf("AbsListView::OnTouchEvent--------------1\n");
     if (!IsEnabled()) {
         // A disabled view that is clickable still consumes the touch
         // events, it just doesn't respond to them.
@@ -2796,14 +2811,16 @@ Boolean AbsListView::OnTouchEvent(
     AutoPtr<IView> v;
     Int32 deltaY;
 
-    //if (mVelocityTracker == NULL) {
-    //    mVelocityTracker = VelocityTracker::Obtain();
-    //}
-    //mVelocityTracker->AddMovement(ev);
+    if (mVelocityTracker == NULL) {
+        mVelocityTracker = VelocityTracker::Obtain();
+    }
+    mVelocityTracker->AddMovement(ev);
 
+    //printf("AbsListView::OnTouchEvent action = 0x%08x--------------2\n", action);
     switch (action & MotionEvent_ACTION_MASK) {
     case MotionEvent_ACTION_DOWN:
         {
+            //printf("AbsListView::OnTouchEvent--------------3\n");
             switch (mTouchMode) {
             case TOUCH_MODE_OVERFLING:
                 {
@@ -2962,7 +2979,7 @@ Boolean AbsListView::OnTouchEvent(
 
                             if (Math::Abs(mOverscrollDistance) == Math::Abs(mScrollY)) {
                                 // Don't allow overfling if we're at the edge.
-                                //mVelocityTracker->Clear();
+                                mVelocityTracker->Clear();
                             }
 
                             Int32 overscrollMode = GetOverScrollMode();
@@ -3062,7 +3079,7 @@ Boolean AbsListView::OnTouchEvent(
 
                         if (Math::Abs(mOverscrollDistance) == Math::Abs(mScrollY)) {
                             // Don't allow overfling if we're at the edge.
-                            //mVelocityTracker->Clear();
+                            mVelocityTracker->Clear();
                         }
                     }
                     mLastY = y;
@@ -3076,19 +3093,19 @@ Boolean AbsListView::OnTouchEvent(
         break;
     case MotionEvent_ACTION_UP:
         {
+            //printf("AbsListView::OnTouchEvent--------------5\n");
             switch (mTouchMode) {
             case TOUCH_MODE_DOWN:
             case TOUCH_MODE_TAP:
             case TOUCH_MODE_DONE_WAITING:
                 {
+                    //printf("AbsListView::OnTouchEvent--------------6\n");
                     Int32 motionPosition = mMotionPosition;
                     AutoPtr<IView> child = GetChildAt(
                         motionPosition - mFirstPosition);
-                    Boolean hasFocusable = TRUE;
-                    if (child != NULL) {
-                        child->HasFocusable(&hasFocusable);
-                    }
-                    if (!hasFocusable) {
+                    Boolean hasFocusable;
+                    if (child != NULL && (child->HasFocusable(&hasFocusable),
+                        !hasFocusable)) {
                         if (mTouchMode != TOUCH_MODE_DOWN) {
                             child->SetPressed(FALSE);
                         }
@@ -3117,6 +3134,7 @@ Boolean AbsListView::OnTouchEvent(
                             if (!mDataChanged && isEnabled) {
                                 mTouchMode = TOUCH_MODE_TAP;
                                 SetSelectedPositionInt(mMotionPosition);
+                                //printf("mMotionPosition = %d\n", mMotionPosition);
                                 LayoutChildren();
                                 child->SetPressed(TRUE);
                                 PositionSelector(child);
@@ -3131,6 +3149,7 @@ Boolean AbsListView::OnTouchEvent(
 
                                 AutoPtr<OnTouchEventRunnable> runnable =
                                     new OnTouchEventRunnable(this, child);
+                                runnable->AddRef();
                                 PostDelayed(
                                     (IRunnable*)runnable->Probe(EIID_IRunnable),
                                     ViewConfiguration::GetPressedStateDuration());
@@ -3149,6 +3168,7 @@ Boolean AbsListView::OnTouchEvent(
                 break;
             case TOUCH_MODE_SCROLL:
                 {
+                    //printf("AbsListView::OnTouchEvent--------------7\n");
                     Int32 childCount = GetChildCount();
                     if (childCount > 0) {
                         Int32 firstChildTop;
@@ -3165,10 +3185,8 @@ Boolean AbsListView::OnTouchEvent(
                                 ReportScrollStateChange(OnScrollListener_SCROLL_STATE_IDLE);
                         }
                         else {
-                            //VelocityTracker velocityTracker = mVelocityTracker;
-                            //velocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
-                            //final Int32 initialVelocity = (Int32) velocityTracker.getYVelocity(mActivePointerId);
-                            Int32 initialVelocity = 0;
+                            mVelocityTracker->ComputeCurrentVelocity(1000, mMaximumVelocity);
+                            Int32 initialVelocity = (Int32)mVelocityTracker->GetYVelocity(mActivePointerId);
 
                             // Fling if we have enough velocity and we aren't at a boundary.
                             // Since we can potentially overfling more than we can overscroll, don't
@@ -3200,14 +3218,13 @@ Boolean AbsListView::OnTouchEvent(
                 break;
             case TOUCH_MODE_OVERSCROLL:
                 {
+                    //printf("AbsListView::OnTouchEvent--------------8\n");
                     if (mFlingRunnable == NULL) {
                         mFlingRunnable = new FlingRunnable(this);
                     }
 
-                    //final VelocityTracker velocityTracker = mVelocityTracker;
-                    //velocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
-                    //final Int32 initialVelocity = (Int32) velocityTracker.getYVelocity(mActivePointerId);
-                    Int32 initialVelocity = 0;
+                    mVelocityTracker->ComputeCurrentVelocity(1000, mMaximumVelocity);
+                    Int32 initialVelocity = (Int32)mVelocityTracker->GetYVelocity(mActivePointerId);
 
                     ReportScrollStateChange(OnScrollListener_SCROLL_STATE_FLING);
                     if (Math::Abs(initialVelocity) > mMinimumVelocity) {
@@ -3222,6 +3239,7 @@ Boolean AbsListView::OnTouchEvent(
                 break;
             }
 
+            //printf("AbsListView::OnTouchEvent--------------9\n");
             SetPressed(FALSE);
 
             if (mEdgeGlowTop != NULL) {
@@ -3237,10 +3255,10 @@ Boolean AbsListView::OnTouchEvent(
             //    handler.removeCallbacks(mPendingCheckForLongPress);
             //}
 
-            //if (mVelocityTracker != NULL) {
-            //    mVelocityTracker->Recycle();
-            //    mVelocityTracker = NULL;
-            //}
+            if (mVelocityTracker != NULL) {
+                mVelocityTracker->Recycle();
+                mVelocityTracker = NULL;
+            }
 
             mActivePointerId = INVALID_POINTER;
 
@@ -3281,10 +3299,10 @@ Boolean AbsListView::OnTouchEvent(
                 //    handler.removeCallbacks(mPendingCheckForLongPress);
                 //}
 
-                //if (mVelocityTracker != NULL) {
-                //    mVelocityTracker->Recycle();
-                //    mVelocityTracker = NULL;
-                //}
+                if (mVelocityTracker != NULL) {
+                    mVelocityTracker->Recycle();
+                    mVelocityTracker = NULL;
+                }
             }
 
             if (mEdgeGlowTop != NULL) {
@@ -3314,6 +3332,7 @@ Boolean AbsListView::OnTouchEvent(
         break;
     }
 
+    //printf("AbsListView::OnTouchEvent--------------10\n");
     return TRUE;
 }
 
@@ -3328,9 +3347,9 @@ void AbsListView::OnOverScrolled(
 
     if (clampedY) {
         // Velocity is broken by hitting the limit; don't start a fling off of this.
-        //if (mVelocityTracker != NULL) {
-        //    mVelocityTracker->Clear();
-        //}
+        if (mVelocityTracker != NULL) {
+            mVelocityTracker->Clear();
+        }
     }
     AwakenScrollBars();
 }
@@ -3351,7 +3370,8 @@ ECode AbsListView::Draw(
                 0, scrollY + mFirstPositionDistanceGuess));
             mEdgeGlowTop->SetSize(width * 2, GetHeight());
             if (mEdgeGlowTop->Draw(canvas)) {
-                Invalidate();
+                //Invalidate();
+                printf("=====%s, %d=====Invalidate()\n", __FILE__, __LINE__);
             }
             canvas->RestoreToCount(restoreCount);
         }
@@ -3367,7 +3387,7 @@ ECode AbsListView::Draw(
             canvas->RotateEx(180, width, 0);
             mEdgeGlowBottom->SetSize(width * 2, height);
             if (mEdgeGlowBottom->Draw(canvas)) {
-                Invalidate();
+                //Invalidate();
             }
             canvas->RestoreToCount(restoreCount);
         }
@@ -3503,9 +3523,9 @@ void AbsListView::OnSecondaryPointerUp(
         mMotionY = (Int32)fy;
         mMotionCorrection = 0;
         ev->GetPointerId(newPointerIndex, &mActivePointerId);
-        //if (mVelocityTracker != NULL) {
-        //    mVelocityTracker->Clear();
-        //}
+        if (mVelocityTracker != NULL) {
+            mVelocityTracker->Clear();
+        }
     }
 }
 
@@ -3734,7 +3754,6 @@ Boolean AbsListView::TrackMotionScroll(
                 Int32 position = firstPosition + i;
                 if (position >= headerViewsCount && position < footerViewsStart) {
                     mRecycler->AddScrapView(child);
-
                     //if (ViewDebug.TRACE_RECYCLER) {
                     //    ViewDebug.trace(child,
                     //            ViewDebug.RecyclerTraceType.MOVE_TO_SCRAP_HEAP,
@@ -3777,6 +3796,7 @@ Boolean AbsListView::TrackMotionScroll(
     if (count > 0) {
         DetachViewsFromParent(start, count);
     }
+
     OffsetChildrenTopAndBottom(incrementalDeltaY);
 
     if (down) {
@@ -4790,6 +4810,21 @@ ECode AbsListView::SetRecyclerListener(
     return NOERROR;
 }
 
+static Int32 R_Styleable_View[] = {
+    0x01010063, 0x01010064, 0x01010065, 0x01010066,
+    0x01010067, 0x01010068, 0x01010069, 0x0101007f,
+    0x010100d0, 0x010100d1, 0x010100d2, 0x010100d3,
+    0x010100d4, 0x010100d5, 0x010100d6, 0x010100d7,
+    0x010100d8, 0x010100d9, 0x010100da, 0x010100db,
+    0x010100dc, 0x010100dd, 0x010100de, 0x010100df,
+    0x010100e0, 0x010100e1, 0x010100e2, 0x010100e3,
+    0x010100e4, 0x010100e5, 0x010100e6, 0x010100e7,
+    0x010100e8, 0x010100e9, 0x0101013f, 0x01010140,
+    0x01010215, 0x01010216, 0x0101024e, 0x0101025e,
+    0x0101026f, 0x01010273, 0x010102a8, 0x010102a9,
+    0x010102aa, 0x010102c1, 0x010102c4
+};
+
 ECode AbsListView::Init(
     /* [in] */ IContext* context)
 {
@@ -4798,13 +4833,21 @@ ECode AbsListView::Init(
     InitAbsListView();
 
     SetVerticalScrollBarEnabled(TRUE);
-    //AutoPtr<ITypedArray> a;
-    //context->ObtainStyledAttributes(R.styleable.View, (ITypedArray**)&a);
-    //InitializeScrollbars(a);
-    //a->Recycle();
+    AutoPtr<ITypedArray> a;
+    context->ObtainStyledAttributes(
+        ArrayOf<Int32>(R_Styleable_View,
+        sizeof(R_Styleable_View) / sizeof(Int32)), (ITypedArray**)&a);
+    InitializeScrollbars(a);
+    a->Recycle();
 
     return NOERROR;
 }
+
+static Int32 R_Styleable_AbsListView[] = {
+    0x010100fb, 0x010100fc, 0x010100fd, 0x010100fe,
+    0x010100ff, 0x01010100, 0x01010101, 0x01010226,
+    0x01010231
+};
 
 ECode AbsListView::Init(
     /* [in] */ IContext* context,
@@ -4815,40 +4858,69 @@ ECode AbsListView::Init(
 
     InitAbsListView();
 
-    //TypedArray a = context.obtainStyledAttributes(attrs,
-    //        com.android.internal.R.styleable.AbsListView, defStyle, 0);
+    AutoPtr<ITypedArray> a;
+    context->ObtainStyledAttributesEx3(
+        attrs, ArrayOf<Int32>(R_Styleable_AbsListView,
+        sizeof(R_Styleable_AbsListView) / sizeof(Int32)),//com.android.internal.R.styleable.AbsListView
+        defStyle, 0, (ITypedArray**)&a);
 
-    //Drawable d = a.getDrawable(com.android.internal.R.styleable.AbsListView_listSelector);
-    //if (d != NULL) {
-    //    setSelector(d);
-    //}
+    AutoPtr<IDrawable> d;
+    a->GetDrawable(
+        0/*com.android.internal.R.styleable.AbsListView_listSelector*/,
+        (IDrawable**)&d);
+    //printf("AbsListView::Init listSelector = 0x%08x\n", d.Get());
+    if (d != NULL) {
+        SetSelector(d);
+    }
 
-    //mDrawSelectorOnTop = a.getBoolean(
-    //        com.android.internal.R.styleable.AbsListView_drawSelectorOnTop, FALSE);
+    a->GetBoolean(
+        1/*com.android.internal.R.styleable.AbsListView_drawSelectorOnTop*/,
+        FALSE, &mDrawSelectorOnTop);
 
-    //Boolean stackFromBottom = a.getBoolean(R.styleable.AbsListView_stackFromBottom, FALSE);
-    //setStackFromBottom(stackFromBottom);
+    Boolean stackFromBottom;
+    a->GetBoolean(
+        2/*R.styleable.AbsListView_stackFromBottom*/,
+        FALSE, &stackFromBottom);
 
-    //Boolean scrollingCacheEnabled = a.getBoolean(R.styleable.AbsListView_scrollingCache, TRUE);
-    //setScrollingCacheEnabled(scrollingCacheEnabled);
+    SetStackFromBottom(stackFromBottom);
 
-    //Boolean useTextFilter = a.getBoolean(R.styleable.AbsListView_textFilterEnabled, FALSE);
-    //setTextFilterEnabled(useTextFilter);
+    Boolean scrollingCacheEnabled;
+    a->GetBoolean(
+        3/*R.styleable.AbsListView_scrollingCache*/, TRUE,
+        &scrollingCacheEnabled);
+    SetScrollingCacheEnabled(scrollingCacheEnabled);
 
-    //Int32 transcriptMode = a.getInt(R.styleable.AbsListView_transcriptMode,
-    //        AbsListView_TRANSCRIPT_MODE_DISABLED);
-    //setTranscriptMode(transcriptMode);
+    Boolean useTextFilter;
+    a->GetBoolean(
+        4/*R.styleable.AbsListView_textFilterEnabled*/, FALSE,
+        &useTextFilter);
+    SetTextFilterEnabled(useTextFilter);
 
-    //Int32 color = a.getColor(R.styleable.AbsListView_cacheColorHint, 0);
-    //setCacheColorHint(color);
+    Int32 transcriptMode;
+    a->GetInt32(
+        5/*R.styleable.AbsListView_transcriptMode*/,
+        AbsListView_TRANSCRIPT_MODE_DISABLED, &transcriptMode);
+    SetTranscriptMode(transcriptMode);
 
-    //Boolean enableFastScroll = a.getBoolean(R.styleable.AbsListView_fastScrollEnabled, FALSE);
-    //setFastScrollEnabled(enableFastScroll);
+    Int32 color;
+    a->GetColor(
+        6/*R.styleable.AbsListView_cacheColorHint*/,
+        0, &color);
+    SetCacheColorHint(color);
 
-    //Boolean smoothScrollbar = a.getBoolean(R.styleable.AbsListView_smoothScrollbar, TRUE);
-    //setSmoothScrollbarEnabled(smoothScrollbar);
+    Boolean enableFastScroll;
+    a->GetBoolean(
+        7/*R.styleable.AbsListView_fastScrollEnabled*/,
+        FALSE, &enableFastScroll);
+    SetFastScrollEnabled(enableFastScroll);
 
-    //a.recycle();
+    Boolean smoothScrollbar;
+    a->GetBoolean(
+        8/*R.styleable.AbsListView_smoothScrollbar*/,
+        TRUE, &smoothScrollbar);
+    SetSmoothScrollbarEnabled(smoothScrollbar);
+
+    a->Recycle();
 
     return NOERROR;
 }

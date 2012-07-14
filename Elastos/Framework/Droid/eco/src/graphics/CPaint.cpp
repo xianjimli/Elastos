@@ -528,7 +528,7 @@ ECode CPaint::GetFontSpacing(
 }
 
 ECode CPaint::MeasureText(
-    /* [in] */ const BufferOf<Byte> & text,
+    /* [in] */ const ArrayOf<Char8> & text,
     /* [in] */ Int32 index,
     /* [in] */ Int32 count,
     /* [out] */ Float* width)
@@ -539,7 +539,7 @@ ECode CPaint::MeasureText(
 }
 
 ECode CPaint::MeasureTextEx(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ Int32 start,
     /* [in] */ Int32 end,
     /* [out] */ Float* width)
@@ -550,7 +550,7 @@ ECode CPaint::MeasureTextEx(
 }
 
 ECode CPaint::MeasureTextEx2(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [out] */ Float* width)
 {
     VALIDATE_NOT_NULL(width);
@@ -570,7 +570,7 @@ ECode CPaint::MeasureTextEx3(
 }
 
 ECode CPaint::BreakText(
-    /* [in] */ const BufferOf<Byte> & text,
+    /* [in] */ const ArrayOf<Char8> & text,
     /* [in] */ Int32 index,
     /* [in] */ Int32 count,
     /* [in] */ Float maxWidth,
@@ -597,7 +597,7 @@ ECode CPaint::BreakTextEx(
 }
 
 ECode CPaint::BreakTextEx2(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ Boolean measureForwards,
     /* [in] */ Float maxWidth,
     /* [in] */ ArrayOf<Float>* measuredWidth,
@@ -609,7 +609,7 @@ ECode CPaint::BreakTextEx2(
 }
 
 ECode CPaint::GetTextWidths(
-    /* [in] */ const BufferOf<Byte> & text,
+    /* [in] */ const ArrayOf<Char8> & text,
     /* [in] */ Int32 index,
     /* [in] */ Int32 count,
     /* [in] */ ArrayOf<Float>* widths,
@@ -633,7 +633,7 @@ ECode CPaint::GetTextWidthsEx(
 }
 
 ECode CPaint::GetTextWidthsEx2(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ Int32 start,
     /* [in] */ Int32 end,
     /* [in] */ ArrayOf<Float>* widths,
@@ -645,7 +645,7 @@ ECode CPaint::GetTextWidthsEx2(
 }
 
 ECode CPaint::GetTextWidthsEx3(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ ArrayOf<Float>* widths,
     /* [out] */ Int32* width)
 {
@@ -655,7 +655,7 @@ ECode CPaint::GetTextWidthsEx3(
 }
 
 ECode CPaint::GetTextPath(
-    /* [in] */ const BufferOf<Byte> & text,
+    /* [in] */ const ArrayOf<Char8> & text,
     /* [in] */ Int32 index,
     /* [in] */ Int32 count,
     /* [in] */ Float x,
@@ -666,7 +666,7 @@ ECode CPaint::GetTextPath(
 }
 
 ECode CPaint::GetTextPathEx(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ Int32 start,
     /* [in] */ Int32 end,
     /* [in] */ Float x,
@@ -677,7 +677,7 @@ ECode CPaint::GetTextPathEx(
 }
 
 ECode CPaint::GetTextBounds(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ Int32 start,
     /* [in] */ Int32 end,
     /* [in] */ IRect* bounds)
@@ -686,7 +686,7 @@ ECode CPaint::GetTextBounds(
 }
 
 ECode CPaint::GetTextBoundsEx(
-    /* [in] */ const BufferOf<Byte> & text,
+    /* [in] */ const ArrayOf<Char8> & text,
     /* [in] */ Int32 index,
     /* [in] */ Int32 count,
     /* [in] */ IRect* bounds)

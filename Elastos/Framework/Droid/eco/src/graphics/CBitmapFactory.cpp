@@ -1,4 +1,5 @@
 
+#include "ext/frameworkdef.h"
 #include "graphics/CBitmapFactory.h"
 #include "graphics/CBitmap.h"
 #include "graphics/CBitmapFactoryOptions.h"
@@ -13,8 +14,8 @@
 #include "graphics/AutoDecoderCancel.h"
 #include "utils/CTypedValue.h"
 #include "utils/CDisplayMetrics.h"
+#include "utils/ResourceTypes.h"
 #include "os/MemoryFile.h"
-#include "ext/frameworkdef.h"
 #include <Elastos.IO.h>
 #include <elastos/AutoPtr.h>
 #include <skia/core/SkStream.h>
@@ -26,33 +27,32 @@
 #include <elastos/Math.h>
 #include <Logger.h>
 #include <StringBuffer.h>
-#include <utils/ResourceTypes.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
 ////////////////////////////////////////////////////////////////////////////////
 // NinePatchPeeker
 
-class NinePatchPeeker : public SkImageDecoder::Peeker {
-    SkImageDecoder* mHost;
+class NinePatchPeeker : public SkImageDecoder::Peeker
+{
 public:
-    NinePatchPeeker(SkImageDecoder* host) {
+    NinePatchPeeker(SkImageDecoder* host)
+    {
         // the host lives longer than we do, so a raw ptr is safe
         mHost = host;
         mPatchIsValid = false;
     }
 
-    ~NinePatchPeeker() {
+    ~NinePatchPeeker()
+    {
         if (mPatchIsValid) {
             free(mPatch);
         }
     }
 
-    bool    mPatchIsValid;
-    android::Res_png_9patch*  mPatch;
-
-    virtual bool peek(const char tag[], const void* data, size_t length) {
+    virtual bool peek(const char tag[], const void* data, size_t length)
+    {
         if (strcmp("npTc", tag) == 0 && length >= sizeof(android::Res_png_9patch)) {
             android::Res_png_9patch* patch = (android::Res_png_9patch*) data;
             size_t patchSize = patch->serializedSize();
@@ -89,12 +89,19 @@ public:
         }
         return true;    // keep on decoding
     }
+
+public:
+    bool    mPatchIsValid;
+    android::Res_png_9patch*  mPatch;
+
+private:
+    SkImageDecoder* mHost;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 // CBitmapFactory
 
-const String CBitmapFactory::TAG = "CBitmapFactory";
+const char* CBitmapFactory::TAG = "CBitmapFactory";
 
 ECode CBitmapFactory::CreateBitmap(
     /* [in] */ IBitmap* source,
@@ -289,7 +296,7 @@ ECode CBitmapFactory::CreateBitmapEx5(
 }
 
 ECode CBitmapFactory::DecodeFile(
-    /* [in] */ String pathName,
+    /* [in] */ const String& pathName,
     /* [in] */ IBitmapFactoryOptions * pOpts,
     /* [out] */ IBitmap ** ppBitmap)
 {
@@ -298,24 +305,24 @@ ECode CBitmapFactory::DecodeFile(
     }
 
     ECode ec = NOERROR;
-    IInputStream* stream = NULL;
+    AutoPtr<IFileInputStream> fstream;
 
-    ec = CFileInputStream::New(pathName, &stream);
+    ec = CFileInputStream::New(pathName, (IFileInputStream**)&fstream);
     if (FAILED(ec)) {
         return ec;
     }
 
-    ec = DecodeStream(stream, NULL, pOpts, ppBitmap);
+    ec = DecodeStream((IInputStream*)fstream.Get(), NULL, pOpts, ppBitmap);
     if (FAILED(ec)) {
         return ec;
     }
 
-    stream->Close();
+    fstream->Close();
     return ec;
 }
 
 ECode CBitmapFactory::DecodeFileEx(
-    /* [in] */ String pathName,
+    /* [in] */ const String& pathName,
     /* [out] */ IBitmap ** ppBitmap)
 {
     if (!ppBitmap) {
@@ -452,8 +459,8 @@ ECode CBitmapFactory::DecodeStream(
         if (tempStorage == NULL) tempStorage = ArrayOf<Byte>::Alloc(16 * 1024);
         if (tempStorage == NULL) return E_OUT_OF_MEMORY_ERROR;
 
-        BufferOf<Byte> buf(tempStorage->GetPayload(), tempStorage->GetLength());
-        FAIL_RETURN(DecodeStreamInner(is, &buf, outPadding, opts, (IBitmap**)&bm));
+        ArrayOf<Byte> buf(tempStorage->GetPayload(), tempStorage->GetLength());
+        FAIL_RETURN(NativeDecodeStream(is, &buf, outPadding, opts, (IBitmap**)&bm));
     }
 
     return FinishDecode(bm.Get(), outPadding, opts, bitmap);
@@ -501,6 +508,11 @@ ECode CBitmapFactory::DecodeFileDescriptorEx(
 ECode CBitmapFactory::SetDefaultConfig(
     /* [in] */ BitmapConfig config)
 {
+    if (config == -1) {
+        // pick this for now, as historically it was our default.
+        // However, if we have a smarter algorithm, we can change this.
+        config = BitmapConfig_RGB_565;
+    }
     NativeSetDefaultConfig(config);
     return NOERROR;
 }
@@ -562,9 +574,9 @@ ECode CBitmapFactory::FinishDecode(
     return NOERROR;
 }
 
-ECode CBitmapFactory::DecodeStreamInner(
+ECode CBitmapFactory::NativeDecodeStream(
     /* [in] */ IInputStream* pIs,
-    /* [in] */ BufferOf<Byte>* storage,
+    /* [in] */ ArrayOf<Byte>* storage,
     /* [in] */ IRect* pOutPadding,
     /* [in] */ IBitmapFactoryOptions* pOpts,
     /* [out] */ IBitmap ** ppBitmap)
@@ -608,7 +620,7 @@ ECode CBitmapFactory::DoDecode(
         coptions->mOutMimeType = String(NULL);
 
         Int32 config = coptions->mInPreferredConfig;
-        prefConfig = (SkBitmap::Config)config; // GraphicsJNI::getNativeBitmapConfig(env, jconfig);
+        prefConfig = Graphics::GetNativeBitmapConfig(config);
         doDither = coptions->mInDither;
         preferQualityOverSpeed = coptions->mInPreferQualityOverSpeed;
     }
@@ -761,7 +773,7 @@ void CBitmapFactory::GetMimeTypeString(
         }
     }
 
-    *typeStr = String::Duplicate(cstr);
+    *typeStr = cstr;
 }
 
 SkStream* CBitmapFactory::CopyAssetToStream(
@@ -821,13 +833,12 @@ ECode CBitmapFactory::NativeDecodeFileDescriptor(
     Int32 descriptor = 0;
     fd->GetDescriptor(&descriptor);
 
-    AutoPtr<CBitmapFactoryOptions> copts = (CBitmapFactoryOptions*)opts;
+    CBitmapFactoryOptions* copts = (CBitmapFactoryOptions*)opts;
     Boolean isPurgeable = copts != NULL && copts->mInPurgeable;
     Boolean isShareable = copts != NULL && copts->mInInputShareable;
     Boolean weOwnTheFD = FALSE;
     if (isPurgeable && isShareable) {
-        Int32 newFD;
-        fd->GetNative(&newFD);
+        Int32 newFD = ::dup(descriptor);
         if (-1 != newFD) {
             weOwnTheFD = TRUE;
             descriptor = newFD;
@@ -837,6 +848,7 @@ ECode CBitmapFactory::NativeDecodeFileDescriptor(
     SkFDStream* stream = new SkFDStream(descriptor, weOwnTheFD);
     SkAutoUnref aur(stream);
     if (!stream->isValid()) {
+        *bitmap = NULL;
         return E_RUNTIME_EXCEPTION;
     }
 
@@ -891,8 +903,9 @@ ECode CBitmapFactory::NativeDecodeByteArray(
         if optionsPurgeable().
      */
     Byte* ar = data.GetPayload();
-    SkStream* stream = new SkMemoryStream(ar + offset, length,
-                          ((CBitmapFactoryOptions*)opts)->mInPurgeable);
+    CBitmapFactoryOptions* copts = (CBitmapFactoryOptions*)opts;
+    Boolean isPurgeable = copts != NULL && copts->mInPurgeable;
+    SkStream* stream = new SkMemoryStream(ar + offset, length, isPurgeable);
     SkAutoUnref aur(stream);
     return DoDecode(stream, NULL, opts, TRUE, FALSE, bitmap);
 }
@@ -905,7 +918,7 @@ ECode CBitmapFactory::NativeScaleNinePatch(
     Byte* array = chunkObject.GetPayload();
     if (array != NULL) {
         Int32 chunkSize = chunkObject.GetLength();
-        void* storage = malloc(chunkSize);
+        void* storage = alloca(chunkSize);
         android::Res_png_9patch* chunk = static_cast<android::Res_png_9patch*>(storage);
         memcpy(chunk, array, chunkSize);
         android::Res_png_9patch::deserialize(chunk);

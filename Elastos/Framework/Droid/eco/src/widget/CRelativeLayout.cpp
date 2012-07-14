@@ -7,7 +7,14 @@ IVIEWGROUP_METHODS_IMPL(CRelativeLayout, RelativeLayout, RelativeLayout);
 
 IVIEWPARENT_METHODS_IMPL(CRelativeLayout, RelativeLayout, RelativeLayout);
 
-//IKeyEventCallback_METHODS_IMPL(CRelativeLayout, RelativeLayout, RelativeLayout);
+IVIEWMANAGER_METHODS_IMPL(CRelativeLayout, RelativeLayout, RelativeLayout);
+
+IDrawableCallback_METHODS_IMPL(CRelativeLayout, RelativeLayout, RelativeLayout);
+
+IKeyEventCallback_METHODS_IMPL(CRelativeLayout, RelativeLayout, RelativeLayout);
+
+IAccessibilityEventSource_METHODS_IMPL(CRelativeLayout, RelativeLayout, RelativeLayout);
+
 
 ECode CRelativeLayout::constructor(
     /* [in] */ IContext * pCtx)

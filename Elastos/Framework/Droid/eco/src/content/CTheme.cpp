@@ -170,8 +170,8 @@ ECode CTheme::ResolveAttribute(
 
 ECode CTheme::Dump(
     /* [in] */ Int32 priority,
-    /* [in] */ String tag,
-    /* [in] */ String prefix)
+    /* [in] */ const String& tag,
+    /* [in] */ const String& prefix)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;

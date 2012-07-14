@@ -1,0 +1,19 @@
+
+module
+{
+    struct FileStatus {
+        Int32 mDev;
+        Int32 mIno;
+        Int32 mMode;
+        Int32 mNlink;
+        Int32 mUid;
+        Int32 mGid;
+        Int32 mRdev;
+        Int64 mSize;
+        Int32 mBlksize;
+        Int64 mBlocks;
+        Int64 mAtime;
+        Int64 mMtime;
+        Int64 mCtime;
+    }
+}

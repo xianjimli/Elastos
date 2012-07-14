@@ -1,12 +1,11 @@
 
 #include "text/SpannableStringInternal.h"
 #include "utils/ArrayUtils.h"
-#include "utils/AutoString.h"
 #include <elastos/Math.h>
 #include <elastos/AutoPtr.h>
 #include <StringBuffer.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 const ArrayOf<IInterface*>* SpannableStringInternal::EMPTY = ArrayOf<IInterface*>::Alloc(0);
 const Int32 SpannableStringInternal::START;
@@ -31,7 +30,6 @@ SpannableStringInternal::SpannableStringInternal(
 
 SpannableStringInternal::~SpannableStringInternal()
 {
-    String::Free(mText);
     if (mSpans != NULL) {
         for (Int32 i = 0; i < mSpans->GetLength(); i++) {
             (*mSpans)[i]->Release();
@@ -56,18 +54,17 @@ ECode SpannableStringInternal::ToString(
     /* [out] */ String* str)
 {
     assert(str != NULL);
-    *str = String::Duplicate(mText);
+    *str = mText;
     return NOERROR;
 }
 
 ECode SpannableStringInternal::GetChars(
     /* [in] */ Int32 start,
     /* [in] */ Int32 end,
-    /* [out] */ BufferOf<Byte>* dest,
+    /* [out] */ ArrayOf<Char8>* dest,
     /* [in] */ Int32 off)
 {
-    StringBuf buf((char*)dest->GetPayload() + off, dest->GetCapacity() - off);
-    mText.Substring(start, end, buf);
+    memcpy(dest->GetPayload() + off, (const char*)mText + start, end - start);
     return NOERROR;
 }
 
@@ -450,11 +447,11 @@ void SpannableStringInternal::Region(
     sb += " ... ";
     sb += end;
     sb += ")";
-    *str = String::Duplicate(sb);
+    *str = (const char*)sb;
 }
 
 ECode SpannableStringInternal::CheckRange(
-    /* [in] */ String operation,
+    /* [in] */ const char* operation,
     /* [in] */ Int32 start,
     /* [in] */ Int32 end)
 {
@@ -497,12 +494,9 @@ ECode SpannableStringInternal::Init(
         source->ToString(&mText);
     }
     else {
-        AutoString tmp;
+        String tmp;
         source->ToString(&tmp);
-        StringBuf* buf = StringBuf::Alloc(tmp.GetLength());
-        tmp.Substring(start, end, *buf);
-        mText = String::Duplicate(buf->GetPayload());
-        StringBuf::Free(buf);
+        mText = tmp.Substring(start, end);
     }
 
     Int32 initial = ArrayUtils::IdealInt32ArraySize(0);

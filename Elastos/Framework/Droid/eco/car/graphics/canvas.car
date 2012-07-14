@@ -1089,7 +1089,7 @@ module
          * @param paint The paint used for the text (e.g. color, size, style)
          */
         DrawTextInBuffer(
-            [in] BufferOf<Byte> text,
+            [in] ArrayOf<Char8> text,
             [in] Int32 index,
             [in] Int32 count,
             [in] Float x,
@@ -1163,7 +1163,7 @@ module
          * @param paint    The paint used for the text (e.g. color, size, style)
          */
         DrawPosTextInBuffer(
-            [in] BufferOf<Byte> text,
+            [in] ArrayOf<Char8> text,
             [in] Int32 index,
             [in] Int32 count,
             [in] ArrayOf<Float> pos,
@@ -1196,7 +1196,7 @@ module
          * @param paint    The paint used for the text (e.g. color, size, style)
          */
         DrawTextOnPathInBuffer(
-            [in] BufferOf<Byte> text,
+            [in] ArrayOf<Char8> text,
             [in] Int32 index,
             [in] Int32 count,
             [in] IPath* path,

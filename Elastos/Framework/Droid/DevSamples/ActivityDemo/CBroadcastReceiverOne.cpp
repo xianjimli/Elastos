@@ -8,7 +8,7 @@ ECode CBroadcastReceiverOne::OnReceive(
 {
     AutoPtr<IIntent> intent;
     CIntent::New((IIntent**)&intent);
-    intent->SetClassName("ActivityDemo", "CActivityThree");
+    intent->SetClassName(String("ActivityDemo"), String("CActivityThree"));
     ECode ec = pContext->StartActivity(intent);
 
     return ec;

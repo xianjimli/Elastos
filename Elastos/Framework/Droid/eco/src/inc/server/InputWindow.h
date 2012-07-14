@@ -15,9 +15,7 @@ class InputWindow
 {
 public:
     ~InputWindow()
-    {
-        String::Free(mName);
-    }
+    {}
 
     CARAPI_(void) Recycle()
     {

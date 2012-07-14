@@ -8,12 +8,13 @@
 #include "widget/CAbsListViewLayoutParams.h"
 #include "widget/CListViewSavedState.h"
 #include "widget/CHeaderViewListAdapter.h"
-#include "utils/CObjectContainer.h"
+#include "utils/CParcelableObjectContainer.h"
+#include "utils/AutoStringArray.h"
 #include <elastos/Math.h>
 #include <Logger.h>
 #include <StringBuffer.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
 const Int32 ListView::CHOICE_MODE_NONE;
@@ -383,7 +384,7 @@ Boolean ListView::RemoveFooterView(
 //@Override
 AutoPtr<IAdapter> ListView::GetAdapter()
 {
-    return IListAdapter::Probe(mAdapter);
+    return mAdapter != NULL ? IListAdapter::Probe(mAdapter) : NULL;
 }
 
 /**
@@ -416,14 +417,14 @@ ECode ListView::SetAdapter(
 
     if (mHeaderViewInfos.GetSize() > 0|| mFooterViewInfos.GetSize() > 0) {
         AutoPtr<IObjectContainer> headerViewInfos;
-        CObjectContainer::New((IObjectContainer**)&headerViewInfos);
+        CParcelableObjectContainer::New((IObjectContainer**)&headerViewInfos);
         Vector<AutoPtr<FixedViewInfo> >::Iterator iter;
         for (iter = mHeaderViewInfos.Begin(); iter != mHeaderViewInfos.End(); ++iter) {
             headerViewInfos->Add((*iter)->Probe(EIID_IFixedViewInfo));
         }
 
         AutoPtr<IObjectContainer> footerViewInfos;
-        CObjectContainer::New((IObjectContainer**)&footerViewInfos);
+        CParcelableObjectContainer::New((IObjectContainer**)&footerViewInfos);
         for (iter = mFooterViewInfos.Begin(); iter != mFooterViewInfos.End(); ++iter) {
             footerViewInfos->Add((*iter)->Probe(EIID_IFixedViewInfo));
         }
@@ -473,7 +474,6 @@ ECode ListView::SetAdapter(
             hasStableIds && mCheckedIdStates == NULL) {
             mCheckedIdStates = new HashMap<Int64, Boolean>();
         }
-
     }
     else {
         mAreAllItemsSelectable = TRUE;
@@ -684,6 +684,7 @@ AutoPtr<IView> ListView::FillDown(
     /* [in] */ Int32 pos,
     /* [in] */ Int32 nextTop)
 {
+    //printf("ListView::FillDown pos = %d, nextTop = %d\n", pos, nextTop);
     AutoPtr<IView> selectedView;
 
     Int32 end = (mBottom - mTop) - mListPadding->mBottom;
@@ -719,6 +720,7 @@ AutoPtr<IView> ListView::FillUp(
     /* [in] */ Int32 pos,
     /* [in] */ Int32 nextBottom)
 {
+    //printf("ListView::FillUp pos = %d, nextBottom = %d\n", pos, nextBottom);
     AutoPtr<IView> selectedView;
 
     Int32 end = mListPadding->mTop;
@@ -1619,9 +1621,7 @@ void ListView::LayoutChildren()
             newSel = GetChildAt(index + delta);
     }
 
-
-    Boolean dataChanged = mDataChanged;
-    if (dataChanged) {
+    if (mDataChanged) {
         HandleDataChanged();
     }
 
@@ -1655,7 +1655,7 @@ void ListView::LayoutChildren()
 
     // Don't put header or footer views into the Recycler. Those are
     // already cached in mHeaderViews;
-    if (dataChanged) {
+    if (mDataChanged) {
         for (Int32 i = 0; i < childCount; i++) {
             recycleBin->AddScrapView(GetChildAt(i));
             //if (ViewDebug.TRACE_RECYCLER) {
@@ -1678,7 +1678,7 @@ void ListView::LayoutChildren()
 
         // we can remember the focused view to restore after relayout if the
         // data hasn't changed, or if the focused position is a header or footer
-        if (!dataChanged || IsDirectChildHeaderOrFooter(focusedChild)) {
+        if (!mDataChanged || IsDirectChildHeaderOrFooter(focusedChild)) {
             focusLayoutRestoreDirectChild = focusedChild;
             // remember the specific view that had focus
             focusLayoutRestoreView = FindFocus();
@@ -1756,8 +1756,9 @@ void ListView::LayoutChildren()
     // Flush any cached views that did not Get reused above
     recycleBin->ScrapActiveViews();
 
-    View* selView = ((View*)sel->Probe(EIID_View));
-    if (selView != NULL) {
+    if (sel != NULL) {
+        View* selView = ((View*)sel->Probe(EIID_View));
+
         // the current selected item should Get focus if items
         // are focusable
         if (mItemsCanFocus && HasFocus() && !selView->HasFocus()) {
@@ -3548,6 +3549,7 @@ void ListView::DrawDivider(
     /* [in] */ IRect* bounds,
     /* [in] */ Int32 childIndex)
 {
+    assert(mDivider != NULL);
     // This widGet draws the same divider for all children
     AutoPtr<IDrawable> divider = mDivider;
     Boolean clipDivider = mClipDivider;
@@ -4206,9 +4208,9 @@ ECode ListView::Init(
         sizeof(R_Styleable_ListView) / sizeof(Int32)),//com.android.internal.R.styleable.ListView
         defStyle, 0, (ITypedArray**)&a);
 
-    ArrayOf<String>* entries = NULL;
+    AutoStringArray entries;
     a->GetTextArray(
-        0/*com.android.internal.R.styleable.ListView_entries*/, &entries);
+        0/*com.android.internal.R.styleable.ListView_entries*/, (ArrayOf<String>**)&entries);
 
     if (entries != NULL) {
 //        SetAdapter(new ArrayAdapter<CharSequence>(context,
@@ -4220,6 +4222,7 @@ ECode ListView::Init(
         1/*com.android.internal.R.styleable.ListView_divider*/,
         (IDrawable**)&d);
 
+    //printf("ListView::Init ListView_divider = 0x%08x\n", d.Get());
     if (d != NULL) {
         // If a divider is specified use its intrinsic height for divider height
         SetDivider(d);
@@ -4229,6 +4232,7 @@ ECode ListView::Init(
     a->GetDrawable(
         6/*com.android.internal.R.styleable.ListView_overScrollHeader*/,
         (IDrawable**)&osHeader);
+    //printf("ListView::Init ListView_overScrollHeader = 0x%08x\n", osHeader.Get());
     if (osHeader != NULL) {
         SetOverscrollHeader(osHeader);
     }
@@ -4237,6 +4241,7 @@ ECode ListView::Init(
     a->GetDrawable(
         7/*com.android.internal.R.styleable.ListView_overScrollFooter*/,
         (IDrawable**)&osFooter);
+    //printf("ListView::Init ListView_overScrollFooter = 0x%08x\n", osFooter.Get());
     if (osFooter != NULL) {
         SetOverscrollFooter(osFooter);
     }
@@ -4246,6 +4251,7 @@ ECode ListView::Init(
     a->GetDimensionPixelSize(
         2/*com.android.internal.R.styleable.ListView_dividerHeight*/,
         0, &dividerHeight);
+
     if (dividerHeight != 0) {
         SetDividerHeight(dividerHeight);
     }

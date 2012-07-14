@@ -1,0 +1,57 @@
+
+module
+{
+    interface IBinder;
+    interface IStatusBar;
+    interface IStatusBarIconList;
+    interface IStatusBarNotification;
+
+    interface IStatusBarService {
+        Expand();
+
+        Collapse();
+
+        Disable(
+            [in] Int32 what,
+            [in] IBinder* token,
+            [in] String cap);
+
+        SetIcon(
+            [in] String slot,
+            [in] String iconCapsule,
+            [in] Int32 iconId,
+            [in] Int32 iconLevel);
+
+        SetIconVisibility(
+            [in] String slot,
+            [in] Boolean visible);
+
+        RemoveIcon(
+            [in] String slot);
+
+        // ---- Methods below are for use by the status bar policy services ----
+        // You need the STATUS_BAR_SERVICE permission
+        RegisterStatusBar(
+            [in] IStatusBar* cbs,
+            [out] IStatusBarIconList** iconList,
+            [out] IObjectContainer** notificationKeys,
+            [out] IObjectContainer** notifications);
+
+        OnPanelRevealed();
+
+        OnNotificationClick(
+            [in] String cap,
+            [in] String tag,
+            [in] Int32 id);
+
+        OnNotificationError(
+            [in] String cap,
+            [in] String tag,
+            [in] Int32 id,
+            [in] Int32 uid,
+            [in] Int32 initialPid,
+            [in] String message);
+
+        OnClearAllNotifications();
+    }
+}

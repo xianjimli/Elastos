@@ -394,7 +394,7 @@ public:
         /* [in] */ IPaint* paint);
 
     virtual CARAPI DrawTextInBuffer(
-        /* [in] */ const BufferOf<Byte>& text,
+        /* [in] */ const ArrayOf<Char8>& text,
         /* [in] */ Int32 index,
         /* [in] */ Int32 count,
         /* [in] */ Float x,
@@ -402,13 +402,13 @@ public:
         /* [in] */ IPaint* paint);
 
     virtual CARAPI DrawTextInString(
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ Float x,
         /* [in] */ Float y,
         /* [in] */ IPaint* paint);
 
     virtual CARAPI DrawTextInStringEx(
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ Int32 start,
         /* [in] */ Int32 end,
         /* [in] */ Float x,
@@ -424,19 +424,19 @@ public:
         /* [in] */ IPaint* paint);
 
     virtual CARAPI DrawPosTextInBuffer(
-        /* [in] */ const BufferOf<Byte>& text,
+        /* [in] */ const ArrayOf<Char8>& text,
         /* [in] */ Int32 index,
         /* [in] */ Int32 count,
         /* [in] */ const ArrayOf<Float>& pos,
         /* [in] */ IPaint* paint);
 
     virtual CARAPI DrawPosTextInString(
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ const ArrayOf<Float>& pos,
         /* [in] */ IPaint* paint);
 
     virtual CARAPI DrawTextOnPathInBuffer(
-        /* [in] */ const BufferOf<Byte>& text,
+        /* [in] */ const ArrayOf<Char8>& text,
         /* [in] */ Int32 index,
         /* [in] */ Int32 count,
         /* [in] */ IPath* path,
@@ -445,7 +445,7 @@ public:
         /* [in] */ IPaint* paint);
 
     virtual CARAPI DrawTextOnPathInString(
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ IPath* path,
         /* [in] */ Float hOffset,
         /* [in] */ Float vOffset,
@@ -738,7 +738,7 @@ private:
 
     static CARAPI_(void) NativeDrawText(
         /* [in] */ SkCanvas* nativeCanvas,
-        /* [in] */ const BufferOf<Byte>& text,
+        /* [in] */ const ArrayOf<Char8>& text,
         /* [in] */ Int32 index,
         /* [in] */ Int32 count,
         /* [in] */ Float x,
@@ -747,7 +747,7 @@ private:
 
     static CARAPI_(void) NativeDrawText(
         /* [in] */ SkCanvas* nativeCanvas,
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ Int32 start,
         /* [in] */ Int32 end,
         /* [in] */ Float x,
@@ -756,7 +756,7 @@ private:
 
     static CARAPI_(void) NativeDrawPosText(
         /* [in] */ SkCanvas* nativeCanvas,
-        /* [in] */ const BufferOf<Byte>& text,
+        /* [in] */ const ArrayOf<Char8>& text,
         /* [in] */ Int32 index,
         /* [in] */ Int32 count,
         /* [in] */ const ArrayOf<Float>& pos,
@@ -764,13 +764,13 @@ private:
 
     static CARAPI_(void) NativeDrawPosText(
         /* [in] */ SkCanvas* nativeCanvas,
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ const ArrayOf<Float>& pos,
         /* [in] */ SkPaint* nativePaint);
 
     static CARAPI_(void) NativeDrawTextOnPath(
         /* [in] */ SkCanvas* nativeCanvas,
-        /* [in] */ const BufferOf<Byte>& text,
+        /* [in] */ const ArrayOf<Char8>& text,
         /* [in] */ Int32 index,
         /* [in] */ Int32 count,
         /* [in] */ SkPath* nativePath,
@@ -780,7 +780,7 @@ private:
 
     static CARAPI_(void) NativeDrawTextOnPath(
         /* [in] */ SkCanvas* nativeCanvas,
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ SkPath* nativePath,
         /* [in] */ Float hOffset,
         /* [in] */ Float vOffset,

@@ -407,7 +407,7 @@ module
             [in] INinePatch* patch);
 
         constructor(
-            [in] INinePatchState* state,
+            [in] Handle32 state,
             [in] IResources* res);
 
         interface INinePatchDrawable;
@@ -437,7 +437,7 @@ module
         constructor();
 
         constructor(
-            [in] IStateListState* state,
+            [in] Handle32 state,
             [in] IResources* res);
 
         interface IStateListDrawable;

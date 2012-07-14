@@ -7,7 +7,7 @@ using namespace Elastos;
 #include <ext/frameworkext.h>
 #include <elastos/AutoPtr.h>
 #include "graphics/Drawable.h"
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 
 class BitmapDrawable : public Drawable
 {
@@ -66,11 +66,11 @@ public:
         /* [in] */ IBitmap* bitmap);
 
     BitmapDrawable(
-        /* [in] */ String filepath);
+        /* [in] */ const String& filepath);
 
     BitmapDrawable(
         /* [in] */ IResources* res,
-        /* [in] */ String filepath);
+        /* [in] */ const String& filepath);
 
     BitmapDrawable(
         /* [in] */ IInputStream* is);
@@ -210,11 +210,11 @@ protected:
         /* [in] */ IBitmap* bitmap);
 
     CARAPI Init(
-        /* [in] */ String filepath);
+        /* [in] */ const String& filepath);
 
     CARAPI Init(
         /* [in] */ IResources* res,
-        /* [in] */ String filepath);
+        /* [in] */ const String& filepath);
 
     CARAPI Init(
         /* [in] */ IInputStream* is);

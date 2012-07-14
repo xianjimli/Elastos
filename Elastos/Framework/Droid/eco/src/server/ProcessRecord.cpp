@@ -5,7 +5,7 @@ ProcessRecord::ProcessRecord(
     /* [in] */ BatteryStatsImpl::Uid::Proc* batteryStats,
     /* [in] */ IApplicationApartment* appApartment,
     /* [in] */ CApplicationInfo* info,
-    /* [in] */ String processName) :
+    /* [in] */ const String& processName) :
     mPid(0),
     mPubProviders(5),
     mConProviders(5),
@@ -17,7 +17,7 @@ ProcessRecord::ProcessRecord(
 {
     mBatteryStats = batteryStats;
     mInfo = info;
-    mProcessName = String::Duplicate(processName);
+    mProcessName = processName;
     mAppApartment = appApartment;
 }
 
@@ -36,7 +36,7 @@ void ProcessRecord::SetPid(
  *  Return true if package has been added false if not
  */
 Boolean ProcessRecord::AddCapsule(
-    /* [in] */ String cap)
+    /* [in] */ const String& cap)
 {
 //    Set<String>::Iterator it =
 //            Find(mCapList.Begin(), mCapList.End(), cap);
@@ -55,13 +55,13 @@ ECode ProcessRecord::GetShortDescription(
     if (description == NULL) return E_INVALID_ARGUMENT;
 
     if (!mShortStringName.IsNull()) {
-        *description = String::Duplicate(mShortStringName);
+        *description = mShortStringName;
         return NOERROR;
     }
     StringBuffer sb;
     GetShortDescription(sb);
-    mShortStringName = String::Duplicate(sb);
-    *description = String::Duplicate(mShortStringName);
+    mShortStringName = (const char*)sb;
+    *description = mShortStringName;
     return NOERROR;
 }
 
@@ -78,14 +78,14 @@ ECode ProcessRecord::GetDescription(
     if (description == NULL) return E_INVALID_ARGUMENT;
 
     if (!mStringName.IsNull()) {
-        *description = String::Duplicate(mStringName);
+        *description = mStringName;
         return NOERROR;
     }
     StringBuffer sb;
     sb += "ProcessRecord{";
     GetShortDescription(sb);
     sb += "}";
-    mStringName = String::Duplicate(sb);
-    *description = String::Duplicate(mStringName);
+    mStringName = (const char*)sb;
+    *description = mStringName;
     return NOERROR;
 }

@@ -91,9 +91,9 @@ module
     interface IApplicationApartment;
     interface IApplication;
     interface IActivityManager;
-    interface IContextWrapper;
+    interface IContextThemeWrapper;
 
-    interface IService extends IContextWrapper {
+    interface IService extends IContextThemeWrapper {
         Attach(
             [in] IContext* ctx,
             [in] IApplicationApartment* apartment,

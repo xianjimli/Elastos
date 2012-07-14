@@ -252,6 +252,27 @@ public:
      */
     static CARAPI_(void) KillProcessQuiet(
         /* [in] */ Int32 pid);
+
+    /**
+     * Returns the identifier of this process's user.
+     */
+    static CARAPI_(Int32) MyUid();
+
+    /**
+     * Returns the UID assigned to a particular user name, or -1 if there is
+     * none.  If the given string consists of only numbers, it is converted
+     * directly to a uid.
+     */
+    static CARAPI_(Int32) GetUidForName(
+        /* [in] */ const String& name);
+
+    /**
+     * Returns the GID assigned to a particular user name, or -1 if there is
+     * none.  If the given string consists of only numbers, it is converted
+     * directly to a gid.
+     */
+    static CARAPI_(Int32) GetGidForName(
+        /* [in] */ const String& name);
 };
 
 #endif // __PROCESS_H__

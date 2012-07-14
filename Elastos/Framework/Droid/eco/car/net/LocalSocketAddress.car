@@ -1,0 +1,33 @@
+
+module
+{
+    enum LocalSocketAddressNamespace {
+        LocalSocketAddressNamespace_ABSTRACT = 0,
+        LocalSocketAddressNamespace_RESERVED = 1,
+        LocalSocketAddressNamespace_FILESYSTEM = 2
+    }
+
+    /**
+     * A UNIX-domain (AF_LOCAL) socket address. For use with
+     * android.net.LocalSocket and android.net.LocalServerSocket.
+     *
+     * On the Android system, these names refer to names in the Linux
+     * abstract (non-filesystem) UNIX domain namespace.
+     */
+    interface ILocalSocketAddress {
+        /**
+         * Retrieves the string name of this address
+         * @return string name
+         */
+        GetName(
+            [out] String* name);
+
+        /**
+         * Returns the namespace used by this address.
+         *
+         * @return non-null a namespace
+         */
+        GetNamespace(
+            [out] LocalSocketAddressNamespace* ns);
+    }
+}

@@ -1,6 +1,7 @@
 
 #include "widget/CArrayAdapter.h"
-#include "utils/CObjectContainer.h"
+#include "utils/CParcelableObjectContainer.h"
+#include "utils/AutoStringArray.h"
 
 IADAPTER_METHODS_IMPL(CArrayAdapter, ArrayAdapter, ArrayAdapter);
 
@@ -152,11 +153,11 @@ AutoPtr<IArrayAdapter> CArrayAdapter::CreateFromResource(
 {
     AutoPtr<IResources> rs;
     context->GetResources((IResources**)&rs);
-    ArrayOf<String>* strings = NULL;
-    rs->GetTextArray(textArrayResId, &strings);
+    AutoStringArray strings;
+    rs->GetTextArray(textArrayResId, (ArrayOf<String>**)&strings);
 
     AutoPtr<IObjectContainer> strs;
-    CObjectContainer::New((IObjectContainer**)&strs);
+    CParcelableObjectContainer::New((IObjectContainer**)&strs);
 
     Int32 size = strings->GetLength();
     for (Int32 i=0; i<size; i++) {
@@ -167,8 +168,6 @@ AutoPtr<IArrayAdapter> CArrayAdapter::CreateFromResource(
 
     AutoPtr<IArrayAdapter> adapter;
     CArrayAdapter::New(context, textViewResId, strs, (IArrayAdapter**)&adapter);
-
-    ArrayOf<String>::Free(strings);
 
     return adapter;
 }

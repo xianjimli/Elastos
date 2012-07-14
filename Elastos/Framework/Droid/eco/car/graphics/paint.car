@@ -847,7 +847,7 @@ module
          * @return      The width of the text
          */
         MeasureText(
-            [in] BufferOf<Byte> text,
+            [in] ArrayOf<Char8> text,
             [in] Int32 index,
             [in] Int32 count,
             [out] Float* width);
@@ -908,7 +908,7 @@ module
          *         abs(count).
          */
         BreakText(
-            [in] BufferOf<Byte> text,
+            [in] ArrayOf<Char8> text,
             [in] Int32 index,
             [in] Int32 count,
             [in] Float maxWidth,
@@ -974,7 +974,7 @@ module
          * @return         the actual number of widths returned.
          */
         GetTextWidths(
-            [in] BufferOf<Byte> text,
+            [in] ArrayOf<Char8> text,
             [in] Int32 index,
             [in] Int32 count,
             [out] ArrayOf<Float> widths,
@@ -1041,7 +1041,7 @@ module
          *                 be allocated by the caller.
          */
         GetTextPath(
-            [in] BufferOf<Byte> text,
+            [in] ArrayOf<Char8> text,
             [in] Int32 index,
             [in] Int32 count,
             [in] Float x,
@@ -1096,7 +1096,7 @@ module
          *               allocated by the caller.
          */
         GetTextBoundsEx(
-            [in] BufferOf<Byte> text,
+            [in] ArrayOf<Char8> text,
             [in] Int32 index,
             [in] Int32 count,
             [in] IRect* bounds);

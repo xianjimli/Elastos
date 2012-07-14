@@ -3,7 +3,7 @@
 #define __BROADCASTFILTER_H__
 
 #include <elastos/AutoPtr.h>
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 #include "content/CIntentFilter.h"
 #include "server/ReceiverList.h"
 

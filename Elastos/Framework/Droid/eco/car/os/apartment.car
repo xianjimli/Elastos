@@ -15,16 +15,47 @@ module
         PostCppCallback(
             [in] Handle32 target,
             [in] Handle32 func,
-            [in] IParcel* params);
+            [in] IParcel* params,
+            [in] Int32 id);
 
         PostCppCallbackAtTime(
             [in] Handle32 target,
             [in] Handle32 func,
             [in] IParcel* params,
+            [in] Int32 id,
             [in] Millisecond64 uptimeMillis);
+
+        PostCppCallbackDelayed(
+            [in] Handle32 target,
+            [in] Handle32 func,
+            [in] IParcel* params,
+            [in] Int32 id,
+            [in] Millisecond64 delayMillis);
+
+        PostCppCallbackAtFrontOfQueue(
+            [in] Handle32 target,
+            [in] Handle32 func,
+            [in] IParcel* params,
+            [in] Int32 id);
 
         RemoveCppCallbacks(
             [in] Handle32 target,
             [in] Handle32 func);
+
+        RemoveCppCallbacksEx(
+            [in] Handle32 target,
+            [in] Handle32 func,
+            [in] Int32 id);
+
+        HasCppCallbacks(
+            [in] Handle32 target,
+            [in] Handle32 func,
+            [out] Boolean* result);
+
+        HasCppCallbacksEx(
+            [in] Handle32 target,
+            [in] Handle32 func,
+            [in] Int32 id,
+            [out] Boolean* result);
     }
 }

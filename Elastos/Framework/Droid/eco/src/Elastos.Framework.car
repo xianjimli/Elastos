@@ -5,7 +5,8 @@
 
 module
 {
-    importlib("Elastos.System.eco");
+    importlib("Elastos.Utility.eco");
+    importlib("Elastos.Core.eco");
     importlib("Elastos.IO.eco");
     importlib("Elastos.NIO.eco");
     importlib("Elastos.Xml.eco");
@@ -16,12 +17,13 @@ module
     merge("../car/provider.car");
     merge("../car/database.car");
     merge("../car/content.car");
-    merge("../car/app.car");
     merge("../car/graphics.car");
     merge("../car/view.car");
+    merge("../car/app.car");
     merge("../car/widget.car");
     merge("../car/text.car");
     merge("../car/policy.car");
+    merge("../car/statusbar.car");
     merge("../car/server.car");
 }
 

@@ -1,16 +1,11 @@
 
 module
 {
-    interface IStateListState;
-
     interface IStateListDrawable extends IDrawableContainer
     {
         AddState(
-            [in] ArrayOf<Int32> stateSet, 
+            [in] ArrayOf<Int32> stateSet,
             [in] IDrawable* drawable);
-        
-        GetStateListState(
-            [out] IStateListState** state);
 
         GetStateCount(
             [out] Int32* count);
@@ -26,13 +21,5 @@ module
         GetStateDrawableIndex(
             [in] ArrayOf<Int32> stateSet,
             [out] Int32* index);
-    }
-
-    interface IStateListState extends IDrawableContainerState
-    {
-        AddStateSet(
-            [in] ArrayOf<Int32> stateSet, 
-            [in] IDrawable* drawable,
-            [out] Int32* pos);
     }
 }

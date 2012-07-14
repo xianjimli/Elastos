@@ -1,69 +1,18 @@
 
 #include "content/ContextWrapper.h"
 
+ContextWrapper::ContextWrapper()
+{}
+
 ContextWrapper::ContextWrapper(
     /* [in] */ IContext* base) :
     mBase(base)
 {}
 
-IInterface* ContextWrapper::Probe(
-    /* [in]  */ REIID riid)
+ECode ContextWrapper::GetAssets(
+    /* [out] */ IAssetManager** assetManager)
 {
-    if (riid == EIID_IInterface) {
-        return (IInterface*)this;
-    }
-    else if (riid == EIID_IContext) {
-        return (IContext*)this;
-    }
-
-    return NULL;
-}
-
-UInt32 ContextWrapper::AddRef()
-{
-    return ElRefBase::AddRef();
-}
-
-UInt32 ContextWrapper::Release()
-{
-    return ElRefBase::Release();
-}
-
-ECode ContextWrapper::GetInterfaceID(
-    /* [in] */ IInterface *pObject,
-    /* [out] */ InterfaceID *pIID)
-{
-    if (NULL == pIID) return E_INVALID_ARGUMENT;
-
-    if (pObject == (IInterface *)(IContext *)this) {
-        *pIID = EIID_IContext;
-    }
-    else {
-        return E_INVALID_ARGUMENT;
-    }
-    return NOERROR;
-}
-
-ECode ContextWrapper::CreateCapsuleContext(
-    /* [in] */ String capsuleName,
-    /* [in] */ Int32 flags,
-    /* [out] */ IContext** ctx)
-{
-    return mBase->CreateCapsuleContext(capsuleName, flags, ctx);
-}
-
-ECode ContextWrapper::CheckCallingPermission(
-    /* [in] */ String permission,
-    /* [out] */ Int32* value)
-{
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode ContextWrapper::EnforceCallingOrSelfPermission(
-    /* [in] */ String permission,
-    /* [in] */ String message)
-{
-    return E_NOT_IMPLEMENTED;
+    return mBase->GetAssets(assetManager);
 }
 
 ECode ContextWrapper::GetResources(
@@ -88,40 +37,6 @@ ECode ContextWrapper::GetTheme(
     /* [out] */ ITheme** theme)
 {
     return mBase->GetTheme(theme);
-}
-
-ECode ContextWrapper::ObtainStyledAttributes(
-    /* [in] */ const ArrayOf<Int32>& attrs,
-    /* [out] */ ITypedArray** styles)
-{
-    return Context::ObtainStyledAttributes(attrs, styles);
-}
-
-ECode ContextWrapper::ObtainStyledAttributesEx(
-    /* [in] */ Int32 resid,
-    /* [in] */ const ArrayOf<Int32>& attrs,
-    /* [out] */ ITypedArray** styles)
-{
-    return Context::ObtainStyledAttributesEx(resid, attrs, styles);
-}
-
-ECode ContextWrapper::ObtainStyledAttributesEx2(
-    /* [in] */ IAttributeSet* set,
-    /* [in] */ const ArrayOf<Int32>& attrs,
-    /* [out] */ ITypedArray** styles)
-{
-    return Context::ObtainStyledAttributesEx2(set, attrs, styles);
-}
-
-ECode ContextWrapper::ObtainStyledAttributesEx3(
-    /* [in] */ IAttributeSet* set,
-    /* [in] */ const ArrayOf<Int32>& attrs,
-    /* [in] */ Int32 defStyleAttr,
-    /* [in] */ Int32 defStyleRes,
-    /* [out] */ ITypedArray** styles)
-{
-    return Context::ObtainStyledAttributesEx3(
-            set, attrs, defStyleAttr, defStyleRes, styles);
 }
 
 ECode ContextWrapper::GetClassLoader(
@@ -178,8 +93,93 @@ ECode ContextWrapper::UnbindService(
 }
 
 ECode ContextWrapper::GetSystemService(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ IInterface** object)
 {
     return mBase->GetSystemService(name, object);
+}
+
+ECode ContextWrapper::CreateCapsuleContext(
+    /* [in] */ const String& capsuleName,
+    /* [in] */ Int32 flags,
+    /* [out] */ IContext** ctx)
+{
+    return mBase->CreateCapsuleContext(capsuleName, flags, ctx);
+}
+
+ECode ContextWrapper::CheckCallingPermission(
+    /* [in] */ const String& permission,
+    /* [out] */ Int32* value)
+{
+    return mBase->CheckCallingPermission(permission, value);
+}
+
+ECode ContextWrapper::EnforceCallingOrSelfPermission(
+    /* [in] */ const String& permission,
+    /* [in] */ const String& message)
+{
+    return mBase->EnforceCallingOrSelfPermission(permission, message);
+}
+
+ECode ContextWrapper::RevokeUriPermission(
+    /* [in] */ IUri* uri,
+    /* [in] */ Int32 modeFlags)
+{
+    return mBase->RevokeUriPermission(uri, modeFlags);
+}
+
+ECode ContextWrapper::CheckCallingOrSelfPermission(
+    /* [in] */ const String& permission,
+    /* [out] */ Int32* perm)
+{
+    return mBase->CheckCallingOrSelfPermission(permission, perm);
+}
+
+ECode ContextWrapper::GrantUriPermission(
+    /* [in] */ const String& toCapsule,
+    /* [in] */ IUri* uri,
+    /* [in] */ Int32 modeFlags)
+{
+    return mBase->GrantUriPermission(toCapsule, uri, modeFlags);
+}
+
+/**
+ * Set the base context for this ContextWrapper.  All calls will then be
+ * delegated to the base context.  Throws
+ * IllegalStateException if a base context has already been set.
+ *
+ * @param base The new base context for this wrapper.
+ */
+ECode ContextWrapper::AttachBaseContext(
+    /* [in] */ IContext* base)
+{
+    if (mBase != NULL) {
+        //throw new IllegalStateException("Base context already set");
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+    mBase = base;
+
+    return NOERROR;
+}
+
+/**
+ * @return the base context as set by the constructor or setBaseContext
+ */
+ECode ContextWrapper::GetBaseContext(
+    /* [out] */ IContext** context)
+{
+    VALIDATE_NOT_NULL(context);
+    *context = mBase;
+    if (*context) {
+        (*context)->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode ContextWrapper::Init(
+    /* [in] */ IContext* base)
+{
+    mBase = base;
+    return NOERROR;
 }

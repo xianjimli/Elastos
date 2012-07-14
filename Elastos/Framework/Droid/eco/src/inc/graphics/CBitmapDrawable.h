@@ -24,11 +24,11 @@ public:
         /* [in] */ IBitmap* bitmap);
 
     CARAPI constructor(
-        /* [in] */ String filepath);
+        /* [in] */ const String& filepath);
 
     CARAPI constructor(
         /* [in] */ IResources* res,
-        /* [in] */ String filepath);
+        /* [in] */ const String& filepath);
 
     CARAPI constructor(
         /* [in] */ IInputStream* is);

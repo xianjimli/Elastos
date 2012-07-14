@@ -12,15 +12,15 @@ CBundle::~CBundle()
 }
 
 ECode CBundle::PutBoolean(
-    /* [in] */ String key,
+    /* [in] */ const String& key,
     /* [in] */ Boolean value)
 {
-    mData[String::Duplicate(key)] = new DataWrapper(BOOLEAN_T, value);
+    mData[key] = new DataWrapper(BOOLEAN_T, value);
     return NOERROR;
 }
 
 ECode CBundle::GetBoolean(
-    /* [in] */ String key,
+    /* [in] */ const String& key,
     /* [out] */ Boolean * pValue)
 {
     if (pValue == NULL) return E_INVALID_ARGUMENT;
@@ -33,7 +33,7 @@ ECode CBundle::GetBoolean(
 }
 
 ECode CBundle::PutByte(
-    /* [in] */ String key,
+    /* [in] */ const String& key,
     /* [in] */ Byte value)
 {
     // TODO: Add your code here
@@ -41,7 +41,7 @@ ECode CBundle::PutByte(
 }
 
 ECode CBundle::GetByte(
-    /* [in] */ String key,
+    /* [in] */ const String& key,
     /* [out] */ Byte * pValue)
 {
     // TODO: Add your code here
@@ -49,7 +49,7 @@ ECode CBundle::GetByte(
 }
 
 ECode CBundle::PutChar(
-    /* [in] */ String key,
+    /* [in] */ const String& key,
     /* [in] */ Char16 value)
 {
     // TODO: Add your code here
@@ -57,7 +57,7 @@ ECode CBundle::PutChar(
 }
 
 ECode CBundle::GetChar(
-    /* [in] */ String key,
+    /* [in] */ const String& key,
     /* [out] */ Char16 * pValue)
 {
     // TODO: Add your code here
@@ -65,7 +65,7 @@ ECode CBundle::GetChar(
 }
 
 ECode CBundle::PutInt16(
-    /* [in] */ String key,
+    /* [in] */ const String& key,
     /* [in] */ Int16 value)
 {
     // TODO: Add your code here
@@ -73,7 +73,7 @@ ECode CBundle::PutInt16(
 }
 
 ECode CBundle::GetInt16(
-    /* [in] */ String key,
+    /* [in] */ const String& key,
     /* [out] */ Int16 * pValue)
 {
     // TODO: Add your code here
@@ -81,15 +81,15 @@ ECode CBundle::GetInt16(
 }
 
 ECode CBundle::PutInt32(
-    /* [in] */ String key,
+    /* [in] */ const String& key,
     /* [in] */ Int32 value)
 {
-    mData[String::Duplicate(key)] = new DataWrapper(INT32_T, value);
+    mData[key] = new DataWrapper(INT32_T, value);
     return NOERROR;
 }
 
 ECode CBundle::GetInt32(
-    /* [in] */ String key,
+    /* [in] */ const String& key,
     /* [out] */ Int32 *pValue)
 {
     if (pValue == NULL) return E_INVALID_ARGUMENT;
@@ -102,7 +102,7 @@ ECode CBundle::GetInt32(
 }
 
 ECode CBundle::PutInt64(
-    /* [in] */ String key,
+    /* [in] */ const String& key,
     /* [in] */ Int64 value)
 {
     // TODO: Add your code here
@@ -110,7 +110,7 @@ ECode CBundle::PutInt64(
 }
 
 ECode CBundle::GetInt64(
-    /* [in] */ String key,
+    /* [in] */ const String& key,
     /* [out] */ Int64 * pValue)
 {
     // TODO: Add your code here
@@ -118,7 +118,7 @@ ECode CBundle::GetInt64(
 }
 
 ECode CBundle::PutFloat(
-    /* [in] */ String key,
+    /* [in] */ const String& key,
     /* [in] */ Float value)
 {
     // TODO: Add your code here
@@ -126,7 +126,7 @@ ECode CBundle::PutFloat(
 }
 
 ECode CBundle::GetFloat(
-    /* [in] */ String key,
+    /* [in] */ const String& key,
     /* [out] */ Float * pValue)
 {
     // TODO: Add your code here
@@ -134,7 +134,7 @@ ECode CBundle::GetFloat(
 }
 
 ECode CBundle::PutDouble(
-    /* [in] */ String key,
+    /* [in] */ const String& key,
     /* [in] */ Double value)
 {
     // TODO: Add your code here
@@ -142,7 +142,7 @@ ECode CBundle::PutDouble(
 }
 
 ECode CBundle::GetDouble(
-    /* [in] */ String key,
+    /* [in] */ const String& key,
     /* [out] */ Double * pValue)
 {
     // TODO: Add your code here
@@ -150,15 +150,15 @@ ECode CBundle::GetDouble(
 }
 
 ECode CBundle::PutString(
-    /* [in] */ String key,
-    /* [in] */ String value)
+    /* [in] */ const String& key,
+    /* [in] */ const String& value)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CBundle::GetString(
-    /* [in] */ String key,
+    /* [in] */ const String& key,
     /* [out] */ String * pValue)
 {
     // TODO: Add your code here
@@ -166,7 +166,7 @@ ECode CBundle::GetString(
 }
 
 ECode CBundle::PutStringArray(
-    /* [in] */ String key,
+    /* [in] */ const String& key,
     /* [in] */ const ArrayOf<String>& value)
 {
     // TODO: Add your code here
@@ -174,7 +174,7 @@ ECode CBundle::PutStringArray(
 }
 
 ECode CBundle::GetStringArray(
-    /* [in] */ String key,
+    /* [in] */ const String& key,
     /* [out, callee] */ ArrayOf<String>** value)
 {
     // TODO: Add your code here
@@ -182,7 +182,7 @@ ECode CBundle::GetStringArray(
 }
 
 ECode CBundle::PutInt32Array(
-    /* [in] */ String key,
+    /* [in] */ const String& key,
     /* [in] */ const ArrayOf<Int32>& value)
 {
     // TODO: Add your code here
@@ -190,7 +190,7 @@ ECode CBundle::PutInt32Array(
 }
 
 ECode CBundle::GetInt32Array(
-    /* [in] */ String key,
+    /* [in] */ const String& key,
     /* [out, callee] */ ArrayOf<Int32>** value)
 {
     // TODO: Add your code here
@@ -230,11 +230,11 @@ ECode CBundle::ReadFromParcelInner(
         source->ReadStructPtr((Handle32 *)&pData);
 
         if (pData->m_Type == INT32_T) {
-            mData[String::Duplicate(key)] = new DataWrapper(
+            mData[key] = new DataWrapper(
                 pData->m_Type, pData->m_Value.m_i);
         }
         else if (pData->m_Type == BOOLEAN_T){
-            mData[String::Duplicate(key)] = new DataWrapper(
+            mData[key] = new DataWrapper(
                 pData->m_Type, pData->m_Value.m_b);
         }
     }
@@ -302,11 +302,11 @@ ECode CBundle::constructor(
         for (; it != mData.End(); ++it) {
             pData = it->mSecond;
             if (pData->m_Type == INT32_T) {
-                mData[String::Duplicate(it->mFirst)] = new DataWrapper(
+                mData[it->mFirst] = new DataWrapper(
                     pData->m_Type, pData->m_Value.m_i);
             }
             else if (pData->m_Type == BOOLEAN_T){
-                mData[String::Duplicate(it->mFirst)] = new DataWrapper(
+                mData[it->mFirst] = new DataWrapper(
                     pData->m_Type, pData->m_Value.m_b);
             }
         }

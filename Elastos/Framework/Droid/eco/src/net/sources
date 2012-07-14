@@ -8,3 +8,6 @@ INCLUDES += ../
 
 SOURCES = Uri.cpp
 SOURCES += CStringUri.cpp
+SOURCES += CCredentials.cpp
+SOURCES += CLocalSocketAddress.cpp
+SOURCES += CLocalSocket.cpp

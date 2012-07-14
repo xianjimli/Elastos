@@ -58,8 +58,8 @@ public:
 public:
     CARAPI CloseAll(
         /* [in] */ IBinder* token,
-        /* [in] */ String who,
-        /* [in] */ String what);
+        /* [in] */ const String& who,
+        /* [in] */ const String& what);
 
 private:
     CARAPI AddView(

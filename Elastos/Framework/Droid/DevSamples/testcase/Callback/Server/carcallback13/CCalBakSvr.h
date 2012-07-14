@@ -18,7 +18,7 @@ CarClass(CCalBakSvr)
 public:
     CARAPI Trigger(
         /* [in] */ Int32 nTriggerTimes,
-        /* [in] */ String wstr);
+        /* [in] */ const String& wstr);
 
 private:
     // TODO: Add your private member variables here.

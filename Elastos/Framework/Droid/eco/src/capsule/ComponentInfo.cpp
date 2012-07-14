@@ -7,16 +7,14 @@ ComponentInfo::ComponentInfo() :
 {}
 
 ComponentInfo::~ComponentInfo()
-{
-    String::Free(mProcessName);
-}
+{}
 
 ECode ComponentInfo::constructor(
     /* [in] */ ComponentInfo* orig)
 {
     CapsuleItemInfo::constructor(orig);
     mApplicationInfo = orig->mApplicationInfo;
-    mProcessName = String::Duplicate(orig->mProcessName);
+    mProcessName = orig->mProcessName;
     mDescriptionRes = orig->mDescriptionRes;
     mEnabled = orig->mEnabled;
     mExported = orig->mExported;
@@ -52,7 +50,7 @@ ECode ComponentInfo::LoadLabel(
 //        }
         assert(0);
     }
-    return CStringWrapper::New(String::Duplicate(mName), label);
+    return CStringWrapper::New(mName, label);
 }
 
 ECode ComponentInfo::ReadFromParcel(

@@ -8,7 +8,7 @@ CarClass(CClassLoader)
 {
 public:
     CARAPI LoadClass(
-        /* [in] */ String className,
+        /* [in] */ const String& className,
         /* [out] */ Handle32* _clazz);
 };
 

@@ -5,7 +5,7 @@
 #include "_CLinearLayoutLayoutParams.h"
 #include "widget/LinearLayoutLayoutParams.h"
 
-CarClass(CLinearLayoutLayoutParams), LinearLayoutLayoutParams
+CarClass(CLinearLayoutLayoutParams), public LinearLayoutLayoutParams
 {
 public:
     CARAPI GetDescription(

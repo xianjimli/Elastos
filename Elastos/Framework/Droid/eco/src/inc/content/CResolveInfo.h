@@ -109,7 +109,7 @@ public:
      * The actual string retrieve from <var>labelRes</var> or null if none
      * was provided.
      */
-    AutoFree<ArrayOf<Char8> > mNonLocalizedLabel;
+    AutoPtr<ICharSequence> mNonLocalizedLabel;
 
     /**
      * A drawable resource identifier (in the package's resources) of this

@@ -3,12 +3,12 @@
 #define __HH_NINEPATCHDRAWABLE_H
 
 #include "graphics/Drawable.h"
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 
 class NinePatchDrawable : public Drawable
 {
 public:
-    class NinePatchState : public ElRefBase, public INinePatchState
+    class NinePatchState : public ElRefBase, public IDrawableConstantState
     {
     public:
         NinePatchState(
@@ -17,7 +17,7 @@ public:
             /* [in] */ Boolean dither = DEFAULT_DITHER);
 
         NinePatchState(
-            /* [in] */ INinePatchState* state);
+            /* [in] */ NinePatchState* state);
 
         CARAPI_(PInterface) Probe(
             /* [in]  */ REIID riid);
@@ -55,14 +55,14 @@ public:
         /* [in] */ IBitmap* bitmap,
         /* [in] */ const ArrayOf<Byte> & chunk,
         /* [in] */ IRect* padding,
-        /* [in] */ String srcName);
+        /* [in] */ const String& srcName);
 
     NinePatchDrawable(
         /* [in] */ IResources* res,
         /* [in] */ IBitmap* bitmap,
         /* [in] */ const ArrayOf<Byte> & chunk,
         /* [in] */ IRect* padding,
-        /* [in] */ String srcName);
+        /* [in] */ const String& srcName);
 
     NinePatchDrawable(
         /* [in] */ INinePatch* patch);
@@ -72,7 +72,7 @@ public:
         /* [in] */ INinePatch* patch);
 
     NinePatchDrawable(
-        /* [in] */ INinePatchState* state,
+        /* [in] */ NinePatchState* state,
         /* [in] */ IResources* res);
 
     virtual CARAPI SetTargetDensity(
@@ -136,7 +136,7 @@ public:
 
     //@Override
     CARAPI_(AutoPtr<IRegion>) GetTransparentRegion();
-    
+
     //@Override
     CARAPI_(AutoPtr<IDrawableConstantState>) GetConstantState();
 
@@ -148,14 +148,14 @@ protected:
         /* [in] */ IBitmap* bitmap,
         /* [in] */ const ArrayOf<Byte> & chunk,
         /* [in] */ IRect* padding,
-        /* [in] */ String srcName);
+        /* [in] */ const String& srcName);
 
     CARAPI Init(
         /* [in] */ IResources* res,
         /* [in] */ IBitmap* bitmap,
         /* [in] */ const ArrayOf<Byte> & chunk,
         /* [in] */ IRect* padding,
-        /* [in] */ String srcName);
+        /* [in] */ const String& srcName);
 
     CARAPI Init(
         /* [in] */ INinePatch* patch);
@@ -165,7 +165,7 @@ protected:
         /* [in] */ INinePatch* patch);
 
     CARAPI Init(
-        /* [in] */ INinePatchState* state,
+        /* [in] */ NinePatchState* state,
         /* [in] */ IResources* res);
 
 private:

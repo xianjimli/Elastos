@@ -4,8 +4,8 @@
 #include "net/CStringUri.h"
 #include <elastos/Algorithm.h>
 
-const String CIntent::EXTRA_CLIENT_LABEL = "android.intent.extra.client_label";
-const String CIntent::EXTRA_CLIENT_INTENT = "android.intent.extra.client_intent";
+const String CIntent::EXTRA_CLIENT_LABEL = String("android.intent.extra.client_label");
+const String CIntent::EXTRA_CLIENT_INTENT = String("android.intent.extra.client_intent");
 
 CIntent::FilterComparison::FilterComparison(
     /* [in] */ IIntent* intent)
@@ -62,10 +62,10 @@ ECode CIntent::constructor(
     /* [in] */ IIntent* intent)
 {
     AutoPtr<CIntent> o = (CIntent*)intent;
-    mAction = String::Duplicate(o->mAction);
+    mAction = o->mAction;
     mData = o->mData;
-    mType = String::Duplicate(o->mType);
-    mCapsule = String::Duplicate(o->mCapsule);
+    mType = o->mType;
+    mCapsule = o->mCapsule;
     mFlags = o->mFlags;
     AutoPtr<IComponentName> componentName;
     o->GetComponent((IComponentName**)&componentName);
@@ -75,8 +75,6 @@ ECode CIntent::constructor(
         componentName->GetCapsuleName(&capsuleName);
         componentName->GetClassName(&className);
         CComponentName::NewByFriend(capsuleName, className, (CComponentName**)&mComponent);
-        String::Free(capsuleName);
-        String::Free(className);
     }
 
 //    if (o.mCategories != null) {
@@ -94,10 +92,10 @@ ECode CIntent::constructor(
     /* [in] */ Boolean all)
 {
     AutoPtr<CIntent> o = (CIntent*)intent;
-    mAction = String::Duplicate(o->mAction);
+    mAction = o->mAction;
     mData = o->mData;
-    mType = String::Duplicate(o->mType);
-    mCapsule = String::Duplicate(o->mCapsule);
+    mType = o->mType;
+    mCapsule = o->mCapsule;
     AutoPtr<IComponentName> componentName;
     o->GetComponent((IComponentName**)&componentName);
     if (componentName) {
@@ -106,8 +104,6 @@ ECode CIntent::constructor(
         componentName->GetCapsuleName(&capsuleName);
         componentName->GetClassName(&className);
         CComponentName::NewByFriend(capsuleName, className, (CComponentName**)&mComponent);
-        String::Free(capsuleName);
-        String::Free(className);
     }
 
 //    if (o.mCategories != null) {
@@ -118,13 +114,13 @@ ECode CIntent::constructor(
 }
 
 ECode CIntent::constructor(
-    /* [in] */ String action)
+    /* [in] */ const String& action)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CIntent::constructor(
-    /* [in] */ String action,
+    /* [in] */ const String& action,
     /* [in] */ IUri* uri)
 {
     return E_NOT_IMPLEMENTED;
@@ -168,17 +164,17 @@ ECode CIntent::SetComponent(
 }
 
 ECode CIntent::GetAction(
-    /* [out] */ String *pAction)
+    /* [out] */ String *action)
 {
-    *pAction = String::Duplicate(mAction);
+    *action = mAction;
 
     return NOERROR;
 }
 
 ECode CIntent::SetAction(
-    /* [in] */ String action)
+    /* [in] */ const String& action)
 {
-    mAction = String::Duplicate(action);
+    mAction = action;
 
     return NOERROR;
 }
@@ -232,14 +228,20 @@ ECode CIntent::GetScheme(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode CIntent::GetType(
+    /* [out] */ String* type)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
 ECode CIntent::AddCategory(
-    /* [in] */ String category)
+    /* [in] */ const String& category)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CIntent::HasCategory(
-    /* [in] */ String category,
+    /* [in] */ const String& category,
     /* [out] */ Boolean* hasCategory)
 {
     if (hasCategory == NULL) return E_INVALID_ARGUMENT;
@@ -289,7 +291,7 @@ ECode CIntent::HasFileDescriptors(
 }
 
 ECode CIntent::PutBooleanExtra(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in] */ Boolean value)
 {
     ECode ec = NOERROR;
@@ -304,7 +306,7 @@ ECode CIntent::PutBooleanExtra(
 }
 
 ECode CIntent::GetBooleanExtra(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ Boolean *pValue)
 {
     ECode ec = NOERROR;
@@ -316,7 +318,7 @@ ECode CIntent::GetBooleanExtra(
 }
 
 ECode CIntent::PutByteExtra(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in] */ Byte value)
 {
     // TODO: Add your code here
@@ -324,7 +326,7 @@ ECode CIntent::PutByteExtra(
 }
 
 ECode CIntent::GetByteExtra(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ Byte * pValue)
 {
     // TODO: Add your code here
@@ -332,7 +334,7 @@ ECode CIntent::GetByteExtra(
 }
 
 ECode CIntent::PutCharExtra(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in] */ Char16 value)
 {
     // TODO: Add your code here
@@ -340,7 +342,7 @@ ECode CIntent::PutCharExtra(
 }
 
 ECode CIntent::GetCharExtra(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ Char16 * pValue)
 {
     // TODO: Add your code here
@@ -348,7 +350,7 @@ ECode CIntent::GetCharExtra(
 }
 
 ECode CIntent::PutInt16Extra(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in] */ Int16 value)
 {
     // TODO: Add your code here
@@ -356,7 +358,7 @@ ECode CIntent::PutInt16Extra(
 }
 
 ECode CIntent::GetInt16Extra(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ Int16 * pValue)
 {
     // TODO: Add your code here
@@ -364,7 +366,7 @@ ECode CIntent::GetInt16Extra(
 }
 
 ECode CIntent::PutInt32Extra(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in] */ Int32 value)
 {
     ECode ec = NOERROR;
@@ -379,7 +381,7 @@ ECode CIntent::PutInt32Extra(
 }
 
 ECode CIntent::GetInt32Extra(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ Int32 *pValue)
 {
     ECode ec = NOERROR;
@@ -391,7 +393,7 @@ ECode CIntent::GetInt32Extra(
 }
 
 ECode CIntent::PutInt64Extra(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in] */ Int64 value)
 {
     // TODO: Add your code here
@@ -399,7 +401,7 @@ ECode CIntent::PutInt64Extra(
 }
 
 ECode CIntent::GetInt64Extra(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ Int64 * pValue)
 {
     // TODO: Add your code here
@@ -407,7 +409,7 @@ ECode CIntent::GetInt64Extra(
 }
 
 ECode CIntent::PutFloatExtra(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in] */ Float value)
 {
     // TODO: Add your code here
@@ -415,7 +417,7 @@ ECode CIntent::PutFloatExtra(
 }
 
 ECode CIntent::GetFloatExtra(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ Float * pValue)
 {
     // TODO: Add your code here
@@ -423,7 +425,7 @@ ECode CIntent::GetFloatExtra(
 }
 
 ECode CIntent::PutDoubleExtra(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in] */ Double value)
 {
     // TODO: Add your code here
@@ -431,7 +433,7 @@ ECode CIntent::PutDoubleExtra(
 }
 
 ECode CIntent::GetDoubleExtra(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ Double * pValue)
 {
     // TODO: Add your code here
@@ -439,15 +441,15 @@ ECode CIntent::GetDoubleExtra(
 }
 
 ECode CIntent::PutStringExtra(
-    /* [in] */ String name,
-    /* [in] */ String value)
+    /* [in] */ const String& name,
+    /* [in] */ const String& value)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CIntent::GetStringExtra(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ String * pValue)
 {
     // TODO: Add your code here
@@ -469,7 +471,7 @@ ECode CIntent::GetExtras(
 }
 
 ECode CIntent::PutParcelableExtra(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in] */ IParcelable* value)
 {
     // TODO: Add your code here
@@ -477,7 +479,7 @@ ECode CIntent::PutParcelableExtra(
 }
 
 ECode CIntent::GetParcelableExtra(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ IParcelable** value)
 {
     // TODO: Add your code here
@@ -485,7 +487,7 @@ ECode CIntent::GetParcelableExtra(
 }
 
 ECode CIntent::GetStringArrayExtra(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out, callee] */ ArrayOf<String>** array)
 {
     // TODO: Add your code here
@@ -497,22 +499,22 @@ ECode CIntent::GetCapsule(
 {
     if (capsuleName == NULL) return E_INVALID_ARGUMENT;
 
-    *capsuleName = String::Duplicate(mCapsule);
+    *capsuleName = mCapsule;
 
     return NOERROR;
 }
 
 ECode CIntent::SetCapsule(
-    /* [in] */ String capsuleName)
+    /* [in] */ const String& capsuleName)
 {
-    mCapsule = String::Duplicate(capsuleName);
+    mCapsule = capsuleName;
 
     return NOERROR;
 }
 
 ECode CIntent::SetClassName(
-    /* [in] */ String capsuleName,
-    /* [in] */ String className)
+    /* [in] */ const String& capsuleName,
+    /* [in] */ const String& className)
 {
     return CComponentName::NewByFriend(
             capsuleName, className, (CComponentName**)&mComponent);
@@ -547,7 +549,7 @@ ECode CIntent::ResolveType(
     if (type == NULL) return E_INVALID_ARGUMENT;
 
     if (!mType.IsNull()) {
-        *type = String::Duplicate(mType);
+        *type = mType;
         return NOERROR;
     }
     if (mData != NULL) {
@@ -578,7 +580,7 @@ ECode CIntent::ResolveTypeIfNeeded(
     if (type == NULL) return E_INVALID_ARGUMENT;
 
     if (mComponent != NULL) {
-        *type = String::Duplicate(mType);
+        *type = mType;
         return NOERROR;
     }
 

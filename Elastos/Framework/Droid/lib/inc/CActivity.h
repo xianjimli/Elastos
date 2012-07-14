@@ -2,9 +2,12 @@
 #ifndef __CACTIVITY_H__
 #define __CACTIVITY_H__
 
+#define __USE_MALLOC
+
 #include <Elastos.Framework.h>
 #include "CBaseObject.h"
 #include <elastos/AutoPtr.h>
+#include <elastos/HashMap.h>
 
 using namespace Elastos;
 
@@ -57,7 +60,7 @@ public:
     CARAPI Destroy();
 
     CARAPI DispatchActivityResult(
-        /* [in] */ String who,
+        /* [in] */ const String& who,
         /* [in] */ Int32 requestCode,
         /* [in] */ Int32 resultCode,
         /* [in] */ IIntent *data);
@@ -72,7 +75,7 @@ public:
         /* [in] */ IActivityInfo* info,
         /* [in] */ ICharSequence* title,
         /* [in] */ IActivity* parent,
-        /* [in] */ String id,
+        /* [in] */ const String& id,
         /* [in] */ IInterface* lastNonConfigurationInstance,
         /* [in] */ IConfiguration* config);
 
@@ -87,7 +90,7 @@ public:
         /* [in] */ IActivityInfo* info,
         /* [in] */ ICharSequence* title,
         /* [in] */ IActivity* parent,
-        /* [in] */ String id,
+        /* [in] */ const String& id,
         /* [in] */ IInterface* lastNonConfigurationInstance,
         /* [in] */ IObjectStringMap* lastNonConfigurationChildInstances,
         /* [in] */ IConfiguration* config);
@@ -156,27 +159,47 @@ public:
         /* [in] */ IServiceConnection* conn);
 
     CARAPI GetSystemService(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ IInterface** object);
 
     CARAPI CreateCapsuleContext(
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ Int32 flags,
         /* [out] */ IContext** ctx);
 
     CARAPI CheckCallingPermission(
-        /* [in] */ String permission,
+        /* [in] */ const String& permission,
         /* [out] */ Int32* value);
 
     CARAPI EnforceCallingOrSelfPermission(
-        /* [in] */ String permission,
-        /* [in] */ String message);
+        /* [in] */ const String& permission,
+        /* [in] */ const String& message);
+
+    CARAPI RevokeUriPermission(
+        /* [in] */ IUri* uri,
+        /* [in] */ Int32 modeFlags);
+
+    CARAPI CheckCallingOrSelfPermission(
+        /* [in] */ const String& permission,
+        /* [out] */ Int32* perm);
+
+    CARAPI GrantUriPermission(
+        /* [in] */ const String& toCapsule,
+        /* [in] */ IUri* uri,
+        /* [in] */ Int32 modeFlags);
+
+    CARAPI GetAssets(
+        /* [out] */ IAssetManager** assetManager);
 
     CARAPI GetResources(
         /* [out] */ IResources** resources);
 
     CARAPI GetContentResolver(
         /* [out] */ IContentResolver** resolver);
+
+    CARAPI GetText(
+        /* [in] */ Int32 resId,
+        /* [out] */ ICharSequence** text);
 
     CARAPI SetTheme(
         /* [in] */ Int32 resid);
@@ -320,11 +343,30 @@ public:
      */
     CARAPI_(AutoPtr<IWindow>) GetWindow();
 
+    CARAPI ShowDialog(
+        /* [in] */ Int32 id);
+
+    CARAPI ShowDialogEx(
+        /* [in] */ Int32 id,
+        /* [in] */ IBundle* args,
+        /* [out] */ Boolean* res);
+
+    CARAPI DismissDialog(
+        /* [in] */ Int32 id);
+
+    CARAPI RemoveDialog(
+        /* [in] */ Int32 id);
+
 protected:
     CARAPI Finish();
 
     virtual CARAPI OnCreate(
         /* [in] */ IBundle* savedInstanceState);
+
+    virtual CARAPI_(AutoPtr<IDialog>) CreateDialog(
+        /* [in] */ Int32 dialogId,
+        /* [in] */ IBundle* state,
+        /* [in] */ IBundle* args);
 
     virtual CARAPI OnPostCreate(
         /* [in] */ IBundle* savedInstanceState);
@@ -370,6 +412,41 @@ protected:
         /* [in] */ ICharSequence* title,
         /* [in] */ Int32 color);
 
+    virtual CARAPI AttachBaseContext(
+        /* [in] */ IContext* base);
+
+    virtual CARAPI OnApplyThemeResource(
+        /* [in] */ ITheme* theme,
+        /* [in] */ Int32 resid,
+        /* [in] */ Boolean first);
+
+    virtual CARAPI_(AutoPtr<IDialog>) OnCreateDialog(
+        /* [in] */ Int32 id);
+
+    virtual CARAPI_(AutoPtr<IDialog>) OnCreateDialog(
+        /* [in] */ Int32 id,
+        /* [in] */ IBundle* args);
+
+    virtual CARAPI_(void) OnPrepareDialog(
+        /* [in] */ Int32 id,
+        /* [in] */ IDialog* dialog);
+
+    virtual CARAPI_(void) OnPrepareDialog(
+        /* [in] */ Int32 id,
+        /* [in] */ IDialog* dialog,
+        /* [in] */ IBundle* args);
+
+private:
+    CARAPI InitializeTheme();
+
+private:
+    class ManagedDialog
+    {
+    public:
+        AutoPtr<IDialog> mDialog;
+        AutoPtr<IBundle> mArgs;
+    };
+
 protected:
     AutoPtr<IContext> mBase;
     AutoPtr<IIntent> mResultData;
@@ -377,6 +454,7 @@ protected:
     AutoPtr<IBinder> mToken;
 
 private:
+    HashMap<Int32, ManagedDialog*>* mManagedDialogs;
 
     // set by the thread after the constructor and before onCreate(Bundle savedInstanceState) is called.
     AutoPtr<IInstrumentation> mInstrumentation;
@@ -402,6 +480,9 @@ private:
     Int32 mTitleColor;
 
     Boolean mTitleReady;
+
+    Int32 mThemeResource;
+    AutoPtr<ITheme> mTheme;
 };
 
 #endif //__CACTIVITY_H__

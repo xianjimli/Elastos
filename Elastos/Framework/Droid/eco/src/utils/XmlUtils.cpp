@@ -9,8 +9,8 @@ void XmlUtils::SkipCurrentTag(
 
     Int32 type = 0;
     Int32 depth = 0;
-    while ((parser->Next(&type), type) != XmlPullParser_END_DOCUMENT
-           && (type != XmlPullParser_END_TAG
+    while ((parser->Next(&type), type) != IXmlPullParser_END_DOCUMENT
+           && (type != IXmlPullParser_END_TAG
                    || (parser->GetDepth(&depth), depth) > outerDepth)) {
     }
 }
@@ -96,3 +96,15 @@ Int32 XmlUtils::ConvertValueToInt32(
 //	    return Integer.parseInt(nm.substring(index), base) * sign;
     return -1;
 }
+
+void XmlUtils::BeginDocument(
+    /* [in] */ IXmlPullParser* parser,
+    /* [in] */ const String& firstElementName)
+{
+}
+
+void XmlUtils::NextElement(
+    /* [in] */ IXmlPullParser* parser)
+{
+}
+

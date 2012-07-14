@@ -5,9 +5,7 @@ CServiceInfo::CServiceInfo()
 {}
 
 CServiceInfo::~CServiceInfo()
-{
-    String::Free(mPermission);
-}
+{}
 
 ECode CServiceInfo::constructor()
 {
@@ -19,7 +17,7 @@ ECode CServiceInfo::constructor(
 {
     AutoPtr<CServiceInfo> corig = (CServiceInfo*)orig;
     ComponentInfo::constructor((ComponentInfo*)(CServiceInfo*)corig);
-    mPermission = String::Duplicate(corig->mPermission);
+    mPermission = corig->mPermission;
     return NOERROR;
 }
 
@@ -49,7 +47,7 @@ ECode CServiceInfo::LoadLogo(
 
 ECode CServiceInfo::LoadXmlMetaData(
     /* [in] */ ICapsuleManager* pm,
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ IXmlResourceParser** resource)
 {
     VALIDATE_NOT_NULL(resource);
@@ -60,18 +58,18 @@ ECode CServiceInfo::GetComponentName(
     /* [out] */ String * pCapsuleName,
     /* [out] */ String * pClassName)
 {
-    *pCapsuleName = String::Duplicate(mCapsuleName);
-    *pClassName = String::Duplicate(mName);
+    *pCapsuleName = mCapsuleName;
+    *pClassName = mName;
 
     return NOERROR;
 }
 
 ECode CServiceInfo::SetComponentName(
-    /* [in] */ String capsuleName,
-    /* [in] */ String className)
+    /* [in] */ const String& capsuleName,
+    /* [in] */ const String& className)
 {
-    mCapsuleName = String::Duplicate(capsuleName);
-    mName = String::Duplicate(className);
+    mCapsuleName = capsuleName;
+    mName = className;
 
     return NOERROR;
 }

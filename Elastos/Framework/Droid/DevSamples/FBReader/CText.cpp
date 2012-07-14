@@ -1,5 +1,7 @@
 
 #include "CText.h"
+#include "FBReaderDef.h"
+#include <stdio.h>
 
 CText::CText()
     : mIndex(-1)
@@ -7,7 +9,7 @@ CText::CText()
 
 CText::~CText()
 {
-    String::Free(mText);
+    //String::Free(mText);
 }
 
 ECode CText::constructor()
@@ -16,10 +18,30 @@ ECode CText::constructor()
 }
 
 ECode CText::constructor(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ Int32 index)
 {
     mText = text;
     mIndex = index;
     return NOERROR;
 }
+
+ECode CText::GetText(
+    /* [out] */ String* text)
+{
+    VALIDATE_NOT_NULL(text);
+
+	*text = mText;
+    return NOERROR;
+}
+
+ECode CText::GetOrder(
+	/* [out] */  Int32* order)
+{
+    VALIDATE_NOT_NULL(order);
+
+	*order = mIndex;
+	return NOERROR;
+}
+
+

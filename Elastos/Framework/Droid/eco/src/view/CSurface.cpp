@@ -2,7 +2,6 @@
 #include "view/CSurface.h"
 #include "view/CSurfaceSession.h"
 #include "graphics/CRect.h"
-#ifdef _linux
 #include <surfaceflinger/SurfaceComposerClient.h>
 #include <assert.h>
 #include <ui/PixelFormat.h>
@@ -10,10 +9,8 @@
 #include <skia/core/SkBitmap.h>
 #include <skia/core/SkRegion.h>
 #include <utils/String8.h>
-#endif
 //using namespace Elastos;
 
-#ifdef _linux
 static inline SkBitmap::Config ConvertPixelFormat(PixelFormat format)
 {
     /* note: if PIXEL_FORMAT_RGBX_8888 means that all alpha bytes are 0xFF, then
@@ -29,7 +26,6 @@ static inline SkBitmap::Config ConvertPixelFormat(PixelFormat format)
     default:                              return SkBitmap::kNo_Config;
     }
 }
-#endif
 
 ////////////////////////////////////////////////////////////
 // CSurface::CompatibleCanvas
@@ -46,6 +42,9 @@ PInterface CSurface::CompatibleCanvas::Probe(
 {
     if (riid == EIID_IInterface) {
         return (IInterface*)(ICanvas*)this;
+    }
+    else if (riid == EIID_Canvas) {
+        return reinterpret_cast<PInterface>((Canvas*)this);
     }
     else if (riid == EIID_ICanvas) {
         return (ICanvas*)this;
@@ -756,7 +755,7 @@ ECode CSurface::CompatibleCanvas::DrawVertices(
 }
 
 ECode CSurface::CompatibleCanvas::DrawTextInBuffer(
-    /* [in] */ const BufferOf<Byte>& text,
+    /* [in] */ const ArrayOf<Char8>& text,
     /* [in] */ Int32 index,
     /* [in] */ Int32 count,
     /* [in] */ Float x,
@@ -768,7 +767,7 @@ ECode CSurface::CompatibleCanvas::DrawTextInBuffer(
 }
 
 ECode CSurface::CompatibleCanvas::DrawTextInString(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ Float x,
     /* [in] */ Float y,
     /* [in] */ IPaint* paint)
@@ -778,7 +777,7 @@ ECode CSurface::CompatibleCanvas::DrawTextInString(
 }
 
 ECode CSurface::CompatibleCanvas::DrawTextInStringEx(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ Int32 start,
     /* [in] */ Int32 end,
     /* [in] */ Float x,
@@ -802,7 +801,7 @@ ECode CSurface::CompatibleCanvas::DrawTextInCharSequence(
 }
 
 ECode CSurface::CompatibleCanvas::DrawPosTextInBuffer(
-    /* [in] */ const BufferOf<Byte>& text,
+    /* [in] */ const ArrayOf<Char8>& text,
     /* [in] */ Int32 index,
     /* [in] */ Int32 count,
     /* [in] */ const ArrayOf<Float>& pos,
@@ -813,7 +812,7 @@ ECode CSurface::CompatibleCanvas::DrawPosTextInBuffer(
 }
 
 ECode CSurface::CompatibleCanvas::DrawPosTextInString(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ const ArrayOf<Float>& pos,
     /* [in] */ IPaint* paint)
 {
@@ -823,7 +822,7 @@ ECode CSurface::CompatibleCanvas::DrawPosTextInString(
 }
 
 ECode CSurface::CompatibleCanvas::DrawTextOnPathInBuffer(
-    /* [in] */ const BufferOf<Byte>& text,
+    /* [in] */ const ArrayOf<Char8>& text,
     /* [in] */ Int32 index,
     /* [in] */ Int32 count,
     /* [in] */ IPath* path,
@@ -836,7 +835,7 @@ ECode CSurface::CompatibleCanvas::DrawTextOnPathInBuffer(
 }
 
 ECode CSurface::CompatibleCanvas::DrawTextOnPathInString(
-    /* [in] */ String text,
+    /* [in] */ const String& text,
     /* [in] */ IPath* path,
     /* [in] */ Float hOffset,
     /* [in] */ Float vOffset,
@@ -879,34 +878,24 @@ ECode CSurface::CompatibleCanvas::FreeCaches()
 
 CSurface::CSurface()
     : mSaveCount(0)
-{
-}
+{}
 
 CSurface::~CSurface()
-{
-    if (!mName.IsNull()) {
-        String::Free(mName);
-    }
-}
+{}
 
 void CSurface::OpenTransaction()
 {
-#ifdef _linux
     android::SurfaceComposerClient::openGlobalTransaction();
-#endif
 }
 
 void CSurface::CloseTransaction()
 {
-#ifdef _linux
     android::SurfaceComposerClient::closeGlobalTransaction();
-#endif
 }
 
 ECode CSurface::ReadFromParcel(
     /* [in] */ IParcel * pSource)
 {
-#ifdef _linux
     Handle32 data;
     pSource->GetElementPayload(&data);
     android::Parcel* parcel = (android::Parcel*)data;
@@ -918,15 +907,11 @@ ECode CSurface::ReadFromParcel(
 
     mNativeSurface = android::Surface::readFromParcel(*parcel);
     return NOERROR;
-#else
-    return E_NOT_IMPLEMENTED;
-#endif
 }
 
 ECode CSurface::WriteToParcel(
     /* [in] */ IParcel * pDest)
 {
-#ifdef _linux
     Handle32 data;
     pDest->GetElementPayload(&data);
     android::Parcel* parcel = (android::Parcel*)data;
@@ -941,9 +926,6 @@ ECode CSurface::WriteToParcel(
 //        setSurfaceControl(env, clazz, 0);
 //    }
     return NOERROR;
-#else
-    return E_NOT_IMPLEMENTED;
-#endif
 }
 
 ECode CSurface::SetCompatibleDisplayMetrics(
@@ -957,7 +939,6 @@ ECode CSurface::SetCompatibleDisplayMetrics(
 ECode CSurface::CopyFrom(
     /* [in] */ ISurface * pO)
 {
-#ifdef _linux
     if (!pO) {
         return E_INVALID_ARGUMENT;
     }
@@ -976,15 +957,11 @@ ECode CSurface::CopyFrom(
         SetSurfaceControl(((CSurface *)pO)->mSurfaceControl);
     }
     return NOERROR;
-#else
-    return E_NOT_IMPLEMENTED;
-#endif
 }
 
 ECode CSurface::IsValid(
     /* [out] */ Boolean * pIsValid)
 {
-#ifdef _linux
     if (!pIsValid) {
         return E_INVALID_ARGUMENT;
     }
@@ -995,15 +972,25 @@ ECode CSurface::IsValid(
     GetSurface();
     *pIsValid =  android::Surface::isValid(mNativeSurface) ? TRUE : FALSE;
     return NOERROR;
-#else
-    return E_NOT_IMPLEMENTED;
-#endif
 }
 
 ECode CSurface::Destroy()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    if (android::SurfaceControl::isValid(mSurfaceControl)) {
+        mSurfaceControl->clear();
+    }
+    SetSurfaceControl(NULL);
+    SetSurface(NULL);
+
+    return NOERROR;
+}
+
+ECode CSurface::ReleaseSurface()
+{
+    SetSurfaceControl(NULL);
+    SetSurface(NULL);
+
+    return NOERROR;
 }
 
 ECode CSurface::LockCanvas(
@@ -1315,7 +1302,7 @@ ECode CSurface::constructor(
 ECode CSurface::constructor(
     /* [in] */ ISurfaceSession * pS,
     /* [in] */ Int32 pid,
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in] */ Int32 display,
     /* [in] */ Int32 w,
     /* [in] */ Int32 h,
@@ -1330,7 +1317,7 @@ ECode CSurface::constructor(
         return E_OUT_OF_MEMORY;
     }
     ECode ec = Init(pS, pid, name, display, w, h, format, flags);
-    mName = String::Duplicate(name);
+    mName = name;
     return ec;
 }
 
@@ -1349,14 +1336,13 @@ ECode CSurface::constructor()
 ECode CSurface::Init(
     /* [in] */ ISurfaceSession * pS,
     /* [in] */ Int32 pid,
-    /* [in] */ String name,
+    /* [in] */ const char* name,
     /* [in] */ Int32 display,
     /* [in] */ Int32 w,
     /* [in] */ Int32 h,
     /* [in] */ Int32 format,
     /* [in] */ Int32 flags)
 {
-#ifdef _linux
     if (!pS) {
         return E_INVALID_ARGUMENT;
     }
@@ -1366,11 +1352,12 @@ ECode CSurface::Init(
     assert(client);
 
     android::sp<android::SurfaceControl> surface;
-    if (name.IsNull()) {
+    if (name == NULL) {
         surface = client->createSurface(pid, display, w, h, format, flags);
-    } else {
+    }
+    else {
         surface = client->createSurface(pid,
-            android::String8((const char *)name), display, w, h, format, flags);
+            android::String8(name), display, w, h, format, flags);
     }
 
     if (!surface.get()) {
@@ -1379,14 +1366,11 @@ ECode CSurface::Init(
 
     mSurfaceControl = surface;
     return NOERROR;
-#else
-    return E_NOT_IMPLEMENTED;
-#endif
 }
 
 #ifdef _linux
 void CSurface::SetSurfaceControl(
-        /* [in] */ android::sp<android::SurfaceControl> & surface)
+        /* [in] */ const android::sp<android::SurfaceControl>& surface)
 {
     if (surface.get()) {
         surface->incStrong(this);
@@ -1417,3 +1401,16 @@ void CSurface::GetSurface()
 #endif
 }
 
+#ifdef _linux
+void CSurface::SetSurface(
+        /* [in] */ const android::sp<android::Surface>& surface)
+{
+    if (surface.get()) {
+        surface->incStrong(this);
+    }
+    if (mNativeSurface.get()) {
+        mNativeSurface->decStrong(this);
+    }
+    mNativeSurface = surface;
+}
+#endif

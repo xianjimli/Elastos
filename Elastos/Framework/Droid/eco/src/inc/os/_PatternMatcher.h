@@ -12,7 +12,7 @@ public:
     CARAPI_(String) GetPath();
 
     CARAPI_(Boolean) Match(
-        /* [in] */ String str);
+        /* [in] */ const String& str);
 };
 
 #endif //__PATTERNMATCHER_H__

@@ -8,9 +8,11 @@ module
     merge("util/DisplayMetrics.car");
     merge("util/TypedValue.car");
     merge("util/ObjectIntegerMap.car");
-    merge("util/Comparator.car");
+    merge("util/Pool.car");
+    merge("util/Poolable.car");
+    merge("util/PoolableManager.car");
 
-    class CObjectContainer {
+    class CParcelableObjectContainer {
         interface IObjectContainer;
         interface IParcelable;
     }

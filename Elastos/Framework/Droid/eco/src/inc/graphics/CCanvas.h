@@ -394,7 +394,7 @@ public:
         /* [in] */ IPaint* paint);
 
     CARAPI DrawTextInBuffer(
-        /* [in] */ const BufferOf<Byte>& text,
+        /* [in] */ const ArrayOf<Char8>& text,
         /* [in] */ Int32 index,
         /* [in] */ Int32 count,
         /* [in] */ Float x,
@@ -402,13 +402,13 @@ public:
         /* [in] */ IPaint* paint);
 
     CARAPI DrawTextInString(
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ Float x,
         /* [in] */ Float y,
         /* [in] */ IPaint* paint);
 
     CARAPI DrawTextInStringEx(
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ Int32 start,
         /* [in] */ Int32 end,
         /* [in] */ Float x,
@@ -424,19 +424,19 @@ public:
         /* [in] */ IPaint* paint);
 
     CARAPI DrawPosTextInBuffer(
-        /* [in] */ const BufferOf<Byte>& text,
+        /* [in] */ const ArrayOf<Char8>& text,
         /* [in] */ Int32 index,
         /* [in] */ Int32 count,
         /* [in] */ const ArrayOf<Float>& pos,
         /* [in] */ IPaint* paint);
 
     CARAPI DrawPosTextInString(
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ const ArrayOf<Float>& pos,
         /* [in] */ IPaint* paint);
 
     CARAPI DrawTextOnPathInBuffer(
-        /* [in] */ const BufferOf<Byte>& text,
+        /* [in] */ const ArrayOf<Char8>& text,
         /* [in] */ Int32 index,
         /* [in] */ Int32 count,
         /* [in] */ IPath* path,
@@ -445,7 +445,7 @@ public:
         /* [in] */ IPaint* paint);
 
     CARAPI DrawTextOnPathInString(
-        /* [in] */ String text,
+        /* [in] */ const String& text,
         /* [in] */ IPath* path,
         /* [in] */ Float hOffset,
         /* [in] */ Float vOffset,

@@ -3,7 +3,7 @@
 #define __COLORDRAWABLE_H__
 
 #include "graphics/Drawable.h"
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 
 class ColorDrawable : public Drawable
 {

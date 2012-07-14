@@ -2,8 +2,8 @@
 #include "CInstrumentation.h"
 
 ECode CInstrumentation::NewApplication(
-    /* [in] */ String moduleName,
-    /* [in] */ String className, 
+    /* [in] */ const String& moduleName,
+    /* [in] */ const String& className, 
     /* [in] */ IContext* ctx, 
     /* [out] */ IApplication** app)
 {

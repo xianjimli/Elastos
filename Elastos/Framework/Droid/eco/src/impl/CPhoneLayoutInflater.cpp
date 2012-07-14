@@ -4,12 +4,18 @@
 #include <widget/CImageView.h>
 #include "graphics/CBitmapDrawable.h"
 
-#include <stdio.h>
-
 ECode CPhoneLayoutInflater::constructor(
     /* [in] */ IContext* context)
 {
     return LayoutInflater::Init(context);
+}
+
+ECode CPhoneLayoutInflater::CloneInContext(
+    /* [in] */ IContext* newContext,
+    /* [out] */ ILayoutInflater** newInflater)
+{
+    VALIDATE_NOT_NULL(newInflater);
+    return CPhoneLayoutInflater::New(newContext, newInflater);
 }
 
 ECode CPhoneLayoutInflater::GetContext(

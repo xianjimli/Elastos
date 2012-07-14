@@ -8,7 +8,7 @@
 #include <elastos/Mutex.h>
 #include <elastos/AutoPtr.h>
 
-using namespace Elastos::System::Threading;
+using namespace Elastos::Core::Threading;
 
 CarClass(CColorStateList)
 {
@@ -25,13 +25,21 @@ public:
         /* [out] */ IColorStateList** csl);
 
     /**
+     * Create a ColorStateList from an XML document, given a set of {@link Resources}.
+     */
+    static CARAPI CreateFromXml(
+        /* [in] */ IResources* r,
+        /* [in] */ IXmlPullParser* parser,
+        /* [out] */ IColorStateList** csl);
+
+    /**
      * Creates a new ColorStateList that has the same states and
      * colors as this one but where each color has the specified alpha value
      * (0-255).
      */
     CARAPI WithAlpha(
         /* [in] */ Int32 alpha,
-        /* [out] */ IColorStateList** colors);
+        /* [out] */ IColorStateList** colorState);
 
     CARAPI IsStateful(
         /* [out] */ Boolean* isStateful);
@@ -58,6 +66,25 @@ public:
     CARAPI constructor(
         /* [in] */ const ArrayOf<Handle32> & states,
         /* [in] */ const ArrayOf<Int32> & colors);
+
+private:
+    /* Create from inside an XML document.  Called on a parser positioned at
+     * a tag in an XML document, tries to create a ColorStateList from that tag.
+     * Returns null if the tag is not a valid ColorStateList.
+     */
+    static CARAPI CreateFromXmlInner(
+        /* [in] */ IResources* r,
+        /* [in] */ IXmlPullParser* parser,
+        /* [in] */ IAttributeSet* attrs,
+        /* [out] */ IColorStateList** csl);
+
+    /**
+     * Fill in this object based on the contents of an XML "selector" element.
+     */
+    CARAPI Inflate(
+        /* [in] */ IResources* r,
+        /* [in] */ IXmlPullParser* parser,
+        /* [in] */ IAttributeSet* attrs);
 
 private:
     static ArrayOf<Handle32>* EMPTY;

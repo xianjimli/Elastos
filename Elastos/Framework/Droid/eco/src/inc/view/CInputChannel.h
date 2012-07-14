@@ -10,7 +10,7 @@
 CarClass(CInputChannel)
 {
 private:
-    static const String TAG;
+    static const char* TAG;
 
     static const Boolean DEBUG = FALSE;
 
@@ -23,7 +23,7 @@ public:
     CInputChannel();
 
     static CARAPI OpenInputChannelPair(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ CInputChannel** inputChannel0,
         /* [out] */ CInputChannel** inputChannel1);
 

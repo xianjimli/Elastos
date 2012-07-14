@@ -4,7 +4,7 @@
 #include <Slogger.h>
 #include <StringBuffer.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
 static android::sp<NativeInputManager> gNativeInputManager;
@@ -20,7 +20,7 @@ const Int32 InputManager::KEY_STATE_UNKNOWN;
 const Int32 InputManager::KEY_STATE_UP;
 const Int32 InputManager::KEY_STATE_DOWN;
 const Int32 InputManager::KEY_STATE_VIRTUAL;
-const String InputManager::TAG = "InputManager";
+const char* InputManager::TAG = "InputManager";
 const Boolean InputManager::DEBUG;
 
 static Boolean CheckInputManagerUnitialized()
@@ -276,7 +276,7 @@ Int32 InputManager::GetSwitchState(
  * @return The input channel.
  */
 ECode InputManager::MonitorInput(
-    /* [in] */ String inputChannelName,
+    /* [in] */ const String& inputChannelName,
     /* [out] */ IInputChannel** _inputChannel)
 {
     assert(_inputChannel != NULL);

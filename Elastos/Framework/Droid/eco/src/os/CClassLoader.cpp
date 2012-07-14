@@ -4,25 +4,19 @@
 #include <elastos/AutoPtr.h>
 #include <StringBuffer.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 ECode CClassLoader::LoadClass(
-    /* [in] */ String className,
+    /* [in] */ const String& className,
     /* [out] */ Handle32* _clazz)
 {
-    String modulename = "Elastos.Framework.eco";
-
     IClassInfo** clazz = (IClassInfo**)_clazz;
-    StringBuffer _name("C");
-
-    Int32 length = className.GetLength();
-    StringBuf* buf = StringBuf::Alloc(length + 1);
-    className.Substring(className.LastIndexOf('.') + 1, length, *buf);
-    _name += buf->GetPayload();
-    StringBuf::Free(buf);
+    CString modulename("Elastos.Framework.eco");
+    String rname("C");
+    rname += className.Substring(className.LastIndexOf('.') + 1);
 
     AutoPtr<IModuleInfo> moduleInfo;
     FAIL_RETURN(CReflector::AcquireModuleInfo(modulename, (IModuleInfo**)&moduleInfo));
 
-    return moduleInfo->GetClassInfo(_name, clazz);
+    return moduleInfo->GetClassInfo(rname, clazz);
 }

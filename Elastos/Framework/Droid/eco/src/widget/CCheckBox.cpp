@@ -3,10 +3,13 @@
 
 IVIEW_METHODS_IMPL(CCheckBox, CheckBox, CheckBox);
 
-ITEXTVIEW_METHODS_IMPL(CCheckBox, CheckBox, CheckBox);
+IDrawableCallback_METHODS_IMPL(CCheckBox, CheckBox, CCheckBox);
 
-CCheckBox::CCheckBox()
-{}
+IKeyEventCallback_METHODS_IMPL(CCheckBox, CheckBox, CCheckBox);
+
+IAccessibilityEventSource_METHODS_IMPL(CCheckBox, CheckBox, CCheckBox);
+
+ITEXTVIEW_METHODS_IMPL(CCheckBox, CheckBox, CheckBox);
 
 PInterface CCheckBox::Probe(
     /* [in] */ REIID riid)
@@ -82,3 +85,11 @@ ECode CCheckBox::constructor(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode CCheckBox::OnPreDraw(
+    /* [out] */ Boolean* result)
+{
+    VALIDATE_NOT_NULL(result);
+    *result = CheckBox::OnPreDraw();
+
+    return NOERROR;
+}

@@ -15,8 +15,8 @@
  * @return The newly instantiated Application object.
  */
 ECode CDefaultInstrumentation::NewApplication(
-    /* [in] */ String moduleName,
-    /* [in] */ String className,
+    /* [in] */ const String& moduleName,
+    /* [in] */ const String& className,
     /* [in] */ IContext* context,
     /* [out] */ IApplication** app)
 {
@@ -219,7 +219,6 @@ ECode CDefaultInstrumentation::ExecStartActivity(
     ec = amService->StartActivity(apartment, intent, type, NULL,
             0, token, resultWho, requestCode, FALSE, FALSE, &res);
     CheckStartActivityResult(res, intent);
-    String::Free(resultWho);
     *result = NULL;
     return ec;
 }

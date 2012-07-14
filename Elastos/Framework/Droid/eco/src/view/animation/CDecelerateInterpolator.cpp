@@ -3,7 +3,7 @@
 #include "ext/frameworkdef.h"
 #include <elastos/Math.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 CDecelerateInterpolator::CDecelerateInterpolator()
     : mFactor(1.0f)

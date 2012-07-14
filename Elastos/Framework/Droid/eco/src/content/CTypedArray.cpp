@@ -5,14 +5,13 @@
 #include <content/CAssetManager.h>
 #include <utils/CTypedValue.h>
 #include <utils/XmlUtils.h>
-#include "utils/AutoString.h"
 #include <elastos/AutoFree.h>
 #include <elastos/Math.h>
 #include <StringBuffer.h>
 #include <Logger.h>
 #include <stdlib.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
 #define CRESOURCES(x) ((CResources*)x.Get())
@@ -306,7 +305,7 @@ ECode CTypedArray::GetFloat(
         AutoPtr<ICharSequence> csq;
         ec = v->CoerceToString((ICharSequence**)&csq);
         if (SUCCEEDED(ec)) {
-            AutoString str;
+            String str;
             csq->ToString(&str);
             *value = atof((const char*)str);
             return NOERROR;
@@ -464,7 +463,7 @@ ECode CTypedArray::GetDimensionPixelSize(
 
 ECode CTypedArray::GetLayoutDimension(
     /* [in] */ Int32 index,
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ Int32* dimension)
 {
     VALIDATE_NOT_NULL(dimension);
@@ -486,7 +485,6 @@ ECode CTypedArray::GetLayoutDimension(
     String des;
     GetPositionDescription(&des);
     Logger::E(CResources::TAG, StringBuffer("") + des + ": You must supply a " + name + " attribute.");
-    String::Free(des);
     return E_RUNTIME_EXCEPTION;
 }
 
@@ -654,7 +652,7 @@ ECode CTypedArray::GetPositionDescription(
     if (mXml != NULL) {
         return mXml->GetPositionDescription(des);
     }
-    *des = String::Duplicate("<internal>");
+    *des = "<internal>";
     return NOERROR;
 }
 

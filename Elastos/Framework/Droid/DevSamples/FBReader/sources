@@ -83,9 +83,11 @@ LIBRARIES += $(XDK_USER_LIB)/sqldb.lib
 LIBRARIES += $(XDK_USER_LIB)/implsqlite.lib
 LIBRARIES += $(XDK_USER_LIB)/booksdb-runnables.lib
 LIBRARIES += $(XDK_USER_LIB)/libbz2.lib
-
+LIBRARIES += $(XDK_USER_LIB)/liblinebreak.lib
+ 
 LIBRARIES += -llog -lutils -lexpat -lsqlite -lz
 
 APPPACK = 1
 DIRRESOURCES += $(MAKEDIR)/res;
 DIRRESOURCES += $(MAKEDIR)/data;
+DIRRESOURCES += $(MAKEDIR)/Books;

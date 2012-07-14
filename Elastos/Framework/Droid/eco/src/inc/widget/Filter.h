@@ -3,18 +3,18 @@
 #define __FILTER_H__
 
 #include "ext/frameworkext.h"
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>
 #include <elastos/Vector.h>
 #include <elastos/Mutex.h>
 
-using namespace::Elastos::System::Threading;
+using namespace Elastos::Core::Threading;
 
 class Filter : public ElRefBase, public IFilter
 {
 private:
-    static const String TAG;
-    static const String THREAD_NAME;
+    static const char* TAG;
+    static const char* THREAD_NAME;
     static const Int32 FILTER_TOKEN = 0xD0D0F00D;
     static const Int32 FINISH_TOKEN = 0xDEADBEEF;
 

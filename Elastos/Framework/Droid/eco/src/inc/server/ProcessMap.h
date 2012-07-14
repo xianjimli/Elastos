@@ -15,16 +15,16 @@ public:
     ~ProcessMap();
 
     CARAPI_(E) Get(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [in] */ Int32 uid);
 
     CARAPI_(E) Put(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [in] */ Int32 uid,
         /* [in] */ E value);
 
     CARAPI_(void) Remove(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [in] */ Int32 uid);
 
     HashMap<String, Map<Int32, E>*>* GetMap();
@@ -45,26 +45,34 @@ ProcessMap<E>::~ProcessMap()
 
 template <typename E>
 E ProcessMap<E>::Get(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in] */ Int32 uid)
 {
-    Map<Int32, E>* uids = mMap[name];
+    Map<Int32, E>* uids = NULL;
+    typename HashMap<String, Map<Int32, E>*>::Iterator it = mMap.Find(name);
+    if (it != mMap.End()) {
+        uids = it->mSecond;
+    }
     if (uids == NULL) return NULL;
-    typename Map<Int32, E>::Iterator it = uids->Find(uid);
-    if (it != uids->End()) return it->mSecond;
+    typename Map<Int32, E>::Iterator it2 = uids->Find(uid);
+    if (it2 != uids->End()) return it2->mSecond;
     else return NULL;
 }
 
 template <typename E>
 E ProcessMap<E>::Put(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in] */ Int32 uid,
     /* [in] */ E value)
 {
-    Map<Int32, E>* uids = mMap[name];
+    Map<Int32, E>* uids = NULL;
+    typename HashMap<String, Map<Int32, E>*>::Iterator it = mMap.Find(name);
+    if (it != mMap.End()) {
+        uids = it->mSecond;
+    }
     if (uids == NULL) {
         uids = new Map<Int32, E>;
-        mMap[String::Duplicate(name)] = uids;
+        mMap[name] = uids;
     }
     (*uids)[uid] = value;
     return value;
@@ -72,13 +80,17 @@ E ProcessMap<E>::Put(
 
 template <typename E>
 void ProcessMap<E>::Remove(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in] */ Int32 uid)
 {
-    Map<Int32, E>* uids = mMap[name];
+    Map<Int32, E>* uids = NULL;
+    typename HashMap<String, Map<Int32, E>*>::Iterator it = mMap.Find(name);
+    if (it != mMap.End()) {
+        uids = it->mSecond;
+    }
     if (uids != NULL) {
-        typename Map<Int32, E>::Iterator it = uids->Find(uid);
-        if (it != uids->End()) uids->Erase(it);
+        typename Map<Int32, E>::Iterator it2 = uids->Find(uid);
+        if (it2 != uids->End()) uids->Erase(it2);
         if (uids->GetSize() == 0) {
             mMap.Erase(name);
         }

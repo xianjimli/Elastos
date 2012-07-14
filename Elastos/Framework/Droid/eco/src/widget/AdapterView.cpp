@@ -6,7 +6,7 @@
 
 using namespace Elastos::Utility;
 using namespace Elastos::Utility::Logging;
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 const Int32 AdapterView::SYNC_SELECTED_POSITION;
 const Int32 AdapterView::SYNC_FIRST_POSITION;

@@ -17,25 +17,22 @@
 #include "content/CResolveInfo.h"
 #include "content/CComponentName.h"
 #include "content/Signature.h"
+#include "content/IntentFilter.h"
+#include "content/CIntentFilter.h"
 #include "os/Message.h"
 #include "os/Handler.h"
 #include "os/Process.h"
-#include "utils/AutoString.h"
+#include "os/FileObserver.h"
 #include "utils/AutoStringArray.h"
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 #include <elastos/Mutex.h>
+#include <StringBuffer.h>
 
-using namespace Elastos::System::Threading;
+using namespace Elastos::Core;
+using namespace Elastos::Core::Threading;
 
 CarClass(CCapsuleManagerService)
 {
-public:
-    static const String TAG;
-    static const Boolean DEBUG_SETTINGS = FALSE;
-    static const Boolean DEBUG_PREFERRED = FALSE;
-    static const Boolean DEBUG_UPGRADE = FALSE;
-    static const Boolean DEBUG_INSTALL = FALSE;
-
 public:
     class DefaultContainerConnection : public ElRefBase, public IServiceConnection
     {
@@ -64,431 +61,29 @@ public:
             /* [in] */ IComponentName* name);
 
     private:
-        AutoPtr<CCapsuleManagerService> mOwner;
+        CCapsuleManagerService* mOwner;
     };
 
-    class ActivityIntentResolver :
-        public IntentResolver<CapsuleParser::ActivityIntentInfo,
-                              AutoPtr<CResolveInfo> >
+    class InstallArgs;
+    class CapsuleInstalledInfo;
+
+    // Recordkeeping of restore-after-install operations that are currently in flight
+    // between the Package Manager and the Backup Manager
+    class PostInstallData
     {
     public:
-        typedef IntentResolver<CapsuleParser::ActivityIntentInfo, \
-                AutoPtr<CResolveInfo> >     Super;
-
-    public:
-        ActivityIntentResolver();
-
-        ~ActivityIntentResolver();
-
-        CARAPI_(List<AutoPtr<CResolveInfo>*>*) QueryIntent(
-            /* [in] */ IIntent* intent,
-            /* [in] */ String resolvedType,
-            /* [in] */ Int32 flags);
-
-        CARAPI_(List<AutoPtr<CResolveInfo>*>*) QueryIntentForCapsule(
-            /* [in] */ IIntent* intent,
-            /* [in] */ String resolvedType,
-            /* [in] */ Int32 flags,
-            /* [in] */ List<CapsuleParser::Activity*>* capsuleActivities);
-
-        CARAPI_(void) AddActivity(
-            /* [in] */ CapsuleParser::Activity* activity,
-            /* [in] */ String type);
-
-        CARAPI_(void) RemoveActivity(
-            /* [in] */ CapsuleParser::Activity* activity,
-            /* [in] */ String type);
-
-        CARAPI NewResult(
-            /* [in] */ CapsuleParser::ActivityIntentInfo* info,
-            /* [in] */ Int32 match,
-            /* [out] */ AutoPtr<CResolveInfo>** ret);
-
-        CARAPI_(void) SortResults(
-            /* [in] */ List<AutoPtr<CResolveInfo>*>* results);
-
-    public:
-        // Keys are String (activity class name), values are Activity.
-        HashMap<AutoPtr<IComponentName>, CapsuleParser::Activity*> mActivities;
-
-        Int32 mFlags;
-    };
-
-    class ServiceIntentResolver :
-        public IntentResolver<CapsuleParser::ServiceIntentInfo,
-                              AutoPtr<CResolveInfo> >
-    {
-    public:
-        typedef IntentResolver<CapsuleParser::ServiceIntentInfo, \
-                AutoPtr<CResolveInfo> >     Super;
-
-    public:
-        ServiceIntentResolver();
-
-        ~ServiceIntentResolver();
-
-        CARAPI_(List<AutoPtr<CResolveInfo>*>*) QueryIntent(
-            /* [in] */ IIntent* intent,
-            /* [in] */ String resolvedType,
-            /* [in] */ Int32 flags);
-
-        CARAPI_(List<AutoPtr<CResolveInfo>*>*) QueryIntentForCapsule(
-            /* [in] */ IIntent* intent,
-            /* [in] */ String resolvedType,
-            /* [in] */ Int32 flags,
-            /* [in] */ List<CapsuleParser::Service*>* capsuleServices);
-
-        CARAPI_(void) AddService(
-            /* [in] */ CapsuleParser::Service* service);
-
-        CARAPI_(void) RemoveService(
-            /* [in] */ CapsuleParser::Service* service);
-
-        CARAPI NewResult(
-            /* [in] */ CapsuleParser::ServiceIntentInfo* info,
-            /* [in] */ Int32 match,
-            /* [out] */ AutoPtr<CResolveInfo>** ret);
-
-        CARAPI_(void) SortResults(
-            /* [in] */ List<AutoPtr<CResolveInfo>*>* results);
-
-    public:
-        // Keys are String (activity class name), values are Activity.
-        HashMap<AutoPtr<IComponentName>, CapsuleParser::Service*> mServices;
-        Int32 mFlags;
-    };
-
-    class CapsuleSettingBase;
-
-    class BasePermission
-    {
-    public:
-        BasePermission(
-            /* [in] */ String _name,
-            /* [in] */ String _sourcePackage,
-            /* [in] */ int _type);
-
-        ~BasePermission();
-
-        CARAPI_(String) GetDescription();
-
-    public:
-        static const Int32 TYPE_NORMAL = 0;
-        static const Int32 TYPE_BUILTIN = 1;
-        static const Int32 TYPE_DYNAMIC = 2;
-
-        AutoString mName;
-        AutoString mSourceCapsule;
-        CapsuleSettingBase* mCapsuleSetting;
-        Int32 mType;
-        Int32 mProtectionLevel;
-        CapsuleParser::Permission* mPerm;
-        AutoPtr<IPermissionInfo> mPendingInfo;
-        Int32 mUid;
-        AutoFree<ArrayOf<Int32> > mGids;
-    };
-//todo: Signature should be declared as CAR Object.
-    class CapsuleSignatures
-    {
-    public:
-        CapsuleSignatures(
-            /* [in] */ const CapsuleSignatures& orig);
-
-        CapsuleSignatures(
-            /* [in] */ const ArrayOf<Signature>& sigs);
-
-        CapsuleSignatures();
-
-        ~CapsuleSignatures();
-
-    private:
-        AutoFree<ArrayOf<Signature> > mSignatures;
-    };
-
-    class PreferredActivity
-        : public ElRefBase
-        , public IntentFilter
-        , public IIntentFilter
-    {
-    public:
-        PreferredActivity()
-            : mMatch(0)
+        PostInstallData(
+            /* [in] */ InstallArgs* a,
+            /* [in] */ CapsuleInstalledInfo* r)
+            : mArgs(a)
+            , mRes(r)
         {}
 
-        CARAPI_(PInterface) Probe(
-            /* [in] */ REIID riid);
-
-        CARAPI_(UInt32) AddRef();
-
-        CARAPI_(UInt32) Release();
-
-        CARAPI GetInterfaceID(
-            /* [in] */ IInterface* pObject,
-            /* [out] */ InterfaceID* pIID);
-
-        CARAPI SetPriority(
-            /* [in] */ Int32 priority);
-
-        CARAPI GetPriority(
-            /* [out] */ Int32* priority);
-
-        CARAPI AddAction(
-            /* [in] */ String action);
-
-        CARAPI CountActions(
-            /* [out] */ Int32 *count);
-
-        CARAPI GetAction(
-            /* [in] */ Int32 index,
-            /* [out] */ String *action);
-
-        CARAPI AddDataType(
-            /* [in] */ String type);
-
-        CARAPI AddDataScheme(
-            /* [in] */ String scheme);
-
-        CARAPI AddDataAuthority(
-            /* [in] */ String host,
-            /* [in] */ String port);
-
-        CARAPI AddDataPath(
-            /* [in] */ String path,
-            /* [in] */ Int32 type);
-
-        CARAPI AddCategory(
-            /* [in] */ String category);
-
-        CARAPI HasCategory(
-            /* [in] */ String category,
-            /* [out] */ Boolean* hasCategory);
-
-        CARAPI Match(
-            /* [in] */ String action,
-            /* [in] */ String type,
-            /* [in] */ String scheme,
-            /* [in] */ IUri* data,
-            /* [in] */ ArrayOf<String>* categories,
-            /* [in] */ String logTag,
-            /* [out] */ Int32* result);
-
-        CARAPI ReadFromParcel(
-            /* [in] */ IParcel *source);
-
-        CARAPI WriteToParcel(
-            /* [in] */ IParcel *dest);
-
     public:
-        Boolean SameSet(
-            /* [in] */ List<AutoPtr<CResolveInfo>*>* query,
-            /* [in] */ Int32 priority) { return FALSE; }
-
-    public:
-        Int32 mMatch;
-        AutoStringArray mSetPackages;
-        AutoStringArray mSetClasses;
-        AutoStringArray mSetComponents;
-        AutoPtr<IComponentName> mActivity;
-        AutoString mShortActivity;
-        AutoString mParseError;
+        AutoPtr<InstallArgs> mArgs;
+        CapsuleInstalledInfo* mRes;
     };
 
-    class MyIntentResolver
-        : public IntentResolver<PreferredActivity, PreferredActivity>
-    {
-    protected:
-        virtual CARAPI_(String) CapsuleForFilter(
-            /* [in] */ PreferredActivity* filter) { return NULL; }
-
-        virtual CARAPI DumpFilter(
-            /* [in] */ IPrintWriter* out,
-            /* [in] */ String prefix,
-            /* [in] */ PreferredActivity* filter) { return E_NOT_IMPLEMENTED; }
-    };
-
-    class GrantedPermissions
-    {
-    public:
-        GrantedPermissions(
-            /* [in] */ Int32 capFlags);
-
-        GrantedPermissions(
-            /* [in] */ const GrantedPermissions& base);
-
-        virtual ~GrantedPermissions();
-
-        CARAPI_(void) SetFlags(
-            /* [in] */ Int32 capFlags);
-
-    public:
-        Int32 mCapFlags;
-
-        HashSet<String> mGrantedPermissions;
-        AutoFree<ArrayOf<Int32> > mGids;
-    };
-
-    /**
-     * Settings base class for pending and resolved classes.
-     */
-    class CapsuleSettingBase : public GrantedPermissions
-    {
-    public:
-        CapsuleSettingBase(
-            /* [in] */ String name,
-            /* [in] */ String realName,
-            /* [in] */ IFile* codePath,
-            /* [in] */ IFile* resourcePath,
-            /* [in] */ String nativeLibraryPathString,
-            /* [in] */ Int32 pVersionCode,
-            /* [in] */ Int32 capFlags);
-
-        /**
-         * New instance of PackageSetting with one-level-deep cloning.
-         */
-        CapsuleSettingBase(
-            /* [in] */ const CapsuleSettingBase& base);
-
-        ~CapsuleSettingBase();
-
-        CARAPI_(void) Init(
-            /* [in] */ IFile* codePath,
-            /* [in] */ IFile* resourcePath,
-            /* [in] */ String nativeLibraryPathString,
-            /* [in] */ Int32 pVersionCode);
-
-        CARAPI_(void) SetInstallerCapsuleName(
-            /* [in] */ String packageName);
-
-        CARAPI_(String) GetInstallerPackageName();
-
-        CARAPI_(void) SetInstallStatus(
-            /* [in] */ Int32 newStatus);
-
-        CARAPI_(String) GetInstallStatus();
-
-        CARAPI_(void) SetTimeStamp(
-            /* [in] */ Int64 newStamp);
-
-        /**
-         * Make a shallow copy of this package settings.
-         */
-        CARAPI_(void) CopyFrom(
-            /* [in] */ CapsuleSettingBase& base);
-
-        CARAPI_(Boolean) EnableComponentLP(
-            /* [in] */ String componentClassName);
-
-        CARAPI_(Boolean) DisableComponentLP(
-            /* [in] */ String componentClassName);
-
-        CARAPI_(Boolean) RestoreComponentLP(
-            /* [in] */ String componentClassName);
-
-        CARAPI_(Int32) CurrentEnabledStateLP(
-            /* [in] */ String componentName);
-
-    public:
-        AutoString mName;
-        AutoString mRealName;
-        AutoPtr<IFile> mCodePath;
-        AutoString mCodePathString;
-        AutoPtr<IFile> mResourcePath;
-        AutoString mResourcePathString;
-        AutoString mNativeLibraryPathString;
-        Int64 mTimeStamp;
-        Int64 mFirstInstallTime;
-        Int64 mLastUpdateTime;
-        Int32 mVersionCode;
-
-        Boolean mUidError;
-
-//	        PackageSignatures signatures = new PackageSignatures();
-
-        Boolean mPermissionsFixed;
-        Boolean mHaveGids;
-
-        /* Explicitly disabled components */
-        HashSet<String> mDisabledComponents;
-        /* Explicitly enabled components */
-        HashSet<String> mEnabledComponents;
-        Int32 mEnabled;
-        Int32 mInstallStatus;
-
-        CapsuleSettingBase* mOrigCapsule;
-
-        /* package name of the app that installed this package */
-        AutoString mInstallerPackageName;
-    };
-
-    class SharedUserSetting;
-
-    /**
-     * Settings data for a particular package we know about.
-     */
-    class CapsuleSetting : public CapsuleSettingBase
-    {
-    public:
-        CapsuleSetting(
-            /* [in] */ String name,
-            /* [in] */ String realName,
-            /* [in] */ IFile* codePath,
-            /* [in] */ IFile* resourcePath,
-            /* [in] */ String nativeLibraryPathString,
-            /* [in] */ Int32 pVersionCode,
-            /* [in] */ Int32 capFlags);
-
-        /**
-         * New instance of PackageSetting replicating the original settings.
-         * Note that it keeps the same PackageParser.Package instance.
-         */
-        CapsuleSetting(
-            /* [in] */ const CapsuleSetting& orig);
-
-        ~CapsuleSetting();
-
-        CARAPI_(String) GetDescription();
-
-        struct HashKey
-        {
-            size_t operator()(const CapsuleSetting* s) const
-            {
-                return (size_t)s->GetHashCode();
-            }
-        };
-
-        CARAPI_(Int32) GetHashCode() const
-        {
-            return (Int32)this;
-        }
-
-    public:
-        Int32 mUserId;
-        CapsuleParser::Capsule* mCap;
-        SharedUserSetting* mSharedUser;
-    };
-
-    /**
-     * Settings data for a particular shared user ID we know about.
-     */
-    class SharedUserSetting : public GrantedPermissions
-    {
-    public:
-        SharedUserSetting(
-            /* [in] */ String _name,
-            /* [in] */ Int32 _pkgFlags);
-
-        ~SharedUserSetting();
-
-        CARAPI_(String) GetDescription();
-
-    public:
-        AutoString mName;
-        Int32 mUserId;
-        HashSet<CapsuleSetting*, CapsuleSetting::HashKey> mCapsules;
-        CapsuleSignatures* mSignatures;
-    };
-
-private:
     class HandlerParams;
 
     class CapsuleHandler : public Handler
@@ -532,19 +127,33 @@ private:
         Int32 mRemovedMsgCode;
     };
 
-    class HandlerParams
+    class HandlerParams : public ElRefBase, public IInterface
     {
     public:
-        HandlerParams()
-            : mRetry(0) {}
+        HandlerParams(
+            /* [in] */ CCapsuleManagerService* owner)
+            : mRetry(0)
+            , mOwner(owner)
+        {}
 
-        ~HandlerParams() {}
+        virtual ~HandlerParams() {};
+
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
 
         CARAPI_(void) StartCopy();
 
         CARAPI_(void) ServiceError();
 
-        virtual CARAPI_(void) HandleStartCopy() = 0;
+        virtual CARAPI HandleStartCopy() = 0;
 
         virtual CARAPI_(void) HandleServiceError() = 0;
 
@@ -552,29 +161,118 @@ private:
 
     public:
         static const Int32 MAX_RETRIES = 4;
-
         Int32 mRetry;
+        CCapsuleManagerService* mOwner;
     };
 
-    class InstallArgs
+    class InstallParams : public HandlerParams
     {
     public:
-        InstallArgs() {}
+        InstallParams(
+            /* [in] */ IUri* capsuleURI,
+            /* [in] */ ICapsuleInstallObserver* observer,
+            /* [in] */ Int32 flags,
+            /* [in] */ const String& installerCapsuleName,
+            /* [in] */ CCapsuleManagerService* owner)
+            : HandlerParams(owner)
+            , mObserver(observer)
+            , mFlags(flags)
+            , mCapsuleURI(capsuleURI)
+            , mInstallerCapsuleName(installerCapsuleName)
+            , mRet(0)
+        {}
 
+        ~InstallParams() {};
+
+        CARAPI_(Int32) InstallLocationPolicy(
+            /* [in] */ ICapsuleInfoLite* capLite,
+            /* [in] */ Int32 flags);
+
+        /*
+         * Invoke remote method to get package information and install
+         * location values. Override install location based on default
+         * policy if needed and then create install arguments based
+         * on the install location.
+         */
+        //@Override
+        CARAPI HandleStartCopy();
+
+        //@Override
+        CARAPI_(void) HandleReturnCode();
+
+        //@Override
+        CARAPI_(void) HandleServiceError();
+
+    public:
+        AutoPtr<ICapsuleInstallObserver> mObserver;
+        Int32 mFlags;
+        AutoPtr<IUri> mCapsuleURI;
+        String mInstallerCapsuleName;
+        AutoPtr<InstallArgs> mArgs;
+        Int32 mRet;
+    };
+
+    class MoveParams : public HandlerParams
+    {
+    public:
+        MoveParams(
+            /* [in] */ InstallArgs* srcArgs,
+            /* [in] */ ICapsuleMoveObserver* observer,
+            /* [in] */ Int32 flags,
+            /* [in] */ const String& capsuleName,
+            /* [in] */ const String& dataDir,
+            /* [in] */ CCapsuleManagerService* owner);
+
+        //@Override
+        CARAPI HandleStartCopy();
+
+        //@Override
+        CARAPI_(void) HandleReturnCode();
+
+        //@Override
+        CARAPI_(void) HandleServiceError();
+
+    public:
+        AutoPtr<ICapsuleMoveObserver> mObserver;
+        Int32 mFlags;
+        String mCapsuleName;
+        AutoPtr<InstallArgs> mSrcArgs;
+        AutoPtr<InstallArgs> mTargetArgs;
+        Int32 mRet;
+    };
+
+    class InstallArgs : public ElRefBase, public IInterface
+    {
+    public:
         InstallArgs(
             /* [in] */ IUri* capsuleURI,
             /* [in] */ ICapsuleInstallObserver* observer,
             /* [in] */ Int32 flags,
-            /* [in] */ String installerCapsuleName)
+            /* [in] */ const String& installerCapsuleName,
+            /* [in] */ CCapsuleManagerService* owner)
             : mObserver(observer)
             , mFlags(flags)
             , mCapsuleURI(capsuleURI)
-            , mInstallerCapsuleName(String::Duplicate(installerCapsuleName))
+            , mInstallerCapsuleName(installerCapsuleName)
+            , mOwner(owner)
         {}
+
+        virtual ~InstallArgs() {};
+
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
 
         virtual CARAPI_(void) CreateCopyFile() = 0;
 
-        virtual CARAPI_(Int32) CopyApk(
+        virtual CARAPI_(Int32) CopyCap(
             /* [in] */ IMediaContainerService* imcs,
             /* [in] */ Boolean temp) = 0;
 
@@ -583,8 +281,8 @@ private:
 
         virtual CARAPI_(Boolean) DoRename(
             /* [in] */ Int32 status,
-            /* [in] */ String capName,
-            /* [in] */ String oldCodePath) = 0;
+            /* [in] */ const String& capName,
+            /* [in] */ const String& oldCodePath) = 0;
 
         virtual CARAPI_(Int32) DoPostInstall(
             /* [in] */ Int32 status) = 0;
@@ -609,163 +307,163 @@ private:
         // Always refers to PackageManager flags only
         Int32 mFlags;
         AutoPtr<IUri> mCapsuleURI;
-        AutoString mInstallerCapsuleName;
+        String mInstallerCapsuleName;
+        CCapsuleManagerService* mOwner;
     };
 
-    class InstallParams;
-
-    class SdInstallArgs : public InstallArgs {
-    public:
-        SdInstallArgs(
-            /* [in] */ InstallParams* params) {}
-
-        SdInstallArgs(
-            /* [in] */ String fullCodePath,
-            /* [in] */ String fullResourcePath,
-            /* [in] */ String nativeLibraryPath) {}
-
-        SdInstallArgs(
-            /* [in] */ String cid) {}
-
-        SdInstallArgs(
-            /* [in] */ IUri* capsuleURI,
-            /* [in] */ String cid) {}
-
-        virtual CARAPI_(void) CreateCopyFile() {}
-
-        virtual CARAPI_(Int32) CopyApk(
-            /* [in] */ IMediaContainerService* imcs,
-            /* [in] */ Boolean temp) { return -1; }
-
-        virtual CARAPI_(Int32) DoPreInstall(
-            /* [in] */ Int32 status) { return -1; }
-
-        virtual CARAPI_(Boolean) DoRename(
-            /* [in] */ Int32 status,
-            /* [in] */ String capName,
-            /* [in] */ String oldCodePath) { return FALSE; }
-
-        virtual CARAPI_(Int32) DoPostInstall(
-            /* [in] */ Int32 status) { return -1; }
-
-        virtual CARAPI_(String) GetCodePath() { return String(NULL); }
-
-        virtual CARAPI_(String) GetResourcePath() { return String(NULL); }
-
-        virtual CARAPI_(String) GetNativeLibraryPath() { return String(NULL); }
-
-        // Need installer lock especially for dex file removal.
-        virtual CARAPI_(void) CleanUpResourcesLI() {}
-
-        virtual CARAPI_(Boolean) DoPostDeleteLI(
-            /* [in] */ Boolean del) { return FALSE; }
-
-        virtual CARAPI_(Boolean) CheckFreeStorage(
-            /* [in] */ IMediaContainerService* imcs) { return FALSE; }
-
-        CARAPI GetCapsuleName(
-            /* [out] */ String* name) { return E_NOT_IMPLEMENTED; }
-
-    public:
-        static const String RES_FILE_NAME;
-
-        AutoString mCid;
-        AutoString mCapsulePath;
-        AutoString mLibraryPath;
-    };
-
-    class InstallParams : public HandlerParams
+    class FileInstallArgs : public InstallArgs
     {
     public:
-        InstallParams(
-            /* [in] */ IUri* capsuleURI,
-            /* [in] */ ICapsuleInstallObserver* observer,
-            /* [in] */ Int32 flags,
-            /* [in] */ String installerCapsuleName)
-            : mObserver(observer)
-            , mFlags(flags)
-            , mCapsuleURI(capsuleURI)
-            , mInstallerCapsuleName(String::Duplicate(installerCapsuleName))
-            , mArgs(NULL)
-            , mRet(0) {}
-
-        CARAPI_(Int32) InstallLocationPolicy(
-            /* [in] */ ICapsuleInfoLite* capLite,
-            /* [in] */ Int32 flags);
-
-        /*
-         * Invoke remote method to get package information and install
-         * location values. Override install location based on default
-         * policy if needed and then create install arguments based
-         * on the install location.
-         */
-        CARAPI_(void) HandleStartCopy();
-
-        CARAPI_(void) HandleReturnCode();
-
-        CARAPI_(void) HandleServiceError();
-
-    public:
-        AutoPtr<ICapsuleInstallObserver> mObserver;
-        Int32 mFlags;
-        AutoPtr<IUri> mCapsuleURI;
-        AutoString mInstallerCapsuleName;
-        InstallArgs* mArgs;
-        Int32 mRet;
-    };
-
-    class MoveParams : public HandlerParams
-    {
-    public:
-        MoveParams(
-            /* [in] */ InstallArgs* srcArgs,
-            /* [in] */ ICapsuleMoveObserver* observer,
-            /* [in] */ Int32 flags,
-            /* [in] */ String capsuleName,
-            /* [in] */ String dataDir)
-            : mFlags(0)
-            , mSrcArgs(NULL)
-            , mTargetArgs(NULL)
-            , mRet(NULL)
+        FileInstallArgs(
+            /* [in] */ InstallParams* params,
+            /* [in] */ CCapsuleManagerService* owner)
+            : InstallArgs(params->mCapsuleURI, params->mObserver,
+                          params->mFlags, params->mInstallerCapsuleName, owner)
+            , mCreated(FALSE)
         {}
 
-        virtual CARAPI_(void) HandleStartCopy() {}
+        FileInstallArgs(
+            /* [in] */ const String& fullCodePath,
+            /* [in] */ const String& fullResourcePath,
+            /* [in] */ const String& nativeLibraryPath,
+            /* [in] */ CCapsuleManagerService* owner);
 
-        virtual CARAPI_(void) HandleServiceError() {}
+        FileInstallArgs(
+            /* [in] */ IUri* capsuleURI,
+            /* [in] */ const String& capName,
+            /* [in] */ const String& dataDir,
+            /* [in] */ CCapsuleManagerService* owner);
 
-        virtual CARAPI_(void) HandleReturnCode() {}
+        CARAPI_(Boolean) CheckFreeStorage(
+            /* [in] */ IMediaContainerService* imcs);
+
+        CARAPI_(String) GetCodePath();
+
+        CARAPI_(void) CreateCopyFile();
+
+        CARAPI_(Int32) CopyCap(
+            /* [in] */ IMediaContainerService* imcs,
+            /* [in] */ Boolean temp);
+
+        CARAPI_(Int32) DoPreInstall(
+            /* [in] */ Int32 status);
+
+        CARAPI_(Boolean) DoRename(
+            /* [in] */ Int32 status,
+            /* [in] */ const String& capName,
+            /* [in] */ const String& oldCodePath);
+
+        CARAPI_(Int32) DoPostInstall(
+            /* [in] */ Int32 status);
+
+        CARAPI_(String) GetResourcePath();
+
+        virtual CARAPI_(String) GetResourcePathFromCodePath();
+
+        CARAPI_(String) GetNativeLibraryPath();
+
+        CARAPI_(void) CleanUpResourcesLI();
+
+        CARAPI_(Boolean) DoPostDeleteLI(
+            /* [in] */ Boolean del);
+
+    private:
+        CARAPI_(Boolean) CleanUp();
+
+        CARAPI_(Boolean) SetPermissions();
+
+        CARAPI_(Boolean) IsFwdLocked();
 
     public:
-        AutoPtr<ICapsuleMoveObserver> mObserver;
-        Int32 mFlags;
-        AutoString mCapsuleName;
-        InstallArgs* mSrcArgs;
-        InstallArgs* mTargetArgs;
-        Int32 mRet;
+        AutoPtr<IFile> mInstallDir;
+        String mCodeFileName;
+        String mResourceFileName;
+        String mLibraryPath;
+        Boolean mCreated;
     };
 
-    class CapsuleRemovedInfo {
+    class SdInstallArgs : public InstallArgs
+    {
     public:
-        CapsuleRemovedInfo()
-            : mUid(-1)
-            , mRemovedUid(-1)
-            , mIsRemovedCapsuleSystemUpdate(FALSE)
-            , mArgs(NULL) {}
+        SdInstallArgs(
+            /* [in] */ InstallParams* params,
+            /* [in] */ CCapsuleManagerService* owner)
+            : InstallArgs(params->mCapsuleURI, params->mObserver,
+                          params->mFlags, params->mInstallerCapsuleName, owner)
+        {}
 
-        CARAPI_(void) SendBroadcast(
-            /* [in] */ Boolean fullRemove,
-            /* [in] */ Boolean replacing);
+        SdInstallArgs(
+            /* [in] */ const String& fullCodePath,
+            /* [in] */ const String& fullResourcePath,
+            /* [in] */ const String& nativeLibraryPath,
+            /* [in] */ CCapsuleManagerService* owner);
+
+        SdInstallArgs(
+            /* [in] */ const String& cid,
+            /* [in] */ CCapsuleManagerService* owner);
+
+        SdInstallArgs(
+            /* [in] */ IUri* capsuleURI,
+            /* [in] */ const String& cid,
+            /* [in] */ CCapsuleManagerService* owner)
+            : InstallArgs(capsuleURI, NULL, 0/*CapsuleManager::INSTALL_EXTERNAL*/, String(NULL), owner)
+            , mCid(cid)
+        {}
+
+        CARAPI_(void) CreateCopyFile();
+
+        CARAPI_(Boolean) CheckFreeStorage(
+            /* [in] */ IMediaContainerService* imcs);
+
+        CARAPI_(Int32) CopyCap(
+            /* [in] */ IMediaContainerService* imcs,
+            /* [in] */ Boolean temp);
+
+        CARAPI_(String) GetCodePath();
+
+        CARAPI_(String) GetResourcePath();
+
+        CARAPI_(String) GetNativeLibraryPath();
+
+        CARAPI_(Int32) DoPreInstall(
+            /* [in] */ Int32 status);
+
+        CARAPI_(Boolean) DoRename(
+            /* [in] */ Int32 status,
+            /* [in] */ const String& capName,
+            /* [in] */ const String& oldCodePath);
+
+        CARAPI_(Int32) DoPostInstall(
+            /* [in] */ Int32 status);
+
+        CARAPI_(void) CleanUpResourcesLI();
+
+        CARAPI_(Boolean) MatchContainer(
+            /* [in] */ String app);
+
+        CARAPI_(String) GetCapsuleName();
+
+        CARAPI_(Boolean) DoPostDeleteLI(
+            /* [in] */ Boolean del);
+
+    private:
+        CARAPI_(void) SetCachePath(
+            /* [in] */ String newCachePath);
+
+        CARAPI_(void) CleanUp();
 
     public:
-        AutoString mRemovedCapsule;
-        Int32 mUid;
-        Int32 mRemovedUid;
-        Boolean mIsRemovedCapsuleSystemUpdate;
-        // Clean up resources deleted capsules.
-        InstallArgs* mArgs;
+        static const char* RES_FILE_NAME;
+
+        String mCid;
+        String mCapsulePath;
+        String mLibraryPath;
     };
 
-    class CapsuleInstalledInfo {
+    class CapsuleRemovedInfo;
+
+    class CapsuleInstalledInfo
+    {
     public:
         CapsuleInstalledInfo()
             : mUid(0)
@@ -774,26 +472,648 @@ private:
             , mRemovedInfo(NULL) {}
 
     public:
-        AutoString mName;
+        String mName;
         Int32 mUid;
-        CapsuleParser::Capsule* mCap;
+        AutoPtr<CapsuleParser::Capsule> mCap;
         Int32 mReturnCode;
         CapsuleRemovedInfo* mRemovedInfo;
     };
 
-    // Recordkeeping of restore-after-install operations that are currently in flight
-    // between the Package Manager and the Backup Manager
-    class PostInstallData {
+    class CapsuleRemovedInfo
+    {
     public:
-        PostInstallData(
-            /* [in] */ InstallArgs* a,
-            /* [in] */ CapsuleInstalledInfo* r)
-            : mArgs(a)
-            , mRes(r) {}
+        CapsuleRemovedInfo(
+            /* [in] */ CCapsuleManagerService* owner)
+            : mUid(-1)
+            , mRemovedUid(-1)
+            , mIsRemovedCapsuleSystemUpdate(FALSE)
+            , mArgs(NULL)
+            , mOwner(owner)
+        {}
+
+        CARAPI_(void) SendBroadcast(
+            /* [in] */ Boolean fullRemove,
+            /* [in] */ Boolean replacing);
 
     public:
+        String mRemovedCapsule;
+        Int32 mUid;
+        Int32 mRemovedUid;
+        Boolean mIsRemovedCapsuleSystemUpdate;
+        // Clean up resources deleted capsules.
         InstallArgs* mArgs;
-        CapsuleInstalledInfo* mRes;
+        CCapsuleManagerService* mOwner;
+    };
+
+    class CapsuleSettingBase;
+
+    class BasePermission
+    {
+    public:
+        BasePermission(
+            /* [in] */ const String& name,
+            /* [in] */ const String& sourceCapsule,
+            /* [in] */ Int32 type)
+            : mName(name)
+            , mSourceCapsule(sourceCapsule)
+            , mCapsuleSetting(NULL)
+            , mType(type)
+            // Default to most conservative protection level.
+            , mProtectionLevel(PermissionInfo_PROTECTION_SIGNATURE)
+            , mPerm(NULL)
+            , mUid(0)
+        {}
+
+        ~BasePermission() {};
+
+        CARAPI_(String) ToString();
+
+    public:
+        static const Int32 TYPE_NORMAL = 0;
+        static const Int32 TYPE_BUILTIN = 1;
+        static const Int32 TYPE_DYNAMIC = 2;
+
+        String mName;
+        String mSourceCapsule;
+        CapsuleSettingBase* mCapsuleSetting;
+        Int32 mType;
+        Int32 mProtectionLevel;
+        CapsuleParser::Permission* mPerm;
+        AutoPtr<CPermissionInfo> mPendingInfo;
+        Int32 mUid;
+        AutoFree< ArrayOf<Int32> > mGids;
+    };
+
+    class CapsuleSignatures : public ElRefBase, public IInterface
+    {
+    public:
+        CapsuleSignatures(
+            /* [in] */ const CapsuleSignatures* orig);
+
+        CapsuleSignatures(
+            /* [in] */ const ArrayOf< AutoPtr<ISignature> >& sigs);
+
+        CapsuleSignatures();
+
+        ~CapsuleSignatures();
+
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI_(void) WriteXml(
+            /* [in] */ IXmlSerializer* serializer,
+            /* [in] */ CString tagName,
+            /* [in] */ List< AutoPtr<ISignature> >* pastSignatures);
+
+        CARAPI_(void) ReadXml(
+            /* [in] */ IXmlPullParser* parser,
+            /* [in] */ List< AutoPtr<ISignature> >* pastSignatures);
+
+        CARAPI_(void) AssignSignatures(
+            /* [in] */ const ArrayOf< AutoPtr<ISignature> >& sigs);
+
+    public:
+        AutoFree< ArrayOf< AutoPtr<ISignature> > > mSignatures;
+    };
+
+    class PreferredActivity
+        : public ElRefBase
+        , public IntentFilter
+        , public IIntentFilter
+    {
+    public:
+        PreferredActivity(
+            /* [in] */ IIntentFilter* filter,
+            /* [in] */ Int32 match,
+            /* [in] */ IObjectContainer* set, /*IComponentName*/
+            /* [in] */ IComponentName* activity);
+
+        PreferredActivity(
+            /* [in] */ IXmlPullParser* parser);
+
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface* pObject,
+            /* [out] */ InterfaceID* pIID);
+
+        CARAPI SetPriority(
+            /* [in] */ Int32 priority);
+
+        CARAPI GetPriority(
+            /* [out] */ Int32* priority);
+
+        CARAPI AddAction(
+            /* [in] */ const String& action);
+
+        CARAPI CountActions(
+            /* [out] */ Int32 *count);
+
+        CARAPI GetAction(
+            /* [in] */ Int32 index,
+            /* [out] */ String *action);
+
+        CARAPI HasAction(
+            /* [in] */ const String& action,
+            /* [out] */ Boolean* hasAction);
+
+        CARAPI MatchAction(
+            /* [in] */ const String& action,
+            /* [out] */ Boolean* isMatched);
+
+        CARAPI AddDataType(
+            /* [in] */ const String& type);
+
+        CARAPI HasDataType(
+            /* [in] */ const String& type,
+            /* [out] */ Boolean* hasDataType);
+
+        CARAPI CountDataTypes(
+            /* [out] */ Int32* count);
+
+        CARAPI GetDataType(
+            /* [in] */ Int32 index,
+            /* [out] */ String* type);
+
+        CARAPI AddDataScheme(
+            /* [in] */ const String& scheme);
+
+        CARAPI CountDataSchemes(
+            /* [out] */ Int32* count);
+
+        CARAPI GetDataScheme(
+            /* [in] */ Int32 index,
+            /* [out] */ String* scheme);
+
+        CARAPI HasDataScheme(
+            /* [in] */ const String& scheme,
+            /* [out] */ Boolean* result);
+
+        CARAPI AddDataAuthority(
+            /* [in] */ const String& host,
+            /* [in] */ const String& port);
+
+        CARAPI CountDataAuthorities(
+            /* [out] */ Int32* count);
+
+        CARAPI GetDataAuthority(
+            /* [in] */ Int32 index,
+            /* [out] */ IAuthorityEntry** authority);
+
+        CARAPI HasDataAuthority(
+            /* [in] */ IUri* data,
+            /* [out] */ Boolean* result);
+
+        CARAPI AddDataPath(
+            /* [in] */ const String& path,
+            /* [in] */ Int32 type);
+
+        CARAPI CountDataPaths(
+            /* [out] */ Int32* count);
+
+        CARAPI GetDataPath(
+            /* [in] */ Int32 index,
+            /* [out] */ IPatternMatcher** path);
+
+        CARAPI HasDataPath(
+            /* [in] */ const String& data,
+            /* [out] */ Boolean* result);
+
+        CARAPI MatchDataAuthority(
+            /* [in] */ IUri* data,
+            /* [out] */ Int32* result);
+
+        CARAPI MatchData(
+            /* [in] */ const String& type,
+            /* [in] */ const String& scheme,
+            /* [in] */ IUri* data,
+            /* [out] */ Int32* result);
+
+        CARAPI AddCategory(
+            /* [in] */ const String& category);
+
+        CARAPI CountCategories(
+            /* [out] */ Int32* count);
+
+        CARAPI GetCategory(
+            /* [in] */ Int32 index,
+            /* [out] */ String* category);
+
+        CARAPI HasCategory(
+            /* [in] */ const String& category,
+            /* [out] */ Boolean* hasCategory);
+
+        CARAPI MatchCategories(
+            /* [in] */ ArrayOf<String>* categories,
+            /* [out] */ String* result);
+
+        CARAPI Match(
+            /* [in] */ const String& action,
+            /* [in] */ const String& type,
+            /* [in] */ const String& scheme,
+            /* [in] */ IUri* data,
+            /* [in] */ ArrayOf<String>* categories,
+            /* [in] */ CString logTag,
+            /* [out] */ Int32* result);
+
+        CARAPI MatchEx(
+            /* [in] */ IContentResolver* resolver,
+            /* [in] */ IIntent* intent,
+            /* [in] */ Boolean resolve,
+            /* [in] */ CString logTag,
+            /* [out] */ Int32* result);
+
+        CARAPI WriteToXml(
+            /* [in] */ IXmlSerializer* serializer);
+
+        CARAPI ReadFromXml(
+            /* [in] */ IXmlPullParser* parser);
+
+        CARAPI ReadFromParcel(
+            /* [in] */ IParcel *source);
+
+        CARAPI WriteToParcel(
+            /* [in] */ IParcel *dest);
+
+        Boolean SameSet(
+            /* [in] */ List< AutoPtr<CResolveInfo> >* query,
+            /* [in] */ Int32 priority);
+
+    public:
+        AutoPtr<CIntentFilter> mFilter;
+        Int32 mMatch;
+        AutoStringArray mSetCapsules;
+        AutoStringArray mSetClasses;
+        AutoStringArray mSetComponents;
+        AutoPtr<IComponentName> mActivity;
+        String mShortActivity;
+        String mParseError;
+    };
+
+    class GrantedPermissions : public ElRefBase, public IInterface
+    {
+    public:
+        GrantedPermissions(
+            /* [in] */ Int32 capFlags);
+
+        GrantedPermissions(
+            /* [in] */ const GrantedPermissions* base);
+
+        virtual ~GrantedPermissions();
+
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI_(void) SetFlags(
+            /* [in] */ Int32 capFlags);
+
+    public:
+        Int32 mCapFlags;
+
+        HashSet<String> mGrantedPermissions;
+        AutoFree< ArrayOf<Int32> > mGids;
+    };
+
+    /**
+     * Settings base class for pending and resolved classes.
+     */
+    class CapsuleSettingBase : public GrantedPermissions
+    {
+    public:
+        CapsuleSettingBase(
+            /* [in] */ const String& name,
+            /* [in] */ const String& realName,
+            /* [in] */ IFile* codePath,
+            /* [in] */ IFile* resourcePath,
+            /* [in] */ const String& nativeLibraryPathString,
+            /* [in] */ Int32 cVersionCode,
+            /* [in] */ Int32 capFlags);
+
+        /**
+         * New instance of PackageSetting with one-level-deep cloning.
+         */
+        CapsuleSettingBase(
+            /* [in] */ const CapsuleSettingBase* base);
+
+        ~CapsuleSettingBase();
+
+        CARAPI_(void) Init(
+            /* [in] */ IFile* codePath,
+            /* [in] */ IFile* resourcePath,
+            /* [in] */ const String& nativeLibraryPathString,
+            /* [in] */ Int32 cVersionCode);
+
+        CARAPI_(void) SetInstallerCapsuleName(
+            /* [in] */ const String& capsuleName);
+
+        CARAPI_(String) GetInstallerCapsuleName();
+
+        CARAPI_(void) SetInstallStatus(
+            /* [in] */ Int32 newStatus);
+
+        CARAPI_(Int32) GetInstallStatus();
+
+        CARAPI_(void) SetTimeStamp(
+            /* [in] */ Int64 newStamp);
+
+        /**
+         * Make a shallow copy of this package settings.
+         */
+        CARAPI_(void) CopyFrom(
+            /* [in] */ const CapsuleSettingBase* base);
+
+        CARAPI_(Boolean) EnableComponentLP(
+            /* [in] */ const String& componentClassName);
+
+        CARAPI_(Boolean) DisableComponentLP(
+            /* [in] */ const String& componentClassName);
+
+        CARAPI_(Boolean) RestoreComponentLP(
+            /* [in] */ const String& componentClassName);
+
+        CARAPI_(Int32) CurrentEnabledStateLP(
+            /* [in] */ const String& componentName);
+
+    public:
+        String mName;
+        String mRealName;
+        AutoPtr<IFile> mCodePath;
+        String mCodePathString;
+        AutoPtr<IFile> mResourcePath;
+        String mResourcePathString;
+        String mNativeLibraryPathString;
+        Int64 mTimeStamp;
+        Int64 mFirstInstallTime;
+        Int64 mLastUpdateTime;
+        Int32 mVersionCode;
+
+        Boolean mUidError;
+
+        AutoPtr<CapsuleSignatures> mSignatures;
+
+        Boolean mPermissionsFixed;
+        Boolean mHaveGids;
+
+        /* Explicitly disabled components */
+        HashSet<String> mDisabledComponents;
+        /* Explicitly enabled components */
+        HashSet<String> mEnabledComponents;
+        Int32 mEnabled;
+        Int32 mInstallStatus;
+
+        AutoPtr<CapsuleSettingBase> mOrigCapsule;
+
+        /* package name of the app that installed this package */
+        String mInstallerCapsuleName;
+    };
+
+    class SharedUserSetting;
+
+    /**
+     * Settings data for a particular package we know about.
+     */
+    class CapsuleSetting : public CapsuleSettingBase
+    {
+    public:
+        CapsuleSetting(
+            /* [in] */ const String& name,
+            /* [in] */ const String& realName,
+            /* [in] */ IFile* codePath,
+            /* [in] */ IFile* resourcePath,
+            /* [in] */ const String& nativeLibraryPathString,
+            /* [in] */ Int32 pVersionCode,
+            /* [in] */ Int32 capFlags);
+
+        /**
+         * New instance of PackageSetting replicating the original settings.
+         * Note that it keeps the same PackageParser.Package instance.
+         */
+        CapsuleSetting(
+            /* [in] */ const CapsuleSetting* orig);
+
+        ~CapsuleSetting();
+
+        CARAPI_(String) ToString();
+
+        struct HashKey
+        {
+            size_t operator()(const CapsuleSetting* s) const
+            {
+                return (size_t)s->GetHashCode();
+            }
+        };
+
+        CARAPI_(Int32) GetHashCode() const;
+
+    public:
+        Int32 mUserId;
+        AutoPtr<CapsuleParser::Capsule> mCap;
+        AutoPtr<SharedUserSetting> mSharedUser;
+    };
+
+    /**
+     * Settings data for a particular shared user ID we know about.
+     */
+    class SharedUserSetting : public GrantedPermissions
+    {
+    public:
+        SharedUserSetting(
+            /* [in] */ const String& name,
+            /* [in] */ Int32 capFlags);
+
+        ~SharedUserSetting();
+
+        CARAPI_(String) ToString();
+
+    public:
+        String mName;
+        Int32 mUserId;
+        HashSet<AutoPtr<CapsuleSetting>, CapsuleSetting::HashKey> mCapsules;
+        AutoPtr<CapsuleSignatures> mSignatures;
+    };
+
+private:
+    class ActivityIntentResolver :
+        public IntentResolver<CapsuleParser::ActivityIntentInfo,
+                              AutoPtr<CResolveInfo> >
+    {
+    public:
+        typedef IntentResolver<CapsuleParser::ActivityIntentInfo, \
+                AutoPtr<CResolveInfo> >     Super;
+
+    public:
+        ActivityIntentResolver(
+            /* [in] */ CCapsuleManagerService* owner);
+
+        ~ActivityIntentResolver();
+
+        CARAPI_(List<AutoPtr<CResolveInfo>*>*) QueryIntent(
+            /* [in] */ IIntent* intent,
+            /* [in] */ const String& resolvedType,
+            /* [in] */ Boolean defaultOnly);
+
+        CARAPI_(List<AutoPtr<CResolveInfo>*>*) QueryIntent(
+            /* [in] */ IIntent* intent,
+            /* [in] */ const String& resolvedType,
+            /* [in] */ Int32 flags);
+
+        CARAPI_(List<AutoPtr<CResolveInfo>*>*) QueryIntentForCapsule(
+            /* [in] */ IIntent* intent,
+            /* [in] */ const String& resolvedType,
+            /* [in] */ Int32 flags,
+            /* [in] */ List<CapsuleParser::Activity*>* capsuleActivities);
+
+        CARAPI_(void) AddActivity(
+            /* [in] */ CapsuleParser::Activity* activity,
+            /* [in] */ const char* type);
+
+        CARAPI_(void) RemoveActivity(
+            /* [in] */ CapsuleParser::Activity* activity,
+            /* [in] */ const char* type);
+
+    protected:
+        //@Override
+        CARAPI_(Boolean) AllowFilterResult(
+            /* [in] */ CapsuleParser::ActivityIntentInfo* filter,
+            /* [in] */ List<AutoPtr<CResolveInfo>*>* dest);
+
+        //@Override
+        CARAPI_(String) CapsuleForFilter(
+            /* [in] */ CapsuleParser::ActivityIntentInfo* info);
+
+        //@Override
+        CARAPI NewResult(
+            /* [in] */ CapsuleParser::ActivityIntentInfo* info,
+            /* [in] */ Int32 match,
+            /* [out] */ AutoPtr<CResolveInfo>** ret);
+
+        //@Override
+        CARAPI_(void) SortResults(
+            /* [in] */ List<AutoPtr<CResolveInfo>*>* results);
+
+    public:
+        // Keys are String (activity class name), values are Activity.
+        HashMap<AutoPtr<IComponentName>, CapsuleParser::Activity*> mActivities;
+        Int32 mFlags;
+        CCapsuleManagerService* mOwner;
+    };
+
+    class ServiceIntentResolver :
+        public IntentResolver<CapsuleParser::ServiceIntentInfo,
+                              AutoPtr<CResolveInfo> >
+    {
+    public:
+        typedef IntentResolver<CapsuleParser::ServiceIntentInfo, \
+                AutoPtr<CResolveInfo> >     Super;
+
+    public:
+        ServiceIntentResolver(
+            /* [in] */ CCapsuleManagerService* owner);
+
+        ~ServiceIntentResolver();
+
+        CARAPI_(List<AutoPtr<CResolveInfo>*>*) QueryIntent(
+            /* [in] */ IIntent* intent,
+            /* [in] */ const String& resolvedType,
+            /* [in] */ Boolean defaultOnly);
+
+        CARAPI_(List<AutoPtr<CResolveInfo>*>*) QueryIntent(
+            /* [in] */ IIntent* intent,
+            /* [in] */ const String& resolvedType,
+            /* [in] */ Int32 flags);
+
+        CARAPI_(List<AutoPtr<CResolveInfo>*>*) QueryIntentForCapsule(
+            /* [in] */ IIntent* intent,
+            /* [in] */ const String& resolvedType,
+            /* [in] */ Int32 flags,
+            /* [in] */ List<CapsuleParser::Service*>* capsuleServices);
+
+        CARAPI_(void) AddService(
+            /* [in] */ CapsuleParser::Service* service);
+
+        CARAPI_(void) RemoveService(
+            /* [in] */ CapsuleParser::Service* service);
+
+    protected:
+        //@Override
+        CARAPI_(Boolean) AllowFilterResult(
+            /* [in] */ CapsuleParser::ServiceIntentInfo* filter,
+            /* [in] */ List<AutoPtr<CResolveInfo>*>* dest);
+
+        //@Override
+        CARAPI_(String) CapsuleForFilter(
+            /* [in] */ CapsuleParser::ServiceIntentInfo* info);
+
+        //@Override
+        CARAPI NewResult(
+            /* [in] */ CapsuleParser::ServiceIntentInfo* info,
+            /* [in] */ Int32 match,
+            /* [out] */ AutoPtr<CResolveInfo>** ret);
+
+        //@Override
+        CARAPI_(void) SortResults(
+            /* [in] */ List<AutoPtr<CResolveInfo>*>* results);
+
+    public:
+        // Keys are String (activity class name), values are Activity.
+        HashMap<AutoPtr<IComponentName>, CapsuleParser::Service*> mServices;
+        Int32 mFlags;
+        CCapsuleManagerService* mOwner;
+    };
+
+    class AppDirObserver : public ElRefBase, public IFileObserver, public FileObserver
+    {
+    public:
+        AppDirObserver(
+            /* [in] */ const String& path,
+            /* [in] */ Int32 mask,
+            /* [in] */ Boolean isrom,
+            /* [in] */ CCapsuleManagerService* owner);
+
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI StartWatching();
+
+        CARAPI StopWatching();
+
+        CARAPI OnEvent(
+            /* [in] */ Int32 event,
+            /* [in] */ const String& path);
+
+    private:
+        String mRootDir;
+        Boolean mIsRom;
+        CCapsuleManagerService* mOwner;
     };
 
     /**
@@ -801,18 +1121,158 @@ private:
      */
     class Settings
     {
+        friend class CCapsuleManagerService;
+
+    private:
+        class SettingsIntentResolver
+            : public IntentResolver<PreferredActivity, PreferredActivity>
+        {
+        protected:
+            virtual CARAPI_(String) CapsuleForFilter(
+                /* [in] */ PreferredActivity* filter);
+
+//            virtual CARAPI DumpFilter(
+//                /* [in] */ IPrintWriter* out,
+//                /* [in] */ const String& prefix,
+//                /* [in] */ PreferredActivity* filter);
+        };
+
+        class PendingCapsule : public CapsuleSettingBase
+        {
+        public:
+            PendingCapsule(
+                /* [in] */ String name,
+                /* [in] */ String realName,
+                /* [in] */ IFile* codePath,
+                /* [in] */ IFile* resourcePath,
+                /* [in] */ String nativeLibraryPathString,
+                /* [in] */ Int32 sharedId,
+                /* [in] */ Int32 pVersionCode,
+                /* [in] */ Int32 capFlags)
+                :  CapsuleSettingBase(name, realName, codePath, resourcePath,
+                   nativeLibraryPathString, pVersionCode, capFlags)
+                , mSharedId(sharedId)
+            {}
+
+        public:
+            Int32 mSharedId;
+        };
+
     public:
-        Settings();
+        Settings(
+            /* [in] */ CCapsuleManagerService* owner);
 
         ~Settings();
 
-        CARAPI_(CapsuleSetting*) EnableSystemCapsuleLP(
-            /* [in] */ String name) { return NULL; }
+        CARAPI_(AutoPtr<CapsuleSetting>) GetCapsuleLP(
+            /* [in] */ CapsuleParser::Capsule* cap,
+            /* [in] */ CapsuleSetting* origCapsule,
+            /* [in] */ const String& realName,
+            /* [in] */ SharedUserSetting* sharedUser,
+            /* [in] */ IFile* codePath,
+            /* [in] */ IFile* resourcePath,
+            /* [in] */ const String& nativeLibraryPathString,
+            /* [in] */ Int32 capFlags,
+            /* [in] */ Boolean create,
+            /* [in] */ Boolean add);
 
-        CARAPI_(SharedUserSetting*) AddSharedUserLP(
-            /* [in] */ String name,
+        CARAPI_(AutoPtr<CapsuleSetting>) PeekCapsuleLP(
+            /* [in] */ const String& name);
+
+        CARAPI_(void) SetInstallStatus(
+            /* [in] */ String capName,
+            /* [in] */ Int32 status);
+
+        CARAPI_(void) SetInstallerCapsuleName(
+            /* [in] */ String capName,
+            /* [in] */ String installerCapName);
+
+        CARAPI_(String) GetInstallerCapsuleName(
+            /* [in] */ String capName);
+
+        CARAPI_(Int32) GetInstallStatus(
+            /* [in] */ String capName);
+
+        CARAPI_(AutoPtr<SharedUserSetting>) GetSharedUserLP(
+            /* [in] */ const String& name,
+            /* [in] */ Int32 capFlags,
+            /* [in] */ Boolean create);
+
+        CARAPI_(Boolean) DisableSystemCapsuleLP(
+            /* [in] */ String name);
+
+        CARAPI_(AutoPtr<CapsuleSetting>) EnableSystemCapsuleLP(
+            /* [in] */ const String& name);
+
+        CARAPI_(AutoPtr<CapsuleSetting>) AddCapsuleLP(
+            /* [in] */ const String& name,
+            /* [in] */ const String& realName,
+            /* [in] */ IFile* codePath,
+            /* [in] */ IFile* resourcePath,
+            /* [in] */ const String& nativeLibraryPathString,
             /* [in] */ Int32 uid,
-            /* [in] */ Int32 capFlags) { return NULL; }
+            /* [in] */ Int32 vc,
+            /* [in] */ Int32 capFlags);
+
+        CARAPI_(AutoPtr<SharedUserSetting>) AddSharedUserLP(
+            /* [in] */ const String& name,
+            /* [in] */ Int32 uid,
+            /* [in] */ Int32 capFlags);
+
+        CARAPI_(void) WriteLP();
+
+        CARAPI_(void) WriteDisabledSysCapsule(
+            /* [in] */ IXmlSerializer* serializer,
+            /* [in] */ const CapsuleSetting* cap);
+
+        CARAPI_(void) WriteCapsule(
+            /* [in] */ IXmlSerializer* serializer,
+            /* [in] */ const CapsuleSetting* cap);
+
+        CARAPI_(void) WritePermission(
+            /* [in] */ IXmlSerializer* serializer,
+            /* [in] */ BasePermission* bp);
+
+        CARAPI_(String) GetReadMessagesLP();
+
+        CARAPI_(List< AutoPtr<CapsuleSetting> >*) GetListOfIncompleteInstallCapsules();
+
+        CARAPI_(Boolean) ReadLP();
+
+        CARAPI_(AutoPtr<CapsuleSetting>) GetDisabledSystemCap(
+            /* [in] */ const String& name);
+
+        CARAPI_(Boolean) IsEnabledLP(
+            /* [in] */ IComponentInfo* componentInfo,
+            /* [in] */ Int32 flags);
+
+    private:
+        // Transfer ownership of permissions from one package to another.
+        CARAPI_(void) TransferPermissions(
+            /* [in] */ const String& origCap,
+            /* [in] */ const String& newCap);
+
+        CARAPI_(AutoPtr<CapsuleSetting>) GetCapsuleLP(
+            /* [in] */ const String& name,
+            /* [in] */ CapsuleSetting* origCapsule,
+            /* [in] */ const String& realName,
+            /* [in] */ SharedUserSetting* sharedUser,
+            /* [in] */ IFile* codePath,
+            /* [in] */ IFile* resourcePath,
+            /* [in] */ const String& nativeLibraryPathString,
+            /* [in] */ Int32 vc,
+            /* [in] */ Int32 capFlags,
+            /* [in] */ Boolean create,
+            /* [in] */ Boolean add);
+
+        CARAPI_(void) InsertCapsuleSettingLP(
+            /* [in] */ CapsuleSetting* c,
+            /* [in] */ CapsuleParser::Capsule* cap);
+
+        CARAPI_(void) AddCapsuleSettingLP(
+            /* [in] */ CapsuleSetting* c,
+            /* [in] */ const String& name,
+            /* [in] */ SharedUserSetting* sharedUser);
 
         /*
          * Update the shared user setting when a package using
@@ -824,38 +1284,78 @@ private:
          */
         CARAPI UpdateSharedUserPermsLP(
             /* [in] */ CapsuleSetting* deletedPs,
-            /* [in] */ const ArrayOf<Int32>& globalGids)
-        { return E_NOT_IMPLEMENTED; }
+            /* [in] */ ArrayOf<Int32>* globalGids);
 
         CARAPI_(Int32) RemoveCapsuleLP(
-            /* [in] */ String name) { return -1; }
+            /* [in] */ const String& name);
 
-        SharedUserSetting* GetSharedUserLP(
+        CARAPI_(void) ReplaceCapsuleLP(
+            /* [in] */ const String& name,
+            /* [in] */ CapsuleSetting* newp);
+
+        CARAPI_(Boolean) AddUserIdLP(
+            /* [in] */ Int32 uid,
+            /* [in] */ IInterface* obj,
+            /* [in] */ IInterface* name);
+
+        CARAPI_(AutoPtr<IInterface>) GetUserIdLP(
+            /* [in] */ Int32 uid);
+
+        CARAPI_(HashSet<String>*) FindCapsulesWithFlag(
+            /* [in] */ Int32 flag);
+
+        CARAPI_(void) RemoveUserIdLP(
+            /* [in] */ Int32 uid);
+
+        CARAPI_(void) ReplaceUserIdLP(
+            /* [in] */ Int32 uid,
+            /* [in] */ IInterface* obj);
+
+        CARAPI_(Int32) ReadInt(
+            /* [in] */ IXmlPullParser* parser,
+            /* [in] */ String ns,
             /* [in] */ String name,
-            /* [in] */ Int32 capFlags,
-            /* [in] */ Boolean create) { return NULL; }
+            /* [in] */ Int32 defValue);
 
-        CARAPI_(GrantedPermissions*) GetUserIdLP(
-            /* [in] */ Int32 uid) { return NULL; }
+        CARAPI_(void) ReadPermissionsLP(
+            /* [in] */ HashMap<String, BasePermission*>* out,
+            /* [in] */ IXmlPullParser* parser);
 
-        CARAPI_(void) WriteLP() {}
+        CARAPI_(void) ReadDisabledSysCapsuleLP(
+            /* [in] */ IXmlPullParser* parser);
 
-        CARAPI_(Boolean) ReadLP() { return FALSE; }
+        CARAPI_(void) ReadCapsuleLP(
+            /* [in] */ IXmlPullParser* parser);
 
-        CARAPI_(CapsuleSetting*) GetDisabledSystemCap(
-            /* [in] */ String name) { return NULL; }
+        CARAPI_(void) ReadDisabledComponentsLP(
+            /* [in] */ CapsuleSettingBase* capsuleSetting,
+            /* [in] */ IXmlPullParser* parser);
 
-        CARAPI_(Boolean) IsEnabledLP(
-            /* [in] */ IComponentInfo* componentInfo,
-            /* [in] */ Int32 flags) { return FALSE; }
+        CARAPI_(void) ReadEnabledComponentsLP(
+            /* [in] */ CapsuleSettingBase* capsuleSetting,
+            /* [in] */ IXmlPullParser* parser);
+
+        CARAPI_(void) ReadSharedUserLP(
+            /* [in] */ IXmlPullParser* parser);
+
+        CARAPI_(void) ReadGrantedPermissionsLP(
+            /* [in] */ IXmlPullParser* parser,
+            /* [in] */ HashSet<String>* outPerms);
+
+        CARAPI_(void) ReadPreferredActivitiesLP(
+            /* [in] */ IXmlPullParser* parser);
+
+        CARAPI_(Int32) NewUserIdLP(
+            /* [in] */ IInterface* obj);
 
     public:
         AutoPtr<IFile> mSettingsFilename;
         AutoPtr<IFile> mBackupSettingsFilename;
-        AutoPtr<IFile> mPackageListFilename;
-        HashMap<String, CapsuleSetting*> mCapsules;
+        AutoPtr<IFile> mCapsuleListFilename;
+        HashMap<String, AutoPtr<CapsuleSetting> > mCapsules;
+        Mutex mCapsulesLock;
         // List of replaced system applications
-        HashMap<String, CapsuleSetting*> mDisabledSysCapsules;
+        HashMap<String, AutoPtr<CapsuleSetting> > mDisabledSysCapsules;
 
         // These are the last platform API version we were using for
         // the apps installed on internal and external storage.  It is
@@ -865,16 +1365,14 @@ private:
 
         // The user's preferred activities associated with particular intent
         // filters.
-        MyIntentResolver* mPreferredActivities;
+        SettingsIntentResolver* mPreferredActivities;
 
-        HashMap<String, SharedUserSetting*> mSharedUsers;
-//	        private final ArrayList<Object> mUserIds = new ArrayList<Object>();
-//	        private final SparseArray<Object> mOtherUserIds =
-//	                new SparseArray<Object>();
+        HashMap<String, AutoPtr<SharedUserSetting> > mSharedUsers;
+        Vector< AutoPtr<IInterface> > mUserIds;
+        HashMap<Int32, AutoPtr<IInterface> > mOtherUserIds;
 
         // For reading/writing settings file.
-//	        private final ArrayList<Signature> mPastSignatures =
-//	                new ArrayList<Signature>();
+        List< AutoPtr<ISignature> > mPastSignatures;
 
         // Mapping from permission names to info about them.
         HashMap<String, BasePermission*> mPermissions;
@@ -890,31 +1388,28 @@ private:
         // Keys are the new names of the packages, values are the original
         // names.  The packages appear everwhere else under their original
         // names.
-        HashMap<String, String> mRenamedPackages;
+        HashMap<String, String> mRenamedCapsules;
 
-//	        private final StringBuilder mReadMessages = new StringBuilder();
+        StringBuffer mReadMessages;
 
-//	        private final ArrayList<PendingPackage> mPendingPackages
-//	                = new ArrayList<PendingPackage>();
+        List< AutoPtr<PendingCapsule> > mPendingCapsules;
+
+        CCapsuleManagerService* mOwner;
     };
 
 public:
     CCapsuleManagerService();
 
+    CCapsuleManagerService(
+        /* [in] */ IContext* context,
+        /* [in] */ Boolean factoryTest);
+
     ~CCapsuleManagerService();
 
     CARAPI GetCapsuleInfo(
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ Int32 flags,
         /* [out] */ ICapsuleInfo** capInfo);
-
-    CARAPI GetCapsuleUid(
-        /* [in] */ String capsuleName,
-        /* [out] */ Int32* uid);
-
-    CARAPI GetCapsuleGids(
-        /* [in] */ String capsuleName,
-        /* [out, callee] */ ArrayOf<Int32>** gids);
 
     CARAPI CurrentToCanonicalCapsuleNames(
         /* [in] */ const ArrayOf<String>& names,
@@ -924,18 +1419,26 @@ public:
         /* [in] */ const ArrayOf<String>& names,
         /* [out, callee] */ ArrayOf<String>** cnames);
 
+    CARAPI GetCapsuleUid(
+        /* [in] */ const String& capsuleName,
+        /* [out] */ Int32* uid);
+
+    CARAPI GetCapsuleGids(
+        /* [in] */ const String& capsuleName,
+        /* [out, callee] */ ArrayOf<Int32>** gids);
+
     CARAPI GetPermissionInfo(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [in] */ Int32 flags,
         /* [out] */ IPermissionInfo** info);
 
     CARAPI QueryPermissionsByGroup(
-        /* [in] */ String group,
+        /* [in] */ const String& group,
         /* [in] */ Int32 flags,
         /* [out, callee] */ IObjectContainer** infos);
 
     CARAPI GetPermissionGroupInfo(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [in] */ Int32 flags,
         /* [out] */ IPermissionGroupInfo** info);
 
@@ -944,9 +1447,17 @@ public:
         /* [out, callee] */ IObjectContainer** infos);
 
     CARAPI GetApplicationInfo(
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ Int32 flags,
         /* [out] */ IApplicationInfo** appInfo);
+
+    CARAPI FreeStorageAndNotify(
+        /* [in] */ Int64 freeStorageSize,
+        /* [in] */ ICapsuleDataObserver* observer);
+
+    CARAPI FreeStorage(
+        /* [in] */ Int64 freeStorageSize,
+        /* [in] */ IIntentSender* pi);
 
     CARAPI GetActivityInfo(
         /* [in] */ IComponentName* component,
@@ -968,13 +1479,23 @@ public:
         /* [in] */ Int32 flags,
         /* [out] */ IContentProviderInfo** info);
 
+    CARAPI GetSystemSharedLibraryNames(
+        /* [out, callee] */ ArrayOf<String>** names);
+
+    CARAPI GetSystemAvailableFeatures(
+        /* [out] */ IObjectContainer** infos);
+
+    CARAPI HasSystemFeature(
+        /* [in] */ const String& name,
+        /* [out] */ Boolean* result);
+
     CARAPI CheckPermission(
-        /* [in] */ String permName,
-        /* [in] */ String capName,
+        /* [in] */ const String& permName,
+        /* [in] */ const String& capName,
         /* [out] */ Int32* perm);
 
     CARAPI CheckUidPermission(
-        /* [in] */ String permName,
+        /* [in] */ const String& permName,
         /* [in] */ Int32 uid,
         /* [out] */ Int32* perm);
 
@@ -982,16 +1503,20 @@ public:
         /* [in] */ IPermissionInfo* info,
         /* [out] */ Boolean* isAdded);
 
+    CARAPI AddPermissionAsync(
+        /* [in] */ IPermissionInfo* info,
+        /* [out] */ Boolean* isAdded);
+
     CARAPI RemovePermission(
-        /* [in] */ String name);
+        /* [in] */ const String& name);
 
     CARAPI IsProtectedBroadcast(
-        /* [in] */ String actionName,
+        /* [in] */ const String& actionName,
         /* [out] */ Boolean* result);
 
     CARAPI CheckSignatures(
-        /* [in] */ String cap1,
-        /* [in] */ String cap2,
+        /* [in] */ const String& cap1,
+        /* [in] */ const String& cap2,
         /* [out] */ Int32* sig);
 
     CARAPI CheckUidSignatures(
@@ -1008,24 +1533,25 @@ public:
         /* [out] */ String* name);
 
     CARAPI GetUidForSharedUser(
-        /* [in] */ String sharedUserName,
+        /* [in] */ const String& sharedUserName,
         /* [out] */ Int32* uid);
 
     CARAPI ResolveIntent(
         /* [in] */ IIntent* intent,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ Int32 flags,
         /* [out] */ IResolveInfo** resolveInfo);
 
     CARAPI QueryIntentActivities(
         /* [in] */ IIntent* intent,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ Int32 flags,
         /* [out, callee] */ IObjectContainer** infos);
 
+    //todo: should be removed
     CARAPI_(List<AutoPtr<CResolveInfo>*>*) QueryIntentActivities(
         /* [in] */ IIntent* intent,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ int flags);
 
     CARAPI QueryIntentActivityOptions(
@@ -1033,50 +1559,36 @@ public:
         /* [in] */ const ArrayOf<IIntent*>& specifics,
         /* [in] */ const ArrayOf<String>& specificTypes,
         /* [in] */ IIntent* intent,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ Int32 flags,
         /* [out] */ IObjectContainer** infos);
 
     CARAPI QueryIntentReceivers(
         /* [in] */ IIntent* intent,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ Int32 flags,
         /* [out] */ IObjectContainer** receivers);
 
-    CARAPI ChooseBestActivity(
-        /* [in] */ IIntent* intent,
-        /* [in] */ String resolvedType,
-        /* [in] */ Int32 flags,
-        /* [in] */ List<AutoPtr<CResolveInfo>*>* query,
-        /* [out] */ IResolveInfo** resolveInfo);
-
-    CARAPI_(CResolveInfo*) FindPreferredActivity(
-        /* [in] */ IIntent* intent,
-        /* [in] */ String resolvedType,
-        /* [in] */ Int32 flags,
-        /* [in] */ List<AutoPtr<CResolveInfo>*>* query,
-        /* [in] */ Int32 priority);
-
     CARAPI ResolveService(
         /* [in] */ IIntent* intent,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ Int32 flags,
         /* [out] */ IResolveInfo** resolveInfo);
 
     CARAPI QueryIntentServices(
         /* [in] */ IIntent* intent,
-        /* [in] */ String resolvedType,
+        /* [in] */ const String& resolvedType,
         /* [in] */ Int32 flags,
         /* [out] */ IObjectContainer** services);
 
     CARAPI GetInstalledCapsules(
         /* [in] */ Int32 flags,
-        /* [in] */ String lastRead,
+        /* [in] */ const String& lastRead,
         /* [out] */ IParceledListSlice** slice);
 
     CARAPI GetInstalledApplications(
         /* [in] */ Int32 flags,
-        /* [in] */ String lastRead,
+        /* [in] */ const String& lastRead,
         /* [out] */ IParceledListSlice** slice);
 
     CARAPI GetPersistentApplications(
@@ -1084,7 +1596,7 @@ public:
         /* [out, callee] */ IObjectContainer** infos);
 
     CARAPI ResolveContentProvider(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [in] */ Int32 flags,
         /* [out] */ IContentProviderInfo** info);
 
@@ -1093,47 +1605,66 @@ public:
         /* [in, out] */ IObjectContainer* outInfo);
 
     CARAPI QueryContentProviders(
-        /* [in] */ String processName,
+        /* [in] */ const String& processName,
         /* [in] */ Int32 uid,
         /* [in] */ Int32 flags,
         /* [out] */ IObjectContainer** providers);
 
     CARAPI GetInstrumentationInfo(
-        /* [in] */ IComponentName * name,
+        /* [in] */ IComponentName* name,
         /* [in] */ Int32 flags,
         /* [out] */ IInstrumentationInfo** instInfo);
 
     CARAPI QueryInstrumentation(
-        /* [in] */ String targetCapsule,
+        /* [in] */ const String& targetCapsule,
         /* [in] */ Int32 flags,
         /* [out, callee] */ IObjectContainer** infos);
 
+    CARAPI NextCapsuleToClean(
+        /* [in] */ const String& lastCapsule,
+        /* [out] */ String* nextCapsule);
+
+    /* Called when a downloaded package installation has been confirmed by the user */
     CARAPI InstallCapsuleEx(
-        /* [in] */ String path);
+        /* [in] */ IUri* capsuleURI,
+        /* [in] */ ICapsuleInstallObserver* observer,
+        /* [in] */ Int32 flags);
 
     CARAPI InstallCapsule(
         /* [in] */ IUri* capsuleURI,
         /* [in] */ ICapsuleInstallObserver* observer,
         /* [in] */ Int32 flags,
-        /* [in] */ String installerCapsuleName);
+        /* [in] */ const String& installerCapsuleName);
+
+    //todo: temporary
+    CARAPI InstallCapsuleEx2(
+        /* [in] */ const String& path);
 
     CARAPI FinishCapsuleInstall(
         /* [in] */ Int32 token);
 
     CARAPI DeleteCapsule(
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ ICapsuleDeleteObserver* observer,
         /* [in] */ Int32 flags);
 
-    CARAPI GetInstallerCapsuleName(
-        /* [in] */ String capsuleName,
-        /* [out] */ String* name);
+    CARAPI ClearApplicationUserData(
+        /* [in] */ const String& capsuleName,
+        /* [in] */ ICapsuleDataObserver* observer);
+
+    CARAPI DeleteApplicationCacheFiles(
+        /* [in] */ const String& capsuleName,
+        /* [in] */ ICapsuleDataObserver* observer);
+
+    CARAPI GetCapsuleSizeInfo(
+        /* [in] */ const String& capsuleName,
+        /* [in] */ ICapsuleStatsObserver* observer);
 
     CARAPI AddCapsuleToPreferred(
-        /* [in] */ String capsuleName);
+        /* [in] */ const String& capsuleName);
 
     CARAPI RemoveCapsuleFromPreferred(
-        /* [in] */ String capsuleName);
+        /* [in] */ const String& capsuleName);
 
     CARAPI GetPreferredCapsules(
         /* [in] */ Int32 flags,
@@ -1142,81 +1673,52 @@ public:
     CARAPI AddPreferredActivity(
         /* [in] */ IIntentFilter* filter,
         /* [in] */ Int32 match,
-        /* [in] */ const ArrayOf<IComponentName>& set,
+        /* [in] */ IObjectContainer* set, /*IComponentName*/
         /* [in] */ IComponentName* activity);
 
     CARAPI ReplacePreferredActivity(
         /* [in] */ IIntentFilter* filter,
         /* [in] */ Int32 match,
-        /* [in] */ const ArrayOf<IComponentName>& set,
+        /* [in] */ IObjectContainer* set, /*IComponentName*/
         /* [in] */ IComponentName* activity);
 
     CARAPI ClearCapsulePreferredActivities(
-        /* [in] */ String capsuleName);
-
-    CARAPI_(Boolean) ClearCapsulePreferredActivitiesLP(
-        /* [in] */ String capsuleName);
+        /* [in] */ const String& capsuleName);
 
     CARAPI GetPreferredActivities(
         /* [in, out] */ IObjectContainer* outFilters,
         /* [in, out] */ IObjectContainer* outActivities,
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [out] */ Int32* count);
+
+    CARAPI SetApplicationEnabledSetting(
+        /* [in] */ const String& capsuleName,
+        /* [in] */ Int32 newState,
+        /* [in] */ Int32 flags);
 
     CARAPI SetComponentEnabledSetting(
         /* [in] */ IComponentName* componentName,
         /* [in] */ Int32 newState,
         /* [in] */ Int32 flags);
 
+    CARAPI GetInstallerCapsuleName(
+        /* [in] */ const String& capsuleName,
+        /* [out] */ String* name);
+
+    CARAPI GetApplicationEnabledSetting(
+        /* [in] */ const String& capsuleName,
+        /* [out] */ Int32* setting);
+
     CARAPI GetComponentEnabledSetting(
         /* [in] */ IComponentName* componentName,
         /* [out] */ Int32* setting);
 
-    CARAPI SetApplicationEnabledSetting(
-        /* [in] */ String capsuleName,
-        /* [in] */ Int32 newState,
-        /* [in] */ Int32 flags);
-
-    CARAPI GetApplicationEnabledSetting(
-        /* [in] */ String capsuleName,
-        /* [out] */ Int32* setting);
-
-    CARAPI FreeStorageAndNotify(
-        /* [in] */ Int64 freeStorageSize,
-        /* [in] */ ICapsuleDataObserver* observer);
-
-    CARAPI FreeStorage(
-        /* [in] */ Int64 freeStorageSize,
-        /* [in] */ IIntentSender* pi);
-
-    CARAPI DeleteApplicationCacheFiles(
-        /* [in] */ String capsuleName,
-        /* [in] */ ICapsuleDataObserver* observer);
-
-    CARAPI ClearApplicationUserData(
-        /* [in] */ String capsuleName,
-        /* [in] */ ICapsuleDataObserver* observer);
-
-    CARAPI GetCapsuleSizeInfo(
-        /* [in] */ String capsuleName,
-        /* [in] */ ICapsuleStatsObserver* observer);
-
-    CARAPI GetSystemSharedLibraryNames(
-        /* [out, callee] */ ArrayOf<String>** names);
-
-    CARAPI GetSystemAvailableFeatures(
-        /* [out] */ IObjectContainer** infos);
-
-    CARAPI HasSystemFeature(
-        /* [in] */ String name,
-        /* [out] */ Boolean* result);
-
     CARAPI EnterSafeMode();
+
+    CARAPI SystemReady();
 
     CARAPI IsSafeMode(
         /* [out] */ Boolean* isSafeMode);
-
-    CARAPI SystemReady();
 
     CARAPI HasSystemUidErrors(
         /* [out] */ Boolean* result);
@@ -1225,18 +1727,10 @@ public:
         /* [in] */ Boolean mediaStatus,
         /* [in] */ Boolean reportStatus);
 
-    CARAPI NextCapsuleToClean(
-        /* [in] */ String lastCapsule,
-        /* [out] */ String* nextCapsule);
-
     CARAPI MoveCapsule(
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ ICapsuleMoveObserver* observer,
         /* [in] */ Int32 flags);
-
-    CARAPI AddPermissionAsync(
-        /* [in] */ IPermissionInfo* info,
-        /* [out] */ Boolean* isAdded);
 
     CARAPI SetInstallLocation(
         /* [in] */ Int32 loc,
@@ -1245,50 +1739,304 @@ public:
     CARAPI GetInstallLocation(
         /* [out] */ Int32* loc);
 
+    //todo: should be removed
     CARAPI constructor();
 
     CARAPI constructor(
         /* [in] */ IContext* context,
         /* [in] */ Boolean factoryTest);
 
-public:
-    CARAPI GenerateCapsuleInfo(
-        /* [in] */ CapsuleParser::Capsule* c,
-        /* [in] */ Int32 flags,
-        /* [out] */ ICapsuleInfo** capInfo);
+    //todo: should be removed
+    CARAPI_(void) ScanDir(
+        /* [in] */ CString path);
 
-    static CARAPI GeneratePermissionInfo(
-        /* [in] */ BasePermission* bp,
-        /* [in] */ Int32 flags,
-        /* [out] */ IPermissionInfo** info);
+    //todo: should be removed
+    CARAPI_(CapsuleParser::Capsule*) ScanCapsule(
+        /* [in] */ const String& capfile);
+
+    //todo: should be removed
+    CARAPI GenerateComponentNameKey(
+        /* [in] */ const String& capsuleName,
+        /* [in] */ const String& name,
+        /* [out] */ String* compName);
 
 private:
-    CARAPI SplitString(
-        /* [in] */ String str,
-        /* [in] */ Char8 sep,
-        /* [out] */ ArrayOf<String>** outStrs);
+    CARAPI_(void) ScheduleWriteSettingsLocked();
+
+    static CARAPI_(Boolean) InstallOnSd(
+        /* [in] */ Int32 flags);
+
+    static CARAPI_(void) SplitString(
+        /* [in] */ const String& str,
+        /* [in] */ Char32 sep,
+        /* [out] */ ArrayOf<String>** res);
+
+    CARAPI_(void) CleanupInstallFailedCapsule(
+        /* [in] */ CapsuleSetting* cs);
 
     CARAPI ReadPermissions();
 
+    CARAPI ReadPermissionsFromXml(
+        /* [in] */ IFile* permFile);
+
+    CARAPI ReadPermission(
+        /* [in] */ IXmlPullParser* parser,
+        /* [in] */ const String& name);
+
+    static CARAPI_(void) AppendInt(
+        /* [in] */ ArrayOf<Int32>* cur,
+        /* [in] */ Int32 val,
+        /* [out] */ ArrayOf<Int32>** ret);
+
+    static CARAPI_(void) AppendInts(
+        /* [in] */ ArrayOf<Int32>* cur,
+        /* [in] */ ArrayOf<Int32>* add,
+        /* [out] */ ArrayOf<Int32>** ret);
+
+    static CARAPI_(void) RemoveInt(
+        /* [in] */ ArrayOf<Int32>* cur,
+        /* [in] */ Int32 val,
+        /* [out] */ ArrayOf<Int32>** ret);
+
+    static CARAPI_(void) RemoveInts(
+        /* [in] */ ArrayOf<Int32>* cur,
+        /* [in] */ ArrayOf<Int32>* rem,
+        /* [out] */ ArrayOf<Int32>** ret);
+
+    CARAPI_(AutoPtr<CCapsuleInfo>) GenerateCapsuleInfo(
+        /* [in] */ CapsuleParser::Capsule* c,
+        /* [in] */ Int32 flags);
+
+    static CARAPI_(AutoPtr<IPermissionInfo>) GeneratePermissionInfo(
+        /* [in] */ BasePermission* bp,
+        /* [in] */ Int32 flags);
+
+    CARAPI_(AutoPtr<CApplicationInfo>) GenerateApplicationInfoFromSettingsLP(
+        /* [in] */ const String& capsuleName,
+        /* [in] */ Int32 flags);
+
+    CARAPI_(AutoPtr<CCapsuleInfo>) GenerateCapsuleInfoFromSettingsLP(
+        /* [in] */ const String& capsuleName,
+        /* [in] */ Int32 flags);
+
+    CARAPI_(BasePermission*) FindPermissionTreeLP(
+        /* [in] */ const String& permName);
+
+    CARAPI CheckPermissionTreeLP(
+        /* [in] */ const String& permName,
+        /* [out] */ BasePermission** permission);
+
+    static CARAPI_(Boolean) CompareStrings(
+        /* [in] */ ICharSequence* s1,
+        /* [in] */ ICharSequence* s2);
+
+    static CARAPI_(Boolean) ComparePermissionInfos(
+        /* [in] */ IPermissionInfo* pi1,
+        /* [in] */ IPermissionInfo* pi2);
+
+    CARAPI AddPermissionLocked(
+        /* [in] */ IPermissionInfo* info,
+        /* [in] */ Boolean async,
+        /* [out] */ Boolean* isAdded);
+
     CARAPI CheckSignaturesLP(
-        /* [in] */ List<Signature*>& s1,
-        /* [in] */ List<Signature*>& s2,
+        /* [in] */ ArrayOf< AutoPtr<ISignature> >* s1,
+        /* [in] */ ArrayOf< AutoPtr<ISignature> >* s2,
         /* [out] */ Int32* sig);
 
-    CARAPI_(void) ScanDir(
-        /* [in] */ String path);
+    CARAPI ChooseBestActivity(
+        /* [in] */ IIntent* intent,
+        /* [in] */ const String& resolvedType,
+        /* [in] */ Int32 flags,
+        /* [in] */ List<AutoPtr<CResolveInfo>*>* query,
+        /* [out] */ IResolveInfo** resolveInfo);
 
-    CARAPI_(CapsuleParser::Capsule*) ScanCapsule(
-        /* [in] */ String capfile);
-
-    CARAPI_(String) FixProcessName(
-        /* [in] */ String defProcessName,
-        /* [in] */ String processName,
-        /* [in] */ Int32 uid);
+    CARAPI_(AutoPtr<CResolveInfo>) FindPreferredActivity(
+        /* [in] */ IIntent* intent,
+        /* [in] */ const String& resolvedType,
+        /* [in] */ Int32 flags,
+        /* [in] */ List<AutoPtr<CResolveInfo>*>* query,
+        /* [in] */ Int32 priority);
 
     CARAPI_(Int32) GetContinuationPoint(
         /* [in] */ const ArrayOf<String>& keys,
         /* [in] */ const String& key);
+
+    CARAPI ScanDirLI(
+        /* [in] */ IFile* dir,
+        /* [in] */ Int32 flags,
+        /* [in] */ Int32 scanMode,
+        /* [in] */ Int64 currentTime);
+
+    static CARAPI_(AutoPtr<IFile*>) GetSettingsProblemFile();
+
+    static CARAPI_(void) ReportSettingsProblem(
+        /* [in] */ Int32 priority,
+        /* [in] */ CString msg);
+
+    CARAPI_(Boolean) CollectCertificatesLI(
+        /* [in] */ CapsuleParser* cp,
+        /* [in] */ CapsuleSetting* cs,
+        /* [in] */ CapsuleParser::Capsule* cap,
+        /* [in] */ IFile* srcFile,
+        /* [in] */ Int32 parseFlags);
+
+    CARAPI_(CapsuleParser::Capsule*) ScanCapsuleLI(
+        /* [in] */ IFile* scanFile,
+        /* [in] */ Int32 parseFlags,
+        /* [in] */ Int32 scanMode,
+        /* [in] */ Int64 currentTime);
+
+    CARAPI_(void) SetApplicationInfoPaths(
+        /* [in] */ CapsuleParser::Capsule* cap,
+        /* [in] */ const String& destCodePath,
+        /* [in] */ const String& destResPath);
+
+    static CARAPI_(String) FixProcessName(
+        /* [in] */ const String& defProcessName,
+        /* [in] */ const String& processName,
+        /* [in] */ Int32 uid);
+
+    CARAPI_(Boolean) VerifySignaturesLP(
+        /* [in] */ CapsuleSetting* capSetting,
+        /* [in] */ CapsuleParser::Capsule* cap);
+
+    static CARAPI_(Boolean) UseEncryptedFilesystemForCapsule(
+        /* [in] */ CapsuleParser::Capsule* cap);
+
+    CARAPI_(Boolean) VerifyCapsuleUpdate(
+        /* [in] */ CapsuleSetting* oldCap,
+        /* [in] */ CapsuleParser::Capsule* newCap);
+
+    CARAPI_(AutoPtr<IFile>) GetDataPathForCapsule(
+        /* [in] */ CapsuleParser::Capsule* cap);
+
+    CARAPI_(CapsuleParser::Capsule*) ScanCapsuleLI(
+        /* [in] */ CapsuleParser::Capsule* cap,
+        /* [in] */ Int32 parseFlags,
+        /* [in] */ Int32 scanMode,
+        /* [in] */ Int64 currentTime);
+
+    CARAPI_(void) KillApplication(
+        /* [in] */ const String& capName,
+        /* [in] */ Int32 uid);
+
+    CARAPI_(AutoPtr<IFile>) GetNativeBinaryDirForPackage(
+        /* [in] */ CapsuleParser::Capsule* cap);
+
+    CARAPI RemoveCapsuleLI(
+        /* [in] */ CapsuleParser::Capsule* cap,
+        /* [in] */ Boolean chatty);
+
+    static CARAPI_(Boolean) IsCapsuleFilename(
+        /* [in] */ const String& name);
+
+    static CARAPI_(Boolean) HasPermission(
+        /* [in] */ CapsuleParser::Capsule* capInfo,
+        /* [in] */ const String& perm);
+
+    CARAPI UpdatePermissionsLP(
+        /* [in] */ const String& changingCap,
+        /* [in] */ CapsuleParser::Capsule* capInfo,
+        /* [in] */ Boolean grantPermissions,
+        /* [in] */ Boolean replace,
+        /* [in] */ Boolean replaceAll);
+
+    CARAPI_(void) GrantPermissionsLP(
+        /* [in] */ CapsuleParser::Capsule* cap,
+        /* [in] */ Boolean replace);
+
+    CARAPI_(void) SendCapsuleBroadcast(
+        /* [in] */ const String& action,
+        /* [in] */ const String& cap,
+        /* [in] */ IBundle* extras,
+        /* [in] */ IIntentReceiver* finishedReceiver);
+
+    CARAPI_(void) ScheduleCapsuleCleaning(
+        /* [in] */ const String& capsuleName);
+
+    CARAPI_(void) StartCleaningCapsules();
+
+    CARAPI_(void) ProcessPendingInstall(
+        /* [in] */ InstallArgs* args,
+        /* [in] */ Int32 currentStatus);
+
+    CARAPI_(InstallArgs*) CreateInstallArgs(
+        /* [in] */ InstallParams* params);
+
+    CARAPI_(InstallArgs*) CreateInstallArgs(
+        /* [in] */ Int32 flags,
+        /* [in] */ const String& fullCodePath,
+        /* [in] */ const String& fullResourcePath,
+        /* [in] */ const String& nativeLibraryPath);
+
+    CARAPI_(InstallArgs*) CreateInstallArgs(
+        /* [in] */ IUri* capsuleURI,
+        /* [in] */ Int32 flags,
+        /* [in] */ const String& capName,
+        /* [in] */ String dataDir);
+
+    static CARAPI_(String) GetNextCodePath(
+        /* [in] */ const String& oldCodePath,
+        /* [in] */ const String& prefix,
+        /* [in] */ const String& suffix);
+
+    // Utility method used to ignore ADD/REMOVE events
+    // by directory observer.
+    static CARAPI_(Boolean) IgnoreCodePath(
+        /* [in] */ const String& fullPathStr);
+
+    // Utility method that returns the relative package path with respect
+    // to the installation directory. Like say for /data/data/com.test-1.apk
+    // string com.test-1 is returned.
+    static CARAPI_(String) GetCapName(
+        /* [in] */ const String& codePath);
+
+    /*
+     * Install a non-existing package.
+     */
+    CARAPI_(void) InstallNewCapsuleLI(
+        /* [in] */ CapsuleParser::Capsule* cap,
+        /* [in] */ Int32 parseFlags,
+        /* [in] */ Int32 scanMode,
+        /* [in] */ const String& installerCapsuleName,
+        /* [in] */ CapsuleInstalledInfo* res);
+
+    CARAPI_(void) ReplaceCapsuleLI(
+        /* [in] */ CapsuleParser::Capsule* cap,
+        /* [in] */ Int32 parseFlags,
+        /* [in] */ Int32 scanMode,
+        /* [in] */ const String& installerCapsuleName,
+        /* [in] */ CapsuleInstalledInfo* res);
+
+    CARAPI_(void) ReplaceNonSystemCapsuleLI(
+        /* [in] */ CapsuleParser::Capsule* deletedCapsule,
+        /* [in] */ CapsuleParser::Capsule* cap,
+        /* [in] */ Int32 parseFlags,
+        /* [in] */ Int32 scanMode,
+        /* [in] */ const String& installerCapsuleName,
+        /* [in] */ CapsuleInstalledInfo* res);
+
+    CARAPI_(void) ReplaceSystemCapsuleLI(
+        /* [in] */ CapsuleParser::Capsule* deletedCapsule,
+        /* [in] */ CapsuleParser::Capsule* cap,
+        /* [in] */ Int32 parseFlags,
+        /* [in] */ Int32 scanMode,
+        /* [in] */ const String& installerCapsuleName,
+        /* [in] */ CapsuleInstalledInfo* res);
+
+    CARAPI_(void) UpdateSettingsLI(
+        /* [in] */ CapsuleParser::Capsule* newCapsule,
+        /* [in] */ const String& installerCapsuleName,
+        /* [in] */ CapsuleInstalledInfo* res);
+
+    CARAPI_(void) InstallCapsuleLI(
+        /* [in] */ InstallArgs* args,
+        /* [in] */ Boolean newInstall,
+        /* [in] */ CapsuleInstalledInfo* res);
+
+    CARAPI_(Int32) SetPermissionsLI(
+        /* [in] */ CapsuleParser::Capsule* newCapsule);
 
     static CARAPI_(Boolean) IsForwardLocked(
         /* [in] */ CapsuleParser::Capsule* cap);
@@ -1302,20 +2050,29 @@ private:
     static CARAPI_(Boolean) IsSystemApp(
         /* [in] */ CApplicationInfo* info);
 
-    CARAPI CreateInstallArgs(
-        /* [in] */ Int32 flags,
-        /* [in] */ String fullCodePath,
-        /* [in] */ String fullResourcePath,
-        /* [in] */ String nativeLibraryPath,
-        /* [out] */ InstallArgs** args);
+    static CARAPI_(Boolean) IsUpdatedSystemApp(
+        /* [in] */ CapsuleParser::Capsule* cap);
+
+    CARAPI_(void) ExtractPublicFiles(
+        /* [in] */ CapsuleParser::Capsule* newCapsule,
+        /* [in] */ IFile* publicZipFile);
+
+//    static void copyZipEntry(ZipEntry zipEntry,
+//                                     ZipFile inZipFile,
+//                                     ZipOutputStream outZipStream)
+
+    CARAPI_(void) DeleteTempCapsuleFiles();
+
+    CARAPI_(AutoPtr<IFile>) CreateTempCapsuleFile(
+        /* [in] */ IFile* installDir);
 
     CARAPI_(Boolean) DeleteCapsuleX(
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ Boolean sendBroadCast,
         /* [in] */ Boolean deleteCodeAndResources,
         /* [in] */ Int32 flags);
 
-    CARAPI RemoveCapsuleDataLI(
+    CARAPI_(void) RemoveCapsuleDataLI(
         /* [in] */ CapsuleParser::Capsule* p,
         /* [in] */ CapsuleRemovedInfo* outInfo,
         /* [in] */ Int32 flags,
@@ -1335,86 +2092,61 @@ private:
         /* [in] */ Boolean writeSettings);
 
     CARAPI_(Boolean) DeleteCapsuleLI(
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ Boolean deleteCodeAndResources,
         /* [in] */ Int32 flags,
         /* [in] */ CapsuleRemovedInfo* outInfo,
         /* [in] */ Boolean writeSettings);
 
-    CARAPI ScanDirLI(
-        /* [in] */ IFile* dir,
-        /* [in] */ Int32 flags,
-        /* [in] */ Int32 scanMode,
-        /* [in] */ Int64 currentTime);
+    CARAPI_(Boolean) ClearApplicationUserDataLI(
+        /* [in] */ const String& capsuleName);
 
-    CARAPI KillApplication(
-        /* [in] */ String capName,
+    CARAPI_(Boolean) DeleteApplicationCacheFilesLI(
+        /* [in] */ const String& capsuleName);
+
+    CARAPI_(Boolean) GetCapsuleSizeInfoLI(
+        /* [in] */ const String& capsuleName,
+        /* [in] */ ICapsuleStats* stats);
+
+    CARAPI_(Int32) GetUidTargetSdkVersionLockedLP(
         /* [in] */ Int32 uid);
 
-    CARAPI_(CapsuleParser::Capsule*) ScanCapsuleLI(
-        /* [in] */ IFile* scanFile,
-        /* [in] */ Int32 parseFlags,
-        /* [in] */ Int32 scanMode,
-        /* [in] */ Int64 currentTime);
+    CARAPI_(Boolean) ClearCapsulePreferredActivitiesLP(
+        /* [in] */ const String& capsuleName);
 
-    CARAPI_(void) SetApplicationInfoPaths(
-        /* [in] */ CapsuleParser::Capsule* cap,
-        /* [in] */ String destCodePath,
-        /* [in] */ String destResPath);
-
-    static CARAPI_(Boolean) UseEncryptedFilesystemForCapsule(
-        /* [in] */ CapsuleParser::Capsule* cap);
-
-    CARAPI GetDataPathForCapsule(
-        /* [in] */ const CapsuleParser::Capsule& cap,
-        /* [out] */ IFile** path);
-
-    CARAPI_(CapsuleParser::Capsule*) ScanCapsuleLI(
-        /* [in] */ CapsuleParser::Capsule* cap,
-        /* [in] */ Int32 parseFlags,
-        /* [in] */ Int32 scanMode,
-        /* [in] */ Int64 currentTime);
-
-    CARAPI RemoveCapsuleLI(
-        /* [in] */ CapsuleParser::Capsule* cap,
-        /* [in] */ Boolean chatty);
-
-    static CARAPI_(Boolean) IsCapsuleFilename(
-        /* [in] */ String name);
-
-    CARAPI UpdatePermissionsLP(
-        /* [in] */ String changingPkg,
-        /* [in] */ CapsuleParser::Capsule* capInfo,
-        /* [in] */ Boolean grantPermissions,
-        /* [in] */ Boolean replace,
-        /* [in] */ Boolean replaceAll);
-
-    CARAPI GenerateCapsuleInfoFromSettingsLP(
-        /* [in] */ String capsuleName,
-        /* [in] */ Int32 flags,
-        /* [out] */ ICapsuleInfo** capInfo);
-
-    CARAPI GenerateApplicationInfoFromSettingsLP(
-        /* [in] */ String capsuleName,
-        /* [in] */ Int32 flags,
-        /* [out] */ IApplicationInfo** info);
+    CARAPI SetEnabledSetting(
+        /* [in] */ const String& capsuleName,
+        /* [in] */ const String& className,
+        /* [in] */ Int32 newState,
+        /* [in] */ Int32 flags);
 
     CARAPI_(void) SendCapsuleChangedBroadcast(
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ Boolean killFlag,
-        /* [in] */ List<String>& componentNames,
+        /* [in] */ const List<String>& componentNames,
         /* [in] */ Int32 capsuleUid);
 
-    CARAPI_(void) SendCapsuleBroadcast(
-        /* [in] */ String action,
-        /* [in] */ String cap,
-        /* [in] */ IBundle* extras,
+    CARAPI_(String) ArrayToString(
+        /* [in] */ const ArrayOf<Int32>& array);
+
+    CARAPI_(String) GetEncryptKey();
+
+    static CARAPI_(String) GetTempContainerId();
+
+    CARAPI UpdateExternalMediaStatusInner(
+        /* [in] */ Boolean mediaStatus,
+        /* [in] */ Boolean reportStatus);
+
+    CARAPI_(void) SendResourcesChangedBroadcast(
+        /* [in] */ Boolean mediaStatus,
+        /* [in] */ const List<String>& capList,
+        /* [in] */ const ArrayOf<Int32>& uidArr,
         /* [in] */ IIntentReceiver* finishedReceiver);
 
-    CARAPI_(void) ScheduleCapsuleCleaning(
-        /* [in] */ String capsuleName);
-
-    CARAPI_(void) StartCleaningCapsules();
+    CARAPI LoadMediaCapsules(
+        /* [in] */ HashMap<String, SdInstallArgs*>& processCids,
+        /* [in] */ const ArrayOf<Int32>& uidArr,
+        /* [in] */ List<String>& removeCids);
 
     /*
      * Utility method to unload a list of specified containers
@@ -1422,16 +2154,18 @@ private:
     CARAPI_(void) UnloadAllContainers(
         /* [in] */ Set<SdInstallArgs*>& cidArgs);
 
-    CARAPI GenerateComponentNameKey(
-        /* [in] */ String capsuleName,
-        /* [in] */ String name,
-        /* [out] */ String* compName);
+    CARAPI UnloadMediaCapsules(
+        /* [in] */ HashMap<String, SdInstallArgs*>& processCids,
+        /* [in] */ const ArrayOf<Int32>& uidArr,
+        /* [in] */ Boolean reportStatus);
 
-    CARAPI SetEnabledSetting(
-        /* [in] */ String capsuleName,
-        /* [in] */ String className,
-        /* [in] */ Int32 newState,
-        /* [in] */ Int32 flags);
+    CARAPI_(void) ProcessPendingMove(
+        /* [in] */ MoveParams* mp,
+        /* [in] */ Int32 currentStatus);
+
+    CARAPI SendMessage(
+        /* [in] */ Handle32 pvFunc,
+        /* [in] */ IParcel* params);
 
     CARAPI_(void) HandleFreeStorageAndNotify(
         /* [in] */ Int64 freeStorageSize,
@@ -1442,139 +2176,50 @@ private:
         /* [in] */ IIntentSender* pi);
 
     CARAPI_(void) HandleDeleteApplicationCacheFiles(
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ ICapsuleDataObserver* observer);
-
-    CARAPI_(Boolean) DeleteApplicationCacheFilesLI(
-        /* [in] */ String capsuleName);
 
     CARAPI_(void) HandleClearApplicationUserData(
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ ICapsuleDataObserver* observer);
 
-    CARAPI_(Boolean) ClearApplicationUserDataLI(
-        /* [in] */ String capsuleName);
-
     CARAPI_(void) HandleGetCapsuleSizeInfo(
-        /* [in] */ String capsuleName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ ICapsuleStatsObserver* observer);
-
-    CARAPI_(Boolean) GetCapsuleSizeInfoLI(
-        /* [in] */ String capsuleName,
-        /* [in] */ ICapsuleStats* stats);
 
     CARAPI_(void) HandleUpdateExternalMediaStatus(
         /* [in] */ Boolean mediaStatus,
         /* [in] */ Boolean reportStatus);
 
-    CARAPI UpdateExternalMediaStatusInner(
-        /* [in] */ Boolean mediaStatus,
-        /* [in] */ Boolean reportStatus);
-
-    CARAPI LoadMediaCapsules(
-        /* [in] */ HashMap<String, SdInstallArgs*>& processCids,
-        /* [in] */ const ArrayOf<Int32>& uidArr,
-        /* [in] */ List<String>& removeCids);
-
-    CARAPI UnloadMediaCapsules(
-        /* [in] */ HashMap<String, SdInstallArgs*>& processCids,
-        /* [in] */ const ArrayOf<Int32>& uidArr,
-        /* [in] */ Boolean reportStatus);
-
-    CARAPI_(void) SendResourcesChangedBroadcast(
-        /* [in] */ Boolean mediaStatus,
-        /* [in] */ List<String>& capList,
-        /* [in] */ const ArrayOf<Int32>& uidArr,
-        /* [in] */ IIntentReceiver* finishedReceiver);
-
     CARAPI_(void) HandleProcessPendingMove(
         /* [in] */ MoveParams* mp,
         /* [in] */ Int32 currentStatus);
 
-    CARAPI_(void) ProcessPendingMove(
-        /* [in] */ MoveParams* mp,
-        /* [in] */ Int32 currentStatus);
+    CARAPI_(void) HandleMediaContainerServiceBound(
+        /* [in] */ IMediaContainerService* mcs);
 
-    CARAPI AddPermissionLocked(
-        /* [in] */ IPermissionInfo* info,
-        /* [in] */ Boolean async,
-        /* [out] */ Boolean* isAdded);
+    CARAPI_(void) HandleMediaContainerServiceUnbind();
 
-    CARAPI CheckPermissionTreeLP(
-        /* [in] */ String permName,
-        /* [out] */ BasePermission** basePerm);
+    CARAPI_(void) HandleMediaContainerServiceGiveUp();
 
-    CARAPI FindPermissionTreeLP(
-        /* [in] */ String permName,
-        /* [out] */ BasePermission** basePerm);
+    CARAPI_(void) HandleMediaContainerServiceReconnect();
 
-    static CARAPI_(Boolean) ComparePermissionInfos(
-        /* [in] */ IPermissionInfo* pi1,
-        /* [in] */ IPermissionInfo* pi2);
+public:/*package*/
+    static const Int32 SCAN_MONITOR = 1 << 0;
+    static const Int32 SCAN_NO_DEX = 1 << 1;
+    static const Int32 SCAN_FORCE_DEX = 1 << 2;
+    static const Int32 SCAN_UPDATE_SIGNATURE = 1 << 3;
+    static const Int32 SCAN_NEW_INSTALL = 1 << 4;
+    static const Int32 SCAN_NO_PATHS = 1 << 5;
+    static const Int32 SCAN_UPDATE_TIME = 1 << 6;
 
-    CARAPI_(void) ScheduleWriteSettingsLocked();
+    static const Int32 REMOVE_CHATTY = 1 << 16;
 
-    static CARAPI_(Boolean) CompareStrings(
-        /* [in] */ String s1,
-        /* [in] */ String s2);
-
-private:
-    static const Boolean MULTIPLE_APPLICATION_UIDS = TRUE;
-    static const Int32 RADIO_UID = Process::PHONE_UID;
-    static const Int32 LOG_UID = Process::LOG_UID;
-    static const Int32 NFC_UID = Process::NFC_UID;
-    static const Int32 FIRST_APPLICATION_UID = Process::FIRST_APPLICATION_UID;
-    static const Int32 MAX_APPLICATION_UIDS = 1000;
-
-    static const Boolean SHOW_INFO = FALSE;
-
-    static const Boolean GET_CERTIFICATES = TRUE;
-
-    static const String SYSTEM_PROPERTY_EFS_ENABLED;
-
-//	    static const int REMOVE_EVENTS =
-//	        FileObserver.CLOSE_WRITE | FileObserver.DELETE | FileObserver.MOVED_FROM;
-//	    static const int ADD_EVENTS =
-//	        FileObserver.CLOSE_WRITE /*| FileObserver.CREATE*/ | FileObserver.MOVED_TO;
-
-//	    static const int OBSERVER_EVENTS = REMOVE_EVENTS | ADD_EVENTS;
-    // Suffix used during package installation when copying/moving
-    // package apks to install directory.
-    static const String INSTALL_PACKAGE_SUFFIX;
-
-    /**
-     * Indicates the state of installation. Used by PackageManager to
-     * figure out incomplete installations. Say a package is being installed
-     * (the state is set to PKG_INSTALL_INCOMPLETE) and remains so till
-     * the package installation is successful or unsuccesful lin which case
-     * the PackageManager will no longer maintain state information associated
-     * with the package. If some exception(like device freeze or battery being
-     * pulled out) occurs during installation of a package, the PackageManager
-     * needs this information to clean up the previously failed installation.
-     */
-    static const Int32 CAP_INSTALL_INCOMPLETE = 0;
-    static const Int32 CAP_INSTALL_COMPLETE = 1;
-
-public: /*package*/
-    static const Int32 SCAN_MONITOR = 1<<0;
-    static const Int32 SCAN_NO_DEX = 1<<1;
-    static const Int32 SCAN_FORCE_DEX = 1<<2;
-    static const Int32 SCAN_UPDATE_SIGNATURE = 1<<3;
-    static const Int32 SCAN_NEW_INSTALL = 1<<4;
-    static const Int32 SCAN_NO_PATHS = 1<<5;
-    static const Int32 SCAN_UPDATE_TIME = 1<<6;
-
-    static const Int32 REMOVE_CHATTY = 1<<16;
-
-    static const String DEFAULT_CONTAINER_CAPSULE;
+    static const char* DEFAULT_CONTAINER_CAPSULE;
 
     static const AutoPtr<IComponentName> DEFAULT_CONTAINER_COMPONENT;
 
-private:
-    static const String LIB_DIR_NAME;
-
-public: /*package*/
-    static const String mTempContainerPrefix;
+    static const char* mTempContainerPrefix;
 
 //	    final HandlerThread mHandlerThread = new HandlerThread("PackageManager",
 //	            Process.THREAD_PRIORITY_BACKGROUND);
@@ -1599,19 +2244,19 @@ public: /*package*/
     AutoPtr<IFile> mSecureAppDataDir;
 
     // This is the object monitoring the framework dir.
-//	    final FileObserver mFrameworkInstallObserver;
+    FileObserver* mFrameworkInstallObserver;
 
     // This is the object monitoring the system app dir.
-//	    final FileObserver mSystemInstallObserver;
+    FileObserver* mSystemInstallObserver;
 
     // This is the object monitoring the system app dir.
-//	    final FileObserver mVendorInstallObserver;
+    FileObserver* mVendorInstallObserver;
 
     // This is the object monitoring mAppInstallDir.
-//	    final FileObserver mAppInstallObserver;
+    FileObserver* mAppInstallObserver;
 
     // This is the object monitoring mDrmAppPrivateInstallDir.
-//	    final FileObserver mDrmAppInstallObserver;
+    FileObserver* mDrmAppInstallObserver;
 
     // Used for priviledge escalation.  MUST NOT BE CALLED WITH mPackages
     // LOCK HELD.  Can be called with mInstallLock held.
@@ -1643,7 +2288,7 @@ public: /*package*/
     AutoPtr<IFile> mScanningPath;
     Int32 mLastScanError;
 
-//	    final int[] mOutPermissions = new int[3];
+    AutoFree< ArrayOf<Int32> > mOutPermissions;
 
     // ----------------------------------------------------------------
 
@@ -1663,6 +2308,7 @@ public: /*package*/
     // etc/permissions.xml file.
 //	    final SparseArray<HashSet<String>> mSystemPermissions =
 //	            new SparseArray<HashSet<String>>();
+    HashMap<Int32, HashSet<String>* > mSystemPermissions;
 
     // These are the built-in shared libraries that were read from the
     // etc/permissions.xml file.
@@ -1673,7 +2319,7 @@ public: /*package*/
 
     // These are the features this devices supports that were read from the
     // etc/permissions.xml file.
-    HashMap<String, IFeatureInfo*> mAvailableFeatures;
+    HashMap<String, AutoPtr<IFeatureInfo> > mAvailableFeatures;
 
     // All available activities, for your resolving pleasure.
     ActivityIntentResolver* mActivities;
@@ -1685,11 +2331,13 @@ public: /*package*/
     ServiceIntentResolver* mServices;
 
     // Keys are String (provider class name), values are Provider.
+//    final HashMap<ComponentName, PackageParser.Provider> mProvidersByComponent =
+//            new HashMap<ComponentName, PackageParser.Provider>();
     HashMap<String, CapsuleParser::ContentProvider*> mProvidersByComponent;
 
     // Mapping from provider base names (first directory in content URI codePath)
     // to the provider information.
-    HashMap<String, CapsuleParser::ContentProvider*> mProviders;
+    HashMap<String, CapsuleParser::ContentProvider*> mContentProviders;
 
     // Mapping from instrumentation class names to info about them.
     HashMap<AutoPtr<IComponentName>, CapsuleParser::Instrumentation*> mInstrumentation;
@@ -1713,21 +2361,11 @@ public: /*package*/
     AutoPtr<CActivityInfo> mResolveActivity;
     AutoPtr<CResolveInfo> mResolveInfo;
     AutoPtr<IComponentName> mResolveComponentName;
-    CapsuleParser::Capsule* mPlatformCapsule;
-
-    HashMap<Int32, PostInstallData*> mRunningInstalls;
-    Int32 mNextInstallToken; // nonzero; will be wrapped back to 1 when ++ overflows
+    AutoPtr<CapsuleParser::Capsule> mPlatformCapsule;
 
     // Set of pending broadcasts for aggregating enable/disable of components.
-    HashMap< String, List<String> > mPendingBroadcasts;
+    HashMap< String, List<String>* > mPendingBroadcasts;
 
-private:
-    // Service Connection to remote media container service to copy
-    // package uri's from external media onto secure containers
-    // or internal storage.
-    AutoPtr<IMediaContainerService> mContainerService;
-
-public: /*package*/
     static const Int32 SEND_PENDING_BROADCAST = 1;
     static const Int32 MCS_BOUND = 3;
     static const Int32 END_COPY = 4;
@@ -1743,43 +2381,90 @@ public: /*package*/
 
     static const Int32 DELETE_CAPSULE = 14;
 
-    static const Int32 WRITE_SETTINGS_DELAY = 10*1000;  // 10 seconds
+    static const Int32 WRITE_SETTINGS_DELAY = 10 * 1000;  // 10 seconds
 
     // Delay time in millisecs
     static const Int32 BROADCAST_DELAY = 10 * 1000;
 
+    HashMap<Int32, PostInstallData*> mRunningInstalls;
+    Int32 mNextInstallToken; // nonzero; will be wrapped back to 1 when ++ overflows
+
+    // ------- apps on sdcard specific code -------
+    static const Boolean DEBUG_SD_INSTALL = FALSE;
+
+    static const Int32 MAX_CONTAINERS = 250;
+
 private:
+    //todo: should be removed
+    friend class CapsuleHandler;
+
+    static const char* TAG;
+    static const Boolean DEBUG_SETTINGS = FALSE;
+    static const Boolean DEBUG_PREFERRED = FALSE;
+    static const Boolean DEBUG_UPGRADE = FALSE;
+    static const Boolean DEBUG_INSTALL = FALSE;
+
+    static const Boolean MULTIPLE_APPLICATION_UIDS = TRUE;
+    static const Int32 RADIO_UID = Process::PHONE_UID;
+    static const Int32 LOG_UID = Process::LOG_UID;
+    static const Int32 NFC_UID = Process::NFC_UID;
+    static const Int32 FIRST_APPLICATION_UID = Process::FIRST_APPLICATION_UID;
+    static const Int32 MAX_APPLICATION_UIDS = 1000;
+
+    static const Boolean SHOW_INFO = FALSE;
+
+    static const Boolean GET_CERTIFICATES = TRUE;
+
+    static const char* SYSTEM_PROPERTY_EFS_ENABLED;
+
+    static const Int32 REMOVE_EVENTS =
+        FileObserver_CLOSE_WRITE | FileObserver_DELETE | FileObserver_MOVED_FROM;
+    static const Int32 ADD_EVENTS =
+        FileObserver_CLOSE_WRITE /*| FileObserver_CREATE*/ | FileObserver_MOVED_TO;
+
+    static const Int32 OBSERVER_EVENTS = REMOVE_EVENTS | ADD_EVENTS;
+    // Suffix used during package installation when copying/moving
+    // package apks to install directory.
+    static const char* INSTALL_CAPSULE_SUFFIX;
+
+    /**
+     * Indicates the state of installation. Used by PackageManager to
+     * figure out incomplete installations. Say a package is being installed
+     * (the state is set to PKG_INSTALL_INCOMPLETE) and remains so till
+     * the package installation is successful or unsuccesful lin which case
+     * the PackageManager will no longer maintain state information associated
+     * with the package. If some exception(like device freeze or battery being
+     * pulled out) occurs during installation of a package, the PackageManager
+     * needs this information to clean up the previously failed installation.
+     */
+    static const Int32 CAP_INSTALL_INCOMPLETE = 0;
+    static const Int32 CAP_INSTALL_COMPLETE = 1;
+
+    static const char* LIB_DIR_NAME;
+
+    // Service Connection to remote media container service to copy
+    // package uri's from external media onto secure containers
+    // or internal storage.
+    AutoPtr<IMediaContainerService> mContainerService;
+
     AutoPtr<DefaultContainerConnection> mDefContainerConn;
 
-    static const Int32 DEX_OPT_SKIPPED = 0;
-    static const Int32 DEX_OPT_PERFORMED = 1;
-    static const Int32 DEX_OPT_FAILED = -1;
-
-private:
 //	    private static final Comparator<ResolveInfo> mResolvePrioritySorter =
 //	            new Comparator<ResolveInfo>() {
 //
 //	    private static final Comparator<ProviderInfo> mProviderInitOrderSorter =
 //	            new Comparator<ProviderInfo>() {
 
-public: /*package*/
-    // ------- apps on sdcard specific code -------
-    static const Boolean DEBUG_SD_INSTALL = FALSE;
-private:
-    static const String SD_ENCRYPTION_KEYSTORE_NAME;
-    static const String SD_ENCRYPTION_ALGORITHM;
-public: /*package*/
-    static const Int32 MAX_CONTAINERS = 250;
-private:
+    static const char* SD_ENCRYPTION_KEYSTORE_NAME;
+    static const char* SD_ENCRYPTION_ALGORITHM;
+
     Boolean mMediaMounted;
 
-    static const String DEFAULT_RESOURCES_FILE_NAME;
+    //todo: maybe should be removed
+    static const char* DEFAULT_RESOURCES_FILE_NAME;
 
-private:
     // one param means Message*
     AutoPtr<IApartment> mApartment;
-
-    friend class CapsuleHandler;
 };
 
 

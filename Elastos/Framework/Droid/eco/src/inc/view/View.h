@@ -3,7 +3,7 @@
 #define __View_h__
 
 #include "ext/frameworkext.h"
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 #include "graphics/Interpolator.h"
 #include "graphics/CRect.h"
 #include "view/CSurface.h"
@@ -15,7 +15,7 @@
 #include <StringBuffer.h>
 
 using namespace Elastos;
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 extern "C" const InterfaceID EIID_View;
 
@@ -58,14 +58,14 @@ public:
     /**
      * The order here is very important to {@link #getDrawableState()}
      */
-    static const ArrayOf<Int32>** VIEW_STATE_SETS;
-    static CARAPI_(const ArrayOf<Int32>**) InitViewStateSets();
+    static const ArrayOf<ArrayOf<Int32>*>* VIEW_STATE_SETS;
+    static CARAPI_(const ArrayOf<ArrayOf<Int32>*>*) InitViewStateSets();
 
 protected:
     /**
      * The logging tag used by this class with android.util.Log.
      */
-    static const String VIEW_LOG_TAG;
+    static const char* VIEW_LOG_TAG;
 
 public:
     /**
@@ -683,7 +683,7 @@ public:
             }
 
             sb += size;
-            *description = String::Duplicate(sb);
+            *description = (const char*)sb;
             return NOERROR;
         }
     };
@@ -721,7 +721,11 @@ public:
         };
 
     public:
-        AttachInfo();
+        AttachInfo(
+            /* [in] */ IWindowSession* session,
+            /* [in] */ IInnerWindow* window,
+            /* [in] */ IApartment* handler,
+            /* [in] */ Callbacks* effectPlayer);
 
         ~AttachInfo();
 
@@ -861,7 +865,7 @@ public:
         /**
          * A Canvas used by the view hierarchy to perform bitmap caching.
          */
-        ICanvas* mCanvas;
+        AutoPtr<ICanvas> mCanvas;
 
         /**
          * A Handler supplied by a view's {@link android.view.ViewRoot}. This
@@ -992,6 +996,8 @@ public:
         /* [in] */ IAttributeSet* attrs,
         /* [in] */ Int32 defStyle);
 
+    ~View();
+
     virtual CARAPI_(PInterface) Probe(
         /* [in] */ REIID riid) = 0;
 
@@ -1019,7 +1025,7 @@ public:
         /* [in] */ IViewOnLongClickListener* l);
 
     virtual CARAPI SetOnCreateContextMenuListener(
-        /* [in] */ IViewOnCreateContextMenuListener* l);
+        /* [in] */ IOnCreateContextMenuListener* l);
 
     virtual CARAPI_(Boolean) PerformClick();
 
@@ -1771,7 +1777,7 @@ public:
         /* [in] */ Int32 flags);
 
     virtual CARAPI OnCloseSystemDialogs(
-        /* [in] */ String reason);
+        /* [in] */ const String& reason);
 
     virtual CARAPI ApplyDrawableToTransparentRegion(
         /* [in] */ IDrawable* dr,
@@ -2042,7 +2048,7 @@ private:
     CARAPI_(Boolean) HasAncestorThatBlocksDescendantFocus();
 
     static CARAPI_(void) CaptureViewInfo(
-        /* [in] */ String subTag,
+        /* [in] */ const char* subTag,
         /* [in] */ IView* v);
 
     CARAPI_(void) RemoveLongPressCallback();
@@ -2077,6 +2083,14 @@ private:
         /* [in] */ ArrayOf<Int32>* stateSet1,
         /* [in] */ ArrayOf<Int32>* stateSet2,
         /* [out] */ ArrayOf<Int32>** newSet);
+
+    CARAPI HandleInvalidate();
+
+    CARAPI HandleInvalidateRect(
+        /* [in] */ Int32 left,
+        /* [in] */ Int32 top,
+        /* [in] */ Int32 right,
+        /* [in] */ Int32 bottom);
 
 protected:
     /**
@@ -2269,7 +2283,7 @@ protected:
      * This field should be made private, so it is hidden from the SDK.
      * {@hide}
      */
-    AutoPtr<IViewOnCreateContextMenuListener> mOnCreateContextMenuListener;
+    AutoPtr<IOnCreateContextMenuListener> mOnCreateContextMenuListener;
 
     AutoPtr<IViewOnKeyListener> mOnKeyListener;
 

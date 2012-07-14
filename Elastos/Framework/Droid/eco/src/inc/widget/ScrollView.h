@@ -6,6 +6,8 @@
 #include "widget/FrameLayout.h"
 #include "widget/OverScroller.h"
 #include "widget/EdgeGlow.h"
+#include "view/VelocityTracker.h"
+#include "graphics/CRect.h"
 #include <elastos/AutoPtr.h>
 
 using namespace Elastos;
@@ -28,44 +30,41 @@ public:
     ScrollView();
 
     ScrollView(
-        /* [in] */ IContext* context);
-
-    ScrollView(
         /* [in] */ IContext* context,
-        /* [in] */ IAttributeSet* attrs);
+        /* [in] */ IAttributeSet* attrs = NULL,
+        /* [in] */ Int32 defStyle = 0x01010080/*com.android.internal.R.attr.scrollViewStyle*/);
 
-    ScrollView(
-        /* [in] */ IContext* context,
-        /* [in] */ IAttributeSet* attrs,
-        /* [in] */ Int32 defStyle);
+    ~ScrollView();
 
-    virtual CARAPI GetMaxScrollAmount(
-        /* [out] */ Int32* maxAmount);
+    virtual CARAPI_(Int32) GetMaxScrollAmount();
 
-//    CARAPI AddView(
-//        /* [in] */ IView* child);
+    CARAPI AddView(
+        /* [in] */ IView* child);
 
-//    CARAPI AddView(
-//        /* [in] */ IView* child,
-//        /* [in] */ Int32 index);
-//
-//    CARAPI AddView(
-//        /* [in] */ IView* child,
-//        /* [in] */ IViewGroupLayoutParams* params);
-//
-//    CARAPI AddView(
-//        /* [in] */ IView* child,
-//        /* [in] */ Int32 index,
-//        /* [in] */ IViewGroupLayoutParams* params);
+    CARAPI AddView(
+        /* [in] */ IView* child,
+        /* [in] */ Int32 index);
 
-    virtual CARAPI IsFillViewport(
-        /* [out] */ Boolean* isFilled);
+    CARAPI AddView(
+        /* [in] */ IView* child,
+        /* [in] */ Int32 width,
+        /* [in] */ Int32 height);
+
+    CARAPI AddView(
+        /* [in] */ IView* child,
+        /* [in] */ IViewGroupLayoutParams* params);
+
+    CARAPI AddView(
+        /* [in] */ IView* child,
+        /* [in] */ Int32 index,
+        /* [in] */ IViewGroupLayoutParams* params);
+
+    virtual CARAPI_(Boolean) IsFillViewport();
 
     virtual CARAPI SetFillViewport(
         /* [in] */ Boolean fillViewport);
 
-    virtual CARAPI IsSmoothScrollingEnabled(
-        /* [out] */ Boolean* enabled);
+    virtual CARAPI_(Boolean) IsSmoothScrollingEnabled();
 
     virtual CARAPI SetSmoothScrollingEnabled(
         /* [in] */ Boolean smoothScrollingEnabled);
@@ -73,9 +72,8 @@ public:
     CARAPI_(Boolean) DispatchKeyEvent(
         /* [in] */ IKeyEvent* event);
 
-    virtual CARAPI ExecuteKeyEvent(
-        /* [in] */ IKeyEvent* event,
-        /* [out] */ Boolean* handled);
+    virtual CARAPI_(Boolean) ExecuteKeyEvent(
+        /* [in] */ IKeyEvent* event);
 
     CARAPI_(Boolean) OnInterceptTouchEvent(
         /* [in] */ IMotionEvent* ev);
@@ -83,17 +81,14 @@ public:
     CARAPI_(Boolean) OnTouchEvent(
         /* [in] */ IMotionEvent* ev);
 
-    virtual CARAPI ArrowScroll(
-        /* [in] */ Int32 direction,
-        /* [out] */ Boolean* consumed);
+    virtual CARAPI_(Boolean) ArrowScroll(
+        /* [in] */ Int32 direction);
 
-    virtual CARAPI FullScroll(
-        /* [in] */ Int32 direction,
-        /* [out] */ Boolean* consumed);
+    virtual CARAPI_(Boolean) FullScroll(
+        /* [in] */ Int32 direction);
 
-    virtual CARAPI PageScroll(
-        /* [in] */ Int32 direction,
-        /* [out] */ Boolean* consumed);
+    virtual CARAPI_(Boolean) PageScroll(
+        /* [in] */ Int32 direction);
 
     virtual CARAPI SmoothScrollBy(
         /* [in] */ Int32 dx,
@@ -131,16 +126,9 @@ public:
 
 protected:
     CARAPI Init(
-        /* [in] */ IContext* context);
-
-    CARAPI Init(
         /* [in] */ IContext* context,
-        /* [in] */ IAttributeSet* attrs);
-
-    CARAPI Init(
-        /* [in] */ IContext* context,
-        /* [in] */ IAttributeSet* attrs,
-        /* [in] */ Int32 defStyle);
+        /* [in] */ IAttributeSet* attrs = NULL,
+        /* [in] */ Int32 defStyle = 0x01010080/*com.android.internal.R.attr.scrollViewStyle*/);
 
     CARAPI_(Float) GetTopFadingEdgeStrength();
 
@@ -340,10 +328,15 @@ private:
         /* [in] */ Int32 my,
         /* [in] */ Int32 child);
 
+    CARAPI InitFromAttributes(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs,
+        /* [in] */ Int32 defStyle);
+
 private:
     Int64 mLastScroll;
 
-    AutoPtr<IRect> mTempRect;
+    AutoPtr<CRect> mTempRect;
     OverScroller* mScroller;
     EdgeGlow* mEdgeGlowTop;
     EdgeGlow* mEdgeGlowBottom;
@@ -383,7 +376,7 @@ private:
     /**
      * Determines speed during touch scrolling
      */
-//    AutoPtr<VelocityTracker> mVelocityTracker;
+    AutoPtr<VelocityTracker> mVelocityTracker;
 
     /**
      * When set to true, the scroll view measure its child to make it fill the currently

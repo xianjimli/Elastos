@@ -77,11 +77,11 @@ public:
 
     virtual CARAPI SetViewImage(
         /* [in] */ IImageView* v,
-        /* [in] */ String value);
+        /* [in] */ const String& value);
 
     virtual CARAPI SetViewText(
         /* [in] */ ITextView* v,
-        /* [in] */ String text);
+        /* [in] */ const String& text);
 
     virtual CARAPI_(AutoPtr<IFilter>) GetFilter();
 

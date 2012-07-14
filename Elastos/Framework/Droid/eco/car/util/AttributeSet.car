@@ -52,8 +52,8 @@ module
             [out] String* value);
 
         GetAttributeValueEx(
-            [in] String namespace,
-            [in] String name,
+            [in] CString namespace,
+            [in] CString name,
             [out] String* value);
 
         GetPositionDescription(

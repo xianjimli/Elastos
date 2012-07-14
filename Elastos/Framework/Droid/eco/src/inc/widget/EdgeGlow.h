@@ -12,7 +12,7 @@
 class EdgeGlow
 {
 private:
-    static const String TAG;
+    static const char* TAG;
 
     // Time it will take the effect to fully recede in ms
     static const Int32 RECEDE_TIME = 1000;

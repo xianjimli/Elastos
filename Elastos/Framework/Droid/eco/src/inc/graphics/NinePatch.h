@@ -3,9 +3,8 @@
 #define __HH_NINEPATCH_H
 
 #include "ext/frameworkext.h"
-#include "elastos/AutoPtr.h"
-#include "elastos/AutoFree.h"
-#include "utils/AutoString.h"
+#include <elastos/AutoPtr.h>
+#include <elastos/AutoFree.h>
 #include <elastos.h>
 #include <skia/core/SkBitmap.h>
 #include <skia/core/SkCanvas.h>
@@ -64,7 +63,7 @@ public:
     CARAPI GetWidth(
         /* [out] */ Int32* width);
 
-    CARAPI GetHeight(
+    CARAPI GetHeight(
         /* [out] */ Int32* height);
 
     CARAPI HasAlpha(
@@ -81,7 +80,7 @@ protected:
     constructor(
         /* [in] */ IBitmap* bitmap,
         /* [in] */ const ArrayOf<Byte>& chunk,
-        /* [in] */ String srcName);
+        /* [in] */ const String& srcName);
 
     constructor(
         /* [in] */ NinePatch* patch);
@@ -124,12 +123,12 @@ private:
         /* [in] */ IRect* boundsRect);
 
 private:
-    static const String TAG;
+    static const char* TAG;
 
     AutoPtr<IBitmap>          mBitmap;
     AutoFree< ArrayOf<Byte> >   mChunk;
     AutoPtr<IPaint>           mPaint;
-    AutoString                  mSrcName;  // Useful for debugging
+    String                  mSrcName;  // Useful for debugging
 };
 
 #endif // __HH_NINEPATCH_H

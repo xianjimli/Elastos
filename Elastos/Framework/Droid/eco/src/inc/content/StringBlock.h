@@ -10,7 +10,7 @@
 #include <elastos/Mutex.h>
 
 using namespace Elastos;
-using namespace Elastos::System::Threading;
+using namespace Elastos::Core::Threading;
 
 class StringBlock
 {
@@ -51,13 +51,13 @@ private:
 
     static Int32 NativeIndexOfString(
         /* [in] */ const android::ResStringPool* pool,
-        /* [in] */ String str);
+        /* [in] */ const String& str);
 
     static void NativeDestroy(
         /* [in] */ const android::ResStringPool* pool);
 
 private:
-    static const String TAG;
+    static const char* TAG;
     static const Boolean sLocalLOGV = FALSE; // Config.LOGV || false;
 
     Mutex mSyncLock;

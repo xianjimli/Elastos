@@ -43,7 +43,7 @@ public:
     CARAPI constructor(
         /* [in] */ IBitmap* bitmap,
         /* [in] */ const ArrayOf<Byte> & chunk,
-        /* [in] */ String srcName);
+        /* [in] */ const String& srcName);
 
     CARAPI constructor(
         /* [in] */ INinePatch* patch);

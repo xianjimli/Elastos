@@ -5,22 +5,22 @@
 #include "graphics/Drawable.h"
 #include "graphics/ElPixelFormat.h"
 #include "graphics/CRect.h"
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 #include <elastos/Mutex.h>
 
-using namespace::Elastos::System::Threading;
+using namespace Elastos::Core::Threading;
 
 class DrawableContainer : public Drawable
 {
 public:
     class DrawableContainerState : public ElRefBase, public IDrawableConstantState
     {
-    public:
-        DrawableContainerState();
+        friend class DrawableContainer;
 
+    public:
         DrawableContainerState(
             /* [in] */ DrawableContainerState* orig,
-            /* [in] */ DrawableContainer* owner,
+            /* [in] */ IDrawableContainer* owner,
             /* [in] */ IResources* res);
 
         ~DrawableContainerState();
@@ -36,10 +36,8 @@ public:
             /* [in] */ IInterface *pObject,
             /* [out] */ InterfaceID *pIID);
 
-        virtual CARAPI_(Int32) GetChangingConfigurations();
-
-        virtual CARAPI GetChangingConfigurations(
-            /* [out] */ Int32* changingConfigrations);
+        CARAPI GetChangingConfigurations(
+            /* [out] */ Int32* configurations);
 
         CARAPI_(Int32) AddChild(
             /* [in] */ IDrawable* dr);
@@ -49,15 +47,15 @@ public:
         CARAPI_(ArrayOf<IDrawable*>*) GetChildren();
 
         /** A Boolean value indicating whether to use the maximum padding value of
-        * all frames in the set (FALSE), or to use the padding value of the frame
-        * being shown (TRUE). Default value is FALSE.
-        */
-        CARAPI SetVariablePadding(
+         * all frames in the set (FALSE), or to use the padding value of the frame
+         * being shown (TRUE). Default value is FALSE.
+         */
+        CARAPI_(void) SetVariablePadding(
             /* [in] */ Boolean variable);
 
-        CARAPI_(IRect*) GetConstantPadding();
+        CARAPI_(AutoPtr<IRect>) GetConstantPadding();
 
-        CARAPI SetConstantSize(
+        CARAPI_(void) SetConstantSize(
             /* [in] */ Boolean constant);
 
         CARAPI_(Boolean) IsConstantSize();
@@ -70,64 +68,57 @@ public:
 
         CARAPI_(Int32) GetConstantMinimumHeight();
 
-
         CARAPI_(Int32) GetOpacity();
 
         CARAPI_(Boolean) IsStateful();
 
-        virtual CARAPI GrowArray(
+        virtual CARAPI_(void) GrowArray(
             /* [in] */ Int32 oldSize,
             /* [in] */ Int32 newSize);
 
         //synchronized
-        //
         virtual CARAPI_(Boolean) CanConstantState();
 
     private:
         CARAPI_(void) ComputeConstantSize();
 
-        CARAPI_(void) Destroy();
+    protected:
+        AutoPtr<IDrawableContainer> mOwner;
 
-    public:
-        DrawableContainer* mOwner;
+        Int32 mChangingConfigurations;
+        Int32 mChildrenChangingConfigurations;
 
-        Int32         mChangingConfigurations;
-        Int32         mChildrenChangingConfigurations;
+        ArrayOf<IDrawable*>* mDrawables;
+        Int32 mNumChildren;
 
-        ArrayOf<IDrawable*>*  mDrawables;
-        Int32         mNumChildren;
+        Boolean mVariablePadding;
+        AutoPtr<IRect> mConstantPadding;
 
-        Boolean     mVariablePadding; //= FALSE;
-        AutoPtr<IRect>    mConstantPadding;// = NULL;
+        Boolean mConstantSize;
+        Boolean mComputedConstantSize;
+        Int32 mConstantWidth;
+        Int32 mConstantHeight;
+        Int32 mConstantMinimumWidth;
+        Int32 mConstantMinimumHeight;
 
-        Boolean     mConstantSize;// = FALSE;
-        Boolean     mComputedConstantSize;// = FALSE;
-        Int32         mConstantWidth;
-        Int32         mConstantHeight;
-        Int32         mConstantMinimumWidth;
-        Int32         mConstantMinimumHeight;
+        Boolean mHaveOpacity;
+        Int32 mOpacity;
 
-        Boolean     mHaveOpacity;// = FALSE;
-        Int32         mOpacity;
+        Boolean mHaveStateful;
+        Boolean mStateful;
 
-        Boolean     mHaveStateful;// = FALSE;
-        Boolean     mStateful;
+        Boolean mCheckedConstantState;
+        Boolean mCanConstantState;
 
-        Boolean     mCheckedConstantState;
-        Boolean     mCanConstantState;
+        Boolean mPaddingChecked;
 
-        Boolean     mPaddingChecked;// = FALSE;
+        Boolean mDither;
 
-        Boolean     mDither;// = DEFAULT_DITHER;
-
-        static Mutex sTempLock;
-
+        Mutex mLock;
     };
 
+public:
     DrawableContainer();
-
-    virtual CARAPI_(PInterface) Probe(
-        /* [in] */ REIID riid) = 0;
 
     virtual CARAPI Draw(
         /* [in] */ ICanvas* canvas);
@@ -188,7 +179,7 @@ protected:
         /* [in] */ IRect* bounds);
 
     virtual CARAPI_(Boolean) OnStateChange(
-        /* [in] */ ArrayOf<Int32>* state);
+        /* [in] */ const ArrayOf<Int32>* state);
 
     virtual CARAPI_(Boolean) OnLevelChange(
         /* [in] */ Int32 level);
@@ -208,7 +199,7 @@ private:
      * to improve the quality at negligible cost.
      */
     static const Boolean DEFAULT_DITHER = TRUE;
-    DrawableContainerState* mDrawableContainerState;
+    AutoPtr<DrawableContainerState> mDrawableContainerState;
     AutoPtr<IDrawable> mCurrDrawable;
     Int32 mAlpha;// = 0xFF;
     AutoPtr<IColorFilter> mColorFilter;

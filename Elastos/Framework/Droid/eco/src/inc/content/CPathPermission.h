@@ -15,10 +15,10 @@ public:
         /* [in] */ IParcel *dest);
 
     CARAPI constructor(
-        /* [in] */ String pattern,
+        /* [in] */ const String& pattern,
         /* [in] */ Int32 type,
-        /* [in] */ String readPermission,
-        /* [in] */ String writePermission);
+        /* [in] */ const String& readPermission,
+        /* [in] */ const String& writePermission);
 
     CARAPI constructor(
         /* [in] */ IParcel* src);

@@ -1,6 +1,7 @@
 
 #include "os/SystemClock.h"
-#include <time.h>
+#include <utils/SystemClock.h>
+#include <utils/Timers.h>
 
 #define MillisecPerSec 1000
 #define MicrosecPerSec 1000000
@@ -15,12 +16,8 @@ Millisecond64 elapsedRealtime()
 
 Millisecond64 SystemClock::GetUptimeMillis()
 {
-    struct timeval tp;
-    long long now;
-    gettimeofday(&tp, NULL);
-    now = (long long)tp.tv_sec * MillisecPerSec;
-    now += (long long)tp.tv_usec / (MicrosecPerSec / MillisecPerSec);
-    return (Millisecond64)now;
+    Int64 when = systemTime(SYSTEM_TIME_MONOTONIC);
+    return (Millisecond64)nanoseconds_to_milliseconds(when);
 }
 
 Millisecond64 SystemClock::GetElapsedRealtime()

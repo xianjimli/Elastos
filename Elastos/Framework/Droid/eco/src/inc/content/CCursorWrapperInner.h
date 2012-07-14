@@ -42,7 +42,7 @@ public:
      * Returns the zero-based index for the given column name, or -1 if the column doesn't exist.
      */
     CARAPI GetColumnIndex(
-        /* [in] */ String columnName,
+        /* [in] */ const String& columnName,
         /* [out] */ Int32* columnIndex);
     
     /**

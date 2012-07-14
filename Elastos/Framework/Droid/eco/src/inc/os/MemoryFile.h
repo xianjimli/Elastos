@@ -27,7 +27,7 @@ public:
      * @throws IOException if the memory file could not be created.
      */
     MemoryFile(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [in] */ Int32 length);
 
     /**
@@ -50,7 +50,7 @@ public:
     MemoryFile(
         /* [in] */ IFileDescriptor* fd,
         /* [in] */ Int32 length,
-        /* [in] */ String mode);
+        /* [in] */ const char* mode);
 
     /**
      * Closes the memory file. If there are no other open references to the memory
@@ -213,10 +213,10 @@ private:
      * @throws IllegalArgumentException if the file mode is invalid.
      */
     static CARAPI_(Int32) ModeToProt(
-        /* [in] */ String mode);
+        /* [in] */ const String& mode);
 
 private:
-    static const String TAG;
+    static const char* TAG;
 
     // mmap(2) protection flags from <sys/mman.h>
     static const Int32 PROT_READ = 0x1;

@@ -11,12 +11,12 @@ class Key
 public:
     Key(
         /* [in] */ Int32 t,
-        /* [in] */ String p,
+        /* [in] */ const String& p,
         /* [in] */ CActivityRecord* a,
-        /* [in] */ String w,
+        /* [in] */ const String& w,
         /* [in] */ Int32 r,
         /* [in] */ CIntent* i,
-        /* [in] */ String it,
+        /* [in] */ const String& it,
         /* [in] */ Int32 f);
 
     CARAPI_(Boolean) Equals(

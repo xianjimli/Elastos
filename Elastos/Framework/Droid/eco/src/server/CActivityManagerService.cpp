@@ -11,7 +11,7 @@ using namespace Elastos;
 #include "content/ContentResolver.h"
 #include "content/CPathPermission.h"
 #include "os/CPatternMatcher.h"
-#include "utils/CObjectContainer.h"
+#include "utils/CParcelableObjectContainer.h"
 #include "server/ActivityState.h"
 #include "os/SystemClock.h"
 #include <elastos/AutoPtr.h>
@@ -30,16 +30,14 @@ using namespace Elastos;
 #include "app/CRunningAppProcessInfo.h"
 #include "server/AttributeCache.h"
 #include "view/WindowManagerPolicy.h"
-#ifdef _MSVC
-#include <KD/kd_KT_extentions.h>
-#endif
+#include "utils/AutoStringArray.h"
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
 #define UNUSED(x) (void)x
 
-const String CActivityManagerService::TAG = "CActivityManagerService";
+const char* CActivityManagerService::TAG = "CActivityManagerService";
 const Boolean CActivityManagerService::DEBUG;
 const Boolean CActivityManagerService::localLOGV ;
 const Boolean CActivityManagerService::DEBUG_SWITCH;
@@ -191,7 +189,7 @@ CActivityManagerService::CActivityManagerService() :
     mBadProcesses = new ProcessMap<Millisecond64>();
     mReceiverResolver = new IntentResolver<BroadcastFilter,
             BroadcastFilter>();
-    CBatteryStatsService::NewByFriend("/system/batterystats.bin",
+    CBatteryStatsService::NewByFriend(String("/system/batterystats.bin"),
             (CBatteryStatsService**)&mBatteryStatsService);
     CConfiguration::NewByFriend((CConfiguration**)&mConfiguration);
     mProcDeaths = new Int32[20];
@@ -234,7 +232,7 @@ ICapsuleManager* CActivityManagerService::GetCapsuleManager()
     AutoPtr<ICapsuleManager> capsuleManager;
     Elastos::GetServiceManager((IServiceManager**)&serviceManager);
     assert(serviceManager != NULL);
-	serviceManager->GetService("capsule",
+	serviceManager->GetService(String("capsule"),
 	        (IInterface**)(ICapsuleManager**)&capsuleManager);
     assert(capsuleManager != NULL);
 	return capsuleManager;
@@ -379,9 +377,9 @@ ECode CActivityManagerService::GetCommonServicesLocked(
         serviceManager->GetService(String("capsule"), (IInterface**)&capsuleManager);
         serviceManager->GetService(String("window"), (IInterface**)&windowManager);
         serviceManager->GetService(String(Context_ALARM_SERVICE), (IInterface**)&serviceManager);
-        (*mAppBindArgs)[String::Duplicate("capsule")] = capsuleManager;
-        (*mAppBindArgs)[String::Duplicate("window")] = windowManager;
-        (*mAppBindArgs)[String::Duplicate(Context_ALARM_SERVICE)] = serviceManager;
+        (*mAppBindArgs)[String("capsule")] = capsuleManager;
+        (*mAppBindArgs)[String("window")] = windowManager;
+        (*mAppBindArgs)[String(Context_ALARM_SERVICE)] = serviceManager;
     }
 
     CObjectStringMap::New(services);
@@ -501,7 +499,7 @@ void CActivityManagerService::UpdateLRUProcessLocked(
 }
 
 ProcessRecord* CActivityManagerService::GetProcessRecordLocked(
-    /* [in] */ String processName,
+    /* [in] */ const String& processName,
     /* [in] */ Int32 uid)
 {
     if (uid == Process::SYSTEM_UID) {
@@ -531,11 +529,11 @@ Boolean CActivityManagerService::IsNextTransitionForward()
 }
 
 ProcessRecord* CActivityManagerService::StartProcessLocked(
-    /* [in] */ String processName,
+    /* [in] */ const String& processName,
     /* [in] */ CApplicationInfo* info,
     /* [in] */ Boolean knownToBeDead,
     /* [in] */ Int32 intentFlags,
-    /* [in] */ String hostingType,
+    /* [in] */ const char* hostingType,
     /* [in] */ IComponentName* hostingName,
     /* [in] */ Boolean allowWhileBooting)
 {
@@ -556,14 +554,12 @@ ProcessRecord* CActivityManagerService::StartProcessLocked(
             String appApDes;
             app->mAppApartment->GetDescription(&appApDes);
             sb += " AppApartment=" + appApDes;
-            String::Free(appApDes);
         }
         else {
             sb += " AppApartment=NULL";
         }
         sb += " pid=" + (app != NULL ? app->mPid : -1);
         Slogger::V(TAG, sb);
-        String::Free(appDes);
     }
     if (app != NULL && app->mPid > 0) {
         if (!knownToBeDead || app->mAppApartment == NULL) {
@@ -573,17 +569,16 @@ ProcessRecord* CActivityManagerService::StartProcessLocked(
                 String appDes;
                 app->GetDescription(&appDes);
                 Slogger::V(TAG, StringBuffer("App already running: ") + appDes);
-                String::Free(appDes);
             }
             return app;
-        } else {
+        }
+        else {
             // An application record is attached to a previous process,
             // clean it up now.
             if (DEBUG_PROCESSES) {
                 String appDes;
                 app->GetDescription(&appDes);
                 Slogger::V(TAG, StringBuffer("App died: ") + appDes);
-                String::Free(appDes);
             }
             HandleAppDiedLocked(app, TRUE);
         }
@@ -647,7 +642,6 @@ ProcessRecord* CActivityManagerService::StartProcessLocked(
             app->GetDescription(&appDes);
             Slogger::V(TAG, StringBuffer("System not ready, putting on hold: ")
                     + appDes);
-            String::Free(appDes);
         }
         return app;
     }
@@ -664,8 +658,8 @@ Boolean CActivityManagerService::IsAllowedWhileBooting(
 
 void CActivityManagerService::StartProcessLocked(
     /* [in] */ ProcessRecord* app,
-    /* [in] */ String hostingType,
-    /* [in] */ String hostingNameStr)
+    /* [in] */ const char* hostingType,
+    /* [in] */ const char* hostingNameStr)
 {
     if (app->mPid > 0 && app->mPid != mMyPid) {
         Mutex::Autolock lock(mPidsSelfLock);
@@ -681,7 +675,6 @@ void CActivityManagerService::StartProcessLocked(
         app->GetDescription(&appDes);
         Slogger::V(TAG, StringBuffer("startProcessLocked removing on hold: ")
                 + appDes);
-        String::Free(appDes);
     }
     mProcessesOnHold.Remove(app);
 
@@ -838,7 +831,7 @@ Boolean CActivityManagerService::StartHomeActivityLocked()
     CIntent::New(mTopAction, (IUri*)uri, (IIntent**)&intent);
     intent->SetComponent(mTopComponent);
     if (mFactoryTest != SystemServer::FACTORY_TEST_LOW_LEVEL) {
-        intent->AddCategory(Intent_CATEGORY_HOME);
+        intent->AddCategory(String(Intent_CATEGORY_HOME));
     }
     AutoPtr<IActivityInfo> aInfo;
     intent->ResolveActivityInfo(GetCapsuleManager(),
@@ -857,8 +850,8 @@ Boolean CActivityManagerService::StartHomeActivityLocked()
             Int32 flags, status;
             intent->GetFlags(&flags);
             intent->SetFlags(flags | Intent_FLAG_ACTIVITY_NEW_TASK);
-            mMainStack->StartActivityLocked(NULL, (IIntent*)intent, NULL, NULL,
-                    0, (IActivityInfo*)aInfo, NULL, NULL, 0, 0, 0, FALSE, FALSE, &status);
+            mMainStack->StartActivityLocked(NULL, (IIntent*)intent, String(NULL), NULL,
+                    0, (IActivityInfo*)aInfo, NULL, String(NULL), 0, 0, 0, FALSE, FALSE, &status);
         }
     }
 
@@ -965,11 +958,11 @@ void CActivityManagerService::DoPendingActivityLaunchesLocked(
 ECode CActivityManagerService::StartActivity(
     /* [in] */ IApplicationApartment* caller,
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ IObjectContainer* grantedUriPermissions,
     /* [in] */ Int32 grantedMode,
     /* [in] */ IBinder* resultTo,
-    /* [in] */ String resultWho,
+    /* [in] */ const String& resultWho,
     /* [in] */ Int32 requestCode,
     /* [in] */ Boolean onlyIfNeeded,
     /* [in] */ Boolean debug,
@@ -985,11 +978,11 @@ ECode CActivityManagerService::StartActivity(
 ECode CActivityManagerService::StartActivityAndWait(
     /* [in] */ IApplicationApartment* caller,
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ IObjectContainer* grantedUriPermissions,
     /* [in] */ Int32 grantedMode,
     /* [in] */ IBinder* resultTo,
-    /* [in] */ String resultWho,
+    /* [in] */ const String& resultWho,
     /* [in] */ Int32 requestCode,
     /* [in] */ Boolean onlyIfNeeded,
     /* [in] */ Boolean debug,
@@ -1005,11 +998,11 @@ ECode CActivityManagerService::StartActivityAndWait(
 ECode CActivityManagerService::StartActivityWithConfig(
     /* [in] */ IApplicationApartment* caller,
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ IObjectContainer* grantedUriPermissions,
     /* [in] */ Int32 grantedMode,
     /* [in] */ IBinder* resultTo,
-    /* [in] */ String resultWho,
+    /* [in] */ const String& resultWho,
     /* [in] */ Int32 requestCode,
     /* [in] */ Boolean onlyIfNeeded,
     /* [in] */ Boolean debug,
@@ -1025,9 +1018,9 @@ ECode CActivityManagerService::StartActivityIntentSender(
     /* [in] */ IApplicationApartment* caller,
     /* [in] */ IIntentSender* sender,
     /* [in] */ IIntent* fillInIntent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ IBinder* resultTo,
-    /* [in] */ String resultWho,
+    /* [in] */ const String& resultWho,
     /* [in] */ Int32 requestCode,
     /* [in] */ Int32 flagsMask,
     /* [in] */ Int32 flagsValues,
@@ -1169,9 +1162,9 @@ ECode CActivityManagerService::StartNextMatchingActivity(
 ECode CActivityManagerService::StartActivityInCapsule(
     /* [in] */ Int32 uid,
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ IBinder* resultTo,
-    /* [in] */ String resultWho,
+    /* [in] */ const String& resultWho,
     /* [in] */ Int32 requestCode,
     /* [in] */ Boolean onlyIfNeeded,
     /* [out] */ Int32* result)
@@ -1373,8 +1366,8 @@ ECode CActivityManagerService::FinishHeavyWeightApp()
 ECode CActivityManagerService::CrashApplication(
     /* [in] */ Int32 uid,
     /* [in] */ Int32 initialPid,
-    /* [in] */ String capsuleName,
-    /* [in] */ String message)
+    /* [in] */ const String& capsuleName,
+    /* [in] */ CString message)
 {
 //    if (checkCallingPermission(android.Manifest.permission.FORCE_STOP_CAPSULES)
 //            != PackageManager.PERMISSION_GRANTED) {
@@ -1431,7 +1424,7 @@ ECode CActivityManagerService::CrashApplication(
 
 ECode CActivityManagerService::FinishSubActivity(
     /* [in] */ IBinder* token,
-    /* [in] */ String resultWho,
+    /* [in] */ const String& resultWho,
     /* [in] */ Int32 requestCode)
 {
 //    synchronized(this) {
@@ -1488,7 +1481,7 @@ ECode CActivityManagerService::WillActivityBeVisible(
 
 ECode CActivityManagerService::OverridePendingTransition(
     /* [in] */ IBinder* token,
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ Int32 enterAnim,
     /* [in] */ Int32 exitAnim)
 {
@@ -1534,7 +1527,6 @@ void CActivityManagerService::HandleAppDiedLocked(
             mMainStack->mPausingActivity->GetDescription(&actDes);
             Slogger::V(TAG, StringBuffer("App died while pausing: ")
                     + actDes);
-            String::Free(actDes);
         }
         mMainStack->mPausingActivity = NULL;
     }
@@ -1556,7 +1548,6 @@ void CActivityManagerService::HandleAppDiedLocked(
         app->GetDescription(&appDes);
         Slogger::V(TAG, StringBuffer("Removing app ") + appDes
                 + " from history with " + size + " entries");
-        String::Free(appDes);
     }
 
     List<AutoPtr<CActivityRecord> >::ReverseIterator rit = mMainStack->mHistory.RBegin();
@@ -1567,8 +1558,6 @@ void CActivityManagerService::HandleAppDiedLocked(
             r->GetDescription(&actDes);
             r->mApp->GetDescription(&appDes);
             Slogger::V(TAG, StringBuffer("Record ") + actDes + ": app=" + appDes);
-            String::Free(actDes);
-            String::Free(appDes);
         }
         if (r->mApp == app) {
             if ((!r->mHaveState && !r->mStateNotNeeded) || r->mFinishing) {
@@ -1585,7 +1574,8 @@ void CActivityManagerService::HandleAppDiedLocked(
                 }
                 r->RemoveUriPermissionsLocked();
 
-            } else {
+            }
+            else {
                 // We have the current state for this activity, so
                 // it can be restarted later when needed.
                 if (localLOGV) {
@@ -1614,7 +1604,6 @@ void CActivityManagerService::HandleAppDiedLocked(
         app->mInstrumentationClass->GetDescription(&instrStr);
         Slogger::W(TAG, StringBuffer("Crash of app ") + app->mProcessName
               + " running instrumentation " + instrStr);
-        String::Free(instrStr);
 
         AutoPtr<IBundle> info;
         CBundle::New((IBundle**)&info);
@@ -1747,7 +1736,7 @@ void CActivityManagerService::AppNotResponding(
     /* [in] */ ProcessRecord* app,
     /* [in] */ CActivityRecord* activity,
     /* [in] */ CActivityRecord* parent,
-    /* [in] */ String annotation)
+    /* [in] */ CString annotation)
 {
 //ArrayList<Integer> firstPids = new ArrayList<Integer>(5);
 //        SparseArray<Boolean> lastPids = new SparseArray<Boolean>(20);
@@ -1922,7 +1911,7 @@ void CActivityManagerService::ShowLaunchWarningLocked(
 }
 
 ECode CActivityManagerService::ClearApplicationUserData(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ ICapsuleDataObserver* observer,
     /* [out] */ Boolean* result)
 {
@@ -1971,7 +1960,7 @@ ECode CActivityManagerService::ClearApplicationUserData(
 }
 
 ECode CActivityManagerService::KillBackgroundProcesses(
-    /* [in] */ String capsuleName)
+    /* [in] */ const String& capsuleName)
 {
 //    if (checkCallingPermission(android.Manifest.permission.KILL_BACKGROUND_PROCESSES)
 //            != PackageManager.PERMISSION_GRANTED &&
@@ -2008,7 +1997,7 @@ ECode CActivityManagerService::KillBackgroundProcesses(
 }
 
 ECode CActivityManagerService::ForceStopCapsule(
-    /* [in] */ String capsuleName)
+    /* [in] */ const String& capsuleName)
 {
 //    if (checkCallingPermission(android.Manifest.permission.FORCE_STOP_CAPSULES)
 //            != PackageManager.PERMISSION_GRANTED) {
@@ -2046,7 +2035,7 @@ ECode CActivityManagerService::ForceStopCapsule(
  * @see android.app.IActivityManager#killApplicationWithUid(java.lang.String, int)
  */
 ECode CActivityManagerService::KillApplicationWithUid(
-    /* [in] */ String cap,
+    /* [in] */ const String& cap,
     /* [in] */ Int32 uid)
 {
 //    if (pkg == null) {
@@ -2074,7 +2063,7 @@ ECode CActivityManagerService::KillApplicationWithUid(
 }
 
 ECode CActivityManagerService::CloseSystemDialogs(
-    /* [in] */ String reason)
+    /* [in] */ const String& reason)
 {
 //    Intent intent = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
 //    intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
@@ -2126,7 +2115,7 @@ ECode CActivityManagerService::CloseSystemDialogs(
 //}
 
 ECode CActivityManagerService::KillApplicationProcess(
-    /* [in] */ String processName,
+    /* [in] */ const String& processName,
     /* [in] */ Int32 uid)
 {
 //    if (processName == null) {
@@ -2157,7 +2146,7 @@ ECode CActivityManagerService::KillApplicationProcess(
 }
 
 void CActivityManagerService::ForceStopCapsuleLocked(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ Int32 uid)
 {
 //    forceStopPackageLocked(packageName, uid, false, false, true);
@@ -2173,7 +2162,7 @@ void CActivityManagerService::ForceStopCapsuleLocked(
 }
 
 Boolean CActivityManagerService::KillCapsuleProcessesLocked(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ Int32 uid,
     /* [in] */ Int32 minOomAdj,
     /* [in] */ Boolean callerWillRestart,
@@ -2198,7 +2187,7 @@ Boolean CActivityManagerService::KillCapsuleProcessesLocked(
                 }
             } else if ((uid > 0 && uid != Process::SYSTEM_UID && app->mInfo->mUid == uid)
                     || !app->mProcessName.Compare(capsuleName)
-                    || app->mProcessName.StartWith(sb)) {
+                    || app->mProcessName.StartWith((const char*)sb)) {
                 if (app->mSetAdj >= minOomAdj) {
                     if (!doit) {
                         return TRUE;
@@ -2218,7 +2207,7 @@ Boolean CActivityManagerService::KillCapsuleProcessesLocked(
 }
 
 Boolean CActivityManagerService::ForceStopCapsuleLocked(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in] */ Int32 uid,
     /* [in] */ Boolean callerWillRestart,
     /* [in] */ Boolean purgeCache,
@@ -2311,7 +2300,6 @@ Boolean CActivityManagerService::RemoveProcessLocked(
         app->GetDescription(&appDes);
         Slogger::D(TAG, StringBuffer("Force removing process ")
                 + appDes + " (" + name + "/" + uid + ")");
-        String::Free(appDes);
     }
 
     mProcessNames->Remove(name, uid);
@@ -2431,10 +2419,10 @@ Boolean CActivityManagerService::AttachApplicationLocked(
         Slogger::W(TAG, StringBuffer("No pending application record for pid ") + pid
                 + " (IApplicationApartment " + appApDes + "); dropping process");
 //        EventLog.writeEvent(EventLogTags.AM_DROP_PROCESS, pid);
-        String::Free(appApDes);
         if (pid > 0 && pid != mMyPid) {
             Process::KillProcess(pid);
-        } else {
+        }
+        else {
             appApartment->ScheduleExit();
         }
         return FALSE;
@@ -2453,7 +2441,6 @@ Boolean CActivityManagerService::AttachApplicationLocked(
         app->GetDescription(&appDes);
         Slogger::V(TAG, StringBuffer("Binding process pid ") + pid
                 + " to record " + appDes);
-        String::Free(appDes);
     }
 
     String processName = app->mProcessName;
@@ -2489,7 +2476,6 @@ Boolean CActivityManagerService::AttachApplicationLocked(
         app->GetDescription(&appDes);
         Slogger::I(TAG, StringBuffer("Launching preboot mode app: ")
                 + appDes);
-        String::Free(appDes);
     }
 
     if (localLOGV) {
@@ -2498,8 +2484,6 @@ Boolean CActivityManagerService::AttachApplicationLocked(
         appApartment->GetDescription(&appApDes);
         Slogger::V(TAG, StringBuffer("New app record ") + appDes
                 + " apartment=" + appApDes + " pid=" + pid);
-        String::Free(appDes);
-        String::Free(appApDes);
     }
 //    try {
     Int32 testMode = ApplicationApartment_DEBUG_OFF;
@@ -2532,7 +2516,6 @@ Boolean CActivityManagerService::AttachApplicationLocked(
         mConfiguration->GetDescription(&confDes);
         Slogger::V(TAG, StringBuffer("Binding proc ")
             + processName + " with config " + confDes);
-        String::Free(confDes);
     }
     AutoPtr<IObjectStringMap> services;
     GetCommonServicesLocked((IObjectStringMap**)&services);
@@ -2564,7 +2547,6 @@ Boolean CActivityManagerService::AttachApplicationLocked(
         app->GetDescription(&appDes);
         Slogger::V(TAG, StringBuffer("Attach application locked removing on hold: ")
                 + appDes);
-        String::Free(appDes);
     }
     mProcessesOnHold.Remove(app);
 
@@ -2777,13 +2759,12 @@ ECode CActivityManagerService::ActivityPaused(
 ECode CActivityManagerService::ActivityStopped(
     /* [in] */ IBinder* token,
     /* [in] */ IBitmap* thumbnail, //Bitmap thumbnail
-    /* [in] */ String description)
+    /* [in] */ const String& description)
 {
     if (localLOGV) {
         String tokenDes;
         token->GetDescription(&tokenDes);
         Slogger::V(TAG, StringBuffer("Activity stopped: token=") + tokenDes);
-        String::Free(tokenDes);
     }
 
     AutoPtr<CActivityRecord> r;
@@ -2821,7 +2802,6 @@ ECode CActivityManagerService::ActivityDestroyed(
         String tokenDes;
         token->GetDescription(&tokenDes);
         Slogger::V(TAG, StringBuffer("ACTIVITY DESTROYED: ") + tokenDes);
-        String::Free(tokenDes);
     }
     mMainStack->ActivityDestroyed(token);
 
@@ -2896,12 +2876,12 @@ ECode CActivityManagerService::GetCapsuleForToken(
 
 ECode CActivityManagerService::GetIntentSender(
     /* [in] */ Int32 type,
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ IBinder* token,
-    /* [in] */ String resultWho,
+    /* [in] */ const String& resultWho,
     /* [in] */ Int32 requestCode,
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ Int32 flags,
     /* [out] */ IIntentSender** sender)
 {
@@ -2947,13 +2927,13 @@ ECode CActivityManagerService::GetIntentSender(
 
 ECode CActivityManagerService::GetIntentSenderLocked(
     /* [in] */ Int32 type,
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ Int32 callingUid,
     /* [in] */ IBinder* token,
-    /* [in] */ String resultWho,
+    /* [in] */ const String& resultWho,
     /* [in] */ Int32 requestCode,
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ Int32 flags,
     /* [out] */ IIntentSender** sender)
 {
@@ -3164,7 +3144,7 @@ ECode CActivityManagerService::SetProcessForeground(
  * This can be called with or without the global lock held.
  */
 Int32 CActivityManagerService::CheckComponentPermission(
-    /* [in] */ String permission,
+    /* [in] */ const String& permission,
     /* [in] */ Int32 pid,
     /* [in] */ Int32 uid,
     /* [in] */ Int32 reqUid)
@@ -3216,7 +3196,7 @@ Int32 CActivityManagerService::CheckComponentPermission(
  * This can be called with or without the global lock held.
  */
 Int32 CActivityManagerService::CheckPermission(
-    /* [in] */ String permission,
+    /* [in] */ const String& permission,
     /* [in] */ Int32 pid,
     /* [in] */ Int32 uid)
 {
@@ -3231,7 +3211,7 @@ Int32 CActivityManagerService::CheckPermission(
  * This can be called with or without the global lock held.
  */
 Int32 CActivityManagerService::CheckCallingPermission(
-    /* [in] */ String permission)
+    /* [in] */ const String& permission)
 {
     return CheckPermission(permission,
             Process::GetCallingPid(),
@@ -3242,8 +3222,8 @@ Int32 CActivityManagerService::CheckCallingPermission(
  * This can be called with or without the global lock held.
  */
 ECode CActivityManagerService::EnforceCallingPermission(
-    /* [in] */ String permission,
-    /* [in] */ String func)
+    /* [in] */ const String& permission,
+    /* [in] */ const char* func)
 {
     if (CheckCallingPermission(permission)
             == CapsuleManager_PERMISSION_GRANTED) {
@@ -3251,10 +3231,13 @@ ECode CActivityManagerService::EnforceCallingPermission(
     }
 
     StringBuffer msg;
-    msg += "Permission Denial: " + func + " from pid="
-            + Process::GetCallingPid()
-            + ", uid=" + Process::GetCallingUid()
-            + " requires " + permission;
+    msg += "Permission Denial: ";
+    msg += func;
+    msg += " from pid=";
+    msg += Process::GetCallingPid();
+    msg += ", uid=";
+    msg += Process::GetCallingUid();
+    msg += " requires " + permission;
     Slogger::W(TAG, msg);
     return E_SECURITY_EXCEPTION;
 }
@@ -3273,7 +3256,6 @@ Boolean CActivityManagerService::CheckHoldingPermissionsLocked(
         uri->GetDescription(&uriDes);
         Slogger::V(TAG, StringBuffer("checkHoldingPermissionsLocked: uri=")
                 + uriDes + " uid=" + uid);
-        String::Free(uriDes);
     }
 //    try {
         // Is the component private from the target uid?
@@ -3349,7 +3331,6 @@ Boolean CActivityManagerService::CheckHoldingPermissionsLocked(
                     }
                 }
             }
-            String::Free(path);
         }
 //    } catch (RemoteException e) {
 //        return false;
@@ -3415,7 +3396,7 @@ ECode CActivityManagerService::CheckUriPermission(
  */
 ECode CActivityManagerService::CheckGrantUriPermissionLocked(
     /* [in] */ Int32 callingUid,
-    /* [in] */ String targetCap,
+    /* [in] */ const String& targetCap,
     /* [in] */ IUri* uri,
     /* [in] */ Int32 modeFlags,
     /* [out] */ Int32* targetUid)
@@ -3432,7 +3413,6 @@ ECode CActivityManagerService::CheckGrantUriPermissionLocked(
         uri->GetDescription(&uriDes);
         Slogger::V(TAG, StringBuffer("Checking grant ") + targetCap
                 + " permission to " + uriDes);
-        String::Free(uriDes);
     }
 
     AutoPtr<ICapsuleManager> pm = GetCapsuleManager();
@@ -3440,19 +3420,16 @@ ECode CActivityManagerService::CheckGrantUriPermissionLocked(
     // If this is not a content: uri, we can't do anything with it.
     String scheme;
     uri->GetScheme(&scheme);
-    if (ContentResolver::SCHEME_CONTENT.Compare(scheme)) {
+    if (!scheme.Equals(ContentResolver::SCHEME_CONTENT)) {
         if (DEBUG_URI_PERMISSION) {
             String uriDes;
             uri->GetDescription(&uriDes);
             Slogger::V(TAG, StringBuffer("Can't grant URI permission for non-content URI: ")
                     + uriDes);
-            String::Free(uriDes);
         }
         *targetUid = -1;
-        String::Free(scheme);
         return NOERROR;
     }
-    String::Free(scheme);
 
     String name;
     uri->GetAuthority(&name);
@@ -3460,7 +3437,8 @@ ECode CActivityManagerService::CheckGrantUriPermissionLocked(
     ContentProviderRecord* cpr = mProvidersByName[name];
     if (cpr != NULL) {
         pi = cpr->mHolder->mInfo;
-    } else {
+    }
+    else {
         AutoPtr<IContentProviderInfo> ipi;
         if (SUCCEEDED(pm->ResolveContentProvider(name,
                 CapsuleManager_GET_URI_PERMISSION_PATTERNS,
@@ -3496,7 +3474,6 @@ ECode CActivityManagerService::CheckGrantUriPermissionLocked(
             uri->GetDescription(&uriDes);
             Slogger::V(TAG, StringBuffer("Target ") + targetCap
                     + " already has full permission to " + uriDes);
-            String::Free(uriDes);
         }
         *targetUid = -1;
         return NOERROR;
@@ -3510,7 +3487,6 @@ ECode CActivityManagerService::CheckGrantUriPermissionLocked(
                 + "/" + pi->mName
                 + " does not allow granting of Uri permissions (uri "
                 + uriDes + ")");
-        String::Free(uriDes);
         return E_SECURITY_EXCEPTION;
     }
     if (pi->mUriPermissionPatterns != NULL) {
@@ -3527,7 +3503,7 @@ ECode CActivityManagerService::CheckGrantUriPermissionLocked(
                 break;
             }
         }
-        String::Free(path);
+
         if (!allowed) {
             String uriDes;
             uri->GetDescription(&uriDes);
@@ -3535,7 +3511,6 @@ ECode CActivityManagerService::CheckGrantUriPermissionLocked(
                     + "/" + pi->mName
                     + " does not allow granting of permission to path of Uri "
                     + uriDes);
-            String::Free(uriDes);
             return E_SECURITY_EXCEPTION;
         }
     }
@@ -3548,7 +3523,6 @@ ECode CActivityManagerService::CheckGrantUriPermissionLocked(
             uri->GetDescription(&uriDes);
             Slogger::E(TAG, StringBuffer("Uid ") + callingUid
                     + " does not have permission to uri " + uriDes);
-            String::Free(uriDes);
             return E_SECURITY_EXCEPTION;
         }
     }
@@ -3558,7 +3532,7 @@ ECode CActivityManagerService::CheckGrantUriPermissionLocked(
 
 void CActivityManagerService::GrantUriPermissionUncheckedLocked(
     /* [in] */ Int32 targetUid,
-    /* [in] */ String targetCap,
+    /* [in] */ const String& targetCap,
     /* [in] */ IUri* uri,
     /* [in] */ Int32 modeFlags,
     /* [in] */ UriPermissionOwner* owner)
@@ -3578,7 +3552,6 @@ void CActivityManagerService::GrantUriPermissionUncheckedLocked(
         uri->GetDescription(&uriDes);
         Slogger::V(TAG, StringBuffer("Granting ") + targetCap + "/"
                 + targetUid + " permission to " + uriDes);
-        String::Free(uriDes);
     }
 
     HashMap<IUri*, UriPermission*>* targetUris;
@@ -3599,10 +3572,12 @@ void CActivityManagerService::GrantUriPermissionUncheckedLocked(
     perm->mModeFlags |= modeFlags;
     if (owner == NULL) {
         perm->mGlobalModeFlags |= modeFlags;
-    } else if ((modeFlags & Intent_FLAG_GRANT_READ_URI_PERMISSION) != 0) {
+    }
+    else if ((modeFlags & Intent_FLAG_GRANT_READ_URI_PERMISSION) != 0) {
         perm->mReadOwners.Insert(owner);
         owner->AddReadPermission(perm);
-    } else if ((modeFlags & Intent_FLAG_GRANT_WRITE_URI_PERMISSION) != 0) {
+    }
+    else if ((modeFlags & Intent_FLAG_GRANT_WRITE_URI_PERMISSION) != 0) {
         perm->mWriteOwners.Insert(owner);
         owner->AddWritePermission(perm);
     }
@@ -3610,7 +3585,7 @@ void CActivityManagerService::GrantUriPermissionUncheckedLocked(
 
 void CActivityManagerService::GrantUriPermissionLocked(
     /* [in] */ Int32 callingUid,
-    /* [in] */ String targetCap,
+    /* [in] */ const String& targetCap,
     /* [in] */ IUri* uri,
     /* [in] */ Int32 modeFlags,
     /* [in] */ UriPermissionOwner* owner)
@@ -3629,7 +3604,7 @@ void CActivityManagerService::GrantUriPermissionLocked(
  */
 Int32 CActivityManagerService::CheckGrantUriPermissionFromIntentLocked(
     /* [in] */ Int32 callingUid,
-    /* [in] */ String targetCap,
+    /* [in] */ const String& targetCap,
     /* [in] */ IIntent* intent)
 {
     if (DEBUG_URI_PERMISSION) {
@@ -3643,11 +3618,9 @@ Int32 CActivityManagerService::CheckGrantUriPermissionFromIntentLocked(
             uri->GetDescription(&uriDes);
         }
         Slogger::V(TAG, StringBuffer("Checking URI perm to ") +
-                (intent != NULL ? uriDes : "NULL") + " from " +
-                (intent != NULL ? intDes : "NULL") + "; flags=0x"
+                (intent != NULL ? uriDes : String("NULL")) + " from " +
+                (intent != NULL ? intDes : String("NULL")) + "; flags=0x"
                 + (intent != NULL ? flags : 0));
-        String::Free(intDes);
-        String::Free(uriDes);
     }
 
     if (intent == NULL) {
@@ -3672,7 +3645,7 @@ Int32 CActivityManagerService::CheckGrantUriPermissionFromIntentLocked(
  */
 void CActivityManagerService::GrantUriPermissionUncheckedFromIntentLocked(
     /* [in] */ Int32 targetUid,
-    /* [in] */ String targetPkg,
+    /* [in] */ const String& targetPkg,
     /* [in] */ IIntent* intent,
     /* [in] */ UriPermissionOwner* owner)
 {
@@ -3687,7 +3660,7 @@ void CActivityManagerService::GrantUriPermissionUncheckedFromIntentLocked(
 
 void CActivityManagerService::GrantUriPermissionFromIntentLocked(
     /* [in] */ Int32 callingUid,
-    /* [in] */ String targetCap,
+    /* [in] */ const String& targetCap,
     /* [in] */ IIntent* intent,
     /* [in] */ UriPermissionOwner* owner)
 {
@@ -3701,7 +3674,7 @@ void CActivityManagerService::GrantUriPermissionFromIntentLocked(
 
 ECode CActivityManagerService::GrantUriPermission(
     /* [in] */ IApplicationApartment* caller,
-    /* [in] */ String targetPkg,
+    /* [in] */ const String& targetPkg,
     /* [in] */ IUri* uri,
     /* [in] */ Int32 modeFlags)
 {
@@ -3879,7 +3852,7 @@ ECode CActivityManagerService::RevokeUriPermission(
 }
 
 ECode CActivityManagerService::NewUriPermissionOwner(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ IBinder** token)
 {
 //    synchronized(this) {
@@ -3892,7 +3865,7 @@ ECode CActivityManagerService::NewUriPermissionOwner(
 ECode CActivityManagerService::GrantUriPermissionFromOwner(
     /* [in] */ IBinder* token,
     /* [in] */ Int32 fromUid,
-    /* [in] */ String targetPkg,
+    /* [in] */ const String& targetPkg,
     /* [in] */ IUri* uri,
     /* [in] */ Int32 modeFlags)
 {
@@ -4172,7 +4145,7 @@ ECode CActivityManagerService::GetRecentTasks(
 
 Int32 CActivityManagerService::FindAffinityTaskTopLocked(
     /* [in] */ Int32 startIndex,
-    /* [in] */ String affinity)
+    /* [in] */ const String& affinity)
 {
 //    int j;
 //    TaskRecord startTask = ((ActivityRecord)mMainStack.mHistory.get(startIndex)).task;
@@ -4491,9 +4464,9 @@ ECode CActivityManagerService::GenerateApplicationProvidersLocked(
             ContentProviderRecord* cpr = mProvidersByClass[cpi->mName];
             if (cpr == NULL) {
                 cpr = new ContentProviderRecord(cpi, app->mInfo);
-                mProvidersByClass[String::Duplicate(cpi->mName)] = cpr;
+                mProvidersByClass[cpi->mName] = cpr;
             }
-            (app->mPubProviders)[String::Duplicate(cpi->mName)] = cpr;
+            (app->mPubProviders)[cpi->mName] = cpr;
             app->AddCapsule(cpi->mApplicationInfo->mCapsuleName);
 //            ensurePackageDexOpt(cpi.applicationInfo.packageName);
         }
@@ -4512,12 +4485,12 @@ String CActivityManagerService::CheckContentProviderPermissionLocked(
     if (CheckComponentPermission(cpi->mReadPermission, callingPid, callingUid,
             cpi->mExported ? -1 : cpi->mApplicationInfo->mUid)
             == CapsuleManager_PERMISSION_GRANTED) {
-        return NULL;
+        return String(NULL);
     }
     if (CheckComponentPermission(cpi->mWritePermission, callingPid, callingUid,
             cpi->mExported ? -1 : cpi->mApplicationInfo->mUid)
             == CapsuleManager_PERMISSION_GRANTED) {
-        return NULL;
+        return String(NULL);
     }
 
 //    PathPermission[] pps = cpi.pathPermissions;
@@ -4529,12 +4502,12 @@ String CActivityManagerService::CheckContentProviderPermissionLocked(
             if (CheckComponentPermission(pp->GetReadPermission(), callingPid, callingUid,
                     cpi->mExported ? -1 : cpi->mApplicationInfo->mUid)
                     == CapsuleManager_PERMISSION_GRANTED) {
-                return NULL;
+                return String(NULL);
             }
             if (CheckComponentPermission(pp->GetWritePermission(), callingPid, callingUid,
                     cpi->mExported ? -1 : cpi->mApplicationInfo->mUid)
                     == CapsuleManager_PERMISSION_GRANTED) {
-                return NULL;
+                return String(NULL);
             }
         }
     }
@@ -4549,10 +4522,8 @@ String CActivityManagerService::CheckContentProviderPermissionLocked(
                 String auth;
                 pit->mFirst->GetAuthority(&auth);
                 if (auth.Compare(cpi->mAuthority)) {
-                    String::Free(auth);
-                    return NULL;
+                    return String(NULL);
                 }
-                String::Free(auth);
             }
         }
     }
@@ -4561,20 +4532,19 @@ String CActivityManagerService::CheckContentProviderPermissionLocked(
     r->GetDescription(&appDes);
     StringBuffer msg;
     msg += "Permission Denial: opening provider " + cpi->mName
-            + " from " + (r != NULL ? appDes : "(null)") + " (pid=" + callingPid
+            + " from " + (r != NULL ? appDes : String("(null)")) + " (pid=" + callingPid
             + ", uid=" + callingUid + ") requires "
             + cpi->mReadPermission + " or " + cpi->mWritePermission;
-    Slogger::W(TAG, msg);
-    String::Free(appDes);
-    return String::Duplicate(msg);
+    Slogger::W(TAG, msg);;
+    return String((const char*)msg);
 }
 
 ECode CActivityManagerService::GetContentProviderImpl(
     /* [in] */ IApplicationApartment* caller,
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ IContentProviderHolder** providerHolder)
 {
-    ContentProviderRecord* cpr;
+    ContentProviderRecord* cpr = NULL;
     AutoPtr<CContentProviderInfo> cpi;
 
     {
@@ -4589,13 +4559,15 @@ ECode CActivityManagerService::GetContentProviderImpl(
             Slogger::E(TAG, StringBuffer("Unable to find app for caller ") + callerDes
                     + " (pid=" + Process::GetCallingPid()
                     + ") when getting content provider " + name);
-            String::Free(callerDes);
             return E_SECURITY_EXCEPTION;
         }
     }
 
     // First check if this content provider has been published...
-    cpr = mProvidersByName[name];
+    HashMap<String, ContentProviderRecord*>::Iterator it = mProvidersByName.Find(name);
+    if (it != mProvidersByName.End()) {
+        cpr = it->mSecond;
+    }
     if (cpr != NULL) {
         cpi = cpr->mHolder->mInfo;
         String msg = CheckContentProviderPermissionLocked(cpi, r);
@@ -4630,7 +4602,8 @@ ECode CActivityManagerService::GetContentProviderImpl(
             }
             if (r->mConProviders.Find(cpr) == r->mConProviders.End()) {
                 r->mConProviders[cpr] = 1;
-            } else {
+            }
+            else {
                 r->mConProviders[cpr] = r->mConProviders[cpr] + 1;
             }
             cpr->mClients.Insert(r);
@@ -4641,7 +4614,8 @@ ECode CActivityManagerService::GetContentProviderImpl(
                 // content providers are often expensive to start.
                 UpdateLRUProcessLocked(cpr->mApp, FALSE, TRUE);
             }
-        } else {
+        }
+        else {
             cpr->mExternals++;
         }
 
@@ -4651,11 +4625,12 @@ ECode CActivityManagerService::GetContentProviderImpl(
 
 //        Binder.restoreCallingIdentity(origId);
 
-    } else {
+    }
+    else {
         AutoPtr<IServiceManager> serviceManager;
         AutoPtr<ICapsuleManager> capsuleManager;
         Elastos::GetServiceManager((IServiceManager**)&serviceManager);
-        serviceManager->GetService("capsule",
+        serviceManager->GetService(String("capsule"),
                 (IInterface**)&capsuleManager);
         AutoPtr<IContentProviderInfo> info;
         ECode ec = capsuleManager->ResolveContentProvider(name,
@@ -4674,7 +4649,7 @@ ECode CActivityManagerService::GetContentProviderImpl(
         }
 
         if (!mProcessesReady && !mDidUpdate && !mWaitingUpdate
-                && cpi->mProcessName.Compare("system")) {
+                && !cpi->mProcessName.Equals("system")) {
             // If this content provider does not run in the system
             // process, and the system is not yet ready to run other
             // processes, then fail fast instead of hanging.
@@ -4689,7 +4664,7 @@ ECode CActivityManagerService::GetContentProviderImpl(
             AutoPtr<ICapsuleManager> capsuleManager;
             AutoPtr<IApplicationInfo> appInfo;
             Elastos::GetServiceManager((IServiceManager**)&serviceManager);
-            serviceManager->GetService("capsule",
+            serviceManager->GetService(String("capsule"),
                     (IInterface**)&capsuleManager);
             ec = capsuleManager->GetApplicationInfo(
                     cpi->mApplicationInfo->mCapsuleName,
@@ -4756,9 +4731,9 @@ ECode CActivityManagerService::GetContentProviderImpl(
         // Make sure the provider is published (the same provider class
         // may be published under multiple names).
         if (firstClass) {
-            mProvidersByClass[String::Duplicate(cpi->mName)] = cpr;
+            mProvidersByClass[cpi->mName] = cpr;
         }
-        mProvidersByName[String::Duplicate(name)] = cpr;
+        mProvidersByName[name] = cpr;
 
         if (r != NULL) {
             if (DEBUG_PROVIDER) {
@@ -4768,11 +4743,13 @@ ECode CActivityManagerService::GetContentProviderImpl(
             }
             if (r->mConProviders.Find(cpr) == r->mConProviders.End()) {
                 r->mConProviders[cpr] = 1;
-            } else {
+            }
+            else {
                 r->mConProviders[cpr] = r->mConProviders[cpr] + 1;
             }
             cpr->mClients.Insert(r);
-        } else {
+        }
+        else {
             cpr->mExternals++;
         }
     }
@@ -4803,7 +4780,7 @@ ECode CActivityManagerService::GetContentProviderImpl(
 
 ECode CActivityManagerService::GetContentProvider(
     /* [in] */ IApplicationApartment* caller,
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ IContentProviderHolder** providerHolder)
 {
     if (providerHolder == NULL) return E_INVALID_ARGUMENT;
@@ -4819,7 +4796,7 @@ ECode CActivityManagerService::GetContentProvider(
 }
 
 ECode CActivityManagerService::GetContentProviderExternal(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ IContentProviderHolder** providerHolder)
 {
     return GetContentProviderImpl(NULL, name, providerHolder);
@@ -4831,7 +4808,7 @@ ECode CActivityManagerService::GetContentProviderExternal(
  */
 ECode CActivityManagerService::RemoveContentProvider(
     /* [in] */ IApplicationApartment* caller,
-    /* [in] */ String name)
+    /* [in] */ const String& name)
 {
 //    synchronized (this) {
 //        ContentProviderRecord cpr = mProvidersByName.get(name);
@@ -4872,7 +4849,7 @@ ECode CActivityManagerService::RemoveContentProvider(
 }
 
 void CActivityManagerService::RemoveContentProviderExternal(
-    /* [in] */ String name)
+    /* [in] */ const String& name)
 {
     Mutex::Autolock lock(_m_syncLock);
 
@@ -4897,7 +4874,6 @@ void CActivityManagerService::RemoveContentProviderExternal(
         localCpr->GetDescription(&localCprDes);
         Slogger::E(TAG, StringBuffer("Externals < 0 for content provider ")
                 + localCprDes);
-        String::Free(localCprDes);
     }
     UpdateOomAdjLocked();
 }
@@ -4920,7 +4896,6 @@ ECode CActivityManagerService::PublishContentProviders(
                 StringBuffer("Unable to find app for caller ") + callerDes
                 + " (pid=" + Process::GetCallingPid()
                 + ") when publishing content providers");
-        String::Free(callerDes);
         return E_SECURITY_EXCEPTION;
     }
 
@@ -4938,12 +4913,12 @@ ECode CActivityManagerService::PublishContentProviders(
         ContentProviderRecord* dst =
                 r->mPubProviders[src->mInfo->mName];
         if (dst != NULL) {
-            mProvidersByClass[String::Duplicate(dst->mHolder->mInfo->mName)] = dst;
+            mProvidersByClass[dst->mHolder->mInfo->mName] = dst;
             StringTokenizer* tokens = new StringTokenizer(
                     dst->mHolder->mInfo->mAuthority, ";");
             while (tokens->HasMoreTokens()) {
                 String name = tokens->NextToken();
-                mProvidersByName[String::Duplicate(name)] = dst;
+                mProvidersByName[name] = dst;
             }
 
             List<ContentProviderRecord*>::Iterator it = \
@@ -5020,7 +4995,6 @@ ECode CActivityManagerService::GetProviderMimeType(
         uri->GetDescription(&uriDes);
         Slogger::W(TAG, StringBuffer("Content provider dead retrieving ")
                 + uriDes);
-        String::Free(uriDes);
     }
 
     if (holder != NULL) {
@@ -5039,7 +5013,7 @@ ECode CActivityManagerService::GetProviderMimeType(
 ProcessRecord* CActivityManagerService::NewProcessRecordLocked(
     /* [in] */ IApplicationApartment* apartment,
     /* [in] */ CApplicationInfo* info,
-    /* [in] */ String customProcess)
+    /* [in] */ const String& customProcess)
 {
     String proc = !customProcess.IsNull()? customProcess : info->mProcessName;
 //    AutoPtr<BatteryStatsImpl::Uid::Proc> ps;
@@ -5056,7 +5030,7 @@ ProcessRecord* CActivityManagerService::AddAppLocked(
     ProcessRecord* app = GetProcessRecordLocked(info->mProcessName, info->mUid);
 
     if (app == NULL) {
-        app = NewProcessRecordLocked(NULL, info, NULL);
+        app = NewProcessRecordLocked(NULL, info, String(NULL));
         mProcessNames->Put(info->mProcessName, info->mUid, app);
         UpdateLRUProcessLocked(app, TRUE, TRUE);
     }
@@ -5245,14 +5219,14 @@ ECode CActivityManagerService::ResumeAppSwitches()
 Boolean CActivityManagerService::CheckAppSwitchAllowedLocked(
     /* [in] */ Int32 callingPid,
     /* [in] */ Int32 callingUid,
-    /* [in] */ String name)
+    /* [in] */ const char* name)
 {
     if (mAppSwitchesAllowedTime < SystemClock::GetUptimeMillis()) {
         return TRUE;
     }
 
     Int32 perm = CheckComponentPermission(
-            "elastos.permission.STOP_APP_SWITCHES", /*android.Manifest.permission.STOP_APP_SWITCHES*/
+            String("elastos.permission.STOP_APP_SWITCHES"), /*android.Manifest.permission.STOP_APP_SWITCHES*/
             callingPid, callingUid, -1);
     if (perm == CapsuleManager_PERMISSION_GRANTED) {
         return TRUE;
@@ -5263,7 +5237,7 @@ Boolean CActivityManagerService::CheckAppSwitchAllowedLocked(
 }
 
 ECode CActivityManagerService::SetDebugApp(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ Boolean waitForDebugger,
     /* [in] */ Boolean persistent)
 {
@@ -5407,7 +5381,7 @@ ECode CActivityManagerService::NoteWakeupAlarm(
 
 ECode CActivityManagerService::KillPids(
     /* [in] */ const ArrayOf<Int32>& pids,
-    /* [in] */ String pReason,
+    /* [in] */ const String& pReason,
     /* [out] */ Boolean* result)
 {
 //    if (Binder.getCallingUid() != Process.SYSTEM_UID) {
@@ -5459,10 +5433,10 @@ ECode CActivityManagerService::KillPids(
 }
 
 ECode CActivityManagerService::StartRunning(
-    /* [in] */ String cap,
-    /* [in] */ String cls,
-    /* [in] */ String action,
-    /* [in] */ String data)
+    /* [in] */ const String& cap,
+    /* [in] */ const String& cls,
+    /* [in] */ const String& action,
+    /* [in] */ const String& data)
 {
 //    synchronized(this) {
 //        if (mStartRunning) {
@@ -5795,9 +5769,9 @@ void CActivityManagerService::SystemReady(
 
 Boolean CActivityManagerService::MakeAppCrashingLocked(
     /* [in] */ ProcessRecord* app,
-    /* [in] */ String shortMsg,
-    /* [in] */ String longMsg,
-    /* [in] */ String stackTrace)
+    /* [in] */ const String& shortMsg,
+    /* [in] */ const String& longMsg,
+    /* [in] */ const String& stackTrace)
 {
 //    app.crashing = true;
 //    app.crashingReport = generateProcessError(app,
@@ -5810,9 +5784,9 @@ Boolean CActivityManagerService::MakeAppCrashingLocked(
 
 void CActivityManagerService::MakeAppNotRespondingLocked(
     /* [in] */ ProcessRecord* app,
-    /* [in] */ String activity,
-    /* [in] */ String shortMsg,
-    /* [in] */ String longMsg)
+    /* [in] */ const String& activity,
+    /* [in] */ const String& shortMsg,
+    /* [in] */ const String& longMsg)
 {
 //    app.notResponding = true;
 //    app.notRespondingReport = generateProcessError(app,
@@ -5838,10 +5812,10 @@ void CActivityManagerService::MakeAppNotRespondingLocked(
 void CActivityManagerService::GenerateProcessError(
     /* [in] */ ProcessRecord* app,
     /* [in] */ Int32 condition,
-    /* [in] */ String activity,
-    /* [in] */ String shortMsg,
-    /* [in] */ String longMsg,
-    /* [in] */ String stackTrace,
+    /* [in] */ const String& activity,
+    /* [in] */ const String& shortMsg,
+    /* [in] */ const String& longMsg,
+    /* [in] */ const String& stackTrace,
     /* [out] */ CProcessErrorStateInfo** report)
 {
 //    ActivityManager.ProcessErrorStateInfo report = new ActivityManager.ProcessErrorStateInfo();
@@ -5994,7 +5968,6 @@ void CActivityManagerService::SkipCurrentReceiverLocked(
             String brDes;
             r->GetDescription(&brDes);
             Slogger::V(TAG, StringBuffer("skip & discard pending app ") + brDes);
-            String::Free(brDes);
         }
         LogBroadcastReceiverDiscardLocked(r);
         FinishReceiverLocked(r->mReceiver, r->mResultCode, r->mResultData,
@@ -6199,7 +6172,7 @@ void CActivityManagerService::LogStrictModeViolationToDropBox(
  */
 ECode CActivityManagerService::HandleApplicationWtf(
     /* [in] */ IBinder* app,
-    /* [in] */ String tag,
+    /* [in] */ const String& tag,
     /* [in] */ CCrashInfo* crashInfo,
     /* [out] */ Boolean* result)
 {
@@ -6304,12 +6277,12 @@ void CActivityManagerService::AppendDropBoxProcessHeaders(
  * @param crashInfo giving an application stack trace, null if absent
  */
 void CActivityManagerService::AddErrorToDropBox(
-    /* [in] */ String eventType,
+    /* [in] */ const String& eventType,
     /* [in] */ ProcessRecord* process,
     /* [in] */ CActivityRecord* activity,
     /* [in] */ CActivityRecord* parent,
-    /* [in] */ String subject,
-    /* [in] */ String report,
+    /* [in] */ const String& subject,
+    /* [in] */ const String& report,
 //        final File logFile,
     /* [in] */ CCrashInfo* crashInfo)
 {
@@ -6743,7 +6716,6 @@ void CActivityManagerService::KillServicesLocked(
                     sr->GetDescription(&srDes);
                     Slogger::V(TAG, StringBuffer("killServices remove stopping ")
                             + srDes);
-                    String::Free(srDes);
                 }
             }
 
@@ -6758,7 +6730,6 @@ void CActivityManagerService::KillServicesLocked(
                         b->GetDescription(&ibDes);
                         Slogger::V(TAG, StringBuffer("Killing binding ") + ibDes
                             + ": shouldUnbind=" + b->mHasBound);
-                        String::Free(ibDes);
                     }
                     b->mBinder = NULL;
                     b->mRequested = b->mReceived = b->mHasBound = FALSE;
@@ -6770,14 +6741,14 @@ void CActivityManagerService::KillServicesLocked(
                 sr->GetDescription(&srDes);
                 Slogger::W(TAG, StringBuffer("Service crashed ") + sr->mCrashCount
                         + " times, stopping: " + srDes);
-                String::Free(srDes);
 //                EventLog.writeEvent(EventLogTags.AM_SERVICE_CRASHED_TOO_MUCH,
 //                        sr.crashCount, sr.shortName, app.pid);
                 BringDownServiceLocked(sr, TRUE);
             }
             else if (!allowRestart) {
                 BringDownServiceLocked(sr, TRUE);
-            } else {
+            }
+            else {
                 Boolean canceled = ScheduleServiceRestartLocked(sr, TRUE);
 
                 // Should the service remain running?  Note that in the
@@ -6809,7 +6780,6 @@ void CActivityManagerService::KillServicesLocked(
                 String srDes;
                 (*rit)->GetDescription(&srDes);
                 Slogger::V(TAG, StringBuffer("killServices remove stopping ") + srDes);
-                String::Free(srDes);
             }
         }
     }
@@ -6973,7 +6943,6 @@ void CActivityManagerService::CleanUpApplicationRecordLocked(
             String aiDes;
             mBackupTarget->mAppInfo->GetDescription(&aiDes);
             Slogger::D(TAG, StringBuffer("App ") + aiDes + " died during backup");
-            String::Free(aiDes);
         }
 //        try {
             AutoPtr<IServiceManager> sm;
@@ -7000,14 +6969,14 @@ void CActivityManagerService::CleanUpApplicationRecordLocked(
             app->GetDescription(&appDes);
             Slogger::V(TAG, StringBuffer("Removing non-persistent process during cleanup: ")
                     + appDes);
-            String::Free(appDes);
         }
         mProcessNames->Remove(app->mProcessName, app->mInfo->mUid);
         if (mHeavyWeightProcess == app) {
             mHeavyWeightProcess = NULL;
 //            mHandler.sendEmptyMessage(CANCEL_HEAVY_NOTIFICATION_MSG);
         }
-    } else if (!app->mRemoved) {
+    }
+    else if (!app->mRemoved) {
         // This app is persistent, so we need to keep its record around.
         // If it is not already on the pending app list, add it there
         // and start a new process for it.
@@ -7025,7 +6994,6 @@ void CActivityManagerService::CleanUpApplicationRecordLocked(
         String appDes;
         app->GetDescription(&appDes);
         Slogger::V(TAG, StringBuffer("Clean-up removing on hold: ") + appDes);
-        String::Free(appDes);
     }
     mProcessesOnHold.Remove(app);
 
@@ -7038,7 +7006,8 @@ void CActivityManagerService::CleanUpApplicationRecordLocked(
         // process, so re-launch it.
         mProcessNames->Put(app->mProcessName, app->mInfo->mUid, app);
         StartProcessLocked(app, "restart", app->mProcessName);
-    } else if (app->mPid > 0 && app->mPid != mMyPid) {
+    }
+    else if (app->mPid > 0 && app->mPid != mMyPid) {
         // Goodbye!
         {
             Mutex::Autolock lock(mPidsSelfLock);
@@ -7065,7 +7034,8 @@ Boolean CActivityManagerService::CheckAppInLaunchingProvidersLocked(
         if (cpr->mLaunchingApp == app) {
             if (!alwaysBad && !app->mBad) {
                 restart = TRUE;
-            } else {
+            }
+            else {
                 RemoveDyingProviderLocked(app, cpr);
             }
         }
@@ -7180,7 +7150,7 @@ CServiceRecord* CActivityManagerService::FindServiceLocked(
 CActivityManagerService::ServiceLookupResult*
 CActivityManagerService::FindServiceLocked(
     /* [in] */ IIntent* service,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ Int32 callingPid,
     /* [in] */ Int32 callingUid)
 {
@@ -7225,10 +7195,9 @@ CActivityManagerService::FindServiceLocked(
                     + srDes + " from pid=" + callingPid
                     + ", uid=" + callingUid
                     + " requires " + r->mPermission);
-            String::Free(srDes);
             return new ServiceLookupResult(NULL, r->mPermission);
         }
-        return new ServiceLookupResult(r, NULL);
+        return new ServiceLookupResult(r, String(NULL));
     }
     return NULL;
 }
@@ -7236,7 +7205,7 @@ CActivityManagerService::FindServiceLocked(
 CActivityManagerService::ServiceLookupResult*
 CActivityManagerService::RetrieveServiceLocked(
     /* [in] */ IIntent* service,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ Int32 callingPid,
     /* [in] */ Int32 callingUid)
 {
@@ -7256,7 +7225,6 @@ CActivityManagerService::RetrieveServiceLocked(
             service->GetDescription(&intDes);
             Slogger::W(TAG, StringBuffer("Unable to start service ") + intDes +
                   ": not found");
-            String::Free(intDes);
             return NULL;
         }
 
@@ -7308,17 +7276,16 @@ CActivityManagerService::RetrieveServiceLocked(
                     + " from pid=" + Process::GetCallingPid()
                     + ", uid=" + Process::GetCallingUid()
                     + " requires " + r->mPermission);
-            String::Free(srDes);
             return new ServiceLookupResult(NULL, r->mPermission);
         }
-        return new ServiceLookupResult(r, NULL);
+        return new ServiceLookupResult(r, String(NULL));
     }
     return NULL;
 }
 
 void CActivityManagerService::BumpServiceExecutingLocked(
     /* [in] */ CServiceRecord* r,
-    /* [in] */ String why)
+    /* [in] */ const char* why)
 {
     if (DEBUG_SERVICE) {
         String srDes, appDes;
@@ -7326,8 +7293,6 @@ void CActivityManagerService::BumpServiceExecutingLocked(
         r->mApp->GetDescription(&appDes);
         Slogger::W(TAG, StringBuffer(">>> EXECUTING ")
                 + why + " of " + srDes + " in app " + appDes);
-        String::Free(srDes);
-        String::Free(appDes);
     }
     else if (DEBUG_SERVICE_EXECUTING) {
         Slogger::V(TAG, StringBuffer(">>> EXECUTING ")
@@ -7343,7 +7308,7 @@ void CActivityManagerService::BumpServiceExecutingLocked(
             CCallbackParcel::New((IParcel**)&params);
             params->WriteInt32((Handle32)r->mApp);
             mApartment->PostCppCallbackAtTime((Handle32)this,
-                    *(Handle32*)&pHandlerFunc, params, now + SERVICE_TIMEOUT);
+                    *(Handle32*)&pHandlerFunc, params, 0, now + SERVICE_TIMEOUT);
         }
         r->mApp->mExecutingServices.Insert(r);
     }
@@ -7372,9 +7337,6 @@ void CActivityManagerService::SendServiceArgsLocked(
             si->mIntent->GetDescription(&intDes);
             Slogger::V(TAG, "Sending arguments to service: "
                     + srDes + " " + filDes + " args=" + intDes);
-            String::Free(srDes);
-            String::Free(filDes);
-            String::Free(intDes);
         }
         if (si->mIntent == NULL) {
             // If somehow we got a dummy start at the front, then
@@ -7437,7 +7399,6 @@ Boolean CActivityManagerService::RequestServiceBindingLocked(
                 String srDes;
                 r->GetDescription(&srDes);
                 Slogger::V(TAG, StringBuffer("Crashed while binding ") + srDes);
-                String::Free(srDes);
             }
             return FALSE;
         }
@@ -7544,8 +7505,6 @@ Boolean CActivityManagerService::ScheduleServiceRestartLocked(
                 Slogger::W(TAG, StringBuffer("Canceling start item ") + intDes
                         + " in service " + srDes);
                 canceled = TRUE;
-                String::Free(intDes);
-                String::Free(srDes);
             }
         }
         r->mDeliveredStarts.Clear();
@@ -7659,8 +7618,7 @@ Boolean CActivityManagerService::BringUpServiceLocked(
         r->mIntent->GetDescription(&filDes);
         Slogger::V(TAG, StringBuffer("Bringing up ") + srDes
                 + " " + filDes);
-        String::Free(srDes);
-        String::Free(filDes);
+
     }
 
     // We are now bringing the service up, so no longer in the
@@ -7692,7 +7650,7 @@ Boolean CActivityManagerService::BringUpServiceLocked(
                 + r->mAppInfo->mUid + " for service "
                 + intDes + ": process is bad");
         BringDownServiceLocked(r, TRUE);
-        String::Free(intDes);
+
         return FALSE;
     }
 
@@ -7745,8 +7703,6 @@ ECode CActivityManagerService::BringDownServiceLocked(
                     Slogger::W(TAG, StringBuffer("Failure disconnecting service ") + srDes +
                               " to connection " + connDes +
                               " (in " + c->mBinding->mClient->mProcessName + ")");
-                    String::Free(srDes);
-                    String::Free(connDes);
                 }
             }
         }
@@ -7763,7 +7719,6 @@ ECode CActivityManagerService::BringDownServiceLocked(
                 ibr->GetDescription(&ibrDes);
                 Slogger::V(TAG, StringBuffer("Bringing down binding ") + ibrDes
                     + ": hasBound=" + ibr->mHasBound);
-                String::Free(ibrDes);
             }
             if (r->mApp != NULL && r->mApp->mAppApartment != NULL && ibr->mHasBound) {
 //                try {
@@ -7786,8 +7741,7 @@ ECode CActivityManagerService::BringDownServiceLocked(
         r->GetDescription(&srDes);
         r->mIntent->GetDescription(&filDes);
         Slogger::V(TAG, StringBuffer("Bringing down ") + srDes + " " + filDes);
-        String::Free(srDes);
-        String::Free(filDes);
+
     }
 //    EventLog.writeEvent(EventLogTags.AM_DESTROY_SERVICE,
 //            System.identityHashCode(r), r.shortName,
@@ -7807,7 +7761,6 @@ ECode CActivityManagerService::BringDownServiceLocked(
                 String srDes;
                 r->GetDescription(&srDes);
                 Slogger::V(TAG, StringBuffer("Removed pending: ") + srDes);
-                String::Free(srDes);
             }
         }
         else ++it;
@@ -7846,7 +7799,6 @@ ECode CActivityManagerService::BringDownServiceLocked(
                 r->GetDescription(&srDes);
                 Slogger::V(TAG, StringBuffer("Removed service that has no process: ")
                         + srDes);
-                String::Free(srDes);
             }
         }
     } else {
@@ -7855,7 +7807,6 @@ ECode CActivityManagerService::BringDownServiceLocked(
             r->GetDescription(&srDes);
             Slogger::V(TAG, StringBuffer("Removed service that is not running: ")
                     + srDes);
-            String::Free(srDes);
         }
     }
 
@@ -7877,7 +7828,7 @@ ECode CActivityManagerService::BringDownServiceLocked(
 ECode CActivityManagerService::StartServiceLocked(
     /* [in] */ IApplicationApartment* caller,
     /* [in] */ IIntent* service,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ Int32 callingPid,
     /* [in] */ Int32 callingUid,
     /* [out] */ IComponentName** name)
@@ -7890,8 +7841,6 @@ ECode CActivityManagerService::StartServiceLocked(
         b->GetDescription(&bdDes);
         Slogger::V(TAG, StringBuffer("startService: ") + intDes
             + " type=" + resolvedType + " args=" + bdDes);
-        String::Free(intDes);
-        String::Free(bdDes);
     }
 
     if (caller != NULL) {
@@ -7903,8 +7852,6 @@ ECode CActivityManagerService::StartServiceLocked(
             Slogger::E(TAG, StringBuffer("Unable to find app for caller ")
                     + appApDes + " (pid=" + Process::GetCallingPid()
                     + ") when starting service " + intDes);
-            String::Free(appApDes);
-            String::Free(intDes);
             return E_SECURITY_EXCEPTION;
         }
     }
@@ -7917,8 +7864,8 @@ ECode CActivityManagerService::StartServiceLocked(
         return E_DOES_NOT_EXIST;
     }
     if (res->mRecord == NULL) {
-        CComponentName::New("!", !res->mPermission.IsNull()
-                ? res->mPermission : "private to package", name);
+        CComponentName::New(String("!"), !res->mPermission.IsNull()
+                ? res->mPermission : String("private to package"), name);
         return E_FAIL;
     }
     AutoPtr<CServiceRecord> r = res->mRecord;
@@ -7930,7 +7877,6 @@ ECode CActivityManagerService::StartServiceLocked(
             r->GetDescription(&srDes);
             Slogger::V(TAG, StringBuffer("START SERVICE WHILE RESTART PENDING: ")
                     + srDes);
-            String::Free(srDes);
         }
     }
     r->mStartRequested = TRUE;
@@ -7949,7 +7895,7 @@ ECode CActivityManagerService::StartServiceLocked(
     Int32 flags;
     service->GetFlags(&flags);
     if (!BringUpServiceLocked(r, flags, FALSE)) {
-        CComponentName::New("!", "Service process is bad", name);
+        CComponentName::New(String("!"), String("Service process is bad"), name);
         return NOERROR;
     }
     *name = r->mName;
@@ -7960,7 +7906,7 @@ ECode CActivityManagerService::StartServiceLocked(
 ECode CActivityManagerService::StartService(
     /* [in] */ IApplicationApartment* caller,
     /* [in] */ IIntent* service,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ Int32 callingPid,
     /* [in] */ Int32 callingUid,
     /* [out] */ IComponentName** name)
@@ -7990,7 +7936,7 @@ ECode CActivityManagerService::StartService(
 ECode CActivityManagerService::StartServiceInCapsule(
     /* [in] */ Int32 uid,
     /* [in] */ IIntent* service,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [out] */ IComponentName** name)
 {
     Mutex::Autolock lock(_m_syncLock);
@@ -8006,7 +7952,7 @@ ECode CActivityManagerService::StartServiceInCapsule(
 ECode CActivityManagerService::StopService(
     /* [in] */ IApplicationApartment* caller,
     /* [in] */ IIntent* service,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ Int32 callingPid,
     /* [in] */ Int32 callingUid,
     /* [out] */ Int32* result)
@@ -8025,7 +7971,6 @@ ECode CActivityManagerService::StopService(
         service->GetDescription(&intDes);
         Slogger::V(TAG, StringBuffer("stopService: ") + intDes
             + " type=" + resolvedType);
-        String::Free(intDes);
     }
 
     ProcessRecord* callerApp = GetProcessRecordForAppLocked(caller);
@@ -8036,8 +7981,6 @@ ECode CActivityManagerService::StopService(
         Slogger::E(TAG, StringBuffer("Unable to find app for caller ") + appApDes
                 + " (pid=" + Process::GetCallingPid()
                 + ") when stopping service " + intDes);
-        String::Free(appApDes);
-        String::Free(intDes);
         return E_SECURITY_EXCEPTION;
     }
 
@@ -8068,7 +8011,7 @@ ECode CActivityManagerService::StopService(
 
 ECode CActivityManagerService::PeekService(
     /* [in] */ IIntent* service,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ Int32 callingPid,
     /* [in] */ Int32 callingUid,
     /* [out] */ IBinder** token)
@@ -8122,8 +8065,6 @@ ECode CActivityManagerService::StopServiceToken(
         token->GetDescription(&tokenDes);
         Slogger::V(TAG, StringBuffer("stopServiceToken: ") + clsDes
             + " " + tokenDes + " startId=" + startId);
-        String::Free(clsDes);
-        String::Free(tokenDes);
     }
     AutoPtr<CServiceRecord> r = FindServiceLocked(className, token);
     if (r != NULL) {
@@ -8245,7 +8186,7 @@ ECode CActivityManagerService::BindService(
     /* [in] */ IApplicationApartment* caller,
     /* [in] */ IBinder* token,
     /* [in] */ IIntent* _service,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ IServiceConnectionInner* connection,
     /* [in] */ Int32 flags,
     /* [in] */ Int32 callingPid,
@@ -8271,8 +8212,6 @@ ECode CActivityManagerService::BindService(
         Slogger::V(TAG, "bindService: " + intDes
             + " type=" + resolvedType + " conn=" + connDes
             + " flags=" + flags);
-        String::Free(intDes);
-        String::Free(connDes);
     }
     ProcessRecord* callerApp = GetProcessRecordForAppLocked(caller);
     if (callerApp == NULL) {
@@ -8282,8 +8221,6 @@ ECode CActivityManagerService::BindService(
         Slogger::E(TAG, StringBuffer("Unable to find app for caller ") + appApDes
                 + " (pid=" + Process::GetCallingPid()
                 + ") when binding service " + intDes);
-        String::Free(appApDes);
-        String::Free(intDes);
         return E_SECURITY_EXCEPTION;
     }
 
@@ -8294,7 +8231,6 @@ ECode CActivityManagerService::BindService(
             String tokenDes;
             token->GetDescription(&tokenDes);
             Slogger::W(TAG, "Binding with unknown activity: " + tokenDes);
-            String::Free(tokenDes);
             *result = 0;
             return NOERROR;
         }
@@ -8343,7 +8279,6 @@ ECode CActivityManagerService::BindService(
             s->GetDescription(&srDes);
             Slogger::V(TAG, StringBuffer("BIND SERVICE WHILE RESTART PENDING: ")
                 + srDes);
-            String::Free(srDes);
         }
     }
 
@@ -8395,8 +8330,6 @@ ECode CActivityManagerService::BindService(
                 + ": received=" + b->mIntent->mReceived
                 + " apps=" + (Int32)b->mIntent->mApps.GetSize()
                 + " doRebind=" + b->mIntent->mDoRebind);
-        String::Free(srDes);
-        String::Free(abDes);
     }
 
     if (s->mApp != NULL && b->mIntent->mReceived) {
@@ -8465,7 +8398,6 @@ ECode CActivityManagerService::RemoveConnectionLocked(
         b->mIntent->GetDescription(&ibrDes);
         Slogger::V(TAG, StringBuffer("Disconnecting binding ") + ibrDes
             + ": shouldUnbind=" + b->mIntent->mHasBound);
-        String::Free(ibrDes);
     }
     if (s->mApp != NULL && s->mApp->mAppApartment != NULL
             && b->mIntent->mApps.GetSize() == 0 && b->mIntent->mHasBound) {
@@ -8503,7 +8435,6 @@ ECode CActivityManagerService::UnbindService(
         String connDes;
         connection->GetDescription(&connDes);
         Slogger::V(TAG, StringBuffer("unbindService: conn=") + connDes);
-        String::Free(connDes);
     }
     List<ConnectionRecord*>* clist = mServiceConnections[connection];
     if (clist == NULL) {
@@ -8511,7 +8442,6 @@ ECode CActivityManagerService::UnbindService(
         connection->GetDescription(&connDes);
         Slogger::W(TAG,
             StringBuffer("Unbind failed: could not find connection for ") + connDes);
-        String::Free(connDes);
         *succeeded = FALSE;
         return NOERROR;
     }
@@ -8564,9 +8494,6 @@ ECode CActivityManagerService::PublishService(
         service->GetDescription(&servDes);
         Slogger::V(TAG, StringBuffer("PUBLISHING ") + srDes
             + " " + intDes + ": " + servDes);
-        String::Free(srDes);
-        String::Free(intDes);
-        String::Free(servDes);
     }
     if (r != NULL) {
         CIntent::FilterComparison* filter
@@ -8592,9 +8519,6 @@ ECode CActivityManagerService::PublishService(
                                     StringBuffer("Not publishing to: ") + crDes);
                                 Slogger::V(TAG, StringBuffer("Bound intent: ") + filDes);
                                 Slogger::V(TAG, StringBuffer("Published intent: ") + intDes);
-                                String::Free(crDes);
-                                String::Free(filDes);
-                                String::Free(intDes);
                             }
                             continue;
                         }
@@ -8602,7 +8526,6 @@ ECode CActivityManagerService::PublishService(
                             String crDes;
                             c->GetDescription(&crDes);
                             Slogger::V(TAG, StringBuffer("Publishing to: ") + crDes);
-                            String::Free(crDes);
                         }
                         if (FAILED(c->mConn->Connected(r->mName, service))) {
                             String srDes, connDes;
@@ -8611,8 +8534,6 @@ ECode CActivityManagerService::PublishService(
                             Slogger::W(TAG, StringBuffer("Failure sending service ")
                                 + srDes + " to connection " + connDes +
                                 " (in " + c->mBinding->mClient->mProcessName + ")");
-                            String::Free(srDes);
-                            String::Free(connDes);
                         }
                     }
                 }
@@ -8665,8 +8586,6 @@ ECode CActivityManagerService::UnbindFinished(
             Slogger::V(TAG, StringBuffer("unbindFinished in ") + srDes
                 + " at " + ibrDes + ": apps="
                 + (Int32)(b != NULL ? b->mApps.GetSize() : 0));
-            String::Free(srDes);
-            String::Free(ibrDes);
         }
         if (b != NULL) {
             if (b->mApps.GetSize() > 0) {
@@ -8776,8 +8695,6 @@ ECode CActivityManagerService::ServiceDoneExecutingLocked(
         Slogger::V(TAG, StringBuffer("<<< DONE EXECUTING ") + srDes
                 + ": nesting=" + r->mExecuteNesting
                 + ", inStopping=" + inStopping + ", app=" + appDes);
-        String::Free(srDes);
-        String::Free(appDes);
     }
     else if (DEBUG_SERVICE_EXECUTING) {
         Slogger::V(TAG, StringBuffer("<<< DONE EXECUTING ") + r->mShortName);
@@ -8801,7 +8718,6 @@ ECode CActivityManagerService::ServiceDoneExecutingLocked(
                 r->GetDescription(&srDes);
                 Slogger::V(TAG, StringBuffer("doneExecuting remove stopping ")
                     + srDes);
-                String::Free(srDes);
             }
             mStoppingServices.Remove(r);
             r->mBindings.Clear();
@@ -8843,8 +8759,8 @@ void CActivityManagerService::ServiceTimeout(
             timeout->GetDescription(&srDes);
             Slogger::W(TAG, StringBuffer("Timeout executing service: ") + srDes);
             anrMessage += "Executing service " + timeout->mShortName;
-            String::Free(srDes);
-        } else {
+        }
+        else {
 //            Message msg = mHandler.obtainMessage(SERVICE_TIMEOUT_MSG);
 //            msg.obj = proc;
 //            mHandler.sendMessageAtTime(msg, nextTime+SERVICE_TIMEOUT);
@@ -8933,7 +8849,7 @@ ECode CActivityManagerService::BindBackupAgent(
 
 // A backup agent has just come up
 ECode CActivityManagerService::BackupAgentCreated(
-    /* [in] */ String agentCapsuleName,
+    /* [in] */ const String& agentCapsuleName,
     /* [in] */ IBinder* agent)
 {
 //    if (DEBUG_BACKUP) Slog.v(TAG, "backupAgentCreated: " + agentPackageName
@@ -9008,7 +8924,7 @@ ECode CActivityManagerService::UnbindBackupAgent(
 // =========================================================
 
 List<AutoPtr<IIntent> >* CActivityManagerService::GetStickiesLocked(
-    /* [in] */ String action,
+    /* [in] */ const String& action,
     /* [in] */ IIntentFilter* filter,
     /* [in] */ List<AutoPtr<IIntent> >* cur)
 {
@@ -9048,7 +8964,7 @@ ECode CActivityManagerService::ScheduleBroadcastsLocked()
     AutoPtr<IParcel> params;
     CCallbackParcel::New((IParcel**)&params);
     params->WriteBoolean(TRUE);
-    ec = mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params);
+    ec = mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 
     mBroadcastsScheduled = TRUE;
     return ec;
@@ -9058,7 +8974,7 @@ ECode CActivityManagerService::RegisterReceiver(
     /* [in] */ IApplicationApartment* caller,
     /* [in] */ IIntentReceiver* receiver,
     /* [in] */ IIntentFilter* filter,
-    /* [in] */ String permission,
+    /* [in] */ const String& permission,
     /* [out] */ IIntent** intent)
 {
 //    synchronized(this) {
@@ -9211,14 +9127,14 @@ void CActivityManagerService::SendCapsuleBroadcastLocked(
 
 ECode CActivityManagerService::BroadcastIntentLocked(
     /* [in] */ ProcessRecord* callerApp,
-    /* [in] */ String callerCapsule,
+    /* [in] */ const String& callerCapsule,
     /* [in] */ IIntent* _intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ IIntentReceiver* resultTo,
     /* [in] */ Int32 resultCode,
-    /* [in] */ String resultData,
+    /* [in] */ const String& resultData,
     /* [in] */ IBundle* map,
-    /* [in] */ String requiredPermission,
+    /* [in] */ const String& requiredPermission,
     /* [in] */ Boolean ordered,
     /* [in] */ Boolean sticky,
     /* [in] */ Int32 callingPid,
@@ -9233,14 +9149,12 @@ ECode CActivityManagerService::BroadcastIntentLocked(
         intent->GetDescription(&intDes);
         Slogger::V(TAG, StringBuffer(sticky ? "Broadcast sticky: ": "Broadcast: ")
                 + intDes + " ordered=" + ordered);
-        String::Free(intDes);
     }
     if ((resultTo != NULL) && !ordered) {
         String intDes;
         intent->GetDescription(&intDes);
         Slogger::W(TAG, StringBuffer("Broadcast ") + intDes
                 + " not ordered but result callback requested!");
-        String::Free(intDes);
     }
 
     // Handle special intents: if this broadcast is from the package
@@ -9254,7 +9168,7 @@ ECode CActivityManagerService::BroadcastIntentLocked(
             || !action.Compare(Intent_ACTION_EXTERNAL_APPLICATIONS_UNAVAILABLE)
             || uidRemoved) {
         if (CheckComponentPermission(
-                "elastos.permission.BROADCAST_CAPSULE_REMOVED"/*android.Manifest.permission.BROADCAST_CAPSULE_REMOVED*/,
+                String("elastos.permission.BROADCAST_CAPSULE_REMOVED")/*android.Manifest.permission.BROADCAST_CAPSULE_REMOVED*/,
                 callingPid, callingUid, -1)
                 == CapsuleManager_PERMISSION_GRANTED) {
             if (uidRemoved) {
@@ -9262,7 +9176,7 @@ ECode CActivityManagerService::BroadcastIntentLocked(
                 intent->GetExtras((IBundle**)&intentExtras);
                 Int32 uid = -1;
                 if (intentExtras != NULL) {
-                    intentExtras->GetInt32(Intent_EXTRA_UID, &uid);
+                    intentExtras->GetInt32(String(Intent_EXTRA_UID), &uid);
                 }
 //                if (uid >= 0) {
 //                    AutoPtr<BatteryStatsImpl> bs = mBatteryStatsService->GetActiveStatistics();
@@ -9275,7 +9189,7 @@ ECode CActivityManagerService::BroadcastIntentLocked(
                 // those packages and flush the attribute cache as well.
                 if (!action.Compare(Intent_ACTION_EXTERNAL_APPLICATIONS_UNAVAILABLE)) {
                     ArrayOf<String>* list;
-                    intent->GetStringArrayExtra(Intent_EXTRA_CHANGED_CAPSULE_LIST, &list);
+                    intent->GetStringArrayExtra(String(Intent_EXTRA_CHANGED_CAPSULE_LIST), &list);
 //                    String list[] = intent.getStringArrayExtra(Intent.EXTRA_CHANGED_CAPSULE_LIST);
                     if (list != NULL && (list->GetLength() > 0)) {
                         for (Int32 i = 0; i < list->GetLength(); i++) {
@@ -9291,10 +9205,10 @@ ECode CActivityManagerService::BroadcastIntentLocked(
                     if (data != NULL &&
                             (data->GetSchemeSpecificPart(&ssp), !ssp.IsNull())) {
                         Boolean dontKillApp = FALSE;
-                        intent->GetBooleanExtra(Intent_EXTRA_DONT_KILL_APP, &dontKillApp);
+                        intent->GetBooleanExtra(String(Intent_EXTRA_DONT_KILL_APP), &dontKillApp);
                         if (!dontKillApp) {
                             Int32 uid = -1;
-                            intent->GetInt32Extra(Intent_EXTRA_UID, &uid);
+                            intent->GetInt32Extra(String(Intent_EXTRA_UID), &uid);
                             ForceStopCapsuleLocked(ssp, uid, FALSE, TRUE, TRUE);
                         }
                         if (!action.Compare(Intent_ACTION_CAPSULE_REMOVED)) {
@@ -9304,7 +9218,6 @@ ECode CActivityManagerService::BroadcastIntentLocked(
                                     sa);
                         }
                     }
-                    String::Free(ssp);
                 }
             }
         } else {
@@ -9315,9 +9228,7 @@ ECode CActivityManagerService::BroadcastIntentLocked(
                     + " (pid=" + callingPid + ", uid=" + callingUid + ")" + " requires "
                     + "elastos.permission.BROADCAST_CAPSULE_REMOVED"\
                     /*android.Manifest.permission.BROADCAST_CAPSULE_REMOVED*/;
-
             Slogger::W(TAG, msg);
-            String::Free(action);
             return E_SECURITY_EXCEPTION;
         }
     }
@@ -9349,7 +9260,6 @@ ECode CActivityManagerService::BroadcastIntentLocked(
                 msg += "Permission Denial: not allowed to send broadcast "
                     + action + " from pid=" + callingPid + ", uid=" + callingUid;
                 Slogger::W(TAG, msg);
-                String::Free(action);
                 return E_SECURITY_EXCEPTION;
             }
         }
@@ -9357,15 +9267,13 @@ ECode CActivityManagerService::BroadcastIntentLocked(
             assert(ec == E_REMOTE_EXCEPTION);
             Slogger::W(TAG, "Remote exception");
             *result = BROADCAST_SUCCESS;
-            String::Free(action);
             return NOERROR;
         }
-        String::Free(action);
     }
 
     // Add to the sticky list if requested.
     if (sticky) {
-        if (CheckPermission("elastos.permission.BROADCAST_STICKY"/*android.Manifest.permission.BROADCAST_STICKY*/,
+        if (CheckPermission(String("elastos.permission.BROADCAST_STICKY")/*android.Manifest.permission.BROADCAST_STICKY*/,
                 callingPid, callingUid)
                 != CapsuleManager_PERMISSION_GRANTED) {
             StringBuffer msg;
@@ -9381,7 +9289,6 @@ ECode CActivityManagerService::BroadcastIntentLocked(
             intent->GetDescription(&intDes);
             Slogger::W(TAG, StringBuffer("Can't broadcast sticky intent ") + intDes
                     + " and enforce permission " + requiredPermission);
-            String::Free(intDes);
             *result = BROADCAST_STICKY_CANT_HAVE_PERMISSION;
             return NOERROR;
         }
@@ -9394,7 +9301,7 @@ ECode CActivityManagerService::BroadcastIntentLocked(
         List<AutoPtr<IIntent> >* list = mStickyBroadcasts[action];
         if (list == NULL) {
             list = new List<AutoPtr<IIntent> >();
-            mStickyBroadcasts[String::Duplicate(action)] = list;
+            mStickyBroadcasts[action] = list;
         }
         List<AutoPtr<IIntent> >::Iterator it = list->Begin();
         for (; it != list->End(); ++it) {
@@ -9428,7 +9335,7 @@ ECode CActivityManagerService::BroadcastIntentLocked(
         GetCapsuleManager()->GetReceiverInfo(component,
                 STOCK_PM_FLAGS, (IActivityInfo**)&ai);
         if (ai != NULL) {
-            CObjectContainer::New((IObjectContainer**)&receivers);
+            CParcelableObjectContainer::New((IObjectContainer**)&receivers);
             AutoPtr<CResolveInfo> ri;
             CResolveInfo::NewByFriend((CResolveInfo**)&ri);
             ri->mActivityInfo = (CActivityInfo*)(IActivityInfo*)ai;
@@ -9458,7 +9365,6 @@ ECode CActivityManagerService::BroadcastIntentLocked(
         intent->GetAction(&action);
         Slogger::V(TAG, StringBuffer("Enqueing broadcast: ") + action
                 + " replacePending=" + replacePending);
-        String::Free(action);
     }
 
     Int32 NR = registeredReceivers != NULL ? registeredReceivers->GetSize() : 0;
@@ -9480,7 +9386,6 @@ ECode CActivityManagerService::BroadcastIntentLocked(
             r->GetDescription(&brDes);
             Slogger::V(TAG, StringBuffer("Enqueueing parallel broadcast ") + brDes
                     + ": prev had " + (Int32)mParallelBroadcasts.GetSize());
-            String::Free(brDes);
         }
         Boolean replaced = FALSE;
         if (replacePending) {
@@ -9493,7 +9398,6 @@ ECode CActivityManagerService::BroadcastIntentLocked(
                         String intDes;
                         intent->GetDescription(&intDes);
                         Slogger::V(TAG, StringBuffer("***** DROPPING PARALLEL: ") + intDes);
-                        String::Free(intDes);
                     }
                     mParallelBroadcasts.Insert(it.GetBase(), r);
                     replaced = TRUE;
@@ -9518,7 +9422,7 @@ ECode CActivityManagerService::BroadcastIntentLocked(
         // installed.  Maybe in the future we want to have a special install
         // broadcast or such for apps, but we'd like to deliberately make
         // this decision.
-        ArrayOf<String>* skipCapsules = NULL;
+        AutoStringArray skipCapsules;
         if (!action.Compare(Intent_ACTION_CAPSULE_ADDED)
                 || !action.Compare(Intent_ACTION_CAPSULE_RESTARTED)
                 || !action.Compare(Intent_ACTION_CAPSULE_DATA_CLEARED)) {
@@ -9533,7 +9437,8 @@ ECode CActivityManagerService::BroadcastIntentLocked(
                 }
             }
         } else if (!action.Compare(Intent_ACTION_EXTERNAL_APPLICATIONS_AVAILABLE)) {
-            intent->GetStringArrayExtra(Intent_EXTRA_CHANGED_CAPSULE_LIST, &skipCapsules);
+            intent->GetStringArrayExtra(String(Intent_EXTRA_CHANGED_CAPSULE_LIST),
+                    (ArrayOf<String>**)&skipCapsules);
         }
         if (skipCapsules != NULL && (skipCapsules->GetLength() > 0)) {
             for (Int32 i = 0; i < skipCapsules->GetLength(); ++i) {
@@ -9587,7 +9492,7 @@ ECode CActivityManagerService::BroadcastIntentLocked(
     }
     while (ir != registeredReceivers->End()) {
         if (receivers == NULL) {
-            CObjectContainer::New((IObjectContainer**)&receivers);
+            CParcelableObjectContainer::New((IObjectContainer**)&receivers);
         }
         receivers->Add(*ir);
         ir++;
@@ -9616,15 +9521,13 @@ ECode CActivityManagerService::BroadcastIntentLocked(
             r->GetDescription(&brDes);
             Slogger::V(TAG, StringBuffer("Enqueueing ordered broadcast ") + brDes
                 + ": prev had " + (Int32)mOrderedBroadcasts.GetSize());
-            String::Free(brDes);
         }
         if (DEBUG_BROADCAST) {
             Int32 seq = -1;
-            r->mIntent->GetInt32Extra("seq", &seq);
+            r->mIntent->GetInt32Extra(String("seq"), &seq);
             String action;
             r->mIntent->GetAction(&action);
             Slogger::I(TAG, StringBuffer("Enqueueing broadcast ") + action + " seq=" + seq);
-            String::Free(action);
         }
         Boolean replaced = FALSE;
         if (replacePending) {
@@ -9637,7 +9540,6 @@ ECode CActivityManagerService::BroadcastIntentLocked(
                         String intDes;
                         intent->GetDescription(&intDes);
                         Slogger::V(TAG, StringBuffer("***** DROPPING ORDERED: ") + intDes);
-                        String::Free(intDes);
                     }
                     mOrderedBroadcasts.Insert(it.GetBase(), r);
                     replaced = TRUE;
@@ -9687,7 +9589,6 @@ ECode CActivityManagerService::VerifyBroadcastLocked(
             Slogger::E(TAG, "Attempt to launch receivers of broadcast intent " + intDes
                     + " before boot completion");
             Slogger::E(TAG, "Cannot broadcast before boot completed");
-            String::Free(intDes);
             return E_ILLEGAL_STATE_EXCEPTION;
         }
     }
@@ -9703,12 +9604,12 @@ ECode CActivityManagerService::VerifyBroadcastLocked(
 ECode CActivityManagerService::BroadcastIntent(
     /* [in] */ IApplicationApartment* caller,
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ IIntentReceiver* resultTo,
     /* [in] */ Int32 resultCode,
-    /* [in] */ String resultData,
+    /* [in] */ const String& resultData,
     /* [in] */ IBundle* map,
-    /* [in] */ String requiredPermission,
+    /* [in] */ const String& requiredPermission,
     /* [in] */ Boolean serialized,
     /* [in] */ Boolean sticky,
     /* [in] */ Int32 callingPid,
@@ -9722,7 +9623,7 @@ ECode CActivityManagerService::BroadcastIntent(
     VerifyBroadcastLocked(intent, (IIntent**)&newIntent);
     ProcessRecord* callerApp = GetProcessRecordForAppLocked(caller);
     ECode ec = BroadcastIntentLocked(callerApp,
-            callerApp != NULL ? callerApp->mInfo->mCapsuleName : NULL,
+            callerApp != NULL ? callerApp->mInfo->mCapsuleName : String(NULL),
             intent, resolvedType, resultTo,
             resultCode, resultData, map, requiredPermission, serialized,
             sticky, callingPid, callingUid, result);
@@ -9732,15 +9633,15 @@ ECode CActivityManagerService::BroadcastIntent(
 }
 
 ECode CActivityManagerService::BroadcastIntentInCapsuel(
-    /* [in] */ String capsuleName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ Int32 uid,
     /* [in] */ IIntent* intent,
-    /* [in] */ String resolvedType,
+    /* [in] */ const String& resolvedType,
     /* [in] */ IIntentReceiver* resultTo,
     /* [in] */ Int32 resultCode,
-    /* [in] */ String resultData,
+    /* [in] */ const String& resultData,
     /* [in] */ IBundle* map,
-    /* [in] */ String requiredPermission,
+    /* [in] */ const String& requiredPermission,
     /* [in] */ Boolean serialized,
     /* [in] */ Boolean sticky,
     /* [out] */ Int32* result)
@@ -9795,7 +9696,7 @@ ECode CActivityManagerService::UnbroadcastIntent(
 Boolean CActivityManagerService::FinishReceiverLocked(
     /* [in] */ IBinder* receiver,
     /* [in] */ Int32 resultCode,
-    /* [in] */ String resultData,
+    /* [in] */ const String& resultData,
     /* [in] */ IBundle* resultExtras,
     /* [in] */ Boolean resultAbort,
     /* [in] */ Boolean _explicit)
@@ -9839,7 +9740,7 @@ Boolean CActivityManagerService::FinishReceiverLocked(
     mPendingBroadcast = NULL;
 
     r->mResultCode = resultCode;
-    r->mResultData = String::Duplicate(resultData);
+    r->mResultData = resultData;
     r->mResultExtras = resultExtras;
     r->mResultAbort = resultAbort;
 
@@ -9853,7 +9754,7 @@ Boolean CActivityManagerService::FinishReceiverLocked(
 ECode CActivityManagerService::FinishReceiver(
     /* [in] */ IBinder* who,
     /* [in] */ Int32 resultCode,
-    /* [in] */ String resultData,
+    /* [in] */ const String& resultData,
     /* [in] */ IBundle* resultExtras,
     /* [in] */ Boolean resultAbort)
 {
@@ -9861,7 +9762,6 @@ ECode CActivityManagerService::FinishReceiver(
         String whoDes;
         who->GetDescription(&whoDes);
         Slogger::V(TAG, "Finish receiver: " + whoDes);
-        String::Free(whoDes);
     }
 
     // Refuse possible leaked file descriptors
@@ -9986,7 +9886,6 @@ void CActivityManagerService::BroadcastTimeoutLocked(
     Slogger::W(TAG, StringBuffer("Timeout of broadcast ") + brDes
 //            + " - receiver=" + r.receiver
             + ", started " + (now - r->mReceiverTime) + "ms ago");
-    String::Free(brDes);
     r->mReceiverTime = now;
     r->mAnrCount++;
 
@@ -10022,7 +9921,6 @@ void CActivityManagerService::BroadcastTimeoutLocked(
         String intentDes;
         r->mIntent->GetDescription(&intentDes);
         anrMessage += "Broadcast of " + intentDes;
-        String::Free(intentDes);
     }
 
     if (mPendingBroadcast == r) {
@@ -10051,8 +9949,6 @@ ECode CActivityManagerService::ProcessCurBroadcastLocked(
         app->GetDescription(&appDes);
         Slogger::V(TAG, StringBuffer("Process cur broadcast ")
                 + brDes + " for app " + appDes);
-        String::Free(brDes);
-        String::Free(appDes);
     }
     if (app->mAppApartment == NULL) return E_REMOTE_EXCEPTION;
 
@@ -10066,8 +9962,6 @@ ECode CActivityManagerService::ProcessCurBroadcastLocked(
     r->mCurComponent->GetCapsuleName(&capsuleName);
     r->mCurComponent->GetClassName(&className);
     r->mIntent->SetClassName(capsuleName, className);
-    String::Free(capsuleName);
-    String::Free(className);
 
     if (DEBUG_BROADCAST_LIGHT) {
         String compDes, brDes;
@@ -10075,8 +9969,6 @@ ECode CActivityManagerService::ProcessCurBroadcastLocked(
         r->GetDescription(&brDes);
         Slogger::V(TAG, StringBuffer("Delivering to component ") + compDes
                 + ": " + brDes);
-        String::Free(compDes);
-        String::Free(brDes);
     }
 //    ensurePackageDexOpt(r.intent.getComponent().getPackageName());
     AutoPtr<IIntent> newIntent;
@@ -10091,7 +9983,6 @@ ECode CActivityManagerService::ProcessCurBroadcastLocked(
             r->GetDescription(&brDes);
             Slogger::V(TAG, StringBuffer("Process cur broadcast ")
                     + brDes + ": NOT STARTED!");
-            String::Free(brDes);
         }
         return NOERROR;
     }
@@ -10101,8 +9992,6 @@ ECode CActivityManagerService::ProcessCurBroadcastLocked(
         app->GetDescription(&appDes);
         Slogger::V(TAG, StringBuffer("Process cur broadcast ")
                 + brDes + " DELIVERED for app " + appDes);
-        String::Free(brDes);
-        String::Free(appDes);
     }
     return NOERROR;
 }
@@ -10112,7 +10001,7 @@ ECode CActivityManagerService::PerformReceiveLocked(
     /* [in] */ IIntentReceiver* receiver,
     /* [in] */ IIntent* intent,
     /* [in] */ Int32 resultCode,
-    /* [in] */ String data,
+    /* [in] */ const String& data,
     /* [in] */ IBundle* extras,
     /* [in] */ Boolean ordered,
     /* [in] */ Boolean sticky)
@@ -10150,8 +10039,6 @@ ECode CActivityManagerService::DeliverToRegisteredReceiverLocked(
                     + r->mCallingPid + ", uid=" + r->mCallingUid + ")"
                     + " requires " + filter->mRequiredPermission
                     + " due to registered receiver " + bfDes);
-            String::Free(intentDes);
-            String::Free(bfDes);
             skip = TRUE;
         }
     }
@@ -10170,8 +10057,6 @@ ECode CActivityManagerService::DeliverToRegisteredReceiverLocked(
                     + " requires " + r->mRequiredPermission
                     + " due to sender " + r->mCallerCapsule
                     + " (uid " + r->mCallingUid + ")");
-            String::Free(intentDes);
-            String::Free(appDes);
             skip = TRUE;
         }
     }
@@ -10198,14 +10083,12 @@ ECode CActivityManagerService::DeliverToRegisteredReceiverLocked(
         }
         if (DEBUG_BROADCAST_LIGHT) {
             Int32 seq = -1;
-            r->mIntent->GetInt32Extra("seq", &seq);
+            r->mIntent->GetInt32Extra(String("seq"), &seq);
             String bfDes, brDes;
             filter->GetDescription(&bfDes);
             r->GetDescription(&brDes);
             Slogger::I(TAG, StringBuffer("Delivering to ") + bfDes
                     + " (seq=" + seq + "): " + brDes);
-            String::Free(bfDes);
-            String::Free(brDes);
         }
         AutoPtr<IIntent> newIntent;
         CIntent::New(r->mIntent, (IIntent**)&newIntent);
@@ -10220,7 +10103,6 @@ ECode CActivityManagerService::DeliverToRegisteredReceiverLocked(
             String intentDes;
             r->mIntent->GetDescription(&intentDes);
             Slogger::W(TAG, StringBuffer("Failure sending broadcast ") + intentDes);
-            String::Free(intentDes);
             if (ordered) {
                 r->mReceiver = NULL;
                 r->mCurFilter = NULL;
@@ -10281,7 +10163,6 @@ ECode CActivityManagerService::ProcessNextBroadcast(
             r->GetDescription(&brDes);
             Slogger::V(TAG, StringBuffer("Processing parallel broadcast ")
                     + brDes);
-            String::Free(brDes);
         }
         List<AutoPtr<IObject> >::Iterator it2 = r->mReceivers->Begin();
         for (; it2 != r->mReceivers->End(); ++it2) {
@@ -10292,8 +10173,6 @@ ECode CActivityManagerService::ProcessNextBroadcast(
                 r->GetDescription(&brDes);
                 Slogger::V(TAG, StringBuffer("Delivering non-serialized to registered ")
                     + bfDes + ": " + brDes);
-                String::Free(bfDes);
-                String::Free(brDes);
             }
             DeliverToRegisteredReceiverLocked(r, f, FALSE);
         }
@@ -10303,7 +10182,6 @@ ECode CActivityManagerService::ProcessNextBroadcast(
             r->GetDescription(&brDes);
             Slogger::V(TAG, StringBuffer("Done with parallel broadcast ")
                 + brDes);
-            String::Free(brDes);
         }
     }
 
@@ -10318,7 +10196,6 @@ ECode CActivityManagerService::ProcessNextBroadcast(
             mPendingBroadcast->mCurApp->GetDescription(&appDes);
             Slogger::V(TAG, StringBuffer("processNextBroadcast: waiting for ")
                     + appDes);
-            String::Free(appDes);
         }
 
         Boolean isDead =
@@ -10333,7 +10210,6 @@ ECode CActivityManagerService::ProcessNextBroadcast(
             Slogger::W(TAG, StringBuffer("pending app ")
                     + appDes
                     + " died before responding to broadcast");
-            String::Free(appDes);
             mPendingBroadcast->mState = BroadcastRecord::IDLE;
             mPendingBroadcast->mNextReceiver = mPendingBroadcastRecvIndex;
             mPendingBroadcast = NULL;
@@ -10380,7 +10256,6 @@ ECode CActivityManagerService::ProcessNextBroadcast(
                         + " numReceivers=" + numReceivers
 //                        + " nextReceiver=" + r->mNextReceiver
                         + " state=" + (Int32)r->mState);
-                String::Free(intentDes);
                 BroadcastTimeoutLocked(FALSE); // forcibly finish this broadcast
                 forceReceive = TRUE;
                 r->mState = BroadcastRecord::IDLE;
@@ -10403,14 +10278,12 @@ ECode CActivityManagerService::ProcessNextBroadcast(
             if (r->mResultTo != NULL) {
                 if (DEBUG_BROADCAST) {
                     Int32 seq = -1;
-                    r->mIntent->GetInt32Extra("seq", &seq);
+                    r->mIntent->GetInt32Extra(String("seq"), &seq);
                     String action, appDes;
                     r->mIntent->GetAction(&action);
                     r->mCallerApp->GetDescription(&appDes);
                     Slogger::I(TAG, StringBuffer("Finishing broadcast ") + action
                             + " seq=" + seq + " app=" + appDes);
-                    String::Free(action);
-                    String::Free(appDes);
                 }
                 AutoPtr<IIntent> intent;
                 CIntent::New(r->mIntent, (IIntent**)&intent);
@@ -10424,7 +10297,6 @@ ECode CActivityManagerService::ProcessNextBroadcast(
                     String intentDes;
                     r->mIntent->GetDescription(&intentDes);
                     Slogger::W(TAG, StringBuffer("Failure sending broadcast result of ") +intentDes);
-                    String::Free(intentDes);
                 }
             }
 
@@ -10438,7 +10310,6 @@ ECode CActivityManagerService::ProcessNextBroadcast(
                 r->GetDescription(&brDes);
                 Slogger::V(TAG, StringBuffer("Finished with ordered broadcast ")
                         + brDes);
-                String::Free(brDes);
             }
 
             // ... and on to the next...
@@ -10469,7 +10340,6 @@ ECode CActivityManagerService::ProcessNextBroadcast(
             r->GetDescription(&brDes);
             Slogger::V(TAG, StringBuffer("Submitting BROADCAST_TIMEOUT_MSG for ")
                     + brDes + " at " + timeoutTime);
-            String::Free(brDes);
         }
         SetBroadcastTimeoutLocked(timeoutTime);
     }
@@ -10487,8 +10357,6 @@ ECode CActivityManagerService::ProcessNextBroadcast(
             r->GetDescription(&brDes);
             Slogger::V(TAG, StringBuffer("Delivering ordered to registered ")
                 + bfDes + ": " + brDes);
-            String::Free(bfDes);
-            String::Free(brDes);
         }
         DeliverToRegisteredReceiverLocked(r, filter, r->mOrdered);
         if (r->mReceiver == NULL || !r->mOrdered) {
@@ -10523,7 +10391,6 @@ ECode CActivityManagerService::ProcessNextBroadcast(
                 + " requires " + info->mActivityInfo->mPermission
                 + " due to receiver " + info->mActivityInfo->mCapsuleName
                 + "/" + info->mActivityInfo->mName);
-        String::Free(intentDes);
         skip = TRUE;
     }
     if (r->mCallingUid != Process::SYSTEM_UID &&
@@ -10542,7 +10409,6 @@ ECode CActivityManagerService::ProcessNextBroadcast(
                     + " requires " + r->mRequiredPermission
                     + " due to sender " + r->mCallerCapsule
                     + " (uid " + r->mCallingUid + ")");
-            String::Free(intentDes);
             skip = TRUE;
         }
     }
@@ -10554,8 +10420,6 @@ ECode CActivityManagerService::ProcessNextBroadcast(
             r->mCurApp->GetDescription(&appDes);
             Slogger::V(TAG, StringBuffer("Skipping deliver ordered ")
                     + brDes + " to " + appDes + ": process crashing");
-            String::Free(brDes);
-            String::Free(appDes);
         }
         skip = TRUE;
     }
@@ -10566,7 +10430,6 @@ ECode CActivityManagerService::ProcessNextBroadcast(
             r->GetDescription(&brDes);
             Slogger::V(TAG, StringBuffer("Skipping delivery of ordered ")
                     + brDes + " for whatever reason");
-            String::Free(brDes);
         }
         r->mReceiver = NULL;
         r->mCurFilter = NULL;
@@ -10594,7 +10457,6 @@ ECode CActivityManagerService::ProcessNextBroadcast(
             r->mCurComponent->GetDescription(&compDes);
             Slogger::W(TAG, StringBuffer("Exception when sending broadcast to ")
                   + compDes);
-            String::Free(compDes);
         }
         // If a dead object exception was thrown -- fall through to
         // restart the application.
@@ -10606,7 +10468,6 @@ ECode CActivityManagerService::ProcessNextBroadcast(
         r->GetDescription(&brDes);
         Slogger::V(TAG, StringBuffer("Need to start app ") + targetProcess
                 + " for broadcast " + brDes);
-        String::Free(brDes);
     }
     Int32 flags;
     r->mIntent->GetFlags(&flags);
@@ -10622,7 +10483,6 @@ ECode CActivityManagerService::ProcessNextBroadcast(
                 + info->mActivityInfo->mApplicationInfo->mCapsuleName + "/"
                 + info->mActivityInfo->mApplicationInfo->mUid + " for broadcast "
                 + intentDes + ": process is bad");
-        String::Free(intentDes);
         LogBroadcastReceiverDiscardLocked(r);
         FinishReceiverLocked(r->mReceiver, r->mResultCode, r->mResultData,
                 r->mResultExtras, r->mResultAbort, TRUE);
@@ -10643,7 +10503,7 @@ ECode CActivityManagerService::ProcessNextBroadcast(
 
 ECode CActivityManagerService::StartInstrumentation(
     /* [in] */ IComponentName* className,
-    /* [in] */ String profileFile,
+    /* [in] */ const String& profileFile,
     /* [in] */ Int32 flags,
     /* [in] */ IBundle* arguments,
     /* [in] */ IInstrumentationWatcher* watcher,
@@ -10718,7 +10578,7 @@ ECode CActivityManagerService::StartInstrumentation(
 void CActivityManagerService::ReportStartInstrumentationFailure(
     /* [in] */ IInstrumentationWatcher* watcher,
     /* [in] */ IComponentName* cn,
-    /* [in] */ String report)
+    /* [in] */ const String& report)
 {
 //    Slog.w(TAG, report);
 //    try {
@@ -10857,7 +10717,6 @@ Boolean CActivityManagerService::UpdateConfigurationLocked(
                 String confDes;
                 values->GetDescription(&confDes);
                 Slogger::I(TAG, StringBuffer("Updating configuration to: ") + confDes);
-                String::Free(confDes);
             }
 
 //            EventLog.writeEvent(EventLogTags.CONFIGURATION_CHANGED, changes);
@@ -10877,7 +10736,6 @@ Boolean CActivityManagerService::UpdateConfigurationLocked(
             String confDes;
             newConfig->GetDescription(&confDes);
             Slogger::I(TAG, StringBuffer("Config changed: ") + confDes);
-            String::Free(confDes);
 
             AttributeCache* ac = AttributeCache::GetInstance();
             if (ac != NULL) {
@@ -10899,24 +10757,23 @@ Boolean CActivityManagerService::UpdateConfigurationLocked(
                         mConfiguration->GetDescription(&confDes);
                         Slogger::V(TAG, StringBuffer("Sending to proc ")
                                 + app->mProcessName + " new config " + confDes);
-                        String::Free(confDes);
                     }
                     app->mAppApartment->ScheduleConfigurationChanged(mConfiguration);
                 }
             }
             AutoPtr<IIntent> intent;
-            CIntent::New(Intent_ACTION_CONFIGURATION_CHANGED, (IIntent**)&intent);
+            CIntent::New(String(Intent_ACTION_CONFIGURATION_CHANGED), (IIntent**)&intent);
             intent->AddFlags(Intent_FLAG_RECEIVER_REGISTERED_ONLY
                     | Intent_FLAG_RECEIVER_REPLACE_PENDING);
             Int32 result;
-            BroadcastIntentLocked(NULL, NULL, intent, NULL, NULL, 0, NULL, NULL,
-                    NULL, FALSE, FALSE, mMyPid, Process::SYSTEM_UID, &result);
+            BroadcastIntentLocked(NULL, String(NULL), intent, String(NULL), NULL, 0,
+                    String(NULL), NULL, String(NULL), FALSE, FALSE, mMyPid, Process::SYSTEM_UID, &result);
             if ((changes & CActivityInfo::CONFIG_LOCALE) != 0) {
                 AutoPtr<IIntent> newIntent;
-                CIntent::New(Intent_ACTION_LOCALE_CHANGED, (IIntent**)&intent);
-                BroadcastIntentLocked(NULL, NULL,
-                        newIntent, NULL, NULL, 0, NULL, NULL,
-                        NULL, FALSE, FALSE, mMyPid, Process::SYSTEM_UID, &result);
+                CIntent::New(String(Intent_ACTION_LOCALE_CHANGED), (IIntent**)&intent);
+                BroadcastIntentLocked(NULL, String(NULL),
+                        newIntent, String(NULL), NULL, 0, String(NULL), NULL,
+                        String(NULL), FALSE, FALSE, mMyPid, Process::SYSTEM_UID, &result);
             }
         }
     }
@@ -10939,7 +10796,6 @@ Boolean CActivityManagerService::UpdateConfigurationLocked(
                 starting->GetDescription(&acDes);
                 Slogger::I(TAG, StringBuffer("Config didn't destroy ") + acDes
                     + ", ensuring others are correct.");
-                String::Free(acDes);
             }
             mMainStack->EnsureActivitiesVisibleLocked(starting, changes);
         }
@@ -11093,7 +10949,6 @@ Int32 CActivityManagerService::ComputeOomAdjLocked(
                 String appDes;
                 app->GetDescription(&appDes);
                 Slogger::V(TAG, "oom BACKUP_APP_ADJ for " + appDes);
-                String::Free(appDes);
             }
             adj = BACKUP_APP_ADJ;
             app->mAdjType = "backup";

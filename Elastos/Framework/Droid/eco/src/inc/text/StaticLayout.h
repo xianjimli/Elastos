@@ -80,7 +80,7 @@ public:
      */
      static CARAPI_(Int32) Bidi(
          /* [in] */ Int32 dir,
-         /* [in] */ BufferOf<Byte>* chs,
+         /* [in] */ ArrayOf<Char8>* chs,
          /* [in] */ ArrayOf<Byte>* chInfo,
          /* [in] */ Int32 n,
          /* [in] */ Boolean hasInfo);
@@ -253,7 +253,7 @@ private:
      * These are reused across calls to generate()
      */
     ArrayOf<Byte>* mChdirs;
-    BufferOf<Byte>* mChs;
+    ArrayOf<Char8>* mChs;
     ArrayOf<Float>* mWidths;
     AutoPtr<IPaintFontMetricsInt> mFontMetricsInt;
 };

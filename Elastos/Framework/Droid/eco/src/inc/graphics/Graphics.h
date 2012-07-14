@@ -19,6 +19,10 @@ public:
     };
 
 public:
+    static CARAPI_(SkRect*) IRect2SkRect(
+        /* [in] */ IRect* obj,
+        /* [in] */ SkRect* r);
+
     static CARAPI_(void) SkIRect2IRect(
         /* [in] */ const SkIRect& ir,
         /* [in] */ IRect* obj);
@@ -30,6 +34,9 @@ public:
     static CARAPI_(void) SkRect2IRectF(
         /* [in] */ const SkRect& r,
         /* [in] */ IRectF* obj);
+
+    static CARAPI_(SkBitmap::Config) GetNativeBitmapConfig(
+        /* [in] */ BitmapConfig config);
 
     static CARAPI SetPixelRef(
         /* [in] */ SkBitmap* bitmap,
@@ -46,7 +53,7 @@ public:
         /* [in] */ const SkBitmap& dstBitmap);
 
 private:
-    static const String TAG;
+    static const char* TAG;
 };
 
 #endif //__GRAPHICS_H__

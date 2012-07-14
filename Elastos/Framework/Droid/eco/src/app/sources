@@ -34,3 +34,11 @@ SOURCES += CCrashInfo.cpp
 SOURCES += CProcessErrorStateInfo.cpp
 SOURCES += CApplicationErrorReport.cpp
 SOURCES += CRunningServiceInfo.cpp
+SOURCES += Dialog.cpp
+SOURCES += CDialog.cpp
+SOURCES += AlertController.cpp
+SOURCES += AlertDialog.cpp
+SOURCES += CAlertDialog.cpp
+SOURCES += CAlertDialogBuilder.cpp
+SOURCES += StatusBarManager.cpp
+

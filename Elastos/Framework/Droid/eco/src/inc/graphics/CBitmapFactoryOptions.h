@@ -3,7 +3,6 @@
 #define __CBITMAPFACTORYOPTIONS_H__
 
 #include "_CBitmapFactoryOptions.h"
-#include "utils/AutoString.h"
 #include <elastos/AutoFree.h>
 
 CarClass(CBitmapFactoryOptions)
@@ -206,7 +205,7 @@ public:
      * If known, this string is set to the mimetype of the decoded image.
      * If not know, or there is an error, it is set to null.
      */
-    AutoString mOutMimeType;
+    String mOutMimeType;
 
     /**
      * Temp storage to use for decoding.  Suggest 16K or so.

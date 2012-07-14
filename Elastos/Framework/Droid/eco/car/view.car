@@ -28,6 +28,7 @@ module
     merge("view/KeyEvent.car");
     merge("view/MotionEvent.car");
     merge("view/accessibility/AccessibilityEvent.car");
+    merge("view/accessibility/AccessibilityEventSource.car");
     merge("view/inputmethod/ExtractedText.car");
     merge("view/inputmethod/ExtractedTextRequest.car");
     merge("view/inputmethod/CompletionInfo.car");

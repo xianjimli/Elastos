@@ -1010,7 +1010,7 @@ public:
 
 private:
     static const Boolean DBG = TRUE;
-    static const String VG_TAG;
+    static const char* VG_TAG;
 
     // When set, ViewGroup invalidates only the child's rectangle
     // Set by default

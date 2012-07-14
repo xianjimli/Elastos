@@ -13,7 +13,7 @@ ECode CApplicationContentResolver::constructor(
 
 ECode CApplicationContentResolver::AcquireProvider(
     /* [in] */ IContext* context,
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ IContentProvider** provider)
 {
     return mApartment->AcquireProvider(context, name, provider);
@@ -21,7 +21,7 @@ ECode CApplicationContentResolver::AcquireProvider(
 
 ECode CApplicationContentResolver::AcquireExistingProvider(
     /* [in] */ IContext* context,
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ IContentProvider** provider)
 {
     return mApartment->AcquireExistingProvider(context, name, provider);
@@ -49,7 +49,7 @@ ECode CApplicationContentResolver::GetResourceId(
 
 ECode CApplicationContentResolver::Delete(
     /* [in] */ IUri* uri,
-    /* [in] */ String selection,
+    /* [in] */ const String& selection,
     /* [in] */ const ArrayOf<String>& selectionArgs,
     /* [out] */ Int32* rowsAffected)
 {
@@ -75,9 +75,9 @@ ECode CApplicationContentResolver::Insert(
 ECode CApplicationContentResolver::Query(
     /* [in] */ IUri* uri,
     /* [in] */ const ArrayOf<String>& projection,
-    /* [in] */ String selection,
+    /* [in] */ const String& selection,
     /* [in] */ const ArrayOf<String>& selectionArgs,
-    /* [in] */ String sortOrder,
+    /* [in] */ const String& sortOrder,
     /* [out] */ ICursor** cursor)
 {
     return ContentResolver::Query(uri,
@@ -88,7 +88,7 @@ ECode CApplicationContentResolver::Query(
 ECode CApplicationContentResolver::Update(
     /* [in] */ IUri* uri,
     /* [in] */ IContentValues* values,
-    /* [in] */ String selection,
+    /* [in] */ const String& selection,
     /* [in] */ const ArrayOf<String>& selectionArgs,
     /* [out] */ Int32* rowsAffected)
 {

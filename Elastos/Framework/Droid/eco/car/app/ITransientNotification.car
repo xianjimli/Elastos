@@ -1,0 +1,9 @@
+
+module
+{
+    interface ITransientNotification {
+        Show();
+
+        Hide();
+    }
+}

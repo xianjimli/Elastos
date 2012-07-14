@@ -9,6 +9,12 @@ IVIEWPARENT_METHODS_IMPL(CLinearLayout, LinearLayout, LinearLayout);
 
 IVIEWMANAGER_METHODS_IMPL(CLinearLayout, LinearLayout, LinearLayout);
 
+IDrawableCallback_METHODS_IMPL(CLinearLayout, LinearLayout, LinearLayout);
+
+IKeyEventCallback_METHODS_IMPL(CLinearLayout, LinearLayout, LinearLayout);
+
+IAccessibilityEventSource_METHODS_IMPL(CLinearLayout, LinearLayout, LinearLayout);
+
 PInterface CLinearLayout::Probe(
     /* [in] */ REIID riid)
 {

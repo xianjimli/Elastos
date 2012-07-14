@@ -9,6 +9,12 @@ module
     merge("os/Bundle.car");
     merge("os/ServiceManager.car");
     merge("os/PatternMatcher.car");
+    merge("os/FileObserver.car");
+    merge("os/FileStatus.car");
+    merge("os/Vibrator.car");
+    merge("os/storage/IMountServiceListener.car");
+    merge("os/storage/IMountShutdownObserver.car");
+    merge("os/storage/IObbActionListener.car");
     merge("os/storage/IMountService.car");
 
     class CApartment {
@@ -69,5 +75,11 @@ module
 
     singleton class CServiceManager {
         interface IServiceManager;
+    }
+
+    class CVibrator {
+        constructor();
+
+        interface IVibrator;
     }
 }

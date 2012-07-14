@@ -4,6 +4,7 @@
 
 #include "widget/AdapterView.h"
 #include "widget/EdgeGlow.h"
+#include "view/VelocityTracker.h"
 
 class OverScroller;
 class FastScroller;
@@ -443,7 +444,7 @@ public:
      * @see #setTextFilterEnabled
      */
     virtual CARAPI SetFilterText(
-        /* [in] */ String filterText);
+        /* [in] */ const String& filterText);
 
     /**
      * Returns the list's text filter, if available.
@@ -1279,7 +1280,7 @@ private:
     /**
      * Determines speed during touch scrolling
      */
-    //AutoPtr<VelocityTracker> mVelocityTracker;
+    AutoPtr<VelocityTracker> mVelocityTracker;
 
     /**
      * Handles one frame of a fling

@@ -29,7 +29,7 @@ ECode CPatternMatcher::GetType(
 }
 
 ECode CPatternMatcher::Match(
-    /* [in] */ String str,
+    /* [in] */ const String& str,
     /* [out] */ Boolean* isMatch)
 {
     // TODO: Add your code here
@@ -51,7 +51,7 @@ ECode CPatternMatcher::DescribeContents(
 }
 
 ECode CPatternMatcher::constructor(
-    /* [in] */ String pattern,
+    /* [in] */ const String& pattern,
     /* [in] */ Int32 type)
 {
     // TODO: Add your code here

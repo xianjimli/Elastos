@@ -1,10 +1,12 @@
 
 #include "CChapter.h"
 #include "CTextFactory.h"
+#include <stdio.h>
 
 CChapter::CChapter()
     : mParagraphCount(0)
     , mText(NULL)
+    , mStartPageIndex(0)
 {}
 
 ECode CChapter::Append(
@@ -15,24 +17,23 @@ ECode CChapter::Append(
     mParagraphs.PushBack(paragraph);
     mParagraphCount++;
 
-    //printf("<%s, %d>, m_paragraphCount=[%d]\n",  __FILE__, __LINE__, m_paragraphCount);
     return NOERROR;
 }
 
 ECode CChapter::BuildTexts(
     /* [in] */ Int32 width,
     /* [in] */ Int32 height,
+    /* [in] */ Int32 lineHeight,
+    /* [in] */ ITextPaint* textPaint,
     /* [out] */ IObjectContainer** texts)
 {
-    //printf("<%s, %d>, [%d], [%d]\n",  __FILE__, __LINE__, width, height);
     assert(width > 0 && height > 0);
 
     if (mTextFactory == NULL) {
         CTextFactory::AcquireSingleton((ITextFactory**)&mTextFactory);
     }
 
-    //printf("<%s, %d>\n",  __FILE__, __LINE__);
-    return mTextFactory->ProcessText(mText, width, height, texts);
+    return mTextFactory->ProcessText(mText, width, height, lineHeight, textPaint, texts);
 }
 
 ECode CChapter::Flush()
@@ -56,7 +57,7 @@ ECode CChapter::Flush()
         (*it)->GetData((Handle32*)&data);
         if (data != NULL) {
             len = data->GetLength();
-            memcpy(mText->GetPayload() + offset, data, len);
+            memcpy(mText->GetPayload() + offset, data->GetPayload(), len);
         }
         offset += len;
     }
@@ -75,6 +76,26 @@ ECode CChapter::GetOrder(
 ECode CChapter::SetOrder(
     /*[in]*/ Int32 order)
 {
+	printf("==== File: %s, Line: %d ==== order  = [%d]\n", __FILE__, __LINE__, order);
+
     mOrder = order;
     return NOERROR;
 }
+
+ECode CChapter::GetStartPageIndex(
+    /* [out] */ Int32* pageIndex)
+{
+    VALIDATE_NOT_NULL(pageIndex);
+    *pageIndex = mStartPageIndex;
+    return NOERROR;
+}
+
+ECode CChapter::SetStartPageIndex(
+    /*[in]*/ Int32 pageIndex)
+{
+	printf("==== File: %s, Line: %d ==== pageIndex  = [%d]\n", __FILE__, __LINE__, pageIndex);
+
+    mStartPageIndex = pageIndex;
+    return NOERROR;
+}
+

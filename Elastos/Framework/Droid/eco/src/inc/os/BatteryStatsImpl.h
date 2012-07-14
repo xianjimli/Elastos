@@ -3,11 +3,11 @@
 #define __BATTERYSTATSIMPL_H__
 
 #include "ext/frameworkext.h"
-#include "utils/ElRefBase.h"
+#include <elastos/ElRefBase.h>
 #include <elastos/Mutex.h>
 
 using namespace Elastos;
-using namespace Elastos::System::Threading;
+using namespace Elastos::Core::Threading;
 
 class BatteryStatsImpl : public ElRefBase, public IBatteryStats
 {
@@ -221,12 +221,12 @@ public:
 
     Uid::Proc* GetProcessStatsLocked(
         /* [in] */ Int32 uid,
-        /* [in] */ String name);
+        /* [in] */ const String& name);
 
     Uid::Cap::Serv* GetServiceStatsLocked(
         /* [in] */ Int32 uid,
-        /* [in] */ String pkg,
-        /* [in] */ String name);
+        /* [in] */ const String& pkg,
+        /* [in] */ const String& name);
 
 private:
      /**

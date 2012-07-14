@@ -1,0 +1,11 @@
+TARGET_NAME= statusbar
+TARGET_TYPE= lib
+
+include $(MAKEDIR)/../../../sources.inc
+
+INCLUDES += $(MAKEDIR)/../inc
+INCLUDES += ../
+
+SOURCES = CStatusBarIcon.cpp
+SOURCES += CStatusBarIconList.cpp
+SOURCES += CStatusBarNotification.cpp

@@ -46,14 +46,10 @@ CActivityInfo::CActivityInfo()
     , mScreenOrientation(SCREEN_ORIENTATION_UNSPECIFIED)
     , mConfigChanges(0)
     , mSoftInputMode(0)
-{
-}
+{}
 
 CActivityInfo::~CActivityInfo()
-{
-    String::Free(mTaskAffinity);
-    String::Free(mTargetActivity);
-}
+{}
 
 ECode CActivityInfo::constructor()
 {
@@ -70,8 +66,8 @@ ECode CActivityInfo::constructor(
 //    theme = orig.theme;
     mLaunchMode = corig->mLaunchMode;
 //    permission = orig.permission;
-    mTaskAffinity = String::Duplicate(corig->mTaskAffinity);
-    mTargetActivity = String::Duplicate(corig->mTargetActivity);
+    mTaskAffinity = corig->mTaskAffinity;
+    mTargetActivity = corig->mTargetActivity;
     mFlags = corig->mFlags;
 //    screenOrientation = orig.screenOrientation;
 //    configChanges = orig.configChanges;
@@ -105,7 +101,7 @@ ECode CActivityInfo::LoadLogo(
 
 ECode CActivityInfo::LoadXmlMetaData(
     /* [in] */ ICapsuleManager* pm,
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ IXmlResourceParser** resource)
 {
     VALIDATE_NOT_NULL(resource);
@@ -116,18 +112,18 @@ ECode CActivityInfo::GetComponentName(
     /* [out] */ String *capsuleName,
     /* [out] */ String *name)
 {
-    *capsuleName = String::Duplicate(mCapsuleName);
-    *name = String::Duplicate(mName);
+    *capsuleName = mCapsuleName;
+    *name = mName;
 
     return NOERROR;
 }
 
 ECode CActivityInfo::SetComponentName(
-    /* [in] */ String capsuleName,
-    /* [in] */ String className)
+    /* [in] */ const String& capsuleName,
+    /* [in] */ const String& className)
 {
-    mCapsuleName = String::Duplicate(capsuleName);
-    mName = String::Duplicate(className);
+    mCapsuleName = capsuleName;
+    mName = className;
 
     return NOERROR;
 }

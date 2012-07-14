@@ -8,7 +8,7 @@ INCLUDES += ../
 
 SOURCES = CApartment.cpp
 SOURCES += CBundle.cpp
-SOURCES += CObjectContainer.cpp
+SOURCES += CParcelableObjectContainer.cpp
 SOURCES += CObjectEnumerator.cpp
 SOURCES += CObjectStringMap.cpp
 SOURCES += CObjectIntegerMap.cpp
@@ -20,3 +20,7 @@ SOURCES += StateSet.cpp
 SOURCES += EventLogTags.cpp
 SOURCES += ArrayUtils.cpp
 SOURCES += ListUtils.cpp
+SOURCES += FinitePool.cpp
+SOURCES += SynchronizedPool.cpp
+SOURCES += Pools.cpp
+SOURCES += SparseArray.cpp

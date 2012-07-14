@@ -2,7 +2,7 @@
 #include "content/AssetInputStream.h"
 #include <elastos/Math.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 
 AssetInputStream::AssetInputStream(
     /* [in] */ CAssetManager* assetManager,
@@ -89,7 +89,7 @@ ECode AssetInputStream::IsMarkSupported(
 }
 
 ECode AssetInputStream::Read(
-    /* [out] */ Byte* value)
+    /* [out] */ Int32* value)
 {
     VALIDATE_NOT_NULL(value);
 
@@ -98,39 +98,42 @@ ECode AssetInputStream::Read(
 }
 
 ECode AssetInputStream::ReadBuffer(
-    /* [out] */ BufferOf<Byte>* buffer)
+    /* [out] */ ArrayOf<Byte>* buffer,
+    /* [out] */ Int32* number)
 {
     VALIDATE_NOT_NULL(buffer);
+    VALIDATE_NOT_NULL(number);
 
-    Int32 len = mAssetManager->ReadAsset(mAsset, (const ArrayOf<Byte>&)buffer,
-        0, buffer->GetCapacity());
+    Int32 len = mAssetManager->ReadAsset(mAsset, *buffer,
+        0, buffer->GetLength());
+    *number = len;
     if (len == 0) {
         return E_OUT_OF_STREAM;
     }
     else if (len == -1) {
         return E_RUNTIME_EXCEPTION;
     }
-    buffer->SetUsed(len);
     return NOERROR;
 }
 
 ECode AssetInputStream::ReadBufferEx(
     /* [in] */ Int32 offset,
     /* [in] */ Int32 length,
-    /* [out] */ BufferOf<Byte>* buffer)
+    /* [out] */ ArrayOf<Byte>* buffer,
+    /* [out] */ Int32* number)
 {
     VALIDATE_NOT_NULL(buffer);
+    VALIDATE_NOT_NULL(number);
 
-    Int32 len = mAssetManager->ReadAsset(mAsset, *(const ArrayOf<Byte>*)buffer,
+    Int32 len = mAssetManager->ReadAsset(mAsset, *buffer,
             offset, length);
-
+    *number = len;
     if (len == 0) {
         return E_OUT_OF_STREAM;
     }
     else if (len == -1) {
         return E_RUNTIME_EXCEPTION;
     }
-    buffer->SetUsed(offset + len);
     return NOERROR;
 }
 
@@ -141,8 +144,10 @@ ECode AssetInputStream::Reset()
 }
 
 ECode AssetInputStream::Skip(
-    /* [in] */ Int32 length)
+    /* [in] */ Int64 length,
+    /* [out] */ Int64* number)
 {
+    VALIDATE_NOT_NULL(number);
     Int64 pos = mAssetManager->SeekAsset(mAsset, 0, 0);
     if ((pos + length) > mLength) {
         length = mLength - pos;
@@ -150,7 +155,7 @@ ECode AssetInputStream::Skip(
     if (length > 0) {
         mAssetManager->SeekAsset(mAsset, length, 0);
     }
-//    return n;
+    *number = length;
     return NOERROR;
 }
 

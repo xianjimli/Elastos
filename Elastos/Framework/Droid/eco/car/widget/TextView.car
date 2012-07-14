@@ -1,6 +1,8 @@
 
 module
 {
+		interface ITextPaint;
+
     enum BufferType {
         BufferType_NORMAL,
         BufferType_SPANNABLE,
@@ -454,8 +456,8 @@ module
          * @return the base paint used for the text.  Please use this only to
          * consult the Paint's properties and not to change them.
          */
-        //GetPaint(
-        //    [out] ITextPaint** paint);
+        GetPaint(
+            [out] ITextPaint** paint);
 
         /**
          * Sets the autolink mask of the text.  See {@link
@@ -812,7 +814,7 @@ module
          * has changed and that it needs to invalidate and re-layout.
          */
         SetTextEx2(
-            [in] BufferOf<Byte> text,
+            [in] ArrayOf<Char8> text,
             [in] Int32 start,
             [in] Int32 len);
 

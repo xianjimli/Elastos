@@ -13,7 +13,7 @@
 #include <StringBuffer.h>
 #include <assert.h>
 
-using namespace Elastos::System;
+using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
 #define CTYPEDVALUE(x) ((CTypedValue*)x.Get())
@@ -27,7 +27,7 @@ const Int32 CAssetManager::STYLE_ASSET_COOKIE;
 const Int32 CAssetManager::STYLE_RESOURCE_ID;
 const Int32 CAssetManager::STYLE_CHANGING_CONFIGURATIONS;
 const Int32 CAssetManager::STYLE_DENSITY;
-const String CAssetManager::TAG = "CAssetManager";
+const char* CAssetManager::TAG = "CAssetManager";
 const Boolean CAssetManager::localLOGV;
 const Boolean CAssetManager::DEBUG_REFS;
 
@@ -300,14 +300,14 @@ ECode CAssetManager::GetPooledString(
 }
 
 ECode CAssetManager::Open(
-    /* [in] */ String fileName,
+    /* [in] */ const String& fileName,
     /* [out] */ IInputStream** stream)
 {
     return OpenEx(fileName, AssetManager_ACCESS_STREAMING, stream);
 }
 
 ECode CAssetManager::OpenEx(
-    /* [in] */ String fileName,
+    /* [in] */ const String& fileName,
     /* [in] */ Int32 accessMode,
     /* [out] */ IInputStream** stream)
 {
@@ -341,7 +341,7 @@ ECode CAssetManager::OpenEx(
 }
 
 ECode CAssetManager::OpenFd(
-    /* [in] */ String fileName,
+    /* [in] */ const String& fileName,
     /* [out] */ IAssetFileDescriptor** fd)
 {
     if (!fd) {
@@ -370,7 +370,7 @@ ECode CAssetManager::OpenFd(
 }
 
 ECode CAssetManager::List(
-    /* [in] */ String path,
+    /* [in] */ const String& path,
     /* [out, callee] */ ArrayOf<String>** names)
 {
     if (!names) {
@@ -401,9 +401,10 @@ ECode CAssetManager::List(
 
     for (size_t i = 0; i < N; i++) {
         const android::String8& name = dir->getFileName(i);
-        (**names)[i] = String::Duplicate((const char*)name);
+        (**names)[i] = (const char*)name;
         if ((**names)[i].IsNull()) {
             delete dir;
+            //todo: maybe exist memory leak
             ArrayOf<String>::Free(*names);
             *names = NULL;
             return E_OUT_OF_MEMORY;
@@ -415,14 +416,14 @@ ECode CAssetManager::List(
 }
 
 ECode CAssetManager::OpenNonAsset(
-    /* [in] */ String fileName,
+    /* [in] */ const String& fileName,
     /* [out] */ IInputStream** stream)
 {
     return OpenNonAssetEx3(0, fileName, AssetManager_ACCESS_STREAMING, stream);
 }
 
 ECode CAssetManager::OpenNonAssetEx(
-    /* [in] */ String fileName,
+    /* [in] */ const String& fileName,
     /* [in] */ Int32 accessMode,
     /* [out] */ IInputStream** stream)
 {
@@ -431,7 +432,7 @@ ECode CAssetManager::OpenNonAssetEx(
 
 ECode CAssetManager::OpenNonAssetEx2(
     /* [in] */ Int32 cookie,
-    /* [in] */ String fileName,
+    /* [in] */ const String& fileName,
     /* [out] */ IInputStream** stream)
 {
     return OpenNonAssetEx3(cookie, fileName, AssetManager_ACCESS_STREAMING, stream);
@@ -439,7 +440,7 @@ ECode CAssetManager::OpenNonAssetEx2(
 
 ECode CAssetManager::OpenNonAssetEx3(
     /* [in] */ Int32 cookie,
-    /* [in] */ String fileName,
+    /* [in] */ const String& fileName,
     /* [in] */ Int32 accessMode,
     /* [out] */ IInputStream** stream)
 {
@@ -478,7 +479,7 @@ ECode CAssetManager::OpenNonAssetEx3(
 }
 
 ECode CAssetManager::OpenNonAssetFd(
-    /* [in] */ String fileName,
+    /* [in] */ const String& fileName,
     /* [out] */ IAssetFileDescriptor** fd)
 {
     return OpenNonAssetFdEx(0, fileName, fd);
@@ -486,7 +487,7 @@ ECode CAssetManager::OpenNonAssetFd(
 
 ECode CAssetManager::OpenNonAssetFdEx(
     /* [in] */ Int32 cookie,
-    /* [in] */ String fileName,
+    /* [in] */ const String& fileName,
     /* [out] */ IAssetFileDescriptor** fd)
 {
     if (!fd) {
@@ -512,7 +513,7 @@ ECode CAssetManager::OpenNonAssetFdEx(
 }
 
 ECode CAssetManager::OpenXmlResourceParser(
-    /* [in] */ String fileName,
+    /* [in] */ const String& fileName,
     /* [out] */ IXmlResourceParser** parser)
 {
     return OpenXmlResourceParserEx(0, fileName, parser);
@@ -520,7 +521,7 @@ ECode CAssetManager::OpenXmlResourceParser(
 
 ECode CAssetManager::OpenXmlResourceParserEx(
     /* [in] */ Int32 cookie,
-    /* [in] */ String fileName,
+    /* [in] */ const String& fileName,
     /* [out] */ IXmlResourceParser** parser)
 {
     VALIDATE_NOT_NULL(parser);
@@ -546,14 +547,14 @@ ECode CAssetManager::OpenXmlResourceParserEx(
 }
 
 XmlBlock* CAssetManager::OpenXmlBlockAsset(
-    /* [in] */ String fileName)
+    /* [in] */ const String& fileName)
 {
     return OpenXmlBlockAsset(0, fileName);
 }
 
 XmlBlock* CAssetManager::OpenXmlBlockAsset(
     /* [in] */ Int32 cookie,
-    /* [in] */ String fileName)
+    /* [in] */ const String& fileName)
 {
     Mutex::Autolock lock(_m_syncLock);
 
@@ -624,7 +625,7 @@ void CAssetManager::Finalize()
 }
 
 ECode CAssetManager::AddAssetPath(
-    /* [in] */ String path,
+    /* [in] */ const String& path,
     /* [out] */ Int32* cookie)
 {
     if (!cookie) {
@@ -688,7 +689,7 @@ ECode CAssetManager::IsUpToDate(
 }
 
 ECode CAssetManager::SetLocale(
-    /* [in] */ String locale)
+    /* [in] */ const String& locale)
 {
     if (locale.IsNull()) {
         return E_INVALID_ARGUMENT;
@@ -714,8 +715,9 @@ ECode CAssetManager::GetLocales(
     }
 
     for (Int32 i = 0; i < N; i++) {
-        (**locales)[i] = String::Duplicate((const char*)locs[i].string());
+        (**locales)[i] = (const char*)locs[i].string();
         if ((**locales)[i].IsNull()) {
+            //todo: maybe exist memory leak
             ArrayOf<String>::Free(*locales);
             *locales = NULL;
             return E_OUT_OF_MEMORY;
@@ -728,7 +730,7 @@ ECode CAssetManager::GetLocales(
 ECode CAssetManager::SetConfiguration(
     /* [in] */ Int32 mcc,
     /* [in] */ Int32 mnc,
-    /* [in] */ String locale,
+    /* [in] */ const String& locale,
     /* [in] */ Int32 orientation,
     /* [in] */ Int32 touchscreen,
     /* [in] */ Int32 density,
@@ -765,22 +767,22 @@ ECode CAssetManager::SetConfiguration(
 }
 
 Int32 CAssetManager::GetResourceIdentifier(
-    /* [in] */ String type,
-    /* [in] */ String name,
-    /* [in] */ String defCapsule)
+    /* [in] */ const char* type,
+    /* [in] */ const char* name,
+    /* [in] */ const char* defCapsule)
 {
-    if (name.IsNull()) {
+    if (name == NULL) {
         Logger::E(TAG, "name");
         return 0;
     }
 
-    const android::String16 n16((const char*)name);
+    const android::String16 n16(name);
     const char16_t* name16 = (const char16_t*)n16;
     size_t nameLen = n16.size();
-    const android::String16 t16((const char*)type);
+    const android::String16 t16(type);
     const char16_t* defType16 = (const char16_t*)t16;
     size_t defTypeLen = t16.size();
-    const android::String16 c16((const char*)type);
+    const android::String16 c16(defCapsule);
     const char16_t* defCapsule16 = (const char16_t*)c16;
     size_t defCapsuleLen = c16.size();
 
@@ -802,26 +804,27 @@ ECode CAssetManager::GetResourceName(
         return E_FILE_NOT_FOUND;
     }
 
-    android::String16 str;
+    android::String16 str16;
     if (n.package != NULL) {
-        str.setTo(n.package, n.packageLen);
+        str16.setTo(n.package, n.packageLen);
     }
     if (n.type != NULL) {
-        if (str.size() > 0) {
+        if (str16.size() > 0) {
             char16_t div = ':';
-            str.append(&div, 1);
+            str16.append(&div, 1);
         }
-        str.append(n.type, n.typeLen);
+        str16.append(n.type, n.typeLen);
     }
     if (n.name != NULL) {
-        if (str.size() > 0) {
+        if (str16.size() > 0) {
             char16_t div = '/';
-            str.append(&div, 1);
+            str16.append(&div, 1);
         }
-        str.append(n.name, n.nameLen);
+        str16.append(n.name, n.nameLen);
     }
 
-    *name = String::Duplicate((const char*)str.string());
+    android::String8 str8(str16);
+    *name = str8.string();
     return (*name).IsNull() ? E_OUT_OF_MEMORY : NOERROR;
 }
 
@@ -840,7 +843,8 @@ ECode CAssetManager::GetResourceCapsuleName(
         return E_DOES_NOT_EXIST;
     }
 
-    *name = String::Duplicate((const char*)n.package);
+    android::String8 str8(n.package);
+    *name = str8.string();
     return (*name).IsNull() ? E_OUT_OF_MEMORY : NOERROR;
 }
 
@@ -859,7 +863,8 @@ ECode CAssetManager::GetResourceTypeName(
         return E_DOES_NOT_EXIST;
     }
 
-    *name = String::Duplicate((const char*)n.type);
+    android::String8 str8(n.type);
+    *name = str8.string();
     return (*name).IsNull() ? E_OUT_OF_MEMORY : NOERROR;
 }
 
@@ -878,12 +883,13 @@ ECode CAssetManager::GetResourceEntryName(
         return E_DOES_NOT_EXIST;
     }
 
-    *name = String::Duplicate((const char*)n.name);
+    android::String8 str8(n.name);
+    *name = str8.string();
     return (*name).IsNull() ? E_OUT_OF_MEMORY : NOERROR;
 }
 
 android::Asset* CAssetManager::OpenAsset(
-    /* [in] */ String fileName,
+    /* [in] */ const String& fileName,
     /* [in] */ Int32 mode)
 {
     Logger::V(TAG, StringBuffer("openAsset in ") + (Int32)mNative);
@@ -912,7 +918,7 @@ android::Asset* CAssetManager::OpenAsset(
 }
 
 ECode CAssetManager::OpenAssetFd(
-    /* [in] */ String fileName,
+    /* [in] */ const String& fileName,
     /* [in, out] */ ArrayOf<Int64>* outOffsets,
     /* [out] */ IParcelFileDescriptor** pfd)
 {
@@ -937,7 +943,7 @@ ECode CAssetManager::OpenAssetFd(
 
 ECode CAssetManager::OpenNonAssetNative(
     /* [in] */ Int32 cookie,
-    /* [in] */ String fileName,
+    /* [in] */ const String& fileName,
     /* [in] */ Int32 mode,
     /* [out] */ android::Asset** asset)
 {
@@ -974,7 +980,7 @@ ECode CAssetManager::OpenNonAssetNative(
 
 ECode CAssetManager::OpenNonAssetFdNative(
     /* [in] */ Int32 cookie,
-    /* [in] */ String fileName,
+    /* [in] */ const String& fileName,
     /* [in] */ ArrayOf<Int64>* outOffsets,
     /* [out] */ IParcelFileDescriptor** fd)
 {
@@ -1635,7 +1641,7 @@ ECode CAssetManager::GetCookieName(
         return E_INDEX_OUT_OF_BOUNDS_EXCEPTION;
     }
 
-    *name = String::Duplicate(n.string());
+    *name = n.string();
     return (*name).IsNull() ? E_OUT_OF_MEMORY : NOERROR;
 }
 
@@ -1659,7 +1665,7 @@ ECode CAssetManager::GetAssetAllocations(
         return E_DOES_NOT_EXIST;
     }
 
-    *allocations = String::Duplicate(alloc.string());
+    *allocations = alloc.string();
     return (*allocations).IsNull() ? E_OUT_OF_MEMORY : NOERROR;
 }
 
@@ -1741,8 +1747,8 @@ Int32 CAssetManager::LoadThemeAttributeValue(
 void CAssetManager::DumpTheme(
     /* [in] */ Int32 theme,
     /* [in] */ Int32 priority,
-    /* [in] */ String tag,
-    /* [in] */ String prefix)
+    /* [in] */ const String& tag,
+    /* [in] */ const String& prefix)
 {
     android::ResTable::Theme* andTheme = (android::ResTable::Theme*)theme;
 
@@ -1759,7 +1765,7 @@ void CAssetManager::DumpTheme(
 
 android::ResXMLTree* CAssetManager::OpenXmlAssetNative(
     /* [in] */ Int32 cookie,
-    /* [in] */ String fileName)
+    /* [in] */ const String& fileName)
 {
     Logger::V(TAG, StringBuffer("openXmlAsset in native object ") + mNative);
 
@@ -1820,6 +1826,7 @@ ECode CAssetManager::GetArrayStringResource(
 #if THROW_ON_BAD_ID
         if (block == android::BAD_INDEX) {
             Logger::E(TAG, "Bad resource!");
+            //todo: maybe exist memory leak
             ArrayOf<String>::Free(*array);
             *array = NULL;
             return E_FILE_NOT_FOUND;
@@ -1829,14 +1836,17 @@ ECode CAssetManager::GetArrayStringResource(
             const android::ResStringPool* pool = res.getTableStringBlock(block);
             const char* str8 = pool->string8At(value.data, &strLen);
             if (str8 != NULL) {
-                str = String::Duplicate(String(str8));
-            } else {
+                str = str8;
+            }
+            else {
                 const char16_t* str16 = pool->stringAt(value.data, &strLen);
                 // BUGBUG: support copy str16 here.
 //	                str = env->NewString(str16, strLen);
-                str = String::Duplicate(String((const char *)str16));
+                android::String8 s8(str16);
+                str = s8.string();
             }
             if (str.IsNull()) {
+                //todo: maybe exist memory leak
                 ArrayOf<String>::Free(*array);
                 *array = NULL;
                 return E_OUT_OF_MEMORY;
@@ -1887,7 +1897,7 @@ ECode CAssetManager::GetArrayStringInfo(
 #if THROW_ON_BAD_ID
         if (stringBlock == android::BAD_INDEX) {
             Logger::E(TAG, "Bad resource!");
-            ArrayOf<String>::Free(*array);
+            ArrayOf<Int32>::Free(*array);
             *array = NULL;
             return E_FILE_NOT_FOUND;
         }
