@@ -1,0 +1,9 @@
+TARGET_NAME=ZLUnixiconv
+TARGET_TYPE=lib
+
+INCLUDES +=$(MAKEDIR)/../../../include
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+SOURCES +=IConvEncodingConverter.cpp
+

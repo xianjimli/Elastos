@@ -1,0 +1,10 @@
+TARGET_NAME=FBNetworkActions
+TARGET_TYPE=lib
+
+INCLUDES += $(MAKEDIR)/../../../zlibrary/core/include
+INCLUDES += $(MAKEDIR)/../../../zlibrary/text/include
+SOURCES += AuthenticationDialog.cpp
+SOURCES += NetworkActions.cpp
+SOURCES += NetworkOperationRunnable.cpp
+SOURCES += PasswordRecoveryDialog.cpp
+SOURCES += RegisterUserDialog.cpp

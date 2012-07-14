@@ -1,0 +1,14 @@
+TARGET_NAME=FBFormatsrtf
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/core/include
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/text/include
+SOURCES += RtfBookReader.cpp
+SOURCES += RtfDescriptionReader.cpp
+SOURCES += RtfImage.cpp
+SOURCES += RtfPlugin.cpp
+SOURCES += RtfReader.cpp
+SOURCES += RtfReaderStream.cpp
+

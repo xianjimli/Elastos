@@ -1,0 +1,21 @@
+TARGET_NAME=ZLDialogs
+TARGET_TYPE=lib
+
+
+EXPORT_LIBRARY = 1
+
+INCLUDES +=$(MAKEDIR)/../../include
+INCLUDES +=$(MAKEDIR)/../../../../bzip2-1.0.6
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+SOURCES += ZLDialogContentBuilder.cpp
+SOURCES += ZLDialogContent.cpp
+SOURCES += ZLDialog.cpp
+SOURCES += ZLDialogManager.cpp
+SOURCES += ZLOpenFileDialog.cpp
+SOURCES += ZLOptionEntry.cpp
+SOURCES += ZLOptionsDialog.cpp
+SOURCES += ZLOptionView.cpp
+SOURCES += ZLProgressDialog.cpp
+SOURCES += ZLSelectionDialog.cpp

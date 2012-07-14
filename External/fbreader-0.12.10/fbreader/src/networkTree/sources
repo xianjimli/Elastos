@@ -1,0 +1,16 @@
+TARGET_NAME=FBNetworkTree
+TARGET_TYPE=lib
+
+INCLUDES += $(MAKEDIR)/../../../zlibrary/core/include
+INCLUDES += $(MAKEDIR)/../../../zlibrary/text/include
+SOURCES += NetworkAuthorNode.cpp
+SOURCES += NetworkBookNode.cpp
+SOURCES += NetworkCatalogNode.cpp
+SOURCES += NetworkCatalogRootNode.cpp
+SOURCES += NetworkCatalogUtil.cpp
+
+SOURCES += NetworkContainerNode.cpp
+SOURCES += NetworkNodesFactory.cpp
+SOURCES += NetworkSeriesNode.cpp
+SOURCES += NetworkView.cpp
+SOURCES += SearchResultNode.cpp

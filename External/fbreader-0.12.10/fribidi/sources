@@ -1,0 +1,23 @@
+TARGET_NAME= libfribidi
+TARGET_TYPE= lib
+
+EXPORT_LIBRARY = 1
+
+SOURCES = fribidi_char_sets.c
+SOURCES += fribidi_char_sets_utf8.c
+
+SOURCES += fribidi_char_sets_cap_rtl.c
+SOURCES += fribidi_char_sets_iso8859_6.c
+SOURCES += fribidi_char_sets_iso8859_8.c
+SOURCES += fribidi_char_sets_cp1255.c
+SOURCES += fribidi_char_sets_cp1256.c
+SOURCES += fribidi_char_sets_isiri_3342.c
+
+
+SOURCES += fribidi.c
+SOURCES += fribidi_types.c
+SOURCES += fribidi_mem.c
+SOURCES += fribidi_mirroring.c
+SOURCES += fribidi_char_type.c
+SOURCES += fribidi_utils.c
+SOURCES += wcwidth.c

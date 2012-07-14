@@ -1,0 +1,10 @@
+TARGET_NAME=FBOptions
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES += $(MAKEDIR)/../../../zlibrary/core/include
+INCLUDES += $(MAKEDIR)/../../../zlibrary/text/include
+SOURCES += FBCategoryKey.cpp
+SOURCES += FBOptions.cpp
+SOURCES += FBTextStyle.cpp

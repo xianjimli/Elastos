@@ -1,0 +1,26 @@
+TARGET_NAME=FBFbreader
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES += $(MAKEDIR)/../../../zlibrary/core/include
+INCLUDES += $(MAKEDIR)/../../../zlibrary/text/include
+SOURCES += AddBookAction.cpp
+SOURCES += BookInfoDialog.cpp
+SOURCES += BooksOrderAction.cpp
+SOURCES += BookTextView.cpp
+SOURCES += ContentsView.cpp
+
+SOURCES += FBFileHandler.cpp
+SOURCES += FBReaderActionCode.cpp
+SOURCES += FBReaderActions.cpp
+SOURCES += FBReader.cpp
+SOURCES += FBView.cpp
+
+SOURCES += main.cpp
+SOURCES += RecentBooksPopupData.cpp
+SOURCES += ScrollingAction.cpp
+SOURCES += SearchActions.cpp
+SOURCES += SearchOnNetworkAction.cpp
+
+SOURCES += TimeUpdater.cpp

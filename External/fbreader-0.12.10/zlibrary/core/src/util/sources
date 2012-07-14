@@ -1,0 +1,19 @@
+TARGET_NAME=ZLUtil
+TARGET_TYPE=lib
+
+EXPORT_HEADERS += shared_ptr.h
+EXPORT_HEADERS += ZLUserData.h
+
+EXPORT_LIBRARY = 1
+
+INCLUDES +=$(MAKEDIR)/../../include
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+SOURCES += ZLFileUtil.cpp
+SOURCES += ZLKeyUtil.cpp
+SOURCES += ZLLanguageUtil.cpp
+SOURCES += ZLSearchUtil.cpp
+SOURCES += ZLStringUtil.cpp
+SOURCES += ZLUnicodeUtil.cpp
+SOURCES += ZLUserData.cpp

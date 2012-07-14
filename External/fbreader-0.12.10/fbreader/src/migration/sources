@@ -1,0 +1,22 @@
+TARGET_NAME=FBMigration
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES += $(MAKEDIR)/../../../zlibrary/core/include
+SOURCES += BookInfo.cpp
+SOURCES += FB2MigrationReader.cpp
+SOURCES += HtmlDCTagsReader.cpp
+SOURCES += migrate.cpp
+SOURCES += Migration_0_10_4.cpp
+
+SOURCES += Migration_0_11_0.cpp
+SOURCES += Migration_0_8_11.cpp
+SOURCES += Migration_0_8_13.cpp
+SOURCES += Migration_0_8_16.cpp
+
+SOURCES += Migration.cpp
+SOURCES += OEBMigrationReader.cpp
+
+
+

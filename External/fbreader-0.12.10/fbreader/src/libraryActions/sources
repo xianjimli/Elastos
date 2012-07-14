@@ -1,0 +1,10 @@
+TARGET_NAME=FBLibraryActions
+TARGET_TYPE=lib
+
+INCLUDES += $(MAKEDIR)/../../../zlibrary/core/include
+INCLUDES += $(MAKEDIR)/../../../zlibrary/text/include
+SOURCES += AuthorInfoDialog.cpp
+SOURCES += BooksUtil.cpp
+SOURCES += LibraryAuthorActions.cpp
+SOURCES += LibraryBookActions.cpp
+SOURCES += LibraryTagActions.cpp

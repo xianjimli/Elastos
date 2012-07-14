@@ -1,0 +1,11 @@
+TARGET_NAME=ZLHyphenation
+TARGET_TYPE=lib
+
+INCLUDES +=$(MAKEDIR)/../../../core/include
+INCLUDES +=$(MAKEDIR)/../../include
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+SOURCES +=ZLTextHyphenationReader.cpp
+SOURCES +=ZLTextHyphenator.cpp
+SOURCES +=ZLTextTeXHyphenator.cpp

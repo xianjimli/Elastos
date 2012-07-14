@@ -1,0 +1,14 @@
+TARGET_NAME=ZLFileSystemtar
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+C_DEFINES+=-UWIN32
+C_DEFINES+=-U_WIN32
+
+INCLUDES +=$(MAKEDIR)/../../../include
+#INCLUDES +=$(MAKEDIR)/../../../../../bzip2-1.0.6
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+SOURCES += ZLTar.cpp

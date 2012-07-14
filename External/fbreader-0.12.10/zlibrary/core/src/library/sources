@@ -1,0 +1,12 @@
+#TARGET_NAME=ZLibrary
+#TARGET_TYPE=lib
+
+#EXPORT_LIBRARY = 1
+
+EXPORT_HEADERS += ZLibrary.h
+
+#INCLUDES +=$(MAKEDIR)/../../include
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+#SOURCES += ZLibrary.cpp

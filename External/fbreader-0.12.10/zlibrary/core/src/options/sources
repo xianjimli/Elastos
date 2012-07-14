@@ -1,0 +1,12 @@
+TARGET_NAME=ZLOptions
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES +=$(MAKEDIR)/../../include
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+SOURCES +=ZLCategoryKey.cpp
+SOURCES +=ZLConfig.cpp
+SOURCES +=ZLOptions.cpp

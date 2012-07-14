@@ -1,0 +1,9 @@
+TARGET_NAME=FBNetWorkAtom
+TARGET_TYPE=lib
+
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/core/include
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/text/include
+SOURCES += ATOMConstructs.cpp
+SOURCES += ATOMContainers.cpp
+SOURCES += ATOMMetadata.cpp
+

@@ -1,0 +1,10 @@
+TARGET_NAME=ZLTextStyle
+TARGET_TYPE=lib
+
+INCLUDES +=$(MAKEDIR)/../../../core/include
+INCLUDES +=$(MAKEDIR)/../../include
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+SOURCES +=ZLTextDecoratedStyle.cpp
+SOURCES +=ZLTextStyleCollection.cpp

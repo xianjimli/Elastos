@@ -1,0 +1,12 @@
+TARGET_NAME=booksdb
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/core/include
+SOURCES += BooksDB_BookAuthor.cpp
+SOURCES += BooksDB_BookSeries.cpp
+SOURCES += BooksDB_BookTag.cpp
+SOURCES += BooksDB.cpp
+SOURCES += BooksDBQuery.cpp
+SOURCES += BooksDBUtil.cpp

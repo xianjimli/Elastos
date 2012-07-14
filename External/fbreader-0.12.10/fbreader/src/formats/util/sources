@@ -1,0 +1,12 @@
+TARGET_NAME=FBFormatsutil
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/core/include
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/text/include
+SOURCES += EntityFilesCollector.cpp
+SOURCES += MergedStream.cpp
+SOURCES += MiscUtil.cpp
+SOURCES += TextFormatDetector.cpp
+SOURCES += XMLTextStream.cpp

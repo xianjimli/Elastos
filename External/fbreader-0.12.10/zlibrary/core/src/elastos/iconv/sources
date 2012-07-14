@@ -1,0 +1,9 @@
+TARGET_NAME=ZLEliconv
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES +=$(MAKEDIR)/../../../include
+
+SOURCES +=IConvEncodingConverter.cpp
+

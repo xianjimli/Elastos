@@ -1,0 +1,13 @@
+TARGET_NAME=FBNetWorkOpds
+TARGET_TYPE=lib
+
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/core/include
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/text/include
+SOURCES += NetworkOPDSFeedReader.cpp
+SOURCES += OPDSCatalogItem.cpp
+SOURCES += OPDSLink.cpp
+
+SOURCES += OPDSLink_Reader.cpp
+SOURCES += OPDSMetadata.cpp
+SOURCES += OPDSXMLParser.cpp
+

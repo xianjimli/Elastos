@@ -1,0 +1,13 @@
+TARGET_NAME=FBNetWorkAuthenticationLitres
+TARGET_TYPE=lib
+
+INCLUDES += $(MAKEDIR)/../../../../../zlibrary/core/include
+INCLUDES += $(MAKEDIR)/../../../../../zlibrary/text/include
+SOURCES += LitResAuthenticationDataParser.cpp
+SOURCES += LitResAuthenticationManager.cpp
+SOURCES += LitResBookshelfItem.cpp
+
+SOURCES += LitResDataParser.cpp
+SOURCES += LitResGenre.cpp
+SOURCES += LitResGenresParser.cpp
+SOURCES += LitResUtil.cpp

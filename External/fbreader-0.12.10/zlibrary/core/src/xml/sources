@@ -1,0 +1,11 @@
+TARGET_NAME=ZLXML
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES +=$(MAKEDIR)/../../include
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+SOURCES +=ZLXMLReader.cpp
+SOURCES +=ZLXMLWriter.cpp

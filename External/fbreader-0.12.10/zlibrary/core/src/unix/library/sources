@@ -1,0 +1,9 @@
+TARGET_NAME=ZLUnixLibrary
+TARGET_TYPE=lib
+
+INCLUDES +=$(MAKEDIR)/../../../include
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+SOURCES +=ZLibrary.cpp
+

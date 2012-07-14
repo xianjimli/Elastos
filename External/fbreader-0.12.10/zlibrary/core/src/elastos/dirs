@@ -1,0 +1,5 @@
+DIRS += time
+DIRS += curl
+DIRS += xmlconfig
+DIRS += filesystem
+DIRS += iconv

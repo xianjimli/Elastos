@@ -1,0 +1,11 @@
+TARGET_NAME=ZLUnixFileSystem
+TARGET_TYPE=lib
+
+INCLUDES +=$(MAKEDIR)/../../../include
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+SOURCES +=ZLUnixFileInputStream.cpp
+SOURCES +=ZLUnixFileOutputStream.cpp
+SOURCES +=ZLUnixFSDir.cpp
+SOURCES +=ZLUnixFSManager.cpp

@@ -1,0 +1,21 @@
+TARGET_NAME=FBNetWork
+TARGET_TYPE=lib
+
+INCLUDES += $(MAKEDIR)/../../../zlibrary/core/include
+INCLUDES += $(MAKEDIR)/../../../zlibrary/text/include
+SOURCES += BookReference.cpp
+SOURCES += NetworkBookCollection.cpp
+SOURCES += NetworkBookItem.cpp
+SOURCES += NetworkCatalogItem.cpp
+SOURCES += NetworkComparators.cpp
+
+SOURCES += NetworkErrors.cpp
+SOURCES += NetworkItem.cpp
+SOURCES += NetworkLinkCollection.cpp
+SOURCES += NetworkLinkCollection.cpp
+SOURCES += NetworkLink.cpp
+
+SOURCES += SearchResult.cpp
+SOURCES += UserList.cpp
+
+

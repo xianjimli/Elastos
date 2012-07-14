@@ -1,0 +1,38 @@
+TARGET_NAME=FBFormatspdb
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/core/include
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/text/include
+SOURCES += BitReader.cpp
+SOURCES += DocDecompressor.cpp
+
+SOURCES += EReaderPlugin.cpp
+SOURCES += EReaderStream.cpp
+
+SOURCES += HtmlMetainfoReader.cpp
+SOURCES += HuffDecompressor.cpp
+
+
+SOURCES += MobipocketHtmlBookReader.cpp
+SOURCES += MobipocketPlugin.cpp
+SOURCES += PalmDocLikePlugin.cpp
+SOURCES += PalmDocLikeStream.cpp
+SOURCES += PalmDocPlugin.cpp
+SOURCES += PalmDocStream.cpp
+
+SOURCES += PdbPlugin.cpp
+SOURCES += PdbReader.cpp
+SOURCES += PdbStream.cpp
+SOURCES += PluckerBookReader.cpp
+SOURCES += PluckerImages.cpp
+SOURCES += PluckerPlugin.cpp
+
+SOURCES += PluckerTextStream.cpp
+SOURCES += PmlBookReader.cpp
+SOURCES += PmlReader.cpp
+SOURCES += SimplePdbPlugin.cpp
+SOURCES += ZTXTPlugin.cpp
+SOURCES += ZTXTStream.cpp
+SOURCES += MobipocketPlugin.cpp

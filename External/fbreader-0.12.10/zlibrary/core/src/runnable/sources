@@ -1,0 +1,12 @@
+TARGET_NAME=ZLRunnable
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES +=$(MAKEDIR)/../../include
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+SOURCES +=ZLExecutionData.cpp
+SOURCES +=ZLRunnable.cpp
+

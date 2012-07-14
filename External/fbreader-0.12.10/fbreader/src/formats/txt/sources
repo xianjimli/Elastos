@@ -1,0 +1,11 @@
+TARGET_NAME=FBFormatstxt
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/core/include
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/text/include
+SOURCES += PlainTextFormat.cpp
+SOURCES += TxtBookReader.cpp
+SOURCES += TxtPlugin.cpp
+SOURCES += TxtReader.cpp

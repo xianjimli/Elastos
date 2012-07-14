@@ -1,0 +1,15 @@
+TARGET_NAME=ZLImage
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES +=$(MAKEDIR)/../../include
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+SOURCES +=ZLBase64EncodedImage.cpp
+SOURCES +=ZLFileImage.cpp
+SOURCES +=ZLImage.cpp
+SOURCES +=ZLImageManager.cpp
+SOURCES +=ZLNetworkImage.cpp
+SOURCES +=ZLStreamImage.cpp

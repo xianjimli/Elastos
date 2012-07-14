@@ -1,0 +1,8 @@
+TARGET_NAME=ZLDesktopApplication
+TARGET_TYPE=lib
+
+INCLUDES +=$(MAKEDIR)/../../../include
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+SOURCES +=ZLDesktopApplicationWindow.cpp

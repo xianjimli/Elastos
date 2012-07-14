@@ -1,0 +1,17 @@
+TARGET_NAME=ZLOptionEntries
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES +=$(MAKEDIR)/../../include
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+SOURCES += ZLColorOptionBuilder.cpp
+SOURCES += ZLFontFamilyOptionEntry.cpp
+SOURCES += ZLLanguageOptionEntry.cpp
+SOURCES += ZLSimpleKeyOptionEntry.cpp
+SOURCES += ZLSimpleOptionEntry.cpp
+SOURCES += ZLStringEditOptionEntry.cpp
+SOURCES += ZLStringInfoEntry.cpp
+SOURCES += ZLToggleBooleanOptionEntry.cpp

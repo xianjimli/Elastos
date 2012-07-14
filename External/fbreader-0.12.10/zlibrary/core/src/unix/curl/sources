@@ -1,0 +1,13 @@
+TARGET_NAME=ZLUnixCurl
+TARGET_TYPE=lib
+
+C_DEFINES = -UWIN32
+C_DEFINES += -U_WIN32
+
+C_DEFINES += -DANDROID
+
+INCLUDES +=$(MAKEDIR)/../../../include
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+SOURCES +=ZLCurlNetworkManager.cpp

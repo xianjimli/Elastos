@@ -1,0 +1,14 @@
+TARGET_NAME=ZLElXmlConfig
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES +=$(MAKEDIR)/../../../include
+
+SOURCES +=AsciiEncoder.cpp
+SOURCES +=XMLConfig.cpp
+SOURCES +=XMLConfigDelta.cpp
+SOURCES +=XMLConfigDeltaWriter.cpp
+SOURCES +=XMLConfigIO.cpp
+SOURCES +=XMLConfigReader.cpp
+SOURCES +=XMLConfigWriter.cpp

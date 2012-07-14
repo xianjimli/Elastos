@@ -1,0 +1,27 @@
+TARGET_NAME=ZLArea
+TARGET_TYPE=lib
+
+INCLUDES +=$(MAKEDIR)/../../../core/include
+INCLUDES +=$(MAKEDIR)/../../include
+INCLUDES +=$(MAKEDIR)/../../../../liblinebreak-2.1
+INCLUDES +=$(MAKEDIR)/../../../../
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+SOURCES +=ZLTextAreaController.cpp
+SOURCES +=ZLTextArea.cpp
+SOURCES +=ZLTextArea_drawTextLine.cpp
+
+SOURCES +=ZLTextArea_drawTreeLines.cpp
+SOURCES +=ZLTextArea_drawWord.cpp
+SOURCES +=ZLTextArea_prepareTextLine.cpp
+
+SOURCES +=ZLTextArea_processTextLine.cpp
+SOURCES +=ZLTextAreaStyle.cpp
+SOURCES +=ZLTextElement.cpp
+
+SOURCES +=ZLTextParagraphBuilder.cpp
+SOURCES +=ZLTextParagraphCursor.cpp
+SOURCES +=ZLTextSelectionModel.cpp
+
+SOURCES +=ZLTextWord.cpp

@@ -1,0 +1,14 @@
+TARGET_NAME=ZLApplication
+TARGET_TYPE=lib
+
+INCLUDES +=$(MAKEDIR)/../../include
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+SOURCES +=ZLApplicationActions.cpp
+SOURCES +=ZLApplicationBase.cpp
+SOURCES +=ZLApplication.cpp
+SOURCES +=ZLApplicationWindow.cpp
+SOURCES +=ZLKeyBindings.cpp
+SOURCES +=ZLMenu.cpp
+SOURCES +=ZLToolbar.cpp

@@ -1,0 +1,16 @@
+TARGET_NAME=ZLNetwork
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES +=$(MAKEDIR)/../../include
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+SOURCES +=ZLAsynchronousInputStream.cpp
+SOURCES +=ZLGzipAsynchronousInputStream.cpp
+SOURCES +=ZLNetworkManager.cpp
+SOURCES +=ZLNetworkRequest.cpp
+SOURCES +=ZLNetworkSSLCertificate.cpp
+SOURCES +=ZLNetworkUtil.cpp
+SOURCES +=ZLPlainAsynchronousInputStream.cpp

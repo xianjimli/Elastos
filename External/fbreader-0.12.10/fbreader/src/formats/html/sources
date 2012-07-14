@@ -1,0 +1,14 @@
+TARGET_NAME=FBFormatshtml
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/core/include
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/text/include
+SOURCES += HtmlBookReader.cpp
+SOURCES += HtmlDescriptionReader.cpp
+SOURCES += HtmlEntityCollection.cpp
+SOURCES += HtmlPlugin.cpp
+SOURCES += HtmlReader.cpp
+SOURCES += HtmlReaderStream.cpp
+

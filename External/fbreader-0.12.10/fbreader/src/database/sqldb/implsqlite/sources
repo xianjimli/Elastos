@@ -1,0 +1,11 @@
+TARGET_NAME=implsqlite
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES += $(MAKEDIR)/../../../../../zlibrary/core/include
+SOURCES += SQLiteCommand.cpp
+SOURCES += SQLiteConnection.cpp
+SOURCES += SQLiteDataBase.cpp
+SOURCES += SQLiteDataReader.cpp
+SOURCES += SQLiteFactory.cpp

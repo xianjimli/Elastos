@@ -1,0 +1,15 @@
+TARGET_NAME=FBOptionsDialog
+TARGET_TYPE=lib
+
+INCLUDES += $(MAKEDIR)/../../../zlibrary/core/include
+INCLUDES += $(MAKEDIR)/../../../zlibrary/text/include
+SOURCES += ConfigPage.cpp
+SOURCES += FormatOptionsPage.cpp
+SOURCES += IndicatorTab.cpp
+SOURCES += IntegrationTab.cpp
+SOURCES += KeyBindingsPage.cpp
+SOURCES += NetworkLibraryPage.cpp
+SOURCES += OptionsDialog.cpp
+SOURCES += OptionsPage.cpp
+SOURCES += StyleOptionsPage.cpp
+

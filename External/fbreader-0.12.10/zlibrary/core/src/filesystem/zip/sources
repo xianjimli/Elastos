@@ -1,0 +1,15 @@
+TARGET_NAME=ZLFileSystemZip
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES +=$(MAKEDIR)/../../../include
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+SOURCES += ZLGzipInputStream.cpp
+SOURCES += ZLZDecompressor.cpp
+SOURCES += ZLZipDir.cpp
+SOURCES += ZLZipEntryCache.cpp
+SOURCES += ZLZipHeader.cpp
+SOURCES += ZLZipInputStream.cpp

@@ -1,0 +1,7 @@
+DIRS +=model
+DIRS +=area
+DIRS +=view
+
+DIRS +=style
+DIRS +=styleOptions
+DIRS +=hyphenation

@@ -1,0 +1,22 @@
+TARGET_NAME=FBFormatschm
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/core/include
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/text/include
+SOURCES += BitStream.cpp
+SOURCES += CHMFile.cpp
+SOURCES += CHMFileImage.cpp
+
+SOURCES += CHMPlugin.cpp
+SOURCES += CHMReferenceCollection.cpp
+SOURCES += E8Decoder.cpp
+
+SOURCES += HHCReader.cpp
+SOURCES += HHCReferenceCollector.cpp
+SOURCES += HtmlSectionReader.cpp
+SOURCES += HuffmanDecoder.cpp
+SOURCES += LZXDecompressor.cpp
+
+

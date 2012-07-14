@@ -1,0 +1,42 @@
+DIRS += library
+DIRS += typeId
+DIRS += util
+DIRS += logger
+DIRS += filesystem
+#zip no file want to be compiled
+DIRS += filesystem/zip
+DIRS += filesystem/bzip2
+DIRS += filesystem/tar
+DIRS += dialogs
+
+DIRS += optionEntries
+DIRS += application
+DIRS += view
+DIRS += encoding
+DIRS += options
+DIRS += message
+DIRS += resources
+DIRS += time
+DIRS += xml
+DIRS += xml
+DIRS += xml/expat
+
+DIRS += image
+DIRS += language
+DIRS += unix/time
+DIRS += runnable
+
+DIRS += network
+DIRS += network/requests
+DIRS += blockTreeView
+DIRS += unix/curl
+
+DIRS +=desktop/application
+DIRS +=desktop/dialogs
+DIRS +=unix/xmlconfig
+
+
+DIRS +=unix/filesystem
+DIRS +=unix/iconv
+DIRS +=unix/library
+DIRS +=elastos

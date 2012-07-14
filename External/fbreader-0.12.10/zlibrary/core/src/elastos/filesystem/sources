@@ -1,0 +1,13 @@
+TARGET_NAME=ZLElFileSystem
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES +=$(MAKEDIR)/../../../include
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+SOURCES +=ZLElFileInputStream.cpp
+SOURCES +=ZLElFileOutputStream.cpp
+SOURCES +=ZLElFSDir.cpp
+SOURCES +=ZLElFSManager.cpp

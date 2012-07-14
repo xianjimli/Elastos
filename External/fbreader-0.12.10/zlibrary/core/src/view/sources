@@ -1,0 +1,10 @@
+TARGET_NAME=ZLView
+TARGET_TYPE=lib
+
+INCLUDES +=$(MAKEDIR)/../../include
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+SOURCES +=ZLMirroredPaintContext.cpp
+SOURCES +=ZLPaintContext.cpp
+SOURCES +=ZLView.cpp

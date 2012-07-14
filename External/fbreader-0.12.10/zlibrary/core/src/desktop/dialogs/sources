@@ -1,0 +1,9 @@
+TARGET_NAME=ZLDesktopDailogs
+TARGET_TYPE=lib
+
+INCLUDES +=$(MAKEDIR)/../../../include
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+SOURCES +=ZLDesktopOptionsDialog.cpp
+SOURCES +=ZLDesktopSelectionDialog.cpp

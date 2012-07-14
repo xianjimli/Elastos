@@ -1,0 +1,14 @@
+TARGET_NAME=FBFormatsfb2
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/core/include
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/text/include
+SOURCES += FB2BookReader.cpp
+SOURCES += FB2CoverReader.cpp
+SOURCES += FB2MetaInfoReader.cpp
+SOURCES += FB2Plugin.cpp
+SOURCES += FB2Reader.cpp
+SOURCES += FB2TagManager.cpp
+

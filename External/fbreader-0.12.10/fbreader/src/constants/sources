@@ -1,0 +1,7 @@
+TARGET_NAME=FBConstants
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES += $(MAKEDIR)/../../../zlibrary/core/include
+SOURCES += XMLNamespace.cpp

@@ -1,0 +1,19 @@
+TARGET_NAME=FBLibrary
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+EXPORT_HEADERS = Book.h
+EXPORT_HEADERS += Author.h
+EXPORT_HEADERS += Library.h
+EXPORT_HEADERS += Tag.h
+EXPORT_HEADERS += Lists.h
+EXPORT_HEADERS += Content.h
+
+INCLUDES += $(MAKEDIR)/../../../zlibrary/core/include
+SOURCES += Author.cpp
+SOURCES += Book.cpp
+SOURCES += Comparators.cpp
+SOURCES += Library.cpp
+SOURCES += Tag.cpp
+SOURCES += Content.cpp

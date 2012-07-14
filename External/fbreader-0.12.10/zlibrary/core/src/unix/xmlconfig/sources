@@ -1,0 +1,14 @@
+TARGET_NAME=ZLUnixXmlConfig
+TARGET_TYPE=lib
+
+INCLUDES +=$(MAKEDIR)/../../../include
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+SOURCES +=AsciiEncoder.cpp
+SOURCES +=XMLConfig.cpp
+SOURCES +=XMLConfigDelta.cpp
+SOURCES +=XMLConfigDeltaWriter.cpp
+SOURCES +=XMLConfigIO.cpp
+SOURCES +=XMLConfigReader.cpp
+SOURCES +=XMLConfigWriter.cpp

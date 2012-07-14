@@ -1,0 +1,12 @@
+TARGET_NAME=ZLTextView
+TARGET_TYPE=lib
+
+INCLUDES +=$(MAKEDIR)/../../../core/include
+INCLUDES +=$(MAKEDIR)/../../include
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+SOURCES +=ZLTextPositionIndicator.cpp
+SOURCES +=ZLTextPositionIndicator.cpp
+SOURCES +=ZLTextView.cpp
+SOURCES +=ZLTextView_paint.cpp

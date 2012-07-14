@@ -1,0 +1,9 @@
+TARGET_NAME=FBFormatscss
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/core/include
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/text/include
+SOURCES += StyleSheetParser.cpp
+SOURCES += StyleSheetTable.cpp

@@ -1,0 +1,10 @@
+TARGET_NAME=ZLUnixTime
+TARGET_TYPE=lib
+
+INCLUDES +=$(MAKEDIR)/../../../include
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+SOURCES +=ZLUnixTime.cpp
+
+

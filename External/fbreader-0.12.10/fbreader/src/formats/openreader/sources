@@ -1,0 +1,10 @@
+TARGET_NAME=FBFormatsopenreader
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/core/include
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/text/include
+SOURCES += OpenReaderPlugin.cpp
+SOURCES += ORBookReader.cpp
+SOURCES += ORDescriptionReader.cpp

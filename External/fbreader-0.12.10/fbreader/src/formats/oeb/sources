@@ -1,0 +1,14 @@
+TARGET_NAME=FBFormatsoeb
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/core/include
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/text/include
+SOURCES += NCXReader.cpp
+SOURCES += OEBBookReader.cpp
+SOURCES += OEBCoverReader.cpp
+SOURCES += OEBMetaInfoReader.cpp
+SOURCES += OEBPlugin.cpp
+SOURCES += OEBTextStream.cpp
+

@@ -1,0 +1,10 @@
+TARGET_NAME=FBFormatstcr
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/core/include
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/text/include
+SOURCES += PPLBookReader.cpp
+SOURCES += TcrPlugin.cpp
+SOURCES += TcrStream.cpp

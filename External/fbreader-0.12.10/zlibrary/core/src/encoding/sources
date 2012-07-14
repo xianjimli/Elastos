@@ -1,0 +1,15 @@
+TARGET_NAME=ZLEncoding
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES +=$(MAKEDIR)/../../include
+#INCLUDES +=$(MAKEDIR)/../time
+#INCLUDES +=$(MAKEDIR)/../util
+
+SOURCES += DummyEncodingConverter.cpp
+SOURCES += EncodingCollectionReader.cpp
+SOURCES += MyEncodingConverter.cpp
+SOURCES += ZLEncodingCollection.cpp
+SOURCES += ZLEncodingConverter.cpp
+SOURCES += ZLEncodingSet.cpp

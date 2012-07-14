@@ -1,0 +1,6 @@
+DIRS += bzip2-1.0.6
+DIRS += liblinebreak-2.1
+DIRS += fribidi
+DIRS += zlibrary
+DIRS += fbreader
+

@@ -1,0 +1,8 @@
+TARGET_NAME=FBNetWorkAuthenticationBasic
+TARGET_TYPE=lib
+
+INCLUDES += $(MAKEDIR)/../../../../../zlibrary/core/include
+INCLUDES += $(MAKEDIR)/../../../../../zlibrary/text/include
+SOURCES += BasicAuthenticationManager.cpp
+SOURCES += BasicAuthenticationRequest.cpp
+

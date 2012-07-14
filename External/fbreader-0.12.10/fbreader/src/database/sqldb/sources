@@ -1,0 +1,16 @@
+TARGET_NAME=sqldb
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES += $(MAKEDIR)/../../../../zlibrary/core/include
+SOURCES += DBCommand.cpp
+SOURCES += DBCommandParameter.cpp
+SOURCES += DBConnection.cpp
+SOURCES += DBDataReader.cpp
+SOURCES += DBIntValue.cpp
+SOURCES += DBNullValue.cpp
+SOURCES += DBRealValue.cpp
+SOURCES += DBTextValue.cpp
+SOURCES += DBValue.cpp
+SOURCES += DataBase.cpp

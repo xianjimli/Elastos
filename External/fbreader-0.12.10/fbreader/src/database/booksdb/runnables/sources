@@ -1,0 +1,23 @@
+TARGET_NAME=booksdb-runnables
+TARGET_TYPE=lib
+
+EXPORT_LIBRARY = 1
+
+INCLUDES += $(MAKEDIR)/../../../../../zlibrary/core/include
+INCLUDES += $(MAKEDIR)/../../../library
+
+SOURCES += ClearBooksDBRunnable.cpp
+SOURCES += DeleteBookRunnable.cpp
+SOURCES += DeleteFileEntriesRunnable.cpp
+SOURCES += FindFileIdRunnable.cpp
+SOURCES += InitBooksDBRunnable.cpp
+SOURCES += LoadFileEntriesRunnable.cpp
+
+SOURCES += LoadRecentBooksRunnable.cpp
+SOURCES += SaveAuthorsRunnable.cpp
+SOURCES += SaveBookRunnable.cpp
+SOURCES += SaveBookStateStackRunnable.cpp
+SOURCES += SaveRecentBooksRunnable.cpp
+SOURCES += SaveSeriesRunnable.cpp
+
+SOURCES += SaveTableBookRunnable.cpp

@@ -1,0 +1,27 @@
+EXPORT_HEADERS = ZLTextAlignmentType.h
+EXPORT_HEADERS += ZLTextArea.h
+EXPORT_HEADERS += ZLTextAreaController.h
+EXPORT_HEADERS += ZLTextAreaStyle.h
+EXPORT_HEADERS += ZLTextDecoratedStyle.h
+EXPORT_HEADERS += ZLTextElement.h
+EXPORT_HEADERS += ZLTextFontModifier.h
+EXPORT_HEADERS += ZLTextHyphenator.h
+EXPORT_HEADERS += ZLTextKind.h
+EXPORT_HEADERS += ZLTextLineInfo.h
+EXPORT_HEADERS += ZLTextMark.h
+EXPORT_HEADERS += ZLTextModel.h
+EXPORT_HEADERS += ZLTextParagraph.h
+EXPORT_HEADERS += ZLTextParagraphBuilder.h
+
+EXPORT_HEADERS += ZLTextParagraphCursor.h
+EXPORT_HEADERS += ZLTextPositionIndicator.h
+EXPORT_HEADERS += ZLTextPositionIndicatorInfo.h
+EXPORT_HEADERS += ZLTextRectangle.h
+EXPORT_HEADERS += ZLTextRowMemoryAllocator.h
+EXPORT_HEADERS += ZLTextSelectionModel.h
+EXPORT_HEADERS += ZLTextStyle.h
+EXPORT_HEADERS += ZLTextStyleCollection.h
+EXPORT_HEADERS += ZLTextStyleOptions.h
+EXPORT_HEADERS += ZLTextTeXHyphenator.h
+EXPORT_HEADERS += ZLTextView.h
+EXPORT_HEADERS += ZLTextWord.h

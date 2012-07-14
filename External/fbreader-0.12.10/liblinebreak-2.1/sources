@@ -1,0 +1,8 @@
+TARGET_NAME= liblinebreak
+TARGET_TYPE= lib
+
+EXPORT_LIBRARY = 1
+
+SOURCES = linebreak.c
+SOURCES += linebreakdata.c
+SOURCES += linebreakdef.c

@@ -1,0 +1,13 @@
+TARGET_NAME=FBLibraryTree
+TARGET_TYPE=lib
+
+INCLUDES += $(MAKEDIR)/../../../zlibrary/core/include
+INCLUDES += $(MAKEDIR)/../../../zlibrary/text/include
+SOURCES += AuthorNode.cpp
+SOURCES += BookNode.cpp
+SOURCES += LibraryByAuthorView.cpp
+SOURCES += LibraryByTagView.cpp
+SOURCES += LibraryView.cpp
+
+SOURCES += SeriesNode.cpp
+SOURCES += TagNode.cpp
