@@ -209,10 +209,6 @@ ECode CActivityOne::OnCreate(
 
     view->SetOnClickListener((IViewOnClickListener*)l.Get());
 
-//    view = FindViewById(0x7f050002);
-//    assert(view != NULL);
-
-
     return NOERROR;
 }
 
