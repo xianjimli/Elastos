@@ -29,7 +29,7 @@ ECode CStatusBarNotification::constructor()
 }
 
 ECode CStatusBarNotification::constructor(
-    /* [in] */ IParcel* source,
+    /* [in] */ const String& cap,
     /* [in] */ Int32 id,
     /* [in] */ const String& tag,
     /* [in] */ Int32 uid,

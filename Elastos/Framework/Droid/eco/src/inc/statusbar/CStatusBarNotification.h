@@ -21,7 +21,7 @@ public:
     CARAPI constructor();
 
     CARAPI constructor(
-        /* [in] */ IParcel* source,
+        /* [in] */ const String& cap,
         /* [in] */ Int32 id,
         /* [in] */ const String& tag,
         /* [in] */ Int32 uid,

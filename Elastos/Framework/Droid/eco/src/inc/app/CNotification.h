@@ -3,6 +3,7 @@
 #define __CNOTIFICATION_H__
 
 #include "_CNotification.h"
+#include <elastos/AutoPtr.h>
 
 CarClass(CNotification)
 {
@@ -37,6 +38,13 @@ public:
      * @see #defaults
      */
     static const Int32 DEFAULT_LIGHTS = 4;
+
+    /**
+     * Use this constant as the value for audioStreamType to request that
+     * the default stream type for notifications be used.  Currently the
+     * default stream type is STREAM_RING.
+     */
+    static const Int32 STREAM_DEFAULT = -1;
 
     /**
      * Bit to be bitwise-ored into the {@link #flags} field that should be
@@ -103,6 +111,8 @@ public:
     static const Int32 FLAG_FOREGROUND_SERVICE = 0x00000040;
 
 public:
+    CNotification();
+
     CARAPI ReadFromParcel(
         /* [in] */ IParcel *source);
 
@@ -110,6 +120,109 @@ public:
         /* [in] */ IParcel *dest);
 
 public:
+    /**
+     * The timestamp for the notification.  The icons and expanded views
+     * are sorted by this key.
+     */
+    Int64 mWhen;
+
+    /**
+     * The resource id of a drawable to use as the icon in the status bar.
+     */
+    Int32 mIcon;
+
+    /**
+     * The intent to execute when the expanded status entry is clicked.  If
+     * this is an activity, it must include the
+     * {@link android.content.Intent#FLAG_ACTIVITY_NEW_TASK} flag, which requires
+     * that you take care of task management as described in the <em>Activities and Tasks</em>
+     * section of the <a href="{@docRoot}guide/topics/fundamentals.html#acttask">Application
+     * Fundamentals</a> document.
+     */
+    AutoPtr<IPendingIntent> mContentIntent;
+
+    /**
+     * The intent to execute when the status entry is deleted by the user
+     * with the "Clear All Notifications" button. This probably shouldn't
+     * be launching an activity since several of those will be sent at the
+     * same time.
+     */
+    AutoPtr<IPendingIntent> mDeleteIntent;
+
+    /**
+     * Text to scroll across the screen when this item is added to
+     * the status bar.
+     */
+    AutoPtr<ICharSequence> mTickerText;
+
+    /**
+     * The view that will represent this notification in the expanded status bar.
+     */
+//    AutoPtr<IRemoteViews> mContentView;
+
+    /**
+     * The sound to play.
+     *
+     * <p>
+     * To play the default notification sound, see {@link #defaults}.
+     * </p>
+     */
+    AutoPtr<IUri> mSound;
+
+    /**
+     * The audio stream type to use when playing the sound.
+     * Should be one of the STREAM_ constants from
+     * {@link android.media.AudioManager}.
+     */
+    Int32 mAudioStreamType;
+
+    /**
+     * The pattern with which to vibrate.
+     *
+     * <p>
+     * To vibrate the default pattern, see {@link #defaults}.
+     * </p>
+     *
+     * @see android.os.Vibrator#vibrate(long[],int)
+     */
+    ArrayOf<Int64>* mVibrate;
+
+     /**
+     * The color of the led.  The hardware will do its best approximation.
+     *
+     * @see #FLAG_SHOW_LIGHTS
+     * @see #flags
+     */
+    Int32 mLedARGB;
+
+    /**
+     * The number of milliseconds for the LED to be on while it's flashing.
+     * The hardware will do its best approximation.
+     *
+     * @see #FLAG_SHOW_LIGHTS
+     * @see #flags
+     */
+    Int32 mLedOnMS;
+
+    /**
+     * The number of milliseconds for the LED to be off while it's flashing.
+     * The hardware will do its best approximation.
+     *
+     * @see #FLAG_SHOW_LIGHTS
+     * @see #flags
+     */
+    Int32 mLedOffMS;
+
+    /**
+     * Specifies which values should be taken from the defaults.
+     * <p>
+     * To set, OR the desired from {@link #DEFAULT_SOUND},
+     * {@link #DEFAULT_VIBRATE}, {@link #DEFAULT_LIGHTS}. For all default
+     * values, use {@link #DEFAULT_ALL}.
+     * </p>
+     */
+    Int32 mDefaults;
+
     Int32 mFlags;
 };
 

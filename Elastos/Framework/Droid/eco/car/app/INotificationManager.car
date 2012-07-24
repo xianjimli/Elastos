@@ -4,13 +4,14 @@ module
     interface INotification;
     interface ITransientNotification;
 
+    [deprecated]
     interface INotificationManager {
         /** @deprecated use {@link #enqueueNotificationWithTag} instead */
         EnqueueNotification(
             [in] String cap,
             [in] Int32 id,
             [in] INotification* notification,
-            [in /*,out*/] ArrayOf<Int32> idReceived);
+            [in /*,out*/] ArrayOf<Int32>* idReceived);
 
         /** @deprecated use {@link #cancelNotificationWithTag} instead */
         CancelNotification(
@@ -34,7 +35,7 @@ module
             [in] String tag,
             [in] Int32 id,
             [in] INotification* notification,
-            [in/*, out*/] ArrayOf<Int32> idReceived);
+            [in/*, out*/] ArrayOf<Int32>* idReceived);
 
         CancelNotificationWithTag(
             [in] String cap,

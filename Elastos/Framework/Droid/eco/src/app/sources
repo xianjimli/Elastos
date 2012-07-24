@@ -41,4 +41,5 @@ SOURCES += AlertDialog.cpp
 SOURCES += CAlertDialog.cpp
 SOURCES += CAlertDialogBuilder.cpp
 SOURCES += StatusBarManager.cpp
+SOURCES += NotificationManager.cpp
 

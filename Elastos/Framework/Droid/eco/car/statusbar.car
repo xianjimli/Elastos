@@ -40,7 +40,7 @@ module
         constructor();
 
         constructor(
-            [in] IParcel* source,
+            [in] String cap,
             [in] Int32 id,
             [in] String tag,
             [in] Int32 uid,

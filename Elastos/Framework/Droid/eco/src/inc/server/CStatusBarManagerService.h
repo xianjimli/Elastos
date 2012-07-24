@@ -86,6 +86,17 @@ public:
 
     CARAPI OnClearAllNotifications();
 
+    CARAPI AddNotification(
+        /* [in] */ IStatusBarNotification* notification,
+        /* [out] */ IBinder** key);
+
+    CARAPI UpdateNotification(
+        /* [in] */ IBinder* key,
+        /* [out] */ IStatusBarNotification* notification);
+
+    CARAPI RemoveNotification(
+        /* [in] */ IBinder* key);
+
 private:
     // TODO: Add your private member variables here.
 };

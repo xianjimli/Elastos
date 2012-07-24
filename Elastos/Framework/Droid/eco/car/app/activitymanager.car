@@ -266,5 +266,10 @@ module
             [in] Int32 initialPid,
             [in] String capsuleName,
             [in] CString message);
+
+        SetProcessForeground(
+            [in] IBinder* token,
+            [in] Int32 pid,
+            [in] Boolean isForeground);
     }
 }

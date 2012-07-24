@@ -103,3 +103,26 @@ ECode CStatusBarManagerService::OnClearAllNotifications()
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
+
+ECode CStatusBarManagerService::AddNotification(
+    /* [in] */ IStatusBarNotification* notification,
+    /* [out] */ IBinder** key)
+{
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CStatusBarManagerService::UpdateNotification(
+    /* [in] */ IBinder* key,
+    /* [out] */ IStatusBarNotification* notification)
+{
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CStatusBarManagerService::RemoveNotification(
+    /* [in] */ IBinder* key)
+{
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}

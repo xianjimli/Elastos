@@ -4,6 +4,22 @@ module
     interface IContext;
 
     interface ILight {
+        SetColor(
+            [in] Int32 color);
+
+        SetFlashing(
+            [in] Int32 color,
+            [in] Int32 mode,
+            [in] Int32 onMS,
+            [in] Int32 offMS);
+
+        Pulse();
+
+        PulseEx(
+            [in] Int32 color,
+            [in] Int32 onMS);
+
+        TurnOff();
     }
 
     interface ILightsManager {
