@@ -1,16 +1,16 @@
 
-#ifndef __CDECELERATEINTERPOLATOR_H__
-#define __CDECELERATEINTERPOLATOR_H__
+#ifndef __CANTICIPATEINTERPOLATOR_H__
+#define __CANTICIPATEINTERPOLATOR_H__
 
-#include "_CDecelerateInterpolator.h"
+#include "_CAnticipateInterpolator.h"
 
-CarClass(CDecelerateInterpolator)
+CarClass(CAnticipateInterpolator)
 {
 public:
     CARAPI constructor();
 
     CARAPI constructor(
-        /* [in] */ Float factor);
+        /* [in] */ Float tension);
     
     CARAPI constructor(
         /* [in] */ IContext* context,
@@ -21,6 +21,6 @@ public:
         /* [out] */ Float* output);
     
 private:
-    Float mFactor;
+    Float mTension;
 };
-#endif //__CDECELERATEINTERPOLATOR_H__
+#endif //__CANTICIPATEINTERPOLATOR_H__

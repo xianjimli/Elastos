@@ -36,10 +36,10 @@ public:
         /* [in] */ Int32 id,
         /* [out] */ IAnimation** animation);
 
-//    static CARAPI LoadLayoutAnimation(
-//        /* [in] */ IContext* context,
-//        /* [in] */ Int32 id,
-//        /* [out] */ ILayoutAnimationController** controller);
+    static CARAPI LoadLayoutAnimation(
+        /* [in] */ IContext* context,
+        /* [in] */ Int32 id,
+        /* [out] */ ILayoutAnimationController** controller);
 
     /**
      * Make an animation for objects becoming visible. Uses a slide and fade
@@ -97,23 +97,23 @@ private:
         /* [in] */ IXmlPullParser* parser,
         /* [out] */ IAnimation** animation);
 
-//    static CARAPI CreateAnimationFromXml(
-//        /* [in] */ IContext* c,
-//        /* [in] */ IXmlPullParser* parser,
-//        /* [in] */ IAnimationSet* parent,
-//        /* [in] */ IAttributeSet* attrs,
-//        /* [out] */ IAnimation** animation);
-//
-//    static CARAPI CreateLayoutAnimationFromXml(
-//        /* [in] */ IContext* c,
-//        /* [in] */ IXmlPullParser* parser,
-//        /* [out] */ ILayoutAnimationController** controller);
-//
-//    static CARAPI CreateLayoutAnimationFromXml(
-//        /* [in] */ IContext* c,
-//        /* [in] */ IXmlPullParser* parser,
-//        /* [in] */ IAttributeSet* attrs,
-//        /* [out] */ ILayoutAnimationController** controller);
+    static CARAPI CreateAnimationFromXml(
+        /* [in] */ IContext* c,
+        /* [in] */ IXmlPullParser* parser,
+        /* [in] */ IAnimationSet* parent,
+        /* [in] */ IAttributeSet* attrs,
+        /* [out] */ IAnimation** animation);
+
+    static CARAPI CreateLayoutAnimationFromXml(
+        /* [in] */ IContext* c,
+        /* [in] */ IXmlPullParser* parser,
+        /* [out] */ ILayoutAnimationController** controller);
+
+    static CARAPI CreateLayoutAnimationFromXml(
+        /* [in] */ IContext* c,
+        /* [in] */ IXmlPullParser* parser,
+        /* [in] */ IAttributeSet* attrs,
+        /* [out] */ ILayoutAnimationController** controller);
 
     static CARAPI CreateInterpolatorFromXml(
         /* [in] */ IContext* c,

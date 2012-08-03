@@ -1,21 +1,18 @@
 
-#ifndef __CDECELERATEINTERPOLATOR_H__
-#define __CDECELERATEINTERPOLATOR_H__
+#ifndef __CBOUNCEINTERPOLATOR_H__
+#define __CBOUNCEINTERPOLATOR_H__
 
-#include "_CDecelerateInterpolator.h"
+#include "_CBounceInterpolator.h"
 
-CarClass(CDecelerateInterpolator)
+CarClass(CBounceInterpolator)
 {
 public:
     CARAPI constructor();
 
     CARAPI constructor(
-        /* [in] */ Float factor);
-    
-    CARAPI constructor(
         /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs);
-    
+
     CARAPI GetInterpolation(
         /* [in] */ Float input,
         /* [out] */ Float* output);
@@ -23,4 +20,4 @@ public:
 private:
     Float mFactor;
 };
-#endif //__CDECELERATEINTERPOLATOR_H__
+#endif //__CBOUNCEINTERPOLATOR_H__

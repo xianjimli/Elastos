@@ -1,10 +1,10 @@
 
-#ifndef __CDECELERATEINTERPOLATOR_H__
-#define __CDECELERATEINTERPOLATOR_H__
+#ifndef __CACCELERATEINTERPOLATOR_H__
+#define __CACCELERATEINTERPOLATOR_H__
 
-#include "_CDecelerateInterpolator.h"
+#include "_CAccelerateInterpolator.h"
 
-CarClass(CDecelerateInterpolator)
+CarClass(CAccelerateInterpolator)
 {
 public:
     CARAPI constructor();
@@ -22,5 +22,6 @@ public:
     
 private:
     Float mFactor;
+    Double mDoubleFactor;
 };
-#endif //__CDECELERATEINTERPOLATOR_H__
+#endif //__CACCELERATEINTERPOLATOR_H__

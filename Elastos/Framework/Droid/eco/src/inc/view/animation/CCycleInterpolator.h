@@ -1,16 +1,14 @@
 
-#ifndef __CDECELERATEINTERPOLATOR_H__
-#define __CDECELERATEINTERPOLATOR_H__
+#ifndef __CCYCLEINTERPOLATOR_H__
+#define __CCYCLEINTERPOLATOR_H__
 
-#include "_CDecelerateInterpolator.h"
+#include "_CCycleInterpolator.h"
 
-CarClass(CDecelerateInterpolator)
+CarClass(CCycleInterpolator)
 {
 public:
-    CARAPI constructor();
-
     CARAPI constructor(
-        /* [in] */ Float factor);
+        /* [in] */ Float cycles);
     
     CARAPI constructor(
         /* [in] */ IContext* context,
@@ -21,6 +19,6 @@ public:
         /* [out] */ Float* output);
     
 private:
-    Float mFactor;
+    Float mCycles;
 };
-#endif //__CDECELERATEINTERPOLATOR_H__
+#endif //__CCYCLEINTERPOLATOR_H__

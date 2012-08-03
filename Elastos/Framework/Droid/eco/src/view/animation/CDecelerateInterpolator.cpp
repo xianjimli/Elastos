@@ -2,15 +2,14 @@
 #include "view/animation/CDecelerateInterpolator.h"
 #include "ext/frameworkdef.h"
 #include <elastos/Math.h>
+#include <elastos/AutoPtr.h>
 
 using namespace Elastos::Core;
 
-CDecelerateInterpolator::CDecelerateInterpolator()
-    : mFactor(1.0f)
-{}
-
 ECode CDecelerateInterpolator::constructor()
 {
+    mFactor = 1.0f;
+
     return NOERROR;
 }
 
@@ -29,16 +28,23 @@ ECode CDecelerateInterpolator::constructor(
     return NOERROR;
 }
 
+static Int32 R_Styleable_DecelerateInterpolator[] = {
+    0x010101d3
+};
+
 ECode CDecelerateInterpolator::constructor(
     /* [in] */ IContext* context,
     /* [in] */ IAttributeSet* attrs)
 {
-    //TypedArray a =
-    //    context.obtainStyledAttributes(attrs, com.android.internal.R.styleable.DecelerateInterpolator);
-    //
-    //mFactor = a.getFloat(com.android.internal.R.styleable.DecelerateInterpolator_factor, 1.0f);
-    //
-    //a.recycle();
+    AutoPtr<ITypedArray> a;
+    context->ObtainStyledAttributesEx2(
+        attrs, ArrayOf<Int32>(R_Styleable_DecelerateInterpolator,
+        sizeof(R_Styleable_DecelerateInterpolator) / sizeof(Int32))
+        /*com.android.internal.R.styleable.DecelerateInterpolator*/, (ITypedArray**)&a);
+
+    a->GetFloat(0/*com.android.internal.R.styleable.DecelerateInterpolator_factor*/, 1.0f, &mFactor);
+
+    a->Recycle();
 
     return NOERROR;
 }
