@@ -646,6 +646,12 @@ ECode ProgressBar::IncrementSecondaryProgressBy(
     return NOERROR;
 }
 
+ECode ProgressBar::StartAnimation(
+    /* [in] */ IAnimation* animation)
+{
+    return View::StartAnimation(animation);
+}
+
 /**
  * <p>Start the indeterminate progress animation.</p>
  */

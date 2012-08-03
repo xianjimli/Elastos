@@ -350,6 +350,9 @@ public:
     CARAPI IncrementSecondaryProgressBy(
         /* [in] */ Int32 diff);
 
+    CARAPI StartAnimation(
+        /* [in] */ IAnimation* animation);
+
     /**
      * <p>Start the indeterminate progress animation.</p>
      */

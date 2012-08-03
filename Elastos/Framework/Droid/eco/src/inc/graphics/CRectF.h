@@ -136,6 +136,10 @@ public:
     CARAPI constructor(
         /* [in] */ IRect* r);
 
+    CARAPI_(Float) GetWidth();
+
+    CARAPI_(Float) GetHeight();
+
 public:
     Float mLeft;
     Float mTop;

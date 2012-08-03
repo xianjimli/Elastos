@@ -384,3 +384,12 @@ ECode CRectF::constructor(
     return NOERROR;
 }
 
+Float CRectF::GetWidth()
+{
+    return mRight - mLeft;
+}
+
+Float CRectF::GetHeight()
+{
+    return mBottom - mTop;
+}

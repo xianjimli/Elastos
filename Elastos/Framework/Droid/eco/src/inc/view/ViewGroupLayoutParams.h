@@ -3,6 +3,8 @@
 #define __VIEWGROUPLAYOUTPARAMS_H__
 
 #include "ext/frameworkext.h"
+#include "view/animation/LayoutAnimationController.h"
+#include <elastos/AutoPtr.h>
 
 using namespace Elastos;
 
@@ -137,7 +139,7 @@ public:
     /**
      * Used to animate layouts.
      */
-    //LayoutAnimationController.AnimationParameters layoutAnimationParameters;
+    AutoPtr<LayoutAnimationController::AnimationParameters> mLayoutAnimationParameters;
 };
 
 #endif //__VIEWGROUPLAYOUTPARAMS_H__

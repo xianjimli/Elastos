@@ -22,8 +22,10 @@ module
     merge("view/viewtreeobserver.car");
     merge("view/animation/Interpolator.car");
     merge("view/animation/Animation.car");
+    merge("view/animation/AnimationSet.car");
     merge("view/animation/Transformation.car");
     merge("view/animation/LayoutAnimationController.car");
+    merge("view/animation/GridLayoutAnimationController.car");
     merge("view/InputEvent.car");
     merge("view/KeyEvent.car");
     merge("view/MotionEvent.car");
@@ -447,6 +449,106 @@ module
         interface IParcelable;
     }
 
+    class CAccelerateDecelerateInterpolator {
+        constructor();
+
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs);
+
+        interface IInterpolator;
+    }
+
+    class CAccelerateInterpolator {
+        constructor();
+
+        /**
+         * Constructor
+         * 
+         * @param factor Degree to which the animation should be eased. Seting
+         *        factor to 1.0f produces a y=x^2 parabola. Increasing factor above
+         *        1.0f  exaggerates the ease-in effect (i.e., it starts even
+         *        slower and ends evens faster)
+         */
+        constructor(
+            [in] Float factor);
+
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs);
+
+        interface IInterpolator;
+    }
+
+    class CAnticipateInterpolator {
+        constructor();
+
+        /**
+         * @param tension Amount of anticipation. When tension equals 0.0f, there is
+         *                no anticipation and the interpolator becomes a simple
+         *                acceleration interpolator.
+         */
+        constructor(
+            [in] Float tension);
+
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs);
+
+        interface IInterpolator;
+    }
+
+    class CAnticipateOvershootInterpolator {
+        constructor();
+
+        /**
+         * @param tension Amount of anticipation/overshoot. When tension equals 0.0f,
+         *                there is no anticipation/overshoot and the interpolator becomes
+         *                a simple acceleration/deceleration interpolator.
+         */
+        constructor(
+            [in] Float tension);
+
+        /**
+         * @param tension Amount of anticipation/overshoot. When tension equals 0.0f,
+         *                there is no anticipation/overshoot and the interpolator becomes
+         *                a simple acceleration/deceleration interpolator.
+         * @param extraTension Amount by which to multiply the tension. For instance,
+         *                     to get the same overshoot as an OvershootInterpolator with
+         *                     a tension of 2.0f, you would use an extraTension of 1.5f.
+         */
+        constructor(
+            [in] Float tension,
+            [in] Float extraTension);
+
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs);
+
+        interface IInterpolator;
+    }
+
+    class CBounceInterpolator {
+        constructor();
+
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs);
+
+        interface IInterpolator;
+    }
+
+    class CCycleInterpolator {
+        constructor(
+            [in] Float cycles);
+
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs);
+
+        interface IInterpolator;
+    }
+
     class CDecelerateInterpolator {
         constructor();
 
@@ -465,5 +567,244 @@ module
             [in] IAttributeSet* attrs);
 
         interface IInterpolator;
+    }
+
+    class CLinearInterpolator {
+        constructor();
+
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs);
+
+        interface IInterpolator;
+    }
+
+    class COvershootInterpolator {
+        constructor();
+
+        /**
+         * @param tension Amount of overshoot. When tension equals 0.0f, there is
+         *                no overshoot and the interpolator becomes a simple
+         *                deceleration interpolator.
+         */
+        constructor(
+            [in] Float tension);
+
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs);
+
+        interface IInterpolator;
+    }
+
+    class CTransformation {
+        constructor();
+
+        interface ITransformation;
+    }
+
+    class CAnimationSet {
+        /**
+         * Constructor used when an AnimationSet is loaded from a resource. 
+         * 
+         * @param context Application context to use
+         * @param attrs Attribute set from which to read values
+         */
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs);
+
+        /**
+         * Constructor to use when building an AnimationSet from code
+         * 
+         * @param shareInterpolator Pass TRUE if all of the animations in this set
+         *        should use the interpolator assocciated with this AnimationSet.
+         *        Pass FALSE if each animation should use its own interpolator.
+         */
+        constructor(
+            [in] Boolean shareInterpolator);
+
+        interface IAnimationSet;
+    }
+
+    class CAlphaAnimation {
+        /**
+         * Constructor used when an AlphaAnimation is loaded from a resource.
+         *
+         * @param context Application context to use
+         * @param attrs Attribute set from which to read values
+         */
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs);
+
+        /**
+         * Constructor to use when building an AlphaAnimation from code
+         *
+         * @param fromAlpha Starting alpha value for the animation, where 1.0 means
+         *        fully opaque and 0.0 means fully transparent.
+         * @param toAlpha Ending alpha value for the animation.
+         */
+        constructor(
+            [in] Float fromAlpha,
+            [in] Float toAlpha);
+
+        interface IAnimation;
+    }
+
+    class CRotateAnimation {
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] Float fromDegrees,
+            [in] Float toDegrees);
+
+        constructor(
+            [in] Float fromDegrees,
+            [in] Float toDegrees,
+            [in] Float pivotX,
+            [in] Float pivotY);
+
+        constructor(
+            [in] Float fromDegrees,
+            [in] Float toDegrees,
+            [in] Float pivotXType,
+            [in] Float pivotXValue,
+            [in] Float pivotYType,
+            [in] Float pivotYValue);
+
+        interface IAnimation;
+    }
+
+    class CScaleAnimation {
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] Float fromX,
+            [in] Float toX,
+            [in] Float fromY,
+            [in] Float toY);
+
+        constructor(
+            [in] Float fromX,
+            [in] Float toX,
+            [in] Float fromY,
+            [in] Float toY,
+            [in] Float pivotX,
+            [in] Float pivotY);
+
+        constructor(
+            [in] Float fromX,
+            [in] Float toX,
+            [in] Float fromY,
+            [in] Float toY,
+            [in] Float pivotXType,
+            [in] Float pivotXValue,
+            [in] Float pivotYType,
+            [in] Float pivotYValue);
+
+        interface IAnimation;
+    }
+
+    class CTranslateAnimation {
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] Float fromXDelta,
+            [in] Float toXDelta,
+            [in] Float fromYDelta,
+            [in] Float toYDelta);
+
+        constructor(
+            [in] Float fromXType,
+            [in] Float fromXValue,
+            [in] Float toXType,
+            [in] Float toXValue,
+            [in] Float fromYType,
+            [in] Float fromYValue,
+            [in] Float toYType,
+            [in] Float toYValue);
+
+        interface IAnimation;
+    }
+    
+    class CLayoutAnimationController {
+        /**
+         * Creates a new layout animation controller from external resources.
+         *
+         * @param context the Context the view  group is running in, through which
+         *        it can access the resources
+         * @param attrs the attributes of the XML tag that is inflating the
+         *        layout animation controller
+         */
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs);
+
+        /**
+         * Creates a new layout animation controller with a delay of 50%
+         * and the specified animation.
+         *
+         * @param animation the animation to use on each child of the view group
+         */
+         constructor(
+             [in] IAnimation* animation);
+
+        /**
+         * Creates a new layout animation controller with the specified delay
+         * and the specified animation.
+         *
+         * @param animation the animation to use on each child of the view group
+         * @param delay the delay by which each child's animation must be offset
+         */
+        constructor(
+            [in] IAnimation* animation,
+            [in] Float delay);
+
+        interface ILayoutAnimationController;
+    }
+    
+    class CGridLayoutAnimationController {
+        /**
+         * Creates a new grid layout animation controller from external resources.
+         *
+         * @param context the Context the view  group is running in, through which
+         *        it can access the resources
+         * @param attrs the attributes of the XML tag that is inflating the
+         *        layout animation controller
+         */
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs);
+
+        /**
+         * Creates a new layout animation controller with a delay of 50%
+         * for both rows and columns and the specified animation.
+         *
+         * @param animation the animation to use on each child of the view group
+         */
+        constructor(
+            [in] IAnimation* animation);
+
+        /**
+         * Creates a new layout animation controller with the specified delays
+         * and the specified animation.
+         *
+         * @param animation the animation to use on each child of the view group
+         * @param columnDelay the delay by which each column animation must be offset
+         * @param rowDelay the delay by which each row animation must be offset
+         */
+        constructor(
+            [in] IAnimation* animation,
+            [in] Float columnDelay,
+            [in] Float rowDelay);
+
+        interface IGridLayoutAnimationController;
     }
 }

@@ -6,6 +6,7 @@
 #include <elastos/ElRefBase.h>
 #include "graphics/Interpolator.h"
 #include "graphics/CRect.h"
+#include "graphics/CRectF.h"
 #include "view/CSurface.h"
 #include "view/ViewTreeObserver.h"
 #include "view/ViewConfiguration.h"
@@ -1755,12 +1756,12 @@ public:
 
     virtual CARAPI_(AutoPtr<IAnimation>) GetAnimation();
 
-    virtual CARAPI_(void) StartAnimation(
+    virtual CARAPI StartAnimation(
         /* [in] */ IAnimation* animation);
 
-    virtual CARAPI_(void) ClearAnimation();
+    virtual CARAPI ClearAnimation();
 
-    virtual CARAPI_(void) SetAnimation(
+    virtual CARAPI SetAnimation(
         /* [in] */ IAnimation* animation);
 
     virtual CARAPI_(Boolean) GatherTransparentRegion(

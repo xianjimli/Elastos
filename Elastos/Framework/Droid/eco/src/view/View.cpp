@@ -6,6 +6,8 @@
 #include "view/ViewConfiguration.h"
 #include "view/CWindowManagerImpl.h"
 #include "view/LayoutInflater.h"
+#include "view//animation/Animation.h"
+#include "view//animation/AnimationUtils.h"
 #include "graphics/CCanvas.h"
 #include "graphics/CPaint.h"
 #include "graphics/CPoint.h"
@@ -372,29 +374,28 @@ View::ScrollabilityCache::ScrollabilityCache(
 
 ECode View::ScrollabilityCache::Run()
 {
-//    long now = AnimationUtils.currentAnimationTimeMillis();
-//    if (now >= fadeStartTime) {
-//
-//        // the animation fades the scrollbars out by changing
-//        // the opacity (alpha) from fully opaque to fully
-//        // transparent
-//        int nextFrame = (int) now;
-//        int framesCount = 0;
-//
-//        Interpolator interpolator = scrollBarInterpolator;
-//
-//        // Start opaque
-//        interpolator.setKeyFrame(framesCount++, nextFrame, mOpaque);
-//
-//        // End transparent
-//        nextFrame += scrollBarFadeDuration;
-//        interpolator.setKeyFrame(framesCount, nextFrame, mTransparent);
-//
-//        state = FADING;
-//
-//        // Kick off the fade animation
-//        host.invalidate();
-//    }
+    Int64 now = AnimationUtils::CurrentAnimationTimeMillis();
+    if (now >= mFadeStartTime) {
+        // the animation fades the scrollbars out by changing
+        // the opacity (alpha) from fully opaque to fully
+        // transparent
+        Int32 nextFrame = (Int32)now;
+        Int32 framesCount = 0;
+
+        Interpolator* interpolator = mScrollBarInterpolator;
+
+        // Start opaque
+        //interpolator->SetKeyFrame(framesCount++, nextFrame, mHost->mOpaque);
+
+        // End transparent
+        nextFrame += mScrollBarFadeDuration;
+        //interpolator->SetKeyFrame(framesCount, nextFrame, mHost->mTransparent);
+
+        mState = FADING;
+
+        // Kick off the fade animation
+        mHost->InvalidateEx2();
+    }
     return NOERROR;
 }
 
@@ -4071,7 +4072,7 @@ Boolean View::AwakenScrollBars(
 
         // Tell mScrollCache when we should start fading. This may
         // extend the fade start time if one was already scheduled
-        Int64 fadeStartTime = SystemClock::GetUptimeMillis() + startDelay;/*AnimationUtils::CurrentAnimationTimeMillis()*/
+        Int64 fadeStartTime = AnimationUtils::CurrentAnimationTimeMillis() + startDelay;
         scrollCache->mFadeStartTime = fadeStartTime;
         scrollCache->mState = ScrollabilityCache::ON;
 
@@ -7953,23 +7954,27 @@ AutoPtr<IAnimation> View::GetAnimation()
  *
  * @param animation the animation to start now
  */
-void View::StartAnimation(
+ECode View::StartAnimation(
     /* [in] */ IAnimation* animation)
 {
-//    animation->SetStartTime(Animation::START_ON_FIRST_FRAME);
+    animation->SetStartTime(Animation_START_ON_FIRST_FRAME);
     SetAnimation(animation);
     Invalidate();
+
+    return NOERROR;
 }
 
 /**
  * Cancels any animations for this view.
  */
-void View::ClearAnimation()
+ECode View::ClearAnimation()
 {
     if (mCurrentAnimation != NULL) {
-//        mCurrentAnimation->Detach();
+        ((Animation*)mCurrentAnimation->Probe(EIID_Animation))->Detach();
     }
     mCurrentAnimation = NULL;
+
+    return NOERROR;
 }
 
 /**
@@ -7983,13 +7988,15 @@ void View::ClearAnimation()
  *
  * @param animation The next animation, or NULL.
  */
-void View::SetAnimation(
+ECode View::SetAnimation(
     /* [in] */ IAnimation* animation)
 {
     mCurrentAnimation = animation;
     if (animation != NULL) {
-//        animation->Reset();
+        animation->Reset();
     }
+
+    return NOERROR;
 }
 
 /**

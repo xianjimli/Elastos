@@ -14,14 +14,14 @@
         android:text="====人之初 性本善 性相近 习相远 苟不教 性乃迁 教之道 贵以专 昔孟母 择邻处 子不学 断机杼===="
         android:background="#FFFFFF"
     />
-		<ListView
-	 		android:id="@+id/ListView01"
-	 		android:layout_width="fill_parent"
-	  	android:layout_height="250px">
-		</ListView>
-		<Button android:id="@+id/Button01"
-	 		android:layout_width="200px"
-	 		android:layout_height="50px"
-	 		android:text="对话框">
-	 	</Button>
+	<ListView
+ 		android:id="@+id/ListView01"
+ 		android:layout_width="fill_parent"
+  	android:layout_height="250px">
+	</ListView>
+	<Button android:id="@+id/Button01"
+ 		android:layout_width="200px"
+ 		android:layout_height="50px"
+ 		android:text="Animation">
+ 	</Button>
 </LinearLayout>

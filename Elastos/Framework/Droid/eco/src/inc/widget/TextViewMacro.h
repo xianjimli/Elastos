@@ -582,7 +582,7 @@ ECode className::GetAutoLinkMask(                                               
 }                                                                                               \
                                                                                                 \
 ECode className::SetTextAppearance(                                                             \
-    /* [in] */ IContext * pContxt,                                                            \
+    /* [in] */ IContext * pContxt,                                                              \
     /* [in] */ Int32 resid)                                                                     \
 {                                                                                               \
     return superClass::SetTextAppearance(pContxt, resid);                                       \
@@ -592,7 +592,7 @@ ECode className::GetTextSize(                                                   
     /* [out] */ Float * pSize)                                                                  \
 {                                                                                               \
     VALIDATE_NOT_NULL(pSize);                                                                   \
-    *pSize = superClass::GetAutoLinkMask();                                                     \
+    *pSize = superClass::GetTextSize();                                                         \
                                                                                                 \
     return NOERROR;                                                                             \
 }                                                                                               \

@@ -1,6 +1,7 @@
 
 #include "widget/Scroller.h"
 #include "view/ViewConfiguration.h"
+#include "view/animation/AnimationUtils.h"
 #include "os/SystemClock.h"
 #include <elastos/Math.h>
 
@@ -171,7 +172,7 @@ void Scroller::StartScroll(
     mMode = SCROLL_MODE;
     mFinished = FALSE;
     mDuration = duration;
-    mStartTime = SystemClock::GetUptimeMillis();//AnimationUtils.currentAnimationTimeMillis();
+    mStartTime = AnimationUtils::CurrentAnimationTimeMillis();
     mStartX = startX;
     mStartY = startY;
     mFinalX = startX + dx;
@@ -259,8 +260,7 @@ void Scroller::ExtendDuration(
 
 Int32 Scroller::TimePassed()
 {
-    //return (Int32)(AnimationUtils.currentAnimationTimeMillis() - mStartTime);
-    return (Int32)(SystemClock::GetUptimeMillis() - mStartTime);
+    return (Int32)(AnimationUtils::CurrentAnimationTimeMillis() - mStartTime);
 }
 
 void Scroller::SetFinalX(

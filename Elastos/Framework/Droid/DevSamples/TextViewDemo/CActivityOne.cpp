@@ -92,48 +92,63 @@ ECode CActivityOne::MyListener::OnItemClick(
         /* [in] */ Int32 position,
         /* [in] */ Int64 id)
 {
-        printf("OnItemClick position = %d, id = %d\n", position, id);
-        return NOERROR;
+	printf("OnItemClick position = %d, id = %d\n", position, id);
+	return NOERROR;
 }
 
 ECode CActivityOne::MyListener::OnClick(
         /* [in] */ IView* view)
 {
-        if (view == mHost->mButton1.Get()) {
-                printf("ok\n");
-                mHost->DismissDialog(0);
+    if (view == mHost->mButton1.Get()) {
+        printf("ok\n");
+        mHost->DismissDialog(0);
+    }
+    else if (view == mHost->mButton2.Get()) {
+        printf("cancel\n");
+        mHost->DismissDialog(0);
+    }
+    else if (view == mHost->mButton3.Get()) {
+        printf("neutral\n");
+        mHost->DismissDialog(0);
+    }
+    else {
+        //printf("Show Dilaog!\n");
+        //mHost->ShowDialog(0);
+        static count = 0;
+        count = count % 4;
+        if (count == 0) {
+            mHost->mContent->StartAnimation(mHost->mAlphaAnimation);
         }
-        else if (view == mHost->mButton2.Get()) {
-                printf("cancel\n");
-                mHost->DismissDialog(0);
+        else if (count == 1) {
+            mHost->mContent->StartAnimation(mHost->mRotateAnimation);
         }
-        else if (view == mHost->mButton3.Get()) {
-                printf("neutral\n");
-                mHost->DismissDialog(0);
+        else if (count == 2) {
+            mHost->mContent->StartAnimation(mHost->mScaleAnimation);
         }
         else {
-                printf("Show Dilaog!\n");
-                mHost->ShowDialog(0);
+            mHost->mContent->StartAnimation(mHost->mTranslateAnimation);
         }
-        return NOERROR;
+        count++;
+    }
+    return NOERROR;
 }
 
 ECode CActivityOne::MyListener::OnClick(
         /* [in] */ IDialogInterface* dialog,
         /* [in] */ Int32 which)
 {
-        switch (which) {
-        case DialogInterface_BUTTON_POSITIVE:
-                printf("点击了确定按钮\n");
-            break;
-        case DialogInterface_BUTTON_NEGATIVE:
-                printf("点击了取消按钮\n");
-            break;
-        case DialogInterface_BUTTON_NEUTRAL:
-                printf("点击了中立按钮\n");
-            break;
-        default:
-            break;
+    switch (which) {
+    case DialogInterface_BUTTON_POSITIVE:
+            printf("点击了确定按钮\n");
+        break;
+    case DialogInterface_BUTTON_NEGATIVE:
+            printf("点击了取消按钮\n");
+        break;
+    case DialogInterface_BUTTON_NEUTRAL:
+            printf("点击了中立按钮\n");
+        break;
+    default:
+        break;
     }
 
     return NOERROR;
@@ -208,6 +223,25 @@ ECode CActivityOne::OnCreate(
     assert(view != NULL);
 
     view->SetOnClickListener((IViewOnClickListener*)l.Get());
+
+    AutoPtr<IViewParent> parent;
+    view->GetParent((IViewParent**)&parent);
+    mContent = IView::Probe(parent);
+
+    CAlphaAnimation::New(0.3f, 1.0f, (IAnimation**)&mAlphaAnimation);
+    mAlphaAnimation->SetDuration(3000);
+
+    CRotateAnimation::New(0.0f, +350.0f, Animation_RELATIVE_TO_SELF,
+        0.5f,Animation_RELATIVE_TO_SELF, 0.5f, (IAnimation**)&mRotateAnimation);
+    mRotateAnimation->SetDuration(3000);
+
+    CScaleAnimation::New(0.2f, 1.4f, 0.2f, 1.4f, Animation_RELATIVE_TO_SELF,
+        0.5f, Animation_RELATIVE_TO_SELF, 0.5f, (IAnimation**)&mScaleAnimation);
+    mScaleAnimation->SetDuration(3000);
+
+    CTranslateAnimation::New(300.0f, -20.0f, -10.0f, 30.0f,
+        (IAnimation**)&mTranslateAnimation);
+    mTranslateAnimation->SetDuration(3000);
 
     return NOERROR;
 }

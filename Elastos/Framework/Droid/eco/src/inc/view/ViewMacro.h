@@ -659,6 +659,17 @@
     CARAPI SetMinimumWidth(                                             \
         /* [in] */ Int32 minWidth);                                     \
                                                                         \
+    CARAPI GetAnimation(                                                \
+        /* [out] */ IAnimation** animation);                            \
+                                                                        \
+    CARAPI StartAnimation(                                              \
+        /* [in] */ IAnimation* animation);                              \
+                                                                        \
+    CARAPI ClearAnimation();                                            \
+                                                                        \
+    CARAPI SetAnimation(                                                \
+        /* [in] */ IAnimation* animation);                              \
+                                                                        \
     CARAPI GatherTransparentRegion(                                     \
         /* [in] */ IRegion* region,                                     \
         /* [out] */ Boolean* result);                                   \
@@ -2321,6 +2332,35 @@ ECode className::SetMinimumWidth(                                       \
     /* [in] */ Int32 minWidth)                                          \
 {                                                                       \
     return superClass::SetMinimumWidth(minWidth);                       \
+}                                                                       \
+                                                                        \
+ECode className::GetAnimation(                                          \
+    /* [out] */ IAnimation** animation)                                 \
+{                                                                       \
+    VALIDATE_NOT_NULL(animation);                                       \
+                                                                        \
+    *animation = superClass::GetAnimation();                            \
+    if (*animation != NULL) {                                           \
+        (*animation)->AddRef();                                         \
+    }                                                                   \
+    return NOERROR;                                                     \
+}                                                                       \
+                                                                        \
+ECode className::StartAnimation(                                        \
+    /* [in] */ IAnimation* animation)                                   \
+{                                                                       \
+    return superClass::StartAnimation(animation);                       \
+}                                                                       \
+                                                                        \
+ECode className::ClearAnimation()                                       \
+{                                                                       \
+    return superClass::ClearAnimation();                                \
+}                                                                       \
+                                                                        \
+ECode className::SetAnimation(                                          \
+    /* [in] */ IAnimation* animation)                                   \
+{                                                                       \
+    return superClass::SetAnimation(animation);                         \
 }                                                                       \
                                                                         \
 ECode className::GatherTransparentRegion(                               \

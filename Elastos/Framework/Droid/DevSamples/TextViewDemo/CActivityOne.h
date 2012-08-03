@@ -8,7 +8,7 @@
 class CActivityOne : public CActivity
 {
 public:
-    class MyListener 
+    class MyListener
     : public IViewOnTouchListener
     , public IViewOnKeyListener
     , public IOnItemClickListener
@@ -40,16 +40,16 @@ public:
             /* [in] */ Int32 keyCode,
             /* [in] */ IKeyEvent* event,
             /* [out] */ Boolean* result);
-            
+
        	CARAPI OnItemClick(
             /* [in] */ IAdapterView* parent,
             /* [in] */ IView* view,
             /* [in] */ Int32 position,
             /* [in] */ Int64 id);
-           
+
         CARAPI OnClick(
             /* [in] */ IView* v);
-            
+
         CARAPI OnClick(
         		/* [in] */ IDialogInterface* dialog,
         		/* [in] */ Int32 which);
@@ -72,7 +72,7 @@ protected:
     CARAPI OnStop();
 
     CARAPI OnDestroy();
-    
+
 		CARAPI_(AutoPtr<IDialog>) OnCreateDialog(
         /* [in] */ Int32 id);
 
@@ -85,10 +85,17 @@ private:
 private:
     AutoPtr<IDrawable> mDrawable1;
     AutoPtr<IDrawable> mDrawable2;
-    
+
     AutoPtr<IView> mButton1;
     AutoPtr<IView> mButton2;
     AutoPtr<IView> mButton3;
+
+    AutoPtr<IAnimation> mAlphaAnimation;
+    AutoPtr<IAnimation> mScaleAnimation;
+    AutoPtr<IAnimation> mRotateAnimation;
+    AutoPtr<IAnimation> mTranslateAnimation;
+
+    AutoPtr<IView> mContent;
 };
 
 #endif // __CACTIVITYONE_H__

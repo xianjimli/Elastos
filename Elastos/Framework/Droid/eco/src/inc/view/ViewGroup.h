@@ -1169,8 +1169,8 @@ private:
     AutoPtr<IView> mFocused;
 
     // The current transformation to apply on the child being drawn
-    //private Transformation mChildTransformation;
-    AutoPtr<CRect> mInvalidateRegion;
+    AutoPtr<ITransformation> mChildTransformation;
+    AutoPtr<CRectF> mInvalidateRegion;
 
     // Target of Motion events
     AutoPtr<IView> mMotionTarget;

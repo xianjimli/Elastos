@@ -1165,14 +1165,14 @@ void CActivity::OnPrepareDialog(
  * Provides an opportunity to prepare a managed dialog before it is being
  * shown.  The default implementation calls through to
  * {@link #onPrepareDialog(Int32, Dialog)} for compatibility.
- * 
+ *
  * <p>
  * Override this if you need to update a managed dialog based on the state
  * of the application each time it is shown. For example, a time picker
  * dialog might want to be updated with the current time. You should call
  * through to the superclass's implementation. The default implementation
  * will set this Activity as the owner activity on the Dialog.
- * 
+ *
  * @param id The id of the managed dialog.
  * @param dialog The dialog.
  * @param args The dialog arguments provided to {@link #showDialog(Int32, Bundle)}.
@@ -1217,7 +1217,7 @@ ECode CActivity::ShowDialog(
  * If you need to rebuild the dialog, call {@link #removeDialog(Int32)} first.
  * @return Returns true if the Dialog was created; false is returned if
  * it is not created because {@link #onCreateDialog(Int32, Bundle)} returns false.
- * 
+ *
  * @see Dialog
  * @see #onCreateDialog(Int32, Bundle)
  * @see #onPrepareDialog(Int32, Dialog, Bundle)
@@ -1236,7 +1236,7 @@ ECode CActivity::ShowDialogEx(
     if (mManagedDialogs == NULL) {
         mManagedDialogs = new HashMap<Int32, ManagedDialog*>();
     }
-    
+
     ManagedDialog* md = NULL;
     HashMap<Int32, ManagedDialog*>::Iterator find = mManagedDialogs->Find(id);
     if (find == mManagedDialogs->End()) {
@@ -1251,7 +1251,7 @@ ECode CActivity::ShowDialogEx(
     else {
         md = find->mSecond;
     }
-    
+
     md->mArgs = args;
     OnPrepareDialog(id, md->mDialog, args);
     md->mDialog->Show();
@@ -1280,7 +1280,7 @@ ECode CActivity::DismissDialog(
         //throw missingDialog(id);
         return NOERROR;
     }
-    
+
     HashMap<Int32, ManagedDialog*>::Iterator find = mManagedDialogs->Find(id);
     if (find == mManagedDialogs->End()) {
         //throw missingDialog(id);
@@ -1301,7 +1301,7 @@ ECode CActivity::DismissDialog(
  * <p>As of {@link android.os.Build.VERSION_CODES#GINGERBREAD}, this function
  * will not throw an exception if you try to remove an ID that does not
  * currently have an associated dialog.</p>
- * 
+ *
  * @param id The id of the managed dialog.
  *
  * @see #onCreateDialog(Int32, Bundle)

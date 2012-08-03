@@ -38,6 +38,7 @@ module
     interface IAbsSavedState;
     interface IView;
     interface IAccessibilityEvent;
+    interface IAnimation;
 
     /**
      * Interface definition for a callback to be invoked when a key event is
@@ -2501,6 +2502,42 @@ module
          */
         SetMinimumWidth(
             [in] Int32 minWidth);
+
+        /**
+         * Get the animation currently associated with this view.
+         *
+         * @return The animation that is currently playing or
+         *         scheduled to play for this view.
+         */
+        GetAnimation(
+            [out] IAnimation** animation);
+
+        /**
+         * Start the specified animation now.
+         *
+         * @param animation the animation to start now
+         */
+        StartAnimation(
+            [in] IAnimation* animation);
+
+        /**
+         * Cancels any animations for this view.
+         */
+        ClearAnimation();
+
+        /**
+         * Sets the next animation to play for this view.
+         * If you want the animation to play immediately, use
+         * startAnimation. This method provides allows fine-grained
+         * control over the start time and invalidation, but you
+         * must make sure that 1) the animation has a start time set, and
+         * 2) the view will be invalidated when the animation is supposed to
+         * start.
+         *
+         * @param animation The next animation, or null.
+         */
+        SetAnimation(
+            [in] IAnimation* animation);
 
         /**
          * This is used by the RootView to perform an optimization when

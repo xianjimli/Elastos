@@ -2,6 +2,7 @@
 #include "widget/EdgeGlow.h"
 #include "os/SystemClock.h"
 #include "view/animation/CDecelerateInterpolator.h"
+#include "view/animation/AnimationUtils.h"
 #include <elastos/Math.h>
 
 using namespace Elastos::Core;
@@ -84,7 +85,7 @@ void EdgeGlow::Finish()
 void EdgeGlow::OnPull(
     /* [in] */ Float deltaDistance)
 {
-    Int64 now = SystemClock::GetUptimeMillis();//AnimationUtils::currentAnimationTimeMillis();
+    Int64 now = AnimationUtils::CurrentAnimationTimeMillis();
     if (mState == STATE_PULL_DECAY && now - mStartTime < mDuration) {
         return;
     }
@@ -149,7 +150,7 @@ void EdgeGlow::OnRelease()
     mGlowAlphaFinish = 0.f;
     mGlowScaleYFinish = 0.f;
 
-    mStartTime = SystemClock::GetUptimeMillis();//AnimationUtils.currentAnimationTimeMillis();
+    mStartTime = AnimationUtils::CurrentAnimationTimeMillis();
     mDuration = RECEDE_TIME;
 }
 
@@ -164,7 +165,7 @@ void EdgeGlow::OnAbsorb(
     mState = STATE_ABSORB;
     velocity = Math::Max(MIN_VELOCITY, Math::Abs(velocity));
 
-    mStartTime = SystemClock::GetUptimeMillis();//AnimationUtils.currentAnimationTimeMillis();
+    mStartTime = AnimationUtils::CurrentAnimationTimeMillis();
     mDuration = 0.1f + (velocity * 0.03f);
 
     // The edge should always be at least partially visible, regardless
@@ -231,7 +232,7 @@ Boolean EdgeGlow::Draw(
 
 void EdgeGlow::Update()
 {
-    Int64 time = SystemClock::GetUptimeMillis();//AnimationUtils.currentAnimationTimeMillis();
+    Int64 time = AnimationUtils::CurrentAnimationTimeMillis();
     Float t = Math::Min((time - mStartTime) / mDuration, 1.f);
 
     Float interp;
@@ -247,7 +248,7 @@ void EdgeGlow::Update()
         case STATE_ABSORB:
             {
                 mState = STATE_RECEDE;
-                mStartTime = SystemClock::GetUptimeMillis();//AnimationUtils.currentAnimationTimeMillis();
+                mStartTime = AnimationUtils::CurrentAnimationTimeMillis();
                 mDuration = RECEDE_TIME;
 
                 mEdgeAlphaStart = mEdgeAlpha;
@@ -265,7 +266,7 @@ void EdgeGlow::Update()
         case STATE_PULL:
             {
                 mState = STATE_PULL_DECAY;
-                mStartTime = SystemClock::GetUptimeMillis();//AnimationUtils.currentAnimationTimeMillis();
+                mStartTime = AnimationUtils::CurrentAnimationTimeMillis();
                 mDuration = PULL_DECAY_TIME;
 
                 mEdgeAlphaStart = mEdgeAlpha;

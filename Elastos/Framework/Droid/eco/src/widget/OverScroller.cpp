@@ -3,6 +3,7 @@
 #include "utils/CDisplayMetrics.h"
 #include "os/SystemClock.h"
 #include "view/ViewConfiguration.h"
+#include "view/animation/AnimationUtils.h"
 #include "widget/Scroller.h"
 
 const Int32 OverScroller::DEFAULT_DURATION;
@@ -91,7 +92,7 @@ void OverScroller::MagneticOverScroller::StartScroll(
     mStart = start;
     mFinal = start + distance;
 
-    mStartTime = SystemClock::GetUptimeMillis();//AnimationUtils.currentAnimationTimeMillis();
+    mStartTime = AnimationUtils::CurrentAnimationTimeMillis();
     mDuration = duration;
 
     // Unused
@@ -108,7 +109,7 @@ void OverScroller::MagneticOverScroller::Fling(
     mFinished = FALSE;
 
     mStart = start;
-    mStartTime = SystemClock::GetUptimeMillis();//AnimationUtils.currentAnimationTimeMillis();
+    mStartTime = AnimationUtils::CurrentAnimationTimeMillis();
 
     mVelocity = velocity;
 
@@ -162,7 +163,7 @@ void OverScroller::MagneticOverScroller::SetFinalPosition(
 void OverScroller::MagneticOverScroller::ExtendDuration(
     /* [in] */ Int32 extend)
 {
-    Int64 time = SystemClock::GetUptimeMillis();//AnimationUtils.currentAnimationTimeMillis();
+    Int64 time = AnimationUtils::CurrentAnimationTimeMillis();
     Int32 elapsedTime = (Int32)(time - mStartTime);
     mDuration = elapsedTime + extend;
     mFinished = FALSE;
@@ -184,7 +185,7 @@ Boolean OverScroller::MagneticOverScroller::Springback(
     mStart = start;
     mVelocity = 0;
 
-    mStartTime = SystemClock::GetUptimeMillis();//AnimationUtils.currentAnimationTimeMillis();
+    mStartTime = AnimationUtils::CurrentAnimationTimeMillis();
     mDuration = 0;
 
     if (start < min) {
@@ -223,7 +224,7 @@ void OverScroller::MagneticOverScroller::Fling(
     mFinished = FALSE;
 
     mStart = start;
-    mStartTime = SystemClock::GetUptimeMillis();//AnimationUtils.currentAnimationTimeMillis();
+    mStartTime = AnimationUtils::CurrentAnimationTimeMillis();
 
     mVelocity = velocity;
 
@@ -254,7 +255,7 @@ void OverScroller::MagneticOverScroller::Fling(
                 Springback(start, min, max);
             }
             else {
-                Int64 time = SystemClock::GetUptimeMillis();//AnimationUtils.currentAnimationTimeMillis();
+                Int64 time = AnimationUtils::CurrentAnimationTimeMillis();
                 Double durationSinceEdge =
                     Math::Atan((start-max) * TIME_COEF / velocity) / TIME_COEF;
                 mStartTime = (Int32)(time - 1000.0f * durationSinceEdge);
@@ -278,7 +279,7 @@ void OverScroller::MagneticOverScroller::Fling(
                     Springback(start, min, max);
                 }
                 else {
-                    Int64 time = SystemClock::GetUptimeMillis();//AnimationUtils.currentAnimationTimeMillis();
+                    Int64 time = AnimationUtils::CurrentAnimationTimeMillis();
                     Double durationSinceEdge =
                         Math::Atan((start-min) * TIME_COEF / velocity) / TIME_COEF;
                     mStartTime = (Int32)(time - 1000.0f * durationSinceEdge);
@@ -315,7 +316,7 @@ void OverScroller::MagneticOverScroller::NotifyEdgeReached(
 
     mOver = over;
 
-    Int64 time = SystemClock::GetUptimeMillis();//AnimationUtils.currentAnimationTimeMillis();
+    Int64 time = AnimationUtils::CurrentAnimationTimeMillis();
     mStartTime = (Int32)(time - 1000.0f * (timeCurrent - timeEdge));
 
     OnEdgeReached();
@@ -395,7 +396,7 @@ Boolean OverScroller::MagneticOverScroller::ContinueWhenFinished()
  */
 Boolean OverScroller::MagneticOverScroller::Update()
 {
-    Int64 time = SystemClock::GetUptimeMillis();//AnimationUtils.currentAnimationTimeMillis();
+    Int64 time = AnimationUtils::CurrentAnimationTimeMillis();
     Int64 duration = time - mStartTime;
 
     if (duration > mDuration) {
@@ -634,7 +635,7 @@ Boolean OverScroller::ComputeScrollOffset()
     switch (mMode) {
     case SCROLL_MODE:
         {
-            Int64 time = SystemClock::GetUptimeMillis();//AnimationUtils.currentAnimationTimeMillis();
+            Int64 time = AnimationUtils::CurrentAnimationTimeMillis();
             // Any scroller can be used for time, since they were started
             // together in scroll mode. We use X here.
             Int64 elapsedTime = time - mScrollerX->mStartTime;
@@ -867,7 +868,7 @@ void OverScroller::AbortAnimation()
  */
 Int32 OverScroller::TimePassed()
 {
-    Int64 time = SystemClock::GetUptimeMillis();//AnimationUtils.currentAnimationTimeMillis();
+    Int64 time = AnimationUtils::CurrentAnimationTimeMillis();
     Int64 startTime = Math::Min(mScrollerX->mStartTime, mScrollerY->mStartTime);
 
     return (Int32)(time - startTime);

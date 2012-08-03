@@ -4,6 +4,10 @@
 #include "view/CMotionEvent.h"
 #include "view/ViewRoot.h"
 #include "view/FocusFinder.h"
+#include "view/animation/Animation.h"
+#include "view/animation/AnimationUtils.h"
+#include "view/animation/CTransformation.h"
+#include "view/animation/CLayoutAnimationController.h"
 #include "graphics/CPaint.h"
 #include "graphics/CPoint.h"
 #include "os/SystemClock.h"
@@ -173,7 +177,10 @@ void ViewGroup::InitFromAttributes(
                 Int32 id;
                 a->GetResourceId(attr, -1, &id);
                 if (id > 0) {
-//                    SetLayoutAnimation(AnimationUtils.loadLayoutAnimation(mContext, id));
+                    AutoPtr<ILayoutAnimationController> controller;
+                    AnimationUtils::LoadLayoutAnimation(
+                        mContext, id, (ILayoutAnimationController**)&controller);
+                    SetLayoutAnimation(controller);
                 }
                 break;
             }
@@ -696,7 +703,7 @@ Boolean ViewGroup::DispatchTouchEvent(
             for (; iter != mChildren.End(); ++iter) {
                 View* child = (View*)(*iter).Get()->Probe(EIID_View);
                 if ((child->mViewFlags & VISIBILITY_MASK) == VISIBLE
-                    /*|| child->GetAnimation() != NULL*/) {
+                    || child->GetAnimation() != NULL) {
                     child->GetHitRect(frame);
                     Boolean isContains;
                     frame->Contains(scrolledXInt, scrolledYInt, &isContains);
@@ -1184,12 +1191,13 @@ void ViewGroup::DispatchDraw(
             }
         }
 
-//        final LayoutAnimationController controller = mLayoutAnimationController;
-//        if (controller.willOverlap()) {
-//            mGroupFlags |= FLAG_OPTIMIZE_INVALIDATE;
-//        }
-//
-//        controller.start();
+        Boolean willOverlap;
+        mLayoutAnimationController->WillOverlap(&willOverlap);
+        if (willOverlap) {
+            mGroupFlags |= FLAG_OPTIMIZE_INVALIDATE;
+        }
+
+        mLayoutAnimationController->Start();
 
         mGroupFlags &= ~FLAG_RUN_ANIMATION;
         mGroupFlags &= ~FLAG_ANIMATION_DONE;
@@ -1198,9 +1206,11 @@ void ViewGroup::DispatchDraw(
             mGroupFlags |= FLAG_CHILDREN_DRAWN_WITH_CACHE;
         }
 
-//        if (mAnimationListener != NULL) {
-//            mAnimationListener.onAnimationStart(controller.getAnimation());
-//        }
+        if (mAnimationListener != NULL) {
+            AutoPtr<IAnimation> animation;
+            mLayoutAnimationController->GetAnimation((IAnimation**)&animation);
+            mAnimationListener->OnAnimationStart(animation);
+        }
     }
 
     Int32 saveCount = 0;
@@ -1344,82 +1354,91 @@ Boolean ViewGroup::DrawChild(
     const Int32 flags = mGroupFlags;
 
     if ((flags & FLAG_CLEAR_TRANSFORMATION) == FLAG_CLEAR_TRANSFORMATION) {
-        /*if (mChildTransformation != NULL) {
-            mChildTransformation.clear();
-        }*/
+        if (mChildTransformation != NULL) {
+            mChildTransformation->Clear();
+        }
         mGroupFlags &= ~FLAG_CLEAR_TRANSFORMATION;
     }
 
-//    Transformation transformToApply = NULL;
-//    final Animation a = child.getAnimation();
-//    Boolean concatMatrix = FALSE;
-//
-//    if (a != NULL) {
-//        if (mInvalidateRegion == NULL) {
-//            mInvalidateRegion = new CRect();
-//        }
-//        const CRect* region = mInvalidateRegion.Get();
-//
-//        //final Boolean initialized = a.isInitialized();
-//        /*if (!initialized) {
-//            a.initialize(cr - cl, cb - ct, getWidth(), getHeight());
-//            a.initializeInvalidateRegion(0, 0, cr - cl, cb - ct);
-//            child.onAnimationStart();
-//        }*/
-//
-//        /*if (mChildTransformation == NULL) {
-//            mChildTransformation = new Transformation();
-//        }*/
-//        //more = a.getTransformation(drawingTime, mChildTransformation);
-//        //transformToApply = mChildTransformation;
-//
-//        //concatMatrix = a.willChangeTransformationMatrix();
-//
-//        if (more) {
-//            if (!a.willChangeBounds()) {
-//                if ((flags & (FLAG_OPTIMIZE_INVALIDATE | FLAG_ANIMATION_DONE)) ==
-//                        FLAG_OPTIMIZE_INVALIDATE) {
-//                    mGroupFlags |= FLAG_INVALIDATE_REQUIRED;
-//                } else if ((flags & FLAG_INVALIDATE_REQUIRED) == 0) {
-//                    // The child need to draw an animation, potentially offscreen, so
-//                    // make sure we do not cancel invalidate requests
-//                    mPrivateFlags |= DRAW_ANIMATION;
-//                    invalidate(cl, ct, cr, cb);
-//                }
-//            } else {
-//                a.getInvalidateRegion(0, 0, cr - cl, cb - ct, region, transformToApply);
-//
-//                // The child need to draw an animation, potentially offscreen, so
-//                // make sure we do not cancel invalidate requests
-//                mPrivateFlags |= DRAW_ANIMATION;
-//
-//                final Int32 left = cl + (Int32) region.left;
-//                final Int32 top = ct + (Int32) region.top;
-//                invalidate(left, top, left + (Int32) region.width(), top + (Int32) region.height());
-//            }
-//        }
-//    } else if ((flags & FLAG_SUPPORT_STATIC_TRANSFORMATIONS) ==
-//            FLAG_SUPPORT_STATIC_TRANSFORMATIONS) {
-//        if (mChildTransformation == NULL) {
-//            mChildTransformation = new Transformation();
-//        }
-//        final Boolean hasTransform = getChildStaticTransformation(child, mChildTransformation);
-//        if (hasTransform) {
-//            final Int32 transformType = mChildTransformation.getTransformationType();
-//            transformToApply = transformType != Transformation.TYPE_IDENTITY ?
-//                    mChildTransformation : NULL;
-//            concatMatrix = (transformType & Transformation.TYPE_MATRIX) != 0;
-//        }
-//    }
+    AutoPtr<ITransformation> transformToApply;
+    AutoPtr<IAnimation> anim = child->GetAnimation();
+    Boolean concatMatrix = FALSE;
+
+    if (anim != NULL) {
+        Animation* a = (Animation*)anim->Probe(EIID_Animation);
+        if (mInvalidateRegion == NULL) {
+            ASSERT_SUCCEEDED(CRectF::NewByFriend((CRectF**)&mInvalidateRegion));
+        }
+        CRectF* region = mInvalidateRegion.Get();
+
+        Boolean initialized = a->IsInitialized();
+        if (!initialized) {
+            a->Initialize(cr - cl, cb - ct, GetWidth(), GetHeight());
+            a->InitializeInvalidateRegion(0, 0, cr - cl, cb - ct);
+            child->OnAnimationStart();
+        }
+
+        if (mChildTransformation == NULL) {
+            ASSERT_SUCCEEDED(CTransformation::New(
+                (ITransformation**)&mChildTransformation));
+        }
+        more = a->GetTransformation(drawingTime, mChildTransformation);
+        transformToApply = mChildTransformation;
+
+        concatMatrix = a->WillChangeTransformationMatrix();
+
+        if (more) {
+            if (!a->WillChangeBounds()) {
+                if ((flags & (FLAG_OPTIMIZE_INVALIDATE | FLAG_ANIMATION_DONE)) ==
+                        FLAG_OPTIMIZE_INVALIDATE) {
+                    mGroupFlags |= FLAG_INVALIDATE_REQUIRED;
+                }
+                else if ((flags & FLAG_INVALIDATE_REQUIRED) == 0) {
+                    // The child need to draw an animation, potentially offscreen, so
+                    // make sure we do not cancel invalidate requests
+                    mPrivateFlags |= DRAW_ANIMATION;
+                    Invalidate(cl, ct, cr, cb);
+                }
+            }
+            else {
+                a->GetInvalidateRegion(0, 0, cr - cl, cb - ct, region, transformToApply);
+
+                // The child need to draw an animation, potentially offscreen, so
+                // make sure we do not cancel invalidate requests
+                mPrivateFlags |= DRAW_ANIMATION;
+
+                Int32 left = cl + (Int32)region->mLeft;
+                Int32 top = ct + (Int32)region->mTop;
+                Invalidate(left, top, left + (Int32)region->GetWidth(),
+                    top + (Int32)region->GetHeight());
+            }
+        }
+    }
+    else if ((flags & FLAG_SUPPORT_STATIC_TRANSFORMATIONS) ==
+        FLAG_SUPPORT_STATIC_TRANSFORMATIONS) {
+        if (mChildTransformation == NULL) {
+            ASSERT_SUCCEEDED(CTransformation::New(
+                (ITransformation**)&mChildTransformation));
+        }
+        Boolean hasTransform = GetChildStaticTransformation(_child, mChildTransformation);
+        if (hasTransform) {
+            Int32 transformType;
+            mChildTransformation->GetTransformationType(&transformType);
+            transformToApply = transformType != Transformation_TYPE_IDENTITY ?
+                    mChildTransformation : NULL;
+            concatMatrix = (transformType & Transformation_TYPE_MATRIX) != 0;
+        }
+    }
 
     // Sets the flag as early as possible to allow draw() implementations
     // to call invalidate() successfully when doing animations
     child->mPrivateFlags |= DRAWN;
 
-//    if (!concatMatrix && canvas.quickReject(cl, ct, cr, cb, Canvas.EdgeType.BW) &&
-//            (child.mPrivateFlags & DRAW_ANIMATION) == 0) {
-//        return more;
-//    }
+    Boolean res;
+    if (!concatMatrix && (canvas->QuickReject(cl, ct, cr, cb, CanvasEdgeType_BW, &res), res)
+        && (child->mPrivateFlags & DRAW_ANIMATION) == 0) {
+        return more;
+    }
 
     child->ComputeScroll();
 
@@ -1455,39 +1474,44 @@ Boolean ViewGroup::DrawChild(
 
     Float alpha = 1.0f;
 
-//    if (transformToApply != NULL) {
-//        if (concatMatrix) {
-//            Int32 transX = 0;
-//            Int32 transY = 0;
-//            if (hasNoCache) {
-//                transX = -sx;
-//                transY = -sy;
-//            }
-//            // Undo the scroll translation, apply the transformation matrix,
-//            // then redo the scroll translate to get the correct result.
-//            canvas->translate(-transX, -transY);
-//            //canvas->concat(transformToApply.getMatrix());
-//            canvas->translate(transX, transY);
-//            mGroupFlags |= FLAG_CLEAR_TRANSFORMATION;
-//        }
-//
-//        //alpha = transformToApply.getAlpha();
-//        if (alpha < 1.0f) {
-//            mGroupFlags |= FLAG_CLEAR_TRANSFORMATION;
-//        }
-//
-//        if (alpha < 1.0f && hasNoCache) {
-//            const Int32 multipliedAlpha = (Int32) (255 * alpha);
-//            if (!child->OnSetAlpha(multipliedAlpha)) {
-//                canvas->SaveLayerAlpha(sx, sy, sx + cr - cl, sy + cb - ct, multipliedAlpha,
-//                        Canvas.HAS_ALPHA_LAYER_SAVE_FLAG | Canvas.CLIP_TO_LAYER_SAVE_FLAG);
-//            } else {
-//                child->mPrivateFlags |= ALPHA_SET;
-//            }
-//        }
-//    } else if ((child->mPrivateFlags & ALPHA_SET) == ALPHA_SET) {
-//        child->OnSetAlpha(255);
-//    }
+    if (transformToApply != NULL) {
+        if (concatMatrix) {
+            Int32 transX = 0;
+            Int32 transY = 0;
+            if (hasNoCache) {
+                transX = -sx;
+                transY = -sy;
+            }
+            // Undo the scroll translation, apply the transformation matrix,
+            // then redo the scroll translate to get the correct result.
+            canvas->Translate(-transX, -transY);
+            AutoPtr<IMatrix> matrix;
+            transformToApply->GetMatrix((IMatrix**)&matrix);
+            canvas->Concat(matrix);
+            canvas->Translate(transX, transY);
+            mGroupFlags |= FLAG_CLEAR_TRANSFORMATION;
+        }
+
+        transformToApply->GetAlpha(&alpha);
+        if (alpha < 1.0f) {
+            mGroupFlags |= FLAG_CLEAR_TRANSFORMATION;
+        }
+
+        if (alpha < 1.0f && hasNoCache) {
+            Int32 multipliedAlpha = (Int32)(255 * alpha);
+            if (!child->OnSetAlpha(multipliedAlpha)) {
+                Int32 count;
+                canvas->SaveLayerAlphaEx(sx, sy, sx + cr - cl, sy + cb - ct, multipliedAlpha,
+                    Canvas_HAS_ALPHA_LAYER_SAVE_FLAG | Canvas_CLIP_TO_LAYER_SAVE_FLAG, &count);
+            }
+            else {
+                child->mPrivateFlags |= ALPHA_SET;
+            }
+        }
+    }
+    else if ((child->mPrivateFlags & ALPHA_SET) == ALPHA_SET) {
+        child->OnSetAlpha(255);
+    }
 
     if ((flags & FLAG_CLIP_CHILDREN) == FLAG_CLIP_CHILDREN) {
         if (hasNoCache) {
@@ -1539,10 +1563,10 @@ Boolean ViewGroup::DrawChild(
 
     canvas->RestoreToCount(restoreTo);
 
-//    if (a != NULL && !more) {
-//        child->OnSetAlpha(255);
-//        finishAnimatingView(child, a);
-//    }
+    if (anim != NULL && !more) {
+        child->OnSetAlpha(255);
+        FinishAnimatingView(_child, anim);
+    }
 
     return more;
 }
@@ -1971,16 +1995,17 @@ ECode ViewGroup::AttachLayoutAnimationParameters(
     /* [in] */ Int32 index,
     /* [in] */ Int32 count)
 {
-//    LayoutAnimationController.AnimationParameters animationParams =
-//                params.layoutAnimationParameters;
-//    if (animationParams == NULL) {
-//        animationParams = new LayoutAnimationController.AnimationParameters();
-//        params.layoutAnimationParameters = animationParams;
-//    }
-//
-//    animationParams.count = count;
-//    animationParams.index = index;
-    return E_NOT_IMPLEMENTED;
+    LayoutAnimationController::AnimationParameters* animationParams =
+                ((CViewGroupLayoutParams*)params)->mLayoutAnimationParameters;
+    if (animationParams == NULL) {
+        animationParams = new LayoutAnimationController::AnimationParameters();
+        ((CViewGroupLayoutParams*)params)->mLayoutAnimationParameters = animationParams;
+    }
+
+    animationParams->mCount = count;
+    animationParams->mIndex = index;
+
+    return NOERROR;
 }
 
 ECode ViewGroup::RemoveView(
