@@ -79,5 +79,11 @@ module
             [in] ICapsuleManager* pm,
             [in] String name,
             [out] IXmlResourceParser** resource);
+
+        GetCapsuleName(
+            [out] String* capsuleName);
+
+        GetName(
+            [out] String* name);
     }
 }

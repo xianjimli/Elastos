@@ -286,6 +286,7 @@ module
     interface IIntentSender;
     interface ICapsuleMoveObserver;
 
+    [deprecated]
     interface ICapsuleManager {
         GetCapsuleInfo(
             [in] String capsuleName,
@@ -409,8 +410,8 @@ module
 
         QueryIntentActivityOptions(
             [in] IComponentName* caller,
-            [in] ArrayOf<IIntent*> specifics,
-            [in] ArrayOf<String> specificTypes,
+            [in] ArrayOf<IIntent*>* specifics,
+            [in] ArrayOf<String>* specificTypes,
             [in] IIntent* intent,
             [in] String resolvedType,
             [in] Int32 flags,

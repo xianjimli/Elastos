@@ -7,6 +7,15 @@
 namespace Elastos {
 namespace Core {
 
+Int64 System::GetCurrentTimeMillis()
+{
+    // we don't support the clocks here.
+    struct timeval t;
+    t.tv_sec = t.tv_usec = 0;
+    gettimeofday(&t, NULL);
+    return ((Int64)t.tv_sec * 1000 + (Int64)t.tv_usec / 1000.0);
+}
+
 ECode System::GetEnv(
     /* [in] */ CString name,
     /* [out] */ String* env)

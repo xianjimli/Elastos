@@ -7150,9 +7150,7 @@ CServiceRecord* CActivityManagerService::FindServiceLocked(
 CActivityManagerService::ServiceLookupResult*
 CActivityManagerService::FindServiceLocked(
     /* [in] */ IIntent* service,
-    /* [in] */ const String& resolvedType,
-    /* [in] */ Int32 callingPid,
-    /* [in] */ Int32 callingUid)
+    /* [in] */ const String& resolvedType)
 {
     AutoPtr<CServiceRecord> r;
     AutoPtr<IComponentName> comp;
@@ -7186,6 +7184,8 @@ CActivityManagerService::FindServiceLocked(
         r = mServices[name];
     }
     if (r != NULL) {
+        Int32 callingPid = 0; /*Binder.getCallingPid();*/
+        Int32 callingUid = 0; /*Binder.getCallingUid();*/
         if (CheckComponentPermission(r->mPermission,
                 callingPid, callingUid, r->mExported ? -1 : r->mAppInfo->mUid)
                 != CapsuleManager_PERMISSION_GRANTED) {
@@ -7907,8 +7907,6 @@ ECode CActivityManagerService::StartService(
     /* [in] */ IApplicationApartment* caller,
     /* [in] */ IIntent* service,
     /* [in] */ const String& resolvedType,
-    /* [in] */ Int32 callingPid,
-    /* [in] */ Int32 callingUid,
     /* [out] */ IComponentName** name)
 {
     if (name == NULL) return E_INVALID_ARGUMENT;
@@ -7923,8 +7921,8 @@ ECode CActivityManagerService::StartService(
 
     Mutex::Autolock lock(_m_syncLock);
 
-//    final int callingPid = Binder.getCallingPid();
-//    final int callingUid = Binder.getCallingUid();
+    const Int32 callingPid = 0; /*Binder.getCallingPid();*/
+    const Int32 callingUid = 0; /*Binder.getCallingUid();*/
 //    final long origId = Binder.clearCallingIdentity();
     ECode ec = StartServiceLocked(caller, service, resolvedType,
             callingPid, callingUid, name);
@@ -7953,8 +7951,6 @@ ECode CActivityManagerService::StopService(
     /* [in] */ IApplicationApartment* caller,
     /* [in] */ IIntent* service,
     /* [in] */ const String& resolvedType,
-    /* [in] */ Int32 callingPid,
-    /* [in] */ Int32 callingUid,
     /* [out] */ Int32* result)
 {
     // Refuse possible leaked file descriptors
@@ -7986,7 +7982,7 @@ ECode CActivityManagerService::StopService(
 
     // If this service is active, make sure it is stopped.
     ServiceLookupResult* r = FindServiceLocked(service,
-            resolvedType, callingPid, callingUid);
+            resolvedType);
     if (r != NULL) {
         if (r->mRecord != NULL) {
 //            r->mRecord->mStats->GetBatteryStats()->Lock();
@@ -8012,8 +8008,6 @@ ECode CActivityManagerService::StopService(
 ECode CActivityManagerService::PeekService(
     /* [in] */ IIntent* service,
     /* [in] */ const String& resolvedType,
-    /* [in] */ Int32 callingPid,
-    /* [in] */ Int32 callingUid,
     /* [out] */ IBinder** token)
 {
     if (token == NULL) return E_INVALID_ARGUMENT;
@@ -8030,7 +8024,7 @@ ECode CActivityManagerService::PeekService(
     Mutex::Autolock lock(_m_syncLock);
 
     ServiceLookupResult* r = FindServiceLocked(service,
-            resolvedType, callingPid, callingUid);
+            resolvedType);
 
     if (r != NULL) {
         // r.record is null if findServiceLocked() failed the caller permission check

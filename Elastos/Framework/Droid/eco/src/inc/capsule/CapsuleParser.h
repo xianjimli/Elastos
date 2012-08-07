@@ -392,6 +392,11 @@ public:
     public:
         Capsule()
             : mCapsuleName(NULL)
+            , mProtectedBroadcasts(NULL)
+            , mUsesLibraries(NULL)
+            , mUsesOptionalLibraries(NULL)
+            , mOriginalCapsules(NULL)
+            , mAdoptPermissions(NULL)
             , mVersionCode(0)
             , mSharedUserLabel(0)
             , mPreferredOrder(0)
@@ -408,6 +413,11 @@ public:
         Capsule(
             /* [in] */ const String& name)
             : mCapsuleName(name)
+            , mProtectedBroadcasts(NULL)
+            , mUsesLibraries(NULL)
+            , mUsesOptionalLibraries(NULL)
+            , mOriginalCapsules(NULL)
+            , mAdoptPermissions(NULL)
             , mVersionCode(0)
             , mSharedUserLabel(0)
             , mPreferredOrder(0)
@@ -419,7 +429,26 @@ public:
 
         ~Capsule()
         {
-            mApplicationInfo->Release();
+            if (mProtectedBroadcasts != NULL) {
+                mProtectedBroadcasts->Clear();
+                delete mProtectedBroadcasts;
+            }
+            if (mUsesLibraries != NULL) {
+                mUsesLibraries->Clear();
+                delete mUsesLibraries;
+            }
+            if (mUsesOptionalLibraries != NULL) {
+                mUsesOptionalLibraries->Clear();
+                delete mUsesOptionalLibraries;
+            }
+            if (mOriginalCapsules != NULL) {
+                mOriginalCapsules->Clear();
+                delete mOriginalCapsules;
+            }
+            if (mAdoptPermissions != NULL) {
+                mAdoptPermissions->Clear();
+                delete mAdoptPermissions;
+            }
         }
 
         CARAPI_(PInterface) Probe(
@@ -451,15 +480,15 @@ public:
 
         List<String> mRequestedPermissions;
 
-        List<String> mProtectedBroadcasts;
+        List<String>* mProtectedBroadcasts;
 
-        List<String> mUsesLibraries;
-        List<String> mUsesOptionalLibraries;
+        List<String>* mUsesLibraries;
+        List<String>* mUsesOptionalLibraries;
         AutoFree< ArrayOf<String> > mUsesLibraryFiles;
 
-        List<String> mOriginalCapsules;
+        List<String>* mOriginalCapsules;
         String mRealCapsule;
-        List<String> mAdoptPermissions;
+        List<String>* mAdoptPermissions;
 
         // We store the application meta-data independently to avoid multiple unwanted references
         AutoPtr<CBundle> mAppMetaData;
@@ -497,7 +526,7 @@ public:
         Int32 mSetEnabled;
 
         // Additional data supplied by callers.
-        void* mExtras;
+        AutoPtr<IInterface> mExtras;
 
         // Whether an operation is currently pending on this package
         Boolean mOperationPending;
@@ -522,6 +551,9 @@ public:
         /* [in] */ const String& archiveSourcePath);
 
     ~CapsuleParser();
+
+    CARAPI_(void) SetSeparateProcesses(
+        /* [in] */ const ArrayOf<String>& procs);
 
     /**
      * Generate and return the {@link PackageInfo} for a parsed package.
@@ -558,34 +590,29 @@ public:
         /* [in] */ Capsule* capsule,
         /* [in] */ Int32 flags);
 
-    static CARAPI_(AutoPtr<IPermissionInfo>) GeneratePermissionInfo(
+    static CARAPI_(AutoPtr<CPermissionInfo>) GeneratePermissionInfo(
         /* [in] */ Permission* p,
         /* [in] */ Int32 flags);
 
-    static CARAPI GeneratePermissionGroupInfo(
+    static CARAPI_(AutoPtr<CPermissionGroupInfo>) GeneratePermissionGroupInfo(
         /* [in] */ PermissionGroup* pg,
-        /* [in] */ Int32 flags,
-        /* [out] */ IPermissionGroupInfo** info);
+        /* [in] */ Int32 flags);
 
-    static CARAPI GenerateActivityInfo(
+    static CARAPI_(AutoPtr<CActivityInfo>) GenerateActivityInfo(
         /* [in] */ Activity* activity,
-        /* [in] */ Int32 flags,
-        /* [out] */ CActivityInfo** info);
+        /* [in] */ Int32 flags);
 
-    static CARAPI GenerateServiceInfo(
+    static CARAPI_(AutoPtr<CServiceInfo>) GenerateServiceInfo(
         /* [in] */ Service* service,
-        /* [in] */ Int32 flags,
-        /* [out] */ CServiceInfo** info);
+        /* [in] */ Int32 flags);
 
-    static CARAPI GenerateContentProviderInfo(
+    static CARAPI_(AutoPtr<CContentProviderInfo>) GenerateContentProviderInfo(
         /* [in] */ ContentProvider* provider,
-        /* [in] */ Int32 flags,
-        /* [out] */ IContentProviderInfo** info);
+        /* [in] */ Int32 flags);
 
-    static CARAPI GenerateInstrumentationInfo(
+    static CARAPI_(AutoPtr<CInstrumentationInfo>) GenerateInstrumentationInfo(
         /* [in] */ CapsuleParser::Instrumentation* i,
-        /* [in] */ Int32 flags,
-        /* [out] */ CInstrumentationInfo** info);
+        /* [in] */ Int32 flags);
 
     static CARAPI_(void) SetCompatibilityModeEnabled(
         /* [in] */ Boolean compatibilityModeEnabled);

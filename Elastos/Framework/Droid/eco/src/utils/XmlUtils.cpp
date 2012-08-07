@@ -1,7 +1,7 @@
 
 #include "utils/XmlUtils.h"
 
-void XmlUtils::SkipCurrentTag(
+ECode XmlUtils::SkipCurrentTag(
     /* [in] */ IXmlPullParser* parser)
 {
     Int32 outerDepth = 0;
@@ -13,6 +13,7 @@ void XmlUtils::SkipCurrentTag(
            && (type != IXmlPullParser_END_TAG
                    || (parser->GetDepth(&depth), depth) > outerDepth)) {
     }
+    return NOERROR;
 }
 
 Int32 XmlUtils::ConvertValueToList(
@@ -97,14 +98,16 @@ Int32 XmlUtils::ConvertValueToInt32(
     return -1;
 }
 
-void XmlUtils::BeginDocument(
+ECode XmlUtils::BeginDocument(
     /* [in] */ IXmlPullParser* parser,
-    /* [in] */ const String& firstElementName)
+    /* [in] */ CString firstElementName)
 {
+    return E_NOT_IMPLEMENTED;	
 }
 
-void XmlUtils::NextElement(
+ECode XmlUtils::NextElement(
     /* [in] */ IXmlPullParser* parser)
 {
+    return E_NOT_IMPLEMENTED;
 }
 

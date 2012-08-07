@@ -13,6 +13,16 @@ class System
 {
 public:
     /**
+     * Returns the current system time in milliseconds since January 1, 1970
+     * 00:00:00 UTC. This method shouldn't be used for measuring timeouts or
+     * other elapsed time measurements, as changing the system time can affect
+     * the results.
+     *
+     * @return the local system time in milliseconds.
+     */
+    static CARAPI_(Int64) GetCurrentTimeMillis();
+
+    /**
      * Returns the value of the environment variable with the given name {@code
      * var}.
      *

@@ -6,44 +6,11 @@
 #include <_pubcrt.h>
 #include "convertstr.h"
 #include <wchar.h>
+#include <elstringapi.h>
 
 #ifdef  __cplusplus
 extern "C" {
 #endif
-_ELASTOS Int32 __cdecl _String_GetLength(const char *string,
-    _ELASTOS Int32 nMaxLen);
-
-char* __cdecl _String_Duplicate(const char *strSource);
-void __cdecl _String_Free(char * str);
-
-_ELASTOS Int32 __cdecl _String_IndexOf_Char8(const char *string, char ch,
-    _ELASTOS StringCase stringCase);
-_ELASTOS Int32 __cdecl _String_IndexOf_AnyChar8(const char *string,
-    const char* strCharSet, _ELASTOS StringCase stringCase);
-_ELASTOS Int32 __cdecl _String_IndexOf_AnyChar(const char *string,
-    _ELASTOS Char32 *strCharSet, _ELASTOS StringCase stringCase);
-
-_ELASTOS Int32 __cdecl _String_LastIndexOf_Char8(const char *string, char ch,
-    _ELASTOS StringCase stringCase);
-_ELASTOS Int32 __cdecl _String_LastIndexOf_AnyChar8(const char *string,
-    const char* strCharSet, _ELASTOS StringCase stringCase);
-_ELASTOS Int32 __cdecl _String_LastIndexOf_AnyChar(const char *string,
-    _ELASTOS Char32 *strCharSet, _ELASTOS StringCase stringCase);
-
-char* __cdecl _String_Substring_Buffer(const char *string, _ELASTOS Int32 start,
-        _ELASTOS PCarQuintet pCq);
-char* __cdecl _String_Substring_Length_Buffer(const char *string,
-        _ELASTOS Int32 start, _ELASTOS Int32 len, _ELASTOS PCarQuintet pCq);
-
-char* __cdecl _String_ToLowerCase(const char *string, _ELASTOS PCarQuintet pCq);
-char* __cdecl _String_ToUpperCase(const char *string,
-        _ELASTOS PCarQuintet pCq);
-
-char* __cdecl _String_TrimStart(const char *string, _ELASTOS PCarQuintet pCq);
-
-char* __cdecl _String_TrimEnd(const char *string, _ELASTOS PCarQuintet pCq);
-char* __cdecl _String_Trim(const char *string, _ELASTOS PCarQuintet pCq);
-
 
 _ELASTOS_NAMESPACE_USING
 

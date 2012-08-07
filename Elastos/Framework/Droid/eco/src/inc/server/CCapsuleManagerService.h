@@ -9,6 +9,7 @@
 #include <elastos/AutoFree.h>
 #include <elastos/HashMap.h>
 #include <elastos/HashSet.h>
+#include <elastos/List.h>
 
 #include "capsule/CapsuleParser.h"
 #include "capsule/CActivityInfo.h"
@@ -30,6 +31,9 @@
 
 using namespace Elastos::Core;
 using namespace Elastos::Core::Threading;
+
+extern "C" const InterfaceID EIID_CapsuleSetting;
+extern "C" const InterfaceID EIID_SharedUserSetting;
 
 CarClass(CCapsuleManagerService)
 {
@@ -82,49 +86,6 @@ public:
     public:
         AutoPtr<InstallArgs> mArgs;
         CapsuleInstalledInfo* mRes;
-    };
-
-    class HandlerParams;
-
-    class CapsuleHandler : public Handler
-    {
-    public:
-        CapsuleHandler(
-            /* [in] */ CCapsuleManagerService* owner)
-            : mBound(FALSE)
-            , mOwner(owner)
-            , mRemovedMsgCode(-1) {}
-
-        CARAPI_(Boolean) ConnectToService();
-
-        CARAPI_(void) DisconnectService();
-
-        CARAPI_(void) HandleMessage(
-            /* [in] */ Message* msg);
-
-        CARAPI_(void) DoHandleMessage(
-            /* [in] */ Message* msg);
-
-        // send message to this handler.
-        CARAPI SendMessage(
-            /* [in] */ Message* msg);
-
-    private:
-        CARAPI_(Boolean) IsMessageRemoved(
-            /* [in] */ IParcel* params);
-
-        CARAPI RemoveMessages(
-            /* [in] */ Int32 msgCode);
-
-    public:
-        Boolean mBound;
-
-        List<HandlerParams*> mPendingInstalls;
-
-        AutoPtr<CCapsuleManagerService> mOwner;
-
-        Mutex mLock;
-        Int32 mRemovedMsgCode;
     };
 
     class HandlerParams : public ElRefBase, public IInterface
@@ -749,7 +710,7 @@ public:
             /* [in] */ IParcel *dest);
 
         Boolean SameSet(
-            /* [in] */ List< AutoPtr<CResolveInfo> >* query,
+            /* [in] */ IObjectContainer* query,
             /* [in] */ Int32 priority);
 
     public:
@@ -914,6 +875,9 @@ public:
 
         ~CapsuleSetting();
 
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
         CARAPI_(String) ToString();
 
         struct HashKey
@@ -943,6 +907,9 @@ public:
             /* [in] */ Int32 capFlags);
 
         ~SharedUserSetting();
+
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
 
         CARAPI_(String) ToString();
 
@@ -1455,7 +1422,15 @@ public:
         /* [in] */ Int64 freeStorageSize,
         /* [in] */ ICapsuleDataObserver* observer);
 
+    CARAPI_(void) HandleFreeStorageAndNotify(
+        /* [in] */ Int64 freeStorageSize,
+        /* [in] */ ICapsuleDataObserver* observer);
+
     CARAPI FreeStorage(
+        /* [in] */ Int64 freeStorageSize,
+        /* [in] */ IIntentSender* pi);
+
+    CARAPI_(void) HandleFreeStorage(
         /* [in] */ Int64 freeStorageSize,
         /* [in] */ IIntentSender* pi);
 
@@ -1548,16 +1523,16 @@ public:
         /* [in] */ Int32 flags,
         /* [out, callee] */ IObjectContainer** infos);
 
-    //todo: should be removed
-    CARAPI_(List<AutoPtr<CResolveInfo>*>*) QueryIntentActivities(
-        /* [in] */ IIntent* intent,
-        /* [in] */ const String& resolvedType,
-        /* [in] */ int flags);
+//    //todo: should be removed
+//    CARAPI_(List<AutoPtr<CResolveInfo>*>*) QueryIntentActivities(
+//        /* [in] */ IIntent* intent,
+//        /* [in] */ const String& resolvedType,
+//        /* [in] */ int flags);
 
     CARAPI QueryIntentActivityOptions(
         /* [in] */ IComponentName* caller,
-        /* [in] */ const ArrayOf<IIntent*>& specifics,
-        /* [in] */ const ArrayOf<String>& specificTypes,
+        /* [in] */ ArrayOf<IIntent*>* specifics,
+        /* [in] */ ArrayOf<String>* specificTypes,
         /* [in] */ IIntent* intent,
         /* [in] */ const String& resolvedType,
         /* [in] */ Int32 flags,
@@ -1652,11 +1627,23 @@ public:
         /* [in] */ const String& capsuleName,
         /* [in] */ ICapsuleDataObserver* observer);
 
+    CARAPI_(void) HandleClearApplicationUserData(
+        /* [in] */ const String& capsuleName,
+        /* [in] */ ICapsuleDataObserver* observer);
+
     CARAPI DeleteApplicationCacheFiles(
         /* [in] */ const String& capsuleName,
         /* [in] */ ICapsuleDataObserver* observer);
 
+    CARAPI_(void) HandleDeleteApplicationCacheFiles(
+        /* [in] */ const String& capsuleName,
+        /* [in] */ ICapsuleDataObserver* observer);
+
     CARAPI GetCapsuleSizeInfo(
+        /* [in] */ const String& capsuleName,
+        /* [in] */ ICapsuleStatsObserver* observer);
+
+    CARAPI_(void) HandleGetCapsuleSizeInfo(
         /* [in] */ const String& capsuleName,
         /* [in] */ ICapsuleStatsObserver* observer);
 
@@ -1727,6 +1714,10 @@ public:
         /* [in] */ Boolean mediaStatus,
         /* [in] */ Boolean reportStatus);
 
+    CARAPI_(void) HandleUpdateExternalMediaStatus(
+        /* [in] */ Boolean mediaStatus,
+        /* [in] */ Boolean reportStatus);
+
     CARAPI MoveCapsule(
         /* [in] */ const String& capsuleName,
         /* [in] */ ICapsuleMoveObserver* observer,
@@ -1754,13 +1745,24 @@ public:
     CARAPI_(CapsuleParser::Capsule*) ScanCapsule(
         /* [in] */ const String& capfile);
 
-    //todo: should be removed
-    CARAPI GenerateComponentNameKey(
-        /* [in] */ const String& capsuleName,
-        /* [in] */ const String& name,
-        /* [out] */ String* compName);
-
 private:
+    struct HashSd
+    {
+        size_t operator()(const SdInstallArgs* s) const
+        {
+            return (size_t)s;
+        }
+    };
+
+    struct SdEq
+    {
+        Boolean operator()(const SdInstallArgs* x,
+                           const SdInstallArgs* y) const
+        {
+            return x == y;
+        }
+    };
+
     CARAPI_(void) ScheduleWriteSettingsLocked();
 
     static CARAPI_(Boolean) InstallOnSd(
@@ -1774,34 +1776,30 @@ private:
     CARAPI_(void) CleanupInstallFailedCapsule(
         /* [in] */ CapsuleSetting* cs);
 
-    CARAPI ReadPermissions();
+    CARAPI_(void) ReadPermissions();
 
-    CARAPI ReadPermissionsFromXml(
+    CARAPI_(void) ReadPermissionsFromXml(
         /* [in] */ IFile* permFile);
 
-    CARAPI ReadPermission(
+    CARAPI_(void) ReadPermission(
         /* [in] */ IXmlPullParser* parser,
         /* [in] */ const String& name);
 
-    static CARAPI_(void) AppendInt(
+    static CARAPI_(ArrayOf<Int32>*) AppendInt(
         /* [in] */ ArrayOf<Int32>* cur,
-        /* [in] */ Int32 val,
-        /* [out] */ ArrayOf<Int32>** ret);
+        /* [in] */ Int32 val);
 
-    static CARAPI_(void) AppendInts(
+    static CARAPI_(ArrayOf<Int32>*) AppendInts(
         /* [in] */ ArrayOf<Int32>* cur,
-        /* [in] */ ArrayOf<Int32>* add,
-        /* [out] */ ArrayOf<Int32>** ret);
+        /* [in] */ ArrayOf<Int32>* add);
 
-    static CARAPI_(void) RemoveInt(
+    static CARAPI_(ArrayOf<Int32>*) RemoveInt(
         /* [in] */ ArrayOf<Int32>* cur,
-        /* [in] */ Int32 val,
-        /* [out] */ ArrayOf<Int32>** ret);
+        /* [in] */ Int32 val);
 
-    static CARAPI_(void) RemoveInts(
+    static CARAPI_(ArrayOf<Int32>*) RemoveInts(
         /* [in] */ ArrayOf<Int32>* cur,
-        /* [in] */ ArrayOf<Int32>* rem,
-        /* [out] */ ArrayOf<Int32>** ret);
+        /* [in] */ ArrayOf<Int32>* rem);
 
     CARAPI_(AutoPtr<CCapsuleInfo>) GenerateCapsuleInfo(
         /* [in] */ CapsuleParser::Capsule* c,
@@ -1830,6 +1828,10 @@ private:
         /* [in] */ ICharSequence* s1,
         /* [in] */ ICharSequence* s2);
 
+    static CARAPI_(Boolean) CompareStrings(
+        /* [in] */ const String& s1,
+        /* [in] */ const String& s2);
+
     static CARAPI_(Boolean) ComparePermissionInfos(
         /* [in] */ IPermissionInfo* pi1,
         /* [in] */ IPermissionInfo* pi2);
@@ -1839,23 +1841,22 @@ private:
         /* [in] */ Boolean async,
         /* [out] */ Boolean* isAdded);
 
-    CARAPI CheckSignaturesLP(
+    CARAPI_(Int32) CheckSignaturesLP(
         /* [in] */ ArrayOf< AutoPtr<ISignature> >* s1,
-        /* [in] */ ArrayOf< AutoPtr<ISignature> >* s2,
-        /* [out] */ Int32* sig);
+        /* [in] */ ArrayOf< AutoPtr<ISignature> >* s2);
 
     CARAPI ChooseBestActivity(
         /* [in] */ IIntent* intent,
         /* [in] */ const String& resolvedType,
         /* [in] */ Int32 flags,
-        /* [in] */ List<AutoPtr<CResolveInfo>*>* query,
+        /* [in] */ IObjectContainer* query,
         /* [out] */ IResolveInfo** resolveInfo);
 
     CARAPI_(AutoPtr<CResolveInfo>) FindPreferredActivity(
         /* [in] */ IIntent* intent,
         /* [in] */ const String& resolvedType,
         /* [in] */ Int32 flags,
-        /* [in] */ List<AutoPtr<CResolveInfo>*>* query,
+        /* [in] */ IObjectContainer* query,
         /* [in] */ Int32 priority);
 
     CARAPI_(Int32) GetContinuationPoint(
@@ -1868,7 +1869,7 @@ private:
         /* [in] */ Int32 scanMode,
         /* [in] */ Int64 currentTime);
 
-    static CARAPI_(AutoPtr<IFile*>) GetSettingsProblemFile();
+    static CARAPI_(AutoPtr<IFile>) GetSettingsProblemFile();
 
     static CARAPI_(void) ReportSettingsProblem(
         /* [in] */ Int32 priority,
@@ -1921,10 +1922,10 @@ private:
         /* [in] */ const String& capName,
         /* [in] */ Int32 uid);
 
-    CARAPI_(AutoPtr<IFile>) GetNativeBinaryDirForPackage(
+    CARAPI_(AutoPtr<IFile>) GetNativeBinaryDirForCapsule(
         /* [in] */ CapsuleParser::Capsule* cap);
 
-    CARAPI RemoveCapsuleLI(
+    CARAPI_(void) RemoveCapsuleLI(
         /* [in] */ CapsuleParser::Capsule* cap,
         /* [in] */ Boolean chatty);
 
@@ -1935,7 +1936,7 @@ private:
         /* [in] */ CapsuleParser::Capsule* capInfo,
         /* [in] */ const String& perm);
 
-    CARAPI UpdatePermissionsLP(
+    CARAPI_(void) UpdatePermissionsLP(
         /* [in] */ const String& changingCap,
         /* [in] */ CapsuleParser::Capsule* capInfo,
         /* [in] */ Boolean grantPermissions,
@@ -1958,6 +1959,10 @@ private:
     CARAPI_(void) StartCleaningCapsules();
 
     CARAPI_(void) ProcessPendingInstall(
+        /* [in] */ InstallArgs* args,
+        /* [in] */ Int32 currentStatus);
+
+    CARAPI_(void) HandleProcessPendingInstall(
         /* [in] */ InstallArgs* args,
         /* [in] */ Int32 currentStatus);
 
@@ -2053,7 +2058,7 @@ private:
     static CARAPI_(Boolean) IsUpdatedSystemApp(
         /* [in] */ CapsuleParser::Capsule* cap);
 
-    CARAPI_(void) ExtractPublicFiles(
+    CARAPI ExtractPublicFiles(
         /* [in] */ CapsuleParser::Capsule* newCapsule,
         /* [in] */ IFile* publicZipFile);
 
@@ -2065,6 +2070,11 @@ private:
 
     CARAPI_(AutoPtr<IFile>) CreateTempCapsuleFile(
         /* [in] */ IFile* installDir);
+
+    CARAPI_(void) HandleDeleteCapsule(
+        /* [in] */ const String& capsuleName,
+        /* [in] */ ICapsuleDeleteObserver* observer,
+        /* [in] */ Int32 flags);
 
     CARAPI_(Boolean) DeleteCapsuleX(
         /* [in] */ const String& capsuleName,
@@ -2140,13 +2150,13 @@ private:
     CARAPI_(void) SendResourcesChangedBroadcast(
         /* [in] */ Boolean mediaStatus,
         /* [in] */ const List<String>& capList,
-        /* [in] */ const ArrayOf<Int32>& uidArr,
+        /* [in] */ const ArrayOf<Int32>* uidArr,
         /* [in] */ IIntentReceiver* finishedReceiver);
 
-    CARAPI LoadMediaCapsules(
-        /* [in] */ HashMap<String, SdInstallArgs*>& processCids,
+    CARAPI_(void) LoadMediaCapsules(
+        /* [in] */ HashMap<SdInstallArgs*, String, HashSd, SdEq>& processCids,
         /* [in] */ const ArrayOf<Int32>& uidArr,
-        /* [in] */ List<String>& removeCids);
+        /* [in] */ List<String>* removeCids);
 
     /*
      * Utility method to unload a list of specified containers
@@ -2155,7 +2165,7 @@ private:
         /* [in] */ Set<SdInstallArgs*>& cidArgs);
 
     CARAPI UnloadMediaCapsules(
-        /* [in] */ HashMap<String, SdInstallArgs*>& processCids,
+        /* [in] */ HashMap<SdInstallArgs*, String, HashSd, SdEq>& processCids,
         /* [in] */ const ArrayOf<Int32>& uidArr,
         /* [in] */ Boolean reportStatus);
 
@@ -2163,46 +2173,45 @@ private:
         /* [in] */ MoveParams* mp,
         /* [in] */ Int32 currentStatus);
 
-    CARAPI SendMessage(
-        /* [in] */ Handle32 pvFunc,
-        /* [in] */ IParcel* params);
-
-    CARAPI_(void) HandleFreeStorageAndNotify(
-        /* [in] */ Int64 freeStorageSize,
-        /* [in] */ ICapsuleDataObserver* observer);
-
-    CARAPI_(void) HandleFreeStorage(
-        /* [in] */ Int64 freeStorageSize,
-        /* [in] */ IIntentSender* pi);
-
-    CARAPI_(void) HandleDeleteApplicationCacheFiles(
-        /* [in] */ const String& capsuleName,
-        /* [in] */ ICapsuleDataObserver* observer);
-
-    CARAPI_(void) HandleClearApplicationUserData(
-        /* [in] */ const String& capsuleName,
-        /* [in] */ ICapsuleDataObserver* observer);
-
-    CARAPI_(void) HandleGetCapsuleSizeInfo(
-        /* [in] */ const String& capsuleName,
-        /* [in] */ ICapsuleStatsObserver* observer);
-
-    CARAPI_(void) HandleUpdateExternalMediaStatus(
-        /* [in] */ Boolean mediaStatus,
-        /* [in] */ Boolean reportStatus);
-
     CARAPI_(void) HandleProcessPendingMove(
         /* [in] */ MoveParams* mp,
         /* [in] */ Int32 currentStatus);
 
-    CARAPI_(void) HandleMediaContainerServiceBound(
+    CARAPI SendMessage(
+        /* [in] */ Handle32 pvFunc,
+        /* [in] */ IParcel* params);
+
+    //from PackageHandler
+    CARAPI_(Boolean) ConnectToService();
+
+    CARAPI_(void) DisconnectService();
+
+    CARAPI_(void) HandleInitCopy(
+        /* [in] */ HandlerParams* params);
+
+    CARAPI_(void) HandleMCSBound(
         /* [in] */ IMediaContainerService* mcs);
 
-    CARAPI_(void) HandleMediaContainerServiceUnbind();
+    CARAPI_(void) HandleMCSReconnect();
 
-    CARAPI_(void) HandleMediaContainerServiceGiveUp();
+    CARAPI_(void) HandleMCSUnbind();
 
-    CARAPI_(void) HandleMediaContainerServiceReconnect();
+    CARAPI_(void) HandleMCSGiveUp();
+
+    CARAPI_(void) HandleSendPendingBroadcast();
+
+    CARAPI_(void) HandleStartCleaningCapsule(
+        /* [in] */ const String& capsuleName);
+
+    CARAPI_(void) HandlePostInstall(
+        /* [in] */ Int32 token);
+
+    CARAPI_(void) HandleUpdatedMediaStatus(
+        /* [in] */ Boolean reportStatus,
+        /* [in] */ Set<SdInstallArgs*>* keys);
+
+    CARAPI_(void) HandleWriteSettings();
+
 
 public:/*package*/
     static const Int32 SCAN_MONITOR = 1 << 0;
@@ -2215,15 +2224,14 @@ public:/*package*/
 
     static const Int32 REMOVE_CHATTY = 1 << 16;
 
-    static const char* DEFAULT_CONTAINER_CAPSULE;
+    static CString DEFAULT_CONTAINER_CAPSULE;
 
     static const AutoPtr<IComponentName> DEFAULT_CONTAINER_COMPONENT;
 
-    static const char* mTempContainerPrefix;
+    static CString mTempContainerPrefix;
 
 //	    final HandlerThread mHandlerThread = new HandlerThread("PackageManager",
 //	            Process.THREAD_PRIORITY_BACKGROUND);
-    CapsuleHandler* mHandler;
 
     Int32 mSdkVersion; // = Build.VERSION.SDK_INT;
 //	    final String mSdkCodename = "REL".equals(Build.VERSION.CODENAME)
@@ -2331,9 +2339,7 @@ public:/*package*/
     ServiceIntentResolver* mServices;
 
     // Keys are String (provider class name), values are Provider.
-//    final HashMap<ComponentName, PackageParser.Provider> mProvidersByComponent =
-//            new HashMap<ComponentName, PackageParser.Provider>();
-    HashMap<String, CapsuleParser::ContentProvider*> mProvidersByComponent;
+    HashMap<AutoPtr<IComponentName>, CapsuleParser::ContentProvider*> mProvidersByComponent;
 
     // Mapping from provider base names (first directory in content URI codePath)
     // to the provider information.
@@ -2398,7 +2404,7 @@ private:
     //todo: should be removed
     friend class CapsuleHandler;
 
-    static const char* TAG;
+    static CString TAG;
     static const Boolean DEBUG_SETTINGS = FALSE;
     static const Boolean DEBUG_PREFERRED = FALSE;
     static const Boolean DEBUG_UPGRADE = FALSE;
@@ -2415,7 +2421,7 @@ private:
 
     static const Boolean GET_CERTIFICATES = TRUE;
 
-    static const char* SYSTEM_PROPERTY_EFS_ENABLED;
+    static CString SYSTEM_PROPERTY_EFS_ENABLED;
 
     static const Int32 REMOVE_EVENTS =
         FileObserver_CLOSE_WRITE | FileObserver_DELETE | FileObserver_MOVED_FROM;
@@ -2425,7 +2431,7 @@ private:
     static const Int32 OBSERVER_EVENTS = REMOVE_EVENTS | ADD_EVENTS;
     // Suffix used during package installation when copying/moving
     // package apks to install directory.
-    static const char* INSTALL_CAPSULE_SUFFIX;
+    static CString INSTALL_CAPSULE_SUFFIX;
 
     /**
      * Indicates the state of installation. Used by PackageManager to
@@ -2440,7 +2446,7 @@ private:
     static const Int32 CAP_INSTALL_INCOMPLETE = 0;
     static const Int32 CAP_INSTALL_COMPLETE = 1;
 
-    static const char* LIB_DIR_NAME;
+    static CString LIB_DIR_NAME;
 
     // Service Connection to remote media container service to copy
     // package uri's from external media onto secure containers
@@ -2455,16 +2461,20 @@ private:
 //	    private static final Comparator<ProviderInfo> mProviderInitOrderSorter =
 //	            new Comparator<ProviderInfo>() {
 
-    static const char* SD_ENCRYPTION_KEYSTORE_NAME;
-    static const char* SD_ENCRYPTION_ALGORITHM;
+    static CString SD_ENCRYPTION_KEYSTORE_NAME;
+    static CString SD_ENCRYPTION_ALGORITHM;
 
     Boolean mMediaMounted;
 
     //todo: maybe should be removed
-    static const char* DEFAULT_RESOURCES_FILE_NAME;
+    static CString DEFAULT_RESOURCES_FILE_NAME;
 
     // one param means Message*
     AutoPtr<IApartment> mApartment;
+
+    //from PackageHandler
+    Boolean mBound;
+    List< AutoPtr<HandlerParams> > mPendingInstalls;
 };
 
 

@@ -456,11 +456,9 @@ module
     }
 
     class CParceledListSlice {
-        constructor(
-            [in] IParcelable* t);
+        constructor();
 
         constructor(
-            [in] IParcelable* t,
             [in] IParcel* p,
             [in] Int32 numItems,
             [in] Boolean lastSlice);

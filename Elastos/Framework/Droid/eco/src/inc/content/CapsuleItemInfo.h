@@ -91,6 +91,10 @@ public:
         /* [in] */ const String& name,
         /* [out] */ IXmlResourceParser** resource);
 
+    virtual CARAPI_(String) GetCapsuleName();
+
+    virtual CARAPI_(String) GetName();
+
     CARAPI ReadFromParcel(
         /* [in] */ IParcel* source);
 

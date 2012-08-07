@@ -18,5 +18,8 @@ module
 
         SetApplicationInfo(
             [in] IApplicationInfo* info);
+
+        IsEnabled(
+            [out] Boolean* enabled);
     }
 }

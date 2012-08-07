@@ -10,7 +10,7 @@ using namespace Elastos;
 class XmlUtils
 {
 public:
-    static CARAPI_(void) SkipCurrentTag(
+    static CARAPI SkipCurrentTag(
         /* [in] */ IXmlPullParser* parser);
 
     static CARAPI_(Int32) ConvertValueToList(
@@ -26,11 +26,11 @@ public:
         /* [in] */ ICharSequence* charSeq,
         /* [in] */ Int32 defaultValue);
 
-    static CARAPI_(void) BeginDocument(
+    static CARAPI BeginDocument(
         /* [in] */ IXmlPullParser* parser,
-        /* [in] */ const String& firstElementName);
+        /* [in] */ CString firstElementName);
 
-    static CARAPI_(void) NextElement(
+    static CARAPI NextElement(
         /* [in] */ IXmlPullParser* parser);
 };
 

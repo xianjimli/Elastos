@@ -145,23 +145,23 @@ public:
             StringCase stringCase = StringCase_Sensitive) const;
 
     //---- IndexOf ----
-    inline Int32 IndexOf(Char32 ch,
+    inline Int32 IndexOf(Char32 ch, Int32 start = 0,
             StringCase stringCase = StringCase_Sensitive) const;
 
-    inline Int32 IndexOf(const String& str,
+    inline Int32 IndexOf(const String& str, Int32 start = 0,
             StringCase stringCase = StringCase_Sensitive) const;
 
-    inline Int32 IndexOf(const char* str,
+    inline Int32 IndexOf(const char* str, Int32 start = 0,
             StringCase stringCase = StringCase_Sensitive) const;
 
     //---- LastIndexOf ----
-    inline Int32 LastIndexOf(Char32 ch,
+    inline Int32 LastIndexOf(Char32 ch, Int32 start = 0,
             StringCase stringCase = StringCase_Sensitive) const;
 
-    inline Int32 LastIndexOf(const String& str,
+    inline Int32 LastIndexOf(const String& str, Int32 start = 0,
             StringCase stringCase = StringCase_Sensitive) const;
 
-    inline Int32 LastIndexOf(const char* str,
+    inline Int32 LastIndexOf(const char* str, Int32 start = 0,
             StringCase stringCase = StringCase_Sensitive) const;
 
     //---- Substring ----
@@ -444,35 +444,47 @@ inline Boolean String::EndWith(const char* substr,
 }
 
 //---- IndexOf ----
-inline Int32 String::IndexOf(Char32 ch, StringCase stringCase) const
+inline Int32 String::IndexOf(Char32 ch, Int32 start, StringCase stringCase) const
 {
-    return _String_IndexOf_Char(mString, ch, stringCase);
+    if ((start != 0) && (start < 0 || (UInt32)start > GetLength())) return -1;
+
+    return _String_IndexOf_Char(mString + start, ch, stringCase);
 }
 
-inline Int32 String::IndexOf(const String& str, StringCase stringCase) const
+inline Int32 String::IndexOf(const String& str, Int32 start, StringCase stringCase) const
 {
-    return _String_IndexOf_Substring(mString, str.mString, stringCase);
+    if ((start != 0) && (start < 0 || (UInt32)start > GetLength())) return -1;
+
+    return _String_IndexOf_Substring(mString + start, str.mString, stringCase);
 }
 
-inline Int32 String::IndexOf(const char* str, StringCase stringCase) const
+inline Int32 String::IndexOf(const char* str, Int32 start, StringCase stringCase) const
 {
-    return _String_IndexOf_Substring(mString, str, stringCase);
+	if ((start != 0) && (start < 0 || (UInt32)start > GetLength())) return -1;
+
+    return _String_IndexOf_Substring(mString + start, str, stringCase);
 }
 
 //---- LastIndexOf ----
-inline Int32 String::LastIndexOf(Char32 ch, StringCase stringCase) const
+inline Int32 String::LastIndexOf(Char32 ch, Int32 start, StringCase stringCase) const
 {
-    return _String_LastIndexOf_Char(mString, ch, stringCase);
+	if ((start != 0) && (start < 0 || (UInt32)start > GetLength())) return -1;
+
+    return _String_LastIndexOf_Char(mString + start, ch, stringCase);
 }
 
-inline Int32 String::LastIndexOf(const String& str, StringCase stringCase) const
+inline Int32 String::LastIndexOf(const String& str, Int32 start, StringCase stringCase) const
 {
-    return _String_LastIndexOf_Substring(mString, str.mString, stringCase);
+	if ((start != 0) && (start < 0 || (UInt32)start > GetLength())) return -1;
+
+    return _String_LastIndexOf_Substring(mString + start, str.mString, stringCase);
 }
 
-inline Int32 String::LastIndexOf(const char* str, StringCase stringCase) const
+inline Int32 String::LastIndexOf(const char* str, Int32 start, StringCase stringCase) const
 {
-    return _String_LastIndexOf_Substring(mString, str, stringCase);
+	if ((start != 0) && (start < 0 || (UInt32)start > GetLength())) return -1;
+
+    return _String_LastIndexOf_Substring(mString + start, str, stringCase);
 }
 
 inline Int32 String::GetHashCode()

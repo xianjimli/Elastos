@@ -23,11 +23,9 @@ public:
     CARAPI WriteToParcel(
         /* [in] */ IParcel* dest);
 
-    CARAPI constructor(
-        /* [in] */ IParcelable* t);
+    CARAPI constructor();
 
     CARAPI constructor(
-        /* [in] */ IParcelable* t,
         /* [in] */ IParcel* p,
         /* [in] */ Int32 numItems,
         /* [in] */ Boolean lastSlice);

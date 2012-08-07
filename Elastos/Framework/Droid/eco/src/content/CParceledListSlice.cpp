@@ -37,15 +37,13 @@ ECode CParceledListSlice::WriteToParcel(
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CParceledListSlice::constructor(
-    /* [in] */ IParcelable* t)
+ECode CParceledListSlice::constructor()
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CParceledListSlice::constructor(
-    /* [in] */ IParcelable* t,
     /* [in] */ IParcel* p,
     /* [in] */ Int32 numItems,
     /* [in] */ Boolean lastSlice)

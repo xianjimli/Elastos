@@ -664,23 +664,17 @@ public:
         /* [in] */ IApplicationApartment* caller,
         /* [in] */ IIntent* service,
         /* [in] */ const String& resolvedType,
-        /* [in] */ Int32 callingPid,
-        /* [in] */ Int32 callingUid,
         /* [out] */ IComponentName** name);
 
     CARAPI StopService(
         /* [in] */ IApplicationApartment* caller,
         /* [in] */ IIntent* service,
         /* [in] */ const String& resolvedType,
-        /* [in] */ Int32 callingPid,
-        /* [in] */ Int32 callingUid,
         /* [out] */ Int32* result);
 
     CARAPI PeekService(
         /* [in] */ IIntent* service,
         /* [in] */ const String& resolvedType,
-        /* [in] */ Int32 callingPid,
-        /* [in] */ Int32 callingUid,
         /* [out] */ IBinder** token);
 
     CARAPI StopServiceToken(
@@ -1179,9 +1173,7 @@ private:
 
     CARAPI_(ServiceLookupResult*) FindServiceLocked(
         /* [in] */ IIntent* service,
-        /* [in] */ const String& resolvedType,
-        /* [in] */ Int32 callingPid,
-        /* [in] */ Int32 callingUid);
+        /* [in] */ const String& resolvedType);
 
     CARAPI_(ServiceLookupResult*) RetrieveServiceLocked(
         /* [in] */ IIntent* service,

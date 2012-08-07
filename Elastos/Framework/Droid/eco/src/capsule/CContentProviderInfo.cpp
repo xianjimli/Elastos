@@ -68,6 +68,22 @@ ECode CContentProviderInfo::LoadXmlMetaData(
     return ComponentInfo::LoadXmlMetaData(pm, name, resource);
 }
 
+ECode CContentProviderInfo::GetCapsuleName(
+    /* [out] */ String* capsuleName)
+{
+    VALIDATE_NOT_NULL(capsuleName);
+    *capsuleName = ComponentInfo::GetCapsuleName();
+    return NOERROR;
+}
+
+ECode CContentProviderInfo::GetName(
+    /* [out] */ String* name)
+{
+    VALIDATE_NOT_NULL(name);
+    *name = ComponentInfo::GetName();
+    return NOERROR;
+}
+
 ECode CContentProviderInfo::GetComponentName(
     /* [out] */ String * pCapsuleName,
     /* [out] */ String * pClassName)
@@ -104,6 +120,14 @@ ECode CContentProviderInfo::SetApplicationInfo(
 {
     mApplicationInfo = (CApplicationInfo*)info;
 
+    return NOERROR;
+}
+
+ECode CContentProviderInfo::IsEnabled(
+    /* [out] */ Boolean* enabled)
+{
+    VALIDATE_NOT_NULL(enabled);
+    *enabled = mEnabled;
     return NOERROR;
 }
 

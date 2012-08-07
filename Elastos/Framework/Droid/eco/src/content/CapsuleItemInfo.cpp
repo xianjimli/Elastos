@@ -84,6 +84,16 @@ ECode CapsuleItemInfo::LoadXmlMetaData(
     return E_NOT_IMPLEMENTED;
 }
 
+String CapsuleItemInfo::GetCapsuleName()
+{
+    return mCapsuleName;
+}
+
+String CapsuleItemInfo::GetName()
+{
+    return mName;
+}
+
 ECode CapsuleItemInfo::ReadFromParcel(
     /* [in] */ IParcel* source)
 {

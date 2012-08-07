@@ -250,7 +250,7 @@ ECode CContextImpl::StartService(
     service->ResolveTypeIfNeeded(resolver, &type);
     ECode ec = activityManager->StartService(
             (IApplicationApartment*)(CApplicationApartment*)mApartment,
-            service, type, getpid(), getuid(), name);
+            service, type, name);
     if (FAILED(ec)) {
         *name = NULL;
         return ec;
@@ -283,7 +283,7 @@ ECode CContextImpl::StopService(
     Int32 res;
     ECode ec = activityManager->StopService(
             (IApplicationApartment*)(CApplicationApartment*)mApartment,
-            service, type, getpid(), getuid(), &res);
+            service, type, &res);
     if (FAILED(ec)) {
         *succeeded = FALSE;
         return NOERROR;

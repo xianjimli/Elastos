@@ -145,23 +145,17 @@ module
             [in] IApplicationApartment* caller,
             [in] IIntent* service,
             [in] String resolvedType,
-            [in] Int32 callingPid,
-            [in] Int32 callingUid,
             [out] IComponentName** name);
 
         StopService(
             [in] IApplicationApartment* caller,
             [in] IIntent* service,
             [in] String resolvedType,
-            [in] Int32 callingPid,
-            [in] Int32 callingUid,
             [out] Int32* result);
 
         PeekService(
             [in] IIntent* service,
             [in] String resolvedType,
-            [in] Int32 callingPid,
-            [in] Int32 callingUid,
             [out] IBinder** token);
 
         StopServiceToken(

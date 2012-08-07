@@ -371,6 +371,12 @@ CapsuleParser::~CapsuleParser()
     // TODO:
 }
 
+void CapsuleParser::SetSeparateProcesses(
+    /* [in] */ const ArrayOf<String>& procs)
+{
+//    mSeparateProcesses = procs;
+}
+
 Boolean CapsuleParser::IsCapsuleFilename(
     /* [in] */ const String& name)
 {
@@ -438,7 +444,7 @@ AutoPtr<CCapsuleInfo> CapsuleParser::GenerateCapsuleInfo(
             List< AutoPtr<CConfigurationInfo> >::Iterator itor;
             for (itor = c->mConfigPreferences.Begin();
                  itor != c->mConfigPreferences.End();
-                 itor++) {
+                 ++itor) {
                 ci->mConfigPreferences.PushBack(*itor);
             }
         }
@@ -446,7 +452,7 @@ AutoPtr<CCapsuleInfo> CapsuleParser::GenerateCapsuleInfo(
             List< AutoPtr<CFeatureInfo> >::Iterator itor;
             for (itor = c->mReqFeatures.Begin();
                  itor != c->mReqFeatures.End();
-                 itor++) {
+                 ++itor) {
                 ci->mReqFeatures.PushBack(*itor);
             }
         }
@@ -456,13 +462,12 @@ AutoPtr<CCapsuleInfo> CapsuleParser::GenerateCapsuleInfo(
             List<Activity*>::Iterator itor;
             for (itor = c->mActivities.Begin();
                  itor != c->mActivities.End();
-                 itor++) {
+                 ++itor) {
                 Activity* activity = *itor;
                 if (activity->mInfo->mEnabled
                     || (flags & CapsuleManager_GET_DISABLED_COMPONENTS) != 0) {
-                    AutoPtr<CActivityInfo> info;
-                    GenerateActivityInfo(activity, flags, (CActivityInfo**)&info);
-                    ci->mActivities.PushBack(AutoPtr<IActivityInfo>((IActivityInfo*)info.Get()));
+                    AutoPtr<CActivityInfo> info = GenerateActivityInfo(activity, flags);
+                    ci->mActivities.PushBack((IActivityInfo*)info.Get());
                 }
             }
         }
@@ -472,13 +477,12 @@ AutoPtr<CCapsuleInfo> CapsuleParser::GenerateCapsuleInfo(
             List<Activity*>::Iterator itor;
             for (itor = c->mReceivers.Begin();
                  itor != c->mReceivers.End();
-                 itor++) {
+                 ++itor) {
                 Activity* activity = *itor;
                 if (activity->mInfo->mEnabled
                     || (flags & CapsuleManager_GET_DISABLED_COMPONENTS) != 0) {
-                    AutoPtr<CActivityInfo> info;
-                    GenerateActivityInfo(activity, flags, (CActivityInfo**)&info);
-                    ci->mReceivers.PushBack(AutoPtr<IActivityInfo>((IActivityInfo*)info.Get()));
+                    AutoPtr<CActivityInfo> info = GenerateActivityInfo(activity, flags);
+                    ci->mReceivers.PushBack((IActivityInfo*)info.Get());
                 }
             }
         }
@@ -488,13 +492,12 @@ AutoPtr<CCapsuleInfo> CapsuleParser::GenerateCapsuleInfo(
             List<Service*>::Iterator itor;
             for (itor = c->mServices.Begin();
                  itor != c->mServices.End();
-                 itor++) {
+                 ++itor) {
                 Service* service = *itor;
                 if (service->mInfo->mEnabled
                     || (flags & CapsuleManager_GET_DISABLED_COMPONENTS) != 0) {
-                    AutoPtr<CServiceInfo> info;
-                    GenerateServiceInfo(service, flags, (CServiceInfo**)&info);
-                    ci->mServices.PushBack(AutoPtr<IServiceInfo>((IServiceInfo*)info.Get()));
+                    AutoPtr<CServiceInfo> info = GenerateServiceInfo(service, flags);
+                    ci->mServices.PushBack((IServiceInfo*)info.Get());
                 }
             }
         }
@@ -504,13 +507,12 @@ AutoPtr<CCapsuleInfo> CapsuleParser::GenerateCapsuleInfo(
             List<ContentProvider*>::Iterator itor;
             for (itor = c->mContentProviders.Begin();
                  itor != c->mContentProviders.End();
-                 itor++) {
+                 ++itor) {
                 ContentProvider* provider = *itor;
                 if (provider->mInfo->mEnabled
                     || (flags & CapsuleManager_GET_DISABLED_COMPONENTS) != 0) {
-                    AutoPtr<IContentProviderInfo> info;
-                    GenerateContentProviderInfo(provider, flags, (IContentProviderInfo**)&info);
-                    ci->mContentProviders.PushBack(AutoPtr<IContentProviderInfo>(info.Get()));
+                    AutoPtr<CContentProviderInfo> info = GenerateContentProviderInfo(provider, flags);
+                    ci->mContentProviders.PushBack((IContentProviderInfo*)info.Get());
                 }
             }
         }
@@ -520,11 +522,9 @@ AutoPtr<CCapsuleInfo> CapsuleParser::GenerateCapsuleInfo(
             List<Instrumentation*>::Iterator itor;
             for (itor = c->mInstrumentation.Begin();
                  itor != c->mInstrumentation.End();
-                 itor++) {
-                AutoPtr<CInstrumentationInfo> ins;
-                GenerateInstrumentationInfo(*itor, flags, (CInstrumentationInfo**)&ins);
-                ci->mInstrumentation.PushBack(
-                    AutoPtr<IInstrumentationInfo>((IInstrumentationInfo*)ins.Get()));
+                 ++itor) {
+                AutoPtr<CInstrumentationInfo> ins = GenerateInstrumentationInfo(*itor, flags);
+                ci->mInstrumentation.PushBack((IInstrumentationInfo*)ins.Get());
             }
         }
     }
@@ -533,7 +533,7 @@ AutoPtr<CCapsuleInfo> CapsuleParser::GenerateCapsuleInfo(
             List<Permission*>::Iterator itor;
             for (itor = c->mPermissions.Begin();
                  itor != c->mPermissions.End();
-                 itor++) {
+                 ++itor) {
                 AutoPtr<IPermissionInfo> info= GeneratePermissionInfo(*itor, flags);
                 ci->mPermissions.PushBack(info);
             }
@@ -542,27 +542,27 @@ AutoPtr<CCapsuleInfo> CapsuleParser::GenerateCapsuleInfo(
             List<String>::Iterator itor;
             for (itor = c->mRequestedPermissions.Begin();
                  itor != c->mRequestedPermissions.End();
-                 itor++) {
+                 ++itor) {
                 ci->mRequestedPermissions.PushBack(*itor);
             }
         }
     }
     if ((flags & CapsuleManager_GET_SIGNATURES) != 0) {
-        for (Int32 i = 0; i < c->mSignatures->GetLength(); i++) {
+        for (Int32 i = 0; i < c->mSignatures->GetLength(); ++i) {
             ci->mSignatures.PushBack((*c->mSignatures)[i]);
         }
     }
     return ci;
 }
 
-AutoPtr<IPermissionInfo> CapsuleParser::GeneratePermissionInfo(
+AutoPtr<CPermissionInfo> CapsuleParser::GeneratePermissionInfo(
     /* [in] */ Permission* p,
     /* [in] */ Int32 flags)
 {
     if (p == NULL) return NULL;
 
     if ((flags & CapsuleManager_GET_META_DATA) == 0) {
-        return (IPermissionInfo*)p->mInfo.Get();
+        return p->mInfo;
     }
 
     AutoPtr<CPermissionInfo> pi;
@@ -570,32 +570,24 @@ AutoPtr<IPermissionInfo> CapsuleParser::GeneratePermissionInfo(
             (IPermissionInfo*)p->mInfo.Get(),
             (CPermissionInfo**)&pi));
     pi->mMetaData = (IBundle*)p->mMetaData.Get();
-    return (IPermissionInfo*)pi.Get();
+    return pi;
 }
 
-ECode CapsuleParser::GeneratePermissionGroupInfo(
+AutoPtr<CPermissionGroupInfo> CapsuleParser::GeneratePermissionGroupInfo(
     /* [in] */ PermissionGroup* pg,
-    /* [in] */ Int32 flags,
-    /* [out] */ IPermissionGroupInfo** info)
+    /* [in] */ Int32 flags)
 {
-    assert(info);
-    *info = NULL;
-
-    if (pg == NULL) return NOERROR;
+    if (pg == NULL) return NULL;
 
     if ((flags & CapsuleManager_GET_META_DATA) == 0) {
-        *info = pg->mInfo;
-        if (*info != NULL) (*info)->AddRef();
-        return NOERROR;
+        return pg->mInfo;
     }
 
     AutoPtr<CPermissionGroupInfo> pgi;
-    FAIL_RETURN(CPermissionGroupInfo::NewByFriend(
+    ASSERT_SUCCEEDED(CPermissionGroupInfo::NewByFriend(
         pg->mInfo.Get(), (CPermissionGroupInfo**)&pgi));
     pgi->mMetaData = (IBundle*)pg->mMetaData.Get();
-    *info = pgi;
-    (*info)->AddRef();
-    return NOERROR;
+    return pgi;
 }
 
 Int32 CapsuleParser::GetParseError()
@@ -1042,7 +1034,8 @@ ECode CapsuleParser::ParseCapsule(
             sa->Recycle();
 
             if (!name.IsNull()
-                && !ListUtils::Contains(cap->mRequestedPermissions, name)) {
+                && Find(cap->mRequestedPermissions.Begin(), cap->mRequestedPermissions.End(), name)
+                    == cap->mRequestedPermissions.End()) {
                 cap->mRequestedPermissions.PushBack(name);
             }
 
@@ -1274,8 +1267,12 @@ ECode CapsuleParser::ParseCapsule(
             sa->Recycle();
 
             if (!name.IsNull() && (flags & PARSE_IS_SYSTEM) != 0) {
-                if (!ListUtils::Contains(cap->mProtectedBroadcasts, name)) {
-                    cap->mProtectedBroadcasts.PushBack(name);
+                if (cap->mProtectedBroadcasts == NULL) {
+                    cap->mProtectedBroadcasts = new List<String>();
+                }
+                if (Find(cap->mProtectedBroadcasts->Begin(), cap->mProtectedBroadcasts->End(), name)
+                    == cap->mProtectedBroadcasts->End()) {
+                    cap->mProtectedBroadcasts->PushBack(name);
                 }
             }
 
@@ -1301,10 +1298,11 @@ ECode CapsuleParser::ParseCapsule(
                 0 /*com.android.internal.R.styleable.AndroidManifestOriginalPackage_name*/,
                 0, &orig);
             if (!cap->mCapsuleName.Equals(orig)) {
-                if (cap->mOriginalCapsules.Begin() == cap->mOriginalCapsules.End()) {
+                if (cap->mOriginalCapsules == NULL) {
+                    cap->mOriginalCapsules = new List<String>();
                     cap->mRealCapsule = cap->mCapsuleName;
                 }
-                cap->mOriginalCapsules.PushBack(orig);
+                cap->mOriginalCapsules->PushBack(orig);
             }
 
             sa->Recycle();
@@ -1328,7 +1326,10 @@ ECode CapsuleParser::ParseCapsule(
             sa->Recycle();
 
             if (!name.IsNull()) {
-                cap->mAdoptPermissions.PushBack(name);
+                if (cap->mAdoptPermissions == NULL) {
+                    cap->mAdoptPermissions = new List<String>();
+                }
+                cap->mAdoptPermissions->PushBack(name);
             }
 
             XmlUtils::SkipCurrentTag(parser);
@@ -1382,7 +1383,8 @@ ECode CapsuleParser::ParseCapsule(
         if (cap->mApplicationInfo->mTargetSdkVersion >= npi->mSdkVersion) {
             break;
         }
-        if (!ListUtils::Contains(cap->mRequestedPermissions, npi->mName)) {
+        if (Find(cap->mRequestedPermissions.Begin(), cap->mRequestedPermissions.End(), npi->mName)
+            == cap->mRequestedPermissions.End()) {
             if (implicitPerms.IsNull()) {
                 implicitPerms += cap->mCapsuleName;
                 implicitPerms += ": compat added ";
@@ -2067,32 +2069,22 @@ Boolean CapsuleParser::ParseApplication(
 
             if (!lname.IsNull()) {
                 if (req) {
-                    Boolean bContain = FALSE;
-                    List<String>::Iterator itor;
-                    for(itor = owner->mUsesLibraries.Begin();
-                        itor != owner->mUsesLibraries.End();
-                        itor++) {
-                        if ((*itor).Equals(lname)) {
-                            bContain = TRUE;
-                            break;
-                        }
+                    if (owner->mUsesLibraries == NULL) {
+                        owner->mUsesLibraries = new List<String>();
                     }
-                    if (!bContain) {
-                        owner->mUsesLibraries.PushBack(lname);
+                    if (Find(owner->mUsesLibraries->Begin(), owner->mUsesLibraries->End(), lname)
+                        == owner->mUsesLibraries->End()) {
+                        owner->mUsesLibraries->PushBack(lname);
                     }
-                } else {
-                    Boolean bContain = FALSE;
-                    List<String>::Iterator itor;
-                    for(itor = owner->mUsesOptionalLibraries.Begin();
-                        itor != owner->mUsesOptionalLibraries.End();
-                        itor++) {
-                        if ((*itor).Equals(lname)) {
-                            bContain = TRUE;
-                            break;
-                        }
+                }
+                else {
+                    if (owner->mUsesOptionalLibraries == NULL) {
+                        owner->mUsesOptionalLibraries = new List<String>();
                     }
-                    if (!bContain) {
-                        owner->mUsesOptionalLibraries.PushBack(lname);
+                    if (Find(owner->mUsesOptionalLibraries->Begin(),
+                            owner->mUsesOptionalLibraries->End(), lname)
+                        == owner->mUsesOptionalLibraries->End()) {
+                        owner->mUsesOptionalLibraries->PushBack(lname);
                     }
                 }
             }
@@ -3392,78 +3384,62 @@ AutoPtr<CApplicationInfo> CapsuleParser::GenerateApplicationInfo(
     return ai;
 }
 
-ECode CapsuleParser::GenerateActivityInfo(
+AutoPtr<CActivityInfo> CapsuleParser::GenerateActivityInfo(
     /* [in] */ Activity* activity,
-    /* [in] */ Int32 flags,
-    /* [out] */ CActivityInfo** info)
+    /* [in] */ Int32 flags)
 {
-    assert(info != NULL);
     if (activity == NULL) {
-        *info = NULL;
-        return E_DOES_NOT_EXIST;
+        return NULL;
     }
     if (!CopyNeeded(flags, activity->mOwner, activity->mMetaData)) {
-        *info = activity->mInfo;
-        if (*info != NULL) (*info)->AddRef();
-        return NOERROR;
+        return activity->mInfo;
     }
 
     // Make shallow copies so we can store the metadata safely
-    FAIL_RETURN(CActivityInfo::NewByFriend((IActivityInfo*)activity->mInfo.Get(), info));
-    (*info)->mMetaData = activity->mMetaData;
-    (*info)->mApplicationInfo = GenerateApplicationInfo(activity->mOwner, flags);
-    return NOERROR;
+    AutoPtr<CActivityInfo> info;
+    ASSERT_SUCCEEDED(CActivityInfo::NewByFriend(
+            (IActivityInfo*)activity->mInfo.Get(), (CActivityInfo**)&info));
+    info->mMetaData = activity->mMetaData;
+    info->mApplicationInfo = GenerateApplicationInfo(activity->mOwner, flags);
+    return info;
 }
 
-ECode CapsuleParser::GenerateServiceInfo(
+AutoPtr<CServiceInfo> CapsuleParser::GenerateServiceInfo(
     /* [in] */ Service* service,
-    /* [in] */ Int32 flags,
-    /* [out] */ CServiceInfo** info)
+    /* [in] */ Int32 flags)
 {
-    assert(info != NULL);
     if (service == NULL) {
-        *info = NULL;
-        return E_DOES_NOT_EXIST;
+        return NULL;
     }
     if (!CopyNeeded(flags, service->mOwner, service->mMetaData)) {
-        *info = service->mInfo;
-        if (*info != NULL) (*info)->AddRef();
-        return NOERROR;
+        return service->mInfo;
     }
 
     // Make shallow copies so we can store the metadata safely
-    CServiceInfo::NewByFriend((IServiceInfo*)service->mInfo.Get(), info);
-    (*info)->mMetaData = service->mMetaData;
-    (*info)->mApplicationInfo = GenerateApplicationInfo(service->mOwner, flags);
-    return NOERROR;
+    AutoPtr<CServiceInfo> info;
+    ASSERT_SUCCEEDED(CServiceInfo::NewByFriend(
+            (IServiceInfo*)service->mInfo.Get(), (CServiceInfo**)&info));
+    info->mMetaData = service->mMetaData;
+    info->mApplicationInfo = GenerateApplicationInfo(service->mOwner, flags);
+    return info;
 }
 
-ECode CapsuleParser::GenerateContentProviderInfo(
+AutoPtr<CContentProviderInfo> CapsuleParser::GenerateContentProviderInfo(
     /* [in] */ ContentProvider* provider,
-    /* [in] */ Int32 flags,
-    /* [out] */ IContentProviderInfo** info)
+    /* [in] */ Int32 flags)
 {
-    assert(info != NULL);
     if (provider == NULL) {
-        *info = NULL;
-        return E_DOES_NOT_EXIST;
+        return NULL;
     }
-    if (!CopyNeeded(flags, provider->mOwner, provider->mMetaData.Get())
+    if (!CopyNeeded(flags, provider->mOwner, provider->mMetaData)
         && ((flags & CapsuleManager_GET_URI_PERMISSION_PATTERNS) != 0
         || provider->mInfo->mUriPermissionPatterns == NULL)) {
-        *info = (IContentProviderInfo*)provider->mInfo.Get();
-        if (*info != NULL) (*info)->AddRef();
-        return NOERROR;
-    }
-    if (!CopyNeeded(flags, provider->mOwner, provider->mMetaData)) {
-        *info = provider->mInfo;
-        if (*info != NULL) (*info)->AddRef();
-        return NOERROR;
+        return provider->mInfo;
     }
 
     // Make shallow copies so we can store the metadata safely
     AutoPtr<CContentProviderInfo> pi;
-    FAIL_RETURN(CContentProviderInfo::NewByFriend(
+    ASSERT_SUCCEEDED(CContentProviderInfo::NewByFriend(
         (IContentProviderInfo*)provider->mInfo.Get(), (CContentProviderInfo**)&pi));
     pi->mMetaData = provider->mMetaData;
     if ((flags & CapsuleManager_GET_URI_PERMISSION_PATTERNS) == 0) {
@@ -3471,29 +3447,24 @@ ECode CapsuleParser::GenerateContentProviderInfo(
         pi->mUriPermissionPatterns = NULL;
     }
     pi->mApplicationInfo = GenerateApplicationInfo(provider->mOwner, flags);
-    *info = (IContentProviderInfo*)pi.Get();
-    if (*info != NULL) (*info)->AddRef();
-    return NOERROR;
+    return pi;
 }
 
-ECode CapsuleParser::GenerateInstrumentationInfo(
+AutoPtr<CInstrumentationInfo> CapsuleParser::GenerateInstrumentationInfo(
     /* [in] */ CapsuleParser::Instrumentation* i,
-    /* [in] */ Int32 flags,
-    /* [out] */ CInstrumentationInfo** info)
+    /* [in] */ Int32 flags)
 {
-    assert(info != NULL);
     if (i == NULL) {
-        *info = NULL;
-        return E_DOES_NOT_EXIST;
+        return NULL;
     }
     if ((flags & CapsuleManager_GET_META_DATA) == 0) {
-        *info = i->mInfo.Get();
-        if (*info != NULL) (*info)->AddRef();
-        return NOERROR;
+        return i->mInfo;
     }
-    FAIL_RETURN(CInstrumentationInfo::NewByFriend((IInstrumentationInfo*)i->mInfo.Get(), info));
-    (*info)->mMetaData = i->mMetaData;
-    return NOERROR;
+    AutoPtr<CInstrumentationInfo> info;
+    ASSERT_SUCCEEDED(CInstrumentationInfo::NewByFriend(
+        (IInstrumentationInfo*)i->mInfo.Get(), (CInstrumentationInfo**)&info));
+    info->mMetaData = i->mMetaData;
+    return info;
 }
 
 void CapsuleParser::SetCompatibilityModeEnabled(

@@ -276,6 +276,12 @@ public:
         /* [in] */ const String& name,
         /* [out] */ IXmlResourceParser** resource);
 
+    CARAPI GetCapsuleName(
+        /* [out] */ String* capsuleName);
+
+    CARAPI GetName(
+        /* [out] */ String* name);
+
     CARAPI GetComponentName(
         /* [out] */ String *capsuleName,
         /* [out] */ String *name);
@@ -289,6 +295,9 @@ public:
 
     CARAPI SetApplicationInfo(
         /* [in] */ IApplicationInfo* info);
+
+    CARAPI IsEnabled(
+        /* [out] */ Boolean* enabled);
 
     CARAPI GetLaunchMode(
         /* [out] */ Int32 *mode);
