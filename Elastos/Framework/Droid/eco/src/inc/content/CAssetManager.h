@@ -66,7 +66,7 @@ public:
 
     /*package*/ CARAPI GetResourceTextArray(
         /* [in] */ Int32 id,
-        /* [out, callee] */ ArrayOf<String>** textArray);
+        /* [out, callee] */ ArrayOf<ICharSequence*>** textArray);
 
     CARAPI Open(
         /* [in] */ const String& fileName,

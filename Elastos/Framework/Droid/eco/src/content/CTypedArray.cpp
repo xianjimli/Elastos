@@ -584,7 +584,7 @@ ECode CTypedArray::GetDrawable(
 
 ECode CTypedArray::GetTextArray(
     /* [in] */ Int32 index,
-    /* [out, callee] */ ArrayOf<String>** array)
+    /* [out, callee] */ ArrayOf<ICharSequence*>** array)
 {
     const AutoPtr<ITypedValue> value = mValue;
     if (GetValueAt(index*CAssetManager::STYLE_NUM_ENTRIES, value.Get())) {

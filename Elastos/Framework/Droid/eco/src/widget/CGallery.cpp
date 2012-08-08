@@ -26,19 +26,12 @@ ECode CGallery::SetSelectionEx(
 ECode CGallery::PointToPosition(
     /* [in] */ Int32 x,
     /* [in] */ Int32 y,
-    /* [out] */ Int32 * pPos)
+    /* [out] */ Int32* pos)
 {
-    VALIDATE_NOT_NULL(pPos);
+    VALIDATE_NOT_NULL(pos);
     Gallery::PointToPosition(x, y);
 
     return NOERROR;
-}
-
-ECode CGallery::LayoutEx(
-    /* [in] */ Int32 delta,
-    /* [in] */ Boolean animate)
-{
-    return Gallery::LayoutEx(delta, animate);
 }
 
 ECode CGallery::SetCallbackDuringFling(
@@ -72,61 +65,61 @@ ECode CGallery::SetUnselectedAlpha(
 }
 
 ECode CGallery::OnSingleTapUp(
-    /* [in] */ IMotionEvent * pE,
-    /* [out] */ Boolean * pResult)
+    /* [in] */ IMotionEvent* e,
+    /* [out] */ Boolean* result)
 {
-    VALIDATE_NOT_NULL(pResult);
-    *pResult = Gallery::OnSingleTapUp(pE);
+    VALIDATE_NOT_NULL(result);
+    *result = Gallery::OnSingleTapUp(e);
 
     return NOERROR;
 }
 
 ECode CGallery::OnFling(
-    /* [in] */ IMotionEvent * pE1,
-    /* [in] */ IMotionEvent * pE2,
+    /* [in] */ IMotionEvent* e1,
+    /* [in] */ IMotionEvent* e2,
     /* [in] */ Float velocityX,
     /* [in] */ Float velocityY,
-    /* [out] */ Boolean * pResult)
+    /* [out] */ Boolean* result)
 {
-    VALIDATE_NOT_NULL(pResult);
-    Gallery::OnFling(pE1, pE2, velocityX, velocityY);
+    VALIDATE_NOT_NULL(result);
+    *result = Gallery::OnFling(e1, e2, velocityX, velocityY);
 
     return NOERROR;
 }
 
 ECode CGallery::OnScroll(
-    /* [in] */ IMotionEvent * pE1,
-    /* [in] */ IMotionEvent * pE2,
+    /* [in] */ IMotionEvent* e1,
+    /* [in] */ IMotionEvent* e2,
     /* [in] */ Float distanceX,
     /* [in] */ Float distanceY,
-    /* [out] */ Boolean * pResult)
+    /* [out] */ Boolean* result)
 {
-    VALIDATE_NOT_NULL(pResult);
-    Gallery::OnScroll(pE1, pE2, distanceX, distanceY);
+    VALIDATE_NOT_NULL(result);
+    *result = Gallery::OnScroll(e1, e2, distanceX, distanceY);
 
     return NOERROR;
 }
 
 ECode CGallery::OnDown(
-    /* [in] */ IMotionEvent * pE,
-    /* [out] */ Boolean * pResult)
+    /* [in] */ IMotionEvent* e,
+    /* [out] */ Boolean* result)
 {
-    VALIDATE_NOT_NULL(pResult);
-    Gallery::OnDown(pE);
+    VALIDATE_NOT_NULL(result);
+    *result = Gallery::OnDown(e);
 
     return NOERROR;
 }
 
 ECode CGallery::OnLongPress(
-    /* [in] */ IMotionEvent * pE)
+    /* [in] */ IMotionEvent* e)
 {
-    return Gallery::OnLongPress(pE);
+    return Gallery::OnLongPress(e);
 }
 
 ECode CGallery::OnShowPress(
-    /* [in] */ IMotionEvent * pE)
+    /* [in] */ IMotionEvent* e)
 {
-    return Gallery::OnShowPress(pE);
+    return Gallery::OnShowPress(e);
 }
 
 ECode CGallery::SetGravity(
@@ -136,29 +129,23 @@ ECode CGallery::SetGravity(
 }
 
 ECode CGallery::constructor(
-    /* [in] */ IContext * pCtx)
+    /* [in] */ IContext* ctx)
 {
-    Gallery::Init(pCtx);
-
-    return NOERROR;
+    return Gallery::Init(ctx);
 }
 
 ECode CGallery::constructor(
-    /* [in] */ IContext * pCtx,
-    /* [in] */ IAttributeSet * pAttrs)
+    /* [in] */ IContext* ctx,
+    /* [in] */ IAttributeSet* attrs)
 {
-    Gallery::Init(pCtx, pAttrs);
-
-    return NOERROR;
+    return Gallery::Init(ctx, attrs);
 }
 
 ECode CGallery::constructor(
-    /* [in] */ IContext * pCtx,
-    /* [in] */ IAttributeSet * pAttrs,
+    /* [in] */ IContext* ctx,
+    /* [in] */ IAttributeSet* attrs,
     /* [in] */ Int32 defStyle)
 {
-    Gallery::Init(pCtx, pAttrs, defStyle);
-
-    return NOERROR;
+    return Gallery::Init(ctx, attrs, defStyle);
 }
 

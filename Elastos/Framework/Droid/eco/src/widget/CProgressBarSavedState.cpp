@@ -1,12 +1,11 @@
 
+#include "ext/frameworkdef.h"
 #include "widget/CProgressBarSavedState.h"
 
 ECode CProgressBarSavedState::GetSuperState(
-    /* [out] */ IParcelable ** superState)
+    /* [out] */ IParcelable** superState)
 {
-    if (!superState) {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(superState);
 
     AutoPtr<IParcelable> temp = ProgressBarSavedState::GetSuperState();
     *superState = temp;
@@ -18,26 +17,26 @@ ECode CProgressBarSavedState::GetSuperState(
 }
 
 ECode CProgressBarSavedState::ReadFromParcel(
-    /* [in] */ IParcel * pSource)
+    /* [in] */ IParcel* source)
 {
-    return ProgressBarSavedState::ReadFromParcel(pSource);
+    return ProgressBarSavedState::ReadFromParcel(source);
 }
 
 ECode CProgressBarSavedState::WriteToParcel(
-    /* [in] */ IParcel * pDest)
+    /* [in] */ IParcel* dest)
 {
-    return ProgressBarSavedState::WriteToParcel(pDest);
+    return ProgressBarSavedState::WriteToParcel(dest);
 }
 
 ECode CProgressBarSavedState::constructor(
-    /* [in] */ IParcelable * pSuperState)
+    /* [in] */ IParcelable* superState)
 {
-    return ViewBaseSavedState::Init(pSuperState);
+    return ViewBaseSavedState::Init(superState);
 }
 
 ECode CProgressBarSavedState::constructor(
-    /* [in] */ IParcel * pParcel)
+    /* [in] */ IParcel* parcel)
 {
-    return ViewBaseSavedState::Init(pParcel);
+    return ViewBaseSavedState::Init(parcel);
 }
 

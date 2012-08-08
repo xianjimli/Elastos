@@ -52,7 +52,7 @@ public:
 
     CARAPI GetTextArray(
         /* [in] */ Int32 id,
-        /* [out, callee] */ ArrayOf<String>** seqs);
+        /* [out, callee] */ ArrayOf<ICharSequence*>** seqs);
 
     CARAPI GetStringArray(
         /* [in] */ Int32 id,

@@ -5,17 +5,24 @@ module
     }
 
     interface IAbsSpinner extends IAdapterView {
-         SetSelectionEx(
-             [in] Int32 position,
-             [in] Boolean animate);
-
-         PointToPosition(
-             [in] Int32 x,
-             [in] Int32 y,
-             [out] Int32* pos);
-
-         LayoutEx(
-            [in] Int32 delta,
+        /**
+         * Jump directly to a specific item in the adapter data.
+         */
+        SetSelectionEx(
+            [in] Int32 position,
             [in] Boolean animate);
+        
+        /**
+         * Maps a point to a position in the list.
+         * 
+         * @param x X in local coordinate
+         * @param y Y in local coordinate
+         * @return The position of the item which contains the specified point, or
+         *         {@link #INVALID_POSITION} if the point does not intersect an item.
+         */        
+        PointToPosition(
+            [in] Int32 x,
+            [in] Int32 y,
+            [out] Int32* pos);
     }
 }

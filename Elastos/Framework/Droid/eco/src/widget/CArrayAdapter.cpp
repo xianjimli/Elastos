@@ -153,18 +153,19 @@ AutoPtr<IArrayAdapter> CArrayAdapter::CreateFromResource(
 {
     AutoPtr<IResources> rs;
     context->GetResources((IResources**)&rs);
-    AutoStringArray strings;
-    rs->GetTextArray(textArrayResId, (ArrayOf<String>**)&strings);
+    ArrayOf<ICharSequence*>* strings;
+    rs->GetTextArray(textArrayResId, &strings);
 
     AutoPtr<IObjectContainer> strs;
     CParcelableObjectContainer::New((IObjectContainer**)&strs);
 
     Int32 size = strings->GetLength();
     for (Int32 i=0; i<size; i++) {
-        AutoPtr<ICharSequence> cs;
-        CStringWrapper::New((*strings)[i], (ICharSequence**)&cs);
-        strs->Add(cs);
+        strs->Add((*strings)[i]);
+
+        (*strings)[i]->Release();
     }
+    ArrayOf<ICharSequence*>::Free(strings);
 
     AutoPtr<IArrayAdapter> adapter;
     CArrayAdapter::New(context, textViewResId, strs, (IArrayAdapter**)&adapter);

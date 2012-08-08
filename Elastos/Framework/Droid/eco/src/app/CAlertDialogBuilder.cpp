@@ -260,7 +260,7 @@ ECode CAlertDialogBuilder::SetItems(
  * @return This Builder object to allow for chaining of calls to Set methods
  */
 ECode CAlertDialogBuilder::SetItemsEx(
-    /* [in] */ const ArrayOf<String>& items,
+    /* [in] */ const ArrayOf<ICharSequence*>& items,
     /* [in] */ IDialogInterfaceOnClickListener* listener)
 {
     mP->mItems = items.Clone();
@@ -360,7 +360,7 @@ ECode CAlertDialogBuilder::SetMultiChoiceItems(
  * @return This Builder object to allow for chaining of calls to Set methods
  */
 ECode CAlertDialogBuilder::SetMultiChoiceItemsEx(
-    /* [in] */ const ArrayOf<String>& items,
+    /* [in] */ const ArrayOf<ICharSequence*>& items,
     /* [in] */ const ArrayOf<Boolean>& checkedItems,
     /* [in] */ IDialogInterfaceOnMultiChoiceClickListener* listener)
 {
@@ -478,7 +478,7 @@ ECode CAlertDialogBuilder::SetSingleChoiceItemsEx(
  * @return This Builder object to allow for chaining of calls to Set methods
  */
 ECode CAlertDialogBuilder::SetSingleChoiceItemsEx2(
-    /* [in] */ const ArrayOf<String>& items,
+    /* [in] */ const ArrayOf<ICharSequence*>& items,
     /* [in] */ Int32 checkedItem,
     /* [in] */ IDialogInterfaceOnClickListener* listener)
 {

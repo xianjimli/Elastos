@@ -4,17 +4,15 @@
 
 #include "view/ViewBaseSavedState.h"
 
-class ProgressBarSavedState : public ViewBaseSavedState 
+class ProgressBarSavedState : public ViewBaseSavedState
 {
 public:
-    ProgressBarSavedState();
-
     /**
      * Constructor called from {@link ProgressBar#onSaveInstanceState()}
      */
     ProgressBarSavedState(
         /* [in] */ IParcelable* superState);
-    
+
     /**
      * Constructor called from {@link #CREATOR}
      */
@@ -35,8 +33,12 @@ public:
         }
     };*/
 
-    Int32 progress;
-    Int32 secondaryProgress;
+protected:
+    ProgressBarSavedState();
+
+public:
+    Int32 mProgress;
+    Int32 mSecondaryProgress;
 };
 
-#endif 
+#endif

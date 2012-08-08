@@ -5,10 +5,7 @@
 #include "view/HapticFeedbackConstants.h"
 #include <elastos/Math.h>
 
-const Int32 R_Attr_GalleryStyle = 0x01010070;
-
-const String Gallery::TAG = String("Gallery");
-
+const CString Gallery::TAG = "Gallery";
 const Boolean Gallery::localLOGV;
 
 /**
@@ -21,83 +18,103 @@ static Int32 R_Styleable_Gallery[] = {
     0x010100af, 0x01010112, 0x01010113, 0x0101020e
 };
 
-static const Int32 R_Styleable_Gallery_gravity = 0;
-static const Int32 R_Styleable_Gallery_animationDuration = 1;
-static const Int32 R_Styleable_Gallery_spacing = 2;
-static const Int32 R_Styleable_Gallery_unselectedAlpha = 3;
-
 Gallery::Gallery()
+    : mSpacing(0)
+    , mAnimationDuration(400)
+    , mShouldCallbackDuringFling(TRUE)
+    , mShouldCallbackOnUnselectedItemClick(TRUE)
 {
-
+    mFlingRunnable = new FlingRunnable(this);
+    mDisableSuppressSelectionChangedRunnable =
+            new DisableSuppressSelectionChangedRunnable(this);
 }
 
 Gallery::Gallery(
     /* [in] */ IContext* context,
     /* [in] */ IAttributeSet* attrs,
-    /* [in] */ Int32 defStyle) : AbsSpinner(context, attrs, defStyle)
+    /* [in] */ Int32 defStyle)
+    : AbsSpinner(context, attrs, defStyle)
+    , mSpacing(0)
+    , mAnimationDuration(400)
+    , mShouldCallbackDuringFling(TRUE)
+    , mShouldCallbackOnUnselectedItemClick(TRUE)
 {
-    Init(context, attrs, defStyle);
-}
-
-Gallery::~Gallery()
-{
-    delete mFlingRunnable;
-}
-
-void Gallery::Init(
-    /* [in] */ IContext* context,
-    /* [in] */ IAttributeSet* attrs /* = NULL */,
-    /* [in] */ Int32 defStyle /* = R_Attr_GalleryStyle */)
-{
-    mSpacing = 0;
-
-    mAnimationDuration = 400;
-
     mFlingRunnable = new FlingRunnable(this);
+    mDisableSuppressSelectionChangedRunnable =
+            new DisableSuppressSelectionChangedRunnable(this);
 
-    mShouldCallbackDuringFling = TRUE;
+//    mGestureDetector = new GestureDetector(context, this);
+//    mGestureDetector.setIsLongpressEnabled(TRUE);
 
-    /**
-     * Whether to callback when an item that is not selected is clicked.
-     */
-    mShouldCallbackOnUnselectedItemClick = TRUE;
-
-    //mGestureDetector = new GestureDetector(context, this);
-    //mGestureDetector.setIsLongpressEnabled(TRUE);
-
-    AutoPtr<ITypedArray> a;
-    context->ObtainStyledAttributesEx3(
-        attrs, ArrayOf<Int32>(R_Styleable_Gallery, sizeof(R_Styleable_Gallery) / sizeof(Int32)), defStyle, 0, (ITypedArray**)&a);
-
-    Int32 index;
-    a->GetInt32(R_Styleable_Gallery_gravity, -1, &index);
-
-    if (index >= 0) {
-        SetGravity(index);
-    }
-
-    Int32 animationDuration;
-    a->GetInt32(R_Styleable_Gallery_animationDuration, -1, &animationDuration);
-    if (animationDuration > 0) {
-        SetAnimationDuration(animationDuration);
-    }
-
-    Int32 spacing;
-    a->GetDimensionPixelOffset(R_Styleable_Gallery_spacing, 0, &spacing);
-    SetSpacing(spacing);
-
-    Float unselectedAlpha;
-    a->GetFloat(
-        R_Styleable_Gallery_unselectedAlpha, 0.5f, &unselectedAlpha);
-    SetUnselectedAlpha(unselectedAlpha);
-
-    a->Recycle();
+    ASSERT_SUCCEEDED(InitFromAttributes(context, attrs, defStyle));
 
     // We draw the selected item last (because otherwise the item to the
     // right overlaps it)
     mGroupFlags |= FLAG_USE_CHILD_DRAWING_ORDER;
 
     mGroupFlags |= FLAG_SUPPORT_STATIC_TRANSFORMATIONS;
+}
+
+Gallery::~Gallery()
+{
+    delete mFlingRunnable;
+    delete mDisableSuppressSelectionChangedRunnable;
+//    delete mGestureDetector;
+}
+
+ECode Gallery::Init(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs,
+    /* [in] */ Int32 defStyle)
+{
+    ASSERT_SUCCEEDED(AbsSpinner::Init(context, attrs, defStyle));
+
+    //mGestureDetector = new GestureDetector(context, this);
+    //mGestureDetector.setIsLongpressEnabled(TRUE);
+
+    ASSERT_SUCCEEDED(InitFromAttributes(context, attrs, defStyle));
+
+    // We draw the selected item last (because otherwise the item to the
+    // right overlaps it)
+    mGroupFlags |= FLAG_USE_CHILD_DRAWING_ORDER;
+
+    mGroupFlags |= FLAG_SUPPORT_STATIC_TRANSFORMATIONS;
+    return NOERROR;
+}
+
+ECode Gallery::InitFromAttributes(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs,
+    /* [in] */ Int32 defStyle)
+{
+    AutoPtr<ITypedArray> a;
+    FAIL_RETURN(context->ObtainStyledAttributesEx3(
+        attrs, ArrayOf<Int32>(R_Styleable_Gallery, sizeof(R_Styleable_Gallery) / sizeof(Int32)),
+        defStyle, 0, (ITypedArray**)&a));
+
+    Int32 index;
+    a->GetInt32(0/*com.android.internal.R.styleable.Gallery_gravity*/, -1, &index);
+    if (index >= 0) {
+        SetGravity(index);
+    }
+
+    Int32 animationDuration;
+    a->GetInt32(1/*com.android.internal.R.styleable.Gallery_animationDuration*/, -1, &animationDuration);
+    if (animationDuration > 0) {
+        SetAnimationDuration(animationDuration);
+    }
+
+    Int32 spacing;
+    a->GetDimensionPixelOffset(2/*com.android.internal.R.styleable.Gallery_spacing*/, 0, &spacing);
+    SetSpacing(spacing);
+
+    Float unselectedAlpha;
+    a->GetFloat(
+            3/*com.android.internal.R.styleable.Gallery_unselectedAlpha*/, 0.5f, &unselectedAlpha);
+    SetUnselectedAlpha(unselectedAlpha);
+
+    a->Recycle();
+    return NOERROR;
 }
 
 /**
@@ -213,7 +230,7 @@ Int32 Gallery::ComputeHorizontalScrollRange()
 Boolean Gallery::CheckLayoutParams(
     /* [in] */ IViewGroupLayoutParams* p)
 {
-    return p->Probe(EIID_IGalleryLayoutParams) != NULL;
+    return IGalleryLayoutParams::Probe(p) != NULL;
 }
 
 AutoPtr<IViewGroupLayoutParams> Gallery::GenerateLayoutParams(
@@ -258,7 +275,7 @@ void Gallery::OnLayout(
      * being generated.
      */
     mInLayout = TRUE;
-    LayoutEx(0, FALSE);
+    Layout(0, FALSE);
     mInLayout = FALSE;
 }
 
@@ -301,7 +318,8 @@ void Gallery::TrackMotionScroll(
     if (toLeft) {
         // If moved left, there will be empty space on the right
         FillToGalleryRight();
-    } else {
+    }
+    else {
         // Similarly, empty space on the left
         FillToGalleryLeft();
     }
@@ -321,7 +339,7 @@ Int32 Gallery::GetLimitedMotionScrollAmount(
     Int32 extremeItemPosition = motionToLeft ? mItemCount - 1 : 0;
     AutoPtr<IView> extremeChild = GetChildAt(extremeItemPosition - mFirstPosition);
 
-    if (extremeChild.Get() == NULL) {
+    if (extremeChild == NULL) {
         return deltaX;
     }
 
@@ -334,7 +352,8 @@ Int32 Gallery::GetLimitedMotionScrollAmount(
             // The extreme child is past his boundary point!
             return 0;
         }
-    } else {
+    }
+    else {
         if (extremeChildCenter >= galleryCenter) {
 
             // The extreme child is past his boundary point!
@@ -406,12 +425,14 @@ void Gallery::DetachOffScreenChildren(
             child->GetRight(&right);
             if (right >= galleryLeft) {
                 break;
-            } else {
+            }
+            else {
                 count++;
                 mRecycler->Put(firstPosition + i, child);
             }
         }
-    } else {
+    }
+    else {
         Int32 galleryRight = GetWidth() - mPaddingRight;
         for (Int32 i = numChildren - 1; i >= 0; i--) {
             AutoPtr<IView> child = GetChildAt(i);
@@ -419,7 +440,8 @@ void Gallery::DetachOffScreenChildren(
             child->GetLeft(&left);
             if (left <= galleryRight) {
                 break;
-            } else {
+            }
+            else {
                 start = i;
                 count++;
                 mRecycler->Put(firstPosition + i, child);
@@ -448,7 +470,8 @@ void Gallery::ScrollIntoSlots()
     Int32 scrollAmount = targetCenter - selectedCenter;
     if (scrollAmount != 0) {
         mFlingRunnable->StartUsingDistance(scrollAmount);
-    } else {
+    }
+    else {
         OnFinishedMovement();
     }
 }
@@ -535,7 +558,7 @@ void Gallery::SetSelectionToCenterChild()
  *            means the selection is moving to the left.
  */
 
-ECode Gallery::LayoutEx(
+void Gallery::Layout(
     /* [in] */ Int32 delta,
     /* [in] */ Boolean animate)
 {
@@ -549,7 +572,7 @@ ECode Gallery::LayoutEx(
     // Handle an empty gallery by removing all views.
     if (mItemCount == 0) {
         ResetList();
-        return NOERROR;
+        return;
     }
 
     // Update to the new selected position.
@@ -600,8 +623,6 @@ ECode Gallery::LayoutEx(
     SetNextSelectedPositionInt(mSelectedPosition);
 
     UpdateSelectedItemMetadata();
-
-    return NOERROR;
 }
 
 void Gallery::FillToGalleryLeft()
@@ -615,11 +636,12 @@ void Gallery::FillToGalleryLeft()
     Int32 curRightEdge;
 
     Int32 left;
-    if (prevIterationView.Get() != NULL) {
+    if (prevIterationView != NULL) {
         curPosition = mFirstPosition - 1;
         prevIterationView->GetLeft(&left);
         curRightEdge = left - itemSpacing;
-    } else {
+    }
+    else {
         // No children available!
         curPosition = 0;
         curRightEdge = mRight - mLeft - mPaddingRight;
@@ -627,7 +649,8 @@ void Gallery::FillToGalleryLeft()
     }
 
     while (curRightEdge > galleryLeft && curPosition >= 0) {
-        prevIterationView = MakeAndAddView(curPosition, curPosition - mSelectedPosition,
+        prevIterationView = MakeAndAddView(curPosition,
+                curPosition - mSelectedPosition,
                 curRightEdge, FALSE);
 
         // Remember some state
@@ -657,14 +680,16 @@ void Gallery::FillToGalleryRight()
         curPosition = mFirstPosition + numChildren;
         prevIterationView->GetRight(&right);
         curLeftEdge = right + itemSpacing;
-    } else {
+    }
+    else {
         mFirstPosition = curPosition = mItemCount - 1;
         curLeftEdge = mPaddingLeft;
         mShouldStopFling = TRUE;
     }
 
     while (curLeftEdge < galleryRight && curPosition < numItems) {
-        prevIterationView = MakeAndAddView(curPosition, curPosition - mSelectedPosition,
+        prevIterationView = MakeAndAddView(curPosition,
+                curPosition - mSelectedPosition,
                 curLeftEdge, TRUE);
 
         // Set state for next iteration
@@ -699,7 +724,7 @@ AutoPtr<IView> Gallery::MakeAndAddView(
 
     if (!mDataChanged) {
         child = mRecycler->Get(position);
-        if (child.Get() != NULL) {
+        if (child != NULL) {
             // Can reuse an existing view
             Int32 childLeft;
             child->GetLeft(&childLeft);
@@ -707,8 +732,7 @@ AutoPtr<IView> Gallery::MakeAndAddView(
             Int32 width;
             child->GetMeasuredWidth(&width);
             // Remember left and right edges of where views have been placed
-            mRightMost = Math::Max(mRightMost, childLeft
-                    + width);
+            mRightMost = Math::Max(mRightMost, childLeft + width);
             mLeftMost = Math::Min(mLeftMost, childLeft);
 
             // Position the view
@@ -750,7 +774,7 @@ void Gallery::SetUpChild(
     // make some up...
     AutoPtr<IViewGroupLayoutParams> lp;
     child->GetLayoutParams((IViewGroupLayoutParams**)&lp);
-    if (lp.Get() == NULL) {
+    if (lp == NULL) {
         lp = GenerateDefaultLayoutParams();
     }
 
@@ -782,7 +806,8 @@ void Gallery::SetUpChild(
     if (fromLeft) {
         childLeft = x;
         childRight = childLeft + width;
-    } else {
+    }
+    else {
         childLeft = x - width;
         childRight = x;
     }
@@ -808,17 +833,17 @@ Int32 Gallery::CalculateTop(
     Int32 childHeight = duringLayout ? measuredHeight : height;
 
     Int32 childTop = 0;
-    Int32 availableSpace;
 
     switch (mGravity) {
     case Gravity_TOP:
         childTop = mSpinnerPadding->mTop;
         break;
-    case Gravity_CENTER_VERTICAL:
-        availableSpace = myHeight - mSpinnerPadding->mBottom
+    case Gravity_CENTER_VERTICAL: {
+        Int32 availableSpace = myHeight - mSpinnerPadding->mBottom
                 - mSpinnerPadding->mTop - childHeight;
         childTop = mSpinnerPadding->mTop + (availableSpace / 2);
         break;
+    }
     case Gravity_BOTTOM:
         childTop = myHeight - mSpinnerPadding->mBottom - childHeight;
         break;
@@ -837,7 +862,8 @@ Boolean Gallery::OnTouchEvent(
     if (action == MotionEvent_ACTION_UP) {
         // Helper method for lifted finger
         OnUp();
-    } else if (action == MotionEvent_ACTION_CANCEL) {
+    }
+    else if (action == MotionEvent_ACTION_CANCEL) {
         OnCancel();
     }
 
@@ -889,7 +915,7 @@ Boolean Gallery::OnFling(
     }
 
     // Fling the gallery!
-    mFlingRunnable->StartUsingVelocity((Int32) -velocityX);
+    mFlingRunnable->StartUsingVelocity((Int32)-velocityX);
 
     return TRUE;
 }
@@ -904,7 +930,7 @@ Boolean Gallery::OnScroll(
     /* [in] */ Float distanceY)
 {
 
-    //if (localLOGV) Log.v(TAG, String.valueOf(e2.getX() - e1.getX()));
+//    if (localLOGV) Log.v(TAG, String.valueOf(e2.getX() - e1.getX()));
 
     /*
      * Now's a good time to tell our parent to stop intercepting our events!
@@ -929,7 +955,8 @@ Boolean Gallery::OnScroll(
             if (!mSuppressSelectionChanged) mSuppressSelectionChanged = TRUE;
             PostDelayed(mDisableSuppressSelectionChangedRunnable, SCROLL_TO_FLING_UNCERTAINTY_TIMEOUT);
         }
-    } else {
+    }
+    else {
         if (mSuppressSelectionChanged) mSuppressSelectionChanged = FALSE;
     }
 
@@ -954,7 +981,7 @@ Boolean Gallery::OnDown(
     Float X, Y;
     e->GetX(&X);
     e->GetY(&Y);
-    mDownTouchPosition = PointToPosition((Int32) X, (Int32) Y);
+    mDownTouchPosition = PointToPosition((Int32)X, (Int32)Y);
 
     if (mDownTouchPosition >= 0) {
         mDownTouchView = GetChildAt(mDownTouchPosition - mFirstPosition);
@@ -1052,7 +1079,7 @@ void Gallery::DispatchSetPressed(
     /* [in] */ Boolean pressed)
 {
     // Show the pressed state on the selected child
-    if (mSelectedChild.Get() != NULL) {
+    if (mSelectedChild != NULL) {
         mSelectedChild->SetPressed(pressed);
     }
 }
@@ -1060,7 +1087,7 @@ void Gallery::DispatchSetPressed(
 
 AutoPtr<IContextMenuInfo> Gallery::GetContextMenuInfo()
 {
-    return AutoPtr<IContextMenuInfo>(mContextMenuInfo.Get());
+    return (IContextMenuInfo*)mContextMenuInfo.Get();
 }
 
 
@@ -1097,8 +1124,8 @@ Boolean Gallery::DispatchLongPress(
     Boolean handled = FALSE;
 
     if (mOnItemLongClickListener != NULL) {
-        mOnItemLongClickListener->OnItemLongClick( (IAdapterView*)this->Probe(EIID_IAdapterView), mDownTouchView,
-                mDownTouchPosition, id, &handled);
+        mOnItemLongClickListener->OnItemLongClick((IAdapterView*)this->Probe(EIID_IAdapterView),
+                mDownTouchView, mDownTouchPosition, id, &handled);
     }
 
     if (!handled) {
@@ -1170,7 +1197,7 @@ Boolean Gallery::OnKeyUp(
             if (mItemCount > 0) {
 
                 DispatchPress(mSelectedChild);
-                //PostDelayed(new Runnable(), ViewConfiguration::GetPressedStateDuration());
+                PostDelayed(new KeyUpRunnable(this), ViewConfiguration::GetPressedStateDuration());
 
                 Int32 selectedIndex = mSelectedPosition - mFirstPosition;
 
@@ -1195,7 +1222,8 @@ Boolean Gallery::MovePrevious()
     if (mItemCount > 0 && mSelectedPosition > 0) {
         ScrollToChild(mSelectedPosition - mFirstPosition - 1);
         return TRUE;
-    } else {
+    }
+    else {
         return FALSE;
     }
 }
@@ -1205,7 +1233,8 @@ Boolean Gallery::MoveNext()
     if (mItemCount > 0 && mSelectedPosition < mItemCount - 1) {
         ScrollToChild(mSelectedPosition - mFirstPosition + 1);
         return TRUE;
-    } else {
+    }
+    else {
         return FALSE;
     }
 }
@@ -1215,7 +1244,7 @@ Boolean Gallery::ScrollToChild(
 {
     AutoPtr<IView> child = GetChildAt(childPosition);
 
-    if (child.Get() != NULL) {
+    if (child != NULL) {
         Int32 distance = GetCenterOfGallery() - GetCenterOfView(child);
         mFlingRunnable->StartUsingDistance(distance);
         return TRUE;
@@ -1236,25 +1265,24 @@ void Gallery::SetSelectedPositionInt(
 
 void Gallery::UpdateSelectedItemMetadata()
 {
-
     AutoPtr<IView> oldSelectedChild = mSelectedChild;
 
     AutoPtr<IView> child = mSelectedChild = GetChildAt(mSelectedPosition - mFirstPosition);
-    if (child.Get() == NULL) {
+    if (child == NULL) {
         return;
     }
 
     child->SetSelected(TRUE);
     child->SetFocusable(TRUE);
 
-    Boolean result;
     if (HasFocus()) {
+        Boolean result;
         child->RequestFocus(&result);
     }
 
     // We unfocus the old child down here so the above hasFocus check
     // returns TRUE
-    if (oldSelectedChild.Get() != NULL) {
+    if (oldSelectedChild != NULL) {
 
         // Make sure its drawable state doesn't contain 'selected'
         oldSelectedChild->SetSelected(FALSE);
@@ -1296,10 +1324,12 @@ Int32 Gallery::GetChildDrawingOrder(
     if (i == childCount - 1) {
         // Draw the selected child last
         return selectedIndex;
-    } else if (i >= selectedIndex) {
+    }
+    else if (i >= selectedIndex) {
         // Move the children to the right of the selected child earlier one
         return i + 1;
-    } else {
+    }
+    else {
         // Keep the children to the left of the selected child the same
         return i;
     }
@@ -1318,17 +1348,16 @@ void Gallery::OnFocusChanged(
      * focus to our selected item instead. We steal keys from our
      * selected item elsewhere.
      */
-    if (gainFocus && mSelectedChild.Get() != NULL) {
+    if (gainFocus && mSelectedChild != NULL) {
         Boolean isFocus;
         mSelectedChild->RequestFocusEx(direction, &isFocus);
     }
-
 }
 
 Gallery::FlingRunnable::FlingRunnable(
     /* [in] */ Gallery* host)
+    : mHost(host)
 {
-    mHost = host;
     mScroller = new Scroller(mHost->GetContext());
 }
 
@@ -1340,7 +1369,7 @@ Gallery::FlingRunnable::~FlingRunnable()
 void Gallery::FlingRunnable::StartCommon()
 {
     // Remove any pending flings
-    mHost->RemoveCallbacks((IRunnable*)mHost->Probe(EIID_IRunnable));
+    mHost->RemoveCallbacks((IRunnable*)this);
 }
 
 void Gallery::FlingRunnable::StartUsingVelocity(
@@ -1354,7 +1383,7 @@ void Gallery::FlingRunnable::StartUsingVelocity(
     mLastFlingX = initialX;
     mScroller->Fling(initialX, 0, initialVelocity, 0,
         0, Math::INT32_MAX_VALUE, 0, Math::INT32_MAX_VALUE);
-    mHost->Post((IRunnable*)mHost->Probe(EIID_IRunnable));
+    mHost->Post((IRunnable*)this);
 }
 
 void Gallery::FlingRunnable::StartUsingDistance(
@@ -1366,13 +1395,13 @@ void Gallery::FlingRunnable::StartUsingDistance(
 
     mLastFlingX = 0;
     mScroller->StartScroll(0, 0, -distance, 0, mHost->mAnimationDuration);
-    mHost->Post((IRunnable*)mHost->Probe(EIID_IRunnable));
+    mHost->Post((IRunnable*)this);
 }
 
 void Gallery::FlingRunnable::Stop(
     /* [in] */ Boolean scrollIntoSlots)
 {
-    mHost->RemoveCallbacks((IRunnable*)mHost->Probe(EIID_IRunnable));
+    mHost->RemoveCallbacks((IRunnable*)this);
     EndFling(scrollIntoSlots);
 }
 
@@ -1388,12 +1417,12 @@ void Gallery::FlingRunnable::EndFling(
     if (scrollIntoSlots) mHost->ScrollIntoSlots();
 }
 
-void Gallery::FlingRunnable::Run()
+ECode Gallery::FlingRunnable::Run()
 {
 
     if (mHost->mItemCount == 0) {
         EndFling(TRUE);
-        return;
+        return NOERROR;
     }
 
     mHost->mShouldStopFling = FALSE;
@@ -1413,7 +1442,8 @@ void Gallery::FlingRunnable::Run()
 
         // Don't fling more than 1 screen
         delta = Math::Min(mHost->GetWidth() - mHost->mPaddingLeft - mHost->mPaddingRight - 1, delta);
-    } else {
+    }
+    else {
         // Moving towards the right. Use last view as mDownTouchPosition
         Int32 offsetToLast = mHost->GetChildCount() - 1;
         mHost->mDownTouchPosition = mHost->mFirstPosition + offsetToLast;
@@ -1426,8 +1456,36 @@ void Gallery::FlingRunnable::Run()
 
     if (more && !mHost->mShouldStopFling) {
         mLastFlingX = x;
-        mHost->Post((IRunnable*)mHost->Probe(EIID_IRunnable));
-    } else {
+        mHost->Post((IRunnable*)this);
+    }
+    else {
        EndFling(TRUE);
     }
+
+    return NOERROR;
+}
+
+Gallery::DisableSuppressSelectionChangedRunnable::DisableSuppressSelectionChangedRunnable(
+    /* [in] */ Gallery* host)
+    : mHost(host)
+{}
+
+ECode Gallery::DisableSuppressSelectionChangedRunnable::Run()
+{
+    mHost->mSuppressSelectionChanged = FALSE;
+    mHost->SelectionChanged();
+
+    return NOERROR;
+}
+
+Gallery::KeyUpRunnable::KeyUpRunnable(
+    /* [in] */ Gallery* host)
+    : mHost(host)
+{}
+
+ECode Gallery::KeyUpRunnable::Run()
+{
+    mHost->DispatchUnpress();
+
+    return NOERROR;
 }

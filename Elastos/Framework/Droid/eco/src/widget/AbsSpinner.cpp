@@ -11,35 +11,44 @@ static Int32 R_Styleable_AbsSpinner[] = {
     0x010100b2
 };
 
-static const Int32 R_Styleable_AbsSpinner_Entries = 0;
-
-static const Int32 R_Layout_Simple_Spinner_Item = 0x01090008;
-
-static const Int32 R_Layout_Simple_Spinner_Dropdown_Item = 0x01090009;
-
-AbsSpinner::AbsSpinner(
-    /* [in] */ IContext* context) : AdapterView(context)
+AbsSpinner::AbsSpinner()
+    : mSelectionLeftPadding(0)
+    , mSelectionTopPadding(0)
+    , mSelectionRightPadding(0)
+    , mSelectionBottomPadding(0)
 {
-    InitAbsSpinner();
+    CRect::NewByFriend((CRect**)&mSpinnerPadding);
+    mRecycler = new RecycleBin(this);
 }
 
 AbsSpinner::AbsSpinner(
-    /* [in] */ IContext* context,
-    /* [in] */ IAttributeSet* attrs) : AdapterView(context, attrs, 0)
+    /* [in] */ IContext* context)
+    : AdapterView(context)
+    , mSelectionLeftPadding(0)
+    , mSelectionTopPadding(0)
+    , mSelectionRightPadding(0)
+    , mSelectionBottomPadding(0)
 {
+    CRect::NewByFriend((CRect**)&mSpinnerPadding);
+    mRecycler = new RecycleBin(this);
     InitAbsSpinner();
-
-    Init(context, attrs);
 }
 
 AbsSpinner::AbsSpinner(
     /* [in] */ IContext* context,
     /* [in] */ IAttributeSet* attrs,
-    /* [in] */ Int32 defStyle) : AdapterView(context, attrs, defStyle)
+    /* [in] */ Int32 defStyle)
+    : AdapterView(context, attrs, defStyle)
+    , mSelectionLeftPadding(0)
+    , mSelectionTopPadding(0)
+    , mSelectionRightPadding(0)
+    , mSelectionBottomPadding(0)
 {
+    CRect::NewByFriend((CRect**)&mSpinnerPadding);
+    mRecycler = new RecycleBin(this);
     InitAbsSpinner();
 
-    Init(context, attrs, defStyle);
+    ASSERT_SUCCEEDED(InitFromAttributes(context, attrs, defStyle));
 }
 
 AbsSpinner::~AbsSpinner()
@@ -47,40 +56,56 @@ AbsSpinner::~AbsSpinner()
     delete mRecycler;
 }
 
-void AbsSpinner::Init(
+ECode AbsSpinner::InitFromAttributes(
     /* [in] */ IContext* context,
     /* [in] */ IAttributeSet* attrs,
     /* [in] */ Int32 defStyle)
 {
     AutoPtr<ITypedArray> a;
     context->ObtainStyledAttributesEx3(attrs,
-        ArrayOf<Int32>(R_Styleable_AbsSpinner, 1), defStyle, 0, (ITypedArray**)&a);
+        ArrayOf<Int32>(R_Styleable_AbsSpinner, sizeof(R_Styleable_AbsSpinner) / sizeof(Int32)),
+        defStyle, 0, (ITypedArray**)&a);
 
-    AutoStringArray entries;
-    a->GetTextArray(
-        R_Styleable_AbsSpinner_Entries, (ArrayOf<String>**)&entries);
-
+    ArrayOf<ICharSequence*>* entries = NULL;
+    a->GetTextArray(0/*R.styleable.AbsSpinner_entries*/, &entries);
     if (entries != NULL) {
-
         AutoPtr<IObjectContainer> strs;
         CParcelableObjectContainer::New((IObjectContainer**)&strs);
 
         Int32 size = entries->GetLength();
         for (Int32 i = 0; i < size; i++) {
-            AutoPtr<ICharSequence> cs;
-            CStringWrapper::New((*entries)[i], (ICharSequence**)&cs);
-            strs->Add(cs);
+            strs->Add((*entries)[i]);
+            (*entries)[i]->Release();
         }
 
         AutoPtr<IArrayAdapter> adapter;
-        CArrayAdapter::New(context, R_Layout_Simple_Spinner_Item, strs, (IArrayAdapter**)&adapter);
-
-
-        adapter->SetDropDownViewResource(R_Layout_Simple_Spinner_Dropdown_Item);
+        CArrayAdapter::New(context, 0x01090008/*R.layout.simple_spinner_item*/, strs, (IArrayAdapter**)&adapter);
+        adapter->SetDropDownViewResource(0x01090009/*R.layout.simple_spinner_dropdown_item*/);
         SetAdapter(adapter);
+
+        ArrayOf<ICharSequence*>::Free(entries);
     }
 
     a->Recycle();
+    return NOERROR;
+}
+
+ECode AbsSpinner::Init(
+    /* [in] */ IContext* context)
+{
+    ASSERT_SUCCEEDED(AdapterView::Init(context));
+    InitAbsSpinner();
+    return NOERROR;
+}
+
+ECode AbsSpinner::Init(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs,
+    /* [in] */ Int32 defStyle)
+{
+    ASSERT_SUCCEEDED(AdapterView::Init(context, attrs, defStyle));
+    InitAbsSpinner();
+    return InitFromAttributes(context, attrs, defStyle);
 }
 
 /**
@@ -88,15 +113,6 @@ void AbsSpinner::Init(
  */
 void AbsSpinner::InitAbsSpinner()
 {
-    mSelectionLeftPadding = 0;
-    mSelectionTopPadding = 0;
-    mSelectionRightPadding = 0;
-    mSelectionBottomPadding = 0;
-
-    CRect::NewByFriend((CRect**)&mSpinnerPadding);
-
-    mRecycler = new RecycleBin(this);
-
     SetFocusable(TRUE);
     SetWillNotDraw(FALSE);
 }
@@ -110,17 +126,21 @@ void AbsSpinner::InitAbsSpinner()
 ECode AbsSpinner::SetAdapter(
     /* [in] */ IAdapter* adapter)
 {
-    if (NULL != mAdapter.Get()) {
+    if (adapter != NULL && ISpinnerAdapter::Probe(adapter) == NULL) {
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+
+    if (mAdapter != NULL) {
         mAdapter->UnregisterDataSetObserver(mDataSetObserver);
         ResetList();
     }
 
-    mAdapter = adapter;
+    mAdapter = adapter == NULL ? NULL : ISpinnerAdapter::Probe(adapter);
 
     mOldSelectedPosition = AdapterView_INVALID_POSITION;
     mOldSelectedRowId = AdapterView_INVALID_ROW_ID;
 
-    if (mAdapter.Get() != NULL) {
+    if (mAdapter != NULL) {
         mOldItemCount = mItemCount;
         mAdapter->GetCount(&mItemCount);
         CheckFocus();
@@ -138,7 +158,8 @@ ECode AbsSpinner::SetAdapter(
             CheckSelectionChanged();
         }
 
-    } else {
+    }
+    else {
         CheckFocus();
         ResetList();
         // Nothing selected
@@ -201,29 +222,24 @@ void AbsSpinner::OnMeasure(
     Boolean needsMeasuring = TRUE;
 
     Int32 selectedPosition = GetSelectedItemPosition();
-
     Int32 count;
-    if (mAdapter.Get()) {
-        mAdapter->GetCount(&count);
-    }
-
-    if (selectedPosition >= 0 && mAdapter.Get() != NULL && selectedPosition < count) {
+    if (selectedPosition >= 0 && mAdapter != NULL && selectedPosition < (mAdapter->GetCount(&count), count)) {
         // Try looking in the recycler. (Maybe we were measured once already)
         AutoPtr<IView> view = mRecycler->Get(selectedPosition);
-        if (view.Get() == NULL) {
+        if (view == NULL) {
             // Make a new one
             mAdapter->GetView(selectedPosition, NULL, (IViewGroup*)this->Probe(EIID_IViewGroup), (IView**)&view);
         }
 
-        if (view.Get() != NULL) {
+        if (view != NULL) {
             // Put in recycler for re-measuring and/or layout
             mRecycler->Put(selectedPosition, view);
         }
 
-        if (view.Get() != NULL) {
+        if (view != NULL) {
             AutoPtr<IViewGroupLayoutParams> params;
             view->GetLayoutParams((IViewGroupLayoutParams**)&params);
-            if (params.Get() == NULL) {
+            if (params == NULL) {
                 mBlockLayoutRequests = TRUE;
                 GenerateDefaultLayoutParams((IViewGroupLayoutParams**)&params);
                 view->SetLayoutParams(params);
@@ -337,7 +353,7 @@ void AbsSpinner::SetSelectionInt(
         mBlockLayoutRequests = TRUE;
         Int32 delta  = position - mSelectedPosition;
         SetNextSelectedPositionInt(position);
-        LayoutEx(delta, animate);
+        Layout(delta, animate);
         mBlockLayoutRequests = FALSE;
     }
 }
@@ -348,7 +364,8 @@ AutoPtr<IView> AbsSpinner::GetSelectedView()
 {
     if (mItemCount > 0 && mSelectedPosition >= 0) {
         return GetChildAt(mSelectedPosition - mFirstPosition);
-    } else {
+    }
+    else {
         return NULL;
     }
 }
@@ -391,7 +408,7 @@ Int32 AbsSpinner::PointToPosition(
     /* [in] */ Int32 y)
 {
     AutoPtr<IRect> frame = mTouchFrame;
-    if (frame.Get() == NULL) {
+    if (frame == NULL) {
         CRect::New((IRect**)&mTouchFrame);
         frame = mTouchFrame;
     }
@@ -404,9 +421,9 @@ Int32 AbsSpinner::PointToPosition(
         if (visible == View::VISIBLE) {
             child->GetHitRect(frame);
 
-            Boolean isContains;
-            frame->Contains(x, y, &isContains);
-            if (isContains) {
+            Boolean contains;
+            frame->Contains(x, y, &contains);
+            if (contains) {
                 return mFirstPosition + i;
             }
         }
@@ -417,41 +434,41 @@ Int32 AbsSpinner::PointToPosition(
 AutoPtr<IParcelable> AbsSpinner::OnSaveInstanceState()
 {
     AutoPtr<IParcelable> superState = AdapterView::OnSaveInstanceState();
-    AutoPtr<IAbsSpinnerSavedState> ss;
-    CAbsSpinnerSavedState::New(superState, (IAbsSpinnerSavedState**)&ss);
-
-    CAbsSpinnerSavedState* saveState = (CAbsSpinnerSavedState*)ss.Get();
-    saveState->mSelectedId = GetSelectedItemId();
-    if (saveState->mSelectedId >= 0) {
-        saveState->mPosition = GetSelectedItemPosition();
-    } else {
-        saveState->mPosition = AdapterView_INVALID_POSITION;
+    AutoPtr<CAbsSpinnerSavedState> ss;
+    CAbsSpinnerSavedState::NewByFriend(superState, (CAbsSpinnerSavedState**)&ss);
+    ss->mSelectedId = GetSelectedItemId();
+    if (ss->mSelectedId >= 0) {
+        ss->mPosition = GetSelectedItemPosition();
     }
-    return (IParcelable*)ss.Get();
+    else {
+        ss->mPosition = AdapterView_INVALID_POSITION;
+    }
+    return (IParcelable*)ss->Probe(EIID_IParcelable);
 }
 
 void AbsSpinner::OnRestoreInstanceState(
     /* [in] */ IParcelable* state)
 {
-    IAbsSpinnerSavedState* ss = (IAbsSpinnerSavedState*) state;
+    CAbsSpinnerSavedState* ss = (CAbsSpinnerSavedState*)IAbsSpinnerSavedState::Probe(state);
 
     AutoPtr<IParcelable> p;
     ss->GetSuperState((IParcelable**)&p);
     AdapterView::OnRestoreInstanceState(p);
 
-    CAbsSpinnerSavedState* saveState = (CAbsSpinnerSavedState*)ss;
-    if (saveState->mSelectedId >= 0) {
+    if (ss->mSelectedId >= 0) {
         mDataChanged = TRUE;
         mNeedSync = TRUE;
-        mSyncRowId = saveState->mSelectedId;
-        mSyncPosition = saveState->mPosition;
+        mSyncRowId = ss->mSelectedId;
+        mSyncPosition = ss->mPosition;
         mSyncMode = SYNC_SELECTED_POSITION;
         RequestLayout();
     }
 }
 
 AbsSpinner::RecycleBin::RecycleBin(
-    /* [in] */ AbsSpinner* host) : mHost(host)
+    /* [in] */ AbsSpinner* host)
+    : mScrapHeap(5)
+    , mHost(host)
 {
     assert(host);
 }
@@ -460,18 +477,21 @@ void AbsSpinner::RecycleBin::Put(
     /* [in] */ Int32 position,
     /* [in] */ IView* v)
 {
-    mScrapHeap.Put(position, v);
+    mScrapHeap[position] = v;
 }
 
-IView* AbsSpinner::RecycleBin::Get(
+AutoPtr<IView> AbsSpinner::RecycleBin::Get(
     /* [in] */ Int32 position)
 {
     // System.out.print("Looking for " + position);
-    IView* result = (IView*)mScrapHeap.Get(position);
+    AutoPtr<IView> result;
+    HashMap<Int32, AutoPtr<IView> >::Iterator it = mScrapHeap.Find(position);
+    if (it != mScrapHeap.End()) result = it->mSecond;
     if (result != NULL) {
         // System.out.println(" HIT");
-        mScrapHeap.Delete(position);
-    } else {
+        mScrapHeap.Erase(it);
+    }
+    else {
         // System.out.println(" MISS");
     }
     return result;
@@ -479,9 +499,9 @@ IView* AbsSpinner::RecycleBin::Get(
 
 void AbsSpinner::RecycleBin::Clear()
 {
-    Int32 count = mScrapHeap.Size();
-    for (Int32 i = 0; i < count; i++) {
-        IView* view = (IView*)mScrapHeap.ValueAt(i);
+    HashMap<Int32, AutoPtr<IView> >::Iterator it;
+    for (it = mScrapHeap.Begin(); it != mScrapHeap.End(); ++it) {
+        IView* view = it->mSecond;
         if (view != NULL) {
             mHost->RemoveDetachedView(view, TRUE);
         }

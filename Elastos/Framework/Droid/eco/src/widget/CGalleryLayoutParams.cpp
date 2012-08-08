@@ -1,7 +1,7 @@
 
 #include "widget/CGalleryLayoutParams.h"
 ECode CGalleryLayoutParams::GetDescription(
-    /* [out] */ String * pDescription)
+    /* [out] */ String* description)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -24,28 +24,28 @@ ECode CGalleryLayoutParams::SetHeight(
 }
 
 ECode CGalleryLayoutParams::GetWidth(
-    /* [out] */ Int32 * pWidth)
+    /* [out] */ Int32* width)
 {
-    VALIDATE_NOT_NULL(pWidth);
+    VALIDATE_NOT_NULL(width);
 
-    *pWidth = mWidth;
+    *width = mWidth;
     return NOERROR;
 }
 
 ECode CGalleryLayoutParams::GetHeight(
-    /* [out] */ Int32 * pHeight)
+    /* [out] */ Int32* height)
 {
-    VALIDATE_NOT_NULL(pHeight);
+    VALIDATE_NOT_NULL(height);
 
-    *pHeight = mHeight;
+    *height = mHeight;
     return NOERROR;
 }
 
 ECode CGalleryLayoutParams::constructor(
-    /* [in] */ IContext * pC,
-    /* [in] */ IAttributeSet * pAttrs)
+    /* [in] */ IContext* c,
+    /* [in] */ IAttributeSet* attrs)
 {
-    return ViewGroupLayoutParams::Init(pC, pAttrs);
+    return ViewGroupLayoutParams::Init(c, attrs);
 }
 
 ECode CGalleryLayoutParams::constructor(
@@ -56,8 +56,8 @@ ECode CGalleryLayoutParams::constructor(
 }
 
 ECode CGalleryLayoutParams::constructor(
-    /* [in] */ IViewGroupLayoutParams * pSource)
+    /* [in] */ IViewGroupLayoutParams* source)
 {
-    return ViewGroupLayoutParams::Init(pSource);
+    return ViewGroupLayoutParams::Init(source);
 }
 

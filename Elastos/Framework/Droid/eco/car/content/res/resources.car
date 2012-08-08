@@ -336,7 +336,7 @@ module
          */
         GetTextArray(
             [in] Int32 id,
-            [out, callee] ArrayOf<String>* seqs);
+            [out, callee] ArrayOf<ICharSequence*>* seqs);
 
         /**
          * Return the string array associated with a particular resource ID.

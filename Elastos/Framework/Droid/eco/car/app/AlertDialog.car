@@ -281,7 +281,7 @@ module
          * @return This Builder object to allow for chaining of calls to Set methods
          */
         SetItemsEx(
-            [in] ArrayOf<String> items,
+            [in] ArrayOf<ICharSequence*> items,
             [in] IDialogInterfaceOnClickListener* listener);
 
         /**
@@ -356,7 +356,7 @@ module
          * @return This Builder object to allow for chaining of calls to Set methods
          */
         SetMultiChoiceItemsEx(
-            [in] ArrayOf<String> items,
+            [in] ArrayOf<ICharSequence*> items,
             [in] ArrayOf<Boolean> checkedItems,
             [in] IDialogInterfaceOnMultiChoiceClickListener* listener);
 
@@ -442,7 +442,7 @@ module
          * @return This Builder object to allow for chaining of calls to Set methods
          */
         SetSingleChoiceItemsEx2(
-            [in] ArrayOf<String> items,
+            [in] ArrayOf<ICharSequence*> items,
             [in] Int32 checkedItem,
             [in] IDialogInterfaceOnClickListener* listener);
 

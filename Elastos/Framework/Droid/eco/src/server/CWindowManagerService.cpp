@@ -3340,7 +3340,6 @@ Int32 CWindowManagerService::AddWindow(
 
         win = new WindowState(this, session, client, token,
                 attachedWindow, (CWindowManagerLayoutParams*)attrs, viewVisibility);
-
 //        if (win->mDeathRecipient == NULL) {
 //            // Client has apparently died, so there is no reason to
 //            // continue.

@@ -8,6 +8,7 @@
 CarClass(CAbsSpinnerSavedState), public AbsSpinnerSavedState
 {
     friend class AbsSpanner;
+
 public:
     CARAPI ReadFromParcel(
         /* [in] */ IParcel* source);

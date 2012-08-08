@@ -104,7 +104,7 @@ public:
         Boolean mCancelable;
         AutoPtr<IDialogInterfaceOnCancelListener> mOnCancelListener;
         AutoPtr<IDialogInterfaceOnKeyListener> mOnKeyListener;
-        ArrayOf<String>* mItems;
+        ArrayOf<ICharSequence*>* mItems;
         AutoPtr<IListAdapter> mAdapter;
         AutoPtr<IDialogInterfaceOnClickListener> mOnClickListener;
         AutoPtr<IView> mView;

@@ -5,8 +5,6 @@
 #include "widget/AbsSpinner.h"
 #include "widget/Scroller.h"
 
-extern const Int32 R_Attr_GalleryStyle;
-
 /**
  * A view that shows items in a center-locked, horizontally scrolling list.
  * <p>
@@ -28,20 +26,85 @@ extern const Int32 R_Attr_GalleryStyle;
 
 class Gallery : public AbsSpinner
 {
-public:
-    Gallery();
+private:
+    /**
+     * Responsible for fling behavior. Use {@link #startUsingVelocity(Int32)} to
+     * initiate a fling. Each frame of the fling is handled in {@link #run()}.
+     * A FlingRunnable will keep re-posting itself until the fling is done.
+     *
+     */
+    class FlingRunnable : public Runnable
+    {
+        friend class Gallery;
 
+    public:
+        FlingRunnable(
+            /* [in] */ Gallery* host);
+
+        ~FlingRunnable();
+
+        CARAPI_(void) StartUsingVelocity(
+            /* [in] */ Int32 initialVelocity);
+
+        CARAPI_(void) StartUsingDistance(
+            /* [in] */ Int32 distance);
+
+        CARAPI_(void) Stop(
+            /* [in] */ Boolean scrollIntoSlots);
+
+        CARAPI_(void) StartCommon();
+
+        CARAPI_(void) EndFling(
+            /* [in] */ Boolean scrollIntoSlots);
+
+        CARAPI Run();
+
+    private:
+
+        /**
+         * Tracks the decay of a fling scroll
+         */
+        Scroller* mScroller;
+
+        /**
+         * X value reported by mScroller on the previous fling
+         */
+        Int32 mLastFlingX;
+
+        Gallery* mHost;
+    };
+
+    class DisableSuppressSelectionChangedRunnable : public Runnable
+    {
+    public:
+        DisableSuppressSelectionChangedRunnable(
+            /* [in] */ Gallery* host);
+
+        CARAPI Run();
+
+    private:
+        Gallery* mHost;
+    };
+
+    class KeyUpRunnable : public Runnable
+    {
+    public:
+        KeyUpRunnable(
+            /* [in] */ Gallery* host);
+
+        CARAPI Run();
+
+    private:
+        Gallery* mHost;
+    };
+
+public:
     Gallery(
         /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs = NULL,
-        /* [in] */ Int32 defStyle = R_Attr_GalleryStyle);
+        /* [in] */ Int32 defStyle = 0x01010070/*R.attr.galleryStyle*/);
 
     ~Gallery();
-
-    CARAPI_(void) Init(
-        /* [in] */ IContext* context,
-        /* [in] */ IAttributeSet* attrs = NULL,
-        /* [in] */ Int32 defStyle = R_Attr_GalleryStyle);
 
     /**
      * Whether or not to callback on any {@link #getOnItemSelectedListener()}
@@ -99,7 +162,8 @@ public:
     virtual CARAPI SetUnselectedAlpha(
         /* [in] */ Float unselectedAlpha);
 
-    virtual CARAPI_(Int32) GetChildHeight(
+    //@Override
+    CARAPI_(Int32) GetChildHeight(
         /* [in] */ IView* child);
 
     /**
@@ -115,7 +179,10 @@ public:
         /* [in] */ Boolean motionToLeft,
         /* [in] */ Int32 deltaX);
 
-    virtual CARAPI_(void) SelectionChanged();
+    //@Override
+    CARAPI_(void) SelectionChanged();
+
+    using AdapterView::Layout;
 
     /**
      * Creates and positions all views for this Gallery.
@@ -127,11 +194,13 @@ public:
      *            moving to the right, so views are scrolling to the left. -1
      *            means the selection is moving to the left.
      */
-    virtual CARAPI LayoutEx(
+    //@Override
+    CARAPI_(void) Layout(
         /* [in] */ Int32 delta,
         /* [in] */ Boolean animate);
 
-    virtual CARAPI_(Boolean) OnTouchEvent(
+    //@Override
+    CARAPI_(Boolean) OnTouchEvent(
         /* [in] */ IMotionEvent* event);
 
     /**
@@ -188,28 +257,32 @@ public:
     virtual CARAPI OnShowPress(
         /* [in] */ IMotionEvent* e);
 
-
-
-    virtual CARAPI_(void) DispatchSetSelected(
+    //@Override
+    CARAPI_(void) DispatchSetSelected(
         /* [in] */ Boolean selected);
 
-    virtual CARAPI_(Boolean) ShowContextMenuForChild(
+    //@Override
+    CARAPI_(Boolean) ShowContextMenuForChild(
         /* [in] */ IView* originalView);
 
-    virtual CARAPI_(Boolean) ShowContextMenu();
+    //@Override
+    CARAPI_(Boolean) ShowContextMenu();
 
-    virtual CARAPI_(Boolean) DispatchKeyEvent(
+    //@Override
+    CARAPI_(Boolean) DispatchKeyEvent(
         /* [in] */ IKeyEvent* event);
 
     /**
      * Handles left, right, and clicking
      * @see android.view.View#onKeyDown
      */
-    virtual CARAPI_(Boolean) OnKeyDown(
+    //@Override
+    CARAPI_(Boolean) OnKeyDown(
         /* [in] */ Int32 keyCode,
         /* [in] */ IKeyEvent* event);
 
-    virtual CARAPI_(Boolean) OnKeyUp(
+    //@Override
+    CARAPI_(Boolean) OnKeyUp(
         /* [in] */ Int32 keyCode,
         /* [in] */ IKeyEvent* event);
 
@@ -217,7 +290,8 @@ public:
 
     virtual CARAPI_(Boolean) MoveNext();
 
-    virtual CARAPI_(void) SetSelectedPositionInt(
+    //@Override
+    CARAPI_(void) SetSelectedPositionInt(
         /* [in] */ Int32 position);
 
     /**
@@ -231,44 +305,64 @@ public:
 
 
 protected:
-    virtual CARAPI_(Boolean) GetChildStaticTransformation(
+    Gallery();
+
+    CARAPI Init(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs = NULL,
+        /* [in] */ Int32 defStyle = 0x01010070/*R.attr.galleryStyle*/);
+
+    //@Override
+    CARAPI_(Boolean) GetChildStaticTransformation(
         /* [in] */ IView* child,
         /* [in] */ ITransformation* t);
 
-    virtual CARAPI_(Int32) ComputeHorizontalScrollExtent();
+    //@Override
+    CARAPI_(Int32) ComputeHorizontalScrollExtent();
 
-    virtual CARAPI_(Int32) ComputeHorizontalScrollOffset();
+    //@Override
+    CARAPI_(Int32) ComputeHorizontalScrollOffset();
 
-    virtual CARAPI_(Int32) ComputeHorizontalScrollRange();
+    //@Override
+    CARAPI_(Int32) ComputeHorizontalScrollRange();
 
-    virtual CARAPI_(Boolean) CheckLayoutParams(
+    //@Override
+    CARAPI_(Boolean) CheckLayoutParams(
         /* [in] */ IViewGroupLayoutParams* p);
 
-    virtual CARAPI_(AutoPtr<IViewGroupLayoutParams>) GenerateLayoutParams(
+    //@Override
+    CARAPI_(AutoPtr<IViewGroupLayoutParams>) GenerateLayoutParams(
         /* [in] */ IViewGroupLayoutParams* p);
 
-    virtual CARAPI_(AutoPtr<IViewGroupLayoutParams>) GenerateLayoutParams(
+    //@Override
+    CARAPI_(AutoPtr<IViewGroupLayoutParams>) GenerateLayoutParams(
         /* [in] */ IAttributeSet* attrs);
 
-    virtual CARAPI_(AutoPtr<IViewGroupLayoutParams>) GenerateDefaultLayoutParams();
+    //@Override
+    CARAPI_(AutoPtr<IViewGroupLayoutParams>) GenerateDefaultLayoutParams();
 
-    virtual CARAPI_(void) OnLayout(
+    //@Override
+    CARAPI_(void) OnLayout(
         /* [in] */ Boolean changed,
         /* [in] */ Int32 l,
         /* [in] */ Int32 t,
         /* [in] */ Int32 r,
         /* [in] */ Int32 b);
 
-    virtual CARAPI_(void) DispatchSetPressed(
+    //@Override
+    CARAPI_(void) DispatchSetPressed(
         /* [in] */ Boolean pressed);
 
-    virtual CARAPI_(AutoPtr<IContextMenuInfo>) GetContextMenuInfo();
+    //@Override
+    CARAPI_(AutoPtr<IContextMenuInfo>) GetContextMenuInfo();
 
-    virtual CARAPI_(Int32) GetChildDrawingOrder(
+    //@Override
+    CARAPI_(Int32) GetChildDrawingOrder(
         /* [in] */ Int32 childCount,
         /* [in] */ Int32 i);
 
-    virtual CARAPI_(void) OnFocusChanged(
+    //@Override
+    CARAPI_(void) OnFocusChanged(
         /* [in] */ Boolean gainFocus,
         /* [in] */ Int32 direction,
         /* [in] */ IRect* previouslyFocusedRect);
@@ -372,8 +466,6 @@ private:
         /* [in] */ IView* child,
         /* [in] */ Boolean duringLayout);
 
-    // Unused methods from GestureDetector.OnGestureListener above
-
     CARAPI_(void) DispatchPress(
         /* [in] */ IView* child);
 
@@ -389,52 +481,14 @@ private:
 
     CARAPI_(void) UpdateSelectedItemMetadata();
 
+    CARAPI InitFromAttributes(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs,
+        /* [in] */ Int32 defStyle);
 
-    /**
-     * Responsible for fling behavior. Use {@link #startUsingVelocity(Int32)} to
-     * initiate a fling. Each frame of the fling is handled in {@link #run()}.
-     * A FlingRunnable will keep re-posting itself until the fling is done.
-     *
-     */
-    class FlingRunnable //implements Runnable
-    {
-    public:
-        FlingRunnable(
-            /* [in] */ Gallery* host);
-
-        ~FlingRunnable();
-
-        CARAPI_(void) StartUsingVelocity(
-            /* [in] */ Int32 initialVelocity);
-
-        CARAPI_(void) StartUsingDistance(
-            /* [in] */ Int32 distance);
-
-        CARAPI_(void) Stop(
-            /* [in] */ Boolean scrollIntoSlots);
-
-        CARAPI_(void) Run();
-
-        CARAPI_(void) StartCommon();
-
-        CARAPI_(void) EndFling(
-            /* [in] */ Boolean scrollIntoSlots);
-
-        /**
-         * Tracks the decay of a fling scroll
-         */
-        Scroller* mScroller;
-
-        /**
-         * X value reported by mScroller on the previous fling
-         */
-        Int32 mLastFlingX;
-
-        Gallery* mHost;
-    };
 
 private:
-    static const String TAG;
+    static const CString TAG;
 
     static const Boolean localLOGV = FALSE;
 
@@ -475,7 +529,7 @@ private:
     /**
      * Helper for detecting touch gestures.
      */
-    //GestureDetector mGestureDetector;
+//    GestureDetector mGestureDetector;
 
     /**
      * The position of the item that received the user's down touch.
@@ -490,7 +544,7 @@ private:
     /**
      * Executes the delta scrolls from a fling or scroll movement.
      */
-    FlingRunnable* mFlingRunnable;
+    AutoPtr<FlingRunnable> mFlingRunnable;
 
     /**
      * Sets mSuppressSelectionChanged = FALSE. This is used to set it to FALSE

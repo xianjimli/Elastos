@@ -7,8 +7,6 @@
 class AbsSpinnerSavedState : public ViewBaseSavedState
 {
 public:
-    AbsSpinnerSavedState();
-
     AbsSpinnerSavedState(
         /* [in] */ IParcelable* superState);
 
@@ -41,6 +39,8 @@ public:
     };*/
 
 protected:
+    AbsSpinnerSavedState();
+
     CARAPI Init(
         /* [in] */ IParcelable* superState);
 

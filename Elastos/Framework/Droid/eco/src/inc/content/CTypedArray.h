@@ -116,7 +116,7 @@ public:
 
     CARAPI GetTextArray(
         /* [in] */ Int32 index,
-        /* [out, callee] */ ArrayOf<String>** array);
+        /* [out, callee] */ ArrayOf<ICharSequence*>** array);
 
     CARAPI GetValue(
         /* [in] */ Int32 index,

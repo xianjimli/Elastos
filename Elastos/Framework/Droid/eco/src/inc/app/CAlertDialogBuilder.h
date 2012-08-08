@@ -70,7 +70,7 @@ public:
         /* [in] */ IDialogInterfaceOnClickListener* listener);
 
     CARAPI SetItemsEx(
-        /* [in] */ const ArrayOf<String>& items,
+        /* [in] */ const ArrayOf<ICharSequence*>& items,
         /* [in] */ IDialogInterfaceOnClickListener* listener);
 
     CARAPI SetAdapter(
@@ -88,7 +88,7 @@ public:
         /* [in] */ IDialogInterfaceOnMultiChoiceClickListener* listener);
 
     CARAPI SetMultiChoiceItemsEx(
-        /* [in] */ const ArrayOf<String>& items,
+        /* [in] */ const ArrayOf<ICharSequence*>& items,
         /* [in] */ const ArrayOf<Boolean>& checkedItems,
         /* [in] */ IDialogInterfaceOnMultiChoiceClickListener* listener);
 
@@ -110,7 +110,7 @@ public:
         /* [in] */ IDialogInterfaceOnClickListener* listener);
 
     CARAPI SetSingleChoiceItemsEx2(
-        /* [in] */ const ArrayOf<String>& items,
+        /* [in] */ const ArrayOf<ICharSequence*>& items,
         /* [in] */ Int32 checkedItem,
         /* [in] */ IDialogInterfaceOnClickListener* listener);
 

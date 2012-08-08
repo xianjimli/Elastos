@@ -10,45 +10,50 @@
  */
 
 #include "widget/AdapterView.h"
-#include "utils/SparseArray.h"
+#include <elastos/HashMap.h>
 
 class AbsSpinner : public AdapterView
 {
 public:
+    class RecycleBin
+    {
+    public:
+        RecycleBin(
+            /* [in] */ AbsSpinner* mHost);
+
+        CARAPI_(void) Put(
+            /* [in] */ Int32 position,
+            /* [in] */ IView* v);
+
+        CARAPI_(AutoPtr<IView>) Get(
+            /* [in] */ Int32 position);
+
+        CARAPI_(void) Clear();
+
+    private:
+        HashMap<Int32, AutoPtr<IView> > mScrapHeap;
+        AbsSpinner* mHost;
+    };
+
+public:
+    AbsSpinner(
+        /* [in] */ IContext* context);
 
     AbsSpinner(
-        /* [in] */ IContext* context = NULL);
-
-    AbsSpinner(
-        /* [in] */ IContext* context,
-        /* [in] */ IAttributeSet* attrs);
-
-    AbsSpinner(
-        /* [in] */ IContext* context,
-        /* [in] */ IAttributeSet* attrs,
-        /* [in] */ Int32 defStyle);
-
-    ~AbsSpinner();
-
-    /**
-     * Common code for different constructor flavors
-     */
-private:
-    CARAPI_(void) Init(
         /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs,
         /* [in] */ Int32 defStyle = 0);
 
-    CARAPI_(void) InitAbsSpinner();
+    virtual ~AbsSpinner();
 
-public:
     /**
      * The Adapter is used to provide the data which backs this Spinner.
      * It also provides methods to transform spinner items based on their position
      * relative to the selected item.
      * @param adapter The SpinnerAdapter to use for this Spinner
      */
-    virtual CARAPI SetAdapter(
+    //@Override
+    CARAPI SetAdapter(
         /* [in] */ IAdapter* adapter);
 
     /**
@@ -56,31 +61,12 @@ public:
      */
     virtual CARAPI_(void) ResetList();
 
-    /**
-     * @see android.view.View#measure(int, int)
-     *
-     * Figure out the dimensions of this Spinner. The width comes from
-     * the widthMeasureSpec as Spinnners can't have their width set to
-     * UNSPECIFIED. The height is based on the height of the selected item
-     * plus padding.
-     */
-protected:
-    virtual CARAPI_(void) OnMeasure(
-        /* [in] */ Int32 widthMeasureSpec,
-        /* [in] */ Int32 heightMeasureSpec);
-
-public:
     virtual CARAPI_(Int32) GetChildHeight(
         /* [in] */ IView* child);
 
     virtual CARAPI_(Int32) GetChildWidth(
         /* [in] */ IView* child);
 
-protected:
-    virtual CARAPI GenerateDefaultLayoutParams(
-        /* [out] */ IViewGroupLayoutParams** params);
-
-public:
     virtual CARAPI_(void) RecycleAllViews();
 
     /**
@@ -90,9 +76,9 @@ public:
         /* [in] */ Int32 position,
         /* [in] */ Boolean animate);
 
+    //@Override
     virtual CARAPI SetSelection(
         /* [in] */ Int32 position);
-
 
     /**
      * Makes the item at the supplied position selected.
@@ -105,12 +91,12 @@ public:
         /* [in] */ Int32 position,
         /* [in] */ Boolean animate);
 
-    virtual CARAPI LayoutEx(
+    virtual CARAPI_(void) Layout(
         /* [in] */ Int32 delta,
         /* [in] */ Boolean animate) = 0;
 
-public:
-    virtual CARAPI_(AutoPtr<IView>) GetSelectedView();
+    //@Override
+    CARAPI_(AutoPtr<IView>) GetSelectedView();
 
     /**
      * Override to prevent spamming ourselves with layout requests
@@ -118,11 +104,14 @@ public:
      *
      * @see android.view.View#requestLayout()
      */
-    virtual CARAPI RequestLayout();
+    //@Override
+    CARAPI RequestLayout();
 
-    virtual CARAPI_(AutoPtr<IAdapter>) GetAdapter();
+    //@Override
+    CARAPI_(AutoPtr<IAdapter>) GetAdapter();
 
-    virtual CARAPI_(Int32) GetCount();
+    //@Override
+    CARAPI_(Int32) GetCount();
 
     /**
      * Maps a point to a position in the list.
@@ -136,33 +125,54 @@ public:
         /* [in] */ Int32 x,
         /* [in] */ Int32 y);
 
-    virtual CARAPI_(AutoPtr<IParcelable>) OnSaveInstanceState();
+    //@Override
+    CARAPI_(AutoPtr<IParcelable>) OnSaveInstanceState();
 
-    virtual CARAPI_(void) OnRestoreInstanceState(
+    //@Override
+    CARAPI_(void) OnRestoreInstanceState(
         /* [in] */ IParcelable* state);
 
-    class RecycleBin {
-    public:
-        RecycleBin(
-            /* [in] */ AbsSpinner* mHost);
+protected:
+    AbsSpinner();
 
-        CARAPI_(void) Put(
-            /* [in] */ Int32 position,
-            /* [in] */ IView* v);
+    /**
+     * @see android.view.View#measure(int, int)
+     *
+     * Figure out the dimensions of this Spinner. The width comes from
+     * the widthMeasureSpec as Spinnners can't have their width set to
+     * UNSPECIFIED. The height is based on the height of the selected item
+     * plus padding.
+     */
+    //@Override
+    CARAPI_(void) OnMeasure(
+        /* [in] */ Int32 widthMeasureSpec,
+        /* [in] */ Int32 heightMeasureSpec);
 
-        CARAPI_(IView*) Get(
-            /* [in] */ Int32 position);
+    //@Override
+    CARAPI GenerateDefaultLayoutParams(
+        /* [out] */ IViewGroupLayoutParams** params);
 
-        CARAPI_(void) Clear();
+    CARAPI Init(
+        /* [in] */ IContext* context);
 
-    private:
-        SparseArray mScrapHeap;
+    CARAPI Init(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs,
+        /* [in] */ Int32 defStyle = 0);
 
-        AbsSpinner* mHost;
-    };
+private:
+    /**
+     * Common code for different constructor flavors
+     */
+    CARAPI_(void) InitAbsSpinner();
+
+    CARAPI InitFromAttributes(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs,
+        /* [in] */ Int32 defStyle);
 
 public:
-    AutoPtr<IAdapter> mAdapter;
+    AutoPtr<ISpinnerAdapter> mAdapter;
 
     Int32 mHeightMeasureSpec;
     Int32 mWidthMeasureSpec;

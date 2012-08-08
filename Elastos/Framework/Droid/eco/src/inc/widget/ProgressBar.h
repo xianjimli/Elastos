@@ -71,13 +71,34 @@
  * </p>
  */
 
-extern const Int32 R_Attr_ProgressBarStyle;
-
 class ProgressBar : public View
 {
-public:
-    ProgressBar() {}
+private:
+    class RefreshProgressRunnable  : public Runnable
+    {
+    public:
+        RefreshProgressRunnable(
+            /* [in] */ Int32 id,
+            /* [in] */ Int32 progress,
+            /* [in] */ Boolean fromUser,
+            /* [in] */ ProgressBar* owner);
 
+        CARAPI Run();
+
+        CARAPI_(void) Setup(
+            /* [in] */ Int32 id,
+            /* [in] */ Int32 progress,
+            /* [in] */ Boolean fromUser);
+
+    private:
+        Int32 mId;
+        Int32 mProgress;
+        Boolean mFromUser;
+
+        ProgressBar* mOwner;
+    };
+
+public:
     /**
      * Create a new progress bar with range 0...100 and initial progress of 0.
      * @param context the application environment
@@ -85,54 +106,16 @@ public:
     ProgressBar(
         /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs = NULL,
-        /* [in] */ Int32 defStyle = R_Attr_ProgressBarStyle);
+        /* [in] */ Int32 defStyle = 0x01010077/*R.attr.progressBarStyle*/);
 
-    CARAPI_(void) Init(
-        /* [in] */ IContext* context,
-        /* [in] */ IAttributeSet* attrs = NULL,
-        /* [in] */ Int32 defStyle = R_Attr_ProgressBarStyle);
-
-    /**
-     * Converts a drawable to a tiled version of itself. It will recursively
-     * traverse layer and state list drawables.
-     */
-private:
-    virtual CARAPI_(AutoPtr<IDrawable>) Tileify(
-        /* [in] */ IDrawable* drawable,
-        /* [in] */ Boolean clip);
-
-public:
-    //virtual CARAPI_(AutoPtr<IShape>) GetDrawableShape();
-
-private:
-    /**
-     * Convert a AnimationDrawable for use as a barberpole animation.
-     * Each frame of the animation is wrapped in a ClipDrawable and
-     * given a tiling BitmapShader.
-     */
-    virtual CARAPI_(AutoPtr<IDrawable>) TileifyIndeterminate(
-        /* [in] */ IDrawable* drawable);
-
-    /**
-     * <p>
-     * Initialize the progress bar's default values:
-     * </p>
-     * <ul>
-     * <li>progress = 0</li>
-     * <li>max = 100</li>
-     * <li>animation duration = 4000 ms</li>
-     * <li>indeterminate = FALSE</li>
-     * <li>behavior = repeat</li>
-     * </ul>
-     */
-    virtual CARAPI_(void) InitProgressBar();
+//    virtual CARAPI_(AutoPtr<IShape>) GetDrawableShape();
 
     /**
      * <p>Indicate whether this progress bar is in indeterminate mode.</p>
      *
      * @return TRUE if the progress bar is in indeterminate mode
      */
-public:
+    //synchronized
     virtual CARAPI_(Boolean) IsIndeterminate();
 
     /**
@@ -145,6 +128,7 @@ public:
      *
      * @param indeterminate TRUE to enable the indeterminate mode
      */
+    //synchronized
     virtual CARAPI SetIndeterminate(
         /* [in] */ Boolean indeterminate);
 
@@ -199,51 +183,13 @@ public:
      */
     virtual CARAPI_(AutoPtr<IDrawable>) GetCurrentDrawable();
 
-protected:
-    virtual CARAPI_(Boolean) VerifyDrawable(
-        /* [in] */ IDrawable* who);
+    using View::PostInvalidate;
 
-public:
-    //virtual CARAPI PostInvalidate();
+    //@Override
+    CARAPI PostInvalidate();
 
-private:
-    class RefreshProgressRunnable  : public Runnable
-    {
-    public:
-        RefreshProgressRunnable(
-            /* [in] */ Int32 id,
-            /* [in] */ Int32 progress,
-            /* [in] */ Boolean fromUser,
-            /* [in] */ ProgressBar* owner);
-
-        CARAPI Run();
-
-        CARAPI_(void) Setup(
-            /* [in] */ Int32 id,
-            /* [in] */ Int32 progress,
-            /* [in] */ Boolean fromUser,
-            /* [in] */ ProgressBar* owner);
-
-        Int32 mId;
-        Int32 mProgress;
-        Boolean mFromUser;
-
-        ProgressBar* mOwner;
-    };
-
-public:
-    CARAPI_(void) DoRefreshProgress(
-        /* [in] */ Int32 id,
-        /* [in] */ Int32 progress,
-        /* [in] */ Boolean fromUser);
-
-    CARAPI_(void) OnProgressRefresh(
+    virtual CARAPI_(void) OnProgressRefresh(
         /* [in] */ Float scale,
-        /* [in] */ Boolean fromUser);
-
-    CARAPI_(void) RefreshProgress(
-        /* [in] */ Int32 id,
-        /* [in] */ Int32 progress,
         /* [in] */ Boolean fromUser);
 
     /**
@@ -257,9 +203,11 @@ public:
      * @see #getProgress()
      * @see #incrementProgressBy(Int32)
      */
+    //synchronized
     virtual CARAPI SetProgress(
         /* [in] */ Int32 progress);
 
+    //synchronized
     virtual CARAPI_(void) SetProgress(
         /* [in] */ Int32 progress,
         /* [in] */ Boolean fromUser);
@@ -276,6 +224,7 @@ public:
      * @see #getSecondaryProgress()
      * @see #incrementSecondaryProgressBy(Int32)
      */
+    //synchronized
     virtual CARAPI SetSecondaryProgress(
         /* [in] */ Int32 secondaryProgress);
 
@@ -291,6 +240,7 @@ public:
      * @see #setMax(Int32)
      * @see #getMax()
      */
+    //synchronized
     virtual CARAPI_(Int32) GetProgress();
 
     /**
@@ -305,6 +255,7 @@ public:
      * @see #setMax(Int32)
      * @see #getMax()
      */
+    //synchronized
     virtual CARAPI_(Int32) GetSecondaryProgress();
 
     /**
@@ -316,6 +267,7 @@ public:
      * @see #getProgress()
      * @see #getSecondaryProgress()
      */
+    //synchronized
     virtual CARAPI_(Int32) GetMax();
 
     /**
@@ -327,6 +279,7 @@ public:
      * @see #setProgress(Int32)
      * @see #setSecondaryProgress(Int32)
      */
+    //synchronized
     virtual CARAPI SetMax(
         /* [in] */ Int32 max);
 
@@ -337,6 +290,7 @@ public:
      *
      * @see #setProgress(Int32)
      */
+    //synchronized
     CARAPI IncrementProgressBy(
         /* [in] */ Int32 diff);
 
@@ -347,21 +301,21 @@ public:
      *
      * @see #setSecondaryProgress(Int32)
      */
+    //synchronized
     CARAPI IncrementSecondaryProgressBy(
         /* [in] */ Int32 diff);
 
-    CARAPI StartAnimation(
-        /* [in] */ IAnimation* animation);
+    using View::StartAnimation;
 
     /**
      * <p>Start the indeterminate progress animation.</p>
      */
-    CARAPI_(void) StartAnimation();
+    virtual CARAPI_(void) StartAnimation();
 
     /**
      * <p>Stop the indeterminate progress animation.</p>
      */
-    CARAPI_(void) StopAnimation();
+    virtual CARAPI_(void) StopAnimation();
 
     /**
      * Sets the acceleration curve for the indeterminate animation.
@@ -393,42 +347,118 @@ public:
     virtual CARAPI SetVisibility(
         /* [in] */ Int32 v);
 
+    //@Override
+    CARAPI InvalidateDrawable(
+            /* [in] */ IDrawable* dr);
+
+    //@Override
+    CARAPI_(AutoPtr<IParcelable>) OnSaveInstanceState();
+
+    //@Override
+    CARAPI_(void) OnRestoreInstanceState(
+        /* [in] */ IParcelable* state);
+
 protected:
-    virtual CARAPI_(void) OnVisibilityChanged(
+    ProgressBar();
+
+    CARAPI Init(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs = NULL,
+        /* [in] */ Int32 defStyle = 0x01010077/*R.attr.progressBarStyle*/);
+
+    //@Override
+    CARAPI_(Boolean) VerifyDrawable(
+            /* [in] */ IDrawable* who);
+
+    //@Override
+    CARAPI_(void) OnVisibilityChanged(
         /* [in] */ IView* changedView,
         /* [in] */ Int32 visibility);
 
-public:
-    virtual CARAPI InvalidateDrawable(
-        /* [in] */ IDrawable* dr);
-
-protected:
-    virtual CARAPI_(void) OnSizeChanged(
+    //@Override
+    CARAPI_(void) OnSizeChanged(
         /* [in] */ Int32 w,
         /* [in] */ Int32 h,
         /* [in] */ Int32 oldw,
         /* [in] */ Int32 oldh);
 
-    virtual CARAPI_(void) OnDraw(
+    //@Override
+    //synchronized
+    CARAPI_(void) OnDraw(
         /* [in] */ ICanvas* canvas);
 
-    virtual CARAPI_(void) OnMeasure(
+    //@Override
+    //synchronized
+    CARAPI_(void) OnMeasure(
         /* [in] */ Int32 widthMeasureSpec,
         /* [in] */ Int32 heightMeasureSpec);
 
-    virtual CARAPI DrawableStateChanged();
+    //@Override
+    CARAPI DrawableStateChanged();
 
-public:
+    //@Override
+    CARAPI_(void) OnAttachedToWindow();
 
-    virtual CARAPI_(AutoPtr<IParcelable>) OnSaveInstanceState();
+    //@Override
+    CARAPI_(void) OnDetachedFromWindow();
 
-    virtual CARAPI_(void) OnRestoreInstanceState(
-        /* [in] */ IParcelable* state);
+    CARAPI_(void) SetSecondaryProgressLocked(
+        /* [in] */ Int32 secondaryProgress);
 
-protected:
-    virtual CARAPI_(void) OnAttachedToWindow();
+    virtual CARAPI_(Mutex*) GetSelfLock() = 0;
 
-    virtual CARAPI_(void) OnDetachedFromWindow();
+private:
+    CARAPI InitFromAttributes(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs,
+        /* [in] */ Int32 defStyle);
+
+    /**
+     * Converts a drawable to a tiled version of itself. It will recursively
+     * traverse layer and state list drawables.
+     */
+    CARAPI_(AutoPtr<IDrawable>) Tileify(
+        /* [in] */ IDrawable* drawable,
+        /* [in] */ Boolean clip);
+
+    /**
+     * Convert a AnimationDrawable for use as a barberpole animation.
+     * Each frame of the animation is wrapped in a ClipDrawable and
+     * given a tiling BitmapShader.
+     */
+    CARAPI_(AutoPtr<IDrawable>) TileifyIndeterminate(
+        /* [in] */ IDrawable* drawable);
+
+    /**
+     * <p>
+     * Initialize the progress bar's default values:
+     * </p>
+     * <ul>
+     * <li>progress = 0</li>
+     * <li>max = 100</li>
+     * <li>animation duration = 4000 ms</li>
+     * <li>indeterminate = FALSE</li>
+     * <li>behavior = repeat</li>
+     * </ul>
+     */
+    CARAPI_(void) InitProgressBar();
+
+    //synchronized
+    CARAPI_(void) DoRefreshProgress(
+        /* [in] */ Int32 id,
+        /* [in] */ Int32 progress,
+        /* [in] */ Boolean fromUser);
+
+    //the caller of RefreshProgress already locks
+    //so, rename RefreshProgress to RefreshProgressLocked
+    CARAPI_(void) RefreshProgressLocked(
+        /* [in] */ Int32 id,
+        /* [in] */ Int32 progress,
+        /* [in] */ Boolean fromUser);
+
+    CARAPI_(void) SetProgressLocked(
+            /* [in] */ Int32 progress,
+            /* [in] */ Boolean fromUser);
 
 public:
     static const Int32 MAX_LEVEL = 10000;
@@ -448,7 +478,7 @@ public:
     Boolean mIndeterminate;
     Boolean mOnlyIndeterminate;
     AutoPtr<ITransformation> mTransformation;
-    //AutoPtr<IAlphaAnimation> mAnimation;
+//    AutoPtr<IAlphaAnimation> mAnimation;
     AutoPtr<IDrawable> mIndeterminateDrawable;
     AutoPtr<IDrawable> mProgressDrawable;
     AutoPtr<IDrawable> mCurrentDrawable;

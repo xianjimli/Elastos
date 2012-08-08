@@ -196,7 +196,7 @@ Boolean CAssetManager::GetResourceValue(
 
 ECode CAssetManager::GetResourceTextArray(
     /* [in] */ Int32 id,
-    /* [out, callee] */ ArrayOf<String>** textArray)
+    /* [out, callee] */ ArrayOf<ICharSequence*>** textArray)
 {
 //    ArrayOf<Int32>* rawInfoArray = GetArrayStringInfo(id);
 //    Int32 rawInfoArrayLen = rawInfoArray->GetLength();

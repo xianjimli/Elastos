@@ -1,4 +1,5 @@
 
+#include "ext/frameworkdef.h"
 #include "widget/CProgressBar.h"
 
 IVIEW_METHODS_IMPL(CProgressBar, ProgressBar, ProgressBar);
@@ -13,13 +14,11 @@ PInterface CProgressBar::Probe(
 }
 
 ECode CProgressBar::IsIndeterminate(
-    /* [out] */ Boolean * pIndeterminate)
+    /* [out] */ Boolean* indeterminate)
 {
-    if (!pIndeterminate) {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(indeterminate);
 
-    *pIndeterminate = ProgressBar::IsIndeterminate();
+    *indeterminate = ProgressBar::IsIndeterminate();
 
     return NOERROR;
 }
@@ -31,39 +30,35 @@ ECode CProgressBar::SetIndeterminate(
 }
 
 ECode CProgressBar::GetIndeterminateDrawable(
-    /* [out] */ IDrawable ** ppD)
+    /* [out] */ IDrawable** d)
 {
-    if (!ppD) {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(d);
 
-    *ppD = ProgressBar::GetIndeterminateDrawable();
-    
+    *d = ProgressBar::GetIndeterminateDrawable();
+
     return NOERROR;
 }
 
 ECode CProgressBar::SetIndeterminateDrawable(
-    /* [in] */ IDrawable * pD)
+    /* [in] */ IDrawable* d)
 {
-    return ProgressBar::SetIndeterminateDrawable(pD);
+    return ProgressBar::SetIndeterminateDrawable(d);
 }
 
 ECode CProgressBar::GetProgressDrawable(
-    /* [out] */ IDrawable ** ppD)
+    /* [out] */ IDrawable** d)
 {
-    if (!ppD) {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(d);
 
-    *ppD = ProgressBar::GetProgressDrawable();
+    *d = ProgressBar::GetProgressDrawable();
 
     return NOERROR;
 }
 
 ECode CProgressBar::SetProgressDrawable(
-    /* [in] */ IDrawable * pD)
+    /* [in] */ IDrawable* d)
 {
-    return ProgressBar::SetProgressDrawable(pD);
+    return ProgressBar::SetProgressDrawable(d);
 }
 
 ECode CProgressBar::SetProgress(
@@ -79,37 +74,31 @@ ECode CProgressBar::SetSecondaryProgress(
 }
 
 ECode CProgressBar::GetProgress(
-    /* [out] */ Int32 * pProgress)
+    /* [out] */ Int32 * progress)
 {
-    if (!pProgress) {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(progress);
 
-    *pProgress = ProgressBar::GetProgress();
+    *progress = ProgressBar::GetProgress();
 
     return NOERROR;
 }
 
 ECode CProgressBar::GetSecondaryProgress(
-    /* [out] */ Int32 * pSecondaryProgress)
+    /* [out] */ Int32 * secondaryProgress)
 {
-    if (!pSecondaryProgress) {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(secondaryProgress);
 
-    *pSecondaryProgress = ProgressBar::GetSecondaryProgress();
+    *secondaryProgress = ProgressBar::GetSecondaryProgress();
 
     return NOERROR;
 }
 
 ECode CProgressBar::GetMax(
-    /* [out] */ Int32 * pMax)
+    /* [out] */ Int32* max)
 {
-    if (!pMax) {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(max);
 
-    *pMax = ProgressBar::GetMax();
+    *max = ProgressBar::GetMax();
 
     return NOERROR;
 }
@@ -133,54 +122,56 @@ ECode CProgressBar::IncrementSecondaryProgressBy(
 }
 
 ECode CProgressBar::SetInterpolator(
-    /* [in] */ IContext * pCtx,
+    /* [in] */ IContext* ctx,
     /* [in] */ Int32 resID)
 {
-    return ProgressBar::SetInterpolator(pCtx, resID);
+    return ProgressBar::SetInterpolator(ctx, resID);
 }
 
 ECode CProgressBar::SetInterpolatorEx(
-    /* [in] */ IInterpolator * pInterpolator)
+    /* [in] */ IInterpolator* interpolator)
 {
-    return ProgressBar::SetInterpolator(pInterpolator);
+    return ProgressBar::SetInterpolator(interpolator);
 }
 
 ECode CProgressBar::GetInterpolator(
-    /* [out] */ IInterpolator ** ppInterpolator)
+    /* [out] */ IInterpolator** interpolator)
 {
-    if (ppInterpolator) {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(interpolator);
 
-    *ppInterpolator = ProgressBar::GetInterpolator();
+    *interpolator = ProgressBar::GetInterpolator();
 
     return NOERROR;
 }
 
 ECode CProgressBar::constructor(
-    /* [in] */ IContext * pCtx)
+    /* [in] */ IContext* ctx)
 {
-    ProgressBar::Init(pCtx);
+    ProgressBar::Init(ctx);
 
     return NOERROR;
 }
 
 ECode CProgressBar::constructor(
-    /* [in] */ IContext * pCtx,
-    /* [in] */ IAttributeSet * pAttrs)
+    /* [in] */ IContext* ctx,
+    /* [in] */ IAttributeSet* attrs)
 {
-    ProgressBar::Init(pCtx, pAttrs);
+    ProgressBar::Init(ctx, attrs);
 
     return NOERROR;
 }
 
 ECode CProgressBar::constructor(
-    /* [in] */ IContext * pCtx,
-    /* [in] */ IAttributeSet * pAttrs,
+    /* [in] */ IContext* ctx,
+    /* [in] */ IAttributeSet* attrs,
     /* [in] */ Int32 defStyle)
 {
-    ProgressBar::Init(pCtx, pAttrs, defStyle);
+    ProgressBar::Init(ctx, attrs, defStyle);
 
     return NOERROR;
 }
 
+Mutex* CProgressBar::GetSelfLock()
+{
+    return &_m_syncLock;
+}

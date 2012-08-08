@@ -26,11 +26,7 @@ public:
     CARAPI PointToPosition(
         /* [in] */ Int32 x,
         /* [in] */ Int32 y,
-        /* [out] */ Int32 * pPos);
-
-    CARAPI LayoutEx(
-        /* [in] */ Int32 delta,
-        /* [in] */ Boolean animate);
+        /* [out] */ Int32* pos);
 
     CARAPI SetCallbackDuringFling(
         /* [in] */ Boolean shouldCallback);
@@ -48,46 +44,46 @@ public:
         /* [in] */ Float unselectedAlpha);
 
     CARAPI OnSingleTapUp(
-        /* [in] */ IMotionEvent * pE,
-        /* [out] */ Boolean * pResult);
+        /* [in] */ IMotionEvent* e,
+        /* [out] */ Boolean* result);
 
     CARAPI OnFling(
-        /* [in] */ IMotionEvent * pE1,
-        /* [in] */ IMotionEvent * pE2,
+        /* [in] */ IMotionEvent* e1,
+        /* [in] */ IMotionEvent* e2,
         /* [in] */ Float velocityX,
         /* [in] */ Float velocityY,
-        /* [out] */ Boolean * pResult);
+        /* [out] */ Boolean* result);
 
     CARAPI OnScroll(
-        /* [in] */ IMotionEvent * pE1,
-        /* [in] */ IMotionEvent * pE2,
+        /* [in] */ IMotionEvent* e1,
+        /* [in] */ IMotionEvent* e2,
         /* [in] */ Float distanceX,
         /* [in] */ Float distanceY,
-        /* [out] */ Boolean * pResult);
+        /* [out] */ Boolean* result);
 
     CARAPI OnDown(
-        /* [in] */ IMotionEvent * pE,
-        /* [out] */ Boolean * pResult);
+        /* [in] */ IMotionEvent* e,
+        /* [out] */ Boolean* result);
 
     CARAPI OnLongPress(
-        /* [in] */ IMotionEvent * pE);
+        /* [in] */ IMotionEvent* e);
 
     CARAPI OnShowPress(
-        /* [in] */ IMotionEvent * pE);
+        /* [in] */ IMotionEvent* e);
 
     CARAPI SetGravity(
         /* [in] */ Int32 gravity);
 
     CARAPI constructor(
-        /* [in] */ IContext * pCtx);
+        /* [in] */ IContext* ctx);
 
     CARAPI constructor(
-        /* [in] */ IContext * pCtx,
-        /* [in] */ IAttributeSet * pAttrs);
+        /* [in] */ IContext* ctx,
+        /* [in] */ IAttributeSet* attrs);
 
     CARAPI constructor(
-        /* [in] */ IContext * pCtx,
-        /* [in] */ IAttributeSet * pAttrs,
+        /* [in] */ IContext* ctx,
+        /* [in] */ IAttributeSet* attrs,
         /* [in] */ Int32 defStyle);
 
 private:

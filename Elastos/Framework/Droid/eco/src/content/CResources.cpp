@@ -170,7 +170,7 @@ ECode CResources::GetTextEx(
 
 ECode CResources::GetTextArray(
     /* [in] */ Int32 id,
-    /* [out, callee] */ ArrayOf<String>** seqs)
+    /* [out, callee] */ ArrayOf<ICharSequence*>** seqs)
 {
     if (!seqs) {
         return E_INVALID_ARGUMENT;

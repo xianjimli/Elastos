@@ -2,30 +2,27 @@
 #include "widget/ProgressBarSavedState.h"
 
 ProgressBarSavedState::ProgressBarSavedState()
-{
-
-}
+{}
 
 ProgressBarSavedState::ProgressBarSavedState(
-    /* [in] */ IParcelable* superState) : ViewBaseSavedState(superState)
+    /* [in] */ IParcelable* superState)
+    : ViewBaseSavedState(superState)
+{}
 
-{
-
-}
-    
 ProgressBarSavedState::ProgressBarSavedState(
-    /* [in] */ IParcel* in) : ViewBaseSavedState(in)
+    /* [in] */ IParcel* in)
+    : ViewBaseSavedState(in)
 {
-    in->ReadInt32(&progress);
-    in->ReadInt32(&secondaryProgress);
+    in->ReadInt32(&mProgress);
+    in->ReadInt32(&mSecondaryProgress);
 }
 
 ECode ProgressBarSavedState::WriteToParcel(
     /* [in] */ IParcel* out)
 {
     ViewBaseSavedState::WriteToParcel(out);
-    out->WriteInt32(progress);
-    out->WriteInt32(secondaryProgress);
+    out->WriteInt32(mProgress);
+    out->WriteInt32(mSecondaryProgress);
 
     return NOERROR;
 }

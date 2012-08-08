@@ -8,21 +8,22 @@
 CarClass(CProgressBarSavedState), public ProgressBarSavedState
 {
     friend class ProgressBar;
+
 public:
     CARAPI GetSuperState(
-        /* [out] */ IParcelable ** ppSuperState);
+        /* [out] */ IParcelable** superState);
 
     CARAPI ReadFromParcel(
-        /* [in] */ IParcel * pSource);
+        /* [in] */ IParcel* source);
 
     CARAPI WriteToParcel(
-        /* [in] */ IParcel * pDest);
+        /* [in] */ IParcel* dest);
 
     CARAPI constructor(
-        /* [in] */ IParcelable * pSuperState);
+        /* [in] */ IParcelable* superState);
 
     CARAPI constructor(
-        /* [in] */ IParcel * pParcel);
+        /* [in] */ IParcel* parcel);
 
 private:
     // TODO: Add your private member variables here.

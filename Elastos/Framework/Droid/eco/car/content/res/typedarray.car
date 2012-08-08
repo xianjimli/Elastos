@@ -347,7 +347,7 @@ module
          */
         GetTextArray(
             [in] Int32 index,
-            [out, callee] ArrayOf<String>* array);
+            [out, callee] ArrayOf<ICharSequence*>* array);
 
         /**
          * Retrieve the raw TypedValue for the attribute at <var>index</var>.

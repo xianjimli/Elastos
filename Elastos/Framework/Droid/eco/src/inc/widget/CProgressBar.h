@@ -15,22 +15,22 @@ public:
         /* [in] */ REIID riid);
 
     CARAPI IsIndeterminate(
-        /* [out] */ Boolean * pIndeterminate);
+        /* [out] */ Boolean* indeterminate);
 
     CARAPI SetIndeterminate(
         /* [in] */ Boolean indeterminate);
 
     CARAPI GetIndeterminateDrawable(
-        /* [out] */ IDrawable ** ppD);
+        /* [out] */ IDrawable** d);
 
     CARAPI SetIndeterminateDrawable(
-        /* [in] */ IDrawable * pD);
+        /* [in] */ IDrawable* d);
 
     CARAPI GetProgressDrawable(
-        /* [out] */ IDrawable ** ppD);
+        /* [out] */ IDrawable** d);
 
     CARAPI SetProgressDrawable(
-        /* [in] */ IDrawable * pD);
+        /* [in] */ IDrawable* d);
 
     CARAPI SetProgress(
         /* [in] */ Int32 progress);
@@ -39,13 +39,13 @@ public:
         /* [in] */ Int32 secondaryProgress);
 
     CARAPI GetProgress(
-        /* [out] */ Int32 * pProgress);
+        /* [out] */ Int32* progress);
 
     CARAPI GetSecondaryProgress(
-        /* [out] */ Int32 * pSecondaryProgress);
+        /* [out] */ Int32* secondaryProgress);
 
     CARAPI GetMax(
-        /* [out] */ Int32 * pMax);
+        /* [out] */ Int32* max);
 
     CARAPI SetMax(
         /* [in] */ Int32 max);
@@ -57,26 +57,28 @@ public:
         /* [in] */ Int32 diff);
 
     CARAPI SetInterpolator(
-        /* [in] */ IContext * pCtx,
+        /* [in] */ IContext* ctx,
         /* [in] */ Int32 resID);
 
     CARAPI SetInterpolatorEx(
-        /* [in] */ IInterpolator * pInterpolator);
+        /* [in] */ IInterpolator* interpolator);
 
     CARAPI GetInterpolator(
-        /* [out] */ IInterpolator ** ppInterpolator);
+        /* [out] */ IInterpolator** interpolator);
 
     CARAPI constructor(
-        /* [in] */ IContext * pCtx);
+        /* [in] */ IContext* ctx);
 
     CARAPI constructor(
-        /* [in] */ IContext * pCtx,
-        /* [in] */ IAttributeSet * pAttrs);
+        /* [in] */ IContext* ctx,
+        /* [in] */ IAttributeSet* attrs);
 
     CARAPI constructor(
-        /* [in] */ IContext * pCtx,
-        /* [in] */ IAttributeSet * pAttrs,
+        /* [in] */ IContext* ctx,
+        /* [in] */ IAttributeSet* attrs,
         /* [in] */ Int32 defStyle);
+
+    CARAPI_(Mutex*) GetSelfLock();
 
 private:
     // TODO: Add your private member variables here.

@@ -4208,13 +4208,18 @@ ECode ListView::Init(
         sizeof(R_Styleable_ListView) / sizeof(Int32)),//com.android.internal.R.styleable.ListView
         defStyle, 0, (ITypedArray**)&a);
 
-    AutoStringArray entries;
+    ArrayOf<ICharSequence*>* entries;
     a->GetTextArray(
-        0/*com.android.internal.R.styleable.ListView_entries*/, (ArrayOf<String>**)&entries);
+        0/*com.android.internal.R.styleable.ListView_entries*/, &entries);
 
     if (entries != NULL) {
 //        SetAdapter(new ArrayAdapter<CharSequence>(context,
 //                com.android.internal.R.layout.simple_list_item_1, entries));
+
+        for (Int32 i = 0; i < entries->GetLength(); ++i) {
+            (*entries)[0]->Release();
+        }
+        ArrayOf<ICharSequence*>::Free(entries);
     }
 
     AutoPtr<IDrawable> d;

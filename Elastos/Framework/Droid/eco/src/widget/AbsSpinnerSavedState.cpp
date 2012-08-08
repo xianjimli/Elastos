@@ -1,4 +1,5 @@
 
+#include "ext/frameworkdef.h"
 #include "widget/AbsSpinnerSavedState.h"
 
 AbsSpinnerSavedState::AbsSpinnerSavedState()
@@ -54,7 +55,7 @@ ECode AbsSpinnerSavedState::Init(
 ECode AbsSpinnerSavedState::Init(
     /* [in] */ IParcel* source)
 {
-    ViewBaseSavedState::Init(source);
+    ASSERT_SUCCEEDED(ViewBaseSavedState::Init(source));
 
     source->ReadInt64(&mSelectedId);
     source->ReadInt32(&mPosition);
