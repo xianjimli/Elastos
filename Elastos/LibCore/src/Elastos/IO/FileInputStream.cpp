@@ -85,6 +85,13 @@ ECode FileInputStream::Close()
     Mutex* selfLock = GetSelfLock();
     Mutex::Autolock lock(*selfLock);
 
+    return CloseLocked();
+}
+
+ECode FileInputStream::CloseLocked()
+{
+    // BEGIN android-changed
+
 //    if (mChannel != NULL && mChannel->IsOpen()) {
 //        mChannel->Close();
 //        mChannel = NULL;
@@ -109,6 +116,14 @@ ECode FileInputStream::GetChannel(
     // BEGIN android-changed
     Mutex* selfLock = GetSelfLock();
     Mutex::Autolock lock(*selfLock);
+
+    return GetChannelLocked(channel);
+}
+
+ECode FileInputStream::GetChannelLocked(
+    /* [out] */ IFileChannel** channel)
+{
+    // BEGIN android-changed
 
 //    if (channel == null) {
 //        channel = FileChannelFactory.getFileChannel(this, fd.descriptor,
@@ -179,6 +194,39 @@ ECode FileInputStream::ReadBufferEx(
     FAIL_RETURN(OpenCheck());
     Mutex::Autolock lock(repositioningLock);
 
+    return ReadBufferExLocked(offset, length, buffer, number);
+}
+
+ECode FileInputStream::ReadBufferExLocked(
+    /* [in] */ Int32 offset,
+    /* [in] */ Int32 length,
+    /* [out] */ ArrayOf<Byte>* buffer,
+    /* [out] */ Int32* number)
+{
+    assert(number != NULL);
+    // BEGIN android-changed
+    // Exception priorities (in case of multiple errors) differ from
+    // RI, but are spec-compliant.
+    // made implicit null check explicit,
+    // used (offset | count) < 0 instead of (offset < 0) || (count < 0)
+    // to safe one operation
+    if (buffer == NULL) {
+//      throw new NullPointerException("buffer == null");
+        return E_NULL_POINTER_EXCEPTION;
+    }
+    if ((offset | length) < 0 || length > buffer->GetLength() - offset) {
+//      throw new IndexOutOfBoundsException();
+        return E_INDEX_OUT_OF_BOUNDS_EXCEPTION;
+    }
+    // END android-changed
+
+    if (0 == length) {
+        *number = 0;
+        return NOERROR;
+    }
+
+    FAIL_RETURN(OpenCheck());
+
     // BEGIN android-changed
     // If you only support Linux, there's nothing special about stdin.
     Int64 val;
@@ -209,17 +257,42 @@ ECode FileInputStream::Skip(
     // when lseek(2) fails with ESPIPE and call super.skip(count).
     Mutex::Autolock lock(repositioningLock);
 
-    // Our seek returns the new offset, but we know it will throw an
-    // exception if it couldn't perform exactly the seek we asked for.
-    return mFileSystem->Seek(mFd->mDescriptor, count, IFileSystem_SEEK_CUR, number);
+    return SkipLocked(count, number);
 }
 
-///////////////synchronized
+ECode FileInputStream::SkipLocked(
+    /* [in] */ Int64 count,
+    /* [out] */ Int64* number)
+{
+    assert(number != NULL);
+    Int64 cur;
+    FAIL_RETURN(OpenCheck());
+    if (count == 0) {
+        *number = 0;
+        return NOERROR;
+    }
+    if (count < 0) {
+//      throw new IOException("count < 0");
+        return E_IO_EXCEPTION;
+    }
+
+    // Our seek returns the new offset, but we know it will throw an
+    // exception if it couldn't perform exactly the seek we asked for.
+    mFileSystem->Seek(mFd->mDescriptor, 0, IFileSystem_SEEK_CUR, &cur);
+    mFileSystem->Seek(mFd->mDescriptor, count, IFileSystem_SEEK_CUR, number);
+    return *number - cur;
+}
+
 ECode FileInputStream::OpenCheck()
 {
     Mutex* selfLock = GetSelfLock();
     Mutex::Autolock lock(*selfLock);
 
+    return OpenCheckLocked();
+}
+
+ECode FileInputStream::OpenCheckLocked()
+{
     if(mFd->mDescriptor < 0){
         return E_IO_EXCEPTION;
     }

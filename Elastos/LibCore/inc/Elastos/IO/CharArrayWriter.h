@@ -189,7 +189,33 @@ public:
         /* [in] */ ICharSequence* csq,
         /* [in] */ Int32 start,
         /* [in] */ Int32 end);
+protected:
+    virtual CARAPI ResetLocked();
 
+    virtual CARAPI GetSizeLocked(
+        /*[out]*/Int32* size);
+
+    virtual CARAPI ToCharArrayLocked(
+        /* [out] */ ArrayOf<Char8>** str);
+
+    CARAPI ToStringLocked(
+        /* [out] */ String* result);
+
+    CARAPI WriteLocked(
+        /*[in]*/ Int32 oneChar32);
+
+    CARAPI WriteBufferExLocked(
+        /* [in] */ Int32 offset,
+        /* [in] */ Int32 count,
+        /* [in] */ const ArrayOf<Char8>& buffer);
+
+    CARAPI WriteStringExLocked(
+        /* [in] */ Int32 offset,
+        /* [in] */ Int32 count,
+        /* [in] */ CString str);
+
+    virtual CARAPI WriteToLocked(
+        /*[in]*/ IWriter* out);
 private:
     CARAPI Expand(
         /*[in]*/ Int32 i);

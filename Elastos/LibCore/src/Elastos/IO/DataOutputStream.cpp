@@ -27,6 +27,9 @@ DataOutputStream::DataOutputStream()
 }
 DataOutputStream::~DataOutputStream()
 {
+    if (mBuff != NULL){
+        ArrayOf<Byte>::Free(mBuff);
+    }
 }
 
 ECode DataOutputStream::Init(

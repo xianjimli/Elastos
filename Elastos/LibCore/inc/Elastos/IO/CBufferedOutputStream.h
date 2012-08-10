@@ -23,6 +23,8 @@ public:
         /* [in] */ Int32 count,
         /* [in] */ const ArrayOf<Byte> & buffer);
 
+    
+
     CARAPI CheckError(
         /* [out] */ Boolean* hasError);
 
@@ -32,7 +34,18 @@ public:
     CARAPI constructor(
         /* [in] */ IOutputStream* out,
         /* [in] */ Int32 size);
+protected:
+    CARAPI CloseLocked();
 
+    CARAPI FlushLocked();
+
+    CARAPI WriteLocked(
+        /* [in] */ Int32 oneByte);
+
+    CARAPI WriteBufferExLocked(
+        /* [in] */ Int32 offset,
+        /* [in] */ Int32 count,
+        /* [in] */ const ArrayOf<Byte> & buffer);
 private:
     CARAPI_(Mutex*) GetSelfLock();
 };

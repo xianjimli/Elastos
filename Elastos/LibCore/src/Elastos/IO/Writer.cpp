@@ -25,6 +25,14 @@ ECode Writer::Write(
     assert(mLock != NULL);
     Mutex::Autolock lock(mLock);
 
+    return WriteLocked(oneChar32);
+}
+
+ECode Writer::WriteLocked(
+    /* [in] */ Int32 oneChar32)
+{
+    assert(mLock != NULL);
+
     ArrayOf_<Char8, 5> buf;
     Int32 len;
     Character::ToChars(oneChar32, buf, 0, &len);
@@ -58,10 +66,24 @@ ECode Writer::WriteStringEx(
 //      throw new StringIndexOutOfBoundsException();
         return E_ARRAY_INDEX_OUT_OF_BOUNDS_EXCEPTION;
     }
-
-    ArrayOf<Char8> buf(const_cast<char*>((const char*)str), str.GetLength());
     assert(mLock != NULL);
     Mutex::Autolock lock(mLock);
+
+    return WriteStringExLocked(offset, count, str);
+}
+
+ECode Writer::WriteStringExLocked(
+    /* [in] */ Int32 offset,
+    /* [in] */ Int32 count,
+    /* [in] */ CString str)
+{
+     if (count < 0) {
+//      throw new StringIndexOutOfBoundsException();
+        return E_ARRAY_INDEX_OUT_OF_BOUNDS_EXCEPTION;
+    }
+
+    ArrayOf<Char8> buf(const_cast<char*>((const char*)str), str.GetLength());
+
     return WriteBufferEx(offset, count, buf);
 }
 

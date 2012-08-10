@@ -75,6 +75,24 @@ public:
         /* [out] */ Int64* number);
 
 protected:
+    CARAPI AvailableLocked(
+        /* [out] */ Int32* number);
+
+    CARAPI ReadLocked(
+        /* [out] */ Int32* value);
+
+    CARAPI ReadBufferExLocked(
+        /* [in] */ Int32 offset,
+        /* [in] */ Int32 length,
+        /* [out] */ ArrayOf<Byte>* buffer,
+        /* [out] */ Int32* number);
+
+    CARAPI ResetLocked();
+
+    CARAPI SkipLocked(
+        /* [in] */ Int64 count,
+        /* [out] */ Int64* number);
+protected:
     /**
      * The source string containing the data to read.
      */

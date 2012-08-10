@@ -56,6 +56,11 @@ ECode CharArrayReader::Close()
 {
     Mutex::Autolock lock(mLock);
 
+    return CloseLocked();
+}
+
+ECode CharArrayReader::CloseLocked()
+{
     if (IsOpen()) {
         mBuf = NULL;
     }
@@ -77,6 +82,12 @@ ECode CharArrayReader::Mark(
 {
     Mutex::Autolock lock(mLock);
 
+    return MarkLocked(readLimit);
+}
+
+ECode CharArrayReader::MarkLocked(
+    /* [in] */ Int32 readLimit)
+{
     FAIL_RETURN(CheckNotClosed());
     mMarkedPos = mPos;
     return NOERROR;
@@ -104,8 +115,16 @@ ECode CharArrayReader::Read(
     /*[out]*/ Int32* character)
 {
     assert(character != NULL);
-
     Mutex::Autolock lock(mLock);
+
+    return ReadLocked(character);
+}
+
+ECode CharArrayReader::ReadLocked(
+    /*[out]*/ Int32* character)
+{
+    assert(character != NULL);
+
     FAIL_RETURN(CheckNotClosed());
     if (mPos == mCount) {
         *character = -1;
@@ -137,8 +156,32 @@ ECode CharArrayReader::ReadBufferEx(
 //      throw new ArrayIndexOutOfBoundsException("Length out of bounds: " + len);
         return E_ARRAY_INDEX_OUT_OF_BOUNDS_EXCEPTION;
     }
-
     Mutex::Autolock lock(mLock);
+
+    return ReadBufferExLocked(offset, length, buffer, number);
+}
+
+ECode CharArrayReader::ReadBufferExLocked(
+    /* [in] */ Int32 offset,
+    /* [in] */ Int32 length,
+    /* [out] */ ArrayOf<Char8>* buffer,
+    /* [out] */ Int32* number)
+{
+    assert(number != NULL);
+    assert(buffer != NULL);
+
+    // BEGIN android-note
+    // changed array notation to be consistent with the rest of harmony
+    // END android-note
+    if (offset < 0 || offset > buffer->GetLength()) {
+//      throw new ArrayIndexOutOfBoundsException("Offset out of bounds: " + offset);
+        return E_ARRAY_INDEX_OUT_OF_BOUNDS_EXCEPTION;
+    }
+    if (length < 0 || length > buffer->GetLength() - offset) {
+//      throw new ArrayIndexOutOfBoundsException("Length out of bounds: " + len);
+        return E_ARRAY_INDEX_OUT_OF_BOUNDS_EXCEPTION;
+    }
+
     FAIL_RETURN(CheckNotClosed());
     if (mPos < mCount) {
         Int32 index = offset;
@@ -160,8 +203,16 @@ ECode CharArrayReader::IsReady(
     /*[out]*/ Boolean* isReady)
 {
     assert(isReady != NULL);
-
     Mutex::Autolock lock(mLock);
+
+    return IsReadyLocked(isReady);
+}
+
+ECode CharArrayReader::IsReadyLocked(
+    /*[out]*/ Boolean* isReady)
+{
+    assert(isReady != NULL);
+
     FAIL_RETURN(CheckNotClosed());
     *isReady = mPos != mCount;
     return NOERROR;
@@ -170,6 +221,12 @@ ECode CharArrayReader::IsReady(
 ECode CharArrayReader::Reset()
 {
     Mutex::Autolock lock(mLock);
+
+    return ResetLocked();
+}
+
+ECode CharArrayReader::ResetLocked()
+{
     FAIL_RETURN(CheckNotClosed());
     mPos = mMarkedPos != -1 ? mMarkedPos : 0;
     return NOERROR;
@@ -180,8 +237,17 @@ ECode CharArrayReader::Skip(
     /* [out] */ Int64* number)
 {
     assert(number != NULL);
-
     Mutex::Autolock lock(mLock);
+
+    return SkipLocked(n, number);
+}
+
+ECode CharArrayReader::SkipLocked(
+    /* [in] */Int64 n,
+    /* [out] */ Int64* number)
+{
+    assert(number != NULL);
+
     FAIL_RETURN(CheckNotClosed());
     if (n <= 0) {
         *number = 0;

@@ -48,7 +48,25 @@ public:
 
     CARAPI constructor(
         /* [in] */ Int32 size);
+protected:
+    CARAPI WriteLocked(
+        /* [in] */ Int32 oneByte);
 
+    CARAPI WriteBufferLocked(
+        /* [in] */ const ArrayOf<Byte>& buffer);
+
+    CARAPI WriteBufferExLocked(
+        /* [in] */ Int32 offset,
+        /* [in] */ Int32 count,
+        /* [in] */ const ArrayOf<Byte>& buffer);
+
+    CARAPI ResetLocked();
+
+    CARAPI ToByteArrayLocked(
+        /* [out, callee] */ ArrayOf<Byte>** bytes);
+
+    CARAPI WriteToLocked(
+        /* [in] */ IOutputStream* os);
 private:
     CARAPI_(Mutex*) GetSelfLock();
 };

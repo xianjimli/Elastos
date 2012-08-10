@@ -203,7 +203,6 @@ public:
     CARAPI Skip(
         /*[in]*/ Int64 amount,
         /*[out]*/ Int64* number);
-
 protected:
     /**
      * Peeks at the next input character, refilling the buffer if necessary. If
@@ -211,6 +210,31 @@ protected:
      */
     CARAPI ChompNewline();
 
+    CARAPI CloseLocked();
+
+    CARAPI MarkLocked(
+        /*[in]*/ Int32 markLimit);
+
+    CARAPI ReadLocked(
+        /*[out]*/ Int32* value);
+
+    CARAPI ReadBufferExLocked(
+        /*[in]*/ Int32 offset,
+        /*[in]*/ Int32 length,
+        /*[out]*/ ArrayOf<Char8>* buffer,
+        /*[out]*/ Int32* number);
+
+    virtual CARAPI ReadLineLocked(
+        /* [out] */ String* contents);
+
+    CARAPI IsReadyLocked(
+        /*[out]*/ Boolean* ready);
+
+    CARAPI ResetLocked();
+
+    CARAPI SkipLocked(
+        /*[in]*/ Int64 amount,
+        /*[out]*/ Int64* number);
 private:
     /**
      * Populates the buffer with data. It is an error to call this method when

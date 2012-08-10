@@ -44,7 +44,11 @@ public:
 
     CARAPI constructor(
         /* [in] */ IInputStream* is);
+protected:
+    CARAPI MarkLocked(
+        /* [in] */ Int32 readLimit);
 
+    CARAPI ResetLocked();
 private:
     CARAPI_(Mutex*) GetSelfLock();
 };

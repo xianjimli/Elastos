@@ -130,7 +130,23 @@ public:
         /*[in]*/ Int32 offset,
         /*[in]*/ Int32 count,
         /*[in]*/ CString str);
+protected:
+    CARAPI CloseLocked();
 
+    CARAPI FlushLocked();
+
+    CARAPI WriteLocked(
+        /*[in]*/ Int32 oneChar);
+
+    CARAPI WriteBufferExLocked(
+        /*[in]*/ Int32 offset,
+        /*[in]*/ Int32 count,
+        /*[in]*/ const ArrayOf<Char8>& cbuf);
+
+    CARAPI WriteStringExLocked(
+        /*[in]*/ Int32 offset,
+        /*[in]*/ Int32 count,
+        /*[in]*/ CString str);
 private:
     CARAPI CheckNotClosed();
 

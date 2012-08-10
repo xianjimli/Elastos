@@ -39,6 +39,15 @@ ECode LineNumberReader::GetLineNumber(
     assert(mLock != NULL);
     Mutex::Autolock lock(mLock);
 
+    return GetLineNumberLocked(lineNumber);
+}
+
+ECode LineNumberReader::GetLineNumberLocked(
+    /* [out] */ Int32* lineNumber)
+{
+    assert(lineNumber != NULL);
+    assert(mLock != NULL);
+
     *lineNumber = mLineNumber;
 
     return NOERROR;
@@ -49,6 +58,14 @@ ECode LineNumberReader::Mark(
 {
     assert(mLock != NULL);
     Mutex::Autolock lock(mLock);
+
+    return MarkLocked(readLimit);
+}
+
+ECode LineNumberReader::MarkLocked(
+    /* [in] */ Int32 readLimit)
+{
+    assert(mLock != NULL);
 
     FAIL_RETURN(BufferedReader::Mark(readLimit));
     mMarkedLineNumber = mLineNumber;
@@ -63,6 +80,15 @@ ECode LineNumberReader::Read(
     assert(value != NULL);
     assert(mLock != NULL);
     Mutex::Autolock lock(mLock);
+
+    return ReadLocked(value);
+}
+
+ECode LineNumberReader::ReadLocked(
+    /* [out] */ Int32* value)
+{
+    assert(value != NULL);
+    assert(mLock != NULL);
 
     Int32 ch;
     FAIL_RETURN(BufferedReader::Read(&ch));
@@ -93,6 +119,19 @@ ECode LineNumberReader::ReadBufferEx(
     assert(number != NULL);
     assert(mLock != NULL);
     Mutex::Autolock lock(mLock);
+
+    return ReadBufferExLocked(offset, length, buffer, number);
+}
+
+ECode LineNumberReader::ReadBufferExLocked(
+    /* [in] */ Int32 offset,
+    /* [in] */ Int32 length,
+    /* [out] */ ArrayOf<Char8>* buffer,
+    /* [out] */ Int32* number)
+{
+    assert(buffer != NULL);
+    assert(number != NULL);
+    assert(mLock != NULL);
 
     Int32 read;
     FAIL_RETURN(BufferedReader::ReadBufferEx(offset, length, buffer, &read));
@@ -131,6 +170,15 @@ ECode LineNumberReader::ReadLine(
     assert(mLock != NULL);
     Mutex::Autolock lock(mLock);
 
+    return ReadLineLocked(result);
+}
+
+ECode LineNumberReader::ReadLineLocked(
+    /* [out] */ String* result)
+{
+    assert(result != NULL);
+    assert(mLock != NULL);
+
     if (mLastWasCR) {
         FAIL_RETURN(ChompNewline());
         mLastWasCR = FALSE;
@@ -150,6 +198,13 @@ ECode LineNumberReader::Reset()
     assert(mLock != NULL);
     Mutex::Autolock lock(mLock);
 
+    return ResetLocked();
+}
+
+ECode LineNumberReader::ResetLocked()
+{
+    assert(mLock != NULL);
+
     FAIL_RETURN(BufferedReader::Reset());
     mLineNumber = mMarkedLineNumber;
     mLastWasCR = mMarkedLastWasCR;
@@ -162,6 +217,14 @@ ECode LineNumberReader::SetLineNumber(
 {
     assert(mLock != NULL);
     Mutex::Autolock lock(mLock);
+
+    return SetLineNumberLocked(lineNumber);
+}
+
+ECode LineNumberReader::SetLineNumberLocked(
+    /* [in] */ Int32 lineNumber)
+{
+    assert(mLock != NULL);
 
     mLineNumber = lineNumber;
 
@@ -181,6 +244,22 @@ ECode LineNumberReader::Skip(
 
     assert(mLock != NULL);
     Mutex::Autolock lock(mLock);
+
+    return SkipLocked(count, number);
+}
+
+ECode LineNumberReader::SkipLocked(
+    /* [in] */ Int64 count,
+    /* [out] */ Int64* number)
+{
+    assert(number != NULL);
+
+    if (count < 0) {
+//      throw new IllegalArgumentException();
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+
+    assert(mLock != NULL);
 
     for (Int32 i = 0; i < count; i++) {
         Int32 value;

@@ -234,7 +234,28 @@ public:
     CARAPI Skip(
         /* [in] */ Int64 count,
         /* [out] */ Int64* number);
+protected:
+    CARAPI CloseLocked();
 
+    CARAPI ReadLocked(
+        /* [out] */ Int32* value);
+
+    CARAPI ReadBufferExLocked(
+        /* [in] */ Int32 offset,
+        /* [in] */ Int32 count,
+        /* [out] */ ArrayOf<Char8>* buffer,
+        /* [out] */ Int32* number);
+
+    CARAPI IsReadyLocked(
+        /* [out] */ Boolean* ready);
+
+    CARAPI UnReadLocked(
+        /* [in] */ Int32 oneChar);
+
+    CARAPI UnReadBufferExLocked(
+        /* [in] */ Int32 offset,
+        /* [in] */ Int32 length,
+        /* [in] */ const ArrayOf<Char8>& buffer);
 private:
     CARAPI CheckNotClosed();
 

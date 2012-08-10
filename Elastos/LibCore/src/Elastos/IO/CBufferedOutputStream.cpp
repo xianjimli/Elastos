@@ -6,6 +6,11 @@ ECode CBufferedOutputStream::Close()
 {
     Mutex::Autolock lock(_m_syncLock);
 
+    return CloseLocked();
+}
+
+ECode CBufferedOutputStream::CloseLocked()
+{
     return BufferedOutputStream::Close();
 }
 
@@ -13,6 +18,11 @@ ECode CBufferedOutputStream::Flush()
 {
     Mutex::Autolock lock(_m_syncLock);
 
+    return FlushLocked();
+}
+
+ECode CBufferedOutputStream::FlushLocked()
+{
     return BufferedOutputStream::Flush();
 }
 
@@ -21,6 +31,12 @@ ECode CBufferedOutputStream::Write(
 {
     Mutex::Autolock lock(_m_syncLock);
 
+    return WriteLocked(oneByte);
+}
+
+ECode CBufferedOutputStream::WriteLocked(
+    /* [in] */ Int32 oneByte)
+{
     return BufferedOutputStream::Write(oneByte);
 }
 
@@ -37,6 +53,14 @@ ECode CBufferedOutputStream::WriteBufferEx(
 {
     Mutex::Autolock lock(_m_syncLock);
 
+    return WriteBufferExLocked(offset, count, buffer);
+}
+
+ECode CBufferedOutputStream::WriteBufferExLocked(
+    /* [in] */ Int32 offset,
+    /* [in] */ Int32 count,
+    /* [in] */ const ArrayOf<Byte> & buffer)
+{
     return BufferedOutputStream::WriteBufferEx(offset, count, buffer);
 }
 

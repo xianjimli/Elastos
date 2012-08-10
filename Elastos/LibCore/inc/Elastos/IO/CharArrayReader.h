@@ -30,7 +30,6 @@ public:
      */
     CARAPI Close();
 
-
     /**
      * Sets a mark position in this reader. The parameter {@code readLimit} is
      * ignored for CharArrayReaders. Calling {@code reset()} will reposition the
@@ -137,7 +136,29 @@ public:
     CARAPI Skip(
         /* [in] */Int64 n,
         /* [out] */ Int64* number);
+protected:
+    CARAPI CloseLocked();
 
+    CARAPI MarkLocked(
+        /* [in] */ Int32 readLimit);
+
+    CARAPI ReadLocked(
+        /*[out]*/ Int32* character);
+
+    CARAPI ReadBufferExLocked(
+        /* [in] */ Int32 offset,
+        /* [in] */ Int32 length,
+        /* [out] */ ArrayOf<Char8> * buffer,
+        /* [out] */ Int32* number);
+
+    CARAPI IsReadyLocked(
+        /*[out]*/ Boolean* isReady);
+
+    CARAPI ResetLocked();
+
+    CARAPI SkipLocked(
+        /* [in] */Int64 n,
+        /* [out] */ Int64* number);
 private:
     /**
      * Indicates whether this reader is open.

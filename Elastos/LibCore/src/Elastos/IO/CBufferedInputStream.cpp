@@ -9,6 +9,14 @@ ECode CBufferedInputStream::Available(
 
     Mutex::Autolock lock(_m_syncLock);
 
+    return AvailableLocked(number);
+}
+
+ECode CBufferedInputStream::AvailableLocked(
+    /* [out] */ Int32* number)
+{
+    VALIDATE_NOT_NULL(number);
+
     return BufferedInputStream::Available(number);
 }
 
@@ -22,6 +30,12 @@ ECode CBufferedInputStream::Mark(
 {
     Mutex::Autolock lock(_m_syncLock);
 
+    return MarkLocked(readLimit);
+}
+
+ECode CBufferedInputStream::MarkLocked(
+    /* [in] */ Int32 readLimit)
+{
     return BufferedInputStream::Mark(readLimit);
 }
 
@@ -39,6 +53,14 @@ ECode CBufferedInputStream::Read(
     VALIDATE_NOT_NULL(value);
 
     Mutex::Autolock lock(_m_syncLock);
+
+    return ReadLocked(value);
+}
+
+ECode CBufferedInputStream::ReadLocked(
+    /* [out] */ Int32* value)
+{
+    VALIDATE_NOT_NULL(value);
 
     return BufferedInputStream::Read(value);
 }
@@ -62,6 +84,17 @@ ECode CBufferedInputStream::ReadBufferEx(
 
     Mutex::Autolock lock(_m_syncLock);
 
+    return ReadBufferExLocked(offset, length, buffer, number);
+}
+
+ECode CBufferedInputStream::ReadBufferExLocked(
+    /* [in] */ Int32 offset,
+    /* [in] */ Int32 length,
+    /* [out] */ ArrayOf<Byte>* buffer,
+    /* [out] */ Int32* number)
+{
+    VALIDATE_NOT_NULL(number);
+
     return BufferedInputStream::ReadBufferEx(offset, length, buffer, number);
 }
 
@@ -69,6 +102,11 @@ ECode CBufferedInputStream::Reset()
 {
     Mutex::Autolock lock(_m_syncLock);
 
+    return ResetLocked();
+}
+
+ECode CBufferedInputStream::ResetLocked()
+{
     return BufferedInputStream::Reset();
 }
 
@@ -79,6 +117,15 @@ ECode CBufferedInputStream::Skip(
     VALIDATE_NOT_NULL(number);
 
     Mutex::Autolock lock(_m_syncLock);
+
+    return SkipLocked(length, number);
+}
+
+ECode CBufferedInputStream::SkipLocked(
+    /* [in] */ Int64 length,
+    /* [out] */ Int64* number)
+{
+    VALIDATE_NOT_NULL(number);
 
     return BufferedInputStream::Skip(length, number);
 }

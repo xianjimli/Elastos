@@ -206,9 +206,12 @@ public:
         /* [in] */ Int32 offset,
         /* [in] */ Int32 count,
         /* [in] */ const ArrayOf<Byte>& buffer);
-
+protected:
+    CARAPI CloseLocked();
 private:
     CARAPI OpenCheck();
+
+    CARAPI OpenCheckLocked();
 
 private:
     AutoPtr<CFileDescriptor> mFd;

@@ -50,6 +50,11 @@ ECode BufferedWriter::Close()
 {
     Mutex::Autolock lock(mLock);
 
+    return CloseLocked();
+}
+
+ECode BufferedWriter::CloseLocked()
+{
     if (IsClosed()) {
         return NOERROR;
     }
@@ -70,6 +75,11 @@ ECode BufferedWriter::Flush()
 {
     Mutex::Autolock lock(mLock);
 
+    return FlushLocked();
+}
+
+ECode BufferedWriter::FlushLocked()
+{
     FAIL_RETURN(CheckNotClosed());
     FAIL_RETURN(FlushInternal());
     FAIL_RETURN(mOut->Flush());
@@ -114,6 +124,14 @@ ECode BufferedWriter::WriteBufferEx(
 {
     Mutex::Autolock lock(mLock);
 
+    return WriteBufferExLocked(offset, count, cbuf);
+}
+
+ECode BufferedWriter::WriteBufferExLocked(
+    /*[in]*/ Int32 offset,
+    /*[in]*/ Int32 count,
+    /*[in]*/ const ArrayOf<Char8>& cbuf)
+{
     FAIL_RETURN(CheckNotClosed());
     // BEGIN android-changed
     // Exception priorities (in case of multiple errors) differ from
@@ -173,6 +191,12 @@ ECode BufferedWriter::Write(
 {
     Mutex::Autolock lock(mLock);
 
+    return WriteLocked(oneChar);
+}
+
+ECode BufferedWriter::WriteLocked(
+    /*[in]*/ Int32 oneChar)
+{
     FAIL_RETURN(CheckNotClosed());
 
     Int32 bufferLength = mBuf->GetLength();
@@ -195,6 +219,14 @@ ECode BufferedWriter::WriteStringEx(
 {
     Mutex::Autolock lock(mLock);
 
+    return WriteStringExLocked(offset, count, str);
+}
+
+ECode BufferedWriter::WriteStringExLocked(
+    /*[in]*/ Int32 offset,
+    /*[in]*/ Int32 count,
+    /*[in]*/ CString str)
+{
     FAIL_RETURN(CheckNotClosed());
     if (count <= 0) {
         return NOERROR;

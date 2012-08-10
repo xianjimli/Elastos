@@ -157,7 +157,6 @@ public:
     virtual CARAPI Skip(
         /* [in] */ Int64 count,
         /* [out] */ Int64* number);
-
 protected:
     /**
      * Constructs a new {@code Reader} with {@code this} as the object used to
@@ -184,6 +183,12 @@ protected:
 
     virtual CARAPI_(Mutex*) GetSelfLock() = 0;
 
+    virtual ReadLocked(
+        /* [out] */ Int32* value);
+
+    virtual CARAPI SkipLocked(
+        /* [in] */ Int64 count,
+        /* [out] */ Int64* number);
 protected:
     Mutex* mLock;
 };
