@@ -28,6 +28,12 @@ ECode CFilterInputStream::Mark(
 {
     Mutex::Autolock lock(_m_syncLock);
 
+    return MarkLocked(readLimit);
+}
+
+ECode CFilterInputStream::MarkLocked(
+    /* [in] */ Int32 readLimit)
+{
     return FilterInputStream::Mark(readLimit);
 }
 
@@ -73,6 +79,11 @@ ECode CFilterInputStream::Reset()
 {
     Mutex::Autolock lock(_m_syncLock);
 
+    return ResetLocked();
+}
+
+ECode CFilterInputStream::ResetLocked()
+{
     return FilterInputStream::Reset();
 }
 

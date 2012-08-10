@@ -48,6 +48,11 @@ ECode BufferedReader::Close()
 {
     Mutex::Autolock lock(mLock);
 
+    return CloseLocked();
+}
+
+ECode BufferedReader::CloseLocked()
+{
     if (!IsClosed()) {
         FAIL_RETURN(mIn->Close());
         ArrayOf<Char8>::Free(mBuf);
@@ -129,6 +134,17 @@ ECode BufferedReader::Mark(
     }
     Mutex::Autolock lock(mLock);
 
+    return MarkLocked(markLimit);
+}
+
+ECode BufferedReader::MarkLocked(
+    /*[in]*/ Int32 markLimit)
+{
+    if (markLimit < 0) {
+//      throw new IllegalArgumentException();
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+
     FAIL_RETURN(CheckNotClosed());
     mMarkLimit = markLimit;
     mMark = mPos;
@@ -161,6 +177,14 @@ ECode BufferedReader::Read(
     assert(value != NULL);
     Mutex::Autolock lock(mLock);
 
+    return ReadLocked(value);
+}
+
+ECode BufferedReader::ReadLocked(
+    /*[out]*/ Int32* value)
+{
+    assert(value != NULL);
+
     FAIL_RETURN(CheckNotClosed());
     /* Are there buffered characters available? */
     Int32 number;
@@ -185,6 +209,18 @@ ECode BufferedReader::ReadBufferEx(
     assert(number != NULL);
 
     Mutex::Autolock lock(mLock);
+
+    return ReadBufferExLocked(offset, length, buffer, number);
+}
+
+ECode BufferedReader::ReadBufferExLocked(
+    /*[in]*/ Int32 offset,
+    /*[in]*/ Int32 length,
+    /*[out]*/ ArrayOf<Char8>* buffer,
+    /*[out]*/ Int32* number)
+{
+    assert(buffer != NULL);
+    assert(number != NULL);
 
     FAIL_RETURN(CheckNotClosed());
     if (offset < 0 || offset > buffer->GetLength() - length || length < 0) {
@@ -276,6 +312,12 @@ ECode BufferedReader::ReadLine(
 {
     Mutex::Autolock lock(mLock);
 
+    return ReadLineLocked(contents);
+}
+
+ECode BufferedReader::ReadLineLocked(
+    /* [out] */ String* contents)
+{
     FAIL_RETURN(CheckNotClosed());
     /* has the underlying stream been exhausted? */
     Int32 number1;
@@ -389,8 +431,15 @@ ECode BufferedReader::IsReady(
         /*[out]*/ Boolean* ready)
 {
     assert(ready != NULL);
-
     Mutex::Autolock lock(mLock);
+
+    return IsReadyLocked(ready);
+}
+
+ECode BufferedReader::IsReadyLocked(
+        /*[out]*/ Boolean* ready)
+{
+    assert(ready != NULL);
 
     FAIL_RETURN(CheckNotClosed());
     Boolean isReady;
@@ -404,6 +453,11 @@ ECode BufferedReader::Reset()
 {
     Mutex::Autolock lock(mLock);
 
+    return ResetLocked();
+}
+
+ECode BufferedReader::ResetLocked()
+{
     FAIL_RETURN(CheckNotClosed());
     if (mMark == -1) {
 //      throw new IOException("Invalid mark");
@@ -426,6 +480,21 @@ ECode BufferedReader::Skip(
     }
 
     Mutex::Autolock lock(mLock);
+
+    return SkipLocked(amount, number);
+}
+
+ECode BufferedReader::SkipLocked(
+        /*[in]*/ Int64 amount,
+        /*[out]*/ Int64* number)
+{
+    assert(number != NULL);
+
+    if (amount < 0) {
+//      throw new IllegalArgumentException();
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+
     FAIL_RETURN(CheckNotClosed());
     if (amount < 1) {
         *number = 0;

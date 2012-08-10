@@ -145,7 +145,32 @@ public:
     CARAPI Skip(
         /* [in] */ Int64 count,
         /* [out] */ Int64* number);
+protected:
+    CARAPI CloseLocked();
 
+    CARAPI MarkLocked(
+        /* [in] */ Int32 readLimit);
+
+    CARAPI IsMarkSupportedLocked(
+        /* [out] */ Boolean* supported);
+
+    CARAPI ReadLocked(
+        /* [out] */ Int32* value);
+
+    CARAPI ReadBufferExLocked(
+        /* [in] */ Int32 offset,
+        /* [in] */ Int32 count,
+        /* [out] */ ArrayOf<Char8>* buffer,
+        /* [out] */ Int32* number);
+
+    CARAPI IsReadyLocked(
+    /* [out] */ Boolean* ready);
+
+    CARAPI ResetLocked();
+
+    CARAPI SkipLocked(
+        /* [in] */ Int64 count,
+        /* [out] */ Int64* number);
 protected:
     /**
      * The target Reader which is being filtered.

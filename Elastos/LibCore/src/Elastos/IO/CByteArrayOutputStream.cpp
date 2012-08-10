@@ -11,6 +11,11 @@ ECode CByteArrayOutputStream::Reset()
 {
     Mutex::Autolock lock(_m_syncLock);
 
+    return ResetLocked();
+}
+
+ECode CByteArrayOutputStream::ResetLocked()
+{
     return ByteArrayOutputStream::Reset();
 }
 
@@ -28,6 +33,14 @@ ECode CByteArrayOutputStream::ToByteArray(
     VALIDATE_NOT_NULL(bytes);
 
     Mutex::Autolock lock(_m_syncLock);
+
+    return ToByteArrayLocked(bytes);
+}
+
+ECode CByteArrayOutputStream::ToByteArrayLocked(
+    /* [out, callee] */ ArrayOf<Byte>** bytes)
+{
+    VALIDATE_NOT_NULL(bytes);
 
     return ByteArrayOutputStream::ToByteArray(bytes);
 }
@@ -56,6 +69,14 @@ ECode CByteArrayOutputStream::WriteBufferEx(
 {
     Mutex::Autolock lock(_m_syncLock);
 
+    return WriteBufferExLocked(offset, count, buffer);
+}
+
+ECode CByteArrayOutputStream::WriteBufferExLocked(
+    /* [in] */ Int32 offset,
+    /* [in] */ Int32 count,
+    /* [in] */ const ArrayOf<Byte>& buffer)
+{
     return ByteArrayOutputStream::WriteBufferEx(offset, count, buffer);
 }
 
@@ -64,6 +85,12 @@ ECode CByteArrayOutputStream::Write(
 {
     Mutex::Autolock lock(_m_syncLock);
 
+    return WriteLocked(oneByte);
+}
+
+ECode CByteArrayOutputStream::WriteLocked(
+    /* [in] */ Int32 oneByte)
+{
     return ByteArrayOutputStream::Write(oneByte);
 }
 
@@ -72,6 +99,12 @@ ECode CByteArrayOutputStream::WriteTo(
 {
     Mutex::Autolock lock(_m_syncLock);
 
+    return WriteToLocked(os);
+}
+
+ECode CByteArrayOutputStream::WriteToLocked(
+    /* [in] */ IOutputStream* os)
+{
     return ByteArrayOutputStream::WriteTo(os);
 }
 
@@ -85,6 +118,12 @@ ECode CByteArrayOutputStream::WriteBuffer(
 {
     Mutex::Autolock lock(_m_syncLock);
 
+    return WriteBufferLocked(buffer);
+}
+
+ECode CByteArrayOutputStream::WriteBufferLocked(
+    /* [in] */ const ArrayOf<Byte>& buffer)
+{
     return ByteArrayOutputStream::WriteBuffer(buffer);
 }
 

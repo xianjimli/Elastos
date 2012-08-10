@@ -74,6 +74,12 @@ ECode CharArrayWriter::Flush()
 ECode CharArrayWriter::Reset()
 {
     Mutex::Autolock lock(mLock);
+
+    return ResetLocked();
+}
+
+ECode CharArrayWriter::ResetLocked()
+{
     mCount = 0;
     return NOERROR;
 }
@@ -82,6 +88,13 @@ ECode CharArrayWriter::GetSize(
     /*[out]*/Int32* size)
 {
     Mutex::Autolock lock(mLock);
+
+    return GetSizeLocked(size);
+}
+
+ECode CharArrayWriter::GetSizeLocked(
+    /*[out]*/Int32* size)
+{
     *size = mCount;
     return NOERROR;
 }
@@ -90,20 +103,35 @@ ECode CharArrayWriter::ToCharArray(
     /* [out] */ ArrayOf<Char8>** str)
 {
     assert(str != NULL);
-
     Mutex::Autolock lock(mLock);
+
+    return ToCharArrayLocked(str);
+}
+
+ECode CharArrayWriter::ToCharArrayLocked(
+    /* [out] */ ArrayOf<Char8>** str)
+{
+    assert(str != NULL);
+
     *str = mBuf->Clone();
     if (*str == NULL) return E_OUT_OF_MEMORY_ERROR;
     return NOERROR;
 }
 
-
 ECode CharArrayWriter::ToString(
      /* [out] */ String* result)
 {
     assert(result != NULL);
-
     Mutex::Autolock lock(mLock);
+
+    return ToStringLocked(result);
+}
+
+ECode CharArrayWriter::ToStringLocked(
+     /* [out] */ String* result)
+{
+    assert(result != NULL);
+
     *result = (char*)mBuf->GetPayload();
     return NOERROR;
 }
@@ -113,6 +141,12 @@ ECode CharArrayWriter::Write(
 {
     Mutex::Autolock lock(mLock);
 
+    return WriteLocked(oneChar32);
+}
+
+ECode CharArrayWriter::WriteLocked(
+    /*[in]*/ Int32 oneChar32)
+{
     Int32 len = Character::GetByteCount(oneChar32);
     Expand(len);
     Int32 number;
@@ -142,6 +176,30 @@ ECode CharArrayWriter::WriteBufferEx(
     }
     // END android-changed
     Mutex::Autolock lock(mLock);
+
+    return WriteBufferExLocked(offset, count, buffer);
+}
+
+ECode CharArrayWriter::WriteBufferExLocked(
+    /* [in] */ Int32 offset,
+    /* [in] */ Int32 count,
+    /* [in] */ const ArrayOf<Char8>& buffer)
+{
+    // avoid int overflow
+    // BEGIN android-changed
+    // Exception priorities (in case of multiple errors) differ from
+    // RI, but are spec-compliant.
+    // made implicit null check explicit,
+    // removed redundant check,
+    // added null check, used (offset | len) < 0 instead of
+    // (offset < 0) || (len < 0) to safe one operation
+    Int32 number;
+    Character::GetCharCount(buffer, offset, buffer.GetLength(), &number);
+    if ((offset | count) < 0 || count > number) {
+//      throw new IndexOutOfBoundsException();
+        return E_INDEX_OUT_OF_BOUNDS_EXCEPTION;
+    }
+    // END android-changed
 
     Int32 endOffset;
     Character::GetOffsetByChars(buffer, 0,
@@ -176,6 +234,28 @@ ECode CharArrayWriter::WriteStringEx(
     // END android-changed
     Mutex::Autolock lock(mLock);
 
+    return WriteStringExLocked(offset, count, str);
+}
+
+ECode CharArrayWriter::WriteStringExLocked(
+    /* [in] */ Int32 offset,
+    /* [in] */ Int32 count,
+    /* [in] */ CString str)
+{
+    // avoid int overflow
+    // BEGIN android-changed
+    // Exception priorities (in case of multiple errors) differ from
+    // RI, but are spec-compliant.
+    // removed redundant check, used (offset | len) < 0
+    // instead of (offset < 0) || (len < 0) to safe one operation
+    Int32 number;
+    Character::GetCharCount(str, offset, str.GetLength(), &number);
+    if ((offset | count) < 0 || count > number) {
+//      throw new StringIndexOutOfBoundsException();
+        return E_INDEX_OUT_OF_BOUNDS_EXCEPTION;
+    }
+    // END android-changed
+
     Int32 endOffset;
     Character::GetOffsetByChars(str, offset, count, &endOffset);
     Expand(endOffset - offset);
@@ -193,6 +273,13 @@ ECode CharArrayWriter::WriteTo(
     /*[in]*/ IWriter* out)
 {
     Mutex::Autolock lock(mLock);
+
+    return WriteToLocked(out);
+}
+
+ECode CharArrayWriter::WriteToLocked(
+    /*[in]*/ IWriter* out)
+{
     return out->WriteBufferEx(0, mCount, *mBuf);
 }
 

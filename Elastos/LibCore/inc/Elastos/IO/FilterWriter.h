@@ -67,7 +67,6 @@ protected:
     CARAPI Write(
         /* [in] */ Int32 oneChar32);
 
-
     /**
      * Writes {@code count} characters from the string {@code str} starting at
      * position {@code index} to this writer. This implementation writes
@@ -86,7 +85,23 @@ protected:
         /* [in] */ Int32 offset,
         /* [in] */ Int32 count,
         /* [in] */ CString str);
+protected:
+    CARAPI CloseLocked();
 
+    CARAPI FlushLocked();
+
+    CARAPI WriteBufferExLocked(
+        /* [in] */ Int32 offset,
+        /* [in] */ Int32 count,
+        /* [in] */ const ArrayOf<Char8>& buffer);
+
+    CARAPI WriteLocked(
+        /* [in] */ Int32 oneChar32);
+
+    CARAPI WriteStringExLocked(
+        /* [in] */ Int32 offset,
+        /* [in] */ Int32 count,
+        /* [in] */ CString str);
 protected:
      /**
      * The Writer being filtered.

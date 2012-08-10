@@ -49,6 +49,17 @@ ECode StringReader::Mark(
 
     Mutex::Autolock lock(mLock);
 
+    return MarkLocked(readLimit);
+}
+
+ECode StringReader::MarkLocked(
+    /* [in] */ Int32 readLimit)
+{
+    if (readLimit < 0) {
+//      throw new IllegalArgumentException();
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+
     FAIL_RETURN(CheckNotClosed());
     mMarkpos = mPos;
 
@@ -72,6 +83,16 @@ ECode StringReader::Read(
     assert(mLock != NULL);
 
     Mutex::Autolock lock(mLock);
+
+    return ReadLocked(value);
+}
+
+ECode StringReader::ReadLocked(
+    /* [out] */ Int32* value)
+{
+    assert(value != NULL);
+    assert(mLock != NULL);
+
     FAIL_RETURN(CheckNotClosed());
     if (mPos != mCount) {
         *value = mStr.GetChar(mPos++);
@@ -96,6 +117,22 @@ ECode StringReader::ReadBufferEx(
     assert(mLock != NULL);
 
     Mutex::Autolock lock(mLock);
+
+    return ReadBufferExLocked(offset, length, buffer, number);
+}
+
+ECode StringReader::ReadBufferExLocked(
+    /* [in] */ Int32 offset,
+    /* [in] */ Int32 length,
+    /* [out] */ ArrayOf<Char8>* buffer,
+    /* [out] */ Int32* number)
+{
+    // BEGIN android-note
+    // changed array notation to be consistent with the rest of harmony
+    // END android-note
+    assert(buffer != NULL);
+    assert(number != NULL);
+    assert(mLock != NULL);
     
     if (offset < 0 || offset > buffer->GetLength()) {
 //      throw new ArrayIndexOutOfBoundsException("Offset out of bounds: " + offset);
@@ -137,6 +174,16 @@ ECode StringReader::IsReady(
     assert(mLock != NULL);
 
     Mutex::Autolock lock(mLock);
+
+    return IsReadyLocked(ready);
+}
+
+ECode StringReader::IsReadyLocked(
+    /* [out] */ Boolean* ready)
+{
+    assert(ready != NULL);
+    assert(mLock != NULL);
+
     FAIL_RETURN(CheckNotClosed());
     *ready = TRUE;
 
@@ -148,6 +195,13 @@ ECode StringReader::Reset()
     assert(mLock != NULL);
 
     Mutex::Autolock lock(mLock);
+
+    return ResetLocked();
+}
+
+ECode StringReader::ResetLocked()
+{
+    assert(mLock != NULL);
 
     FAIL_RETURN(CheckNotClosed());
     mPos = mMarkpos != -1 ? mMarkpos : 0;
@@ -163,6 +217,16 @@ ECode StringReader::Skip(
     assert(mLock != NULL);
 
     Mutex::Autolock lock(mLock);
+
+    return SkipLocked(count, number);
+}
+
+ECode StringReader::SkipLocked(
+    /* [in] */ Int64 count,
+    /* [out] */ Int64* number)
+{
+    assert(number != NULL);
+    assert(mLock != NULL);
 
     FAIL_RETURN(CheckNotClosed());
     Int32 minSkip = -mPos;

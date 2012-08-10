@@ -182,9 +182,25 @@ public:
     CARAPI Skip(
         /* [in] */ Int64 count,
         /* [out] */ Int64* number);
+protected:
+    CARAPI CloseLocked();
 
+    virtual CARAPI GetChannelLocked(
+        /* [out] */ IFileChannel** channel);
+
+    CARAPI ReadBufferExLocked(
+        /* [in] */ Int32 offset,
+        /* [in] */ Int32 length,
+        /* [out] */ ArrayOf<Byte>* buffer,
+        /* [out] */ Int32* number);
+
+    CARAPI SkipLocked(
+        /* [in] */ Int64 count,
+        /* [out] */ Int64* number);
 private:
     CARAPI OpenCheck();
+
+    CARAPI OpenCheckLocked();
 
 private:
     /**

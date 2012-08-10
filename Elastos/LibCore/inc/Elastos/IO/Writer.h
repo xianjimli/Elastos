@@ -196,6 +196,13 @@ protected:
 
     virtual CARAPI_(Mutex*) GetSelfLock() = 0;
 
+    virtual CARAPI WriteLocked(
+        /* [in] */ Int32 oneChar32);
+
+    virtual CARAPI WriteStringExLocked(
+        /* [in] */ Int32 offset,
+        /* [in] */ Int32 count,
+        /* [in] */ CString str);
 protected:
     static const CString TOKEN_NULL;
 

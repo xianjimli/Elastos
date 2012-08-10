@@ -42,6 +42,16 @@ ECode Reader::Read(
     assert(mLock != NULL);
     Mutex::Autolock lock(mLock);
 
+    return ReadLocked(value);
+}
+
+ECode Reader::ReadLocked(
+    /* [out] */ Int32* value)
+{
+    assert(value != NULL);
+
+    assert(mLock != NULL);
+
     ArrayOf_<Char8, 4> buf;
     Int32 number;
     FAIL_RETURN(ReadBufferEx(0, 1, &buf, &number));
@@ -94,6 +104,22 @@ ECode Reader::Skip(
 
     assert(mLock != NULL);
     Mutex::Autolock lock(mLock);
+
+    return SkipLocked(count, number);
+}
+
+ECode Reader::SkipLocked(
+    /* [in] */ Int64 count,
+    /* [out] */ Int64* number)
+{
+    assert(number != NULL);
+
+    if (count < 0) {
+//      throw new IllegalArgumentException();
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+
+    assert(mLock != NULL);
 
     Int64 skipped = 0;
     Int32 toRead = count < 128 ? (Int32)count : 128;

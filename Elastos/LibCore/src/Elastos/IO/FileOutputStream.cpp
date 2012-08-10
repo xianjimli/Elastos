@@ -85,6 +85,20 @@ ECode FileOutputStream::Close()
         return NOERROR;
     }
 
+    Mutex* selfLock = GetSelfLock();
+    Mutex::Autolock lock(*selfLock);
+
+    return CloseLocked();
+}
+
+ECode FileOutputStream::CloseLocked()
+{
+    if (mFd == NULL) {
+        // if fd is null, then the underlying file is not opened, so nothing
+        // to close
+        return NOERROR;
+    }
+
 //    if (channel != null) {
 //            synchronized (channel) {
 //                if (channel.isOpen() && fd.descriptor >= 0) {
@@ -93,8 +107,6 @@ ECode FileOutputStream::Close()
 //            }
 //        }
 //
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
 
     Boolean isValid;
     if (mFd != NULL && (mFd->Valid(&isValid), isValid) && mInnerFD) {
@@ -174,12 +186,16 @@ ECode FileOutputStream::WriteBufferEx(
     return mFileSystem->Write(mFd->mDescriptor, buffer, offset, count, &number);
 }
 
-///////////////synchronized
 ECode FileOutputStream::OpenCheck()
 {
     Mutex* selfLock = GetSelfLock();
     Mutex::Autolock lock(*selfLock);
 
+    return OpenCheckLocked();
+}
+
+ECode FileOutputStream::OpenCheckLocked()
+{
     if(mFd->mDescriptor < 0){
         return E_IO_EXCEPTION;
     }

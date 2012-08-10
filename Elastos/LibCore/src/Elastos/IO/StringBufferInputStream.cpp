@@ -28,6 +28,15 @@ ECode StringBufferInputStream::Available(
 
     Mutex* selfLock = GetSelfLock();
     Mutex::Autolock lock(*selfLock);
+
+    return AvailableLocked(number);
+}
+
+ECode StringBufferInputStream::AvailableLocked(
+    /* [out] */ Int32* number)
+{
+    assert(number != NULL);
+
     *number = mCount - mPos;
     return NOERROR;
 }
@@ -39,6 +48,15 @@ ECode StringBufferInputStream::Read(
 
     Mutex* selfLock = GetSelfLock();
     Mutex::Autolock lock(*selfLock);
+
+    return ReadLocked(value);
+}
+
+ECode StringBufferInputStream::ReadLocked(
+    /* [out] */ Int32* value)
+{
+    assert(value != NULL);
+
     *value = mPos < mCount ? mBuffer.GetChar(mPos++) & 0xFF : -1;
     return NOERROR;
 }
@@ -59,6 +77,18 @@ ECode StringBufferInputStream::ReadBufferEx(
     // parameters.
     Mutex* selfLock = GetSelfLock();
     Mutex::Autolock lock(*selfLock);
+
+    return ReadBufferExLocked(offset, length, buffer, number);
+}
+
+ECode StringBufferInputStream::ReadBufferExLocked(
+    /* [in] */ Int32 offset,
+    /* [in] */ Int32 length,
+    /* [out] */ ArrayOf<Byte>* buffer,
+    /* [out] */ Int32* number)
+{
+    assert(buffer != NULL);
+    assert(number != NULL);
 
     if (mPos >= mCount) {
         *number = -1;
@@ -97,6 +127,11 @@ ECode StringBufferInputStream::Reset()
     Mutex* selfLock = GetSelfLock();
     Mutex::Autolock lock(*selfLock);
 
+    return ResetLocked();
+}
+
+ECode StringBufferInputStream::ResetLocked()
+{
     mPos = 0;
     return NOERROR;
 }
@@ -109,6 +144,15 @@ ECode StringBufferInputStream::Skip(
 
     Mutex* selfLock = GetSelfLock();
     Mutex::Autolock lock(*selfLock);
+
+    return SkipLocked(count, number);
+}
+
+ECode StringBufferInputStream::SkipLocked(
+    /* [in] */ Int64 count,
+    /* [out] */ Int64* number)
+{
+    assert(number != NULL);
 
     if (count <= 0) {
         *number = 0;

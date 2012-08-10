@@ -45,6 +45,13 @@ ECode PushbackReader::Close()
     assert(mLock != NULL);
     Mutex::Autolock lock(mLock);
 
+    return CloseLocked();
+}
+
+ECode PushbackReader::CloseLocked()
+{
+    assert(mLock != NULL);
+
     ArrayOf<Char8>::Free(mBuf);
     mBuf = NULL;
     return mIn->Close();
@@ -73,6 +80,15 @@ ECode PushbackReader::Read(
     assert(mLock != NULL);
     Mutex::Autolock lock(mLock);
 
+    return ReadLocked(value);
+}
+
+ECode PushbackReader::ReadLocked(
+    /* [out] */ Int32* value)
+{
+    assert(value != NULL);
+    assert(mLock != NULL);
+
     FAIL_RETURN(CheckNotClosed());
     /* Is there a pushback character available? */
     if (mPos < mBuf->GetLength()) {
@@ -96,6 +112,19 @@ ECode PushbackReader::ReadBufferEx(
     assert(number != NULL);
     assert(mLock != NULL);
     Mutex::Autolock lock(mLock);
+
+    return ReadBufferExLocked(offset, count, buffer, number);
+}
+
+ECode PushbackReader::ReadBufferExLocked(
+    /* [in] */ Int32 offset,
+    /* [in] */ Int32 count,
+    /* [out] */ ArrayOf<Char8>* buffer,
+    /* [out] */ Int32* number)
+{
+    assert(buffer != NULL);
+    assert(number != NULL);
+    assert(mLock != NULL);
 
     FAIL_RETURN(CheckNotClosed());
     // avoid int overflow
@@ -169,6 +198,15 @@ ECode PushbackReader::IsReady(
     assert(mLock != NULL);
     Mutex::Autolock lock(mLock);
 
+    return IsReadyLocked(ready);
+}
+
+ECode PushbackReader::IsReadyLocked(
+    /* [out] */ Boolean* ready)
+{
+    assert(ready != NULL);
+    assert(mLock != NULL);
+
     if (mBuf == NULL) {
 //      throw new IOException("Reader is closed");
         return E_IO_EXCEPTION;
@@ -189,6 +227,14 @@ ECode PushbackReader::UnRead(
 {
     assert(mLock != NULL);
     Mutex::Autolock lock(mLock);
+
+    return UnReadLocked(oneChar);
+}
+
+ECode PushbackReader::UnReadLocked(
+   /* [in] */ Int32 oneChar)
+{
+    assert(mLock != NULL);
 
     FAIL_RETURN(CheckNotClosed());
     if (mPos == 0) {
@@ -217,6 +263,16 @@ ECode PushbackReader::UnReadBufferEx(
 {
     assert(mLock != NULL);
     Mutex::Autolock lock(mLock);
+
+    return UnReadBufferExLocked(offset, length, buffer);
+}
+
+ECode PushbackReader::UnReadBufferExLocked(
+    /* [in] */ Int32 offset,
+    /* [in] */ Int32 length,
+    /* [in] */ const ArrayOf<Char8>& buffer)
+{
+    assert(mLock != NULL);
 
     FAIL_RETURN(CheckNotClosed());
     if (length > mPos) {

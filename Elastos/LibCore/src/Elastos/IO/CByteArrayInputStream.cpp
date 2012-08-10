@@ -9,6 +9,14 @@ ECode CByteArrayInputStream::Available(
 
     Mutex::Autolock lock(_m_syncLock);
 
+    return AvailableLocked(number);
+}
+
+ECode CByteArrayInputStream::AvailableLocked(
+    /* [out] */ Int32* number)
+{
+    VALIDATE_NOT_NULL(number);
+
     return ByteArrayInputStream::Available(number);
 }
 
@@ -22,6 +30,12 @@ ECode CByteArrayInputStream::Mark(
 {
     Mutex::Autolock lock(_m_syncLock);
 
+    return MarkLocked(readLimit);
+}
+
+ECode CByteArrayInputStream::MarkLocked(
+    /* [in] */ Int32 readLimit)
+{
     return ByteArrayInputStream::Mark(readLimit);
 }
 
@@ -40,6 +54,14 @@ ECode CByteArrayInputStream::Read(
 
     Mutex::Autolock lock(_m_syncLock);
 
+    return ReadLocked(value);
+}
+
+ECode CByteArrayInputStream::ReadLocked(
+    /* [out] */ Int32* value)
+{
+    VALIDATE_NOT_NULL(value);
+
     return ByteArrayInputStream::Read(value);
 }
 
@@ -51,6 +73,16 @@ ECode CByteArrayInputStream::ReadBuffer(
     VALIDATE_NOT_NULL(number);
 
     Mutex::Autolock lock(_m_syncLock);
+
+    return ReadBufferLocked(buffer, number);
+}
+
+ECode CByteArrayInputStream::ReadBufferLocked(
+    /* [out] */ ArrayOf<Byte>* buffer,
+    /* [out] */ Int32* number)
+{
+    VALIDATE_NOT_NULL(buffer);
+    VALIDATE_NOT_NULL(number);
 
     return ByteArrayInputStream::ReadBuffer(buffer, number);
 }
@@ -66,6 +98,18 @@ ECode CByteArrayInputStream::ReadBufferEx(
 
     Mutex::Autolock lock(_m_syncLock);
 
+    return ReadBufferExLocked(offset, length, buffer, number);
+}
+
+ECode CByteArrayInputStream::ReadBufferExLocked(
+    /* [in] */ Int32 offset,
+    /* [in] */ Int32 length,
+    /* [out] */ ArrayOf<Byte>* buffer,
+    /* [out] */ Int32* number)
+{
+    VALIDATE_NOT_NULL(buffer);
+    VALIDATE_NOT_NULL(number);
+
     return ByteArrayInputStream::ReadBufferEx(offset, length, buffer, number);
 }
 
@@ -73,6 +117,11 @@ ECode CByteArrayInputStream::Reset()
 {
     Mutex::Autolock lock(_m_syncLock);
 
+    return ResetLocked();
+}
+
+ECode CByteArrayInputStream::ResetLocked()
+{
     return ByteArrayInputStream::Reset();
 }
 
@@ -83,6 +132,15 @@ ECode CByteArrayInputStream::Skip(
     VALIDATE_NOT_NULL(number);
 
     Mutex::Autolock lock(_m_syncLock);
+
+    return SkipLocked(count, number);
+}
+
+ECode CByteArrayInputStream::SkipLocked(
+    /* [in] */ Int64 count,
+    /* [out] */ Int64* number)
+{
+    VALIDATE_NOT_NULL(number);
 
     return ByteArrayInputStream::Skip(count, number);
 }

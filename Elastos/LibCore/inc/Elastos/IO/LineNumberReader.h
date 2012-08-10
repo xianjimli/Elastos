@@ -170,7 +170,33 @@ public:
     CARAPI Skip(
         /* [in] */ Int64 count,
         /* [out] */ Int64* number);
+protected:
+    virtual CARAPI  GetLineNumberLocked(
+        /* [out] */ Int32* lineNumber);
 
+    CARAPI MarkLocked(
+        /* [in] */ Int32 readLimit);
+
+    CARAPI ReadLocked(
+        /* [out] */ Int32* value);
+
+    CARAPI ReadBufferExLocked(
+        /* [in] */ Int32 offset,
+        /* [in] */ Int32 length,
+        /* [out] */ ArrayOf<Char8>* buffer,
+        /* [out] */ Int32* number);
+
+    CARAPI ReadLineLocked(
+        /* [out] */ String* result);
+
+    CARAPI ResetLocked();
+
+    virtual CARAPI SetLineNumberLocked(
+        /* [in] */ Int32 lineNumber);
+
+    CARAPI SkipLocked(
+        /* [in] */ Int64 count,
+        /* [out] */ Int64* number);
 private:
     Int32 mLineNumber;
 

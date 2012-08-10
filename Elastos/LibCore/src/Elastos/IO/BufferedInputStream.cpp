@@ -10,6 +10,9 @@ BufferedInputStream::BufferedInputStream()
 
 BufferedInputStream::~BufferedInputStream()
 {
+    if (mBuf != NULL) {
+        ArrayOf<Byte>::Free(mBuf);
+    }
 }
 
 ECode BufferedInputStream::Init(
