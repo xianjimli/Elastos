@@ -114,6 +114,7 @@ ECode CAlertDialogBuilder::SetPositiveButton(
     /* [in] */ Int32 textId,
     /* [in] */ IDialogInterfaceOnClickListener* listener)
 {
+    mP->mPositiveButtonText = NULL;
     mP->mContext->GetText(textId, (ICharSequence**)&mP->mPositiveButtonText);
     mP->mPositiveButtonListener = listener;
     return NOERROR;
@@ -146,6 +147,7 @@ ECode CAlertDialogBuilder::SetNegativeButton(
     /* [in] */ Int32 textId,
     /* [in] */ IDialogInterfaceOnClickListener* listener)
 {
+    mP->mNegativeButtonText = NULL;
     mP->mContext->GetText(textId, (ICharSequence**)&mP->mNegativeButtonText);
     mP->mNegativeButtonListener = listener;
     return NOERROR;
@@ -178,6 +180,7 @@ ECode CAlertDialogBuilder::SetNeutralButton(
     /* [in] */ Int32 textId,
     /* [in] */ IDialogInterfaceOnClickListener* listener)
 {
+    mP->mNeutralButtonText = NULL;
     mP->mContext->GetText(textId, (ICharSequence**)&mP->mNeutralButtonText);
     mP->mNeutralButtonListener = listener;
     return NOERROR;
@@ -248,6 +251,7 @@ ECode CAlertDialogBuilder::SetItems(
 {
     AutoPtr<IResources> resources;
     mP->mContext->GetResources((IResources**)&resources);
+    //todo: check whether mP->mItems has memory leak
     resources->GetTextArray(itemsId, &mP->mItems);
     mP->mOnClickListener = listener;
     return NOERROR;
@@ -264,6 +268,9 @@ ECode CAlertDialogBuilder::SetItemsEx(
     /* [in] */ IDialogInterfaceOnClickListener* listener)
 {
     mP->mItems = items.Clone();
+    for (Int32 i = 0; i < items.GetLength(); ++i) {
+        if (items[i] != NULL) items[i]->AddRef();
+    }
     mP->mOnClickListener = listener;
     return NOERROR;
 }
@@ -335,6 +342,7 @@ ECode CAlertDialogBuilder::SetMultiChoiceItems(
 {
     AutoPtr<IResources> resources;
     mP->mContext->GetResources((IResources**)&resources);
+    //todo: check whether mP->mItems has memory leak
     resources->GetTextArray(itemsId, &mP->mItems);
     mP->mOnCheckboxClickListener = listener;
     mP->mCheckedItems = checkedItems.Clone();
@@ -365,6 +373,9 @@ ECode CAlertDialogBuilder::SetMultiChoiceItemsEx(
     /* [in] */ IDialogInterfaceOnMultiChoiceClickListener* listener)
 {
     mP->mItems = items.Clone();
+    for (Int32 i = 0; i < items.GetLength(); ++i) {
+        if (items[i] != NULL) items[i]->AddRef();
+    }
     mP->mOnCheckboxClickListener = listener;
     mP->mCheckedItems = checkedItems.Clone();
     mP->mIsMultiChoice = TRUE;
@@ -426,6 +437,7 @@ ECode CAlertDialogBuilder::SetSingleChoiceItems(
 {
     AutoPtr<IResources> resources;
     mP->mContext->GetResources((IResources**)&resources);
+    //todo: check whether mP->mItems has memory leak
     resources->GetTextArray(itemsId, &mP->mItems);
     mP->mOnClickListener = listener;
     mP->mCheckedItem = checkedItem;
@@ -483,6 +495,9 @@ ECode CAlertDialogBuilder::SetSingleChoiceItemsEx2(
     /* [in] */ IDialogInterfaceOnClickListener* listener)
 {
     mP->mItems = items.Clone();
+    for (Int32 i = 0; i < items.GetLength(); ++i) {
+        if (items[i] != NULL) items[i]->AddRef();
+    }
     mP->mOnClickListener = listener;
     mP->mCheckedItem = checkedItem;
     mP->mIsSingleChoice = TRUE;
@@ -645,8 +660,7 @@ ECode CAlertDialogBuilder::Create(
 ECode CAlertDialogBuilder::Show(
     /* [out] */ IAlertDialog** dialog)
 {
-    VALIDATE_NOT_NULL(dialog);
-    Create(dialog);
+    FAIL_RETURN(Create(dialog));
     (*dialog)->Show();
 
     return NOERROR;

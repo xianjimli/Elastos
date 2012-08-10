@@ -424,7 +424,7 @@ ECode SimpleAdapter::Init(
     mTo = to.Clone();
 
     context->GetSystemService(
-        String(Context_LAYOUT_INFLATER_SERVICE), (IInterface**)&mInflater);
+        Context_LAYOUT_INFLATER_SERVICE, (IInterface**)&mInflater);
 
     return NOERROR;
 }

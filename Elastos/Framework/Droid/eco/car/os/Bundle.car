@@ -124,5 +124,28 @@ module
 
         HasFileDescriptors(
             [out] Boolean* hasFD);
+            
+        /**
+         * Inserts a Bundle value into the mapping of this Bundle, replacing
+         * any existing value for the given key.  Either key or value may be null.
+         *
+         * @param key a String, or null
+         * @param value a Bundle object, or null
+         */
+        PutBundle(
+            [in] String key, 
+            [in] IBundle* value);
+        
+        /**
+         * Returns the value associated with the given key, or null if
+         * no mapping of the desired type exists for the given key or a null
+         * value is explicitly associated with the key.
+         *
+         * @param key a String, or null
+         * @return a Bundle value, or null
+         */
+        GetBundle(
+            [in] String key,
+            [out] IBundle** value);
     }
 }

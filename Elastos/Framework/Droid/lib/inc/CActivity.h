@@ -159,7 +159,7 @@ public:
         /* [in] */ IServiceConnection* conn);
 
     CARAPI GetSystemService(
-        /* [in] */ const String& name,
+        /* [in] */ CString name,
         /* [out] */ IInterface** object);
 
     CARAPI CreateCapsuleContext(
@@ -261,6 +261,14 @@ public:
 
     CARAPI GetWindowManagerEx(
         /* [out] */ IWindowManager** mgr);
+
+    /**
+     * Returns complete component name of this activity.
+     *
+     * @return Returns the complete component name for this activity
+     */
+    virtual CARAPI GetComponentName(
+        /* [out] */ IComponentName** name);
 
     /**
      * Change the title associated with this activity.  If this is a

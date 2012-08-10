@@ -7,7 +7,6 @@ INCLUDES += $(MAKEDIR)/../inc
 INCLUDES += ../
 
 SOURCES = CApartment.cpp
-SOURCES += CBundle.cpp
 SOURCES += CParcelableObjectContainer.cpp
 SOURCES += CObjectEnumerator.cpp
 SOURCES += CObjectStringMap.cpp

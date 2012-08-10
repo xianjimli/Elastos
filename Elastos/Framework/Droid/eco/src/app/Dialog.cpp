@@ -2,7 +2,7 @@
 #include "app/Dialog.h"
 #include "impl/CPolicyManager.h"
 #include "utils/CApartment.h"
-#include "utils/CBundle.h"
+#include "os/CBundle.h"
 #include "view/CWindowManagerLayoutParams.h"
 #include "view/ViewConfiguration.h"
 #include "content/CContextThemeWrapper.h"
@@ -84,7 +84,7 @@ ECode Dialog::SetOwnerActivity(
     mOwnerActivity = activity;
 
     Int32 streamType;
-    //mOwnerActivity->GetVolumeControlStream(&streamType);
+//    mOwnerActivity->GetVolumeControlStream(&streamType);
     return GetWindow()->SetVolumeControlStream(streamType);
 }
 
@@ -298,7 +298,7 @@ AutoPtr<IBundle> Dialog::OnSaveInstanceState()
     if (mCreated) {
         AutoPtr<IBundle> wBundle;
         mWindow->SaveHierarchyState((IBundle**)&bundle);
-        bundle->PutInt32(DIALOG_HIERARCHY_TAG, (Int32)wBundle.Get());
+        bundle->PutBundle(DIALOG_HIERARCHY_TAG, wBundle);
     }
     return bundle;
 }
@@ -317,7 +317,7 @@ ECode Dialog::OnRestoreInstanceState(
     /* [in] */ IBundle* savedInstanceState)
 {
     AutoPtr<IBundle> dialogHierarchyState;
-    savedInstanceState->GetInt32(DIALOG_HIERARCHY_TAG, (Int32*)&dialogHierarchyState);
+    savedInstanceState->GetBundle(DIALOG_HIERARCHY_TAG, (IBundle**)&dialogHierarchyState);
     if (dialogHierarchyState == NULL) {
         // dialog has never been shown, or onCreated, nothing to restore.
         return NOERROR;
@@ -462,7 +462,7 @@ ECode Dialog::SetTitle(
     /* [in] */ Int32 titleId)
 {
     AutoPtr<ICharSequence> title;
-    //mContext->GetText(titleId, (ICharSequence**)&title);
+    mContext->GetText(titleId, (ICharSequence**)&title);
 
     return SetTitle(title);
 }
@@ -549,7 +549,7 @@ ECode Dialog::OnBackPressed()
     if (mCancelable) {
         Cancel();
     }
-    
+
     return NOERROR;
 }
 
@@ -733,13 +733,13 @@ Boolean Dialog::DispatchTrackballEvent(
 Boolean Dialog::DispatchPopulateAccessibilityEvent(
     /* [in] */ IAccessibilityEvent* event)
 {
-    //event.setClassName(getClass().getName());
-    //event.setPackageName(mContext.getPackageName());
-
-    //LayoutParams params = GetWindow().getAttributes();
-    //Boolean isFullScreen = (params.width == LayoutParams.MATCH_PARENT) &&
-    //    (params.height == LayoutParams.MATCH_PARENT);
-    //event.setFullScreen(isFullScreen);
+//    event.setClassName(getClass().getName());
+//    event.setPackageName(mContext.getPackageName());
+//
+//    LayoutParams params = GetWindow().getAttributes();
+//    Boolean isFullScreen = (params.width == LayoutParams.MATCH_PARENT) &&
+//        (params.height == LayoutParams.MATCH_PARENT);
+//    event.setFullScreen(isFullScreen);
 
     return FALSE;
 }
@@ -894,8 +894,8 @@ ECode Dialog::RegisterForContextMenu(
     /* [in] */ IView* view)
 {
     return view->SetOnCreateContextMenuListener(
-        (IOnCreateContextMenuListener*)this->Probe(
-        EIID_IOnCreateContextMenuListener));
+        (IViewOnCreateContextMenuListener*)this->Probe(
+        EIID_IViewOnCreateContextMenuListener));
 }
 
 /**
@@ -940,18 +940,18 @@ ECode Dialog::OnContextMenuClosed(
  */
 Boolean Dialog::OnSearchRequested()
 {
-    //final SearchManager searchManager = (SearchManager) mContext
-    //        .getSystemService(Context_SEARCH_SERVICE);
-
-    //// associate search with owner activity
-    //final ComponentName appName = getAssociatedActivity();
-    //if (appName != NULL) {
-    //    searchManager.startSearch(NULL, FALSE, appName, NULL, FALSE);
-    //    dismiss();
-    //    return TRUE;
-    //} else {
-    //    return FALSE;
-    //}
+//    final SearchManager searchManager = (SearchManager) mContext
+//            .getSystemService(Context_SEARCH_SERVICE);
+//
+//    // associate search with owner activity
+//    final ComponentName appName = getAssociatedActivity();
+//    if (appName != NULL) {
+//        searchManager.startSearch(NULL, FALSE, appName, NULL, FALSE);
+//        dismiss();
+//        return TRUE;
+//    } else {
+//        return FALSE;
+//    }
     return FALSE;
 }
 
@@ -970,15 +970,15 @@ AutoPtr<IComponentName> Dialog::GetAssociatedActivity()
             if (IContextWrapper::Probe(context)) {// unwrap one level
                 IContextWrapper::Probe(context)->GetBaseContext(
                     (IContext**)&context);
-            } 
+            }
             else {// done
                 context = NULL;
-            }                                    
+            }
         }
     }
     AutoPtr<IComponentName> name;
     if (activity != NULL) {
-        //activity->GetComponentName((IComponentName**)&name);
+        activity->GetComponentName((IComponentName**)&name);
     }
     return name;
 }
@@ -1246,15 +1246,14 @@ ECode Dialog::Init(
     CContextThemeWrapper::New(
         context, theme, (IContextThemeWrapper**)&mContext);
 
-    context->GetSystemService(
-        String(Context_WINDOW_SERVICE), (IInterface**)&mWindowManager);
+    context->GetSystemService(Context_WINDOW_SERVICE, (IInterface**)&mWindowManager);
 
     AutoPtr<IPolicyManager> pm;
     CPolicyManager::AcquireSingleton((IPolicyManager**)&pm);
     pm->MakeNewWindow(mContext, (IWindow**)&mWindow);
 
     mWindow->SetCallback((IWindowCallback*)this->Probe(EIID_IWindowCallback));
-    mWindow->SetWindowManager(mWindowManager, NULL, String());
+    mWindow->SetWindowManager(mWindowManager, NULL, String(NULL));
     mWindow->SetGravity(Gravity_CENTER);
     mUiThread = pthread_self();
 

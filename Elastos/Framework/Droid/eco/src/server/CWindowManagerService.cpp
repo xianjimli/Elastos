@@ -1866,7 +1866,7 @@ ECode CWindowManagerService::SetAppStartingWindow(
                 ttoken->mStartingMoved = TRUE;
 
                 ECode (STDCALL CWindowManagerService::*pHandlerFunc)(AppWindowToken*);
-                pHandlerFunc = &CWindowManagerService::HandleStarting;
+                pHandlerFunc = &CWindowManagerService::HandleAddStarting;
 
                 AutoPtr<IParcel> params;
                 CCallbackParcel::New((IParcel**)&params);
@@ -1914,7 +1914,7 @@ ECode CWindowManagerService::SetAppStartingWindow(
             cap, theme, nonLocalizedLabel, labelRes, icon);
 
     ECode (STDCALL CWindowManagerService::*pHandlerFunc)(AppWindowToken*);
-    pHandlerFunc = &CWindowManagerService::HandleStarting;
+    pHandlerFunc = &CWindowManagerService::HandleAddStarting;
 
     AutoPtr<IParcel> params;
     CCallbackParcel::New((IParcel**)&params);
@@ -10102,7 +10102,7 @@ ECode CWindowManagerService::HandleAnimate()
     return PerformLayoutAndPlaceSurfacesLocked();
 }
 
-ECode CWindowManagerService::HandleStarting(
+ECode CWindowManagerService::HandleAddStarting(
     /* [in] */ AppWindowToken* wtoken)
 {
     StartingData* sd = wtoken->mStartingData;

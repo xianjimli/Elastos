@@ -7,7 +7,7 @@
 #include <elastos/AutoPtr.h>
 #include <elastos/ElRefBase.h>
 
-#include "utils/CBundle.h"
+#include "os/CBundle.h"
 #include "content/CComponentName.h"
 #include "content/CIntentFilter.h"
 #include "content/CPermissionInfo.h"

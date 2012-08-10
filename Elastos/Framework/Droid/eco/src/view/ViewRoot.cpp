@@ -469,12 +469,12 @@ void ViewRoot::RunQueue::RemoveCallbacks(
 {
     Mutex::Autolock lock(mLock);
 
-    List<AutoPtr<HandlerAction> >::Iterator iter;
-    for (iter=mActions.Begin(); iter!=mActions.End(); ++iter) {
+    List<AutoPtr<HandlerAction> >::Iterator iter = mActions.Begin();
+    while (iter != mActions.End()) {
         if ((*iter)->mAction.Get() == action) {
             iter = mActions.Erase(iter);
-            iter--;
         }
+        else ++iter;
     }
 }
 
@@ -487,7 +487,7 @@ void ViewRoot::RunQueue::ExecuteActions(
     pHandlerFunc = &IRunnable::Run;
 
     List<AutoPtr<HandlerAction> >::Iterator iter;
-    for (iter=mActions.Begin(); iter!=mActions.End(); ++iter) {
+    for (iter = mActions.Begin(); iter != mActions.End(); ++iter) {
         apartment->PostCppCallbackDelayed(
             (Handle32)(*iter)->mAction.Get(), *(Handle32*)&pHandlerFunc,
             NULL, 0, (*iter)->mDelay);

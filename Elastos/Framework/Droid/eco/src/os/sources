@@ -6,7 +6,8 @@ include $(MAKEDIR)/../../../sources.inc
 INCLUDES += $(MAKEDIR)/../inc
 INCLUDES += ../
 
-SOURCES = BatteryStatsImpl.cpp
+SOURCES = CBundle.cpp
+SOURCES += BatteryStatsImpl.cpp
 SOURCES += StorageResultCode.cpp
 SOURCES += ServiceManager.cpp
 SOURCES += SystemClock.cpp

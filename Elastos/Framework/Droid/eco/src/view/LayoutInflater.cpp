@@ -118,7 +118,7 @@ ECode LayoutInflater::From(
     if (inflater == NULL) return E_INVALID_ARGUMENT;
 
     ECode ec = context->GetSystemService(
-            String(Context_LAYOUT_INFLATER_SERVICE), (IInterface**)inflater);
+            Context_LAYOUT_INFLATER_SERVICE, (IInterface**)inflater);
     if (FAILED(ec) || (*inflater == NULL)) {
         Slogger::W(TAG, "LayoutInflater not found.");
         return E_ASSERTION_ERROR;

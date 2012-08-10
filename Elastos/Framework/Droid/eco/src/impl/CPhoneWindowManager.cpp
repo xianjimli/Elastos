@@ -835,7 +835,7 @@ ECode CPhoneWindowManager::AddStartingWindow(
         params->SetTitle(tl);
 
         AutoPtr<IWindowManager> wm;
-        context->GetSystemService(String(Context_WINDOW_SERVICE), (IInterface**)&wm);
+        context->GetSystemService(Context_WINDOW_SERVICE, (IInterface**)&wm);
 
         AutoPtr<IView> view;
         win->GetDecorView((IView**)&view);
@@ -892,7 +892,7 @@ ECode CPhoneWindowManager::RemoveStartingWindow(
 
     if (window != NULL) {
         AutoPtr<IWindowManager> wm;
-        mContext->GetSystemService(String(Context_WINDOW_SERVICE), (IInterface**)&wm);
+        mContext->GetSystemService(Context_WINDOW_SERVICE, (IInterface**)&wm);
         wm->RemoveView(window);
     }
 

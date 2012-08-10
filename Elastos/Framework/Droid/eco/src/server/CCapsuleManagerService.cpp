@@ -5063,7 +5063,7 @@ ECode CCapsuleManagerService::constructor(
     AutoPtr<IWindowManager> wm;
     AutoPtr<IDisplay> d;
 
-    context->GetSystemService(String(Context_WINDOW_SERVICE), (IInterface**)&wm);
+    context->GetSystemService(Context_WINDOW_SERVICE, (IInterface**)&wm);
     wm->GetDefaultDisplay((IDisplay**)&d);
     d->GetMetrics(mMetrics.Get());
 

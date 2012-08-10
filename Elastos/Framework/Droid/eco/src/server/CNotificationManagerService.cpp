@@ -1167,7 +1167,7 @@ void CNotificationManagerService::UpdateAdbNotification(
         if (!mAdbNotificationShown) {
             AutoPtr<INotificationManager> notificationManager;
 
-            mContext->GetSystemService(String(Context_NOTIFICATION_SERVICE),
+            mContext->GetSystemService(Context_NOTIFICATION_SERVICE,
                     (IInterface**)&notificationManager);
             if (notificationManager != NULL) {
                 AutoPtr<IResources> r;
@@ -1219,7 +1219,7 @@ void CNotificationManagerService::UpdateAdbNotification(
     }
     else if (mAdbNotificationShown) {
         AutoPtr<INotificationManager> notificationManager;
-        mContext->GetSystemService(String(Context_NOTIFICATION_SERVICE), (IInterface**)&notificationManager);
+        mContext->GetSystemService(Context_NOTIFICATION_SERVICE, (IInterface**)&notificationManager);
         if (notificationManager != NULL) {
             mAdbNotificationShown = FALSE;
             ((NotificationManager*)notificationManager.Get())->Cancel(0x01040342

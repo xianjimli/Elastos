@@ -754,7 +754,7 @@ ECode CActivity::UnbindService(
 }
 
 ECode CActivity::GetSystemService(
-    /* [in] */ const String& name,
+    /* [in] */ CString name,
     /* [out] */ IInterface** object)
 {
     if (object == NULL) return E_INVALID_ARGUMENT;
@@ -767,20 +767,20 @@ ECode CActivity::GetSystemService(
         return E_NOT_IMPLEMENTED;
     }
 
-    if (!String(Context_WINDOW_SERVICE).Compare(name)) {
+    if (!CString(Context_WINDOW_SERVICE).Compare(name)) {
         *object = (IInterface*)mWindowManager.Get();
         if (*object != NULL) (*object)->AddRef();
         return NOERROR;
     }
-    else if (!String(Context_SEARCH_SERVICE).Compare(name)) {
+    else if (!CString(Context_SEARCH_SERVICE).Compare(name)) {
 //        ensureSearchManager();
 //        return mSearchManager;
     }
-    else if (!String(Context_LAYOUT_INFLATER_SERVICE).Compare(name)) {
+    else if (!CString(Context_LAYOUT_INFLATER_SERVICE).Compare(name)) {
         if (mInflater == NULL) {
             AutoPtr<ILayoutInflater> inflater;
             mBase->GetSystemService(
-                String(Context_LAYOUT_INFLATER_SERVICE), (IInterface**)&inflater);
+                Context_LAYOUT_INFLATER_SERVICE, (IInterface**)&inflater);
 
             if (inflater == NULL) {
                 return E_INVALID_ARGUMENT;
@@ -797,6 +797,21 @@ ECode CActivity::GetSystemService(
         return NOERROR;
     }
     return mBase->GetSystemService(name, object);
+}
+
+/**
+ * Returns complete component name of this activity.
+ *
+ * @return Returns the complete component name for this activity
+ */
+ECode CActivity::GetComponentName(
+    /* [out] */ IComponentName** name)
+{
+    if (name == NULL) return E_ILLEGAL_ARGUMENT_EXCEPTION;
+
+    *name = mComponent;
+    if (*name != NULL) (*name)->AddRef();
+    return NOERROR;
 }
 
 /**

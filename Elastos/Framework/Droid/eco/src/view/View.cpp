@@ -882,7 +882,7 @@ ECode View::SetOnLongClickListener(
  *
  */
 ECode View::SetOnCreateContextMenuListener(
-    /* [in] */ IOnCreateContextMenuListener* l)
+    /* [in] */ IViewOnCreateContextMenuListener* l)
 {
     if (!IsLongClickable()) {
         SetLongClickable(TRUE);

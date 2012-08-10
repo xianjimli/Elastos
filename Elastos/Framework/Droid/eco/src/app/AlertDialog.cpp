@@ -55,12 +55,6 @@ ECode AlertDialog::SetTitle(
     return NOERROR;
 }
 
-ECode AlertDialog::SetTitle(
-    /* [in] */ Int32 titleId)
-{
-    return Dialog::SetTitle(titleId);
-}
-
 /**
  * @see Builder#setCustomTitle(View)
  */
@@ -194,8 +188,9 @@ Boolean AlertDialog::OnKeyDown(
     /* [in] */ Int32 keyCode,
     /* [in] */ IKeyEvent* event)
 {
-    if (mAlert->OnKeyDown(keyCode, event))
+    if (mAlert->OnKeyDown(keyCode, event)) {
         return TRUE;
+    }
 
     return Dialog::OnKeyDown(keyCode, event);
 }
@@ -205,8 +200,9 @@ Boolean AlertDialog::OnKeyUp(
     /* [in] */ Int32 keyCode,
     /* [in] */ IKeyEvent* event)
 {
-    if (mAlert->OnKeyUp(keyCode, event))
+    if (mAlert->OnKeyUp(keyCode, event)) {
         return TRUE;
+    }
 
     return Dialog::OnKeyUp(keyCode, event);
 }
@@ -228,7 +224,7 @@ ECode AlertDialog::Init(
     /* [in] */ Boolean cancelable,
     /* [in] */ IDialogInterfaceOnCancelListener* cancelListener)
 {
-    FAIL_RETURN(Dialog::Init(context, cancelable, cancelListener));
+    FAIL_RETURN(Dialog::Init(context, 0x010300a3/*com.android.internal.R.style.Theme_Dialog_Alert*/));
 
     SetCancelable(cancelable);
     SetOnCancelListener(cancelListener);

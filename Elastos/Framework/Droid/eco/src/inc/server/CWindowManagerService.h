@@ -1806,7 +1806,7 @@ private:
 
     CARAPI HandleAnimate();
 
-    CARAPI HandleStarting(
+    CARAPI HandleAddStarting(
         /* [in] */ AppWindowToken* wtoken);
 
     CARAPI HandleRemoveStarting(

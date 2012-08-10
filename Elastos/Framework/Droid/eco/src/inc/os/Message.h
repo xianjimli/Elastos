@@ -3,7 +3,7 @@
 #define __HH_MESSAGE_H
 
 #include "ext/frameworkext.h"
-#include "utils/CBundle.h"
+#include "os/CBundle.h"
 #include <elastos/AutoPtr.h>
 #include <elastos.h>
 

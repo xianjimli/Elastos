@@ -1,6 +1,6 @@
 
 #include "content/CIntent.h"
-#include "utils/CBundle.h"
+#include "os/CBundle.h"
 #include "net/CStringUri.h"
 #include <elastos/Algorithm.h>
 

@@ -20,7 +20,7 @@ public:
         /* [out] */ ITheme** theme);
 
     CARAPI GetSystemService(
-        /* [in] */ const String& name,
+        /* [in] */ CString name,
         /* [out] */ IInterface** object);
 
 protected:

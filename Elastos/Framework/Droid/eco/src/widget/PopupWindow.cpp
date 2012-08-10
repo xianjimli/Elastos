@@ -108,7 +108,7 @@ ECode PopupWindow::SetContentView(
     }
 
     if (mWindowManager == NULL) {
-        mContext->GetSystemService(String(Context_WINDOW_SERVICE), (IInterface**)&mWindowManager);
+        mContext->GetSystemService(Context_WINDOW_SERVICE, (IInterface**)&mWindowManager);
     }
 
     return NOERROR;
@@ -1035,8 +1035,7 @@ ECode PopupWindow::Init(
     assert(ctx != NULL);
 
     mContext = ctx;
-    ctx->GetSystemService(
-            String(Context_WINDOW_SERVICE), (IInterface**)&mWindowManager);
+    ctx->GetSystemService(Context_WINDOW_SERVICE, (IInterface**)&mWindowManager);
 
     AutoPtr<ITypedArray> a;
     FAIL_RETURN(ctx->ObtainStyledAttributesEx3(attrs,
@@ -1133,7 +1132,7 @@ ECode PopupWindow::Init(
 {
     if (contentView != NULL) {
         contentView->GetContext((IContext**)&mContext);
-        mContext->GetSystemService(String(Context_WINDOW_SERVICE), (IInterface**)&mWindowManager);
+        mContext->GetSystemService(Context_WINDOW_SERVICE, (IInterface**)&mWindowManager);
     }
     SetContentView(contentView);
     SetWidth(width);

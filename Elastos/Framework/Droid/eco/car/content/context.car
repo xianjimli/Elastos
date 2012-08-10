@@ -552,7 +552,7 @@ module
             [in] IServiceConnection* conn);
 
         GetSystemService(
-            [in] String name,
+            [in] CString name,
             [out] IInterface** object);
 
         CreateCapsuleContext(

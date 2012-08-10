@@ -93,7 +93,7 @@ ECode ContextWrapper::UnbindService(
 }
 
 ECode ContextWrapper::GetSystemService(
-    /* [in] */ const String& name,
+    /* [in] */ CString name,
     /* [out] */ IInterface** object)
 {
     return mBase->GetSystemService(name, object);

@@ -364,17 +364,18 @@ ECode CContextImpl::UnbindService(
 }
 
 ECode CContextImpl::GetSystemService(
-    /* [in] */ const String& name,
+    /* [in] */ CString name,
     /* [out] */ IInterface** object)
 {
     ECode ec = NOERROR;
-    if (!String(Context_WINDOW_SERVICE).Compare(name)) {
+    if (!CString(Context_WINDOW_SERVICE).Compare(name)) {
         AutoPtr<IWindowManager> wm;
         CWindowManagerImpl::AcquireSingleton((IWindowManager**)&wm);
         *object = (IInterface*)wm.Get();
         (*object)->AddRef();
         return NOERROR;
-    } else if (!String(Context_LAYOUT_INFLATER_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_LAYOUT_INFLATER_SERVICE).Compare(name)) {
         Mutex::Autolock lock(mSync);
 
         if (mLayoutInflater != NULL) {
@@ -397,58 +398,76 @@ ECode CContextImpl::GetSystemService(
         *object = (IInterface*)mLayoutInflater.Get();
         (*object)->AddRef();
         return NOERROR;
-    } else if (!String(Context_ACTIVITY_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_ACTIVITY_SERVICE).Compare(name)) {
 //        return getActivityManager();
         return E_NOT_IMPLEMENTED;
-    } else if (!String(Context_INPUT_METHOD_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_INPUT_METHOD_SERVICE).Compare(name)) {
 //        return InputMethodManager.getInstance(this);
         return E_NOT_IMPLEMENTED;
-    } else if (!String(Context_ALARM_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_ALARM_SERVICE).Compare(name)) {
 //        return getAlarmManager();
         return E_NOT_IMPLEMENTED;
-    } else if (!String(Context_ACCOUNT_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_ACCOUNT_SERVICE).Compare(name)) {
 //        return getAccountManager();
         return E_NOT_IMPLEMENTED;
-    } else if (!String(Context_POWER_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_POWER_SERVICE).Compare(name)) {
 //        return getPowerManager();
         return E_NOT_IMPLEMENTED;
-    } else if (!String(Context_CONNECTIVITY_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_CONNECTIVITY_SERVICE).Compare(name)) {
 //        return getConnectivityManager();
         return E_NOT_IMPLEMENTED;
-    } else if (!String(Context_THROTTLE_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_THROTTLE_SERVICE).Compare(name)) {
 //        return getThrottleManager();
         return E_NOT_IMPLEMENTED;
-    } else if (!String(Context_WIFI_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_WIFI_SERVICE).Compare(name)) {
 //        return getWifiManager();
         return E_NOT_IMPLEMENTED;
-    } else if (!String(Context_NOTIFICATION_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_NOTIFICATION_SERVICE).Compare(name)) {
 //        return getNotificationManager();
         return E_NOT_IMPLEMENTED;
-    } else if (!String(Context_KEYGUARD_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_KEYGUARD_SERVICE).Compare(name)) {
 //        return new KeyguardManager();
         return E_NOT_IMPLEMENTED;
-    } else if (!String(Context_ACCESSIBILITY_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_ACCESSIBILITY_SERVICE).Compare(name)) {
 //        return AccessibilityManager.getInstance(this);
         return E_NOT_IMPLEMENTED;
-    } else if (!String(Context_LOCATION_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_LOCATION_SERVICE).Compare(name)) {
 //        return getLocationManager();
         return E_NOT_IMPLEMENTED;
-    } else if (!String(Context_SEARCH_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_SEARCH_SERVICE).Compare(name)) {
 //        return getSearchManager();
         return E_NOT_IMPLEMENTED;
-    } else if (!String(Context_SENSOR_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_SENSOR_SERVICE).Compare(name)) {
 //        return getSensorManager();
         return E_NOT_IMPLEMENTED;
-    } else if (!String(Context_STORAGE_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_STORAGE_SERVICE).Compare(name)) {
 //        return getStorageManager();
         return E_NOT_IMPLEMENTED;
-    } else if (!String(Context_USB_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_USB_SERVICE).Compare(name)) {
 //        return getUsbManager();
         return E_NOT_IMPLEMENTED;
-    } else if (!String(Context_VIBRATOR_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_VIBRATOR_SERVICE).Compare(name)) {
 //        return getVibrator();
         return E_NOT_IMPLEMENTED;
-    } else if (!String(Context_STATUS_BAR_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_STATUS_BAR_SERVICE).Compare(name)) {
 //        synchronized (mSync) {
 //            if (mStatusBarManager == null) {
 //                mStatusBarManager = new StatusBarManager(getOuterContext());
@@ -456,31 +475,40 @@ ECode CContextImpl::GetSystemService(
 //            return mStatusBarManager;
 //        }
         return E_NOT_IMPLEMENTED;
-    } else if (!String(Context_AUDIO_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_AUDIO_SERVICE).Compare(name)) {
 //        return getAudioManager();
         return E_NOT_IMPLEMENTED;
-    } else if (!String(Context_TELEPHONY_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_TELEPHONY_SERVICE).Compare(name)) {
 //        return getTelephonyManager();
         return E_NOT_IMPLEMENTED;
-    } else if (!String(Context_CLIPBOARD_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_CLIPBOARD_SERVICE).Compare(name)) {
 //        return getClipboardManager();
         return E_NOT_IMPLEMENTED;
-    } else if (!String(Context_WALLPAPER_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_WALLPAPER_SERVICE).Compare(name)) {
 //        return getWallpaperManager();
         return E_NOT_IMPLEMENTED;
-    } else if (!String(Context_DROPBOX_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_DROPBOX_SERVICE).Compare(name)) {
 //        return getDropBoxManager();
         return E_NOT_IMPLEMENTED;
-    } else if (!String(Context_DEVICE_POLICY_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_DEVICE_POLICY_SERVICE).Compare(name)) {
 //        return getDevicePolicyManager();
         return E_NOT_IMPLEMENTED;
-    } else if (!String(Context_UI_MODE_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_UI_MODE_SERVICE).Compare(name)) {
 //        return getUiModeManager();
         return E_NOT_IMPLEMENTED;
-    } else if (!String(Context_DOWNLOAD_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_DOWNLOAD_SERVICE).Compare(name)) {
 //        return getDownloadManager();
         return E_NOT_IMPLEMENTED;
-    } else if (!String(Context_NFC_SERVICE).Compare(name)) {
+    }
+    else if (!CString(Context_NFC_SERVICE).Compare(name)) {
 //        return getNfcManager();
         return E_NOT_IMPLEMENTED;
     }

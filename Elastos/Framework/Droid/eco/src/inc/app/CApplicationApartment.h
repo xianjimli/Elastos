@@ -14,7 +14,7 @@
 #include "capsule/CActivityInfo.h"
 #include "capsule/CServiceInfo.h"
 #include "app/CResultInfo.h"
-#include "utils/CBundle.h"
+#include "os/CBundle.h"
 #include <elastos/Mutex.h>
 
 using namespace Elastos::Core::Threading;

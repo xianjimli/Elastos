@@ -31,7 +31,7 @@
         /* [in] */ IViewOnLongClickListener* l);                        \
                                                                         \
     CARAPI SetOnCreateContextMenuListener(                              \
-        /* [in] */ IOnCreateContextMenuListener* l);                    \
+        /* [in] */ IViewOnCreateContextMenuListener* l);                \
                                                                         \
     CARAPI PerformClick(                                                \
         /* [out] */ Boolean* result);                                   \
@@ -768,7 +768,7 @@ ECode className::SetOnLongClickListener(                                \
 }                                                                       \
                                                                         \
 ECode className::SetOnCreateContextMenuListener(                        \
-    /* [in] */ IOnCreateContextMenuListener* l)                         \
+    /* [in] */ IViewOnCreateContextMenuListener* l)                     \
 {                                                                       \
     return superClass::SetOnCreateContextMenuListener(l);               \
 }                                                                       \

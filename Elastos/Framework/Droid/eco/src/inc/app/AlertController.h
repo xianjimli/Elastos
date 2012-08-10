@@ -65,7 +65,7 @@ public:
          * Interface definition for a callback to be invoked before the ListView
          * will be bound to an adapter.
          */
-        interface OnPrepareListViewListener
+        interface IOnPrepareListViewListener : public IInterface
         {
             /**
              * Called before the ListView is bound to an adapter.
@@ -123,7 +123,7 @@ public:
         String mIsCheckedColumn;
         Boolean mForceInverseBackground;
         AutoPtr<IOnItemSelectedListener> mOnItemSelectedListener;
-        OnPrepareListViewListener* mOnPrepareListViewListener;
+        AutoPtr<IOnPrepareListViewListener> mOnPrepareListViewListener;
         Boolean mRecycleOnMeasure;
     };
 
@@ -151,10 +151,6 @@ protected:
     private:
         AlertController* mHost;
     };
-
-protected:
-    static Boolean CanTextInput(
-        /* [in] */ IView* v);
 
 public:
     AlertController(
@@ -209,6 +205,10 @@ public:
     CARAPI_(Boolean) OnKeyUp(
         /* [in] */ Int32 keyCode,
         /* [in] */ IKeyEvent* event);
+
+protected:
+    static Boolean CanTextInput(
+        /* [in] */ IView* v);
 
 private:
     CARAPI_(void) SetupView();

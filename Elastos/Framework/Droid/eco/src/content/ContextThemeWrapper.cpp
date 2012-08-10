@@ -47,10 +47,10 @@ ECode ContextThemeWrapper::GetTheme(
 }
 
 ECode ContextThemeWrapper::GetSystemService(
-    /* [in] */ const String& name,
+    /* [in] */ CString name,
     /* [out] */ IInterface** object)
 {
-    if (!String(Context_LAYOUT_INFLATER_SERVICE).Compare(name)) {
+    if (!CString(Context_LAYOUT_INFLATER_SERVICE).Compare(name)) {
         if (mInflater == NULL) {
             AutoPtr<ILayoutInflater> inflater;
             LayoutInflater::From(mBase, (ILayoutInflater**)&inflater);

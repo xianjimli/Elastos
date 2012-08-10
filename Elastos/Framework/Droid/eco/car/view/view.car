@@ -133,7 +133,7 @@ module
      * Interface definition for a callback to be invoked when the context menu
      * for this view is being built.
      */
-    interface IOnCreateContextMenuListener {
+    interface IViewOnCreateContextMenuListener {
         /**
          * Called when the context menu for this view is being built. It is not
          * safe to hold onto the menu after this method returns.
@@ -252,7 +252,7 @@ module
          *
          */
         SetOnCreateContextMenuListener(
-            [in] IOnCreateContextMenuListener* l);
+            [in] IViewOnCreateContextMenuListener* l);
 
         /**
          * Call this view's OnClickListener, if it is defined.

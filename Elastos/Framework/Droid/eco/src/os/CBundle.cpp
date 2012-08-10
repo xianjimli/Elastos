@@ -1,5 +1,6 @@
 
-#include "utils/CBundle.h"
+#include "os/CBundle.h"
+#include "ext/frameworkdef.h"
 #include <elastos/AutoPtr.h>
 
 CBundle::CBundle() :
@@ -21,14 +22,14 @@ ECode CBundle::PutBoolean(
 
 ECode CBundle::GetBoolean(
     /* [in] */ const String& key,
-    /* [out] */ Boolean * pValue)
+    /* [out] */ Boolean* value)
 {
-    if (pValue == NULL) return E_INVALID_ARGUMENT;
+    VALIDATE_NOT_NULL(value);
 
-    DataWrapper *pData = mData[key];
-    if ((pData == NULL) || (pData->m_Type != BOOLEAN_T)) return E_DOES_NOT_EXIST;
+    DataWrapper* data = mData[key];
+    if ((data == NULL) || (data->mType != BOOLEAN_T)) return E_DOES_NOT_EXIST;
 
-    *pValue = pData->m_Value.m_b;
+    *value = data->mValue.mBoolean;
     return NOERROR;
 }
 
@@ -42,7 +43,7 @@ ECode CBundle::PutByte(
 
 ECode CBundle::GetByte(
     /* [in] */ const String& key,
-    /* [out] */ Byte * pValue)
+    /* [out] */ Byte* value)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -58,7 +59,7 @@ ECode CBundle::PutChar(
 
 ECode CBundle::GetChar(
     /* [in] */ const String& key,
-    /* [out] */ Char16 * pValue)
+    /* [out] */ Char16* value)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -74,7 +75,7 @@ ECode CBundle::PutInt16(
 
 ECode CBundle::GetInt16(
     /* [in] */ const String& key,
-    /* [out] */ Int16 * pValue)
+    /* [out] */ Int16* value)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -90,14 +91,14 @@ ECode CBundle::PutInt32(
 
 ECode CBundle::GetInt32(
     /* [in] */ const String& key,
-    /* [out] */ Int32 *pValue)
+    /* [out] */ Int32* value)
 {
-    if (pValue == NULL) return E_INVALID_ARGUMENT;
+    VALIDATE_NOT_NULL(value);
 
-    DataWrapper *pData = mData[key];
-    if ((pData == NULL) || (pData->m_Type != INT32_T)) return E_DOES_NOT_EXIST;
+    DataWrapper *data = mData[key];
+    if ((data == NULL) || (data->mType != INT32_T)) return E_DOES_NOT_EXIST;
 
-    *pValue = pData->m_Value.m_i;
+    *value = data->mValue.mInt32;
     return NOERROR;
 }
 
@@ -111,7 +112,7 @@ ECode CBundle::PutInt64(
 
 ECode CBundle::GetInt64(
     /* [in] */ const String& key,
-    /* [out] */ Int64 * pValue)
+    /* [out] */ Int64* value)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -127,7 +128,7 @@ ECode CBundle::PutFloat(
 
 ECode CBundle::GetFloat(
     /* [in] */ const String& key,
-    /* [out] */ Float * pValue)
+    /* [out] */ Float* value)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -143,7 +144,7 @@ ECode CBundle::PutDouble(
 
 ECode CBundle::GetDouble(
     /* [in] */ const String& key,
-    /* [out] */ Double * pValue)
+    /* [out] */ Double* value)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -159,7 +160,7 @@ ECode CBundle::PutString(
 
 ECode CBundle::GetString(
     /* [in] */ const String& key,
-    /* [out] */ String * pValue)
+    /* [out] */ String* value)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -201,9 +202,34 @@ ECode CBundle::HasFileDescriptors(
     /* [out] */ Boolean* hasFD)
 {
     //TODO: temporary implementation
-    if (hasFD == NULL) return E_INVALID_ARGUMENT;
+    VALIDATE_NOT_NULL(hasFD);
+
     *hasFD = FALSE;
 
+    return NOERROR;
+}
+
+ECode CBundle::PutBundle(
+    /* [in] */ const String& key,
+    /* [in] */ IBundle* value)
+{
+//    Unparcel();
+    mData[key] = new DataWrapper(IBUNDLE_T, value);
+    return NOERROR;
+}
+
+ECode CBundle::GetBundle(
+    /* [in] */ const String& key,
+    /* [out] */ IBundle** value)
+{
+    VALIDATE_NOT_NULL(value);
+
+//    Unparcel();
+    DataWrapper *data = mData[key];
+    if ((data == NULL) || (data->mType != IBUNDLE_T)) return E_DOES_NOT_EXIST;
+
+    *value = data->mValue.mBundle;
+    if (*value != NULL) (*value)->AddRef();
     return NOERROR;
 }
 
@@ -224,18 +250,22 @@ ECode CBundle::ReadFromParcelInner(
     /* [in] */ Int32 length)
 {
     String key;
-    DataWrapper *pData;
+    DataWrapper *data;
     for (Int32 i = 0; i < length; i++) {
         source->ReadString(&key);
-        source->ReadStructPtr((Handle32 *)&pData);
+        source->ReadStructPtr((Handle32 *)&data);
 
-        if (pData->m_Type == INT32_T) {
+        if (data->mType == INT32_T) {
             mData[key] = new DataWrapper(
-                pData->m_Type, pData->m_Value.m_i);
+                data->mType, data->mValue.mInt32);
         }
-        else if (pData->m_Type == BOOLEAN_T){
+        else if (data->mType == BOOLEAN_T){
             mData[key] = new DataWrapper(
-                pData->m_Type, pData->m_Value.m_b);
+                data->mType, data->mValue.mBoolean);
+        }
+        else if (data->mType == IBUNDLE_T){
+            mData[key] = new DataWrapper(
+                data->mType, data->mValue.mBundle);
         }
     }
 
@@ -301,13 +331,17 @@ ECode CBundle::constructor(
         HashMap<String, DataWrapper*>::Iterator it = o->mData.Begin();
         for (; it != mData.End(); ++it) {
             pData = it->mSecond;
-            if (pData->m_Type == INT32_T) {
+            if (pData->mType == INT32_T) {
                 mData[it->mFirst] = new DataWrapper(
-                    pData->m_Type, pData->m_Value.m_i);
+                    pData->mType, pData->mValue.mInt32);
             }
-            else if (pData->m_Type == BOOLEAN_T){
+            else if (pData->mType == BOOLEAN_T){
                 mData[it->mFirst] = new DataWrapper(
-                    pData->m_Type, pData->m_Value.m_b);
+                    pData->mType, pData->mValue.mBoolean);
+            }
+            else if (pData->mType == IBUNDLE_T){
+                mData[it->mFirst] = new DataWrapper(
+                    pData->mType, pData->mValue.mBundle);
             }
         }
     }

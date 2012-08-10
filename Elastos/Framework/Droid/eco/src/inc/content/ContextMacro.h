@@ -73,7 +73,7 @@
         /* [in] */ IServiceConnection* conn);                           \
                                                                         \
     CARAPI GetSystemService(                                            \
-        /* [in] */ const String& name,                                  \
+        /* [in] */ CString name,                                        \
         /* [out] */ IInterface** object);                               \
                                                                         \
     CARAPI CreateCapsuleContext(                                        \
@@ -228,7 +228,7 @@ ECode className::UnbindService(                                         \
 }                                                                       \
                                                                         \
 ECode className::GetSystemService(                                      \
-    /* [in] */ const String& name,                                      \
+    /* [in] */ CString name,                                            \
     /* [out] */ IInterface** object)                                    \
 {                                                                       \
     return superClass::GetSystemService(name, object);                  \

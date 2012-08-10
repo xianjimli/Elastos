@@ -8,9 +8,8 @@
 class AlertDialog : public Dialog
 {
     friend class CAlertDialogBuilder;
-public:
-    AlertDialog();
 
+public:
     AlertDialog(
         /* [in] */ IContext* context,
         /* [in] */ Int32 theme = 0x010300a3/*com.android.internal.R.style.Theme_Dialog_Alert*/);
@@ -30,7 +29,7 @@ public:
      *            {@link DialogInterface#BUTTON_POSITIVE}.
      * @return The button from the dialog, or NULL if a button does not exist.
      */
-    CARAPI_(AutoPtr<IButton>) GetButton(
+    virtual CARAPI_(AutoPtr<IButton>) GetButton(
         /* [in] */ Int32 whichButton);
 
     /**
@@ -38,28 +37,27 @@ public:
      *
      * @return The {@link ListView} from the dialog.
      */
-    CARAPI_(AutoPtr<IListView>) GetListView();
+    virtual CARAPI_(AutoPtr<IListView>) GetListView();
+
+    using Dialog::SetTitle;
 
     //@Override
     CARAPI SetTitle(
         /* [in] */ ICharSequence* title);
 
-    CARAPI SetTitle(
-        /* [in] */ Int32 titleId);
-
     /**
      * @see Builder#setCustomTitle(View)
      */
-    CARAPI SetCustomTitle(
+    virtual CARAPI SetCustomTitle(
         /* [in] */ IView* customTitleView);
 
-    CARAPI SetMessage(
+    virtual CARAPI SetMessage(
         /* [in] */ ICharSequence* message);
 
     /**
      * Set the view to display in that dialog.
      */
-    CARAPI SetView(
+    virtual CARAPI SetView(
         /* [in] */ IView* view);
 
     /**
@@ -72,7 +70,7 @@ public:
      * @param viewSpacingRight Extra space to appear to the right of {@code view}
      * @param viewSpacingBottom Extra space to appear below {@code view}
      */
-    CARAPI SetView(
+    virtual CARAPI SetView(
         /* [in] */ IView* view,
         /* [in] */ Int32 viewSpacingLeft,
         /* [in] */ Int32 viewSpacingTop,
@@ -89,7 +87,7 @@ public:
      * @param text The text to display in positive button.
      * @param msg The {@link Message} to be sent when clicked.
      */
-    CARAPI SetButton(
+    virtual CARAPI SetButton(
         /* [in] */ Int32 whichButton,
         /* [in] */ ICharSequence* text);
 
@@ -103,7 +101,7 @@ public:
      * @param text The text to display in positive button.
      * @param listener The {@link DialogInterface.OnClickListener} to use.
      */
-    CARAPI SetButton(
+    virtual CARAPI SetButton(
         /* [in] */ Int32 whichButton,
         /* [in] */ ICharSequence* text,
         /* [in] */ IDialogInterfaceOnClickListener* listener);
@@ -113,24 +111,29 @@ public:
      * @param resId the resourceId of the drawable to use as the icon or 0
      * if you don't want an icon.
      */
-    CARAPI SetIcon(
+    virtual CARAPI SetIcon(
         /* [in] */ Int32 resId);
 
-    CARAPI SetIcon(
+    virtual CARAPI SetIcon(
         /* [in] */ IDrawable* icon);
 
-    CARAPI SetInverseBackgroundForced(
+    virtual CARAPI SetInverseBackgroundForced(
         /* [in] */ Boolean forceInverseBackground);
 
+    //@Override
     CARAPI_(Boolean) OnKeyDown(
         /* [in] */ Int32 keyCode,
         /* [in] */ IKeyEvent* event);
 
+    //@Override
     CARAPI_(Boolean) OnKeyUp(
         /* [in] */ Int32 keyCode,
         /* [in] */ IKeyEvent* event);
 
 protected:
+    AlertDialog();
+
+    //@Override
     void OnCreate(
         /* [in] */ IBundle* savedInstanceState);
 

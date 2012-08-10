@@ -59,7 +59,7 @@ public:
         /* [in] */ IServiceConnection* conn);
 
     CARAPI GetSystemService(
-        /* [in] */ const String& name,
+        /* [in] */ CString name,
         /* [out] */ IInterface** object);
 
     CARAPI CreateCapsuleContext(

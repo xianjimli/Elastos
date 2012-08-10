@@ -430,7 +430,7 @@ public:
      * @see android.app.DownloadManager
      */
     virtual CARAPI GetSystemService(
-        /* [in] */ const String& name,
+        /* [in] */ CString name,
         /* [out] */ IInterface** object) = 0;
 
     /**

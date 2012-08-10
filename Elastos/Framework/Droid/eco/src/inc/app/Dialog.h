@@ -29,8 +29,6 @@ private:
     };
 
 public:
-    Dialog();
-
     Dialog(
         /* [in] */ IContext* context,
         /* [in] */ Int32 theme = 0);
@@ -111,7 +109,6 @@ public:
         /* [in] */ IKeyEvent* event);
 
     virtual CARAPI OnBackPressed();
-
 
     virtual CARAPI_(Boolean) OnTouchEvent(
         /* [in] */ IMotionEvent* event);
@@ -255,6 +252,8 @@ public:
         /* [in] */ IDialogInterfaceOnKeyListener* onKeyListener);
 
 protected:
+    Dialog();
+
     virtual CARAPI_(void) OnCreate(
         /* [in] */ IBundle* savedInstanceState);
 

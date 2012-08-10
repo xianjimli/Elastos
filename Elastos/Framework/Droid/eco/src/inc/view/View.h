@@ -1026,7 +1026,7 @@ public:
         /* [in] */ IViewOnLongClickListener* l);
 
     virtual CARAPI SetOnCreateContextMenuListener(
-        /* [in] */ IOnCreateContextMenuListener* l);
+        /* [in] */ IViewOnCreateContextMenuListener* l);
 
     virtual CARAPI_(Boolean) PerformClick();
 
@@ -2284,7 +2284,7 @@ protected:
      * This field should be made private, so it is hidden from the SDK.
      * {@hide}
      */
-    AutoPtr<IOnCreateContextMenuListener> mOnCreateContextMenuListener;
+    AutoPtr<IViewOnCreateContextMenuListener> mOnCreateContextMenuListener;
 
     AutoPtr<IViewOnKeyListener> mOnKeyListener;
 

@@ -24,7 +24,7 @@ AlertController::AlertParams::AlertParams(
     , mRecycleOnMeasure(TRUE)
 {
     context->GetSystemService(
-        String(Context_LAYOUT_INFLATER_SERVICE), (IInterface**)&mInflater);
+        Context_LAYOUT_INFLATER_SERVICE, (IInterface**)&mInflater);
 }
 
 void AlertController::AlertController::AlertParams::Apply(
@@ -312,13 +312,14 @@ Boolean AlertController::CanTextInput(
         return FALSE;
     }
 
-    AutoPtr<IViewGroup> vg = (IViewGroup*)v->Probe(EIID_IViewGroup);
+    IViewGroup* vg = (IViewGroup*)v->Probe(EIID_IViewGroup);
     Int32 i;
     vg->GetChildCount(&i);
     while (i > 0) {
         i--;
-        vg->GetChildAt(i, &v);
-        if (CanTextInput(v)) {
+        AutoPtr<IView> cv;
+        vg->GetChildAt(i, (IView**)&cv);
+        if (CanTextInput(cv)) {
             return TRUE;
         }
     }
@@ -821,16 +822,14 @@ void AlertController::SetBackground(
      * to correctly use the full, top, middle, and bottom graphics depending
      * on how many views they are and where they appear.
      */
-
-    ArrayOf<AutoPtr<IView> >* views = ArrayOf<AutoPtr<IView> >::Alloc(4);
-    memset(views->GetPayload(), 0, sizeof(AutoPtr<IView>) * 4);
+    ArrayOf_<IView*, 4> views;
     Boolean light[4];
-    AutoPtr<IView> lastView;
+    IView* lastView;
     Boolean lastLight = FALSE;
 
     Int32 pos = 0;
     if (hasTitle) {
-        (*views)[pos] = topPanel;
+        views[pos] = topPanel;
         light[pos] = FALSE;
         pos++;
     }
@@ -842,22 +841,22 @@ void AlertController::SetBackground(
      */
     Int32 visibility;
     contentPanel->GetVisibility(&visibility);
-    (*views)[pos] = (visibility == View_GONE) ? NULL : contentPanel;
+    views[pos] = (visibility == View_GONE) ? NULL : contentPanel;
     light[pos] = mListView != NULL;
     pos++;
     if (customPanel != NULL) {
-        (*views)[pos] = customPanel;
+        views[pos] = customPanel;
         light[pos] = mForceInverseBackground;
         pos++;
     }
     if (hasButtons) {
-        (*views)[pos] = buttonPanel;
+        views[pos] = buttonPanel;
         light[pos] = TRUE;
     }
 
     Boolean setView = FALSE;
-    for (pos=0; pos<views->GetLength(); pos++) {
-        AutoPtr<IView> v = (*views)[pos];
+    for (pos = 0; pos < views.GetLength(); pos++) {
+        IView* v = views[pos];
         if (v == NULL) {
             continue;
         }
