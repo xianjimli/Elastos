@@ -1372,12 +1372,6 @@ ECode CSurface::Init(
 void CSurface::SetSurfaceControl(
         /* [in] */ const android::sp<android::SurfaceControl>& surface)
 {
-    if (surface.get()) {
-        surface->incStrong(this);
-    }
-    if (mSurfaceControl.get()) {
-        mSurfaceControl->decStrong(this);
-    }
     mSurfaceControl = surface;
 }
 #endif
@@ -1394,9 +1388,6 @@ void CSurface::GetSurface()
          * process.
          */
         mNativeSurface = mSurfaceControl->getSurface();
-        if (mNativeSurface.get()) {
-            mNativeSurface->incStrong(this);
-        }
     }
 #endif
 }
@@ -1405,12 +1396,6 @@ void CSurface::GetSurface()
 void CSurface::SetSurface(
         /* [in] */ const android::sp<android::Surface>& surface)
 {
-    if (surface.get()) {
-        surface->incStrong(this);
-    }
-    if (mNativeSurface.get()) {
-        mNativeSurface->decStrong(this);
-    }
     mNativeSurface = surface;
 }
 #endif

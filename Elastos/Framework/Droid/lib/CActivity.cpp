@@ -1245,7 +1245,7 @@ ECode CActivity::ShowDialogEx(
     /* [out] */ Boolean* res)
 {
     if (!res) {
-        return E_INVALID_ARGUMENT;
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
     if (mManagedDialogs == NULL) {

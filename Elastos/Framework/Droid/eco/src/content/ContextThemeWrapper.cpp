@@ -10,9 +10,9 @@ ContextThemeWrapper::ContextThemeWrapper(
     /* [in] */ IContext* base,
     /* [in] */ Int32 themeres)
     : ContextWrapper(base)
+    , mBase(base)
+    , mThemeResource(themeres)
 {
-    mBase = base;
-    mThemeResource = themeres;
 }
 
 ECode ContextThemeWrapper::AttachBaseContext(

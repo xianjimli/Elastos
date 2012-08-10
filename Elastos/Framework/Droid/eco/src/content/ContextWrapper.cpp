@@ -5,8 +5,8 @@ ContextWrapper::ContextWrapper()
 {}
 
 ContextWrapper::ContextWrapper(
-    /* [in] */ IContext* base) :
-    mBase(base)
+    /* [in] */ IContext* base)
+    : mBase(base)
 {}
 
 ECode ContextWrapper::GetAssets(
