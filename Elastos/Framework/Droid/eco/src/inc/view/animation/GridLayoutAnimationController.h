@@ -36,9 +36,8 @@ public:
          */
         Int32 mRowsCount;
     };
-public:
-    GridLayoutAnimationController();
 
+public:
     GridLayoutAnimationController(
         /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs);
@@ -48,29 +47,33 @@ public:
         /* [in] */ Float columnDelay = 0.5f,
         /* [in] */ Float rowDelay = 0.5f);
 
-    CARAPI_(Float) GetColumnDelay();
+    virtual CARAPI_(Float) GetColumnDelay();
 
-    CARAPI SetColumnDelay(
+    virtual CARAPI SetColumnDelay(
         /* [in] */ Float columnDelay);
 
-    CARAPI_(Float) GetRowDelay();
+    virtual CARAPI_(Float) GetRowDelay();
 
-    CARAPI SetRowDelay(
+    virtual CARAPI SetRowDelay(
         /* [in] */ Float rowDelay);
 
-    CARAPI_(Int32) GetDirection();
+    virtual CARAPI_(Int32) GetDirection();
 
-    CARAPI SetDirection(
+    virtual CARAPI SetDirection(
         /* [in] */ Int32 direction);
 
-    CARAPI_(Int32) GetDirectionPriority();
+    virtual CARAPI_(Int32) GetDirectionPriority();
 
-    CARAPI SetDirectionPriority(
+    virtual CARAPI SetDirectionPriority(
         /* [in] */ Int32 directionPriority);
 
+    //@Override
     CARAPI_(Boolean) WillOverlap();
 
 protected:
+    GridLayoutAnimationController();
+
+    //@Override
     CARAPI_(Int64) GetDelayForView(
         /* [in] */ IView* view);
 

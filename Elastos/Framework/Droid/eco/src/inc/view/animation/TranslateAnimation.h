@@ -7,8 +7,6 @@
 class TranslateAnimation : public Animation
 {
 public:
-    TranslateAnimation();
-
     TranslateAnimation(
         /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs);
@@ -29,6 +27,7 @@ public:
         /* [in] */ Float toYType,
         /* [in] */ Float toYValue);
 
+    //@Override
     CARAPI Initialize(
         /* [in] */ Int32 width,
         /* [in] */ Int32 height,
@@ -36,6 +35,9 @@ public:
         /* [in] */ Int32 parentHeight);
 
 protected:
+    TranslateAnimation();
+
+    //@Override
     CARAPI_(void) ApplyTransformation(
         /* [in] */ Float interpolatedTime,
         /* [in] */ ITransformation* t);

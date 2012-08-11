@@ -83,10 +83,12 @@ ECode CAnticipateOvershootInterpolator::GetInterpolation(
     // o(t, s) = t * t * ((s + 1) * t + s)
     // f(t) = 0.5 * a(t * 2, tension * extraTension), when t < 0.5
     // f(t) = 0.5 * (o(t * 2 - 2, tension * extraTension) + 2), when t <= 1.0
-    if (input < 0.5f)
+    if (input < 0.5f) {
         *output = 0.5f * A(input * 2.0f, mTension);
-    else
+    }
+    else {
         *output = 0.5f * (O(input * 2.0f - 2.0f, mTension) + 2.0f);
+    }
 
     return NOERROR;
 }

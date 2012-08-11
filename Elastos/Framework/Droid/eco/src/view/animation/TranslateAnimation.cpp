@@ -1,9 +1,6 @@
 
 #include "view/animation/TranslateAnimation.h"
 
-static Int32 R_Styleable_TranslateAnimation[] = {
-    0x010101c6, 0x010101c7, 0x010101c8, 0x010101c9
-};
 
 TranslateAnimation::TranslateAnimation()
     : mFromXType(Animation_ABSOLUTE)
@@ -78,6 +75,10 @@ ECode TranslateAnimation::Initialize(
 
     return NOERROR;
 }
+
+static Int32 R_Styleable_TranslateAnimation[] = {
+    0x010101c6, 0x010101c7, 0x010101c8, 0x010101c9
+};
 
 ECode TranslateAnimation::Init(
     /* [in] */ IContext* context,

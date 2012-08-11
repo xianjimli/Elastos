@@ -385,11 +385,11 @@ ECode View::ScrollabilityCache::Run()
         Interpolator* interpolator = mScrollBarInterpolator;
 
         // Start opaque
-        //interpolator->SetKeyFrame(framesCount++, nextFrame, mHost->mOpaque);
+//        interpolator->SetKeyFrame(framesCount++, nextFrame, mHost->mOpaque);
 
         // End transparent
         nextFrame += mScrollBarFadeDuration;
-        //interpolator->SetKeyFrame(framesCount, nextFrame, mHost->mTransparent);
+//        interpolator->SetKeyFrame(framesCount, nextFrame, mHost->mTransparent);
 
         mState = FADING;
 

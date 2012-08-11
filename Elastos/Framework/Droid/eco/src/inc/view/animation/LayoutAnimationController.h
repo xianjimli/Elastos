@@ -29,11 +29,9 @@ public:
          * containing view group.
          */
         Int32 mIndex;
-    }; 
+    };
 
 public:
-    LayoutAnimationController();
-
     LayoutAnimationController(
         /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs);
@@ -80,6 +78,8 @@ public:
     virtual CARAPI_(Boolean) IsDone();
 
 protected:
+    LayoutAnimationController();
+
     virtual CARAPI_(Int64) GetDelayForView(
         /* [in] */ IView* view);
 
@@ -105,7 +105,7 @@ protected:
      * The randomizer used when the order is set to random. Subclasses should
      * use this object to avoid creating their own.
      */
-    //Random mRandomizer;
+//    Random mRandomizer;
 
     /**
      * The interpolator used to interpolate the delays.
@@ -117,6 +117,6 @@ private:
     Int32 mOrder;
 
     Int64 mDuration;
-    Int64 mMaxDelay;   
+    Int64 mMaxDelay;
 };
 #endif //__LAYOUTANIMATIONCONTROLLER_H__

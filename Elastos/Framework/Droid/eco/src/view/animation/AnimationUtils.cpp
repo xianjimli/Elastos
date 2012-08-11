@@ -35,15 +35,16 @@ ECode AnimationUtils::LoadAnimation(
     VALIDATE_NOT_NULL(animation);
 
     AutoPtr<IResources> res;
-    context->GetResources((IResources**)&res);
+    FAIL_RETURN(context->GetResources((IResources**)&res));
     AutoPtr<IXmlResourceParser> parser;
-    res->GetAnimation(id, (IXmlResourceParser**)&parser);
-    CreateAnimationFromXml(context, parser, animation);
+    FAIL_RETURN(res->GetAnimation(id, (IXmlResourceParser**)&parser));
+    ECode ec = CreateAnimationFromXml(context, parser, animation);
 
-    if (parser != NULL)
+    if (parser != NULL) {
         parser->Close();
+    }
 
-    return NOERROR;
+    return ec;
 }
 
 ECode AnimationUtils::CreateAnimationFromXml(
@@ -80,8 +81,8 @@ ECode AnimationUtils::CreateAnimationFromXml(
         if (name.Equals("set")) {
             FAIL_RETURN(CAnimationSet::New(c, attrs, (IAnimationSet**)animation));
             AutoPtr<IAnimation> temp;
-            CreateAnimationFromXml(
-                c, parser, IAnimationSet::Probe(*animation), attrs, (IAnimation**)&temp);
+            FAIL_RETURN(CreateAnimationFromXml(
+                c, parser, IAnimationSet::Probe(*animation), attrs, (IAnimation**)&temp));
         }
         else if (name.Equals("alpha")) {
             FAIL_RETURN(CAlphaAnimation::New(c, attrs, animation));
@@ -116,15 +117,16 @@ ECode AnimationUtils::LoadLayoutAnimation(
     VALIDATE_NOT_NULL(controller);
 
     AutoPtr<IResources> res;
-    context->GetResources((IResources**)&res);
+    FAIL_RETURN(context->GetResources((IResources**)&res));
     AutoPtr<IXmlResourceParser> parser;
-    res->GetAnimation(id, (IXmlResourceParser**)&parser);
-    CreateLayoutAnimationFromXml(context, parser, controller);
+    FAIL_RETURN(res->GetAnimation(id, (IXmlResourceParser**)&parser));
+    ECode ec = CreateLayoutAnimationFromXml(context, parser, controller);
 
-    if (parser != NULL)
+    if (parser != NULL) {
         parser->Close();
+    }
 
-    return NOERROR;
+    return ec;
 }
 
 ECode AnimationUtils::CreateLayoutAnimationFromXml(
@@ -184,18 +186,18 @@ ECode AnimationUtils::MakeInAnimation(
     VALIDATE_NOT_NULL(animation);
 
     if (fromLeft) {
-        AnimationUtils::LoadAnimation(
+        FAIL_RETURN(AnimationUtils::LoadAnimation(
             context, 0x010a0002/*com.android.internal.R.anim.slide_in_left*/,
-            animation);
+            animation));
     }
     else {
-        AnimationUtils::LoadAnimation(
+        FAIL_RETURN(AnimationUtils::LoadAnimation(
             context, 0x010a0030/*com.android.internal.R.anim.slide_in_right*/,
-            animation);
+            animation));
     }
 
     AutoPtr<IInterpolator> interpolator;
-    ASSERT_SUCCEEDED(CDecelerateInterpolator::New((IInterpolator**)&interpolator));
+    FAIL_RETURN(CDecelerateInterpolator::New((IInterpolator**)&interpolator));
     (*animation)->SetInterpolatorEx(interpolator);
     (*animation)->SetStartTime(CurrentAnimationTimeMillis());
 
@@ -210,18 +212,18 @@ ECode AnimationUtils::MakeOutAnimation(
     VALIDATE_NOT_NULL(animation);
 
     if (toRight) {
-        AnimationUtils::LoadAnimation(
+        FAIL_RETURN(AnimationUtils::LoadAnimation(
             context, 0x010a0003/*com.android.internal.R.anim.slide_out_right*/,
-            animation);
+            animation));
     }
     else {
-        AnimationUtils::LoadAnimation(
+        FAIL_RETURN(AnimationUtils::LoadAnimation(
             context, 0x010a0033/*com.android.internal.R.anim.slide_out_left*/,
-            animation);
+            animation));
     }
 
     AutoPtr<IInterpolator> interpolator;
-    ASSERT_SUCCEEDED(CAccelerateInterpolator::New((IInterpolator**)&interpolator));
+    FAIL_RETURN(CAccelerateInterpolator::New((IInterpolator**)&interpolator));
     (*animation)->SetInterpolatorEx(interpolator);
     (*animation)->SetStartTime(CurrentAnimationTimeMillis());
 
@@ -234,12 +236,12 @@ ECode AnimationUtils::MakeInChildBottomAnimation(
 {
     VALIDATE_NOT_NULL(animation);
 
-    AnimationUtils::LoadAnimation(
+    FAIL_RETURN(AnimationUtils::LoadAnimation(
         context, 0x010a002f/*com.android.internal.R.anim.slide_in_left*/,
-        animation);
+        animation));
 
     AutoPtr<IInterpolator> interpolator;
-    ASSERT_SUCCEEDED(CAccelerateInterpolator::New((IInterpolator**)&interpolator));
+    FAIL_RETURN(CAccelerateInterpolator::New((IInterpolator**)&interpolator));
     (*animation)->SetInterpolatorEx(interpolator);
     (*animation)->SetStartTime(CurrentAnimationTimeMillis());
 
@@ -254,15 +256,16 @@ ECode AnimationUtils::LoadInterpolator(
     VALIDATE_NOT_NULL(interpolator);
 
     AutoPtr<IResources> res;
-    context->GetResources((IResources**)&res);
+    FAIL_RETURN(context->GetResources((IResources**)&res));
     AutoPtr<IXmlResourceParser> parser;
-    res->GetAnimation(id, (IXmlResourceParser**)&parser);
-    CreateInterpolatorFromXml(context, parser, interpolator);
+    FAIL_RETURN(res->GetAnimation(id, (IXmlResourceParser**)&parser));
+    ECode ec = CreateInterpolatorFromXml(context, parser, interpolator);
 
-    if (parser != NULL)
+    if (parser != NULL) {
         parser->Close();
+    }
 
-    return NOERROR;
+    return ec;
 }
 
 ECode AnimationUtils::CreateInterpolatorFromXml(

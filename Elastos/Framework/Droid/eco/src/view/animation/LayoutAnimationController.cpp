@@ -8,9 +8,6 @@
 
 using namespace Elastos::Core;
 
-static Int32 R_Styleable_LayoutAnimation[] = {
-    0x01010141, 0x010101cc, 0x010101cd, 0x010101ce
-};
 
 LayoutAnimationController::LayoutAnimationController()
 {}
@@ -80,7 +77,7 @@ ECode LayoutAnimationController::SetOrder(
  * @param resourceID the resource identifier of the animation
  *
  * @see #SetAnimation(Animation)
- * @see #getAnimation() 
+ * @see #getAnimation()
  *
  * @attr ref android.R.styleable#LayoutAnimation_animation
  */
@@ -89,7 +86,8 @@ ECode LayoutAnimationController::SetAnimation(
     /* [in] */ Int32 resourceID)
 {
     AutoPtr<IAnimation> animation;
-    AnimationUtils::LoadAnimation(context, resourceID, (IAnimation**)&animation);
+    FAIL_RETURN(AnimationUtils::LoadAnimation(
+            context, resourceID, (IAnimation**)&animation));
     return SetAnimation(animation);
 }
 
@@ -144,8 +142,8 @@ ECode LayoutAnimationController::SetInterpolator(
     /* [in] */ Int32 resourceID)
 {
     AutoPtr<IInterpolator> interpolator;
-    AnimationUtils::LoadInterpolator(
-        context, resourceID, (IInterpolator**)&interpolator);
+    FAIL_RETURN(AnimationUtils::LoadInterpolator(
+            context, resourceID, (IInterpolator**)&interpolator));
     return SetInterpolator(interpolator);
 }
 
@@ -258,8 +256,8 @@ AutoPtr<IAnimation> LayoutAnimationController::GetAnimationForView(
     mMaxDelay = Math::Max(mMaxDelay, delay);
 
     AutoPtr<IAnimation> animation;
-    //mAnimation->Clone((IAnimation**)&animation);
-    //animation->SetStartOffset(delay);
+//    mAnimation->Clone((IAnimation**)&animation);
+//    animation->SetStartOffset(delay);
     return animation;
 }
 
@@ -334,7 +332,7 @@ Int64 LayoutAnimationController::GetDelayForView(
  * by the order returned by {@link #getOrder()}. Subclasses should override
  * this method to provide additional support for other types of ordering.
  * This method should be invoked by
- * {@link #GetDelayForView(android.view.View)} prior to any computation. 
+ * {@link #GetDelayForView(android.view.View)} prior to any computation.
  *
  * @param params the animation parameters containing the index
  * @return a transformed index
@@ -346,15 +344,19 @@ Int32 LayoutAnimationController::GetTransformedIndex(
     case LayoutAnimationController_ORDER_REVERSE:
         return params->mCount - 1 - params->mIndex;
     case LayoutAnimationController_ORDER_RANDOM:
-        /*if (mRandomizer == null) {
-            mRandomizer = new Random();
-        }
-        return (Int32) (params.count * mRandomizer.nextFloat());*/
+//        if (mRandomizer == null) {
+//            mRandomizer = new Random();
+//        }
+//        return (Int32) (params.count * mRandomizer.nextFloat()
     case LayoutAnimationController_ORDER_NORMAL:
     default:
         return params->mIndex;
     }
 }
+
+static Int32 R_Styleable_LayoutAnimation[] = {
+    0x01010141, 0x010101cc, 0x010101cd, 0x010101ce
+};
 
 ECode LayoutAnimationController::Init(
     /* [in] */ IContext* context,

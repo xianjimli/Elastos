@@ -4,9 +4,6 @@
 #include "view/animation/CLinearInterpolator.h"
 #include "view/CViewGroupLayoutParams.h"
 
-static Int32 R_Styleable_GridLayoutAnimation[] = {
-    0x010101cf, 0x010101d0, 0x010101d1, 0x010101d2
-};
 
 GridLayoutAnimationController::GridLayoutAnimationController()
 {}
@@ -100,7 +97,7 @@ Float GridLayoutAnimationController::GetRowDelay()
  *
  * @see #getRowDelay()
  * @see #getColumnDelay()
- * @see #setColumnDelay(Float) 
+ * @see #setColumnDelay(Float)
  */
 ECode GridLayoutAnimationController::SetRowDelay(
     /* [in] */ Float rowDelay)
@@ -261,11 +258,11 @@ Int32 GridLayoutAnimationController::GetTransformedColumnIndex(
             index = params->mColumnsCount - 1 - params->mColumn;
             break;
         case LayoutAnimationController_ORDER_RANDOM:
-            /*if (mRandomizer == null) {
-                mRandomizer = new Random();
-            }
-            index = (Int32) (params.columnsCount * mRandomizer.nextFloat());
-            break;*/
+//            if (mRandomizer == null) {
+//                mRandomizer = new Random();
+//            }
+//            index = (Int32) (params.columnsCount * mRandomizer.nextFloat());
+            break;
         case LayoutAnimationController_ORDER_NORMAL:
         default:
             index = params->mColumn;
@@ -290,11 +287,11 @@ Int32 GridLayoutAnimationController::GetTransformedRowIndex(
             index = params->mRowsCount - 1 - params->mRow;
             break;
         case LayoutAnimationController_ORDER_RANDOM:
-            /*if (mRandomizer == null) {
-                mRandomizer = new Random();
-            }
-            index = (Int32) (params.rowsCount * mRandomizer.nextFloat());
-            break;*/
+//            if (mRandomizer == null) {
+//                mRandomizer = new Random();
+//            }
+//            index = (Int32) (params.rowsCount * mRandomizer.nextFloat());
+            break;
         case LayoutAnimationController_ORDER_NORMAL:
         default:
             index = params->mRow;
@@ -308,6 +305,10 @@ Int32 GridLayoutAnimationController::GetTransformedRowIndex(
 
     return index;
 }
+
+static Int32 R_Styleable_GridLayoutAnimation[] = {
+    0x010101cf, 0x010101d0, 0x010101d1, 0x010101d2
+};
 
 ECode GridLayoutAnimationController::Init(
     /* [in] */ IContext* context,

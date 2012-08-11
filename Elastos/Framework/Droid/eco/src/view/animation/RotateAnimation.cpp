@@ -1,9 +1,6 @@
 
 #include "view/animation/RotateAnimation.h"
 
-static Int32 R_Styleable_RotateAnimation[] = {
-    0x010101b3, 0x010101b4, 0x010101b5, 0x010101b6
-};
 
 RotateAnimation::RotateAnimation()
     : mPivotXType(Animation_ABSOLUTE)
@@ -78,6 +75,10 @@ ECode RotateAnimation::Initialize(
 
     return NOERROR;
 }
+
+static Int32 R_Styleable_RotateAnimation[] = {
+    0x010101b3, 0x010101b4, 0x010101b5, 0x010101b6
+};
 
 ECode RotateAnimation::Init(
     /* [in] */ IContext* context,

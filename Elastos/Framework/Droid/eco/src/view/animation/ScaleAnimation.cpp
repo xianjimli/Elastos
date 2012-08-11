@@ -1,10 +1,6 @@
 
 #include "view/animation/ScaleAnimation.h"
 
-static Int32 R_Styleable_ScaleAnimation[] = {
-    0x010101b5, 0x010101b6, 0x010101c2, 0x010101c3,
-    0x010101c4, 0x010101c5
-};
 
 ScaleAnimation::ScaleAnimation()
     : mPivotXType(Animation_ABSOLUTE)
@@ -94,6 +90,11 @@ ECode ScaleAnimation::Initialize(
 
     return NOERROR;
 }
+
+static Int32 R_Styleable_ScaleAnimation[] = {
+    0x010101b5, 0x010101b6, 0x010101c2, 0x010101c3,
+    0x010101c4, 0x010101c5
+};
 
 ECode ScaleAnimation::Init(
     /* [in] */ IContext* context,
