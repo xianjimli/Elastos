@@ -1,10 +1,6 @@
 
 #include "view/animation/AlphaAnimation.h"
 
-static Int32 R_Styleable_AlphaAnimation[] = {
-    0x010101ca, 0x010101cb
-};
-
 AlphaAnimation::AlphaAnimation()
 {}
 
@@ -57,6 +53,10 @@ Boolean AlphaAnimation::WillChangeBounds()
 {
     return FALSE;
 }
+
+static Int32 R_Styleable_AlphaAnimation[] = {
+    0x010101ca, 0x010101cb
+};
 
 ECode AlphaAnimation::Init(
     /* [in] */ IContext* context,

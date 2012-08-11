@@ -16,8 +16,7 @@ public:
     CARAPI GetInterpolation(
         /* [in] */ Float input,
         /* [out] */ Float* output);
-    
+
 private:
-    Float mFactor;
 };
 #endif //__CBOUNCEINTERPOLATOR_H__

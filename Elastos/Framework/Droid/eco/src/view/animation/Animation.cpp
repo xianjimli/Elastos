@@ -8,8 +8,6 @@
 #include <elastos/Math.h>
 #include <Logger.h>
 
-#include <stdio.h>
-
 using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
@@ -63,12 +61,6 @@ AutoPtr<Animation::Description> Animation::Description::ParseValue(
 
     return d;
 }
-
-static Int32 R_Styleable_Animation[] = {
-    0x01010141, 0x01010198, 0x010101bc, 0x010101bd,
-    0x010101be, 0x010101bf, 0x010101c0, 0x010101c1,
-    0x0101024f, 0x010102a6
-};
 
 /**
  * Creates a new animation with a duration of 0ms, the default interpolator, with
@@ -176,8 +168,9 @@ ECode Animation::Reset()
 ECode Animation::Cancel()
 {
     if (mStarted && !mEnded) {
-        if (mListener != NULL)
+        if (mListener != NULL) {
             mListener->OnAnimationEnd((IAnimation*)this->Probe(EIID_IAnimation));
+        }
         mEnded = TRUE;
     }
     // Make sure we move the animation to the end
@@ -194,8 +187,9 @@ ECode Animation::Detach()
 {
     if (mStarted && !mEnded) {
         mEnded = TRUE;
-        if (mListener != NULL)
+        if (mListener != NULL) {
             mListener->OnAnimationEnd((IAnimation*)this->Probe(EIID_IAnimation));
+        }
     }
 
     return NOERROR;
@@ -330,7 +324,7 @@ ECode Animation::RestrictDuration(
 
     Int64 dur = mDuration + mStartOffset;
     if (dur > durationMillis) {
-        mDuration = durationMillis-mStartOffset;
+        mDuration = durationMillis - mStartOffset;
         dur = durationMillis;
     }
     // If the duration is 0 or less, then we won't run.
@@ -752,8 +746,9 @@ Boolean Animation::GetTransformation(
     Boolean expired = normalizedTime >= 1.0f;
     mMore = !expired;
 
-    if (!mFillEnabled)
+    if (!mFillEnabled) {
         normalizedTime = Math::Max(Math::Min(normalizedTime, 1.0f), 0.0f);
+    }
 
     if ((normalizedTime >= 0.0f || mFillBefore)
         && (normalizedTime <= 1.0f || mFillAfter)) {
@@ -764,8 +759,9 @@ Boolean Animation::GetTransformation(
             mStarted = TRUE;
         }
 
-        if (mFillEnabled)
+        if (mFillEnabled) {
             normalizedTime = Math::Max(Math::Min(normalizedTime, 1.0f), 0.0f);
+        }
 
         if (mCycleFlip) {
             normalizedTime = 1.0f - normalizedTime;
@@ -944,6 +940,12 @@ ECode Animation::InitializeInvalidateRegion(
 
     return NOERROR;
 }
+
+static Int32 R_Styleable_Animation[] = {
+    0x01010141, 0x01010198, 0x010101bc, 0x010101bd,
+    0x010101be, 0x010101bf, 0x010101c0, 0x010101c1,
+    0x0101024f, 0x010102a6
+};
 
 /**
  * Creates a new animation whose parameters come from the specified context and

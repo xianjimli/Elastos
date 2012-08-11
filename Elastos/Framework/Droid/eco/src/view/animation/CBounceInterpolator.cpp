@@ -33,14 +33,18 @@ ECode CBounceInterpolator::GetInterpolation(
     // bs(t) = _b(t - 1.0435) + 0.95 for t <= 1.0
     // b(t) = bs(t * 1.1226)
     input *= 1.1226f;
-    if (input < 0.3535f)
+    if (input < 0.3535f) {
         *output = Bounce(input);
-    else if (input < 0.7408f)
+    }
+    else if (input < 0.7408f) {
         *output = Bounce(input - 0.54719f) + 0.7f;
-    else if (input < 0.9644f)
+    }
+    else if (input < 0.9644f) {
         *output = Bounce(input - 0.8526f) + 0.9f;
-    else
+    }
+    else {
         *output = Bounce(input - 1.0435f) + 0.95f;
+    }
 
     return NOERROR;
 }

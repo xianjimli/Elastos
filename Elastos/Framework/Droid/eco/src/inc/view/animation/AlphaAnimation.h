@@ -7,8 +7,6 @@
 class AlphaAnimation : public Animation
 {
 public:
-    AlphaAnimation();
-
     AlphaAnimation(
         /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs);
@@ -22,6 +20,8 @@ public:
     CARAPI_(Boolean) WillChangeBounds();
 
 protected:
+    AlphaAnimation();
+
     CARAPI_(void) ApplyTransformation(
         /* [in] */ Float interpolatedTime,
         /* [in] */ ITransformation* t);

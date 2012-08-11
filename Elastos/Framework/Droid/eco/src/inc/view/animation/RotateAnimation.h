@@ -7,8 +7,6 @@
 class RotateAnimation : public Animation
 {
 public:
-    RotateAnimation();
-
     RotateAnimation(
         /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs);
@@ -31,6 +29,7 @@ public:
         /* [in] */ Float pivotYType,
         /* [in] */ Float pivotYValue);
 
+    //@Override
     CARAPI Initialize(
         /* [in] */ Int32 width,
         /* [in] */ Int32 height,
@@ -38,6 +37,9 @@ public:
         /* [in] */ Int32 parentHeight);
 
 protected:
+    RotateAnimation();
+
+    //@Override
     CARAPI_(void) ApplyTransformation(
         /* [in] */ Float interpolatedTime,
         /* [in] */ ITransformation* t);

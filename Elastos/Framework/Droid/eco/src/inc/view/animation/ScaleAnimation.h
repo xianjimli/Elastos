@@ -7,8 +7,6 @@
 class ScaleAnimation : public Animation
 {
 public:
-    ScaleAnimation();
-
     ScaleAnimation(
         /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs);
@@ -37,6 +35,7 @@ public:
         /* [in] */ Float pivotYType,
         /* [in] */ Float pivotYValue);
 
+    //@Override
     CARAPI Initialize(
         /* [in] */ Int32 width,
         /* [in] */ Int32 height,
@@ -44,6 +43,9 @@ public:
         /* [in] */ Int32 parentHeight);
 
 protected:
+    ScaleAnimation();
+
+    //@Override
     CARAPI_(void) ApplyTransformation(
         /* [in] */ Float interpolatedTime,
         /* [in] */ ITransformation* t);

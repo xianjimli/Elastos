@@ -8,8 +8,6 @@
 class AnimationSet : public Animation
 {
 public:
-    AnimationSet();
-
     AnimationSet(
         /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs);
@@ -34,7 +32,7 @@ public:
 
     CARAPI AddAnimation(
         /* [in] */ IAnimation* a);
-    
+
     CARAPI SetStartTime(
         /* [in] */ Int64 startTimeMillis);
 
@@ -78,6 +76,8 @@ public:
     Boolean WillChangeBounds();
 
 protected:
+    AnimationSet();
+
     //@Override
     //protected AnimationSet clone();
 

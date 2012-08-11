@@ -11,6 +11,7 @@ extern "C" const InterfaceID EIID_Animation;
 class Animation
 {
     friend class AnimationSet;
+
 public:
     /**
      * Utility class to parse a string description of a size.
@@ -40,8 +41,6 @@ public:
     Animation(
         /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs);
-
-    //protected Animation Clone();
 
     virtual CARAPI_(PInterface) Probe(
         /* [in] */ REIID riid) = 0;
@@ -161,6 +160,8 @@ public:
         /* [in] */ Int32 bottom);
 
 protected:
+    //protected Animation Clone();
+
     virtual CARAPI_(void) EnsureInterpolator();
 
     virtual CARAPI_(void) ApplyTransformation(

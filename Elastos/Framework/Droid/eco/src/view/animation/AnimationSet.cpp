@@ -14,10 +14,6 @@ const Int32 AnimationSet::PROPERTY_DURATION_MASK;
 const Int32 AnimationSet::PROPERTY_MORPH_MATRIX_MASK;
 const Int32 AnimationSet::PROPERTY_CHANGE_BOUNDS_MASK;
 
-static Int32 R_Styleable_AnimationSet[] = {
-    0x010101bb
-};
-
 AnimationSet::AnimationSet()
     : mFlags(0)
     , mStoredOffsets(NULL)
@@ -26,8 +22,8 @@ AnimationSet::AnimationSet()
 }
 
 /**
- * Constructor used when an AnimationSet is loaded from a resource. 
- * 
+ * Constructor used when an AnimationSet is loaded from a resource.
+ *
  * @param context Application context to use
  * @param attrs Attribute set from which to read values
  */
@@ -43,7 +39,7 @@ AnimationSet::AnimationSet(
 
 /**
  * Constructor to use when building an AnimationSet from code
- * 
+ *
  * @param shareInterpolator Pass TRUE if all of the animations in this set
  *        should use the interpolator assocciated with this AnimationSet.
  *        Pass FALSE if each animation should use its own interpolator.
@@ -177,7 +173,7 @@ ECode AnimationSet::AddAnimation(
 
 /**
  * Sets the start time of this animation and all child animations
- * 
+ *
  * @see android.view.animation.Animation#setStartTime(Int64)
  */
 //@Override
@@ -224,9 +220,9 @@ ECode AnimationSet::RestrictDuration(
 }
 
 /**
- * The duration of an AnimationSet is defined to be the 
+ * The duration of an AnimationSet is defined to be the
  * duration of the longest child animation.
- * 
+ *
  * @see android.view.animation.Animation#getDuration()
  */
 //@Override
@@ -253,7 +249,7 @@ Int64 AnimationSet::GetDuration()
 /**
  * The duration hint of an animation set is the maximum of the duration
  * hints of all of its component animations.
- * 
+ *
  * @see android.view.animation.Animation#computeDurationHint
  */
 Int64 AnimationSet::ComputeDurationHint()
@@ -263,8 +259,9 @@ Int64 AnimationSet::ComputeDurationHint()
     for (; iter != mAnimations.REnd(); ++iter) {
         Int64 d;
         (*iter)->ComputeDurationHint(&d);
-        if (d > duration)
+        if (d > duration) {
             duration = d;
+        }
     }
     return duration;
 }
@@ -287,7 +284,7 @@ ECode AnimationSet::InitializeInvalidateRegion(
         for (; iter != mAnimations.REnd(); ++iter) {
             Animation* a = (Animation*)(*iter)->Probe(EIID_Animation);
             mTempTransformation->Clear();
-            AutoPtr<IInterpolator> interpolator = a->mInterpolator;
+            IInterpolator* interpolator = a->mInterpolator;
             Float interpolation = 0.0f;
             if (interpolator != NULL) {
                 interpolator->GetInterpolation(0.0f, &interpolation);
@@ -303,7 +300,7 @@ ECode AnimationSet::InitializeInvalidateRegion(
 /**
  * The transformation of an animation set is the concatenation of all of its
  * component animations.
- * 
+ *
  * @see android.view.animation.Animation#getTransformation
  */
 //@Override
@@ -439,8 +436,9 @@ ECode AnimationSet::Reset()
  */
 ECode AnimationSet::RestoreChildrenStartOffset()
 {
-    if (mStoredOffsets == NULL)
+    if (mStoredOffsets == NULL) {
         return NOERROR;
+    }
 
     List<AutoPtr<IAnimation> >::Iterator iter = mAnimations.Begin();
     for (Int32 i = 0; iter != mAnimations.End(); ++iter, ++i) {
@@ -480,12 +478,16 @@ Boolean AnimationSet::WillChangeBounds()
     return (mFlags & PROPERTY_CHANGE_BOUNDS_MASK) == PROPERTY_CHANGE_BOUNDS_MASK;
 }
 
+static Int32 R_Styleable_AnimationSet[] = {
+    0x010101bb
+};
+
 ECode AnimationSet::Init(
     /* [in] */ IContext* context,
     /* [in] */ IAttributeSet* attrs)
 {
     FAIL_RETURN(Animation::Init(context, attrs));
-    
+
     AutoPtr<ITypedArray> a;
     context->ObtainStyledAttributesEx2(
         attrs, ArrayOf<Int32>(R_Styleable_AnimationSet,
@@ -496,10 +498,10 @@ ECode AnimationSet::Init(
     a->GetBoolean(
         0/*com.android.internal.R.styleable.AnimationSet_shareInterpolator*/,
         TRUE, &share);
-    
+
     SetFlag(PROPERTY_SHARE_INTERPOLATOR_MASK, share);
     InitInternal();
-    
+
     a->Recycle();
 
     return NOERROR;
