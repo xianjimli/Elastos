@@ -4,7 +4,11 @@
 ECode CPopupWindow::GetBackground(
     /* [out] */ IDrawable** background)
 {
-    return PopupWindow::GetBackground(background);
+    VALIDATE_NOT_NULL(background);
+
+    *background = PopupWindow::GetBackground();
+
+    return NOERROR;
 }
 
 ECode CPopupWindow::SetBackgroundDrawable(
@@ -16,7 +20,11 @@ ECode CPopupWindow::SetBackgroundDrawable(
 ECode CPopupWindow::GetAnimationStyle(
     /* [out] */ Int32* style)
 {
-    return PopupWindow::GetAnimationStyle(style);
+    VALIDATE_NOT_NULL(style);
+
+    *style = PopupWindow::GetAnimationStyle();
+
+    return NOERROR;
 }
 
 ECode CPopupWindow::SetIgnoreCheekPress()
@@ -33,7 +41,14 @@ ECode CPopupWindow::SetAnimationStyle(
 ECode CPopupWindow::GetContentView(
     /* [out] */ IView** contentView)
 {
-    return PopupWindow::GetContentView(contentView);
+    VALIDATE_NOT_NULL(contentView);
+
+    *contentView = PopupWindow::GetContentView();
+    if (*contentView != NULL) {
+        (*contentView)->AddRef();
+    }
+
+    return NOERROR;
 }
 
 ECode CPopupWindow::SetContentView(
@@ -49,9 +64,13 @@ ECode CPopupWindow::SetTouchInterceptor(
 }
 
 ECode CPopupWindow::IsFocusable(
-    /* [out] */ Boolean* isFocusable)
+    /* [out] */ Boolean* focusable)
 {
-    return PopupWindow::IsFocusable(isFocusable);
+    VALIDATE_NOT_NULL(focusable);
+
+    *focusable = PopupWindow::IsFocusable();
+
+    return NOERROR;
 }
 
 ECode CPopupWindow::SetFocusable(
@@ -63,7 +82,11 @@ ECode CPopupWindow::SetFocusable(
 ECode CPopupWindow::GetInputMethodMode(
     /* [out] */ Int32* inputMethodMode)
 {
-    return PopupWindow::GetInputMethodMode(inputMethodMode);
+    VALIDATE_NOT_NULL(inputMethodMode);
+
+    *inputMethodMode = PopupWindow::GetInputMethodMode();
+
+    return NOERROR;
 }
 
 ECode CPopupWindow::SetInputMethodMode(
@@ -81,13 +104,21 @@ ECode CPopupWindow::SetSoftInputMode(
 ECode CPopupWindow::GetSoftInputMode(
     /* [out] */ Int32* softInputMode)
 {
-    return PopupWindow::GetSoftInputMode(softInputMode);
+    VALIDATE_NOT_NULL(softInputMode);
+
+    *softInputMode = PopupWindow::GetSoftInputMode();
+
+    return NOERROR;
 }
 
 ECode CPopupWindow::IsTouchable(
     /* [out] */ Boolean* touchable)
 {
-    return PopupWindow::IsTouchable(touchable);
+    VALIDATE_NOT_NULL(touchable);
+
+    *touchable = PopupWindow::IsTouchable();
+
+    return NOERROR;
 }
 
 ECode CPopupWindow::SetTouchable(
@@ -99,7 +130,11 @@ ECode CPopupWindow::SetTouchable(
 ECode CPopupWindow::IsOutsideTouchable(
     /* [out] */ Boolean* touchable)
 {
-    return PopupWindow::IsOutsideTouchable(touchable);
+    VALIDATE_NOT_NULL(touchable);
+
+    *touchable = PopupWindow::IsOutsideTouchable();
+
+    return NOERROR;
 }
 
 ECode CPopupWindow::SetOutsideTouchable(
@@ -111,7 +146,11 @@ ECode CPopupWindow::SetOutsideTouchable(
 ECode CPopupWindow::IsClippingEnabled(
     /* [out] */ Boolean* enabled)
 {
-    return PopupWindow::IsClippingEnabled(enabled);
+    VALIDATE_NOT_NULL(enabled);
+
+    *enabled = PopupWindow::IsClippingEnabled();
+
+    return NOERROR;
 }
 
 ECode CPopupWindow::SetClippingEnabled(
@@ -123,7 +162,11 @@ ECode CPopupWindow::SetClippingEnabled(
 ECode CPopupWindow::IsSplitTouchEnabled(
     /* [out] */ Boolean* enabled)
 {
-    return PopupWindow::IsSplitTouchEnabled(enabled);
+    VALIDATE_NOT_NULL(enabled);
+
+    *enabled = PopupWindow::IsSplitTouchEnabled();
+
+    return NOERROR;
 }
 
 ECode CPopupWindow::SetSplitTouchEnabled(
@@ -135,7 +178,11 @@ ECode CPopupWindow::SetSplitTouchEnabled(
 ECode CPopupWindow::IsLayoutInScreenEnabled(
     /* [out] */ Boolean* enabled)
 {
-    return PopupWindow::IsLayoutInScreenEnabled(enabled);
+    VALIDATE_NOT_NULL(enabled);
+
+    *enabled = PopupWindow::IsLayoutInScreenEnabled();
+
+    return NOERROR;
 }
 
 ECode CPopupWindow::SetLayoutInScreenEnabled(
@@ -153,7 +200,11 @@ ECode CPopupWindow::SetWindowLayoutType(
 ECode CPopupWindow::GetWindowLayoutType(
     /* [out] */ Int32* layoutType)
 {
-    return PopupWindow::GetWindowLayoutType(layoutType);
+    VALIDATE_NOT_NULL(layoutType);
+
+    *layoutType = PopupWindow::GetWindowLayoutType();
+
+    return NOERROR;
 }
 
 ECode CPopupWindow::SetWindowLayoutMode(
@@ -166,7 +217,11 @@ ECode CPopupWindow::SetWindowLayoutMode(
 ECode CPopupWindow::GetHeight(
     /* [out] */ Int32* height)
 {
-    return PopupWindow::GetHeight(height);
+    VALIDATE_NOT_NULL(height);
+
+    *height = PopupWindow::GetHeight();
+
+    return NOERROR;
 }
 
 ECode CPopupWindow::SetHeight(
@@ -178,7 +233,11 @@ ECode CPopupWindow::SetHeight(
 ECode CPopupWindow::GetWidth(
     /* [out] */ Int32* width)
 {
-    return PopupWindow::GetWidth(width);
+    VALIDATE_NOT_NULL(width);
+
+    *width = PopupWindow::GetWidth();
+
+    return NOERROR;
 }
 
 ECode CPopupWindow::SetWidth(
@@ -188,9 +247,13 @@ ECode CPopupWindow::SetWidth(
 }
 
 ECode CPopupWindow::IsShowing(
-    /* [out] */ Boolean* isShowing)
+    /* [out] */ Boolean* showing)
 {
-    return PopupWindow::IsShowing(isShowing);
+    VALIDATE_NOT_NULL(showing);
+
+    *showing = PopupWindow::IsShowing();
+
+    return NOERROR;
 }
 
 ECode CPopupWindow::ShowAtLocation(
@@ -213,20 +276,28 @@ ECode CPopupWindow::ShowAsDropDownEx(
     /* [in] */ Int32 xoff,
     /* [in] */ Int32 yoff)
 {
-    return PopupWindow::ShowAsDropDownEx(anchor, xoff, yoff);
+    return PopupWindow::ShowAsDropDown(anchor, xoff, yoff);
 }
 
 ECode CPopupWindow::IsAboveAnchor(
     /* [out] */ Boolean* isAboveAnchor)
 {
-    return PopupWindow::IsAboveAnchor(isAboveAnchor);
+    VALIDATE_NOT_NULL(isAboveAnchor);
+
+    *isAboveAnchor = PopupWindow::IsAboveAnchor();
+
+    return NOERROR;
 }
 
 ECode CPopupWindow::GetMaxAvailableHeight(
     /* [in] */ IView* anchor,
     /* [out] */ Int32* maxAvailableHeight)
 {
-    return PopupWindow::GetMaxAvailableHeight(anchor, maxAvailableHeight);
+    VALIDATE_NOT_NULL(maxAvailableHeight);
+
+    *maxAvailableHeight = PopupWindow::GetMaxAvailableHeight(anchor);
+
+    return NOERROR;
 }
 
 ECode CPopupWindow::GetMaxAvailableHeightEx(
@@ -234,7 +305,11 @@ ECode CPopupWindow::GetMaxAvailableHeightEx(
     /* [in] */ Int32 yOffset,
     /* [out] */ Int32* maxAvailableHeight)
 {
-    return PopupWindow::GetMaxAvailableHeightEx(anchor, yOffset, maxAvailableHeight);
+    VALIDATE_NOT_NULL(maxAvailableHeight);
+
+    *maxAvailableHeight = PopupWindow::GetMaxAvailableHeight(anchor, yOffset);
+
+    return NOERROR;
 }
 
 ECode CPopupWindow::GetMaxAvailableHeightEx2(
@@ -243,8 +318,12 @@ ECode CPopupWindow::GetMaxAvailableHeightEx2(
     /* [in] */ Boolean ignoreBottomDecorations,
     /* [out] */ Int32* maxAvailableHeight)
 {
-    return PopupWindow::GetMaxAvailableHeightEx2(anchor, yOffset,
-            ignoreBottomDecorations, maxAvailableHeight);
+    VALIDATE_NOT_NULL(maxAvailableHeight);
+
+    *maxAvailableHeight = PopupWindow::GetMaxAvailableHeight(anchor, yOffset,
+            ignoreBottomDecorations);
+
+    return NOERROR;
 }
 
 ECode CPopupWindow::Dismiss()
@@ -267,7 +346,7 @@ ECode CPopupWindow::UpdateEx(
     /* [in] */ Int32 width,
     /* [in] */ Int32 height)
 {
-    return PopupWindow::UpdateEx(width, height);
+    return PopupWindow::Update(width, height);
 }
 
 ECode CPopupWindow::UpdateEx2(
@@ -276,7 +355,7 @@ ECode CPopupWindow::UpdateEx2(
     /* [in] */ Int32 width,
     /* [in] */ Int32 height)
 {
-    return PopupWindow::UpdateEx2(x, y, width, height);
+    return PopupWindow::Update(x, y, width, height);
 }
 
 ECode CPopupWindow::UpdateEx3(
@@ -286,7 +365,7 @@ ECode CPopupWindow::UpdateEx3(
     /* [in] */ Int32 height,
     /* [in] */ Boolean force)
 {
-    return PopupWindow::UpdateEx3(x, y, width, height, force);
+    return PopupWindow::Update(x, y, width, height, force);
 }
 
 ECode CPopupWindow::UpdateEx4(
@@ -294,7 +373,7 @@ ECode CPopupWindow::UpdateEx4(
     /* [in] */ Int32 width,
     /* [in] */ Int32 height)
 {
-    return PopupWindow::UpdateEx4(anchor, width, height);
+    return PopupWindow::Update(anchor, width, height);
 }
 
 ECode CPopupWindow::UpdateEx5(
@@ -304,12 +383,7 @@ ECode CPopupWindow::UpdateEx5(
     /* [in] */ Int32 yoff,
     /* [in] */ Int32 height)
 {
-    return PopupWindow::UpdateEx5(anchor, width, xoff, yoff, height);
-}
-
-ECode CPopupWindow::OnScrollChanged()
-{
-    return PopupWindow::OnScrollChanged();
+    return PopupWindow::Update(anchor, width, xoff, yoff, height);
 }
 
 ECode CPopupWindow::constructor(
@@ -348,7 +422,7 @@ ECode CPopupWindow::constructor(
     /* [in] */ Int32 width,
     /* [in] */ Int32 height)
 {
-    return PopupWindow::Init(width, height);
+    return PopupWindow::Init(NULL, width, height);
 }
 
 ECode CPopupWindow::constructor(

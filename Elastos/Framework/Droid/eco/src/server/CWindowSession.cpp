@@ -96,11 +96,8 @@ ECode CWindowSession::GetDisplayFrame(
     /* [in] */ IInnerWindow* window,
     /* [out] */ IRect** outDisplayFrame)
 {
-    IRect* r;
-    assert(SUCCEEDED(CRect::New(&r)));
-
-    mWMService->GetWindowDisplayFrame(this, window, r);
-    *outDisplayFrame = r;
+    FAIL_RETURN(CRect::New(outDisplayFrame));
+    mWMService->GetWindowDisplayFrame(this, window, *outDisplayFrame);
 
     return NOERROR;
 }

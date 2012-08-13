@@ -3633,9 +3633,6 @@ Int32 CWindowManagerService::RelayoutWindow(
         Int32 oldVisibility = win->mViewVisibility;
         win->mViewVisibility = viewVisibility;
         viewVisibility = View_VISIBLE;
-        if (win->mAppToken != NULL) {
-            win->mAppToken->mClientHidden = FALSE;
-        }
         if (viewVisibility == View_VISIBLE &&
                 (win->mAppToken == NULL || !win->mAppToken->mClientHidden)) {
             displayed = !win->IsVisibleLw();

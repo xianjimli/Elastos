@@ -32,7 +32,7 @@ public:
         /* [in] */ IViewOnTouchListener* l);
 
     CARAPI IsFocusable(
-        /* [out] */ Boolean* isFocusable);
+        /* [out] */ Boolean* focusable);
 
     CARAPI SetFocusable(
          /* [in] */ Boolean focusable);
@@ -102,7 +102,7 @@ public:
         /* [in] */ Int32 width);
 
     CARAPI IsShowing(
-        /* [out] */ Boolean* isShowing);
+        /* [out] */ Boolean* showing);
 
     CARAPI ShowAtLocation(
         /* [in] */ IView* parent,
@@ -171,8 +171,6 @@ public:
         /* [in] */ Int32 xoff,
         /* [in] */ Int32 yoff,
         /* [in] */ Int32 height);
-
-    CARAPI OnScrollChanged();
 
     CARAPI constructor(
         /* [in] */ IContext* ctx);

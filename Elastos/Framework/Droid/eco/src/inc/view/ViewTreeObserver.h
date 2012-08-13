@@ -76,6 +76,28 @@ public:
     CARAPI GetInterfaceID(
         /* [in] */ IInterface *pObject,
         /* [out] */ InterfaceID *pIID);
+
+    /**
+     * Register a callback to be invoked when a view has been scrolled.
+     *
+     * @param listener The callback to add
+     *
+     * @throws IllegalStateException If {@link #isAlive()} returns false
+     */
+    CARAPI AddOnScrollChangedListener(
+        /* [in] */ IOnScrollChangedListener* listener);
+
+    /**
+     * Remove a previously installed scroll-changed callback
+     *
+     * @param victim The callback to remove
+     *
+     * @throws IllegalStateException If {@link #isAlive()} returns false
+     *
+     * @see #addOnScrollChangedListener(OnScrollChangedListener)
+     */
+    CARAPI RemoveOnScrollChangedListener(
+        /* [in] */ IOnScrollChangedListener* victim);
 };
 
 #endif //__VIEWTREEOBSERVER_H__

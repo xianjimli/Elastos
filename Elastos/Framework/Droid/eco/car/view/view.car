@@ -39,6 +39,7 @@ module
     interface IView;
     interface IAccessibilityEvent;
     interface IAnimation;
+    interface IViewTreeObserver;
 
     /**
      * Interface definition for a callback to be invoked when a key event is
@@ -2355,6 +2356,21 @@ module
          */
         IsSelected(
             [out] Boolean* selected);
+
+        /**
+         * Returns the ViewTreeObserver for this view's hierarchy. The view tree
+         * observer can be used to get notifications when global events, like
+         * layout, happen.
+         *
+         * The returned ViewTreeObserver observer is not guaranteed to remain
+         * valid for the lifetime of this View. If the caller of this method keeps
+         * a long-lived reference to ViewTreeObserver, it should always check for
+         * the return value of {@link ViewTreeObserver#isAlive()}.
+         *
+         * @return The ViewTreeObserver for this view's hierarchy.
+         */
+        GetViewTreeObserver(
+            [out] IViewTreeObserver** observer);
 
         /**
          * <p>Finds the topmost view in the current view hierarchy.</p>

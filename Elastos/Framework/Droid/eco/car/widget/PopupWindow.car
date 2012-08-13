@@ -6,21 +6,13 @@ module
     interface IViewOnTouchListener;
     interface IViewOnTouchListener;
 
-    interface IPopupWindowOnDismissListener {
-        /**
-         * Called when this popup window is dismissed.
-         */
-        OnDismiss();
-    }
-
-
     /**
      * Mode for {@link #setInputMethodMode(int)}: the requirements for the
      * input method should be based on the focusability of the popup.  That is
      * if it is focusable than it needs to work with the input method, else
      * it doesn't.
      */
-    const INPUT_METHOD_FROM_FOCUSABLE = 0;
+    const PopupWindow_INPUT_METHOD_FROM_FOCUSABLE = 0;
 
     /**
      * Mode for {@link #setInputMethodMode(int)}: this popup always needs to
@@ -28,7 +20,7 @@ module
      * means that it will always be displayed so that the user can also operate
      * the input method while it is shown.
      */
-    const INPUT_METHOD_NEEDED = 1;
+    const PopupWindow_INPUT_METHOD_NEEDED = 1;
 
     /**
      * Mode for {@link #setInputMethodMode(int)}: this popup never needs to
@@ -36,7 +28,14 @@ module
      * means that it will always be displayed to use as much space on the
      * screen as needed, regardless of whether this covers the input method.
      */
-    const INPUT_METHOD_NOT_NEEDED = 2;
+    const PopupWindow_INPUT_METHOD_NOT_NEEDED = 2;
+
+    interface IPopupWindowOnDismissListener {
+        /**
+         * Called when this popup window is dismissed.
+         */
+        OnDismiss();
+    }
 
     interface IPopupWindow {
         /**

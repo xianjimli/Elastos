@@ -88,3 +88,15 @@ ECode ViewTreeObserver::GetInterfaceID(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode ViewTreeObserver::AddOnScrollChangedListener(
+    /* [in] */ IOnScrollChangedListener* listener)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode ViewTreeObserver::RemoveOnScrollChangedListener(
+    /* [in] */ IOnScrollChangedListener* victim)
+{
+    return E_NOT_IMPLEMENTED;
+}
+

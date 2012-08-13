@@ -2391,9 +2391,9 @@ Boolean ViewRoot::ScrollToRectOrFocus(
         // is non-NULL and we just want to scroll to whatever that
         // rectangle is).
         //
-        View* focus = NULL;
-        if (mRealFocusedView != NULL)
-             focus = reinterpret_cast<View*>(mRealFocusedView->Probe(EIID_View));
+        View* focus = mRealFocusedView != NULL ?
+             reinterpret_cast<View*>(mRealFocusedView->Probe(EIID_View)) : NULL;
+
         // When in touch mode, focus points to the previously focused view,
         // which may have been removed from the view hierarchy. The following
         // line checks whether the view is still in our hierarchy.

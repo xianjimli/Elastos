@@ -7189,14 +7189,6 @@ ECode View::GetLocationInWindow(
             // *cough*
             *y -= viewRoot->mCurScrollY;
         }
-
-        if (viewParent) {
-            ViewRoot* viewRoot = (ViewRoot*)viewParent->Probe(EIID_ViewRoot);
-            if (viewRoot) {
-                // *cough*
-                *y -= viewRoot->mCurScrollY;
-            }
-        }
     }
 
     return NOERROR;

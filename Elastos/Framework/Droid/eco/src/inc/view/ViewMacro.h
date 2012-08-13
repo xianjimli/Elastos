@@ -618,6 +618,9 @@
     CARAPI IsSelected(                                                  \
         /* [out] */ Boolean* selected);                                 \
                                                                         \
+    CARAPI GetViewTreeObserver(                                         \
+        /* [out] */ IViewTreeObserver** observer);                      \
+                                                                        \
     CARAPI GetRootView(                                                 \
         /* [out] */ IView** view);                                      \
                                                                         \
@@ -2227,6 +2230,17 @@ ECode className::IsSelected(                                            \
     VALIDATE_NOT_NULL(selected);                                        \
     *selected = superClass::IsSelected();                               \
                                                                         \
+    return NOERROR;                                                     \
+}                                                                       \
+                                                                        \
+ECode className::GetViewTreeObserver(                                   \
+    /* [out] */ IViewTreeObserver** observer)                           \
+{                                                                       \
+    VALIDATE_NOT_NULL(observer);                                        \
+    *observer = superClass::GetViewTreeObserver();                      \
+    if (*observer != NULL) {                                            \
+        (*observer)->AddRef();                                          \
+    }                                                                   \
     return NOERROR;                                                     \
 }                                                                       \
                                                                         \
