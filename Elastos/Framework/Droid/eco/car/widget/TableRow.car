@@ -1,0 +1,21 @@
+
+module
+{
+    interface ITableRowLayoutParams extends ILinearLayoutLayoutParams
+    {
+    }
+
+    interface ITableRow extends ILinearLayout
+    {
+        SetColumnCollapsed(
+            [in] Int32 columnIndex, 
+            [in] Boolean collapsed);
+
+        GetColumnsWidths(
+            [in] Int32 widthMeasureSpec,
+            [out, callee] ArrayOf<Int32>* widths);
+
+        SetColumnsWidthConstraints(
+            [in] ArrayOf<Int32> columnWidths);
+    }
+}

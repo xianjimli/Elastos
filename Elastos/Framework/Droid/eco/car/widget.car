@@ -6,6 +6,9 @@ module
     merge("widget/ImageView.car");
     merge("widget/LinearLayout.car");
     merge("widget/RelativeLayout.car");
+    merge("widget/AbsoluteLayout.car");
+    merge("widget/TableRow.car");
+    merge("widget/TableLayout.car");
     merge("widget/TextView.car");
     merge("widget/Adapter.car");
     merge("widget/ListAdapter.car");
@@ -191,6 +194,120 @@ module
         interface IDrawableCallback;
         interface IKeyEventCallback;
         interface IAccessibilityEventSource;
+    }
+
+    class CAbsoluteLayoutLayoutParams {
+
+        constructor(
+            [in] Int32 width,
+            [in] Int32 height,
+            [in] Int32 x,
+            [in] Int32 y);
+
+        constructor(
+            [in] IContext* c,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IViewGroupLayoutParams* source);
+
+        interface IAbsoluteLayoutLayoutParams;
+    }
+
+    class CAbsoluteLayout {
+
+        constructor(
+            [in] IContext* context);
+
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
+
+        interface IAbsoluteLayout;
+    }
+
+    class CTableLayoutLayoutParams {
+
+        constructor(
+            [in] IContext* c,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] Int32 w,
+            [in] Int32 h);
+
+        constructor(
+            [in] Int32 w,
+            [in] Int32 h,
+            [in] Float initWeight);
+
+        constructor();
+
+        constructor(
+            [in] IViewGroupLayoutParams* p);
+
+        constructor(
+            [in] IViewGroupMarginLayoutParams* source);
+
+        interface ITableLayoutLayoutParams;
+    }
+
+    class CTableLayout {
+
+        constructor(
+            [in] IContext* context);
+
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs);
+
+        interface ITableLayout;
+    }
+
+    class CTableRowLayoutParams {
+
+        constructor(
+            [in] IContext* c,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] Int32 w,
+            [in] Int32 h);
+
+        constructor(
+            [in] Int32 w,
+            [in] Int32 h,
+            [in] Float initWeight);
+
+        constructor();
+
+        constructor(
+            [in] Int32 column);
+
+        constructor(
+            [in] IViewGroupLayoutParams* p);
+
+        constructor(
+            [in] IViewGroupMarginLayoutParams* source);
+
+        interface ITableRowLayoutParams;
+    }
+
+    class CTableRow {
+
+        constructor(
+            [in] IContext* context);
+
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs);
+
+        interface ITableRow;
     }
 
     class CTextView {

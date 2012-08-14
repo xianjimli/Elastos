@@ -88,7 +88,7 @@ public:
     virtual CARAPI SetVerticalGravity(
         /* [in] */ Int32 verticalGravity);
 
-    CARAPI_(AutoPtr<IViewGroupLayoutParams>) GenerateLayoutParams(
+    virtual CARAPI_(AutoPtr<IViewGroupLayoutParams>) GenerateLayoutParams(
         /* [in] */ IAttributeSet* attrs);
 
 protected:

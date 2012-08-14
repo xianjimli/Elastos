@@ -22,3 +22,5 @@ SOURCES += ListUtils.cpp
 SOURCES += FinitePool.cpp
 SOURCES += SynchronizedPool.cpp
 SOURCES += Pools.cpp
+SOURCES += SparseInt32Array.cpp
+SOURCES += SparseBooleanArray.cpp

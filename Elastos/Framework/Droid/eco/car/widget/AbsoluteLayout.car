@@ -1,0 +1,11 @@
+
+module
+{
+    interface IAbsoluteLayoutLayoutParams extends IViewGroupLayoutParams
+    {
+    }
+
+    interface IAbsoluteLayout extends IViewGroup
+    {
+    }
+}
