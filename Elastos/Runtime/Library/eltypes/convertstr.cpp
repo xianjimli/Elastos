@@ -5,7 +5,9 @@
 #include <eltypes.h>
 #include <_pubcrt.h>
 #include <stdlib.h>
+#ifdef _linux
 #include <alloca.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {

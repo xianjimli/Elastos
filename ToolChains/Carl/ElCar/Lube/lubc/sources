@@ -24,12 +24,10 @@ LIBRARIES = ../userfunc/userfunc.lib
 LIBRARIES += ../lubase/lubase.lib
 LIBRARIES += ../../Carc/clsutil/clsutil.lib
 LIBRARIES += ../../Carc/clsbase/clsbase.lib
+ifeq "$(XDK_TARGET_PLATFORM)" "linux"
 LIBRARIES += -lz
+else
+LIBRARIES += $(XDK_USER_LIB)/libz.lib
+endif
 LIBRARIES += -lstdc++
-
-#EXTERN_LIBS += user32
-#EXTERN_LIBS += msvcrt
-#EXTERN_LIBS += kernel32
-#EXTERN_LIBS += uuid
-#EXTERN_LIBS += oleaut32
 

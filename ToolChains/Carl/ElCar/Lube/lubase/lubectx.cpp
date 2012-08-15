@@ -2,11 +2,17 @@
 // Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.
 //==========================================================================
 
+#ifdef _linux
 #include <sys/io.h>
+#else
+#include <io.h>
+#endif
 #include <unistd.h>
 #include <lube.h>
 
+#ifdef _linux
 #define _access access
+#endif
 
 #define _MAX_PATH 256
 

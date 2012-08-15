@@ -3,11 +3,18 @@
 //==========================================================================
 
 #include <stdlib.h>
+#ifdef _linux
 #include <sys/io.h>
+#else
+#include <io.h>
+#include <windows.h>
+#endif
 #include <malloc.h>
 #include <lube.h>
 
+#ifdef _linux
 #define _MAX_PATH 256
+#endif
 
 static const char *s_pszLubePath = "";
 const char *g_pszOutputPath = "";
@@ -99,41 +106,42 @@ void SetOutputPath(const char *pszPath)
     g_pszOutputPath = pszPath;
 }
 
+#ifdef _win32
 int LoadLubeFromDll(const char *pszName, PLUBEHEADER *ppLube)
 {
-//    int nSize;
-//    HRSRC hResInfo;
-//    HGLOBAL hRes;
-//    LPVOID lpLockRes;
-//    HMODULE handle;
-//
-//    if (pszName) {
-//        handle = LoadLibraryExA(pszName, NULL, LOAD_LIBRARY_AS_DATAFILE);
-//        if (!handle) goto ErrorExit;
-//    }
-//    else {
-//        handle = NULL;
-//    }
-//
-//    hResInfo = FindResourceA(handle, "#1", "Lube");
-//    if (!hResInfo) goto ErrorExit;
-//
-//    nSize = SizeofResource(handle, hResInfo);
-//    if (0 == nSize) goto ErrorExit;
-//
-//    hRes = LoadResource(handle, hResInfo);
-//    if (!hRes) goto ErrorExit;
-//
-//    lpLockRes = LockResource(hRes);
-//    if (!lpLockRes) goto ErrorExit;
-//
-//    return RelocFlattedLube((PLUBEHEADER)lpLockRes, nSize, ppLube);
-//
-//ErrorExit:
-//    fprintf(stderr, "[ERROR] lube (0x0303 : Can't load lube resource from file.\n");
-//    return LUBE_FAIL;
-    return -1;
+    int nSize;
+    HRSRC hResInfo;
+    HGLOBAL hRes;
+    LPVOID lpLockRes;
+    HMODULE handle;
+
+    if (pszName) {
+        handle = LoadLibraryExA(pszName, NULL, LOAD_LIBRARY_AS_DATAFILE);
+        if (!handle) goto ErrorExit;
+    }
+    else {
+        handle = NULL;
+    }
+
+    hResInfo = FindResourceA(handle, "#1", "Lube");
+    if (!hResInfo) goto ErrorExit;
+
+    nSize = SizeofResource(handle, hResInfo);
+    if (0 == nSize) goto ErrorExit;
+
+    hRes = LoadResource(handle, hResInfo);
+    if (!hRes) goto ErrorExit;
+
+    lpLockRes = LockResource(hRes);
+    if (!lpLockRes) goto ErrorExit;
+
+    return RelocFlattedLube((PLUBEHEADER)lpLockRes, nSize, ppLube);
+
+ErrorExit:
+    fprintf(stderr, "[ERROR] lube (0x0303 : Can't load lube resource from file.\n");
+    return LUBE_FAIL;
 }
+#endif
 
 typedef	unsigned short		__uint16_t;
 typedef	unsigned int		__uint32_t;
@@ -322,8 +330,12 @@ int LoadLubeFromFile(const char *pszName, PLUBEHEADER *ppLube)
         return LUBE_FAIL;
     }
 
+#ifdef _linux
     fseek(pFile, 0, SEEK_END);
     nSize = ftell(pFile);
+#else
+    nSize = _filelength(pFile->_file);
+#endif
     pLube = (PLUBEHEADER)new char[nSize];
     if (!pLube) {
         fprintf(stderr, "[ERROR] lube (0x0305 : Out of memory.\n");
@@ -344,7 +356,13 @@ int LoadLube(const char *pszName, PLUBEHEADER *ppLube)
     int n;
     char szResult[_MAX_PATH];
 
-    if (!pszName) return LoadLubeFromELF(NULL, ppLube);
+    if (!pszName) {
+#ifdef _linux
+    	return LoadLubeFromELF(NULL, ppLube);
+#else
+    	return LoadLubeFromDll(NULL, ppLube);
+#endif
+    }
 
     n = SearchFileFromPath(s_pszLubePath, pszName, szResult);
     if (n < 0) return n;
@@ -355,7 +373,11 @@ int LoadLube(const char *pszName, PLUBEHEADER *ppLube)
         return LoadLubeFromFile(szResult, ppLube);
     }
     else if (!_stricmp(pszName + n - 4, ".eco")) {
+#ifdef _linux
+        return LoadLubeFromELF(szResult, ppLube);
+#else
         return LoadLubeFromDll(szResult, ppLube);
+#endif
     }
     return LUBE_FAIL;
 }

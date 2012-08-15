@@ -9,7 +9,9 @@
 #include "clsutil.h"
 #include <chgpath.h>
 
+#ifdef _linux
 #define _MAX_PATH 256
+#endif
 
 static bool s_bMakeDependence = false;
 static char s_szCarDepName[_MAX_PATH] = "";

@@ -15,14 +15,8 @@
 
 _ELASTOS_NAMESPACE_BEGIN
 
-#ifdef _UNDEFDLLEXP
-#define DLLEXP
-#else
-#define DLLEXP __declspec(dllimport)
-#endif
-
-EXTERN_C DLLEXP SharedBuffer* gElEmptyStringBuf;
-EXTERN_C DLLEXP char* gElEmptyString;
+EXTERN_C SharedBuffer* gElEmptyStringBuf;
+EXTERN_C char* gElEmptyString;
 
 static inline char* _getEmptyString()
 {

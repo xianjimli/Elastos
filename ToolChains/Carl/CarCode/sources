@@ -9,8 +9,9 @@ SOURCES = carcode.cpp
 
 LIBRARIES = ../ElCar/Carc/clsbase/clsbase.lib
 LIBRARIES += ../ElCar/Carc/clsutil/clsutil.lib
+ifeq "$(XDK_TARGET_PLATFORM)" "linux"
 LIBRARIES += -lz
+else
+LIBRARIES += $(XDK_USER_LIB)/libz.lib
+endif
 LIBRARIES += -lstdc++
-
-#EXTERN_LIBS += msvcrt
-#EXTERN_LIBS += kernel32

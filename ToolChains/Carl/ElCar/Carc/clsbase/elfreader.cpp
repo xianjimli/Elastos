@@ -2,7 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
+#ifdef _linux
 #include <sys/io.h>
+#else
+#include <io.h>
+#endif
 #include <stdio.h>
 
 #include "clsbase.h"

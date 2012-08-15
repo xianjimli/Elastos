@@ -5,7 +5,11 @@
 #include "CCallbackContext.h"
 #include "CCallbackParcel.h"
 #include <pthread.h>
+#ifdef _linux
 #include <time.h>
+#else
+#include <e_time.h>
+#endif
 #include <errno.h>
 #include <unistd.h>
 

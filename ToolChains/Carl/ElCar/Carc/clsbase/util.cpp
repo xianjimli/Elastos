@@ -3,12 +3,18 @@
 //==========================================================================
 
 #include <ctype.h>
+#ifdef _linux
 #include <sys/io.h>
+#else
+#include <io.h>
+#endif
 #include <unistd.h>
 
 #include "clsbase.h"
 
+#ifdef _linux
 #define _access access
+#endif
 
 void GetNakedFileName(const char *pszSource, char *pszDest)
 {

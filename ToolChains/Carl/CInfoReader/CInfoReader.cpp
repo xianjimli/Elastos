@@ -3,11 +3,17 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#ifdef _linux
 #include <sys/io.h>
+#else
+#include <io.h>
+#endif
 #include <sys/stat.h>
 #include <stdio.h>
 
+#ifdef _linux
 #define _stricmp  strcasecmp
+#endif
 
 #define ALIGNMENT    0x8000
 #define NAMELEN  260

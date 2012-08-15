@@ -1,4 +1,7 @@
 
 DIRS += Runtime
+ifeq "$(XDK_TARGET_PLATFORM)" "linux"
 DIRS += LibCore
 DIRS += Framework
+endif
+

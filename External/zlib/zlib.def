@@ -1,7 +1,7 @@
 #ifdef _devtools
 LIBRARY
 #else
-LIBRARY Elastos.Archiving.zlib.eco
+LIBRARY libz.eco
 #endif
 ; zlib data compression library
 

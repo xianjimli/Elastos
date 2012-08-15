@@ -354,7 +354,7 @@ typedef const InterfaceID* const RInterfaceID;
 
 _ELASTOS_NAMESPACE_END
 
-#if defined(_mips) && defined(_GNUC)
+#if defined(_linux) || defined(_mips) && defined(_GNUC)
 #define __cdecl
 #define __stdcall
 #endif
@@ -436,11 +436,6 @@ EXTERN_C void __asm(char*, ...);
 #define CarClass(name)      class name : public _##name name##_CallbackKeyword_Checking
 #else
 #define CarClass(name)      class name : public _##name
-#endif
-
-#ifdef _GNUC
-#define __cdecl
-#define __stdcall
 #endif
 
 // ---- API Call ----

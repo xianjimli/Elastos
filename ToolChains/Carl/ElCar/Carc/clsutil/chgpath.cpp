@@ -3,7 +3,11 @@
 //==========================================================================
 
 #include <stdio.h>
+#ifdef _linux
 #include <sys/io.h>
+#else
+#include <io.h>
+#endif
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -12,6 +16,9 @@
 #include <stdlib.h>
 #include <tchar.h>
 #include <assert.h>
+#ifdef _win32
+#include <windows.h>
+#endif
 
 //#define DEBUG
 

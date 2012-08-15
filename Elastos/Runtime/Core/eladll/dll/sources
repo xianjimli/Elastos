@@ -27,8 +27,10 @@ LIBRARIES += ../../../Library/clsmodule/clsinfo.lib
 ifeq "$(XDK_TARGET_PLATFORM)" "win32"
 LIBRARIES += ../../elapi/elapi.lib
 LIBRARIES += ../../marshal/others/marshal.lib
-LIBRARIES += $(XDK_USER_LIB)/Elastos.Archiving.zlib.lib
-LIBRARIES += $(XDK_USER_LIB)/Elastos.Runtime.lib
+LIBRARIES += $(XDK_USER_LIB)/libz.lib
+LIBRARIES += ../../../PortingLayer/win32/win32_porting.lib
+LIBRARIES += -lpthread
+LIBRARIES += $(XDK_LIB_PATH)/dbus-1.lib
 else
 LIBRARIES += ../../elapi/elapi.lib
 ifeq "$(XDK_TARGET_PLATFORM)" "linux"

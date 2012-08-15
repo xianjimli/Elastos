@@ -10,13 +10,9 @@
 #include <ctype.h>
 #include <new>
 #include <pthread.h>
-#ifdef _MSVC
-#include <KD/kd.h>
-#include <KD/kd_KT_extentions.h>
-#endif
 
-#ifdef _MSVC
-#pragma warning(disable: 4190)
+#ifdef _win32
+#include <e_time.h>
 #endif
 
 EXTERN_C const InterfaceID EIID_IProxy;
@@ -174,12 +170,12 @@ ELAPI _CSystem_GetServiceManager(
 ELAPI _CSystem_QueryPerformanceCounter(
         _ELASTOS Int64 *pPerformanceCount)
 {
-#ifdef _MSVC
+#ifdef _win32
 	if (!pPerformanceCount) {
         return E_INVALID_ARGUMENT;
     }
 
-    if (0 == kdQueryPerformanceCounterKT((KDint64 *)pPerformanceCount)) {
+    if (0 == Elastos_QueryPerformanceCounter((long long *)pPerformanceCount)) {
         return NOERROR;
     }
     else {
@@ -218,12 +214,12 @@ ELAPI _CSystem_QueryPerformanceCounter(
 ELAPI _CSystem_QueryPerformanceFrequency(
         _ELASTOS Int64 *pFrequency)
 {
-#ifdef _MSVC
+#ifdef _win32
 	if (!pFrequency) {
         return E_INVALID_ARGUMENT;
     }
 
-    if (0 == kdQueryPerformanceFrequencyKT((KDint64 *)pFrequency)) {
+    if (0 == Elastos_QueryPerformanceCounter((long long *)pFrequency)) {
         return NOERROR;
     }
     else {

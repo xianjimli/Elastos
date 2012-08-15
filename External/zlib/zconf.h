@@ -329,10 +329,7 @@
 #  define FAR
 #endif
 
-#if defined(ELASTOS)
-#include <elatypes.h> // for Byte
-_ELASTOS_NAMESPACE_USING
-#elif !defined(__MACTYPES__)
+#if !defined(__MACTYPES__)
 typedef unsigned char  Byte;  /* 8 bits */
 #endif
 typedef unsigned int   uInt;  /* 16 bits or more */

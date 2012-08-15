@@ -204,19 +204,24 @@ int ParseArgs(int nArgc, char *ppArgv[], CommandArgs *pArgs)
 
     memset(pArgs, 0, sizeof(CommandArgs));
     stream.Initialize(nArgc, ppArgv);
-//    GetCygpath();
-
+#ifdef _win32
+    GetCygpath();
+#endif
     while ((c = stream.PeekChar()) != 0) {
         if (IsCommandSwitch(c)) {
             stream.GetChar(); // skip switch char: '-'
 
             switch (c = stream.GetChar()) {
                 case 'B':
-//                    if(HasCygpath()){
-//                        pArgs->pszInputLBO = Turn2WinPath(stream.GetWord());
-//                    } else {
+#ifdef _win32
+                    if(HasCygpath()){
+                        pArgs->pszInputLBO = Turn2WinPath(stream.GetWord());
+                    } else {
+#endif
                         pArgs->pszInputLBO = stream.GetWord();
-//                    }
+#ifdef _win32
+                    }
+#endif
 
                     if (!pArgs->pszInputLBO) {
                         CmdError(CommandError_NoFile, c);
@@ -273,21 +278,29 @@ int ParseArgs(int nArgc, char *ppArgv[], CommandArgs *pArgs)
                         CmdError(CommandError_InvalidSemicolon, c);
                         return CommandError_InvalidSemicolon;
                     }
-//                    if(HasCygpath()){
-//                        pszStr = Turn2WinPath(pszStr);
-//                    }
+#ifdef _win32
+                    if(HasCygpath()){
+                        pszStr = Turn2WinPath(pszStr);
+                    }
+#endif
                     ConcatCommasStr(&(pArgs->pszInputPath), pszStr);
-//                    if(HasCygpath()){
-//                        delete pszStr;
-//                    }
+#ifdef _win32
+                    if(HasCygpath()){
+                        delete pszStr;
+                    }
+#endif
                     break;
 
                 case 'p':
-//                    if(HasCygpath()){
-//                        pArgs->pszOutputPath = Turn2WinPath(stream.GetWord());
-//                    } else {
+#ifdef _win32
+                    if(HasCygpath()){
+                        pArgs->pszOutputPath = Turn2WinPath(stream.GetWord());
+                    } else {
+#endif
                         pArgs->pszOutputPath = stream.GetWord();
-//                    }
+#ifdef _win32
+                    }
+#endif
                     if (!pArgs->pszOutputPath) {
                         CmdError(CommandError_NoPathStr, c);
                         return CommandError_NoPathStr;

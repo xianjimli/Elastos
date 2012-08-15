@@ -3,9 +3,6 @@
 #==========================================================================
 
 DIRS = clsbase
-
-ifeq "$(XDK_TARGET_PLATFORM)" "linux"
 DIRS += clsutil
 DIRS += systypes
 DIRS += parser
-endif
