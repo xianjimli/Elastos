@@ -2,7 +2,11 @@
 // Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.
 //==========================================================================
 
+#ifdef _linux
 #include <sys/io.h>
+#else
+#include <io.h>
+#endif
 //typedef unsigned char byte;
 #include <lube.h>
 

@@ -6,7 +6,9 @@
 #include <stdlib.h>
 #include <lube.h>
 
+#ifdef _linux
 #define _alloca alloca
+#endif
 
 #define ALIGN_BOUND 4
 

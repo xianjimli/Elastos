@@ -14,10 +14,16 @@ $(SPECIAL_TARGET):
 		$(XDK_USER_INC) $(BLACKHOLE)
 	$(V) $(CP) _ElastosCore_c.h \
 		$(XDK_USER_INC) $(BLACKHOLE)
+ifneq "$(SystemRoot)" ""
+	$(V) $(CP) ElastosCore_server.h \
+		$(XDK_USER_INC)\elasys_server.h $(BLACKHOLE)
+	$(V) $(CP) ElastosCore.h \
+		$(XDK_USER_INC)\elasys.h $(BLACKHOLE)
+else
 	$(V) $(CP) ElastosCore_server.h \
 		$(XDK_USER_INC)/elasys_server.h $(BLACKHOLE)
 	$(V) $(CP) ElastosCore.h \
 		$(XDK_USER_INC)/elasys.h $(BLACKHOLE)
-
+endif
 	@touch $@
 

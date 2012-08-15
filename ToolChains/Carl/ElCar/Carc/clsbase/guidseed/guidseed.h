@@ -5,16 +5,10 @@
 #define __GUIDSEED_H__
 
 #include <ctype.h>
-#ifdef _linux
 #include <string.h>
 #include <elatypes.h>
 #include <clstype.h>
-#else
-#include <elastos.h>
-#endif
-#ifdef _devtools
 #include <stdint.h>
-#endif
 
 typedef unsigned char     BYTE;
 typedef unsigned short int    WORD;

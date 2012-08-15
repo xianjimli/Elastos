@@ -12,16 +12,22 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#ifdef _linux
 #include <sys/io.h>
+#else
+#include <io.h>
+#endif
 #include <ctype.h>
 
 
 #define HTIME_GT_DLLTIME -2
 #define HTIME_LT_DLLTIME 2
 
+#ifdef _linux
 #define _MAX_PATH 256
 
 #define _strdup strdup
+#endif
 
 extern const char *g_pszOutputPath;
 extern char * ImplNamespaceType(const char * str);
@@ -209,6 +215,7 @@ IMPL_USERFUNC(ErrorMessage)(PLUBECTX pCtx, PSTATEDESC pDesc, PVOID pvArg)
     return LUBE_FAIL;
 }
 
+#ifdef _linux
 static void _strupr(char* str)
 {
     int i = 0;
@@ -226,6 +233,7 @@ static void _strlwr(char* str)
         i++;
     }
 }
+#endif
 
 IMPL_USERFUNC(Upper)(PLUBECTX pCtx, PSTATEDESC pDesc, PVOID pvArg)
 {

@@ -14,7 +14,9 @@ typedef unsigned char  byte;
 #include <clsutil.h>
 #include <abrgcls.h>
 
+#ifdef _linux
 #define _alloca alloca
+#endif
 
 void AbrgUuid(const GUID *puuid, FILE *pFile)
 {
@@ -192,6 +194,7 @@ void Abrg2Comment(FILE * pFile,
     }
 }
 
+#ifdef _linux
 static void _strupr(char* str)
 {
     int i = 0;
@@ -200,6 +203,7 @@ static void _strupr(char* str)
         i++;
     }
 }
+#endif
 
 int CLS2AbrgCpp_(FILE *pFile, const CLSModule *pModule)
 {

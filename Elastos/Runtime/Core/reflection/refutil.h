@@ -13,7 +13,9 @@
 #include <clsbase.h>
 #include "adjustaddr.h"
 
+#ifdef _linux
 #include <alloca.h>
+#endif
 #include <_pubcrt.h>
 
 _ELASTOS_NAMESPACE_USING

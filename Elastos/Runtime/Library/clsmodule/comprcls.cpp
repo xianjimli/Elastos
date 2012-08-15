@@ -10,7 +10,9 @@
 #include <clsbase.h>
 
 #ifndef _devtools
+#ifdef _linux
 #include <alloca.h>
+#endif
 #endif
 
 int CompressCLS(void *pvDest)

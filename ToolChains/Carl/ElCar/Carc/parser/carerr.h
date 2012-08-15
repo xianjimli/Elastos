@@ -5,7 +5,7 @@
 #ifndef __CARERR_H__
 #define __CARERR_H__
 
-typedef enum CARErrorNo {
+enum CARErrorNo {
     CAR_NoError = 0,
 
     // Warnings

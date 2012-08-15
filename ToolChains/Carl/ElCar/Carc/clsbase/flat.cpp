@@ -10,7 +10,9 @@
 
 #include "clsbase.h"
 
+#ifdef _linux
 #define _alloca alloca
+#endif
 
 class CFlatBuffer
 {

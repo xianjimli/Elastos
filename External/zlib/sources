@@ -1,6 +1,10 @@
 TARGET_NAME=libz
 ifeq "$(XDK_TARGET_PRODUCT)" "devtools"
+ifeq "$(XDK_TARGET_PLATFORM)" "win32"
+TARGET_TYPE=eco
+else
 TARGET_TYPE=so
+endif
 else
 TARGET_TYPE=eco
 endif
@@ -17,7 +21,9 @@ endif
 EXPORT_HEADERS+=zlib.h
 EXPORT_HEADERS+=zconf.h
 
-#SOURCES += zlib.def
+ifeq "$(XDK_TARGET_PLATFORM)" "win32"
+SOURCES += zlib.def
+endif
 SOURCES += adler32.c
 SOURCES += compress.c
 SOURCES += crc32.c

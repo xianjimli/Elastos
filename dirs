@@ -1,6 +1,11 @@
 ifneq "$(XDK_TARGET_PRODUCT)" "devtools"
-  DIRS = Elastos
+ifeq "$(XDK_TARGET_PLATFORM)" "linux" 
+  DIRS += Elastos
   DIRS += External/cURL
+else
+  DIRS = External/zlib
+  DIRS += Elastos
+endif
 else
   DIRS=Elastos/Runtime/Library/inc
   DIRS+=External/zlib

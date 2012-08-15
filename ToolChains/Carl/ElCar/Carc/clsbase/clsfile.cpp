@@ -5,22 +5,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
+#ifdef _linux
 #include <sys/io.h>
+#else
+#include <io.h>
+#endif
 #include <fcntl.h>
 
 #include "clsbase.h"
 
+#ifdef _linux
 #define _alloca alloca
 
 #define _MAX_PATH 256
 
 #define _stricmp strcasecmp
+#endif
 
 static const char *s_pszLibraryPath = NULL;
 static const char *s_pszPublicPath = NULL;
 
-extern int CheckFileFormat(FILE *pFile);
+#ifdef _linux
 extern int LoadResourceFromELF(const char *pszName, CLSModule **ppDest);
+#endif
 
 
 #ifdef _win32
@@ -120,56 +127,56 @@ ErrorExit:
     _Return (nRet);
 }
 
+#ifdef _win32
 int LoadResourceFromPE(const char *pszName, CLSModule **ppDest)
 {
-//    UINT nSize;
-//    void *lpLockRes;
-//    int nRet, r;
-//    HRSRC hResInfo;
-//    HGLOBAL hRes;
-//    HMODULE handle;
-//
-//    if (pszName) {
-//        handle = LoadLibraryExA(pszName, NULL, LOAD_LIBRARY_AS_DATAFILE);
-//        if (!handle) {
-//            ExtraMessage(pszName, "LoadLibraryExA");
-//            _ReturnError (CLSError_LoadResource);
-//        }
-//    } else {
-//        handle = NULL;
-//    }
-//
-//    hResInfo = FindResourceA(handle, "#1", "ClassInfo");
-//    if (!hResInfo) {
-//        ExtraMessage(pszName, "FindResourceA", "<#1 ClassInfo>");
-//        _ReturnError (CLSError_LoadResource);
-//    }
-//
-//    nSize = SizeofResource(handle, hResInfo);
-//    if (0 == nSize) {
-//        ExtraMessage(pszName, "SizeofResource", "0");
-//        _ReturnError (CLSError_LoadResource);
-//    }
-//
-//    hRes = LoadResource(handle, hResInfo);
-//    if (!hRes) {
-//        ExtraMessage(pszName, "LoadResource");
-//        _ReturnError (CLSError_LoadResource);
-//    }
-//
-//    lpLockRes = LockResource(hRes);
-//    if (!lpLockRes) {
-//        ExtraMessage(pszName, "LockResource");
-//        _ReturnError (CLSError_LoadResource);
-//    }
-//
-//    r = IsValidCLS((CLSModule *)lpLockRes, nSize, pszName);
-//    nRet = (r < 0) ? r : RelocFlattedCLS((CLSModule *)lpLockRes, nSize, ppDest);
-//    FreeLibrary(handle);
-//    return 0;
-    return -1;
-}
+    UINT nSize;
+    void *lpLockRes;
+    int nRet, r;
+    HRSRC hResInfo;
+    HGLOBAL hRes;
+    HMODULE handle;
 
+    if (pszName) {
+        handle = LoadLibraryExA(pszName, NULL, LOAD_LIBRARY_AS_DATAFILE);
+        if (!handle) {
+            ExtraMessage(pszName, "LoadLibraryExA");
+            _ReturnError (CLSError_LoadResource);
+        }
+    } else {
+        handle = NULL;
+    }
+
+    hResInfo = FindResourceA(handle, "#1", "ClassInfo");
+    if (!hResInfo) {
+        ExtraMessage(pszName, "FindResourceA", "<#1 ClassInfo>");
+        _ReturnError (CLSError_LoadResource);
+    }
+
+    nSize = SizeofResource(handle, hResInfo);
+    if (0 == nSize) {
+        ExtraMessage(pszName, "SizeofResource", "0");
+        _ReturnError (CLSError_LoadResource);
+    }
+
+    hRes = LoadResource(handle, hResInfo);
+    if (!hRes) {
+        ExtraMessage(pszName, "LoadResource");
+        _ReturnError (CLSError_LoadResource);
+    }
+
+    lpLockRes = LockResource(hRes);
+    if (!lpLockRes) {
+        ExtraMessage(pszName, "LockResource");
+        _ReturnError (CLSError_LoadResource);
+    }
+
+    r = IsValidCLS((CLSModule *)lpLockRes, nSize, pszName);
+    nRet = (r < 0) ? r : RelocFlattedCLS((CLSModule *)lpLockRes, nSize, ppDest);
+    FreeLibrary(handle);
+    return nRet;
+}
+#endif
 
 
 int LoadCLSFromDll(const char *pszName, CLSModule **ppDest)
@@ -178,8 +185,11 @@ int LoadCLSFromDll(const char *pszName, CLSModule **ppDest)
     int  ret     = 0;
 
     if( pszName == NULL ){
+#ifdef _linux
         return LoadResourceFromELF(pszName, ppDest);
-//        return LoadResourceFromPE(pszName, ppDest);
+#else
+        return LoadResourceFromPE(pszName, ppDest);
+#endif
     }
     else {
         char szResult[_MAX_PATH] = {0};
@@ -209,14 +219,13 @@ int LoadCLSFromDll(const char *pszName, CLSModule **ppDest)
             strcpy(szResult, pszName);
         }
 
-        ret = CheckFileFormat(pFile);
         fclose(pFile);
 
-        if (ret) {
-            return LoadResourceFromPE(szResult, ppDest);
-        } else {
+#ifdef _linux
             return LoadResourceFromELF(szResult, ppDest);
-        }
+#else
+            return LoadResourceFromPE(szResult, ppDest);
+#endif
     }
 }
 

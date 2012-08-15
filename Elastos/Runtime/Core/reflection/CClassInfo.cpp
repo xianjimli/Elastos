@@ -5,7 +5,9 @@
 #include "CClassInfo.h"
 #include "CCallbackMethodInfo.h"
 #include "CConstructorInfo.h"
+#ifdef _linux
 #include <alloca.h>
+#endif
 
 UInt32 CClassInfo::AddRef()
 {
