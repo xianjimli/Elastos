@@ -22,6 +22,7 @@ module
     merge("app/Dialog.car");
     merge("app/AlertDialog.car");
     merge("app/INotificationManager.car");
+    merge("app/NotificationManager.car");
     merge("app/ITransientNotification.car");
 
 

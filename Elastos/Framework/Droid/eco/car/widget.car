@@ -37,6 +37,7 @@ module
     merge("widget/Gallery.car");
     merge("widget/PopupWindow.car");
     merge("widget/ProgressBar.car");
+    merge("widget/RemoteViews.car");
 
     class CScrollBarDrawable {
         interface IScrollBarDrawable;

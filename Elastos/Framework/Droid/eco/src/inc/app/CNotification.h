@@ -158,7 +158,7 @@ public:
     /**
      * The view that will represent this notification in the expanded status bar.
      */
-//    AutoPtr<IRemoteViews> mContentView;
+    AutoPtr<IRemoteViews> mContentView;
 
     /**
      * The sound to play.

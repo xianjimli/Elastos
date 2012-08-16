@@ -5,6 +5,7 @@
 #include "os/SystemProperties.h"
 #include "app/ActivityManagerNative.h"
 #include "app/StatusBarManager.h"
+#include "app/CNotification.h"
 #include "app/NotificationManager.h"
 #include "content/CIntent.h"
 #include "content/CIntentFilter.h"
@@ -13,15 +14,16 @@
 #include "ext/frameworkerr.h"
 #include "utils/log.h"
 #include "utils/EventLogTags.h"
+#include "utils/CApartment.h"
 #include <StringBuffer.h>
 
-CString CNotificationManagerService::TAG = "CNotificationService";
+const CString CNotificationManagerService::TAG = "CNotificationService";
 const Boolean CNotificationManagerService::DBG;
 const Int32 CNotificationManagerService::MAX_PACKAGE_NOTIFICATIONS;
 const Int32 CNotificationManagerService::MESSAGE_TIMEOUT;
 const Int32 CNotificationManagerService::LONG_DELAY; // 3.5 seconds
 const Int32 CNotificationManagerService::SHORT_DELAY; // 2 seconds
-const Int64 CNotificationManagerService::DEFAULT_VIBRATE_PATTERN[] = {0, 250, 250, 250};
+const Int64 CNotificationManagerService::DEFAULT_VIBRATE_PATTERN[4] = {0, 250, 250, 250};
 const Int32 CNotificationManagerService::DEFAULT_STREAM_TYPE;
 const Int32 CNotificationManagerService::BATTERY_LOW_ARGB; // Charging Low - red solid on
 const Int32 CNotificationManagerService::BATTERY_MEDIUM_ARGB;    // Charging - orange solid on
@@ -30,18 +32,18 @@ const Int32 CNotificationManagerService::BATTERY_BLINK_ON;
 const Int32 CNotificationManagerService::BATTERY_BLINK_OFF;
 
 CNotificationManagerService::NotificationRecord::NotificationRecord(
-    /* [in] */ String pkg,
+    /* [in] */ String cap,
     /* [in] */ String tag,
     /* [in] */ Int32 id,
     /* [in] */ Int32 uid,
     /* [in] */ Int32 initialPid,
     /* [in] */ INotification* notification)
-    : mPkg(pkg),
-    mTag(tag),
-    mId(id),
-    mUid(uid),
-    mInitialPid(initialPid),
-    mNotification(notification)
+    : mCap(cap)
+    , mTag(tag)
+    , mId(id)
+    , mUid(uid)
+    , mInitialPid(initialPid)
+    , mNotification((CNotification*)notification)
 {
 }
 
@@ -70,13 +72,13 @@ ECode CNotificationManagerService::NotificationRecord::GetInterfaceID(
 
 CNotificationManagerService::ToastRecord::ToastRecord(
     /* [in] */ Int32 pid,
-    /* [in] */ String pkg,
+    /* [in] */ String cap,
     /* [in] */ ITransientNotification* callback,
     /* [in] */ Int32 duration)
-    : mPid(pid),
-    mPkg(pkg),
-    mCallback(callback),
-    mDuration(duration)
+    : mPid(pid)
+    , mCap(cap)
+    , mCallback(callback)
+    , mDuration(duration)
 {
 }
 
@@ -109,30 +111,23 @@ void CNotificationManagerService::ToastRecord::Update(
     mDuration = duration;
 }
 
-IInterface* CNotificationManagerService::WorkerHandler::Probe(
+IInterface* CNotificationManagerService::MyNotificationCallbacks::Probe(
     /* [in]  */ REIID riid)
 {
-    if (riid == EIID_IInterface) {
-        return (IInterface*)this;
-    }
-    else if (riid == EIID_IHandler) {
-        return (IHandler*)this;
-    }
-
     return NULL;
 }
 
-UInt32 CNotificationManagerService::WorkerHandler::AddRef()
+UInt32 CNotificationManagerService::MyNotificationCallbacks::AddRef()
 {
     return ElRefBase::AddRef();
 }
 
-UInt32 CNotificationManagerService::WorkerHandler::Release()
+UInt32 CNotificationManagerService::MyNotificationCallbacks::Release()
 {
     return ElRefBase::Release();
 }
 
-ECode CNotificationManagerService::WorkerHandler::GetInterfaceID(
+ECode CNotificationManagerService::MyNotificationCallbacks::GetInterfaceID(
     /* [in] */ IInterface *pObject,
     /* [out] */ InterfaceID *pIID)
 {
@@ -141,17 +136,17 @@ ECode CNotificationManagerService::WorkerHandler::GetInterfaceID(
 
 CNotificationManagerService::MyNotificationCallbacks::MyNotificationCallbacks(
     /* [in] */ CNotificationManagerService* nms)
-    : mNMService(nms)
+    : mOwner(nms)
 {
 }
 
-void CNotificationManagerService::MyNotificationCallbacks::OnSetDisabled(
+ECode CNotificationManagerService::MyNotificationCallbacks::OnSetDisabled(
     /* [in] */ Int32 status)
 {
-    Mutex::Autolock lock(mNMService->mNotificationListLock);
+    Mutex::Autolock lock(mOwner->mNotificationListLock);
 
-    mNMService->mDisabledNotifications = status;
-    if ((mNMService->mDisabledNotifications & StatusBarManager::DISABLE_NOTIFICATION_ALERTS) != 0) {
+    mOwner->mDisabledNotifications = status;
+    if ((mOwner->mDisabledNotifications & StatusBarManager::DISABLE_NOTIFICATION_ALERTS) != 0) {
         // cancel whatever's going on
 //        Int32 identity = Binder.clearCallingIdentity();
 //        try {
@@ -163,33 +158,37 @@ void CNotificationManagerService::MyNotificationCallbacks::OnSetDisabled(
 
 //        identity = Binder.clearCallingIdentity();
 //        try {
-        mNMService->mVibrator->Cancel();
+        mOwner->mVibrator->Cancel();
 //        }
 //        finally {
 //        Binder.restoreCallingIdentity(identity);
 //        }
     }
+    return NOERROR;
 }
 
-void CNotificationManagerService::MyNotificationCallbacks::OnClearAll()
+ECode CNotificationManagerService::MyNotificationCallbacks::OnClearAll()
 {
-    mNMService->CancelAll();
+    mOwner->CancelAll();
+    return NOERROR;
 }
 
-void CNotificationManagerService::MyNotificationCallbacks::OnNotificationClick(
-    /* [in] */ String pkg,
-    /* [in] */ String tag,
+ECode CNotificationManagerService::MyNotificationCallbacks::OnNotificationClick(
+    /* [in] */ const String& cap,
+    /* [in] */ const String& tag,
     /* [in] */ Int32 id)
 {
-    mNMService->CancelNotification(pkg, tag, id, Notification_FLAG_AUTO_CANCEL,
+    mOwner->CancelNotification(cap, tag, id, Notification_FLAG_AUTO_CANCEL,
             Notification_FLAG_FOREGROUND_SERVICE);
+    return NOERROR;
 }
 
-void CNotificationManagerService::MyNotificationCallbacks::OnPanelRevealed()
+ECode CNotificationManagerService::MyNotificationCallbacks::OnPanelRevealed()
 {
-    Mutex::Autolock lock(mNMService->mNotificationListLock);
+    Mutex::Autolock lock(mOwner->mNotificationListLock);
+
     // sound
-    mNMService->mSoundNotification = NULL;
+    mOwner->mSoundNotification = NULL;
 //    long identity = Binder.clearCallingIdentity();
 //    try {
 //    mSound->Stop();
@@ -199,45 +198,45 @@ void CNotificationManagerService::MyNotificationCallbacks::OnPanelRevealed()
 //    }
 
     // vibrate
-    mNMService->mVibrateNotification = NULL;
+    mOwner->mVibrateNotification = NULL;
 //    identity = Binder.clearCallingIdentity();
 //    try {
-    mNMService->mVibrator->Cancel();
+    mOwner->mVibrator->Cancel();
 //    }
 //    finally {
 //    Binder.restoreCallingIdentity(identity);
 //    }
 
     // light
-    mNMService->mLights.Clear();
-    mNMService->mLedNotification = NULL;
-    mNMService->UpdateLightsLocked();
+    mOwner->mLights.Clear();
+    mOwner->mLedNotification = NULL;
+    mOwner->UpdateLightsLocked();
+    return NOERROR;
 }
 
-void CNotificationManagerService::MyNotificationCallbacks::OnNotificationError(
-    /* [in] */ String pkg,
-    /* [in] */ String tag,
+ECode CNotificationManagerService::MyNotificationCallbacks::OnNotificationError(
+    /* [in] */ const String& cap,
+    /* [in] */ const String& tag,
     /* [in] */ Int32 id,
     /* [in] */ Int32 uid,
     /* [in] */ Int32 initialPid,
-    /* [in] */ String message)
+    /* [in] */ CString message)
 {
 //    Slog.d(TAG, "onNotification error pkg=" + pkg + " tag=" + tag + " id=" + id
 //            + "; will crashApplication(uid=" + uid + ", pid=" + initialPid + ")");
-    mNMService->CancelNotification(pkg, tag, id, 0, 0);
+    mOwner->CancelNotification(cap, tag, id, 0, 0);
 //    Int64 ident = Binder.clearCallingIdentity();
 //    try {
     AutoPtr<IActivityManager> activityMgr;
     ActivityManagerNative::GetDefault((IActivityManager**)&activityMgr);
 
-    if (activityMgr) {
-        activityMgr->CrashApplication(uid, initialPid, pkg,
-                    (StringBuffer("Bad notification posted from package ") + pkg
-                    + ": " + message));
-    }
+    activityMgr->CrashApplication(uid, initialPid, cap,
+                (StringBuffer("Bad notification posted from package ") + cap
+                + ": " + message));
 //    } catch (RemoteException e) {
 //    }
 //    Binder.restoreCallingIdentity(ident);
+    return NOERROR;
 }
 
 //void CNotificationManagerService::MyIntentReceiver::OnReceive(
@@ -324,25 +323,23 @@ void CNotificationManagerService::MyNotificationCallbacks::OnNotificationError(
 ////    }
 //}
 
-CNotificationManagerService::CNotificationManagerService() :
-    mHandler(NULL),
-    mDefaultNotificationColor(0),
-    mDefaultNotificationLedOn(0),
-    mDefaultNotificationLedOff(0),
-    mSoundNotification(NULL),
-    mSystemReady(FALSE),
-    mDisabledNotifications(0),
-    mVibrateNotification(NULL),
-    mScreenOn(TRUE),
-    mInCall(FALSE),
-    mNotificationPulseEnabled(FALSE),
-    mPendingPulseNotification(FALSE),
-    mAdbNotificationShown(FALSE),
-    mBatteryCharging(FALSE),
-    mBatteryLow(FALSE),
-    mBatteryFull(FALSE),
-    mLedNotification(NULL)
+CNotificationManagerService::CNotificationManagerService()
+    : mHandler(NULL)
+    , mDefaultNotificationColor(0)
+    , mDefaultNotificationLedOn(0)
+    , mDefaultNotificationLedOff(0)
+    , mSystemReady(FALSE)
+    , mDisabledNotifications(0)
+    , mScreenOn(TRUE)
+    , mInCall(FALSE)
+    , mNotificationPulseEnabled(FALSE)
+    , mPendingPulseNotification(FALSE)
+    , mAdbNotificationShown(FALSE)
+    , mBatteryCharging(FALSE)
+    , mBatteryLow(FALSE)
+    , mBatteryFull(FALSE)
 {
+//    mForegroundToken = new Binder();
     ASSERT_SUCCEEDED(CVibrator::New((IVibrator**)&mVibrator));
 
     mNotificationCallbacks = new MyNotificationCallbacks(this);
@@ -360,10 +357,11 @@ ECode CNotificationManagerService::constructor(
     ActivityManagerNative::GetDefault((IActivityManager**)&mAm);
 //    mSound = new NotificationPlayer(TAG);
 //    mSound.setUsesWakeLock(context);
-    mHandler = new WorkerHandler();
+    assert(SUCCEEDED(CApartment::GetDefaultApartment((IApartment**)&mHandler))
+            && (mHandler != NULL));
 
-    mStatusBar = statusBar;
-//    statusBar->SetNotificationCallbacks(mNotificationCallbacks);
+    mStatusBar = (CStatusBarManagerService*)statusBar;
+    mStatusBar->SetNotificationCallbacks(mNotificationCallbacks);
 
     lights->GetLight(CLightsService::LIGHT_ID_BATTERY, (ILight**)&mBatteryLight);
     lights->GetLight(CLightsService::LIGHT_ID_NOTIFICATIONS, (ILight**)&mNotificationLight);
@@ -371,12 +369,12 @@ ECode CNotificationManagerService::constructor(
 
     AutoPtr<IResources> resources;
     mContext->GetResources((IResources**)&resources);
-    resources->GetColor(0x01060032/*com.android.internal.R.color.config_defaultNotificationColor*/
-            , &mDefaultNotificationColor);
-    resources->GetInteger(0x010e000d/*com.android.internal.R.integer.config_defaultNotificationLedOn*/
-            , &mDefaultNotificationLedOn);
-    resources->GetInteger(0x010e000e/*com.android.internal.R.integer.config_defaultNotificationLedOff*/
-            , &mDefaultNotificationLedOff);
+    resources->GetColor(0x01060032/*com.android.internal.R.color.config_defaultNotificationColor*/,
+            &mDefaultNotificationColor);
+    resources->GetInteger(0x010e000d/*com.android.internal.R.integer.config_defaultNotificationLedOn*/,
+            &mDefaultNotificationLedOn);
+    resources->GetInteger(0x010e000e/*com.android.internal.R.integer.config_defaultNotificationLedOff*/,
+            &mDefaultNotificationLedOff);
 
     // Don't start allowing notifications until the setup wizard has run once.
     // After that, including subsequent boots, init with notifications turned on.
@@ -396,12 +394,12 @@ ECode CNotificationManagerService::constructor(
     filter->AddAction(String(Intent_ACTION_SCREEN_OFF));
 //    filter->AddAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED);
 //    mContext->RegisterReceiver(mIntentReceiver, filter);
-    AutoPtr<IIntentFilter> pkgFilter;
-    ASSERT_SUCCEEDED(CIntentFilter::New((IIntentFilter**)&pkgFilter));
-    pkgFilter->AddAction(String(Intent_ACTION_PACKAGE_REMOVED));
-    pkgFilter->AddAction(String(Intent_ACTION_PACKAGE_RESTARTED));
-    pkgFilter->AddAction(String(Intent_ACTION_QUERY_PACKAGE_RESTART));
-    pkgFilter->AddDataScheme(String("package"));
+    AutoPtr<IIntentFilter> capFilter;
+    ASSERT_SUCCEEDED(CIntentFilter::New((IIntentFilter**)&capFilter));
+    capFilter->AddAction(String(Intent_ACTION_CAPSULE_REMOVED));
+    capFilter->AddAction(String(Intent_ACTION_CAPSULE_RESTARTED));
+    capFilter->AddAction(String(Intent_ACTION_QUERY_CAPSULE_RESTART));
+    capFilter->AddDataScheme(String("package"));
 //    mContext->RegisterReceiver(mIntentReceiver, pkgFilter);
     AutoPtr<IIntentFilter> sdFilter;
     ASSERT_SUCCEEDED(CIntentFilter::New(
@@ -418,7 +416,7 @@ ECode CNotificationManagerService::constructor(
 void CNotificationManagerService::SystemReady()
 {
     // no beeping until we're basically done booting
-    mSystemReady = true;
+    mSystemReady = TRUE;
 }
 
 ECode CNotificationManagerService::EnqueueToast(
@@ -434,22 +432,23 @@ ECode CNotificationManagerService::EnqueueToast(
     }
 
     Mutex::Autolock lock(mToastQueueLock);
-//    int callingPid = Binder.getCallingPid();
-//    long callingId = Binder.clearCallingIdentity();
+
+    Int32 callingPid/* = Binder.getCallingPid()*/;
+    Int64 callingId/* = Binder.clearCallingIdentity()*/;
 //    try {
     AutoPtr<ToastRecord> record;
     List<AutoPtr<ToastRecord> >::Iterator it = IteratorOfToastLocked(cap, cb);
     // If it's already in the queue, we update it in place, we don't
     // move it to the end of the queue.
-    if (it != List<AutoPtr<ToastRecord> >::Iterator(NULL)) {
+    if (it != mToastQueue->End()) {
         record = *it;
         record->Update(duration);
     }
     else {
-        record = new ToastRecord(0/*callingPid*/, cap, cb, duration);
+        record = new ToastRecord(callingPid, cap, cb, duration);
         mToastQueue->PushBack(record);
         it = --(mToastQueue->End());
-//        KeepProcessAliveLocked(callingPid);
+        KeepProcessAliveLocked(callingPid);
     }
     // If it's at index 0, it's the current toast.  It doesn't matter if it's
     // new or just been updated.  Call back and tell it to show itself.
@@ -471,7 +470,7 @@ ECode CNotificationManagerService::CancelToast(
 {
 //    Slog.i(TAG, "cancelToast pkg=" + pkg + " callback=" + callback);
 
-    if (cap == NULL || cb == NULL) {
+    if (cap.IsNull() || cb == NULL) {
 //        Slog.e(TAG, "Not cancelling notification. pkg=" + pkg + " callback=" + callback);
         return NOERROR;
     }
@@ -480,7 +479,7 @@ ECode CNotificationManagerService::CancelToast(
 //    Int64 callingId = Binder.clearCallingIdentity();
 //    try {
     List<AutoPtr<ToastRecord> >::Iterator it = IteratorOfToastLocked(cap, cb);
-    if (it != List<AutoPtr<ToastRecord> >::Iterator(NULL)) {
+    if (it != mToastQueue->End()) {
         CancelToastLocked(it);
     }
     else {
@@ -496,43 +495,38 @@ ECode CNotificationManagerService::CancelToast(
 void CNotificationManagerService::ShowNextToastLocked()
 {
     AutoPtr<ToastRecord> record;
-    List<AutoPtr<ToastRecord> >::Iterator it(NULL);
     if (mToastQueue->Begin() != mToastQueue->End()) {
-        it = mToastQueue->Begin();
         record = *(mToastQueue->Begin());
     }
 
     while (record != NULL) {
 //        if (DBG) Slog.d(TAG, "Show pkg=" + record.pkg + " callback=" + record.callback);
 //        try {
-        record->mCallback->Show();
-
-        ECode ec = ScheduleTimeoutLocked(record, FALSE);
-        if (FAILED(ec)) {
+        if (SUCCEEDED(record->mCallback->Show())) {
+            ScheduleTimeoutLocked(record, FALSE);
+        }
+        else {
 //            Slog.w(TAG, "Object died trying to show notification " + record.callback
 //                    + " in package " + record.pkg);
             // remove it from the list and let the process die
-//            List<AutoPtr<ToastRecord> >::Iterator it = mToastQueue->indexOf(record);
-            if (it != List<AutoPtr<ToastRecord> >::Iterator(NULL)) {
+            List<AutoPtr<ToastRecord> >::Iterator it =
+                    Find(mToastQueue->Begin(), mToastQueue->End(), record);
+            if (it != mToastQueue->End()) {
                 mToastQueue->Erase(it);
             }
             KeepProcessAliveLocked(record->mPid);
             if (mToastQueue->Begin() != mToastQueue->End()) {
-                it = mToastQueue->Begin();
                 record = *(mToastQueue->Begin());
             }
             else {
-                it = NULL;
                 record = NULL;
             }
         }
-
-        return;
     }
 }
 
 void CNotificationManagerService::CancelToastLocked(
-    List<AutoPtr<CNotificationManagerService::ToastRecord> >::Iterator it)
+    List<AutoPtr<CNotificationManagerService::ToastRecord> >::Iterator& it)
 {
     AutoPtr<ToastRecord> record = *it;
 //    try {
@@ -544,7 +538,7 @@ void CNotificationManagerService::CancelToastLocked(
 //        // the list anyway
 //    }
     mToastQueue->Erase(it);
-    KeepProcessAliveLocked(record->mPid);//todo autoptr
+    KeepProcessAliveLocked(record->mPid);
     if (mToastQueue->Begin() != mToastQueue->End()) {
         // Show the next one. If the callback fails, this will remove
         // it from the list, so don't assume that the list hasn't changed
@@ -553,20 +547,34 @@ void CNotificationManagerService::CancelToastLocked(
     }
 }
 
-ECode CNotificationManagerService::ScheduleTimeoutLocked(
+void CNotificationManagerService::ScheduleTimeoutLocked(
     /* [in] */ ToastRecord* r,
     /* [in] */ Boolean immediate)
 {
-//    AutoPtr<IMessage> m = Message.obtain(mHandler, MESSAGE_TIMEOUT, r);
-//    Int64 delay = immediate ? 0 : (r->mDuration ==
-//            1/*Toast.LENGTH_LONG*/ ? LONG_DELAY : SHORT_DELAY);
-//    ECode ec = mHandler->RemoveCallbacksAndMessages(r);
-//    if (FAILED(ec)) {
-//        return ec;
-//    }
+    void (STDCALL CNotificationManagerService::*pHandlerFunc)(ToastRecord*);
+    pHandlerFunc = &CNotificationManagerService::HandleTimeout;
 
-//    return mHandler->SendMessageDelayed(m, delay);
-    return NOERROR;
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    params->WriteInt32((Handle32)r);
+
+    Int64 delay = immediate ?
+            0 : (r->mDuration == 1/*Toast.LENGTH_LONG*/ ? LONG_DELAY : SHORT_DELAY);
+    mHandler->RemoveCppCallbacksEx((Handle32)this, *(Handle32*)&pHandlerFunc, (Handle32)r);
+    mHandler->PostCppCallbackDelayed((Handle32)this, *(Handle32*)&pHandlerFunc, params, (Handle32)r, delay);
+}
+
+void CNotificationManagerService::HandleTimeout(
+    /* [in] */ ToastRecord* record)
+{
+//    if (DBG) Slog.d(TAG, "Timeout pkg=" + record.pkg + " callback=" + record.callback);
+    Mutex::Autolock lock(mToastQueueLock);
+
+    List<AutoPtr<ToastRecord> >::Iterator it =
+            IteratorOfToastLocked(record->mCap, record->mCallback);
+    if (it != mToastQueue->End()) {
+        CancelToastLocked(it);
+    }
 }
 
 List<AutoPtr<CNotificationManagerService::ToastRecord> >::Iterator
@@ -575,25 +583,23 @@ CNotificationManagerService::IteratorOfToastLocked(
     /* [in] */ ITransientNotification* callback)
 {
 //    IBinder cbak = callback.asBinder();
-    List<AutoPtr<ToastRecord> >* list = mToastQueue;
     List<AutoPtr<ToastRecord> >::Iterator it;
-    for (it = list->Begin(); it != list->End(); it++) {
-        AutoPtr<ToastRecord> r = *it;
-        if (r->mPkg == cap && r->mCallback.Get()/*.asBinder()*/ == callback) {
+    for (it = mToastQueue->Begin(); it != mToastQueue->End(); ++it) {
+        ToastRecord* r = *it;
+        if (r->mCap.Equals(cap) && r->mCallback.Get()/*.asBinder()*/ == callback) {
             return it;
         }
     }
-    return NULL;
+    return mToastQueue->End();
 }
 
 void CNotificationManagerService::KeepProcessAliveLocked(
     /* [in] */ Int32 pid)
 {
     Int32 toastCount = 0; // toasts from this pid
-    List<AutoPtr<ToastRecord> >* list = mToastQueue;
     List<AutoPtr<ToastRecord> >::Iterator it;
-    for (it = list->Begin(); it != list->End(); it++) {
-        AutoPtr<ToastRecord> r = *it;
+    for (it = mToastQueue->Begin(); it != mToastQueue->End(); ++it) {
+        ToastRecord* r = *it;
         if (r->mPid == pid) {
             toastCount++;
         }
@@ -634,17 +640,18 @@ ECode CNotificationManagerService::EnqueueNotificationInternal(
     /* [in] */ INotification* notification,
     /* [in] */ ArrayOf<Int32>* idOut)
 {
-    CheckIncomingCall(cap);
+    FAIL_RETURN(CheckIncomingCall(cap));
 
     // Limit the number of notifications that any given package except the android
     // package can enqueue.  Prevents DOS attacks and deals with leaks.
-    if (!(String("android") == cap)) {
+    if (!CString("android").Equals(cap)) {
         Mutex::Autolock lock(mNotificationListLock);
+
         Int32 count = 0;
         List<AutoPtr<NotificationRecord> >::Iterator it;
-        for (it = mNotificationList.Begin(); it != mNotificationList.End(); it++) {
-            AutoPtr<NotificationRecord> r = *it;
-            if (r->mPkg == cap) {
+        for (it = mNotificationList.Begin(); it != mNotificationList.End(); ++it) {
+            NotificationRecord* r = *it;
+            if (r->mCap.Equals(cap)) {
                 count++;
                 if (count >= MAX_PACKAGE_NOTIFICATIONS) {
  //                   Slog.e(TAG, "Package has already posted " + count
@@ -657,174 +664,180 @@ ECode CNotificationManagerService::EnqueueNotificationInternal(
 
     // This conditional is a dirty hack to limit the logging done on
     //     behalf of the download manager without affecting other apps.
-    if (!(cap == String("com.android.providers.downloads"))
+    if (!cap.Equals("com.android.providers.downloads")
             /*|| Log.isLoggable("DownloadManager", Log.VERBOSE)*/) {
 //        EventLog.writeEvent(EventLogTags.NOTIFICATION_ENQUEUE, pkg, id, notification.toString());
     }
 
     if (cap.IsNull() || notification == NULL) {
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
 //        throw new IllegalArgumentException("null not allowed: pkg=" + pkg
 //                + " id=" + id + " notification=" + notification);
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
-    AutoPtr<CNotification> notificationCls = (CNotification*)notification;
-    if (notificationCls->mIcon != 0) {
-//        if (((CNotification*)notification)->mContentView == NULL) {
-//            return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    CNotification* notificationObj = (CNotification*)notification;
+    if (notificationObj->mIcon != 0) {
+        if (notificationObj->mContentView == NULL) {
 //            throw new IllegalArgumentException("contentView required: pkg=" + pkg
 //                    + " id=" + id + " notification=" + notification);
-//        }
-        if (notificationCls->mContentIntent == NULL) {
             return E_ILLEGAL_ARGUMENT_EXCEPTION;
+        }
+        if (notificationObj->mContentIntent == NULL) {
 //            throw new IllegalArgumentException("contentIntent required: pkg=" + pkg
 //                    + " id=" + id + " notification=" + notification);
+            return E_ILLEGAL_ARGUMENT_EXCEPTION;
         }
     }
 
-    Mutex::Autolock lock(mNotificationListLock);
-    AutoPtr<NotificationRecord> r = new NotificationRecord(cap, tag, id,
-            callingUid, callingPid, notification);
-    AutoPtr<NotificationRecord> old;
+    {
+        Mutex::Autolock lock(mNotificationListLock);
 
-    List<AutoPtr<NotificationRecord> >::Iterator it = IteratorOfNotificationLocked(cap, tag, id);
-    if (it != List<AutoPtr<NotificationRecord> >::Iterator(NULL)) {
-        mNotificationList.PushBack(r);
-    }
-    else {
-        old = *it;
-        List<AutoPtr<NotificationRecord> >::Iterator newIt = mNotificationList.Erase(it);
-        mNotificationList.Insert(newIt, r);
-        // Make sure we don't lose the foreground service state.
-        if (old != NULL) {
-            notificationCls->mFlags |=
-                ((CNotification*)old->mNotification.Get())->mFlags & Notification_FLAG_FOREGROUND_SERVICE;
-        }
-    }
+        AutoPtr<NotificationRecord> r = new NotificationRecord(cap, tag, id,
+                callingUid, callingPid, notification);
+        AutoPtr<NotificationRecord> old;
 
-    // Ensure if this is a foreground service that the proper additional
-    // flags are set.
-    if ((notificationCls->mFlags & Notification_FLAG_FOREGROUND_SERVICE) != 0) {
-        notificationCls->mFlags |= Notification_FLAG_ONGOING_EVENT
-                | Notification_FLAG_NO_CLEAR;
-    }
-
-    if (notificationCls->mIcon != 0) {
-        AutoPtr<IStatusBarNotification> n;
-        CStatusBarNotification::New(cap, id, tag,
-                r->mUid, r->mInitialPid, notification, (IStatusBarNotification**)&n);
-        if (old != NULL && old->mStatusBarKey != NULL) {
-            r->mStatusBarKey = old->mStatusBarKey;
-//            long identity = Binder.clearCallingIdentity();
-//            try {
-            mStatusBar->UpdateNotification(r->mStatusBarKey, n);
-//            }
-//            finally {
-//                Binder.restoreCallingIdentity(identity);
-//            }
+        List<AutoPtr<NotificationRecord> >::Iterator it =
+                IteratorOfNotificationLocked(cap, tag, id);
+        if (it == mNotificationList.End()) {
+            mNotificationList.PushBack(r);
         }
         else {
-//            long identity = Binder.clearCallingIdentity();
-//            try {
-            mStatusBar->AddNotification(n, (IBinder**)&(r->mStatusBarKey));
-            mAttentionLight->Pulse();
-//            }
-//            finally {
-//                Binder.restoreCallingIdentity(identity);
-//            }
+            old = *it;
+            it = mNotificationList.Erase(it);
+            mNotificationList.Insert(it, r);
+            // Make sure we don't lose the foreground service state.
+            if (old != NULL) {
+                notificationObj->mFlags |=
+                    old->mNotification->mFlags & Notification_FLAG_FOREGROUND_SERVICE;
+            }
         }
-        SendAccessibilityEvent(notification, cap);
-    }
-    else {
-        if (old != NULL && old->mStatusBarKey != NULL) {
-//            long identity = Binder.clearCallingIdentity();
-//            try {
-            mStatusBar->RemoveNotification(old->mStatusBarKey);
-//            }
-//            finally {
-//                Binder.restoreCallingIdentity(identity);
-//            }
+
+        // Ensure if this is a foreground service that the proper additional
+        // flags are set.
+        if ((notificationObj->mFlags & Notification_FLAG_FOREGROUND_SERVICE) != 0) {
+            notificationObj->mFlags |= Notification_FLAG_ONGOING_EVENT
+                    | Notification_FLAG_NO_CLEAR;
         }
-    }
 
-    // If we're not supposed to beep, vibrate, etc. then don't.
-    if (((mDisabledNotifications & StatusBarManager::DISABLE_NOTIFICATION_ALERTS) == 0)
-            && (!(old != NULL
-                && (notificationCls->mFlags & Notification_FLAG_ONLY_ALERT_ONCE) != 0 ))
-            && mSystemReady) {
-
-//        AudioManager audioManager = (AudioManager) mContext
-//        .getSystemService(Context.AUDIO_SERVICE);
-        // sound
-        Boolean useDefaultSound =
-            (notificationCls->mDefaults & Notification_DEFAULT_SOUND) != 0;
-        if (useDefaultSound || notificationCls->mSound != NULL) {
-            AutoPtr<IUri> uri;
-            if (useDefaultSound) {
-//                uri = Settings.System.DEFAULT_NOTIFICATION_URI;
+        if (notificationObj->mIcon != 0) {
+            AutoPtr<IStatusBarNotification> n;
+            CStatusBarNotification::New(cap, id, tag,
+                    r->mUid, r->mInitialPid, notification, (IStatusBarNotification**)&n);
+            if (old != NULL && old->mStatusBarKey != NULL) {
+                r->mStatusBarKey = old->mStatusBarKey;
+    //            long identity = Binder.clearCallingIdentity();
+    //            try {
+                mStatusBar->UpdateNotification(r->mStatusBarKey, n);
+    //            }
+    //            finally {
+    //                Binder.restoreCallingIdentity(identity);
+    //            }
             }
             else {
-                uri = notificationCls->mSound;
+    //            long identity = Binder.clearCallingIdentity();
+    //            try {
+                mStatusBar->AddNotification(n, (IBinder**)&(r->mStatusBarKey));
+                mAttentionLight->Pulse();
+    //            }
+    //            finally {
+    //                Binder.restoreCallingIdentity(identity);
+    //            }
             }
-            Boolean looping = (notificationCls->mFlags & Notification_FLAG_INSISTENT) != 0;
-            Int32 audioStreamType;
-            if (notificationCls->mAudioStreamType >= 0) {
-                audioStreamType = notificationCls->mAudioStreamType;
+            AutoPtr<ICharSequence> event;
+            CStringWrapper::New(cap, (ICharSequence**)&event);
+            SendAccessibilityEvent(notification, event);
+        }
+        else {
+            if (old != NULL && old->mStatusBarKey != NULL) {
+    //            long identity = Binder.clearCallingIdentity();
+    //            try {
+                mStatusBar->RemoveNotification(old->mStatusBarKey);
+    //            }
+    //            finally {
+    //                Binder.restoreCallingIdentity(identity);
+    //            }
             }
-            else {
-                audioStreamType = DEFAULT_STREAM_TYPE;
-            }
-            mSoundNotification = r;
-            // do not play notifications if stream volume is 0
-            // (typically because ringer mode is silent).
-//            if (audioManager.getStreamVolume(audioStreamType) != 0) {
-//                long identity = Binder.clearCallingIdentity();
-//                try {
-//                    mSound.play(mContext, uri, looping, audioStreamType);
-//                }
-//                finally {
-//                    Binder.restoreCallingIdentity(identity);
-//                }
-//            }
         }
 
-        // vibrate
-        Boolean useDefaultVibrate =
-            (notificationCls->mDefaults & Notification_DEFAULT_VIBRATE) != 0;
-        if ((useDefaultVibrate || notificationCls->mVibrate != NULL)
-                /*&& audioManager.shouldVibrate(AudioManager.VIBRATE_TYPE_NOTIFICATION)*/) {
-//            mVibrateNotification = r;
+        // If we're not supposed to beep, vibrate, etc. then don't.
+        if (((mDisabledNotifications & StatusBarManager::DISABLE_NOTIFICATION_ALERTS) == 0)
+                && (!(old != NULL
+                    && (notificationObj->mFlags & Notification_FLAG_ONLY_ALERT_ONCE) != 0))
+                && mSystemReady) {
 
-//            ArrayOf<Int64>& vibrate;
-//            if (useDefaultVibrate) {
-//                vibrate = ArrayOf<Int64>(const_cast<Int64*>(DEFAULT_VIBRATE_PATTERN), 4)
-//            }
-//            else {
-//                vibrate = *(notificationCls->mVibrate);
-//            }
-//            mVibrator->VibrateEx(vibrate,
-//                       ((notificationCls->mFlags & Notification_FLAG_INSISTENT) != 0) ? 0: -1);
+    //        AudioManager audioManager = (AudioManager) mContext
+    //        .getSystemService(Context.AUDIO_SERVICE);
+            // sound
+            Boolean useDefaultSound =
+                (notificationObj->mDefaults & Notification_DEFAULT_SOUND) != 0;
+            if (useDefaultSound || notificationObj->mSound != NULL) {
+                AutoPtr<IUri> uri;
+                if (useDefaultSound) {
+    //                uri = Settings.System.DEFAULT_NOTIFICATION_URI;
+                }
+                else {
+                    uri = notificationObj->mSound;
+                }
+                Boolean looping = (notificationObj->mFlags & Notification_FLAG_INSISTENT) != 0;
+                Int32 audioStreamType;
+                if (notificationObj->mAudioStreamType >= 0) {
+                    audioStreamType = notificationObj->mAudioStreamType;
+                }
+                else {
+                    audioStreamType = DEFAULT_STREAM_TYPE;
+                }
+                mSoundNotification = r;
+                // do not play notifications if stream volume is 0
+                // (typically because ringer mode is silent).
+    //            if (audioManager.getStreamVolume(audioStreamType) != 0) {
+    //                long identity = Binder.clearCallingIdentity();
+    //                try {
+    //                    mSound.play(mContext, uri, looping, audioStreamType);
+    //                }
+    //                finally {
+    //                    Binder.restoreCallingIdentity(identity);
+    //                }
+    //            }
+            }
+
+            // vibrate
+            Boolean useDefaultVibrate =
+                (notificationObj->mDefaults & Notification_DEFAULT_VIBRATE) != 0;
+            if ((useDefaultVibrate || notificationObj->mVibrate != NULL)
+                    /*&& audioManager.shouldVibrate(AudioManager.VIBRATE_TYPE_NOTIFICATION)*/) {
+    //            mVibrateNotification = r;
+
+    //            ArrayOf<Int64>& vibrate;
+    //            if (useDefaultVibrate) {
+    //                vibrate = ArrayOf<Int64>(const_cast<Int64*>(DEFAULT_VIBRATE_PATTERN), 4)
+    //            }
+    //            else {
+    //                vibrate = *(notificationCls->mVibrate);
+    //            }
+    //            mVibrator->VibrateEx(vibrate,
+    //                       ((notificationCls->mFlags & Notification_FLAG_INSISTENT) != 0) ? 0: -1);
+            }
         }
-    }
 
-    // this option doesn't shut off the lights
+        // this option doesn't shut off the lights
 
-    // light
-    // the most recent thing gets the light
-    mLights.Remove(old);
-    if (mLedNotification == old) {
-        mLedNotification = NULL;
-    }
-    //Slog.i(TAG, "notification.lights="
-    //        + ((old.notification.lights.flags & Notification.FLAG_SHOW_LIGHTS) != 0));
-    if ((notificationCls->mFlags & Notification_FLAG_SHOW_LIGHTS) != 0) {
-        mLights.PushBack(r);
-        UpdateLightsLocked();
-    }
-    else {
-        if (old != NULL
-                && ((((CNotification*)old->mNotification.Get())->mFlags & Notification_FLAG_SHOW_LIGHTS) != 0)) {
+        // light
+        // the most recent thing gets the light
+        mLights.Remove(old);
+        if (mLedNotification == old) {
+            mLedNotification = NULL;
+        }
+        //Slog.i(TAG, "notification.lights="
+        //        + ((old.notification.lights.flags & Notification.FLAG_SHOW_LIGHTS) != 0));
+        if ((notificationObj->mFlags & Notification_FLAG_SHOW_LIGHTS) != 0) {
+            mLights.PushBack(r);
             UpdateLightsLocked();
+        }
+        else {
+            if (old != NULL
+                    && ((old->mNotification->mFlags & Notification_FLAG_SHOW_LIGHTS) != 0)) {
+                UpdateLightsLocked();
+            }
         }
     }
 
@@ -835,7 +848,7 @@ ECode CNotificationManagerService::EnqueueNotificationInternal(
 
 void CNotificationManagerService::SendAccessibilityEvent(
     /* [in] */ INotification* notification,
-    /* [in] */ String capsuleName)
+    /* [in] */ ICharSequence* capsuleName)
 {
 //    AccessibilityManager manager = AccessibilityManager.getInstance(mContext);
 //    if (!manager.isEnabled()) {
@@ -859,7 +872,7 @@ void CNotificationManagerService::CancelNotificationLocked(
     /* [in] */ NotificationRecord* r)
 {
     // status bar
-    if (((CNotification*)r->mNotification.Get())->mIcon != 0) {
+    if (r->mNotification->mIcon != 0) {
 //        long identity = Binder.clearCallingIdentity();
 //        try {
         mStatusBar->RemoveNotification(r->mStatusBarKey);
@@ -902,8 +915,8 @@ void CNotificationManagerService::CancelNotificationLocked(
 }
 
 void CNotificationManagerService::CancelNotification(
-    /* [in] */ String cap,
-    /* [in] */ String tag,
+    /* [in] */ const String& cap,
+    /* [in] */ const String& tag,
     /* [in] */ Int32 id,
     /* [in] */ Int32 mustHaveFlags,
     /* [in] */ Int32 mustNotHaveFlags)
@@ -911,16 +924,16 @@ void CNotificationManagerService::CancelNotification(
 //    EventLog.writeEvent(EventLogTags.NOTIFICATION_CANCEL, pkg, id, mustHaveFlags);
 
     Mutex::Autolock lock(mNotificationListLock);
+
     List<AutoPtr<NotificationRecord> >::Iterator it
             = IteratorOfNotificationLocked(cap, tag, id);
-    if (it != List<AutoPtr<NotificationRecord> >::Iterator(NULL)) {
+    if (it != mNotificationList.End()) {
         AutoPtr<NotificationRecord> r = *it;
 
-        AutoPtr<CNotification> notificationCls = (CNotification*)r->mNotification.Get();
-        if ((notificationCls->mFlags & mustHaveFlags) != mustHaveFlags) {
+        if ((r->mNotification->mFlags & mustHaveFlags) != mustHaveFlags) {
             return;
         }
-        if ((notificationCls->mFlags & mustNotHaveFlags) != 0) {
+        if ((r->mNotification->mFlags & mustNotHaveFlags) != 0) {
             return;
         }
 
@@ -940,19 +953,22 @@ Boolean CNotificationManagerService::CancelAllNotificationsInt(
 //    EventLog.writeEvent(EventLogTags.NOTIFICATION_CANCEL_ALL, pkg, mustHaveFlags);
 
     Mutex::Autolock lock(mNotificationListLock);
+
     List<AutoPtr<NotificationRecord> >::ReverseIterator rit
             = mNotificationList.RBegin();
     Boolean canceledSomething = FALSE;
     while (rit != mNotificationList.REnd()) {
         AutoPtr<NotificationRecord> r = *rit;
-        AutoPtr<CNotification> notificationCls = (CNotification*)r->mNotification.Get();
-        if ((notificationCls->mFlags & mustHaveFlags) != mustHaveFlags) {
+        if ((r->mNotification->mFlags & mustHaveFlags) != mustHaveFlags) {
+            ++rit;
             continue;
         }
-        if ((notificationCls->mFlags & mustNotHaveFlags) != 0) {
+        if ((r->mNotification->mFlags & mustNotHaveFlags) != 0) {
+            ++rit;
             continue;
         }
-        if (!(r->mPkg == cap)) {
+        if (!(r->mCap == cap)) {
+            ++rit;
             continue;
         }
         canceledSomething = TRUE;
@@ -960,9 +976,8 @@ Boolean CNotificationManagerService::CancelAllNotificationsInt(
             return TRUE;
         }
 
-        List<AutoPtr<NotificationRecord> >::Iterator it = rit.GetBase();
-        ++rit;
-        mNotificationList.Erase(it);
+        rit = List<AutoPtr<NotificationRecord> >::ReverseIterator(
+                mNotificationList.Erase(--rit.GetBase()));
         CancelNotificationLocked(r);
     }
     if (canceledSomething) {
@@ -983,19 +998,18 @@ ECode CNotificationManagerService::CancelNotificationWithTag(
     /* [in] */ const String& tag,
     /* [in] */ Int32 id)
 {
-    CheckIncomingCall(cap);
+    FAIL_RETURN(CheckIncomingCall(cap));
     // Don't allow client applications to cancel foreground service notis.
     CancelNotification(cap, tag, id, 0,
             0/*Binder.getCallingUid() == Process.SYSTEM_UID*/
             ? 0 : Notification_FLAG_FOREGROUND_SERVICE);
-
     return NOERROR;
 }
 
 ECode CNotificationManagerService::CancelAllNotifications(
     /* [in] */ const String& cap)
 {
-    CheckIncomingCall(cap);
+    FAIL_RETURN(CheckIncomingCall(cap));
 
     // Calling from user space, don't allow the canceling of actively
     // running foreground services.
@@ -1004,7 +1018,7 @@ ECode CNotificationManagerService::CancelAllNotifications(
     return NOERROR;
 }
 
-void CNotificationManagerService::CheckIncomingCall(
+ECode CNotificationManagerService::CheckIncomingCall(
     /* [in] */ const String& cap)
 {
 //    int uid = Binder.getCallingUid();
@@ -1022,6 +1036,7 @@ void CNotificationManagerService::CheckIncomingCall(
 //    } catch (PackageManager.NameNotFoundException e) {
 //        throw new SecurityException("Unknown package " + pkg);
 //    }
+    return NOERROR;
 }
 
 void CNotificationManagerService::CancelAll()
@@ -1032,22 +1047,23 @@ void CNotificationManagerService::CancelAll()
     while (rit != mNotificationList.REnd()) {
         AutoPtr<NotificationRecord> r = *rit;
 
-        AutoPtr<CNotification> notificationCls = (CNotification*)r->mNotification.Get();
-        if ((notificationCls->mFlags & (Notification_FLAG_ONGOING_EVENT
+        if ((r->mNotification->mFlags & (Notification_FLAG_ONGOING_EVENT
                         | Notification_FLAG_NO_CLEAR)) == 0) {
-            if (notificationCls->mDeleteIntent != NULL) {
+            if (r->mNotification->mDeleteIntent != NULL) {
 //                try {
-//                notificationCls->mDeleteIntent->Send();
+//                r->mNotification->mDeleteIntent->Send();
 //                } catch (PendingIntent.CanceledException ex) {
                     // do nothing - there's no relevant way to recover, and
                     //     no reason to let this propagate
 //                    Slog.w(TAG, "canceled PendingIntent for " + r.pkg, ex);
 //                }
             }
-            List<AutoPtr<NotificationRecord> >::Iterator it = rit.GetBase();
-            ++rit;
-            mNotificationList.Erase(it);
+            rit = List<AutoPtr<NotificationRecord> >::ReverseIterator(
+                    mNotificationList.Erase(--rit.GetBase()));
             CancelNotificationLocked(r);
+        }
+        else {
+            ++rit;
         }
     }
 
@@ -1070,7 +1086,7 @@ void CNotificationManagerService::UpdateLightsLocked()
         }
         else {
             // Flash when battery is low and not charging
-            mBatteryLight->SetFlashing(BATTERY_LOW_ARGB, 1/*LightsService.LIGHT_FLASH_TIMED*/,
+            mBatteryLight->SetFlashing(BATTERY_LOW_ARGB, CLightsService::LIGHT_FLASH_TIMED,
                     BATTERY_BLINK_ON, BATTERY_BLINK_OFF);
         }
     }
@@ -1108,18 +1124,17 @@ void CNotificationManagerService::UpdateLightsLocked()
         mNotificationLight->TurnOff();
     }
     else {
-        AutoPtr<CNotification> notificationCls = (CNotification*)mLedNotification->mNotification.Get();
-        Int32 ledARGB = notificationCls->mLedARGB;
-        Int32 ledOnMS = notificationCls->mLedOnMS;
-        Int32 ledOffMS = notificationCls->mLedOffMS;
-        if ((notificationCls->mDefaults & Notification_DEFAULT_LIGHTS) != 0) {
+        Int32 ledARGB = mLedNotification->mNotification->mLedARGB;
+        Int32 ledOnMS = mLedNotification->mNotification->mLedOnMS;
+        Int32 ledOffMS = mLedNotification->mNotification->mLedOffMS;
+        if ((mLedNotification->mNotification->mDefaults & Notification_DEFAULT_LIGHTS) != 0) {
             ledARGB = mDefaultNotificationColor;
             ledOnMS = mDefaultNotificationLedOn;
             ledOffMS = mDefaultNotificationLedOff;
         }
         if (mNotificationPulseEnabled) {
             // pulse repeatedly
-            mNotificationLight->SetFlashing(ledARGB, 1/*LightsService.LIGHT_FLASH_TIMED*/,
+            mNotificationLight->SetFlashing(ledARGB, CLightsService::LIGHT_FLASH_TIMED,
                     ledOnMS, ledOffMS);
         }
         else {
@@ -1135,37 +1150,35 @@ CNotificationManagerService::IteratorOfNotificationLocked(
     /* [in] */ String tag,
     /* [in] */ Int32 id)
 {
-    List<AutoPtr<NotificationRecord> > list = mNotificationList;
     List<AutoPtr<NotificationRecord> >::Iterator it;
-    for (it = list.Begin(); it != list.End(); it++) {
-        AutoPtr<NotificationRecord> r = *it;
+    for (it = mNotificationList.Begin(); it != mNotificationList.End(); ++it) {
+        NotificationRecord* r = *it;
         if (tag.IsNull()) {
             if (!(r->mTag.IsNull())) {
                 continue;
             }
         }
         else {
-            if (tag != r->mTag) {
+            if (!tag.Equals(r->mTag)) {
                 continue;
             }
         }
-        if (r->mId == id && r->mPkg == cap) {
+        if (r->mId == id && r->mCap.Equals(cap)) {
             return it;
         }
     }
-
-    return NULL;
+    return mNotificationList.End();
 }
 
 void CNotificationManagerService::UpdateAdbNotification(
     /* [in] */ Boolean adbEnabled)
 {
     if (adbEnabled) {
-        if (String("0") == SystemProperties::Get("persist.adb.notify")) {
+        if (CString("0").Equals(SystemProperties::Get("persist.adb.notify"))) {
             return;
         }
         if (!mAdbNotificationShown) {
-            AutoPtr<INotificationManager> notificationManager;
+            AutoPtr<INotificationManagerProxy> notificationManager;
 
             mContext->GetSystemService(Context_NOTIFICATION_SERVICE,
                     (IInterface**)&notificationManager);
@@ -1179,7 +1192,7 @@ void CNotificationManagerService::UpdateAdbNotification(
                 r->GetText(0x01040343/*com.android.internal.R.string.adb_active_notification_message*/,
                         (ICharSequence**)&message);
 
-                if (mAdbNotification.Get() == NULL) {
+                if (mAdbNotification == NULL) {
                     CNotification::NewByFriend((CNotification**)&mAdbNotification);
                     mAdbNotification->mIcon = 0x01080295/*com.android.internal.R.drawable.stat_sys_adb*/;
                     mAdbNotification->mWhen = 0;
@@ -1210,7 +1223,7 @@ void CNotificationManagerService::UpdateAdbNotification(
 //                mAdbNotification->SetLatestEventInfo(mContext, title, message, pi);
 
                 mAdbNotificationShown = TRUE;
-                ((NotificationManager*)notificationManager.Get())->Notify(0x01040342
+                notificationManager->Notify(0x01040342
                         /*com.android.internal.R.string.adb_active_notification_title*/,
                         mAdbNotification);
             }
@@ -1218,11 +1231,11 @@ void CNotificationManagerService::UpdateAdbNotification(
 
     }
     else if (mAdbNotificationShown) {
-        AutoPtr<INotificationManager> notificationManager;
+        AutoPtr<INotificationManagerProxy> notificationManager;
         mContext->GetSystemService(Context_NOTIFICATION_SERVICE, (IInterface**)&notificationManager);
         if (notificationManager != NULL) {
             mAdbNotificationShown = FALSE;
-            ((NotificationManager*)notificationManager.Get())->Cancel(0x01040342
+            notificationManager->Cancel(0x01040342
                     /*com.android.internal.R.string.adb_active_notification_title*/);
         }
     }
@@ -1230,4 +1243,7 @@ void CNotificationManagerService::UpdateAdbNotification(
 
 void CNotificationManagerService::UpdateNotificationPulse()
 {
+    Mutex::Autolock lock(mNotificationListLock);
+
+    UpdateLightsLocked();
 }

@@ -1,7 +1,7 @@
 
 module
 {
-    interface ITransientNotification {
+    /* oneway */ interface ITransientNotification {
         Show();
 
         Hide();

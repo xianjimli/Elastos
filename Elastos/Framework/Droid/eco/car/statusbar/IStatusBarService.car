@@ -50,7 +50,7 @@ module
             [in] Int32 id,
             [in] Int32 uid,
             [in] Int32 initialPid,
-            [in] String message);
+            [in] CString message);
 
         OnClearAllNotifications();
 

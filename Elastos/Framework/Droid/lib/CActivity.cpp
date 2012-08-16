@@ -117,8 +117,8 @@ ECode CActivity::CheckCallingPermission(
 }
 
 ECode CActivity::EnforceCallingOrSelfPermission(
-    /* [in] */ const String& permission,
-    /* [in] */ const String& message)
+    /* [in] */ CString permission,
+    /* [in] */ CString message)
 {
     return E_NOT_IMPLEMENTED;
 }

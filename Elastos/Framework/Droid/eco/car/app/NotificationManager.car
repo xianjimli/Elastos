@@ -1,0 +1,57 @@
+
+module
+{
+    interface INotification;
+
+    interface INotificationManagerProxy {
+        /**
+         * Persistent notification on the status bar,
+         *
+         * @param id An identifier for this notification unique within your
+         *        application.
+         * @param notification A {@link Notification} object describing how to
+         *        notify the user, other than the view you're providing. Must not be null.
+         */
+        Notify(
+            [in] Int32 id,
+            [in] INotification* notification);
+
+        /**
+         * Persistent notification on the status bar,
+         *
+         * @param tag An string identifier for this notification unique within your
+         *        application.
+         * @param notification A {@link Notification} object describing how to
+         *        notify the user, other than the view you're providing. Must not be null.
+         * @return the id of the notification that is associated with the string identifier that
+         * can be used to cancel the notification
+         */
+        NotifyEx(
+            [in] String tag,
+            [in] Int32 id,
+            [in] INotification* notification);
+
+        /**
+         * Cancel a previously shown notification.  If it's transient, the view
+         * will be hidden.  If it's persistent, it will be removed from the status
+         * bar.
+         */
+        Cancel(
+            [in] Int32 id);
+
+        /**
+         * Cancel a previously shown notification.  If it's transient, the view
+         * will be hidden.  If it's persistent, it will be removed from the status
+         * bar.
+         */
+        CancelEx(
+            [in] String tag,
+            [in] Int32 id);
+
+        /**
+         * Cancel all previously shown notifications. See {@link #cancel} for the
+         * detailed behavior.
+         */
+        CancelAll();
+    }
+}

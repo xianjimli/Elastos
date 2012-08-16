@@ -354,7 +354,7 @@ public:
     CARAPI CrashApplication(
         /* [in] */ Int32 uid,
         /* [in] */ Int32 initialPid,
-        /* [in] */ const String& capsuleName,
+        /* [in] */ CString capsuleName,
         /* [in] */ CString message);
 
     CARAPI FinishSubActivity(

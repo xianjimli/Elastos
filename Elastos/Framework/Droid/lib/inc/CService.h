@@ -101,8 +101,8 @@ public:
         /* [out] */ Int32* value);
 
     CARAPI EnforceCallingOrSelfPermission(
-        /* [in] */ const String& permission,
-        /* [in] */ const String& message);
+        /* [in] */ CString permission,
+        /* [in] */ CString message);
 
     CARAPI RevokeUriPermission(
         /* [in] */ IUri* uri,

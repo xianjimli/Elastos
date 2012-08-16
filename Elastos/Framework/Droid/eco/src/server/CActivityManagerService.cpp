@@ -1366,7 +1366,7 @@ ECode CActivityManagerService::FinishHeavyWeightApp()
 ECode CActivityManagerService::CrashApplication(
     /* [in] */ Int32 uid,
     /* [in] */ Int32 initialPid,
-    /* [in] */ const String& capsuleName,
+    /* [in] */ CString capsuleName,
     /* [in] */ CString message)
 {
 //    if (checkCallingPermission(android.Manifest.permission.FORCE_STOP_CAPSULES)

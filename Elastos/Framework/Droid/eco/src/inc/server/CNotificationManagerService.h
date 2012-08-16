@@ -13,7 +13,7 @@
 CarClass(CNotificationManagerService)
 {
 private:
-    static CString TAG;
+    static const CString TAG;
     static const Boolean DBG = FALSE;
 
     static const Int32 MAX_PACKAGE_NOTIFICATIONS = 50;
@@ -24,7 +24,7 @@ private:
     static const Int32 LONG_DELAY = 3500; // 3.5 seconds
     static const Int32 SHORT_DELAY = 2000; // 2 seconds
 
-    static const Int64 DEFAULT_VIBRATE_PATTERN[];
+    static const Int64 DEFAULT_VIBRATE_PATTERN[4];
 
     static const Int32 DEFAULT_STREAM_TYPE = 5;//AudioManager.STREAM_NOTIFICATION;
 
@@ -39,7 +39,7 @@ private:
     {
     public:
         NotificationRecord(
-            /* [in] */ String pkg,
+            /* [in] */ String cap,
             /* [in] */ String tag,
             /* [in] */ Int32 id,
             /* [in] */ Int32 uid,
@@ -58,14 +58,14 @@ private:
             /* [out] */ InterfaceID *pIID);
 
     public:
-        String mPkg;
+        String mCap;
         String mTag;
         Int32 mId;
         Int32 mUid;
         Int32 mInitialPid;
         AutoPtr<ITransientNotification> mCallback;
         Int32 mDuration;
-        AutoPtr<INotification> mNotification;
+        AutoPtr<CNotification> mNotification;
         AutoPtr<IBinder> mStatusBarKey;
     };
 
@@ -74,7 +74,7 @@ private:
     public:
         ToastRecord(
             /* [in] */ Int32 pid,
-            /* [in] */ String pkg,
+            /* [in] */ String cap,
             /* [in] */ ITransientNotification* callback,
             /* [in] */ Int32 duration);
 
@@ -94,16 +94,39 @@ private:
 
     public:
         Int32 mPid;
-        String mPkg;
+        String mCap;
         AutoPtr<ITransientNotification> mCallback;
         Int32 mDuration;
     };
 
-    class WorkerHandler : public IHandler, public ElRefBase
+//    class WorkerHandler : public IHandler, public ElRefBase
+//    {
+//    public:
+//        CARAPI_(PInterface) Probe(
+//            /* [in]  */ REIID riid);
+//
+//        CARAPI_(UInt32) AddRef();
+//
+//        CARAPI_(UInt32) Release();
+//
+//        CARAPI GetInterfaceID(
+//            /* [in] */ IInterface *pObject,
+//            /* [out] */ InterfaceID *pIID);
+//
+////        CARAPI_(void) HandleMessage(
+////            /* [in] */ IMessage* msg);
+//    };
+
+    class MyNotificationCallbacks
+        : public ElRefBase
+        , public CStatusBarManagerService::INotificationCallbacks
     {
     public:
+        MyNotificationCallbacks(
+            /* [in] */ CNotificationManagerService* nms);
+
         CARAPI_(PInterface) Probe(
-            /* [in]  */ REIID riid);
+            /* [in] */ REIID riid);
 
         CARAPI_(UInt32) AddRef();
 
@@ -113,37 +136,27 @@ private:
             /* [in] */ IInterface *pObject,
             /* [out] */ InterfaceID *pIID);
 
-//        CARAPI_(void) HandleMessage(
-//            /* [in] */ IMessage* msg);
-    };
-
-    class MyNotificationCallbacks : public CStatusBarManagerService::NotificationCallbacks
-    {
-    public:
-        MyNotificationCallbacks(
-            /* [in] */ CNotificationManagerService* nms);
-
-        CARAPI_(void) OnSetDisabled(
+        CARAPI OnSetDisabled(
             /* [in] */ Int32 status);
 
-        CARAPI_(void) OnClearAll();
+        CARAPI OnClearAll();
 
-        CARAPI_(void) OnNotificationClick(
-            /* [in] */ String pkg,
-            /* [in] */ String tag,
+        CARAPI OnNotificationClick(
+            /* [in] */ const String& cap,
+            /* [in] */ const String& tag,
             /* [in] */ Int32 id);
 
-        CARAPI_(void) OnPanelRevealed();
+        CARAPI OnPanelRevealed();
 
-        CARAPI_(void) OnNotificationError(
-            /* [in] */ String pkg,
-            /* [in] */ String tag,
+        CARAPI OnNotificationError(
+            /* [in] */ const String& cap,
+            /* [in] */ const String& tag,
             /* [in] */ Int32 id,
             /* [in] */ Int32 uid,
             /* [in] */ Int32 initialPid,
-            /* [in] */ String message);
+            /* [in] */ CString message);
     private:
-        AutoPtr<CNotificationManagerService> mNMService;
+        CNotificationManagerService* mOwner;
     };
 
 //    class MyIntentReceiver : public IBroadcastReceiver
@@ -154,7 +167,6 @@ private:
 //            /* [in] */ IIntent* intent);
 //    };
 
-public:
 //    class SettingsObserver : public ContentObserver
 //    {
 //    public:
@@ -172,12 +184,16 @@ public:
 public:
     CNotificationManagerService();
 
-    CARAPI constructor(
-        /* [in] */ IContext* ctx,
-        /* [in] */ IStatusBarService* statusBar,
-        /* [in] */ ILightsManager* lights);
-
     CARAPI_(void) SystemReady();
+
+    CARAPI EnqueueToast(
+        /* [in] */ const String& cap,
+        /* [in] */ ITransientNotification* cb,
+        /* [in] */ Int32 duration);
+
+    CARAPI CancelToast(
+        /* [in] */ const String& cap,
+        /* [in] */ ITransientNotification* cb);
 
     CARAPI EnqueueNotification(
         /* [in] */ const String& cap,
@@ -201,23 +217,7 @@ public:
         /* [in] */ const String& tag,
         /* [in] */ Int32 id,
         /* [in] */ INotification* notification,
-        /* [in] */ ArrayOf<Int32>* idOut);
-
-    CARAPI CancelNotification(
-        /* [in] */ const String& cap,
-        /* [in] */ Int32 id);
-
-    CARAPI CancelAllNotifications(
-        /* [in] */ const String& cap);
-
-    CARAPI EnqueueToast(
-        /* [in] */ const String& cap,
-        /* [in] */ ITransientNotification* cb,
-        /* [in] */ Int32 duration);
-
-    CARAPI CancelToast(
-        /* [in] */ const String& cap,
-        /* [in] */ ITransientNotification* cb);
+        /* [in, out] */ ArrayOf<Int32>* idOut);
 
     /**
      * Cancels all notifications from a given package that have all of the
@@ -229,25 +229,40 @@ public:
         /* [in] */ Int32 mustNotHaveFlags,
         /* [in] */ Boolean doit);
 
+    CARAPI CancelNotification(
+        /* [in] */ const String& cap,
+        /* [in] */ Int32 id);
+
     CARAPI CancelNotificationWithTag(
         /* [in] */ const String& cap,
         /* [in] */ const String& tag,
         /* [in] */ Int32 id);
 
-    CARAPI_(void) CheckIncomingCall(
+    CARAPI CancelAllNotifications(
+        /* [in] */ const String& cap);
+
+    CARAPI CheckIncomingCall(
         /* [in] */ const String& cap);
 
     CARAPI_(void) CancelAll();
+
+    CARAPI constructor(
+        /* [in] */ IContext* ctx,
+        /* [in] */ IStatusBarService* statusBar,
+        /* [in] */ ILightsManager* lights);
 
 private:
     CARAPI_(void) ShowNextToastLocked();
 
     CARAPI_(void) CancelToastLocked(
-        List<AutoPtr<ToastRecord> >::Iterator it);
+        List<AutoPtr<ToastRecord> >::Iterator& it);
 
-    CARAPI ScheduleTimeoutLocked(
+    CARAPI_(void) ScheduleTimeoutLocked(
         /* [in] */ ToastRecord* r,
         /* [in] */ Boolean immediate);
+
+    CARAPI_(void) HandleTimeout(
+        /* [in] */ ToastRecord* record);
 
     // lock on mToastQueue
     CARAPI_(List<AutoPtr<ToastRecord> >::Iterator) IteratorOfToastLocked(
@@ -260,7 +275,7 @@ private:
 
     CARAPI_(void) SendAccessibilityEvent(
         /* [in] */ INotification* notification,
-        /* [in] */ String capsuleName);
+        /* [in] */ ICharSequence* capsuleName);
 
     CARAPI_(void) CancelNotificationLocked(
         /* [in] */ NotificationRecord* r);
@@ -270,8 +285,8 @@ private:
      * and none of the {@code mustNotHaveFlags}.
      */
     CARAPI_(void) CancelNotification(
-        /* [in] */ String cap,
-        /* [in] */ String tag,
+        /* [in] */ const String& cap,
+        /* [in] */ const String& tag,
         /* [in] */ Int32 id,
         /* [in] */ Int32 mustHaveFlags,
         /* [in] */ Int32 mustNotHaveFlags);
@@ -307,8 +322,9 @@ public:
     AutoPtr<IBinder> mForegroundToken;// = new Binder();
 
 private:
-    WorkerHandler* mHandler;
-    AutoPtr<IStatusBarService> mStatusBar;
+    //WorkerHandler* mHandler;
+    AutoPtr<IApartment> mHandler;
+    AutoPtr<CStatusBarManagerService> mStatusBar;
     AutoPtr<ILightsManager> mLightsService;
     AutoPtr<ILight> mBatteryLight;
     AutoPtr<ILight> mNotificationLight;
@@ -339,13 +355,13 @@ private:
     Boolean mAdbNotificationShown;
     AutoPtr<CNotification> mAdbNotification;
 
-    List<AutoPtr<NotificationRecord> > mNotificationList;
+    List< AutoPtr<NotificationRecord> > mNotificationList;
     Mutex mNotificationListLock;
 
-    List<AutoPtr<ToastRecord> >* mToastQueue;
+    List< AutoPtr<ToastRecord> >* mToastQueue;
     Mutex mToastQueueLock;
 
-    List<AutoPtr<NotificationRecord> > mLights;
+    List< AutoPtr<NotificationRecord> > mLights;
 
     Boolean mBatteryCharging;
     Boolean mBatteryLow;

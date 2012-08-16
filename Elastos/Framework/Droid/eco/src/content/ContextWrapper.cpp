@@ -115,8 +115,8 @@ ECode ContextWrapper::CheckCallingPermission(
 }
 
 ECode ContextWrapper::EnforceCallingOrSelfPermission(
-    /* [in] */ const String& permission,
-    /* [in] */ const String& message)
+    /* [in] */ CString permission,
+    /* [in] */ CString message)
 {
     return mBase->EnforceCallingOrSelfPermission(permission, message);
 }

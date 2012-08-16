@@ -3,6 +3,11 @@ module
 {
     interface IDescribable;
 
+    interface IBinderDeathRecipient {
+        BinderDied();
+    }
+
     interface IBinder extends IDescribable {
+        
     }
 }
