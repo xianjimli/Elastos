@@ -7,6 +7,12 @@ const Int32 StatusBarManager::DISABLE_NOTIFICATION_ALERTS;
 const Int32 StatusBarManager::DISABLE_NOTIFICATION_TICKER;
 const Int32 StatusBarManager::DISABLE_NONE;
 
+
+StatusBarManager::StatusBarManager(
+    /* [in] */ IContext* context)
+{
+}
+
 ECode StatusBarManager::Expand()
 {
     // TODO: Add your code here

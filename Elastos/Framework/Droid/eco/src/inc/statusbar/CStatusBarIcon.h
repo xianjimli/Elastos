@@ -9,6 +9,11 @@ using namespace Elastos;
 CarClass(CStatusBarIcon)
 {
 public:
+    CStatusBarIcon();
+
+    CARAPI Clone(
+        /* [out] */ IStatusBarIcon** icon);
+
     CARAPI GetDescription(
         /* [out] */ String* str);
 
@@ -18,13 +23,15 @@ public:
     CARAPI WriteToParcel(
         /* [in] */ IParcel* dest);
 
+    CARAPI constructor();
+
     CARAPI constructor(
-        /* [in] */ const String& iconPackage,
+        /* [in] */ const String& iconCapsule,
         /* [in] */ Int32 iconId,
         /* [in] */ Int32 iconLevel);
 
     CARAPI constructor(
-        /* [in] */ const String& iconPackage,
+        /* [in] */ const String& iconCapsule,
         /* [in] */ Int32 iconId,
         /* [in] */ Int32 iconLevel,
         /* [in] */ Int32 number);
@@ -32,8 +39,12 @@ public:
     CARAPI constructor(
         /* [in] */ IParcel* source);
 
-private:
-    // TODO: Add your private member variables here.
+public:
+    String mIconCapsule;
+    Int32 mIconId;
+    Int32 mIconLevel;
+    Boolean mVisible;
+    Int32 mNumber;
 };
 
 #endif // __CSTATUSBARICON_H__

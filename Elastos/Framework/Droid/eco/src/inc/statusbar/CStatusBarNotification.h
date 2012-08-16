@@ -3,6 +3,7 @@
 #define __CSTATUSBARNOTIFICATION_H__
 
 #include "_CStatusBarNotification.h"
+#include <elastos/AutoPtr.h>
 
 using namespace Elastos;
 
@@ -31,8 +32,13 @@ public:
     CARAPI constructor(
         /* [in] */ IParcel* source);
 
-private:
-    // TODO: Add your private member variables here.
+public:
+    String mCap;
+    Int32 mId;
+    String mTag;
+    Int32 mUid;
+    Int32 mInitialPid;
+    AutoPtr<INotification> mNotification;
 };
 
 #endif // __CSTATUSBARNOTIFICATION_H__

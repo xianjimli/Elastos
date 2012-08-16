@@ -2,6 +2,8 @@
 module
 {
     interface IStatusBarIcon {
+        Clone(
+            [out] IStatusBarIcon** icon);
     }
 }
 

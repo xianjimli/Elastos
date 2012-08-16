@@ -1,7 +1,40 @@
 
 module
 {
+    interface IStatusBarIcon;
+    
     interface IStatusBarIconList {
+        DefineSlots(
+            [in] ArrayOf<String> slots);
+        
+        GetSlotIndex(
+            [in] String slot,
+            [out] Int32* index);
+        
+        GetSize(
+            [out] Int32* size);
+        
+        SetIcon(
+            [in] Int32 index,
+            [in] IStatusBarIcon* icon);
+        
+        RemoveIcon(
+            [in] Int32 index);
+        
+        GetSlot(
+            [in] Int32 index,
+            [out] String* slot);
+        
+        GetIcon(
+            [in] Int32 index,
+            [out] IStatusBarIcon** icon);
+        
+        GetViewIndex(
+            [in] Int32 index,
+            [out] Int32* viewIndex);
+        
+        CopyFrom(
+            [in] IStatusBarIconList* list);    
     }
 }
 

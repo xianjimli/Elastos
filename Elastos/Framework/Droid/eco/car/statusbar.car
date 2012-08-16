@@ -8,6 +8,8 @@ module
     merge("statusbar/StatusBarNotification.car");
 
     class CStatusBarIcon {
+        constructor();
+    
         constructor(
             [in] String iconPackage,
             [in] Int32 iconId,

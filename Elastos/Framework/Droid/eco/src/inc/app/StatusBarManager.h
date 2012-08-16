@@ -38,6 +38,9 @@ public:
     static const Int32 DISABLE_NONE = 0x00000000;
 
 public:
+    StatusBarManager(
+        /* [in] */ IContext* context);
+
     CARAPI Disable(
         /* [in] */ Int32 what,
         /* [in] */ IBinder* token,

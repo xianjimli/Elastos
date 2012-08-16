@@ -4,7 +4,7 @@ module
     /**
      * Use all default values (where applicable).
      */
-    const Notification_DEFAULT_ALL = 1;
+    const Notification_DEFAULT_ALL = 0xFFFFFFFF;
 
     /**
      * Use the default notification sound. This will ignore any given

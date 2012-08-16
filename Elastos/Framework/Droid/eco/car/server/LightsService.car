@@ -4,6 +4,13 @@ module
     interface IContext;
 
     interface ILight {
+        SetBrightness(
+            [in] Int32 brightness);
+
+        SetBrightnessEx(
+            [in] Int32 brightness,
+            [in] Int32 brightnessMode);
+
         SetColor(
             [in] Int32 color);
 
@@ -26,12 +33,5 @@ module
         GetLight(
             [in] Int32 id,
             [out] ILight** light);
-    }
-
-    class CLightsService {
-        constructor(
-            [in] IContext* ctx);
-
-        interface ILightsManager;
     }
 }
