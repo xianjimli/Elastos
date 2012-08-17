@@ -2,11 +2,9 @@
 #ifndef __HH_BITMAPDRAWABLE_H
 #define __HH_BITMAPDRAWABLE_H
 
-#include <elastos.h>
-using namespace Elastos;
 #include <ext/frameworkext.h>
 #include <elastos/AutoPtr.h>
-#include "graphics/Drawable.h"
+#include "graphics/drawable/Drawable.h"
 #include <elastos/ElRefBase.h>
 
 class BitmapDrawable : public Drawable

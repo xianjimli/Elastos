@@ -9,7 +9,7 @@
 #include "content/CConfiguration.h"
 #include "content/PluralRules.h"
 #include "utils/CDisplayMetrics.h"
-#include "graphics/Drawable.h"
+#include "graphics/drawable/Drawable.h"
 #include <elastos/Mutex.h>
 #include <elastos/HashMap.h>
 #include <elastos/AutoPtr.h>

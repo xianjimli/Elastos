@@ -2,7 +2,7 @@
 #ifndef __HH_NINEPATCHDRAWABLE_H
 #define __HH_NINEPATCHDRAWABLE_H
 
-#include "graphics/Drawable.h"
+#include "graphics/drawable/Drawable.h"
 #include <elastos/ElRefBase.h>
 
 class NinePatchDrawable : public Drawable

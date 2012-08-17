@@ -3,7 +3,7 @@
 #define __CBITMAPDRAWABLE_H__
 
 #include "_CBitmapDrawable.h"
-#include "graphics/BitmapDrawable.h"
+#include "graphics/drawable/BitmapDrawable.h"
 #include "graphics/drawable/DrawableMacro.h"
 
 CarClass(CBitmapDrawable), public BitmapDrawable

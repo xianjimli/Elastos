@@ -1,5 +1,5 @@
 
-#include "graphics/CColorDrawable.h"
+#include "graphics/drawable/CColorDrawable.h"
 
 IDRAWABLE_METHODS_IMPL(CColorDrawable, ColorDrawable, ColorDrawable);
 

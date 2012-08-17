@@ -2,7 +2,7 @@
 #ifndef __STATELISTDRAWABLE_H__
 #define __STATELISTDRAWABLE_H__
 
-#include "graphics/DrawableContainer.h"
+#include "graphics/drawable/DrawableContainer.h"
 #include "utils/StateSet.h"
 
 class StateListDrawable : public DrawableContainer

@@ -2,7 +2,7 @@
 #ifndef __COLORDRAWABLE_H__
 #define __COLORDRAWABLE_H__
 
-#include "graphics/Drawable.h"
+#include "graphics/drawable/Drawable.h"
 #include <elastos/ElRefBase.h>
 
 class ColorDrawable : public Drawable

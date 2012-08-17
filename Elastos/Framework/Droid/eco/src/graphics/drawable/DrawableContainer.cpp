@@ -1,5 +1,5 @@
 
-#include "graphics/DrawableContainer.h"
+#include "graphics/drawable/DrawableContainer.h"
 
 const Boolean DrawableContainer::DEFAULT_DITHER;
 

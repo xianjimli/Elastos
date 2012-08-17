@@ -1,15 +1,16 @@
 
 #include "widget/ImageView.h"
+#include "graphics/CPaint.h"
 #include "graphics/CMatrix.h"
-#include "graphics/CBitmapDrawable.h"
-#include "graphics/Drawable.h"
 #include "graphics/CCanvas.h"
 #include "graphics/CPorterDuffColorFilter.h"
+#include "graphics/drawable/CBitmapDrawable.h"
+#include "graphics/drawable/Drawable.h"
 #include <Logger.h>
 #include <StringBuffer.h>
 #include <elastos/Math.h>
 #include <stdio.h>
-#include <graphics/CPaint.h>
+
 
 using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;

@@ -2,9 +2,9 @@
 #ifndef __DRAWABLECONTAINER_H__
 #define __DRAWABLECONTAINER_H__
 
-#include "graphics/Drawable.h"
 #include "graphics/ElPixelFormat.h"
 #include "graphics/CRect.h"
+#include "graphics/drawable/Drawable.h"
 #include <elastos/ElRefBase.h>
 #include <elastos/Mutex.h>
 
