@@ -11,7 +11,7 @@
 #include "utils/CTypedValue.h"
 #include "view/CDisplay.h"
 #include "graphics/CMovie.h"
-#include "graphics/CColorDrawable.h"
+#include "graphics/drawable/CColorDrawable.h"
 #include <Logger.h>
 #include <elastos/Locale.h>
 #include <StringBuffer.h>

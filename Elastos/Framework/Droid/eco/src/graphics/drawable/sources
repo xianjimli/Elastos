@@ -10,7 +10,13 @@ INCLUDES += $(PREBUILD_INC)/skia/utils
 INCLUDES += $(PREBUILD_INC)/skia/core
 INCLUDES += $(PREBUILD_INC)/skia/effects
 
+
+SOURCES = Drawable.cpp
+SOURCES += DrawableContainer.cpp
+SOURCES += BitmapDrawable.cpp
+SOURCES += CBitmapDrawable.cpp
 SOURCES += ColorDrawable.cpp
+SOURCES += CColorDrawable.cpp
 SOURCES += NinePatchDrawable.cpp
 SOURCES += CNinePatchDrawable.cpp
 SOURCES += StateListDrawable.cpp

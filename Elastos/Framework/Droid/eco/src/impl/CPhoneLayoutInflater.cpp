@@ -1,8 +1,8 @@
 
 #include "impl/CPhoneLayoutInflater.h"
+#include "graphics/drawable/CBitmapDrawable.h"
+#include "widget/CImageView.h"
 #include <elastos/AutoPtr.h>
-#include <widget/CImageView.h>
-#include "graphics/CBitmapDrawable.h"
 
 ECode CPhoneLayoutInflater::constructor(
     /* [in] */ IContext* context)

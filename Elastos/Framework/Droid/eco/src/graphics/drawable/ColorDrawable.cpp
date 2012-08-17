@@ -1,6 +1,6 @@
 
 #include "graphics/drawable/ColorDrawable.h"
-#include "graphics/CColorDrawable.h"
+#include "graphics/drawable/CColorDrawable.h"
 #include "graphics/ElPixelFormat.h"
 
 static Int32 R_Styleable_ColorDrawable[] = {

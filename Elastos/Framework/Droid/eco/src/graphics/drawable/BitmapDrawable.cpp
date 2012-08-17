@@ -1,11 +1,11 @@
 
-#include "graphics/BitmapDrawable.h"
+#include "graphics/drawable/BitmapDrawable.h"
 #include "graphics/CPaint.h"
 #include "graphics/CBitmapFactory.h"
 #include "graphics/CRect.h"
 #include "graphics/CBitmapShader.h"
-#include "graphics/CBitmapDrawable.h"
 #include "graphics/ElPixelFormat.h"
+#include "graphics/drawable/CBitmapDrawable.h"
 #include "view/CGravity.h"
 #include "utils/CDisplayMetrics.h"
 #include <Logger.h>

@@ -3,7 +3,7 @@
 #define __SCROLLBARDRAWABLE_H__
 
 #include "ext/frameworkext.h"
-#include "graphics/Drawable.h"
+#include "graphics/drawable/Drawable.h"
 #include <elastos/AutoPtr.h>
 
 class ScrollBarDrawable : public Drawable

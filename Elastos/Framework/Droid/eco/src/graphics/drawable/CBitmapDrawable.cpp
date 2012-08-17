@@ -1,5 +1,5 @@
 
-#include "graphics/CBitmapDrawable.h"
+#include "graphics/drawable/CBitmapDrawable.h"
 
 IDRAWABLE_METHODS_IMPL(CBitmapDrawable, BitmapDrawable, BitmapDrawable);
 
