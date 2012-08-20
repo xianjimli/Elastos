@@ -1,7 +1,11 @@
 
 #include "widget/ProgressBar.h"
 #include "view/animation/AnimationUtils.h"
+#include "view/animation/CLinearInterpolator.h"
+#include "view/animation/CTransformation.h"
+#include "view/animation/CAlphaAnimation.h"
 #include "widget/CProgressBarSavedState.h"
+#include "os/SystemClock.h"
 #include <elastos/Math.h>
 
 ProgressBar::RefreshProgressRunnable::RefreshProgressRunnable(
@@ -70,7 +74,7 @@ ECode ProgressBar::InitFromAttributes(
     /* [in] */ IAttributeSet* attrs,
     /* [in] */ Int32 defStyle)
 {
-    //mUiThreadId = Thread.currentThread().getId();
+    mUiThreadId = pthread_self();
     InitProgressBar();
 
     AutoPtr<ITypedArray> a;
@@ -456,7 +460,7 @@ void ProgressBar::RefreshProgressLocked(
     /* [in] */ Int32 progress,
     /* [in] */ Boolean fromUser)
 {
-    if (mUiThreadId == 0/*Thread.currentThread().getId()*/) {
+    if (mUiThreadId == pthread_self()) {
         DoRefreshProgress(id, progress, fromUser);
     }
     else {
@@ -716,24 +720,24 @@ void ProgressBar::StartAnimation()
         return;
     }
 
-//    if (mIndeterminateDrawable instanceof Animatable) {
-//        mShouldStartAnimationDrawable = TRUE;
-//        mAnimation = NULL;
-//    }
-//    else {
-//        if (mInterpolator == NULL) {
-//            mInterpolator = new LinearInterpolator();
-//        }
-//
-//        mTransformation = new Transformation();
-//        mAnimation = new AlphaAnimation(0.0f, 1.0f);
-//        mAnimation.setRepeatMode(mBehavior);
-//        mAnimation.setRepeatCount(Animation.INFINITE);
-//        mAnimation.setDuration(mDuration);
-//        mAnimation.setInterpolator(mInterpolator);
-//        mAnimation.setStartTime(Animation.START_ON_FIRST_FRAME);
-//        postInvalidate();
-//    }
+    if (IAnimatable::Probe(mIndeterminateDrawable.Get())) {
+        mShouldStartAnimationDrawable = TRUE;
+        mAnimation = NULL;
+    }
+    else {
+        if (mInterpolator == NULL) {
+            ASSERT_SUCCEEDED(CLinearInterpolator::New((IInterpolator**)&mInterpolator));
+        }
+
+        ASSERT_SUCCEEDED(CTransformation::New((ITransformation**)&mTransformation));
+        ASSERT_SUCCEEDED(CAlphaAnimation::New(0.0f, 1.0f, (IAnimation**)&mAnimation));
+        mAnimation->SetRepeatMode(mBehavior);
+        mAnimation->SetRepeatCount(Animation_INFINITE);
+        mAnimation->SetDuration(mDuration);
+        mAnimation->SetInterpolatorEx(mInterpolator);
+        mAnimation->SetStartTime(Animation_START_ON_FIRST_FRAME);
+        PostInvalidate();
+    }
 }
 
 /**
@@ -741,12 +745,12 @@ void ProgressBar::StartAnimation()
  */
 void ProgressBar::StopAnimation()
 {
-//    mAnimation = NULL;
+    mAnimation = NULL;
     mTransformation = NULL;
-//    if (mIndeterminateDrawable instanceof Animatable) {
-//        ((Animatable) mIndeterminateDrawable).stop();
-//        mShouldStartAnimationDrawable = FALSE;
-//    }
+    if (IAnimatable::Probe(mIndeterminateDrawable.Get())) {
+        IAnimatable::Probe(mIndeterminateDrawable.Get())->Stop();
+        mShouldStartAnimationDrawable = FALSE;
+    }
 }
 
 /**
@@ -887,27 +891,26 @@ void ProgressBar::OnDraw(
         Int32 s;
         canvas->Save(&s);
         canvas->Translate(mPaddingLeft, mPaddingTop);
-//        Int64 time = GetDrawingTime();
-//        if (mAnimation != NULL) {
-//            mAnimation.getTransformation(time, mTransformation);
-//            Float scale = mTransformation.getAlpha();
-//            try {
-//                mInDrawing = TRUE;
-//                d.setLevel((Int32) (scale * MAX_LEVEL));
-//            } finally {
-//                mInDrawing = FALSE;
-//            }
-//            if (SystemClock.uptimeMillis() - mLastDrawTime >= ANIMATION_RESOLUTION) {
-//                mLastDrawTime = SystemClock.uptimeMillis();
-//                postInvalidateDelayed(ANIMATION_RESOLUTION);
-//            }
-//        }
+        Int64 time = GetDrawingTime();
+        if (mAnimation != NULL) {
+            Boolean res;
+            mAnimation->GetTransformation(time, mTransformation, &res);
+            Float scale;
+            mTransformation->GetAlpha(&scale);
+            mInDrawing = TRUE;
+            d->SetLevel((Int32)(scale * MAX_LEVEL), &res);
+            mInDrawing = FALSE;
+            if (SystemClock::GetUptimeMillis() - mLastDrawTime >= ANIMATION_RESOLUTION) {
+                mLastDrawTime = SystemClock::GetUptimeMillis();
+                PostInvalidateDelayed(ANIMATION_RESOLUTION);
+            }
+        }
         d->Draw(canvas);
         canvas->Restore();
-//        if (mShouldStartAnimationDrawable && d instanceof Animatable) {
-//            ((Animatable) d).start();
-//            mShouldStartAnimationDrawable = FALSE;
-//        }
+        if (mShouldStartAnimationDrawable && IAnimatable::Probe(d.Get())) {
+            IAnimatable::Probe(d.Get())->Start();
+            mShouldStartAnimationDrawable = FALSE;
+        }
     }
 }
 
@@ -995,7 +998,4 @@ void ProgressBar::OnDetachedFromWindow()
         StopAnimation();
     }
 }
-
-
-
 

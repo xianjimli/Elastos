@@ -21,3 +21,7 @@ SOURCES += NinePatchDrawable.cpp
 SOURCES += CNinePatchDrawable.cpp
 SOURCES += StateListDrawable.cpp
 SOURCES += CStateListDrawable.cpp
+SOURCES += AnimatedRotateDrawable.cpp
+SOURCES += CAnimatedRotateDrawable.cpp
+SOURCES += LayerDrawable.cpp
+SOURCES += CLayerDrawable.cpp

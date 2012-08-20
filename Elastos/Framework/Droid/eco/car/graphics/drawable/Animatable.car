@@ -1,0 +1,23 @@
+
+module
+{
+    interface IAnimatable {
+        /**
+         * Starts the drawable's animation.
+         */
+        Start();
+
+        /**
+         * Stops the drawable's animation.
+         */
+        Stop();
+
+        /**
+         * Indicates whether the animation is running.
+         * 
+         * @return True if the animation is running, false otherwise.
+         */
+        IsRunning(
+            [out] Boolean* isRunning);
+    }
+}

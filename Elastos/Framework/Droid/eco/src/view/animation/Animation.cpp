@@ -82,10 +82,19 @@ Animation::Animation()
     , mMore(TRUE)
     , mOneMoreTime(TRUE)
 {
-    ASSERT_SUCCEEDED(CRectF::New((IRectF**)&mPreviousRegion));
-    ASSERT_SUCCEEDED(CRectF::New((IRectF**)&mRegion));
-    ASSERT_SUCCEEDED(CTransformation::New((ITransformation**)&mTransformation));
-    ASSERT_SUCCEEDED(CTransformation::New((ITransformation**)&mPreviousTransformation));
+    AutoPtr<CRectF> rectF;
+    ASSERT_SUCCEEDED(CRectF::NewByFriend((CRectF**)&rectF));
+    mPreviousRegion = (IRectF*)rectF.Get();
+    rectF = NULL;
+    ASSERT_SUCCEEDED(CRectF::NewByFriend((CRectF**)&rectF));
+    mRegion = (IRectF*)rectF.Get();
+
+    AutoPtr<CTransformation> trans;
+    ASSERT_SUCCEEDED(CTransformation::NewByFriend((CTransformation**)&trans));
+    mTransformation = (ITransformation*)trans.Get();
+    trans = NULL;
+    ASSERT_SUCCEEDED(CTransformation::NewByFriend((CTransformation**)&trans));
+    mPreviousTransformation = (ITransformation*)trans.Get();
 
     EnsureInterpolator();
 }
@@ -698,7 +707,10 @@ ECode Animation::SetAnimationListener(
 void Animation::EnsureInterpolator()
 {
     if (mInterpolator == NULL) {
-        CAccelerateDecelerateInterpolator::New((IInterpolator**)&mInterpolator);
+        AutoPtr<CAccelerateDecelerateInterpolator> temp;
+        CAccelerateDecelerateInterpolator::NewByFriend(
+            (CAccelerateDecelerateInterpolator**)&temp);
+        mInterpolator = (IInterpolator*)temp.Get();
     }
 }
 

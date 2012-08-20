@@ -1,0 +1,82 @@
+
+module
+{
+    interface IDrawable;
+
+    interface ILayerDrawable extends IDrawable {
+        /**
+         * Look for a layer with the given id, and returns its {@link Drawable}.
+         *
+         * @param id The layer ID to search for->
+         * @return The {@link Drawable} of the layer that has the given id in the hierarchy or NULL.
+         */
+        FindDrawableByLayerId(
+            [in] Int32 id,
+            [out] IDrawable** drawable);
+        
+        /**
+         * Sets the ID of a layer->
+         * 
+         * @param index The index of the layer which will received the ID. 
+         * @param id The ID to assign to the layer->
+         */
+        SetId(
+            [in] Int32 index,
+            [in] Int32 id);
+        
+        /**
+         * Returns the number of layers contained within this.
+         * @return The number of layers.
+         */
+        GetNumberOfLayers(
+            [out] Int32* number);
+
+        /**
+         * Returns the drawable at the specified layer index.
+         *
+         * @param index The layer index of the drawable to retrieve.
+         *
+         * @return The {@link android.graphics.drawable.Drawable} at the specified layer index.
+         */
+        GetDrawable(
+            [in] Int32 index,
+            [out] IDrawable** drawable);
+
+        /**
+         * Returns the id of the specified layer.
+         *
+         * @param index The index of the layer.
+         *
+         * @return The id of the layer or {@link android.view.View#NO_ID} if the layer has no id. 
+         */
+        GetId(
+            [in] Int32 index,
+            [out] Int32* id);
+        
+        /**
+         * Sets (or replaces) the {@link Drawable} for the layer with the given id.
+         * 
+         * @param id The layer ID to search for->
+         * @param drawable The replacement {@link Drawable}.
+         * @return Whether the {@link Drawable} was replaced (could return FALSE if
+         *         the id was not found).
+         */
+        SetDrawableByLayerId(
+            [in] Int32 id,
+            [in] IDrawable* drawable,
+            [out] Boolean* res);
+
+        /** Specify modifiers to the bounds for the drawable[index]->
+            left += l
+            top += t;
+            right -= r;
+            bottom -= b;
+        */
+        SetLayerInset(
+            [in] Int32 index,
+            [in] Int32 l,
+            [in] Int32 t,
+            [in] Int32 r,
+            [in] Int32 b);
+    }
+}

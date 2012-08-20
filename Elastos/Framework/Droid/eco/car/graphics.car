@@ -29,6 +29,9 @@ module
     merge("graphics/drawable/colordrawable.car");
     merge("graphics/drawable/DrawableContainer.car");
     merge("graphics/drawable/StateListDrawable.car");
+    merge("graphics/drawable/Animatable.car");
+    merge("graphics/drawable/AnimatedRotateDrawable.car");
+    merge("graphics/drawable/LayerDrawable.car");
 
     class CPoint {
         constructor();
@@ -441,6 +444,49 @@ module
             [in] IResources* res);
 
         interface IStateListDrawable;
+    }
+    
+    class CAnimatedRotateDrawable {
+        constructor();
+
+        constructor(
+            [in] IDrawableConstantState* state,
+            [in] IResources* res);
+
+        interface IAnimatedRotateDrawable;
+        interface IDrawableCallback;
+        interface IRunnable;
+        interface IAnimatable;
+    }
+
+    class CLayerDrawable {
+        constructor();
+
+        /**
+         * Create a new layer drawable with the list of specified layers.
+         *
+         * @param layers A list of drawables to use as layers in this new drawable.
+         */
+        constructor(
+            [in] IObjectContainer* layers);
+
+        /**
+         * Create a new layer drawable with the specified list of layers and the specified
+         * constant state.
+         *
+         * @param layers The list of layers to add to this drawable.
+         * @param state The constant drawable state.
+         */
+        constructor(
+            [in] IObjectContainer* layers,
+            [in] IDrawableConstantState* state);
+
+        constructor(
+            [in] IDrawableConstantState* state,
+            [in] IResources* res);
+
+        interface ILayerDrawable;
+        interface IDrawableCallback;
     }
 
     class CNinePatch {

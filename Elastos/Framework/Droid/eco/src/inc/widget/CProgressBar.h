@@ -11,6 +11,12 @@ CarClass(CProgressBar), public ProgressBar
 public:
     IVIEW_METHODS_DECL();
 
+    IDrawableCallback_METHODS_DECL();
+
+    IKeyEventCallback_METHODS_DECL();
+
+    IAccessibilityEventSource_METHODS_DECL();
+
     CARAPI_(PInterface) Probe(
         /* [in] */ REIID riid);
 

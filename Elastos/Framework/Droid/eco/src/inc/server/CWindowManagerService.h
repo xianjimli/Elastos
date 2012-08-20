@@ -15,6 +15,8 @@
 #include "view/CInputChannel.h"
 #include "view/View.h"
 #include "view/WindowManagerPolicy.h"
+#include "view/animation/Animation.h"
+#include "view/animation/AnimationMacro.h"
 #include "graphics/CRect.h"
 #include "graphics/CPaint.h"
 #include "utils/CDisplayMetrics.h"
@@ -305,8 +307,8 @@ private:
             /* [in] */ CWindowManagerService* wmService,
             /* [in] */ IApplicationToken* token);
 
-//        CARAPI_(void) SetAnimation(
-//            /* [in] */ Animation anim);
+        CARAPI_(void) SetAnimation(
+            /* [in] */ IAnimation* anim);
 
         CARAPI_(void) SetDummyAnimation();
 
@@ -378,9 +380,9 @@ private:
         Boolean mFreezingScreen;
 
         Boolean mAnimating;
-        //Animation* mAnimation;
+        AutoPtr<IAnimation> mAnimation;
         Boolean mHasTransformation;
-        //const Transformation* transformation = new Transformation();
+        AutoPtr<ITransformation> mTransformation;
 
         // Offset to the window of all layers in the token, for use by
         // AppWindowToken animations.
@@ -514,8 +516,8 @@ private:
 
         CARAPI_(Boolean) HasAppShownWindows();
 
-//        CARAPI_(void) SetAnimation(
-//            /* [out] */ Animation anim);
+        CARAPI_(void) SetAnimation(
+            /* [out] */ IAnimation* anim);
 
         CARAPI_(void) ClearAnimation();
 
@@ -760,7 +762,7 @@ private:
         Float mVScale;
         Float mLastHScale;
         Float mLastVScale;
-//        Matrix mTmpMatrix = new Matrix();
+        AutoPtr<IMatrix> mTmpMatrix;
 
         // "Real" frame that the application sees.
         AutoPtr<IRect> mFrame;
@@ -782,11 +784,11 @@ private:
         // Currently running animation.
         Boolean mAnimating;
         Boolean mLocalAnimating;
-//        AutoPtr<IAnimation> mAnimation;
+        AutoPtr<IAnimation> mAnimation;
         Boolean mAnimationIsEntrance;
         Boolean mHasTransformation;
         Boolean mHasLocalTransformation;
-//        final Transformation mTransformation = new Transformation();
+        AutoPtr<ITransformation> mTransformation;
 
         // If a window showing a wallpaper: the requested offset for the
         // wallpaper; if a wallpaper window: the currently applied offset.
@@ -807,8 +809,6 @@ private:
         // where we don't yet have a surface, but should have one soon, so
         // we can give the window focus before waiting for the relayout.
         Boolean mRelayoutCalled;
-
-//        AutoPtr<IAnimation> mAnimation;
 
         // This is set after the Surface has been created but before the
         // window has been drawn.  During this time the surface is hidden.
@@ -862,12 +862,30 @@ private:
         Boolean mWasPaused;
     };
 
-//    class DummyAnimation /*extends Animation*/
-//    {
-//    public:
-//        CARAPI_(Boolean) GetTransformation(
-//        /* [in] */ Int64 currentTime /* [in]  Transformation outTransformation*/);
-//    };
+    class DummyAnimationBase : public Animation
+    {
+    public:
+        CARAPI_(Boolean) GetTransformation(
+            /* [in] */ Int64 currentTime,
+            /* [in] */ ITransformation* outTransformation);
+    };
+
+    class DummyAnimation : public ElRefBase, public IAnimation, public DummyAnimationBase
+    {
+    public:
+        IANIMATION_METHODS_DECL();
+
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+    };
 
     class StartingData
     {
@@ -964,32 +982,53 @@ private:
         Int32 mLastDimHeight;
     };
 
-//    /**
-//     * Animation that fade in after 0.5 interpolate time, or fade out in reverse order.
-//     * This is used for opening/closing transition for apps in compatible mode.
-//     */
-//    class FadeInOutAnimation /*extends Animation*/{
-//    public:
-//        FadeInOutAnimation(
-//            /* [in] */ Boolean fadeIn);
-//
-//        CARAPI_(void) Initialize(
-//            /* [in] */ Int32 width,
-//            /* [in] */ Int32 height,
-//            /* [in] */ Int32 parentWidth,
-//            /* [in] */ Int32 parentHeight);
-//
-//        CARAPI_(Int32) GetZAdjustment();
-//
-//    protected:
-//        CARAPI_(void) ApplyTransformation(
-//            /* [in] */ Float interpolatedTime
-//            /* [in]  Transformation t)*/);
-//
-//    public:
-//        Int32 mWidth;
-//        Boolean mFadeIn;
-//    };
+    /**
+     * Animation that fade in after 0.5 interpolate time, or fade out in reverse order.
+     * This is used for opening/closing transition for apps in compatible mode.
+     */
+    class FadeInOutAnimationBase : public Animation
+    {
+    public:
+        FadeInOutAnimationBase(
+            /* [in] */ Boolean fadeIn);
+
+        CARAPI Initialize(
+            /* [in] */ Int32 width,
+            /* [in] */ Int32 height,
+            /* [in] */ Int32 parentWidth,
+            /* [in] */ Int32 parentHeight);
+
+        CARAPI_(Int32) GetZAdjustment();
+
+    protected:
+        CARAPI_(void) ApplyTransformation(
+            /* [in] */ Float interpolatedTime,
+            /* [in] */ ITransformation* t);
+
+    public:
+        Int32 mWidth;
+        Boolean mFadeIn;
+    };
+
+    class FadeInOutAnimation : public ElRefBase, public IAnimation, public FadeInOutAnimationBase
+    {
+    public:
+        IANIMATION_METHODS_DECL();
+
+        FadeInOutAnimation(
+            /* [in] */ Boolean fadeIn);
+
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+    };
 
 public:
 //    CWindowManagerService(
@@ -998,6 +1037,8 @@ public:
 //        /* [in] */ Boolean haveInputMethods);
 
     CWindowManagerService();
+
+    ~CWindowManagerService();
 
     static CARAPI_(Boolean) CanBeImeTarget(
         /* [in] */ WindowState* w);
@@ -1704,13 +1745,13 @@ private:
         /* [in] */ Int32 transit,
         /* [in] */ Boolean enter);
 
-//    CARAPI_(AutoPtr<IAnimation>) LoadAnimation(
-//        /* [in] */ CWindowManagerLayoutParams* lp,
-//        /* [in] */ Int32 animAttr);
+    CARAPI_(AutoPtr<IAnimation>) LoadAnimation(
+        /* [in] */ CWindowManagerLayoutParams* lp,
+        /* [in] */ Int32 animAttr);
 
-//    CARAPI_(AutoPtr<IAnimation>) LoadAnimation(
-//        /* [in] */ const String& packageName,
-//        /* [in] */ Int32 resId);
+    CARAPI_(AutoPtr<IAnimation>) LoadAnimation(
+        /* [in] */ const String& packageName,
+        /* [in] */ Int32 resId);
 
     CARAPI_(Boolean) TmpRemoveAppWindowsLocked(
         /* [in] */ WindowToken* token);
@@ -1840,6 +1881,9 @@ private:
 
 public:
     CARAPI_(void) CreateWatermark();
+
+protected:
+    static AutoPtr<IAnimation> sDummyAnimation;
 
 private:
     friend class CWindowSession;
@@ -1971,7 +2015,7 @@ private:
 
     Int32 mTransactionSequence;
 
-    Float mTmpFloats[9];
+    ArrayOf<Float>* mTmpFloats;
 
     Boolean mSafeMode;
     Boolean mDisplayEnabled;

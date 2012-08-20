@@ -11,7 +11,9 @@ ECode CTransformation::constructor()
 ECode CTransformation::Clear()
 {
     if (mMatrix == NULL) {
-        CMatrix::New((IMatrix**)&mMatrix);
+        AutoPtr<CMatrix> matrix;
+        CMatrix::NewByFriend((CMatrix**)&matrix);
+        mMatrix = (IMatrix*)matrix.Get();
     }
     else {
         mMatrix->Reset();

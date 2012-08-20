@@ -1,0 +1,13 @@
+
+module
+{
+    interface IDrawable;
+
+    interface IAnimatedRotateDrawable extends IDrawable {
+        /**
+         * Returns the drawable rotated by this RotateDrawable.
+         */
+        GetDrawable(
+            [out] IDrawable** drawable);
+    }
+}

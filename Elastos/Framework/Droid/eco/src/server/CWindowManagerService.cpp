@@ -9,8 +9,12 @@
 #include "view/CInputDevice.h"
 #include "view/CMotionEvent.h"
 #include "view/CGravity.h"
+#include "view/animation/CTransformation.h"
+#include "view/animation/CAccelerateInterpolator.h"
+#include "view/animation/AnimationUtils.h"
 #include "impl/CPolicyManager.h"
 #include "graphics/ElPixelFormat.h"
+#include "graphics/CMatrix.h"
 #include "os/SystemClock.h"
 #include "utils/CDisplayMetrics.h"
 #include "utils/CTypedValue.h"
@@ -47,6 +51,9 @@ const Int32 CWindowManagerService::ALLOW_DISABLE_NO;
 const Int32 CWindowManagerService::ALLOW_DISABLE_UNKNOWN;
 const Int64 CWindowManagerService::DEFAULT_INPUT_DISPATCHING_TIMEOUT_NANOS;
 
+AutoPtr<IAnimation> CWindowManagerService::sDummyAnimation
+    = new CWindowManagerService::DummyAnimation;
+
 CWindowManagerService::WindowToken::WindowToken(
     /* [in] */ IBinder* token,
     /* [in] */ Int32 type,
@@ -79,6 +86,161 @@ void CWindowManagerService::WindowToken::GetDescription(
         mStringName = (const char*)sb;
     }
     *description = mStringName;
+}
+
+Boolean CWindowManagerService::DummyAnimationBase::GetTransformation(
+    /* [in] */ Int64 currentTime,
+    /* [in] */ ITransformation* outTransformation)
+{
+    return FALSE;
+}
+
+IANIMATION_METHODS_IMPL(
+    CWindowManagerService::DummyAnimation,
+    CWindowManagerService::DummyAnimationBase,
+    CWindowManagerService::DummyAnimationBase);
+
+PInterface CWindowManagerService::DummyAnimation::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (IInterface*)(IAnimation*)this;
+    }
+    else if (riid == EIID_IAnimation) {
+        return (IAnimation*)this;
+    }
+    else if (riid == EIID_Animation) {
+        return reinterpret_cast<PInterface>((Animation*)this);
+    }
+
+    return NULL;
+}
+
+UInt32 CWindowManagerService::DummyAnimation::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CWindowManagerService::DummyAnimation::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode CWindowManagerService::DummyAnimation::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    if (NULL == pIID)
+        return E_INVALID_ARGUMENT;
+
+    if (pObject == (IInterface*)(IAnimation*)this) {
+        *pIID = EIID_IAnimation;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
+}
+
+CWindowManagerService::FadeInOutAnimationBase::FadeInOutAnimationBase(
+    /* [in] */ Boolean fadeIn)
+{
+    AutoPtr<IInterpolator> interpolator;
+    CAccelerateInterpolator::New((IInterpolator**)&interpolator);
+    SetInterpolator(interpolator);
+    SetDuration(DEFAULT_FADE_IN_OUT_DURATION);
+    mFadeIn = fadeIn;
+}
+
+ECode CWindowManagerService::FadeInOutAnimationBase::Initialize(
+    /* [in] */ Int32 width,
+    /* [in] */ Int32 height,
+    /* [in] */ Int32 parentWidth,
+    /* [in] */ Int32 parentHeight)
+{
+    // width is the screen width {@see AppWindowToken#stepAnimatinoLocked}
+    mWidth = width;
+
+    return NOERROR;
+}
+
+Int32 CWindowManagerService::FadeInOutAnimationBase::GetZAdjustment()
+{
+    return Animation_ZORDER_TOP;
+}
+
+void CWindowManagerService::FadeInOutAnimationBase::ApplyTransformation(
+    /* [in] */ Float interpolatedTime,
+    /* [in] */ ITransformation* t)
+{
+    Float x = interpolatedTime;
+    if (!mFadeIn) {
+        x = 1.0f - x; // reverse the interpolation for fade out
+    }
+
+    AutoPtr<IMatrix> matrix;
+    t->GetMatrix((IMatrix**)&matrix);
+    if (x < 0.5) {
+        // move the window out of the screen.
+        matrix->SetTranslate(mWidth, 0);
+    }
+    else {
+        matrix->SetTranslate(0, 0);// show
+        t->SetAlpha((x - 0.5f) * 2);
+    }
+}
+
+IANIMATION_METHODS_IMPL(
+    CWindowManagerService::FadeInOutAnimation,
+    CWindowManagerService::FadeInOutAnimationBase,
+    CWindowManagerService::FadeInOutAnimationBase);
+
+CWindowManagerService::FadeInOutAnimation::FadeInOutAnimation(
+    /* [in] */ Boolean fadeIn)
+    : FadeInOutAnimationBase(fadeIn)
+{
+}
+
+PInterface CWindowManagerService::FadeInOutAnimation::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (IInterface*)(IAnimation*)this;
+    }
+    else if (riid == EIID_IAnimation) {
+        return (IAnimation*)this;
+    }
+    else if (riid == EIID_Animation) {
+        return reinterpret_cast<PInterface>((Animation*)this);
+    }
+
+    return NULL;
+}
+
+UInt32 CWindowManagerService::FadeInOutAnimation::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CWindowManagerService::FadeInOutAnimation::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode CWindowManagerService::FadeInOutAnimation::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    if (NULL == pIID)
+        return E_INVALID_ARGUMENT;
+
+    if (pObject == (IInterface*)(IAnimation*)this) {
+        *pIID = EIID_IAnimation;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
 }
 
 CWindowManagerService::StartingData::StartingData(
@@ -126,6 +288,7 @@ CWindowManagerService::AppWindowToken::AppWindowToken(
 {
     mLastTransactionSequence = mWMService->mTransactionSequence - 1;
     mAppWindowToken = this;
+    ASSERT_SUCCEEDED(CTransformation::New((ITransformation**)&mTransformation));
 }
 
 CWindowManagerService::CWindowManagerService() :
@@ -193,6 +356,12 @@ CWindowManagerService::CWindowManagerService() :
 
     assert(SUCCEEDED(mInputManager->Start()));
 #endif
+    mTmpFloats = ArrayOf<Float>::Alloc(9);
+}
+
+CWindowManagerService::~CWindowManagerService()
+{
+    ArrayOf<Float>::Free(mTmpFloats);
 }
 
 //CWindowManagerService::CWindowManagerService(
@@ -279,30 +448,30 @@ CWindowManagerService::FindDesiredInputMethodWindowIndexLocked(
             // modify the Z order.  We need to look at all windows below
             // the current target that are in this app, finding the highest
             // visible one in layering.
-//            AppWindowToken* token = curTarget->mAppToken;
+            AppWindowToken* token = curTarget->mAppToken;
             AutoPtr<WindowState> highestTarget;
             List<AutoPtr<WindowState> >::Iterator highestPosIt;
-//            if (token->mAnimating || token->mAnimation != NULL) {
-//                List<AutoPtr<WindowState> >::ReverseIterator posRIt;
-//                for (posRIt = localmWindows.RBegin(); posRIt != localmWindows.REnd(); ++posRIt) {
-//                    if (*posRIt == curTarget) {
-//                        break;
-//                    }
-//                }
-//                for (; posRIt != localmWindows.REnd(); ++posRIt) {
-//                    AutoPtr<WindowState> win = *posRIt;
-//                    if (win->mAppToken != token) {
-//                        break;
-//                    }
-//                    if (!win->mRemoved) {
-//                        if (highestTarget == NULL || win->mAnimLayer >
-//                                highestTarget->mAnimLayer) {
-//                            highestTarget = win;
-//                            highestPosIt = (++posRIt).GetBase();
-//                        }
-//                    }
-//                }
-//            }
+            if (token->mAnimating || token->mAnimation != NULL) {
+                List<AutoPtr<WindowState> >::ReverseIterator posRIt;
+                for (posRIt = localmWindows.RBegin(); posRIt != localmWindows.REnd(); ++posRIt) {
+                    if (*posRIt == curTarget) {
+                        break;
+                    }
+                }
+                for (; posRIt != localmWindows.REnd(); ++posRIt) {
+                    AutoPtr<WindowState> win = *posRIt;
+                    if (win->mAppToken != token) {
+                        break;
+                    }
+                    if (!win->mRemoved) {
+                        if (highestTarget == NULL || win->mAnimLayer >
+                                highestTarget->mAnimLayer) {
+                            highestTarget = win;
+                            highestPosIt = (++posRIt).GetBase();
+                        }
+                    }
+                }
+            }
 
             if (highestTarget != NULL) {
 //                if (DEBUG_INPUT_METHOD) Slog.v(TAG, "mNextAppTransition="
@@ -542,12 +711,11 @@ Boolean CWindowManagerService::IsWallpaperVisible(
 //                    ? wallpaperTarget.mAppToken.animation : NULL)
 //            + " upper=" + mUpperWallpaperTarget
 //            + " lower=" + mLowerWallpaperTarget);
-//    return (wallpaperTarget != NULL
-//                    && (!wallpaperTarget->mObscured || (wallpaperTarget->mAppToken != NULL
-//                            && wallpaperTarget->mAppToken->mAnimation != NULL)))
-//            || mUpperWallpaperTarget != NULL
-//            || mLowerWallpaperTarget != NULL;
-    return mUpperWallpaperTarget != NULL || mLowerWallpaperTarget != NULL;
+    return (wallpaperTarget != NULL
+            && (!wallpaperTarget->mObscured || (wallpaperTarget->mAppToken != NULL
+            && wallpaperTarget->mAppToken->mAnimation != NULL)))
+            || mUpperWallpaperTarget != NULL
+            || mLowerWallpaperTarget != NULL;
 }
 
 void CWindowManagerService::SetWallpaperAnimLayerAdjustmentLocked(
@@ -1839,15 +2007,15 @@ ECode CWindowManagerService::SetAppStartingWindow(
                     wtoken->mClientHidden = ttoken->mClientHidden;
                     wtoken->SendAppVisibilityToClients();
                 }
-//                if (ttoken->mAnimation != NULL) {
-//                    wtoken->mAnimation = ttoken->mAnimation;
-//                    wtoken->mAnimating = ttoken->mAnimating;
-//                    wtoken->mAnimLayerAdjustment = ttoken->mAnimLayerAdjustment;
-//                    ttoken->mAnimation = NULL;
-//                    ttoken->mAnimLayerAdjustment = 0;
-//                    wtoken->UpdateLayers();
-//                    ttoken->UpdateLayers();
-//                }
+                if (ttoken->mAnimation != NULL) {
+                    wtoken->mAnimation = ttoken->mAnimation;
+                    wtoken->mAnimating = ttoken->mAnimating;
+                    wtoken->mAnimLayerAdjustment = ttoken->mAnimLayerAdjustment;
+                    ttoken->mAnimation = NULL;
+                    ttoken->mAnimLayerAdjustment = 0;
+                    wtoken->UpdateLayers();
+                    ttoken->UpdateLayers();
+                }
 
                 UpdateFocusedWindowLocked(UPDATE_FOCUS_WILL_PLACE_SURFACES);
                 mLayoutNeeded = TRUE;
@@ -1977,14 +2145,14 @@ Boolean CWindowManagerService::SetTokenVisibilityLocked(
         Boolean runningAppAnimation = FALSE;
 
         if (transit != WindowManagerPolicy::TRANSIT_UNSET) {
-//            if (wtoken->mAnimation == sDummyAnimation) {
-//                wtoken->mAnimation = NULL;
-//            }
+            if (wtoken->mAnimation == sDummyAnimation) {
+                wtoken->mAnimation = NULL;
+            }
             ApplyAnimationLocked(wtoken, lp, transit, visible);
             changed = TRUE;
-//            if (wtoken->mAnimation != NULL) {
-//                delayed = runningAppAnimation = TRUE;
-//            }
+            if (wtoken->mAnimation != NULL) {
+                delayed = runningAppAnimation = TRUE;
+            }
         }
 
         List<AutoPtr<WindowState> >::Iterator it = wtoken->mAllAppWindows.Begin();;
@@ -2049,9 +2217,9 @@ Boolean CWindowManagerService::SetTokenVisibilityLocked(
         }
     }
 
-//    if (wtoken->mAnimation != NULL) {
-//        delayed = TRUE;
-//    }
+    if (wtoken->mAnimation != NULL) {
+        delayed = TRUE;
+    }
 
     return delayed;
 }
@@ -2327,7 +2495,7 @@ ECode CWindowManagerService::RemoveAppToken(
             // Make sure there is no animation running on this token,
             // so any windows associated with it will be removed as
             // soon as their animations are complete
-//            wtoken->mAnimation = NULL;
+            wtoken->mAnimation = NULL;
             wtoken->mAnimating = FALSE;
         }
         mAppTokens.Remove(wtoken);
@@ -3638,7 +3806,7 @@ Int32 CWindowManagerService::RelayoutWindow(
             displayed = !win->IsVisibleLw();
             if (win->mExiting) {
                 win->mExiting = FALSE;
-//                win->mAnimation = NULL;
+                win->mAnimation = NULL;
             }
             if (win->mDestroying) {
                 win->mDestroying = FALSE;
@@ -4821,7 +4989,7 @@ void CWindowManagerService::PerformLayoutAndPlaceSurfacesLockedInner(
                         wallpaperForceHidingChanged = TRUE;
                         mFocusMayChange = TRUE;
                     }
-                    else if (w->IsReadyForDisplay()/* && w->mAnimation == NULL*/) {
+                    else if (w->IsReadyForDisplay() && w->mAnimation == NULL) {
                         forceHiding = TRUE;
                     }
                 }
@@ -5159,7 +5327,7 @@ void CWindowManagerService::PerformLayoutAndPlaceSurfacesLockedInner(
 //                            "Now opening app" + wtoken);
                     wtoken->mReportedVisible = FALSE;
                     wtoken->mInPendingTransaction = FALSE;
-//                    wtoken->mAnimation = NULL;
+                    wtoken->mAnimation = NULL;
                     SetTokenVisibilityLocked(wtoken, animLp, TRUE, transit, FALSE);
                     wtoken->UpdateReportedVisibilityLocked();
                     wtoken->mWaitingToShow = FALSE;
@@ -5170,7 +5338,7 @@ void CWindowManagerService::PerformLayoutAndPlaceSurfacesLockedInner(
 //                    if (DEBUG_APP_TRANSITIONS) Slog.v(TAG,
 //                            "Now closing app" + wtoken);
                     wtoken->mInPendingTransaction = FALSE;
-//                    wtoken->mAnimation = NULL;
+                    wtoken->mAnimation = NULL;
                     SetTokenVisibilityLocked(wtoken, animLp, FALSE, transit, FALSE);
                     wtoken->UpdateReportedVisibilityLocked();
                     wtoken->mWaitingToHide = FALSE;
@@ -5927,7 +6095,7 @@ void CWindowManagerService::PerformLayoutAndPlaceSurfacesLockedInner(
             // Make sure there is no animation running on this token,
             // so any windows associated with it will be removed as
             // soon as their animations are complete
-//            token->mAnimation = NULL;
+            token->mAnimation = NULL;
             token->mAnimating = FALSE;
             mAppTokens.Remove(token);
             eatIt = mExitingAppTokens.Erase(eatIt);
@@ -5970,7 +6138,7 @@ void CWindowManagerService::PerformLayoutAndPlaceSurfacesLockedInner(
         RequestAnimationLocked(0);
     }
     else if (animating) {
-//        RequestAnimationLocked(currentTime + (1000/60) - SystemClock.uptimeMillis());
+        RequestAnimationLocked(currentTime + (1000/60) - SystemClock::GetUptimeMillis());
     }
 
     mInputMonitor->UpdateInputWindowsLw();
@@ -6337,7 +6505,7 @@ void CWindowManagerService::AddWindowToListInOrderLocked(
     /* [in] */ WindowState* win,
     /* [in] */ Boolean addToToken)
 {
-//	    IInnerWindow* client = win->mClient;
+//      IInnerWindow* client = win->mClient;
     WindowToken* token = win->mToken;
     List<AutoPtr<WindowState> >& localmWindows = mWindows;
 
@@ -6680,7 +6848,7 @@ Int32 CWindowManagerService::AdjustWallpaperWindowsLocked()
         if (w->mAppToken != NULL) {
             // If this window's app token is hidden and not animating,
             // it is of no interest to us.
-            if (w->mAppToken->mHidden) { //if (w->mAppToken->mHidden && w->mAppToken->mAnimation == NULL) {
+            if (w->mAppToken->mHidden && w->mAppToken->mAnimation == NULL) {
 //                if (DEBUG_WALLPAPER) Slog.v(TAG,
 //                        "Skipping hidden or animating token: " + w);
                 topCurW = NULL;
@@ -6698,16 +6866,16 @@ Int32 CWindowManagerService::AdjustWallpaperWindowsLocked()
 //                    "Found wallpaper activity: #" + i + "=" + w);
             foundW = w;
             foundIt = --rit.GetBase();
-//            if (w == mWallpaperTarget && ((w->mAppToken != NULL
-//                    && w->mAppToken->mAnimation != NULL)
-//                    || w->mAnimation != NULL)) {
+            if (w == mWallpaperTarget && ((w->mAppToken != NULL
+                    && w->mAppToken->mAnimation != NULL)
+                    || w->mAnimation != NULL)) {
                 // The current wallpaper target is animating, so we'll
                 // look behind it for another possible target and figure
                 // out what is going on below.
 //                if (DEBUG_WALLPAPER) Slog.v(TAG, "Win " + w
 //                        + ": token animating, looking behind.");
-//                continue;
-//            }
+                continue;
+            }
             break;
         }
     }
@@ -6748,8 +6916,10 @@ Int32 CWindowManagerService::AdjustWallpaperWindowsLocked()
         // Now what is happening...  if the current and new targets are
         // animating, then we are in our super special mode!
         if (foundW != NULL && oldW != NULL) {
-            Boolean oldAnim = FALSE;//oldW->mAnimation != NULL || (oldW->mAppToken != NULL && oldW->mAppToken->mAnimation != NULL);
-            Boolean foundAnim = FALSE;//foundW->mAnimation != NULL || (foundW->mAppToken != NULL && foundW->mAppToken->mAnimation != NULL);
+            Boolean oldAnim = oldW->mAnimation != NULL
+                || (oldW->mAppToken != NULL && oldW->mAppToken->mAnimation != NULL);
+            Boolean foundAnim = foundW->mAnimation != NULL
+                || (foundW->mAppToken != NULL && foundW->mAppToken->mAnimation != NULL);
 //            if (DEBUG_WALLPAPER) {
 //                Slog.v(TAG, "New animation: " + foundAnim
 //                        + " old animation: " + oldAnim);
@@ -6803,14 +6973,12 @@ Int32 CWindowManagerService::AdjustWallpaperWindowsLocked()
     }
     else if (mLowerWallpaperTarget != NULL) {
         // Is it time to stop animating?
-//        Boolean lowerAnimating = mLowerWallpaperTarget->mAnimation != NULL
-//                || (mLowerWallpaperTarget->mAppToken != NULL
-//                        && mLowerWallpaperTarget->mAppToken->mAnimation != NULL);
-        Boolean lowerAnimating = FALSE;
-//        Boolean upperAnimating = mUpperWallpaperTarget->mAnimation != NULL
-//                || (mUpperWallpaperTarget->mAppToken != NULL
-//                        && mUpperWallpaperTarget->mAppToken->mAnimation != NULL);
-        Boolean upperAnimating = FALSE;
+        Boolean lowerAnimating = mLowerWallpaperTarget->mAnimation != NULL
+                || (mLowerWallpaperTarget->mAppToken != NULL
+                && mLowerWallpaperTarget->mAppToken->mAnimation != NULL);
+        Boolean upperAnimating = mUpperWallpaperTarget->mAnimation != NULL
+                || (mUpperWallpaperTarget->mAppToken != NULL
+                && mUpperWallpaperTarget->mAppToken->mAnimation != NULL);
         if (!lowerAnimating || !upperAnimating) {
 //            if (DEBUG_WALLPAPER) {
 //                Slog.v(TAG, "No longer animating wallpaper targets!");
@@ -7069,54 +7237,94 @@ Boolean CWindowManagerService::ApplyAnimationLocked(
     if (!mDisplayFrozen && isOn) {
         Int32 anim;
         mPolicy->SelectAnimationLw(win, transit, &anim);
-//        Int32 attr = -1;
-//        Animation a = NULL;
-//        if (anim != 0) {
-//            a = AnimationUtils.loadAnimation(mContext, anim);
-//        }
-//        else {
-//            switch (transit) {
-//                case WindowManagerPolicy.TRANSIT_ENTER:
-//                    attr = com.android.internal.R.styleable.WindowAnimation_windowEnterAnimation;
-//                    break;
-//                case WindowManagerPolicy.TRANSIT_EXIT:
-//                    attr = com.android.internal.R.styleable.WindowAnimation_windowExitAnimation;
-//                    break;
-//                case WindowManagerPolicy.TRANSIT_SHOW:
-//                    attr = com.android.internal.R.styleable.WindowAnimation_windowShowAnimation;
-//                    break;
-//                case WindowManagerPolicy.TRANSIT_HIDE:
-//                    attr = com.android.internal.R.styleable.WindowAnimation_windowHideAnimation;
-//                    break;
-//            }
-//            if (attr >= 0) {
-//                a = loadAnimation(win.mAttrs, attr);
-//            }
-//        }
-//        if (DEBUG_ANIM) Slog.v(TAG, "applyAnimation: win=" + win
-//                + " anim=" + anim + " attr=0x" + Integer.toHexString(attr)
-//                + " mAnimation=" + win.mAnimation
-//                + " isEntrance=" + isEntrance);
-//        if (a != NULL) {
-//            if (DEBUG_ANIM) {
-//                RuntimeException e = NULL;
-//                if (!HIDE_STACK_CRAWLS) {
-//                    e = new RuntimeException();
-//                    e.fillInStackTrace();
-//                }
-//                Slog.v(TAG, "Loaded animation " + a + " for " + win, e);
-//            }
-//            win.setAnimation(a);
-//            win.mAnimationIsEntrance = isEntrance;
-//        }
+        Int32 attr = -1;
+        AutoPtr<IAnimation> a;
+        if (anim != 0) {
+            AnimationUtils::LoadAnimation(mContext, anim, (IAnimation**)&a);
+        }
+        else {
+            switch (transit) {
+                case WindowManagerPolicy_TRANSIT_ENTER:
+                    attr = 0;//com.android.internal.R.styleable.WindowAnimation_windowEnterAnimation;
+                    break;
+                case WindowManagerPolicy_TRANSIT_EXIT:
+                    attr = 1;//com.android.internal.R.styleable.WindowAnimation_windowExitAnimation;
+                    break;
+                case WindowManagerPolicy_TRANSIT_SHOW:
+                    attr = 2;//com.android.internal.R.styleable.WindowAnimation_windowShowAnimation;
+                    break;
+                case WindowManagerPolicy_TRANSIT_HIDE:
+                    attr = 3;//com.android.internal.R.styleable.WindowAnimation_windowHideAnimation;
+                    break;
+            }
+            if (attr >= 0) {
+                a = LoadAnimation(win->mAttrs, attr);
+            }
+        }
+        //if (DEBUG_ANIM) Slog.v(TAG, "applyAnimation: win=" + win
+        //        + " anim=" + anim + " attr=0x" + Integer.toHexString(attr)
+        //        + " mAnimation=" + win.mAnimation
+        //        + " isEntrance=" + isEntrance);
+        if (a != NULL) {
+ /*           if (DEBUG_ANIM) {
+                RuntimeException e = NULL;
+                if (!HIDE_STACK_CRAWLS) {
+                    e = new RuntimeException();
+                    e.fillInStackTrace();
+                }
+                Slog.v(TAG, "Loaded animation " + a + " for " + win, e);
+            }*/
+            win->SetAnimation(a);
+            win->mAnimationIsEntrance = isEntrance;
+        }
     }
     else {
         win->ClearAnimation();
     }
 
-//    return win.mAnimation != NULL;
+    return win->mAnimation != NULL;
+}
 
-    return FALSE;
+AutoPtr<IAnimation> CWindowManagerService::LoadAnimation(
+    /* [in] */ CWindowManagerLayoutParams* lp,
+    /* [in] */ Int32 animAttr)
+{
+    AutoPtr<IAnimation> animation;
+    Int32 anim = 0;
+    AutoPtr<IContext> context = mContext;
+    //if (animAttr >= 0) {
+    //    AttributeCache.Entry ent = GetCachedAnimations(lp);
+    //    if (ent != null) {
+    //        context = ent.context;
+    //        anim = ent.array.getResourceId(animAttr, 0);
+    //    }
+    //}
+    if (anim != 0) {
+        AnimationUtils::LoadAnimation(context, anim, (IAnimation**)&animation);
+    }
+
+    return animation;
+}
+
+AutoPtr<IAnimation> CWindowManagerService::LoadAnimation(
+    /* [in] */ const String& packageName,
+    /* [in] */ Int32 resId)
+{
+    AutoPtr<IAnimation> animation;
+    Int32 anim = 0;
+    AutoPtr<IContext> context = mContext;
+    //if (resId >= 0) {
+    //    AttributeCache.Entry ent = getCachedAnimations(packageName, resId);
+    //    if (ent != null) {
+    //        context = ent.context;
+    //        anim = resId;
+    //    }
+    //}
+    if (anim != 0) {
+        AnimationUtils::LoadAnimation(context, anim, (IAnimation**)&animation);
+    }
+
+    return animation;
 }
 
 Boolean CWindowManagerService::ApplyAnimationLocked(
@@ -7132,77 +7340,77 @@ Boolean CWindowManagerService::ApplyAnimationLocked(
     Boolean isOn;
     mPolicy->IsScreenOn(&isOn);
     if (!mDisplayFrozen && isOn) {
-//        Animation a;
+        AutoPtr<IAnimation> a;
         if (lp != NULL && (lp->mFlags & WindowManagerLayoutParams_FLAG_COMPATIBLE_WINDOW) != 0) {
-//            a = new FadeInOutAnimation(enter);
+            a = new FadeInOutAnimation(enter);
 //            if (DEBUG_ANIM) Slog.v(TAG,
 //                    "applying FadeInOutAnimation for a window in compatibility mode");
         }
         else if (!mNextAppTransitionPackage.IsNull()) {
-//            a = LoadAnimation(mNextAppTransitionPackage, enter ?
-//                    mNextAppTransitionEnter : mNextAppTransitionExit);
+            a = LoadAnimation(mNextAppTransitionPackage, enter ?
+                    mNextAppTransitionEnter : mNextAppTransitionExit);
         }
         else {
-//            Int32 animAttr = 0;
-//            switch (transit) {
-//                case WindowManagerPolicy::TRANSIT_ACTIVITY_OPEN:
-//                    animAttr = enter
-//                            ? com.android.internal.R.styleable.WindowAnimation_activityOpenEnterAnimation
-//                            : com.android.internal.R.styleable.WindowAnimation_activityOpenExitAnimation;
-//                    break;
-//                case WindowManagerPolicy::TRANSIT_ACTIVITY_CLOSE:
-//                    animAttr = enter
-//                            ? com.android.internal.R.styleable.WindowAnimation_activityCloseEnterAnimation
-//                            : com.android.internal.R.styleable.WindowAnimation_activityCloseExitAnimation;
-//                    break;
-//                case WindowManagerPolicy::TRANSIT_TASK_OPEN:
-//                    animAttr = enter
-//                            ? com.android.internal.R.styleable.WindowAnimation_taskOpenEnterAnimation
-//                            : com.android.internal.R.styleable.WindowAnimation_taskOpenExitAnimation;
-//                    break;
-//                case WindowManagerPolicy::TRANSIT_TASK_CLOSE:
-//                    animAttr = enter
-//                            ? com.android.internal.R.styleable.WindowAnimation_taskCloseEnterAnimation
-//                            : com.android.internal.R.styleable.WindowAnimation_taskCloseExitAnimation;
-//                    break;
-//                case WindowManagerPolicy::TRANSIT_TASK_TO_FRONT:
-//                    animAttr = enter
-//                            ? com.android.internal.R.styleable.WindowAnimation_taskToFrontEnterAnimation
-//                            : com.android.internal.R.styleable.WindowAnimation_taskToFrontExitAnimation;
-//                    break;
-//                case WindowManagerPolicy::TRANSIT_TASK_TO_BACK:
-//                    animAttr = enter
-//                            ? com.android.internal.R.styleable.WindowAnimation_taskToBackEnterAnimation
-//                            : com.android.internal.R.styleable.WindowAnimation_taskToBackExitAnimation;
-//                    break;
-//                case WindowManagerPolicy::TRANSIT_WALLPAPER_OPEN:
-//                    animAttr = enter
-//                            ? com.android.internal.R.styleable.WindowAnimation_wallpaperOpenEnterAnimation
-//                            : com.android.internal.R.styleable.WindowAnimation_wallpaperOpenExitAnimation;
-//                    break;
-//                case WindowManagerPolicy::TRANSIT_WALLPAPER_CLOSE:
-//                    animAttr = enter
-//                            ? com.android.internal.R.styleable.WindowAnimation_wallpaperCloseEnterAnimation
-//                            : com.android.internal.R.styleable.WindowAnimation_wallpaperCloseExitAnimation;
-//                    break;
-//                case WindowManagerPolicy::TRANSIT_WALLPAPER_INTRA_OPEN:
-//                    animAttr = enter
-//                            ? com.android.internal.R.styleable.WindowAnimation_wallpaperIntraOpenEnterAnimation
-//                            : com.android.internal.R.styleable.WindowAnimation_wallpaperIntraOpenExitAnimation;
-//                    break;
-//                case WindowManagerPolicy::TRANSIT_WALLPAPER_INTRA_CLOSE:
-//                    animAttr = enter
-//                            ? com.android.internal.R.styleable.WindowAnimation_wallpaperIntraCloseEnterAnimation
-//                            : com.android.internal.R.styleable.WindowAnimation_wallpaperIntraCloseExitAnimation;
-//                    break;
-//            }
-//            a = animAttr != 0 ? LoadAnimation(lp, animAttr) : NULL;
+            Int32 animAttr = 0;
+            switch (transit) {
+                case WindowManagerPolicy_TRANSIT_ACTIVITY_OPEN:
+                    animAttr = enter
+                            ? 4//com.android.internal.R.styleable.WindowAnimation_activityOpenEnterAnimation
+                            : 5;//com.android.internal.R.styleable.WindowAnimation_activityOpenExitAnimation;
+                    break;
+                case WindowManagerPolicy_TRANSIT_ACTIVITY_CLOSE:
+                    animAttr = enter
+                            ? 6//com.android.internal.R.styleable.WindowAnimation_activityCloseEnterAnimation
+                            : 7;//com.android.internal.R.styleable.WindowAnimation_activityCloseExitAnimation;
+                    break;
+                case WindowManagerPolicy_TRANSIT_TASK_OPEN:
+                    animAttr = enter
+                            ? 8//com.android.internal.R.styleable.WindowAnimation_taskOpenEnterAnimation
+                            : 9;//com.android.internal.R.styleable.WindowAnimation_taskOpenExitAnimation;
+                    break;
+                case WindowManagerPolicy_TRANSIT_TASK_CLOSE:
+                    animAttr = enter
+                            ? 10//com.android.internal.R.styleable.WindowAnimation_taskCloseEnterAnimation
+                            : 11;//com.android.internal.R.styleable.WindowAnimation_taskCloseExitAnimation;
+                    break;
+                case WindowManagerPolicy_TRANSIT_TASK_TO_FRONT:
+                    animAttr = enter
+                            ? 12//com.android.internal.R.styleable.WindowAnimation_taskToFrontEnterAnimation
+                            : 13;//com.android.internal.R.styleable.WindowAnimation_taskToFrontExitAnimation;
+                    break;
+                case WindowManagerPolicy_TRANSIT_TASK_TO_BACK:
+                    animAttr = enter
+                            ? 14//com.android.internal.R.styleable.WindowAnimation_taskToBackEnterAnimation
+                            : 15;//com.android.internal.R.styleable.WindowAnimation_taskToBackExitAnimation;
+                    break;
+                case WindowManagerPolicy_TRANSIT_WALLPAPER_OPEN:
+                    animAttr = enter
+                            ? 16//com.android.internal.R.styleable.WindowAnimation_wallpaperOpenEnterAnimation
+                            : 17;//com.android.internal.R.styleable.WindowAnimation_wallpaperOpenExitAnimation;
+                    break;
+                case WindowManagerPolicy_TRANSIT_WALLPAPER_CLOSE:
+                    animAttr = enter
+                            ? 18//com.android.internal.R.styleable.WindowAnimation_wallpaperCloseEnterAnimation
+                            : 19;//com.android.internal.R.styleable.WindowAnimation_wallpaperCloseExitAnimation;
+                    break;
+                case WindowManagerPolicy_TRANSIT_WALLPAPER_INTRA_OPEN:
+                    animAttr = enter
+                            ? 20//com.android.internal.R.styleable.WindowAnimation_wallpaperIntraOpenEnterAnimation
+                            : 21;//com.android.internal.R.styleable.WindowAnimation_wallpaperIntraOpenExitAnimation;
+                    break;
+                case WindowManagerPolicy_TRANSIT_WALLPAPER_INTRA_CLOSE:
+                    animAttr = enter
+                            ? 22//com.android.internal.R.styleable.WindowAnimation_wallpaperIntraCloseEnterAnimation
+                            : 23;//com.android.internal.R.styleable.WindowAnimation_wallpaperIntraCloseExitAnimation;
+                    break;
+            }
+            a = animAttr != 0 ? LoadAnimation(lp, animAttr) : NULL;
 //            if (DEBUG_ANIM) Slog.v(TAG, "applyAnimation: wtoken=" + wtoken
 //                    + " anim=" + a
 //                    + " animAttr=0x" + Integer.toHexString(animAttr)
 //                    + " transit=" + transit);
         }
-//        if (a != NULL) {
+        if (a != NULL) {
 //            if (DEBUG_ANIM) {
 //                RuntimeException e = NULL;
 //                if (!HIDE_STACK_CRAWLS) {
@@ -7211,16 +7419,14 @@ Boolean CWindowManagerService::ApplyAnimationLocked(
 //                }
 //                Slog.v(TAG, "Loaded animation " + a + " for " + wtoken, e);
 //            }
-//            wtoken->SetAnimation(a);
-//        }
+            wtoken->SetAnimation(a);
+        }
     }
     else {
         wtoken->ClearAnimation();
     }
 
-//    return wtoken.animation != NULL;
-
-    return FALSE;
+    return wtoken->mAnimation != NULL;
 }
 
 CWindowManagerService::AppWindowToken*
@@ -7935,28 +8141,47 @@ void CWindowManagerService::InputMonitor::UpdateInputDispatchModeLw()
             mInputDispatchEnabled, mInputDispatchFrozen);
 }
 
-//void CWindowManagerService::AppWindowToken::SetAnimation(
-//    /* [in] */ Animation anim)
-//{
-//}
-
-void CWindowManagerService::AppWindowToken::
-SetDummyAnimation()
+void CWindowManagerService::AppWindowToken::SetAnimation(
+    /* [in] */ IAnimation* anim)
 {
-//    if (mAnimation == NULL) {
-////        if (localLOGV) Slog.v(
-////            TAG, "Setting dummy animation in " + this);
-//        mAnimation = sDummyAnimation;
-//    }
+    //if (localLOGV) Slog.v(
+    //    TAG, "Setting animation in " + this + ": " + anim);
+
+    mAnimation = anim;
+    mAnimating = FALSE;
+    anim->RestrictDuration(MAX_ANIMATION_DURATION);
+    anim->ScaleCurrentDuration(mWMService->mTransitionAnimationScale);
+    Int32 zorder;
+    anim->GetZAdjustment(&zorder);
+    Int32 adj = 0;
+    if (zorder == Animation_ZORDER_TOP) {
+        adj = TYPE_LAYER_OFFSET;
+    }
+    else if (zorder == Animation_ZORDER_BOTTOM) {
+        adj = -TYPE_LAYER_OFFSET;
+    }
+
+    if (mAnimLayerAdjustment != adj) {
+        mAnimLayerAdjustment = adj;
+        UpdateLayers();
+    }
 }
 
-void CWindowManagerService::AppWindowToken::
-ClearAnimation()
+void CWindowManagerService::AppWindowToken::SetDummyAnimation()
 {
-//    if (mAnimation != NULL) {
-//        mAnimation = NULL;
-//        mAnimating = TRUE;
-//    }
+    if (mAnimation == NULL) {
+//        if (localLOGV) Slog.v(
+//            TAG, "Setting dummy animation in " + this);
+        mAnimation = sDummyAnimation;
+    }
+}
+
+void CWindowManagerService::AppWindowToken::ClearAnimation()
+{
+    if (mAnimation != NULL) {
+        mAnimation = NULL;
+        mAnimating = TRUE;
+    }
 }
 
 void CWindowManagerService::AppWindowToken::UpdateLayers()
@@ -7978,8 +8203,7 @@ void CWindowManagerService::AppWindowToken::UpdateLayers()
     }
 }
 
-void CWindowManagerService::AppWindowToken::
-SendAppVisibilityToClients()
+void CWindowManagerService::AppWindowToken::SendAppVisibilityToClients()
 {
     List<AutoPtr<WindowState> >::Iterator it;
     for (it = mAllAppWindows.Begin(); it != mAllAppWindows.End(); ++it) {
@@ -7997,8 +8221,7 @@ SendAppVisibilityToClients()
     }
 }
 
-void CWindowManagerService::AppWindowToken::
-ShowAllWindowsLocked()
+void CWindowManagerService::AppWindowToken::ShowAllWindowsLocked()
 {
     List<AutoPtr<WindowState> >::Iterator it;
     for (it = mAllAppWindows.Begin(); it != mAllAppWindows.End(); ++it) {
@@ -8010,8 +8233,7 @@ ShowAllWindowsLocked()
 }
 
 // This must be called while inside a transaction.
-Boolean CWindowManagerService::AppWindowToken::
-StepAnimationLocked(
+Boolean CWindowManagerService::AppWindowToken::StepAnimationLocked(
     /* [in] */ Millisecond64 currentTime,
     /* [in] */ Int32 dw,
     /* [in] */ Int32 dh)
@@ -8021,48 +8243,48 @@ StepAnimationLocked(
     if (!mWMService->mDisplayFrozen && isOn) {
         // We will run animations as long as the display isn't frozen.
 
-//        if (mAnimation == sDummyAnimation) {
-//            // This guy is going to animate, but not yet.  For now count
-//            // it as not animating for purposes of scheduling transactions;
-//            // when it is really time to animate, this will be set to
-//            // a real animation and the next call will execute normally.
-//            return FALSE;
-//        }
+        if (mAnimation == sDummyAnimation) {
+            // This guy is going to animate, but not yet.  For now count
+            // it as not animating for purposes of scheduling transactions;
+            // when it is really time to animate, this will be set to
+            // a real animation and the next call will execute normally.
+            return FALSE;
+        }
 
-//        if ((mAllDrawn || mAnimating || mStartingDisplayed) && mAnimation != NULL) {
-//            if (!mAnimating) {
-////                if (DEBUG_ANIM) Slog.v(
-////                    TAG, "Starting animation in " + this +
-////                    " @ " + currentTime + ": dw=" + dw + " dh=" + dh
-////                    + " scale=" + mTransitionAnimationScale
-////                    + " allDrawn=" + allDrawn + " animating=" + animating);
-//                mAnimation->Initialize(dw, dh, dw, dh);
-//                mAnimation->SetStartTime(currentTime);
-//                mAnimating = TRUE;
-//            }
-//            mTransformation->Clear();
-//            Boolean more = mAnimation->GetTransformation(
-//                currentTime, transformation);
-////            if (DEBUG_ANIM) Slog.v(
-////                TAG, "Stepped animation in " + this +
-////                ": more=" + more + ", xform=" + transformation);
-//            if (more) {
-//                // we're done!
-//                mHasTransformation = TRUE;
-//                return TRUE;
-//            }
-////            if (DEBUG_ANIM) Slog.v(
-////                TAG, "Finished animation in " + this +
-////                " @ " + currentTime);
-//            mAnimation = NULL;
-//        }
+        if ((mAllDrawn || mAnimating || mStartingDisplayed) && mAnimation != NULL) {
+            if (!mAnimating) {
+//                if (DEBUG_ANIM) Slog.v(
+//                    TAG, "Starting animation in " + this +
+//                    " @ " + currentTime + ": dw=" + dw + " dh=" + dh
+//                    + " scale=" + mTransitionAnimationScale
+//                    + " allDrawn=" + allDrawn + " animating=" + animating);
+                mAnimation->Initialize(dw, dh, dw, dh);
+                mAnimation->SetStartTime(currentTime);
+                mAnimating = TRUE;
+            }
+            mTransformation->Clear();
+            Boolean more;
+            mAnimation->GetTransformation(currentTime, mTransformation, &more);
+//            if (DEBUG_ANIM) Slog.v(
+//                TAG, "Stepped animation in " + this +
+//                ": more=" + more + ", xform=" + transformation);
+            if (more) {
+                // we're done!
+                mHasTransformation = TRUE;
+                return TRUE;
+            }
+//            if (DEBUG_ANIM) Slog.v(
+//                TAG, "Finished animation in " + this +
+//                " @ " + currentTime);
+            mAnimation = NULL;
+        }
     }
-//    else if (mAnimation != NULL) {
-//        // If the display is frozen, and there is a pending animation,
-//        // clear it and make sure we run the cleanup code.
-//        mAnimating = TRUE;
-//        mAnimation = NULL;
-//    }
+    else if (mAnimation != NULL) {
+        // If the display is frozen, and there is a pending animation,
+        // clear it and make sure we run the cleanup code.
+        mAnimating = TRUE;
+        mAnimation = NULL;
+    }
 
     mHasTransformation = FALSE;
 
@@ -8081,7 +8303,7 @@ StepAnimationLocked(
 //            TAG, "Animation done in " + this
 //            + ": reportedVisible=" + reportedVisible);
 
-//    mTransformation->Clear();
+    mTransformation->Clear();
     if (mAnimLayerAdjustment != 0) {
         mAnimLayerAdjustment = 0;
         UpdateLayers();
@@ -8196,12 +8418,6 @@ void CWindowManagerService::AppWindowToken::GetDescription(
     *des =  mStringName;
 }
 
-//Boolean CWindowManagerService::DummyAnimation::GetTransformation(
-//    /* [in] */ Int64 currentTime /* [in]  Transformation outTransformation*/)
-//{
-//    return FALSE;
-//}
-
 CWindowManagerService::WindowState::WindowState(
     /* [in] */ CWindowManagerService* wmService,
     /* [in] */ CWindowSession* session,
@@ -8292,6 +8508,10 @@ CWindowManagerService::WindowState::WindowState(
     assert(SUCCEEDED(CWindowManagerLayoutParams::NewByFriend(
             (CWindowManagerLayoutParams**)&mAttrs)));
     mAttrs->CopyFrom(attrs);
+
+    ASSERT_SUCCEEDED(CTransformation::New((ITransformation**)&mTransformation));
+
+    ASSERT_SUCCEEDED(CMatrix::New((IMatrix**)&mTmpMatrix));
 //    DeathRecipient deathRecipient = new DeathRecipient();
 //    mAlpha = attrs.alpha;
 //    if (localLOGV) Slog.v(
@@ -8785,10 +9005,17 @@ Boolean CWindowManagerService::WindowState::HasAppShownWindows()
     return mAppToken != NULL ? mAppToken->mFirstWindowDrawn : FALSE;
 }
 
-//void CWindowManagerService::WindowState::SetAnimation(
-//    /* [out] */ Animation anim)
-//{
-//}
+void CWindowManagerService::WindowState::SetAnimation(
+    /* [out] */ IAnimation* anim)
+{
+    //if (localLOGV) Slog.v(
+    //    TAG, "Setting animation in " + this + ": " + anim);
+    mAnimating = FALSE;
+    mLocalAnimating = FALSE;
+    mAnimation = anim;
+    mAnimation->RestrictDuration(MAX_ANIMATION_DURATION);
+    mAnimation->ScaleCurrentDuration(mWMService->mWindowAnimationScale);
+}
 
 // This must be called while inside a transaction.
 Boolean CWindowManagerService::WindowState::CommitFinishDrawingLocked(
@@ -8875,11 +9102,11 @@ Boolean CWindowManagerService::WindowState::PerformShowLocked()
                 // will do an animation to reveal it from behind the
                 // starting window, so there is no need for it to also
                 // be doing its own stuff.
-//                if (mAnimation != NULL) {
-//                    mAnimation = NULL;
-//                    // Make sure we clean up the animation.
-//                    mAnimating = TRUE;
-//                }
+                if (mAnimation != NULL) {
+                    mAnimation = NULL;
+                    // Make sure we clean up the animation.
+                    mAnimating = TRUE;
+                }
                 mWMService->mFinishedStarting.PushBack(mAppToken);
 
                 ECode (STDCALL CWindowManagerService::*pHandlerFunc)();
@@ -8905,7 +9132,7 @@ Boolean CWindowManagerService::WindowState::StepAnimationLocked(
     if (!mWMService->mDisplayFrozen && isOn) {
         // We will run animations as long as the display isn't frozen.
 
-        if (!mDrawPending && !mCommitDrawPending/* && mAnimation != NULL*/) {
+        if (!mDrawPending && !mCommitDrawPending && mAnimation != NULL) {
             mHasTransformation = TRUE;
             mHasLocalTransformation = TRUE;
             if (!mLocalAnimating) {
@@ -8915,30 +9142,30 @@ Boolean CWindowManagerService::WindowState::StepAnimationLocked(
 //                    " dw=" + dw + " dh=" + dh + " scale=" + mWindowAnimationScale);
                 Int32 w;
                 mFrame->GetWidth(&w);
-//                mAnimation->Initialize(w, ((CRect*)(mFrame.Get()))->mHeight, dw, dh);
-//                mAnimation->SetStartTime(currentTime);
+                mAnimation->Initialize(w, ((CRect*)(mFrame.Get()))->GetHeight(), dw, dh);
+                mAnimation->SetStartTime(currentTime);
                 mLocalAnimating = TRUE;
                 mAnimating = TRUE;
             }
-//            mTransformation->Clear();
-//            Boolean more = mAnimation->GetTransformation(
-//                currentTime, mTransformation);
-//            if (DEBUG_ANIM) Slog.v(
-//                TAG, "Stepped animation in " + this +
-//                ": more=" + more + ", xform=" + mTransformation);
-//            if (more) {
-//                // we're not done!
-//                return true;
-//            }
-//            if (DEBUG_ANIM) Slog.v(
-//                TAG, "Finished animation in " + this +
-//                " @ " + currentTime);
-//            mAnimation = NULL;
+            mTransformation->Clear();
+            Boolean more;
+            mAnimation->GetTransformation(currentTime, mTransformation, &more);
+            //if (DEBUG_ANIM) Slog.v(
+            //    TAG, "Stepped animation in " + this +
+            //    ": more=" + more + ", xform=" + mTransformation);
+            if (more) {
+                // we're not done!
+                return TRUE;
+            }
+            //if (DEBUG_ANIM) Slog.v(
+            //    TAG, "Finished animation in " + this +
+            //    " @ " + currentTime);
+            mAnimation = NULL;
             //WindowManagerService.this.dump();
         }
         mHasLocalTransformation = FALSE;
         if ((!mLocalAnimating || mAnimationIsEntrance) && mAppToken != NULL
-                /*&& mAppToken->mAnimation != NULL*/) {
+                && mAppToken->mAnimation != NULL) {
             // When our app token is animating, we kind-of pretend like
             // we are as well.  Note the mLocalAnimating mAnimationIsEntrance
             // part of this check means that we will only do this if
@@ -8948,7 +9175,7 @@ Boolean CWindowManagerService::WindowState::StepAnimationLocked(
             // once that animation is done.
             mAnimating = TRUE;
             mHasTransformation = TRUE;
-//            mTransformation->Clear();
+            mTransformation->Clear();
             return FALSE;
         }
         else if (mHasTransformation) {
@@ -8960,13 +9187,13 @@ Boolean CWindowManagerService::WindowState::StepAnimationLocked(
             mAnimating = TRUE;
         }
     }
-//    else if (mAnimation != NULL) {
-//        // If the display is frozen, and there is a pending animation,
-//        // clear it and make sure we run the cleanup code.
-//        mAnimating = TRUE;
-//        mLocalAnimating = TRUE;
-//        mAnimation = NULL;
-//    }
+    else if (mAnimation != NULL) {
+        // If the display is frozen, and there is a pending animation,
+        // clear it and make sure we run the cleanup code.
+        mAnimating = TRUE;
+        mLocalAnimating = TRUE;
+        mAnimation = NULL;
+    }
 
     if (!mAnimating && !mLocalAnimating) {
         return FALSE;
@@ -8979,7 +9206,7 @@ Boolean CWindowManagerService::WindowState::StepAnimationLocked(
 
     mAnimating = FALSE;
     mLocalAnimating = FALSE;
-//    mAnimation = NULL;
+    mAnimation = NULL;
     mAnimLayer = mLayer;
     if (mIsImWindow) {
         mAnimLayer += mWMService->mInputMethodAnimLayerAdjustment;
@@ -9093,57 +9320,65 @@ Boolean CWindowManagerService::WindowState::IsIdentityMatrix(
 
 void CWindowManagerService::WindowState::ComputeShownFrameLocked()
 {
-//    Boolean selfTransformation = mHasLocalTransformation;
-//    Transformation attachedTransformation =
-//            (mAttachedWindow != NULL && mAttachedWindow->mHasLocalTransformation)
-//            ? mAttachedWindow->mTransformation : NULL;
-//    Transformation appTransformation =
-//            (mAppToken != NULL && mAppToken->mHasTransformation)
-//            ? mAppToken->mTransformation : NULL;
+    Boolean selfTransformation = mHasLocalTransformation;
+    AutoPtr<ITransformation> attachedTransformation =
+            (mAttachedWindow != NULL && mAttachedWindow->mHasLocalTransformation)
+            ? mAttachedWindow->mTransformation : NULL;
+    AutoPtr<ITransformation> appTransformation =
+            (mAppToken != NULL && mAppToken->mHasTransformation)
+            ? mAppToken->mTransformation : NULL;
 
     // Wallpapers are animated based on the "real" window they
     // are currently targeting.
-//    if (mAttrs->mType == WindowManagerLayoutParams_TYPE_WALLPAPER
-//            && mWMService->mLowerWallpaperTarget == NULL
-//            && mWMService->mWallpaperTarget != NULL) {
-//        if (mWallpaperTarget->mHasLocalTransformation &&
-//                mWallpaperTarget->mAnimation != NULL &&
-//                !mWallpaperTarget->mAnimation->GetDetachWallpaper()) {
-//            attachedTransformation = mWallpaperTarget.mTransformation;
-//            if (DEBUG_WALLPAPER && attachedTransformation != NULL) {
-//                Slog.v(TAG, "WP target attached xform: " + attachedTransformation);
-//            }
-//        }
-//        if (mWallpaperTarget->mAppToken != NULL &&
-//                mWallpaperTarget->mAppToken->mHasTransformation &&
-//                mWallpaperTarget->mAppToken->mAnimation != NULL &&
-//                !mWallpaperTarget->mAppToken->mAnimation->GetDetachWallpaper()) {
-//            appTransformation = mWallpaperTarget->mAppToken->mTransformation;
-//            if (DEBUG_WALLPAPER && appTransformation != NULL) {
-//                Slog.v(TAG, "WP target app xform: " + appTransformation);
-//            }
-//        }
-//    }
+    if (mAttrs->mType == WindowManagerLayoutParams_TYPE_WALLPAPER
+            && mWMService->mLowerWallpaperTarget == NULL
+            && mWMService->mWallpaperTarget != NULL) {
+        Boolean detach;
+        if (mWMService->mWallpaperTarget->mHasLocalTransformation &&
+            mWMService->mWallpaperTarget->mAnimation != NULL &&
+            !(mWMService->mWallpaperTarget->mAnimation->GetDetachWallpaper(&detach), detach)) {
+            attachedTransformation = mWMService->mWallpaperTarget->mTransformation;
+            //if (DEBUG_WALLPAPER && attachedTransformation != NULL) {
+            //    Slog.v(TAG, "WP target attached xform: " + attachedTransformation);
+            //}
+        }
+        if (mWMService->mWallpaperTarget->mAppToken != NULL &&
+            mWMService->mWallpaperTarget->mAppToken->mHasTransformation &&
+            mWMService->mWallpaperTarget->mAppToken->mAnimation != NULL &&
+            !(mWMService->mWallpaperTarget->mAppToken->mAnimation->GetDetachWallpaper(&detach), detach)) {
+            appTransformation = mWMService->mWallpaperTarget->mAppToken->mTransformation;
+            //if (DEBUG_WALLPAPER && appTransformation != NULL) {
+            //    Slog.v(TAG, "WP target app xform: " + appTransformation);
+            //}
+        }
+    }
 
-//    if (selfTransformation || attachedTransformation != NULL
-//            || appTransformation != NULL) {
-//        // cache often used attributes locally
-//        AutoPtr<IRect> frame = mFrame;
-//        Float tmpFloats[] = mWMService->mTmpFloats;
-//        Matrix tmpMatrix = mTmpMatrix;
+    if (selfTransformation || attachedTransformation != NULL
+            || appTransformation != NULL) {
+        // cache often used attributes locally
+        CRect* frame = (CRect*)mFrame.Get();
+        ArrayOf<Float>* tmpFloats = mWMService->mTmpFloats;
+        AutoPtr<IMatrix> tmpMatrix = mTmpMatrix;
 
         // Compute the desired transformation.
-//        tmpMatrix->SetTranslate(0, 0);
-//        if (selfTransformation) {
-//            tmpMatrix->PostConcat(mTransformation->GetMatrix());
-//        }
-//        tmpMatrix->PostTranslate(frame->mLeft, frame->mTop);
-//        if (attachedTransformation != NULL) {
-//            tmpMatrix->PostConcat(attachedTransformation->GetMatrix());
-//        }
-//        if (appTransformation != NULL) {
-//            tmpMatrix->PostConcat(appTransformation->GetMatrix());
-//        }
+        tmpMatrix->SetTranslate(0, 0);
+        Boolean res;
+        if (selfTransformation) {
+            AutoPtr<IMatrix> matrix;
+            mTransformation->GetMatrix((IMatrix**)&matrix);
+            tmpMatrix->PostConcat(matrix, &res);
+        }
+        tmpMatrix->PostTranslate(frame->mLeft, frame->mTop, &res);
+        if (attachedTransformation != NULL) {
+            AutoPtr<IMatrix> matrix;
+            attachedTransformation->GetMatrix((IMatrix**)&matrix);
+            tmpMatrix->PostConcat(matrix, &res);
+        }
+        if (appTransformation != NULL) {
+            AutoPtr<IMatrix> matrix;
+            appTransformation->GetMatrix((IMatrix**)&matrix);
+            tmpMatrix->PostConcat(matrix, &res);
+        }
 
         // "convert" it into SurfaceFlinger's format
         // (a 2x2 matrix + an offset)
@@ -9151,47 +9386,52 @@ void CWindowManagerService::WindowState::ComputeShownFrameLocked()
         // since it is already included in the transformation.
         //Slog.i(TAG, "Transform: " + matrix);
 
-//        tmpMatrix->GetValues(tmpFloats);
-//        mDsDx = tmpFloats[Matrix.MSCALE_X];
-//        mDtDx = tmpFloats[Matrix.MSKEW_X];
-//        mDsDy = tmpFloats[Matrix.MSKEW_Y];
-//        mDtDy = tmpFloats[Matrix.MSCALE_Y];
-//        int x = (int)tmpFloats[Matrix.MTRANS_X] + mXOffset;
-//        int y = (int)tmpFloats[Matrix.MTRANS_Y] + mYOffset;
-//        int w = frame.width();
-//        int h = frame.height();
-//        mShownFrame.set(x, y, x+w, y+h);
+        tmpMatrix->GetValues(*tmpFloats);
+        mDsDx = (*tmpFloats)[Matrix_MSCALE_X];
+        mDtDx = (*tmpFloats)[Matrix_MSKEW_X];
+        mDsDy = (*tmpFloats)[Matrix_MSKEW_Y];
+        mDtDy = (*tmpFloats)[Matrix_MSCALE_Y];
+        Int32 x = (Int32)(*tmpFloats)[Matrix_MTRANS_X] + mXOffset;
+        Int32 y = (Int32)(*tmpFloats)[Matrix_MTRANS_Y] + mYOffset;
+        Int32 w = frame->GetWidth();
+        Int32 h = frame->GetHeight();
+        mShownFrame->Set(x, y, x+w, y+h);
 
         // Now set the alpha...  but because our current hardware
         // can't do alpha transformation on a non-opaque surface,
         // turn it off if we are running an animation that is also
         // transforming since it is more important to have that
         // animation be smooth.
-//        mShownAlpha = mAlpha;
-//        if (!mWMService->mLimitedAlphaCompositing
-//                || (!ElPixelFormat::formatHasAlpha(mAttrs->mFormat)
-//                || (IsIdentityMatrix(mDsDx, mDtDx, mDsDy, mDtDy)
-//                        && x == frame.left && y == frame.top))) {
+        mShownAlpha = mAlpha;
+        if (!mWMService->mLimitedAlphaCompositing
+            || (!ElPixelFormat::FormatHasAlpha(mAttrs->mFormat)
+            || (IsIdentityMatrix(mDsDx, mDtDx, mDsDy, mDtDy)
+            && x == frame->mLeft && y == frame->mTop))) {
             //Slog.i(TAG, "Applying alpha transform");
-//            if (selfTransformation) {
-//                mShownAlpha *= mTransformation->GetAlpha();
-//            }
-//            if (attachedTransformation != NULL) {
-//                mShownAlpha *= attachedTransformation->GetAlpha();
-//            }
-//            if (appTransformation != NULL) {
-//                mShownAlpha *= appTransformation->GetAlpha();
-//            }
-//        } else {
+            Float alpha;
+            if (selfTransformation) {
+                mTransformation->GetAlpha(&alpha);
+                mShownAlpha *=  alpha;
+            }
+            if (attachedTransformation != NULL) {
+                attachedTransformation->GetAlpha(&alpha);
+                mShownAlpha *=  alpha;
+            }
+            if (appTransformation != NULL) {
+                appTransformation->GetAlpha(&alpha);
+                mShownAlpha *=  alpha;
+            }
+        }
+        else {
             //Slog.i(TAG, "Not applying alpha transform");
-//        }
+        }
 
-//        if (localLOGV) Slog.v(
-//            TAG, "Continuing animation in " + this +
-//            ": " + mShownFrame +
-//            ", alpha=" + mTransformation.getAlpha());
-//        return;
-//    }
+        //if (localLOGV) Slog.v(
+        //    TAG, "Continuing animation in " + this +
+        //    ": " + mShownFrame +
+        //    ", alpha=" + mTransformation.getAlpha());
+        return;
+    }
 
     mShownFrame->SetEx(mFrame);
     if (mXOffset != 0 || mYOffset != 0) {
@@ -9206,6 +9446,11 @@ void CWindowManagerService::WindowState::ComputeShownFrameLocked()
 
 void CWindowManagerService::WindowState::ClearAnimation()
 {
+    if (mAnimation != NULL) {
+        mAnimating = TRUE;
+        mLocalAnimating = FALSE;
+        mAnimation = NULL;
+    }
 }
 
 ECode CWindowManagerService::WindowState::CreateSurfaceLocked(
@@ -9373,7 +9618,7 @@ ECode CWindowManagerService::WindowState::CreateSurfaceLocked(
 //        if (localLOGV) Slog.v(
 //                TAG, "Created surface " + this);
 //    }
-//	RuntimeException:
+//  RuntimeException:
 //    Slog.w(TAG, "Error creating surface in " + w, e);
     assert(mWMService);
     mWMService->ReclaimSomeSurfaceMemoryLocked(this, "create-init");
@@ -9453,8 +9698,7 @@ Boolean CWindowManagerService::WindowState::FinishDrawingLocked()
     return FALSE;
 }
 
-IApplicationToken*
-CWindowManagerService::WindowState::GetAppToken()
+IApplicationToken* CWindowManagerService::WindowState::GetAppToken()
 {
     return mAppToken != NULL ? mAppToken->mAppToken : NULL;
 }
@@ -9527,18 +9771,14 @@ Boolean CWindowManagerService::WindowState::IsOnScreen()
 {
     AppWindowToken* atoken = mAppToken;
     if (atoken != NULL) {
-//        return mSurface != NULL && mPolicyVisibility && !mDestroying
-//                && ((!mAttachedHidden && !atoken->mHiddenRequested)
-//                        || mAnimation != NULL || atoken->mAnimation != NULL);
         return mSurface != NULL && mPolicyVisibility && !mDestroying
-                && (!mAttachedHidden && !atoken->mHiddenRequested);
+            && ((!mAttachedHidden && !atoken->mHiddenRequested)
+            || mAnimation != NULL || atoken->mAnimation != NULL);
     }
     else {
-//        return mSurface != NULL && mPolicyVisibility && !mDestroying
-//                && (!mAttachedHidden || mAnimation != NULL);
-        return mSurface != NULL && mPolicyVisibility && !mDestroying && !mAttachedHidden;
+        return mSurface != NULL && mPolicyVisibility && !mDestroying
+            && (!mAttachedHidden || mAnimation != NULL);
     }
-    return FALSE;
 }
 
 /**
@@ -9551,28 +9791,23 @@ Boolean CWindowManagerService::WindowState::IsReadyForDisplay()
             mWMService->mNextAppTransition != WindowManagerPolicy_TRANSIT_UNSET) {
         return FALSE;
     }
-//    AppWindowToken* atoken = mAppToken;
-//    Boolean animating = atoken != NULL
-//            ? (atoken->mAnimation != NULL) : FALSE;
-//    return mSurface != NULL && mPolicyVisibility && !mDestroying
-//            && ((!mAttachedHidden && mViewVisibility == View_VISIBLE
-//                            && !mRootToken->mHidden)
-//                    || mAnimation != NULL || animating);
+    AppWindowToken* atoken = mAppToken;
+    Boolean animating = atoken != NULL
+            ? (atoken->mAnimation != NULL) : FALSE;
     return mSurface != NULL && mPolicyVisibility && !mDestroying
-            && (!mAttachedHidden && mViewVisibility == View_VISIBLE
-                            && !mRootToken->mHidden);
+            && ((!mAttachedHidden && mViewVisibility == View_VISIBLE
+            && !mRootToken->mHidden) || mAnimation != NULL || animating);
 }
 
 /** Is the window or its container currently animating? */
 Boolean CWindowManagerService::WindowState::IsAnimating()
 {
-//    AutoPtr<WindowState> attached = mAttachedWindow;
-//    AppWindowToken* atoken = mAppToken;
-//    return mAnimation != NULL
-//            || (attached != NULL && attached->mAnimation != NULL)
-//            || (atoken != NULL &&
-//                    (atoken->mAnimation != NULL
-//                            || atoken->mInPendingTransaction));
+    AutoPtr<WindowState> attached = mAttachedWindow;
+    AppWindowToken* atoken = mAppToken;
+    return mAnimation != NULL
+        || (attached != NULL && attached->mAnimation != NULL)
+        || (atoken != NULL && (atoken->mAnimation != NULL
+        || atoken->mInPendingTransaction));
 
     return FALSE;
 }
@@ -9580,8 +9815,7 @@ Boolean CWindowManagerService::WindowState::IsAnimating()
 /** Is this window currently animating? */
 Boolean CWindowManagerService::WindowState::IsWindowAnimating()
 {
-//    return mAnimation != NULL;
-    return FALSE;
+    return mAnimation != NULL;
 }
 
 /**
@@ -9617,17 +9851,11 @@ Boolean CWindowManagerService::WindowState::IsDrawnLw()
  */
 Boolean CWindowManagerService::WindowState::IsOpaqueDrawn()
 {
-//    return (mAttrs->mFormat == ElPixelFormat::OPAQUE
-//                    || mAttrs->mType == WindowManagerLayoutParams_TYPE_WALLPAPER)
-//            && mSurface != NULL && mAnimation == NULL
-//            && (mAppToken == NULL || mAppToken->mAnimation == NULL)
-//            && !mDrawPending && !mCommitDrawPending;
-
     return (mAttrs->mFormat == ElPixelFormat::OPAQUE
-                    || mAttrs->mType == WindowManagerLayoutParams_TYPE_WALLPAPER)
-            && mSurface != NULL && !mDrawPending && !mCommitDrawPending;
-
-    return FALSE;
+        || mAttrs->mType == WindowManagerLayoutParams_TYPE_WALLPAPER)
+        && mSurface != NULL && mAnimation == NULL
+        && (mAppToken == NULL || mAppToken->mAnimation == NULL)
+        && !mDrawPending && !mCommitDrawPending;
 }
 
 Boolean CWindowManagerService::WindowState::NeedsBackgroundFiller(
@@ -9707,7 +9935,7 @@ Boolean CWindowManagerService::WindowState::ShowLw(
         if (mWMService->mDisplayFrozen || !isOn) {
             doAnimation = FALSE;
         }
-        else if (mPolicyVisibility/* && mAnimation == NULL*/) {
+        else if (mPolicyVisibility && mAnimation == NULL) {
             // Check for the case where we are currently visible and
             // not animating; we do not want to do animation at such a
             // point to become visible when we already are.
@@ -9750,9 +9978,9 @@ Boolean CWindowManagerService::WindowState::HideLw(
     if (doAnimation) {
         mWMService->ApplyAnimationLocked(this, WindowManagerPolicy::TRANSIT_EXIT, FALSE);
         doAnimation = FALSE;
-//        if (mAnimation == NULL) {
-//            doAnimation = FALSE;
-//        }
+        if (mAnimation == NULL) {
+            doAnimation = FALSE;
+        }
     }
     if (doAnimation) {
         mPolicyVisibilityAfterAnim = FALSE;
@@ -9846,9 +10074,11 @@ void CWindowManagerService::DimAnimator::UpdateParameters(
         // If the desired dim level has changed, then
         // start an animation to it.
         mLastDimAnimTime = currentTime;
-        Int64 duration = DEFAULT_DIM_DURATION;//(w->mAnimating && w->mAnimation != NULL)
-//                ? w->mAnimation->ComputeDurationHint()
-//                : DEFAULT_DIM_DURATION;
+        Int64 duration = DEFAULT_DIM_DURATION;
+        if (w->mAnimating && w->mAnimation != NULL) {
+            w->mAnimation->ComputeDurationHint(&duration);
+        }
+
         if (target > mDimTargetAlpha) {
             // This is happening behind the activity UI,
             // so we can make it run a little longer to
@@ -9970,47 +10200,6 @@ void CWindowManagerService::WindowState::GetDescription(
     assert(description != NULL);
     *description = "Window{}";
 }
-
-//CWindowManagerService::FadeInOutAnimation::FadeInOutAnimation(
-//    /* [in] */ Boolean fadeIn)
-//{
-////    SetInterpolator(new AccelerateInterpolator());
-////    SetDuration(CWindowManagerService::DEFAULT_FADE_IN_OUT_DURATION);
-//    mFadeIn = fadeIn;
-//}
-
-//void CWindowManagerService::FadeInOutAnimation::ApplyTransformation(
-//    /* [in] */ Float interpolatedTime
-//    /* [in]  Transformation t)*/)
-//{
-//    Float x = interpolatedTime;
-//    if (!mFadeIn) {
-//        x = 1.0 - x; // reverse the interpolation for fade out
-//    }
-//    if (x < 0.5) {
-//        // move the window out of the screen.
-////        t.getMatrix().setTranslate(mWidth, 0);
-//    }
-//    else {
-////        t.getMatrix().setTranslate(0, 0);// show
-////        t.setAlpha((x - 0.5f) * 2);
-//    }
-//}
-
-//void CWindowManagerService::FadeInOutAnimation::Initialize(
-//    /* [in] */ Int32 width,
-//    /* [in] */ Int32 height,
-//    /* [in] */ Int32 parentWidth,
-//    /* [in] */ Int32 parentHeight)
-//{
-//    // width is the screen width {@see AppWindowToken#stepAnimatinoLocked}
-//    mWidth = width;
-//}
-
-//Int32 CWindowManagerService::FadeInOutAnimation::GetZAdjustment() {
-//    return 0;
-////    return Animation::ZORDER_TOP;
-//}
 
 ECode CWindowManagerService::SendMessage(
     /* [in] */ Handle32 pvFunc,

@@ -4,6 +4,12 @@
 
 IVIEW_METHODS_IMPL(CProgressBar, ProgressBar, ProgressBar);
 
+IDrawableCallback_METHODS_IMPL(CProgressBar, ProgressBar, ProgressBar);
+
+IKeyEventCallback_METHODS_IMPL(CProgressBar, ProgressBar, ProgressBar);
+
+IAccessibilityEventSource_METHODS_IMPL(CProgressBar, ProgressBar, ProgressBar);
+
 PInterface CProgressBar::Probe(
     /* [in] */ REIID riid)
 {

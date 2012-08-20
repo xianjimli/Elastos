@@ -10,6 +10,8 @@
 #include "graphics/drawable/CColorDrawable.h"
 #include "graphics/drawable/CNinePatchDrawable.h"
 #include "graphics/drawable/CStateListDrawable.h"
+#include "graphics/drawable/CAnimatedRotateDrawable.h"
+#include "graphics/drawable/CLayerDrawable.h"
 #include "utils/StateSet.h"
 #include "utils/CDisplayMetrics.h"
 #include "utils/Xml.h"
@@ -428,6 +430,8 @@ ECode Drawable::CreateFromXmlInner(
     String name;
     FAIL_RETURN(parser->GetName((String*)&name));
 
+    printf("Drawable::CreateFromXmlInner name = %s\n", (const char*)name);
+
     //printf("Drawable::CreateFromXmlInner, name = %s\n", (const char*)name);
     if (name.Equals("selector")) {
           FAIL_RETURN(CStateListDrawable::New((IStateListDrawable**)drawable));
@@ -437,8 +441,7 @@ ECode Drawable::CreateFromXmlInner(
         assert(0);
     }
     else if (name.Equals("layer-list")) {
-//        drawable = new LayerDrawable();
-        assert(0);
+        FAIL_RETURN(CLayerDrawable::New((ILayerDrawable**)drawable));
     }
     else if (name.Equals("transition")) {
 //        drawable = new TransitionDrawable();
@@ -464,8 +467,7 @@ ECode Drawable::CreateFromXmlInner(
         assert(0);
     }
     else if (name.Equals("animated-rotate")) {
-//        drawable = new AnimatedRotateDrawable();
-        assert(0);
+        FAIL_RETURN(CAnimatedRotateDrawable::New((IAnimatedRotateDrawable**)drawable));
     }
     else if (name.Equals("animation-list")) {
 //        drawable = new AnimationDrawable();

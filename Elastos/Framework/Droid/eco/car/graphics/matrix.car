@@ -1,6 +1,16 @@
 
 module
 {
+    const Matrix_MSCALE_X = 0;   //!< use with getValues/setValues
+    const Matrix_MSKEW_X  = 1;   //!< use with getValues/setValues
+    const Matrix_MTRANS_X = 2;   //!< use with getValues/setValues
+    const Matrix_MSKEW_Y  = 3;   //!< use with getValues/setValues
+    const Matrix_MSCALE_Y = 4;   //!< use with getValues/setValues
+    const Matrix_MTRANS_Y = 5;   //!< use with getValues/setValues
+    const Matrix_MPERSP_0 = 6;   //!< use with getValues/setValues
+    const Matrix_MPERSP_1 = 7;   //!< use with getValues/setValues
+    const Matrix_MPERSP_2 = 8;   //!< use with getValues/setValues
+
     /** Controlls how the src rect should align into the dst rect for
         setRectToRect().
     */

@@ -1,4 +1,7 @@
 
+#ifndef __PROGRESSBAR_H__
+#define __PROGRESSBAR_H__
+
 #include "view/View.h"
 
 /**
@@ -478,7 +481,7 @@ public:
     Boolean mIndeterminate;
     Boolean mOnlyIndeterminate;
     AutoPtr<ITransformation> mTransformation;
-//    AutoPtr<IAlphaAnimation> mAnimation;
+    AutoPtr<IAnimation> mAnimation; //AlphaAnimation
     AutoPtr<IDrawable> mIndeterminateDrawable;
     AutoPtr<IDrawable> mProgressDrawable;
     AutoPtr<IDrawable> mCurrentDrawable;
@@ -486,9 +489,10 @@ public:
     Boolean mNoInvalidate;
     AutoPtr<IInterpolator> mInterpolator;
     AutoPtr<RefreshProgressRunnable> mRefreshProgressRunnable;
-    Int64 mUiThreadId;
+    Int32 mUiThreadId;
     Boolean mShouldStartAnimationDrawable;
     Int64 mLastDrawTime;
 
     Boolean mInDrawing;
 };
+#endif //__PROGRESSBAR_H__

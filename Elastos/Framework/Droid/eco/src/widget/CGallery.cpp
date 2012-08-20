@@ -7,6 +7,16 @@ IVIEWGROUP_METHODS_IMPL(CGallery, Gallery, Gallery);
 
 IADAPTERVIEW_METHODS_IMPL(CGallery, Gallery, Gallery);
 
+IVIEWPARENT_METHODS_IMPL(CGallery, Gallery, Gallery);
+
+IVIEWMANAGER_METHODS_IMPL(CGallery, Gallery, Gallery);
+
+IDrawableCallback_METHODS_IMPL(CGallery, Gallery, Gallery);
+
+IKeyEventCallback_METHODS_IMPL(CGallery, Gallery, Gallery);
+
+IAccessibilityEventSource_METHODS_IMPL(CGallery, Gallery, Gallery);
+
 PInterface CGallery::Probe(
     /* [in] */ REIID riid)
 {

@@ -26,6 +26,15 @@ PInterface CActivityOne::MyListener::Probe(
     else if (riid == EIID_IViewOnKeyListener) {
         return (IViewOnKeyListener*)this;
     }
+    else if (riid == EIID_IOnItemClickListener) {
+        return (IOnItemClickListener*)this;
+    }
+    else if (riid == EIID_IViewOnClickListener) {
+        return (IViewOnClickListener*)this;
+    }
+    else if (riid == EIID_IDialogInterfaceOnClickListener) {
+        return (IDialogInterfaceOnClickListener*)this;
+    }
 
     return NULL;
 }
@@ -111,9 +120,11 @@ ECode CActivityOne::MyListener::OnClick(
         printf("neutral\n");
         mHost->DismissDialog(0);
     }
-    else {
-        //printf("Show Dilaog!\n");
-        //mHost->ShowDialog(0);
+    else if (view == mHost->mDialogButton.Get()) {
+        printf("Show Dilaog!\n");
+        mHost->ShowDialog(0);
+    }
+    else if (view == mHost->mAnimationButton.Get()) {
         static count = 0;
         count = count % 4;
         if (count == 0) {
@@ -186,6 +197,7 @@ ECode CActivityOne::MyListener::OnKey(
 ECode CActivityOne::OnCreate(
     /* [in] */ IBundle* savedInstanceState)
 {
+    printf("CActivityOne::OnCreate\n");
     SetContentView(0x7f030002);
 
     AutoPtr<IView> view = FindViewById(0x7f050007);
@@ -219,10 +231,15 @@ ECode CActivityOne::OnCreate(
     AutoPtr<MyListener> l = new MyListener(this);
     listView->SetOnItemClickListener((IOnItemClickListener*)l.Get());
 
-    view = FindViewById(0x7f050009);
-    assert(view != NULL);
+    mAnimationButton = FindViewById(0x7f050009);
+    assert(mAnimationButton != NULL);
 
-    view->SetOnClickListener((IViewOnClickListener*)l.Get());
+    mAnimationButton->SetOnClickListener((IViewOnClickListener*)l.Get());
+
+    mDialogButton = FindViewById(0x7f05000a);
+    assert(mDialogButton != NULL);
+
+    mDialogButton->SetOnClickListener((IViewOnClickListener*)l.Get());
 
     AutoPtr<IViewParent> parent;
     view->GetParent((IViewParent**)&parent);

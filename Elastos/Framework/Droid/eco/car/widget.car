@@ -684,6 +684,11 @@ module
             [in] Int32 defStyle);
 
         interface IGallery;
+        interface IViewParent;
+        interface IViewManager;
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
     }
 
     class CGalleryLayoutParams {
@@ -835,6 +840,9 @@ module
             [in] Int32 defStyle);
 
         interface IProgressBar;
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
     }
 }
 
