@@ -25,7 +25,7 @@ private:
     static CARAPI_(void) NativeDestructor(
         /* [in] */ SkPathEffect* nObj);
 
-private:
+protected:
     SkPathEffect* mNativeInstance;
 };
 

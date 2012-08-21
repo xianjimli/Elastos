@@ -1,0 +1,14 @@
+
+module
+{
+
+    const ClipDrawable_HORIZONTAL = 1;
+    const ClipDrawable_VERTICAL = 2;
+    
+    
+    interface IClipState extends IDrawableConstantState {
+    }
+    
+    interface IClipDrawable extends IDrawable {    
+    }
+}

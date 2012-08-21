@@ -25,3 +25,8 @@ SOURCES += AnimatedRotateDrawable.cpp
 SOURCES += CAnimatedRotateDrawable.cpp
 SOURCES += LayerDrawable.cpp
 SOURCES += CLayerDrawable.cpp
+SOURCES += GradientDrawable.cpp
+SOURCES += CGradientDrawable.cpp
+SOURCES += ClipDrawable.cpp
+SOURCES += CClipDrawable.cpp
+

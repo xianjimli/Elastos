@@ -4,7 +4,9 @@
 ICONTEXT_METHODS_IMPL(CContextThemeWrapper, ContextThemeWrapper, ContextThemeWrapper);
 
 ECode CContextThemeWrapper::constructor()
-{}
+{
+    return NOERROR;
+}
 
 ECode CContextThemeWrapper::constructor(
     /* [in] */ IContext* base,

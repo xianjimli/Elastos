@@ -1,0 +1,154 @@
+
+module
+{
+    /**
+     * Shape is a rectangle, possibly with rounded corners
+     */
+    const GradientDrawable_RECTANGLE = 0;
+
+    /**
+     * Shape is an ellipse
+     */
+    const GradientDrawable_OVAL = 1;
+
+    /**
+     * Shape is a line
+     */
+    const GradientDrawable_LINE = 2;
+
+    /**
+     * Shape is a ring.
+     */
+    const GradientDrawable_RING = 3;
+
+    /**
+     * Gradient is linear (default.)
+     */
+    const GradientDrawable_LINEAR_GRADIENT = 0;
+
+    /**
+     * Gradient is circular.
+     */
+    const GradientDrawable_RADIAL_GRADIENT = 1;
+
+    /**
+     * Gradient is a sweep.
+     */
+    const GradientDrawable_SWEEP_GRADIENT  = 2;
+    
+    /**
+     * Controls how the gradient is oriented relative to the drawable's bounds
+     */
+    enum GradientDrawableOrientation {
+        /** draw the gradient from the top to the bottom */
+        GradientDrawableOrientation_TOP_BOTTOM,
+        /** draw the gradient from the top-right to the bottom-left */
+        GradientDrawableOrientation_TR_BL,
+        /** draw the gradient from the right to the left */
+        GradientDrawableOrientation_RIGHT_LEFT,
+        /** draw the gradient from the bottom-right to the top-left */
+        GradientDrawableOrientation_BR_TL,
+        /** draw the gradient from the bottom to the top */
+        GradientDrawableOrientation_BOTTOM_TOP,
+        /** draw the gradient from the bottom-left to the top-right */
+        GradientDrawableOrientation_BL_TR,
+        /** draw the gradient from the left to the right */
+        GradientDrawableOrientation_LEFT_RIGHT,
+        /** draw the gradient from the top-left to the bottom-right */
+        GradientDrawableOrientation_TL_BR,
+    }
+    
+    [deprecated]
+    interface IGradientState extends IDrawableConstantState {
+        SetShape(
+            [in] Int32 shape);
+
+        SetGradientType(
+            [in] Int32 gradient);
+
+        SetGradientCenter(
+            [in] Float x, 
+            [in] Float y);
+
+        SetSolidColor(
+            [in] Int32 argb);
+
+        SetStroke(
+            [in] Int32 width, 
+            [in] Int32 color);
+        
+        SetStrokeEx(
+            [in] Int32 width, 
+            [in] Int32 color, 
+            [in] Float dashWidth, 
+            [in] Float dashGap);
+
+        SetCornerRadius(
+            [in] Float radius);
+        
+        SetCornerRadii(
+            [in] ArrayOf<Float>* radii);
+        
+        SetSize(
+            [in] Int32 width, 
+            [in] Int32 height);
+
+        SetGradientRadius(
+            [in] Float gradientRadius);
+    }
+    
+    [deprecated]
+    interface IGradientDrawable extends IDrawable {
+        /**
+         * Specify radii for each of the 4 corners. For each corner, the array
+         * contains 2 values, [X_radius, Y_radius]. The corners are ordered
+         * top-left, top-right, bottom-right, bottom-left
+         */
+        SetCornerRadii(
+            [in] ArrayOf<Float>* radii);
+        
+        /**
+         * Specify radius for the corners of the gradient. If this is > 0, then the
+         * drawable is drawn in a round-rectangle, rather than a rectangle.
+         */
+        SetCornerRadius(
+            [in] Float radius);
+        
+        /**
+         * Set the stroke width and color for the drawable. If width is zero,
+         * then no stroke is drawn.
+         */
+        SetStroke(
+            [in] Int32 width, 
+            [in] Int32 color);
+        
+        SetStrokeEx(
+            [in] Int32 width, 
+            [in] Int32 color, 
+            [in] Float dashWidth, 
+            [in] Float dashGap);
+        
+        SetSize(
+            [in] Int32 width, 
+            [in] Int32 height);
+        
+        SetShape(
+            [in] Int32 shape);
+    
+        SetGradientType(
+            [in] Int32 gradient);
+    
+        SetGradientCenter(
+            [in] Float x, 
+            [in] Float y);
+    
+        SetGradientRadius(
+            [in] Float gradientRadius);
+    
+        SetUseLevel(
+            [in] Boolean useLevel);
+        
+        SetColor(
+            [in] Int32 argb);    
+    }
+}
