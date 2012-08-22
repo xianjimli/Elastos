@@ -526,7 +526,7 @@ ECode CAssetManager::OpenXmlResourceParserEx(
 {
     VALIDATE_NOT_NULL(parser);
 
-    XmlBlock* block = OpenXmlBlockAsset(cookie, fileName);
+    AutoPtr<XmlBlock> block = OpenXmlBlockAsset(cookie, fileName);
     if (!block) {
         *parser = NULL;
         return E_OUT_OF_MEMORY;
@@ -536,7 +536,6 @@ ECode CAssetManager::OpenXmlResourceParserEx(
     block->NewParser((IXmlResourceParser**)&rp);
     block->Close();
     if (!rp) {
-        delete block;
         *parser = NULL;
         return E_OUT_OF_MEMORY;
     }
@@ -546,13 +545,13 @@ ECode CAssetManager::OpenXmlResourceParserEx(
     return NOERROR;
 }
 
-XmlBlock* CAssetManager::OpenXmlBlockAsset(
+AutoPtr<XmlBlock> CAssetManager::OpenXmlBlockAsset(
     /* [in] */ const String& fileName)
 {
     return OpenXmlBlockAsset(0, fileName);
 }
 
-XmlBlock* CAssetManager::OpenXmlBlockAsset(
+AutoPtr<XmlBlock> CAssetManager::OpenXmlBlockAsset(
     /* [in] */ Int32 cookie,
     /* [in] */ const String& fileName)
 {
@@ -565,7 +564,7 @@ XmlBlock* CAssetManager::OpenXmlBlockAsset(
     }
     android::ResXMLTree* xmlBlock = OpenXmlAssetNative(cookie, fileName);
     if (xmlBlock != NULL) {
-        XmlBlock* block = new XmlBlock((IAssetManager*)this, xmlBlock);
+        AutoPtr<XmlBlock> block = new XmlBlock((IAssetManager*)this, xmlBlock);
         Int32 code;
         block->GetHashCode(&code);
         IncRefsLocked(code);

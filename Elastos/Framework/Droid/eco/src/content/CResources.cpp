@@ -44,15 +44,13 @@ CResources::CResources()
 {
     ASSERT_SUCCEEDED(CTypedValue::New((ITypedValue**)&mTmpValue));
 
-    for (Int32 i = 0; i < 4; i++) {
-        mCachedXmlBlockIds[i] = 0;
-    }
+    memset(mCachedXmlBlocks, 0, 4 * sizeof(AutoPtr<XmlBlock>));
 }
 
 CResources::~CResources()
 {
     for (Int32 i = 0; i < 4; i++) {
-        delete mCachedXmlBlocks[i];
+        mCachedXmlBlocks[i] = NULL;
     }
 }
 
@@ -1264,17 +1262,15 @@ ECode CResources::LoadXmlResourceParser(
 
         // Not in the cache, create a new block and put it at
         // the next slot in the cache.
-        XmlBlock* block = mAssets->OpenXmlBlockAsset(
+        AutoPtr<XmlBlock> block = mAssets->OpenXmlBlockAsset(
                 assetCookie, file);
         if (block != NULL) {
             Int32 pos = mLastCachedXmlBlockIndex + 1;
             if (pos >= num) pos = 0;
             mLastCachedXmlBlockIndex = pos;
-            XmlBlock* oldBlock = mCachedXmlBlocks[pos];
+            AutoPtr<XmlBlock> oldBlock = mCachedXmlBlocks[pos];
             if (oldBlock != NULL) {
                 oldBlock->Close();
-                //todo: should be deleted here?
-                delete oldBlock;
             }
             mCachedXmlBlockIds[pos] = id;
             mCachedXmlBlocks[pos] = block;

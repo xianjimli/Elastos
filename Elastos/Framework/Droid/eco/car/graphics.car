@@ -35,6 +35,7 @@ module
     merge("graphics/drawable/LayerDrawable.car");
     merge("graphics/drawable/GradientDrawable.car");
     merge("graphics/drawable/ClipDrawable.car");
+    merge("graphics/drawable/AnimationDrawable.car");
 
     class CPoint {
         constructor();
@@ -239,7 +240,7 @@ module
 
         interface IShader;
     }
-    
+
     [deprecated]
     class CRadialGradient {
         /** Create a shader that draws a radial gradient given the center and radius.
@@ -253,13 +254,13 @@ module
             @param  tile    The Shader tiling mode
         */
         constructor(
-            [in] Float x, 
-            [in] Float y, 
+            [in] Float x,
+            [in] Float y,
             [in] Float radius,
-            [in] ArrayOf<Int32> colors, 
-            [in] ArrayOf<Float>* positions, 
+            [in] ArrayOf<Int32> colors,
+            [in] ArrayOf<Float>* positions,
             [in] ShaderTileMode tile);
-        
+
         /** Create a shader that draws a radial gradient given the center and radius.
             @param x        The x-coordinate of the center of the radius
             @param y        The y-coordinate of the center of the radius
@@ -269,16 +270,16 @@ module
             @param tile     The Shader tiling mode
         */
         constructor(
-            [in] Float x, 
-            [in] Float y, 
+            [in] Float x,
+            [in] Float y,
             [in] Float radius,
-            [in] Int32 color0, 
-            [in] Int32 color1, 
-            [in] ShaderTileMode tile);    
-    
+            [in] Int32 color0,
+            [in] Int32 color1,
+            [in] ShaderTileMode tile);
+
         interface IShader;
     }
-    
+
     [deprecated]
     class CSweepGradient {
         /**
@@ -296,11 +297,11 @@ module
          *                 spaced evenly.
          */
         constructor(
-            [in] Float cx, 
+            [in] Float cx,
             [in] Float cy,
-            [in] ArrayOf<Int32> colors, 
+            [in] ArrayOf<Int32> colors,
             [in] ArrayOf<Float>* positions);
-        
+
         /**
          * A subclass of Shader that draws a sweep gradient around a center point.
          *
@@ -310,14 +311,14 @@ module
          * @param color1   The color to use at the end of the sweep
          */
         constructor(
-            [in] Float cx, 
-            [in] Float cy, 
-            [in] Int32 color0, 
-            [in] Int32 color1);     
-        
+            [in] Float cx,
+            [in] Float cy,
+            [in] Int32 color0,
+            [in] Int32 color1);
+
         interface IShader;
     }
-    
+
     /**
      * The Canvas class holds the "draw" calls. To draw something, you need
      * 4 basic components: A Bitmap to hold the pixels, a Canvas to host
@@ -526,7 +527,7 @@ module
 
         interface IStateListDrawable;
     }
-    
+
     class CAnimatedRotateDrawable {
         constructor();
 
@@ -569,42 +570,54 @@ module
         interface ILayerDrawable;
         interface IDrawableCallback;
     }
-    
+
     [deprecated]
     class CGradientDrawable {
         constructor();
-        
+
         /**
          * Create a new gradient drawable given an orientation and an array
          * of colors for the gradient.
          */
         constructor(
-            [in] GradientDrawableOrientation orientation, 
+            [in] GradientDrawableOrientation orientation,
             [in] ArrayOf<Int32>* colors);
-        
+
         constructor(
-            [in] IGradientState* state);    
-        
-        interface IGradientDrawable; 
+            [in] IGradientState* state);
+
+        interface IGradientDrawable;
     }
-    
+
     class CClipDrawable {
         constructor();
-        
+
         /**
          * @param orientation Bitwise-or of {@link #HORIZONTAL} and/or {@link #VERTICAL}
          */
         constructor(
-            [in] IDrawable* drawable, 
-            [in] Int32 gravity, 
+            [in] IDrawable* drawable,
+            [in] Int32 gravity,
             [in] Int32 orientation);
-        
+
         constructor(
             [in] IClipState* state,
-            [in] IResources* res);    
-        
+            [in] IResources* res);
+
         interface IClipDrawable;
-        interface IDrawableCallback;    
+        interface IDrawableCallback;
+    }
+    
+    class CAnimationDrawable {
+        constructor();
+        
+        constructor(
+            [in] Handle32 state,
+            [in] IResources* res);
+            
+        interface IAnimationDrawable;
+        interface IRunnable;
+        interface IAnimatable;
     }
 
     class CNinePatch {
@@ -662,12 +675,12 @@ module
     singleton class CTypefaceFactory {
         interface ITypefaceFactory;
     }
-    
+
     class CDashPathEffect {
         constructor(
             [in] ArrayOf<Float> intervals,
             [in] Float phase);
-        
+
         interface IDashPathEffect;
     }
 }

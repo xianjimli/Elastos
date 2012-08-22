@@ -13,7 +13,7 @@
 using namespace Elastos;
 using namespace Elastos::Core::Threading;
 
-class XmlBlock
+class XmlBlock : public ElRefBase
 {
 public:
     static const char* TAG;
@@ -37,6 +37,17 @@ public:
         /* [in] */ android::ResXMLTree* xmlBlock);
 
     ~XmlBlock();
+
+    CARAPI_(PInterface) Probe(
+        /* [in]  */ REIID riid);
+
+    CARAPI_(UInt32) AddRef();
+
+    CARAPI_(UInt32) Release();
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface *pObject,
+        /* [out] */ InterfaceID *pIID);
 
     CARAPI_(void) Close();
 
@@ -297,7 +308,7 @@ public: /*package*/
         /*package*/ android::ResXMLParser* mParseState;
 
     private:
-        XmlBlock*   mBlock;
+        AutoPtr<XmlBlock>   mBlock;
         Boolean     mStarted;
         Boolean     mDecNextDepth;
         Int32       mDepth;

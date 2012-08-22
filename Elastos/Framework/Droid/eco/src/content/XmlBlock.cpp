@@ -46,6 +46,29 @@ XmlBlock::~XmlBlock()
     delete mStrings;
 }
 
+PInterface XmlBlock::Probe(
+    /* [in]  */ REIID riid)
+{
+    return NULL;
+}
+
+UInt32 XmlBlock::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 XmlBlock::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode XmlBlock::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
 void XmlBlock::Close()
 {
     Mutex::Autolock lock(mSyncLock);

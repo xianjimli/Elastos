@@ -218,10 +218,10 @@ public:
         /* [in] */ Int32 id,
         /* [out] */ ICharSequence** csq);
 
-    /*package*/ CARAPI_(XmlBlock*) OpenXmlBlockAsset(
+    /*package*/ CARAPI_(AutoPtr<XmlBlock>) OpenXmlBlockAsset(
         /* [in] */ const String& fileName);
 
-    /*package*/ CARAPI_(XmlBlock*) OpenXmlBlockAsset(
+    /*package*/ CARAPI_(AutoPtr<XmlBlock>) OpenXmlBlockAsset(
         /* [in] */ Int32 cookie,
         /* [in] */ const String& fileName);
 

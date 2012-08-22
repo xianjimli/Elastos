@@ -29,4 +29,5 @@ SOURCES += GradientDrawable.cpp
 SOURCES += CGradientDrawable.cpp
 SOURCES += ClipDrawable.cpp
 SOURCES += CClipDrawable.cpp
-
+SOURCES += AnimationDrawable.cpp
+SOURCES += CAnimationDrawable.cpp

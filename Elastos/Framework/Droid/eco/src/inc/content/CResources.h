@@ -304,7 +304,7 @@ private:
     Int32 mLastCachedXmlBlockIndex;
     Int32 mCachedXmlBlockIds[4];
     Mutex mCachedXmlBlockIdsLock;
-    XmlBlock* mCachedXmlBlocks[4];
+    AutoPtr<XmlBlock> mCachedXmlBlocks[4];
 
     AutoPtr<CConfiguration> mConfiguration;
 

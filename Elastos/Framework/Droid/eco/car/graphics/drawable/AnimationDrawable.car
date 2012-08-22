@@ -1,0 +1,54 @@
+
+module
+{
+    interface IDrawable;
+    interface IDrawableContainer;
+   
+
+    interface IAnimationDrawable extends IDrawableContainer {
+        /**
+         * @return The number of frames in the animation
+         */
+        GetNumberOfFrames(
+            [out] Int32* number);
+        
+        /**
+         * @return The Drawable at the specified frame index
+         */
+        GetFrame(
+            [in] Int32 index,
+            [out] IDrawable** drawable);
+        
+        /**
+         * @return The duration in milliseconds of the frame at the 
+         * specified index
+         */
+        GetDuration(
+            [in] Int32 i,
+            [out] Int32* duration);
+        
+        /**
+         * @return True of the animation will play once, false otherwise
+         */
+        IsOneShot(
+            [out] Boolean* result);
+        
+        /**
+         * Sets whether the animation should play once or repeat.
+         * 
+         * @param oneShot Pass true if the animation should only play once
+         */
+        SetOneShot(
+            [in] Boolean oneShot);
+        
+        /**
+         * Add a frame to the animation
+         * 
+         * @param frame The frame to add
+         * @param duration How long in milliseconds the frame should appear
+         */
+        AddFrame(
+            [in] IDrawable* frame, 
+            [in] Int32 duration);
+    }
+}

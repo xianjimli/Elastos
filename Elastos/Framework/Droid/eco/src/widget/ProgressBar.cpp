@@ -417,13 +417,11 @@ ECode ProgressBar::PostInvalidate()
 
 //synchronized
 //
-void ProgressBar::DoRefreshProgress(
+void ProgressBar::DoRefreshProgressLocked(
     /* [in] */ Int32 id,
     /* [in] */ Int32 progress,
     /* [in] */ Boolean fromUser)
 {
-    Mutex::Autolock lock(*GetSelfLock());
-
     Float scale = mMax > 0 ? (Float)progress / (Float)mMax : 0;
     AutoPtr<IDrawable> d = mCurrentDrawable;
     if (d != NULL) {
@@ -447,6 +445,16 @@ void ProgressBar::DoRefreshProgress(
     }
 }
 
+void ProgressBar::DoRefreshProgress(
+    /* [in] */ Int32 id,
+    /* [in] */ Int32 progress,
+    /* [in] */ Boolean fromUser)
+{
+    Mutex::Autolock lock(*GetSelfLock());
+
+    DoRefreshProgressLocked(id, progress, fromUser);
+}
+
 void ProgressBar::OnProgressRefresh(
     /* [in] */ Float scale,
     /* [in] */ Boolean fromUser)
@@ -461,7 +469,7 @@ void ProgressBar::RefreshProgressLocked(
     /* [in] */ Boolean fromUser)
 {
     if (mUiThreadId == pthread_self()) {
-        DoRefreshProgress(id, progress, fromUser);
+        DoRefreshProgressLocked(id, progress, fromUser);
     }
     else {
         AutoPtr<RefreshProgressRunnable> r;

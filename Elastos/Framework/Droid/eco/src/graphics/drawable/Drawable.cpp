@@ -12,6 +12,9 @@
 #include "graphics/drawable/CStateListDrawable.h"
 #include "graphics/drawable/CAnimatedRotateDrawable.h"
 #include "graphics/drawable/CLayerDrawable.h"
+#include "graphics/drawable/CGradientDrawable.h"
+#include "graphics/drawable/CClipDrawable.h"
+#include "graphics/drawable/CAnimationDrawable.h"
 #include "utils/StateSet.h"
 #include "utils/CDisplayMetrics.h"
 #include "utils/Xml.h"
@@ -451,16 +454,14 @@ ECode Drawable::CreateFromXmlInner(
         FAIL_RETURN(CColorDrawable::New((IColorDrawable**)drawable));
     }
     else if (name.Equals("shape")) {
-//        drawable = new GradientDrawable();
-        assert(0);
+        FAIL_RETURN(CGradientDrawable::New((IGradientDrawable**)drawable));
     }
     else if (name.Equals("scale")) {
 //        drawable = new ScaleDrawable();
         assert(0);
     }
     else if (name.Equals("clip")) {
-//        drawable = new ClipDrawable();
-        assert(0);
+        FAIL_RETURN(CClipDrawable::New((IClipDrawable**)drawable));
     }
     else if (name.Equals("rotate")) {
 //        drawable = new RotateDrawable();
@@ -470,8 +471,7 @@ ECode Drawable::CreateFromXmlInner(
         FAIL_RETURN(CAnimatedRotateDrawable::New((IAnimatedRotateDrawable**)drawable));
     }
     else if (name.Equals("animation-list")) {
-//        drawable = new AnimationDrawable();
-        assert(0);
+        FAIL_RETURN(CAnimationDrawable::New((IAnimationDrawable**)drawable));
     }
     else if (name.Equals("inset")) {
 //        drawable = new InsetDrawable();

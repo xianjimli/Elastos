@@ -446,6 +446,11 @@ private:
      */
     CARAPI_(void) InitProgressBar();
 
+    CARAPI_(void) DoRefreshProgressLocked(
+        /* [in] */ Int32 id,
+        /* [in] */ Int32 progress,
+        /* [in] */ Boolean fromUser);
+
     //synchronized
     CARAPI_(void) DoRefreshProgress(
         /* [in] */ Int32 id,
