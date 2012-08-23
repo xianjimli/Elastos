@@ -38,6 +38,8 @@ module
     merge("widget/PopupWindow.car");
     merge("widget/ProgressBar.car");
     merge("widget/RemoteViews.car");
+    merge("widget/TabWidget.car");
+    merge("widget/TabHost.car");
 
     class CScrollBarDrawable {
         interface IScrollBarDrawable;
@@ -843,6 +845,41 @@ module
         interface IDrawableCallback;
         interface IKeyEventCallback;
         interface IAccessibilityEventSource;
+    }
+
+    class CTabWidget {
+        constructor(
+            [in] IContext* ctx);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
+
+        interface ITabWidget;
+    }
+
+    class CTabHostTabSpec{
+
+        constructor(
+            [in] String tag);
+
+        interface ITabHostTabSpec;
+    }
+
+    class CTabHost {
+        constructor(
+            [in] IContext* context);
+
+        constructor(
+            [in] IContext* context, 
+            [in] IAttributeSet* attrs);
+
+        interface ITabHost;
     }
 }
 

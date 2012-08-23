@@ -1,0 +1,118 @@
+
+module
+{
+    interface ITabHostOnTabChangeListener
+    {
+        OnTabChanged(
+            [in] String tabId);
+    }
+
+    interface ITabHostTabContentFactory
+    {
+        CreateTabContent(
+            [in] String tag,
+            [out] IView** view);
+    }
+
+    /**
+     * Specifies what you do to create a tab indicator.
+     */
+    interface IIndicatorStrategy
+    {
+        /**
+         * Return the view for the indicator.
+         */
+        CreateIndicatorView(
+            [out] IView** view);
+    }
+
+    /**
+     * Specifies what you do to manage the tab content.
+     */
+    interface IContentStrategy
+    {
+        /**
+         * Return the content view.  The view should may be cached locally.
+         */
+        GetContentView(
+            [out] IView** view);
+
+        /**
+         * Perhaps do something when the tab associated with this content has
+         * been closed (i.e make it invisible, or remove it).
+         */
+        TabClosed();
+    }
+
+    interface ITabHostTabSpec
+    {
+        SetIndicator(
+            [in] ICharSequence* label,
+            [out] ITabHostTabSpec** spec);
+
+        SetIndicatorEx(
+            [in] ICharSequence* label, 
+            [in] IDrawable* icon,
+            [out] ITabHostTabSpec** spec);
+
+        SetIndicatorEx2(
+            [in] IView* view,
+            [out] ITabHostTabSpec** spec);
+    
+        SetContent(
+            [in] Int32 viewId,
+            [out] ITabHostTabSpec** spec);
+    
+        SetContentEx(
+            [in] ITabHostTabContentFactory* contentFactory,
+            [out] ITabHostTabSpec** spec);
+    
+        SetContentEx2(
+            [in] IIntent* intent,
+            [out] ITabHostTabSpec** spec);
+    
+        GetTag(
+            [out] String* str);
+    }
+
+    interface ITabHost extends IFrameLayout
+    {
+        NewTabSpec(
+            [in] String tag,
+            [out] ITabHostTabSpec** tabspec);
+
+        Setup();
+
+        /*SetupEx(
+            [in] LocalActivityManager activityGroup);*/
+
+        AddTab(
+            [in] ITabHostTabSpec* tabSpec);
+
+        ClearAllTabs();
+
+        GetTabWidget(
+            [out] ITabWidget** tabWidget);
+
+        GetCurrentTab(
+            [out] Int32* tab);
+
+        GetCurrentTabView(
+            [out] IView** view);
+
+        GetCurrentView(
+            [out] IView** view);
+
+        SetCurrentTabByTag(
+            [in] String tag);
+
+        GetTabContentView(
+            [out] IFrameLayout** view);
+
+        SetCurrentTab(
+            [in] Int32 index);
+
+        SetOnTabChangedListener(
+            [in] ITabHostOnTabChangeListener* l);
+    }
+}
