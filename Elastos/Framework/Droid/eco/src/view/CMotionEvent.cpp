@@ -49,6 +49,7 @@ ECode CMotionEvent::Obtain(
             return CMotionEvent::NewByFriend(pointerCount, sampleCount, event);
         }
         *event = gRecyclerTop;
+        (*event)->AddRef();
         gRecyclerTop = (*event)->mNext;
         --gRecyclerUsed;
     }

@@ -11,11 +11,16 @@ const Int32 Scroller::DEFAULT_DURATION;
 const Int32 Scroller::SCROLL_MODE;
 const Int32 Scroller::FLING_MODE;
 
+Float _sInit()
+{
+    Scroller::sViscousFluidNormalize = 1.0f;
+    return 1.0f / Scroller::ViscousFluid(1.0f);
+}
+
 // This controls the viscous fluid effect (how much of it)
 Float Scroller::sViscousFluidScale = 8.0f;
 // must be set to 1.0 (used in viscousFluid())
-//Float Scroller::sViscousFluidNormalize = 1.0f;
-Float Scroller::sViscousFluidNormalize = 1.0f / Scroller::ViscousFluid(1.0f);
+Float Scroller::sViscousFluidNormalize = _sInit();
 
 //temp
 const Float GRAVITY_EARTH = 9.80665f;
