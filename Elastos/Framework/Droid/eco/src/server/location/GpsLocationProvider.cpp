@@ -1,6 +1,6 @@
 
 #include "server/location/GpsLocationProvider.h"
-#include "utils/CBundle.h"
+#include "os/CBundle.h"
 #include "os/SystemClock.h"
 #include "location/CLocation.h"
 
