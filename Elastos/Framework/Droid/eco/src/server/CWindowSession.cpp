@@ -126,7 +126,7 @@ ECode CWindowSession::PerformHapticFeedback(
     /* [in] */ Boolean always,
     /* [out] */ Boolean* result)
 {
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWindowSession::SetWallpaperPosition(

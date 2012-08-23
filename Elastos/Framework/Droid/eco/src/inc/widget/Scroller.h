@@ -230,6 +230,8 @@ public:
         /* [in] */ Int32 newY);
 
 private:
+    friend Float _sInit();
+
     static const Int32 DEFAULT_DURATION  = 250;
     static const Int32 SCROLL_MODE = 0;
     static const Int32 FLING_MODE = 1;

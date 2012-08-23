@@ -206,7 +206,7 @@ ECode CActivityOne::ImageAdapter::GetView(
     /* [in] */ IViewGroup* parent,
     /* [out] */ IView** view)
 {
-    printf("CActivityOne::ImageAdapter::GetView\n");
+    printf("CActivityOne::ImageAdapter::GetView, Pos: %d\n", position);
     VALIDATE_NOT_NULL(view);
     AutoPtr<IImageView> i;
     CImageView::New(mContext, (IImageView**)&i);
@@ -299,10 +299,10 @@ ECode CActivityOne::OnCreate(
     assert(view != NULL);
 
 
-    AutoPtr<IGallery> gallery = (IGallery*)view.Get();
+    AutoPtr<IGallery> gallery = IGallery::Probe(view);
     AutoPtr<IBaseAdapter> adapter = new ImageAdapter(
         (IContext*)this->Probe(EIID_IContext));
-    gallery->SetAdapter(adapter.Get());
+    gallery->SetAdapter(adapter);
 
     //AutoPtr<MyListener> l = new MyListener(this);
 

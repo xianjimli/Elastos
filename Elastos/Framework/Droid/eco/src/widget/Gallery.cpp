@@ -854,7 +854,6 @@ Int32 Gallery::CalculateTop(
 Boolean Gallery::OnTouchEvent(
     /* [in] */ IMotionEvent* event)
 {
-    printf("Gallery::OnTouchEvent\n");
     // Give everything to the gesture detector
     Boolean retValue = mGestureDetector->OnTouchEvent(event);
 
@@ -867,7 +866,6 @@ Boolean Gallery::OnTouchEvent(
     else if (action == MotionEvent_ACTION_CANCEL) {
         OnCancel();
     }
-    printf("Gallery::OnTouchEvent---end\n");
 
     return retValue;
 }
@@ -1023,18 +1021,13 @@ void Gallery::OnCancel()
 void Gallery::OnLongPress(
     /* [in] */ IMotionEvent* e)
 {
-    printf("Gallery::OnLongPress---1\n");
     if (mDownTouchPosition < 0) {
         return;
     }
 
-    printf("Gallery::OnLongPress---2\n");
     PerformHapticFeedback(HapticFeedbackConstants::LONG_PRESS);
-    printf("Gallery::OnLongPress---3\n");
     Int64 id = GetItemIdAtPosition(mDownTouchPosition);
-    printf("Gallery::OnLongPress---4\n");
     DispatchLongPress(mDownTouchView, mDownTouchPosition, id);
-    printf("Gallery::OnLongPress---5\n");
 }
 
 // Unused methods from GestureDetector.OnGestureListener below

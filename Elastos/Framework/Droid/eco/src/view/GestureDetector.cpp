@@ -243,7 +243,6 @@ Boolean GestureDetector::IsLongpressEnabled()
 Boolean GestureDetector::OnTouchEvent(
     /* [in] */ IMotionEvent* ev)
 {
-    printf("GestureDetector::OnTouchEvent---1\n");
     Int32 action;
     ev->GetAction(&action);
     Float y;
@@ -282,7 +281,6 @@ Boolean GestureDetector::OnTouchEvent(
 
     case MotionEvent_ACTION_DOWN:
         {
-            printf("GestureDetector::OnTouchEvent---2\n");
             if (mDoubleTapListener != NULL) {
                 void (STDCALL GestureDetector::*pHandlerFunc)();
                 pHandlerFunc = &GestureDetector::HandleTap;
@@ -311,13 +309,11 @@ Boolean GestureDetector::OnTouchEvent(
                 }
             }
 
-            printf("GestureDetector::OnTouchEvent---2.1\n");
             mLastMotionX = x;
             mLastMotionY = y;
             if (mCurrentDownEvent != NULL) {
                 mCurrentDownEvent->Recycle();
             }
-            printf("GestureDetector::OnTouchEvent---2.2\n");
             AutoPtr<CMotionEvent> event;
             CMotionEvent::Obtain((CMotionEvent*)ev, (CMotionEvent**)&event);
             mCurrentDownEvent = event.Get();
@@ -325,12 +321,10 @@ Boolean GestureDetector::OnTouchEvent(
             mAlwaysInBiggerTapRegion = TRUE;
             mStillDown = TRUE;
             mInLongPress = FALSE;
-            printf("GestureDetector::OnTouchEvent---2.3\n");
 
             Int64 downTime;
             mCurrentDownEvent->GetDownTime(&downTime);
             if (mIsLongpressEnabled) {
-                printf("GestureDetector::OnTouchEvent---2.4\n");
                 RemoveMessages(LONG_PRESS);
                 void (STDCALL GestureDetector::*pHandlerFunc)();
                 pHandlerFunc = &GestureDetector::DispatchLongPress;
@@ -338,10 +332,8 @@ Boolean GestureDetector::OnTouchEvent(
                 mApartment->PostCppCallbackAtTime(
                     (Handle32)this, *(Handle32*)&pHandlerFunc,
                     NULL, 0, downTime + TAP_TIMEOUT + LONGPRESS_TIMEOUT);
-                printf("GestureDetector::OnTouchEvent---2.5\n");
             }
 
-            printf("GestureDetector::OnTouchEvent---3\n");
             void (STDCALL GestureDetector::*pHandlerFunc)();
             pHandlerFunc = &GestureDetector::HandleShowPress;
 
@@ -349,13 +341,11 @@ Boolean GestureDetector::OnTouchEvent(
                 (Handle32)this, *(Handle32*)&pHandlerFunc,
                 NULL, 0, downTime + TAP_TIMEOUT);
             handled |= mListener->OnDown(ev);
-            printf("GestureDetector::OnTouchEvent---4\n");
         }
         break;
 
     case MotionEvent_ACTION_MOVE:
         {
-            printf("GestureDetector::OnTouchEvent---5\n");
             Int32 count;
             ev->GetPointerCount(&count);
             if (mInLongPress || (mIgnoreMultitouch && count > 1)) {
@@ -392,12 +382,10 @@ Boolean GestureDetector::OnTouchEvent(
                 mLastMotionX = x;
                 mLastMotionY = y;
             }
-            printf("GestureDetector::OnTouchEvent---6\n");
         }
         break;
     case MotionEvent_ACTION_UP:
         {
-            printf("GestureDetector::OnTouchEvent---7\n");
             mStillDown = FALSE;
             AutoPtr<CMotionEvent> currentUpEvent;
             CMotionEvent::Obtain((CMotionEvent*)ev, (CMotionEvent**)&currentUpEvent);
@@ -434,13 +422,11 @@ Boolean GestureDetector::OnTouchEvent(
             mIsDoubleTapping = FALSE;
             RemoveMessages(SHOW_PRESS);
             RemoveMessages(LONG_PRESS);
-            printf("GestureDetector::OnTouchEvent---8\n");
         }
         break;
     case MotionEvent_ACTION_CANCEL:
         Cancel();
     }
-    printf("GestureDetector::OnTouchEvent---9\n");
     return handled;
 }
 
@@ -487,18 +473,14 @@ Boolean GestureDetector::IsConsideredDoubleTap(
 
 void GestureDetector::DispatchLongPress()
 {
-    printf("GestureDetector::DispatchLongPress()--1\n");
     RemoveMessages(TAP);
     mInLongPress = TRUE;
     mListener->OnLongPress(mCurrentDownEvent);
-    printf("GestureDetector::DispatchLongPress()--2\n");
 }
 
 void GestureDetector::HandleShowPress()
 {
-    printf("GestureDetector::HandleShowPress()\n");
     mListener->OnShowPress(mCurrentDownEvent);
-    printf("GestureDetector::HandleShowPress()---2\n");
 }
 
 void GestureDetector::HandleTap()
