@@ -74,64 +74,6 @@ ECode CGallery::SetUnselectedAlpha(
     return Gallery::SetUnselectedAlpha(unselectedAlpha);
 }
 
-ECode CGallery::OnSingleTapUp(
-    /* [in] */ IMotionEvent* e,
-    /* [out] */ Boolean* result)
-{
-    VALIDATE_NOT_NULL(result);
-    *result = Gallery::OnSingleTapUp(e);
-
-    return NOERROR;
-}
-
-ECode CGallery::OnFling(
-    /* [in] */ IMotionEvent* e1,
-    /* [in] */ IMotionEvent* e2,
-    /* [in] */ Float velocityX,
-    /* [in] */ Float velocityY,
-    /* [out] */ Boolean* result)
-{
-    VALIDATE_NOT_NULL(result);
-    *result = Gallery::OnFling(e1, e2, velocityX, velocityY);
-
-    return NOERROR;
-}
-
-ECode CGallery::OnScroll(
-    /* [in] */ IMotionEvent* e1,
-    /* [in] */ IMotionEvent* e2,
-    /* [in] */ Float distanceX,
-    /* [in] */ Float distanceY,
-    /* [out] */ Boolean* result)
-{
-    VALIDATE_NOT_NULL(result);
-    *result = Gallery::OnScroll(e1, e2, distanceX, distanceY);
-
-    return NOERROR;
-}
-
-ECode CGallery::OnDown(
-    /* [in] */ IMotionEvent* e,
-    /* [out] */ Boolean* result)
-{
-    VALIDATE_NOT_NULL(result);
-    *result = Gallery::OnDown(e);
-
-    return NOERROR;
-}
-
-ECode CGallery::OnLongPress(
-    /* [in] */ IMotionEvent* e)
-{
-    return Gallery::OnLongPress(e);
-}
-
-ECode CGallery::OnShowPress(
-    /* [in] */ IMotionEvent* e)
-{
-    return Gallery::OnShowPress(e);
-}
-
 ECode CGallery::SetGravity(
     /* [in] */ Int32 gravity)
 {

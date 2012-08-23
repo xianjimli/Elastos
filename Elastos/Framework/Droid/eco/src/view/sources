@@ -53,7 +53,7 @@ SOURCES += AbsSavedState.cpp
 SOURCES += ViewBaseSavedState.cpp
 SOURCES += CViewBaseSavedState.cpp
 SOURCES += VelocityTracker.cpp
-
+SOURCES += GestureDetector.cpp
 
 LIBRARIES += inputmethod/inputmethod.lib
 LIBRARIES += animation/animation.lib

@@ -53,34 +53,6 @@ public:
     CARAPI SetUnselectedAlpha(
         /* [in] */ Float unselectedAlpha);
 
-    CARAPI OnSingleTapUp(
-        /* [in] */ IMotionEvent* e,
-        /* [out] */ Boolean* result);
-
-    CARAPI OnFling(
-        /* [in] */ IMotionEvent* e1,
-        /* [in] */ IMotionEvent* e2,
-        /* [in] */ Float velocityX,
-        /* [in] */ Float velocityY,
-        /* [out] */ Boolean* result);
-
-    CARAPI OnScroll(
-        /* [in] */ IMotionEvent* e1,
-        /* [in] */ IMotionEvent* e2,
-        /* [in] */ Float distanceX,
-        /* [in] */ Float distanceY,
-        /* [out] */ Boolean* result);
-
-    CARAPI OnDown(
-        /* [in] */ IMotionEvent* e,
-        /* [out] */ Boolean* result);
-
-    CARAPI OnLongPress(
-        /* [in] */ IMotionEvent* e);
-
-    CARAPI OnShowPress(
-        /* [in] */ IMotionEvent* e);
-
     CARAPI SetGravity(
         /* [in] */ Int32 gravity);
 

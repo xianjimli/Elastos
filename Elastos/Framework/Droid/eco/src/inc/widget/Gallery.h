@@ -4,6 +4,7 @@
 
 #include "widget/AbsSpinner.h"
 #include "widget/Scroller.h"
+#include "view/GestureDetector.h"
 
 /**
  * A view that shows items in a center-locked, horizontally scrolling list.
@@ -24,7 +25,7 @@
  * @attr ref android.R.styleable#Gallery_gravity
  */
 
-class Gallery : public AbsSpinner
+class Gallery : public AbsSpinner, public GestureDetector::OnGestureListener
 {
 private:
     /**
@@ -246,7 +247,7 @@ public:
     /**
      * {@inheritDoc}
      */
-    virtual CARAPI OnLongPress(
+    virtual CARAPI_(void) OnLongPress(
         /* [in] */ IMotionEvent* e);
 
     // Unused methods from GestureDetector.OnGestureListener below
@@ -254,7 +255,7 @@ public:
     /**
      * {@inheritDoc}
      */
-    virtual CARAPI OnShowPress(
+    CARAPI_(void) OnShowPress(
         /* [in] */ IMotionEvent* e);
 
     //@Override
@@ -529,7 +530,7 @@ private:
     /**
      * Helper for detecting touch gestures.
      */
-//    GestureDetector mGestureDetector;
+    GestureDetector* mGestureDetector;
 
     /**
      * The position of the item that received the user's down touch.

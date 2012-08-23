@@ -61,34 +61,6 @@ module
         SetUnselectedAlpha(
             [in] Float unselectedAlpha);
         
-        OnSingleTapUp(
-            [in] IMotionEvent* e,
-            [out] Boolean* result);
-        
-        OnFling(
-            [in] IMotionEvent* e1,
-            [in] IMotionEvent* e2,
-            [in] Float velocityX,
-            [in] Float velocityY,
-            [out] Boolean* result);
-        
-        OnScroll(
-            [in] IMotionEvent* e1, 
-            [in] IMotionEvent* e2, 
-            [in] Float distanceX, 
-            [in] Float distanceY,
-            [out] Boolean* result);
-        
-        OnDown(
-            [in] IMotionEvent* e,
-            [out] Boolean* result);
-        
-        OnLongPress(
-            [in] IMotionEvent* e);
-        
-        OnShowPress(
-            [in] IMotionEvent* e);
-        
         /**
          * Describes how the child views are aligned.
          * @param gravity

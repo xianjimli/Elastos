@@ -43,8 +43,8 @@ Gallery::Gallery(
     mDisableSuppressSelectionChangedRunnable =
             new DisableSuppressSelectionChangedRunnable(this);
 
-//    mGestureDetector = new GestureDetector(context, this);
-//    mGestureDetector.setIsLongpressEnabled(TRUE);
+    mGestureDetector = new GestureDetector(context, this);
+    mGestureDetector->SetIsLongpressEnabled(TRUE);
 
     ASSERT_SUCCEEDED(InitFromAttributes(context, attrs, defStyle));
 
@@ -59,7 +59,7 @@ Gallery::~Gallery()
 {
     delete mFlingRunnable;
     delete mDisableSuppressSelectionChangedRunnable;
-//    delete mGestureDetector;
+    delete mGestureDetector;
 }
 
 ECode Gallery::Init(
@@ -69,8 +69,8 @@ ECode Gallery::Init(
 {
     ASSERT_SUCCEEDED(AbsSpinner::Init(context, attrs, defStyle));
 
-    //mGestureDetector = new GestureDetector(context, this);
-    //mGestureDetector.setIsLongpressEnabled(TRUE);
+    mGestureDetector = new GestureDetector(context, this);
+    mGestureDetector->SetIsLongpressEnabled(TRUE);
 
     ASSERT_SUCCEEDED(InitFromAttributes(context, attrs, defStyle));
 
@@ -854,8 +854,9 @@ Int32 Gallery::CalculateTop(
 Boolean Gallery::OnTouchEvent(
     /* [in] */ IMotionEvent* event)
 {
+    printf("Gallery::OnTouchEvent\n");
     // Give everything to the gesture detector
-    Boolean retValue;// = mGestureDetector.onTouchEvent(event);
+    Boolean retValue = mGestureDetector->OnTouchEvent(event);
 
     Int32 action;
     event->GetAction(&action);
@@ -866,6 +867,7 @@ Boolean Gallery::OnTouchEvent(
     else if (action == MotionEvent_ACTION_CANCEL) {
         OnCancel();
     }
+    printf("Gallery::OnTouchEvent---end\n");
 
     return retValue;
 }
@@ -1018,18 +1020,21 @@ void Gallery::OnCancel()
 /**
  * {@inheritDoc}
  */
-ECode Gallery::OnLongPress(
+void Gallery::OnLongPress(
     /* [in] */ IMotionEvent* e)
 {
+    printf("Gallery::OnLongPress---1\n");
     if (mDownTouchPosition < 0) {
-        return NOERROR;
+        return;
     }
 
+    printf("Gallery::OnLongPress---2\n");
     PerformHapticFeedback(HapticFeedbackConstants::LONG_PRESS);
+    printf("Gallery::OnLongPress---3\n");
     Int64 id = GetItemIdAtPosition(mDownTouchPosition);
+    printf("Gallery::OnLongPress---4\n");
     DispatchLongPress(mDownTouchView, mDownTouchPosition, id);
-
-    return NOERROR;
+    printf("Gallery::OnLongPress---5\n");
 }
 
 // Unused methods from GestureDetector.OnGestureListener below
@@ -1037,10 +1042,9 @@ ECode Gallery::OnLongPress(
 /**
  * {@inheritDoc}
  */
-ECode Gallery::OnShowPress(
+void Gallery::OnShowPress(
     /* [in] */ IMotionEvent* e)
 {
-    return NOERROR;
 }
 
 // Unused methods from GestureDetector.OnGestureListener above
