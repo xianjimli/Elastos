@@ -1,0 +1,18 @@
+
+TARGET_NAME= locationEx
+TARGET_TYPE= lib
+
+include $(MAKEDIR)/../../../../sources.inc
+
+INCLUDES += $(MAKEDIR)/../../inc
+INCLUDES += ../../
+INCLUDES += $(PREBUILD_INC)/skia/utils
+INCLUDES += $(PREBUILD_INC)/skia/core
+INCLUDES += $(PREBUILD_INC)/skia/effects
+
+SOURCES += LocationProviderInterface.cpp
+SOURCES += MockProvider.cpp
+SOURCES += GpsLocationProvider.cpp
+SOURCES += PassiveProvider.cpp
+SOURCES += LocationProviderProxy.cpp
+SOURCES += GeocoderProxy.cpp

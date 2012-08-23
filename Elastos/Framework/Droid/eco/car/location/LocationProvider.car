@@ -1,0 +1,11 @@
+
+module
+{
+    const LocationProvider_OUT_OF_SERVICE = 0;
+    const LocationProvider_TEMPORARILY_UNAVAILABLE = 1;
+    const LocationProvider_AVAILABLE = 2;
+
+    interface ILocationProvider {
+    }
+}
+

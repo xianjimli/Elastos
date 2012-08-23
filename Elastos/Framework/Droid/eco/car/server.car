@@ -9,7 +9,9 @@ module
     interface ICapsuleManager;
     interface INotificationManager;
     interface IStatusBarService;
+    interface IRunnable;
     interface ILightsManager;
+    interface ILocationManagerEx;
 
     class CWindowManagerService {
         interface IWindowManagerEx;
@@ -47,4 +49,13 @@ module
 
         interface ILightsManager;
     }
+
+    class CLocationManagerService {
+        constructor(
+            [in] IContext* ctx);
+
+        interface ILocationManagerEx;
+        interface IRunnable;
+    }
+    
 }

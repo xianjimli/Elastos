@@ -1,0 +1,19 @@
+
+module
+{
+    interface IGpsStatusListener;
+
+    /**
+     * An interface for location providers that provide GPS status information.
+     *
+     * {@hide}
+     */
+    interface IGpsStatusProvider {
+        AddGpsStatusListener(
+            [in] IGpsStatusListener* listener);
+
+        RemoveGpsStatusListener(
+            [in] IGpsStatusListener* listener);
+    }
+}
+

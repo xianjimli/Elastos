@@ -11,6 +11,7 @@ INCLUDES += $(MAKEDIR)/inc/content/cm
 INCLUDES += $(MAKEDIR)/inc/ext
 INCLUDES += $(MAKEDIR)/inc/net
 INCLUDES += $(MAKEDIR)/inc/server
+INCLUDES += $(MAKEDIR)/inc/server/location
 INCLUDES += $(MAKEDIR)/inc/utils
 INCLUDES += $(MAKEDIR)/inc/xg
 INCLUDES += $(MAKEDIR)/inc/xmlparser
@@ -25,6 +26,7 @@ INCLUDES += $(MAKEDIR)/inc/widget
 INCLUDES += $(MAKEDIR)/inc/text
 INCLUDES += $(MAKEDIR)/inc/database
 INCLUDES += $(MAKEDIR)/inc/statusbar
+INCLUDES += $(MAKEDIR)/inc/location
 ifeq "$(XDK_TARGET_PLATFORM)" "linux"
 INCLUDES += $(PREBUILD_INC)/skia/utils
 INCLUDES += $(PREBUILD_INC)/skia/core
@@ -52,6 +54,7 @@ LIBRARIES += text/text.lib
 LIBRARIES += emoji/emoji.lib
 LIBRARIES += database/database.lib
 LIBRARIES += statusbar/statusbar.lib
+LIBRARIES += location/location.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.Logging.lib
 
 ifeq "$(XDK_TARGET_PLATFORM)" "win32"

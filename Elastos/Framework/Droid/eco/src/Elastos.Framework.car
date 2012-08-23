@@ -24,6 +24,7 @@ module
     merge("../car/text.car");
     merge("../car/policy.car");
     merge("../car/statusbar.car");
+    merge("../car/location.car");
     merge("../car/server.car");
 }
 

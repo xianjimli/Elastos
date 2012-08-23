@@ -15,3 +15,4 @@ DIRS += text
 DIRS += emoji
 DIRS += database
 DIRS += statusbar
+DIRS += location

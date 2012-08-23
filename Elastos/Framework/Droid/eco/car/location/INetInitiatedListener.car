@@ -1,0 +1,11 @@
+
+module
+{
+    interface INetInitiatedListener {
+        SendNiResponse(
+            [in] Int32 notifId,
+            [in] Int32 userResponse,
+            [out] Boolean* result);
+    }
+}
+

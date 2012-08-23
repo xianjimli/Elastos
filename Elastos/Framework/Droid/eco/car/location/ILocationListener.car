@@ -1,0 +1,22 @@
+
+module
+{
+    interface ILocation;
+
+    interface ILocationListener {
+        OnLocationChanged(
+            [in] ILocation* location);
+
+        OnStatusChanged(
+            [in] String provider,
+            [in] Int32 status,
+            [in] IBundle* extras);
+
+        OnProviderEnabled(
+            [in] String provider);
+
+        OnProviderDisabled(
+            [in] String provider);
+    }
+}
+
