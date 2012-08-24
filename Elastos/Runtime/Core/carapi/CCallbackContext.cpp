@@ -466,6 +466,7 @@ void CCallbackContext::CancelAllCallbackEvents()
 
 PCallbackEvent CCallbackContext::GetEvent(Flags32 fPriority)
 {
+again:
     struct timeval  tp;
     long long now;
     gettimeofday(&tp, NULL);
@@ -481,8 +482,11 @@ PCallbackEvent CCallbackContext::GetEvent(Flags32 fPriority)
                     || ((fPriority & ~CallbackEventFlag_PriorityMask)
                             & pCallbackEvent->m_flags)){
                     if (now < pCallbackEvent->m_when) {
+                        pthread_mutex_unlock(&m_queueLock);
                         usleep((pCallbackEvent->m_when - now) *
                                 (MicrosecPerSec / MillisecPerSec));
+                        pthread_mutex_lock(&m_queueLock);
+                        goto again;
                     }
 
                     pCallbackEvent->Detach();
@@ -492,18 +496,21 @@ PCallbackEvent CCallbackContext::GetEvent(Flags32 fPriority)
 
             pCallbackEvent = pCallbackEvent->Next();
         }
+
+        return NULL;
     }
     else {
         if (now < pCallbackEvent->m_when) {
+            pthread_mutex_unlock(&m_queueLock);
             usleep((pCallbackEvent->m_when - now) *
                     (MicrosecPerSec / MillisecPerSec));
+            pthread_mutex_lock(&m_queueLock);
+            goto again;
         }
 
         pCallbackEvent->Detach();
         return pCallbackEvent;
     }
-
-    return NULL;
 }
 
 Int32 CCallbackContext::HandleCallbackEvents(

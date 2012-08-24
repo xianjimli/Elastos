@@ -103,8 +103,14 @@ ELAPI _Impl_CallbackSink_PostCallbackEvent(
     IInterface *pCallbackContext,
     PCallbackEvent pCallbackEvent)
 {
+    struct timeval now;
+    _ELASTOS Millisecond64 when;
+
+    gettimeofday(&now, NULL);
+    when = (now.tv_sec * 1000 + now.tv_usec/1000.0) + 0.5;
+
     return _Impl_CallbackSink_PostCallbackEventAtTime(
-            pCallbackContext, pCallbackEvent, 0);
+            pCallbackContext, pCallbackEvent, when);
 }
 
 ELAPI _Impl_CallbackSink_SendCallbackEvent(

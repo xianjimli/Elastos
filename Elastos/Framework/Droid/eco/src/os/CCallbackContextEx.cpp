@@ -380,6 +380,7 @@ ECode CCallbackContextEx::CancelCallbackEvents(
 
 PCallbackEvent CCallbackContextEx::GetEvent(Flags32 fPriority)
 {
+again:
     Int64 now = SystemClock::GetUptimeMillis();
 
     PCallbackEvent pCallbackEvent = m_eventQueue.First();
@@ -391,8 +392,11 @@ PCallbackEvent CCallbackContextEx::GetEvent(Flags32 fPriority)
                     || ((fPriority & ~CallbackEventFlag_PriorityMask)
                             & pCallbackEvent->m_flags)){
                     if (now < pCallbackEvent->m_when) {
+                        pthread_mutex_unlock(&m_queueLock);
                         usleep((pCallbackEvent->m_when - now) *
                                 (MicrosecPerSec / MillisecPerSec));
+                        pthread_mutex_lock(&m_queueLock);
+                        goto again;
                     }
 
                     pCallbackEvent->Detach();
@@ -402,18 +406,21 @@ PCallbackEvent CCallbackContextEx::GetEvent(Flags32 fPriority)
 
             pCallbackEvent = pCallbackEvent->Next();
         }
+
+        return NULL;
     }
     else {
         if (now < pCallbackEvent->m_when) {
+            pthread_mutex_unlock(&m_queueLock);
             usleep((pCallbackEvent->m_when - now) *
                     (MicrosecPerSec / MillisecPerSec));
+            pthread_mutex_lock(&m_queueLock);
+            goto again;
         }
 
         pCallbackEvent->Detach();
         return pCallbackEvent;
     }
-
-    return NULL;
 }
 
 Int32 CCallbackContextEx::HandleCallbackEvents(
@@ -525,7 +532,7 @@ Int32 CCallbackContextEx::HandleCallbackEvents(
                     PVoid pSender = pCallbackEvent->m_pSender;
                     PVoid pThis = pCallbackEvent->m_pHandlerThis;
                     PVoid pFunc = pCallbackEvent->m_pHandlerFunc;
-
+//printf("HandleCallback, event time: %lld\n", pCallbackEvent->m_when);
                     pCallbackEvent->m_ecRet = invokeCallback(cFlags, pSender, pThis, pFunc, pBuf, nSize);
                 }
                 if (pCallbackEvent->m_flags & CallbackEventFlag_DirectCall) {
