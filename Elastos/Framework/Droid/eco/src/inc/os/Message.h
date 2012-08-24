@@ -20,7 +20,7 @@ public:
         , mArg2(0)
         , mObj(NULL)
         , mWhen(0)
-        , mNext(NULL)
+        , mNext(NULL)
         {}
 
     /**
