@@ -3,7 +3,7 @@ TARGET_TYPE= lib
 
 include $(MAKEDIR)/../../../sources.inc
 
-INCLUDES += $(MAKEDIR)/../inc
+INCLUDES += $(MAKEDIR)/../../inc
 INCLUDES += ../
 
 SOURCES = CBundle.cpp
@@ -22,9 +22,7 @@ SOURCES += CCallbackContextEx.cpp
 SOURCES += CClassLoader.cpp
 SOURCES += Runnable.cpp
 SOURCES += Build.cpp
-SOURCES += Message.cpp
 SOURCES += MemoryFile.cpp
-SOURCES += Handler.cpp
 SOURCES += FileObserver.cpp
 SOURCES += FileUtils.cpp
 SOURCES += CVibrator.cpp

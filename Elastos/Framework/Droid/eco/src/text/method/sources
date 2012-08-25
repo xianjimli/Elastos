@@ -2,7 +2,7 @@
 TARGET_NAME = method
 TARGET_TYPE = lib
 
-INCLUDES += $(MAKEDIR)/../../inc
+INCLUDES += $(MAKEDIR)/../../../inc
 INCLUDES += ../../
 
 SOURCES = MetaKeyKeyListener.cpp

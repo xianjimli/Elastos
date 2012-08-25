@@ -8,7 +8,7 @@ endif
 
 include $(MAKEDIR)/../../../sources.inc
 
-INCLUDES += $(MAKEDIR)/../inc
+INCLUDES += $(MAKEDIR)/../../inc
 INCLUDES += ../
 
 SOURCES = ComponentInfo.cpp

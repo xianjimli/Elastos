@@ -20,8 +20,6 @@
 #include "content/Signature.h"
 #include "content/IntentFilter.h"
 #include "content/CIntentFilter.h"
-#include "os/Message.h"
-#include "os/Handler.h"
 #include "os/Process.h"
 #include "os/FileObserver.h"
 #include "utils/AutoStringArray.h"

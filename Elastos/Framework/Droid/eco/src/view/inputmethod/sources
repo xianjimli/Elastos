@@ -2,7 +2,7 @@
 TARGET_NAME= inputmethod
 TARGET_TYPE= lib
 
-INCLUDES += $(MAKEDIR)/../../inc
+INCLUDES += $(MAKEDIR)/../../../inc
 INCLUDES += ../../
 
 SOURCES = CExtractedText.cpp

@@ -3,7 +3,7 @@ TARGET_TYPE= lib
 
 include $(MAKEDIR)/../../../sources.inc
 
-INCLUDES += $(MAKEDIR)/../inc
+INCLUDES += $(MAKEDIR)/../../inc
 INCLUDES += ../
 ifeq "$(XDK_TARGET_PLATFORM)" "linux"
 INCLUDES += $(PREBUILD_INC)/skia/utils
