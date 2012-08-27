@@ -1,6 +1,6 @@
 
 #include "SystemServer.h"
-#include <frameworkext.h>
+#include <Elastos.Framework.h>
 #include <elastos/AutoPtr.h>
 
 using namespace Elastos;
@@ -17,7 +17,7 @@ ECode SystemServer::Init()
     CApartment::New(FALSE, (IApartment**)&apartment);
     apartment->Start(ApartmentAttr_New);
 
-    Elastos::GetServiceManager((IServiceManager**)&serviceManager);
+    CServiceManager::AcquireSingleton((IServiceManager**)&serviceManager);
 
     CCapsuleManagerService::New((ICapsuleManager**)&capsuleManager);
     ec = serviceManager->AddService(String("capsule"), capsuleManager.Get());

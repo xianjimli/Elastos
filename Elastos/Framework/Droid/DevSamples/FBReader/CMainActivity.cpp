@@ -1,7 +1,7 @@
 ﻿
 #include "FBReaderDef.h"
 #include "CMainActivity.h"
-#include "CUri.h"
+#include "Uri.h"
 #include <elastos/AutoPtr.h>
 #include <stdio.h>
 #include <vkey.h>
@@ -102,11 +102,11 @@ ECode CMainActivity::MyListener::OnTouch(
     	case MotionEvent_ACTION_DOWN: {
 			Float fx;
 			event->GetX(&fx);
-			
+
 			Int32 x = (Int32)fx;
 			Int32 width = 0;
 			v->GetWidth(&width);
-			
+
 			if (x >= 0 && x <= width / 2) {
 				printf("The previous page..................\n");
 
@@ -338,7 +338,7 @@ ECode CMainActivity::LoadContentsListView()
 
     m_contentsListView->SetDivider(drawable);
 	m_contentsListView->SetDividerHeight(1);
-	
+
     FAIL_RETURN(mBook->GetTextNodeCount(&m_pageCount));
 	printf("==== File: %s, Line: %d ==== , m_pageCount == [%d].\n", __FILE__, __LINE__, m_pageCount);
 
@@ -359,7 +359,7 @@ ECode CMainActivity::LoadContentsListView()
 		CStringWrapper::New(String(itemText), (ICharSequence**)&cs);
         strs->Add(cs);
         cs = NULL;
-	} 
+	}
 
     AutoPtr<IArrayAdapter> adapter;
     CArrayAdapter::New(this, 0x7f020000, strs, (IArrayAdapter**)&adapter);

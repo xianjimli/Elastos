@@ -2,14 +2,19 @@
 #ifndef __URI_H__
 #define __URI_H__
 
+#ifdef _FRAMEWORK
 #include "ext/frameworkext.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/etl_hash_fun.h>
+#else
+#include "Elastos.Framework.h"
+#endif
 
 using namespace Elastos;
 
 class Uri
 {
+#ifdef _FRAMEWORK
 public:
     class AbstractPart
     {
@@ -52,11 +57,24 @@ public:
             /* [in] */ const String& encoded,
             /* [in] */ const String& decoded);
     };
+#endif
 
 public:
+#ifndef _FRAMEWORK
     static CARAPI Parse(
         /* [in] */ const String& uriString,
-        /* [out] */ IUri **ppUri);
+        /* [out] */ IUri** uri)
+    {
+        if (uri == NULL) return E_INVALID_ARGUMENT;
+
+        return CStringUri::New(uriString, uri);
+    }
+#endif
+
+#ifdef _FRAMEWORK
+    static CARAPI Parse(
+        /* [in] */ const String& uriString,
+        /* [out] */ IUri** uri);
 
     static CARAPI Decode(
         /* [in] */ const String& str,
@@ -113,7 +131,10 @@ private:
     static const Int32 NOT_CALCULATED = -2;
 
     friend class CStringUri;
+#endif
 };
+
+#ifdef _FRAMEWORK
 
 _ELASTOS_NAMESPACE_BEGIN
 
@@ -129,5 +150,7 @@ template<> struct Hash<IUri*>
 };
 
 _ELASTOS_NAMESPACE_END
+
+#endif
 
 #endif //__URI_H__

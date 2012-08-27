@@ -4,7 +4,7 @@
 
 #include <elastos/AutoPtr.h>
 #include <frameworkext.h>
-#include <curi.h>
+#include <Uri.h>
 
 ECode CActivityOne::OnCreate(
     /* [in] */ IBundle* savedInstanceState)

@@ -2,7 +2,7 @@
 // Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.
 //==========================================================================
 #include <elastos.h>
-#include <frameworkext.h>
+#include <Elastos.Framework.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -116,7 +116,7 @@ int LaunchApp(void *handle, char *appName)
             printf("init system server failed, retry...\n");
     }
 
-    Elastos::GetServiceManager((IServiceManager**)&serviceManager);
+    CServiceManager::AcquireSingleton((IServiceManager**)&serviceManager);
     serviceManager->GetService(String("capsule"), (IInterface**)&capsuleManager);
 
     serviceManager->GetService(String("ActivityManagerService"), (IInterface**)&activityManagerService);

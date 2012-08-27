@@ -1,31 +1,40 @@
 
-#include "CActivity.h"
-#include "frameworkext.h"
+#ifdef _FRAMEWORK
+#include "app/Activity.h"
+#include "impl/CPolicyManager.h"
+#include "server/CServiceManager.h"
+#else
+#include "Activity.h"
+#endif
 
-#include <stdio.h>
 
-CActivity::CActivity()
+Activity::Activity()
     : mManagedDialogs(NULL)
     , mWindowAdded(FALSE)
     , mVisibleFromClient(TRUE)
     , mTitleColor(0)
     , mTitleReady(FALSE)
 {
-    AddRef();
 }
 
-CActivity::~CActivity()
+Activity::~Activity()
 {}
 
-ECode CActivity::Initialize()
+ECode Activity::Initialize()
 {
     return NOERROR;
 }
 
-PInterface CActivity::Probe(
+PInterface Activity::Probe(
     /* [in] */ REIID riid)
 {
-    if (riid == EIID_IActivity) {
+    if (riid == EIID_IInterface) {
+        return (PInterface)(IActivity*)this;
+    }
+    else if (riid == EIID_IObject) {
+        return (IObject*)this;
+    }
+    else if (riid == EIID_IActivity) {
         return (IActivity*)this;
     }
     else if (riid == EIID_IContextThemeWrapper) {
@@ -37,34 +46,20 @@ PInterface CActivity::Probe(
     else if (riid == EIID_IContext) {
         return (IContext*)this;
     }
-    else {
-        return CBaseObject::Probe(riid);
-    }
+    return NULL;
 }
 
-UInt32 CActivity::AddRef()
+UInt32 Activity::AddRef()
 {
-    // atomic_inc of android bionic C library will return
-    // the old value of mRef before it is increased
-    Int32 ref = atomic_inc(&mRef);
-    // so we should increase ref before return
-    return ++ref;
+    return ElRefBase::AddRef();
 }
 
-UInt32 CActivity::Release()
+UInt32 Activity::Release()
 {
-    // atomic_inc of android bionic C library will return
-    // the old value of mRef before it is decreased
-    Int32 ref = atomic_dec(&mRef);
-    // so we should decrease ref
-    if (--ref == 0) {
-        delete this;
-    }
-    assert(ref >= 0);
-    return ref;
+    return ElRefBase::Release();
 }
 
-ECode CActivity::GetInterfaceID(
+ECode Activity::GetInterfaceID(
     /* [in] */ IInterface *pObject,
     /* [out] */ InterfaceID *pIID)
 {
@@ -74,18 +69,34 @@ ECode CActivity::GetInterfaceID(
         *pIID = EIID_IActivity;
         return NOERROR;
     }
-    else {
-        return CBaseObject::GetInterfaceID(pObject, pIID);
+    else if (pObject == (IInterface *)(IObject *)this) {
+        *pIID = EIID_IObject;
+        return NOERROR;
     }
+
+    return E_INVALID_ARGUMENT;
 }
 
-ECode CActivity::GetClassID(
+ECode Activity::Aggregate(
+    /* [in] */ AggrType aggrType,
+    /* [in] */ PInterface pObject)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode Activity::GetDomain(
+    /* [out] */ PInterface *ppObject)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode Activity::GetClassID(
     /* [out] */ ClassID *pCLSID)
 {
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CActivity::IsChild(
+ECode Activity::IsChild(
     /* [out] */ Boolean* isChild)
 {
     if (isChild == NULL) return E_INVALID_ARGUMENT;
@@ -93,7 +104,7 @@ ECode CActivity::IsChild(
     return NOERROR;
 }
 
-ECode CActivity::GetID(
+ECode Activity::GetID(
     /* [out] */ String* id)
 {
     if (id == NULL) return E_INVALID_ARGUMENT;
@@ -101,7 +112,7 @@ ECode CActivity::GetID(
     return NOERROR;
 }
 
-ECode CActivity::CreateCapsuleContext(
+ECode Activity::CreateCapsuleContext(
     /* [in] */ const String& capsuleName,
     /* [in] */ Int32 flags,
     /* [out] */ IContext** ctx)
@@ -109,35 +120,35 @@ ECode CActivity::CreateCapsuleContext(
     return mBase->CreateCapsuleContext(capsuleName, flags, ctx);
 }
 
-ECode CActivity::CheckCallingPermission(
+ECode Activity::CheckCallingPermission(
     /* [in] */ const String& permission,
     /* [out] */ Int32* value)
 {
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CActivity::EnforceCallingOrSelfPermission(
+ECode Activity::EnforceCallingOrSelfPermission(
     /* [in] */ CString permission,
     /* [in] */ CString message)
 {
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CActivity::RevokeUriPermission(
+ECode Activity::RevokeUriPermission(
     /* [in] */ IUri* uri,
     /* [in] */ Int32 modeFlags)
 {
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CActivity::CheckCallingOrSelfPermission(
+ECode Activity::CheckCallingOrSelfPermission(
     /* [in] */ const String& permission,
     /* [out] */ Int32* perm)
 {
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CActivity::GrantUriPermission(
+ECode Activity::GrantUriPermission(
     /* [in] */ const String& toCapsule,
     /* [in] */ IUri* uri,
     /* [in] */ Int32 modeFlags)
@@ -145,39 +156,39 @@ ECode CActivity::GrantUriPermission(
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CActivity::GetAssets(
+ECode Activity::GetAssets(
     /* [out] */ IAssetManager** assetManager)
 {
     return mBase->GetAssets(assetManager);
 }
 
-ECode CActivity::GetResources(
+ECode Activity::GetResources(
     /* [out] */ IResources** resources)
 {
     return mBase->GetResources(resources);
 }
 
-ECode CActivity::GetContentResolver(
+ECode Activity::GetContentResolver(
     /* [out] */ IContentResolver** resolver)
 {
     return mBase->GetContentResolver(resolver);
 }
 
-ECode CActivity::GetText(
+ECode Activity::GetText(
     /* [in] */ Int32 resId,
     /* [out] */ ICharSequence** text)
 {
     return mBase->GetText(resId, text);
 }
 
-ECode CActivity::SetTheme(
+ECode Activity::SetTheme(
     /* [in] */ Int32 resid)
 {
     mThemeResource = resid;
     return InitializeTheme();
 }
 
-ECode CActivity::GetTheme(
+ECode Activity::GetTheme(
     /* [out] */ ITheme** theme)
 {
     if (mTheme == NULL) {
@@ -193,14 +204,14 @@ ECode CActivity::GetTheme(
     return NOERROR;
 }
 
-ECode CActivity::ObtainStyledAttributes(
+ECode Activity::ObtainStyledAttributes(
     /* [in] */ const ArrayOf<Int32>& attrs,
     /* [out] */ ITypedArray** styles)
 {
     return mBase->ObtainStyledAttributes(attrs, styles);
 }
 
-ECode CActivity::ObtainStyledAttributesEx(
+ECode Activity::ObtainStyledAttributesEx(
     /* [in] */ Int32 resid,
     /* [in] */ const ArrayOf<Int32>& attrs,
     /* [out] */ ITypedArray** styles)
@@ -208,7 +219,7 @@ ECode CActivity::ObtainStyledAttributesEx(
     return mBase->ObtainStyledAttributesEx(resid, attrs, styles);
 }
 
-ECode CActivity::ObtainStyledAttributesEx2(
+ECode Activity::ObtainStyledAttributesEx2(
     /* [in] */ IAttributeSet* set,
     /* [in] */ const ArrayOf<Int32>& attrs,
     /* [out] */ ITypedArray** styles)
@@ -216,7 +227,7 @@ ECode CActivity::ObtainStyledAttributesEx2(
     return mBase->ObtainStyledAttributesEx2(set, attrs, styles);
 }
 
-ECode CActivity::ObtainStyledAttributesEx3(
+ECode Activity::ObtainStyledAttributesEx3(
     /* [in] */ IAttributeSet* set,
     /* [in] */ const ArrayOf<Int32>& attrs,
     /* [in] */ Int32 defStyleAttr,
@@ -227,19 +238,19 @@ ECode CActivity::ObtainStyledAttributesEx3(
             defStyleAttr, defStyleRes, styles);
 }
 
-ECode CActivity::GetClassLoader(
+ECode Activity::GetClassLoader(
     /* [out] */ IClassLoader** loader)
 {
     return mBase->GetClassLoader(loader);
 }
 
-ECode CActivity::GetCapsuleName(
+ECode Activity::GetCapsuleName(
     /* [out] */ String* capsuleName)
 {
     return mBase->GetCapsuleName(capsuleName);
 }
 
-ECode CActivity::GetBaseContext(
+ECode Activity::GetBaseContext(
     /* [out] */ IContext** ctx)
 {
     if (ctx == NULL) return E_INVALID_ARGUMENT;
@@ -250,7 +261,7 @@ ECode CActivity::GetBaseContext(
 }
 
 // internal use.
-ECode CActivity::IsStartedActivity(
+ECode Activity::IsStartedActivity(
     /* [out] */ Boolean* isStartedActivity)
 {
     if (!isStartedActivity) {
@@ -260,7 +271,7 @@ ECode CActivity::IsStartedActivity(
     return NOERROR;
 }
 
-ECode CActivity::GetWindowEx(
+ECode Activity::GetWindowEx(
     /* [out] */ IWindow** window)
 {
     if (!window) {
@@ -273,14 +284,14 @@ ECode CActivity::GetWindowEx(
     return NOERROR;
 }
 
-ECode CActivity::SetDecorView(
+ECode Activity::SetDecorView(
     /* [in] */ IView* decor)
 {
     mDecor = decor;
     return NOERROR;
 }
 
-ECode CActivity::GetDecorView(
+ECode Activity::GetDecorView(
     /* [out] */ IView** decor)
 {
     if (!decor) {
@@ -293,7 +304,7 @@ ECode CActivity::GetDecorView(
     return NOERROR;
 }
 
-ECode CActivity::IsVisibleFromClient(
+ECode Activity::IsVisibleFromClient(
     /* [out] */ Boolean* visible)
 {
     if (!visible) {
@@ -303,14 +314,14 @@ ECode CActivity::IsVisibleFromClient(
     return NOERROR;
 }
 
-ECode CActivity::SetWindowAdded(
+ECode Activity::SetWindowAdded(
     /* [in] */ Boolean added)
 {
     mWindowAdded = added;
     return NOERROR;
 }
 
-ECode CActivity::GetWindowManagerEx(
+ECode Activity::GetWindowManagerEx(
     /* [out] */ IWindowManager** mgr)
 {
     if (!mgr) {
@@ -325,53 +336,53 @@ ECode CActivity::GetWindowManagerEx(
 
 EXTERN_C ECode GrafixInit();
 
-ECode CActivity::Create(
+ECode Activity::Create(
     /* [in] */ IBundle* savedInstanceState)
 {
     return OnCreate(savedInstanceState);
 }
 
-ECode CActivity::PostCreate(
+ECode Activity::PostCreate(
     /* [in] */ IBundle* savedInstanceState)
 {
     return OnPostCreate(savedInstanceState);
 }
 
-ECode CActivity::Start()
+ECode Activity::Start()
 {
     ECode ec = OnStart();
 
     return ec;
 }
 
-ECode CActivity::Restart()
+ECode Activity::Restart()
 {
     OnRestart();
 
     return Start();
 }
 
-ECode CActivity::Resume()
+ECode Activity::Resume()
 {
     return OnResume();
 }
 
-ECode CActivity::Pause()
+ECode Activity::Pause()
 {
     return OnPause();
 }
 
-ECode CActivity::Stop()
+ECode Activity::Stop()
 {
     return OnStop();
 }
 
-ECode CActivity::Destroy()
+ECode Activity::Destroy()
 {
     return OnDestroy();
 }
 
-ECode CActivity::OnCreate(
+ECode Activity::OnCreate(
     /* [in] */ IBundle* savedInstanceState)
 {
 //    mVisibleFromClient = mWindow.getWindowStyle().getBoolean(
@@ -380,7 +391,7 @@ ECode CActivity::OnCreate(
     return NOERROR;
 }
 
-AutoPtr<IDialog> CActivity::CreateDialog(
+AutoPtr<IDialog> Activity::CreateDialog(
     /* [in] */ Int32 dialogId,
     /* [in] */ IBundle* state,
     /* [in] */ IBundle* args)
@@ -394,15 +405,15 @@ AutoPtr<IDialog> CActivity::CreateDialog(
     return dialog;
 }
 
-//private static String CActivity::savedDialogKeyFor(Int32 key) {
+//private static String Activity::savedDialogKeyFor(Int32 key) {
 //    return SAVED_DIALOG_KEY_PREFIX + key;
 //}
 //
-//private static String CActivity::savedDialogArgsKeyFor(Int32 key) {
+//private static String Activity::savedDialogArgsKeyFor(Int32 key) {
 //    return SAVED_DIALOG_ARGS_KEY_PREFIX + key;
 //}
 
-ECode CActivity::OnPostCreate(
+ECode Activity::OnPostCreate(
     /* [in] */ IBundle* savedInstanceState)
 {
     Boolean isChild;
@@ -419,29 +430,29 @@ ECode CActivity::OnPostCreate(
     return NOERROR;
 }
 
-ECode CActivity::OnStart()
+ECode Activity::OnStart()
 {
     mCalled = TRUE;
     return NOERROR;
 }
 
-ECode CActivity::OnRestart()
+ECode Activity::OnRestart()
 {
     mCalled = TRUE;
     return NOERROR;
 }
 
-ECode CActivity::OnResume()
+ECode Activity::OnResume()
 {
     return NOERROR;
 }
 
-ECode CActivity::OnPause()
+ECode Activity::OnPause()
 {
     return NOERROR;
 }
 
-ECode CActivity::OnPostResume()
+ECode Activity::OnPostResume()
 {
 //    final Window win = getWindow();
 //    if (win != NULL) win.makeActive();
@@ -449,12 +460,12 @@ ECode CActivity::OnPostResume()
     return NOERROR;
 }
 
-ECode CActivity::OnStop()
+ECode Activity::OnStop()
 {
     return NOERROR;
 }
 
-ECode CActivity::OnDestroy()
+ECode Activity::OnDestroy()
 {
     mCalled = TRUE;
 
@@ -475,7 +486,7 @@ ECode CActivity::OnDestroy()
     return NOERROR;
 }
 
-AutoPtr<IView> CActivity::FindViewById(
+AutoPtr<IView> Activity::FindViewById(
     /* [in] */ Int32 id)
 {
     AutoPtr<IView> view;
@@ -483,36 +494,36 @@ AutoPtr<IView> CActivity::FindViewById(
     return view;
 }
 
-ECode CActivity::SetContentView(
+ECode Activity::SetContentView(
     /* [in] */ Int32 layoutResID)
 {
     return GetWindow()->SetContentView(layoutResID);
 }
 
-ECode CActivity::SetContentView(
+ECode Activity::SetContentView(
     /* [in] */ IView* view)
 {
     return GetWindow()->SetContentViewEx(view);
 }
 
-ECode CActivity::SetContentView(
+ECode Activity::SetContentView(
     /* [in] */ IView* view,
     /* [in] */ IViewGroupLayoutParams* params)
 {
     return GetWindow()->SetContentViewEx2(view, params);
 }
 
-AutoPtr<IWindowManager> CActivity::GetWindowManager()
+AutoPtr<IWindowManager> Activity::GetWindowManager()
 {
     return mWindowManager;
 }
 
-AutoPtr<IWindow> CActivity::GetWindow()
+AutoPtr<IWindow> Activity::GetWindow()
 {
     return mWindow;
 }
 
-ECode CActivity::Attach(
+ECode Activity::Attach(
     /* [in] */ IContext* context,
     /* [in] */ IApplicationApartment* apartment,
     /* [in] */ IInstrumentation* instr,
@@ -530,7 +541,7 @@ ECode CActivity::Attach(
             intent, info, title, parent, id, lastNonConfigurationInstance, NULL, config);
 }
 
-ECode CActivity::AttachEx(
+ECode Activity::AttachEx(
     /* [in] */ IContext* context,
     /* [in] */ IApplicationApartment* apartment,
     /* [in] */ IInstrumentation* instr,
@@ -578,20 +589,20 @@ ECode CActivity::AttachEx(
     return NOERROR;
 }
 
-ECode CActivity::DispatchNewIntent(
+ECode Activity::DispatchNewIntent(
     /* [in] */ IIntent *intent)
 {
     return OnNewIntent(intent);
 }
 
-ECode CActivity::SetCalled(
+ECode Activity::SetCalled(
     /* [in] */ Boolean called)
 {
     mCalled = called;
     return NOERROR;
 }
 
-ECode CActivity::IsCalled(
+ECode Activity::IsCalled(
     /* [out] */ Boolean* called)
 {
     if (called == NULL) return E_INVALID_ARGUMENT;
@@ -599,14 +610,14 @@ ECode CActivity::IsCalled(
     return NOERROR;
 }
 
-ECode CActivity::SetFinished(
+ECode Activity::SetFinished(
     /* [in] */ Boolean finished)
 {
     mFinished = finished;
     return NOERROR;
 }
 
-ECode CActivity::IsFinished(
+ECode Activity::IsFinished(
     /* [out] */ Boolean* finished)
 {
     if (finished == NULL) return E_INVALID_ARGUMENT;
@@ -614,7 +625,7 @@ ECode CActivity::IsFinished(
     return NOERROR;
 }
 
-ECode CActivity::StartActivity(
+ECode Activity::StartActivity(
     /* [in] */ IIntent *intent)
 {
     return StartActivityForResult(intent, -1);
@@ -651,7 +662,7 @@ ECode CActivity::StartActivity(
  *
  * @see #startActivity
  */
-ECode CActivity::StartActivityForResult(
+ECode Activity::StartActivityForResult(
     /* [in] */ IIntent *intent,
     /* [in] */ Int32 requestCode)
 {
@@ -684,7 +695,7 @@ ECode CActivity::StartActivityForResult(
     return NOERROR;
 }
 
-ECode CActivity::StartActivityFromChild(
+ECode Activity::StartActivityFromChild(
     /* [in] */ IActivity* child,
     /* [in] */ IIntent* intent,
     /* [in] */ Int32 requestCode)
@@ -706,39 +717,39 @@ ECode CActivity::StartActivityFromChild(
     return NOERROR;
 }
 
-ECode CActivity::Finish()
+ECode Activity::Finish()
 {
     AutoPtr<IServiceManager> serviceManager;
     AutoPtr<IActivityManager> activityManager;
 
-    Elastos::GetServiceManager((IServiceManager**)&serviceManager);
+    CServiceManager::AcquireSingleton((IServiceManager**)&serviceManager);
     serviceManager->GetService(String("ActivityManagerService"), (IInterface**)&activityManager);
     assert(activityManager != NULL);
     Boolean finished;
     return activityManager->FinishActivity(mToken, mResultCode, mResultData, &finished);
 }
 
-ECode CActivity::SendBroadcast(
+ECode Activity::SendBroadcast(
     /* [in] */ IIntent *intent)
 {
     return mBase->SendBroadcast(intent);
 }
 
-ECode CActivity::StartService(
+ECode Activity::StartService(
     /* [in] */ IIntent* service,
     /* [out] */ IComponentName** name)
 {
     return mBase->StartService(service, name);
 }
 
-ECode CActivity::StopService(
+ECode Activity::StopService(
     /* [in] */ IIntent* service,
     /* [out] */ Boolean* succeeded)
 {
     return mBase->StopService(service, succeeded);
 }
 
-ECode CActivity::BindService(
+ECode Activity::BindService(
     /* [in] */ IIntent* service,
     /* [in] */ IServiceConnection* conn,
     /* [in] */ Int32 flags,
@@ -747,13 +758,13 @@ ECode CActivity::BindService(
     return mBase->BindService(service, conn, flags, succeeded);
 }
 
-ECode CActivity::UnbindService(
+ECode Activity::UnbindService(
     /* [in] */ IServiceConnection* conn)
 {
     return mBase->UnbindService(conn);
 }
 
-ECode CActivity::GetSystemService(
+ECode Activity::GetSystemService(
     /* [in] */ CString name,
     /* [out] */ IInterface** object)
 {
@@ -804,7 +815,7 @@ ECode CActivity::GetSystemService(
  *
  * @return Returns the complete component name for this activity
  */
-ECode CActivity::GetComponentName(
+ECode Activity::GetComponentName(
     /* [out] */ IComponentName** name)
 {
     if (name == NULL) return E_ILLEGAL_ARGUMENT_EXCEPTION;
@@ -820,7 +831,7 @@ ECode CActivity::GetComponentName(
  * is an embedded activity, the parent can do whatever it wants
  * with it.
  */
-ECode CActivity::SetTitle(
+ECode Activity::SetTitle(
     /* [in] */ ICharSequence* title)
 {
     mTitle = title;
@@ -838,14 +849,14 @@ ECode CActivity::SetTitle(
  * is an embedded activity, the parent can do whatever it wants
  * with it.
  */
-ECode CActivity::SetTitleEx(
+ECode Activity::SetTitleEx(
     /* [in] */ Int32 titleId)
 {
 //    setTitle(getText(titleId));
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CActivity::SetTitleColor(
+ECode Activity::SetTitleColor(
     /* [in] */ Int32 textColor)
 {
     mTitleColor = textColor;
@@ -853,7 +864,7 @@ ECode CActivity::SetTitleColor(
     return NOERROR;
 }
 
-ECode CActivity::GetTitle(
+ECode Activity::GetTitle(
     /* [out] */ ICharSequence** title)
 {
     if (title == NULL) return E_ILLEGAL_ARGUMENT_EXCEPTION;
@@ -862,7 +873,7 @@ ECode CActivity::GetTitle(
     return NOERROR;
 }
 
-ECode CActivity::GetTitleColor(
+ECode Activity::GetTitleColor(
     /* [out] */ Int32* textColor)
 {
     if (textColor == NULL) return E_ILLEGAL_ARGUMENT_EXCEPTION;
@@ -871,7 +882,7 @@ ECode CActivity::GetTitleColor(
 }
 
 /*protected*/
-ECode CActivity::OnTitleChanged(
+ECode Activity::OnTitleChanged(
     /* [in] */ ICharSequence* title,
     /* [in] */ Int32 color)
 {
@@ -887,7 +898,7 @@ ECode CActivity::OnTitleChanged(
     return NOERROR;
 }
 
-ECode CActivity::DispatchActivityResult(
+ECode Activity::DispatchActivityResult(
     /* [in] */ const String& who,
     /* [in] */ Int32 requestCode,
     /* [in] */ Int32 resultCode,
@@ -896,7 +907,7 @@ ECode CActivity::DispatchActivityResult(
     return OnActivityResult(requestCode, resultCode, data);
 }
 
-ECode CActivity::OnActivityResult(
+ECode Activity::OnActivityResult(
     /* [in] */ Int32 requestCode,
     /* [in] */ Int32 resultCode,
     /* [in] */ IIntent *data)
@@ -904,13 +915,13 @@ ECode CActivity::OnActivityResult(
     return NOERROR;
 }
 
-ECode CActivity::OnNewIntent(
+ECode Activity::OnNewIntent(
     /* [in] */ IIntent *intent)
 {
     return NOERROR;
 }
 
-ECode CActivity::SetResult(
+ECode Activity::SetResult(
     /* [in] */ Int32 resultCode,
     /* [in] */ IIntent *resultData)
 {
@@ -920,12 +931,12 @@ ECode CActivity::SetResult(
     return NOERROR;
 }
 
-AutoPtr<IIntent> CActivity::GetIntent()
+AutoPtr<IIntent> Activity::GetIntent()
 {
     return mIntent;
 }
 
-ECode CActivity::MakeVisible()
+ECode Activity::MakeVisible()
 {
     if (!mWindowAdded) {
         AutoPtr<IWindowManagerLayoutParams> wmlp;
@@ -938,7 +949,7 @@ ECode CActivity::MakeVisible()
     return NOERROR;
 }
 
-ECode CActivity::GetActivityToken(
+ECode Activity::GetActivityToken(
     /* [out] */ IBinder** binder)
 {
     if (!binder) {
@@ -954,7 +965,7 @@ ECode CActivity::GetActivityToken(
     return NOERROR;
 }
 
-ECode CActivity::PerformStart()
+ECode Activity::PerformStart()
 {
     mCalled = FALSE;
     mInstrumentation->CallActivityOnStart((IActivity*)this);
@@ -966,7 +977,7 @@ ECode CActivity::PerformStart()
     return NOERROR;
 }
 
-ECode CActivity::PerformRestart()
+ECode Activity::PerformRestart()
 {
 //    final Int32 N = mManagedCursors.size();
 //    for (Int32 i=0; i<N; i++) {
@@ -992,7 +1003,7 @@ ECode CActivity::PerformRestart()
     return NOERROR;
 }
 
-ECode CActivity::PerformResume()
+ECode Activity::PerformResume()
 {
     PerformRestart();
 
@@ -1020,19 +1031,19 @@ ECode CActivity::PerformResume()
     return NOERROR;
 }
 
-ECode CActivity::PerformPause()
+ECode Activity::PerformPause()
 {
     return Pause();
 }
 
-ECode CActivity::PerformUserLeaving()
+ECode Activity::PerformUserLeaving()
 {
     OnUserInteraction();
     OnUserLeaveHint();
     return NOERROR;
 }
 
-ECode CActivity::PerformStop()
+ECode Activity::PerformStop()
 {
     if (!mStopped) {
 //        if (mWindow != NULL) {
@@ -1070,7 +1081,7 @@ ECode CActivity::PerformStop()
  *
  * @param outState The bundle to save the state to.
  */
-ECode CActivity::PerformSaveInstanceState(
+ECode Activity::PerformSaveInstanceState(
     /* [in] */ IBundle* outState)
 {
 //    OnSaveInstanceState(outState);
@@ -1078,15 +1089,15 @@ ECode CActivity::PerformSaveInstanceState(
     return NOERROR;
 }
 
-void CActivity::OnUserInteraction()
+void Activity::OnUserInteraction()
 {
 }
 
-void CActivity::OnUserLeaveHint()
+void Activity::OnUserLeaveHint()
 {
 }
 
-ECode CActivity::AttachBaseContext(
+ECode Activity::AttachBaseContext(
     /* [in] */ IContext* newBase)
 {
     if (mBase != NULL) {
@@ -1098,7 +1109,7 @@ ECode CActivity::AttachBaseContext(
     return NOERROR;
 }
 
-ECode CActivity::OnApplyThemeResource(
+ECode Activity::OnApplyThemeResource(
     /* [in] */ ITheme* theme,
     /* [in] */ Int32 resid,
     /* [in] */ Boolean first)
@@ -1106,7 +1117,7 @@ ECode CActivity::OnApplyThemeResource(
     return theme->ApplyStyle(resid, TRUE);
 }
 
-ECode CActivity::InitializeTheme()
+ECode Activity::InitializeTheme()
 {
     Boolean first = mTheme == NULL;
     if (first) {
@@ -1126,7 +1137,7 @@ ECode CActivity::InitializeTheme()
 /**
  * @deprecated Old no-arguments version of {@link #onCreateDialog(Int32, Bundle)}.
  */
-AutoPtr<IDialog> CActivity::OnCreateDialog(
+AutoPtr<IDialog> Activity::OnCreateDialog(
     /* [in] */ Int32 id)
 {
     return NULL;
@@ -1158,7 +1169,7 @@ AutoPtr<IDialog> CActivity::OnCreateDialog(
  * @see #dismissDialog(Int32)
  * @see #removeDialog(Int32)
  */
-AutoPtr<IDialog> CActivity::OnCreateDialog(
+AutoPtr<IDialog> Activity::OnCreateDialog(
     /* [in] */ Int32 id,
     /* [in] */ IBundle* args)
 {
@@ -1169,7 +1180,7 @@ AutoPtr<IDialog> CActivity::OnCreateDialog(
  * @deprecated Old no-arguments version of
  * {@link #onPrepareDialog(Int32, Dialog, Bundle)}.
  */
-void CActivity::OnPrepareDialog(
+void Activity::OnPrepareDialog(
     /* [in] */ Int32 id,
     /* [in] */ IDialog* dialog)
 {
@@ -1196,7 +1207,7 @@ void CActivity::OnPrepareDialog(
  * @see #dismissDialog(Int32)
  * @see #removeDialog(Int32)
  */
-void CActivity::OnPrepareDialog(
+void Activity::OnPrepareDialog(
     /* [in] */ Int32 id,
     /* [in] */ IDialog* dialog,
     /* [in] */ IBundle* args)
@@ -1209,7 +1220,7 @@ void CActivity::OnPrepareDialog(
  * take any arguments.  Simply calls {@link #showDialog(Int32, Bundle)}
  * with NULL arguments.
  */
-ECode CActivity::ShowDialog(
+ECode Activity::ShowDialog(
     /* [in] */ Int32 id)
 {
     Boolean res;
@@ -1239,7 +1250,7 @@ ECode CActivity::ShowDialog(
  * @see #dismissDialog(Int32)
  * @see #removeDialog(Int32)
  */
-ECode CActivity::ShowDialogEx(
+ECode Activity::ShowDialogEx(
     /* [in] */ Int32 id,
     /* [in] */ IBundle* args,
     /* [out] */ Boolean* res)
@@ -1288,7 +1299,7 @@ ECode CActivity::ShowDialogEx(
  * @see #showDialog(Int32)
  * @see #removeDialog(Int32)
  */
-ECode CActivity::DismissDialog(
+ECode Activity::DismissDialog(
     /* [in] */ Int32 id)
 {
     if (mManagedDialogs == NULL) {
@@ -1324,7 +1335,7 @@ ECode CActivity::DismissDialog(
  * @see #showDialog(Int32)
  * @see #dismissDialog(Int32)
  */
-ECode CActivity::RemoveDialog(
+ECode Activity::RemoveDialog(
     /* [in] */ Int32 id)
 {
     if (mManagedDialogs != NULL) {

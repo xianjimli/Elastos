@@ -1,6 +1,6 @@
 
 #include "CActivityOne.h"
-#include "CUri.h"
+#include "Uri.h"
 #include <elastos/AutoPtr.h>
 #include <stdio.h>
 

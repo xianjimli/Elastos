@@ -1,19 +1,26 @@
-#ifndef __CSERVICE_H__
-#define __CSERVICE_H__
+#ifndef __SERVICE_H__
+#define __SERVICE_H__
 
-#include <elastos.h>
-#include <Elastos.Framework.h>
-#include "CBaseObject.h"
+#ifdef _FRAMEWORK
+#include "ext/frameworkext.h"
+#else
+#define __USE_MALLOC
+#include "Elastos.Framework.h"
+#endif
+#include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>
 
 using namespace Elastos;
 
-class CService : public CBaseObject, public IService
+class Service
+    : public ElRefBase
+    , public IObject
+    , public IService
 {
 public:
-    CService();
+    Service();
 
-    virtual ~CService();
+    virtual ~Service();
 
     virtual CARAPI Initialize();
 
@@ -27,6 +34,13 @@ public:
     CARAPI GetInterfaceID(
         /* [in] */ IInterface *pObject,
         /* [out] */ InterfaceID *pIID);
+
+    CARAPI Aggregate(
+        /* [in] */ AggrType aggrType,
+        /* [in] */ PInterface pObject);
+
+    CARAPI GetDomain(
+        /* [out] */ PInterface *ppObject);
 
     CARAPI GetClassID(
         /* [out] */ ClassID *pCLSID);
@@ -225,4 +239,4 @@ private:
     Boolean mStartCompatibility;
 };
 
-#endif //__CSERVICE_H__
+#endif //__SERVICE_H__

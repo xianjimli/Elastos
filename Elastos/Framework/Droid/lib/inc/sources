@@ -1,9 +1,0 @@
-
-EXPORT_HEADERS = frameworkext.h
-EXPORT_HEADERS += CUri.h
-EXPORT_HEADERS += CBaseObject.h
-EXPORT_HEADERS += CActivity.h
-EXPORT_HEADERS += CService.h
-EXPORT_HEADERS += CBroadcastReceiver.h
-EXPORT_HEADERS += CInstrumentation.h
-EXPORT_HEADERS += CContentProvider.h

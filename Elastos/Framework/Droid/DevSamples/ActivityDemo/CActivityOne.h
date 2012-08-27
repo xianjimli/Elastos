@@ -2,10 +2,10 @@
 #ifndef __CACTIVITYONE_H__
 #define __CACTIVITYONE_H__
 
-#include "CActivity.h"
+#include "Activity.h"
 #include "_CActivityOne.h"
 
-class CActivityOne : public CActivity
+class CActivityOne : public Activity
 {
 public:
     class MyListener : public IViewOnTouchListener, public IViewOnKeyListener

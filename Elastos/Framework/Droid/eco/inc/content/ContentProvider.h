@@ -1,20 +1,28 @@
 
-#ifndef __CCONTENTPROVIDER_H__
-#define __CCONTENTPROVIDER_H__
+#ifndef __CONTENTPROVIDER_H__
+#define __CONTENTPROVIDER_H__
 
-#include <Elastos.Framework.h>
-#include "CBaseObject.h"
+#ifdef _FRAMEWORK
+#include "ext/frameworkext.h"
+#else
+#define __USE_MALLOC
+#include "Elastos.Framework.h"
+#endif
+#include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>
 
 using namespace Elastos;
 
-class CContentProvider : public CBaseObject, public IContentProvider 
+class ContentProvider
+    : public ElRefBase
+    , public IObject
+    , public IContentProvider
 {
 public:
-    virtual ~CContentProvider();
-    
+    virtual ~ContentProvider();
+
     virtual CARAPI Initialize();
-    
+
     CARAPI_(PInterface) Probe(
         /* [in]  */ REIID riid);
 
@@ -26,18 +34,28 @@ public:
         /* [in] */ IInterface *pObject,
         /* [out] */ InterfaceID *pIID);
 
+    CARAPI Aggregate(
+        /* [in] */ AggrType aggrType,
+        /* [in] */ PInterface pObject);
+
+    CARAPI GetDomain(
+        /* [out] */ PInterface *ppObject);
+
+    CARAPI GetClassID(
+        /* [out] */ ClassID *pCLSID);
+
     CARAPI AttachInfo(
         /* [in] */ IContext* context,
         /* [in] */ IContentProviderInfo* providerInfo);
 
 protected:
     virtual CARAPI OnCreate();
-    
+
 private:
     AutoPtr<IContext> mContext;
     Int32 mMyUid;
     String mReadPermission;
-    String mWritePermission;    
+    String mWritePermission;
 };
 
 #endif //__CCONTENTPROVIDER_H__

@@ -1,20 +1,27 @@
 
-#ifndef __CBROADCASTRECEIVER_H__
-#define __CBROADCASTRECEIVER_H__
+#ifndef __BROADCASTRECEIVER_H__
+#define __BROADCASTRECEIVER_H__
 
-#include <elastos.h>
-#include <Elastos.Framework.h>
-#include "CBaseObject.h"
+#ifdef _FRAMEWORK
+#include "ext/frameworkext.h"
+#else
+#define __USE_MALLOC
+#include "Elastos.Framework.h"
+#endif
+#include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>
 
 using namespace Elastos;
 
-class CBroadcastReceiver : public CBaseObject, public IBroadcastReceiver
+class BroadcastReceiver
+    : public ElRefBase
+    , public IObject
+    , public IBroadcastReceiver
 {
 public:
-    CBroadcastReceiver();
+    BroadcastReceiver();
 
-    virtual ~CBroadcastReceiver();
+    virtual ~BroadcastReceiver();
 
     virtual CARAPI Initialize();
 
@@ -28,6 +35,13 @@ public:
     CARAPI GetInterfaceID(
         /* [in] */ IInterface *pObject,
         /* [out] */ InterfaceID *pIID);
+
+    CARAPI Aggregate(
+        /* [in] */ AggrType aggrType,
+        /* [in] */ PInterface pObject);
+
+    CARAPI GetDomain(
+        /* [out] */ PInterface *ppObject);
 
     CARAPI GetClassID(
         /* [out] */ ClassID *pCLSID);
@@ -91,4 +105,4 @@ private:
     Boolean mInitialStickyHint;
 };
 
-#endif //__CBROADCASTRECEIVER_H__
+#endif //__BROADCASTRECEIVER_H__

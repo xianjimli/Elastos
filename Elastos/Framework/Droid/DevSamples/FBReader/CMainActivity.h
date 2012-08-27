@@ -2,11 +2,11 @@
 #ifndef __CMAINACTIVITY_H__
 #define __CMAINACTIVITY_H__
 
-#include "CActivity.h"
+#include "Activity.h"
 #include "_CMainActivity.h"
 #include "CBook.h"
 
-class CMainActivity : public CActivity
+class CMainActivity : public Activity
 {
 public:
     class MyListener : public IViewOnTouchListener, public IViewOnKeyListener, public IOnItemClickListener

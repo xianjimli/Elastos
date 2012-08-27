@@ -1105,7 +1105,6 @@ ECode CApplicationApartment::HandleResumeActivity(
 //    unscheduleGcIdler();
 
     ActivityClientRecord* r = PerformResumeActivity(token, clearHide);
-    UNUSED(r);
     if (r != NULL) {
         AutoPtr<IActivity> a = r->mActivity;
 

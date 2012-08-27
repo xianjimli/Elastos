@@ -86,6 +86,20 @@ _ELASTOS_NAMESPACE_END
         printf("============================\n"); \
     } while(0);
 
+#define DUMP_ITFID(intf) \
+    do { \
+        InterfaceID iid; \
+        intf->GetInterfaceID(intf, &iid); \
+        printf("======== DUMP_ITFID ========\n"); \
+        printf("{%p, %p, %p, {%p, %p, %p, %p, %p, %p, %p, %p} }\n", \
+                iid.Data1, iid.Data2, iid.Data3, \
+                iid.Data4[0], iid.Data4[1], \
+                iid.Data4[2], iid.Data4[3], \
+                iid.Data4[4], iid.Data4[5], \
+                iid.Data4[6], iid.Data4[7]); \
+        printf("============================\n"); \
+    } while(0);
+
 using namespace Elastos;
 
 #endif //__FRAMEWORKDEF_H__

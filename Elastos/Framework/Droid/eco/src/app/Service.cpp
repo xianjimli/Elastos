@@ -1,78 +1,98 @@
-#include "CService.h"
 
-CService::CService() :
-    mStartCompatibility(FALSE)
+#ifdef _FRAMEWORK
+#include "app/Service.h"
+#else
+#include "Service.h"
+#endif
+
+
+Service::Service()
+    : mStartCompatibility(FALSE)
 {
 }
 
-CService::~CService()
+Service::~Service()
 {
 }
 
-ECode CService::Initialize()
+ECode Service::Initialize()
 {
     return NOERROR;
 }
 
-PInterface CService::Probe(
+PInterface Service::Probe(
     /* [in] */ REIID riid)
 {
-   if (riid == EIID_IService) {
-        return (IService *)this;
-   }
-   else if (riid == EIID_IContextThemeWrapper) {
-       return (IContextThemeWrapper*)this;
-   }
-   else if (riid == EIID_IContextWrapper) {
-       return (IContextWrapper*)this;
-   }
-   else if (riid == EIID_IContext) {
-       return (IContext*)this;
-   }
-   else {
-       return CBaseObject::Probe(riid);
-   }
-}
-
-UInt32 CService::AddRef()
-{
-    Int32 nRef = atomic_inc(&mRef);
-    return (UInt32)nRef;
-}
-
-UInt32 CService::Release()
-{
-    Int32 nRef;
-
-    nRef = atomic_dec(&mRef);
-    if (nRef == 0) {
-        delete this;
+    if (riid == EIID_IInterface) {
+        return (PInterface)(IService*)this;
     }
-    return (UInt32)nRef;
+    else if (riid == EIID_IObject) {
+        return (IObject*)this;
+    }
+    if (riid == EIID_IService) {
+        return (IService*)this;
+    }
+    else if (riid == EIID_IContextThemeWrapper) {
+       return (IContextThemeWrapper*)this;
+    }
+    else if (riid == EIID_IContextWrapper) {
+       return (IContextWrapper*)this;
+    }
+    else if (riid == EIID_IContext) {
+       return (IContext*)this;
+    }
+
+    return NULL;
 }
 
-ECode CService::GetInterfaceID(
+UInt32 Service::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 Service::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode Service::GetInterfaceID(
     /* [in] */ IInterface *pObject,
     /* [out] */ InterfaceID *pIID)
 {
     if (NULL == pIID) return E_INVALID_ARGUMENT;
 
-    if (pObject == (IInterface *)(IBroadcastReceiver *)this) {
-        *pIID = EIID_IBroadcastReceiver;
+    if (pObject == (IInterface *)(IService *)this) {
+        *pIID = EIID_IService;
         return NOERROR;
     }
-    else {
-        return CBaseObject::GetInterfaceID(pObject, pIID);
+    else if (pObject == (IInterface *)(IObject *)this) {
+        *pIID = EIID_IObject;
+        return NOERROR;
     }
+
+    return E_INVALID_ARGUMENT;
 }
 
-ECode CService::GetClassID(
+ECode Service::Aggregate(
+    /* [in] */ AggrType aggrType,
+    /* [in] */ PInterface pObject)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode Service::GetDomain(
+    /* [out] */ PInterface *ppObject)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode Service::GetClassID(
     /* [out] */ ClassID *pCLSID)
 {
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CService::Attach(
+ECode Service::Attach(
     /* [in] */ IContext* ctx,
     /* [in] */ IApplicationApartment* apartment,
     /* [in] */ const String& className,
@@ -89,19 +109,19 @@ ECode CService::Attach(
     return NOERROR;
 }
 
-ECode CService::Create()
+ECode Service::Create()
 {
     return OnCreate();
 }
 
-ECode CService::Start(
+ECode Service::Start(
     /* [in] */ IIntent* intent,
     /* [in] */ Int32 startId)
 {
     return OnStart(intent, startId);
 }
 
-ECode CService::StartCommand(
+ECode Service::StartCommand(
     /* [in] */ IIntent* intent,
     /* [in] */ Int32 flags,
     /* [in] */ Int32 startId,
@@ -110,44 +130,44 @@ ECode CService::StartCommand(
     return OnStartCommand(intent, flags, startId, result);
 }
 
-ECode CService::Destroy()
+ECode Service::Destroy()
 {
     return OnDestroy();
 }
 
-ECode CService::Bind(
+ECode Service::Bind(
     /* [in] */ IIntent* intent,
     /* [out] */ IBinder** binder)
 {
     return OnBind(intent, binder);
 }
 
-ECode CService::Unbind(
+ECode Service::Unbind(
     /* [in] */ IIntent* intent,
     /* [out] */ Boolean* succeeded)
 {
     return OnUnbind(intent, succeeded);
 }
 
-ECode CService::Rebind(
+ECode Service::Rebind(
     /* [in] */ IIntent* intent)
 {
     return OnRebind(intent);
 }
 
-ECode CService::OnCreate()
+ECode Service::OnCreate()
 {
     return NOERROR;
 }
 
-ECode CService::OnStart(
+ECode Service::OnStart(
     /* [in] */ IIntent* intent,
     /* [in] */ Int32 startId)
 {
     return NOERROR;
 }
 
-ECode CService::OnStartCommand(
+ECode Service::OnStartCommand(
     /* [in] */ IIntent* intent,
     /* [in] */ Int32 flags,
     /* [in] */ Int32 startId,
@@ -160,58 +180,58 @@ ECode CService::OnStartCommand(
     return NOERROR;
 }
 
-ECode CService::OnDestroy()
+ECode Service::OnDestroy()
 {
     return NOERROR;
 }
 
-ECode CService::OnBind(
+ECode Service::OnBind(
     /* [in] */ IIntent* intent,
     /* [out] */ IBinder** binder)
 {
     return NOERROR;
 }
 
-ECode CService::OnUnbind(
+ECode Service::OnUnbind(
     /* [in] */ IIntent* intent,
     /* [out] */ Boolean* succeeded)
 {
     return NOERROR;
 }
 
-ECode CService::OnRebind(
+ECode Service::OnRebind(
     /* [in] */ IIntent* intent)
 {
     return NOERROR;
 }
 
-ECode CService::StartActivity(
+ECode Service::StartActivity(
     /* [in] */ IIntent* intent)
 {
     return mBase->StartActivity(intent);
 }
 
-ECode CService::SendBroadcast(
+ECode Service::SendBroadcast(
     /* [in] */ IIntent* intent)
 {
     return mBase->SendBroadcast(intent);
 }
 
-ECode CService::StartService(
+ECode Service::StartService(
     /* [in] */ IIntent* service,
     /* [out] */ IComponentName** name)
 {
     return mBase->StartService(service, name);
 }
 
-ECode CService::StopService(
+ECode Service::StopService(
     /* [in] */ IIntent* service,
     /* [out] */ Boolean* succeeded)
 {
     return mBase->StopService(service, succeeded);
 }
 
-ECode CService::BindService(
+ECode Service::BindService(
     /* [in] */ IIntent* service,
     /* [in] */ IServiceConnection* conn,
     /* [in] */ Int32 flags,
@@ -220,13 +240,13 @@ ECode CService::BindService(
     return mBase->BindService(service, conn, flags, succeeded);
 }
 
-ECode CService::UnbindService(
+ECode Service::UnbindService(
     /* [in] */ IServiceConnection* conn)
 {
     return mBase->UnbindService(conn);
 }
 
-ECode CService::GetSystemService(
+ECode Service::GetSystemService(
     /* [in] */ const String& name,
     /* [out] */ IInterface** object)
 {
@@ -255,7 +275,7 @@ ECode CService::GetSystemService(
     return mBase->GetSystemService(name, object);
 }
 
-ECode CService::CreateCapsuleContext(
+ECode Service::CreateCapsuleContext(
     /* [in] */ const String& capsuleName,
     /* [in] */ Int32 flags,
     /* [out] */ IContext** ctx)
@@ -263,35 +283,35 @@ ECode CService::CreateCapsuleContext(
     return mBase->CreateCapsuleContext(capsuleName, flags, ctx);
 }
 
-ECode CService::CheckCallingPermission(
+ECode Service::CheckCallingPermission(
     /* [in] */ const String& permission,
     /* [out] */ Int32* value)
 {
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CService::EnforceCallingOrSelfPermission(
+ECode Service::EnforceCallingOrSelfPermission(
     /* [in] */ CString permission,
     /* [in] */ CString message)
 {
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CService::RevokeUriPermission(
+ECode Service::RevokeUriPermission(
     /* [in] */ IUri* uri,
     /* [in] */ Int32 modeFlags)
 {
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CService::CheckCallingOrSelfPermission(
+ECode Service::CheckCallingOrSelfPermission(
     /* [in] */ const String& permission,
     /* [out] */ Int32* perm)
 {
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CService::GrantUriPermission(
+ECode Service::GrantUriPermission(
     /* [in] */ const String& toCapsule,
     /* [in] */ IUri* uri,
     /* [in] */ Int32 modeFlags)
@@ -299,39 +319,39 @@ ECode CService::GrantUriPermission(
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CService::GetAssets(
+ECode Service::GetAssets(
     /* [out] */ IAssetManager** assetManager)
 {
     return mBase->GetAssets(assetManager);
 }
 
-ECode CService::GetResources(
+ECode Service::GetResources(
     /* [out] */ IResources** resources)
 {
     return mBase->GetResources(resources);
 }
 
-ECode CService::GetContentResolver(
+ECode Service::GetContentResolver(
     /* [out] */ IContentResolver** resolver)
 {
     return mBase->GetContentResolver(resolver);
 }
 
-ECode CService::GetText(
+ECode Service::GetText(
     /* [in] */ Int32 resId,
     /* [out] */ ICharSequence** text)
 {
     return mBase->GetText(resId, text);
 }
 
-ECode CService::SetTheme(
+ECode Service::SetTheme(
     /* [in] */ Int32 resid)
 {
     mThemeResource = resid;
     return InitializeTheme();
 }
 
-ECode CService::GetTheme(
+ECode Service::GetTheme(
     /* [out] */ ITheme** theme)
 {
     if (mTheme == NULL) {
@@ -347,14 +367,14 @@ ECode CService::GetTheme(
     return NOERROR;
 }
 
-ECode CService::ObtainStyledAttributes(
+ECode Service::ObtainStyledAttributes(
     /* [in] */ const ArrayOf<Int32>& attrs,
     /* [out] */ ITypedArray** styles)
 {
     return mBase->ObtainStyledAttributes(attrs, styles);
 }
 
-ECode CService::ObtainStyledAttributesEx(
+ECode Service::ObtainStyledAttributesEx(
     /* [in] */ Int32 resid,
     /* [in] */ const ArrayOf<Int32>& attrs,
     /* [out] */ ITypedArray** styles)
@@ -362,7 +382,7 @@ ECode CService::ObtainStyledAttributesEx(
     return mBase->ObtainStyledAttributesEx(resid, attrs, styles);
 }
 
-ECode CService::ObtainStyledAttributesEx2(
+ECode Service::ObtainStyledAttributesEx2(
     /* [in] */ IAttributeSet* set,
     /* [in] */ const ArrayOf<Int32>& attrs,
     /* [out] */ ITypedArray** styles)
@@ -370,7 +390,7 @@ ECode CService::ObtainStyledAttributesEx2(
     return mBase->ObtainStyledAttributesEx2(set, attrs, styles);
 }
 
-ECode CService::ObtainStyledAttributesEx3(
+ECode Service::ObtainStyledAttributesEx3(
     /* [in] */ IAttributeSet* set,
     /* [in] */ const ArrayOf<Int32>& attrs,
     /* [in] */ Int32 defStyleAttr,
@@ -381,13 +401,13 @@ ECode CService::ObtainStyledAttributesEx3(
             defStyleAttr, defStyleRes, styles);
 }
 
-ECode CService::GetClassLoader(
+ECode Service::GetClassLoader(
     /* [out] */ IClassLoader** loader)
 {
     return mBase->GetClassLoader(loader);
 }
 
-ECode CService::GetCapsuleName(
+ECode Service::GetCapsuleName(
     /* [out] */ String* capsuleName)
 {
     return mBase->GetCapsuleName(capsuleName);
@@ -396,7 +416,7 @@ ECode CService::GetCapsuleName(
 /**
  * @return the base context as set by the constructor or setBaseContext
  */
-ECode CService::GetBaseContext(
+ECode Service::GetBaseContext(
     /* [out] */ IContext** ctx)
 {
     if (ctx == NULL) return E_INVALID_ARGUMENT;
@@ -406,7 +426,7 @@ ECode CService::GetBaseContext(
     return NOERROR;
 }
 
-ECode CService::GetClassName(
+ECode Service::GetClassName(
     /* [out] */ String* className)
 {
     if (className == NULL) return E_INVALID_ARGUMENT;
@@ -415,7 +435,7 @@ ECode CService::GetClassName(
     return NOERROR;
 }
 
-ECode CService::AttachBaseContext(
+ECode Service::AttachBaseContext(
     /* [in] */ IContext* newBase)
 {
     if (mBase != NULL) {
@@ -427,7 +447,7 @@ ECode CService::AttachBaseContext(
     return NOERROR;
 }
 
-ECode CService::OnApplyThemeResource(
+ECode Service::OnApplyThemeResource(
     /* [in] */ ITheme* theme,
     /* [in] */ Int32 resid,
     /* [in] */ Boolean first)
@@ -435,7 +455,7 @@ ECode CService::OnApplyThemeResource(
     return theme->ApplyStyle(resid, TRUE);
 }
 
-ECode CService::InitializeTheme()
+ECode Service::InitializeTheme()
 {
     Boolean first = mTheme == NULL;
     if (first) {

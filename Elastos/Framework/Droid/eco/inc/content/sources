@@ -1,0 +1,3 @@
+
+EXPORT_HEADERS += BroadcastReceiver.h
+EXPORT_HEADERS += ContentProvider.h

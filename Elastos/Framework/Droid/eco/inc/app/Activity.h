@@ -1,22 +1,28 @@
 
-#ifndef __CACTIVITY_H__
-#define __CACTIVITY_H__
+#ifndef __ACTIVITY_H__
+#define __ACTIVITY_H__
 
+#ifdef _FRAMEWORK
+#include "ext/frameworkext.h"
+#else
 #define __USE_MALLOC
-
-#include <Elastos.Framework.h>
-#include "CBaseObject.h"
+#include "Elastos.Framework.h"
+#endif
+#include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>
 #include <elastos/HashMap.h>
 
 using namespace Elastos;
 
-class CActivity : public CBaseObject, public IActivity
+class Activity
+    : public ElRefBase
+    , public IObject
+    , public IActivity
 {
 public:
-    CActivity();
+    Activity();
 
-    virtual ~CActivity();
+    virtual ~Activity();
 
     virtual CARAPI Initialize();
 
@@ -30,6 +36,13 @@ public:
     CARAPI GetInterfaceID(
         /* [in] */ IInterface *pObject,
         /* [out] */ InterfaceID *pIID);
+
+    CARAPI Aggregate(
+        /* [in] */ AggrType aggrType,
+        /* [in] */ PInterface pObject);
+
+    CARAPI GetDomain(
+        /* [out] */ PInterface *ppObject);
 
     CARAPI GetClassID(
         /* [out] */ ClassID *pCLSID);
@@ -493,4 +506,4 @@ private:
     AutoPtr<ITheme> mTheme;
 };
 
-#endif //__CACTIVITY_H__
+#endif //__ACTIVITY_H__

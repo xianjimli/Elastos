@@ -2,10 +2,10 @@
 #ifndef __CBROADCASTRECEIVERONE_H__
 #define __CBROADCASTRECEIVERONE_H__
 
-#include "CBroadcastReceiver.h"
+#include "BroadcastReceiver.h"
 #include "_CBroadcastReceiverOne.h"
 
-class CBroadcastReceiverOne : public CBroadcastReceiver
+class CBroadcastReceiverOne : public BroadcastReceiver
 {
 public:
 

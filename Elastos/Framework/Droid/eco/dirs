@@ -1,1 +1,5 @@
+
+DIRS += inc/app
+DIRS += inc/content
+DIRS += inc/net
 DIRS += src

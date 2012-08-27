@@ -1,48 +1,52 @@
 
-#include "CBroadcastReceiver.h"
+#ifdef _FRAMEWORK
+#include "content/BroadcastReceiver.h"
+#include "os/CBundle.h"
+#else
+#include "BroadcastReceiver.h"
+#endif
 
-CBroadcastReceiver::CBroadcastReceiver()
+
+BroadcastReceiver::BroadcastReceiver()
 {
 }
 
-CBroadcastReceiver::~CBroadcastReceiver()
+BroadcastReceiver::~BroadcastReceiver()
 {
 }
 
-ECode CBroadcastReceiver::Initialize()
+ECode BroadcastReceiver::Initialize()
 {
     return NOERROR;
 }
 
-PInterface CBroadcastReceiver::Probe(
+PInterface BroadcastReceiver::Probe(
     /* [in] */ REIID riid)
 {
-   if (riid == EIID_IBroadcastReceiver) {
-        return (IBroadcastReceiver *)this;
-   }
-   else {
-       return CBaseObject::Probe(riid);
-   }
-}
-
-UInt32 CBroadcastReceiver::AddRef()
-{
-    Int32 nRef = atomic_inc(&mRef);
-    return (UInt32)nRef;
-}
-
-UInt32 CBroadcastReceiver::Release()
-{
-    Int32 nRef;
-
-    nRef = atomic_dec(&mRef);
-    if (nRef == 0) {
-        delete this;
+    if (riid == EIID_IInterface) {
+        return (PInterface)(IBroadcastReceiver*)this;
     }
-    return (UInt32)nRef;
+    else if (riid == EIID_IObject) {
+        return (IObject*)this;
+    }
+    if (riid == EIID_IBroadcastReceiver) {
+        return (IBroadcastReceiver*)this;
+    }
+
+    return NULL;
 }
 
-ECode CBroadcastReceiver::GetInterfaceID(
+UInt32 BroadcastReceiver::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 BroadcastReceiver::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode BroadcastReceiver::GetInterfaceID(
     /* [in] */ IInterface *pObject,
     /* [out] */ InterfaceID *pIID)
 {
@@ -52,18 +56,34 @@ ECode CBroadcastReceiver::GetInterfaceID(
         *pIID = EIID_IBroadcastReceiver;
         return NOERROR;
     }
-    else {
-        return CBaseObject::GetInterfaceID(pObject, pIID);
+    else if (pObject == (IInterface *)(IObject *)this) {
+        *pIID = EIID_IObject;
+        return NOERROR;
     }
+
+    return E_INVALID_ARGUMENT;
 }
 
-ECode CBroadcastReceiver::GetClassID(
+ECode BroadcastReceiver::Aggregate(
+    /* [in] */ AggrType aggrType,
+    /* [in] */ PInterface pObject)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode BroadcastReceiver::GetDomain(
+    /* [out] */ PInterface *ppObject)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode BroadcastReceiver::GetClassID(
     /* [out] */ ClassID *pCLSID)
 {
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CBroadcastReceiver::ReceiveBroadcast(
+ECode BroadcastReceiver::ReceiveBroadcast(
     /* [in] */ IContext *pContext,
     /* [in] */ IIntent *pIntent)
 {
@@ -91,7 +111,7 @@ ECode CBroadcastReceiver::ReceiveBroadcast(
  *
  * @see #setResult(int, String, Bundle)
  */
-ECode CBroadcastReceiver::SetResultCode(
+ECode BroadcastReceiver::SetResultCode(
     /* [in] */ Int32 code)
 {
     CheckSynchronousHint();
@@ -104,7 +124,7 @@ ECode CBroadcastReceiver::SetResultCode(
  *
  * @return int The current result code.
  */
-ECode CBroadcastReceiver::GetResultCode(
+ECode BroadcastReceiver::GetResultCode(
     /* [out] */ Int32* code)
 {
     if (code == NULL) return E_INVALID_ARGUMENT;
@@ -128,7 +148,7 @@ ECode CBroadcastReceiver::GetResultCode(
  *
  * @see #setResult(int, String, Bundle)
  */
-ECode CBroadcastReceiver::SetResultData(
+ECode BroadcastReceiver::SetResultData(
     /* [in] */ const String& data)
 {
     CheckSynchronousHint();
@@ -142,7 +162,7 @@ ECode CBroadcastReceiver::SetResultData(
  *
  * @return String The current result data; may be null.
  */
-ECode CBroadcastReceiver::GetResultData(
+ECode BroadcastReceiver::GetResultData(
     /* [out] */ String* data)
 {
     if (data == NULL) return E_INVALID_ARGUMENT;
@@ -168,7 +188,7 @@ ECode CBroadcastReceiver::GetResultData(
  *
  * @see #setResult(int, String, Bundle)
  */
-ECode CBroadcastReceiver::SetResultExtras(
+ECode BroadcastReceiver::SetResultExtras(
     /* [in] */ IBundle* extras)
 {
     CheckSynchronousHint();
@@ -187,7 +207,7 @@ ECode CBroadcastReceiver::SetResultExtras(
  *
  * @return Map The current extras map.
  */
-ECode CBroadcastReceiver::GetResultExtras(
+ECode BroadcastReceiver::GetResultExtras(
     /* [in] */ Boolean makeMap,
     /* [out] */ IBundle** extras)
 {
@@ -224,7 +244,7 @@ ECode CBroadcastReceiver::GetResultExtras(
  * broadcaster.  Can be set to null.  This completely
  * replaces the current map (if any).
  */
-ECode CBroadcastReceiver::SetResult(
+ECode BroadcastReceiver::SetResult(
     /* [in] */ Int32 code,
     /* [in] */ const String& data,
     /* [in] */ IBundle* extras)
@@ -242,7 +262,7 @@ ECode CBroadcastReceiver::SetResult(
  *
  * @return True if the broadcast should be aborted.
  */
-ECode CBroadcastReceiver::GetAbortBroadcast(
+ECode BroadcastReceiver::GetAbortBroadcast(
     /* [out] */ Boolean* aborted)
 {
     if (aborted == NULL) return E_INVALID_ARGUMENT;
@@ -265,7 +285,7 @@ ECode CBroadcastReceiver::GetAbortBroadcast(
  * as those sent with {@link Context#sendBroadcast(Intent)
  * Context.sendBroadcast}</strong></p>
  */
-ECode CBroadcastReceiver::AbortBroadcast()
+ECode BroadcastReceiver::AbortBroadcast()
 {
     CheckSynchronousHint();
     mAbortBroadcast = TRUE;
@@ -276,7 +296,7 @@ ECode CBroadcastReceiver::AbortBroadcast()
  * Clears the flag indicating that this receiver should abort the current
  * broadcast.
  */
-ECode CBroadcastReceiver::ClearAbortBroadcast()
+ECode BroadcastReceiver::ClearAbortBroadcast()
 {
     mAbortBroadcast = FALSE;
     return NOERROR;
@@ -286,7 +306,7 @@ ECode CBroadcastReceiver::ClearAbortBroadcast()
  * For internal use, sets the hint about whether this BroadcastReceiver is
  * running in ordered mode.
  */
-ECode CBroadcastReceiver::SetOrderedHint(
+ECode BroadcastReceiver::SetOrderedHint(
     /* [in] */ Boolean isOrdered)
 {
     mOrderedHint = isOrdered;
@@ -297,21 +317,21 @@ ECode CBroadcastReceiver::SetOrderedHint(
  * For internal use, sets the hint about whether this BroadcastReceiver is
  * receiving the initial sticky broadcast value. @hide
  */
-ECode CBroadcastReceiver::SetInitialStickyHint(
+ECode BroadcastReceiver::SetInitialStickyHint(
     /* [in] */ Boolean isInitialSticky)
 {
    mInitialStickyHint = isInitialSticky;
    return NOERROR;
 }
 
-ECode CBroadcastReceiver::OnReceive(
+ECode BroadcastReceiver::OnReceive(
     /* [in] */ IContext *pContext,
     /* [in] */ IIntent *pIntent)
 {
     return NOERROR;
 }
 
-void CBroadcastReceiver::CheckSynchronousHint()
+void BroadcastReceiver::CheckSynchronousHint()
 {
     // Note that we don't assert when receiving the initial sticky value,
     // since that may have come from an ordered broadcast.  We'll catch

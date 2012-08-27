@@ -10,7 +10,12 @@ INCLUDES += $(PREBUILD_INC)/skia/utils
 INCLUDES += $(PREBUILD_INC)/skia/core
 endif
 
-SOURCES = CApplicationApartment.cpp
+C_DEFINES += -D_FRAMEWORK
+
+SOURCES += Activity.cpp
+SOURCES += Service.cpp
+SOURCES += Instrumentation.cpp
+SOURCES += CApplicationApartment.cpp
 SOURCES += CContextImpl.cpp
 SOURCES += CApplicationContentResolver.cpp
 SOURCES += CDefaultInstrumentation.cpp

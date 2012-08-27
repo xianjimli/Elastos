@@ -32,6 +32,8 @@ INCLUDES += $(PREBUILD_INC)/skia/utils
 INCLUDES += $(PREBUILD_INC)/skia/core
 endif
 
+C_DEFINES += -D_FRAMEWORK
+
 SOURCES = Elastos.Framework.car
 SOURCES += utils.cpp
 

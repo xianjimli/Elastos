@@ -1,32 +1,42 @@
 
-#include "CContentProvider.h"
+#ifdef _FRAMEWORK
+#include "content/ContentProvider.h"
+#else
+#include "ContentProvider.h"
+#endif
 
-CContentProvider::~CContentProvider()
+
+ContentProvider::~ContentProvider()
 {}
 
-ECode CContentProvider::Initialize()
+ECode ContentProvider::Initialize()
 {
     return NOERROR;
 }
 
-PInterface CContentProvider::Probe(
+PInterface ContentProvider::Probe(
     /* [in] */ REIID riid)
 {
-   if (riid == EIID_IContentProvider) {
+    if (riid == EIID_IInterface) {
+        return (PInterface)(IContentProvider*)this;
+    }
+    else if (riid == EIID_IObject) {
+        return (IObject*)this;
+    }
+    if (riid == EIID_IContentProvider) {
         return (IContentProvider *)this;
-   }
-   else {
-       return CBaseObject::Probe(riid);
-   }
+    }
+
+    return NULL;
 }
 
-UInt32 CContentProvider::AddRef()
+UInt32 ContentProvider::AddRef()
 {
     Int32 nRef = atomic_inc(&mRef);
     return (UInt32)nRef;
 }
 
-UInt32 CContentProvider::Release()
+UInt32 ContentProvider::Release()
 {
     Int32 nRef;
 
@@ -37,7 +47,7 @@ UInt32 CContentProvider::Release()
     return (UInt32)nRef;
 }
 
-ECode CContentProvider::GetInterfaceID(
+ECode ContentProvider::GetInterfaceID(
     /* [in] */ IInterface *pObject,
     /* [out] */ InterfaceID *pIID)
 {
@@ -47,15 +57,37 @@ ECode CContentProvider::GetInterfaceID(
         *pIID = EIID_IContentProvider;
         return NOERROR;
     }
-    else {
-        return CBaseObject::GetInterfaceID(pObject, pIID);
+    else if (pObject == (IInterface *)(IObject *)this) {
+        *pIID = EIID_IObject;
+        return NOERROR;
     }
+
+    return E_INVALID_ARGUMENT;
 }
 
-ECode CContentProvider::AttachInfo(
+ECode ContentProvider::Aggregate(
+    /* [in] */ AggrType aggrType,
+    /* [in] */ PInterface pObject)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode ContentProvider::GetDomain(
+    /* [out] */ PInterface *ppObject)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode ContentProvider::GetClassID(
+    /* [out] */ ClassID *pCLSID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode ContentProvider::AttachInfo(
     /* [in] */ IContext* context,
     /* [in] */ IContentProviderInfo* providerInfo)
-{  
+{
     /*
      * Only allow it to be set once, so after the content service gives
      * this to us clients can't change it.
@@ -73,7 +105,7 @@ ECode CContentProvider::AttachInfo(
     return NOERROR;
 }
 
-ECode CContentProvider::OnCreate()
+ECode ContentProvider::OnCreate()
 {
     return NOERROR;
 }

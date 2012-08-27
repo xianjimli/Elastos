@@ -6,7 +6,11 @@ include $(MAKEDIR)/../../../sources.inc
 INCLUDES += $(MAKEDIR)/../../inc
 INCLUDES += ../
 
+C_DEFINES += -D_FRAMEWORK
+
 SOURCES = CIntent.cpp
+SOURCES += BroadcastReceiver.cpp
+SOURCES += ContentProvider.cpp
 SOURCES += CAuthorityEntry.cpp
 SOURCES += IntentFilter.cpp
 SOURCES += CIntentFilter.cpp

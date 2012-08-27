@@ -2,11 +2,11 @@
 #ifndef __CACTIVITYTHREE_H__
 #define __CACTIVITYTHREE_H__
 
-#include "CActivity.h"
+#include "Activity.h"
 #include "_CActivityThree.h"
 #include <elastos/AutoPtr.h>
 
-class CActivityThree : public CActivity
+class CActivityThree : public Activity
 {
 protected:
     CARAPI OnCreate(

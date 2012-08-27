@@ -6,6 +6,8 @@ include $(MAKEDIR)/../../../sources.inc
 INCLUDES += $(MAKEDIR)/../../inc
 INCLUDES += ../
 
+C_DEFINES += -D_FRAMEWORK
+
 SOURCES = Uri.cpp
 SOURCES += CStringUri.cpp
 SOURCES += CCredentials.cpp
