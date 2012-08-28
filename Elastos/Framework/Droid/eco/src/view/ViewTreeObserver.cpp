@@ -100,3 +100,15 @@ ECode ViewTreeObserver::RemoveOnScrollChangedListener(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode ViewTreeObserver::AddOnTouchModeChangeListener(
+    /* [in] */ IOnTouchModeChangeListener* listener)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode ViewTreeObserver::RemoveOnTouchModeChangeListener(
+    /* [in] */ IOnTouchModeChangeListener* victim)
+{
+    return E_NOT_IMPLEMENTED;
+}
+

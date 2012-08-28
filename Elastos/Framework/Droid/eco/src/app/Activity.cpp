@@ -250,6 +250,12 @@ ECode Activity::GetCapsuleName(
     return mBase->GetCapsuleName(capsuleName);
 }
 
+ECode Activity::GetApplicationInfo(
+    /* [out] */ IApplicationInfo** info)
+{
+    return mBase->GetApplicationInfo(info);
+}
+
 ECode Activity::GetBaseContext(
     /* [out] */ IContext** ctx)
 {

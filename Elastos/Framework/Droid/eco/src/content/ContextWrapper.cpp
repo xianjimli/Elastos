@@ -51,6 +51,12 @@ ECode ContextWrapper::GetCapsuleName(
     return mBase->GetCapsuleName(capsuleName);
 }
 
+ECode ContextWrapper::GetApplicationInfo(
+    /* [out] */ IApplicationInfo** info)
+{
+    return mBase->GetApplicationInfo(info);
+}
+
 ECode ContextWrapper::SendBroadcast(
     /* [in] */ IIntent* intent)
 {

@@ -13,23 +13,386 @@
  * <p>See the <a href="{@docRoot}resources/tutorials/views/hello-tabwidget.html">Tab Layout
  * tutorial</a>.</p>
  */
-class TabHost : public FrameLayout //implements ViewTreeObserver.OnTouchModeChangeListener 
+class TabHost : public FrameLayout
 {
-public:
-    TabHost();
+private:
+    interface IIndicatorStrategy : public IInterface
+    {
+        /**
+         * Return the view for the indicator.
+         */
+        virtual CARAPI CreateIndicatorView(
+            /* [out] */ IView** view) = 0;
+    };
 
+    interface IContentStrategy : public IInterface
+    {
+        /**
+         * Return the content view.  The view should may be cached locally.
+         */
+        virtual CARAPI GetContentView(
+            /* [out] */ IView** view) = 0;
+
+        /**
+         * Perhaps do something when the tab associated with this content has
+         * been closed (i.e make it invisible, or remove it).
+         */
+        virtual CARAPI TabClosed() = 0;
+    };
+
+    /**
+     * How to create a tab indicator that just has a label.
+     */
+    class LabelIndicatorStrategy : public IIndicatorStrategy, public ElRefBase
+    {
+        friend class TabHost;
+
+    public:
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI CreateIndicatorView(
+            /* [out] */ IView** view);
+
+    private:
+        LabelIndicatorStrategy(
+            /* [in] */ ICharSequence* label);
+
+    private:
+        AutoPtr<ICharSequence> mLabel;
+    };
+
+    /**
+     * How we create a tab indicator that has a label and an icon
+     */
+    class LabelAndIconIndicatorStrategy : public IIndicatorStrategy, public ElRefBase
+    {
+        friend class TabHost;
+
+    public:
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI CreateIndicatorView(
+            /* [out] */ IView** view);
+
+    private:
+        LabelAndIconIndicatorStrategy(
+            /* [in] */ ICharSequence* label,
+            /* [in] */ IDrawable* icon);
+
+    private:
+        AutoPtr<ICharSequence> mLabel;
+        AutoPtr<IDrawable> mIcon;
+    };
+
+    /**
+     * How to create a tab indicator by specifying a view.
+     */
+    class ViewIndicatorStrategy : public IIndicatorStrategy, public ElRefBase
+    {
+        friend class TabHost;
+
+    public:
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI CreateIndicatorView(
+            /* [out] */ IView** view);
+
+    private:
+        ViewIndicatorStrategy(
+            /* [in] */ IView* view);
+
+    private:
+        AutoPtr<IView> mView;
+    };
+
+    /**
+     * How to create the tab content via a view id.
+     */
+    class ViewIdContentStrategy : public IContentStrategy, public ElRefBase
+    {
+        friend class TabHost;
+
+    public:
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI GetContentView(
+            /* [out] */ IView** view);
+
+        CARAPI TabClosed();
+
+    private:
+        ViewIdContentStrategy(
+            /* [in] */ Int32 viewId,
+            /* [in] */ TabHost* owner);
+
+    private:
+        AutoPtr<IView> mView;
+        TabHost* mOwner;
+    };
+
+    /**
+     * How tab content is managed using {@link TabContentFactory}.
+     */
+    class FactoryContentStrategy : public IContentStrategy, public ElRefBase
+    {
+    public:
+        FactoryContentStrategy(
+            /* [in] */ ICharSequence* tag,
+            /* [in] */ ITabHostTabContentFactory* factory);
+
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI GetContentView(
+            /* [out] */ IView** view);
+
+        CARAPI TabClosed();
+
+    private:
+        AutoPtr<IView> mTabContent;
+        AutoPtr<ICharSequence> mTag;
+        AutoPtr<ITabHostTabContentFactory> mFactory;
+    };
+
+    /**
+     * How tab content is managed via an {@link Intent}: the content view is the
+     * decorview of the launched activity.
+     */
+    class IntentContentStrategy : public IContentStrategy, public ElRefBase
+    {
+        friend class TabHost;
+
+    public:
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI GetContentView(
+            /* [out] */ IView** view);
+
+        CARAPI TabClosed();
+
+    private:
+        IntentContentStrategy(
+            /* [in] */ String tag,
+            /* [in] */ IIntent* intent);
+
+    private:
+        String mTag;
+        AutoPtr<IIntent> mIntent;
+
+        AutoPtr<IView> mLaunchedView;
+    };
+
+    class TabKeyListener : public IViewOnKeyListener, public ElRefBase
+    {
+        friend class TabHost;
+
+    public:
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI OnKey(
+            /* [in] */ IView* v,
+            /* [in] */ Int32 keyCode,
+            /* [in] */ IKeyEvent* event,
+            /* [out] */ Boolean* result);
+
+    private:
+        TabKeyListener(
+            /* [in] */ TabHost* owner);
+
+    private:
+        TabHost* mOwner;
+    };
+
+    class TabSelectionListener
+        : public ITabWidgetOnTabSelectionChanged
+        , public ElRefBase
+    {
+        friend class TabHost;
+
+    public:
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI OnTabSelectionChanged(
+            /* [in] */ Int32 tabIndex,
+            /* [in] */ Boolean clicked);
+
+    private:
+        TabSelectionListener(
+            /* [in] */ TabHost* owner);
+
+    private:
+        TabHost* mOwner;
+    };
+
+public:
+    /**
+     * A tab has a tab indicator, content, and a tag that is used to keep
+     * track of it.  This builder helps choose among these options.
+     *
+     * For the tab indicator, your choices are:
+     * 1) set a label
+     * 2) set a label and an icon
+     *
+     * For the tab content, your choices are:
+     * 1) the id of a {@link View}
+     * 2) a {@link TabContentFactory} that creates the {@link View} content.
+     * 3) an {@link Intent} that launches an {@link android.app.Activity}.
+     */
+    class TabSpec : public ITabSpec, public ElRefBase
+    {
+        friend class TabHost;
+
+    public:
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+         /**
+         * Specify a label as the tab indicator.
+         */
+        CARAPI SetIndicator(
+            /* [in] */ ICharSequence* label);
+
+        /**
+         * Specify a label and icon as the tab indicator.
+         */
+        CARAPI SetIndicatorEx(
+            /* [in] */ ICharSequence* label,
+            /* [in] */ IDrawable* icon);
+
+        /**
+         * Specify a view as the tab indicator.
+         */
+        CARAPI SetIndicatorEx2(
+            /* [in] */ IView* view);
+
+        /**
+         * Specify the id of the view that should be used as the content
+         * of the tab.
+         */
+        CARAPI SetContent(
+            /* [in] */ Int32 viewId);
+
+        /**
+         * Specify a {@link android.widget.TabHost.TabContentFactory} to use to
+         * create the content of the tab.
+         */
+        CARAPI SetContentEx(
+            /* [in] */ ITabHostTabContentFactory* contentFactory);
+
+        /**
+         * Specify an intent to use to launch an activity as the tab content.
+         */
+        CARAPI SetContentEx2(
+            /* [in] */ IIntent* intent);
+
+        CARAPI GetTag(
+            /* [out] */ String* tag);
+
+    private:
+        TabSpec(
+            /* [in] */ const String& tag,
+            /* [in] */ TabHost* owner);
+
+    private:
+        String mTag;
+
+        AutoPtr<IIndicatorStrategy> mIndicatorStrategy;
+        AutoPtr<IContentStrategy> mContentStrategy;
+        TabHost* mOwner;
+    };
+
+public:
     TabHost(
         /* [in] */ IContext* context);
 
     TabHost(
-        /* [in] */ IContext* context, 
+        /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs);
 
     /**
      * Get a new {@link TabSpec} associated with this tab host.
      * @param tag required tag of tab.
      */
-    virtual CARAPI_(AutoPtr<ITabHostTabSpec>) NewTabSpec(
+    virtual CARAPI_(AutoPtr<ITabSpec>) NewTabSpec(
         /* [in] */ String tag);
 
     /**
@@ -64,7 +427,7 @@ public:
      * @param tabSpec Specifies how to create the indicator and content.
      */
     virtual CARAPI AddTab(
-        /* [in] */ ITabHostTabSpec* tabSpec);
+        /* [in] */ ITabSpec* tabSpec);
 
     /**
      * Removes all tabs from the tab widget associated with this tab host.
@@ -89,11 +452,12 @@ public:
      */
     virtual CARAPI_(AutoPtr<IFrameLayout>) GetTabContentView();
 
-    virtual CARAPI_(Boolean) DispatchKeyEvent(
+    //@Override
+    CARAPI_(Boolean) DispatchKeyEvent(
         /* [in] */ IKeyEvent* event);
 
-
-    virtual CARAPI DispatchWindowFocusChanged(
+    //@Override
+    CARAPI DispatchWindowFocusChanged(
         /* [in] */ Boolean hasFocus);
 
     virtual CARAPI SetCurrentTab(
@@ -109,215 +473,39 @@ public:
         /* [in] */ ITabHostOnTabChangeListener* l);
 
 protected:
-    virtual CARAPI_(void) OnAttachedToWindow();
+    TabHost();
 
+    //@Override
+    CARAPI_(void) OnAttachedToWindow();
+
+    //@Override
     virtual CARAPI_(void) OnDetachedFromWindow();
 
 private:
     CARAPI_(void) InitTabHost();
 
     CARAPI_(void) InvokeOnTabChangeListener();
-    
-public:
-
-    /**
-     * How to create a tab indicator that just has a label.
-     */
-    class LabelIndicatorStrategy : public IIndicatorStrategy, public ElRefBase
-    {
-    public:
-        virtual CARAPI CreateIndicatorView(
-            /* [out] */ IView** view);
-
-        CARAPI_(PInterface) Probe(
-            /* [in] */ REIID riid);
-
-        CARAPI_(UInt32) AddRef();
-
-        CARAPI_(UInt32) Release();
-
-        CARAPI GetInterfaceID(
-            /* [in] */ IInterface *pObject,
-            /* [out] */ InterfaceID *pIID);
-
-        LabelIndicatorStrategy(
-            /* [in] */ ICharSequence* label);
-
-    private:
-        AutoPtr<ICharSequence> mLabel; 
-    };
-
-    /**
-     * How we create a tab indicator that has a label and an icon
-     */
-    class LabelAndIconIndicatorStrategy : public IIndicatorStrategy, public ElRefBase 
-    {
-    public:
-        virtual CARAPI CreateIndicatorView(
-            /* [out] */ IView** view);
-
-        CARAPI_(PInterface) Probe(
-            /* [in] */ REIID riid);
-
-        CARAPI_(UInt32) AddRef();
-
-        CARAPI_(UInt32) Release();
-
-        CARAPI GetInterfaceID(
-            /* [in] */ IInterface *pObject,
-            /* [out] */ InterfaceID *pIID);
-
-        LabelAndIconIndicatorStrategy(
-            /* [in] */ ICharSequence* label, 
-            /* [in] */ IDrawable* icon);
-
-    private:
-        AutoPtr<ICharSequence> mLabel;
-        AutoPtr<IDrawable> mIcon;
-    };
-
-    /**
-     * How to create a tab indicator by specifying a view.
-     */
-    class ViewIndicatorStrategy : public IIndicatorStrategy, public ElRefBase
-    {
-    public:
-        virtual CARAPI CreateIndicatorView(
-            /* [out] */ IView** view);
-
-        CARAPI_(PInterface) Probe(
-            /* [in] */ REIID riid);
-
-        CARAPI_(UInt32) AddRef();
-
-        CARAPI_(UInt32) Release();
-
-        CARAPI GetInterfaceID(
-            /* [in] */ IInterface *pObject,
-            /* [out] */ InterfaceID *pIID);
-        
-        ViewIndicatorStrategy(
-            /* [in] */ IView* view);
-
-    private:
-        AutoPtr<IView> mView;        
-    };
-
-    /**
-     * How to create the tab content via a view id.
-     */
-    class ViewIdContentStrategy : public IContentStrategy, public ElRefBase
-    {
-    public:
-        virtual CARAPI GetContentView(
-            /* [out] */ IView** view);
-
-        virtual CARAPI TabClosed();
-
-        CARAPI_(PInterface) Probe(
-            /* [in] */ REIID riid);
-
-        CARAPI_(UInt32) AddRef();
-
-        CARAPI_(UInt32) Release();
-
-        CARAPI GetInterfaceID(
-            /* [in] */ IInterface *pObject,
-            /* [out] */ InterfaceID *pIID);
-
-        ViewIdContentStrategy(
-            /* [in] */ Int32 viewId);
-
-    private:
-        AutoPtr<IView> mView;        
-    };
-
-    /**
-     * How tab content is managed using {@link TabContentFactory}.
-     */
-    class FactoryContentStrategy : public IContentStrategy, public ElRefBase 
-    {
-    public:
-        FactoryContentStrategy(
-            /* [in] */ ICharSequence* tag, 
-            /* [in] */ ITabHostTabContentFactory* factory);
-
-        virtual CARAPI GetContentView(
-            /* [out] */ IView** view);
-
-        virtual CARAPI TabClosed();
-
-        CARAPI_(PInterface) Probe(
-            /* [in] */ REIID riid);
-
-        CARAPI_(UInt32) AddRef();
-
-        CARAPI_(UInt32) Release();
-
-        CARAPI GetInterfaceID(
-            /* [in] */ IInterface *pObject,
-            /* [out] */ InterfaceID *pIID);
-
-    private:
-        AutoPtr<IView> mTabContent;
-        AutoPtr<ICharSequence> mTag;
-        AutoPtr<ITabHostTabContentFactory> mFactory;
-    };
-
-    /**
-     * How tab content is managed via an {@link Intent}: the content view is the
-     * decorview of the launched activity.
-     */
-    class IntentContentStrategy : public IContentStrategy, public ElRefBase
-    {
-    public:
-        virtual CARAPI GetContentView(
-            /* [out] */ IView** view);
-        
-        virtual CARAPI TabClosed();
-
-        CARAPI_(PInterface) Probe(
-            /* [in] */ REIID riid);
-
-        CARAPI_(UInt32) AddRef();
-
-        CARAPI_(UInt32) Release();
-
-        CARAPI GetInterfaceID(
-            /* [in] */ IInterface *pObject,
-            /* [out] */ InterfaceID *pIID);
-
-        IntentContentStrategy(
-            /* [in] */ String tag, 
-            /* [in] */ IIntent* intent);
-
-    private:
-        String mTag;
-        AutoPtr<IIntent> mIntent;
-
-        AutoPtr<IView> mLaunchedView;        
-    };
 
 protected:
     /**
      * This field should be made private, so it is hidden from the SDK.
      * {@hide}
      */
-    Int32 mCurrentTab;// = -1;
+    Int32 mCurrentTab;
 
     /**
      * This field should be made private, so it is hidden from the SDK.
      * {@hide}
      */
-    //LocalActivityManager mLocalActivityManager = NULL;
+//    LocalActivityManager mLocalActivityManager = NULL;
 
 private:
     AutoPtr<ITabWidget> mTabWidget;
     AutoPtr<IFrameLayout> mTabContent;
-    ArrayOf<AutoPtr<ITabHostTabSpec> >* mTabSpecs;// = new ArrayList<TabSpec>(2);
-    
-    AutoPtr<IView> mCurrentView;// = NULL;
-    
+    List< AutoPtr<TabSpec> > mTabSpecs;
+
+    AutoPtr<IView> mCurrentView;
+
     AutoPtr<ITabHostOnTabChangeListener> mOnTabChangeListener;
     AutoPtr<IViewOnKeyListener> mTabKeyListener;
 };

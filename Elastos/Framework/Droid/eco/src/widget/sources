@@ -91,7 +91,5 @@ SOURCES += ProgressBar.cpp
 SOURCES += CProgressBar.cpp
 SOURCES += TabWidget.cpp
 SOURCES += CTabWidget.cpp
-SOURCES += TabHostTabSpec.cpp
-SOURCES += CTabHostTabSpec.cpp
 SOURCES += TabHost.cpp
 SOURCES += CTabHost.cpp

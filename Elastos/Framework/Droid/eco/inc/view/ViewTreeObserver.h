@@ -98,6 +98,28 @@ public:
      */
     CARAPI RemoveOnScrollChangedListener(
         /* [in] */ IOnScrollChangedListener* victim);
+
+    /**
+     * Register a callback to be invoked when the invoked when the touch mode changes.
+     *
+     * @param listener The callback to add
+     *
+     * @throws IllegalStateException If {@link #isAlive()} returns false
+     */
+    CARAPI AddOnTouchModeChangeListener(
+        /* [in] */ IOnTouchModeChangeListener* listener);
+
+    /**
+     * Remove a previously installed touch mode change callback
+     *
+     * @param victim The callback to remove
+     *
+     * @throws IllegalStateException If {@link #isAlive()} returns false
+     *
+     * @see #addOnTouchModeChangeListener(OnTouchModeChangeListener)
+     */
+    CARAPI RemoveOnTouchModeChangeListener(
+        /* [in] */ IOnTouchModeChangeListener* victim);
 };
 
 #endif //__VIEWTREEOBSERVER_H__

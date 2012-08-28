@@ -247,6 +247,9 @@ public:
     CARAPI GetCapsuleName(
         /* [out] */ String* capsuleName);
 
+    CARAPI GetApplicationInfo(
+        /* [out] */ IApplicationInfo** info);
+
     /**
      * @return the base context as set by the constructor or setBaseContext
      */

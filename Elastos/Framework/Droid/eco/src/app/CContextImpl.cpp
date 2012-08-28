@@ -201,6 +201,16 @@ ECode CContextImpl::GetCapsuleName(
 //    throw new RuntimeException("Not supported in system context");
 }
 
+ECode CContextImpl::GetApplicationInfo(
+    /* [out] */ IApplicationInfo** info)
+{
+    if (mCapsuleInfo != NULL) {
+        return mCapsuleInfo->GetApplicationInfo(info);
+    }
+//    throw new RuntimeException("Not supported in system context");
+    return E_RUNTIME_EXCEPTION;
+}
+
 ECode CContextImpl::StartActivity(
     /* [in] */ IIntent *intent)
 {

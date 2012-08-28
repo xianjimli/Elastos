@@ -65,99 +65,116 @@ ECode CTabHost::GetConsiderGoneChildrenWhenMeasuring(
 
 ECode CTabHost::NewTabSpec(
     /* [in] */ const String& tag,
-    /* [out] */ ITabHostTabSpec ** ppTabspec)
+    /* [out] */ ITabSpec** tabSpec)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(tabSpec);
+    *tabSpec = TabHost::NewTabSpec(tag);
+    if (*tabSpec != NULL) (*tabSpec)->AddRef();
+    return NOERROR;
 }
 
 ECode CTabHost::Setup()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TabHost::Setup();
 }
 
 ECode CTabHost::AddTab(
-    /* [in] */ ITabHostTabSpec * pTabSpec)
+    /* [in] */ ITabSpec* tabSpec)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TabHost::AddTab(tabSpec);
 }
 
 ECode CTabHost::ClearAllTabs()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TabHost::ClearAllTabs();
 }
 
 ECode CTabHost::GetTabWidget(
-    /* [out] */ ITabWidget ** ppTabWidget)
+    /* [out] */ ITabWidget** tabWidget)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(tabWidget);
+    *tabWidget = TabHost::GetTabWidget();
+    if (*tabWidget != NULL) (*tabWidget)->AddRef();
+    return NOERROR;
 }
 
 ECode CTabHost::GetCurrentTab(
-    /* [out] */ Int32 * pTab)
+    /* [out] */ Int32* tab)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(tab);
+    *tab = TabHost::GetCurrentTab();
+    return NOERROR;
+}
+
+ECode CTabHost::GetCurrentTabTag(
+    /* [out] */ String* tag)
+{
+    VALIDATE_NOT_NULL(tag);
+    *tag = TabHost::GetCurrentTabTag();
+    return NOERROR;
 }
 
 ECode CTabHost::GetCurrentTabView(
-    /* [out] */ IView ** ppView)
+    /* [out] */ IView** view)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(view);
+    *view = TabHost::GetCurrentTabView();
+    if (*view != NULL) (*view)->AddRef();
+    return NOERROR;
 }
 
 ECode CTabHost::GetCurrentView(
-    /* [out] */ IView ** ppView)
+    /* [out] */ IView** view)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(view);
+    *view = TabHost::GetCurrentView();
+    if (*view != NULL) (*view)->AddRef();
+    return NOERROR;
 }
 
 ECode CTabHost::SetCurrentTabByTag(
     /* [in] */ const String& tag)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TabHost::SetCurrentTabByTag(tag);
 }
 
 ECode CTabHost::GetTabContentView(
-    /* [out] */ IFrameLayout ** ppView)
+    /* [out] */ IFrameLayout** view)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(view);
+    *view = TabHost::GetTabContentView();
+    if (*view != NULL) (*view)->AddRef();
+    return NOERROR;
 }
 
 ECode CTabHost::SetCurrentTab(
     /* [in] */ Int32 index)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TabHost::SetCurrentTab(index);
 }
 
 ECode CTabHost::SetOnTabChangedListener(
-    /* [in] */ ITabHostOnTabChangeListener * pL)
+    /* [in] */ ITabHostOnTabChangeListener* l)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TabHost::SetOnTabChangedListener(l);
+}
+
+ECode CTabHost::OnTouchModeChanged(
+    /* [in] */ Boolean isInTouchMode)
+{
+    return TabHost::OnTouchModeChanged(isInTouchMode);
 }
 
 ECode CTabHost::constructor(
-    /* [in] */ IContext * pContext)
+    /* [in] */ IContext* context)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TabHost::Init(context);
 }
 
 ECode CTabHost::constructor(
-    /* [in] */ IContext * pContext,
-    /* [in] */ IAttributeSet * pAttrs)
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TabHost::Init(context, attrs);
 }
 

@@ -259,6 +259,9 @@ public:
     CARAPI GetCapsuleName(
         /* [out] */ String* capsuleName);
 
+    CARAPI GetApplicationInfo(
+        /* [out] */ IApplicationInfo** info);
+
     CARAPI GetClassLoader(
         /* [out] */ IClassLoader** loader);
 
