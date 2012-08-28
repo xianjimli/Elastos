@@ -43,45 +43,51 @@ public:
 
     CARAPI NewTabSpec(
         /* [in] */ const String& tag,
-        /* [out] */ ITabHostTabSpec ** ppTabspec);
+        /* [out] */ ITabSpec** tabspec);
 
     CARAPI Setup();
 
     CARAPI AddTab(
-        /* [in] */ ITabHostTabSpec * pTabSpec);
+        /* [in] */ ITabSpec* tabSpec);
 
     CARAPI ClearAllTabs();
 
     CARAPI GetTabWidget(
-        /* [out] */ ITabWidget ** ppTabWidget);
+        /* [out] */ ITabWidget** tabWidget);
 
     CARAPI GetCurrentTab(
-        /* [out] */ Int32 * pTab);
+        /* [out] */ Int32* tab);
+
+    CARAPI GetCurrentTabTag(
+        /* [out] */ String* tag);
 
     CARAPI GetCurrentTabView(
-        /* [out] */ IView ** ppView);
+        /* [out] */ IView** view);
 
     CARAPI GetCurrentView(
-        /* [out] */ IView ** ppView);
+        /* [out] */ IView** view);
 
     CARAPI SetCurrentTabByTag(
         /* [in] */ const String& tag);
 
     CARAPI GetTabContentView(
-        /* [out] */ IFrameLayout ** ppView);
+        /* [out] */ IFrameLayout** view);
 
     CARAPI SetCurrentTab(
         /* [in] */ Int32 index);
 
     CARAPI SetOnTabChangedListener(
-        /* [in] */ ITabHostOnTabChangeListener * pL);
+        /* [in] */ ITabHostOnTabChangeListener* l);
+
+    CARAPI OnTouchModeChanged(
+        /* [in] */ Boolean isInTouchMode);
 
     CARAPI constructor(
-        /* [in] */ IContext * pContext);
+        /* [in] */ IContext* context);
 
     CARAPI constructor(
-        /* [in] */ IContext * pContext,
-        /* [in] */ IAttributeSet * pAttrs);
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs);
 
 private:
     // TODO: Add your private member variables here.

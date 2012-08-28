@@ -124,6 +124,9 @@ public:
     CARAPI GetCapsuleName(
         /* [out] */ String* capsuleName);
 
+    CARAPI GetApplicationInfo(
+        /* [out] */ IApplicationInfo** info);
+
     CARAPI StartActivity(
         /* [in] */ IIntent *intent);
 

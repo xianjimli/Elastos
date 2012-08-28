@@ -35,6 +35,9 @@ public:
     CARAPI GetCapsuleName(
         /* [out] */ String* capsuleName);
 
+    CARAPI GetApplicationInfo(
+        /* [out] */ IApplicationInfo** info);
+
     CARAPI SendBroadcast(
         /* [in] */ IIntent* intent);
 

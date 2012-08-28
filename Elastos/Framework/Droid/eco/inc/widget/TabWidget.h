@@ -4,6 +4,7 @@
 
 #include "widget/LinearLayout.h"
 
+
 /**
  *
  * Displays a list of tab labels representing each page in the parent's tab
@@ -18,21 +19,52 @@
  *
  * <p>See the <a href="{@docRoot}resources/tutorials/views/hello-tabwidget.html">Tab Layout
  * tutorial</a>.</p>
- * 
+ *
  * @attr ref android.R.styleable#TabWidget_divider
  * @attr ref android.R.styleable#TabWidget_tabStripEnabled
  * @attr ref android.R.styleable#TabWidget_tabStripLeft
  * @attr ref android.R.styleable#TabWidget_tabStripRight
  */
 
-class TabWidget : public LinearLayout //implements OnFocusChangeListener 
+class TabWidget : public LinearLayout //implements OnFocusChangeListener
 {
-public:
+private:
+    // registered with each tab indicator so we can notify tab host
+    class TabClickListener : public IViewOnClickListener, public ElRefBase
+    {
+        friend class TabWidget;
 
+    public:
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI OnClick(
+            /* [in] */ IView* v);
+
+    private:
+        TabClickListener(
+            /* [in] */ Int32 tabIndex,
+            /* [in] */ TabWidget* owner);
+
+    private:
+        Int32 mTabIndex;
+
+        TabWidget* mOwner;
+    };
+
+public:
     TabWidget(
-        /* [in] */ IContext* context = NULL, 
-        /* [in] */ IAttributeSet* attrs = NULL, 
-        /* [in] */ Int32 defStyle = /*R_Attr_TabWidgetStyle*/0x01010083);
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs = NULL,
+        /* [in] */ Int32 defStyle = 0x01010083/*com.android.internal.R.attr.tabWidgetStyle*/);
 
     /**
      * Returns the tab indicator view at the given index.
@@ -63,7 +95,7 @@ public:
      */
     virtual CARAPI SetDividerDrawable(
         /* [in] */ Int32 resId);
-    
+
     /**
      * Sets the drawable to use as the left part of the strip below the
      * tab indicators.
@@ -97,7 +129,7 @@ public:
      */
     virtual CARAPI SetRightStripDrawable(
         /* [in] */ Int32 resId);
-    
+
     /**
      * Controls whether the bottom strips on the tab indicators are drawn or
      * not.  The default is to draw them.  If the user specifies a custom
@@ -114,9 +146,11 @@ public:
      */
     virtual CARAPI_(Boolean) IsStripEnabled();
 
-    virtual CARAPI ChildDrawableStateChanged(
+    //@Override
+    CARAPI ChildDrawableStateChanged(
         /* [in] */ IView* child);
 
+    //@Override
     virtual CARAPI_(void) DispatchDraw(
         /* [in] */ ICanvas* canvas);
 
@@ -167,10 +201,14 @@ public:
     virtual CARAPI FocusCurrentTab(
         /* [in] */ Int32 index);
 
-    virtual CARAPI SetEnabled(
+    //@Override
+    CARAPI SetEnabled(
         /* [in] */ Boolean enabled);
 
-    virtual CARAPI AddView(
+    using LinearLayout::AddView;
+
+    //@Override
+    CARAPI AddView(
         /* [in] */ IView* child);
     /**
      * Provides a way for {@link TabHost} to be notified that the user clicked on a tab indicator.
@@ -179,57 +217,52 @@ public:
         /* [in] */ ITabWidgetOnTabSelectionChanged* listener);
 
     virtual CARAPI OnFocusChange(
-        /* [in] */ IView* v, 
+        /* [in] */ IView* v,
         /* [in] */ Boolean hasFocus);
 
 protected:
-    virtual CARAPI_(void) OnSizeChanged(
-        /* [in] */ Int32 w, 
-        /* [in] */ Int32 h, 
-        /* [in] */ Int32 oldw, 
+    TabWidget();
+
+    //@Override
+    CARAPI_(void) OnSizeChanged(
+        /* [in] */ Int32 w,
+        /* [in] */ Int32 h,
+        /* [in] */ Int32 oldw,
         /* [in] */ Int32 oldh);
 
-    virtual CARAPI_(Int32) GetChildDrawingOrder(
-        /* [in] */ Int32 childCount, 
+    //@Override
+    CARAPI_(Int32) GetChildDrawingOrder(
+        /* [in] */ Int32 childCount,
         /* [in] */ Int32 i);
 
+    CARAPI Init(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs = NULL,
+        /* [in] */ Int32 defStyle = 0x01010083/*com.android.internal.R.attr.tabWidgetStyle*/);
+
 private:
-    virtual CARAPI_(void) InitTabWidget();    
+    CARAPI_(void) InitTabWidget();
 
-    // registered with each tab indicator so we can notify tab host
-    class TabClickListener : public IViewOnClickListener 
-    {
-    private:
-        Int32 mTabIndex;
-
-        TabWidget* mOwner;
-
-        TabClickListener(
-            /* [in] */ Int32 tabIndex,
-            /* [in] */ TabWidget* owner);
-
-    public:
-        virtual CARAPI OnClick(
-            /* [in] */ IView* v);
-    };    
-
-    friend class TabClickListener;
+    CARAPI InitFromAttributes(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs,
+        /* [in] */ Int32 defStyle);
 
 private:
 
     AutoPtr<ITabWidgetOnTabSelectionChanged> mSelectionChangedListener;
 
-    Int32 mSelectedTab;// = 0;
+    Int32 mSelectedTab;
 
     AutoPtr<IDrawable> mLeftStrip;
     AutoPtr<IDrawable> mRightStrip;
 
-    Boolean mDrawBottomStrips;// = true;
+    Boolean mDrawBottomStrips;
     Boolean mStripMoved;
 
     AutoPtr<IDrawable> mDividerDrawable;
 
-    AutoPtr<IRect> mBounds;// = new Rect();
+    AutoPtr<CRect> mBounds;
 
 };
 

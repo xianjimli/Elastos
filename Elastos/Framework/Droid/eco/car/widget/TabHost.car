@@ -1,12 +1,20 @@
 
 module
 {
+    /**
+     * Interface definition for a callback to be invoked when tab changed
+     */
     interface ITabHostOnTabChangeListener
     {
         OnTabChanged(
             [in] String tabId);
     }
 
+    /**
+     * Makes the content of a tab when it is selected. Use this if your tab
+     * content needs to be created on demand, i.e. you are not showing an
+     * existing view or starting an activity.
+     */
     interface ITabHostTabContentFactory
     {
         CreateTabContent(
@@ -14,63 +22,27 @@ module
             [out] IView** view);
     }
 
-    /**
-     * Specifies what you do to create a tab indicator.
-     */
-    interface IIndicatorStrategy
-    {
-        /**
-         * Return the view for the indicator.
-         */
-        CreateIndicatorView(
-            [out] IView** view);
-    }
-
-    /**
-     * Specifies what you do to manage the tab content.
-     */
-    interface IContentStrategy
-    {
-        /**
-         * Return the content view.  The view should may be cached locally.
-         */
-        GetContentView(
-            [out] IView** view);
-
-        /**
-         * Perhaps do something when the tab associated with this content has
-         * been closed (i.e make it invisible, or remove it).
-         */
-        TabClosed();
-    }
-
-    interface ITabHostTabSpec
+    interface ITabSpec
     {
         SetIndicator(
-            [in] ICharSequence* label,
-            [out] ITabHostTabSpec** spec);
+            [in] ICharSequence* label);
 
         SetIndicatorEx(
-            [in] ICharSequence* label, 
-            [in] IDrawable* icon,
-            [out] ITabHostTabSpec** spec);
+            [in] ICharSequence* label,
+            [in] IDrawable* icon);
 
         SetIndicatorEx2(
-            [in] IView* view,
-            [out] ITabHostTabSpec** spec);
-    
+            [in] IView* view);
+
         SetContent(
-            [in] Int32 viewId,
-            [out] ITabHostTabSpec** spec);
-    
+            [in] Int32 viewId);
+
         SetContentEx(
-            [in] ITabHostTabContentFactory* contentFactory,
-            [out] ITabHostTabSpec** spec);
-    
+            [in] ITabHostTabContentFactory* contentFactory);
+
         SetContentEx2(
-            [in] IIntent* intent,
-            [out] ITabHostTabSpec** spec);
-    
+            [in] IIntent* intent);
+
         GetTag(
             [out] String* str);
     }
@@ -79,7 +51,7 @@ module
     {
         NewTabSpec(
             [in] String tag,
-            [out] ITabHostTabSpec** tabspec);
+            [out] ITabSpec** tabspec);
 
         Setup();
 
@@ -87,7 +59,7 @@ module
             [in] LocalActivityManager activityGroup);*/
 
         AddTab(
-            [in] ITabHostTabSpec* tabSpec);
+            [in] ITabSpec* tabSpec);
 
         ClearAllTabs();
 
@@ -96,6 +68,9 @@ module
 
         GetCurrentTab(
             [out] Int32* tab);
+
+        GetCurrentTabTag(
+            [out] String* tag);
 
         GetCurrentTabView(
             [out] IView** view);

@@ -413,6 +413,12 @@ ECode Service::GetCapsuleName(
     return mBase->GetCapsuleName(capsuleName);
 }
 
+ECode Service::GetApplicationInfo(
+    /* [out] */ IApplicationInfo** info)
+{
+    return mBase->GetApplicationInfo(info);
+}
+
 /**
  * @return the base context as set by the constructor or setBaseContext
  */

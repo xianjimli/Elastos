@@ -339,12 +339,12 @@ module
             [in] IContext* context);
 
         constructor(
-            [in] IContext* context, 
+            [in] IContext* context,
             [in] IAttributeSet* attrs);
 
         constructor(
-            [in] IContext* context, 
-            [in] IAttributeSet* attrs, 
+            [in] IContext* context,
+            [in] IAttributeSet* attrs,
             [in] Int32 defStyle);
 
         interface IEditText;
@@ -878,25 +878,29 @@ module
             [in] Int32 defStyle);
 
         interface ITabWidget;
-    }
-
-    class CTabHostTabSpec{
-
-        constructor(
-            [in] String tag);
-
-        interface ITabHostTabSpec;
+        interface IViewParent;
+        interface IViewManager;
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
+        interface IViewOnFocusChangeListener;
     }
 
     class CTabHost {
         constructor(
-            [in] IContext* context);
+            [in] IContext* ctx);
 
         constructor(
-            [in] IContext* context, 
+            [in] IContext* ctx,
             [in] IAttributeSet* attrs);
 
         interface ITabHost;
+        interface IViewParent;
+        interface IViewManager;
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
+        interface IOnTouchModeChangeListener;
     }
 }
 

@@ -5,46 +5,94 @@
 #include "widget/CLinearLayoutLayoutParams.h"
 #include "widget/CImageView.h"
 
+
+TabWidget::TabClickListener::TabClickListener(
+    /* [in] */ Int32 tabIndex,
+    /* [in] */ TabWidget* owner)
+    : mTabIndex(tabIndex)
+    , mOwner(owner)
+{}
+
+PInterface TabWidget::TabClickListener::Probe(
+    /* [in] */ REIID riid)
+{
+    return NULL;
+}
+
+UInt32 TabWidget::TabClickListener::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 TabWidget::TabClickListener::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode TabWidget::TabClickListener::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode TabWidget::TabClickListener::OnClick(
+     /* [in] */ IView* v)
+{
+    return mOwner->mSelectionChangedListener->OnTabSelectionChanged(mTabIndex, TRUE);
+}
+
+
+TabWidget::TabWidget()
+    : mSelectedTab(0)
+    , mDrawBottomStrips(TRUE)
+    , mStripMoved(FALSE)
+{
+    CRect::New((IRect**)&mBounds);
+}
+
+TabWidget::TabWidget(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs,
+    /* [in] */ Int32 defStyle)
+    : LinearLayout(context, attrs)
+    , mSelectedTab(0)
+    , mDrawBottomStrips(TRUE)
+    , mStripMoved(FALSE)
+{
+    CRect::New((IRect**)&mBounds);
+    ASSERT_SUCCEEDED(InitFromAttributes(context, attrs, defStyle));
+    InitTabWidget();
+}
+
 static Int32 R_Styleable_TabWidget[] = {
     0x01010129, 0x010102bb, 0x010102bc, 0x010102bd
 };
 
-static const Int32 R_Attr_TabWidgetStyle = 0x01010083;
-
-static const Int32 R_Styleable_TabWidget_Divider = 0;
-static const Int32 R_Styleable_TabWidget_TabStripLeft = 1;
-static const Int32 R_Styleable_TabWidget_TabStripRight = 2;
-static const Int32 R_Styleable_TabWidget_TabStripEnabled = 3;
-
-static const Int32 R_Drawable_Tab_bottom_left = 0x01080302;
-static const Int32 R_Drawable_Tab_bottom_left_v4 = 0x01080303;
-static const Int32 R_Drawable_Tab_bottom_right = 0x01080304;
-static const Int32 R_Drawable_Tab_bottom_right_v4 = 0x01080305;
-
-TabWidget::TabWidget(
-    /* [in] */ IContext* context, 
-    /* [in] */ IAttributeSet* attrs, 
-    /* [in] */ Int32 defStyle) : LinearLayout(context, attrs)
+ECode TabWidget::InitFromAttributes(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs,
+    /* [in] */ Int32 defStyle)
 {
     AutoPtr<ITypedArray> a;
-    
-    context->ObtainStyledAttributesEx3(attrs, ArrayOf<Int32>(R_Styleable_TabWidget, 4),
-                defStyle, 0, (ITypedArray**)&a);
 
-    a->GetBoolean(R_Styleable_TabWidget_TabStripEnabled, TRUE, &mDrawBottomStrips);
-    a->GetDrawable(R_Styleable_TabWidget_Divider, (IDrawable**)&mDividerDrawable);
-    a->GetDrawable(R_Styleable_TabWidget_TabStripLeft, (IDrawable**)&mLeftStrip);
-    a->GetDrawable(R_Styleable_TabWidget_TabStripRight, (IDrawable**)&mRightStrip);
+    context->ObtainStyledAttributesEx3(attrs,
+            ArrayOf<Int32>(R_Styleable_TabWidget, sizeof(R_Styleable_TabWidget) / sizeof(Int32)),
+            defStyle, 0, (ITypedArray**)&a);
+
+    a->GetBoolean(3/*R.styleable.TabWidget_TabStripEnabled*/, TRUE, &mDrawBottomStrips);
+    a->GetDrawable(0/*R.styleable.TabWidget_Divider*/, (IDrawable**)&mDividerDrawable);
+    a->GetDrawable(1/*R.styleable.TabWidget_TabStripLeft*/, (IDrawable**)&mLeftStrip);
+    a->GetDrawable(2/*R.styleable.TabWidget_TabStripRight*/, (IDrawable**)&mRightStrip);
 
     a->Recycle();
-
-    InitTabWidget();
+    return NOERROR;
 }
 
 void TabWidget::OnSizeChanged(
-    /* [in] */ Int32 w, 
-    /* [in] */ Int32 h, 
-    /* [in] */ Int32 oldw, 
+    /* [in] */ Int32 w,
+    /* [in] */ Int32 h,
+    /* [in] */ Int32 oldw,
     /* [in] */ Int32 oldh)
 {
     mStripMoved = TRUE;
@@ -52,16 +100,18 @@ void TabWidget::OnSizeChanged(
 }
 
 Int32 TabWidget::GetChildDrawingOrder(
-    /* [in] */ Int32 childCount, 
+    /* [in] */ Int32 childCount,
     /* [in] */ Int32 i)
 {
     // Always draw the selected tab last, so that drop shadows are drawn
     // in the correct z-order.
     if (i == childCount - 1) {
         return mSelectedTab;
-    } else if (i >= mSelectedTab) {
+    }
+    else if (i >= mSelectedTab) {
         return i + 1;
-    } else {
+    }
+    else {
         return i;
     }
 }
@@ -71,37 +121,44 @@ void TabWidget::InitTabWidget()
     SetOrientation(LinearLayout::HORIZONTAL);
     mGroupFlags |= FLAG_USE_CHILD_DRAWING_ORDER;
 
-    AutoPtr<IContext> context = mContext;
+    IContext* context = mContext;
     AutoPtr<IResources> resources;
     context->GetResources((IResources**)&resources);
-    
-    //AutoPtr<IApplicationInfo> ai;
-    //context->GetApplicationInfo((IApplication**)&ai);
 
-    if (/*((CApplicationInfo*)ai.Get())->mTargetSdkVersion <= Build_VERSION_CODES_DONUT*/0) {
+    AutoPtr<IApplicationInfo> ai;
+    context->GetApplicationInfo((IApplicationInfo**)&ai);
+    if (FALSE/*((CApplicationInfo*)ai.Get())->mTargetSdkVersion <= Build_VERSION_CODES_DONUT*/) {
         // Donut apps get old color scheme
-        if (mLeftStrip.Get() == NULL) {
+        if (mLeftStrip == NULL) {
             resources->GetDrawable(
-                    R_Drawable_Tab_bottom_left_v4, (IDrawable**)&mLeftStrip);
+                    0x01080303/*com.android.internal.R.drawable.tab_bottom_left_v4*/,
+                    (IDrawable**)&mLeftStrip);
         }
-        if (mRightStrip.Get() == NULL) {
+        if (mRightStrip == NULL) {
             resources->GetDrawable(
-                    R_Drawable_Tab_bottom_right_v4, (IDrawable**)&mRightStrip);
+                    0x01080305/*com.android.internal.R.drawable.tab_bottom_right_v4*/,
+                    (IDrawable**)&mRightStrip);
         }
-    } else {
+    }
+    else {
         // Use modern color scheme for Eclair and beyond
-        if (mLeftStrip.Get() == NULL) {
-            resources->GetDrawable(R_Drawable_Tab_bottom_left, (IDrawable**)&mLeftStrip);
+        if (mLeftStrip == NULL) {
+            resources->GetDrawable(
+                    0x01080302/*com.android.internal.R.drawable.tab_bottom_left*/,
+                    (IDrawable**)&mLeftStrip);
         }
-        if (mRightStrip.Get() == NULL) {
-            resources->GetDrawable(R_Drawable_Tab_bottom_right, (IDrawable**)&mRightStrip);
+        if (mRightStrip == NULL) {
+            resources->GetDrawable(
+                    0x01080304/*com.android.internal.R.drawable.tab_bottom_right*/,
+                    (IDrawable**)&mRightStrip);
         }
     }
 
     // Deal with focus, as we don't want the focus to go by default
     // to a tab other than the current tab
     SetFocusable(TRUE);
-    SetOnFocusChangeListener((IViewOnFocusChangeListener*)this->Probe(EIID_IViewOnFocusChangeListener));
+    SetOnFocusChangeListener(
+            (IViewOnFocusChangeListener*)this->Probe(EIID_IViewOnFocusChangeListener));
 }
 
 /**
@@ -162,7 +219,7 @@ ECode TabWidget::SetDividerDrawable(
 {
     AutoPtr<IResources> resources;
     mContext->GetResources((IResources**)&resources);
-
+    mDividerDrawable = NULL;
     resources->GetDrawable(resId, (IDrawable**)&mDividerDrawable);
     RequestLayout();
     Invalidate();
@@ -196,7 +253,7 @@ ECode TabWidget::SetLeftStripDrawable(
 {
     AutoPtr<IResources> resources;
     mContext->GetResources((IResources**)&resources);
-
+    mLeftStrip = NULL;
     resources->GetDrawable(resId, (IDrawable**)&mLeftStrip);
     RequestLayout();
     Invalidate();
@@ -214,7 +271,7 @@ ECode TabWidget::SetRightStripDrawable(
 {
     mRightStrip = drawable;
     RequestLayout();
-    Invalidate();   
+    Invalidate();
 
     return NOERROR;
 }
@@ -226,11 +283,11 @@ ECode TabWidget::SetRightStripDrawable(
  * right strip drawable
  */
 ECode TabWidget::SetRightStripDrawable(
-    /* [in] */ Int32 resId) 
+    /* [in] */ Int32 resId)
 {
     AutoPtr<IResources> resources;
     mContext->GetResources((IResources**)&resources);
-
+    mRightStrip = NULL;
     resources->GetDrawable(resId, (IDrawable**)&mRightStrip);
 
     RequestLayout();
@@ -271,9 +328,7 @@ ECode TabWidget::ChildDrawableStateChanged(
         // To make sure that the bottom strip is redrawn
         Invalidate();
     }
-    LinearLayout::ChildDrawableStateChanged(child);
-
-    return NOERROR;
+    return LinearLayout::ChildDrawableStateChanged(child);
 }
 
 void TabWidget::DispatchDraw(
@@ -293,18 +348,18 @@ void TabWidget::DispatchDraw(
 
     AutoPtr<IView> selectedChild = GetChildTabViewAt(mSelectedTab);
 
-    AutoPtr<IDrawable> leftStrip = mLeftStrip;
-    AutoPtr<IDrawable> rightStrip = mRightStrip;
+    IDrawable* leftStrip = mLeftStrip;
+    IDrawable* rightStrip = mRightStrip;
 
-    ArrayOf<Int32>* drawableState;
-    selectedChild->GetDrawableState(&drawableState);
+    AutoFree< ArrayOf<Int32> > drawableState;
+    selectedChild->GetDrawableState((ArrayOf<Int32>**)&drawableState);
 
     Boolean res;
     leftStrip->SetState(drawableState, &res);
     rightStrip->SetState(drawableState, &res);
 
     if (mStripMoved) {
-        AutoPtr<CRect> bounds = (CRect*)mBounds.Get();
+        CRect* bounds = mBounds;
         selectedChild->GetLeft(&bounds->mLeft);
         selectedChild->GetRight(&bounds->mRight);
         Int32 myHeight = GetHeight();
@@ -383,7 +438,7 @@ ECode TabWidget::SetCurrentTab(
  *  @see #setCurrentTab
  */
 ECode TabWidget::FocusCurrentTab(
-    /* [in] */ Int32 index) 
+    /* [in] */ Int32 index)
 {
     Int32 oldTab = mSelectedTab;
 
@@ -418,9 +473,11 @@ ECode TabWidget::AddView(
 {
     AutoPtr<IViewGroupLayoutParams> lp;
     child->GetLayoutParams((IViewGroupLayoutParams**)&lp);
-    if (lp.Get() == NULL) {
+    if (lp == NULL) {
         AutoPtr<ILinearLayoutLayoutParams> lp;
-        CLinearLayoutLayoutParams::New(0, ViewGroupLayoutParams_MATCH_PARENT, 1.0f, (ILinearLayoutLayoutParams**)&lp);
+        CLinearLayoutLayoutParams::New(
+                0,
+                ViewGroupLayoutParams_MATCH_PARENT, 1.0f, (ILinearLayoutLayoutParams**)&lp);
         lp->SetMargins(0, 0, 0, 0);
         child->SetLayoutParams(lp);
     }
@@ -437,7 +494,9 @@ ECode TabWidget::AddView(
         AutoPtr<ILinearLayoutLayoutParams> lp;
         Int32 w;
         mDividerDrawable->GetIntrinsicWidth(&w);
-        CLinearLayoutLayoutParams::New(w, ViewGroupLayoutParams_MATCH_PARENT, (ILinearLayoutLayoutParams**)&lp);
+        CLinearLayoutLayoutParams::New(
+                w,
+                ViewGroupLayoutParams_MATCH_PARENT, (ILinearLayoutLayoutParams**)&lp);
         lp->SetMargins(0, 0, 0, 0);
         divider->SetLayoutParams(lp);
         divider->SetBackgroundDrawable(mDividerDrawable);
@@ -447,7 +506,8 @@ ECode TabWidget::AddView(
 
     // TODO: detect this via geometry with a tabwidget listener rather
     // than potentially interfere with the view's listener
-    //child->SetOnClickListener(new TabClickListener(GetTabCount() - 1));
+    AutoPtr<TabClickListener> listener = new TabClickListener(GetTabCount() - 1, this);
+    child->SetOnClickListener((IViewOnClickListener*)listener);
     child->SetOnFocusChangeListener((IViewOnFocusChangeListener*)this->Probe(EIID_IViewOnFocusChangeListener));
 
     return NOERROR;
@@ -463,7 +523,7 @@ void TabWidget::SetTabSelectionListener(
 }
 
 ECode TabWidget::OnFocusChange(
-    /* [in] */ IView* v, 
+    /* [in] */ IView* v,
     /* [in] */ Boolean hasFocus)
 {
     if (v == (IView*)this->Probe(EIID_IView) && hasFocus && GetTabCount() > 0) {
@@ -488,17 +548,13 @@ ECode TabWidget::OnFocusChange(
     return NOERROR;
 }
 
-TabWidget::TabClickListener::TabClickListener(
-    /* [in] */ Int32 tabIndex,
-    /* [in] */ TabWidget* owner)
+ECode TabWidget::Init(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs,
+    /* [in] */ Int32 defStyle)
 {
-    mTabIndex = tabIndex;
-    mOwner = owner;
+    FAIL_RETURN(LinearLayout::Init(context, attrs));
+    FAIL_RETURN(InitFromAttributes(context, attrs, defStyle));
+    InitTabWidget();
+    return NOERROR;
 }
-
-ECode TabWidget::TabClickListener::OnClick(
-     /* [in] */ IView* v)
-{
-    return mOwner->mSelectionChangedListener->OnTabSelectionChanged(mTabIndex, TRUE);
-}
-

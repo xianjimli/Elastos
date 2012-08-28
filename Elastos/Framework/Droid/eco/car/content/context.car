@@ -528,6 +528,10 @@ module
         GetCapsuleName(
             [out] String* capsuleName);
 
+        /** Return the full application info for this context's package. */
+        GetApplicationInfo(
+            [out] IApplicationInfo** info);
+
         StartActivity(
             [in] IIntent* intent);
 

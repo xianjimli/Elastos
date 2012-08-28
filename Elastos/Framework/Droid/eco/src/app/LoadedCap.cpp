@@ -225,6 +225,15 @@ ECode LoadedCap::GetCapsuleName(
     return NOERROR;
 }
 
+ECode LoadedCap::GetApplicationInfo(
+    /* [out] */ IApplicationInfo** info)
+{
+    VALIDATE_NOT_NULL(info);
+    *info = mApplicationInfo;
+    if (*info != NULL) (*info)->AddRef();
+    return NOERROR;
+}
+
 ECode LoadedCap::GetClassLoader(
     /* [out] */ IClassLoader** loader)
 {

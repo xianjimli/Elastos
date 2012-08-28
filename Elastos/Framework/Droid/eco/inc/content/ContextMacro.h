@@ -49,6 +49,9 @@
     CARAPI GetCapsuleName(                                              \
         /* [out] */ String* capsuleName);                               \
                                                                         \
+    CARAPI GetApplicationInfo(                                          \
+        /* [out] */ IApplicationInfo** info);                           \
+                                                                        \
     CARAPI StartActivity(                                               \
         /* [in] */ IIntent *intent);                                    \
                                                                         \
@@ -184,6 +187,12 @@ ECode className::GetCapsuleName(                                        \
     /* [out] */ String* capsuleName)                                    \
 {                                                                       \
     return superClass::GetCapsuleName(capsuleName);                     \
+}                                                                       \
+                                                                        \
+ECode className::GetApplicationInfo(                                    \
+    /* [out] */ IApplicationInfo** info)                                \
+{                                                                       \
+    return superClass::GetApplicationInfo(info);                        \
 }                                                                       \
                                                                         \
 ECode className::SendBroadcast(                                         \
