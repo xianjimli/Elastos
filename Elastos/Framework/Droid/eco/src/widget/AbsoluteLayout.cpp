@@ -4,30 +4,28 @@
 #include "widget/CAbsoluteLayoutLayoutParams.h"
 
 AbsoluteLayout::AbsoluteLayout()
-{
-
-}
+{}
 
 AbsoluteLayout::AbsoluteLayout(
-    /* [in] */ IContext* context) : ViewGroup(context)
-{
-}
+    /* [in] */ IContext* context)
+    : ViewGroup(context)
+{}
 
 AbsoluteLayout::AbsoluteLayout(
-    /* [in] */ IContext* context, 
-    /* [in] */ IAttributeSet* attrs) : ViewGroup(context, attrs)
-{
-}
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs)
+    : ViewGroup(context, attrs)
+{}
 
 AbsoluteLayout::AbsoluteLayout(
-    /* [in] */ IContext* context, 
+    /* [in] */ IContext* context,
     /* [in] */ IAttributeSet* attrs,
-    /* [in] */ Int32 defStyle) : ViewGroup(context, attrs, defStyle)
-{
-}
+    /* [in] */ Int32 defStyle)
+    : ViewGroup(context, attrs, defStyle)
+{}
 
 void AbsoluteLayout::OnMeasure(
-    /* [in] */ Int32 widthMeasureSpec, 
+    /* [in] */ Int32 widthMeasureSpec,
     /* [in] */ Int32 heightMeasureSpec)
 {
     Int32 count = GetChildCount();
@@ -42,14 +40,14 @@ void AbsoluteLayout::OnMeasure(
     for (Int32 i = 0; i < count; i++)
     {
         AutoPtr<IView> child = GetChildAt(i);
-        
+
         Int32 visible;
         child->GetVisibility(&visible);
         if (visible != GONE) {
             Int32 childRight;
             Int32 childBottom;
 
-            AutoPtr<IViewGroupLayoutParams> lp;
+            AutoPtr<IAbsoluteLayoutLayoutParams> lp;
             child->GetLayoutParams((IViewGroupLayoutParams**)&lp);
 
             Int32 w, h;
@@ -71,7 +69,7 @@ void AbsoluteLayout::OnMeasure(
     // Check against minimum height and width
     maxHeight = Math::Max(maxHeight, GetSuggestedMinimumHeight());
     maxWidth = Math::Max(maxWidth, GetSuggestedMinimumWidth());
-    
+
     SetMeasuredDimension(ResolveSize(maxWidth, widthMeasureSpec),
             ResolveSize(maxHeight, heightMeasureSpec));
 }
@@ -83,18 +81,19 @@ void AbsoluteLayout::OnMeasure(
  * and with the coordinates (0, 0).
  */
 ECode AbsoluteLayout::GenerateDefaultLayoutParams(
-    /* [out] */ IViewGroupLayoutParams** lp) 
+    /* [out] */ IViewGroupLayoutParams** lp)
 {
     return CAbsoluteLayoutLayoutParams::New(
-        ViewGroupLayoutParams::WRAP_CONTENT, ViewGroupLayoutParams::WRAP_CONTENT, 0, 0, (IAbsoluteLayoutLayoutParams**)lp);
+            ViewGroupLayoutParams::WRAP_CONTENT, ViewGroupLayoutParams::WRAP_CONTENT, 0, 0,
+            (IAbsoluteLayoutLayoutParams**)lp);
 }
 
 void AbsoluteLayout::OnLayout(
-    /* [in] */ Boolean changed, 
-    /* [in] */ Int32 l, 
+    /* [in] */ Boolean changed,
+    /* [in] */ Int32 l,
     /* [in] */ Int32 t,
-    /* [in] */ Int32 r, 
-    /* [in] */ Int32 b) 
+    /* [in] */ Int32 r,
+    /* [in] */ Int32 b)
 {
     Int32 count = GetChildCount();
 
@@ -114,37 +113,52 @@ void AbsoluteLayout::OnLayout(
             Int32 w, h;
             child->GetMeasuredWidth(&w);
             child->GetMeasuredHeight(&h);
-            child->Layout(childLeft, childTop,
-                    childLeft + w,
-                    childTop + h);
-
+            child->Layout(childLeft, childTop, childLeft + w, childTop + h);
         }
     }
 }
 
 AutoPtr<IViewGroupLayoutParams> AbsoluteLayout::GenerateLayoutParams(
-    /* [in] */ IAttributeSet* attrs) 
+    /* [in] */ IAttributeSet* attrs)
 {
     AutoPtr<IViewGroupLayoutParams> lp;
-    
     CAbsoluteLayoutLayoutParams::New(GetContext(), attrs, (IAbsoluteLayoutLayoutParams**)&lp);
-
     return lp;
 }
 
-// Override to allow type-checking of LayoutParams. 
+// Override to allow type-checking of LayoutParams.
 Boolean AbsoluteLayout::CheckLayoutParams(
-    /* [in] */ IViewGroupLayoutParams* p) 
+    /* [in] */ IViewGroupLayoutParams* p)
 {
-    return p->Probe(EIID_IAbsoluteLayoutLayoutParams) != NULL;
+    return IAbsoluteLayoutLayoutParams::Probe(p) != NULL;
 }
 
 AutoPtr<IViewGroupLayoutParams> AbsoluteLayout::GenerateLayoutParams(
-    /* [in] */ IViewGroupLayoutParams* p) 
+    /* [in] */ IViewGroupLayoutParams* p)
 {
     AutoPtr<IViewGroupLayoutParams> lp;
     CAbsoluteLayoutLayoutParams::New(p, (IAbsoluteLayoutLayoutParams**)&lp);
-    
     return lp;
+}
+
+ECode AbsoluteLayout::Init(
+    /* [in] */ IContext* context)
+{
+    return ViewGroup::Init(context);
+}
+
+ECode AbsoluteLayout::Init(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs)
+{
+    return ViewGroup::Init(context, attrs);
+}
+
+ECode AbsoluteLayout::Init(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs,
+    /* [in] */ Int32 defStyle)
+{
+    return ViewGroup::Init(context, attrs, defStyle);
 }
 

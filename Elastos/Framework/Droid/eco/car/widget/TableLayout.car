@@ -1,12 +1,10 @@
 
 module
 {
-    interface ITableLayoutLayoutParams extends ILinearLayoutLayoutParams
-    {
+    interface ITableLayoutLayoutParams extends ILinearLayoutLayoutParams {
     }
 
-    interface ITableLayout extends ILinearLayout
-    {
+    interface ITableLayout extends ILinearLayout {
         /**
          * <p>Indicates whether all columns are shrinkable or not.</p>
          *
@@ -57,7 +55,7 @@ module
          * @attr ref android.R.styleable#TableLayout_collapseColumns
          */
         SetColumnCollapsed(
-            [in] Int32 columnIndex, 
+            [in] Int32 columnIndex,
             [in] Boolean isCollapsed);
 
         /**
@@ -83,7 +81,7 @@ module
          * @attr ref android.R.styleable#TableLayout_stretchColumns
          */
         SetColumnStretchable(
-            [in] Int32 columnIndex, 
+            [in] Int32 columnIndex,
             [in] Boolean isStretchable);
 
         /**
@@ -109,7 +107,7 @@ module
          * @attr ref android.R.styleable#TableLayout_shrinkColumns
          */
         SetColumnShrinkable(
-            [in] Int32 columnIndex, 
+            [in] Int32 columnIndex,
             [in] Boolean isShrinkable);
 
         /**

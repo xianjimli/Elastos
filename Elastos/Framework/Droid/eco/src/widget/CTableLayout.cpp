@@ -103,93 +103,96 @@ ECode CTableLayout::SetVerticalGravity(
 }
 
 ECode CTableLayout::IsShrinkAllColumns(
-    /* [out] */ Boolean * pShrinkAllColumns)
+    /* [out] */ Boolean* shrinkAllColumns)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(shrinkAllColumns);
+
+    *shrinkAllColumns = TableLayout::IsShrinkAllColumns();
+    return NOERROR;
 }
 
 ECode CTableLayout::SetShrinkAllColumns(
     /* [in] */ Boolean shrinkAllColumns)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TableLayout::SetShrinkAllColumns(shrinkAllColumns);
 }
 
 ECode CTableLayout::IsStretchAllColumns(
-    /* [out] */ Boolean * pStretchAllColumns)
+    /* [out] */ Boolean* stretchAllColumns)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(stretchAllColumns);
+
+    *stretchAllColumns = TableLayout::IsStretchAllColumns();
+    return NOERROR;
 }
 
 ECode CTableLayout::SetStretchAllColumns(
     /* [in] */ Boolean stretchAllColumns)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TableLayout::SetStretchAllColumns(stretchAllColumns);
 }
 
 ECode CTableLayout::SetColumnCollapsed(
     /* [in] */ Int32 columnIndex,
     /* [in] */ Boolean isCollapsed)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TableLayout::SetColumnCollapsed(columnIndex, isCollapsed);
 }
 
 ECode CTableLayout::IsColumnCollapsed(
     /* [in] */ Int32 columnIndex,
-    /* [out] */ Boolean * pIsCollapsed)
+    /* [out] */ Boolean* isCollapsed)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(isCollapsed);
+
+    *isCollapsed = TableLayout::IsColumnCollapsed(columnIndex);
+    return NOERROR;
 }
 
 ECode CTableLayout::SetColumnStretchable(
     /* [in] */ Int32 columnIndex,
     /* [in] */ Boolean isStretchable)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TableLayout::SetColumnStretchable(columnIndex, isStretchable);
 }
 
 ECode CTableLayout::IsColumnStretchable(
     /* [in] */ Int32 columnIndex,
-    /* [out] */ Boolean * pIsStretchable)
+    /* [out] */ Boolean* isStretchable)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(isStretchable);
+
+    *isStretchable = TableLayout::IsColumnStretchable(columnIndex);
+    return NOERROR;
 }
 
 ECode CTableLayout::SetColumnShrinkable(
     /* [in] */ Int32 columnIndex,
     /* [in] */ Boolean isShrinkable)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TableLayout::SetColumnShrinkable(columnIndex, isShrinkable);
 }
 
 ECode CTableLayout::IsColumnShrinkable(
     /* [in] */ Int32 columnIndex,
-    /* [out] */ Boolean * pIsShrinkable)
+    /* [out] */ Boolean* isShrinkable)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(isShrinkable);
+
+    *isShrinkable = TableLayout::IsColumnShrinkable(columnIndex);
+    return NOERROR;
 }
 
 ECode CTableLayout::constructor(
-    /* [in] */ IContext * pContext)
+    /* [in] */ IContext* context)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TableLayout::Init(context);
 }
 
 ECode CTableLayout::constructor(
-    /* [in] */ IContext * pContext,
-    /* [in] */ IAttributeSet * pAttrs)
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TableLayout::Init(context, attrs);
 }
 

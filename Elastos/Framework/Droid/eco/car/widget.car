@@ -208,7 +208,7 @@ module
             [in] Int32 y);
 
         constructor(
-            [in] IContext* c,
+            [in] IContext* ctx,
             [in] IAttributeSet* attrs);
 
         constructor(
@@ -220,14 +220,14 @@ module
     class CAbsoluteLayout {
 
         constructor(
-            [in] IContext* context);
+            [in] IContext* ctx);
 
         constructor(
-            [in] IContext* context,
+            [in] IContext* ctx,
             [in] IAttributeSet* attrs);
 
         constructor(
-            [in] IContext* context,
+            [in] IContext* ctx,
             [in] IAttributeSet* attrs,
             [in] Int32 defStyle);
 
@@ -237,7 +237,7 @@ module
     class CTableLayoutLayoutParams {
 
         constructor(
-            [in] IContext* c,
+            [in] IContext* ctx,
             [in] IAttributeSet* attrs);
 
         constructor(
@@ -263,10 +263,10 @@ module
     class CTableLayout {
 
         constructor(
-            [in] IContext* context);
+            [in] IContext* ctx);
 
         constructor(
-            [in] IContext* context,
+            [in] IContext* ctx,
             [in] IAttributeSet* attrs);
 
         interface ITableLayout;
@@ -275,7 +275,7 @@ module
     class CTableRowLayoutParams {
 
         constructor(
-            [in] IContext* c,
+            [in] IContext* ctx,
             [in] IAttributeSet* attrs);
 
         constructor(
@@ -304,10 +304,10 @@ module
     class CTableRow {
 
         constructor(
-            [in] IContext* context);
+            [in] IContext* ctx);
 
         constructor(
-            [in] IContext* context,
+            [in] IContext* ctx,
             [in] IAttributeSet* attrs);
 
         interface ITableRow;

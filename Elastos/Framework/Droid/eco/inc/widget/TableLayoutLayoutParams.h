@@ -9,29 +9,29 @@
  * {@link #MATCH_PARENT} and the height of each child to be
  * {@link #WRAP_CONTENT}, but only if the height is not specified.</p>
  */
-class TableLayoutLayoutParams : public LinearLayoutLayoutParams 
+class TableLayoutLayoutParams : public LinearLayoutLayoutParams
 {
 public:
     /**
      * {@inheritDoc}
      */
     TableLayoutLayoutParams(
-        /* [in] */ IContext* c, 
+        /* [in] */ IContext* c,
         /* [in] */ IAttributeSet* attrs);
 
     /**
      * {@inheritDoc}
      */
     TableLayoutLayoutParams(
-        /* [in] */ Int32 w, 
+        /* [in] */ Int32 w,
         /* [in] */ Int32 h);
 
     /**
      * {@inheritDoc}
      */
     TableLayoutLayoutParams(
-        /* [in] */ Int32 w, 
-        /* [in] */ Int32 h, 
+        /* [in] */ Int32 w,
+        /* [in] */ Int32 h,
         /* [in] */ Float initWeight);
 
     /**
@@ -53,6 +53,7 @@ public:
     TableLayoutLayoutParams(
         /* [in] */ ViewGroupMarginLayoutParams* source);
 
+protected:
     /**
      * <p>Fixes the row's width to
      * {@link android.view.ViewGroup.LayoutParams#MATCH_PARENT}; the row's
@@ -64,10 +65,10 @@ public:
      * @param widthAttr the width attribute to fetch
      * @param heightAttr the height attribute to fetch
      */
-protected:
-    virtual CARAPI_(void) SetBaseAttributes(
+    //@Override
+    CARAPI_(void) SetBaseAttributes(
         /* [in] */ ITypedArray* a,
-        /* [in] */ Int32 widthAttr, 
+        /* [in] */ Int32 widthAttr,
         /* [in] */ Int32 heightAttr);
 };
 

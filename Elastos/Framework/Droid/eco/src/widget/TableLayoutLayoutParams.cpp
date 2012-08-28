@@ -5,8 +5,9 @@
  * {@inheritDoc}
  */
 TableLayoutLayoutParams::TableLayoutLayoutParams(
-    /* [in] */ IContext* c, 
-    /* [in] */ IAttributeSet* attrs) : LinearLayoutLayoutParams(c, attrs)
+    /* [in] */ IContext* c,
+    /* [in] */ IAttributeSet* attrs)
+    : LinearLayoutLayoutParams(c, attrs)
 {
 }
 
@@ -14,8 +15,9 @@ TableLayoutLayoutParams::TableLayoutLayoutParams(
  * {@inheritDoc}
  */
 TableLayoutLayoutParams::TableLayoutLayoutParams(
-    /* [in] */ Int32 w, 
-    /* [in] */ Int32 h) : LinearLayoutLayoutParams(w, h)
+    /* [in] */ Int32 w,
+    /* [in] */ Int32 h)
+    : LinearLayoutLayoutParams(w, h)
 {
 }
 
@@ -23,9 +25,10 @@ TableLayoutLayoutParams::TableLayoutLayoutParams(
  * {@inheritDoc}
  */
 TableLayoutLayoutParams::TableLayoutLayoutParams(
-    /* [in] */ Int32 w, 
-    /* [in] */ Int32 h, 
-    /* [in] */ Float initWeight) : LinearLayoutLayoutParams(LinearLayoutLayoutParams::MATCH_PARENT, h, initWeight) 
+    /* [in] */ Int32 w,
+    /* [in] */ Int32 h,
+    /* [in] */ Float initWeight)
+    : LinearLayoutLayoutParams(MATCH_PARENT, h, initWeight)
 {
 }
 
@@ -34,7 +37,8 @@ TableLayoutLayoutParams::TableLayoutLayoutParams(
  * {@link android.view.ViewGroup.LayoutParams} and the child height to
  * {@link android.view.ViewGroup.LayoutParams#WRAP_CONTENT}.</p>
  */
-TableLayoutLayoutParams::TableLayoutLayoutParams() : LinearLayoutLayoutParams(LinearLayoutLayoutParams::MATCH_PARENT, LinearLayoutLayoutParams::WRAP_CONTENT) 
+TableLayoutLayoutParams::TableLayoutLayoutParams()
+    : LinearLayoutLayoutParams(MATCH_PARENT, WRAP_CONTENT)
 {
 }
 
@@ -42,7 +46,8 @@ TableLayoutLayoutParams::TableLayoutLayoutParams() : LinearLayoutLayoutParams(Li
  * {@inheritDoc}
  */
 TableLayoutLayoutParams::TableLayoutLayoutParams(
-    /* [in] */ ViewGroupLayoutParams* p) : LinearLayoutLayoutParams(p)
+    /* [in] */ ViewGroupLayoutParams* p)
+    : LinearLayoutLayoutParams(p)
 {
 }
 
@@ -50,7 +55,8 @@ TableLayoutLayoutParams::TableLayoutLayoutParams(
  * {@inheritDoc}
  */
 TableLayoutLayoutParams::TableLayoutLayoutParams(
-    /* [in] */ ViewGroupMarginLayoutParams* source) : LinearLayoutLayoutParams(source)
+    /* [in] */ ViewGroupMarginLayoutParams* source)
+    : LinearLayoutLayoutParams(source)
 {
 }
 
@@ -67,16 +73,17 @@ TableLayoutLayoutParams::TableLayoutLayoutParams(
  */
 void TableLayoutLayoutParams::SetBaseAttributes(
     /* [in] */ ITypedArray* a,
-    /* [in] */ Int32 widthAttr, 
-    /* [in] */ Int32 heightAttr) 
+    /* [in] */ Int32 widthAttr,
+    /* [in] */ Int32 heightAttr)
 {
     mWidth = MATCH_PARENT;
-    
+
     Boolean res;
     a->HasValue(heightAttr, &res);
     if (res) {
         a->GetLayoutDimension(heightAttr, String("layout_height"), &mHeight);
-    } else {
-        mHeight = LinearLayoutLayoutParams::WRAP_CONTENT;
+    }
+    else {
+        mHeight = WRAP_CONTENT;
     }
 }

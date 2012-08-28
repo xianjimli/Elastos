@@ -33,13 +33,13 @@ public:
         /* [in] */ Boolean baselineAligned);
 
     CARAPI GetBaselineAlignedChildIndex(
-        /* [out] */ Int32 * pBaselineAlignedChildIndex);
+        /* [out] */ Int32* baselineAlignedChildIndex);
 
     CARAPI SetBaselineAlignedChildIndex(
         /* [in] */ Int32 baselineAlignedChildIndex);
 
     CARAPI GetWeightSum(
-        /* [out] */ Float * pWeightSum);
+        /* [out] */ Float* weightSum);
 
     CARAPI SetWeightSum(
         /* [in] */ Float weightSum);
@@ -60,13 +60,13 @@ public:
         /* [in] */ Int32 verticalGravity);
 
     CARAPI IsShrinkAllColumns(
-        /* [out] */ Boolean * pShrinkAllColumns);
+        /* [out] */ Boolean* shrinkAllColumns);
 
     CARAPI SetShrinkAllColumns(
         /* [in] */ Boolean shrinkAllColumns);
 
     CARAPI IsStretchAllColumns(
-        /* [out] */ Boolean * pStretchAllColumns);
+        /* [out] */ Boolean* stretchAllColumns);
 
     CARAPI SetStretchAllColumns(
         /* [in] */ Boolean stretchAllColumns);
@@ -77,7 +77,7 @@ public:
 
     CARAPI IsColumnCollapsed(
         /* [in] */ Int32 columnIndex,
-        /* [out] */ Boolean * pIsCollapsed);
+        /* [out] */ Boolean* isCollapsed);
 
     CARAPI SetColumnStretchable(
         /* [in] */ Int32 columnIndex,
@@ -93,14 +93,14 @@ public:
 
     CARAPI IsColumnShrinkable(
         /* [in] */ Int32 columnIndex,
-        /* [out] */ Boolean * pIsShrinkable);
+        /* [out] */ Boolean* isShrinkable);
 
     CARAPI constructor(
-        /* [in] */ IContext * pContext);
+        /* [in] */ IContext* context);
 
     CARAPI constructor(
-        /* [in] */ IContext * pContext,
-        /* [in] */ IAttributeSet * pAttrs);
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs);
 
 private:
     // TODO: Add your private member variables here.

@@ -2,43 +2,46 @@
 #include "widget/TableRowLayoutParams.h"
 #include <elastos/AutoPtr.h>
 
-/**
- * <p>Set of layout parameters used in table rows.</p>
- *
- * @see android.widget.TableLayout.LayoutParams
- * 
- * @attr ref android.R.styleable#TableRow_Cell_layout_column
- * @attr ref android.R.styleable#TableRow_Cell_layout_span
- */
 
 const Int32 TableRowLayoutParams::LOCATION;
 const Int32 TableRowLayoutParams::LOCATION_NEXT;
-
-static Int32 R_Styleable_TableRow_Cell[] = {
-    0x0101014c, 0x0101014d
-};
-
-static const Int32 R_Styleable_TableRow_Cell_layout_column = 0;
-static const Int32 R_Styleable_TableRow_Cell_layout_span = 1;
 
 /**
  * {@inheritDoc}
  */
 TableRowLayoutParams::TableRowLayoutParams(
-    /* [in] */ IContext* c, 
-    /* [in] */ IAttributeSet* attrs) : LinearLayoutLayoutParams(c, attrs)
+    /* [in] */ IContext* c,
+    /* [in] */ IAttributeSet* attrs)
+    : LinearLayoutLayoutParams(c, attrs)
+{
+    ASSERT_SUCCEEDED(InitFromAttributes(c, attrs));
+}
+
+static Int32 R_Styleable_TableRow_Cell[] = {
+    0x0101014c, 0x0101014d
+};
+
+ECode TableRowLayoutParams::InitFromAttributes(
+    /* [in] */ IContext* c,
+    /* [in] */ IAttributeSet* attrs)
 {
     AutoPtr<ITypedArray> a;
     c->ObtainStyledAttributesEx2(attrs,
-                    ArrayOf<Int32>(R_Styleable_TableRow_Cell, 2), (ITypedArray**)&a);
+            ArrayOf<Int32>(R_Styleable_TableRow_Cell,
+                sizeof(R_Styleable_TableRow_Cell) / sizeof(Int32)),
+            (ITypedArray**)&a);
 
-    a->GetInt32(R_Styleable_TableRow_Cell_layout_column, -1, &mColumn);
-    a->GetInt32(R_Styleable_TableRow_Cell_layout_span, 1, &mSpan);
+    a->GetInt32(0/*com.android.internal.R.styleable.TableRow_Cell_layout_column*/,
+            -1, &mColumn);
+    a->GetInt32(1/*com.android.internal.R.styleable.TableRow_Cell_layout_span*/,
+            1, &mSpan);
     if (mSpan <= 1) {
         mSpan = 1;
     }
 
     a->Recycle();
+
+    return NOERROR;
 }
 
 /**
@@ -48,11 +51,12 @@ TableRowLayoutParams::TableRowLayoutParams(
  * @param h the desired height
  */
 TableRowLayoutParams::TableRowLayoutParams(
-    /* [in] */ Int32 w, 
-    /* [in] */ Int32 h) : LinearLayoutLayoutParams(w, h) 
+    /* [in] */ Int32 w,
+    /* [in] */ Int32 h)
+    : LinearLayoutLayoutParams(w, h)
+    , mColumn(-1)
+    , mSpan(1)
 {
-    mColumn = -1;
-    mSpan = 1;
 }
 
 /**
@@ -63,12 +67,13 @@ TableRowLayoutParams::TableRowLayoutParams(
  * @param initWeight the desired weight
  */
 TableRowLayoutParams::TableRowLayoutParams(
-    /* [in] */ Int32 w, 
-    /* [in] */ Int32 h, 
-    /* [in] */ Float initWeight) : LinearLayoutLayoutParams(w, h, initWeight)
+    /* [in] */ Int32 w,
+    /* [in] */ Int32 h,
+    /* [in] */ Float initWeight)
+    : LinearLayoutLayoutParams(w, h, initWeight)
+    , mColumn(-1)
+    , mSpan(1)
 {
-    mColumn = -1;
-    mSpan = 1;
 }
 
 /**
@@ -76,10 +81,11 @@ TableRowLayoutParams::TableRowLayoutParams(
  * and the child height to
  * {@link android.view.ViewGroup.LayoutParams#WRAP_CONTENT}.</p>
  */
-TableRowLayoutParams::TableRowLayoutParams() : LinearLayoutLayoutParams(MATCH_PARENT, WRAP_CONTENT)
+TableRowLayoutParams::TableRowLayoutParams()
+//    : LinearLayoutLayoutParams(MATCH_PARENT, WRAP_CONTENT)
+//    , mColumn(-1)
+//    , mSpan(1)
 {
-    mColumn = -1;
-    mSpan = 1;
 }
 
 /**
@@ -92,17 +98,10 @@ TableRowLayoutParams::TableRowLayoutParams() : LinearLayoutLayoutParams(MATCH_PA
  * @param column the column index for the view
  */
 TableRowLayoutParams::TableRowLayoutParams(
-    /* [in] */ Int32 column) : LinearLayoutLayoutParams(MATCH_PARENT, WRAP_CONTENT)
-{
-    mSpan = 1;
-    mColumn = column;
-}
-
-/**
- * {@inheritDoc}
- */
-TableRowLayoutParams::TableRowLayoutParams(
-    /* [in] */ ViewGroupLayoutParams* p) : LinearLayoutLayoutParams(p)
+    /* [in] */ Int32 column)
+    : LinearLayoutLayoutParams(MATCH_PARENT, WRAP_CONTENT)
+    , mColumn(column)
+    , mSpan(1)
 {
 }
 
@@ -110,14 +109,24 @@ TableRowLayoutParams::TableRowLayoutParams(
  * {@inheritDoc}
  */
 TableRowLayoutParams::TableRowLayoutParams(
-    /* [in] */ ViewGroupMarginLayoutParams* source) : LinearLayoutLayoutParams(source)
+    /* [in] */ ViewGroupLayoutParams* p)
+    : LinearLayoutLayoutParams(p)
+{
+}
+
+/**
+ * {@inheritDoc}
+ */
+TableRowLayoutParams::TableRowLayoutParams(
+    /* [in] */ ViewGroupMarginLayoutParams* source)
+    : LinearLayoutLayoutParams(source)
 {
 }
 
 void TableRowLayoutParams::SetBaseAttributes(
-    /* [in] */ ITypedArray* a, 
-    /* [in] */ Int32 widthAttr, 
-    /* [in] */ Int32 heightAttr) 
+    /* [in] */ ITypedArray* a,
+    /* [in] */ Int32 widthAttr,
+    /* [in] */ Int32 heightAttr)
 {
     // We don't want to force users to specify a layout_width
     Boolean res;
@@ -125,7 +134,8 @@ void TableRowLayoutParams::SetBaseAttributes(
 
     if (res) {
         a->GetLayoutDimension(widthAttr, String("layout_width"), &mWidth);
-    } else {
+    }
+    else {
         mWidth = MATCH_PARENT;
     }
 
@@ -133,7 +143,66 @@ void TableRowLayoutParams::SetBaseAttributes(
     a->HasValue(heightAttr, &res);
     if (res) {
         a->GetLayoutDimension(heightAttr, String("layout_height"), &mHeight);
-    } else {
+    }
+    else {
         mHeight = WRAP_CONTENT;
     }
+}
+
+ECode TableRowLayoutParams::Init(
+    /* [in] */ IContext* c,
+    /* [in] */ IAttributeSet* attrs)
+{
+    FAIL_RETURN(LinearLayoutLayoutParams::Init(c, attrs));
+    return InitFromAttributes(c, attrs);
+}
+
+ECode TableRowLayoutParams::Init(
+    /* [in] */ Int32 w,
+    /* [in] */ Int32 h)
+{
+    FAIL_RETURN(LinearLayoutLayoutParams::Init(w, h));
+    mColumn = -1;
+    mSpan = -1;
+    return NOERROR;
+}
+
+ECode TableRowLayoutParams::Init(
+    /* [in] */ Int32 w,
+    /* [in] */ Int32 h,
+    /* [in] */ Float initWeight)
+{
+    FAIL_RETURN(LinearLayoutLayoutParams::Init(w, h, initWeight));
+    mColumn = -1;
+    mSpan = -1;
+    return NOERROR;
+}
+
+ECode TableRowLayoutParams::Init()
+{
+    FAIL_RETURN(LinearLayoutLayoutParams::Init(MATCH_PARENT, WRAP_CONTENT));
+    mColumn = -1;
+    mSpan = -1;
+    return NOERROR;
+}
+
+ECode TableRowLayoutParams::Init(
+    /* [in] */ Int32 column)
+{
+    FAIL_RETURN(LinearLayoutLayoutParams::Init(MATCH_PARENT, WRAP_CONTENT));
+    mColumn = column;
+    mSpan = -1;
+    return NOERROR;
+}
+
+ECode TableRowLayoutParams::Init(
+    /* [in] */ IViewGroupLayoutParams* p)
+{
+    return LinearLayoutLayoutParams::Init(p);
+}
+
+ECode TableRowLayoutParams::Init(
+    /* [in] */ IViewGroupMarginLayoutParams* source)
+{
+    return LinearLayoutLayoutParams::Init(source);
 }

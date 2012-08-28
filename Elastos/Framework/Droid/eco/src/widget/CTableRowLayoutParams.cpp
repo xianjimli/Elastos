@@ -11,29 +11,33 @@ ECode CTableRowLayoutParams::GetDescription(
 ECode CTableRowLayoutParams::SetWidth(
     /* [in] */ Int32 width)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mWidth = width;
+    return NOERROR;
 }
 
 ECode CTableRowLayoutParams::SetHeight(
     /* [in] */ Int32 height)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mHeight = height;
+    return NOERROR;
 }
 
 ECode CTableRowLayoutParams::GetWidth(
-    /* [out] */ Int32 * pWidth)
+    /* [out] */ Int32* width)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(width);
+
+    *width = mWidth;
+    return NOERROR;
 }
 
 ECode CTableRowLayoutParams::GetHeight(
-    /* [out] */ Int32 * pHeight)
+    /* [out] */ Int32* height)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(height);
+
+    *height = mHeight;
+    return NOERROR;
 }
 
 ECode CTableRowLayoutParams::SetMargins(
@@ -42,48 +46,58 @@ ECode CTableRowLayoutParams::SetMargins(
     /* [in] */ Int32 right,
     /* [in] */ Int32 bottom)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TableRowLayoutParams::SetMargins(left, top, right, bottom);
 }
 
 ECode CTableRowLayoutParams::GetMargins(
-    /* [out] */ Int32 * pLeft,
-    /* [out] */ Int32 * pTop,
-    /* [out] */ Int32 * pRight,
-    /* [out] */ Int32 * pBottom)
+    /* [out] */ Int32* left,
+    /* [out] */ Int32* top,
+    /* [out] */ Int32* right,
+    /* [out] */ Int32* bottom)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(left);
+    VALIDATE_NOT_NULL(top);
+    VALIDATE_NOT_NULL(right);
+    VALIDATE_NOT_NULL(bottom);
+
+    *left = mLeftMargin;
+    *top = mTopMargin;
+    *right = mRightMargin;
+    *bottom = mBottomMargin;
+
+    return NOERROR;
 }
 
 ECode CTableRowLayoutParams::GetWeight(
-    /* [out] */ Float * pWeight)
+    /* [out] */ Float* weight)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(weight);
+
+    *weight = mWeight;
+    return NOERROR;
 }
 
 ECode CTableRowLayoutParams::GetGravity(
-    /* [out] */ Int32 * pGravity)
+    /* [out] */ Int32* gravity)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(gravity);
+
+    *gravity = mGravity;
+    return NOERROR;
 }
 
 ECode CTableRowLayoutParams::constructor(
-    /* [in] */ IContext * pC,
-    /* [in] */ IAttributeSet * pAttrs)
+    /* [in] */ IContext* c,
+    /* [in] */ IAttributeSet* attrs)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TableRowLayoutParams::Init(c, attrs);
 }
 
 ECode CTableRowLayoutParams::constructor(
     /* [in] */ Int32 w,
     /* [in] */ Int32 h)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TableRowLayoutParams::Init(w, h);
 }
 
 ECode CTableRowLayoutParams::constructor(
@@ -91,34 +105,29 @@ ECode CTableRowLayoutParams::constructor(
     /* [in] */ Int32 h,
     /* [in] */ Float initWeight)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TableRowLayoutParams::Init(w, h, initWeight);
 }
 
 ECode CTableRowLayoutParams::constructor()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TableRowLayoutParams::Init();
 }
 
 ECode CTableRowLayoutParams::constructor(
     /* [in] */ Int32 column)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TableRowLayoutParams::Init(column);
 }
 
 ECode CTableRowLayoutParams::constructor(
-    /* [in] */ IViewGroupLayoutParams * pP)
+    /* [in] */ IViewGroupLayoutParams* p)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return LinearLayoutLayoutParams::Init(p);
 }
 
 ECode CTableRowLayoutParams::constructor(
-    /* [in] */ IViewGroupMarginLayoutParams * pSource)
+    /* [in] */ IViewGroupMarginLayoutParams* source)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return LinearLayoutLayoutParams::Init(source);
 }
 

@@ -8,18 +8,20 @@
  * <p>Set of layout parameters used in table rows.</p>
  *
  * @see android.widget.TableLayout.LayoutParams
- * 
+ *
  * @attr ref android.R.styleable#TableRow_Cell_layout_column
  * @attr ref android.R.styleable#TableRow_Cell_layout_span
  */
 class TableRowLayoutParams : public LinearLayoutLayoutParams
 {
+    friend class TableRow;
+
 public:
     /**
      * {@inheritDoc}
      */
     TableRowLayoutParams(
-        /* [in] */ IContext* c, 
+        /* [in] */ IContext* c,
         /* [in] */ IAttributeSet* attrs);
 
     /**
@@ -29,7 +31,7 @@ public:
      * @param h the desired height
      */
     TableRowLayoutParams(
-        /* [in] */ Int32 w, 
+        /* [in] */ Int32 w,
         /* [in] */ Int32 h);
 
     /**
@@ -40,8 +42,8 @@ public:
      * @param initWeight the desired weight
      */
     TableRowLayoutParams(
-        /* [in] */ Int32 w, 
-        /* [in] */ Int32 h, 
+        /* [in] */ Int32 w,
+        /* [in] */ Int32 h,
         /* [in] */ Float initWeight);
 
     /**
@@ -76,10 +78,40 @@ public:
         /* [in] */ ViewGroupMarginLayoutParams* source);
 
 protected:
-    virtual CARAPI_(void) SetBaseAttributes(
-        /* [in] */ ITypedArray* a, 
-        /* [in] */ Int32 widthAttr, 
+    CARAPI Init(
+        /* [in] */ IContext* c,
+        /* [in] */ IAttributeSet* attrs);
+
+    CARAPI Init(
+        /* [in] */ Int32 w,
+        /* [in] */ Int32 h);
+
+    CARAPI Init(
+        /* [in] */ Int32 w,
+        /* [in] */ Int32 h,
+        /* [in] */ Float initWeight);
+
+    CARAPI Init();
+
+    CARAPI Init(
+        /* [in] */ Int32 column);
+
+    CARAPI Init(
+        /* [in] */ IViewGroupLayoutParams* p);
+
+    CARAPI Init(
+        /* [in] */ IViewGroupMarginLayoutParams* source);
+
+    //@Override
+    CARAPI_(void) SetBaseAttributes(
+        /* [in] */ ITypedArray* a,
+        /* [in] */ Int32 widthAttr,
         /* [in] */ Int32 heightAttr);
+
+private:
+    CARAPI InitFromAttributes(
+        /* [in] */ IContext* c,
+        /* [in] */ IAttributeSet* attrs);
 
 public:
     /**
@@ -92,10 +124,11 @@ public:
      */
     Int32 mSpan;
 
+private:
     static const Int32 LOCATION = 0;
     static const Int32 LOCATION_NEXT = 1;
 
-    ArrayOf<Int32>* mOffset;// = new Int32[2];
+    Int32 mOffset[2];
 };
 
 #endif
