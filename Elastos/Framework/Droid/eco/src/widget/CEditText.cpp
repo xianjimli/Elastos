@@ -20,56 +20,57 @@ PInterface CEditText::Probe(
     return _CEditText::Probe(riid);
 }
 
+ECode CEditText::OnPreDraw(
+    /* [out] */ Boolean* result)
+{
+    VALIDATE_NOT_NULL(result);
+    *result = EditText::OnPreDraw();
+    return NOERROR;
+}
+
 ECode CEditText::SetSelection(
     /* [in] */ Int32 start,
     /* [in] */ Int32 stop)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return EditText::SetSelection(start, stop);
 }
 
 
 ECode CEditText::SetSelectionEx(
     /* [in] */ Int32 index)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return EditText::SetSelection(index);
 }
 
 ECode CEditText::SelectAll()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return EditText::SelectAll();
 }
 
 ECode CEditText::ExtendSelection(
     /* [in] */ Int32 index)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return EditText::ExtendSelection(index);
 }
 
 ECode CEditText::constructor(
-    /* [in] */ IContext * pContext)
+    /* [in] */ IContext* context)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return EditText::Init(context);
 }
 
 ECode CEditText::constructor(
-    /* [in] */ IContext * pContext,
-    /* [in] */ IAttributeSet * pAttrs)
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return EditText::Init(context, attrs);
 }
 
 ECode CEditText::constructor(
-    /* [in] */ IContext * pContext,
-    /* [in] */ IAttributeSet * pAttrs,
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs,
     /* [in] */ Int32 defStyle)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return EditText::Init(context, attrs, defStyle);
 }
 

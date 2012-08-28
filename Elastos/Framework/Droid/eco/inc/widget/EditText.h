@@ -26,31 +26,26 @@
 class EditText : public TextView
 {
 public:
-    EditText();
-
     EditText(
-        /* [in] */ IContext* context);
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs = NULL,
+        /* [in] */ Int32 defStyle = 0x0101006e/*com.android.internal.R.attr.editTextStyle*/);
 
-    EditText(
-        /* [in] */ IContext* context, 
-        /* [in] */ IAttributeSet* attrs);
+    //@Override
+    CARAPI_(AutoPtr<ICharSequence>) GetText();
 
-    EditText(
-        /* [in] */ IContext* context, 
-        /* [in] */ IAttributeSet* attrs, 
-        /* [in] */ Int32 defStyle);
+    using TextView::SetText;
 
-    virtual CARAPI_(AutoPtr<ICharSequence>) GetText();
-
-    //virtual CARAPI SetText(
-    //    /* [in] */ ICharSequence* text, 
-    //    /* [in] */ BufferType type);
+    //@Override
+    CARAPI SetText(
+        /* [in] */ ICharSequence* text,
+        /* [in] */ BufferType type);
 
     /**
      * Convenience for {@link Selection#setSelection(Spannable, Int32, Int32)}.
      */
     virtual CARAPI SetSelection(
-        /* [in] */ Int32 start, 
+        /* [in] */ Int32 start,
         /* [in] */ Int32 stop);
 
     /**
@@ -70,13 +65,23 @@ public:
     virtual CARAPI ExtendSelection(
         /* [in] */ Int32 index);
 
-    virtual CARAPI SetEllipsize(
+    //@Override
+    CARAPI SetEllipsize(
         /* [in] */ TextUtilsTruncateAt ellipsis);
 
 protected:
-    virtual CARAPI_(Boolean) GetDefaultEditable();
+    EditText();
 
-    virtual CARAPI_(AutoPtr<IMovementMethod>) GetDefaultMovementMethod();
+    //@Override
+    CARAPI_(Boolean) GetDefaultEditable();
+
+    //@Override
+    CARAPI_(AutoPtr<IMovementMethod>) GetDefaultMovementMethod();
+
+    CARAPI Init(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs = NULL,
+        /* [in] */ Int32 defStyle = 0x0101006e/*com.android.internal.R.attr.editTextStyle*/);
 };
 
 #endif

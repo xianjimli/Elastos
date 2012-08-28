@@ -4,39 +4,23 @@
 static const Int32 R_Attr_EditTextStyle = 0x0101006e;
 
 EditText::EditText()
-{
-
-}
+{}
 
 EditText::EditText(
-    /* [in] */ IContext* context) : TextView(context, NULL, R_Attr_EditTextStyle)
-{
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs,
+    /* [in] */ Int32 defStyle)
+    : TextView(context, attrs, defStyle)
+{}
 
-}
-
-EditText::EditText(
-    /* [in] */ IContext* context, 
-    /* [in] */ IAttributeSet* attrs) : TextView(context, attrs, R_Attr_EditTextStyle)
-{
-
-}
-
-EditText::EditText(
-    /* [in] */ IContext* context, 
-    /* [in] */ IAttributeSet* attrs, 
-    /* [in] */ Int32 defStyle) : TextView(context, attrs, defStyle)
-{
-
-}
-
-Boolean EditText::GetDefaultEditable() 
+Boolean EditText::GetDefaultEditable()
 {
     return TRUE;
 }
 
 AutoPtr<IMovementMethod> EditText::GetDefaultMovementMethod()
 {
-    //return ArrowKeyMovementMethod.getInstance();
+//    return ArrowKeyMovementMethod.getInstance();
     return NULL;
 }
 
@@ -45,21 +29,21 @@ AutoPtr<ICharSequence> EditText::GetText()
     return TextView::GetText();
 }
 
-//ECode EditText::SetText(
-//    /* [in] */ ICharSequence* text, 
-//    /* [in] */ BufferType type)
-//{
-//    return SetText(text, BufferType_EDITABLE);
-//}
+ECode EditText::SetText(
+    /* [in] */ ICharSequence* text,
+    /* [in] */ BufferType type)
+{
+    return TextView::SetText(text, BufferType_EDITABLE);
+}
 
 /**
  * Convenience for {@link Selection#setSelection(Spannable, Int32, Int32)}.
  */
 ECode EditText::SetSelection(
-    /* [in] */ Int32 start, 
-    /* [in] */ Int32 stop) 
+    /* [in] */ Int32 start,
+    /* [in] */ Int32 stop)
 {
-    //Selection.setSelection(getText(), start, stop);
+//    Selection.setSelection(getText(), start, stop);
     return NOERROR;
 }
 
@@ -69,7 +53,7 @@ ECode EditText::SetSelection(
 ECode EditText::SetSelection(
     /* [in] */ Int32 index)
 {
-    //Selection.setSelection(getText(), index);
+//    Selection.setSelection(getText(), index);
     return NOERROR;
 }
 
@@ -78,7 +62,7 @@ ECode EditText::SetSelection(
  */
 ECode EditText::SelectAll()
 {
-    //Selection.selectAll(getText());
+//    Selection.selectAll(getText());
     return NOERROR;
 }
 
@@ -88,7 +72,7 @@ ECode EditText::SelectAll()
 ECode EditText::ExtendSelection(
     /* [in] */ Int32 index)
 {
-    //Selection.extendSelection(getText(), index);
+//    Selection.extendSelection(getText(), index);
     return NOERROR;
 }
 
@@ -96,9 +80,18 @@ ECode EditText::SetEllipsize(
     /* [in] */ TextUtilsTruncateAt ellipsis)
 {
     if (ellipsis == TextUtilsTruncateAt_MARQUEE) {
-        /*throw new IllegalArgumentException("EditText cannot use the ellipsize mode "
-                + "TextUtils.TruncateAt.MARQUEE");*/
+//        throw new IllegalArgumentException("EditText cannot use the ellipsize mode "
+//                + "TextUtils.TruncateAt.MARQUEE");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
     return TextView::SetEllipsize(ellipsis);
+}
+
+ECode EditText::Init(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs,
+    /* [in] */ Int32 defStyle)
+{
+    return TextView::Init(context, attrs, defStyle);
 }

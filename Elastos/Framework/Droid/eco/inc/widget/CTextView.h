@@ -23,6 +23,9 @@ public:
     CARAPI_(PInterface) Probe(
         /* [in] */ REIID riid);
 
+    CARAPI OnPreDraw(
+        /* [out] */ Boolean* result);
+
     CARAPI constructor(
         /* [in] */ IContext* context);
 
@@ -34,9 +37,6 @@ public:
         /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs,
         /* [in] */ Int32 defStyle);
-
-    CARAPI OnPreDraw(
-        /* [out] */ Boolean* result);
 
 private:
     // TODO: Add your private member variables here.

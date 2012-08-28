@@ -1575,6 +1575,12 @@ protected:
 
     CARAPI DrawableStateChanged();
 
+    CARAPI SetText(
+        /* [in] */ ICharSequence* text,
+        /* [in] */ BufferType type,
+        /* [in] */ Boolean notifyBefore,
+        /* [in] */ Int32 oldlen);
+
     CARAPI_(Boolean) SetFrame(
         /* [in] */ Int32 l,
         /* [in] */ Int32 t,
@@ -1701,12 +1707,6 @@ private:
         /* [in] */ Float size);
 
     CARAPI_(void) UpdateTextColors();
-
-    CARAPI SetText(
-        /* [in] */ ICharSequence* text,
-        /* [in] */ BufferType type,
-        /* [in] */ Boolean notifyBefore,
-        /* [in] */ Int32 oldlen);
 
     /**
      * It would be better to rely on the input type for everything. A password inputType should have

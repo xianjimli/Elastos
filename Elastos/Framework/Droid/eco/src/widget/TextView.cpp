@@ -5974,6 +5974,7 @@ ECode TextView::SetEllipsize(
         RequestLayout();
         Invalidate();
     }
+    return NOERROR;
 }
 
 /**
