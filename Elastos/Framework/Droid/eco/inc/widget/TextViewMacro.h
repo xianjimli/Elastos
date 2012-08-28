@@ -370,8 +370,14 @@
     CARAPI SetSingleLineEx(                                                 \
         /* [in] */ Boolean singleLine);                                     \
                                                                             \
+    CARAPI SetEllipsize(                                                    \
+        /* [in] */ TextUtilsTruncateAt where);                              \
+                                                                            \
     CARAPI SetMarqueeRepeatLimit(                                           \
         /* [in] */ Int32 marqueeLimit);                                     \
+                                                                            \
+    CARAPI GetEllipsize(                                                    \
+        /* [out] */ TextUtilsTruncateAt* where);                            \
                                                                             \
     CARAPI SetSelectAllOnFocus(                                             \
         /* [in] */ Boolean selectAllOnFocus);                               \
@@ -1252,10 +1258,25 @@ ECode className::SetSingleLineEx(                                               
     return superClass::SetSingleLine(singleLine);                                               \
 }                                                                                               \
                                                                                                 \
+ECode className::SetEllipsize(                                                                  \
+    /* [in] */ TextUtilsTruncateAt where)                                                       \
+{                                                                                               \
+    return superClass::SetEllipsize(where);                                                     \
+}                                                                                               \
+                                                                                                \
 ECode className::SetMarqueeRepeatLimit(                                                         \
     /* [in] */ Int32 marqueeLimit)                                                              \
 {                                                                                               \
     return superClass::SetMarqueeRepeatLimit(marqueeLimit);                                     \
+}                                                                                               \
+                                                                                                \
+ECode className::GetEllipsize(                                                                  \
+    /* [out] */ TextUtilsTruncateAt* where)                                                     \
+{                                                                                               \
+    VALIDATE_NOT_NULL(where);                                                                   \
+    *where = superClass::GetEllipsize();                                                        \
+                                                                                                \
+    return NOERROR;                                                                             \
 }                                                                                               \
                                                                                                 \
 ECode className::SetSelectAllOnFocus(                                                           \

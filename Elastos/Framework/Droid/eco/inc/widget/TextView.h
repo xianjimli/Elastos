@@ -1336,8 +1336,8 @@ public:
      *
      * @attr ref android.R.styleable#TextView_ellipsize
      */
-    //virtual CARAPI_(void) SetEllipsize(
-    //    /* [in] */ TextUtils.TruncateAt where);
+    virtual CARAPI SetEllipsize(
+        /* [in] */ TextUtilsTruncateAt where);
 
     /**
      * Sets how many times to repeat the marquee animation. Only applied if the
@@ -1352,7 +1352,7 @@ public:
      * Returns where, if anywhere, words that are longer than the view
      * is wide should be ellipsized.
      */
-    //virtual CARAPI_(TextUtils.TruncateAt) GetEllipsize();
+    virtual CARAPI_(TextUtilsTruncateAt) GetEllipsize();
 
     /**
      * Set the TextView so that when it takes focus, all the text is

@@ -28,7 +28,7 @@ module
     merge("text/style/UpdateLayout.car");
     merge("text/method/KeyListener.car");
     merge("text/method/TransformationMethod.car");
-
+    merge("text/method/MovementMethod.car");
 
     class CTextPaint {
 

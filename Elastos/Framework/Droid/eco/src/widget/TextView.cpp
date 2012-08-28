@@ -5964,17 +5964,17 @@ ECode TextView::ApplySingleLine(
  *
  * @attr ref android.R.styleable#TextView_ellipsize
  */
-//void TextView::SetEllipsize(
-//    TextUtils.TruncateAt where)
-//{
-//    mEllipsize = where;
-//
-//    if (mLayout != NULL) {
-//        nullLayouts();
-//        requestLayout();
-//        invalidate();
-//    }
-//}
+ECode TextView::SetEllipsize(
+    /* [in] */ TextUtilsTruncateAt where)
+{
+    mEllipsize = where;
+
+    if (mLayout != NULL) {
+        NullLayouts();
+        RequestLayout();
+        Invalidate();
+    }
+}
 
 /**
  * Sets how many times to repeat the marquee animation. Only applied if the
@@ -5990,12 +5990,13 @@ ECode TextView::SetMarqueeRepeatLimit(
 }
 
 /**
-    * Returns where, if anywhere, words that are longer than the view
-    * is wide should be ellipsized.
-    */
-//public TextUtils.TruncateAt getEllipsize() {
-//    return mEllipsize;
-//}
+ * Returns where, if anywhere, words that are longer than the view
+ * is wide should be ellipsized.
+ */
+TextUtilsTruncateAt TextView::GetEllipsize()
+{
+    return mEllipsize;
+}
 
 /**
  * Set the TextView so that when it takes focus, all the text is

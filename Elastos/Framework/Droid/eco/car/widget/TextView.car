@@ -1,13 +1,15 @@
 
 module
 {
-		interface ITextPaint;
+    interface ITextPaint;
 
     enum BufferType {
         BufferType_NORMAL,
         BufferType_SPANNABLE,
         BufferType_EDITABLE,
     }
+
+    enum TextUtilsTruncateAt;
 
     /**
      * Interface definition for a callback to be invoked when an action is
@@ -1244,8 +1246,8 @@ module
          *
          * @attr ref android.R.styleable#TextView_ellipsize
          */
-        //SetEllipsize(
-        //    [in] ITextUtilsTruncateAt* where);
+        SetEllipsize(
+            [in] TextUtilsTruncateAt where);
 
         /**
          * Sets how many times to repeat the marquee animation. Only applied if the
@@ -1260,8 +1262,8 @@ module
          * Returns where, if anywhere, words that are longer than the view
          * is wide should be ellipsized.
          */
-        //GetEllipsize(
-        //    [out] ITextUtilsTruncateAt** size);
+        GetEllipsize(
+            [out] TextUtilsTruncateAt* size);
 
         /**
          * Set the TextView so that when it takes focus, all the text is
