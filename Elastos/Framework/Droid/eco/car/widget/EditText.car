@@ -7,7 +7,7 @@ module
          * Convenience for {@link Selection#setSelection(Spannable, Int32, Int32)}.
          */
         SetSelection(
-            [in] Int32 start, 
+            [in] Int32 start,
             [in] Int32 stop);
 
         /**

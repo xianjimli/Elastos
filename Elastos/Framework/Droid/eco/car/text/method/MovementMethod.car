@@ -1,50 +1,55 @@
 
 module
 {
+    interface ITextView;
+    interface ISpannable;
+    interface IKeyEvent;
+    interface IMotionEvent;
+
     interface IMovementMethod
     {
         Initialize(
-            [in] ITextView* widget, 
+            [in] ITextView* widget,
             [in] ISpannable* text);
 
         OnKeyDown(
-            [in] ITextView* widget, 
-            [in] ISpannable* text, 
-            [in] Int32 keyCode, 
+            [in] ITextView* widget,
+            [in] ISpannable* text,
+            [in] Int32 keyCode,
             [in] IKeyEvent* event,
             [out] Boolean* result);
-        
+
         OnKeyUp(
-            [in] ITextView* widget, 
-            [in] ISpannable* text, 
-            [in] Int32 keyCode, 
+            [in] ITextView* widget,
+            [in] ISpannable* text,
+            [in] Int32 keyCode,
             [in] IKeyEvent* event,
             [out] Boolean* result);
-        
+
         /**
          * If the key listener wants to other kinds of key events, return true,
          * otherwise return false and the caller (i.e. the widget host)
          * will handle the key.
          */
         OnKeyOther(
-            [in] ITextView* view, 
-            [in] ISpannable* text, 
+            [in] ITextView* view,
+            [in] ISpannable* text,
             [in] IKeyEvent* event,
             [out] Boolean* result);
-        
+
         OnTakeFocus(
-            [in] ITextView* widget, 
-            [in] ISpannable* text, 
+            [in] ITextView* widget,
+            [in] ISpannable* text,
             [in] Int32 direction);
 
         OnTrackballEvent(
-            [in] ITextView* widget, 
+            [in] ITextView* widget,
             [in] ISpannable* text,
             [in] IMotionEvent* event,
             [out] Boolean* result);
-        
+
         OnTouchEvent(
-            [in] ITextView* widget, 
+            [in] ITextView* widget,
             [in] ISpannable* text,
             [in] IMotionEvent* event,
             [out] Boolean* result);

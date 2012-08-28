@@ -23,6 +23,9 @@ public:
     CARAPI_(PInterface) Probe(
         /* [in] */ REIID riid);
 
+    CARAPI OnPreDraw(
+        /* [out] */ Boolean* result);
+
     CARAPI SetSelection(
         /* [in] */ Int32 start,
         /* [in] */ Int32 stop);
@@ -36,15 +39,15 @@ public:
         /* [in] */ Int32 index);
 
     CARAPI constructor(
-        /* [in] */ IContext * pContext);
+        /* [in] */ IContext* context);
 
     CARAPI constructor(
-        /* [in] */ IContext * pContext,
-        /* [in] */ IAttributeSet * pAttrs);
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs);
 
     CARAPI constructor(
-        /* [in] */ IContext * pContext,
-        /* [in] */ IAttributeSet * pAttrs,
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs,
         /* [in] */ Int32 defStyle);
 
 private:
