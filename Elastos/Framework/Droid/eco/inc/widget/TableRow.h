@@ -38,6 +38,9 @@ private:
         friend class TableRow;
 
     public:
+        ChildrenTracker(
+            /* [in] */ TableRow* owner);
+
         CARAPI_(PInterface) Probe(
             /* [in]  */ REIID riid);
 

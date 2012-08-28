@@ -12,6 +12,41 @@ TableLayout::PassThroughHierarchyChangeListener::PassThroughHierarchyChangeListe
 {
 }
 
+PInterface TableLayout::PassThroughHierarchyChangeListener::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (IInterface*)this;
+    }
+    else if (riid == EIID_IViewGroupOnHierarchyChangeListener) {
+        return (IViewGroupOnHierarchyChangeListener*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 TableLayout::PassThroughHierarchyChangeListener::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 TableLayout::PassThroughHierarchyChangeListener::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode TableLayout::PassThroughHierarchyChangeListener::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    if (pObject == (IInterface*)this) {
+        *pIID = EIID_IViewGroupOnHierarchyChangeListener;
+        return NOERROR;
+    }
+
+    return E_ILLEGAL_ARGUMENT_EXCEPTION;
+}
+
 /**
  * {@inheritDoc}
  */

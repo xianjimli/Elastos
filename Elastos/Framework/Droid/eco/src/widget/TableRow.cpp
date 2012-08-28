@@ -4,6 +4,45 @@
 #include "view/CGravity.h"
 #include <elastos/Math.h>
 
+TableRow::ChildrenTracker::ChildrenTracker(
+    /* [in] */ TableRow* owner)
+    : mOwner(owner)
+{}
+
+PInterface TableRow::ChildrenTracker::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (IInterface*)this;
+    }
+    else if (riid == EIID_IViewGroupOnHierarchyChangeListener) {
+        return (IViewGroupOnHierarchyChangeListener*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 TableRow::ChildrenTracker::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 TableRow::ChildrenTracker::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode TableRow::ChildrenTracker::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    if (pObject == (IInterface*)this) {
+        *pIID = EIID_IViewGroupOnHierarchyChangeListener;
+        return NOERROR;
+    }
+
+    return E_ILLEGAL_ARGUMENT_EXCEPTION;
+}
 
 void TableRow::ChildrenTracker::SetOnHierarchyChangeListener(
     /* [in] */ IViewGroupOnHierarchyChangeListener* listener)
@@ -89,7 +128,7 @@ TableRow::TableRow(
 void TableRow::InitTableRow()
 {
     AutoPtr<IViewGroupOnHierarchyChangeListener> oldListener = mOnHierarchyChangeListener;
-    mChildrenTracker = new ChildrenTracker();
+    mChildrenTracker = new ChildrenTracker(this);
     if (oldListener != NULL) {
         mChildrenTracker->SetOnHierarchyChangeListener(oldListener);
     }
@@ -458,3 +497,26 @@ AutoPtr<IViewGroupLayoutParams> TableRow::GenerateLayoutParams(
     return lp;
 }
 
+ECode TableRow::Init(
+        /* [in] */ IContext* context)
+{
+    FAIL_RETURN(LinearLayout::Init(context));
+    InitTableRow();
+    return NOERROR;
+}
+
+/**
+ * <p>Creates a new TableRow for the given context and with the
+ * specified set attributes.</p>
+ *
+ * @param context the application environment
+ * @param attrs a collection of attributes
+ */
+ECode TableRow::Init(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs)
+{
+    FAIL_RETURN(LinearLayout::Init(context, attrs));
+    InitTableRow();
+    return NOERROR;
+}

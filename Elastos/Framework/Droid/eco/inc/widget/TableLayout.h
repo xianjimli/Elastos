@@ -246,6 +246,8 @@ public:
     virtual CARAPI_(Boolean) IsColumnShrinkable(
         /* [in] */ Int32 columnIndex);
 
+    using LinearLayout::AddView;
+
     /**
      * {@inheritDoc}
      */
@@ -260,12 +262,6 @@ public:
     CARAPI AddView(
         /* [in] */ IView* child,
         /* [in] */ Int32 index);
-
-    //@Override
-    CARAPI AddView(
-        /* [in] */ IView* child,
-        /* [in] */ Int32 width,
-        /* [in] */ Int32 height);
 
     /**
      * {@inheritDoc}
