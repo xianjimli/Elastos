@@ -27,15 +27,15 @@ public:
         /* [in] */ REIID riid);
 
     CARAPI constructor(
-        /* [in] */ IContext * pContext);
+        /* [in] */ IContext* context);
 
     CARAPI constructor(
-        /* [in] */ IContext * pContext,
-        /* [in] */ IAttributeSet * pAttrs);
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs);
 
     CARAPI constructor(
-        /* [in] */ IContext * pContext,
-        /* [in] */ IAttributeSet * pAttrs,
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs,
         /* [in] */ Int32 defStyle);
 
 private:

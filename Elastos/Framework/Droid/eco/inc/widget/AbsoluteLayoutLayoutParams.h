@@ -10,11 +10,9 @@
  * {@link android.R.styleable#AbsoluteLayout_Layout Absolute Layout Attributes}
  * for a list of all child view attributes that this class supports.
  */
-class AbsoluteLayoutLayoutParams : public ViewGroupLayoutParams 
+class AbsoluteLayoutLayoutParams : public ViewGroupLayoutParams
 {
 public:
-    AbsoluteLayoutLayoutParams();
-
     /**
      * Creates a new set of layout parameters with the specified width,
      * height and location.
@@ -27,9 +25,9 @@ public:
      * @param y the Y location of the child
      */
     AbsoluteLayoutLayoutParams(
-        /* [in] */ Int32 width, 
-        /* [in] */ Int32 height, 
-        /* [in] */ Int32 x, 
+        /* [in] */ Int32 width,
+        /* [in] */ Int32 height,
+        /* [in] */ Int32 x,
         /* [in] */ Int32 y);
 
     /**
@@ -49,7 +47,7 @@ public:
      *              parameters values
      */
     AbsoluteLayoutLayoutParams(
-        /* [in] */ IContext* c, 
+        /* [in] */ IContext* c,
         /* [in] */ IAttributeSet* attrs);
 
     /**
@@ -58,9 +56,28 @@ public:
     AbsoluteLayoutLayoutParams(
         /* [in] */ ViewGroupLayoutParams* source);
 
-    virtual CARAPI_(String) Debug(
-        /* [in] */ String output);
+protected:
+    AbsoluteLayoutLayoutParams();
 
+    CARAPI Init(
+        /* [in] */ Int32 width,
+        /* [in] */ Int32 height,
+        /* [in] */ Int32 x,
+        /* [in] */ Int32 y);
+
+    CARAPI Init(
+        /* [in] */ IContext* c,
+        /* [in] */ IAttributeSet* attrs);
+
+    CARAPI Init(
+        /* [in] */ IViewGroupLayoutParams* source);
+
+private:
+    CARAPI InitFromAttributes(
+        /* [in] */ IContext* c,
+        /* [in] */ IAttributeSet* attrs);
+
+public:
     /**
      * The horizontal, or X, location of the child within the view group.
      */

@@ -21,6 +21,9 @@ CARAPI_(PInterface) CTableRow::Probe(
     if (riid == EIID_View) {
         return reinterpret_cast<PInterface>((View*)this);
     }
+    else if (riid == EIID_TableRow) {
+        return reinterpret_cast<PInterface>((TableRow*)this);
+    }
     return _CTableRow::Probe(riid);
 }
 
@@ -102,41 +105,16 @@ ECode CTableRow::SetVerticalGravity(
     return TableRow::SetVerticalGravity(gravity);
 }
 
-ECode CTableRow::SetColumnCollapsed(
-    /* [in] */ Int32 columnIndex,
-    /* [in] */ Boolean collapsed)
+ECode CTableRow::constructor(
+    /* [in] */ IContext* context)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CTableRow::GetColumnsWidths(
-    /* [in] */ Int32 widthMeasureSpec,
-    /* [out, callee] */ ArrayOf<Int32> ** ppWidths)
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CTableRow::SetColumnsWidthConstraints(
-    /* [in] */ const ArrayOf<Int32> & columnWidths)
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TableRow::Init(context);
 }
 
 ECode CTableRow::constructor(
-    /* [in] */ IContext * pContext)
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CTableRow::constructor(
-    /* [in] */ IContext * pContext,
-    /* [in] */ IAttributeSet * pAttrs)
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TableRow::Init(context, attrs);
 }
 

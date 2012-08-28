@@ -2,8 +2,11 @@
 #ifndef __TABLELAYOUT_H__
 #define __TABLELAYOUT_H__
 
+#include "ext/frameworkext.h"
 #include "widget/LinearLayout.h"
-#include "utils/SparseBooleanArray.h"
+#include <elastos/HashMap.h>
+#include <elastos/AutoPtr.h>
+
 
 /**
  * <p>A layout that arranges its children into rows and columns.
@@ -50,11 +53,55 @@
  * Layout tutorial</a>.</p>
  */
 
-class TableLayout : public LinearLayout 
+class TableLayout : public LinearLayout
 {
-public:
-    TableLayout();
+private:
+    /**
+     * <p>A pass-through listener acts upon the events and dispatches them
+     * to another listener. This allows the table layout to set its own internal
+     * hierarchy change listener without preventing the user to setup his.</p>
+     */
+    class PassThroughHierarchyChangeListener
+        : public ElRefBase
+        , public IViewGroupOnHierarchyChangeListener
+    {
+        friend class TableLayout;
 
+    public:
+        PassThroughHierarchyChangeListener(
+            /* [in] */ TableLayout* owner);
+
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        /**
+         * {@inheritDoc}
+         */
+        CARAPI OnChildViewAdded(
+            /* [in] */ IView* parent,
+            /* [in] */ IView* child);
+
+        /**
+         * {@inheritDoc}
+         */
+        CARAPI OnChildViewRemoved(
+            /* [in] */ IView* parent,
+            /* [in] */ IView* child);
+
+    private:
+        AutoPtr<IViewGroupOnHierarchyChangeListener> mOnHierarchyChangeListener;
+        TableLayout* mOwner;
+    };
+
+public:
     /**
      * <p>Creates a new TableLayout for the given context.</p>
      *
@@ -71,19 +118,23 @@ public:
      * @param attrs a collection of attributes
      */
     TableLayout(
-        /* [in] */ IContext* context, 
+        /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs);
+
+    ~TableLayout();
 
     /**
      * {@inheritDoc}
      */
-    virtual CARAPI SetOnHierarchyChangeListener(
+    //@Override
+    CARAPI SetOnHierarchyChangeListener(
         /* [in] */ IViewGroupOnHierarchyChangeListener* listener);
 
     /**
      * {@inheritDoc}
      */
-    virtual CARAPI RequestLayout();
+    //@Override
+    CARAPI RequestLayout();
 
     /**
      * <p>Indicates whether all columns are shrinkable or not.</p>
@@ -133,7 +184,7 @@ public:
      * @attr ref android.R.styleable#TableLayout_collapseColumns
      */
     virtual CARAPI SetColumnCollapsed(
-        /* [in] */ Int32 columnIndex, 
+        /* [in] */ Int32 columnIndex,
         /* [in] */ Boolean isCollapsed);
 
     /**
@@ -158,7 +209,7 @@ public:
      * @attr ref android.R.styleable#TableLayout_stretchColumns
      */
     virtual CARAPI SetColumnStretchable(
-        /* [in] */ Int32 columnIndex, 
+        /* [in] */ Int32 columnIndex,
         /* [in] */ Boolean isStretchable);
 
     /**
@@ -183,7 +234,7 @@ public:
      * @attr ref android.R.styleable#TableLayout_shrinkColumns
      */
     virtual CARAPI SetColumnShrinkable(
-        /* [in] */ Int32 columnIndex, 
+        /* [in] */ Int32 columnIndex,
         /* [in] */ Boolean isShrinkable);
 
     /**
@@ -198,95 +249,117 @@ public:
     /**
      * {@inheritDoc}
      */
-    virtual CARAPI AddView(
+    //@Override
+    CARAPI AddView(
         /* [in] */ IView* child);
 
     /**
      * {@inheritDoc}
      */
-    virtual CARAPI AddView(
-        /* [in] */ IView* child, 
+    //@Override
+    CARAPI AddView(
+        /* [in] */ IView* child,
         /* [in] */ Int32 index);
 
-    virtual CARAPI AddView(
+    //@Override
+    CARAPI AddView(
         /* [in] */ IView* child,
-        /* [in] */ Int32 width, 
+        /* [in] */ Int32 width,
         /* [in] */ Int32 height);
 
     /**
      * {@inheritDoc}
      */
-    virtual CARAPI AddView(
-        /* [in] */ IView* child, 
+    //@Override
+    CARAPI AddView(
+        /* [in] */ IView* child,
         /* [in] */ IViewGroupLayoutParams* params);
 
     /**
      * {@inheritDoc}
      */
-    virtual CARAPI AddView(
-        /* [in] */ IView* child, 
-        /* [in] */ Int32 index, 
+    //@Override
+    CARAPI AddView(
+        /* [in] */ IView* child,
+        /* [in] */ Int32 index,
         /* [in] */ IViewGroupLayoutParams* params);
 
     /**
      * {@inheritDoc}
      */
-    virtual CARAPI_(AutoPtr<IViewGroupLayoutParams>) GenerateLayoutParams(
-        /* [in] */ IAttributeSet* attrs);
-
-protected:
-    /**
-     * {@inheritDoc}
-     */
-    virtual CARAPI_(void) OnMeasure(
-        /* [in] */ Int32 widthMeasureSpec, 
-        /* [in] */ Int32 heightMeasureSpec);
-
-    /**
-     * {@inheritDoc}
-     */
-    virtual CARAPI_(void) OnLayout(
-        /* [in] */ Boolean changed, 
-        /* [in] */ Int32 l, 
-        /* [in] */ Int32 t, 
-        /* [in] */ Int32 r, 
-        /* [in] */ Int32 b);
-
-    /**
-     * {@inheritDoc}
-     */
-    virtual CARAPI_(void) MeasureChildBeforeLayout(
-        /* [in] */ IView* child, 
+    //@Override
+    CARAPI_(void) MeasureChildBeforeLayout(
+        /* [in] */ IView* child,
         /* [in] */ Int32 childIndex,
-        /* [in] */ Int32 widthMeasureSpec, 
+        /* [in] */ Int32 widthMeasureSpec,
         /* [in] */ Int32 totalWidth,
-        /* [in] */ Int32 heightMeasureSpec, 
+        /* [in] */ Int32 heightMeasureSpec,
         /* [in] */ Int32 totalHeight);
 
     /**
      * {@inheritDoc}
      */
-    virtual CARAPI MeasureVertical(
-        /* [in] */ Int32 widthMeasureSpec, 
+    //@Override
+    CARAPI MeasureVertical(
+        /* [in] */ Int32 widthMeasureSpec,
         /* [in] */ Int32 heightMeasureSpec);
+
+    /**
+     * {@inheritDoc}
+     */
+    //@Override
+    CARAPI_(AutoPtr<IViewGroupLayoutParams>) GenerateLayoutParams(
+        /* [in] */ IAttributeSet* attrs);
+
+protected:
+    TableLayout();
+
+    CARAPI Init(
+        /* [in] */ IContext* context);
+
+    CARAPI Init(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs);
+
+    /**
+     * {@inheritDoc}
+     */
+    //@Override
+    CARAPI_(void) OnMeasure(
+        /* [in] */ Int32 widthMeasureSpec,
+        /* [in] */ Int32 heightMeasureSpec);
+
+    /**
+     * {@inheritDoc}
+     */
+    //@Override
+    CARAPI_(void) OnLayout(
+        /* [in] */ Boolean changed,
+        /* [in] */ Int32 l,
+        /* [in] */ Int32 t,
+        /* [in] */ Int32 r,
+        /* [in] */ Int32 b);
 
     /**
      * Returns a set of layout parameters with a width of
      * {@link android.view.ViewGroup.LayoutParams#MATCH_PARENT},
      * and a height of {@link android.view.ViewGroup.LayoutParams#WRAP_CONTENT}.
      */
-    virtual CARAPI_(AutoPtr<ILinearLayoutLayoutParams>) GenerateDefaultLayoutParams();
+    //@Override
+    CARAPI_(AutoPtr<ILinearLayoutLayoutParams>) GenerateDefaultLayoutParams();
 
     /**
      * {@inheritDoc}
      */
-    virtual CARAPI_(Boolean) CheckLayoutParams(
+    //@Override
+    CARAPI_(Boolean) CheckLayoutParams(
         /* [in] */ IViewGroupLayoutParams* p);
 
     /**
      * {@inheritDoc}
      */
-    virtual CARAPI_(AutoPtr<IViewGroupLayoutParams>) GenerateLayoutParams(
+    //@Override
+    CARAPI_(AutoPtr<IViewGroupLayoutParams>) GenerateLayoutParams(
         /* [in] */ IViewGroupLayoutParams* p);
 
 private:
@@ -304,8 +377,8 @@ private:
      * @return a sparse array of Boolean mapping column indexes to the columns
      *         collapse state
      */
-    static CARAPI_(SparseBooleanArray*) ParseColumns(
-        /* [in] */ String sequence);
+    static HashMap<Int32, Boolean>* ParseColumns(
+        /* [in] */ const String& sequence);
 
     /**
      * <p>Performs initialization common to prorgrammatic use and XML use of
@@ -351,48 +424,25 @@ private:
         /* [in] */ Int32 widthMeasureSpec);
 
     CARAPI_(void) MutateColumnsWidth(
-        /* [in] */ SparseBooleanArray* columns,
-        /* [in] */ Boolean allColumns, 
-        /* [in] */ Int32 size, 
+        /* [in] */ HashMap<Int32, Boolean>* columns,
+        /* [in] */ Boolean allColumns,
+        /* [in] */ Int32 size,
         /* [in] */ Int32 totalWidth);
 
-    /**
-     * <p>A pass-through listener acts upon the events and dispatches them
-     * to another listener. This allows the table layout to set its own internal
-     * hierarchy change listener without preventing the user to setup his.</p>
-     */
-    class PassThroughHierarchyChangeListener : public IViewGroupOnHierarchyChangeListener 
-    {
-    public:        
-        /**
-         * {@inheritDoc}
-         */
-        virtual CARAPI OnChildViewAdded(
-            /* [in] */ IView* parent, 
-            /* [in] */ IView* child);
-
-        /**
-         * {@inheritDoc}
-         */
-        virtual CARAPI OnChildViewRemoved(
-            /* [in] */ IView* parent, 
-            /* [in] */ IView* child);
-
-        AutoPtr<IViewGroupOnHierarchyChangeListener> mOnHierarchyChangeListener;
-
-        TableLayout* mOwner;
-    };
+    CARAPI InitFromAttributes(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs);
 
 private:
     ArrayOf<Int32>* mMaxWidths;
-    SparseBooleanArray* mStretchableColumns;
-    SparseBooleanArray* mShrinkableColumns;
-    SparseBooleanArray* mCollapsedColumns;
+    HashMap<Int32, Boolean>* mStretchableColumns;
+    HashMap<Int32, Boolean>* mShrinkableColumns;
+    HashMap<Int32, Boolean>* mCollapsedColumns;
 
     Boolean mShrinkAllColumns;
     Boolean mStretchAllColumns;
 
-    PassThroughHierarchyChangeListener* mPassThroughListener;
+    AutoPtr<PassThroughHierarchyChangeListener> mPassThroughListener;
 
     Boolean mInitialized;
 };

@@ -9,7 +9,7 @@ CarClass(CTableRowLayoutParams), public TableRowLayoutParams
 {
 public:
     CARAPI GetDescription(
-        /* [out] */ String * pDescription);
+        /* [out] */ String* description);
 
     CARAPI SetWidth(
         /* [in] */ Int32 width);
@@ -18,10 +18,10 @@ public:
         /* [in] */ Int32 height);
 
     CARAPI GetWidth(
-        /* [out] */ Int32 * pWidth);
+        /* [out] */ Int32* width);
 
     CARAPI GetHeight(
-        /* [out] */ Int32 * pHeight);
+        /* [out] */ Int32* height);
 
     CARAPI SetMargins(
         /* [in] */ Int32 left,
@@ -30,20 +30,20 @@ public:
         /* [in] */ Int32 bottom);
 
     CARAPI GetMargins(
-        /* [out] */ Int32 * pLeft,
-        /* [out] */ Int32 * pTop,
-        /* [out] */ Int32 * pRight,
-        /* [out] */ Int32 * pBottom);
+        /* [out] */ Int32* left,
+        /* [out] */ Int32* top,
+        /* [out] */ Int32* right,
+        /* [out] */ Int32* bottom);
 
     CARAPI GetWeight(
-        /* [out] */ Float * pWeight);
+        /* [out] */ Float* weight);
 
     CARAPI GetGravity(
-        /* [out] */ Int32 * pGravity);
+        /* [out] */ Int32* gravity);
 
     CARAPI constructor(
-        /* [in] */ IContext * pC,
-        /* [in] */ IAttributeSet * pAttrs);
+        /* [in] */ IContext* c,
+        /* [in] */ IAttributeSet* attrs);
 
     CARAPI constructor(
         /* [in] */ Int32 w,
@@ -60,10 +60,10 @@ public:
         /* [in] */ Int32 column);
 
     CARAPI constructor(
-        /* [in] */ IViewGroupLayoutParams * pP);
+        /* [in] */ IViewGroupLayoutParams* p);
 
     CARAPI constructor(
-        /* [in] */ IViewGroupMarginLayoutParams * pSource);
+        /* [in] */ IViewGroupMarginLayoutParams* source);
 
 private:
     // TODO: Add your private member variables here.

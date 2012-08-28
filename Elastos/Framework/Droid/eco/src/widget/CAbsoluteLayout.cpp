@@ -25,26 +25,23 @@ CARAPI_(PInterface) CAbsoluteLayout::Probe(
 }
 
 ECode CAbsoluteLayout::constructor(
-    /* [in] */ IContext * pContext)
+    /* [in] */ IContext* context)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return Init(context);
 }
 
 ECode CAbsoluteLayout::constructor(
-    /* [in] */ IContext * pContext,
-    /* [in] */ IAttributeSet * pAttrs)
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return Init(context, attrs);
 }
 
 ECode CAbsoluteLayout::constructor(
-    /* [in] */ IContext * pContext,
-    /* [in] */ IAttributeSet * pAttrs,
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs,
     /* [in] */ Int32 defStyle)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return Init(context, attrs, defStyle);
 }
 

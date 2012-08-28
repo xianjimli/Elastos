@@ -33,13 +33,13 @@ public:
         /* [in] */ Boolean baselineAligned);
 
     CARAPI GetBaselineAlignedChildIndex(
-        /* [out] */ Int32 * pBaselineAlignedChildIndex);
+        /* [out] */ Int32* baselineAlignedChildIndex);
 
     CARAPI SetBaselineAlignedChildIndex(
         /* [in] */ Int32 baselineAlignedChildIndex);
 
     CARAPI GetWeightSum(
-        /* [out] */ Float * pWeightSum);
+        /* [out] */ Float* weightSum);
 
     CARAPI SetWeightSum(
         /* [in] */ Float weightSum);
@@ -59,23 +59,12 @@ public:
     CARAPI SetVerticalGravity(
         /* [in] */ Int32 verticalGravity);
 
-    CARAPI SetColumnCollapsed(
-        /* [in] */ Int32 columnIndex,
-        /* [in] */ Boolean collapsed);
-
-    CARAPI GetColumnsWidths(
-        /* [in] */ Int32 widthMeasureSpec,
-        /* [out, callee] */ ArrayOf<Int32> ** ppWidths);
-
-    CARAPI SetColumnsWidthConstraints(
-        /* [in] */ const ArrayOf<Int32> & columnWidths);
+    CARAPI constructor(
+        /* [in] */ IContext* context);
 
     CARAPI constructor(
-        /* [in] */ IContext * pContext);
-
-    CARAPI constructor(
-        /* [in] */ IContext * pContext,
-        /* [in] */ IAttributeSet * pAttrs);
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs);
 
 private:
     // TODO: Add your private member variables here.

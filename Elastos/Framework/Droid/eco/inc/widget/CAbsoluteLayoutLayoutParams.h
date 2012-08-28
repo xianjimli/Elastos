@@ -9,7 +9,7 @@ CarClass(CAbsoluteLayoutLayoutParams), public AbsoluteLayoutLayoutParams
 {
 public:
     CARAPI GetDescription(
-        /* [out] */ String * pDescription);
+        /* [out] */ String* description);
 
     CARAPI SetWidth(
         /* [in] */ Int32 width);
@@ -18,10 +18,10 @@ public:
         /* [in] */ Int32 height);
 
     CARAPI GetWidth(
-        /* [out] */ Int32 * width);
+        /* [out] */ Int32* width);
 
     CARAPI GetHeight(
-        /* [out] */ Int32 * height);
+        /* [out] */ Int32* height);
 
     CARAPI constructor(
         /* [in] */ Int32 width,
@@ -30,11 +30,11 @@ public:
         /* [in] */ Int32 y);
 
     CARAPI constructor(
-        /* [in] */ IContext * pC,
-        /* [in] */ IAttributeSet * pAttrs);
+        /* [in] */ IContext* c,
+        /* [in] */ IAttributeSet* attrs);
 
     CARAPI constructor(
-        /* [in] */ IViewGroupLayoutParams * pSource);
+        /* [in] */ IViewGroupLayoutParams* source);
 
 private:
     // TODO: Add your private member variables here.

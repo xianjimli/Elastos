@@ -2,8 +2,14 @@
 #ifndef __TABLEROW_H__
 #define __TABLEROW_H__
 
-#include "utils/SparseInt32Array.h"
+
+#include "ext/frameworkext.h"
 #include "widget/LinearLayout.h"
+#include <elastos/HashMap.h>
+#include <elastos/AutoPtr.h>
+
+
+extern "C" const InterfaceID EIID_TableRow;
 
 /**
  * <p>A layout that arranges its children horizontally. A TableRow should
@@ -23,9 +29,44 @@
  */
 class TableRow : public LinearLayout
 {
-public:
-    TableRow();
+private:
+    // special transparent hierarchy change listener
+    class ChildrenTracker
+        : public ElRefBase
+        , public IViewGroupOnHierarchyChangeListener
+    {
+        friend class TableRow;
 
+    public:
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI OnChildViewAdded(
+            /* [in] */ IView* parent,
+            /* [in] */ IView* child);
+
+        CARAPI OnChildViewRemoved(
+            /* [in] */ IView* parent,
+            /* [in] */ IView* child);
+
+    private:
+        CARAPI_(void) SetOnHierarchyChangeListener(
+            /* [in] */ IViewGroupOnHierarchyChangeListener* listener);
+
+    private:
+        AutoPtr<IViewGroupOnHierarchyChangeListener> mListener;
+        TableRow* mOwner;
+    };
+
+public:
     /**
      * <p>Creates a new TableRow for the given context.</p>
      *
@@ -48,7 +89,8 @@ public:
     /**
      * {@inheritDoc}
      */
-    virtual CARAPI SetOnHierarchyChangeListener(
+    //@Override
+    CARAPI SetOnHierarchyChangeListener(
         /* [in] */ IViewGroupOnHierarchyChangeListener* listener);
 
     /**
@@ -65,24 +107,28 @@ public:
     /**
      * {@inheritDoc}
      */
-    virtual CARAPI_(AutoPtr<IView>) GetVirtualChildAt(
+    //@Override
+    CARAPI_(AutoPtr<IView>) GetVirtualChildAt(
         /* [in] */ Int32 i);
 
     /**
      * {@inheritDoc}
      */
-    virtual CARAPI_(Int32) GetVirtualChildCount();
+    //@Override
+    CARAPI_(Int32) GetVirtualChildCount();
 
     /**
      * {@inheritDoc}
      */
-    virtual CARAPI_(Int32) MeasureNullChild(
+    //@Override
+    CARAPI_(Int32) MeasureNullChild(
         /* [in] */ Int32 childIndex);
 
     /**
      * {@inheritDoc}
      */
-    virtual CARAPI_(void) MeasureChildBeforeLayout(
+    //@Override
+    CARAPI_(void) MeasureChildBeforeLayout(
         /* [in] */ IView* child,
         /* [in] */ Int32 childIndex,
         /* [in] */ Int32 widthMeasureSpec,
@@ -93,20 +139,23 @@ public:
     /**
      * {@inheritDoc}
      */
-    virtual CARAPI_(Int32) GetChildrenSkipCount(
+    //@Override
+    CARAPI_(Int32) GetChildrenSkipCount(
         /* [in] */ IView* child,
         /* [in] */ Int32 index);
 
     /**
      * {@inheritDoc}
      */
-    virtual CARAPI_(Int32) GetLocationOffset(
+    //@Override
+    CARAPI_(Int32) GetLocationOffset(
         /* [in] */ IView* child);
 
     /**
      * {@inheritDoc}
      */
-    virtual CARAPI_(Int32) GetNextLocationOffset(
+    //@Override
+    CARAPI_(Int32) GetNextLocationOffset(
         /* [in] */ IView* child);
 
     /**
@@ -138,21 +187,46 @@ public:
     /**
      * {@inheritDoc}
      */
-    virtual CARAPI_(AutoPtr<IViewGroupLayoutParams>) GenerateLayoutParams(
+    //@Override
+    CARAPI_(AutoPtr<IViewGroupLayoutParams>) GenerateLayoutParams(
+        /* [in] */ IAttributeSet* attrs);
+
+
+protected:
+    TableRow();
+
+    /**
+     * <p>Creates a new TableRow for the given context.</p>
+     *
+     * @param context the application environment
+     */
+    CARAPI Init(
+        /* [in] */ IContext* context);
+
+    /**
+     * <p>Creates a new TableRow for the given context and with the
+     * specified set attributes.</p>
+     *
+     * @param context the application environment
+     * @param attrs a collection of attributes
+     */
+    CARAPI Init(
+        /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs);
 
     /**
      * {@inheritDoc}
      */
-protected:
-    virtual CARAPI_(void) OnMeasure(
+    //@Override
+    CARAPI_(void) OnMeasure(
         /* [in] */ Int32 widthMeasureSpec,
         /* [in] */ Int32 heightMeasureSpec);
 
     /**
      * {@inheritDoc}
      */
-    virtual CARAPI_(void) OnLayout(
+    //@Override
+    CARAPI_(void) OnLayout(
         /* [in] */ Boolean changed,
         /* [in] */ Int32 l,
         /* [in] */ Int32 t,
@@ -164,18 +238,21 @@ protected:
      * {@link android.view.ViewGroup.LayoutParams#MATCH_PARENT},
      * a height of {@link android.view.ViewGroup.LayoutParams#WRAP_CONTENT} and no spanning.
      */
-    virtual CARAPI_(AutoPtr<ILinearLayoutLayoutParams>) GenerateDefaultLayoutParams();
+    //@Override
+    CARAPI_(AutoPtr<ILinearLayoutLayoutParams>) GenerateDefaultLayoutParams();
 
     /**
      * {@inheritDoc}
      */
-    virtual CARAPI_(Boolean) CheckLayoutParams(
+    //@Override
+    CARAPI_(Boolean) CheckLayoutParams(
         /* [in] */ IViewGroupLayoutParams* p);
 
     /**
      * {@inheritDoc}
      */
-    virtual CARAPI_(AutoPtr<IViewGroupLayoutParams>) GenerateLayoutParams(
+    //@Override
+    CARAPI_(AutoPtr<IViewGroupLayoutParams>) GenerateLayoutParams(
         /* [in] */ IViewGroupLayoutParams* p);
 
 
@@ -184,35 +261,14 @@ private:
 
     CARAPI_(void) MapIndexAndColumns();
 
-    // special transparent hierarchy change listener
-    class ChildrenTracker : public IViewGroupOnHierarchyChangeListener
-    {
-    public:
-        virtual CARAPI OnChildViewAdded(
-            /* [in] */ IView* parent,
-            /* [in] */ IView* child);
-
-        virtual CARAPI OnChildViewRemoved(
-            /* [in] */ IView* parent,
-            /* [in] */ IView* child);
-
-        CARAPI_(void) SetOnHierarchyChangeListener(
-            /* [in] */ IViewGroupOnHierarchyChangeListener* listener);
-
-    private:
-        AutoPtr<IViewGroupOnHierarchyChangeListener> mListener;
-
-        TableRow* mOwner;
-    };
-
 
 private:
-    Int32 mNumColumns;// = 0;
+    Int32 mNumColumns;
     ArrayOf<Int32>* mColumnWidths;
     ArrayOf<Int32>* mConstrainedColumnWidths;
-    SparseInt32Array* mColumnToChildIndex;
+    HashMap<Int32, Int32>* mColumnToChildIndex;
 
-    ChildrenTracker* mChildrenTracker;
+    AutoPtr<ChildrenTracker> mChildrenTracker;
 };
 
 #endif

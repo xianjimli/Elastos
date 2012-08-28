@@ -12,7 +12,6 @@ ECode CAbsoluteLayoutLayoutParams::SetWidth(
     /* [in] */ Int32 width)
 {
     mWidth = width;
-
     return NOERROR;
 }
 
@@ -20,7 +19,6 @@ ECode CAbsoluteLayoutLayoutParams::SetHeight(
     /* [in] */ Int32 height)
 {
     mHeight = height;
-
     return NOERROR;
 }
 
@@ -48,22 +46,19 @@ ECode CAbsoluteLayoutLayoutParams::constructor(
     /* [in] */ Int32 x,
     /* [in] */ Int32 y)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AbsoluteLayoutLayoutParams::Init(width, height, x, y);
 }
 
 ECode CAbsoluteLayoutLayoutParams::constructor(
-    /* [in] */ IContext * pC,
-    /* [in] */ IAttributeSet * pAttrs)
+    /* [in] */ IContext* c,
+    /* [in] */ IAttributeSet* attrs)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AbsoluteLayoutLayoutParams::Init(c, attrs);
 }
 
 ECode CAbsoluteLayoutLayoutParams::constructor(
-    /* [in] */ IViewGroupLayoutParams * pSource)
+    /* [in] */ IViewGroupLayoutParams* source)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AbsoluteLayoutLayoutParams::Init(source);
 }
 
