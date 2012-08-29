@@ -2,7 +2,7 @@
 #include "server/location/PassiveProvider.h"
 
 PassiveProvider::PassiveProvider(
-    /* [in] */ ILocationManagerEx* locationManager)
+    /* [in] */ ILocationManager* locationManager)
     : mLocationManager(locationManager)
 {
 }

@@ -1,0 +1,87 @@
+
+module
+{
+    interface ICriteria;
+    interface IBundle;
+    interface IWorkSource;
+    interface INetworkInfo;
+    interface ILocation;
+
+    /**
+     * Binder interface for services that implement location providers.
+     *
+     * {@hide}
+     */
+    interface ILocationProvider {
+        RequiresNetwork(
+            [out] Boolean* result);
+
+        RequiresSatellite(
+            [out] Boolean* result);
+
+        RequiresCell(
+            [out] Boolean* result);
+
+        HasMonetaryCost(
+            [out] Boolean* result);
+
+        SupportsAltitude(
+            [out] Boolean* result);
+
+        SupportsSpeed(
+            [out] Boolean* result);
+
+        SupportsBearing(
+            [out] Boolean* result);
+
+        GetPowerRequirement(
+            [out] Int32* requirement);
+
+        MeetsCriteria(
+            [in] ICriteria* criteria,
+            [out] Boolean* result);
+
+        GetAccuracy(
+            [out] Int32* accuracy);
+
+        Enable();
+
+        Disable();
+
+        GetStatus(
+            [out] IBundle** extras,
+            [out] Int32* status);
+
+        GetStatusUpdateTime(
+            [out] Int64* time);
+
+        GetInternalState(
+            [out] String* state);
+
+        EnableLocationTracking(
+            [in] Boolean ifEnable);
+
+        SetMinTime(
+            [in] Int64 minTime,
+            [in] IWorkSource* ws);
+
+        UpdateNetworkState(
+            [in] Int32 state,
+            [in] INetworkInfo* info);
+
+        UpdateLocation(
+            [in] ILocation* location);
+
+        SendExtraCommand(
+            [in] String command,
+            [in/*in, out*/] IBundle* extras,
+            [out] IBundle** outExtrs,
+            [out] Boolean* result);
+
+        AddListener(
+            [in] Int32 uid);
+
+        RemoveListener(
+            [in] Int32 uid);
+    }
+}

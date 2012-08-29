@@ -9,7 +9,7 @@ class PassiveProvider : public LocationProviderInterface
 {
 public:
     PassiveProvider(
-        /* [in] */ ILocationManagerEx* locationManager);
+        /* [in] */ ILocationManager* locationManager);
 
     CARAPI HandleKey(
         /* [in] */ IKeyEvent* event,
@@ -79,7 +79,7 @@ public:
         /* [in] */ Int32 uid);
 
 private:
-    AutoPtr<ILocationManagerEx> mLocationManager;
+    AutoPtr<ILocationManager> mLocationManager;
 };
 
 #endif //__PASSIVEPROVIDER_H__

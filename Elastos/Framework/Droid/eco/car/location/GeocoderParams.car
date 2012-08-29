@@ -2,6 +2,17 @@
 module
 {
     interface IGeocoderParams {
+        /**
+         * returns the Geocoder's locale
+         */
+//        GetLocale(
+//            [out] ILocale** locale);
+
+        /**
+         * returns the package name of the Geocoder's client
+         */
+        GetClientCapsule(
+            [out] String* name);
     }
 }
 

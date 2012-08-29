@@ -1,6 +1,16 @@
 
 #include "location/CGeocoderParams.h"
 
+
+/**
+ * returns the package name of the Geocoder's client
+ */
+ECode CGeocoderParams::GetClientCapsule(
+    /* [out] */ String* name)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
 ECode CGeocoderParams::GetDescription(
     /* [out] */ String* str)
 {
@@ -26,8 +36,8 @@ ECode CGeocoderParams::constructor()
 }
 
 ECode CGeocoderParams::constructor(
-    /* [in] */ IContext* ctx
-    /* [in]  ILocale* locale*/)
+    /* [in] */ IContext* ctx,
+    /* [in] */ ILocale* locale)
 {
     return E_NOT_IMPLEMENTED;
 }

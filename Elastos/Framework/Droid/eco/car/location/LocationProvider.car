@@ -5,7 +5,97 @@ module
     const LocationProvider_TEMPORARILY_UNAVAILABLE = 1;
     const LocationProvider_AVAILABLE = 2;
 
-    interface ILocationProvider {
+    interface ILocalLocationProvider {
+        /**
+         * Returns the name of this provider.
+         */
+        GetName(
+            [out] String* name);
+
+        /**
+         * Returns true if this provider meets the given criteria,
+         * false otherwise.
+         */
+        MeetsCriteria(
+            [in] ICriteria* criteria,
+            [out] Boolean* result);
+
+        /**
+         * Returns true if the provider requires access to a
+         * data network (e.g., the Internet), false otherwise.
+         */
+        RequiresNetwork(
+            [out] Boolean* result);
+
+        /**
+         * Returns true if the provider requires access to a
+         * satellite-based positioning system (e.g., GPS), false
+         * otherwise.
+         */
+        RequiresSatellite(
+            [out] Boolean* result);
+
+        /**
+         * Returns true if the provider requires access to an appropriate
+         * cellular network (e.g., to make use of cell tower IDs), false
+         * otherwise.
+         */
+        RequiresCell(
+            [out] Boolean* result);
+
+        /**
+         * Returns true if the use of this provider may result in a
+         * monetary charge to the user, false if use is free.  It is up to
+         * each provider to give accurate information.
+         */
+        HasMonetaryCost(
+            [out] Boolean* result);
+
+        /**
+         * Returns true if the provider is able to provide altitude
+         * information, false otherwise.  A provider that reports altitude
+         * under most circumstances but may occassionally not report it
+         * should return true.
+         */
+        SupportsAltitude(
+            [out] Boolean* result);
+
+        /**
+         * Returns true if the provider is able to provide speed
+         * information, false otherwise.  A provider that reports speed
+         * under most circumstances but may occassionally not report it
+         * should return true.
+         */
+        SupportsSpeed(
+            [out] Boolean* result);
+
+        /**
+         * Returns true if the provider is able to provide bearing
+         * information, false otherwise.  A provider that reports bearing
+         * under most circumstances but may occassionally not report it
+         * should return true.
+         */
+        SupportsBearing(
+            [out] Boolean* result);
+
+        /**
+         * Returns the power requirement for this provider.
+         *
+         * @return the power requirement for this provider, as one of the
+         * constants Criteria.POWER_REQUIREMENT_*.
+         */
+        GetPowerRequirement(
+            [out] Int32* requirement);
+
+        /**
+         * Returns a constant describing horizontal accuracy of this provider.
+         * If the provider returns finer grain or exact location,
+         * {@link Criteria#ACCURACY_FINE} is returned, otherwise if the
+         * location is only approximate then {@link Criteria#ACCURACY_COARSE}
+         * is returned.
+         */
+        GetAccuracy(
+            [out] Int32* accuracy);
     }
 }
 

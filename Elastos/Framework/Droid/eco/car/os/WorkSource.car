@@ -1,0 +1,79 @@
+
+module
+{
+	/**
+     * Describes the source of some work that may be done by someone else.
+     * Currently the public representation of what a work source is is not
+     * defined; this is an opaque container.
+     */
+    interface IWorkSource {
+        /** @hide */
+        Size(
+            [out] Int32* size);
+
+        /** @hide */
+        Get(
+            [in] Int32 index,
+            [out] Int32* uid);
+
+        /**
+         * Clear this WorkSource to be empty.
+         */
+        Clear();
+
+        /**
+         * Compare this WorkSource with another.
+         * @param other The WorkSource to compare against.
+         * @return If there is a difference, true is returned.
+         */
+        Diff(
+            [in] IWorkSource* other,
+            [out] Boolean* result);
+
+        /**
+         * Replace the current contents of this work source with the given
+         * work source.  If <var>other</var> is null, the current work source
+         * will be made empty.
+         */
+        Set(
+            [in] IWorkSource* other);
+
+        /** @hide */
+        SetEx(
+            [in] Int32 uid);
+
+        /** @hide */
+        SetReturningDiffs(
+            [in] IWorkSource* other,
+            [out, callee] ArrayOf<IWorkSource>* diffs);
+
+        /**
+         * Merge the contents of <var>other</var> WorkSource in to this one.
+         *
+         * @param other The other WorkSource whose contents are to be merged.
+         * @return Returns true if any new sources were added.
+         */
+        Add(
+            [in] IWorkSource* other,
+            [out] Boolean* result);
+
+        /** @hide */
+        AddReturningNewbs(
+            [in] IWorkSource* other,
+            [out] IWorkSource** result);
+
+        /** @hide */
+        AddEx(
+            [in] Int32 uid,
+            [out] Boolean* result);
+
+        /** @hide */
+        AddReturningNewbsEx(
+            [in] Int32 uid,
+            [out] IWorkSource** result);
+
+        Remove(
+            [in] IWorkSource* other,
+            [out] Boolean* result);
+    }
+}

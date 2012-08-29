@@ -9,6 +9,12 @@ using namespace Elastos;
 CarClass(CGeocoderParams)
 {
 public:
+    /**
+     * returns the package name of the Geocoder's client
+     */
+    CARAPI GetClientCapsule(
+        /* [out] */ String* name);
+
     CARAPI GetDescription(
         /* [out] */ String* str);
 
@@ -21,8 +27,8 @@ public:
     CARAPI constructor();
 
     CARAPI constructor(
-        /* [in] */ IContext* ctx
-        /* [in]  ILocale* locale*/);
+        /* [in] */ IContext* ctx,
+        /* [in] */ ILocale* locale);
 
 private:
     // TODO: Add your private member variables here.

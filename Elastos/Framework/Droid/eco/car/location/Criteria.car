@@ -58,6 +58,44 @@ module
 
     interface ICriteria {
         /**
+         * Indicates the desired horizontal accuracy (latitude and longitude).
+         * Accuracy may be {@link #ACCURACY_LOW}, {@link #ACCURACY_MEDIUM},
+         * {@link #ACCURACY_HIGH} or {@link #NO_REQUIREMENT}.
+         * More accurate location may consume more power and may take longer.
+         *
+         * @throws IllegalArgumentException if accuracy is not one of the supported constants
+         */
+        SetHorizontalAccuracy(
+            [in] Int32 accuracy);
+
+        /**
+         * Returns a constant indicating the desired horizontal accuracy (latitude and longitude).
+         * Accuracy may be {@link #ACCURACY_LOW}, {@link #ACCURACY_MEDIUM},
+         * {@link #ACCURACY_HIGH} or {@link #NO_REQUIREMENT}.
+         */
+        GetHorizontalAccuracy(
+            [out] Int32* accuracy);
+
+        /**
+         * Indicates the desired vertical accuracy (altitude).
+         * Accuracy may be {@link #ACCURACY_LOW}, {@link #ACCURACY_MEDIUM},
+         * {@link #ACCURACY_HIGH} or {@link #NO_REQUIREMENT}.
+         * More accurate location may consume more power and may take longer.
+         *
+         * @throws IllegalArgumentException if accuracy is not one of the supported constants
+         */
+        SetVerticalAccuracy(
+            [in] Int32 accuracy);
+
+        /**
+         * Returns a constant indicating the desired vertical accuracy (altitude).
+         * Accuracy may be {@link #ACCURACY_LOW}, {@link #ACCURACY_HIGH},
+         * or {@link #NO_REQUIREMENT}.
+         */
+        GetVerticalAccuracy(
+            [out] Int32* accuracy);
+
+        /**
          * Indicates the desired speed accuracy.
          * Accuracy may be {@link #ACCURACY_LOW}, {@link #ACCURACY_HIGH},
          * or {@link #NO_REQUIREMENT}.
@@ -130,11 +168,30 @@ module
             [out] Int32* requirement);
 
         /**
+         * Indicates whether the provider is allowed to incur monetary cost.
+         */
+        SetCostAllowed(
+            [in] Boolean costAllowed);
+
+        /**
+         * Returns whether the provider is allowed to incur monetary cost.
+         */
+        IsCostAllowed(
+            [out] Boolean* costAllowed);
+
+        /**
          * Indicates whether the provider must provide altitude information.
          * Not all fixes are guaranteed to contain such information.
          */
         SetAltitudeRequired(
             [in] Boolean altitudeRequired);
+
+        /**
+         * Returns whether the provider must provide altitude information.
+         * Not all fixes are guaranteed to contain such information.
+         */
+        IsAltitudeRequired(
+            [out] Boolean* altitudeRequired);
 
         /**
          * Indicates whether the provider must provide speed information.
@@ -144,10 +201,24 @@ module
             [in] Boolean speedRequired);
 
         /**
+         * Returns whether the provider must provide speed information.
+         * Not all fixes are guaranteed to contain such information.
+         */
+        IsSpeedRequired(
+            [out] Boolean* speedRequired);
+
+        /**
          * Indicates whether the provider must provide bearing information.
          * Not all fixes are guaranteed to contain such information.
          */
         SetBearingRequired(
             [in] Boolean bearingRequired);
+
+        /**
+         * Returns whether the provider must provide bearing information.
+         * Not all fixes are guaranteed to contain such information.
+         */
+        IsBearingRequired(
+            [out] Boolean* bearingRequired);
     }
 }

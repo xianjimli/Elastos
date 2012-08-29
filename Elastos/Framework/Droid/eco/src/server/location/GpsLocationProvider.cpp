@@ -125,7 +125,7 @@ ECode GpsLocationProvider::MyGpsStatusProvider::RemoveGpsStatusListener(
 
 GpsLocationProvider::GpsLocationProvider(
     /* [in] */ IContext* context,
-    /* [in] */ ILocationManagerEx* locationManager)
+    /* [in] */ ILocationManager* locationManager)
     : mLocationFlags(LOCATION_INVALID),
       mStatus(LocationProvider_TEMPORARILY_UNAVAILABLE),
       mEnabled(FALSE),

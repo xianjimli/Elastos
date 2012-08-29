@@ -505,7 +505,7 @@ void CLocationManagerService::_LoadProvidersLocked()
     // Attempt to load "real" providers first
     if (GpsLocationProvider::IsSupported()) {
         // Create a gps location provider
-        AutoPtr<GpsLocationProvider> gpsProvider = new GpsLocationProvider(mContext, (ILocationManagerEx*)this);
+        AutoPtr<GpsLocationProvider> gpsProvider = new GpsLocationProvider(mContext, (ILocationManager*)this);
         mGpsStatusProvider = gpsProvider->GetGpsStatusProvider();
 //        mNetInitiatedListener = gpsProvider.getNetInitiatedListener();
         AddProvider((LocationProviderInterface*)gpsProvider.Get());
@@ -513,7 +513,7 @@ void CLocationManagerService::_LoadProvidersLocked()
     }
 
     // create a passive location provider, which is always enabled
-    AutoPtr<PassiveProvider> passiveProvider = new PassiveProvider((ILocationManagerEx*)this);
+    AutoPtr<PassiveProvider> passiveProvider = new PassiveProvider((ILocationManager*)this);
     AddProvider((LocationProviderInterface*)passiveProvider.Get());
     mEnabledProviders.Insert(passiveProvider->GetName());
 

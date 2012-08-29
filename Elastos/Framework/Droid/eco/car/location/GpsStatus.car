@@ -1,0 +1,70 @@
+
+module
+{
+    /**
+     * Used for receiving notifications when GPS status has changed.
+     */
+    interface ILocalGpsStatusListener {
+        /**
+         * Called to report changes in the GPS status.
+         * The event number is one of:
+         * <ul>
+         * <li> {@link GpsStatus#GPS_EVENT_STARTED}
+         * <li> {@link GpsStatus#GPS_EVENT_STOPPED}
+         * <li> {@link GpsStatus#GPS_EVENT_FIRST_FIX}
+         * <li> {@link GpsStatus#GPS_EVENT_SATELLITE_STATUS}
+         * </ul>
+         *
+         * When this method is called, the client should call
+         * {@link LocationManager#getGpsStatus} to get additional
+         * status information.
+         *
+         * @param event event number for this notification
+         */
+        OnGpsStatusChanged(
+            [in] Int32 event);
+    }
+
+    /**
+     * Used for receiving NMEA sentences from the GPS.
+     * NMEA 0183 is a standard for communicating with marine electronic devices
+     * and is a common method for receiving data from a GPS, typically over a serial port.
+     * See <a href="http://en.wikipedia.org/wiki/NMEA_0183">NMEA 0183</a> for more details.
+     * You can implement this interface and call {@link LocationManager#addNmeaListener}
+     * to receive NMEA data from the GPS engine.
+     */
+    interface ILocalGpsStatusNmeaListener {
+        OnNmeaReceived(
+            [in] Int64 timestamp,
+            [in] String nmea);
+    }
+
+    interface IGpsStatus {
+        /**
+         * Returns the time required to receive the first fix since the most recent
+         * restart of the GPS engine.
+         *
+         * @return time to first fix in milliseconds
+         */
+        GetTimeToFirstFix(
+            [out] Int32* time);
+
+        /**
+         * Returns an array of {@link GpsSatellite} objects, which represent the
+         * current state of the GPS engine.
+         *
+         * @return the list of satellites
+         */
+        GetSatellites(
+            [out] IObjectContainer** satellites);
+
+        /**
+         * Returns the maximum number of satellites that can be in the satellite
+         * list that can be returned by {@link #getSatellites()}.
+         *
+         * @return the maximum number of satellites
+         */
+        GetMaxSatellites(
+            [out] Int32* maxNumber);
+    }
+}

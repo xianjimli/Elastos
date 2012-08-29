@@ -12,6 +12,7 @@ module
     merge("os/FileObserver.car");
     merge("os/FileStatus.car");
     merge("os/Vibrator.car");
+    merge("os/WorkSource.car");
     merge("os/storage/IMountServiceListener.car");
     merge("os/storage/IMountShutdownObserver.car");
     merge("os/storage/IObbActionListener.car");

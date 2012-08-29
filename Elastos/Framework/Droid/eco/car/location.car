@@ -1,17 +1,28 @@
 
 module
 {
+    merge("location/Address.car");
     merge("location/Criteria.car");
     merge("location/GeocoderParams.car");
+    merge("location/GpsStatus.car");
     merge("location/IGpsStatusListener.car");
     merge("location/IGpsStatusProvider.car");
     merge("location/ILocationListener.car");
-    merge("location/ILocation.car");
     merge("location/ILocationManager.car");
-    merge("location/ILocationManagerEx.car");
-    merge("location/IAddress.car");
+    merge("location/ILocationProvider.car");
     merge("location/INetInitiatedListener.car");
+    merge("location/Location.car");
+    merge("location/LocationManager.car");
     merge("location/LocationProvider.car");
+
+
+    class CAddress {
+        constructor(
+            [in] ILocale* location);
+
+        interface IAddress;
+        interface IParcelable;
+    }
 
     class CCriteria {
         constructor();
@@ -27,8 +38,8 @@ module
         constructor();
 
         constructor(
-            [in] IContext* ctx
-            /*[in] ILocale* locale*/);
+            [in] IContext* ctx,
+            [in] ILocale* locale);
 
         interface IGeocoderParams;
         interface IParcelable;
@@ -47,17 +58,8 @@ module
 
     class CLocationManager {
         constructor(
-            [in] ILocationManagerEx* service);
+            [in] ILocationManager* service);
 
-        interface ILocationManager;
-        interface IParcelable;
-    }
-
-    class CAddress {
-        constructor(
-            [in] ILocation* location);
-
-        interface IAddress;
-        interface IParcelable;
+        interface ILocalLocationManager;
     }
 }

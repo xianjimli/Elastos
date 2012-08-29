@@ -11,7 +11,7 @@ module
     interface IStatusBarService;
     interface IRunnable;
     interface ILightsManager;
-    interface ILocationManagerEx;
+    interface ILocationManager;
 
     class CWindowManagerService {
         interface IWindowManagerEx;
@@ -54,8 +54,8 @@ module
         constructor(
             [in] IContext* ctx);
 
-        interface ILocationManagerEx;
+        interface ILocationManager;
         interface IRunnable;
     }
-    
+
 }

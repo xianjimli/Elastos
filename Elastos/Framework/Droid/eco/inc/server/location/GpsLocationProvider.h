@@ -158,7 +158,7 @@ private:
 public:
     GpsLocationProvider(
         /* [in] */ IContext* context,
-        /* [in] */ ILocationManagerEx* locationManager);
+        /* [in] */ ILocationManager* locationManager);
 
     CARAPI_(AutoPtr<IGpsStatusProvider>) GetGpsStatusProvider();
 
@@ -286,7 +286,7 @@ private:
     Int32 mC2KServerPort;
 
     AutoPtr<IContext> mContext;
-    AutoPtr<ILocationManagerEx> mLocationManager;
+    AutoPtr<ILocationManager> mLocationManager;
     AutoPtr<ILocation> mLocation;
     AutoPtr<IBundle> mLocationExtras;
 //    ArrayList<Listener> mListeners;

@@ -51,4 +51,4 @@ SOURCES += CStatusBarManagerService.cpp
 SOURCES += CNotificationManagerService.cpp
 SOURCES += CLocationManagerService.cpp
 
-LIBRARIES += location/locationEx.lib
+LIBRARIES += location/location.lib
