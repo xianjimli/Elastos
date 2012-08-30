@@ -65,6 +65,7 @@ Boolean PopupWindow::_PopupViewContainer::DispatchKeyEvent(
 Boolean PopupWindow::_PopupViewContainer::DispatchTouchEvent(
     /* [in] */ IMotionEvent* event)
 {
+    printf("PopupViewContainer::DispatchTouchEvent---1\n");
     if (mOwner->mTouchInterceptor != NULL) {
         Boolean result;
         mOwner->mTouchInterceptor->OnTouch(
@@ -77,6 +78,7 @@ Boolean PopupWindow::_PopupViewContainer::DispatchTouchEvent(
 Boolean PopupWindow::_PopupViewContainer::OnTouchEvent(
     /* [in] */ IMotionEvent* event)
 {
+    printf("PopupViewContainer::OnTouchEvent\n");
     Float _x, _y;
     event->GetX(&_x);
     event->GetY(&_y);
@@ -87,10 +89,12 @@ Boolean PopupWindow::_PopupViewContainer::OnTouchEvent(
     event->GetAction(&action);
     if ((action == MotionEvent_ACTION_DOWN)
             && ((x < 0) || (x >= mOwner->GetWidth()) || (y < 0) || (y >= mOwner->GetHeight()))) {
+        printf("PopupViewContainer::OnTouchEvent---1\n");
         mOwner->Dismiss();
         return TRUE;
     }
     else if (action == MotionEvent_ACTION_OUTSIDE) {
+        printf("PopupViewContainer::OnTouchEvent---2\n");
         mOwner->Dismiss();
         return TRUE;
     }

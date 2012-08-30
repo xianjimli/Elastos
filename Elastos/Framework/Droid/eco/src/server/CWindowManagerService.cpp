@@ -3596,17 +3596,17 @@ Int32 CWindowManagerService::AddWindow(
             res |= CWindowManagerImpl::ADD_FLAG_APP_VISIBLE;
         }
 
-//        Boolean focusChanged = FALSE;
-//        if (win->CanReceiveKeys()) {
-//            focusChanged = UpdateFocusedWindowLocked(UPDATE_FOCUS_WILL_ASSIGN_LAYERS);
-//            if (focusChanged) {
-//                imMayMove = FALSE;
-//            }
-//        }
-//
-//        if (imMayMove) {
-//            MoveInputMethodWindowsIfNeededLocked(FALSE);
-//        }
+        Boolean focusChanged = FALSE;
+        if (win->CanReceiveKeys()) {
+            focusChanged = UpdateFocusedWindowLocked(UPDATE_FOCUS_WILL_ASSIGN_LAYERS);
+            if (focusChanged) {
+                imMayMove = FALSE;
+            }
+        }
+
+        if (imMayMove) {
+            //MoveInputMethodWindowsIfNeededLocked(FALSE);
+        }
 
         AssignLayersLocked();
         // Don't do layout here, the window must call
@@ -3614,10 +3614,10 @@ Int32 CWindowManagerService::AddWindow(
 
         //dump();
 
-//        if (focusChanged) {
-//            FinishUpdateFocusedWindowAfterAssignLayersLocked();
-//        }
-//
+        if (focusChanged) {
+            FinishUpdateFocusedWindowAfterAssignLayersLocked();
+        }
+
 //        if (localLOGV) Slogger::V(
 //            TAG, "New client " + client
 //            + ": window=" + win);
@@ -8513,7 +8513,7 @@ CWindowManagerService::WindowState::WindowState(
 
     ASSERT_SUCCEEDED(CMatrix::New((IMatrix**)&mTmpMatrix));
 //    DeathRecipient deathRecipient = new DeathRecipient();
-//    mAlpha = attrs.alpha;
+    mAlpha = mAttrs->mAlpha;
 //    if (localLOGV) Slog.v(
 //        TAG, "Window " + this + " client=" + c.asBinder()
 //        + " token=" + token + " (" + mAttrs.token + ")");
@@ -8536,25 +8536,30 @@ CWindowManagerService::WindowState::WindowState(
         && mAttrs->mType <= WindowManagerLayoutParams_LAST_SUB_WINDOW)) {
         // The multiplier here is to reserve space for multiple
         // windows in the same type layer.
-//        mBaseLayer = mPolicy.windowTypeToLayerLw(
-//                attachedWindow->mAttrs.type) * TYPE_LAYER_MULTIPLIER
-//                + TYPE_LAYER_OFFSET;
-//        mSubLayer = mPolicy.subWindowTypeToLayerLw(a.type);
-//        mAttachedWindow = attachedWindow;
-//        mAttachedWindow->mChildWindows.add(this);
-//        mLayoutAttached = mAttrs.type !=
-//                WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG;
-//        mIsImWindow = attachedWindow->mAttrs.type == TYPE_INPUT_METHOD
-//                || attachedWindow->mAttrs.type == TYPE_INPUT_METHOD_DIALOG;
-//        mIsWallpaper = attachedWindow->mAttrs.type == TYPE_WALLPAPER;
-//        mIsFloatingLayer = mIsImWindow || mIsWallpaper;
+        Int32 layer;
+        mWMService->mPolicy->WindowTypeToLayerLw(
+            attachedWindow->mAttrs->mType, &layer);
+        mBaseLayer = layer * TYPE_LAYER_MULTIPLIER + TYPE_LAYER_OFFSET;
+        mWMService->mPolicy->SubWindowTypeToLayerLw(mAttrs->mType, &mSubLayer);
+        mAttachedWindow = attachedWindow;
+        mAttachedWindow->mChildWindows.PushBack(this);
+        mLayoutAttached = mAttrs->mType !=
+            WindowManagerLayoutParams_TYPE_APPLICATION_ATTACHED_DIALOG;
+        mIsImWindow = attachedWindow->mAttrs->mType ==
+            WindowManagerLayoutParams_TYPE_INPUT_METHOD
+            || attachedWindow->mAttrs->mType ==
+            WindowManagerLayoutParams_TYPE_INPUT_METHOD_DIALOG;
+        mIsWallpaper = attachedWindow->mAttrs->mType ==
+            WindowManagerLayoutParams_TYPE_WALLPAPER;
+        mIsFloatingLayer = mIsImWindow || mIsWallpaper;
     }
     else {
         // The multiplier here is to reserve space for multiple
         // windows in the same type layer.
-//        mBaseLayer = mPolicy.windowTypeToLayerLw(a.type)
-//                * TYPE_LAYER_MULTIPLIER
-//                + TYPE_LAYER_OFFSET;
+        Int32 layer;
+        mWMService->mPolicy->WindowTypeToLayerLw(
+            mAttrs->mType, &layer);
+        mBaseLayer = layer * TYPE_LAYER_MULTIPLIER + TYPE_LAYER_OFFSET;
         mSubLayer = 0;
         mAttachedWindow = NULL;
         mLayoutAttached = FALSE;

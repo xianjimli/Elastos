@@ -204,11 +204,7 @@ ECode CWindowManagerImpl::AddView(
 {
 //    if (Config.LOGV) Log.v("WindowManager", "addView view=" + view);
 
-    ClassID clsid;
-    IObject* paramsObj = (IObject*)params->Probe(EIID_IObject);
-    assert(paramsObj != NULL);
-    paramsObj->GetClassID(&clsid);
-    if (clsid != ECLSID_CWindowManagerLayoutParams) {
+    if (IWindowManagerLayoutParams::Probe(params) == NULL) {
         Logger::W("WindowManager", "Params must be WindowManager.LayoutParams");
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
@@ -249,13 +245,13 @@ ECode CWindowManagerImpl::AddView(
         Int32 type = ((CWindowManagerLayoutParams*)params)->mType;
         if (type >= WindowManagerLayoutParams_FIRST_SUB_WINDOW &&
             type <= WindowManagerLayoutParams_LAST_SUB_WINDOW) {
-                Int32 count = mViews.GetSize();
-                for (Int32 i=0; i<count; i++) {
-                    //TODO:
-                    //if (mRoots[i]->mWindow.asBinder() == wparams.token) {
-                    //    panelParentView = mViews[i];
-                    //}
+            Int32 count = mViews.GetSize();
+            for (Int32 i=0; i<count; i++) {
+                if ((IBinder*)mRoots[i]->mWindow->Probe(EIID_IBinder) ==
+                    ((CWindowManagerLayoutParams*)params)->mToken) {
+                    panelParentView = mViews[i];
                 }
+            }
         }
 
         AutoPtr<IContext> context;
@@ -269,6 +265,7 @@ ECode CWindowManagerImpl::AddView(
         mRoots.PushBack(root);
         mParams.PushBack((IWindowManagerLayoutParams*)params);
     }
+
     // do this last because it fires off messages to start doing things
     root->SetView(view, (IWindowManagerLayoutParams*)params, panelParentView);
 
