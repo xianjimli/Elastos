@@ -1,8 +1,7 @@
 module
 {
     interface ISQLiteClosable;
-
-    interface IParcel;
+    interface ICharArrayBuffer;
 
     /**
      * A buffer containing multiple cursor rows.
@@ -29,18 +28,18 @@ module
             [out] Int32* num);
 
         /**
-         * Set number of Columns 
+         * Set number of Columns
          */
         SetNumColumns(
             [in] Int32 columnNum,
-            [out] Boolean* rst);
+            [out] Boolean* succeeded);
 
         /**
          * Allocate a row in cursor window
          * @return false if cursor window is out of memory
          */
         AllocRow(
-            [out] Boolean* rst);
+            [out] Boolean* succeeded);
 
         /**
          * Free the last row
@@ -55,7 +54,7 @@ module
             [in] ArrayOf<Byte> value,
             [in] Int32 row,
             [in] Int32 col,
-            [out] Boolean* rst);
+            [out] Boolean* succeeded);
 
         /**
          * Copy String to cursor window
@@ -65,7 +64,7 @@ module
             [in] String value,
             [in] Int32 row,
             [in] Int32 col,
-            [out] Boolean* rst);
+            [out] Boolean* succeeded);
 
         /**
          * Copy integer to cursor window
@@ -75,17 +74,17 @@ module
             [in] Int64 value,
             [in] Int32 row,
             [in] Int32 col,
-            [out] Boolean* rst);
+            [out] Boolean* succeeded);
 
         /**
-         * Copy double to cursor window 
+         * Copy double to cursor window
          * @return false if fail to copy
          */
         PutDouble(
             [in] Double value,
             [in] Int32 row,
             [in] Int32 col,
-            [out] Boolean* rst);
+            [out] Boolean* succeeded);
 
         /**
          * Set the [row, col] value to NULL
@@ -94,7 +93,7 @@ module
         PutNull(
             [in] Int32 row,
             [in] Int32 col,
-            [out] Boolean* rst);
+            [out] Boolean* succeeded);
 
         /**
          * Returns {@code true} if given field is {@code NULL}.
@@ -103,7 +102,7 @@ module
         IsNull(
             [in] Int32 row,
             [in] Int32 col,
-            [out] Boolean* rst);
+            [out] Boolean* succeeded);
 
         /**
          * Returns a byte array for the given field.
@@ -121,7 +120,7 @@ module
         IsBlob(
             [in] Int32 row,
             [in] Int32 col,
-            [out] Boolean* rst);
+            [out] Boolean* isBlob);
 
         /**
          * Checks if a field contains a long
@@ -130,7 +129,7 @@ module
         IsInt64(
             [in] Int32 row,
             [in] Int32 col,
-            [out] Boolean* rst);
+            [out] Boolean* isInt64);
 
         /**
          * Checks if a field contains a float.
@@ -139,7 +138,7 @@ module
         IsFloat(
             [in] Int32 row,
             [in] Int32 col,
-            [out] Boolean* rst);
+            [out] Boolean* isFloat);
 
         /**
          * Checks if a field contains either a String or is null.
@@ -148,7 +147,7 @@ module
         IsString(
             [in] Int32 row,
             [in] Int32 col,
-            [out] Boolean* rst);
+            [out] Boolean* isString);
 
         /**
          * Returns a String for the given field.
@@ -221,16 +220,5 @@ module
          * Cleans up the native resources associated with the window.
          */
         Close();
-
-        NewFormParcel(
-            [in] IParcel* p,
-            [out] ICursorWindow** cw);
-
-        DescribeContents(
-            [out] Int32* value);
-
-        WriteToParcel(
-            [in] IParcel* dest,
-            [in] Int32 flags);
     }
 }

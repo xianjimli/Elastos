@@ -1,7 +1,6 @@
 
 module
 {
-    interface IAbstractCursor;
     /**
      * Builds a row, starting from the left-most column and adding one column
      * value at a time. Follows the same ordering as the column names specified
@@ -13,8 +12,7 @@ module
          * Sets the next column value in this row.
          */
         Add(
-            [in] IInterface* columnValue,
-            [out] IRowBuilder** object);
+            [in] IInterface* columnValue);
     }
 
     /**
@@ -22,18 +20,40 @@ module
      * {@link #newRow()} to add rows. Automatically expands internal capacity
      * as needed.
      */
-    interface IMatrixCursor extends IAbstractCursor
+    interface IMatrixCursor extends ICursor
     {
-//        NewRow(
-//            [out] IRowBuilder** object);
+        /**
+         * Adds a new row to the end and returns a builder for that row. Not safe
+         * for concurrent use.
+         *
+         * @return builder which can be used to set the column values for the new
+         *  row
+         */
+        NewRow(
+            [out] IRowBuilder** builder);
 
-//        AddRow(
-//            [in] ArrayOf<AutoPtr<IInterface> > columnValues);
+        /**
+         * Adds a new row to the end with the given column values. Not safe
+         * for concurrent use.
+         *
+         * @throws IllegalArgumentException if {@code columnValues.length !=
+         *  columnNames.length}
+         * @param columnValues in the same order as the the column names specified
+         *  at cursor construction time
+         */
+        AddRow(
+            [in] ArrayOf<IInterface*> columnValues);
 
-//        AddRow2(
-//            [in] Set<AutoPtr<IInterface> > columnValues,
-//            [in] Int32 start);
+        /**
+         * Adds a new row to the end with the given column values. Not safe
+         * for concurrent use.
+         *
+         * @throws IllegalArgumentException if {@code columnValues.size() !=
+         *  columnNames.length}
+         * @param columnValues in the same order as the the column names specified
+         *  at cursor construction time
+         */
+        AddRowEx(
+            [in] IObjectContainer* columnValues);
     }
-
-
 }

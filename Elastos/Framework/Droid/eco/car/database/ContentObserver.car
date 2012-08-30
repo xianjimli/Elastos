@@ -1,27 +1,43 @@
 
 module
 {
-
-    interface IContentObserver
+    interface ILocalContentObserver
     {
+        /**
+         * Gets access to the binder transport object. Not for public consumption.
+         *
+         * {@hide}
+         */
+        GetContentObserver(
+            [out] IContentObserver** observer);
+
+        /**
+         * Gets access to the binder transport object, and unlinks the transport object
+         * from the ContentObserver. Not for public consumption.
+         *
+         * {@hide}
+         */
+        ReleaseContentObserver(
+            [out] IContentObserver** oldObserver);
+
         /**
          * Returns true if this observer is interested in notifications for changes
          * made through the cursor the observer is registered with.
          */
         DeliverSelfNotifications(
-            [out] Boolean* rst);
-
-        DispatchChange(
-            [in] Boolean selfChange);
+            [out] Boolean* result);
 
         /**
          * This method is called when a change occurs to the cursor that
          * is being observed.
-         *  
+         *
          * @param selfChange true if the update was caused by a call to <code>commit</code> on the
          *  cursor that is being observed.
          */
         OnChange(
+            [in] Boolean selfChange);
+
+        DispatchChange(
             [in] Boolean selfChange);
     }
 }

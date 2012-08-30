@@ -3,18 +3,35 @@ module
 {
     interface ICursor;
     interface ICursorWindow;
+
     interface ICrossProcessCursor extends ICursor
     {
+        /**
+         * returns a pre-filled window, return NULL if no such window
+         */
         GetWindow(
             [out] ICursorWindow** window);
 
+        /**
+         * copies cursor data into the window start at pos
+         */
         FillWindow(
             [in] Int32 pos,
             [in] ICursorWindow* window);
-        
+
+        /**
+         * This function is called every time the cursor is successfully scrolled
+         * to a new position, giving the subclass a chance to update any state it
+         * may have. If it returns false the move function will also do so and the
+         * cursor will scroll to the beforeFirst position.
+         *
+         * @param oldPosition the position that we're moving from
+         * @param newPosition the position that we're moving to
+         * @return true if the move is successful, false otherwise
+         */
         OnMove(
             [in] Int32 oldPosition,
             [in] Int32 newPosition,
-            [out] Boolean* rst);
+            [out] Boolean* succeeded);
     }
 }

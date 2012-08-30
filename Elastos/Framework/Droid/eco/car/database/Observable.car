@@ -2,6 +2,7 @@
 module
 {
     interface IDataSetObserver;
+
     /**
      * Provides methods for (un)registering arbitrary observers in an ArrayList.
      */
@@ -25,7 +26,7 @@ module
          */
         UnregisterObserver(
             [in] IInterface* observer);
-        
+
         /**
          * Remove all registered observer
          */

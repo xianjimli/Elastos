@@ -1,8 +1,7 @@
 
 module
 {
-    interface ICharArrayBuffer
-    {
+    interface ICharArrayBuffer {
 
     }
 }

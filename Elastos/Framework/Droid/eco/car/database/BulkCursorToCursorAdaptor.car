@@ -2,27 +2,20 @@ module
 {
     interface IBulkCursor;
     interface IContentObserver;
-    interface IAbstractWindowedCursor;
-    interface IBulkCursorToCursorAdaptor extends IAbstractWindowedCursor
+
+    interface IBulkCursorToCursorAdaptor extends ICursor
     {
-        Set1(
+        Set(
             [in] IBulkCursor* bulkCursor);
 
         /**
          * Version of set() that does fewer Binder calls if the caller
          * already knows BulkCursorToCursorAdaptor's properties.
          */
-        Set2(
+        SetEx(
             [in] IBulkCursor* bulkCursor,
             [in] Int32 count,
             [in] Int32 idIndex);
-
-        /**
-         * Returns column index of "_id" column, or -1 if not found.
-         */
-        FindRowIdColumnIndex(
-            [in] ArrayOf<String> columnNames,
-            [out] Int32* index); 
 
         /**
          * Gets a SelfDataChangeOberserver that can be sent to a remote
@@ -31,6 +24,6 @@ module
          * @return A SelfContentObserver hooked up to this Cursor
          */
         GetObserver(
-            [out] IContentObserver** ico); 
+            [out] IContentObserver** observer);
     }
 }

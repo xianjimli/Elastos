@@ -1,8 +1,8 @@
 module
 {
     interface ISQLiteClosable;
-    interface ISQLiteProgram extends ISQLiteClosable
-    {
+
+    interface ISQLiteProgram extends ISQLiteClosable {
         /**
          * Returns a unique identifier for this program.
          *
@@ -10,19 +10,6 @@ module
          */
         GetUniqueId(
             [out] Int32* value);
-
-        GetSqlString(
-            [out] String* value);
-
-        /**
-         * @deprecated This method is deprecated and must not be used.
-         *
-         * @param sql the SQL string to compile
-         * @param forceCompilation forces the SQL to be recompiled in the event that there is an
-         *  existing compiled SQL program already around
-         */
-//        @Deprecated
-//        protected void compile(String sql, boolean forceCompilation)
 
         /**
          * Bind a NULL value to this statement. The value remains bound until
@@ -40,7 +27,7 @@ module
          * @param index The 1-based index to the parameter to bind
          * @param value The value to bind
          */
-        BindLong(
+        BindInt64(
             [in] Int32 index,
             [in] Int64 value);
 

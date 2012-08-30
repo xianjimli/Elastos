@@ -3,8 +3,7 @@ module
     /**
      * A listener for transaction events.
      */
-    interface ISQLiteTransactionListener
-    {
+    interface ISQLiteTransactionListener {
         /**
          * Called immediately after the transaction begins.
          */
