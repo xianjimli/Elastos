@@ -1,0 +1,23 @@
+module
+{
+    /**
+     * A listener for transaction events.
+     */
+    interface ISQLiteTransactionListener
+    {
+        /**
+         * Called immediately after the transaction begins.
+         */
+        OnBegin();
+
+        /**
+         * Called immediately before commiting the transaction.
+         */
+        OnCommit();
+
+        /**
+         * Called if the transaction is about to be rolled back.
+         */
+        OnRollback();
+    }
+}

@@ -29,21 +29,20 @@ public:
         /* [in] */ IInterface *pObject,
         /* [out] */ InterfaceID *pIID);
 
-    CARAPI RegisterObserver(
-        /* [in] */ IDataSetObserver* observer);
+    virtual CARAPI RegisterObserver(
+        /* [in] */ IInterface* observer);
 
-    CARAPI UnregisterObserver(
-        /* [in] */ IDataSetObserver* observer);
+    virtual CARAPI UnregisterObserver(
+        /* [in] */ IInterface* observer);
 
-    CARAPI UnregisterAll();
+    virtual CARAPI UnregisterAll();
 
 protected:
     /**
      * The list of observers.  An observer can be in the list at most
      * once and will never be NULL.
      */
-    Set<AutoPtr<IDataSetObserver> > mObservers;
-
+    Set<AutoPtr<IInterface> > mObservers;
     Mutex mObserversLock;
 };
 #endif //__OBSERVABLE_H__

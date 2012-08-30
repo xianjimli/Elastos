@@ -2,7 +2,19 @@
 module
 {
     interface IBundle;
+    interface IContentObserver;
+    interface IDataSetObserver;
+    interface IContentResolver;
+    interface IUri;
+    interface IBundle;
 
+    /**
+     * This interface provides random read-write access to the result set returned
+     * by a database query.
+     *
+     * Cursor implementations are not required to be synchronized so code using a Cursor from multiple
+     * threads should perform its own synchronization when using the Cursor.
+     */
     interface ICursor {
         /**
          * Returns the numbers of rows in the cursor.
@@ -78,12 +90,19 @@ module
         IsAfterLast(
             [out] Boolean* value);
 
+//        @Deprecated
+//        boolean deleteRow();
+
         /**
          * Returns the zero-based index for the given column name, or -1 if the column doesn't exist.
          */
         GetColumnIndex(
             [in] String columnName,
             [out] Int32* columnIndex);
+
+//        GetColumnIndexOrThrow(
+//            [in] String columnName,
+//            [out] Int32* columnIndex);
 
         /**
          * Returns the column name at the given zero-based column index.
@@ -96,7 +115,7 @@ module
          * Returns a string array holding the names of all of the columns in the result set in the order in which they were listed in the result.
          */
 //        GetColumnNames(
-//            [out] String[]);
+//            [out,callee] ArrayOf<String>* columnNames);
 
         /**
          * Return total number of columns.
@@ -110,7 +129,7 @@ module
          */
 //        GetBlob(
 //            [in] Int32 columnIndex,
-//            [out] byte[]);
+//            [out,callee] ArrayOf<Byte>* blob);
 
         /**
          * Returns the value of the requested column as a String.
@@ -124,7 +143,7 @@ module
          */
 //        CopyStringToBuffer(
 //            [in] Int32 columnIndex,
-//            [out] CharArrayBuffer buffer);
+//            [out] ICharArrayBuffer** buf);
 
         /**
          * Returns the value of the requested column as a short.
@@ -168,6 +187,46 @@ module
             [in] Int32 columnIndex,
             [out] Boolean* value);
 
+//        @Deprecated
+//        boolean supportsUpdates();
+
+//        @Deprecated
+//        boolean hasUpdates();
+
+//        @Deprecated
+//        boolean updateBlob(int columnIndex, byte[] value);
+
+//        @Deprecated
+//        boolean updateString(int columnIndex, String value);
+
+//        @Deprecated
+//        boolean updateShort(int columnIndex, short value);
+
+//        @Deprecated
+//        boolean updateInt(int columnIndex, int value);
+
+//        @Deprecated
+//        boolean updateLong(int columnIndex, long value);
+
+//        @Deprecated
+//        boolean updateFloat(int columnIndex, float value);
+
+//        @Deprecated
+//        boolean updateDouble(int columnIndex, double value);
+
+//        @Deprecated
+//        boolean updateToNull(int columnIndex);
+
+//        @Deprecated
+//        boolean commitUpdates();
+
+//        @Deprecated
+//        boolean commitUpdates(Map<? extends Long,
+//                ? extends Map<String,Object>> values);
+
+//        @Deprecated
+//        void abortUpdates();
+
         /**
          * Deactivates the Cursor, making all calls on it fail until requery() is called.
          */
@@ -194,28 +253,32 @@ module
          * Register an observer that is called when changes happen to the content backing this cursor.
          */
 //        RegisterContentObserver(
-//            [in] ContentObserver observer);
+//            [in] IContentObserver* observer);
 
         /**
          * Unregister an observer that has previously been registered with
          * this cursor via registerContentObserver(ContentObserver).
          */
 //        UnregisterContentObserver(
-//            [in] ContentObserver observer);
+//            [in] IContentObserver* observer);
 
         /**
          * Register an observer that is called when changes happen to the contents of the this cursors data set,
          * for example, when the data set is changed via requery(), deactivate(), or close().
          */
 //        RegisterDataSetObserver(
-//            [in] DataSetObserver observer);
+//            [in] IDataSetObserver* observer);
 
         /**
          * Unregister an observer that has previously been registered with
          * this cursor via registerContentObserver(ContentObserver).
          */
 //        UnregisterDataSetObserver(
-//            [in] DataSetObserver observer);
+//            [in] IDataSetObserver* observer);
+
+//        SetNotificationUri(
+//            [in] IContentResolver* cr,
+//            [in] IUri* uri);
 
         /**
          * onMove() will only be called across processes if this method returns true.
@@ -228,5 +291,9 @@ module
          */
         GetExtras(
             [out] IBundle** extras);
+
+//        Respond(
+//            [in] IBundle* extras,
+//            [out] IBundle** res);
     }
 }

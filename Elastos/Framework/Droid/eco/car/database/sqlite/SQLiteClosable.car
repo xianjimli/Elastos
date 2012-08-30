@@ -1,0 +1,13 @@
+
+module
+{
+    interface ISQLiteClosable
+    {
+        AcquireReference();
+
+        ReleaseReference();
+
+        ReleaseReferenceFromContainer();
+
+    }
+}

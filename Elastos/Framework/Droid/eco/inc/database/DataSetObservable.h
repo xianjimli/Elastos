@@ -7,8 +7,14 @@
 class DataSetObservable : public Observable
 {
 public:
-    CARAPI_(void) NotifyChanged();
+    virtual CARAPI NotifyChanged();
 
-    CARAPI_(void) NotifyInvalidated();
+    virtual CARAPI NotifyInvalidated();
+
+    CARAPI RegisterObserver(
+        /* [in] */ IDataSetObserver* observer);
+
+    CARAPI UnregisterObserver(
+        /* [in] */ IDataSetObserver* observer);
 };
 #endif //__DATASETOBSERVABLE_H__

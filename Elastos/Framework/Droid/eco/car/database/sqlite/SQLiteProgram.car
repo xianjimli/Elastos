@@ -1,0 +1,90 @@
+module
+{
+    interface ISQLiteClosable;
+    interface ISQLiteProgram extends ISQLiteClosable
+    {
+        /**
+         * Returns a unique identifier for this program.
+         *
+         * @return a unique identifier for this program
+         */
+        GetUniqueId(
+            [out] Int32* value);
+
+        GetSqlString(
+            [out] String* value);
+
+        /**
+         * @deprecated This method is deprecated and must not be used.
+         *
+         * @param sql the SQL string to compile
+         * @param forceCompilation forces the SQL to be recompiled in the event that there is an
+         *  existing compiled SQL program already around
+         */
+//        @Deprecated
+//        protected void compile(String sql, boolean forceCompilation)
+
+        /**
+         * Bind a NULL value to this statement. The value remains bound until
+         * {@link #clearBindings} is called.
+         *
+         * @param index The 1-based index to the parameter to bind null to
+         */
+        BindNull(
+            [in] Int32 index);
+
+        /**
+         * Bind a long value to this statement. The value remains bound until
+         * {@link #clearBindings} is called.
+         *
+         * @param index The 1-based index to the parameter to bind
+         * @param value The value to bind
+         */
+        BindLong(
+            [in] Int32 index,
+            [in] Int64 value);
+
+        /**
+         * Bind a double value to this statement. The value remains bound until
+         * {@link #clearBindings} is called.
+         *
+         * @param index The 1-based index to the parameter to bind
+         * @param value The value to bind
+         */
+        BindDouble(
+            [in] Int32 index,
+            [in] Double value);
+
+        /**
+         * Bind a String value to this statement. The value remains bound until
+         * {@link #clearBindings} is called.
+         *
+         * @param index The 1-based index to the parameter to bind
+         * @param value The value to bind
+         */
+        BindString(
+            [in] Int32 index,
+            [in] String value);
+
+        /**
+         * Bind a byte array value to this statement. The value remains bound until
+         * {@link #clearBindings} is called.
+         *
+         * @param index The 1-based index to the parameter to bind
+         * @param value The value to bind
+         */
+        BindBlob(
+            [in] Int32 index,
+            [in] ArrayOf<Byte> value);
+
+        /**
+         * Clears all existing bindings. Unset bindings are treated as NULL.
+         */
+        ClearBindings();
+
+        /**
+         * Release this program's resources, making it invalid.
+         */
+        Close();
+    }
+}

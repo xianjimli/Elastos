@@ -1,0 +1,31 @@
+module
+{
+    interface IBinder;
+    interface IBulkCursor;
+    interface ICursorWindow;
+
+    /**
+     * Native implementation of the bulk cursor. This is only for use in implementing
+     * IPC, application code should use the Cursor interface.
+     */
+    interface IBulkCursorNative extends IBinder
+    {
+        /**
+         * Cast a Binder object into a content resolver interface, generating
+         * a proxy if needed.
+         */
+        AsInterface(
+            [in] IBinder* obj,
+            [out] IBulkCursor** ibc);
+
+        AsBinder(
+            [out] IBinder** b);
+    }
+
+    interface IBulkCursorProxy extends IBulkCursor
+    {
+        AsBinder(
+            [out] IBinder** b);
+
+    }
+}

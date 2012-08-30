@@ -1,0 +1,236 @@
+module
+{
+    interface ISQLiteClosable;
+
+    interface IParcel;
+
+    /**
+     * A buffer containing multiple cursor rows.
+     */
+    interface ICursorWindow extends ISQLiteClosable
+    {
+        /**
+         * Returns the starting position of this window within the entire
+         * Cursor's result set.
+         */
+        GetStartPosition(
+            [out] Int32* pos);
+
+        /**
+         * Set the start position of cursor window
+         */
+        SetStartPosition(
+            [in] Int32 pos);
+
+        /**
+         * Returns the number of rows in this window.
+         */
+        GetNumRows(
+            [out] Int32* num);
+
+        /**
+         * Set number of Columns 
+         */
+        SetNumColumns(
+            [in] Int32 columnNum,
+            [out] Boolean* rst);
+
+        /**
+         * Allocate a row in cursor window
+         * @return false if cursor window is out of memory
+         */
+        AllocRow(
+            [out] Boolean* rst);
+
+        /**
+         * Free the last row
+         */
+        FreeLastRow();
+
+        /**
+         * copy byte array to cursor window
+         * @return false if fail to copy
+         */
+        PutBlob(
+            [in] ArrayOf<Byte> value,
+            [in] Int32 row,
+            [in] Int32 col,
+            [out] Boolean* rst);
+
+        /**
+         * Copy String to cursor window
+         * @return false if fail to copy
+         */
+        PutString(
+            [in] String value,
+            [in] Int32 row,
+            [in] Int32 col,
+            [out] Boolean* rst);
+
+        /**
+         * Copy integer to cursor window
+         * @return false if fail to copy
+         */
+        PutInt64(
+            [in] Int64 value,
+            [in] Int32 row,
+            [in] Int32 col,
+            [out] Boolean* rst);
+
+        /**
+         * Copy double to cursor window 
+         * @return false if fail to copy
+         */
+        PutDouble(
+            [in] Double value,
+            [in] Int32 row,
+            [in] Int32 col,
+            [out] Boolean* rst);
+
+        /**
+         * Set the [row, col] value to NULL
+         * @return false if fail to copy
+         */
+        PutNull(
+            [in] Int32 row,
+            [in] Int32 col,
+            [out] Boolean* rst);
+
+        /**
+         * Returns {@code true} if given field is {@code NULL}.
+         * @return {@code true} if given field is {@code NULL}
+         */
+        IsNull(
+            [in] Int32 row,
+            [in] Int32 col,
+            [out] Boolean* rst);
+
+        /**
+         * Returns a byte array for the given field.
+         * @return a String value for the given field
+         */
+        GetBlob(
+            [in] Int32 row,
+            [in] Int32 col,
+            [out,callee] ArrayOf<Byte>* blob);
+
+        /**
+         * Checks if a field contains either a blob or is null.
+         * @return {@code true} if given field is {@code NULL} or a blob
+         */
+        IsBlob(
+            [in] Int32 row,
+            [in] Int32 col,
+            [out] Boolean* rst);
+
+        /**
+         * Checks if a field contains a long
+         * @return {@code true} if given field is a long
+         */
+        IsInt64(
+            [in] Int32 row,
+            [in] Int32 col,
+            [out] Boolean* rst);
+
+        /**
+         * Checks if a field contains a float.
+         * @return {@code true} if given field is a float
+         */
+        IsFloat(
+            [in] Int32 row,
+            [in] Int32 col,
+            [out] Boolean* rst);
+
+        /**
+         * Checks if a field contains either a String or is null.
+         * @return {@code true} if given field is {@code NULL} or a String
+         */
+        IsString(
+            [in] Int32 row,
+            [in] Int32 col,
+            [out] Boolean* rst);
+
+        /**
+         * Returns a String for the given field.
+         */
+        GetString(
+            [in] Int32 row,
+            [in] Int32 col,
+            [out] String* rst);
+
+        /**
+         * copy the text for the given field in the provided char array.
+         */
+        CopyStringToBuffer(
+            [in] Int32 row,
+            [in] Int32 col,
+            [in] ICharArrayBuffer* buffer);
+
+        /**
+         * Returns a long for the given field.
+         * row is 0 based
+         */
+        GetInt64(
+            [in] Int32 row,
+            [in] Int32 col,
+            [out] Int64* value);
+
+        /**
+         * Returns a double for the given field.
+         * row is 0 based
+         */
+        GetDouble(
+            [in] Int32 row,
+            [in] Int32 col,
+            [out] Double* value);
+
+        /**
+         * Returns a short for the given field.
+         * row is 0 based
+         */
+        GetInt16(
+            [in] Int32 row,
+            [in] Int32 col,
+            [out] Int16* value);
+
+        /**
+         * Returns an int for the given field.
+         */
+        GetInt32(
+            [in] Int32 row,
+            [in] Int32 col,
+            [out] Int32* value);
+
+        /**
+         * Returns a float for the given field.
+         * row is 0 based
+         */
+        GetFloat(
+            [in] Int32 row,
+            [in] Int32 col,
+            [out] Float* value);
+
+        /**
+         * Clears out the existing contents of the window, making it safe to reuse
+         * for new data. Note that the number of columns in the window may NOT
+         * change across a call to clear().
+         */
+        Clear();
+
+        /**
+         * Cleans up the native resources associated with the window.
+         */
+        Close();
+
+        NewFormParcel(
+            [in] IParcel* p,
+            [out] ICursorWindow** cw);
+
+        DescribeContents(
+            [out] Int32* value);
+
+        WriteToParcel(
+            [in] IParcel* dest,
+            [in] Int32 flags);
+    }
+}

@@ -1,0 +1,12 @@
+
+module
+{
+    /**
+     * Does a join on two cursors using the specified columns. The cursors must already
+     * be sorted on each of the specified columns in ascending order. This joiner only
+     * supports the case where the tuple of key column values is unique.
+     */
+    interface ICursorJoiner
+    {
+    }
+}

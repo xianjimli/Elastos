@@ -3,8 +3,21 @@ TARGET_TYPE= lib
 
 include $(MAKEDIR)/../../../sources.inc
 
-INCLUDES += $(MAKEDIR)/../../inc
+INCLUDES += $(MAKEDIR)/../inc
 INCLUDES += ../
 
 SOURCES = Observable.cpp
 SOURCES += DataSetObservable.cpp
+SOURCES += ContentObservable.cpp
+SOURCES += DataSetObserver.cpp
+SOURCES += ContentObserver.cpp
+SOURCES += CursorWrapper.cpp
+SOURCES += CharArrayBuffer.cpp
+SOURCES += CursorWindow.cpp
+SOURCES += CursorJoiner.cpp
+SOURCES += BulkCursorNative.cpp
+SOURCES += AbstractCursor.cpp
+SOURCES += AbstractWindowedCursor.cpp
+SOURCES += MergeCursor.cpp
+SOURCES += MatrixCursor.cpp
+SOURCES += BulkCursorToCursorAdaptor.cpp

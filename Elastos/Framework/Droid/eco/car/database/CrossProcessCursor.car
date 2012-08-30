@@ -1,0 +1,20 @@
+
+module
+{
+    interface ICursor;
+    interface ICursorWindow;
+    interface ICrossProcessCursor extends ICursor
+    {
+        GetWindow(
+            [out] ICursorWindow** window);
+
+        FillWindow(
+            [in] Int32 pos,
+            [in] ICursorWindow* window);
+        
+        OnMove(
+            [in] Int32 oldPosition,
+            [in] Int32 newPosition,
+            [out] Boolean* rst);
+    }
+}

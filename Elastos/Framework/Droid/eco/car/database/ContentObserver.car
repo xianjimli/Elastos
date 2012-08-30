@@ -1,0 +1,27 @@
+
+module
+{
+
+    interface IContentObserver
+    {
+        /**
+         * Returns true if this observer is interested in notifications for changes
+         * made through the cursor the observer is registered with.
+         */
+        DeliverSelfNotifications(
+            [out] Boolean* rst);
+
+        DispatchChange(
+            [in] Boolean selfChange);
+
+        /**
+         * This method is called when a change occurs to the cursor that
+         * is being observed.
+         *  
+         * @param selfChange true if the update was caused by a call to <code>commit</code> on the
+         *  cursor that is being observed.
+         */
+        OnChange(
+            [in] Boolean selfChange);
+    }
+}

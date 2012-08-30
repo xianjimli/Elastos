@@ -50,7 +50,7 @@ ECode Observable::GetInterfaceID(
  * @throws IllegalStateException the observer is already registered
  */
 ECode Observable::RegisterObserver(
-    /* [in] */ IDataSetObserver* observer)
+    /* [in] */ IInterface* observer)
 {
     if (observer == NULL) {
         Logger::E("Observable", "The observer is NULL.");
@@ -76,7 +76,7 @@ ECode Observable::RegisterObserver(
  * @throws IllegalStateException the observer is not yet registered
  */
 ECode Observable::UnregisterObserver(
-    /* [in] */ IDataSetObserver* observer)
+    /* [in] */ IInterface* observer)
 {
     if (observer == NULL) {
         Logger::E("Observable", "The observer is NULL.");

@@ -1,0 +1,39 @@
+
+module
+{
+    interface IAbstractCursor;
+    /**
+     * Builds a row, starting from the left-most column and adding one column
+     * value at a time. Follows the same ordering as the column names specified
+     * at cursor construction time.
+     */
+    interface IRowBuilder
+    {
+        /**
+         * Sets the next column value in this row.
+         */
+        Add(
+            [in] IInterface* columnValue,
+            [out] IRowBuilder** object);
+    }
+
+    /**
+     * A mutable cursor implementation backed by an array of {@code Object}s. Use
+     * {@link #newRow()} to add rows. Automatically expands internal capacity
+     * as needed.
+     */
+    interface IMatrixCursor extends IAbstractCursor
+    {
+//        NewRow(
+//            [out] IRowBuilder** object);
+
+//        AddRow(
+//            [in] ArrayOf<AutoPtr<IInterface> > columnValues);
+
+//        AddRow2(
+//            [in] Set<AutoPtr<IInterface> > columnValues,
+//            [in] Int32 start);
+    }
+
+
+}

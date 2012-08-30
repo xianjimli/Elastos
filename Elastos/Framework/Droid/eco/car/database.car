@@ -1,7 +1,25 @@
 
 module
 {
-    merge("database/cursor.car");
-    merge("database/DataSetObserver.car");
-    merge("database/Observable.car");
+
+    merge("database\sqlite\SQLiteClosable.car");
+    merge("database\sqlite\SqliteWrapper.car");
+    merge("database\sqlite\SQLiteTransactionListener.car");
+    merge("database\sqlite\SQLiteProgram.car");
+    merge("database\cursor.car");
+    merge("database\DataSetObserver.car");
+    merge("database\Observable.car");
+    merge("database\CharArrayBuffer.car");
+    merge("database\CrossProcessCursor.car");
+    merge("database\CursorWindow.car");
+    merge("database\CursorJoiner.car");
+    merge("database\IBulkCursor.car");
+    merge("database\BulkCursorNative.car");
+    merge("database\ContentObserver.car");
+    merge("database\AbstractCursor.car");
+    merge("database\AbstractWindowedCursor.car");
+    merge("database\MatrixCursor.car");
+    merge("database\BulkCursorToCursorAdaptor.car");
+    merge("database\DatabaseUtils.car");
 }
+

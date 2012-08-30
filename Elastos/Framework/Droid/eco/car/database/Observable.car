@@ -14,7 +14,7 @@ module
          * @throws IllegalStateException the observer is already registered
          */
         RegisterObserver(
-            [in] IDataSetObserver* observer);
+            [in] IInterface* observer);
 
         /**
          * Removes a previously registered observer. The observer must not be NULL and it
@@ -24,7 +24,7 @@ module
          * @throws IllegalStateException the observer is not yet registered
          */
         UnregisterObserver(
-            [in] IDataSetObserver* observer);
+            [in] IInterface* observer);
         
         /**
          * Remove all registered observer
