@@ -139,8 +139,6 @@ ECode CCallbackContextEx::PostCallbackEvent(PCallbackEvent pCallbackEvent)
         return NOERROR;
     }
 
-    Boolean bNeedNotify = m_eventQueue.IsEmpty();
-
     ECode ec;
     PCallbackEvent pPrevCBEvent;
     PCallbackEvent pCancelingCBEvent;
@@ -173,7 +171,7 @@ ECode CCallbackContextEx::PostCallbackEvent(PCallbackEvent pCallbackEvent)
                             pPrevCBEvent->Detach();
                             pPrevCBEvent->Release();
                             m_nEventsCount--;
-                            bNeedNotify = FALSE;
+                            m_bNeedNotify = FALSE;
                             goto Next;
                         }
                         continue;
@@ -212,7 +210,7 @@ ECode CCallbackContextEx::PostCallbackEvent(PCallbackEvent pCallbackEvent)
 Next:
     pthread_mutex_unlock(&m_queueLock);
 
-    if (bNeedNotify) {
+    if (m_bNeedNotify) {
         sem_post(&m_pThreadEvent);
     }
 
@@ -392,9 +390,12 @@ again:
                     || ((fPriority & ~CallbackEventFlag_PriorityMask)
                             & pCallbackEvent->m_flags)){
                     if (now < pCallbackEvent->m_when) {
+                        m_bNeedNotify = TRUE;
                         pthread_mutex_unlock(&m_queueLock);
-                        usleep((pCallbackEvent->m_when - now) *
-                                (MicrosecPerSec / MillisecPerSec));
+                        struct timespec ts;
+                        ts.tv_sec = (pCallbackEvent->m_when - now) / 1000;
+                        ts.tv_nsec = ((pCallbackEvent->m_when - now) % 1000) * 1000000;
+                        sem_timedwait(&m_pThreadEvent, &ts);
                         pthread_mutex_lock(&m_queueLock);
                         goto again;
                     }
@@ -411,9 +412,12 @@ again:
     }
     else {
         if (now < pCallbackEvent->m_when) {
+            m_bNeedNotify = TRUE;
             pthread_mutex_unlock(&m_queueLock);
-            usleep((pCallbackEvent->m_when - now) *
-                    (MicrosecPerSec / MillisecPerSec));
+            struct timespec ts;
+            ts.tv_sec = (pCallbackEvent->m_when - now) / 1000;
+            ts.tv_nsec = ((pCallbackEvent->m_when - now) % 1000) * 1000000;
+            sem_timedwait(&m_pThreadEvent, &ts);
             pthread_mutex_lock(&m_queueLock);
             goto again;
         }
@@ -450,6 +454,7 @@ Int32 CCallbackContextEx::HandleCallbackEvents(
 
     while (TRUE) {
         pthread_mutex_lock(&m_queueLock);
+        m_bNeedNotify = FALSE;
 
         if (m_bExitRequested) {
             if (!m_bRequestToQuit) {
@@ -475,6 +480,7 @@ Int32 CCallbackContextEx::HandleCallbackEvents(
                 goto Exit;
             }
             m_Status = CallbackContextStatus_Idling;
+            m_bNeedNotify = TRUE;
             pthread_mutex_unlock(&m_queueLock);
             if (INFINITE == msTimeOut) {
                 sem_wait(&m_pThreadEvent);
@@ -532,7 +538,7 @@ Int32 CCallbackContextEx::HandleCallbackEvents(
                     PVoid pSender = pCallbackEvent->m_pSender;
                     PVoid pThis = pCallbackEvent->m_pHandlerThis;
                     PVoid pFunc = pCallbackEvent->m_pHandlerFunc;
-//printf("HandleCallback, event time: %lld\n", pCallbackEvent->m_when);
+//printf("HandleCallback, event time: %lld, now: %lld\n", pCallbackEvent->m_when, SystemClock::GetUptimeMillis());
                     pCallbackEvent->m_ecRet = invokeCallback(cFlags, pSender, pThis, pFunc, pBuf, nSize);
                 }
                 if (pCallbackEvent->m_flags & CallbackEventFlag_DirectCall) {

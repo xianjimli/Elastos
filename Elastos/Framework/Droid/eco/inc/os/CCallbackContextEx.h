@@ -110,6 +110,7 @@ public:
     sem_t                       *m_ppThreadEvent;
     Int32                       m_Status;
     Int32                       m_nEventsCount;
+    Boolean                     m_bNeedNotify;
 };
 
 #endif //__CCALLBACKCONTEXTEX_H__
