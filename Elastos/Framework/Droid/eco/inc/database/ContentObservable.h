@@ -8,7 +8,7 @@ class ContentObservable : public Observable
 {
 public:
     CARAPI RegisterObserver(
-        /* [in] */ IContentObserver* observer);
+        /* [in] */ ILocalContentObserver* observer);
 
     /**
      * invokes dispatchUpdate on each observer, unless the observer doesn't want
@@ -26,6 +26,6 @@ public:
         /* [in] */ Boolean selfChange);
 
     CARAPI UnregisterObserver(
-        /* [in] */ IContentObserver* observer);
+        /* [in] */ ILocalContentObserver* observer);
 };
 #endif //__CONTENTOBSERVABLE_H__

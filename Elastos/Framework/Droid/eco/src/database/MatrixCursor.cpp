@@ -156,7 +156,7 @@ ECode MatrixCursor::GetString(
     return E_NOT_IMPLEMENTED;
 }
 
-ECode MatrixCursor::GetShort(
+ECode MatrixCursor::GetInt16(
         /* [in] */ Int32 column,
         /* [out] */ Int16* v)
 {
@@ -172,14 +172,14 @@ ECode MatrixCursor::GetShort(
     return E_NOT_IMPLEMENTED;
 }
 
-ECode MatrixCursor::GetInt(
+ECode MatrixCursor::GetInt32(
         /* [in] */ Int32 column,
         /* [out] */ Int32* v)
 {
     return E_NOT_IMPLEMENTED;
 }
 
-ECode MatrixCursor::GetLong(
+ECode MatrixCursor::GetInt64(
         /* [in] */ Int32 column,
         /* [out] */ Int64* v)
 {

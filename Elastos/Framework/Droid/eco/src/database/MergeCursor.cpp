@@ -16,12 +16,13 @@ MergeCursor::MergeCursor(
     Init();
     mCursors = cursors;
     mCursor = (*cursors)[0];
-//    for (Int32 i = 0; i < mCursors->GetLength(); i++) {
-//        if ((*mCursors)[i] == NULL) {
-//            continue;
-//        }
-//        (*mCursors)[i]->RegisterDataSetObserver(mObserver);
-//    }
+/*    for (Int32 i = 0; i < mCursors->GetLength(); i++) {
+        if ((*mCursors)[i] == NULL) {
+            continue;
+        }
+        (*mCursors)[i]->RegisterDataSetObserver(mObserver);
+    }
+*/
 }
 
 ECode MergeCursor::GetCount(

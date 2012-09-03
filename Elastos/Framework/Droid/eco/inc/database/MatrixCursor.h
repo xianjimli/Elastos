@@ -56,15 +56,15 @@ public:
         /* [in] */ Int32 column,
         /* [out] */ String* v);
 
-    CARAPI GetShort(
+    CARAPI GetInt16(
         /* [in] */ Int32 column,
         /* [out] */ Int16* v);
 
-    CARAPI GetInt(
+    CARAPI GetInt32(
         /* [in] */ Int32 column,
         /* [out] */ Int32* v);
 
-    CARAPI GetLong(
+    CARAPI GetInt64(
         /* [in] */ Int32 column,
         /* [out] */ Int64* v);
 

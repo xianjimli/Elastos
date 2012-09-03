@@ -14,7 +14,7 @@ ECode BulkCursorNative::AsInterface(
         return NOERROR;
     }
     AutoPtr<IBulkCursor> in;
-    const String descriptor = String(IBulkCursor_descriptor);
+//    const String descriptor = String(IBulkCursor_descriptor);
 //    obj->QueryLocalInterface(descriptor, (IInterface2**)&in);
     if (in != NULL) {
         *bc = in;
@@ -223,7 +223,7 @@ ECode BulkCursorProxy::Close()
 }
 
 ECode BulkCursorProxy::Requery(
-        /* [in] */ IContentObserver* observer,
+        /* [in] */ ILocalContentObserver* observer,
         /* [in] */ ICursorWindow* window,
         /* [out] */ Int32* value)
 {

@@ -69,14 +69,14 @@ ECode CursorWrapper::GetColumnIndex(
     return NOERROR;
 }
 
-//ECode CursorWrapper::GetColumnIndexOrThrow(
-//        /* [in] */ String columnName,
-//        /* [out] */ Int32* index)
-//{
-//    assert(index != NULL);
-//    FAIL_RETURN(mCursor->GetColumnIndexOrThrow(columnName, index));
-//    return NOERROR;
-//}
+ECode CursorWrapper::GetColumnIndexOrThrow(
+        /* [in] */ String columnName,
+        /* [out] */ Int32* index)
+{
+    assert(index != NULL);
+    FAIL_RETURN(mCursor->GetColumnIndexOrThrow(columnName, index));
+    return NOERROR;
+}
 
 ECode CursorWrapper::GetColumnName(
         /* [in] */ Int32 columnIndex,
@@ -87,12 +87,12 @@ ECode CursorWrapper::GetColumnName(
     return NOERROR;
 }
 
-// ECode CursorWrapper::GetColumnNames(
-        // /* [out,callee] */ ArrayOf<String>** columnNames)
-// {
-//   FAIL_RETURN(mCursor->GetColumnNames(columnNames));
-    // return NOERROR;
-// }
+ECode CursorWrapper::GetColumnNames(
+        /* [out,callee] */ ArrayOf<String>** columnNames)
+{
+    FAIL_RETURN(mCursor->GetColumnNames(columnNames));
+    return NOERROR;
+}
 
 ECode CursorWrapper::GetDouble(
         /* [in] */ Int32 columnIndex,
@@ -155,22 +155,21 @@ ECode CursorWrapper::GetString(
     return NOERROR;
 }
 
-//ECode CursorWrapper::CopyStringToBuffer(
-//        /* [in] */ Int32 columnIndex,
-//        /* [out] */ ICharArrayBuffer** buffer)
-//{
-//    //assert(buffer != NULL);
-//    FAIL_RETURN(mCursor->CopyStringToBuffer(columnIndex, buffer));
-//    return NOERROR;
-//}
+ECode CursorWrapper::CopyStringToBuffer(
+        /* [in] */ Int32 columnIndex,
+        /* [out] */ ICharArrayBuffer** buffer)
+{
+    FAIL_RETURN(mCursor->CopyStringToBuffer(columnIndex, buffer));
+    return NOERROR;
+}
 
-// ECode CursorWrapper::GetBlob(
-            // /* [in] */  Int32 columnIndex,
-            // /* [out,callee] */ ArrayOf<Byte>** blob)
-// {
-    // FAIL_RETURN(mCursor->GetBlob(columnIndex, blob));
-    // return NOERROR;
-// }
+ ECode CursorWrapper::GetBlob(
+             /* [in] */  Int32 columnIndex,
+             /* [out,callee] */ ArrayOf<Byte>** blob)
+{
+    FAIL_RETURN(mCursor->GetBlob(columnIndex, blob));
+    return NOERROR;
+}
 
 ECode CursorWrapper::IsAfterLast(
     /* [out] */ Boolean* rst)
@@ -188,13 +187,13 @@ ECode CursorWrapper::IsBeforeFirst(
     return NOERROR;
 }
 
-// ECode CursorWrapper::GetWantsAllOnMoveCalls(
-            // /* [out] */ Boolean* value)
-// {
-    // assert(value != NULL);
-    // FAIL_RETURN(mCursor->GetWantsAllOnMoveCalls(value));
-    // return NOERROR;
-// }
+ECode CursorWrapper::GetWantsAllOnMoveCalls(
+            /* [out] */ Boolean* value)
+{
+    assert(value != NULL);
+    FAIL_RETURN(mCursor->GetWantsAllOnMoveCalls(value));
+    return NOERROR;
+}
 
 ECode CursorWrapper::IsFirst(
     /* [out] */ Boolean* rst)
@@ -271,19 +270,19 @@ ECode CursorWrapper::MoveToPrevious(
     return NOERROR;
 }
 
-// ECode CursorWrapper::RegisterContentObserver(
-        // /* [in] */ IContentObserver* observer)
-// {
-    // FAIL_RETURN(mCursor->RegisterContentObserver(observer));
-    // return NOERROR;
-// }
+ECode CursorWrapper::RegisterContentObserver(
+        /* [in] */ ILocalContentObserver* observer)
+{
+    FAIL_RETURN(mCursor->RegisterContentObserver(observer));
+    return NOERROR;
+}
 
-// ECode CursorWrapper::RegisterDataSetObserver(
-        // /* [in] */IDataSetObserver* observer)
-// {
-    // FAIL_RETURN(mCursor->RegisterDataSetObserver(observer));
-    // return NOERROR;
-// }
+ECode CursorWrapper::RegisterDataSetObserver(
+        /* [in] */IDataSetObserver* observer)
+{
+    FAIL_RETURN(mCursor->RegisterDataSetObserver(observer));
+    return NOERROR;
+}
 
 ECode CursorWrapper::Requery(
     /* [out] */ Boolean* rst)
@@ -293,18 +292,32 @@ ECode CursorWrapper::Requery(
     return NOERROR;
 }
 
-// ECode CursorWrapper::Respond(
-        // /* [in] */ IBundle* extras,
-        // /* [out] */ IBundle** bundle)
-// {
-    // FAIL_RETURN(mCursor->Respond(extras, bundle));
-    // return NOERROR;
-// }
+ECode CursorWrapper::Respond(
+        /* [in] */ IBundle* extras,
+        /* [out] */ IBundle** bundle)
+{
+    FAIL_RETURN(mCursor->Respond(extras, bundle));
+    return NOERROR;
+}
 
-// ECode CursorWrapper::SetNotificationUri(
-        // /* [in] */ IContentResolver* cr,
-        // /* [in] */ IUri* uri)
-// {
-    // FAIL_RETURN(mCursor->SetNotificationUri(cr, uri));
-    // return NOERROR;
-// }
+ECode CursorWrapper::SetNotificationUri(
+        /* [in] */ IContentResolver* cr,
+        /* [in] */ IUri* uri)
+{
+    FAIL_RETURN(mCursor->SetNotificationUri(cr, uri));
+    return NOERROR;
+}
+
+ECode CursorWrapper::UnregisterContentObserver(
+        /* [in] */ ILocalContentObserver* observer)
+{
+    FAIL_RETURN(mCursor->UnregisterContentObserver(observer));
+    return NOERROR;
+}
+
+ECode CursorWrapper::UnregisterDataSetObserver(
+        /* [in] */IDataSetObserver* observer)
+{
+    FAIL_RETURN(mCursor->UnregisterDataSetObserver(observer));
+    return NOERROR;
+}

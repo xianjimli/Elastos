@@ -19,22 +19,22 @@ public:
     virtual CARAPI GetCount(
         /* [out] */ Int32* cnt) = 0;
 
-    virtual GetColumnNames(
+    virtual CARAPI GetColumnNames(
         /* [out] */ ArrayOf<String>** names) = 0;
 
     virtual CARAPI GetString(
         /* [in] */ Int32 column,
         /* [out] */ String* value) = 0;
 
-    virtual CARAPI GetShort(
+    virtual CARAPI GetInt16(
         /* [in] */ Int32 column,
         /* [out] */ Int16* value) = 0;
 
-    virtual CARAPI GetInt(
+    virtual CARAPI GetInt32(
         /* [in] */ Int32 column,
         /* [out] */ Int32* value) = 0;
 
-    virtual CARAPI GetLong(
+    virtual CARAPI GetInt64(
         /* [in] */ Int32 column,
         /* [out] */ Int64* value) = 0;
 
@@ -168,10 +168,10 @@ public:
         /* [out] */ String* name);
 
     virtual CARAPI RegisterContentObserver(
-        /* [in] */ IContentObserver* observer);
+        /* [in] */ ILocalContentObserver* observer);
 
     virtual CARAPI UnregisterContentObserver(
-        /* [in] */ IContentObserver* observer);
+        /* [in] */ ILocalContentObserver* observer);
 
     virtual CARAPI RegisterDataSetObserver(
         /* [in] */ IDataSetObserver* observer);
@@ -285,7 +285,7 @@ protected:
 private:
     const static String TAG;
     AutoPtr<IUri> mNotifyUri;
-    AutoPtr<IContentObserver> mSelfObserver;
+    AutoPtr<ILocalContentObserver> mSelfObserver;
 
     //final private Object mSelfObserverLock = new Object();
     Mutex mSelfObserverLock;

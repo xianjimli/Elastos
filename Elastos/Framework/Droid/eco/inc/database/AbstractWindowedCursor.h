@@ -47,19 +47,19 @@ public:
         /* [in] */ Int32 columnIndex,
         /* [out] */ Boolean* value);
 
-    virtual IsBlob(
+    virtual CARAPI IsBlob(
         /* [in] */ Int32 columnIndex,
         /* [out] */ Boolean* value);
 
-    virtual IsString(
+    virtual CARAPI IsString(
         /* [in] */ Int32 columnIndex,
         /* [out] */ Boolean* value);
 
-    virtual IsLong(
+    virtual CARAPI IsInt64(
         /* [in] */ Int32 columnIndex,
         /* [out] */ Boolean* value);
 
-    virtual IsFloat(
+    virtual CARAPI IsFloat(
         /* [in] */ Int32 columnIndex,
         /* [out] */ Boolean* value);
 

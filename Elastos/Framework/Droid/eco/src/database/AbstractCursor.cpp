@@ -1,6 +1,6 @@
 #include "database/AbstractCursor.h"
 #include "stdio.h"
-//const AbstractCursor::TAG = "Cursor";
+const String AbstractCursor::TAG = String("Cursor");
 AbstractCursor::AbstractCursor()
 {
     mPos = -1;
@@ -13,7 +13,7 @@ AbstractCursor::AbstractCursor()
 AbstractCursor::~AbstractCursor()
 {
     if (mSelfObserver != NULL && mSelfObserverRegistered == TRUE) {
-        mContentResolver->UnregisterContentObserver(mSelfObserver);
+//        mContentResolver->UnregisterContentObserver(mSelfObserver);
     }
 }
 
@@ -51,7 +51,7 @@ ECode AbstractCursor::Deactivate()
 ECode AbstractCursor::DeactivateInternal()
 {
     if (mSelfObserver != NULL) {
-        mContentResolver->UnregisterContentObserver(mSelfObserver);
+//        mContentResolver->UnregisterContentObserver(mSelfObserver);
         mSelfObserverRegistered = FALSE;
     }
     mDataSetObservable->NotifyInvalidated();
@@ -63,7 +63,7 @@ ECode AbstractCursor::Requery(
 {
     assert(value != NULL);
     if (mSelfObserver != NULL) {
-        mContentResolver->RegisterContentObserver(mNotifyUri, TRUE, mSelfObserver);
+//        mContentResolver->RegisterContentObserver(mNotifyUri, TRUE, mSelfObserver);
         mSelfObserverRegistered = TRUE;
     }
     mDataSetObservable->NotifyChanged();
@@ -368,14 +368,14 @@ ECode AbstractCursor::GetColumnName(
 }
 
 ECode AbstractCursor::RegisterContentObserver(
-        /* [in] */ IContentObserver* observer)
+        /* [in] */ ILocalContentObserver* observer)
 {
     FAIL_RETURN(mContentObservable->RegisterObserver(observer));
     return NOERROR;
 }
 
 ECode AbstractCursor::UnregisterContentObserver(
-        /* [in] */ IContentObserver* observer)
+        /* [in] */ ILocalContentObserver* observer)
 {
     if(!mClosed) {
         FAIL_RETURN(mContentObservable->UnregisterObserver(observer));

@@ -65,7 +65,7 @@ public:
     CARAPI Close();
 
     CARAPI Requery(
-        /* [in] */ IContentObserver* observer,
+        /* [in] */ ILocalContentObserver* observer,
         /* [in] */ ICursorWindow* window,
         /* [out] */ Int32* value);
 

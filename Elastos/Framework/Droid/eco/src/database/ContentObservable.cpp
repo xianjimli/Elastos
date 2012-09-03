@@ -2,7 +2,7 @@
 #include "database/ContentObservable.h"
 
 ECode ContentObservable::RegisterObserver(
-        /* [in] */ IContentObserver* observer)
+        /* [in] */ ILocalContentObserver* observer)
 {
     Observable::RegisterObserver(observer);
     return NOERROR;
@@ -12,8 +12,8 @@ ECode ContentObservable::DispatchChange(
         /* [in] */ Boolean selfChange)
 {
     Mutex::Autolock lock(mObserversLock);
-    Set<AutoPtr<IContentObserver> >::Iterator iter;
-    Set<AutoPtr<IContentObserver> >(mObservers);
+    Set<AutoPtr<ILocalContentObserver> >::Iterator iter;
+    Set<AutoPtr<ILocalContentObserver> >(mObservers);
     for (iter = mObservers.Begin(); iter != mObservers.End(); ++iter) {
         Boolean rst;
         (*iter)->DeliverSelfNotifications(&rst);
@@ -29,8 +29,8 @@ ECode ContentObservable::NotifyChange(
         /* [in] */ Boolean selfChange)
 {
     Mutex::Autolock lock(mObserversLock);
-    Set<AutoPtr<IContentObserver> >::Iterator iter;
-    Set<AutoPtr<IContentObserver> >(mObservers);
+    Set<AutoPtr<ILocalContentObserver> >::Iterator iter;
+    Set<AutoPtr<ILocalContentObserver> >(mObservers);
     for (iter = mObservers.Begin(); iter != mObservers.End(); ++iter) {
         Boolean rst;
         (*iter)->DeliverSelfNotifications(&rst);
@@ -42,7 +42,7 @@ ECode ContentObservable::NotifyChange(
 }
 
 ECode ContentObservable::UnregisterObserver(
-        /* [in] */ IContentObserver* observer)
+        /* [in] */ ILocalContentObserver* observer)
 {
     Observable::UnregisterObserver(observer);
     return NOERROR;

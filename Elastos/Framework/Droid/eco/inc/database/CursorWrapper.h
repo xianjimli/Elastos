@@ -70,16 +70,16 @@ public:
         /* [in] */ String columnName,
         /* [out] */ Int32* index);
         
-//    CARAPI GetColumnIndexOrThrow(
-//        /* [in] */  String columnName,
-//        /* [out] */ Int32* columnIndex);
+    CARAPI GetColumnIndexOrThrow(
+        /* [in] */  String columnName,
+        /* [out] */ Int32* columnIndex);
         
     CARAPI GetColumnName(
         /* [in] */ Int32 columnIndex,
         /* [out] */ String* name);
         
-//    CARAPI GetColumnNames(
-//        /* [out,callee] */ ArrayOf<String>** columnNames);
+    CARAPI GetColumnNames(
+        /* [out,callee] */ ArrayOf<String>** columnNames);
 
     CARAPI GetDouble(
         /* [in] */ Int32 columnIndex,
@@ -108,13 +108,13 @@ public:
         /* [in] */ Int32 columnIndex,
         /* [out] */ String* value);
 
-//    virtual CARAPI CopyStringToBuffer(
-//        /* [in] */ Int32 columnIndex,
-//        /* [out] */ ICharArrayBuffer** buffer);
+    CARAPI CopyStringToBuffer(
+        /* [in] */ Int32 columnIndex,
+        /* [out] */ ICharArrayBuffer** buffer);
 
-//    CARAPI GetBlob(
-//            /* [in] */  Int32 columnIndex,
-//            /* [out,callee] */ ArrayOf<Byte>** blob);
+    CARAPI GetBlob(
+            /* [in] */  Int32 columnIndex,
+            /* [out,callee] */ ArrayOf<Byte>** blob);
 
 
     CARAPI GetWantsAllOnMoveCalls(
@@ -164,22 +164,22 @@ public:
     CARAPI MoveToPrevious(
         /* [out] */ Boolean* rst);
 
-//    CARAPI RegisterContentObserver(
-//        /* [in] */ IContentObserver* observer);
+    CARAPI RegisterContentObserver(
+        /* [in] */ ILocalContentObserver* observer);
 
-//    CARAPI RegisterDataSetObserver(
-//        /* [in] */IDataSetObserver* observer);
+    CARAPI RegisterDataSetObserver(
+        /* [in] */IDataSetObserver* observer);
 
     CARAPI Requery(
         /* [out] */ Boolean* rst);
 
-//    CARAPI Respond(
-//        /* [in] */ IBundle* extras,
-//        /* [out] */ IBundle** bundle);
+    CARAPI Respond(
+        /* [in] */ IBundle* extras,
+        /* [out] */ IBundle** bundle);
 
-//    CARAPI SetNotificationUri(
-//        /* [in] */ IContentResolver* cr,
-//        /* [in] */ IUri* uri);
+    CARAPI SetNotificationUri(
+        /* [in] */ IContentResolver* cr,
+        /* [in] */ IUri* uri);
 
     /**
      * @hide
@@ -189,11 +189,11 @@ public:
 //        return mCursor.supportsUpdates();
 //    }
 
-//    virtual CARAPI UnregisterContentObserver(
-//        /* [in] */ IContentObserver* observer);
+    virtual CARAPI UnregisterContentObserver(
+        /* [in] */ ILocalContentObserver* observer);
 
-//    virtual CARAPI UnregisterDataSetObserver(
-//        /* [in] */ IDataSetObserver* observer);
+    virtual CARAPI UnregisterDataSetObserver(
+        /* [in] */ IDataSetObserver* observer);
 
     /**
      * @hide
