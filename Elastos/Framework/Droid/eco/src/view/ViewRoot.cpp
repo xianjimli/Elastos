@@ -2988,7 +2988,6 @@ void ViewRoot::DeliverPointerEvent(
 
     {
         printf("====================A MotionEvent===================\n");
-        printf("ViewRoot = 0x%08x\n", this);
         Int64 downTime, eventTime;
         Float x, y, pressure, size, orientation;
         event->GetDownTime(&downTime);

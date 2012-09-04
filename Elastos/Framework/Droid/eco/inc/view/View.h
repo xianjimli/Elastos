@@ -2329,7 +2329,7 @@ protected:
     Int32 mNextFocusDownId;// = View.NO_ID;
 
     AutoPtr<CheckForLongPress> mPendingCheckForLongPress;
-    AutoPtr<CheckForTap> mPendingCheckForTap;// = null;
+    AutoPtr<CheckForTap> mPendingCheckForTap;
     AutoPtr<ViewPerformClick> mPerformClick;
 
     AutoPtr<UnsetPressedState> mUnsetPressedState;

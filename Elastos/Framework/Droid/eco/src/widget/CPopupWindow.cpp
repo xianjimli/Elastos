@@ -1,6 +1,16 @@
 
 #include "widget/CPopupWindow.h"
 
+
+PInterface CPopupWindow::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_View) {
+        return reinterpret_cast<PInterface>((View*)this);
+    }
+    return _CPopupWindow::Probe(riid);
+}
+
 ECode CPopupWindow::GetBackground(
     /* [out] */ IDrawable** background)
 {

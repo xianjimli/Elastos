@@ -160,7 +160,7 @@ bool NativeInputManager::getDisplayInfo(
 
 bool NativeInputManager::filterTouchEvents()
 {
-    //printf("("@@@@@@FILE: %s, LINE: %d@@@@@@\n", __FILE__, __LINE__);
+    //printf("@@@@@@FILE: %s, LINE: %d@@@@@@\n", __FILE__, __LINE__);
     if (mFilterTouchEvents < 0) {
         Boolean result;
         if (FAILED(mCallbacks->FilterTouchEvents(&result))) {
@@ -484,7 +484,7 @@ void NativeInputManager::interceptKeyBeforeQueueing(
     /* [in] */ int32_t scanCode,
     /* [in] */ uint32_t& policyFlags)
 {
-    //printf("("@@@@@@FILE: %s, LINE: %d@@@@@@\n", __FILE__, __LINE__);
+    //printf("@@@@@@FILE: %s, LINE: %d@@@@@@\n", __FILE__, __LINE__);
 //#if DEBUG_INPUT_DISPATCHER_POLICY
 //    LOGD("interceptKeyBeforeQueueing - when=%lld, deviceId=%d, action=%d, flags=%d, "
 //            "keyCode=%d, scanCode=%d, policyFlags=0x%x",
@@ -545,7 +545,7 @@ void NativeInputManager::interceptGenericBeforeQueueing(
     /* [in] */ nsecs_t when,
     /* [in] */ uint32_t& policyFlags)
 {
-    //printf("("@@@@@@FILE: %s, LINE: %d@@@@@@\n", __FILE__, __LINE__);
+    //printf("@@@@@@FILE: %s, LINE: %d@@@@@@\n", __FILE__, __LINE__);
 //#if DEBUG_INPUT_DISPATCHER_POLICY
 //    LOGD("interceptGenericBeforeQueueing - when=%lld, policyFlags=0x%x", when, policyFlags);
 //#endif
@@ -573,7 +573,7 @@ bool NativeInputManager::interceptKeyBeforeDispatching(
     /* [in] */ const android::KeyEvent* keyEvent,
     /* [in] */ uint32_t policyFlags)
 {
-    //printf("("@@@@@@FILE: %s, LINE: %d@@@@@@\n", __FILE__, __LINE__);
+    //printf("@@@@@@FILE: %s, LINE: %d@@@@@@\n", __FILE__, __LINE__);
     // Policy:
     // - Ignore untrusted events and pass them along.
     // - Filter normal events and trusted injected events through the window manager policy to

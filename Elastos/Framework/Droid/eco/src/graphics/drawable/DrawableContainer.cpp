@@ -181,7 +181,7 @@ Int32 DrawableContainer::GetMinimumHeight()
 ECode DrawableContainer::InvalidateDrawable(
     /* [in] */ IDrawable* who)
 {
-    if (who == mCurrDrawable && mCallback.Get() != NULL) {
+    if (who == mCurrDrawable && mCallback != NULL) {
         mCallback->InvalidateDrawable((IDrawable*)this->Probe(EIID_IDrawable));
     }
 
@@ -193,7 +193,7 @@ ECode DrawableContainer::ScheduleDrawable(
     /* [in] */ IRunnable* what,
     /* [in] */ Int64 when)
 {
-    if (who == mCurrDrawable && mCallback.Get() != NULL) {
+    if (who == mCurrDrawable && mCallback != NULL) {
         mCallback->ScheduleDrawable((IDrawable*)this->Probe(EIID_IDrawable), what, when);
     }
 
@@ -204,7 +204,7 @@ ECode DrawableContainer::UnscheduleDrawable(
     /* [in] */ IDrawable* who,
     /* [in] */ IRunnable* what)
 {
-    if (who == mCurrDrawable && mCallback.Get() != NULL) {
+    if (who == mCurrDrawable && mCallback != NULL) {
         mCallback->UnscheduleDrawable((IDrawable*)this->Probe(EIID_IDrawable), what);
     }
 

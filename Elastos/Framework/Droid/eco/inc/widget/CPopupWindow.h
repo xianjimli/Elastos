@@ -8,6 +8,9 @@
 CarClass(CPopupWindow), public PopupWindow
 {
 public:
+    CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid);
+
     CARAPI GetBackground(
         /* [out] */ IDrawable** background);
 

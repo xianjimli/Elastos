@@ -523,7 +523,10 @@ private:
         /* [out] */ IDrawable** drawable);
 
 protected:
-        /*package*/ AutoPtr<IDrawableCallback> mCallback;
+	//Todo: mCallback should use weak reference.
+	//Because mCallback can be the widget who holds this drawable,
+	//so there exists cycle reference.
+    /*package*/ IDrawableCallback* mCallback;
 
 private:
     ArrayOf<Int32>* mStateSet;
