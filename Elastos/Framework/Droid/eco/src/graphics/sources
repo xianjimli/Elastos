@@ -55,3 +55,4 @@ SOURCES += CTypeface.cpp
 SOURCES += CTypefaceFactory.cpp
 
 LIBRARIES += drawable/drawable.lib
+LIBRARIES += drawable/shapes/shapes.lib

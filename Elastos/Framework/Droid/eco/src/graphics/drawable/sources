@@ -31,3 +31,5 @@ SOURCES += ClipDrawable.cpp
 SOURCES += CClipDrawable.cpp
 SOURCES += AnimationDrawable.cpp
 SOURCES += CAnimationDrawable.cpp
+SOURCES += ShapeDrawable.cpp
+SOURCES += CShapeDrawable.cpp

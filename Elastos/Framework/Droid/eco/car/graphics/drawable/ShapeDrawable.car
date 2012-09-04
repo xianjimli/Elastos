@@ -1,0 +1,99 @@
+
+module
+{
+    interface IShader;
+    interface IDrawable;
+    interface IShape;
+    interface IPaint;
+
+
+    interface IShaderFactory {
+        /**
+         * Returns the Shader to be drawn when a Drawable is drawn.
+         * The dimensions of the Drawable are passed because they may be needed
+         * to adjust how the Shader is configured for drawing.
+         * This is called by ShapeDrawable.setShape().
+         *
+         * @param width  the width of the Drawable being drawn
+         * @param height the heigh of the Drawable being drawn
+         * @return       the Shader to be drawn
+         */
+        Resize(
+            [in] Int32 width,
+            [in] Int32 height,
+            [out] IShader** shader);
+    }
+
+    interface IShapeDrawable extends IDrawable {
+        /**
+         * Returns the Shape of this ShapeDrawable.
+         */
+        GetShape(
+            [out] IShape** shape);
+
+        /**
+         * Sets the Shape of this ShapeDrawable.
+         */
+        SetShape(
+            [in] IShape* s);
+
+        /**
+         * Sets a ShaderFactory to which requests for a
+         * {@link android.graphics.Shader} object will be made.
+         *
+         * @param fact an instance of your ShaderFactory implementation
+         */
+        SetShaderFactory(
+            [in] IShaderFactory* fact);
+
+        /**
+         * Returns the ShaderFactory used by this ShapeDrawable for requesting a
+         * {@link android.graphics.Shader}.
+         */
+        GetShaderFactory(
+            [out] IShaderFactory** fact);
+
+        /**
+         * Returns the Paint used to draw the shape.
+         */
+        GetPaint(
+            [out] IPaint** paint);
+
+        /**
+         * Sets padding for the shape.
+         *
+         * @param left    padding for the left side (in pixels)
+         * @param top     padding for the top (in pixels)
+         * @param right   padding for the right side (in pixels)
+         * @param bottom  padding for the bottom (in pixels)
+         */
+        SetPadding(
+            [in] Int32 left,
+            [in] Int32 top,
+            [in] Int32 right,
+            [in] Int32 bottom);
+
+        /**
+         * Sets padding for this shape, defined by a Rect object.
+         * Define the padding in the Rect object as: left, top, right, bottom.
+         */
+        SetPaddingEx(
+            [in] IRect* padding);
+
+        /**
+         * Sets the intrinsic (default) width for this shape.
+         *
+         * @param width the intrinsic width (in pixels)
+         */
+        SetIntrinsicWidth(
+            [in] Int32 width);
+
+        /**
+         * Sets the intrinsic (default) height for this shape.
+         *
+         * @param height the intrinsic height (in pixels)
+         */
+        SetIntrinsicHeight(
+            [in] Int32 height);
+    }
+}

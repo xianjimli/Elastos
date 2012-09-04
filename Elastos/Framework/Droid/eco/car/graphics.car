@@ -36,6 +36,8 @@ module
     merge("graphics/drawable/GradientDrawable.car");
     merge("graphics/drawable/ClipDrawable.car");
     merge("graphics/drawable/AnimationDrawable.car");
+    merge("graphics/drawable/ShapeDrawable.car");
+    merge("graphics/drawable/shapes/Shape.car");
 
     class CPoint {
         constructor();
@@ -607,17 +609,37 @@ module
         interface IClipDrawable;
         interface IDrawableCallback;
     }
-    
+
     class CAnimationDrawable {
         constructor();
-        
+
         constructor(
             [in] Handle32 state,
             [in] IResources* res);
-            
+
         interface IAnimationDrawable;
         interface IRunnable;
         interface IAnimatable;
+    }
+
+    class CShapeDrawable {
+        /**
+         * ShapeDrawable constructor.
+         */
+        constructor();
+
+        /**
+         * Creates a ShapeDrawable with a specified Shape.
+         *
+         * @param s the Shape that this ShapeDrawable should be
+         */
+        constructor(
+            [in] IShape* s);
+
+        constructor(
+            [in] Handle32 state);
+
+        interface IShapeDrawable;
     }
 
     class CNinePatch {
@@ -682,6 +704,88 @@ module
             [in] Float phase);
 
         interface IDashPathEffect;
+    }
+
+    class CArcShape {
+        constructor();
+
+        /**
+         * ArcShape constructor.
+         *
+         * @param startAngle the angle (in degrees) where the arc begins
+         * @param sweepAngle the sweep angle (in degrees). Anything equal to or
+         *                   greater than 360 results in a complete circle/oval.
+         */
+        constructor(
+            [in] Float startAngle,
+            [in] Float sweepAngle);
+
+        interface IShape;
+    }
+
+    class COvalShape {
+        constructor();
+
+        interface IShape;
+    }
+
+    class CPathShape {
+        constructor();
+
+        /**
+         * PathShape constructor.
+         *
+         * @param path       a Path that defines the geometric paths for this shape
+         * @param stdWidth   the standard width for the shape. Any changes to the
+         *                   width with resize() will result in a width scaled based
+         *                   on the new width divided by this width.
+         * @param stdHeight  the standard height for the shape. Any changes to the
+         *                   height with resize() will result in a height scaled based
+         *                   on the new height divided by this height.
+         */
+        constructor(
+            [in] IPath* path,
+            [in] Float stdWidth,
+            [in] Float stdHeight);
+
+        interface IShape;
+    }
+
+    class CRectShape {
+        constructor();
+
+        interface IShape;
+    }
+
+    [deprecated]
+    class CRoundRectShape {
+        constructor();
+
+        /**
+         * RoundRectShape constructor.
+         * Specifies an outer (round)rect and an optional inner (round)rect.
+         *
+         * @param outerRadii An array of 8 radius values, for the outer roundrect.
+         *                   The first two floats are for the
+         *                   top-left corner (remaining pairs correspond clockwise).
+         *                   For no rounded corners on the outer rectangle,
+         *                   pass null.
+         * @param inset      A RectF that specifies the distance from the inner
+         *                   rect to each side of the outer rect.
+         *                   For no inner, pass null.
+         * @param innerRadii An array of 8 radius values, for the inner roundrect.
+         *                   The first two floats are for the
+         *                   top-left corner (remaining pairs correspond clockwise).
+         *                   For no rounded corners on the inner rectangle,
+         *                   pass null.
+         *                   If inset parameter is null, this parameter is ignored.
+         */
+        constructor(
+            [in] ArrayOf<Float>* outerRadii,
+            [in] IRectF* inset,
+            [in] ArrayOf<Float>* innerRadii);
+
+        interface IShape;
     }
 }
 
