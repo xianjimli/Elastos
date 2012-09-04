@@ -54,9 +54,14 @@ private:
     };
 
     class PopupViewContainer
-        : public _PopupViewContainer
-        , public ElRefBase
+        : public ElRefBase
+        , public _PopupViewContainer
         , public IFrameLayout
+        , public IViewParent
+        , public IViewManager
+        , public IDrawableCallback
+        , public IKeyEventCallback
+        , public IAccessibilityEventSource
     {
     public:
         PopupViewContainer(

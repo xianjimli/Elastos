@@ -6477,7 +6477,7 @@ void CWindowManagerService::PlaceWindowAfter(
         mWindows.PushBack(window);
     }
     else {
-        mWindows.Insert(it++, window);
+        mWindows.Insert(++it, window);
     }
     mWindowsChanged = TRUE;
 }
