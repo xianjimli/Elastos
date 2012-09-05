@@ -37,6 +37,7 @@ module
     merge("graphics/drawable/ClipDrawable.car");
     merge("graphics/drawable/AnimationDrawable.car");
     merge("graphics/drawable/ShapeDrawable.car");
+    merge("graphics/drawable/RotateDrawable.car");
     merge("graphics/drawable/shapes/Shape.car");
 
     class CPoint {
@@ -640,6 +641,27 @@ module
             [in] Handle32 state);
 
         interface IShapeDrawable;
+    }
+
+    class CRotateDrawable {
+        /**
+         * <p>Create a new rotating drawable with an empty state.</p>
+         */
+        constructor();
+
+        /**
+         * <p>Create a new rotating drawable with the specified state. A copy of
+         * this state is used as the internal state for the newly created
+         * drawable.</p>
+         *
+         * @param rotateState the state for this drawable
+         */
+        constructor(
+            [in] Handle32 state,
+            [in] IResources* res);
+
+        interface IRotateDrawable;
+        interface IDrawableCallback;
     }
 
     class CNinePatch {

@@ -33,3 +33,5 @@ SOURCES += AnimationDrawable.cpp
 SOURCES += CAnimationDrawable.cpp
 SOURCES += ShapeDrawable.cpp
 SOURCES += CShapeDrawable.cpp
+SOURCES += RotateDrawable.cpp
+SOURCES += CRotateDrawable.cpp
