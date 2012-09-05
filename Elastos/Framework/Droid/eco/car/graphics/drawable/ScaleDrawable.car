@@ -1,0 +1,13 @@
+
+module
+{
+    interface IDrawable;
+
+    interface IScaleDrawable extends IDrawable {
+        /**
+         * Returns the drawable scaled by this ScaleDrawable.
+         */
+        GetDrawable(
+            [out] IDrawable** drawable);
+    }
+}

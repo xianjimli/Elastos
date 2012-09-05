@@ -1,27 +1,24 @@
 
-#ifndef __ROTATEDRAWABLE_H__
-#define __ROTATEDRAWABLE_H__
+#ifndef __SCALEDRAWABLE_H__
+#define __SCALEDRAWABLE_H__
+
 
 #include "ext/frameworkext.h"
 #include "graphics/drawable/Drawable.h"
+#include "graphics/CRect.h"
 #include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>
 
 
-class RotateDrawable : public Drawable
+class ScaleDrawable : public Drawable
 {
 public:
-    /**
-     * <p>Represents the state of a rotation for a given drawable. The same
-     * rotate drawable can be invoked with different states to drive several
-     * rotations at the same time.</p>
-     */
-    class RotateState : public ElRefBase, public IDrawableConstantState
+    class ScaleState : public ElRefBase, public IDrawableConstantState
     {
     public:
-        RotateState(
-            /* [in] */ RotateState* source,
-            /* [in] */ RotateDrawable* owner,
+        ScaleState(
+            /* [in] */ ScaleState* orig,
+            /* [in] */ ScaleDrawable* owner,
             /* [in] */ IResources* res);
 
         CARAPI_(PInterface) Probe(
@@ -49,48 +46,35 @@ public:
 
     public:
         AutoPtr<IDrawable> mDrawable;
-
         Int32 mChangingConfigurations;
-
-        Boolean mPivotXRel;
-        Float mPivotX;
-        Boolean mPivotYRel;
-        Float mPivotY;
-
-        Float mFromDegrees;
-        Float mToDegrees;
-
-        Float mCurrentDegrees;
+        Float mScaleWidth;
+        Float mScaleHeight;
+        Int32 mGravity;
 
     private:
-        Boolean mCanConstantState;
         Boolean mCheckedConstantState;
+        Boolean mCanConstantState;
     };
 
 public:
-    /**
-     * <p>Create a new rotating drawable with an empty state.</p>
-     */
-    RotateDrawable();
+    ScaleDrawable();
 
-    CARAPI Draw(
-        /* [in] */ ICanvas* canvas);
+    ScaleDrawable(
+        /* [in] */ IDrawable* drawable,
+        /* [in] */ Int32 gravity,
+        /* [in] */ Float scaleWidth,
+        /* [in] */ Float scaleHeight);
 
     /**
-     * Returns the drawable rotated by this RotateDrawable.
+     * Returns the drawable scaled by this ScaleDrawable.
      */
     virtual CARAPI_(AutoPtr<IDrawable>) GetDrawable();
 
     //@Override
-    CARAPI_(Int32) GetChangingConfigurations();
-
-    CARAPI SetAlpha(
-        /* [in] */ Int32 alpha);
-
-    CARAPI SetColorFilter(
-        /* [in] */ IColorFilter* cf);
-
-    CARAPI_(Int32) GetOpacity();
+    CARAPI Inflate(
+        /* [in] */ IResources* r,
+        /* [in] */ IXmlPullParser* parser,
+        /* [in] */ IAttributeSet* attrs);
 
     CARAPI InvalidateDrawable(
         /* [in] */ IDrawable* who);
@@ -105,6 +89,13 @@ public:
         /* [in] */ IRunnable* what);
 
     //@Override
+    CARAPI Draw(
+        /* [in] */ ICanvas* canvas);
+
+    //@Override
+    CARAPI_(Int32) GetChangingConfigurations();
+
+    //@Override
     CARAPI_(Boolean) GetPadding(
         /* [in] */ IRect* padding);
 
@@ -112,6 +103,17 @@ public:
     CARAPI_(Boolean) SetVisible(
         /* [in] */ Boolean visible,
         /* [in] */ Boolean restart);
+
+    //@Override
+    CARAPI SetAlpha(
+        /* [in] */ Int32 alpha);
+
+    //@Override
+    CARAPI SetColorFilter(
+        /* [in] */ IColorFilter* cf);
+
+    //@Override
+    CARAPI_(Int32) GetOpacity();
 
     //@Override
     CARAPI_(Boolean) IsStateful();
@@ -126,19 +128,19 @@ public:
     CARAPI_(AutoPtr<IDrawableConstantState>) GetConstantState();
 
     //@Override
-    CARAPI Inflate(
-        /* [in] */ IResources* r,
-        /* [in] */ IXmlPullParser* parser,
-        /* [in] */ IAttributeSet* attrs);
-
-    //@Override
     CARAPI_(AutoPtr<IDrawable>) Mutate();
 
 protected:
     CARAPI Init();
 
     CARAPI Init(
-        /* [in] */ RotateState* rotateState,
+        /* [in] */ IDrawable* drawable,
+        /* [in] */ Int32 gravity,
+        /* [in] */ Float scaleWidth,
+        /* [in] */ Float scaleHeight);
+
+    CARAPI Init(
+        /* [in] */ ScaleState* state,
         /* [in] */ IResources* res);
 
     //@Override
@@ -154,22 +156,18 @@ protected:
         /* [in] */ IRect* bounds);
 
 private:
-    /**
-     * <p>Create a new rotating drawable with the specified state. A copy of
-     * this state is used as the internal state for the newly created
-     * drawable.</p>
-     *
-     * @param rotateState the state for this drawable
-     */
-    RotateDrawable(
-        /* [in] */ RotateState* rotateState,
+    static CARAPI_(Float) GetPercent(
+        /* [in] */ ITypedArray* a,
+        /* [in] */ Int32 name);
+
+    ScaleDrawable(
+        /* [in] */ ScaleState* state,
         /* [in] */ IResources* res);
 
 private:
-    static const Float MAX_LEVEL;
-
-    AutoPtr<RotateState> mState;
+    AutoPtr<ScaleState> mScaleState;
     Boolean mMutated;
+    AutoPtr<CRect> mTmpRect;
 };
 
-#endif //__ROTATEDRAWABLE_H__
+#endif //__SCALEDRAWABLE_H__

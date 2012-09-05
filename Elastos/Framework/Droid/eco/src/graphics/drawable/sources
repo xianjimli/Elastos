@@ -37,3 +37,5 @@ SOURCES += RotateDrawable.cpp
 SOURCES += CRotateDrawable.cpp
 SOURCES += InsetDrawable.cpp
 SOURCES += CInsetDrawable.cpp
+SOURCES += ScaleDrawable.cpp
+SOURCES += CScaleDrawable.cpp
