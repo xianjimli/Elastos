@@ -38,6 +38,7 @@ module
     merge("graphics/drawable/AnimationDrawable.car");
     merge("graphics/drawable/ShapeDrawable.car");
     merge("graphics/drawable/RotateDrawable.car");
+    merge("graphics/drawable/InsetDrawable.car");
     merge("graphics/drawable/shapes/Shape.car");
 
     class CPoint {
@@ -661,6 +662,28 @@ module
             [in] IResources* res);
 
         interface IRotateDrawable;
+        interface IDrawableCallback;
+    }
+
+    class CInsetDrawable {
+        /*package*/ constructor();
+
+        constructor(
+            [in] IDrawable* drawable,
+            [in] Int32 inset);
+
+        constructor(
+            [in] IDrawable* drawable,
+            [in] Int32 insetLeft,
+            [in] Int32 insetTop,
+            [in] Int32 insetRight,
+            [in] Int32 insetBottom);
+
+        constructor(
+            [in] Handle32 state,
+            [in] IResources* res);
+
+        interface IInsetDrawable;
         interface IDrawableCallback;
     }
 

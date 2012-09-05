@@ -1,7 +1,6 @@
 
 module
 {
-    interface IDrawableContainer extends IDrawable
-    {
+    interface IDrawableContainer extends IDrawable {
     }
 }

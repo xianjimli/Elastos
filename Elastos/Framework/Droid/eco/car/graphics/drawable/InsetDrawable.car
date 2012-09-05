@@ -1,0 +1,8 @@
+
+module
+{
+    interface IDrawable;
+
+    interface IInsetDrawable extends IDrawable {
+    }
+}
