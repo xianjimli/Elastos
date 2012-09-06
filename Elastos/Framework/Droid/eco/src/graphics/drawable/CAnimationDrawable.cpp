@@ -2,7 +2,11 @@
 #include "graphics/drawable/CAnimationDrawable.h"
 
 
-IDRAWABLE_METHODS_IMPL(CAnimationDrawable, AnimationDrawable, AnimationDrawable);
+IDRAWABLE_METHODS_IMPL(
+    CAnimationDrawable, AnimationDrawable, AnimationDrawable);
+
+IDrawableCallback_METHODS_IMPL(
+    CAnimationDrawable, AnimationDrawable, AnimationDrawable);
 
 /**
  * @return The number of frames in the animation

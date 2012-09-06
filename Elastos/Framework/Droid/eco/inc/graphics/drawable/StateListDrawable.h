@@ -15,7 +15,7 @@ public:
     public:
         StateListState(
             /* [in] */ StateListState* orig,
-            /* [in] */ IStateListDrawable* owner,
+            /* [in] */ StateListDrawable* owner,
             /* [in] */ IResources* res);
 
         ~StateListState();

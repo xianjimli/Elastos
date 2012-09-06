@@ -268,7 +268,7 @@ AutoPtr<IDrawable> StateListDrawable::Mutate()
 
 StateListDrawable::StateListState::StateListState(
     /* [in] */ StateListState* orig,
-    /* [in] */ IStateListDrawable* owner,
+    /* [in] */ StateListDrawable* owner,
     /* [in] */ IResources* res)
     : DrawableContainerState(orig, owner, res)
     , mStateSets(NULL)

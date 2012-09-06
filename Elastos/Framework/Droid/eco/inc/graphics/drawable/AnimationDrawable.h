@@ -63,7 +63,7 @@ private:
     public:
         AnimationState(
             /* [in] */ AnimationState* orig,
-            /* [in] */ IAnimationDrawable* owner,
+            /* [in] */ AnimationDrawable* owner,
             /* [in] */ IResources* res);
 
         ~AnimationState();

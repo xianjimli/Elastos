@@ -5,6 +5,7 @@
 #include "_CStateListDrawable.h"
 #include "graphics/drawable/StateListDrawable.h"
 #include "graphics/drawable/DrawableMacro.h"
+#include "view/ViewMacro.h"
 
 CarClass(CStateListDrawable), public StateListDrawable
 {
@@ -13,6 +14,8 @@ public:
         /* [in] */ REIID riid);
 
     IDRAWABLE_METHODS_DECL();
+
+    IDrawableCallback_METHODS_DECL();
 
     CARAPI AddState(
         /* [in] */ const ArrayOf<Int32> & stateSet,

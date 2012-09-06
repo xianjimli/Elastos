@@ -313,7 +313,7 @@ void DrawableContainer::SetConstantState(
 //////////////////////////////////////////////////////////////////////////////
 DrawableContainer::DrawableContainerState::DrawableContainerState(
     /* [in] */ DrawableContainerState* orig,
-    /* [in] */ IDrawableContainer* owner,
+    /* [in] */ DrawableContainer* owner,
     /* [in] */ IResources* res)
     : mDrawables(NULL)
     , mVariablePadding(FALSE)
@@ -347,7 +347,8 @@ DrawableContainer::DrawableContainerState::DrawableContainerState(
                 (*origDr)[i]->GetConstantState((IDrawableConstantState**)&state);
                 state->NewDrawable(&(*mDrawables)[i]);
             }
-            (*mDrawables)[i]->SetCallback(owner ? IDrawableCallback::Probe(owner) : NULL);
+            (*mDrawables)[i]->SetCallback(
+                    owner ? (IDrawableCallback*)owner->Probe(EIID_IDrawableCallback) : NULL);
         }
 
         mCheckedConstantState = mCanConstantState = TRUE;
@@ -444,7 +445,7 @@ Int32 DrawableContainer::DrawableContainerState::AddChild(
     Boolean isDifferent;
     dr->SetVisible(FALSE, TRUE, &isDifferent);
     IDrawableCallback* cb = NULL;
-    if (mOwner != NULL) cb = IDrawableCallback::Probe(mOwner);
+    if (mOwner != NULL) cb = (IDrawableCallback*)mOwner->Probe(EIID_IDrawableCallback);
     dr->SetCallback(cb);
 
     if ((*mDrawables)[pos] != NULL) {

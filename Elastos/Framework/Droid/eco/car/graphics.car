@@ -41,6 +41,7 @@ module
     merge("graphics/drawable/InsetDrawable.car");
     merge("graphics/drawable/ScaleDrawable.car");
     merge("graphics/drawable/TransitionDrawable.car");
+    merge("graphics/drawable/LevelListDrawable.car");
     merge("graphics/drawable/shapes/Shape.car");
 
     class CPoint {
@@ -532,6 +533,7 @@ module
             [in] IResources* res);
 
         interface IStateListDrawable;
+        interface IDrawableCallback;
     }
 
     class CAnimatedRotateDrawable {
@@ -622,6 +624,7 @@ module
             [in] IResources* res);
 
         interface IAnimationDrawable;
+        interface IDrawableCallback;
         interface IRunnable;
         interface IAnimatable;
     }
@@ -731,6 +734,17 @@ module
             [in] IObjectContainer* layers);
 
         interface ITransitionDrawable;
+        interface IDrawableCallback;
+    }
+
+    class CLevelListDrawable {
+        constructor();
+
+        constructor(
+            [in] Handle32 state,
+            [in] IResources* res);
+
+        interface ILevelListDrawable;
         interface IDrawableCallback;
     }
 

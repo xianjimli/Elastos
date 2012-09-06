@@ -5,11 +5,14 @@
 #include "_CAnimationDrawable.h"
 #include "graphics/drawable/AnimationDrawable.h"
 #include "graphics/drawable/DrawableMacro.h"
+#include "view/ViewMacro.h"
 
 CarClass(CAnimationDrawable), public AnimationDrawable
 {
 public:
     IDRAWABLE_METHODS_DECL();
+
+    IDrawableCallback_METHODS_DECL();
 
     /**
      * @return The number of frames in the animation

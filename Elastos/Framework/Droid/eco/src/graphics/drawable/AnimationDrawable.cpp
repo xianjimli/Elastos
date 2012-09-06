@@ -5,7 +5,7 @@
 
 AnimationDrawable::AnimationState::AnimationState(
     /* [in] */ AnimationState* orig,
-    /* [in] */ IAnimationDrawable* owner,
+    /* [in] */ AnimationDrawable* owner,
     /* [in] */ IResources* res)
     : DrawableContainerState(orig, owner, res)
 {
@@ -359,8 +359,7 @@ ECode AnimationDrawable::Init(
     /* [in] */ AnimationState* state,
     /* [in] */ IResources* res)
 {
-    mAnimationState = new AnimationState(state,
-            (IAnimationDrawable*)this->Probe(EIID_IAnimationDrawable), res);
+    mAnimationState = new AnimationState(state, this, res);
     SetConstantState(mAnimationState);
     if (state != NULL) {
         SetFrame(0, TRUE, FALSE);

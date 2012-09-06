@@ -1,0 +1,12 @@
+
+module
+{
+    interface IDrawableContainer;
+
+    interface ILevelListDrawable extends IDrawableContainer {
+        AddLevel(
+            [in] Int32 low,
+            [in] Int32 high,
+            [in] IDrawable* drawable);
+    }
+}

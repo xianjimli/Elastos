@@ -20,10 +20,10 @@ public:
     public:
         DrawableContainerState(
             /* [in] */ DrawableContainerState* orig,
-            /* [in] */ IDrawableContainer* owner,
+            /* [in] */ DrawableContainer* owner,
             /* [in] */ IResources* res);
 
-        ~DrawableContainerState();
+        virtual ~DrawableContainerState();
 
         CARAPI_(PInterface) Probe(
             /* [in]  */ REIID riid);
@@ -83,7 +83,7 @@ public:
         CARAPI_(void) ComputeConstantSize();
 
     protected:
-        AutoPtr<IDrawableContainer> mOwner;
+        DrawableContainer* mOwner;
 
         Int32 mChangingConfigurations;
         Int32 mChildrenChangingConfigurations;

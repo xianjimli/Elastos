@@ -1,7 +1,11 @@
 
 #include "graphics/drawable/CStateListDrawable.h"
 
-IDRAWABLE_METHODS_IMPL(CStateListDrawable, StateListDrawable, StateListDrawable);
+IDRAWABLE_METHODS_IMPL(
+    CStateListDrawable, StateListDrawable, StateListDrawable);
+
+IDrawableCallback_METHODS_IMPL(
+    CStateListDrawable, StateListDrawable, StateListDrawable);
 
 PInterface CStateListDrawable::Probe(
     /* [in] */ REIID riid)
