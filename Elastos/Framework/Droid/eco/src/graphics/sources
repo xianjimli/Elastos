@@ -12,6 +12,7 @@ INCLUDES += $(PREBUILD_INC)/skia/effects
 INCLUDES += $(PREBUILD_INC)/skia/images
 
 SOURCES = Graphics.cpp
+SOURCES += SkiaIOStreamAdaptor.cpp
 SOURCES += CBitmap.cpp
 SOURCES += Canvas.cpp
 SOURCES += CCanvas.cpp
@@ -53,6 +54,7 @@ SOURCES += NinePatchImpl.cpp
 SOURCES += CBitmapShader.cpp
 SOURCES += CTypeface.cpp
 SOURCES += CTypefaceFactory.cpp
+SOURCES += CPicture.cpp
 
 LIBRARIES += drawable/drawable.lib
 LIBRARIES += drawable/shapes/shapes.lib

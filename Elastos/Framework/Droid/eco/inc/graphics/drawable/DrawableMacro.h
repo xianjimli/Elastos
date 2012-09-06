@@ -4,7 +4,7 @@
 
 #define IDRAWABLE_METHODS_DECL()                                        \
     CARAPI Draw(                                                        \
-        /* [in] */ ICanvas* canvas);                                  \
+        /* [in] */ ICanvas* canvas);                                    \
                                                                         \
     CARAPI SetBounds(                                                   \
         /* [in] */ Int32 left,                                          \

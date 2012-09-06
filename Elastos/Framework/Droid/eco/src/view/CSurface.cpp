@@ -31,6 +31,7 @@ static inline SkBitmap::Config ConvertPixelFormat(PixelFormat format)
 // CSurface::CompatibleCanvas
 CSurface::CompatibleCanvas::CompatibleCanvas()
 {
+    ASSERT_SUCCEEDED(Canvas::Init());
 }
 
 CSurface::CompatibleCanvas::~CompatibleCanvas()
@@ -49,9 +50,7 @@ PInterface CSurface::CompatibleCanvas::Probe(
     else if (riid == EIID_ICanvas) {
         return (ICanvas*)this;
     }
-    else if (riid == EIID_Canvas) {
-        return reinterpret_cast<PInterface>((Canvas*)this);
-    }
+
     return NULL;
 }
 

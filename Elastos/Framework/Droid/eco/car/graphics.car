@@ -18,7 +18,7 @@ module
     merge("graphics/matrix.car");
     merge("graphics/path.car");
     merge("graphics/drawfilter.car");
-    merge("graphics/picture.car");
+    merge("graphics/Picture.car");
     merge("graphics/porterduff.car");
     merge("graphics/canvas.car");
     merge("graphics/colorfilter.car");
@@ -902,6 +902,23 @@ module
             [in] ArrayOf<Float>* innerRadii);
 
         interface IShape;
+    }
+
+    class CPicture {
+        constructor();
+
+        /**
+         * Create a picture by making a copy of what has already been recorded in
+         * src. The contents of src are unchanged, and if src changes later, those
+         * changes will not be reflected in this picture.
+         */
+        constructor(
+            [in] IPicture* src);
+
+        constructor(
+            [in] Handle32 nativePicture);
+
+        interface IPicture;
     }
 }
 

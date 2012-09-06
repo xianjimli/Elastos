@@ -33,7 +33,8 @@ Canvas::Canvas()
     : mDensity(Bitmap_DENSITY_NONE)
     , mScreenDensity(Bitmap_DENSITY_NONE)
 {
-    assert(SUCCEEDED(Init()));
+    // 0 means no native bitmap
+//    mNativeCanvas = initRaster(0);
 }
 
 Canvas::~Canvas()
