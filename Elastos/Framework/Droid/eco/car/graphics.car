@@ -42,6 +42,7 @@ module
     merge("graphics/drawable/ScaleDrawable.car");
     merge("graphics/drawable/TransitionDrawable.car");
     merge("graphics/drawable/LevelListDrawable.car");
+    merge("graphics/drawable/PaintDrawable.car");
     merge("graphics/drawable/shapes/Shape.car");
 
     class CPoint {
@@ -746,6 +747,15 @@ module
 
         interface ILevelListDrawable;
         interface IDrawableCallback;
+    }
+
+    class CPaintDrawable {
+        constructor();
+
+        constructor(
+            [in] Int32 color);
+
+        interface IPaintDrawable;
     }
 
     class CNinePatch {

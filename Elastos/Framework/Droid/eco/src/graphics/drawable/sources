@@ -43,3 +43,5 @@ SOURCES += TransitionDrawable.cpp
 SOURCES += CTransitionDrawable.cpp
 SOURCES += LevelListDrawable.cpp
 SOURCES += CLevelListDrawable.cpp
+SOURCES += PaintDrawable.cpp
+SOURCES += CPaintDrawable.cpp
