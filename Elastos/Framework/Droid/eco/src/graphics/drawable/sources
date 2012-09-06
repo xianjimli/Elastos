@@ -39,3 +39,5 @@ SOURCES += InsetDrawable.cpp
 SOURCES += CInsetDrawable.cpp
 SOURCES += ScaleDrawable.cpp
 SOURCES += CScaleDrawable.cpp
+SOURCES += TransitionDrawable.cpp
+SOURCES += CTransitionDrawable.cpp

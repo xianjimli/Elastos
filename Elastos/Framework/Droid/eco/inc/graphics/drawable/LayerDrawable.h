@@ -106,7 +106,7 @@ public:
      * @param id The layer ID to search for->
      * @return The {@link Drawable} of the layer that has the given id in the hierarchy or NULL.
      */
-    AutoPtr<IDrawable> FindDrawableByLayerId(
+    CARAPI_(AutoPtr<IDrawable>) FindDrawableByLayerId(
         /* [in] */ Int32 id);
 
     /**
@@ -123,7 +123,7 @@ public:
      * Returns the number of layers contained within this.
      * @return The number of layers.
      */
-    Int32 GetNumberOfLayers();
+    CARAPI_(Int32) GetNumberOfLayers();
 
     /**
      * Returns the drawable at the specified layer index.
@@ -132,7 +132,7 @@ public:
      *
      * @return The {@link android.graphics.drawable.Drawable} at the specified layer index.
      */
-    AutoPtr<IDrawable> GetDrawable(
+    CARAPI_(AutoPtr<IDrawable>) GetDrawable(
         /* [in] */ Int32 index);
 
     /**
@@ -142,7 +142,7 @@ public:
      *
      * @return The id of the layer or {@link android.view.View#NO_ID} if the layer has no id.
      */
-    Int32 GetId(
+    CARAPI_(Int32) GetId(
         /* [in] */ Int32 index);
 
     /**
@@ -153,7 +153,7 @@ public:
      * @return Whether the {@link Drawable} was replaced (could return FALSE if
      *         the id was not found).
      */
-    Boolean SetDrawableByLayerId(
+    CARAPI_(Boolean) SetDrawableByLayerId(
         /* [in] */ Int32 id,
         /* [in] */ IDrawable* drawable);
 
@@ -185,12 +185,12 @@ public:
     CARAPI Draw(
         /* [in] */ ICanvas* canvas);
 
-    Int32 GetChangingConfigurations();
+    CARAPI_(Int32) GetChangingConfigurations();
 
-    Boolean GetPadding(
+    CARAPI_(Boolean) GetPadding(
         /* [in] */ IRect* padding);
 
-    Boolean SetVisible(
+    CARAPI_(Boolean) SetVisible(
         /* [in] */ Boolean visible,
         /* [in] */ Boolean restart);
 
@@ -203,31 +203,31 @@ public:
     CARAPI SetColorFilter(
         /* [in] */ IColorFilter* cf);
 
-    Int32 GetOpacity();
+    CARAPI_(Int32) GetOpacity();
 
-    Boolean IsStateful();
+    CARAPI_(Boolean) IsStateful();
 
-    AutoPtr<IDrawableConstantState> GetConstantState();
+    CARAPI_(AutoPtr<IDrawableConstantState>) GetConstantState();
 
-    AutoPtr<IDrawable> Mutate();
+    CARAPI_(AutoPtr<IDrawable>) Mutate();
 
 protected:
-    AutoPtr<LayerState> CreateConstantState(
+    CARAPI_(AutoPtr<LayerState>) CreateConstantState(
         /* [in] */ LayerState* state,
         /* [in] */ IResources* res);
 
-    Boolean OnStateChange(
+    CARAPI_(Boolean) OnStateChange(
         /* [in] */ ArrayOf<Int32>* state);
 
-    Boolean OnLevelChange(
+    CARAPI_(Boolean) OnLevelChange(
         /* [in] */ Int32 level);
 
-    void OnBoundsChange(
+    CARAPI_(void) OnBoundsChange(
         /* [in] */ IRect* bounds);
 
-    Int32 GetIntrinsicWidth();
+    CARAPI_(Int32) GetIntrinsicWidth();
 
-    Int32 GetIntrinsicHeight();
+    CARAPI_(Int32) GetIntrinsicHeight();
 
     CARAPI Init(
         /* [in] */ IObjectContainer* layers,
@@ -238,7 +238,7 @@ protected:
         /* [in] */ IResources* res);
 
 private:
-    void AddLayer(
+    CARAPI_(void) AddLayer(
         /* [in] */ IDrawable* layer,
         /* [in] */ Int32 id,
         /* [in] */ Int32 left,
@@ -246,11 +246,11 @@ private:
         /* [in] */ Int32 right,
         /* [in] */ Int32 bottom);
 
-    Boolean ReapplyPadding(
+    CARAPI_(Boolean) ReapplyPadding(
         /* [in] */ Int32 i,
         /* [in] */ ChildDrawable* r);
 
-    void EnsurePadding();
+    CARAPI_(void) EnsurePadding();
 
 protected:
     AutoPtr<LayerState> mLayerState;
