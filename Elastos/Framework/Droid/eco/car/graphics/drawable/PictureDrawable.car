@@ -1,0 +1,24 @@
+
+module
+{
+    interface IDrawable;
+    interface IPicture;
+
+    interface IPictureDrawable extends IDrawable {
+        /**
+         * Return the picture associated with the drawable. May be null.
+         *
+         * @return the picture associated with the drawable, or null.
+         */
+        GetPicture(
+            [out] IPicture** picture);
+
+        /**
+         * Associate a picture with this drawable. The picture may be null.
+         *
+         * @param picture The picture to associate with the drawable. May be null.
+         */
+        SetPicture(
+            [in] IPicture* picture);
+    }
+}

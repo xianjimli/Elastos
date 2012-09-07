@@ -43,6 +43,7 @@ module
     merge("graphics/drawable/TransitionDrawable.car");
     merge("graphics/drawable/LevelListDrawable.car");
     merge("graphics/drawable/PaintDrawable.car");
+    merge("graphics/drawable/PictureDrawable.car");
     merge("graphics/drawable/shapes/Shape.car");
 
     class CPoint {
@@ -756,6 +757,19 @@ module
             [in] Int32 color);
 
         interface IPaintDrawable;
+    }
+
+    class CPictureDrawable {
+        /**
+         * Construct a new drawable referencing the specified picture. The picture
+         * may be null.
+         *
+         * @param picture The picture to associate with the drawable. May be null.
+         */
+        constructor(
+            [in] IPicture* picture);
+
+        interface IPictureDrawable;
     }
 
     class CNinePatch {
