@@ -17,6 +17,16 @@ ECode CLevelListDrawable::AddLevel(
     return LevelListDrawable::AddLevel(low, high, drawable);
 }
 
+ECode CLevelListDrawable::SelectDrawable(
+    /* [in] */ Int32 idx,
+    /* [out] */ Boolean* res)
+{
+    VALIDATE_NOT_NULL(res);
+    *res = LevelListDrawable::SelectDrawable(idx);
+
+    return NOERROR;
+}
+
 ECode CLevelListDrawable::constructor()
 {
     return LevelListDrawable::Init();

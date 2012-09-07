@@ -16,3 +16,4 @@ DIRS += emoji
 DIRS += database
 DIRS += statusbar
 DIRS += location
+DIRS += systemui

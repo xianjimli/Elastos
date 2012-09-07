@@ -26,5 +26,6 @@ module
     merge("../car/statusbar.car");
     merge("../car/location.car");
     merge("../car/server.car");
+    merge("../car/systemui.car");
 }
 

@@ -1,0 +1,26 @@
+
+module
+{
+    merge("systemui/statusbar/StatusBarView.car");
+    merge("systemui/statusbar/FixedSizeDrawable.car");
+
+    class CStatusBarView {
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+
+        interface IStatusBarView;
+        interface IViewParent;
+        interface IViewManager;
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
+    }
+
+    class CFixedSizeDrawable {
+        constructor(
+            [in] IDrawable* that);
+
+        interface IFixedSizeDrawable;
+    }
+}

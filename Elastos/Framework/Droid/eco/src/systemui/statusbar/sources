@@ -1,0 +1,16 @@
+
+TARGET_NAME= statusbar
+TARGET_TYPE= lib
+
+INCLUDES += $(MAKEDIR)/../../../inc
+INCLUDES += ../../
+
+INCLUDES += $(PREBUILD_INC)/skia/utils
+INCLUDES += $(PREBUILD_INC)/skia/core
+INCLUDES += $(PREBUILD_INC)/skia/effects
+INCLUDES += $(PREBUILD_INC)/skia/images
+
+SOURCES = StatusBarView.cpp
+SOURCES += CStatusBarView.cpp
+SOURCES += FixedSizeDrawable.cpp
+SOURCES += CFixedSizeDrawable.cpp

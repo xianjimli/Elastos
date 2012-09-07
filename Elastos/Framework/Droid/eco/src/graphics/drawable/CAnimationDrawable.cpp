@@ -104,6 +104,16 @@ ECode CAnimationDrawable::Run()
     return AnimationDrawable::Run();
 }
 
+ECode CAnimationDrawable::SelectDrawable(
+    /* [in] */ Int32 idx,
+    /* [out] */ Boolean* res)
+{
+    VALIDATE_NOT_NULL(res);
+    *res = AnimationDrawable::SelectDrawable(idx);
+
+    return NOERROR;
+}
+
 ECode CAnimationDrawable::constructor()
 {
     return AnimationDrawable::Init();

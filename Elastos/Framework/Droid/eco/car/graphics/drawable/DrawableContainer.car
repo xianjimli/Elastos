@@ -2,5 +2,8 @@
 module
 {
     interface IDrawableContainer extends IDrawable {
+        SelectDrawable(
+            [in] Int32 idx,
+            [out] Boolean* res);
     }
 }

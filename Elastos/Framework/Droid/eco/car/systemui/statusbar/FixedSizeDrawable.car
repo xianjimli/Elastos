@@ -1,0 +1,11 @@
+
+module
+{
+    interface IFixedSizeDrawable extends IDrawable {
+        SetFixedBounds(
+            [in] Int32 l,
+            [in] Int32 t,
+            [in] Int32 r,
+            [in] Int32 b);
+    }
+}

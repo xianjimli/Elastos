@@ -36,6 +36,10 @@ public:
         /* [in] */ const ArrayOf<Int32> & stateSet,
         /* [out] */ Int32 * pIndex);
 
+    CARAPI SelectDrawable(
+        /* [in] */ Int32 idx,
+        /* [out] */ Boolean* res);
+
     CARAPI constructor();
 
     CARAPI constructor(

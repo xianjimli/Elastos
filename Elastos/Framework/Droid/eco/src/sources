@@ -28,6 +28,8 @@ INCLUDES += $(MAKEDIR)/../inc/text
 INCLUDES += $(MAKEDIR)/../inc/database
 INCLUDES += $(MAKEDIR)/../inc/statusbar
 INCLUDES += $(MAKEDIR)/../inc/location
+INCLUDES += $(MAKEDIR)/../inc/systemui/
+INCLUDES += $(MAKEDIR)/../inc/systemui/statusbar
 ifeq "$(XDK_TARGET_PLATFORM)" "linux"
 INCLUDES += $(PREBUILD_INC)/skia/utils
 INCLUDES += $(PREBUILD_INC)/skia/core
@@ -58,6 +60,7 @@ LIBRARIES += emoji/emoji.lib
 LIBRARIES += database/database.lib
 LIBRARIES += statusbar/statusbar.lib
 LIBRARIES += location/location.lib
+LIBRARIES += systemui/systemui.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.Logging.lib
 
 ifeq "$(XDK_TARGET_PLATFORM)" "win32"

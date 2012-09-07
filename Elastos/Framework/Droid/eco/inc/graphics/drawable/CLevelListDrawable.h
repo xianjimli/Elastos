@@ -19,6 +19,10 @@ public:
         /* [in] */ Int32 high,
         /* [in] */ IDrawable* drawable);
 
+    CARAPI SelectDrawable(
+        /* [in] */ Int32 idx,
+        /* [out] */ Boolean* res);
+
     CARAPI constructor();
 
     CARAPI constructor(

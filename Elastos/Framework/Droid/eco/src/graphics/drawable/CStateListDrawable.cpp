@@ -57,6 +57,16 @@ ECode CStateListDrawable::GetStateDrawableIndex(
     return NOERROR;
 }
 
+ECode CStateListDrawable::SelectDrawable(
+    /* [in] */ Int32 idx,
+    /* [out] */ Boolean* res)
+{
+    VALIDATE_NOT_NULL(res);
+    *res = StateListDrawable::SelectDrawable(idx);
+
+    return NOERROR;
+}
+
 ECode CStateListDrawable::constructor()
 {
     return StateListDrawable::Init(NULL, NULL);

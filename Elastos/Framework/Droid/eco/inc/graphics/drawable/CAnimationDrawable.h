@@ -14,6 +14,10 @@ public:
 
     IDrawableCallback_METHODS_DECL();
 
+    CARAPI SelectDrawable(
+        /* [in] */ Int32 idx,
+        /* [out] */ Boolean* res);
+
     /**
      * @return The number of frames in the animation
      */
