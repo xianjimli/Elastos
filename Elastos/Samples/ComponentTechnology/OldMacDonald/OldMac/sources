@@ -1,0 +1,15 @@
+#==========================================================================
+# Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.
+#==========================================================================
+
+TARGET_NAME= OldMac
+TARGET_TYPE= ecx
+
+IMPORTS = Animals.eco
+IMPORTS += NewPets.eco
+
+SOURCES = OldMac.cpp
+
+LIBRARIES  = $(XDK_USER_LIB)/Elastos.Runtime.lib
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
+

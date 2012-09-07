@@ -1,0 +1,27 @@
+//==========================================================================
+// Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.
+//==========================================================================
+
+module
+{
+    interface IAnimal {
+        GetKind(
+            [out] String * name);
+
+        GetOwner(
+            [out] String * name);
+
+        Says(
+            [out] String * sound);
+    }
+
+    class CAnimal {
+        virtual interface IAnimal;
+    }
+
+    class CPig inherits CAnimal {
+        constructor();
+
+        interface IAnimal;
+    }
+}

@@ -1,0 +1,40 @@
+//==========================================================================
+// Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.
+//==========================================================================
+
+module
+{
+    interface ICarrier {
+        Connect();
+
+        Disconnect();
+
+        GetName(
+            [out] String * name);
+    }
+
+    generic GCarrier {
+        interface ICarrier;
+    }
+
+    ///////////////////////////////////////////
+
+    interface IGSMCarrier {
+        DoSomethingWithGSM();
+    }
+
+    interface ICDMACarrier {
+        DoSomethingWithCDMA();
+    }
+
+    class CGSMCarrier substitutes GCarrier {
+        interface ICarrier;
+        interface IGSMCarrier;
+    }
+
+    class CCDMACarrier substitutes GCarrier {
+        interface ICarrier;
+        interface ICDMACarrier;
+    }
+}
+

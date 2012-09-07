@@ -1,0 +1,71 @@
+//==========================================================================
+// Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.
+//==========================================================================
+
+// Pervasive computing, also known as ubiquitous computing, are evolved from
+// object-oriented programming and wireless communications technologies.
+// Pervasive computing applications are often distributed.  Pieces of a single
+// application of pervasive computing may be run on several mobile terminals or
+// specialized embedded systems over the Internet.
+//
+// Pervasive computing involves different layers and elements of a computing
+// system: hardware platforms, environment and location acquisition techniques,
+// wireless communications technologies, operating systems, component-oriented
+// programming, middleware layers and Web service applications.  However, the
+// focal point of  pervasive computing is definitely on the middleware layer.
+//
+// We define the binary runtime form (i.e., compiled code) of an object as a
+// component.  We further divide components into two categories:
+// prime-component, or simply called component, and aspect.  A component may
+// be created independently.  An aspect, on the other hand, may never be
+// created alone without affiliating to a prime-component.  A context
+// component, or simply called a context, is a component with "container"
+// capabilities which may "hold" other components.  For example, a school may
+// be architected as a context that admits students.  Another example of
+// context could be a super-market that sells T-shirts and coffee mugs.
+// An aspect is a property associated with a component inside a context.
+// To be more specific, the student record is an aspect.  So do price tags of
+// T-shirts and coffee mugs in a super-market. Using a more comprehensive
+// aspect inside a context may make an existing service component more useful
+// or enable entirely new application services.
+//
+// The objectives of the GoingToSchool sample are two fold:
+// (1) studying the methodologies of building components, aspects and contexts;
+// (2) investigating the trinity relationship of aggregating aspects with
+//     components within contexts without requiring direct user involvement.
+//
+
+module
+{
+    interface IChild {
+        Play();
+        GetName([out] String* name);
+    }
+
+    class CChild {
+        constructor([in] String name);
+        interface IChild;
+    }
+
+    interface IStudent {
+        Study();
+        GetID([out] Int32* pId);
+    }
+
+    interface IStudentAdmin {
+        SetID([in] Int32 id);
+    }
+
+    aspect AStudent {
+        interface IStudent;
+        privileged interface IStudentAdmin;
+    }
+
+    interface ISchool {
+        Open();
+    }
+
+    regime RSchool pertainsto AStudent {
+        interface ISchool;
+    }
+}

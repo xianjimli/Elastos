@@ -1,0 +1,112 @@
+//==========================================================================
+// Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.
+//==========================================================================
+
+-adjective
+(1) Relating to or descriptive of an entire group or class; general.
+    See Synonyms at general. 
+(2) [Biology] Of or relating to a genus. 
+(3) Not having a brand name: (i) generic soap. 
+    (ii) Of or being a drug sold under or identified by its official
+    nonproprietary or chemical name. 
+(4) [Grammar] Specifying neither masculine nor feminine gender:
+    generic nouns like waitperson and executive. 
+
+-noun
+(1) A product or substance sold under or identified by a generic name. 
+(2) A wine that is a blend of several grape varieties and does not carry
+    the name of any specific grape.  
+
+
+========================
+Generic (from Wikipedia)
+========================
+
+Generic means pertaining or appropriate to large classes or groups
+as opposed to specific members of the group.
+
+
+==============================
+Generic brand (from Wikipedia)
+==============================
+
+Generic brands of consumer products (often supermarket goods) are
+distinguished by the absence of a brand name.
+
+They may be manufactured by less prominent companies, or manufactured
+on the same production line as a 'named' brand. Generic brands are usually
+priced below those products sold by supermarkets under their own brand
+(frequently referred to as "store brands" or "own brands"). Generally they
+imitate these more expensive brands, competing on price. Generic brand
+products are often of equal quality as a branded product, however, the
+quality may change suddenly in either direction with no change in the
+packaging if the supplier for the product changes.
+
+
+==============================
+Generic drugs (from Wikipedia)
+==============================
+
+Patents may prohibit generic brand manufacturing. In the specific case
+of drugs, new drugs are almost always patented and therefore generic
+versions of drugs may only be made legally in most of the world when
+the patents expire. As with other generic products, generic drugs are
+much cheaper but both competition and the fact that research and marketing
+costs do not need to be factored in.
+
+
+====================================
+Generic programming (from Wikipedia)
+====================================
+
+Generic programming is a style of computer programming in which algorithms
+are written in terms of to-be-specified-later types that are then
+instantiated when needed for specific types provided as parameters and was
+pioneered by Ada which appeared in 1983. This approach permits writing
+common functions or types that differ only in the set of types on which
+they operate when used, thus reducing duplication. Software entities created
+using generic programming are known as generics in Ada, Eiffel, Java, C#,
+Visual Basic .NET and Haskell; templates in C++; and parameterized types
+in the influential 1994 book "Design Patterns". The authors of Design
+Patterns note that this technique, especially when combined with delegation,
+is very powerful but that "Dynamic, highly parameterized software is harder
+to understand than more static software."
+
+Generic programming refers to features of certain statically typed
+programming languages that allow some code to effectively circumvent the
+static typing requirements. For instance in C++, a template is a routine
+in which some parameters are qualified by a type variable. Since code
+generation in C++ depends on concrete types, the template is specialized
+for each combination of argument types that occur in practice. Generic
+programming is commonly used to implement containers such as lists and
+hash tables and functions such as a particular sorting algorithm for
+objects specified in terms more general than a concrete type.
+
+
+================================
+Metaprogramming (from Wikipedia)
+================================
+
+Metaprogramming is the writing of computer programs that write or
+manipulate other programs (or themselves) as their data, or that do part
+of the work at compile time that is otherwise done at runtime.
+In many cases, this allows programmers to get more done in the same amount
+of time as they would take to write all the code manually.
+
+The language in which the metaprogram is written is called the metalanguage.
+The language of the programs that are manipulated is called the object
+language. The ability of a programming language to be its own metalanguage
+is called reflection or reflexivity.
+
+Reflection is a valuable language feature to facilitate metaprogramming.
+Having the programming language itself as a first-class data type (as in
+Lisp or Rebol) is also very useful. Generic programming invokes a
+metaprogramming facility within a language, in those languages supporting it.
+
+Metaprogramming usually works through one of two ways. The first way is to
+expose the internals of the run-time engine to the programming code through
+application programming interfaces (APIs). The second approach is dynamic
+execution of string expressions that contain programming commands. Thus,
+"programs can write programs". Although both approaches can be used, most
+languages tend to lean toward one or the other.
+

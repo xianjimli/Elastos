@@ -1,0 +1,15 @@
+//==========================================================================
+// Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.
+//==========================================================================
+
+module
+{
+    importlib("Animals.eco");
+
+    class CCat inherits CAnimal {
+        constructor();
+
+        interface IAnimal;
+    }
+}
+

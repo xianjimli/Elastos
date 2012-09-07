@@ -1,0 +1,9 @@
+#==========================================================================
+# Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.
+#==========================================================================
+
+DIRS = FooBar
+DIRS += GoingToSchool
+DIRS += OldMacDonald
+DIRS += PickCarrier
+

@@ -1,0 +1,24 @@
+//==========================================================================
+// Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.
+//==========================================================================
+
+module
+{
+    interface IFoo {
+        Foo();
+    }
+
+    interface IBar {
+        Bar();
+    }
+
+    callbacks JFooEvent {
+        FooEvent();
+    }
+
+    class CFooBar {
+        interface IFoo;
+        interface IBar;
+        callbacks JFooEvent;
+    }
+}
