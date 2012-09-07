@@ -45,3 +45,5 @@ SOURCES += LevelListDrawable.cpp
 SOURCES += CLevelListDrawable.cpp
 SOURCES += PaintDrawable.cpp
 SOURCES += CPaintDrawable.cpp
+SOURCES += PictureDrawable.cpp
+SOURCES += CPictureDrawable.cpp
