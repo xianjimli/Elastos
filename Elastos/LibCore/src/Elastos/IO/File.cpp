@@ -243,7 +243,7 @@ ECode File::_Init(
     }
     else {
 //        String userDir = AccessController.doPrivileged(new PriviAction<String>("user.dir"));
-        String userDir;
+        String userDir("");
         if (cleanPath.IsEmpty()) {
             mAbsolutePath = userDir;
         }
