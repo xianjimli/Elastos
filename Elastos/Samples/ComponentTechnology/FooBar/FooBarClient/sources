@@ -8,7 +8,7 @@ TARGET_TYPE= ecx
 IMPORTS = FooBarDemo.eco
 
 SOURCES = FooBarDemo.cpp
-
+SOURCES += ElInitialize.cpp
 
 LIBRARIES  = $(XDK_USER_LIB)/Elastos.Runtime.lib
 LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco

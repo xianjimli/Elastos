@@ -62,25 +62,20 @@
 #include "FooBarDemo.h"
 using namespace Elastos;
 
-IInterface *m_pCallbackContext;
-IInterface* pOrgCallbackContext;
+ECode ElInitialize();
+void RequestToFinish();
 
 ECode OnFooEvent(PVoid userData, PInterface pSender)
 {
     printf("OnFooEvent\n");
     CFooBar::RemoveFooEventCallback(pSender, OnFooEvent, NULL);
-    _Impl_CallbackSink_RequestToFinish(m_pCallbackContext, CallbackContextFinish_Nice);
+    RequestToFinish();
     return NOERROR;
 }
 
 int main (int argc, char *argv[])
 {
-    _Impl_CallbackSink_InitCallbackContext(&m_pCallbackContext);
-    pOrgCallbackContext = (PInterface)pthread_getspecific(TL_CALLBACK_SLOT);
-    if (NULL != pOrgCallbackContext) {
-        pOrgCallbackContext->Release();
-    }
-    pthread_setspecific(TL_CALLBACK_SLOT, m_pCallbackContext);
+    ElInitialize();
 
     IBar* pBar;
     ECode ec = CFooBar::New(&pBar);
@@ -100,8 +95,6 @@ int main (int argc, char *argv[])
     if (pFoo) {
         pFoo->Foo();
     }
-
-    _Impl_CallbackSink_TryToHandleEvents(m_pCallbackContext);
 
     return NOERROR;
 }
