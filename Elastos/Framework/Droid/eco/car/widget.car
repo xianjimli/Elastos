@@ -11,6 +11,7 @@ module
     merge("widget/TableLayout.car");
     merge("widget/TextView.car");
     merge("widget/EditText.car");
+    merge("widget/AutoCompleteTextView.car");
     merge("widget/Adapter.car");
     merge("widget/ListAdapter.car");
     merge("widget/AdapterView.car");
@@ -348,6 +349,26 @@ module
             [in] Int32 defStyle);
 
         interface IEditText;
+        interface IOnPreDrawListener;
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
+    }
+
+    class CAutoCompleteTextView {
+        constructor(
+            [in] IContext* context);
+
+        constructor(
+            [in] IContext* context, 
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* context, 
+            [in] IAttributeSet* attrs, 
+            [in] Int32 defStyle);
+
+        interface IAutoCompleteTextView;
         interface IOnPreDrawListener;
         interface IDrawableCallback;
         interface IKeyEventCallback;
