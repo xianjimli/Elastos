@@ -1,0 +1,178 @@
+
+module
+{
+    interface IOnItemClickListener;
+    interface IOnItemSelectedListener;
+
+    /**
+     * This interface is used to make sure that the text entered in this TextView complies to
+     * a certain format.  Since there is no foolproof way to prevent the user from leaving
+     * this View with an incorrect value in it, all we can do is try to fix it ourselves
+     * when this happens.
+     */
+    interface IValidator
+    {
+        /**
+         * Validates the specified text.
+         *
+         * @return TRUE If the text currently in the text editor is valid.
+         *
+         * @see #fixText(CharSequence)
+         */
+        IsValid(
+            [in] ICharSequence* text,
+            [out] Boolean* valid);
+
+        /**
+         * Corrects the specified text to make it valid.
+         *
+         * @param invalidText A string that doesn't pass validation: isValid(invalidText)
+         *        returns FALSE
+         *
+         * @return A string based on invalidText such as invoking isValid() on it returns TRUE.
+         *
+         * @see #isValid(CharSequence)
+         */
+        FixText(
+            [in] ICharSequence* invalidText,
+            [out] ICharSequence** text);
+    }
+
+    interface IAutoCompleteTextView extends IEditText
+    {
+        SetCompletionHint(
+            [in] ICharSequence* hint);
+
+        GetDropDownWidth(
+            [out] Int32* width);
+
+        SetDropDownWidth(
+            [in] Int32 width);
+
+        GetDropDownHeight(
+            [out] Int32* height);
+
+        SetDropDownHeight(
+            [in] Int32 height);
+
+        GetDropDownAnchor(
+            [out] Int32* id);
+
+        SetDropDownAnchor(
+            [in] Int32 id);
+
+        GetDropDownBackground(
+            [out] IDrawable** drawable);
+
+        SetDropDownBackgroundDrawable(
+            [in] IDrawable* d);
+
+        SetDropDownBackgroundResource(
+            [in] Int32 id);
+
+        SetDropDownVerticalOffset(
+            [in] Int32 offset);
+
+        GetDropDownVerticalOffset(
+            [out] Int32* offset);
+
+        SetDropDownHorizontalOffset(
+            [in] Int32 offset);
+
+        GetDropDownHorizontalOffset(
+            [out] Int32* offset);
+
+        SetDropDownAnimationStyle(
+            [in] Int32 animationStyle);
+
+        GetDropDownAnimationStyle(
+            [out] Int32* style);
+
+        IsDropDownAlwaysVisible(
+            [out] Boolean* visible);
+
+        SetDropDownAlwaysVisible(
+            [in] Boolean dropDownAlwaysVisible);
+
+        IsDropDownDismissedOnCompletion(
+            [out] Boolean* dropDownDismissedOnCompletion);
+
+        SetDropDownDismissedOnCompletion(
+            [in] Boolean dropDownDismissedOnCompletion);
+
+        GetThreshold(
+            [out] Int32* threshold);
+
+        SetThreshold(
+            [in] Int32 threshold);
+
+        SetOnItemClickListener(
+            [in] IOnItemClickListener* listener);
+
+        SetOnItemSelectedListener(
+            [in] IOnItemSelectedListener* listener);
+
+        GetItemClickListener(
+            [out] IOnItemClickListener** l);
+
+        GetItemSelectedListener(
+            [out] IOnItemSelectedListener** l);
+
+        GetOnItemClickListener(
+            [out] IOnItemClickListener** l);
+
+        GetOnItemSelectedListener(
+            [out] IOnItemSelectedListener** l);
+
+        GetAdapter(
+            [out] IListAdapter** adapter);
+
+        SetAdapter(
+            [in] IListAdapter* adapter);
+
+        EnoughToFilter(
+            [out] Boolean* result);
+
+        IsPopupShowing(
+            [out] Boolean* result);
+
+        ClearListSelection();
+
+        SetListSelection(
+            [in] Int32 position);
+
+        GetListSelection(
+            [out] Int32* selection);
+
+        PerformCompletion();
+
+        IsPerformingCompletion(
+            [out] Boolean* result);
+
+        OnFilterComplete(
+            [in] Int32 count);
+
+        DismissDropDown();
+
+        ShowDropDownAfterLayout();
+
+        EnsureImeVisible(
+            [in] Boolean visible);
+
+        IsInputMethodNotNeeded(
+            [out] Boolean* needed);
+
+        ShowDropDown();
+
+        SetForceIgnoreOutsideTouch(
+            [in] Boolean forceIgnoreOutsideTouch);
+
+        SetValidator(
+            [in] IValidator* validator);
+
+        GetValidator(
+            [out] IValidator** validator);
+
+        PerformValidation();
+    }
+}
