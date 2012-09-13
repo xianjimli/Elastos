@@ -12,3 +12,4 @@ SOURCES = PickCarrierDemo.cpp
 
 LIBRARIES  = $(XDK_USER_LIB)/Elastos.Runtime.lib
 LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
+LIBRARIES += -lstdc++ -lm -ldl -llog -lz -lcutils -lutils -lbinder
