@@ -1,0 +1,115 @@
+
+module
+{
+    importlib("Elastos.IO.eco");
+
+    merge("../../../../car/Elastos/Utility/Zip/Exception.car");
+    merge("../../../../car/Elastos/Utility/Zip/IInflater.car");
+    merge("../../../../car/Elastos/Utility/Zip/IDeflater.car");
+
+    class CInflater {
+        /**
+         * This constructor creates an inflater that expects a header from the input
+         * stream. Use {@code Inflater(boolean)} if the input comes without a ZLIB
+         * header.
+         */
+        constructor();
+
+        /**
+         * This constructor allows to create an inflater that expects no header from
+         * the input stream.
+         *
+         * @param noHeader
+         *            {@code true} indicates that no ZLIB header comes with the
+         *            input.
+         */
+        constructor(
+            [in] Boolean noHeader);
+
+        interface IInflater;
+    }
+
+    class CDeflater {
+        /**
+         * Constructs a new {@code Deflater} instance with default compression
+         * level. The strategy can be specified with {@link #setStrategy}, only. A
+         * header is added to the output by default; use constructor {@code
+         * Deflater(level, boolean)} if you need to omit the header.
+         */
+        constructor();
+
+        /**
+         * Constructs a new {@code Deflater} instance with a specific compression
+         * level. The strategy can be specified with {@code setStrategy}, only. A
+         * header is added to the output by default; use
+         * {@code Deflater(level, boolean)} if you need to omit the header.
+         *
+         * @param level
+         *            the compression level in the range between 0 and 9.
+         */
+        constructor(
+            [in] Int32 level);
+
+        /**
+         * Constructs a new {@code Deflater} instance with a specific compression
+         * level. If noHeader is passed as true no ZLib header is added to the
+         * output. In a ZIP archive every entry (compressed file) comes with such a
+         * header. The strategy can be specified with the setStrategy method, only.
+         *
+         * @param level
+         *            the compression level in the range between 0 and 9.
+         * @param noHeader
+         *            {@code true} indicates that no ZLIB header should be written.
+         */
+        constructor(
+            [in] Int32 level,
+            [in] Boolean noHeader);
+
+        interface IDeflater;
+    }
+
+//    class CInflaterInputStream {
+//        /**
+//         * This is the most basic constructor. You only need to pass the {@code
+//         * InputStream} from which the compressed data is to be read from. Default
+//         * settings for the {@code Inflater} and internal buffer are be used. In
+//         * particular the Inflater expects a ZLIB header from the input stream.
+//         *
+//         * @param is
+//         *            the {@code InputStream} to read data from.
+//         */
+//        constructor(
+//            [in] IInputStream* is);
+//
+//        /**
+//         * This constructor lets you pass a specifically initialized Inflater,
+//         * for example one that expects no ZLIB header.
+//         *
+//         * @param is
+//         *            the {@code InputStream} to read data from.
+//         * @param inflater
+//         *            the specific {@code Inflater} for uncompressing data.
+//         */
+//        constructor(
+//            [in] IInputStream* is,
+//            [in] IInflater* inflater);
+//
+//        /**
+//         * This constructor lets you specify both the {@code Inflater} as well as
+//         * the internal buffer size to be used.
+//         *
+//         * @param is
+//         *            the {@code InputStream} to read data from.
+//         * @param inflater
+//         *            the specific {@code Inflater} for uncompressing data.
+//         * @param bsize
+//         *            the size to be used for the internal buffer.
+//         */
+//        constructor(
+//            [in] IInputStream* is,
+//            [in] IInflater* inflater,
+//            [in] Int32 bsize);
+//
+//        interface IFilterInputStream;
+//    }
+}

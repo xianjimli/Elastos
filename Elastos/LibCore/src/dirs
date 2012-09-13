@@ -8,4 +8,5 @@ DIRS += Elastos/IO
 #DIRS += Elastos/Security
 DIRS += Elastos/NIO
 DIRS += Elastos/Xml
+DIRS += Elastos/Utility/Zip
 DIRS += Elastos/Test

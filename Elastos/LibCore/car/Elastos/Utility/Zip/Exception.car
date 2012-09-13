@@ -1,0 +1,12 @@
+
+module
+{
+//    const FAMILY_CORE = 0x23    // Core exception codes
+
+//    #define FRAMEWORK_ERROR(c)      MAKE_ECODE(SEVERITY_ERROR, FAMILY_FRAMEWORK, c)
+//    #define FRAMEWORK_SUCCESS(c)    MAKE_SUCCESS(FAMILY_FRAMEWORK, c)
+
+    //==========================================================================
+    // Elastos Core exception codes (Family: 0x23)
+    const E_DATA_FORMAT_EXCEPTION                       = 0xA3010000;
+}

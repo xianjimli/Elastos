@@ -1,0 +1,26 @@
+
+#==========================================================================
+# Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.
+#==========================================================================
+
+TARGET_NAME = Elastos.Utility.Zip
+TARGET_TYPE = eco
+
+
+INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/Utility/Zip
+INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/common
+
+SOURCES = Elastos.Utility.Zip.car
+SOURCES += CInflater.cpp
+SOURCES += CDeflater.cpp
+
+LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Core.lib
+ifeq "$(XDK_TARGET_PLATFORM)" "win32"
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Runtime.lib
+else
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
+LIBRARIES += $(XDK_USER_LIB)/crt0.lib
+LIBRARIES += -lz
+endif
