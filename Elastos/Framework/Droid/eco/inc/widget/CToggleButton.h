@@ -32,7 +32,7 @@ public:
         /* [in] */ Boolean checked);
 
     CARAPI SetOnCheckedChangeListener(
-        /* [in] */ IOnCheckedChangeListener * pListener);
+        /* [in] */ ICompoundButtonOnCheckedChangeListener * pListener);
 
     CARAPI SetButtonDrawable(
         /* [in] */ Int32 resid);

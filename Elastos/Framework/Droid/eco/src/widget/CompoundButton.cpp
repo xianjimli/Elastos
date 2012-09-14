@@ -79,7 +79,7 @@ ECode CompoundButton::SetChecked(
  * @param listener the callback to call on checked state change
  */
 ECode CompoundButton::SetOnCheckedChangeListener(
-    /* [in] */ IOnCheckedChangeListener* listener)
+    /* [in] */ ICompoundButtonOnCheckedChangeListener* listener)
 {
     mOnCheckedChangeListener = listener;
 
@@ -94,7 +94,7 @@ ECode CompoundButton::SetOnCheckedChangeListener(
  * @hide
  */
 ECode CompoundButton::SetOnCheckedChangeWidgetListener(
-    /* [in] */ IOnCheckedChangeListener* listener)
+    /* [in] */ ICompoundButtonOnCheckedChangeListener* listener)
 {
     mOnCheckedChangeWidgetListener = listener;
 

@@ -42,7 +42,7 @@ ECode CToggleButton::SetChecked(
 }
 
 ECode CToggleButton::SetOnCheckedChangeListener(
-    /* [in] */ IOnCheckedChangeListener* listener)
+    /* [in] */ ICompoundButtonOnCheckedChangeListener* listener)
 {
     return ToggleButton::SetOnCheckedChangeListener(listener);
 }

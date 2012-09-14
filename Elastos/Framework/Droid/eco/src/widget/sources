@@ -95,3 +95,7 @@ SOURCES += TabWidget.cpp
 SOURCES += CTabWidget.cpp
 SOURCES += TabHost.cpp
 SOURCES += CTabHost.cpp
+SOURCES += RadioGroupLayoutParams.cpp
+SOURCES += CRadioGroupLayoutParams.cpp
+SOURCES += RadioGroup.cpp
+SOURCES += CRadioGroup.cpp

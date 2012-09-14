@@ -7,7 +7,7 @@ module
      * Interface definition for a callback to be invoked when the checked state
      * of a compound button changed.
      */
-    interface IOnCheckedChangeListener {
+    interface ICompoundButtonOnCheckedChangeListener {
         /**
          * Called when the checked state of a compound button has changed.
          *
@@ -21,7 +21,7 @@ module
 
     interface ICompoundButton extends IButton {
         SetOnCheckedChangeListener(
-            [in] IOnCheckedChangeListener* listener);
+            [in] ICompoundButtonOnCheckedChangeListener* listener);
 
         SetButtonDrawable(
             [in] Int32 resid);

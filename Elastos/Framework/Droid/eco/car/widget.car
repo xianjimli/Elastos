@@ -42,6 +42,7 @@ module
     merge("widget/RemoteViews.car");
     merge("widget/TabWidget.car");
     merge("widget/TabHost.car");
+    merge("widget/RadioGroup.car");
 
     class CScrollBarDrawable {
         interface IScrollBarDrawable;
@@ -360,12 +361,12 @@ module
             [in] IContext* context);
 
         constructor(
-            [in] IContext* context, 
+            [in] IContext* context,
             [in] IAttributeSet* attrs);
 
         constructor(
-            [in] IContext* context, 
-            [in] IAttributeSet* attrs, 
+            [in] IContext* context,
+            [in] IAttributeSet* attrs,
             [in] Int32 defStyle);
 
         interface IAutoCompleteTextView;
@@ -926,6 +927,45 @@ module
         interface IKeyEventCallback;
         interface IAccessibilityEventSource;
         interface IOnTouchModeChangeListener;
+    }
+
+    class CRadioGroupLayoutParams {
+        constructor(
+            [in] IContext* c,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] Int32 width,
+            [in] Int32 height);
+
+        constructor(
+            [in] Int32 width,
+            [in] Int32 height,
+            [in] Float weight);
+
+        constructor(
+            [in] IViewGroupLayoutParams* p);
+
+        constructor(
+            [in] IViewGroupMarginLayoutParams* source);
+
+        interface IRadioGroupLayoutParams;
+    }
+
+    class CRadioGroup {
+        constructor(
+            [in] IContext* ctx);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+
+        interface IRadioGroup;
+        interface IViewParent;
+        interface IViewManager;
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
     }
 }
 

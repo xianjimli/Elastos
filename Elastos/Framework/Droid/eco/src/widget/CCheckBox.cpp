@@ -41,7 +41,7 @@ ECode CCheckBox::SetChecked(
 }
 
 ECode CCheckBox::SetOnCheckedChangeListener(
-    /* [in] */ IOnCheckedChangeListener* listener)
+    /* [in] */ ICompoundButtonOnCheckedChangeListener* listener)
 {
     return CheckBox::SetOnCheckedChangeListener(listener);
 }

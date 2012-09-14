@@ -97,7 +97,7 @@ public:
      * @param listener the callback to call on checked state change
      */
     virtual CARAPI SetOnCheckedChangeListener(
-        /* [in] */ IOnCheckedChangeListener* listener);
+        /* [in] */ ICompoundButtonOnCheckedChangeListener* listener);
 
     /**
      * Register a callback to be invoked when the checked state of this button
@@ -107,7 +107,7 @@ public:
      * @hide
      */
     virtual CARAPI SetOnCheckedChangeWidgetListener(
-        /* [in] */ IOnCheckedChangeListener* listener);
+        /* [in] */ ICompoundButtonOnCheckedChangeListener* listener);
 
     /**
      * Set the background to a given Drawable, identified by its resource id.
@@ -169,8 +169,8 @@ private:
     Int32 mButtonResource;
     Boolean mBroadcasting;
     AutoPtr<IDrawable> mButtonDrawable;
-    AutoPtr<IOnCheckedChangeListener> mOnCheckedChangeListener;
-    AutoPtr<IOnCheckedChangeListener> mOnCheckedChangeWidgetListener;
+    AutoPtr<ICompoundButtonOnCheckedChangeListener> mOnCheckedChangeListener;
+    AutoPtr<ICompoundButtonOnCheckedChangeListener> mOnCheckedChangeWidgetListener;
 
     static const Int32 CHECKED_STATE_SET[1];
 };

@@ -41,7 +41,7 @@ ECode CRadioButton::SetChecked(
 }
 
 ECode CRadioButton::SetOnCheckedChangeListener(
-    /* [in] */ IOnCheckedChangeListener* listener)
+    /* [in] */ ICompoundButtonOnCheckedChangeListener* listener)
 {
     return RadioButton::SetOnCheckedChangeListener(listener);
 }
