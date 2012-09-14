@@ -17,6 +17,11 @@ public:
 
 protected:
     RadioButton();
+
+    CARAPI Init(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs = NULL,
+        /* [in] */ Int32 defStyle = 0x0101007e/*com.android.internal.R.attr.radioButtonStyle*/);
 };
 
 #endif //__BUTTON_H__

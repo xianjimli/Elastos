@@ -15,6 +15,11 @@
 #include "graphics/drawable/CGradientDrawable.h"
 #include "graphics/drawable/CClipDrawable.h"
 #include "graphics/drawable/CAnimationDrawable.h"
+#include "graphics/drawable/CLevelListDrawable.h"
+#include "graphics/drawable/CTransitionDrawable.h"
+#include "graphics/drawable/CScaleDrawable.h"
+#include "graphics/drawable/CRotateDrawable.h"
+#include "graphics/drawable/CInsetDrawable.h"
 #include "utils/StateSet.h"
 #include "utils/CDisplayMetrics.h"
 #include "utils/Xml.h"
@@ -435,20 +440,17 @@ ECode Drawable::CreateFromXmlInner(
 
     printf("Drawable::CreateFromXmlInner name = %s\n", (const char*)name);
 
-    //printf("Drawable::CreateFromXmlInner, name = %s\n", (const char*)name);
     if (name.Equals("selector")) {
-          FAIL_RETURN(CStateListDrawable::New((IStateListDrawable**)drawable));
+        FAIL_RETURN(CStateListDrawable::New((IStateListDrawable**)drawable));
     }
     else if (name.Equals("level-list")) {
-//        drawable = new LevelListDrawable();
-        assert(0);
+        FAIL_RETURN(CLevelListDrawable::New((ILevelListDrawable**)drawable));
     }
     else if (name.Equals("layer-list")) {
         FAIL_RETURN(CLayerDrawable::New((ILayerDrawable**)drawable));
     }
     else if (name.Equals("transition")) {
-//        drawable = new TransitionDrawable();
-//        assert(0);
+        FAIL_RETURN(CTransitionDrawable::New((ITransitionDrawable**)drawable));
     }
     else if (name.Equals("color")) {
         FAIL_RETURN(CColorDrawable::New((IColorDrawable**)drawable));
@@ -457,15 +459,13 @@ ECode Drawable::CreateFromXmlInner(
         FAIL_RETURN(CGradientDrawable::New((IGradientDrawable**)drawable));
     }
     else if (name.Equals("scale")) {
-//        drawable = new ScaleDrawable();
-        assert(0);
+        FAIL_RETURN(CScaleDrawable::New((IScaleDrawable**)drawable));
     }
     else if (name.Equals("clip")) {
         FAIL_RETURN(CClipDrawable::New((IClipDrawable**)drawable));
     }
     else if (name.Equals("rotate")) {
-//        drawable = new RotateDrawable();
-        assert(0);
+        FAIL_RETURN(CRotateDrawable::New((IRotateDrawable**)drawable));;
     }
     else if (name.Equals("animated-rotate")) {
         FAIL_RETURN(CAnimatedRotateDrawable::New((IAnimatedRotateDrawable**)drawable));
@@ -474,29 +474,28 @@ ECode Drawable::CreateFromXmlInner(
         FAIL_RETURN(CAnimationDrawable::New((IAnimationDrawable**)drawable));
     }
     else if (name.Equals("inset")) {
-//        drawable = new InsetDrawable();
-        assert(0);
+        FAIL_RETURN(CInsetDrawable::New((IInsetDrawable**)drawable));
     }
     else if (name.Equals("bitmap")) {
         FAIL_RETURN(CBitmapDrawable::New((IBitmapDrawable**)drawable));
         if (r != NULL) {
-//           ((BitmapDrawable)drawable).setTargetDensity(r.getDisplayMetrics());
+            AutoPtr<IDisplayMetrics> metrics;
+            r->GetDisplayMetrics((IDisplayMetrics**)&metrics);
+            IBitmapDrawable::Probe(*drawable)->SetTargetDensityEx(metrics);
         }
     }
     else if (name.Equals("nine-patch")) {
         FAIL_RETURN(CNinePatchDrawable::New((INinePatchDrawable**)drawable));
         if (r != NULL) {
-//            ((NinePatchDrawable) drawable)->SetTargetDensity(r.GetDisplayMetrics());
+            AutoPtr<IDisplayMetrics> metrics;
+            r->GetDisplayMetrics((IDisplayMetrics**)&metrics);
+            INinePatchDrawable::Probe(*drawable)->SetTargetDensityEx(metrics);
         }
-    } else {
+    }
+     else {
 //        throw new XmlPullParserException(parser.getPositionDescription() +
 //                ": invalid drawable tag " + name);
         return E_XML_PULL_PARSER_EXCEPTION;
-    }
-
-    //TODO:
-    if (*drawable == NULL) {
-        return NOERROR;
     }
 
     return (*drawable)->Inflate(r, parser, attrs);

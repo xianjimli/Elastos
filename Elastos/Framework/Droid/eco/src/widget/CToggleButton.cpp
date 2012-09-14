@@ -20,97 +20,102 @@ PInterface CToggleButton::Probe(
     return _CToggleButton::Probe(riid);
 }
 
+
 ECode CToggleButton::Toggle()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return ToggleButton::Toggle();
 }
 
 ECode CToggleButton::IsChecked(
-    /* [out] */ Boolean * pChecked)
+    /* [out] */ Boolean* checked)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(checked);
+    *checked = ToggleButton::IsChecked();
+
+    return NOERROR;
 }
 
 ECode CToggleButton::SetChecked(
     /* [in] */ Boolean checked)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return ToggleButton::SetChecked(checked);
 }
 
 ECode CToggleButton::SetOnCheckedChangeListener(
-    /* [in] */ IOnCheckedChangeListener * pListener)
+    /* [in] */ IOnCheckedChangeListener* listener)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return ToggleButton::SetOnCheckedChangeListener(listener);
 }
 
 ECode CToggleButton::SetButtonDrawable(
     /* [in] */ Int32 resid)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return ToggleButton::SetButtonDrawable(resid);
 }
 
 ECode CToggleButton::SetButtonDrawableEx(
-    /* [in] */ IDrawable * pD)
+    /* [in] */ IDrawable* d)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return ToggleButton::SetButtonDrawable(d);
 }
 
 ECode CToggleButton::GetTextOn(
-    /* [out] */ ICharSequence ** ppOn)
+    /* [out] */ ICharSequence** on)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(on);
+    AutoPtr<ICharSequence> temp = ToggleButton::GetTextOn();
+    *on = temp;
+    if (*on) {
+        (*on)->AddRef();
+    }
+
+    return NOERROR;
 }
 
 ECode CToggleButton::SetTextOn(
-    /* [in] */ ICharSequence * pTextOn)
+    /* [in] */ ICharSequence* textOn)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return ToggleButton::SetTextOn(textOn);
 }
 
 ECode CToggleButton::GetTextOff(
-    /* [out] */ ICharSequence ** ppOn)
+    /* [out] */ ICharSequence** off)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(off);
+    AutoPtr<ICharSequence> temp = ToggleButton::GetTextOff();
+    *off = temp;
+    if (*off) {
+        (*off)->AddRef();
+    }
+
+    return NOERROR;
 }
 
 ECode CToggleButton::SetTextOff(
-    /* [in] */ ICharSequence * pTextOff)
+    /* [in] */ ICharSequence* textOff)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return ToggleButton::SetTextOff(textOff);
 }
 
 ECode CToggleButton::constructor(
-    /* [in] */ IContext * pCtx)
+    /* [in] */ IContext* ctx)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return ToggleButton::Init(ctx);
 }
 
 ECode CToggleButton::constructor(
-    /* [in] */ IContext * pCtx,
-    /* [in] */ IAttributeSet * pAttrs)
+    /* [in] */ IContext* ctx,
+    /* [in] */ IAttributeSet* attrs)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return ToggleButton::Init(ctx, attrs);
 }
 
 ECode CToggleButton::constructor(
-    /* [in] */ IContext * pContext,
-    /* [in] */ IAttributeSet * pAttrs,
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* atrs,
     /* [in] */ Int32 defStyle)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return ToggleButton::Init(context, atrs, defStyle);
 }
 
 ECode CToggleButton::OnPreDraw(

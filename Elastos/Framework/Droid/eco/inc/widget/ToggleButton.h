@@ -40,9 +40,9 @@ protected:
     CARAPI DrawableStateChanged();
 
     CARAPI Init(
-        /* [in] */ IContext* context = NULL,
+        /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs = NULL,
-        /* [in] */ Int32 defStyle = 0);
+        /* [in] */ Int32 defStyle = 0x0101004b/*com.android.internal.R.attr.buttonStyleToggle*/);
 
 private:
     CARAPI_(void) UpdateReferenceToIndicatorDrawable(

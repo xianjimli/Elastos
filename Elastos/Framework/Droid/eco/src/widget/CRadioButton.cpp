@@ -22,67 +22,61 @@ PInterface CRadioButton::Probe(
 
 ECode CRadioButton::Toggle()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return RadioButton::Toggle();
 }
 
 ECode CRadioButton::IsChecked(
-    /* [out] */ Boolean * pChecked)
+    /* [out] */ Boolean* checked)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(checked);
+    *checked = RadioButton::IsChecked();
+
+    return NOERROR;
 }
 
 ECode CRadioButton::SetChecked(
     /* [in] */ Boolean checked)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return RadioButton::SetChecked(checked);
 }
 
 ECode CRadioButton::SetOnCheckedChangeListener(
-    /* [in] */ IOnCheckedChangeListener * pListener)
+    /* [in] */ IOnCheckedChangeListener* listener)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return RadioButton::SetOnCheckedChangeListener(listener);
 }
 
 ECode CRadioButton::SetButtonDrawable(
     /* [in] */ Int32 resid)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return RadioButton::SetButtonDrawable(resid);
 }
 
 ECode CRadioButton::SetButtonDrawableEx(
-    /* [in] */ IDrawable * pD)
+    /* [in] */ IDrawable* d)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return RadioButton::SetButtonDrawable(d);
 }
 
 ECode CRadioButton::constructor(
-    /* [in] */ IContext * pCtx)
+    /* [in] */ IContext* ctx)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return RadioButton::Init(ctx);
 }
 
 ECode CRadioButton::constructor(
-    /* [in] */ IContext * pCtx,
-    /* [in] */ IAttributeSet * pAttrs)
+    /* [in] */ IContext* ctx,
+    /* [in] */ IAttributeSet* attrs)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return RadioButton::Init(ctx, attrs);
 }
 
 ECode CRadioButton::constructor(
-    /* [in] */ IContext * pContext,
-    /* [in] */ IAttributeSet * pAttrs,
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* atrs,
     /* [in] */ Int32 defStyle)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return RadioButton::Init(context, atrs, defStyle);
 }
 
 ECode CRadioButton::OnPreDraw(

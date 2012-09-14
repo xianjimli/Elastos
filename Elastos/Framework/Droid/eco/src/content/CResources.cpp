@@ -1158,24 +1158,28 @@ ECode CResources::LoadColorStateList(
     String file;
     ((CTypedValue*)value)->mString->ToString(&file);
 
-//	    if (file.endsWith(".xml")) {
-//	        try {
-//	            XmlResourceParser rp = loadXmlResourceParser(
-//	                    file, id, value.assetCookie, "colorstatelist");
-//	            csl = ColorStateList.createFromXml(this, rp);
-//	            rp.close();
-//	        } catch (Exception e) {
-//	            NotFoundException rnf = new NotFoundException(
-//	                "File " + file + " from color state list resource ID #0x"
-//	                + Integer.toHexString(id));
-//	            rnf.initCause(e);
-//	            throw rnf;
-//	        }
-//	    } else {
-//	        throw new NotFoundException(
-//	                "File " + file + " from drawable resource ID #0x"
-//	                + Integer.toHexString(id) + ": .xml extension required");
-//	    }
+    if (file.EndWith(".xml")) {
+        //try {
+            AutoPtr<IXmlResourceParser> rp;
+            LoadXmlResourceParser(
+                file, id, ((CTypedValue*)value)->mAssetCookie, "colorstatelist",
+                (IXmlResourceParser**)&rp);
+            CColorStateList::CreateFromXml(this, rp, csl);
+            rp->Close();
+        //} catch (Exception e) {
+        //    NotFoundException rnf = new NotFoundException(
+        //        "File " + file + " from color state list resource ID #0x"
+        //        + Integer.toHexString(id));
+        //    rnf.initCause(e);
+        //    throw rnf;
+        //}
+    }
+    else {
+        //throw new NotFoundException(
+        //        "File " + file + " from drawable resource ID #0x"
+        //        + Integer.toHexString(id) + ": .xml extension required");
+        return E_NOT_FOUND_EXCEPTION;
+    }
 
     if (*csl != NULL) {
         if (mPreloading) {

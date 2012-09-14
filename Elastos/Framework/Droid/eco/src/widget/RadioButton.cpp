@@ -26,3 +26,11 @@ ECode RadioButton::Toggle()
 
     return NOERROR;
 }
+
+ECode RadioButton::Init(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs,
+    /* [in] */ Int32 defStyle)
+{
+    return CompoundButton::Init(context, attrs, defStyle);
+}

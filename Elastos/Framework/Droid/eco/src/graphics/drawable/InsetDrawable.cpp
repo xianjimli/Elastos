@@ -334,10 +334,11 @@ Boolean InsetDrawable::IsStateful()
 
 //@Override
 Boolean InsetDrawable::OnStateChange(
-    /* [in] */ ArrayOf<Int32>* state)
+    /* [in] */ const ArrayOf<Int32>* state)
 {
     Boolean changed;
-    mInsetState->mDrawable->SetState(state, &changed);
+    mInsetState->mDrawable->SetState(
+        const_cast<ArrayOf<Int32>*>(state), &changed);
     OnBoundsChange(GetBounds());
     return changed;
 }

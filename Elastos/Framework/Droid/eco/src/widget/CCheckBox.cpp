@@ -22,67 +22,61 @@ PInterface CCheckBox::Probe(
 
 ECode CCheckBox::Toggle()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return CheckBox::Toggle();
 }
 
 ECode CCheckBox::IsChecked(
-    /* [out] */ Boolean * pChecked)
+    /* [out] */ Boolean* checked)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(checked);
+    *checked = CheckBox::IsChecked();
+
+    return NOERROR;
 }
 
 ECode CCheckBox::SetChecked(
     /* [in] */ Boolean checked)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return CheckBox::SetChecked(checked);
 }
 
 ECode CCheckBox::SetOnCheckedChangeListener(
-    /* [in] */ IOnCheckedChangeListener * pListener)
+    /* [in] */ IOnCheckedChangeListener* listener)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return CheckBox::SetOnCheckedChangeListener(listener);
 }
 
 ECode CCheckBox::SetButtonDrawable(
     /* [in] */ Int32 resid)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return CheckBox::SetButtonDrawable(resid);
 }
 
 ECode CCheckBox::SetButtonDrawableEx(
-    /* [in] */ IDrawable * pD)
+    /* [in] */ IDrawable* d)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return CheckBox::SetButtonDrawable(d);
 }
 
 ECode CCheckBox::constructor(
-    /* [in] */ IContext * pCtx)
+    /* [in] */ IContext* ctx)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return CheckBox::Init(ctx);
 }
 
 ECode CCheckBox::constructor(
-    /* [in] */ IContext * pCtx,
-    /* [in] */ IAttributeSet * pAttrs)
+    /* [in] */ IContext* ctx,
+    /* [in] */ IAttributeSet* attrs)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return CheckBox::Init(ctx, attrs);
 }
 
 ECode CCheckBox::constructor(
-    /* [in] */ IContext * pContext,
-    /* [in] */ IAttributeSet * pAttrs,
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* atrs,
     /* [in] */ Int32 defStyle)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return CheckBox::Init(context, atrs, defStyle);
 }
 
 ECode CCheckBox::OnPreDraw(

@@ -318,10 +318,11 @@ Boolean ScaleDrawable::IsStateful()
 
 //@Override
 Boolean ScaleDrawable::OnStateChange(
-    /* [in] */ ArrayOf<Int32>* state)
+    /* [in] */ const ArrayOf<Int32>* state)
 {
     Boolean changed;
-    mScaleState->mDrawable->SetState(state, &changed);
+    mScaleState->mDrawable->SetState(
+        const_cast<ArrayOf<Int32>*>(state), &changed);
     OnBoundsChange(GetBounds());
     return changed;
 }

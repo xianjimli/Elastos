@@ -6765,10 +6765,11 @@ ArrayOf<Int32>* View::MergeDrawableStates(
     while (i >= 0 && (*baseState)[i] == 0) {
         i--;
     }
-    const Int32 len = additionalState->GetLength() <= N?
-            additionalState->GetLength() : N;
-    for (i += 1; i < len; i++) {
-        (*baseState)[i] = (*additionalState)[i];
+    i++;
+    const Int32 len = i + additionalState->GetLength() <= N?
+            i + additionalState->GetLength() : N;
+    for (Int32 j = 0; i < len; ++i, ++j) {
+        (*baseState)[i] = (*additionalState)[j];
     }
     return baseState;
 }

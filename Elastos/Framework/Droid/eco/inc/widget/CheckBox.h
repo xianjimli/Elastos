@@ -14,6 +14,11 @@ public:
 
 protected:
     CheckBox();
+
+    CARAPI Init(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs = NULL,
+        /* [in] */ Int32 defStyle = 0x0101006c/*com.android.internal.R.attr.checkboxStyle*/);
 };
 
 #endif //__CHECKBOXBUTTON_H__

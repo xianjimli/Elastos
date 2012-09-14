@@ -3,6 +3,7 @@
 #include "graphics/drawable/CLayerDrawable.h"
 #include "graphics/CRect.h"
 #include "graphics/ElPixelFormat.h"
+#include <stdio.h>
 
 LayerDrawable::LayerState::LayerState(
     /* [in] */ LayerState* orig,
@@ -625,7 +626,7 @@ Boolean LayerDrawable::IsStateful()
 
 //@Override
 Boolean LayerDrawable::OnStateChange(
-    /* [in] */ ArrayOf<Int32>* state)
+    /* [in] */ const ArrayOf<Int32>* state)
 {
     ArrayOf<AutoPtr<ChildDrawable> >* array = mLayerState->mChildren;
     Int32 N = mLayerState->mNum;
@@ -634,7 +635,7 @@ Boolean LayerDrawable::OnStateChange(
     for (Int32 i=0; i<N; i++) {
         ChildDrawable* r = (*array)[i];
         Boolean res;
-        r->mDrawable->SetState(state, &res);
+        r->mDrawable->SetState(const_cast<ArrayOf<Int32>*>(state), &res);
         if (res) {
             changed = TRUE;
         }

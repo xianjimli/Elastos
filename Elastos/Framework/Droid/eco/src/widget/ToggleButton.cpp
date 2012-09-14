@@ -104,11 +104,13 @@ ECode ToggleButton::SetBackgroundDrawable(
 void ToggleButton::UpdateReferenceToIndicatorDrawable(
     /* [in] */ IDrawable* backgroundDrawable)
 {
-    /*if (backgroundDrawable instanceof LayerDrawable) {
-        LayerDrawable layerDrawable = (LayerDrawable) backgroundDrawable;
-        mIndicatorDrawable =
-                layerDrawable.findDrawableByLayerId(com.android.internal.R.id.toggle);
-    }*/
+    if (ILayerDrawable::Probe(backgroundDrawable)) {
+        AutoPtr<ILayerDrawable> layerDrawable =
+            ILayerDrawable::Probe(backgroundDrawable);
+        layerDrawable->FindDrawableByLayerId(
+            0x01020017/*com.android.internal.R.id.toggle*/,
+            (IDrawable**)&mIndicatorDrawable);
+    }
 }
 
 ECode ToggleButton::DrawableStateChanged()

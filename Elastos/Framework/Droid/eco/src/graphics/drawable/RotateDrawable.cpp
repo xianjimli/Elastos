@@ -267,10 +267,10 @@ Boolean RotateDrawable::IsStateful()
 
 //@Override
 Boolean RotateDrawable::OnStateChange(
-    /* [in] */ ArrayOf<Int32>* state)
+    /* [in] */ const ArrayOf<Int32>* state)
 {
     Boolean changed;
-    mState->mDrawable->SetState(state, &changed);
+    mState->mDrawable->SetState(const_cast<ArrayOf<Int32>*>(state), &changed);
     OnBoundsChange(GetBounds());
     return changed;
 }

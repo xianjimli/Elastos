@@ -217,7 +217,7 @@ protected:
         /* [in] */ IResources* res);
 
     CARAPI_(Boolean) OnStateChange(
-        /* [in] */ ArrayOf<Int32>* state);
+        /* [in] */ const ArrayOf<Int32>* state);
 
     CARAPI_(Boolean) OnLevelChange(
         /* [in] */ Int32 level);
