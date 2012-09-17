@@ -1,0 +1,5 @@
+
+EXPORT_HEADERS += CMenuBuilder.h
+EXPORT_HEADERS += CMenuItemImpl.h
+EXPORT_HEADERS += CSubMenuBuilder.h
+EXPORT_HEADERS += CMenuType.h

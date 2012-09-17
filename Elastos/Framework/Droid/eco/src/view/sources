@@ -57,3 +57,4 @@ SOURCES += GestureDetector.cpp
 
 LIBRARIES += inputmethod/inputmethod.lib
 LIBRARIES += animation/animation.lib
+LIBRARIES += menu/menu.lib

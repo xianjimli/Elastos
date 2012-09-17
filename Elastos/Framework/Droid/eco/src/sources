@@ -22,6 +22,7 @@ INCLUDES += $(MAKEDIR)/../inc/graphics/drawable/shapes
 INCLUDES += $(MAKEDIR)/../inc/view
 INCLUDES += $(MAKEDIR)/../inc/view/inputmethod
 INCLUDES += $(MAKEDIR)/../inc/view/animation
+INCLUDES += $(MAKEDIR)/../inc/view/menu
 INCLUDES += $(MAKEDIR)/../inc/impl
 INCLUDES += $(MAKEDIR)/../inc/widget
 INCLUDES += $(MAKEDIR)/../inc/text

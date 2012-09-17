@@ -1,0 +1,22 @@
+
+
+module
+{
+    interface IBaseAdapter;
+    interface IView;
+    interface IViewGroup;
+    interface IMenu;
+
+    interface IMenuAdapter extends IBaseAdapter {
+        GetOffset(
+            [out] Int32* offset);
+    }
+
+    class CMenuAdapter {
+        interface IMenuAdapter;
+
+        constructor(
+            [in] Int32 menuType,
+            [in] IMenu* cmb);
+    }
+}

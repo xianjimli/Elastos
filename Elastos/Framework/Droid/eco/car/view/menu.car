@@ -88,6 +88,14 @@ module
     interface IComponentName;
     interface IIntent;
     interface IKeyEvent;
+    interface ICallback;
+    interface IMenuAdapter;
+    interface IContextMenuInfo;
+    interface ILayoutInflater;
+    interface IView;
+    interface IViewGroup;
+    interface IMenuView;
+    interface IMenuType;
 
     interface IMenu {
         /**
@@ -98,7 +106,7 @@ module
          * @return The newly added menu item.
          */
         Add(
-            [in] ArrayOf<Char8> title,
+            [in] String title,
             [out] IMenuItem** item);
 
         /**
@@ -131,7 +139,7 @@ module
             [in] Int32 groupId,
             [in] Int32 itemId,
             [in] Int32 order,
-            [in] ArrayOf<Char8> title,
+            [in] String title,
             [out] IMenuItem** item);
 
         /**
@@ -165,7 +173,7 @@ module
          * @return The newly added sub-menu
          */
         AddSubMenu(
-            [in] ArrayOf<Char8> title,
+            [in] String title,
             [out] ISubMenu** subMenu);
 
         /**
@@ -204,7 +212,7 @@ module
             [in] Int32 groupId,
             [in] Int32 itemId,
             [in] Int32 order,
-            [in] ArrayOf<Char8> title,
+            [in] String title,
             [out] ISubMenu** subMenu);
 
         /**
@@ -462,5 +470,190 @@ module
          */
         SetQwertyMode(
             [in] Boolean isQwerty);
+
+        IsQwertyMode(
+            [out]Boolean* qwertyMode);
+
+        SetShortcutsVisible(
+            [in] Boolean shortcutsVisible);
+
+        IsShortcutsVisible(
+            [out] Boolean* qwertyMode);
+
+        GetContext(
+            [out] IContext** context);
+
+        GetResources(
+            [out] IResources** resource);
+
+        SetExclusiveItemChecked(
+            [in] IMenuItem* item);
+
+        GetCallback(
+            [out] ICallback** MenuCallback);
+
+        GetRootMenu(
+            [out] IMenu** menu);
+
+        OnItemVisibleChanged(
+            [in] IMenuItem* item);
+
+        SetCurrentMenuInfo(
+            [in] IContextMenuInfo* menuInfo);
+
+        SetOptionalIconsVisible(
+            [in] Boolean visible);
+
+        GetOptionalIconsVisible(
+            [out] Boolean* visible);
+
+        SaveHierarchyState(
+            [in] IBundle* outState);
+
+        RestoreHierarchyState(
+            [in] IBundle* inState);
+
+        GetMenuAdapter(
+            [in] Int32 menuType,
+            [out] IMenuAdapter** menuAdapter);
+
+        GetMenuType(
+            [in] Int32 menuType,
+            [out] IMenuType** type);
+
+        GetMenuView(
+            [in] Int32 menuType,
+            [in] IViewGroup* parent,
+            [out] IMenuView** menuView);
+
+        ClearMenuViews();
+
+        RefreshShortcuts(
+            [in] Boolean shortcutsVisible,
+            [in] Boolean qwertyMode);
+
+        FindItemsWithShortcutForKey(
+            [in] Int32 keyCode,
+            [in] IKeyEvent* event,
+            [out] IObjectContainer** list);
+
+        FindItemWithShortcutForKey(
+            [in] Int32 keyCode,
+            [in] IKeyEvent* event,
+            [out] IMenuItem** menuItem);
+
+        PerformItemAction(
+            [in] IMenuItem* item,
+            [in] Int32 flags,
+            [out] Boolean* state);
+
+        SetCallback(
+            [in] ICallback* menuCallback);
+
+        SetHeaderTitleInt(
+            [in] String title,
+            [out] IMenu** menu);
+
+        SetHeaderTitleIntEx(
+            [in] Int32 titleRes,
+            [out] IMenu** menu);
+
+        SetHeaderIconInt(
+            [in] IDrawable* icon,
+            [out] IMenu** menu);
+
+        SetHeaderIconIntEx(
+            [in] Int32 iconRes,
+            [out] IMenu** menu);
+
+        SetHeaderViewInt(
+            [in] IView* view,
+            [out] IMenu** menu);
+
+        GetVisibleItems(
+            [out] IObjectContainer** list);
+
+        GetNumIconMenuItemsShown(
+            [out] Int32* state);
+
+        SetHeaderInternal(
+            [in] Int32 titleRes,
+            [in] String title,
+            [in] Int32 iconRes,
+            [in] IDrawable* icon,
+            [in] IView* view);
+
+        FindItemIndex(
+            [in] Int32 id,
+            [out] Int32* index);
+
+        FindGroupIndex(
+            [in] Int32 group,
+            [out] Int32* index);
+
+        FindGroupIndexEx(
+            [in] Int32 group,
+            [in] Int32 start,
+            [out] Int32* index);
+    }
+
+    interface ICallback {
+        OnMenuItemSelected(
+            [in] IMenu* menu,
+            [in] IMenuItem* item,
+            [out] Boolean* state);
+
+        OnCloseMenu(
+            [in] IMenu* menu,
+            [in] Boolean allMenusAreClosing);
+
+        OnSubMenuSelected(
+            [in] ISubMenu* subMenu,
+            [out] Boolean* state);
+
+        OnCloseSubMenu(
+            [in] ISubMenu* menu);
+
+        OnMenuModeChange(
+            [in] IMenu* menu);
+
+        GetHeaderIcon(
+            [out] IDrawable** drawable);
+
+        GetHeaderView(
+            [out] IView** headerView);
+
+        GetHeaderTitle(
+            [out] String* title);
+    }
+
+    interface IMenuType {
+        GetInflater(
+            [out] ILayoutInflater** layoutInflater);
+
+        GetMenuView(
+            [in] IViewGroup* parent,
+            [out] IMenuView** menuView);
+
+        GetMenuViewEx(
+            [out] IMenuView** menuView);
+
+        SetMenuView(
+            [in] IMenuView* menuView);
+
+        HasMenuView(
+            [out] Boolean* hasMenu);
+    }
+
+    class CMenuBuilder {
+    	interface IMenu;
+    }
+
+    class CMenuType {
+        interface IMenuType;
+
+        constructor(
+            [in] Int32 menuType,
+            [in] IMenu* cmb);
     }
 }
