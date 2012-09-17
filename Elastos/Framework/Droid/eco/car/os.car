@@ -83,4 +83,30 @@ module
 
         interface IVibrator;
     }
+
+    /**
+     * Describes the source of some work that may be done by someone else.
+     * Currently the public representation of what a work source is is not
+     * defined; this is an opaque container.
+     */
+    class CWorkSource {
+        constructor();
+
+        /**
+         * Create a new WorkSource that is a copy of an existing one.
+         * If <var>orig</var> is null, an empty WorkSource is created.
+         */
+        constructor(
+            [in] IWorkSource* orig);
+
+        /** @hide */
+        constructor(
+            [in] Int32 uid);
+
+        constructor(
+            [in] IParcel* src);
+
+        interface IWorkSource;
+        interface IParcelable;
+    }
 }

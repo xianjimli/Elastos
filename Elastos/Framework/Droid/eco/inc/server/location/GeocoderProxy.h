@@ -35,6 +35,23 @@ public:
     GeocoderProxy(
         /* [in] */ IContext* context,
         /* [in] */ String serviceName);
+    
+    CARAPI_(String) GetFromLocation(
+    	/* [in] */ Double latitude,
+    	/* [in] */ Double longitude,
+    	/* [in] */ Int32 maxResults,
+    	/* [in] */ IGeocoderParams* params,
+    	/* [in] */ IObjectContainer** addrs);
+    
+    CARAPI_(String) GetFromLocationName(
+    	/* [in] */ String locationName,
+    	/* [in] */ Double lowerLeftLatitude,
+    	/* [in] */ Double lowerLeftLongitude,
+    	/* [in] */ Double upperRightLatitude,
+    	/* [in] */ Double upperRightLongitude,
+    	/* [in] */ Int32 maxResults,
+    	/* [in] */ IGeocoderParams* params,
+    	/* [in] */ IObjectContainer** addrs);
 
 private:
     AutoPtr<IContext> mContext;

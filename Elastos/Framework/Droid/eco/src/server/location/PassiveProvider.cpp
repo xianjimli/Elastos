@@ -1,22 +1,17 @@
 
 #include "server/location/PassiveProvider.h"
 
+const CString PassiveProvider::TAG = "PassiveProvider";
+
 PassiveProvider::PassiveProvider(
     /* [in] */ ILocationManager* locationManager)
     : mLocationManager(locationManager)
 {
 }
 
-ECode PassiveProvider::HandleKey(
-    /* [in] */ IKeyEvent* event,
-    /* [in] */ IRunnable* finishedCallback)
-{
-    return E_NOT_IMPLEMENTED;
-}
-
 String PassiveProvider::GetName()
 {
-    return String(NULL);
+    return String(LocationManager_PASSIVE_PROVIDER);
 }
 
 Boolean PassiveProvider::RequiresNetwork()
@@ -56,23 +51,24 @@ Boolean PassiveProvider::SupportsBearing()
 
 Int32 PassiveProvider::GetPowerRequirement()
 {
-    return 0;
+    return -1;
 }
 
 Boolean PassiveProvider::MeetsCriteria(
     /* [in] */ ICriteria* criteria)
 {
+    // We do not want to match the special passive provider based on criteria.
     return FALSE;
 }
 
 Int32 PassiveProvider::GetAccuracy()
 {
-    return 0;
+    return -1;
 }
 
 Boolean PassiveProvider::IsEnabled()
 {
-    return FALSE;
+    return TRUE;
 }
 
 void PassiveProvider::Enable()
@@ -86,17 +82,23 @@ void PassiveProvider::Disable()
 Int32 PassiveProvider::GetStatus(
     /* [in] */ IBundle* extras)
 {
-    return 0;
+    if (mTracking) {
+        return LocationProvider_AVAILABLE;
+    }
+    else {
+        return LocationProvider_TEMPORARILY_UNAVAILABLE;
+    }
 }
 
 Int64 PassiveProvider::GetStatusUpdateTime()
 {
-    return 0;
+    return -1;
 }
 
 void PassiveProvider::EnableLocationTracking(
     /* [in] */ Boolean enable)
 {
+    mTracking = enable;
 }
 
 Boolean PassiveProvider::RequestSingleShotFix()
@@ -109,17 +111,30 @@ String PassiveProvider::GetInternalState()
     return String(NULL);
 }
 
-//    void PassiveProvider::SetMinTime(
-//        /* [in] */ Int64 minTime,
-//        /* [in] */ IWorkSource* ws)
+void PassiveProvider::SetMinTime(
+    /* [in] */ Int64 minTime,
+    /* [in] */ IWorkSource* ws)
+{
+}
 
-//    void PassiveProvider::UpdateNetworkState(
-//        /* [in] */ Int32 state,
-//        /* [in] */ INetworkInfo* info)
+void PassiveProvider::UpdateNetworkState(
+    /* [in] */ Int32 state,
+    /* [in] */ INetworkInfo* info)
+{
+
+}
 
 void PassiveProvider::UpdateLocation(
     /* [in] */ ILocation* location)
 {
+    if (mTracking) {
+ //       try {
+        // pass the location back to the location manager
+        mLocationManager->ReportLocation(location, TRUE);
+//        } catch (RemoteException e) {
+//            Log.e(TAG, "RemoteException calling reportLocation");
+//        }
+    }
 }
 
 Boolean PassiveProvider::SendExtraCommand(

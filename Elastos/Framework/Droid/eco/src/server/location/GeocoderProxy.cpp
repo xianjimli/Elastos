@@ -55,3 +55,26 @@ GeocoderProxy::GeocoderProxy(
     ASSERT_SUCCEEDED(mContext->BindService(mIntent, (IServiceConnection*)mServiceConnection.Get(), Context_BIND_AUTO_CREATE, &result));
 }
 
+String GeocoderProxy::GetFromLocation(
+	/* [in] */ Double latitude,
+	/* [in] */ Double longitude,
+	/* [in] */ Int32 maxResults,
+	/* [in] */ IGeocoderParams* params,
+	/* [in] */ IObjectContainer** addrs)
+{
+	return String(NULL);
+}
+
+String GeocoderProxy::GetFromLocationName(
+	/* [in] */ String locationName,
+	/* [in] */ Double lowerLeftLatitude,
+	/* [in] */ Double lowerLeftLongitude,
+	/* [in] */ Double upperRightLatitude,
+	/* [in] */ Double upperRightLongitude,
+	/* [in] */ Int32 maxResults,
+	/* [in] */ IGeocoderParams* params,
+	/* [in] */ IObjectContainer** addrs)
+{
+	return String(NULL);
+}
+

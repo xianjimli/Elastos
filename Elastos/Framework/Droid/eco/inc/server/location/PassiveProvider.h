@@ -7,13 +7,12 @@
 
 class PassiveProvider : public LocationProviderInterface
 {
+private:
+    static const CString TAG;
+
 public:
     PassiveProvider(
         /* [in] */ ILocationManager* locationManager);
-
-    CARAPI HandleKey(
-        /* [in] */ IKeyEvent* event,
-        /* [in] */ IRunnable* finishedCallback);
 
     CARAPI_(String) GetName();
 
@@ -56,13 +55,13 @@ public:
 
     CARAPI_(String) GetInternalState();
 
-//    CARAPI_(void) SetMinTime(
-//        /* [in] */ Int64 minTime,
-//        /* [in] */ IWorkSource* ws);
+    CARAPI_(void) SetMinTime(
+        /* [in] */ Int64 minTime,
+        /* [in] */ IWorkSource* ws);
 
-//    CARAPI_(void) UpdateNetworkState(
-//        /* [in] */ Int32 state,
-//        /* [in] */ INetworkInfo* info);
+    CARAPI_(void) UpdateNetworkState(
+        /* [in] */ Int32 state,
+        /* [in] */ INetworkInfo* info);
 
     CARAPI_(void) UpdateLocation(
         /* [in] */ ILocation* location);
@@ -80,6 +79,7 @@ public:
 
 private:
     AutoPtr<ILocationManager> mLocationManager;
+    Boolean mTracking;
 };
 
 #endif //__PASSIVEPROVIDER_H__

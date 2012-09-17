@@ -508,18 +508,19 @@ public:
         /* [in] */ const String& provider,
         /* [out] */ Boolean* isEnabled);
 
+    // Used by location providers to tell the location manager when it has a new location.
+	// Passive is true if the location is coming from the passive provider, in which case
+	// it need not be shared with other providers.
+	CARAPI ReportLocation(
+		/* [in] */ ILocation* location,
+		/* [in] */ Boolean passive);
+
     CARAPI GetLastKnownLocation(
         /* [in] */ const String& provider,
         /* [out] */ ILocation** location);
 
-    // Used by location providers to tell the location manager when it has a new location.
-    // Passive is true if the location is coming from the passive provider, in which case
-    // it need not be shared with other providers.
-    CARAPI ReportLocation(
-        /* [in] */ ILocation* location,
-        /* [in] */ Boolean passive);
-
-    CARAPI GeocoderIsPresent();
+    CARAPI GeocoderIsPresent(
+    	/* [out] */ Boolean* result);
 
     CARAPI GetFromLocation(
         /* [in] */ Double latitude,
@@ -580,6 +581,11 @@ public:
 
 private:
     static void* EntryRoutine(void *arg);
+
+    static CARAPI_(Boolean) ShouldBroadcastSafe(
+    	/* [in] */ ILocation* loc,
+    	/* [in] */ ILocation* lastLoc,
+    	/* [in] */ UpdateRecord* record);
 
 private:
     CARAPI_(void) AddProvider(
@@ -674,9 +680,25 @@ private:
     	/* [in] */ String provider,
     	/* [out] */ IBundle** info);
 
+    CARAPI _IsProviderEnabledLocked(
+    	/* [in] */ String provider,
+    	/* [out] */ Boolean* isEnabled);
+
+    CARAPI _GetLastKnownLocationLocked(
+    	/* [in] */ String provider,
+    	/* [out] */ ILocation** location);
+
+    CARAPI_(void) HandleLocationChangedLocked(
+    	/* [in] */ ILocation* location,
+    	/* [in] */ Boolean passive);
+
     CARAPI_(void) IncrementPendingBroadcasts();
 
     CARAPI_(void) DecrementPendingBroadcasts();
+    
+    // Mock Providers
+
+    CARAPI CheckMockPermissionsSafe();
 
 private:
     // The last time a location was written, by provider name.
@@ -750,7 +772,7 @@ private:
 
     // for Settings change notification
 //    ContentQueryMap mSettings;
-
+//    PackageMonitor mPackageMonitor = new PackageMonitor();
 };
 
 #endif //__CLOCATIONMANAGERSERVICE_H__

@@ -3,17 +3,27 @@
 #define __LOCATIONPROVIDERPROXY_H__
 
 #include "server/location/LocationProviderInterface.h"
+#include "location/internal/DummyLocationProvider.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/ElRefBase.h>
+#include <elastos/Mutex.h>
+
+using namespace Elastos::Core::Threading;
 
 class LocationProviderProxy : public LocationProviderInterface
 {
 private:
+    static const CString TAG;
+
+private:
     class Connection : public ElRefBase, IServiceConnection, IRunnable
     {
     public:
+        Connection(
+            /* [in])*/ LocationProviderProxy* lpProxy);
+
         CARAPI_(PInterface) Probe(
-            /* [in]  */ REIID riid);
+            /* [in] */ REIID riid);
 
         CARAPI_(UInt32) AddRef();
 
@@ -25,12 +35,27 @@ private:
 
         CARAPI OnServiceConnected(
             /* [in] */ IComponentName* name,
-            /* [in] */ IBinder* service);
+            /* [in] */ IBinder* service);//todo service should be IInterface
 
         CARAPI OnServiceDisconnected(
             /* [in] */ IComponentName* name);
 
-        Run();
+        CARAPI Post(
+            /* [in] */ IRunnable* action);
+
+        CARAPI_(AutoPtr<ILocationProvider>) GetProvider();
+
+        CARAPI_(DummyLocationProvider*) GetCachedAttributes();
+
+        CARAPI Run();
+
+    private:
+        LocationProviderProxy* mLPProxy;
+        AutoPtr<ILocationProvider> mProvider;
+
+        // for caching requiresNetwork, requiresSatellite, etc.
+        DummyLocationProvider* mCachedAttributes;  // synchronized by mMutex
+        Mutex mSync;
     };
 
 public:
@@ -39,6 +64,12 @@ public:
         /* [in] */ String name,
         /* [in] */ String serviceName,
         /* [in] */ IApartment* handler);
+
+    /**
+     * When unbundled NetworkLocationService package is updated, we
+     * need to unbind from the old version and re-bind to the new one.
+     */
+    CARAPI_(void) Reconnect();
 
     CARAPI_(String) GetName();
 
@@ -58,16 +89,16 @@ public:
 
     CARAPI_(Int32) GetPowerRequirement();
 
-    CARAPI_(Boolean) MeetsCriteria(
-        /* [in] */ ICriteria* criteria);
-
     CARAPI_(Int32) GetAccuracy();
 
-    CARAPI_(Boolean) IsEnabled();
+    CARAPI_(Boolean) MeetsCriteria(
+        /* [in] */ ICriteria* criteria);
 
     CARAPI_(void) Enable();
 
     CARAPI_(void) Disable();
+
+    CARAPI_(Boolean) IsEnabled();
 
     CARAPI_(Int32) GetStatus(
         /* [in] */ IBundle* extras);
@@ -81,13 +112,15 @@ public:
 
     CARAPI_(String) GetInternalState();
 
-//    CARAPI_(void) SetMinTime(
-//        /* [in] */ Int64 minTime,
-//        /* [in] */ IWorkSource* ws);
+    CARAPI_(Boolean) IsLocationTracking();
 
-//    CARAPI_(void) UpdateNetworkState(
-//        /* [in] */ Int32 state,
-//        /* [in] */ INetworkInfo* info);
+    CARAPI_(void) SetMinTime(
+        /* [in] */ Int64 minTime,
+        /* [in] */ IWorkSource* ws);
+
+    CARAPI_(void) UpdateNetworkState(
+        /* [in] */ Int32 state,
+        /* [in] */ INetworkInfo* info);
 
     CARAPI_(void) UpdateLocation(
         /* [in] */ ILocation* location);
@@ -104,11 +137,23 @@ public:
         /* [in] */ Int32 uid);
 
 private:
+    CARAPI_(DummyLocationProvider*) GetCachedAttributes();
+
+private:
     AutoPtr<IContext> mContext;
     String mName;
     AutoPtr<IIntent> mIntent;
     AutoPtr<IApartment> mHandler;
+    Mutex mMutex;
     AutoPtr<Connection> mServiceConnection;  // never null
+
+    // cached values set by the location manager
+    Boolean mLocationTracking;
+    Boolean mEnabled;
+    Int64 mMinTime;
+    AutoPtr<IWorkSource> mMinTimeSource;
+    Int32 mNetworkState;
+    AutoPtr<INetworkInfo> mNetworkInfo;
 };
 
 #endif //__LOCATIONPROVIDERPROXY_H__

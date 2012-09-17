@@ -6,6 +6,7 @@
 #include "server/location/PassiveProvider.h"
 #include "location/CCriteria.h"
 #include "location/CLocation.h"
+#include "os/CBundle.h"
 #include <StringBuffer.h>
 #include <elastos/Math.h>
 
@@ -1452,7 +1453,10 @@ ECode CLocationManagerService::RequestLocationUpdatesLocked(
 //		throw new IllegalArgumentException("provider=" + provider);
 	}
 
-	CheckPermissionsSafe(provider);
+	ECode ec = CheckPermissionsSafe(provider);
+	if (FAILED(ec)) {
+		return ec;
+	}
 
 	// so wakelock calls will succeed32
 //    Int32 callingUid = Binder.getCallingUid();
@@ -1614,7 +1618,8 @@ void CLocationManagerService::RemoveUpdatesLocked(
 		if (p != NULL) {
 			if (hasOtherListener) {
 //				p->SetMinTime(getMinTimeLocked(provider), mTmpWorkSource);
-			} else {
+			}
+			else {
 				p->EnableLocationTracking(FALSE);
 			}
 		}
@@ -2111,8 +2116,6 @@ ECode CLocationManagerService::RemoveProximityAlert(
 //	} catch (Exception e) {
 //		Slog.e(TAG, "removeProximityAlert got exception:", e);
 //	}
-
-	return E_NOT_IMPLEMENTED;
 }
 
 ECode CLocationManagerService::RemoveProximityAlertLocked(
@@ -2138,6 +2141,8 @@ ECode CLocationManagerService::GetProviderInfo(
 {
 //	try {
 //		synchronized (mLock) {
+	VALIDATE_NOT_NULL(info);
+	
 	return _GetProviderInfoLocked(provider, info);
 //		}
 //	} catch (SecurityException se) {
@@ -2154,21 +2159,57 @@ ECode CLocationManagerService::_GetProviderInfoLocked(
 	/* [in] */ String provider,
 	/* [out] */ IBundle** info)
 {
-	return E_NOT_IMPLEMENTED;
+	VALIDATE_NOT_NULL(info);
+	
+	AutoPtr<LocationProviderInterface> p;
+	HashMap<String, AutoPtr<LocationProviderInterface> >::Iterator it = mProvidersByName.Find(provider);
+	if (it != mProvidersByName.End()) {
+		p = it->mSecond;
+	}
+	if (p == NULL) {
+		*info = NULL;
+		return NOERROR;
+	}
+
+	ECode ec = CheckPermissionsSafe(provider);
+	if (FAILED(ec)) {
+		*info = NULL;
+		return ec;
+	}
+
+	AutoPtr<IBundle> b;
+	CBundle::New((IBundle**)&b);
+	b->PutBoolean(String("network"), p->RequiresNetwork());
+	b->PutBoolean(String("satellite"), p->RequiresSatellite());
+	b->PutBoolean(String("cell"), p->RequiresCell());
+	b->PutBoolean(String("cost"), p->HasMonetaryCost());
+	b->PutBoolean(String("altitude"), p->SupportsAltitude());
+	b->PutBoolean(String("speed"), p->SupportsSpeed());
+	b->PutBoolean(String("bearing"), p->SupportsBearing());
+	b->PutInt32(String("power"), p->GetPowerRequirement());
+	b->PutInt32(String("accuracy"), p->GetAccuracy());
+
+	*info = b;
+
+	return NOERROR;
 }
 
 ECode CLocationManagerService::IsProviderEnabled(
     /* [in] */ const String& provider,
     /* [out] */ Boolean* isEnabled)
 {
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CLocationManagerService::GetLastKnownLocation(
-    /* [in] */ const String& provider,
-    /* [out] */ ILocation** location)
-{
-    return E_NOT_IMPLEMENTED;
+//	try {
+//		synchronized (mLock) {
+	VALIDATE_NOT_NULL(isEnabled);
+	
+	return _IsProviderEnabledLocked(provider, isEnabled);
+//		}
+//	} catch (SecurityException se) {
+//		throw se;
+//	} catch (Exception e) {
+//		Slog.e(TAG, "isProviderEnabled got exception:", e);
+//		return false;
+//	}
 }
 
 // Used by location providers to tell the location manager when it has a new location.
@@ -2178,20 +2219,293 @@ ECode CLocationManagerService::ReportLocation(
     /* [in] */ ILocation* location,
     /* [in] */ Boolean passive)
 {
-    return E_NOT_IMPLEMENTED;
+	Int32 perm;
+	mContext->CheckCallingOrSelfPermission(String(INSTALL_LOCATION_PROVIDER), &perm);
+	if (perm != CapsuleManager_PERMISSION_GRANTED) {
+		return E_SECURITY_EXCEPTION;
+//		throw new SecurityException("Requires INSTALL_LOCATION_PROVIDER permission");
+	}
+
+//	mLocationHandler->RemoveMessages(MESSAGE_LOCATION_CHANGED, location);
+//	Message m = Message.obtain(mLocationHandler, MESSAGE_LOCATION_CHANGED, location);
+//	m.arg1 = (passive ? 1 : 0);
+//	mLocationHandler.sendMessageAtFrontOfQueue(m);
+
+	return NOERROR;
 }
+
+ECode CLocationManagerService::_IsProviderEnabledLocked(
+	/* [in] */ String provider,
+	/* [out] */ Boolean* isEnabled)
+{
+	VALIDATE_NOT_NULL(isEnabled);
+	
+	ECode ec = CheckPermissionsSafe(provider);
+	if (FAILED(ec)) {
+		*isEnabled = FALSE;
+		return ec;
+	}
+
+	AutoPtr<LocationProviderInterface> p;
+	HashMap<String, AutoPtr<LocationProviderInterface> >::Iterator it = mProvidersByName.Find(provider);
+	if (it != mProvidersByName.End()) {
+		p = it->mSecond;
+	}
+	if (p == NULL) {
+		*isEnabled = FALSE;
+		return NOERROR;
+	}
+
+	*isEnabled = IsAllowedBySettingsLocked(provider);
+
+	return NOERROR;
+}
+
+ECode CLocationManagerService::GetLastKnownLocation(
+    /* [in] */ const String& provider,
+    /* [out] */ ILocation** location)
+{
+//	if (LOCAL_LOGV) {
+//		Slog.v(TAG, "getLastKnownLocation: " + provider);
+//	}
+//	try {
+//		synchronized (mLock) {
+	VALIDATE_NOT_NULL(location);
+	
+	return _GetLastKnownLocationLocked(provider, location);
+//		}
+//	} catch (SecurityException se) {
+//		throw se;
+//	} catch (Exception e) {
+//		Slog.e(TAG, "getLastKnownLocation got exception:", e);
+//		return null;
+//	}
+}
+
+ECode CLocationManagerService::_GetLastKnownLocationLocked(
+	/* [in] */ String provider,
+	/* [out] */ ILocation** location)
+{
+	VALIDATE_NOT_NULL(location);
+	
+	ECode ec = CheckPermissionsSafe(provider);
+	if (FAILED(ec)) {
+		*location = NULL;
+		return ec;
+	}
+
+	AutoPtr<LocationProviderInterface> p;
+	HashMap<String, AutoPtr<LocationProviderInterface> >::Iterator it = mProvidersByName.Find(provider);
+	if (it != mProvidersByName.End()) {
+		p = it->mSecond;
+	}
+	if (p == NULL) {
+		*location = NULL;
+		return NOERROR;
+	}
+
+	if (!IsAllowedBySettingsLocked(provider)) {
+		*location = NULL;
+		return NOERROR;
+	}
+
+	HashMap<String, AutoPtr<ILocation> >::Iterator lastIt = mLastKnownLocation.Find(provider);
+	if (lastIt != mLastKnownLocation.End()) {
+		*location = lastIt->mSecond;
+	}
+
+	return NOERROR;
+}
+
+Boolean CLocationManagerService::ShouldBroadcastSafe(
+	/* [in] */ ILocation* loc,
+	/* [in] */ ILocation* lastLoc,
+	/* [in] */ UpdateRecord* record)
+{
+	// Always broadcast the first update
+	if (lastLoc == NULL) {
+		return TRUE;
+	}
+
+	// Don't broadcast same location again regardless of condition
+	// TODO - we should probably still rebroadcast if user explicitly sets a minTime > 0
+	Int64 time, lastTime;
+	loc->GetTime(&time);
+	lastLoc->GetTime(&lastTime);
+	if (time == lastTime) {
+		return FALSE;
+	}
+
+	// Check whether sufficient distance has been traveled
+	Double minDistance = record->mMinDistance;
+	if (minDistance > 0.0) {
+		Int32 dis;
+		loc->DistanceTo(lastLoc, (Float*)&dis);
+		if (dis <= minDistance) {
+			return FALSE;
+		}
+	}
+
+	return TRUE;
+}
+
+void CLocationManagerService::HandleLocationChangedLocked(
+	/* [in] */ ILocation* location,
+	/* [in] */ Boolean passive)
+{
+	String provider;
+	if(passive) {
+		provider = String(LocationManager_PASSIVE_PROVIDER);
+	}
+	else {
+		location->GetProvider(&provider);
+	}
+	List<UpdateRecord*>* records = NULL;
+	HashMap<String, List<UpdateRecord*>* >::Iterator it = mRecordsByProvider.Find(provider);
+	if (it != mRecordsByProvider.End()) {
+		records = it->mSecond;
+	}
+	if (records == NULL || records->Begin() == records->End()) {
+		return;
+	}
+
+	AutoPtr<LocationProviderInterface> p;
+	HashMap<String, AutoPtr<LocationProviderInterface> >::Iterator providersIt = mProvidersByName.Find(provider);
+	if (providersIt != mProvidersByName.End()) {
+		p = providersIt->mSecond;
+	}
+	if (p == NULL) {
+		return;
+	}
+
+	// Update last known location for provider
+	AutoPtr<ILocation> lastLocation;
+	HashMap<String, AutoPtr<ILocation> >::Iterator locIt = mLastKnownLocation.Find(provider);
+	if (locIt != mLastKnownLocation.End()) {
+		lastLocation = locIt->mSecond;
+	}
+	if (lastLocation == NULL) {
+		AutoPtr<ILocation> loc;
+		CLocation::New(location, (ILocation**)&loc);
+		mLastKnownLocation[provider] = loc;
+	}
+	else {
+		lastLocation->Set(location);
+	}
+
+	// Fetch latest status update time
+	Int64 newStatusUpdateTime = p->GetStatusUpdateTime();
+
+    // Get latest status
+	AutoPtr<IBundle> extras;
+    CBundle::New((IBundle**)&extras);
+	Int32 status = p->GetStatus(extras);
+
+	List<AutoPtr<Receiver> >* deadReceivers = NULL;
+
+	// Broadcast location or status to all listeners
+	List<UpdateRecord*>::Iterator recordIt;
+	for (recordIt = records->Begin(); recordIt != records->End(); ++recordIt) {
+		UpdateRecord* r = *recordIt;
+		AutoPtr<Receiver> receiver = r->mReceiver;
+		Boolean receiverDead = FALSE;
+
+		AutoPtr<ILocation> lastLoc = r->mLastFixBroadcast;
+		if ((lastLoc == NULL) || ShouldBroadcastSafe(location, lastLoc, r)) {
+			if (lastLoc == NULL) {
+				CLocation::New(location, (ILocation**)&lastLoc);
+				r->mLastFixBroadcast = lastLoc;
+			}
+			else {
+				lastLoc->Set(location);
+			}
+			if (!receiver->CallLocationChangedLocked(location)) {
+//				Slog.w(TAG, "RemoteException calling onLocationChanged on " + receiver);
+				receiverDead = TRUE;
+			}
+		}
+
+		Int64 prevStatusUpdateTime = r->mLastStatusBroadcast;
+		if ((newStatusUpdateTime > prevStatusUpdateTime) &&
+			(prevStatusUpdateTime != 0 || status != LocationProvider_AVAILABLE)) {
+
+			r->mLastStatusBroadcast = newStatusUpdateTime;
+			if (!receiver->CallStatusChangedLocked(provider, status, extras)) {
+				receiverDead = TRUE;
+//				Slog.w(TAG, "RemoteException calling onStatusChanged on " + receiver);
+			}
+		}
+
+		// remove receiver if it is dead or we just processed a single shot request
+		if (receiverDead || r->mSingleShot) {
+			if (deadReceivers == NULL) {
+				deadReceivers = new List<AutoPtr<Receiver> >();
+			}
+			List<AutoPtr<Receiver> >::Iterator it;
+			for (it = deadReceivers->Begin(); it != deadReceivers->End(); ++it) {
+				if (*it == receiver) {
+					break;
+				}
+			}
+			if (it == deadReceivers->End()) {
+				deadReceivers->PushBack(receiver);
+			}
+		}
+	}
+
+	if (deadReceivers != NULL) {
+		List<AutoPtr<Receiver> >::ReverseIterator rit;
+		for (rit = deadReceivers->RBegin(); rit != deadReceivers->REnd(); ++rit) {
+			RemoveUpdatesLocked(*rit);
+		}
+	}
+}
+
 
 void CLocationManagerService::IncrementPendingBroadcasts()
 {
+//	synchronized (mWakeLock) {
+	if (mPendingBroadcasts++ == 0) {
+//		try {
+//		mWakeLock->Acquire();
+//		log("Acquired wakelock");
+//		} catch (Exception e) {
+//			// This is to catch a runtime exception thrown when we try to release an
+//			// already released lock.
+//			Slog.e(TAG, "exception in acquireWakeLock()", e);
+//		}
+	}
+//}
 }
 
 void CLocationManagerService::DecrementPendingBroadcasts()
 {
+//	synchronized (mWakeLock) {
+	if (--mPendingBroadcasts == 0) {
+//		try {
+		// Release wake lock
+//		if (mWakeLock->IsHeld()) {
+//			mWakeLock->Release();
+//			log("Released wakelock");
+//		} else {
+//			log("Can't release wakelock again!");
+//		}
+//		} catch (Exception e) {
+//			// This is to catch a runtime exception thrown when we try to release an
+//			// already released lock.
+//			Slog.e(TAG, "exception in releaseWakeLock()", e);
+//		}
+	}
+//	}
 }
 
-ECode CLocationManagerService::GeocoderIsPresent()
+ECode CLocationManagerService::GeocoderIsPresent(
+	/* [out] */ Boolean* result)
 {
-    return E_NOT_IMPLEMENTED;
+	VALIDATE_NOT_NULL(result);
+	*result = mGeocodeProvider != NULL;
+	
+	return NOERROR;
 }
 
 ECode CLocationManagerService::GetFromLocation(
@@ -2202,7 +2516,17 @@ ECode CLocationManagerService::GetFromLocation(
     /* [out] */ IObjectContainer** addrs,
     /* [out] */ String* result)
 {
-    return E_NOT_IMPLEMENTED;
+	VALIDATE_NOT_NULL(addrs);
+	VALIDATE_NOT_NULL(result);
+	
+	if (mGeocodeProvider != NULL) {
+		*result = mGeocodeProvider->GetFromLocation(latitude, longitude, maxResults,
+				params, addrs);
+	   return NOERROR;
+	}
+    *result = String(NULL);
+	
+	return NOERROR;
 }
 
 ECode CLocationManagerService::GetFromLocationName(
@@ -2216,7 +2540,35 @@ ECode CLocationManagerService::GetFromLocationName(
     /* [out] */ IObjectContainer** addrs,
     /* [out] */ String* result)
 {
-    return E_NOT_IMPLEMENTED;
+	VALIDATE_NOT_NULL(addrs);
+	VALIDATE_NOT_NULL(result);
+	
+	if (mGeocodeProvider != NULL) {
+		*result = mGeocodeProvider->GetFromLocationName(locationName, lowerLeftLatitude,
+				lowerLeftLongitude, upperRightLatitude, upperRightLongitude,
+				maxResults, params, addrs);
+	}
+	*result = String(NULL);
+		
+	return NOERROR;
+}
+
+ECode CLocationManagerService::CheckMockPermissionsSafe()
+{
+//	Boolean allowMocks = Settings.Secure.getInt(mContext.getContentResolver(),
+//			Settings.Secure.ALLOW_MOCK_LOCATION, 0) == 1;
+//	if (!allowMocks) {
+//		throw new SecurityException("Requires ACCESS_MOCK_LOCATION secure setting");
+//	}
+
+	Int32 value;
+	mContext->CheckCallingPermission(String(ACCESS_MOCK_LOCATION), &value);
+	if (value != CapsuleManager_PERMISSION_GRANTED) {
+		return E_SECURITY_EXCEPTION;
+//		throw new SecurityException("Requires ACCESS_MOCK_LOCATION permission");
+	}
+	
+	return NOERROR;
 }
 
 ECode CLocationManagerService::AddTestProvider(
@@ -2231,7 +2583,7 @@ ECode CLocationManagerService::AddTestProvider(
     /* [in] */ Int32 powerRequirement,
     /* [in] */ Int32 accuracy)
 {
-    return E_NOT_IMPLEMENTED;
+	return E_NOT_IMPLEMENTED;
 }
 
 ECode CLocationManagerService::RemoveTestProvider(
@@ -2280,5 +2632,3 @@ ECode CLocationManagerService::ClearTestProviderStatus(
 {
     return E_NOT_IMPLEMENTED;
 }
-
-

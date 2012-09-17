@@ -6,6 +6,7 @@ module
     merge("net/LocalSocketAddress.car");
     merge("net/LocalSocket.car");
     merge("net/NetworkInfo.car");
+    merge("net/ConnectivityManager.car");
 
     class CStringUri {
         constructor(

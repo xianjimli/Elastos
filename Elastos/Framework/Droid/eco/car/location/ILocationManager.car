@@ -98,7 +98,8 @@ module
             [in] ILocation* location,
             [in] Boolean passive);
 
-        GeocoderIsPresent();
+        GeocoderIsPresent(
+            [out] Boolean* result);
 
         GetFromLocation(
             [in] Double latitude,

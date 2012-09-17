@@ -11,3 +11,6 @@ SOURCES += CGeocoderParams.cpp
 SOURCES += CLocation.cpp
 SOURCES += CLocationManager.cpp
 SOURCES += CAddress.cpp
+SOURCES += LocationProvider.cpp
+
+LIBRARIES += internal/locationInternal.lib

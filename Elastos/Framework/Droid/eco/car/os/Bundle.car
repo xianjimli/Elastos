@@ -4,6 +4,19 @@ module
     interface IDescribable;
 
     interface IBundle extends IDescribable {
+        /**
+         * Removes all elements from the mapping of this Bundle.
+         */
+        Clear();
+
+        /**
+         * Inserts all mappings from the given Bundle into this Bundle.
+         *
+         * @param map a Bundle
+         */
+        PutAll(
+            [in] IBundle* map);
+
         PutBoolean(
             [in] String key,
             [in] Boolean value);

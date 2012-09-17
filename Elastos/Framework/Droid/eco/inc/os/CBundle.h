@@ -16,6 +16,11 @@ public:
 
     ~CBundle();
 
+    CARAPI Clear();
+
+    CARAPI PutAll(
+        /* [in] */ IBundle* map);
+
     CARAPI PutBoolean(
         /* [in] */ const String& key,
         /* [in] */ Boolean value);

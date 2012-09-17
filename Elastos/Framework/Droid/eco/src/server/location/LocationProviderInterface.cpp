@@ -42,3 +42,8 @@ CARAPI LocationProviderInterface::GetInterfaceID(
 
     return NOERROR;
 }
+
+LocationProviderInterface::~LocationProviderInterface()
+{
+}
+

@@ -12,6 +12,30 @@ CBundle::~CBundle()
     mData.Clear();
 }
 
+ECode CBundle::Clear()
+{
+//    unparcel();
+    mData.Clear();
+//    mHasFds = false;
+//    mFdsKnown = true;
+}
+
+ECode CBundle::PutAll(
+    /* [in] */ IBundle* map)
+{
+//    unparcel();
+//    map.unparcel();
+    AutoPtr<CBundle> obj = (CBundle*)map;
+    HashMap<String, DataWrapper*>::Iterator it;
+    for (it = obj->mData.Begin(); it != obj->mData.End(); ++it) {
+        mData[it->mFirst] = it->mSecond;
+    }
+
+    // fd state is now known if and only if both bundles already knew
+//    mHasFds |= map.mHasFds;
+//    mFdsKnown = mFdsKnown && map.mFdsKnown;
+}
+
 ECode CBundle::PutBoolean(
     /* [in] */ const String& key,
     /* [in] */ Boolean value)

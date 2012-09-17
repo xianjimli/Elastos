@@ -16,3 +16,4 @@ SOURCES += GpsLocationProvider.cpp
 SOURCES += PassiveProvider.cpp
 SOURCES += LocationProviderProxy.cpp
 SOURCES += GeocoderProxy.cpp
+SOURCES += GpsXtraDownloader.cpp

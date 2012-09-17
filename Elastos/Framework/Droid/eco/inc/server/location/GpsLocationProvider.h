@@ -3,8 +3,15 @@
 #define __GPSLOCATIONPROVIDER_H__
 
 #include "server/location/LocationProviderInterface.h"
+#include "location/internal/GpsNetInitiatedHandler.h"
+//#include "hardware/gps.h"
 #include <elastos/AutoPtr.h>
+#include <elastos/List.h>
+#include <elastos/HashMap.h>
 #include <elastos/ElRefBase.h>
+#include <elastos/Mutex.h>
+
+using namespace Elastos::Core::Threading;
 
 class GpsLocationProvider : public LocationProviderInterface
 {
@@ -133,10 +140,19 @@ private:
     // by more than 5 minutes.
     static const Int64 MAX_NTP_SYSTEM_TIME_OFFSET = 300000;
 
+    // for GPS SV statistics
+    static const Int32 MAX_SVS = 32;
+    static const Int32 EPHEMERIS_MASK = 0;
+    static const Int32 ALMANAC_MASK = 1;
+    static const Int32 USED_FOR_FIX_MASK = 2;
+
 private:
     class MyGpsStatusProvider : public ElRefBase, IGpsStatusProvider
     {
     public:
+        MyGpsStatusProvider(
+            /* [in] */ GpsLocationProvider* gpsLocProvider);
+
         CARAPI_(PInterface) Probe(
             /* [in] */ REIID riid);
 
@@ -153,12 +169,78 @@ private:
 
         CARAPI RemoveGpsStatusListener(
             /* [in] */ IGpsStatusListener* listener);
+
+    private:
+        GpsLocationProvider* mGpsLocationProvider;
     };
+
+    class Listener : public ElRefBase, IBinderDeathRecipient
+    {
+    public:
+        Listener(
+            /* [in] */ GpsLocationProvider* gpsLocProvider,
+            /* [in] */ IGpsStatusListener* listener);
+
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI BinderDied();
+
+    private:
+        GpsLocationProvider* mGpsLocationProvider;
+
+    public:
+        AutoPtr<IGpsStatusListener> mListener;
+        Int32 mSensors;
+    };
+
+    //=============================================================
+    // NI Client support
+    //=============================================================
+    class NetInitiatedListener :  public ElRefBase, INetInitiatedListener
+    {
+    public:
+        NetInitiatedListener(
+            /* [in] */ GpsLocationProvider* gpsLocProvider);
+
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        // Sends a response for an NI reqeust to HAL.
+        CARAPI SendNiResponse(
+            /* [in] */ Int32 notificationId,
+            /* [in] */ Int32 userResponse,
+            /* [out] */ Boolean* result);
+
+    private:
+        GpsLocationProvider* mGpsLocationProvider;
+    };
+
+private:
+        static void* EntryRoutine(void *arg);
 
 public:
     GpsLocationProvider(
         /* [in] */ IContext* context,
         /* [in] */ ILocationManager* locationManager);
+
+    ~GpsLocationProvider();
 
     CARAPI_(AutoPtr<IGpsStatusProvider>) GetGpsStatusProvider();
 
@@ -167,6 +249,13 @@ public:
     CARAPI_(String) GetName();
 
     CARAPI_(Boolean) RequiresNetwork();
+
+    CARAPI_(void) UpdateNetworkState(
+        /* [in] */ Int32 state,
+        /* [in] */ INetworkInfo* info);
+
+    CARAPI_(void) UpdateLocation(
+        /* [in] */ ILocation* location);
 
     CARAPI_(Boolean) RequiresSatellite();
 
@@ -205,27 +294,245 @@ public:
 
     CARAPI_(String) GetInternalState();
 
-//    CARAPI_(void) SetMinTime(
-//        /* [in] */ Int64 minTime,
-//        /* [in] */ IWorkSource* ws);
-
-//    CARAPI_(void) UpdateNetworkState(
-//        /* [in] */ Int32 state,
-//        /* [in] */ INetworkInfo* info);
-
-    CARAPI_(void) UpdateLocation(
-        /* [in] */ ILocation* location);
-
-    CARAPI_(Boolean) SendExtraCommand(
-        /* [in] */ String command,
-        /* [in] */ IBundle* extras,
-        /* [out] */ IBundle** outExtras);
+    CARAPI_(void) SetMinTime(
+        /* [in] */ Int64 minTime,
+        /* [in] */ IWorkSource* ws);
 
     CARAPI_(void) AddListener(
         /* [in] */ Int32 uid);
 
     CARAPI_(void) RemoveListener(
         /* [in] */ Int32 uid);
+
+    CARAPI_(Boolean) SendExtraCommand(
+        /* [in] */ String command,
+        /* [in] */ IBundle* extras,
+        /* [out] */ IBundle** outExtras);
+
+    CARAPI_(NetInitiatedListener*) GetNetInitiatedListener();
+
+    // Called by JNI function to report an NI request.
+    CARAPI_(void) ReportNiNotification(
+        /* [in] */ Int32 notificationId,
+        /* [in] */ Int32 niType,
+        /* [in] */ Int32 notifyFlags,
+        /* [in] */ Int32 timeout,
+        /* [in] */ Int32 defaultResponse,
+        /* [in] */ String requestorId,
+        /* [in] */ String text,
+        /* [in] */ Int32 requestorIdEncoding,
+        /* [in] */ Int32 textEncoding,
+        /* [in] */ String extras);
+
+private:
+    CARAPI_(void) CheckSmsSuplInit(
+        /* [in] */ IIntent* intent);
+
+    CARAPI_(void) CheckWapSuplInit(
+        /* [in] */ IIntent* intent);
+
+    CARAPI_(void) Initialize();
+
+    CARAPI_(void) HandleUpdateNetworkState(
+        /* [in] */ Int32 state,
+        /* [in] */ INetworkInfo* info);
+
+    CARAPI_(void) HandleInjectNtpTime();
+
+    CARAPI_(void) HandleDownloadXtraData();
+
+    CARAPI_(void) HandleUpdateLocation(
+        /* [in] */ ILocation* location);
+
+    CARAPI_(void) HandleEnable();
+
+    CARAPI_(void) HandleDisable();
+
+    CARAPI_(void) UpdateStatus(
+        /* [in] */ Int32 status,
+        /* [in] */ Int32 svCount);
+
+    CARAPI_(void) HandleEnableLocationTracking(
+        /* [in] */ Boolean enable);
+
+    CARAPI_(void) HandleRequestSingleShot();
+
+    CARAPI_(void) HandleAddListener(
+        /* [in] */ Int32 uid);
+
+    CARAPI_(void) HandleRemoveListener(
+        /* [in] */ Int32 uid);
+
+    CARAPI_(Boolean) DeleteAidingData(
+        /* [in] */ IBundle* extras);
+
+    CARAPI_(void) StartNavigating(
+        /* [in] */ Boolean singleShot);
+
+    CARAPI_(void) StopNavigating();
+
+    CARAPI_(void) Hibernate();
+
+    CARAPI_(Boolean) HasCapability(
+        /* [in] */ Int32 capability);
+
+    /**
+     * called from native code to update our position.
+     */
+    CARAPI_(void) ReportLocation(
+        /* [in] */ Int32 flags,
+        /* [in] */ Double latitude,
+        /* [in] */ Double longitude,
+        /* [in] */ Double altitude,
+        /* [in] */ Float speed,
+        /* [in] */ Float bearing,
+        /* [in] */ Float accuracy,
+        /* [in] */ Int64 timestamp);
+
+    /**
+     * called from native code to update our status
+     */
+    CARAPI_(void) ReportStatus(
+        /* [in] */ Int32 status);
+
+    /**
+     * called from native code to update SV info
+     */
+    CARAPI_(void) ReportSvStatus();
+
+    /**
+     * called from native code to request XTRA data
+     */
+    CARAPI_(void) XtraDownloadRequest();
+
+    /**
+     * Called from native code to request set id info.
+     * We should be careful about receiving null string from the TelephonyManager,
+     * because sending null String to JNI function would cause a crash.
+     */
+    CARAPI_(void) RequestSetID(
+        /* [in] */ Int32 flags);
+
+    /**
+     * Called from native code to request reference location info
+     */
+    CARAPI_(void) RequestRefLocation(
+        /* [in] */ Int32 flags);
+
+    CARAPI_(void) SendCallback(
+        /* [in] */ Handle32 func,
+        /* [in] */ Int32 message,
+        /* [in] */ Int32 arg,
+        /* [in] */ IInterface* value);
+
+    CARAPI_(Boolean) Init();
+
+    CARAPI_(void) Cleanup();
+
+    CARAPI_(Boolean) SetPositionMode(
+        /* [in] */ Int32 mode,
+        /* [in] */ Int32 recurrence,
+        /* [in] */ Int32 min_interval,
+        /* [in] */ Int32 preferred_accuracy,
+        /* [in] */ Int32 preferred_time);
+
+    CARAPI_(Boolean) Start();
+
+    CARAPI_(Boolean) Stop();
+
+    CARAPI_(void) NativeDeleteAidingData(
+        /* [in] */ Int32 flags);
+
+    // returns number of SVs
+    // mask[0] is ephemeris mask and mask[1] is almanac mask
+    CARAPI_(Int32) ReadSvStatus(
+        /* [in] */ const ArrayOf<Int32>& svs,
+        /* [in] */ const ArrayOf<Float>& snrs,
+        /* [in] */ const ArrayOf<Float>& elevations,
+        /* [in] */ const ArrayOf<Float>& azimuths,
+        /* [in] */ const ArrayOf<Int32>& masks);
+
+    /**
+     * called from native code to update AGPS status
+     */
+    CARAPI_(void) ReportAGpsStatus(
+        /* [in] */ Int32 type,
+        /* [in] */ Int32 status);
+
+    /**
+     * called from native code to report NMEA data received
+     */
+    CARAPI_(void) ReportNmea(
+        /* [in] */ Int64 timestamp);
+
+    /**
+     * called from native code to inform us what the GPS engine capabilities are
+     */
+    CARAPI_(void) SetEngineCapabilities(
+        /* [in] */ Int32 capabilities);
+
+    CARAPI_(Int32) ReadNmea(
+        /* [in] */ const ArrayOf<Byte>& buffer,
+        /* [in] */ Int32 bufferSize);
+
+    CARAPI_(void) InjectLocation(
+        /* [in] */ Double latitude,
+        /* [in] */ Double longitude,
+        /* [in] */ Float accuracy);
+
+    CARAPI_(void) InjectTime(
+        /* [in] */ Int64 time,
+        /* [in] */ Int64 timeReference,
+        /* [in] */ Int32 uncertainty);
+
+    CARAPI_(Boolean) SupportsXtra();
+
+    CARAPI_(void) InjectXtraData(
+        /* [in] */ ArrayOf<Byte>* data,
+        /* [in] */ Int32 length);
+
+    // AGPS Support
+    CARAPI_(void) AgpsDataConnOpen(
+        /* [in] */ String apn);
+
+    CARAPI_(void) AgpsDataConnClosed();
+
+    CARAPI_(void) AgpsDataConnFailed();
+
+    CARAPI_(void) AgpsNiMessage(
+        /* [in] */ const ArrayOf<Byte>& msg,
+        /* [in] */ Int32 length);
+
+    CARAPI_(void) SetAgpsServer(
+        /* [in] */ Int32 type,
+        /* [in] */ String hostname,
+        /* [in] */ Int32 port);
+
+    // Network-initiated (NI) Support
+    CARAPI_(void) SendNiResponse(
+        /* [in] */ Int32 notificationId,
+        /* [in] */ Int32 userResponse);
+
+    // AGPS ril suport
+    CARAPI_(void) AgpsSetRefLocationCellid(
+        /* [in] */ Int32 type,
+        /* [in] */ Int32 mcc,
+        /* [in] */ Int32 mnc,
+        /* [in] */ Int32 lac,
+        /* [in] */ Int32 cid);
+
+    CARAPI_(void) AgpsSetId(
+        /* [in] */ Int32 type,
+        /* [in] */ String setid);
+
+    CARAPI_(void) NativeUpdateNetworkState(
+        /* [in] */ Boolean connected,
+        /* [in] */ Int32 type,
+        /* [in] */ Boolean roaming,
+        /* [in] */ String extraInfo);
+
+protected:
+//    static const GpsInterface* sGpsInterface;
 
 private:
     Int32 mLocationFlags;
@@ -288,20 +595,23 @@ private:
     AutoPtr<IContext> mContext;
     AutoPtr<ILocationManager> mLocationManager;
     AutoPtr<ILocation> mLocation;
+    Mutex mLocationLock;
     AutoPtr<IBundle> mLocationExtras;
-//    ArrayList<Listener> mListeners;
+    List<AutoPtr<Listener> > mListeners;
+    Mutex mListenersLock;
 
     // GpsLocationProvider's handler thread
-    pthread_t   mThread;
+    pthread_t mThread;
     // Handler for processing events in mThread.
     AutoPtr<IApartment> mHandler;
+    Mutex mHandlerLock;
     // Used to signal when our main thread has initialized everything
 //    private final CountDownLatch mInitializedLatch = new CountDownLatch(1);
 
     String mAGpsApn;
     Int32 mAGpsDataConnectionState;
-//    ConnectivityManager mConnMgr;
-//    GpsNetInitiatedHandler mNIHandler;
+    AutoPtr<ILocalConnectivityManager> mConnMgr;
+    GpsNetInitiatedHandler* mNIHandler;
 
 //    PowerManager.WakeLock mWakeLock;
     // bitfield of pending messages to our Handler
@@ -317,11 +627,22 @@ private:
     AutoPtr<IPendingIntent> mTimeoutIntent;
 
     AutoPtr<IBatteryStats> mBatteryStats;
-//    SparseIntArray mClientUids = new SparseIntArray();
+    HashMap<Int32, Int32> mClientUids;
 
     MyGpsStatusProvider* mGpsStatusProvider;
 //    BroadcastReceiver mBroadcastReciever = new BroadcastReceiver();
-//    INetInitiatedListener mNetInitiatedListener = new INetInitiatedListener.Stub();
+    NetInitiatedListener* mNetInitiatedListener;
+
+    // preallocated arrays, to avoid memory allocation in reportStatus()
+    ArrayOf<Int32>* mSvs;
+    ArrayOf<Float>* mSnrs;
+    ArrayOf<Float>* mSvElevations;
+    ArrayOf<Float>* mSvAzimuths;
+    ArrayOf<Int32>* mSvMasks;
+    Int32 mSvCount;
+
+    // preallocated to avoid memory allocation in reportNmea()
+    ArrayOf<Byte>* mNmeaBuffer;
 };
 
 #endif //__GPSLOCATIONPROVIDER_H__

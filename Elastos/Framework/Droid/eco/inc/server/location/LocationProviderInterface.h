@@ -21,6 +21,8 @@ public:
         /* [in] */ IInterface *pObject,
         /* [out] */ InterfaceID *pIID);
 
+    virtual ~LocationProviderInterface() = 0;
+
     virtual CARAPI_(String) GetName() = 0;
 
     virtual CARAPI_(Boolean) RequiresNetwork() = 0;
@@ -63,13 +65,13 @@ public:
 
     virtual CARAPI_(String) GetInternalState() = 0;
 
-//    virtual CARAPI_(void) SetMinTime(
-//        /* [in] */ Int64 minTime,
-//        /* [in] */ IWorkSource* ws) = 0;
+    virtual CARAPI_(void) SetMinTime(
+        /* [in] */ Int64 minTime,
+        /* [in] */ IWorkSource* ws) = 0;
 
-//    virtual CARAPI_(void) UpdateNetworkState(
-//        /* [in] */ Int32 state,
-//        /* [in] */ INetworkInfo* info) = 0;
+    virtual CARAPI_(void) UpdateNetworkState(
+        /* [in] */ Int32 state,
+        /* [in] */ INetworkInfo* info) = 0;
 
     virtual CARAPI_(void) UpdateLocation(
         /* [in] */ ILocation* location) = 0;

@@ -1,0 +1,235 @@
+
+module
+{
+    interface INetworkInfo;
+    interface IObjectContainer;
+
+    /**
+     * A change in network connectivity has occurred. A connection has either
+     * been established or lost. The NetworkInfo for the affected network is
+     * sent as an extra; it should be consulted to see what kind of
+     * connectivity event occurred.
+     * <p/>
+     * If this is a connection that was the result of failing over from a
+     * disconnected network, then the FAILOVER_CONNECTION boolean extra is
+     * set to true.
+     * <p/>
+     * For a loss of connectivity, if the connectivity manager is attempting
+     * to connect (or has already connected) to another network, the
+     * NetworkInfo for the new network is also passed as an extra. This lets
+     * any receivers of the broadcast know that they should not necessarily
+     * tell the user that no data traffic will be possible. Instead, the
+     * reciever should expect another broadcast soon, indicating either that
+     * the failover attempt succeeded (and so there is still overall data
+     * connectivity), or that the failover attempt failed, meaning that all
+     * connectivity has been lost.
+     * <p/>
+     * For a disconnect event, the boolean extra EXTRA_NO_CONNECTIVITY
+     * is set to {@code true} if there are no connected networks at all.
+     */
+    const ConnectivityManager_CONNECTIVITY_ACTION = "elastos.net.conn.CONNECTIVITY_CHANGE";
+
+    /**
+     * The lookup key for a {@link NetworkInfo} object. Retrieve with
+     * {@link android.content.Intent#getParcelableExtra(String)}.
+     */
+    const ConnectivityManager_EXTRA_NETWORK_INFO = "networkInfo";
+
+    /**
+     * The lookup key for a boolean that indicates whether a connect event
+     * is for a network to which the connectivity manager was failing over
+     * following a disconnect on another network.
+     * Retrieve it with {@link android.content.Intent#getBooleanExtra(String,boolean)}.
+     */
+    const ConnectivityManager_EXTRA_IS_FAILOVER = "isFailover";
+
+    /**
+     * The lookup key for a {@link NetworkInfo} object. This is supplied when
+     * there is another network that it may be possible to connect to. Retrieve with
+     * {@link android.content.Intent#getParcelableExtra(String)}.
+     */
+    const ConnectivityManager_EXTRA_OTHER_NETWORK_INFO = "otherNetwork";
+
+    /**
+     * The lookup key for a boolean that indicates whether there is a
+     * complete lack of connectivity, i.e., no network is available.
+     * Retrieve it with {@link android.content.Intent#getBooleanExtra(String,boolean)}.
+     */
+    const ConnectivityManager_EXTRA_NO_CONNECTIVITY = "noConnectivity";
+
+    /**
+     * The lookup key for a string that indicates why an attempt to connect
+     * to a network failed. The string has no particular structure. It is
+     * intended to be used in notifications presented to users. Retrieve
+     * it with {@link android.content.Intent#getStringExtra(String)}.
+     */
+    const ConnectivityManager_EXTRA_REASON = "reason";
+
+    /**
+     * The lookup key for a string that provides optionally supplied
+     * extra information about the network state. The information
+     * may be passed up from the lower networking layers, and its
+     * meaning may be specific to a particular network type. Retrieve
+     * it with {@link android.content.Intent#getStringExtra(String)}.
+     */
+    const ConnectivityManager_EXTRA_EXTRA_INFO = "extraInfo";
+
+    /**
+     * Broadcast Action: The setting for background data usage has changed
+     * values. Use {@link #getBackgroundDataSetting()} to get the current value.
+     * <p>
+     * If an application uses the network in the background, it should listen
+     * for this broadcast and stop using the background data if the value is
+     * false.
+     * @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
+     */
+    const ConnectivityManager_ACTION_BACKGROUND_DATA_SETTING_CHANGED = "elastos.net.conn.BACKGROUND_DATA_SETTING_CHANGED";
+
+    /**
+     * The Default Mobile data connection.  When active, all data traffic
+     * will use this connection by default.  Should not coexist with other
+     * default connections.
+     */
+    const ConnectivityManager_TYPE_MOBILE      = 0;
+
+    /**
+     * The Default WIFI data connection.  When active, all data traffic
+     * will use this connection by default.  Should not coexist with other
+     * default connections.
+     */
+    const ConnectivityManager_TYPE_WIFI        = 1;
+
+    /**
+     * An MMS-specific Mobile data connection.  This connection may be the
+     * same as {@link #TYPE_MOBILE} but it may be different.  This is used
+     * by applications needing to talk to the carrier's Multimedia Messaging
+     * Service servers.  It may coexist with default data connections.
+     */
+    const ConnectivityManager_TYPE_MOBILE_MMS  = 2;
+
+    /**
+     * A SUPL-specific Mobile data connection.  This connection may be the
+     * same as {@link #TYPE_MOBILE} but it may be different.  This is used
+     * by applications needing to talk to the carrier's Secure User Plane
+     * Location servers for help locating the device.  It may coexist with
+     * default data connections.
+     */
+    const ConnectivityManager_TYPE_MOBILE_SUPL = 3;
+
+    /**
+     * A DUN-specific Mobile data connection.  This connection may be the
+     * same as {@link #TYPE_MOBILE} but it may be different.  This is used
+     * by applicaitons performing a Dial Up Networking bridge so that
+     * the carrier is aware of DUN traffic.  It may coexist with default data
+     * connections.
+     */
+    const ConnectivityManager_TYPE_MOBILE_DUN  = 4;
+
+    /**
+     * A High Priority Mobile data connection.  This connection is typically
+     * the same as {@link #TYPE_MOBILE} but the routing setup is different.
+     * Only requesting processes will have access to the Mobile DNS servers
+     * and only IP's explicitly requested via {@link #requestRouteToHost}
+     * will route over this interface if a default route exists.
+     */
+    const ConnectivityManager_TYPE_MOBILE_HIPRI = 5;
+
+    /**
+     * The Default WiMAX data connection.  When active, all data traffic
+     * will use this connection by default.  Should not coexist with other
+     * default connections.
+     */
+    const ConnectivityManager_TYPE_WIMAX       = 6;
+
+    /**
+     * Bluetooth data connection.
+     * @hide
+     */
+    const ConnectivityManager_TYPE_BLUETOOTH   = 7;
+
+    /** {@hide} */
+    const ConnectivityManager_TYPE_DUMMY       = 8;
+
+    /** {@hide} */
+    const ConnectivityManager_TYPE_ETHERNET    = 9;
+
+    const ConnectivityManager_DEFAULT_NETWORK_PREFERENCE = 1;
+
+    interface ILocalConnectivityManager {
+        SetNetworkPreference(
+            [in] Int32 preference);
+
+        GetNetworkPreference(
+            [out] Int32* preference);
+
+        GetActiveNetworkInfo(
+            [out] INetworkInfo** networkInfo);
+
+        GetNetworkInfo(
+            [in] Int32 networkType,
+            [out] INetworkInfo** networkInfo);
+
+        GetAllNetworkInfo(
+            [out] IObjectContainer** networkInfo);
+
+        /**
+         * Tells the underlying networking system that the caller wants to
+         * begin using the named feature. The interpretation of {@code feature}
+         * is completely up to each networking implementation.
+         * @param networkType specifies which network the request pertains to
+         * @param feature the name of the feature to be used
+         * @return an integer value representing the outcome of the request.
+         * The interpretation of this value is specific to each networking
+         * implementation+feature combination, except that the value {@code -1}
+         * always indicates failure.
+         */
+        StartUsingNetworkFeature(
+            [in] Int32 networkType,
+            [in] String feature,
+            [out] Int32* outcome);
+
+        /**
+         * Tells the underlying networking system that the caller is finished
+         * using the named feature. The interpretation of {@code feature}
+         * is completely up to each networking implementation.
+         * @param networkType specifies which network the request pertains to
+         * @param feature the name of the feature that is no longer needed
+         * @return an integer value representing the outcome of the request.
+         * The interpretation of this value is specific to each networking
+         * implementation+feature combination, except that the value {@code -1}
+         * always indicates failure.
+         */
+        StopUsingNetworkFeature(
+            [in] Int32 networkType,
+            [in] String feature,
+            [out] Int32* outcome);
+
+        /**
+         * Ensure that a network route exists to deliver traffic to the specified
+         * host via the specified network interface. An attempt to add a route that
+         * already exists is ignored, but treated as successful.
+         * @param networkType the type of the network over which traffic to the specified
+         * host is to be routed
+         * @param hostAddress the IP address of the host to which the route is desired
+         * @return {@code true} on success, {@code false} on failure
+         */
+        RequestRouteToHost(
+            [in] Int32 networkType,
+            [in] String hostAddress,
+            [out] Boolean* result);
+
+        /**
+         * Returns the value of the setting for background data usage. If false,
+         * applications should not use the network if the application is not in the
+         * foreground. Developers should respect this setting, and check the value
+         * of this before performing any background data operations.
+         * <p>
+         * All applications that have background services that use the network
+         * should listen to {@link #ACTION_BACKGROUND_DATA_SETTING_CHANGED}.
+         *
+         * @return Whether background data usage is allowed.
+         */
+        GetBackgroundDataSetting(
+            [out] Boolean* isAllowed);
+    }
+}
