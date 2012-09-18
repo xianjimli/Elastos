@@ -1,0 +1,81 @@
+
+module
+{
+    /**
+     * Open ZIP file for read.
+     */
+    const IZipFile_OPEN_READ = 1;
+
+    /**
+     * Delete ZIP file when closed.
+     */
+    const IZipFile_OPEN_DELETE = 4;
+
+    interface IObjectContainer;
+    interface IZipEntry;
+    interface IInputStream;
+
+    interface IZipFile {
+        /**
+         * Closes this ZIP file. This method is idempotent.
+         *
+         * @throws IOException
+         *             if an IOException occurs.
+         */
+        Close();
+
+        /**
+         * Returns an enumeration of the entries. The entries are listed in the
+         * order in which they appear in the ZIP archive.
+         *
+         * @return the enumeration of the entries.
+         * @throws IllegalStateException if this ZIP file has been closed.
+         */
+        GetEntries(
+            [out] IObjectContainer** entries);
+
+        /**
+         * Gets the ZIP entry with the specified name from this {@code ZipFile}.
+         *
+         * @param entryName
+         *            the name of the entry in the ZIP file.
+         * @return a {@code ZipEntry} or {@code null} if the entry name does not
+         *         exist in the ZIP file.
+         * @throws IllegalStateException if this ZIP file has been closed.
+         */
+        GetEntry(
+            [in] String entryName,
+            [out] IZipEntry** entry);
+
+        /**
+         * Returns an input stream on the data of the specified {@code ZipEntry}.
+         *
+         * @param entry
+         *            the ZipEntry.
+         * @return an input stream of the data contained in the {@code ZipEntry}.
+         * @throws IOException
+         *             if an {@code IOException} occurs.
+         * @throws IllegalStateException if this ZIP file has been closed.
+         */
+        GetInputStream(
+            [in] IZipEntry* entry,
+            [out] IInputStream** is);
+
+        /**
+         * Gets the file name of this {@code ZipFile}.
+         *
+         * @return the file name of this {@code ZipFile}.
+         */
+        GetName(
+            [out] String* name);
+
+        /**
+         * Returns the number of {@code ZipEntries} in this {@code ZipFile}.
+         *
+         * @return the number of entries in this file.
+         * @throws IllegalStateException if this ZIP file has been closed.
+         */
+        GetSize(
+            [out] Int32* size);
+    }
+}

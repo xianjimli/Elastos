@@ -44,6 +44,8 @@ module
     merge("../../../car/Elastos/IO/IPrintWriter.car");
     merge("../../../car/Elastos/IO/IStringReader.car");
     merge("../../../car/Elastos/IO/IStringWriter.car");
+    merge("../../../car/Elastos/IO/IRandomAccessFile.car");
+
 
     class CFilterInputStream {
         /**

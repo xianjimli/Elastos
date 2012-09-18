@@ -1,0 +1,14 @@
+
+module
+{
+    interface IDeflaterOutputStream extends IFilterOutputStream {
+        /**
+         * Writes any unwritten data to the underlying stream. Does not close the
+         * stream.
+         *
+         * @throws IOException
+         *             If an error occurs.
+         */
+        Finish();
+    }
+}
