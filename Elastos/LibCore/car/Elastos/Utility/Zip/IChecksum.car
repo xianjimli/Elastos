@@ -1,0 +1,56 @@
+
+module
+{
+    /**
+     * Holds information about a checksum which was computed with the methods
+     * implementing a checksum algorithm.
+     */
+    interface IChecksum {
+        /**
+         * Returns the current calculated checksum value.
+         *
+         * @return the checksum.
+         */
+        GetValue(
+            [out] Int64* value);
+
+        /**
+         * Resets the checksum value applied before beginning calculations on a new
+         * stream of data.
+         */
+        Reset();
+
+        /**
+         * Updates the checksum value with the given byte.
+         *
+         * @param val
+         *            the byte to update the checksum with.
+         */
+        Update(
+            [in] Int32 val);
+
+        /**
+         * Updates this checksum with the bytes contained in buffer {@code buf}.
+         *
+         * @param buf
+         *            the buffer holding the data to update the checksum with.
+         */
+        UpdateEx(
+            [in] ArrayOf<Byte> buf);
+
+        /**
+         * Updates the checksum with the given bytes.
+         *
+         * @param buf
+         *            the byte array from which to read the bytes.
+         * @param off
+         *            the initial position in {@code buf} to read the bytes from.
+         * @param nbytes
+         *            the number of bytes to read from {@code buf}.
+         */
+        UpdateEx2(
+            [in] ArrayOf<Byte> buf,
+            [in] Int32 off,
+            [in] Int32 nbytes);
+    }
+}

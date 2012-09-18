@@ -1,0 +1,50 @@
+
+module
+{
+    /**
+     * Do not add constants to this interface! It's implemented by the classes
+     * in this package whose names start "Zip", and the constants are thereby
+     * public API.
+     */
+    const ZipConstants_LOCSIG = 0x4034b50;
+    const ZipConstants_EXTSIG = 0x8074b50;
+    const ZipConstants_CENSIG = 0x2014b50;
+    const ZipConstants_ENDSIG = 0x6054b50;
+
+    const ZipConstants_LOCHDR = 30;
+    const ZipConstants_EXTHDR = 16;
+    const ZipConstants_CENHDR = 46;
+    const ZipConstants_ENDHDR = 22;
+    const ZipConstants_LOCVER = 4;
+    const ZipConstants_LOCFLG = 6;
+    const ZipConstants_LOCHOW = 8;
+    const ZipConstants_LOCTIM = 10;
+    const ZipConstants_LOCCRC = 14;
+    const ZipConstants_LOCSIZ = 18;
+    const ZipConstants_LOCLEN = 22;
+    const ZipConstants_LOCNAM = 26;
+    const ZipConstants_LOCEXT = 28;
+    const ZipConstants_EXTCRC = 4;
+    const ZipConstants_EXTSIZ = 8;
+    const ZipConstants_EXTLEN = 12;
+    const ZipConstants_CENVEM = 4;
+    const ZipConstants_CENVER = 6;
+    const ZipConstants_CENFLG = 8;
+    const ZipConstants_CENHOW = 10;
+    const ZipConstants_CENTIM = 12;
+    const ZipConstants_CENCRC = 16;
+    const ZipConstants_CENSIZ = 20;
+    const ZipConstants_CENLEN = 24;
+    const ZipConstants_CENNAM = 28;
+    const ZipConstants_CENEXT = 30;
+    const ZipConstants_CENCOM = 32;
+    const ZipConstants_CENDSK = 34;
+    const ZipConstants_CENATT = 36;
+    const ZipConstants_CENATX = 38;
+    const ZipConstants_CENOFF = 42;
+    const ZipConstants_ENDSUB = 8;
+    const ZipConstants_ENDTOT = 10;
+    const ZipConstants_ENDSIZ = 12;
+    const ZipConstants_ENDOFF = 16;
+    const ZipConstants_ENDCOM = 20;
+}

@@ -11,8 +11,15 @@ INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/Utility/Zip
 INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/common
 
 SOURCES = Elastos.Utility.Zip.car
+SOURCES += CCRC32.cpp
 SOURCES += CInflater.cpp
 SOURCES += CDeflater.cpp
+SOURCES += ZipEntry.cpp
+SOURCES += CZipEntry.cpp
+SOURCES += InflaterInputStream.cpp
+SOURCES += DeflaterOutputStream.cpp
+SOURCES += ZipOutputStream.cpp
+SOURCES += ZipFile.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Core.lib
