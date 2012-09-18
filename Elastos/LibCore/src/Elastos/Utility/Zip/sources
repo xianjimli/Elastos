@@ -18,6 +18,7 @@ SOURCES += ZipEntry.cpp
 SOURCES += CZipEntry.cpp
 SOURCES += InflaterInputStream.cpp
 SOURCES += DeflaterOutputStream.cpp
+SOURCES += ZipInputStream.cpp
 SOURCES += ZipOutputStream.cpp
 SOURCES += ZipFile.cpp
 

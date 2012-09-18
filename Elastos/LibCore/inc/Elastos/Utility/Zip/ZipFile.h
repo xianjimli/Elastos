@@ -38,12 +38,25 @@ public:
      *
      * <p>We could support mark/reset, but we don't currently need them.
      */
-    class RAFStream : public ElRefBase, public IInputStream
+    class RAFStream
+        : public ElRefBase
+        , public IInputStream
     {
     public:
         RAFStream(
             /* [in] */ IRandomAccessFile* raf,
             /* [in] */ Int64 pos);
+
+        CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
 
         CARAPI Available(
             /* [out] */ Int32* number);
@@ -81,9 +94,43 @@ public:
         Int64 mLength;
     };
 
-    class ZipInflaterInputStream : public InflaterInputStream
+    class ZipInflaterInputStream
+        : public ElRefBase
+        , public InflaterInputStream
+        , public IInflaterInputStream
     {
+    public:
+        ZipInflaterInputStream(
+            /* [in] */ IInputStream* is,
+            /* [in] */ IInflater* inf,
+            /* [in] */ Int32 bsize,
+            /* [in] */ CZipEntry* entry);
 
+        CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        //@Override
+        CARAPI ReadBufferEx(
+            /* [in] */ Int32 off,
+            /* [in] */ Int32 nbytes,
+            /* [out] */ ArrayOf<Byte>* buffer,
+            /* [out] */ Int32* number);
+
+        //@Override
+        CARAPI Available(
+            /* [out] */ Int32* number);
+
+    public:
+        AutoPtr<CZipEntry> mEntry;
+        Int64 mBytesRead;
     };
 
 public:
@@ -150,7 +197,7 @@ public:
      * @return the number of entries in this file.
      * @throws IllegalStateException if this ZIP file has been closed.
      */
-    virtual GetSize(
+    virtual CARAPI GetSize(
         /* [out] */ Int32* size);
 
 protected:

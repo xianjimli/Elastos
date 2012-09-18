@@ -236,7 +236,7 @@ ECode ZipEntry::SetExtra(
     /* [in] */ ArrayOf<Byte>* data)
 {
     if (data == NULL || data->GetLength() <= 0xFFFF) {
-        mExtra = data != NULL ? data->Clone() : NULL;
+        mExtra = data;
         return NOERROR;
     }
     else {

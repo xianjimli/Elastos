@@ -19,7 +19,7 @@ module
          *             if this stream is closed or the internal pushback buffer is
          *             full.
          */
-        UnRead(
+        Unread(
             [in] Int32 oneByte);
 
         /**
@@ -38,7 +38,7 @@ module
          *             if the free space in the internal pushback buffer is not
          *             sufficient to store the contents of {@code buffer}.
          */
-        UnReadBuffer(
+        UnreadBuffer(
             [in] ArrayOf<Byte> buffer);
 
         /**
@@ -67,7 +67,7 @@ module
          *             if the free space in the internal pushback buffer is not
          *             sufficient to store the selected contents of {@code buffer}.
          */
-        UnReadBufferEx(
+        UnreadBufferEx(
             [in] Int32 offset,
             [in] Int32 length,
             [in] ArrayOf<Byte> buffer);

@@ -222,16 +222,16 @@ ECode PushbackReader::Reset()
     return E_IO_EXCEPTION;
 }
 
-ECode PushbackReader::UnRead(
+ECode PushbackReader::Unread(
    /* [in] */ Int32 oneChar)
 {
     assert(mLock != NULL);
     Mutex::Autolock lock(mLock);
 
-    return UnReadLocked(oneChar);
+    return UnreadLocked(oneChar);
 }
 
-ECode PushbackReader::UnReadLocked(
+ECode PushbackReader::UnreadLocked(
    /* [in] */ Int32 oneChar)
 {
     assert(mLock != NULL);
@@ -249,14 +249,13 @@ ECode PushbackReader::UnReadLocked(
     return NOERROR;
 }
 
-ECode PushbackReader::UnReadBuffer(
+ECode PushbackReader::UnreadBuffer(
     /* [in] */ const ArrayOf<Char8>& buffer)
 {
-    FAIL_RETURN(UnReadBufferEx(0, buffer.GetLength(), buffer));
-    return NOERROR;
+    return UnreadBufferEx(0, buffer.GetLength(), buffer);
 }
 
-ECode PushbackReader::UnReadBufferEx(
+ECode PushbackReader::UnreadBufferEx(
     /* [in] */ Int32 offset,
     /* [in] */ Int32 length,
     /* [in] */ const ArrayOf<Char8>& buffer)
@@ -264,10 +263,10 @@ ECode PushbackReader::UnReadBufferEx(
     assert(mLock != NULL);
     Mutex::Autolock lock(mLock);
 
-    return UnReadBufferExLocked(offset, length, buffer);
+    return UnreadBufferExLocked(offset, length, buffer);
 }
 
-ECode PushbackReader::UnReadBufferExLocked(
+ECode PushbackReader::UnreadBufferExLocked(
     /* [in] */ Int32 offset,
     /* [in] */ Int32 length,
     /* [in] */ const ArrayOf<Char8>& buffer)
@@ -290,7 +289,7 @@ ECode PushbackReader::UnReadBufferExLocked(
     }
 
     for (Int32 i = offset + length - 1; i >= offset; i--) {
-        FAIL_RETURN(UnRead(String((char*)buffer.GetPayload()).GetChar(i)));
+        FAIL_RETURN(Unread(String((char*)buffer.GetPayload()).GetChar(i)));
     }
 
     return NOERROR;

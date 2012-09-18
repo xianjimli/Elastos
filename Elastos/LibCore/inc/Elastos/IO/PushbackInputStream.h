@@ -146,7 +146,7 @@ public:
      *             if this stream is closed or the internal pushback buffer is
      *             full.
      */
-    CARAPI UnRead(
+    CARAPI Unread(
         /* [in] */ Int32 oneByte);
 
     /**
@@ -165,7 +165,7 @@ public:
      *             if the free space in the internal pushback buffer is not
      *             sufficient to store the contents of {@code buffer}.
      */
-    CARAPI UnReadBuffer(
+    CARAPI UnreadBuffer(
         /* [in] */ const ArrayOf<Byte>& buffer);
 
     /**
@@ -194,7 +194,7 @@ public:
      *             if the free space in the internal pushback buffer is not
      *             sufficient to store the selected contents of {@code buffer}.
      */
-    CARAPI UnReadBufferEx(
+    CARAPI UnreadBufferEx(
         /* [in] */ Int32 offset,
         /* [in] */ Int32 length,
         /* [in] */ const ArrayOf<Byte>& buffer);

@@ -12,7 +12,9 @@ module
     merge("../../../../car/Elastos/Utility/Zip/IZipEntry.car");
     merge("../../../../car/Elastos/Utility/Zip/IInflaterInputStream.car");
     merge("../../../../car/Elastos/Utility/Zip/IDeflaterOutputStream.car");
+    merge("../../../../car/Elastos/Utility/Zip/IZipInputStream.car");
     merge("../../../../car/Elastos/Utility/Zip/IZipOutputStream.car");
+    merge("../../../../car/Elastos/Utility/Zip/IZipFile.car");
 
 
     class CCRC32 {

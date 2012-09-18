@@ -72,24 +72,24 @@ ECode CPushbackReader::Skip(
     return PushbackReader::Skip(count, number);
 }
 
-ECode CPushbackReader::UnRead(
+ECode CPushbackReader::Unread(
     /* [in] */ Int32 oneChar)
 {
-    return PushbackReader::UnRead(oneChar);
+    return PushbackReader::Unread(oneChar);
 }
 
-ECode CPushbackReader::UnReadBuffer(
+ECode CPushbackReader::UnreadBuffer(
     /* [in] */ const ArrayOf<Char8>& buffer)
 {
-    return PushbackReader::UnReadBuffer(buffer);
+    return PushbackReader::UnreadBuffer(buffer);
 }
 
-ECode CPushbackReader::UnReadBufferEx(
+ECode CPushbackReader::UnreadBufferEx(
     /* [in] */ Int32 offset,
     /* [in] */ Int32 length,
     /* [in] */ const ArrayOf<Char8>& buffer)
 {
-    return PushbackReader::UnReadBufferEx(offset, length, buffer);
+    return PushbackReader::UnreadBufferEx(offset, length, buffer);
 }
 
 ECode CPushbackReader::constructor(

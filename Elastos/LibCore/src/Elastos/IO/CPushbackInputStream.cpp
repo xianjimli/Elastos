@@ -72,24 +72,24 @@ ECode CPushbackInputStream::Skip(
     return PushbackInputStream::Skip(count, number);
 }
 
-ECode CPushbackInputStream::UnRead(
+ECode CPushbackInputStream::Unread(
     /* [in] */ Int32 oneByte)
 {
-    return PushbackInputStream::UnRead(oneByte);
+    return PushbackInputStream::Unread(oneByte);
 }
 
-ECode CPushbackInputStream::UnReadBuffer(
+ECode CPushbackInputStream::UnreadBuffer(
     /* [in] */ const ArrayOf<Byte>& buffer)
 {
-    return PushbackInputStream::UnReadBuffer(buffer);
+    return PushbackInputStream::UnreadBuffer(buffer);
 }
 
-ECode CPushbackInputStream::UnReadBufferEx(
+ECode CPushbackInputStream::UnreadBufferEx(
     /* [in] */ Int32 offset,
     /* [in] */ Int32 length,
     /* [in] */ const ArrayOf<Byte>& buffer)
 {
-    return PushbackInputStream::UnReadBufferEx(offset, length, buffer);
+    return PushbackInputStream::UnreadBufferEx(offset, length, buffer);
 }
 
 ECode CPushbackInputStream::constructor(

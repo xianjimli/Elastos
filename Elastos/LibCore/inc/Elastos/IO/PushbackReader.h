@@ -160,7 +160,7 @@ public:
      *             if this reader is closed or the internal pushback buffer is
      *             full.
      */
-    CARAPI UnRead(
+    CARAPI Unread(
         /* [in] */ Int32 oneChar);
 
     /**
@@ -181,7 +181,7 @@ public:
      *             pushback buffer is not sufficient to store the contents of
      *             {@code buffer}.
      */
-    CARAPI UnReadBuffer(
+    CARAPI UnreadBuffer(
         /* [in] */ const ArrayOf<Char8>& buffer);
 
     /**
@@ -214,7 +214,7 @@ public:
      * @throws NullPointerException
      *             if {@code buffer} is {@code null}.
      */
-    CARAPI UnReadBufferEx(
+    CARAPI UnreadBufferEx(
         /* [in] */ Int32 offset,
         /* [in] */ Int32 length,
         /* [in] */ const ArrayOf<Char8>& buffer);
@@ -249,10 +249,10 @@ protected:
     CARAPI IsReadyLocked(
         /* [out] */ Boolean* ready);
 
-    CARAPI UnReadLocked(
+    CARAPI UnreadLocked(
         /* [in] */ Int32 oneChar);
 
-    CARAPI UnReadBufferExLocked(
+    CARAPI UnreadBufferExLocked(
         /* [in] */ Int32 offset,
         /* [in] */ Int32 length,
         /* [in] */ const ArrayOf<Char8>& buffer);

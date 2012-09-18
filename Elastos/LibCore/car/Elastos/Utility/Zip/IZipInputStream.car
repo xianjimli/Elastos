@@ -1,0 +1,33 @@
+
+module
+{
+    const IZipInputStream_DEFLATED = 8;
+
+    const IZipInputStream_STORED = 0;
+
+
+    interface IInflaterInputStream;
+    interface IZipEntry;
+
+    interface IZipInputStream extends IInflaterInputStream {
+        /**
+         * Closes the current ZIP entry and positions to read the next entry.
+         *
+         * @throws IOException
+         *             if an {@code IOException} occurs.
+         */
+        CloseEntry();
+
+        /**
+         * Reads the next entry from this {@code ZipInputStream} or {@code null} if
+         * no more entries are present.
+         *
+         * @return the next {@code ZipEntry} contained in the input stream.
+         * @throws IOException
+         *             if an {@code IOException} occurs.
+         * @see ZipEntry
+         */
+        GetNextEntry(
+            [out] IZipEntry** entry);
+    }
+}

@@ -38,13 +38,13 @@ public:
         /* [in] */ Int64 count,
         /* [out] */ Int64* number);
 
-    CARAPI UnRead(
+    CARAPI Unread(
         /* [in] */ Int32 oneChar);
 
-    CARAPI UnReadBuffer(
+    CARAPI UnreadBuffer(
         /* [in] */ const ArrayOf<Char8>& buffer);
 
-    CARAPI UnReadBufferEx(
+    CARAPI UnreadBufferEx(
         /* [in] */ Int32 offset,
         /* [in] */ Int32 length,
         /* [in] */ const ArrayOf<Char8>& buffer);

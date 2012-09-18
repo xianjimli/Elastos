@@ -183,7 +183,7 @@ ECode PushbackInputStream::Skip(
     return NOERROR;
 }
 
-ECode PushbackInputStream::UnRead(
+ECode PushbackInputStream::Unread(
         /* [in] */ Int32 oneByte)
 {
     if (mBuf == NULL) {
@@ -199,13 +199,13 @@ ECode PushbackInputStream::UnRead(
     return NOERROR;
 }
 
-ECode PushbackInputStream::UnReadBuffer(
+ECode PushbackInputStream::UnreadBuffer(
         /* [in] */ const ArrayOf<Byte>& buffer)
 {
-    return UnReadBufferEx(0, buffer.GetLength(), buffer);
+    return UnreadBufferEx(0, buffer.GetLength(), buffer);
 }
 
-ECode PushbackInputStream::UnReadBufferEx(
+ECode PushbackInputStream::UnreadBufferEx(
         /* [in] */ Int32 offset,
         /* [in] */ Int32 length,
         /* [in] */ const ArrayOf<Byte>& buffer)
