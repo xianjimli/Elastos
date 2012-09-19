@@ -1,15 +1,15 @@
 
 module
 {
-//    const FAMILY_SYSTEM = 0x25    // IO exception codes
+//    const FAMILY_SYSTEM = 0x22    // IO exception codes
 
 //    #define FRAMEWORK_ERROR(c)      MAKE_ECODE(SEVERITY_ERROR, FAMILY_FRAMEWORK, c)
 //    #define FRAMEWORK_SUCCESS(c)    MAKE_SUCCESS(FAMILY_FRAMEWORK, c)
 
     //==========================================================================
-    // Elastos IO exception codes (Family: 0x25)
-    const E_IO_EXCEPTION                                = 0xA5010000;
-    const E_EOF_EXCEPTION                               = 0xA5020000;
-    const E_FILE_NOT_FOUND_EXCEPTION                    = 0xA5030000;
-    const E_SYNC_FAILED_EXCEPTION                       = 0xA5040000;
+    // Elastos IO exception codes (Family: 0x22)
+    const E_IO_EXCEPTION                                = 0xA2010000;
+    const E_EOF_EXCEPTION                               = 0xA2020000;
+    const E_FILE_NOT_FOUND_EXCEPTION                    = 0xA2030000;
+    const E_SYNC_FAILED_EXCEPTION                       = 0xA2040000;
 }

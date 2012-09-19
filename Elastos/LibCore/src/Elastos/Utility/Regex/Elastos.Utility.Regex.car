@@ -1,0 +1,6 @@
+
+module
+{
+    merge("../../../../car/Elastos/Utility/Regex/Exceptions.car");
+    merge("../../../../car/Elastos/Utility/Regex/IMatchResult.car");
+}

@@ -1,13 +1,11 @@
-
 module
 {
-//    const FAMILY_CORE = 0x24    // Zip exception codes
+//    const FAMILY_CORE = 0x26    // Regex exception codes
 
 //    #define FRAMEWORK_ERROR(c)      MAKE_ECODE(SEVERITY_ERROR, FAMILY_FRAMEWORK, c)
 //    #define FRAMEWORK_SUCCESS(c)    MAKE_SUCCESS(FAMILY_FRAMEWORK, c)
 
     //==========================================================================
-    // Elastos Zip exception codes (Family: 0x24)
-    const E_DATA_FORMAT_EXCEPTION                       = 0xA4010000;
-    const E_ZIP_EXCEPTION                               = 0xA4020000;
+    // Elastos Regex exception codes (Family: 0x26)
+    const E_PATTERN_SYNTAX_EXCEPTION                    = 0xA6010000;
 }

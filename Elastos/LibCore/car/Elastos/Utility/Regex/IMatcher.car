@@ -1,0 +1,269 @@
+
+module
+{
+    interface IMatchResult;
+    interface IPattern;
+
+    interface IMatcher extends IMatchResult {
+        /**
+         * Appends a literal part of the input plus a replacement for the current
+         * match to a given {@link StringBuffer}. The literal part is exactly the
+         * part of the input between the previous match and the current match. The
+         * method can be used in conjunction with {@link #find()} and
+         * {@link #appendTail(StringBuffer)} to walk through the input and replace
+         * all occurrences of the {@code Pattern} with something else.
+         *
+         * @param buffer
+         *            the {@code StringBuffer} to append to.
+         * @param replacement
+         *            the replacement text.
+         * @return the {@code Matcher} itself.
+         * @throws IllegalStateException
+         *             if no successful match has been made.
+         */
+        AppendReplacement(
+            [in] String replacement,
+            [out] String* result);
+
+        /**
+         * Resets the {@code Matcher}. This results in the region being set to the
+         * whole input. Results of a previous find get lost. The next attempt to
+         * find an occurrence of the {@link Pattern} in the string will start at the
+         * beginning of the input.
+         *
+         * @return the {@code Matcher} itself.
+         */
+        Reset();
+
+        /**
+         * Provides a new input and resets the {@code Matcher}. This results in the
+         * region being set to the whole input. Results of a previous find get lost.
+         * The next attempt to find an occurrence of the {@link Pattern} in the
+         * string will start at the beginning of the input.
+         *
+         * @param input
+         *            the new input sequence.
+         *
+         * @return the {@code Matcher} itself.
+         */
+        ResetEx(
+            [in] ICharSequence* input);
+
+        /**
+         * Sets a new pattern for the {@code Matcher}. Results of a previous find
+         * get lost. The next attempt to find an occurrence of the {@link Pattern}
+         * in the string will start at the beginning of the input.
+         *
+         * @param pattern
+         *            the new {@code Pattern}.
+         *
+         * @return the {@code Matcher} itself.
+         */
+        UsePattern(
+            [in] IPattern* pattern);
+
+        /**
+         * Resets this matcher and sets a region. Only characters inside the region
+         * are considered for a match.
+         *
+         * @param start
+         *            the first character of the region.
+         * @param end
+         *            the first character after the end of the region.
+         * @return the {@code Matcher} itself.
+         */
+        Region(
+            [in] Int32 start,
+            [in] Int32 end);
+
+        /**
+         * Appends the (unmatched) remainder of the input to the given
+         * {@link StringBuffer}. The method can be used in conjunction with
+         * {@link #find()} and {@link #appendReplacement(StringBuffer, String)} to
+         * walk through the input and replace all matches of the {@code Pattern}
+         * with something else.
+         *
+         * @param buffer
+         *            the {@code StringBuffer} to append to.
+         * @return the {@code StringBuffer}.
+         * @throws IllegalStateException
+         *             if no successful match has been made.
+         */
+        AppendTail(
+            [out] String* result);
+
+        /**
+         * Replaces the first occurrence of this matcher's pattern in the input with
+         * a given string.
+         *
+         * @param replacement
+         *            the replacement text.
+         * @return the modified input string.
+         */
+        ReplaceFirst(
+            [in] String replacement,
+            [out] String* result);
+
+        /**
+         * Replaces all occurrences of this matcher's pattern in the input with a
+         * given string.
+         *
+         * @param replacement
+         *            the replacement text.
+         * @return the modified input string.
+         */
+        ReplaceAll(
+            [in] String replacement,
+            [out] String* result);
+
+        /**
+         * Returns the {@link Pattern} instance used inside this matcher.
+         *
+         * @return the {@code Pattern} instance.
+         */
+        Pattern(
+            [out] IPattern** pattern);
+
+        /**
+         * Returns the next occurrence of the {@link Pattern} in the input. If a
+         * previous match was successful, the method continues the search from the
+         * first character following that match in the input. Otherwise it searches
+         * either from the region start (if one has been set), or from position 0.
+         *
+         * @return true if (and only if) a match has been found.
+         */
+        Find(
+            [out] Boolean* found);
+
+        /**
+         * Returns the next occurrence of the {@link Pattern} in the input. The
+         * method starts the search from the given character in the input.
+         *
+         * @param start
+         *            The index in the input at which the find operation is to
+         *            begin. If this is less than the start of the region, it is
+         *            automatically adjusted to that value. If it is beyond the end
+         *            of the region, the method will fail.
+         * @return true if (and only if) a match has been found.
+         */
+        FindEx(
+            [in] Int32 start,
+            [out] Boolean* found);
+
+        /**
+         * Tries to match the {@link Pattern}, starting from the beginning of the
+         * region (or the beginning of the input, if no region has been set).
+         * Doesn't require the {@code Pattern} to match against the whole region.
+         *
+         * @return true if (and only if) the {@code Pattern} matches.
+         */
+        LookingAt(
+            [out] Boolean* matched);
+
+        /**
+         * Tries to match the {@link Pattern} against the entire region (or the
+         * entire input, if no region has been set).
+         *
+         * @return true if (and only if) the {@code Pattern} matches the entire
+         *         region.
+         */
+        Matches(
+            [out] Boolean* matched);
+
+        /**
+         * Converts the current match into a separate {@link MatchResult} instance
+         * that is independent from this matcher. The new object is unaffected when
+         * the state of this matcher changes.
+         *
+         * @return the new {@code MatchResult}.
+         * @throws IllegalStateException
+         *             if no successful match has been made.
+         */
+        ToMatchResult(
+            [out] IMatchResult** result);
+
+        /**
+         * Determines whether this matcher has anchoring bounds enabled or not. When
+         * anchoring bounds are enabled, the start and end of the input match the
+         * '^' and '$' meta-characters, otherwise not. Anchoring bounds are enabled
+         * by default.
+         *
+         * @param value
+         *            the new value for anchoring bounds.
+         * @return the {@code Matcher} itself.
+         */
+        UseAnchoringBounds(
+            [in] Boolean value);
+
+        /**
+         * Indicates whether this matcher has anchoring bounds enabled. When
+         * anchoring bounds are enabled, the start and end of the input match the
+         * '^' and '$' meta-characters, otherwise not. Anchoring bounds are enabled
+         * by default.
+         *
+         * @return true if (and only if) the {@code Matcher} uses anchoring bounds.
+         */
+        HasAnchoringBounds(
+            [out] Boolean* result);
+
+        /**
+         * Determines whether this matcher has transparent bounds enabled or not.
+         * When transparent bounds are enabled, the parts of the input outside the
+         * region are subject to lookahead and lookbehind, otherwise they are not.
+         * Transparent bounds are disabled by default.
+         *
+         * @param value
+         *            the new value for transparent bounds.
+         * @return the {@code Matcher} itself.
+         */
+        UseTransparentBounds(
+            [in] Boolean value);
+
+        /**
+         * Indicates whether this matcher has transparent bounds enabled. When
+         * transparent bounds are enabled, the parts of the input outside the region
+         * are subject to lookahead and lookbehind, otherwise they are not.
+         * Transparent bounds are disabled by default.
+         *
+         * @return true if (and only if) the {@code Matcher} uses anchoring bounds.
+         */
+        HasTransparentBounds(
+            [out] Boolean* result);
+
+        /**
+         * Returns this matcher's region start, that is, the first character that is
+         * considered for a match.
+         *
+         * @return the start of the region.
+         */
+        RegionStart(
+            [out] Int32* start);
+
+        /**
+         * Returns this matcher's region end, that is, the first character that is
+         * not considered for a match.
+         *
+         * @return the end of the region.
+         */
+        RegionEnd(
+            [out] Int32* end);
+
+        /**
+         * Indicates whether more input might change a successful match into an
+         * unsuccessful one.
+         *
+         * @return true if (and only if) more input might change a successful match
+         *         into an unsuccessful one.
+         */
+        RequireEnd(
+            [out] Boolean* result);
+
+        /**
+         * Indicates whether the last match hit the end of the input.
+         *
+         * @return true if (and only if) the last match hit the end of the input.
+         */
+        HitEnd(
+            [out] Boolean* hit);
+    }
+}

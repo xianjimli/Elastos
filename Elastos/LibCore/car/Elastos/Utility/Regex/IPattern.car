@@ -1,0 +1,126 @@
+
+module
+{
+    /**
+     * This constant specifies that a pattern matches Unix line endings ('\n')
+     * only against the '.', '^', and '$' meta characters. Corresponds to {@code (?d)}.
+     */
+    const IPattern_UNIX_LINES = 0x01;
+
+    /**
+     * This constant specifies that a {@code Pattern} is matched
+     * case-insensitively. That is, the patterns "a+" and "A+" would both match
+     * the string "aAaAaA". See {@link #UNICODE_CASE}. Corresponds to {@code (?i)}.
+     */
+    const IPattern_CASE_INSENSITIVE = 0x02;
+
+    /**
+     * This constant specifies that a {@code Pattern} may contain whitespace or
+     * comments. Otherwise comments and whitespace are taken as literal
+     * characters. Corresponds to {@code (?x)}.
+     */
+    const IPattern_COMMENTS = 0x04;
+
+    /**
+     * This constant specifies that the meta characters '^' and '$' match only
+     * the beginning and end of an input line, respectively. Normally, they
+     * match the beginning and the end of the complete input. Corresponds to {@code (?m)}.
+     */
+    const IPattern_MULTILINE = 0x08;
+
+    /**
+     * This constant specifies that the whole {@code Pattern} is to be taken
+     * literally, that is, all meta characters lose their meanings.
+     */
+    const IPattern_LITERAL = 0x10;
+
+    /**
+     * This constant specifies that the '.' meta character matches arbitrary
+     * characters, including line endings, which is normally not the case.
+     * Corresponds to {@code (?s)}.
+     */
+    const IPattern_DOTALL = 0x20;
+
+    /**
+     * This constant specifies that a {@code Pattern} that uses case-insensitive matching
+     * will use Unicode case folding. On Android, {@code UNICODE_CASE} is always on:
+     * case-insensitive matching will always be Unicode-aware. If your code is intended to
+     * be portable and uses case-insensitive matching on non-ASCII characters, you should
+     * use this flag. Corresponds to {@code (?u)}.
+     */
+    const IPattern_UNICODE_CASE = 0x40;
+
+    /**
+     * This constant specifies that a character in a {@code Pattern} and a
+     * character in the input string only match if they are canonically
+     * equivalent. It is (currently) not supported in Android.
+     */
+    const IPattern_CANON_EQ = 0x80;
+
+
+    interface IMatcher;
+
+    interface IPattern {
+        /**
+         * Returns a {@link Matcher} for this pattern applied to the given {@code input}.
+         * The {@code Matcher} can be used to match the {@code Pattern} against the
+         * whole input, find occurrences of the {@code Pattern} in the input, or
+         * replace parts of the input.
+         */
+        Matcher(
+            [in] ICharSequence* input,
+            [out] IMatcher** matcher);
+
+        /**
+         * Equivalent to {@code split(input, 0)}.
+         */
+        Split(
+            [in] ICharSequence* input,
+            [out, callee] ArrayOf<String>* result);
+
+        /**
+         * Splits the given {@code input} at occurrences of this pattern.
+         *
+         * <p>If this pattern does not occur in the input, the result is an
+         * array containing the input (converted from a {@code CharSequence} to
+         * a {@code String}).
+         *
+         * <p>Otherwise, the {@code limit} parameter controls the contents of the
+         * returned array as described below.
+         *
+         * @param limit
+         *            Determines the maximum number of entries in the resulting
+         *            array, and the treatment of trailing empty strings.
+         *            <ul>
+         *            <li>For n &gt; 0, the resulting array contains at most n
+         *            entries. If this is fewer than the number of matches, the
+         *            final entry will contain all remaining input.
+         *            <li>For n &lt; 0, the length of the resulting array is
+         *            exactly the number of occurrences of the {@code Pattern}
+         *            plus one for the text after the final separator.
+         *            All entries are included.
+         *            <li>For n == 0, the result is as for n &lt; 0, except
+         *            trailing empty strings will not be returned. (Note that
+         *            the case where the input is itself an empty string is
+         *            special, as described above, and the limit parameter does
+         *            not apply there.)
+         *            </ul>
+         */
+        Split(
+            [in] ICharSequence* input,
+            [in] Int32 limit,
+            [out, callee] ArrayOf<String>* result);
+
+        /**
+         * Returns the regular expression supplied to {@code compile}.
+         */
+        Pattern(
+            [out] String* regex);
+
+        /**
+         * Returns the flags supplied to {@code compile}.
+         */
+        Flags(
+            [out] Int32* flags);
+    }
+}

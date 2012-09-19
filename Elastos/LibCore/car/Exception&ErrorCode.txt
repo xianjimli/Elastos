@@ -1,0 +1,10 @@
+
+======== FAMILY_NAME ========           ======== FAMILY_CODE ========
+Elastos.Core.Exceptions                             0x20
+Elastos.Core.Errors                                 0x21
+Elastos.IO.Exceptions                               0x22
+Elastos.IO.Errors                                   0x23
+Elastos.Utility.Zip.Exceptions                      0x24
+Elastos.Utility.Zip.Errors                          0x25
+Elastos.Utility.Regex.Exceptions                    0x26
+Elastos.SQL.Exceptions                              0x28
