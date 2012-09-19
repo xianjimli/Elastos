@@ -1,0 +1,14 @@
+
+module
+{
+    /**
+     * The magic header for the GZIP format.
+     */
+    const GZIP_MAGIC = 0x8b1f;
+
+
+    interface IInflaterInputStream;
+
+    interface IGZIPInputStream extends IInflaterInputStream {
+    }
+}

@@ -1,0 +1,14 @@
+
+module
+{
+
+    interface IInflaterOutputStream extends IFilterOutputStream {
+        /**
+         * Finishes writing current uncompressed data into the InflaterOutputStream
+         * without closing it.
+         *
+         * @throws IOException if an I/O error occurs, or the stream has been closed
+         */
+        Finish();
+    }
+}

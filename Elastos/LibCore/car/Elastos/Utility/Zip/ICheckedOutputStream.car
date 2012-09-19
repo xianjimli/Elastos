@@ -1,0 +1,15 @@
+
+module
+{
+    interface IChecksum;
+
+    interface ICheckedOutputStream extends IFilterOutputStream {
+        /**
+         * Returns the checksum calculated on the stream read so far.
+         *
+         * @return the updated checksum.
+         */
+        GetChecksum(
+            [out] IChecksum** checksum);
+    }
+}

@@ -66,12 +66,5 @@ module
             [in] Int32 offset,
             [in] Int32 count,
             [in] ArrayOf<Byte> buffer);
-
-        /**
-         * Returns true if this writer has encountered and suppressed an error. Used
-         * by PrintStreams as an alternative to checked exceptions.
-         */
-        CheckError(
-            [out] Boolean* hasError);
     }
 }
