@@ -68,7 +68,8 @@ ECode CTabHost::NewTabSpec(
     /* [out] */ ITabSpec** tabSpec)
 {
     VALIDATE_NOT_NULL(tabSpec);
-    *tabSpec = TabHost::NewTabSpec(tag);
+    AutoPtr<ITabSpec> temp = TabHost::NewTabSpec(tag);
+    *tabSpec = temp;
     if (*tabSpec != NULL) (*tabSpec)->AddRef();
     return NOERROR;
 }

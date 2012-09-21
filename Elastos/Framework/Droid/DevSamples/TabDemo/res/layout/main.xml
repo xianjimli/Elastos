@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/hometabs"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+    <TabHost android:id="@+id/tabhost"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+            <TabWidget android:id="@android:id/tabs"
+              android:orientation="horizontal"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content">
+            </TabWidget>
+             <FrameLayout android:id="@android:id/tabcontent"
+                  android:layout_width="fill_parent"
+                  android:layout_height="200px">
+                    <TextView android:id="@+id/view1"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:text="view1"
+                        android:background="#F00"
+                        android:textColor="#000"
+                        android:textSize="20sp"/>
+                    <TextView android:id="@+id/view2"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:text="view2"
+                        android:background="#0F0"
+                        android:textColor="#000"
+                        android:textSize="20sp"/>
+                    <TextView android:id="@+id/view3"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:text="view3"
+                        android:background="#00F"
+                        android:textColor="#000"
+                        android:textSize="20sp"/>
+             </FrameLayout>
+         </LinearLayout>
+    </TabHost>
+</LinearLayout>

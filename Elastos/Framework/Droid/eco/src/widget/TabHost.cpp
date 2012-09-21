@@ -1,7 +1,9 @@
 
 #include "widget/TabHost.h"
-#include "widget/TabWidget.h"
+#include "widget/CTabWidget.h"
 #include "view/CViewGroupLayoutParams.h"
+#include "content/CApplicationInfo.h"
+#include "os/Build.h"
 
 
 // {68D263F8-0F1F-4AE6-BBD7-998BF0B1358A}
@@ -60,7 +62,7 @@ ECode TabHost::TabSpec::GetInterfaceID(
 ECode TabHost::TabSpec::SetIndicator(
     /* [in] */ ICharSequence* label)
 {
-    mIndicatorStrategy = new TabHost::LabelIndicatorStrategy(label);
+    mIndicatorStrategy = new TabHost::LabelIndicatorStrategy(label, mOwner);
     return NOERROR;
 }
 
@@ -71,7 +73,7 @@ ECode TabHost::TabSpec::SetIndicatorEx(
     /* [in] */ ICharSequence* label,
     /* [in] */ IDrawable* icon)
 {
-    mIndicatorStrategy = new TabHost::LabelAndIconIndicatorStrategy(label, icon);
+    mIndicatorStrategy = new TabHost::LabelAndIconIndicatorStrategy(label, icon, mOwner);
     return NOERROR;
 }
 
@@ -130,8 +132,10 @@ ECode TabHost::TabSpec::GetTag(
 
 
 TabHost::LabelIndicatorStrategy::LabelIndicatorStrategy(
-    /* [in] */ ICharSequence* label)
+    /* [in] */ ICharSequence* label,
+    /* [in] */ TabHost* owner)
     : mLabel(label)
+    , mOwner(owner)
 {}
 
 PInterface TabHost::LabelIndicatorStrategy::Probe(
@@ -160,46 +164,47 @@ ECode TabHost::LabelIndicatorStrategy::GetInterfaceID(
 ECode TabHost::LabelIndicatorStrategy::CreateIndicatorView(
     /* [out] */ IView** view)
 {
-    //AutoPtr<IContext> context = GetContext();
-    //AutoPtr<ILayoutInflater> inflater;
-    //context->GetSystemService(Context_LAYOUT_INFLATER_SERVICE, (IInterface**)&inflater);
+    AutoPtr<IContext> context = mOwner->GetContext();
+    AutoPtr<ILayoutInflater> inflater;
+    context->GetSystemService(Context_LAYOUT_INFLATER_SERVICE, (IInterface**)&inflater);
 
-    //AutoPtr<IView> tabIndicator;
-    //inflater->InflateEx2(R_Layout_Tab_indicator,
-    //        mTabWidget, // tab widget is the parent
-    //        FALSE,
-    //        (IView**)&tabIndicator); // no inflate params
+    AutoPtr<IView> tabIndicator;
+    inflater->InflateEx2(0x01090063/*R.layout.tab_indicator*/,
+           mOwner->mTabWidget, // tab widget is the parent
+           FALSE,
+           (IView**)&tabIndicator); // no inflate params
 
-    //AutoPtr<ITextView> tv;
-    //tv = tabIndicator->FindViewById(/*R.id.title*/0x010101e1);
-    //tv->SetText(mLabel);
-
-    //AutoPtr<IApplicationInfo> ai;
-    //context->GetApplicationInfo((IApplicationInfo**)&ai);
-    //if (((CApplicationInfo*)ai.Get())->mTargetSdkVersion <= Build_VERSION_CODES_DONUT) {
-    //    // Donut apps get old color scheme
-    //    tabIndicator->SetBackgroundResource(R_Drawable_Tab_indicator_v4);
-
-    //    AutoPtr<IResources> resources;
-    //    context->GetResources((IResources**)&resources);
-
-    //    AutoPtr<IColorStateList> sl;
-    //    resources->GetColorStateList(R_Color_Tab_indicator_text_v4, (IColorStateList**)&sl);
-
-    //    tv->SetTextColor(sl);
-    //}
-
-    //*view = tabIndicator.Get();
+    AutoPtr<IView> temp;
+    tabIndicator->FindViewById(/*R.id.title*/0x01020016, (IView**)&temp);
+    AutoPtr<ITextView> tv = ITextView::Probe(temp.Get());
+    tv->SetText(mLabel);
+    AutoPtr<IApplicationInfo> ai;
+    context->GetApplicationInfo((IApplicationInfo**)&ai);
+    if (((CApplicationInfo*)ai.Get())->mTargetSdkVersion <= Build::VERSION_CODES::DONUT) {
+        // Donut apps get old color scheme
+        tabIndicator->SetBackgroundResource(0x0108030a/*R.drawable.tab_indicator_v4*/);
+        AutoPtr<IResources> resources;
+        context->GetResources((IResources**)&resources);
+        AutoPtr<IColorStateList> sl;
+        resources->GetColorStateList(
+            0x01060038/*R.color.tab_indicator_text_v4*/, (IColorStateList**)&sl);
+        tv->SetTextColorEx(sl);
+    }
+    *view = tabIndicator.Get();
+    if (*view) {
+        (*view)->AddRef();
+    }
 
     return NOERROR;
 }
 
-
 TabHost::LabelAndIconIndicatorStrategy::LabelAndIconIndicatorStrategy(
     /* [in] */ ICharSequence* label,
-    /* [in] */ IDrawable* icon)
+    /* [in] */ IDrawable* icon,
+    /* [in] */ TabHost* owner)
     : mLabel(label)
     , mIcon(icon)
+    , mOwner(owner)
 {}
 
 PInterface TabHost::LabelAndIconIndicatorStrategy::Probe(
@@ -228,39 +233,46 @@ ECode TabHost::LabelAndIconIndicatorStrategy::GetInterfaceID(
 ECode TabHost::LabelAndIconIndicatorStrategy::CreateIndicatorView(
     /* [out] */ IView** view)
 {
-    //AutoPtr<IContext> context = GetContext();
+    AutoPtr<IContext> context = mOwner->GetContext();
 
-    //AutoPtr<ILayoutInflater> inflater;
-    //context->GetSystemService(Context_LAYOUT_INFLATER_SERVICE, (IInterface**)&inflater);
-    //AutoPtr<IView> tabIndicator;
-    //inflater->InflateEx2(R_Layout_Tab_indicator,
-    //        mTabWidget, // tab widget is the parent
-    //        FALSE, (IView**)&tabIndicator); // no inflate params
+    AutoPtr<ILayoutInflater> inflater;
+    context->GetSystemService(Context_LAYOUT_INFLATER_SERVICE, (IInterface**)&inflater);
+    AutoPtr<IView> tabIndicator;
+    inflater->InflateEx2(0x01090063/*R.layout.tab_indicator*/,
+           mOwner->mTabWidget, // tab widget is the parent
+           FALSE, (IView**)&tabIndicator); // no inflate params
 
-    //AutoPtr<ITextView> tv;
-    //tv = tabIndicator->FindViewById(/*R.id.title*/0x010101e1);
-    //tv->SetText(mLabel);
+    AutoPtr<IView> temp;
+    tabIndicator->FindViewById(/*R.id.title*/0x01020016, (IView**)&temp);
+    assert(temp != NULL);
+    AutoPtr<ITextView> tv = ITextView::Probe(temp.Get());
+    tv->SetText(mLabel);
 
-    //AutoPtr<IImageView> iconView;
-    //iconView = tabIndicator->FindViewById(/*R.id.icon*/0x01010002);
-    //iconView->SetImageDrawable(mIcon);
+    temp = NULL;
+    tabIndicator->FindViewById(/*R.id.icon*/0x01010002, (IView**)&temp);
+    AutoPtr<IImageView> iconView = IImageView::Probe(temp.Get());
+    iconView->SetImageDrawable(mIcon);
 
-    //AutoPtr<IApplicationInfo> ai;
-    //context->GetApplicationInfo((IApplicationInfo**)&ai);
-    //if (((CApplicationInfo*)ai.Get())->mTargetSdkVersion <= Build_VERSION_CODES_DONUT) {
-    //    // Donut apps get old color scheme
-    //    tabIndicator->SetBackgroundResource(R_Drawable_Tab_indicator_v4);
+    AutoPtr<IApplicationInfo> ai;
+    context->GetApplicationInfo((IApplicationInfo**)&ai);
+    if (((CApplicationInfo*)ai.Get())->mTargetSdkVersion <= Build::VERSION_CODES::DONUT) {
+        // Donut apps get old color scheme
+        tabIndicator->SetBackgroundResource(0x0108030a/*R.drawable.tab_indicator_v4*/);
 
-    //    AutoPtr<IResources> resources;
-    //    context->GetResources((IResources**)&resources);
+        AutoPtr<IResources> resources;
+        context->GetResources((IResources**)&resources);
 
-    //    AutoPtr<IColorStateList> sl;
-    //    resources->GetColorStateList(R_Color_Tab_indicator_text_v4, (IColorStateList**)&sl);
+        AutoPtr<IColorStateList> sl;
+        resources->GetColorStateList(
+            0x01060038/*R.color.tab_indicator_text_v4*/, (IColorStateList**)&sl);
 
-    //    tv->SetTextColor(sl);
-    //}
+        tv->SetTextColorEx(sl);
+    }
 
-    //*view = tabIndicator.Get();
+    *view = tabIndicator.Get();
+    if (*view) {
+        (*view)->AddRef();
+    }
 
     return NOERROR;
 }
@@ -278,7 +290,7 @@ PInterface TabHost::ViewIndicatorStrategy::Probe(
     if (riid == EIID_ViewIndicatorStrategy) {
     	return reinterpret_cast<PInterface>(this);
     }
-    
+
     return NULL;
 }
 
@@ -640,7 +652,7 @@ ECode TabHost::Setup()
     mTabKeyListener = new TabKeyListener(this);
 
     AutoPtr<ITabWidgetOnTabSelectionChanged> listener = new TabSelectionListener(this);
-    ((TabWidget*)mTabWidget->Probe(EIID_ITabWidget))->SetTabSelectionListener(listener);
+    ((TabWidget*)(CTabWidget*)ITabWidget::Probe(mTabWidget))->SetTabSelectionListener(listener);
 
     mTabContent = IFrameLayout::Probe(FindViewById(0x01020011/*com.android.internal.R.id.tabcontent*/));
     if (mTabContent == NULL) {
@@ -731,7 +743,6 @@ ECode TabHost::AddTab(
     AutoPtr<IView> tabIndicator;
     ts->mIndicatorStrategy->CreateIndicatorView((IView**)&tabIndicator);
     tabIndicator->SetOnKeyListener(mTabKeyListener);
-
     // If this is a custom view, then do not draw the bottom strips for
     // the tab indicators.
     if (ts->mIndicatorStrategy->Probe(EIID_ViewIndicatorStrategy) != NULL) {
@@ -739,7 +750,6 @@ ECode TabHost::AddTab(
     }
     mTabWidget->AddView(tabIndicator);
     mTabSpecs.PushBack(ts);
-
     if (mCurrentTab == -1) {
         SetCurrentTab(0);
     }
@@ -775,7 +785,7 @@ Int32 TabHost::GetCurrentTab()
 
 String TabHost::GetCurrentTabTag()
 {
-    if (mCurrentTab >= 0 && mCurrentTab < mTabSpecs.GetSize()) {
+    if (mCurrentTab >= 0 && mCurrentTab < (Int32)mTabSpecs.GetSize()) {
         String str;
         mTabSpecs[mCurrentTab]->GetTag(&str);
         return str;
@@ -785,7 +795,7 @@ String TabHost::GetCurrentTabTag()
 
 AutoPtr<IView> TabHost::GetCurrentTabView()
 {
-    if (mCurrentTab >= 0 && mCurrentTab < mTabSpecs.GetSize()) {
+    if (mCurrentTab >= 0 && mCurrentTab < (Int32)mTabSpecs.GetSize()) {
         AutoPtr<IView> view;
         mTabWidget->GetChildTabViewAt(mCurrentTab, (IView**)&view);
         return view;
@@ -869,7 +879,7 @@ ECode TabHost::DispatchWindowFocusChanged(
 ECode TabHost::SetCurrentTab(
     /* [in] */ Int32 index)
 {
-    if (index < 0 || index >= mTabSpecs.GetSize()) {
+    if (index < 0 || index >= (Int32)mTabSpecs.GetSize()) {
         return NOERROR;
     }
 
@@ -937,4 +947,21 @@ void TabHost::InvokeOnTabChangeListener()
     }
 }
 
+ECode TabHost::Init(
+    /* [in] */ IContext* context)
+{
+    FrameLayout::Init(context);
+    InitTabHost();
 
+    return NOERROR;
+}
+
+ECode TabHost::Init(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs)
+{
+    FrameLayout::Init(context, attrs);
+    InitTabHost();
+
+    return NOERROR;
+}

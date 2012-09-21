@@ -56,8 +56,6 @@ private:
         public:
             Node();
 
-            ~Node();
-
             CARAPI_(PInterface) Probe(
                 /* [in]  */ REIID riid);
 
@@ -91,12 +89,12 @@ private:
              * The list of dependents for this node; a dependent is a node
              * that needs this node to be processed first.
              */
-            Set< AutoPtr<Node> >* mDependents;
+            Set< AutoPtr<Node> > mDependents;
 
             /**
              * The list of dependencies for this node.
              */
-            HashMap<Int32, AutoPtr<Node> >* mDependencies;
+            HashMap<Int32, AutoPtr<Node> > mDependencies;
 
         /*
          * START POOL IMPLEMENTATION
@@ -138,8 +136,6 @@ private:
 
     public:
         DependencyGraph();
-
-        ~DependencyGraph();
 
         /**
          * Clears the graph.
@@ -215,21 +211,21 @@ private:
         /**
          * List of all views in the graph.
          */
-        List< AutoPtr<Node> >* mNodes;
+        List< AutoPtr<Node> > mNodes;
 
         /**
          * List of nodes in the graph. Each node is identified by its
          * view id (see View#getId()).
          */
         //SparseArray<Node> mKeyNodes = new SparseArray<Node>();
-        HashMap<Int32, AutoPtr<Node> >* mKeyNodes;
+        HashMap<Int32, AutoPtr<Node> > mKeyNodes;
 
 
         /**
          * Temporary data structure used to build the list of roots
          * for this graph.
          */
-        List< AutoPtr<Node> >* mRoots;
+        List< AutoPtr<Node> > mRoots;
     };
 
 public:

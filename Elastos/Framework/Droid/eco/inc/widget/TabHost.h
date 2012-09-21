@@ -43,7 +43,7 @@ private:
     /**
      * How to create a tab indicator that just has a label.
      */
-    class LabelIndicatorStrategy : public IIndicatorStrategy, public ElRefBase
+    class LabelIndicatorStrategy : public ElRefBase, public IIndicatorStrategy
     {
         friend class TabHost;
 
@@ -64,16 +64,18 @@ private:
 
     private:
         LabelIndicatorStrategy(
-            /* [in] */ ICharSequence* label);
+            /* [in] */ ICharSequence* label,
+            /* [in] */ TabHost* owner);
 
     private:
         AutoPtr<ICharSequence> mLabel;
+        TabHost* mOwner;
     };
 
     /**
      * How we create a tab indicator that has a label and an icon
      */
-    class LabelAndIconIndicatorStrategy : public IIndicatorStrategy, public ElRefBase
+    class LabelAndIconIndicatorStrategy : public ElRefBase, public IIndicatorStrategy
     {
         friend class TabHost;
 
@@ -95,17 +97,19 @@ private:
     private:
         LabelAndIconIndicatorStrategy(
             /* [in] */ ICharSequence* label,
-            /* [in] */ IDrawable* icon);
+            /* [in] */ IDrawable* icon,
+            /* [in] */ TabHost* owner);
 
     private:
         AutoPtr<ICharSequence> mLabel;
         AutoPtr<IDrawable> mIcon;
+        TabHost* mOwner;
     };
 
     /**
      * How to create a tab indicator by specifying a view.
      */
-    class ViewIndicatorStrategy : public IIndicatorStrategy, public ElRefBase
+    class ViewIndicatorStrategy : public ElRefBase, public IIndicatorStrategy
     {
         friend class TabHost;
 
@@ -135,7 +139,7 @@ private:
     /**
      * How to create the tab content via a view id.
      */
-    class ViewIdContentStrategy : public IContentStrategy, public ElRefBase
+    class ViewIdContentStrategy : public ElRefBase, public IContentStrategy
     {
         friend class TabHost;
 
@@ -169,7 +173,7 @@ private:
     /**
      * How tab content is managed using {@link TabContentFactory}.
      */
-    class FactoryContentStrategy : public IContentStrategy, public ElRefBase
+    class FactoryContentStrategy : public ElRefBase, public IContentStrategy
     {
     public:
         FactoryContentStrategy(
@@ -202,7 +206,7 @@ private:
      * How tab content is managed via an {@link Intent}: the content view is the
      * decorview of the launched activity.
      */
-    class IntentContentStrategy : public IContentStrategy, public ElRefBase
+    class IntentContentStrategy : public ElRefBase, public IContentStrategy
     {
         friend class TabHost;
 
@@ -235,7 +239,7 @@ private:
         AutoPtr<IView> mLaunchedView;
     };
 
-    class TabKeyListener : public IViewOnKeyListener, public ElRefBase
+    class TabKeyListener : public ElRefBase, public IViewOnKeyListener
     {
         friend class TabHost;
 
@@ -309,7 +313,7 @@ public:
      * 2) a {@link TabContentFactory} that creates the {@link View} content.
      * 3) an {@link Intent} that launches an {@link android.app.Activity}.
      */
-    class TabSpec : public ITabSpec, public ElRefBase
+    class TabSpec : public ElRefBase, public ITabSpec
     {
         friend class TabHost;
 
@@ -480,6 +484,13 @@ protected:
 
     //@Override
     virtual CARAPI_(void) OnDetachedFromWindow();
+
+    CARAPI Init(
+        /* [in] */ IContext* context);
+
+    CARAPI Init(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs);
 
 private:
     CARAPI_(void) InitTabHost();

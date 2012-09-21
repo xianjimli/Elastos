@@ -403,9 +403,11 @@ ECode CResources::GetColorStateList(
         return E_INVALID_ARGUMENT;
     }
 
-    Mutex::Autolock lock(mTmpValueLock);
+    {
+        Mutex::Autolock lock(mTmpValueLock);
 
-    GetValue(id, mTmpValue.Get(), TRUE);
+        GetValue(id, mTmpValue.Get(), TRUE);
+    }
     return LoadColorStateList(mTmpValue.Get(), id, list);
 }
 

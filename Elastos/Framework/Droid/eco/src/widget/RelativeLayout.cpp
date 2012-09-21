@@ -175,16 +175,6 @@ const AutoPtr<IPool> RelativeLayout::DependencyGraph::Node::sPool = \
 
 RelativeLayout::DependencyGraph::Node::Node()
 {
-    mDependents = new Set< AutoPtr<Node> >();
-    mDependencies = new HashMap<Int32, AutoPtr<Node> >(8);
-}
-
-RelativeLayout::DependencyGraph::Node::~Node()
-{
-    mDependents->Clear();
-    delete mDependents;
-    mDependencies->Clear();
-    delete mDependencies;
 }
 
 PInterface RelativeLayout::DependencyGraph::Node::Probe(
@@ -258,27 +248,14 @@ RelativeLayout::DependencyGraph::Node::Acquire(
 void RelativeLayout::DependencyGraph::Node::ReleaseNode()
 {
     mView = NULL;
-    mDependents->Clear();
-    mDependencies->Clear();
+    mDependents.Clear();
+    mDependencies.Clear();
 
     sPool->ReleaseElement((IPoolable*)this);
 }
 
 RelativeLayout::DependencyGraph::DependencyGraph()
 {
-    mNodes = new List< AutoPtr<Node> >(8);
-    mKeyNodes = new HashMap<Int32, AutoPtr<Node> >(8);
-    mRoots = new List< AutoPtr<Node> >(8);
-}
-
-RelativeLayout::DependencyGraph::~DependencyGraph()
-{
-    mNodes->Clear();
-    delete mNodes;
-    mKeyNodes->Clear();
-    delete mKeyNodes;
-    mRoots->Clear();
-    delete mRoots;
 }
 
 /**
@@ -287,13 +264,13 @@ RelativeLayout::DependencyGraph::~DependencyGraph()
 void RelativeLayout::DependencyGraph::Clear()
 {
     List< AutoPtr<Node> >::Iterator it;
-    for (it = mNodes->Begin(); it != mNodes->End(); ++it) {
+    for (it = mNodes.Begin(); it != mNodes.End(); ++it) {
         (*it)->ReleaseNode();
     }
-    mNodes->Clear();
+    mNodes.Clear();
 
-    mKeyNodes->Clear();
-    mRoots->Clear();
+    mKeyNodes.Clear();
+    mRoots.Clear();
 }
 
 /**
@@ -311,10 +288,10 @@ void RelativeLayout::DependencyGraph::Add(
     AutoPtr<Node> node = Node::Acquire(view);
 
     if (id != View_NO_ID) {
-        (*mKeyNodes)[id] =  node;
+        mKeyNodes[id] =  node;
     }
 
-    mNodes->PushBack(node);
+    mNodes.PushBack(node);
 }
 
 /**
@@ -346,11 +323,11 @@ ECode RelativeLayout::DependencyGraph::GetSortedViews(
 
         (*sorted)[index++] = view;
 
-        Set< AutoPtr<Node> >* dependents = node->mDependents;
+        Set< AutoPtr<Node> >* dependents = &node->mDependents;
         Set< AutoPtr<Node> >::Iterator it;
         for (it = dependents->Begin(); it != dependents->End(); ++it) {
             Node* dependent = *it;
-            HashMap<Int32, AutoPtr<Node> >* dependencies = dependent->mDependencies;
+            HashMap<Int32, AutoPtr<Node> >* dependencies = &dependent->mDependencies;
             dependencies->Erase(key);
             if (dependencies->Begin() == dependencies->End()) {
                 roots->PushBack(dependent);
@@ -384,14 +361,14 @@ RelativeLayout::DependencyGraph::FindRoots(
 
     // Find roots can be invoked several times, so make sure to clear
     // all dependents and dependencies before running the algorithm
-    for (it = mNodes->Begin(); it != mNodes->End(); ++it) {
+    for (it = mNodes.Begin(); it != mNodes.End(); ++it) {
         Node* node = *it;
-        node->mDependents->Clear();
-        node->mDependencies->Clear();
+        node->mDependents.Clear();
+        node->mDependencies.Clear();
     }
 
     // Builds up the dependents and dependencies for each node of the graph
-    for (it = mNodes->Begin(); it != mNodes->End(); ++it) {
+    for (it = mNodes.Begin(); it != mNodes.End(); ++it) {
         Node* node = *it;
 
         AutoPtr<IRelativeLayoutLayoutParams> layoutParams;
@@ -405,31 +382,31 @@ RelativeLayout::DependencyGraph::FindRoots(
             Int32 rule = (*rules)[(*rulesFilter)[j]];
             if (rule > 0) {
                 // The node this node depends on
-                HashMap<Int32, AutoPtr<Node> >::Iterator it = mKeyNodes->Find(rule);
-                Node* dependency = it == mKeyNodes->End() ? NULL : it->mSecond;
+                HashMap<Int32, AutoPtr<Node> >::Iterator it = mKeyNodes.Find(rule);
+                Node* dependency = it == mKeyNodes.End() ? NULL : it->mSecond;
                 // Skip unknowns and self dependencies
                 if (dependency == NULL || dependency == node) {
                     continue;
                 }
                 // Add the current node as a dependent
-//                dependency->mDependents.Insert(node);
+                dependency->mDependents.Insert(node);
                 // Add a dependency to the current node
-                (*node->mDependencies)[rule] = dependency;
+                node->mDependencies[rule] = dependency;
             }
         }
     }
 
-    mRoots->Clear();
+    mRoots.Clear();
 
     // Finds all the roots in the graph: all nodes with no dependencies
-    for (it = mNodes->Begin(); it != mNodes->End(); ++it) {
+    for (it = mNodes.Begin(); it != mNodes.End(); ++it) {
         Node* node = *it;
-        if (node->mDependencies->Begin() == node->mDependencies->End()) {
-            mRoots->PushBack(node);
+        if (node->mDependencies.Begin() == node->mDependencies.End()) {
+            mRoots.PushBack(node);
         }
     }
 
-    return mRoots;
+    return &mRoots;
 }
 
 /**
@@ -583,12 +560,7 @@ RelativeLayout::~RelativeLayout()
     if (mTopToBottomLeftToRightSet != NULL) {
         delete mTopToBottomLeftToRightSet;
     }
-    for (Int32 i = 0; i < mSortedHorizontalChildren->GetLength(); i++) {
-        (*mSortedHorizontalChildren)[i].~AutoPtr<IView>();
-    }
-    for (Int32 i = 0; i < mSortedVerticalChildren->GetLength(); i++) {
-        (*mSortedVerticalChildren)[i].~AutoPtr<IView>();
-    }
+
     ArrayOf< AutoPtr<IView> >::Free(mSortedHorizontalChildren);
     ArrayOf< AutoPtr<IView> >::Free(mSortedVerticalChildren);
     delete mGraph;
@@ -736,12 +708,10 @@ void RelativeLayout::SortChildren()
     }
 
     mGraph->Clear();
-
     for (Int32 i = 0; i < count; i++) {
         AutoPtr<IView> child = GetChildAt(i);
         mGraph->Add(child);
     }
-
 //    if (DEBUG_GRAPH) {
 //        d(LOG_TAG, "=== Sorted vertical children");
 //        graph.log(getResources(), ABOVE, BELOW, ALIGN_BASELINE, ALIGN_TOP, ALIGN_BOTTOM);
@@ -856,6 +826,8 @@ void RelativeLayout::OnMeasure(
 
     for (Int32 i = 0; i < count; i++) {
         IView* child = (*views)[i];
+        assert(child);
+
         Int32 visibility;
         child->GetVisibility(&visibility);
         if (visibility != View_GONE) {
@@ -863,6 +835,7 @@ void RelativeLayout::OnMeasure(
             child->GetLayoutParams((IViewGroupLayoutParams**)&params);
 
             CRelativeLayoutLayoutParams* lp = (CRelativeLayoutLayoutParams*)params.Get();
+            assert(lp);
             ApplyVerticalSizeRules(lp, myHeight);
             MeasureChild(child, lp, myWidth, myHeight);
             if (PositionChildVertical(child, lp, myHeight, isWrapContentHeight)) {
@@ -912,7 +885,6 @@ void RelativeLayout::OnMeasure(
             }
         }
     }
-
     if (isWrapContentWidth) {
         // Width already has left padding in it since it was calculated by looking at
         // the right of each child view
@@ -953,7 +925,6 @@ void RelativeLayout::OnMeasure(
             }
         }
     }
-
     if (isWrapContentHeight) {
         // Height already has top padding in it since it was calculated by looking at
         // the bottom of each child view
@@ -994,7 +965,6 @@ void RelativeLayout::OnMeasure(
             }
         }
     }
-
     if (horizontalGravity || verticalGravity) {
         mSelfBounds->Set(mPaddingLeft, mPaddingTop, width - mPaddingRight,
                 height - mPaddingBottom);
@@ -1028,8 +998,8 @@ void RelativeLayout::OnMeasure(
             }
         }
     }
-
     SetMeasuredDimension(width, height);
+
 }
 
 void RelativeLayout::AlignBaseline(
@@ -1461,8 +1431,8 @@ AutoPtr<IView> RelativeLayout::GetRelatedView(
 
     Int32 id = (*rules)[relation];
     if (id != 0) {
-        HashMap<Int32, AutoPtr<DependencyGraph::Node> >::Iterator it = mGraph->mKeyNodes->Find(id);
-        DependencyGraph::Node* node = it == mGraph->mKeyNodes->End() ? NULL : it->mSecond;
+        HashMap<Int32, AutoPtr<DependencyGraph::Node> >::Iterator it = mGraph->mKeyNodes.Find(id);
+        DependencyGraph::Node* node = it == mGraph->mKeyNodes.End() ? NULL : it->mSecond;
         if (node == NULL) return NULL;
         IView* v = node->mView;
 
@@ -1473,8 +1443,8 @@ AutoPtr<IView> RelativeLayout::GetRelatedView(
             AutoPtr<IRelativeLayoutLayoutParams> params;
             v->GetLayoutParams((IViewGroupLayoutParams**)&params);
             rules = ((CRelativeLayoutLayoutParams*)params.Get())->GetRules();
-            it = mGraph->mKeyNodes->Find((*rules)[relation]);
-            node = it == mGraph->mKeyNodes->End() ? NULL : it->mSecond;
+            it = mGraph->mKeyNodes.Find((*rules)[relation]);
+            node = it == mGraph->mKeyNodes.End() ? NULL : it->mSecond;
             if (node == NULL) return NULL;
             v = node->mView;
             v->GetVisibility(&visibility);

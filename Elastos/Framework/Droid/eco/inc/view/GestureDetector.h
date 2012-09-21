@@ -27,7 +27,7 @@ public:
          */
         virtual CARAPI_(Boolean) OnSingleTapConfirmed(
             /* [in] */ IMotionEvent* e) = 0;
- 
+
         /**
          * Notified when a double-tap occurs.
          *
@@ -157,7 +157,7 @@ public:
 
         void OnLongPress(
             /* [in] */ IMotionEvent* e);
-        
+
         Boolean OnScroll(
             /* [in] */ IMotionEvent* e1,
             /* [in] */ IMotionEvent* e2,
@@ -187,50 +187,6 @@ public:
 
         OnDoubleTapListener* ProbeToOnDoubleTapEvent();
     };
-
-    void SendMessageAtTime(
-        /* [in] */ Int32 msgCode,
-        /* [in] */ Int64 uptimeMillis)
-    {
-        switch (msgCode) {
-        case SHOW_PRESS: 
-            {
-                void (STDCALL OnGestureListener::*pHandlerFunc)(IMotionEvent* event);
-                pHandlerFunc = &OnGestureListener::OnShowPress;
-
-                AutoPtr<IParcel> params;
-                CCallbackParcel::New((IParcel**)&params);
-                params->WriteInterfacePtr(mCurrentDownEvent.Get());
-
-                mApartment->PostCppCallbackAtTime(
-                    (Handle32)mListener, *(Handle32*)&pHandlerFunc,
-                    params, 0, uptimeMillis);
-            }
-            break;
-        case LONG_PRESS:
-            {
-                void (STDCALL GestureDetector::*pHandlerFunc)();
-                pHandlerFunc = &GestureDetector::DispatchLongPress;
-
-                mApartment->PostCppCallbackAtTime(
-                    (Handle32)this, *(Handle32*)&pHandlerFunc,
-                    NULL, 0, uptimeMillis);
-            }
-            break;
-        case TAP:
-            {
-                void (STDCALL GestureDetector::*pHandlerFunc)();
-                pHandlerFunc = &GestureDetector::HandleTap;
-
-                mApartment->PostCppCallbackAtTime(
-                    (Handle32)this, *(Handle32*)&pHandlerFunc,
-                    NULL, 0, uptimeMillis);
-            }
-            break;
-        default:
-            assert(0);
-        }
-    }
 
 public:
     GestureDetector(
@@ -322,7 +278,7 @@ private:
     Float mLastMotionX;
 
     Boolean mIsLongpressEnabled;
-    
+
     /**
      * True if we are at a target API level of >= Froyo or the developer can
      * explicitly set it. If TRUE, input events with > 1 pointer will be ignored
