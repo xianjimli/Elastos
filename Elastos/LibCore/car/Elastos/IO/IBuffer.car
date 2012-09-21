@@ -2,43 +2,43 @@
 module
 {
     interface IBuffer {
-        /**
-         * Returns the array that backs this buffer (optional operation).
-         * The returned value is the actual array, not a copy, so modifications
-         * to the array write through to the buffer.
-         *
-         * <p>Subclasses should override this method with a covariant return type
-         * to provide the exact type of the array.
-         *
-         * <p>Use {@code hasArray} to ensure this method won't throw.
-         * (A separate call to {@code isReadOnly} is not necessary.)
-         *
-         * @return the array
-         * @throws ReadOnlyBufferException if the buffer is read-only
-         *         UnsupportedOperationException if the buffer does not expose an array
-         * @since 1.6
-         */
-        Array(
-            [out] IInterface** array);
-
-        /**
-         * Returns the offset into the array returned by {@code array} of the first
-         * element of the buffer (optional operation). The backing array (if there is one)
-         * is not necessarily the same size as the buffer, and position 0 in the buffer is
-         * not necessarily the 0th element in the array. Use
-         * {@code buffer.array()[offset + buffer.arrayOffset()} to access element {@code offset}
-         * in {@code buffer}.
-         *
-         * <p>Use {@code hasArray} to ensure this method won't throw.
-         * (A separate call to {@code isReadOnly} is not necessary.)
-         *
-         * @return the offset
-         * @throws ReadOnlyBufferException if the buffer is read-only
-         *         UnsupportedOperationException if the buffer does not expose an array
-         * @since 1.6
-         */
-        ArrayOffset(
-            [out] Int32* offset);
+//        /**
+//         * Returns the array that backs this buffer (optional operation).
+//         * The returned value is the actual array, not a copy, so modifications
+//         * to the array write through to the buffer.
+//         *
+//         * <p>Subclasses should override this method with a covariant return type
+//         * to provide the exact type of the array.
+//         *
+//         * <p>Use {@code hasArray} to ensure this method won't throw.
+//         * (A separate call to {@code isReadOnly} is not necessary.)
+//         *
+//         * @return the array
+//         * @throws ReadOnlyBufferException if the buffer is read-only
+//         *         UnsupportedOperationException if the buffer does not expose an array
+//         * @since 1.6
+//         */
+//        Array(
+//            [out] IInterface** array);
+//
+//        /**
+//         * Returns the offset into the array returned by {@code array} of the first
+//         * element of the buffer (optional operation). The backing array (if there is one)
+//         * is not necessarily the same size as the buffer, and position 0 in the buffer is
+//         * not necessarily the 0th element in the array. Use
+//         * {@code buffer.array()[offset + buffer.arrayOffset()} to access element {@code //offset}
+//         * in {@code buffer}.
+//         *
+//         * <p>Use {@code hasArray} to ensure this method won't throw.
+//         * (A separate call to {@code isReadOnly} is not necessary.)
+//         *
+//         * @return the offset
+//         * @throws ReadOnlyBufferException if the buffer is read-only
+//         *         UnsupportedOperationException if the buffer does not expose an array
+//         * @since 1.6
+//         */
+//        ArrayOffset(
+//            [out] Int32* offset);
 
         /**
          * Returns the capacity of this buffer.

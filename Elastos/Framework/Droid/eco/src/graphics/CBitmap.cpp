@@ -104,10 +104,10 @@ ECode CBitmap::CopyPixelsToBuffer(
     if (dst->Probe(EIID_IByteBuffer)) {
         shift = 0;
     }
-    else if (dst->Probe(EIID_IShortBuffer)) {
+    else if (dst->Probe(EIID_IInt16Buffer)) {
         shift = 1;
     }
-    else if (dst->Probe(EIID_IIntBuffer)) {
+    else if (dst->Probe(EIID_IInt32Buffer)) {
         shift = 2;
     }
     else {
@@ -153,10 +153,10 @@ ECode CBitmap::CopyPixelsFromBuffer(
     if (src->Probe(EIID_IByteBuffer)) {
         shift = 0;
     }
-    else if (src->Probe(EIID_IShortBuffer)) {
+    else if (src->Probe(EIID_IInt16Buffer)) {
         shift = 1;
     }
-    else if (src->Probe(EIID_IIntBuffer)) {
+    else if (src->Probe(EIID_IInt32Buffer)) {
         shift = 2;
     }
     else {

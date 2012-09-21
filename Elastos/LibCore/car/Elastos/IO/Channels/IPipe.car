@@ -1,0 +1,41 @@
+
+module
+{
+    interface ISelectableChannel;
+
+    /**
+     * Writable sink channel used to write to a pipe.
+     */
+    interface ISinkChannel extends ISelectableChannel {
+    }
+
+    /**
+     * Readable source channel used to read from a pipe.
+     */
+    interface ISourceChannel extends ISelectableChannel {
+    }
+
+    /**
+     * A pipe contains two channels, forming a unidirectional pipe. One is the writable sink channel,
+     * and the other is the readable source channel. When bytes are written into the writable
+     * channel they can be read from the readable channel. Bytes are read in the order in which they
+     * were written.
+     */
+    interface IPipe {
+        /**
+         * Returns the sink channel of the pipe.
+         *
+         * @return a writable sink channel of the pipe.
+         */
+        Sink(
+            [out] ISinkChannel** channel);
+
+        /**
+         * Returns the source channel of the pipe.
+         *
+         * @return a readable source channel of the pipe.
+         */
+        Source(
+            [out] ISourceChannel** channel);
+    }
+}
