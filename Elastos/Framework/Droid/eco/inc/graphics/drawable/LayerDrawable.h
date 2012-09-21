@@ -30,6 +30,8 @@ public:
             /* [in] */ LayerDrawable* owner,
             /* [in] */ IResources* res);
 
+        virtual ~LayerState();
+
         CARAPI_(PInterface) Probe(
             /* [in]  */ REIID riid);
 
@@ -94,6 +96,8 @@ public:
     LayerDrawable(
         /* [in] */ LayerState* state,
         /* [in] */ IResources* res);
+
+    virtual ~LayerDrawable();
 
     CARAPI Inflate(
         /* [in] */ IResources* r,

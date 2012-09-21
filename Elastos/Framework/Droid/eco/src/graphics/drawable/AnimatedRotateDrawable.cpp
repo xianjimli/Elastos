@@ -92,7 +92,9 @@ ECode AnimatedRotateDrawable::AnimatedRotateState::NewDrawableEx(
 ECode AnimatedRotateDrawable::AnimatedRotateState::GetChangingConfigurations(
     /* [out] */ Int32* config)
 {
-    return mChangingConfigurations;
+    VALIDATE_NOT_NULL(config);
+    *config = mChangingConfigurations;
+    return NOERROR;
 }
 
 Boolean AnimatedRotateDrawable::AnimatedRotateState::CanConstantState()
@@ -118,7 +120,7 @@ void AnimatedRotateDrawable::InitInternal()
 {
     AnimatedRotateState* state = mState;
     mIncrement = 360.0f / (Float)state->mFramesCount;
-    AutoPtr<IDrawable> drawable = state->mDrawable;
+    IDrawable* drawable = state->mDrawable;
     if (drawable != NULL) {
         drawable->SetFilterBitmap(TRUE);
         if (IBitmapDrawable::Probe(drawable)) {

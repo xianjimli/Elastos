@@ -2,7 +2,6 @@
 module
 {
     merge("view/AbsSavedState.car");
-    //merge("view/menuview.car");
     merge("view/menu.car");
     merge("view/menuitem.car");
     merge("view/submenu.car");
@@ -466,7 +465,7 @@ module
 
         /**
          * Constructor
-         * 
+         *
          * @param factor Degree to which the animation should be eased. Seting
          *        factor to 1.0f produces a y=x^2 parabola. Increasing factor above
          *        1.0f  exaggerates the ease-in effect (i.e., it starts even
@@ -607,8 +606,8 @@ module
 
     class CAnimationSet {
         /**
-         * Constructor used when an AnimationSet is loaded from a resource. 
-         * 
+         * Constructor used when an AnimationSet is loaded from a resource.
+         *
          * @param context Application context to use
          * @param attrs Attribute set from which to read values
          */
@@ -618,7 +617,7 @@ module
 
         /**
          * Constructor to use when building an AnimationSet from code
-         * 
+         *
          * @param shareInterpolator Pass TRUE if all of the animations in this set
          *        should use the interpolator assocciated with this AnimationSet.
          *        Pass FALSE if each animation should use its own interpolator.
@@ -735,7 +734,7 @@ module
 
         interface IAnimation;
     }
-    
+
     class CLayoutAnimationController {
         /**
          * Creates a new layout animation controller from external resources.
@@ -771,7 +770,7 @@ module
 
         interface ILayoutAnimationController;
     }
-    
+
     class CGridLayoutAnimationController {
         /**
          * Creates a new grid layout animation controller from external resources.

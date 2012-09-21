@@ -9,8 +9,12 @@ LayerDrawable::LayerState::LayerState(
     /* [in] */ LayerState* orig,
     /* [in] */ LayerDrawable* owner,
     /* [in] */ IResources* res)
-    : mHaveOpacity(FALSE)
+    : mChildren(NULL)
+    , mHaveOpacity(FALSE)
     , mHaveStateful(FALSE)
+    , mStateful(FALSE)
+    , mCheckedConstantState(FALSE)
+    , mCanConstantState(FALSE)
 {
     if (orig != NULL) {
         Int32 N = orig->mNum;
@@ -49,6 +53,16 @@ LayerDrawable::LayerState::LayerState(
     else {
         mNum = 0;
         mChildren = NULL;
+    }
+}
+
+LayerDrawable::LayerState::~LayerState()
+{
+    if (mChildren != NULL) {
+        for (Int32 i = 0; i < mChildren->GetLength(); ++i) {
+            (*mChildren)[i] = NULL;
+        }
+        ArrayOf<AutoPtr<ChildDrawable> >::Free(mChildren);
     }
 }
 
@@ -106,7 +120,9 @@ ECode LayerDrawable::LayerState::NewDrawableEx(
 ECode LayerDrawable::LayerState::GetChangingConfigurations(
     /* [out] */ Int32* config)
 {
-    return mChangingConfigurations;
+    VALIDATE_NOT_NULL(config);
+    *config = mChangingConfigurations;
+    return NOERROR;
 }
 
 Int32 LayerDrawable::LayerState::GetOpacity()
@@ -213,6 +229,14 @@ LayerDrawable::LayerDrawable(
 {
     ASSERT_SUCCEEDED(CRect::New((IRect**)&mTmpRect));
     Init(state, res);
+}
+
+LayerDrawable::~LayerDrawable()
+{
+    if (mPaddingL != NULL) ArrayOf<Int32>::Free(mPaddingL);
+    if (mPaddingT != NULL) ArrayOf<Int32>::Free(mPaddingT);
+    if (mPaddingR != NULL) ArrayOf<Int32>::Free(mPaddingR);
+    if (mPaddingB != NULL) ArrayOf<Int32>::Free(mPaddingB);
 }
 
 AutoPtr<LayerDrawable::LayerState> LayerDrawable::CreateConstantState(

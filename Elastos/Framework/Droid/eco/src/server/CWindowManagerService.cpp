@@ -349,13 +349,12 @@ CWindowManagerService::CWindowManagerService() :
 
     assert(SUCCEEDED(CRect::New((IRect**)&mCompatibleScreenFrame)));
 
-#ifdef _linux
     mInputMonitor = new InputMonitor(this);
 
     mInputManager = new InputManager(NULL/*context*/, this);
 
     assert(SUCCEEDED(mInputManager->Start()));
-#endif
+
     mTmpFloats = ArrayOf<Float>::Alloc(9);
 }
 
