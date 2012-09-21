@@ -45,6 +45,16 @@ module
     merge("../../../car/Elastos/IO/IStringReader.car");
     merge("../../../car/Elastos/IO/IStringWriter.car");
     merge("../../../car/Elastos/IO/IRandomAccessFile.car");
+    /************************************NIO**********************************/
+    merge("../../../car/Elastos/IO/ByteOrder.car");
+    merge("../../../car/Elastos/IO/IBuffer.car");
+    merge("../../../car/Elastos/IO/IByteBuffer.car");
+    merge("../../../car/Elastos/IO/ICharBuffer.car");
+    merge("../../../car/Elastos/IO/IDoubleBuffer.car");
+    merge("../../../car/Elastos/IO/IFloatBuffer.car");
+    merge("../../../car/Elastos/IO/IInt16Buffer.car");
+    merge("../../../car/Elastos/IO/IInt32Buffer.car");
+    merge("../../../car/Elastos/IO/IInt64Buffer.car");
 
 
     class CFilterInputStream {
