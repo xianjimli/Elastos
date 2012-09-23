@@ -1,0 +1,20 @@
+
+module
+{
+//    const FAMILY_CORE = 0x2A    // Platform exception codes
+
+//    #define FRAMEWORK_ERROR(c)      MAKE_ECODE(SEVERITY_ERROR, FAMILY_FRAMEWORK, c)
+//    #define FRAMEWORK_SUCCESS(c)    MAKE_SUCCESS(FAMILY_FRAMEWORK, c)
+
+    //==========================================================================
+    // Platform exception codes (Family: 0x2A)
+    const E_PLATFORM_IO_EXCEPTION                       = 0xAA010000;
+    const E_PLATFORM_FILE_NOT_FOUND_EXCEPTION           = 0xAA020000;
+    const E_PLATFORM_SOCKET_EXCEPTION                   = 0xAA030000;
+    const E_PLATFORM_SOCKET_TIMEOUT_EXCEPTION           = 0xAA040000;
+    const E_PLATFORM_BIND_EXCEPTION                     = 0xAA050000;
+    const E_PLATFORM_PORT_UNREACHABLE_EXCEPTION         = 0xAA060000;
+    const E_PLATFORM_CONNECT_EXCEPTION                  = 0xAA070000;
+    const E_PLATFORM_SECURITY_EXCEPTION                 = 0xAA080000;
+    const E_PLATFORM_UNSUPPORTED_OPERATION_EXCEPTION    = 0xAA090000;
+}

@@ -1,0 +1,214 @@
+
+module
+{
+    struct GroupRequest
+    {
+        ArrayOf<Byte>* mGroup;
+        Int32 mInterface;
+    }
+
+    /*
+     * The interface for network methods.
+     */
+    [deprecated]
+    interface INetworkSystem {
+        Accept(
+            [in] Int32 serverFd,
+            [out] ArrayOf<Byte> ipAddress,
+            [out] Int32* port,
+            [out] Int32* localPort,
+            [out] Int32* clientFd);
+
+        Bind(
+            [in] Int32 fd,
+            [in] ArrayOf<Byte> ipAddress,
+            [in] Int32 port);
+
+        Read(
+            [in] Int32 fd,
+            [in] Int32 offset,
+            [in] Int32 count,
+            [out] ArrayOf<Byte> data,
+            [out] Int32* number);
+
+        ReadDirect(
+            [in] Int32 fd,
+            [in] Int32 address,
+            [in] Int32 count,
+            [out] Int32* number);
+
+        Write(
+            [in] Int32 fd,
+            [in] ArrayOf<Byte> data,
+            [in] Int32 offset,
+            [in] Int32 count,
+            [out] Int32* number);
+
+        WriteDirect(
+            [in] Int32 fd,
+            [in] Int32 address,
+            [in] Int32 offset,
+            [in] Int32 count,
+            [out] Int32* number);
+
+        ConnectNonBlocking(
+            [in] Int32 fd,
+            [in] ArrayOf<Byte> ipAddress,
+            [in] Int32 port,
+            [out] Boolean* succeeded);
+
+        IsConnected(
+            [in] Int32 fd,
+            [in] Int32 timeout,
+            [out] Boolean* isConnected);
+
+        Send(
+            [in] Int32 fd,
+            [in] ArrayOf<Byte> data,
+            [in] Int32 offset,
+            [in] Int32 length,
+            [in] Int32 port,
+            [in] ArrayOf<Byte>* ipAddress,
+            [out] Int32* number);
+
+        SendDirect(
+            [in] Int32 fd,
+            [in] Int32 address,
+            [in] Int32 offset,
+            [in] Int32 length,
+            [in] Int32 port,
+            [in] ArrayOf<Byte>* ipAddress,
+            [out] Int32* number);
+
+        Recv(
+            [in] Int32 fd,
+            [in] Int32 offset,
+            [in] Int32 length,
+            [in] Boolean peek,
+            [in] Boolean connected,
+            [out] ArrayOf<Byte> data,
+            [out] ArrayOf<Byte> ipAddress,
+            [out] Int32* port,
+            [out] Int32* number);
+
+        RecvDirect(
+            [in] Int32 fd,
+            [in] Int32 address,
+            [in] Int32 offset,
+            [in] Int32 length,
+            [in] Boolean peek,
+            [in] Boolean connected,
+            [out] ArrayOf<Byte> ipAddress,
+            [out] Int32* port,
+            [out] Int32* number);
+
+        DisconnectDatagram(
+            [in] Int32 fd);
+
+        Socket(
+            [in] Boolean stream,
+            [out] Int32* fd);
+
+        ShutdownInput(
+            [in] Int32 fd);
+
+        ShutdownOutput(
+            [in] Int32 fd);
+
+        SendUrgentData(
+            [in] Int32 fd,
+            [in] Byte value);
+
+        Listen(
+            [in] Int32 fd,
+            [in] Int32 backlog);
+
+        Connect(
+            [in] Int32 fd,
+            [in] ArrayOf<Byte> ipAddress,
+            [in] Int32 port,
+            [in] Int32 timeout);
+
+        GetSocketLocalAddress(
+            [in] Int32 fd,
+            [out] ArrayOf<Byte> ipAddress);
+
+        /**
+         * Select the given file descriptors for read and write operations.
+         *
+         * <p>The first {@code numReadable} file descriptors of {@code readFDs} will
+         * be selected for read-ready operations. The first {@code numWritable} file
+         * descriptors in {@code writeFDs} will be selected for write-ready
+         * operations. A file descriptor can appear in either or both and must not
+         * be null. If the file descriptor is closed during the select the behavior
+         * depends upon the underlying OS.
+         *
+         * @param readFDs
+         *            all sockets interested in read and accept
+         * @param writeFDs
+         *            all sockets interested in write and connect
+         * @param numReadable
+         *            the size of the subset of readFDs to read or accept.
+         * @param numWritable
+         *            the size of the subset of writeFDs to write or connect
+         * @param timeout
+         *            timeout in milliseconds
+         * @param flags
+         *            for output. Length must be at least {@code numReadable
+         *            + numWritable}. Upon returning, each element describes the
+         *            state of the descriptor in the corresponding read or write
+         *            array. See {@code SelectorImpl.READABLE} and {@code
+         *            SelectorImpl.WRITEABLE}
+         * @return true
+         *            unless selection timed out or was interrupted
+         * @throws SocketException
+         */
+        Select(
+            [in] ArrayOf<Int32> readFDs,
+            [in] ArrayOf<Int32> writeFDs,
+            [in] Int32 numReadable,
+            [in] Int32 numWritable,
+            [in] Int64 timeout,
+            [out] ArrayOf<Int32> flags,
+            [out] Boolean* result);
+
+        /*
+         * Query the IP stack for the local port to which this socket is bound.
+         *
+         * @param fd the socket descriptor
+         * @return int the local port to which the socket is bound
+         */
+        GetSocketLocalPort(
+            [in] Int32 fd,
+            [out] Int32* localPort);
+
+        /*
+         * Query the IP stack for the nominated socket option.
+         *
+         * @param fd the socket descriptor @param opt the socket option type
+         * @return the nominated socket option value
+         *
+         * @throws SocketException if the option is invalid
+         */
+        GetSocketOption(
+            [in] Int32 fd,
+            [in] Int32 option,
+            [out] Int32* optVal);
+
+        /*
+         * Set the nominated socket option in the IP stack.
+         *
+         * @param fd the socket descriptor @param opt the option selector @param
+         * optVal the nominated option value
+         *
+         * @throws SocketException if the option is invalid or cannot be set
+         */
+        SetSocketOption(
+            [in] Int32 fd,
+            [in] Int32 option,
+            [in] Int32 optVal);
+
+        Close(
+            [in] Int32 fd);
+    }
+}

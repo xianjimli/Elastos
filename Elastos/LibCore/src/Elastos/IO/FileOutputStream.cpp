@@ -5,6 +5,18 @@
 #include <unistd.h>
 
 
+ECode Platform2IO(ECode ec)
+{
+    switch(ec) {
+    case E_PLATFORM_IO_EXCEPTION:
+        return E_IO_EXCEPTION;
+    case E_PLATFORM_FILE_NOT_FOUND_EXCEPTION:
+        return E_FILE_NOT_FOUND_EXCEPTION;
+    default:
+        return E_FAIL;
+    }
+}
+
 FileOutputStream::FileOutputStream()
 {
     AutoPtr<IPlatform> platform;
@@ -147,7 +159,8 @@ ECode FileOutputStream::Write(
     ArrayOf_<Byte, 1> byteArray;
     (byteArray)[0] = (Byte)oneByte;
     Int64 number;
-    return mFileSystem->Write(mFd->mDescriptor, byteArray, 0, 1, &number);
+    return Platform2IO(mFileSystem->Write(
+            mFd->mDescriptor, byteArray, 0, 1, &number));
 }
 
 ECode FileOutputStream::WriteBuffer(
@@ -183,7 +196,8 @@ ECode FileOutputStream::WriteBufferEx(
 
     FAIL_RETURN(OpenCheck());
     Int64 number;
-    return mFileSystem->Write(mFd->mDescriptor, buffer, offset, count, &number);
+    return Platform2IO(mFileSystem->Write(
+            mFd->mDescriptor, buffer, offset, count, &number));
 }
 
 ECode FileOutputStream::OpenCheck()

@@ -2,9 +2,13 @@
 module
 {
     interface IFileSystem;
+    interface INetworkSystem;
 
     interface IPlatform {
         GetFileSystem(
             [out] IFileSystem** fs);
+
+        GetNetworkSystem(
+            [out] INetworkSystem** ns);
     }
 }

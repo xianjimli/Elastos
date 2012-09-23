@@ -16,9 +16,12 @@ INCLUDES += $(MAKEDIR)/../../../../inc/Com/Kortide/Platform;
 IMPORTS = Droid.System.eco
 
 SOURCES = Com.Kortide.Platform.car
+SOURCES += AsynchronousSocketCloseMonitor.cpp
 SOURCES += CPlatform.cpp
 SOURCES += OSFileSystem.cpp
 SOURCES += WrappedFileSystem.cpp
+SOURCES += OSNetworkSystem.cpp
+SOURCES += WrappedNetworkSystem.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 ifeq "$(XDK_TARGET_PLATFORM)" "win32"
