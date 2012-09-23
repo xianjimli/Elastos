@@ -28,6 +28,9 @@ public:
     CARAPI GetFileSystem(
         /* [out] */ IFileSystem** fs);
 
+    CARAPI GetNetworkSystem(
+        /* [out] */ INetworkSystem** ns);
+
 //    public static INetworkSystem getNetworkSystem() {
 //        accessCheck();
 //        // TODO: use BlockGuard here too, like in getFileSystem() above.
@@ -55,9 +58,7 @@ private:
     // TODO: measure & fix if needed.
     AutoPtr<IFileSystem> FILE_SYSTEM;
 
-//    private static final INetworkSystem NETWORK_SYSTEM =
-//            new BlockGuard.WrappedNetworkSystem(OSNetworkSystem.getOSNetworkSystem());
-
+    AutoPtr<INetworkSystem> NETWORK_SYSTEM;
 };
 
 #endif //__PLATFORM_H__

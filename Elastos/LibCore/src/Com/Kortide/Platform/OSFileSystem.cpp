@@ -23,9 +23,6 @@
 #define HyOpenSync      128
 #define SHARED_LOCK_TYPE 1L
 
-#define E_IO_EXCEPTION (ECode)0xA5010000;
-#define E_FILE_NOT_FOUND_EXCEPTION (ECode)0xA5030000;
-
 #if HAVE_SYS_SENDFILE_H
 #include <sys/sendfile.h>
 #else
@@ -268,7 +265,7 @@ ECode OSFileSystem::GetLength(
     Int32 rc = TEMP_FAILURE_RETRY(fstat(fd, &sb));
     if (rc == -1) {
 //        jniThrowIOException(env, errno);
-        return E_IO_EXCEPTION;
+        return E_PLATFORM_IO_EXCEPTION;
     }
     *size = sb.st_size;
     return NOERROR;
@@ -306,7 +303,7 @@ ECode OSFileSystem::UnlockImpl(
     Int32 rc = TEMP_FAILURE_RETRY(fcntl(fd, F_SETLKW, &lock));
     if (rc == -1) {
 //        jniThrowIOException(env, errno);
-        return E_IO_EXCEPTION;
+        return E_PLATFORM_IO_EXCEPTION;
     }
     return NOERROR;
 }
@@ -332,7 +329,7 @@ ECode OSFileSystem::Fsync(
     // int rc = metadata ? fsync(fd) : fdatasync(fd);
     if (rc == -1) {
 //        jniThrowIOException(env, errno);
-        return E_IO_EXCEPTION;
+        return E_PLATFORM_IO_EXCEPTION;
     }
     return NOERROR;
 }
@@ -373,7 +370,7 @@ ECode OSFileSystem::Seek(
     if (result == -1) {
 //        jniThrowIOException(env, errno);
         *number = -1;
-        return E_IO_EXCEPTION;
+        return E_PLATFORM_IO_EXCEPTION;
     }
     *number = result;
     return NOERROR;
@@ -404,7 +401,7 @@ ECode OSFileSystem::ReadDirect(
             return NOERROR;
         }
 //        jniThrowIOException(env, errno);
-        return E_IO_EXCEPTION;
+        return E_PLATFORM_IO_EXCEPTION;
     }
     *number = rc;
     return NOERROR;
@@ -425,7 +422,7 @@ ECode OSFileSystem::WriteDirect(
     Int64 rc = TEMP_FAILURE_RETRY(write(fd, src, length));
     if (rc == -1) {
 //        jniThrowIOException(env, errno);
-        return E_IO_EXCEPTION;
+        return E_PLATFORM_IO_EXCEPTION;
     }
     *number = rc;
     return NOERROR;
@@ -485,7 +482,7 @@ ECode OSFileSystem::Readv(
     if (result == -1) {
 //        jniThrowIOException(env, errno);
         *number = result;
-        return E_IO_EXCEPTION;
+        return E_PLATFORM_IO_EXCEPTION;
     }
     *number = result;
     return NOERROR;
@@ -509,7 +506,7 @@ ECode OSFileSystem::Writev(
     if (result == -1) {
 //        jniThrowIOException(env, errno);
         *number = result;
-        return E_IO_EXCEPTION;
+        return E_PLATFORM_IO_EXCEPTION;
     }
     *number = result;
     return NOERROR;
@@ -526,7 +523,7 @@ ECode OSFileSystem::Truncate(
     Int32 rc = ftruncate(fd, length);
     if (rc == -1) {
 //        jniThrowIOException(env, errno);
-        return E_IO_EXCEPTION;
+        return E_PLATFORM_IO_EXCEPTION;
     }
     return NOERROR;
 }
@@ -583,7 +580,7 @@ ECode OSFileSystem::Open(
 //        // We always throw FileNotFoundException, regardless of the specific
 //        // failure. (This appears to be true of the RI too.)
 //        jniThrowException(env, "java/io/FileNotFoundException", &message[0]);
-        return E_FILE_NOT_FOUND_EXCEPTION;
+        return E_PLATFORM_FILE_NOT_FOUND_EXCEPTION;
     }
     *fd = rc;
     return NOERROR;
@@ -612,7 +609,7 @@ ECode OSFileSystem::Transfer(
     ssize_t rc = sendfile(socket, fd, &off, count);
     if (rc == -1) {
 //        jniThrowIOException(env, errno);
-        return E_IO_EXCEPTION;
+        return E_PLATFORM_IO_EXCEPTION;
     }
     *number = rc;
     return NOERROR;
@@ -671,7 +668,7 @@ ECode OSFileSystem::IoctlAvailable(
     else {
         /* Something strange is happening. */
 //        jniThrowIOException(env, errno);
-        return E_IO_EXCEPTION;
+        return E_PLATFORM_IO_EXCEPTION;
     }
 
     *avail = nAvail;

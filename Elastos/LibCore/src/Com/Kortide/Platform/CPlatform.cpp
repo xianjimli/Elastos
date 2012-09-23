@@ -4,6 +4,8 @@
 #include "CPlatform.h"
 #include "OSFileSystem.h"
 #include "WrappedFileSystem.h"
+#include "OSNetworkSystem.h"
+#include "WrappedNetworkSystem.h"
 
 //private static final IFileSystem FILE_SYSTEM =
 //            new BlockGuard.WrappedFileSystem(OSFileSystem.getOSFileSystem());
@@ -11,6 +13,7 @@
 CPlatform::CPlatform()
 {
     FILE_SYSTEM = new WrappedFileSystem(OSFileSystem::GetOSFileSystem());
+    NETWORK_SYSTEM = new WrappedNetworkSystem(OSNetworkSystem::GetOSNetworkSystem());
 }
 
 /**
@@ -32,5 +35,15 @@ ECode CPlatform::GetFileSystem(
     AccessCheck();
     *fs = FILE_SYSTEM;
     (*fs)->AddRef();
+    return NOERROR;
+}
+
+ECode CPlatform::GetNetworkSystem(
+    /* [out] */ INetworkSystem** ns)
+{
+    VALIDATE_NOT_NULL(ns);
+    AccessCheck();
+    *ns = NETWORK_SYSTEM;
+    (*ns)->AddRef();
     return NOERROR;
 }

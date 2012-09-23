@@ -8,3 +8,4 @@ Elastos.Utility.Zip.Exceptions                      0x24
 Elastos.Utility.Zip.Errors                          0x25
 Elastos.Utility.Regex.Exceptions                    0x26
 Elastos.SQL.Exceptions                              0x28
+Com.Kortide.Platform.Exceptions                     0x2A
