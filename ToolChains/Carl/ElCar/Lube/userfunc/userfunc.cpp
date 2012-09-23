@@ -985,7 +985,11 @@ int CmpHModTime(char* szName)
     else
         strcpy(szPath, g_pszOutputPath);
 
-    strcat(szPath, "\\");
+#ifdef _win32
+        strcat(szName, "\\");
+#else
+        strcat(szName, "/");
+#endif
     strcat(szPath, szHName);
 
     if (-1 != access(szPath, 0)) {

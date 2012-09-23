@@ -172,7 +172,11 @@ int LubeContext::EnterFile(const char *pszName, FILE **ppOrigFile)
         pFile = fopen(szNameBuf, "w+t");
     else {
         strcpy(szName, g_pszOutputPath);
+#ifdef _win32
         strcat(szName, "\\");
+#else
+        strcat(szName, "/");
+#endif
         strcat(szName, szNameBuf);
         pFile = fopen(szName, "w+t");
     }
