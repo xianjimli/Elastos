@@ -1,0 +1,40 @@
+
+module
+{
+    interface IInetAddress;
+
+    interface IInetSocketAddress extends ISocketAddress {
+        /**
+         * Gets the port number of this socket.
+         *
+         * @return the socket endpoint port number.
+         */
+        GetPort(
+            [out] Int32* port);
+
+        /**
+         * Gets the address of this socket.
+         *
+         * @return the socket endpoint address.
+         */
+        GetAddress(
+            [out] IInetAddress** address);
+
+        /**
+         * Gets the hostname of this socket.
+         *
+         * @return the socket endpoint hostname.
+         */
+        GetHostName(
+            [out] String* hostname);
+
+        /**
+         * Returns whether this socket address is unresolved or not.
+         *
+         * @return {@code true} if this socket address is unresolved, {@code false}
+         *         otherwise.
+         */
+        IsUnresolved(
+            [out] Boolean* isUnresolved);
+    }
+}

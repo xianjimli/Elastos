@@ -1,0 +1,235 @@
+
+module
+{
+    interface INetworkInterface;
+
+    interface IInetAddress {
+        /**
+         * Returns the IP address represented by this {@code InetAddress} instance
+         * as a byte array. The elements are in network order (the highest order
+         * address byte is in the zeroth element).
+         *
+         * @return the address in form of a byte array.
+         */
+        GetAddress(
+            [out, callee] ArrayOf<Byte>* address);
+
+        /**
+         * Gets the textual representation of this IP address.
+         *
+         * @return the textual representation of host's IP address.
+         */
+        GetHostAddress(
+            [out] String* hostAddress);
+
+        /**
+         * Gets the host name of this IP address. If the IP address could not be
+         * resolved, the textual representation in a dotted-quad-notation is
+         * returned.
+         *
+         * @return the corresponding string name of this IP address.
+         */
+        GetHostName(
+            [out] String* hostName);
+
+        /**
+         * Gets the fully qualified domain name for the host associated with this IP
+         * address. If a security manager is set, it is checked if the method caller
+         * is allowed to get the hostname. Otherwise, the textual representation in
+         * a dotted-quad-notation is returned.
+         *
+         * @return the fully qualified domain name of this IP address.
+         */
+        GetCanonicalHostName(
+            [out] String* hostName);
+
+        /*
+         * Returns whether this address is an IP multicast address or not. This
+         * implementation returns always {@code false}.
+         *
+         * @return {@code true} if this address is in the multicast group, {@code
+         *         false} otherwise.
+         */
+        IsMulticastAddress(
+            [out] Boolean* isMulticastAddress);
+
+        /**
+         * Returns whether this address is a loopback address or not. This
+         * implementation returns always {@code false}. Valid IPv4 loopback
+         * addresses are 127.d.d.d The only valid IPv6 loopback address is ::1.
+         *
+         * @return {@code true} if this instance represents a loopback address,
+         *         {@code false} otherwise.
+         */
+        IsLoopbackAddress(
+            [out] Boolean* isLoopbackAddress);
+
+        /**
+         * Returns whether this address is a link-local address or not. This
+         * implementation returns always {@code false}.
+         * <p>
+         * Valid IPv6 link-local addresses are FE80::0 through to
+         * FEBF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF.
+         * <p>
+         * There are no valid IPv4 link-local addresses.
+         *
+         * @return {@code true} if this instance represents a link-local address,
+         *         {@code false} otherwise.
+         */
+        IsLinkLocalAddress(
+            [out] Boolean* isLinkLocalAddress);
+
+        /**
+         * Returns whether this address is a site-local address or not. This
+         * implementation returns always {@code false}.
+         * <p>
+         * Valid IPv6 site-local addresses are FEC0::0 through to
+         * FEFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF.
+         * <p>
+         * There are no valid IPv4 site-local addresses.
+         *
+         * @return {@code true} if this instance represents a site-local address,
+         *         {@code false} otherwise.
+         */
+        IsSiteLocalAddress(
+            [out] Boolean* isSiteLocalAddress);
+
+        /**
+         * Returns whether this address is a global multicast address or not. This
+         * implementation returns always {@code false}.
+         * <p>
+         * Valid IPv6 link-global multicast addresses are FFxE:/112 where x is a set
+         * of flags, and the additional 112 bits make up the global multicast
+         * address space.
+         * <p>
+         * Valid IPv4 global multicast addresses are between: 224.0.1.0 to
+         * 238.255.255.255.
+         *
+         * @return {@code true} if this instance represents a global multicast
+         *         address, {@code false} otherwise.
+         */
+        IsMCGlobal(
+            [out] Boolean* isMCGlobal);
+
+        /**
+         * Returns whether this address is a node-local multicast address or not.
+         * This implementation returns always {@code false}.
+         * <p>
+         * Valid IPv6 node-local multicast addresses are FFx1:/112 where x is a set
+         * of flags, and the additional 112 bits make up the node-local multicast
+         * address space.
+         * <p>
+         * There are no valid IPv4 node-local multicast addresses.
+         *
+         * @return {@code true} if this instance represents a node-local multicast
+         *         address, {@code false} otherwise.
+         */
+        IsMCNodeLocal(
+            [out] Boolean* isMCNodeLocal);
+
+        /**
+         * Returns whether this address is a link-local multicast address or not.
+         * This implementation returns always {@code false}.
+         * <p>
+         * Valid IPv6 link-local multicast addresses are FFx2:/112 where x is a set
+         * of flags, and the additional 112 bits make up the link-local multicast
+         * address space.
+         * <p>
+         * Valid IPv4 link-local addresses are between: 224.0.0.0 to 224.0.0.255
+         *
+         * @return {@code true} if this instance represents a link-local multicast
+         *         address, {@code false} otherwise.
+         */
+        IsMCLinkLocal(
+            [out] Boolean* isMCLinkLocal);
+
+        /**
+         * Returns whether this address is a site-local multicast address or not.
+         * This implementation returns always {@code false}.
+         * <p>
+         * Valid IPv6 site-local multicast addresses are FFx5:/112 where x is a set
+         * of flags, and the additional 112 bits make up the site-local multicast
+         * address space.
+         * <p>
+         * Valid IPv4 site-local addresses are between: 239.252.0.0 to
+         * 239.255.255.255
+         *
+         * @return {@code true} if this instance represents a site-local multicast
+         *         address, {@code false} otherwise.
+         */
+        IsMCSiteLocal(
+            [out] Boolean* isMCSiteLocal);
+
+        /**
+         * Returns whether this address is a organization-local multicast address or
+         * not. This implementation returns always {@code false}.
+         * <p>
+         * Valid IPv6 organization-local multicast addresses are FFx8:/112 where x
+         * is a set of flags, and the additional 112 bits make up the
+         * organization-local multicast address space.
+         * <p>
+         * Valid IPv4 organization-local addresses are between: 239.192.0.0 to
+         * 239.251.255.255
+         *
+         * @return {@code true} if this instance represents a organization-local
+         *         multicast address, {@code false} otherwise.
+         */
+        IsMCOrgLocal(
+            [out] Boolean* isMCOrgLocal);
+
+        /**
+         * Returns whether this is a wildcard address or not. This implementation
+         * returns always {@code false}.
+         *
+         * @return {@code true} if this instance represents a wildcard address,
+         *         {@code false} otherwise.
+         */
+        IsAnyLocalAddress(
+            [out] Boolean* isAnyLocalAddress);
+
+        /**
+         * Tries to reach this {@code InetAddress}. This method first tries to use
+         * ICMP <i>(ICMP ECHO REQUEST)</i>. When first step fails, a TCP connection
+         * on port 7 (Echo) of the remote host is established.
+         *
+         * @param timeout
+         *            timeout in milliseconds before the test fails if no connection
+         *            could be established.
+         * @return {@code true} if this address is reachable, {@code false}
+         *         otherwise.
+         * @throws IOException
+         *             if an error occurs during an I/O operation.
+         * @throws IllegalArgumentException
+         *             if timeout is less than zero.
+         */
+        IsReachable(
+            [in] Int32 timeout,
+            [out] Boolean* isReachable);
+
+        /**
+         * Tries to reach this {@code InetAddress}. This method first tries to use
+         * ICMP <i>(ICMP ECHO REQUEST)</i>. When first step fails, a TCP connection
+         * on port 7 (Echo) of the remote host is established.
+         *
+         * @param networkInterface
+         *            the network interface on which to connection should be
+         *            established.
+         * @param ttl
+         *            the maximum count of hops (time-to-live).
+         * @param timeout
+         *            timeout in milliseconds before the test fails if no connection
+         *            could be established.
+         * @return {@code true} if this address is reachable, {@code false}
+         *         otherwise.
+         * @throws IOException
+         *             if an error occurs during an I/O operation.
+         * @throws IllegalArgumentException
+         *             if ttl or timeout is less than zero.
+         */
+        IsReachableEx(
+            [in] INetworkInterface* networkInterface,
+            [in] Int32 ttl,
+            [in] Int32 timeout,
+            [out] Boolean* isReachable);
+    }
+}

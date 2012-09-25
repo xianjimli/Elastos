@@ -1,0 +1,6 @@
+
+module
+{
+    interface IInet4Address extends IInetAddress {
+    }
+}

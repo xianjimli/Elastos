@@ -1,0 +1,23 @@
+
+module
+{
+    interface IURI;
+    interface IHttpCookie;
+
+    interface ICookiePolicy {
+        /**
+         * This method is used to determine whether or not the specified cookie
+         * should be accepted.
+         *
+         * @param uri
+         *            the URI to used to determine acceptability
+         * @param cookie
+         *            the HttpCookie to be determined
+         * @return true if this cookie should be accepted; false otherwise
+         */
+        ShouldAccept(
+            [in] IURI* uri,
+            [in] IHttpCookie* cookie,
+            [out] Boolean* result);
+    }
+}

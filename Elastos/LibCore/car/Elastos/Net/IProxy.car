@@ -1,0 +1,46 @@
+
+module
+{
+    /**
+     * {@code Enum} class for the proxy type. Possible options are {@code
+     * DIRECT}, {@code HTTP} and {@code SOCKS}.
+     */
+    enum ProxyType {
+        /**
+         * Direct connection. Connect without any proxy.
+         */
+        ProxyType_DIRECT,
+
+        /**
+         * HTTP type proxy. It's often used by protocol handlers such as HTTP,
+         * HTTPS and FTP.
+         */
+        ProxyType_HTTP,
+
+        /**
+         * SOCKS type proxy.
+         */
+        ProxyType_SOCKS
+    }
+
+    interface ISocketAddress;
+
+    interface IProxy {
+        /**
+         * Gets the type of this {@code Proxy} instance.
+         *
+         * @return the stored proxy type.
+         */
+        GetType(
+            [out] ProxyType* type);
+
+        /**
+         * Gets the address of this {@code Proxy} instance.
+         *
+         * @return the stored proxy address or {@code null} if the proxy type is
+         *         {@code DIRECT}.
+         */
+        GetAddress(
+            [out] ISocketAddress** address);
+    }
+}

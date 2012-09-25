@@ -1,0 +1,27 @@
+
+module
+{
+    interface IInetAddress;
+
+    interface IInterfaceAddress {
+        /**
+         * Returns the InetAddress for this address.
+         */
+        GetAddress(
+            [out] IInetAddress** address);
+
+        /**
+         * Returns the subnet-directed broadcast address if this is an IPv4 interface, null otherwise.
+         */
+        GetBroadcast(
+            [out] IInetAddress** broadcast);
+
+        /**
+         * Returns the network prefix length in bits.
+         * (In IPv4 parlance, this is known as the subnet mask,
+         * but this method applies to IPv6 addresses too.)
+         */
+        GetNetworkPrefixLength(
+            [out] Int16* length);
+    }
+}

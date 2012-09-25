@@ -1,0 +1,37 @@
+
+module
+{
+    interface INetworkInterface;
+
+    interface IInet6Address extends IInetAddress {
+        /**
+         * Gets the scope id as a number if this address is linked to an interface.
+         * Otherwise returns {@code 0}.
+         *
+         * @return the scope_id of this address or 0 when not linked with an
+         *         interface.
+         */
+        GetScopeId(
+            [out] Int32* scopeId);
+
+        /**
+         * Gets the network interface if this address is instanced with a scoped
+         * network interface. Otherwise returns {@code null}.
+         *
+         * @return the scoped network interface of this address.
+         */
+        GetScopedInterface(
+            [out] INetworkInterface** scopedInterface);
+
+        /**
+         * Returns whether this address is IPv4 compatible or not. An IPv4
+         * compatible address is prefixed with 96 bits of 0's. The last 32-bits are
+         * varied corresponding with the 32-bit IPv4 address space.
+         *
+         * @return {@code true} if this instance represents an IPv4 compatible
+         *         address, {@code false} otherwise.
+         */
+        IsIPv4CompatibleAddress(
+            [out] Boolean* IPv4Compatible);
+    }
+}

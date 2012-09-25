@@ -1,0 +1,144 @@
+
+module
+{
+    interface IInterfaceAddress;
+
+    interface INetworkInterface {
+        /**
+         * Gets the name associated with this network interface.
+         *
+         * @return the name of this {@code NetworkInterface} instance.
+         */
+        GetName(
+            [out] String* name);
+
+        /**
+         * Gets a list of addresses bound to this network interface.
+         *
+         * @return the address list of the represented network interface.
+         */
+        GetInetAddresses(
+            [out] IObjectContainer** addresses);
+
+        /**
+         * Gets the human-readable name associated with this network interface.
+         *
+         * @return the display name of this network interface or the name if the
+         *         display name is not available.
+         */
+        GetDisplayName(
+            [out] String* name);
+
+        /**
+         * Returns a List the InterfaceAddresses for this network interface.
+         * <p>
+         * If there is a security manager, its checkConnect method is called with
+         * the InetAddress for each InterfaceAddress. Only InterfaceAddresses where
+         * the checkConnect doesn't throw a SecurityException will be returned.
+         *
+         * @return a List of the InterfaceAddresses for this network interface.
+         * @since 1.6
+         */
+        GetInterfaceAddresses(
+            [out] IObjectContainer** addresses);
+
+        /**
+         * Returns an {@code Enumeration} of all the sub-interfaces of this network interface.
+         * Sub-interfaces are also known as virtual interfaces.
+         * <p>
+         * For example, {@code eth0:1} would be a sub-interface of {@code eth0}.
+         *
+         * @return an Enumeration of all the sub-interfaces of this network interface
+         * @since 1.6
+         */
+        GetSubInterfaces(
+            [out] IObjectContainer** subInterfaces);
+
+        /**
+         * Returns the parent NetworkInterface of this interface if this is a
+         * sub-interface, or null if it's a physical (non virtual) interface.
+         *
+         * @return the NetworkInterface this interface is attached to.
+         * @since 1.6
+         */
+        GetParent(
+            [out] INetworkInterface** parent);
+
+        /**
+         * Returns true if this network interface is up.
+         *
+         * @return true if the interface is up.
+         * @throws SocketException if an I/O error occurs.
+         * @since 1.6
+         */
+        IsUp(
+            [out] Boolean* isUp);
+
+        /**
+         * Returns true if this network interface is a loopback interface.
+         *
+         * @return true if the interface is a loopback interface.
+         * @throws SocketException if an I/O error occurs.
+         * @since 1.6
+         */
+        IsLoopback(
+            [out] Boolean* isLoopback);
+
+        /**
+         * Returns true if this network interface is a point-to-point interface.
+         * (For example, a PPP connection using a modem.)
+         *
+         * @return true if the interface is point-to-point.
+         * @throws SocketException if an I/O error occurs.
+         * @since 1.6
+         */
+        IsPointToPoint(
+            [out] Boolean* isPointToPoint);
+
+        /**
+         * Returns true if this network interface supports multicast.
+         *
+         * @throws SocketException if an I/O error occurs.
+         * @since 1.6
+         */
+        SupportsMulticast(
+            [out] Boolean* multicast);
+
+        /**
+         * Returns the hardware address of the interface, if it has one, and the
+         * user has the necessary privileges to access the address.
+         *
+         * @return a byte array containing the address or null if the address
+         *         doesn't exist or is not accessible.
+         * @throws SocketException if an I/O error occurs.
+         * @since 1.6
+         */
+        GetHardwareAddress(
+            [out, callee] ArrayOf<Byte>* address);
+
+        /**
+         * Returns the Maximum Transmission Unit (MTU) of this interface.
+         *
+         * @return the value of the MTU for the interface.
+         * @throws SocketException if an I/O error occurs.
+         * @since 1.6
+         */
+        GetMTU(
+            [out] Int32* mtu);
+
+        /**
+         * Returns true if this interface is a virtual interface (also called
+         * a sub-interface). Virtual interfaces are, on some systems, interfaces
+         * created as a child of a physical interface and given different settings
+         * (like address or MTU). Usually the name of the interface will the name of
+         * the parent followed by a colon (:) and a number identifying the child,
+         * since there can be several virtual interfaces attached to a single
+         * physical interface.
+         *
+         * @return true if this interface is a virtual interface.
+         * @since 1.6
+         */
+        IsVirtual(
+            [out] Boolean* isVirtual);
+    }
+}

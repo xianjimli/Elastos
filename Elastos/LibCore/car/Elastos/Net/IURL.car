@@ -1,0 +1,210 @@
+
+module
+{
+    interface IInputStream;
+    interface IURLConnection;
+    interface IURI;
+    interface IProxy;
+
+
+    interface IURL {
+        /**
+         * Returns whether this URL refers to the same resource as the given
+         * argument {@code otherURL}. All URL components except the reference field
+         * are compared.
+         *
+         * @param otherURL
+         *            the URL to compare against.
+         * @return {@code true} if both instances refer to the same resource,
+         *         {@code false} otherwise.
+         */
+        SameFile(
+            [in] IURL* otherURL,
+            [out] Boolean* isSame);
+
+        /**
+         * Gets the content of the resource which is referred by this URL. By
+         * default one of the following object types will be returned:
+         * <p>
+         * <li>Image for pictures</li>
+         * <li>AudioClip for audio sequences</li>
+         * <li>{@link InputStream} for all other data</li>
+         *
+         * @return the content of the referred resource.
+         * @throws IOException
+         *             if an error occurs obtaining the content.
+         */
+        GetContent(
+            [out] IInterface** content);
+
+        /**
+         * Gets the content of the resource which is referred by this URL. The
+         * argument {@code types} is an array of allowed or expected object types.
+         * {@code null} will be returned if the obtained object type does not match
+         * with one from this list. Otherwise the first type that matches will be
+         * used.
+         *
+         * @param types
+         *            the list of allowed or expected object types.
+         * @return the object representing the resource referred by this URL,
+         *         {@code null} if the content does not match to a specified content
+         *         type.
+         * @throws IOException
+         *             if an error occurs obtaining the content.
+         */
+        // Param not generic in spec
+//        public final Object getContent(Class[] types)
+
+        /**
+         * Opens an InputStream to read the resource referred by this URL.
+         *
+         * @return the stream which allows to read the resource.
+         * @throws IOException
+         *             if an error occurs while opening the InputStream.
+         */
+        OpenStream(
+            [out] IInputStream** is);
+
+        /**
+         * Opens a connection to the remote resource specified by this URL. This
+         * connection allows bidirectional data transfer.
+         *
+         * @return the connection to this URL.
+         * @throws IOException
+         *             if an error occurs while opening the connection.
+         */
+        OpenConnection(
+            [out] IURLConnection** connection);
+
+        /**
+         * Opens a connection to the remote resource specified by this URL. The
+         * connection will be established through the given proxy and allows
+         * bidirectional data transfer.
+         *
+         * @param proxy
+         *            the proxy through which the connection will be established.
+         * @return the appropriate URLconnection instance representing the
+         *         connection to this URL.
+         * @throws IOException
+         *             if an I/O error occurs while opening the connection.
+         * @throws SecurityException
+         *             if a security manager is installed and it denies to connect
+         *             to the proxy.
+         * @throws IllegalArgumentException
+         *             if the argument proxy is {@code null} or is an invalid type.
+         * @throws UnsupportedOperationException
+         *             if the protocol handler does not support opening connections
+         *             through proxies.
+         */
+        OpenConnectionEx(
+            [in] IProxy* proxy,
+            [out] IURLConnection** connection);
+
+        /**
+         * Converts this URL instance into an equivalent URI object.
+         *
+         * @return the URI instance that represents this URL.
+         * @throws URISyntaxException
+         *             if this URL cannot be converted into a URI.
+         */
+        ToURI(
+            [out] IURI** uri);
+
+        /**
+         * Returns a string containing a concise, human-readable representation of
+         * this URL.
+         *
+         * @return the string representation of this URL.
+         */
+        ToExternalForm(
+            [out] String* url);
+
+        /**
+         * Gets the value of the file part of this URL.
+         *
+         * @return the file name this URL refers to or an empty string if the file
+         *         part is not set.
+         */
+        GetFile(
+            [out] String* fileName);
+
+        /**
+         * Gets the value of the host part of this URL.
+         *
+         * @return the host name or IP address of this URL.
+         */
+        GetHost(
+            [out] String* hostName);
+
+        /**
+         * Gets the port number of this URL or {@code -1} if the port is not set.
+         *
+         * @return the port number of this URL.
+         */
+        GetPort(
+            [out] Int32* port);
+
+        /** @hide */
+        GetEffectivePort(
+            [out] Int32* port);
+
+        /**
+         * Gets the protocol of this URL.
+         *
+         * @return the protocol type of this URL.
+         */
+        GetProtocol(
+            [out] String* protocol);
+
+        /**
+         * Gets the value of the reference part of this URL.
+         *
+         * @return the reference part of this URL.
+         */
+        GetRef(
+            [out] String* ref);
+
+        /**
+         * Gets the value of the query part of this URL.
+         *
+         * @return the query part of this URL.
+         */
+        GetQuery(
+            [out] String* query);
+
+        /**
+         * Gets the value of the path part of this URL.
+         *
+         * @return the path part of this URL.
+         */
+        GetPath(
+            [out] String* path);
+
+        /**
+         * Gets the value of the user-info part of this URL.
+         *
+         * @return the user-info part of this URL.
+         */
+        GetUserInfo(
+            [out] String* userInfo);
+
+        /**
+         * Gets the value of the authority part of this URL.
+         *
+         * @return the authority part of this URL.
+         */
+        GetAuthority(
+            [out] String* authority);
+
+        /**
+         * Gets the default port number of the protocol used by this URL. If no
+         * default port is defined by the protocol or the {@code URLStreamHandler},
+         * {@code -1} will be returned.
+         *
+         * @return the default port number according to the protocol of this URL.
+         * @see URLStreamHandler#getDefaultPort
+         */
+        GetDefaultPort(
+            [out] Int32* port);
+    }
+}
