@@ -1,37 +1,10 @@
 
 module
 {
-    interface IPermission {
-        /**
-         * Compares the specified object with this {@code Permission} for equality
-         * and returns {@code true} if the specified object is equal, {@code false}
-         * otherwise.
-         * <p>
-         * The {@link #implies(Permission)} method should be used for making access
-         * control checks.
-         *
-         * @param obj
-         *            object to be compared for equality with this {@code
-         *            Permission}.
-         * @return {@code true} if the specified object is equal to this {@code
-         *         Permission}, otherwise {@code false}.
-         */
-        Equals(
-            [in] IInterface* obj,
-            [out] Boolean* result);
+    interface IPermissionCollection;
 
-        /**
-         * Returns the hash code value for this {@code Permission}. Returns the same
-         * hash code for {@code Permission}s that are equal to each other as
-         * required by the general contract of {@link Object#hashCode}.
-         *
-         * @return the hash code value for this {@code Permission}.
-         * @see Object#equals(Object)
-         * @see Permission#equals(Object)
-         */
-        GetHashCode(
-            [out] Int32* hashCode);
 
+    interface IPermission extends IGuard {
         /**
          * Returns a comma separated string identifying the actions associated with
          * this permission. The returned actions are in canonical form. For example:
@@ -64,7 +37,7 @@ module
          */
         Implies(
             [in] IPermission* permission,
-            [out] Boolean* result);
+            [out] Boolean* isImplied);
 
         /**
          * Returns the name of this permission.
@@ -73,5 +46,19 @@ module
          */
         GetName(
             [out] String* name);
+
+        /**
+         * Returns a specific {@link PermissionCollection} container for permissions
+         * of this type. Returns {@code null} if any permission collection can be
+         * used.
+         * <p>
+         * Subclasses may override this method to return an appropriate collection
+         * for the specific permissions they implement.
+         *
+         * @return an empty {@link PermissionCollection} or {@code null} if any
+         *         permission collection can be used.
+         */
+        NewPermissionCollection(
+            [out] IPermissionCollection** permissionCollection);
     }
 }

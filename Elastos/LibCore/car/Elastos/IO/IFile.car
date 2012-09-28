@@ -1,11 +1,6 @@
 
 module
 {
-    interface IURI {
-    }
-
-    interface IURL {
-    }
 
     interface IFile {
         /**
@@ -618,8 +613,8 @@ module
          *
          * @return an URI for this file.
          */
-        ToURI(
-            [out] IURI** uri);
+//        ToURI(
+//            [out] IURI** uri);
 
         /**
          * Returns a Uniform Resource Locator for this file. The URL is system
@@ -632,8 +627,8 @@ module
          * @deprecated use {@link #toURI} and {@link java.net.URI#toURL} to get
          * correct escaping of illegal characters.
          */
-        ToURL(
-            [out] IURL** uri);
+//        ToURL(
+//            [out] IURL** uri);
 
         /**
          * Returns the total size in bytes of the partition containing this path.

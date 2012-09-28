@@ -147,11 +147,11 @@ public:
     CARAPI ToString(
         /* [out] */ String* str);
 
-    CARAPI ToURI(
-        /* [out] */ IURI** uri);
+//    CARAPI ToURI(
+//        /* [out] */ IURI** uri);
 
-    CARAPI ToURL(
-        /* [out] */ IURL** uri);
+//    CARAPI ToURL(
+//        /* [out] */ IURL** uri);
 
     CARAPI GetTotalSpace(
         /* [out] */ Int64* space);
@@ -173,8 +173,8 @@ public:
         /* [in] */ const String& dirPath,
         /* [in] */ const String& name);
 
-    CARAPI constructor(
-        /* [in] */ IURI* uri);
+//    CARAPI constructor(
+//        /* [in] */ IURI* uri);
 
 private:
     // TODO: Add your private member variables here.

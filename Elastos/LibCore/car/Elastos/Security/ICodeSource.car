@@ -1,0 +1,111 @@
+
+module
+{
+    interface ICertificate;
+    interface ICodeSigner;
+
+    interface ICodeSource {
+        /**
+         * Returns the certificates of this {@code CodeSource}. If the
+         * {@link #CodeSource(URL, CodeSigner[])} constructor was used to create
+         * this instance, the certificates are obtained from the supplied signers.
+         * <p>
+         * External modifications of the returned {@code Certificate[]} has no
+         * impact on this {@code CodeSource}.
+         *
+         * @return the certificates of this {@code CodeSource} or {@code null} if
+         *         there is none.
+         */
+        GetCertificates(
+            [out, callee] ArrayOf<ICertificate*>* certificates);
+
+        /**
+         * Returns the {@code CodeSigner}s of this {@code CodeSource}. If the
+         * {@link #CodeSource(URL, Certificate[])} constructor was used to create
+         * this instance, the signers are obtained from the supplied certificates.
+         * Only X.509 certificates are analyzed.
+         *
+         * @return the signers of this {@code CodeSource}, or {@code null} if there
+         *         is none.
+         */
+        GetCodeSigners(
+            [out, callee] ArrayOf<ICodeSigner*>* signers);
+
+        /**
+         * Returns the location of this {@code CodeSource}.
+         *
+         * @return the location of this {@code CodeSource}, maybe {@code null}.
+         */
+    //    GetLocation(
+    //        [out] IURL** location);
+
+        /**
+         * Indicates whether the specified code source is implied by this {@code
+         * CodeSource}. Returns {@code true} if all of the following conditions are
+         * {@code true}, otherwise {@code false}:
+         * <p>
+         * <ul>
+         * <li>{@code cs} is not {@code null}
+         * <li>if this {@code CodeSource} has associated certificates, all
+         * certificates are present in {@code cs}. The certificates are extracted
+         * from the signers if signers are present.
+         * <li>if this {@code CodeSource}'s location is not {@code null}, the
+         * following conditions are checked
+         * <ul>
+         * <li>this {@code CodeSource}'s location is not {@code null}
+         * <li>this {@code CodeSource}'s location protocol is equal to {@code cs}'s
+         * location protocol
+         * <li>if this {@code CodeSource}'s location host is not {@code null}, the
+         * following conditions are checked
+         * <ul>
+         * <li>{@code cs}'s host is not {@code null}
+         * <li>the {@link SocketPermission} of this {@code CodeSource}'s location
+         * host implies the {@code SocketPermission} of {@code cs}'s location host
+         * </ul>
+         * <li>if this {@code CodeSource}'s location port != -1 the port of {@code
+         * cs}'s location is equal to this {@code CodeSource}'s location port
+         * <li>this {@code CodeSource}'s location file matches {@code cs}'s file
+         * whereas special wildcard matching applies as described below
+         * <li>this {@code CodeSource}'s location reference is equal to to {@code
+         * cs}'s location reference
+         * </ul>
+         * </ul>
+         * <p>
+         * Note: If this {@code CodeSource} has a {@code null} location and not any
+         * certificates, this method returns {@code true}.
+         * <p>
+         * Matching rules for the {@code CodeSource}'s location file:
+         * <ul>
+         * <li>if this {@code CodeSource}'s location file ends with {@code "/-"},
+         * then {@code cs}'s file must start with {@code CodeSource}'s location file
+         * (exclusive the trailing '-')
+         * <li>if this {@code CodeSource}'s location file ends with {@code "/*"},
+         * then {@code cs}'s file must start with {@code CodeSource}'s location file
+         * (exclusive the trailing '*') and must not have any further '/'
+         * <li>if this {@code CodeSource}'s location file ends with {@code "/"},
+         * then {@code cs}'s file must start with {@code CodeSource}'s location file
+         * <li>if this {@code CodeSource}'s location file does not end with {@code
+         * "/"}, then {@code cs}'s file must start with {@code CodeSource}'s
+         * location file with the '/' appended to it.
+         * </ul>
+         * Examples for locations that imply the location
+         * "http://harmony.apache.org/milestones/M9/apache-harmony.jar":
+         *
+         * <pre>
+         * http:
+         * http://&#42;/milestones/M9/*
+         * http://*.apache.org/milestones/M9/*
+         * http://harmony.apache.org/milestones/-
+         * http://harmony.apache.org/milestones/M9/apache-harmony.jar
+         * </pre>
+         *
+         * @param cs
+         *            the code source to check.
+         * @return {@code true} if the argument code source is implied by this
+         *         {@code CodeSource}, otherwise {@code false}.
+         */
+        Implies(
+            [in] ICodeSource* cs,
+            [out] Boolean* isImplied);
+    }
+}

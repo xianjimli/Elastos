@@ -1,0 +1,111 @@
+
+module
+{
+    interface IProvider;
+    interface ICodeSource;
+    interface IPermissionCollection;
+    interface IProtectionDomain;
+
+    /**
+     * A marker interface for Policy parameters.
+     */
+    interface IPolicyParameters {
+        // a marker interface
+    }
+
+    interface IPolicy {
+        /**
+         * Answers Policy parameters.
+         *
+         * This method will only answer non-null parameters if it was obtained via a
+         * call to Policy.getInstance. Otherwise this method returns null.
+         *
+         * @return Policy parameters, or null.
+         */
+        GetParameters(
+            [out] IPolicyParameters** parameters);
+
+        /**
+         * Answers the Provider of this Policy.
+         *
+         * This method will only answer non-null Provider if it was obtained via a
+         * call to Policy.getInstance. Otherwise this method returns null.
+         *
+         * @return the Provider of this Policy, or null.
+         */
+        GetProvider(
+            [out] IProvider** provider);
+
+        /**
+         * Answers the type of this Policy.
+         *
+         * This method will only answer non-null type if it was obtained via a call
+         * to Policy.getInstance. Otherwise this method returns null.
+         *
+         * @return the type of this Policy, or null.
+         */
+        GetType(
+            [out] String* type);
+
+        /**
+         * Returns a {@code PermissionCollection} describing what permissions are
+         * allowed for the specified {@code CodeSource} based on the current
+         * security policy.
+         * <p>
+         * Note that this method is not called for classes which are in the system
+         * domain (i.e. system classes). System classes are always given
+         * full permissions (i.e. AllPermission). This can not be changed by
+         * installing a new policy.
+         *
+         * @param cs
+         *            the {@code CodeSource} to compute the permissions for.
+         * @return the permissions that are granted to the specified {@code
+         *         CodeSource}.
+         */
+        GetPermissionsByCodeSource(
+            [in] ICodeSource* cs,
+            [out] IPermissionCollection** permissions);
+
+        /**
+         * Reloads the policy configuration for this {@code Policy} instance.
+         */
+        Refresh();
+
+        /**
+         * Returns a {@code PermissionCollection} describing what permissions are
+         * allowed for the specified {@code ProtectionDomain} (more specifically,
+         * its {@code CodeSource}) based on the current security policy.
+         * <p>
+         * Note that this method is not< called for classes which are in the
+         * system domain (i.e. system classes). System classes are always
+         * given full permissions (i.e. AllPermission). This can not be changed by
+         * installing a new policy.
+         *
+         * @param domain
+         *            the {@code ProtectionDomain} to compute the permissions for.
+         * @return the permissions that are granted to the specified {@code
+         *         CodeSource}.
+         */
+        GetPermissionsByProtectionDomain(
+            [in] IProtectionDomain* protDomain,
+            [out] IPermissionCollection** permissions);
+
+        /**
+         * Indicates whether the specified {@code Permission} is implied by the
+         * {@code PermissionCollection} of the specified {@code ProtectionDomain}.
+         *
+         * @param domain
+         *            the {@code ProtectionDomain} for which the permission should
+         *            be granted.
+         * @param permission
+         *            the {@code Permission} for which authorization is to be
+         *            verified.
+         * @return {@code true} if the {@code Permission} is implied by the {@code
+         *         ProtectionDomain}, {@code false} otherwise.
+         */
+        Implies(
+            [in] IProtectionDomain* protDomain,
+            [in] IPermission* permission,
+            [out] Boolean* isImplied);
+    }
+}

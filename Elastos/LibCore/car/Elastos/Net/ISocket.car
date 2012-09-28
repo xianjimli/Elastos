@@ -15,7 +15,7 @@ module
          * @throws IOException
          *             if an error occurs while closing the socket.
          */
-        Close()
+        Close();
 
         /**
          * Gets the IP address of the target host this socket is connected to.
@@ -228,7 +228,7 @@ module
          * @throws SocketException
          *             if the input stream is already closed.
          */
-        ShutdownInput()
+        ShutdownInput();
 
         /**
          * Closes the output stream of this socket. All buffered data will be sent
@@ -240,7 +240,7 @@ module
          * @throws SocketException
          *             if the output stream is already closed.
          */
-        ShutdownOutput()
+        ShutdownOutput();
 
         /**
          * Gets the local address and port of this socket as a SocketAddress or

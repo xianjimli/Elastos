@@ -1,0 +1,63 @@
+
+module
+{
+    interface ICodeSource;
+    interface IPermissionCollection;
+    interface IPrincipal;
+    interface IPermission;
+
+    interface IProtectionDomain {
+        /**
+         * Returns the {@code CodeSource} of this {@code ProtectionDomain}.
+         *
+         * @return the {@code CodeSource} of this {@code ProtectionDomain}, maybe
+         *         {@code null}.
+         */
+        GetCodeSource(
+            [out] ICodeSource** codeSource);
+
+        /**
+         * Returns the static permissions that are granted to this {@code
+         * ProtectionDomain}.
+         *
+         * @return the static permissions that are granted to this {@code
+         *         ProtectionDomain}, maybe {@code null}.
+         */
+        GetPermissions(
+            [out] IPermissionCollection** permissions);
+
+        /**
+         * Returns the principals associated with this {@code ProtectionDomain}.
+         * Modifications of the returned {@code Principal} array has no impact on
+         * this {@code ProtectionDomain}.
+         *
+         * @return the principals associated with this {@code ProtectionDomain}.
+         */
+        GetPrincipals(
+            [out, callee] ArrayOf<IPrincipal*>* principals);
+
+        /**
+         * Indicates whether the specified permission is implied by this {@code
+         * ProtectionDomain}.
+         * <p>
+         * If this {@code ProtectionDomain} was constructed with
+         * {@link #ProtectionDomain(CodeSource, PermissionCollection)}, the
+         * specified permission is only checked against the permission collection
+         * provided in the constructor. If {@code null} was provided, {@code false}
+         * is returned.
+         * <p>
+         * If this {@code ProtectionDomain} was constructed with
+         * {@link #ProtectionDomain(CodeSource, PermissionCollection, ClassLoader, Principal[])}
+         * , the specified permission is checked against the policy and the
+         * permission collection provided in the constructor.
+         *
+         * @param permission
+         *            the permission to check against the domain.
+         * @return {@code true} if the specified {@code permission} is implied by
+         *         this {@code ProtectionDomain}, {@code false} otherwise.
+         */
+        Implies(
+            [in] IPermission* permission,
+            [out] Boolean* isImplied);
+    }
+}

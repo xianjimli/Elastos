@@ -1,6 +1,8 @@
 
 module
 {
+    interface IURL;
+
     interface IURLConnection {
         /**
          * Opens a connection to the resource. This method will <strong>not</strong>
@@ -402,7 +404,7 @@ module
          * @see #doOutput
          */
         SetDoOutput(
-            [out] Boolean newValue);
+            [in] Boolean newValue);
 
         /**
          * Sets the point of time since when the data must be modified to be

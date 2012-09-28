@@ -219,15 +219,15 @@ ECode File::Init(
     }
 }
 
-ECode File::Init(
-    /* [in] */ IURI* uri)
-{
-    // check pre-conditions
-    FAIL_RETURN(CheckURI(uri));
-    String path;
+//ECode File::Init(
+//    /* [in] */ IURI* uri)
+//{
+//    // check pre-conditions
+//    FAIL_RETURN(CheckURI(uri));
+//    String path;
 //    uri->GetPath(&path);
-    return _Init(path);
-}
+//    return _Init(path);
+//}
 
 ECode File::_Init(
     /* [in] */ const String& dirtyPath)
@@ -367,9 +367,9 @@ ECode File::Join(
     return NOERROR;
 }
 
-ECode File::CheckURI(
-    /* [in] */ IURI* uri)
-{
+//ECode File::CheckURI(
+//    /* [in] */ IURI* uri)
+//{
 //    if (!uri->IsAbsolute()) {
 //        //throw new IllegalArgumentException("URI is not absolute: " + uri);
 //        return E_ILLEGAL_ARGUMENT_EXCEPTION;
@@ -398,8 +398,8 @@ ECode File::CheckURI(
 //        //throw new IllegalArgumentException("Found fragment in URI: " + uri);
 //        return E_ILLEGAL_ARGUMENT_EXCEPTION;
 //    }
-    return NOERROR;
-}
+//    return NOERROR;
+//}
 
 ECode File::ListRoots(
     /* [out] */ IObjectContainer** file)
@@ -1400,10 +1400,10 @@ ECode File::ToString(
     return NOERROR;
 }
 
-ECode File::ToURI(
-    /* [out] */ IURI** uri)
-{
-    assert(uri != NULL);
+//ECode File::ToURI(
+//    /* [out] */ IURI** uri)
+//{
+//    assert(uri != NULL);
 //    String name = getAbsoluteName();
 //    try {
 //        if (!name.startsWith("/")) {
@@ -1419,13 +1419,14 @@ ECode File::ToURI(
 //        // this should never happen
 //        return null;
 //    }
-    return E_NOT_IMPLEMENTED;
-}
+//    return E_NOT_IMPLEMENTED;
+//}
+
 //..URI URL not implement
-ECode File::ToURL(
-    /* [out] */ IURL** uri)
-{
-    assert(uri != NULL);
+//ECode File::ToURL(
+//    /* [out] */ IURL** uri)
+//{
+//    assert(uri != NULL);
 //    String name = getAbsoluteName();
 //    if (!name.startsWith("/")) {
 //        // start with sep.
@@ -1435,8 +1436,8 @@ ECode File::ToURL(
 //        return new URL("file:" + name); // UNC path
 //    }
 //    return new URL("file", "", -1, name, null);
-    return E_NOT_IMPLEMENTED;
-}
+//    return E_NOT_IMPLEMENTED;
+//}
 
 ECode File::GetAbsoluteName(
     /* [out] */ String* absoluteName)

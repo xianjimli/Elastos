@@ -348,21 +348,21 @@ ECode CFile::ToString(
     return File::ToString(str);
 }
 
-ECode CFile::ToURI(
-    /* [out] */ IURI** uri)
-{
-    VALIDATE_NOT_NULL(uri);
+//ECode CFile::ToURI(
+//    /* [out] */ IURI** uri)
+//{
+//    VALIDATE_NOT_NULL(uri);
+//
+//    return File::ToURI(uri);
+//}
 
-    return File::ToURI(uri);
-}
-
-ECode CFile::ToURL(
-    /* [out] */ IURL** uri)
-{
-    VALIDATE_NOT_NULL(uri);
-
-    return File::ToURL(uri);
-}
+//ECode CFile::ToURL(
+//    /* [out] */ IURL** uri)
+//{
+//    VALIDATE_NOT_NULL(uri);
+//
+//    return File::ToURL(uri);
+//}
 
 ECode CFile::GetTotalSpace(
     /* [out] */ Int64* space)
@@ -410,9 +410,9 @@ ECode CFile::constructor(
     return File::Init(dirPath, name);
 }
 
-ECode CFile::constructor(
-    /* [in] */ IURI* uri)
-{
-    return File::Init(uri);
-}
+//ECode CFile::constructor(
+//    /* [in] */ IURI* uri)
+//{
+//    return File::Init(uri);
+//}
 

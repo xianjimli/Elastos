@@ -6,7 +6,7 @@ module
     interface IByteBuffer;
     interface IReadableByteChannel;
     interface IWritableByteChannel;
-    interface IFileChannel
+    interface IFileChannel;
 
     enum FileChannelMapMode {
         FileChannelMapMode_PRIVATE,

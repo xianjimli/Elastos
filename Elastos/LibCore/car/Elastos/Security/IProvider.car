@@ -1,0 +1,29 @@
+
+module
+{
+    interface IProvider /* extends IProperties */{
+        /**
+         * Returns the name of this provider.
+         *
+         * @return the name of this provider.
+         */
+        GetName(
+            [out] String* name);
+
+        /**
+         * Returns the version number for the services being provided.
+         *
+         * @return the version number for the services being provided.
+         */
+        GetVersion(
+            [out] Double* versionNumber);
+
+        /**
+         * Returns a description of the services being provided.
+         *
+         * @return a description of the services being provided.
+         */
+        GetInfo(
+            [out] String* info);
+    }
+}

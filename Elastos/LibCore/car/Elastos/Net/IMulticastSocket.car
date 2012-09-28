@@ -140,7 +140,7 @@ module
          * @deprecated use {@link #setTimeToLive}.
          */
         //@Deprecated
-        Send(
+        SendEx(
             [in] IDatagramPacket* pack,
             [in] Byte ttl);
 
@@ -211,7 +211,7 @@ module
          * @since 1.4
          */
         GetLoopbackMode(
-            [out] Boolean* disable);
+            [out] Boolean* isDisabled);
 
         /**
          * Sets the {@link SocketOptions#IP_MULTICAST_LOOP}.
@@ -223,6 +223,6 @@ module
          * @since 1.4
          */
         SetLoopbackMode(
-            [in] Boolean disable);
+            [in] Boolean isDisabled);
     }
 }

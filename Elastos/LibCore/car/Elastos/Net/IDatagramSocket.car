@@ -204,7 +204,7 @@ module
          * @throws SocketException
          *                if an error occurs during connecting.
          */
-        Connect(
+        ConnectEx(
             [in] ISocketAddress* remoteAddr);
 
         /**

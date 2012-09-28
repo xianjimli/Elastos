@@ -1,8 +1,9 @@
 TARGET_NAME= Elastos.Security
-TARGET_TYPE= lib
+TARGET_TYPE= eco
 
 INCLUDESTEMP := $(INCLUDES);
 INCLUDES := $(MAKEDIR)/../../../include/Elastos/Security;
 INCLUDES += $(INCLUDESTEMP);
 
-SOURCES = Permission.cpp
+SOURCES = Elastos.Security.car
+SOURCES += Permission.cpp

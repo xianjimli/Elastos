@@ -4,6 +4,7 @@ module
     merge("../../../../car/Elastos/Core/Errors.car");
     merge("../../../../car/Elastos/Core/Exceptions.car");
     merge("../../../../car/Elastos/Core/ICharSequence.car");
+//    merge("../../../../car/Elastos/Core/ISecurityManager.car");
 
 
     class CStringWrapper {

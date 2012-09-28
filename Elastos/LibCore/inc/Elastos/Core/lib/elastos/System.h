@@ -23,6 +23,16 @@ public:
     static CARAPI_(Int64) GetCurrentTimeMillis();
 
     /**
+     * Returns the current timestamp of the most precise timer available on the
+     * local system. This timestamp can only be used to measure an elapsed
+     * period by comparing it against another timestamp. It cannot be used as a
+     * very exact system time expression.
+     *
+     * @return the current timestamp in nanoseconds.
+     */
+    static CARAPI_(Int64) GetNanoTime();
+
+    /**
      * Returns the value of the environment variable with the given name {@code
      * var}.
      *

@@ -9,4 +9,5 @@ module
     //==========================================================================
     // Elastos Core error codes (Family: 0x21)
     const E_OUT_OF_MEMORY_ERROR                         = 0xA1010000;
+    const E_ASSERTION_ERROR                             = 0xA1020000;
 }

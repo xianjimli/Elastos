@@ -74,8 +74,8 @@ public:
      * @see #toURI
      * @see java.net.URI
      */
-    CARAPI Init(
-        /* [in] */ IURI* uri);
+//    CARAPI Init(
+//        /* [in] */ IURI* uri);
 
     /**
      * Lists the file system roots. The Java platform may support zero or more
@@ -742,8 +742,8 @@ public:
      * @return an URI for this file.
      */
 
-    virtual CARAPI ToURI(
-        /* [out] */ IURI** uri);
+//    virtual CARAPI ToURI(
+//        /* [out] */ IURI** uri);
 
     /**
      * Returns a Uniform Resource Locator for this file. The URL is system
@@ -756,8 +756,8 @@ public:
      * @deprecated use {@link #toURI} and {@link java.net.URI#toURL} to get
      * correct escaping of illegal characters.
      */
-    virtual CARAPI ToURL(
-        /* [out] */ IURL** uri);
+//    virtual CARAPI ToURL(
+//        /* [out] */ IURL** uri);
 
     /**
      * Returns the total size in bytes of the partition containing this path.
@@ -811,8 +811,8 @@ private:
         /* [in] */ const String& suffix,
          /* [out] */ String* dest);
 
-    CARAPI CheckURI(
-        /* [in] */ IURI* uri);
+//    CARAPI CheckURI(
+//        /* [in] */ IURI* uri);
 
     /*
      * Resolve symbolic links in the parent directories.

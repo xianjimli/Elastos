@@ -45,6 +45,7 @@ module
     merge("../../../car/Elastos/IO/IStringReader.car");
     merge("../../../car/Elastos/IO/IStringWriter.car");
     merge("../../../car/Elastos/IO/IRandomAccessFile.car");
+    merge("../../../car/Elastos/IO/ICloseable.car");
     /************************************NIO**********************************/
     merge("../../../car/Elastos/IO/ByteOrder.car");
     merge("../../../car/Elastos/IO/IBuffer.car");
@@ -55,6 +56,24 @@ module
     merge("../../../car/Elastos/IO/IInt16Buffer.car");
     merge("../../../car/Elastos/IO/IInt32Buffer.car");
     merge("../../../car/Elastos/IO/IInt64Buffer.car");
+    merge("../../../car/Elastos/IO/IMappedByteBuffer.car");
+    merge("../../../car/Elastos/IO/Channels/IChannel.car");
+    merge("../../../car/Elastos/IO/Channels/IReadableByteChannel.car");
+    merge("../../../car/Elastos/IO/Channels/IWritableByteChannel.car");
+    merge("../../../car/Elastos/IO/Channels/IInterruptibleChannel.car");
+    merge("../../../car/Elastos/IO/Channels/ISelectableChannel.car");
+//    merge("../../../car/Elastos/IO/Channels/IDatagramChannel.car");
+    merge("../../../car/Elastos/IO/Channels/IFileChannel.car");
+    merge("../../../car/Elastos/IO/Channels/IFileLock.car");
+    merge("../../../car/Elastos/IO/Channels/IGatheringByteChannel.car");
+    merge("../../../car/Elastos/IO/Channels/IPipe.car");
+    merge("../../../car/Elastos/IO/Channels/IScatteringByteChannel.car");
+    merge("../../../car/Elastos/IO/Channels/ISelectionKey.car");
+    merge("../../../car/Elastos/IO/Channels/ISelector.car");
+//    merge("../../../car/Elastos/IO/Channels/IServerSocketChannel.car");
+    merge("../../../car/Elastos/IO/Channels/Spi/ISelectorProvider.car");
+
+
 
 
     class CFilterInputStream {
@@ -255,8 +274,8 @@ module
          * @see #toURI
          * @see java.net.URI
          */
-        constructor(
-            [in] IURI* uri);
+//        constructor(
+//            [in] IURI* uri);
 
         interface IFile;
     }

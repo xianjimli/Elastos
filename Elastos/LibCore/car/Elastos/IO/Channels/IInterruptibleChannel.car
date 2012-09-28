@@ -20,7 +20,7 @@ module
      * attempts to make an I/O call with the interrupt status set the call will
      * immediately fail with a {@link ClosedByInterruptException}.
      */
-    IInterruptibleChannel extends IChannel {
+    interface IInterruptibleChannel extends IChannel {
 
 //        /**
 //         * Closes the channel.

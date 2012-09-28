@@ -1,0 +1,25 @@
+
+module
+{
+    interface ICertPath;
+    interface ISecurityTimestamp;
+
+    interface ICodeSigner {
+        /**
+         * Returns the certificate path associated with this {@code CodeSigner}.
+         *
+         * @return the certificate path associated with this {@code CodeSigner}.
+         */
+        GetSignerCertPath(
+            [out] ICertPath** certPath);
+
+        /**
+         * Returns the time stamp associated with this {@code CodeSigner}.
+         *
+         * @return the time stamp associated with this {@code CodeSigner}, maybe
+         *         {@code null}.
+         */
+        GetTimestamp(
+            [out] ISecurityTimestamp** timestamp);
+    }
+}

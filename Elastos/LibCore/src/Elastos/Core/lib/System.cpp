@@ -16,6 +16,15 @@ Int64 System::GetCurrentTimeMillis()
     return ((Int64)t.tv_sec * 1000 + (Int64)t.tv_usec / 1000.0);
 }
 
+Int64 System::GetNanoTime()
+{
+    struct timespec ts;
+
+    ts.tv_sec = ts.tv_nsec = 0;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (Int64)ts.tv_nsec;
+}
+
 ECode System::GetEnv(
     /* [in] */ CString name,
     /* [out] */ String* env)

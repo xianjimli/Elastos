@@ -1,0 +1,26 @@
+
+module
+{
+    importlib("Elastos.Utility.eco");
+
+    merge("../../../car/Elastos/Security/Exceptions.car");
+    merge("../../../car/Elastos/Security/ICodeSigner.car");
+    merge("../../../car/Elastos/Security/ICodeSource.car");
+    merge("../../../car/Elastos/Security/IGuard.car");
+    merge("../../../car/Elastos/Security/IKey.car");
+    merge("../../../car/Elastos/Security/IPermission.car");
+    merge("../../../car/Elastos/Security/IPermissionCollection.car");
+    merge("../../../car/Elastos/Security/IPolicy.car");
+    merge("../../../car/Elastos/Security/IPrincipal.car");
+    merge("../../../car/Elastos/Security/IPrivateKey.car");
+    merge("../../../car/Elastos/Security/IProtectionDomain.car");
+    merge("../../../car/Elastos/Security/IProvider.car");
+    merge("../../../car/Elastos/Security/IPublicKey.car");
+    merge("../../../car/Elastos/Security/ISecurityTimestamp.car");
+    merge("../../../car/Elastos/Security/Cert/ICertificate.car");
+    merge("../../../car/Elastos/Security/Cert/ICertPath.car");
+
+    class CDummy {
+        interface IObjectContainer;
+    }
+}

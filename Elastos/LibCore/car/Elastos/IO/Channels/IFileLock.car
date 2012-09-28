@@ -122,6 +122,6 @@ module
          * @throws IOException
          *             if another I/O error occurs.
          */
-        Release();
+        ReleaseLock();
     }
 }

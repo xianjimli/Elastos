@@ -1,0 +1,34 @@
+
+module
+{
+    interface IMappedByteBuffer extends IByteBuffer {
+        /**
+         * Indicates whether this buffer's content is loaded. If the result is true
+         * there is a high probability that the whole buffer memory is currently
+         * loaded in RAM. If it is false it is unsure if it is loaded or not.
+         *
+         * @return {@code true} if this buffer's content is loaded, {@code false}
+         *         otherwise.
+         */
+        IsLoaded(
+            [out] Boolean* isLoaded);
+
+        /**
+         * Loads this buffer's content into memory but it is not guaranteed to
+         * succeed.
+         *
+         * @return this buffer.
+         */
+        Load();
+
+        /**
+         * Writes all changes of the buffer to the mapped file. If the mapped file
+         * is stored on a local device, it is guaranteed that the changes are
+         * written to the file. No such guarantee is given if the file is located on
+         * a remote device.
+         *
+         * @return this buffer.
+         */
+        Force();
+    }
+}

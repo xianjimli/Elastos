@@ -1,6 +1,10 @@
 
 module
 {
+    interface ISelector;
+    interface ISelectionKey;
+    interface ISelectorProvider;
+
     /**
      * A channel that can be used with a {@link Selector}. The channel must be
      * registered with a selector by calling one of the {@code register} methods,

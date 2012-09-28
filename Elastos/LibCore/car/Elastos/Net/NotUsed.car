@@ -1,0 +1,12 @@
+
+module
+{
+    interface IDatagramChannel {
+    }
+
+    interface ISocketChannel {
+    }
+
+    interface IServerSocketChannel {
+    }
+}

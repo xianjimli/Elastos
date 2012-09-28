@@ -52,7 +52,7 @@ module
          *         attached.
          */
         Attach(
-            [in] IInterface* anObject
+            [in] IInterface* anObject,
             [out] IInterface** oldObject);
 
         /**
@@ -62,7 +62,7 @@ module
          *         attached.
          */
         Attachment(
-            [out] Iinterface** anObject);
+            [out] IInterface** anObject);
 
         /**
          * Cancels this key.

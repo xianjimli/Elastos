@@ -24,7 +24,7 @@ module
          * Returns the {@code Domain} attribute.
          */
         GetDomain(
-            [out] String* domain);
+            [out] String* theDomain);
 
         /**
          * Returns the {@code Max-Age} attribute, in delta-seconds.
@@ -70,7 +70,7 @@ module
          * Returns the version of this cookie.
          */
         GetVersion(
-            [out] Int32* version);
+            [out] Int32* theVersion);
 
         /**
          * Returns true if this cookie's Max-Age is 0.
