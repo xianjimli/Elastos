@@ -133,51 +133,65 @@ public:
     // the first to go! Value set in system/rootdir/init.rc on startup.
     // This value is initalized in the constructor, careful when refering to
     // this static variable externally.
-    static const Int32 EMPTY_APP_ADJ;
+    static Int32 EMPTY_APP_ADJ;
 
     // This is a process only hosting activities that are not visible,
     // so it can be killed without any disruption. Value set in
     // system/rootdir/init.rc on startup.
-    static const Int32 HIDDEN_APP_MAX_ADJ;
-    static const Int32 HIDDEN_APP_MIN_ADJ;
+    static Int32 HIDDEN_APP_MAX_ADJ;
+    static Int32 HIDDEN_APP_MIN_ADJ;
 
     // This is a process holding the home application -- we want to try
     // avoiding killing it, even if it would normally be in the background,
     // because the user interacts with it so much.
-    static const Int32 HOME_APP_ADJ;
+    static Int32 HOME_APP_ADJ;
 
     // This is a process currently hosting a backup operation.  Killing it
     // is not entirely fatal but is generally a bad idea.
-    static const Int32 BACKUP_APP_ADJ;
+    static Int32 BACKUP_APP_ADJ;
 
     // This is a process holding a secondary server -- killing it will not
     // have much of an impact as far as the user is concerned. Value set in
     // system/rootdir/init.rc on startup.
-    static const Int32 SECONDARY_SERVER_ADJ;
+    static Int32 SECONDARY_SERVER_ADJ;
 
     // This is a process with a heavy-weight application.  It is in the
     // background, but we want to try to avoid killing it.  Value set in
     // system/rootdir/init.rc on startup.
-    static const Int32 HEAVY_WEIGHT_APP_ADJ;
+    static Int32 HEAVY_WEIGHT_APP_ADJ;
 
     // This is a process only hosting components that are perceptible to the
     // user, and we really want to avoid killing them, but they are not
     // immediately visible. An example is background music playback.  Value set in
     // system/rootdir/init.rc on startup.
-    static const Int32 PERCEPTIBLE_APP_ADJ;
+    static Int32 PERCEPTIBLE_APP_ADJ;
 
     // This is a process only hosting activities that are visible to the
     // user, so we'd prefer they don't disappear. Value set in
     // system/rootdir/init.rc on startup.
-    static const Int32 VISIBLE_APP_ADJ;
+    static Int32 VISIBLE_APP_ADJ;
 
     // This is the process running the current foreground app.  We'd really
     // rather not kill it! Value set in system/rootdir/init.rc on startup.
-    static const Int32 FOREGROUND_APP_ADJ;
+    static Int32 FOREGROUND_APP_ADJ;
 
     // This is a process running a core server, such as telephony.  Definitely
     // don't want to kill it, but doing so is not completely fatal.
     static const Int32 CORE_SERVER_ADJ = -12;
+
+    // Memory pages are 4K.
+    static const Int32 PAGE_SIZE = 4 * 1024;
+
+    // Corresponding memory levels for above adjustments.
+    static Int32 EMPTY_APP_MEM;
+    static Int32 HIDDEN_APP_MEM;
+    static Int32 HOME_APP_MEM;
+    static Int32 BACKUP_APP_MEM;
+    static Int32 SECONDARY_SERVER_MEM;
+    static Int32 HEAVY_WEIGHT_APP_MEM;
+    static Int32 PERCEPTIBLE_APP_MEM;
+    static Int32 VISIBLE_APP_MEM;
+    static Int32 FOREGROUND_APP_MEM;
 
     // The minimum number of hidden apps we want to be able to keep around,
     // without empty apps being able to push them out of memory.
@@ -220,6 +234,8 @@ public:
     //from IActivityManager.java
     static const Int32 BROADCAST_SUCCESS = 0;
     static const Int32 BROADCAST_STICKY_CANT_HAVE_PERMISSION = -1;
+
+    static Boolean INIT_SUCCEEDED;
 
 public:
     class ServiceLookupResult

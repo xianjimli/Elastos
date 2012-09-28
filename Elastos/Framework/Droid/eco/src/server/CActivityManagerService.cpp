@@ -1,39 +1,58 @@
 
-#include <Slogger.h>
 #include "ext/frameworkext.h"
-using namespace Elastos;
-
 #include "server/CActivityManagerService.h"
+#include "server/ActivityState.h"
+#include "server/SystemServer.h"
+#include "server/CServiceRestarter.h"
+#include "server/AttributeCache.h"
 #include "app/CApplicationApartment.h"
-#include "content/CIntent.h"
+#include "app/CPendingIntent.h"
+#include "app/CWaitResult.h"
+#include "app/CRunningAppProcessInfo.h"
 #include "capsule/CActivityInfo.h"
+#include "content/CIntent.h"
 #include "content/CResolveInfo.h"
 #include "content/ContentResolver.h"
 #include "content/CPathPermission.h"
+#include "graphics/CBitmap.h"
 #include "os/CPatternMatcher.h"
-#include "utils/CParcelableObjectContainer.h"
-#include "server/ActivityState.h"
 #include "os/SystemClock.h"
+#include "os/Process.h"
+#include "os/SystemProperties.h"
+#include "utils/CParcelableObjectContainer.h"
+#include "utils/EventLogTags.h"
+#include "utils/CObjectStringMap.h"
+#include "utils/AutoStringArray.h"
+#include "view/WindowManagerPolicy.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/Algorithm.h>
 #include <unistd.h>
 #include <Slogger.h>
 #include <StringBuffer.h>
-#include "os/Process.h"
-#include "utils/EventLogTags.h"
-#include "app/CPendingIntent.h"
-#include "utils/CObjectStringMap.h"
-#include "graphics/CBitmap.h"
-#include "server/SystemServer.h"
-#include "app/CWaitResult.h"
-#include "server/CServiceRestarter.h"
-#include "app/CRunningAppProcessInfo.h"
-#include "server/AttributeCache.h"
-#include "view/WindowManagerPolicy.h"
-#include "utils/AutoStringArray.h"
 
+
+using namespace Elastos;
 using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
+
+static ECode GetInt32Prop(
+    /* [in] */ CString name,
+    /* [in] */ Boolean allowZero,
+    /* [out] */ Int32* value)
+{
+    String str = SystemProperties::Get(name);
+    if (str.IsNull()) {
+//        throw new IllegalArgumentException("Property not defined: " + name);
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+    Int32 val = str.ToInt32();
+    if (val == 0 && !allowZero) {
+//        throw new IllegalArgumentException("Property must not be zero: " + name);
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+    *value = val;
+    return NOERROR;
+}
 
 #define UNUSED(x) (void)x
 
@@ -72,43 +91,30 @@ const Int32 CActivityManagerService::SERVICE_RESTART_DURATION_FACTOR;
 const Int32 CActivityManagerService::SERVICE_MIN_RESTART_TIME_BETWEEN;
 const Int32 CActivityManagerService::MAX_SERVICE_INACTIVITY;
 
-/*
-static {
-        // These values are set in system/rootdir/init.rc on startup.
-        FOREGROUND_APP_ADJ = getIntProp("ro.FOREGROUND_APP_ADJ", true);
-        VISIBLE_APP_ADJ = getIntProp("ro.VISIBLE_APP_ADJ", true);
-        PERCEPTIBLE_APP_ADJ = getIntProp("ro.PERCEPTIBLE_APP_ADJ", true);
-        HEAVY_WEIGHT_APP_ADJ = getIntProp("ro.HEAVY_WEIGHT_APP_ADJ", true);
-        SECONDARY_SERVER_ADJ = getIntProp("ro.SECONDARY_SERVER_ADJ", true);
-        BACKUP_APP_ADJ = getIntProp("ro.BACKUP_APP_ADJ", true);
-        HOME_APP_ADJ = getIntProp("ro.HOME_APP_ADJ", true);
-        HIDDEN_APP_MIN_ADJ = getIntProp("ro.HIDDEN_APP_MIN_ADJ", true);
-        EMPTY_APP_ADJ = getIntProp("ro.EMPTY_APP_ADJ", true);
-        // These days we use the last empty slot for hidden apps as well.
-        HIDDEN_APP_MAX_ADJ = EMPTY_APP_ADJ;
-        FOREGROUND_APP_MEM = getIntProp("ro.FOREGROUND_APP_MEM", false)*PAGE_SIZE;
-        VISIBLE_APP_MEM = getIntProp("ro.VISIBLE_APP_MEM", false)*PAGE_SIZE;
-        PERCEPTIBLE_APP_MEM = getIntProp("ro.PERCEPTIBLE_APP_MEM", false)*PAGE_SIZE;
-        HEAVY_WEIGHT_APP_MEM = getIntProp("ro.HEAVY_WEIGHT_APP_MEM", false)*PAGE_SIZE;
-        SECONDARY_SERVER_MEM = getIntProp("ro.SECONDARY_SERVER_MEM", false)*PAGE_SIZE;
-        BACKUP_APP_MEM = getIntProp("ro.BACKUP_APP_MEM", false)*PAGE_SIZE;
-        HOME_APP_MEM = getIntProp("ro.HOME_APP_MEM", false)*PAGE_SIZE;
-        HIDDEN_APP_MEM = getIntProp("ro.HIDDEN_APP_MEM", false)*PAGE_SIZE;
-        EMPTY_APP_MEM = getIntProp("ro.EMPTY_APP_MEM", false)*PAGE_SIZE;
-    }
-*/
-const Int32 CActivityManagerService::EMPTY_APP_ADJ = 99;
-const Int32 CActivityManagerService::HIDDEN_APP_MAX_ADJ = 99;
-const Int32 CActivityManagerService::HIDDEN_APP_MIN_ADJ = 99;
-const Int32 CActivityManagerService::HOME_APP_ADJ = 99;
-const Int32 CActivityManagerService::BACKUP_APP_ADJ = 99;
-const Int32 CActivityManagerService::SECONDARY_SERVER_ADJ = 99;
-const Int32 CActivityManagerService::HEAVY_WEIGHT_APP_ADJ = 99;
-const Int32 CActivityManagerService::PERCEPTIBLE_APP_ADJ = 99;
-const Int32 CActivityManagerService::VISIBLE_APP_ADJ = 99;
-const Int32 CActivityManagerService::FOREGROUND_APP_ADJ = 99;
+Int32 CActivityManagerService::EMPTY_APP_ADJ;
+Int32 CActivityManagerService::HIDDEN_APP_MAX_ADJ;
+Int32 CActivityManagerService::HIDDEN_APP_MIN_ADJ;
+Int32 CActivityManagerService::HOME_APP_ADJ;
+Int32 CActivityManagerService::BACKUP_APP_ADJ;
+Int32 CActivityManagerService::SECONDARY_SERVER_ADJ;
+Int32 CActivityManagerService::HEAVY_WEIGHT_APP_ADJ;
+Int32 CActivityManagerService::PERCEPTIBLE_APP_ADJ;
+Int32 CActivityManagerService::VISIBLE_APP_ADJ;
+Int32 CActivityManagerService::FOREGROUND_APP_ADJ;
 
 const Int32 CActivityManagerService::CORE_SERVER_ADJ;
+const Int32 CActivityManagerService::PAGE_SIZE;
+
+// Corresponding memory levels for above adjustments.
+Int32 CActivityManagerService::EMPTY_APP_MEM;
+Int32 CActivityManagerService::HIDDEN_APP_MEM;
+Int32 CActivityManagerService::HOME_APP_MEM;
+Int32 CActivityManagerService::BACKUP_APP_MEM;
+Int32 CActivityManagerService::SECONDARY_SERVER_MEM;
+Int32 CActivityManagerService::HEAVY_WEIGHT_APP_MEM;
+Int32 CActivityManagerService::PERCEPTIBLE_APP_MEM;
+Int32 CActivityManagerService::VISIBLE_APP_MEM;
+Int32 CActivityManagerService::FOREGROUND_APP_MEM;
 const Int32 CActivityManagerService::MIN_HIDDEN_APPS;
 const Int32 CActivityManagerService::MAX_HIDDEN_APPS;
 const Int32 CActivityManagerService::CONTENT_APP_IDLE_OFFSET;
@@ -137,6 +143,58 @@ const Int32 CActivityManagerService::BROADCAST_SUCCESS;
 const Int32 CActivityManagerService::BROADCAST_STICKY_CANT_HAVE_PERMISSION;
 const Int32 CActivityManagerService::MAX_BROADCAST_HISTORY;
 
+#define FAIL_RETURN_FALSE(expr) \
+    do { \
+        ECode ec = expr; \
+        if (FAILED(ec)) return FALSE; \
+    } while(0);
+
+static Boolean Init()
+{
+    Int32 value;
+    // These values are set in system/rootdir/init.rc on startup.
+    ASSERT_SUCCEEDED(GetInt32Prop("ro.FOREGROUND_APP_ADJ", TRUE, &value));
+    CActivityManagerService::FOREGROUND_APP_ADJ = value;
+    ASSERT_SUCCEEDED(GetInt32Prop("ro.VISIBLE_APP_ADJ", TRUE, &value));
+    CActivityManagerService::VISIBLE_APP_ADJ = value;
+    ASSERT_SUCCEEDED(GetInt32Prop("ro.PERCEPTIBLE_APP_ADJ", TRUE, &value));
+    CActivityManagerService::PERCEPTIBLE_APP_ADJ = value;
+    ASSERT_SUCCEEDED(GetInt32Prop("ro.HEAVY_WEIGHT_APP_ADJ", TRUE, &value));
+    CActivityManagerService::HEAVY_WEIGHT_APP_ADJ = value;
+    ASSERT_SUCCEEDED(GetInt32Prop("ro.SECONDARY_SERVER_ADJ", TRUE, &value));
+    CActivityManagerService::SECONDARY_SERVER_ADJ = value;
+    ASSERT_SUCCEEDED(GetInt32Prop("ro.BACKUP_APP_ADJ", TRUE, &value));
+    CActivityManagerService::BACKUP_APP_ADJ = value;
+    ASSERT_SUCCEEDED(GetInt32Prop("ro.HOME_APP_ADJ", TRUE, &value));
+    CActivityManagerService::HOME_APP_ADJ = value;
+    ASSERT_SUCCEEDED(GetInt32Prop("ro.HIDDEN_APP_MIN_ADJ", TRUE, &value));
+    CActivityManagerService::HIDDEN_APP_MIN_ADJ = value;
+    ASSERT_SUCCEEDED(GetInt32Prop("ro.EMPTY_APP_ADJ", TRUE, &value));
+    CActivityManagerService::EMPTY_APP_ADJ = value;
+    // These days we use the last empty slot for hidden apps as well.
+    CActivityManagerService::HIDDEN_APP_MAX_ADJ = CActivityManagerService::EMPTY_APP_ADJ;
+    ASSERT_SUCCEEDED(GetInt32Prop("ro.FOREGROUND_APP_MEM", FALSE, &value));
+    CActivityManagerService::FOREGROUND_APP_MEM = value * CActivityManagerService::PAGE_SIZE;
+    ASSERT_SUCCEEDED(GetInt32Prop("ro.VISIBLE_APP_MEM", FALSE, &value));
+    CActivityManagerService::VISIBLE_APP_MEM = value * CActivityManagerService::PAGE_SIZE;
+    ASSERT_SUCCEEDED(GetInt32Prop("ro.PERCEPTIBLE_APP_MEM", FALSE, &value));
+    CActivityManagerService::PERCEPTIBLE_APP_MEM = value * CActivityManagerService::PAGE_SIZE;
+    ASSERT_SUCCEEDED(GetInt32Prop("ro.HEAVY_WEIGHT_APP_MEM", FALSE, &value));
+    CActivityManagerService::HEAVY_WEIGHT_APP_MEM = value * CActivityManagerService::PAGE_SIZE;
+    ASSERT_SUCCEEDED(GetInt32Prop("ro.SECONDARY_SERVER_MEM", FALSE, &value));
+    CActivityManagerService::SECONDARY_SERVER_MEM = value * CActivityManagerService::PAGE_SIZE;
+    ASSERT_SUCCEEDED(GetInt32Prop("ro.BACKUP_APP_MEM", FALSE, &value));
+    CActivityManagerService::BACKUP_APP_MEM = value * CActivityManagerService::PAGE_SIZE;
+    ASSERT_SUCCEEDED(GetInt32Prop("ro.HOME_APP_MEM", FALSE, &value));
+    CActivityManagerService::HOME_APP_MEM = value * CActivityManagerService::PAGE_SIZE;
+    ASSERT_SUCCEEDED(GetInt32Prop("ro.HIDDEN_APP_MEM", FALSE, &value));
+    CActivityManagerService::HIDDEN_APP_MEM = value * CActivityManagerService::PAGE_SIZE;
+    ASSERT_SUCCEEDED(GetInt32Prop("ro.EMPTY_APP_MEM", FALSE, &value));
+    CActivityManagerService::EMPTY_APP_MEM = value * CActivityManagerService::PAGE_SIZE;
+    return TRUE;
+}
+
+Boolean CActivityManagerService::INIT_SUCCEEDED = Init();
 
 ECode
 CActivityManagerService::ServiceRestarter::Run()

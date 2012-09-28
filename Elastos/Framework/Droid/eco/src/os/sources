@@ -27,6 +27,7 @@ SOURCES += FileObserver.cpp
 SOURCES += FileUtils.cpp
 SOURCES += CVibrator.cpp
 SOURCES += CWorkSource.cpp
+SOURCES += Binder.cpp
 
 ifeq "$(XDK_TARGET_CPU)" "arm"
 ifneq "$(XDK_COMPILER)" "gnu"
