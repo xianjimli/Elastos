@@ -27,6 +27,7 @@ module
     merge("view/animation/Transformation.car");
     merge("view/animation/LayoutAnimationController.car");
     merge("view/animation/GridLayoutAnimationController.car");
+    merge("view/animation/AnimationUtils.car");
     merge("view/InputEvent.car");
     merge("view/KeyEvent.car");
     merge("view/MotionEvent.car");
@@ -807,5 +808,9 @@ module
             [in] Float rowDelay);
 
         interface IGridLayoutAnimationController;
+    }
+
+    singleton class CAnimationUtils {
+        interface IAnimationUtils;
     }
 }

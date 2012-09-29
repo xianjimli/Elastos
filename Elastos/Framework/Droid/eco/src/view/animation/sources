@@ -35,3 +35,4 @@ SOURCES += LayoutAnimationController.cpp
 SOURCES += CLayoutAnimationController.cpp
 SOURCES += GridLayoutAnimationController.cpp
 SOURCES += CGridLayoutAnimationController.cpp
+SOURCES += CAnimationUtils.cpp
