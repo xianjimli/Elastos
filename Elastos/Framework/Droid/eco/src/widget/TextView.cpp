@@ -101,15 +101,20 @@
 #include "text/CBoringLayout.h"
 #include "text/CStaticLayout.h"
 #include "text/CDynamicLayout.h"
+#include "text/CSpannableString.h"
+#include "text/Selection.h"
 #include "view/CKeyEvent.h"
 #include "view/CViewGroupLayoutParams.h"
+#include "view/CWindowManagerLayoutParams.h"
 #include "graphics/CPaint.h"
 #include "graphics/Typeface.h"
+#include "widget/CTextViewSavedState.h"
+#include "widget/CPopupWindow.h"
 #include <elastos/Math.h>
-//#include <Logger.h>
+#include <Logger.h>
 
 //using namespace Elastos::Utility;
-//using namespace Elastos::Utility::Logging;
+using namespace Elastos::Utility::Logging;
 using namespace Elastos::Core;
 
 
@@ -188,8 +193,10 @@ ECode TextView::CharWrapper::GetCharAt(
 ECode TextView::CharWrapper::ToString(
     /* [out] */ String* str)
 {
-//    return new String(mChars, mStart, mLength);
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(str);
+    *str = String((const char*)mChars->GetPayload()).Substring(mStart, mLength);
+
+    return NOERROR;
 }
 
 ECode TextView::CharWrapper::SubSequence(
@@ -197,12 +204,14 @@ ECode TextView::CharWrapper::SubSequence(
     /* [in] */ Int32 end,
     /* [out] */ ICharSequence** csq)
 {
-//    if (start < 0 || end < 0 || start > mLength || end > mLength) {
-//        throw new IndexOutOfBoundsException(start + ", " + end);
-//    }
-//
-//    return new String(mChars, start + mStart, end - start);
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(csq);
+    if (start < 0 || end < 0 || start > mLength || end > mLength) {
+        //throw new IndexOutOfBoundsException(start + ", " + end);
+        return E_INDEX_OUT_OF_BOUNDS_EXCEPTION;
+    }
+    String subStr = String((const char*)mChars->GetPayload()).Substring(
+        mStart + start, end - start);
+    return CStringWrapper::New(subStr, csq);
 }
 
 ECode TextView::CharWrapper::GetChars(
@@ -211,9 +220,10 @@ ECode TextView::CharWrapper::GetChars(
     /* [out] */ ArrayOf<Char8>* dest,
     /* [in] */ Int32 destoff)
 {
-    /*if (start < 0 || end < 0 || start > mLength || end > mLength) {
-        throw new IndexOutOfBoundsException(start + ", " + end);
-    }*/
+    if (start < 0 || end < 0 || start > mLength || end > mLength) {
+        //throw new IndexOutOfBoundsException(start + ", " + end);
+        return E_INDEX_OUT_OF_BOUNDS_EXCEPTION;
+    }
 
     //dest->Copy(mChars, start + mStart, buf, off, end - start);
     memcpy(&(*dest[destoff]), &mChars[start + mStart], end - start);
@@ -249,6 +259,709 @@ ECode TextView::CharWrapper::GetTextWidths(
 {
     return p->GetTextWidths(*mChars, start + mStart, end - start, widths, count);
 }
+
+
+const Int32 TextView::_HandleView::LEFT;
+const Int32 TextView::_HandleView::CENTER;
+const Int32 TextView::_HandleView::RIGHT;
+
+PInterface TextView::CursorController::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (IInterface*)this;
+    }
+    else if (riid == EIID_IOnTouchModeChangeListener) {
+        return (IOnTouchModeChangeListener*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 TextView::CursorController::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 TextView::CursorController::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode TextView::CursorController::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    VALIDATE_NOT_NULL(pIID);
+    if (pObject == (IInterface*)(IOnTouchModeChangeListener*)this) {
+        *pIID = EIID_IOnTouchModeChangeListener;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+
+    return NOERROR;
+}
+
+TextView::_HandleView::_HandleView(
+    /* [in] */ CursorController* controller,
+    /* [in] */ Int32 pos,
+    /* [in] */ TextView* host)
+    : View(host->mContext)
+    , mPositionOnTop(FALSE)
+    , mIsDragging(FALSE)
+    , mHost(host)
+{
+    mController = controller;
+    ASSERT_SUCCEEDED(CPopupWindow::New(
+        host->mContext, NULL,
+        0x010102c8/*com.android.internal.R.attr.textSelectHandleWindowStyle*/,
+        (IPopupWindow**)&mContainer));
+
+    mContainer->SetSplitTouchEnabled(TRUE);
+    mContainer->SetClippingEnabled(FALSE);
+    mContainer->SetWindowLayoutType(WindowManagerLayoutParams_TYPE_APPLICATION_SUB_PANEL);
+
+    SetOrientation(pos);
+}
+
+void TextView::_HandleView::SetOrientation(
+    /* [in] */ Int32 pos)
+{
+    Int32 handleWidth;
+    switch (pos) {
+    case LEFT:
+        {
+            if (mHost->mSelectHandleLeft == NULL) {
+                AutoPtr<IResources> rs;
+                mContext->GetResources((IResources**)&rs);
+                rs->GetDrawable(
+                    mHost->mTextSelectHandleLeftRes,
+                    (IDrawable**)&mHost->mSelectHandleLeft);
+            }
+            mDrawable = mHost->mSelectHandleLeft;
+            mDrawable->GetIntrinsicWidth(&handleWidth);
+            mHotspotX = (handleWidth * 3) / 4;
+        }
+        break;
+    case RIGHT:
+        {
+            if (mHost->mSelectHandleRight == NULL) {
+                AutoPtr<IResources> rs;
+                mContext->GetResources((IResources**)&rs);
+                rs->GetDrawable(
+                    mHost->mTextSelectHandleRightRes,
+                    (IDrawable**)&mHost->mSelectHandleRight);
+            }
+            mDrawable = mHost->mSelectHandleRight;
+            mDrawable->GetIntrinsicWidth(&handleWidth);
+            mHotspotX = handleWidth / 4;
+        }
+        break;
+    case CENTER:
+    default:
+        {
+            if (mHost->mSelectHandleCenter == NULL) {
+                AutoPtr<IResources> rs;
+                mContext->GetResources((IResources**)&rs);
+                rs->GetDrawable(
+                    mHost->mTextSelectHandleRes,
+                    (IDrawable**)&mHost->mSelectHandleCenter);
+            }
+            mDrawable = mHost->mSelectHandleCenter;
+            mDrawable->GetIntrinsicWidth(&handleWidth);
+            mHotspotX = handleWidth / 2;
+        }
+        break;
+    }
+
+    Int32 handleHeight;
+    mDrawable->GetIntrinsicHeight(&handleHeight);
+
+    mTouchOffsetY = -handleHeight * 0.3f;
+    mHotspotY = 0;
+    mHeight = handleHeight;
+    Invalidate();
+}
+
+//@Override
+void TextView::_HandleView::OnMeasure(
+    /* [in] */ Int32 widthMeasureSpec,
+    /* [in] */ Int32 heightMeasureSpec)
+{
+    Int32 w, h;
+    mDrawable->GetIntrinsicWidth(&w);
+    mDrawable->GetIntrinsicHeight(&h);
+    SetMeasuredDimension(w, h);
+}
+
+void TextView::_HandleView::Show()
+{
+    if (!IsPositionVisible()) {
+        Hide();
+        return;
+    }
+    mContainer->SetContentView((IView*)this->Probe(EIID_IView));
+    Int32* coords = mHost->mTempCoords;
+    mHost->GetLocationInWindow(coords, coords + 1);
+    coords[0] += mPositionX;
+    coords[1] += mPositionY;
+    mContainer->ShowAtLocation(
+        (IView*)mHost->Probe(EIID_IView), 0, coords[0], coords[1]);
+}
+
+void TextView::_HandleView::Hide()
+{
+    mIsDragging = FALSE;
+    mContainer->Dismiss();
+}
+
+Boolean TextView::_HandleView::IsShowing()
+{
+    Boolean res;
+    mContainer->IsShowing(&res);
+    return res;
+}
+
+Boolean TextView::_HandleView::IsPositionVisible()
+{
+    // Always show a dragging handle.
+    if (mIsDragging) {
+        return TRUE;
+    }
+
+    if (mHost->IsInBatchEditMode()) {
+        return FALSE;
+    }
+
+    Int32 extendedPaddingTop = mHost->GetExtendedPaddingTop();
+    Int32 extendedPaddingBottom = mHost->GetExtendedPaddingBottom();
+    Int32 compoundPaddingLeft = mHost->GetCompoundPaddingLeft();
+    Int32 compoundPaddingRight = mHost->GetCompoundPaddingRight();
+
+    Int32 left = 0;
+    Int32 right = mHost->GetWidth();
+    Int32 top = 0;
+    Int32 bottom = mHost->GetHeight();
+
+    if (mHost->mTempRect == NULL) {
+        ASSERT_SUCCEEDED(CRect::NewByFriend((CRect**)&mHost->mTempRect));
+    }
+    CRect* clip = mHost->mTempRect;
+    clip->mLeft = left + compoundPaddingLeft;
+    clip->mTop = top + extendedPaddingTop;
+    clip->mRight = right - compoundPaddingRight;
+    clip->mBottom = bottom - extendedPaddingBottom;
+
+    AutoPtr<IViewParent> parent = mHost->GetParent();
+    Boolean res;
+    if (parent == NULL || !(parent->GetChildVisibleRect(
+        (IView*)mHost->Probe(EIID_IView), clip, NULL, &res), res)) {
+        return FALSE;
+    }
+
+    Int32* coords = mHost->mTempCoords;
+    mHost->GetLocationInWindow(coords, coords + 1);
+    Int32 posX = coords[0] + mPositionX + (Int32)mHotspotX;
+    Int32 posY = coords[1] + mPositionY + (Int32)mHotspotY;
+
+    return posX >= clip->mLeft && posX <= clip->mRight &&
+        posY >= clip->mTop && posY <= clip->mBottom;
+}
+
+void TextView::_HandleView::MoveTo(
+    /* [in] */ Int32 x,
+    /* [in] */ Int32 y)
+{
+    mPositionX = x - mHost->mScrollX;
+    mPositionY = y - mHost->mScrollY;
+    if (IsPositionVisible()) {
+        Int32* coords = NULL;
+        Boolean isShowing;
+        mContainer->IsShowing(&isShowing);
+        if (isShowing)
+        {
+            coords = mHost->mTempCoords;
+            mHost->GetLocationInWindow(coords, coords + 1);
+            mContainer->UpdateEx2(coords[0] + mPositionX, coords[1] + mPositionY,
+                    mRight - mLeft, mBottom - mTop);
+        }
+        else {
+            Show();
+        }
+
+        if (mIsDragging) {
+            if (coords == NULL) {
+                coords = mHost->mTempCoords;
+                mHost->GetLocationInWindow(coords, coords + 1);
+            }
+            if (coords[0] != mLastParentX || coords[1] != mLastParentY) {
+                mTouchToWindowOffsetX += coords[0] - mLastParentX;
+                mTouchToWindowOffsetY += coords[1] - mLastParentY;
+                mLastParentX = coords[0];
+                mLastParentY = coords[1];
+            }
+        }
+    }
+    else {
+        Hide();
+    }
+}
+
+//@Override
+void TextView::_HandleView::OnDraw(
+    /* [in] */ ICanvas* c)
+{
+    mDrawable->SetBounds(0, 0, mRight - mLeft, mBottom - mTop);
+    if (mPositionOnTop) {
+        Int32 save;
+        c->Save(&save);
+        c->RotateEx(180, (mRight - mLeft) / 2, (mBottom - mTop) / 2);
+        mDrawable->Draw(c);
+        c->Restore();
+    }
+    else {
+        mDrawable->Draw(c);
+    }
+}
+
+//@Override
+Boolean TextView::_HandleView::OnTouchEvent(
+    /* [in] */ IMotionEvent* ev)
+{
+    Int32 actionMasked;
+    ev->GetActionMasked(&actionMasked);
+    switch (actionMasked) {
+    case MotionEvent_ACTION_DOWN:
+        {
+            Float rawX;
+            ev->GetRawX(&rawX);
+            Float rawY;
+            ev->GetRawY(&rawY);
+            mTouchToWindowOffsetX = rawX - mPositionX;
+            mTouchToWindowOffsetY = rawY - mPositionY;
+            Int32* coords = mHost->mTempCoords;
+            mHost->GetLocationInWindow(coords, coords + 1);
+            mLastParentX = coords[0];
+            mLastParentY = coords[1];
+            mIsDragging = TRUE;
+        }
+        break;
+    case MotionEvent_ACTION_MOVE:
+        {
+            Float rawX;
+            ev->GetRawX(&rawX);
+            Float rawY;
+            ev->GetRawY(&rawY);
+            Float newPosX = rawX - mTouchToWindowOffsetX + mHotspotX;
+            Float newPosY = rawY - mTouchToWindowOffsetY + mHotspotY + mTouchOffsetY;
+            mController->UpdatePosition(
+                (HandleView*)this, Math::Round(newPosX), Math::Round(newPosY));
+        }
+        break;
+    case MotionEvent_ACTION_UP:
+    case MotionEvent_ACTION_CANCEL:
+        mIsDragging = FALSE;
+    }
+    return TRUE;
+}
+
+Boolean TextView::_HandleView::IsDragging()
+{
+    return mIsDragging;
+}
+
+void TextView::_HandleView::PositionAtCursor(
+    /* [in] */ Int32 offset,
+    /* [in] */ Boolean bottom)
+{
+    Int32 width;
+    mDrawable->GetIntrinsicWidth(&width);
+    Int32 height;
+    mDrawable->GetIntrinsicHeight(&height);
+    Int32 line;
+    mHost->mLayout->GetLineForOffset(offset, &line);
+    Int32 lineTop;
+    mHost->mLayout->GetLineTop(line, &line);
+    Int32 lineBottom;
+    mHost->mLayout->GetLineBottom(line, &lineBottom);
+
+    CRect* bounds = sCursorControllerTempRect;
+    Float ph;
+    mHost->mLayout->GetPrimaryHorizontal(offset, &ph);
+    bounds->mLeft = (Int32)(ph - mHotspotX) + mHost->mScrollX;
+    bounds->mTop = (bottom ? lineBottom : lineTop - mHeight) + mHost->mScrollY;
+
+    bounds->mRight = bounds->mLeft + width;
+    bounds->mBottom = bounds->mTop + height;
+
+    mHost->ConvertFromViewportToContentCoordinates(bounds);
+    MoveTo(bounds->mLeft, bounds->mTop);
+}
+
+IVIEW_METHODS_IMPL(
+    TextView::HandleView, TextView::_HandleView, TextView::_HandleView);
+IDrawableCallback_METHODS_IMPL(
+    TextView::HandleView, TextView::_HandleView, TextView::_HandleView);
+IKeyEventCallback_METHODS_IMPL(
+    TextView::HandleView, TextView::_HandleView, TextView::_HandleView);
+IAccessibilityEventSource_METHODS_IMPL(
+    TextView::HandleView, TextView::_HandleView, TextView::_HandleView);
+
+TextView::HandleView::HandleView(
+    /* [in] */ CursorController* controller,
+    /* [in] */ Int32 pos,
+    /* [in] */ TextView* host)
+    : _HandleView(controller, pos, host)
+{}
+
+PInterface TextView::HandleView::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (IInterface*)(IView*)this;
+    }
+    else if (riid == EIID_IView) {
+        return (IView*)this;
+    }
+    else if (riid == EIID_IDrawableCallback) {
+        return (IDrawableCallback*)this;
+    }
+    else if (riid == EIID_IKeyEventCallback) {
+        return (IKeyEventCallback*)this;
+    }
+    else if (riid == EIID_IAccessibilityEvent) {
+        return (IAccessibilityEvent*)this;
+    }
+    else if (riid == EIID_View) {
+        return reinterpret_cast<PInterface>((View*)(_HandleView*)this);
+    }
+
+    return NULL;
+}
+
+UInt32 TextView::HandleView::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 TextView::HandleView::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode TextView::HandleView::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    VALIDATE_NOT_NULL(pIID);
+    if (pObject == (IInterface*)(IView*)this) {
+        *pIID = EIID_IView;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+
+    return NOERROR;
+}
+
+const Int32 TextView::InsertionPointCursorController::DELAY_BEFORE_FADE_OUT;
+
+TextView::InsertionPointCursorController::InsertionPointCursorController(
+    /* [in] */ TextView* host)
+    : mHost(host)
+{
+    mHandle = new HandleView(this, HandleView::CENTER, mHost);
+    mHider = new MyRunnable(this);
+}
+
+void TextView::InsertionPointCursorController::Show()
+{
+    UpdatePosition();
+    mHandle->Show();
+    HideDelayed(DELAY_BEFORE_FADE_OUT);
+}
+
+void TextView::InsertionPointCursorController::Hide()
+{
+    mHandle->Hide();
+    mHost->RemoveCallbacks(mHider);
+}
+
+void TextView::InsertionPointCursorController::HideDelayed(
+    /* [in] */ Int32 msec)
+{
+    mHost->RemoveCallbacks(mHider);
+    mHost->PostDelayed(mHider, msec);
+}
+
+Boolean TextView::InsertionPointCursorController::IsShowing()
+{
+    return mHandle->IsShowing();
+}
+
+void TextView::InsertionPointCursorController::UpdatePosition(
+    /* [in] */ HandleView* handle,
+    /* [in] */ Int32 x,
+    /* [in] */ Int32 y)
+{
+    Int32 previousOffset = mHost->GetSelectionStart();
+    Int32 offset = mHost->GetHysteresisOffset(x, y, previousOffset);
+
+    if (offset != previousOffset) {
+        Selection::SetSelection(ISpannable::Probe(mHost->mText), offset);
+        UpdatePosition();
+    }
+    HideDelayed(DELAY_BEFORE_FADE_OUT);
+}
+
+void TextView::InsertionPointCursorController::UpdatePosition()
+{
+    Int32 offset = mHost->GetSelectionStart();
+
+    if (offset < 0) {
+        // Should never happen, safety check.
+        Logger::W(TEXT_VIEW_LOG_TAG, "Update cursor controller position called with no cursor");
+        Hide();
+        return;
+    }
+
+    mHandle->PositionAtCursor(offset, TRUE);
+}
+
+Boolean TextView::InsertionPointCursorController::OnTouchEvent(
+    /* [in] */ IMotionEvent* ev)
+{
+    return FALSE;
+}
+
+ECode TextView::InsertionPointCursorController::OnTouchModeChanged(
+    /* [in] */ Boolean isInTouchMode)
+{
+    if (!isInTouchMode) {
+        Hide();
+    }
+
+    return NOERROR;
+}
+
+//@Override
+void TextView::InsertionPointCursorController::OnDetached()
+{
+    mHost->RemoveCallbacks(mHider);
+}
+
+TextView::SelectionModifierCursorController::SelectionModifierCursorController(
+    /* [in] */ TextView* host)
+    : mIsShowing(TRUE)
+    , mPreviousTapUpTime(0)
+    , mHost(host)
+{
+    mStartHandle = new HandleView(this, HandleView::LEFT, host);
+    mEndHandle = new HandleView(this, HandleView::RIGHT, host);
+    ResetTouchOffsets();
+}
+
+void TextView::SelectionModifierCursorController::Show()
+{
+    if (mHost->IsInBatchEditMode()) {
+        return;
+    }
+
+    mIsShowing = TRUE;
+    UpdatePosition();
+    mStartHandle->Show();
+    mEndHandle->Show();
+    mHost->HideInsertionPointCursorController();
+}
+
+void TextView::SelectionModifierCursorController::Hide()
+{
+    mStartHandle->Hide();
+    mEndHandle->Hide();
+    mIsShowing = FALSE;
+}
+
+Boolean TextView::SelectionModifierCursorController::IsShowing()
+{
+    return mIsShowing;
+}
+
+void TextView::SelectionModifierCursorController::UpdatePosition(
+    /* [in] */ HandleView* handle,
+    /* [in] */ Int32 x,
+    /* [in] */ Int32 y)
+{
+    Int32 selectionStart = mHost->GetSelectionStart();
+    Int32 selectionEnd = mHost->GetSelectionEnd();
+
+    Int32 previousOffset = handle == mStartHandle ? selectionStart : selectionEnd;
+    Int32 offset = mHost->GetHysteresisOffset(x, y, previousOffset);
+
+    // Handle the case where start and end are swapped, making sure start <= end
+    if (handle == mStartHandle) {
+        if (selectionStart == offset || offset > selectionEnd) {
+            return; // no change, no need to redraw;
+        }
+        // If the user "closes" the selection entirely they were probably trying to
+        // select a single character. Help them out.
+        if (offset == selectionEnd) {
+            offset = selectionEnd - 1;
+        }
+        selectionStart = offset;
+    }
+    else {
+        if (selectionEnd == offset || offset < selectionStart) {
+            return; // no change, no need to redraw;
+        }
+        // If the user "closes" the selection entirely they were probably trying to
+        // select a single character. Help them out.
+        if (offset == selectionStart) {
+            offset = selectionStart + 1;
+        }
+        selectionEnd = offset;
+    }
+
+    Selection::SetSelection(
+        ISpannable::Probe(mHost->mText), selectionStart, selectionEnd);
+    UpdatePosition();
+}
+
+void TextView::SelectionModifierCursorController::UpdatePosition()
+{
+    if (!IsShowing()) {
+        return;
+    }
+
+    Int32 selectionStart = mHost->GetSelectionStart();
+    Int32 selectionEnd = mHost->GetSelectionEnd();
+
+    if ((selectionStart < 0) || (selectionEnd < 0)) {
+        // Should never happen, safety check.
+        Logger::W(TEXT_VIEW_LOG_TAG, "Update selection controller position called with no cursor");
+        Hide();
+        return;
+    }
+
+    mStartHandle->PositionAtCursor(selectionStart, TRUE);
+    mEndHandle->PositionAtCursor(selectionEnd, TRUE);
+}
+
+Boolean TextView::SelectionModifierCursorController::OnTouchEvent(
+    /* [in] */ IMotionEvent* event)
+{
+    // This is done even when the View does not have focus, so that Int64 presses can start
+    // selection and tap can move cursor from this tap position.
+    if (mHost->IsTextEditable()) {
+        Int32 actionMasked;
+        event->GetActionMasked(&actionMasked);
+        switch (actionMasked) {
+        case MotionEvent_ACTION_DOWN:
+            {
+                Float fx, fy;
+                event->GetX(&fx);
+                event->GetY(&fy);
+                Int32 x = (Int32)fx;
+                Int32 y = (Int32)fy;
+
+                // Remember finger down position, to be able to start selection from there
+                mMinTouchOffset = mMaxTouchOffset = mHost->GetOffset(x, y);
+
+                // Double tap detection
+                Int64 duration = SystemClock::GetUptimeMillis() - mPreviousTapUpTime;
+                if (duration <= ViewConfiguration::GetDoubleTapTimeout()) {
+                    Int32 deltaX = x - mPreviousTapPositionX;
+                    Int32 deltaY = y - mPreviousTapPositionY;
+                    Int32 distanceSquared = deltaX * deltaX + deltaY * deltaY;
+                    Int32 doubleTapSlop = ViewConfiguration::Get(
+                        mHost->GetContext())->GetScaledDoubleTapSlop();
+                    Int32 slopSquared = doubleTapSlop * doubleTapSlop;
+                    if (distanceSquared < slopSquared) {
+                        mHost->StartTextSelectionMode();
+                        // prevents onTapUpEvent from opening a context menu with cut/copy
+                        mHost->mNoContextMenuOnUp = TRUE;
+                    }
+                }
+                mPreviousTapPositionX = x;
+                mPreviousTapPositionY = y;
+            }
+            break;
+        case MotionEvent_ACTION_POINTER_DOWN:
+        case MotionEvent_ACTION_POINTER_UP:
+            // Handle multi-point gestures. Keep min and max offset positions.
+            // Only activated for devices that correctly handle multi-touch.
+            //if (mHost->mContext->GetCapsuleManager()->HasSystemFeature(
+            //        CapsuleManager_FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT)) {
+            //    UpdateMinAndMaxOffsets(event);
+            //}
+            break;
+        case MotionEvent_ACTION_UP:
+            mPreviousTapUpTime = SystemClock::GetUptimeMillis();
+            break;
+        }
+    }
+    return FALSE;
+}
+
+/**
+ * @param event
+ */
+void TextView::SelectionModifierCursorController::UpdateMinAndMaxOffsets(
+    /* [in] */ IMotionEvent* event)
+{
+    Int32 pointerCount;
+    event->GetPointerCount(&pointerCount);
+    for (Int32 index = 0; index < pointerCount; index++) {
+        Float fx, fy;
+        event->GetX(&fx);
+        event->GetY(&fy);
+        Int32 x = (Int32)fx;
+        Int32 y = (Int32)fy;
+
+        Int32 offset = mHost->GetOffset(x, y);
+        if (offset < mMinTouchOffset)
+            mMinTouchOffset = offset;
+        if (offset > mMaxTouchOffset)
+            mMaxTouchOffset = offset;
+    }
+}
+
+Int32 TextView::SelectionModifierCursorController::GetMinTouchOffset()
+{
+    return mMinTouchOffset;
+}
+
+Int32 TextView::SelectionModifierCursorController::GetMaxTouchOffset()
+{
+    return mMaxTouchOffset;
+}
+
+void TextView::SelectionModifierCursorController::ResetTouchOffsets()
+{
+    mMinTouchOffset = mMaxTouchOffset = -1;
+}
+
+/**
+ * @return TRUE iff this controller is currently used to move the selection start.
+ */
+Boolean TextView::SelectionModifierCursorController::IsSelectionStartDragged()
+{
+    return mStartHandle->IsDragging();
+}
+
+ECode TextView::SelectionModifierCursorController::OnTouchModeChanged(
+    /* [in] */ Boolean isInTouchMode)
+{
+    if (!isInTouchMode) {
+        Hide();
+    }
+
+    return NOERROR;
+}
+
+//@Override
+void TextView::SelectionModifierCursorController::OnDetached()
+{}
 
 AutoPtr<CRect> InitsCCTempRect()
 {
@@ -482,10 +1195,10 @@ Boolean TextView::GetDefaultEditable()
 /**
  * Subclasses override this to specify a default movement method.
  */
-//MovementMethod TextView::GetDefaultMovementMethod()
-//{
-//    return NULL;
-//}
+AutoPtr<IMovementMethod> TextView::GetDefaultMovementMethod()
+{
+    return NULL;
+}
 
 /**
  * Return the text the TextView is displaying. If setText() was called with
@@ -573,47 +1286,55 @@ AutoPtr<ILayout> TextView::GetLayout()
  * @attr ref android.R.styleable#TextView_capitalize
  * @attr ref android.R.styleable#TextView_autoText
  */
-//public void setKeyListener(KeyListener input) {
-//    setKeyListenerOnly(input);
-//    fixFocusableAndClickableSettings();
-//
-//    if (input != NULL) {
-//        try {
-//            mInputType = mInput.getInputType();
-//        } catch (IncompatibleClassChangeError e) {
-//            mInputType = EditorInfo.TYPE_CLASS_TEXT;
-//        }
-//        if ((mInputType&EditorInfo.TYPE_MASK_CLASS)
-//                == EditorInfo.TYPE_CLASS_TEXT) {
-//            if (mSingleLine) {
-//                mInputType &= ~EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE;
-//            } else {
-//                mInputType |= EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE;
-//            }
-//        }
-//    } else {
-//        mInputType = EditorInfo.TYPE_NULL;
-//    }
-//
-//    InputMethodManager imm = InputMethodManager.peekInstance();
-//    if (imm != NULL) imm.restartInput(this);
-//}
+ECode TextView::SetKeyListener(
+    /* [in] */ IKeyListener* input)
+{
+    SetKeyListenerOnly(input);
+    FixFocusableAndClickableSettings();
 
-//void setKeyListenerOnly(KeyListener input) {
-//    mInput = input;
-//    if (mInput != NULL && !(mText instanceof Editable))
-//        setText(mText);
-//
-//    setFilters((Editable) mText, mFilters);
-//}
+    // if (input != NULL) {
+    //     ECode ec = mInput->GetInputType(&mInputType);
+    //     if (FAILED(ec)) {
+    //         mInputType = EditorInfo_TYPE_CLASS_TEXT;
+    //     }
+    //     if ((mInputType&EditorInfo_TYPE_MASK_CLASS)
+    //         == EditorInfo_TYPE_CLASS_TEXT) {
+    //         if (mSingleLine) {
+    //             mInputType &= ~EditorInfo_TYPE_TEXT_FLAG_MULTI_LINE;
+    //         }
+    //         else {
+    //             mInputType |= EditorInfo_TYPE_TEXT_FLAG_MULTI_LINE;
+    //         }
+    //     }
+    // }
+    // else {
+    //     mInputType = EditorInfo_TYPE_NULL;
+    // }
+
+    //InputMethodManager imm = InputMethodManager.peekInstance();
+    //if (imm != NULL) imm.restartInput(this);
+
+    return NOERROR;
+}
+
+void TextView::SetKeyListenerOnly(
+    /* [in] */ IKeyListener* input)
+{
+    mInput = input;
+    if (mInput != NULL && !(IEditable::Probe(mText)))
+        SetText(mText);
+
+    //SetFilters(IEditable::Probe(mText), mFilters);
+}
 
 /**
  * @return the movement method being used for this TextView.
  * This will frequently be NULL for non-EditText TextViews.
  */
-//public final MovementMethod getMovementMethod() {
-//    return mMovement;
-//}
+AutoPtr<IMovementMethod> TextView::GetMovementMethod()
+{
+    return mMovement;
+}
 
 /**
  * Sets the movement method (arrow key handler) to be used for
@@ -626,29 +1347,32 @@ AutoPtr<ILayout> TextView::GetLayout()
  * {@link #setFocusable} again after calling this to get the focusability
  * back the way you want it.
  */
-//public final void setMovementMethod(MovementMethod movement) {
-//    mMovement = movement;
-//
-//    if (mMovement != NULL && !(mText instanceof Spannable))
-//        setText(mText);
-//
-//    fixFocusableAndClickableSettings();
-//
-//    // SelectionModifierCursorController depends on textCanBeSelected, which depends on mMovement
-//    prepareCursorControllers();
-//}
+ECode TextView::SetMovementMethod(
+    /* [in] */ IMovementMethod* movement)
+{
+    mMovement = movement;
+
+    if (mMovement != NULL && !(ISpannable::Probe(mText)))
+        SetText(mText);
+
+    FixFocusableAndClickableSettings();
+
+    // SelectionModifierCursorController depends on textCanBeSelected, which depends on mMovement
+    PrepareCursorControllers();
+}
 
 void TextView::FixFocusableAndClickableSettings()
 {
-//    if ((mMovement != NULL) || mInput != NULL) {
-//        SetFocusable(TRUE);
-//        SetClickable(TRUE);
-//        SetLongClickable(TRUE);
-//    } else {
+    if ((mMovement != NULL) || mInput != NULL) {
+        SetFocusable(TRUE);
+        SetClickable(TRUE);
+        SetLongClickable(TRUE);
+    }
+    else {
         SetFocusable(FALSE);
         SetClickable(FALSE);
         SetLongClickable(FALSE);
-//    }
+    }
 }
 
 /**
@@ -1998,10 +2722,10 @@ void TextView::UpdateTextColors()
     }
     if (mLinkTextColor != NULL) {
         mLinkTextColor->GetColorForState(GetDrawableState(), 0, &color);
-//        if (color != mTextPaint.linkColor) {
-//            mTextPaint.linkColor = color;
-//            inval = TRUE;
-//        }
+        if (color != ((CTextPaint*)mTextPaint.Get())->mLinkColor) {
+            ((CTextPaint*)mTextPaint.Get())->mLinkColor = color;
+            inval = TRUE;
+        }
     }
     if (mHintTextColor != NULL) {
         mHintTextColor->GetColorForState(GetDrawableState(), 0, &color);
@@ -2078,41 +2802,44 @@ AutoPtr<IParcelable> TextView::OnSaveInstanceState()
         }
     }
 
-//    if (save) {
-//        SavedState ss = new SavedState(superState);
-//        // XXX Should also save the current scroll position!
-//        ss.selStart = start;
-//        ss.selEnd = end;
-//
-//        if (mText instanceof Spanned) {
-//            /*
-//                * Calling setText() strips off any ChangeWatchers;
-//                * strip them now to avoid leaking references.
-//                * But do it to a copy so that if there are any
-//                * further changes to the text of this view, it
-//                * won't get into an inconsistent state.
-//                */
-//
-//            Spannable sp = new SpannableString(mText);
-//
-//            for (ChangeWatcher cw :
-//                    sp.getSpans(0, sp.length(), ChangeWatcher.class)) {
-//                sp.removeSpan(cw);
-//            }
-//
-//            ss.text = sp;
-//        } else {
-//            ss.text = mText.toString();
-//        }
-//
-//        if (isFocused() && start >= 0 && end >= 0) {
-//            ss.frozenWithFocus = TRUE;
-//        }
-//
-//        ss.error = mError;
-//
-//        return ss;
-//    }
+   if (save) {
+       AutoPtr<CTextViewSavedState> ss;
+       CTextViewSavedState::NewByFriend(superState, (CTextViewSavedState**)&ss);
+       // XXX Should also save the current scroll position!
+       ss->mSelStart = start;
+       ss->mSelEnd = end;
+
+       if (ISpanned::Probe(mText)) {
+           /*
+               * Calling setText() strips off any ChangeWatchers;
+               * strip them now to avoid leaking references.
+               * But do it to a copy so that if there are any
+               * further changes to the text of this view, it
+               * won't get into an inconsistent state.
+               */
+
+           AutoPtr<ISpannable> sp;
+           CSpannableString::New(mText, (ISpannable**)&sp);
+
+           // for (ChangeWatcher cw :
+           //         sp.getSpans(0, sp.length(), ChangeWatcher.class)) {
+           //     sp.removeSpan(cw);
+           // }
+
+           ss->mText = sp;
+       }
+       else {
+           ss->mText = mText;
+       }
+
+       if (IsFocused() && start >= 0 && end >= 0) {
+           ss->mFrozenWithFocus = TRUE;
+       }
+
+       ss->mError = mError;
+
+       return ss;
+   }
 
     return superState;
 }
@@ -2120,53 +2847,58 @@ AutoPtr<IParcelable> TextView::OnSaveInstanceState()
 void TextView::OnRestoreInstanceState(
     /* [in] */ IParcelable* state)
 {
-    //if (!(state instanceof SavedState)) {
-    //    super.onRestoreInstanceState(state);
-    //    return;
-    //}
+    if (!ITextViewSavedState::Probe(state)) {
+       View::OnRestoreInstanceState(state);
+       return;
+    }
 
-    //SavedState ss = (SavedState)state;
-    //super.onRestoreInstanceState(ss.getSuperState());
+    CTextViewSavedState* ss = (CTextViewSavedState*)ITextViewSavedState::Probe(state);
 
-    //// XXX restore buffer type too, as well as lots of other stuff
-    //if (ss.text != NULL) {
-    //    setText(ss.text);
-    //}
+    AutoPtr<IParcelable> superState;
+    ss->GetSuperState((IParcelable**)&superState);
+    View::OnRestoreInstanceState(superState);
 
-    //if (ss.selStart >= 0 && ss.selEnd >= 0) {
-    //    if (mText instanceof Spannable) {
-    //        Int32 len = mText.length();
+    // XXX restore buffer type too, as well as lots of other stuff
+    if (ss->mText != NULL) {
+       SetText(ss->mText);
+    }
 
-    //        if (ss.selStart > len || ss.selEnd > len) {
-    //            String restored = "";
+    if (ss->mSelStart >= 0 && ss->mSelEnd >= 0) {
+       if (ISpannable::Probe(mText)) {
+           Int32 len;
+           mText->GetLength(&len);
 
-    //            if (ss.text != NULL) {
-    //                restored = "(restored) ";
-    //            }
+           if (ss->mSelStart > len || ss->mSelEnd > len) {
+               String restored("");
 
-    //            Log.e(LOG_TAG, "Saved cursor position " + ss.selStart +
-    //                    "/" + ss.selEnd + " out of range for " + restored +
-    //                    "text " + mText);
-    //        } else {
-    //            Selection.setSelection((Spannable) mText, ss.selStart,
-    //                                    ss.selEnd);
+               if (ss->mText != NULL) {
+                   restored = String("(restored) ");
+               }
 
-    //            if (ss.frozenWithFocus) {
-    //                mFrozenWithFocus = TRUE;
-    //            }
-    //        }
-    //    }
-    //}
+               // Log.e(LOG_TAG, "Saved cursor position " + ss.selStart +
+               //         "/" + ss.selEnd + " out of range for " + restored +
+               //         "text " + mText);
+           }
+           else {
+                Selection::SetSelection(
+                ISpannable::Probe(mText), ss->mSelStart, ss->mSelEnd);
 
-    //if (ss.error != NULL) {
-    //    final CharSequence error = ss.error;
-    //    // Display the error later, after the first layout pass
-    //    post(new Runnable() {
-    //        public void run() {
-    //            setError(error);
-    //        }
-    //    });
-    //}
+                if (ss->mFrozenWithFocus) {
+                    mFrozenWithFocus = TRUE;
+                }
+           }
+       }
+    }
+
+    if (ss->mError != NULL) {
+       AutoPtr<ICharSequence> error = ss->mError;
+       // Display the error later, after the first layout pass
+       // post(new Runnable() {
+       //     public void run() {
+       //         setError(error);
+       //     }
+       // });
+    }
 }
 
 /**
@@ -2288,11 +3020,13 @@ ECode TextView::SetText(
 
     if (!mUserSetTextScaleX) mTextPaint->SetTextScaleX(1.0f);
 
-//    if (text instanceof Spanned &&
-//        ((Spanned) text).getSpanStart(TextUtils.TruncateAt.MARQUEE) >= 0) {
-//        setHorizontalFadingEdgeEnabled(TRUE);
-//        setEllipsize(TextUtils.TruncateAt.MARQUEE);
-//    }
+    // if (ISpanned::Probe(text) &&
+    //     (ISpanned::Probe(text)->GetSpanStart(
+    //     Int32 spanStart;
+    //     TextUtilsTruncateAt_MARQUEE, &spanStart), spanStart) >= 0) {
+    //     SetHorizontalFadingEdgeEnabled(TRUE);
+    //     SetEllipsize(TextUtilsTruncateAt_MARQUEE);
+    // }
 
 //    Int32 n = mFilters.length;
 //    for (Int32 i = 0; i < n; i++) {
@@ -2303,14 +3037,19 @@ ECode TextView::SetText(
 //        }
 //    }
 
-//    if (notifyBefore) {
-//        if (mText != NULL) {
-//            oldlen = mText.length();
-//            sendBeforeTextChanged(mText, 0, oldlen, text.length());
-//        } else {
-//            sendBeforeTextChanged("", 0, 0, text.length());
-//        }
-//    }
+    if (notifyBefore) {
+        Int32 len;
+        text->GetLength(&len);
+        if (mText != NULL) {
+            mText->GetLength(&oldlen);
+            SendBeforeTextChanged(mText, 0, oldlen, len);
+        }
+        else {
+            AutoPtr<ICharSequence> cs;
+            CStringWrapper::New(String(""), (ICharSequence**)&cs);
+            SendBeforeTextChanged(cs, 0, 0, len);
+        }
+    }
 
     Boolean needEditableForNotification = FALSE;
 
@@ -2491,11 +3230,11 @@ ECode TextView::SetTextKeepState(
     FAIL_RETURN(SetText(text, type));
 
     if (start >= 0 || end >= 0) {
-//        if (mText instanceof Spannable) {
-//            Selection.setSelection((Spannable) mText,
-//                                    Math.max(0, Math.min(start, len)),
-//                                    Math.max(0, Math.min(end, len)));
-//        }
+        if (ISpannable::Probe(mText)) {
+            Selection::SetSelection(
+                ISpannable::Probe(mText), Math::Max(0, Math::Min(start, len)),
+                Math::Max(0, Math::Min(end, len)));
+        }
     }
     return NOERROR;
 }
@@ -3238,7 +3977,7 @@ void TextView::RestartMarqueeIfNeeded()
 //    mFilters = filters;
 //
 //    if (mText instanceof Editable) {
-//        setFilters((Editable) mText, filters);
+//        setFilters(IEditable::Probe(mText), filters);
 //    }
 //}
 
@@ -3478,39 +4217,40 @@ Boolean TextView::OnPreDraw()
 
     Boolean changed = FALSE;
 
-//    SelectionModifierCursorController selectionController = NULL;
-//    if (mSelectionModifierCursorController != NULL) {
-//        selectionController = (SelectionModifierCursorController)
-//            mSelectionModifierCursorController;
-//    }
+   SelectionModifierCursorController* selectionController = NULL;
+   if (mSelectionModifierCursorController != NULL) {
+        selectionController = (SelectionModifierCursorController*)
+            mSelectionModifierCursorController.Get();
+   }
 
 
-//    if (mMovement != NULL) {
-//        /* This code also provides auto-scrolling when a cursor is moved using a
-//         * CursorController (insertion point or selection limits).
-//         * For selection, ensure start or end is visible depending on controller's state.
-//         */
-//        Int32 curs = GetSelectionEnd();
-//        if (selectionController != NULL && selectionController.isSelectionStartDragged()) {
-//            curs = GetSelectionStart();
-//        }
-//
-//        /*
-//         * TODO: This should really only keep the end in view if
-//         * it already was before the text changed.  I'm not sure
-//         * of a good way to tell from here if it was.
-//         */
-//        if (curs < 0 && (mGravity & Gravity_VERTICAL_GRAVITY_MASK) == Gravity_BOTTOM) {
-//            curs = mText->GetLength();
-//        }
-//
-//        if (curs >= 0) {
-//            changed = BringPointIntoView(curs);
-//        }
-//    }
-//    else {
+    if (mMovement != NULL) {
+        /* This code also provides auto-scrolling when a cursor is moved using a
+         * CursorController (insertion point or selection limits).
+         * For selection, ensure start or end is visible depending on controller's state.
+         */
+        Int32 curs = GetSelectionEnd();
+        if (selectionController != NULL &&
+            selectionController->IsSelectionStartDragged()) {
+            curs = GetSelectionStart();
+        }
+
+        /*
+         * TODO: This should really only keep the end in view if
+         * it already was before the text changed.  I'm not sure
+         * of a good way to tell from here if it was.
+         */
+        if (curs < 0 && (mGravity & Gravity_VERTICAL_GRAVITY_MASK) == Gravity_BOTTOM) {
+            mText->GetLength(&curs);
+        }
+
+        if (curs >= 0) {
+            changed = BringPointIntoView(curs);
+        }
+    }
+    else {
         changed = BringTextIntoView();
-//    }
+    }
 
     // This has to be checked here since:
     // - onFocusChanged cannot start it when focus is given to a view with selected text (after
@@ -3518,11 +4258,11 @@ Boolean TextView::OnPreDraw()
     // - ExtractEditText does not call onFocus when it is displayed. Fixing this issue would
     //   allow to test for hasSelection in onFocusChanged, which would trigger a
     //   startTextSelectionMode here. TODO
-//    if (mCreatedWithASelection ||
-//        (this instanceof ExtractEditText && selectionController != NULL && hasSelection())) {
-//        startTextSelectionMode();
-//        mCreatedWithASelection = FALSE;
-//    }
+    if (mCreatedWithASelection /*||
+        (this instanceof ExtractEditText && selectionController != NULL && HasSelection())*/) {
+        StartTextSelectionMode();
+        mCreatedWithASelection = FALSE;
+    }
 
     mPreDrawState = PREDRAW_DONE;
     return !changed;
@@ -3541,12 +4281,16 @@ void TextView::OnAttachedToWindow()
 
     AutoPtr<IViewTreeObserver> observer = GetViewTreeObserver();
     if (observer != NULL) {
-//        if (mInsertionPointCursorController != NULL) {
-//            observer.addOnTouchModeChangeListener(mInsertionPointCursorController);
-//        }
-//        if (mSelectionModifierCursorController != NULL) {
-//            observer.addOnTouchModeChangeListener(mSelectionModifierCursorController);
-//        }
+        // if (mInsertionPointCursorController != NULL) {
+        //     observer->AddOnTouchModeChangeListener(
+        //         (IOnTouchModeChangeListener*)(InsertionPointCursorController*)
+        //         mInsertionPointCursorController);
+        // }
+        // if (mSelectionModifierCursorController != NULL) {
+        //     observer->AddOnTouchModeChangeListener(
+        //         (IOnTouchModeChangeListener*)(SelectionModifierCursorController*)
+        //         mSelectionModifierCursorController);
+        // }
     }
 }
 
@@ -3576,13 +4320,13 @@ void TextView::OnDetachedFromWindow()
 //        mBlink.cancel();
 //    }
 //
-//    if (mInsertionPointCursorController != NULL) {
-//        mInsertionPointCursorController.onDetached();
-//    }
-//
-//    if (mSelectionModifierCursorController != NULL) {
-//        mSelectionModifierCursorController.onDetached();
-//    }
+    if (mInsertionPointCursorController != NULL) {
+        mInsertionPointCursorController->OnDetached();
+    }
+
+    if (mSelectionModifierCursorController != NULL) {
+        mSelectionModifierCursorController->OnDetached();
+    }
 
     HideControllers();
 }
@@ -3840,11 +4584,11 @@ void TextView::OnDraw(
     //  the cursor.
     //  XXX This is not strictly TRUE -- a program could set the
     //  selection manually if it really wanted to.
-    //if (mMovement != NULL && (isFocused() || isPressed())) {
-    //    selStart = getSelectionStart();
-    //    selEnd = getSelectionEnd();
+    if (mMovement != NULL && (IsFocused() || IsPressed())) {
+        selStart = GetSelectionStart();
+        selEnd = GetSelectionEnd();
 
-    //    if (mCursorVisible && selStart >= 0 && isEnabled()) {
+        if (mCursorVisible && selStart >= 0 && IsEnabled()) {
     //        if (mHighlightPath == NULL)
     //            mHighlightPath = new Path();
 
@@ -3875,8 +4619,8 @@ void TextView::OnDraw(
 
     //            highlight = mHighlightPath;
     //        }
-    //    }
-    //}
+        }
+    }
 
     /*  Comment out until we decide what to do about animations
     Boolean isLinearTextOn = FALSE;
@@ -3904,8 +4648,8 @@ void TextView::OnDraw(
     //            if (!reported && highlight != NULL) {
     //                Int32 candStart = -1;
     //                Int32 candEnd = -1;
-    //                if (mText instanceof Spannable) {
-    //                    Spannable sp = (Spannable)mText;
+    //                if (ISpannable::Probe(mText)) {
+    //                    Spannable sp = ISpannable::Probe(mText);
     //                    candStart = EditableInputConnection.getComposingSpanStart(sp);
     //                    candEnd = EditableInputConnection.getComposingSpanEnd(sp);
     //                }
@@ -3959,15 +4703,15 @@ void TextView::OnDraw(
  */
 void TextView::UpdateCursorControllerPositions()
 {
-//    if (mInsertionPointCursorController != NULL &&
-//            mInsertionPointCursorController.isShowing()) {
-//        mInsertionPointCursorController.updatePosition();
-//    }
-//
-//    if (mSelectionModifierCursorController != NULL &&
-//            mSelectionModifierCursorController.isShowing()) {
-//        mSelectionModifierCursorController.updatePosition();
-//    }
+    if (mInsertionPointCursorController != NULL &&
+        mInsertionPointCursorController->IsShowing()) {
+        mInsertionPointCursorController->UpdatePosition();
+    }
+
+    if (mSelectionModifierCursorController != NULL &&
+        mSelectionModifierCursorController->IsShowing()) {
+        mSelectionModifierCursorController->UpdatePosition();
+    }
 }
 
 ECode TextView::GetFocusedRect(
@@ -4112,21 +4856,36 @@ Boolean TextView::OnKeyMultiple(
     CKeyEvent::ChangeAction(event, KeyEvent_ACTION_UP, (IKeyEvent**)&up);
 
     if (which == 1) {
-//        mInput.onKeyUp(this, (Editable)mText, keyCode, up);
-//        while (--repeatCount > 0) {
-//            mInput.onKeyDown(this, (Editable)mText, keyCode, down);
-//            mInput.onKeyUp(this, (Editable)mText, keyCode, up);
-//        }
-//        if (mError != NULL && !mErrorWasChanged) {
-//            setError(NULL, NULL);
-//        }
+        Boolean res;
+        mInput->OnKeyUp(
+            (IView*)this->Probe(EIID_IView), IEditable::Probe(mText),
+            keyCode, up, &res);
+        while (--repeatCount > 0) {
+            mInput->OnKeyDown(
+                (IView*)this->Probe(EIID_IView), IEditable::Probe(mText),
+                keyCode, down, &res);
+            mInput->OnKeyUp(
+                (IView*)this->Probe(EIID_IView), IEditable::Probe(mText),
+                keyCode, up, &res);
+        }
+        if (mError != NULL && !mErrorWasChanged) {
+            SetError(NULL, NULL);
+        }
 
-    } else if (which == 2) {
-//        mMovement.onKeyUp(this, (Spannable)mText, keyCode, up);
-//        while (--repeatCount > 0) {
-//            mMovement.onKeyDown(this, (Spannable)mText, keyCode, down);
-//            mMovement.onKeyUp(this, (Spannable)mText, keyCode, up);
-//        }
+    }
+    else if (which == 2) {
+        Boolean res;
+        mMovement->OnKeyUp(
+            (ITextView*)this->Probe(EIID_ITextView), ISpannable::Probe(mText),
+            keyCode, up, &res);
+        while (--repeatCount > 0) {
+            mMovement->OnKeyDown(
+                (ITextView*)this->Probe(EIID_ITextView), ISpannable::Probe(mText),
+                keyCode, down, &res);
+            mMovement->OnKeyUp(
+                (ITextView*)this->Probe(EIID_ITextView), ISpannable::Probe(mText),
+                keyCode, up, &res);
+        }
     }
 
     return TRUE;
@@ -4140,9 +4899,9 @@ Boolean TextView::OnKeyMultiple(
  */
 Boolean TextView::ShouldAdvanceFocusOnEnter()
 {
-//    if (mInput == NULL) {
-//        return FALSE;
-//    }
+    if (mInput == NULL) {
+        return FALSE;
+    }
 
     if (mSingleLine) {
         return TRUE;
@@ -4223,72 +4982,75 @@ Int32 TextView::DoKeyDown(
             break;
     }
 
-    //if (mInput != NULL) {
-    //    /*
-    //        * Keep track of what the error was before doing the input
-    //        * so that if an input filter changed the error, we leave
-    //        * that error showing.  Otherwise, we take down whatever
-    //        * error was showing when the user types something.
-    //        */
-    //    mErrorWasChanged = FALSE;
+    if (mInput != NULL) {
+        /*
+         * Keep track of what the error was before doing the input
+         * so that if an input filter changed the error, we leave
+         * that error showing.  Otherwise, we take down whatever
+        * error was showing when the user types something.
+        */
+        mErrorWasChanged = FALSE;
 
-    //    Boolean doDown = TRUE;
-    //    if (otherEvent != NULL) {
-    //        try {
-    //            beginBatchEdit();
-    //            Boolean handled = mInput.onKeyOther(this, (Editable) mText,
-    //                    otherEvent);
-    //            if (mError != NULL && !mErrorWasChanged) {
-    //                setError(NULL, NULL);
-    //            }
-    //            doDown = FALSE;
-    //            if (handled) {
-    //                return -1;
-    //            }
-    //        } catch (AbstractMethodError e) {
-    //            // onKeyOther was added after 1.0, so if it isn't
-    //            // implemented we need to try to dispatch as a regular down.
-    //        } finally {
-    //            endBatchEdit();
-    //        }
-    //    }
-    //
-    //    if (doDown) {
-    //        beginBatchEdit();
-    //        if (mInput.onKeyDown(this, (Editable) mText, keyCode, event)) {
-    //            endBatchEdit();
-    //            if (mError != NULL && !mErrorWasChanged) {
-    //                setError(NULL, NULL);
-    //            }
-    //            return 1;
-    //        }
-    //        endBatchEdit();
-    //    }
-    //}
+        Boolean doDown = TRUE;
+        if (otherEvent != NULL) {
+            BeginBatchEdit();
+            Boolean handled;
+            mInput->OnKeyOther(
+                (IView*)this->Probe(EIID_IView), IEditable::Probe(mText),
+                otherEvent, &handled);
+            if (mError != NULL && !mErrorWasChanged) {
+                SetError(NULL, NULL);
+            }
+            doDown = FALSE;
+            if (handled) {
+                return -1;
+            }
+
+            EndBatchEdit();
+        }
+
+        if (doDown) {
+            BeginBatchEdit();
+            Boolean res;
+            mInput->OnKeyDown(
+                (IView*)this->Probe(EIID_IView), IEditable::Probe(mText),
+                keyCode, event, &res);
+            if (res) {
+                EndBatchEdit();
+                if (mError != NULL && !mErrorWasChanged) {
+                    SetError(NULL, NULL);
+                }
+                return 1;
+            }
+            EndBatchEdit();
+        }
+    }
 
     // bug 650865: sometimes we get a key event before a layout.
     // don't try to move around if we don't know the layout.
 
-    //if (mMovement != NULL && mLayout != NULL) {
-    //    Boolean doDown = TRUE;
-    //    if (otherEvent != NULL) {
-    //        try {
-    //            Boolean handled = mMovement.onKeyOther(this, (Spannable) mText,
-    //                    otherEvent);
-    //            doDown = FALSE;
-    //            if (handled) {
-    //                return -1;
-    //            }
-    //        } catch (AbstractMethodError e) {
-    //            // onKeyOther was added after 1.0, so if it isn't
-    //            // implemented we need to try to dispatch as a regular down.
-    //        }
-    //    }
-    //    if (doDown) {
-    //        if (mMovement.onKeyDown(this, (Spannable)mText, keyCode, event))
-    //            return 2;
-    //    }
-    //}
+    if (mMovement != NULL && mLayout != NULL) {
+        Boolean doDown = TRUE;
+        if (otherEvent != NULL) {
+            Boolean handled;
+            mMovement->OnKeyOther(
+                (ITextView*)this->Probe(EIID_ITextView), ISpannable::Probe(mText),
+                otherEvent, &handled);
+            doDown = FALSE;
+            if (handled) {
+                return -1;
+            }
+        }
+
+        if (doDown) {
+            Boolean res;
+            mMovement->OnKeyDown(
+                (ITextView*)this->Probe(EIID_ITextView), ISpannable::Probe(mText),
+                keyCode, event, &res);
+            if (res)
+                return 2;
+        }
+    }
 
     return 0;
 }
@@ -4384,13 +5146,23 @@ Boolean TextView::OnKeyUp(
             break;
     }
 
-//    if (mInput != NULL)
-//        if (mInput.onKeyUp(this, (Editable) mText, keyCode, event))
-//            return TRUE;
-//
-//    if (mMovement != NULL && mLayout != NULL)
-//        if (mMovement.onKeyUp(this, (Spannable) mText, keyCode, event))
-//            return TRUE;
+    if (mInput != NULL) {
+        Boolean res;
+        mInput->OnKeyUp(
+            (IView*)this->Probe(EIID_IView), IEditable::Probe(mText),
+            keyCode, event, &res);
+        if (res)
+            return TRUE;
+    }
+
+    if (mMovement != NULL && mLayout != NULL) {
+        Boolean res;
+        mMovement->OnKeyUp(
+            (ITextView*)this->Probe(EIID_ITextView), ISpannable::Probe(mText),
+            keyCode, event, &res);
+        if (res)
+            return TRUE;
+    }
 
     return View::OnKeyUp(keyCode, event);
 }
@@ -4627,7 +5399,7 @@ ECode TextView::SetExtractedText(
     //Int32 end = text.selectionEnd;
     //if (end < 0) end = 0;
     //else if (end > N) end = N;
-    //Selection.setSelection(sp, start, end);
+    //Selection::SetSelection(sp, start, end);
     //
     //// Finally, update the selection mode.
     //if ((text.flags&ExtractedText.FLAG_SELECTING) != 0) {
@@ -5297,13 +6069,15 @@ void TextView::OnMeasure(
     //    * We didn't let makeNewLayout() register to bring the cursor into view,
     //    * so do it here if there is any possibility that it is needed.
     //    */
-    //if (mMovement != NULL ||
-    //    mLayout.getWidth() > unpaddedWidth ||
-    //    mLayout.getHeight() > unpaddedHeight) {
-    //    registerForPreDraw();
-    //} else {
-    //    scrollTo(0, 0);
-    //}
+    Int32 w, h;
+    if (mMovement != NULL ||
+        (mLayout->GetWidth(&w), w) > unpaddedWidth ||
+        (mLayout->GetHeight(&h), h) > unpaddedHeight) {
+        RegisterForPreDraw();
+    }
+    else {
+        ScrollTo(0, 0);
+    }
 
     SetMeasuredDimension(width, height);
 }
@@ -5744,51 +6518,58 @@ Boolean TextView::BringPointIntoView(
  */
 Boolean TextView::MoveCursorToVisibleOffset()
 {
-    //if (!(mText instanceof Spannable)) {
-    //    return FALSE;
-    //}
-    //Int32 start = getSelectionStart();
-    //Int32 end = getSelectionEnd();
-    //if (start != end) {
-    //    return FALSE;
-    //}
-    //
-    //// First: make sure the line is visible on screen:
-    //
-    //Int32 line = mLayout.getLineForOffset(start);
+    if (!(ISpannable::Probe(mText))) {
+        return FALSE;
+    }
+    Int32 start = GetSelectionStart();
+    Int32 end = GetSelectionEnd();
+    if (start != end) {
+        return FALSE;
+    }
 
-    //final Int32 top = mLayout.getLineTop(line);
-    //final Int32 bottom = mLayout.getLineTop(line + 1);
-    //final Int32 vspace = mBottom - mTop - getExtendedPaddingTop() - getExtendedPaddingBottom();
-    //Int32 vslack = (bottom - top) / 2;
-    //if (vslack > vspace / 4)
-    //    vslack = vspace / 4;
-    //final Int32 vs = mScrollY;
+    // First: make sure the line is visible on screen:
 
-    //if (top < (vs+vslack)) {
-    //    line = mLayout.getLineForVertical(vs+vslack+(bottom-top));
-    //} else if (bottom > (vspace+vs-vslack)) {
-    //    line = mLayout.getLineForVertical(vspace+vs-vslack-(bottom-top));
-    //}
-    //
-    //// Next: make sure the character is visible on screen:
-    //
-    //final Int32 hspace = mRight - mLeft - getCompoundPaddingLeft() - getCompoundPaddingRight();
-    //final Int32 hs = mScrollX;
-    //final Int32 leftChar = mLayout.getOffsetForHorizontal(line, hs);
-    //final Int32 rightChar = mLayout.getOffsetForHorizontal(line, hspace+hs);
-    //
-    //Int32 newStart = start;
-    //if (newStart < leftChar) {
-    //    newStart = leftChar;
-    //} else if (newStart > rightChar) {
-    //    newStart = rightChar;
-    //}
-    //
-    //if (newStart != start) {
-    //    Selection.setSelection((Spannable)mText, newStart);
-    //    return TRUE;
-    //}
+    Int32 line;
+    mLayout->GetLineForOffset(start, &line);
+
+    Int32 top;
+    mLayout->GetLineTop(line, &top);
+    Int32 bottom;
+    mLayout->GetLineTop(line + 1, &bottom);
+    Int32 vspace = mBottom - mTop - GetExtendedPaddingTop() - GetExtendedPaddingBottom();
+    Int32 vslack = (bottom - top) / 2;
+    if (vslack > vspace / 4)
+        vslack = vspace / 4;
+    Int32 vs = mScrollY;
+
+    if (top < (vs+vslack)) {
+        mLayout->GetLineForVertical(vs+vslack+(bottom-top), &line);
+    }
+    else if (bottom > (vspace+vs-vslack)) {
+        mLayout->GetLineForVertical(vspace+vs-vslack-(bottom-top), &line);
+    }
+
+    // Next: make sure the character is visible on screen:
+
+    Int32 hspace = mRight - mLeft - GetCompoundPaddingLeft() - GetCompoundPaddingRight();
+    Int32 hs = mScrollX;
+    Int32 leftChar;
+    mLayout->GetOffsetForHorizontal(line, hs, &leftChar);
+    Int32 rightChar;
+    mLayout->GetOffsetForHorizontal(line, hspace+hs, &rightChar);
+
+    Int32 newStart = start;
+    if (newStart < leftChar) {
+        newStart = leftChar;
+    }
+    else if (newStart > rightChar) {
+        newStart = rightChar;
+    }
+
+    if (newStart != start) {
+        Selection::SetSelection(ISpannable::Probe(mText), newStart);
+        return TRUE;
+    }
     return FALSE;
 }
 
@@ -5873,8 +6654,7 @@ void TextView::Debug(
  */
 Int32 TextView::GetSelectionStart()
 {
-    //return Selection.getSelectionStart(getText());
-    return 0;
+    return Selection::GetSelectionStart(ISpannable::Probe(GetText().Get()));
 }
 
 /**
@@ -5882,8 +6662,7 @@ Int32 TextView::GetSelectionStart()
  */
 Int32 TextView::GetSelectionEnd()
 {
-    //return Selection.getSelectionEnd(getText());
-    return 0;
+    return Selection::GetSelectionEnd(ISpannable::Probe(GetText().Get()));
 }
 
 /**
@@ -6010,7 +6789,7 @@ ECode TextView::SetSelectAllOnFocus(
 {
     mSelectAllOnFocus = selectAllOnFocus;
 
-    /*if (selectAllOnFocus && !(mText instanceof Spannable)) {
+    /*if (selectAllOnFocus && !(ISpannable::Probe(mText))) {
         setText(mText, BufferType.SPANNABLE);
     }*/
     return NOERROR;
@@ -6415,112 +7194,123 @@ void TextView::OnFocusChanged(
 
     EnsureEndedBatchEdit();
 
-    //if (focused) {
-    //    Int32 selStart = getSelectionStart();
-    //    Int32 selEnd = getSelectionEnd();
+    if (focused) {
+        Int32 selStart = GetSelectionStart();
+        Int32 selEnd = GetSelectionEnd();
 
-    //    // SelectAllOnFocus fields are highlighted and not selected. Do not start text selection
-    //    // mode for these, unless there was a specific selection already started.
-    //    final Boolean isFocusHighlighted = mSelectAllOnFocus && selStart == 0 &&
-    //            selEnd == mText.length();
-    //    mCreatedWithASelection = mFrozenWithFocus && hasSelection() && !isFocusHighlighted;
+        // SelectAllOnFocus fields are highlighted and not selected. Do not start text selection
+        // mode for these, unless there was a specific selection already started.
+        Int32 len;
+        mText->GetLength(&len);
+        Boolean isFocusHighlighted =
+            mSelectAllOnFocus && selStart == 0 && selEnd == len;
+        mCreatedWithASelection = mFrozenWithFocus && HasSelection() && !isFocusHighlighted;
 
-    //    if (!mFrozenWithFocus || (selStart < 0 || selEnd < 0)) {
-    //        // If a tap was used to give focus to that view, move cursor at tap position.
-    //        // Has to be done before onTakeFocus, which can be overloaded.
-    //        final Int32 lastTapPosition = getLastTapPosition();
-    //        if (lastTapPosition >= 0) {
-    //            Selection.setSelection((Spannable) mText, lastTapPosition);
-    //        }
+        if (!mFrozenWithFocus || (selStart < 0 || selEnd < 0)) {
+            // If a tap was used to give focus to that view, move cursor at tap position.
+            // Has to be done before onTakeFocus, which can be overloaded.
+            Int32 lastTapPosition = GetLastTapPosition();
+            if (lastTapPosition >= 0) {
+                Selection::SetSelection(ISpannable::Probe(mText), lastTapPosition);
+            }
 
-    //        if (mMovement != NULL) {
-    //            mMovement.onTakeFocus(this, (Spannable) mText, direction);
-    //        }
+            if (mMovement != NULL) {
+                mMovement->OnTakeFocus(
+                    (ITextView*)this->Probe(EIID_ITextView),
+                    ISpannable::Probe(mText), direction);
+            }
 
-    //        // The DecorView does not have focus when the 'Done' ExtractEditText button is
-    //        // pressed. Since it is the ViewRoot's mView, it requests focus before
-    //        // ExtractEditText clears focus, which gives focus to the ExtractEditText.
-    //        // This special case ensure that we keep current selection in that case.
-    //        // It would be better to know why the DecorView does not have focus at that time.
-    //        if (((this instanceof ExtractEditText) || mSelectionMoved) &&
-    //                selStart >= 0 && selEnd >= 0) {
-    //            /*
-    //                * Someone intentionally set the selection, so let them
-    //                * do whatever it is that they wanted to do instead of
-    //                * the default on-focus behavior.  We reset the selection
-    //                * here instead of just skipping the onTakeFocus() call
-    //                * because some movement methods do something other than
-    //                * just setting the selection in theirs and we still
-    //                * need to go through that path.
-    //                */
-    //            Selection.setSelection((Spannable) mText, selStart, selEnd);
-    //        }
+            // The DecorView does not have focus when the 'Done' ExtractEditText button is
+            // pressed. Since it is the ViewRoot's mView, it requests focus before
+            // ExtractEditText clears focus, which gives focus to the ExtractEditText.
+            // This special case ensure that we keep current selection in that case.
+            // It would be better to know why the DecorView does not have focus at that time.
+            if ((/*IExtractEditText::Probe(this) ||*/ mSelectionMoved) &&
+                    selStart >= 0 && selEnd >= 0) {
+                /*
+                    * Someone intentionally set the selection, so let them
+                    * do whatever it is that they wanted to do instead of
+                    * the default on-focus behavior.  We reset the selection
+                    * here instead of just skipping the onTakeFocus() call
+                    * because some movement methods do something other than
+                    * just setting the selection in theirs and we still
+                    * need to go through that path.
+                    */
+                Selection::SetSelection(ISpannable::Probe(mText), selStart, selEnd);
+            }
 
-    //        if (mSelectAllOnFocus) {
-    //            Selection.setSelection((Spannable) mText, 0, mText.length());
-    //        }
+            if (mSelectAllOnFocus) {
+                Selection::SetSelection(ISpannable::Probe(mText), 0, len);
+            }
 
-    //        mTouchFocusSelected = TRUE;
-    //    }
+            mTouchFocusSelected = TRUE;
+        }
 
-    //    mFrozenWithFocus = FALSE;
-    //    mSelectionMoved = FALSE;
+        mFrozenWithFocus = FALSE;
+        mSelectionMoved = FALSE;
 
-    //    if (mText instanceof Spannable) {
-    //        Spannable sp = (Spannable) mText;
-    //        MetaKeyKeyListener.resetMetaState(sp);
-    //    }
+        if (ISpannable::Probe(mText)) {
+            AutoPtr<ISpannable> sp = ISpannable::Probe(mText);
+            //MetaKeyKeyListener.resetMetaState(sp);
+        }
 
-    //    makeBlink();
+        MakeBlink();
 
-    //    if (mError != NULL) {
-    //        showError();
-    //    }
-    //} else {
-    //    if (mError != NULL) {
-    //        hideError();
-    //    }
-    //    // Don't leave us in the middle of a batch edit.
-    //    onEndBatchEdit();
+        if (mError != NULL) {
+            ShowError();
+        }
+    }
+    else {
+        if (mError != NULL) {
+            HideError();
+        }
+        // Don't leave us in the middle of a batch edit.
+        OnEndBatchEdit();
 
-    //    hideInsertionPointCursorController();
-    //    if (this instanceof ExtractEditText) {
-    //        // terminateTextSelectionMode would remove selection, which we want to keep when
-    //        // ExtractEditText goes out of focus.
-    //        mIsInTextSelectionMode = FALSE;
-    //    } else {
-    //        stopTextSelectionMode();
-    //    }
+        HideInsertionPointCursorController();
+        // if (IExtractEditText::Probe(this)) {
+        //     // terminateTextSelectionMode would remove selection, which we want to keep when
+        //     // ExtractEditText goes out of focus.
+        //     mIsInTextSelectionMode = FALSE;
+        // }
+        // else {
+            StopTextSelectionMode();
+        //}
 
-    //    if (mSelectionModifierCursorController != NULL) {
-    //        ((SelectionModifierCursorController) mSelectionModifierCursorController).resetTouchOffsets();
-    //    }
-    //}
+        if (mSelectionModifierCursorController != NULL) {
+            ((SelectionModifierCursorController*)mSelectionModifierCursorController.Get())
+                ->ResetTouchOffsets();
+        }
+    }
 
-    //startStopMarquee(focused);
+    StartStopMarquee(focused);
 
-    //if (mTransformation != NULL) {
-    //    mTransformation.onFocusChanged(this, mText, focused, direction, previouslyFocusedRect);
-    //}
+    if (mTransformation != NULL) {
+        mTransformation->OnFocusChanged(
+            (IView*)this->Probe(EIID_IView), mText,
+            focused, direction, previouslyFocusedRect);
+    }
 
-    //super.onFocusChanged(focused, direction, previouslyFocusedRect);
+    View::OnFocusChanged(focused, direction, previouslyFocusedRect);
 }
 
 Int32 TextView::GetLastTapPosition()
 {
-    //if (mSelectionModifierCursorController != NULL) {
-    //    Int32 lastTapPosition = ((SelectionModifierCursorController)
-    //            mSelectionModifierCursorController).getMinTouchOffset();
-    //    if (lastTapPosition >= 0) {
-    //        // Safety check, should not be possible.
-    //        if (lastTapPosition > mText.length()) {
-    //            Log.e(LOG_TAG, "Invalid tap focus position (" + lastTapPosition + " vs "
-    //                    + mText.length() + ")");
-    //            lastTapPosition = mText.length();
-    //        }
-    //        return lastTapPosition;
-    //    }
-    //}
+    if (mSelectionModifierCursorController != NULL) {
+        Int32 lastTapPosition = ((SelectionModifierCursorController*)
+                mSelectionModifierCursorController.Get())->GetMinTouchOffset();
+        if (lastTapPosition >= 0) {
+            // Safety check, should not be possible.
+            Int32 len;
+            mText->GetLength(&len);
+            if (lastTapPosition > len) {
+                // Log.e(LOG_TAG, "Invalid tap focus position (" + lastTapPosition + " vs "
+                //         + mText.length() + ")");
+                lastTapPosition = len;
+            }
+            return lastTapPosition;
+        }
+    }
 
     return -1;
 }
@@ -6572,8 +7362,8 @@ void TextView::OnVisibilityChanged(
  */
 ECode TextView::ClearComposingText()
 {
-    /*if (mText instanceof Spannable) {
-        BaseInputConnection.removeComposingSpans((Spannable)mText);
+    /*if (ISpannable::Probe(mText)) {
+        BaseInputConnection.removeComposingSpans(ISpannable::Probe(mText));
     }*/
     return NOERROR;
 }
@@ -6600,29 +7390,33 @@ void TextView::OnTapUpEvent(
     /* [in] */ Int32 prevStart,
     /* [in] */ Int32 prevEnd)
 {
-    //final Int32 start = getSelectionStart();
-    //final Int32 end = getSelectionEnd();
+    Int32 start = GetSelectionStart();
+    Int32 end = GetSelectionEnd();
 
-    //if (start == end) {
-    //    Boolean tapInsideSelectAllOnFocus = mSelectAllOnFocus && prevStart == 0 &&
-    //            prevEnd == mText.length();
-    //    if (start >= prevStart && start < prevEnd && !tapInsideSelectAllOnFocus) {
-    //        // Restore previous selection
-    //        Selection.setSelection((Spannable)mText, prevStart, prevEnd);
+    if (start == end) {
+        Int32 len;
+        mText->GetLength(&len);
+        Boolean tapInsideSelectAllOnFocus =
+            mSelectAllOnFocus && prevStart == 0 && prevEnd == len;
+        if (start >= prevStart && start < prevEnd && !tapInsideSelectAllOnFocus) {
+            // Restore previous selection
+            Selection::SetSelection(ISpannable::Probe(mText), prevStart, prevEnd);
 
-    //        // Tapping inside the selection displays the cut/copy/paste context menu, unless
-    //        // this is a double tap that should simply trigger text selection mode.
-    //        if (!mNoContextMenuOnUp) showContextMenu();
-    //    } else {
-    //        // Tapping outside stops selection mode, if any
-    //        stopTextSelectionMode();
+            // Tapping inside the selection displays the cut/copy/paste context menu, unless
+            // this is a double tap that should simply trigger text selection mode.
+            if (!mNoContextMenuOnUp)
+                ShowContextMenu();
+        }
+        else {
+            // Tapping outside stops selection mode, if any
+            StopTextSelectionMode();
 
-    //        Boolean selectAllGotFocus = mSelectAllOnFocus && mTouchFocusSelected;
-    //        if (hasInsertionController() && !selectAllGotFocus) {
-    //            getInsertionController().show();
-    //        }
-    //    }
-    //}
+            Boolean selectAllGotFocus = mSelectAllOnFocus && mTouchFocusSelected;
+            if (HasInsertionController() && !selectAllGotFocus) {
+                GetInsertionController()->Show();
+            }
+        }
+    }
 }
 
 Boolean TextView::OnTouchEvent(
@@ -6632,11 +7426,11 @@ Boolean TextView::OnTouchEvent(
     event->GetActionMasked(&action);
 
     if (HasInsertionController()) {
-        //GetInsertionController()->OnTouchEvent(event);
+        GetInsertionController()->OnTouchEvent(event);
     }
 
     if (HasSelectionController()) {
-        //GetSelectionController()->OnTouchEvent(event);
+        GetSelectionController()->OnTouchEvent(event);
     }
 
     if (action == MotionEvent_ACTION_DOWN) {
@@ -6656,51 +7450,55 @@ Boolean TextView::OnTouchEvent(
     if (mEatTouchRelease && action == MotionEvent_ACTION_UP) {
         mEatTouchRelease = FALSE;
     }
-    //else if ((mMovement != NULL || onCheckIsTextEditor()) && mText instanceof Spannable &&
-    //        mLayout != NULL) {
-    //    Boolean handled = FALSE;
+    else if ((mMovement != NULL || OnCheckIsTextEditor()) &&
+        ISpannable::Probe(mText) && mLayout != NULL) {
+        Boolean handled = FALSE;
 
-    //    // Save previous selection, in case this event is used to show the IME.
-    //    Int32 oldSelStart = getSelectionStart();
-    //    Int32 oldSelEnd = getSelectionEnd();
+        // Save previous selection, in case this event is used to show the IME.
+        Int32 oldSelStart = GetSelectionStart();
+        Int32 oldSelEnd = GetSelectionEnd();
 
-    //    final Int32 oldScrollX = mScrollX;
-    //    final Int32 oldScrollY = mScrollY;
-    //
-    //    if (mMovement != NULL) {
-    //        handled |= mMovement.onTouchEvent(this, (Spannable) mText, event);
-    //    }
+        Int32 oldScrollX = mScrollX;
+        Int32 oldScrollY = mScrollY;
 
-    //    if (isTextEditable()) {
-    //        if (mScrollX != oldScrollX || mScrollY != oldScrollY) {
-    //            // Hide insertion anchor while scrolling. Leave selection.
-    //            hideInsertionPointCursorController();
-    //            if (mSelectionModifierCursorController != NULL &&
-    //                    mSelectionModifierCursorController.isShowing()) {
-    //                mSelectionModifierCursorController.updatePosition();
-    //            }
-    //        }
-    //        if (action == MotionEvent.ACTION_UP && isFocused() && !mScrolled) {
-    //            InputMethodManager imm = (InputMethodManager)
-    //                    getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (mMovement != NULL) {
+            Boolean res;
+            mMovement->OnTouchEvent(
+                (ITextView*)this->Probe(EIID_IView), ISpannable::Probe(mText),
+                event, &res);
+            handled |= res;
+        }
 
-    //            CommitSelectionReceiver csr = NULL;
-    //            if (getSelectionStart() != oldSelStart || getSelectionEnd() != oldSelEnd ||
-    //                    didTouchFocusSelect()) {
-    //                csr = new CommitSelectionReceiver(oldSelStart, oldSelEnd);
-    //            }
+        if (IsTextEditable()) {
+            if (mScrollX != oldScrollX || mScrollY != oldScrollY) {
+                // Hide insertion anchor while scrolling. Leave selection.
+                HideInsertionPointCursorController();
+                if (mSelectionModifierCursorController != NULL &&
+                    mSelectionModifierCursorController->IsShowing()) {
+                    mSelectionModifierCursorController->UpdatePosition();
+                }
+            }
+            if (action == MotionEvent_ACTION_UP && IsFocused() && !mScrolled) {
+                // InputMethodManager imm = (InputMethodManager)
+                //         getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
 
-    //            handled |= imm.showSoftInput(this, 0, csr) && (csr != NULL);
+                // CommitSelectionReceiver csr = NULL;
+                // if (getSelectionStart() != oldSelStart || getSelectionEnd() != oldSelEnd ||
+                //         didTouchFocusSelect()) {
+                //     csr = new CommitSelectionReceiver(oldSelStart, oldSelEnd);
+                // }
 
-    //            // Cannot be done by CommitSelectionReceiver, which might not always be called,
-    //            // for instance when dealing with an ExtractEditText.
-    //            onTapUpEvent(oldSelStart, oldSelEnd);
-    //        }
-    //    }
+                // handled |= imm.showSoftInput(this, 0, csr) && (csr != NULL);
 
-    //    if (handled)
-    //        result = TRUE;
-    //}
+                // Cannot be done by CommitSelectionReceiver, which might not always be called,
+                // for instance when dealing with an ExtractEditText.
+                OnTapUpEvent(oldSelStart, oldSelEnd);
+            }
+        }
+
+        if (handled)
+            result = TRUE;
+    }
 
     if (action == MotionEvent_ACTION_UP || action == MotionEvent_ACTION_CANCEL) {
         mNoContextMenuOnUp = FALSE;
@@ -6711,29 +7509,32 @@ Boolean TextView::OnTouchEvent(
 
 void TextView::PrepareCursorControllers()
 {
-    //Boolean windowSupportsHandles = FALSE;
+    Boolean windowSupportsHandles = FALSE;
 
-    //ViewGroup.LayoutParams params = getRootView().getLayoutParams();
-    //if (params instanceof WindowManager.LayoutParams) {
-    //    WindowManager.LayoutParams windowParams = (WindowManager.LayoutParams) params;
-    //    windowSupportsHandles = windowParams.type < WindowManager.LayoutParams.FIRST_SUB_WINDOW
-    //            || windowParams.type > WindowManager.LayoutParams.LAST_SUB_WINDOW;
-    //}
+    AutoPtr<IViewGroupLayoutParams> params;
+    GetRootView()->GetLayoutParams((IViewGroupLayoutParams**)&params);
+    if (params != NULL && IWindowManagerLayoutParams::Probe(params)) {
+        CWindowManagerLayoutParams* windowParams =
+         (CWindowManagerLayoutParams*)IWindowManagerLayoutParams::Probe(params.Get());
+        windowSupportsHandles =
+            windowParams->mType < WindowManagerLayoutParams_FIRST_SUB_WINDOW
+            || windowParams->mType > WindowManagerLayoutParams_LAST_SUB_WINDOW;
+    }
 
-    //// TODO Add an extra android:cursorController flag to disable the controller?
-    //mInsertionControllerEnabled = windowSupportsHandles && mCursorVisible && mLayout != NULL;
-    //mSelectionControllerEnabled = windowSupportsHandles && textCanBeSelected() &&
-    //        mLayout != NULL;
+    // TODO Add an extra android:cursorController flag to disable the controller?
+    mInsertionControllerEnabled = windowSupportsHandles && mCursorVisible && mLayout != NULL;
+    mSelectionControllerEnabled = windowSupportsHandles && TextCanBeSelected() &&
+            mLayout != NULL;
 
-    //if (!mInsertionControllerEnabled) {
-    //    mInsertionPointCursorController = NULL;
-    //}
+    if (!mInsertionControllerEnabled) {
+        mInsertionPointCursorController = NULL;
+    }
 
-    //if (!mSelectionControllerEnabled) {
-    //    // Stop selection mode if the controller becomes unavailable.
-    //    stopTextSelectionMode();
-    //    mSelectionModifierCursorController = NULL;
-    //}
+    if (!mSelectionControllerEnabled) {
+        // Stop selection mode if the controller becomes unavailable.
+        StopTextSelectionMode();
+        mSelectionModifierCursorController = NULL;
+    }
 }
 
 /**
@@ -6766,12 +7567,15 @@ ECode TextView::CancelLongPress()
 Boolean TextView::OnTrackballEvent(
     /* [in] */ IMotionEvent* event)
 {
-//    if (mMovement != NULL && mText instanceof Spannable &&
-//        mLayout != NULL) {
-//        if (mMovement.onTrackballEvent(this, (Spannable) mText, event)) {
-//            return TRUE;
-//        }
-//    }
+    if (mMovement != NULL && ISpannable::Probe(mText) && mLayout != NULL) {
+        Boolean res;
+        mMovement->OnTrackballEvent(
+            (ITextView*)this->Probe(EIID_ITextView), ISpannable::Probe(mText),
+            event, &res);
+        if (res) {
+            return TRUE;
+        }
+    }
 
     return View::OnTrackballEvent(event);
 }
@@ -6961,23 +7765,25 @@ Boolean TextView::TextCanBeSelected()
     // prepareCursorController() relies on this method.
     // If you change this condition, make sure prepareCursorController is called anywhere
     // the value of this condition might be changed.
-    /*return (mText instanceof Spannable &&
+    Boolean can;
+    return (ISpannable::Probe(mText) &&
             mMovement != NULL &&
-            mMovement.canSelectArbitrarily());*/
-    return FALSE;
+            (mMovement->CanSelectArbitrarily(&can), can));
 }
 
 Boolean TextView::CanCut()
 {
-    /*if (hasPasswordTransformationMethod()) {
+    if (HasPasswordTransformationMethod()) {
         return FALSE;
     }
 
-    if (mText.length() > 0 && hasSelection()) {
-        if (mText instanceof Editable && mInput != NULL) {
+    Int32 len;
+    mText->GetLength(&len);
+    if (len > 0 && HasSelection()) {
+        if (IEditable::Probe(mText) && mInput != NULL) {
             return TRUE;
         }
-    }*/
+    }
 
     return FALSE;
 }
@@ -7121,56 +7927,65 @@ Int32 TextView::ExtractRangeEndFromLong(
 
 void TextView::SelectCurrentWord()
 {
-    //// In case selection mode is started after an orientation change or after a select all,
-    //// use the current selection instead of creating one
-    //if (hasSelection()) {
-    //    return;
-    //}
+    // In case selection mode is started after an orientation change or after a select all,
+    // use the current selection instead of creating one
+    if (HasSelection()) {
+        return;
+    }
 
-    //Int32 minOffset, maxOffset;
+    Int32 minOffset, maxOffset;
 
-    //if (mContextMenuTriggeredByKey) {
-    //    minOffset = getSelectionStart();
-    //    maxOffset = getSelectionEnd();
-    //} else {
-    //    // hasSelectionController is TRUE since we canSelectText.
-    //    SelectionModifierCursorController selectionModifierCursorController =
-    //        (SelectionModifierCursorController) getSelectionController();
-    //    minOffset = selectionModifierCursorController.getMinTouchOffset();
-    //    maxOffset = selectionModifierCursorController.getMaxTouchOffset();
-    //}
+    if (mContextMenuTriggeredByKey) {
+        minOffset = GetSelectionStart();
+        maxOffset = GetSelectionEnd();
+    }
+    else {
+        // hasSelectionController is TRUE since we canSelectText.
+        SelectionModifierCursorController* selectionModifierCursorController =
+            (SelectionModifierCursorController*)GetSelectionController().Get();
+        minOffset = selectionModifierCursorController->GetMinTouchOffset();
+        maxOffset = selectionModifierCursorController->GetMaxTouchOffset();
+    }
 
-    //Int32 selectionStart, selectionEnd;
+    Int32 selectionStart, selectionEnd;
 
-    //Int64 wordLimits = getWordLimitsAt(minOffset);
-    //if (wordLimits >= 0) {
-    //    selectionStart = extractRangeStartFromLong(wordLimits);
-    //} else {
-    //    selectionStart = Math.max(minOffset - 5, 0);
-    //}
+    Int64 wordLimits = GetWordLimitsAt(minOffset);
+    if (wordLimits >= 0) {
+        selectionStart = ExtractRangeStartFromLong(wordLimits);
+    }
+    else {
+        selectionStart = Math::Max(minOffset - 5, 0);
+    }
 
-    //wordLimits = getWordLimitsAt(maxOffset);
-    //if (wordLimits >= 0) {
-    //    selectionEnd = extractRangeEndFromLong(wordLimits);
-    //} else {
-    //    selectionEnd = Math.min(maxOffset + 5, mText.length());
-    //}
+    wordLimits = GetWordLimitsAt(maxOffset);
+    if (wordLimits >= 0) {
+        selectionEnd = ExtractRangeEndFromLong(wordLimits);
+    }
+    else {
+        Int32 len;
+        mText->GetLength(&len);
+        selectionEnd = Math::Min(maxOffset + 5, len);
+    }
 
-    //Selection.setSelection((Spannable) mText, selectionStart, selectionEnd);
+    Selection::SetSelection(ISpannable::Probe(mText), selectionStart, selectionEnd);
 }
 
 void TextView::GetWordForDictionary(
     /* [out] */ String* word)
 {
-    /*Int32 seedPosition = mContextMenuTriggeredByKey ? getSelectionStart() : getLastTapPosition();
-    Int64 wordLimits = getWordLimitsAt(seedPosition);
+    Int32 seedPosition = mContextMenuTriggeredByKey ?
+        GetSelectionStart() : GetLastTapPosition();
+    Int64 wordLimits = GetWordLimitsAt(seedPosition);
     if (wordLimits >= 0) {
-        Int32 start = extractRangeStartFromLong(wordLimits);
-        Int32 end = extractRangeEndFromLong(wordLimits);
-        return mTransformed.subSequence(start, end).toString();
-    } else {
-        return NULL;
-    }*/
+        Int32 start = ExtractRangeStartFromLong(wordLimits);
+        Int32 end = ExtractRangeEndFromLong(wordLimits);
+        AutoPtr<ICharSequence> sub;
+        mTransformed->SubSequence(start, end, (ICharSequence**)&sub);
+        sub->ToString(word);
+    }
+    else {
+        word = NULL;
+    }
 }
 
 Boolean TextView::DispatchPopulateAccessibilityEvent(
@@ -7351,7 +8166,7 @@ Boolean TextView::OnTextContextMenuItem(
 
     switch (id) {
         case ID_SELECT_ALL:
-            Selection.setSelection((Spannable) mText, 0, mText.length());
+            Selection::SetSelection(ISpannable::Probe(mText), 0, mText.length());
             startTextSelectionMode();
             getSelectionController().show();
             return TRUE;
@@ -7363,7 +8178,7 @@ Boolean TextView::OnTextContextMenuItem(
 
         case ID_CUT:
             clip.setText(mTransformed.subSequence(min, max));
-            ((Editable) mText).delete(min, max);
+            (IEditable::Probe(mText)).delete(min, max);
             stopTextSelectionMode();
             return TRUE;
 
@@ -7379,8 +8194,8 @@ Boolean TextView::OnTextContextMenuItem(
                 Int64 minMax = prepareSpacesAroundPaste(min, max, paste);
                 min = extractRangeStartFromLong(minMax);
                 max = extractRangeEndFromLong(minMax);
-                Selection.setSelection((Spannable) mText, max);
-                ((Editable) mText).replace(min, max, paste);
+                Selection::SetSelection(ISpannable::Probe(mText), max);
+                (IEditable::Probe(mText)).replace(min, max, paste);
                 stopTextSelectionMode();
             }
             return TRUE;
@@ -7427,7 +8242,7 @@ Int64 TextView::PrepareSpacesAroundPaste(
     //    if (min > 0 && Character.isSpaceChar(mTransformed.charAt(min - 1))) {
     //        // Two spaces at beginning of paste: remove one
     //        final Int32 originalLength = mText.length();
-    //        ((Editable) mText).replace(min - 1, min, "");
+    //        (IEditable::Probe(mText)).replace(min - 1, min, "");
     //        // Due to filters, there is no garantee that exactly one character was
     //        // removed. Count instead.
     //        final Int32 delta = mText.length() - originalLength;
@@ -7438,7 +8253,7 @@ Int64 TextView::PrepareSpacesAroundPaste(
     //    if (min > 0 && !Character.isSpaceChar(mTransformed.charAt(min - 1))) {
     //        // No space at beginning of paste: add one
     //        final Int32 originalLength = mText.length();
-    //        ((Editable) mText).replace(min, min, " ");
+    //        (IEditable::Probe(mText)).replace(min, min, " ");
     //        // Taking possible filters into account as above.
     //        final Int32 delta = mText.length() - originalLength;
     //        min += delta;
@@ -7449,12 +8264,12 @@ Int64 TextView::PrepareSpacesAroundPaste(
     //if (Character.isSpaceChar(paste.charAt(paste.length() - 1))) {
     //    if (max < mText.length() && Character.isSpaceChar(mTransformed.charAt(max))) {
     //        // Two spaces at end of paste: remove one
-    //        ((Editable) mText).replace(max, max + 1, "");
+    //        (IEditable::Probe(mText)).replace(max, max + 1, "");
     //    }
     //} else {
     //    if (max < mText.length() && !Character.isSpaceChar(mTransformed.charAt(max))) {
     //        // No space at end of paste: add one
-    //        ((Editable) mText).replace(max, max, " ");
+    //        (IEditable::Probe(mText)).replace(max, max, " ");
     //    }
     //}
     return PackRangeInLong(min, max);
@@ -7472,51 +8287,53 @@ Boolean TextView::PerformLongClick()
 
 void TextView::StartTextSelectionMode()
 {
-    /*if (!mIsInTextSelectionMode) {
-        if (!hasSelectionController()) {
-            Log.w(LOG_TAG, "TextView has no selection controller. Action mode cancelled.");
+    if (!mIsInTextSelectionMode) {
+        if (!HasSelectionController()) {
+            Logger::W(TEXT_VIEW_LOG_TAG,
+                "TextView has no selection controller. Action mode cancelled.");
             return;
         }
 
-        if (!canSelectText() || !requestFocus()) {
+        if (!CanSelectText() || !RequestFocus()) {
             return;
         }
 
-        selectCurrentWord();
-        getSelectionController().show();
-        final InputMethodManager imm = (InputMethodManager)
-                getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.showSoftInput(this, 0, NULL);
+        SelectCurrentWord();
+        GetSelectionController()->Show();
+        //final InputMethodManager imm = (InputMethodManager)
+        //        getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        //imm.showSoftInput(this, 0, NULL);
         mIsInTextSelectionMode = TRUE;
-    }*/
+    }
 }
 
 void TextView::StopTextSelectionMode()
 {
-    /*if (mIsInTextSelectionMode) {
-        Selection.setSelection((Spannable) mText, getSelectionEnd());
-        hideSelectionModifierCursorController();
+    if (mIsInTextSelectionMode) {
+        Selection::SetSelection(ISpannable::Probe(mText), GetSelectionEnd());
+        HideSelectionModifierCursorController();
         mIsInTextSelectionMode = FALSE;
-    }*/
+    }
 }
 
 void TextView::HideInsertionPointCursorController()
 {
-    /*if (mInsertionPointCursorController != NULL) {
-        mInsertionPointCursorController.hide();
-    }*/
+    if (mInsertionPointCursorController != NULL) {
+        mInsertionPointCursorController->Hide();
+    }
 }
 
-void TextView::HideSelectionModifierCursorController() {
-    /*if (mSelectionModifierCursorController != NULL) {
-        mSelectionModifierCursorController.hide();
-    }*/
+void TextView::HideSelectionModifierCursorController()
+{
+    if (mSelectionModifierCursorController != NULL) {
+        mSelectionModifierCursorController->Hide();
+    }
 }
 
 void TextView::HideControllers()
 {
-    /*hideInsertionPointCursorController();
-    hideSelectionModifierCursorController();*/
+    HideInsertionPointCursorController();
+    HideSelectionModifierCursorController();
 }
 
 Int32 TextView::GetOffsetForHorizontal(
@@ -7610,39 +8427,41 @@ Boolean TextView::HasSelectionController()
     return mSelectionControllerEnabled;
 }
 
-//CursorController TextView::getInsertionController() {
-//    if (!mInsertionControllerEnabled) {
-//        return NULL;
-//    }
-//
-//    if (mInsertionPointCursorController == NULL) {
-//        mInsertionPointCursorController = new InsertionPointCursorController();
-//
-//        final ViewTreeObserver observer = getViewTreeObserver();
-//        if (observer != NULL) {
-//            observer.addOnTouchModeChangeListener(mInsertionPointCursorController);
-//        }
-//    }
-//
-//    return mInsertionPointCursorController;
-//}
-//
-//CursorController TextView::getSelectionController() {
-//    if (!mSelectionControllerEnabled) {
-//        return NULL;
-//    }
-//
-//    if (mSelectionModifierCursorController == NULL) {
-//        mSelectionModifierCursorController = new SelectionModifierCursorController();
-//
-//        final ViewTreeObserver observer = getViewTreeObserver();
-//        if (observer != NULL) {
-//            observer.addOnTouchModeChangeListener(mSelectionModifierCursorController);
-//        }
-//    }
-//
-//    return mSelectionModifierCursorController;
-//}
+AutoPtr<TextView::CursorController> TextView::GetInsertionController()
+{
+    if (!mInsertionControllerEnabled) {
+        return NULL;
+    }
+
+    if (mInsertionPointCursorController == NULL) {
+        mInsertionPointCursorController = new InsertionPointCursorController(this);
+
+        // final ViewTreeObserver observer = getViewTreeObserver();
+        // if (observer != NULL) {
+        //     observer.addOnTouchModeChangeListener(mInsertionPointCursorController);
+        // }
+    }
+
+    return mInsertionPointCursorController;
+}
+
+AutoPtr<TextView::CursorController> TextView::GetSelectionController()
+{
+    if (!mSelectionControllerEnabled) {
+        return NULL;
+    }
+
+    if (mSelectionModifierCursorController == NULL) {
+        mSelectionModifierCursorController = new SelectionModifierCursorController(this);
+
+        // final ViewTreeObserver observer = getViewTreeObserver();
+        // if (observer != NULL) {
+        //     observer.addOnTouchModeChangeListener(mSelectionModifierCursorController);
+        // }
+    }
+
+    return mSelectionModifierCursorController;
+}
 
 Boolean TextView::IsInBatchEditMode()
 {
@@ -7726,8 +8545,8 @@ ECode TextView::InitFromAttributes(
     mHighlightPaint->SetCompatibilityScaling(
             ((CCompatibilityInfo*)compatibilityInfo.Get())->mApplicationScale);
 
-//    mMovement = getDefaultMovementMethod();
-//    mTransformation = NULL;
+    mMovement = GetDefaultMovementMethod();
+    mTransformation = NULL;
 
     AutoPtr<ITypedArray> a;
     ASSERT_SUCCEEDED(context->ObtainStyledAttributesEx3(attrs,
@@ -8344,7 +9163,7 @@ ECode TextView::InitFromAttributes(
             attrs, ArrayOf<Int32>(R_Styleable_View, sizeof(R_Styleable_View) / sizeof(Int32))/*com.android.internal.R.styleable.View*/,
             defStyle, 0, (ITypedArray**)&a));
 
-    Boolean focusable = FALSE; //mMovement != NULL || mInput != NULL;
+    Boolean focusable = mMovement != NULL || mInput != NULL;
     Boolean clickable = focusable;
     Boolean longClickable = focusable;
 

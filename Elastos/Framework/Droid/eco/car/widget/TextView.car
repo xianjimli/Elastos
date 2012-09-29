@@ -35,6 +35,9 @@ module
             //[out] Boolean* result);
     //}
 
+    interface ITextViewSavedState extends IViewBaseSavedState {
+    }
+
     interface ITextView extends IView {
 
         /**

@@ -519,7 +519,7 @@ void ListView::ClearRecycledState(
         AutoPtr<IViewGroupLayoutParams> lp;
         (*iter)->mView->GetLayoutParams((IViewGroupLayoutParams**)&lp);
         CAbsListViewLayoutParams* p =
-            (CAbsListViewLayoutParams*)IAbsListViewSavedState::Probe(lp);
+            (CAbsListViewLayoutParams*)IAbsListViewLayoutParams::Probe(lp);
         if (p != NULL) {
             p->mRecycledHeaderFooter = FALSE;
         }

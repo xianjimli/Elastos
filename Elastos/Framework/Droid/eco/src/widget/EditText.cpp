@@ -1,5 +1,6 @@
 
 #include "widget/EditText.h"
+#include "text/Selection.h"
 
 static const Int32 R_Attr_EditTextStyle = 0x0101006e;
 
@@ -43,7 +44,7 @@ ECode EditText::SetSelection(
     /* [in] */ Int32 start,
     /* [in] */ Int32 stop)
 {
-//    Selection.setSelection(getText(), start, stop);
+    Selection::SetSelection(ISpannable::Probe(GetText().Get()), start, stop);
     return NOERROR;
 }
 
@@ -53,7 +54,7 @@ ECode EditText::SetSelection(
 ECode EditText::SetSelection(
     /* [in] */ Int32 index)
 {
-//    Selection.setSelection(getText(), index);
+    Selection::SetSelection(ISpannable::Probe(GetText().Get()), index);
     return NOERROR;
 }
 
@@ -62,7 +63,7 @@ ECode EditText::SetSelection(
  */
 ECode EditText::SelectAll()
 {
-//    Selection.selectAll(getText());
+    Selection::SelectAll(ISpannable::Probe(GetText().Get()));
     return NOERROR;
 }
 
@@ -72,7 +73,7 @@ ECode EditText::SelectAll()
 ECode EditText::ExtendSelection(
     /* [in] */ Int32 index)
 {
-//    Selection.extendSelection(getText(), index);
+    Selection::ExtendSelection(ISpannable::Probe(GetText().Get()), index);
     return NOERROR;
 }
 

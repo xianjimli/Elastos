@@ -35,4 +35,10 @@ module
         RemoveSpan(
             [in] IInterface* what);
     }
+
+    interface ISpanableFactory {
+        NewSpannable(
+            [in] ICharSequence* source,
+            [out] ISpannable** spannable);
+    }
 }

@@ -16,6 +16,7 @@ SOURCES += StaticLayout.cpp
 SOURCES += CStaticLayout.cpp
 SOURCES += SpannableStringInternal.cpp
 SOURCES += CSpannableString.cpp
+SOURCES += CSpannableFactory.cpp
 SOURCES += BoringLayout.cpp
 SOURCES += CBoringLayout.cpp
 SOURCES += CBoringLayoutMetrics.cpp
@@ -23,5 +24,6 @@ SOURCES += PackedIntVector.cpp
 SOURCES += PackedObjectVector.cpp
 SOURCES += DynamicLayout.cpp
 SOURCES += CDynamicLayout.cpp
+SOURCES += Selection.cpp
 
 LIBRARIES += method/method.lib

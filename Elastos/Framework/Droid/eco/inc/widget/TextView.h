@@ -4,6 +4,7 @@
 #include "view/View.h"
 #include "graphics/CRectF.h"
 #include "text/CTextPaint.h"
+#include "view/ViewMacro.h"
 
 using namespace Elastos;
 
@@ -87,6 +88,280 @@ private:
         Int32 mStart, mLength;
     };
 
+    class HandleView;
+
+    /**
+     * A CursorController instance can be used to control a cursor in the text.
+     * It is not used outside of {@link TextView}.
+     * @hide
+     */
+    class CursorController : public ElRefBase, public IOnTouchModeChangeListener
+    {
+    public:
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        /**
+         * Makes the cursor controller visible on screen. Will be drawn by {@link #draw(Canvas)}.
+         * See also {@link #hide()}.
+         */
+        virtual CARAPI_(void) Show() = 0;
+
+        /**
+         * Hide the cursor controller from screen.
+         * See also {@link #show()}.
+         */
+        virtual CARAPI_(void) Hide() = 0;
+
+        /**
+         * @return TRUE if the CursorController is currently visible
+         */
+        virtual CARAPI_(Boolean) IsShowing() = 0;
+
+        /**
+         * Update the controller's position.
+         */
+        virtual CARAPI_(void) UpdatePosition(
+            /* [in] */ HandleView* handle,
+            /* [in] */ Int32 x,
+            /* [in] */ Int32 y) = 0;
+
+        virtual CARAPI_(void) UpdatePosition() = 0;
+
+        /**
+         * This method is called by {@link #onTouchEvent(MotionEvent)} and gives the controller
+         * a chance to become active and/or visible.
+         * @param event The touch event
+         */
+        virtual CARAPI_(Boolean) OnTouchEvent(
+            /* [in] */ IMotionEvent* event) = 0;
+
+        /**
+         * Called when the view is detached from window. Perform house keeping task, such as
+         * stopping Runnable thread that would otherwise keep a reference on the context, thus
+         * preventing the activity to be recycled.
+         */
+        virtual CARAPI_(void) OnDetached() = 0;
+    };
+
+    class _HandleView : public View
+    {
+    public:
+        static const Int32 LEFT = 0;
+        static const Int32 CENTER = 1;
+        static const Int32 RIGHT = 2;
+
+    public:
+        _HandleView(
+            /* [in] */ CursorController* controller,
+            /* [in] */ Int32 pos,
+            /* [in] */ TextView* host);
+
+        CARAPI_(void) SetOrientation(
+            /* [in] */ Int32 pos);
+
+        CARAPI_(void) OnMeasure(
+            /* [in] */ Int32 widthMeasureSpec,
+            /* [in] */ Int32 heightMeasureSpec);
+
+        CARAPI_(void) Show();
+
+        CARAPI_(void) Hide();
+
+        CARAPI_(Boolean) IsShowing();
+
+        CARAPI_(void) OnDraw(
+            /* [in] */ ICanvas* c);
+
+        CARAPI_(Boolean) OnTouchEvent(
+            /* [in] */ IMotionEvent* ev);
+
+        CARAPI_(Boolean) IsDragging();
+
+        CARAPI_(void) PositionAtCursor(
+            /* [in] */ Int32 offset,
+            /* [in] */ Boolean bottom);
+
+    private:
+        CARAPI_(Boolean) IsPositionVisible();
+
+        CARAPI_(void) MoveTo(
+            /* [in] */ Int32 x,
+            /* [in] */ Int32 y);
+
+    private:
+        Boolean mPositionOnTop;
+        AutoPtr<IDrawable> mDrawable;
+        AutoPtr<IPopupWindow> mContainer;
+        Int32 mPositionX;
+        Int32 mPositionY;
+        AutoPtr<CursorController> mController;
+        Boolean mIsDragging;
+        Float mTouchToWindowOffsetX;
+        Float mTouchToWindowOffsetY;
+        Float mHotspotX;
+        Float mHotspotY;
+        Int32 mHeight;
+        Float mTouchOffsetY;
+        Int32 mLastParentX;
+        Int32 mLastParentY;
+
+        TextView* mHost;
+    };
+
+    class HandleView
+        : public ElRefBase
+        , public _HandleView
+        , public IView
+        , public IDrawableCallback
+        , public IKeyEventCallback
+        , public IAccessibilityEventSource
+    {
+    public:
+        IVIEW_METHODS_DECL();
+        IDrawableCallback_METHODS_DECL();
+        IKeyEventCallback_METHODS_DECL();
+        IAccessibilityEventSource_METHODS_DECL();
+
+        HandleView(
+            /* [in] */ CursorController* controller,
+            /* [in] */ Int32 pos,
+            /* [in] */ TextView* host);
+
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+    };
+
+    class InsertionPointCursorController : public CursorController
+    {
+    private:
+        class MyRunnable : public Runnable
+        {
+        public:
+            MyRunnable(
+                /* [in] */ InsertionPointCursorController* host)
+                : mHost(host)
+            {}
+
+            CARAPI Run()
+            {
+                mHost->Hide();
+                return NOERROR;
+            }
+
+        private:
+            InsertionPointCursorController* mHost;
+        };
+
+    public:
+        InsertionPointCursorController(
+            /* [in] */ TextView* host);
+
+        CARAPI_(void) Show();
+
+        CARAPI_(void) Hide();
+
+        CARAPI_(Boolean) IsShowing();
+
+        CARAPI_(void) UpdatePosition(
+            /* [in] */ HandleView* handle,
+            /* [in] */ Int32 x,
+            /* [in] */ Int32 y);
+
+        CARAPI_(void) UpdatePosition();
+
+        CARAPI_(Boolean) OnTouchEvent(
+            /* [in] */ IMotionEvent* ev);
+
+        CARAPI OnTouchModeChanged(
+            /* [in] */ Boolean isInTouchMode);
+
+        CARAPI_(void) OnDetached();
+
+    private:
+        CARAPI_(void) HideDelayed(
+            /* [in] */ Int32 msec);
+
+    private:
+        static const Int32 DELAY_BEFORE_FADE_OUT = 4100;
+
+        // The cursor controller image
+        AutoPtr<HandleView> mHandle;
+        TextView* mHost;
+        AutoPtr<Runnable> mHider;
+    };
+
+    class SelectionModifierCursorController : public CursorController
+    {
+    public:
+        SelectionModifierCursorController(
+            /* [in] */ TextView* host);
+
+        CARAPI_(void) Show();
+
+        CARAPI_(void) Hide();
+
+        CARAPI_(Boolean) IsShowing();
+
+        CARAPI_(void) UpdatePosition(
+            /* [in] */ HandleView* handle,
+            /* [in] */ Int32 x,
+            /* [in] */ Int32 y);
+
+        CARAPI_(void) UpdatePosition();
+
+        CARAPI_(Boolean) OnTouchEvent(
+            /* [in] */ IMotionEvent* event);
+
+        CARAPI_(Int32) GetMinTouchOffset();
+
+        CARAPI_(Int32) GetMaxTouchOffset();
+
+        CARAPI_(void) ResetTouchOffsets();
+
+        CARAPI_(Boolean) IsSelectionStartDragged();
+
+        CARAPI OnTouchModeChanged(
+            /* [in] */ Boolean isInTouchMode);
+
+        CARAPI_(void) OnDetached();
+
+    private:
+        CARAPI_(void) UpdateMinAndMaxOffsets(
+            /* [in] */ IMotionEvent* event);
+
+    private:
+        // The cursor controller images
+        AutoPtr<HandleView> mStartHandle;
+        AutoPtr<HandleView> mEndHandle;
+        // The offsets of that last touch down event. Remembered to start selection there.
+        Int32 mMinTouchOffset;
+        Int32 mMaxTouchOffset;
+        // Whether selection anchors are active
+        Boolean mIsShowing;
+        // Double tap detection
+        Int64 mPreviousTapUpTime;
+        Int32 mPreviousTapPositionX;
+        Int32 mPreviousTapPositionY;
+        TextView* mHost;
+    };
+
 public:
     TextView();
 
@@ -149,7 +424,7 @@ public:
      * @return the current key listener for this TextView.
      * This will frequently be null for non-EditText TextViews.
      */
-    //CARAPI_(KeyListener) GetKeyListener();
+    CARAPI_(AutoPtr<IKeyListener>) GetKeyListener();
 
     /**
      * Sets the key listener to be used with this TextView.  This can be null
@@ -173,14 +448,14 @@ public:
      * @attr ref android.R.styleable#TextView_capitalize
      * @attr ref android.R.styleable#TextView_autoText
      */
-    //virtual CARAPI_(void) SetKeyListener(
-    //    /* [in] */ KeyListener input);
+    virtual CARAPI SetKeyListener(
+        /* [in] */ IKeyListener* input);
 
     /**
      * @return the movement method being used for this TextView.
      * This will frequently be null for non-EditText TextViews.
      */
-    //CARAPI_(MovementMethod) GetMovementMethod();
+    CARAPI_(AutoPtr<IMovementMethod>) GetMovementMethod();
 
     /**
      * Sets the movement method (arrow key handler) to be used for
@@ -193,8 +468,8 @@ public:
      * {@link #setFocusable} again after calling this to get the focusability
      * back the way you want it.
      */
-    //CARAPI_(void) SetMovementMethod(
-    //    /* [in] */ MovementMethod movement);
+    CARAPI SetMovementMethod(
+        /* [in] */ IMovementMethod* movement);
 
     /**
      * @return the current transformation method for this TextView.
@@ -1555,9 +1830,9 @@ public:
      */
     virtual CARAPI_(Boolean) HasSelectionController();
 
-    //virtual CARAPI_(CursorController) GetInsertionController();
+    virtual CARAPI_(AutoPtr<CursorController>) GetInsertionController();
 
-    //virtual CARAPI_(CursorController) GetSelectionController();
+    virtual CARAPI_(AutoPtr<CursorController>) GetSelectionController();
 
     virtual CARAPI_(Boolean) IsInBatchEditMode();
 
@@ -1571,7 +1846,7 @@ protected:
     /**
      * Subclasses override this to specify a default movement method.
      */
-    //virtual CARAPI_(MovementMethod) GetDefaultMovementMethod();
+    virtual CARAPI_(AutoPtr<IMovementMethod>) GetDefaultMovementMethod();
 
     CARAPI DrawableStateChanged();
 
@@ -1698,8 +1973,8 @@ private:
         /* [in] */ Int32 typefaceIndex,
         /* [in] */ Int32 styleIndex);
 
-    //CARAPI_(void) SetKeyListenerOnly(
-    //    /* [in] */ KeyListener input);
+    CARAPI_(void) SetKeyListenerOnly(
+        /* [in] */ IKeyListener* input);
 
     CARAPI_(void) FixFocusableAndClickableSettings();
 
@@ -1937,634 +2212,6 @@ private:
         /* [in] */ Int32 line,
         /* [in] */ Int32 x);
 
-    ///**
-    // * User interface state that is stored by TextView for implementing
-    // * {@link View#onSaveInstanceState}.
-    // */
-    //public static class SavedState extends BaseSavedState {
-    //    Int32 selStart;
-    //    Int32 selEnd;
-    //    CharSequence text;
-    //    Boolean frozenWithFocus;
-    //    CharSequence error;
-
-    //    SavedState(Parcelable superState) {
-    //        super(superState);
-    //    }
-
-    //    @Override
-    //    public void writeToParcel(Parcel out, Int32 flags) {
-    //        super.writeToParcel(out, flags);
-    //        out.writeInt(selStart);
-    //        out.writeInt(selEnd);
-    //        out.writeInt(frozenWithFocus ? 1 : 0);
-    //        TextUtils.writeToParcel(text, out, flags);
-
-    //        if (error == NULL) {
-    //            out.writeInt(0);
-    //        } else {
-    //            out.writeInt(1);
-    //            TextUtils.writeToParcel(error, out, flags);
-    //        }
-    //    }
-
-    //    @Override
-    //    public String toString() {
-    //        String str = "TextView.SavedState{"
-    //                + Integer.toHexString(System.identityHashCode(this))
-    //                + " start=" + selStart + " end=" + selEnd;
-    //        if (text != NULL) {
-    //            str += " text=" + text;
-    //        }
-    //        return str + "}";
-    //    }
-
-    //    @SuppressWarnings("hiding")
-    //    public static final Parcelable.Creator<SavedState> CREATOR
-    //            = new Parcelable.Creator<SavedState>() {
-    //        public SavedState createFromParcel(Parcel in) {
-    //            return new SavedState(in);
-    //        }
-
-    //        public SavedState[] newArray(Int32 size) {
-    //            return new SavedState[size];
-    //        }
-    //    };
-
-    //    private SavedState(Parcel in) {
-    //        super(in);
-    //        selStart = in.readInt();
-    //        selEnd = in.readInt();
-    //        frozenWithFocus = (in.readInt() != 0);
-    //        text = TextUtils.CHAR_SEQUENCE_CREATOR.createFromParcel(in);
-
-    //        if (in.readInt() != 0) {
-    //            error = TextUtils.CHAR_SEQUENCE_CREATOR.createFromParcel(in);
-    //        }
-    //    }
-    //}
-
-
-
-    ///**
-    // * A CursorController instance can be used to control a cursor in the text.
-    // * It is not used outside of {@link TextView}.
-    // * @hide
-    // */
-    //private interface CursorController extends ViewTreeObserver.OnTouchModeChangeListener {
-    //    /**
-    //     * Makes the cursor controller visible on screen. Will be drawn by {@link #draw(Canvas)}.
-    //     * See also {@link #hide()}.
-    //     */
-    //    public void show();
-
-    //    /**
-    //     * Hide the cursor controller from screen.
-    //     * See also {@link #show()}.
-    //     */
-    //    public void hide();
-
-    //    /**
-    //     * @return true if the CursorController is currently visible
-    //     */
-    //    public boolean isShowing();
-
-    //    /**
-    //     * Update the controller's position.
-    //     */
-    //    public void updatePosition(HandleView handle, int x, int y);
-
-    //    public void updatePosition();
-
-    //    /**
-    //     * This method is called by {@link #onTouchEvent(MotionEvent)} and gives the controller
-    //     * a chance to become active and/or visible.
-    //     * @param event The touch event
-    //     */
-    //    public boolean onTouchEvent(MotionEvent event);
-
-    //    /**
-    //     * Called when the view is detached from window. Perform house keeping task, such as
-    //     * stopping Runnable thread that would otherwise keep a reference on the context, thus
-    //     * preventing the activity to be recycled.
-    //     */
-    //    public void onDetached();
-    //}
-
-    //private class HandleView extends View {
-    //    private boolean mPositionOnTop = false;
-    //    private Drawable mDrawable;
-    //    private PopupWindow mContainer;
-    //    private int mPositionX;
-    //    private int mPositionY;
-    //    private CursorController mController;
-    //    private boolean mIsDragging;
-    //    private float mTouchToWindowOffsetX;
-    //    private float mTouchToWindowOffsetY;
-    //    private float mHotspotX;
-    //    private float mHotspotY;
-    //    private int mHeight;
-    //    private float mTouchOffsetY;
-    //    private int mLastParentX;
-    //    private int mLastParentY;
-
-    //    public static final int LEFT = 0;
-    //    public static final int CENTER = 1;
-    //    public static final int RIGHT = 2;
-
-    //    public HandleView(CursorController controller, int pos) {
-    //        super(TextView.this.mContext);
-    //        mController = controller;
-    //        mContainer = new PopupWindow(TextView.this.mContext, null,
-    //                com.android.internal.R.attr.textSelectHandleWindowStyle);
-    //        mContainer.setSplitTouchEnabled(true);
-    //        mContainer.setClippingEnabled(false);
-    //        mContainer.setWindowLayoutType(WindowManager.LayoutParams.TYPE_APPLICATION_SUB_PANEL);
-
-    //        setOrientation(pos);
-    //    }
-
-    //    public void setOrientation(int pos) {
-    //        int handleWidth;
-    //        switch (pos) {
-    //        case LEFT: {
-    //            if (mSelectHandleLeft == null) {
-    //                mSelectHandleLeft = mContext.getResources().getDrawable(
-    //                        mTextSelectHandleLeftRes);
-    //            }
-    //            mDrawable = mSelectHandleLeft;
-    //            handleWidth = mDrawable.getIntrinsicWidth();
-    //            mHotspotX = (handleWidth * 3) / 4;
-    //            break;
-    //        }
-
-    //        case RIGHT: {
-    //            if (mSelectHandleRight == null) {
-    //                mSelectHandleRight = mContext.getResources().getDrawable(
-    //                        mTextSelectHandleRightRes);
-    //            }
-    //            mDrawable = mSelectHandleRight;
-    //            handleWidth = mDrawable.getIntrinsicWidth();
-    //            mHotspotX = handleWidth / 4;
-    //            break;
-    //        }
-
-    //        case CENTER:
-    //        default: {
-    //            if (mSelectHandleCenter == null) {
-    //                mSelectHandleCenter = mContext.getResources().getDrawable(
-    //                        mTextSelectHandleRes);
-    //            }
-    //            mDrawable = mSelectHandleCenter;
-    //            handleWidth = mDrawable.getIntrinsicWidth();
-    //            mHotspotX = handleWidth / 2;
-    //            break;
-    //        }
-    //        }
-
-    //        final int handleHeight = mDrawable.getIntrinsicHeight();
-
-    //        mTouchOffsetY = -handleHeight * 0.3f;
-    //        mHotspotY = 0;
-    //        mHeight = handleHeight;
-    //        invalidate();
-    //    }
-
-    //    @Override
-    //    public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-    //        setMeasuredDimension(mDrawable.getIntrinsicWidth(),
-    //                mDrawable.getIntrinsicHeight());
-    //    }
-
-    //    public void show() {
-    //        if (!isPositionVisible()) {
-    //            hide();
-    //            return;
-    //        }
-    //        mContainer.setContentView(this);
-    //        final int[] coords = mTempCoords;
-    //        TextView.this.getLocationInWindow(coords);
-    //        coords[0] += mPositionX;
-    //        coords[1] += mPositionY;
-    //        mContainer.showAtLocation(TextView.this, 0, coords[0], coords[1]);
-    //    }
-
-    //    public void hide() {
-    //        mIsDragging = false;
-    //        mContainer.dismiss();
-    //    }
-
-    //    public boolean isShowing() {
-    //        return mContainer.isShowing();
-    //    }
-
-    //    private boolean isPositionVisible() {
-    //        // Always show a dragging handle.
-    //        if (mIsDragging) {
-    //            return true;
-    //        }
-
-    //        if (isInBatchEditMode()) {
-    //            return false;
-    //        }
-
-    //        final int extendedPaddingTop = getExtendedPaddingTop();
-    //        final int extendedPaddingBottom = getExtendedPaddingBottom();
-    //        final int compoundPaddingLeft = getCompoundPaddingLeft();
-    //        final int compoundPaddingRight = getCompoundPaddingRight();
-
-    //        final TextView hostView = TextView.this;
-    //        final int left = 0;
-    //        final int right = hostView.getWidth();
-    //        final int top = 0;
-    //        final int bottom = hostView.getHeight();
-
-    //        if (mTempRect == null) {
-    //            mTempRect = new Rect();
-    //        }
-    //        final Rect clip = mTempRect;
-    //        clip.left = left + compoundPaddingLeft;
-    //        clip.top = top + extendedPaddingTop;
-    //        clip.right = right - compoundPaddingRight;
-    //        clip.bottom = bottom - extendedPaddingBottom;
-
-    //        final ViewParent parent = hostView.getParent();
-    //        if (parent == null || !parent.getChildVisibleRect(hostView, clip, null)) {
-    //            return false;
-    //        }
-
-    //        final int[] coords = mTempCoords;
-    //        hostView.getLocationInWindow(coords);
-    //        final int posX = coords[0] + mPositionX + (int) mHotspotX;
-    //        final int posY = coords[1] + mPositionY + (int) mHotspotY;
-
-    //        return posX >= clip.left && posX <= clip.right &&
-    //                posY >= clip.top && posY <= clip.bottom;
-    //    }
-
-    //    private void moveTo(int x, int y) {
-    //        mPositionX = x - TextView.this.mScrollX;
-    //        mPositionY = y - TextView.this.mScrollY;
-    //        if (isPositionVisible()) {
-    //            int[] coords = null;
-    //            if (mContainer.isShowing()) {
-    //                coords = mTempCoords;
-    //                TextView.this.getLocationInWindow(coords);
-    //                mContainer.update(coords[0] + mPositionX, coords[1] + mPositionY,
-    //                        mRight - mLeft, mBottom - mTop);
-    //            } else {
-    //                show();
-    //            }
-
-    //            if (mIsDragging) {
-    //                if (coords == null) {
-    //                    coords = mTempCoords;
-    //                    TextView.this.getLocationInWindow(coords);
-    //                }
-    //                if (coords[0] != mLastParentX || coords[1] != mLastParentY) {
-    //                    mTouchToWindowOffsetX += coords[0] - mLastParentX;
-    //                    mTouchToWindowOffsetY += coords[1] - mLastParentY;
-    //                    mLastParentX = coords[0];
-    //                    mLastParentY = coords[1];
-    //                }
-    //            }
-    //        } else {
-    //            hide();
-    //        }
-    //    }
-
-    //    @Override
-    //    public void onDraw(Canvas c) {
-    //        mDrawable.setBounds(0, 0, mRight - mLeft, mBottom - mTop);
-    //        if (mPositionOnTop) {
-    //            c.save();
-    //            c.rotate(180, (mRight - mLeft) / 2, (mBottom - mTop) / 2);
-    //            mDrawable.draw(c);
-    //            c.restore();
-    //        } else {
-    //            mDrawable.draw(c);
-    //        }
-    //    }
-
-    //    @Override
-    //    public boolean onTouchEvent(MotionEvent ev) {
-    //        switch (ev.getActionMasked()) {
-    //        case MotionEvent.ACTION_DOWN: {
-    //            final float rawX = ev.getRawX();
-    //            final float rawY = ev.getRawY();
-    //            mTouchToWindowOffsetX = rawX - mPositionX;
-    //            mTouchToWindowOffsetY = rawY - mPositionY;
-    //            final int[] coords = mTempCoords;
-    //            TextView.this.getLocationInWindow(coords);
-    //            mLastParentX = coords[0];
-    //            mLastParentY = coords[1];
-    //            mIsDragging = true;
-    //            break;
-    //        }
-
-    //        case MotionEvent.ACTION_MOVE: {
-    //            final float rawX = ev.getRawX();
-    //            final float rawY = ev.getRawY();
-    //            final float newPosX = rawX - mTouchToWindowOffsetX + mHotspotX;
-    //            final float newPosY = rawY - mTouchToWindowOffsetY + mHotspotY + mTouchOffsetY;
-
-    //            mController.updatePosition(this, Math.round(newPosX), Math.round(newPosY));
-
-    //            break;
-    //        }
-
-    //        case MotionEvent.ACTION_UP:
-    //        case MotionEvent.ACTION_CANCEL:
-    //            mIsDragging = false;
-    //        }
-    //        return true;
-    //    }
-
-    //    public boolean isDragging() {
-    //        return mIsDragging;
-    //    }
-
-    //    void positionAtCursor(final int offset, boolean bottom) {
-    //        final int width = mDrawable.getIntrinsicWidth();
-    //        final int height = mDrawable.getIntrinsicHeight();
-    //        final int line = mLayout.getLineForOffset(offset);
-    //        final int lineTop = mLayout.getLineTop(line);
-    //        final int lineBottom = mLayout.getLineBottom(line);
-
-    //        final Rect bounds = sCursorControllerTempRect;
-    //        bounds.left = (int) (mLayout.getPrimaryHorizontal(offset) - mHotspotX)
-    //            + TextView.this.mScrollX;
-    //        bounds.top = (bottom ? lineBottom : lineTop - mHeight) + TextView.this.mScrollY;
-
-    //        bounds.right = bounds.left + width;
-    //        bounds.bottom = bounds.top + height;
-
-    //        convertFromViewportToContentCoordinates(bounds);
-    //        moveTo(bounds.left, bounds.top);
-    //    }
-    //}
-
-    //private class InsertionPointCursorController implements CursorController {
-    //    private static final int DELAY_BEFORE_FADE_OUT = 4100;
-
-    //    // The cursor controller image
-    //    private final HandleView mHandle;
-
-    //    private final Runnable mHider = new Runnable() {
-    //        public void run() {
-    //            hide();
-    //        }
-    //    };
-
-    //    InsertionPointCursorController() {
-    //        mHandle = new HandleView(this, HandleView.CENTER);
-    //    }
-
-    //    public void show() {
-    //        updatePosition();
-    //        mHandle.show();
-    //        hideDelayed(DELAY_BEFORE_FADE_OUT);
-    //    }
-
-    //    public void hide() {
-    //        mHandle.hide();
-    //        removeCallbacks(mHider);
-    //    }
-
-    //    private void hideDelayed(int msec) {
-    //        removeCallbacks(mHider);
-    //        postDelayed(mHider, msec);
-    //    }
-
-    //    public boolean isShowing() {
-    //        return mHandle.isShowing();
-    //    }
-
-    //    public void updatePosition(HandleView handle, int x, int y) {
-    //        final int previousOffset = getSelectionStart();
-    //        int offset = getHysteresisOffset(x, y, previousOffset);
-
-    //        if (offset != previousOffset) {
-    //            Selection.setSelection((Spannable) mText, offset);
-    //            updatePosition();
-    //        }
-    //        hideDelayed(DELAY_BEFORE_FADE_OUT);
-    //    }
-
-    //    public void updatePosition() {
-    //        final int offset = getSelectionStart();
-
-    //        if (offset < 0) {
-    //            // Should never happen, safety check.
-    //            Log.w(LOG_TAG, "Update cursor controller position called with no cursor");
-    //            hide();
-    //            return;
-    //        }
-
-    //        mHandle.positionAtCursor(offset, true);
-    //    }
-
-    //    public boolean onTouchEvent(MotionEvent ev) {
-    //        return false;
-    //    }
-
-    //    public void onTouchModeChanged(boolean isInTouchMode) {
-    //        if (!isInTouchMode) {
-    //            hide();
-    //        }
-    //    }
-
-    //    @Override
-    //    public void onDetached() {
-    //        removeCallbacks(mHider);
-    //    }
-    //}
-
-    //private class SelectionModifierCursorController implements CursorController {
-    //    // The cursor controller images
-    //    private HandleView mStartHandle, mEndHandle;
-    //    // The offsets of that last touch down event. Remembered to start selection there.
-    //    private int mMinTouchOffset, mMaxTouchOffset;
-    //    // Whether selection anchors are active
-    //    private boolean mIsShowing;
-    //    // Double tap detection
-    //    private long mPreviousTapUpTime = 0;
-    //    private int mPreviousTapPositionX;
-    //    private int mPreviousTapPositionY;
-
-    //    SelectionModifierCursorController() {
-    //        mStartHandle = new HandleView(this, HandleView.LEFT);
-    //        mEndHandle = new HandleView(this, HandleView.RIGHT);
-    //        resetTouchOffsets();
-    //    }
-
-    //    public void show() {
-    //        if (isInBatchEditMode()) {
-    //            return;
-    //        }
-
-    //        mIsShowing = true;
-    //        updatePosition();
-    //        mStartHandle.show();
-    //        mEndHandle.show();
-    //        hideInsertionPointCursorController();
-    //    }
-
-    //    public void hide() {
-    //        mStartHandle.hide();
-    //        mEndHandle.hide();
-    //        mIsShowing = false;
-    //    }
-
-    //    public boolean isShowing() {
-    //        return mIsShowing;
-    //    }
-
-    //    public void updatePosition(HandleView handle, int x, int y) {
-    //        int selectionStart = getSelectionStart();
-    //        int selectionEnd = getSelectionEnd();
-
-    //        final int previousOffset = handle == mStartHandle ? selectionStart : selectionEnd;
-    //        int offset = getHysteresisOffset(x, y, previousOffset);
-
-    //        // Handle the case where start and end are swapped, making sure start <= end
-    //        if (handle == mStartHandle) {
-    //            if (selectionStart == offset || offset > selectionEnd) {
-    //                return; // no change, no need to redraw;
-    //            }
-    //            // If the user "closes" the selection entirely they were probably trying to
-    //            // select a single character. Help them out.
-    //            if (offset == selectionEnd) {
-    //                offset = selectionEnd - 1;
-    //            }
-    //            selectionStart = offset;
-    //        } else {
-    //            if (selectionEnd == offset || offset < selectionStart) {
-    //                return; // no change, no need to redraw;
-    //            }
-    //            // If the user "closes" the selection entirely they were probably trying to
-    //            // select a single character. Help them out.
-    //            if (offset == selectionStart) {
-    //                offset = selectionStart + 1;
-    //            }
-    //            selectionEnd = offset;
-    //        }
-
-    //        Selection.setSelection((Spannable) mText, selectionStart, selectionEnd);
-    //        updatePosition();
-    //    }
-
-    //    public void updatePosition() {
-    //        if (!isShowing()) {
-    //            return;
-    //        }
-
-    //        final int selectionStart = getSelectionStart();
-    //        final int selectionEnd = getSelectionEnd();
-
-    //        if ((selectionStart < 0) || (selectionEnd < 0)) {
-    //            // Should never happen, safety check.
-    //            Log.w(LOG_TAG, "Update selection controller position called with no cursor");
-    //            hide();
-    //            return;
-    //        }
-
-    //        mStartHandle.positionAtCursor(selectionStart, true);
-    //        mEndHandle.positionAtCursor(selectionEnd, true);
-    //    }
-
-    //    public boolean onTouchEvent(MotionEvent event) {
-    //        // This is done even when the View does not have focus, so that long presses can start
-    //        // selection and tap can move cursor from this tap position.
-    //        if (isTextEditable()) {
-    //            switch (event.getActionMasked()) {
-    //                case MotionEvent.ACTION_DOWN:
-    //                    final int x = (int) event.getX();
-    //                    final int y = (int) event.getY();
-
-    //                    // Remember finger down position, to be able to start selection from there
-    //                    mMinTouchOffset = mMaxTouchOffset = getOffset(x, y);
-
-    //                    // Double tap detection
-    //                    long duration = SystemClock.uptimeMillis() - mPreviousTapUpTime;
-    //                    if (duration <= ViewConfiguration.getDoubleTapTimeout()) {
-    //                        final int deltaX = x - mPreviousTapPositionX;
-    //                        final int deltaY = y - mPreviousTapPositionY;
-    //                        final int distanceSquared = deltaX * deltaX + deltaY * deltaY;
-    //                        final int doubleTapSlop = ViewConfiguration.get(getContext()).getScaledDoubleTapSlop();
-    //                        final int slopSquared = doubleTapSlop * doubleTapSlop;
-    //                        if (distanceSquared < slopSquared) {
-    //                            startTextSelectionMode();
-    //                            // prevents onTapUpEvent from opening a context menu with cut/copy
-    //                            mNoContextMenuOnUp = true;
-    //                        }
-    //                    }
-    //                    mPreviousTapPositionX = x;
-    //                    mPreviousTapPositionY = y;
-
-    //                    break;
-
-    //                case MotionEvent.ACTION_POINTER_DOWN:
-    //                case MotionEvent.ACTION_POINTER_UP:
-    //                    // Handle multi-point gestures. Keep min and max offset positions.
-    //                    // Only activated for devices that correctly handle multi-touch.
-    //                    if (mContext.getPackageManager().hasSystemFeature(
-    //                            PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT)) {
-    //                        updateMinAndMaxOffsets(event);
-    //                    }
-    //                    break;
-
-    //                case MotionEvent.ACTION_UP:
-    //                    mPreviousTapUpTime = SystemClock.uptimeMillis();
-    //                    break;
-    //            }
-    //        }
-    //        return false;
-    //    }
-
-    //    /**
-    //     * @param event
-    //     */
-    //    private void updateMinAndMaxOffsets(MotionEvent event) {
-    //        int pointerCount = event.getPointerCount();
-    //        for (int index = 0; index < pointerCount; index++) {
-    //            final int x = (int) event.getX(index);
-    //            final int y = (int) event.getY(index);
-    //            int offset = getOffset(x, y);
-    //            if (offset < mMinTouchOffset) mMinTouchOffset = offset;
-    //            if (offset > mMaxTouchOffset) mMaxTouchOffset = offset;
-    //        }
-    //    }
-
-    //    public int getMinTouchOffset() {
-    //        return mMinTouchOffset;
-    //    }
-
-    //    public int getMaxTouchOffset() {
-    //        return mMaxTouchOffset;
-    //    }
-
-    //    public void resetTouchOffsets() {
-    //        mMinTouchOffset = mMaxTouchOffset = -1;
-    //    }
-
-    //    /**
-    //     * @return true iff this controller is currently used to move the selection start.
-    //     */
-    //    public boolean isSelectionStartDragged() {
-    //        return mStartHandle.isDragging();
-    //    }
-
-    //    public void onTouchModeChanged(boolean isInTouchMode) {
-    //        if (!isInTouchMode) {
-    //            hide();
-    //        }
-    //    }
-
-    //    @Override
-    //    public void onDetached() {}
-    //}
-
     CARAPI InitFromAttributes(
         /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs,
@@ -2747,7 +2394,7 @@ private:
 
     AutoPtr<IKeyListener>   mInput;
 
-    //MovementMethod          mMovement;
+    AutoPtr<IMovementMethod> mMovement;
     AutoPtr<ITransformationMethod>    mTransformation;
     //ChangeWatcher           mChangeWatcher;
 
@@ -2765,8 +2412,8 @@ private:
     Boolean                 mCursorVisible;
 
     // Cursor Controllers. Null when disabled.
-    //CursorController        mInsertionPointCursorController;
-    //CursorController        mSelectionModifierCursorController;
+    AutoPtr<CursorController> mInsertionPointCursorController;
+    AutoPtr<CursorController> mSelectionModifierCursorController;
     Boolean                 mInsertionControllerEnabled;
     Boolean                 mSelectionControllerEnabled;
     Boolean                 mInBatchEditControllers;
@@ -3122,566 +2769,6 @@ private:
     //        return onTextContextMenuItem(item.getItemId());
     //    }
     //}
-
-    ///**
-    // * A CursorController instance can be used to control a cursor in the text.
-    // * It is not used outside of {@link TextView}.
-    // * @hide
-    // */
-    //private interface CursorController extends ViewTreeObserver.OnTouchModeChangeListener {
-    //    /**
-    //     * Makes the cursor controller visible on screen. Will be drawn by {@link #draw(Canvas)}.
-    //     * See also {@link #hide()}.
-    //     */
-    //    public void show();
-
-    //    /**
-    //     * Hide the cursor controller from screen.
-    //     * See also {@link #show()}.
-    //     */
-    //    public void hide();
-
-    //    /**
-    //     * @return TRUE if the CursorController is currently visible
-    //     */
-    //    public Boolean isShowing();
-
-    //    /**
-    //     * Update the controller's position.
-    //     */
-    //    public void updatePosition(HandleView handle, Int32 x, Int32 y);
-
-    //    public void updatePosition();
-
-    //    /**
-    //     * This method is called by {@link #onTouchEvent(MotionEvent)} and gives the controller
-    //     * a chance to become active and/or visible.
-    //     * @param event The touch event
-    //     */
-    //    public Boolean onTouchEvent(MotionEvent event);
-
-    //    /**
-    //     * Called when the view is detached from window. Perform house keeping task, such as
-    //     * stopping Runnable thread that would otherwise keep a reference on the context, thus
-    //     * preventing the activity to be recycled.
-    //     */
-    //    public void onDetached();
-    //}
-
-    //private class HandleView extends View {
-    //    private Boolean mPositionOnTop = FALSE;
-    //    private IDrawable* mDrawable;
-    //    private PopupWindow mContainer;
-    //    private Int32 mPositionX;
-    //    private Int32 mPositionY;
-    //    private CursorController mController;
-    //    private Boolean mIsDragging;
-    //    private Float mTouchToWindowOffsetX;
-    //    private Float mTouchToWindowOffsetY;
-    //    private Float mHotspotX;
-    //    private Float mHotspotY;
-    //    private Int32 mHeight;
-    //    private Float mTouchOffsetY;
-    //    private Int32 mLastParentX;
-    //    private Int32 mLastParentY;
-
-    //    public static final Int32 LEFT = 0;
-    //    public static final Int32 CENTER = 1;
-    //    public static final Int32 RIGHT = 2;
-
-    //    public HandleView(CursorController controller, Int32 pos) {
-    //        super(TextView.this.mContext);
-    //        mController = controller;
-    //        mContainer = new PopupWindow(TextView.this.mContext, NULL,
-    //                com.android.internal.R.attr.textSelectHandleWindowStyle);
-    //        mContainer.setSplitTouchEnabled(TRUE);
-    //        mContainer.setClippingEnabled(FALSE);
-    //        mContainer.setWindowLayoutType(WindowManager.LayoutParams.TYPE_APPLICATION_SUB_PANEL);
-
-    //        setOrientation(pos);
-    //    }
-
-    //    public void setOrientation(Int32 pos) {
-    //        Int32 handleWidth;
-    //        switch (pos) {
-    //        case LEFT: {
-    //            if (mSelectHandleLeft == NULL) {
-    //                mSelectHandleLeft = mContext.getResources().getDrawable(
-    //                        mTextSelectHandleLeftRes);
-    //            }
-    //            mDrawable = mSelectHandleLeft;
-    //            handleWidth = mDrawable.getIntrinsicWidth();
-    //            mHotspotX = (handleWidth * 3) / 4;
-    //            break;
-    //        }
-
-    //        case RIGHT: {
-    //            if (mSelectHandleRight == NULL) {
-    //                mSelectHandleRight = mContext.getResources().getDrawable(
-    //                        mTextSelectHandleRightRes);
-    //            }
-    //            mDrawable = mSelectHandleRight;
-    //            handleWidth = mDrawable.getIntrinsicWidth();
-    //            mHotspotX = handleWidth / 4;
-    //            break;
-    //        }
-
-    //        case CENTER:
-    //        default: {
-    //            if (mSelectHandleCenter == NULL) {
-    //                mSelectHandleCenter = mContext.getResources().getDrawable(
-    //                        mTextSelectHandleRes);
-    //            }
-    //            mDrawable = mSelectHandleCenter;
-    //            handleWidth = mDrawable.getIntrinsicWidth();
-    //            mHotspotX = handleWidth / 2;
-    //            break;
-    //        }
-    //        }
-
-    //        final Int32 handleHeight = mDrawable.getIntrinsicHeight();
-
-    //        mTouchOffsetY = -handleHeight * 0.3f;
-    //        mHotspotY = 0;
-    //        mHeight = handleHeight;
-    //        invalidate();
-    //    }
-
-    //    @Override
-    //    public void onMeasure(Int32 widthMeasureSpec, Int32 heightMeasureSpec) {
-    //        setMeasuredDimension(mDrawable.getIntrinsicWidth(),
-    //                mDrawable.getIntrinsicHeight());
-    //    }
-
-    //    public void show() {
-    //        if (!isPositionVisible()) {
-    //            hide();
-    //            return;
-    //        }
-    //        mContainer.setContentView(this);
-    //        final Int32[] coords = mTempCoords;
-    //        TextView.this.getLocationInWindow(coords);
-    //        coords[0] += mPositionX;
-    //        coords[1] += mPositionY;
-    //        mContainer.showAtLocation(TextView.this, 0, coords[0], coords[1]);
-    //    }
-
-    //    public void hide() {
-    //        mIsDragging = FALSE;
-    //        mContainer.dismiss();
-    //    }
-
-    //    public Boolean isShowing() {
-    //        return mContainer.isShowing();
-    //    }
-
-    //    private Boolean isPositionVisible() {
-    //        // Always show a dragging handle.
-    //        if (mIsDragging) {
-    //            return TRUE;
-    //        }
-
-    //        if (isInBatchEditMode()) {
-    //            return FALSE;
-    //        }
-
-    //        final Int32 extendedPaddingTop = getExtendedPaddingTop();
-    //        final Int32 extendedPaddingBottom = getExtendedPaddingBottom();
-    //        final Int32 compoundPaddingLeft = getCompoundPaddingLeft();
-    //        final Int32 compoundPaddingRight = getCompoundPaddingRight();
-
-    //        final TextView hostView = TextView.this;
-    //        final Int32 left = 0;
-    //        final Int32 right = hostView.getWidth();
-    //        final Int32 top = 0;
-    //        final Int32 bottom = hostView.getHeight();
-
-    //        if (mTempRect == NULL) {
-    //            mTempRect = new Rect();
-    //        }
-    //        final Rect clip = mTempRect;
-    //        clip.left = left + compoundPaddingLeft;
-    //        clip.top = top + extendedPaddingTop;
-    //        clip.right = right - compoundPaddingRight;
-    //        clip.bottom = bottom - extendedPaddingBottom;
-
-    //        final ViewParent parent = hostView.getParent();
-    //        if (parent == NULL || !parent.getChildVisibleRect(hostView, clip, NULL)) {
-    //            return FALSE;
-    //        }
-
-    //        final Int32[] coords = mTempCoords;
-    //        hostView.getLocationInWindow(coords);
-    //        final Int32 posX = coords[0] + mPositionX + (Int32) mHotspotX;
-    //        final Int32 posY = coords[1] + mPositionY + (Int32) mHotspotY;
-
-    //        return posX >= clip.left && posX <= clip.right &&
-    //                posY >= clip.top && posY <= clip.bottom;
-    //    }
-
-    //    private void moveTo(Int32 x, Int32 y) {
-    //        mPositionX = x - TextView.this.mScrollX;
-    //        mPositionY = y - TextView.this.mScrollY;
-    //        if (isPositionVisible()) {
-    //            Int32[] coords = NULL;
-    //            if (mContainer.isShowing()) {
-    //                coords = mTempCoords;
-    //                TextView.this.getLocationInWindow(coords);
-    //                mContainer.update(coords[0] + mPositionX, coords[1] + mPositionY,
-    //                        mRight - mLeft, mBottom - mTop);
-    //            } else {
-    //                show();
-    //            }
-
-    //            if (mIsDragging) {
-    //                if (coords == NULL) {
-    //                    coords = mTempCoords;
-    //                    TextView.this.getLocationInWindow(coords);
-    //                }
-    //                if (coords[0] != mLastParentX || coords[1] != mLastParentY) {
-    //                    mTouchToWindowOffsetX += coords[0] - mLastParentX;
-    //                    mTouchToWindowOffsetY += coords[1] - mLastParentY;
-    //                    mLastParentX = coords[0];
-    //                    mLastParentY = coords[1];
-    //                }
-    //            }
-    //        } else {
-    //            hide();
-    //        }
-    //    }
-
-    //    @Override
-    //    public void onDraw(Canvas c) {
-    //        mDrawable.setBounds(0, 0, mRight - mLeft, mBottom - mTop);
-    //        if (mPositionOnTop) {
-    //            c.save();
-    //            c.rotate(180, (mRight - mLeft) / 2, (mBottom - mTop) / 2);
-    //            mDrawable.draw(c);
-    //            c.restore();
-    //        } else {
-    //            mDrawable.draw(c);
-    //        }
-    //    }
-
-    //    @Override
-    //    public Boolean onTouchEvent(MotionEvent ev) {
-    //        switch (ev.getActionMasked()) {
-    //        case MotionEvent.ACTION_DOWN: {
-    //            final Float rawX = ev.getRawX();
-    //            final Float rawY = ev.getRawY();
-    //            mTouchToWindowOffsetX = rawX - mPositionX;
-    //            mTouchToWindowOffsetY = rawY - mPositionY;
-    //            final Int32[] coords = mTempCoords;
-    //            TextView.this.getLocationInWindow(coords);
-    //            mLastParentX = coords[0];
-    //            mLastParentY = coords[1];
-    //            mIsDragging = TRUE;
-    //            break;
-    //        }
-
-    //        case MotionEvent.ACTION_MOVE: {
-    //            final Float rawX = ev.getRawX();
-    //            final Float rawY = ev.getRawY();
-    //            final Float newPosX = rawX - mTouchToWindowOffsetX + mHotspotX;
-    //            final Float newPosY = rawY - mTouchToWindowOffsetY + mHotspotY + mTouchOffsetY;
-
-    //            mController.updatePosition(this, Math.round(newPosX), Math.round(newPosY));
-
-    //            break;
-    //        }
-
-    //        case MotionEvent.ACTION_UP:
-    //        case MotionEvent.ACTION_CANCEL:
-    //            mIsDragging = FALSE;
-    //        }
-    //        return TRUE;
-    //    }
-
-    //    public Boolean isDragging() {
-    //        return mIsDragging;
-    //    }
-
-    //    void positionAtCursor(final Int32 offset, Boolean bottom) {
-    //        final Int32 width = mDrawable.getIntrinsicWidth();
-    //        final Int32 height = mDrawable.getIntrinsicHeight();
-    //        final Int32 line = mLayout.getLineForOffset(offset);
-    //        final Int32 lineTop = mLayout.getLineTop(line);
-    //        final Int32 lineBottom = mLayout.getLineBottom(line);
-
-    //        final Rect bounds = sCursorControllerTempRect;
-    //        bounds.left = (Int32) (mLayout.getPrimaryHorizontal(offset) - mHotspotX)
-    //            + TextView.this.mScrollX;
-    //        bounds.top = (bottom ? lineBottom : lineTop - mHeight) + TextView.this.mScrollY;
-
-    //        bounds.right = bounds.left + width;
-    //        bounds.bottom = bounds.top + height;
-
-    //        convertFromViewportToContentCoordinates(bounds);
-    //        moveTo(bounds.left, bounds.top);
-    //    }
-    //}
-
-    //private class InsertionPointCursorController implements CursorController {
-    //    private static final Int32 DELAY_BEFORE_FADE_OUT = 4100;
-
-    //    // The cursor controller image
-    //    private final HandleView mHandle;
-
-    //    private final Runnable mHider = new Runnable() {
-    //        public void run() {
-    //            hide();
-    //        }
-    //    };
-
-    //    InsertionPointCursorController() {
-    //        mHandle = new HandleView(this, HandleView.CENTER);
-    //    }
-
-    //    public void show() {
-    //        updatePosition();
-    //        mHandle.show();
-    //        hideDelayed(DELAY_BEFORE_FADE_OUT);
-    //    }
-
-    //    public void hide() {
-    //        mHandle.hide();
-    //        removeCallbacks(mHider);
-    //    }
-
-    //    private void hideDelayed(Int32 msec) {
-    //        removeCallbacks(mHider);
-    //        postDelayed(mHider, msec);
-    //    }
-
-    //    public Boolean isShowing() {
-    //        return mHandle.isShowing();
-    //    }
-
-    //    public void updatePosition(HandleView handle, Int32 x, Int32 y) {
-    //        final Int32 previousOffset = getSelectionStart();
-    //        Int32 offset = getHysteresisOffset(x, y, previousOffset);
-
-    //        if (offset != previousOffset) {
-    //            Selection.setSelection((Spannable) mText, offset);
-    //            updatePosition();
-    //        }
-    //        hideDelayed(DELAY_BEFORE_FADE_OUT);
-    //    }
-
-    //    public void updatePosition() {
-    //        final Int32 offset = getSelectionStart();
-
-    //        if (offset < 0) {
-    //            // Should never happen, safety check.
-    //            Log.w(LOG_TAG, "Update cursor controller position called with no cursor");
-    //            hide();
-    //            return;
-    //        }
-
-    //        mHandle.positionAtCursor(offset, TRUE);
-    //    }
-
-    //    public Boolean onTouchEvent(MotionEvent ev) {
-    //        return FALSE;
-    //    }
-
-    //    public void onTouchModeChanged(Boolean isInTouchMode) {
-    //        if (!isInTouchMode) {
-    //            hide();
-    //        }
-    //    }
-
-    //    @Override
-    //    public void onDetached() {
-    //        removeCallbacks(mHider);
-    //    }
-    //}
-
-    //private class SelectionModifierCursorController implements CursorController {
-    //    // The cursor controller images
-    //    private HandleView mStartHandle, mEndHandle;
-    //    // The offsets of that last touch down event. Remembered to start selection there.
-    //    private Int32 mMinTouchOffset, mMaxTouchOffset;
-    //    // Whether selection anchors are active
-    //    private Boolean mIsShowing;
-    //    // Double tap detection
-    //    private Int64 mPreviousTapUpTime = 0;
-    //    private Int32 mPreviousTapPositionX;
-    //    private Int32 mPreviousTapPositionY;
-
-    //    SelectionModifierCursorController() {
-    //        mStartHandle = new HandleView(this, HandleView.LEFT);
-    //        mEndHandle = new HandleView(this, HandleView.RIGHT);
-    //        resetTouchOffsets();
-    //    }
-
-    //    public void show() {
-    //        if (isInBatchEditMode()) {
-    //            return;
-    //        }
-
-    //        mIsShowing = TRUE;
-    //        updatePosition();
-    //        mStartHandle.show();
-    //        mEndHandle.show();
-    //        hideInsertionPointCursorController();
-    //    }
-
-    //    public void hide() {
-    //        mStartHandle.hide();
-    //        mEndHandle.hide();
-    //        mIsShowing = FALSE;
-    //    }
-
-    //    public Boolean isShowing() {
-    //        return mIsShowing;
-    //    }
-
-    //    public void updatePosition(HandleView handle, Int32 x, Int32 y) {
-    //        Int32 selectionStart = getSelectionStart();
-    //        Int32 selectionEnd = getSelectionEnd();
-
-    //        final Int32 previousOffset = handle == mStartHandle ? selectionStart : selectionEnd;
-    //        Int32 offset = getHysteresisOffset(x, y, previousOffset);
-
-    //        // Handle the case where start and end are swapped, making sure start <= end
-    //        if (handle == mStartHandle) {
-    //            if (selectionStart == offset || offset > selectionEnd) {
-    //                return; // no change, no need to redraw;
-    //            }
-    //            // If the user "closes" the selection entirely they were probably trying to
-    //            // select a single character. Help them out.
-    //            if (offset == selectionEnd) {
-    //                offset = selectionEnd - 1;
-    //            }
-    //            selectionStart = offset;
-    //        } else {
-    //            if (selectionEnd == offset || offset < selectionStart) {
-    //                return; // no change, no need to redraw;
-    //            }
-    //            // If the user "closes" the selection entirely they were probably trying to
-    //            // select a single character. Help them out.
-    //            if (offset == selectionStart) {
-    //                offset = selectionStart + 1;
-    //            }
-    //            selectionEnd = offset;
-    //        }
-
-    //        Selection.setSelection((Spannable) mText, selectionStart, selectionEnd);
-    //        updatePosition();
-    //    }
-
-    //    public void updatePosition() {
-    //        if (!isShowing()) {
-    //            return;
-    //        }
-
-    //        final Int32 selectionStart = getSelectionStart();
-    //        final Int32 selectionEnd = getSelectionEnd();
-
-    //        if ((selectionStart < 0) || (selectionEnd < 0)) {
-    //            // Should never happen, safety check.
-    //            Log.w(LOG_TAG, "Update selection controller position called with no cursor");
-    //            hide();
-    //            return;
-    //        }
-
-    //        mStartHandle.positionAtCursor(selectionStart, TRUE);
-    //        mEndHandle.positionAtCursor(selectionEnd, TRUE);
-    //    }
-
-    //    public Boolean onTouchEvent(MotionEvent event) {
-    //        // This is done even when the View does not have focus, so that Int64 presses can start
-    //        // selection and tap can move cursor from this tap position.
-    //        if (isTextEditable()) {
-    //            switch (event.getActionMasked()) {
-    //                case MotionEvent.ACTION_DOWN:
-    //                    final Int32 x = (Int32) event.getX();
-    //                    final Int32 y = (Int32) event.getY();
-
-    //                    // Remember finger down position, to be able to start selection from there
-    //                    mMinTouchOffset = mMaxTouchOffset = getOffset(x, y);
-
-    //                    // Double tap detection
-    //                    Int64 duration = SystemClock.uptimeMillis() - mPreviousTapUpTime;
-    //                    if (duration <= ViewConfiguration.getDoubleTapTimeout()) {
-    //                        final Int32 deltaX = x - mPreviousTapPositionX;
-    //                        final Int32 deltaY = y - mPreviousTapPositionY;
-    //                        final Int32 distanceSquared = deltaX * deltaX + deltaY * deltaY;
-    //                        final Int32 doubleTapSlop = ViewConfiguration.get(getContext()).getScaledDoubleTapSlop();
-    //                        final Int32 slopSquared = doubleTapSlop * doubleTapSlop;
-    //                        if (distanceSquared < slopSquared) {
-    //                            startTextSelectionMode();
-    //                            // prevents onTapUpEvent from opening a context menu with cut/copy
-    //                            mNoContextMenuOnUp = TRUE;
-    //                        }
-    //                    }
-    //                    mPreviousTapPositionX = x;
-    //                    mPreviousTapPositionY = y;
-
-    //                    break;
-
-    //                case MotionEvent.ACTION_POINTER_DOWN:
-    //                case MotionEvent.ACTION_POINTER_UP:
-    //                    // Handle multi-point gestures. Keep min and max offset positions.
-    //                    // Only activated for devices that correctly handle multi-touch.
-    //                    if (mContext.getPackageManager().hasSystemFeature(
-    //                            PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT)) {
-    //                        updateMinAndMaxOffsets(event);
-    //                    }
-    //                    break;
-
-    //                case MotionEvent.ACTION_UP:
-    //                    mPreviousTapUpTime = SystemClock.uptimeMillis();
-    //                    break;
-    //            }
-    //        }
-    //        return FALSE;
-    //    }
-
-    //    /**
-    //     * @param event
-    //     */
-    //    private void updateMinAndMaxOffsets(MotionEvent event) {
-    //        Int32 pointerCount = event.getPointerCount();
-    //        for (Int32 index = 0; index < pointerCount; index++) {
-    //            final Int32 x = (Int32) event.getX(index);
-    //            final Int32 y = (Int32) event.getY(index);
-    //            Int32 offset = getOffset(x, y);
-    //            if (offset < mMinTouchOffset) mMinTouchOffset = offset;
-    //            if (offset > mMaxTouchOffset) mMaxTouchOffset = offset;
-    //        }
-    //    }
-
-    //    public Int32 getMinTouchOffset() {
-    //        return mMinTouchOffset;
-    //    }
-
-    //    public Int32 getMaxTouchOffset() {
-    //        return mMaxTouchOffset;
-    //    }
-
-    //    public void resetTouchOffsets() {
-    //        mMinTouchOffset = mMaxTouchOffset = -1;
-    //    }
-
-    //    /**
-    //     * @return TRUE iff this controller is currently used to move the selection start.
-    //     */
-    //    public Boolean isSelectionStartDragged() {
-    //        return mStartHandle.isDragging();
-    //    }
-
-    //    public void onTouchModeChanged(Boolean isInTouchMode) {
-    //        if (!isInTouchMode) {
-    //            hide();
-    //        }
-    //    }
-
-    //    @Override
-    //    public void onDetached() {}
-    //}
-
 };
 
 #endif //__TEXTVIEW_H__
