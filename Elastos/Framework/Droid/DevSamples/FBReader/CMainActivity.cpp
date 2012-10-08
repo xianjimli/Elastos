@@ -152,6 +152,10 @@ ECode CMainActivity::MyListener::OnKey(
     /* [out] */ Boolean* result)
 {
 	printf("==== File: %s, Line: %d ==== ------------------------------keyCode = [%d]\n", __FILE__, __LINE__, keyCode);
+    *result = FALSE;
+    if (*result == FALSE) {
+        return NOERROR;
+    }
 
     Int32 action;
     event->GetAction(&action);
@@ -321,6 +325,33 @@ ECode CMainActivity::ShowContentList(
 	}
 
 	return NOERROR;
+}
+
+ECode CMainActivity::OnCreateOptionsMenu(
+    /* [in] */ IMenu* menu,
+    /* [out] */ Boolean* allowToShow) {
+
+    printf("==== File: %s, Line: %d ==== , allowToShow == [%d], menu=[0x%08x].\n", __FILE__, __LINE__, *allowToShow, menu);
+    if (menu != NULL) {
+        AutoPtr<IMenuItem> item = NULL;
+        AutoPtr<ICharSequence> csq;
+        printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+        CStringWrapper::New(String("item1"), (ICharSequence**)&csq);
+        menu->AddEx2(0, 1, 1, csq, (IMenuItem**) &item);
+
+        if (item == NULL) {
+            printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+        }
+        else {
+            //printf("==== File: %s, Line: %d ====, FUNC : %s, item=[0x%08x].\n", __FILE__, __LINE__, __FUNCTION__, item.Get());
+        }
+
+/*        CStringWrapper::New(String("item2"), (ICharSequence**)&csq);
+        menu->AddEx2(0, 1, 1, csq, (IMenuItem**) &item);*/
+    }
+
+    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+    return Activity::OnCreateOptionsMenu(menu, allowToShow);
 }
 
 ECode CMainActivity::LoadContentsListView()

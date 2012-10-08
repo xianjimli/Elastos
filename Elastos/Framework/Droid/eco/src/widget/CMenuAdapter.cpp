@@ -57,6 +57,9 @@ ECode CMenuAdapter::GetItem(
     }
 
     *i = AutoPtr<IInterface>(NULL);
+    if (*i != NULL) {
+        (*i)->AddRef();
+    }
 
     return NOERROR;
 }
@@ -80,7 +83,7 @@ ECode CMenuAdapter::GetOffset(
         if (m_cmb != NULL) {
             return m_cmb->GetNumIconMenuItemsShown(offset);
         }
-    } 
+    }
 
     return NOERROR;
 }
@@ -123,7 +126,7 @@ ECode CMenuAdapter::AreAllItemsEnabled(
 }
 
 ECode CMenuAdapter::IsEnabled(
-    /* [in] */ Int32 position, 
+    /* [in] */ Int32 position,
     /* [out] */ Boolean* enabled) {
     return E_NOT_IMPLEMENTED;
 }

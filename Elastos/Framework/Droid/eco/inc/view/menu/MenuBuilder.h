@@ -1,28 +1,33 @@
 
-#ifndef __CMENUBUILDER_H__
-#define __CMENUBUILDER_H__
+#ifndef __MENUBUILDER_H__
+#define __MENUBUILDER_H__
 
-#include "ext/frameworkext.h"
-#include "_CMenuBuilder.h"
+#ifndef __USE_MALLOC
+#define __USE_MALLOC
+#endif
+
+#include "_CMenuType.h"
 #include "widget/BaseAdapter.h"
-#include "MenuBuilder.h"
+#include <elastos/AutoPtr.h>
 #include <elastos/List.h>
+#include <elastos/ElRefBase.h>
+#include "CMenuItemImpl.h"
 
 using namespace Elastos;
+class CSubMenuBuilder;
 
-CarClass(CMenuBuilder), public MenuBuilder
+class MenuBuilder
 {
 public:
-    CMenuBuilder(
+    MenuBuilder(
         /* [in] */ IContext* context);
 
-    CMenuBuilder();
+    MenuBuilder();
+
+    ~MenuBuilder();
 
     virtual PInterface Probe(
         /* [in] */ REIID riid);
-
-    CARAPI constructor(
-        /*[in]*/ IContext* context);
 
     virtual CARAPI SetCallback(
         /* [in] */ IMenuBuilderCallback* callback);
@@ -70,7 +75,7 @@ public:
      * @param titleRes Resource identifier of title string.
      * @return The newly added menu item.
      */
-    virtual CARAPI AddEx(
+    virtual CARAPI Add(
         /* [in] */ Int32 titleRes,
         /* [out] */ IMenuItem** item);
 
@@ -89,7 +94,7 @@ public:
      * @param title The text to display for the item.
      * @return The newly added menu item.
      */
-    virtual CARAPI AddEx2(
+    virtual CARAPI Add(
         /* [in] */ Int32 groupId,
         /* [in] */ Int32 itemId,
         /* [in] */ Int32 order,
@@ -111,7 +116,7 @@ public:
      * @param titleRes Resource identifier of title string.
      * @return The newly added menu item.
      */
-    virtual CARAPI AddEx3(
+    virtual CARAPI Add(
         /* [in] */ Int32 groupId,
         /* [in] */ Int32 itemId,
         /* [in] */ Int32 order,
@@ -138,7 +143,7 @@ public:
      * @param titleRes Resource identifier of title string.
      * @return The newly added sub-menu
      */
-    virtual CARAPI AddSubMenuEx(
+    virtual CARAPI AddSubMenu(
         /* [in] */ Int32 titleRes,
         /* [out] */ ISubMenu** subMenu);
 
@@ -162,7 +167,7 @@ public:
      * @param title The text to display for the item.
      * @return The newly added sub-menu
      */
-    virtual CARAPI AddSubMenuEx2(
+    virtual CARAPI AddSubMenu(
         /* [in] */ Int32 groupId,
         /* [in] */ Int32 itemId,
         /* [in] */ Int32 order,
@@ -182,7 +187,7 @@ public:
      * @param titleRes Resource identifier of title string.
      * @return The newly added sub-menu
      */
-    virtual CARAPI AddSubMenuEx3(
+    virtual CARAPI AddSubMenu(
         /* [in] */ Int32 groupId,
         /* [in] */ Int32 itemId,
         /* [in] */ Int32 order,
@@ -352,7 +357,7 @@ public:
         /* [in] */ Int32 group,
         /* [out] */ Int32* index);
 
-    virtual CARAPI FindGroupIndexEx(
+    virtual CARAPI FindGroupIndex(
         /* [in] */ Int32 group,
         /* [in] */ Int32 start,
         /* [out] */ Int32* index);
@@ -511,7 +516,9 @@ public:
         /* [in] */ Boolean allMenusAreClosing);
 
     /** {@inheritDoc} */
-    virtual CARAPI Close();
+    virtual CARAPI Close() {
+        return CloseEx(TRUE);
+    }
 
     /**
      * Called by {@link CMenuItemImpl*} when its visible flag is changed.
@@ -575,8 +582,15 @@ public:
 
     virtual CARAPI SetExclusiveItemChecked(
         /* [in] */ IMenuItem* item);
-
-    CARAPI SetHeaderTitleInt(
+protected:
+    /**
+     * Sets the header's title. This replaces the header view. Called by the
+     * builder-style methods of subclasses.
+     *
+     * @param title The new title.
+     * @return This MenuBuilder so additional setters can be called.
+     */
+    virtual CARAPI SetHeaderTitleInt(
         /* [in] */ ICharSequence* title,
         /* [out] */ IMenuBuilder** menu);
 
@@ -585,9 +599,9 @@ public:
      * builder-style methods of subclasses.
      *
      * @param titleRes The new title (as a resource ID).
-     * @return This CMenuBuilder so additional setters can be called.
+     * @return This MenuBuilder so additional setters can be called.
      */
-    CARAPI SetHeaderTitleIntEx(
+    virtual CARAPI SetHeaderTitleInt(
         /* [in] */ Int32 titleRes,
         /* [out] */ IMenuBuilder** menu);
 
@@ -596,9 +610,9 @@ public:
      * builder-style methods of subclasses.
      *
      * @param icon The new icon.
-     * @return This CMenuBuilder so additional setters can be called.
+     * @return This MenuBuilder so additional setters can be called.
      */
-    CARAPI SetHeaderIconInt(
+    virtual CARAPI SetHeaderIconInt(
         /* [in] */ IDrawable* icon,
         /* [out] */ IMenuBuilder** menu);
 
@@ -607,9 +621,9 @@ public:
      * builder-style methods of subclasses.
      *
      * @param iconRes The new icon (as a resource ID).
-     * @return This CMenuBuilder so additional setters can be called.
+     * @return This MenuBuilder so additional setters can be called.
      */
-    CARAPI SetHeaderIconIntEx(
+    virtual CARAPI SetHeaderIconInt(
         /* [in] */ Int32 iconRes,
         /* [out] */ IMenuBuilder** menu);
 
@@ -618,16 +632,16 @@ public:
      * builder-style methods of subclasses.
      *
      * @param view The new view.
-     * @return This CMenuBuilder so additional setters can be called.
+     * @return This MenuBuilder so additional setters can be called.
      */
-    CARAPI SetHeaderViewInt(
+    virtual CARAPI SetHeaderViewInt(
         /* [in] */ IView* view,
         /* [out] */ IMenuBuilder** menu);
 
-    CARAPI GetNumIconMenuItemsShown(
+    virtual CARAPI GetNumIconMenuItemsShown(
         /* [out] */ Int32* state);
 
-    CARAPI SetHeaderInternal(
+    virtual CARAPI SetHeaderInternal(
         /* [in] */ Int32 titleRes,
         /* [in] */ ICharSequence* title,
         /* [in] */ Int32 iconRes,
@@ -638,12 +652,163 @@ public:
      * Refreshes the shortcut labels on each of the displayed items.  Passes the arguments
      * so submenus don't need to call their parent menu for the same values.
      */
-    CARAPI RefreshShortcuts(
+    virtual CARAPI RefreshShortcuts(
         /* [in] */ Boolean shortcutsVisible,
         /* [in] */ Boolean qwertyMode);
 
-    CARAPI ClearAll();
+    virtual CARAPI ClearAll();
 
+private:
+    /**
+     * Returns the ordering across all items. This will grab the category from
+     * the upper bits, find out how to order the category with respect to other
+     * categories, and combine it with the lower bits.
+     *
+     * @param categoryOrder The category order for a particular item (if it has
+     *            not been or/add with a category, the default category is
+     *            assumed).
+     * @return An ordering Int32eger that can be used to order this item across
+     *         all the items (even from other categories).
+     */
+    static CARAPI_(Int32) GetOrdering(
+        /* [in] */ Int32 categoryOrder);
+
+    static CARAPI FindInsertIndex(
+        /* [in] */ List<AutoPtr<IMenuItem> >* items,
+        /* [in] */ Int32 ordering,
+        /* [in] */ Int32* index);
+
+    /**
+     * Called when an item is added or removed.
+     *
+     * @param cleared Whether the items were cleared or just changed.
+     */
+    CARAPI OnItemsChanged(
+        /* [in] */ Boolean cleared);
+
+    /**
+     * Adds an item to the menu.  The other add methods funnel to this.
+     */
+    CARAPI AddInternal(
+        /* [in] */ Int32 group,
+        /* [in] */ Int32 id,
+        /* [in] */ Int32 categoryOrder,
+        /* [in] */ ICharSequence* title,
+        /* [out] */ IMenuItem** menuItem);
+
+    /**
+     * Remove the item at the given index and optionally forces menu views to
+     * update.
+     *
+     * @param index The index of the item to be removed. If this index is
+     *            invalid an exception is thrown.
+     * @param updateChildrenOnMenuViews Whether to force update on menu views.
+     *            Please make sure you eventually call this after your batch of
+     *            removals.
+     */
+    CARAPI RemoveItemAtInt(
+        /* [in] */ Int32 index,
+        /* [in] */ Boolean updateChildrenOnMenuViews);
+
+    CARAPI RemoveItemAt(
+        /* [in] */ Int32 index);
+
+private:
+    ECode FillData(
+        /* [in] */ List<AutoPtr<IMenuItem> >* inputData,
+        /* [out] */ IObjectContainer** list);
+
+protected:
+    static const String LOGTAG;
+    static const String VIEWS_TAG;
+    static const Int32 sCategoryToOrder[6];
+
+    IContext* mContext;
+    IResources* mResources;
+
+    /**
+     * Whether the shortcuts should be qwerty-accessible. Use isQwertyMode()
+     * instead of accessing this directly.
+     */
+    Boolean mQwertyMode;
+
+    /**
+     * Whether the shortcuts should be visible on menus. Use isShortcutsVisible()
+     * instead of accessing this directly.
+     */
+    Boolean mShortcutsVisible;
+
+    /**
+     * Callback that will receive the various menu-related events generated by
+     * this class. Use getCallback to get a reference to the callback.
+     */
+    AutoPtr<IMenuBuilderCallback> mCallback;
+
+    /** Contains all of the items for this menu */
+    List<AutoPtr<IMenuItem> >* mItems;
+
+    /** Contains only the items that are currently visible.  This will be created/refreshed from
+     * {@link #getVisibleItems()} */
+    List<AutoPtr<IMenuItem> >* mVisibleItems;
+    /**
+     * Whether or not the items (or any one item's shown state) has changed since it was last
+     * fetched from {@link #getVisibleItems()}
+     */
+    Boolean mIsVisibleItemsStale;
+
+    /**
+     * Current use case is Context Menus: As Views populate the context menu, each one has
+     * extra information that should be passed along.  This is the current menu info that
+     * should be set on all items added to this menu.
+     */
+    IContextMenuInfo* mCurrentMenuInfo;
+
+    /**
+     * Prevents onItemsChanged from doing its junk, useful for batching commands
+     * that may individually call onItemsChanged.
+     */
+    Boolean mPreventDispatchingItemsChanged;
+
+    Boolean mOptionalIconsVisible;
+
+    AutoPtr<IMenuBuilderType> *mMenuTypes;
+
+public:
+    /**
+     * Contains the state of the View hierarchy for all menu views when the menu
+     * was frozen.
+     */
+    IObjectIntegerMap* mFrozenViewStates;
+
+    /** Header title for menu types that have a header (context and submenus) */
+    AutoPtr<ICharSequence> mHeaderTitle;
+    /** Header icon for menu types that have a header and support icons (context) */
+    IDrawable* mHeaderIcon;
+    /** Header custom view for menu types that have a header and support custom views (context) */
+    AutoPtr<IView> mHeaderView;
+
+    /** The number of different menu types */
+    static const Int32 NUM_TYPES;
+    /** The menu type that represents the icon menu view */
+    static const Int32 TYPE_ICON;
+    /** The menu type that represents the expanded menu view */
+    static const Int32 TYPE_EXPANDED;
+    /**
+     * The menu type that represents a menu dialog. Examples are context and sub
+     * menus. This menu type will not have a corresponding MenuView, but it will
+     * have an ItemView.
+     */
+    static const Int32 TYPE_DIALOG;
+
+
+    // Order must be the same order as the TYPE_*
+    static const Int32 THEME_RES_FOR_TYPE[3];
+
+    // Order must be the same order as the TYPE_*
+    static const Int32 LAYOUT_RES_FOR_TYPE[3];
+
+    // Order must be the same order as the TYPE_*
+    static const Int32 ITEM_LAYOUT_RES_FOR_TYPE[3];;
 };
 
-#endif    //__CMENUBUILDER_H__
+#endif    //__MENUBUILDER_H__

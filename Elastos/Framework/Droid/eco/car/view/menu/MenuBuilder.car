@@ -1,0 +1,204 @@
+
+module
+{
+    interface IMenuItem;
+    interface ISubMenu;
+    interface IComponentName;
+    interface IIntent;
+    interface IKeyEvent;
+    interface IMenuBuilderCallback;
+    interface IMenuAdapter;
+    interface IContextMenuInfo;
+    interface ILayoutInflater;
+    interface IView;
+    interface IViewGroup;
+    interface IMenuView;
+    interface IMenuBuilderType;
+    interface IMenu;
+
+    interface IMenuBuilder extends IMenu {
+        CloseEx(
+            [in] Boolean flag);
+
+        IsQwertyMode(
+            [out]Boolean* qwertyMode);
+
+        SetShortcutsVisible(
+            [in] Boolean shortcutsVisible);
+
+        IsShortcutsVisible(
+            [out] Boolean* qwertyMode);
+
+        GetContext(
+            [out] IContext** context);
+
+        GetResources(
+            [out] IResources** resource);
+
+        SetExclusiveItemChecked(
+            [in] IMenuItem* item);
+
+        GetCallback(
+            [out] IMenuBuilderCallback** MenuCallback);
+
+        GetRootMenu(
+            [out] IMenuBuilder** menu);
+
+        OnItemVisibleChanged(
+            [in] IMenuItem* item);
+
+        SetCurrentMenuInfo(
+            [in] IContextMenuInfo* menuInfo);
+
+        SetOptionalIconsVisible(
+            [in] Boolean visible);
+
+        GetOptionalIconsVisible(
+            [out] Boolean* visible);
+
+        SaveHierarchyState(
+            [in] IBundle* outState);
+
+        RestoreHierarchyState(
+            [in] IBundle* inState);
+
+        GetMenuAdapter(
+            [in] Int32 menuType,
+            [out] IMenuAdapter** menuAdapter);
+
+        GetMenuType(
+            [in] Int32 menuType,
+            [out] IMenuBuilderType** type);
+
+        GetMenuView(
+            [in] Int32 menuType,
+            [in] IViewGroup* parent,
+            [out] IMenuView** menuView);
+
+        ClearMenuViews();
+
+        RefreshShortcuts(
+            [in] Boolean shortcutsVisible,
+            [in] Boolean qwertyMode);
+
+        FindItemsWithShortcutForKey(
+            [in] Int32 keyCode,
+            [in] IKeyEvent* event,
+            [out] IObjectContainer** list);
+
+        FindItemWithShortcutForKey(
+            [in] Int32 keyCode,
+            [in] IKeyEvent* event,
+            [out] IMenuItem** menuItem);
+
+        PerformItemAction(
+            [in] IMenuItem* item,
+            [in] Int32 flags,
+            [out] Boolean* state);
+
+        SetCallback(
+            [in] IMenuBuilderCallback* menuCallback);
+
+        SetHeaderTitleInt(
+            [in] ICharSequence* title,
+            [out] IMenuBuilder** menu);
+
+        SetHeaderTitleIntEx(
+            [in] Int32 titleRes,
+            [out] IMenuBuilder** menu);
+
+        SetHeaderIconInt(
+            [in] IDrawable* icon,
+            [out] IMenuBuilder** menu);
+
+        SetHeaderIconIntEx(
+            [in] Int32 iconRes,
+            [out] IMenuBuilder** menu);
+
+        SetHeaderViewInt(
+            [in] IView* view,
+            [out] IMenuBuilder** menu);
+
+        GetVisibleItems(
+            [out] IObjectContainer** list);
+
+        GetNumIconMenuItemsShown(
+            [out] Int32* state);
+
+        SetHeaderInternal(
+            [in] Int32 titleRes,
+            [in] ICharSequence* title,
+            [in] Int32 iconRes,
+            [in] IDrawable* icon,
+            [in] IView* view);
+
+        FindItemIndex(
+            [in] Int32 id,
+            [out] Int32* index);
+
+        FindGroupIndex(
+            [in] Int32 group,
+            [out] Int32* index);
+
+        FindGroupIndexEx(
+            [in] Int32 group,
+            [in] Int32 start,
+            [out] Int32* index);
+
+        GetHeaderIcon(
+            [out] IDrawable** drawable);
+
+        GetHeaderView(
+            [out] IView** headerView);
+
+        GetHeaderTitle(
+            [out] ICharSequence** title);
+
+        ClearAll();
+    }
+
+    interface IMenuBuilderCallback {
+        OnMenuItemSelected(
+            [in] IMenuBuilder* menu,
+            [in] IMenuItem* item,
+            [out] Boolean* state);
+
+        OnCloseMenu(
+            [in] IMenuBuilder* menu,
+            [in] Boolean allMenusAreClosing);
+
+        OnSubMenuSelected(
+            [in] ISubMenu* subMenu,
+            [out] Boolean* state);
+
+        OnCloseSubMenu(
+            [in] ISubMenu* menu);
+
+        OnMenuModeChange(
+            [in] IMenuBuilder* menu);
+    }
+
+    interface IMenuBuilderType {
+        GetInflater(
+            [out] ILayoutInflater** layoutInflater);
+
+        GetMenuView(
+            [in] IViewGroup* parent,
+            [out] IMenuView** menuView);
+
+        GetMenuViewEx(
+            [out] IMenuView** menuView);
+
+        SetMenuView(
+            [in] IMenuView* menuView);
+
+        HasMenuView(
+            [out] Boolean* hasMenu);
+    }
+
+    interface IMenuBuilderItemInvoker {
+        InvokeItem(
+            [in] IMenuItem* item,
+            [out] Boolean* state);
+    }
+}

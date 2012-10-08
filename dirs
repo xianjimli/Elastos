@@ -2,6 +2,7 @@ ifneq "$(XDK_TARGET_PRODUCT)" "devtools"
 ifeq "$(XDK_TARGET_PLATFORM)" "linux" 
   DIRS += Elastos
   DIRS += External/cURL
+  DIRS += External/fbreader-0.12.10
 else
   DIRS = External/zlib
   DIRS += Elastos

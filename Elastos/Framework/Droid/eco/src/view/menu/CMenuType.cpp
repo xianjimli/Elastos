@@ -17,11 +17,15 @@ ECode CMenuType::GetInflater(
     }
 
     *layoutInflater = mInflater;
+    if (*layoutInflater != NULL) {
+        (*layoutInflater)->AddRef();
+    }
+
     return NOERROR;
 }
 
 ECode CMenuType::SetMenuView(
-    /* [out] */ IMenuView* menuView) {
+    /* [in] */ IMenuView* menuView) {
     mMenuView = menuView;
 
     return NOERROR;
@@ -30,6 +34,9 @@ ECode CMenuType::SetMenuView(
 ECode CMenuType::GetMenuViewEx(
     /* [out] */ IMenuView** retMenuView) {
     *retMenuView = mMenuView;
+    if (*retMenuView != NULL) {
+        (*retMenuView)->AddRef();
+    }
 
     return NOERROR;
 }
@@ -80,6 +87,10 @@ ECode CMenuType::GetMenuView(
     }
 
     *retMenuView = menuView;
+    if (*retMenuView != NULL) {
+        (*retMenuView)->AddRef();
+    }
+
     return NOERROR;
 }
 

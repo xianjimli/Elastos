@@ -236,6 +236,9 @@ public:
     CARAPI SetSourceDir(
         /* [in] */ const String& sourceDir);
 
+    CARAPI GetTargetSdkVersion(
+        /* [out] */ Int32* targetSdkVersion);
+
     CARAPI ReadFromParcel(
         /* [in] */ IParcel* source);
 

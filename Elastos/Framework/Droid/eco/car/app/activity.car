@@ -162,14 +162,14 @@ module
 
         GetWindowManagerEx(
             [out] IWindowManager** mgr);
-        
+
         /**
          * Returns complete component name of this activity.
-         * 
+         *
          * @return Returns the complete component name for this activity
          */
         GetComponentName(
-            [out] IComponentName** name);    
+            [out] IComponentName** name);
 
         /**
          * Change the title associated with this activity.  If this is a
@@ -211,6 +211,84 @@ module
 
         RemoveDialog(
             [in] Int32 id);
+
+        /**
+         * It is usually safe to proxy this call to the owner activity's
+         * {@link Activity#onCreateOptionsMenu(Menu)} if the client desires the same
+         * menu for this Dialog.
+         *
+         * @see Activity#onCreateOptionsMenu(Menu)
+         * @see #getOwnerActivity()
+         */
+        OnCreateOptionsMenu(
+            [in] IMenu* menu,
+            [out] Boolean* res);
+
+        /**
+         * It is usually safe to proxy this call to the owner activity's
+         * {@link Activity#onPrepareOptionsMenu(Menu)} if the client desires the
+         * same menu for this Dialog.
+         *
+         * @see Activity#onPrepareOptionsMenu(Menu)
+         * @see #getOwnerActivity()
+         */
+        OnPrepareOptionsMenu(
+            [in] IMenu* menu,
+            [out] Boolean* res);
+
+        /**
+         * @see Activity#onOptionsItemSelected(MenuItem)
+         */
+        OnOptionsItemSelected(
+            [in] IMenuItem* item,
+            [out] Boolean* res);
+
+        /**
+         * @see Activity#onOptionsMenuClosed(Menu)
+         */
+        OnOptionsMenuClosed(
+            [in] IMenu* menu);
+
+        /**
+         * @see Activity#openOptionsMenu()
+         */
+        OpenOptionsMenu();
+
+        /**
+         * @see Activity#closeOptionsMenu()
+         */
+        CloseOptionsMenu();
+
+        /**
+         * @see Activity#registerForContextMenu(View)
+         */
+        RegisterForContextMenu(
+            [in] IView* view);
+
+        /**
+         * @see Activity#unregisterForContextMenu(View)
+         */
+        UnregisterForContextMenu(
+            [in] IView* view);
+
+        /**
+         * @see Activity#openContextMenu(View)
+         */
+        OpenContextMenu(
+            [in] IView* view);
+
+        /**
+         * @see Activity#onContextItemSelected(MenuItem)
+         */
+        OnContextItemSelected(
+            [in] IMenuItem* item,
+            [out] Boolean* res);
+
+        /**
+         * @see Activity#onContextMenuClosed(Menu)
+         */
+        OnContextMenuClosed(
+            [in] IMenu* menu);
     }
 }
 

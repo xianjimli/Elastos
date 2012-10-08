@@ -3,9 +3,7 @@
 module
 {
     interface IBaseAdapter;
-    interface IView;
-    interface IViewGroup;
-    interface IMenu;
+    interface IMenuBuilder;
 
     interface IMenuAdapter extends IBaseAdapter {
         GetOffset(
@@ -17,6 +15,6 @@ module
 
         constructor(
             [in] Int32 menuType,
-            [in] IMenu* cmb);
+            [in] IMenuBuilder* cmb);
     }
 }

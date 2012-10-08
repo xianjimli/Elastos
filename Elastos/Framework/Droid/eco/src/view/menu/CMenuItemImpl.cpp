@@ -1,6 +1,7 @@
 
 #include "CMenuItemImpl.h"
-#include "CSubMenuBuilder.h"
+#include "CMenuBuilder.h"
+#include <stdio.h>
 
 String CMenuItemImpl::TAG = String("CMenuItemImpl");
 const int CMenuItemImpl::CHECKABLE;
@@ -21,64 +22,103 @@ String CMenuItemImpl::sSpaceShortcutLabel =  String("");
  * @hide
  */
 CMenuItemImpl::CMenuItemImpl(
-        /* [in] */ IMenu* menu,
+        /* [in] */ IMenuBuilder* menu,
         /* [in] */ Int32 group,
         /* [in] */ Int32 id,
         /* [in] */ Int32 categoryOrder,
         /* [in] */ Int32 ordering,
-        /* [in] */ String title):
+        /* [in] */ ICharSequence* title):
         mId(id), mGroup(group), mCategoryOrder(categoryOrder), mOrdering(ordering)
 {
+    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
     mItemViews = NULL;
     mMenu = menu;
-    mTitle = title;
-    mIconResId = NO_ICON;
-    mFlags = ENABLED;
-}
-
-CMenuItemImpl::CMenuItemImpl():
-    mId(0), mGroup(0), mCategoryOrder(0), mOrdering(0) 
-{
-
-}
-
-ECode CMenuItemImpl::constructor(
-        /* [in] */ IMenu* menu,
-        /* [in] */ Int32 group,
-        /* [in] */ Int32 id,
-        /* [in] */ Int32 categoryOrder,
-        /* [in] */ Int32 ordering,
-        /* [in] */ ICharSequence* title)
-{
-    mMenu = menu;
-
-    if (sPrependShortcutLabel.IsEmpty()) {
-        // This is instantiated from the UI thread, so no chance of sync issues
-        AutoPtr<IContext> context;
-        mMenu->GetContext((IContext**) &context);
-        AutoPtr<IResources> res;
-        context->GetResources((IResources**)&res);
-
-        if (res != NULL) {
-            res->GetString(0x010402ce, &sPrependShortcutLabel);
-            res->GetString(0x010402d0, &sEnterShortcutLabel);
-            res->GetString(0x010402d1, &sDeleteShortcutLabel);
-            res->GetString(0x010402cf, &sSpaceShortcutLabel);
-        }
-    }
-
-    if (mItemViews == NULL) {
-        mItemViews = new IItemView*[CMenuBuilder::NUM_TYPES];
-    }
-
     if (title != NULL) {
         title->ToString(&mTitle);
     }
 
     mIconResId = NO_ICON;
     mFlags = ENABLED;
+}
 
+CMenuItemImpl::CMenuItemImpl():
+    mId(0), mGroup(0), mCategoryOrder(0), mOrdering(0)
+{
+    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+}
+
+ECode CMenuItemImpl::constructor(
+        /* [in] */ IMenuBuilder* menu,
+        /* [in] */ Int32 group,
+        /* [in] */ Int32 id,
+        /* [in] */ Int32 categoryOrder,
+        /* [in] */ Int32 ordering,
+        /* [in] */ ICharSequence* title)
+{
+printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+    mMenu = menu;
+    mId = id;
+    mGroup = group;
+    mCategoryOrder = categoryOrder;
+    mOrdering = ordering;
+
+    if (sPrependShortcutLabel.IsEmpty()) {
+        printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+        // This is instantiated from the UI thread, so no chance of sync issues
+        if (mMenu != NULL) {
+            AutoPtr<IContext> context = NULL;
+            mMenu->GetContext((IContext**) &context);
+            printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+
+            if (context == NULL) {
+                printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+            }
+            else {
+                printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+            }
+
+            AutoPtr<IResources> res = NULL;
+            context->GetResources((IResources**)&res);
+            printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+
+            if (res != NULL) {
+                res->GetString(0x010402ce, &sPrependShortcutLabel);
+                res->GetString(0x010402d0, &sEnterShortcutLabel);
+                res->GetString(0x010402d1, &sDeleteShortcutLabel);
+                res->GetString(0x010402cf, &sSpaceShortcutLabel);
+            }
+        }
+    }
+
+printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+
+    if (mItemViews == NULL) {
+        printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+        mItemViews = new AutoPtr<IMenuItemView>[CMenuBuilder::NUM_TYPES];
+        memset(mItemViews, 0, sizeof(IMenuItemView*) * CMenuBuilder::NUM_TYPES);
+    }
+printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+    if (title != NULL) {
+        title->ToString(&mTitle);
+    }
+printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+    mIconResId = NO_ICON;
+    mFlags = ENABLED;
+printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
     return NOERROR;
+}
+
+PInterface CMenuItemImpl::Probe(
+    /* [in] */ REIID riid) {
+    return _CMenuItemImpl::Probe(riid);
+}
+
+CMenuItemImpl::~CMenuItemImpl() {
+    // if (mItemViews != NULL) {
+
+    //     delete[] mItemViews;
+    //     mItemViews = NULL;
+    // }
 }
 
 /**
@@ -95,13 +135,13 @@ ECode CMenuItemImpl::Invoke(
         return NOERROR;
     }
 
-    AutoPtr<ICallback> callback;
-    mMenu->GetCallback((ICallback**) &callback);
-    AutoPtr<IMenu> tempMenu;
-    mMenu->GetRootMenu((IMenu**) &tempMenu);
+    AutoPtr<IMenuBuilderCallback> callback;
+    mMenu->GetCallback((IMenuBuilderCallback**) &callback);
+    AutoPtr<IMenuBuilder> tempMenu;
+    ((MenuBuilder*)mMenu.Get())->GetRootMenu((IMenuBuilder**) &tempMenu);
 
     Boolean menuState;
-    callback->OnMenuItemSelected(tempMenu, this, &menuState);
+    callback->OnMenuItemSelected(tempMenu, (IMenuItem*)this->Probe(EIID_IMenuItem), &menuState);
 
     if (callback != NULL && menuState) {
         *state = TRUE;
@@ -167,6 +207,10 @@ ECode CMenuItemImpl::SetEnabled(
     }
 
     *menuItem = this;
+    if (*menuItem != NULL) {
+        (*menuItem)->AddRef();
+    }
+
     return NOERROR;
 }
 
@@ -192,13 +236,17 @@ ECode CMenuItemImpl::GetOrder(
 ECode CMenuItemImpl::GetOrdering(
     /* [out] */ Int32* ordering) {
     *ordering = mOrdering;
-   
+
     return NOERROR;
 }
 
 ECode CMenuItemImpl::GetIntent(
     /* [out] */ IIntent** intent) {
     *intent = mIntent;
+    if (*intent != NULL) {
+        (*intent)->AddRef();
+    }
+
     return NOERROR;
 }
 
@@ -213,6 +261,10 @@ ECode CMenuItemImpl::SetIntent(
 ECode CMenuItemImpl::GetCallback(
     /* [out] */ IRunnable** runnable) {
     *runnable = mItemCallback;
+    if (*runnable != NULL) {
+        (*runnable)->AddRef();
+    }
+
     return NOERROR;
 }
 
@@ -222,6 +274,10 @@ ECode CMenuItemImpl::SetCallback(
     mItemCallback = callback;
 
     *menuItem = this;
+    if (*menuItem != NULL) {
+        (*menuItem)->AddRef();
+    }
+
     return NOERROR;
 }
 
@@ -246,6 +302,10 @@ ECode CMenuItemImpl::SetAlphabeticShortcut(
     RefreshShortcutOnItemViews();
 
     *menuItem = this;
+    if (*menuItem != NULL) {
+        (*menuItem)->AddRef();
+    }
+
     return NOERROR;
 }
 
@@ -268,11 +328,15 @@ ECode CMenuItemImpl::SetNumericShortcut(
     RefreshShortcutOnItemViews();
 
     *menuItem = this;
+    if (*menuItem != NULL) {
+        (*menuItem)->AddRef();
+    }
+
     return NOERROR;
 }
 
 ECode CMenuItemImpl::SetShortcut(
-    /* [in] */ Char8 numericChar, 
+    /* [in] */ Char8 numericChar,
     /* [in] */ Char8 alphaChar,
     /* [out] */ IMenuItem** menuItem) {
     mShortcutNumericChar = numericChar;
@@ -284,6 +348,10 @@ ECode CMenuItemImpl::SetShortcut(
     RefreshShortcutOnItemViews();
 
     *menuItem = this;
+    if (*menuItem != NULL) {
+        (*menuItem)->AddRef();
+    }
+
     return NOERROR;
 }
 
@@ -404,6 +472,9 @@ ECode CMenuItemImpl::RefreshShortcutOnItemViews2(Boolean menuShortcutShown, Bool
 ECode CMenuItemImpl::GetSubMenu(
     /* [out] */ ISubMenu** builder) {
     *builder = mSubMenu;
+    if (*builder != NULL) {
+        (*builder)->AddRef();
+    }
 
     return NOERROR;
 }
@@ -458,7 +529,7 @@ ECode CMenuItemImpl::GetTitle(
  *         prefers
  */
 ECode CMenuItemImpl::GetTitleForItemView(
-    /* [in] */ IItemView* itemView,
+    /* [in] */ IMenuItemView* itemView,
     /* [out] */ String* title) {
     Boolean supported = FALSE;
     itemView->PrefersCondensedTitle(&supported);
@@ -483,7 +554,7 @@ ECode CMenuItemImpl::SetTitle(
             continue;
         }
 
-        AutoPtr<IItemView> itemView = mItemViews[i];
+        AutoPtr<IMenuItemView> itemView = mItemViews[i];
         Boolean supported = FALSE;
         itemView->PrefersCondensedTitle(&supported);
 
@@ -499,6 +570,10 @@ ECode CMenuItemImpl::SetTitle(
     }
 
     *menuItem = this;
+    if (*menuItem != NULL) {
+        (*menuItem)->AddRef();
+    }
+
     return NOERROR;
 }
 
@@ -555,6 +630,10 @@ ECode CMenuItemImpl::SetTitleCondensed(
     }
 
     *menuItem = this;
+    if (*menuItem != NULL) {
+        (*menuItem)->AddRef();
+    }
+
     return NOERROR;
 }
 
@@ -576,6 +655,10 @@ ECode CMenuItemImpl::GetIcon(
         res->GetDrawable(mIconResId, (IDrawable**)&drawable);
 
         *retDrawable = drawable;
+        if (*retDrawable != NULL) {
+            (*retDrawable)->AddRef();
+        }
+
         return NOERROR;
     }
 
@@ -589,6 +672,9 @@ ECode CMenuItemImpl::SetIcon(
     mIconDrawable = icon;
     SetIconOnViews(icon);
     *menuItem = this;
+    if (*menuItem != NULL) {
+        (*menuItem)->AddRef();
+    }
 
     return NOERROR;
 }
@@ -614,6 +700,9 @@ ECode CMenuItemImpl::SetIconEx(
     }
 
     *menuItem = this;
+    if (*menuItem != NULL) {
+        (*menuItem)->AddRef();
+    }
 
     return NOERROR;
 }
@@ -666,6 +755,10 @@ ECode CMenuItemImpl::SetCheckable(
     }
 
     *menuItem = this;
+    if (*menuItem != NULL) {
+        (*menuItem)->AddRef();
+    }
+
     return NOERROR;
 }
 
@@ -701,6 +794,10 @@ ECode CMenuItemImpl::SetChecked(
     }
 
     *menuItem = this;
+    if (*menuItem != NULL) {
+        (*menuItem)->AddRef();
+    }
+
     return NOERROR;
 }
 
@@ -722,6 +819,7 @@ ECode CMenuItemImpl::SetCheckedInt(
 ECode CMenuItemImpl::IsVisible(
     /* [out] */ Boolean* visiable) {
     *visiable = (mFlags & HIDDEN) == 0;
+printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
 
     return NOERROR;
 }
@@ -760,6 +858,10 @@ ECode CMenuItemImpl::SetVisible(
     }
 
     *menuItem = this;
+    if (*menuItem != NULL) {
+        (*menuItem)->AddRef();
+    }
+
     return NOERROR;
 }
 
@@ -769,18 +871,26 @@ ECode CMenuItemImpl::SetOnMenuItemClickListener(
     mClickListener = clickListener;
 
     *menuItem = this;
+    if (*menuItem != NULL) {
+        (*menuItem)->AddRef();
+    }
+
     return NOERROR;
 }
 
 ECode CMenuItemImpl::GetItemView(
-    /* [in] */ Int32 menuType, 
+    /* [in] */ Int32 menuType,
     /* [in] */ IViewGroup* parent,
     /* [out] */ IView** view) {
     if (!HasItemView(menuType)) {
-        CreateItemView(menuType, parent, &mItemViews[menuType]);
+        CreateItemView(menuType, parent, (IMenuItemView**)(&mItemViews[menuType]));
     }
 
     *view = (IView*) mItemViews[menuType];
+    if (*view != NULL) {
+        (*view)->AddRef();
+    }
+
     return NOERROR;
 }
 
@@ -792,19 +902,23 @@ ECode CMenuItemImpl::GetItemView(
  * @return The inflated {@link MenuView.ItemView} that is ready for use
  */
 ECode CMenuItemImpl::CreateItemView(
-    /* [in] */ Int32 menuType, 
+    /* [in] */ Int32 menuType,
     /* [in] */ IViewGroup* parent,
-    /* [out] */ IItemView** itemView) {
+    /* [out] */ IMenuItemView** itemView) {
     // Create the MenuView
     ILayoutInflater* layoutInflater;
     GetLayoutInflater(menuType, &layoutInflater);
 
     if (layoutInflater != NULL) {
         layoutInflater->InflateEx2(CMenuBuilder::ITEM_LAYOUT_RES_FOR_TYPE[menuType], parent, FALSE, (IView**)&itemView);
-        ((IItemView*)itemView)->Initialize(this, menuType);
+        ((IMenuItemView*)itemView)->Initialize(this, menuType);
     }
 
-    *itemView = (IItemView*)itemView;
+    *itemView = (IMenuItemView*)itemView;
+    if (*itemView != NULL) {
+        (*itemView)->AddRef();
+    }
+
     return NOERROR;
 }
 
@@ -835,6 +949,10 @@ ECode CMenuItemImpl::SetMenuInfo(
 ECode CMenuItemImpl::GetMenuInfo(
     /* [out] */ IContextMenuInfo** menuInfo) {
     *menuInfo = mMenuInfo;
+    if (*menuInfo != NULL) {
+        (*menuInfo)->AddRef();
+    }
+
     return NOERROR;
 }
 
@@ -847,8 +965,8 @@ ECode CMenuItemImpl::GetMenuInfo(
 ECode CMenuItemImpl::GetLayoutInflater(
     /* [in] */ Int32 menuType,
     /* [out] */ ILayoutInflater** layoutInflater) {
-    AutoPtr<IMenuType> menuTypePtr;
-    mMenu->GetMenuType(menuType, (IMenuType**) &menuTypePtr);
+    AutoPtr<IMenuBuilderType> menuTypePtr;
+    mMenu->GetMenuType(menuType, (IMenuBuilderType**) &menuTypePtr);
     if (menuTypePtr != NULL) {
         menuTypePtr->GetInflater(layoutInflater);
     }
@@ -870,8 +988,8 @@ ECode CMenuItemImpl::ShouldShowIcon(
 }
 
 ECode CMenuItemImpl::OnMenuItemClick(
-        /* [in] */ IMenuItem*, 
-        /* [in] */ Elastos::Boolean*) {
+        /* [in] */ IMenuItem* item,
+        /* [in] */ Elastos::Boolean* click) {
 
     return NOERROR;
 }

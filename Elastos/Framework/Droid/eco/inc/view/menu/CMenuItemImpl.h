@@ -11,17 +11,15 @@
 #include <elastos/List.h>
 #include <elastos/Vector.h>
 #include <StringBuffer.h>
-#include "CMenuBuilder.h"
-//#include "CSubMenuBuilder.h"
+#include <elastos/ElRefBase.h>
 
 using namespace Elastos;
-
-class CSubMenuBuilder;
 
 /**
  * @hide
  */
-CarClass(CMenuItemImpl) {
+CarClass(CMenuItemImpl)
+{
 public:
     /**
      * Instantiates this menu item. The constructor
@@ -38,17 +36,22 @@ public:
      * @param title The text to display for the item.
      */
     CMenuItemImpl(
-        /* [in] */ IMenu* menu,
+        /* [in] */ IMenuBuilder* menu,
         /* [in] */ Int32 group,
         /* [in] */ Int32 id,
         /* [in] */ Int32 categoryOrder,
         /* [in] */ Int32 ordering,
-        /* [in] */ String title);
+        /* [in] */ ICharSequence* title);
 
     CMenuItemImpl();
 
-    constructor(        
-        /* [in] */ IMenu* menu,
+    ~CMenuItemImpl();
+
+    virtual PInterface Probe(
+        /* [in] */ REIID riid);
+
+    CARAPI constructor(
+        /* [in] */ IMenuBuilder* menu,
         /* [in] */ Int32 group,
         /* [in] */ Int32 id,
         /* [in] */ Int32 categoryOrder,
@@ -177,7 +180,7 @@ public:
      *         prefers
      */
     CARAPI GetTitleForItemView(
-        /* [in] */ IItemView* itemView,
+        /* [in] */ IMenuItemView* itemView,
         /* [out] */ String* title);
 
     CARAPI SetTitle(
@@ -288,7 +291,7 @@ public:
         /* [out] */ Boolean* show);
 
     CARAPI OnMenuItemClick(
-        /* [in] */ IMenuItem*, 
+        /* [in] */ IMenuItem*,
         /* [in] */ Elastos::Boolean*);
 private:
     /**
@@ -315,7 +318,7 @@ private:
      CARAPI CreateItemView(
         /* [in] */ int menuType,
         /* [in] */ IViewGroup* parent,
-        /* [out] */ IItemView** itemView);
+        /* [out] */ IMenuItemView** itemView);
 
 private:
     static String TAG;
@@ -328,10 +331,10 @@ private:
     /** Used for the icon resource ID if this item does not have an icon */
     static const Int32 NO_ICON = 0;
 
-    const Int32 mId;
-    const Int32 mGroup;
-    const Int32 mCategoryOrder;
-    const Int32 mOrdering;
+    Int32 mId;
+    Int32 mGroup;
+    Int32 mCategoryOrder;
+    Int32 mOrdering;
     String mTitle;
     String mTitleCondensed;
     AutoPtr<IIntent> mIntent;
@@ -348,10 +351,10 @@ private:
     Int32 mIconResId;
 
     /** The (cached) menu item views for this item */
-    IItemView** mItemViews;
+    AutoPtr<IMenuItemView>* mItemViews;
 
     /** The menu to which this item belongs */
-    AutoPtr<IMenu> mMenu;
+    AutoPtr<IMenuBuilder> mMenu;
     /** If this item should launch a sub menu, this is the sub menu to launch */
     //AutoPtr<CSubMenuBuilder> mSubMenu;
     AutoPtr<ISubMenu> mSubMenu;

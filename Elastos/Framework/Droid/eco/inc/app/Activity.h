@@ -18,8 +18,13 @@ class Activity
     : public ElRefBase
     , public IObject
     , public IActivity
+    , public IWindowCallback
+    , public IKeyEventCallback
 {
 public:
+
+    IKeyEventCallback_METHODS_DECL();
+
     Activity();
 
     virtual ~Activity();
@@ -313,6 +318,142 @@ public:
     CARAPI GetTitleColor(
         /* [out] */ Int32* textColor);
 
+    virtual CARAPI OnCreateOptionsMenu(
+        /* [in] */ IMenu* menu,
+        /* [out] */ Boolean* allowToShow);
+
+    CARAPI OnPrepareOptionsMenu(
+        /* [in] */ IMenu* menu,
+        /* [out] */ Boolean* res);
+
+    CARAPI OnContextItemSelected(
+        /* [in] */ IMenuItem* item,
+        /* [out] */ Boolean* res);
+
+    CARAPI OnOptionsItemSelected(
+        /* [in] */ IMenuItem* item,
+        /* [out] */ Boolean* res);
+
+    CARAPI OnOptionsMenuClosed(
+        /* [in] */ IMenu* menu);
+
+    CARAPI OnContextMenuClosed(
+        /* [in] */ IMenu* menu);
+
+    /**
+     * @see Activity#openOptionsMenu()
+     */
+    CARAPI OpenOptionsMenu();
+
+    /**
+     * @see Activity#closeOptionsMenu()
+     */
+    CARAPI CloseOptionsMenu();
+
+    /**
+     * @see Activity#registerForContextMenu(View)
+     */
+    CARAPI RegisterForContextMenu(
+        /* [in] */ IView* view);
+
+    /**
+     * @see Activity#unregisterForContextMenu(View)
+     */
+    CARAPI UnregisterForContextMenu(
+        /* [in] */ IView* view);
+
+    /**
+     * @see Activity#openContextMenu(View)
+     */
+    CARAPI OpenContextMenu(
+        /* [in] */ IView* view);
+
+
+    //For IWindowCallback interface.
+    CARAPI DispatchKeyEvent(
+        /* [in] */ IKeyEvent* event,
+        /* [out] */ Boolean* isConsumed);
+
+    CARAPI DispatchTouchEvent(
+        /* [in] */ IMotionEvent* event,
+        /* [out] */ Boolean* isConsumed);
+
+    CARAPI DispatchTrackballEvent(
+        /* [in] */ IMotionEvent* event,
+        /* [out] */ Boolean* isConsumed);
+
+    CARAPI DispatchPopulateAccessibilityEvent(
+        /* [in] */ IAccessibilityEvent* event,
+        /* [out] */ Boolean* isCompleted);
+
+    CARAPI OnCreatePanelView(
+        /* [in] */ Int32 featureId,
+        /* [out] */ IView** view);
+
+    CARAPI OnCreatePanelMenu(
+        /* [in] */ Int32 featureId,
+        /* [in] */ IMenu* menu,
+        /* [out] */ Boolean* allowToShow);
+
+    CARAPI OnPreparePanel(
+        /* [in] */ Int32 featureId,
+        /* [in] */ IView* view,
+        /* [in] */ IMenu* menu,
+        /* [out] */ Boolean* allowToShow);
+
+    CARAPI OnMenuOpened(
+        /* [in] */ Int32 featureId,
+        /* [in] */ IMenu* menu,
+        /* [out] */ Boolean* allowToOpen);
+
+    CARAPI OnMenuItemSelected(
+        /* [in] */ Int32 featureId,
+        /* [in] */ IMenuItem* item,
+        /* [out] */ Boolean* toFinish);
+
+    CARAPI OnWindowAttributesChanged(
+        /* [in] */ IWindowManagerLayoutParams* attrs);
+
+    CARAPI OnContentChanged();
+
+    CARAPI OnWindowFocusChanged(
+        /* [in] */ Boolean hasFocus);
+
+    CARAPI OnAttachedToWindow();
+
+    CARAPI OnDetachedFromWindow();
+
+    CARAPI OnPanelClosed(
+        /* [in] */ Int32 featureId,
+        /* [in] */ IMenu* menu);
+
+    CARAPI OnSearchRequested(
+        /* [out] */ Boolean* isLaunched);
+
+    //For IKeyEventCallback interface.
+    CARAPI OnKeyDown(
+        /* [in] */ Int32 keyCode,
+        /* [in] */ IKeyEvent* event,
+        /* [out] */ Boolean* result);
+
+    CARAPI OnKeyLongPress(
+        /* [in] */ Int32 keyCode,
+        /* [in] */ IKeyEvent* event,
+        /* [out] */ Boolean* result);
+
+    CARAPI OnKeyUp(
+        /* [in] */ Int32 keyCode,
+        /* [in] */ IKeyEvent* event,
+        /* [out] */ Boolean* result);
+
+    CARAPI OnKeyMultiple(
+        /* [in] */ Int32 keyCode,
+        /* [in] */ Int32 count,
+        /* [in] */ IKeyEvent* event,
+        /* [out] */ Boolean* result);
+
+
+
 public:
     /**
      * Finds a view that was identified by the id attribute from the XML that
@@ -380,6 +521,18 @@ public:
 
     CARAPI RemoveDialog(
         /* [in] */ Int32 id);
+
+    CARAPI OnTouchEvent(
+        /* [in] */ IMotionEvent* event,
+        /* [out] */ Boolean* res);
+
+    CARAPI OnTrackballEvent(
+        /* [in] */ IMotionEvent* event,
+        /* [out] */ Boolean* res);
+
+    ECode OnBackPressed() {
+        return Finish();
+    }
 
 protected:
     CARAPI Finish();
@@ -507,6 +660,14 @@ private:
 
     Int32 mThemeResource;
     AutoPtr<ITheme> mTheme;
+
+    Int32 mDefaultKeyMode;
+
+    static Int32 DEFAULT_KEYS_DISABLE;
+    static Int32 DEFAULT_KEYS_DIALER;
+    static Int32 DEFAULT_KEYS_SHORTCUT;
+    static Int32 DEFAULT_KEYS_SEARCH_LOCAL;
+    static Int32 DEFAULT_KEYS_SEARCH_GLOBAL;
 };
 
 #endif //__ACTIVITY_H__

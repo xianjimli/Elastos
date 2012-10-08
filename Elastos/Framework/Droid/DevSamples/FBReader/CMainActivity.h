@@ -48,6 +48,11 @@ public:
         Int32 mRef;
     };
 
+public:
+    virtual CARAPI OnCreateOptionsMenu(
+        /* [in] */ IMenu* menu,
+        /* [out] */ Boolean* allowToShow);
+
 protected:
     CARAPI OnCreate(
         /* [in] */ IBundle* savedInstanceState);

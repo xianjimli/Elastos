@@ -7,5 +7,8 @@ module
 
         SetSourceDir(
             [in] String sourceDir);
+
+        GetTargetSdkVersion(
+        	[out] Int32* targetSdkVersion);
     }
 }

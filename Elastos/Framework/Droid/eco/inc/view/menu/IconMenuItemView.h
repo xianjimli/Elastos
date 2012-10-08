@@ -11,52 +11,55 @@ public:
     IconMenuItemView(
         /* [in] */ IContextEx* context,
         /* [in] */ AttributeSet attrs,
-        /* [in] */ int defStyle);
+        /* [in] */ Int32 defStyle);
 
     IconMenuItemView(
         /* [in] */ IContextEx* context,
         /* [in] */ AttributeSet attrs);
 
-    CARAPI_(void) Initialize(
+    CARAPI Initialize(
         /* [in] */ MenuItemImpl itemData,
-        /* [in] */ int menuType);
+        /* [in] */ Int32 menuType);
 
     //@Override
-    CARAPI_(Boolean) PerformClick();
+    CARAPI PerformClick(
+        /* [in] */ Boolean* flag);
 
-    CARAPI_(void) SetTitle(
+    CARAPI SetTitle(
         /* [in] */ ICharSequence* title);
 
-    CARAPI_(void) SetIcon(
+    CARAPI SetIcon(
         /* [in] */ IDrawable* icon);
 
-    CARAPI_(void) SetItemInvoker(
+    CARAPI SetItemInvoker(
         /* [in] */ ItemInvoker itemInvoker);
 
     //@ViewDebug.CapturedViewProperty(retrieveReturn = true)
-    CARAPI getItemData(
-        /* [out] */ MenuItemImpl** itemData);
+    CARAPI GetItemData(
+        /* [out] */ IMenuItem** itemData);
 
     //@Override
-    CARAPI_(void) SetVisibility(
-        /* [in] */ int v);
+    CARAPI SetVisibility(
+        /* [in] */ Int32 v);
 
-    CARAPI_(void) SetIconMenuView(
+    CARAPI SetIconMenuView(
         /* [in] */ IconMenuView* iconMenuView);
 
-    CARAPI_(void) SetCheckable(
+    CARAPI SetCheckable(
         /* [in] */ Boolean checkable);
 
-    CARAPI_(void) SetChecked(
+    CARAPI SetChecked(
         /* [in] */ Boolean checked);
 
-    CARAPI_(void) SetShortcut(
+    CARAPI SetShortcut(
         /* [in] */ Boolean showShortcut,
         /* [in] */ char shortcutKey);
 
-    CARAPI_(Boolean) PrefersCondensedTitle();
+    CARAPI PrefersCondensedTitle(
+        /* [out] */ Boolean* flag);
 
-    CARAPI_(Boolean) ShowsIcon();
+    CARAPI ShowsIcon(
+        /* [out] */ Boolean* flag);
 
 protected:
     /**
@@ -64,40 +67,40 @@ protected:
      * @param title The title of this item
      * @param icon The icon of this item
      */
-    CARAPI_(void) Initialize(
+    CARAPI Initialize(
         /* [in] */ ICharSequence* title,
         /* [in] */ IDrawable* icon)£»
 
-    CARAPI_(void) SetCaptionMode(
+    CARAPI SetCaptionMode(
         /* [in] */ Boolean shortcut);
 
     //@Override
-    CARAPI_(void) DrawableStateChanged();
+    CARAPI DrawableStateChanged();
 
     //@Override
-    CARAPI_(void) OnLayout(
+    CARAPI OnLayout(
         /* [in] */ Boolean changed,
-        /* [in] */ int left,
-        /* [in] */ int top,
-        /* [in] */ int right,
-        /* [in] */ int bottom) {
+        /* [in] */ Int32 left,
+        /* [in] */ Int32 top,
+        /* [in] */ Int32 right,
+        /* [in] */ Int32 bottom) {
         super.onLayout(changed, left, top, right, bottom);
 
         positionIcon();
     }
 
     //@Override
-    void OnTextChanged(
+    CARAPI OnTextChanged(
         /* [in] */ ICharSequence* text,
-        /* [in] */ int start,
-        /* [in] */ int before,
-        /* [in] */ int after);
+        /* [in] */ Int32 start,
+        /* [in] */ Int32 before,
+        /* [in] */ Int32 after);
 
     /**
      * @return layout params appropriate for this view.  If layout params already exist, it will
      *         augment them to be appropriate to the current text size.
      */
-    IconMenuView.LayoutParams getTextAppropriateLayoutParams() {
+    IconMenuView.LayoutParams GetTextAppropriateLayoutParams() {
         IconMenuView.LayoutParams lp = (IconMenuView.LayoutParams) getLayoutParams();
         if (lp == null) {
             // Default layout parameters
@@ -106,7 +109,7 @@ protected:
         }
 
         // Set the desired width of item
-        lp.desiredWidth = (int) Layout.getDesiredWidth(getText(), getPaint());
+        lp.desiredWidth = (Int32) Layout.getDesiredWidth(getText(), getPaint());
 
         return lp;
     }
@@ -116,14 +119,13 @@ private:
      * Positions the icon vertically (horizontal centering is taken care of by
      * the TextView's gravity).
      */
-    void positionIcon() {
-
+    ECode PositionIcon() {
         if (mIcon == null) {
-            return;
+            return NOERROR;
         }
 
         // We reuse the output rectangle as a temp rect
-        Rect tmpRect = mPositionIconOutput;
+        AutoPtr<IRect> tmpRect = mPositionIconOutput;
         getLineBounds(0, tmpRect);
         mPositionIconAvailable.set(0, 0, getWidth(), tmpRect.top);
         Gravity.apply(Gravity.CENTER_VERTICAL | Gravity.LEFT, mIcon.getIntrinsicWidth(), mIcon
@@ -133,28 +135,28 @@ private:
 
 
 private:
-    static final int NO_ALPHA = 0xFF;
+    static final Int32 NO_ALPHA = 0xFF;
 
     IconMenuView mIconMenuView;
 
     ItemInvoker mItemInvoker;
     MenuItemImpl mItemData;
 
-    Drawable mIcon;
+    AutoPtr<IDrawable> mIcon;
 
-    int mTextAppearance;
+    Int32 mTextAppearance;
     Context mTextAppearanceContext;
 
     float mDisabledAlpha;
 
-    Rect mPositionIconAvailable = new Rect();
-    Rect mPositionIconOutput = new Rect();
+    AutoPtr<IRect> mPositionIconAvailable = new Rect();
+    AutoPtr<IRect> mPositionIconOutput = new Rect();
 
     boolean mShortcutCaptionMode;
     String mShortcutCaption;
 
     static String sPrependShortcutLabel;
 
-}
+};
 
 #endif //__ICONMENIITEMVIEW_H__

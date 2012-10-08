@@ -11,8 +11,8 @@ using namespace Elastos::Utility::Logging;
 
 //static const std::string FILE_PATH = "/data/data/com.elastos.runtime/elastos/FBReader/Books/doyle-lost-world.epub";
 //static const std::string FILE_PATH = "/data/data/com.elastos.runtime/elastos/FBReader/Books/MiniHelp.en.fb2";
-static const std::string FILE_PATH = "/data/data/com.elastos.runtime/elastos/FBReader/Books/daodejing.epub";
-//static const std::string FILE_PATH = "/data/data/com.elastos.runtime/elastos/FBReader/Books/MiniHelp.zh.fb2";
+//static const std::string FILE_PATH = "/data/data/com.elastos.runtime/elastos/FBReader/Books/daodejing.epub";
+static const std::string FILE_PATH = "/data/data/com.elastos.runtime/elastos/FBReader/Books/MiniHelp.zh.fb2";
 
 const String CBook::TAG("CBook");
 

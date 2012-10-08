@@ -6,9 +6,15 @@ include $(MAKEDIR)/../../../../sources.inc
 INCLUDES += $(MAKEDIR)/../../../inc
 INCLUDES += $(MAKEDIR)/../../../inc/view/menu
 INCLUDES += ../../
+INCLUDES += $(PREBUILD_INC)/skia/utils
+INCLUDES += $(PREBUILD_INC)/skia/core
 
 SOURCES += CMenuType.cpp
 SOURCES += CMenuItemImpl.cpp
+SOURCES += MenuBuilder.cpp
 SOURCES += CMenuBuilder.cpp
+SOURCES += SubMenuBuilder.cpp
 SOURCES += CSubMenuBuilder.cpp
-
+SOURCES += CMenuDialogHelper.cpp
+SOURCES += ContextMenuBuilder.cpp
+SOURCES += CExpandedMenuView.cpp

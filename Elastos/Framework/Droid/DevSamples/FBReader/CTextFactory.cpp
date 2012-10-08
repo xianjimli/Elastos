@@ -62,8 +62,8 @@ ECode CTextFactory::ProcessText(
 
 			if (lineEnd > lineStart) {
 				Int32 startLen = 0, endLen = 0;
-				System::Character::GetOffsetByChars(strText, 0, lineStart, &startLen);
-				System::Character::GetOffsetByChars(strText, 0, lineEnd, &endLen);
+				Core::Character::GetOffsetByChars(strText, 0, lineStart, &startLen);
+				Core::Character::GetOffsetByChars(strText, 0, lineEnd, &endLen);
 				String subText = strText.Substring(startLen, endLen - startLen);
 				nodeText.Append(subText);
 			}
@@ -85,8 +85,8 @@ ECode CTextFactory::ProcessText(
 
 			if (i != 0 && i % limitCount == 0) {
 				Int32 startLen = 0, endLen = 0;
-				System::Character::GetOffsetByChars(strText, 0, sumStart, &startLen);
-				System::Character::GetOffsetByChars(strText, 0, sumEnd, &endLen);
+				Core::Character::GetOffsetByChars(strText, 0, sumStart, &startLen);
+				Core::Character::GetOffsetByChars(strText, 0, sumEnd, &endLen);
 				nodeText = strText.Substring(startLen, endLen - startLen);
 
 				printf("new page==== File: %s, Line: %d ==== sumStart  = [%d], sumEnd  = [%d]\n", __FILE__, __LINE__, sumStart, sumEnd);
@@ -134,8 +134,8 @@ ECode CTextFactory::ProcessText(
 
 			if (lineEnd > lineStart) {
 				Int32 startLen = 0, endLen = 0;
-				System::Character::GetOffsetByChars(strText, 0, lineStart, &startLen);
-				System::Character::GetOffsetByChars(strText, 0, lineEnd, &endLen);
+				Core::Character::GetOffsetByChars(strText, 0, lineStart, &startLen);
+				Core::Character::GetOffsetByChars(strText, 0, lineEnd, &endLen);
 				String subText = strText.Substring(startLen, endLen - startLen);
 
 				nodeText.Append(subText);

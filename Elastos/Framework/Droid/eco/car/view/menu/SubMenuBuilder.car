@@ -1,0 +1,43 @@
+
+module
+{
+    interface IMenuItem;
+    interface ISubMenu;
+    interface IMenu;
+
+    interface ISubMenuBuilder extends IMenuBuilder {
+		GetParentMenu(
+	        [out] IMenu** menu);
+
+		GetItemEx(
+        	[out] IMenuItem** menuItem);
+
+	    SetIconEx(
+	        [in] IDrawable* icon,
+	        [out] ISubMenu** submenu);
+
+	    SetIcon(
+	        [in] Int32 iconRes,
+	        [out] ISubMenu** submenu);
+
+	    SetHeaderIconEx(
+	        [in] IDrawable* icon,
+	        [out] ISubMenu** submenu);
+
+	    SetHeaderIcon(
+	        [in] Int32 iconRes,
+	        [out] ISubMenu** submenu);
+
+	    SetHeaderTitleEx(
+	        [in] ICharSequence* title,
+	        [out] ISubMenu** submenu);
+
+	    SetHeaderTitle(
+	        [in] Int32 titleRes,
+	        [out] ISubMenu** submenu);
+
+	    SetHeaderView(
+	        [in] IView* view,
+	        [out] ISubMenu** submenu);
+    }
+}

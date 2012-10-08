@@ -2,14 +2,16 @@
 module
 {
     merge("view/AbsSavedState.car");
-    merge("view/menu.car");
-    merge("view/menuitem.car");
-    merge("view/submenu.car");
-    merge("view/contextmenu.car");
+    merge("view/Menu.car");
+    merge("view/MenuItem.car");
+    merge("view/SubMenu.car");
+    merge("view/ContextMenu.car");
     merge("view/surface.car");
     merge("view/surfacesession.car");
     merge("view/view.car");
-    merge("view/menuview.car");
+    merge("view/menu/MenuBuilder.car");
+    merge("view/menu/SubMenuBuilder.car");
+    merge("view/menu/MenuView.car");
     merge("view/viewgroup.car");
     merge("view/viewparent.car");
     merge("view/viewmanager.car");
@@ -812,5 +814,44 @@ module
 
     singleton class CAnimationUtils {
         interface IAnimationUtils;
+    }
+
+
+    //Menu
+    class CMenuBuilder {
+        interface IMenuBuilder;
+
+        constructor(
+            [in] IContext* context);
+    }
+
+    class CMenuItemImpl {
+        interface IMenuItem;
+        interface IOnMenuItemClickListener;
+
+        constructor(
+            [in] IMenuBuilder* menu,
+            [in] Int32 group,
+            [in] Int32 id,
+            [in] Int32 categoryOrder,
+            [in] Int32 ordering,
+            [in] ICharSequence* title);
+    }
+
+    class CMenuType {
+        interface IMenuBuilderType;
+
+        constructor(
+            [in] Int32 menuType,
+            [in] IMenuBuilder* cmb);
+    }
+
+    class CSubMenuBuilder {
+        interface ISubMenu;
+
+        constructor(
+            [in] IContext* context,
+            [in] IMenuBuilder* parentMenu,
+            [in] IMenuItem* item);
     }
 }

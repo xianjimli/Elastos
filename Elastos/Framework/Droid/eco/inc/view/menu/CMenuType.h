@@ -5,7 +5,6 @@
 #include "_CMenuType.h"
 #include <elastos/AutoPtr.h>
 
-
 using namespace Elastos;
 
 class CMenuBuilder;
@@ -29,16 +28,17 @@ CarClass(CMenuType) {
 
         CMenuType(
             /* [in] */ Int32 menuType,
-            /* [in] */ IMenu* cmb) {
+            /* [in] */ IMenuBuilder* cmb) {
             mMenuType = menuType;
             m_cmb = (CMenuBuilder*)cmb;
         }
 
-        constructor (
+        CARAPI constructor (
             /* [in] */ Int32 menuType,
-            /* [in] */ IMenu* cmb) {
+            /* [in] */ IMenuBuilder* cmb) {
             mMenuType = menuType;
             m_cmb = (CMenuBuilder*)cmb;
+            return NOERROR;
         }
 
         virtual CARAPI GetInflater(
@@ -57,6 +57,5 @@ CarClass(CMenuType) {
         virtual CARAPI HasMenuView(
             /* [out] */ Boolean* has);
 };
-
 
 #endif  //__CMENUTYPE_H__

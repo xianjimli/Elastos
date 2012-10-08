@@ -103,13 +103,4 @@ module
         GetItemEx(
             [out] IMenuItem** item);
     }
-
-    class CSubMenuBuilder {
-        interface ISubMenu;
-
-        constructor(
-            [in] IContext* context,
-            [in] IMenu* parentMenu,
-            [in] IMenuItem* item);
-    }
 }

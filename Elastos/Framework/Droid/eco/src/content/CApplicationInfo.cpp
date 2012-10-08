@@ -73,6 +73,13 @@ ECode CApplicationInfo::constructor(
     return NOERROR;
 }
 
+ECode CApplicationInfo::GetTargetSdkVersion(
+    /* [out] */ Int32* targetSdkVersion)
+{
+    *targetSdkVersion = mTargetSdkVersion;
+    return NOERROR;
+}
+
 ECode CApplicationInfo::GetSourceDir(
     /* [out] */ String* sourceDir)
 {

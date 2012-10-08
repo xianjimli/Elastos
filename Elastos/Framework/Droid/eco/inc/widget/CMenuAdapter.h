@@ -13,23 +13,25 @@ CarClass(CMenuAdapter)
 {
     private:
         Int32 mMenuType;
-        IMenu* m_cmb;
+        IMenuBuilder* m_cmb;
 
     public:
         CMenuAdapter(){}
 
         CMenuAdapter(
             /* [in] */ Int32 menuType,
-            /* [in] */ IMenu* cmb) {
+            /* [in] */ IMenuBuilder* cmb) {
             mMenuType = menuType;
             m_cmb = cmb;
         }
 
-        constructor(
+        CARAPI constructor(
             /* [in] */ Int32 menuType,
-            /* [in] */ IMenu* cmb) {
+            /* [in] */ IMenuBuilder* cmb) {
             mMenuType = menuType;
             m_cmb = cmb;
+
+            return NOERROR;
         }
 
         CARAPI GetOffset(
@@ -80,7 +82,7 @@ CarClass(CMenuAdapter)
             /* [out] */ Boolean*);
 
         virtual CARAPI IsEnabled(
-            /* [in] */ Int32, 
+            /* [in] */ Int32,
             /* [out] */ Boolean*);
 
         virtual CARAPI NotifyDataSetChanged();

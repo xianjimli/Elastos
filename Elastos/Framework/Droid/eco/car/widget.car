@@ -42,7 +42,7 @@ module
     merge("widget/RemoteViews.car");
     merge("widget/TabWidget.car");
     merge("widget/TabHost.car");
-    merge("widget/Itemview.car");
+    //merge("widget/Itemview.car");
     merge("widget/MenuAdapter.car");
     merge("widget/RadioGroup.car");
 
