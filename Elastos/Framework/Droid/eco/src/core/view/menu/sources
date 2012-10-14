@@ -1,0 +1,21 @@
+
+TARGET_NAME= menu
+TARGET_TYPE= lib
+
+include $(MAKEDIR)/../../../../../sources.inc
+INCLUDES += $(MAKEDIR)/../../../../inc/core
+INCLUDES += ../../
+INCLUDES += $(PREBUILD_INC)/skia/utils
+INCLUDES += $(PREBUILD_INC)/skia/core
+
+C_DEFINES += -D_FRAMEWORK_CORE
+
+SOURCES += CMenuType.cpp
+SOURCES += CMenuItemImpl.cpp
+SOURCES += MenuBuilder.cpp
+SOURCES += CMenuBuilder.cpp
+SOURCES += SubMenuBuilder.cpp
+SOURCES += CSubMenuBuilder.cpp
+SOURCES += CMenuDialogHelper.cpp
+SOURCES += ContextMenuBuilder.cpp
+SOURCES += CExpandedMenuView.cpp

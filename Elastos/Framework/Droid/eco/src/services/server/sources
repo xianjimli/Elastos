@@ -1,0 +1,53 @@
+TARGET_NAME= server
+TARGET_TYPE= lib
+
+include $(MAKEDIR)/../../../../sources.inc
+
+INCLUDES += $(MAKEDIR)/../../../inc/core
+INCLUDES += $(MAKEDIR)/../../../inc/services
+INCLUDES += ../
+ifeq "$(XDK_TARGET_PLATFORM)" "linux"
+INCLUDES += $(PREBUILD_INC)/skia/utils
+INCLUDES += $(PREBUILD_INC)/skia/core
+endif
+
+C_DEFINES += -D_FRAMEWORK_SERVER
+
+SOURCES = CCapsuleManagerService.cpp
+SOURCES += CActivityManagerService.cpp
+SOURCES += ActivityStack.cpp
+SOURCES += CActivityRecord.cpp
+SOURCES += ProcessRecord.cpp
+SOURCES += BroadcastFilter.cpp
+SOURCES += BroadcastRecord.cpp
+SOURCES += ReceiverList.cpp
+SOURCES += ContentProviderRecord.cpp
+SOURCES += ActivityResult.cpp
+SOURCES += TaskRecord.cpp
+SOURCES += IntentBindRecord.cpp
+SOURCES += CBatteryStatsService.cpp
+SOURCES += AppBindRecord.cpp
+SOURCES += CServiceRecord.cpp
+SOURCES += ConnectionRecord.cpp
+SOURCES += PendingThumbnailsRecord.cpp
+SOURCES += CPendingIntentRecord.cpp
+SOURCES += Key.cpp
+SOURCES += BackupRecord.cpp
+SOURCES += UriPermission.cpp
+SOURCES += UriPermissionOwner.cpp
+SOURCES += CServiceRestarter.cpp
+SOURCES += AttributeCache.cpp
+SOURCES += CWindowManagerService.cpp
+SOURCES += CWindowSession.cpp
+SOURCES += Installer.cpp
+SOURCES += InputManager.cpp
+SOURCES += NativeInputManager.cpp
+SOURCES += InputManagerCallbacks.cpp
+SOURCES += InputWindowList.cpp
+SOURCES += SystemServer.cpp
+SOURCES += CLightsService.cpp
+SOURCES += CStatusBarManagerService.cpp
+SOURCES += CNotificationManagerService.cpp
+SOURCES += CLocationManagerService.cpp
+
+LIBRARIES += location/location.lib

@@ -1,0 +1,16 @@
+TARGET_NAME= net
+TARGET_TYPE= lib
+
+include $(MAKEDIR)/../../../../sources.inc
+
+INCLUDES += $(MAKEDIR)/../../../inc/core
+INCLUDES += ../
+
+C_DEFINES += -D_FRAMEWORK_CORE
+
+SOURCES = Uri.cpp
+SOURCES += CStringUri.cpp
+SOURCES += CCredentials.cpp
+SOURCES += CLocalSocketAddress.cpp
+SOURCES += CLocalSocket.cpp
+SOURCES += SntpClient.cpp

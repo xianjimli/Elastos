@@ -1,7 +1,7 @@
 TARGET_NAME= framework
 TARGET_TYPE= lib
 
-VPATH := $(MAKEDIR)/../eco/src/app:$(MAKEDIR)/../eco/src/content
+VPATH := $(MAKEDIR)/../eco/src/core/app:$(MAKEDIR)/../eco/src/core/content
 
 EXPORT_LIBRARY= 1
 
@@ -15,4 +15,3 @@ SOURCES += Service.cpp
 SOURCES += Instrumentation.cpp
 SOURCES += BroadcastReceiver.cpp
 SOURCES += ContentProvider.cpp
-#SOURCES += frameworkext.cpp

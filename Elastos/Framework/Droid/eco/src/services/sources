@@ -1,45 +1,44 @@
 TARGET_NAME= Elastos.Framework.Server
 TARGET_TYPE= eco
 
-VPATH := $(MAKEDIR)/../os:$(MAKEDIR)/../ext:$(MAKEDIR)/../view:$(MAKEDIR)/../view/animation:$(MAKEDIR)/../location:$(MAKEDIR)/../net:$(MAKEDIR)/../content:$(MAKEDIR)/../app:$(MAKEDIR)/../capsule:$(MAKEDIR)/../utils:$(MAKEDIR)/../location
+VPATH := $(MAKEDIR)/../core/os:$(MAKEDIR)/../core/ext:$(MAKEDIR)/../core/view:$(MAKEDIR)/../core/view/animation:$(MAKEDIR)/../core/location:$(MAKEDIR)/../core/net:$(MAKEDIR)/../core/content:$(MAKEDIR)/../core/app:$(MAKEDIR)/../core/capsule:$(MAKEDIR)/../core/utils:$(MAKEDIR)/../core/location
 
 include $(MAKEDIR)/../../../sources.inc
 
-INCLUDES += $(MAKEDIR)/../../inc
-INCLUDES += $(MAKEDIR)/../../inc/app
-INCLUDES += $(MAKEDIR)/../../inc/capsule
-INCLUDES += $(MAKEDIR)/../../inc/content
-INCLUDES += $(MAKEDIR)/../../inc/content/cm
-INCLUDES += $(MAKEDIR)/../../inc/ext
-INCLUDES += $(MAKEDIR)/../../inc/net
-INCLUDES += $(MAKEDIR)/../../inc/server
-INCLUDES += $(MAKEDIR)/../../inc/server/location
-INCLUDES += $(MAKEDIR)/../../inc/utils
-INCLUDES += $(MAKEDIR)/../../inc/xg
-INCLUDES += $(MAKEDIR)/../../inc/xmlparser
-INCLUDES += $(MAKEDIR)/../../inc/os
-INCLUDES += $(MAKEDIR)/../../inc/graphics
-INCLUDES += $(MAKEDIR)/../../inc/graphics/drawable
-INCLUDES += $(MAKEDIR)/../../inc/graphics/drawable/shapes
-INCLUDES += $(MAKEDIR)/../../inc/view
-INCLUDES += $(MAKEDIR)/../../inc/view/inputmethod
-INCLUDES += $(MAKEDIR)/../../inc/view/animation
-INCLUDES += $(MAKEDIR)/../../inc/view/menu
-INCLUDES += $(MAKEDIR)/../../inc/impl
-INCLUDES += $(MAKEDIR)/../../inc/widget
-INCLUDES += $(MAKEDIR)/../../inc/text
-INCLUDES += $(MAKEDIR)/../../inc/database
-INCLUDES += $(MAKEDIR)/../../inc/statusbar
-INCLUDES += $(MAKEDIR)/../../inc/location
-INCLUDES += $(MAKEDIR)/../../inc/systemui/
-INCLUDES += $(MAKEDIR)/../../inc/systemui/statusbar
+INCLUDES += $(MAKEDIR)/../../inc/core
+INCLUDES += $(MAKEDIR)/../../inc/core/app
+INCLUDES += $(MAKEDIR)/../../inc/core/capsule
+INCLUDES += $(MAKEDIR)/../../inc/core/content
+INCLUDES += $(MAKEDIR)/../../inc/core/content/cm
+INCLUDES += $(MAKEDIR)/../../inc/core/ext
+INCLUDES += $(MAKEDIR)/../../inc/core/net
+INCLUDES += $(MAKEDIR)/../../inc/core/utils
+INCLUDES += $(MAKEDIR)/../../inc/core/xg
+INCLUDES += $(MAKEDIR)/../../inc/core/xmlparser
+INCLUDES += $(MAKEDIR)/../../inc/core/os
+INCLUDES += $(MAKEDIR)/../../inc/core/graphics
+INCLUDES += $(MAKEDIR)/../../inc/core/graphics/drawable
+INCLUDES += $(MAKEDIR)/../../inc/core/graphics/drawable/shapes
+INCLUDES += $(MAKEDIR)/../../inc/core/view
+INCLUDES += $(MAKEDIR)/../../inc/core/view/inputmethod
+INCLUDES += $(MAKEDIR)/../../inc/core/view/animation
+INCLUDES += $(MAKEDIR)/../../inc/core/view/menu
+INCLUDES += $(MAKEDIR)/../../inc/core/impl
+INCLUDES += $(MAKEDIR)/../../inc/core/widget
+INCLUDES += $(MAKEDIR)/../../inc/core/text
+INCLUDES += $(MAKEDIR)/../../inc/core/database
+INCLUDES += $(MAKEDIR)/../../inc/core/statusbar
+INCLUDES += $(MAKEDIR)/../../inc/core/location
+INCLUDES += $(MAKEDIR)/../../inc/core/systemui/
+INCLUDES += $(MAKEDIR)/../../inc/core/systemui/statusbar
 INCLUDES += $(MAKEDIR)/../../inc/services
+INCLUDES += $(MAKEDIR)/../../inc/services/server
+INCLUDES += $(MAKEDIR)/../../inc/services/server/location
 ifeq "$(XDK_TARGET_PLATFORM)" "linux"
 INCLUDES += $(PREBUILD_INC)/skia/utils
 INCLUDES += $(PREBUILD_INC)/skia/core
 endif
 
-C_DEFINES += -D_FRAMEWORK
 C_DEFINES += -D_FRAMEWORK_SERVER
 
 SOURCES = Elastos.Framework.Server.car
@@ -73,24 +72,7 @@ SOURCES += LocationProvider.cpp
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Core.lib
-//LIBRARIES += ../capsule/capsule.lib
-//LIBRARIES += ../net/net.lib
-//LIBRARIES += ../content/content.lib
-//LIBRARIES += ../app/application.lib
-LIBRARIES += ../server/server.lib
-//LIBRARIES += ../utils/utils.lib
-//LIBRARIES += ../ext/ext.lib
-//LIBRARIES += ../os/os.lib
-//LIBRARIES += ../graphics/graphics.lib
-//LIBRARIES += ../view/view.lib
-//LIBRARIES += ../impl/impl.lib
-//LIBRARIES += ../widget/widget.lib
-//LIBRARIES += ../text/text.lib
-//LIBRARIES += ../emoji/emoji.lib
-//LIBRARIES += ../database/database.lib
-//LIBRARIES += ../statusbar/statusbar.lib
-//LIBRARIES += ../location/location.lib
-//LIBRARIES += ../systemui/systemui.lib
+LIBRARIES += server/server.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.Logging.lib
 
 ifeq "$(XDK_TARGET_PLATFORM)" "win32"
@@ -104,5 +86,5 @@ else
 LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
 LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
 LIBRARIES += $(XDK_USER_LIB)/crt0.lib
-LIBRARIES += -lexpat -llog -lutils -lbinder -lskia -lskiagl -lsurfaceflinger_client -lui -lcutils
+LIBRARIES += -llog -lutils -lui -lcutils
 endif
