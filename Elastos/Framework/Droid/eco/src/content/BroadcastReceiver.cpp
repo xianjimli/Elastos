@@ -1,5 +1,5 @@
 
-#ifdef _FRAMEWORK
+#ifdef _FRAMEWORK_CORE
 #include "content/BroadcastReceiver.h"
 #include "os/CBundle.h"
 #else

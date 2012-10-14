@@ -1,6 +1,6 @@
 
-#include "CMenuItemImpl.h"
-#include "CMenuBuilder.h"
+#include "view/menu/CMenuItemImpl.h"
+#include "view/menu/CMenuBuilder.h"
 #include <stdio.h>
 
 String CMenuItemImpl::TAG = String("CMenuItemImpl");

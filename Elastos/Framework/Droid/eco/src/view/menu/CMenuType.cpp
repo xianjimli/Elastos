@@ -1,6 +1,6 @@
 
-#include "CMenuType.h"
-#include "CMenuBuilder.h"
+#include "view/menu/CMenuType.h"
+#include "view/menu/CMenuBuilder.h"
 
 ECode CMenuType::GetInflater(
     /* [out] */ ILayoutInflater** layoutInflater) {

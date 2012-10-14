@@ -1,6 +1,6 @@
 
-#include "CMenuBuilder.h"
-#include "MenuBuilderMacro.h"
+#include "view/menu/CMenuBuilder.h"
+#include "view/menu/MenuBuilderMacro.h"
 #include <stdio.h>
 
 IMENUBUILDER_METHODS_IMPL(CMenuBuilder, MenuBuilder, NULL);

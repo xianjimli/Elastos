@@ -1,5 +1,5 @@
 
-#include "CSubMenuBuilder.h"
+#include "view/menu/CSubMenuBuilder.h"
 
 IMENUBUILDER_METHODS_IMPL(CSubMenuBuilder, MenuBuilder, NULL);
 

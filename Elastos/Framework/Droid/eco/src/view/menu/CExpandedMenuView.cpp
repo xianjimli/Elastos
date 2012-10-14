@@ -1,5 +1,5 @@
 
-#include "CExpandedMenuView.h"
+#include "view/menu/CExpandedMenuView.h"
 #include "widget/CMenuAdapter.h"
 
 static Int32 R_Styleable_MenuView[] = {

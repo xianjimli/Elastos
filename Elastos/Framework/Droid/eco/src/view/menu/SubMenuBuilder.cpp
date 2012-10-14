@@ -1,5 +1,5 @@
 
-#include "SubMenuBuilder.h"
+#include "view/menu/SubMenuBuilder.h"
 
 /**
  * The model for a sub menu, which is an extension of the menu.  Most methods are proxied to

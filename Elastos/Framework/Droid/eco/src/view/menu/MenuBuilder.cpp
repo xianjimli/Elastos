@@ -1,10 +1,10 @@
 
-#include "MenuBuilder.h"
-#include "CSubMenuBuilder.h"
+#include "view/menu/MenuBuilder.h"
+#include "view/menu/CSubMenuBuilder.h"
 #include "view/ElKeyCharacterMap.h"
 #include "widget/CMenuAdapter.h"
 #include "utils/CObjectIntegerMap.h"
-#include "CMenuType.h"
+#include "view/menu/CMenuType.h"
 #include <stdio.h>
 
 const String MenuBuilder::LOGTAG = String("MenuBuilder");

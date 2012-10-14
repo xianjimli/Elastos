@@ -1,6 +1,6 @@
 
-#include "ContextMenuBuilder.h"
-#include "CMenuDialogHelper.h"
+#include "view/menu/ContextMenuBuilder.h"
+#include "view/menu/CMenuDialogHelper.h"
 
 IMENUBUILDER_METHODS_IMPL(ContextMenuBuilder, MenuBuilder, NULL);
 

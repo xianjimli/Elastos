@@ -1,7 +1,7 @@
 
-#include "CMenuDialogHelper.h"
-#include "CMenuBuilder.h"
-#include "CAlertDialogBuilder.h"
+#include "view/menu/CMenuDialogHelper.h"
+#include "view/menu/CMenuBuilder.h"
+#include "app/CAlertDialogBuilder.h"
 #include "view/CWindowManagerLayoutParams.h"
 
 PInterface CMenuDialogHelper::Probe(

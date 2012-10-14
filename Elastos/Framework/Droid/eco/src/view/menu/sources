@@ -4,7 +4,6 @@ TARGET_TYPE= lib
 
 include $(MAKEDIR)/../../../../sources.inc
 INCLUDES += $(MAKEDIR)/../../../inc
-INCLUDES += $(MAKEDIR)/../../../inc/view/menu
 INCLUDES += ../../core
 INCLUDES += $(PREBUILD_INC)/skia/utils
 INCLUDES += $(PREBUILD_INC)/skia/core
