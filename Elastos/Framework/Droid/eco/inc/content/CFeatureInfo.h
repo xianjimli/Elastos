@@ -20,6 +20,24 @@ public:
     CARAPI GetGlEsVersion(
         /* [out] */ String* ver);
 
+    CARAPI GetName(
+        /* [out] */ String* name);
+
+    CARAPI SetName(
+        /* [in] */ const String& name);
+
+    CARAPI GetReqGlEsVersion(
+        /* [out] */ Int32* reqGlEsVersion);
+
+    CARAPI SetReqGlEsVersion(
+        /* [in] */ Int32 reqGlEsVersion);
+
+    CARAPI GetFlags(
+        /* [out] */ Int32* flags);
+
+    CARAPI SetFlags(
+        /* [in] */ Int32 flags);
+
     CARAPI ReadFromParcel(
         /* [in] */ IParcel* source);
 

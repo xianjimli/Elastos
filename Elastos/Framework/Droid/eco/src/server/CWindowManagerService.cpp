@@ -1,28 +1,13 @@
 
 #include "server/CWindowManagerService.h"
 #include <Slogger.h>
-#include "capsule/CActivityInfo.h"
 #include "view/WindowManagerPolicy.h"
-#include "view/CWindowManagerImpl.h"
-#include "view/CSurface.h"
 #include "view/ViewTreeObserver.h"
-#include "view/CInputDevice.h"
-#include "view/CMotionEvent.h"
-#include "view/CGravity.h"
-#include "view/animation/CTransformation.h"
-#include "view/animation/CAccelerateInterpolator.h"
-#include "view/animation/AnimationUtils.h"
-#include "impl/CPolicyManager.h"
 #include "graphics/ElPixelFormat.h"
-#include "graphics/CMatrix.h"
 #include "os/SystemClock.h"
-#include "utils/CDisplayMetrics.h"
-#include "utils/CTypedValue.h"
-#include "content/CompatibilityInfo.h"
 #include <elastos/Math.h>
 #include <Logger.h>
 
-#include "graphics/CPaint.h"
 
 using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
@@ -270,7 +255,7 @@ CWindowManagerService::AppWindowToken::AppWindowToken(
     mAppToken(token),
     mGroupId(-1),
     mAppFullscreen(FALSE),
-    mRequestedOrientation(CActivityInfo::SCREEN_ORIENTATION_UNSPECIFIED),
+    mRequestedOrientation(ActivityInfo_SCREEN_ORIENTATION_UNSPECIFIED),
     mInPendingTransaction(FALSE),
     mAllDrawn(FALSE),
     mWillBeHidden(FALSE),
@@ -305,7 +290,7 @@ CWindowManagerService::CWindowManagerService() :
     mInitialDisplayHeight(0),
     mRotation(0),
     mRequestedRotation(0),
-    mForcedAppOrientation(CActivityInfo::SCREEN_ORIENTATION_UNSPECIFIED),
+    mForcedAppOrientation(ActivityInfo_SCREEN_ORIENTATION_UNSPECIFIED),
     mLayoutNeeded(TRUE),
     mAnimationPending(FALSE),
     mDisplayFrozen(FALSE),
@@ -335,17 +320,19 @@ CWindowManagerService::CWindowManagerService() :
     mBackgroundFillerShown(FALSE),
     mInLayout(FALSE)
 {
-    assert(SUCCEEDED(CApartment::GetDefaultApartment((IApartment**)&mApartment))
+    AutoPtr<IApartmentHelper> helper;
+    assert(SUCCEEDED(CApartmentHelper::AcquireSingleton((IApartmentHelper**)&helper)));
+    assert(SUCCEEDED(helper->GetDefaultApartment((IApartment**)&mApartment))
             && (mApartment != NULL));
 
 //    WindowManagerPolicy mPolicy = PolicyManager.makeNewWindowManager();
     AutoPtr<IPolicyManager> pm;
     assert(SUCCEEDED(CPolicyManager::AcquireSingleton((IPolicyManager**)&pm)));
     assert(SUCCEEDED(pm->MakeNewWindowManager((IWindowManagerPolicy**)&mPolicy)));
-    assert(SUCCEEDED(CConfiguration::NewByFriend(
-            (CConfiguration**)&mCurConfiguration)));
-    assert(SUCCEEDED(CConfiguration::NewByFriend(
-            (CConfiguration**)&mTempConfiguration)));
+    assert(SUCCEEDED(CConfiguration::New(
+            (IConfiguration**)&mCurConfiguration)));
+    assert(SUCCEEDED(CConfiguration::New(
+            (IConfiguration**)&mTempConfiguration)));
 
     assert(SUCCEEDED(CRect::New((IRect**)&mCompatibleScreenFrame)));
 
@@ -391,7 +378,9 @@ CWindowManagerService::~CWindowManagerService()
 Boolean CWindowManagerService::CanBeImeTarget(
     /* [in] */ WindowState* w)
 {
-    Int32 fl = w->mAttrs->mFlags
+    Int32 flags;
+    w->mAttrs->GetFlags(&flags);
+    Int32 fl = flags
             & (WindowManagerLayoutParams_FLAG_NOT_FOCUSABLE | WindowManagerLayoutParams_FLAG_ALT_FOCUSABLE_IM);
     if (fl == 0 || fl ==
             (WindowManagerLayoutParams_FLAG_NOT_FOCUSABLE|WindowManagerLayoutParams_FLAG_ALT_FOCUSABLE_IM)) {
@@ -421,8 +410,10 @@ CWindowManagerService::FindDesiredInputMethodWindowIndexLocked(
             // is not actually looking to move the IME, look down below
             // for a real window to target...
             List<AutoPtr<WindowState> >::ReverseIterator temp = rit;
+            Int32 type;
+            w->mAttrs->GetType(&type);
             if (!willMove
-                    && w->mAttrs->mType == WindowManagerLayoutParams_TYPE_APPLICATION_STARTING
+                    && type == WindowManagerLayoutParams_TYPE_APPLICATION_STARTING
                     && ++temp != localmWindows.REnd()) {
                 AutoPtr<WindowState> wb = *temp;
                 if (wb->mAppToken == w->mAppToken && CanBeImeTarget(wb)) {
@@ -773,13 +764,15 @@ void CWindowManagerService::SetTransparentRegionWindow(
     AutoPtr<WindowState> w = WindowForClientLocked(session, client, FALSE);
     if ((w != NULL) && (w->mSurface != NULL)) {
 //        if (SHOW_TRANSACTIONS) Slog.i(TAG, ">>> OPEN TRANSACTION");
-        CSurface::OpenTransaction();
+        AutoPtr<ISurfaceHelper> helper;
+        CSurfaceHelper::AcquireSingleton((ISurfaceHelper**)&helper);
+        helper->OpenTransaction();
 //        try {
 //            if (SHOW_TRANSACTIONS) logSurface(w,
 //                    "transparentRegionHint=" + region, NULL);
         w->mSurface->SetTransparentRegionHint(region);
 //        if (SHOW_TRANSACTIONS) Slog.i(TAG, "<<< CLOSE TRANSACTION");
-        CSurface::CloseTransaction();
+        helper->CloseTransaction();
 //        } finally {
 //            if (SHOW_TRANSACTIONS) Slog.i(TAG, "<<< CLOSE TRANSACTION");
 //            Surface.closeTransaction();
@@ -906,7 +899,9 @@ void CWindowManagerService::FinishDrawingWindow(
 
     AutoPtr<WindowState> win = WindowForClientLocked(session, client, FALSE);
     if (win != NULL && win->FinishDrawingLocked()) {
-        if ((win->mAttrs->mFlags & WindowManagerLayoutParams_FLAG_SHOW_WALLPAPER) != 0) {
+        Int32 flags;
+        win->mAttrs->GetFlags(&flags);
+        if ((flags & WindowManagerLayoutParams_FLAG_SHOW_WALLPAPER) != 0) {
             AdjustWallpaperWindowsLocked();
         }
         mLayoutNeeded = TRUE;
@@ -1116,28 +1111,29 @@ Int32 CWindowManagerService::GetOrientationFromWindowsLocked()
         if (wtoken->mAppToken != NULL) {
             // We hit an application window. so the orientation will be determined by the
             // app window. No point in continuing further.
-            return CActivityInfo::SCREEN_ORIENTATION_UNSPECIFIED;
+            return ActivityInfo_SCREEN_ORIENTATION_UNSPECIFIED;
         }
         if (!wtoken->IsVisibleLw() || !wtoken->mPolicyVisibilityAfterAnim) {
             continue;
         }
 
-        Int32 req = wtoken->mAttrs->mScreenOrientation;
-        if((req == CActivityInfo::SCREEN_ORIENTATION_UNSPECIFIED) ||
-                (req == CActivityInfo::SCREEN_ORIENTATION_BEHIND)){
+        Int32 req;
+        wtoken->mAttrs->GetScreenOrientation(&req);
+        if((req == ActivityInfo_SCREEN_ORIENTATION_UNSPECIFIED) ||
+                (req == ActivityInfo_SCREEN_ORIENTATION_BEHIND)){
             continue;
         }
         else {
             return req;
         }
     }
-    return CActivityInfo::SCREEN_ORIENTATION_UNSPECIFIED;
+    return ActivityInfo_SCREEN_ORIENTATION_UNSPECIFIED;
 }
 
 Int32 CWindowManagerService::GetOrientationFromAppTokensLocked()
 {
     Int32 curGroup = 0;
-    Int32 lastOrientation = CActivityInfo::SCREEN_ORIENTATION_UNSPECIFIED;
+    Int32 lastOrientation = ActivityInfo_SCREEN_ORIENTATION_UNSPECIFIED;
     Boolean findingBehind = FALSE;
     Boolean haveGroup = FALSE;
     Boolean lastFullscreen = FALSE;
@@ -1166,7 +1162,7 @@ Int32 CWindowManagerService::GetOrientationFromAppTokensLocked()
             // the orientation behind it, and the last app was
             // full screen, then we'll stick with the
             // user's orientation.
-            if (lastOrientation != CActivityInfo::SCREEN_ORIENTATION_BEHIND
+            if (lastOrientation != ActivityInfo_SCREEN_ORIENTATION_BEHIND
                     && lastFullscreen) {
                 return lastOrientation;
             }
@@ -1177,18 +1173,18 @@ Int32 CWindowManagerService::GetOrientationFromAppTokensLocked()
         // orientation it has and ignores whatever is under it.
         lastFullscreen = wtoken->mAppFullscreen;
         if (lastFullscreen
-                && orientation != CActivityInfo::SCREEN_ORIENTATION_BEHIND) {
+                && orientation != ActivityInfo_SCREEN_ORIENTATION_BEHIND) {
             return orientation;
         }
         // If this application has requested an explicit orientation,
         // then use it.
-        if (orientation != CActivityInfo::SCREEN_ORIENTATION_UNSPECIFIED
-                && orientation != CActivityInfo::SCREEN_ORIENTATION_BEHIND) {
+        if (orientation != ActivityInfo_SCREEN_ORIENTATION_UNSPECIFIED
+                && orientation != ActivityInfo_SCREEN_ORIENTATION_BEHIND) {
             return orientation;
         }
-        findingBehind |= (orientation == CActivityInfo::SCREEN_ORIENTATION_BEHIND);
+        findingBehind |= (orientation == ActivityInfo_SCREEN_ORIENTATION_BEHIND);
     }
-    return CActivityInfo::SCREEN_ORIENTATION_UNSPECIFIED;
+    return ActivityInfo_SCREEN_ORIENTATION_UNSPECIFIED;
 }
 
 // This is used for debugging
@@ -1481,11 +1477,15 @@ void CWindowManagerService::RebuildAppWindowListLocked()
 //            numRemoved++;
             continue;
         }
-        else if (w->mAttrs->mType == WindowManagerLayoutParams_TYPE_WALLPAPER) {
-            if (it == mWindows.Begin()) lastWallpaper = it;
-            else {
-                List<AutoPtr<WindowState> >::Iterator tmpIt = lastWallpaper;
-                if (++tmpIt == it) lastWallpaper = it;
+        else {
+            Int32 type;
+            w->mAttrs->GetType(&type);
+            if (type == WindowManagerLayoutParams_TYPE_WALLPAPER) {
+                if (it == mWindows.Begin()) lastWallpaper = it;
+                else {
+                    List<AutoPtr<WindowState> >::Iterator tmpIt = lastWallpaper;
+                    if (++tmpIt == it) lastWallpaper = it;
+                }
             }
         }
         ++it;
@@ -1541,17 +1541,17 @@ ECode CWindowManagerService::InjectKeyEvent(
     ev->GetScanCode(&scancode);
     ev->GetSource(&source);
 
-    if (source == CInputDevice::SOURCE_UNKNOWN) {
-        source = CInputDevice::SOURCE_KEYBOARD;
+    if (source == InputDevice_SOURCE_UNKNOWN) {
+        source = InputDevice_SOURCE_KEYBOARD;
     }
 
     if (eventTime == 0) eventTime = SystemClock::GetUptimeMillis();
     if (downTime == 0) downTime = eventTime;
 
-    AutoPtr<CKeyEvent> newEvent;
-    assert(SUCCEEDED(CKeyEvent::NewByFriend(downTime, eventTime, action, code,
+    AutoPtr<IKeyEvent> newEvent;
+    assert(SUCCEEDED(CKeyEvent::New(downTime, eventTime, action, code,
             repeatCount, metaState, deviceId, scancode,
-            KeyEvent_FLAG_FROM_SYSTEM, source, (CKeyEvent**)&newEvent)));
+            KeyEvent_FLAG_FROM_SYSTEM, source, (IKeyEvent**)&newEvent)));
 
 //    final int pid = Binder.getCallingPid();
 //    final int uid = Binder.getCallingUid();
@@ -1579,12 +1579,14 @@ ECode CWindowManagerService::InjectPointerEvent(
 //    final int uid = Binder.getCallingUid();
 //    final long ident = Binder.clearCallingIdentity();
 
-    AutoPtr<CMotionEvent> newEvent;
-    CMotionEvent::Obtain((CMotionEvent*)ev, (CMotionEvent**)&newEvent);
+    AutoPtr<IMotionEventHelper> helper;
+    CMotionEventHelper::AcquireSingleton((IMotionEventHelper**)&helper);
+    AutoPtr<IMotionEvent> newEvent;
+    helper->Obtain(ev, (IMotionEvent**)&newEvent);
     Int32 source;
     newEvent->GetSource(&source);
-    if ((source & CInputDevice::SOURCE_CLASS_POINTER) == 0) {
-        newEvent->SetSource(CInputDevice::SOURCE_TOUCHSCREEN);
+    if ((source & InputDevice_SOURCE_CLASS_POINTER) == 0) {
+        newEvent->SetSource(InputDevice_SOURCE_TOUCHSCREEN);
     }
 
 //    Int32 res = mInputManager.injectInputEvent(newEvent, pid, uid,
@@ -1609,12 +1611,14 @@ ECode CWindowManagerService::InjectTrackballEvent(
 //    final int uid = Binder.getCallingUid();
 //    final long ident = Binder.clearCallingIdentity();
 
-    AutoPtr<CMotionEvent> newEvent;
-    CMotionEvent::Obtain((CMotionEvent*)ev, (CMotionEvent**)&newEvent);
+    AutoPtr<IMotionEventHelper> helper;
+    CMotionEventHelper::AcquireSingleton((IMotionEventHelper**)&helper);
+    AutoPtr<IMotionEvent> newEvent;
+    helper->Obtain(ev, (IMotionEvent**)&newEvent);
     Int32 source;
     newEvent->GetSource(&source);
-    if ((source & CInputDevice::SOURCE_CLASS_TRACKBALL) == 0) {
-        newEvent->SetSource(CInputDevice::SOURCE_CLASS_TRACKBALL);
+    if ((source & InputDevice_SOURCE_CLASS_TRACKBALL) == 0) {
+        newEvent->SetSource(InputDevice_SOURCE_CLASS_TRACKBALL);
     }
 
 //    Int32 res = mInputManager->InjectInputEvent(newEvent, pid, uid,
@@ -1768,7 +1772,7 @@ ECode CWindowManagerService::GetAppOrientation(
     Mutex::Autolock lock(mWindowMapLock);
     AppWindowToken* wtoken = FindAppWindowToken((IBinder*)token);
     if (wtoken == NULL) {
-        *orientation = CActivityInfo::SCREEN_ORIENTATION_UNSPECIFIED;
+        *orientation = ActivityInfo_SCREEN_ORIENTATION_UNSPECIFIED;
         return NOERROR;
     }
 
@@ -2122,7 +2126,7 @@ ECode CWindowManagerService::SetAppWillBeHidden(
 
 Boolean CWindowManagerService::SetTokenVisibilityLocked(
     /* [in] */ AppWindowToken* wtoken,
-    /* [in] */ CWindowManagerLayoutParams* lp,
+    /* [in] */ IWindowManagerLayoutParams* lp,
     /* [in] */ Boolean visible,
     /* [in] */ Int32 transit,
     /* [in] */ Boolean performLayout)
@@ -2688,7 +2692,7 @@ ECode CWindowManagerService::UpdateOrientationFromAppTokens(
 
 //    long ident = Binder.clearCallingIdentity();
 
-    AutoPtr<CConfiguration> config;
+    AutoPtr<IConfiguration> config;
 
     Mutex::Autolock lock(mWindowMapLock);
 
@@ -2698,7 +2702,7 @@ ECode CWindowManagerService::UpdateOrientationFromAppTokens(
                     freezeThisOneIfNeeded);
             if (wtoken != NULL) {
                 StartAppFreezingScreenLocked(wtoken,
-                        CActivityInfo::CONFIG_ORIENTATION);
+                        ActivityInfo_CONFIG_ORIENTATION);
             }
         }
         config = ComputeNewConfigurationLocked();
@@ -2709,21 +2713,25 @@ ECode CWindowManagerService::UpdateOrientationFromAppTokens(
         // state mismatches the activity manager's, update it,
         // disregarding font scale, which should remain set to
         // the value of the previous configuration.
+        Float fscale;
+        currentConfig->GetFontScale(&fscale);
         mTempConfiguration->SetToDefaults();
-        mTempConfiguration->mFontScale = ((CConfiguration*)currentConfig)->mFontScale;
+        mTempConfiguration->SetFontScale(fscale);
         if (ComputeNewConfigurationLocked(mTempConfiguration)) {
-            if (((CConfiguration*)currentConfig)->Diff(mTempConfiguration) != 0) {
+            Int32 result;
+            currentConfig->Diff(mTempConfiguration, &result);
+            if (result != 0) {
                 mWaitingForConfig = TRUE;
                 mLayoutNeeded = TRUE;
                 StartFreezingDisplayLocked();
-                FAIL_RETURN(CConfiguration::NewByFriend(
-                        (IConfiguration*)mTempConfiguration, (CConfiguration**)&config));
+                FAIL_RETURN(CConfiguration::New(
+                        (IConfiguration*)mTempConfiguration, (IConfiguration**)&config));
             }
         }
     }
 
 //    Binder.restoreCallingIdentity(ident);
-    *_config = (IConfiguration*)config.Get();
+    *_config = config;
     if (*_config) (*_config)->AddRef();
     return NOERROR;
 }
@@ -2731,7 +2739,7 @@ ECode CWindowManagerService::UpdateOrientationFromAppTokens(
 Int32 CWindowManagerService::ComputeForcedAppOrientationLocked()
 {
     Int32 req = GetOrientationFromWindowsLocked();
-    if (req == CActivityInfo::SCREEN_ORIENTATION_UNSPECIFIED) {
+    if (req == ActivityInfo_SCREEN_ORIENTATION_UNSPECIFIED) {
         req = GetOrientationFromAppTokensLocked();
     }
     return req;
@@ -2746,8 +2754,8 @@ ECode CWindowManagerService::SetNewConfiguration(
 //    }
 
     Mutex::Autolock lock(mWindowMapLock);
-    FAIL_RETURN(CConfiguration::NewByFriend(config,
-            (CConfiguration**)&mCurConfiguration));
+    FAIL_RETURN(CConfiguration::New(config,
+            (IConfiguration**)&mCurConfiguration));
     mWaitingForConfig = FALSE;
     return PerformLayoutAndPlaceSurfacesLocked();
 }
@@ -2895,7 +2903,7 @@ ECode CWindowManagerService::GetSwitchState(
 //            "getSwitchState()")) {
 //        throw new SecurityException("Requires READ_INPUT_STATE permission");
 //    }
-    *state = mInputManager->GetSwitchState(-1, CInputDevice::SOURCE_ANY, sw);
+    *state = mInputManager->GetSwitchState(-1, InputDevice_SOURCE_ANY, sw);
 
     return NOERROR;
 }
@@ -2911,7 +2919,7 @@ ECode CWindowManagerService::GetSwitchStateForDevice(
 //            "getSwitchStateForDevice()")) {
 //        throw new SecurityException("Requires READ_INPUT_STATE permission");
 //    }
-    *state = mInputManager->GetSwitchState(devid, CInputDevice::SOURCE_ANY, sw);
+    *state = mInputManager->GetSwitchState(devid, InputDevice_SOURCE_ANY, sw);
 
     return NOERROR;
 }
@@ -2926,7 +2934,7 @@ ECode CWindowManagerService::GetScancodeState(
 //            "getScancodeState()")) {
 //        throw new SecurityException("Requires READ_INPUT_STATE permission");
 //    }
-    *state = mInputManager->GetScanCodeState(-1, CInputDevice::SOURCE_ANY, sw);
+    *state = mInputManager->GetScanCodeState(-1, InputDevice_SOURCE_ANY, sw);
 
     return NOERROR;
 }
@@ -2942,7 +2950,7 @@ ECode CWindowManagerService::GetScancodeStateForDevice(
 //            "getScancodeStateForDevice()")) {
 //        throw new SecurityException("Requires READ_INPUT_STATE permission");
 //    }
-    *state = mInputManager->GetScanCodeState(devid, CInputDevice::SOURCE_ANY, sw);
+    *state = mInputManager->GetScanCodeState(devid, InputDevice_SOURCE_ANY, sw);
 
     return NOERROR;
 }
@@ -2957,7 +2965,7 @@ ECode CWindowManagerService::GetTrackballScancodeState(
 //            "getTrackballScancodeState()")) {
 //        throw new SecurityException("Requires READ_INPUT_STATE permission");
 //    }
-    *state = mInputManager->GetScanCodeState(-1, CInputDevice::SOURCE_TRACKBALL, sw);
+    *state = mInputManager->GetScanCodeState(-1, InputDevice_SOURCE_TRACKBALL, sw);
 
     return NOERROR;
 }
@@ -2972,7 +2980,7 @@ ECode CWindowManagerService::GetDPadScancodeState(
 //            "getDPadScancodeState()")) {
 //        throw new SecurityException("Requires READ_INPUT_STATE permission");
 //    }
-    *state = mInputManager->GetScanCodeState(-1, CInputDevice::SOURCE_DPAD, sw);
+    *state = mInputManager->GetScanCodeState(-1, InputDevice_SOURCE_DPAD, sw);
 
     return NOERROR;
 }
@@ -2987,7 +2995,7 @@ ECode CWindowManagerService::GetKeycodeState(
 //            "getKeycodeState()")) {
 //        throw new SecurityException("Requires READ_INPUT_STATE permission");
 //    }
-    *state = mInputManager->GetKeyCodeState(-1, CInputDevice::SOURCE_ANY, sw);
+    *state = mInputManager->GetKeyCodeState(-1, InputDevice_SOURCE_ANY, sw);
 
     return NOERROR;
 }
@@ -3003,7 +3011,7 @@ ECode CWindowManagerService::GetKeycodeStateForDevice(
 //            "getKeycodeStateForDevice()")) {
 //        throw new SecurityException("Requires READ_INPUT_STATE permission");
 //    }
-    *state = mInputManager->GetKeyCodeState(devid, CInputDevice::SOURCE_ANY, sw);
+    *state = mInputManager->GetKeyCodeState(devid, InputDevice_SOURCE_ANY, sw);
 
     return NOERROR;
 }
@@ -3018,7 +3026,7 @@ ECode CWindowManagerService::GetTrackballKeycodeState(
 //            "getTrackballKeycodeState()")) {
 //        throw new SecurityException("Requires READ_INPUT_STATE permission");
 //    }
-    *state = mInputManager->GetKeyCodeState(-1, CInputDevice::SOURCE_TRACKBALL, sw);
+    *state = mInputManager->GetKeyCodeState(-1, InputDevice_SOURCE_TRACKBALL, sw);
 
     return NOERROR;
 }
@@ -3033,7 +3041,7 @@ ECode CWindowManagerService::GetDPadKeycodeState(
 //            "getDPadKeycodeState()")) {
 //        throw new SecurityException("Requires READ_INPUT_STATE permission");
 //    }
-    *state = mInputManager->GetKeyCodeState(-1, CInputDevice::SOURCE_DPAD, sw);
+    *state = mInputManager->GetKeyCodeState(-1, InputDevice_SOURCE_DPAD, sw);
 
     return NOERROR;
 }
@@ -3416,145 +3424,144 @@ Int32 CWindowManagerService::AddWindow(
             = mWindowMap.Find(AutoPtr<IBinder>(client));
         if (it != mWindowMap.End() && it->mSecond != NULL) {
 //            Slogger::W(TAG, "Window " + client + " is already added");
-            return CWindowManagerImpl::ADD_DUPLICATE_ADD;
+            return WindowManagerImpl_ADD_DUPLICATE_ADD;
         }
 
-        AutoPtr<CWindowManagerLayoutParams> attrsCls = (CWindowManagerLayoutParams*)attrs;
-        if (attrsCls->mType >= WindowManagerLayoutParams_FIRST_SUB_WINDOW &&
-                attrsCls->mType <= WindowManagerLayoutParams_LAST_SUB_WINDOW) {
-            attachedWindow = WindowForClientLocked(
-                NULL, attrsCls->mToken, FALSE);
+        AutoPtr<IBinder> attrsToken;
+        attrs->GetToken((IBinder**)&attrsToken);
+        Int32 attrsType;
+        attrs->GetType(&attrsType);
+        if (attrsType >= WindowManagerLayoutParams_FIRST_SUB_WINDOW &&
+                attrsType <= WindowManagerLayoutParams_LAST_SUB_WINDOW) {
+            attachedWindow = WindowForClientLocked(NULL, attrsToken, FALSE);
             if (attachedWindow == NULL) {
 //                Slogger::W(TAG, "Attempted to add window with token that is not a window: "
 //                      + attrsCls->mToken + ".  Aborting.");
-                return CWindowManagerImpl::ADD_BAD_SUBWINDOW_TOKEN;
+                return WindowManagerImpl_ADD_BAD_SUBWINDOW_TOKEN;
             }
-            if (((CWindowManagerLayoutParams*)attachedWindow->mAttrs)->mType
-                    >= WindowManagerLayoutParams_FIRST_SUB_WINDOW
-                    && ((CWindowManagerLayoutParams*)attachedWindow->mAttrs)->mType
-                    <= WindowManagerLayoutParams_LAST_SUB_WINDOW) {
+            Int32 attachedWinType;
+            attachedWindow->mAttrs->GetType(&attachedWinType);
+            if (attachedWinType >= WindowManagerLayoutParams_FIRST_SUB_WINDOW
+                    && attachedWinType <= WindowManagerLayoutParams_LAST_SUB_WINDOW) {
 //                Slogger::W(TAG, "Attempted to add window with token that is a sub-window: "
 //                        + attrsCls->mToken + ".  Aborting.");
-                return CWindowManagerImpl::ADD_BAD_SUBWINDOW_TOKEN;
+                return WindowManagerImpl_ADD_BAD_SUBWINDOW_TOKEN;
             }
         }
 
         Boolean addToken = FALSE;
         WindowToken* token = NULL;
         HashMap<AutoPtr<IBinder>, WindowToken*>::Iterator tokenIt
-            = mTokenMap.Find(attrsCls->mToken);
+            = mTokenMap.Find(attrsToken);
         if (tokenIt != mTokenMap.End()) {
             token = tokenIt->mSecond;
         }
 
         if (token == NULL) {
-            if (attrsCls->mType >= WindowManagerLayoutParams_FIRST_APPLICATION_WINDOW
-                    && attrsCls->mType <= WindowManagerLayoutParams_LAST_APPLICATION_WINDOW) {
+            if (attrsType >= WindowManagerLayoutParams_FIRST_APPLICATION_WINDOW
+                    && attrsType <= WindowManagerLayoutParams_LAST_APPLICATION_WINDOW) {
 //                Slogger::W(TAG, "Attempted to add application window with unknown token "
 //                      + attrsCls->mToken + ".  Aborting.");
-                return CWindowManagerImpl:: ADD_BAD_APP_TOKEN;
+                return WindowManagerImpl_ADD_BAD_APP_TOKEN;
             }
-            if (attrsCls->mType == WindowManagerLayoutParams_TYPE_INPUT_METHOD) {
+            if (attrsType == WindowManagerLayoutParams_TYPE_INPUT_METHOD) {
 //                Slogger::W(TAG, "Attempted to add input method window with unknown token "
 //                      + attrsCls->mToken + ".  Aborting.");
-                return CWindowManagerImpl::ADD_BAD_APP_TOKEN;
+                return WindowManagerImpl_ADD_BAD_APP_TOKEN;
             }
-            if (attrsCls->mType == WindowManagerLayoutParams_TYPE_WALLPAPER) {
+            if (attrsType == WindowManagerLayoutParams_TYPE_WALLPAPER) {
 //                Slogger::W(TAG, "Attempted to add wallpaper window with unknown token "
 //                      + attrsCls->mToken + ".  Aborting.");
-                return CWindowManagerImpl::ADD_BAD_APP_TOKEN;
+                return WindowManagerImpl_ADD_BAD_APP_TOKEN;
             }
-            token = new WindowToken(attrsCls->mToken, -1, FALSE);
+            token = new WindowToken(attrsToken, -1, FALSE);
             addToken = TRUE;
         }
-        else if (attrsCls->mType >= WindowManagerLayoutParams_FIRST_APPLICATION_WINDOW
-                && attrsCls->mType <= WindowManagerLayoutParams_LAST_APPLICATION_WINDOW) {
+        else if (attrsType >= WindowManagerLayoutParams_FIRST_APPLICATION_WINDOW
+                && attrsType <= WindowManagerLayoutParams_LAST_APPLICATION_WINDOW) {
             AppWindowToken* atoken = token->mAppWindowToken;
             if (atoken == NULL) {
 //                Slogger::W(TAG, "Attempted to add window with non-application token "
 //                      + token + ".  Aborting.");
-                return CWindowManagerImpl::ADD_NOT_APP_TOKEN;
+                return WindowManagerImpl_ADD_NOT_APP_TOKEN;
             }
             else if (atoken->mRemoved) {
 //                Slogger::W(TAG, "Attempted to add window with exiting application token "
 //                      + token + ".  Aborting.");
-                return CWindowManagerImpl::ADD_APP_EXITING;
+                return WindowManagerImpl_ADD_APP_EXITING;
             }
-            if (attrsCls->mType == WindowManagerLayoutParams_TYPE_APPLICATION_STARTING
+            if (attrsType == WindowManagerLayoutParams_TYPE_APPLICATION_STARTING
                     && atoken->mFirstWindowDrawn) {
                 // No need for this guy!
                 AutoPtr<ICharSequence> title;
                 attrs->GetTitle((ICharSequence**)&title);
 //                if (localLOGV) Slogger::V(
 //                        TAG, "**** NO NEED TO START: " + title.GetPayload());
-                return CWindowManagerImpl::ADD_STARTING_NOT_NEEDED;
+                return WindowManagerImpl_ADD_STARTING_NOT_NEEDED;
             }
         }
-        else if (attrsCls->mType == WindowManagerLayoutParams_TYPE_INPUT_METHOD) {
+        else if (attrsType == WindowManagerLayoutParams_TYPE_INPUT_METHOD) {
             if (token->mWindowType != WindowManagerLayoutParams_TYPE_INPUT_METHOD) {
 //                Slogger::W(TAG, "Attempted to add input method window with bad token "
 //                        + attrsCls->mToken + ".  Aborting.");
-                  return CWindowManagerImpl::ADD_BAD_APP_TOKEN;
+                  return WindowManagerImpl_ADD_BAD_APP_TOKEN;
             }
         }
-        else if (attrsCls->mType == WindowManagerLayoutParams_TYPE_WALLPAPER) {
+        else if (attrsType == WindowManagerLayoutParams_TYPE_WALLPAPER) {
             if (token->mWindowType != WindowManagerLayoutParams_TYPE_WALLPAPER) {
 //                Slogger::W(TAG, "Attempted to add wallpaper window with bad token "
 //                        + attrsCls->mToken + ".  Aborting.");
-                  return CWindowManagerImpl::ADD_BAD_APP_TOKEN;
+                  return WindowManagerImpl_ADD_BAD_APP_TOKEN;
             }
         }
 
         win = new WindowState(this, session, client, token,
-                attachedWindow, (CWindowManagerLayoutParams*)attrs, viewVisibility);
+                attachedWindow, attrs, viewVisibility);
 //        if (win->mDeathRecipient == NULL) {
 //            // Client has apparently died, so there is no reason to
 //            // continue.
 //            Slogger::W(TAG, "Adding window client " + client
 //                    + " that is dead, aborting.");
-//            return CWindowManagerImpl::ADD_APP_EXITING;
+//            return WindowManagerImpl_ADD_APP_EXITING;
 //        }
 
         mPolicy->AdjustWindowParamsLw(win->mAttrs);
 
         mPolicy->PrepareAddWindowLw(win, attrs, &res);
-        if (res != CWindowManagerImpl::ADD_OKAY) {
+        if (res != WindowManagerImpl_ADD_OKAY) {
             return res;
         }
 
-#ifdef _linux
         if (outInputChannel != NULL) {
             String name;
             win->MakeInputChannelName(&name);
-            AutoPtr<CInputChannel> serverChannel;
-            AutoPtr<CInputChannel> clientChannel;
-            assert(SUCCEEDED(CInputChannel::OpenInputChannelPair(name,
-                    (CInputChannel**)&serverChannel, (CInputChannel**)&clientChannel)));
+            AutoPtr<IInputChannel> serverChannel;
+            AutoPtr<IInputChannel> clientChannel;
+            AutoPtr<IInputChannelHelper> helper;
+            assert(SUCCEEDED(CInputChannelHelper::AcquireSingleton((IInputChannelHelper**)&helper)));
+            assert(SUCCEEDED(helper->OpenInputChannelPair(name,
+                    (IInputChannel**)&serverChannel, (IInputChannel**)&clientChannel)));
             win->mInputChannel = serverChannel;
-            AutoPtr<CInputChannel> outInputChannelObj;
-            assert(SUCCEEDED(CInputChannel::NewByFriend((CInputChannel**)&outInputChannelObj)));
-            clientChannel->TransferToBinderOutParameter(outInputChannelObj.Get());
-            *outInputChannel = (IInputChannel*)outInputChannelObj.Get();
-            (*outInputChannel)->AddRef();
+            assert(SUCCEEDED(CInputChannel::New(outInputChannel)));
+            clientChannel->TransferToBinderOutParameter(*outInputChannel);
 
             assert(SUCCEEDED(mInputManager->RegisterInputChannel(win->mInputChannel)));
         }
-#endif
 
         // From now on, no exceptions or errors allowed!
 
-        res = CWindowManagerImpl::ADD_OKAY;
+        res = WindowManagerImpl_ADD_OKAY;
 
 //        final long origId = Binder.clearCallingIdentity();
 
         if (addToken) {
-            mTokenMap[attrsCls->mToken] = token;
+            mTokenMap[attrsToken] = token;
             mTokenList.PushBack(token);
         }
         win->Attach();
         mWindowMap[client] = win;
 
-        if (attrsCls->mType == WindowManagerLayoutParams_TYPE_APPLICATION_STARTING &&
+        if (attrsType == WindowManagerLayoutParams_TYPE_APPLICATION_STARTING &&
                 token->mAppWindowToken != NULL) {
             token->mAppWindowToken->mStartingWindow = win;
         }
@@ -3562,12 +3569,12 @@ Int32 CWindowManagerService::AddWindow(
         Boolean imMayMove = TRUE;
         UNUSED(imMayMove);
 
-        if (attrsCls->mType == WindowManagerLayoutParams_TYPE_INPUT_METHOD) {
+        if (attrsType == WindowManagerLayoutParams_TYPE_INPUT_METHOD) {
 //            mInputMethodWindow = win;
 //            AddInputMethodWindowToListLocked(win);
 //            imMayMove = FALSE;
         }
-        else if (attrsCls->mType == WindowManagerLayoutParams_TYPE_INPUT_METHOD_DIALOG) {
+        else if (attrsType == WindowManagerLayoutParams_TYPE_INPUT_METHOD_DIALOG) {
 //            mInputMethodDialogs->Add(win);
 //            AddWindowToListInOrderLocked(win, TRUE);
 //            AdjustInputMethodDialogsLocked();
@@ -3575,12 +3582,16 @@ Int32 CWindowManagerService::AddWindow(
         }
         else {
             AddWindowToListInOrderLocked(win, TRUE);
-            if (attrsCls->mType == WindowManagerLayoutParams_TYPE_WALLPAPER) {
+            if (attrsType == WindowManagerLayoutParams_TYPE_WALLPAPER) {
                 mLastWallpaperTimeoutTime = 0;
                 AdjustWallpaperWindowsLocked();
             }
-            else if ((attrsCls->mFlags & WindowManagerLayoutParams_FLAG_SHOW_WALLPAPER) != 0) {
-                AdjustWallpaperWindowsLocked();
+            else {
+                Int32 attrsFlags;
+                attrs->GetFlags(&attrsFlags);
+                if ((attrsFlags & WindowManagerLayoutParams_FLAG_SHOW_WALLPAPER) != 0) {
+                    AdjustWallpaperWindowsLocked();
+                }
             }
         }
 
@@ -3589,10 +3600,10 @@ Int32 CWindowManagerService::AddWindow(
         mPolicy->GetContentInsetHintLw(attrs, inContentInsets);
 
         if (mInTouchMode) {
-            res |= CWindowManagerImpl::ADD_FLAG_IN_TOUCH_MODE;
+            res |= WindowManagerImpl_ADD_FLAG_IN_TOUCH_MODE;
         }
         if (win == NULL || win->mAppToken == NULL || !win->mAppToken->mClientHidden) {
-            res |= CWindowManagerImpl::ADD_FLAG_APP_VISIBLE;
+            res |= WindowManagerImpl_ADD_FLAG_APP_VISIBLE;
         }
 
         Boolean focusChanged = FALSE;
@@ -3678,7 +3689,9 @@ void CWindowManagerService::RemoveWindowLocked(
         // need to see about starting one.
         if ((wasVisible = win->IsWinVisibleLw())) {
             Int32 transit = WindowManagerPolicy::TRANSIT_EXIT;
-            if (win->GetAttrs()->mType == WindowManagerLayoutParams_TYPE_APPLICATION_STARTING) {
+            Int32 type;
+            win->GetAttrs()->GetType(&type);
+            if (type == WindowManagerLayoutParams_TYPE_APPLICATION_STARTING) {
                 transit = WindowManagerPolicy::TRANSIT_PREVIEW_DONE;
             }
             // Try starting an animation.
@@ -3756,30 +3769,37 @@ Int32 CWindowManagerService::RelayoutWindow(
             mPolicy->AdjustWindowParamsLw(attrs);
         }
 
+        Int32 winFlags;
+        win->mAttrs->GetFlags(&winFlags);
         Int32 attrChanges = 0;
         Int32 flagChanges = 0;
-        AutoPtr<CWindowManagerLayoutParams> attrsCls = (CWindowManagerLayoutParams*)attrs;
         if (attrs != NULL) {
-            flagChanges = win->mAttrs->mFlags ^= attrsCls->mFlags;
-            attrChanges = win->mAttrs->CopyFrom(attrsCls);
+            Int32 attrsFlags;
+            attrs->GetFlags(&attrsFlags);
+            flagChanges = winFlags ^= attrsFlags;
+            win->mAttrs->CopyFrom(attrs, &attrChanges);
         }
 
 //        if (DEBUG_LAYOUT) Slogger::V(TAG, "Relayout " + win + ": " + win->mAttrs);
 
         if ((attrChanges & WindowManagerLayoutParams_ALPHA_CHANGED) != 0) {
-            win->mAlpha = attrsCls->mAlpha;
+            attrs->GetAlpha(&win->mAlpha);
         }
 
+        win->mAttrs->GetFlags(&winFlags);
         Boolean scaledWindow =
-            ((win->mAttrs->mFlags & WindowManagerLayoutParams_FLAG_SCALED) != 0);
+            ((winFlags & WindowManagerLayoutParams_FLAG_SCALED) != 0);
 
         if (scaledWindow) {
             // requested{Width|Height} Surface's physical size
             // attrs.{width|height} Size on screen
-            win->mHScale = (attrsCls->mWidth  != requestedWidth)  ?
-                    (attrsCls->mWidth  / (Float)requestedWidth) : 1.0f;
-            win->mVScale = (attrsCls->mHeight != requestedHeight) ?
-                    (attrsCls->mHeight / (Float)requestedHeight) : 1.0f;
+            Int32 width, height;
+            attrs->GetWidth(&width);
+            attrs->GetHeight(&height);
+            win->mHScale = (width  != requestedWidth)  ?
+                    (width  / (Float)requestedWidth) : 1.0f;
+            win->mVScale = (height != requestedHeight) ?
+                    (height / (Float)requestedHeight) : 1.0f;
         }
         else {
             win->mHScale = win->mVScale = 1;
@@ -3794,7 +3814,7 @@ Int32 CWindowManagerService::RelayoutWindow(
                 || (!win->mRelayoutCalled);
 
         Boolean wallpaperMayMove = win->mViewVisibility != viewVisibility
-                && (win->mAttrs->mFlags & WindowManagerLayoutParams_FLAG_SHOW_WALLPAPER) != 0;
+                && (winFlags & WindowManagerLayoutParams_FLAG_SHOW_WALLPAPER) != 0;
 
         win->mRelayoutCalled = TRUE;
         Int32 oldVisibility = win->mViewVisibility;
@@ -3822,8 +3842,7 @@ Int32 CWindowManagerService::RelayoutWindow(
                         && isScreenOn) {
                     ApplyEnterAnimationLocked(win);
                 }
-                if ((win->mAttrs->mFlags
-                        & WindowManagerLayoutParams_FLAG_TURN_SCREEN_ON) != 0) {
+                if ((winFlags & WindowManagerLayoutParams_FLAG_TURN_SCREEN_ON) != 0) {
 //                    if (DEBUG_VISIBILITY) Slogger::V(TAG,
 //                            "Relayout window turning screen on: " + win);
                     win->mTurnOnScreen = TRUE;
@@ -3831,7 +3850,7 @@ Int32 CWindowManagerService::RelayoutWindow(
                 Int32 diff = 0;
                 if (win->mConfiguration != mCurConfiguration
                         && (win->mConfiguration == NULL
-                                || (diff = mCurConfiguration->Diff(win->mConfiguration)) != 0)) {
+                                || (mCurConfiguration->Diff(win->mConfiguration, &diff), diff != 0))) {
                     win->mConfiguration = mCurConfiguration;
 //                    if (DEBUG_CONFIGURATION) {
 //                        Slogger::I(TAG, "Window " + win + " visible with new config: "
@@ -3877,12 +3896,14 @@ Int32 CWindowManagerService::RelayoutWindow(
             if (displayed) {
                 focusMayChange = TRUE;
             }
-            if (win->mAttrs->mType == WindowManagerLayoutParams_TYPE_INPUT_METHOD
+            Int32 winType;
+            win->mAttrs->GetType(&winType);
+            if (winType == WindowManagerLayoutParams_TYPE_INPUT_METHOD
                     && mInputMethodWindow == NULL) {
                 mInputMethodWindow = win;
                 imMayMove = TRUE;
             }
-            if (win->mAttrs->mType == WindowManagerLayoutParams_TYPE_INPUT_METHOD
+            if (winType == WindowManagerLayoutParams_TYPE_INPUT_METHOD
                     && win->mAppToken != NULL
                     && win->mAppToken->mStartingWindow != NULL) {
                 // Special handling of starting window over the base
@@ -3892,8 +3913,10 @@ Int32 CWindowManagerService::RelayoutWindow(
                     WindowManagerLayoutParams_FLAG_SHOW_WHEN_LOCKED
                     | WindowManagerLayoutParams_FLAG_DISMISS_KEYGUARD
                     | WindowManagerLayoutParams_FLAG_ALLOW_LOCK_WHILE_SCREEN_ON;
-                AutoPtr<CWindowManagerLayoutParams> sa = win->mAppToken->mStartingWindow->mAttrs;
-                sa->mFlags = (sa->mFlags &~ mask) | (win->mAttrs->mFlags & mask);
+                Int32 swFlags;
+                win->mAppToken->mStartingWindow->mAttrs->GetFlags(&swFlags);
+                swFlags = (swFlags &~ mask) | (winFlags & mask);
+                win->mAppToken->mStartingWindow->mAttrs->SetFlags(swFlags);
             }
         }
         else {
@@ -3908,7 +3931,9 @@ Int32 CWindowManagerService::RelayoutWindow(
                     // Try starting an animation; if there isn't one, we
                     // can destroy the surface right away.
                     Int32 transit = WindowManagerPolicy::TRANSIT_EXIT;
-                    if (win->GetAttrs()->mType == WindowManagerLayoutParams_TYPE_APPLICATION_STARTING) {
+                    Int32 type1;
+                    win->GetAttrs()->GetType(&type1);
+                    if (type1 == WindowManagerLayoutParams_TYPE_APPLICATION_STARTING) {
                         transit = WindowManagerPolicy::TRANSIT_PREVIEW_DONE;
                     }
                     if (!win->mSurfacePendingDestroy && win->IsWinVisibleLw() &&
@@ -3937,7 +3962,8 @@ Int32 CWindowManagerService::RelayoutWindow(
                 }
             }
 
-            if (win->mSurface == NULL || (win->GetAttrs()->mFlags
+            Int32 flags1;
+            if (win->mSurface == NULL || (win->GetAttrs()->GetFlags(&flags1), flags1
                     & WindowManagerLayoutParams_FLAG_KEEP_SURFACE_WHILE_ANIMATING) == 0
                     || win->mSurfacePendingDestroy) {
                 // We are being called from a local process, which
@@ -4039,8 +4065,8 @@ Int32 CWindowManagerService::RelayoutWindow(
     *outSurface = inSurface;
     (*outSurface)->AddRef();
 
-    return (inTouchMode ? CWindowManagerImpl::RELAYOUT_IN_TOUCH_MODE : 0)
-            | (displayed ? CWindowManagerImpl::RELAYOUT_FIRST_TIME : 0);
+    return (inTouchMode ? WindowManagerImpl_RELAYOUT_IN_TOUCH_MODE : 0)
+            | (displayed ? WindowManagerImpl_RELAYOUT_FIRST_TIME : 0);
 }
 
 /**
@@ -4471,8 +4497,10 @@ CWindowManagerService::ComputeFocusedWindowLocked()
         // If there is a focused app, don't allow focus to go to any
         // windows below it.  If this is an application window, step
         // through the app tokens until we find its app.
+        Int32 winType;
+        win->mAttrs->GetType(&winType);
         if (thisApp != NULL && nextApp != NULL && thisApp != nextApp
-                && win->mAttrs->mType != WindowManagerLayoutParams_TYPE_APPLICATION_STARTING) {
+                && winType != WindowManagerLayoutParams_TYPE_APPLICATION_STARTING) {
             List<AppWindowToken*>::ReverseIterator origAppRit = nextAppRit;
             while (nextAppRit != mAppTokens.REnd()) {
                 if (nextApp == mFocusedApp) {
@@ -4858,13 +4886,14 @@ void CWindowManagerService::PerformLayoutAndPlaceSurfacesLockedInner(
     Boolean createWatermark = FALSE;
 
     if (mFxSession == NULL) {
-        CSurfaceSession::NewByFriend((CSurfaceSession**)&mFxSession);
+        CSurfaceSession::New((ISurfaceSession**)&mFxSession);
         createWatermark = TRUE;
     }
 
 //    if (SHOW_TRANSACTIONS) Slog.i(TAG, ">>> OPEN TRANSACTION");
-
-    CSurface::OpenTransaction();
+    AutoPtr<ISurfaceHelper> helper;
+    CSurfaceHelper::AcquireSingleton((ISurfaceHelper**)&helper);
+    helper->OpenTransaction();
 
 //    if (createWatermark) {
 //        CreateWatermark();
@@ -4957,12 +4986,14 @@ void CWindowManagerService::PerformLayoutAndPlaceSurfacesLockedInner(
         for (wsRit = mWindows.RBegin(); wsRit != mWindows.REnd(); ++wsRit) {
             AutoPtr<WindowState> w = *wsRit;
 
-            AutoPtr<CWindowManagerLayoutParams> attrs = w->mAttrs;
+            IWindowManagerLayoutParams* attrs = w->mAttrs;
 
             if (w->mSurface != NULL) {
                 // Execute animation.
                 if (w->CommitFinishDrawingLocked(currentTime)) {
-                    if ((w->mAttrs->mFlags
+                    Int32 wFlags;
+                    w->mAttrs->GetFlags(&wFlags);
+                    if ((wFlags
                             & WindowManagerLayoutParams_FLAG_SHOW_WALLPAPER) != 0) {
 //                      if (DEBUG_WALLPAPER) Slog.v(TAG,
 //                                "First draw done in potential wallpaper target " + w);
@@ -5023,7 +5054,9 @@ void CWindowManagerService::PerformLayoutAndPlaceSurfacesLockedInner(
                             }
                         }
                     }
-                    if (changed && (attrs->mFlags
+                    Int32 attrsFlags;
+                    attrs->GetFlags(&attrsFlags);
+                    if (changed && (attrsFlags
                             & WindowManagerLayoutParams_FLAG_SHOW_WALLPAPER) != 0) {
                         wallpaperMayChange = TRUE;
                     }
@@ -5039,8 +5072,9 @@ void CWindowManagerService::PerformLayoutAndPlaceSurfacesLockedInner(
                     atoken->mNumInterestingWindows = atoken->mNumDrawnWindows = 0;
                     atoken->mStartingDisplayed = FALSE;
                 }
-                if ((w->IsOnScreen() || w->mAttrs->mType
-                        == WindowManagerLayoutParams_TYPE_BASE_APPLICATION)
+                Int32 wType;
+                if ((w->IsOnScreen() || (w->mAttrs->GetType(&wType), wType
+                        == WindowManagerLayoutParams_TYPE_BASE_APPLICATION))
                         && !w->mExiting && !w->mDestroying) {
 //                        if (DEBUG_VISIBILITY || DEBUG_ORIENTATION) {
 //                            Slog.v(TAG, "Eval win " + w + ": isDrawn="
@@ -5192,7 +5226,7 @@ void CWindowManagerService::PerformLayoutAndPlaceSurfacesLockedInner(
 
                 // The top-most window will supply the layout params,
                 // and we will determine it below.
-                AutoPtr<CWindowManagerLayoutParams> animLp;
+                AutoPtr<IWindowManagerLayoutParams> animLp;
                 AppWindowToken* animToken = NULL;
                 Int32 bestAnimLayer = -1;
 
@@ -5226,7 +5260,9 @@ void CWindowManagerService::PerformLayoutAndPlaceSurfacesLockedInner(
                         if (ws != NULL) {
                             // If this is a compatibility mode
                             // window, we will always use its anim.
-                            if ((ws->mAttrs->mFlags & WindowManagerLayoutParams_FLAG_COMPATIBLE_WINDOW) != 0) {
+                            Int32 wsFlags;
+                            ws->mAttrs->GetFlags(&wsFlags);
+                            if ((wsFlags & WindowManagerLayoutParams_FLAG_COMPATIBLE_WINDOW) != 0) {
                                 animLp = ws->mAttrs;
                                 animToken = ws->mAppToken;
                                 bestAnimLayer = Math::INT32_MAX_VALUE;
@@ -5253,7 +5289,9 @@ void CWindowManagerService::PerformLayoutAndPlaceSurfacesLockedInner(
                         if (ws != NULL) {
                             // If this is a compatibility mode
                             // window, we will always use its anim.
-                            if ((ws->mAttrs->mFlags & WindowManagerLayoutParams_FLAG_COMPATIBLE_WINDOW) != 0) {
+                            Int32 wsFlags;
+                            ws->mAttrs->GetFlags(&wsFlags);
+                            if ((wsFlags & WindowManagerLayoutParams_FLAG_COMPATIBLE_WINDOW) != 0) {
                                 animLp = ws->mAttrs;
                                 animToken = ws->mAppToken;
                                 bestAnimLayer = Math::INT32_MAX_VALUE;
@@ -5426,7 +5464,7 @@ void CWindowManagerService::PerformLayoutAndPlaceSurfacesLockedInner(
                 for (wsRit = mWindows.RBegin(); wsRit != mWindows.REnd(); ++wsRit) {
                     AutoPtr<WindowState> w = *wsRit;
                     if (w->mSurface != NULL) {
-                        AutoPtr<CWindowManagerLayoutParams> attrs = w->mAttrs;
+                        IWindowManagerLayoutParams* attrs = w->mAttrs;
                         Boolean forceHide, beForceHidden;
                         mPolicy->DoesForceHide(w, attrs, &forceHide);
                         if (forceHide && w->IsVisibleLw()) {
@@ -5498,8 +5536,9 @@ void CWindowManagerService::PerformLayoutAndPlaceSurfacesLockedInner(
         AutoPtr<WindowState> w = *rit;
 
         Boolean displayed = FALSE;
-        AutoPtr<CWindowManagerLayoutParams> attrs = w->mAttrs;
-        Int32 attrFlags = attrs->mFlags;
+        IWindowManagerLayoutParams* attrs = w->mAttrs;
+        Int32 attrFlags;
+        attrs->GetFlags(&attrFlags);
 
         if (w->mSurface != NULL) {
             // XXX NOTE: The logic here could be improved.  We have
@@ -5523,8 +5562,9 @@ void CWindowManagerService::PerformLayoutAndPlaceSurfacesLockedInner(
 //                    + w->mLastShownFrame);
 
             Boolean resize;
-            Int32 width, height;
-            if ((w->mAttrs->mFlags & WindowManagerLayoutParams_FLAG_SCALED) != 0) {
+            Int32 wFlags, width, height;
+            w->mAttrs->GetFlags(&wFlags);
+            if ((wFlags & WindowManagerLayoutParams_FLAG_SCALED) != 0) {
                 resize = (w->mLastRequestedWidth != w->mRequestedWidth) ||
                         (w->mLastRequestedHeight != w->mRequestedHeight);
                 // for a scaled surface, we just want to use
@@ -5538,10 +5578,9 @@ void CWindowManagerService::PerformLayoutAndPlaceSurfacesLockedInner(
 //                if (SHOW_TRANSACTIONS) logSurface(w,
 //                        "POS " + w->mShownFrame.left
 //                        + ", " + w->mShownFrame.top, NULL);
-                w->mSurfaceX = ((CRect*)(w->mShownFrame.Get()))->mLeft;
-                w->mSurfaceY = ((CRect*)(w->mShownFrame.Get()))->mTop;
-                ec = w->mSurface->SetPosition(((CRect*)(w->mShownFrame.Get()))->mLeft,
-                        ((CRect*)(w->mShownFrame.Get()))->mTop);
+                w->mShownFrame->GetLeft(&w->mSurfaceX);
+                w->mShownFrame->GetTop(&w->mSurfaceY);
+                ec = w->mSurface->SetPosition(w->mSurfaceY, w->mSurfaceY);
                 if (FAILED(ec)) {
 //                    Slog.w(TAG, "Error positioning surface in " + w, e);
                     if (!recoveringMemory) {
@@ -5578,11 +5617,9 @@ void CWindowManagerService::PerformLayoutAndPlaceSurfacesLockedInner(
                     w->mSurfaceH = height;
                     ec = w->mSurface->SetSize(width, height);
                     if (SUCCEEDED(ec)) {
-                        w->mSurfaceX = ((CRect*)(w->mShownFrame.Get()))->mLeft;
-                        w->mSurfaceY = ((CRect*)(w->mShownFrame.Get()))->mTop;
-                        ec = w->mSurface->SetPosition(
-                                ((CRect*)(w->mShownFrame.Get()))->mLeft,
-                                ((CRect*)(w->mShownFrame.Get()))->mTop);
+                        w->mShownFrame->GetLeft(&w->mSurfaceX);
+                        w->mShownFrame->GetTop(&w->mSurfaceY);
+                        ec = w->mSurface->SetPosition(w->mSurfaceY, w->mSurfaceY);
                     }
                     if (FAILED(ec)) {
 //                        Slog.e(TAG, "Failure updating surface of " + w
@@ -5612,10 +5649,11 @@ void CWindowManagerService::PerformLayoutAndPlaceSurfacesLockedInner(
                 w->mContentInsetsChanged = !equals;
                 w->mLastVisibleInsets->Equals(w->mVisibleInsets, &equals);
                 w->mVisibleInsetsChanged = !equals;
+                Int32 diff;
                 Boolean configChanged =
                     w->mConfiguration != mCurConfiguration
                     && (w->mConfiguration == NULL
-                            || mCurConfiguration->Diff(w->mConfiguration) != 0);
+                            || (mCurConfiguration->Diff(w->mConfiguration, &diff), diff != 0));
 //                if (DEBUG_CONFIGURATION && configChanged) {
 //                    Slog.v(TAG, "Win " + w + " config changed: "
 //                            + mCurConfiguration);
@@ -5790,8 +5828,11 @@ void CWindowManagerService::PerformLayoutAndPlaceSurfacesLockedInner(
 
             if (displayed) {
                 if (!covered) {
-                    if (attrs->mWidth == ViewGroupLayoutParams_MATCH_PARENT
-                            && attrs->mHeight == ViewGroupLayoutParams_MATCH_PARENT) {
+                    Int32 width, height;
+                    attrs->GetWidth(&width);
+                    attrs->GetHeight(&height);
+                    if (width == ViewGroupLayoutParams_MATCH_PARENT
+                            && height == ViewGroupLayoutParams_MATCH_PARENT) {
                         covered = TRUE;
                     }
                 }
@@ -5830,18 +5871,23 @@ void CWindowManagerService::PerformLayoutAndPlaceSurfacesLockedInner(
                 if ((attrFlags & WindowManagerLayoutParams_FLAG_KEEP_SCREEN_ON) != 0) {
                     holdScreen = w->mSession;
                 }
-                if (!syswin && w->mAttrs->mScreenBrightness >= 0
+                Float wScreenBrightness, wButtonBrightness;
+                w->mAttrs->GetScreenBrightness(&wScreenBrightness);
+                w->mAttrs->GetButtonBrightness(&wButtonBrightness);
+                if (!syswin && wScreenBrightness >= 0
                         && screenBrightness < 0) {
-                    screenBrightness = w->mAttrs->mScreenBrightness;
+                    screenBrightness = wScreenBrightness;
                 }
-                if (!syswin && w->mAttrs->mButtonBrightness >= 0
+                if (!syswin && wButtonBrightness >= 0
                         && buttonBrightness < 0) {
-                    buttonBrightness = w->mAttrs->mButtonBrightness;
+                    buttonBrightness = wButtonBrightness;
                 }
+                Int32 attrsType;
+                attrs->GetType(&attrsType);
                 if (canBeSeen
-                        && (attrs->mType == WindowManagerLayoutParams_TYPE_SYSTEM_DIALOG
-                         || attrs->mType == WindowManagerLayoutParams_TYPE_KEYGUARD
-                         || attrs->mType == WindowManagerLayoutParams_TYPE_SYSTEM_ERROR)) {
+                        && (attrsType == WindowManagerLayoutParams_TYPE_SYSTEM_DIALOG
+                         || attrsType == WindowManagerLayoutParams_TYPE_KEYGUARD
+                         || attrsType == WindowManagerLayoutParams_TYPE_SYSTEM_ERROR)) {
                     syswin = TRUE;
                 }
             }
@@ -5993,7 +6039,7 @@ void CWindowManagerService::PerformLayoutAndPlaceSurfacesLockedInner(
 
     mInputMonitor->UpdateInputWindowsLw();
 
-    CSurface::CloseTransaction();
+    helper->CloseTransaction();
 
     if (mWatermark != NULL) {
         mWatermark->DrawIfNeeded();
@@ -6024,7 +6070,7 @@ void CWindowManagerService::PerformLayoutAndPlaceSurfacesLockedInner(
             Boolean configChanged =
                 win->mConfiguration != mCurConfiguration
                 && (win->mConfiguration == NULL
-                        || (diff = mCurConfiguration->Diff(win->mConfiguration)) != 0);
+                        || (mCurConfiguration->Diff(win->mConfiguration, &diff), diff != 0));
 //            if ((DEBUG_RESIZE || DEBUG_ORIENTATION || DEBUG_CONFIGURATION)
 //                    && configChanged) {
 //                Slog.i(TAG, "Sending new config to window " + win + ": "
@@ -6282,7 +6328,7 @@ Int32 CWindowManagerService::GetPropertyInt(
     /* [in] */ Int32 index,
     /* [in] */ Int32 defUnits,
     /* [in] */ Int32 defDps,
-    /* [in] */ CDisplayMetrics* dm)
+    /* [in] */ IDisplayMetrics* dm)
 {
     if (index < tokens->GetLength()) {
         String str = (*tokens)[index];
@@ -6297,8 +6343,11 @@ Int32 CWindowManagerService::GetPropertyInt(
     if (defUnits == TypedValue_COMPLEX_UNIT_PX) {
         return defDps;
     }
-    Int32 val = (Int32)CTypedValue::ApplyDimension(defUnits, defDps, dm);
-    return val;
+    AutoPtr<ITypedValueHelper> helper;
+    CTypedValueHelper::AcquireSingleton((ITypedValueHelper**)&helper);
+    Float val;
+    helper->ApplyDimension(defUnits, defDps, dm, &val);
+    return (Int32)val;
 }
 
 CWindowManagerService::Watermark::Watermark(
@@ -6327,7 +6376,10 @@ Boolean CWindowManagerService::UpdateWallpaperOffsetLocked(
     Boolean rawChanged = FALSE;
     Float wpx = mLastWallpaperX >= 0 ? mLastWallpaperX : 0.5;
     Float wpxs = mLastWallpaperXStep >= 0 ? mLastWallpaperXStep : -1.0;
-    Int32 availw = ((CRect*)(wallpaperWin->mFrame).Get())->mRight - ((CRect*)(wallpaperWin->mFrame).Get())->mLeft - dw;
+    Int32 wallpaperWinRight, wallpaperWinLeft;
+    wallpaperWin->mFrame->GetRight(&wallpaperWinRight);
+    wallpaperWin->mFrame->GetLeft(&wallpaperWinLeft);
+    Int32 availw = wallpaperWinRight - wallpaperWinLeft - dw;
     Int32 offset = availw > 0 ? - (Int32)(availw * wpx + 0.5) : 0;
     changed = wallpaperWin->mXOffset != offset;
     if (changed) {
@@ -6343,7 +6395,10 @@ Boolean CWindowManagerService::UpdateWallpaperOffsetLocked(
 
     Float wpy = mLastWallpaperY >= 0 ? mLastWallpaperY : 0.5;
     Float wpys = mLastWallpaperYStep >= 0 ? mLastWallpaperYStep : -1.0;
-    Int32 availh = ((CRect*)(wallpaperWin->mFrame).Get())->mBottom - ((CRect*)(wallpaperWin->mFrame).Get())->mTop-dh;
+    Int32 wallpaperWinBottom, wallpaperWinTop;
+    wallpaperWin->mFrame->GetBottom(&wallpaperWinBottom);
+    wallpaperWin->mFrame->GetTop(&wallpaperWinTop);
+    Int32 availh = wallpaperWinBottom - wallpaperWinTop - dh;
     offset = availh > 0 ? - (Int32)(availh * wpy + 0.5) : 0;
     if (wallpaperWin->mYOffset != offset) {
 //        if (DEBUG_WALLPAPER) Slog.v(TAG, "Update wallpaper "
@@ -6518,7 +6573,9 @@ void CWindowManagerService::AddWindowToListInOrderLocked(
                 // If this application has existing windows, we
                 // simply place the new window on top of them... but
                 // keep the starting window on top.
-                if (win->mAttrs->mType == WindowManagerLayoutParams_TYPE_BASE_APPLICATION) {
+                Int32 winType;
+                win->mAttrs->GetType(&winType);
+                if (winType == WindowManagerLayoutParams_TYPE_BASE_APPLICATION) {
                     // Base windows go behind everything else.
                     PlaceWindowBefore(*(token->mWindows.Begin()), win);
                     tokenWindowsPosIt = token->mWindows.Begin();
@@ -6743,11 +6800,15 @@ void CWindowManagerService::RemoveWindowInnerLocked(
     mWindowsChanged = TRUE;
 //    if (DEBUG_WINDOW_MOVEMENT) Slog.v(TAG, "Final remove of window: " + win);
 
+    Int32 winType, winFlags;
     if (mInputMethodWindow.Get() == win) {
         mInputMethodWindow = NULL;
     }
-    else if (win->mAttrs->mType == WindowManagerLayoutParams_TYPE_INPUT_METHOD_DIALOG) {
-//        mInputMethodDialogs.Remove(win);
+    else {
+        win->mAttrs->GetType(&winType);
+        if (winType == WindowManagerLayoutParams_TYPE_INPUT_METHOD_DIALOG) {
+//            mInputMethodDialogs.Remove(win);
+        }
     }
 
     WindowToken* token = win->mToken;
@@ -6797,12 +6858,16 @@ void CWindowManagerService::RemoveWindowInnerLocked(
         }
     }
 
-    if (win->mAttrs->mType == WindowManagerLayoutParams_TYPE_WALLPAPER) {
+    win->mAttrs->GetType(&winType);
+    if (winType == WindowManagerLayoutParams_TYPE_WALLPAPER) {
         mLastWallpaperTimeoutTime = 0;
         AdjustWallpaperWindowsLocked();
     }
-    else if ((win->mAttrs->mFlags & WindowManagerLayoutParams_FLAG_SHOW_WALLPAPER) != 0) {
-        AdjustWallpaperWindowsLocked();
+    else {
+        win->mAttrs->GetFlags(&winFlags);
+        if ((winFlags & WindowManagerLayoutParams_FLAG_SHOW_WALLPAPER) != 0) {
+            AdjustWallpaperWindowsLocked();
+        }
     }
 
     if (!mInLayout) {
@@ -6836,7 +6901,9 @@ Int32 CWindowManagerService::AdjustWallpaperWindowsLocked()
     List<AutoPtr<WindowState> >::ReverseIterator rit;
     for (rit = mWindows.RBegin(); rit != mWindows.REnd(); ++rit) {
         w = *rit;
-        if ((w->mAttrs->mType == WindowManagerLayoutParams_TYPE_WALLPAPER)) {
+        Int32 wType;
+        w->mAttrs->GetType(&wType);
+        if ((wType == WindowManagerLayoutParams_TYPE_WALLPAPER)) {
             if (topCurW == NULL) {
                 topCurW = w;
                 topCurIt = --rit.GetBase();
@@ -6857,7 +6924,9 @@ Int32 CWindowManagerService::AdjustWallpaperWindowsLocked()
 //        if (DEBUG_WALLPAPER) Slog.v(TAG, "Win " + w + ": readyfordisplay="
 //                + w.isReadyForDisplay() + " drawpending=" + w.mDrawPending
 //                + " commitdrawpending=" + w.mCommitDrawPending);
-        if ((w->mAttrs->mFlags & WindowManagerLayoutParams_FLAG_SHOW_WALLPAPER) != 0
+        Int32 wFlags;
+        w->mAttrs->GetFlags(&wFlags);
+        if ((wFlags & WindowManagerLayoutParams_FLAG_SHOW_WALLPAPER) != 0
                 && w->IsReadyForDisplay()
                 && (mWallpaperTarget == w
                         || (!w->mDrawPending && !w->mCommitDrawPending))) {
@@ -7011,9 +7080,11 @@ Int32 CWindowManagerService::AdjustWallpaperWindowsLocked()
         // maximum layer the policy allows for wallpapers.
         while (foundIt != localmWindows.Begin()) {
             AutoPtr<WindowState> wb = *(--List<AutoPtr<WindowState> >::Iterator(foundIt));
+            Int32 wbType;
+            wb->mAttrs->GetType(&wbType);
             if (wb->mBaseLayer < maxLayer &&
                     wb->mAttachedWindow != foundW &&
-                    (wb->mAttrs->mType != WindowManagerLayoutParams_TYPE_APPLICATION_STARTING ||
+                    (wbType != WindowManagerLayoutParams_TYPE_APPLICATION_STARTING ||
                             wb->mToken != foundW->mToken)) {
                 // This window is not related to the previous one in any
                 // interesting way, so stop here.
@@ -7239,7 +7310,9 @@ Boolean CWindowManagerService::ApplyAnimationLocked(
         Int32 attr = -1;
         AutoPtr<IAnimation> a;
         if (anim != 0) {
-            AnimationUtils::LoadAnimation(mContext, anim, (IAnimation**)&a);
+            AutoPtr<IAnimationUtils> animationUtils;
+            CAnimationUtils::AcquireSingleton((IAnimationUtils**)&animationUtils);
+            animationUtils->LoadAnimation(mContext, anim, (IAnimation**)&a);
         }
         else {
             switch (transit) {
@@ -7285,7 +7358,7 @@ Boolean CWindowManagerService::ApplyAnimationLocked(
 }
 
 AutoPtr<IAnimation> CWindowManagerService::LoadAnimation(
-    /* [in] */ CWindowManagerLayoutParams* lp,
+    /* [in] */ IWindowManagerLayoutParams* lp,
     /* [in] */ Int32 animAttr)
 {
     AutoPtr<IAnimation> animation;
@@ -7299,7 +7372,9 @@ AutoPtr<IAnimation> CWindowManagerService::LoadAnimation(
     //    }
     //}
     if (anim != 0) {
-        AnimationUtils::LoadAnimation(context, anim, (IAnimation**)&animation);
+        AutoPtr<IAnimationUtils> animationUtils;
+        CAnimationUtils::AcquireSingleton((IAnimationUtils**)&animationUtils);
+        animationUtils->LoadAnimation(context, anim, (IAnimation**)&animation);
     }
 
     return animation;
@@ -7320,7 +7395,9 @@ AutoPtr<IAnimation> CWindowManagerService::LoadAnimation(
     //    }
     //}
     if (anim != 0) {
-        AnimationUtils::LoadAnimation(context, anim, (IAnimation**)&animation);
+        AutoPtr<IAnimationUtils> animationUtils;
+        CAnimationUtils::AcquireSingleton((IAnimationUtils**)&animationUtils);
+        animationUtils->LoadAnimation(context, anim, (IAnimation**)&animation);
     }
 
     return animation;
@@ -7328,7 +7405,7 @@ AutoPtr<IAnimation> CWindowManagerService::LoadAnimation(
 
 Boolean CWindowManagerService::ApplyAnimationLocked(
     /* [in] */ AppWindowToken* wtoken,
-    /* [in] */ CWindowManagerLayoutParams* lp,
+    /* [in] */ IWindowManagerLayoutParams* lp,
     /* [in] */ Int32 transit,
     /* [in] */ Boolean enter)
 {
@@ -7340,7 +7417,8 @@ Boolean CWindowManagerService::ApplyAnimationLocked(
     mPolicy->IsScreenOn(&isOn);
     if (!mDisplayFrozen && isOn) {
         AutoPtr<IAnimation> a;
-        if (lp != NULL && (lp->mFlags & WindowManagerLayoutParams_FLAG_COMPATIBLE_WINDOW) != 0) {
+        Int32 flags;
+        if (lp != NULL && (lp->GetFlags(&flags), flags & WindowManagerLayoutParams_FLAG_COMPATIBLE_WINDOW) != 0) {
             a = new FadeInOutAnimation(enter);
 //            if (DEBUG_ANIM) Slog.v(TAG,
 //                    "applying FadeInOutAnimation for a window in compatibility mode");
@@ -7454,16 +7532,16 @@ ECode CWindowManagerService::SendNewConfiguration()
 //    }
 }
 
-AutoPtr<CConfiguration> CWindowManagerService::ComputeNewConfiguration()
+AutoPtr<IConfiguration> CWindowManagerService::ComputeNewConfiguration()
 {
     Mutex::Autolock lock(mWindowMapLock);
     return ComputeNewConfigurationLocked();
 }
 
-AutoPtr<CConfiguration> CWindowManagerService::ComputeNewConfigurationLocked()
+AutoPtr<IConfiguration> CWindowManagerService::ComputeNewConfigurationLocked()
 {
-    AutoPtr<CConfiguration> config;
-    ASSERT_SUCCEEDED(CConfiguration::NewByFriend((CConfiguration**)&config));
+    AutoPtr<IConfiguration> config;
+    ASSERT_SUCCEEDED(CConfiguration::New((IConfiguration**)&config));
 
     if (!ComputeNewConfigurationLocked(config)) {
         return NULL;
@@ -7472,7 +7550,7 @@ AutoPtr<CConfiguration> CWindowManagerService::ComputeNewConfigurationLocked()
 }
 
 Boolean CWindowManagerService::ComputeNewConfigurationLocked(
-    /* [in] */ CConfiguration* config)
+    /* [in] */ IConfiguration* config)
 {
     if (mDisplay == NULL) {
         return FALSE;
@@ -7493,12 +7571,14 @@ Boolean CWindowManagerService::ComputeNewConfigurationLocked(
     else if (dw > dh) {
         orientation = Configuration_ORIENTATION_LANDSCAPE;
     }
-    ((CConfiguration*)config)->mOrientation = orientation;
+    config->SetOrientation(orientation);
 
     AutoPtr<IDisplayMetrics> dm;
     ASSERT_SUCCEEDED(CDisplayMetrics::New((IDisplayMetrics**)&dm));
     mDisplay->GetMetrics(dm);
-    CompatibilityInfo::UpdateCompatibleScreenFrame(dm, orientation, mCompatibleScreenFrame);
+    AutoPtr<ICompatibilityInfoHelper> helper;
+    CCompatibilityInfoHelper::AcquireSingleton((ICompatibilityInfoHelper**)&helper);
+    helper->UpdateCompatibleScreenFrame(dm, orientation, mCompatibleScreenFrame);
 
     if (mScreenLayout == Configuration_SCREENLAYOUT_SIZE_UNDEFINED) {
         // Note we only do this once because at this point we don't
@@ -7511,8 +7591,10 @@ Boolean CWindowManagerService::ComputeNewConfigurationLocked(
             longSize = shortSize;
             shortSize = tmp;
         }
-        longSize = (Int32)(longSize / ((CDisplayMetrics*)dm.Get())->mDensity);
-        shortSize = (Int32)(shortSize / ((CDisplayMetrics*)dm.Get())->mDensity);
+        Float dmDensity;
+        dm->GetDensity(&dmDensity);
+        longSize = (Int32)(longSize / dmDensity);
+        shortSize = (Int32)(shortSize / dmDensity);
 
         // These semi-magic numbers define our compatibility modes for
         // applications with different screens.  Don't change unless you
@@ -7556,11 +7638,11 @@ Boolean CWindowManagerService::ComputeNewConfigurationLocked(
             }
         }
     }
-    config->mScreenLayout = mScreenLayout;
+    config->SetScreenLayout(mScreenLayout);
 
-    config->mKeyboardHidden = Configuration_KEYBOARDHIDDEN_NO;
-    config->mHardKeyboardHidden = Configuration_HARDKEYBOARDHIDDEN_NO;
-    mPolicy->AdjustConfigurationLw((IConfiguration*)config);
+    config->SetKeyboardHidden(Configuration_KEYBOARDHIDDEN_NO);
+    config->SetHardKeyboardHidden(Configuration_HARDKEYBOARDHIDDEN_NO);
+    mPolicy->AdjustConfigurationLw(config);
     return TRUE;
 }
 
@@ -7810,7 +7892,7 @@ CWindowManagerService::InputMonitor::~InputMonitor()
  * Called by the InputManager.
  */
 ECode CWindowManagerService::InputMonitor::NotifyInputChannelBroken(
-    /* [in] */ CInputChannel* inputChannel)
+    /* [in] */ IInputChannel* inputChannel)
 {
     Mutex::Autolock lock(mService->mWindowMapLock);
 
@@ -7827,7 +7909,7 @@ ECode CWindowManagerService::InputMonitor::NotifyInputChannelBroken(
 
 ECode CWindowManagerService::InputMonitor::NotifyANR(
     /* [in] */ void* token,
-    /* [in] */ CInputChannel* inputChannel,
+    /* [in] */ IInputChannel* inputChannel,
     /* [out] */ Int64* timeout)
 {
     AppWindowToken* appWindowToken = NULL;
@@ -7867,7 +7949,7 @@ ECode CWindowManagerService::InputMonitor::NotifyANR(
 
 AutoPtr<CWindowManagerService::WindowState>
 CWindowManagerService::InputMonitor::GetWindowStateForInputChannel(
-    /* [in] */ CInputChannel* inputChannel)
+    /* [in] */ IInputChannel* inputChannel)
 {
     Mutex::Autolock lock(mService->mWindowMapLock);
     return GetWindowStateForInputChannelLocked(inputChannel);
@@ -7875,7 +7957,7 @@ CWindowManagerService::InputMonitor::GetWindowStateForInputChannel(
 
 AutoPtr<CWindowManagerService::WindowState>
 CWindowManagerService::InputMonitor::GetWindowStateForInputChannelLocked(
-    /* [in] */ CInputChannel* inputChannel)
+    /* [in] */ IInputChannel* inputChannel)
 {
     List<AutoPtr<CWindowManagerService::WindowState> >::Iterator it =
             (mService->mWindows).Begin();
@@ -7906,8 +7988,9 @@ void CWindowManagerService::InputMonitor::UpdateInputWindowsLw()
             continue;
         }
 
-        Int32 flags = child->mAttrs->mFlags;
-        Int32 type = child->mAttrs->mType;
+        Int32 flags, type;
+        child->mAttrs->GetFlags(&flags);
+        child->mAttrs->GetType(&type);
 
         Boolean hasFocus = (child == mInputFocus);
         Boolean isVisible = child->IsVisibleLw();
@@ -7936,44 +8019,62 @@ void CWindowManagerService::InputMonitor::UpdateInputWindowsLw()
         inputWindow->mOwnerPid = child->mSession->mPid;
         inputWindow->mOwnerUid = child->mSession->mUid;
 
-        AutoPtr<CRect> frame = (CRect*)child->mFrame.Get();
-        inputWindow->mFrameLeft = frame->mLeft;
-        inputWindow->mFrameTop = frame->mTop;
-        inputWindow->mFrameRight = frame->mRight;
-        inputWindow->mFrameBottom = frame->mBottom;
+        IRect* frame = child->mFrame;
+        Int32 frameLeft, frameTop, frameRight, frameBottom;
+        frame->GetLeft(&frameLeft);
+        frame->GetTop(&frameTop);
+        frame->GetRight(&frameRight);
+        frame->GetBottom(&frameBottom);
+        inputWindow->mFrameLeft = frameLeft;
+        inputWindow->mFrameTop = frameTop;
+        inputWindow->mFrameRight = frameRight;
+        inputWindow->mFrameBottom = frameBottom;
 
-        AutoPtr<CRect> visibleFrame = (CRect*)child->mVisibleFrame.Get();
-        inputWindow->mVisibleFrameLeft = visibleFrame->mLeft;
-        inputWindow->mVisibleFrameTop = visibleFrame->mTop;
-        inputWindow->mVisibleFrameRight = visibleFrame->mRight;
-        inputWindow->mVisibleFrameBottom = visibleFrame->mBottom;
+
+        IRect* visibleFrame = child->mVisibleFrame;
+        visibleFrame->GetLeft(&inputWindow->mVisibleFrameLeft);
+        visibleFrame->GetTop(&inputWindow->mVisibleFrameTop);
+        visibleFrame->GetRight(&inputWindow->mVisibleFrameRight);
+        visibleFrame->GetBottom(&inputWindow->mVisibleFrameBottom);
 
         switch (child->mTouchableInsets) {
             default:
             case ViewTreeObserver::InternalInsetsInfo::TOUCHABLE_INSETS_FRAME:
-                inputWindow->mTouchableAreaLeft = frame->mLeft;
-                inputWindow->mTouchableAreaTop = frame->mTop;
-                inputWindow->mTouchableAreaRight = frame->mRight;
-                inputWindow->mTouchableAreaBottom = frame->mBottom;
+            {
+                inputWindow->mTouchableAreaLeft = frameLeft;
+                inputWindow->mTouchableAreaTop = frameTop;
+                inputWindow->mTouchableAreaRight = frameRight;
+                inputWindow->mTouchableAreaBottom = frameBottom;
                 break;
+            }
 
             case ViewTreeObserver::InternalInsetsInfo::TOUCHABLE_INSETS_CONTENT:
             {
-                AutoPtr<CRect> inset = (CRect*)child->mGivenContentInsets.Get();
-                inputWindow->mTouchableAreaLeft = frame->mLeft + inset->mLeft;
-                inputWindow->mTouchableAreaTop = frame->mTop + inset->mTop;
-                inputWindow->mTouchableAreaRight = frame->mRight - inset->mRight;
-                inputWindow->mTouchableAreaBottom = frame->mBottom - inset->mBottom;
+                IRect* inset = child->mGivenContentInsets;
+                Int32 insetLeft, insetTop, insetRight, insetBottom;
+                inset->GetLeft(&insetLeft);
+                inset->GetTop(&insetTop);
+                inset->GetRight(&insetRight);
+                inset->GetBottom(&insetBottom);
+                inputWindow->mTouchableAreaLeft = frameLeft + insetLeft;
+                inputWindow->mTouchableAreaTop = frameTop + insetTop;
+                inputWindow->mTouchableAreaRight = frameRight - insetRight;
+                inputWindow->mTouchableAreaBottom = frameBottom - insetBottom;
                 break;
             }
 
             case ViewTreeObserver::InternalInsetsInfo::TOUCHABLE_INSETS_VISIBLE:
             {
-                AutoPtr<CRect> inset = (CRect*)child->mGivenVisibleInsets.Get();
-                inputWindow->mTouchableAreaLeft = frame->mLeft + inset->mLeft;
-                inputWindow->mTouchableAreaTop = frame->mTop + inset->mTop;
-                inputWindow->mTouchableAreaRight = frame->mRight - inset->mRight;
-                inputWindow->mTouchableAreaBottom = frame->mBottom - inset->mBottom;
+                IRect* inset = child->mGivenVisibleInsets;
+                Int32 insetLeft, insetTop, insetRight, insetBottom;
+                inset->GetLeft(&insetLeft);
+                inset->GetTop(&insetTop);
+                inset->GetRight(&insetRight);
+                inset->GetBottom(&insetBottom);
+                inputWindow->mTouchableAreaLeft = frameLeft + insetLeft;
+                inputWindow->mTouchableAreaTop = frameTop + insetTop;
+                inputWindow->mTouchableAreaRight = frameRight - insetRight;
+                inputWindow->mTouchableAreaBottom = frameBottom - insetBottom;
                 break;
             }
         }
@@ -8015,7 +8116,7 @@ ECode CWindowManagerService::InputMonitor::InterceptKeyBeforeQueueing(
 /* Provides an opportunity for the window manager policy to process a key before
  * ordinary dispatch. */
 ECode CWindowManagerService::InputMonitor::InterceptKeyBeforeDispatching(
-    /* [in] */ CInputChannel* focus,
+    /* [in] */ IInputChannel* focus,
     /* [in] */ Int32 action,
     /* [in] */ Int32 flags,
     /* [in] */ Int32 keyCode,
@@ -8331,9 +8432,11 @@ void CWindowManagerService::AppWindowToken::UpdateReportedVisibilityLocked()
     List<AutoPtr<WindowState> >::Iterator it;
     for (it = mAllAppWindows.Begin(); it != mAllAppWindows.End(); ++it) {
         AutoPtr<WindowState> win = *it;
+        Int32 winType;
+        win->mAttrs->GetType(&winType);
         if (win == mStartingWindow || win->mAppFreezing
                 || win->mViewVisibility != View_VISIBLE
-                || win->mAttrs->mType == WindowManagerLayoutParams_TYPE_APPLICATION_STARTING) {
+                || winType == WindowManagerLayoutParams_TYPE_APPLICATION_STARTING) {
             continue;
         }
 //        if (DEBUG_VISIBILITY) {
@@ -8358,7 +8461,8 @@ void CWindowManagerService::AppWindowToken::UpdateReportedVisibilityLocked()
                 numVisible++;
             }
             nowGone = FALSE;
-        } else if (win->IsAnimating()) {
+        }
+        else if (win->IsAnimating()) {
             nowGone = FALSE;
         }
     }
@@ -8391,8 +8495,10 @@ FindMainWindow()
     List<AutoPtr<WindowState> >::ReverseIterator rit = mWindows.RBegin();
     while (rit != mWindows.REnd()) {
         AutoPtr<WindowState> win = *rit;
-        if (win->mAttrs->mType == WindowManagerLayoutParams_TYPE_BASE_APPLICATION
-                || win->mAttrs->mType == WindowManagerLayoutParams_TYPE_APPLICATION_STARTING) {
+        Int32 winType;
+        win->mAttrs->GetType(&winType);
+        if (winType == WindowManagerLayoutParams_TYPE_BASE_APPLICATION
+                || winType == WindowManagerLayoutParams_TYPE_APPLICATION_STARTING) {
             return win;
         }
         ++rit;
@@ -8423,7 +8529,7 @@ CWindowManagerService::WindowState::WindowState(
     /* [in] */ IInnerWindow* client,
     /* [in] */ WindowToken*  token,
     /* [in] */ WindowState* attachedWindow,
-    /* [in] */ CWindowManagerLayoutParams* attrs,
+    /* [in] */ IWindowManagerLayoutParams* attrs,
     /* [in] */ Int32 viewVisibility) :
     mWMService(wmService),
     mSession(session),
@@ -8504,15 +8610,16 @@ CWindowManagerService::WindowState::WindowState(
     assert(SUCCEEDED(CRect::New((IRect**)&mContentFrame)));
     assert(SUCCEEDED(CRect::New((IRect**)&mVisibleFrame)));
 
-    assert(SUCCEEDED(CWindowManagerLayoutParams::NewByFriend(
-            (CWindowManagerLayoutParams**)&mAttrs)));
-    mAttrs->CopyFrom(attrs);
+    assert(SUCCEEDED(CWindowManagerLayoutParams::New(
+            (IWindowManagerLayoutParams**)&mAttrs)));
+    Int32 changes;
+    mAttrs->CopyFrom(attrs, &changes);
 
     ASSERT_SUCCEEDED(CTransformation::New((ITransformation**)&mTransformation));
 
     ASSERT_SUCCEEDED(CMatrix::New((IMatrix**)&mTmpMatrix));
 //    DeathRecipient deathRecipient = new DeathRecipient();
-    mAlpha = mAttrs->mAlpha;
+    mAttrs->GetAlpha(&mAlpha);
 //    if (localLOGV) Slog.v(
 //        TAG, "Window " + this + " client=" + c.asBinder()
 //        + " token=" + token + " (" + mAttrs.token + ")");
@@ -8531,40 +8638,38 @@ CWindowManagerService::WindowState::WindowState(
 //    }
 //    mDeathRecipient = deathRecipient;
 
-    if ((mAttrs->mType >= WindowManagerLayoutParams_FIRST_SUB_WINDOW
-        && mAttrs->mType <= WindowManagerLayoutParams_LAST_SUB_WINDOW)) {
+    Int32 type;
+    mAttrs->GetType(&type);
+    if ((type >= WindowManagerLayoutParams_FIRST_SUB_WINDOW
+        && type <= WindowManagerLayoutParams_LAST_SUB_WINDOW)) {
         // The multiplier here is to reserve space for multiple
         // windows in the same type layer.
-        Int32 layer;
-        mWMService->mPolicy->WindowTypeToLayerLw(
-            attachedWindow->mAttrs->mType, &layer);
+        Int32 layer, attachedWinType;
+        attachedWindow->mAttrs->GetType(&attachedWinType);
+        mWMService->mPolicy->WindowTypeToLayerLw(attachedWinType, &layer);
         mBaseLayer = layer * TYPE_LAYER_MULTIPLIER + TYPE_LAYER_OFFSET;
-        mWMService->mPolicy->SubWindowTypeToLayerLw(mAttrs->mType, &mSubLayer);
+        mWMService->mPolicy->SubWindowTypeToLayerLw(type, &mSubLayer);
         mAttachedWindow = attachedWindow;
         mAttachedWindow->mChildWindows.PushBack(this);
-        mLayoutAttached = mAttrs->mType !=
+        mLayoutAttached = type !=
             WindowManagerLayoutParams_TYPE_APPLICATION_ATTACHED_DIALOG;
-        mIsImWindow = attachedWindow->mAttrs->mType ==
-            WindowManagerLayoutParams_TYPE_INPUT_METHOD
-            || attachedWindow->mAttrs->mType ==
-            WindowManagerLayoutParams_TYPE_INPUT_METHOD_DIALOG;
-        mIsWallpaper = attachedWindow->mAttrs->mType ==
-            WindowManagerLayoutParams_TYPE_WALLPAPER;
+        mIsImWindow = attachedWinType == WindowManagerLayoutParams_TYPE_INPUT_METHOD
+            || attachedWinType == WindowManagerLayoutParams_TYPE_INPUT_METHOD_DIALOG;
+        mIsWallpaper = attachedWinType == WindowManagerLayoutParams_TYPE_WALLPAPER;
         mIsFloatingLayer = mIsImWindow || mIsWallpaper;
     }
     else {
         // The multiplier here is to reserve space for multiple
         // windows in the same type layer.
         Int32 layer;
-        mWMService->mPolicy->WindowTypeToLayerLw(
-            mAttrs->mType, &layer);
+        mWMService->mPolicy->WindowTypeToLayerLw(type, &layer);
         mBaseLayer = layer * TYPE_LAYER_MULTIPLIER + TYPE_LAYER_OFFSET;
         mSubLayer = 0;
         mAttachedWindow = NULL;
         mLayoutAttached = FALSE;
-        mIsImWindow = mAttrs->mType == WindowManagerLayoutParams_TYPE_INPUT_METHOD
-            || mAttrs->mType == WindowManagerLayoutParams_TYPE_INPUT_METHOD_DIALOG;
-        mIsWallpaper = mAttrs->mType == WindowManagerLayoutParams_TYPE_WALLPAPER;
+        mIsImWindow = type == WindowManagerLayoutParams_TYPE_INPUT_METHOD
+            || type == WindowManagerLayoutParams_TYPE_INPUT_METHOD_DIALOG;
+        mIsWallpaper = type == WindowManagerLayoutParams_TYPE_WALLPAPER;
         mIsFloatingLayer = mIsImWindow || mIsWallpaper;
     }
 
@@ -8845,40 +8950,45 @@ ECode CWindowManagerService::WindowState::ComputeFrameLw(
 {
     mHaveFrame = TRUE;
 
-    CRect* container = (CRect*)mContainingFrame.Get();
+    IRect* container = mContainingFrame;
     container->SetEx(pf);
 
-    CRect* display = (CRect*)mDisplayFrame.Get();
+    IRect* display = mDisplayFrame;
     display->SetEx(df);
 
-    if ((mAttrs->mFlags & WindowManagerLayoutParams_FLAG_COMPATIBLE_WINDOW) != 0) {
+    Int32 flags;
+    mAttrs->GetFlags(&flags);
+    if ((flags & WindowManagerLayoutParams_FLAG_COMPATIBLE_WINDOW) != 0) {
         Boolean result;
         container->IntersectEx(mWMService->mCompatibleScreenFrame, &result);
-        if ((mAttrs->mFlags & WindowManagerLayoutParams_FLAG_LAYOUT_NO_LIMITS) == 0) {
+        if ((flags & WindowManagerLayoutParams_FLAG_LAYOUT_NO_LIMITS) == 0) {
             display->IntersectEx(mWMService->mCompatibleScreenFrame, &result);
         }
     }
 
-    Int32 pw = container->mRight - container->mLeft;
-    Int32 ph = container->mBottom - container->mTop;
+    Int32 pw, ph;
+    container->GetWidth(&pw);
+    container->GetHeight(&ph);
 
-    Int32 w,h;
-    if ((mAttrs->mFlags & WindowManagerLayoutParams_FLAG_SCALED) != 0) {
-        w = mAttrs->mWidth < 0 ? pw : mAttrs->mWidth;
-        h = mAttrs->mHeight < 0 ? ph : mAttrs->mHeight;
+    Int32 width, height, w,h;
+    mAttrs->GetWidth(&width);
+    mAttrs->GetHeight(&height);
+    if ((flags & WindowManagerLayoutParams_FLAG_SCALED) != 0) {
+        w = width < 0 ? pw : width;
+        h = height < 0 ? ph : height;
     }
     else {
-        w = mAttrs->mWidth == ViewGroupLayoutParams_MATCH_PARENT ? pw : mRequestedWidth;
-        h = mAttrs->mHeight== ViewGroupLayoutParams_MATCH_PARENT ? ph : mRequestedHeight;
+        w = width == ViewGroupLayoutParams_MATCH_PARENT ? pw : mRequestedWidth;
+        h = height== ViewGroupLayoutParams_MATCH_PARENT ? ph : mRequestedHeight;
     }
 
-    CRect* content = (CRect*)mContentFrame.Get();
+    IRect* content = mContentFrame;
     content->SetEx(cf);
 
-    CRect* visible = (CRect*)mVisibleFrame.Get();
+    IRect* visible = mVisibleFrame;
     visible->SetEx(vf);
 
-    CRect* frame = (CRect*)mFrame.Get();
+    IRect* frame = mFrame;
     Int32 fw, fh;
     frame->GetWidth(&fw);
     frame->GetHeight(&fh);
@@ -8886,41 +8996,88 @@ ECode CWindowManagerService::WindowState::ComputeFrameLw(
     //System.out.println("In: w=" + w + " h=" + h + " container=" +
     //                   container + " x=" + mAttrs.x + " y=" + mAttrs.y);
 
+    Int32 attrsGravity, attrsX, attrsY;
+    Float attrsHMargin, attrsVMargin;
+    mAttrs->GetGravity(&attrsGravity);
+    mAttrs->GetX(&attrsX);
+    mAttrs->GetY(&attrsY);
+    mAttrs->GetHorizontalMargin(&attrsHMargin);
+    mAttrs->GetVerticalMargin(&attrsVMargin);
     AutoPtr<IGravity> gravity;
     CGravity::AcquireSingleton((IGravity**)&gravity);
-    gravity->ApplyEx(mAttrs->mGravity, w, h, container,
-            (Int32)(mAttrs->mX + mAttrs->mHorizontalMargin * pw),
-            (Int32)(mAttrs->mY + mAttrs->mVerticalMargin * ph), frame);
+    gravity->ApplyEx(attrsGravity, w, h, container,
+            (Int32)(attrsX + attrsHMargin * pw),
+            (Int32)(attrsY + attrsVMargin * ph), frame);
 
     //System.out.println("Out: " + mFrame);
 
     // Now make sure the window fits in the overall display.
-    gravity->ApplyDisplay(mAttrs->mGravity, df, frame);
+    gravity->ApplyDisplay(attrsGravity, df, frame);
 //    CRect* _r = frame;
 //printf("@@@@@@@@@ Left: %d, Right: %d, Top: %d, Bottom: %d @@@@@@@@@\n",
 //    _r->mLeft, _r->mRight, _r->mTop, _r->mBottom);
     // Make sure the content and visible frames are inside of the
     // final window frame.
-    if (content->mLeft < frame->mLeft) content->mLeft = frame->mLeft;
-    if (content->mTop < frame->mTop) content->mTop = frame->mTop;
-    if (content->mRight > frame->mRight) content->mRight = frame->mRight;
-    if (content->mBottom > frame->mBottom) content->mBottom = frame->mBottom;
-    if (visible->mLeft < frame->mLeft) visible->mLeft = frame->mLeft;
-    if (visible->mTop < frame->mTop) visible->mTop = frame->mTop;
-    if (visible->mRight > frame->mRight) visible->mRight = frame->mRight;
-    if (visible->mBottom > frame->mBottom) visible->mBottom = frame->mBottom;
+    Int32 contentLeft, contentTop, contentRight, contentBottom;
+    content->GetLeft(&contentLeft);
+    content->GetTop(&contentTop);
+    content->GetRight(&contentRight);
+    content->GetBottom(&contentBottom);
 
-    CRect* contentInsets = (CRect*)mContentInsets.Get();
-    contentInsets->mLeft = content->mLeft - frame->mLeft;
-    contentInsets->mTop = content->mTop - frame->mTop;
-    contentInsets->mRight = frame->mRight - content->mRight;
-    contentInsets->mBottom = frame->mBottom - content->mBottom;
+    Int32 visibleLeft, visibleTop, visibleRight, visibleBottom;
+    visible->GetLeft(&visibleLeft);
+    visible->GetTop(&visibleTop);
+    visible->GetRight(&visibleRight);
+    visible->GetBottom(&visibleBottom);
 
-    CRect* visibleInsets = (CRect*)mVisibleInsets.Get();
-    visibleInsets->mLeft = visible->mLeft - frame->mLeft;
-    visibleInsets->mTop = visible->mTop - frame->mTop;
-    visibleInsets->mRight = frame->mRight - visible->mRight;
-    visibleInsets->mBottom = frame->mBottom - visible->mBottom;
+    Int32 frameLeft, frameTop, frameRight, frameBottom;
+    frame->GetLeft(&frameLeft);
+    frame->GetTop(&frameTop);
+    frame->GetRight(&frameRight);
+    frame->GetBottom(&frameBottom);
+
+    if (contentLeft < frameLeft) {
+        contentLeft = frameLeft;
+        content->SetLeft(contentLeft);
+    }
+    if (contentTop < frameTop) {
+        contentTop = frameTop;
+        content->SetTop(contentTop);
+    }
+    if (contentRight > frameRight) {
+        contentRight = frameRight;
+        content->SetRight(contentRight);
+    }
+    if (contentBottom > frameBottom) {
+        contentBottom = frameBottom;
+        content->SetBottom(contentBottom);
+    }
+    if (visibleLeft < frameLeft) {
+        visibleLeft = frameLeft;
+        visible->SetLeft(visibleLeft);
+    }
+    if (visibleTop < frameTop) {
+        visibleTop = frameTop;
+        visible->SetTop(visibleTop);
+    }
+    if (visibleRight > frameRight) {
+        visibleRight = frameRight;
+        visible->SetRight(visibleRight);
+    }
+    if (visibleBottom > frameBottom) {
+        visibleBottom = frameBottom;
+        visible->SetBottom(visibleBottom);
+    }
+
+    mContentInsets->SetLeft(contentLeft - frameLeft);
+    mContentInsets->SetTop(contentTop - frameTop);
+    mContentInsets->SetRight(frameRight - contentRight);
+    mContentInsets->SetBottom(frameBottom - contentBottom);
+
+    mVisibleInsets->SetLeft(visibleLeft - frameLeft);
+    mVisibleInsets->SetTop(visibleTop - frameTop);
+    mVisibleInsets->SetRight(frameRight - visibleRight);
+    mVisibleInsets->SetBottom(frameBottom - visibleBottom);
 
     Int32 fwTemp, fhTemp;
     frame->GetWidth(&fwTemp);
@@ -8986,10 +9143,10 @@ AutoPtr<IRect> CWindowManagerService::WindowState::GetGivenVisibleInsetsLw()
     return mGivenVisibleInsets;
 }
 
-CWindowManagerLayoutParams*
+AutoPtr<IWindowManagerLayoutParams>
 CWindowManagerService::WindowState::GetAttrs()
 {
-    return mAttrs.Get();
+    return mAttrs;
 }
 
 Int32 CWindowManagerService::WindowState::GetSurfaceLayer()
@@ -9031,7 +9188,9 @@ Boolean CWindowManagerService::WindowState::CommitFinishDrawingLocked(
     }
     mCommitDrawPending = FALSE;
     mReadyToShow = TRUE;
-    Boolean starting = mAttrs->mType == WindowManagerLayoutParams_TYPE_APPLICATION_STARTING;
+    Int32 type;
+    mAttrs->GetType(&type);
+    Boolean starting = type == WindowManagerLayoutParams_TYPE_APPLICATION_STARTING;
     AppWindowToken* atoken = mAppToken;
     if (atoken == NULL || atoken->mAllDrawn || starting) {
         PerformShowLocked();
@@ -9094,7 +9253,9 @@ Boolean CWindowManagerService::WindowState::PerformShowLocked()
             ++rit;
         }
 
-        if (mAttrs->mType != WindowManagerLayoutParams_TYPE_APPLICATION_STARTING
+        Int32 type;
+        mAttrs->GetType(&type);
+        if (type != WindowManagerLayoutParams_TYPE_APPLICATION_STARTING
                 && mAppToken != NULL) {
             mAppToken->mFirstWindowDrawn = TRUE;
 
@@ -9144,9 +9305,10 @@ Boolean CWindowManagerService::WindowState::StepAnimationLocked(
 //                    TAG, "Starting animation in " + this +
 //                    " @ " + currentTime + ": ww=" + mFrame.width() + " wh=" + mFrame.height() +
 //                    " dw=" + dw + " dh=" + dh + " scale=" + mWindowAnimationScale);
-                Int32 w;
+                Int32 w, h;
                 mFrame->GetWidth(&w);
-                mAnimation->Initialize(w, ((CRect*)(mFrame.Get()))->GetHeight(), dw, dh);
+                mFrame->GetHeight(&h);
+                mAnimation->Initialize(w, h, dw, dh);
                 mAnimation->SetStartTime(currentTime);
                 mLocalAnimating = TRUE;
                 mAnimating = TRUE;
@@ -9239,8 +9401,10 @@ Boolean CWindowManagerService::WindowState::StepAnimationLocked(
         }
     }
 //    mTransformation->Clear();
+    Int32 type;
+    mAttrs->GetType(&type);
     if (mHasDrawn
-            && mAttrs->mType == WindowManagerLayoutParams_TYPE_APPLICATION_STARTING
+            && type == WindowManagerLayoutParams_TYPE_APPLICATION_STARTING
             && mAppToken != NULL
             && mAppToken->mFirstWindowDrawn
             && mAppToken->mStartingData != NULL) {
@@ -9334,7 +9498,9 @@ void CWindowManagerService::WindowState::ComputeShownFrameLocked()
 
     // Wallpapers are animated based on the "real" window they
     // are currently targeting.
-    if (mAttrs->mType == WindowManagerLayoutParams_TYPE_WALLPAPER
+    Int32 type;
+    mAttrs->GetType(&type);
+    if (type == WindowManagerLayoutParams_TYPE_WALLPAPER
             && mWMService->mLowerWallpaperTarget == NULL
             && mWMService->mWallpaperTarget != NULL) {
         Boolean detach;
@@ -9360,7 +9526,9 @@ void CWindowManagerService::WindowState::ComputeShownFrameLocked()
     if (selfTransformation || attachedTransformation != NULL
             || appTransformation != NULL) {
         // cache often used attributes locally
-        CRect* frame = (CRect*)mFrame.Get();
+        Int32 frameLeft, frameTop;
+        mFrame->GetLeft(&frameLeft);
+        mFrame->GetTop(&frameTop);
         ArrayOf<Float>* tmpFloats = mWMService->mTmpFloats;
         AutoPtr<IMatrix> tmpMatrix = mTmpMatrix;
 
@@ -9372,7 +9540,7 @@ void CWindowManagerService::WindowState::ComputeShownFrameLocked()
             mTransformation->GetMatrix((IMatrix**)&matrix);
             tmpMatrix->PostConcat(matrix, &res);
         }
-        tmpMatrix->PostTranslate(frame->mLeft, frame->mTop, &res);
+        tmpMatrix->PostTranslate(frameLeft, frameTop, &res);
         if (attachedTransformation != NULL) {
             AutoPtr<IMatrix> matrix;
             attachedTransformation->GetMatrix((IMatrix**)&matrix);
@@ -9397,9 +9565,10 @@ void CWindowManagerService::WindowState::ComputeShownFrameLocked()
         mDtDy = (*tmpFloats)[Matrix_MSCALE_Y];
         Int32 x = (Int32)(*tmpFloats)[Matrix_MTRANS_X] + mXOffset;
         Int32 y = (Int32)(*tmpFloats)[Matrix_MTRANS_Y] + mYOffset;
-        Int32 w = frame->GetWidth();
-        Int32 h = frame->GetHeight();
-        mShownFrame->Set(x, y, x+w, y+h);
+        Int32 w, h;
+        mFrame->GetWidth(&w);
+        mFrame->GetHeight(&h);
+        mShownFrame->Set(x, y, x + w, y + h);
 
         // Now set the alpha...  but because our current hardware
         // can't do alpha transformation on a non-opaque surface,
@@ -9407,10 +9576,12 @@ void CWindowManagerService::WindowState::ComputeShownFrameLocked()
         // transforming since it is more important to have that
         // animation be smooth.
         mShownAlpha = mAlpha;
+        Int32 format;
+        mAttrs->GetFormat(&format);
         if (!mWMService->mLimitedAlphaCompositing
-            || (!ElPixelFormat::FormatHasAlpha(mAttrs->mFormat)
+            || (!ElPixelFormat::FormatHasAlpha(format)
             || (IsIdentityMatrix(mDsDx, mDtDx, mDsDy, mDtDy)
-            && x == frame->mLeft && y == frame->mTop))) {
+            && x == frameLeft && y == frameTop))) {
             //Slog.i(TAG, "Applying alpha transform");
             Float alpha;
             if (selfTransformation) {
@@ -9475,11 +9646,13 @@ ECode CWindowManagerService::WindowState::CreateSurfaceLocked(
         }
 
         Int32 flags = 0;
-        if (mAttrs->mMemoryType == WindowManagerLayoutParams_MEMORY_TYPE_PUSH_BUFFERS) {
+        Int32 attrsMemoryType;
+        mAttrs->GetMemoryType(&attrsMemoryType);
+        if (attrsMemoryType == WindowManagerLayoutParams_MEMORY_TYPE_PUSH_BUFFERS) {
             flags |= Surface_PUSH_BUFFERS;
         }
 
-        if ((mAttrs->mMemoryType & WindowManagerLayoutParams_FLAG_SECURE) != 0) {
+        if ((attrsMemoryType & WindowManagerLayoutParams_FLAG_SECURE) != 0) {
             flags |= Surface_SECURE;
         }
 //        if (DEBUG_VISIBILITY) Slog.v(
@@ -9493,7 +9666,9 @@ ECode CWindowManagerService::WindowState::CreateSurfaceLocked(
         Int32 h;
         mFrame->GetWidth(&w);
         mFrame->GetHeight(&h);
-        if ((mAttrs->mFlags & WindowManagerLayoutParams_FLAG_SCALED) != 0) {
+        Int32 attrsFlags;
+        mAttrs->GetFlags(&attrsFlags);
+        if ((attrsFlags & WindowManagerLayoutParams_FLAG_SCALED) != 0) {
             // for a scaled surface, we always want the requested
             // size.
             w = mRequestedWidth;
@@ -9564,7 +9739,9 @@ ECode CWindowManagerService::WindowState::CreateSurfaceLocked(
 //                    mFrame.width() + "x" + mFrame.height() + "), layer=" +
 //                    mAnimLayer + " HIDE", NULL);
 //        }
-        CSurface::OpenTransaction();
+        AutoPtr<ISurfaceHelper> helper;
+        CSurfaceHelper::AcquireSingleton((ISurfaceHelper**)&helper);
+        helper->OpenTransaction();
 
 //            try {
 //                try {
@@ -9605,7 +9782,7 @@ ECode CWindowManagerService::WindowState::CreateSurfaceLocked(
 ////            }
 //        mLastHidden = TRUE;
 //        if (SHOW_TRANSACTIONS) Slog.i(TAG, "<<< CLOSE TRANSACTION");
-        CSurface::CloseTransaction();
+        helper->CloseTransaction();
     }
 
     if (mSurface) {
@@ -9624,12 +9801,12 @@ ECode CWindowManagerService::WindowState::CreateSurfaceLocked(
 //    }
 //  RuntimeException:
 //    Slog.w(TAG, "Error creating surface in " + w, e);
-    assert(mWMService);
-    mWMService->ReclaimSomeSurfaceMemoryLocked(this, "create-init");
+//    assert(mWMService);
+//    mWMService->ReclaimSomeSurfaceMemoryLocked(this, "create-init");
 //    if (SHOW_TRANSACTIONS) Slog.i(TAG, "<<< CLOSE TRANSACTION");
-    CSurface::CloseTransaction();
+//    CSurface::CloseTransaction();
 
-    return ec;
+//    return ec;
 }
 
 void CWindowManagerService::WindowState::DestroySurfaceLocked()
@@ -9855,8 +10032,11 @@ Boolean CWindowManagerService::WindowState::IsDrawnLw()
  */
 Boolean CWindowManagerService::WindowState::IsOpaqueDrawn()
 {
-    return (mAttrs->mFormat == ElPixelFormat::OPAQUE
-        || mAttrs->mType == WindowManagerLayoutParams_TYPE_WALLPAPER)
+    Int32 format, type;
+    mAttrs->GetFormat(&format);
+    mAttrs->GetType(&type);
+    return (format == ElPixelFormat::OPAQUE
+        || type == WindowManagerLayoutParams_TYPE_WALLPAPER)
         && mSurface != NULL && mAnimation == NULL
         && (mAppToken == NULL || mAppToken->mAnimation == NULL)
         && !mDrawPending && !mCommitDrawPending;
@@ -9866,28 +10046,43 @@ Boolean CWindowManagerService::WindowState::NeedsBackgroundFiller(
     /* [in] */ Int32 screenWidth,
     /* [in] */ Int32 screenHeight)
 {
+    Int32 flags, type;
+    mAttrs->GetFlags(&flags);
+    mAttrs->GetType(&type);
+
+    Int32 frameLeft, frameTop, frameRight,frameBottom;
+    mFrame->GetLeft(&frameLeft);
+    mFrame->GetTop(&frameTop);
+    mFrame->GetRight(&frameRight);
+    mFrame->GetBottom(&frameBottom);
+
+    Int32 scFrameLeft, scFrameTop, scFrameRight, scFrameBottom;
+    mWMService->mCompatibleScreenFrame->GetLeft(&scFrameLeft);
+    mWMService->mCompatibleScreenFrame->GetTop(&scFrameTop);
+    mWMService->mCompatibleScreenFrame->GetRight(&scFrameRight);
+    mWMService->mCompatibleScreenFrame->GetBottom(&scFrameBottom);
     return
          // only if the application is requesting compatible window
-         (mAttrs->mFlags & WindowManagerLayoutParams_FLAG_COMPATIBLE_WINDOW) != 0 &&
+         (flags & WindowManagerLayoutParams_FLAG_COMPATIBLE_WINDOW) != 0 &&
          // only if it's visible
          mHasDrawn && mViewVisibility == View_VISIBLE &&
          // and only if the application fills the compatible screen
-         ((CRect*)(mFrame.Get()))->mLeft <= ((CRect*)(mWMService->mCompatibleScreenFrame.Get()))->mLeft &&
-         ((CRect*)(mFrame.Get()))->mTop <= ((CRect*)(mWMService->mCompatibleScreenFrame.Get()))->mTop &&
-         ((CRect*)(mFrame.Get()))->mRight >= ((CRect*)(mWMService->mCompatibleScreenFrame.Get()))->mRight &&
-         ((CRect*)(mFrame.Get()))->mBottom >= ((CRect*)(mWMService->mCompatibleScreenFrame.Get()))->mBottom &&
+         frameLeft <= scFrameLeft && frameTop <= scFrameTop &&
+         frameRight >= scFrameRight && frameBottom >= scFrameBottom &&
          // and starting window do not need background filler
-         mAttrs->mType != WindowManagerLayoutParams_TYPE_APPLICATION_STARTING;
+         type != WindowManagerLayoutParams_TYPE_APPLICATION_STARTING;
 }
 
 Boolean CWindowManagerService::WindowState::IsFullscreen(
     /* [in] */ Int32 screenWidth,
     /* [in] */ Int32 screenHeight)
 {
-    return ((CRect*)(mFrame.Get()))->mLeft <= 0 &&
-            ((CRect*)(mFrame.Get()))->mTop <= 0 &&
-            ((CRect*)(mFrame.Get()))->mRight >= screenWidth &&
-            ((CRect*)(mFrame.Get()))->mBottom >= screenHeight;
+    Int32 left, top, right, bottom;
+    mFrame->GetLeft(&left);
+    mFrame->GetTop(&top);
+    mFrame->GetRight(&right);
+    mFrame->GetBottom(&bottom);
+    return left <= 0 && top <= 0 && right >= screenWidth && bottom >= screenHeight;
 }
 
 void CWindowManagerService::WindowState::RemoveLocked()
@@ -10012,7 +10207,7 @@ Boolean CWindowManagerService::WindowState::HideLw(
  * all state used for dim animation.
  */
 CWindowManagerService::DimAnimator::DimAnimator(
-    /* [in] */ CSurfaceSession* session) :
+    /* [in] */ ISurfaceSession* session) :
     mDimShown(FALSE)
 {
     if (mDimSurface == NULL) {
@@ -10071,7 +10266,9 @@ void CWindowManagerService::DimAnimator::UpdateParameters(
 {
     mDimSurface->SetLayer(w->mAnimLayer - 1);
 
-    Float target = w->mExiting ? 0 : w->mAttrs->mDimAmount;
+    Float dimAmount;
+    w->mAttrs->GetDimAmount(&dimAmount);
+    Float target = w->mExiting ? 0 : dimAmount;
 //    if (SHOW_TRANSACTIONS) Slog.i(TAG, "  DIM " + mDimSurface
 //            + ": layer=" + (w.mAnimLayer-1) + " target=" + target);
     if (mDimTargetAlpha != target) {
@@ -10170,9 +10367,11 @@ Boolean CWindowManagerService::DimAnimator::UpdateSurface(
 
 Boolean CWindowManagerService::WindowState::CanReceiveKeys()
 {
+    Int32 flags;
+    mAttrs->GetFlags(&flags);
     return IsVisibleOrAdding()
             && (mViewVisibility == View_VISIBLE)
-            && ((mAttrs->mFlags & WindowManagerLayoutParams_FLAG_NOT_FOCUSABLE) == 0);
+            && ((flags & WindowManagerLayoutParams_FLAG_NOT_FOCUSABLE) == 0);
 }
 
 Boolean CWindowManagerService::WindowState::HasDrawnLw()

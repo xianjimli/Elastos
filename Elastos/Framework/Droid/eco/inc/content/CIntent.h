@@ -12,23 +12,6 @@ CarClass(CIntent)
 {
 public:
     /**
-     * @hide
-     * Magic extra system code can use when binding, to give a label for
-     * who it is that has bound to a service.  This is an integer giving
-     * a framework string resource that can be displayed to the user.
-     */
-    static const String EXTRA_CLIENT_LABEL;
-
-    /**
-     * @hide
-     * Magic extra system code can use when binding, to give a PendingIntent object
-     * that can be launched for the user to disable the system's use of this
-     * service.
-     */
-    static const String EXTRA_CLIENT_INTENT;
-
-public:
-    /**
      * Wrapper class holding an Intent and implementing comparisons on it for
      * the purpose of filtering.  The class implements its
      * {@link #equals equals()} and {@link #hashCode hashCode()} methods as
@@ -229,6 +212,16 @@ public:
         /* [in] */ IContentResolver* resolver,
         /* [out] */ String* type);
 
+    /**
+     * Completely replace the extras in the Intent with the extras in the
+     * given Intent.
+     *
+     * @param src The exact extras contained in this Intent are copied
+     * into the target intent, replacing any that were previously there.
+     */
+    CARAPI ReplaceExtras(
+        /* [in] */ IIntent* src);
+
     CARAPI FilterEquals(
         /* [in] */ IIntent* other,
         /* [out] */ Boolean* isEqual);
@@ -263,13 +256,6 @@ public:
 
     CARAPI constructor(
         /* [in] */ Handle32 intent);
-
-public:
-    CARAPI CloneFilter(
-        /* [out] */ CIntent** intent);
-
-    CARAPI ReplaceExtras(
-        /* [in] */ CIntent* src);
 
 private:
 /*

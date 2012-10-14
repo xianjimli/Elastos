@@ -1,5 +1,5 @@
 
-#include "location/internal/DummyLocationProvider.h"
+#include "location/DummyLocationProvider.h"
 
 const CString DummyLocationProvider::TAG = "DummyLocationProvider";
 

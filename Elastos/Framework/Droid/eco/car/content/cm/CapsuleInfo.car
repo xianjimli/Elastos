@@ -1,6 +1,131 @@
 
 module
 {
+    /**
+     * Constant corresponding to <code>auto</code> in
+     * the {@link android.R.attr#installLocation} attribute.
+     * @hide
+     */
+    const CapsuleInfo_INSTALL_LOCATION_UNSPECIFIED = -1;
+    /**
+     * Constant corresponding to <code>auto</code> in
+     * the {@link android.R.attr#installLocation} attribute.
+     * @hide
+     */
+    const CapsuleInfo_INSTALL_LOCATION_AUTO = 0;
+    /**
+     * Constant corresponding to <code>internalOnly</code> in
+     * the {@link android.R.attr#installLocation} attribute.
+     * @hide
+     */
+    const CapsuleInfo_INSTALL_LOCATION_INTERNAL_ONLY = 1;
+    /**
+     * Constant corresponding to <code>preferExternal</code> in
+     * the {@link android.R.attr#installLocation} attribute.
+     * @hide
+     */
+    const CapsuleInfo_INSTALL_LOCATION_PREFER_EXTERNAL = 2;
+
+    interface IApplicationInfo;
+    interface IActivityInfo;
+    interface IServiceInfo;
+    interface IContentProviderInfo;
+    interface IInstrumentationInfo;
+    interface IPermissionInfo;
+    interface ISignature;
+    interface IConfigurationInfo;
+    interface IFeatureInfo;
+
+    [deprecated]
     interface ICapsuleInfo {
+        GetCapsuleName(
+            [out] String* name);
+
+        SetCapsuleName(
+            [in] String name);
+
+        GetVersionCode(
+            [out] Int32* versionCode);
+
+        SetVersionCode(
+            [in] Int32 versionCode);
+
+        GetVersionName(
+            [out] String* versionName);
+
+        SetVersionName(
+            [in] String versionName);
+
+        GetSharedUserId(
+            [out] String* id);
+
+        SetSharedUserId(
+            [in] String id);
+
+        GetSharedUserLabel(
+            [out] Int32* label);
+
+        SetSharedUserLabel(
+            [in] Int32 label);
+
+        GetApplicationInfo(
+            [out] IApplicationInfo** info);
+
+        SetApplicationInfo(
+            [in] IApplicationInfo* info);
+
+        GetFirstInstallTime(
+            [out] Int64* time);
+
+        SetFirstInstallTime(
+            [in] Int64 time);
+
+        GetLastUpdateTime(
+            [out] Int64* time);
+
+        SetLastUpdateTime(
+            [in] Int64 time);
+
+        GetGids(
+            [out, callee] ArrayOf<Int32>* gids);
+
+        SetGids(
+            [in] ArrayOf<Int32>* gids);
+
+        AddActivity(
+            [in] IActivityInfo* activity);
+
+        AddReceiver(
+            [in] IActivityInfo* receiver);
+
+        AddService(
+            [in] IServiceInfo* service);
+
+        AddContentProvider(
+            [in] IContentProviderInfo* provider);
+
+        AddInstrumentation(
+            [in] IInstrumentationInfo* instumentation);
+
+        AddPermission(
+            [in] IPermissionInfo* permission);
+
+        AddRequestedPermission(
+            [in] String permission);
+
+        AddSignature(
+            [in] ISignature* signature);
+
+        AddConfigPreference(
+            [in] IConfigurationInfo* config);
+
+        AddReqFeature(
+            [in] IFeatureInfo* feature);
+
+        GetInstallLocation(
+            [out] Int32* location);
+
+        SetInstallLocation(
+            [in] Int32 location);
     }
 }

@@ -1,5 +1,7 @@
 
+#include "ext/frameworkext.h"
 #include "content/CFeatureInfo.h"
+
 ECode CFeatureInfo::GetDescription(
     /* [out] */ String* des)
 {
@@ -12,6 +14,51 @@ ECode CFeatureInfo::GetGlEsVersion(
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
+}
+
+ECode CFeatureInfo::GetName(
+    /* [out] */ String* name)
+{
+    VALIDATE_NOT_NULL(name);
+    *name = mName;
+    return NOERROR;
+}
+
+ECode CFeatureInfo::SetName(
+    /* [in] */ const String& name)
+{
+    mName = name;
+    return NOERROR;
+}
+
+ECode CFeatureInfo::GetReqGlEsVersion(
+    /* [out] */ Int32* reqGlEsVersion)
+{
+    VALIDATE_NOT_NULL(reqGlEsVersion);
+    *reqGlEsVersion = mReqGlEsVersion;
+    return NOERROR;
+}
+
+ECode CFeatureInfo::SetReqGlEsVersion(
+    /* [in] */ Int32 reqGlEsVersion)
+{
+    mReqGlEsVersion = reqGlEsVersion;
+    return NOERROR;
+}
+
+ECode CFeatureInfo::GetFlags(
+    /* [out] */ Int32* flags)
+{
+    VALIDATE_NOT_NULL(flags);
+    *flags = mFlags;
+    return NOERROR;
+}
+
+ECode CFeatureInfo::SetFlags(
+    /* [in] */ Int32 flags)
+{
+    mFlags = flags;
+    return NOERROR;
 }
 
 ECode CFeatureInfo::ReadFromParcel(

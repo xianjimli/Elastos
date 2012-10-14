@@ -2,19 +2,19 @@
 #ifndef __URI_H__
 #define __URI_H__
 
-#ifdef _FRAMEWORK
+#ifdef _FRAMEWORK_CORE
 #include "ext/frameworkext.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/etl_hash_fun.h>
 #else
-#include "Elastos.Framework.h"
+#include "Elastos.Framework.Core.h"
 #endif
 
 using namespace Elastos;
 
 class Uri
 {
-#ifdef _FRAMEWORK
+#ifdef _FRAMEWORK_CORE
 public:
     class AbstractPart
     {
@@ -60,7 +60,7 @@ public:
 #endif
 
 public:
-#ifndef _FRAMEWORK
+#ifndef _FRAMEWORK_CORE
     static CARAPI Parse(
         /* [in] */ const String& uriString,
         /* [out] */ IUri** uri)
@@ -69,9 +69,49 @@ public:
 
         return CStringUri::New(uriString, uri);
     }
-#endif
 
-#ifdef _FRAMEWORK
+    /**
+     * Creates a Uri from a file. The URI has the form
+     * "file://<absolute path>". Encodes path characters with the exception of
+     * '/'.
+     *
+     * <p>Example: "file:///tmp/android.txt"
+     *
+     * @throws NullPointerException if file is null
+     * @return a Uri for the given file
+     */
+    static CARAPI_(AutoPtr<IUri>) FromFile(
+        /* [in] */ IFile* file)
+    {
+        return NULL;
+    }
+
+    /**
+     * Creates an opaque Uri from the given components. Encodes the ssp
+     * which means this method cannot be used to create hierarchical URIs.
+     *
+     * @param scheme of the URI
+     * @param ssp scheme-specific-part, everything between the
+     *  scheme separator (':') and the fragment separator ('#'), which will
+     *  get encoded
+     * @param fragment fragment, everything after the '#', null if undefined,
+     *  will get encoded
+     *
+     * @throws NullPointerException if scheme or ssp is null
+     * @return Uri composed of the given scheme, ssp, and fragment
+     *
+     * @see Builder if you don't want the ssp and fragment to be encoded
+     */
+    static CARAPI FromParts(
+        /* [in] */ const String& scheme,
+        /* [in] */ const String& ssp,
+        /* [in] */ const String& fragment,
+        /* [out] */ IUri** uri)
+    {
+        return E_NOT_IMPLEMENTED;
+    }
+
+#else
     static CARAPI Parse(
         /* [in] */ const String& uriString,
         /* [out] */ IUri** uri);
@@ -134,7 +174,7 @@ private:
 #endif
 };
 
-#ifdef _FRAMEWORK
+#ifdef _FRAMEWORK_CORE
 
 _ELASTOS_NAMESPACE_BEGIN
 

@@ -48,6 +48,7 @@ module
     merge("content/IntentFilter.car");
     merge("content/DialogInterface.car");
     merge("content/ContextThemeWrapper.car");
+    merge("content/PathPermission.car");
 
     interface ICursor;
 
@@ -85,6 +86,7 @@ module
         constructor(
             [in] IParcel* src);
 
+        interface IPathPermission;
         interface IParcelable;
     }
 
@@ -207,6 +209,10 @@ module
         interface ICompatibilityInfo;
     }
 
+    singleton class CCompatibilityInfoHelper {
+        interface ICompatibilityInfoHelper;
+    }
+
     class CAssetFileDescriptor {
         /**
          * Create a new AssetFileDescriptor from the given values.
@@ -263,6 +269,17 @@ module
 
         interface IComponentName;
         interface IParcelable;
+    }
+
+    singleton class CComponentNameHelper {
+        interface IComponentNameHelper;
+    }
+
+    class CIntentFilterComparison {
+        constructor(
+            [in] IIntent* intent);
+
+        interface IIntentFilterComparison;
     }
 
     class CIntent {

@@ -1,0 +1,11 @@
+
+module
+{
+    interface IPathPermission extends IPatternMatcher {
+        GetReadPermission(
+            [out] String* permission);
+
+        GetWritePermission(
+            [out] String* permission);
+    }
+}

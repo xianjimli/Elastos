@@ -4,17 +4,14 @@
 
 #include "_CServiceRecord.h"
 #include "ext/frameworkdef.h"
-#include <elastos/List.h>
-#include <elastos/AutoPtr.h>
 #include "os/BatteryStatsImpl.h"
-#include "capsule/CServiceInfo.h"
-#include "content/CIntent.h"
 #include "server/CActivityManagerService.h"
 #include "server/IntentBindRecord.h"
 #include "server/AppBindRecord.h"
 #include "server/ProcessRecord.h"
-#include "app/CNotification.h"
 #include "server/UriPermissionOwner.h"
+#include <elastos/List.h>
+#include <elastos/AutoPtr.h>
 
 using namespace Elastos;
 
@@ -68,7 +65,7 @@ public:
         /* [in] */ CActivityManagerService* ams,
         /* [in] */ BatteryStatsImpl::Uid::Cap::Serv* servStats,
         /* [in] */ IComponentName* name,
-        /* [in] */ CIntent::FilterComparison* intent,
+        /* [in] */ IIntentFilterComparison* intent,
         /* [in] */ IServiceInfo* sInfo,
         /* [in] */ IRunnable* restarter);
 
@@ -93,9 +90,9 @@ public:
     AutoPtr<BatteryStatsImpl::Uid::Cap::Serv> mStats;
     AutoPtr<IComponentName> mName; // service component.
     String mShortName; // name.flattenToShortString().
-    CIntent::FilterComparison* mIntent; // original intent used to find service.
-    AutoPtr<CServiceInfo> mServiceInfo;  // all information about the service.
-    AutoPtr<CApplicationInfo> mAppInfo; // information about service's app.
+    AutoPtr<IIntentFilterComparison> mIntent; // original intent used to find service.
+    AutoPtr<IServiceInfo> mServiceInfo;  // all information about the service.
+    AutoPtr<IApplicationInfo> mAppInfo; // information about service's app.
     String mCapsuleName; // the package implementing intent's component
     String mProcessName; // process where this component wants to run
     String mPermission; // permission needed to access service
@@ -105,13 +102,13 @@ public:
     Boolean mExported; // from ServiceInfo.exported
     AutoPtr<IRunnable> mRestarter; // used to schedule retries of starting the service
     Millisecond64 mCreateTime;  // when this service was created
-    Map<CIntent::FilterComparison*, IntentBindRecord*> mBindings; // All active bindings to the service.
+    Map<AutoPtr<IIntentFilterComparison>, IntentBindRecord*> mBindings; // All active bindings to the service.
     Map<AutoPtr<IServiceConnectionInner>, List<ConnectionRecord*>*> mConnections; // IBinder -> ConnectionRecord of all bound clients
 
     ProcessRecord* mApp;  // where this service is running or null.
     Boolean mIsForeground;   // asked to run as a foreground service?
     Int32 mForegroundId;       // Notification ID of last foreground req.
-    AutoPtr<CNotification> mForegroundNoti; // Notification record of foreground state.
+    AutoPtr<INotification> mForegroundNoti; // Notification record of foreground state.
     Millisecond64 mLastActivity;      // last time there was some activity on the service.
     Boolean mStartRequested; // someone explicitly called start?
     Boolean mStopIfKilled;   // last onStart() said to stop if service killed?

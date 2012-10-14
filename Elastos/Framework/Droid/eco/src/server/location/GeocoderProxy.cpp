@@ -1,6 +1,5 @@
 
 #include "server/location/GeocoderProxy.h"
-#include "content/CIntent.h"
 
 PInterface GeocoderProxy::Connection::Probe(
     /* [in]  */ REIID riid)

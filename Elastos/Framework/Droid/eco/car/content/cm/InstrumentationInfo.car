@@ -1,11 +1,47 @@
 
 module
 {
-    interface IInstrumentationInfo {
+    interface IInstrumentationInfo extends ICapsuleItemInfo {
+        GetTargetCapsule(
+            [out] String* capsule);
+
+        SetTargetCapsule(
+            [in] String capsule);
+
         GetSourceDir(
             [out] String* sourceDir);
 
         SetSourceDir(
             [in] String sourceDir);
+
+        GetPublicSourceDir(
+            [out] String* pubSrcDir);
+
+        SetPublicSourceDir(
+            [in] String pubSrcDir);
+
+        GetDataDir(
+            [out] String* dataDir);
+
+        SetDataDir(
+            [in] String dataDir);
+
+        GetNativeLibraryDir(
+            [out] String* libraryDir);
+
+        SetNativeLibraryDir(
+            [in] String libraryDir);
+
+        IsHandleProfiling(
+            [out] Boolean* handleProfiling);
+
+        SetHandleProfiling(
+            [in] Boolean handleProfiling);
+
+        IsFunctionalTest(
+            [out] Boolean* functionalTest);
+
+        SetFunctionalTest(
+            [in] Boolean functionalTest);
     }
 }

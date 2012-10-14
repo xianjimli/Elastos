@@ -4,7 +4,6 @@
 
 #include <elastos/AutoPtr.h>
 #include <elastos/ElRefBase.h>
-#include "content/CIntentFilter.h"
 #include "server/ReceiverList.h"
 
 using namespace Elastos;
@@ -47,7 +46,7 @@ public:
         /* [out] */ String* description);
 
 public:
-    AutoPtr<CIntentFilter> mFilter;
+    AutoPtr<IIntentFilter> mFilter;
     ReceiverList* mReceiverList;
     String mRequiredPermission;
 };

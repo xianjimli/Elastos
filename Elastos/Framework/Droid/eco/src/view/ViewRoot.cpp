@@ -5,12 +5,12 @@
 #include "view/CInputDevice.h"
 #include "view/FocusFinder.h"
 #include "impl/CPhoneWindow.h"
-#include "utils/CApartment.h"
 #include "utils/CDisplayMetrics.h"
 #include "graphics/ElPixelFormat.h"
 #include "graphics/CCanvas.h"
 #include "content/CompatibilityInfo.h"
 #include "widget/Scroller.h"
+#include "os/CApartment.h"
 #include "os/SystemClock.h"
 #include <Logger.h>
 #include <StringBuffer.h>
@@ -879,7 +879,8 @@ ECode ViewRoot::SetView(
 
     if (mView == NULL) {
         mView = view;
-        mWindowAttributes->CopyFrom(attrs);
+        Int32 changes;
+        mWindowAttributes->CopyFrom(attrs, &changes);
 
         RootViewSurfaceTaker* rootViewST =
             (RootViewSurfaceTaker*)view->Probe(EIID_RootViewSurfaceTaker);
@@ -985,15 +986,15 @@ ECode ViewRoot::SetView(
 
         //if (Config.LOGV) Log.v(TAG, "Added window " + mWindow);
 
-        if (res < CWindowManagerImpl::ADD_OKAY) {
+        if (res < WindowManagerImpl_ADD_OKAY) {
             mView = NULL;
             mAttachInfo->mRootView = NULL;
             mAdded = FALSE;
             UnscheduleTraversals();
 
             switch (res) {
-                case CWindowManagerImpl::ADD_BAD_APP_TOKEN:
-                case CWindowManagerImpl::ADD_BAD_SUBWINDOW_TOKEN:
+                case WindowManagerImpl_ADD_BAD_APP_TOKEN:
+                case WindowManagerImpl_ADD_BAD_SUBWINDOW_TOKEN:
 //                    throw new WindowManagerImpl.BadTokenException(
 //                                "Unable to add window -- token " + attrs.token
 //                                + " is not valid; is your activity running?");
@@ -1004,7 +1005,7 @@ ECode ViewRoot::SetView(
 
                     return E_BAD_TOKEN_EXCEPTION;
 
-                case CWindowManagerImpl::ADD_NOT_APP_TOKEN:
+                case WindowManagerImpl_ADD_NOT_APP_TOKEN:
 //                     throw new WindowManagerImpl.BadTokenException(
 //                                "Unable to add window -- token " + attrs.token
 //                                + " is not for an application");
@@ -1015,7 +1016,7 @@ ECode ViewRoot::SetView(
 
                     return E_BAD_TOKEN_EXCEPTION;
 
-                case CWindowManagerImpl::ADD_APP_EXITING:
+                case WindowManagerImpl_ADD_APP_EXITING:
 //                     throw new WindowManagerImpl.BadTokenException(
 //                                "Unable to add window -- app for token " + attrs.token
 //                                + " is exiting");
@@ -1025,7 +1026,7 @@ ECode ViewRoot::SetView(
 
                     return E_BAD_TOKEN_EXCEPTION;
 
-                case CWindowManagerImpl::ADD_DUPLICATE_ADD:
+                case WindowManagerImpl_ADD_DUPLICATE_ADD:
 //                    throw new WindowManagerImpl.BadTokenException(
 //                                "Unable to add window -- window " + mWindow
 //                                + " has already been added");
@@ -1035,12 +1036,12 @@ ECode ViewRoot::SetView(
 
                     return E_BAD_TOKEN_EXCEPTION;
 
-                case CWindowManagerImpl::ADD_STARTING_NOT_NEEDED:
+                case WindowManagerImpl_ADD_STARTING_NOT_NEEDED:
                     // Silently ignore -- we would have just removed it
                     // right away, anyway.
                     return NOERROR;
 
-                case CWindowManagerImpl::ADD_MULTIPLE_SINGLETON:
+                case WindowManagerImpl_ADD_MULTIPLE_SINGLETON:
 //                    throw new WindowManagerImpl.BadTokenException(
 //                                "Unable to add window " + mWindow +
 //                                " -- another window of this type already exists");
@@ -1050,7 +1051,7 @@ ECode ViewRoot::SetView(
 
                     return E_BAD_TOKEN_EXCEPTION;
 
-                case CWindowManagerImpl::ADD_PERMISSION_DENIED:
+                case WindowManagerImpl_ADD_PERMISSION_DENIED:
 //                    throw new WindowManagerImpl.BadTokenException(
 //                                "Unable to add window " + mWindow +
 //                                " -- permission denied for this window type");
@@ -1083,8 +1084,8 @@ ECode ViewRoot::SetView(
         }
 
         view->AssignParent(this);
-        mAddedTouchMode = (res & CWindowManagerImpl::ADD_FLAG_IN_TOUCH_MODE) != 0;
-        mAppVisible = (res & CWindowManagerImpl::ADD_FLAG_APP_VISIBLE) != 0;
+        mAddedTouchMode = (res & WindowManagerImpl_ADD_FLAG_IN_TOUCH_MODE) != 0;
+        mAppVisible = (res & WindowManagerImpl_ADD_FLAG_APP_VISIBLE) != 0;
     }
 
     return NOERROR;
@@ -1108,7 +1109,8 @@ void ViewRoot::SetLayoutParams(
     Int32 compatibleWindowFlag =
         mWindowAttributes->mFlags & WindowManagerLayoutParams_FLAG_COMPATIBLE_WINDOW;
 
-    mWindowAttributes->CopyFrom(attrs);
+    Int32 changes;
+    mWindowAttributes->CopyFrom(attrs, &changes);
     mWindowAttributes->mFlags |= compatibleWindowFlag;
 
     if (newView) {
@@ -1769,7 +1771,7 @@ void ViewRoot::PerformTraversals()
         }
 
         Boolean focusChangedDueToTouchMode = EnsureTouchModeLocally(
-            (relayoutResult & CWindowManagerImpl::RELAYOUT_IN_TOUCH_MODE) != 0);
+            (relayoutResult & WindowManagerImpl_RELAYOUT_IN_TOUCH_MODE) != 0);
         if (focusChangedDueToTouchMode || mWidth != host->mMeasuredWidth
             || mHeight != host->mMeasuredHeight || contentInsetsChanged) {
                 childWidthMeasureSpec = GetRootMeasureSpec(mWidth, lp->mWidth);
@@ -1897,11 +1899,13 @@ void ViewRoot::PerformTraversals()
 
         //attachInfo->mTreeObserver.dispatchOnComputeInternalInsets(insets);
 
-        AutoPtr<CRect> contentInsets = insets->mContentInsets;
-        AutoPtr<CRect> visibleInsets = insets->mVisibleInsets;
+        AutoPtr<IRect> contentInsets = insets->mContentInsets;
+        AutoPtr<IRect> visibleInsets = insets->mVisibleInsets;
         if (mTranslator != NULL) {
+            contentInsets = NULL;
             mTranslator->GetTranslatedContentInsets(
                 insets->mContentInsets, (IRect**)&contentInsets);
+            visibleInsets = NULL;
             mTranslator->GetTranslatedVisbileInsets(
                 insets->mVisibleInsets, (IRect**)&visibleInsets);
         }
@@ -1977,7 +1981,7 @@ void ViewRoot::PerformTraversals()
         mFullRedrawNeeded = FALSE;
         Draw(fullRedrawNeeded);
 
-        if ((relayoutResult & CWindowManagerImpl::RELAYOUT_FIRST_TIME) != 0
+        if ((relayoutResult & WindowManagerImpl_RELAYOUT_FIRST_TIME) != 0
             || mReportNextDraw) {
             if (LOCAL_LOGV) {
                 Logger::D(TAG, StringBuffer("FINISHED DRAWING: ")
@@ -2014,7 +2018,7 @@ void ViewRoot::PerformTraversals()
     else {
         // We were supposed to report when we are done drawing. Since we canceled the
         // draw, remember it here.
-        if ((relayoutResult & CWindowManagerImpl::RELAYOUT_FIRST_TIME) != 0) {
+        if ((relayoutResult & WindowManagerImpl_RELAYOUT_FIRST_TIME) != 0) {
             mReportNextDraw = TRUE;
         }
         if (fullRedrawNeeded) {
@@ -3851,7 +3855,7 @@ ECode ViewRoot::DoDie()
             // animation info.
             //
             if ((RelayoutWindow(mWindowAttributes, viewVisibility, FALSE)
-                & CWindowManagerImpl::RELAYOUT_FIRST_TIME) != 0) {
+                & WindowManagerImpl_RELAYOUT_FIRST_TIME) != 0) {
                 ec = sWindowSession->FinishDrawing(mWindow);
                 if (FAILED(ec)) {
                     return ec;
@@ -3990,10 +3994,10 @@ ECode ViewRoot::DispatchMotion(
 {
     Int32 source;
     event->GetSource(&source);
-    if ((source & CInputDevice::SOURCE_CLASS_POINTER) != 0) {
+    if ((source & InputDevice_SOURCE_CLASS_POINTER) != 0) {
         DispatchPointer(event, sendDone);
     }
-    else if ((source & CInputDevice::SOURCE_CLASS_TRACKBALL) != 0) {
+    else if ((source & InputDevice_SOURCE_CLASS_TRACKBALL) != 0) {
         DispatchTrackball(event, sendDone);
     }
     else {

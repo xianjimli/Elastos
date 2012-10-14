@@ -11,15 +11,10 @@
 #include <elastos/HashSet.h>
 #include <elastos/List.h>
 
-#include "capsule/CapsuleParser.h"
-#include "capsule/CActivityInfo.h"
 #include "server/IntentResolver.h"
 #include "server/Installer.h"
-#include "content/CResolveInfo.h"
-#include "content/CComponentName.h"
-#include "content/Signature.h"
+#include "capsule/CapsuleParser.h"
 #include "content/IntentFilter.h"
-#include "content/CIntentFilter.h"
 #include "os/Process.h"
 #include "os/FileObserver.h"
 #include "utils/AutoStringArray.h"
@@ -29,6 +24,33 @@
 
 using namespace Elastos::Core;
 using namespace Elastos::Core::Threading;
+
+_ELASTOS_NAMESPACE_BEGIN
+
+template<> struct Hash<AutoPtr<IComponentName> >
+{
+    size_t operator()(AutoPtr<IComponentName> name) const
+    {
+        Int32 hashCode;
+        assert(name != NULL);
+        name->GetHashCode(&hashCode);
+        return (size_t)hashCode;
+    }
+};
+
+template<> struct EqualTo<AutoPtr<IComponentName> >
+{
+    Boolean operator()(const AutoPtr<IComponentName>& x,
+                       const AutoPtr<IComponentName>& y) const
+    {
+        Boolean isEqual;
+        assert(x != NULL);
+        x->Equals(y, &isEqual);
+        return isEqual;
+    }
+};
+
+_ELASTOS_NAMESPACE_END
 
 extern "C" const InterfaceID EIID_CapsuleSetting;
 extern "C" const InterfaceID EIID_SharedUserSetting;
@@ -498,7 +520,7 @@ public:
         Int32 mType;
         Int32 mProtectionLevel;
         CapsuleParser::Permission* mPerm;
-        AutoPtr<CPermissionInfo> mPendingInfo;
+        AutoPtr<IPermissionInfo> mPendingInfo;
         Int32 mUid;
         AutoFree< ArrayOf<Int32> > mGids;
     };
@@ -593,6 +615,9 @@ public:
             /* [in] */ const String& action,
             /* [out] */ Boolean* isMatched);
 
+        CARAPI GetActions(
+            /* [out, callee] */ ArrayOf<String>** actions);
+
         CARAPI AddDataType(
             /* [in] */ const String& type);
 
@@ -607,6 +632,9 @@ public:
             /* [in] */ Int32 index,
             /* [out] */ String* type);
 
+        CARAPI GetTypes(
+            /* [out, callee] */ ArrayOf<String>** types);
+
         CARAPI AddDataScheme(
             /* [in] */ const String& scheme);
 
@@ -620,6 +648,9 @@ public:
         CARAPI HasDataScheme(
             /* [in] */ const String& scheme,
             /* [out] */ Boolean* result);
+
+        CARAPI GetSchemes(
+            /* [out, callee] */ ArrayOf<String>** schemes);
 
         CARAPI AddDataAuthority(
             /* [in] */ const String& host,
@@ -712,7 +743,7 @@ public:
             /* [in] */ Int32 priority);
 
     public:
-        AutoPtr<CIntentFilter> mFilter;
+        AutoPtr<IIntentFilter> mFilter;
         Int32 mMatch;
         AutoStringArray mSetCapsules;
         AutoStringArray mSetClasses;
@@ -921,11 +952,11 @@ public:
 private:
     class ActivityIntentResolver :
         public IntentResolver<CapsuleParser::ActivityIntentInfo,
-                              AutoPtr<CResolveInfo> >
+                              AutoPtr<IResolveInfo> >
     {
     public:
         typedef IntentResolver<CapsuleParser::ActivityIntentInfo, \
-                AutoPtr<CResolveInfo> >     Super;
+                AutoPtr<IResolveInfo> >     Super;
 
     public:
         ActivityIntentResolver(
@@ -933,17 +964,17 @@ private:
 
         ~ActivityIntentResolver();
 
-        CARAPI_(List<AutoPtr<CResolveInfo>*>*) QueryIntent(
+        CARAPI_(List<AutoPtr<IResolveInfo>*>*) QueryIntent(
             /* [in] */ IIntent* intent,
             /* [in] */ const String& resolvedType,
             /* [in] */ Boolean defaultOnly);
 
-        CARAPI_(List<AutoPtr<CResolveInfo>*>*) QueryIntent(
+        CARAPI_(List<AutoPtr<IResolveInfo>*>*) QueryIntent(
             /* [in] */ IIntent* intent,
             /* [in] */ const String& resolvedType,
             /* [in] */ Int32 flags);
 
-        CARAPI_(List<AutoPtr<CResolveInfo>*>*) QueryIntentForCapsule(
+        CARAPI_(List<AutoPtr<IResolveInfo>*>*) QueryIntentForCapsule(
             /* [in] */ IIntent* intent,
             /* [in] */ const String& resolvedType,
             /* [in] */ Int32 flags,
@@ -961,7 +992,7 @@ private:
         //@Override
         CARAPI_(Boolean) AllowFilterResult(
             /* [in] */ CapsuleParser::ActivityIntentInfo* filter,
-            /* [in] */ List<AutoPtr<CResolveInfo>*>* dest);
+            /* [in] */ List<AutoPtr<IResolveInfo>*>* dest);
 
         //@Override
         CARAPI_(String) CapsuleForFilter(
@@ -971,11 +1002,11 @@ private:
         CARAPI NewResult(
             /* [in] */ CapsuleParser::ActivityIntentInfo* info,
             /* [in] */ Int32 match,
-            /* [out] */ AutoPtr<CResolveInfo>** ret);
+            /* [out] */ AutoPtr<IResolveInfo>** ret);
 
         //@Override
         CARAPI_(void) SortResults(
-            /* [in] */ List<AutoPtr<CResolveInfo>*>* results);
+            /* [in] */ List<AutoPtr<IResolveInfo>*>* results);
 
     public:
         // Keys are String (activity class name), values are Activity.
@@ -986,11 +1017,11 @@ private:
 
     class ServiceIntentResolver :
         public IntentResolver<CapsuleParser::ServiceIntentInfo,
-                              AutoPtr<CResolveInfo> >
+                              AutoPtr<IResolveInfo> >
     {
     public:
         typedef IntentResolver<CapsuleParser::ServiceIntentInfo, \
-                AutoPtr<CResolveInfo> >     Super;
+                AutoPtr<IResolveInfo> >     Super;
 
     public:
         ServiceIntentResolver(
@@ -998,17 +1029,17 @@ private:
 
         ~ServiceIntentResolver();
 
-        CARAPI_(List<AutoPtr<CResolveInfo>*>*) QueryIntent(
+        CARAPI_(List<AutoPtr<IResolveInfo>*>*) QueryIntent(
             /* [in] */ IIntent* intent,
             /* [in] */ const String& resolvedType,
             /* [in] */ Boolean defaultOnly);
 
-        CARAPI_(List<AutoPtr<CResolveInfo>*>*) QueryIntent(
+        CARAPI_(List<AutoPtr<IResolveInfo>*>*) QueryIntent(
             /* [in] */ IIntent* intent,
             /* [in] */ const String& resolvedType,
             /* [in] */ Int32 flags);
 
-        CARAPI_(List<AutoPtr<CResolveInfo>*>*) QueryIntentForCapsule(
+        CARAPI_(List<AutoPtr<IResolveInfo>*>*) QueryIntentForCapsule(
             /* [in] */ IIntent* intent,
             /* [in] */ const String& resolvedType,
             /* [in] */ Int32 flags,
@@ -1024,7 +1055,7 @@ private:
         //@Override
         CARAPI_(Boolean) AllowFilterResult(
             /* [in] */ CapsuleParser::ServiceIntentInfo* filter,
-            /* [in] */ List<AutoPtr<CResolveInfo>*>* dest);
+            /* [in] */ List<AutoPtr<IResolveInfo>*>* dest);
 
         //@Override
         CARAPI_(String) CapsuleForFilter(
@@ -1034,11 +1065,11 @@ private:
         CARAPI NewResult(
             /* [in] */ CapsuleParser::ServiceIntentInfo* info,
             /* [in] */ Int32 match,
-            /* [out] */ AutoPtr<CResolveInfo>** ret);
+            /* [out] */ AutoPtr<IResolveInfo>** ret);
 
         //@Override
         CARAPI_(void) SortResults(
-            /* [in] */ List<AutoPtr<CResolveInfo>*>* results);
+            /* [in] */ List<AutoPtr<IResolveInfo>*>* results);
 
     public:
         // Keys are String (activity class name), values are Activity.
@@ -1522,7 +1553,7 @@ public:
         /* [out, callee] */ IObjectContainer** infos);
 
 //    //todo: should be removed
-//    CARAPI_(List<AutoPtr<CResolveInfo>*>*) QueryIntentActivities(
+//    CARAPI_(List<AutoPtr<IResolveInfo>*>*) QueryIntentActivities(
 //        /* [in] */ IIntent* intent,
 //        /* [in] */ const String& resolvedType,
 //        /* [in] */ int flags);
@@ -1799,7 +1830,7 @@ private:
         /* [in] */ ArrayOf<Int32>* cur,
         /* [in] */ ArrayOf<Int32>* rem);
 
-    CARAPI_(AutoPtr<CCapsuleInfo>) GenerateCapsuleInfo(
+    CARAPI_(AutoPtr<ICapsuleInfo>) GenerateCapsuleInfo(
         /* [in] */ CapsuleParser::Capsule* c,
         /* [in] */ Int32 flags);
 
@@ -1807,11 +1838,11 @@ private:
         /* [in] */ BasePermission* bp,
         /* [in] */ Int32 flags);
 
-    CARAPI_(AutoPtr<CApplicationInfo>) GenerateApplicationInfoFromSettingsLP(
+    CARAPI_(AutoPtr<IApplicationInfo>) GenerateApplicationInfoFromSettingsLP(
         /* [in] */ const String& capsuleName,
         /* [in] */ Int32 flags);
 
-    CARAPI_(AutoPtr<CCapsuleInfo>) GenerateCapsuleInfoFromSettingsLP(
+    CARAPI_(AutoPtr<ICapsuleInfo>) GenerateCapsuleInfoFromSettingsLP(
         /* [in] */ const String& capsuleName,
         /* [in] */ Int32 flags);
 
@@ -1850,7 +1881,7 @@ private:
         /* [in] */ IObjectContainer* query,
         /* [out] */ IResolveInfo** resolveInfo);
 
-    CARAPI_(AutoPtr<CResolveInfo>) FindPreferredActivity(
+    CARAPI_(AutoPtr<IResolveInfo>) FindPreferredActivity(
         /* [in] */ IIntent* intent,
         /* [in] */ const String& resolvedType,
         /* [in] */ Int32 flags,
@@ -2051,7 +2082,7 @@ private:
         /* [in] */ CapsuleParser::Capsule* cap);
 
     static CARAPI_(Boolean) IsSystemApp(
-        /* [in] */ CApplicationInfo* info);
+        /* [in] */ IApplicationInfo* info);
 
     static CARAPI_(Boolean) IsUpdatedSystemApp(
         /* [in] */ CapsuleParser::Capsule* cap);
@@ -2361,9 +2392,9 @@ public:/*package*/
     Boolean mSafeMode;
     Boolean mHasSystemUidErrors;
 
-    AutoPtr<CApplicationInfo> mElastosApplication;
-    AutoPtr<CActivityInfo> mResolveActivity;
-    AutoPtr<CResolveInfo> mResolveInfo;
+    AutoPtr<IApplicationInfo> mElastosApplication;
+    AutoPtr<IActivityInfo> mResolveActivity;
+    AutoPtr<IResolveInfo> mResolveInfo;
     AutoPtr<IComponentName> mResolveComponentName;
     AutoPtr<CapsuleParser::Capsule> mPlatformCapsule;
 

@@ -14,12 +14,77 @@ public:
     ~CPermissionGroupInfo() {}
 
 public:
+    CARAPI LoadLabel(
+        /* [in] */ ICapsuleManager* pm,
+        /* [out] */ ICharSequence** label);
+
+    CARAPI LoadIcon(
+        /* [in] */ ICapsuleManager* pm,
+        /* [out] */ IDrawable** icon);
+
+    CARAPI LoadLogo(
+        /* [in] */ ICapsuleManager* pm,
+        /* [out] */ IDrawable** icon);
+
+    CARAPI LoadXmlMetaData(
+        /* [in] */ ICapsuleManager* pm,
+        /* [in] */ const String& name,
+        /* [out] */ IXmlResourceParser** resource);
+
+    CARAPI GetName(
+        /* [out] */ String* name);
+
+    CARAPI SetName(
+        /* [in] */ const String& name);
+
+    CARAPI GetCapsuleName(
+        /* [out] */ String* name);
+
+    CARAPI SetCapsuleName(
+        /* [in] */ const String& name);
+
+    CARAPI GetLabelRes(
+        /* [out] */ Int32* labelRes);
+
+    CARAPI SetLabelRes(
+        /* [in] */ Int32 labelRes);
+
+    CARAPI GetNonLocalizedLabel(
+        /* [out] */ ICharSequence** label);
+
+    CARAPI SetNonLocalizedLabel(
+        /* [in] */ ICharSequence* label);
+
+    CARAPI GetIcon(
+        /* [out] */ Int32* icon);
+
+    CARAPI SetIcon(
+        /* [in] */ Int32 icon);
+
+    CARAPI GetLogo(
+        /* [out] */ Int32* logo);
+
+    CARAPI SetLogo(
+        /* [in] */ Int32 logo);
+
+    CARAPI GetMetaData(
+        /* [out] */ IBundle** metaData);
+
+    CARAPI SetMetaData(
+        /* [in] */ IBundle* metaData);
+
     CARAPI LoadDescription(
         /* [in] */ ICapsuleManager* cm,
         /* [out] */ ICharSequence** des);
 
     CARAPI GetDescription(
         /* [out] */ String* des);
+
+    CARAPI GetDescriptionRes(
+        /* [out] */ Int32* desRes);
+
+    CARAPI SetDescriptionRes(
+        /* [in] */ Int32 desRes);
 
     CARAPI ReadFromParcel(
         /* [in] */ IParcel* source);

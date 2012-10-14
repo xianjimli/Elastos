@@ -11,7 +11,7 @@ include $(MAKEDIR)/../../sources.inc
 #INCLUDES += $(MAKEDIR)/../../../../Applications/fbreader-0.12.10/zlibrary/core/include
 #INCLUDES += $(MAKEDIR)/../../../../Applications/fbreader-0.12.10/zlibrary/text/include
 
-IMPORTS = Elastos.Framework.eco
+IMPORTS = Elastos.Framework.Core.eco
 
 SOURCES  = FBReader.car
 SOURCES += CMainActivity.cpp
@@ -84,7 +84,7 @@ LIBRARIES += $(XDK_USER_LIB)/implsqlite.lib
 LIBRARIES += $(XDK_USER_LIB)/booksdb-runnables.lib
 LIBRARIES += $(XDK_USER_LIB)/libbz2.lib
 LIBRARIES += $(XDK_USER_LIB)/liblinebreak.lib
- 
+
 LIBRARIES += -llog -lutils -lexpat -lsqlite -lz
 
 APPPACK = 1

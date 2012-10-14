@@ -3,8 +3,6 @@
 #define __PROCESSRECORD_H__
 
 #include "ext/frameworkext.h"
-#include <elastos/AutoPtr.h>
-#include "content/CApplicationInfo.h"
 #include "server/BroadcastRecord.h"
 #include "server/ContentProviderRecord.h"
 #include "server/CActivityRecord.h"
@@ -13,6 +11,7 @@
 #include "server/ReceiverList.h"
 #include <elastos/HashMap.h>
 #include <elastos/Set.h>
+#include <elastos/AutoPtr.h>
 #include <StringBuffer.h>
 
 using namespace Elastos;
@@ -29,7 +28,7 @@ public:
     ProcessRecord(
         /* [in] */ BatteryStatsImpl::Uid::Proc* batteryStats,
         /* [in] */ IApplicationApartment* appApartment,
-        /* [in] */ CApplicationInfo* info,
+        /* [in] */ IApplicationInfo* info,
         /* [in] */ const String& processName);
 
     ~ProcessRecord();
@@ -60,7 +59,7 @@ public:
 public:
     AutoPtr<BatteryStatsImpl::Uid::Proc> mBatteryStats; // where to collect runtime statistics
     String mProcessName;
-    AutoPtr<CApplicationInfo> mInfo;
+    AutoPtr<IApplicationInfo> mInfo;
     // List of packages running in the process
 //    Set<String> mCapList;
     Int32 mPid;
@@ -84,7 +83,7 @@ public:
     Int32 mAdjSeq;                 // Sequence id for identifying oom_adj assignment cycles
     Int32 mLRUSeq;                  // Sequence id for identifying LRU update cycles
     AutoPtr<IComponentName> mInstrumentationClass;// class installed to instrument app
-    AutoPtr<CApplicationInfo> mInstrumentationInfo; // the application being instrumented
+    AutoPtr<IApplicationInfo> mInstrumentationInfo; // the application being instrumented
     String mInstrumentationProfileFile; // where to save profiling
     AutoPtr<IInstrumentationWatcher> mInstrumentationWatcher; // who is waiting
     AutoPtr<IBundle> mInstrumentationArguments; // as given to us

@@ -1,4 +1,5 @@
 
+#include "ext/frameworkdef.h"
 #include "content/CResolveInfo.h"
 
 ECode CResolveInfo::GetActivityInfo(
@@ -6,9 +7,16 @@ ECode CResolveInfo::GetActivityInfo(
 {
     if (activityInfo == NULL) return E_INVALID_ARGUMENT;
 
-    *activityInfo = mActivityInfo;
+    *activityInfo = (IActivityInfo*)mActivityInfo.Get();
     if (*activityInfo != NULL) (*activityInfo)->AddRef();
 
+    return NOERROR;
+}
+
+ECode CResolveInfo::SetActivityInfo(
+    /* [in] */ IActivityInfo* activityInfo)
+{
+    mActivityInfo = (CActivityInfo*)activityInfo;
     return NOERROR;
 }
 
@@ -17,9 +25,16 @@ ECode CResolveInfo::GetServiceInfo(
 {
     if (serviceInfo == NULL) return E_INVALID_ARGUMENT;
 
-    *serviceInfo = mServiceInfo;
+    *serviceInfo = (IServiceInfo*)mServiceInfo.Get();
     if (*serviceInfo != NULL) (*serviceInfo)->AddRef();
 
+    return NOERROR;
+}
+
+ECode CResolveInfo::SetServiceInfo(
+    /* [in] */ IServiceInfo* serviceInfo)
+{
+    mServiceInfo = (CServiceInfo*)serviceInfo;
     return NOERROR;
 }
 
@@ -28,9 +43,152 @@ ECode CResolveInfo::GetIntentFilter(
 {
     if (intentFilter == NULL) return E_INVALID_ARGUMENT;
 
-    *intentFilter = mFilter;
+    *intentFilter = (IIntentFilter*)mFilter.Get();
     (*intentFilter)->AddRef();
 
+    return NOERROR;
+}
+
+ECode CResolveInfo::SetIntentFilter(
+    /* [in] */ IIntentFilter* intentFilter)
+{
+    mFilter = (CIntentFilter*)intentFilter;
+    return NOERROR;
+}
+
+ECode CResolveInfo::GetPriority(
+    /* [out] */ Int32* priority)
+{
+    VALIDATE_NOT_NULL(priority);
+    *priority = mPriority;
+    return NOERROR;
+}
+
+ECode CResolveInfo::SetPriority(
+    /* [in] */ Int32 priority)
+{
+    mPriority = priority;
+    return NOERROR;
+}
+
+ECode CResolveInfo::GetPreferredOrder(
+    /* [out] */ Int32* order)
+{
+    VALIDATE_NOT_NULL(order);
+    *order = mPreferredOrder;
+    return NOERROR;
+}
+
+ECode CResolveInfo::SetPreferredOrder(
+    /* [in] */ Int32 order)
+{
+    mPreferredOrder = order;
+    return NOERROR;
+}
+
+ECode CResolveInfo::GetMatch(
+    /* [out] */ Int32* match)
+{
+    VALIDATE_NOT_NULL(match);
+    *match = mMatch;
+    return NOERROR;
+}
+
+ECode CResolveInfo::SetMatch(
+    /* [in] */ Int32 match)
+{
+    mMatch = match;
+    return NOERROR;
+}
+
+ECode CResolveInfo::GetSpecificIndex(
+    /* [out] */ Int32* index)
+{
+    VALIDATE_NOT_NULL(index);
+    *index = mSpecificIndex;
+    return NOERROR;
+}
+
+ECode CResolveInfo::SetSpecificIndex(
+    /* [in] */ Int32 index)
+{
+    mSpecificIndex = index;
+    return NOERROR;
+}
+
+ECode CResolveInfo::IsDefault(
+    /* [out] */ Boolean* isDefault)
+{
+    VALIDATE_NOT_NULL(isDefault);
+    *isDefault = mIsDefault;
+    return NOERROR;
+}
+
+ECode CResolveInfo::SetDefault(
+    /* [in] */ Boolean isDefault)
+{
+    mIsDefault = isDefault;
+    return NOERROR;
+}
+
+ECode CResolveInfo::GetLabelRes(
+    /* [out] */ Int32* labelRes)
+{
+    VALIDATE_NOT_NULL(labelRes);
+    *labelRes = mLabelRes;
+    return NOERROR;
+}
+
+ECode CResolveInfo::SetLabelRes(
+    /* [in] */ Int32 labelRes)
+{
+    mLabelRes = labelRes;
+    return NOERROR;
+}
+
+ECode CResolveInfo::GetNonLocalizedLabel(
+    /* [out] */ ICharSequence** label)
+{
+    VALIDATE_NOT_NULL(label);
+    *label = mNonLocalizedLabel;
+    if (*label != NULL) (*label)->AddRef();
+    return NOERROR;
+}
+
+ECode CResolveInfo::SetNonLocalizedLabel(
+    /* [in] */ ICharSequence* label)
+{
+    mNonLocalizedLabel = label;
+    return NOERROR;
+}
+
+ECode CResolveInfo::GetIcon(
+    /* [out] */ Int32* icon)
+{
+    VALIDATE_NOT_NULL(icon);
+    *icon = mIcon;
+    return NOERROR;
+}
+
+ECode CResolveInfo::SetIcon(
+    /* [in] */ Int32 icon)
+{
+    mIcon = icon;
+    return NOERROR;
+}
+
+ECode CResolveInfo::GetResolveCapsuleName(
+    /* [out] */ String* capsuleName)
+{
+    VALIDATE_NOT_NULL(capsuleName);
+    *capsuleName = mResolveCapsuleName;
+    return NOERROR;
+}
+
+ECode CResolveInfo::SetResolveCapsuleName(
+    /* [in] */ const String& capsuleName)
+{
+    mResolveCapsuleName = capsuleName;
     return NOERROR;
 }
 

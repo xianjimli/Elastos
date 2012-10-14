@@ -76,7 +76,7 @@ private:
         /* [in] */ const android::sp<android::InputChannel>& inputChannel);
 
     static void HandleInputChannelDisposed(
-        /* [in] */ CInputChannel* _inputChannel,
+        /* [in] */ IInputChannel* _inputChannel,
         /* [in] */ const android::sp<android::InputChannel>& inputChannel,
         /* [in] */ void* data);
 

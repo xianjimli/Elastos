@@ -235,5 +235,29 @@ module
          */
         Scale(
             [in] Float scale);
+
+        GetLeft(
+            [out] Int32* left);
+
+        SetLeft(
+            [in] Int32 left);
+
+        GetTop(
+            [out] Int32* top);
+
+        SetTop(
+            [in] Int32 top);
+
+        GetRight(
+            [out] Int32* right);
+
+        SetRight(
+            [in] Int32 right);
+
+        GetBottom(
+            [out] Int32* bottom);
+
+        SetBottom(
+            [in] Int32 bottom);
     }
 }

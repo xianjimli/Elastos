@@ -220,7 +220,7 @@ ECode CConfiguration::UpdateFrom(
 
 ECode CConfiguration::Diff(
     /* [in] */ IConfiguration* delta,
-    /* [out] */ Boolean* isChanged)
+    /* [out] */ Int32* result)
 {
     return E_NOT_IMPLEMENTED;
 }
@@ -244,6 +244,141 @@ ECode CConfiguration::EqualsEx(
     /* [out] */ Boolean* isEqual)
 {
     return E_NOT_IMPLEMENTED;
+}
+
+ECode CConfiguration::GetFontScale(
+    /* [out] */ Float* fontScale)
+{
+    VALIDATE_NOT_NULL(fontScale);
+    *fontScale = mFontScale;
+    return NOERROR;
+}
+
+ECode CConfiguration::SetFontScale(
+    /* [in] */ Float fontScale)
+{
+    mFontScale = fontScale;
+    return NOERROR;
+}
+
+ECode CConfiguration::GetScreenLayout(
+    /* [out] */ Int32* layout)
+{
+    VALIDATE_NOT_NULL(layout);
+    *layout = mScreenLayout;
+    return NOERROR;
+}
+
+ECode CConfiguration::SetScreenLayout(
+    /* [in] */ Int32 layout)
+{
+    mScreenLayout = layout;
+    return NOERROR;
+}
+
+ECode CConfiguration::GetTouchscreen(
+    /* [out] */ Int32* touchscreen)
+{
+    VALIDATE_NOT_NULL(touchscreen);
+    *touchscreen = mTouchscreen;
+    return NOERROR;
+}
+
+ECode CConfiguration::SetTouchscreen(
+    /* [in] */ Int32 touchscreen)
+{
+    mTouchscreen = touchscreen;
+    return NOERROR;
+}
+
+ECode CConfiguration::GetKeyboard(
+    /* [out] */ Int32* keyboard)
+{
+    VALIDATE_NOT_NULL(keyboard);
+    *keyboard = mKeyboard;
+    return NOERROR;
+}
+
+ECode CConfiguration::SetKeyboard(
+    /* [in] */ Int32 keyboard)
+{
+    mKeyboard = keyboard;
+    return NOERROR;
+}
+
+ECode CConfiguration::GetKeyboardHidden(
+    /* [out] */ Int32* keyboardHidden)
+{
+    VALIDATE_NOT_NULL(keyboardHidden);
+    *keyboardHidden = mKeyboardHidden;
+    return NOERROR;
+}
+
+ECode CConfiguration::SetKeyboardHidden(
+    /* [in] */ Int32 keyboardHidden)
+{
+    mKeyboardHidden = keyboardHidden;
+    return NOERROR;
+}
+
+ECode CConfiguration::GetHardKeyboardHidden(
+    /* [out] */ Int32* hardKeyboardHidden)
+{
+    VALIDATE_NOT_NULL(hardKeyboardHidden);
+    *hardKeyboardHidden = mHardKeyboardHidden;
+    return NOERROR;
+}
+
+ECode CConfiguration::SetHardKeyboardHidden(
+    /* [in] */ Int32 hardKeyboardHidden)
+{
+    mHardKeyboardHidden = hardKeyboardHidden;
+    return NOERROR;
+}
+
+ECode CConfiguration::GetNavigation(
+    /* [out] */ Int32* navigation)
+{
+    VALIDATE_NOT_NULL(navigation);
+    *navigation = mNavigation;
+    return NOERROR;
+}
+
+ECode CConfiguration::SetNavigation(
+    /* [in] */ Int32 navigation)
+{
+    mNavigation = navigation;
+    return NOERROR;
+}
+
+ECode CConfiguration::GetOrientation(
+    /* [out] */ Int32* orientation)
+{
+    VALIDATE_NOT_NULL(orientation);
+    *orientation = mOrientation;
+    return NOERROR;
+}
+
+ECode CConfiguration::SetOrientation(
+    /* [in] */ Int32 orientation)
+{
+    mOrientation = orientation;
+    return NOERROR;
+}
+
+ECode CConfiguration::GetSeq(
+    /* [out] */ Int32* seq)
+{
+    VALIDATE_NOT_NULL(seq);
+    *seq = mSeq;
+    return NOERROR;
+}
+
+ECode CConfiguration::SetSeq(
+    /* [in] */ Int32 seq)
+{
+    mSeq = seq;
+    return NOERROR;
 }
 
 ECode CConfiguration::ReadFromParcel(

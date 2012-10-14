@@ -3,7 +3,7 @@
 #define __LOCATIONPROVIDERPROXY_H__
 
 #include "server/location/LocationProviderInterface.h"
-#include "location/internal/DummyLocationProvider.h"
+#include "location/DummyLocationProvider.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/ElRefBase.h>
 #include <elastos/Mutex.h>

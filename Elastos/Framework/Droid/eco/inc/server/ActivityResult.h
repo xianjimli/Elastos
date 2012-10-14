@@ -2,7 +2,7 @@
 #ifndef __ACTIVITYRESULT_H__
 #define __ACTIVITYRESULT_H__
 
-#include "app/CResultInfo.h"
+#include "ext/frameworkext.h"
 #include "server/CActivityRecord.h"
 
 class CActivityRecord;
@@ -18,7 +18,7 @@ public:
         /* [in] */ IIntent* data);
 
 public:
-    AutoPtr<CResultInfo> mResultInfo;
+    AutoPtr<IResultInfo> mResultInfo;
     AutoPtr<CActivityRecord> mFrom;
 };
 

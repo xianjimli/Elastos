@@ -29,6 +29,8 @@ private:
 
 CarClass(CApartment)
 {
+    friend class CApartmentHelper;
+
 public:
     CApartment();
 

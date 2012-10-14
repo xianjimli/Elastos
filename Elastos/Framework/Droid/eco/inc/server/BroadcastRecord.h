@@ -3,11 +3,8 @@
 #define __BROADCASTRECORD_H__
 
 #include "ext/frameworkext.h"
-#include "content/CIntent.h"
 #include "server/ProcessRecord.h"
 #include "server/BroadcastFilter.h"
-#include "content/CComponentName.h"
-#include "capsule/CActivityInfo.h"
 #include <elastos/List.h>
 #include <elastos/AutoPtr.h>
 
@@ -47,7 +44,7 @@ public:
     static const Int32 CALL_IN_RECEIVE = 2;
     static const Int32 CALL_DONE_RECEIVE = 3;
 
-    AutoPtr<CIntent> mIntent;       // the original intent that generated us
+    AutoPtr<IIntent> mIntent;       // the original intent that generated us
     ProcessRecord* mCallerApp;      // process that sent this
     String mCallerCapsule;          // who sent this
     Int32 mCallingPid;              // the pid of who sent this
@@ -75,8 +72,8 @@ public:
     BroadcastFilter* mCurFilter;
 
     ProcessRecord* mCurApp;         // hosting application of current receiver.
-    AutoPtr<CComponentName> mCurComponent;   // the receiver class that is currently running.
-    AutoPtr<CActivityInfo> mCurReceiver;   // info about the receiver that is currently running.
+    AutoPtr<IComponentName> mCurComponent;   // the receiver class that is currently running.
+    AutoPtr<IActivityInfo> mCurReceiver;   // info about the receiver that is currently running.
 };
 
 #endif //__BROADCASTRECORD_H__

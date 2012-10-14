@@ -15,6 +15,24 @@ public:
     CARAPI DescribeContents(
         /* [out] */ Int32* ret);
 
+    CARAPI GetCapsuleName(
+        /* [out] */ String* name);
+
+    CARAPI SetCapsuleName(
+        /* [in] */ const String& name);
+
+    CARAPI GetRecommendedInstallLocation(
+        /* [out] */ Int32* location);
+
+    CARAPI SetRecommendedInstallLocation(
+        /* [in] */ Int32 location);
+
+    CARAPI GetInstallLocation(
+        /* [out] */ Int32* location);
+
+    CARAPI SetInstallLocation(
+        /* [in] */ Int32 location);
+
     CARAPI ReadFromParcel(
         /* [in] */ IParcel* source);
 

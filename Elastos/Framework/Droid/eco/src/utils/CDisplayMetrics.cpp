@@ -1,4 +1,5 @@
 
+#include "ext/frameworkdef.h"
 #include "utils/CDisplayMetrics.h"
 #include "content/CCompatibilityInfo.h"
 
@@ -165,6 +166,21 @@ ECode CDisplayMetrics::GetDescription(
 //	        ", height=" + heightPixels + ", scaledDensity=" + scaledDensity +
 //	        ", xdpi=" + xdpi + ", ydpi=" + ydpi + "}";
     return E_NOT_IMPLEMENTED;
+}
+
+ECode CDisplayMetrics::GetDensity(
+    /* [out] */ Float* density)
+{
+    VALIDATE_NOT_NULL(density);
+    *density = mDensity;
+    return NOERROR;
+}
+
+ECode CDisplayMetrics::SetDensity(
+    /* [in] */ Float density)
+{
+    mDensity = density;
+    return NOERROR;
 }
 
 Int32 CDisplayMetrics::GetDeviceDensity()

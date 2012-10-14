@@ -26,7 +26,7 @@ public:
 
     CARAPI Diff(
         /* [in] */ IConfiguration* delta,
-        /* [out] */ Boolean* isChanged);
+        /* [out] */ Int32* result);
 
     CARAPI IsOtherSeqNewer(
         /* [in] */ IConfiguration* other,
@@ -39,6 +39,60 @@ public:
     CARAPI EqualsEx(
         /* [in] */ IInterface* that,
         /* [out] */ Boolean* isEqual);
+
+    CARAPI GetFontScale(
+        /* [out] */ Float* fontScale);
+
+    CARAPI SetFontScale(
+        /* [in] */ Float fontScale);
+
+    CARAPI GetScreenLayout(
+        /* [out] */ Int32* layout);
+
+    CARAPI SetScreenLayout(
+        /* [in] */ Int32 layout);
+
+    CARAPI GetTouchscreen(
+        /* [out] */ Int32* touchscreen);
+
+    CARAPI SetTouchscreen(
+        /* [in] */ Int32 touchscreen);
+
+    CARAPI GetKeyboard(
+        /* [out] */ Int32* keyboard);
+
+    CARAPI SetKeyboard(
+        /* [in] */ Int32 keyboard);
+
+    CARAPI GetKeyboardHidden(
+        /* [out] */ Int32* keyboardHidden);
+
+    CARAPI SetKeyboardHidden(
+        /* [in] */ Int32 keyboardHidden);
+
+    CARAPI GetHardKeyboardHidden(
+        /* [out] */ Int32* hardKeyboardHidden);
+
+    CARAPI SetHardKeyboardHidden(
+        /* [in] */ Int32 hardKeyboardHidden);
+
+    CARAPI GetNavigation(
+        /* [out] */ Int32* navigation);
+
+    CARAPI SetNavigation(
+        /* [in] */ Int32 navigation);
+
+    CARAPI GetOrientation(
+        /* [out] */ Int32* orientation);
+
+    CARAPI SetOrientation(
+        /* [in] */ Int32 orientation);
+
+    CARAPI GetSeq(
+        /* [out] */ Int32* seq);
+
+    CARAPI SetSeq(
+        /* [in] */ Int32 seq);
 
     CARAPI ReadFromParcel(
         /* [in] */ IParcel *source);

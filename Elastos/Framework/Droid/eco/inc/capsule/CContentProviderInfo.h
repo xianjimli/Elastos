@@ -40,11 +40,47 @@ public:
         /* [in] */ const String& name,
         /* [out] */ IXmlResourceParser** resource);
 
-    CARAPI GetCapsuleName(
-        /* [out] */ String* capsuleName);
-
     CARAPI GetName(
         /* [out] */ String* name);
+
+    CARAPI SetName(
+        /* [in] */ const String& name);
+
+    CARAPI GetCapsuleName(
+        /* [out] */ String* name);
+
+    CARAPI SetCapsuleName(
+        /* [in] */ const String& name);
+
+    CARAPI GetLabelRes(
+        /* [out] */ Int32* labelRes);
+
+    CARAPI SetLabelRes(
+        /* [in] */ Int32 labelRes);
+
+    CARAPI GetNonLocalizedLabel(
+        /* [out] */ ICharSequence** label);
+
+    CARAPI SetNonLocalizedLabel(
+        /* [in] */ ICharSequence* label);
+
+    CARAPI GetIcon(
+        /* [out] */ Int32* icon);
+
+    CARAPI SetIcon(
+        /* [in] */ Int32 icon);
+
+    CARAPI GetLogo(
+        /* [out] */ Int32* logo);
+
+    CARAPI SetLogo(
+        /* [in] */ Int32 logo);
+
+    CARAPI GetMetaData(
+        /* [out] */ IBundle** metaData);
+
+    CARAPI SetMetaData(
+        /* [in] */ IBundle* metaData);
 
     CARAPI GetComponentName(
         /* [out] */ String * pCapsuleName,
@@ -60,8 +96,83 @@ public:
     CARAPI SetApplicationInfo(
         /* [in] */ IApplicationInfo* info);
 
+    CARAPI GetProcessName(
+        /* [out] */ String* processName);
+
+    CARAPI SetProcessName(
+        /* [in] */ const String& processName);
+
+    CARAPI GetDescriptionRes(
+        /* [out] */ Int32* desRes);
+
+    CARAPI SetDescriptionRes(
+        /* [in] */ Int32 desRes);
+
     CARAPI IsEnabled(
         /* [out] */ Boolean* enabled);
+
+    CARAPI SetEnabled(
+        /* [in] */ Boolean enabled);
+
+    CARAPI IsExported(
+        /* [out] */ Boolean* exported);
+
+    CARAPI SetExported(
+        /* [in] */ Boolean exported);
+
+    CARAPI GetAuthority(
+        /* [out] */ String* authority);
+
+    CARAPI SetAuthority(
+        /* [in] */ const String& authority);
+
+    CARAPI GetReadPermission(
+        /* [out] */ String* permission);
+
+    CARAPI SetReadPermission(
+        /* [in] */ const String& permission);
+
+    CARAPI GetWritePermission(
+        /* [out] */ String* permission);
+
+    CARAPI SetWritePermission(
+        /* [in] */ const String& permission);
+
+    CARAPI SetGrantUriPermissions(
+        /* [in] */ Boolean grant);
+
+    CARAPI InitUriPermissionPatterns();
+
+    CARAPI AddUriPermissionPatterns(
+        /* [in] */ IPatternMatcher* pattern);
+
+    CARAPI GetUriPermissionPatterns(
+        /* [out] */ IObjectContainer** permissions);
+
+    CARAPI ClearUriPermissionPatterns();
+
+    CARAPI InitPathPermissions();
+
+    CARAPI AddPathPermission(
+        /* [in] */ IPathPermission* permission);
+
+    CARAPI GetPathPermissions(
+        /* [out] */ IObjectContainer** permissions);
+
+    CARAPI SetPathPermissions(
+        /* [in] */ IObjectContainer* permissions);
+
+    CARAPI SetMultiprocess(
+        /* [in] */ Boolean multiprocess);
+
+    CARAPI SetInitOrder(
+        /* [in] */ Int32 initOrder);
+
+    CARAPI GetSyncable(
+        /* [out] */ Boolean* syncable);
+
+    CARAPI SetSyncable(
+        /* [in] */ Boolean syncable);
 
     CARAPI ReadFromParcel(
         /* [in] */ IParcel* source);

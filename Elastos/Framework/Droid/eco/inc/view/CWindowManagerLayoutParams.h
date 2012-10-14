@@ -41,7 +41,8 @@ public:
         /* [out] */ ICharSequence** title);
 
     CARAPI CopyFrom(
-        /* [in] */ IWindowManagerLayoutParams* source);
+        /* [in] */ IWindowManagerLayoutParams* source,
+        /* [out] */ Int32* changes);
 
     CARAPI Scale(
         /* [in] */ Float scale);
@@ -49,6 +50,96 @@ public:
     CARAPI Backup();
 
     CARAPI Restore();
+
+    CARAPI GetX(
+        /* [out] */ Int32* x);
+
+    CARAPI SetX(
+        /* [in] */ Int32 x);
+
+    CARAPI GetY(
+        /* [out] */ Int32* y);
+
+    CARAPI SetY(
+        /* [in] */ Int32 y);
+
+    CARAPI GetType(
+        /* [out] */ Int32* type);
+
+    CARAPI SetType(
+        /* [in] */ Int32 type);
+
+    CARAPI GetMemoryType(
+        /* [out] */ Int32* type);
+
+    CARAPI SetMemoryType(
+        /* [in] */ Int32 type);
+
+    CARAPI GetFlags(
+        /* [out] */ Int32* flags);
+
+    CARAPI SetFlags(
+        /* [in] */ Int32 flags);
+
+    CARAPI GetGravity(
+        /* [out] */ Int32* gravity);
+
+    CARAPI SetGravity(
+        /* [in] */ Int32 gravity);
+
+    CARAPI GetHorizontalMargin(
+        /* [out] */ Float* horizontalMargin);
+
+    CARAPI SetHorizontalMargin(
+        /* [in] */ Float horizontalMargin);
+
+    CARAPI GetVerticalMargin(
+        /* [out] */ Float* verticalMargin);
+
+    CARAPI SetVerticalMargin(
+        /* [in] */ Float verticalMargin);
+
+    CARAPI GetFormat(
+        /* [out] */ Int32* format);
+
+    CARAPI SetFormat(
+        /* [in] */ Int32 format);
+
+    CARAPI GetAlpha(
+        /* [out] */ Float* alpha);
+
+    CARAPI SetAlpha(
+        /* [in] */ Float alpha);
+
+    CARAPI GetDimAmount(
+        /* [out] */ Float* dimAmount);
+
+    CARAPI SetDimAmount(
+        /* [in] */ Float dimAmount);
+
+    CARAPI GetScreenBrightness(
+        /* [out] */ Float* brightness);
+
+    CARAPI SetScreenBrightness(
+        /* [in] */ Float brightness);
+
+    CARAPI GetButtonBrightness(
+        /* [out] */ Float* brightness);
+
+    CARAPI SetButtonBrightness(
+        /* [in] */ Float brightness);
+
+    CARAPI GetToken(
+        /* [out] */ IBinder** token);
+
+    CARAPI SetToken(
+        /* [in] */ IBinder* token);
+
+    CARAPI GetScreenOrientation(
+        /* [out] */ Int32* orientation);
+
+    CARAPI SetScreenOrientation(
+        /* [in] */ Int32 orientation);
 
     CARAPI SetWidth(
         /* [in] */ Int32 width);

@@ -285,7 +285,7 @@ android::status_t NativeInputQueue::Finished(
 }
 
 void NativeInputQueue::HandleInputChannelDisposed(
-    /* [in] */ CInputChannel* _inputChannel,
+    /* [in] */ IInputChannel* _inputChannel,
     /* [in] */ const android::sp<android::InputChannel>& inputChannel,
     /* [in] */ void* data)
 {
@@ -294,7 +294,7 @@ void NativeInputQueue::HandleInputChannelDisposed(
             + " was disposed without first being unregistered with the input queue!");
 
     NativeInputQueue* q = static_cast<NativeInputQueue*>(data);
-    q->UnregisterInputChannel(_inputChannel);
+    q->UnregisterInputChannel((CInputChannel*)_inputChannel);
 }
 
 int NativeInputQueue::HandleReceiveCallback(

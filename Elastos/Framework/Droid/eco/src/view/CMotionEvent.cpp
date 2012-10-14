@@ -209,7 +209,7 @@ ECode CMotionEvent::Obtain(
     }
 
     (*event)->mDeviceId = deviceId;
-    (*event)->mSource = CInputDevice::SOURCE_UNKNOWN;
+    (*event)->mSource = InputDevice_SOURCE_UNKNOWN;
     (*event)->mEdgeFlags = edgeFlags;
     (*event)->mDownTimeNano = downTime * MS_PER_NS;
     (*event)->mAction = action;

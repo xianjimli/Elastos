@@ -54,6 +54,15 @@ AutoPtr<C1> f2()
     return v1;
 }
 
+void f3(C1* v1)
+{
+    printf("==== enter f3 ====\n");
+    C1* v2 = v1;
+    printf("==== v2 AddRef ====\n");
+    v2->AddRef();
+    printf("==== return from f3 ====\n");
+}
+
 void testAutoPtr()
 {
     printf("==== call f1 ====\n");
@@ -67,6 +76,9 @@ void testAutoPtr()
     printf("==== ============ ====\n");
     vvv->AddRef();
     printf("==== call f2 end ====\n");
+    printf("==== call f3 ====\n");
+    f3(f2());
+    printf("==== call f3 end ====\n");
 }
 
 int main(int argc, char *argv[])

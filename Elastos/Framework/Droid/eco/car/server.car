@@ -4,14 +4,14 @@ module
     merge("server/am.car");
     merge("server/LightsService.car");
 
-    interface IWindowManagerEx;
-    interface IContext;
-    interface ICapsuleManager;
-    interface INotificationManager;
-    interface IStatusBarService;
-    interface IRunnable;
-    interface ILightsManager;
-    interface ILocationManager;
+    class CWindowSession {
+        constructor(
+            [in] IWindowManagerEx * wmService,
+            [in] IInputMethodClient * client,
+            [in] IInputContext * inputContext);
+
+        interface IWindowSession;
+    }
 
     class CWindowManagerService {
         interface IWindowManagerEx;

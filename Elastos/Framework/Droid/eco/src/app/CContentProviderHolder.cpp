@@ -5,19 +5,33 @@ ECode CContentProviderHolder::GetContentProvider(
     /* [out] */ IContentProvider** provider)
 {
     if (provider == NULL) return E_INVALID_ARGUMENT;
-    
+
     *provider = mProvider;
     if (*provider) (*provider)->AddRef();
     return NOERROR;
 }
-        
+
+ECode CContentProviderHolder::SetContentProvider(
+    /* [in] */ IContentProvider* provider)
+{
+    mProvider = provider;
+    return NOERROR;
+}
+
 ECode CContentProviderHolder::GetContentProviderInfo(
     /* [out] */ IContentProviderInfo** info)
 {
     if (info == NULL) return E_INVALID_ARGUMENT;
-    
+
     *info = (IContentProviderInfo*)(CContentProviderInfo*)mInfo;
     if (*info) (*info)->AddRef();
+    return NOERROR;
+}
+
+ECode CContentProviderHolder::SetContentProviderInfo(
+    /* [in] */ IContentProviderInfo* info)
+{
+    mInfo = (CContentProviderInfo*)info;
     return NOERROR;
 }
 
@@ -36,7 +50,7 @@ ECode CContentProviderHolder::ReadFromParcel(
 
 ECode CContentProviderHolder::WriteToParcel(
     /* [in] */ IParcel *dest)
-{  
+{
     dest->WriteInterfacePtr((IInterface*)(IContentProviderInfo*)mInfo);
     dest->WriteInterfacePtr((IInterface*)(IContentProvider*)mProvider);
     return NOERROR;

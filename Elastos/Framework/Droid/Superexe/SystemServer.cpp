@@ -1,6 +1,6 @@
 
 #include "SystemServer.h"
-#include <Elastos.Framework.h>
+#include <Elastos.Framework.Server.h>
 #include <elastos/AutoPtr.h>
 
 using namespace Elastos;

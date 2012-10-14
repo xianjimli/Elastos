@@ -2,7 +2,7 @@
 // Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.
 //==========================================================================
 #include <elastos.h>
-#include <Elastos.Framework.h>
+#include <Elastos.Framework.Server.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>

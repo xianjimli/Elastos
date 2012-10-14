@@ -4,17 +4,19 @@ TARGET_TYPE= lib
 include $(MAKEDIR)/../../../sources.inc
 
 INCLUDES += $(MAKEDIR)/../../inc
-INCLUDES += ../
+INCLUDES += ../core
 
-C_DEFINES += -D_FRAMEWORK
+C_DEFINES += -D_FRAMEWORK_CORE
 
 SOURCES = CIntent.cpp
+SOURCES += CIntentFilterComparison.cpp
 SOURCES += BroadcastReceiver.cpp
 SOURCES += ContentProvider.cpp
 SOURCES += CAuthorityEntry.cpp
 SOURCES += IntentFilter.cpp
 SOURCES += CIntentFilter.cpp
 SOURCES += CComponentName.cpp
+SOURCES += CComponentNameHelper.cpp
 SOURCES += CapsuleItemInfo.cpp
 SOURCES += CApplicationInfo.cpp
 SOURCES += CResolveInfo.cpp
@@ -31,6 +33,7 @@ SOURCES += CPathPermission.cpp
 SOURCES += CIntentSender.cpp
 SOURCES += CompatibilityInfo.cpp
 SOURCES += CCompatibilityInfo.cpp
+SOURCES += CCompatibilityInfoHelper.cpp
 SOURCES += CAssetManager.cpp
 SOURCES += PluralRules.cpp
 SOURCES += CTypedArray.cpp

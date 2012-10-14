@@ -4,6 +4,12 @@ module
     interface IStatusBarIcon {
         Clone(
             [out] IStatusBarIcon** icon);
+
+        IsVisible(
+            [out] Boolean* isVisible);
+
+        SetVisible(
+            [in] Boolean visible);
     }
 }
 

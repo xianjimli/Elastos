@@ -64,7 +64,7 @@ ECode CInputChannel::OpenInputChannelPair(
  * Explicitly releases the reference this object is holding on the input channel.
  * When all references are released, the input channel will be closed.
  */
-void CInputChannel::Dispose()
+ECode CInputChannel::Dispose()
 {
     NativeInputChannel* nativeInputChannel = mPtr;
     if (nativeInputChannel) {
@@ -73,6 +73,7 @@ void CInputChannel::Dispose()
         mPtr = NULL;
         delete nativeInputChannel;
     }
+    return NOERROR;
 }
 
 /**
@@ -82,21 +83,30 @@ void CInputChannel::Dispose()
  * @param other The other input channel instance.
  */
 ECode CInputChannel::TransferToBinderOutParameter(
-    /* [in] */ CInputChannel* outParameter)
+    /* [in] */ IInputChannel* outParameter)
 {
     if (outParameter == NULL) {
         Slogger::E(TAG, "outParameter must not be null.");
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
-    if (outParameter->mPtr != NULL) {
+    CInputChannel* obj = (CInputChannel*)outParameter;
+    if (obj->mPtr != NULL) {
         Slogger::E(TAG, "Other object already has a native input channel.");
         return E_ILLEGAL_STATE_EXCEPTION;
     }
 
-    outParameter->mPtr = mPtr;
+    obj->mPtr = mPtr;
     mPtr = NULL;
-    outParameter->mDisposeAfterWriteToParcel = TRUE;
+    obj->mDisposeAfterWriteToParcel = TRUE;
+    return NOERROR;
+}
+
+ECode CInputChannel::GetNativeInputChannel(
+    /* [out] */ Handle32* nativeInputChannel)
+{
+    VALIDATE_NOT_NULL(nativeInputChannel);
+    *nativeInputChannel = (Handle32)mPtr;
     return NOERROR;
 }
 

@@ -76,7 +76,7 @@ CPhoneWindowManager::CPhoneWindowManager() :
     mDeskDockEnablesAccelerometer(FALSE),
     mScreenOn(FALSE),
     mOrientationSensorEnabled(FALSE),
-    mCurrentAppOrientation(CActivityInfo::SCREEN_ORIENTATION_UNSPECIFIED),
+    mCurrentAppOrientation(ActivityInfo_SCREEN_ORIENTATION_UNSPECIFIED),
     mAccelerometerDefault(DEFAULT_ACCELEROMETER_ROTATION),
     mHasSoftInput(FALSE),
     mPointerLocationMode(0),
@@ -103,17 +103,17 @@ Boolean CPhoneWindowManager::UseSensorForOrientationLp(
     /* [in] */ Int32 appOrientation)
 {
     // The app says use the sensor.
-    if (appOrientation == CActivityInfo::SCREEN_ORIENTATION_SENSOR
-        || appOrientation == CActivityInfo::SCREEN_ORIENTATION_FULL_SENSOR
-        || appOrientation == CActivityInfo::SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-        || appOrientation == CActivityInfo::SCREEN_ORIENTATION_SENSOR_PORTRAIT) {
+    if (appOrientation == ActivityInfo_SCREEN_ORIENTATION_SENSOR
+        || appOrientation == ActivityInfo_SCREEN_ORIENTATION_FULL_SENSOR
+        || appOrientation == ActivityInfo_SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        || appOrientation == ActivityInfo_SCREEN_ORIENTATION_SENSOR_PORTRAIT) {
             return TRUE;
     }
 
     // The user preference says we can rotate, and the app is willing to rotate.
     if (mAccelerometerDefault != 0 &&
-        (appOrientation == CActivityInfo::SCREEN_ORIENTATION_USER
-        || appOrientation == CActivityInfo::SCREEN_ORIENTATION_UNSPECIFIED)) {
+        (appOrientation == ActivityInfo_SCREEN_ORIENTATION_USER
+        || appOrientation == ActivityInfo_SCREEN_ORIENTATION_UNSPECIFIED)) {
             return TRUE;
     }
 
@@ -121,9 +121,9 @@ Boolean CPhoneWindowManager::UseSensorForOrientationLp(
     if ((mCarDockEnablesAccelerometer && mDockMode == Intent_EXTRA_DOCK_STATE_CAR)
         || (mDeskDockEnablesAccelerometer && mDockMode == Intent_EXTRA_DOCK_STATE_DESK)) {
             // Note we override the nosensor flag here.
-            if (appOrientation == CActivityInfo::SCREEN_ORIENTATION_USER
-                || appOrientation == CActivityInfo::SCREEN_ORIENTATION_UNSPECIFIED
-                || appOrientation == CActivityInfo::SCREEN_ORIENTATION_NOSENSOR) {
+            if (appOrientation == ActivityInfo_SCREEN_ORIENTATION_USER
+                || appOrientation == ActivityInfo_SCREEN_ORIENTATION_UNSPECIFIED
+                || appOrientation == ActivityInfo_SCREEN_ORIENTATION_NOSENSOR) {
                     return TRUE;
             }
     }
@@ -139,10 +139,10 @@ Boolean CPhoneWindowManager::UseSensorForOrientationLp(
 */
 Boolean CPhoneWindowManager::NeedSensorRunningLp()
 {
-    if (mCurrentAppOrientation == CActivityInfo::SCREEN_ORIENTATION_SENSOR
-        || mCurrentAppOrientation == CActivityInfo::SCREEN_ORIENTATION_FULL_SENSOR
-        || mCurrentAppOrientation == CActivityInfo::SCREEN_ORIENTATION_SENSOR_PORTRAIT
-        || mCurrentAppOrientation == CActivityInfo::SCREEN_ORIENTATION_SENSOR_LANDSCAPE) {
+    if (mCurrentAppOrientation == ActivityInfo_SCREEN_ORIENTATION_SENSOR
+        || mCurrentAppOrientation == ActivityInfo_SCREEN_ORIENTATION_FULL_SENSOR
+        || mCurrentAppOrientation == ActivityInfo_SCREEN_ORIENTATION_SENSOR_PORTRAIT
+        || mCurrentAppOrientation == ActivityInfo_SCREEN_ORIENTATION_SENSOR_LANDSCAPE) {
             // If the application has explicitly requested to follow the
             // orientation, then we need to turn the sensor or.
             return TRUE;
@@ -484,7 +484,7 @@ ECode CPhoneWindowManager::CheckAddPermission(
 
     if (type < WindowManagerLayoutParams_FIRST_SYSTEM_WINDOW
         || type > WindowManagerLayoutParams_LAST_SYSTEM_WINDOW) {
-        *addPermisssion = CWindowManagerImpl::ADD_OKAY;
+        *addPermisssion = WindowManagerImpl_ADD_OKAY;
         return NOERROR;
     }
 
@@ -518,7 +518,7 @@ ECode CPhoneWindowManager::CheckAddPermission(
         //}
     }
 
-    *addPermisssion = CWindowManagerImpl::ADD_OKAY;
+    *addPermisssion = WindowManagerImpl_ADD_OKAY;
 
     return NOERROR;
 }
@@ -931,7 +931,7 @@ ECode CPhoneWindowManager::PrepareAddWindowLw(
             // TODO: Need to handle the race condition of the status bar proc
             // dying and coming back before the removeWindowLw cleanup has happened.
             if (mStatusBar != NULL) {
-                *added = CWindowManagerImpl::ADD_MULTIPLE_SINGLETON;
+                *added = WindowManagerImpl_ADD_MULTIPLE_SINGLETON;
                 return NOERROR;
             }
 
@@ -945,13 +945,13 @@ ECode CPhoneWindowManager::PrepareAddWindowLw(
             break;
         case WindowManagerLayoutParams_TYPE_KEYGUARD:
             if (mKeyguard != NULL) {
-                *added = CWindowManagerImpl::ADD_MULTIPLE_SINGLETON;
+                *added = WindowManagerImpl_ADD_MULTIPLE_SINGLETON;
                 return NOERROR;
             }
             mKeyguard = win;
             break;
     }
-    *added = CWindowManagerImpl::ADD_OKAY;
+    *added = WindowManagerImpl_ADD_OKAY;
 
     return NOERROR;
 }
@@ -2131,31 +2131,31 @@ ECode CPhoneWindowManager::RotationForOrientationLw(
 
     //synchronized (mLock) {
     //    switch (orientation) {
-    //            case CActivityInfo::SCREEN_ORIENTATION_PORTRAIT:
+    //            case ActivityInfo_SCREEN_ORIENTATION_PORTRAIT:
     //                //always return portrait if orientation set to portrait
     //                return mPortraitRotation;
-    //            case CActivityInfo::SCREEN_ORIENTATION_LANDSCAPE:
+    //            case ActivityInfo_SCREEN_ORIENTATION_LANDSCAPE:
     //                //always return landscape if orientation set to landscape
     //                return mLandscapeRotation;
-    //            case CActivityInfo::SCREEN_ORIENTATION_REVERSE_PORTRAIT:
+    //            case ActivityInfo_SCREEN_ORIENTATION_REVERSE_PORTRAIT:
     //                //always return portrait if orientation set to portrait
     //                return mUpsideDownRotation;
-    //            case CActivityInfo::SCREEN_ORIENTATION_REVERSE_LANDSCAPE:
+    //            case ActivityInfo_SCREEN_ORIENTATION_REVERSE_LANDSCAPE:
     //                //always return seascape if orientation set to reverse landscape
     //                return mSeascapeRotation;
-    //            case CActivityInfo::SCREEN_ORIENTATION_SENSOR_LANDSCAPE:
+    //            case ActivityInfo_SCREEN_ORIENTATION_SENSOR_LANDSCAPE:
     //                //return either landscape rotation based on the sensor
     //                mOrientationListener.setAllow180Rotation(
     //                    isLandscapeOrSeascape(Surface.ROTATION_180));
     //                return getCurrentLandscapeRotation(lastRotation);
-    //            case CActivityInfo::SCREEN_ORIENTATION_SENSOR_PORTRAIT:
+    //            case ActivityInfo_SCREEN_ORIENTATION_SENSOR_PORTRAIT:
     //                mOrientationListener.setAllow180Rotation(
     //                    !isLandscapeOrSeascape(Surface.ROTATION_180));
     //                return getCurrentPortraitRotation(lastRotation);
     //    }
 
     //    mOrientationListener.setAllow180Rotation(
-    //        orientation == CActivityInfo::SCREEN_ORIENTATION_FULL_SENSOR);
+    //        orientation == ActivityInfo_SCREEN_ORIENTATION_FULL_SENSOR);
 
     //    // case for nosensor meaning ignore sensor and consider only lid
     //    // or orientation sensor disabled

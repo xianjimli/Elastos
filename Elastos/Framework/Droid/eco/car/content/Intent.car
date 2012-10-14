@@ -1412,6 +1412,27 @@ module
     interface ICapsuleManager;
     interface IActivityInfo;
     interface IContentResolver;
+    interface IIntent;
+
+    interface IIntentFilterComparison {
+        /**
+         * Return the Intent that this FilterComparison represents.
+         * @return Returns the Intent held by the FilterComparison.  Do
+         * not modify!
+         */
+        GetIntent(
+            [out] IIntent** intent);
+
+        Equals(
+            [in] IIntentFilterComparison* other,
+            [out] Boolean* isEqual);
+
+        GetHashCode(
+            [out] Int32* hashCode);
+
+        GetDescription(
+            [out] String* description);
+    }
 
     interface IIntent extends IDescribable{
         CloneFilter(
@@ -1575,6 +1596,16 @@ module
         ResolveTypeIfNeeded(
             [in] IContentResolver* resolver,
             [out] String* type);
+
+        /**
+         * Completely replace the extras in the Intent with the extras in the
+         * given Intent.
+         *
+         * @param src The exact extras contained in this Intent are copied
+         * into the target intent, replacing any that were previously there.
+         */
+        ReplaceExtras(
+            [in] IIntent* src);
 
         FilterEquals(
             [in] IIntent* other,

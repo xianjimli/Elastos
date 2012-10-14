@@ -7,13 +7,11 @@
 CWindowManagerLayoutParams::CWindowManagerLayoutParams()
     : mAlpha(1.0f)
     , mDimAmount(1.0f)
+    , mScreenBrightness(WindowManagerLayoutParams_BRIGHTNESS_OVERRIDE_NONE)
+    , mButtonBrightness(WindowManagerLayoutParams_BRIGHTNESS_OVERRIDE_NONE)
+    , mScreenOrientation(ActivityInfo_SCREEN_ORIENTATION_UNSPECIFIED)
     , mCompatibilityParamsBackup(NULL)
-{
-    mScreenBrightness = WindowManagerLayoutParams_BRIGHTNESS_OVERRIDE_NONE;
-    mButtonBrightness = WindowManagerLayoutParams_BRIGHTNESS_OVERRIDE_NONE;
-    mScreenOrientation = CActivityInfo::SCREEN_ORIENTATION_UNSPECIFIED;
-
-}
+{}
 
 CWindowManagerLayoutParams::~CWindowManagerLayoutParams()
 {
@@ -66,87 +64,88 @@ ECode CWindowManagerLayoutParams::GetTitle(
 }
 
 ECode CWindowManagerLayoutParams::CopyFrom(
-    /* [in] */ IWindowManagerLayoutParams* source)
+    /* [in] */ IWindowManagerLayoutParams* source,
+    /* [out] */ Int32* changes)
 {
     if (!source) {
         return E_INVALID_ARGUMENT;
     }
 
     CWindowManagerLayoutParams* src = (CWindowManagerLayoutParams*)source;
-    Int32 changes = 0;
+    *changes = 0;
 
     if (mWidth != src->mWidth) {
         mWidth = src->mWidth;
-        changes |= WindowManagerLayoutParams_LAYOUT_CHANGED;
+        *changes |= WindowManagerLayoutParams_LAYOUT_CHANGED;
     }
 
     if (mHeight != src->mHeight) {
         mHeight = src->mHeight;
-        changes |= WindowManagerLayoutParams_LAYOUT_CHANGED;
+        *changes |= WindowManagerLayoutParams_LAYOUT_CHANGED;
     }
 
     if (mX != src->mX) {
         mX = src->mX;
-        changes |= WindowManagerLayoutParams_LAYOUT_CHANGED;
+        *changes |= WindowManagerLayoutParams_LAYOUT_CHANGED;
     }
 
     if (mY != src->mY) {
         mY = src->mY;
-        changes |= WindowManagerLayoutParams_LAYOUT_CHANGED;
+        *changes |= WindowManagerLayoutParams_LAYOUT_CHANGED;
     }
 
     if (mHorizontalWeight != src->mHorizontalWeight) {
         mHorizontalWeight = src->mHorizontalWeight;
-        changes |= WindowManagerLayoutParams_LAYOUT_CHANGED;
+        *changes |= WindowManagerLayoutParams_LAYOUT_CHANGED;
     }
 
     if (mVerticalWeight != src->mVerticalWeight) {
         mVerticalWeight = src->mVerticalWeight;
-        changes |= WindowManagerLayoutParams_LAYOUT_CHANGED;
+        *changes |= WindowManagerLayoutParams_LAYOUT_CHANGED;
     }
 
     if (mType != src->mType) {
         mType = src->mType;
-        changes |= WindowManagerLayoutParams_TYPE_CHANGED;
+        *changes |= WindowManagerLayoutParams_TYPE_CHANGED;
     }
 
     if (mMemoryType != src->mMemoryType) {
         mMemoryType = src->mMemoryType;
-        changes |= WindowManagerLayoutParams_MEMORY_TYPE_CHANGED;
+        *changes |= WindowManagerLayoutParams_MEMORY_TYPE_CHANGED;
     }
 
     if (mFlags != src->mFlags) {
         mFlags = src->mFlags;
-        changes |= WindowManagerLayoutParams_FLAGS_CHANGED;
+        *changes |= WindowManagerLayoutParams_FLAGS_CHANGED;
     }
 
     if (mSoftInputMode != src->mSoftInputMode) {
         mSoftInputMode = src->mSoftInputMode;
-        changes |= WindowManagerLayoutParams_SOFT_INPUT_MODE_CHANGED;
+        *changes |= WindowManagerLayoutParams_SOFT_INPUT_MODE_CHANGED;
     }
     if (mGravity != src->mGravity) {
         mGravity = src->mGravity;
-        changes |= WindowManagerLayoutParams_LAYOUT_CHANGED;
+        *changes |= WindowManagerLayoutParams_LAYOUT_CHANGED;
     }
 
     if (mHorizontalMargin != src->mHorizontalMargin) {
         mHorizontalMargin = src->mHorizontalMargin;
-        changes |= WindowManagerLayoutParams_LAYOUT_CHANGED;
+        *changes |= WindowManagerLayoutParams_LAYOUT_CHANGED;
     }
 
     if (mVerticalMargin != src->mVerticalMargin) {
         mVerticalMargin = src->mVerticalMargin;
-        changes |= WindowManagerLayoutParams_LAYOUT_CHANGED;
+        *changes |= WindowManagerLayoutParams_LAYOUT_CHANGED;
     }
 
     if (mFormat != src->mFormat) {
         mFormat = src->mFormat;
-        changes |= WindowManagerLayoutParams_FORMAT_CHANGED;
+        *changes |= WindowManagerLayoutParams_FORMAT_CHANGED;
     }
 
     if (mWindowAnimations != src->mWindowAnimations) {
         mWindowAnimations = src->mWindowAnimations;
-        changes |= WindowManagerLayoutParams_ANIMATION_CHANGED;
+        *changes |= WindowManagerLayoutParams_ANIMATION_CHANGED;
     }
     if (mToken == NULL) {
         // NOTE: mToken only copied if the recipient doesn't
@@ -167,29 +166,29 @@ ECode CWindowManagerLayoutParams::CopyFrom(
     }
     if (title1.Compare(title2) != 0) {
         mTitle = src->mTitle;
-        changes |= WindowManagerLayoutParams_TITLE_CHANGED;
+        *changes |= WindowManagerLayoutParams_TITLE_CHANGED;
     }
 
     if (mAlpha != src->mAlpha) {
         mAlpha = src->mAlpha;
-        changes |= WindowManagerLayoutParams_ALPHA_CHANGED;
+        *changes |= WindowManagerLayoutParams_ALPHA_CHANGED;
     }
     if (mDimAmount != src->mDimAmount) {
         mDimAmount = src->mDimAmount;
-        changes |= WindowManagerLayoutParams_DIM_AMOUNT_CHANGED;
+        *changes |= WindowManagerLayoutParams_DIM_AMOUNT_CHANGED;
     }
     if (mScreenBrightness != src->mScreenBrightness) {
         mScreenBrightness = src->mScreenBrightness;
-        changes |= WindowManagerLayoutParams_SCREEN_BRIGHTNESS_CHANGED;
+        *changes |= WindowManagerLayoutParams_SCREEN_BRIGHTNESS_CHANGED;
     }
     if (mButtonBrightness != src->mButtonBrightness) {
         mButtonBrightness = src->mButtonBrightness;
-        changes |= WindowManagerLayoutParams_BUTTON_BRIGHTNESS_CHANGED;
+        *changes |= WindowManagerLayoutParams_BUTTON_BRIGHTNESS_CHANGED;
     }
 
     if (mScreenOrientation != src->mScreenOrientation) {
         mScreenOrientation = src->mScreenOrientation;
-        changes |= WindowManagerLayoutParams_SCREEN_ORIENTATION_CHANGED;
+        *changes |= WindowManagerLayoutParams_SCREEN_ORIENTATION_CHANGED;
     }
 
     return NOERROR;
@@ -247,6 +246,232 @@ ECode CWindowManagerLayoutParams::Restore()
         mHeight = mCompatibilityParamsBackup[3];
     }
 
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::GetX(
+    /* [out] */ Int32* x)
+{
+    VALIDATE_NOT_NULL(x);
+    *x = mX;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::SetX(
+    /* [in] */ Int32 x)
+{
+    mX = x;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::GetY(
+    /* [out] */ Int32* y)
+{
+    VALIDATE_NOT_NULL(y);
+    *y = mY;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::SetY(
+    /* [in] */ Int32 y)
+{
+    mY = y;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::GetType(
+    /* [out] */ Int32* type)
+{
+    VALIDATE_NOT_NULL(type);
+    *type = mType;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::SetType(
+    /* [in] */ Int32 type)
+{
+    mType = type;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::GetMemoryType(
+    /* [out] */ Int32* type)
+{
+    VALIDATE_NOT_NULL(type);
+    *type = mMemoryType;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::SetMemoryType(
+    /* [in] */ Int32 type)
+{
+    mMemoryType = type;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::GetFlags(
+    /* [out] */ Int32* flags)
+{
+    VALIDATE_NOT_NULL(flags);
+    *flags = mFlags;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::SetFlags(
+    /* [in] */ Int32 flags)
+{
+    mFlags = flags;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::GetGravity(
+    /* [out] */ Int32* gravity)
+{
+    VALIDATE_NOT_NULL(gravity);
+    *gravity = mGravity;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::SetGravity(
+    /* [in] */ Int32 gravity)
+{
+    mGravity = gravity;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::GetHorizontalMargin(
+    /* [out] */ Float* horizontalMargin)
+{
+    VALIDATE_NOT_NULL(horizontalMargin);
+    *horizontalMargin = mHorizontalMargin;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::SetHorizontalMargin(
+    /* [in] */ Float horizontalMargin)
+{
+    mHorizontalMargin = horizontalMargin;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::GetVerticalMargin(
+    /* [out] */ Float* verticalMargin)
+{
+    VALIDATE_NOT_NULL(verticalMargin);
+    *verticalMargin = mVerticalMargin;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::SetVerticalMargin(
+    /* [in] */ Float verticalMargin)
+{
+    mVerticalMargin = verticalMargin;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::GetFormat(
+    /* [out] */ Int32* format)
+{
+    VALIDATE_NOT_NULL(format);
+    *format = mFormat;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::SetFormat(
+    /* [in] */ Int32 format)
+{
+    mFormat = format;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::GetAlpha(
+    /* [out] */ Float* alpha)
+{
+    VALIDATE_NOT_NULL(alpha);
+    *alpha = mAlpha;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::SetAlpha(
+    /* [in] */ Float alpha)
+{
+    mAlpha = alpha;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::GetDimAmount(
+    /* [out] */ Float* dimAmount)
+{
+    VALIDATE_NOT_NULL(dimAmount);
+    *dimAmount = mDimAmount;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::SetDimAmount(
+    /* [in] */ Float dimAmount)
+{
+    mDimAmount = dimAmount;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::GetScreenBrightness(
+    /* [out] */ Float* brightness)
+{
+    VALIDATE_NOT_NULL(brightness);
+    *brightness = mScreenBrightness;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::SetScreenBrightness(
+    /* [in] */ Float brightness)
+{
+    mScreenBrightness = brightness;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::GetButtonBrightness(
+    /* [out] */ Float* brightness)
+{
+    VALIDATE_NOT_NULL(brightness);
+    *brightness = mButtonBrightness;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::SetButtonBrightness(
+    /* [in] */ Float brightness)
+{
+    mButtonBrightness = brightness;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::GetToken(
+    /* [out] */ IBinder** token)
+{
+    VALIDATE_NOT_NULL(token);
+    *token = mToken;
+    if (*token != NULL) (*token)->AddRef();
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::SetToken(
+    /* [in] */ IBinder* token)
+{
+    mToken = token;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::GetScreenOrientation(
+    /* [out] */ Int32* orientation)
+{
+    VALIDATE_NOT_NULL(orientation);
+    *orientation = mScreenOrientation;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::SetScreenOrientation(
+    /* [in] */ Int32 orientation)
+{
+    mScreenOrientation = orientation;
     return NOERROR;
 }
 

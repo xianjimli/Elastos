@@ -78,6 +78,9 @@ public:
     CARAPI_(Boolean) MatchAction(
         /* [in] */ const String& action);
 
+    CARAPI GetActions(
+        /* [out, callee] */ ArrayOf<String>** actions);
+
     /**
      * Add a new Intent data type to match against.  If any types are
      * included in the filter, then an Intent's data must be <em>either</em>
@@ -122,6 +125,9 @@ public:
     CARAPI_(String) GetDataType(
         /* [in] */ Int32 index);
 
+    CARAPI GetTypes(
+        /* [out, callee] */ ArrayOf<String>** types);
+
     /**
      * Add a new Intent data scheme to match against.  If any schemes are
      * included in the filter, then an Intent's data must be <em>either</em>
@@ -163,6 +169,9 @@ public:
      */
     CARAPI_(Boolean) HasDataScheme(
         /* [in] */ const String& scheme);
+
+    CARAPI GetSchemes(
+        /* [out, callee] */ ArrayOf<String>** schemes);
 
     /**
      * Add a new Intent data authority to match against.  The filter must

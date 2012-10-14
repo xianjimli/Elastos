@@ -2,9 +2,7 @@
 #ifndef __TASKRECORD_H__
 #define __TASKRECORD_H__
 
-#include "content/CIntent.h"
-#include "capsule/CActivityInfo.h"
-#include "content/CComponentName.h"
+#include "ext/frameworkext.h"
 #include <elastos/AutoPtr.h>
 
 class TaskRecord
@@ -12,7 +10,7 @@ class TaskRecord
 public:
     TaskRecord(
         /* [in] */ Int32 taskId,
-        /* [in] */ CActivityInfo* info,
+        /* [in] */ IActivityInfo* info,
         /* [in] */ IIntent* intent,
         /* [in] */ Boolean clearOnBackground);
 

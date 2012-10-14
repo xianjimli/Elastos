@@ -9,7 +9,9 @@ endif
 include $(MAKEDIR)/../../../sources.inc
 
 INCLUDES += $(MAKEDIR)/../../inc
-INCLUDES += ../
+INCLUDES += ../core
+
+C_DEFINES += -D_FRAMEWORK_CORE
 
 SOURCES = ComponentInfo.cpp
 SOURCES += CActivityInfo.cpp

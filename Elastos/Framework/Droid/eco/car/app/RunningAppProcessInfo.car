@@ -1,0 +1,31 @@
+
+module
+{
+    /**
+     * Constant for {@link #importanceReasonCode}: nothing special has
+     * been specified for the reason for this level.
+     */
+    const RunningAppProcessInfo_REASON_UNKNOWN = 0;
+
+    /**
+     * Constant for {@link #importanceReasonCode}: one of the application's
+     * content providers is being used by another process.  The pid of
+     * the client process is in {@link #importanceReasonPid} and the
+     * target provider in this process is in
+     * {@link #importanceReasonComponent}.
+     */
+    const RunningAppProcessInfo_REASON_PROVIDER_IN_USE = 1;
+
+    /**
+     * Constant for {@link #importanceReasonCode}: one of the application's
+     * content providers is being used by another process.  The pid of
+     * the client process is in {@link #importanceReasonPid} and the
+     * target provider in this process is in
+     * {@link #importanceReasonComponent}.
+     */
+    const RunningAppProcessInfo_REASON_SERVICE_IN_USE = 2;
+
+    interface IRunningAppProcessInfo {
+
+    }
+}

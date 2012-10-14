@@ -23,6 +23,24 @@ module
          */
         GetGlEsVersion(
             [out] String* ver);
+
+        GetName(
+            [out] String* name);
+
+        SetName(
+            [in] String name);
+
+        GetReqGlEsVersion(
+            [out] Int32* reqGlEsVersion);
+
+        SetReqGlEsVersion(
+            [in] Int32 reqGlEsVersion);
+
+        GetFlags(
+            [out] Int32* flags);
+
+        SetFlags(
+            [in] Int32 flags);
     }
 }
 

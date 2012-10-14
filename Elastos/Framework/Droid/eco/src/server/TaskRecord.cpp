@@ -3,14 +3,14 @@
 
 TaskRecord::TaskRecord(
     /* [in] */ Int32 taskId,
-    /* [in] */ CActivityInfo* info,
+    /* [in] */ IActivityInfo* info,
     /* [in] */ IIntent* intent,
     /* [in] */ Boolean clearOnBackground)
 {
     mTaskId = taskId;
-    mAffinity = info->mTaskAffinity;
+    info->GetTaskAffinity(&mAffinity);
     mClearOnBackground = clearOnBackground;
-    SetIntent(intent, (IActivityInfo*)info);
+    SetIntent(intent, info);
 }
 
 void TaskRecord::TouchActiveTime()
@@ -30,16 +30,20 @@ void TaskRecord::SetIntent(
 {
     mStringName = NULL;
 
-    AutoPtr<CActivityInfo> cinfo = (CActivityInfo*)info;
-    if (cinfo->mTargetActivity.IsNull()) {
+    String target;
+    info->GetTargetActivity(&target);
+    if (target.IsNull()) {
         mIntent = intent;
         if (intent != NULL) {
             intent->GetComponent((IComponentName**)&mRealActivity);
         }
         mOrigActivity = NULL;
-    } else {
+    }
+    else {
+        String cname;
+        info->GetCapsuleName(&cname);
         AutoPtr<IComponentName> targetComponent;
-        CComponentName::New(cinfo->mCapsuleName, cinfo->mTargetActivity,
+        CComponentName::New(cname, target,
                 (IComponentName**)&targetComponent);
         if (intent != NULL) {
             AutoPtr<IIntent> targetIntent;
@@ -48,11 +52,13 @@ void TaskRecord::SetIntent(
             mIntent = targetIntent;
             mRealActivity = targetComponent;
             intent->GetComponent((IComponentName**)&mOrigActivity);
-        } else {
+        }
+        else {
             mIntent = NULL;
             mRealActivity = targetComponent;
-            CComponentName::New(cinfo->mCapsuleName, cinfo->mName,
-                    (IComponentName**)&mOrigActivity);
+            String name;
+            info->GetName(&name);
+            CComponentName::New(cname, name, (IComponentName**)&mOrigActivity);
         }
     }
 

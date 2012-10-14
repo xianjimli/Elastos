@@ -3,7 +3,7 @@ TARGET_TYPE = eco
 
 include $(MAKEDIR)/../../sources.inc
 
-IMPORTS = Elastos.Framework.eco
+IMPORTS = Elastos.Framework.Core.eco
 
 SOURCES  = EditTextDemo.car
 SOURCES += CActivityOne.cpp

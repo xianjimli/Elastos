@@ -4,7 +4,11 @@
 
 #include "ext/frameworkdef.h"
 #include "ext/frameworkerr.h"
-#include "Elastos.Framework_server.h"
+#ifdef _FRAMEWORK_CORE
+#include "Elastos.Framework.Core_server.h"
+#elif defined(_FRAMEWORK_SERVER)
+#include "Elastos.Framework.Server_server.h"
+#endif
 #include "_frameworkext.h"
 
 #endif //__FRAMEWORKEXT_H__

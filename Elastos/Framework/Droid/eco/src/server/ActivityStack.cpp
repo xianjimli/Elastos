@@ -1,10 +1,8 @@
 
 #include "server/ActivityStack.h"
-#include "utils/CParcelableObjectContainer.h"
 #include "utils/EventLogTags.h"
 #include "os/SystemClock.h"
 #include "os/Process.h"
-#include "content/CIntentSender.h"
 #include "view/WindowManagerPolicy.h"
 #include <StringBuffer.h>
 #include <Slogger.h>
@@ -157,13 +155,15 @@ Boolean ActivityStack::UpdateLRUListLocked(
  */
 CActivityRecord* ActivityStack::FindTaskLocked(
     /* [in] */ IIntent* intent,
-    /* [in] */ CActivityInfo* info)
+    /* [in] */ IActivityInfo* info)
 {
     AutoPtr<IComponentName> cls;
     intent->GetComponent((IComponentName**)&cls);
-    if (!info->mTargetActivity.IsNull()) {
-        CComponentName::New(info->mCapsuleName, info->mTargetActivity,
-                (IComponentName**)&cls);
+    String cname, target;
+    info->GetCapsuleName(&cname);
+    info->GetTargetActivity(&target);
+    if (!target.IsNull()) {
+        CComponentName::New(cname, target, (IComponentName**)&cls);
     }
 
     TaskRecord* cp = NULL;
@@ -172,7 +172,7 @@ CActivityRecord* ActivityStack::FindTaskLocked(
     for (rit = mHistory.RBegin(); rit != mHistory.REnd(); ++rit) {
         CActivityRecord* r = *rit;
         if (!r->mFinishing && r->mTask != cp
-                && r->mLaunchMode != CActivityInfo::LAUNCH_SINGLE_INSTANCE) {
+                && r->mLaunchMode != ActivityInfo_LAUNCH_SINGLE_INSTANCE) {
             cp = r->mTask;
             //Slog.i(TAG, "Comparing existing cls=" + r.task.intent.getComponent().flattenToShortString()
             //        + "/aff=" + r.task.affinity + " to new cls="
@@ -180,18 +180,22 @@ CActivityRecord* ActivityStack::FindTaskLocked(
             AutoPtr<IComponentName> component;
             Boolean isEqual;
             if (!r->mTask->mAffinity.IsNull()) {
-                if (!r->mTask->mAffinity.Compare(info->mTaskAffinity)) {
+                String task;
+                info->GetTaskAffinity(&task);
+                if (!r->mTask->mAffinity.Compare(task)) {
                     //Slog.i(TAG, "Found matching affinity!");
                     return r;
                 }
-            } else if (r->mTask->mIntent != NULL
+            }
+            else if (r->mTask->mIntent != NULL
                     && (r->mTask->mIntent->GetComponent((IComponentName**)&component),
                         component->Equals(cls, &isEqual), isEqual)) {
                 //Slog.i(TAG, "Found matching class!");
                 //dump();
                 //Slog.i(TAG, "For Intent " + intent + " bringing to top: " + r.intent);
                 return r;
-            } else if (r->mTask->mAffinityIntent != NULL
+            }
+            else if (r->mTask->mAffinityIntent != NULL
                     && (r->mTask->mAffinityIntent->GetComponent((IComponentName**)&component),
                         component->Equals(cls, &isEqual), isEqual)) {
                 //Slog.i(TAG, "Found matching class!");
@@ -212,13 +216,15 @@ CActivityRecord* ActivityStack::FindTaskLocked(
  */
 CActivityRecord* ActivityStack::FindActivityLocked(
     /* [in] */ IIntent* intent,
-    /* [in] */ CActivityInfo* info)
+    /* [in] */ IActivityInfo* info)
 {
     AutoPtr<IComponentName> cls;
     intent->GetComponent((IComponentName**)&cls);
-    if (!info->mTargetActivity.IsNull()) {
-        CComponentName::New(info->mCapsuleName, info->mTargetActivity,
-                (IComponentName**)&cls);
+    String cname, target;
+    info->GetCapsuleName(&cname);
+    info->GetTargetActivity(&target);
+    if (!target.IsNull()) {
+        CComponentName::New(cname, target, (IComponentName**)&cls);
     }
 
     List<AutoPtr<CActivityRecord> >::ReverseIterator rit;
@@ -292,7 +298,7 @@ ECode ActivityStack::RealStartActivityLocked(
             CParcelableObjectContainer::New((IObjectContainer**)&results);
             List<ActivityResult*>::Iterator it;
             for(it = r->mResults->Begin(); it != r->mResults->End(); ++it) {
-                results->Add((IParcelable*)((*it)->mResultInfo));
+                results->Add((*it)->mResultInfo);
             }
         }
         if (r->mNewIntents != NULL && r->mNewIntents->GetSize() > 0) {
@@ -324,8 +330,7 @@ ECode ActivityStack::RealStartActivityLocked(
     ECode ec = app->mAppApartment->ScheduleLaunchActivity(
             r->mIntent, (IBinder*)(CActivityRecord*)r,
             0 /* System.identityHashCode(r) */,
-            (IActivityInfo*)(CActivityInfo*)(r->mInfo),
-            r->mIcicle, results, newIntents, !andResume,
+            r->mInfo, r->mIcicle, results, newIntents, !andResume,
             mService->IsNextTransitionForward());
 
 //    if ((app.info.flags&ApplicationInfo.FLAG_CANT_SAVE_STATE) != 0) {
@@ -426,15 +431,19 @@ ECode ActivityStack::StartSpecificActivityLocked(
     /* [in] */ Boolean checkConfig)
 {
     // Is this activity's application already running?
-    ProcessRecord* app = mService->GetProcessRecordLocked(r->mProcessName,
-            r->mInfo->mApplicationInfo->mUid);
+    AutoPtr<IApplicationInfo> appInfo;
+    r->mInfo->GetApplicationInfo((IApplicationInfo**)&appInfo);
+    Int32 uid;
+    appInfo->GetUid(&uid);
+    ProcessRecord* app = mService->GetProcessRecordLocked(r->mProcessName, uid);
 
     if (r->mLaunchTime == 0) {
         r->mLaunchTime = SystemClock::GetUptimeMillis();
         if (mInitialStartTime == 0) {
             mInitialStartTime = r->mLaunchTime;
         }
-    } else if (mInitialStartTime == 0) {
+    }
+    else if (mInitialStartTime == 0) {
         mInitialStartTime = SystemClock::GetUptimeMillis();
     }
 
@@ -458,7 +467,7 @@ ECode ActivityStack::StartSpecificActivityLocked(
 
     AutoPtr<IComponentName> componentName;
     r->mIntent->GetComponent((IComponentName**)&componentName);
-    mService->StartProcessLocked(r->mProcessName, r->mInfo->mApplicationInfo,
+    mService->StartProcessLocked(r->mProcessName, appInfo,
             TRUE, 0, "activity", componentName, FALSE);
     return NOERROR;
 }
@@ -1273,8 +1282,7 @@ Boolean ActivityStack::ResumeTopActivityLocked(
                 AutoPtr<IObjectContainer> res;
                 CParcelableObjectContainer::New((IObjectContainer**)&res);
                 for (; it != next->mResults->End(); ++it) {
-                    res->Add((IParcelable*)(CResultInfo*)
-                            ((*it)->mResultInfo));
+                    res->Add((*it)->mResultInfo);
                 }
     //            if (DEBUG_RESULTS) Slog.v(
     //                    TAG, "Delivering results to " + next
@@ -1395,8 +1403,10 @@ void ActivityStack::StartActivityLocked(
                     mHistory.Insert(addPos, r);
                     r->mInHistory = TRUE;
                     r->mTask->mNumActivities++;
+                    Int32 orientation;
+                    r->mInfo->GetScreenOrientation(&orientation);
                     mService->mWindowManager->AddAppToken(addPos, r, r->mTask->mTaskId,
-                            r->mInfo->mScreenOrientation, r->mFullscreen);
+                            orientation, r->mFullscreen);
                     if (VALIDATE_TOKENS) {
                         mService->mWindowManager->ValidateAppTokens(mHistory);
                     }
@@ -1438,7 +1448,11 @@ void ActivityStack::StartActivityLocked(
         Boolean showStartingIcon = newTask;
         ProcessRecord* proc = r->mApp;
         if (proc == NULL) {
-            proc = mService->mProcessNames->Get(r->mProcessName, r->mInfo->mApplicationInfo->mUid);
+            AutoPtr<IApplicationInfo> appInfo;
+            r->mInfo->GetApplicationInfo((IApplicationInfo**)&appInfo);
+            Int32 uid;
+            appInfo->GetUid(&uid);
+            proc = mService->mProcessNames->Get(r->mProcessName, uid);
         }
         if (proc == NULL || proc->mAppApartment == NULL) {
             showStartingIcon = TRUE;
@@ -1453,18 +1467,22 @@ void ActivityStack::StartActivityLocked(
         if ((flags & Intent_FLAG_ACTIVITY_NO_ANIMATION) != 0) {
             mService->mWindowManager->PrepareAppTransition(WindowManagerPolicy::TRANSIT_NONE);
             mNoAnimActivities.PushBack(r);
-        } else if ((flags & Intent_FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET) != 0) {
+        }
+        else if ((flags & Intent_FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET) != 0) {
             mService->mWindowManager->PrepareAppTransition(WindowManagerPolicy::TRANSIT_TASK_OPEN);
             mNoAnimActivities.Remove(r);
-        } else {
+        }
+        else {
             Int32 activityOpen = WindowManagerPolicy::TRANSIT_ACTIVITY_OPEN;
             mService->mWindowManager->PrepareAppTransition(newTask
                 ? WindowManagerPolicy::TRANSIT_TASK_OPEN
                 : activityOpen);
             mNoAnimActivities.Remove(r);
         }
+        Int32 orientation;
+        r->mInfo->GetScreenOrientation(&orientation);
         mService->mWindowManager->AddAppToken(
-                addPos, r, r->mTask->mTaskId, r->mInfo->mScreenOrientation, r->mFullscreen);
+                addPos, r, r->mTask->mTaskId, orientation, r->mFullscreen);
         Boolean doShow = TRUE;
         if (newTask) {
             // Even though this activity is starting fresh, we still need
@@ -1494,11 +1512,14 @@ void ActivityStack::StartActivityLocked(
                     (IBinder*)r, r->mCapsuleName, r->mTheme, *(r->mNonLocalizedLabel),
                     r->mLabelRes, r->mIcon, (IBinder*)prev.Get(), showStartingIcon);
         }
-    } else {
+    }
+    else {
+        Int32 orientation;
+        r->mInfo->GetScreenOrientation(&orientation);
         // If this is the first activity, don't do any fancy animations,
         // because there is nothing for it to animate on top of.
         mService->mWindowManager->AddAppToken(addPos, r, r->mTask->mTaskId,
-                r->mInfo->mScreenOrientation, r->mFullscreen);
+                orientation, r->mFullscreen);
     }
     if (VALIDATE_TOKENS) {
         mService->mWindowManager->ValidateAppTokens(mHistory);
@@ -1517,11 +1538,11 @@ CActivityRecord* ActivityStack::ResetTaskIfNeededLocked(
     /* [in] */ CActivityRecord* taskTop,
     /* [in] */ CActivityRecord* newActivity)
 {
-    Boolean forceReset = (newActivity->mInfo->mFlags
-            & CActivityInfo::FLAG_CLEAR_TASK_ON_LAUNCH) != 0;
+    Int32 newFlags;
+    newActivity->mInfo->GetFlags(&newFlags);
+    Boolean forceReset = (newFlags & ActivityInfo_FLAG_CLEAR_TASK_ON_LAUNCH) != 0;
     if (taskTop->mTask->GetInactiveDuration() > ACTIVITY_INACTIVE_RESET_TIME) {
-        if ((newActivity->mInfo->mFlags
-                & CActivityInfo::FLAG_ALWAYS_RETAIN_TASK_STATE) == 0) {
+        if ((newFlags & ActivityInfo_FLAG_ALWAYS_RETAIN_TASK_STATE) == 0) {
             forceReset = TRUE;
         }
     }
@@ -1552,12 +1573,13 @@ CActivityRecord* ActivityStack::ResetTaskIfNeededLocked(
             continue;
         }
 
-        Int32 flags = target->mInfo->mFlags;
+        Int32 flags;
+        target->mInfo->GetFlags(&flags);
 
         Boolean finishOnTaskLaunch =
-            (flags & CActivityInfo::FLAG_FINISH_ON_TASK_LAUNCH) != 0;
+            (flags & ActivityInfo_FLAG_FINISH_ON_TASK_LAUNCH) != 0;
         Boolean allowTaskReparenting =
-            (flags & CActivityInfo::FLAG_ALLOW_TASK_REPARENTING) != 0;
+            (flags & ActivityInfo_FLAG_ALLOW_TASK_REPARENTING) != 0;
 
         if (target->mTask == task) {
             // We are inside of the task being reset...  we'll either
@@ -1569,10 +1591,10 @@ CActivityRecord* ActivityStack::ResetTaskIfNeededLocked(
                 taskTopI = targetI;
             }
             if (below != NULL && below->mTask == task) {
-                Int32 flags;
-                target->mIntent->GetFlags(&flags);
+                Int32 iflags;
+                target->mIntent->GetFlags(&iflags);
                 Boolean clearWhenTaskReset =
-                        (flags & Intent_FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET) != 0;
+                        (iflags & Intent_FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET) != 0;
                 if (!finishOnTaskLaunch && !clearWhenTaskReset && target->mResultTo != NULL) {
                     // If this activity is sending a reply to a previous
                     // activity, we can't do anything with it now until
@@ -1583,7 +1605,8 @@ CActivityRecord* ActivityStack::ResetTaskIfNeededLocked(
                     if (replyChainEnd < 0) {
                         replyChainEnd = targetI;
                     }
-                } else if (!finishOnTaskLaunch && !clearWhenTaskReset && allowTaskReparenting
+                }
+                else if (!finishOnTaskLaunch && !clearWhenTaskReset && allowTaskReparenting
                         && !target->mTaskAffinity.IsNull()
                         && target->mTaskAffinity.Compare(task->mAffinity)) {
                     // If this activity has an affinity for another
@@ -1606,13 +1629,14 @@ CActivityRecord* ActivityStack::ResetTaskIfNeededLocked(
                             Slogger::V(TAG, StringBuffer("Start pushing activity ") + arDes
                                 + " out to bottom task " + trDes);
                         }
-                    } else {
+                    }
+                    else {
                         mService->mCurTask++;
                         if (mService->mCurTask <= 0) {
                             mService->mCurTask = 1;
                         }
                         target->mTask = new TaskRecord(mService->mCurTask, target->mInfo, NULL,
-                                (target->mInfo->mFlags & CActivityInfo::FLAG_CLEAR_TASK_ON_LAUNCH) != 0);
+                                (flags & ActivityInfo_FLAG_CLEAR_TASK_ON_LAUNCH) != 0);
                         target->mTask->mAffinityIntent = target->mIntent;
                         if (DEBUG_TASKS) {
                             String arDes, trDes;
@@ -1803,7 +1827,9 @@ CActivityRecord* ActivityStack::ResetTaskIfNeededLocked(
                 // a singleTop activity and we have put it on top of another
                 // instance of the same activity?  Then we drop the instance
                 // below so it remains singleTop.
-                if (target->mInfo->mLaunchMode == CActivityInfo::LAUNCH_SINGLE_TOP) {
+                Int32 mode;
+                target->mInfo->GetLaunchMode(&mode);
+                if (mode == ActivityInfo_LAUNCH_SINGLE_TOP) {
                     for (Int32 j = lastReparentPos - 1; j >= 0; j--) {
                         AutoPtr<CActivityRecord> p = mHistory[j];
                         if (p->mFinishing) {
@@ -1895,7 +1921,7 @@ CActivityRecord* ActivityStack::PerformClearTaskLocked(
             // Finally, if this is a normal launch mode (that is, not
             // expecting onNewIntent()), then we will finish the current
             // instance of the activity so a new fresh one can be started.
-            if (ret->mLaunchMode == CActivityInfo::LAUNCH_MULTIPLE
+            if (ret->mLaunchMode == ActivityInfo_LAUNCH_MULTIPLE
                         && (launchFlags & Intent_FLAG_ACTIVITY_SINGLE_TOP) == 0) {
                 if (!ret->mFinishing) {
                     Int32 index = GetIndexOfTokenLocked(ret);
@@ -1983,8 +2009,9 @@ ECode ActivityStack::StartActivityLocked(
         callerApp = mService->GetProcessRecordForAppLocked(caller);
         if (callerApp != NULL) {
             callingPid = callerApp->mPid;
-            callingUid = callerApp->mInfo->mUid;
-        } else {
+            callerApp->mInfo->GetUid(&callingUid);
+        }
+        else {
             String appApDes, intDes;
             caller->GetDescription(&appApDes);
             intent->GetDescription(&intDes);
@@ -2075,14 +2102,15 @@ ECode ActivityStack::StartActivityLocked(
                 resultRecord, resultWho, requestCode,
                 Activity_RESULT_CANCELED, NULL);
         }
-        String intDes, appDes;
+        String intDes, appDes, permission;
         intent->GetDescription(&intDes);
         callerApp->GetDescription(&appDes);
+        aInfo->GetPermission(&permission);
         StringBuffer msg;
         msg += "Permission Denial: starting " + intDes
                 + " from " + appDes + " (pid=" + callingPid
                 + ", uid=" + callingUid + ")"
-                + " requires " + ((CActivityInfo*)aInfo)->mPermission;
+                + " requires " + permission;
         Slogger::W(TAG, msg);
         return E_SECURITY_EXCEPTION;
     }
@@ -2092,10 +2120,14 @@ ECode ActivityStack::StartActivityLocked(
             Boolean abort = FALSE;
             // The Intent we give to the watcher has the extra data
             // stripped off, since it can contain private information.
-            AutoPtr<CIntent> watchIntent;
-            ((CIntent*)intent)->CloneFilter((CIntent**)&watchIntent);
-            if (SUCCEEDED(mService->mController->ActivityStarting((CIntent*)watchIntent,
-                    ((CActivityInfo*)aInfo)->mApplicationInfo->mCapsuleName, &abort))) {
+            AutoPtr<IIntent> watchIntent;
+            intent->CloneFilter((IIntent**)&watchIntent);
+            AutoPtr<IApplicationInfo> appInfo;
+            aInfo->GetApplicationInfo((IApplicationInfo**)&appInfo);
+            String cname;
+            appInfo->GetCapsuleName(&cname);
+            if (SUCCEEDED(mService->mController->ActivityStarting(
+                    watchIntent, cname, &abort))) {
                 abort = !abort;
             }
             else {
@@ -2123,8 +2155,14 @@ ECode ActivityStack::StartActivityLocked(
             resultRecord, resultWho, requestCode, componentSpecified);
 
     if (mMainStack) {
-        if (mResumedActivity == NULL
-                || mResumedActivity->mInfo->mApplicationInfo->mUid != callingUid) {
+        Int32 uid;
+        if (mResumedActivity != NULL) {
+            AutoPtr<IApplicationInfo> appInfo;
+            mResumedActivity->mInfo->GetApplicationInfo((IApplicationInfo**)&appInfo);
+            appInfo->GetUid(&uid);
+        }
+
+        if (mResumedActivity == NULL || uid != callingUid) {
             if (!mService->CheckAppSwitchAllowedLocked(callingPid, callingUid, "Activity start")) {
                 CActivityManagerService::PendingActivityLaunch* pal = \
                         new CActivityManagerService::PendingActivityLaunch();
@@ -2215,13 +2253,13 @@ ECode ActivityStack::StartActivityUncheckedLocked(
                 + intDes);
             launchFlags |= Intent_FLAG_ACTIVITY_NEW_TASK;
         }
-    } else if (sourceRecord->mLaunchMode == CActivityInfo::LAUNCH_SINGLE_INSTANCE) {
+    } else if (sourceRecord->mLaunchMode == ActivityInfo_LAUNCH_SINGLE_INSTANCE) {
         // The original activity who is starting us is running as a single
         // instance...  this new activity it is starting must go on its
         // own task.
         launchFlags |= Intent_FLAG_ACTIVITY_NEW_TASK;
-    } else if (r->mLaunchMode == CActivityInfo::LAUNCH_SINGLE_INSTANCE
-            || r->mLaunchMode == CActivityInfo::LAUNCH_SINGLE_TASK) {
+    } else if (r->mLaunchMode == ActivityInfo_LAUNCH_SINGLE_INSTANCE
+            || r->mLaunchMode == ActivityInfo_LAUNCH_SINGLE_TASK) {
         // The activity being started is a single instance...  it always
         // gets launched into its own task.
         launchFlags |= Intent_FLAG_ACTIVITY_NEW_TASK;
@@ -2243,8 +2281,8 @@ ECode ActivityStack::StartActivityUncheckedLocked(
     Boolean addingToTask = FALSE;
     if (((launchFlags & Intent_FLAG_ACTIVITY_NEW_TASK) != 0 &&
             (launchFlags & Intent_FLAG_ACTIVITY_MULTIPLE_TASK) == 0)
-            || r->mLaunchMode == CActivityInfo::LAUNCH_SINGLE_TASK
-            || r->mLaunchMode == CActivityInfo::LAUNCH_SINGLE_INSTANCE) {
+            || r->mLaunchMode == ActivityInfo_LAUNCH_SINGLE_TASK
+            || r->mLaunchMode == ActivityInfo_LAUNCH_SINGLE_INSTANCE) {
         // If bring to front is requested, and no result is requested, and
         // we can find a task that was started with this same
         // component, then instead of launching bring that one to the front.
@@ -2254,7 +2292,7 @@ ECode ActivityStack::StartActivityUncheckedLocked(
             // instance of it in the history, and it is always in its own
             // unique task, so we do a special search.
             AutoPtr<CActivityRecord> taskTop =
-                    r->mLaunchMode != CActivityInfo::LAUNCH_SINGLE_INSTANCE
+                    r->mLaunchMode != ActivityInfo_LAUNCH_SINGLE_INSTANCE
                     ? FindTaskLocked(intent, r->mInfo)
                     : FindActivityLocked(intent, r->mInfo);
             if (taskTop != NULL) {
@@ -2300,8 +2338,8 @@ ECode ActivityStack::StartActivityUncheckedLocked(
                     return NOERROR;
                 }
                 if ((launchFlags & Intent_FLAG_ACTIVITY_CLEAR_TOP) != 0
-                        || r->mLaunchMode == CActivityInfo::LAUNCH_SINGLE_TASK
-                        || r->mLaunchMode == CActivityInfo::LAUNCH_SINGLE_INSTANCE) {
+                        || r->mLaunchMode == ActivityInfo_LAUNCH_SINGLE_TASK
+                        || r->mLaunchMode == ActivityInfo_LAUNCH_SINGLE_INSTANCE) {
                     // In this situation we want to remove all activities
                     // from the task up to the one being started.  In most
                     // cases this means we are resetting the task to its
@@ -2392,8 +2430,8 @@ ECode ActivityStack::StartActivityUncheckedLocked(
             if (top->mRealActivity->Equals(r->mRealActivity, &isEqual), isEqual) {
                 if (top->mApp != NULL && top->mApp->mAppApartment != NULL) {
                     if ((launchFlags & Intent_FLAG_ACTIVITY_SINGLE_TOP) != 0
-                        || r->mLaunchMode == CActivityInfo::LAUNCH_SINGLE_TOP
-                        || r->mLaunchMode == CActivityInfo::LAUNCH_SINGLE_TASK) {
+                        || r->mLaunchMode == ActivityInfo_LAUNCH_SINGLE_TOP
+                        || r->mLaunchMode == ActivityInfo_LAUNCH_SINGLE_TASK) {
                         LogStartActivity(EventLogTags::AM_NEW_INTENT, top, top->mTask);
                         // For paranoia, make sure we have correctly
                         // resumed the top activity.
@@ -2434,8 +2472,10 @@ ECode ActivityStack::StartActivityUncheckedLocked(
         if (mService->mCurTask <= 0) {
             mService->mCurTask = 1;
         }
+        Int32 flags;
+        r->mInfo->GetFlags(&flags);
         r->mTask = new TaskRecord(mService->mCurTask, r->mInfo, intent,
-                (r->mInfo->mFlags & CActivityInfo::FLAG_CLEAR_TASK_ON_LAUNCH) != 0);
+                (flags & ActivityInfo_FLAG_CLEAR_TASK_ON_LAUNCH) != 0);
         if (DEBUG_TASKS) {
             String arDes, trDes;
             r->GetDescription(&arDes);
@@ -2500,9 +2540,11 @@ ECode ActivityStack::StartActivityUncheckedLocked(
         // this case should never happen.
         Int32 size = mHistory.GetSize();
         AutoPtr<CActivityRecord> prev = size > 0 ? mHistory[size - 1] : NULL;
+        Int32 flags;
+        r->mInfo->GetFlags(&flags);
         r->mTask = prev != NULL ? prev->mTask
                 : new TaskRecord(mService->mCurTask, r->mInfo, intent,
-                        (r->mInfo->mFlags & CActivityInfo::FLAG_CLEAR_TASK_ON_LAUNCH) != 0);
+                        (flags & ActivityInfo_FLAG_CLEAR_TASK_ON_LAUNCH) != 0);
         if (DEBUG_TASKS) {
             String arDes, trDes;
             r->GetDescription(&arDes);
@@ -2577,11 +2619,13 @@ ECode ActivityStack::StartActivityMayWait(
         // we have it we never want to do this again.  For example, if the
         // user navigates back to this point in the history, we should
         // always restart the exact same activity.
+        String cname, name;
+        AutoPtr<IApplicationInfo> appInfo;
+        aInfo->GetApplicationInfo((IApplicationInfo**)&appInfo);
+        appInfo->GetCapsuleName(&cname);
+        aInfo->GetName(&name);
         AutoPtr<IComponentName> newComponent;
-        CComponentName::New(
-                ((CActivityInfo*)(IActivityInfo*)aInfo)->mApplicationInfo->mCapsuleName,
-                ((CActivityInfo*)(IActivityInfo*)aInfo)->mName,
-                (IComponentName**)&newComponent);
+        CComponentName::New(cname, name, (IComponentName**)&newComponent);
         newIntent->SetComponent((IComponentName*)newComponent);
 
         // Don't debug things in the system process
@@ -2602,93 +2646,108 @@ ECode ActivityStack::StartActivityMayWait(
         callingPid = callingUid = -1;
     }
 
+    Int32 result;
     mConfigWillChange = config != NULL &&
-            mService->mConfiguration->Diff((CConfiguration*)config) != 0;
+            (mService->mConfiguration->Diff(config, &result), result != 0);
     if (DEBUG_CONFIGURATION) {
         Slogger::V(TAG, StringBuffer("Starting activity when config will change = ")
                 + mConfigWillChange);
     }
 
 //    final long origId = Binder.clearCallingIdentity();
-    CActivityInfo* aInfoObj = (CActivityInfo*)aInfo.Get();
-    if (mMainStack && aInfo != NULL &&
-            (aInfoObj->mApplicationInfo->mFlags & CApplicationInfo::FLAG_CANT_SAVE_STATE) != 0) {
-        // This may be a heavy-weight process!  Check to see if we already
-        // have another, different heavy-weight process running.
-        if (!aInfoObj->mProcessName.Compare(aInfoObj->mApplicationInfo->mCapsuleName)) {
-            if (mService->mHeavyWeightProcess != NULL &&
-                    (mService->mHeavyWeightProcess->mInfo->mUid != aInfoObj->mApplicationInfo->mUid ||
-                    mService->mHeavyWeightProcess->mProcessName.Compare(aInfoObj->mProcessName))) {
-                Int32 realCallingPid = callingPid;
-                Int32 realCallingUid = callingUid;
-                if (caller != NULL) {
-                    ProcessRecord* callerApp = mService->GetProcessRecordForAppLocked(caller);
-                    if (callerApp != NULL) {
-                        realCallingPid = callerApp->mPid;
-                        realCallingUid = callerApp->mInfo->mUid;
-                    } else {
-                        String appApDes, intDes;
-                        caller->GetDescription(&appApDes);
-                        intent->GetDescription(&intDes);
-                        Slogger::W(TAG, StringBuffer("Unable to find app for caller ") + appApDes
-                                + " (pid=" + realCallingPid + ") when starting: " + intDes);
-                        return ActivityManager_START_PERMISSION_DENIED;
+    if (mMainStack && aInfo != NULL) {
+        AutoPtr<IApplicationInfo> appInfo;
+        aInfo->GetApplicationInfo((IApplicationInfo**)&appInfo);
+        Int32 flags;
+        appInfo->GetFlags(&flags);
+        if ((flags & ApplicationInfo_FLAG_CANT_SAVE_STATE) != 0) {
+            // This may be a heavy-weight process!  Check to see if we already
+            // have another, different heavy-weight process running.
+            String pname, cname;
+            Int32 uid;
+            aInfo->GetProcessName(&pname);
+            appInfo->GetCapsuleName(&cname);
+            appInfo->GetUid(&uid);
+            if (!pname.Compare(cname)) {
+                if (mService->mHeavyWeightProcess != NULL) {
+                    Int32 uid2;
+                    mService->mHeavyWeightProcess->mInfo->GetUid(&uid2);
+                    if (uid2 != uid || mService->mHeavyWeightProcess->mProcessName.Compare(pname)) {
+                        Int32 realCallingPid = callingPid;
+                        Int32 realCallingUid = callingUid;
+                        if (caller != NULL) {
+                            ProcessRecord* callerApp = mService->GetProcessRecordForAppLocked(caller);
+                            if (callerApp != NULL) {
+                                realCallingPid = callerApp->mPid;
+                                callerApp->mInfo->GetUid(&realCallingUid);
+                            }
+                            else {
+                                String appApDes, intDes;
+                                caller->GetDescription(&appApDes);
+                                intent->GetDescription(&intDes);
+                                Slogger::W(TAG, StringBuffer("Unable to find app for caller ") + appApDes
+                                        + " (pid=" + realCallingPid + ") when starting: " + intDes);
+                                return ActivityManager_START_PERMISSION_DENIED;
+                            }
+                        }
+
+                        AutoPtr<IIntentSender> target;
+                        mService->GetIntentSenderLocked(
+                                ActivityManager_INTENT_SENDER_ACTIVITY, String("elastos"),
+                                realCallingUid, NULL, String(NULL), 0, intent,
+                                resolvedType, PendingIntent_FLAG_CANCEL_CURRENT
+                                | PendingIntent_FLAG_ONE_SHOT, (IIntentSender**)&target);
+
+                        AutoPtr<IIntent> newIntent;
+                        CIntent::New((IIntent**)&newIntent);
+                        if (requestCode >= 0) {
+                            // Caller is requesting a result.
+                            newIntent->PutBooleanExtra(
+                                    String("has_result")/*HeavyWeightSwitcherActivity.KEY_HAS_RESULT*/,
+                                    TRUE);
+                        }
+                        AutoPtr<IParcelable> is;
+                        CIntentSender::New(target.Get(), (IParcelable**)&is);
+                        newIntent->PutParcelableExtra(
+                                String("intent")/*HeavyWeightSwitcherActivity.KEY_INTENT*/,
+                                is.Get());
+                        if (mService->mHeavyWeightProcess->mActivities.GetSize() > 0) {
+                            CActivityRecord* hist = mService->mHeavyWeightProcess->mActivities.GetFront();
+                            newIntent->PutStringExtra(
+                                    String("cur_app")/*HeavyWeightSwitcherActivity.KEY_CUR_APP*/,
+                                    hist->mCapsuleName);
+                            newIntent->PutInt32Extra(
+                                    String("cur_task")/*HeavyWeightSwitcherActivity.KEY_CUR_TASK*/,
+                                    hist->mTask->mTaskId);
+                        }
+                        String acname;
+                        aInfo->GetCapsuleName(&acname);
+                        newIntent->PutStringExtra(
+                                String("new_app")/*HeavyWeightSwitcherActivity.KEY_NEW_APP*/,
+                                acname);
+                        Int32 flags;
+                        intent->GetFlags(&flags);
+                        newIntent->SetFlags(flags);
+        //                newIntent.setClassName("android",
+        //                        HeavyWeightSwitcherActivity.class.getName());
+                        intent = newIntent.Get();
+                        resolvedType = NULL;
+                        caller = NULL;
+                        callingUid = Process::GetCallingUid();
+                        callingPid = Process::GetCallingPid();
+                        componentSpecified = TRUE;
+                        if (rInfo != NULL) rInfo->Release();
+                        ECode ec = GetCapsuleManager()->ResolveIntent(newIntent, resolvedType,
+                                /* CapsuleManager_MATCH_DEFAULT_ONLY | */ CActivityManagerService::STOCK_PM_FLAGS,
+                                (IResolveInfo**)&rInfo);
+                        if (SUCCEEDED(ec) && rInfo.Get()) {
+                            if (aInfo != NULL) aInfo->Release();
+                            rInfo->GetActivityInfo((IActivityInfo**)&aInfo);
+                        }
+                        else {
+                            aInfo = NULL;
+                        }
                     }
-                }
-
-                AutoPtr<IIntentSender> target;
-                mService->GetIntentSenderLocked(
-                        ActivityManager_INTENT_SENDER_ACTIVITY, String("elastos"),
-                        realCallingUid, NULL, String(NULL), 0, intent,
-                        resolvedType, CPendingIntent::FLAG_CANCEL_CURRENT
-                        | CPendingIntent::FLAG_ONE_SHOT, (IIntentSender**)&target);
-
-                AutoPtr<IIntent> newIntent;
-                CIntent::New((IIntent**)&newIntent);
-                if (requestCode >= 0) {
-                    // Caller is requesting a result.
-                    newIntent->PutBooleanExtra(
-                            String("has_result")/*HeavyWeightSwitcherActivity.KEY_HAS_RESULT*/,
-                            TRUE);
-                }
-                AutoPtr<IParcelable> is;
-                CIntentSender::New(target.Get(), (IParcelable**)&is);
-                newIntent->PutParcelableExtra(
-                        String("intent")/*HeavyWeightSwitcherActivity.KEY_INTENT*/,
-                        is.Get());
-                if (mService->mHeavyWeightProcess->mActivities.GetSize() > 0) {
-                    CActivityRecord* hist = mService->mHeavyWeightProcess->mActivities.GetFront();
-                    newIntent->PutStringExtra(
-                            String("cur_app")/*HeavyWeightSwitcherActivity.KEY_CUR_APP*/,
-                            hist->mCapsuleName);
-                    newIntent->PutInt32Extra(
-                            String("cur_task")/*HeavyWeightSwitcherActivity.KEY_CUR_TASK*/,
-                            hist->mTask->mTaskId);
-                }
-                newIntent->PutStringExtra(
-                        String("new_app")/*HeavyWeightSwitcherActivity.KEY_NEW_APP*/,
-                        aInfoObj->mCapsuleName);
-                Int32 flags;
-                intent->GetFlags(&flags);
-                newIntent->SetFlags(flags);
-//                newIntent.setClassName("android",
-//                        HeavyWeightSwitcherActivity.class.getName());
-                intent = newIntent.Get();
-                resolvedType = NULL;
-                caller = NULL;
-                callingUid = Process::GetCallingUid();
-                callingPid = Process::GetCallingPid();
-                componentSpecified = TRUE;
-                if (rInfo != NULL) rInfo->Release();
-                ECode ec = GetCapsuleManager()->ResolveIntent(newIntent, resolvedType,
-                        /* CapsuleManager_MATCH_DEFAULT_ONLY | */ CActivityManagerService::STOCK_PM_FLAGS,
-                        (IResolveInfo**)&rInfo);
-                if (SUCCEEDED(ec) && rInfo.Get()) {
-                    if (aInfo != NULL) aInfo->Release();
-                    rInfo->GetActivityInfo((IActivityInfo**)&aInfo);
-                }
-                else {
-                    aInfo = NULL;
                 }
             }
         }
@@ -2737,27 +2796,41 @@ ECode ActivityStack::StartActivityMayWait(
 //    Binder.restoreCallingIdentity(origId);
 
     if (outResult != NULL) {
-        CWaitResult* outResultObj = (CWaitResult*)outResult;
-        outResultObj->mResult = *status;
+        outResult->SetResult(*status);
         if (*status == ActivityManager_START_SUCCESS) {
-            mWaitingActivityLaunched.PushBack(outResultObj);
+            mWaitingActivityLaunched.PushBack(outResult);
+            Boolean isTimeout;
+            AutoPtr<IComponentName> who;
             do {
 //                mService.wait();
-            } while (!outResultObj->mTimeout && outResultObj->mWho == NULL);
-        } else if (*status == ActivityManager_START_TASK_TO_FRONT) {
+                who = NULL;
+                outResult->IsTimeout(&isTimeout);
+                outResult->GetWho((IComponentName**)&who);
+            } while (!isTimeout && who == NULL);
+        }
+        else if (*status == ActivityManager_START_TASK_TO_FRONT) {
             CActivityRecord* r = GetTopRunningActivityLocked(NULL);
             if (r->mNowVisible) {
-                outResultObj->mTimeout = FALSE;
-                CComponentName::New(r->mInfo->mCapsuleName, r->mInfo->mName,
-                        (IComponentName**)&(outResultObj->mWho));
-                outResultObj->mTotalTime = 0;
-                outResultObj->mThisTime = 0;
-            } else {
-                outResultObj->mThisTime = SystemClock::GetUptimeMillis();
-                mWaitingActivityVisible.PushBack(outResultObj);
+                outResult->SetTimeout(FALSE);
+                String cname, name;
+                r->mInfo->GetComponentName(&cname, &name);
+                AutoPtr<IComponentName> who;
+                CComponentName::New(cname, name, (IComponentName**)&who);
+                outResult->SetWho(who);
+                outResult->SetTotalTime(0);
+                outResult->SetThisTime(0);
+            }
+            else {
+                outResult->SetThisTime(SystemClock::GetUptimeMillis());
+                mWaitingActivityVisible.PushBack(outResult);
+                Boolean isTimeout;
+                AutoPtr<IComponentName> who;
                 do {
 //                    mService.wait();
-                } while (!outResultObj->mTimeout && outResultObj->mWho == NULL);
+                    who = NULL;
+                    outResult->IsTimeout(&isTimeout);
+                    outResult->GetWho((IComponentName**)&who);
+                } while (!isTimeout && who == NULL);
             }
         }
     }
@@ -2788,13 +2861,13 @@ ECode ActivityStack::SendActivityResultLocked(
     }
     if ((CActivityRecord*)mResumedActivity == r &&
             r->mApp != NULL && r->mApp->mAppApartment != NULL) {
-        AutoPtr<CResultInfo> info;
-        CResultInfo::NewByFriend(resultWho, requestCode,
-                resultCode, data, (CResultInfo**)&info);
+        AutoPtr<IResultInfo> info;
+        CResultInfo::New(resultWho, requestCode,
+                resultCode, data, (IResultInfo**)&info);
 
         AutoPtr<IObjectContainer> list;
         CParcelableObjectContainer::New((IObjectContainer**)&list);
-        list->Add((IParcelable*)(CResultInfo*)info);
+        list->Add(info);
 
         ec = r->mApp->mAppApartment->ScheduleSendResult(r, list);
         if (SUCCEEDED(ec)) return ec;
@@ -2917,10 +2990,13 @@ Boolean ActivityStack::FinishActivityLocked(
                 + " who=" + r->mResultWho + " req=" + r->mRequestCode
                 + " res=" + resultCode + " data=" + intDes);
         }
-        if (r->mInfo->mApplicationInfo->mUid > 0) {
+        AutoPtr<IApplicationInfo> appInfo;
+        r->mInfo->GetApplicationInfo((IApplicationInfo**)&appInfo);
+        Int32 uid;
+        appInfo->GetUid(&uid);
+        if (uid > 0) {
             mService->GrantUriPermissionFromIntentLocked(
-                    r->mInfo->mApplicationInfo->mUid,
-                    resultTo->mCapsuleName, resultData,
+                    uid, resultTo->mCapsuleName, resultData,
                     resultTo->GetUriPermissionsLocked());
         }
         resultTo->AddResultLocked(r, r->mResultWho, r->mRequestCode,
@@ -3475,7 +3551,7 @@ Boolean ActivityStack::EnsureActivityConfigurationLocked(
 
     // Short circuit: if the two configurations are the exact same
     // object (the common case), then there is nothing to do.
-    AutoPtr<CConfiguration> newConfig = mService->mConfiguration;
+    AutoPtr<IConfiguration> newConfig = mService->mConfiguration;
     if (r->mConfiguration == newConfig) {
         if (DEBUG_SWITCH || DEBUG_CONFIGURATION) {
             String arDes;
@@ -3499,7 +3575,7 @@ Boolean ActivityStack::EnsureActivityConfigurationLocked(
 
     // Okay we now are going to make this activity have the new config.
     // But then we need to figure out how it needs to deal with that.
-    AutoPtr<CConfiguration> oldConfig = r->mConfiguration;
+    AutoPtr<IConfiguration> oldConfig = r->mConfiguration;
     r->mConfiguration = newConfig;
 
     // If the activity isn't currently running, just leave the new
@@ -3516,17 +3592,23 @@ Boolean ActivityStack::EnsureActivityConfigurationLocked(
     }
 
     // Figure out what has changed between the two configurations.
-    Int32 changes = oldConfig->Diff(newConfig.Get());
+    Int32 changes;
+    oldConfig->Diff(newConfig.Get(), &changes);
     if (DEBUG_SWITCH || DEBUG_CONFIGURATION) {
-        String cfgDes;
+        String cfgDes, name;
+        Int32 confChanges;
         newConfig->GetDescription(&cfgDes);
+        r->mInfo->GetName(&name);
+        r->mInfo->GetConfigChanges(&confChanges);
         Slogger::V(TAG, StringBuffer("Checking to restart ")
-                + r->mInfo->mName + ": changed="
+                + name + ": changed="
                 + changes + ", handles="
-                + r->mInfo->mConfigChanges
+                + confChanges
                 + ", newConfig=" + cfgDes);
     }
-    if ((changes & (~r->mInfo->mConfigChanges)) != 0) {
+    Int32 confChanges;
+    r->mInfo->GetConfigChanges(&confChanges);
+    if ((changes & ~confChanges) != 0) {
         // Aha, the activity isn't handling the change, so DIE DIE DIE.
         r->mConfigChangeFlags |= changes;
         r->StartFreezingScreenLocked(r->mApp, globalChanges);

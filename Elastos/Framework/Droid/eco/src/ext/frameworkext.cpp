@@ -1,6 +1,8 @@
 
 #include "ext/frameworkext.h"
-#include "server/CServiceManager.h"
+#ifdef _FRAMEWORK_CORE
+#include "os/CServiceManager.h"
+#endif
 
 #define __USE_MALLOC
 

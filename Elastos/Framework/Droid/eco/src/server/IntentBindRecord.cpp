@@ -3,7 +3,7 @@
 
 IntentBindRecord::IntentBindRecord(
     /* [in] */ CServiceRecord* service,
-    /* [in] */ CIntent::FilterComparison* intent) :
+    /* [in] */ IIntentFilterComparison* intent) :
     mService(service),
     mIntent(intent),
     mRequested(FALSE),

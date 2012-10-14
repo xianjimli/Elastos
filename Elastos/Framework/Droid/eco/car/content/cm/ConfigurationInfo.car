@@ -30,6 +30,36 @@ module
          */
         GetGlEsVersion(
             [out] String* ver);
+
+        GetReqTouchScreen(
+            [out] Int32* reqTouchScreen);
+
+        SetReqTouchScreen(
+            [in] Int32 reqTouchScreen);
+
+        GetReqKeyboardType(
+            [out] Int32* reqKeyboardType);
+
+        SetReqKeyboardType(
+            [in] Int32 reqKeyboardType);
+
+        GetReqNavigation(
+            [out] Int32* reqNavigation);
+
+        SetReqNavigation(
+            [in] Int32 reqNavigation);
+
+        GetReqInputFeatures(
+            [out] Int32* reqInputFeatures);
+
+        SetReqInputFeatures(
+            [in] Int32 reqInputFeatures);
+
+        GetReqGlEsVersion(
+            [out] Int32* reqGlEsVersion);
+
+        SetReqGlEsVersion(
+            [in] Int32 reqGlEsVersion);
     }
 }
 

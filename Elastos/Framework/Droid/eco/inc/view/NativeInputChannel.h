@@ -3,11 +3,14 @@
 #define __NATIVEINPUTCHANNEL_H__
 
 #include <ui/InputTransport.h>
+#include <elastos.h>
 
-class CInputChannel;
+using namespace Elastos;
+
+interface IInputChannel;
 
 typedef void (*InputChannelObjDisposeCallback)(
-    /* [in] */ CInputChannel* inputChannelObj,
+    /* [in] */ IInputChannel* inputChannelObj,
     /* [in] */ const android::sp<android::InputChannel>& inputChannel,
     /* [in] */ void* data);
 
@@ -27,7 +30,7 @@ public:
         /* [in] */ void* data);
 
     void invokeAndRemoveDisposeCallback(
-        /* [in] */ CInputChannel* obj);
+        /* [in] */ IInputChannel* obj);
 
 private:
     android::sp<android::InputChannel> mInputChannel;

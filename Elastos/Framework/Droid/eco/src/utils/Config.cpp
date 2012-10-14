@@ -1,5 +1,5 @@
 
-#include "server/Config.h"
+#include "utils/Config.h"
 
 const Boolean Config::DEBUG;
 const Boolean Config::RELEASE;

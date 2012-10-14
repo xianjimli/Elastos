@@ -3,18 +3,21 @@
 #include "server/ContentProviderRecord.h"
 
 ContentProviderRecord::ContentProviderRecord(
-    /* [in] */ CContentProviderInfo* info,
-    /* [in] */ CApplicationInfo* ai) :
+    /* [in] */ IContentProviderInfo* info,
+    /* [in] */ IApplicationInfo* ai) :
     mExternals(0)
 {
     sem_init(&mEvent, 0, 0);
 
-    ECode ec = CContentProviderHolder::NewByFriend(
-            (CContentProviderHolder**)&mHolder);
+    ECode ec = CContentProviderHolder::New(
+            (IContentProviderHolder**)&mHolder);
     assert(SUCCEEDED(ec));
-    mHolder->mInfo = info;
+    mHolder->SetContentProviderInfo(info);
     mAppInfo = ai;
-    CComponentName::New(info->mCapsuleName, info->mName, (IComponentName**)&mName);
+    String cname, name;
+    info->GetCapsuleName(&cname);
+    info->GetName(&name);
+    CComponentName::New(cname, name, (IComponentName**)&mName);
 }
 
 ContentProviderRecord::ContentProviderRecord(
@@ -23,10 +26,12 @@ ContentProviderRecord::ContentProviderRecord(
 {
     sem_init(&mEvent, 0, 0);
 
-    ECode ec = CContentProviderHolder::NewByFriend(
-            (CContentProviderHolder**)&mHolder);
+    ECode ec = CContentProviderHolder::New(
+            (IContentProviderHolder**)&mHolder);
     assert(SUCCEEDED(ec));
-    mHolder->mInfo = cpr->mHolder->mInfo;
+    AutoPtr<IContentProviderInfo> info;
+    cpr->mHolder->GetContentProviderInfo((IContentProviderInfo**)&info);
+    mHolder->SetContentProviderInfo(info);
     mName = cpr->mName;
 }
 
@@ -40,7 +45,11 @@ Boolean ContentProviderRecord::CanRunHere(
 {
 //    return (info.multiprocess || info.processName.equals(app.processName))
 //            && (uid == Process.SYSTEM_UID || uid == app.info.uid);
-    if (!mHolder->mInfo->mProcessName.Compare(app->mProcessName)) {
+    AutoPtr<IContentProviderInfo> info;
+    mHolder->GetContentProviderInfo((IContentProviderInfo**)&info);
+    String pname;
+    info->GetProcessName(&pname);
+    if (!pname.Compare(app->mProcessName)) {
         return TRUE;
     }
     return FALSE;

@@ -1,21 +1,14 @@
 
+#include "ext/frameworkerr.h"
 #include "server/CNotificationManagerService.h"
 #include "server/CLightsService.h"
-#include "os/CVibrator.h"
 #include "os/SystemProperties.h"
 #include "app/ActivityManagerNative.h"
 #include "app/StatusBarManager.h"
-#include "app/CNotification.h"
-#include "app/NotificationManager.h"
-#include "content/CIntent.h"
-#include "content/CIntentFilter.h"
-#include "content/CComponentName.h"
-#include "statusbar/CStatusBarNotification.h"
-#include "ext/frameworkerr.h"
 #include "utils/log.h"
 #include "utils/EventLogTags.h"
-#include "utils/CApartment.h"
 #include <StringBuffer.h>
+#include <elastos/AutoFree.h>
 
 const CString CNotificationManagerService::TAG = "CNotificationService";
 const Boolean CNotificationManagerService::DBG;
@@ -43,7 +36,7 @@ CNotificationManagerService::NotificationRecord::NotificationRecord(
     , mId(id)
     , mUid(uid)
     , mInitialPid(initialPid)
-    , mNotification((CNotification*)notification)
+    , mNotification(notification)
 {
 }
 
@@ -357,7 +350,10 @@ ECode CNotificationManagerService::constructor(
     ActivityManagerNative::GetDefault((IActivityManager**)&mAm);
 //    mSound = new NotificationPlayer(TAG);
 //    mSound.setUsesWakeLock(context);
-    assert(SUCCEEDED(CApartment::GetDefaultApartment((IApartment**)&mHandler))
+    AutoPtr<IApartmentHelper> apartmentHelper;
+    assert(SUCCEEDED(CApartmentHelper::AcquireSingleton(
+            (IApartmentHelper**)&apartmentHelper)));
+    assert(SUCCEEDED(apartmentHelper->GetDefaultApartment((IApartment**)&mHandler))
             && (mHandler != NULL));
 
     mStatusBar = (CStatusBarManagerService*)statusBar;
@@ -675,14 +671,19 @@ ECode CNotificationManagerService::EnqueueNotificationInternal(
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
-    CNotification* notificationObj = (CNotification*)notification;
-    if (notificationObj->mIcon != 0) {
-        if (notificationObj->mContentView == NULL) {
+    Int32 icon;
+    notification->GetIcon(&icon);
+    if (icon != 0) {
+        AutoPtr<IRemoteViews> contentView;
+        notification->GetContentView((IRemoteViews**)&contentView);
+        if (contentView == NULL) {
 //            throw new IllegalArgumentException("contentView required: pkg=" + pkg
 //                    + " id=" + id + " notification=" + notification);
             return E_ILLEGAL_ARGUMENT_EXCEPTION;
         }
-        if (notificationObj->mContentIntent == NULL) {
+        AutoPtr<IPendingIntent> contentIntent;
+        notification->GetContentIntent((IPendingIntent**)&contentIntent);
+        if (contentIntent == NULL) {
 //            throw new IllegalArgumentException("contentIntent required: pkg=" + pkg
 //                    + " id=" + id + " notification=" + notification);
             return E_ILLEGAL_ARGUMENT_EXCEPTION;
@@ -707,19 +708,27 @@ ECode CNotificationManagerService::EnqueueNotificationInternal(
             mNotificationList.Insert(it, r);
             // Make sure we don't lose the foreground service state.
             if (old != NULL) {
-                notificationObj->mFlags |=
-                    old->mNotification->mFlags & Notification_FLAG_FOREGROUND_SERVICE;
+                Int32 flags, oldFlags;
+                notification->GetFlags(&flags);
+                old->mNotification->GetFlags(&oldFlags);
+                flags |= oldFlags & Notification_FLAG_FOREGROUND_SERVICE;
+                notification->SetFlags(flags);
             }
         }
 
         // Ensure if this is a foreground service that the proper additional
         // flags are set.
-        if ((notificationObj->mFlags & Notification_FLAG_FOREGROUND_SERVICE) != 0) {
-            notificationObj->mFlags |= Notification_FLAG_ONGOING_EVENT
+        Int32 flags;
+        notification->GetFlags(&flags);
+        if ((flags & Notification_FLAG_FOREGROUND_SERVICE) != 0) {
+            flags |= Notification_FLAG_ONGOING_EVENT
                     | Notification_FLAG_NO_CLEAR;
+            notification->SetFlags(flags);
         }
 
-        if (notificationObj->mIcon != 0) {
+        Int32 icon;
+        notification->GetIcon(&icon);
+        if (icon != 0) {
             AutoPtr<IStatusBarNotification> n;
             CStatusBarNotification::New(cap, id, tag,
                     r->mUid, r->mInitialPid, notification, (IStatusBarNotification**)&n);
@@ -760,30 +769,32 @@ ECode CNotificationManagerService::EnqueueNotificationInternal(
         }
 
         // If we're not supposed to beep, vibrate, etc. then don't.
+        notification->GetFlags(&flags);
         if (((mDisabledNotifications & StatusBarManager::DISABLE_NOTIFICATION_ALERTS) == 0)
                 && (!(old != NULL
-                    && (notificationObj->mFlags & Notification_FLAG_ONLY_ALERT_ONCE) != 0))
+                    && (flags & Notification_FLAG_ONLY_ALERT_ONCE) != 0))
                 && mSystemReady) {
 
     //        AudioManager audioManager = (AudioManager) mContext
     //        .getSystemService(Context.AUDIO_SERVICE);
             // sound
-            Boolean useDefaultSound =
-                (notificationObj->mDefaults & Notification_DEFAULT_SOUND) != 0;
-            if (useDefaultSound || notificationObj->mSound != NULL) {
+            Int32 defaults;
+            notification->GetDefaults(&defaults);
+            Boolean useDefaultSound = (defaults & Notification_DEFAULT_SOUND) != 0;
+            AutoPtr<IUri> sound;
+            notification->GetSound((IUri**)&sound);
+            if (useDefaultSound || sound != NULL) {
                 AutoPtr<IUri> uri;
                 if (useDefaultSound) {
     //                uri = Settings.System.DEFAULT_NOTIFICATION_URI;
                 }
                 else {
-                    uri = notificationObj->mSound;
+                    uri = sound;
                 }
-                Boolean looping = (notificationObj->mFlags & Notification_FLAG_INSISTENT) != 0;
+                Boolean looping = (flags & Notification_FLAG_INSISTENT) != 0;
                 Int32 audioStreamType;
-                if (notificationObj->mAudioStreamType >= 0) {
-                    audioStreamType = notificationObj->mAudioStreamType;
-                }
-                else {
+                notification->GetAudioStreamType(&audioStreamType);
+                if (audioStreamType < 0) {
                     audioStreamType = DEFAULT_STREAM_TYPE;
                 }
                 mSoundNotification = r;
@@ -801,9 +812,10 @@ ECode CNotificationManagerService::EnqueueNotificationInternal(
             }
 
             // vibrate
-            Boolean useDefaultVibrate =
-                (notificationObj->mDefaults & Notification_DEFAULT_VIBRATE) != 0;
-            if ((useDefaultVibrate || notificationObj->mVibrate != NULL)
+            Boolean useDefaultVibrate = (defaults & Notification_DEFAULT_VIBRATE) != 0;
+            AutoFree< ArrayOf<Int64> > vibrate;
+            notification->GetVibrate((ArrayOf<Int64>**)&vibrate);
+            if ((useDefaultVibrate || vibrate != NULL)
                     /*&& audioManager.shouldVibrate(AudioManager.VIBRATE_TYPE_NOTIFICATION)*/) {
     //            mVibrateNotification = r;
 
@@ -829,14 +841,17 @@ ECode CNotificationManagerService::EnqueueNotificationInternal(
         }
         //Slog.i(TAG, "notification.lights="
         //        + ((old.notification.lights.flags & Notification.FLAG_SHOW_LIGHTS) != 0));
-        if ((notificationObj->mFlags & Notification_FLAG_SHOW_LIGHTS) != 0) {
+        if ((flags & Notification_FLAG_SHOW_LIGHTS) != 0) {
             mLights.PushBack(r);
             UpdateLightsLocked();
         }
         else {
-            if (old != NULL
-                    && ((old->mNotification->mFlags & Notification_FLAG_SHOW_LIGHTS) != 0)) {
-                UpdateLightsLocked();
+            if (old != NULL) {
+                Int32 oldFlags;
+                old->mNotification->GetFlags(&oldFlags);
+                if ((oldFlags & Notification_FLAG_SHOW_LIGHTS) != 0) {
+                    UpdateLightsLocked();
+                }
             }
         }
     }
@@ -872,7 +887,9 @@ void CNotificationManagerService::CancelNotificationLocked(
     /* [in] */ NotificationRecord* r)
 {
     // status bar
-    if (r->mNotification->mIcon != 0) {
+    Int32 icon;
+    r->mNotification->GetIcon(&icon);
+    if (icon != 0) {
 //        long identity = Binder.clearCallingIdentity();
 //        try {
         mStatusBar->RemoveNotification(r->mStatusBarKey);
@@ -929,11 +946,12 @@ void CNotificationManagerService::CancelNotification(
             = IteratorOfNotificationLocked(cap, tag, id);
     if (it != mNotificationList.End()) {
         AutoPtr<NotificationRecord> r = *it;
-
-        if ((r->mNotification->mFlags & mustHaveFlags) != mustHaveFlags) {
+        Int32 flags;
+        r->mNotification->GetFlags(&flags);
+        if ((flags & mustHaveFlags) != mustHaveFlags) {
             return;
         }
-        if ((r->mNotification->mFlags & mustNotHaveFlags) != 0) {
+        if ((flags & mustNotHaveFlags) != 0) {
             return;
         }
 
@@ -959,11 +977,13 @@ Boolean CNotificationManagerService::CancelAllNotificationsInt(
     Boolean canceledSomething = FALSE;
     while (rit != mNotificationList.REnd()) {
         AutoPtr<NotificationRecord> r = *rit;
-        if ((r->mNotification->mFlags & mustHaveFlags) != mustHaveFlags) {
+        Int32 flags;
+        r->mNotification->GetFlags(&flags);
+        if ((flags & mustHaveFlags) != mustHaveFlags) {
             ++rit;
             continue;
         }
-        if ((r->mNotification->mFlags & mustNotHaveFlags) != 0) {
+        if ((flags & mustNotHaveFlags) != 0) {
             ++rit;
             continue;
         }
@@ -1046,10 +1066,13 @@ void CNotificationManagerService::CancelAll()
     List<AutoPtr<NotificationRecord> >::ReverseIterator rit = mNotificationList.RBegin();
     while (rit != mNotificationList.REnd()) {
         AutoPtr<NotificationRecord> r = *rit;
-
-        if ((r->mNotification->mFlags & (Notification_FLAG_ONGOING_EVENT
+        Int32 flags;
+        r->mNotification->GetFlags(&flags);
+        if ((flags & (Notification_FLAG_ONGOING_EVENT
                         | Notification_FLAG_NO_CLEAR)) == 0) {
-            if (r->mNotification->mDeleteIntent != NULL) {
+            AutoPtr<IPendingIntent> deleteIntent;
+            r->mNotification->GetDeleteIntent((IPendingIntent**)&deleteIntent);
+            if (deleteIntent != NULL) {
 //                try {
 //                r->mNotification->mDeleteIntent->Send();
 //                } catch (PendingIntent.CanceledException ex) {
@@ -1124,10 +1147,12 @@ void CNotificationManagerService::UpdateLightsLocked()
         mNotificationLight->TurnOff();
     }
     else {
-        Int32 ledARGB = mLedNotification->mNotification->mLedARGB;
-        Int32 ledOnMS = mLedNotification->mNotification->mLedOnMS;
-        Int32 ledOffMS = mLedNotification->mNotification->mLedOffMS;
-        if ((mLedNotification->mNotification->mDefaults & Notification_DEFAULT_LIGHTS) != 0) {
+        Int32 ledARGB, ledOnMS, ledOffMS, defaults;
+        mLedNotification->mNotification->GetLedARGB(&ledARGB);
+        mLedNotification->mNotification->GetLedOnMS(&ledOnMS);
+        mLedNotification->mNotification->GetLedOffMS(&ledOffMS);
+        mLedNotification->mNotification->GetDefaults(&defaults);
+        if ((defaults & Notification_DEFAULT_LIGHTS) != 0) {
             ledARGB = mDefaultNotificationColor;
             ledOnMS = mDefaultNotificationLedOn;
             ledOffMS = mDefaultNotificationLedOff;
@@ -1193,14 +1218,14 @@ void CNotificationManagerService::UpdateAdbNotification(
                         (ICharSequence**)&message);
 
                 if (mAdbNotification == NULL) {
-                    CNotification::NewByFriend((CNotification**)&mAdbNotification);
-                    mAdbNotification->mIcon = 0x01080295/*com.android.internal.R.drawable.stat_sys_adb*/;
-                    mAdbNotification->mWhen = 0;
-                    mAdbNotification->mFlags = Notification_FLAG_ONGOING_EVENT;
-                    mAdbNotification->mTickerText = title;
-                    mAdbNotification->mDefaults = 0; // please be quiet
-                    mAdbNotification->mSound = NULL;
-                    mAdbNotification->mVibrate = NULL;
+                    CNotification::New((INotification**)&mAdbNotification);
+                    mAdbNotification->SetIcon(0x01080295/*com.android.internal.R.drawable.stat_sys_adb*/);
+                    mAdbNotification->SetWhen(0);
+                    mAdbNotification->SetFlags(Notification_FLAG_ONGOING_EVENT);
+                    mAdbNotification->SetTickerText(title);
+                    mAdbNotification->SetDefaults(0); // please be quiet
+                    mAdbNotification->SetSound(NULL);
+                    mAdbNotification->SetVibrate(NULL);
                 }
 
                 AutoPtr<IIntent> intent;

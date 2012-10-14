@@ -7,19 +7,6 @@
 using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
-const Int32 CWindowManagerImpl::RELAYOUT_IN_TOUCH_MODE;
-const Int32 CWindowManagerImpl::RELAYOUT_FIRST_TIME;
-const Int32 CWindowManagerImpl::ADD_FLAG_APP_VISIBLE;
-const Int32 CWindowManagerImpl::ADD_FLAG_IN_TOUCH_MODE;
-const Int32 CWindowManagerImpl::ADD_OKAY;
-const Int32 CWindowManagerImpl::ADD_BAD_APP_TOKEN;
-const Int32 CWindowManagerImpl::ADD_BAD_SUBWINDOW_TOKEN;
-const Int32 CWindowManagerImpl::ADD_NOT_APP_TOKEN;
-const Int32 CWindowManagerImpl::ADD_APP_EXITING;
-const Int32 CWindowManagerImpl::ADD_DUPLICATE_ADD;
-const Int32 CWindowManagerImpl::ADD_STARTING_NOT_NEEDED;
-const Int32 CWindowManagerImpl::ADD_MULTIPLE_SINGLETON;
-const Int32 CWindowManagerImpl::ADD_PERMISSION_DENIED;
 
 static AutoPtr<CWindowManagerImpl> mWindowManager;
 

@@ -7,7 +7,7 @@ extern "C" const ClassID ECLSID_BroadcastFilter =
 
 BroadcastFilter::BroadcastFilter()
 {
-    CIntentFilter::NewByFriend((CIntentFilter**)&mFilter);
+    CIntentFilter::New((IIntentFilter**)&mFilter);
 }
 
 BroadcastFilter::~BroadcastFilter()

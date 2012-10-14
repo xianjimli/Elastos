@@ -21,7 +21,7 @@ BroadcastRecord::BroadcastRecord(
     /* [in] */ Boolean serialized,
     /* [in] */ Boolean sticky,
     /* [in] */ Boolean initialSticky) :
-    mIntent((CIntent*)intent),
+    mIntent(intent),
     mCallerApp(callerApp),
     mCallerCapsule(callerCapsule),
     mCallingPid(callingPid),

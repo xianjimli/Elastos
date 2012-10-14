@@ -187,5 +187,72 @@ module
 
         GetDescription(
             [out] String* str);
+
+        GetType(
+            [out] Int32* type);
+
+        SetType(
+            [in] Int32 type);
+
+        GetString(
+            [out] ICharSequence** string);
+
+        SetString(
+            [in] ICharSequence* string);
+
+        GetData(
+            [out] Int32* data);
+
+        SetData(
+            [in] Int32 data);
+
+        GetResourceId(
+            [out] Int32* resId);
+
+        SetResourceId(
+            [in] Int32 resId);
+    }
+
+    interface ITypedValueHelper {
+        ComplexToFloat(
+            [in] Int32 complex,
+            [out] Float* value);
+
+        ComplexToDimension(
+            [in] Int32 data,
+            [in] IDisplayMetrics* metrics,
+            [out] Float* dimension);
+
+        ComplexToDimensionPixelOffset(
+            [in] Int32 data,
+            [in] IDisplayMetrics* metrics,
+            [out] Int32* pixelOffset);
+
+        ComplexToDimensionPixelSize(
+            [in] Int32 data,
+            [in] IDisplayMetrics* metrics,
+            [out] Int32* pixelSize);
+
+        ComplexToDimensionNoisy(
+            [in] Int32 data,
+            [in] IDisplayMetrics* metrics,
+            [out] Float* noisy);
+
+        ApplyDimension(
+            [in] Int32 unit,
+            [in] Float value,
+            [in] IDisplayMetrics* metrics,
+            [out] Float* result);
+
+        ComplexToFraction(
+            [in] Int32 data,
+            [in] Float base,
+            [in] Float pbase,
+            [out] Float* fraction);
+
+        CoerceToString(
+            [in] Int32 type,
+            [in] Int32 data,
+            [out] String* str);
     }
 }

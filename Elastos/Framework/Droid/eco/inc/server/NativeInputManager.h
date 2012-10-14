@@ -6,7 +6,6 @@
 #include <ui/InputDispatcher.h>
 #include <ui/InputManager.h>
 #include "server/InputManagerCallbacks.h"
-#include "view/CInputChannel.h"
 
 class NativeInputManager :
     public virtual android::RefBase,
@@ -54,7 +53,7 @@ public:
 
     android::status_t registerInputChannel(
         /* [in] */ const android::sp<android::InputChannel>& inputChannel,
-        /* [in] */ CInputChannel* inputChannelObj,
+        /* [in] */ IInputChannel* inputChannelObj,
         /* [in] */ bool monitor);
 
     android::status_t unregisterInputChannel(
@@ -148,7 +147,7 @@ public:
     bool isScreenOn();
     bool isScreenBright();
 
-    CInputChannel* getInputChannelObjLocal(
+    IInputChannel* getInputChannelObjLocal(
         /* [in] */ const android::sp<android::InputChannel>& inputChannel);
 
     static bool populateWindow(
@@ -175,7 +174,7 @@ private:
 
     // Weak references to all currently registered input channels by connection pointer.
     android::Mutex mInputChannelRegistryLock;
-    android::KeyedVector<android::InputChannel*, CInputChannel*> mInputChannelObjWeakTable;
+    android::KeyedVector<android::InputChannel*, IInputChannel*> mInputChannelObjWeakTable;
 };
 
 #endif //__NATIVEINPUTMANAGER_H__

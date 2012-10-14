@@ -1,7 +1,7 @@
 TARGET_NAME= ContentProviderDemo
 TARGET_TYPE= eco
 
-IMPORTS = Elastos.Framework.eco
+IMPORTS = Elastos.Framework.Core.eco
 
 SOURCES = ContentProviderDemo.car
 SOURCES += CActivityOne.cpp

@@ -2,7 +2,7 @@
 #include "view/GestureDetector.h"
 #include "view/ViewConfiguration.h"
 #include "view/CMotionEvent.h"
-#include "utils/CApartment.h"
+#include "os/CApartment.h"
 #include <elastos/Math.h>
 
 using namespace Elastos::Core;

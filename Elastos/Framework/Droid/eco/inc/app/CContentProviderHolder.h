@@ -10,20 +10,26 @@ CarClass(CContentProviderHolder)
 {
 public:
     CARAPI GetContentProvider(
-        /* [out] */ IContentProvider** provider); 
-        
+        /* [out] */ IContentProvider** provider);
+
+    CARAPI SetContentProvider(
+        /* [in] */ IContentProvider* provider);
+
     CARAPI GetContentProviderInfo(
         /* [out] */ IContentProviderInfo** info);
-    
+
+    CARAPI SetContentProviderInfo(
+        /* [in] */ IContentProviderInfo* info);
+
     CARAPI ReadFromParcel(
         /* [in] */ IParcel *source);
-    
+
     CARAPI WriteToParcel(
-        /* [in] */ IParcel *dest);    
+        /* [in] */ IParcel *dest);
 
 public:
     AutoPtr<CContentProviderInfo> mInfo;
-    AutoPtr<IContentProvider> mProvider;        
+    AutoPtr<IContentProvider> mProvider;
 };
 
 #endif //__CCONTENTPROVIDERHOLDER_H__

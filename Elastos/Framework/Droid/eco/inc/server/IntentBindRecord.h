@@ -2,14 +2,12 @@
 #ifndef __INTENTBINDRECORD_H__
 #define __INTENTBINDRECORD_H__
 
-#include <elastos.h>
 #include "ext/frameworkdef.h"
-#include <elastos/AutoPtr.h>
-#include <elastos/Map.h>
 #include "server/CServiceRecord.h"
-#include "content/CIntent.h"
 #include "server/ProcessRecord.h"
 #include "server/AppBindRecord.h"
+#include <elastos/AutoPtr.h>
+#include <elastos/Map.h>
 
 using namespace Elastos;
 
@@ -23,7 +21,7 @@ class IntentBindRecord
 public:
     IntentBindRecord(
         /* [in] */ CServiceRecord* service,
-        /* [in] */ CIntent::FilterComparison* intent);
+        /* [in] */ IIntentFilterComparison* intent);
 
     CARAPI GetDescription(
         /* [out] */ String* description);
@@ -32,7 +30,7 @@ public:
      /** The running service. */
     AutoPtr<CServiceRecord> mService;
     /** The intent that is bound.*/
-    CIntent::FilterComparison* mIntent; //
+    AutoPtr<IIntentFilterComparison> mIntent; //
      /** All apps that have bound to this Intent. */
     Map<ProcessRecord*, AppBindRecord*> mApps;
     /** Binder published from service. */

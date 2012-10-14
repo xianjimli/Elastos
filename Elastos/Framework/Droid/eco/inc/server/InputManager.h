@@ -6,7 +6,6 @@
 #include "server/InputManagerCallbacks.h"
 #include "server/InputWindow.h"
 #include "server/InputApplication.h"
-#include "view/CInputChannel.h"
 
 class CWindowManagerService;
 class InputManagerCallbacks;
@@ -104,10 +103,10 @@ public:
         /* [out] */ IInputChannel** inputChannel);
 
     CARAPI RegisterInputChannel(
-        /* [in] */ CInputChannel* _inputChannel);
+        /* [in] */ IInputChannel* _inputChannel);
 
     CARAPI UnregisterInputChannel(
-        /* [in] */ CInputChannel* _inputChannel);
+        /* [in] */ IInputChannel* _inputChannel);
 
     CARAPI SetInputWindows(
         /* [in] */ InputWindow** windows);

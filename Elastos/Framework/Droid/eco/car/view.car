@@ -97,6 +97,10 @@ module
         interface IParcelable;
     }
 
+    singleton class CSurfaceHelper {
+        interface ISurfaceHelper;
+    }
+
     class CSurfaceSession {
         interface ISurfaceSession;
     }
@@ -374,11 +378,15 @@ module
 
     class CMotionEvent {
         constructor(
-        [in] Int32 pointerCount,
-        [in] Int32 sampleCount);
+            [in] Int32 pointerCount,
+            [in] Int32 sampleCount);
 
         interface IMotionEvent;
         interface IParcelable;
+    }
+
+    singleton class CMotionEventHelper {
+        interface IMotionEventHelper;
     }
 
     class CExtractedText {
@@ -406,6 +414,10 @@ module
         interface IParcelable;
     }
 
+    singleton class CInputChannelHelper {
+        interface IInputChannelHelper;
+    }
+
     class CInputDevice {
         interface IInputDevice;
         interface IParcelable;
@@ -416,15 +428,6 @@ module
             [in] Handle32 viewRoot);
 
         interface IInputMethodCallback;
-    }
-
-    class CWindowSession {
-        constructor(
-            [in] IWindowManagerEx * wmService,
-            [in] IInputMethodClient * client,
-            [in] IInputContext * inputContext);
-
-        interface IWindowSession;
     }
 
     class CTouchDelegate {

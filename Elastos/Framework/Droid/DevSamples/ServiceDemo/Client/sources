@@ -1,7 +1,7 @@
 TARGET_NAME = ServiceDemo
 TARGET_TYPE = eco
 
-IMPORTS = Elastos.Framework.eco
+IMPORTS = Elastos.Framework.Core.eco
 ifeq "$(XDK_TARGET_PLATFORM)" "win32"
 IMPORTS = MyService/MyService.eco
 else

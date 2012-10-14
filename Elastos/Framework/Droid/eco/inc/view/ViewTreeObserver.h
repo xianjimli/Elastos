@@ -2,8 +2,12 @@
 #ifndef __VIEWTREEOBSERVER_H__
 #define __VIEWTREEOBSERVER_H__
 
+#ifdef _FRAMEWORK_CORE
+#include "Elastos.Framework.Core_server.h"
+#elif defined(_FRAMEWORK_SERVER)
+#include "Elastos.Framework.Server_server.h"
+#endif
 #include <elastos/ElRefBase.h>
-#include "graphics/CRect.h"
 #include <elastos/AutoPtr.h>
 
 class ViewTreeObserver : public ElRefBase, public IViewTreeObserver
@@ -51,13 +55,13 @@ public:
          * Offsets from the frame of the window at which the content of
          * windows behind it should be placed.
          */
-        AutoPtr<CRect> mContentInsets;
+        AutoPtr<IRect> mContentInsets;
 
         /**
          * Offsets from the fram of the window at which windows behind it
          * are visible.
          */
-        AutoPtr<CRect> mVisibleInsets;
+        AutoPtr<IRect> mVisibleInsets;
 
     private:
         Int32 mTouchableInsets;

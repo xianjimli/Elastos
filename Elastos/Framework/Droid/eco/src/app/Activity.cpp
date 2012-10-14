@@ -1,10 +1,8 @@
 
-#ifdef _FRAMEWORK
+#ifdef _FRAMEWORK_CORE
 #include "app/Activity.h"
 #include "impl/CPolicyManager.h"
-#include "server/CServiceManager.h"
-#include "CApplicationInfo.h"
-
+#include "os/CServiceManager.h"
 //TODO
 //#include "Build.h"  //using the integer.
 #else

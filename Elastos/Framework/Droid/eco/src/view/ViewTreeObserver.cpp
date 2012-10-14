@@ -1,5 +1,8 @@
 
 #include "view/ViewTreeObserver.h"
+#ifdef _FRAMEWORK_CORE
+#include "graphics/CRect.h"
+#endif
 
 const Int32 ViewTreeObserver::InternalInsetsInfo::TOUCHABLE_INSETS_FRAME;
 const Int32 ViewTreeObserver::InternalInsetsInfo::TOUCHABLE_INSETS_CONTENT;
@@ -7,8 +10,8 @@ const Int32 ViewTreeObserver::InternalInsetsInfo::TOUCHABLE_INSETS_VISIBLE;
 
 ViewTreeObserver::InternalInsetsInfo::InternalInsetsInfo()
 {
-    assert(SUCCEEDED(CRect::NewByFriend((CRect**)&mContentInsets)));
-    assert(SUCCEEDED(CRect::NewByFriend((CRect**)&mVisibleInsets)));
+    assert(SUCCEEDED(CRect::New((IRect**)&mContentInsets)));
+    assert(SUCCEEDED(CRect::New((IRect**)&mVisibleInsets)));
 }
 
 void ViewTreeObserver::InternalInsetsInfo::SetTouchableInsets(
@@ -36,11 +39,12 @@ Boolean ViewTreeObserver::InternalInsetsInfo::Equals(
         return FALSE;
     }
 
-    if (!mContentInsets->Equals(other->mContentInsets)) {
+    Boolean isEqual;
+    if (mContentInsets->Equals(other->mContentInsets, &isEqual), !isEqual) {
         return FALSE;
     }
 
-    if (!mVisibleInsets->Equals(other->mVisibleInsets)) {
+    if (mVisibleInsets->Equals(other->mVisibleInsets, &isEqual), !isEqual) {
         return FALSE;
     }
 

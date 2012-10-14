@@ -1,22 +1,22 @@
 
 module
 {
-    importlib("Elastos.Framework.eco");
+    importlib("Elastos.Framework.Core.eco");
     importlib("Elastos.Presentation.Controls.eco");
     importlib("Elastos.Presentation.Controls.BaseControl.eco");
 
     class CActivityDashboard {
         interface IActivity;
     }
-    
+
     class CActivityDialogBox {
         interface IActivity;
     }
-    
+
     class CActivityAquarium {
         interface IActivity;
     }
-    
+
     class CBroadcastReceiverOne {
         interface IBroadcastReceiver;
     }

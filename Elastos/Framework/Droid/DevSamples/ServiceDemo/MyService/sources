@@ -1,7 +1,7 @@
 TARGET_NAME = MyService
 TARGET_TYPE = eco
 
-IMPORTS = Elastos.Framework.eco
+IMPORTS = Elastos.Framework.Core.eco
 
 SOURCES  = MyService.car
 SOURCES += CMyService.cpp

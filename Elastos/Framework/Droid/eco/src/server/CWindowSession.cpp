@@ -170,8 +170,8 @@ void CWindowSession::WindowAddedLocked()
      if (mSurfaceSession == NULL) {
 //        if (localLOGV) Slog.v(
 //            TAG, "First window added to " + this + ", creating SurfaceSession");
-        CSurfaceSession::NewByFriend(
-            (CSurfaceSession**)&mSurfaceSession);
+        CSurfaceSession::New(
+            (ISurfaceSession**)&mSurfaceSession);
 //        if (SHOW_TRANSACTIONS) Slog.i(
 //                TAG, "  NEW SURFACE SESSION " + mSurfaceSession);
         mWMService->mSessions.Insert(this);

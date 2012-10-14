@@ -33,6 +33,13 @@ module
     const Notification_DEFAULT_LIGHTS = 4;
 
     /**
+     * Use this constant as the value for audioStreamType to request that
+     * the default stream type for notifications be used.  Currently the
+     * default stream type is STREAM_RING.
+     */
+    const Notification_STREAM_DEFAULT = -1;
+
+    /**
      * Bit to be bitwise-ored into the {@link #flags} field that should be
      * set if you want the LED on for this notification.
      * <ul>
@@ -97,6 +104,95 @@ module
     const Notification_FLAG_FOREGROUND_SERVICE = 0x00000040;
 
 
+    interface IPendingIntent;
+    interface ICharSequence;
+    interface IRemoteViews;
+    interface IUri;
+
+    [deprecated]
     interface INotification {
+        GetWhen(
+            [out] Int64* when);
+
+        SetWhen(
+            [in] Int64 when);
+
+        GetIcon(
+            [out] Int32* icon);
+
+        SetIcon(
+            [in] Int32 icon);
+
+        GetContentIntent(
+            [out] IPendingIntent** intent);
+
+        SetContentIntent(
+            [in] IPendingIntent* intent);
+
+        GetDeleteIntent(
+            [out] IPendingIntent** intent);
+
+        SetDeleteIntent(
+            [in] IPendingIntent* intent);
+
+        GetTickerText(
+            [out] ICharSequence** text);
+
+        SetTickerText(
+            [in] ICharSequence* text);
+
+        GetContentView(
+            [out] IRemoteViews** view);
+
+        SetContentView(
+            [in] IRemoteViews* view);
+
+        GetSound(
+            [out] IUri** sound);
+
+        SetSound(
+            [in] IUri* sound);
+
+        GetAudioStreamType(
+            [out] Int32* type);
+
+        SetAudioStreamType(
+            [in] Int32 type);
+
+        GetVibrate(
+            [out, callee] ArrayOf<Int64>* vibrate);
+
+        SetVibrate(
+            [in] ArrayOf<Int64>* vibrate);
+
+        GetLedARGB(
+            [out] Int32* argb);
+
+        SetLedARGB(
+            [in] Int32 argb);
+
+        GetLedOnMS(
+            [out] Int32* onMS);
+
+        SetLedOnMS(
+            [in] Int32 onMS);
+
+        GetLedOffMS(
+            [out] Int32* offMS);
+
+        SetLedOffMS(
+            [in] Int32 offMS);
+
+        GetDefaults(
+            [out] Int32* defaults);
+
+        SetDefaults(
+            [in] Int32 defaults);
+
+        GetFlags(
+            [out] Int32* flags);
+
+        SetFlags(
+            [in] Int32 flags);
     }
 }

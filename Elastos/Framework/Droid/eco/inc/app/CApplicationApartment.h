@@ -31,9 +31,6 @@ public:
     static const Boolean DEBUG_BROADCAST = FALSE;
     static const Boolean DEBUG_RESULTS = FALSE;
 
-    static const Int32 CAPSULE_REMOVED = 0;
-    static const Int32 EXTERNAL_STORAGE_UNAVAILABLE = 1;
-
     class ActivityClientRecord
     {
     public:

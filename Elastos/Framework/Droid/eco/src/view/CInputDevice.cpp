@@ -7,31 +7,6 @@
 using namespace Elastos::Utility;
 using namespace Elastos::Utility::Logging;
 
-const Int32 CInputDevice::SOURCE_CLASS_MASK;
-const Int32 CInputDevice::SOURCE_CLASS_BUTTON;
-const Int32 CInputDevice::SOURCE_CLASS_POINTER;
-const Int32 CInputDevice::SOURCE_CLASS_TRACKBALL;
-const Int32 CInputDevice::SOURCE_CLASS_POSITION;
-const Int32 CInputDevice::SOURCE_UNKNOWN;
-const Int32 CInputDevice::SOURCE_KEYBOARD;
-const Int32 CInputDevice::SOURCE_DPAD;
-const Int32 CInputDevice::SOURCE_TOUCHSCREEN;
-const Int32 CInputDevice::SOURCE_MOUSE;
-const Int32 CInputDevice::SOURCE_TRACKBALL;
-const Int32 CInputDevice::SOURCE_TOUCHPAD;
-const Int32 CInputDevice::SOURCE_ANY;
-const Int32 CInputDevice::MOTION_RANGE_X;
-const Int32 CInputDevice::MOTION_RANGE_Y;
-const Int32 CInputDevice::MOTION_RANGE_PRESSURE;
-const Int32 CInputDevice::MOTION_RANGE_SIZE;
-const Int32 CInputDevice::MOTION_RANGE_TOUCH_MAJOR;
-const Int32 CInputDevice::MOTION_RANGE_TOUCH_MINOR;
-const Int32 CInputDevice::MOTION_RANGE_TOOL_MAJOR;
-const Int32 CInputDevice::MOTION_RANGE_TOOL_MINOR;
-const Int32 CInputDevice::MOTION_RANGE_ORIENTATION;
-const Int32 CInputDevice::KEYBOARD_TYPE_NONE;
-const Int32 CInputDevice::KEYBOARD_TYPE_NON_ALPHABETIC;
-const Int32 CInputDevice::KEYBOARD_TYPE_ALPHABETIC;
 const Int32 CInputDevice::MOTION_RANGE_LAST;
 
 CInputDevice::MotionRange::MotionRange(

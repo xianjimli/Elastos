@@ -6,7 +6,6 @@
 #include <elastos/AutoPtr.h>
 #include "server/AppBindRecord.h"
 #include "server/CActivityRecord.h"
-#include "app/CPendingIntent.h"
 
 using namespace Elastos;
 
@@ -25,7 +24,7 @@ public:
         /* [in] */ IServiceConnectionInner* conn,
         /* [in] */ Int32 flags,
         /* [in] */ Int32 clientLabel,
-        /* [in] */ CPendingIntent* clientIntent);
+        /* [in] */ IPendingIntent* clientIntent);
 
     CARAPI GetDescription(
         /* [out] */ String* description);
@@ -36,7 +35,7 @@ public:
     AutoPtr<IServiceConnectionInner> mConn;  // The client connection.
     Int32 mFlags;   // Binding options.
     Int32 mClientLabel;          // String resource labeling this client.
-    AutoPtr<CPendingIntent> mClientIntent; // How to launch the client.
+    AutoPtr<IPendingIntent> mClientIntent; // How to launch the client.
     String mStringName;     // Caching of toString.
 };
 

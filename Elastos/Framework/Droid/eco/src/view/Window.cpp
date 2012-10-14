@@ -410,7 +410,8 @@ ECode Window::SetFlags(
 ECode Window::SetAttributes(
     /* [in] */ IWindowManagerLayoutParams* a)
 {
-    mWindowAttributes->CopyFrom(a);
+    Int32 changes;
+    mWindowAttributes->CopyFrom(a, &changes);
     if (mCallback != NULL) {
         mCallback->OnWindowAttributesChanged(mWindowAttributes.Get());
     }

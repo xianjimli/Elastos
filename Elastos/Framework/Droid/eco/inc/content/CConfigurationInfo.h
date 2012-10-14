@@ -23,6 +23,36 @@ public:
     CARAPI GetGlEsVersion(
         /* [out] */ String* ver);
 
+    CARAPI GetReqTouchScreen(
+        /* [out] */ Int32* reqTouchScreen);
+
+    CARAPI SetReqTouchScreen(
+        /* [in] */ Int32 reqTouchScreen);
+
+    CARAPI GetReqKeyboardType(
+        /* [out] */ Int32* reqKeyboardType);
+
+    CARAPI SetReqKeyboardType(
+        /* [in] */ Int32 reqKeyboardType);
+
+    CARAPI GetReqNavigation(
+        /* [out] */ Int32* reqNavigation);
+
+    CARAPI SetReqNavigation(
+        /* [in] */ Int32 reqNavigation);
+
+    CARAPI GetReqInputFeatures(
+        /* [out] */ Int32* reqInputFeatures);
+
+    CARAPI SetReqInputFeatures(
+        /* [in] */ Int32 reqInputFeatures);
+
+    CARAPI GetReqGlEsVersion(
+        /* [out] */ Int32* reqGlEsVersion);
+
+    CARAPI SetReqGlEsVersion(
+        /* [in] */ Int32 reqGlEsVersion);
+
     CARAPI ReadFromParcel(
         /* [in] */ IParcel* source);
 

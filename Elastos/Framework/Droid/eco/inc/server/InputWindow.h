@@ -3,7 +3,6 @@
 #define __INPUTWINDOW_H__
 
 #include "ext/frameworkext.h"
-#include "view/CInputChannel.h"
 #include <elastos/AutoPtr.h>
 
 /**
@@ -24,7 +23,7 @@ public:
 
 public:
     // The input channel associated with the window.
-    AutoPtr<CInputChannel> mInputChannel;
+    AutoPtr<IInputChannel> mInputChannel;
 
     // The window name.
     String mName;

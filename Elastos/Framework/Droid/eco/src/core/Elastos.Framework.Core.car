@@ -1,0 +1,29 @@
+
+//==========================================================================
+// Copyright (c) 2000-2008,  Elastos, Inc.  All Rights Reserved.
+//==========================================================================
+
+
+module
+{
+    importlib("Elastos.Utility.eco");
+    importlib("Elastos.Core.eco");
+    importlib("Elastos.IO.eco");
+    importlib("Elastos.Xml.eco");
+
+    merge("../../car/util.car");
+    merge("../../car/os.car");
+    merge("../../car/net.car");
+    merge("../../car/provider.car");
+    merge("../../car/database.car");
+    merge("../../car/content.car");
+    merge("../../car/graphics.car");
+    merge("../../car/view.car");
+    merge("../../car/app.car");
+    merge("../../car/widget.car");
+    merge("../../car/text.car");
+    merge("../../car/policy.car");
+    merge("../../car/statusbar.car");
+    merge("../../car/location.car");
+    merge("../../car/systemui.car");
+}

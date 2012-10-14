@@ -2,7 +2,6 @@
 #include <unistd.h>
 #include <new>
 #include "ext/frameworkext.h"
-#include "utils/CApartment.h"
 #include "utils/CParcelableObjectContainer.h"
 #include "app/CApplicationApartment.h"
 #include "app/LoadedCap.h"
@@ -10,11 +9,12 @@
 #include "app/CDefaultInstrumentation.h"
 #include "app/ActivityManagerNative.h"
 #include "app/CContentProviderHolder.h"
+#include "app/CResultInfo.h"
 #include "content/CApplicationInfo.h"
 #include "content/CInstrumentationInfo.h"
 #include "capsule/CContentProviderInfo.h"
-#include "app/CResultInfo.h"
-#include "server/CServiceManager.h"
+#include "os/CApartment.h"
+#include "os/CServiceManager.h"
 #include "view/CWindowManagerLayoutParams.h"
 #include "view/CWindowManagerImpl.h"
 #include <Slogger.h>
@@ -31,8 +31,6 @@ const Boolean CApplicationApartment::localLOGV;
 const Boolean CApplicationApartment::DEBUG_MESSAGES;
 const Boolean CApplicationApartment::DEBUG_BROADCAST;
 const Boolean CApplicationApartment::DEBUG_RESULTS;
-const Int32 CApplicationApartment::CAPSULE_REMOVED;
-const Int32 CApplicationApartment::EXTERNAL_STORAGE_UNAVAILABLE;
 
 ECode CApplicationApartment::
 ActivityClientRecord::GetDescription(

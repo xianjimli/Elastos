@@ -3,16 +3,16 @@
 #define __CSERVICEAPARTMENT_H__
 
 #include "_CServiceApartment.h"
-#include "utils/CApartment.h"
+#include "os/CApartment.h"
 #include <elastos/AutoPtr.h>
 
 CarClass(CServiceApartment)
 {
 public:
     CServiceApartment();
-    
+
     ~CServiceApartment();
-    
+
     CARAPI ScheduleInvokeService(
         /* [in] */ IInterface* service,
         /* [in] */ Handle32 data,

@@ -239,7 +239,7 @@ ECode CKeyEvent::constructor(
     mRepeatCount = 0;
     mDeviceId = deviceId;
     mFlags = flags;
-    mSource = CInputDevice::SOURCE_KEYBOARD;
+    mSource = InputDevice_SOURCE_KEYBOARD;
 
     return NOERROR;
 }

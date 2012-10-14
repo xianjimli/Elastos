@@ -7,6 +7,9 @@ module
 
     const ApplicationApartment_DEBUG_WAIT = 2;
 
+    const ApplicationApartment_CAPSULE_REMOVED = 0;
+    const ApplicationApartment_EXTERNAL_STORAGE_UNAVAILABLE = 1;
+
 
     enum ApartmentAttr;
 

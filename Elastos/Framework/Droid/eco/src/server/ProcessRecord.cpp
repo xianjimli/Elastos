@@ -4,7 +4,7 @@
 ProcessRecord::ProcessRecord(
     /* [in] */ BatteryStatsImpl::Uid::Proc* batteryStats,
     /* [in] */ IApplicationApartment* appApartment,
-    /* [in] */ CApplicationInfo* info,
+    /* [in] */ IApplicationInfo* info,
     /* [in] */ const String& processName) :
     mPid(0),
     mPubProviders(5),
@@ -69,7 +69,9 @@ void ProcessRecord::GetShortDescription(
     /* [in] */ StringBuffer& sb)
 {
 //    sb.append(Integer.toHexString(System.identityHashCode(this)));
-    sb = sb + " " + mPid + ":" + mProcessName + "/" + mInfo->mUid;
+    Int32 uid;
+    mInfo->GetUid(&uid);
+    sb = sb + " " + mPid + ":" + mProcessName + "/" + uid;
 }
 
 ECode ProcessRecord::GetDescription(

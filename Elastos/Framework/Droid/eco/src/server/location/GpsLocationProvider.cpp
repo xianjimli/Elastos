@@ -1,15 +1,8 @@
 
 #include "server/location/GpsLocationProvider.h"
-#include "server/CServiceManager.h"
-#include "content/CIntentFilter.h"
-#include "content/CIntent.h"
-#include "os/CBundle.h"
-#include "os/SystemClock.h"
-#include "location/CLocation.h"
-#include "location/internal/GpsNetInitiatedHandler.h"
-#include "net/SntpClient.h"
-#include "utils/CApartment.h"
 #include "server/location/GpsXtraDownloader.h"
+#include "os/SystemClock.h"
+#include "net/SntpClient.h"
 #include <elastos/System.h>
 
 using namespace Elastos::Core;

@@ -4,114 +4,96 @@
 
 #include "_CNotification.h"
 #include <elastos/AutoPtr.h>
+#include <elastos/AutoFree.h>
 
 CarClass(CNotification)
 {
 public:
-        /**
-     * Use all default values (where applicable).
-     */
-    static const Int32 DEFAULT_ALL = ~0;
-
-    /**
-     * Use the default notification sound. This will ignore any given
-     * {@link #sound}.
-     *
-     * @see #defaults
-     */
-    static const Int32 DEFAULT_SOUND = 1;
-
-    /**
-     * Use the default notification vibrate. This will ignore any given
-     * {@link #vibrate}. Using phone vibration requires the
-     * {@link android.Manifest.permission#VIBRATE VIBRATE} permission.
-     *
-     * @see #defaults
-     */
-    static const Int32 DEFAULT_VIBRATE = 2;
-
-    /**
-     * Use the default notification lights. This will ignore the
-     * {@link #FLAG_SHOW_LIGHTS} bit, and {@link #ledARGB}, {@link #ledOffMS}, or
-     * {@link #ledOnMS}.
-     *
-     * @see #defaults
-     */
-    static const Int32 DEFAULT_LIGHTS = 4;
-
-    /**
-     * Use this constant as the value for audioStreamType to request that
-     * the default stream type for notifications be used.  Currently the
-     * default stream type is STREAM_RING.
-     */
-    static const Int32 STREAM_DEFAULT = -1;
-
-    /**
-     * Bit to be bitwise-ored into the {@link #flags} field that should be
-     * set if you want the LED on for this notification.
-     * <ul>
-     * <li>To turn the LED off, pass 0 in the alpha channel for colorARGB
-     *      or 0 for both ledOnMS and ledOffMS.</li>
-     * <li>To turn the LED on, pass 1 for ledOnMS and 0 for ledOffMS.</li>
-     * <li>To flash the LED, pass the number of milliseconds that it should
-     *      be on and off to ledOnMS and ledOffMS.</li>
-     * </ul>
-     * <p>
-     * Since hardware varies, you are not guaranteed that any of the values
-     * you pass are honored exactly.  Use the system defaults (TODO) if possible
-     * because they will be set to values that work on any given hardware.
-     * <p>
-     * The alpha channel must be set for forward compatibility.
-     *
-     */
-    static const Int32 FLAG_SHOW_LIGHTS        = 0x00000001;
-
-    /**
-     * Bit to be bitwise-ored into the {@link #flags} field that should be
-     * set if this notification is in reference to something that is ongoing,
-     * like a phone call.  It should not be set if this notification is in
-     * reference to something that happened at a particular point in time,
-     * like a missed phone call.
-     */
-    static const Int32 FLAG_ONGOING_EVENT      = 0x00000002;
-
-    /**
-     * Bit to be bitwise-ored into the {@link #flags} field that if set,
-     * the audio will be repeated until the notification is
-     * cancelled or the notification window is opened.
-     */
-    static const Int32 FLAG_INSISTENT          = 0x00000004;
-
-    /**
-     * Bit to be bitwise-ored into the {@link #flags} field that should be
-     * set if you want the sound and/or vibration play each time the
-     * notification is sent, even if it has not been canceled before that.
-     */
-    static const Int32 FLAG_ONLY_ALERT_ONCE    = 0x00000008;
-
-    /**
-     * Bit to be bitwise-ored into the {@link #flags} field that should be
-     * set if the notification should be canceled when it is clicked by the
-     * user.
-     */
-    static const Int32 FLAG_AUTO_CANCEL        = 0x00000010;
-
-    /**
-     * Bit to be bitwise-ored into the {@link #flags} field that should be
-     * set if the notification should not be canceled when the user clicks
-     * the Clear all button.
-     */
-    static const Int32 FLAG_NO_CLEAR           = 0x00000020;
-
-    /**
-     * Bit to be bitwise-ored into the {@link #flags} field that should be
-     * set if this notification represents a currently running service.  This
-     * will normally be set for you by {@link Service#startForeground}.
-     */
-    static const Int32 FLAG_FOREGROUND_SERVICE = 0x00000040;
-
-public:
     CNotification();
+
+    CARAPI GetWhen(
+        /* [out] */ Int64* when);
+
+    CARAPI SetWhen(
+        /* [in] */ Int64 when);
+
+    CARAPI GetIcon(
+        /* [out] */ Int32* icon);
+
+    CARAPI SetIcon(
+        /* [in] */ Int32 icon);
+
+    CARAPI GetContentIntent(
+        /* [out] */ IPendingIntent** intent);
+
+    CARAPI SetContentIntent(
+        /* [in] */ IPendingIntent* intent);
+
+    CARAPI GetDeleteIntent(
+        /* [out] */ IPendingIntent** intent);
+
+    CARAPI SetDeleteIntent(
+        /* [in] */ IPendingIntent* intent);
+
+    CARAPI GetTickerText(
+        /* [out] */ ICharSequence** text);
+
+    CARAPI SetTickerText(
+        /* [in] */ ICharSequence* text);
+
+    CARAPI GetContentView(
+        /* [out] */ IRemoteViews** view);
+
+    CARAPI SetContentView(
+        /* [in] */ IRemoteViews* view);
+
+    CARAPI GetSound(
+        /* [out] */ IUri** sound);
+
+    CARAPI SetSound(
+        /* [in] */ IUri* sound);
+
+    CARAPI GetAudioStreamType(
+        /* [out] */ Int32* type);
+
+    CARAPI SetAudioStreamType(
+        /* [in] */ Int32 type);
+
+    CARAPI GetVibrate(
+        /* [out, callee] */ ArrayOf<Int64>** vibrate);
+
+    CARAPI SetVibrate(
+        /* [in] */ ArrayOf<Int64>* vibrate);
+
+    CARAPI GetLedARGB(
+        /* [out] */ Int32* argb);
+
+    CARAPI SetLedARGB(
+        /* [in] */ Int32 argb);
+
+    CARAPI GetLedOnMS(
+        /* [out] */ Int32* onMS);
+
+    CARAPI SetLedOnMS(
+        /* [in] */ Int32 onMS);
+
+    CARAPI GetLedOffMS(
+        /* [out] */ Int32* offMS);
+
+    CARAPI SetLedOffMS(
+        /* [in] */ Int32 offMS);
+
+    CARAPI GetDefaults(
+        /* [out] */ Int32* defaults);
+
+    CARAPI SetDefaults(
+        /* [in] */ Int32 defaults);
+
+    CARAPI GetFlags(
+        /* [out] */ Int32* flags);
+
+    CARAPI SetFlags(
+        /* [in] */ Int32 flags);
 
     CARAPI ReadFromParcel(
         /* [in] */ IParcel *source);
@@ -185,7 +167,7 @@ public:
      *
      * @see android.os.Vibrator#vibrate(long[],int)
      */
-    ArrayOf<Int64>* mVibrate;
+    AutoFree< ArrayOf<Int64> > mVibrate;
 
      /**
      * The color of the led.  The hardware will do its best approximation.

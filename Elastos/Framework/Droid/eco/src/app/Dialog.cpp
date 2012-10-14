@@ -1,7 +1,7 @@
 
 #include "app/Dialog.h"
 #include "impl/CPolicyManager.h"
-#include "utils/CApartment.h"
+#include "os/CApartment.h"
 #include "os/CBundle.h"
 #include "view/CWindowManagerLayoutParams.h"
 #include "view/ViewConfiguration.h"
@@ -137,7 +137,8 @@ ECode Dialog::Show()
         & WindowManagerLayoutParams_SOFT_INPUT_IS_FORWARD_NAVIGATION) == 0) {
         AutoPtr<IWindowManagerLayoutParams> nl;
         CWindowManagerLayoutParams::New((IWindowManagerLayoutParams**)&nl);
-        nl->CopyFrom(l);
+        Int32 changes;
+        nl->CopyFrom(l, &changes);
         ((CWindowManagerLayoutParams*)nl.Get())->mSoftInputMode |=
             WindowManagerLayoutParams_SOFT_INPUT_IS_FORWARD_NAVIGATION;
         l = nl;

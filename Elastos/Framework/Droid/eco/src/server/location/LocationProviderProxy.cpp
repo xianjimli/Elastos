@@ -1,7 +1,5 @@
 
 #include "server/location/LocationProviderProxy.h"
-#include "content/CIntent.h"
-#include "os/CWorkSource.h"
 
 const CString LocationProviderProxy::TAG = "LocationProviderProxy";
 

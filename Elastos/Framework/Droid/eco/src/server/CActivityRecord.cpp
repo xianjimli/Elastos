@@ -1,7 +1,6 @@
 
 #include "server/CActivityRecord.h"
 #include "server/CActivityManagerService.h"
-#include "utils/CParcelableObjectContainer.h"
 
 CActivityRecord::CActivityRecord() :
     mRealActivity(NULL),
@@ -45,7 +44,7 @@ ECode CActivityRecord::Init(
     /* [in] */ IIntent* intent,
     /* [in] */ const String& resolvedType,
     /* [in] */ IActivityInfo* aInfo,
-    /* [in] */ CConfiguration* configuration,
+    /* [in] */ IConfiguration* configuration,
     /* [in] */ CActivityRecord* resultTo,
     /* [in] */ const String& resultWho,
     /* [in] */ Int32 reqCode,
@@ -53,7 +52,7 @@ ECode CActivityRecord::Init(
 {
     mService = service;
     mStack = stack;
-    mInfo = (CActivityInfo*)aInfo;
+    mInfo = aInfo;
     mLaunchedFromUid = launchedFromUid;
     mIntent = intent;
 //    shortComponentName = _intent.getComponent().flattenToShortString();
@@ -65,13 +64,19 @@ ECode CActivityRecord::Init(
     mRequestCode = reqCode;
 
     if (mInfo != NULL) {
-        if (mInfo->mTargetActivity.IsNull()
-                || mInfo->mLaunchMode == CActivityInfo::LAUNCH_MULTIPLE
-                || mInfo->mLaunchMode == CActivityInfo::LAUNCH_SINGLE_TOP) {
+        String target;
+        mInfo->GetTargetActivity(&target);
+        Int32 mode;
+        mInfo->GetLaunchMode(&mode);
+        if (target.IsNull()
+                || mode == ActivityInfo_LAUNCH_MULTIPLE
+                || mode == ActivityInfo_LAUNCH_SINGLE_TOP) {
             mIntent->GetComponent((IComponentName**)&mRealActivity);
-        } else {
-            CComponentName::New(mInfo->mCapsuleName, mInfo->mTargetActivity,
-                    (IComponentName**)&mRealActivity);
+        }
+        else {
+            String cname;
+            mInfo->GetCapsuleName(&cname);
+            CComponentName::New(cname, target, (IComponentName**)&mRealActivity);
         }
 //        taskAffinity = aInfo.taskAffinity;
 //        stateNotNeeded = (aInfo.flags&
@@ -88,21 +93,33 @@ ECode CActivityRecord::Init(
 //        }
 //        icon = aInfo.getIconResource();
 //        theme = aInfo.getThemeResource();
-        if ((mInfo->mFlags & CActivityInfo::FLAG_MULTIPROCESS) != 0
-                && caller != NULL
-                && (/*mInfo->mApplicationInfo->mUid == Process.SYSTEM_UID
-                        ||*/ mInfo->mApplicationInfo->mUid == caller->mInfo->mUid)) {
-            mProcessName = caller->mProcessName;
-        } else {
-            mProcessName = mInfo->mProcessName;
+        Int32 flags;
+        mInfo->GetFlags(&flags);
+        AutoPtr<IApplicationInfo> appInfo;
+        mInfo->GetApplicationInfo((IApplicationInfo**)&appInfo);
+        if ((flags & ActivityInfo_FLAG_MULTIPROCESS) != 0
+                && caller != NULL) {
+            Int32 appUid, aUid;
+            appInfo->GetUid(&appUid);
+            caller->mInfo->GetUid(&aUid);
+            if  (/*mInfo->mApplicationInfo->mUid == Process.SYSTEM_UID
+                        ||*/ appUid == aUid) {
+                mProcessName = caller->mProcessName;
+            }
+            else {
+                mInfo->GetProcessName(&mProcessName);
+            }
+        }
+        else {
+            mInfo->GetProcessName(&mProcessName);
         }
 
-        if (intent != NULL && (mInfo->mFlags & CActivityInfo::FLAG_EXCLUDE_FROM_RECENTS) != 0) {
+        if (intent != NULL && (flags & ActivityInfo_FLAG_EXCLUDE_FROM_RECENTS) != 0) {
             intent->AddFlags(Intent_FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
         }
 
-        mCapsuleName = mInfo->mApplicationInfo->mCapsuleName;
-        mLaunchMode = mInfo->mLaunchMode;
+        appInfo->GetCapsuleName(&mCapsuleName);
+        mLaunchMode = mode;
 
 //        AttributeCache.Entry ent = AttributeCache.instance().get(packageName,
 //                theme != 0 ? theme : android.R.style.Theme,
@@ -176,18 +193,22 @@ void CActivityRecord::RemoveResultsLocked(
                 ++it1;
                 continue;
             }
-            if (r->mResultInfo->mResultWho.IsNull()) {
+            String who;
+            r->mResultInfo->GetResultWho(&who);
+            if (who.IsNull()) {
                 if (!resultWho.IsNull()) {
                     ++it1;
                     continue;
                 }
             } else {
-                if (r->mResultInfo->mResultWho.Compare(resultWho)) {
+                if (who.Compare(resultWho)) {
                     ++it1;
                     continue;
                 }
             }
-            if (r->mResultInfo->mRequestCode != requestCode) {
+            Int32 code;
+            r->mResultInfo->GetRequestCode(&code);
+            if (code != requestCode) {
                 ++it1;
                 continue;
             }

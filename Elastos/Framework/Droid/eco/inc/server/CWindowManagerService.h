@@ -3,28 +3,21 @@
 #define __CWINDOWMANAGERSERVICE_H__
 
 #include "ext/frameworkdef.h"
-#include <elastos/ElRefBase.h>
 #include "_CWindowManagerService.h"
 #include "server/CServiceRecord.h"
 #include "server/CWindowSession.h"
 #include "server/InputManager.h"
 #include "server/InputWindowList.h"
 #include "server/InputApplication.h"
-#include "view/CWindowManagerLayoutParams.h"
-#include "view/CSurfaceSession.h"
-#include "view/CInputChannel.h"
-#include "view/View.h"
 #include "view/WindowManagerPolicy.h"
 #include "view/animation/Animation.h"
 #include "view/animation/AnimationMacro.h"
-#include "graphics/CRect.h"
-#include "graphics/CPaint.h"
-#include "utils/CDisplayMetrics.h"
 #include "utils/AutoStringArray.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/List.h>
 #include <elastos/HashSet.h>
 #include <elastos/Mutex.h>
+#include <elastos/ElRefBase.h>
 
 class InputManager;
 
@@ -145,7 +138,7 @@ private:
          * Called by the InputManager.
          */
         CARAPI NotifyInputChannelBroken(
-            /* [in] */ CInputChannel* inputChannel);
+            /* [in] */ IInputChannel* inputChannel);
 
         /* Notifies the window manager about an application that is not responding.
          * Returns a new timeout to continue waiting in nanoseconds, or 0 to abort dispatch.
@@ -154,7 +147,7 @@ private:
          */
         CARAPI NotifyANR(
             /* [in] */ void* token,
-            /* [in] */ CInputChannel* inputChannel,
+            /* [in] */ IInputChannel* inputChannel,
             /* [out] */ Int64* timeout);
 
         /* Updates the cached window information provided to the input dispatcher. */
@@ -180,7 +173,7 @@ private:
         /* Provides an opportunity for the window manager policy to process a key before
          * ordinary dispatch. */
         CARAPI InterceptKeyBeforeDispatching(
-            /* [in] */ CInputChannel* focus,
+            /* [in] */ IInputChannel* focus,
             /* [in] */ Int32 action,
             /* [in] */ Int32 flags,
             /* [in] */ Int32 keyCode,
@@ -214,10 +207,10 @@ private:
 
     private:
         CARAPI_(AutoPtr<WindowState>) GetWindowStateForInputChannel(
-            CInputChannel* inputChannel);
+            IInputChannel* inputChannel);
 
         CARAPI_(AutoPtr<WindowState>) GetWindowStateForInputChannelLocked(
-            CInputChannel* inputChannel);
+            IInputChannel* inputChannel);
 
         CARAPI_(void) UpdateInputDispatchModeLw();
 
@@ -412,7 +405,7 @@ private:
             /* [in] */ IInnerWindow* client,
             /* [in] */ WindowToken* token,
             /* [in] */ WindowState* attachedWindow,
-            /* [in] */ CWindowManagerLayoutParams* attrs,
+            /* [in] */ IWindowManagerLayoutParams* attrs,
             /* [in] */ Int32 viewVisibility);
 
         CARAPI_(PInterface) Probe(
@@ -506,7 +499,7 @@ private:
 
         CARAPI_(AutoPtr<IRect>) GetGivenVisibleInsetsLw();
 
-        CARAPI_(CWindowManagerLayoutParams*) GetAttrs();
+        CARAPI_(AutoPtr<IWindowManagerLayoutParams>) GetAttrs();
 
         CARAPI_(Int32) GetSurfaceLayer();
 
@@ -664,7 +657,7 @@ private:
         WindowToken* mRootToken;
         AppWindowToken* mAppToken;
         AppWindowToken* mTargetAppToken;
-        AutoPtr<CWindowManagerLayoutParams> mAttrs;
+        AutoPtr<IWindowManagerLayoutParams> mAttrs;
 //        DeathRecipient mDeathRecipient;
         AutoPtr<WindowState> mAttachedWindow;
         List<AutoPtr<WindowState> > mChildWindows;
@@ -697,7 +690,7 @@ private:
 
         Int32 mLayoutSeq;
 
-        AutoPtr<CConfiguration> mConfiguration;
+        AutoPtr<IConfiguration> mConfiguration;
 
         // Actual frame shown on-screen (may be modified by animation)
         AutoPtr<IRect> mShownFrame;
@@ -854,7 +847,7 @@ private:
         Float mSurfaceAlpha;
 
         // Input channel
-        AutoPtr<CInputChannel> mInputChannel;
+        AutoPtr<IInputChannel> mInputChannel;
 
         // Used to improve performance of toString()
         String mStringNameCache;
@@ -923,7 +916,7 @@ private:
         AutoPtr<CWindowManagerService> mWMService;
         AutoStringArray mTokens;
         String mText;
-        AutoPtr<CPaint> mTextPaint;
+        AutoPtr<IPaint> mTextPaint;
         Int32 mTextWidth;
         Int32 mTextHeight;
         Int32 mTextAscent;
@@ -945,7 +938,7 @@ private:
     {
     public:
         DimAnimator (
-            /* [in] */ CSurfaceSession* session);
+            /* [in] */ ISurfaceSession* session);
 
         /**
          * Show the dim surface.
@@ -1260,7 +1253,7 @@ public:
 
     CARAPI_(Boolean) SetTokenVisibilityLocked(
         /* [in] */ AppWindowToken* wtoken,
-        /* [in] */ CWindowManagerLayoutParams* lp,
+        /* [in] */ IWindowManagerLayoutParams* lp,
         /* [in] */ Boolean visible,
         /* [in] */ Int32 transit,
         /* [in] */ Boolean performLayout);
@@ -1551,12 +1544,12 @@ public:
      */
     CARAPI SendNewConfiguration();
 
-    CARAPI_(AutoPtr<CConfiguration>) ComputeNewConfiguration();
+    CARAPI_(AutoPtr<IConfiguration>) ComputeNewConfiguration();
 
-    CARAPI_(AutoPtr<CConfiguration>) ComputeNewConfigurationLocked();
+    CARAPI_(AutoPtr<IConfiguration>) ComputeNewConfigurationLocked();
 
     CARAPI_(Boolean) ComputeNewConfigurationLocked(
-        /* [in] */ CConfiguration* config);
+        /* [in] */ IConfiguration* config);
 
     // These can only be called when holding the MANAGE_APP_TOKENS permission.
     CARAPI PauseKeyDispatching(
@@ -1741,12 +1734,12 @@ private:
 
     CARAPI_(Boolean) ApplyAnimationLocked(
         /* [in] */ AppWindowToken* wtoken,
-        /* [in] */ CWindowManagerLayoutParams* lp,
+        /* [in] */ IWindowManagerLayoutParams* lp,
         /* [in] */ Int32 transit,
         /* [in] */ Boolean enter);
 
     CARAPI_(AutoPtr<IAnimation>) LoadAnimation(
-        /* [in] */ CWindowManagerLayoutParams* lp,
+        /* [in] */ IWindowManagerLayoutParams* lp,
         /* [in] */ Int32 animAttr);
 
     CARAPI_(AutoPtr<IAnimation>) LoadAnimation(
@@ -1827,7 +1820,7 @@ private:
         /* [in] */ Int32 index,
         /* [in] */ Int32 defUnits,
         /* [in] */ Int32 defDps,
-        /* [in] */ CDisplayMetrics* dm);
+        /* [in] */ IDisplayMetrics* dm);
 
     CARAPI SendMessage(
         /* [in] */ Handle32 pvFunc,
@@ -1971,7 +1964,7 @@ private:
      * These were the layout params used to retrieve the last enter animation.
      * They will be used for the next exit animation.
      */
-    AutoPtr<CWindowManagerLayoutParams> mLastEnterAnimParams;
+    AutoPtr<IWindowManagerLayoutParams> mLastEnterAnimParams;
 
     /**
      * Z-ordered (bottom-most first) list of all Window objects.
@@ -2007,7 +2000,7 @@ private:
      */
     List<AutoPtr<WindowState> >* mForceRemoves;
 
-    AutoPtr<CSurfaceSession> mFxSession;
+    AutoPtr<ISurfaceSession> mFxSession;
     DimAnimator* mDimAnimator;
     AutoPtr<ISurface> mBlurSurface;
     Boolean mBlurShown;
@@ -2041,7 +2034,7 @@ private:
     // State while inside of layoutAndPlaceSurfacesLocked().
     Boolean mFocusMayChange;
 
-    AutoPtr<CConfiguration> mCurConfiguration;
+    AutoPtr<IConfiguration> mCurConfiguration;
 
     // This is held as long as we have the screen frozen, to give us time to
     // perform a rotation animation when turning off shows the lock screen which
@@ -2127,7 +2120,7 @@ private:
     List<WindowChangeListener*> mWindowChangeListeners;
     Boolean mWindowsChanged;
 
-    AutoPtr<CConfiguration> mTempConfiguration;
+    AutoPtr<IConfiguration> mTempConfiguration;
     Int32 mScreenLayout;
 
     // The frame use to limit the size of the app running in compatibility mode.

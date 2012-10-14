@@ -19,7 +19,28 @@ module
         SetApplicationInfo(
             [in] IApplicationInfo* info);
 
+        GetProcessName(
+            [out] String* processName);
+
+        SetProcessName(
+            [in] String processName);
+
+        GetDescriptionRes(
+            [out] Int32* desRes);
+
+        SetDescriptionRes(
+            [in] Int32 desRes);
+
         IsEnabled(
             [out] Boolean* enabled);
+
+        SetEnabled(
+            [in] Boolean enabled);
+
+        IsExported(
+            [out] Boolean* exported);
+
+        SetExported(
+            [in] Boolean exported);
     }
 }

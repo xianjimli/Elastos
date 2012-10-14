@@ -62,6 +62,13 @@ ECode CIntentFilter::MatchAction(
     return NOERROR;
 }
 
+ECode CIntentFilter::GetActions(
+    /* [out, callee] */ ArrayOf<String>** actions)
+{
+    VALIDATE_NOT_NULL(actions);
+    return IntentFilter::GetActions(actions);
+}
+
 ECode CIntentFilter::AddDataType(
     /* [in] */ const String& type)
 {
@@ -97,6 +104,13 @@ ECode CIntentFilter::GetDataType(
     return NOERROR;
 }
 
+ECode CIntentFilter::GetTypes(
+        /* [out, callee] */ ArrayOf<String>** types)
+{
+    VALIDATE_NOT_NULL(types);
+    return IntentFilter::GetTypes(types);
+}
+
 ECode CIntentFilter::AddDataScheme(
 	/* [in] */ const String& scheme)
 {
@@ -130,6 +144,13 @@ ECode CIntentFilter::HasDataScheme(
 
     *result = IntentFilter::HasDataScheme(scheme);
     return NOERROR;
+}
+
+ECode CIntentFilter::GetSchemes(
+        /* [out, callee] */ ArrayOf<String>** schemes)
+{
+    VALIDATE_NOT_NULL(schemes);
+    return IntentFilter::GetSchemes(schemes);
 }
 
 ECode CIntentFilter::AddDataAuthority(
@@ -349,19 +370,4 @@ ECode CIntentFilter::constructor(
     /* [in] */ IIntentFilter* o)
 {
     return IntentFilter::Init(o);
-}
-
-List<String>* CIntentFilter::GetActions()
-{
-    return mActions;
-}
-
-List<String>* CIntentFilter::GetSchemes()
-{
-    return mDataSchemes;
-}
-
-List<String>* CIntentFilter::GetTypes()
-{
-    return mDataTypes;
 }

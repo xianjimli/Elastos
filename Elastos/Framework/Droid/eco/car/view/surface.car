@@ -248,4 +248,10 @@ module
             [in] Int32 flags,
             [in] Int32 mask);
     }
+
+    interface ISurfaceHelper {
+        OpenTransaction();
+
+        CloseTransaction();
+    }
 }

@@ -3,7 +3,7 @@
 #define __VELOCITYTRACKER_H__
 
 #include "utils/Pools.h"
-#include "server/Config.h"
+#include "utils/Config.h"
 
 /**
  * Helper for tracking the velocity of touch events, for implementing

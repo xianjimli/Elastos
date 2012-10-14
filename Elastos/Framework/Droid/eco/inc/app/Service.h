@@ -1,11 +1,11 @@
 #ifndef __SERVICE_H__
 #define __SERVICE_H__
 
-#ifdef _FRAMEWORK
+#ifdef _FRAMEWORK_CORE
 #include "ext/frameworkext.h"
 #else
 #define __USE_MALLOC
-#include "Elastos.Framework.h"
+#include "Elastos.Framework.Core.h"
 #endif
 #include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>

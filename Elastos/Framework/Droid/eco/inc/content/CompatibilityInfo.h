@@ -4,7 +4,6 @@
 #include "ext/frameworkext.h"
 #include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>
-#include "graphics/CRect.h"
 
 using namespace Elastos;
 

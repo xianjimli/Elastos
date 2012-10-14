@@ -4,7 +4,9 @@ TARGET_TYPE= lib
 include $(MAKEDIR)/../../../sources.inc
 
 INCLUDES += $(MAKEDIR)/../../inc
-INCLUDES += ../
+INCLUDES += ../core
+
+C_DEFINES += -D_FRAMEWORK_CORE
 
 SOURCES = CCriteria.cpp
 SOURCES += CGeocoderParams.cpp
@@ -12,5 +14,6 @@ SOURCES += CLocation.cpp
 SOURCES += CLocationManager.cpp
 SOURCES += CAddress.cpp
 SOURCES += LocationProvider.cpp
+SOURCES += DummyLocationProvider.cpp
+SOURCES += GpsNetInitiatedHandler.cpp
 
-LIBRARIES += internal/locationInternal.lib

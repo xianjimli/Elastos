@@ -3,7 +3,9 @@ TARGET_NAME= inputmethod
 TARGET_TYPE= lib
 
 INCLUDES += $(MAKEDIR)/../../../inc
-INCLUDES += ../../
+INCLUDES += ../../core
+
+C_DEFINES += -D_FRAMEWORK_CORE
 
 SOURCES = CExtractedText.cpp
 SOURCES += CExtractedTextRequest.cpp

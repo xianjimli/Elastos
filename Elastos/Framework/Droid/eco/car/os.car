@@ -25,6 +25,10 @@ module
         interface IApartment;
     }
 
+    singleton class CApartmentHelper {
+        interface IApartmentHelper;
+    }
+
     class CClassLoader {
         interface IClassLoader;
     }
@@ -37,8 +41,11 @@ module
             [in] IFileDescriptor* fd);
 
         interface IParcelFileDescriptor;
-
         interface IParcelable;
+    }
+
+    singleton class CParcelFileDescriptorHelper {
+        interface IParcelFileDescriptorHelper;
     }
 
     /**

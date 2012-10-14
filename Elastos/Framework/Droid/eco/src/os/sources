@@ -4,18 +4,24 @@ TARGET_TYPE= lib
 include $(MAKEDIR)/../../../sources.inc
 
 INCLUDES += $(MAKEDIR)/../../inc
-INCLUDES += ../
+INCLUDES += ../core
 
-SOURCES = CBundle.cpp
+C_DEFINES += -D_FRAMEWORK_CORE
+
+SOURCES = CApartment.cpp
+SOURCES += CApartmentHelper.cpp
+SOURCES += CBundle.cpp
 SOURCES += BatteryStatsImpl.cpp
 SOURCES += StorageResultCode.cpp
 SOURCES += ServiceManager.cpp
+SOURCES += CServiceManager.cpp
 SOURCES += SystemClock.cpp
 SOURCES += SystemProperties.cpp
 SOURCES += Process.cpp
 SOURCES += _PatternMatcher.cpp
 SOURCES += CPatternMatcher.cpp
 SOURCES += CParcelFileDescriptor.cpp
+SOURCES += CParcelFileDescriptorHelper.cpp
 SOURCES += Environment.cpp
 SOURCES += NativeMessageQueue.cpp
 SOURCES += CCallbackContextEx.cpp

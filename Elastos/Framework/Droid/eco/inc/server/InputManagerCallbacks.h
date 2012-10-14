@@ -3,7 +3,6 @@
 #define __INPUTMANAGERCALLBACKS_H__
 
 #include "server/CWindowManagerService.h"
-#include "view/CInputChannel.h"
 #include "server/InputManager.h"
 
 class VirtualKeyDefinition;
@@ -24,11 +23,11 @@ public:
         /* [in] */ Boolean lidOpen);
 
     CARAPI NotifyInputChannelBroken(
-        /* [in] */ CInputChannel* inputChannel);
+        /* [in] */ IInputChannel* inputChannel);
 
     CARAPI NotifyANR(
         /* [in] */ void* token,
-        /* [in] */ CInputChannel* inputChannel,
+        /* [in] */ IInputChannel* inputChannel,
         /* [out] */ Int64* timeout);
 
     CARAPI InterceptKeyBeforeQueueing(
@@ -42,7 +41,7 @@ public:
         /* [out] */ Int32* result);
 
     CARAPI InterceptKeyBeforeDispatching(
-        /* [in] */ CInputChannel* focus,
+        /* [in] */ IInputChannel* focus,
         /* [in] */ Int32 action,
         /* [in] */ Int32 flags,
         /* [in] */ Int32 keyCode,

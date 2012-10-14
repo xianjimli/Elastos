@@ -7,12 +7,9 @@
 #include "server/ProcessRecord.h"
 #include "server/ActivityState.h"
 #include "server/ActivityResult.h"
-#include "capsule/CActivityInfo.h"
 #include "server/TaskRecord.h"
 #include "server/CPendingIntentRecord.h"
 #include "server/UriPermissionOwner.h"
-#include "graphics/CBitmap.h"
-#include "content/CConfiguration.h"
 #include <elastos/List.h>
 #include <elastos/AutoPtr.h>
 #include <elastos/Set.h>
@@ -53,7 +50,7 @@ public:
         /* [in] */ IIntent* intent,
         /* [in] */ const String& resolvedType,
         /* [in] */ IActivityInfo* aInfo,
-        /* [in] */ CConfiguration* configuration,
+        /* [in] */ IConfiguration* configuration,
         /* [in] */ CActivityRecord* resultTo,
         /* [in] */ const String& resultWho,
         /* [in] */ Int32 reqCode,
@@ -101,7 +98,7 @@ public:
 public:
     AutoPtr<CActivityManagerService> mService; // owner
     ActivityStack* mStack; // owner
-    AutoPtr<CActivityInfo> mInfo; // all about me
+    AutoPtr<IActivityInfo> mInfo; // all about me
     Int32 mLaunchedFromUid; // always the uid who started the activity.
     AutoPtr<IIntent> mIntent;
     AutoPtr<IComponentName> mRealActivity;  // the intent component, or target of an alias.
@@ -124,7 +121,7 @@ public:
     Millisecond64 mLaunchTime;        // when we starting launching this activity
     Millisecond64 mStartTime;         // last time this activity was started
     Millisecond64 mCpuTimeAtResume;   // the cpu time of host process at the time of resuming activity
-    AutoPtr<CConfiguration> mConfiguration; // configuration activity was last running in
+    AutoPtr<IConfiguration> mConfiguration; // configuration activity was last running in
     AutoPtr<CActivityRecord> mResultTo; // who started this entry, so will get our reply
     String mResultWho; // additional identifier for use by resultTo.
     Int32 mRequestCode;  // code given by requester (resultTo)
@@ -134,7 +131,7 @@ public:
     Set<ConnectionRecord*>* mConnections; // All ConnectionRecord we hold
     UriPermissionOwner* mUriPermissions; // current special URI access perms.
     ProcessRecord* mApp;
-    AutoPtr<CBitmap> mThumbnail;       // icon representation of paused screen
+    AutoPtr<IBitmap> mThumbnail;       // icon representation of paused screen
     ArrayOf<Char8>* mDescription; // textual description of paused screen
     ActivityState mState;    // current state we are in
     AutoPtr<IBundle> mIcicle;         // last saved activity state

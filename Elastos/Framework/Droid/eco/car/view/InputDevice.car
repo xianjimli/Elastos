@@ -1,6 +1,197 @@
 
 module
 {
+    /**
+     * A mask for input source classes.
+     *
+     * Each distinct input source constant has one or more input source class bits set to
+     * specify the desired interpretation for its input events.
+     */
+    const InputDevice_SOURCE_CLASS_MASK = 0x000000ff;
+
+    /**
+     * The input source has buttons or keys.
+     * Examples: {@link #SOURCE_KEYBOARD}, {@link #SOURCE_DPAD}.
+     *
+     * A {@link KeyEvent} should be interpreted as a button or key press.
+     *
+     * Use {@link #getKeyCharacterMap} to query the device's button and key mappings.
+     */
+    const InputDevice_SOURCE_CLASS_BUTTON = 0x00000001;
+
+    /**
+     * The input source is a pointing device associated with a display.
+     * Examples: {@link #SOURCE_TOUCHSCREEN}, {@link #SOURCE_MOUSE}.
+     *
+     * A {@link MotionEvent} should be interpreted as absolute coordinates in
+     * display units according to the {@link View} hierarchy.  Pointer down/up indicated when
+     * the finger touches the display or when the selection button is pressed/released.
+     *
+     * Use {@link #getMotionRange} to query the range of the pointing device.  Some devices permit
+     * touches outside the display area so the effective range may be somewhat smaller or larger
+     * than the actual display size.
+     */
+    const InputDevice_SOURCE_CLASS_POINTER = 0x00000002;
+
+    /**
+     * The input source is a trackball navigation device.
+     * Examples: {@link #SOURCE_TRACKBALL}.
+     *
+     * A {@link MotionEvent} should be interpreted as relative movements in device-specific
+     * units used for navigation purposes.  Pointer down/up indicates when the selection button
+     * is pressed/released.
+     *
+     * Use {@link #getMotionRange} to query the range of motion.
+     */
+    const InputDevice_SOURCE_CLASS_TRACKBALL = 0x00000004;
+
+    /**
+     * The input source is an absolute positioning device not associated with a display
+     * (unlike {@link #SOURCE_CLASS_POINTER}).
+     *
+     * A {@link MotionEvent} should be interpreted as absolute coordinates in
+     * device-specific surface units.
+     *
+     * Use {@link #getMotionRange} to query the range of positions.
+     */
+    const InputDevice_SOURCE_CLASS_POSITION = 0x00000008;
+
+    /**
+     * The input source is unknown.
+     */
+    const InputDevice_SOURCE_UNKNOWN = 0x00000000;
+
+    /**
+     * The input source is a keyboard.
+     *
+     * @see #SOURCE_CLASS_BUTTON
+     */
+    const InputDevice_SOURCE_KEYBOARD = 0x00000101; //0x00000100 | SOURCE_CLASS_BUTTON;
+
+    /**
+     * The input source is a DPad.
+     *
+     * @see #SOURCE_CLASS_BUTTON
+     */
+    const InputDevice_SOURCE_DPAD = 0x00000201; //0x00000200 | SOURCE_CLASS_BUTTON;
+
+    /**
+     * The input source is a touch screen pointing device.
+     *
+     * @see #SOURCE_CLASS_POINTER
+     */
+    const InputDevice_SOURCE_TOUCHSCREEN = 0x00001002; //0x00001000 | SOURCE_CLASS_POINTER;
+
+    /**
+     * The input source is a mouse pointing device.
+     * This code is also used for other mouse-like pointing devices such as trackpads
+     * and trackpoints.
+     *
+     * @see #SOURCE_CLASS_POINTER
+     */
+    const InputDevice_SOURCE_MOUSE = 0x00002002; //0x00002000 | SOURCE_CLASS_POINTER;
+
+    /**
+     * The input source is a trackball.
+     *
+     * @see #SOURCE_CLASS_TRACKBALL
+     */
+    const InputDevice_SOURCE_TRACKBALL = 0x00010004; //0x00010000 | SOURCE_CLASS_TRACKBALL;
+
+    /**
+     * The input source is a touch pad or digitizer tablet that is not
+     * associated with a display (unlike {@link #SOURCE_TOUCHSCREEN}).
+     *
+     * @see #SOURCE_CLASS_POSITION
+     */
+    const InputDevice_SOURCE_TOUCHPAD = 0x00100002; //0x00100000 | SOURCE_CLASS_POSITION;
+
+    /**
+     * A special input source constant that is used when filtering input devices
+     * to match devices that provide any type of input source.
+     */
+    const InputDevice_SOURCE_ANY = 0xffffff00;
+
+    /**
+     * Constant for retrieving the range of values for {@link MotionEvent.PointerCoords#x}.
+     *
+     * @see #getMotionRange
+     */
+    const InputDevice_MOTION_RANGE_X = 0;
+
+    /**
+     * Constant for retrieving the range of values for {@link MotionEvent.PointerCoords#y}.
+     *
+     * @see #getMotionRange
+     */
+    const InputDevice_MOTION_RANGE_Y = 1;
+
+    /**
+     * Constant for retrieving the range of values for {@link MotionEvent.PointerCoords#pressure}.
+     *
+     * @see #getMotionRange
+     */
+    const InputDevice_MOTION_RANGE_PRESSURE = 2;
+
+    /**
+     * Constant for retrieving the range of values for {@link MotionEvent.PointerCoords#size}.
+     *
+     * @see #getMotionRange
+     */
+    const InputDevice_MOTION_RANGE_SIZE = 3;
+
+    /**
+     * Constant for retrieving the range of values for {@link MotionEvent.PointerCoords#touchMajor}.
+     *
+     * @see #getMotionRange
+     */
+    const InputDevice_MOTION_RANGE_TOUCH_MAJOR = 4;
+
+    /**
+     * Constant for retrieving the range of values for {@link MotionEvent.PointerCoords#touchMinor}.
+     *
+     * @see #getMotionRange
+     */
+    const InputDevice_MOTION_RANGE_TOUCH_MINOR = 5;
+
+    /**
+     * Constant for retrieving the range of values for {@link MotionEvent.PointerCoords#toolMajor}.
+     *
+     * @see #getMotionRange
+     */
+    const InputDevice_MOTION_RANGE_TOOL_MAJOR = 6;
+
+    /**
+     * Constant for retrieving the range of values for {@link MotionEvent.PointerCoords#toolMinor}.
+     *
+     * @see #getMotionRange
+     */
+    const InputDevice_MOTION_RANGE_TOOL_MINOR = 7;
+
+    /**
+     * Constant for retrieving the range of values for
+     * {@link MotionEvent.PointerCoords#orientation}.
+     *
+     * @see #getMotionRange
+     */
+    const InputDevice_MOTION_RANGE_ORIENTATION = 8;
+
+    /**
+     * There is no keyboard.
+     */
+    const InputDevice_KEYBOARD_TYPE_NONE = 0;
+
+    /**
+     * The keyboard is not fully alphabetic.  It may be a numeric keypad or an assortment
+     * of buttons that are not mapped as alphabetic keys suitable for text input.
+     */
+    const InputDevice_KEYBOARD_TYPE_NON_ALPHABETIC = 1;
+
+    /**
+     * The keyboard supports a complement of alphabetic keys.
+     */
+    const InputDevice_KEYBOARD_TYPE_ALPHABETIC = 2;
+
     interface IMotionRange {
         /**
          * Gets the minimum value for the coordinate.

@@ -2,7 +2,7 @@
 #include "widget/FastScroller.h"
 #include "graphics/CRectF.h"
 #include "graphics/CPaint.h"
-#include "utils/CApartment.h"
+#include "os/CApartment.h"
 #include "os/SystemClock.h"
 #include "view/CMotionEvent.h"
 #include "widget/AbsListView.h"

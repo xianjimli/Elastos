@@ -1,6 +1,10 @@
 
 #include "content/ContentResolver.h"
+#ifdef _FRAMEWORK_CORE
 #include "content/CCursorWrapperInner.h"
+#elif defined(_FRAMEWORK_SERVER)
+#include "Elastos.Framework.Core.h"
+#endif
 #include "app/ActivityManagerNative.h"
 
 const char* ContentResolver::SCHEME_CONTENT  = "content";

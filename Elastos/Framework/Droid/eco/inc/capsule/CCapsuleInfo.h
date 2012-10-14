@@ -18,43 +18,107 @@ public:
         , mSharedUserLabel(0)
         , mFirstInstallTime(0)
         , mLastUpdateTime(0)
-        , mInstallLocation(INSTALL_LOCATION_INTERNAL_ONLY)
+        , mInstallLocation(CapsuleInfo_INSTALL_LOCATION_INTERNAL_ONLY)
     {}
 
     ~CCapsuleInfo() {}
 
 public:
+    CARAPI GetCapsuleName(
+        /* [out] */ String* name);
+
+    CARAPI SetCapsuleName(
+        /* [in] */ const String& name);
+
+    CARAPI GetVersionCode(
+        /* [out] */ Int32* versionCode);
+
+    CARAPI SetVersionCode(
+        /* [in] */ Int32 versionCode);
+
+    CARAPI GetVersionName(
+        /* [out] */ String* versionName);
+
+    CARAPI SetVersionName(
+        /* [in] */ const String& versionName);
+
+    CARAPI GetSharedUserId(
+        /* [out] */ String* id);
+
+    CARAPI SetSharedUserId(
+        /* [in] */ const String& id);
+
+    CARAPI GetSharedUserLabel(
+        /* [out] */ Int32* label);
+
+    CARAPI SetSharedUserLabel(
+        /* [in] */ Int32 label);
+
+    CARAPI GetApplicationInfo(
+        /* [out] */ IApplicationInfo** info);
+
+    CARAPI SetApplicationInfo(
+        /* [in] */ IApplicationInfo* info);
+
+    CARAPI GetFirstInstallTime(
+        /* [out] */ Int64* time);
+
+    CARAPI SetFirstInstallTime(
+        /* [in] */ Int64 time);
+
+    CARAPI GetLastUpdateTime(
+        /* [out] */ Int64* time);
+
+    CARAPI SetLastUpdateTime(
+        /* [in] */ Int64 time);
+
+    CARAPI GetGids(
+        /* [out, callee] */ ArrayOf<Int32>** gids);
+
+    CARAPI SetGids(
+        /* [in] */ ArrayOf<Int32>* gids);
+
+    CARAPI AddActivity(
+        /* [in] */ IActivityInfo* activity);
+
+    CARAPI AddReceiver(
+        /* [in] */ IActivityInfo* receiver);
+
+    CARAPI AddService(
+        /* [in] */ IServiceInfo* service);
+
+    CARAPI AddContentProvider(
+        /* [in] */ IContentProviderInfo* provider);
+
+    CARAPI AddInstrumentation(
+        /* [in] */ IInstrumentationInfo* instumentation);
+
+    CARAPI AddPermission(
+        /* [in] */ IPermissionInfo* permission);
+
+    CARAPI AddRequestedPermission(
+        /* [in] */ const String& permission);
+
+    CARAPI AddSignature(
+        /* [in] */ ISignature* signature);
+
+    CARAPI AddConfigPreference(
+        /* [in] */ IConfigurationInfo* config);
+
+    CARAPI AddReqFeature(
+        /* [in] */ IFeatureInfo* feature);
+
+    CARAPI GetInstallLocation(
+        /* [out] */ Int32* location);
+
+    CARAPI SetInstallLocation(
+        /* [in] */ Int32 location);
+
     CARAPI ReadFromParcel(
         /* [in] */ IParcel* source);
 
     CARAPI WriteToParcel(
         /* [in] */ IParcel* dest);
-
-public:
-    /**
-     * Constant corresponding to <code>auto</code> in
-     * the {@link android.R.attr#installLocation} attribute.
-     * @hide
-     */
-    static const Int32 INSTALL_LOCATION_UNSPECIFIED = -1;
-    /**
-     * Constant corresponding to <code>auto</code> in
-     * the {@link android.R.attr#installLocation} attribute.
-     * @hide
-     */
-    static const Int32 INSTALL_LOCATION_AUTO = 0;
-    /**
-     * Constant corresponding to <code>internalOnly</code> in
-     * the {@link android.R.attr#installLocation} attribute.
-     * @hide
-     */
-    static const Int32 INSTALL_LOCATION_INTERNAL_ONLY = 1;
-    /**
-     * Constant corresponding to <code>preferExternal</code> in
-     * the {@link android.R.attr#installLocation} attribute.
-     * @hide
-     */
-    static const Int32 INSTALL_LOCATION_PREFER_EXTERNAL = 2;
 
 public:
     /**
@@ -153,7 +217,7 @@ public:
      * or null if there were none.  This is only filled in if the flag
      * {@link PackageManager#GET_INSTRUMENTATION} was set.
      */
-    List< AutoPtr<IInstrumentationInfo> > mInstrumentation;
+    List< AutoPtr<IInstrumentationInfo> > mInstrumentations;
 
     /**
      * Array of all {@link android.R.styleable#AndroidManifestPermission

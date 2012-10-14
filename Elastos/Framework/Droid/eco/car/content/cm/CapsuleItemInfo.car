@@ -80,10 +80,46 @@ module
             [in] String name,
             [out] IXmlResourceParser** resource);
 
-        GetCapsuleName(
-            [out] String* capsuleName);
-
         GetName(
             [out] String* name);
+
+        SetName(
+            [in] String name);
+
+        GetCapsuleName(
+            [out] String* name);
+
+        SetCapsuleName(
+            [in] String name);
+
+        GetLabelRes(
+            [out] Int32* labelRes);
+
+        SetLabelRes(
+            [in] Int32 labelRes);
+
+        GetNonLocalizedLabel(
+            [out] ICharSequence** label);
+
+        SetNonLocalizedLabel(
+            [in] ICharSequence* label);
+
+        GetIcon(
+            [out] Int32* icon);
+
+        SetIcon(
+            [in] Int32 icon);
+
+        GetLogo(
+            [out] Int32* logo);
+
+        SetLogo(
+            [in] Int32 logo);
+
+        GetMetaData(
+            [out] IBundle** metaData);
+
+        SetMetaData(
+            [in] IBundle* metaData);
     }
 }

@@ -205,6 +205,9 @@ module
             [in] String action,
             [out] Boolean* isMatched);
 
+        GetActions(
+            [out, callee] ArrayOf<String>* actions);
+
         /**
          * Add a new Intent data type to match against.  If any types are
          * included in the filter, then an Intent's data must be <em>either</em>
@@ -252,6 +255,9 @@ module
             [in] Int32 index,
             [out] String* type);
 
+        GetTypes(
+            [out, callee] ArrayOf<String>* types);
+
         /**
          * Add a new Intent data scheme to match against.  If any schemes are
          * included in the filter, then an Intent's data must be <em>either</em>
@@ -296,6 +302,9 @@ module
         HasDataScheme(
             [in] String scheme,
             [out] Boolean* result);
+
+        GetSchemes(
+            [out, callee] ArrayOf<String>* schemes);
 
         /**
          * Add a new Intent data authority to match against.  The filter must

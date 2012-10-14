@@ -354,7 +354,7 @@ ECode LoadedCap::MakeApplication(
         appClass = "CApplication" /* "android.app.Application" */;
 //        char cwd[512];
 //        kdGetcwdKT(cwd, 512);
-        module = "../Elastos.Framework.eco";
+        module = "../Elastos.Framework.Core.eco";
     }
 
 //    try {

@@ -9,10 +9,73 @@ module
         GetActivityInfo(
             [out] IActivityInfo** activityInfo);
 
+        SetActivityInfo(
+            [in] IActivityInfo* activityInfo);
+
         GetServiceInfo(
             [out] IServiceInfo** serviceInfo);
 
+        SetServiceInfo(
+            [in] IServiceInfo* serviceInfo);
+
         GetIntentFilter(
             [out] IIntentFilter** intentFilter);
+
+        SetIntentFilter(
+            [in] IIntentFilter* intentFilter);
+
+        GetPriority(
+            [out] Int32* priority);
+
+        SetPriority(
+            [in] Int32 priority);
+
+        GetPreferredOrder(
+            [out] Int32* order);
+
+        SetPreferredOrder(
+            [in] Int32 order);
+
+        GetMatch(
+            [out] Int32* match);
+
+        SetMatch(
+            [in] Int32 match);
+
+        GetSpecificIndex(
+            [out] Int32* index);
+
+        SetSpecificIndex(
+            [in] Int32 index);
+
+        IsDefault(
+            [out] Boolean* isDefault);
+
+        SetDefault(
+            [in] Boolean isDefault);
+
+        GetLabelRes(
+            [out] Int32* labelRes);
+
+        SetLabelRes(
+            [in] Int32 labelRes);
+
+        GetNonLocalizedLabel(
+            [out] ICharSequence** label);
+
+        SetNonLocalizedLabel(
+            [in] ICharSequence* label);
+
+        GetIcon(
+            [out] Int32* icon);
+
+        SetIcon(
+            [in] Int32 icon);
+
+        GetResolveCapsuleName(
+            [out] String* capsuleName);
+
+        SetResolveCapsuleName(
+            [in] String capsuleName);
     }
 }

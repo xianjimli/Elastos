@@ -844,4 +844,13 @@ module
             [in] Float x,
             [in] Float y);
     }
+
+    interface IMotionEventHelper {
+        /**
+         * Create a new MotionEvent, copying from an existing one.
+         */
+        Obtain(
+            [in] IMotionEvent* o,
+            [out] IMotionEvent** event);
+    }
 }

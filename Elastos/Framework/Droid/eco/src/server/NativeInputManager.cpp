@@ -1,5 +1,6 @@
 
 #include "server/NativeInputManager.h"
+#include "view/NativeInputChannel.h"
 #include <Slogger.h>
 
 using namespace Elastos::Utility::Logging;
@@ -54,7 +55,7 @@ void NativeInputManager::setDisplayOrientation(
 
 android::status_t NativeInputManager::registerInputChannel(
     /* [in] */ const android::sp<android::InputChannel>& inputChannel,
-    /* [in] */ CInputChannel* inputChannelObj,
+    /* [in] */ IInputChannel* inputChannelObj,
     /* [in] */ bool monitor)
 {
     assert(inputChannelObj != NULL);
@@ -111,7 +112,7 @@ android::status_t NativeInputManager::unregisterInputChannel(
     return mInputManager->getDispatcher()->unregisterInputChannel(inputChannel);
 }
 
-CInputChannel* NativeInputManager::getInputChannelObjLocal(
+IInputChannel* NativeInputManager::getInputChannelObjLocal(
     /* [in] */ const android::sp<android::InputChannel>& inputChannel)
 {
     android::InputChannel* inputChannelPtr = inputChannel.get();
@@ -325,7 +326,7 @@ nsecs_t NativeInputManager::notifyANR(
     }
 
     Int64 newTimeout;
-    CInputChannel* inputChannelObjLocal = getInputChannelObjLocal(inputChannel);
+    IInputChannel* inputChannelObjLocal = getInputChannelObjLocal(inputChannel);
     if (SUCCEEDED(mCallbacks->NotifyANR(tokenObjLocal,
             inputChannelObjLocal, &newTimeout))) {
         assert(newTimeout >= 0);
@@ -345,7 +346,7 @@ void NativeInputManager::notifyInputChannelBroken(
 //    LOGD("notifyInputChannelBroken - inputChannel='%s'", inputChannel->getName().string());
 //#endif
 
-    CInputChannel* inputChannelObjLocal = getInputChannelObjLocal(inputChannel);
+    IInputChannel* inputChannelObjLocal = getInputChannelObjLocal(inputChannel);
     if (inputChannelObjLocal) {
         mCallbacks->NotifyInputChannelBroken(inputChannelObjLocal);
     }
@@ -421,9 +422,10 @@ bool NativeInputManager::populateWindow(
 {
     bool valid = false;
 
-    AutoPtr<CInputChannel> inputChannelObj = windowObj->mInputChannel;
+    IInputChannel* inputChannelObj = windowObj->mInputChannel;
     if (inputChannelObj) {
-        NativeInputChannel* nativeInputChannel = inputChannelObj->mPtr;
+        NativeInputChannel* nativeInputChannel;
+        inputChannelObj->GetNativeInputChannel((Handle32*)&nativeInputChannel);
         android::sp<android::InputChannel> inputChannel =
                 nativeInputChannel != NULL ? nativeInputChannel->getInputChannel() : NULL;
         if (inputChannel != NULL) {
@@ -582,13 +584,14 @@ bool NativeInputManager::interceptKeyBeforeDispatching(
 
         // Note: inputChannel may be null.
         Boolean consumed;
-        CInputChannel* inputChannelObj = getInputChannelObjLocal(inputChannel);
+        IInputChannel* inputChannelObj = getInputChannelObjLocal(inputChannel);
         ECode ec = mCallbacks->InterceptKeyBeforeDispatching(inputChannelObj, keyEvent->getAction(),
                 keyEvent->getFlags(), keyEvent->getKeyCode(), keyEvent->getScanCode(),
                 keyEvent->getMetaState(), keyEvent->getRepeatCount(), policyFlags, &consumed);
 
         return (bool)(consumed && SUCCEEDED(ec));
-    } else {
+    }
+    else {
         return false;
     }
 }

@@ -3,7 +3,6 @@
 #include "utils/CTypedValue.h"
 #include "utils/CDisplayMetrics.h"
 #include <elastos/Math.h>
-#include <string.h>
 
 using namespace Elastos::Core;
 
@@ -303,3 +302,63 @@ ECode CTypedValue::GetDescription(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode CTypedValue::GetType(
+    /* [out] */ Int32* type)
+{
+    VALIDATE_NOT_NULL(type);
+    *type = mType;
+    return NOERROR;
+}
+
+ECode CTypedValue::SetType(
+    /* [in] */ Int32 type)
+{
+    mType = type;
+    return NOERROR;
+}
+
+ECode CTypedValue::GetString(
+    /* [out] */ ICharSequence** string)
+{
+    VALIDATE_NOT_NULL(string);
+    *string = mString;
+    if (*string != NULL) (*string)->AddRef();
+    return NOERROR;
+}
+
+ECode CTypedValue::SetString(
+    /* [in] */ ICharSequence* string)
+{
+    mString = string;
+    return NOERROR;
+}
+
+ECode CTypedValue::GetData(
+    /* [out] */ Int32* data)
+{
+    VALIDATE_NOT_NULL(data);
+    *data = mData;
+    return NOERROR;
+}
+
+ECode CTypedValue::SetData(
+    /* [in] */ Int32 data)
+{
+    mData = data;
+    return NOERROR;
+}
+
+ECode CTypedValue::GetResourceId(
+    /* [out] */ Int32* resId)
+{
+    VALIDATE_NOT_NULL(resId);
+    *resId = mResourceId;
+    return NOERROR;
+}
+
+ECode CTypedValue::SetResourceId(
+    /* [in] */ Int32 resId)
+{
+    mResourceId = resId;
+    return NOERROR;
+}

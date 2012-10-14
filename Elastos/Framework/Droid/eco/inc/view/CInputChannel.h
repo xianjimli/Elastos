@@ -32,10 +32,13 @@ public:
      * Explicitly releases the reference this object is holding on the input channel.
      * When all references are released, the input channel will be closed.
      */
-    CARAPI_(void) Dispose();
+    CARAPI Dispose();
 
     CARAPI TransferToBinderOutParameter(
-        /* [in] */ CInputChannel* outParameter);
+        /* [in] */ IInputChannel* outParameter);
+
+    CARAPI GetNativeInputChannel(
+        /* [out] */ Handle32* nativeInputChannel);
 
     CARAPI ReadFromParcel(
         /* [in] */ IParcel *source);
@@ -45,12 +48,11 @@ public:
 
 private:
     friend class InputManager;
-#ifdef _linux
     friend class NativeInputQueue;
     friend class NativeInputManager;
+    friend class CInputChannelHelper;
 
     NativeInputChannel* mPtr; // used by native code
-#endif
 
     Boolean mDisposeAfterWriteToParcel;
 };

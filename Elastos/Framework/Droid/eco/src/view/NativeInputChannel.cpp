@@ -21,7 +21,7 @@ void NativeInputChannel::setDisposeCallback(
 }
 
 void NativeInputChannel::invokeAndRemoveDisposeCallback(
-    /* [in] */ CInputChannel* obj)
+    /* [in] */ IInputChannel* obj)
 {
     if (mDisposeCallback) {
         mDisposeCallback(obj, mInputChannel, mDisposeData);

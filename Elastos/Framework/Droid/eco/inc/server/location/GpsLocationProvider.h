@@ -3,7 +3,7 @@
 #define __GPSLOCATIONPROVIDER_H__
 
 #include "server/location/LocationProviderInterface.h"
-#include "location/internal/GpsNetInitiatedHandler.h"
+#include "location/GpsNetInitiatedHandler.h"
 //#include "hardware/gps.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/List.h>

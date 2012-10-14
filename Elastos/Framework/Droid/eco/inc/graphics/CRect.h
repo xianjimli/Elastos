@@ -132,6 +132,30 @@ public:
     CARAPI Scale(
         /* [in] */ Float scale);
 
+    CARAPI GetLeft(
+        /* [out] */ Int32* left);
+
+    CARAPI SetLeft(
+        /* [in] */ Int32 left);
+
+    CARAPI GetTop(
+        /* [out] */ Int32* top);
+
+    CARAPI SetTop(
+        /* [in] */ Int32 top);
+
+    CARAPI GetRight(
+        /* [out] */ Int32* right);
+
+    CARAPI SetRight(
+        /* [in] */ Int32 right);
+
+    CARAPI GetBottom(
+        /* [out] */ Int32* bottom);
+
+    CARAPI SetBottom(
+        /* [in] */ Int32 bottom);
+
     CARAPI ReadFromParcel(
         /* [in] */ IParcel* source);
 

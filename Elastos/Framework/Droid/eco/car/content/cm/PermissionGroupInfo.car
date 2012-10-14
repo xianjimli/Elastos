@@ -1,7 +1,7 @@
 
 module
 {
-    interface IPermissionGroupInfo {
+    interface IPermissionGroupInfo extends ICapsuleItemInfo {
         /**
          * Retrieve the textual description of this permission.  This
          * will call back on the given PackageManager to load the description from
@@ -19,6 +19,12 @@ module
 
         GetDescription(
             [out] String* des);
+
+        GetDescriptionRes(
+            [out] Int32* desRes);
+
+        SetDescriptionRes(
+            [in] Int32 desRes);
     }
 }
 

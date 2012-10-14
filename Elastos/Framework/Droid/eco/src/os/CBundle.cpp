@@ -18,6 +18,7 @@ ECode CBundle::Clear()
     mData.Clear();
 //    mHasFds = false;
 //    mFdsKnown = true;
+    return NOERROR;
 }
 
 ECode CBundle::PutAll(
@@ -34,6 +35,7 @@ ECode CBundle::PutAll(
     // fd state is now known if and only if both bundles already knew
 //    mHasFds |= map.mHasFds;
 //    mFdsKnown = mFdsKnown && map.mFdsKnown;
+    return NOERROR;
 }
 
 ECode CBundle::PutBoolean(

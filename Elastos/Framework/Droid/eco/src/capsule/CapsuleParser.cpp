@@ -1,18 +1,21 @@
 
-#include "ext/frameworkdef.h"
-#include "utils/AutoStringArray.h"
-#include "utils/XmlUtils.h"
-#include "utils/ListUtils.h"
-#include "utils/CTypedValue.h"
+#include "ext/frameworkext.h"
 #include "capsule/CapsuleParser.h"
+#ifdef _FRAMEWORK_CORE
 #include "capsule/CActivityInfo.h"
-#include "content/CapsuleManager.h"
 #include "content/CAssetManager.h"
 #include "content/CResources.h"
 #include "content/CInstrumentationInfo.h"
-#include "server/Config.h"
-#include "os/Build.h"
 #include "os/CPatternMatcher.h"
+#include "utils/CTypedValue.h"
+#endif
+#include "content/CapsuleManager.h"
+#include "os/Build.h"
+#include "utils/AutoStringArray.h"
+#include "utils/XmlUtils.h"
+#include "utils/ListUtils.h"
+#include "utils/Config.h"
+#include <elastos/Algorithm.h>
 #include <Logger.h>
 #include <Slogger.h>
 #include <StringBuffer.h>
@@ -27,7 +30,7 @@ using namespace Elastos::Utility::Logging;
 template <typename II>
 CapsuleParser::Component<II>::Component(
     /* [in] */ ParseCapsuleItemArgs* args,
-    /* [in, out] */ CapsuleItemInfo* outInfo)
+    /* [in, out] */ ICapsuleItemInfo* outInfo)
 {
     ECode ec = NOERROR;
     mOwner = args->mOwner;
@@ -41,7 +44,7 @@ CapsuleParser::Component<II>::Component(
 
 //        outInfo.name
 //            = buildClassName(owner.applicationInfo.packageName, name, args.outError);
-    outInfo->mName = mClassName;
+    outInfo->SetName(mClassName);
 //        if (outInfo.name == null) {
 //            className = null;
 //            args.outError[0] = args.tag + " does not have valid android:name";
@@ -76,8 +79,10 @@ ECode CapsuleParser::Component<II>::GetComponentName(
         return NOERROR;
     }
     if (!mClassName.IsNull()) {
-        CComponentName::New(mOwner->mApplicationInfo->mCapsuleName,
-            mClassName, (IComponentName**)&mComponentName);
+        String cname;
+        mOwner->mApplicationInfo->GetCapsuleName(&cname);
+        CComponentName::New(cname, mClassName,
+                (IComponentName**)&mComponentName);
     }
     *component = mComponentName;
     if (*component) (*component)->AddRef();
@@ -133,12 +138,12 @@ CapsuleParser::PermissionGroup::PermissionGroup(
     /* [in] */ Capsule* owner)
     : Component<IntentInfo>(owner)
 {
-    CPermissionGroupInfo::NewByFriend((CPermissionGroupInfo**)&mInfo);
+    CPermissionGroupInfo::New((IPermissionGroupInfo**)&mInfo);
 }
 
 CapsuleParser::PermissionGroup::PermissionGroup(
     /* [in] */ Capsule* owner,
-    /* [in] */ CPermissionGroupInfo* info)
+    /* [in] */ IPermissionGroupInfo* info)
     : Component<IntentInfo>(owner)
     , mInfo(info)
 {
@@ -152,16 +157,18 @@ void CapsuleParser::PermissionGroup::SetCapsuleName(
     /* [in] */ const String& capsuleName)
 {
     Component<IntentInfo>::SetCapsuleName(capsuleName);
-    mInfo->mCapsuleName = capsuleName;
+    mInfo->SetCapsuleName(capsuleName);
 }
 
 ECode CapsuleParser::PermissionGroup::GetDescription(
     /* [out] */ String* des)
 {
     assert(des);
+    String name;
+    mInfo->GetName(&name);
     *des = (const char*)(StringBuffer("PermissionGroup{")
             + this /*Integer::toHexString(System->IdentityHashCode(this))*/
-            + " " + (const char*)mInfo->mName + "}");
+            + " " + (const char*)name + "}");
     return NOERROR;
 }
 
@@ -170,8 +177,8 @@ ECode CapsuleParser::PermissionGroup::GetDescription(
 
 CapsuleParser::IntentInfo::IntentInfo()
 {
-    assert(SUCCEEDED(CIntentFilter::NewByFriend(
-            (CIntentFilter**)&mFilter)));
+    assert(SUCCEEDED(CIntentFilter::New(
+            (IIntentFilter**)&mFilter)));
 }
 
 ECode CapsuleParser::IntentInfo::SetPriority(
@@ -249,6 +256,42 @@ CapsuleParser::ActivityIntentInfo::ActivityIntentInfo(
     mActivity(activity)
 {}
 
+CapsuleParser::Activity::Activity(
+    /* [in] */ ParseComponentArgs* args,
+    /* [in] */ IActivityInfo* info)
+    : Component<ActivityIntentInfo>(args, info)
+{
+    mInfo = info;
+    mInfo->SetApplicationInfo(args->mOwner->mApplicationInfo);
+}
+
+CapsuleParser::Service::Service(
+    /* [in] */ ParseComponentArgs* args,
+    /* [in] */ IServiceInfo* info)
+    : Component<ServiceIntentInfo>(args, info)
+{
+    mInfo = info;
+    mInfo->SetApplicationInfo(args->mOwner->mApplicationInfo);
+}
+
+CapsuleParser::ContentProvider::ContentProvider(
+    /* [in] */ ContentProvider* existingProvider)
+    : Component<IntentInfo>(existingProvider)
+{
+    this->mInfo = existingProvider->mInfo;
+    this->mSyncable = existingProvider->mSyncable;
+}
+
+CapsuleParser::ContentProvider::ContentProvider(
+    /* [in] */ ParseComponentArgs* args,
+    /* [in] */ IContentProviderInfo* info)
+    : Component<IntentInfo>(args, info)
+    , mSyncable(FALSE)
+{
+    mInfo = info;
+    mInfo->SetApplicationInfo(args->mOwner->mApplicationInfo);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // CapsuleParser::Capsule
 
@@ -291,7 +334,7 @@ void CapsuleParser::Capsule::SetCapsuleName(
     /* [in] */ const String& newName)
 {
     mCapsuleName = newName;
-    mApplicationInfo->mCapsuleName = newName;
+    mApplicationInfo->SetCapsuleName(newName);
 //        for (int i=permissions.size()-1; i>=0; i--) {
 //            permissions.get(i).setPackageName(newName);
 //        }
@@ -417,43 +460,42 @@ void CapsuleParser::ValidateName(
     }
 }
 
-AutoPtr<CCapsuleInfo> CapsuleParser::GenerateCapsuleInfo(
+AutoPtr<ICapsuleInfo> CapsuleParser::GenerateCapsuleInfo(
     /* [in] */ Capsule* c,
     /* [in] */ const ArrayOf<Int32>* gids,
     /* [in] */ Int32 flags,
     /* [in] */ Int64 firstInstallTime,
     /* [in] */ Int64 lastUpdateTime)
 {
-    AutoPtr<CCapsuleInfo> ci;
-    CCapsuleInfo::NewByFriend((CCapsuleInfo**)&ci);
-    ci->mCapsuleName = c->mCapsuleName;
-    ci->mVersionCode = c->mVersionCode;
-    ci->mVersionName = c->mVersionName;
-    ci->mSharedUserId = c->mSharedUserId;
-    ci->mSharedUserLabel = c->mSharedUserLabel;
-    AutoPtr<CApplicationInfo> info = GenerateApplicationInfo(c, flags);
-    ci->mApplicationInfo = (IApplicationInfo*)info;
-    ci->mInstallLocation = c->mInstallLocation;
-    ci->mFirstInstallTime = firstInstallTime;
-    ci->mLastUpdateTime = lastUpdateTime;
+    AutoPtr<ICapsuleInfo> ci;
+    CCapsuleInfo::New((ICapsuleInfo**)&ci);
+    ci->SetCapsuleName(c->mCapsuleName);
+    ci->SetVersionCode(c->mVersionCode);
+    ci->SetVersionName(c->mVersionName);
+    ci->SetSharedUserId(c->mSharedUserId);
+    ci->SetSharedUserLabel(c->mSharedUserLabel);
+    ci->SetApplicationInfo(GenerateApplicationInfo(c, flags));
+    ci->SetInstallLocation(c->mInstallLocation);
+    ci->SetFirstInstallTime(firstInstallTime);
+    ci->SetLastUpdateTime(lastUpdateTime);
     if ((flags & CapsuleManager_GET_GIDS) != 0) {
-        ci->mGids = (ArrayOf<Int32>*)gids;
+        ci->SetGids((ArrayOf<Int32>*)gids);
     }
     if ((flags & CapsuleManager_GET_CONFIGURATIONS) != 0) {
         if (c->mConfigPreferences.Begin() != c->mConfigPreferences.End()) {
-            List< AutoPtr<CConfigurationInfo> >::Iterator itor;
+            List< AutoPtr<IConfigurationInfo> >::Iterator itor;
             for (itor = c->mConfigPreferences.Begin();
                  itor != c->mConfigPreferences.End();
                  ++itor) {
-                ci->mConfigPreferences.PushBack(*itor);
+                ci->AddConfigPreference(*itor);
             }
         }
         if (c->mReqFeatures.Begin() != c->mReqFeatures.End()) {
-            List< AutoPtr<CFeatureInfo> >::Iterator itor;
+            List< AutoPtr<IFeatureInfo> >::Iterator itor;
             for (itor = c->mReqFeatures.Begin();
                  itor != c->mReqFeatures.End();
                  ++itor) {
-                ci->mReqFeatures.PushBack(*itor);
+                ci->AddReqFeature(*itor);
             }
         }
     }
@@ -464,10 +506,11 @@ AutoPtr<CCapsuleInfo> CapsuleParser::GenerateCapsuleInfo(
                  itor != c->mActivities.End();
                  ++itor) {
                 Activity* activity = *itor;
-                if (activity->mInfo->mEnabled
-                    || (flags & CapsuleManager_GET_DISABLED_COMPONENTS) != 0) {
-                    AutoPtr<CActivityInfo> info = GenerateActivityInfo(activity, flags);
-                    ci->mActivities.PushBack((IActivityInfo*)info.Get());
+                Boolean isEnabled;
+                activity->mInfo->IsEnabled(&isEnabled);
+                if (isEnabled || (flags & CapsuleManager_GET_DISABLED_COMPONENTS) != 0) {
+                    AutoPtr<IActivityInfo> info = GenerateActivityInfo(activity, flags);
+                    ci->AddActivity(info);
                 }
             }
         }
@@ -479,10 +522,11 @@ AutoPtr<CCapsuleInfo> CapsuleParser::GenerateCapsuleInfo(
                  itor != c->mReceivers.End();
                  ++itor) {
                 Activity* activity = *itor;
-                if (activity->mInfo->mEnabled
-                    || (flags & CapsuleManager_GET_DISABLED_COMPONENTS) != 0) {
-                    AutoPtr<CActivityInfo> info = GenerateActivityInfo(activity, flags);
-                    ci->mReceivers.PushBack((IActivityInfo*)info.Get());
+                Boolean isEnabled;
+                activity->mInfo->IsEnabled(&isEnabled);
+                if (isEnabled || (flags & CapsuleManager_GET_DISABLED_COMPONENTS) != 0) {
+                    AutoPtr<IActivityInfo> info = GenerateActivityInfo(activity, flags);
+                    ci->AddReceiver(info);
                 }
             }
         }
@@ -494,10 +538,11 @@ AutoPtr<CCapsuleInfo> CapsuleParser::GenerateCapsuleInfo(
                  itor != c->mServices.End();
                  ++itor) {
                 Service* service = *itor;
-                if (service->mInfo->mEnabled
-                    || (flags & CapsuleManager_GET_DISABLED_COMPONENTS) != 0) {
-                    AutoPtr<CServiceInfo> info = GenerateServiceInfo(service, flags);
-                    ci->mServices.PushBack((IServiceInfo*)info.Get());
+                Boolean isEnabled;
+                service->mInfo->IsEnabled(&isEnabled);
+                if (isEnabled || (flags & CapsuleManager_GET_DISABLED_COMPONENTS) != 0) {
+                    AutoPtr<IServiceInfo> info = GenerateServiceInfo(service, flags);
+                    ci->AddService(info);
                 }
             }
         }
@@ -509,10 +554,11 @@ AutoPtr<CCapsuleInfo> CapsuleParser::GenerateCapsuleInfo(
                  itor != c->mContentProviders.End();
                  ++itor) {
                 ContentProvider* provider = *itor;
-                if (provider->mInfo->mEnabled
-                    || (flags & CapsuleManager_GET_DISABLED_COMPONENTS) != 0) {
-                    AutoPtr<CContentProviderInfo> info = GenerateContentProviderInfo(provider, flags);
-                    ci->mContentProviders.PushBack((IContentProviderInfo*)info.Get());
+                Boolean isEnabled;
+                provider->mInfo->IsEnabled(&isEnabled);
+                if (isEnabled || (flags & CapsuleManager_GET_DISABLED_COMPONENTS) != 0) {
+                    AutoPtr<IContentProviderInfo> info = GenerateContentProviderInfo(provider, flags);
+                    ci->AddContentProvider(info);
                 }
             }
         }
@@ -523,8 +569,8 @@ AutoPtr<CCapsuleInfo> CapsuleParser::GenerateCapsuleInfo(
             for (itor = c->mInstrumentation.Begin();
                  itor != c->mInstrumentation.End();
                  ++itor) {
-                AutoPtr<CInstrumentationInfo> ins = GenerateInstrumentationInfo(*itor, flags);
-                ci->mInstrumentation.PushBack((IInstrumentationInfo*)ins.Get());
+                AutoPtr<IInstrumentationInfo> ins = GenerateInstrumentationInfo(*itor, flags);
+                ci->AddInstrumentation(ins);
             }
         }
     }
@@ -535,7 +581,7 @@ AutoPtr<CCapsuleInfo> CapsuleParser::GenerateCapsuleInfo(
                  itor != c->mPermissions.End();
                  ++itor) {
                 AutoPtr<IPermissionInfo> info= GeneratePermissionInfo(*itor, flags);
-                ci->mPermissions.PushBack(info);
+                ci->AddPermission(info);
             }
         }
         if (c->mRequestedPermissions.Begin() != c->mRequestedPermissions.End()) {
@@ -543,19 +589,19 @@ AutoPtr<CCapsuleInfo> CapsuleParser::GenerateCapsuleInfo(
             for (itor = c->mRequestedPermissions.Begin();
                  itor != c->mRequestedPermissions.End();
                  ++itor) {
-                ci->mRequestedPermissions.PushBack(*itor);
+                ci->AddRequestedPermission(*itor);
             }
         }
     }
     if ((flags & CapsuleManager_GET_SIGNATURES) != 0) {
         for (Int32 i = 0; i < c->mSignatures->GetLength(); ++i) {
-            ci->mSignatures.PushBack((*c->mSignatures)[i]);
+            ci->AddSignature((*c->mSignatures)[i]);
         }
     }
     return ci;
 }
 
-AutoPtr<CPermissionInfo> CapsuleParser::GeneratePermissionInfo(
+AutoPtr<IPermissionInfo> CapsuleParser::GeneratePermissionInfo(
     /* [in] */ Permission* p,
     /* [in] */ Int32 flags)
 {
@@ -565,15 +611,14 @@ AutoPtr<CPermissionInfo> CapsuleParser::GeneratePermissionInfo(
         return p->mInfo;
     }
 
-    AutoPtr<CPermissionInfo> pi;
-    ASSERT_SUCCEEDED(CPermissionInfo::NewByFriend(
-            (IPermissionInfo*)p->mInfo.Get(),
-            (CPermissionInfo**)&pi));
-    pi->mMetaData = (IBundle*)p->mMetaData.Get();
+    AutoPtr<IPermissionInfo> pi;
+    ASSERT_SUCCEEDED(CPermissionInfo::New(
+            p->mInfo.Get(), (IPermissionInfo**)&pi));
+    pi->SetMetaData(p->mMetaData);
     return pi;
 }
 
-AutoPtr<CPermissionGroupInfo> CapsuleParser::GeneratePermissionGroupInfo(
+AutoPtr<IPermissionGroupInfo> CapsuleParser::GeneratePermissionGroupInfo(
     /* [in] */ PermissionGroup* pg,
     /* [in] */ Int32 flags)
 {
@@ -583,10 +628,10 @@ AutoPtr<CPermissionGroupInfo> CapsuleParser::GeneratePermissionGroupInfo(
         return pg->mInfo;
     }
 
-    AutoPtr<CPermissionGroupInfo> pgi;
-    ASSERT_SUCCEEDED(CPermissionGroupInfo::NewByFriend(
-        pg->mInfo.Get(), (CPermissionGroupInfo**)&pgi));
-    pgi->mMetaData = (IBundle*)pg->mMetaData.Get();
+    AutoPtr<IPermissionGroupInfo> pgi;
+    ASSERT_SUCCEEDED(CPermissionGroupInfo::New(
+        pg->mInfo.Get(), (IPermissionGroupInfo**)&pgi));
+    pgi->SetMetaData(pg->mMetaData);
     return pgi;
 }
 
@@ -958,7 +1003,7 @@ ECode CapsuleParser::ParseCapsule(
     sa->GetInteger(
             4 /*com.android.internal.R.styleable.AndroidManifest_installLocation*/,
             PARSE_DEFAULT_INSTALL_LOCATION, &cap->mInstallLocation);
-    cap->mApplicationInfo->mInstallLocation = cap->mInstallLocation;
+    cap->mApplicationInfo->SetInstallLocation(cap->mInstallLocation);
 
     // Resource boolean are -1, so 1 means we don't know the value.
     Int32 supportsSmallScreens = 1;
@@ -1043,35 +1088,45 @@ ECode CapsuleParser::ParseCapsule(
 
         }
         else if (tagName.Equals("uses-configuration")) {
-            AutoPtr<CConfigurationInfo> cPref;
-            FAIL_RETURN(CConfigurationInfo::NewByFriend((CConfigurationInfo**)&cPref));
+            AutoPtr<IConfigurationInfo> cPref;
+            FAIL_RETURN(CConfigurationInfo::New((IConfigurationInfo**)&cPref));
             if (sa != NULL) sa->Release();
             FAIL_RETURN(res->ObtainAttributes(attrs,
                 ArrayOf<Int32>(R_Styleable_AndroidManifestUsesConfiguration,
                     sizeof(R_Styleable_AndroidManifestUsesConfiguration) / sizeof(Int32))
                 /*com.android.internal.R.styleable.AndroidManifestUsesConfiguration*/,
                 (ITypedArray**)&sa));
+            Int32 ivalue;
             sa->GetInt32(
                 0 /*com.android.internal.R.styleable.AndroidManifestUsesConfiguration_reqTouchScreen*/,
-                Configuration_TOUCHSCREEN_UNDEFINED, &cPref->mReqTouchScreen);
+                Configuration_TOUCHSCREEN_UNDEFINED, &ivalue);
+            cPref->SetReqTouchScreen(ivalue);
             sa->GetInt32(
                 1 /*com.android.internal.R.styleable.AndroidManifestUsesConfiguration_reqKeyboardType*/,
-                Configuration_KEYBOARD_UNDEFINED, &cPref->mReqKeyboardType);
+                Configuration_KEYBOARD_UNDEFINED, &ivalue);
+            cPref->SetReqKeyboardType(ivalue);
             Boolean value = FALSE;
             sa->GetBoolean(
                 2 /*com.android.internal.R.styleable.AndroidManifestUsesConfiguration_reqHardKeyboard*/,
                 FALSE, &value);
             if (value) {
-                cPref->mReqInputFeatures |= ConfigurationInfo_INPUT_FEATURE_HARD_KEYBOARD;
+                Int32 req;
+                cPref->GetReqInputFeatures(&req);
+                req |= ConfigurationInfo_INPUT_FEATURE_HARD_KEYBOARD;
+                cPref->SetReqInputFeatures(req);
             }
             sa->GetInt32(
                 3 /*com.android.internal.R.styleable.AndroidManifestUsesConfiguration_reqNavigation*/,
-                Configuration_NAVIGATION_UNDEFINED, &cPref->mReqNavigation);
+                Configuration_NAVIGATION_UNDEFINED, &ivalue);
+            cPref->SetReqNavigation(ivalue);
             sa->GetBoolean(
                 4 /*com.android.internal.R.styleable.AndroidManifestUsesConfiguration_reqFiveWayNav*/,
                 FALSE, &value);
             if (value) {
-                cPref->mReqInputFeatures |= ConfigurationInfo_INPUT_FEATURE_FIVE_WAY_NAV;
+                Int32 req;
+                cPref->GetReqInputFeatures(&req);
+                req |= ConfigurationInfo_INPUT_FEATURE_FIVE_WAY_NAV;
+                cPref->SetReqInputFeatures(req);
             }
             sa->Recycle();
             cap->mConfigPreferences.PushBack(cPref);
@@ -1080,8 +1135,8 @@ ECode CapsuleParser::ParseCapsule(
 
         }
         else if (tagName.Equals("uses-feature")) {
-            AutoPtr<CFeatureInfo> fi;
-            FAIL_RETURN(CFeatureInfo::NewByFriend((CFeatureInfo**)&fi));
+            AutoPtr<IFeatureInfo> fi;
+            FAIL_RETURN(CFeatureInfo::New((IFeatureInfo**)&fi));
             if (sa != NULL) sa->Release();
             FAIL_RETURN(res->ObtainAttributes(attrs,
                 ArrayOf<Int32>(R_Styleable_AndroidManifestUsesFeature,
@@ -1090,28 +1145,37 @@ ECode CapsuleParser::ParseCapsule(
                 (ITypedArray**)&sa));
             // Note: don't allow this value to be a reference to a resource
             // that may change
+            String fiName;
             sa->GetNonResourceString(
                 0 /*com.android.internal.R.styleable.AndroidManifestUsesFeature_name*/,
-                &fi->mName);
-            if (fi->mName.IsNull()) {
+                &fiName);
+            fi->SetName(fiName);
+            if (fiName.IsNull()) {
+                Int32 ivalue;
                 sa->GetInt32(
                     1 /*com.android.internal.R.styleable.AndroidManifestUsesFeature_glEsVersion*/,
-                    FeatureInfo_GL_ES_VERSION_UNDEFINED, &fi->mReqGlEsVersion);
+                    FeatureInfo_GL_ES_VERSION_UNDEFINED, &ivalue);
+                fi->SetReqGlEsVersion(ivalue);
             }
             Boolean value = FALSE;
             sa->GetBoolean(
                 2 /*com.android.internal.R.styleable.AndroidManifestUsesFeature_required*/,
                 TRUE, &value);
             if (value) {
-                fi->mFlags |= FeatureInfo_FLAG_REQUIRED;
+                Int32 fiFlags;
+                fi->GetFlags(&fiFlags);
+                fiFlags |= FeatureInfo_FLAG_REQUIRED;
+                fi->SetFlags(fiFlags);
             }
             sa->Recycle();
             cap->mReqFeatures.PushBack(fi);
 
-            if (fi->mName.IsNull()) {
-                AutoPtr<CConfigurationInfo> cPref;
-                FAIL_RETURN(CConfigurationInfo::NewByFriend((CConfigurationInfo**)&cPref));
-                cPref->mReqGlEsVersion = fi->mReqGlEsVersion;
+            if (fiName.IsNull()) {
+                AutoPtr<IConfigurationInfo> cPref;
+                FAIL_RETURN(CConfigurationInfo::New((IConfigurationInfo**)&cPref));
+                Int32 version;
+                fi->GetReqGlEsVersion(&version);
+                cPref->SetReqGlEsVersion(version);
                 cap->mConfigPreferences.PushBack(cPref);
             }
 
@@ -1137,15 +1201,21 @@ ECode CapsuleParser::ParseCapsule(
                     0 /*com.android.internal.R.styleable.AndroidManifestUsesSdk_minSdkVersion*/,
                     (ITypedValue**)&val);
                 if (val != NULL) {
-                    if (((CTypedValue*)val.Get())->mType == TypedValue_TYPE_STRING
-                        && ((CTypedValue*)val.Get())->mString != NULL) {
+                    Int32 valType;
+                    val->GetType(&valType);
+                    AutoPtr<ICharSequence> valString;
+                    val->GetString((ICharSequence**)&valString);
+                    if (valType == TypedValue_TYPE_STRING && valString != NULL) {
                         String str;
-                        ((CTypedValue*)val.Get())->mString->ToString(&str);
+                        valString->ToString(&str);
                         minCode = str;
                         targetCode = str;
-                    } else {
+                    }
+                    else {
                         // If it's not a string, it's an integer.
-                        targetVers = minVers = ((CTypedValue*)val.Get())->mData;
+                        Int32 valData;
+                        val->GetData(&valData);
+                        targetVers = minVers = valData;
                     }
                 }
 
@@ -1154,15 +1224,21 @@ ECode CapsuleParser::ParseCapsule(
                     1 /*com.android.internal.R.styleable.AndroidManifestUsesSdk_targetSdkVersion*/,
                     (ITypedValue**)&val);
                 if (val != NULL) {
-                    if (((CTypedValue*)val.Get())->mType == TypedValue_TYPE_STRING
-                        && ((CTypedValue*)val.Get())->mString != NULL) {
+                    Int32 valType;
+                    val->GetType(&valType);
+                    AutoPtr<ICharSequence> valString;
+                    val->GetString((ICharSequence**)&valString);
+                    if (valType == TypedValue_TYPE_STRING && valString != NULL) {
                         String str;
-                        ((CTypedValue*)val.Get())->mString->ToString(&str);
+                        valString->ToString(&str);
                         minCode = str;
                         targetCode = str;
-                    } else {
+                    }
+                    else {
                         // If it's not a string, it's an integer.
-                        targetVers = ((CTypedValue*)val.Get())->mData;
+                        Int32 valData;
+                        val->GetData(&valData);
+                        targetVers = valData;
                     }
                 }
 
@@ -1208,7 +1284,7 @@ ECode CapsuleParser::ParseCapsule(
 //	                    cap->mApplicationInfo->mTargetSdkVersion
 //	                        = android->mOs->mBuild::VERSION_CODES->mCUR_DEVELOPMENT;
                 } else {
-                    cap->mApplicationInfo->mTargetSdkVersion = targetVers;
+                    cap->mApplicationInfo->SetTargetSdkVersion(targetVers);
                 }
             }
 
@@ -1380,7 +1456,9 @@ ECode CapsuleParser::ParseCapsule(
     for (Int32 ip = 0; ip < NP; ip++) {
         const NewPermissionInfo* npi
                 = CapsuleParser::NEW_PERMISSIONS[ip];
-        if (cap->mApplicationInfo->mTargetSdkVersion >= npi->mSdkVersion) {
+        Int32 sdkVersion;
+        cap->mApplicationInfo->GetTargetSdkVersion(&sdkVersion);
+        if (sdkVersion >= npi->mSdkVersion) {
             break;
         }
         if (Find(cap->mRequestedPermissions.Begin(), cap->mRequestedPermissions.End(), npi->mName)
@@ -1400,33 +1478,37 @@ ECode CapsuleParser::ParseCapsule(
         Logger::I(TAG, implicitPerms);
     }
 
+    Int32 capSdkVersion, capFlags;
+    cap->mApplicationInfo->GetTargetSdkVersion(&capSdkVersion);
+    cap->mApplicationInfo->GetFlags(&capFlags);
     if (supportsSmallScreens < 0 || (supportsSmallScreens > 0
-        && cap->mApplicationInfo->mTargetSdkVersion
-        >= Build::VERSION_CODES::DONUT)) {
-        cap->mApplicationInfo->mFlags |= CApplicationInfo::FLAG_SUPPORTS_SMALL_SCREENS;
+        && capSdkVersion >= Build::VERSION_CODES::DONUT)) {
+        capFlags |= ApplicationInfo_FLAG_SUPPORTS_SMALL_SCREENS;
+        cap->mApplicationInfo->SetFlags(capFlags);
     }
     if (supportsNormalScreens != 0) {
-        cap->mApplicationInfo->mFlags |= CApplicationInfo::FLAG_SUPPORTS_NORMAL_SCREENS;
+        capFlags |= ApplicationInfo_FLAG_SUPPORTS_NORMAL_SCREENS;
+        cap->mApplicationInfo->SetFlags(capFlags);
     }
     if (supportsLargeScreens < 0 || (supportsLargeScreens > 0
-        && cap->mApplicationInfo->mTargetSdkVersion
-        >= Build::VERSION_CODES::DONUT)) {
-        cap->mApplicationInfo->mFlags |= CApplicationInfo::FLAG_SUPPORTS_LARGE_SCREENS;
+        && capSdkVersion >= Build::VERSION_CODES::DONUT)) {
+        capFlags |= ApplicationInfo_FLAG_SUPPORTS_LARGE_SCREENS;
+        cap->mApplicationInfo->SetFlags(capFlags);
     }
     if (supportsXLargeScreens < 0 || (supportsXLargeScreens > 0
-        && cap->mApplicationInfo->mTargetSdkVersion
-        >= Build::VERSION_CODES::GINGERBREAD)) {
-        cap->mApplicationInfo->mFlags |= CApplicationInfo::FLAG_SUPPORTS_XLARGE_SCREENS;
+        && capSdkVersion >= Build::VERSION_CODES::GINGERBREAD)) {
+        capFlags |= ApplicationInfo_FLAG_SUPPORTS_XLARGE_SCREENS;
+        cap->mApplicationInfo->SetFlags(capFlags);
     }
     if (resizeable < 0 || (resizeable > 0
-        && cap->mApplicationInfo->mTargetSdkVersion
-        >= Build::VERSION_CODES::DONUT)) {
-        cap->mApplicationInfo->mFlags |= CApplicationInfo::FLAG_RESIZEABLE_FOR_SCREENS;
+        && capSdkVersion >= Build::VERSION_CODES::DONUT)) {
+        capFlags |= ApplicationInfo_FLAG_RESIZEABLE_FOR_SCREENS;
+        cap->mApplicationInfo->SetFlags(capFlags);
     }
     if (anyDensity < 0 || (anyDensity > 0
-        && cap->mApplicationInfo->mTargetSdkVersion
-        >= Build::VERSION_CODES::DONUT)) {
-        cap->mApplicationInfo->mFlags |= CApplicationInfo::FLAG_SUPPORTS_SCREEN_DENSITIES;
+        && capSdkVersion >= Build::VERSION_CODES::DONUT)) {
+        capFlags |= ApplicationInfo_FLAG_SUPPORTS_SCREEN_DENSITIES;
+        cap->mApplicationInfo->SetFlags(capFlags);
     }
 
     return NOERROR;
@@ -1464,9 +1546,11 @@ CapsuleParser::PermissionGroup* CapsuleParser::ParsePermissionGroup(
         return NULL;
     }
 
+    Int32 desRes;
     sa->GetResourceId(
         3 /*com.android.internal.R.styleable.AndroidManifestPermissionGroup_description*/,
-        0, &perm->mInfo->mDescriptionRes);
+        0, &desRes);
+    perm->mInfo->SetDescriptionRes(desRes);
 
     sa->Recycle();
 
@@ -1510,21 +1594,27 @@ CapsuleParser::Permission* CapsuleParser::ParsePermission(
 
     // Note: don't allow this value to be a reference to a resource
     // that may change.
+    String group;
     sa->GetNonResourceString(
         4 /*com.android.internal.R.styleable.AndroidManifestPermission_permissionGroup*/,
-        &perm->mInfo->mGroup);
+        &group);
+    perm->mInfo->SetGroup(group);
 
+    Int32 desRes;
     sa->GetResourceId(
         5 /*com.android.internal.R.styleable.AndroidManifestPermission_description*/,
-        0, &perm->mInfo->mDescriptionRes);
+        0, &desRes);
+    perm->mInfo->SetDescriptionRes(desRes);
 
+    Int32 level;
     sa->GetInt32(
         3 /*com.android.internal.R.styleable.AndroidManifestPermission_protectionLevel*/,
-        PermissionInfo_PROTECTION_NORMAL, &perm->mInfo->mProtectionLevel);
+        PermissionInfo_PROTECTION_NORMAL, &level);
+    perm->mInfo->SetProtectionLevel(level);
 
     sa->Recycle();
 
-    if (perm->mInfo->mProtectionLevel == -1) {
+    if (level == -1) {
         (*outError)[0] = "<permission> does not specify protectionLevel";
         mParseError = CapsuleManager::INSTALL_PARSE_FAILED_MANIFEST_MALFORMED;
         return NULL;
@@ -1575,20 +1665,22 @@ CapsuleParser::Permission* CapsuleParser::ParsePermissionTree(
 
     sa->Recycle();
 
-    Int32 index = perm->mInfo->mName.IndexOf('.');
+    String permName;
+    perm->mInfo->GetName(&permName);
+    Int32 index = permName.IndexOf('.');
     if (index > 0) {
-        index = perm->mInfo->mName.Substring(index + 1).IndexOf('.');
+        index = permName.Substring(index + 1).IndexOf('.');
     }
     if (index < 0) {
         (*outError)[0] = (const char*)(
             StringBuffer("<permission-tree> name has less than three segments: ")
-            + perm->mInfo->mName);
+            + permName);
         mParseError = CapsuleManager::INSTALL_PARSE_FAILED_MANIFEST_MALFORMED;
         return NULL;
     }
 
-    perm->mInfo->mDescriptionRes = 0;
-    perm->mInfo->mProtectionLevel = PermissionInfo_PROTECTION_NORMAL;
+    perm->mInfo->SetDescriptionRes(0);
+    perm->mInfo->SetProtectionLevel(PermissionInfo_PROTECTION_NORMAL);
     perm->mTree = TRUE;
 
     if (!ParseAllMetaData(res, parser, attrs, "<permission-tree>", perm,
@@ -1633,8 +1725,8 @@ CapsuleParser::Instrumentation* CapsuleParser::ParseInstrumentation(
 
     mParseInstrumentationArgs->mSa = sa;
 
-    AutoPtr<CInstrumentationInfo> info;
-    FAIL_RETURN_NULL(CInstrumentationInfo::NewByFriend((CInstrumentationInfo**)&info));
+    AutoPtr<IInstrumentationInfo> info;
+    FAIL_RETURN_NULL(CInstrumentationInfo::New((IInstrumentationInfo**)&info));
     Instrumentation* a = new Instrumentation(mParseInstrumentationArgs, info.Get());
     if (!(*outError)[0].IsNull()) {
         sa->Recycle();
@@ -1644,21 +1736,26 @@ CapsuleParser::Instrumentation* CapsuleParser::ParseInstrumentation(
 
     // Note: don't allow this value to be a reference to a resource
     // that may change.
+    String targetCapsule;
     sa->GetNonResourceString(
         3 /*com.android.internal.R.styleable.AndroidManifestInstrumentation_targetCapsule*/,
-        &a->mInfo->mTargetCapsule);
+        &targetCapsule);
+    a->mInfo->SetTargetCapsule(targetCapsule);
 
+    Boolean bvalue;
     sa->GetBoolean(
         4 /*com.android.internal.R.styleable.AndroidManifestInstrumentation_handleProfiling*/,
-        FALSE, &a->mInfo->mHandleProfiling);
+        FALSE, &bvalue);
+    a->mInfo->SetHandleProfiling(bvalue);
 
     sa->GetBoolean(
         5 /*com.android.internal.R.styleable.AndroidManifestInstrumentation_functionalTest*/,
-        FALSE, &a->mInfo->mFunctionalTest);
+        FALSE, &bvalue);
+    a->mInfo->SetFunctionalTest(bvalue);
 
     sa->Recycle();
 
-    if (a->mInfo->mTargetCapsule.IsNull()) {
+    if (targetCapsule.IsNull()) {
         (*outError)[0] = "<instrumentation> does not specify targetCapsule";
         mParseError = CapsuleManager::INSTALL_PARSE_FAILED_MANIFEST_MALFORMED;
         return NULL;
@@ -1677,7 +1774,7 @@ CapsuleParser::Instrumentation* CapsuleParser::ParseInstrumentation(
 
 Boolean CapsuleParser::ParseCapsuleItemInfo(
     /* [in] */ Capsule* owner,
-    /* [in] */ CapsuleItemInfo* outInfo,
+    /* [in] */ ICapsuleItemInfo* outInfo,
     /* [in] */ ArrayOf<String>* outError,
     /* [in] */ const char* tag,
     /* [in] */ ITypedArray* sa,
@@ -1696,26 +1793,32 @@ Boolean CapsuleParser::ParseCapsuleItemInfo(
 
     AutoPtr<ICharSequence> cs;
     CStringWrapper::New(name, (ICharSequence**)&cs);
-    BuildClassName(owner->mApplicationInfo->mCapsuleName, cs, outError, &outInfo->mName);
-    if (outInfo->mName.IsNull()) {
+    String ownerCName;
+    owner->mApplicationInfo->GetCapsuleName(&ownerCName);
+    BuildClassName(ownerCName, cs, outError, &name);
+    outInfo->SetName(name);
+    if (name.IsNull()) {
         return FALSE;
     }
 
     Int32 iconVal;
     sa->GetResourceId(iconRes, 0, &iconVal);
     if (iconVal != 0) {
-        outInfo->mIcon = iconVal;
-        outInfo->mNonLocalizedLabel = NULL;
+        outInfo->SetIcon(iconVal);
+        outInfo->SetNonLocalizedLabel(NULL);
     }
 
     AutoPtr<ITypedValue> v;
     sa->PeekValue(labelRes, (ITypedValue**)&v);
+    Int32 vResId;
     if (v != NULL
-        && (outInfo->mLabelRes = ((CTypedValue*)v.Get())->mResourceId) == 0) {
-        v->CoerceToString((ICharSequence**)&outInfo->mNonLocalizedLabel);
+        && (v->GetResourceId(&vResId), outInfo->SetLabelRes(vResId), vResId) == 0) {
+        AutoPtr<ICharSequence> label;
+        v->CoerceToString((ICharSequence**)&label);
+        outInfo->SetNonLocalizedLabel(label);
     }
 
-    outInfo->mCapsuleName = owner->mCapsuleName;
+    outInfo->SetCapsuleName(owner->mCapsuleName);
 
     return TRUE;
 }
@@ -1743,8 +1846,9 @@ Boolean CapsuleParser::ParseApplication(
     /* [in] */ Int32 flags,
     /* [in] */ ArrayOf<String>* outError)
 {
-    AutoPtr<CApplicationInfo> ai = owner->mApplicationInfo;
-    String capName = owner->mApplicationInfo->mCapsuleName;
+    IApplicationInfo* ai = owner->mApplicationInfo;
+    String capName;
+    ai->GetCapsuleName(&capName);
 
     AutoPtr<ITypedArray> sa;
     FAIL_RETURN(res->ObtainAttributes(
@@ -1759,8 +1863,10 @@ Boolean CapsuleParser::ParseApplication(
     if (!name.IsNull()) {
         AutoPtr<ICharSequence> cname;
         CStringWrapper::New(name, (ICharSequence**)&cname);
-        BuildClassName(capName, cname.Get(), outError, &ai->mClassName);
-        if (ai->mClassName.IsNull()) {
+        String clsName;
+        BuildClassName(capName, cname.Get(), outError, &clsName);
+        ai->SetClassName(clsName);
+        if (clsName.IsNull()) {
             sa->Recycle();
             mParseError = CapsuleManager::INSTALL_PARSE_FAILED_MANIFEST_MALFORMED;
             return FALSE;
@@ -1774,15 +1880,20 @@ Boolean CapsuleParser::ParseApplication(
     if (!manageSpaceActivity.IsNull()) {
         AutoPtr<ICharSequence> ca;
         CStringWrapper::New(manageSpaceActivity, (ICharSequence**)&ca);
-        BuildClassName(capName, ca.Get(), outError, &ai->mManageSpaceActivityName);
+        String name;
+        BuildClassName(capName, ca.Get(), outError, &name);
+        ai->SetManageSpaceActivityName(name);
     }
 
+    Int32 aiFlags;
     Boolean allowBackup = FALSE;
     sa->GetBoolean(
         17 /*com.android.internal.R.styleable.AndroidManifestApplication_allowBackup*/, TRUE,
         &allowBackup);
     if (allowBackup) {
-        ai->mFlags |= CApplicationInfo::FLAG_ALLOW_BACKUP;
+        ai->GetFlags(&aiFlags);
+        aiFlags |= ApplicationInfo_FLAG_ALLOW_BACKUP;
+        ai->SetFlags(aiFlags);
 
         // backupAgent, killAfterRestore, and restoreAnyVersion are only relevant
         // if backup is possible for the given application.
@@ -1793,11 +1904,13 @@ Boolean CapsuleParser::ParseApplication(
         if (!backupAgent.IsNull()) {
             AutoPtr<ICharSequence> cb;
             CStringWrapper::New(backupAgent, (ICharSequence**)&cb);
-            BuildClassName(capName, cb.Get(), outError, &ai->mBackupAgentName);
+            String agentName;
+            BuildClassName(capName, cb.Get(), outError, &agentName);
+            ai->SetBackupAgentName(agentName);
             if (FALSE) {
                 String cbStr;
                 cb->ToString(&cbStr);
-                Logger::V(TAG, StringBuffer("android:backupAgent = ") + ai->mBackupAgentName
+                Logger::V(TAG, StringBuffer("android:backupAgent = ") + agentName
                         + " from " + capName + "+" + cbStr);
             }
 
@@ -1806,14 +1919,16 @@ Boolean CapsuleParser::ParseApplication(
                 18 /*com.android.internal.R.styleable.AndroidManifestApplication_killAfterRestore*/,
                 TRUE, &value);
             if (value) {
-                ai->mFlags |= CApplicationInfo::FLAG_KILL_AFTER_RESTORE;
+                aiFlags |= ApplicationInfo_FLAG_KILL_AFTER_RESTORE;
+                ai->SetFlags(aiFlags);
             }
 
             sa->GetBoolean(
                 21 /*com.android.internal.R.styleable.AndroidManifestApplication_restoreAnyVersion*/,
                 FALSE, &value);
             if (value) {
-                ai->mFlags |= CApplicationInfo::FLAG_RESTORE_ANY_VERSION;
+                aiFlags |= ApplicationInfo_FLAG_RESTORE_ANY_VERSION;
+                ai->SetFlags(aiFlags);
             }
         }
     }
@@ -1821,19 +1936,25 @@ Boolean CapsuleParser::ParseApplication(
     AutoPtr<ITypedValue> v;
     FAIL_RETURN(sa->PeekValue(
         1 /*com.android.internal.R.styleable.AndroidManifestApplication_label*/, (ITypedValue**)&v));
-    if (v != NULL && (ai->mLabelRes = ((CTypedValue*)v.Get())->mResourceId) == 0) {
-        v->CoerceToString((ICharSequence**)&ai->mNonLocalizedLabel);
+    Int32 ivalue;
+    if (v != NULL && (v->GetResourceId(&ivalue), ai->SetLabelRes(ivalue), ivalue) == 0) {
+        AutoPtr<ICharSequence> label;
+        v->CoerceToString((ICharSequence**)&label);
+        ai->SetNonLocalizedLabel(label);
     }
 
     sa->GetResourceId(
         2 /*com.android.internal.R.styleable.AndroidManifestApplication_icon*/, 0,
-        &ai->mIcon);
+        &ivalue);
+    ai->SetIcon(ivalue);
     sa->GetResourceId(
         0 /*com.android.internal.R.styleable.AndroidManifestApplication_theme*/, 0,
-        &ai->mTheme);
+        &ivalue);
+    ai->SetTheme(ivalue);
     sa->GetResourceId(
         13 /*com.android.internal.R.styleable.AndroidManifestApplication_description*/, 0,
-        &ai->mDescriptionRes);
+        &ivalue);
+    ai->SetDescriptionRes(ivalue);
 
     if ((flags & PARSE_IS_SYSTEM) != 0) {
         Boolean value = FALSE;
@@ -1841,75 +1962,86 @@ Boolean CapsuleParser::ParseApplication(
             8 /*com.android.internal.R.styleable.AndroidManifestApplication_persistent*/,
             FALSE, &value);
         if (value) {
-            ai->mFlags |= CApplicationInfo::FLAG_PERSISTENT;
+            aiFlags |= ApplicationInfo_FLAG_PERSISTENT;
+            ai->SetFlags(aiFlags);
         }
     }
 
     if ((flags & PARSE_FORWARD_LOCK) != 0) {
-        ai->mFlags |= CApplicationInfo::FLAG_FORWARD_LOCK;
+        aiFlags |= ApplicationInfo_FLAG_FORWARD_LOCK;
+        ai->SetFlags(aiFlags);
     }
 
     if ((flags & PARSE_ON_SDCARD) != 0) {
-        ai->mFlags |= CApplicationInfo::FLAG_EXTERNAL_STORAGE;
+        aiFlags |= ApplicationInfo_FLAG_EXTERNAL_STORAGE;
+        ai->SetFlags(aiFlags);
     }
 
-    Boolean value = FALSE;
+    Boolean bvalue = FALSE;
 
     sa->GetBoolean(
         10 /*com.android.internal.R.styleable.AndroidManifestApplication_debuggable*/,
-        FALSE, &value);
-    if (value) {
-        ai->mFlags |= CApplicationInfo::FLAG_DEBUGGABLE;
+        FALSE, &bvalue);
+    if (bvalue) {
+        aiFlags |= ApplicationInfo_FLAG_DEBUGGABLE;
+        ai->SetFlags(aiFlags);
     }
 
     sa->GetBoolean(
         20 /*com.android.internal.R.styleable.AndroidManifestApplication_vmSafeMode*/,
-        FALSE, &value);
-    if (value) {
-        ai->mFlags |= CApplicationInfo::FLAG_VM_SAFE_MODE;
+        FALSE, &bvalue);
+    if (bvalue) {
+        aiFlags |= ApplicationInfo_FLAG_VM_SAFE_MODE;
+        ai->SetFlags(aiFlags);
     }
 
     sa->GetBoolean(
         7 /*com.android.internal.R.styleable.AndroidManifestApplication_hasCode*/,
-        TRUE, &value);
-    if (value) {
-        ai->mFlags |= CApplicationInfo::FLAG_HAS_CODE;
+        TRUE, &bvalue);
+    if (bvalue) {
+        aiFlags |= ApplicationInfo_FLAG_HAS_CODE;
+        ai->SetFlags(aiFlags);
     }
 
     sa->GetBoolean(
         14 /*com.android.internal.R.styleable.AndroidManifestApplication_allowTaskReparenting*/,
-        FALSE, &value);
-    if (value) {
-        ai->mFlags |= CApplicationInfo::FLAG_ALLOW_TASK_REPARENTING;
+        FALSE, &bvalue);
+    if (bvalue) {
+        aiFlags |= ApplicationInfo_FLAG_ALLOW_TASK_REPARENTING;
+        ai->SetFlags(aiFlags);
     }
 
     sa->GetBoolean(
         5 /*com.android.internal.R.styleable.AndroidManifestApplication_allowClearUserData*/,
-        TRUE, &value);
-    if (value) {
-        ai->mFlags |= CApplicationInfo::FLAG_ALLOW_CLEAR_USER_DATA;
+        TRUE, &bvalue);
+    if (bvalue) {
+        aiFlags |= ApplicationInfo_FLAG_ALLOW_CLEAR_USER_DATA;
+        ai->SetFlags(aiFlags);
     }
 
     sa->GetBoolean(
         15 /*com.android.internal.R.styleable.AndroidManifestApplication_testOnly*/,
-        FALSE, &value);
-    if (value) {
-        ai->mFlags |= CApplicationInfo::FLAG_TEST_ONLY;
+        FALSE, &bvalue);
+    if (bvalue) {
+        aiFlags |= ApplicationInfo_FLAG_TEST_ONLY;
+        ai->SetFlags(aiFlags);
     }
 
     sa->GetBoolean(
         22 /*com.android.internal.R.styleable.AndroidManifestApplication_neverEncrypt*/,
-        FALSE, &value);
-    if (value) {
-        ai->mFlags |= CApplicationInfo::FLAG_NEVER_ENCRYPT;
+        FALSE, &bvalue);
+    if (bvalue) {
+        aiFlags |= ApplicationInfo_FLAG_NEVER_ENCRYPT;
+        ai->SetFlags(aiFlags);
     }
 
     String str;
     sa->GetNonConfigurationString(
         6 /*com.android.internal.R.styleable.AndroidManifestApplication_permission*/, 0, &str);
-    ai->mPermission = (!str.IsNullOrEmpty()) ? str : String(NULL);
-
-    if (owner->mApplicationInfo->mTargetSdkVersion >= Build::VERSION_CODES::FROYO) {
+    ai->SetPermission((!str.IsNullOrEmpty()) ? str : String(NULL));
+    Int32 ownerSdkVersion;
+    owner->mApplicationInfo->GetTargetSdkVersion(&ownerSdkVersion);
+    if (ownerSdkVersion >= Build::VERSION_CODES::FROYO) {
         sa->GetNonConfigurationString(
             12 /*com.android.internal.R.styleable.AndroidManifestApplication_taskAffinity*/, 0, &str);
     }
@@ -1922,12 +2054,14 @@ Boolean CapsuleParser::ParseApplication(
     }
     AutoPtr<ICharSequence> cStr;
     CStringWrapper::New(str, (ICharSequence**)&cStr);
-    BuildTaskAffinityName(ai->mCapsuleName, ai->mCapsuleName,
-            cStr.Get(), outError, &ai->mTaskAffinity);
+    String aiTask;
+    BuildTaskAffinityName(capName, capName,
+            cStr.Get(), outError, &aiTask);
+    ai->SetTaskAffinity(aiTask);
 
     if ((*outError)[0].IsNull()) {
         String pname;
-        if (owner->mApplicationInfo->mTargetSdkVersion >= Build::VERSION_CODES::FROYO) {
+        if (ownerSdkVersion >= Build::VERSION_CODES::FROYO) {
             sa->GetNonConfigurationString(
                 11 /*com.android.internal.R.styleable.AndroidManifestApplication_process*/, 0,
                 &pname);
@@ -1942,12 +2076,16 @@ Boolean CapsuleParser::ParseApplication(
         }
         AutoPtr<ICharSequence> cpname;
         CStringWrapper::New(pname, (ICharSequence**)&cpname);
-        BuildProcessName(ai->mCapsuleName, String(NULL),
-            cpname.Get(), flags, mSeparateProcesses.Get(), outError, &ai->mProcessName);
+        String aiPName;
+        BuildProcessName(capName, String(NULL),
+            cpname.Get(), flags, mSeparateProcesses.Get(), outError, &aiPName);
+        ai->SetProcessName(aiPName);
 
+        Boolean aiEnabled;
         sa->GetBoolean(
             9 /*com.android.internal.R.styleable.AndroidManifestApplication_enabled*/, TRUE,
-            &ai->mEnabled);
+            &aiEnabled);
+        ai->SetEnabled(aiEnabled);
 
         if (FALSE) {
             Boolean value = FALSE;
@@ -1955,11 +2093,12 @@ Boolean CapsuleParser::ParseApplication(
                 23 /*com.android.internal.R.styleable.AndroidManifestApplication_cantSaveState*/,
                 FALSE, &value);
             if (value) {
-                ai->mFlags |= CApplicationInfo::FLAG_CANT_SAVE_STATE;
+                aiFlags |= ApplicationInfo_FLAG_CANT_SAVE_STATE;
+                ai->SetFlags(aiFlags);
 
                 // A heavy-weight application can not be in a custom process.
                 // We can do direct compare because we intern all strings.
-                if (!ai->mProcessName.IsNull() && !ai->mProcessName.Equals(ai->mCapsuleName)) {
+                if (!aiPName.IsNull() && !aiPName.Equals(capName)) {
                     (*outError)[0] = "cantSaveState applications can not use custom processes";
                 }
             }
@@ -2162,10 +2301,10 @@ ECode CapsuleParser::ParseActivity(
     mParseActivityArgs->mSa = sa;
     mParseActivityArgs->mFlags = flags;
 
-    AutoPtr<CActivityInfo> info;
-    FAIL_RETURN(CActivityInfo::NewByFriend((CActivityInfo**)&info));
+    AutoPtr<IActivityInfo> info;
+    FAIL_RETURN(CActivityInfo::New((IActivityInfo**)&info));
 
-    Activity* a = new Activity(mParseActivityArgs, info.Get());
+    Activity* a = new Activity(mParseActivityArgs, info);
     if (!mParseActivityArgs) {
         sa->Recycle();
         return E_OUT_OF_MEMORY_ERROR;
@@ -2175,22 +2314,29 @@ ECode CapsuleParser::ParseActivity(
     sa->HasValue(6/*com.android.internal.R.styleable.AndroidManifestActivity_exported*/,
         &setExported);
     if (setExported) {
+        Boolean isExported;
         sa->GetBoolean(6 /*com.android.internal.R.styleable.AndroidManifestActivity_exported*/,
-            FALSE, &a->mInfo->mExported);
+            FALSE, &isExported);
+        a->mInfo->SetExported(isExported);
     }
 
+    Int32 ivalue;
     sa->GetResourceId(
         0 /*com.android.internal.R.styleable.AndroidManifestActivity_theme*/, 0,
-        &a->mInfo->mTheme);
+        &ivalue);
+    a->mInfo->SetTheme(ivalue);
 
     String str;
     sa->GetNonConfigurationString(
         4 /*com.android.internal.R.styleable.AndroidManifestActivity_permission*/, 0,
         &str);
     if (str.IsNull()) {
-        a->mInfo->mPermission = owner->mApplicationInfo->mPermission;
-    } else {
-        a->mInfo->mPermission = str.GetLength() > 0 ? str : String(NULL);
+        String perm;
+        owner->mApplicationInfo->GetPermission(&perm);
+        a->mInfo->SetPermission(perm);
+    }
+    else {
+        a->mInfo->SetPermission(str.GetLength() > 0 ? str : String(NULL));
     }
 
     sa->GetNonConfigurationString(
@@ -2198,99 +2344,120 @@ ECode CapsuleParser::ParseActivity(
         &str);
     AutoPtr<ICharSequence> cStr;
     CStringWrapper::New(str, (ICharSequence**)&cStr);
-    BuildTaskAffinityName(owner->mApplicationInfo->mCapsuleName,
-        owner->mApplicationInfo->mTaskAffinity, cStr.Get(), outError, &a->mInfo->mTaskAffinity);
+    String ownerCName, ownerTaskAffinity;
+    owner->mApplicationInfo->GetCapsuleName(&ownerCName);
+    owner->mApplicationInfo->GetTaskAffinity(&ownerTaskAffinity);
+    BuildTaskAffinityName(ownerCName, ownerTaskAffinity, cStr.Get(), outError, &str);
+    a->mInfo->SetTaskAffinity(str);
 
-    Boolean value;
-    a->mInfo->mFlags = 0;
+    Boolean bvalue;
+    ivalue = 0;
+    a->mInfo->SetFlags(ivalue);
     sa->GetBoolean(
         9 /*com.android.internal.R.styleable.AndroidManifestActivity_multiprocess*/,
-        FALSE, &value);
-    if (value) {
-        a->mInfo->mFlags |= CActivityInfo::FLAG_MULTIPROCESS;
+        FALSE, &bvalue);
+    if (bvalue) {
+        ivalue |= ActivityInfo_FLAG_MULTIPROCESS;
+        a->mInfo->SetFlags(ivalue);
     }
 
     sa->GetBoolean(
         10 /*com.android.internal.R.styleable.AndroidManifestActivity_finishOnTaskLaunch*/,
-        FALSE, &value);
-    if (value) {
-        a->mInfo->mFlags |= CActivityInfo::FLAG_FINISH_ON_TASK_LAUNCH;
+        FALSE, &bvalue);
+    if (bvalue) {
+        ivalue |= ActivityInfo_FLAG_FINISH_ON_TASK_LAUNCH;
+        a->mInfo->SetFlags(ivalue);
     }
 
     sa->GetBoolean(
         11 /*com.android.internal.R.styleable.AndroidManifestActivity_clearTaskOnLaunch*/,
-        FALSE, &value);
-    if (value) {
-        a->mInfo->mFlags |= CActivityInfo::FLAG_CLEAR_TASK_ON_LAUNCH;
+        FALSE, &bvalue);
+    if (bvalue) {
+        ivalue |= ActivityInfo_FLAG_CLEAR_TASK_ON_LAUNCH;
+        a->mInfo->SetFlags(ivalue);
     }
 
     sa->GetBoolean(
         21 /*com.android.internal.R.styleable.AndroidManifestActivity_noHistory*/,
-        FALSE, &value);
-    if (value) {
-        a->mInfo->mFlags |= CActivityInfo::FLAG_NO_HISTORY;
+        FALSE, &bvalue);
+    if (bvalue) {
+        ivalue |= ActivityInfo_FLAG_NO_HISTORY;
+        a->mInfo->SetFlags(ivalue);
     }
 
     sa->GetBoolean(
         18 /*com.android.internal.R.styleable.AndroidManifestActivity_alwaysRetainTaskState*/,
-        FALSE, &value);
-    if (value) {
-        a->mInfo->mFlags |= CActivityInfo::FLAG_ALWAYS_RETAIN_TASK_STATE;
+        FALSE, &bvalue);
+    if (bvalue) {
+        ivalue |= ActivityInfo_FLAG_ALWAYS_RETAIN_TASK_STATE;
+        a->mInfo->SetFlags(ivalue);
     }
 
     sa->GetBoolean(
         12 /*com.android.internal.R.styleable.AndroidManifestActivity_stateNotNeeded*/,
-        FALSE, &value);
-    if (value) {
-        a->mInfo->mFlags |= CActivityInfo::FLAG_STATE_NOT_NEEDED;
+        FALSE, &bvalue);
+    if (bvalue) {
+        ivalue |= ActivityInfo_FLAG_STATE_NOT_NEEDED;
+        a->mInfo->SetFlags(ivalue);
     }
 
     sa->GetBoolean(
         13 /*com.android.internal.R.styleable.AndroidManifestActivity_excludeFromRecents*/,
-        FALSE, &value);
-    if (value) {
-        a->mInfo->mFlags |= CActivityInfo::FLAG_EXCLUDE_FROM_RECENTS;
+        FALSE, &bvalue);
+    if (bvalue) {
+        ivalue |= ActivityInfo_FLAG_EXCLUDE_FROM_RECENTS;
+        a->mInfo->SetFlags(ivalue);
     }
 
+    Int32 ownerFlags;
+    owner->mApplicationInfo->GetFlags(&ownerFlags);
     sa->GetBoolean(
         19 /*com.android.internal.R.styleable.AndroidManifestActivity_allowTaskReparenting*/,
-        (owner->mApplicationInfo->mFlags & CActivityInfo::FLAG_ALLOW_TASK_REPARENTING) != 0, &value);
-    if (value) {
-        a->mInfo->mFlags |= CActivityInfo::FLAG_ALLOW_TASK_REPARENTING;
+        (ownerFlags & ActivityInfo_FLAG_ALLOW_TASK_REPARENTING) != 0, &bvalue);
+    if (bvalue) {
+        ivalue |= ActivityInfo_FLAG_ALLOW_TASK_REPARENTING;
+        a->mInfo->SetFlags(ivalue);
     }
 
     sa->GetBoolean(
         22 /*com.android.internal.R.styleable.AndroidManifestActivity_finishOnCloseSystemDialogs*/,
-        FALSE, &value);
-    if (value) {
-        a->mInfo->mFlags |= CActivityInfo::FLAG_FINISH_ON_CLOSE_SYSTEM_DIALOGS;
+        FALSE, &bvalue);
+    if (bvalue) {
+        ivalue |= ActivityInfo_FLAG_FINISH_ON_CLOSE_SYSTEM_DIALOGS;
+        a->mInfo->SetFlags(ivalue);
     }
 
     if (!receiver) {
         sa->GetInt32(
             14 /*com.android.internal.R.styleable.AndroidManifestActivity_launchMode*/,
-            CActivityInfo::LAUNCH_MULTIPLE, &a->mInfo->mLaunchMode);
+            ActivityInfo_LAUNCH_MULTIPLE, &ivalue);
+        a->mInfo->SetLaunchMode(ivalue);
         sa->GetInt32(
             15 /*com.android.internal.R.styleable.AndroidManifestActivity_screenOrientation*/,
-            CActivityInfo::SCREEN_ORIENTATION_UNSPECIFIED, &a->mInfo->mScreenOrientation);
+            ActivityInfo_SCREEN_ORIENTATION_UNSPECIFIED, &ivalue);
+        a->mInfo->SetScreenOrientation(ivalue);
         sa->GetInt32(
             16 /*com.android.internal.R.styleable.AndroidManifestActivity_configChanges*/,
-            0, &a->mInfo->mConfigChanges);
+            0, &ivalue);
+        a->mInfo->SetConfigChanges(ivalue);
         sa->GetInt32(
             20 /*com.android.internal.R.styleable.AndroidManifestActivity_windowSoftInputMode*/,
-            0, &a->mInfo->mSoftInputMode);
+            0, &ivalue);
+        a->mInfo->SetSoftInputMode(ivalue);
     }
     else {
-        a->mInfo->mLaunchMode = CActivityInfo::LAUNCH_MULTIPLE;
-        a->mInfo->mConfigChanges = 0;
+        a->mInfo->SetLaunchMode(ActivityInfo_LAUNCH_MULTIPLE);
+        a->mInfo->SetConfigChanges(0);
     }
 
     sa->Recycle();
 
-    if (receiver && (owner->mApplicationInfo->mFlags & CApplicationInfo::FLAG_CANT_SAVE_STATE) != 0) {
+    if (receiver && (ownerFlags & ApplicationInfo_FLAG_CANT_SAVE_STATE) != 0) {
         // A heavy-weight application can not have receives in its main process
         // We can do direct compare because we intern all strings.
-        if (a->mInfo->mProcessName.Equals(owner->mCapsuleName)) {
+        String pname;
+        a->mInfo->GetProcessName(&pname);
+        if (pname.Equals(owner->mCapsuleName)) {
             (*outError)[0] = "Heavy-weight applications can not have receivers in main process";
         }
     }
@@ -2365,7 +2532,7 @@ ECode CapsuleParser::ParseActivity(
     }
 
     if (!setExported) {
-        a->mInfo->mExported = a->mIntents->Begin() != a->mIntents->End();
+        a->mInfo->SetExported(a->mIntents->Begin() != a->mIntents->End());
     }
 
     *activity = a;
@@ -2409,8 +2576,9 @@ ECode CapsuleParser::ParseActivityAlias(
 
     AutoPtr<ICharSequence> c;
     CStringWrapper::New(targetActivity, (ICharSequence**)&c);
-    BuildClassName(owner->mApplicationInfo->mCapsuleName,
-            c.Get(), outError, &targetActivity);
+    String ownerCName;
+    owner->mApplicationInfo->GetCapsuleName(&ownerCName);
+    BuildClassName(ownerCName, c.Get(), outError, &targetActivity);
     if (targetActivity.IsNull()) {
         sa->Recycle();
         return E_RUNTIME_EXCEPTION;
@@ -2437,8 +2605,10 @@ ECode CapsuleParser::ParseActivityAlias(
     List<Activity*>::Iterator itor;
     for (itor = owner->mActivities.Begin();
          itor != owner->mActivities.End();
-         itor++) {
-        if (targetActivity.Equals((*itor)->mInfo->mName)) {
+         ++itor) {
+        String name;
+        (*itor)->mInfo->GetName(&name);
+        if (targetActivity.Equals(name)) {
             target = *itor;
             break;
         }
@@ -2452,23 +2622,39 @@ ECode CapsuleParser::ParseActivityAlias(
         return E_RUNTIME_EXCEPTION;
     }
 
-    AutoPtr<CActivityInfo> info;
-    FAIL_RETURN(CActivityInfo::NewByFriend((CActivityInfo**)&info));
-    info->mTargetActivity = targetActivity;
-    info->mConfigChanges = target->mInfo->mConfigChanges;
-    info->mFlags = target->mInfo->mFlags;
-    info->mIcon = target->mInfo->mIcon;
-    info->mLogo = target->mInfo->mLogo;
-    info->mLabelRes = target->mInfo->mLabelRes;
-    info->mNonLocalizedLabel = target->mInfo->mNonLocalizedLabel;
-    info->mLaunchMode = target->mInfo->mLaunchMode;
-    info->mProcessName = target->mInfo->mProcessName;
-    if (info->mDescriptionRes == 0) {
-        info->mDescriptionRes = target->mInfo->mDescriptionRes;
+    AutoPtr<IActivityInfo> info;
+    FAIL_RETURN(CActivityInfo::New((IActivityInfo**)&info));
+    info->SetTargetActivity(targetActivity);
+    Int32 ivalue;
+    target->mInfo->GetConfigChanges(&ivalue);
+    info->SetConfigChanges(ivalue);
+    target->mInfo->GetFlags(&ivalue);
+    info->SetFlags(ivalue);
+    target->mInfo->GetIcon(&ivalue);
+    info->SetIcon(ivalue);
+    target->mInfo->GetLogo(&ivalue);
+    info->SetLogo(ivalue);
+    target->mInfo->GetLabelRes(&ivalue);
+    info->SetLabelRes(ivalue);
+    AutoPtr<ICharSequence> label;
+    target->mInfo->GetNonLocalizedLabel((ICharSequence**)&label);
+    info->SetNonLocalizedLabel(label);
+    target->mInfo->GetLaunchMode(&ivalue);
+    info->SetLaunchMode(ivalue);
+    String svalue;
+    target->mInfo->GetProcessName(&svalue);
+    info->SetProcessName(svalue);
+    info->GetDescriptionRes(&ivalue);
+    if (ivalue == 0) {
+        target->mInfo->GetDescriptionRes(&ivalue);
+        info->SetDescriptionRes(ivalue);
     }
-    info->mScreenOrientation = target->mInfo->mScreenOrientation;
-    info->mTaskAffinity = target->mInfo->mTaskAffinity;
-    info->mTheme = target->mInfo->mTheme;
+    target->mInfo->GetScreenOrientation(&ivalue);
+    info->SetScreenOrientation(ivalue);
+    target->mInfo->GetTaskAffinity(&svalue);
+    info->SetTaskAffinity(svalue);
+    target->mInfo->GetTheme(&ivalue);
+    info->SetTheme(ivalue);
 
     Activity* a = new Activity(mParseActivityAliasArgs, info.Get());
     if (!(*outError)[0].IsNull()) {
@@ -2481,9 +2667,11 @@ ECode CapsuleParser::ParseActivityAlias(
         5 /*com.android.internal.R.styleable.AndroidManifestActivityAlias_exported*/,
         &setExported);
     if (setExported) {
+        Boolean isExported;
         sa->GetBoolean(
             5 /*com.android.internal.R.styleable.AndroidManifestActivityAlias_exported*/,
-            FALSE, &a->mInfo->mExported);
+            FALSE, &isExported);
+        a->mInfo->SetExported(isExported);
     }
 
     String str;
@@ -2491,7 +2679,7 @@ ECode CapsuleParser::ParseActivityAlias(
         3 /*com.android.internal.R.styleable.AndroidManifestActivityAlias_permission*/,
         0, &str);
     if (!str.IsNull()) {
-        a->mInfo->mPermission = str.GetLength() > 0 ? str : String(NULL);
+        a->mInfo->SetPermission(str.GetLength() > 0 ? str : String(NULL));
     }
 
     sa->Recycle();
@@ -2549,7 +2737,7 @@ ECode CapsuleParser::ParseActivityAlias(
     }
 
     if (!setExported) {
-        a->mInfo->mExported = a->mIntents->Begin() != a->mIntents->End();
+        a->mInfo->SetExported(a->mIntents->Begin() != a->mIntents->End());
     }
 
     *alias = a;
@@ -2599,17 +2787,19 @@ ECode CapsuleParser::ParseContentProvider(
     mParseProviderArgs->mSa = sa;
     mParseProviderArgs->mFlags = flags;
 
-    AutoPtr<CContentProviderInfo> info;
-    FAIL_RETURN(CContentProviderInfo::NewByFriend((CContentProviderInfo**)&info));
-    ContentProvider* p = new ContentProvider(mParseProviderArgs, info.Get());
+    AutoPtr<IContentProviderInfo> info;
+    FAIL_RETURN(CContentProviderInfo::New((IContentProviderInfo**)&info));
+    ContentProvider* p = new ContentProvider(mParseProviderArgs, info);
     if (!(*outError)[0].IsNull()) {
         sa->Recycle();
         return E_RUNTIME_EXCEPTION;
     }
 
+    Boolean bvalue;
     sa->GetBoolean(
             7 /*com.android.internal.R.styleable.AndroidManifestProvider_exported*/,
-            TRUE, &p->mInfo->mExported);
+            TRUE, &bvalue);
+    p->mInfo->SetExported(bvalue);
 
     String cpname;
     sa->GetNonConfigurationString(
@@ -2618,7 +2808,8 @@ ECode CapsuleParser::ParseContentProvider(
 
     sa->GetBoolean(
             11 /*com.android.internal.R.styleable.AndroidManifestProvider_syncable*/,
-            FALSE, &p->mInfo->mIsSyncable);
+            FALSE, &bvalue);
+    p->mInfo->SetSyncable(bvalue);
 
     String permission;
     sa->GetNonConfigurationString(
@@ -2632,10 +2823,12 @@ ECode CapsuleParser::ParseContentProvider(
         str = permission;
     }
     if (str.IsNull()) {
-        p->mInfo->mReadPermission = owner->mApplicationInfo->mPermission;
+        String perm;
+        owner->mApplicationInfo->GetPermission(&perm);
+        p->mInfo->SetReadPermission(perm);
     }
     else {
-        p->mInfo->mReadPermission = str.GetLength() > 0 ? str : String(NULL);
+        p->mInfo->SetReadPermission(str.GetLength() > 0 ? str : String(NULL));
     }
     sa->GetNonConfigurationString(
             5 /*com.android.internal.R.styleable.AndroidManifestProvider_writePermission*/,
@@ -2644,30 +2837,40 @@ ECode CapsuleParser::ParseContentProvider(
         str = permission;
     }
     if (str.IsNull()) {
-        p->mInfo->mWritePermission = owner->mApplicationInfo->mPermission;
+        String perm;
+        owner->mApplicationInfo->GetPermission(&perm);
+        p->mInfo->SetWritePermission(perm);
     }
     else {
-        p->mInfo->mWritePermission = str.GetLength() > 0 ? str : String(NULL);
+        p->mInfo->SetWritePermission(str.GetLength() > 0 ? str : String(NULL));
     }
 
     sa->GetBoolean(
             13 /*com.android.internal.R.styleable.AndroidManifestProvider_grantUriPermissions*/,
-            FALSE, &p->mInfo->mGrantUriPermissions);
+            FALSE, &bvalue);
+    p->mInfo->SetGrantUriPermissions(bvalue);
 
     sa->GetBoolean(
             9 /*com.android.internal.R.styleable.AndroidManifestProvider_multiprocess*/,
-            FALSE, &p->mInfo->mMultiprocess);
+            FALSE, &bvalue);
+    p->mInfo->SetMultiprocess(bvalue);
 
+    Int32 initOrder;
     sa->GetInt32(
             12 /*com.android.internal.R.styleable.AndroidManifestProvider_initOrder*/,
-            0, &p->mInfo->mInitOrder);
+            0, &initOrder);
+    p->mInfo->SetInitOrder(initOrder);
 
     sa->Recycle();
 
-    if ((owner->mApplicationInfo->mFlags & CApplicationInfo::FLAG_CANT_SAVE_STATE) != 0) {
+    Int32 ownerFlags;
+    owner->mApplicationInfo->GetFlags(&ownerFlags);
+    if ((ownerFlags & ApplicationInfo_FLAG_CANT_SAVE_STATE) != 0) {
         // A heavy-weight application can not have providers in its main process
         // We can do direct compare because we intern all strings.
-        if (p->mInfo->mProcessName.Equals(owner->mCapsuleName)) {
+        String pname;
+        p->mInfo->GetProcessName(&pname);
+        if (pname.Equals(owner->mCapsuleName)) {
             (*outError)[0] = "Heavy-weight applications can not have providers in main process";
             return E_RUNTIME_EXCEPTION;
         }
@@ -2677,7 +2880,7 @@ ECode CapsuleParser::ParseContentProvider(
         (*outError)[0] = "<provider> does not incude authorities attribute";
         return E_RUNTIME_EXCEPTION;
     }
-    p->mInfo->mAuthority = cpname;
+    p->mInfo->SetAuthority(cpname);
 
     if (!ParseContentProviderTags(res, parser, attrs, p, outError)) {
         return E_XML_PULL_PARSER_EXCEPTION;
@@ -2733,7 +2936,7 @@ Boolean CapsuleParser::ParseContentProviderTags(
                 /*com.android.internal.R.styleable.AndroidManifestGrantUriPermission*/,
                 (ITypedArray**)&sa);
 
-            AutoPtr<CPatternMatcher> pa;
+            AutoPtr<IPatternMatcher> pa;
 
             String str;
             sa->GetNonConfigurationString(
@@ -2756,18 +2959,20 @@ Boolean CapsuleParser::ParseContentProviderTags(
                 2 /*com.android.internal.R.styleable.AndroidManifestGrantUriPermission_pathPattern*/,
                 0, &str);
             if (!str.IsNull()) {
-                CPatternMatcher::NewByFriend(str, PatternMatcher_PATTERN_SIMPLE_GLOB,
-                    (CPatternMatcher**)&pa);
+                CPatternMatcher::New(str, PatternMatcher_PATTERN_SIMPLE_GLOB,
+                    (IPatternMatcher**)&pa);
             }
 
             sa->Recycle();
 
             if (pa != NULL) {
-                if (outInfo->mInfo->mUriPermissionPatterns == NULL) {
-                    outInfo->mInfo->mUriPermissionPatterns = new List<AutoPtr<CPatternMatcher> >();
+                AutoPtr<IObjectContainer> uriPermissionPatterns;
+                outInfo->mInfo->GetUriPermissionPatterns((IObjectContainer**)&uriPermissionPatterns);
+                if (uriPermissionPatterns == NULL) {
+                    outInfo->mInfo->InitUriPermissionPatterns();
                 }
-                outInfo->mInfo->mUriPermissionPatterns->PushBack(pa);
-                outInfo->mInfo->mGrantUriPermissions = TRUE;
+                outInfo->mInfo->AddUriPermissionPatterns(pa);
+                outInfo->mInfo->SetGrantUriPermissions(TRUE);
             }
             else {
                 if (!RIGID_PARSER) {
@@ -2792,7 +2997,7 @@ Boolean CapsuleParser::ParseContentProviderTags(
                 /*com.android.internal.R.styleable.AndroidManifestPathPermission*/,
                 (ITypedArray**)&sa);
 
-            AutoPtr<CPathPermission> pa = NULL;
+            AutoPtr<IPathPermission> pa;
 
             String permission;
             sa->GetNonConfigurationString(
@@ -2839,36 +3044,38 @@ Boolean CapsuleParser::ParseContentProviderTags(
                 3 /*com.android.internal.R.styleable.AndroidManifestPathPermission_path*/,
                 0, &path);
             if (!path.IsNull()) {
-                CPathPermission::NewByFriend(path,
+                CPathPermission::New(path,
                     PatternMatcher_PATTERN_LITERAL, readPermission, writePermission,
-                    (CPathPermission**)&pa);
+                    (IPathPermission**)&pa);
             }
 
             sa->GetNonConfigurationString(
                 4 /*com.android.internal.R.styleable.AndroidManifestPathPermission_pathPrefix*/,
                 0, &path);
             if (!path.IsNull()) {
-                CPathPermission::NewByFriend(path,
+                CPathPermission::New(path,
                     PatternMatcher_PATTERN_PREFIX, readPermission, writePermission,
-                    (CPathPermission**)&pa);
+                    (IPathPermission**)&pa);
             }
 
             sa->GetNonConfigurationString(
                 5 /*com.android.internal.R.styleable.AndroidManifestPathPermission_pathPattern*/,
                 0, &path);
             if (!path.IsNull()) {
-                CPathPermission::NewByFriend(path,
+                CPathPermission::New(path,
                     PatternMatcher_PATTERN_SIMPLE_GLOB, readPermission, writePermission,
-                    (CPathPermission**)&pa);
+                    (IPathPermission**)&pa);
             }
 
             sa->Recycle();
 
             if (pa != NULL) {
-                if (outInfo->mInfo->mPathPermissions == NULL) {
-                    outInfo->mInfo->mPathPermissions = new List< AutoPtr<CPathPermission> >();
+                AutoPtr<IObjectContainer> pathPermissions;
+                outInfo->mInfo->GetPathPermissions((IObjectContainer**)&pathPermissions);
+                if (pathPermissions == NULL) {
+                    outInfo->mInfo->InitPathPermissions();
                 }
-                outInfo->mInfo->mPathPermissions->PushBack(pa);
+                outInfo->mInfo->AddPathPermission(pa);
             }
             else {
                 if (!RIGID_PARSER) {
@@ -2943,9 +3150,9 @@ ECode CapsuleParser::ParseService(
     mParseServiceArgs->mSa = sa;
     mParseServiceArgs->mFlags = flags;
 
-    AutoPtr<CServiceInfo> si;
-    CServiceInfo::NewByFriend((CServiceInfo**)&si);
-    Service* s = new Service(mParseServiceArgs, si.Get());
+    AutoPtr<IServiceInfo> si;
+    CServiceInfo::New((IServiceInfo**)&si);
+    Service* s = new Service(mParseServiceArgs, si);
     if (!(*outError)[0].IsNull()) {
         sa->Recycle();
         return E_RUNTIME_EXCEPTION;
@@ -2956,9 +3163,11 @@ ECode CapsuleParser::ParseService(
         5 /*com.android.internal.R.styleable.AndroidManifestService_exported*/,
         &setExported);
     if (setExported) {
+        Boolean isExported;
         sa->GetBoolean(
             5 /*com.android.internal.R.styleable.AndroidManifestService_exported*/,
-            FALSE, &s->mInfo->mExported);
+            FALSE, &isExported);
+        s->mInfo->SetExported(isExported);
     }
 
     String str;
@@ -2966,17 +3175,24 @@ ECode CapsuleParser::ParseService(
         3 /*com.android.internal.R.styleable.AndroidManifestService_permission*/,
         0, &str);
     if (str.IsNull()) {
-        s->mInfo->mPermission = owner->mApplicationInfo->mPermission;
-    } else {
-        s->mInfo->mPermission = str.GetLength() > 0 ? str : String(NULL);
+        String ownerPerm;
+        owner->mApplicationInfo->GetPermission(&ownerPerm);
+        s->mInfo->SetPermission(ownerPerm);
+    }
+    else {
+        s->mInfo->SetPermission(str.GetLength() > 0 ? str : String(NULL));
     }
 
     sa->Recycle();
 
-    if ((owner->mApplicationInfo->mFlags & CApplicationInfo::FLAG_CANT_SAVE_STATE) != 0) {
+    Int32 ownerFlags;
+    owner->mApplicationInfo->GetFlags(&ownerFlags);
+    if ((ownerFlags & ApplicationInfo_FLAG_CANT_SAVE_STATE) != 0) {
         // A heavy-weight application can not have services in its main process
         // We can do direct compare because we intern all strings
-        if (s->mInfo->mProcessName.Equals(owner->mCapsuleName)) {
+        String pname;
+        s->mInfo->GetProcessName(&pname);
+        if (pname.Equals(owner->mCapsuleName)) {
             (*outError)[0] = "Heavy-weight applications can not have services in main process";
             return E_RUNTIME_EXCEPTION;
         }
@@ -3025,7 +3241,7 @@ ECode CapsuleParser::ParseService(
     }
 
     if (!setExported) {
-        s->mInfo->mExported = s->mIntents->Begin() != s->mIntents->End();
+        s->mInfo->SetExported(s->mIntents->Begin() != s->mIntents->End());
     }
 
     *service = s;
@@ -3080,11 +3296,11 @@ static Int32 R_Styleable_AndroidManifestMetaData[] = {
     0x01010003, 0x01010024, 0x01010025
 };
 
-AutoPtr<CBundle> CapsuleParser::ParseMetaData(
+AutoPtr<IBundle> CapsuleParser::ParseMetaData(
     /* [in] */ IResources* res,
     /* [in] */ IXmlPullParser* parser,
     /* [in] */ IAttributeSet* attrs,
-    /* [in] */ CBundle* data,
+    /* [in] */ IBundle* data,
     /* [in] */ ArrayOf<String>* outError)
 {
     AutoPtr<ITypedArray> sa;
@@ -3095,7 +3311,8 @@ AutoPtr<CBundle> CapsuleParser::ParseMetaData(
         (ITypedArray**)&sa));
 
     if (!data) {
-        FAIL_RETURN_NULL(CBundle::NewByFriend(&data));
+        assert(data != NULL);
+        FAIL_RETURN_NULL(CBundle::New(&data));
     }
 
     String name;
@@ -3112,31 +3329,43 @@ AutoPtr<CBundle> CapsuleParser::ParseMetaData(
     sa->PeekValue(
         2 /*com.android.internal.R.styleable.AndroidManifestMetaData_resource*/,
         (ITypedValue**)&v);
-    if (v != NULL && ((CTypedValue*)v.Get())->mResourceId != 0) {
+    Int32 vResId;
+    if (v != NULL && (v->GetResourceId(&vResId), vResId != 0)) {
         //Log::i(TAG, "Meta data ref " + name + ": " + v);
-        data->PutInt32(name, ((CTypedValue*)v.Get())->mResourceId);
-    } else {
+        data->PutInt32(name, vResId);
+    }
+    else {
         sa->PeekValue(
             1 /*com.android.internal.R.styleable.AndroidManifestMetaData_value*/,
             (ITypedValue**)&v);
         //Log::i(TAG, "Meta data " + name + ": " + v);
         if (v != NULL) {
-            if (((CTypedValue*)v.Get())->mType == TypedValue_TYPE_STRING) {
+            Int32 vType;
+            v->GetType(&vType);
+            if (vType == TypedValue_TYPE_STRING) {
                 AutoPtr<ICharSequence> cs;
                 v->CoerceToString((ICharSequence**)&cs);
                 String csStr;
                 cs->ToString(&csStr);
                 data->PutString(name, csStr);
-            } else if (((CTypedValue*)v.Get())->mType == TypedValue_TYPE_INT_BOOLEAN) {
-                data->PutBoolean(name, ((CTypedValue*)v.Get())->mData != 0);
-            } else if (((CTypedValue*)v.Get())->mType >= TypedValue_TYPE_FIRST_INT
-                && ((CTypedValue*)v.Get())->mType <= TypedValue_TYPE_LAST_INT) {
-                data->PutInt32(name, ((CTypedValue*)v.Get())->mData);
-            } else if (((CTypedValue*)v.Get())->mType == TypedValue_TYPE_FLOAT) {
+            }
+            else if (vType == TypedValue_TYPE_INT_BOOLEAN) {
+                Int32 vData;
+                v->GetData(&vData);
+                data->PutBoolean(name, vData != 0);
+            }
+            else if (vType >= TypedValue_TYPE_FIRST_INT
+                && vType <= TypedValue_TYPE_LAST_INT) {
+                Int32 vData;
+                v->GetData(&vData);
+                data->PutInt32(name, vData);
+            }
+            else if (vType == TypedValue_TYPE_FLOAT) {
                 Float f = 0;
                 v->GetFloat(&f);
                 data->PutFloat(name, f);
-            } else {
+            }
+            else {
                 if (!RIGID_PARSER) {
                     String name;
                     String des;
@@ -3199,7 +3428,7 @@ Boolean CapsuleParser::ParseIntent(
     sa->PeekValue(
         0 /*com.android.internal.R.styleable.AndroidManifestIntentFilter_label*/,
         (ITypedValue**)&v);
-    if (v != NULL && (outInfo->mLabelRes = ((CTypedValue*)v.Get())->mResourceId) == 0) {
+    if (v != NULL && (v->GetResourceId(&outInfo->mLabelRes), outInfo->mLabelRes) == 0) {
         v->CoerceToString((ICharSequence**)&outInfo->mNonLocalizedLabel);
     }
 
@@ -3337,7 +3566,7 @@ Boolean CapsuleParser::ParseIntent(
 Boolean CapsuleParser::CopyNeeded(
     /* [in] */ Int32 flags,
     /* [in] */ CapsuleParser::Capsule* capsule,
-    /* [in] */ CBundle* metaData)
+    /* [in] */ IBundle* metaData)
 {
     if ((flags & CapsuleManager_GET_META_DATA) != 0
         && (metaData != NULL || capsule->mAppMetaData != NULL)) {
@@ -3351,7 +3580,7 @@ Boolean CapsuleParser::CopyNeeded(
     return FALSE;
 }
 
-AutoPtr<CApplicationInfo> CapsuleParser::GenerateApplicationInfo(
+AutoPtr<IApplicationInfo> CapsuleParser::GenerateApplicationInfo(
     /* [in] */ Capsule* capsule,
     /* [in] */ Int32 flags)
 {
@@ -3368,15 +3597,15 @@ AutoPtr<CApplicationInfo> CapsuleParser::GenerateApplicationInfo(
     }
 
     // Make shallow copy so we can store the metadata/libraries safely
-    AutoPtr<CApplicationInfo> ai;
-    ASSERT_SUCCEEDED(CApplicationInfo::NewByFriend(
-        (IApplicationInfo*)capsule->mApplicationInfo.Get(), (CApplicationInfo**)&ai));
+    AutoPtr<IApplicationInfo> ai;
+    ASSERT_SUCCEEDED(CApplicationInfo::New(
+        capsule->mApplicationInfo, (IApplicationInfo**)&ai));
     if ((flags & CapsuleManager_GET_META_DATA) != 0) {
-        ai->mMetaData = capsule->mAppMetaData.Get();
+        ai->SetMetaData(capsule->mAppMetaData.Get());
     }
     if ((flags & CapsuleManager_GET_SHARED_LIBRARY_FILES) != 0
         && capsule->mUsesLibraryFiles != NULL) {
-        ai->mSharedLibraryFiles = capsule->mUsesLibraryFiles->Clone();
+        ai->SetSharedLibraryFiles(capsule->mUsesLibraryFiles->Clone());
     }
     if (!sCompatibilityModeEnabled) {
         ai->DisableCompatibilityMode();
@@ -3384,7 +3613,7 @@ AutoPtr<CApplicationInfo> CapsuleParser::GenerateApplicationInfo(
     return ai;
 }
 
-AutoPtr<CActivityInfo> CapsuleParser::GenerateActivityInfo(
+AutoPtr<IActivityInfo> CapsuleParser::GenerateActivityInfo(
     /* [in] */ Activity* activity,
     /* [in] */ Int32 flags)
 {
@@ -3396,15 +3625,15 @@ AutoPtr<CActivityInfo> CapsuleParser::GenerateActivityInfo(
     }
 
     // Make shallow copies so we can store the metadata safely
-    AutoPtr<CActivityInfo> info;
-    ASSERT_SUCCEEDED(CActivityInfo::NewByFriend(
-            (IActivityInfo*)activity->mInfo.Get(), (CActivityInfo**)&info));
-    info->mMetaData = activity->mMetaData;
-    info->mApplicationInfo = GenerateApplicationInfo(activity->mOwner, flags);
+    AutoPtr<IActivityInfo> info;
+    ASSERT_SUCCEEDED(CActivityInfo::New(
+            (IActivityInfo*)activity->mInfo.Get(), (IActivityInfo**)&info));
+    info->SetMetaData(activity->mMetaData);
+    info->SetApplicationInfo(GenerateApplicationInfo(activity->mOwner, flags));
     return info;
 }
 
-AutoPtr<CServiceInfo> CapsuleParser::GenerateServiceInfo(
+AutoPtr<IServiceInfo> CapsuleParser::GenerateServiceInfo(
     /* [in] */ Service* service,
     /* [in] */ Int32 flags)
 {
@@ -3416,41 +3645,42 @@ AutoPtr<CServiceInfo> CapsuleParser::GenerateServiceInfo(
     }
 
     // Make shallow copies so we can store the metadata safely
-    AutoPtr<CServiceInfo> info;
-    ASSERT_SUCCEEDED(CServiceInfo::NewByFriend(
-            (IServiceInfo*)service->mInfo.Get(), (CServiceInfo**)&info));
-    info->mMetaData = service->mMetaData;
-    info->mApplicationInfo = GenerateApplicationInfo(service->mOwner, flags);
+    AutoPtr<IServiceInfo> info;
+    ASSERT_SUCCEEDED(CServiceInfo::New(
+            (IServiceInfo*)service->mInfo.Get(), (IServiceInfo**)&info));
+    info->SetMetaData(service->mMetaData);
+    info->SetApplicationInfo(GenerateApplicationInfo(service->mOwner, flags));
     return info;
 }
 
-AutoPtr<CContentProviderInfo> CapsuleParser::GenerateContentProviderInfo(
+AutoPtr<IContentProviderInfo> CapsuleParser::GenerateContentProviderInfo(
     /* [in] */ ContentProvider* provider,
     /* [in] */ Int32 flags)
 {
     if (provider == NULL) {
         return NULL;
     }
+    AutoPtr<IObjectContainer> uriPermissions;
+    provider->mInfo->GetUriPermissionPatterns((IObjectContainer**)&uriPermissions);
     if (!CopyNeeded(flags, provider->mOwner, provider->mMetaData)
         && ((flags & CapsuleManager_GET_URI_PERMISSION_PATTERNS) != 0
-        || provider->mInfo->mUriPermissionPatterns == NULL)) {
+        || uriPermissions == NULL)) {
         return provider->mInfo;
     }
 
     // Make shallow copies so we can store the metadata safely
-    AutoPtr<CContentProviderInfo> pi;
-    ASSERT_SUCCEEDED(CContentProviderInfo::NewByFriend(
-        (IContentProviderInfo*)provider->mInfo.Get(), (CContentProviderInfo**)&pi));
-    pi->mMetaData = provider->mMetaData;
+    AutoPtr<IContentProviderInfo> pi;
+    ASSERT_SUCCEEDED(CContentProviderInfo::New(
+        (IContentProviderInfo*)provider->mInfo.Get(), (IContentProviderInfo**)&pi));
+    pi->SetMetaData(provider->mMetaData);
     if ((flags & CapsuleManager_GET_URI_PERMISSION_PATTERNS) == 0) {
-        delete pi->mUriPermissionPatterns;
-        pi->mUriPermissionPatterns = NULL;
+        pi->ClearUriPermissionPatterns();
     }
-    pi->mApplicationInfo = GenerateApplicationInfo(provider->mOwner, flags);
+    pi->SetApplicationInfo(GenerateApplicationInfo(provider->mOwner, flags));
     return pi;
 }
 
-AutoPtr<CInstrumentationInfo> CapsuleParser::GenerateInstrumentationInfo(
+AutoPtr<IInstrumentationInfo> CapsuleParser::GenerateInstrumentationInfo(
     /* [in] */ CapsuleParser::Instrumentation* i,
     /* [in] */ Int32 flags)
 {
@@ -3460,10 +3690,10 @@ AutoPtr<CInstrumentationInfo> CapsuleParser::GenerateInstrumentationInfo(
     if ((flags & CapsuleManager_GET_META_DATA) == 0) {
         return i->mInfo;
     }
-    AutoPtr<CInstrumentationInfo> info;
-    ASSERT_SUCCEEDED(CInstrumentationInfo::NewByFriend(
-        (IInstrumentationInfo*)i->mInfo.Get(), (CInstrumentationInfo**)&info));
-    info->mMetaData = i->mMetaData;
+    AutoPtr<IInstrumentationInfo> info;
+    ASSERT_SUCCEEDED(CInstrumentationInfo::New(
+        (IInstrumentationInfo*)i->mInfo.Get(), (IInstrumentationInfo**)&info));
+    info->SetMetaData(i->mMetaData);
     return info;
 }
 

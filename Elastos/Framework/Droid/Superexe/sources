@@ -4,7 +4,7 @@
 TARGET_NAME= superexe
 TARGET_TYPE= ecx
 
-IMPORTS = Elastos.Framework.eco
+IMPORTS = Elastos.Framework.Server.eco
 
 SOURCES = main.cpp
 SOURCES += SystemServer.cpp

@@ -1,11 +1,64 @@
 
 module
 {
-    interface IComponentInfo;
+    interface IPathPermission;
 
     /**
      * ContentProviderInfo related
      */
     interface IContentProviderInfo extends IComponentInfo {
+        GetAuthority(
+            [out] String* authority);
+
+        SetAuthority(
+            [in] String authority);
+
+        GetReadPermission(
+            [out] String* permission);
+
+        SetReadPermission(
+            [in] String permission);
+
+        GetWritePermission(
+            [out] String* permission);
+
+        SetWritePermission(
+            [in] String permission);
+
+        SetGrantUriPermissions(
+            [in] Boolean grant);
+
+        InitUriPermissionPatterns();
+
+        AddUriPermissionPatterns(
+            [in] IPatternMatcher* pattern);
+
+        GetUriPermissionPatterns(
+            [out] IObjectContainer** permissions);
+
+        ClearUriPermissionPatterns();
+
+        InitPathPermissions();
+
+        AddPathPermission(
+            [in] IPathPermission* permission);
+
+        GetPathPermissions(
+            [out] IObjectContainer** permissions);
+
+        SetPathPermissions(
+            [in] IObjectContainer* permissions);
+
+        SetMultiprocess(
+            [in] Boolean multiprocess);
+
+        SetInitOrder(
+            [in] Int32 initOrder);
+
+        GetSyncable(
+            [out] Boolean* syncable);
+
+        SetSyncable(
+            [in] Boolean syncable);
     }
 }

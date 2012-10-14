@@ -3,7 +3,7 @@ SPECIAL_TARGET=copyfile
 TARGET_NAME= CapsuleDemo
 TARGET_TYPE= eco
 
-IMPORTS = Elastos.Framework.eco
+IMPORTS = Elastos.Framework.Core.eco
 IMPORTS += Elastos.Presentation.Controls.eco
 
 SOURCES = CapsuleDemo.car

@@ -1,0 +1,31 @@
+
+module
+{
+    interface IIntent;
+
+    interface IResultInfo {
+        GetResultWho(
+            [out] String* who);
+
+        SetResultWho(
+            [in] String who);
+
+        GetRequestCode(
+            [out] Int32* code);
+
+        SetRequestCode(
+            [in] Int32 code);
+
+        GetResultCode(
+            [out] Int32* code);
+
+        SetResultCode(
+            [in] Int32 code);
+
+        GetData(
+            [out] IIntent** data);
+
+        SetData(
+            [in] IIntent* data);
+    }
+}

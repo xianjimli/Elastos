@@ -4,7 +4,6 @@
 
 #include "_CStatusBarManagerService.h"
 #include "ext/frameworkext.h"
-#include "statusbar/CStatusBarIconList.h"
 #include "os/Runnable.h"
 #include <elastos/HashMap.h>
 #include <elastos/List.h>
@@ -185,7 +184,7 @@ public:
     AutoPtr<IApartment> mHandler;
     AutoPtr<INotificationCallbacks> mNotificationCallbacks;
     AutoPtr<IStatusBar> mBar;
-    AutoPtr<CStatusBarIconList> mIcons;
+    AutoPtr<IStatusBarIconList> mIcons;
     Mutex mIconsLock;
 
     struct HashBinder

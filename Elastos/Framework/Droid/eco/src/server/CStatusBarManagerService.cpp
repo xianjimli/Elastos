@@ -1,8 +1,6 @@
 
 #include "server/CStatusBarManagerService.h"
-#include "utils/CApartment.h"
-#include "utils/CParcelableObjectContainer.h"
-#include "statusbar/CStatusBarIcon.h"
+#include "utils/AutoStringArray.h"
 #include <Slogger.h>
 
 using namespace Elastos::Utility::Logging;
@@ -14,9 +12,12 @@ CStatusBarManagerService::CStatusBarManagerService()
     : mNotifications(11)
     , mDisabled(0)
 {
-    assert(SUCCEEDED(CApartment::GetDefaultApartment((IApartment**)&mHandler))
+    AutoPtr<IApartmentHelper> apartmentHelper;
+    assert(SUCCEEDED(CApartmentHelper::AcquireSingleton(
+            (IApartmentHelper**)&apartmentHelper)));
+    assert(SUCCEEDED(apartmentHelper->GetDefaultApartment((IApartment**)&mHandler))
             && (mHandler != NULL));
-    CStatusBarIconList::NewByFriend((CStatusBarIconList**)&mIcons);
+    CStatusBarIconList::New((IStatusBarIconList**)&mIcons);
 }
 
 CStatusBarManagerService::~CStatusBarManagerService()
@@ -142,8 +143,10 @@ ECode CStatusBarManagerService::SetIconVisibility(
         return NOERROR;
     }
 
-    if (((CStatusBarIcon*)icon.Get())->mVisible != visible) {
-        ((CStatusBarIcon*)icon.Get())->mVisible = visible;
+    Boolean isVisible;
+    icon->IsVisible(&isVisible);
+    if (isVisible != visible) {
+        icon->SetVisible(visible);
 
         if (mBar != NULL) {
             mBar->SetIcon(index, icon);

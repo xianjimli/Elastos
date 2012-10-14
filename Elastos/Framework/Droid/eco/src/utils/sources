@@ -4,15 +4,17 @@ TARGET_TYPE= lib
 include $(MAKEDIR)/../../../sources.inc
 
 INCLUDES += $(MAKEDIR)/../../inc
-INCLUDES += ../
+INCLUDES += ../core
 
-SOURCES = CApartment.cpp
-SOURCES += CParcelableObjectContainer.cpp
+C_DEFINES += -D_FRAMEWORK_CORE
+
+SOURCES = CParcelableObjectContainer.cpp
 SOURCES += CObjectEnumerator.cpp
 SOURCES += CObjectStringMap.cpp
 SOURCES += CObjectIntegerMap.cpp
 SOURCES += CDisplayMetrics.cpp
 SOURCES += CTypedValue.cpp
+SOURCES += CTypedValueHelper.cpp
 SOURCES += Xml.cpp
 SOURCES += XmlUtils.cpp
 SOURCES += StateSet.cpp
@@ -22,3 +24,4 @@ SOURCES += ListUtils.cpp
 SOURCES += FinitePool.cpp
 SOURCES += SynchronizedPool.cpp
 SOURCES += Pools.cpp
+SOURCES += Config.cpp

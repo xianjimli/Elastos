@@ -30,11 +30,74 @@ public:
     CARAPI GetActivityInfo(
         /* [out] */ IActivityInfo** activityInfo);
 
+    CARAPI SetActivityInfo(
+        /* [in] */ IActivityInfo* activityInfo);
+
     CARAPI GetServiceInfo(
         /* [out] */ IServiceInfo** serviceInfo);
 
+    CARAPI SetServiceInfo(
+        /* [in] */ IServiceInfo* serviceInfo);
+
     CARAPI GetIntentFilter(
         /* [out] */ IIntentFilter** intentFilter);
+
+    CARAPI SetIntentFilter(
+        /* [in] */ IIntentFilter* intentFilter);
+
+    CARAPI GetPriority(
+        /* [out] */ Int32* priority);
+
+    CARAPI SetPriority(
+        /* [in] */ Int32 priority);
+
+    CARAPI GetPreferredOrder(
+        /* [out] */ Int32* order);
+
+    CARAPI SetPreferredOrder(
+        /* [in] */ Int32 order);
+
+    CARAPI GetMatch(
+        /* [out] */ Int32* match);
+
+    CARAPI SetMatch(
+        /* [in] */ Int32 match);
+
+    CARAPI GetSpecificIndex(
+        /* [out] */ Int32* index);
+
+    CARAPI SetSpecificIndex(
+        /* [in] */ Int32 index);
+
+    CARAPI IsDefault(
+        /* [out] */ Boolean* isDefault);
+
+    CARAPI SetDefault(
+        /* [in] */ Boolean isDefault);
+
+    CARAPI GetLabelRes(
+        /* [out] */ Int32* labelRes);
+
+    CARAPI SetLabelRes(
+        /* [in] */ Int32 labelRes);
+
+    CARAPI GetNonLocalizedLabel(
+        /* [out] */ ICharSequence** label);
+
+    CARAPI SetNonLocalizedLabel(
+        /* [in] */ ICharSequence* label);
+
+    CARAPI GetIcon(
+        /* [out] */ Int32* icon);
+
+    CARAPI SetIcon(
+        /* [in] */ Int32 icon);
+
+    CARAPI GetResolveCapsuleName(
+        /* [out] */ String* capsuleName);
+
+    CARAPI SetResolveCapsuleName(
+        /* [in] */ const String& capsuleName);
 
     CARAPI ReadFromParcel(
         /* [in] */ IParcel *source);
@@ -122,7 +185,7 @@ public:
      * resources will be loaded from this package, rather than the one
      * containing the resolved component.
      */
-    String mResolvePackageName;
+    String mResolveCapsuleName;
 
 //	    public static final Creator<ResolveInfo> CREATOR
 //	            = new Creator<ResolveInfo>() {

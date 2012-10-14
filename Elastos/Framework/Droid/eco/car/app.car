@@ -24,6 +24,8 @@ module
     merge("app/INotificationManager.car");
     merge("app/NotificationManager.car");
     merge("app/ITransientNotification.car");
+    merge("app/ResultInfo.car");
+    merge("app/RunningAppProcessInfo.car");
 
 
     class CContentProviderHolder {
@@ -68,6 +70,7 @@ module
             [in] Int32 resultCode,
             [in] IIntent* data);
 
+        interface IResultInfo;
         interface IParcelable;
     }
 
@@ -99,6 +102,7 @@ module
     }
 
     class CRunningAppProcessInfo {
+        interface IRunningAppProcessInfo;
         interface IParcelable;
     }
 

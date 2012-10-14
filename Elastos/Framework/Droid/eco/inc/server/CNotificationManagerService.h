@@ -3,7 +3,6 @@
 #define __CNOTIFICATIONMANAGERSERVICE_H__
 
 #include "_CNotificationManagerService.h"
-#include "app/CNotification.h"
 #include "server/CStatusBarManagerService.h"
 #include "ext/frameworkext.h"
 #include <elastos/AutoPtr.h>
@@ -65,7 +64,7 @@ private:
         Int32 mInitialPid;
         AutoPtr<ITransientNotification> mCallback;
         Int32 mDuration;
-        AutoPtr<CNotification> mNotification;
+        AutoPtr<INotification> mNotification;
         AutoPtr<IBinder> mStatusBarKey;
     };
 
@@ -353,7 +352,7 @@ private:
 
     // for adb connected notifications
     Boolean mAdbNotificationShown;
-    AutoPtr<CNotification> mAdbNotification;
+    AutoPtr<INotification> mAdbNotification;
 
     List< AutoPtr<NotificationRecord> > mNotificationList;
     Mutex mNotificationListLock;

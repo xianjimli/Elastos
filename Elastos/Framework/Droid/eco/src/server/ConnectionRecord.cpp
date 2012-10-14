@@ -7,7 +7,7 @@ ConnectionRecord::ConnectionRecord(
     /* [in] */ IServiceConnectionInner* conn,
     /* [in] */ Int32 flags,
     /* [in] */ Int32 clientLabel,
-    /* [in] */ CPendingIntent* clientIntent) :
+    /* [in] */ IPendingIntent* clientIntent) :
     mBinding(binding),
     mActivity(activity),
     mConn(conn),

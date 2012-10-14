@@ -14,6 +14,12 @@ public:
     CARAPI Clone(
         /* [out] */ IStatusBarIcon** icon);
 
+    CARAPI IsVisible(
+        /* [out] */ Boolean* isVisible);
+
+    CARAPI SetVisible(
+        /* [in] */ Boolean visible);
+
     CARAPI GetDescription(
         /* [out] */ String* str);
 

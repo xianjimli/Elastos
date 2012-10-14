@@ -35,6 +35,9 @@ public:
         /* [in] */ const String& action,
         /* [out] */ Boolean* isMatched);
 
+    CARAPI GetActions(
+        /* [out, callee] */ ArrayOf<String>** actions);
+
     CARAPI AddDataType(
         /* [in] */ const String& type);
 
@@ -49,6 +52,9 @@ public:
         /* [in] */ Int32 index,
         /* [out] */ String* type);
 
+    CARAPI GetTypes(
+        /* [out, callee] */ ArrayOf<String>** types);
+
     CARAPI AddDataScheme(
         /* [in] */ const String& scheme);
 
@@ -62,6 +68,9 @@ public:
     CARAPI HasDataScheme(
         /* [in] */ const String& scheme,
         /* [out] */ Boolean* result);
+
+    CARAPI GetSchemes(
+        /* [out, callee] */ ArrayOf<String>** schemes);
 
     CARAPI AddDataAuthority(
         /* [in] */ const String& host,
@@ -160,13 +169,6 @@ public:
 
     CARAPI constructor(
         /* [in] */ IIntentFilter* o);
-
-public:
-    CARAPI_(List<String>*) GetActions();
-
-    CARAPI_(List<String>*) GetSchemes();
-
-    CARAPI_(List<String>*) GetTypes();
 };
 
 #endif // __CINTENTFILTER_H__

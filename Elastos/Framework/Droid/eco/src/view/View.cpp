@@ -20,7 +20,7 @@
 #include "widget/CScrollBarDrawable.h"
 #include "utils/CParcelableObjectContainer.h"
 #include "utils/CDisplayMetrics.h"
-#include "utils/CApartment.h"
+#include "os/CApartment.h"
 #include "os/SystemClock.h"
 #include <elastos/Math.h>
 #include <Logger.h>

@@ -58,4 +58,9 @@ module
             [in] Int32 id,
             [out] Boolean* result);
     }
+
+    interface IApartmentHelper {
+        GetDefaultApartment(
+            [out] IApartment** apartment);
+    }
 }

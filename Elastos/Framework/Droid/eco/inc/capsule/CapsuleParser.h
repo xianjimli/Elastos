@@ -6,7 +6,9 @@
 #include <elastos/List.h>
 #include <elastos/AutoPtr.h>
 #include <elastos/ElRefBase.h>
+#include <elastos/AutoFree.h>
 
+#ifdef _FRAMEWORK_CORE
 #include "os/CBundle.h"
 #include "content/CComponentName.h"
 #include "content/CIntentFilter.h"
@@ -22,13 +24,18 @@
 #include "content/CInstrumentationInfo.h"
 #include "content/CPermissionGroupInfo.h"
 #include "os/Build.h"
+#elif defined(_FRAMEWORK_SERVER)
+#include "Elastos.Framework.Core.h"
+#endif
+
 
 using namespace Elastos;
 
 class CapsuleParser
 {
 public:
-    class NewPermissionInfo {
+    class NewPermissionInfo
+    {
         public:
             NewPermissionInfo(
                 /* [in] */ const String& name,
@@ -85,7 +92,7 @@ public:
 
         Component(
             /* [in] */ ParseCapsuleItemArgs* args,
-            /* [in, out] */ CapsuleItemInfo* outInfo);
+            /* [in, out] */ ICapsuleItemInfo* outInfo);
 
         virtual ~Component()
         {
@@ -105,7 +112,7 @@ public:
         Capsule* mOwner;
         List<II*>* mIntents;
         String mClassName;
-        AutoPtr<CBundle> mMetaData;
+        AutoPtr<IBundle> mMetaData;
         AutoPtr<IComponentName> mComponentName;
         String mComponentShortName;
     };
@@ -131,7 +138,7 @@ public:
         CARAPI_(String) GetDescription();
 
     public:
-        AutoPtr<CPermissionInfo> mInfo;
+        AutoPtr<IPermissionInfo> mInfo;
         Boolean mTree;
         PermissionGroup* mGroup;
     };
@@ -144,7 +151,7 @@ public:
 
         PermissionGroup(
             /* [in] */ Capsule* owner,
-            /* [in] */ CPermissionGroupInfo* info);
+            /* [in] */ IPermissionGroupInfo* info);
 
         ~PermissionGroup();
 
@@ -155,7 +162,7 @@ public:
             /* [out] */ String* des);
 
     public:
-        AutoPtr<CPermissionGroupInfo> mInfo;
+        AutoPtr<IPermissionGroupInfo> mInfo;
     };
 
     class IntentInfo
@@ -201,7 +208,7 @@ public:
             /* [out] */ Boolean* hasCategory);
 
     public:
-        AutoPtr<CIntentFilter> mFilter;
+        AutoPtr<IIntentFilter> mFilter;
         Boolean mHasDefault;
         Int32 mLabelRes;
         AutoPtr<ICharSequence> mNonLocalizedLabel;
@@ -240,15 +247,10 @@ public:
     public:
         Activity(
             /* [in] */ ParseComponentArgs* args,
-            /* [in] */ CActivityInfo* info)
-            : Component<ActivityIntentInfo>(args, info)
-        {
-            mInfo = info;
-            mInfo->mApplicationInfo = args->mOwner->mApplicationInfo;
-        }
+            /* [in] */ IActivityInfo* info);
 
     public:
-        AutoPtr<CActivityInfo> mInfo;
+        AutoPtr<IActivityInfo> mInfo;
     };
 
     class Service : public Component<ServiceIntentInfo>
@@ -256,15 +258,9 @@ public:
     public:
         Service(
             /* [in] */ ParseComponentArgs* args,
-            /* [in] */ CServiceInfo* info)
-            : Component<ServiceIntentInfo>(args, info)
-        {
-            mInfo = info;
-            mInfo->mApplicationInfo = args->mOwner->mApplicationInfo;
-        }
-
+            /* [in] */ IServiceInfo* info);
     public:
-        AutoPtr<CServiceInfo> mInfo;
+        AutoPtr<IServiceInfo> mInfo;
     };
 
     class ContentProvider : public Component<IntentInfo>
@@ -273,25 +269,14 @@ public:
         ContentProvider() : mSyncable(FALSE) {}
 
         ContentProvider(
-            /* [in] */ ContentProvider* existingProvider)
-            : Component<IntentInfo>(existingProvider)
-        {
-            this->mInfo = existingProvider->mInfo;
-            this->mSyncable = existingProvider->mSyncable;
-        }
+            /* [in] */ ContentProvider* existingProvider);
 
         ContentProvider(
             /* [in] */ ParseComponentArgs* args,
-            /* [in] */ CContentProviderInfo* info)
-            : Component<IntentInfo>(args, info)
-            , mSyncable(FALSE)
-        {
-            mInfo = info;
-            info->mApplicationInfo = args->mOwner->mApplicationInfo;
-        }
+            /* [in] */ IContentProviderInfo* info);
 
     public:
-        AutoPtr<CContentProviderInfo> mInfo;
+        AutoPtr<IContentProviderInfo> mInfo;
         Boolean mSyncable;
     };
 
@@ -300,14 +285,13 @@ public:
     public:
         Instrumentation(
             /* [in] */ ParseCapsuleItemArgs* args,
-            /* [in] */ CInstrumentationInfo* info)
+            /* [in] */ IInstrumentationInfo* info)
             : Component<IntentInfo>(args, info)
             , mInfo(info)
-        {
-        }
+        {}
 
     public:
-        AutoPtr<CInstrumentationInfo> mInfo;
+        AutoPtr<IInstrumentationInfo> mInfo;
     };
 
     class Capsule;
@@ -405,9 +389,7 @@ public:
             , mOperationPending(FALSE)
             , mInstallLocation(0)
         {
-            AutoPtr<CApplicationInfo> ainfo;
-            CApplicationInfo::NewByFriend((CApplicationInfo**)&ainfo);
-            mApplicationInfo = ainfo;
+            CApplicationInfo::New((IApplicationInfo**)&mApplicationInfo);
         }
 
         Capsule(
@@ -468,7 +450,7 @@ public:
     public:
         String mCapsuleName;
 
-        AutoPtr<CApplicationInfo> mApplicationInfo;
+        AutoPtr<IApplicationInfo> mApplicationInfo;
 
         List<Permission*> mPermissions;
         List<PermissionGroup*> mPermissionGroups;
@@ -491,7 +473,7 @@ public:
         List<String>* mAdoptPermissions;
 
         // We store the application meta-data independently to avoid multiple unwanted references
-        AutoPtr<CBundle> mAppMetaData;
+        AutoPtr<IBundle> mAppMetaData;
 
         // If this is a 3rd party app, this is the path of the zip file.
         String mPath;
@@ -534,12 +516,12 @@ public:
         /*
          *  Applications hardware preferences
          */
-        List< AutoPtr<CConfigurationInfo> > mConfigPreferences;
+        List< AutoPtr<IConfigurationInfo> > mConfigPreferences;
 
         /*
          *  Applications requested features
          */
-        List< AutoPtr<CFeatureInfo> > mReqFeatures;
+        List< AutoPtr<IFeatureInfo> > mReqFeatures;
 
         Int32 mInstallLocation;
     };
@@ -561,7 +543,7 @@ public:
      * @param p the parsed package.
      * @param flags indicating which optional information is included.
      */
-    static CARAPI_(AutoPtr<CCapsuleInfo>) GenerateCapsuleInfo(
+    static CARAPI_(AutoPtr<ICapsuleInfo>) GenerateCapsuleInfo(
         /* [in] */ Capsule* c,
         /* [in] */ const ArrayOf<Int32>* gids,
         /* [in] */ Int32 flags,
@@ -584,33 +566,33 @@ public:
     static CARAPI_(Boolean) CopyNeeded(
         /* [in] */ Int32 flags,
         /* [in] */ CapsuleParser::Capsule* capsule,
-        /* [in] */ CBundle* metaData);
+        /* [in] */ IBundle* metaData);
 
-    static CARAPI_(AutoPtr<CApplicationInfo>) GenerateApplicationInfo(
+    static CARAPI_(AutoPtr<IApplicationInfo>) GenerateApplicationInfo(
         /* [in] */ Capsule* capsule,
         /* [in] */ Int32 flags);
 
-    static CARAPI_(AutoPtr<CPermissionInfo>) GeneratePermissionInfo(
+    static CARAPI_(AutoPtr<IPermissionInfo>) GeneratePermissionInfo(
         /* [in] */ Permission* p,
         /* [in] */ Int32 flags);
 
-    static CARAPI_(AutoPtr<CPermissionGroupInfo>) GeneratePermissionGroupInfo(
+    static CARAPI_(AutoPtr<IPermissionGroupInfo>) GeneratePermissionGroupInfo(
         /* [in] */ PermissionGroup* pg,
         /* [in] */ Int32 flags);
 
-    static CARAPI_(AutoPtr<CActivityInfo>) GenerateActivityInfo(
+    static CARAPI_(AutoPtr<IActivityInfo>) GenerateActivityInfo(
         /* [in] */ Activity* activity,
         /* [in] */ Int32 flags);
 
-    static CARAPI_(AutoPtr<CServiceInfo>) GenerateServiceInfo(
+    static CARAPI_(AutoPtr<IServiceInfo>) GenerateServiceInfo(
         /* [in] */ Service* service,
         /* [in] */ Int32 flags);
 
-    static CARAPI_(AutoPtr<CContentProviderInfo>) GenerateContentProviderInfo(
+    static CARAPI_(AutoPtr<IContentProviderInfo>) GenerateContentProviderInfo(
         /* [in] */ ContentProvider* provider,
         /* [in] */ Int32 flags);
 
-    static CARAPI_(AutoPtr<CInstrumentationInfo>) GenerateInstrumentationInfo(
+    static CARAPI_(AutoPtr<IInstrumentationInfo>) GenerateInstrumentationInfo(
         /* [in] */ CapsuleParser::Instrumentation* i,
         /* [in] */ Int32 flags);
 
@@ -703,7 +685,7 @@ private:
 
     CARAPI_(Boolean) ParseCapsuleItemInfo(
         /* [in] */ Capsule* owner,
-        /* [in] */ CapsuleItemInfo* outInfo,
+        /* [in] */ ICapsuleItemInfo* outInfo,
         /* [in] */ ArrayOf<String>* outError,
         /* [in] */ const char* tag,
         /* [in] */ ITypedArray* sa,
@@ -773,11 +755,11 @@ private:
         /* [in] */ Component<T>* outInfo,
         /* [in] */ ArrayOf<String>* outError);
 
-    CARAPI_(AutoPtr<CBundle>) ParseMetaData(
+    CARAPI_(AutoPtr<IBundle>) ParseMetaData(
     	/* [in] */ IResources* res,
     	/* [in] */ IXmlPullParser* parser,
     	/* [in] */ IAttributeSet* attrs,
-    	/* [in] */ CBundle* data,
+    	/* [in] */ IBundle* data,
     	/* [in] */ ArrayOf<String>* outError);
 
     CARAPI_(Boolean) ParseIntent(
@@ -820,7 +802,7 @@ private:
 
     static Boolean sCompatibilityModeEnabled;
 
-    static const Int32 PARSE_DEFAULT_INSTALL_LOCATION = CCapsuleInfo::INSTALL_LOCATION_UNSPECIFIED;
+    static const Int32 PARSE_DEFAULT_INSTALL_LOCATION = CapsuleInfo_INSTALL_LOCATION_UNSPECIFIED;
 
     ParseCapsuleItemArgs* mParseInstrumentationArgs;
     ParseComponentArgs* mParseActivityArgs;

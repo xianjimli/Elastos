@@ -5,7 +5,6 @@
 #include "server/CActivityManagerService.h"
 #include "server/ProcessRecord.h"
 #include "server/CActivityRecord.h"
-#include "app/CWaitResult.h"
 #include <elastos/AutoPtr.h>
 
 class CActivityManagerService;
@@ -77,11 +76,11 @@ public:
 
     CARAPI_(CActivityRecord*) FindTaskLocked(
         /* [in] */ IIntent* intent,
-        /* [in] */ CActivityInfo* info);
+        /* [in] */ IActivityInfo* info);
 
     CARAPI_(CActivityRecord*) FindActivityLocked(
         /* [in] */ IIntent* intent,
-        /* [in] */ CActivityInfo* info);
+        /* [in] */ IActivityInfo* info);
 
     CARAPI RealStartActivityLocked(
         /* [in] */ CActivityRecord* r,
@@ -316,12 +315,12 @@ private:
     /**
      * List of people waiting to find out about the next launched activity.
      */
-    List<AutoPtr<CWaitResult> > mWaitingActivityLaunched;
+    List<AutoPtr<IWaitResult> > mWaitingActivityLaunched;
 
     /**
      * List of people waiting to find out about the next visible activity.
      */
-    List<AutoPtr<CWaitResult> > mWaitingActivityVisible;
+    List<AutoPtr<IWaitResult> > mWaitingActivityVisible;
 
     /**
      * When we are in the process of pausing an activity, before starting the

@@ -34,6 +34,30 @@ public:
     CARAPI GetDescription(
         /* [out] */ String* str);
 
+    CARAPI GetType(
+        /* [out] */ Int32* type);
+
+    CARAPI SetType(
+        /* [in] */ Int32 type);
+
+    CARAPI GetString(
+        /* [out] */ ICharSequence** string);
+
+    CARAPI SetString(
+        /* [in] */ ICharSequence* string);
+
+    CARAPI GetData(
+        /* [out] */ Int32* data);
+
+    CARAPI SetData(
+        /* [in] */ Int32 data);
+
+    CARAPI GetResourceId(
+        /* [out] */ Int32* resId);
+
+    CARAPI SetResourceId(
+        /* [in] */ Int32 resId);
+
 public: /*package*/
     static CARAPI_(Float) ComplexToFloat(
         /* [in] */ Int32 complex);
@@ -107,6 +131,8 @@ public:
     Int32 mDensity;
 
 private:
+    friend class CTypedValueHelper;
+
     static const Float MANTISSA_MULT;
 
     static const Float RADIX_MULTS[];

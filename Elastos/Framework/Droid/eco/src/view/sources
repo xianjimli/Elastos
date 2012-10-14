@@ -5,19 +5,21 @@ TARGET_TYPE= lib
 include $(MAKEDIR)/../../../sources.inc
 
 INCLUDES += $(MAKEDIR)/../../inc
-INCLUDES += ../
+INCLUDES += ../core
 ifeq "$(XDK_TARGET_PLATFORM)" "linux"
 INCLUDES += $(PREBUILD_INC)/skia/utils
 INCLUDES += $(PREBUILD_INC)/skia/core
 endif
 
+C_DEFINES += -D_FRAMEWORK_CORE
+
 SOURCES = CSurface.cpp
+SOURCES += CSurfaceHelper.cpp
 SOURCES += CSurfaceSession.cpp
 SOURCES += CInputBindResult.cpp
 SOURCES += CInputChannel.cpp
-ifeq "$(XDK_TARGET_PLATFORM)" "linux"
+SOURCES += CInputChannelHelper.cpp
 SOURCES += NativeInputChannel.cpp
-endif
 SOURCES += CInputDevice.cpp
 SOURCES += CViewGroupLayoutParams.cpp
 SOURCES += CViewGroupMarginLayoutParams.cpp
@@ -33,12 +35,11 @@ SOURCES += CViewRootW.cpp
 SOURCES += CInputMethodCallback.cpp
 SOURCES += ViewConfiguration.cpp
 SOURCES += BaseSurfaceHolder.cpp
-ifeq "$(XDK_TARGET_PLATFORM)" "linux"
 SOURCES += InputQueue.cpp
 SOURCES += NativeInputQueue.cpp
-endif
 SOURCES += CKeyEvent.cpp
 SOURCES += CMotionEvent.cpp
+SOURCES += CMotionEventHelper.cpp
 SOURCES += CDisplay.cpp
 SOURCES += ViewTreeObserver.cpp
 SOURCES += InputEvent.cpp

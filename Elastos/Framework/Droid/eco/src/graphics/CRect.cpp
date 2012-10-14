@@ -79,7 +79,7 @@ ECode CRect::IsEmpty(
 
 Boolean CRect::IsEmpty()
 {
-    return mLeft >= mRight || mTop >= mBottom; 
+    return mLeft >= mRight || mTop >= mBottom;
 }
 
 ECode CRect::GetWidth(
@@ -387,6 +387,66 @@ ECode CRect::Scale(
         mBottom = (Int32)(mBottom * scale + 0.5f);
     }
 
+    return NOERROR;
+}
+
+ECode CRect::GetLeft(
+    /* [out] */ Int32* left)
+{
+    VALIDATE_NOT_NULL(left);
+    *left = mLeft;
+    return NOERROR;
+}
+
+ECode CRect::SetLeft(
+    /* [in] */ Int32 left)
+{
+    mLeft = left;
+    return NOERROR;
+}
+
+ECode CRect::GetTop(
+    /* [out] */ Int32* top)
+{
+    VALIDATE_NOT_NULL(top);
+    *top = mTop;
+    return NOERROR;
+}
+
+ECode CRect::SetTop(
+    /* [in] */ Int32 top)
+{
+    mTop = top;
+    return NOERROR;
+}
+
+ECode CRect::GetRight(
+    /* [out] */ Int32* right)
+{
+    VALIDATE_NOT_NULL(right);
+    *right = mRight;
+    return NOERROR;
+}
+
+ECode CRect::SetRight(
+    /* [in] */ Int32 right)
+{
+    mRight = right;
+    return NOERROR;
+}
+
+ECode CRect::GetBottom(
+    /* [out] */ Int32* bottom)
+{
+    VALIDATE_NOT_NULL(bottom);
+    *bottom = mBottom;
+    return NOERROR;
+}
+
+ECode CRect::SetBottom(
+    /* [in] */ Int32 bottom)
+{
+    mBottom = bottom;
     return NOERROR;
 }
 

@@ -11,7 +11,7 @@ ECode CClassLoader::LoadClass(
     /* [out] */ Handle32* _clazz)
 {
     IClassInfo** clazz = (IClassInfo**)_clazz;
-    CString modulename("Elastos.Framework.eco");
+    CString modulename("Elastos.Framework.Core.eco");
     String rname("C");
     rname += className.Substring(className.LastIndexOf('.') + 1);
 

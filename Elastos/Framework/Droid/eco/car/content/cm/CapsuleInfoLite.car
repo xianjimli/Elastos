@@ -7,5 +7,23 @@ module
 
         DescribeContents(
             [out] Int32* ret);
+
+        GetCapsuleName(
+            [out] String* name);
+
+        SetCapsuleName(
+            [in] String name);
+
+        GetRecommendedInstallLocation(
+            [out] Int32* location);
+
+        SetRecommendedInstallLocation(
+            [in] Int32 location);
+
+        GetInstallLocation(
+            [out] Int32* location);
+
+        SetInstallLocation(
+            [in] Int32 location);
     }
 }

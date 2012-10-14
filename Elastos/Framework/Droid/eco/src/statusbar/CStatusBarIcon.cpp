@@ -1,4 +1,5 @@
 
+#include "ext/frameworkdef.h"
 #include "statusbar/CStatusBarIcon.h"
 
 CStatusBarIcon::CStatusBarIcon()
@@ -14,6 +15,21 @@ ECode CStatusBarIcon::Clone(
     _icon->mNumber = mNumber;
 
     *icon = (IStatusBarIcon*)_icon;
+    return NOERROR;
+}
+
+ECode CStatusBarIcon::IsVisible(
+    /* [out] */ Boolean* isVisible)
+{
+    VALIDATE_NOT_NULL(isVisible);
+    *isVisible = mVisible;
+    return NOERROR;
+}
+
+ECode CStatusBarIcon::SetVisible(
+    /* [in] */ Boolean visible)
+{
+    mVisible = visible;
     return NOERROR;
 }
 

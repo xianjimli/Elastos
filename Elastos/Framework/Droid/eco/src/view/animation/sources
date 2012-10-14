@@ -3,11 +3,13 @@ TARGET_NAME= animation
 TARGET_TYPE= lib
 
 INCLUDES += $(MAKEDIR)/../../../inc
-INCLUDES += ../../
+INCLUDES += ../../core
 INCLUDES += $(PREBUILD_INC)/skia/utils
 INCLUDES += $(PREBUILD_INC)/skia/core
 INCLUDES += $(PREBUILD_INC)/skia/effects
 INCLUDES += $(PREBUILD_INC)/skia/images
+
+C_DEFINES += -D_FRAMEWORK_CORE
 
 SOURCES = AnimationUtils.cpp
 SOURCES += Animation.cpp

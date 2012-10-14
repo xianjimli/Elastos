@@ -46,7 +46,7 @@ void CServiceRecord::Init(
     /* [in] */ /* [in] */ CActivityManagerService* ams,
     /* [in] */ BatteryStatsImpl::Uid::Cap::Serv* servStats,
     /* [in] */ IComponentName* name,
-    /* [in] */ CIntent::FilterComparison* intent,
+    /* [in] */ IIntentFilterComparison* intent,
     /* [in] */ IServiceInfo* sInfo,
     /* [in] */ IRunnable* restarter)
 {
@@ -55,15 +55,15 @@ void CServiceRecord::Init(
     mName = name;
     name->FlattenToShortString(&mShortName);
     mIntent = intent;
-    mServiceInfo = (CServiceInfo*)sInfo;
-    mAppInfo = ((CServiceInfo*)sInfo)->mApplicationInfo;
-    mCapsuleName = ((CServiceInfo*)sInfo)->mApplicationInfo->mCapsuleName;
-    mProcessName = ((CServiceInfo*)sInfo)->mProcessName;
-    mPermission = ((CServiceInfo*)sInfo)->mPermission;
-    mBaseDir = ((CServiceInfo*)sInfo)->mApplicationInfo->mSourceDir;
-    mResDir = ((CServiceInfo*)sInfo)->mApplicationInfo->mPublicSourceDir;
-    mDataDir = ((CServiceInfo*)sInfo)->mApplicationInfo->mDataDir;
-    mExported = ((CServiceInfo*)sInfo)->mExported;
+    mServiceInfo = sInfo;
+    sInfo->GetApplicationInfo((IApplicationInfo**)&mAppInfo);
+    mAppInfo->GetCapsuleName(&mCapsuleName);
+    sInfo->GetProcessName(&mProcessName);
+    sInfo->GetPermission(&mPermission);
+    mAppInfo->GetSourceDir(&mBaseDir);
+    mAppInfo->GetPublicSourceDir(&mResDir);
+    mAppInfo->GetDataDir(&mDataDir);
+    sInfo->IsExported(&mExported);
     mRestarter = restarter;
     mCreateTime = SystemClock::GetElapsedRealtime();
     mLastActivity = SystemClock::GetUptimeMillis();
@@ -73,7 +73,8 @@ AppBindRecord* CServiceRecord::RetrieveAppBindingLocked(
     /* [in] */ IIntent* intent,
     /* [in] */ ProcessRecord* app)
 {
-    CIntent::FilterComparison* filter = new CIntent::FilterComparison(intent);
+    AutoPtr<IIntentFilterComparison> filter;
+    CIntentFilterComparison::New(intent, (IIntentFilterComparison**)&filter);
     IntentBindRecord* i = mBindings[filter];
     if (i == NULL) {
         i = new IntentBindRecord(this, filter);

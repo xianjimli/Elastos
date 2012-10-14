@@ -23,14 +23,14 @@ ECode InputManagerCallbacks::NotifyLidSwitchChanged(
 }
 
 ECode InputManagerCallbacks::NotifyInputChannelBroken(
-    /* [in] */ CInputChannel* inputChannel)
+    /* [in] */ IInputChannel* inputChannel)
 {
     return mWindowManagerService->mInputMonitor->NotifyInputChannelBroken(inputChannel);
 }
 
 ECode InputManagerCallbacks::NotifyANR(
     /* [in] */ void* token,
-    /* [in] */ CInputChannel* inputChannel,
+    /* [in] */ IInputChannel* inputChannel,
     /* [out] */ Int64* timeout)
 {
     return mWindowManagerService->mInputMonitor->NotifyANR(token, inputChannel, timeout);
@@ -51,7 +51,7 @@ ECode InputManagerCallbacks::InterceptKeyBeforeQueueing(
 }
 
 ECode InputManagerCallbacks::InterceptKeyBeforeDispatching(
-    /* [in] */ CInputChannel* focus,
+    /* [in] */ IInputChannel* focus,
     /* [in] */ Int32 action,
     /* [in] */ Int32 flags,
     /* [in] */ Int32 keyCode,

@@ -4,8 +4,6 @@
 #include "net/CStringUri.h"
 #include <elastos/Algorithm.h>
 
-const String CIntent::EXTRA_CLIENT_LABEL = String("android.intent.extra.client_label");
-const String CIntent::EXTRA_CLIENT_INTENT = String("android.intent.extra.client_intent");
 
 CIntent::FilterComparison::FilterComparison(
     /* [in] */ IIntent* intent)
@@ -588,6 +586,19 @@ ECode CIntent::ResolveTypeIfNeeded(
 }
 
 /**
+ * Completely replace the extras in the Intent with the extras in the
+ * given Intent.
+ *
+ * @param src The exact extras contained in this Intent are copied
+ * into the target intent, replacing any that were previously there.
+ */
+ECode CIntent::ReplaceExtras(
+    /* [in] */ IIntent* src)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+/**
  * Determine if two intents are the same for the purposes of intent
  * resolution (filtering). That is, if their action, data, type,
  * class, and categories are the same.  This does <em>not</em> compare
@@ -752,16 +763,4 @@ ECode CIntent::WriteToParcel(
     }
 
     return NOERROR;
-}
-
-ECode CIntent::CloneFilter(
-    /* [out] */ CIntent** intent)
-{
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CIntent::ReplaceExtras(
-    /* [in] */ CIntent* src)
-{
-    return E_NOT_IMPLEMENTED;
 }

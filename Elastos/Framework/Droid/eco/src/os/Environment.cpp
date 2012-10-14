@@ -2,7 +2,11 @@
 #include "os/Environment.h"
 #include "os/SystemProperties.h"
 #include "os/ServiceManager.h"
+#ifdef _FRAMEWORK_CORE
 #include "content/CResourcesFactory.h"
+#elif defined(_FRAMEWORK_SERVER)
+#include "Elastos.Framework.Core.h"
+#endif
 #include <elastos/System.h>
 
 using namespace Elastos::Core;

@@ -4,7 +4,6 @@
 
 #include "_CWindowSession.h"
 #include "server/CWindowManagerService.h"
-#include "view/CSurfaceSession.h"
 #include <elastos/AutoPtr.h>
 
 CarClass(CWindowSession)
@@ -116,7 +115,7 @@ public:
     AutoPtr<IInputContext> mInputContext;
     Int32 mUid;
     Int32 mPid;
-    AutoPtr<CSurfaceSession> mSurfaceSession;
+    AutoPtr<ISurfaceSession> mSurfaceSession;
     Int32 mNumWindow;
 };
 

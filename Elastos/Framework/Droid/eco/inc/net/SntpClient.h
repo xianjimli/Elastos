@@ -35,7 +35,7 @@ private:
 
     // Number of seconds between Jan 1, 1900 and Jan 1, 1970
     // 70 years plus 17 leap days
-    static const Int64 OFFSET_1900_TO_1970 = ((365L * 70L) + 17L) * 24L * 60L * 60L;
+    static const Int64 OFFSET_1900_TO_1970 = ((365ll * 70ll) + 17ll) * 24ll * 60ll * 60ll;
 
 public:
     SntpClient();

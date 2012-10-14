@@ -11,7 +11,7 @@ Key::Key(
     /* [in] */ CActivityRecord* a,
     /* [in] */ const String& w,
     /* [in] */ Int32 r,
-    /* [in] */ CIntent* i,
+    /* [in] */ IIntent* i,
     /* [in] */ const String& it,
     /* [in] */ Int32 f) :
     mType(t),

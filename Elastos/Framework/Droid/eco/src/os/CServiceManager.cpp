@@ -7,7 +7,7 @@
 #include <binder/ProcessState.h>
 #include <binder/IServiceManager.h>
 #include <binder/Binder.h>
-#include "server/CServiceManager.h"
+#include "os/CServiceManager.h"
 #include "ext/frameworkerr.h"
 #include "utils/log.h"
 

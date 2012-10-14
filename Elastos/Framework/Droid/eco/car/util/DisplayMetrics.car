@@ -34,5 +34,11 @@ module
 
         GetDescription(
             [out] String* str);
+
+        GetDensity(
+            [out] Float* density);
+
+        SetDensity(
+            [in] Float density);
     }
 }

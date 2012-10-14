@@ -5,23 +5,11 @@
 #include "server/SystemServer.h"
 #include "server/CServiceRestarter.h"
 #include "server/AttributeCache.h"
-#include "app/CApplicationApartment.h"
-#include "app/CPendingIntent.h"
-#include "app/CWaitResult.h"
-#include "app/CRunningAppProcessInfo.h"
-#include "capsule/CActivityInfo.h"
-#include "content/CIntent.h"
-#include "content/CResolveInfo.h"
 #include "content/ContentResolver.h"
-#include "content/CPathPermission.h"
-#include "graphics/CBitmap.h"
-#include "os/CPatternMatcher.h"
 #include "os/SystemClock.h"
 #include "os/Process.h"
 #include "os/SystemProperties.h"
-#include "utils/CParcelableObjectContainer.h"
 #include "utils/EventLogTags.h"
-#include "utils/CObjectStringMap.h"
 #include "utils/AutoStringArray.h"
 #include "view/WindowManagerPolicy.h"
 #include <elastos/AutoPtr.h>
@@ -234,7 +222,9 @@ CActivityManagerService::CActivityManagerService() :
     mOrigWaitForDebugger(FALSE),
     mProcessLimit(0)
 {
-    assert(SUCCEEDED(CApartment::GetDefaultApartment((IApartment**)&mApartment))
+    AutoPtr<IApartmentHelper> helper;
+    assert(SUCCEEDED(CApartmentHelper::AcquireSingleton((IApartmentHelper**)&helper)));
+    assert(SUCCEEDED(helper->GetDefaultApartment((IApartment**)&mApartment))
             && (mApartment != NULL));
 
     AutoPtr<IServiceManager> serviceManager;
@@ -249,7 +239,7 @@ CActivityManagerService::CActivityManagerService() :
             BroadcastFilter>();
     CBatteryStatsService::NewByFriend(String("/system/batterystats.bin"),
             (CBatteryStatsService**)&mBatteryStatsService);
-    CConfiguration::NewByFriend((CConfiguration**)&mConfiguration);
+    CConfiguration::New((IConfiguration**)&mConfiguration);
     mProcDeaths = new Int32[20];
     memset(mProcDeaths, 0, 20);
 }
@@ -588,14 +578,16 @@ Boolean CActivityManagerService::IsNextTransitionForward()
 
 ProcessRecord* CActivityManagerService::StartProcessLocked(
     /* [in] */ const String& processName,
-    /* [in] */ CApplicationInfo* info,
+    /* [in] */ IApplicationInfo* info,
     /* [in] */ Boolean knownToBeDead,
     /* [in] */ Int32 intentFlags,
     /* [in] */ const char* hostingType,
     /* [in] */ IComponentName* hostingName,
     /* [in] */ Boolean allowWhileBooting)
 {
-    ProcessRecord* app = GetProcessRecordLocked(processName, info->mUid);
+    Int32 infoUid;
+    info->GetUid(&infoUid);
+    ProcessRecord* app = GetProcessRecordLocked(processName, infoUid);
     // We don't have to do anything more if:
     // (1) There is an existing application record; and
     // (2) The caller doesn't think it is dead, OR there is no thread
@@ -647,30 +639,33 @@ ProcessRecord* CActivityManagerService::StartProcessLocked(
         hostingName->FlattenToShortString(&hostingNameStr);
     }
 
+    String infoPName;
+    info->GetProcessName(&infoPName);
     if ((intentFlags & Intent_FLAG_FROM_BACKGROUND) != 0) {
         // If we are in the background, then check to see if this process
         // is bad.  If so, we will just silently fail.
-        if (mBadProcesses->Get(info->mProcessName, info->mUid) != (Millisecond64)NULL) {
+        if (mBadProcesses->Get(infoPName, infoUid) != (Millisecond64)NULL) {
             if (DEBUG_PROCESSES) {
-                Slogger::V(TAG, StringBuffer("Bad process: ") + info->mUid
-                        + "/" + info->mProcessName);
+                Slogger::V(TAG, StringBuffer("Bad process: ") + infoUid
+                        + "/" + infoPName);
             }
             return NULL;
         }
-    } else {
+    }
+    else {
         // When the user is explicitly starting a process, then clear its
         // crash count so that we won't make it bad until they see at
         // least one crash dialog again, and make the process good again
         // if it had been bad.
         if (DEBUG_PROCESSES) {
-            Slogger::V(TAG, StringBuffer("Clearing bad process: ") + info->mUid
-                    + "/" + info->mProcessName);
+            Slogger::V(TAG, StringBuffer("Clearing bad process: ") + infoUid
+                    + "/" + infoPName);
         }
-        mProcessCrashTimes->Remove(info->mProcessName, info->mUid);
-        if (mBadProcesses->Get(info->mProcessName, info->mUid) != (Millisecond64)NULL) {
+        mProcessCrashTimes->Remove(infoPName, infoUid);
+        if (mBadProcesses->Get(infoPName, infoUid) != (Millisecond64)NULL) {
 //            EventLog.writeEvent(EventLogTags.AM_PROC_GOOD, info.uid,
 //                    info.processName);
-            mBadProcesses->Remove(info->mProcessName, info->mUid);
+            mBadProcesses->Remove(infoPName, infoUid);
             if (app != NULL) {
                 app->mBad = FALSE;
             }
@@ -679,10 +674,13 @@ ProcessRecord* CActivityManagerService::StartProcessLocked(
 
     if (app == NULL) {
         app = NewProcessRecordLocked(NULL, info, processName);
-        mProcessNames->Put(processName, info->mUid, app);
-    } else {
+        mProcessNames->Put(processName, infoUid, app);
+    }
+    else {
+        String infoCName;
+        info->GetCapsuleName(&infoCName);
         // If this is a new package in the process, add the package to the list
-        app->AddCapsule(info->mCapsuleName);
+        app->AddCapsule(infoCName);
     }
 
     // If the system is not ready yet, then hold off on starting this
@@ -709,9 +707,11 @@ ProcessRecord* CActivityManagerService::StartProcessLocked(
 }
 
 Boolean CActivityManagerService::IsAllowedWhileBooting(
-    /* [in] */ CApplicationInfo* ai)
+    /* [in] */ IApplicationInfo* ai)
 {
-    return (ai->mFlags & CApplicationInfo::FLAG_PERSISTENT) != 0;
+    Int32 flags;
+    ai->GetFlags(&flags);
+    return (flags & ApplicationInfo_FLAG_PERSISTENT) != 0;
 }
 
 void CActivityManagerService::StartProcessLocked(
@@ -744,7 +744,8 @@ void CActivityManagerService::StartProcessLocked(
     mProcDeaths[0] = 0;
 
 //    try {
-    Int32 uid = app->mInfo->mUid;
+    Int32 uid;
+    app->mInfo->GetUid(&uid);
     UNUSED(uid);
 //    int[] gids = null;
 //    try {
@@ -786,7 +787,7 @@ void CActivityManagerService::StartProcessLocked(
 
     Int32 pid = fork();
     if(pid == 0){
-        char *argv[] = {(char *)"host", (char *)"Elastos.Framework.eco",
+        char *argv[] = {(char *)"host", (char *)"Elastos.Framework.Core.eco",
                         (char *)"CApplicationApartment", NULL};
         if(execv("/data/data/com.elastos.runtime/elastos/host", argv) < 0){
             Slogger::E(TAG, "Execute host.ecx fail!\n");
@@ -895,15 +896,20 @@ Boolean CActivityManagerService::StartHomeActivityLocked()
     intent->ResolveActivityInfo(GetCapsuleManager(),
             STOCK_PM_FLAGS, (IActivityInfo**)&aInfo);
     if (aInfo != NULL) {
-        CActivityInfo* aInfoObj = (CActivityInfo*)(IActivityInfo*)aInfo;
+        AutoPtr<IApplicationInfo> appInfo;
+        aInfo->GetApplicationInfo((IApplicationInfo**)&appInfo);
+        String cname, name, pname;
+        appInfo->GetCapsuleName(&cname);
+        aInfo->GetName(&name);
+        aInfo->GetProcessName(&pname);
         AutoPtr<IComponentName> component;
-        CComponentName::New(aInfoObj->mApplicationInfo->mCapsuleName,
-                aInfoObj->mName, (IComponentName**)&component);
+        CComponentName::New(cname, name, (IComponentName**)&component);
         intent->SetComponent((IComponentName*)component);
         // Don't do this if the home app is currently being
         // instrumented.
-        ProcessRecord* app = GetProcessRecordLocked(aInfoObj->mProcessName,
-                aInfoObj->mApplicationInfo->mUid);
+        Int32 uid;
+        appInfo->GetUid(&uid);
+        ProcessRecord* app = GetProcessRecordLocked(pname, uid);
         if (app == NULL || app->mInstrumentationClass == NULL) {
             Int32 flags, status;
             intent->GetFlags(&flags);
@@ -1107,10 +1113,14 @@ ECode CActivityManagerService::StartActivityIntentSender(
 
         // If this is coming from the currently resumed activity, it is
         // effectively saying that app switches are allowed at this point.
-        if (mMainStack->mResumedActivity != NULL
-                && mMainStack->mResumedActivity->mInfo->mApplicationInfo->mUid ==
-                        Process::GetCallingUid()) {
-            mAppSwitchesAllowedTime = 0;
+        if (mMainStack->mResumedActivity != NULL) {
+            AutoPtr<IApplicationInfo> appInfo;
+            mMainStack->mResumedActivity->mInfo->GetApplicationInfo((IApplicationInfo**)&appInfo);
+            Int32 uid;
+            appInfo->GetUid(&uid);
+            if (uid == Process::GetCallingUid()) {
+                mAppSwitchesAllowedTime = 0;
+            }
         }
     }
 
@@ -2243,15 +2253,20 @@ Boolean CActivityManagerService::KillCapsuleProcessesLocked(
                 if (doit) {
                     procs.PushBack(app);
                 }
-            } else if ((uid > 0 && uid != Process::SYSTEM_UID && app->mInfo->mUid == uid)
+            }
+            else {
+                Int32 appUid;
+                app->mInfo->GetUid(&appUid);
+                if ((uid > 0 && uid != Process::SYSTEM_UID && appUid == uid)
                     || !app->mProcessName.Compare(capsuleName)
                     || app->mProcessName.StartWith((const char*)sb)) {
-                if (app->mSetAdj >= minOomAdj) {
-                    if (!doit) {
-                        return TRUE;
+                    if (app->mSetAdj >= minOomAdj) {
+                        if (!doit) {
+                            return TRUE;
+                        }
+                        app->mRemoved = TRUE;
+                        procs.PushBack(app);
                     }
-                    app->mRemoved = TRUE;
-                    procs.PushBack(app);
                 }
             }
         }
@@ -2352,7 +2367,8 @@ Boolean CActivityManagerService::RemoveProcessLocked(
     /* [in] */ Boolean callerWillRestart)
 {
     String name = app->mProcessName;
-    Int32 uid = app->mInfo->mUid;
+    Int32 uid;
+    app->mInfo->GetUid(&uid);
     if (DEBUG_PROCESSES) {
         String appDes;
         app->GetDescription(&appDes);
@@ -2578,8 +2594,7 @@ Boolean CActivityManagerService::AttachApplicationLocked(
     AutoPtr<IObjectStringMap> services;
     GetCommonServicesLocked((IObjectStringMap**)&services);
     appApartment->BindApplication(processName, app->mInstrumentationInfo != NULL
-            ? (IApplicationInfo*)(CApplicationInfo*)app->mInstrumentationInfo
-            : (IApplicationInfo*)(CApplicationInfo*)app->mInfo, providers,
+            ? app->mInstrumentationInfo : app->mInfo, providers,
             app->mInstrumentationClass, app->mInstrumentationProfileFile,
             app->mInstrumentationArguments, app->mInstrumentationWatcher, testMode,
             isRestrictedBackupMode || !normalMode,
@@ -2614,8 +2629,12 @@ Boolean CActivityManagerService::AttachApplicationLocked(
     // See if the top visible activity is waiting to run in this process...
     AutoPtr<CActivityRecord> hr = mMainStack->GetTopRunningActivityLocked(NULL);
     if (hr != NULL && normalMode) {
-        if (hr->mApp == NULL && app->mInfo->mUid == hr->mInfo->mApplicationInfo->mUid
-                && !processName.Compare(hr->mProcessName)) {
+        AutoPtr<IApplicationInfo> hrAppInfo;
+        hr->mInfo->GetApplicationInfo((IApplicationInfo**)&hrAppInfo);
+        Int32 appUid, hrUid;
+        app->mInfo->GetUid(&appUid);
+        hrAppInfo->GetUid(&hrUid);
+        if (hr->mApp == NULL && appUid == hrUid && !processName.Compare(hr->mProcessName)) {
 //            try {
             Boolean succeeded;
             if (SUCCEEDED(mMainStack->RealStartActivityLocked(hr, app, TRUE, TRUE, &succeeded))
@@ -2627,7 +2646,8 @@ Boolean CActivityManagerService::AttachApplicationLocked(
 //                      + hr.intent.getComponent().flattenToShortString(), e);
 //                badApp = true;
 //            }
-        } else {
+        }
+        else {
             mMainStack->EnsureActivitiesVisibleLocked(
                     (CActivityRecord*)hr, NULL, processName, 0);
         }
@@ -2640,8 +2660,10 @@ Boolean CActivityManagerService::AttachApplicationLocked(
         List<AutoPtr<CServiceRecord> >::Iterator it = mPendingServices.Begin();
         while (it != mPendingServices.End()) {
             sr = *it;
-            if (app->mInfo->mUid != sr->mAppInfo->mUid
-                    || processName.Compare(sr->mProcessName)) {
+            Int32 appUid, srUid;
+            app->mInfo->GetUid(&appUid);
+            sr->mAppInfo->GetUid(&srUid);
+            if (appUid != srUid || processName.Compare(sr->mProcessName)) {
                 ++it;
                 continue;
             }
@@ -2831,7 +2853,7 @@ ECode CActivityManagerService::ActivityStopped(
     Int32 index = mMainStack->GetIndexOfTokenLocked(token);
     if (index >= 0) {
         r = mMainStack->mHistory[index];
-        r->mThumbnail = (CBitmap*)thumbnail;
+        r->mThumbnail = thumbnail;
 //        r->mDescription = String::Duplicate(description);
         r->mStopped = TRUE;
         r->mState = ActivityState_STOPPED;
@@ -3009,21 +3031,21 @@ ECode CActivityManagerService::GetIntentSenderLocked(
         }
     }
 
-    Boolean noCreate = (flags & CPendingIntent::FLAG_NO_CREATE) != 0;
-    Boolean cancelCurrent = (flags & CPendingIntent::FLAG_CANCEL_CURRENT) != 0;
-    Boolean updateCurrent = (flags & CPendingIntent::FLAG_UPDATE_CURRENT) != 0;
-    flags &= ~(CPendingIntent::FLAG_NO_CREATE | CPendingIntent::FLAG_CANCEL_CURRENT
-            | CPendingIntent::FLAG_UPDATE_CURRENT);
+    Boolean noCreate = (flags & PendingIntent_FLAG_NO_CREATE) != 0;
+    Boolean cancelCurrent = (flags & PendingIntent_FLAG_CANCEL_CURRENT) != 0;
+    Boolean updateCurrent = (flags & PendingIntent_FLAG_UPDATE_CURRENT) != 0;
+    flags &= ~(PendingIntent_FLAG_NO_CREATE | PendingIntent_FLAG_CANCEL_CURRENT
+            | PendingIntent_FLAG_UPDATE_CURRENT);
 
     Key* key = new Key(type, capsuleName, activity, resultWho,
-            requestCode, (CIntent*)intent, resolvedType, flags);
+            requestCode, intent, resolvedType, flags);
     HashMap<Key*, CPendingIntentRecord*>::Iterator it = \
             mIntentSenderRecords.Find(key);
     AutoPtr<CPendingIntentRecord> rec = (it != mIntentSenderRecords.End()) ? it->mSecond : NULL;
     if (rec != NULL) {
         if (!cancelCurrent) {
             if (updateCurrent) {
-                rec->mKey->mRequestIntent->ReplaceExtras((CIntent*)intent);
+                rec->mKey->mRequestIntent->ReplaceExtras(intent);
             }
             *sender = rec;
             if (*sender != NULL) (*sender)->AddRef();
@@ -3302,7 +3324,7 @@ ECode CActivityManagerService::EnforceCallingPermission(
 
 Boolean CActivityManagerService::CheckHoldingPermissionsLocked(
     /* [in] */ ICapsuleManager* pm,
-    /* [in] */ CContentProviderInfo* pi,
+    /* [in] */ IContentProviderInfo* pi,
     /* [in] */ IUri* uri,
     /* [in] */ Int32 uid,
     /* [in] */ Int32 modeFlags)
@@ -3317,17 +3339,26 @@ Boolean CActivityManagerService::CheckHoldingPermissionsLocked(
     }
 //    try {
         // Is the component private from the target uid?
-        Boolean prv = !pi->mExported && pi->mApplicationInfo->mUid != uid;
+        Boolean piExported;
+        pi->IsExported(&piExported);
+        AutoPtr<IApplicationInfo> piAppInfo;
+        pi->GetApplicationInfo((IApplicationInfo**)&piAppInfo);
+        Int32 piUid;
+        piAppInfo->GetUid(&piUid);
+
+        Boolean prv = !piExported && piUid != uid;
 
         // Acceptable if the there is no read permission needed from the
         // target or the target is holding the read permission.
         if (!readPerm) {
-            if (!prv && pi->mReadPermission.IsNull()) {
+            String piReadPermission;
+            pi->GetReadPermission(&piReadPermission);
+            if (!prv && piReadPermission.IsNull()) {
                 readPerm = TRUE;
             }
 
             Int32 perm;
-            assert(SUCCEEDED(pm->CheckUidPermission(pi->mReadPermission, uid, &perm)));
+            assert(SUCCEEDED(pm->CheckUidPermission(piReadPermission, uid, &perm)));
             if (perm == CapsuleManager_PERMISSION_GRANTED) {
                 readPerm = TRUE;
             }
@@ -3336,12 +3367,14 @@ Boolean CActivityManagerService::CheckHoldingPermissionsLocked(
         // Acceptable if the there is no write permission needed from the
         // target or the target is holding the read permission.
         if (!writePerm) {
-            if (!prv && pi->mWritePermission.IsNull()) {
+            String piWritePermission;
+            pi->GetWritePermission(&piWritePermission);
+            if (!prv && piWritePermission.IsNull()) {
                 writePerm = TRUE;
             }
 
             Int32 perm;
-            assert(SUCCEEDED(pm->CheckUidPermission(pi->mWritePermission, uid, &perm)));
+            assert(SUCCEEDED(pm->CheckUidPermission(piWritePermission, uid, &perm)));
             if (perm == CapsuleManager_PERMISSION_GRANTED) {
                 writePerm = TRUE;
             }
@@ -3349,46 +3382,47 @@ Boolean CActivityManagerService::CheckHoldingPermissionsLocked(
 
         // Acceptable if there is a path permission matching the URI that
         // the target holds the permission on.
-        List<AutoPtr<CPathPermission> >* pps = pi->mPathPermissions;
+        AutoPtr<IObjectContainer> pps;
+        pi->GetPathPermissions((IObjectContainer**)&pps);
         if (pps != NULL && (!readPerm || !writePerm)) {
             String path;
             uri->GetPath(&path);
-            List<AutoPtr<CPathPermission> >::ReverseIterator rit = pps->RBegin();
-            for (; rit != pps->REnd() && (!readPerm || !writePerm); ++rit) {
-                AutoPtr<CPathPermission> pp = *rit;
-                if (!readPerm) {
-                    Int32 perm;
-                    String pprperm = pp->GetReadPermission();
-                    assert(SUCCEEDED(pm->CheckUidPermission(pprperm, uid, &perm)));
-
-                    if (DEBUG_URI_PERMISSION) {
-                        Slogger::V(TAG, StringBuffer("Checking read perm for ")
-                            + pprperm + " for " + pp->GetPath()
-                            + ": match=" + pp->Match(path)
-                            + " check=" + perm);
-                    }
-                    if (!pprperm.IsNull() && pp->Match(path) &&
-                            (perm == CapsuleManager_PERMISSION_GRANTED)) {
-                        readPerm = TRUE;
-                    }
-                }
-                if (!writePerm) {
-                    Int32 perm;
-                    String ppwperm = pp->GetWritePermission();
-                    assert(SUCCEEDED(pm->CheckUidPermission(ppwperm, uid, &perm)));
-
-                    if (DEBUG_URI_PERMISSION) {
-                        Slogger::V(TAG, StringBuffer("Checking write perm ")
-                            + ppwperm + " for " + pp->GetPath()
-                            + ": match=" + pp->Match(path)
-                            + " check=" + perm);
-                    }
-                    if (!ppwperm.IsNull() && pp->Match(path) &&
-                            (perm == CapsuleManager_PERMISSION_GRANTED)) {
-                        writePerm = TRUE;
-                    }
-                }
-            }
+//            List<AutoPtr<CPathPermission> >::ReverseIterator rit = pps->RBegin();
+//            for (; rit != pps->REnd() && (!readPerm || !writePerm); ++rit) {
+//                AutoPtr<CPathPermission> pp = *rit;
+//                if (!readPerm) {
+//                    Int32 perm;
+//                    String pprperm = pp->GetReadPermission();
+//                    assert(SUCCEEDED(pm->CheckUidPermission(pprperm, uid, &perm)));
+//
+//                    if (DEBUG_URI_PERMISSION) {
+//                        Slogger::V(TAG, StringBuffer("Checking read perm for ")
+//                            + pprperm + " for " + pp->GetPath()
+//                            + ": match=" + pp->Match(path)
+//                            + " check=" + perm);
+//                    }
+//                    if (!pprperm.IsNull() && pp->Match(path) &&
+//                            (perm == CapsuleManager_PERMISSION_GRANTED)) {
+//                        readPerm = TRUE;
+//                    }
+//                }
+//                if (!writePerm) {
+//                    Int32 perm;
+//                    String ppwperm = pp->GetWritePermission();
+//                    assert(SUCCEEDED(pm->CheckUidPermission(ppwperm, uid, &perm)));
+//
+//                    if (DEBUG_URI_PERMISSION) {
+//                        Slogger::V(TAG, StringBuffer("Checking write perm ")
+//                            + ppwperm + " for " + pp->GetPath()
+//                            + ": match=" + pp->Match(path)
+//                            + " check=" + perm);
+//                    }
+//                    if (!ppwperm.IsNull() && pp->Match(path) &&
+//                            (perm == CapsuleManager_PERMISSION_GRANTED)) {
+//                        writePerm = TRUE;
+//                    }
+//                }
+//            }
         }
 //    } catch (RemoteException e) {
 //        return false;
@@ -3491,18 +3525,15 @@ ECode CActivityManagerService::CheckGrantUriPermissionLocked(
 
     String name;
     uri->GetAuthority(&name);
-    AutoPtr<CContentProviderInfo> pi;
+    AutoPtr<IContentProviderInfo> pi;
     ContentProviderRecord* cpr = mProvidersByName[name];
     if (cpr != NULL) {
-        pi = cpr->mHolder->mInfo;
+        cpr->mHolder->GetContentProviderInfo((IContentProviderInfo**)&pi);
     }
     else {
-        AutoPtr<IContentProviderInfo> ipi;
-        if (SUCCEEDED(pm->ResolveContentProvider(name,
+        pm->ResolveContentProvider(name,
                 CapsuleManager_GET_URI_PERMISSION_PATTERNS,
-                (IContentProviderInfo**)&ipi))) {
-            pi = (CContentProviderInfo*)ipi.Get();
-        }
+                (IContentProviderInfo**)&pi);
     }
     if (pi == NULL) {
         Slogger::W(TAG, StringBuffer("No content provider found for: ") + name);
@@ -3538,40 +3569,42 @@ ECode CActivityManagerService::CheckGrantUriPermissionLocked(
     }
 
     // Second...  is the provider allowing granting of URI permissions?
-    if (!pi->mGrantUriPermissions) {
-        String uriDes;
-        uri->GetDescription(&uriDes);
-        Slogger::E(TAG, StringBuffer("Provider ") + pi->mCapsuleName
-                + "/" + pi->mName
-                + " does not allow granting of Uri permissions (uri "
-                + uriDes + ")");
-        return E_SECURITY_EXCEPTION;
-    }
-    if (pi->mUriPermissionPatterns != NULL) {
-        Boolean allowed = FALSE;
-        String path;
-        uri->GetPath(&path);
-        List<AutoPtr<CPatternMatcher> >::Iterator it = \
-                pi->mUriPermissionPatterns->Begin();
-        for (; it != pi->mUriPermissionPatterns->End(); ++it) {
-            Boolean isMatch = FALSE;
-            (*it)->Match(path, &isMatch);
-            if (isMatch) {
-                allowed = TRUE;
-                break;
-            }
-        }
-
-        if (!allowed) {
-            String uriDes;
-            uri->GetDescription(&uriDes);
-            Slogger::E(TAG, StringBuffer("Provider ") + pi->mCapsuleName
-                    + "/" + pi->mName
-                    + " does not allow granting of permission to path of Uri "
-                    + uriDes);
-            return E_SECURITY_EXCEPTION;
-        }
-    }
+//    if (!pi->mGrantUriPermissions) {
+//        String uriDes, piCName, piName;
+//        uri->GetDescription(&uriDes);
+//        pi->GetCapsuleName(&piCName);
+//        pi->GetName(&piName);
+//        Slogger::E(TAG, StringBuffer("Provider ") + piCName
+//                + "/" + piName
+//                + " does not allow granting of Uri permissions (uri "
+//                + uriDes + ")");
+//        return E_SECURITY_EXCEPTION;
+//    }
+//    if (pi->mUriPermissionPatterns != NULL) {
+//        Boolean allowed = FALSE;
+//        String path;
+//        uri->GetPath(&path);
+//        List<AutoPtr<CPatternMatcher> >::Iterator it = \
+//                pi->mUriPermissionPatterns->Begin();
+//        for (; it != pi->mUriPermissionPatterns->End(); ++it) {
+//            Boolean isMatch = FALSE;
+//            (*it)->Match(path, &isMatch);
+//            if (isMatch) {
+//                allowed = TRUE;
+//                break;
+//            }
+//        }
+//
+//        if (!allowed) {
+//            String uriDes;
+//            uri->GetDescription(&uriDes);
+//            Slogger::E(TAG, StringBuffer("Provider ") + pi->mCapsuleName
+//                    + "/" + pi->mName
+//                    + " does not allow granting of permission to path of Uri "
+//                    + uriDes);
+//            return E_SECURITY_EXCEPTION;
+//        }
+//    }
 
     // Third...  does the caller itself have permission to access
     // this uri?
@@ -4514,18 +4547,21 @@ ECode CActivityManagerService::GenerateApplicationProvidersLocked(
         AutoPtr<IObjectEnumerator> enumerator;
         (*providers)->GetObjectEnumerator((IObjectEnumerator**)&enumerator);
         while(enumerator->MoveNext(&hasNext), hasNext) {
-            AutoPtr<IInterface> itf;
-            enumerator->Current((IInterface**)&itf);
-            AutoPtr<CContentProviderInfo> cpi;
-            cpi = (CContentProviderInfo*)
-                    (IContentProviderInfo*)(IInterface*)itf;
-            ContentProviderRecord* cpr = mProvidersByClass[cpi->mName];
+            AutoPtr<IContentProviderInfo> cpi;
+            enumerator->Current((IInterface**)&cpi);
+            String cpiName;
+            cpi->GetName(&cpiName);
+            ContentProviderRecord* cpr = mProvidersByClass[cpiName];
             if (cpr == NULL) {
                 cpr = new ContentProviderRecord(cpi, app->mInfo);
-                mProvidersByClass[cpi->mName] = cpr;
+                mProvidersByClass[cpiName] = cpr;
             }
-            (app->mPubProviders)[cpi->mName] = cpr;
-            app->AddCapsule(cpi->mApplicationInfo->mCapsuleName);
+            (app->mPubProviders)[cpiName] = cpr;
+            AutoPtr<IApplicationInfo> cpiAppInfo;
+            cpi->GetApplicationInfo((IApplicationInfo**)&cpiAppInfo);
+            String cpiCName;
+            cpiAppInfo->GetCapsuleName(&cpiCName);
+            app->AddCapsule(cpiCName);
 //            ensurePackageDexOpt(cpi.applicationInfo.packageName);
         }
     }
@@ -4534,41 +4570,57 @@ ECode CActivityManagerService::GenerateApplicationProvidersLocked(
 }
 
 String CActivityManagerService::CheckContentProviderPermissionLocked(
-    /* [in] */ CContentProviderInfo* cpi,
+    /* [in] */ IContentProviderInfo* cpi,
     /* [in] */ ProcessRecord* r)
 {
     //ToDo: not implemented according to android
-    Int32 callingPid = (r != NULL) ? r->mPid : Process::GetCallingPid();
-    Int32 callingUid = (r != NULL) ? r->mInfo->mUid : Process::GetCallingUid();
-    if (CheckComponentPermission(cpi->mReadPermission, callingPid, callingUid,
-            cpi->mExported ? -1 : cpi->mApplicationInfo->mUid)
+    Int32 callingPid, callingUid;
+    if (r != NULL) {
+        callingPid = r->mPid;
+        r->mInfo->GetUid(&callingUid);
+    }
+    else {
+        callingPid = Process::GetCallingPid();
+        callingUid = Process::GetCallingUid();
+    }
+    String cpiReadPerm, cpiWritePerm;
+    cpi->GetReadPermission(&cpiReadPerm);
+    cpi->GetWritePermission(&cpiWritePerm);
+    Boolean cpiExported;
+    cpi->IsExported(&cpiExported);
+    AutoPtr<IApplicationInfo> cpiAppInfo;
+    cpi->GetApplicationInfo((IApplicationInfo**)&cpiAppInfo);
+    Int32 cpiUid;
+    cpiAppInfo->GetUid(&cpiUid);
+    if (CheckComponentPermission(cpiReadPerm, callingPid, callingUid,
+            cpiExported ? -1 : cpiUid)
             == CapsuleManager_PERMISSION_GRANTED) {
         return String(NULL);
     }
-    if (CheckComponentPermission(cpi->mWritePermission, callingPid, callingUid,
-            cpi->mExported ? -1 : cpi->mApplicationInfo->mUid)
+    if (CheckComponentPermission(cpiWritePerm, callingPid, callingUid,
+            cpiExported ? -1 : cpiUid)
             == CapsuleManager_PERMISSION_GRANTED) {
         return String(NULL);
     }
 
 //    PathPermission[] pps = cpi.pathPermissions;
-    List<AutoPtr<CPathPermission> >* pps = cpi->mPathPermissions;
-    if (pps != NULL) {
-        List<AutoPtr<CPathPermission> >::ReverseIterator rit = pps->RBegin();
-        for (; rit != pps->REnd(); ++rit) {
-            AutoPtr<CPathPermission> pp = *rit;
-            if (CheckComponentPermission(pp->GetReadPermission(), callingPid, callingUid,
-                    cpi->mExported ? -1 : cpi->mApplicationInfo->mUid)
-                    == CapsuleManager_PERMISSION_GRANTED) {
-                return String(NULL);
-            }
-            if (CheckComponentPermission(pp->GetWritePermission(), callingPid, callingUid,
-                    cpi->mExported ? -1 : cpi->mApplicationInfo->mUid)
-                    == CapsuleManager_PERMISSION_GRANTED) {
-                return String(NULL);
-            }
-        }
-    }
+//    List<AutoPtr<CPathPermission> >* pps = cpi->mPathPermissions;
+//    if (pps != NULL) {
+//        List<AutoPtr<CPathPermission> >::ReverseIterator rit = pps->RBegin();
+//        for (; rit != pps->REnd(); ++rit) {
+//            AutoPtr<CPathPermission> pp = *rit;
+//            if (CheckComponentPermission(pp->GetReadPermission(), callingPid, callingUid,
+//                    cpi->mExported ? -1 : cpi->mApplicationInfo->mUid)
+//                    == CapsuleManager_PERMISSION_GRANTED) {
+//                return String(NULL);
+//            }
+//            if (CheckComponentPermission(pp->GetWritePermission(), callingPid, callingUid,
+//                    cpi->mExported ? -1 : cpi->mApplicationInfo->mUid)
+//                    == CapsuleManager_PERMISSION_GRANTED) {
+//                return String(NULL);
+//            }
+//        }
+//    }
 
     Map<Int32, HashMap<IUri*, UriPermission*>*>::Iterator it = \
             mGrantedUriPermissions.Find(callingUid);
@@ -4577,22 +4629,24 @@ String CActivityManagerService::CheckContentProviderPermissionLocked(
         if (perms != NULL) {
             HashMap<IUri*, UriPermission*>::Iterator pit = perms->Begin();
             for (; pit != perms->End(); ++pit) {
-                String auth;
+                String auth, cpiAuth;
                 pit->mFirst->GetAuthority(&auth);
-                if (auth.Compare(cpi->mAuthority)) {
+                cpi->GetAuthority(&cpiAuth);
+                if (auth.Compare(cpiAuth)) {
                     return String(NULL);
                 }
             }
         }
     }
 
-    String appDes;
+    String appDes, cpiName;
+    cpi->GetName(&cpiName);
     r->GetDescription(&appDes);
     StringBuffer msg;
-    msg += "Permission Denial: opening provider " + cpi->mName
+    msg += "Permission Denial: opening provider " + cpiName
             + " from " + (r != NULL ? appDes : String("(null)")) + " (pid=" + callingPid
             + ", uid=" + callingUid + ") requires "
-            + cpi->mReadPermission + " or " + cpi->mWritePermission;
+            + cpiReadPerm + " or " + cpiWritePerm;
     Slogger::W(TAG, msg);;
     return String((const char*)msg);
 }
@@ -4603,7 +4657,7 @@ ECode CActivityManagerService::GetContentProviderImpl(
     /* [out] */ IContentProviderHolder** providerHolder)
 {
     ContentProviderRecord* cpr = NULL;
-    AutoPtr<CContentProviderInfo> cpi;
+    AutoPtr<IContentProviderInfo> cpi;
 
     {
     Mutex::Autolock lock(_m_syncLock);
@@ -4627,7 +4681,8 @@ ECode CActivityManagerService::GetContentProviderImpl(
         cpr = it->mSecond;
     }
     if (cpr != NULL) {
-        cpi = cpr->mHolder->mInfo;
+        cpr->mHolder->GetContentProviderInfo((IContentProviderInfo**)&cpi);
+
         String msg = CheckContentProviderPermissionLocked(cpi, r);
         if (!msg.IsNull()) {
             Slogger::E(TAG, msg);
@@ -4639,7 +4694,9 @@ ECode CActivityManagerService::GetContentProviderImpl(
             // of being published...  but it is also allowed to run
             // in the caller's process, so don't make a connection
             // and just let the caller instantiate its own instance.
-            if (cpr->mHolder->mProvider != NULL) {
+            AutoPtr<IContentProvider> cprProvider;
+            cpr->mHolder->GetContentProvider((IContentProvider**)&cprProvider);
+            if (cprProvider != NULL) {
                 // don't give caller the provider object, it needs
                 // to make its own.
                 cpr = new ContentProviderRecord(cpr);
@@ -4654,9 +4711,13 @@ ECode CActivityManagerService::GetContentProviderImpl(
         // return it right away.
         if (r != NULL) {
             if (DEBUG_PROVIDER) {
+                AutoPtr<IContentProviderInfo> cprProviderInfo;
+                cpr->mHolder->GetContentProviderInfo((IContentProviderInfo**)&cprProviderInfo);
+                String cprPName;
+                cprProviderInfo->GetProcessName(&cprPName);
                 Slogger::V(TAG, StringBuffer("Adding provider requested by ")
                     + r->mProcessName + " from process "
-                    + cpr->mHolder->mInfo->mProcessName);
+                    + cprPName);
             }
             if (r->mConProviders.Find(cpr) == r->mConProviders.End()) {
                 r->mConProviders[cpr] = 1;
@@ -4690,15 +4751,13 @@ ECode CActivityManagerService::GetContentProviderImpl(
         Elastos::GetServiceManager((IServiceManager**)&serviceManager);
         serviceManager->GetService(String("capsule"),
                 (IInterface**)&capsuleManager);
-        AutoPtr<IContentProviderInfo> info;
         ECode ec = capsuleManager->ResolveContentProvider(name,
                 -1/*STOCK_PM_FLAGS | PackageManager.GET_URI_PERMISSION_PATTERNS*/,
-                (IContentProviderInfo**)&info);
-        if (FAILED(ec) || info == NULL) {
+                (IContentProviderInfo**)&cpi);
+        if (FAILED(ec) || cpi == NULL) {
             *providerHolder = NULL;
             return ec;
         }
-        cpi = (CContentProviderInfo*)(IContentProviderInfo*)info;
 
         String msg = CheckContentProviderPermissionLocked(cpi, r);
         if (!msg.IsNull()) {
@@ -4706,8 +4765,10 @@ ECode CActivityManagerService::GetContentProviderImpl(
             return E_SECURITY_EXCEPTION;
         }
 
+        String cpiPName, cpiName;
+        cpi->GetProcessName(&cpiPName);
         if (!mProcessesReady && !mDidUpdate && !mWaitingUpdate
-                && !cpi->mProcessName.Equals("system")) {
+                && !cpiPName.Equals("system")) {
             // If this content provider does not run in the system
             // process, and the system is not yet ready to run other
             // processes, then fail fast instead of hanging.
@@ -4715,7 +4776,8 @@ ECode CActivityManagerService::GetContentProviderImpl(
             return E_ILLEGAL_ARGUMENT_EXCEPTION;
         }
 
-        cpr = mProvidersByClass[cpi->mName];
+        cpi->GetName(&cpiName);
+        cpr = mProvidersByClass[cpiName];
         Boolean firstClass = cpr == NULL;
         if (firstClass) {
             AutoPtr<IServiceManager> serviceManager;
@@ -4724,18 +4786,22 @@ ECode CActivityManagerService::GetContentProviderImpl(
             Elastos::GetServiceManager((IServiceManager**)&serviceManager);
             serviceManager->GetService(String("capsule"),
                     (IInterface**)&capsuleManager);
+            AutoPtr<IApplicationInfo> cpiAppInfo;
+            cpi->GetApplicationInfo((IApplicationInfo**)&cpiAppInfo);
+            String cpiCName;
+            cpiAppInfo->GetCapsuleName(&cpiCName);
             ec = capsuleManager->GetApplicationInfo(
-                    cpi->mApplicationInfo->mCapsuleName,
-                    -1 /*STOCK_PM_FLAGS*/,
+                    cpiCName, -1 /*STOCK_PM_FLAGS*/,
                     (IApplicationInfo**)&appInfo);
             if (FAILED(ec) || (appInfo == NULL)) {
+                String cpiName;
+                cpi->GetName(&cpiName);
                 Slogger::W(TAG, StringBuffer("No package info for content provider ")
-                     + cpi->mName);
+                     + cpiName);
                 *providerHolder = NULL;
                 return ec;
             }
-            cpr = new ContentProviderRecord(cpi,
-                    (CApplicationInfo*)(IApplicationInfo*)appInfo);
+            cpr = new ContentProviderRecord(cpi, appInfo);
         }
 
         if (r != NULL && cpr->CanRunHere(r)) {
@@ -4743,17 +4809,22 @@ ECode CActivityManagerService::GetContentProviderImpl(
             // info and allow the caller to instantiate it.  Only do
             // this if the provider is the same user as the caller's
             // process, or can run as root (so can be in any process).
-            *providerHolder =
-                    (IContentProviderHolder*)(CContentProviderHolder*)(cpr->mHolder);
+            *providerHolder = cpr->mHolder;
             if (*providerHolder) (*providerHolder)->AddRef();
 
             return NOERROR;
         }
 
         if (DEBUG_PROVIDER) {
+            Int32 rUid, cprUid;
+            r->mInfo->GetUid(&rUid);
+            cpr->mAppInfo->GetUid(&cprUid);
+            AutoPtr<IContentProviderInfo> cprProviderInfo;
+            cpr->mHolder->GetContentProviderInfo((IContentProviderInfo**)&cprProviderInfo);
+            String cprName;
+            cprProviderInfo->GetName(&cprName);
             Slogger::W(TAG, StringBuffer("LAUNCHING REMOTE PROVIDER (myuid ")
-                    + r->mInfo->mUid + " pruid " + cpr->mAppInfo->mUid + "): "
-                    + cpr->mHolder->mInfo->mName);
+                    + rUid + " pruid " + cprUid + "): " + cprName);
         }
 
         // This is single process, and our app is now connecting to it.
@@ -4769,15 +4840,23 @@ ECode CActivityManagerService::GetContentProviderImpl(
         // If the provider is not already being launched, then get it
         // started.
         if (it == mLaunchingProviders.End()) {
+            String cpiCName, cpiName, cpiPName;
+            AutoPtr<IApplicationInfo> cpiAppInfo;
+            cpi->GetApplicationInfo((IApplicationInfo**)&cpiAppInfo);
+            cpiAppInfo->GetCapsuleName(&cpiCName);
+            cpi->GetName(&cpiName);
+            cpi->GetProcessName(&cpiPName);
             AutoPtr<IComponentName> component;
-            CComponentName::New(cpi->mApplicationInfo->mCapsuleName,
-                    cpi->mName, (IComponentName**)&component);
-            ProcessRecord* proc = StartProcessLocked(cpi->mProcessName,
+            CComponentName::New(cpiCName,
+                    cpiName, (IComponentName**)&component);
+            ProcessRecord* proc = StartProcessLocked(cpiPName,
                     cpr->mAppInfo, TRUE, 0, "activity", component, FALSE);
             if (proc == NULL) {
+                Int32 cpiUid;
+                cpiAppInfo->GetUid(&cpiUid);
                 Slogger::W(TAG, StringBuffer("Unable to launch app ")
-                        + cpi->mApplicationInfo->mCapsuleName + "/"
-                        + cpi->mApplicationInfo->mUid + " for provider "
+                        + cpiCName + "/"
+                        + cpiUid + " for provider "
                         + name + ": process is bad");
                 *providerHolder = NULL;
                 return ec;
@@ -4789,15 +4868,21 @@ ECode CActivityManagerService::GetContentProviderImpl(
         // Make sure the provider is published (the same provider class
         // may be published under multiple names).
         if (firstClass) {
-            mProvidersByClass[cpi->mName] = cpr;
+            String cpiName;
+            cpi->GetName(&cpiName);
+            mProvidersByClass[cpiName] = cpr;
         }
         mProvidersByName[name] = cpr;
 
         if (r != NULL) {
             if (DEBUG_PROVIDER) {
+                AutoPtr<IContentProviderInfo> cprProviderInfo;
+                cpr->mHolder->GetContentProviderInfo((IContentProviderInfo**)&cprProviderInfo);
+                String cprPName;
+                cprProviderInfo->GetProcessName(&cprPName);
                 Slogger::V(TAG, StringBuffer("Adding provider requested by ")
                     + r->mProcessName + " from process "
-                    + cpr->mHolder->mInfo->mProcessName);
+                    + cprPName);
             }
             if (r->mConProviders.Find(cpr) == r->mConProviders.End()) {
                 r->mConProviders[cpr] = 1;
@@ -4813,13 +4898,20 @@ ECode CActivityManagerService::GetContentProviderImpl(
     }
     }
 
+    AutoPtr<IContentProvider> cprProvider;
     cpr->Lock();
-    while (cpr->mHolder->mProvider == NULL) {
+    while (cprProvider = NULL, cpr->mHolder->GetContentProvider((IContentProvider**)&cprProvider),
+            cprProvider == NULL) {
         if (cpr->mLaunchingApp == NULL) {
             cpr->Unlock();
+            AutoPtr<IApplicationInfo> cpiAppInfo;
+            cpi->GetApplicationInfo((IApplicationInfo**)&cpiAppInfo);
+            String cpiCName;
+            cpiAppInfo->GetCapsuleName(&cpiCName);
+            Int32 cpiUid;
+            cpiAppInfo->GetUid(&cpiUid);
             Slogger::W(TAG, StringBuffer("Unable to launch app ")
-                    + cpi->mApplicationInfo->mCapsuleName + "/"
-                    + cpi->mApplicationInfo->mUid + " for provider "
+                    + cpiCName + "/" + cpiUid + " for provider "
                     + name + ": launching app became null");
 //            EventLog.writeEvent(EventLogTags.AM_PROVIDER_LOST_PROCESS,
 //                    cpi.applicationInfo.packageName,
@@ -4831,8 +4923,8 @@ ECode CActivityManagerService::GetContentProviderImpl(
     }
     cpr->Unlock();
 
-    *providerHolder =
-            (IContentProviderHolder*)(CContentProviderHolder*)(cpr->mHolder);
+    *providerHolder = cpr->mHolder;
+    if (*providerHolder != NULL) (*providerHolder)->AddRef();
     return NOERROR;
 }
 
@@ -4925,7 +5017,11 @@ void CActivityManagerService::RemoveContentProviderExternal(
     ContentProviderRecord* cpr = it->mSecond;
 
     //update content provider record entry info
-    ContentProviderRecord* localCpr = mProvidersByClass[cpr->mHolder->mInfo->mName];
+    AutoPtr<IContentProviderInfo> cprProviderInfo;
+    cpr->mHolder->GetContentProviderInfo((IContentProviderInfo**)&cprProviderInfo);
+    String cprName;
+    cprProviderInfo->GetName(&cprName);
+    ContentProviderRecord* localCpr = mProvidersByClass[cprName];
     localCpr->mExternals--;
     if (localCpr->mExternals < 0) {
         String localCprDes;
@@ -4961,19 +5057,34 @@ ECode CActivityManagerService::PublishContentProviders(
     AutoPtr<IObjectEnumerator> enumerator = NULL;
     providers->GetObjectEnumerator((IObjectEnumerator**)&enumerator);
     while(enumerator->MoveNext(&hasNext), hasNext) {
-        AutoPtr<CContentProviderHolder> src;
-        AutoPtr<IContentProviderHolder> itf;
-        enumerator->Current((IInterface**)&itf);
-        src = (CContentProviderHolder*)(IContentProviderHolder*)itf;
-        if (src == NULL || src->mInfo == NULL || src->mProvider == NULL) {
+        AutoPtr<IContentProviderHolder> src;
+        enumerator->Current((IInterface**)&src);
+
+        if (src == NULL) {
             continue;
         }
+        AutoPtr<IContentProviderInfo> srcProviderInfo;
+        src->GetContentProviderInfo((IContentProviderInfo**)&srcProviderInfo);
+        AutoPtr<IContentProvider> srcProvider;
+        src->GetContentProvider((IContentProvider**)&srcProvider);
+        if (srcProviderInfo == NULL || srcProvider == NULL) {
+            continue;
+        }
+
+        String srcName;
+        srcProviderInfo->GetName(&srcName);
         ContentProviderRecord* dst =
-                r->mPubProviders[src->mInfo->mName];
+                r->mPubProviders[srcName];
         if (dst != NULL) {
-            mProvidersByClass[dst->mHolder->mInfo->mName] = dst;
+            AutoPtr<IContentProviderInfo> dstProviderInfo;
+            dst->mHolder->GetContentProviderInfo((IContentProviderInfo**)&dstProviderInfo);
+            String dstName;
+            dstProviderInfo->GetName(&dstName);
+            mProvidersByClass[dstName] = dst;
+            String dstAuth;
+            dstProviderInfo->GetAuthority(&dstAuth);
             StringTokenizer* tokens = new StringTokenizer(
-                    dst->mHolder->mInfo->mAuthority, ";");
+                    dstAuth, ";");
             while (tokens->HasMoreTokens()) {
                 String name = tokens->NextToken();
                 mProvidersByName[name] = dst;
@@ -4988,7 +5099,7 @@ ECode CActivityManagerService::PublishContentProviders(
                 else ++it;
             }
             dst->Lock();
-            dst->mHolder->mProvider = src->mProvider;
+            dst->mHolder->SetContentProvider(srcProvider);
             dst->mApp = r;
             dst->Notify();
             dst->Unlock();
@@ -5041,8 +5152,9 @@ ECode CActivityManagerService::GetProviderMimeType(
     if (SUCCEEDED(GetContentProviderExternal(name,
             (IContentProviderHolder**)&holder))) {
         if (holder != NULL) {
-            ((CContentProviderHolder*)(IContentProviderHolder*)holder)\
-                    ->mProvider->GetType(uri, type);
+            AutoPtr<IContentProvider> provider;
+            holder->GetContentProvider((IContentProvider**)&provider);
+            provider->GetType(uri, type);
             RemoveContentProviderExternal(name);
 //        Binder.restoreCallingIdentity(ident);
             return NOERROR;
@@ -5070,10 +5182,16 @@ ECode CActivityManagerService::GetProviderMimeType(
 
 ProcessRecord* CActivityManagerService::NewProcessRecordLocked(
     /* [in] */ IApplicationApartment* apartment,
-    /* [in] */ CApplicationInfo* info,
+    /* [in] */ IApplicationInfo* info,
     /* [in] */ const String& customProcess)
 {
-    String proc = !customProcess.IsNull()? customProcess : info->mProcessName;
+    String proc;
+    if (!customProcess.IsNull()) {
+        proc = customProcess;
+    }
+    else {
+        info->GetProcessName(&proc);
+    }
 //    AutoPtr<BatteryStatsImpl::Uid::Proc> ps;
 //    AutoPtr<BatteryStatsImpl> stats = mBatteryStatsService->GetActiveStatistics();
 //    stats->Lock();
@@ -5083,18 +5201,24 @@ ProcessRecord* CActivityManagerService::NewProcessRecordLocked(
 }
 
 ProcessRecord* CActivityManagerService::AddAppLocked(
-    /* [in] */ CApplicationInfo* info)
+    /* [in] */ IApplicationInfo* info)
 {
-    ProcessRecord* app = GetProcessRecordLocked(info->mProcessName, info->mUid);
+    String pname;
+    info->GetProcessName(&pname);
+    Int32 uid;
+    info->GetUid(&uid);
+    ProcessRecord* app = GetProcessRecordLocked(pname, uid);
 
     if (app == NULL) {
         app = NewProcessRecordLocked(NULL, info, String(NULL));
-        mProcessNames->Put(info->mProcessName, info->mUid, app);
+        mProcessNames->Put(pname, uid, app);
         UpdateLRUProcessLocked(app, TRUE, TRUE);
     }
 
-    if ((info->mFlags & (CApplicationInfo::FLAG_SYSTEM | CApplicationInfo::FLAG_PERSISTENT))
-            == (CApplicationInfo::FLAG_SYSTEM | CApplicationInfo::FLAG_PERSISTENT)) {
+    Int32 flags;
+    info->GetFlags(&flags);
+    if ((flags & (ApplicationInfo_FLAG_SYSTEM | ApplicationInfo_FLAG_PERSISTENT))
+            == (ApplicationInfo_FLAG_SYSTEM | ApplicationInfo_FLAG_PERSISTENT)) {
         app->mPersistent = TRUE;
         app->mMaxAdj = CORE_SERVER_ADJ;
     }
@@ -6779,7 +6903,7 @@ void CActivityManagerService::KillServicesLocked(
 
             Boolean hasClients = sr->mBindings.GetSize() > 0;
             if (hasClients) {
-                Map<CIntent::FilterComparison*, IntentBindRecord*>::Iterator it = \
+                Map<AutoPtr<IIntentFilterComparison>, IntentBindRecord*>::Iterator it = \
                         sr->mBindings.Begin();
                 for (; it != sr->mBindings.End(); ++it) {
                     IntentBindRecord* b = it->mSecond;
@@ -6853,10 +6977,15 @@ void CActivityManagerService::RemoveDyingProviderLocked(
 //        cpr.launchingApp = null;
 //        cpr.notifyAll();
 //    }
+    AutoPtr<IContentProviderInfo> cprProviderInfo;
+    cpr->mHolder->GetContentProviderInfo((IContentProviderInfo**)&cprProviderInfo);
+    String cprName;
+    cprProviderInfo->GetName(&cprName);
+    mProvidersByClass.Erase(cprName);
 
-    mProvidersByClass.Erase(cpr->mHolder->mInfo->mName);
-
-    StringTokenizer st(cpr->mHolder->mInfo->mAuthority, String(";"));
+    String cprAuth;
+    cprProviderInfo->GetAuthority(&cprAuth);
+    StringTokenizer st(cprAuth, String(";"));
     while (st.HasMoreTokens()) {
         mProvidersByName.Erase(st.NextToken());
     }
@@ -6869,8 +6998,7 @@ void CActivityManagerService::RemoveDyingProviderLocked(
                 && capp->mPid != mMyPid) {
             Slogger::I(TAG, StringBuffer("Kill ") + capp->mProcessName
                     + " (pid " + capp->mPid + "): provider "
-                    + cpr->mHolder->mInfo->mName
-                    + " in dying process " + proc->mProcessName);
+                    + cprName + " in dying process " + proc->mProcessName);
 //            EventLog.writeEvent(EventLogTags.AM_KILL, capp.pid,
 //                    capp.processName, capp.setAdj, "dying provider " + proc.processName);
             Process::KillProcess(capp->mPid);
@@ -6928,7 +7056,7 @@ void CActivityManagerService::CleanUpApplicationRecordLocked(
                 app->mPubProviders.Begin();
         for (; it != app->mPubProviders.End(); ++it) {
             ContentProviderRecord* cpr = it->mSecond;
-            cpr->mHolder->mProvider = NULL;
+            cpr->mHolder->SetContentProvider(NULL);
             cpr->mApp = NULL;
 
             // See if someone is waiting for this provider...  in which
@@ -7009,7 +7137,9 @@ void CActivityManagerService::CleanUpApplicationRecordLocked(
             assert(sm != NULL);
 	        sm->GetService(String("Context.BACKUP_SERVICE"),
 	                (IInterface**)(IBackupManager**)&bm);
-            bm->AgentDisconnected(app->mInfo->mCapsuleName);
+            String appCName;
+            app->mInfo->GetCapsuleName(&appCName);
+            bm->AgentDisconnected(appCName);
 //        } catch (RemoteException e) {
 //            // can't happen; backup manager is local
 //        }
@@ -7028,7 +7158,9 @@ void CActivityManagerService::CleanUpApplicationRecordLocked(
             Slogger::V(TAG, StringBuffer("Removing non-persistent process during cleanup: ")
                     + appDes);
         }
-        mProcessNames->Remove(app->mProcessName, app->mInfo->mUid);
+        Int32 appUid;
+        app->mInfo->GetUid(&appUid);
+        mProcessNames->Remove(app->mProcessName, appUid);
         if (mHeavyWeightProcess == app) {
             mHeavyWeightProcess = NULL;
 //            mHandler.sendEmptyMessage(CANCEL_HEAVY_NOTIFICATION_MSG);
@@ -7062,7 +7194,9 @@ void CActivityManagerService::CleanUpApplicationRecordLocked(
     if (restart) {
         // We have components that still need to be running in the
         // process, so re-launch it.
-        mProcessNames->Put(app->mProcessName, app->mInfo->mUid, app);
+        Int32 appUid;
+        app->mInfo->GetUid(&appUid);
+        mProcessNames->Put(app->mProcessName, appUid, app);
         StartProcessLocked(app, "restart", app->mProcessName);
     }
     else if (app->mPid > 0 && app->mPid != mMyPid) {
@@ -7217,8 +7351,8 @@ CActivityManagerService::FindServiceLocked(
         r = mServices[comp];
     }
     if (r == NULL) {
-        CIntent::FilterComparison* filter =
-                new CIntent::FilterComparison(service);
+        AutoPtr<IIntentFilterComparison> filter;
+        CIntentFilterComparison::New(service, (IIntentFilterComparison**)&filter);
         r = mServicesByIntent[filter];
     }
 
@@ -7234,18 +7368,22 @@ CActivityManagerService::FindServiceLocked(
             return NULL;
         }
 
+        AutoPtr<IApplicationInfo> appInfo;
+        sInfo->GetApplicationInfo((IApplicationInfo**)&appInfo);
+        String scname, sname;
+        appInfo->GetCapsuleName(&scname);
+        sInfo->GetName(&sname);
         AutoPtr<IComponentName> name;
-        CComponentName::New(
-                ((CServiceInfo*)(IServiceInfo*)sInfo)->mApplicationInfo->mCapsuleName,
-                ((CServiceInfo*)(IServiceInfo*)sInfo)->mName,
-                (IComponentName**)&name);
+        CComponentName::New(scname, sname, (IComponentName**)&name);
         r = mServices[name];
     }
     if (r != NULL) {
         Int32 callingPid = 0; /*Binder.getCallingPid();*/
         Int32 callingUid = 0; /*Binder.getCallingUid();*/
+        Int32 rUid;
+        r->mAppInfo->GetUid(&rUid);
         if (CheckComponentPermission(r->mPermission,
-                callingPid, callingUid, r->mExported ? -1 : r->mAppInfo->mUid)
+                callingPid, callingUid, r->mExported ? -1 : rUid)
                 != CapsuleManager_PERMISSION_GRANTED) {
             String srDes;
             r->mName->GetDescription(&srDes);
@@ -7268,7 +7406,8 @@ CActivityManagerService::RetrieveServiceLocked(
     /* [in] */ Int32 callingUid)
 {
     AutoPtr<CServiceRecord> r;
-    CIntent::FilterComparison* filter = new CIntent::FilterComparison(service);
+    AutoPtr<IIntentFilterComparison> filter;
+    CIntentFilterComparison::New(service, (IIntentFilterComparison**)&filter);
     r = mServicesByIntent[filter];
     if (r == NULL) {
         AutoPtr<IResolveInfo> rInfo;
@@ -7286,17 +7425,19 @@ CActivityManagerService::RetrieveServiceLocked(
             return NULL;
         }
 
+        AutoPtr<IApplicationInfo> appInfo;
+        sInfo->GetApplicationInfo((IApplicationInfo**)&appInfo);
+        String scname, sname;
+        appInfo->GetCapsuleName(&scname);
+        sInfo->GetName(&sname);
         AutoPtr<IComponentName> name;
-        CComponentName::New(
-                ((CServiceInfo*)(IServiceInfo*)sInfo)->mApplicationInfo->mCapsuleName,
-                ((CServiceInfo*)(IServiceInfo*)sInfo)->mName,
-                (IComponentName**)&name);
+        CComponentName::New(scname, sname, (IComponentName**)&name);
         r = mServices[name];
         if (r == NULL) {
             AutoPtr<IIntent> ci;
-            ((CIntent*)service)->CloneFilter((IIntent**)&ci);
-            delete filter;
-            filter = new CIntent::FilterComparison(ci);
+            service->CloneFilter((IIntent**)&ci);
+            filter = NULL;
+            CIntentFilterComparison::New(ci, (IIntentFilterComparison**)&filter);
             ServiceRestarter* res = new ServiceRestarter();
             AutoPtr<BatteryStatsImpl::Uid::Cap::Serv> ss;
 //            AutoPtr<BatteryStatsImpl> stats = mBatteryStatsService->GetActiveStatistics();
@@ -7325,8 +7466,10 @@ CActivityManagerService::RetrieveServiceLocked(
         }
     }
     if (r != NULL) {
+        Int32 rUid;
+        r->mAppInfo->GetUid(&rUid);
         if (CheckComponentPermission(r->mPermission,
-                callingPid, callingUid, r->mExported ? -1 : r->mAppInfo->mUid)
+                callingPid, callingUid, r->mExported ? -1 : rUid)
                 != CapsuleManager_PERMISSION_GRANTED) {
             String srDes;
             r->mName->GetDescription(&srDes);
@@ -7444,7 +7587,9 @@ Boolean CActivityManagerService::RequestServiceBindingLocked(
     }
     if ((!i->mRequested || rebind) && i->mApps.GetSize() > 0) {
         BumpServiceExecutingLocked(r, "bind");
-        ECode ec = r->mApp->mAppApartment->ScheduleBindService(r, i->mIntent->GetIntent(), rebind);
+        AutoPtr<IIntent> intent;
+        i->mIntent->GetIntent((IIntent**)&intent);
+        ECode ec = r->mApp->mAppApartment->ScheduleBindService(r, intent, rebind);
         if (SUCCEEDED(ec)) {
             if (!rebind) {
                 i->mRequested = TRUE;
@@ -7467,8 +7612,7 @@ Boolean CActivityManagerService::RequestServiceBindingLocked(
 void CActivityManagerService::RequestServiceBindingsLocked(
     /* [in] */ CServiceRecord* r)
 {
-    Map<CIntent::FilterComparison*, IntentBindRecord*,
-            EqualTo<CIntent::FilterComparison*> >::Iterator it;
+    Map<AutoPtr<IIntentFilterComparison>, IntentBindRecord*>::Iterator it;
     for (it = r->mBindings.Begin(); it != r->mBindings.End(); ++it) {
         IntentBindRecord* i = it->mSecond;
         if (!RequestServiceBindingLocked(r, i, FALSE)) {
@@ -7638,8 +7782,10 @@ void CActivityManagerService::PerformServiceRestartLocked(
             (const CServiceRecord*)r) == mRestartingServices.End()) {
         return;
     }
+    AutoPtr<IIntent> intent;
+    r->mIntent->GetIntent((IIntent**)&intent);
     Int32 flags;
-    r->mIntent->GetIntent()->GetFlags(&flags);
+    intent->GetFlags(&flags);
     BringUpServiceLocked(r, flags, TRUE);
 }
 
@@ -7684,7 +7830,9 @@ Boolean CActivityManagerService::BringUpServiceLocked(
     mRestartingServices.Remove(r);
 
     String appName = r->mProcessName;
-    ProcessRecord* app = GetProcessRecordLocked(appName, r->mAppInfo->mUid);
+    Int32 rUid;
+    r->mAppInfo->GetUid(&rUid);
+    ProcessRecord* app = GetProcessRecordLocked(appName, rUid);
     if (app != NULL && app->mAppApartment != NULL) {
         if (SUCCEEDED(RealStartServiceLocked(r, app))) {
             return TRUE;
@@ -7701,11 +7849,15 @@ Boolean CActivityManagerService::BringUpServiceLocked(
     // to be executed when the app comes up.
     if (StartProcessLocked(appName, r->mAppInfo, TRUE, intentFlags,
             "service", r->mName, FALSE) == NULL) {
+        AutoPtr<IIntent> rIntent;
+        r->mIntent->GetIntent((IIntent**)&rIntent);
         String intDes;
-        r->mIntent->GetIntent()->GetDescription(&intDes);
+        rIntent->GetDescription(&intDes);
+        String rCName;
+        r->mAppInfo->GetCapsuleName(&rCName);
         Slogger::W(TAG, StringBuffer("Unable to launch app ")
-                + r->mAppInfo->mCapsuleName + "/"
-                + r->mAppInfo->mUid + " for service "
+                + rCName + "/"
+                + rUid + " for service "
                 + intDes + ": process is bad");
         BringDownServiceLocked(r, TRUE);
 
@@ -7768,8 +7920,7 @@ ECode CActivityManagerService::BringDownServiceLocked(
 
     // Tell the service that it has been unbound.
     if (r->mBindings.GetSize() > 0 && r->mApp != NULL && r->mApp->mAppApartment != NULL) {
-        Map<CIntent::FilterComparison*, IntentBindRecord*,
-                EqualTo<CIntent::FilterComparison*> >::Iterator it;
+        Map<AutoPtr<IIntentFilterComparison>, IntentBindRecord*>::Iterator it;
         for (it = r->mBindings.Begin(); it != r->mBindings.End(); ++it) {
             IntentBindRecord* ibr = it->mSecond;
             if (DEBUG_SERVICE) {
@@ -7783,8 +7934,9 @@ ECode CActivityManagerService::BringDownServiceLocked(
                 BumpServiceExecutingLocked(r, "bring down unbind");
                 UpdateOomAdjLocked(r->mApp);
                 ibr->mHasBound = FALSE;
-                r->mApp->mAppApartment->ScheduleUnbindService(r,
-                        ibr->mIntent->GetIntent());
+                AutoPtr<IIntent> ibrIntent;
+                ibr->mIntent->GetIntent((IIntent**)&ibrIntent);
+                r->mApp->mAppApartment->ScheduleUnbindService(r, ibrIntent);
 //                } catch (Exception e) {
 //                    Slog.w(TAG, "Exception when unbinding service "
 //                            + r.shortName, e);
@@ -8185,8 +8337,11 @@ ECode CActivityManagerService::SetServiceForeground(
                 r->CancelNotification();
                 r->mForegroundId = id;
             }
-            ((CNotification*)notification)->mFlags |= CNotification::FLAG_FOREGROUND_SERVICE;
-            r->mForegroundNoti = (CNotification*)notification;
+            Int32 flags;
+            notification->GetFlags(&flags);
+            flags |= Notification_FLAG_FOREGROUND_SERVICE;
+            notification->SetFlags(flags);
+            r->mForegroundNoti = notification;
             r->mIsForeground = TRUE;
             r->PostNotification();
             if (r->mApp != NULL) {
@@ -8290,17 +8445,19 @@ ECode CActivityManagerService::BindService(
     }
 
     Int32 clientLabel = 0;
-    AutoPtr<CPendingIntent> clientIntent;
+    AutoPtr<IPendingIntent> clientIntent;
 
-    if (callerApp->mInfo->mUid == Process::SYSTEM_UID) {
+    Int32 callerAppUid;
+    callerApp->mInfo->GetUid(&callerAppUid);
+    if (callerAppUid == Process::SYSTEM_UID) {
         // Hacky kind of thing -- allow system stuff to tell us
         // what they are, so we can report this elsewhere for
         // others to know why certain services are running.
         AutoPtr<IParcelable> value;
-        service->GetParcelableExtra(CIntent::EXTRA_CLIENT_INTENT, (IParcelable**)&value);
-        clientIntent = (CPendingIntent*)(IParcelable*)value;
+        service->GetParcelableExtra(String(Intent_EXTRA_CLIENT_INTENT), (IParcelable**)&value);
+        clientIntent = IPendingIntent::Probe(value);
         if (clientIntent != NULL) {
-            service->GetInt32Extra(CIntent::EXTRA_CLIENT_LABEL, &clientLabel);
+            service->GetInt32Extra(String(Intent_EXTRA_CLIENT_LABEL), &clientLabel);
             if (clientLabel != 0) {
                 // There are no useful extras in the intent, trash them.
                 // System code calling with this stuff just needs to know
@@ -8460,8 +8617,10 @@ ECode CActivityManagerService::RemoveConnectionLocked(
         // Assume the client doesn't want to know about a rebind;
         // we will deal with that later if it asks for one.
         b->mIntent->mDoRebind = FALSE;
+        AutoPtr<IIntent> bIntent;
+        b->mIntent->mIntent->GetIntent((IIntent**)&bIntent);
         s->mApp->mAppApartment->ScheduleUnbindService(
-                s, b->mIntent->mIntent->GetIntent());
+                s, bIntent);
 //        } catch (Exception e) {
 //            Slog.w(TAG, "Exception when unbinding service " + s.shortName, e);
 //            serviceDoneExecutingLocked(s, true);
@@ -8548,8 +8707,8 @@ ECode CActivityManagerService::PublishService(
             + " " + intDes + ": " + servDes);
     }
     if (r != NULL) {
-        CIntent::FilterComparison* filter
-                = new CIntent::FilterComparison(intent);
+        AutoPtr<IIntentFilterComparison> filter;
+        CIntentFilterComparison::New(intent, (IIntentFilterComparison**)&filter);
         IntentBindRecord* b = (r->mBindings)[filter];
         if (b != NULL && !b->mReceived) {
             b->mBinder = service;
@@ -8561,7 +8720,9 @@ ECode CActivityManagerService::PublishService(
                     List<ConnectionRecord*>::Iterator crit = it->mSecond->Begin();
                     for(; crit != it->mSecond->End(); ++crit) {
                         ConnectionRecord* c = *crit;
-                        if (!filter->Equals(c->mBinding->mIntent->mIntent)) {
+                        Boolean isEqual;
+                        filter->Equals(c->mBinding->mIntent->mIntent, &isEqual);
+                        if (!isEqual) {
                             if (DEBUG_SERVICE) {
                                 String crDes, filDes, intDes;
                                 c->GetDescription(&crDes);
@@ -8628,8 +8789,8 @@ ECode CActivityManagerService::UnbindFinished(
 //    final long origId = Binder.clearCallingIdentity();
 
     if (r != NULL) {
-        CIntent::FilterComparison* filter
-                = new CIntent::FilterComparison(intent);
+        AutoPtr<IIntentFilterComparison> filter;
+        CIntentFilterComparison::New(intent, (IIntentFilterComparison**)&filter);
         IntentBindRecord* b = r->mBindings[filter];
         if (DEBUG_SERVICE) {
             String srDes, ibrDes;
@@ -9248,7 +9409,7 @@ ECode CActivityManagerService::BroadcastIntentLocked(
                             ForceStopCapsuleLocked((*list)[i], -1, FALSE, TRUE, TRUE);
                         }
                         SendCapsuleBroadcastLocked(
-                                CApplicationApartment::EXTERNAL_STORAGE_UNAVAILABLE, *list);
+                                ApplicationApartment_EXTERNAL_STORAGE_UNAVAILABLE, *list);
                     }
                 } else {
                     AutoPtr<IUri> data;
@@ -9266,7 +9427,7 @@ ECode CActivityManagerService::BroadcastIntentLocked(
                         if (!action.Compare(Intent_ACTION_CAPSULE_REMOVED)) {
                             ArrayOf_<String, 1> sa;
                             sa[0] = ssp;
-                            SendCapsuleBroadcastLocked(CApplicationApartment::CAPSULE_REMOVED,
+                            SendCapsuleBroadcastLocked(ApplicationApartment_CAPSULE_REMOVED,
                                     sa);
                         }
                     }
@@ -9388,10 +9549,10 @@ ECode CActivityManagerService::BroadcastIntentLocked(
                 STOCK_PM_FLAGS, (IActivityInfo**)&ai);
         if (ai != NULL) {
             CParcelableObjectContainer::New((IObjectContainer**)&receivers);
-            AutoPtr<CResolveInfo> ri;
-            CResolveInfo::NewByFriend((CResolveInfo**)&ri);
-            ri->mActivityInfo = (CActivityInfo*)(IActivityInfo*)ai;
-            receivers->Add((IResolveInfo*)(CResolveInfo*)ri);
+            AutoPtr<IResolveInfo> ri;
+            CResolveInfo::New((IResolveInfo**)&ri);
+            ri->SetActivityInfo(ai);
+            receivers->Add(ri);
         }
     }
     else {
@@ -9501,19 +9662,22 @@ ECode CActivityManagerService::BroadcastIntentLocked(
                     Boolean hasNext;
                     while (en->MoveNext(&hasNext), hasNext) {
                         AutoPtr<IInterface> itf;
-                        AutoPtr<IResolveInfo> curt;
+                        IResolveInfo* curt;
                         en->Current((IInterface**)&itf);
-                        curt = (IResolveInfo*)itf->Probe(EIID_IResolveInfo);
-                        if (!((CResolveInfo*)(IResolveInfo*)curt)->mActivityInfo\
-                                ->mCapsuleName.Compare(skipCapsule)) {
-                            receivers->Remove((IResolveInfo*)curt);
+                        curt = IResolveInfo::Probe(itf);
+                        AutoPtr<IActivityInfo> aInfo;
+                        curt->GetActivityInfo((IActivityInfo**)&aInfo);
+                        String cname;
+                        aInfo->GetCapsuleName(&cname);
+                        if (!cname.Compare(skipCapsule)) {
+                            receivers->Remove(curt);
                         }
                     }
                 }
             }
         }
 
-        AutoPtr<CResolveInfo> curt;
+        IResolveInfo* curt = NULL;
         BroadcastFilter* curr = NULL;
         AutoPtr<IObjectEnumerator> en;
         receivers->GetObjectEnumerator((IObjectEnumerator**)&en);
@@ -9523,12 +9687,14 @@ ECode CActivityManagerService::BroadcastIntentLocked(
             if (curt == NULL) {
                 AutoPtr<IInterface> itf;
                 en->Current((IInterface**)&itf);
-                curt = (CResolveInfo*)(IResolveInfo*)itf->Probe(EIID_IResolveInfo);
+                curt = IResolveInfo::Probe(itf);
             }
             if (curr == NULL) {
                 curr = *ir;
             }
-            if (curr->GetPriority() >= curt->mPriority) {
+            Int32 curtPriority;
+            curt->GetPriority(&curtPriority);
+            if (curr->GetPriority() >= curtPriority) {
 //                // Insert this broadcast record into the final list.
 //                receivers->Add(curr);
 //                ++ir;
@@ -9635,7 +9801,8 @@ ECode CActivityManagerService::VerifyBroadcastLocked(
             if (*newIntent != NULL) (*newIntent)->Release();
             CIntent::New(intent, newIntent);
             (*newIntent)->AddFlags(Intent_FLAG_RECEIVER_REGISTERED_ONLY);
-        } else if ((flags & Intent_FLAG_RECEIVER_REGISTERED_ONLY) == 0){
+        }
+        else if ((flags & Intent_FLAG_RECEIVER_REGISTERED_ONLY) == 0){
             String intDes;
             intent->GetDescription(&intDes);
             Slogger::E(TAG, "Attempt to launch receivers of broadcast intent " + intDes
@@ -9674,9 +9841,12 @@ ECode CActivityManagerService::BroadcastIntent(
     AutoPtr<IIntent> newIntent;
     VerifyBroadcastLocked(intent, (IIntent**)&newIntent);
     ProcessRecord* callerApp = GetProcessRecordForAppLocked(caller);
+    String callerCapsule;
+    if (callerApp != NULL) {
+        callerApp->mInfo->GetCapsuleName(&callerCapsule);
+    }
     ECode ec = BroadcastIntentLocked(callerApp,
-            callerApp != NULL ? callerApp->mInfo->mCapsuleName : String(NULL),
-            intent, resolvedType, resultTo,
+            callerCapsule, intent, resolvedType, resultTo,
             resultCode, resultData, map, requiredPermission, serialized,
             sticky, callingPid, callingUid, result);
     SelfUnlock();
@@ -10427,29 +10597,44 @@ ECode CActivityManagerService::ProcessNextBroadcast(
     // Hard case: need to instantiate the receiver, possibly
     // starting its application process to host it.
 
-    CResolveInfo* info = (CResolveInfo*)(IObject*)nextReceiver;
+    IResolveInfo* info = IResolveInfo::Probe(nextReceiver);
 
     Boolean skip = FALSE;
-    Int32 perm = CheckComponentPermission(info->mActivityInfo->mPermission,
-            r->mCallingPid, r->mCallingUid, info->mActivityInfo->mExported
-                    ? -1 : info->mActivityInfo->mApplicationInfo->mUid);
+    AutoPtr<IActivityInfo> infoAInfo;
+    info->GetActivityInfo((IActivityInfo**)&infoAInfo);
+    AutoPtr<IApplicationInfo> infoAppInfo;
+    infoAInfo->GetApplicationInfo((IApplicationInfo**)&infoAppInfo);
+    String infoPerm;
+    infoAInfo->GetPermission(&infoPerm);
+    Int32 reqUid = -1;
+    Boolean infoExported;
+    infoAInfo->IsExported(&infoExported);
+    if (!infoExported) {
+        infoAppInfo->GetUid(&reqUid);
+    }
+    Int32 perm = CheckComponentPermission(infoPerm,
+            r->mCallingPid, r->mCallingUid, reqUid);
     if (perm != CapsuleManager_PERMISSION_GRANTED) {
-        String intentDes;
+        String intentDes, infoCName, infoName;
         r->mIntent->GetDescription(&intentDes);
+        infoAInfo->GetCapsuleName(&infoCName);
+        infoAInfo->GetName(&infoName);
         Slogger::W(TAG, StringBuffer("Permission Denial: broadcasting ")
                 + intentDes
                 + " from " + r->mCallerCapsule + " (pid=" + r->mCallingPid
                 + ", uid=" + r->mCallingUid + ")"
-                + " requires " + info->mActivityInfo->mPermission
-                + " due to receiver " + info->mActivityInfo->mCapsuleName
-                + "/" + info->mActivityInfo->mName);
+                + " requires " + infoPerm
+                + " due to receiver " + infoCName
+                + "/" + infoName);
         skip = TRUE;
     }
     if (r->mCallingUid != Process::SYSTEM_UID &&
         !r->mRequiredPermission.IsNull()) {
+        String infoCName;
+        infoAppInfo->GetCapsuleName(&infoCName);
         Int32 perm;
         if (FAILED(GetCapsuleManager()->CheckPermission(r->mRequiredPermission,
-                info->mActivityInfo->mApplicationInfo->mCapsuleName, &perm))) {
+                infoCName, &perm))) {
             perm = CapsuleManager_PERMISSION_DENIED;
         }
         if (perm != CapsuleManager_PERMISSION_GRANTED) {
@@ -10457,7 +10642,7 @@ ECode CActivityManagerService::ProcessNextBroadcast(
             r->mIntent->GetDescription(&intentDes);
             Slogger::W(TAG, StringBuffer("Permission Denial: receiving ")
                     + intentDes + " to "
-                    + info->mActivityInfo->mApplicationInfo->mCapsuleName
+                    + infoCName
                     + " requires " + r->mRequiredPermission
                     + " due to sender " + r->mCallerCapsule
                     + " (uid " + r->mCallingUid + ")");
@@ -10491,12 +10676,12 @@ ECode CActivityManagerService::ProcessNextBroadcast(
     }
 
     r->mState = BroadcastRecord::APP_RECEIVE;
-    String targetProcess = info->mActivityInfo->mProcessName;
-    CComponentName::NewByFriend(
-            info->mActivityInfo->mApplicationInfo->mCapsuleName,
-            info->mActivityInfo->mName,
-            (CComponentName**)&(r->mCurComponent));
-    r->mCurReceiver = info->mActivityInfo;
+    String targetProcess, infoCName, infoName;
+    infoAInfo->GetProcessName(&targetProcess);
+    infoAppInfo->GetCapsuleName(&infoCName);
+    infoAInfo->GetName(&infoName);
+    CComponentName::New(infoCName, infoName, (IComponentName**)&(r->mCurComponent));
+    r->mCurReceiver = infoAInfo;
 
     // Is this receiver's application already running?
     ProcessRecord* app = GetProcessRecordLocked(targetProcess, -1);
@@ -10524,16 +10709,17 @@ ECode CActivityManagerService::ProcessNextBroadcast(
     Int32 flags;
     r->mIntent->GetFlags(&flags);
     if ((r->mCurApp = StartProcessLocked(targetProcess,
-            info->mActivityInfo->mApplicationInfo,
-            TRUE, 0, "activity", NULL,
+            infoAppInfo, TRUE, 0, "activity", NULL,
             (flags & Intent_FLAG_RECEIVER_BOOT_UPGRADE) != 0)) == NULL) {
         // Ah, this recipient is unavailable.  Finish it if necessary,
         // and mark the broadcast record as ready for the next.
-        String intentDes;
+        String intentDes, infoCName;
         r->mIntent->GetDescription(&intentDes);
+        infoAppInfo->GetCapsuleName(&infoCName);
+        Int32 infoUid;
+        infoAppInfo->GetUid(&infoUid);
         Slogger::W(TAG, StringBuffer("Unable to launch app ")
-                + info->mActivityInfo->mApplicationInfo->mCapsuleName + "/"
-                + info->mActivityInfo->mApplicationInfo->mUid + " for broadcast "
+                + infoCName + "/" + infoUid + " for broadcast "
                 + intentDes + ": process is bad");
         LogBroadcastReceiverDiscardLocked(r);
         FinishReceiverLocked(r->mReceiver, r->mResultCode, r->mResultData,
@@ -10761,8 +10947,8 @@ Boolean CActivityManagerService::UpdateConfigurationLocked(
     Boolean kept = TRUE;
 
     if (values != NULL) {
-        AutoPtr<CConfiguration> newConfig;
-        CConfiguration::NewByFriend(mConfiguration, (CConfiguration**)&newConfig);
+        AutoPtr<IConfiguration> newConfig;
+        CConfiguration::New(mConfiguration, (IConfiguration**)&newConfig);
         newConfig->UpdateFrom(values, &changes);
         if (changes != 0) {
             if (DEBUG_SWITCH || DEBUG_CONFIGURATION) {
@@ -10783,7 +10969,7 @@ Boolean CActivityManagerService::UpdateConfigurationLocked(
             if (mConfigurationSeq <= 0) {
                 mConfigurationSeq = 1;
             }
-            newConfig->mSeq = mConfigurationSeq;
+            newConfig->SetSeq(mConfigurationSeq);
             mConfiguration = newConfig;
             String confDes;
             newConfig->GetDescription(&confDes);
@@ -10820,7 +11006,7 @@ Boolean CActivityManagerService::UpdateConfigurationLocked(
             Int32 result;
             BroadcastIntentLocked(NULL, String(NULL), intent, String(NULL), NULL, 0,
                     String(NULL), NULL, String(NULL), FALSE, FALSE, mMyPid, Process::SYSTEM_UID, &result);
-            if ((changes & CActivityInfo::CONFIG_LOCALE) != 0) {
+            if ((changes & ActivityInfo_CONFIG_LOCALE) != 0) {
                 AutoPtr<IIntent> newIntent;
                 CIntent::New(String(Intent_ACTION_LOCALE_CHANGED), (IIntent**)&intent);
                 BroadcastIntentLocked(NULL, String(NULL),
@@ -10900,7 +11086,7 @@ Int32 CActivityManagerService::ComputeOomAdjLocked(
         return app->mCurAdj;
     }
 
-    app->mAdjTypeCode = CRunningAppProcessInfo::REASON_UNKNOWN;
+    app->mAdjTypeCode = RunningAppProcessInfo_REASON_UNKNOWN;
     app->mAdjSource = NULL;
     app->mAdjTarget = NULL;
     app->mKeeping = FALSE;
@@ -11074,7 +11260,7 @@ Int32 CActivityManagerService::ComputeOomAdjLocked(
                                     app->mKeeping = TRUE;
                                 }
                                 app->mAdjType = "service";
-                                app->mAdjTypeCode = CRunningAppProcessInfo::REASON_SERVICE_IN_USE;
+                                app->mAdjTypeCode = RunningAppProcessInfo_REASON_SERVICE_IN_USE;
 //                                app->mAdjSource = cr->mBinding->mClient;
                                 app->mAdjTarget = (IObject*)s->mName->Probe(EIID_IObject);
                             }
@@ -11095,7 +11281,7 @@ Int32 CActivityManagerService::ComputeOomAdjLocked(
                             schedGroup = Process::THREAD_GROUP_DEFAULT;
                             app->mHidden = FALSE;
                             app->mAdjType = "service";
-                            app->mAdjTypeCode = CRunningAppProcessInfo::REASON_SERVICE_IN_USE;
+                            app->mAdjTypeCode = RunningAppProcessInfo_REASON_SERVICE_IN_USE;
                             app->mAdjSource = (IObject*)a->Probe(EIID_IObject);
                             app->mAdjTarget = (IObject*)s->mName->Probe(EIID_IObject);
                         }
@@ -11151,7 +11337,7 @@ Int32 CActivityManagerService::ComputeOomAdjLocked(
                             app->mKeeping = TRUE;
                         }
                         app->mAdjType = "provider";
-                        app->mAdjTypeCode = CRunningAppProcessInfo::REASON_PROVIDER_IN_USE;
+                        app->mAdjTypeCode = RunningAppProcessInfo_REASON_PROVIDER_IN_USE;
 //                        app->mAdjSource = client;
                         app->mAdjTarget = (IObject*)cpr->mName->Probe(EIID_IObject);
                     }

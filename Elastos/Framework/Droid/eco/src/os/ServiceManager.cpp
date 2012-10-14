@@ -1,6 +1,10 @@
 
 #include "os/ServiceManager.h"
-#include "server/CServiceManager.h"
+#ifdef _FRAMEWORK_CORE
+#include "os/CServiceManager.h"
+#elif defined(_FRAMEWORK_SERVER)
+#include "Elastos.Framework.Core.h"
+#endif
 
 const CString ServiceManager::TAG = "ServiceManager";
 AutoPtr<IServiceManager> ServiceManager::sServiceManager;

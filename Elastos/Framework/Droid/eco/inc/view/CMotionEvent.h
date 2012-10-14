@@ -9,6 +9,7 @@
 
 CarClass(CMotionEvent), public InputEvent
 {
+    friend class CMotionEventHelper;
     friend ECode create_CMotionEvent_fromNative(
         /* [in] */ const android::MotionEvent* event,
         /* [out] */ CMotionEvent** eventObj);

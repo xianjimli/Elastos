@@ -1,7 +1,11 @@
 
 #include "content/IntentFilter.h"
+#ifdef _FRAMEWORK_CORE
 #include "content/CAuthorityEntry.h"
 #include "os/CPatternMatcher.h"
+#elif defined(_FRAMEWORK_SERVER)
+#include "Elastos.Framework.Core.h"
+#endif
 #include "utils/AutoStringArray.h"
 #include "utils/XmlUtils.h"
 #include <elastos/Algorithm.h>
@@ -245,6 +249,25 @@ Boolean IntentFilter::MatchAction(
             != mActions->End();
 }
 
+ECode IntentFilter::GetActions(
+    /* [out, callee] */ ArrayOf<String>** actions)
+{
+    if (mActions == NULL) {
+        *actions = NULL;
+        return NOERROR;
+    }
+
+    Int32 size = mActions->GetSize();
+    *actions = ArrayOf<String>::Alloc(size);
+
+    List<String>::Iterator it = mActions->Begin();
+    Int32 i = 0;
+    for (; it != mActions->End(); ++it, ++i) {
+        (**actions)[i] = *it;
+    }
+    return NOERROR;
+}
+
 /**
  * Add a new Intent data type to match against.  If any types are
  * included in the filter, then an Intent's data must be <em>either</em>
@@ -320,6 +343,25 @@ String IntentFilter::GetDataType(
     return String(NULL);
 }
 
+ECode IntentFilter::GetTypes(
+        /* [out, callee] */ ArrayOf<String>** types)
+{
+    if (mDataTypes == NULL) {
+        *types = NULL;
+        return NOERROR;
+    }
+
+    Int32 size = mDataTypes->GetSize();
+    *types = ArrayOf<String>::Alloc(size);
+
+    List<String>::Iterator it = mDataTypes->Begin();
+    Int32 i = 0;
+    for (; it != mDataTypes->End(); ++it, ++i) {
+        (**types)[i] = *it;
+    }
+    return NOERROR;
+}
+
 /**
  * Add a new Intent data scheme to match against.  If any schemes are
  * included in the filter, then an Intent's data must be <em>either</em>
@@ -374,6 +416,25 @@ Boolean IntentFilter::HasDataScheme(
 {
     return mDataSchemes != NULL && Find(mDataSchemes->Begin(),
             mDataSchemes->End(), scheme) != mDataSchemes->End();
+}
+
+ECode IntentFilter::GetSchemes(
+        /* [out, callee] */ ArrayOf<String>** schemes)
+{
+    if (mDataSchemes == NULL) {
+        *schemes = NULL;
+        return NOERROR;
+    }
+
+    Int32 size = mDataSchemes->GetSize();
+    *schemes = ArrayOf<String>::Alloc(size);
+
+    List<String>::Iterator it = mDataSchemes->Begin();
+    Int32 i = 0;
+    for (; it != mDataSchemes->End(); ++it, ++i) {
+        (**schemes)[i] = *it;
+    }
+    return NOERROR;
 }
 
 /**

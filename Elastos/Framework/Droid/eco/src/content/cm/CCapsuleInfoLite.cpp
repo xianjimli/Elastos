@@ -28,6 +28,51 @@ ECode CCapsuleInfoLite::DescribeContents(
     return NOERROR;
 }
 
+ECode CCapsuleInfoLite::GetCapsuleName(
+    /* [out] */ String* name)
+{
+    VALIDATE_NOT_NULL(name);
+    *name = mCapsuleName;
+    return NOERROR;
+}
+
+ECode CCapsuleInfoLite::SetCapsuleName(
+    /* [in] */ const String& name)
+{
+    mCapsuleName = name;
+    return NOERROR;
+}
+
+ECode CCapsuleInfoLite::GetRecommendedInstallLocation(
+    /* [out] */ Int32* location)
+{
+    VALIDATE_NOT_NULL(location);
+    *location = mRecommendedInstallLocation;
+    return NOERROR;
+}
+
+ECode CCapsuleInfoLite::SetRecommendedInstallLocation(
+    /* [in] */ Int32 location)
+{
+    mRecommendedInstallLocation = location;
+    return NOERROR;
+}
+
+ECode CCapsuleInfoLite::GetInstallLocation(
+    /* [out] */ Int32* location)
+{
+    VALIDATE_NOT_NULL(location);
+    *location = mInstallLocation;
+    return NOERROR;
+}
+
+ECode CCapsuleInfoLite::SetInstallLocation(
+    /* [in] */ Int32 location)
+{
+    mInstallLocation = location;
+    return NOERROR;
+}
+
 ECode CCapsuleInfoLite::ReadFromParcel(
     /* [in] */ IParcel* source)
 {

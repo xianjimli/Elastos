@@ -85,13 +85,13 @@ private:
 
     CARAPI_(Int32) RegisterIntentFilter(
         /* [in] */ F* f,
-        /* [in] */ List<String>* slist,
+        /* [in] */ ArrayOf<String>* slist,
         /* [in] */ HashMap<String, List<F*>*>* dest,
         /* [in] */ const char* prefix);
 
     CARAPI_(Int32) UnregisterIntentFilter(
         /* [in] */ F* f,
-        /* [in] */ List<String>* slist,
+        /* [in] */ ArrayOf<String>* slist,
         /* [in] */ HashMap<String, List<F*>*>* dest,
         /* [in] */ const char* prefix);
 
@@ -107,6 +107,9 @@ private:
         /* [in] */ const String& scheme,
         /* [in] */ List<F*>* src,
         /* [in] */ List<R*>* dest);
+
+    CARAPI_(void) FreeStringArray(
+        /* [in] */ ArrayOf<String>* strings);
 
 private:
     /**
@@ -185,26 +188,33 @@ void IntentResolver<F, R>::AddFilter(
 {
     mFilters->Insert(f);
 
+    ArrayOf<String>* schemes = NULL;
+    ArrayOf<String>* actions = NULL;
+    f->mFilter->GetSchemes(&schemes);
     Int32 numS = RegisterIntentFilter(
             f,
-            f->mFilter->GetSchemes(),
+            schemes,
             &mSchemeToFilter,
             "    Scheme: ");
     Int32 numT = RegisterMimeTypes(f, "    Type: ");
     if (numS == 0 && numT == 0) {
+        f->mFilter->GetActions(&actions);
         RegisterIntentFilter(
                 f,
-                f->mFilter->GetActions(),
+                actions,
                 &mActionToFilter,
                 "    Action: ");
     }
     if (numT != 0) {
+        f->mFilter->GetActions(&actions);
         RegisterIntentFilter(
                 f,
-                f->mFilter->GetActions(),
+                actions,
                 &mTypedActionToFilter,
-                "    Action: ");
+                "    TypedAction: ");
     }
+    FreeStringArray(schemes);
+    FreeStringArray(actions);
 }
 
 template <typename F, typename R>
@@ -219,26 +229,33 @@ template <typename F, typename R>
 void IntentResolver<F, R>::RemoveFilterInternal(
     /* [in] */ F* f)
 {
+    ArrayOf<String>* schemes = NULL;
+    ArrayOf<String>* actions = NULL;
+    f->mFilter->GetSchemes(&schemes);
     Int32 numS = UnregisterIntentFilter(
             f,
-            f->mFilter->GetSchemes(),
+            schemes,
             &mSchemeToFilter,
             "      Scheme: ");
     Int32 numT = UnregisterMimeTypes(f, "      Type: ");
     if (numS == 0 && numT == 0) {
+        f->mFilter->GetActions(&actions);
         UnregisterIntentFilter(
                 f,
-                f->mFilter->GetActions(),
+                actions,
                 &mActionToFilter,
                 "      Action: ");
     }
     if (numT != 0) {
+        f->mFilter->GetActions(&actions);
         UnregisterIntentFilter(
                 f,
-                f->mFilter->GetActions(),
+                actions,
                 &mTypedActionToFilter,
                 "      TypedAction: ");
     }
+    FreeStringArray(schemes);
+    FreeStringArray(actions);
 }
 
 template <typename F, typename R>
@@ -343,19 +360,17 @@ Int32 IntentResolver<F, R>::RegisterMimeTypes(
     /* [in] */ F* f,
     /* [in] */ const char* prefix)
 {
-    List<String>* types = f->mFilter->GetTypes();
+    ArrayOf<String>* types = NULL;
+    f->mFilter->GetTypes(&types);
     if (types == NULL) return 0;
 
-    List<String>::Iterator it1 = types->Begin();
-    List<String>::Iterator it2 = types->End();
-    if (it1 == it2) {
+    if (types->GetLength() == 0) {
         return 0;
     }
 
-    Int32 num = 0;
-    for(; it1 != it2; ++it1) {
-        const String& str = *it1;
-        num++;
+    Int32 i;
+    for(i = 0; i < types->GetLength(); ++i) {
+        const String& str = (*types)[i];
         String name, baseName;
         Int32 slashpos = str.IndexOf('/');
         if (slashpos > 0) {
@@ -403,7 +418,8 @@ Int32 IntentResolver<F, R>::RegisterMimeTypes(
             array->PushBack(f);
         }
     }
-    return num;
+    FreeStringArray(types);
+    return i;
 }
 
 template <typename F, typename R>
@@ -411,19 +427,17 @@ Int32 IntentResolver<F, R>::UnregisterMimeTypes(
     /* [in] */ F* f,
     /* [in] */ const char* prefix)
 {
-    List<String>* types = f->mFilter->GetTypes();
+    ArrayOf<String>* types = NULL;
+    f->mFilter->GetTypes(&types);
     if (types == NULL) return 0;
 
-    List<String>::Iterator it1 = types->Begin();
-    List<String>::Iterator it2 = types->End();
-    if (it1 == it2) {
+    if (types->GetLength() == 0) {
         return 0;
     }
 
-    Int32 num = 0;
-    for(; it1 != it2; ++it1) {
-        const String& str = *it1;
-        num++;
+    Int32 i;
+    for(i = 0; i < types->GetLength(); ++i) {
+        const String& str = (*types)[i];
         String name, baseName;
         Int32 slashpos = str.IndexOf('/');
         if (slashpos > 0) {
@@ -465,28 +479,26 @@ Int32 IntentResolver<F, R>::UnregisterMimeTypes(
             }
         }
     }
-    return num;
+    FreeStringArray(types);
+    return i;
 }
 
 template <typename F, typename R>
 Int32 IntentResolver<F, R>::RegisterIntentFilter(
     /* [in] */ F* f,
-    /* [in] */ List<String>* slist,
+    /* [in] */ ArrayOf<String>* slist,
     /* [in] */ HashMap<String, List<F*>*>* dest,
     /* [in] */ const char* prefix)
 {
     if (slist == NULL) return 0;
 
-    List<String>::Iterator itBegin = slist->Begin();
-    List<String>::Iterator itEnd = slist->End();
-    if (itBegin == itEnd) {
+    if (slist->GetLength() == 0) {
         return 0;
     }
 
-    Int32 num = 0;
-    for(; itBegin != itEnd; ++itBegin) {
-        String name = *itBegin;
-        num++;
+    Int32 i;
+    for(i = 0; i < slist->GetLength(); ++i) {
+        const String& name = (*slist)[i];
         List<F*>* array = NULL;
         typename HashMap<String, List<F*>*>::Iterator it = dest->Find(name);
         if (it != dest->End()) {
@@ -498,28 +510,25 @@ Int32 IntentResolver<F, R>::RegisterIntentFilter(
         }
         array->PushBack(f);
     }
-    return num;
+    return i;
 }
 
 template <typename F, typename R>
 Int32 IntentResolver<F, R>::UnregisterIntentFilter(
     /* [in] */ F* f,
-    /* [in] */ List<String>* slist,
+    /* [in] */ ArrayOf<String>* slist,
     /* [in] */ HashMap<String, List<F*>*>* dest,
     /* [in] */ const char* prefix)
 {
     if (slist == NULL) return 0;
 
-    List<String>::Iterator itBegin = slist->Begin();
-    List<String>::Iterator itEnd = slist->End();
-    if (itBegin == itEnd) {
+    if (slist->GetLength() == 0) {
         return 0;
     }
 
-    Int32 num = 0;
-    for(; itBegin != itEnd; ++itBegin) {
-        String name = *itBegin;
-        num++;
+    Int32 i;
+    for(i = 0; i < slist->GetLength(); ++i) {
+        const String& name = (*slist)[i];
         List<F*>* array = NULL;
         typename HashMap<String, List<F*>*>::Iterator it = dest->Find(name);
         if (it != dest->End()) {
@@ -527,10 +536,9 @@ Int32 IntentResolver<F, R>::UnregisterIntentFilter(
         }
         if (!RemoveAllObjects(array, f)) {
             dest->Erase(name);
-            itEnd = slist->End();
         }
     }
-    return num;
+    return i;
 }
 
 template <typename F, typename R>
@@ -624,6 +632,18 @@ void IntentResolver<F, R>::BuildResolveList(
     if (dest->GetSize() == 0 && hasNonDefaults) {
 //        Log.w(TAG, "resolveIntent failed: found match, but none with Intent.CATEGORY_DEFAULT");
     }
+}
+
+template <typename F, typename R>
+void IntentResolver<F, R>::FreeStringArray(
+    /* [in] */ ArrayOf<String>* strings)
+{
+    if (strings == NULL) return;
+
+    for (Int32 i = 0; i < strings->GetLength(); ++i) {
+        (*strings)[i].~String();
+    }
+    ArrayOf<String>::Free(strings);
 }
 
 #endif //__INTENTRESOLVER_H__

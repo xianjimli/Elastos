@@ -5,5 +5,10 @@ module
      * ServiceInfo related
      */
     interface IServiceInfo extends IComponentInfo {
+        GetPermission(
+            [out] String* permission);
+
+        SetPermission(
+            [in] String permission);
     }
 }

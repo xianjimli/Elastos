@@ -1,6 +1,7 @@
 
 #include "server/InputManager.h"
 #include "server/NativeInputManager.h"
+#include "view/NativeInputChannel.h"
 #include <Slogger.h>
 #include <StringBuffer.h>
 
@@ -33,7 +34,7 @@ static Boolean CheckInputManagerUnitialized()
 }
 
 static void InputManager_handleInputChannelDisposed(
-    /* [in] */ CInputChannel* inputChannelObj,
+    /* [in] */ IInputChannel* inputChannelObj,
     /* [in] */ const android::sp<android::InputChannel>& inputChannel,
     /* [in] */ void* data)
 {
@@ -150,9 +151,9 @@ ECode InputManager::GetInputConfiguration(
     android::InputConfiguration config;
     gNativeInputManager->getInputManager()->getReader()->getInputConfiguration(&config);
 
-    ((CConfiguration*)_config)->mTouchscreen = config.touchScreen;
-    ((CConfiguration*)_config)->mKeyboard = config.keyboard;
-    ((CConfiguration*)_config)->mNavigation = config.navigation;
+    _config->SetTouchscreen(config.touchScreen);
+    _config->SetKeyboard(config.keyboard);
+    _config->SetNavigation(config.navigation);
     return NOERROR;
 }
 
@@ -286,17 +287,20 @@ ECode InputManager::MonitorInput(
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
-    AutoPtr<CInputChannel> inputChannel0, inputChannel1;
-    CInputChannel::OpenInputChannelPair(
+    AutoPtr<IInputChannel> inputChannel0, inputChannel1;
+    AutoPtr<IInputChannelHelper> helper;
+    CInputChannelHelper::AcquireSingleton((IInputChannelHelper**)&helper);
+    helper->OpenInputChannelPair(
             inputChannelName,
-            (CInputChannel**)&inputChannel0,
-            (CInputChannel**)&inputChannel1);
+            (IInputChannel**)&inputChannel0,
+            (IInputChannel**)&inputChannel1);
 
     if (CheckInputManagerUnitialized()) {
         return E_RUNTIME_EXCEPTION;
     }
 
-    NativeInputChannel* nativeInputChannel = inputChannel0->mPtr;
+    NativeInputChannel* nativeInputChannel;
+    inputChannel0->GetNativeInputChannel((Handle32*)&nativeInputChannel);
     android::sp<android::InputChannel> inputChannel =
             nativeInputChannel != NULL ? nativeInputChannel->getInputChannel() : NULL;
     if (inputChannel == NULL) {
@@ -324,7 +328,7 @@ ECode InputManager::MonitorInput(
  * @param inputChannel The input channel to register.
  */
 ECode InputManager::RegisterInputChannel(
-    /* [in] */ CInputChannel* _inputChannel)
+    /* [in] */ IInputChannel* _inputChannel)
 {
     if (_inputChannel == NULL) {
         Slogger::E(TAG, "inputChannel must not be null.");
@@ -335,7 +339,8 @@ ECode InputManager::RegisterInputChannel(
         return E_RUNTIME_EXCEPTION;
     }
 
-    NativeInputChannel* nativeInputChannel = _inputChannel->mPtr;
+    NativeInputChannel* nativeInputChannel;
+    _inputChannel->GetNativeInputChannel((Handle32*)&nativeInputChannel);
     android::sp<android::InputChannel> inputChannel =
             nativeInputChannel != NULL ? nativeInputChannel->getInputChannel() : NULL;
     if (inputChannel == NULL) {
@@ -366,7 +371,7 @@ ECode InputManager::RegisterInputChannel(
  * @param inputChannel The input channel to unregister.
  */
 ECode InputManager::UnregisterInputChannel(
-    /* [in] */ CInputChannel* _inputChannel)
+    /* [in] */ IInputChannel* _inputChannel)
 {
     if (_inputChannel == NULL) {
         Slogger::E(TAG, "inputChannel must not be null.");
@@ -377,7 +382,8 @@ ECode InputManager::UnregisterInputChannel(
         return E_RUNTIME_EXCEPTION;
     }
 
-    NativeInputChannel* nativeInputChannel = _inputChannel->mPtr;
+    NativeInputChannel* nativeInputChannel;
+    _inputChannel->GetNativeInputChannel((Handle32*)&nativeInputChannel);
     android::sp<android::InputChannel> inputChannel =
             nativeInputChannel != NULL ? nativeInputChannel->getInputChannel() : NULL;
     if (inputChannel == NULL) {

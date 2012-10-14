@@ -9,7 +9,6 @@
 #include "server/ProcessRecord.h"
 #include "server/ProcessMap.h"
 #include "server/CBatteryStatsService.h"
-#include "utils/CApartment.h"
 #include "server/BroadcastFilter.h"
 #include "server/IntentResolver.h"
 #include "server/TaskRecord.h"
@@ -18,10 +17,6 @@
 #include "server/ContentProviderRecord.h"
 #include "server/BackupRecord.h"
 #include "server/UriPermission.h"
-#include "content/CComponentName.h"
-#include "content/CIntent.h"
-#include "content/CConfiguration.h"
-#include "capsule/CContentProviderInfo.h"
 #include "server/CWindowManagerService.h"
 #include "server/PendingThumbnailsRecord.h"
 #include "server/UriPermissionOwner.h"
@@ -29,10 +24,6 @@
 #include "server/Key.h"
 #include "server/ReceiverList.h"
 #include "net/Uri.h"
-#include "app/CCrashInfo.h"
-#include "app/CProcessErrorStateInfo.h"
-#include "app/CRunningServiceInfo.h"
-#include "app/CApplicationErrorReport.h"
 #include "ext/frameworkdef.h"
 #include "os/Runnable.h"
 #include <elastos/HashMap.h>
@@ -44,6 +35,67 @@
 using namespace Elastos;
 using namespace Elastos::Core;
 using namespace Elastos::Core::Threading;
+
+_ELASTOS_NAMESPACE_BEGIN
+
+template<> struct Hash<AutoPtr<IComponentName> >
+{
+    size_t operator()(AutoPtr<IComponentName> name) const
+    {
+        Int32 hashCode;
+        assert(name != NULL);
+        name->GetHashCode(&hashCode);
+        return (size_t)hashCode;
+    }
+};
+
+template<> struct EqualTo<AutoPtr<IComponentName> >
+{
+    Boolean operator()(const AutoPtr<IComponentName>& x,
+                       const AutoPtr<IComponentName>& y) const
+    {
+        Boolean isEqual;
+        assert(x != NULL);
+        x->Equals(y, &isEqual);
+        return isEqual;
+    }
+};
+
+template<> struct Hash< AutoPtr<IIntentFilterComparison> >
+{
+    size_t operator()(AutoPtr<IIntentFilterComparison> filter) const
+    {
+        assert(filter != NULL);
+        Int32 hashCode;
+        filter->GetHashCode(&hashCode);
+        return (size_t)hashCode;
+    }
+};
+
+template<> struct EqualTo< AutoPtr<IIntentFilterComparison> >
+{
+    Boolean operator()(const AutoPtr<IIntentFilterComparison>& x,
+                       const AutoPtr<IIntentFilterComparison>& y) const
+    {
+        assert(x != NULL);
+        Boolean isEqual;
+        x->Equals(y, &isEqual);
+        return isEqual;
+    }
+};
+
+template<> struct Hash<IUri*>
+{
+    size_t operator()(IUri* uri) const
+    {
+        Int32 hashCode;
+        assert(uri != NULL);
+        uri->GetHashCode(&hashCode);
+        return (size_t)hashCode;
+    }
+};
+
+_ELASTOS_NAMESPACE_END
 
 class ActivityStack;
 class CServiceRecord;
@@ -854,7 +906,7 @@ private:
 
     CARAPI_(ProcessRecord*) StartProcessLocked(
         /* [in] */ const String& processName,
-        /* [in] */ CApplicationInfo* info,
+        /* [in] */ IApplicationInfo* info,
         /* [in] */ Boolean knownToBeDead,
         /* [in] */ Int32 intentFlags,
         /* [in] */ const char* hostingType,
@@ -862,7 +914,7 @@ private:
         /* [in] */ Boolean allowWhileBooting);
 
     CARAPI_(Boolean) IsAllowedWhileBooting(
-        /* [in] */ CApplicationInfo* ai);
+        /* [in] */ IApplicationInfo* ai);
 
     CARAPI_(void) StartProcessLocked(
         /* [in] */ ProcessRecord* app,
@@ -988,7 +1040,7 @@ private:
 
     CARAPI_(Boolean) CheckHoldingPermissionsLocked(
         /* [in] */ ICapsuleManager* pm,
-        /* [in] */ CContentProviderInfo* pi,
+        /* [in] */ IContentProviderInfo* pi,
         /* [in] */ IUri* uri,
         /* [in] */ Int32 uid,
         /* [in] */ Int32 modeFlags);
@@ -1067,7 +1119,7 @@ private:
         /* [out] */ IObjectContainer** providers);
 
     CARAPI_(String) CheckContentProviderPermissionLocked(
-        /* [in] */ CContentProviderInfo* cpi,
+        /* [in] */ IContentProviderInfo* cpi,
         /* [in] */ ProcessRecord* r);
 
     CARAPI GetContentProviderImpl(
@@ -1084,11 +1136,11 @@ private:
 
     CARAPI_(ProcessRecord*) NewProcessRecordLocked(
         /* [in] */ IApplicationApartment* apartment,
-        /* [in] */ CApplicationInfo* info,
+        /* [in] */ IApplicationInfo* info,
         /* [in] */ const String& customProcess);
 
     CARAPI_(ProcessRecord*) AddAppLocked(
-        /* [in] */ CApplicationInfo* info);
+        /* [in] */ IApplicationInfo* info);
 
     CARAPI_(Boolean) CheckAppSwitchAllowedLocked(
         /* [in] */ Int32 callingPid,
@@ -1609,7 +1661,7 @@ private:
     /**
      * All currently running services indexed by the Intent used to start them.
      */
-    HashMap<CIntent::FilterComparison*, AutoPtr<CServiceRecord> > mServicesByIntent;
+    HashMap<AutoPtr<IIntentFilterComparison>, AutoPtr<CServiceRecord> > mServicesByIntent;
 
     /**
      * All currently bound service connections.  Keys are the IBinder of
@@ -1711,7 +1763,7 @@ private:
      * a reference to this object to indicate which configuration they are
      * currently running in, so this object must be kept immutable.
      */
-    AutoPtr<CConfiguration> mConfiguration;
+    AutoPtr<IConfiguration> mConfiguration;
 
     /**
      * Current sequencing integer of the configuration, for skipping old

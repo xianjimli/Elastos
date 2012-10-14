@@ -1,7 +1,5 @@
 
 #include "server/location/MockProvider.h"
-#include "os/CBundle.h"
-#include "location/CLocation.h"
 
 const CString MockProvider::TAG = "MockProvider";
 

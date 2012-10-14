@@ -1,12 +1,7 @@
 
 #include "server/CLocationManagerService.h"
-#include "content/CIntent.h"
-#include "content/CIntentFilter.h"
 #include "server/location/GpsLocationProvider.h"
 #include "server/location/PassiveProvider.h"
-#include "location/CCriteria.h"
-#include "location/CLocation.h"
-#include "os/CBundle.h"
 #include <StringBuffer.h>
 #include <elastos/Math.h>
 
@@ -2142,7 +2137,7 @@ ECode CLocationManagerService::GetProviderInfo(
 //	try {
 //		synchronized (mLock) {
 	VALIDATE_NOT_NULL(info);
-	
+
 	return _GetProviderInfoLocked(provider, info);
 //		}
 //	} catch (SecurityException se) {
@@ -2160,7 +2155,7 @@ ECode CLocationManagerService::_GetProviderInfoLocked(
 	/* [out] */ IBundle** info)
 {
 	VALIDATE_NOT_NULL(info);
-	
+
 	AutoPtr<LocationProviderInterface> p;
 	HashMap<String, AutoPtr<LocationProviderInterface> >::Iterator it = mProvidersByName.Find(provider);
 	if (it != mProvidersByName.End()) {
@@ -2201,7 +2196,7 @@ ECode CLocationManagerService::IsProviderEnabled(
 //	try {
 //		synchronized (mLock) {
 	VALIDATE_NOT_NULL(isEnabled);
-	
+
 	return _IsProviderEnabledLocked(provider, isEnabled);
 //		}
 //	} catch (SecurityException se) {
@@ -2239,7 +2234,7 @@ ECode CLocationManagerService::_IsProviderEnabledLocked(
 	/* [out] */ Boolean* isEnabled)
 {
 	VALIDATE_NOT_NULL(isEnabled);
-	
+
 	ECode ec = CheckPermissionsSafe(provider);
 	if (FAILED(ec)) {
 		*isEnabled = FALSE;
@@ -2271,7 +2266,7 @@ ECode CLocationManagerService::GetLastKnownLocation(
 //	try {
 //		synchronized (mLock) {
 	VALIDATE_NOT_NULL(location);
-	
+
 	return _GetLastKnownLocationLocked(provider, location);
 //		}
 //	} catch (SecurityException se) {
@@ -2287,7 +2282,7 @@ ECode CLocationManagerService::_GetLastKnownLocationLocked(
 	/* [out] */ ILocation** location)
 {
 	VALIDATE_NOT_NULL(location);
-	
+
 	ECode ec = CheckPermissionsSafe(provider);
 	if (FAILED(ec)) {
 		*location = NULL;
@@ -2504,7 +2499,7 @@ ECode CLocationManagerService::GeocoderIsPresent(
 {
 	VALIDATE_NOT_NULL(result);
 	*result = mGeocodeProvider != NULL;
-	
+
 	return NOERROR;
 }
 
@@ -2518,14 +2513,14 @@ ECode CLocationManagerService::GetFromLocation(
 {
 	VALIDATE_NOT_NULL(addrs);
 	VALIDATE_NOT_NULL(result);
-	
+
 	if (mGeocodeProvider != NULL) {
 		*result = mGeocodeProvider->GetFromLocation(latitude, longitude, maxResults,
 				params, addrs);
 	   return NOERROR;
 	}
     *result = String(NULL);
-	
+
 	return NOERROR;
 }
 
@@ -2542,14 +2537,14 @@ ECode CLocationManagerService::GetFromLocationName(
 {
 	VALIDATE_NOT_NULL(addrs);
 	VALIDATE_NOT_NULL(result);
-	
+
 	if (mGeocodeProvider != NULL) {
 		*result = mGeocodeProvider->GetFromLocationName(locationName, lowerLeftLatitude,
 				lowerLeftLongitude, upperRightLatitude, upperRightLongitude,
 				maxResults, params, addrs);
 	}
 	*result = String(NULL);
-		
+
 	return NOERROR;
 }
 
@@ -2567,7 +2562,7 @@ ECode CLocationManagerService::CheckMockPermissionsSafe()
 		return E_SECURITY_EXCEPTION;
 //		throw new SecurityException("Requires ACCESS_MOCK_LOCATION permission");
 	}
-	
+
 	return NOERROR;
 }
 

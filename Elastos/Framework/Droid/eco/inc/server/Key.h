@@ -3,7 +3,6 @@
 #define __key_h__
 
 #include "server/CActivityRecord.h"
-#include "content/CIntent.h"
 #include <elastos/AutoPtr.h>
 
 class Key
@@ -15,7 +14,7 @@ public:
         /* [in] */ CActivityRecord* a,
         /* [in] */ const String& w,
         /* [in] */ Int32 r,
-        /* [in] */ CIntent* i,
+        /* [in] */ IIntent* i,
         /* [in] */ const String& it,
         /* [in] */ Int32 f);
 
@@ -32,7 +31,7 @@ public:
     AutoPtr<CActivityRecord> mActivity;
     String mWho;
     Int32 mRequestCode;
-    AutoPtr<CIntent> mRequestIntent;
+    AutoPtr<IIntent> mRequestIntent;
     String mRequestResolvedType;
     Int32 mFlags;
     Int32 mHashCode;

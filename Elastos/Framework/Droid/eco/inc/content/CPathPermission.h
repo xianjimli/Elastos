@@ -8,6 +8,28 @@
 CarClass(CPathPermission), public _PatternMatcher
 {
 public:
+    CARAPI GetPath(
+        /* [out] */ String* path);
+
+    CARAPI GetType(
+        /* [out] */ Int32* path);
+
+    CARAPI Match(
+        /* [in] */ const String& str,
+        /* [out] */ Boolean* isMatch);
+
+    CARAPI GetDescription(
+        /* [out] */ String* des);
+
+    CARAPI DescribeContents(
+        /* [out] */ Int32* count);
+
+    CARAPI GetReadPermission(
+        /* [out] */ String* permission);
+
+    CARAPI GetWritePermission(
+        /* [out] */ String* permission);
+
     CARAPI ReadFromParcel(
         /* [in] */ IParcel *source);
 
@@ -23,10 +45,9 @@ public:
     CARAPI constructor(
         /* [in] */ IParcel* src);
 
-public:
-    CARAPI_(String) GetReadPermission();
-
-    CARAPI_(String) GetWritePermission();
+private:
+    String mReadPermission;
+    String mWritePermission;
 };
 
 #endif //__CPATHPERMISSION_H__

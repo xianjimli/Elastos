@@ -1,10 +1,14 @@
 
 #include "view/animation/Animation.h"
+#ifdef _FRAMEWORK_CORE
 #include "view/animation/AnimationUtils.h"
 #include "view/animation/CTransformation.h"
 #include "view/animation/CAccelerateDecelerateInterpolator.h"
 #include "graphics/CRectF.h"
 #include "utils/CTypedValue.h"
+#elif defined(_FRAMEWORK_SERVER)
+#include "Elastos.Framework.Core.h"
+#endif
 #include <elastos/Math.h>
 #include <Logger.h>
 
@@ -35,12 +39,21 @@ AutoPtr<Animation::Description> Animation::Description::ParseValue(
         d->mValue = 0;
     }
     else {
-        Int32 type = ((CTypedValue*)value)->mType;
+        Int32 type;
+        value->GetType(&type);
         if (type == TypedValue_TYPE_FRACTION) {
-            d->mType = (((CTypedValue*)value)->mData & TypedValue_COMPLEX_UNIT_MASK)
+            Int32 data;
+            value->GetData(&data);
+            d->mType = (data & TypedValue_COMPLEX_UNIT_MASK)
                 == TypedValue_COMPLEX_UNIT_FRACTION_PARENT ?
                 Animation_RELATIVE_TO_PARENT : Animation_RELATIVE_TO_SELF;
-            d->mValue = CTypedValue::ComplexToFloat(((CTypedValue*)value)->mData);
+#ifdef _FRAMEWORK_CORE
+            d->mValue = CTypedValue::ComplexToFloat(data);
+#elif defined(_FRAMEWORK_SERVER)
+            AutoPtr<ITypedValueHelper> helper;
+            CTypedValueHelper::AcquireSingleton((ITypedValueHelper**)&helper);
+            helper->ComplexToFloat(data, &d->mValue);
+#endif
             return d;
         }
         else if (type ==TypedValue_TYPE_FLOAT) {
@@ -51,7 +64,9 @@ AutoPtr<Animation::Description> Animation::Description::ParseValue(
         else if (type >= TypedValue_TYPE_FIRST_INT &&
             type <= TypedValue_TYPE_LAST_INT) {
             d->mType = Animation_ABSOLUTE;
-            d->mValue = ((CTypedValue*)value)->mData;
+            Int32 data;
+            value->GetData(&data);
+            d->mValue = (Float)data;
             return d;
         }
     }
@@ -82,19 +97,11 @@ Animation::Animation()
     , mMore(TRUE)
     , mOneMoreTime(TRUE)
 {
-    AutoPtr<CRectF> rectF;
-    ASSERT_SUCCEEDED(CRectF::NewByFriend((CRectF**)&rectF));
-    mPreviousRegion = (IRectF*)rectF.Get();
-    rectF = NULL;
-    ASSERT_SUCCEEDED(CRectF::NewByFriend((CRectF**)&rectF));
-    mRegion = (IRectF*)rectF.Get();
+    ASSERT_SUCCEEDED(CRectF::New((IRectF**)&mPreviousRegion));
+    ASSERT_SUCCEEDED(CRectF::New((IRectF**)&mRegion));
 
-    AutoPtr<CTransformation> trans;
-    ASSERT_SUCCEEDED(CTransformation::NewByFriend((CTransformation**)&trans));
-    mTransformation = (ITransformation*)trans.Get();
-    trans = NULL;
-    ASSERT_SUCCEEDED(CTransformation::NewByFriend((CTransformation**)&trans));
-    mPreviousTransformation = (ITransformation*)trans.Get();
+    ASSERT_SUCCEEDED(CTransformation::New((ITransformation**)&mTransformation));
+    ASSERT_SUCCEEDED(CTransformation::New((ITransformation**)&mPreviousTransformation));
 
     EnsureInterpolator();
 }
@@ -255,7 +262,13 @@ ECode Animation::SetInterpolator(
     /* [in] */ Int32 resID)
 {
     AutoPtr<IInterpolator> interpolator;
+#ifdef _FRAMEWORK_CORE
     AnimationUtils::LoadInterpolator(context, resID, (IInterpolator**)&interpolator);
+#elif defined(_FRAMEWORK_SERVER)
+    AutoPtr<IAnimationUtils> animationUtils;
+    CAnimationUtils::AcquireSingleton((IAnimationUtils**)&animationUtils);
+    animationUtils->LoadInterpolator(context, resID, (IInterpolator**)&interpolator);
+#endif
     return SetInterpolator(interpolator);
 }
 
@@ -408,7 +421,15 @@ ECode Animation::Start()
  */
 ECode Animation::StartNow()
 {
-    return SetStartTime(AnimationUtils::CurrentAnimationTimeMillis());
+    Int64 time;
+#ifdef _FRAMEWORK_CORE
+    time = AnimationUtils::CurrentAnimationTimeMillis();
+#elif defined(_FRAMEWORK_SERVER)
+    AutoPtr<IAnimationUtils> animationUtils;
+    CAnimationUtils::AcquireSingleton((IAnimationUtils**)&animationUtils);
+    animationUtils->CurrentAnimationTimeMillis(&time);
+#endif
+    return SetStartTime(time);
 }
 
 /**
@@ -707,10 +728,8 @@ ECode Animation::SetAnimationListener(
 void Animation::EnsureInterpolator()
 {
     if (mInterpolator == NULL) {
-        AutoPtr<CAccelerateDecelerateInterpolator> temp;
-        CAccelerateDecelerateInterpolator::NewByFriend(
-            (CAccelerateDecelerateInterpolator**)&temp);
-        mInterpolator = (IInterpolator*)temp.Get();
+        CAccelerateDecelerateInterpolator::New(
+            (IInterpolator**)&mInterpolator);
     }
 }
 

@@ -1,5 +1,5 @@
 
-#include "location/internal/GpsNetInitiatedHandler.h"
+#include "location/GpsNetInitiatedHandler.h"
 
 const CString GpsNetInitiatedHandler::TAG = "GpsNetInitiatedHandler";
 const Boolean GpsNetInitiatedHandler::DEBUG;

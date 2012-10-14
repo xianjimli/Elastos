@@ -3,6 +3,7 @@
 #include "content/CCompatibilityInfo.h"
 #include "content/CApplicationInfo.h"
 #include "utils/CDisplayMetrics.h"
+#include "graphics/CRect.h"
 #include <StringBuffer.h>
 #include <Logger.h>
 
@@ -401,7 +402,7 @@ void CompatibilityInfo::constructor(
 
     mAppFlags = ((CApplicationInfo*)appInfo)->mFlags;
 
-    if ((mAppFlags & CApplicationInfo::FLAG_SUPPORTS_LARGE_SCREENS) != 0) {
+    if ((mAppFlags & ApplicationInfo_FLAG_SUPPORTS_LARGE_SCREENS) != 0) {
         // Saying you support large screens also implies you support xlarge
         // screens; there is no compatibility mode for a large app on an
         // xlarge screen.
@@ -410,16 +411,16 @@ void CompatibilityInfo::constructor(
             | EXPANDABLE | CONFIGURED_EXPANDABLE;
     }
 
-    if ((mAppFlags & CApplicationInfo::FLAG_SUPPORTS_XLARGE_SCREENS) != 0) {
+    if ((mAppFlags & ApplicationInfo_FLAG_SUPPORTS_XLARGE_SCREENS) != 0) {
         mCompatibilityFlags |= XLARGE_SCREENS | CONFIGURED_XLARGE_SCREENS
             | EXPANDABLE | CONFIGURED_EXPANDABLE;
     }
 
-    if ((mAppFlags & CApplicationInfo::FLAG_RESIZEABLE_FOR_SCREENS) != 0) {
+    if ((mAppFlags & ApplicationInfo_FLAG_RESIZEABLE_FOR_SCREENS) != 0) {
         mCompatibilityFlags |= EXPANDABLE | CONFIGURED_EXPANDABLE;
     }
 
-    if ((mAppFlags & CApplicationInfo::FLAG_SUPPORTS_SCREEN_DENSITIES) != 0) {
+    if ((mAppFlags & ApplicationInfo_FLAG_SUPPORTS_SCREEN_DENSITIES) != 0) {
         mApplicationDensity = CDisplayMetrics::DENSITY_DEVICE;
         mApplicationScale = 1.0f;
         mApplicationInvertedScale = 1.0f;
@@ -449,11 +450,11 @@ void CompatibilityInfo::constructor(
 
 void CompatibilityInfo::constructor()
 {
-    constructor(CApplicationInfo::FLAG_SUPPORTS_SMALL_SCREENS
-        | CApplicationInfo::FLAG_SUPPORTS_NORMAL_SCREENS
-        | CApplicationInfo::FLAG_SUPPORTS_LARGE_SCREENS
-        | CApplicationInfo::FLAG_SUPPORTS_XLARGE_SCREENS
-        | CApplicationInfo::FLAG_RESIZEABLE_FOR_SCREENS,
+    constructor(ApplicationInfo_FLAG_SUPPORTS_SMALL_SCREENS
+        | ApplicationInfo_FLAG_SUPPORTS_NORMAL_SCREENS
+        | ApplicationInfo_FLAG_SUPPORTS_LARGE_SCREENS
+        | ApplicationInfo_FLAG_SUPPORTS_XLARGE_SCREENS
+        | ApplicationInfo_FLAG_RESIZEABLE_FOR_SCREENS,
         EXPANDABLE | CONFIGURED_EXPANDABLE,
         CDisplayMetrics::DENSITY_DEVICE,
         1.0f,
