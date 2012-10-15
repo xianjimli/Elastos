@@ -64,8 +64,8 @@ public:
         /* [in] */ Int32 before,
         /* [in] */ Int32 count);
 
-    //CARAPI AfterTextChanged(
-    //    /* [in] */ IEditable* s);
+    CARAPI AfterTextChanged(
+        /* [in] */ IEditable* s);
 
     CARAPI OnFilterComplete(
         /* [in] */ Int32 count);

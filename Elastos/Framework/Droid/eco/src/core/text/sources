@@ -27,5 +27,8 @@ SOURCES += PackedObjectVector.cpp
 SOURCES += DynamicLayout.cpp
 SOURCES += CDynamicLayout.cpp
 SOURCES += Selection.cpp
+SOURCES += SpannableStringBuilder.cpp
+SOURCES += CSpannableStringBuilder.cpp
+SOURCES += CEditableFactory.cpp
 
 LIBRARIES += method/method.lib

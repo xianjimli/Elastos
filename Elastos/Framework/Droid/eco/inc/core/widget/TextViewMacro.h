@@ -225,6 +225,12 @@
     CARAPI GetFreezesText(                                                  \
         /* [out] */ Boolean * pText);                                       \
                                                                             \
+    CARAPI SetEditableFactory(                                              \
+        /* [in] */ IEditableFactory* factory);                              \
+                                                                            \
+    CARAPI SetSpannableFactory(                                             \
+        /* [in] */ ISpannableFactory* factory);                             \
+                                                                            \
     CARAPI SetText(                                                         \
         /* [in] */ ICharSequence * pText);                                  \
                                                                             \
@@ -913,6 +919,18 @@ ECode className::GetFreezesText(                                                
     *pText = superClass::GetFreezesText();                                                      \
                                                                                                 \
     return NOERROR;                                                                             \
+}                                                                                               \
+                                                                                                \
+ECode className::SetEditableFactory(                                                            \
+    /* [in] */ IEditableFactory* factory)                                                       \
+{                                                                                               \
+    return superClass::SetEditableFactory(factory);                                             \
+}                                                                                               \
+                                                                                                \
+ECode className::SetSpannableFactory(                                                           \
+    /* [in] */ ISpannableFactory* factory)                                                      \
+{                                                                                               \
+    return superClass::SetSpannableFactory(factory);                                            \
 }                                                                                               \
                                                                                                 \
 ECode className::SetText(                                                                       \

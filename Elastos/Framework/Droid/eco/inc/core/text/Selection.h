@@ -29,7 +29,7 @@ public:
      */
     static CARAPI_(Int32) GetSelectionStart(
         /* [in] */ ICharSequence* text);
-   
+
     /**
      * Return the offset of the selection edge or cursor, or -1 if
      * there is no selection or cursor.
@@ -40,7 +40,7 @@ public:
     /*
      * Setting the selection
      */
-   
+
     /**
      * Set the selection anchor to <code>start</code> and the selection edge
      * to <code>stop</code>.
@@ -176,7 +176,7 @@ private:
         /* [in] */ Int32 off2);
 
 private:
-    class SelectionObject : public ElRefBase, public IInterface
+    class SelectionObject : public ElRefBase, public INoCopySpan
     {
     public:
         CARAPI_(PInterface) Probe(
@@ -190,7 +190,7 @@ private:
             /* [in] */ IInterface *pObject,
             /* [out] */ InterfaceID *pIID);
     };
-    
+
     /*
      * Public constants
      */

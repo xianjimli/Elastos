@@ -13,6 +13,9 @@ PInterface Selection::SelectionObject::Probe(
     if (riid == EIID_IInterface) {
         return (PInterface)this;
     }
+    else if (riid == EIID_INoCopySpan) {
+        return (INoCopySpan*)this;
+    }
 
     return NULL;
 }
@@ -33,8 +36,8 @@ ECode Selection::SelectionObject::GetInterfaceID(
 {
     VALIDATE_NOT_NULL(pIID);
 
-    if (pObject == (IInterface*)this) {
-        *pIID = EIID_IInterface;
+    if (pObject == (INoCopySpan*)this) {
+        *pIID = EIID_INoCopySpan;
     }
     else {
         return E_INVALID_ARGUMENT;

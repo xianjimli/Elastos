@@ -103,6 +103,8 @@
 #include "text/CDynamicLayout.h"
 #include "text/CSpannableString.h"
 #include "text/Selection.h"
+#include "text/CEditableFactory.h"
+#include "text/CSpannableFactory.h"
 #include "view/CKeyEvent.h"
 #include "view/CViewGroupLayoutParams.h"
 #include "view/CWindowManagerLayoutParams.h"
@@ -1359,6 +1361,8 @@ ECode TextView::SetMovementMethod(
 
     // SelectionModifierCursorController depends on textCanBeSelected, which depends on mMovement
     PrepareCursorControllers();
+
+    return NOERROR;
 }
 
 void TextView::FixFocusableAndClickableSettings()
@@ -2708,7 +2712,9 @@ ECode TextView::Append(
         SetText(mText, BufferType_EDITABLE);
     }
 
-    return (IEditable::Probe(mText))->AppendEx(text, start, end);
+    AutoPtr<IEditable> editable;
+    return (IEditable::Probe(mText))->AppendEx(
+        text, start, end, (IEditable**)&editable);
 }
 
 void TextView::UpdateTextColors()
@@ -2939,21 +2945,22 @@ Boolean TextView::GetFreezesText()
 /**
  * Sets the Factory used to create new Editables.
  */
-//void TextView::SetEditableFactory(
-//    EditableFactory factory)
-//{
-//    mEditableFactory = factory;
-//    setText(mText);
-//}
+ECode TextView::SetEditableFactory(
+    /* [in] */ IEditableFactory* factory)
+{
+    mEditableFactory = factory;
+    return SetText(mText);
+}
 
 /**
  * Sets the Factory used to create new Spannables.
  */
-//void TextView::SetSpannableFactory(
-//    /* [in] */ Spannable.Factory factory) {
-//    mSpannableFactory = factory;
-//    setText(mText);
-//}
+ECode TextView::SetSpannableFactory(
+    /* [in] */ ISpannableFactory* factory)
+{
+    mSpannableFactory = factory;
+    return SetText(mText);
+}
 
 /**
  * Sets the string value of the TextView. TextView <em>does not</em> accept
@@ -3057,17 +3064,20 @@ ECode TextView::SetText(
 //        needEditableForNotification = TRUE;
 //    }
 
-//    if (type == BufferType.EDITABLE || mInput != NULL ||
-//        needEditableForNotification) {
-//        Editable t = mEditableFactory.newEditable(text);
-//        text = t;
-//        setFilters(t, mFilters);
-//        InputMethodManager imm = InputMethodManager.peekInstance();
-//        if (imm != NULL) imm.restartInput(this);
-//    }
-//    else if (type == BufferType.SPANNABLE || mMovement != NULL) {
-//        text = mSpannableFactory.newSpannable(text);
-//    }
+    if (type == BufferType_EDITABLE || mInput != NULL ||
+        needEditableForNotification) {
+        AutoPtr<IEditable> t;
+        mEditableFactory->NewEditable(text, (IEditable**)&t);
+        text = t;
+        //setFilters(t, mFilters);
+        //InputMethodManager imm = InputMethodManager.peekInstance();
+        //if (imm != NULL) imm.restartInput(this);
+    }
+    else if (type == BufferType_SPANNABLE || mMovement != NULL) {
+        AutoPtr<ISpannable> t;
+        mSpannableFactory->NewSpannable(text, (ISpannable**)&t);
+        text = t;
+    }
 //    else if (!(text instanceof CharWrapper)) {
 //        text = TextUtils.stringOrSpannedString(text);
 //    }
@@ -8522,6 +8532,11 @@ ECode TextView::InitFromAttributes(
     /* [in] */ IAttributeSet* attrs,
     /* [in] */ Int32 defStyle)
 {
+    ASSERT_SUCCEEDED(CSpannableFactory::AcquireSingleton(
+        (ISpannableFactory**)&mSpannableFactory));
+    ASSERT_SUCCEEDED(CEditableFactory::AcquireSingleton(
+        (IEditableFactory**)&mEditableFactory));
+
     CStringWrapper::New(String(""), (ICharSequence**)&mText);
 
     AutoPtr<IDisplayMetrics> dm;

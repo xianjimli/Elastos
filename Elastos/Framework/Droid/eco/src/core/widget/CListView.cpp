@@ -80,8 +80,11 @@ ECode CListView::OnTextChanged(
     return ListView::OnTextChanged(s, start, before, count);
 }
 
-//ECode CListView::AfterTextChanged(
-//    /* [in] */ IEditable* s);
+ECode CListView::AfterTextChanged(
+    /* [in] */ IEditable* s)
+{
+    return ListView::AfterTextChanged(s);
+}
 
 ECode CListView::OnFilterComplete(
     /* [in] */ Int32 count)

@@ -683,8 +683,8 @@ public:
         /* [in] */ Int32 before,
         /* [in] */ Int32 count);
 
-    //virtual CARAPI AfterTextChanged(
-    //    /* [in] */ IEditable* s);
+    virtual CARAPI AfterTextChanged(
+        /* [in] */ IEditable* s);
 
     virtual CARAPI OnFilterComplete(
         /* [in] */ Int32 count);

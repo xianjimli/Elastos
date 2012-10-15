@@ -31,7 +31,8 @@ module
             [in] Int32 en,
             [in] ICharSequence* source,
             [in] Int32 start,
-            [in] Int32 end);
+            [in] Int32 end,
+            [out] IEditable** editable);
 
         /**
          * Convenience for replace(st, en, text, 0, text.length())
@@ -40,7 +41,8 @@ module
         ReplaceEx(
             [in] Int32 st,
             [in] Int32 en,
-            [in] ICharSequence* text);
+            [in] ICharSequence* text,
+            [out] IEditable** editable);
 
         /**
          * Convenience for replace(where, where, text, start, end)
@@ -50,7 +52,8 @@ module
             [in] Int32 where,
             [in] ICharSequence* text,
             [in] Int32 start,
-            [in] Int32 end);
+            [in] Int32 end,
+            [out] IEditable** editable);
 
         /**
          * Convenience for replace(where, where, text, 0, text.length());
@@ -58,7 +61,8 @@ module
          */
         InsertEx(
             [in] Int32 where,
-            [in] ICharSequence* text);
+            [in] ICharSequence* text,
+            [out] IEditable** editable);
 
         /**
          * Convenience for replace(st, en, "", 0, 0)
@@ -66,14 +70,16 @@ module
          */
         Delete(
             [in] Int32 st,
-            [in] Int32 en);
+            [in] Int32 en,
+            [out] IEditable** editable);
 
         /**
          * Convenience for replace(length(), length(), text, 0, text.length())
          * @see #replace(int, int, CharSequence, int, int)
          */
         Append(
-            [in] ICharSequence* text);
+            [in] ICharSequence* text,
+            [out] IEditable** editable);
 
         /**
          * Convenience for replace(length(), length(), text, start, end)
@@ -82,14 +88,16 @@ module
         AppendEx(
             [in] ICharSequence* text,
             [in] Int32 start,
-            [in] Int32 end);
+            [in] Int32 end,
+            [out] IEditable** editable);
 
         /**
          * Convenience for append(String.valueOf(text)).
          * @see #replace(int, int, CharSequence, int, int)
          */
         AppendEx2(
-            [in] Char32 text);
+            [in] Char32 text,
+            [out] IEditable** editable);
 
         /**
          * Convenience for replace(0, length(), "", 0, 0)
@@ -119,5 +127,11 @@ module
          */
         GetFilters(
             [out] IObjectContainer** filters);
+    }
+
+    interface IEditableFactory {
+        NewEditable(
+            [in] ICharSequence* source,
+            [out] IEditable** editable);
     }
 }

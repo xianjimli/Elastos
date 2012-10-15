@@ -532,6 +532,13 @@ ECode DynamicLayout::Init(
     /* [in] */ TextUtilsTruncateAt ellipsize,
     /* [in] */ Int32 ellipsizedWidth)
 {
+    // super((ellipsize == null)
+    //             ? display
+    //             : (display instanceof Spanned)
+    //                 ? new SpannedEllipsizer(display)
+    //                 : new Ellipsizer(display),
+    //           paint, width, align, spacingmult, spacingadd);
+    Layout::Init(display, paint, width, align, spacingmult, spacingadd);
     mBase = base;
     mDisplay = display;
 

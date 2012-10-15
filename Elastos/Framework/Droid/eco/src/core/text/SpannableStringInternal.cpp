@@ -315,7 +315,7 @@ ECode SpannableStringInternal::GetSpans(
                 }
 
                 for (Int32 k = 0; k < count - j; k++) {
-                    (*ret)[j + 1] = (*ret)[j];
+                    (*ret)[count - k] = (*ret)[count - k - 1];
                 }
                 (*ret)[j] = spans[i];
                 if (spans[i] != NULL) spans[i]->AddRef();

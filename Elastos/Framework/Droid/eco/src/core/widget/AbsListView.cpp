@@ -4567,10 +4567,11 @@ ECode AbsListView::OnTextChanged(
  * For our text watcher that is associated with the text filter.  Does
  * nothing.
  */
-//ECode AfterTextChanged(
-//    /* [in] */ IEditable* s)
-//{
-//}
+ECode AbsListView::AfterTextChanged(
+    /* [in] */ IEditable* s)
+{
+    return NOERROR;
+}
 
 ECode AbsListView::OnFilterComplete(
     /* [in] */ Int32 count)

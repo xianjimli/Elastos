@@ -1081,14 +1081,14 @@ public:
     /**
      * Sets the Factory used to create new Editables.
      */
-    //CARAPI_(void) SetEditableFactory(
-    //    /* [in] */ Editable.Factory factory);
+    CARAPI SetEditableFactory(
+        /* [in] */ IEditableFactory* factory);
 
     /**
      * Sets the Factory used to create new Spannables.
      */
-    //CARAPI_(void) SetSpannableFactory(
-    //    /* [in] */ Spannable.Factory factory);
+    CARAPI SetSpannableFactory(
+        /* [in] */ ISpannableFactory* factory);
 
     /**
      * Sets the string value of the TextView. TextView <em>does not</em> accept
@@ -2272,8 +2272,8 @@ private:
     Boolean mEatTouchRelease;
     Boolean mScrolled;
 
-    //Editable.Factory mEditableFactory = Editable.Factory.getInstance();
-    //Spannable.Factory mSpannableFactory = Spannable.Factory.getInstance();
+    AutoPtr<IEditableFactory> mEditableFactory;
+    AutoPtr<ISpannableFactory> mSpannableFactory;
 
     Float mShadowRadius, mShadowDx, mShadowDy;
 

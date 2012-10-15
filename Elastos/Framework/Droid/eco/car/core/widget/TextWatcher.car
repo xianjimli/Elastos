@@ -1,6 +1,8 @@
 
 module
 {
+    interface IEditable;
+
     interface ITextWatcher {
         /**
          * This method is called to notify you that, within <code>s</code>,
@@ -42,8 +44,8 @@ module
          * to mark your place and then look up from here where the span
          * ended up.
          */
-        //AfterTextChanged(
-        //    [in] IEditable* s);
+        AfterTextChanged(
+            [in] IEditable* s);
     }
 
 }

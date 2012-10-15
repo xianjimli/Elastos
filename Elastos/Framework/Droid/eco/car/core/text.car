@@ -14,6 +14,7 @@ module
     merge("text/NoCopySpan.car");
     merge("text/SpanWatcher.car");
     merge("text/Editable.car");
+    merge("text/SpannableStringBuilder.car");
     merge("text/style/ParagraphStyle.car");
     merge("text/style/LineBackgroundSpan.car");
     merge("text/style/AlignmentSpan.car");
@@ -147,7 +148,7 @@ module
     }
 
     singleton class CSpannableFactory {
-        interface ISpanableFactory;
+        interface ISpannableFactory;
     }
 
     class CDynamicLayout {
@@ -183,5 +184,25 @@ module
             [in] Int32 ellipsizedWidth);
 
         interface IDynamicLayout;
+    }
+
+    class CSpannableStringBuilder {
+        constructor();
+
+        constructor(
+            [in] ICharSequence* source);
+
+        constructor(
+            [in] ICharSequence* source,
+            [in] Int32 start,
+            [in] Int32 end);
+
+        interface ISpannableStringBuilder;
+        interface IGetChars;
+        interface IGraphicsOperations;
+    }
+
+    singleton class CEditableFactory {
+        interface IEditableFactory;
     }
 }

@@ -36,7 +36,7 @@ module
             [in] IInterface* what);
     }
 
-    interface ISpanableFactory {
+    interface ISpannableFactory {
         NewSpannable(
             [in] ICharSequence* source,
             [out] ISpannable** spannable);

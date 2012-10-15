@@ -2,6 +2,8 @@
 module
 {
     interface ITextPaint;
+    interface IEditableFactory;
+    interface ISpannableFactory;
 
     enum BufferType {
         BufferType_NORMAL,
@@ -11,11 +13,12 @@ module
 
     enum TextUtilsTruncateAt;
 
+    interface ITextView;
     /**
      * Interface definition for a callback to be invoked when an action is
      * performed on the editor.
      */
-    //interface IOnEditorActionListener {
+    interface IOnEditorActionListener {
         /**
          * Called when an action is being performed.
          *
@@ -28,12 +31,12 @@ module
          * otherwise, this is null.
          * @return Return true if you have consumed the action, else false.
          */
-        //OnEditorAction(
-            //[in] ITextView* v,
-            //[in] Int32 actionId,
-            //[in] IKeyEvent* event,
-            //[out] Boolean* result);
-    //}
+        OnEditorAction(
+            [in] ITextView* v,
+            [in] Int32 actionId,
+            [in] IKeyEvent* event,
+            [out] Boolean* result);
+    }
 
     interface ITextViewSavedState extends IViewBaseSavedState {
     }
@@ -765,14 +768,14 @@ module
         /**
          * Sets the Factory used to create new Editables.
          */
-        //SetEditableFactory(
-        //    [in] IEditableFactory* factory);
+        SetEditableFactory(
+            [in] IEditableFactory* factory);
 
         /**
          * Sets the Factory used to create new Spannables.
          */
-        //SetSpannableFactory(
-        //    [in] ISpannableFactory* factory);
+        SetSpannableFactory(
+            [in] ISpannableFactory* factory);
 
         /**
          * Sets the string value of the TextView. TextView <em>does not</em> accept
