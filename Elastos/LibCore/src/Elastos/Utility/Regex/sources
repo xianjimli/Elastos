@@ -1,0 +1,26 @@
+
+TARGET_NAME = Elastos.Utility.Regex
+TARGET_TYPE = eco
+
+INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/Utility/Regex
+INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/common
+
+IMPORTS = Elastos.Core.eco
+
+SOURCES = Elastos.Utility.Regex.car
+SOURCES += CMatcher.cpp
+SOURCES += CPattern.cpp
+SOURCES += MatchResultImpl.cpp
+SOURCES += Splitter.cpp
+
+LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Core.lib
+ifeq "$(XDK_TARGET_PLATFORM)" "win32"
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Runtime.lib
+else
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
+LIBRARIES += $(XDK_USER_LIB)/crt0.lib
+
+LIBRARIES += -licuuc
+endif

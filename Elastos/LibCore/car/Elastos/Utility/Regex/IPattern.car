@@ -106,7 +106,7 @@ module
          *            not apply there.)
          *            </ul>
          */
-        Split(
+        SplitEx(
             [in] ICharSequence* input,
             [in] Int32 limit,
             [out, callee] ArrayOf<String>* result);
