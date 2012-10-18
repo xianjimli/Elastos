@@ -1,3 +1,2 @@
 
 DIRS += Logging
-DIRS += Regex
