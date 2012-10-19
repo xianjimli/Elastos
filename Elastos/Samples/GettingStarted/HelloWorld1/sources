@@ -7,6 +7,5 @@ TARGET_TYPE= ecx
 
 SOURCES = HelloWorld1.cpp
 
-ifeq "$(XDK_TARGET_PLATFORM)" "win32"
-LIBRARIES += $(XDK_USER_LIB)/Elastos.Runtime.lib
-endif
+LIBRARIES  = $(XDK_USER_LIB)/Elastos.Runtime.lib
+LIBRARIES += -lstdc++ -lm -ldl -llog -lz -lcutils -lutils -lbinder
