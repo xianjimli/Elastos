@@ -298,16 +298,16 @@ Int32 __cdecl _StringBuf_SetLength(PCarQuintet pCq, Int32 len)
 }
 
 //---------
-Int32 __cdecl _StringBuf_ToInt32(const PCarQuintet pCq)
+Int32 __cdecl _StringBuf_ToInt32(const PCarQuintet pCq, UInt32 radix)
 {
     if (!pCq || !pCq->m_pBuf) return 0;
-    return _String_ToInt32((const char*)pCq->m_pBuf);
+    return _String_ToInt32((const char*)pCq->m_pBuf, radix);
 }
 
-Int64 __cdecl _StringBuf_ToInt64(const PCarQuintet pCq)
+Int64 __cdecl _StringBuf_ToInt64(const PCarQuintet pCq, UInt32 radix)
 {
     if (!pCq || !pCq->m_pBuf) return 0;
-    return _String_ToInt64((const char*)pCq->m_pBuf);
+    return _String_ToInt64((const char*)pCq->m_pBuf, radix);
 }
 
 Boolean __cdecl _StringBuf_ToBoolean(const PCarQuintet pCq)

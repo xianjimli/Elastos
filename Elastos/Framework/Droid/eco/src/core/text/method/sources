@@ -6,7 +6,18 @@ include $(MAKEDIR)/../../../../../sources.inc
 
 INCLUDES += $(MAKEDIR)/../../../../inc/core
 INCLUDES += ../../
+ifeq "$(XDK_TARGET_PLATFORM)" "linux"
+INCLUDES += $(PREBUILD_INC)/skia/utils
+INCLUDES += $(PREBUILD_INC)/skia/core
+endif
 
 C_DEFINES += -D_FRAMEWORK_CORE
 
 SOURCES = MetaKeyKeyListener.cpp
+SOURCES += BaseKeyListener.cpp
+SOURCES += TextKeyListener.cpp
+SOURCES += CTextKeyListener.cpp
+SOURCES += QwertyKeyListener.cpp
+SOURCES += CQwertyKeyListener.cpp
+SOURCES += ArrowKeyMovementMethod.cpp
+SOURCES += CArrowKeyMovementMethod.cpp

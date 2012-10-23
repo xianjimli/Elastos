@@ -30,5 +30,6 @@ SOURCES += Selection.cpp
 SOURCES += SpannableStringBuilder.cpp
 SOURCES += CSpannableStringBuilder.cpp
 SOURCES += CEditableFactory.cpp
+SOURCES += CNoCopySpan.cpp
 
 LIBRARIES += method/method.lib

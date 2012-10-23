@@ -91,6 +91,7 @@
 
 #include "widget/TextView.h"
 #include "os/SystemClock.h"
+#include "os/CApartment.h"
 #include "content/CResourcesFactory.h"
 #include "content/CColorStateList.h"
 #include "content/CCompatibilityInfo.h"
@@ -105,11 +106,14 @@
 #include "text/Selection.h"
 #include "text/CEditableFactory.h"
 #include "text/CSpannableFactory.h"
+#include "text/method/MetaKeyKeyListener.h"
+#include "text/method/TextKeyListener.h"
 #include "view/CKeyEvent.h"
 #include "view/CViewGroupLayoutParams.h"
 #include "view/CWindowManagerLayoutParams.h"
 #include "graphics/CPaint.h"
 #include "graphics/Typeface.h"
+#include "graphics/CPath.h"
 #include "widget/CTextViewSavedState.h"
 #include "widget/CPopupWindow.h"
 #include <elastos/Math.h>
@@ -965,6 +969,202 @@ ECode TextView::SelectionModifierCursorController::OnTouchModeChanged(
 void TextView::SelectionModifierCursorController::OnDetached()
 {}
 
+TextView::ChangeWatcher::ChangeWatcher(
+    /* [in] */ TextView* host)
+    : mHost(host)
+{}
+
+PInterface TextView::ChangeWatcher::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (IInterface*)(ITextWatcher*)this;
+    }
+    else if (riid == EIID_ITextWatcher) {
+        return (ITextWatcher*)this;
+    }
+    else if (riid == EIID_ISpanWatcher) {
+        return (ISpanWatcher*)this;
+    }
+    else if (riid == EIID_INoCopySpan) {
+        return (INoCopySpan*)(ISpanWatcher*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 TextView::ChangeWatcher::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 TextView::ChangeWatcher::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode TextView::ChangeWatcher::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode TextView::ChangeWatcher::BeforeTextChanged(
+    /* [in] */ ICharSequence* buffer,
+    /* [in] */ Int32 start,
+    /* [in] */ Int32 before,
+    /* [in] */ Int32 after)
+{
+    //if (DEBUG_EXTRACT) Log.v(LOG_TAG, "beforeTextChanged start=" + start
+    //        + " before=" + before + " after=" + after + ": " + buffer);
+
+    //if (AccessibilityManager.getInstance(mContext).isEnabled()
+    //        && mHost->!IsPasswordInputType(mHost->mInputType)) {
+    //    mBeforeText = buffer.toString();
+    //}
+
+    mHost->SendBeforeTextChanged(buffer, start, before, after);
+    return NOERROR;
+}
+
+ECode TextView::ChangeWatcher::OnTextChanged(
+    /* [in] */ ICharSequence* buffer,
+    /* [in] */ Int32 start,
+    /* [in] */ Int32 before,
+    /* [in] */ Int32 after)
+{
+    //if (DEBUG_EXTRACT) Log.v(LOG_TAG, "onTextChanged start=" + start
+    //        + " before=" + before + " after=" + after + ": " + buffer);
+    mHost->HandleTextChanged(buffer, start, before, after);
+
+    //if (AccessibilityManager.getInstance(mContext).isEnabled() &&
+    //    (mHost->IsFocused() || mHost->IsSelected() && mHost->IsShown())) {
+    //    SendAccessibilityEventTypeViewTextChanged(mBeforeText, start, before, after);
+    //    mBeforeText = NULL;
+    //}
+
+    return NOERROR;
+}
+
+ECode TextView::ChangeWatcher::AfterTextChanged(
+    /* [in] */ IEditable* buffer)
+{
+    //if (DEBUG_EXTRACT) Log.v(LOG_TAG, "afterTextChanged: " + buffer);
+    mHost->SendAfterTextChanged(buffer);
+
+    if (MetaKeyKeyListener::GetMetaState(buffer,
+        MetaKeyKeyListener::META_SELECTING) != 0) {
+            MetaKeyKeyListener::StopSelecting(
+                (IView*)mHost->Probe(EIID_IView), buffer);
+    }
+
+    return NOERROR;
+}
+
+ECode TextView::ChangeWatcher::OnSpanChanged(
+    /* [in] */ ISpannable* buf,
+    /* [in] */ IInterface* what,
+    /* [in] */ Int32 s,
+    /* [in] */ Int32 e,
+    /* [in] */ Int32 st,
+    /* [in] */ Int32 en)
+{
+    //if (DEBUG_EXTRACT) Log.v(LOG_TAG, "onSpanChanged s=" + s + " e=" + e
+    //        + " st=" + st + " en=" + en + " what=" + what + ": " + buf);
+    return mHost->SpanChange(buf, what, s, st, e, en);
+}
+
+ECode TextView::ChangeWatcher::OnSpanAdded(
+    /* [in] */ ISpannable* buf,
+    /* [in] */ IInterface* what,
+    /* [in] */ Int32 s,
+    /* [in] */ Int32 e)
+{
+    //if (DEBUG_EXTRACT) Log.v(LOG_TAG, "onSpanAdded s=" + s + " e=" + e
+    //        + " what=" + what + ": " + buf);
+    return mHost->SpanChange(buf, what, -1, s, -1, e);
+}
+
+ECode TextView::ChangeWatcher::OnSpanRemoved(
+    /* [in] */ ISpannable* buf,
+    /* [in] */ IInterface* what,
+    /* [in] */ Int32 s,
+    /* [in] */ Int32 e)
+{
+    //if (DEBUG_EXTRACT) Log.v(LOG_TAG, "onSpanRemoved s=" + s + " e=" + e
+    //        + " what=" + what + ": " + buf);
+    return  mHost->SpanChange(buf, what, s, -1, e, -1);
+}
+
+
+TextView::Blink::Blink(
+    /* [in] */ TextView* v)
+    : mView(v)
+{
+    //mView = new WeakReference<TextView>(v);
+    ASSERT_SUCCEEDED(CApartment::GetDefaultApartment((IApartment**)&mApartment));
+}
+
+ECode TextView::Blink::Run()
+{
+    if (mCancelled) {
+        return NOERROR;
+    }
+
+    RemoveCallbacks(this);
+
+    TextView* tv = mView;
+
+    if (tv != NULL && tv->IsFocused()) {
+        Int32 st = tv->GetSelectionStart();
+        Int32 en = tv->GetSelectionEnd();
+
+        if (st == en && st >= 0 && en >= 0) {
+            if (tv->mLayout != NULL) {
+                tv->InvalidateCursorPath();
+            }
+
+            PostAtTime(this, SystemClock::GetUptimeMillis() + BLINK);
+        }
+    }
+    return NOERROR;
+}
+
+void TextView::Blink::Cancel()
+{
+    if (!mCancelled) {
+        RemoveCallbacks(this);
+        mCancelled = TRUE;
+    }
+}
+
+void TextView::Blink::Uncancel()
+{
+    mCancelled = FALSE;
+}
+
+void TextView::Blink::PostAtTime(
+    /* [in] */ IRunnable* action,
+    /* [in] */ Int64 millis)
+{
+    ECode (STDCALL IRunnable::*pHandlerFunc)();
+        pHandlerFunc = &IRunnable::Run;
+
+    mApartment->PostCppCallbackAtTime(
+        (Handle32)action, *(Handle32*)&pHandlerFunc, NULL, 0, millis);
+}
+
+void TextView::Blink::RemoveCallbacks(
+    /* [in] */ IRunnable* action)
+{
+    ECode (STDCALL IRunnable::*pHandlerFunc)();
+        pHandlerFunc = &IRunnable::Run;
+
+    mApartment->RemoveCppCallbacks(
+            (Handle32)action, *(Handle32*)&pHandlerFunc);
+}
+
 AutoPtr<CRect> InitsCCTempRect()
 {
     AutoPtr<CRect> r;
@@ -1262,9 +1462,10 @@ AutoPtr<ILayout> TextView::GetLayout()
  * @return the current key listener for this TextView.
  * This will frequently be NULL for non-EditText TextViews.
  */
-//public final KeyListener getKeyListener() {
-//    return mInput;
-//}
+AutoPtr<IKeyListener> TextView::GetKeyListener()
+{
+    return mInput;
+}
 
 /**
  * Sets the key listener to be used with this TextView.  This can be NULL
@@ -1294,24 +1495,24 @@ ECode TextView::SetKeyListener(
     SetKeyListenerOnly(input);
     FixFocusableAndClickableSettings();
 
-    // if (input != NULL) {
-    //     ECode ec = mInput->GetInputType(&mInputType);
-    //     if (FAILED(ec)) {
-    //         mInputType = EditorInfo_TYPE_CLASS_TEXT;
-    //     }
-    //     if ((mInputType&EditorInfo_TYPE_MASK_CLASS)
-    //         == EditorInfo_TYPE_CLASS_TEXT) {
-    //         if (mSingleLine) {
-    //             mInputType &= ~EditorInfo_TYPE_TEXT_FLAG_MULTI_LINE;
-    //         }
-    //         else {
-    //             mInputType |= EditorInfo_TYPE_TEXT_FLAG_MULTI_LINE;
-    //         }
-    //     }
-    // }
-    // else {
-    //     mInputType = EditorInfo_TYPE_NULL;
-    // }
+     if (input != NULL) {
+         ECode ec = mInput->GetInputType(&mInputType);
+         if (FAILED(ec)) {
+             mInputType = InputType_TYPE_CLASS_TEXT;
+         }
+         if ((mInputType&InputType_TYPE_MASK_CLASS)
+             == InputType_TYPE_CLASS_TEXT) {
+             if (mSingleLine) {
+                 mInputType &= ~InputType_TYPE_TEXT_FLAG_MULTI_LINE;
+             }
+             else {
+                 mInputType |= InputType_TYPE_TEXT_FLAG_MULTI_LINE;
+             }
+         }
+     }
+     else {
+         mInputType = InputType_TYPE_NULL;
+     }
 
     //InputMethodManager imm = InputMethodManager.peekInstance();
     //if (imm != NULL) imm.restartInput(this);
@@ -3027,9 +3228,9 @@ ECode TextView::SetText(
 
     if (!mUserSetTextScaleX) mTextPaint->SetTextScaleX(1.0f);
 
+    Int32 spanStart;
     // if (ISpanned::Probe(text) &&
     //     (ISpanned::Probe(text)->GetSpanStart(
-    //     Int32 spanStart;
     //     TextUtilsTruncateAt_MARQUEE, &spanStart), spanStart) >= 0) {
     //     SetHorizontalFadingEdgeEnabled(TRUE);
     //     SetEllipsize(TextUtilsTruncateAt_MARQUEE);
@@ -3168,9 +3369,9 @@ ECode TextView::SetText(
     SendOnTextChanged(text, 0, oldlen, textLength);
     OnTextChanged(text, 0, oldlen, textLength);
 
-//    if (needEditableForNotification) {
-//        sendAfterTextChanged((Editable) text);
-//    }
+    if (needEditableForNotification) {
+        SendAfterTextChanged(IEditable::Probe(text));
+    }
 
     // SelectionModifierCursorController depends on textCanBeSelected, which depends on text
     PrepareCursorControllers();
@@ -3365,10 +3566,10 @@ ECode TextView::SetInputType(
     //    }
     //}
     //
-    //Boolean multiLine = (type&(EditorInfo.TYPE_MASK_CLASS
-    //                | EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE)) ==
-    //        (EditorInfo.TYPE_CLASS_TEXT
-    //                | EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE);
+    //Boolean multiLine = (type&(InputType_TYPE_MASK_CLASS
+    //                | InputType_TYPE_TEXT_FLAG_MULTI_LINE)) ==
+    //        (InputType_TYPE_CLASS_TEXT
+    //                | InputType_TYPE_TEXT_FLAG_MULTI_LINE);
     //
     //// We need to update the single line mode if it has changed or we
     //// were previously in password mode.
@@ -3407,22 +3608,22 @@ Boolean TextView::HasPasswordTransformationMethod()
 Boolean TextView::IsPasswordInputType(
     /* [in] */ Int32 inputType)
 {
-//    Int32 variation = inputType & (EditorInfo.TYPE_MASK_CLASS
-//            | EditorInfo.TYPE_MASK_VARIATION);
+//    Int32 variation = inputType & (InputType_TYPE_MASK_CLASS
+//            | InputType_TYPE_MASK_VARIATION);
 //    return variation
-//            == (EditorInfo.TYPE_CLASS_TEXT
-//                    | EditorInfo.TYPE_TEXT_VARIATION_PASSWORD);
+//            == (InputType_TYPE_CLASS_TEXT
+//                    | InputType_TYPE_TEXT_VARIATION_PASSWORD);
     return FALSE;
 }
 
 Boolean TextView::IsVisiblePasswordInputType(
     /* [in] */ Int32 inputType)
 {
-//    final Int32 variation = inputType & (EditorInfo.TYPE_MASK_CLASS
-//            | EditorInfo.TYPE_MASK_VARIATION);
+//    final Int32 variation = inputType & (InputType_TYPE_MASK_CLASS
+//            | InputType_TYPE_MASK_VARIATION);
 //    return variation
-//            == (EditorInfo.TYPE_CLASS_TEXT
-//                    | EditorInfo.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+//            == (InputType_TYPE_CLASS_TEXT
+//                    | InputType_TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
     return FALSE;
 }
 
@@ -3444,47 +3645,55 @@ void TextView::SetInputType(
     /* [in] */ Int32 type,
     /* [in] */ Boolean direct)
 {
-//    final Int32 cls = type & EditorInfo.TYPE_MASK_CLASS;
-//    KeyListener input;
-//    if (cls == EditorInfo.TYPE_CLASS_TEXT) {
-//        Boolean autotext = (type & EditorInfo.TYPE_TEXT_FLAG_AUTO_CORRECT) != 0;
-//        TextKeyListener.Capitalize cap;
-//        if ((type & EditorInfo.TYPE_TEXT_FLAG_CAP_CHARACTERS) != 0) {
-//            cap = TextKeyListener.Capitalize.CHARACTERS;
-//        } else if ((type & EditorInfo.TYPE_TEXT_FLAG_CAP_WORDS) != 0) {
-//            cap = TextKeyListener.Capitalize.WORDS;
-//        } else if ((type & EditorInfo.TYPE_TEXT_FLAG_CAP_SENTENCES) != 0) {
-//            cap = TextKeyListener.Capitalize.SENTENCES;
-//        } else {
-//            cap = TextKeyListener.Capitalize.NONE;
-//        }
-//        input = TextKeyListener.getInstance(autotext, cap);
-//    } else if (cls == EditorInfo.TYPE_CLASS_NUMBER) {
-//        input = DigitsKeyListener.getInstance(
-//                (type & EditorInfo.TYPE_NUMBER_FLAG_SIGNED) != 0,
-//                (type & EditorInfo.TYPE_NUMBER_FLAG_DECIMAL) != 0);
-//    } else if (cls == EditorInfo.TYPE_CLASS_DATETIME) {
-//        switch (type & EditorInfo.TYPE_MASK_VARIATION) {
-//            case EditorInfo.TYPE_DATETIME_VARIATION_DATE:
-//                input = DateKeyListener.getInstance();
-//                break;
-//            case EditorInfo.TYPE_DATETIME_VARIATION_TIME:
-//                input = TimeKeyListener.getInstance();
-//                break;
-//            default:
-//                input = DateTimeKeyListener.getInstance();
-//                break;
-//        }
-//    } else if (cls == EditorInfo.TYPE_CLASS_PHONE) {
-//        input = DialerKeyListener.getInstance();
-//    } else {
-//        input = TextKeyListener.getInstance();
-//    }
-//    setRawInputType(type);
-//    if (direct) mInput = input;
-//    else {
-//        setKeyListenerOnly(input);
-//    }
+    Int32 cls = type & InputType_TYPE_MASK_CLASS;
+    AutoPtr<IKeyListener> input;
+    if (cls == InputType_TYPE_CLASS_TEXT) {
+        Boolean autotext = (type & InputType_TYPE_TEXT_FLAG_AUTO_CORRECT) != 0;
+        Capitalize cap;
+        if ((type & InputType_TYPE_TEXT_FLAG_CAP_CHARACTERS) != 0) {
+            cap = Capitalize_CHARACTERS;
+        }
+        else if ((type & InputType_TYPE_TEXT_FLAG_CAP_WORDS) != 0) {
+            cap = Capitalize_WORDS;
+        }
+        else if ((type & InputType_TYPE_TEXT_FLAG_CAP_SENTENCES) != 0) {
+            cap = Capitalize_SENTENCES;
+        }
+        else {
+            cap = Capitalize_NONE;
+        }
+        input = TextKeyListener::GetInstance(autotext, cap);
+    }
+    else if (cls == InputType_TYPE_CLASS_NUMBER) {
+        // input = DigitsKeyListener.getInstance(
+        //         (type & InputType_TYPE_NUMBER_FLAG_SIGNED) != 0,
+        //         (type & InputType_TYPE_NUMBER_FLAG_DECIMAL) != 0);
+    }
+    else if (cls == InputType_TYPE_CLASS_DATETIME) {
+        // switch (type & InputType_TYPE_MASK_VARIATION) {
+        //     case InputType_TYPE_DATETIME_VARIATION_DATE:
+        //         input = DateKeyListener.getInstance();
+        //         break;
+        //     case InputType_TYPE_DATETIME_VARIATION_TIME:
+        //         input = TimeKeyListener.getInstance();
+        //         break;
+        //     default:
+        //         input = DateTimeKeyListener.getInstance();
+        //         break;
+        // }
+    }
+    else if (cls == InputType_TYPE_CLASS_PHONE) {
+        //input = DialerKeyListener.getInstance();
+    }
+    else {
+        input = TextKeyListener::GetInstance();
+    }
+    SetRawInputType(type);
+    if (direct)
+        mInput = input;
+    else {
+        SetKeyListenerOnly(input);
+    }
 }
 
 /**
@@ -3525,7 +3734,7 @@ ECode TextView::SetImeOptions(
 Int32 TextView::GetImeOptions()
 {
 //    return mInputContentType != NULL
-//            ? mInputContentType.imeOptions : EditorInfo.IME_NULL;
+//            ? mInputContentType.imeOptions : InputType_IME_NULL;
     return 0x00000000;
 }
 
@@ -3599,8 +3808,8 @@ Int32 TextView::GetImeActionId()
  * for this text view.  The default implementation will call your action
  * listener supplied to {@link #setOnEditorActionListener}, or perform
  * a standard operation for {@link EditorInfo#IME_ACTION_NEXT
- * EditorInfo.IME_ACTION_NEXT} or {@link EditorInfo#IME_ACTION_DONE
- * EditorInfo.IME_ACTION_DONE}.
+ * InputType_IME_ACTION_NEXT} or {@link EditorInfo#IME_ACTION_DONE
+ * InputType_IME_ACTION_DONE}.
  *
  * <p>For backwards compatibility, if no IME options have been set and the
  * text view would not normally advance focus on enter, then
@@ -3628,7 +3837,7 @@ ECode TextView::OnEditorAction(
     //    // default handling if explicit ime options have not been given,
     //    // instead turning this into the normal enter key codes that an
     //    // app may be expecting.
-    //    if (actionCode == EditorInfo.IME_ACTION_NEXT) {
+    //    if (actionCode == InputType_IME_ACTION_NEXT) {
     //        View v = focusSearch(FOCUS_DOWN);
     //        if (v != NULL) {
     //            if (!v.requestFocus(FOCUS_DOWN)) {
@@ -3638,7 +3847,7 @@ ECode TextView::OnEditorAction(
     //        }
     //        return;
     //
-    //    } else if (actionCode == EditorInfo.IME_ACTION_DONE) {
+    //    } else if (actionCode == InputType_IME_ACTION_DONE) {
     //        InputMethodManager imm = InputMethodManager.peekInstance();
     //        if (imm != NULL) {
     //            imm.hideSoftInputFromWindow(getWindowToken(), 0);
@@ -3666,7 +3875,7 @@ ECode TextView::OnEditorAction(
 
 /**
  * Set the private content type of the text, which is the
- * {@link EditorInfo#privateImeOptions EditorInfo.privateImeOptions}
+ * {@link EditorInfo#privateImeOptions InputType_privateImeOptions}
  * field that will be filled in when creating an input connection.
  *
  * @see #getPrivateImeOptions()
@@ -4123,7 +4332,7 @@ void TextView::InvalidateCursorPath()
 
             thick /= 2;
 
-//            mHighlightPath.computeBounds(sTempRect, FALSE);
+            mHighlightPath->ComputeBounds(sTempRect, FALSE);
 
             Int32 left = GetCompoundPaddingLeft();
             Int32 top = GetExtendedPaddingTop() + GetVerticalOffset(TRUE);
@@ -4326,10 +4535,10 @@ void TextView::OnDetachedFromWindow()
         HideError();
     }
 
-//    if (mBlink != NULL) {
-//        mBlink.cancel();
-//    }
-//
+    if (mBlink != NULL) {
+        mBlink->Cancel();
+    }
+
     if (mInsertionPointCursorController != NULL) {
         mInsertionPointCursorController->OnDetached();
     }
@@ -4599,36 +4808,37 @@ void TextView::OnDraw(
         selEnd = GetSelectionEnd();
 
         if (mCursorVisible && selStart >= 0 && IsEnabled()) {
-    //        if (mHighlightPath == NULL)
-    //            mHighlightPath = new Path();
+            if (mHighlightPath == NULL)
+                CPath::New((IPath**)&mHighlightPath);
 
-    //        if (selStart == selEnd) {
-    //            if ((SystemClock.uptimeMillis() - mShowCursor) % (2 * BLINK) < BLINK) {
-    //                if (mHighlightPathBogus) {
-    //                    mHighlightPath.reset();
-    //                    mLayout.getCursorPath(selStart, mHighlightPath, mText);
-    //                    mHighlightPathBogus = FALSE;
-    //                }
+            if (selStart == selEnd) {
+                if ((SystemClock::GetUptimeMillis() - mShowCursor) % (2 * BLINK) < BLINK) {
+                    if (mHighlightPathBogus) {
+                        mHighlightPath->Reset();
+                        mLayout->GetCursorPath(selStart, mHighlightPath, mText);
+                        mHighlightPathBogus = FALSE;
+                    }
 
-    //                // XXX should pass to skin instead of drawing directly
-    //                mHighlightPaint.setColor(cursorcolor);
-    //                mHighlightPaint.setStyle(Paint.Style.STROKE);
+                    // XXX should pass to skin instead of drawing directly
+                    mHighlightPaint->SetColor(cursorcolor);
+                    mHighlightPaint->SetStyle(PaintStyle_STROKE);
 
-    //                highlight = mHighlightPath;
-    //            }
-    //        } else {
-    //            if (mHighlightPathBogus) {
-    //                mHighlightPath.reset();
-    //                mLayout.getSelectionPath(selStart, selEnd, mHighlightPath);
-    //                mHighlightPathBogus = FALSE;
-    //            }
+                    highlight = mHighlightPath;
+                }
+            }
+            else {
+                if (mHighlightPathBogus) {
+                    mHighlightPath->Reset();
+                    mLayout->GetSelectionPath(selStart, selEnd, mHighlightPath);
+                    mHighlightPathBogus = FALSE;
+                }
 
-    //            // XXX should pass to skin instead of drawing directly
-    //            mHighlightPaint.setColor(mHighlightColor);
-    //            mHighlightPaint.setStyle(Paint.Style.FILL);
+                // XXX should pass to skin instead of drawing directly
+                mHighlightPaint->SetColor(mHighlightColor);
+                mHighlightPaint->SetStyle(PaintStyle_FILL);
 
-    //            highlight = mHighlightPath;
-    //        }
+                highlight = mHighlightPath;
+            }
         }
     }
 
@@ -4917,11 +5127,11 @@ Boolean TextView::ShouldAdvanceFocusOnEnter()
         return TRUE;
     }
 
-//    if ((mInputType & EditorInfo.TYPE_MASK_CLASS) == EditorInfo.TYPE_CLASS_TEXT) {
-//        Int32 variation = mInputType & EditorInfo.TYPE_MASK_VARIATION;
+//    if ((mInputType & InputType_TYPE_MASK_CLASS) == InputType_TYPE_CLASS_TEXT) {
+//        Int32 variation = mInputType & InputType_TYPE_MASK_VARIATION;
 //
-//        if (variation == EditorInfo.TYPE_TEXT_VARIATION_EMAIL_ADDRESS ||
-//            variation == EditorInfo.TYPE_TEXT_VARIATION_EMAIL_SUBJECT) {
+//        if (variation == InputType_TYPE_TEXT_VARIATION_EMAIL_ADDRESS ||
+//            variation == InputType_TYPE_TEXT_VARIATION_EMAIL_SUBJECT) {
 //            return TRUE;
 //        }
 //    }
@@ -4957,7 +5167,7 @@ Int32 TextView::DoKeyDown(
                 //    // chance to consume the event.
                 //    if (mInputContentType.onEditorActionListener != NULL &&
                 //            mInputContentType.onEditorActionListener.onEditorAction(
-                //            this, EditorInfo.IME_NULL, event)) {
+                //            this, InputType_IME_NULL, event)) {
                 //        mInputContentType.enterDown = TRUE;
                 //        // We are consuming the enter key for them.
                 //        return -1;
@@ -5105,7 +5315,7 @@ Boolean TextView::OnKeyUp(
                     && mInputContentType.enterDown) {
                 mInputContentType.enterDown = FALSE;
                 if (mInputContentType.onEditorActionListener.onEditorAction(
-                        this, EditorInfo.IME_NULL, event)) {
+                        this, InputType_IME_NULL, event)) {
                     return TRUE;
                 }
             }*/
@@ -5179,7 +5389,7 @@ Boolean TextView::OnKeyUp(
 
 Boolean TextView::OnCheckIsTextEditor()
 {
-    //return mInputType != EditorInfo.TYPE_NULL;
+    //return mInputType != InputType_TYPE_NULL;
     return FALSE;
 }
 
@@ -5196,21 +5406,21 @@ Boolean TextView::OnCheckIsTextEditor()
 //            outAttrs.actionId = mInputContentType.imeActionId;
 //            outAttrs.extras = mInputContentType.extras;
 //        } else {
-//            outAttrs.imeOptions = EditorInfo.IME_NULL;
+//            outAttrs.imeOptions = InputType_IME_NULL;
 //        }
-//        if ((outAttrs.imeOptions&EditorInfo.IME_MASK_ACTION)
-//                == EditorInfo.IME_ACTION_UNSPECIFIED) {
+//        if ((outAttrs.imeOptions&InputType_IME_MASK_ACTION)
+//                == InputType_IME_ACTION_UNSPECIFIED) {
 //            if (focusSearch(FOCUS_DOWN) != NULL) {
 //                // An action has not been set, but the enter key will move to
 //                // the next focus, so set the action to that.
-//                outAttrs.imeOptions |= EditorInfo.IME_ACTION_NEXT;
+//                outAttrs.imeOptions |= InputType_IME_ACTION_NEXT;
 //            } else {
 //                // An action has not been set, and there is no focus to move
 //                // to, so let's just supply a "done" action.
-//                outAttrs.imeOptions |= EditorInfo.IME_ACTION_DONE;
+//                outAttrs.imeOptions |= InputType_IME_ACTION_DONE;
 //            }
 //            if (!shouldAdvanceFocusOnEnter()) {
-//                outAttrs.imeOptions |= EditorInfo.IME_FLAG_NO_ENTER_ACTION;
+//                outAttrs.imeOptions |= InputType_IME_FLAG_NO_ENTER_ACTION;
 //            }
 //        }
 //        if ((outAttrs.inputType & (InputType.TYPE_MASK_CLASS
@@ -5218,7 +5428,7 @@ Boolean TextView::OnCheckIsTextEditor()
 //                == (InputType.TYPE_CLASS_TEXT
 //                        | InputType.TYPE_TEXT_FLAG_MULTI_LINE)) {
 //            // Multi-line text editors should always show an enter key.
-//            outAttrs.imeOptions |= EditorInfo.IME_FLAG_NO_ENTER_ACTION;
+//            outAttrs.imeOptions |= InputType_IME_FLAG_NO_ENTER_ACTION;
 //        }
 //        outAttrs.hintText = mHint;
 //        if (mText instanceof Editable) {
@@ -6710,12 +6920,12 @@ ECode TextView::SetSingleLine()
 ECode TextView::SetSingleLine(
     /* [in] */ Boolean singleLine)
 {
-//    if ((mInputType&EditorInfo.TYPE_MASK_CLASS)
-//            == EditorInfo.TYPE_CLASS_TEXT) {
+//    if ((mInputType&InputType_TYPE_MASK_CLASS)
+//            == InputType_TYPE_CLASS_TEXT) {
 //        if (singleLine) {
-//            mInputType &= ~EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE;
+//            mInputType &= ~InputType_TYPE_TEXT_FLAG_MULTI_LINE;
 //        } else {
-//            mInputType |= EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE;
+//            mInputType |= InputType_TYPE_TEXT_FLAG_MULTI_LINE;
 //        }
 //    }
     return ApplySingleLine(singleLine, TRUE);
@@ -6816,11 +7026,12 @@ ECode TextView::SetCursorVisible(
     mCursorVisible = visible;
     Invalidate();
 
-    /*if (visible) {
-        makeBlink();
-    } else if (mBlink != NULL) {
-        mBlink.removeCallbacks(mBlink);
-    }*/
+    if (visible) {
+        MakeBlink();
+    }
+    else if (mBlink != NULL) {
+        mBlink->RemoveCallbacks(mBlink);
+    }
 
     // InsertionPointCursorController depends on mCursorVisible
     PrepareCursorControllers();
@@ -6980,15 +7191,17 @@ void TextView::SendOnTextChanged(
  * Not private so it can be called from an inner class without going
  * through a thunk.
  */
-//void TextView::SendAfterTextChanged(Editable text) {
-//    if (mListeners != NULL) {
-//        final ArrayList<TextWatcher> list = mListeners;
-//        final Int32 count = list.size();
-//        for (Int32 i = 0; i < count; i++) {
-//            list.get(i).afterTextChanged(text);
-//        }
-//    }
-//}
+void TextView::SendAfterTextChanged(
+    /* [in] */ IEditable* text)
+{
+    // if (mListeners != NULL) {
+    //     final ArrayList<TextWatcher> list = mListeners;
+    //     final Int32 count = list.size();
+    //     for (Int32 i = 0; i < count; i++) {
+    //         list.get(i).afterTextChanged(text);
+    //     }
+    // }
+}
 
 /**
  * Not private so it can be called from an inner class without going
@@ -7029,8 +7242,15 @@ void TextView::HandleTextChanged(
     * Not private so it can be called from an inner class without going
     * through a thunk.
     */
-//void spanChange(Spanned buf, Object what, Int32 oldStart, Int32 newStart,
-//        Int32 oldEnd, Int32 newEnd) {
+ECode TextView::SpanChange(
+    /* [in] */ ISpanned* buf,
+    /* [in] */ IInterface* what,
+    /* [in] */ Int32 oldStart,
+    /* [in] */ Int32 newStart,
+    /* [in] */ Int32 oldEnd,
+    /* [in] */ Int32 newEnd)
+{
+    return E_NOT_IMPLEMENTED;
 //    // XXX Make the start and end move together if this ends up
 //    // spending too much time invalidating.
 //
@@ -7141,13 +7361,13 @@ void TextView::HandleTextChanged(
 //            }
 //        }
 //    }
-//}
+}
 
 void TextView::MakeBlink()
 {
-    /*if (!mCursorVisible || !isTextEditable()) {
+    if (!mCursorVisible || !IsTextEditable()) {
         if (mBlink != NULL) {
-            mBlink.removeCallbacks(mBlink);
+            mBlink->RemoveCallbacks(mBlink);
         }
 
         return;
@@ -7156,8 +7376,8 @@ void TextView::MakeBlink()
     if (mBlink == NULL)
         mBlink = new Blink(this);
 
-    mBlink.removeCallbacks(mBlink);
-    mBlink.postAtTime(mBlink, mShowCursor + BLINK);*/
+    mBlink->RemoveCallbacks(mBlink);
+    mBlink->PostAtTime(mBlink, mShowCursor + BLINK);
 }
 
 /**
@@ -7328,30 +7548,31 @@ Int32 TextView::GetLastTapPosition()
 ECode TextView::OnWindowFocusChanged(
     /* [in] */ Boolean hasWindowFocus)
 {
-    //super.onWindowFocusChanged(hasWindowFocus);
+    View::OnWindowFocusChanged(hasWindowFocus);
 
-    //if (hasWindowFocus) {
-    //    if (mBlink != NULL) {
-    //        mBlink.uncancel();
+    if (hasWindowFocus) {
+        if (mBlink != NULL) {
+            mBlink->Uncancel();
 
-    //        if (isFocused()) {
-    //            mShowCursor = SystemClock.uptimeMillis();
-    //            makeBlink();
-    //        }
-    //    }
-    //} else {
-    //    if (mBlink != NULL) {
-    //        mBlink.cancel();
-    //    }
-    //    // Don't leave us in the middle of a batch edit.
-    //    onEndBatchEdit();
-    //    if (mInputContentType != NULL) {
-    //        mInputContentType.enterDown = FALSE;
-    //    }
-    //    hideControllers();
-    //}
+            if (IsFocused()) {
+                mShowCursor = SystemClock::GetUptimeMillis();
+                MakeBlink();
+            }
+        }
+    }
+     else {
+        if (mBlink != NULL) {
+            mBlink->Cancel();
+        }
+        // Don't leave us in the middle of a batch edit.
+        OnEndBatchEdit();
+        // if (mInputContentType != NULL) {
+        //     mInputContentType.enterDown = FALSE;
+        // }
+        HideControllers();
+    }
 
-    //startStopMarquee(hasWindowFocus);
+    StartStopMarquee(hasWindowFocus);
     return NOERROR;
 }
 
@@ -8654,7 +8875,7 @@ ECode TextView::InitFromAttributes(
     Int32 shadowcolor = 0;
     Float dx = 0, dy = 0, r = 0;
     Boolean password = FALSE;
-    Int32 inputType;// = EditorInfo.TYPE_NULL;
+    Int32 inputType = InputType_TYPE_NULL;
 
     Int32 N;
     a->GetIndexCount(&N);
@@ -8983,12 +9204,13 @@ ECode TextView::InitFromAttributes(
 
     BufferType bufferType = BufferType_EDITABLE;
 
-//    if ((inputType & (EditorInfo.TYPE_MASK_CLASS | EditorInfo.TYPE_MASK_VARIATION))
-//            == (EditorInfo.TYPE_CLASS_TEXT | EditorInfo.TYPE_TEXT_VARIATION_PASSWORD)) {
-//        password = TRUE;
-//    }
+    if ((inputType & (InputType_TYPE_MASK_CLASS | InputType_TYPE_MASK_VARIATION))
+            == (InputType_TYPE_CLASS_TEXT | InputType_TYPE_TEXT_VARIATION_PASSWORD)) {
+        password = TRUE;
+    }
 
-//    if (inputMethod != NULL) {
+    if (inputMethod != NULL) {
+        assert(0);
 //        Class<?> c;
 //
 //        try {
@@ -9005,97 +9227,107 @@ ECode TextView::InitFromAttributes(
 //            throw new RuntimeException(ex);
 //        }
 //        try {
-//            mInputType = inputType != EditorInfo.TYPE_NULL
+//            mInputType = inputType != InputType_TYPE_NULL
 //                    ? inputType
 //                    : mInput.getInputType();
 //        } catch (IncompatibleClassChangeError e) {
-//            mInputType = EditorInfo.TYPE_CLASS_TEXT;
+//            mInputType = InputType_TYPE_CLASS_TEXT;
 //        }
-//    } else if (digits != NULL) {
+    }
+    else if (digits != NULL) {
+        assert(0);
 //        mInput = DigitsKeyListener.getInstance(digits.toString());
 //        // If no input type was specified, we will default to generic
 //        // text, since we can't tell the IME about the set of digits
 //        // that was selected.
-//        mInputType = inputType != EditorInfo.TYPE_NULL
-//                ? inputType : EditorInfo.TYPE_CLASS_TEXT;
-//    } else if (inputType != EditorInfo.TYPE_NULL) {
-//        setInputType(inputType, TRUE);
-//        singleLine = (inputType&(EditorInfo.TYPE_MASK_CLASS
-//                        | EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE)) !=
-//                (EditorInfo.TYPE_CLASS_TEXT
-//                        | EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE);
-//    } else if (phone) {
+//        mInputType = inputType != InputType_TYPE_NULL
+//                ? inputType : InputType_TYPE_CLASS_TEXT;
+    }
+    else if (inputType != InputType_TYPE_NULL) {
+        SetInputType(inputType, TRUE);
+        singleLine = (inputType&(InputType_TYPE_MASK_CLASS
+                | InputType_TYPE_TEXT_FLAG_MULTI_LINE)) !=
+                (InputType_TYPE_CLASS_TEXT
+                | InputType_TYPE_TEXT_FLAG_MULTI_LINE);
+    }
+    else if (phone) {
+        assert(0);
 //        mInput = DialerKeyListener.getInstance();
-//        mInputType = inputType = EditorInfo.TYPE_CLASS_PHONE;
-//    } else if (numeric != 0) {
+//        mInputType = inputType = InputType_TYPE_CLASS_PHONE;
+    }
+    else if (numeric != 0) {
+        assert(0);
 //        mInput = DigitsKeyListener.getInstance((numeric & SIGNED) != 0,
 //                                                (numeric & DECIMAL) != 0);
-//        inputType = EditorInfo.TYPE_CLASS_NUMBER;
+//        inputType = InputType_TYPE_CLASS_NUMBER;
 //        if ((numeric & SIGNED) != 0) {
-//            inputType |= EditorInfo.TYPE_NUMBER_FLAG_SIGNED;
+//            inputType |= InputType_TYPE_NUMBER_FLAG_SIGNED;
 //        }
 //        if ((numeric & DECIMAL) != 0) {
-//            inputType |= EditorInfo.TYPE_NUMBER_FLAG_DECIMAL;
+//            inputType |= InputType_TYPE_NUMBER_FLAG_DECIMAL;
 //        }
 //        mInputType = inputType;
-//    } else if (autotext || autocap != -1) {
-//        TextKeyListener.Capitalize cap;
-//
-//        inputType = EditorInfo.TYPE_CLASS_TEXT;
-//        if (!singleLine) {
-//            inputType |= EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE;
-//        }
-//
-//        switch (autocap) {
-//        case 1:
-//            cap = TextKeyListener.Capitalize.SENTENCES;
-//            inputType |= EditorInfo.TYPE_TEXT_FLAG_CAP_SENTENCES;
-//            break;
-//
-//        case 2:
-//            cap = TextKeyListener.Capitalize.WORDS;
-//            inputType |= EditorInfo.TYPE_TEXT_FLAG_CAP_WORDS;
-//            break;
-//
-//        case 3:
-//            cap = TextKeyListener.Capitalize.CHARACTERS;
-//            inputType |= EditorInfo.TYPE_TEXT_FLAG_CAP_CHARACTERS;
-//            break;
-//
-//        default:
-//            cap = TextKeyListener.Capitalize.NONE;
-//            break;
-//        }
-//
-//        mInput = TextKeyListener.getInstance(autotext, cap);
-//        mInputType = inputType;
-//    } else if (editable) {
-//        mInput = TextKeyListener.getInstance();
-//        mInputType = EditorInfo.TYPE_CLASS_TEXT;
-//        if (!singleLine) {
-//            mInputType |= EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE;
-//        }
-//    } else {
-//        mInput = NULL;
-//
-//        switch (buffertype) {
-//            case 0:
-//                bufferType = BufferType.NORMAL;
-//                break;
-//            case 1:
-//                bufferType = BufferType.SPANNABLE;
-//                break;
-//            case 2:
-//                bufferType = BufferType.EDITABLE;
-//                break;
-//        }
-//    }
+    }
+    else if (autotext || autocap != -1) {
+        Capitalize cap;
 
-//    if (password && (mInputType&EditorInfo.TYPE_MASK_CLASS)
-//            == EditorInfo.TYPE_CLASS_TEXT) {
-//        mInputType = (mInputType & ~(EditorInfo.TYPE_MASK_VARIATION))
-//            | EditorInfo.TYPE_TEXT_VARIATION_PASSWORD;
-//    }
+        inputType = InputType_TYPE_CLASS_TEXT;
+        if (!singleLine) {
+            inputType |= InputType_TYPE_TEXT_FLAG_MULTI_LINE;
+        }
+
+        switch (autocap) {
+        case 1:
+            cap = Capitalize_SENTENCES;
+            inputType |= InputType_TYPE_TEXT_FLAG_CAP_SENTENCES;
+            break;
+
+        case 2:
+            cap = Capitalize_WORDS;
+            inputType |= InputType_TYPE_TEXT_FLAG_CAP_WORDS;
+            break;
+
+        case 3:
+            cap = Capitalize_CHARACTERS;
+            inputType |= InputType_TYPE_TEXT_FLAG_CAP_CHARACTERS;
+            break;
+
+        default:
+            cap = Capitalize_NONE;
+            break;
+        }
+
+        mInput = TextKeyListener::GetInstance(autotext, cap);
+        mInputType = inputType;
+    }
+    else if (editable) {
+        mInput = TextKeyListener::GetInstance();
+        mInputType = InputType_TYPE_CLASS_TEXT;
+        if (!singleLine) {
+            mInputType |= InputType_TYPE_TEXT_FLAG_MULTI_LINE;
+        }
+    }
+    else {
+        mInput = NULL;
+
+        switch (buffertype) {
+            case 0:
+                bufferType = BufferType_NORMAL;
+                break;
+            case 1:
+                bufferType = BufferType_SPANNABLE;
+                break;
+            case 2:
+                bufferType = BufferType_EDITABLE;
+                break;
+        }
+    }
+
+    if (password && (mInputType&InputType_TYPE_MASK_CLASS)
+            == InputType_TYPE_CLASS_TEXT) {
+        mInputType = (mInputType & ~(InputType_TYPE_MASK_VARIATION))
+            | InputType_TYPE_TEXT_VARIATION_PASSWORD;
+    }
 
     if (selectallonfocus) {
         mSelectAllOnFocus = TRUE;
@@ -9111,9 +9343,9 @@ ECode TextView::InitFromAttributes(
     if (singleLine) {
         SetSingleLine();
 
-//        if (mInput == NULL && ellipsize < 0) {
-//            ellipsize = 3; // END
-//        }
+        if (mInput == NULL && ellipsize < 0) {
+            ellipsize = 3; // END
+        }
     }
 
 //    switch (ellipsize) {
@@ -9147,10 +9379,10 @@ ECode TextView::InitFromAttributes(
 //        setTransformationMethod(PasswordTransformationMethod.getInstance());
 //        typefaceIndex = MONOSPACE;
 //    }
-//    else if ((mInputType&(EditorInfo.TYPE_MASK_CLASS
-//            |EditorInfo.TYPE_MASK_VARIATION))
-//            == (EditorInfo.TYPE_CLASS_TEXT
-//                    |EditorInfo.TYPE_TEXT_VARIATION_PASSWORD)) {
+//    else if ((mInputType&(InputType_TYPE_MASK_CLASS
+//            |InputType_TYPE_MASK_VARIATION))
+//            == (InputType_TYPE_CLASS_TEXT
+//                    |InputType_TYPE_TEXT_VARIATION_PASSWORD)) {
 //        typefaceIndex = MONOSPACE;
 //    }
 

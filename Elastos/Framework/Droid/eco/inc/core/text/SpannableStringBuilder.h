@@ -213,9 +213,6 @@ private:
     CARAPI_(Boolean) Isprint(
         /* [in] */ Char32 c);
 
-    CARAPI_(void) FreeArray(
-        /* [in] */ ArrayOf<IInterface*>* arr);
-
     CARAPI_(void) Char32ArrayToChar8Array(
         /* [in]*/ const ArrayOf<Char32>& src,
         /* [in] */ Int32 start,

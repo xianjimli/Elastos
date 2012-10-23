@@ -222,16 +222,68 @@ Int32 _String_GetChar(const char *src, UInt32 src_len,
     return _String_GetCharByOffset(src, src_len, offset, NULL);
 }
 
-Int32 __cdecl _String_ToInt32(const char *string)
+Int32 __cdecl _String_ToInt32(const char *string, UInt32 radix)
 {
-    if (!string) return 0;
-    return atoi(string);
+    if (!string) return -1;
+
+    if (radix < 2 || radix > 36) {
+        return -1;
+    }
+
+    Boolean negative = string[0] == '-';
+    Int32 sum = 0;
+    for (Int32 i= negative ? 1 : 0; string[i]; ++i) {
+        char c = string[i];
+        Int32 d = -1;
+        if ('0' <= c && c <= '9') {
+            d = c - '0';
+        }
+        else if ('a' <= c && c <= 'z') {
+            d = 10 + (c - 'a');
+        }
+        else if ('A' <= c && c <= 'Z') {
+            d = 10 + (c - 'A');
+        }
+        else {
+            return -1;
+        }
+        if (d >= radix)
+            return -1;
+        sum = sum * radix + d;
+    }
+    return negative ? -sum : sum;
 }
 
-Int64 __cdecl _String_ToInt64(const char *string)
+Int64 __cdecl _String_ToInt64(const char *string, UInt32 radix)
 {
-    if (!string) return 0;
-    return _atoi64(string);
+    if (!string) return -1;
+
+    if (radix < 2 || radix > 36) {
+        return -1;
+    }
+
+    Boolean negative = string[0] == '-';
+    Int64 sum = 0;
+    for (Int32 i= negative ? 1 : 0; string[i]; ++i) {
+        char c = string[i];
+        Int32 d = -1;
+        if ('0' <= c && c <= '9') {
+            d = c - '0';
+        }
+        else if ('a' <= c && c <= 'z') {
+            d = 10 + (c - 'a');
+        }
+        else if ('A' <= c && c <= 'Z') {
+            d = 10 + (c - 'A');
+        }
+        else {
+            return -1;
+        }
+        if (d >= radix)
+            return -1;
+        sum = sum * radix + d;
+    }
+    return negative ? -sum : sum;
 }
 
 Boolean __cdecl _String_ToBoolean(const char *string)

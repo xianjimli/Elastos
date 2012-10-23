@@ -441,7 +441,7 @@ Boolean Selection::ExtendToLeftEdge(
     return TRUE;
 }
 
-Boolean Selection::extendToRightEdge(
+Boolean Selection::ExtendToRightEdge(
     /* [in] */ ISpannable* text,
     /* [in] */ ILayout* layout)
 {

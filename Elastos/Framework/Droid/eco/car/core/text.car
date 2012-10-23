@@ -15,6 +15,7 @@ module
     merge("text/SpanWatcher.car");
     merge("text/Editable.car");
     merge("text/SpannableStringBuilder.car");
+    merge("text/InputType.car");
     merge("text/style/ParagraphStyle.car");
     merge("text/style/LineBackgroundSpan.car");
     merge("text/style/AlignmentSpan.car");
@@ -30,6 +31,8 @@ module
     merge("text/method/KeyListener.car");
     merge("text/method/TransformationMethod.car");
     merge("text/method/MovementMethod.car");
+    merge("text/method/TextKeyListener.car");
+    merge("text/method/QwertyKeyListener.car");
 
     class CTextPaint {
 
@@ -204,5 +207,37 @@ module
 
     singleton class CEditableFactory {
         interface IEditableFactory;
+    }
+
+    class CNoCopySpan {
+        interface INoCopySpan;
+    }
+
+    class CTextKeyListener {
+        /**
+         * Creates a new TextKeyListener with the specified capitalization
+         * and correction properties.
+         *
+         * @param cap when, if ever, to automatically capitalize.
+         * @param autotext whether to automatically do spelling corrections.
+         */
+        constructor(
+            [in] Capitalize cap,
+            [in] Boolean autotext);
+
+        interface ITextKeyListener;
+        interface ISpanWatcher;
+    }
+
+    class CQwertyKeyListener {
+        constructor(
+            [in] Capitalize cap,
+            [in] Boolean autotext);
+
+        interface IQwertyKeyListener;
+    }
+
+    class CArrowKeyMovementMethod {
+        interface IMovementMethod;
     }
 }

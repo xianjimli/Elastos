@@ -1,6 +1,7 @@
 
 #include "widget/EditText.h"
 #include "text/Selection.h"
+#include "text/method/CArrowKeyMovementMethod.h"
 
 static const Int32 R_Attr_EditTextStyle = 0x0101006e;
 
@@ -21,8 +22,7 @@ Boolean EditText::GetDefaultEditable()
 
 AutoPtr<IMovementMethod> EditText::GetDefaultMovementMethod()
 {
-//    return ArrowKeyMovementMethod.getInstance();
-    return NULL;
+    return CArrowKeyMovementMethod::GetInstance();
 }
 
 AutoPtr<ICharSequence> EditText::GetText()

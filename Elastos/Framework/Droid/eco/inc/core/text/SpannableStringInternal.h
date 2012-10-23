@@ -4,6 +4,9 @@
 
 #include "ext/frameworkext.h"
 
+extern "C" void FreeArray(
+    /* [in] */ ArrayOf<IInterface*>* arr);
+
 class SpannableStringInternal
 {
 public:

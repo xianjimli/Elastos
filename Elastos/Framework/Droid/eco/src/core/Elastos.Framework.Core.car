@@ -20,8 +20,8 @@ module
     merge("../../car/core/graphics.car");
     merge("../../car/core/view.car");
     merge("../../car/core/app.car");
-    merge("../../car/core/widget.car");
     merge("../../car/core/text.car");
+    merge("../../car/core/widget.car");
     merge("../../car/core/policy.car");
     merge("../../car/core/statusbar.car");
     merge("../../car/core/location.car");

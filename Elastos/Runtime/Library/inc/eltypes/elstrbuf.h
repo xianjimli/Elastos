@@ -68,8 +68,10 @@ extern "C" {
     _ELASTOS Int32 __cdecl _StringBuf_EstimateWStringLength(
         const _ELASTOS PCarQuintet pCq);
 
-    _ELASTOS Int32 __cdecl _StringBuf_ToInt32(const _ELASTOS PCarQuintet pCq);
-    _ELASTOS Int64 __cdecl _StringBuf_ToInt64(const _ELASTOS PCarQuintet pCq);
+    _ELASTOS Int32 __cdecl _StringBuf_ToInt32(const _ELASTOS PCarQuintet pCq,
+        _ELASTOS UInt32 radix);
+    _ELASTOS Int64 __cdecl _StringBuf_ToInt64(const _ELASTOS PCarQuintet pCq,
+        _ELASTOS UInt32 radix);
     _ELASTOS Boolean __cdecl _StringBuf_ToBoolean(const _ELASTOS PCarQuintet pCq);
     _ELASTOS Double __cdecl _StringBuf_ToDouble(const _ELASTOS PCarQuintet pCq);
 
@@ -222,12 +224,12 @@ public:
         return _StringBuf_SetLength((PCarQuintet)this, len);
     }
 
-    Int32 ToInt32() const {
-        return _StringBuf_ToInt32((const PCarQuintet)this);
+    Int32 ToInt32(UInt32 radix = 10) const {
+        return _StringBuf_ToInt32((const PCarQuintet)this, radix);
     }
 
-    Int64 ToInt64() const {
-        return _StringBuf_ToInt64((const PCarQuintet)this);
+    Int64 ToInt64(UInt32 radix = 10) const {
+        return _StringBuf_ToInt64((const PCarQuintet)this, radix);
     }
 
     Boolean ToBoolean() const {

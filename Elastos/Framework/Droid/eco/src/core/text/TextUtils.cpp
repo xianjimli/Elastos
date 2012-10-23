@@ -5,6 +5,10 @@
 
 using namespace Elastos::Core;
 
+const Int32 TextUtils::CAP_MODE_CHARACTERS;
+const Int32 TextUtils::CAP_MODE_WORDS;
+const Int32 TextUtils::CAP_MODE_SENTENCES;
+
 Mutex TextUtils::sLock;
 ArrayOf<Char8>* TextUtils::sTemp = NULL;
 
@@ -622,4 +626,97 @@ void TextUtils::Recycle(
     if (sTemp != NULL) ArrayOf<Char8>::Free(sTemp);
     sTemp = *temp;
     *temp = NULL;
+}
+
+Int32 TextUtils::GetCapsMode(
+    /* [in] */ ICharSequence* cs,
+    /* [in] */ Int32 off,
+    /* [in] */ Int32 reqModes)
+{
+    if (off < 0) {
+        return 0;
+    }
+
+    Int32 i;
+    Char32 c;
+    Int32 mode = 0;
+
+    if ((reqModes&CAP_MODE_CHARACTERS) != 0) {
+        mode |= CAP_MODE_CHARACTERS;
+    }
+    if ((reqModes&(CAP_MODE_WORDS|CAP_MODE_SENTENCES)) == 0) {
+        return mode;
+    }
+
+    // Back over allowed opening punctuation.
+
+    for (i = off; i > 0; i--) {
+        cs->GetCharAt(i - 1, &c);
+
+        if (c != '"' && c != '\'' &&
+            Character::GetType(c) != Character::START_PUNCTUATION) {
+            break;
+        }
+    }
+
+    // Start of paragraph, with optional whitespace.
+
+    Int32 j = i;
+    while (j > 0 && ((cs->GetCharAt(j - 1, &c), c) == ' ' || c == '\t')) {
+        j--;
+    }
+    if (j == 0 || (cs->GetCharAt(j - 1, &c), c) == '\n') {
+        return mode | CAP_MODE_WORDS;
+    }
+
+    // Or start of word if we are that style.
+
+    if ((reqModes&CAP_MODE_SENTENCES) == 0) {
+        if (i != j) mode |= CAP_MODE_WORDS;
+        return mode;
+    }
+
+    // There must be a space if not the start of paragraph.
+
+    if (i == j) {
+        return mode;
+    }
+
+    // Back over allowed closing punctuation.
+
+    for (; j > 0; j--) {
+        cs->GetCharAt(j - 1, &c);
+
+        if (c != '"' && c != '\'' &&
+            Character::GetType(c) != Character::END_PUNCTUATION) {
+            break;
+        }
+    }
+
+    if (j > 0) {
+        cs->GetCharAt(j - 1, &c);
+
+        if (c == '.' || c == '?' || c == '!') {
+            // Do not capitalize if the word ends with a period but
+            // also contains a period, in which case it is an abbreviation.
+
+            if (c == '.') {
+                for (Int32 k = j - 2; k >= 0; k--) {
+                    cs->GetCharAt(k, &c);
+
+                    if (c == '.') {
+                        return mode;
+                    }
+
+                    if (!Character::IsLetter(c)) {
+                        break;
+                    }
+                }
+            }
+
+            return mode | CAP_MODE_SENTENCES;
+        }
+    }
+
+    return mode;
 }

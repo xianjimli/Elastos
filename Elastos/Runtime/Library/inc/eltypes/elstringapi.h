@@ -45,8 +45,13 @@ extern "C" {
     _ELASTOS Int32 __cdecl _String_Compare(const char *string1,
         const char *string2, _ELASTOS StringCase stringCase);
 
-    _ELASTOS Int32 __cdecl _String_ToInt32(const char *string);
-    _ELASTOS Int64 __cdecl _String_ToInt64(const char *string);
+#ifdef __cplusplus
+    _ELASTOS Int32 __cdecl _String_ToInt32(const char *string, _ELASTOS UInt32 radix = 10);
+    _ELASTOS Int64 __cdecl _String_ToInt64(const char *string, _ELASTOS UInt32 radix = 10);
+#else
+    _ELASTOS Int32 __cdecl _String_ToInt32(const char *string, _ELASTOS UInt32 radix);
+    _ELASTOS Int64 __cdecl _String_ToInt64(const char *string, _ELASTOS UInt32 radix);
+#endif
     _ELASTOS Boolean __cdecl _String_ToBoolean(const char *string);
     _ELASTOS Double __cdecl _String_ToDouble(const char *string);
 

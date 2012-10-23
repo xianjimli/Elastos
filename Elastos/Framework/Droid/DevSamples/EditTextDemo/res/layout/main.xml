@@ -11,6 +11,5 @@
         android:id="@+id/button1"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:background="#FF3300"
         android:text="commit"/>
 </LinearLayout>

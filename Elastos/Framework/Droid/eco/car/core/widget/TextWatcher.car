@@ -3,7 +3,7 @@ module
 {
     interface IEditable;
 
-    interface ITextWatcher {
+    interface ITextWatcher extends INoCopySpan {
         /**
          * This method is called to notify you that, within <code>s</code>,
          * the <code>count</code> characters beginning at <code>start</code>

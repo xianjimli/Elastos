@@ -4,6 +4,9 @@ module
     interface ITextPaint;
     interface IEditableFactory;
     interface ISpannableFactory;
+    interface IEditable;
+    interface ILayout;
+    interface IKeyListener;
 
     enum BufferType {
         BufferType_NORMAL,
@@ -79,13 +82,13 @@ module
          *
          * @see #getText
          */
-        //GetEditableText(
-        //    [out] IEditable* editable);
+        GetEditableText(
+            [out] IEditable** editable);
 
         /**
          * @return the height of one standard line in pixels.  Note that markup
          * within the text can cause individual lines to be taller or shorter
-         * than this height, and the layout may contain additional first-
+         * than this height, and e layout may contain additional first-
          * or last-line padding.
          */
         GetLineHeight(
@@ -95,15 +98,15 @@ module
          * @return the Layout that is currently being used to display the text.
          * This can be null if the text or width has recently changes.
          */
-        //GetLayout(
-        //    [out] ILayout** layout);
+        GetLayout(
+            [out] ILayout** layout);
 
         /**
          * @return the current key listener for this TextView.
          * This will frequently be null for non-EditText TextViews.
          */
-        //GetKeyListener(
-        //    [out] IKeyListener** listener);
+        GetKeyListener(
+            [out] IKeyListener** listener);
 
         /**
          * Sets the key listener to be used with this TextView.  This can be null
@@ -127,8 +130,8 @@ module
          * @attr ref android.R.styleable#TextView_capitalize
          * @attr ref android.R.styleable#TextView_autoText
          */
-        //SetKeyListener(
-        //    [in] IKeyListener* input);
+        SetKeyListener(
+            [in] IKeyListener* input);
 
         /**
          * @return the movement method being used for this TextView.

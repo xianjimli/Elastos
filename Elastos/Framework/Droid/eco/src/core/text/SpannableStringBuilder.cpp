@@ -1,6 +1,7 @@
 
 #include "text/SpannableStringBuilder.h"
 #include "text/CSpannableStringBuilder.h"
+#include "text/SpannableStringInternal.h"
 #include "text/TextUtils.h"
 #include "text/Selection.h"
 #include "utils/ArrayUtils.h"
@@ -575,6 +576,7 @@ ECode SpannableStringBuilder::SetSpan(
     /* [in] */ Int32 end,
     /* [in] */ Int32 flags)
 {
+    assert(what);
     Int32 nstart = start;
     Int32 nend = end;
 
@@ -671,6 +673,8 @@ ECode SpannableStringBuilder::SetSpan(
     }
 
     (*mSpans)[mSpanCount] = what;
+    if (what)
+        what->AddRef();
     (*mSpanStarts)[mSpanCount] = start;
     (*mSpanEnds)[mSpanCount] = end;
     (*mSpanFlags)[mSpanCount] = flags;
@@ -1340,18 +1344,6 @@ ECode SpannableStringBuilder::Init(
     }
 
     return NOERROR;
-}
-
-void SpannableStringBuilder::FreeArray(
-    /* [in] */ ArrayOf<IInterface*>* arr)
-{
-    if (arr == NULL) return;
-
-    for (Int32 i = 0; i < arr->GetLength(); i++) {
-        if ((*arr)[i] != NULL) {
-            (*arr)[i]->Release();
-        }
-    }
 }
 
 void SpannableStringBuilder::Char32ArrayToChar8Array(

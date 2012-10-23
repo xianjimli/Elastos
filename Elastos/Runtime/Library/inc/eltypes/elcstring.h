@@ -63,12 +63,12 @@ public:
         return (m_string == NULL || m_string[0] == '\0');
     }
 
-    Int32 ToInt32() const {
-        return _String_ToInt32(m_string);
+    Int32 ToInt32(UInt32 radix = 10) const {
+        return _String_ToInt32(m_string, radix);
     }
 
-    Int64 ToInt64() const {
-        return _String_ToInt64(m_string);
+    Int64 ToInt64(UInt32 radix = 10) const {
+        return _String_ToInt64(m_string, radix);
     }
 
     Boolean ToBoolean() const {
@@ -106,33 +106,33 @@ public:
     Int32 IndexOf(Char8 ch, Int32 start = 0,
         StringCase stringCase = StringCase_Sensitive) const {
         if ((start != 0) && (start < 0 || start > GetLength())) return -1;
-        
+
         return _String_IndexOf_Char8(m_string + start, ch, stringCase);
     }
 
     Int32 IndexOfAny(const CString& strCharSet, Int32 start = 0,
             StringCase stringCase = StringCase_Sensitive) const {
         if ((start != 0) && (start < 0 || start > GetLength())) return -1;
-            
+
         return _String_IndexOf_AnyChar8(m_string + start, strCharSet, stringCase);
     }
 
     Int32 IndexOfChar(Char32 ch, Int32 start = 0, StringCase stringCase  = StringCase_Sensitive) const {
         if ((start != 0) && (start < 0 || start > GetLength())) return -1;
-        
+
         return _String_IndexOf_Char(m_string + start, ch, stringCase);
     }
 
     Int32 IndexOfAnyChar(Char32 *strCharSet, Int32 start = 0,
             StringCase stringCase = StringCase_Sensitive) const {
         if ((start != 0) && (start < 0 || start > GetLength())) return -1;
-            
+
         return _String_IndexOf_AnyChar(m_string + start, strCharSet, stringCase);
     }
 
     Int32 IndexOf(const CString& str, Int32 start = 0, StringCase stringCase  = StringCase_Sensitive) const {
         if ((start != 0) && (start < 0 || start > GetLength())) return -1;
-        
+
         return _String_IndexOf_Substring(m_string + start, str, stringCase);
     }
 
@@ -140,36 +140,36 @@ public:
     Int32 LastIndexOf(Char8 ch, Int32 start = 0,
             StringCase stringCase = StringCase_Sensitive) const {
         if ((start != 0) && (start < 0 || start > GetLength())) return -1;
-        
+
         return _String_LastIndexOf_Char8(m_string + start, ch, stringCase);
     }
 
     Int32 LastIndexOfAny(const CString& strCharSet, Int32 start = 0,
             StringCase stringCase = StringCase_Sensitive) const {
         if ((start != 0) && (start < 0 || start > GetLength())) return -1;
-            
+
         return _String_LastIndexOf_AnyChar8(m_string + start, strCharSet, stringCase);
     }
 
-    Int32 LastIndexOfChar(Char32 ch, Int32 start = 0, 
+    Int32 LastIndexOfChar(Char32 ch, Int32 start = 0,
         StringCase stringCase  = StringCase_Sensitive) const {
         if ((start != 0) && (start < 0 || start > GetLength())) return -1;
-        
+
         return _String_LastIndexOf_Char(m_string + start, ch, stringCase);
     }
 
     Int32 LastIndexOfAnyChar(Char32 *strCharSet, Int32 start = 0,
             StringCase stringCase = StringCase_Sensitive) const {
         if ((start != 0) && (start < 0 || start > GetLength())) return -1;
-            
+
         return _String_LastIndexOf_AnyChar(m_string + start, strCharSet,
             stringCase);
     }
 
-    Int32 LastIndexOf(const CString& str, Int32 start = 0, 
+    Int32 LastIndexOf(const CString& str, Int32 start = 0,
         StringCase stringCase  = StringCase_Sensitive) const {
         if ((start != 0) && (start < 0 || start > GetLength())) return -1;
-        
+
         return _String_LastIndexOf_Substring(m_string + start, str, stringCase);
     }
 

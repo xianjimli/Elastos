@@ -1,0 +1,18 @@
+
+module
+{
+    enum Capitalize {
+        Capitalize_NONE,
+        Capitalize_SENTENCES,
+        Capitalize_WORDS,
+        Capitalize_CHARACTERS,
+    }
+
+    interface ITextKeyListener extends IKeyListener {
+        ReleaseListener();
+
+        GetPrefs(
+            [in] IContext* context,
+            [out] Int32* prefs);
+    }
+}

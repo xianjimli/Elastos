@@ -224,6 +224,52 @@ public:
     static CARAPI_(void) Recycle(
         /* [in] */ ArrayOf<Char8>** temp);
 
+    /**
+     * Determine what caps mode should be in effect at the current offset in
+     * the text.  Only the mode bits set in <var>reqModes</var> will be
+     * checked.  Note that the caps mode flags here are explicitly defined
+     * to match those in {@link InputType}.
+     *
+     * @param cs The text that should be checked for caps modes.
+     * @param off Location in the text at which to check.
+     * @param reqModes The modes to be checked: may be any combination of
+     * {@link #CAP_MODE_CHARACTERS}, {@link #CAP_MODE_WORDS}, and
+     * {@link #CAP_MODE_SENTENCES}.
+     *
+     * @return Returns the actual capitalization modes that can be in effect
+     * at the current position, which is any combination of
+     * {@link #CAP_MODE_CHARACTERS}, {@link #CAP_MODE_WORDS}, and
+     * {@link #CAP_MODE_SENTENCES}.
+     */
+    static CARAPI_(Int32) GetCapsMode(
+        /* [in] */ ICharSequence* cs,
+        /* [in] */ Int32 off,
+        /* [in] */ Int32 reqModes);
+
+public:
+    /**
+     * Capitalization mode for {@link #getCapsMode}: capitalize all
+     * characters.  This value is explicitly defined to be the same as
+     * {@link InputType#TYPE_TEXT_FLAG_CAP_CHARACTERS}.
+     */
+    static const Int32 CAP_MODE_CHARACTERS
+            = InputType_TYPE_TEXT_FLAG_CAP_CHARACTERS;
+
+    /**
+     * Capitalization mode for {@link #getCapsMode}: capitalize the first
+     * character of all words.  This value is explicitly defined to be the same as
+     * {@link InputType#TYPE_TEXT_FLAG_CAP_WORDS}.
+     */
+    static const Int32 CAP_MODE_WORDS
+            = InputType_TYPE_TEXT_FLAG_CAP_WORDS;
+
+    /**
+     * Capitalization mode for {@link #getCapsMode}: capitalize the first
+     * character of each sentence.  This value is explicitly defined to be the same as
+     * {@link InputType#TYPE_TEXT_FLAG_CAP_SENTENCES}.
+     */
+    static const Int32 CAP_MODE_SENTENCES
+            = InputType_TYPE_TEXT_FLAG_CAP_SENTENCES;
 private:
     static Mutex sLock;
     static ArrayOf<Char8>* sTemp;

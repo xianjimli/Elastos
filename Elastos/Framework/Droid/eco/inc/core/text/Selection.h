@@ -151,7 +151,7 @@ public:
         /* [in] */ ISpannable* text,
         /* [in] */ ILayout* layout);
 
-    static CARAPI_(Boolean) extendToRightEdge(
+    static CARAPI_(Boolean) ExtendToRightEdge(
         /* [in] */ ISpannable* text,
         /* [in] */ ILayout* layout);
 

@@ -115,8 +115,8 @@ public:
     void ToUpperCase();
     void ToUpperCase(UInt32 start, UInt32 numChars);
 
-    inline Int32 ToInt32() const;
-    inline Int64 ToInt64() const;
+    inline Int32 ToInt32(UInt32 radix = 10) const;
+    inline Int64 ToInt64(UInt32 radix = 10) const;
     inline Boolean ToBoolean() const;
     inline Double ToDouble() const;
 
@@ -386,14 +386,14 @@ inline String::operator CString() const
     return mString;
 }
 
-inline Int32 String::ToInt32() const
+inline Int32 String::ToInt32(UInt32 radix) const
 {
-    return _String_ToInt32(mString);
+    return _String_ToInt32(mString, radix);
 }
 
-inline Int64 String::ToInt64() const
+inline Int64 String::ToInt64(UInt32 radix) const
 {
-    return _String_ToInt64(mString);
+    return _String_ToInt64(mString, radix);
 }
 
 inline Boolean String::ToBoolean() const

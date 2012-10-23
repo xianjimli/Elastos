@@ -13,8 +13,20 @@
     CARAPI GetLength(                                                       \
         /* [out] */ Int32 * pLength);                                       \
                                                                             \
+    CARAPI GetEditableText(                                                 \
+        /* [out] */ IEditable** editable);                                  \
+                                                                            \
     CARAPI GetLineHeight(                                                   \
         /* [out] */ Int32 * pHeight);                                       \
+                                                                            \
+    CARAPI GetLayout(                                                       \
+        /* [out] */ ILayout** layout);                                      \
+                                                                            \
+    CARAPI GetKeyListener(                                                  \
+        /* [out] */ IKeyListener** listener);                               \
+                                                                            \
+    CARAPI SetKeyListener(                                                  \
+        /* [int] */ IKeyListener* listener);                                \
                                                                             \
     CARAPI GetCompoundPaddingTop(                                           \
         /* [out] */ Int32 * pTop);                                          \
@@ -437,6 +449,19 @@ ECode className::GetLength(                                                     
     return NOERROR;                                                                             \
 }                                                                                               \
                                                                                                 \
+ECode className::GetEditableText(                                                               \
+    /* [out] */ IEditable** editable)                                                           \
+{                                                                                               \
+    VALIDATE_NOT_NULL(editable);                                                                \
+    AutoPtr<IEditable> temp = superClass::GetEditableText();                                    \
+    *editable = temp;                                                                           \
+    if (*editable) {                                                                            \
+        (*editable)->AddRef();                                                                  \
+    }                                                                                           \
+                                                                                                \
+    return NOERROR;                                                                             \
+}                                                                                               \
+                                                                                                \
 ECode className::GetLineHeight(                                                                 \
     /* [out] */ Int32 * pHeight)                                                                \
 {                                                                                               \
@@ -444,6 +469,38 @@ ECode className::GetLineHeight(                                                 
     *pHeight = superClass::GetLineHeight();                                                     \
                                                                                                 \
     return NOERROR;                                                                             \
+}                                                                                               \
+                                                                                                \
+ECode className::GetLayout(                                                                     \
+    /* [out] */ ILayout** layout)                                                               \
+{                                                                                               \
+    VALIDATE_NOT_NULL(layout);                                                                  \
+    AutoPtr<ILayout> temp = superClass::GetLayout();                                            \
+    *layout = temp;                                                                             \
+    if (*layout) {                                                                              \
+        (*layout)->AddRef();                                                                    \
+    }                                                                                           \
+                                                                                                \
+    return NOERROR;                                                                             \
+}                                                                                               \
+                                                                                                \
+ECode className::GetKeyListener(                                                                \
+    /* [out] */ IKeyListener** listener)                                                        \
+{                                                                                               \
+    VALIDATE_NOT_NULL(listener);                                                                \
+    AutoPtr<IKeyListener> temp = superClass::GetKeyListener();                                  \
+    *listener = temp;                                                                           \
+    if (*listener) {                                                                            \
+        (*listener)->AddRef();                                                                  \
+    }                                                                                           \
+                                                                                                \
+    return NOERROR;                                                                             \
+}                                                                                               \
+                                                                                                \
+ECode className::SetKeyListener(                                                                \
+    /* [in] */ IKeyListener* input)                                                             \
+{                                                                                               \
+    return superClass::SetKeyListener(input);                                                   \
 }                                                                                               \
                                                                                                 \
 ECode className::GetCompoundPaddingTop(                                                         \

@@ -14,8 +14,6 @@ class ContentObserver
 public:
     ContentObserver();
 
-    ~ContentObserver();
-
     virtual CARAPI DeliverSelfNotifications(
         /* [out] */ Boolean* rst);
 
@@ -27,8 +25,5 @@ public:
 private:
 //    private Transport mTransport;
     Mutex lock;
-
-
-
 };
 #endif //__CONTENTOBSERVER_H__

@@ -362,6 +362,89 @@ private:
         TextView* mHost;
     };
 
+    class ChangeWatcher : public ElRefBase, public ITextWatcher, public ISpanWatcher
+    {
+    public:
+        ChangeWatcher(
+            /* [in] */ TextView* host);
+
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI BeforeTextChanged(
+            /* [in] */ ICharSequence* buffer,
+            /* [in] */ Int32 start,
+            /* [in] */ Int32 before,
+            /* [in] */ Int32 after);
+
+        CARAPI OnTextChanged(
+            /* [in] */ ICharSequence* buffer,
+            /* [in] */ Int32 start,
+            /* [in] */ Int32 before,
+            /* [in] */ Int32 after);
+
+        CARAPI AfterTextChanged(
+            /* [in] */ IEditable* buffer);
+
+        CARAPI OnSpanChanged(
+            /* [in] */ ISpannable* buf,
+            /* [in] */ IInterface* what,
+            /* [in] */ Int32 s,
+            /* [in] */ Int32 e,
+            /* [in] */ Int32 st,
+            /* [in] */ Int32 en);
+
+        CARAPI OnSpanAdded(
+            /* [in] */ ISpannable* buf,
+            /* [in] */ IInterface* what,
+            /* [in] */ Int32 s,
+            /* [in] */ Int32 e);
+
+        CARAPI OnSpanRemoved(
+            /* [in] */ ISpannable* buf,
+            /* [in] */ IInterface* what,
+            /* [in] */ Int32 s,
+            /* [in] */ Int32 e);
+
+    private:
+        AutoPtr<ICharSequence> mBeforeText;
+        TextView* mHost;
+    };
+
+    class Blink : public Runnable
+    {
+    public:
+        Blink(
+            /* [in] */ TextView* v);
+
+        CARAPI Run();
+
+        CARAPI_(void) Cancel();
+
+        CARAPI_(void) Uncancel();
+
+        CARAPI_(void) PostAtTime(
+            /* [in] */ IRunnable* action,
+            /* [in] */ Int64 millis);
+
+        CARAPI_(void) RemoveCallbacks(
+            /* [in] */ IRunnable* action);
+
+    private:
+        //final WeakReference<TextView> mView;
+        TextView* mView;
+        Boolean mCancelled;
+        AutoPtr<IApartment> mApartment;
+    };
+
 public:
     TextView();
 
@@ -626,7 +709,6 @@ public:
      */
     virtual CARAPI SetCompoundDrawablePadding(
         /* [in] */ Int32 pad);
-
 
     /**
      * Returns the padding between the compound drawables and the text.
@@ -1681,8 +1763,8 @@ public:
      * Not private so it can be called from an inner class without going
      * through a thunk.
      */
-    //virtual CARAPI_(void) SendAfterTextChanged(
-    //    /* [in] */ Editable text);
+    virtual CARAPI_(void) SendAfterTextChanged(
+        /* [in] */ IEditable* text);
 
     /**
      * Not private so it can be called from an inner class without going
@@ -1698,13 +1780,13 @@ public:
      * Not private so it can be called from an inner class without going
      * through a thunk.
      */
-    //virtual CARAPI_(void) SpanChange(
-    //    /* [in] */ Spanned buf,
-    //    /* [in] */ Object what,
-    //    /* [in] */ Int32 oldStart,
-    //    /* [in] */ Int32 newStart,
-    //    /* [in] */ Int32 oldEnd,
-    //    /* [in] */ Int32 newEnd);
+    virtual CARAPI SpanChange(
+        /* [in] */ ISpanned* buf,
+        /* [in] */ IInterface* what,
+        /* [in] */ Int32 oldStart,
+        /* [in] */ Int32 newStart,
+        /* [in] */ Int32 oldEnd,
+        /* [in] */ Int32 newEnd);
 
     /**
      * @hide
@@ -2403,12 +2485,12 @@ private:
     // display attributes
     AutoPtr<CTextPaint>     mTextPaint;
     Boolean                 mUserSetTextScaleX;
-    AutoPtr<IPaint>       mHighlightPaint;
+    AutoPtr<IPaint>         mHighlightPaint;
     Int32                   mHighlightColor;
     AutoPtr<ILayout>        mLayout;
 
     Int64                   mShowCursor;
-    //Blink                   mBlink;
+    AutoPtr<Blink>          mBlink;
     Boolean                 mCursorVisible;
 
     // Cursor Controllers. Null when disabled.
@@ -2457,7 +2539,7 @@ private:
     Boolean                 mIncludePad;
 
     // tmp primitives, so we don't alloc them on each draw
-    //Path                    mHighlightPath;
+    AutoPtr<IPath>          mHighlightPath;
     Boolean                 mHighlightPathBogus;
 
     static const AutoPtr<CRectF> sTempRect;
@@ -2622,68 +2704,6 @@ private:
     //    }
     //}
 
-    /*private class ChangeWatcher
-    implements TextWatcher, SpanWatcher {
-
-        private CharSequence mBeforeText;
-
-        public void beforeTextChanged(CharSequence buffer, Int32 start,
-                                        Int32 before, Int32 after) {
-            if (DEBUG_EXTRACT) Log.v(LOG_TAG, "beforeTextChanged start=" + start
-                    + " before=" + before + " after=" + after + ": " + buffer);
-
-            if (AccessibilityManager.getInstance(mContext).isEnabled()
-                    && !isPasswordInputType(mInputType)) {
-                mBeforeText = buffer.toString();
-            }
-
-            TextView.this.sendBeforeTextChanged(buffer, start, before, after);
-        }
-
-        public void onTextChanged(CharSequence buffer, Int32 start,
-                                    Int32 before, Int32 after) {
-            if (DEBUG_EXTRACT) Log.v(LOG_TAG, "onTextChanged start=" + start
-                    + " before=" + before + " after=" + after + ": " + buffer);
-            TextView.this.handleTextChanged(buffer, start, before, after);
-
-            if (AccessibilityManager.getInstance(mContext).isEnabled() &&
-                    (isFocused() || isSelected() &&
-                    isShown())) {
-                sendAccessibilityEventTypeViewTextChanged(mBeforeText, start, before, after);
-                mBeforeText = NULL;
-            }
-        }
-
-        public void afterTextChanged(Editable buffer) {
-            if (DEBUG_EXTRACT) Log.v(LOG_TAG, "afterTextChanged: " + buffer);
-            TextView.this.sendAfterTextChanged(buffer);
-
-            if (MetaKeyKeyListener.getMetaState(buffer,
-                                    MetaKeyKeyListener.META_SELECTING) != 0) {
-                MetaKeyKeyListener.stopSelecting(TextView.this, buffer);
-            }
-        }
-
-        public void onSpanChanged(Spannable buf,
-                                    Object what, Int32 s, Int32 e, Int32 st, Int32 en) {
-            if (DEBUG_EXTRACT) Log.v(LOG_TAG, "onSpanChanged s=" + s + " e=" + e
-                    + " st=" + st + " en=" + en + " what=" + what + ": " + buf);
-            TextView.this.spanChange(buf, what, s, st, e, en);
-        }
-
-        public void onSpanAdded(Spannable buf, Object what, Int32 s, Int32 e) {
-            if (DEBUG_EXTRACT) Log.v(LOG_TAG, "onSpanAdded s=" + s + " e=" + e
-                    + " what=" + what + ": " + buf);
-            TextView.this.spanChange(buf, what, -1, s, -1, e);
-        }
-
-        public void onSpanRemoved(Spannable buf, Object what, Int32 s, Int32 e) {
-            if (DEBUG_EXTRACT) Log.v(LOG_TAG, "onSpanRemoved s=" + s + " e=" + e
-                    + " what=" + what + ": " + buf);
-            TextView.this.spanChange(buf, what, s, -1, e, -1);
-        }
-    }*/
-
     //class CommitSelectionReceiver extends ResultReceiver {
     //    private final Int32 mPrevStart, mPrevEnd;
     //
@@ -2708,49 +2728,6 @@ private:
     //                startTextSelectionMode();
     //            }
     //        }
-    //    }
-    //}
-
-    //private static class Blink extends Handler implements Runnable {
-    //    private final WeakReference<TextView> mView;
-    //    private Boolean mCancelled;
-
-    //    public Blink(TextView v) {
-    //        mView = new WeakReference<TextView>(v);
-    //    }
-
-    //    public void run() {
-    //        if (mCancelled) {
-    //            return;
-    //        }
-
-    //        removeCallbacks(Blink.this);
-
-    //        TextView tv = mView.get();
-
-    //        if (tv != NULL && tv.isFocused()) {
-    //            Int32 st = tv.getSelectionStart();
-    //            Int32 en = tv.getSelectionEnd();
-
-    //            if (st == en && st >= 0 && en >= 0) {
-    //                if (tv.mLayout != NULL) {
-    //                    tv.invalidateCursorPath();
-    //                }
-
-    //                postAtTime(this, SystemClock.uptimeMillis() + BLINK);
-    //            }
-    //        }
-    //    }
-
-    //    void cancel() {
-    //        if (!mCancelled) {
-    //            removeCallbacks(Blink.this);
-    //            mCancelled = TRUE;
-    //        }
-    //    }
-
-    //    void uncancel() {
-    //        mCancelled = FALSE;
     //    }
     //}
 
