@@ -26,8 +26,21 @@ int main(int argc, char *argv[])
 
     ec = ElastosMain(box);
 
-    ec = _Impl_CallbackSink_TryToHandleEvents(m_pCallbackContext);
+    if (NOERROR_EXIT == ec) ec = NOERROR;
+    else if (SUCCEEDED(ec))
+        ec = _Impl_CallbackSink_TryToHandleEvents(m_pCallbackContext);
 
     exit(ec);
 }
 
+void shutdownCallbackThread(void)
+{
+    ECode ec;
+    IInterface *pOrgCallbackContext;
+
+    pOrgCallbackContext = (PInterface)pthread_getspecific(TL_CALLBACK_SLOT);
+    if (NULL != pOrgCallbackContext)
+        ec = _Impl_CallbackSink_RequestToFinish((IInterface *)pOrgCallbackContext, CallbackContextFinish_ASAP);
+
+    pOrgCallbackContext->Release();
+}
