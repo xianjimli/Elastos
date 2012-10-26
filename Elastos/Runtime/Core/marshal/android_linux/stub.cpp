@@ -4,6 +4,7 @@
 #include <sys/atomics.h>
 #include "prxstub.h"
 #include "rot.h"
+#include <binder/ProcessState.h>
 
 ECode LookupModuleInfo(
     /* [in] */ REMuid rclsid,
@@ -64,6 +65,10 @@ ECode CInterfaceStub::MarshalOut(
 
     return ec;
 }
+
+
+Boolean CObjectStub::s_bThreadPoolStarted = FALSE;
+pthread_mutex_t CObjectStub::s_bThreadPoolStartedMutex = PTHREAD_MUTEX_INITIALIZER;
 
 CObjectStub::CObjectStub() :
     m_pInterfaces(NULL),
@@ -458,6 +463,16 @@ ECode CObjectStub::GetInterfaceIndex(
     return E_NO_INTERFACE;
 }
 
+void CObjectStub::StartThreadPool()
+{
+    if (s_bThreadPoolStarted) return;
+
+    pthread_mutex_lock(&s_bThreadPoolStartedMutex);
+    android::ProcessState::self()->startThreadPool();
+    s_bThreadPoolStarted = TRUE;
+    pthread_mutex_unlock(&s_bThreadPoolStartedMutex);
+}
+
 android::status_t CObjectStub::onTransact(
             /* [in] */ uint32_t code,
             /* [in] */ const android::Parcel& data,
@@ -601,6 +616,8 @@ ECode CObjectStub::S_CreateObject(
                 "Create stub: register export object failed, ec(%x)\n", ec));
         goto ErrorExit;
     }
+
+    CObjectStub::StartThreadPool();
 
     *ppIStub = (IStub *)pStub;
 

@@ -5,6 +5,7 @@
 #include <binder/Binder.h>
 #include "CRemoteParcel.h"
 #include <semaphore.h>
+#include <pthread.h>
 
 #include "eltypes.h"
 #include "car.h"
@@ -223,6 +224,8 @@ public:
             /* [out] */ IStub **ppIStub);
 
 private:
+    static CARAPI_(void) StartThreadPool();
+
     android::status_t onTransact(
             /* [in] */ uint32_t code,
             /* [in] */ const android::Parcel& data,
@@ -236,6 +239,10 @@ public:
     Boolean             m_bRequestToQuit;
 
     Int32               m_cRef;
+
+private:
+    static Boolean      s_bThreadPoolStarted;
+    static pthread_mutex_t  s_bThreadPoolStartedMutex;
 };
 
 extern Address s_proxyEntryAddress;
