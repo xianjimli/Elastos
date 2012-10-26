@@ -1,9 +1,6 @@
 //==========================================================================
 // Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.
 //==========================================================================
-#ifdef _linux
-#include <binder/ProcessState.h>
-#endif
 #include <elatypes.h>
 #include <elapi.h>
 
@@ -15,7 +12,7 @@ extern "C" UInt32 StopServiceCentral();
 extern void InitTLS();
 extern void UninitTLS();
 
-#ifndef _android   
+#ifndef _android
 extern ECode InitROT();
 extern void UninitROT();
 
@@ -43,16 +40,13 @@ Boolean AttachElastosDll()
     pthread_mutexattr_t recursiveAttr;
 
     InitTLS();
-    
-#ifndef _android    
+
+#ifndef _android
     InitROT();
     InitMIL();
     InitProxyEntry();
-#ifdef _linux
-    android::ProcessState::self()->startThreadPool();
 #endif
-#endif
-    
+
     pthread_mutexattr_init(&recursiveAttr);
     pthread_mutexattr_settype(&recursiveAttr, PTHREAD_MUTEX_RECURSIVE);
     if (pthread_mutex_init(&g_LocModListLock, &recursiveAttr)) {
@@ -70,12 +64,12 @@ void DetachElastosDll()
 {
     pthread_mutex_destroy(&g_LocModListLock);
 
-#ifndef _android       
+#ifndef _android
     UninitProxyEntry();
     UninitMIL();
     UninitROT();
 #endif
-    
+
     UninitTLS();
 }
 
