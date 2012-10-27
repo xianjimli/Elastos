@@ -23,13 +23,15 @@ $
 $IF type is not "library"
 
 $  IF compilingenv is not "InSDK"
-LIBRARIES= $$(XDK_LIB_PATH)/Elastos.Runtime.CarRuntime.lib
-LIBRARIES+= $$(XDK_LIB_PATH)/Elastos.Runtime.lib
-LIBRARIES += $$(XDK_LIB_PATH)/Elastos.Utility.lib
+LIBRARIES = $$(XDK_USER_LIB)/Elastos.Runtime.lib
+LIBRARIES += $$(XDK_USER_LIB)/Elastos.Utility.lib
+LIBRARIES += $$(XDK_TARGETS)/Elastos.Runtime.eco
+LIBRARIES += $$(XDK_TARGETS)/Elastos.Utility.eco
 $  ELSE
-ELASTOS_LIBS= Elastos.Runtime.CarRuntime.lib
-ELASTOS_LIBS+= Elastos.Runtime.lib
-ELASTOS_LIBS+= Elastos.Utility.lib
+ELASTOS_LIBS = Elastos.Runtime.lib
+ELASTOS_LIBS += Elastos.Utility.lib
+ELASTOS_LIBS += Elastos.Runtime.eco
+ELASTOS_LIBS += Elastos.Utility.eco
 $  END IF;; not InSDK
 $END IF ;; type is not "library"
 $
