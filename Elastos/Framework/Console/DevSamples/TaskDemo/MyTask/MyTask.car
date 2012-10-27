@@ -1,0 +1,10 @@
+
+module
+{
+    importlib("Elastos.Console.Core.eco");
+
+    class CMyTask inherits CTask {
+        interface ITaskEntry;
+        interface ITask;
+    }
+}

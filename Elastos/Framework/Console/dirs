@@ -1,0 +1,4 @@
+
+DIRS = eco
+DIRS += lib
+DIRS += DevSamples/TaskDemo
