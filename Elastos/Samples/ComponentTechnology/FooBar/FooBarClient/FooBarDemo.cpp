@@ -58,25 +58,21 @@
 // of the DLL's classes and invoke any public methods.
 //
 
-#include <stdio.h>
 #include "FooBarDemo.h"
-using namespace Elastos;
+#include <Elastos.Console.h>
 
-ECode ElInitialize();
-void RequestToFinish();
+using namespace Elastos;
 
 ECode OnFooEvent(PVoid userData, PInterface pSender)
 {
-    printf("OnFooEvent\n");
+    CConsole::WriteLine("====== CALLing OnFooEvent ======");
     CFooBar::RemoveFooEventCallback(pSender, OnFooEvent, NULL);
-    RequestToFinish();
+    CConsole::RequestToFinish();
     return NOERROR;
 }
 
-int main (int argc, char *argv[])
+ECode ElastosMain(const BufferOf<CString>& args)
 {
-    ElInitialize();
-
     IBar* pBar;
     ECode ec = CFooBar::New(&pBar);
     if (FAILED(ec)) {
