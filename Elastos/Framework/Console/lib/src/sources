@@ -1,0 +1,11 @@
+#==========================================================================
+# Copyright (c) 2000-2008,  Elastos, Inc.  All Rights Reserved.
+#==========================================================================
+
+TARGET_NAME= Elastos.Console
+TARGET_TYPE= lib
+
+EXPORT_LIBRARY= 1
+
+SOURCES = ConsoleMain.cpp
+SOURCES += CConsole.cpp

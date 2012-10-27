@@ -1,0 +1,11 @@
+
+module
+{
+    merge("../../car/ITask.car");
+
+    class CTask {
+        virtual interface ITaskEntry;
+        interface ITask;
+        callbacks JTaskEvents;
+    }
+}
