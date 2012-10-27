@@ -82,7 +82,15 @@ public:
 
     _ELASTOS UInt32 Release()
     {
+    #ifdef _linux
+        // atomic_dec of android bionic C library will return
+        // the old value of m_cRef before it is decreased.
         _ELASTOS Int32 nRef = atomic_dec(&m_cRef);
+        // so we should decrease nRef;
+        nRef--;
+    #else
+        _ELASTOS Int32 nRef = atomic_dec(&m_cRef);
+    #endif
         if (nRef == 0) _Impl_CallbackSink_FreeCallbackEvent(this);
         return nRef;
     }
