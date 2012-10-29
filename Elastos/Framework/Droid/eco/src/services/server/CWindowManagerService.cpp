@@ -7,8 +7,6 @@
 #include "os/SystemClock.h"
 #include <elastos/Math.h>
 #include <Logger.h>
-#include <stdio.h>
-
 
 using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
@@ -7999,10 +7997,6 @@ void CWindowManagerService::InputMonitor::UpdateInputWindowsLw()
                 && (type != WindowManagerLayoutParams_TYPE_KEYGUARD);
         //printf("====== FILE: %s, LINE: %d, hasFocus: %d, isVisible: %d, hasWallpaper: %d ======\n",
         //        __FILE__, __LINE__, hasFocus, isVisible, hasWallpaper);
-        //todo:
-        hasFocus = TRUE;
-        isVisible = TRUE;
-        hasWallpaper = FALSE;
 
         // Add a window to our list of input windows.
         InputWindow* inputWindow = mTempInputWindows->Add();
