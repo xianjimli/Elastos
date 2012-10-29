@@ -1,0 +1,104 @@
+
+module
+{
+     /**
+     * Set of bits in {@link #imeOptions} that provide alternative actions
+     * associated with the "enter" key.  This both helps the IME provide
+     * better feedback about what the enter key will do, and also allows it
+     * to provide alternative mechanisms for providing that command.
+     */
+    const EditorInfo_IME_MASK_ACTION = 0x000000ff;
+
+    /**
+     * Bits of {@link #IME_MASK_ACTION}: no specific action has been
+     * associated with this editor, let the editor come up with its own if
+     * it can.
+     */
+    const EditorInfo_IME_ACTION_UNSPECIFIED = 0x00000000;
+
+    /**
+     * Bits of {@link #IME_MASK_ACTION}: there is no available action.
+     */
+    const EditorInfo_IME_ACTION_NONE = 0x00000001;
+
+    /**
+     * Bits of {@link #IME_MASK_ACTION}: the action key performs a "go"
+     * operation to take the user to the target of the text they typed.
+     * Typically used, for example, when entering a URL.
+     */
+    const EditorInfo_IME_ACTION_GO = 0x00000002;
+
+    /**
+     * Bits of {@link #IME_MASK_ACTION}: the action key performs a "search"
+     * operation, taking the user to the results of searching for the text
+     * the have typed (in whatever context is appropriate).
+     */
+    const EditorInfo_IME_ACTION_SEARCH = 0x00000003;
+
+    /**
+     * Bits of {@link #IME_MASK_ACTION}: the action key performs a "send"
+     * operation, delivering the text to its target.  This is typically used
+     * when composing a message.
+     */
+    const EditorInfo_IME_ACTION_SEND = 0x00000004;
+
+    /**
+     * Bits of {@link #IME_MASK_ACTION}: the action key performs a "next"
+     * operation, taking the user to the next field that will accept text.
+     */
+    const EditorInfo_IME_ACTION_NEXT = 0x00000005;
+
+    /**
+     * Bits of {@link #IME_MASK_ACTION}: the action key performs a "done"
+     * operation, typically meaning the IME will be closed.
+     */
+    const EditorInfo_IME_ACTION_DONE = 0x00000006;
+
+    /**
+     * Flag of {@link #imeOptions}: used to specify that the IME does not need
+     * to show its extracted text UI.  For input methods that may be fullscreen,
+     * often when in landscape mode, this allows them to be smaller and let part
+     * of the application be shown behind.  Though there will likely be limited
+     * access to the application available from the user, it can make the
+     * experience of a (mostly) fullscreen IME less jarring.  Note that when
+     * this flag is specified the IME may <em>not</em> be set up to be able
+     * to display text, so it should only be used in situations where this is
+     * not needed.
+     */
+    const EditorInfo_IME_FLAG_NO_EXTRACT_UI = 0x10000000;
+
+    /**
+     * Flag of {@link #imeOptions}: used in conjunction with
+     * {@link #IME_MASK_ACTION}, this indicates that the action should not
+     * be available as an accessory button when the input method is full-screen.
+     * Note that by setting this flag, there can be cases where the action
+     * is simply never available to the user.  Setting this generally means
+     * that you think showing text being edited is more important than the
+     * action you have supplied.
+     */
+    const EditorInfo_IME_FLAG_NO_ACCESSORY_ACTION = 0x20000000;
+
+    /**
+     * Flag of {@link #imeOptions}: used in conjunction with
+     * {@link #IME_MASK_ACTION}, this indicates that the action should not
+     * be available in-line as a replacement for "enter" key.  Typically this is
+     * because the action has such a significant impact or is not recoverable
+     * enough that accidentally hitting it should be avoided, such as sending
+     * a message.  Note that {@link android.widget.TextView} will automatically set this
+     * flag for you on multi-line text views.
+     */
+    const EditorInfo_IME_FLAG_NO_ENTER_ACTION = 0x40000000;
+
+    /**
+     * Flag of {@link #imeOptions}: used to request that the IME never go
+     * into fullscreen mode.  Applications need to be aware that the flag is not
+     * a guarantee, and not all IMEs will respect it.
+     * @hide
+     */
+    const EditorInfo_IME_FLAG_NO_FULLSCREEN = 0x80000000;
+
+    /**
+     * Generic unspecified type for {@link #imeOptions}.
+     */
+    const EditorInfo_IME_NULL = 0x00000000;
+}

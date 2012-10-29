@@ -1,6 +1,7 @@
 
 #include "text/Selection.h"
 #include <elastos/Math.h>
+#include <stdio.h>
 
 using namespace Elastos::Core;
 
@@ -74,7 +75,7 @@ Int32 Selection::GetSelectionEnd(
 {
     if (text && ISpanned::Probe(text)) {
         Int32 end;
-        ISpanned::Probe(text)->GetSpanStart(SELECTION_START, &end);
+        ISpanned::Probe(text)->GetSpanStart(SELECTION_END, &end);
         return end;
     }
     else

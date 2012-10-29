@@ -38,6 +38,7 @@ module
     merge("view/inputmethod/ExtractedText.car");
     merge("view/inputmethod/ExtractedTextRequest.car");
     merge("view/inputmethod/CompletionInfo.car");
+    merge("view/inputmethod/EditorInfo.car");
     merge("view/InputBindResult.car");
     merge("view/IInputMethodClient.car");
     merge("view/IInputContextCallback.car");

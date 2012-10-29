@@ -177,8 +177,7 @@ ECode CApartment::RemoveCppCallbacks(
     /* [in] */ Handle32 target,
     /* [in] */ Handle32 func)
 {
-    return mCallbackContext->CancelCallbackEvents(
-            NULL, 0, (PVoid)target, (PVoid)func);
+    return RemoveCppCallbacksEx(target, func, 0);
 }
 
 ECode CApartment::RemoveCppCallbacksEx(
@@ -186,8 +185,14 @@ ECode CApartment::RemoveCppCallbacksEx(
     /* [in] */ Handle32 func,
     /* [in] */ Int32 id)
 {
+    PVoid fun = NULL;
+    if (func != NULL) {
+        EventHandler delegate(EventHandler::Make((PVoid)target, *(PVoid*)&func, CallbackType_CPP));
+        fun = delegate.GetFuncPtr();
+    }
+
     return mCallbackContext->CancelCallbackEvents(
-            NULL, id, (PVoid)target, (PVoid)func);
+            NULL, id, (PVoid)target, fun);
 }
 
 ECode CApartment::HasCppCallbacks(

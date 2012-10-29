@@ -170,7 +170,6 @@ Boolean QwertyKeyListener::OnKeyDown(
     /* [in] */ Int32 keyCode,
     /* [in] */ IKeyEvent* event)
 {
-    printf("QwertyKeyListener::OnKeyDown---------1\n");
     Int32 selStart, selEnd;
     Int32 pref = 0;
 
@@ -192,7 +191,6 @@ Boolean QwertyKeyListener::OnKeyDown(
             Selection::SetSelection(content, 0, 0);
         }
     }
-printf("QwertyKeyListener::OnKeyDown---------2\n");
     Int32 activeStart;
     ISpannable::Probe(content)->GetSpanStart(
         TextKeyListener::ACTIVE, &activeStart);
@@ -214,22 +212,18 @@ printf("QwertyKeyListener::OnKeyDown---------2\n");
         if (c == i || c == Character::ToUpperCase(i) && view != NULL) {
             if (ShowCharacterPicker(view, content, c, FALSE, count)) {
                 ResetMetaState(content);
-                printf("QwertyKeyListener::OnKeyDown---end\n");
                 return TRUE;
             }
         }
     }
-printf("QwertyKeyListener::OnKeyDown---------3\n");
     if (i == ElKeyCharacterMap::PICKER_DIALOG_INPUT) {
         if (view != NULL) {
             ShowCharacterPicker(view, content,
                 ElKeyCharacterMap::PICKER_DIALOG_INPUT, TRUE, 1);
         }
         ResetMetaState(content);
-        printf("QwertyKeyListener::OnKeyDown---end\n");
         return TRUE;
     }
-printf("QwertyKeyListener::OnKeyDown---------4\n");
     if (i == ElKeyCharacterMap::HEX_INPUT) {
         Int32 start;
 
@@ -261,9 +255,7 @@ printf("QwertyKeyListener::OnKeyDown---------4\n");
             i = 0;
         }
     }
-printf("QwertyKeyListener::OnKeyDown---------5\n");
     if (i != 0) {
-        printf("QwertyKeyListener::OnKeyDown---------6\n");
         Boolean dead = FALSE;
 
         if ((i & ElKeyCharacterMap::COMBINING_ACCENT) != 0) {
@@ -291,7 +283,6 @@ printf("QwertyKeyListener::OnKeyDown---------5\n");
                 selStart = selEnd;
             }
         }
-printf("QwertyKeyListener::OnKeyDown---------7\n");
         if ((pref & TextKeyListener::AUTO_CAP) != 0 &&
             Character::IsLowerCase(i) &&
             TextKeyListener::ShouldCap(mAutoCap, content, selStart)) {
@@ -317,41 +308,36 @@ printf("QwertyKeyListener::OnKeyDown---------7\n");
                                     flags);
             }
         }
-printf("QwertyKeyListener::OnKeyDown---------8\n");
         if (selStart != selEnd) {
             Selection::SetSelection(content, selEnd);
         }
         content->SetSpan(OLD_SEL_START, selStart, selStart,
                         Spanned_SPAN_MARK_MARK);
 
-printf("QwertyKeyListener::OnKeyDown---------8.1\n");
+
         ArrayOf_<Char8, 5> chs;
         Int32 num;
         Character::ToChars(i, chs, 0, &num);
         chs[num] = 0;
         AutoPtr<ICharSequence> cs;
         CStringWrapper::New(String(chs.GetPayload()), (ICharSequence**)&cs);
-        printf("QwertyKeyListener::OnKeyDown---------8.2\n");
         AutoPtr<IEditable> editable;
         content->ReplaceEx(selStart, selEnd, cs, (IEditable**)&editable);
 
-printf("QwertyKeyListener::OnKeyDown---------8.3\n");
         Int32 oldStart;
         content->GetSpanStart(OLD_SEL_START, &oldStart);
         selEnd = Selection::GetSelectionEnd(content);
-printf("QwertyKeyListener::OnKeyDown---------8.4\n");
         if (oldStart < selEnd) {
             content->SetSpan(TextKeyListener::LAST_TYPED,
                             oldStart, selEnd,
                             Spanned_SPAN_EXCLUSIVE_EXCLUSIVE);
-printf("QwertyKeyListener::OnKeyDown---------8.5\n");
             if (dead) {
                 Selection::SetSelection(content, oldStart, selEnd);
                 content->SetSpan(TextKeyListener::ACTIVE, oldStart, selEnd,
                     Spanned_SPAN_EXCLUSIVE_EXCLUSIVE);
             }
         }
-printf("QwertyKeyListener::OnKeyDown---------9\n");
+
         AdjustMetaAfterKeypress(content);
 
         // potentially do autotext replacement if the character
@@ -397,7 +383,7 @@ printf("QwertyKeyListener::OnKeyDown---------9\n");
                 content->ReplaceEx(x, oldStart, cs, (IEditable**)&editable);
             }
         }
-printf("QwertyKeyListener::OnKeyDown---------10\n");
+
         // Replace two spaces by a period and a space.
 
         if ((pref & TextKeyListener::AUTO_PERIOD) != 0 && mAutoText) {
@@ -429,11 +415,9 @@ printf("QwertyKeyListener::OnKeyDown---------10\n");
             }
         }
 
-printf("QwertyKeyListener::OnKeyDown---end\n");
         return TRUE;
     }
     else if (keyCode == KeyEvent_KEYCODE_DEL && selStart == selEnd) {
-        printf("QwertyKeyListener::OnKeyDown---------11\n");
         // special backspace case for undoing autotext
 
         Int32 consider = 1;
@@ -494,11 +478,9 @@ printf("QwertyKeyListener::OnKeyDown---end\n");
 
             FreeArray(repl);
 
-printf("QwertyKeyListener::OnKeyDown---end\n");
             return TRUE;
         }
     }
-printf("QwertyKeyListener::OnKeyDown---end\n");
     return BaseKeyListener::OnKeyDown(view, content, keyCode, event);
 }
 

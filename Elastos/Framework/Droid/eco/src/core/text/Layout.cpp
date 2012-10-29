@@ -5,6 +5,7 @@
 #include "text/CTextPaint.h"
 #include "text/TextUtils.h"
 #include "text/Styled.h"
+#include "text/method/TextKeyListener.h"
 #include "graphics/CRect.h"
 #include <elastos/Math.h>
 #include <elastos/Character.h>
@@ -502,13 +503,16 @@ ECode Layout::Draw(
             Int32 lbottom = GetLineTop(i + 1);
             previousLineBottom = lbottom;
             Int32 lbaseline = lbottom - GetLineDescent(i);
-
             if (start >= spanend) {
                 AutoPtr<ISpanned> sp = (ISpanned*)buf->Probe(EIID_ISpanned);
                 assert(sp != NULL);
                 sp->NextSpanTransition(start, textLength,
                                        EIID_ILineBackgroundSpan,
                                        &spanend);
+
+                if (spans != (ArrayOf<IInterface*>*)NO_PARA_SPANS) {
+                    FreeArray(spans);
+                }
                 sp->GetSpans(start, spanend,
                              EIID_ILineBackgroundSpan,
                              &spans);
@@ -520,19 +524,17 @@ ECode Layout::Draw(
                 back->DrawBackground(c, paint, 0, width,
                                      ltop, lbaseline, lbottom,
                                      buf, start, end, i);
-                back->Release();
-            }
-            if (spans != (ArrayOf<IInterface*>*)NO_PARA_SPANS) {
-                ArrayOf<IInterface*>::Free(spans);
             }
         }
         // reset to their original values
         spanend = 0;
         previousLineBottom = GetLineTop(first);
         previousLineEnd = GetLineStart(first);
-        spans = (ArrayOf<IInterface*>*)NO_PARA_SPANS;
+        if (spans != (ArrayOf<IInterface*>*)NO_PARA_SPANS) {
+            FreeArray(spans);
+            spans = (ArrayOf<IInterface*>*)NO_PARA_SPANS;
+        }
     }
-
     // There can be a highlight even without spans if we are drawing
     // a non-spanned transformation of a spanned editing buffer.
     if (highlight != NULL) {
@@ -546,7 +548,6 @@ ECode Layout::Draw(
             c->Translate(0, -cursorOffsetVertical);
         }
     }
-
     LayoutAlignment align = mAlignment;
 
     // Next draw the lines, one at a time.
@@ -594,7 +595,6 @@ ECode Layout::Draw(
         Int32 dir = GetParagraphDirection(i);
         Int32 left = 0;
         Int32 right = mWidth;
-
         // Draw all leading margin spans.  Adjust left or right according
         // to the paragraph direction of the line.
         if (spannedText) {
@@ -630,7 +630,6 @@ ECode Layout::Draw(
                 }
             }
         }
-
         // Adjust the point at which to start rendering depending on the
         // alignment of the paragraph.
         Int32 x;
@@ -676,13 +675,8 @@ ECode Layout::Draw(
                      x, ltop, lbaseline, lbottom, paint, mWorkPaint,
                      hasTab, spans);
         }
-
         if (spans != (ArrayOf<IInterface*>*)NO_PARA_SPANS) {
-            for (Int32 i = 0; i < spans->GetLength(); i++) {
-                if ((*spans)[i] != NULL)
-                    (*spans)[i]->Release();
-            }
-            ArrayOf<IInterface*>::Free(spans);
+            FreeArray(spans);
         }
     }
 
@@ -859,10 +853,7 @@ Float Layout::GetHorizontal(
     }
 
     if (tabs != NULL) {
-        for (Int32 i = 0; i < tabs->GetLength(); i++) {
-            if ((*tabs)[i] != NULL) (*tabs)[i]->Release();
-        }
-        ArrayOf<IInterface*>::Free(tabs);
+        FreeArray(tabs);
         tabs = NULL;
     }
 
@@ -1015,10 +1006,7 @@ Float Layout::GetLineMax(
                             mText, start, end, NULL, tab, tabs);
 
     if (free) {
-        for (Int32 i = 0; i < tabs->GetLength(); i++) {
-            if ((*tabs)[i] != NULL) (*tabs)[i]->Release();
-        }
-        ArrayOf<IInterface*>::Free(tabs);
+        FreeArray(tabs);
     }
 
     return val;
@@ -1523,12 +1511,12 @@ ECode Layout::GetCursorPath(
     Float h1 = GetPrimaryHorizontal(point) - 0.5f;
     Float h2 = GetSecondaryHorizontal(point) - 0.5f;
 
-    Int32 caps = 0/*TextKeyListener::GetMetaState(editingBuffer,
-                                            KeyEvent_META_SHIFT_ON) |
-                TextKeyListener::GetMetaState(editingBuffer,
-                                            MetaKeyKeyListener::META_SELECTING)*/;
-    Int32 fn = 0/*TextKeyListener::GetMetaState(editingBuffer,
-                                            KeyEvent_META_ALT_ON)*/;
+    Int32 caps = TextKeyListener::GetMetaState(editingBuffer,
+            KeyEvent_META_SHIFT_ON) |
+            TextKeyListener::GetMetaState(editingBuffer,
+            MetaKeyKeyListener::META_SELECTING);
+    Int32 fn = TextKeyListener::GetMetaState(editingBuffer,
+            KeyEvent_META_ALT_ON);
     Int32 dist = 0;
 
     if (caps != 0 || fn != 0) {
@@ -1731,10 +1719,7 @@ LayoutAlignment Layout::GetParagraphAlignment(
         if (spanLength > 0) {
             IAlignmentSpan::Probe((*spans)[spanLength - 1])->GetAlignment(&align);
         }
-        for (Int32 i = 0; i < spanLength; i++) {
-            if ((*spans)[i] != NULL) (*spans)[i]->Release();
-        }
-        ArrayOf<IInterface*>::Free(spans);
+        FreeArray(spans);
     }
 
     return align;
@@ -1977,15 +1962,14 @@ Float Layout::MeasureText(
             there = end - start;
         }
 
-        String str((const char*)buf->GetPayload());
+        String str(buf != NULL ? (const char*)buf->GetPayload() : NULL);
         Int32 segstart = here;
         for (Int32 j = hasTabs ? here : there; j <= there; j++) {
             Char32 codept = 0;
             AutoPtr<IBitmap> bm;
-            Char32 ch = str.GetChar(j);
 
             if (hasTabs && j < there) {
-                codept = ch;
+                codept = str.GetChar(j);
             }
 
             if (codept >= 0xD800 && codept <= 0xDFFF && j + 1 < there) {
@@ -2046,7 +2030,7 @@ Float Layout::MeasureText(
                     h += segw;
                 }
 
-                if (j != there && ch == '\t') {
+                if (j != there && codept == '\t') {
                     if (offset == start + j) {
                         return h;
                     }
@@ -2294,6 +2278,7 @@ Float Layout::NextTab(
 
             if (alltabs) (*tabs)[i]->Release();
         }
+
         if (alltabs) ArrayOf<IInterface*>::Free(tabs);
 
         if (nh != Math::FLOAT_MAX_VALUE) {

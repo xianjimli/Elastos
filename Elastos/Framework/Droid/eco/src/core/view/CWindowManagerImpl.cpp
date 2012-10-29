@@ -30,11 +30,7 @@ ECode CWindowManagerImpl::UpdateViewLayout(
     /* [in] */ IView* view,
     /* [in] */ IViewGroupLayoutParams* params)
 {
-    ClassID clsid;
-    IObject* paramsObj = (IObject*)params->Probe(EIID_IObject);
-    assert(paramsObj != NULL);
-    paramsObj->GetClassID(&clsid);
-    if (clsid != ECLSID_CWindowManagerLayoutParams) {
+    if (IWindowManagerLayoutParams::Probe(params) == NULL) {
         Logger::W("WindowManager", "Params must be WindowManager.LayoutParams");
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }

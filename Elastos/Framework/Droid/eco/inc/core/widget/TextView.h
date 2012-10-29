@@ -5,11 +5,55 @@
 #include "graphics/CRectF.h"
 #include "text/CTextPaint.h"
 #include "view/ViewMacro.h"
+#include "view/inputmethod/CExtractedText.h"
+#include "widget/Scroller.h"
 
 using namespace Elastos;
 
 class TextView : public View
 {
+protected:
+    class InputContentType : public ElRefBase
+    {
+    public:
+        InputContentType() : mImeOptions(EditorInfo_IME_NULL)
+        {}
+
+        Int32 mImeOptions;
+        String mPrivateImeOptions;
+        AutoPtr<ICharSequence> mImeActionLabel;
+        Int32 mImeActionId;
+        AutoPtr<IBundle> mExtras;
+        AutoPtr<IOnEditorActionListener> mOnEditorActionListener;
+        Boolean enterDown;
+    };
+
+    class InputMethodState : public ElRefBase
+    {
+    public:
+        InputMethodState()
+            : mCursorChanged(FALSE)
+            , mSelectionModeChanged(FALSE)
+            , mContentChanged(FALSE)
+        {
+            ASSERT_SUCCEEDED(CRect::NewByFriend((CRect**)&mCursorRectInWindow));
+            ASSERT_SUCCEEDED(CRectF::NewByFriend((CRectF**)&mTmpRectF));
+            ASSERT_SUCCEEDED(CExtractedText::New((IExtractedText**)&mTmpExtracted));
+        }
+
+        AutoPtr<IRect> mCursorRectInWindow;
+        AutoPtr<IRectF> mTmpRectF;
+        Float mTmpOffset[2];
+        AutoPtr<IExtractedTextRequest> mExtracting;
+        AutoPtr<IExtractedText> mTmpExtracted;
+        Int32 mBatchEditNesting;
+        Boolean mCursorChanged;
+        Boolean mSelectionModeChanged;
+        Boolean mContentChanged;
+        Int32 mChangedStart;
+        Int32 mChangedEnd;
+        Int32 mChangedDelta;
+    };
 private:
     class CharWrapper:
         public ElRefBase,
@@ -1585,8 +1629,8 @@ public:
 
     virtual CARAPI_(void) EnsureEndedBatchEdit();
 
-    //virtual CARAPI_(void) FinishBatchEdit(
-    //        /* [in] */ InputMethodState ims);
+    virtual CARAPI_(void) FinishBatchEdit(
+        /* [in] */ InputMethodState* ims);
 
     virtual CARAPI_(void) UpdateAfterEdit();
 
@@ -1826,8 +1870,8 @@ public:
     CARAPI_(Boolean) OnTrackballEvent(
         /* [in] */ IMotionEvent* event);
 
-    //virtual CARAPI_(void) SetScroller(
-    //    /* [in] */ Scroller s);
+    virtual CARAPI_(void) SetScroller(
+        /* [in] */ Scroller* s);
 
     /**
      * Returns the TextView_textColor attribute from the
@@ -2305,30 +2349,8 @@ public:
     Int32 mTempCoords[2];
     AutoPtr<CRect> mTempRect;
 
-    /*class InputContentType {
-        int imeOptions = EditorInfo.IME_NULL;
-        String privateImeOptions;
-        CharSequence imeActionLabel;
-        int imeActionId;
-        Bundle extras;
-        OnEditorActionListener onEditorActionListener;
-        boolean enterDown;
-    }
-    InputContentType mInputContentType;
-
-    class InputMethodState {
-        Rect mCursorRectInWindow = new Rect();
-        RectF mTmpRectF = new RectF();
-        float[] mTmpOffset = new float[2];
-        ExtractedTextRequest mExtracting;
-        final ExtractedText mTmpExtracted = new ExtractedText();
-        int mBatchEditNesting;
-        boolean mCursorChanged;
-        boolean mSelectionModeChanged;
-        boolean mContentChanged;
-        int mChangedStart, mChangedEnd, mChangedDelta;
-    }
-    InputMethodState mInputMethodState;*/
+    AutoPtr<InputContentType> mInputContentType;
+    AutoPtr<InputMethodState> mInputMethodState;
 
     Int32 mTextSelectHandleLeftRes;
     Int32 mTextSelectHandleRightRes;
@@ -2478,9 +2500,9 @@ private:
 
     AutoPtr<IMovementMethod> mMovement;
     AutoPtr<ITransformationMethod>    mTransformation;
-    //ChangeWatcher           mChangeWatcher;
+    AutoPtr<ChangeWatcher>           mChangeWatcher;
 
-    //List<TextWatcher>  mListeners = null;
+    List<AutoPtr<ITextWatcher> >  mListeners;
 
     // display attributes
     AutoPtr<CTextPaint>     mTextPaint;
@@ -2552,7 +2574,7 @@ private:
 
     static const Int32 ANIMATED_SCROLL_GAP;
     Int64 mLastScroll;
-    //Scroller mScroller = null;
+    Scroller* mScroller;
 
     AutoPtr<IBoringLayoutMetrics> mBoring;
     AutoPtr<IBoringLayoutMetrics> mHintBoring;

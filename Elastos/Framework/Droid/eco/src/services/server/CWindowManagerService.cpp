@@ -7,6 +7,7 @@
 #include "os/SystemClock.h"
 #include <elastos/Math.h>
 #include <Logger.h>
+#include <stdio.h>
 
 
 using namespace Elastos::Core;
@@ -5619,7 +5620,7 @@ void CWindowManagerService::PerformLayoutAndPlaceSurfacesLockedInner(
                     if (SUCCEEDED(ec)) {
                         w->mShownFrame->GetLeft(&w->mSurfaceX);
                         w->mShownFrame->GetTop(&w->mSurfaceY);
-                        ec = w->mSurface->SetPosition(w->mSurfaceY, w->mSurfaceY);
+                        ec = w->mSurface->SetPosition(w->mSurfaceX, w->mSurfaceY);
                     }
                     if (FAILED(ec)) {
 //                        Slog.e(TAG, "Failure updating surface of " + w
@@ -9617,6 +9618,9 @@ void CWindowManagerService::WindowState::ComputeShownFrameLocked()
     mDtDx = 0;
     mDsDy = 0;
     mDtDy = 1;
+    Int32 l, t;
+    mShownFrame->GetLeft(&l);
+    mShownFrame->GetTop(&t);
 }
 
 void CWindowManagerService::WindowState::ClearAnimation()
@@ -9745,13 +9749,12 @@ ECode CWindowManagerService::WindowState::CreateSurfaceLocked(
 
 //            try {
 //                try {
-//        mSurfaceX = ((CRect*)(IRect*)mFrame)->mLeft + mXOffset;
-//        mSurfaceY = ((CRect*)(IRect*)mFrame)->mTop + mYOffset;
-//        ec = mSurface->SetPosition(mSurfaceX, mSurfaceY);
-//        if (FAILED(ec)) {
-//            printf("=====%s, %d=====\n", __FILE__, __LINE__);
-//            goto RuntimeException;
-//        }
+        Int32 l, t;
+        mFrame->GetLeft(&l);
+        mFrame->GetTop(&t);
+        mSurfaceX = l + mXOffset;
+        mSurfaceY = t + mYOffset;
+        mSurface->SetPosition(mSurfaceX, mSurfaceY);
 //
 //        mSurfaceLayer = mAnimLayer;
 //        ec = mSurface->SetLayer(mAnimLayer);

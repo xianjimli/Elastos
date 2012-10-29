@@ -111,15 +111,16 @@
 #include "view/CKeyEvent.h"
 #include "view/CViewGroupLayoutParams.h"
 #include "view/CWindowManagerLayoutParams.h"
+#include "view/animation/AnimationUtils.h"
 #include "graphics/CPaint.h"
 #include "graphics/Typeface.h"
 #include "graphics/CPath.h"
 #include "widget/CTextViewSavedState.h"
 #include "widget/CPopupWindow.h"
 #include <elastos/Math.h>
+#include <elastos/Character.h>
 #include <Logger.h>
 
-//using namespace Elastos::Utility;
 using namespace Elastos::Utility::Logging;
 using namespace Elastos::Core;
 
@@ -588,7 +589,7 @@ void TextView::_HandleView::PositionAtCursor(
     Int32 line;
     mHost->mLayout->GetLineForOffset(offset, &line);
     Int32 lineTop;
-    mHost->mLayout->GetLineTop(line, &line);
+    mHost->mLayout->GetLineTop(line, &lineTop);
     Int32 lineBottom;
     mHost->mLayout->GetLineBottom(line, &lineBottom);
 
@@ -726,7 +727,7 @@ void TextView::InsertionPointCursorController::UpdatePosition()
     Int32 offset = mHost->GetSelectionStart();
 
     if (offset < 0) {
-        // Should never happen, safety check.
+        // Should never happen, safety check.pos
         Logger::W(TEXT_VIEW_LOG_TAG, "Update cursor controller position called with no cursor");
         Hide();
         return;
@@ -759,7 +760,7 @@ void TextView::InsertionPointCursorController::OnDetached()
 
 TextView::SelectionModifierCursorController::SelectionModifierCursorController(
     /* [in] */ TextView* host)
-    : mIsShowing(TRUE)
+    : mIsShowing(FALSE)
     , mPreviousTapUpTime(0)
     , mHost(host)
 {
@@ -898,7 +899,7 @@ Boolean TextView::SelectionModifierCursorController::OnTouchEvent(
             // Only activated for devices that correctly handle multi-touch.
             //if (mHost->mContext->GetCapsuleManager()->HasSystemFeature(
             //        CapsuleManager_FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT)) {
-            //    UpdateMinAndMaxOffsets(event);
+                UpdateMinAndMaxOffsets(event);
             //}
             break;
         case MotionEvent_ACTION_UP:
@@ -969,6 +970,9 @@ ECode TextView::SelectionModifierCursorController::OnTouchModeChanged(
 void TextView::SelectionModifierCursorController::OnDetached()
 {}
 
+const InterfaceID EIID_ChangeWatcher =
+    {0x269872b1, 0x63a3, 0x475d, { 0x9b, 0x7, 0x80, 0xc1, 0xc0, 0x98, 0x98, 0x84 }};
+
 TextView::ChangeWatcher::ChangeWatcher(
     /* [in] */ TextView* host)
     : mHost(host)
@@ -988,6 +992,9 @@ PInterface TextView::ChangeWatcher::Probe(
     }
     else if (riid == EIID_INoCopySpan) {
         return (INoCopySpan*)(ISpanWatcher*)this;
+    }
+    else if (riid == EIID_ChangeWatcher) {
+        return reinterpret_cast<PInterface>(this);
     }
 
     return NULL;
@@ -1158,11 +1165,8 @@ void TextView::Blink::PostAtTime(
 void TextView::Blink::RemoveCallbacks(
     /* [in] */ IRunnable* action)
 {
-    ECode (STDCALL IRunnable::*pHandlerFunc)();
-        pHandlerFunc = &IRunnable::Run;
-
     mApartment->RemoveCppCallbacks(
-            (Handle32)action, *(Handle32*)&pHandlerFunc);
+            (Handle32)action, NULL);
 }
 
 AutoPtr<CRect> InitsCCTempRect()
@@ -1265,6 +1269,7 @@ TextView::TextView()
     , mDesiredHeightAtMeasure(-1)
     , mIncludePad(TRUE)
     , mHighlightPathBogus(TRUE)
+    , mScroller(NULL)
 {
 }
 
@@ -1319,6 +1324,7 @@ TextView::TextView(
     , mDesiredHeightAtMeasure(-1)
     , mIncludePad(TRUE)
     , mHighlightPathBogus(TRUE)
+    , mScroller(NULL)
 {
     ASSERT_SUCCEEDED(InitFromAttributes(context, attrs, defStyle));
 }
@@ -3324,43 +3330,48 @@ ECode TextView::SetText(
     Int32 textLength;
     text->GetLength(&textLength);
 
-//    if (text instanceof Spannable) {
-//        Spannable sp = (Spannable) text;
-//
-//        // Remove any ChangeWatchers that might have come
-//        // from other TextViews.
-//        final ChangeWatcher[] watchers = sp.getSpans(0, sp.length(), ChangeWatcher.class);
-//        final Int32 count = watchers.length;
-//        for (Int32 i = 0; i < count; i++) {
-//            sp.removeSpan(watchers[i]);
-//        }
-//
-//        if (mChangeWatcher == NULL) {
-//            mChangeWatcher = new ChangeWatcher();
-//        }
-//
-//        sp.setSpan(mChangeWatcher, 0, textLength, Spanned.SPAN_INCLUSIVE_INCLUSIVE |
-//                    (PRIORITY << Spanned.SPAN_PRIORITY_SHIFT));
-//
-//        if (mInput != NULL) {
-//            sp.setSpan(mInput, 0, textLength, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
-//        }
-//
-//        if (mTransformation != NULL) {
-//            sp.setSpan(mTransformation, 0, textLength, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
-//        }
-//
-//        if (mMovement != NULL) {
-//            mMovement.initialize(this, (Spannable) text);
-//
-//            /*
-//                * Initializing the movement method will have set the
-//                * selection, so reset mSelectionMoved to keep that from
-//                * interfering with the normal on-focus selection-setting.
-//                */
-//            mSelectionMoved = FALSE;
-//        }
-//    }
+    if (ISpannable::Probe(text)) {
+        AutoPtr<ISpannable> sp = ISpannable::Probe(text);
+
+        // Remove any ChangeWatchers that might have come
+        // from other TextViews.
+        ArrayOf<IInterface*>* watchers;
+        sp->GetSpans(0, textLength, EIID_ChangeWatcher, &watchers);
+        Int32 count = watchers->GetLength();
+        for (Int32 i = 0; i < count; i++) {
+            sp->RemoveSpan((*watchers)[i]);
+        }
+        FreeArray(watchers);
+
+        if (mChangeWatcher == NULL) {
+            mChangeWatcher = new ChangeWatcher(this);
+        }
+
+        sp->SetSpan(
+            mChangeWatcher->Probe(EIID_IInterface), 0, textLength,
+            Spanned_SPAN_INCLUSIVE_INCLUSIVE |
+            (PRIORITY << Spanned_SPAN_PRIORITY_SHIFT));
+
+        if (mInput != NULL) {
+            sp->SetSpan(mInput, 0, textLength, Spanned_SPAN_INCLUSIVE_INCLUSIVE);
+        }
+
+        if (mTransformation != NULL) {
+            sp->SetSpan(mTransformation, 0, textLength, Spanned_SPAN_INCLUSIVE_INCLUSIVE);
+        }
+
+        if (mMovement != NULL) {
+            mMovement->Initialize(
+                (ITextView*)this->Probe(EIID_ITextView), ISpannable::Probe(text));
+
+            /*
+                * Initializing the movement method will have set the
+                * selection, so reset mSelectionMoved to keep that from
+                * interfering with the normal on-focus selection-setting.
+                */
+            mSelectionMoved = FALSE;
+        }
+    }
 
     if (mLayout != NULL) {
         CheckForRelayout();
@@ -3734,7 +3745,7 @@ ECode TextView::SetImeOptions(
 Int32 TextView::GetImeOptions()
 {
 //    return mInputContentType != NULL
-//            ? mInputContentType.imeOptions : InputType_IME_NULL;
+//            ? mInputContentType.imeOptions : EditorInfo_IME_NULL;
     return 0x00000000;
 }
 
@@ -4141,7 +4152,7 @@ void TextView::HideError()
 //    }
 //
 //    Layout l = new StaticLayout(text, tv.getPaint(), cap,
-//                                Layout.Alignment.ALIGN_NORMAL, 1, 0, TRUE);
+//                                Alignment_ALIGN_NORMAL, 1, 0, TRUE);
 //    Float max = 0;
 //    for (Int32 i = 0; i < l.getLineCount(); i++) {
 //        max = Math.max(max, l.getLineWidth(i));
@@ -4786,7 +4797,7 @@ void TextView::OnDraw(
 //    if (mEllipsize == TextUtils.TruncateAt.MARQUEE) {
 //        if (!mSingleLine && getLineCount() == 1 && canMarquee() &&
 //                (mGravity & Gravity.HORIZONTAL_GRAVITY_MASK) != Gravity.LEFT) {
-//            canvas.translate(mLayout.getLineRight(0) - (mRight - mLeft -
+//            canvas.translate(mLayout->getLineRight(0) - (mRight - mLeft -
 //                    getCompoundPaddingLeft() - getCompoundPaddingRight()), 0.0f);
 //        }
 //
@@ -4853,13 +4864,13 @@ void TextView::OnDraw(
     }
     */
 
-    //final InputMethodState ims = mInputMethodState;
-    //if (ims != NULL && ims.mBatchEditNesting == 0) {
+    InputMethodState* ims = mInputMethodState;
+    if (ims != NULL && ims->mBatchEditNesting == 0) {
     //    InputMethodManager imm = InputMethodManager.peekInstance();
     //    if (imm != NULL) {
     //        if (imm.isActive(this)) {
     //            Boolean reported = FALSE;
-    //            if (ims.mContentChanged || ims.mSelectionModeChanged) {
+    //            if (ims->mContentChanged || ims->mSelectionModeChanged) {
     //                // We are in extract mode and the content has changed
     //                // in some way... just report complete new text to the
     //                // input method.
@@ -4878,25 +4889,25 @@ void TextView::OnDraw(
     //        }
     //
     //        if (imm.isWatchingCursor(this) && highlight != NULL) {
-    //            highlight.computeBounds(ims.mTmpRectF, TRUE);
-    //            ims.mTmpOffset[0] = ims.mTmpOffset[1] = 0;
+    //            highlight.computeBounds(ims->mTmpRectF, TRUE);
+    //            ims->mTmpOffset[0] = ims->mTmpOffset[1] = 0;
     //
-    //            canvas.getMatrix().mapPoints(ims.mTmpOffset);
-    //            ims.mTmpRectF.offset(ims.mTmpOffset[0], ims.mTmpOffset[1]);
+    //            canvas.getMatrix().mapPoints(ims->mTmpOffset);
+    //            ims->mTmpRectF.offset(ims->mTmpOffset[0], ims->mTmpOffset[1]);
     //
-    //            ims.mTmpRectF.offset(0, voffsetCursor - voffsetText);
+    //            ims->mTmpRectF.offset(0, voffsetCursor - voffsetText);
     //
-    //            ims.mCursorRectInWindow.set((Int32)(ims.mTmpRectF.left + 0.5),
-    //                    (Int32)(ims.mTmpRectF.top + 0.5),
-    //                    (Int32)(ims.mTmpRectF.right + 0.5),
-    //                    (Int32)(ims.mTmpRectF.bottom + 0.5));
+    //            ims->mCursorRectInWindow.set((Int32)(ims->mTmpRectF.left + 0.5),
+    //                    (Int32)(ims->mTmpRectF.top + 0.5),
+    //                    (Int32)(ims->mTmpRectF.right + 0.5),
+    //                    (Int32)(ims->mTmpRectF.bottom + 0.5));
     //
     //            imm.updateCursor(this,
-    //                    ims.mCursorRectInWindow.left, ims.mCursorRectInWindow.top,
-    //                    ims.mCursorRectInWindow.right, ims.mCursorRectInWindow.bottom);
+    //                    ims->mCursorRectInWindow.left, ims->mCursorRectInWindow.top,
+    //                    ims->mCursorRectInWindow.right, ims->mCursorRectInWindow.bottom);
     //        }
     //    }
-    //}
+    }
 
     layout->DrawEx(canvas, highlight, mHighlightPaint, voffsetCursor - voffsetText);
 
@@ -5167,7 +5178,7 @@ Int32 TextView::DoKeyDown(
                 //    // chance to consume the event.
                 //    if (mInputContentType.onEditorActionListener != NULL &&
                 //            mInputContentType.onEditorActionListener.onEditorAction(
-                //            this, InputType_IME_NULL, event)) {
+                //            this, EditorInfo_IME_NULL, event)) {
                 //        mInputContentType.enterDown = TRUE;
                 //        // We are consuming the enter key for them.
                 //        return -1;
@@ -5315,7 +5326,7 @@ Boolean TextView::OnKeyUp(
                     && mInputContentType.enterDown) {
                 mInputContentType.enterDown = FALSE;
                 if (mInputContentType.onEditorActionListener.onEditorAction(
-                        this, InputType_IME_NULL, event)) {
+                        this, EditorInfo_IME_NULL, event)) {
                     return TRUE;
                 }
             }*/
@@ -5389,8 +5400,7 @@ Boolean TextView::OnKeyUp(
 
 Boolean TextView::OnCheckIsTextEditor()
 {
-    //return mInputType != InputType_TYPE_NULL;
-    return FALSE;
+    return mInputType != InputType_TYPE_NULL;
 }
 
 //@Override public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
@@ -5406,7 +5416,7 @@ Boolean TextView::OnCheckIsTextEditor()
 //            outAttrs.actionId = mInputContentType.imeActionId;
 //            outAttrs.extras = mInputContentType.extras;
 //        } else {
-//            outAttrs.imeOptions = InputType_IME_NULL;
+//            outAttrs.imeOptions = EditorInfo_IME_NULL;
 //        }
 //        if ((outAttrs.imeOptions&InputType_IME_MASK_ACTION)
 //                == InputType_IME_ACTION_UNSPECIFIED) {
@@ -5535,36 +5545,36 @@ Boolean TextView::ExtractTextInternal(
 
 Boolean TextView::ReportExtractedText()
 {
-//    final InputMethodState ims = mInputMethodState;
-//    if (ims != NULL) {
-//        final Boolean contentChanged = ims.mContentChanged;
-//        if (contentChanged || ims.mSelectionModeChanged) {
-//            ims.mContentChanged = FALSE;
-//            ims.mSelectionModeChanged = FALSE;
-//            final ExtractedTextRequest req = mInputMethodState.mExtracting;
-//            if (req != NULL) {
-//                InputMethodManager imm = InputMethodManager.peekInstance();
-//                if (imm != NULL) {
-//                    if (DEBUG_EXTRACT) Log.v(LOG_TAG, "Retrieving extracted start="
-//                            + ims.mChangedStart + " end=" + ims.mChangedEnd
-//                            + " delta=" + ims.mChangedDelta);
-//                    if (ims.mChangedStart < 0 && !contentChanged) {
-//                        ims.mChangedStart = EXTRACT_NOTHING;
-//                    }
-//                    if (extractTextInternal(req, ims.mChangedStart, ims.mChangedEnd,
-//                            ims.mChangedDelta, ims.mTmpExtracted)) {
-//                        if (DEBUG_EXTRACT) Log.v(LOG_TAG, "Reporting extracted start="
-//                                + ims.mTmpExtracted.partialStartOffset
-//                                + " end=" + ims.mTmpExtracted.partialEndOffset
-//                                + ": " + ims.mTmpExtracted.text);
-//                        imm.updateExtractedText(this, req.token,
-//                                mInputMethodState.mTmpExtracted);
-//                        return TRUE;
-//                    }
-//                }
-//            }
-//        }
-//    }
+    InputMethodState* ims = mInputMethodState;
+    if (ims != NULL) {
+        Boolean contentChanged = ims->mContentChanged;
+        if (contentChanged || ims->mSelectionModeChanged) {
+            ims->mContentChanged = FALSE;
+            ims->mSelectionModeChanged = FALSE;
+            AutoPtr<IExtractedTextRequest> req = ims->mExtracting;
+           if (req != NULL) {
+               // InputMethodManager imm = InputMethodManager.peekInstance();
+               // if (imm != NULL) {
+               //     if (DEBUG_EXTRACT) Log.v(LOG_TAG, "Retrieving extracted start="
+               //             + ims->mChangedStart + " end=" + ims->mChangedEnd
+               //             + " delta=" + ims->mChangedDelta);
+               //     if (ims->mChangedStart < 0 && !contentChanged) {
+               //         ims->mChangedStart = EXTRACT_NOTHING;
+               //     }
+               //     if (extractTextInternal(req, ims->mChangedStart, ims->mChangedEnd,
+               //             ims->mChangedDelta, ims->mTmpExtracted)) {
+               //         if (DEBUG_EXTRACT) Log.v(LOG_TAG, "Reporting extracted start="
+               //                 + ims->mTmpExtracted.partialStartOffset
+               //                 + " end=" + ims->mTmpExtracted.partialEndOffset
+               //                 + ": " + ims->mTmpExtracted.text);
+               //         imm.updateExtractedText(this, req.token,
+               //                 mInputMethodState.mTmpExtracted);
+               //         return TRUE;
+               //     }
+               // }
+           }
+       }
+   }
     return FALSE;
 }
 
@@ -5636,9 +5646,9 @@ ECode TextView::SetExtractedText(
 ECode TextView::SetExtracting(
     /* [in] */ IExtractedTextRequest* req)
 {
-    /*if (mInputMethodState != NULL) {
-        mInputMethodState.mExtracting = req;
-    }*/
+    if (mInputMethodState != NULL) {
+        mInputMethodState->mExtracting = req;
+    }
     HideControllers();
     return NOERROR;
 }
@@ -5662,61 +5672,65 @@ ECode TextView::OnCommitCompletion(
 ECode TextView::BeginBatchEdit()
 {
     mInBatchEditControllers = TRUE;
-    //final InputMethodState ims = mInputMethodState;
-    //if (ims != NULL) {
-    //    Int32 nesting = ++ims.mBatchEditNesting;
-    //    if (nesting == 1) {
-    //        ims.mCursorChanged = FALSE;
-    //        ims.mChangedDelta = 0;
-    //        if (ims.mContentChanged) {
-    //            // We already have a pending change from somewhere else,
-    //            // so turn this into a full update.
-    //            ims.mChangedStart = 0;
-    //            ims.mChangedEnd = mText.length();
-    //        } else {
-    //            ims.mChangedStart = EXTRACT_UNKNOWN;
-    //            ims.mChangedEnd = EXTRACT_UNKNOWN;
-    //            ims.mContentChanged = FALSE;
-    //        }
-    //        onBeginBatchEdit();
-    //    }
-    //}
+    InputMethodState* ims = mInputMethodState;
+    if (ims != NULL) {
+        Int32 nesting = ++ims->mBatchEditNesting;
+        if (nesting == 1) {
+            ims->mCursorChanged = FALSE;
+            ims->mChangedDelta = 0;
+            if (ims->mContentChanged) {
+                // We already have a pending change from somewhere else,
+                // so turn this into a full update.
+                ims->mChangedStart = 0;
+                mText->GetLength(&ims->mChangedEnd);
+            }
+            else {
+                ims->mChangedStart = EXTRACT_UNKNOWN;
+                ims->mChangedEnd = EXTRACT_UNKNOWN;
+                ims->mContentChanged = FALSE;
+            }
+            OnBeginBatchEdit();
+        }
+    }
     return NOERROR;
 }
 
 ECode TextView::EndBatchEdit()
 {
     mInBatchEditControllers = FALSE;
-    /*final InputMethodState ims = mInputMethodState;
+    InputMethodState* ims = mInputMethodState;
     if (ims != NULL) {
-        Int32 nesting = --ims.mBatchEditNesting;
+        Int32 nesting = --ims->mBatchEditNesting;
         if (nesting == 0) {
-            finishBatchEdit(ims);
+            FinishBatchEdit(ims);
         }
-    }*/
+    }
     return NOERROR;
 }
 
 void TextView::EnsureEndedBatchEdit()
 {
-    /*final InputMethodState ims = mInputMethodState;
-    if (ims != NULL && ims.mBatchEditNesting != 0) {
-        ims.mBatchEditNesting = 0;
-        finishBatchEdit(ims);
-    }*/
+    InputMethodState* ims = mInputMethodState;
+    if (ims != NULL && ims->mBatchEditNesting != 0) {
+        ims->mBatchEditNesting = 0;
+        FinishBatchEdit(ims);
+    }
 }
 
-//void finishBatchEdit(final InputMethodState ims) {
-//    onEndBatchEdit();
-//
-//    if (ims.mContentChanged || ims.mSelectionModeChanged) {
-//        updateAfterEdit();
-//        reportExtractedText();
-//    } else if (ims.mCursorChanged) {
-//        // Cheezy way to get us to report the current cursor location.
-//        invalidateCursor();
-//    }
-//}
+void TextView::FinishBatchEdit(
+    /* [in] */ InputMethodState* ims)
+{
+    OnEndBatchEdit();
+
+    if (ims->mContentChanged || ims->mSelectionModeChanged) {
+        UpdateAfterEdit();
+        ReportExtractedText();
+    }
+    else if (ims->mCursorChanged) {
+        // Cheezy way to get us to report the current cursor location.
+        InvalidateCursor();
+    }
+}
 
 void TextView::UpdateAfterEdit()
 {
@@ -6042,7 +6056,7 @@ Boolean TextView::CompressText(
     // Only compress the text if it hasn't been compressed by the previous pass
     /*if (width > 0.0f && mLayout != NULL && getLineCount() == 1 && !mUserSetTextScaleX &&
             mTextPaint.getTextScaleX() == 1.0f) {
-        final Float textWidth = mLayout.getLineWidth(0);
+        final Float textWidth = mLayout->getLineWidth(0);
         final Float overflow = (textWidth + 1.0f - width) / width;
         if (overflow > 0.0f && overflow <= Marquee.MARQUEE_DELTA_MAX) {
             mTextPaint.setTextScaleX(1.0f - overflow - 0.005f);
@@ -6490,77 +6504,101 @@ void TextView::CheckForRelayout()
  */
 Boolean TextView::BringTextIntoView()
 {
-    //Int32 line = 0;
-    //if ((mGravity & Gravity.VERTICAL_GRAVITY_MASK) == Gravity.BOTTOM) {
-    //    line = mLayout.getLineCount() - 1;
-    //}
+    Int32 line = 0;
+    if ((mGravity & Gravity_VERTICAL_GRAVITY_MASK) == Gravity_BOTTOM) {
+        mLayout->GetLineCount(&line);
+        line--;
+    }
 
-    //Layout.Alignment a = mLayout.getParagraphAlignment(line);
-    //Int32 dir = mLayout.getParagraphDirection(line);
-    //Int32 hspace = mRight - mLeft - getCompoundPaddingLeft() - getCompoundPaddingRight();
-    //Int32 vspace = mBottom - mTop - getExtendedPaddingTop() - getExtendedPaddingBottom();
-    //Int32 ht = mLayout.getHeight();
+    LayoutAlignment a;
+    mLayout->GetParagraphAlignment(line, &a);
+    Int32 dir;
+    mLayout->GetParagraphDirection(line, &dir);
+    Int32 hspace = mRight - mLeft - GetCompoundPaddingLeft() - GetCompoundPaddingRight();
+    Int32 vspace = mBottom - mTop - GetExtendedPaddingTop() - GetExtendedPaddingBottom();
+    Int32 ht;
+    mLayout->GetHeight(&ht);
 
-    //Int32 scrollx, scrolly;
+    Int32 scrollx, scrolly;
 
-    //if (a == Layout.Alignment.ALIGN_CENTER) {
-    //    /*
-    //        * Keep centered if possible, or, if it is too wide to fit,
-    //        * keep leading edge in view.
-    //        */
+    if (a == LayoutAlignment_ALIGN_CENTER) {
+        /*
+         * Keep centered if possible, or, if it is too wide to fit,
+         * keep leading edge in view.
+         */
 
-    //    Int32 left = (Int32) FloatMath.floor(mLayout.getLineLeft(line));
-    //    Int32 right = (Int32) FloatMath.ceil(mLayout.getLineRight(line));
+        Float fLeft, fRight;
+        mLayout->GetLineLeft(line, &fLeft);
+        mLayout->GetLineRight(line, &fRight);
+        Int32 left = (Int32)Math::Floor(fLeft);
+        Int32 right = (Int32)Math::Ceil(fRight);
 
-    //    if (right - left < hspace) {
-    //        scrollx = (right + left) / 2 - hspace / 2;
-    //    } else {
-    //        if (dir < 0) {
-    //            scrollx = right - hspace;
-    //        } else {
-    //            scrollx = left;
-    //        }
-    //    }
-    //} else if (a == Layout.Alignment.ALIGN_NORMAL) {
-    //    /*
-    //        * Keep leading edge in view.
-    //        */
+        if (right - left < hspace) {
+            scrollx = (right + left) / 2 - hspace / 2;
+        }
+        else {
+            if (dir < 0) {
+                scrollx = right - hspace;
+            }
+            else {
+                scrollx = left;
+            }
+        }
+    }
+    else if (a == LayoutAlignment_ALIGN_NORMAL) {
+        /*
+         * Keep leading edge in view.
+         */
 
-    //    if (dir < 0) {
-    //        Int32 right = (Int32) FloatMath.ceil(mLayout.getLineRight(line));
-    //        scrollx = right - hspace;
-    //    } else {
-    //        scrollx = (Int32) FloatMath.floor(mLayout.getLineLeft(line));
-    //    }
-    //} else /* a == Layout.Alignment.ALIGN_OPPOSITE */ {
-    //    /*
-    //        * Keep trailing edge in view.
-    //        */
+        if (dir < 0) {
+            Float fRight;
+            mLayout->GetLineRight(line, &fRight);
+            Int32 right = (Int32)Math::Ceil(fRight);
+            scrollx = right - hspace;
+        }
+        else {
+            Float fLeft;
+            mLayout->GetLineLeft(line, &fLeft);
+            scrollx = (Int32)Math::Floor(fLeft);
+        }
+    }
+    else /* a == LayoutAlignment_ALIGN_OPPOSITE */ {
+        /*
+         * Keep trailing edge in view.
+         */
 
-    //    if (dir < 0) {
-    //        scrollx = (Int32) FloatMath.floor(mLayout.getLineLeft(line));
-    //    } else {
-    //        Int32 right = (Int32) FloatMath.ceil(mLayout.getLineRight(line));
-    //        scrollx = right - hspace;
-    //    }
-    //}
+        if (dir < 0) {
+            Float fLeft;
+            mLayout->GetLineLeft(line, &fLeft);
+            scrollx = (Int32)Math::Floor(fLeft);
+        }
+        else {
+            Float fRight;
+            mLayout->GetLineRight(line, &fRight);
+            Int32 right = (Int32)Math::Ceil(fRight);
+            scrollx = right - hspace;
+        }
+    }
 
-    //if (ht < vspace) {
-    //    scrolly = 0;
-    //} else {
-    //    if ((mGravity & Gravity.VERTICAL_GRAVITY_MASK) == Gravity.BOTTOM) {
-    //        scrolly = ht - vspace;
-    //    } else {
-    //        scrolly = 0;
-    //    }
-    //}
+    if (ht < vspace) {
+        scrolly = 0;
+    }
+    else {
+        if ((mGravity & Gravity_VERTICAL_GRAVITY_MASK) == Gravity_BOTTOM) {
+            scrolly = ht - vspace;
+        }
+        else {
+            scrolly = 0;
+        }
+    }
 
-    //if (scrollx != mScrollX || scrolly != mScrollY) {
-    //    scrollTo(scrollx, scrolly);
-    //    return TRUE;
-    //} else {
-    //    return FALSE;
-    //}
+    if (scrollx != mScrollX || scrolly != mScrollY) {
+        ScrollTo(scrollx, scrolly);
+        return TRUE;
+    }
+    else {
+        return FALSE;
+    }
     return FALSE;
 }
 
@@ -6571,161 +6609,183 @@ Boolean TextView::BringTextIntoView()
 Boolean TextView::BringPointIntoView(
     /* [in] */ Int32 offset)
 {
-    //Boolean changed = FALSE;
+    Boolean changed = FALSE;
 
-    //Int32 line = mLayout.getLineForOffset(offset);
+    Int32 line;
+    mLayout->GetLineForOffset(offset, &line);
 
-    //// FIXME: Is it okay to truncate this, or should we round?
-    //final Int32 x = (Int32)mLayout.getPrimaryHorizontal(offset);
-    //final Int32 top = mLayout.getLineTop(line);
-    //final Int32 bottom = mLayout.getLineTop(line + 1);
+    // FIXME: Is it okay to truncate this, or should we round?
+    Float fx;
+    mLayout->GetPrimaryHorizontal(offset, &fx);
+    Int32 x = (Int32)fx;
+    Int32 top;
+    mLayout->GetLineTop(line, &top);
+    Int32 bottom;
+    mLayout->GetLineTop(line + 1, &bottom);
 
-    //Int32 left = (Int32) FloatMath.floor(mLayout.getLineLeft(line));
-    //Int32 right = (Int32) FloatMath.ceil(mLayout.getLineRight(line));
-    //Int32 ht = mLayout.getHeight();
+    Float fLeft, fRight;
+    mLayout->GetLineLeft(line, &fLeft);
+    mLayout->GetLineRight(line, &fRight);
+    Int32 left = (Int32)Math::Floor(fLeft);
+    Int32 right = (Int32)Math::Floor(fRight);
+    Int32 ht;
+    mLayout->GetHeight(&ht);
 
-    //Int32 grav;
+    Int32 grav;
 
-    //switch (mLayout.getParagraphAlignment(line)) {
-    //    case ALIGN_NORMAL:
-    //        grav = 1;
-    //        break;
+    LayoutAlignment alignment;
+    mLayout->GetParagraphAlignment(line, &alignment);
+    switch (alignment) {
+        case LayoutAlignment_ALIGN_NORMAL:
+            grav = 1;
+            break;
 
-    //    case ALIGN_OPPOSITE:
-    //        grav = -1;
-    //        break;
+        case LayoutAlignment_ALIGN_OPPOSITE:
+            grav = -1;
+            break;
 
-    //    default:
-    //        grav = 0;
-    //}
+        default:
+            grav = 0;
+    }
 
-    //grav *= mLayout.getParagraphDirection(line);
+    Int32 dir;
+    mLayout->GetParagraphDirection(line, &dir);
+    grav *= dir;
 
-    //Int32 hspace = mRight - mLeft - getCompoundPaddingLeft() - getCompoundPaddingRight();
-    //Int32 vspace = mBottom - mTop - getExtendedPaddingTop() - getExtendedPaddingBottom();
+    Int32 hspace = mRight - mLeft - GetCompoundPaddingLeft() - GetCompoundPaddingRight();
+    Int32 vspace = mBottom - mTop - GetExtendedPaddingTop() - GetExtendedPaddingBottom();
 
-    //Int32 hslack = (bottom - top) / 2;
-    //Int32 vslack = hslack;
+    Int32 hslack = (bottom - top) / 2;
+    Int32 vslack = hslack;
 
-    //if (vslack > vspace / 4)
-    //    vslack = vspace / 4;
-    //if (hslack > hspace / 4)
-    //    hslack = hspace / 4;
+    if (vslack > vspace / 4)
+        vslack = vspace / 4;
+    if (hslack > hspace / 4)
+        hslack = hspace / 4;
 
-    //Int32 hs = mScrollX;
-    //Int32 vs = mScrollY;
+    Int32 hs = mScrollX;
+    Int32 vs = mScrollY;
 
-    //if (top - vs < vslack)
-    //    vs = top - vslack;
-    //if (bottom - vs > vspace - vslack)
-    //    vs = bottom - (vspace - vslack);
-    //if (ht - vs < vspace)
-    //    vs = ht - vspace;
-    //if (0 - vs > 0)
-    //    vs = 0;
+    if (top - vs < vslack)
+        vs = top - vslack;
+    if (bottom - vs > vspace - vslack)
+        vs = bottom - (vspace - vslack);
+    if (ht - vs < vspace)
+        vs = ht - vspace;
+    if (0 - vs > 0)
+        vs = 0;
 
-    //if (grav != 0) {
-    //    if (x - hs < hslack) {
-    //        hs = x - hslack;
-    //    }
-    //    if (x - hs > hspace - hslack) {
-    //        hs = x - (hspace - hslack);
-    //    }
-    //}
+    if (grav != 0) {
+        if (x - hs < hslack) {
+            hs = x - hslack;
+        }
+        if (x - hs > hspace - hslack) {
+            hs = x - (hspace - hslack);
+        }
+    }
 
-    //if (grav < 0) {
-    //    if (left - hs > 0)
-    //        hs = left;
-    //    if (right - hs < hspace)
-    //        hs = right - hspace;
-    //} else if (grav > 0) {
-    //    if (right - hs < hspace)
-    //        hs = right - hspace;
-    //    if (left - hs > 0)
-    //        hs = left;
-    //} else /* grav == 0 */ {
-    //    if (right - left <= hspace) {
-    //        /*
-    //            * If the entire text fits, center it exactly.
-    //            */
-    //        hs = left - (hspace - (right - left)) / 2;
-    //    } else if (x > right - hslack) {
-    //        /*
-    //            * If we are near the right edge, keep the right edge
-    //            * at the edge of the view.
-    //            */
-    //        hs = right - hspace;
-    //    } else if (x < left + hslack) {
-    //        /*
-    //            * If we are near the left edge, keep the left edge
-    //            * at the edge of the view.
-    //            */
-    //        hs = left;
-    //    } else if (left > hs) {
-    //        /*
-    //            * Is there whitespace visible at the left?  Fix it if so.
-    //            */
-    //        hs = left;
-    //    } else if (right < hs + hspace) {
-    //        /*
-    //            * Is there whitespace visible at the right?  Fix it if so.
-    //            */
-    //        hs = right - hspace;
-    //    } else {
-    //        /*
-    //            * Otherwise, Float as needed.
-    //            */
-    //        if (x - hs < hslack) {
-    //            hs = x - hslack;
-    //        }
-    //        if (x - hs > hspace - hslack) {
-    //            hs = x - (hspace - hslack);
-    //        }
-    //    }
-    //}
+    if (grav < 0) {
+        if (left - hs > 0)
+            hs = left;
+        if (right - hs < hspace)
+            hs = right - hspace;
+    }
+    else if (grav > 0) {
+        if (right - hs < hspace)
+            hs = right - hspace;
+        if (left - hs > 0)
+            hs = left;
+    }
+    else /* grav == 0 */ {
+        if (right - left <= hspace) {
+            /*
+             * If the entire text fits, center it exactly.
+             */
+            hs = left - (hspace - (right - left)) / 2;
+        }
+        else if (x > right - hslack) {
+            /*
+             * If we are near the right edge, keep the right edge
+             * at the edge of the view.
+             */
+            hs = right - hspace;
+        }
+        else if (x < left + hslack) {
+            /*
+             * If we are near the left edge, keep the left edge
+             * at the edge of the view.
+             */
+            hs = left;
+        }
+        else if (left > hs) {
+            /*
+             * Is there whitespace visible at the left?  Fix it if so.
+             */
+            hs = left;
+        }
+        else if (right < hs + hspace) {
+            /*
+             * Is there whitespace visible at the right?  Fix it if so.
+             */
+            hs = right - hspace;
+        }
+        else {
+            /*
+             * Otherwise, Float as needed.
+             */
+            if (x - hs < hslack) {
+                hs = x - hslack;
+            }
+            if (x - hs > hspace - hslack) {
+                hs = x - (hspace - hslack);
+            }
+        }
+    }
 
-    //if (hs != mScrollX || vs != mScrollY) {
-    //    if (mScroller == NULL) {
-    //        scrollTo(hs, vs);
-    //    } else {
-    //        Int64 duration = AnimationUtils.currentAnimationTimeMillis() - mLastScroll;
-    //        Int32 dx = hs - mScrollX;
-    //        Int32 dy = vs - mScrollY;
+    if (hs != mScrollX || vs != mScrollY) {
+        if (mScroller == NULL) {
+            ScrollTo(hs, vs);
+        }
+        else {
+            Int64 duration = AnimationUtils::CurrentAnimationTimeMillis() - mLastScroll;
+            Int32 dx = hs - mScrollX;
+            Int32 dy = vs - mScrollY;
 
-    //        if (duration > ANIMATED_SCROLL_GAP) {
-    //            mScroller.startScroll(mScrollX, mScrollY, dx, dy);
-    //            awakenScrollBars(mScroller.getDuration());
-    //            invalidate();
-    //        } else {
-    //            if (!mScroller.isFinished()) {
-    //                mScroller.abortAnimation();
-    //            }
+            if (duration > ANIMATED_SCROLL_GAP) {
+                mScroller->StartScroll(mScrollX, mScrollY, dx, dy);
+                AwakenScrollBars(mScroller->GetDuration());
+                Invalidate();
+            }
+            else {
+                if (!mScroller->IsFinished()) {
+                    mScroller->AbortAnimation();
+                }
 
-    //            scrollBy(dx, dy);
-    //        }
+                ScrollBy(dx, dy);
+            }
 
-    //        mLastScroll = AnimationUtils.currentAnimationTimeMillis();
-    //    }
+            mLastScroll = AnimationUtils::CurrentAnimationTimeMillis();
+        }
 
-    //    changed = TRUE;
-    //}
+        changed = TRUE;
+    }
 
-    //if (isFocused()) {
-    //    // This offsets because getInterestingRect() is in terms of
-    //    // viewport coordinates, but requestRectangleOnScreen()
-    //    // is in terms of content coordinates.
+    if (IsFocused()) {
+        //This offsets because getInterestingRect() is in terms of
+        //viewport coordinates, but requestRectangleOnScreen()
+        //is in terms of content coordinates.
 
-    //    Rect r = new Rect(x, top, x + 1, bottom);
-    //    getInterestingRect(r, line);
-    //    r.offset(mScrollX, mScrollY);
+        AutoPtr<IRect> r;
+        CRect::New(x, top, x + 1, bottom, (IRect**)&r);
+        GetInterestingRect(r, line);
+        r->Offset(mScrollX, mScrollY);
 
-    //    if (requestRectangleOnScreen(r)) {
-    //        changed = TRUE;
-    //    }
-    //}
+        if (RequestRectangleOnScreen(r)) {
+            changed = TRUE;
+        }
+    }
 
-    //return changed;
-    return FALSE;
+    return changed;
 }
 
 /**
@@ -6747,7 +6807,7 @@ Boolean TextView::MoveCursorToVisibleOffset()
         return FALSE;
     }
 
-    // First: make sure the line is visible on screen:
+    //First: make sure the line is visible on screen:
 
     Int32 line;
     mLayout->GetLineForOffset(start, &line);
@@ -6769,7 +6829,7 @@ Boolean TextView::MoveCursorToVisibleOffset()
         mLayout->GetLineForVertical(vspace+vs-vslack-(bottom-top), &line);
     }
 
-    // Next: make sure the character is visible on screen:
+    //Next: make sure the character is visible on screen:
 
     Int32 hspace = mRight - mLeft - GetCompoundPaddingLeft() - GetCompoundPaddingRight();
     Int32 hs = mScrollX;
@@ -6795,13 +6855,13 @@ Boolean TextView::MoveCursorToVisibleOffset()
 
 ECode TextView::ComputeScroll()
 {
-    //if (mScroller != NULL) {
-    //    if (mScroller.computeScrollOffset()) {
-    //        mScrollX = mScroller.getCurrX();
-    //        mScrollY = mScroller.getCurrY();
-    //        postInvalidate();  // So we draw again
-    //    }
-    //}
+    if (mScroller != NULL) {
+        if (mScroller->ComputeScrollOffset()) {
+            mScrollX = mScroller->GetCurrX();
+            mScrollY = mScroller->GetCurrY();
+            PostInvalidate();  // So we draw again
+        }
+    }
     return NOERROR;
 }
 
@@ -6860,8 +6920,8 @@ void TextView::Debug(
 
         output += "mText=\"" + mText + "\" ";
         if (mLayout != NULL) {
-            output += "mLayout width=" + mLayout.getWidth()
-                    + " height=" + mLayout.getHeight();
+            output += "mLayout width=" + mLayout->getWidth()
+                    + " height=" + mLayout->getHeight();
         }
     } else {
         output += "mText=NULL";
@@ -7213,29 +7273,30 @@ void TextView::HandleTextChanged(
     /* [in] */ Int32 before,
     /* [in] */ Int32 after)
 {
-    //final InputMethodState ims = mInputMethodState;
-    //if (ims == NULL || ims.mBatchEditNesting == 0) {
-    //    updateAfterEdit();
-    //}
-    //if (ims != NULL) {
-    //    ims.mContentChanged = TRUE;
-    //    if (ims.mChangedStart < 0) {
-    //        ims.mChangedStart = start;
-    //        ims.mChangedEnd = start+before;
-    //    } else {
-    //        if (ims.mChangedStart > start) ims.mChangedStart = start;
-    //        if (ims.mChangedEnd < (start+before)) ims.mChangedEnd = start+before;
-    //    }
-    //    ims.mChangedDelta += after-before;
-    //}
-    //
-    //sendOnTextChanged(buffer, start, before, after);
-    //onTextChanged(buffer, start, before, after);
+    InputMethodState* ims = mInputMethodState;
+    if (ims == NULL || ims->mBatchEditNesting == 0) {
+        UpdateAfterEdit();
+    }
+    if (ims != NULL) {
+        ims->mContentChanged = TRUE;
+        if (ims->mChangedStart < 0) {
+            ims->mChangedStart = start;
+            ims->mChangedEnd = start+before;
+        }
+        else {
+            if (ims->mChangedStart > start) ims->mChangedStart = start;
+            if (ims->mChangedEnd < (start+before)) ims->mChangedEnd = start+before;
+        }
+        ims->mChangedDelta += after-before;
+    }
 
-    //// Hide the controller if the amount of content changed
-    //if (before != after) {
-    //    hideControllers();
-    //}
+    SendOnTextChanged(buffer, start, before, after);
+    OnTextChanged(buffer, start, before, after);
+
+    // Hide the controller if the amount of content changed
+    if (before != after) {
+        HideControllers();
+    }
 }
 
 /**
@@ -7250,114 +7311,116 @@ ECode TextView::SpanChange(
     /* [in] */ Int32 oldEnd,
     /* [in] */ Int32 newEnd)
 {
-    return E_NOT_IMPLEMENTED;
-//    // XXX Make the start and end move together if this ends up
-//    // spending too much time invalidating.
-//
-//    Boolean selChanged = FALSE;
-//    Int32 newSelStart=-1, newSelEnd=-1;
-//
-//    final InputMethodState ims = mInputMethodState;
-//
-//    if (what == Selection.SELECTION_END) {
-//        mHighlightPathBogus = TRUE;
-//        selChanged = TRUE;
-//        newSelEnd = newStart;
-//
-//        if (!isFocused()) {
-//            mSelectionMoved = TRUE;
-//        }
-//
-//        if (oldStart >= 0 || newStart >= 0) {
-//            invalidateCursor(Selection.getSelectionStart(buf), oldStart, newStart);
-//            registerForPreDraw();
-//
-//            if (isFocused()) {
-//                mShowCursor = SystemClock.uptimeMillis();
-//                makeBlink();
-//            }
-//        }
-//    }
-//
-//    if (what == Selection.SELECTION_START) {
-//        mHighlightPathBogus = TRUE;
-//        selChanged = TRUE;
-//        newSelStart = newStart;
-//
-//        if (!isFocused()) {
-//            mSelectionMoved = TRUE;
-//        }
-//
-//        if (oldStart >= 0 || newStart >= 0) {
-//            Int32 end = Selection.getSelectionEnd(buf);
-//            invalidateCursor(end, oldStart, newStart);
-//        }
-//    }
-//
-//    if (selChanged) {
-//        if ((buf.getSpanFlags(what)&Spanned.SPAN_INTERMEDIATE) == 0) {
-//            if (newSelStart < 0) {
-//                newSelStart = Selection.getSelectionStart(buf);
-//            }
-//            if (newSelEnd < 0) {
-//                newSelEnd = Selection.getSelectionEnd(buf);
-//            }
-//            onSelectionChanged(newSelStart, newSelEnd);
-//        }
-//    }
-//
-//    if (what instanceof UpdateAppearance ||
-//        what instanceof ParagraphStyle) {
-//        if (ims == NULL || ims.mBatchEditNesting == 0) {
-//            invalidate();
-//            mHighlightPathBogus = TRUE;
-//            checkForResize();
-//        } else {
-//            ims.mContentChanged = TRUE;
-//        }
-//    }
-//
-//    if (MetaKeyKeyListener.isMetaTracker(buf, what)) {
-//        mHighlightPathBogus = TRUE;
-//        if (ims != NULL && MetaKeyKeyListener.isSelectingMetaTracker(buf, what)) {
-//            ims.mSelectionModeChanged = TRUE;
-//        }
-//
-//        if (Selection.getSelectionStart(buf) >= 0) {
-//            if (ims == NULL || ims.mBatchEditNesting == 0) {
-//                invalidateCursor();
-//            } else {
-//                ims.mCursorChanged = TRUE;
-//            }
-//        }
-//    }
-//
-//    if (what instanceof ParcelableSpan) {
-//        // If this is a span that can be sent to a remote process,
+    // XXX Make the start and end move together if this ends up
+    // spending too much time invalidating.
+
+    Boolean selChanged = FALSE;
+    Int32 newSelStart=-1, newSelEnd=-1;
+
+    InputMethodState* ims = mInputMethodState;
+
+    if (what == Selection::SELECTION_END) {
+        mHighlightPathBogus = TRUE;
+        selChanged = TRUE;
+        newSelEnd = newStart;
+
+        if (!IsFocused()) {
+            mSelectionMoved = TRUE;
+        }
+
+        if (oldStart >= 0 || newStart >= 0) {
+            InvalidateCursor(Selection::GetSelectionStart(buf), oldStart, newStart);
+            RegisterForPreDraw();
+
+            if (IsFocused()) {
+                mShowCursor = SystemClock::GetUptimeMillis();
+                MakeBlink();
+            }
+        }
+    }
+
+    if (what == Selection::SELECTION_START) {
+        mHighlightPathBogus = TRUE;
+        selChanged = TRUE;
+        newSelStart = newStart;
+
+        if (!IsFocused()) {
+            mSelectionMoved = TRUE;
+        }
+
+        if (oldStart >= 0 || newStart >= 0) {
+            Int32 end = Selection::GetSelectionEnd(buf);
+            InvalidateCursor(end, oldStart, newStart);
+        }
+    }
+
+    if (selChanged) {
+        Int32 flags;
+        buf->GetSpanFlags(what, &flags);
+        if ((flags & Spanned_SPAN_INTERMEDIATE) == 0) {
+            if (newSelStart < 0) {
+                newSelStart = Selection::GetSelectionStart(buf);
+            }
+            if (newSelEnd < 0) {
+                newSelEnd = Selection::GetSelectionEnd(buf);
+            }
+            OnSelectionChanged(newSelStart, newSelEnd);
+        }
+    }
+
+    // if (what instanceof UpdateAppearance ||
+    //     what instanceof ParagraphStyle) {
+    //     if (ims == NULL || ims->mBatchEditNesting == 0) {
+    //         invalidate();
+    //         mHighlightPathBogus = TRUE;
+    //         checkForResize();
+    //     } else {
+    //         ims->mContentChanged = TRUE;
+    //     }
+    // }
+
+    if (MetaKeyKeyListener::IsMetaTracker(buf, what)) {
+        mHighlightPathBogus = TRUE;
+        if (ims != NULL && MetaKeyKeyListener::IsSelectingMetaTracker(buf, what)) {
+            ims->mSelectionModeChanged = TRUE;
+        }
+
+        if (Selection::GetSelectionStart(buf) >= 0) {
+            if (ims == NULL || ims->mBatchEditNesting == 0) {
+                InvalidateCursor();
+            }
+            else {
+                ims->mCursorChanged = TRUE;
+            }
+        }
+    }
+
+//   if (what instanceof ParcelableSpan) {
+//       // If this is a span that can be sent to a remote process,
 //        // the current extract editor would be interested in it.
-//        if (ims != NULL && ims.mExtracting != NULL) {
-//            if (ims.mBatchEditNesting != 0) {
+//        if (ims != NULL && ims->mExtracting != NULL) {
+//            if (ims->mBatchEditNesting != 0) {
 //                if (oldStart >= 0) {
-//                    if (ims.mChangedStart > oldStart) {
-//                        ims.mChangedStart = oldStart;
+//                    if (ims->mChangedStart > oldStart) {
+//                        ims->mChangedStart = oldStart;
 //                    }
-//                    if (ims.mChangedStart > oldEnd) {
-//                        ims.mChangedStart = oldEnd;
+//                    if (ims->mChangedStart > oldEnd) {
+//                        ims->mChangedStart = oldEnd;
 //                    }
 //                }
 //                if (newStart >= 0) {
-//                    if (ims.mChangedStart > newStart) {
-//                        ims.mChangedStart = newStart;
+//                    if (ims->mChangedStart > newStart) {
+//                        ims->mChangedStart = newStart;
 //                    }
-//                    if (ims.mChangedStart > newEnd) {
-//                        ims.mChangedStart = newEnd;
+//                    if (ims->mChangedStart > newEnd) {
+//                        ims->mChangedStart = newEnd;
 //                    }
 //                }
 //            } else {
 //                if (DEBUG_EXTRACT) Log.v(LOG_TAG, "Span change outside of batch: "
 //                        + oldStart + "-" + oldEnd + ","
 //                        + newStart + "-" + newEnd + what);
-//                ims.mContentChanged = TRUE;
+//                ims->mContentChanged = TRUE;
 //            }
 //        }
 //    }
@@ -7481,7 +7544,7 @@ void TextView::OnFocusChanged(
 
         if (ISpannable::Probe(mText)) {
             AutoPtr<ISpannable> sp = ISpannable::Probe(mText);
-            //MetaKeyKeyListener.resetMetaState(sp);
+            MetaKeyKeyListener::ResetMetaState(sp);
         }
 
         MakeBlink();
@@ -7773,8 +7836,7 @@ void TextView::PrepareCursorControllers()
  */
 Boolean TextView::IsTextEditable()
 {
-    //return mText instanceof Editable && onCheckIsTextEditor() && isEnabled();
-    return FALSE;
+    return mText != NULL && IEditable::Probe(mText) && OnCheckIsTextEditor() && IsEnabled();
 }
 
 /**
@@ -7811,9 +7873,11 @@ Boolean TextView::OnTrackballEvent(
     return View::OnTrackballEvent(event);
 }
 
-//void TextView::SetScroller(Scroller s) {
-//    mScroller = s;
-//}
+void TextView::SetScroller(
+    /* [in] */ Scroller* s)
+{
+    mScroller = s;
+}
 
 Float TextView::GetLeftFadingEdgeStrength()
 {
@@ -7830,9 +7894,9 @@ Float TextView::GetLeftFadingEdgeStrength()
 //                case Gravity.LEFT:
 //                    return 0.0f;
 //                case Gravity.RIGHT:
-//                    return (mLayout.getLineRight(0) - (mRight - mLeft) -
+//                    return (mLayout->getLineRight(0) - (mRight - mLeft) -
 //                            getCompoundPaddingLeft() - getCompoundPaddingRight() -
-//                            mLayout.getLineLeft(0)) / getHorizontalFadingEdgeLength();
+//                            mLayout->getLineLeft(0)) / getHorizontalFadingEdgeLength();
 //                case Gravity.CENTER_HORIZONTAL:
 //                    return 0.0f;
 //            }
@@ -7852,12 +7916,12 @@ Float TextView::GetRightFadingEdgeStrength()
 //                case Gravity.LEFT:
 //                    final Int32 textWidth = (mRight - mLeft) - getCompoundPaddingLeft() -
 //                            getCompoundPaddingRight();
-//                    final Float lineWidth = mLayout.getLineWidth(0);
+//                    final Float lineWidth = mLayout->getLineWidth(0);
 //                    return (lineWidth - textWidth) / getHorizontalFadingEdgeLength();
 //                case Gravity.RIGHT:
 //                    return 0.0f;
 //                case Gravity.CENTER_HORIZONTAL:
-//                    return (mLayout.getLineWidth(0) - ((mRight - mLeft) -
+//                    return (mLayout->getLineWidth(0) - ((mRight - mLeft) -
 //                            getCompoundPaddingLeft() - getCompoundPaddingRight())) /
 //                            getHorizontalFadingEdgeLength();
 //            }
@@ -8057,24 +8121,24 @@ Int64 TextView::GetWordLimitsAt(
     /* [in] */ Int32 offset)
 {
     /*
-     * Quick return if the input type is one where adding words
+     * Quick return if the input types one where adding words
      * to the dictionary doesn't make any sense.
      */
-    //Int32 klass = mInputType & InputType.TYPE_MASK_CLASS;
-    //if (klass == InputType.TYPE_CLASS_NUMBER ||
-    //    klass == InputType.TYPE_CLASS_PHONE ||
-    //    klass == InputType.TYPE_CLASS_DATETIME) {
-    //    return -1;
-    //}
+    Int32 klass = mInputType & InputType_TYPE_MASK_CLASS;
+    if (klass == InputType_TYPE_CLASS_NUMBER ||
+        klass == InputType_TYPE_CLASS_PHONE ||
+        klass == InputType_TYPE_CLASS_DATETIME) {
+        return -1;
+    }
 
-    //Int32 variation = mInputType & InputType.TYPE_MASK_VARIATION;
-    //if (variation == InputType.TYPE_TEXT_VARIATION_URI ||
-    //    variation == InputType.TYPE_TEXT_VARIATION_PASSWORD ||
-    //    variation == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD ||
-    //    variation == InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS ||
-    //    variation == InputType.TYPE_TEXT_VARIATION_FILTER) {
-    //    return -1;
-    //}
+    Int32 variation = mInputType & InputType_TYPE_MASK_VARIATION;
+    if (variation == InputType_TYPE_TEXT_VARIATION_URI ||
+        variation == InputType_TYPE_TEXT_VARIATION_PASSWORD ||
+        variation == InputType_TYPE_TEXT_VARIATION_VISIBLE_PASSWORD ||
+        variation == InputType_TYPE_TEXT_VARIATION_EMAIL_ADDRESS ||
+        variation == InputType_TYPE_TEXT_VARIATION_FILTER) {
+        return -1;
+    }
 
     Int32 len, end;
     mText->GetLength(&len);
@@ -8086,53 +8150,57 @@ Int64 TextView::GetWordLimitsAt(
 
     Int32 start = end;
 
-    //for (; start > 0; start--) {
-    //    char c = mTransformed.charAt(start - 1);
-    //    Int32 type = Character.getType(c);
+    for (; start > 0; start--) {
+        Char32 c;
+        mTransformed->GetCharAt(start - 1, &c);
+        Int32 type = Character::GetType(c);
 
-    //    if (c != '\'' &&
-    //        type != Character.UPPERCASE_LETTER &&
-    //        type != Character.LOWERCASE_LETTER &&
-    //        type != Character.TITLECASE_LETTER &&
-    //        type != Character.MODIFIER_LETTER &&
-    //        type != Character.DECIMAL_DIGIT_NUMBER) {
-    //        break;
-    //    }
-    //}
+        if (c != '\'' &&
+            type != Character::UPPERCASE_LETTER &&
+            type != Character::LOWERCASE_LETTER &&
+            type != Character::TITLECASE_LETTER &&
+            type != Character::MODIFIER_LETTER &&
+            type != Character::DECIMAL_DIGIT_NUMBER) {
+            break;
+        }
+    }
 
-    //for (; end < len; end++) {
-    //    char c = mTransformed.charAt(end);
-    //    Int32 type = Character.getType(c);
+    for (; end < len; end++) {
+        Char32 c;
+        mTransformed->GetCharAt(end, &c);
+        Int32 type = Character::GetType(c);
 
-    //    if (c != '\'' &&
-    //        type != Character.UPPERCASE_LETTER &&
-    //        type != Character.LOWERCASE_LETTER &&
-    //        type != Character.TITLECASE_LETTER &&
-    //        type != Character.MODIFIER_LETTER &&
-    //        type != Character.DECIMAL_DIGIT_NUMBER) {
-    //        break;
-    //    }
-    //}
+        if (c != '\'' &&
+            type != Character::UPPERCASE_LETTER &&
+            type != Character::LOWERCASE_LETTER &&
+            type != Character::TITLECASE_LETTER &&
+            type != Character::MODIFIER_LETTER &&
+            type != Character::DECIMAL_DIGIT_NUMBER) {
+            break;
+        }
+    }
 
-    //if (start == end) {
-    //    return -1;
-    //}
+    if (start == end) {
+        return -1;
+    }
 
-    //if (end - start > 48) {
-    //    return -1;
-    //}
+    if (end - start > 48) {
+        return -1;
+    }
 
-    //Boolean hasLetter = FALSE;
-    //for (Int32 i = start; i < end; i++) {
-    //    if (Character.isLetter(mTransformed.charAt(i))) {
-    //        hasLetter = TRUE;
-    //        break;
-    //    }
-    //}
+    Boolean hasLetter = FALSE;
+    for (Int32 i = start; i < end; i++) {
+        Char32 c;
+        mTransformed->GetCharAt(i, &c);
+        if (Character::IsLetter(c)) {
+            hasLetter = TRUE;
+            break;
+        }
+    }
 
-    //if (!hasLetter) {
-    //    return -1;
-    //}
+    if (!hasLetter) {
+        return -1;
+    }
 
     // Two ints packed in a Int64
     return PackRangeInLong(start, end);
@@ -8696,10 +8764,10 @@ AutoPtr<TextView::CursorController> TextView::GetSelectionController()
 
 Boolean TextView::IsInBatchEditMode()
 {
-    /*final InputMethodState ims = mInputMethodState;
+    InputMethodState* ims = mInputMethodState;
     if (ims != NULL) {
-        return ims.mBatchEditNesting > 0;
-    }*/
+        return ims->mBatchEditNesting > 0;
+    }
     return mInBatchEditControllers;
 }
 
@@ -8809,7 +8877,8 @@ ECode TextView::InitFromAttributes(
             -1, &ap);
     if (ap != -1) {
         ASSERT_SUCCEEDED(context->ObtainStyledAttributesEx(ap,
-                ArrayOf<Int32>(R_Styleable_TextAppearance, sizeof(R_Styleable_TextAppearance) / sizeof(Int32)),/*com.android.internal.R.styleable.TextAppearance*/
+                ArrayOf<Int32>(R_Styleable_TextAppearance,
+                sizeof(R_Styleable_TextAppearance) / sizeof(Int32)),/*com.android.internal.R.styleable.TextAppearance*/
                 (ITypedArray**)&appearance));
     }
     if (appearance != NULL) {

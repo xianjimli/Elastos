@@ -8,6 +8,7 @@
 #include <elastos/Character.h>
 #include <elastos/Math.h>
 #include <StringBuffer.h>
+#include <stdio.h>
 
 using namespace Elastos::Core;
 
@@ -113,7 +114,7 @@ void SpannableStringBuilder::ResizeFor(
     ArrayOf<Char32>::Free(mText);
     Int32 oldlen = len;
     mText = newtext;
-    mGapLength += len - oldlen;
+    mGapLength += mText->GetLength() - oldlen;
 
     if (mGapLength < 1)
         assert(0);

@@ -279,7 +279,6 @@ const ArrayOf<ArrayOf<Int32>*>* View::InitViewStateSets()
 
 ECode View::CheckForLongPress::Run()
 {
-    printf("CheckForLongPress::Run\n");
     View* view = (View*)mView->Probe(EIID_View);
     assert(view != NULL);
     if (view->IsPressed() && (view->mParent != NULL)
@@ -4348,11 +4347,8 @@ Boolean View::RemoveCallbacks(
     /* [in] */ IRunnable* action)
 {
     if (mAttachInfo != NULL) {
-        ECode (STDCALL IRunnable::*pHandlerFunc)();
-        pHandlerFunc = &IRunnable::Run;
-
         ECode ec = mAttachInfo->mHandler->RemoveCppCallbacks(
-            (Handle32)action, *(Handle32*)&pHandlerFunc);
+            (Handle32)action, NULL);
 
         if (FAILED(ec)) {
             return FALSE;

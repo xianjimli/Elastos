@@ -169,7 +169,7 @@ ECode CPaint::GetStyle(
 ECode CPaint::SetStyle(
     /* [in] */ PaintStyle style)
 {
-    return Paint::SetFilterBitmap(style);
+    return Paint::SetStyle(style);
 }
 
 ECode CPaint::GetColor(
