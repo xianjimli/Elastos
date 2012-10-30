@@ -13,7 +13,7 @@ ECode ChangeConfig(Byte value)
 	IFileOutputStream *os = NULL;
 	ECode ec;
 
-	ec = CFileOutputStream::New(String("./config.dat"), false, &os);
+	ec = CFileOutputStream::New(String("/data/data/com.elastos.runtime/elastos/config.dat"), false, &os);
 	if (FAILED(ec)) return ec;
 
 	ec = os->Write(value);
@@ -32,14 +32,14 @@ int main (int argc, char *argv[])
 {
     ICarrier* pCarrier = NULL;
 	String name;
-	ECode ec;
+	ECode ec = NOERROR;
 
 	ec = ChangeConfig('1');
 	if (FAILED(ec)) goto Exit;
 
-    ec = GCarrier::New(&pCarrier);
+	ec = GCarrier::New(&pCarrier);
     if (FAILED(ec)) {
-        printf("Sorry, no carrier available!\n");
+        printf("Sorry, no GSM carrier available!, ec: 0x%08x\n", ec);
         return ec;
     }
 
@@ -60,7 +60,7 @@ int main (int argc, char *argv[])
 
 	ec = GCarrier::New(&pCarrier);
     if (FAILED(ec)) {
-        printf("Sorry, no carrier available!\n");
+        printf("Sorry, no CDMA carrier available!, ec: 0x%08x\n", ec);
         return ec;
     }
 
@@ -81,7 +81,7 @@ int main (int argc, char *argv[])
 
 	ec = GCarrier::New(&pCarrier);
     if (FAILED(ec)) {
-        printf("Sorry, no carrier available!\n");
+        printf("Sorry, no WiFi carrier available!, ec: 0x%08x\n", ec);
         return ec;
     }
 

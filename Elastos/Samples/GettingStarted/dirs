@@ -1,0 +1,4 @@
+
+DIRS = HelloWorld1
+DIRS += HelloWorld2
+DIRS += HelloWorld3

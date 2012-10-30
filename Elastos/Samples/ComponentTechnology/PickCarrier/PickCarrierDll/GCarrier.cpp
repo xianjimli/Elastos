@@ -8,7 +8,6 @@
 #include "CCDMACarrier.h"
 
 #include <Elastos.IO.h>
-
 #include <stdlib.h>
 #include <time.h>
 
@@ -22,7 +21,7 @@ ECode GCarrier::New(
     // pretend to find a GSM, CDMA or WiFi network
     //
 
-    ec = CFileInputStream::New(String("config.dat"), &is);
+    ec = CFileInputStream::New(String("/data/data/com.elastos.runtime/elastos/config.dat"), &is);
     if (FAILED(ec)) return ec;
 
     ec = is->Read(&value);
@@ -38,7 +37,7 @@ ECode GCarrier::New(
         ec = CCDMACarrier::New(ppICarrier);
     }
 	else if (value == '3'){
-        ec = GCarrier::NewViaDynamicBinding(String("PickCarrierWiFi.eco"), ppICarrier);
+        ec = GCarrier::NewViaDynamicBinding(String("/data/data/com.elastos.runtime/elastos/PickCarrierWiFi.eco"), ppICarrier);
 	}
 	else {
 	    ec = E_NOT_IMPLEMENTED;
