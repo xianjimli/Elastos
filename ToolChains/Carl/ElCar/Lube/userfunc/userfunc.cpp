@@ -898,7 +898,8 @@ IMPL_USERFUNC(NewOfGeneric)(PLUBECTX pCtx, PSTATEDESC pDesc, PVOID pvArg)
             pCtx->PutString(szBuf);
             pCtx->PutString("        _ecode = _CObject_AcquireClassFactory(ECLSID_");
             pCtx->PutString(pCtx->m_pClass->pszName);
-            pCtx->PutString("ClassObject,\n");
+//            pCtx->PutString("ClassObject,\n");
+            pCtx->PutString(",\n");
             pCtx->PutString("                ");
             pCtx->PutString("RGM_SAME_DOMAIN, ");
             pCtx->PutString("EIID_I");
