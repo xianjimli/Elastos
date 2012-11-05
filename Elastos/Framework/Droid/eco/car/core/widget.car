@@ -45,6 +45,11 @@ module
     //merge("widget/Itemview.car");
     merge("widget/MenuAdapter.car");
     merge("widget/RadioGroup.car");
+    merge("widget/HeterogeneousExpandableList.car");
+    merge("widget/ExpandableListAdapter.car");
+    merge("widget/ExpandableListConnector.car");    
+    merge("widget/ExpandableListPosition.car");
+    merge("widget/ExpandableListView.car");
 
     class CScrollBarDrawable {
         interface IScrollBarDrawable;
@@ -984,6 +989,77 @@ module
         interface IDrawableCallback;
         interface IKeyEventCallback;
         interface IAccessibilityEventSource;
+    }
+
+    class CExpandableListContextMenuInfo {
+        constructor(
+            [in] IView* targetView, 
+            [in] Int64 packedPosition, 
+            [in] Int64 id);
+
+        interface IExpandableListContextMenuInfo;
+
+        interface IContextMenuInfo;
+    }
+
+    class CExpandableListViewSavedState {
+        constructor(
+            [in] IParcelable* superState,
+            [in] ArrayOf<IGroupMetadata*> expandedGroupMetadataList);
+
+        interface IExpandableListViewSavedState;
+
+        interface IParcelable;
+    }
+
+    class CExpandableListView {
+        constructor(
+            [in] IContext* context);
+
+        constructor(
+            [in] IContext* context, 
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* context, 
+            [in] IAttributeSet* attrs, 
+            [in] Int32 defStyle);
+
+        interface IExpandableListView;
+        interface IViewParent;
+        interface IViewManager;
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
+    }
+
+    class CGroupMetadata {
+        constructor();
+
+        interface IGroupMetadata;
+
+        interface IParcelable;
+    }
+
+    class CPositionMetadata {
+        constructor();
+
+        interface IPositionMetadata;
+    }
+
+    class CExpandableListConnector {
+        constructor(
+            [in] IExpandableListAdapter* expandableListAdapter);
+
+        interface IExpandableListConnector;
+
+        interface IFilterable;
+    }
+
+    class CExpandableListPosition {
+        constructor();
+
+        interface IExpandableListPosition;
     }
 }
 
