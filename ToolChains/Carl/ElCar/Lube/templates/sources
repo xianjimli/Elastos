@@ -3,3 +3,4 @@
 #==========================================================================
 SOURCES= lube.lub
 SOURCES+= a2clube.lub
+SOURCES+= CAR2Javalube.lub

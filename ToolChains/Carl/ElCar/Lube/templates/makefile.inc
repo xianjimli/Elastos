@@ -93,4 +93,8 @@ a2clube.lbo :   $(MAKEDIR)/android/android.lub          \
                 $(MAKEDIR)/android/a2cforecpph.lub      \
                 $(MAKEDIR)/android/a2cforecpp.lub       \
                 $(MAKEDIR)/android/a2cforeh.lub         \
-                $(MAKEDIR)/android/a2csources.lub       \
+                $(MAKEDIR)/android/a2csources.lub
+
+CAR2Javalube.lbo :    $(MAKEDIR)/car2java/CAR2Java.lub             \
+                      $(MAKEDIR)/car2java/CoNativeClass.lub        \
+                      $(MAKEDIR)/car2java/CoNativeInterface.lub
