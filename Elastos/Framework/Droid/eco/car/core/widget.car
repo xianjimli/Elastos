@@ -48,6 +48,7 @@ module
     merge("widget/ExpandableListConnector.car");    
     merge("widget/ExpandableListPosition.car");
     merge("widget/ExpandableListView.car");
+    merge("widget/GridView.car");
 
     class CScrollBarDrawable {
         interface IScrollBarDrawable;
@@ -1058,6 +1059,28 @@ module
         constructor();
 
         interface IExpandableListPosition;
+    }
+
+    class CGridView {
+    
+        constructor(
+            [in] IContext* context);
+
+        constructor(
+            [in] IContext* context, 
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* context, 
+            [in] IAttributeSet* attrs, 
+            [in] Int32 defStyle);
+
+        interface IGridView;
+        interface IViewParent;
+        interface IViewManager;
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
     }
 }
 

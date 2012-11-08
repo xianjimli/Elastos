@@ -53,8 +53,10 @@ protected:
         CARAPI_(Boolean) ShouldRecycleViewType(
             /* [in] */ Int32 viewType);
 
-    protected:
         CARAPI_(void) Clear();
+
+        CARAPI_(void) AddScrapView(
+            /* [in ]*/ IView* scrap);
 
         CARAPI_(void) FillActiveViews(
             /* [in] */ Int32 childCount,
@@ -63,13 +65,14 @@ protected:
         CARAPI_(AutoPtr<IView>) GetActiveView(
             /* [in] */ Int32 position);
 
+        CARAPI_(void) ScrapActiveViews();
+
+    protected:
+
+
+
         CARAPI_(AutoPtr<IView>) GetScrapView(
             /* [in] */ Int32 position);
-
-        CARAPI_(void) AddScrapView(
-            /* [in ]*/ IView* scrap);
-
-        CARAPI_(void) ScrapActiveViews();
 
         CARAPI_(void) ReclaimScrapViews(
             /* [in] */ IObjectContainer* views);
@@ -1242,7 +1245,7 @@ protected:
     /**
      * Keeps track of our accessory window
      */
-    //PopupWindow mPopup;
+    AutoPtr<IPopupWindow> mPopup;
 
     /**
      * Used with type filter window

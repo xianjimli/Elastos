@@ -1,0 +1,73 @@
+
+module
+{
+    interface IGridView extends IAbsListView {
+        /**
+         * Describes how the child views are horizontally aligned. Defaults to Gravity.LEFT
+         *
+         * @param gravity the gravity to apply to this grid's children
+         *
+         * @attr ref android.R.styleable#GridView_gravity
+         */
+        SetGravity(
+            [in] Int32 gravity);
+
+        /**
+         * Set the amount of horizontal (x) spacing to place between each item
+         * in the grid.
+         *
+         * @param horizontalSpacing The amount of horizontal space between items,
+         * in pixels.
+         *
+         * @attr ref android.R.styleable#GridView_horizontalSpacing
+         */
+        SetHorizontalSpacing(
+            [in] Int32 horizontalSpacing);
+
+        /**
+         * Set the amount of vertical (y) spacing to place between each item
+         * in the grid.
+         *
+         * @param verticalSpacing The amount of vertical space between items,
+         * in pixels.
+         *
+         * @attr ref android.R.styleable#GridView_verticalSpacing
+         */
+        SetVerticalSpacing(
+            [in] Int32 verticalSpacing);
+
+        /**
+         * Control how items are stretched to fill their space.
+         *
+         * @param stretchMode Either {@link #NO_STRETCH},
+         * {@link #STRETCH_SPACING}, {@link #STRETCH_SPACING_UNIFORM}, or {@link #STRETCH_COLUMN_WIDTH}.
+         *
+         * @attr ref android.R.styleable#GridView_stretchMode
+         */
+        SetStretchMode(
+            [in] Int32 stretchMode);
+
+        GetStretchMode(
+            [out] Int32* mode);
+
+        /**
+         * Set the width of columns in the grid.
+         *
+         * @param columnWidth The column width, in pixels.
+         *
+         * @attr ref android.R.styleable#GridView_columnWidth
+         */
+        SetColumnWidth(
+            [in] Int32 columnWidth);
+
+        /**
+         * Set the number of columns in the grid
+         *
+         * @param numColumns The desired number of columns.
+         *
+         * @attr ref android.R.styleable#GridView_numColumns
+         */
+        SetNumColumns(
+            [in] Int32 numColumns);
+    }
+}
