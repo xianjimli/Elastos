@@ -1,132 +1,126 @@
 
+#include "ext/frameworkext.h"
 #include "view/menu/CExpandedMenuView.h"
-#include "widget/CMenuAdapter.h"
 
-static Int32 R_Styleable_MenuView[] = {
-    0x010100ae, 0x0101012c, 0x0101012d, 0x0101012e,
-    0x0101012f, 0x01010130, 0x01010131
-};
 
-CExpandedMenuView::CExpandedMenuView(
+ECode CExpandedMenuView::constructor(
     /* [in] */ IContext* context,
-    /* [in] */ IAttributeSet* attrs): ListView(context, attrs) {
-    AutoPtr<ITypedArray> a;
-    context->ObtainStyledAttributesEx3(attrs,
-        ArrayOf<Int32>(R_Styleable_MenuView, sizeof(R_Styleable_MenuView) / sizeof(Int32)), 0, 0, (ITypedArray**)&a);
-
-    a->GetResourceId(R_Styleable_MenuView[0], 0, &mAnimations);
-    //mAnimations = a.getResourceId(com.android.internal.R.styleable.MenuView_windowAnimationStyle, 0);
-    a->Recycle();
-
-    SetOnItemClickListener((IOnItemClickListener*)this->Probe(EIID_IOnItemClickListener));
+    /* [in] */ IAttributeSet* attrs)
+{
+    return ExpandedMenuView::Init(context, attrs);
 }
 
 PInterface CExpandedMenuView::Probe(
-    /* [in]  */ REIID riid) {
-    if (riid == EIID_IOnItemClickListener) {
-        return (IOnItemClickListener*)this;
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_View) {
+        return reinterpret_cast<PInterface>((View*)this);
     }
-    else if (riid == EIID_IMenuView) {
-        return (IMenuView*)this;
-    }
-
-    return NULL;
+    return _CExpandedMenuView::Probe(riid);
 }
 
-UInt32 CExpandedMenuView::AddRef() {
-    return ElRefBase::AddRef();
-}
+IVIEW_METHODS_IMPL(CExpandedMenuView, ExpandedMenuView, ExpandedMenuView);
 
-UInt32 CExpandedMenuView::Release() {
-    return ElRefBase::Release();
-}
+IVIEWGROUP_METHODS_IMPL(CExpandedMenuView, ExpandedMenuView, ExpandedMenuView);
 
-ECode CExpandedMenuView::GetInterfaceID(
-    /* [in] */ IInterface *pObject,
-    /* [out] */ InterfaceID *pIID) {
-    if (pIID == NULL) {
-        return E_INVALID_ARGUMENT;
-    }
+IVIEWPARENT_METHODS_IMPL(CExpandedMenuView, ExpandedMenuView, ExpandedMenuView);
 
-    if (pObject == (IInterface*)(IOnItemClickListener*)this) {
-        *pIID = EIID_IOnItemClickListener;
-    }
-    else if (pObject == (IInterface*)(IMenuView*)this) {
-        *pIID = EIID_IMenuView;
-    }
+IVIEWMANAGER_METHODS_IMPL(CExpandedMenuView, ExpandedMenuView, ExpandedMenuView);
 
+IDrawableCallback_METHODS_IMPL(CExpandedMenuView, ExpandedMenuView, ExpandedMenuView);
+
+IKeyEventCallback_METHODS_IMPL(CExpandedMenuView, ExpandedMenuView, ExpandedMenuView);
+
+IAccessibilityEventSource_METHODS_IMPL(CExpandedMenuView, ExpandedMenuView, ExpandedMenuView);
+
+IADAPTERVIEW_METHODS_IMPL(CExpandedMenuView, ExpandedMenuView, ExpandedMenuView);
+
+IABSLISTVIEW_METHODS_IMPL(CExpandedMenuView, ExpandedMenuView, ExpandedMenuView);
+
+ILISTVIEW_METHODS_IMPL(CExpandedMenuView, ExpandedMenuView, ExpandedMenuView);
+
+//from IMenuBuilderItemInvoker
+ECode CExpandedMenuView::InvokeItem(
+    /* [in] */ IMenuItemImpl* item,
+    /* [out] */ Boolean* state)
+{
+    VALIDATE_NOT_NULL(state);
+
+    *state = ExpandedMenuView::InvokeItem(item);
     return NOERROR;
 }
 
+//from IMenuView
 ECode CExpandedMenuView::Initialize(
     /* [in] */ IMenuBuilder* menu,
-    /* [in] */ Int32 menuType) {
-    mMenu = menu;
-
-    AutoPtr<IMenuAdapter> adapter;
-    CMenuAdapter::New(menuType, mMenu, (IMenuAdapter**) &adapter);
-
-    SetAdapter(adapter);
-
-    return NOERROR;
+    /* [in] */ Int32 menuType)
+{
+    return ExpandedMenuView::Initialize(menu, menuType);
 }
 
 ECode CExpandedMenuView::UpdateChildren(
-    /* [in] */ Boolean cleared) {
-    AutoPtr<IAdapter> adapter = GetAdapter();
-
-    // Tell adapter of the change, it will notify the mListView
-    if (adapter != NULL) {
-        if (cleared) {
-            ((IBaseAdapter*)adapter.Get())->NotifyDataSetInvalidated();
-        }
-        else {
-            ((IBaseAdapter*)adapter.Get())->NotifyDataSetChanged();
-        }
-    }
-
-    return NOERROR;
-}
-
-void CExpandedMenuView::OnDetachedFromWindow() {
-    ListView::OnDetachedFromWindow();
-
-    // Clear the cached bitmaps of children
-    SetChildrenDrawingCacheEnabled(FALSE);
-}
-
-ECode CExpandedMenuView::RecycleOnMeasure(
-    /* [out] */ Boolean* recycled) {
-    *recycled = FALSE;
-    return NOERROR;
-}
-
-ECode CExpandedMenuView::InvokeItem(
-    /* [in] */ IMenuItem* item,
-    /* [out] */ Boolean* state) {
-    return mMenu->PerformItemAction(item, 0, state);
-}
-
-ECode CExpandedMenuView::OnItemClick(
-    /* [in] */ IAdapterView* parent,
-    /* [in] */ IView* v,
-    /* [in] */ Int32 position,
-    /* [in] */ Int64 id) {
-    AutoPtr<IAdapter> adapter = GetAdapter();
-
-    if (adapter != NULL) {
-        AutoPtr<IMenuItem> menuItem;
-        adapter->GetItem(position, (IInterface**) &menuItem);
-        Boolean state;
-        return InvokeItem((IMenuItem*)menuItem.Get(), &state);
-    }
-
-    return NOERROR;
+    /* [in] */ Boolean cleared)
+{
+    return ExpandedMenuView::UpdateChildren(cleared);
 }
 
 ECode CExpandedMenuView::GetWindowAnimations(
-    /* [out] */ Int32* animations) {
-    *animations = mAnimations;
+    /* [out] */ Int32* animations)
+{
+    VALIDATE_NOT_NULL(animations);
 
+    *animations = ExpandedMenuView::GetWindowAnimations();
     return NOERROR;
 }
+
+//from IOnItemClickListener
+ECode CExpandedMenuView::OnItemClick(
+    /* [in] */ IAdapterView* parent,
+    /* [in] */ IView* view,
+    /* [in] */ Int32 position,
+    /* [in] */ Int64 id)
+{
+    return ExpandedMenuView::OnItemClick(parent, view, position, id);
+}
+
+ECode CExpandedMenuView::OnTouchModeChanged(
+    /* [in] */ Boolean isInTouchMode)
+{
+    return ExpandedMenuView::OnTouchModeChanged(isInTouchMode);
+}
+
+ECode CExpandedMenuView::OnGlobalLayout()
+{
+    return ExpandedMenuView::OnGlobalLayout();
+}
+
+ECode CExpandedMenuView::BeforeTextChanged(
+    /* [in] */ ICharSequence* s,
+    /* [in] */ Int32 start,
+    /* [in] */ Int32 count,
+    /* [in] */ Int32 after)
+{
+    return ExpandedMenuView::BeforeTextChanged(s, start, count, after);
+}
+
+ECode CExpandedMenuView::OnTextChanged(
+    /* [in] */ ICharSequence* s,
+    /* [in] */ Int32 start,
+    /* [in] */ Int32 before,
+    /* [in] */ Int32 count)
+{
+    return ExpandedMenuView::OnTextChanged(s, start, before, count);
+}
+
+ECode CExpandedMenuView::AfterTextChanged(
+    /* [in] */ IEditable* s)
+{
+    return ExpandedMenuView::AfterTextChanged(s);
+}
+
+ECode CExpandedMenuView::OnFilterComplete(
+    /* [in] */ Int32 count)
+{
+    return ExpandedMenuView::OnFilterComplete(count);
+}
+

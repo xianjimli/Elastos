@@ -1,0 +1,10 @@
+
+module
+{
+    interface IMenuBuilderItemInvoker;
+
+    interface IIconMenuItemView extends ITextView {
+        SetItemInvoker(
+            [in] IMenuBuilderItemInvoker* itemInvoker);
+    }
+}

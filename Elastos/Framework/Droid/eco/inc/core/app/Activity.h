@@ -219,6 +219,10 @@ public:
         /* [in] */ Int32 resId,
         /* [out] */ ICharSequence** text);
 
+    CARAPI GetString(
+        /* [in] */ Int32 resId,
+        /* [out] */ String* str);
+
     CARAPI SetTheme(
         /* [in] */ Int32 resid);
 
@@ -318,7 +322,7 @@ public:
     CARAPI GetTitleColor(
         /* [out] */ Int32* textColor);
 
-    virtual CARAPI OnCreateOptionsMenu(
+    CARAPI OnCreateOptionsMenu(
         /* [in] */ IMenu* menu,
         /* [out] */ Boolean* allowToShow);
 
@@ -452,7 +456,15 @@ public:
         /* [in] */ IKeyEvent* event,
         /* [out] */ Boolean* result);
 
+    CARAPI OnBackPressed();
 
+    CARAPI OnTouchEvent(
+        /* [in] */ IMotionEvent* event,
+        /* [out] */ Boolean* res);
+
+    CARAPI OnTrackballEvent(
+        /* [in] */ IMotionEvent* event,
+        /* [out] */ Boolean* res);
 
 public:
     /**
@@ -521,18 +533,6 @@ public:
 
     CARAPI RemoveDialog(
         /* [in] */ Int32 id);
-
-    CARAPI OnTouchEvent(
-        /* [in] */ IMotionEvent* event,
-        /* [out] */ Boolean* res);
-
-    CARAPI OnTrackballEvent(
-        /* [in] */ IMotionEvent* event,
-        /* [out] */ Boolean* res);
-
-    ECode OnBackPressed() {
-        return Finish();
-    }
 
 protected:
     CARAPI Finish();
@@ -658,16 +658,10 @@ private:
 
     Boolean mTitleReady;
 
-    Int32 mThemeResource;
-    AutoPtr<ITheme> mTheme;
-
     Int32 mDefaultKeyMode;
 
-    static Int32 DEFAULT_KEYS_DISABLE;
-    static Int32 DEFAULT_KEYS_DIALER;
-    static Int32 DEFAULT_KEYS_SHORTCUT;
-    static Int32 DEFAULT_KEYS_SEARCH_LOCAL;
-    static Int32 DEFAULT_KEYS_SEARCH_GLOBAL;
+    Int32 mThemeResource;
+    AutoPtr<ITheme> mTheme;
 };
 
 #endif //__ACTIVITY_H__

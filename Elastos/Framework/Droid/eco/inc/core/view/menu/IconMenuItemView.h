@@ -3,47 +3,62 @@
 #define __ICONMENIITEMVIEW_H__
 
 
+#include "ext/frameworkext.h"
+#include "view/menu/MenuItemImpl.h"
+#include "widget/TextView.h"
+#include <elastos/AutoPtr.h>
+
+
 /**
  * The item view for each item in the {@link IconMenuView}.
  */
-class IconMenuItemView: public TextView {
+class IconMenuItemView : public TextView
+{
 public:
-    IconMenuItemView(
-        /* [in] */ IContextEx* context,
-        /* [in] */ AttributeSet attrs,
-        /* [in] */ Int32 defStyle);
+    IconMenuItemView();
 
-    IconMenuItemView(
-        /* [in] */ IContextEx* context,
-        /* [in] */ AttributeSet attrs);
+    /**
+     * Initializes with the provided title and icon
+     * @param title The title of this item
+     * @param icon The icon of this item
+     */
+    CARAPI_(void) Initialize(
+        /* [in] */ ICharSequence* title,
+        /* [in] */ IDrawable* icon);
 
     CARAPI Initialize(
-        /* [in] */ MenuItemImpl itemData,
+        /* [in] */ IMenuItemImpl* itemData,
         /* [in] */ Int32 menuType);
 
-    //@Override
-    CARAPI PerformClick(
-        /* [in] */ Boolean* flag);
+    //@override
+    CARAPI_(Boolean) PerformClick();
 
     CARAPI SetTitle(
         /* [in] */ ICharSequence* title);
+
+    CARAPI_(void) SetCaptionMode(
+        /* [in] */ Boolean shortcut);
 
     CARAPI SetIcon(
         /* [in] */ IDrawable* icon);
 
     CARAPI SetItemInvoker(
-        /* [in] */ ItemInvoker itemInvoker);
+        /* [in] */ IMenuBuilderItemInvoker* itemInvoker);
 
-    //@ViewDebug.CapturedViewProperty(retrieveReturn = true)
-    CARAPI GetItemData(
-        /* [out] */ IMenuItem** itemData);
-
-    //@Override
+    //@override
     CARAPI SetVisibility(
         /* [in] */ Int32 v);
 
-    CARAPI SetIconMenuView(
-        /* [in] */ IconMenuView* iconMenuView);
+    CARAPI_(AutoPtr<IMenuItemImpl>) GetItemData();
+
+    CARAPI_(void) SetIconMenuView(
+        /* [in] */ IIconMenuView* iconMenuView);
+
+    /**
+     * @return layout params appropriate for this view.  If layout params already exist, it will
+     *         augment them to be appropriate to the current text size.
+     */
+    CARAPI_(AutoPtr<IIconMenuViewLayoutParams>) GetTextAppropriateLayoutParams();
 
     CARAPI SetCheckable(
         /* [in] */ Boolean checkable);
@@ -53,110 +68,64 @@ public:
 
     CARAPI SetShortcut(
         /* [in] */ Boolean showShortcut,
-        /* [in] */ char shortcutKey);
+        /* [in] */ Char32 shortcutKey);
 
-    CARAPI PrefersCondensedTitle(
-        /* [out] */ Boolean* flag);
+    CARAPI_(Boolean) PrefersCondensedTitle();
 
-    CARAPI ShowsIcon(
-        /* [out] */ Boolean* flag);
+    CARAPI_(Boolean) ShowsIcon();
 
 protected:
-    /**
-     * Initializes with the provided title and icon
-     * @param title The title of this item
-     * @param icon The icon of this item
-     */
-    CARAPI Initialize(
-        /* [in] */ ICharSequence* title,
-        /* [in] */ IDrawable* icon)£»
-
-    CARAPI SetCaptionMode(
-        /* [in] */ Boolean shortcut);
+    CARAPI Init(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs,
+        /* [in] */ Int32 defStyle = 0);
 
     //@Override
     CARAPI DrawableStateChanged();
 
     //@Override
-    CARAPI OnLayout(
+    CARAPI_(void) OnLayout(
         /* [in] */ Boolean changed,
         /* [in] */ Int32 left,
         /* [in] */ Int32 top,
         /* [in] */ Int32 right,
-        /* [in] */ Int32 bottom) {
-        super.onLayout(changed, left, top, right, bottom);
-
-        positionIcon();
-    }
+        /* [in] */ Int32 bottom);
 
     //@Override
-    CARAPI OnTextChanged(
+    CARAPI_(void) OnTextChanged(
         /* [in] */ ICharSequence* text,
         /* [in] */ Int32 start,
         /* [in] */ Int32 before,
         /* [in] */ Int32 after);
-
-    /**
-     * @return layout params appropriate for this view.  If layout params already exist, it will
-     *         augment them to be appropriate to the current text size.
-     */
-    IconMenuView.LayoutParams GetTextAppropriateLayoutParams() {
-        IconMenuView.LayoutParams lp = (IconMenuView.LayoutParams) getLayoutParams();
-        if (lp == null) {
-            // Default layout parameters
-            lp = new IconMenuView.LayoutParams(
-                    IconMenuView.LayoutParams.MATCH_PARENT, IconMenuView.LayoutParams.MATCH_PARENT);
-        }
-
-        // Set the desired width of item
-        lp.desiredWidth = (Int32) Layout.getDesiredWidth(getText(), getPaint());
-
-        return lp;
-    }
 
 private:
     /**
      * Positions the icon vertically (horizontal centering is taken care of by
      * the TextView's gravity).
      */
-    ECode PositionIcon() {
-        if (mIcon == null) {
-            return NOERROR;
-        }
-
-        // We reuse the output rectangle as a temp rect
-        AutoPtr<IRect> tmpRect = mPositionIconOutput;
-        getLineBounds(0, tmpRect);
-        mPositionIconAvailable.set(0, 0, getWidth(), tmpRect.top);
-        Gravity.apply(Gravity.CENTER_VERTICAL | Gravity.LEFT, mIcon.getIntrinsicWidth(), mIcon
-                .getIntrinsicHeight(), mPositionIconAvailable, mPositionIconOutput);
-        mIcon.setBounds(mPositionIconOutput);
-    }
-
+    CARAPI_(void) PositionIcon();
 
 private:
-    static final Int32 NO_ALPHA = 0xFF;
+    static const Int32 NO_ALPHA = 0xFF;
+    static String sPrependShortcutLabel;
 
-    IconMenuView mIconMenuView;
+    AutoPtr<IIconMenuView> mIconMenuView;
 
-    ItemInvoker mItemInvoker;
-    MenuItemImpl mItemData;
+    AutoPtr<IMenuBuilderItemInvoker> mItemInvoker;
+    AutoPtr<MenuItemImpl> mItemData;
 
     AutoPtr<IDrawable> mIcon;
 
     Int32 mTextAppearance;
-    Context mTextAppearanceContext;
+    AutoPtr<IContext> mTextAppearanceContext;
 
-    float mDisabledAlpha;
+    Float mDisabledAlpha;
 
-    AutoPtr<IRect> mPositionIconAvailable = new Rect();
-    AutoPtr<IRect> mPositionIconOutput = new Rect();
+    AutoPtr<IRect> mPositionIconAvailable;
+    AutoPtr<IRect> mPositionIconOutput;
 
-    boolean mShortcutCaptionMode;
+    Boolean mShortcutCaptionMode;
     String mShortcutCaption;
-
-    static String sPrependShortcutLabel;
-
 };
 
 #endif //__ICONMENIITEMVIEW_H__

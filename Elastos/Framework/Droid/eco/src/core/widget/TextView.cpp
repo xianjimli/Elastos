@@ -4422,7 +4422,7 @@ void TextView::RegisterForPreDraw()
     }
 
     if (mPreDrawState == PREDRAW_NOT_REGISTERED) {
-//        observer->AddOnPreDrawListener(this);
+        observer->AddOnPreDrawListener((IOnPreDrawListener*)this->Probe(EIID_IOnPreDrawListener));
         mPreDrawState = PREDRAW_PENDING;
     }
     else if (mPreDrawState == PREDRAW_DONE) {
@@ -4447,11 +4447,11 @@ Boolean TextView::OnPreDraw()
 
     Boolean changed = FALSE;
 
-   SelectionModifierCursorController* selectionController = NULL;
-   if (mSelectionModifierCursorController != NULL) {
+    SelectionModifierCursorController* selectionController = NULL;
+    if (mSelectionModifierCursorController != NULL) {
         selectionController = (SelectionModifierCursorController*)
             mSelectionModifierCursorController.Get();
-   }
+    }
 
 
     if (mMovement != NULL) {
@@ -4531,7 +4531,7 @@ void TextView::OnDetachedFromWindow()
     AutoPtr<IViewTreeObserver> observer = GetViewTreeObserver();
     if (observer.Get() != NULL) {
         if (mPreDrawState != PREDRAW_NOT_REGISTERED) {
-//            observer.removeOnPreDrawListener(this);
+            observer->RemoveOnPreDrawListener((IOnPreDrawListener*)this->Probe(EIID_IOnPreDrawListener));
             mPreDrawState = PREDRAW_NOT_REGISTERED;
         }
 //        if (mInsertionPointCursorController != NULL) {
@@ -4731,7 +4731,7 @@ void TextView::OnDraw(
     if (mPreDrawState == PREDRAW_DONE) {
         AutoPtr<IViewTreeObserver> observer = GetViewTreeObserver();
         if (observer != NULL) {
-//            observer.removeOnPreDrawListener(this);
+            observer->RemoveOnPreDrawListener((IOnPreDrawListener*)this->Probe(EIID_IOnPreDrawListener));
             mPreDrawState = PREDRAW_NOT_REGISTERED;
         }
     }

@@ -1,97 +1,98 @@
 
+#include "ext/frameworkext.h"
 #include "view/menu/ContextMenuBuilder.h"
-#include "view/menu/CMenuDialogHelper.h"
 
-IMENUBUILDER_METHODS_IMPL(ContextMenuBuilder, MenuBuilder, NULL);
+
+ContextMenuBuilder::ContextMenuBuilder(
+    /* [in] */ IContext* context)
+    : ContextMenuBuilderBase(context)
+{}
 
 PInterface ContextMenuBuilder::Probe(
-    /* [in]  */ REIID riid) {
-    if (riid == EIID_IContextMenu) {
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IMenuBuilder) {
+        return (IMenuBuilder*)this;
+    }
+    else if (riid == EIID_IContextMenu) {
         return (IContextMenu*)this;
     }
     else if (riid == EIID_IMenu) {
-        return (IMenu*)(this);
+        return (IMenu*)(IContextMenu*)(this);
+    }
+    else if (EIID_MenuBuilderBase == riid) {
+        return reinterpret_cast<PInterface>((MenuBuilderBase *)this);
     }
 
     return NULL;
 }
 
-UInt32 ContextMenuBuilder::AddRef() {
+UInt32 ContextMenuBuilder::AddRef()
+{
     return ElRefBase::AddRef();
 }
 
-UInt32 ContextMenuBuilder::Release() {
+UInt32 ContextMenuBuilder::Release()
+{
     return ElRefBase::Release();
 }
 
 ECode ContextMenuBuilder::GetInterfaceID(
     /* [in] */ IInterface *pObject,
-    /* [out] */ InterfaceID *pIID) {
-    if (pIID == NULL) {
-        return E_INVALID_ARGUMENT;
-    }
+    /* [out] */ InterfaceID *pIID)
+{
+    VALIDATE_NOT_NULL(pIID);
 
-    if (pObject == (IInterface*)(IMenu*)MenuBuilder::Probe(EIID_IMenu)) {
-        *pIID = EIID_IMenu;
+    if (pObject == (IInterface*)(IMenuBuilder*)this) {
+        *pIID = EIID_IMenuBuilder;
     }
     else if (pObject == (IInterface*)(IContextMenu*)this) {
         *pIID = EIID_IContextMenu;
     }
-
-    return E_INVALID_ARGUMENT;
-}
-
-ECode ContextMenuBuilder::SetHeaderTitle(
-    /* [in] */ Int32 titleRes,
-    /* [out] */ IContextMenu** contextMenu) {
-    return SetHeaderTitleIntEx(titleRes, (IMenuBuilder**) contextMenu);
-}
-
-ECode ContextMenuBuilder::SetHeaderTitleEx(
-    /* [in] */ ICharSequence* title,
-    /* [out] */ IContextMenu** contextMenu) {
-    return SetHeaderTitleInt(title, (IMenuBuilder**) contextMenu);
-}
-
-ECode ContextMenuBuilder::SetHeaderIcon(
-    /* [in] */ Int32 iconRes,
-    /* [out] */ IContextMenu** contextMenu) {
-    return SetHeaderIconIntEx(iconRes, (IMenuBuilder**) contextMenu);
-}
-
-ECode ContextMenuBuilder::SetHeaderIconEx(
-    /* [in] */ IDrawable* icon,
-    /* [out] */ IContextMenu** contextMenu) {
-    return SetHeaderIconInt(icon, (IMenuBuilder**) contextMenu);
-}
-
-ECode ContextMenuBuilder::SetHeaderView(
-    /* [in] */ IView* view,
-    /* [out] */ IContextMenu** contextMenu) {
-    return SetHeaderViewInt(view, (IMenuBuilder**) contextMenu);
-}
-
-ECode ContextMenuBuilder::Show(
-    /* [in] */ IView* originalView,
-    /* [in] */ IBinder* token,
-    /* [out] */ CMenuDialogHelper** helper) {
-    *helper = NULL;
-
-    if (originalView != NULL) {
-        originalView->CreateContextMenu(this);
+    else if (pObject == (IInterface*)(IMenu*)(IContextMenu*)this) {
+        *pIID = EIID_IMenu;
     }
-
-    AutoPtr<IObjectContainer> list;
-    CObjectContainer::New((IObjectContainer**)&list);
-    GetVisibleItems((IObjectContainer**) &list);
-
-    Int32 objCount;
-    list->GetObjectCount(&objCount);
-
-    if (objCount > 0) {
-        //EventLog.writeEvent(50001. 1);
-        *helper = new CMenuDialogHelper((IMenuBuilder*)(this->Probe(EIID_IMenu)));
+    else {
+        return E_INVALID_ARGUMENT;
     }
 
     return NOERROR;
+}
+
+IMENU_METHODS_IMPL(ContextMenuBuilder, ContextMenuBuilderBase, ContextMenuBuilderBase);
+IMENUBUILDER_METHODS_IMPL(ContextMenuBuilder, ContextMenuBuilderBase, ContextMenuBuilderBase);
+
+ECode ContextMenuBuilder::SetHeaderIconEx(
+    /* [in] */ IDrawable* icon)
+{
+    return ContextMenuBuilderBase::SetHeaderIcon(icon);
+}
+
+ECode ContextMenuBuilder::SetHeaderIcon(
+    /* [in] */ Int32 iconRes)
+{
+    return ContextMenuBuilderBase::SetHeaderIcon(iconRes);
+}
+
+ECode ContextMenuBuilder::SetHeaderTitleEx(
+    /* [in] */ ICharSequence* title)
+{
+    return ContextMenuBuilderBase::SetHeaderTitle(title);
+}
+
+ECode ContextMenuBuilder::SetHeaderTitle(
+    /* [in] */ Int32 titleRes)
+{
+    return ContextMenuBuilderBase::SetHeaderTitle(titleRes);
+}
+
+ECode ContextMenuBuilder::SetHeaderView(
+    /* [in] */ IView* view)
+{
+    return ContextMenuBuilderBase::SetHeaderView(view);
+}
+
+ECode ContextMenuBuilder::ClearHeader()
+{
+    return ContextMenuBuilderBase::ClearHeader();
 }

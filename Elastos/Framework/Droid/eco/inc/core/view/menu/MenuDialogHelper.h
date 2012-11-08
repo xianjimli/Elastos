@@ -1,39 +1,25 @@
 
-#ifndef __CMENUDIALOGHELPER_H_
-#define __CMENUDIALOGHELPER_H_
+#ifndef __MENUDIALOGHELPER_H_
+#define __MENUDIALOGHELPER_H_
 
-#ifndef __USE_MALLOC
-#define __USE_MALLOC
-#endif
 
 #include "ext/frameworkext.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/ElRefBase.h>
-
-using namespace Elastos;
 
 /**
  * Helper for menus that appear as Dialogs (context and submenus).
  *
  * @hide
  */
-//public class MenuDialogHelper implements DialogInterface.OnKeyListener, DialogInterface.OnClickListener {
-class CMenuDialogHelper
+class MenuDialogHelper
     : public ElRefBase
     , public IDialogInterfaceOnClickListener
     , public IDialogInterfaceOnKeyListener
 {
-
-private:
-    AutoPtr<IMenuBuilder> mMenu;
-    AutoPtr<IListAdapter> mAdapter;
-    AutoPtr<IAlertDialog> mDialog;
-
 public:
-    CMenuDialogHelper(
-        /* [in] */ IMenuBuilder* menu) {
-        mMenu = menu;
-    }
+    MenuDialogHelper(
+        /* [in] */ IMenuBuilder* menu);
 
     CARAPI_(PInterface) Probe(
         /* [in]  */ REIID riid);
@@ -51,7 +37,7 @@ public:
      *
      * @param windowToken Optional token to assign to the window.
      */
-    CARAPI Show(
+    CARAPI_(void) Show(
         /* [in] */ IBinder* windowToken);
 
     CARAPI OnKey(
@@ -60,28 +46,21 @@ public:
         /* [in] */ IKeyEvent* event,
         /* [out] */ Boolean* flag);
 
-    CARAPI OnKey(
-        /* [in] */ IDialogInterface* dialog,
-        /* [in] */ Int32 keyCode,
-        /* [in] */ IKeyEvent* event);
-
     /**
      * Dismisses the menu's dialog.
      *
      * @see Dialog#dismiss()
      */
-    ECode Dismiss() {
-        if (mDialog != NULL) {
-            mDialog->Dismiss();
-        }
-
-        return NOERROR;
-    }
+    CARAPI_(void) Dismiss();
 
     CARAPI OnClick(
         /* [in] */ IDialogInterface* dialog,
         /* [in] */ int which);
 
+private:
+    AutoPtr<IMenuBuilder> mMenu;
+    AutoPtr<IListAdapter> mAdapter;
+    AutoPtr<IAlertDialog> mDialog;
 };
 
-#endif //__CMENUDIALOGHELPER_H_
+#endif //__MENUDIALOGHELPER_H_

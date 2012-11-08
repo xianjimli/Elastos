@@ -8,6 +8,7 @@ module
     interface IIntent;
     interface ISubMenu;
     interface IContextMenuInfo;
+    interface IMenuItemView;
 
     /**
      * Interface definition for a callback to be invoked when a menu item is
@@ -76,9 +77,6 @@ module
         GetOrder(
             [out] Int32* order);
 
-        GetOrdering(
-            [out] Int32* ordering);
-
         /**
          * Change the title associated with this item.
          *
@@ -86,8 +84,7 @@ module
          * @return This Item so additional setters can be called.
          */
         SetTitle(
-            [in] ICharSequence* title,
-            [out] IMenuItem** menuItem);
+            [in] ICharSequence* title);
 
         /**
          * Change the title associated with this item.
@@ -101,8 +98,7 @@ module
          * @see #setTitleCondensed(CharSequence)
          */
         SetTitleEx(
-            [in] Int32 title,
-            [out] IMenuItem** menuItem);
+            [in] Int32 title);
 
         /**
          * Retrieve the current title of the item.
@@ -110,7 +106,7 @@ module
          * @return The title.
          */
         GetTitle(
-            [out] String* title);
+            [out] ICharSequence** title);
 
         /**
          * Change the condensed title associated with this item. The condensed
@@ -121,8 +117,7 @@ module
          * @return This Item so additional setters can be called.
          */
         SetTitleCondensed(
-            [in] ICharSequence* title,
-            [out] IMenuItem** menuItem);
+            [in] ICharSequence* title);
 
         /**
          * Retrieve the current condensed title of the item. If a condensed
@@ -132,7 +127,7 @@ module
          *         Otherwise the normal title.
          */
         GetTitleCondensed(
-            [out] String* title);
+            [out] ICharSequence** title);
 
         /**
          * Change the icon associated with this item. This icon will not always be
@@ -143,8 +138,7 @@ module
          * @return This Item so additional setters can be called.
          */
         SetIcon(
-            [in] IDrawable* icon,
-            [out] IMenuItem** menuItem);
+            [in] IDrawable* icon);
 
         /**
          * Change the icon associated with this item. This icon will not always be
@@ -158,8 +152,7 @@ module
          * @return This Item so additional setters can be called.
          */
         SetIconEx(
-            [in] Int32 iconRes,
-            [out] IMenuItem** menuItem);
+            [in] Int32 iconRes);
 
         /**
          * Returns the icon for this item as a Drawable (getting it from resources if it hasn't been
@@ -189,8 +182,7 @@ module
          * @return This Item so additional setters can be called.
          */
         SetIntent(
-            [in] IIntent* intent,
-            [out] IMenuItem** menuItem);
+            [in] IIntent* intent);
 
         /**
          * Return the Intent associated with this item.  This returns a
@@ -220,9 +212,8 @@ module
          * @return This Item so additional setters can be called.
          */
         SetShortcut(
-            [in] Char8 numericChar,
-            [in] Char8 alphaChar,
-            [out] IMenuItem** menuItem);
+            [in] Char32 numericChar,
+            [in] Char32 alphaChar);
 
         /**
          * Change the numeric shortcut associated with this item.
@@ -234,8 +225,7 @@ module
          * @return This Item so additional setters can be called.
          */
         SetNumericShortcut(
-            [in] Char8 numericChar,
-            [out] IMenuItem** menuItem);
+            [in] Char32 numericChar);
 
         /**
          * Return the char for this menu item's numeric (12-key) shortcut.
@@ -243,7 +233,7 @@ module
          * @return Numeric character to use as a shortcut.
          */
         GetNumericShortcut(
-            [out] Char8* numericChar);
+            [out] Char32* numericChar);
 
         /**
          * Change the alphabetic shortcut associated with this item. The shortcut
@@ -260,8 +250,7 @@ module
          * @return This Item so additional setters can be called.
          */
         SetAlphabeticShortcut(
-            [in] Char8 alphaChar,
-            [out] IMenuItem** menuItem);
+            [in] Char32 alphaChar);
 
         /**
          * Return the char for this menu item's alphabetic shortcut.
@@ -269,7 +258,7 @@ module
          * @return Alphabetic character to use as a shortcut.
          */
         GetAlphabeticShortcut(
-            [out] Char8* alphaChar);
+            [out] Char32* alphaChar);
 
         /**
          * Control whether this item can display a check mark. Setting this does
@@ -287,8 +276,7 @@ module
          * @return This Item so additional setters can be called.
          */
         SetCheckable(
-            [in] Boolean checkable,
-            [out] IMenuItem** menuItem);
+            [in] Boolean checkable);
 
         /**
          * Return whether the item can currently display a check mark.
@@ -317,8 +305,7 @@ module
          * @return This Item so additional setters can be called.
          */
         SetChecked(
-            [in] Boolean checked,
-            [out] IMenuItem** menuItem);
+            [in] Boolean checked);
 
         /**
          * Return whether the item is currently displaying a check mark.
@@ -340,8 +327,7 @@ module
          * @return This Item so additional setters can be called.
          */
         SetVisible(
-            [in] Boolean visible,
-            [out] IMenuItem** menuItem);
+            [in] Boolean visible);
 
         /**
          * Return the visibility of the menu item.
@@ -361,8 +347,7 @@ module
          * @return This Item so additional setters can be called.
          */
         SetEnabled(
-            [in] Boolean enabled,
-            [out] IMenuItem** menuItem);
+            [in] Boolean enabled);
 
         /**
          * Return the enabled state of the menu item.
@@ -403,8 +388,7 @@ module
          * @see Activity#onContextItemSelected(MenuItem)
          */
         SetOnMenuItemClickListener(
-            [in] IOnMenuItemClickListener* menuItemClickListener,
-            [out] IMenuItem** menuItem);
+            [in] IOnMenuItemClickListener* menuItemClickListener);
 
         /**
          * Gets the extra information linked to this menu item.  This extra
@@ -417,40 +401,5 @@ module
          */
         GetMenuInfo(
             [out] IContextMenuInfo** menuInfo);
-
-        SetMenuInfo(
-            [in] IContextMenuInfo* menuInfo);
-
-        Invoke(
-            [out] Boolean* state);
-
-        ClearItemViews();
-
-        SetSubMenu(
-            [in] ISubMenu* subMenu);
-
-        IsExclusiveCheckable(
-            [out] Boolean* checkable);
-
-        SetCheckedInt(
-            [in] Boolean checked);
-
-        SetExclusiveCheckable(
-            [in] Boolean exclusive);
-
-        SetVisibleInt(
-            [in] Boolean show,
-            [out] Boolean* visiable);
-
-        RefreshShortcutOnItemViews();
-
-        RefreshShortcutOnItemViews2(
-            [in] Boolean menuShortcutShown,
-            [in] Boolean isQwertyMode);
-
-        GetItemView(
-            [in] Int32 menuType,
-            [in] IViewGroup* parent,
-            [out] IView** view);
     }
 }

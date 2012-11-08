@@ -2,4 +2,3 @@
 EXPORT_HEADERS += Activity.h
 EXPORT_HEADERS += Service.h
 EXPORT_HEADERS += Instrumentation.h
-EXPORT_HEADERS += CAlertDialogBuilder.h

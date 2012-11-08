@@ -95,7 +95,6 @@ module
     interface IView;
     interface IViewGroup;
     interface IMenuView;
-    interface IMenuBuilderType;
 
     interface IMenu {
         /**
@@ -395,7 +394,7 @@ module
          *
          * @return The item count.
          */
-        Size(
+        GetSize(
             [out] Int32* size);
 
         /**

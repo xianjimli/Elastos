@@ -117,6 +117,14 @@ ECode CContextImpl::GetText(
     return Context::GetText(resId, text);
 }
 
+ECode CContextImpl::GetString(
+    /* [in] */ Int32 resId,
+    /* [out] */ String* str)
+{
+    VALIDATE_NOT_NULL(str);
+    return Context::GetString(resId, str);
+}
+
 ECode CContextImpl::SetTheme(
     /* [in] */ Int32 resid)
 {

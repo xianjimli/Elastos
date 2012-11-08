@@ -1,0 +1,9 @@
+
+module
+{
+    interface IListView;
+
+    interface IExpandedMenuView extends IListView {
+
+    }
+}

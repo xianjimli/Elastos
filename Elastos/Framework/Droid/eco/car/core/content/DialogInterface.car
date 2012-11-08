@@ -7,12 +7,12 @@ module
     const DialogInterface_BUTTON_POSITIVE = -1;
 
     /**
-     * The identifier for the negative button. 
+     * The identifier for the negative button.
      */
     const DialogInterface_BUTTON_NEGATIVE = -2;
 
     /**
-     * The identifier for the neutral button. 
+     * The identifier for the neutral button.
      */
     const DialogInterface_BUTTON_NEUTRAL = -3;
 
@@ -30,7 +30,7 @@ module
     interface IDialogInterfaceOnCancelListener {
         /**
          * This method will be invoked when the dialog is canceled.
-         * 
+         *
          * @param dialog The dialog that was canceled will be passed into the
          *            method.
          */
@@ -45,7 +45,7 @@ module
     interface IDialogInterfaceOnDismissListener {
         /**
          * This method will be invoked when the dialog is dismissed.
-         * 
+         *
          * @param dialog The dialog that was dismissed will be passed into the
          *            method.
          */
@@ -75,7 +75,7 @@ module
     interface IDialogInterfaceOnClickListener {
         /**
          * This method will be invoked when a button in the dialog is clicked.
-         * 
+         *
          * @param dialog The dialog that received the click.
          * @param which The button that was clicked (e.g.
          *            {@link DialogInterface#BUTTON1}) or the position
@@ -86,7 +86,7 @@ module
             [in] IDialogInterface* dialog,
             [in] Int32 which);
     }
-    
+
     /**
      * Interface used to allow the creator of a dialog to run some code when an
      * item in a multi-choice dialog is clicked.
@@ -94,7 +94,7 @@ module
     interface IDialogInterfaceOnMultiChoiceClickListener {
         /**
          * This method will be invoked when an item in the dialog is clicked.
-         * 
+         *
          * @param dialog The dialog where the selection was made.
          * @param which The position of the item in the list that was clicked.
          * @param isChecked True if the click checked the item, else false.
@@ -104,7 +104,7 @@ module
             [in] Int32 which,
             [in] Boolean isChecked);
     }
-    
+
     /**
      * Interface definition for a callback to be invoked when a key event is
      * dispatched to this dialog. The callback will be invoked before the key
@@ -114,7 +114,7 @@ module
         /**
          * Called when a key is dispatched to a dialog. This allows listeners to
          * get a chance to respond before the dialog.
-         * 
+         *
          * @param dialog The dialog the key has been dispatched to.
          * @param keyCode The code for the physical key that was pressed
          * @param event The KeyEvent object containing full information about
@@ -124,10 +124,11 @@ module
         OnKey(
             [in] IDialogInterface* dialog,
             [in] Int32 keyCode,
-            [in] IKeyEvent* event);
+            [in] IKeyEvent* event,
+            [out] Boolean* consumed);
     }
 
-    interface IDialogInterface {        
+    interface IDialogInterface {
         Cancel();
 
         Dismiss();

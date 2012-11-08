@@ -3,7 +3,6 @@ module
 {
     interface IViewGroup;
     interface IDrawable;
-    interface IViewGroupMarginLayoutParams;
 
     interface IFrameLayoutLayoutParams extends IViewGroupMarginLayoutParams {
         GetGravity(

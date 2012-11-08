@@ -9,9 +9,6 @@ module
     merge("view/surface.car");
     merge("view/surfacesession.car");
     merge("view/view.car");
-    merge("view/menu/MenuBuilder.car");
-    merge("view/menu/SubMenuBuilder.car");
-    merge("view/menu/MenuView.car");
     merge("view/viewgroup.car");
     merge("view/viewparent.car");
     merge("view/viewmanager.car");
@@ -151,6 +148,34 @@ module
 
     class CWindowManagerLayoutParams {
         constructor();
+
+        constructor(
+            [in] Int32 type);
+
+        constructor(
+            [in] Int32 type,
+            [in] Int32 flags);
+
+        constructor(
+            [in] Int32 type,
+            [in] Int32 flags,
+            [in] Int32 format);
+
+        constructor(
+            [in] Int32 w,
+            [in] Int32 h,
+            [in] Int32 type,
+            [in] Int32 flags,
+            [in] Int32 format);
+
+        constructor(
+            [in] Int32 w,
+            [in] Int32 h,
+            [in] Int32 xpos,
+            [in] Int32 ypos,
+            [in] Int32 type,
+            [in] Int32 flags,
+            [in] Int32 format);
 
         interface IWindowManagerLayoutParams;
         interface IParcelable;
@@ -818,44 +843,5 @@ module
 
     singleton class CAnimationUtils {
         interface IAnimationUtils;
-    }
-
-
-    //Menu
-    class CMenuBuilder {
-        interface IMenuBuilder;
-
-        constructor(
-            [in] IContext* context);
-    }
-
-    class CMenuItemImpl {
-        interface IMenuItem;
-        interface IOnMenuItemClickListener;
-
-        constructor(
-            [in] IMenuBuilder* menu,
-            [in] Int32 group,
-            [in] Int32 id,
-            [in] Int32 categoryOrder,
-            [in] Int32 ordering,
-            [in] ICharSequence* title);
-    }
-
-    class CMenuType {
-        interface IMenuBuilderType;
-
-        constructor(
-            [in] Int32 menuType,
-            [in] IMenuBuilder* cmb);
-    }
-
-    class CSubMenuBuilder {
-        interface ISubMenu;
-
-        constructor(
-            [in] IContext* context,
-            [in] IMenuBuilder* parentMenu,
-            [in] IMenuItem* item);
     }
 }

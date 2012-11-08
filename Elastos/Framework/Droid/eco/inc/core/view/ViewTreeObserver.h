@@ -7,8 +7,14 @@
 #elif defined(_FRAMEWORK_SERVER)
 #include "Elastos.Framework.Server_server.h"
 #endif
+
+#ifndef __USE_MALLOC
+#define __USE_MALLOC
+#endif
+
 #include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>
+#include <elastos/List.h>
 
 class ViewTreeObserver : public ElRefBase, public IViewTreeObserver
 {
@@ -124,6 +130,164 @@ public:
      */
     CARAPI RemoveOnTouchModeChangeListener(
         /* [in] */ IOnTouchModeChangeListener* victim);
+
+    /**
+     * Register a callback to be invoked when the view tree is about to be drawn
+     *
+     * @param listener The callback to add
+     *
+     * @throws IllegalStateException If {@link #isAlive()} returns false
+     */
+    CARAPI AddOnPreDrawListener(
+        /* [in] */ IOnPreDrawListener* listener);
+
+     /**
+     * Remove a previously installed pre-draw callback
+     *
+     * @param victim The callback to remove
+     *
+     * @throws IllegalStateException If {@link #isAlive()} returns false
+     *
+     * @see #addOnPreDrawListener(OnPreDrawListener)
+     */
+    CARAPI RemoveOnPreDrawListener(
+        /* [in] */ IOnPreDrawListener* victim);
+
+    CARAPI Merge(
+        /* [in] */ IViewTreeObserver* observer);
+
+    /**
+     * Register a callback to be invoked when the focus state within the view tree changes.
+     *
+     * @param listener The callback to add
+     *
+     * @throws IllegalStateException If {@link #isAlive()} returns false
+     */
+    CARAPI AddOnGlobalFocusChangeListener(
+        /* [in] */ IOnGlobalFocusChangeListener* listener);
+
+    /**
+     * Remove a previously installed focus change callback.
+     *
+     * @param victim The callback to remove
+     *
+     * @throws IllegalStateException If {@link #isAlive()} returns false
+     *
+     * @see #addOnGlobalFocusChangeListener(OnGlobalFocusChangeListener)
+     */
+    CARAPI RemoveOnGlobalFocusChangeListener(
+        /* [in] */ IOnGlobalFocusChangeListener* victim);
+
+    /**
+     * Register a callback to be invoked when the global layout state or the visibility of views
+     * within the view tree changes
+     *
+     * @param listener The callback to add
+     *
+     * @throws IllegalStateException If {@link #isAlive()} returns false
+     */
+    CARAPI AddOnGlobalLayoutListener(
+        /* [in] */ IOnGlobalLayoutListener* listener);
+
+    /**
+     * Remove a previously installed global layout callback
+     *
+     * @param victim The callback to remove
+     *
+     * @throws IllegalStateException If {@link #isAlive()} returns false
+     *
+     * @see #addOnGlobalLayoutListener(OnGlobalLayoutListener)
+     */
+    CARAPI RemoveGlobalOnLayoutListener(
+        /* [in] */ IOnGlobalLayoutListener*  victim);
+
+    /**
+     * Indicates whether this ViewTreeObserver is alive. When an observer is not alive,
+     * any call to a method (except this one) will throw an exception.
+     *
+     * If an application keeps a long-lived reference to this ViewTreeObserver, it should
+     * always check for the result of this method before calling any other method.
+     *
+     * @return True if this object is alive and be used, false otherwise.
+     */
+    CARAPI IsAlive(
+        /* [out] */ Boolean* alive);
+
+    /**
+     * Notifies registered listeners that focus has changed.
+     */
+    CARAPI DispatchOnGlobalFocusChange(
+        /* [in] */ IView* oldFocus,
+        /* [in] */ IView* newFocus);
+
+    /**
+     * Notifies registered listeners that a global layout happened. This can be called
+     * manually if you are forcing a layout on a View or a hierarchy of Views that are
+     * not attached to a Window or in the GONE state.
+     */
+    CARAPI DispatchOnGlobalLayout();
+
+    /**
+     * Notifies registered listeners that the drawing pass is about to start. If a
+     * listener returns true, then the drawing pass is canceled and rescheduled. This can
+     * be called manually if you are forcing the drawing on a View or a hierarchy of Views
+     * that are not attached to a Window or in the GONE state.
+     *
+     * @return True if the current draw should be canceled and resceduled, false otherwise.
+     */
+    CARAPI DispatchOnPreDraw(
+        /* [out] */ Boolean* cancelDraw);
+
+    /**
+     * Notifies registered listeners that the touch mode has changed.
+     *
+     * @param inTouchMode True if the touch mode is now enabled, false otherwise.
+     */
+    CARAPI DispatchOnTouchModeChanged(
+        /* [in] */ Boolean inTouchMode);
+
+    /**
+     * Notifies registered listeners that something has scrolled.
+     */
+    CARAPI DispatchOnScrollChanged();
+
+    /**
+     * Returns whether there are listeners for computing internal insets.
+     */
+    CARAPI HasComputeInternalInsetsListeners(
+        /* [out] */ Boolean* has);
+
+private:
+    void CheckIsAlive() {
+        if (!mAlive) {
+            // throw new IllegalStateException("This ViewTreeObserver is not alive, call "
+            //         + "getViewTreeObserver() again");
+            assert(0);
+        }
+    }
+
+    /**
+     * Marks this ViewTreeObserver as not alive. After invoking this method, invoking
+     * any other method but {@link #isAlive()} and {@link #kill()} will throw an Exception.
+     *
+     * @hide
+     */
+    void Kill() {
+        mAlive = FALSE;
+    }
+
+private:
+    //TODO: CopyOnWriteArrayList ----Thread-safe; List---Don't know.
+
+    // private CopyOnWriteArrayList<OnGlobalFocusChangeListener> mOnGlobalFocusListeners;
+    // private CopyOnWriteArrayList<OnGlobalLayoutListener> mOnGlobalLayoutListeners;
+    // private CopyOnWriteArrayList<OnPreDrawListener> mOnPreDrawListeners;
+    // private CopyOnWriteArrayList<OnTouchModeChangeListener> mOnTouchModeChangeListeners;
+    // private CopyOnWriteArrayList<OnComputeInternalInsetsListener> mOnComputeInternalInsetsListeners;
+    // private CopyOnWriteArrayList<OnScrollChangedListener> mOnScrollChangedListeners;
+
+    Boolean mAlive;
+    List<AutoPtr<IOnPreDrawListener> > mOnPreDrawListeners;
 };
 
 #endif //__VIEWTREEOBSERVER_H__

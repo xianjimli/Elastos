@@ -32,8 +32,7 @@ module
          * @return This ContextMenu so additional setters can be called.
          */
         SetHeaderTitle(
-            [in] Int32 titleRes,
-            [out] IContextMenu** contextMenu);
+            [in] Int32 titleRes);
 
         /**
          * Sets the context menu header's title to the title given in <var>title</var>.
@@ -42,8 +41,7 @@ module
          * @return This ContextMenu so additional setters can be called.
          */
         SetHeaderTitleEx(
-            [in] ICharSequence* title,
-            [out] IContextMenu** contextMenu);
+            [in] ICharSequence* title);
 
         /**
          * Sets the context menu header's icon to the icon given in <var>iconRes</var>
@@ -53,8 +51,7 @@ module
          * @return This ContextMenu so additional setters can be called.
          */
         SetHeaderIcon(
-            [in] Int32 iconRes,
-            [out] IContextMenu** contextMenu);
+            [in] Int32 iconRes);
 
         /**
          * Sets the context menu header's icon to the icon given in <var>icon</var>
@@ -64,8 +61,7 @@ module
          * @return This ContextMenu so additional setters can be called.
          */
         SetHeaderIconEx(
-            [in] IDrawable* icon,
-            [out] IContextMenu** contextMenu);
+            [in] IDrawable* icon);
 
         /**
          * Sets the header of the context menu to the {@link View} given in
@@ -76,8 +72,7 @@ module
          * @return This ContextMenu so additional setters can be called.
          */
         SetHeaderView(
-            [in] IView* view,
-            [out] IContextMenu** contextMenu);
+            [in] IView* view);
 
         /**
          * Clears the header of the context menu.

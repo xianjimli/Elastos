@@ -662,10 +662,11 @@ Boolean Dialog::DispatchKeyEvent(
 {
     Int32 keyCode;
     event->GetKeyCode(&keyCode);
+    Boolean consumed;
     if ((mOnKeyListener != NULL) &&
         (mOnKeyListener->OnKey(
-        (IDialogInterface*)this->Probe(EIID_IDialogInterface),
-        keyCode, event))) {
+            (IDialogInterface*)this->Probe(EIID_IDialogInterface),
+            keyCode, event, &consumed), consumed)) {
         return TRUE;
     }
 

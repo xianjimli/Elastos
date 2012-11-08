@@ -1,14 +1,16 @@
 
 #include "impl/CPhoneWindow.h"
-#include "view/LayoutInflater.h"
-#include "view/CViewGroupLayoutParams.h"
-#include <Logger.h>
-#include <stdio.h>
-
 #include "graphics/CPaint.h"
 #include "graphics/ElPixelFormat.h"
+#include "view/LayoutInflater.h"
+#include "view/CViewGroupLayoutParams.h"
 #include "view/ElKeyCharacterMap.h"
+#include "view/menu/MenuBuilder.h"
 #include "content/CConfiguration.h"
+#include <Logger.h>
+
+//#include <stdio.h>
+
 
 using namespace Elastos::Utility::Logging;
 
@@ -16,7 +18,7 @@ using namespace Elastos::Utility::Logging;
 extern "C" const InterfaceID EIID_RootViewSurfaceTaker =
     {0x45cf35ea, 0x34d4, 0x43a3, {0xa1, 0xc7, 0x26, 0x49, 0x41, 0x1b, 0xaa, 0x61}};
 
-const char* CPhoneWindow::TAG = "PhoneWindow";
+const CString CPhoneWindow::TAG = "PhoneWindow";
 
 IVIEW_METHODS_IMPL(
     CPhoneWindow::DecorView, FrameLayout, CPhoneWindow::DecorView);
@@ -208,39 +210,6 @@ ECode CPhoneWindow::DecorView::FocusableViewAvailable(
     return FrameLayout::FocusableViewAvailable(v);
 }
 
-ECode CPhoneWindow::DecorView::ShowContextMenuForChild(
-    /* [in] */ IView* originalView,
-    /* [out] */ Boolean* result)
-{
-//TODO
-//    VALIDATE_NOT_NULL(result);
-//    *result = FrameLayout::ShowContextMenuForChild(originalView);
-
-    // Reuse the context menu builder
-    if (mHost->mContextMenu == NULL) {
-        AutoPtr<IContext> context;
-        GetContext((IContext**) &context);
-
-        mHost->mContextMenu = new ContextMenuBuilder(context);
-
-        if (mHost->mContextMenuCallback == NULL) {
-            mHost->mContextMenuCallback = new CPhoneWindow::ContextMenuCallback(mHost, Window_FEATURE_CONTEXT_MENU);
-        }
-
-        mHost->mContextMenu->SetCallback(mHost->mContextMenuCallback);
-    } else {
-        mHost->mContextMenu->ClearAll();
-    }
-
-    AutoPtr<IBinder> binder;
-    originalView->GetWindowToken((IBinder**)&binder);
-
-    mHost->mContextMenu->Show(originalView, binder, (CMenuDialogHelper**) &(mHost->mContextMenuHelper));
-    *result = mHost->mContextMenuHelper != NULL;
-
-    return NOERROR;
-}
-
 ECode CPhoneWindow::DecorView::ChildDrawableStateChanged(
     /* [in] */ IView* child)
 {
@@ -381,6 +350,32 @@ ECode CPhoneWindow::DecorView::WillYouTakeTheInputQueue(
     return NOERROR;
 }
 
+ECode CPhoneWindow::DecorView::ShowContextMenuForChild(
+    /* [in] */ IView* originalView,
+    /* [out] */ Boolean* result)
+{
+    VALIDATE_NOT_NULL(result);
+
+    // Reuse the context menu builder
+    if (mHost->mContextMenu == NULL) {
+        AutoPtr<IContext> context;
+        GetContext((IContext**) &context);
+
+        mHost->mContextMenu = new ContextMenuBuilder(context);
+        mHost->mContextMenu->SetCallback(mHost->mContextMenuCallback);
+    }
+    else {
+        mHost->mContextMenu->ClearAll();
+    }
+
+    AutoPtr<IBinder> binder;
+    originalView->GetWindowToken((IBinder**)&binder);
+    mHost->mContextMenuHelper = mHost->mContextMenu->Show(originalView, binder);
+    *result = mHost->mContextMenuHelper != NULL;
+
+    return NOERROR;
+}
+
 void CPhoneWindow::DecorView::StartChanging()
 {
     mChanging = TRUE;
@@ -429,7 +424,6 @@ void CPhoneWindow::DecorView::SetWindowFrame(
 Boolean CPhoneWindow::DecorView::DispatchKeyEvent(
     /* [in] */ IKeyEvent* event)
 {
-    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
     Int32 keyCode;
     event->GetKeyCode(&keyCode);
     Int32 action;
@@ -496,25 +490,14 @@ Boolean CPhoneWindow::DecorView::DispatchKeyEvent(
 
     AutoPtr<IWindowCallback> cb;
     mHost->GetCallback((IWindowCallback**)&cb);
-    if (cb == NULL) {
-        printf("==== File: %s, Line: %d ====, FUNC : %s, ---------------cb ========null.\n", __FILE__, __LINE__, __FUNCTION__);
-    }
-    else {
-        printf("==== File: %s, Line: %d ====, FUNC : %s, ---------------cb !!!!!!!=null.\n", __FILE__, __LINE__, __FUNCTION__);
-    }
 
     Boolean handled = FALSE;
-    //printf("==== File: %s, Line: %d ====, FUNC : %s, cb===[%0x], mFeatureId=[%d].\n", __FILE__, __LINE__, __FUNCTION__, cb, mFeatureId);
-    printf("==== File: %s, Line: %d ====, FUNC : %s, mFeatureId=[%d].\n", __FILE__, __LINE__, __FUNCTION__, mFeatureId);
     if (cb != NULL && mFeatureId < 0) {
-        printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
         cb->DispatchKeyEvent(event, &handled);
     }
     else {
-        printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
         handled = FrameLayout::DispatchKeyEvent(event);
     }
-    printf("==== File: %s, Line: %d ====, FUNC : %s, handled==%d.\n", __FILE__, __LINE__, __FUNCTION__, handled);
 
     if (handled) {
         return TRUE;
@@ -603,10 +586,7 @@ Boolean CPhoneWindow::DecorView::OnInterceptTouchEvent(
             Int32 x = (Int32)fx;
             Int32 y = (Int32)fy;
             if (IsOutOfBounds(x, y)) {
-                if (mHost != NULL) {
-                    mHost->ClosePanel(mFeatureId);
-                }
-
+                mHost->ClosePanel(mFeatureId);
                 return TRUE;
             }
         }
@@ -634,11 +614,7 @@ Boolean CPhoneWindow::DecorView::OnInterceptTouchEvent(
         if (action == MotionEvent_ACTION_MOVE) {
             if (y > (mDownY + 30)) {
                 Logger::D(TAG, "Closing!");
-
-                if (mHost != NULL) {
-                    mHost->ClosePanel(mFeatureId);
-                }
-
+                mHost->ClosePanel(mFeatureId);
                 mWatchingForMenu = FALSE;
                 return TRUE;
             }
@@ -684,7 +660,8 @@ Boolean CPhoneWindow::DecorView::OnInterceptTouchEvent(
     return FALSE;
 }
 
-void CPhoneWindow::DecorView::DrawableChanged() {
+void CPhoneWindow::DecorView::DrawableChanged()
+{
 //    if (mChanging) {
 //        return;
 //    }
@@ -745,15 +722,326 @@ void CPhoneWindow::DecorView::DrawableChanged() {
 //    }
 }
 
+static Int32 R_Styleable_Theme[] = {
+    0x01010030, 0x01010031, 0x01010032, 0x01010033,
+    0x01010034, 0x01010035, 0x01010036, 0x01010037,
+    0x01010038, 0x01010039, 0x0101003a, 0x0101003b,
+    0x0101003c, 0x0101003d, 0x0101003e, 0x0101003f,
+    0x01010040, 0x01010041, 0x01010042, 0x01010043,
+    0x01010044, 0x01010045, 0x01010046, 0x01010047,
+    0x01010048, 0x01010049, 0x0101004a, 0x0101004b,
+    0x0101004c, 0x0101004d, 0x0101004e, 0x0101004f,
+    0x01010050, 0x01010051, 0x01010052, 0x01010053,
+    0x01010054, 0x01010055, 0x01010056, 0x01010057,
+    0x01010058, 0x01010059, 0x0101005a, 0x0101005b,
+    0x0101005c, 0x0101005d, 0x0101005e, 0x0101005f,
+    0x01010060, 0x01010061, 0x01010062, 0x0101006a,
+    0x0101006b, 0x0101006c, 0x0101006d, 0x0101006e,
+    0x0101006f, 0x01010070, 0x01010071, 0x01010072,
+    0x01010073, 0x01010074, 0x01010075, 0x01010076,
+    0x01010077, 0x01010078, 0x01010079, 0x0101007a,
+    0x0101007b, 0x0101007c, 0x0101007d, 0x0101007e,
+    0x01010080, 0x01010081, 0x01010082, 0x01010083,
+    0x01010084, 0x01010085, 0x01010086, 0x01010087,
+    0x01010088, 0x01010089, 0x0101008a, 0x0101008b,
+    0x0101008c, 0x0101008d, 0x0101008e, 0x0101008f,
+    0x01010090, 0x01010091, 0x01010092, 0x01010093,
+    0x01010094, 0x010100ae, 0x01010206, 0x01010207,
+    0x01010208, 0x0101020d, 0x0101020f, 0x01010210,
+    0x01010212, 0x01010213, 0x01010214, 0x01010219,
+    0x0101021a, 0x0101021e, 0x0101021f, 0x01010222,
+    0x0101022b, 0x01010230, 0x01010267, 0x01010287,
+    0x01010288, 0x01010289, 0x0101028b, 0x01010292,
+    0x010102a0, 0x010102a1, 0x010102ab, 0x010102ae,
+    0x010102af, 0x010102b0, 0x010102b1, 0x010102b2,
+    0x010102b3, 0x010102b6, 0x010102b9, 0x010102c5,
+    0x010102c6, 0x010102c7, 0x010102c8, 0x010102cc,
+    0x010102cd, 0x010102ce, 0x010102cf, 0x010102d0
+};
+
+CPhoneWindow::PanelFeatureState::PanelFeatureState(
+    /* [in] */ Int32 featureId)
+    : mFeatureId(featureId)
+    , mIsPrepared(FALSE)
+    , mIsHandled(FALSE)
+    , mIsOpen(FALSE)
+    , mIsInExpandedMode(FALSE)
+    , mQwertyMode(FALSE)
+    , mRefreshDecorView(FALSE)
+    , mWasLastOpen(FALSE)
+    , mWasLastExpanded(FALSE)
+{}
+
+PInterface CPhoneWindow::PanelFeatureState::Probe(
+    /* [in] */ REIID riid)
+{
+    return NULL;
+}
+
+UInt32 CPhoneWindow::PanelFeatureState::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CPhoneWindow::PanelFeatureState::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode CPhoneWindow::PanelFeatureState::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+void CPhoneWindow::PanelFeatureState::SetStyle(
+    /* [in] */ IContext* context)
+{
+    assert(context != NULL);
+
+    AutoPtr<ITypedArray> a;
+    context->ObtainStyledAttributes(ArrayOf<Int32>(R_Styleable_Theme, sizeof(R_Styleable_Theme) / sizeof(Int32)),
+                (ITypedArray**) &a);
+
+    a->GetResourceId(46, 0, &mBackground);
+    a->GetResourceId(47, 0, &mFullBackground);
+    a->GetResourceId(93, 0, &mWindowAnimations);
+    a->Recycle();
+}
+
+void CPhoneWindow::PanelFeatureState::SetMenu(
+    /* [in] */ IMenu* menu)
+{
+    assert(menu != NULL);
+
+    mMenu = menu;
+
+    if (mFrozenMenuState != NULL) {
+        IMenuBuilder::Probe(mMenu)->RestoreHierarchyState(mFrozenMenuState);
+        mFrozenMenuState = NULL;
+    }
+}
+
+AutoPtr<IParcelable> CPhoneWindow::PanelFeatureState::OnSaveInstanceState()
+{
+    AutoPtr<SavedState> savedState = new SavedState();
+    savedState->mFeatureId = mFeatureId;
+    savedState->mIsOpen = mIsOpen;
+    savedState->mIsInExpandedMode = mIsInExpandedMode;
+
+    if (mMenu != NULL) {
+        CBundle::New((IBundle**)&savedState->mMenuState);
+        IMenuBuilder::Probe(mMenu)->SaveHierarchyState(savedState->mMenuState);
+    }
+
+    return savedState;
+}
+
+void CPhoneWindow::PanelFeatureState::OnRestoreInstanceState(
+    /* [in] */ IParcelable* state)
+{
+    AutoPtr<SavedState> savedState = (SavedState*)state;
+    mFeatureId = savedState->mFeatureId;
+    mWasLastOpen = savedState->mIsOpen;
+    mWasLastExpanded = savedState->mIsInExpandedMode;
+    mFrozenMenuState = savedState->mMenuState;
+
+    /*
+     * A LocalActivityManager keeps the same instance of this class around.
+     * The first time the menu is being shown after restoring, the
+     * Activity.onCreateOptionsMenu should be called. But, if it is the
+     * same instance then menu != null and we won't call that method.
+     * So, clear this.  Also clear any cached views.
+     */
+    mMenu = NULL;
+    mCreatedPanelView = NULL;
+    mShownPanelView = NULL;
+    mDecorView = NULL;
+}
+
+
+CPhoneWindow::PanelFeatureState::SavedState::SavedState()
+    : mIsOpen(FALSE)
+    , mIsInExpandedMode(FALSE)
+{}
+
+PInterface CPhoneWindow::PanelFeatureState::SavedState::Probe(
+/* [in] */ REIID riid)
+{
+    if (riid == EIID_IParcelable) {
+        return (IParcelable*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 CPhoneWindow::PanelFeatureState::SavedState::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CPhoneWindow::PanelFeatureState::SavedState::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode CPhoneWindow::PanelFeatureState::SavedState::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+Int32 CPhoneWindow::PanelFeatureState::SavedState::DescribeContents()
+{
+    return 0;
+}
+
+ECode CPhoneWindow::PanelFeatureState::SavedState::WriteToParcel(
+    /* [in] */ IParcel* dest)
+{
+    dest->WriteInt32(mFeatureId);
+    dest->WriteBoolean(mIsOpen);
+    dest->WriteBoolean(mIsInExpandedMode);
+
+    if (mIsOpen) {
+        dest->WriteInterfacePtr(mMenuState);
+    }
+    return NOERROR;
+}
+
+ECode CPhoneWindow::PanelFeatureState::SavedState::ReadFromParcel(
+    /* [in] */ IParcel*  source)
+{
+    source->ReadInt32(&mFeatureId);
+    source->ReadBoolean(&mIsOpen);
+    source->ReadBoolean(&mIsInExpandedMode);
+
+    if (mIsOpen) {
+        source->ReadInterfacePtr((Handle32*)&mMenuState);
+    }
+    return NOERROR;
+}
+
+
+CPhoneWindow::ContextMenuCallback::ContextMenuCallback(
+    /* [in] */ Int32 featureId,
+    /* [in] */ CPhoneWindow* host)
+    : mFeatureId(featureId)
+    , mHost(host)
+{}
+
+PInterface CPhoneWindow::ContextMenuCallback::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IMenuBuilderCallback) {
+        return (IMenuBuilderCallback*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 CPhoneWindow::ContextMenuCallback::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CPhoneWindow::ContextMenuCallback::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode CPhoneWindow::ContextMenuCallback::GetInterfaceID(
+    /* [in] */ IInterface* iinterface,
+    /* [in] */ InterfaceID* id)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPhoneWindow::ContextMenuCallback::OnCloseMenu(
+    /* [in] */ IMenuBuilder* menu,
+    /* [in] */ Boolean allMenusAreClosing)
+{
+    if (allMenusAreClosing) {
+        AutoPtr<IWindowCallback> callback;
+        mHost->GetCallback((IWindowCallback**)&callback);
+        if (callback != NULL) callback->OnPanelClosed(mFeatureId, (IMenu*)menu);
+
+        if (mHost->mContextMenu != NULL && menu == mHost->mContextMenu->Probe(EIID_IMenuBuilder)) {
+            mHost->DismissContextMenu();
+        }
+
+        // Dismiss the submenu, if it is showing
+        if (mSubMenuHelper != NULL) {
+            mSubMenuHelper->Dismiss();
+            mSubMenuHelper = NULL;
+        }
+    }
+
+    return NOERROR;
+}
+
+ECode CPhoneWindow::ContextMenuCallback::OnCloseSubMenu(
+    /* [in] */ ISubMenuBuilder* menu)
+{
+    AutoPtr<IWindowCallback> callback;
+    mHost->GetCallback((IWindowCallback**)&callback);
+
+    if (callback != NULL) {
+        AutoPtr<IMenuBuilder> rootMenu;
+        menu->GetRootMenu((IMenuBuilder**)&rootMenu);
+        callback->OnPanelClosed(mFeatureId, (IMenu*)rootMenu.Get());
+    }
+
+    return NOERROR;
+}
+
+ECode CPhoneWindow::ContextMenuCallback::OnMenuItemSelected(
+    /* [in] */ IMenuBuilder* menu,
+    /* [in] */ IMenuItem* item,
+    /* [out] */ Boolean* toFinish)
+{
+    AutoPtr<IWindowCallback> callback;
+    mHost->GetCallback((IWindowCallback**) &callback);
+
+    if (callback != NULL) {
+        return callback->OnMenuItemSelected(mFeatureId, item, toFinish);
+    }
+
+    *toFinish = FALSE;
+    return NOERROR;
+}
+
+ECode CPhoneWindow::ContextMenuCallback::OnMenuModeChange(
+    /* [in] */ IMenuBuilder* menu)
+{
+    return NOERROR;
+}
+
+ECode CPhoneWindow::ContextMenuCallback::OnSubMenuSelected(
+    /* [in] */ ISubMenuBuilder* subMenu,
+    /* [out] */ Boolean* state)
+{
+    VALIDATE_NOT_NULL(state);
+
+    // Set a simple callback for the submenu
+    subMenu->SetCallback(this);
+
+    // The window manager will give us a valid window token
+    mSubMenuHelper = new MenuDialogHelper((IMenuBuilder*)subMenu);
+    mSubMenuHelper->Show(NULL);
+
+    *state = TRUE;
+    return NOERROR;
+}
+
 CPhoneWindow::CPhoneWindow()
     : mTakeInputQueueCallback(NULL)
     , mBackgroundResource(0)
     , mFrameResource(0)
     , mTextColor(0)
     , mTitleColor(0)
-    , mContextMenuHelper(NULL)
-    , mContextMenu(NULL)
-    , mContextMenuCallback(NULL)
 {}
 
 CPhoneWindow::~CPhoneWindow()
@@ -972,59 +1260,48 @@ ECode CPhoneWindow::OnConfigurationChanged(
     return E_NOT_IMPLEMENTED;
 }
 
+/**
+ * Called when the panel key is pushed down.
+ * @param featureId The feature ID of the relevant panel (defaults to FEATURE_OPTIONS_PANEL}.
+ * @param event The key event.
+ * @return Whether the key was handled.
+ */
 ECode CPhoneWindow::OnKeyDownPanel(
     /* [in] */ Int32 featureId,
-    /* [in] */ IKeyEvent* event)
+    /* [in] */ IKeyEvent* event,
+    /* [out */ Boolean* handled)
 {
-    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
-    if (event == NULL) {
-        return E_INVALID_ARGUMENT;
-    }
-
-    AutoPtr<IContext> context;
-    GetContext((IContext**) &context);
-
-    if (context == NULL) {
-        return E_INVALID_ARGUMENT;
-    }
-
-    AutoPtr<IResources> resource;
-    context->GetResources((IResources**) &resource);
-    if (resource == NULL) {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(handled);
+    assert(event != NULL);
 
     Int32 keycode, repeatCount;
     event->GetRepeatCount(&repeatCount);
     event->GetKeyCode(&keycode);
 
     if (repeatCount == 0) {
+        // The panel key was pushed, so set the chording key
         mPanelChordingKey = keycode;
         mPanelMayLongPress = FALSE;
 
-        PanelFeatureState* st = NULL;
-        GetPanelState(featureId, TRUE, &st);
-        printf("==== File: %s, Line: %d ====, FUNC : %s, st==[0x%08x].\n", __FILE__, __LINE__, __FUNCTION__, st);
-
-        if (!st->isOpen) {
+        AutoPtr<PanelFeatureState> st = GetPanelState(featureId, TRUE);
+        if (!st->mIsOpen) {
+            AutoPtr<IContext> context;
+            GetContext((IContext**)&context);
+            assert(context != NULL);
+            AutoPtr<IResources> resource;
+            context->GetResources((IResources**)&resource);
+            assert(resource != NULL);
             AutoPtr<IConfiguration> config;
-            resource->GetConfiguration((IConfiguration**) &config);
-            CConfiguration* src = (CConfiguration*)config.Get();
-            if (src == NULL) {
-                return E_INVALID_ARGUMENT;
-            }
-
-            if (src->mKeyboard == Configuration_KEYBOARD_NOKEYS) {
+            resource->GetConfiguration((IConfiguration**)&config);
+            CConfiguration* configObj = (CConfiguration*)config.Get();
+            assert(configObj != NULL);
+            if (configObj->mKeyboard == Configuration_KEYBOARD_NOKEYS) {
                 mPanelMayLongPress = TRUE;
             }
-
-            Boolean prepared;
-            printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
-            return PreparePanel(st, event, &prepared);
+            return PreparePanel(st, event, handled);
         }
-
-    } else if (mPanelMayLongPress && mPanelChordingKey == keycode) {
-
+    }
+    else if (mPanelMayLongPress && mPanelChordingKey == keycode) {
         Int32 flags;
         event->GetFlags(&flags);
         if ((flags & KeyEvent_FLAG_LONG_PRESS) != 0) {
@@ -1032,8 +1309,6 @@ ECode CPhoneWindow::OnKeyDownPanel(
             // should be executed...  do it!
             mPanelChordingKey = 0;
             mPanelMayLongPress = FALSE;
-
-            //TODO
 /*            InputMethodManager imm = (InputMethodManager)
                     getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
             if (imm != null) {
@@ -1043,6 +1318,61 @@ ECode CPhoneWindow::OnKeyDownPanel(
         }
     }
 
+    *handled = FALSE;
+    return NOERROR;
+}
+
+/**
+ * Called when the panel key is released.
+ * @param featureId The feature ID of the relevant panel (defaults to FEATURE_OPTIONS_PANEL}.
+ * @param event The key event.
+ */
+ECode CPhoneWindow::OnKeyUpPanel(
+    /* [in] */ Int32 featureId,
+    /* [in] */ IKeyEvent* event)
+{
+    // The panel key was released, so clear the chording key
+    if (mPanelChordingKey != 0) {
+        mPanelChordingKey = 0;
+        mPanelMayLongPress = FALSE;
+
+        Boolean isCanceled;
+        if (event->IsCanceled(&isCanceled), isCanceled) {
+            return NOERROR;
+        }
+
+        Boolean playSoundEffect = FALSE;
+        AutoPtr<PanelFeatureState> st = GetPanelState(featureId, TRUE);
+        if (st->mIsOpen || st->mIsHandled) {
+            // Play the sound effect if the user closed an open menu (and not if
+            // they just released a menu shortcut)
+            playSoundEffect = st->mIsOpen;
+
+            // Close menu
+            ClosePanel(st, TRUE);
+        }
+        else if (st->mIsPrepared) {
+
+            // Write 'menu opened' to event log
+            //EventLog.writeEvent(50001, 0);
+
+            // Show menu
+            OpenPanel(st, event);
+
+            playSoundEffect = TRUE;
+        }
+
+        // if (playSoundEffect) {
+        //     AudioManager audioManager = (AudioManager) getContext().getSystemService(
+        //             Context.AUDIO_SERVICE);
+        //     if (audioManager != null) {
+        //         audioManager.playSoundEffect(AudioManager.FX_KEY_CLICK);
+        //     } else {
+        //         Log.w(TAG, "Couldn't get audio manager");
+        //     }
+        // }
+    }
+
     return NOERROR;
 }
 
@@ -1050,131 +1380,127 @@ ECode CPhoneWindow::OpenPanel(
     /* [in] */ Int32 featureId,
     /* [in] */ IKeyEvent* event)
 {
-    PanelFeatureState* out;
-    GetPanelState(featureId, TRUE, &out);
-
-    return OpenPanel(out, event);
+    OpenPanel(GetPanelState(featureId, TRUE), event);
+    return NOERROR;
 }
 
-ECode CPhoneWindow::InitializePanelDecor(
-    /* [in] */ PanelFeatureState* st,
-    /* [out] */ Boolean* inited) {
-    *inited = FALSE;
-    if (st == NULL) {
-        return E_INVALID_ARGUMENT;
-    }
-
+/**
+ * Perform initial setup of a panel. This should at the very least set the
+ * style information in the PanelFeatureState and must set
+ * PanelFeatureState.decor to the panel's window decor view.
+ *
+ * @param st The panel being initialized.
+ */
+Boolean CPhoneWindow::InitializePanelDecor(
+    /* [in] */ PanelFeatureState* st)
+{
     AutoPtr<IContext> context;
-    GetContext((IContext**) &context);
-
-    st->decorView = new DecorView(this, context, st->featureId);
-    st->gravity = Gravity_CENTER | Gravity_BOTTOM;
-
+    GetContext((IContext**)&context);
+    st->mDecorView = new DecorView(this, context, st->mFeatureId);
+    st->mGravity = Gravity_CENTER | Gravity_BOTTOM;
     st->SetStyle(context);
 
-    *inited = TRUE;
-    return NOERROR;
+    return TRUE;
 }
 
-ECode CPhoneWindow::InitializePanelContent(
-    /* [in] */ PanelFeatureState* st,
-    /* [out] */ Boolean* inited) {
-
-    *inited = FALSE;
-    if (st->createdPanelView != NULL) {
-        st->shownPanelView = st->createdPanelView;
-        *inited = TRUE;
-        return NOERROR;
+/**
+ * Initializes the panel associated with the panel feature state. You must
+ * at the very least set PanelFeatureState.panel to the View implementing
+ * its contents. The default implementation gets the panel from the menu.
+ *
+ * @param st The panel state being initialized.
+ * @return Whether the initialization was successful.
+ */
+Boolean CPhoneWindow::InitializePanelContent(
+    /* [in] */ PanelFeatureState* st)
+{
+    if (st->mCreatedPanelView != NULL) {
+        st->mShownPanelView = st->mCreatedPanelView;
+        return TRUE;
     }
 
-    AutoPtr<IMenuBuilder> menu = (IMenuBuilder*)st->menu.Get();
-    if (menu == NULL) {
-        return NOERROR;
+    if (st->mMenu == NULL) {
+        return FALSE;
     }
 
-    menu->GetMenuView((st->isInExpandedMode) ? MenuBuilder::TYPE_EXPANDED
-            : MenuBuilder::TYPE_ICON, st->decorView, (IMenuView**) &st->shownPanelView);
+    IMenuBuilder* menu = IMenuBuilder::Probe(st->mMenu);
+    AutoPtr<IView> view;
+    menu->GetMenuView((st->mIsInExpandedMode) ? MenuBuilder::TYPE_EXPANDED
+            : MenuBuilder::TYPE_ICON, (IViewGroup*)st->mDecorView->Probe(EIID_IViewGroup),
+            (IView**)&view);
+    st->mShownPanelView = view;
 
-    if (st->shownPanelView != NULL) {
+    if (st->mShownPanelView != NULL) {
         // Use the menu View's default animations if it has any
         Int32 defaultAnimations;
-        ((IMenuView*)(st->shownPanelView.Get()))->GetWindowAnimations(&defaultAnimations);
+        IMenuView::Probe(st->mShownPanelView)->GetWindowAnimations(&defaultAnimations);
         if (defaultAnimations != 0) {
-            st->windowAnimations = defaultAnimations;
+            st->mWindowAnimations = defaultAnimations;
         }
-
-        *inited = TRUE;
-
-        return NOERROR;
+        return TRUE;
     }
-
-    return NOERROR;
+    else {
+        return FALSE;
+    }
 }
 
-ECode CPhoneWindow::OpenPanel(
+void CPhoneWindow::OpenPanel(
     /* [in] */ PanelFeatureState* st,
-    /* [in] */ IKeyEvent* event) {
+    /* [in] */ IKeyEvent* event)
+{
     // Already open, return
-    if (st->isOpen) {
-        return NOERROR;
+    if (st->mIsOpen) {
+        return;
     }
 
     AutoPtr<IWindowCallback> cb;
-    GetCallback((IWindowCallback**) &cb);
-
+    GetCallback((IWindowCallback**)&cb);
     Boolean isOpened;
-    cb->OnMenuOpened(st->featureId, st->menu, &isOpened);
-    if ((cb != NULL) && (!isOpened)) {
+    if ((cb != NULL) && (cb->OnMenuOpened(st->mFeatureId, st->mMenu, &isOpened), !isOpened)) {
         // Callback doesn't want the menu to open, reset any state
-        return ClosePanelEx(st, TRUE);
+        ClosePanel(st, TRUE);
+        return;
     }
 
     AutoPtr<IWindowManager> wm;
     GetWindowManager((IWindowManager**) &wm);
     if (wm == NULL) {
-        return E_INVALID_ARGUMENT;
+        return;
     }
 
     // Prepare panel (should have been done before, but just in case)
     Boolean prepared;
-    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
     PreparePanel(st, event, &prepared);
     if (!prepared) {
-        return E_INVALID_ARGUMENT;
+        return;
     }
 
-    if (st->decorView == NULL || st->refreshDecorView) {
-        if (st->decorView == NULL) {
+    if (st->mDecorView == NULL || st->mRefreshDecorView) {
+        if (st->mDecorView == NULL) {
             // Initialize the panel decor, this will populate st.decorView
-            Boolean inited;
-            InitializePanelDecor(st, &inited);
-
-            if (!inited || (st->decorView == NULL)) {
-                return E_INVALID_ARGUMENT;
+            if (!InitializePanelDecor(st) || (st->mDecorView == NULL)) {
+                return;
             }
-        } else if (st->refreshDecorView) {
+        }
+        else if (st->mRefreshDecorView) {
             Int32 count;
-            st->decorView->GetChildCount(&count);
-
+            st->mDecorView->GetChildCount(&count);
             if (count > 0) {
                 // Decor needs refreshing, so remove its views
-                st->decorView->RemoveAllViews();
+                st->mDecorView->RemoveAllViews();
             }
         }
 
         // This will populate st.shownPanelView
-        Boolean inited;
-        InitializePanelContent(st, &inited);
-        if (!inited || (st->shownPanelView == NULL)) {
-            return E_INVALID_ARGUMENT;
+        if (!InitializePanelContent(st) || (st->mShownPanelView == NULL)) {
+            return;
         }
 
         AutoPtr<IViewGroupLayoutParams> lp;
-        st->shownPanelView->GetLayoutParams((IViewGroupLayoutParams**) &lp);
-        //ViewGroup.LayoutParams lp = st.shownPanelView.getLayoutParams();
+        st->mShownPanelView->GetLayoutParams((IViewGroupLayoutParams**)&lp);
         if (lp == NULL) {
-            CViewGroupLayoutParams::New(ViewGroupLayoutParams_WRAP_CONTENT
-                    , ViewGroupLayoutParams_WRAP_CONTENT, (IViewGroupLayoutParams**) &lp);
+            CViewGroupLayoutParams::New(ViewGroupLayoutParams_WRAP_CONTENT,
+                    ViewGroupLayoutParams_WRAP_CONTENT, (IViewGroupLayoutParams**)&lp);
         }
 
         Int32 backgroundResId, lpWidth;
@@ -1182,72 +1508,50 @@ ECode CPhoneWindow::OpenPanel(
         if (lpWidth == ViewGroupLayoutParams_MATCH_PARENT) {
             // If the contents is fill parent for the width, set the
             // corresponding background
-            backgroundResId = st->fullBackground;
-        } else {
+            backgroundResId = st->mFullBackground;
+        }
+        else {
             // Otherwise, set the normal panel background
-            backgroundResId = st->background;
+            backgroundResId = st->mBackground;
         }
 
-        AutoPtr<IDrawable> drawable;
         AutoPtr<IContext> context;
-        GetContext((IContext**) &context);
-        if (context != NULL) {
-            AutoPtr<IResources> resource;
-            context->GetResources((IResources**) &resource);
-            if (resource != NULL) {
-                resource->GetDrawable(backgroundResId, (IDrawable**) &drawable);
-            }
-        }
+        GetContext((IContext**)&context);
+        AutoPtr<IResources> resource;
+        context->GetResources((IResources**)&resource);
+        AutoPtr<IDrawable> drawable;
+        resource->GetDrawable(backgroundResId, (IDrawable**)&drawable);
 
-        if (drawable == NULL) {
-            return E_INVALID_ARGUMENT;
-        }
+        st->mDecorView->SetWindowBackground(drawable);
 
-        st->decorView->SetWindowBackground(drawable);
-
-        ((IViewGroup*)(st->decorView->Probe(EIID_IViewGroup)))->AddViewEx3((IView*)st->shownPanelView.Get()
-                    , (IViewGroupLayoutParams*)lp.Get());
+        IViewGroup::Probe((IViewParent*)st->mDecorView)->AddViewEx3(st->mShownPanelView, lp);
 
         /*
          * Give focus to the view, if it or one of its children does not
          * already have it.
          */
         Boolean focus;
-        st->shownPanelView->HasFocus(&focus);
-        if (!focus) {
+        if (st->mShownPanelView->HasFocus(&focus), !focus) {
             Boolean requested;
-            st->shownPanelView->RequestFocus(&requested);
+            st->mShownPanelView->RequestFocus(&requested);
         }
     }
 
-    st->isOpen = TRUE;
-    st->isHandled = FALSE;
+    st->mIsOpen = TRUE;
+    st->mIsHandled = FALSE;
 
-    AutoPtr<IWindowManagerLayoutParams> lp;
-    CWindowManagerLayoutParams::New((IWindowManagerLayoutParams**)&lp);
-    CWindowManagerLayoutParams* src = (CWindowManagerLayoutParams*)lp.Get();
-    src->mWidth = ViewGroupLayoutParams_WRAP_CONTENT;
-    src->mHeight = ViewGroupLayoutParams_WRAP_CONTENT;
-    src->mX = st->x;
-    src->mY = st->y;
-    src->mType = WindowManagerLayoutParams_TYPE_APPLICATION_ATTACHED_DIALOG;
-    src->mFlags = WindowManagerLayoutParams_FLAG_DITHER | WindowManagerLayoutParams_FLAG_ALT_FOCUSABLE_IM;
-    src->mAlpha = st->decorView->mDefaultOpacity;
+    AutoPtr<IWindowManagerLayoutParams> wlp;
+    CWindowManagerLayoutParams::New(
+            ViewGroupLayoutParams_WRAP_CONTENT, ViewGroupLayoutParams_WRAP_CONTENT,
+            st->mX, st->mY, WindowManagerLayoutParams_TYPE_APPLICATION_ATTACHED_DIALOG,
+            WindowManagerLayoutParams_FLAG_DITHER | WindowManagerLayoutParams_FLAG_ALT_FOCUSABLE_IM,
+            st->mDecorView->mDefaultOpacity, (IWindowManagerLayoutParams**)&wlp);
 
-/*    WindowManager.LayoutParams lp = new WindowManager.LayoutParams(
-            WRAP_CONTENT, WRAP_CONTENT,
-            st.x, st.y, WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG,
-            WindowManager.LayoutParams.FLAG_DITHER
-            | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM,
-            st.decorView.mDefaultOpacity);*/
+    ((CWindowManagerLayoutParams*)wlp.Get())->mGravity = st->mGravity;
+    ((CWindowManagerLayoutParams*)wlp.Get())->mWindowAnimations = st->mWindowAnimations;
 
-    src->mGravity = st->gravity;
-    src->mWindowAnimations = st->windowAnimations;
-
-    wm->AddViewEx5(st->decorView, lp);
+    wm->AddViewEx5((IView*)st->mDecorView.Get(), wlp);
     // Log.v(TAG, "Adding main menu to window manager.");
-
-    return NOERROR;
 }
 
 ECode CPhoneWindow::ClosePanel(
@@ -1255,45 +1559,55 @@ ECode CPhoneWindow::ClosePanel(
 {
     if (featureId == Window_FEATURE_CONTEXT_MENU) {
         CloseContextMenu();
-    } else {
-        PanelFeatureState* st;
-        GetPanelState(featureId, TRUE, &st);
-
-        ClosePanelEx(st, TRUE);
     }
-
-    return E_NOT_IMPLEMENTED;
+    else {
+        ClosePanel(GetPanelState(featureId, TRUE), TRUE);
+    }
+    return NOERROR;
 }
 
-ECode CPhoneWindow::ClosePanelEx(
+/**
+ * Closes the given panel.
+ *
+ * @param st The panel to be closed.
+ * @param doCallback Whether to notify the callback that the panel was
+ *            closed. If the panel is in the process of re-opening or
+ *            opening another panel (e.g., menu opening a sub menu), the
+ *            callback should not happen and this variable should be false.
+ *            In addition, this method internally will only perform the
+ *            callback if the panel is open.
+ */
+ECode CPhoneWindow::ClosePanel(
     /* [in] */ PanelFeatureState* st,
-    /* [in] */ Boolean doCallback) {
+    /* [in] */ Boolean doCallback)
+{
     AutoPtr<IWindowManager> wm;
-    GetWindowManager((IWindowManager**) &wm);
-    if ((wm != NULL) && st != NULL && st->isOpen) {
-        if (st->decorView != NULL) {
-            wm->RemoveView(st->decorView);
+    GetWindowManager((IWindowManager**)&wm);
+    if ((wm != NULL) && st->mIsOpen) {
+        if (st->mDecorView != NULL) {
+            wm->RemoveView((IView*)st->mDecorView.Get());
+            // Log.v(TAG, "Removing main menu from window manager.");
         }
 
         if (doCallback) {
-            CallOnPanelClosed(st->featureId, st, NULL);
+            CallOnPanelClosed(st->mFeatureId, st, NULL);
         }
     }
-    st->isPrepared = FALSE;
-    st->isHandled = FALSE;
-    st->isOpen = FALSE;
+    st->mIsPrepared = FALSE;
+    st->mIsHandled = FALSE;
+    st->mIsOpen = FALSE;
 
     // This view is no longer shown, so null it out
-    st->shownPanelView = NULL;
+    st->mShownPanelView = NULL;
 
-    if (st->isInExpandedMode) {
+    if (st->mIsInExpandedMode) {
         // Next time the menu opens, it should not be in expanded mode, so
         // force a refresh of the decor
-        st->refreshDecorView = TRUE;
-        st->isInExpandedMode = FALSE;
+        st->mRefreshDecorView = TRUE;
+        st->mIsInExpandedMode = FALSE;
     }
 
-    if (mPreparedPanel == st) {
+    if (mPreparedPanel.Get() == st) {
         mPreparedPanel = NULL;
         mPanelChordingKey = 0;
     }
@@ -1301,13 +1615,24 @@ ECode CPhoneWindow::ClosePanelEx(
     return NOERROR;
 }
 
+/**
+ * Helper method for calling the {@link Callback#onPanelClosed(int, Menu)}
+ * callback. This method will grab whatever extra state is needed for the
+ * callback that isn't given in the parameters. If the panel is not open,
+ * this will not perform the callback.
+ *
+ * @param featureId Feature ID of the panel that was closed. Must be given.
+ * @param panel Panel that was closed. Optional but useful if there is no
+ *            menu given.
+ * @param menu The menu that was closed. Optional, but give if you have.
+ */
 void CPhoneWindow::CallOnPanelClosed(
     /* [in] */ Int32 featureId,
     /* [in] */ PanelFeatureState* panel,
-    /* [in] */ IMenu* menu) {
+    /* [in] */ IMenu* menu)
+{
     AutoPtr<IWindowCallback> cb;
-    GetCallback((IWindowCallback**) &cb);
-
+    GetCallback((IWindowCallback**)&cb);
     if (cb == NULL) {
         return;
     }
@@ -1316,42 +1641,53 @@ void CPhoneWindow::CallOnPanelClosed(
     if (menu == NULL) {
         // Need a panel to grab the menu, so try to get that
         if (panel == NULL) {
-            if ((featureId >= 0) && (featureId < mPanels->GetSize())) {
+            if ((featureId >= 0) && (featureId < mPanels->GetLength())) {
                 panel = (*mPanels)[featureId];
             }
         }
 
         if (panel != NULL) {
             // menu still may be null, which is okay--we tried our best
-            menu = panel->menu;
+            menu = panel->mMenu;
         }
     }
 
     // If the panel is not open, do not callback
-    if ((panel != NULL) && (!panel->isOpen))
+    if ((panel != NULL) && (!panel->mIsOpen)) {
         return;
+    }
 
     cb->OnPanelClosed(featureId, menu);
 }
 
-ECode CPhoneWindow::CloseContextMenu() {
+/**
+ * Closes the context menu. This notifies the menu logic of the close, along
+ * with dismissing it from the UI.
+ */
+void CPhoneWindow::CloseContextMenu()
+{
+    Mutex::Autolock lock(&_m_syncLock);
+
     if (mContextMenu != NULL) {
         mContextMenu->Close();
         DismissContextMenu();
     }
-
-    return NOERROR;
 }
 
-ECode CPhoneWindow::DismissContextMenu() {
+/**
+ * Dismisses just the context menu UI. To close the context menu, use
+ * {@link #closeContextMenu()}.
+ */
+void CPhoneWindow::DismissContextMenu()
+{
+    Mutex::Autolock lock(&_m_syncLock);
+
     mContextMenu = NULL;
 
     if (mContextMenuHelper != NULL) {
         mContextMenuHelper->Dismiss();
         mContextMenuHelper = NULL;
     }
-
-    return NOERROR;
 }
 
 ECode CPhoneWindow::TogglePanel(
@@ -1485,7 +1821,6 @@ Boolean CPhoneWindow::OnKeyDown(
     /* [in] */ Int32 keyCode,
     /* [in] */ IKeyEvent* event)
 {
-    printf("==== File: %s, Line: %d ====, keyCode===[%d].\n", __FILE__, __LINE__, keyCode);
     AutoPtr<IDispatcherState> dispatcher;
     if (mDecor != NULL) {
         mDecor->GetKeyDispatcherState((IDispatcherState**)&dispatcher);
@@ -1558,9 +1893,8 @@ Boolean CPhoneWindow::OnKeyDown(
         }
     case KeyEvent_KEYCODE_MENU:
         {
-            printf("==== File: %s, Line: %d ====, FUNC : %s---------------.\n", __FILE__, __LINE__, __FUNCTION__);
-            OnKeyDownPanel((featureId < 0) ? Window_FEATURE_OPTIONS_PANEL : featureId, event);
-            printf("==== File: %s, Line: %d ====, FUNC : %s---------------.\n", __FILE__, __LINE__, __FUNCTION__);
+            Boolean handled;
+            OnKeyDownPanel((featureId < 0) ? Window_FEATURE_OPTIONS_PANEL : featureId, event, &handled);
             return TRUE;
         }
     case KeyEvent_KEYCODE_BACK:
@@ -1651,7 +1985,6 @@ Boolean CPhoneWindow::OnKeyUp(
     /* [in] */ Int32 keyCode,
     /* [in] */ IKeyEvent* event)
 {
-    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
     AutoPtr<IDispatcherState> dispatcher;
     if (mDecor != NULL) {
         mDecor->GetKeyDispatcherState((IDispatcherState**)&dispatcher);
@@ -1686,34 +2019,27 @@ Boolean CPhoneWindow::OnKeyUp(
         }
     case KeyEvent_KEYCODE_MENU:
         {
-            //onKeyUpPanel(featureId < 0 ? FEATURE_OPTIONS_PANEL : featureId,
-            //        event);
+            OnKeyUpPanel(featureId < 0 ? Window_FEATURE_OPTIONS_PANEL : featureId, event);
             return TRUE;
         }
     case KeyEvent_KEYCODE_BACK:
         {
-            if (featureId < 0) {
-                break;
-            }
+            if (featureId < 0) break;
 
             Boolean isTracking, isCanceled;
             event->IsTracking(&isTracking);
             event->IsCanceled(&isCanceled);
             if (isTracking && !isCanceled) {
                 if (featureId == Window_FEATURE_OPTIONS_PANEL) {
-                   PanelFeatureState* st;
-                   GetPanelState(featureId, FALSE, &st);
-
-                   if (st != NULL && st->isInExpandedMode) {
+                   AutoPtr<PanelFeatureState> st = GetPanelState(featureId, FALSE);
+                   if (st != NULL && st->mIsInExpandedMode) {
                        // If the user is in an expanded menu and hits back, it
                        // should go back to the icon menu
                        ReopenMenu(TRUE);
                        return TRUE;
                    }
                 }
-
                 ClosePanel(featureId);
-
                 return TRUE;
             }
         }
@@ -1963,7 +2289,7 @@ ECode CPhoneWindow::GenerateLayout(
     }
 
     mDecor->StartChanging();
-printf("==== File: %s, Line: %d, layoutResource: %p ====\n", __FILE__, __LINE__, layoutResource);
+
     AutoPtr<IView> in;
     mLayoutInflater->Inflate(layoutResource, NULL, (IView**)&in);
 
@@ -2153,7 +2479,6 @@ ECode CPhoneWindow::GetWindowManager(
 ECode CPhoneWindow::SetCallback(
     /* [in] */ IWindowCallback* cb)
 {
-    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
     return Window::SetCallback(cb);
 }
 
@@ -2264,308 +2589,297 @@ Mutex& CPhoneWindow::GetSelfSyncLock()
     return _m_syncLock;
 }
 
+/**
+ * Prepares the panel to either be opened or chorded. This creates the Menu
+ * instance for the panel and populates it via the Activity callbacks.
+ *
+ * @param st The panel state to prepare.
+ * @param event The event that triggered the preparing of the panel.
+ * @return Whether the panel was prepared. If the panel should not be shown,
+ *         returns false.
+ */
 ECode CPhoneWindow::PreparePanel(
     /* [in] */ PanelFeatureState* st,
     /* [in] */ IKeyEvent* event,
     /* [out] */ Boolean* prepared)
 {
-    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
-    if (st == NULL) {
-        return E_INVALID_ARGUMENT;
-    }
-
     // Already prepared (isPrepared will be reset to false later)
-    if (st->isPrepared) {
+    if (st->mIsPrepared) {
         *prepared = TRUE;
         return NOERROR;
     }
 
-    if ((mPreparedPanel != NULL) && (mPreparedPanel != st)) {
+    if ((mPreparedPanel != NULL) && (mPreparedPanel.Get() != st)) {
         // Another Panel is prepared and possibly open, so close it
-        ClosePanelEx(mPreparedPanel, false);
+        ClosePanel(mPreparedPanel, FALSE);
     }
 
     AutoPtr<IWindowCallback> cb;
-    GetCallback((IWindowCallback**) &cb);
+    GetCallback((IWindowCallback**)&cb);
 
     if (cb != NULL) {
-        cb->OnCreatePanelView(st->featureId, (IView**)&st->createdPanelView);
+        AutoPtr<IView> view;
+        cb->OnCreatePanelView(st->mFeatureId, (IView**)&view);
+        st->mCreatedPanelView = view;
     }
 
-printf("==== File: %s, Line: %d ====, FUNC : %s, pointer=[0x%08x].\n", __FILE__, __LINE__, __FUNCTION__, st->createdPanelView.Get());
-    if (st->createdPanelView == NULL) {
+    if (st->mCreatedPanelView == NULL) {
         // Init the panel state's menu--return false if init failed
-        if (st->menu == NULL) {
-            Boolean inited;
-            printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
-            InitializePanelMenu(st, &inited);
-            printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
-
-            if (!inited || (st->menu == NULL)) {
+        if (st->mMenu == NULL) {
+            if (!InitializePanelMenu(st) || (st->mMenu == NULL)) {
                 *prepared = FALSE;
                 return NOERROR;
             }
 
             // Call callback, and return if it doesn't want to display menu
-            Boolean allowToShow = FALSE;
-            printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
-            cb->OnCreatePanelMenu(st->featureId, st->menu, &allowToShow);
-            printf("==== File: %s, Line: %d ====, FUNC : %s, allowToShow=[%d].\n", __FILE__, __LINE__, __FUNCTION__, allowToShow);
-            if ((cb == NULL) || !allowToShow) {
-                printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+            Boolean allowToShow;
+            if ((cb == NULL) || (cb->OnCreatePanelMenu(st->mFeatureId, st->mMenu, &allowToShow), !allowToShow)) {
                 // Ditch the menu created above
-                st->menu = NULL;
+                st->mMenu = NULL;
                 *prepared = FALSE;
 
                 return NOERROR;
             }
         }
-        else {
-            printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
-        }
 
         // Callback and return if the callback does not want to show the menu
         Boolean allow = FALSE;
-        printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
-        cb->OnPreparePanel(st->featureId, st->createdPanelView, st->menu, &allow);
-        printf("==== File: %s, Line: %d ====, FUNC : %s, allow = [%d].\n", __FILE__, __LINE__, __FUNCTION__, allow);
+        cb->OnPreparePanel(st->mFeatureId, st->mCreatedPanelView, st->mMenu, &allow);
         if (!allow) {
             *prepared = FALSE;
 
             return NOERROR;
         }
 
-        printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
         // Set the proper keymap
-        Int32 deviceid;
-        event->GetDeviceId(&deviceid);
-        ElKeyCharacterMap* kmap = ElKeyCharacterMap::Load(event != NULL ? deviceid : 0);
-
-
-        st->qwertyMode = kmap->GetKeyboardType() != ElKeyCharacterMap::NUMERIC;
-        st->menu->SetQwertyMode(st->qwertyMode);
-        printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
-    }
-    else {
-        printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+        Int32 deviceid = 0;
+        if (event != NULL) event->GetDeviceId(&deviceid);
+        AutoPtr<ElKeyCharacterMap> kmap = ElKeyCharacterMap::Load(deviceid);
+        st->mQwertyMode = kmap->GetKeyboardType() != ElKeyCharacterMap::NUMERIC;
+        st->mMenu->SetQwertyMode(st->mQwertyMode);
     }
 
     // Set other state
-    st->isPrepared = TRUE;
-    st->isHandled = FALSE;
+    st->mIsPrepared = TRUE;
+    st->mIsHandled = FALSE;
     mPreparedPanel = st;
     *prepared = TRUE;
-    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+
     return NOERROR;
 }
 
-ECode CPhoneWindow::InitializePanelMenu(
-    /* [in] */ PanelFeatureState* st,
-    /* [out] */ Boolean* inited) {
-    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+/**
+ * Initializes the menu associated with the given panel feature state. You
+ * must at the very least set PanelFeatureState.menu to the Menu to be
+ * associated with the given panel state. The default implementation creates
+ * a new menu for the panel state.
+ *
+ * @param st The panel whose menu is being initialized.
+ * @return Whether the initialization was successful.
+ */
+Boolean CPhoneWindow::InitializePanelMenu(
+    /* [in] */ PanelFeatureState* st)
+{
     AutoPtr<IContext> context;
     GetContext((IContext**) &context);
-    AutoPtr<CMenuBuilder> menu;
-    CMenuBuilder::NewByFriend(context, (CMenuBuilder**) &menu);
+    AutoPtr<MenuBuilder> menu = new MenuBuilder(context);
 
     menu->SetCallback((IMenuBuilderCallback*)this);
-    st->SetMenu((IMenu*)(menu->Probe(EIID_IMenuBuilder)));
+    st->SetMenu((IMenu*)(menu->Probe(EIID_IMenu)));
 
-    /**For Test*************************************/
-    AutoPtr<IMenuItem> item = NULL;
-    AutoPtr<ICharSequence> csq;
-    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
-    CStringWrapper::New(String("item1"), (ICharSequence**)&csq);
-    //menu->AddEx2(0, 1, 1, csq, (IMenuItem**) &item);
-    //menu->Close();
-    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
-
-    if (item == NULL) {
-        printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
-    }
-    else {
-        printf("==== File: %s, Line: %d ====, FUNC : %s, item=[0x%08x].\n", __FILE__, __LINE__, __FUNCTION__, item.Get());
-    }
-    /**For Test*************************************/
-
-    *inited = TRUE;
-    return NOERROR;
+    return TRUE;
 }
 
-ECode CPhoneWindow::GetPanelState(
+/**
+ * Gets a panel's state based on its feature ID.
+ *
+ * @param featureId The feature ID of the panel.
+ * @param required Whether the panel is required (if it is required and it
+ *            isn't in our features, this throws an exception).
+ * @return The panel state.
+ */
+AutoPtr<CPhoneWindow::PanelFeatureState> CPhoneWindow::GetPanelState(
     /* [in] */ Int32 featureId,
-    /* [in] */ Boolean required,
-    /* [out] */ PanelFeatureState** out)
+    /* [in] */ Boolean required)
 {
-    return GetPanelStateEx(featureId, required, NULL, out);
+    return GetPanelState(featureId, required, NULL);
 }
 
-ECode CPhoneWindow::GetPanelStateEx(
+/**
+ * Gets a panel's state based on its feature ID.
+ *
+ * @param featureId The feature ID of the panel.
+ * @param required Whether the panel is required (if it is required and it
+ *            isn't in our features, this throws an exception).
+ * @param convertPanelState Optional: If the panel state does not exist, use
+ *            this as the panel state.
+ * @return The panel state.
+ */
+AutoPtr<CPhoneWindow::PanelFeatureState> CPhoneWindow::GetPanelState(
     /* [in] */ Int32 featureId,
     /* [in] */ Boolean required,
-    /* [in] */ PanelFeatureState* convertPanelState,
-    /* [out] */ PanelFeatureState** out) {
-    printf("==== File: %s, Line: %d ====, FUNC : %s, featureId=[%d], required=[%d].\n", __FILE__, __LINE__, __FUNCTION__,featureId, required);
+    /* [in] */ PanelFeatureState* convertPanelState)
+{
     if ((GetFeatures() & (1 << featureId)) == 0) {
         if (!required) {
-            printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
-            *out = NULL;
-            return NOERROR;
+            return NULL;
         }
-
-        return E_INVALID_ARGUMENT;
         //throw new RuntimeException("The feature has not been requested");
+        assert(0);
     }
 
-printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
-
-    List<PanelFeatureState*>* ar;
-    if ((ar = mPanels) == NULL || ar->GetSize() <= featureId) {
-        printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
-        List<PanelFeatureState*>* nar = new List<PanelFeatureState*>(featureId + 1);
+    ArrayOf< AutoPtr<PanelFeatureState> >* ar;
+    if ((ar = mPanels) == NULL || ar->GetLength() <= featureId) {
+        ArrayOf< AutoPtr<PanelFeatureState> >* nar = ArrayOf< AutoPtr<PanelFeatureState> >::Alloc(featureId + 1);
         if (ar != NULL) {
-            //System.arraycopy(ar, 0, nar, 0, ar.length);
-            List<PanelFeatureState*>::Iterator iter = ar->Begin();
-
-            for (; iter != ar->End(); ++iter) {
-                PanelFeatureState* item = (PanelFeatureState*)(*iter);
-                nar->PushBack(item);
+            for (Int32 i = 0; i < ar->GetLength(); ++i) {
+                (*nar)[i] = (*ar)[i];
+                (*ar)[i] = NULL;
             }
+            ArrayOf< AutoPtr<PanelFeatureState> >::Free(ar);
         }
-
         mPanels = ar = nar;
     }
 
-    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
-
-    PanelFeatureState* st = (*ar)[featureId];
-    printf("==== File: %s, Line: %d ====, FUNC : %s, st = [0x%08x].\n", __FILE__, __LINE__, __FUNCTION__, st);
+    AutoPtr<PanelFeatureState> st = (*ar)[featureId];
     if (st == NULL) {
         (*ar)[featureId] = st = (convertPanelState != NULL)
                 ? convertPanelState
                 : new PanelFeatureState(featureId);
     }
-
-    *out = st;
-    return NOERROR;
+    return st;
 }
 
-ECode CPhoneWindow::FindMenuPanel(
-    /* [in] */ IMenu* menu,
-    /* [out] */ PanelFeatureState** out) {
-
-    for (Int32 i = 0; i < mPanels->GetSize(); i++) {
-        PanelFeatureState* panel = (*mPanels)[i];
-        if (panel != NULL && panel->menu == menu) {
-            *out = panel;
-            return NOERROR;
+AutoPtr<CPhoneWindow::PanelFeatureState> CPhoneWindow::FindMenuPanel(
+    /* [in] */ IMenu* menu)
+{
+    ArrayOf< AutoPtr<PanelFeatureState> >* panels = mPanels;
+    const Int32 N = panels != NULL ? panels->GetLength() : 0;
+    for (Int32 i = 0; i < N; i++) {
+        AutoPtr<PanelFeatureState> panel = (*panels)[i];
+        if (panel != NULL && (panel->mMenu).Get() == menu) {
+            return panel;
         }
     }
-
-    *out = NULL;
-    return NOERROR;
+    return NULL;
 }
 
 ECode CPhoneWindow::OnMenuModeChange(
-    /* [in] */ IMenuBuilder* menu) {
-    return ReopenMenu(TRUE);
+    /* [in] */ IMenuBuilder* menu)
+{
+    ReopenMenu(TRUE);
+    return NOERROR;
 }
 
 ECode CPhoneWindow::OnMenuItemSelected(
     /* [in] */ IMenuBuilder* menu,
     /* [in] */ IMenuItem* item,
-    /* [out] */ Boolean* state) {
+    /* [out] */ Boolean* state)
+{
     AutoPtr<IWindowCallback> cb;
     GetCallback((IWindowCallback**)&cb);
-
     if (cb != NULL) {
-        PanelFeatureState* panel;
         AutoPtr<IMenuBuilder> rootMenu;
-        ((IMenuBuilder*)(MenuBuilder*)menu)->GetRootMenu((IMenuBuilder**) &rootMenu);
+        menu->GetRootMenu((IMenuBuilder**)&rootMenu);
 
-        FindMenuPanel((IMenu*)rootMenu.Get(), &panel);
-
+        AutoPtr<PanelFeatureState> panel = FindMenuPanel((IMenu*)rootMenu.Get());
         if (panel != NULL) {
-            return cb->OnMenuItemSelected(panel->featureId, item, state);
+            return cb->OnMenuItemSelected(panel->mFeatureId, item, state);
         }
     }
-
     *state = FALSE;
-
     return NOERROR;
 }
 
 ECode CPhoneWindow::OnCloseMenu(
     /* [in] */ IMenuBuilder* menu,
-    /* [in] */ Boolean allMenusAreClosing) {
-    PanelFeatureState* panel;
-    FindMenuPanel((IMenu*)menu, &panel);
-
+    /* [in] */ Boolean allMenusAreClosing)
+{
+    AutoPtr<PanelFeatureState> panel = FindMenuPanel((IMenu*)menu);
     if (panel != NULL) {
         // Close the panel and only do the callback if the menu is being
         // closed
         // completely, not if opening a sub menu
-        return ClosePanelEx(panel, allMenusAreClosing);
+        return ClosePanel(panel, allMenusAreClosing);
     }
-
     return NOERROR;
 }
 
 ECode CPhoneWindow::OnSubMenuSelected(
-    /* [in] */ ISubMenu* subMenu,
-    /* [out] */ Boolean* state) {
+    /* [in] */ ISubMenuBuilder* subMenu,
+    /* [out] */ Boolean* state)
+{
     Boolean has;
     subMenu->HasVisibleItems(&has);
-
-    *state = TRUE;
     if (!has) {
+        *state = TRUE;
         return NOERROR;
     }
 
     // The window manager will give us a valid window token
     //new MenuDialogHelper(subMenu).show(null);
-    CMenuDialogHelper* temp = new CMenuDialogHelper((IMenuBuilder*)subMenu);
-    if (temp != NULL) {
-        temp->Show(NULL);
-    }
+    AutoPtr<MenuDialogHelper> helper = new MenuDialogHelper((IMenuBuilder*)subMenu);
+    helper->Show(NULL);
 
-    //TODO
-    delete temp;
-    temp = NULL;
-
+    *state = TRUE;
     return NOERROR;
 }
 
 ECode CPhoneWindow::OnCloseSubMenu(
-    /* [in] */ ISubMenu* menu) {
+    /* [in] */ ISubMenuBuilder* menu)
+{
     AutoPtr<IMenu> parentMenu;
-    ((IMenuBuilder*)menu)->GetRootMenu((IMenuBuilder**) &parentMenu);
+    menu->GetRootMenu((IMenuBuilder**)&parentMenu);
 
-    PanelFeatureState* panel;
-    FindMenuPanel((IMenu*)parentMenu.Get(), &panel);
+    AutoPtr<PanelFeatureState> panel = FindMenuPanel(parentMenu);
 
     // Callback
     if (panel != NULL) {
-        CallOnPanelClosed(panel->featureId, panel, parentMenu);
-        ClosePanelEx(panel, TRUE);
+        CallOnPanelClosed(panel->mFeatureId, panel, parentMenu);
+        ClosePanel(panel, TRUE);
     }
-
     return NOERROR;
 }
 
-ECode CPhoneWindow::ReopenMenu(
-    /* [in] */ Boolean toggleMenuMode) {
-    PanelFeatureState* st;
-    GetPanelState(Window_FEATURE_OPTIONS_PANEL, TRUE, &st);
+void CPhoneWindow::ReopenMenu(
+    /* [in] */ Boolean toggleMenuMode)
+{
+    AutoPtr<PanelFeatureState> st = GetPanelState(Window_FEATURE_OPTIONS_PANEL, TRUE);
 
     // Save the future expanded mode state since closePanel will reset it
-    Boolean newExpandedMode = toggleMenuMode ? !st->isInExpandedMode : st->isInExpandedMode;
+    Boolean newExpandedMode = toggleMenuMode ? !st->mIsInExpandedMode : st->mIsInExpandedMode;
 
-    st->refreshDecorView = TRUE;
-    ClosePanelEx(st, FALSE);
+    st->mRefreshDecorView = TRUE;
+    ClosePanel(st, FALSE);
 
     // Set the expanded mode state
-    st->isInExpandedMode = newExpandedMode;
+    st->mIsInExpandedMode = newExpandedMode;
 
-    return OpenPanel(st, NULL);
+    OpenPanel(st, NULL);
+}
+
+/**
+ * Opens the panels that have had their state restored. This should be
+ * called sometime after {@link #restorePanelState} when it is safe to add
+ * to the window manager.
+ */
+void CPhoneWindow::OpenPanelsAfterRestore()
+{
+    ArrayOf< AutoPtr<PanelFeatureState> >* panels = mPanels;
+
+    if (panels == NULL) {
+        return;
+    }
+
+    PanelFeatureState* st;
+    for (Int32 i = panels->GetLength() - 1; i >= 0; i--) {
+        st = (*panels)[i];
+        // We restore the panel if it was last open; we skip it if it
+        // now is open, to avoid a race condition if the user immediately
+        // opens it when we are resuming.
+        if ((st != NULL) && !st->mIsOpen && st->mWasLastOpen) {
+            st->mIsInExpandedMode = st->mWasLastExpanded;
+            OpenPanel(st, NULL);
+        }
+    }
 }

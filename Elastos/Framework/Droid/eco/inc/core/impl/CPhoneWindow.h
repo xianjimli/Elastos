@@ -11,47 +11,8 @@
 #include "view/ViewMacro.h"
 #include "os/CBundle.h"
 #include "view/menu/ContextMenuBuilder.h"
-#include "view/menu/CMenuDialogHelper.h"
 
 class ViewRoot;
-class CMenuDialogHelper;
-
-static Int32 R_styleable_Theme[] = {
-    0x01010030, 0x01010031, 0x01010032, 0x01010033,
-    0x01010034, 0x01010035, 0x01010036, 0x01010037,
-    0x01010038, 0x01010039, 0x0101003a, 0x0101003b,
-    0x0101003c, 0x0101003d, 0x0101003e, 0x0101003f,
-    0x01010040, 0x01010041, 0x01010042, 0x01010043,
-    0x01010044, 0x01010045, 0x01010046, 0x01010047,
-    0x01010048, 0x01010049, 0x0101004a, 0x0101004b,
-    0x0101004c, 0x0101004d, 0x0101004e, 0x0101004f,
-    0x01010050, 0x01010051, 0x01010052, 0x01010053,
-    0x01010054, 0x01010055, 0x01010056, 0x01010057,
-    0x01010058, 0x01010059, 0x0101005a, 0x0101005b,
-    0x0101005c, 0x0101005d, 0x0101005e, 0x0101005f,
-    0x01010060, 0x01010061, 0x01010062, 0x0101006a,
-    0x0101006b, 0x0101006c, 0x0101006d, 0x0101006e,
-    0x0101006f, 0x01010070, 0x01010071, 0x01010072,
-    0x01010073, 0x01010074, 0x01010075, 0x01010076,
-    0x01010077, 0x01010078, 0x01010079, 0x0101007a,
-    0x0101007b, 0x0101007c, 0x0101007d, 0x0101007e,
-    0x01010080, 0x01010081, 0x01010082, 0x01010083,
-    0x01010084, 0x01010085, 0x01010086, 0x01010087,
-    0x01010088, 0x01010089, 0x0101008a, 0x0101008b,
-    0x0101008c, 0x0101008d, 0x0101008e, 0x0101008f,
-    0x01010090, 0x01010091, 0x01010092, 0x01010093,
-    0x01010094, 0x010100ae, 0x01010206, 0x01010207,
-    0x01010208, 0x0101020d, 0x0101020f, 0x01010210,
-    0x01010212, 0x01010213, 0x01010214, 0x01010219,
-    0x0101021a, 0x0101021e, 0x0101021f, 0x01010222,
-    0x0101022b, 0x01010230, 0x01010267, 0x01010287,
-    0x01010288, 0x01010289, 0x0101028b, 0x01010292,
-    0x010102a0, 0x010102a1, 0x010102ab, 0x010102ae,
-    0x010102af, 0x010102b0, 0x010102b1, 0x010102b2,
-    0x010102b3, 0x010102b6, 0x010102b9, 0x010102c5,
-    0x010102c6, 0x010102c7, 0x010102c8, 0x010102cc,
-    0x010102cd, 0x010102ce, 0x010102cf, 0x010102d0
-};
 
 CarClass(CPhoneWindow)
     , public Window
@@ -187,7 +148,7 @@ private:
             /* [in] */ Int32 y);
 
     private:
-        AutoPtr<CPhoneWindow> mHost;
+        CPhoneWindow* mHost;
 
         /** The feature ID of the panel, or -1 if this is the application's DecorView */
         Int32 mFeatureId;
@@ -212,209 +173,132 @@ private:
         Int32 mDefaultOpacity;
     };
 
-    class PanelFeatureState {
+    class PanelFeatureState : public ElRefBase
+    {
+    private:
+        class SavedState
+            : public ElRefBase
+            , public IParcelable
+        {
         public:
-            /** Feature ID for this panel. */
-            Int32 featureId;
+            SavedState();
 
-            // Information pulled from the style for this panel.
+            CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
 
-            Int32 background;
+            CARAPI_(UInt32) AddRef();
 
-            /** The background when the panel spans the entire available width. */
-            Int32 fullBackground;
+            CARAPI_(UInt32) Release();
 
-            Int32 gravity;
+            CARAPI GetInterfaceID(
+                /* [in] */ IInterface *pObject,
+                /* [out] */ InterfaceID *pIID);
 
-            Int32 x;
+            Int32 DescribeContents();
 
-            Int32 y;
+            CARAPI WriteToParcel(
+                /* [in] */ IParcel* dest);
 
-            Int32 windowAnimations;
-
-            /** Dynamic state of the panel. */
-            AutoPtr<DecorView> decorView;
-
-            /** The panel that was returned by onCreatePanelView(). */
-            AutoPtr<IView> createdPanelView;
-
-            /** The panel that we are actually showing. */
-            AutoPtr<IView> shownPanelView;
-
-            /** Use {@link #setMenu} to set this. */
-            AutoPtr<IMenu> menu;
-
-            /**
-             * Whether the panel has been prepared (see
-             * {@link PhoneWindow#preparePanel}).
-             */
-            Boolean isPrepared;
-
-            /**
-             * Whether an item's action has been performed. This happens in obvious
-             * scenarios (user clicks on menu item), but can also happen with
-             * chording menu+(shortcut key).
-             */
-            Boolean isHandled;
-
-            Boolean isOpen;
-
-            /**
-             * True if the menu is in expanded mode, false if the menu is in icon
-             * mode
-             */
-            Boolean isInExpandedMode;
-
-            Boolean qwertyMode;
-
-            Boolean refreshDecorView;
-
-            Boolean wasLastOpen;
-
-            Boolean wasLastExpanded;
-
-            /**
-             * Contains the state of the menu when told to freeze.
-             */
-            AutoPtr<IBundle> frozenMenuState;
+            CARAPI ReadFromParcel(
+                /* [in] */ IParcel* source);
 
         public:
-            PanelFeatureState(
-                /* [in] */ Int32 featureId) {
-                this->featureId = featureId;
-
-                refreshDecorView = FALSE;
-            }
-
-            ECode SetStyle(
-                /* [in] */ IContext* context) {
-                if (context == NULL) {
-                    return E_INVALID_ARGUMENT;
-                }
-
-                AutoPtr<ITypedArray> a;
-                context->ObtainStyledAttributes(ArrayOf<Int32>(R_styleable_Theme, sizeof(R_styleable_Theme) / sizeof(Int32)),
-                            (ITypedArray**) &a);
-
-                a->GetResourceId(R_styleable_Theme[46], 0, &background);
-                a->GetResourceId(R_styleable_Theme[47], 0, &fullBackground);
-                a->GetResourceId(R_styleable_Theme[93], 0, &windowAnimations);
-                a->Recycle();
-
-                return NOERROR;
-            }
-
-            ECode SetMenu(
-                /* [in] */ IMenu* menu) {
-                printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
-                if (menu == NULL) {
-                    return E_INVALID_ARGUMENT;
-                }
-
-                this->menu = menu;
-
-                if (frozenMenuState != NULL) {
-                    ((MenuBuilder*)menu)->RestoreHierarchyState(frozenMenuState);
-                    frozenMenuState = NULL;
-                }
-
-                return NOERROR;
-            }
-
-            ECode OnSaveInstanceState(
-                /* [out] */ IParcelable** parcelable) {
-                SavedState* savedState = new SavedState();
-                savedState->featureId = featureId;
-                savedState->isOpen = isOpen;
-                savedState->isInExpandedMode = isInExpandedMode;
-
-                if (menu != NULL) {
-                    CBundle::New((IBundle**) &savedState->menuState);
-                    ((MenuBuilder*)menu.Get())->SaveHierarchyState(savedState->menuState);
-                }
-
-                //return savedState;
-                return NOERROR;
-            }
-
-            void OnRestoreInstanceState(
-                /* [in] */ IParcelable* state) {
-                SavedState* savedState = (SavedState*) state;
-                featureId = savedState->featureId;
-                wasLastOpen = savedState->isOpen;
-                wasLastExpanded = savedState->isInExpandedMode;
-                frozenMenuState = savedState->menuState;
-
-                /*
-                 * A LocalActivityManager keeps the same instance of this class around.
-                 * The first time the menu is being shown after restoring, the
-                 * Activity.onCreateOptionsMenu should be called. But, if it is the
-                 * same instance then menu != null and we won't call that method.
-                 * So, clear this.  Also clear any cached views.
-                 */
-                menu = NULL;
-                createdPanelView = NULL;
-                shownPanelView = NULL;
-                decorView = NULL;
-            }
-
-        //class SavedState implements Parcelable {
-        class SavedState {
-            public:
-                Int32 featureId;
-                Boolean isOpen;
-                Boolean isInExpandedMode;
-                AutoPtr<IBundle> menuState;
-
-            public:
-                Int32 DescribeContents() {
-                    return 0;
-                }
-
-                void WriteToParcel(
-                    /* [in] */ IParcel* dest,
-                    /* [in] */ Int32 flags) {
-                    dest->WriteInt32(featureId);
-                    dest->WriteInt32(isOpen ? 1 : 0);
-                    dest->WriteInt32(isInExpandedMode ? 1 : 0);
-
-                    if (isOpen) {
-                        dest->WriteInterfacePtr(menuState);
-                    }
-                }
-
-                static ECode ReadFromParcel(
-                    /* [in] */ IParcel*  source,
-                    SavedState** savedState) {
-                    Int32 temp;
-                    source->ReadInt32(&temp);
-                    (*savedState)->featureId = temp;
-                    source->ReadInt32(&temp);
-                    (*savedState)->isOpen = temp == 1;
-
-                    source->ReadInt32(&temp);
-                    (*savedState)->isInExpandedMode = temp == 1;
-
-                    if ((*savedState)->isOpen) {
-                        source->ReadInterfacePtr((Handle32*) &((*savedState)->menuState));
-                    }
-
-                    return NOERROR;
-                }
-//TODO
-/*
-                static Parcelable.Creator<SavedState> CREATOR
-                        = new Parcelable.Creator<SavedState>() {
-                    public SavedState createFromParcel(Parcel in) {
-                        return readFromParcel(in);
-                    }
-
-                    public SavedState[] newArray(int size) {
-                        return new SavedState[size];
-                    }
-                };*/
+            Int32 mFeatureId;
+            Boolean mIsOpen;
+            Boolean mIsInExpandedMode;
+            AutoPtr<IBundle> mMenuState;
         };
 
+    public:
+        PanelFeatureState(
+            /* [in] */ Int32 featureId);
+
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI_(void) SetStyle(
+            /* [in] */ IContext* context);
+
+        CARAPI_(void) SetMenu(
+            /* [in] */ IMenu* menu);
+
+        CARAPI_(AutoPtr<IParcelable>) OnSaveInstanceState();
+
+        CARAPI_(void) OnRestoreInstanceState(
+            /* [in] */ IParcelable* state);
+
+    public:
+        /** Feature ID for this panel. */
+        Int32 mFeatureId;
+
+        // Information pulled from the style for this panel.
+
+        Int32 mBackground;
+
+        /** The background when the panel spans the entire available width. */
+        Int32 mFullBackground;
+
+        Int32 mGravity;
+
+        Int32 mX;
+
+        Int32 mY;
+
+        Int32 mWindowAnimations;
+
+        /** Dynamic state of the panel. */
+        AutoPtr<DecorView> mDecorView;
+
+        /** The panel that was returned by onCreatePanelView(). */
+        AutoPtr<IView> mCreatedPanelView;
+
+        /** The panel that we are actually showing. */
+        AutoPtr<IView> mShownPanelView;
+
+        /** Use {@link #setMenu} to set this. */
+        AutoPtr<IMenu> mMenu;
+
+        /**
+         * Whether the panel has been prepared (see
+         * {@link PhoneWindow#preparePanel}).
+         */
+        Boolean mIsPrepared;
+
+        /**
+         * Whether an item's action has been performed. This happens in obvious
+         * scenarios (user clicks on menu item), but can also happen with
+         * chording menu+(shortcut key).
+         */
+        Boolean mIsHandled;
+
+        Boolean mIsOpen;
+
+        /**
+         * True if the menu is in expanded mode, false if the menu is in icon
+         * mode
+         */
+        Boolean mIsInExpandedMode;
+
+        Boolean mQwertyMode;
+
+        Boolean mRefreshDecorView;
+
+        Boolean mWasLastOpen;
+
+        Boolean mWasLastExpanded;
+
+        /**
+         * Contains the state of the menu when told to freeze.
+         */
+        AutoPtr<IBundle> mFrozenMenuState;
     };
 
     /**
@@ -425,120 +309,47 @@ private:
      */
     class ContextMenuCallback:
         public ElRefBase,
-        public IMenuBuilderCallback {
-        private:
-            AutoPtr<CPhoneWindow> mHost;
-            Int32 mFeatureId;
-            CMenuDialogHelper* mSubMenuHelper;
+        public IMenuBuilderCallback
+    {
+    public:
+        ContextMenuCallback(
+            /* [in] */ Int32 featureId,
+            /* [in] */ CPhoneWindow* host);
 
-        public:
-            ContextMenuCallback(
-                /* [in] */ CPhoneWindow* host,
-                /* [in] */ Int32 featureId) {
-                mFeatureId = featureId;
-                mHost = host;
-            }
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
 
-            UInt32 AddRef() {
-                return ElRefBase::AddRef();
-            }
+        CARAPI_(UInt32) AddRef();
 
-            UInt32 Release() {
-                return ElRefBase::Release();
-            }
+        CARAPI_(UInt32) Release();
 
-            ECode GetInterfaceID(
-                /* [in] */ IInterface* iinterface,
-                /* [in] */ InterfaceID* id) {
-                return NOERROR;
-            }
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface* iinterface,
+            /* [in] */ InterfaceID* id);
 
-            PInterface Probe(
-                /* [in]  */ REIID riid) {
-                if (riid == EIID_IMenuBuilderCallback) {
-                    return (IMenuBuilderCallback*)this;
-                }
+        CARAPI OnCloseMenu(
+            /* [in] */ IMenuBuilder* menu,
+            /* [in] */ Boolean allMenusAreClosing);
 
-                return NULL;
-            }
+        CARAPI OnCloseSubMenu(
+            /* [in] */ ISubMenuBuilder* menu);
 
-            ECode OnSubMenuSelected(
-                /* [in] */ ISubMenu* submenu,
-                /* [out] */ Boolean* state) {
-                *state = FALSE;
-                return NOERROR;
-            }
+        CARAPI OnMenuItemSelected(
+            /* [in] */ IMenuBuilder* menu,
+            /* [in] */ IMenuItem* item,
+            /* [out] */ Boolean* state);
 
-            ECode OnCloseMenu(
-                /* [in] */ IMenuBuilder* menu,
-                /* [in] */ Boolean allMenusAreClosing) {
-                if (allMenusAreClosing) {
-                    AutoPtr<IWindowCallback> callback;
-                    mHost->GetCallback((IWindowCallback**) &callback);
+        CARAPI OnMenuModeChange(
+            /* [in] */ IMenuBuilder* menu);
 
-                    if (callback != NULL) callback->OnPanelClosed(mFeatureId, (IMenu*)menu);
+        CARAPI OnSubMenuSelected(
+            /* [in] */ ISubMenuBuilder* subMenu,
+            /* [out] */ Boolean* state);
 
-                    if (mHost->mContextMenu != NULL && menu == mHost->mContextMenu->Probe(EIID_IMenu)) {
-                        mHost->DismissContextMenu();
-                    }
-
-                    // Dismiss the submenu, if it is showing
-                    if (mSubMenuHelper != NULL) {
-                        mSubMenuHelper->Dismiss();
-                        mSubMenuHelper = NULL;
-                    }
-                }
-
-                return NOERROR;
-            }
-
-            ECode OnCloseSubMenu(
-                /* [in] */ ISubMenu* menu) {
-                AutoPtr<IWindowCallback> callback;
-                mHost->GetCallback((IWindowCallback**) &callback);
-
-                if (callback != NULL) {
-                    AutoPtr<IMenuBuilder> rootMenu;
-                    ((IMenuBuilder*)(MenuBuilder*)menu)->GetRootMenu((IMenuBuilder**) &rootMenu);
-                    callback->OnPanelClosed(mFeatureId, (IMenu*)rootMenu.Get());
-                }
-
-                return NOERROR;
-            }
-
-            ECode OnMenuItemSelected(
-                /* [in] */ IMenuBuilder* menu,
-                /* [in] */ IMenuItem* item,
-                /* [out] */ Boolean* toFinish) {
-                AutoPtr<IWindowCallback> callback;
-                mHost->GetCallback((IWindowCallback**) &callback);
-
-                *toFinish = FALSE;
-                if (callback != NULL) {
-                    callback->OnMenuItemSelected(mFeatureId, item, toFinish);
-                }
-
-                return NOERROR;
-            }
-
-            ECode OnMenuModeChange(
-                /* [in] */ IMenuBuilder* menu) {
-                return NOERROR;
-            }
-
-            Boolean OnSubMenuSelected(
-                /* [in] */ ISubMenu* subMenu) {
-                // Set a simple callback for the submenu
-                if (subMenu != NULL) {
-                    ((MenuBuilder*)subMenu)->SetCallback(this);
-                }
-
-                // The window manager will give us a valid window token
-                mSubMenuHelper = new CMenuDialogHelper((IMenuBuilder*)subMenu);
-                mSubMenuHelper->Show(NULL);
-
-                return TRUE;
-            }
+    private:
+        Int32 mFeatureId;
+        AutoPtr<MenuDialogHelper> mSubMenuHelper;
+        CPhoneWindow* mHost;
     };
 
 public:
@@ -675,6 +486,20 @@ public:
     CARAPI SetTitleColor(
         /* [in] */ Int32 textColor);
 
+    /**
+     * Prepares the panel to either be opened or chorded. This creates the Menu
+     * instance for the panel and populates it via the Activity callbacks.
+     *
+     * @param st The panel state to prepare.
+     * @param event The event that triggered the preparing of the panel.
+     * @return Whether the panel was prepared. If the panel should not be shown,
+     *         returns false.
+     */
+    CARAPI PreparePanel(
+        /* [in] */ PanelFeatureState* st,
+        /* [in] */ IKeyEvent* event,
+        /* [out] */ Boolean* prepared);
+
     CARAPI OpenPanel(
         /* [in] */ Int32 featureId,
         /* [in] */ IKeyEvent* event);
@@ -682,13 +507,46 @@ public:
     CARAPI ClosePanel(
         /* [in] */ Int32 featureId);
 
-    CARAPI ClosePanelEx(
+    /**
+     * Closes the given panel.
+     *
+     * @param st The panel to be closed.
+     * @param doCallback Whether to notify the callback that the panel was
+     *            closed. If the panel is in the process of re-opening or
+     *            opening another panel (e.g., menu opening a sub menu), the
+     *            callback should not happen and this variable should be false.
+     *            In addition, this method internally will only perform the
+     *            callback if the panel is open.
+     */
+    CARAPI ClosePanel(
         /* [in] */ PanelFeatureState* st,
         /* [in] */ Boolean doCallback);
 
     CARAPI TogglePanel(
         /* [in] */ Int32 featureId,
         /* [in] */ IKeyEvent* event);
+
+    /**
+     * Called when the panel key is pushed down.
+     * @param featureId The feature ID of the relevant panel (defaults to FEATURE_OPTIONS_PANEL}.
+     * @param event The key event.
+     * @return Whether the key was handled.
+     */
+    CARAPI OnKeyDownPanel(
+        /* [in] */ Int32 featureId,
+        /* [in] */ IKeyEvent* event,
+        /* [out] */ Boolean* handled);
+
+    /**
+     * Called when the panel key is released.
+     * @param featureId The feature ID of the relevant panel (defaults to FEATURE_OPTIONS_PANEL}.
+     * @param event The key event.
+     */
+    CARAPI OnKeyUpPanel(
+        /* [in] */ Int32 featureId,
+        /* [in] */ IKeyEvent* event);
+
+    CARAPI CloseAllPanels();
 
     CARAPI PerformPanelShortcut(
         /* [in] */ Int32 featureId,
@@ -703,12 +561,32 @@ public:
         /* [in] */ Int32 flags,
         /* [out] */ Boolean* succeeded);
 
-    CARAPI CloseAllPanels();
-
     CARAPI PerformContextMenuIdentifierAction(
         /* [in] */ Int32 id,
         /* [in] */ Int32 flags,
         /* [out] */ Boolean* succeeded);
+
+    CARAPI_(AutoPtr<PanelFeatureState>) FindMenuPanel(
+        /* [in] */ IMenu* menu);
+
+    CARAPI OnMenuItemSelected(
+        /* [in] */ IMenuBuilder* menu,
+        /* [in] */ IMenuItem* item,
+        /* [out] */ Boolean* state);
+
+    CARAPI OnCloseMenu(
+        /* [in] */ IMenuBuilder* menu,
+        /* [in] */ Boolean allMenusAreClosing);
+
+    CARAPI OnCloseSubMenu(
+        /* [in] */ ISubMenuBuilder* menu);
+
+    CARAPI OnSubMenuSelected(
+        /* [in] */ ISubMenuBuilder* subMenu,
+        /* [out] */ Boolean* state);
+
+    CARAPI OnMenuModeChange(
+        /* [in] */ IMenuBuilder* menu);
 
     CARAPI OnConfigurationChanged(
         /* [in] */ IConfiguration* newConfig);
@@ -793,68 +671,40 @@ public:
     CARAPI constructor(
         /* [in] */ IContext* context);
 
-    CARAPI OnKeyDownPanel(
-        /* [in] */ Int32 featureId,
-        /* [in] */ IKeyEvent* event);
-
-    CARAPI PreparePanel(
-        /* [in] */ PanelFeatureState* st,
-        /* [in] */ IKeyEvent* event,
-        /* [out] */ Boolean* prepared);
-
-    /**
-     * Gets a panel's state based on its feature ID.
-     *
-     * @param featureId The feature ID of the panel.
-     * @param required Whether the panel is required (if it is required and it
-     *            isn't in our features, this throws an exception).
-     * @return The panel state.
-     */
-    ECode GetPanelState(
-        /* [in] */ Int32 featureId,
-        /* [in] */ Boolean required,
-        /* [out] */ PanelFeatureState** out);
-
-    /**
-     * Gets a panel's state based on its feature ID.
-     *
-     * @param featureId The feature ID of the panel.
-     * @param required Whether the panel is required (if it is required and it
-     *            isn't in our features, this throws an exception).
-     * @param convertPanelState Optional: If the panel state does not exist, use
-     *            this as the panel state.
-     * @return The panel state.
-     */
-    ECode GetPanelStateEx(
-        /* [in] */ Int32 featureId,
-        /* [in] */ Boolean required,
-        /* [in] */ PanelFeatureState* convertPanelState,
-        /* [out] */ PanelFeatureState** out);
-
-    ECode FindMenuPanel(
-        /* [in] */ IMenu* menu,
-        /* [out] */ PanelFeatureState** out);
-
-    ECode OnMenuModeChange(
-        /* [in] */ IMenuBuilder* menu);
-
-    ECode OnMenuItemSelected(
-        /* [in] */ IMenuBuilder* menu,
-        /* [in] */ IMenuItem* item,
-        /* [out] */ Boolean* state);
-
-    ECode OnCloseMenu(
-        /* [in] */ IMenuBuilder* menu,
-        /* [in] */ Boolean allMenusAreClosing);
-
-    ECode OnSubMenuSelected(
-        /* [in] */ ISubMenu* subMenu,
-        /* [out] */ Boolean* state);
-
-    ECode OnCloseSubMenu(
-        /* [in] */ ISubMenu* menu);
-
 protected:
+    /**
+     * Initializes the menu associated with the given panel feature state. You
+     * must at the very least set PanelFeatureState.menu to the Menu to be
+     * associated with the given panel state. The default implementation creates
+     * a new menu for the panel state.
+     *
+     * @param st The panel whose menu is being initialized.
+     * @return Whether the initialization was successful.
+     */
+    CARAPI_(Boolean) InitializePanelMenu(
+        /* [in] */ PanelFeatureState* st);
+
+    /**
+     * Perform initial setup of a panel. This should at the very least set the
+     * style information in the PanelFeatureState and must set
+     * PanelFeatureState.decor to the panel's window decor view.
+     *
+     * @param st The panel being initialized.
+     */
+    CARAPI_(Boolean) InitializePanelDecor(
+        /* [in] */ PanelFeatureState* st);
+
+    /**
+     * Initializes the panel associated with the panel feature state. You must
+     * at the very least set PanelFeatureState.panel to the View implementing
+     * its contents. The default implementation gets the panel from the menu.
+     *
+     * @param st The panel state being initialized.
+     * @return Whether the initialization was successful.
+     */
+    CARAPI_(Boolean) InitializePanelContent(
+        /* [in] */ PanelFeatureState* st);
+
     CARAPI_(Boolean) OnKeyDown(
         /* [in] */ Int32 featureId,
         /* [in] */ Int32 keyCode,
@@ -869,22 +719,35 @@ protected:
 
     CARAPI_(Mutex&) GetSelfSyncLock();
 
-    CARAPI InitializePanelMenu(
+private:
+    CARAPI_(void) OpenPanel(
         /* [in] */ PanelFeatureState* st,
-        /* [out] */ Boolean* inited);
+        /* [in] */ IKeyEvent* event);
 
-    CARAPI ReopenMenu(
+    /**
+     * Closes the context menu. This notifies the menu logic of the close, along
+     * with dismissing it from the UI.
+     */
+    /* synchronized */
+    CARAPI_(void) CloseContextMenu();
+
+    /**
+     * Dismisses just the context menu UI. To close the context menu, use
+     * {@link #closeContextMenu()}.
+     */
+    /* synchronized */
+    CARAPI_(void) DismissContextMenu();
+
+    CARAPI_(void) ReopenMenu(
         /* [in] */ Boolean toggleMenuMode);
 
-    ECode InitializePanelDecor(
-        /* [in] */ PanelFeatureState* st,
-        /* [out] */ Boolean* inited);
+    /**
+     * Opens the panels that have had their state restored. This should be
+     * called sometime after {@link #restorePanelState} when it is safe to add
+     * to the window manager.
+     */
+    CARAPI_(void) OpenPanelsAfterRestore();
 
-    ECode InitializePanelContent(
-        /* [in] */ PanelFeatureState* st,
-        /* [out] */ Boolean* inited);
-
-private:
     CARAPI_(AutoPtr<DecorView>) GenerateDecor();
 
     CARAPI GenerateLayout(
@@ -893,27 +756,61 @@ private:
 
     CARAPI_(void) InstallDecor();
 
-    CARAPI CloseContextMenu();
+    /**
+     * Gets a panel's state based on its feature ID.
+     *
+     * @param featureId The feature ID of the panel.
+     * @param required Whether the panel is required (if it is required and it
+     *            isn't in our features, this throws an exception).
+     * @return The panel state.
+     */
+    CARAPI_(AutoPtr<PanelFeatureState>) GetPanelState(
+        /* [in] */ Int32 featureId,
+        /* [in] */ Boolean required);
 
-    CARAPI DismissContextMenu();
+    /**
+     * Gets a panel's state based on its feature ID.
+     *
+     * @param featureId The feature ID of the panel.
+     * @param required Whether the panel is required (if it is required and it
+     *            isn't in our features, this throws an exception).
+     * @param convertPanelState Optional: If the panel state does not exist, use
+     *            this as the panel state.
+     * @return The panel state.
+     */
+    CARAPI_(AutoPtr<PanelFeatureState>) GetPanelState(
+        /* [in] */ Int32 featureId,
+        /* [in] */ Boolean required,
+        /* [in] */ PanelFeatureState* convertPanelState);
 
-    void CallOnPanelClosed(
+    /**
+     * Helper method for calling the {@link Callback#onPanelClosed(int, Menu)}
+     * callback. This method will grab whatever extra state is needed for the
+     * callback that isn't given in the parameters. If the panel is not open,
+     * this will not perform the callback.
+     *
+     * @param featureId Feature ID of the panel that was closed. Must be given.
+     * @param panel Panel that was closed. Optional but useful if there is no
+     *            menu given.
+     * @param menu The menu that was closed. Optional, but give if you have.
+     */
+    CARAPI_(void) CallOnPanelClosed(
         /* [in] */ Int32 featureId,
         /* [in] */ PanelFeatureState* panel,
         /* [in] */ IMenu* menu);
 
-    ECode OpenPanel(
-        /* [in] */ PanelFeatureState* st,
-        /* [in] */ IKeyEvent* event);
-
 private:
-    static const char* TAG;
+    static const CString TAG;
 
     static const Boolean SWEEP_OPEN_MENU = FALSE;
-    List<PanelFeatureState*>* mPanels;
-    PanelFeatureState* mPreparedPanel;
 
 private:
+    /**
+     * Simple callback used by the context menu and its submenus. The options
+     * menu submenus do not use this (their behavior is more complex).
+     */
+    AutoPtr<ContextMenuCallback> mContextMenuCallback;
+
     // This is the top-level view of the window, containing the window decor.
     AutoPtr<DecorView> mDecor;
 
@@ -933,6 +830,22 @@ private:
 
     AutoPtr<ITextView> mTitleView;
 
+    ArrayOf< AutoPtr<PanelFeatureState> >* mPanels;
+
+    /**
+     * The panel that is prepared or opened (the most recent one if there are
+     * multiple panels). Shortcuts will go to this panel. It gets set in
+     * {@link #preparePanel} and cleared in {@link #closePanel}.
+     */
+    AutoPtr<PanelFeatureState> mPreparedPanel;
+
+    /**
+     * The keycode that is currently held down (as a modifier) for chording. If
+     * this is 0, there is no key held down.
+     */
+    Int32 mPanelChordingKey;
+    Boolean mPanelMayLongPress;
+
     Int32 mBackgroundResource;
 
     AutoPtr<IDrawable> mBackgroundDrawable;
@@ -945,17 +858,8 @@ private:
 
     Int32 mTitleColor;
 
-    Int32 mPanelChordingKey;
-
-    Boolean mPanelMayLongPress;
-
-    AutoPtr<CMenuDialogHelper> mContextMenuHelper;
-
     AutoPtr<ContextMenuBuilder> mContextMenu;
-
-    AutoPtr<ContextMenuCallback> mContextMenuCallback;
-
-//friend class ContextMenuCallback;
+    AutoPtr<MenuDialogHelper> mContextMenuHelper;
 };
 
 #endif // __CPHONEWINDOW_H__

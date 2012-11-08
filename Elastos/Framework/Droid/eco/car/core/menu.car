@@ -1,0 +1,78 @@
+
+module
+{
+    merge("view/menu/MenuBuilder.car");
+    merge("view/menu/SubMenuBuilder.car");
+    merge("view/menu/IconMenuItemView.car");
+    merge("view/menu/IconMenuView.car");
+    merge("view/menu/MenuView.car");
+    merge("view/menu/MenuItemImpl.car");
+    merge("view/menu/ExpandedMenuView.car");
+
+
+    class CIconMenuView {
+        interface IIconMenuView;
+        interface IViewParent;
+        interface IViewManager;
+        interface IMenuBuilderItemInvoker;
+        interface IMenuView;
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
+        interface IRunnable;
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+    }
+
+    class CIconMenuItemView {
+        interface IIconMenuItemView;
+        interface IMenuItemView;
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
+        interface IOnPreDrawListener;
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+    }
+
+    class CIconMenuViewLayoutParams {
+        interface IIconMenuViewLayoutParams;
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] Int32 width,
+            [in] Int32 height);
+    }
+
+    class CExpandedMenuView {
+        interface IExpandedMenuView;
+        interface ITextWatcher;
+        interface IOnGlobalLayoutListener;
+        interface IOnTouchModeChangeListener;
+        interface IFilterListener;
+        interface IViewParent;
+        interface IViewManager;
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
+        interface IMenuBuilderItemInvoker;
+        interface IMenuView;
+        interface IOnItemClickListener;
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+    }
+}

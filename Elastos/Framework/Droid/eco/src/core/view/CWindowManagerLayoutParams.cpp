@@ -583,3 +583,77 @@ ECode CWindowManagerLayoutParams::constructor()
     mFormat = ElPixelFormat::OPAQUE;
     return NOERROR;
 }
+
+ECode CWindowManagerLayoutParams::constructor(
+    /* [in] */ Int32 type)
+{
+    ViewGroupLayoutParams::Init(
+            ViewGroupLayoutParams_MATCH_PARENT,
+            ViewGroupLayoutParams_MATCH_PARENT);
+
+    mType = type;
+    mFormat = ElPixelFormat::OPAQUE;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::constructor(
+    /* [in] */ Int32 type,
+    /* [in] */ Int32 flags)
+{
+    ViewGroupLayoutParams::Init(
+            ViewGroupLayoutParams_MATCH_PARENT,
+            ViewGroupLayoutParams_MATCH_PARENT);
+
+    mType = type;
+    mFlags = flags;
+    mFormat = ElPixelFormat::OPAQUE;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::constructor(
+    /* [in] */ Int32 type,
+    /* [in] */ Int32 flags,
+    /* [in] */ Int32 format)
+{
+    ViewGroupLayoutParams::Init(
+            ViewGroupLayoutParams_MATCH_PARENT,
+            ViewGroupLayoutParams_MATCH_PARENT);
+
+    mType = type;
+    mFlags = flags;
+    mFormat = format;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::constructor(
+    /* [in] */ Int32 w,
+    /* [in] */ Int32 h,
+    /* [in] */ Int32 type,
+    /* [in] */ Int32 flags,
+    /* [in] */ Int32 format)
+{
+    ViewGroupLayoutParams::Init(w, h);
+
+    mType = type;
+    mFlags = flags;
+    mFormat = format;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::constructor(
+    /* [in] */ Int32 w,
+    /* [in] */ Int32 h,
+    /* [in] */ Int32 xpos,
+    /* [in] */ Int32 ypos,
+    /* [in] */ Int32 type,
+    /* [in] */ Int32 flags,
+    /* [in] */ Int32 format)
+{
+    ViewGroupLayoutParams::Init(w, h);
+    mX = xpos;
+    mY = ypos;
+    mType = type;
+    mFlags = flags;
+    mFormat = format;
+    return NOERROR;
+}

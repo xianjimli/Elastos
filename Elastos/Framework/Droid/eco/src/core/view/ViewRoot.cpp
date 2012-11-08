@@ -1975,7 +1975,7 @@ void ViewRoot::PerformTraversals()
     }
 
     Boolean cancelDraw = FALSE;
-        //attachInfo->mTreeObserver.dispatchOnPreDraw();
+    attachInfo->mTreeObserver->DispatchOnPreDraw(&cancelDraw);
 
     if (!cancelDraw && !newSurface) {
         mFullRedrawNeeded = FALSE;
@@ -2951,16 +2951,14 @@ Boolean ViewRoot::LeaveTouchMode()
             AutoPtr<IView> temp;
             mView->FindFocus((IView**)&temp);
             mFocusedView = temp;
-            assert(mFocusedView.Get());
 
-            IViewGroup* group = (IViewGroup*)mFocusedView->Probe(EIID_IViewGroup);
-            if (group == NULL) {
+            if (mFocusedView == NULL || IViewGroup::Probe(mFocusedView) == NULL) {
                 // some view has focus, let it keep it
                 return FALSE;
             }
             else {
                 Int32 focusability;
-                group->GetDescendantFocusability(&focusability);
+                IViewGroup::Probe(mFocusedView)->GetDescendantFocusability(&focusability);
                 if (focusability != ViewGroup::FOCUS_AFTER_DESCENDANTS) {
                     // some view group has focus, and doesn't prefer its children
                     // over itself for focus, so let them keep it.

@@ -60,6 +60,7 @@ void ViewTreeObserver::InternalInsetsInfo::Set(
 }
 
 ViewTreeObserver::ViewTreeObserver()
+	: mAlive(TRUE)
 {}
 
 PInterface ViewTreeObserver::Probe(
@@ -95,24 +96,195 @@ ECode ViewTreeObserver::GetInterfaceID(
 ECode ViewTreeObserver::AddOnScrollChangedListener(
     /* [in] */ IOnScrollChangedListener* listener)
 {
+    CheckIsAlive();
     return E_NOT_IMPLEMENTED;
 }
 
 ECode ViewTreeObserver::RemoveOnScrollChangedListener(
     /* [in] */ IOnScrollChangedListener* victim)
 {
+    CheckIsAlive();
     return E_NOT_IMPLEMENTED;
 }
 
 ECode ViewTreeObserver::AddOnTouchModeChangeListener(
     /* [in] */ IOnTouchModeChangeListener* listener)
 {
+    CheckIsAlive();
     return E_NOT_IMPLEMENTED;
 }
 
 ECode ViewTreeObserver::RemoveOnTouchModeChangeListener(
     /* [in] */ IOnTouchModeChangeListener* victim)
 {
+    CheckIsAlive();
     return E_NOT_IMPLEMENTED;
 }
 
+ECode ViewTreeObserver::Merge(
+    /* [in] */ IViewTreeObserver* observerObj)
+{
+    ViewTreeObserver* observer = (ViewTreeObserver*)observerObj;
+
+    // if (observer.mOnGlobalFocusListeners != NULL) {
+    //     if (mOnGlobalFocusListeners != NULL) {
+    //         mOnGlobalFocusListeners.addAll(observer.mOnGlobalFocusListeners);
+    //     } else {
+    //         mOnGlobalFocusListeners = observer.mOnGlobalFocusListeners;
+    //     }
+    // }
+
+    // if (observer.mOnGlobalLayoutListeners != NULL) {
+    //     if (mOnGlobalLayoutListeners != NULL) {
+    //         mOnGlobalLayoutListeners.addAll(observer.mOnGlobalLayoutListeners);
+    //     } else {
+    //         mOnGlobalLayoutListeners = observer.mOnGlobalLayoutListeners;
+    //     }
+    // }
+
+    if (observer->mOnPreDrawListeners.GetSize() > 0) {
+        // if (mOnPreDrawListeners != NULL) {
+        //     //mOnPreDrawListeners.addall(observer->mOnPreDrawListeners);
+        // } else {
+        //     mOnPreDrawListeners = observer->mOnPreDrawListeners;
+        // }
+        List<AutoPtr<IOnPreDrawListener> >::Iterator iter = observer->mOnPreDrawListeners.Begin();
+        for (; iter != observer->mOnPreDrawListeners.End(); ++iter) {
+            AutoPtr<IOnPreDrawListener> item = (AutoPtr<IOnPreDrawListener>)(*iter);
+
+            mOnPreDrawListeners.PushBack(item);
+        }
+    }
+
+    // if (observer.mOnTouchModeChangeListeners != NULL) {
+    //     if (mOnTouchModeChangeListeners != NULL) {
+    //         mOnTouchModeChangeListeners.addAll(observer.mOnTouchModeChangeListeners);
+    //     } else {
+    //         mOnTouchModeChangeListeners = observer.mOnTouchModeChangeListeners;
+    //     }
+    // }
+
+    // if (observer.mOnComputeInternalInsetsListeners != NULL) {
+    //     if (mOnComputeInternalInsetsListeners != NULL) {
+    //         mOnComputeInternalInsetsListeners.addAll(observer.mOnComputeInternalInsetsListeners);
+    //     } else {
+    //         mOnComputeInternalInsetsListeners = observer.mOnComputeInternalInsetsListeners;
+    //     }
+    // }
+
+    observer->Kill();
+
+    return NOERROR;
+}
+
+ECode ViewTreeObserver::AddOnGlobalFocusChangeListener(
+    /* [in] */ IOnGlobalFocusChangeListener* listener)
+{
+    CheckIsAlive();
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode ViewTreeObserver::RemoveOnGlobalFocusChangeListener(
+    /* [in] */ IOnGlobalFocusChangeListener* victim)
+{
+    CheckIsAlive();
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode ViewTreeObserver::AddOnGlobalLayoutListener(
+    /* [in] */ IOnGlobalLayoutListener* listener)
+{
+    CheckIsAlive();
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode ViewTreeObserver::RemoveGlobalOnLayoutListener(
+    /* [in] */ IOnGlobalLayoutListener*  victim)
+{
+    CheckIsAlive();
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode ViewTreeObserver::IsAlive(
+    /* [out] */ Boolean* alive)
+{
+    CheckIsAlive();
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode ViewTreeObserver::DispatchOnGlobalFocusChange(
+    /* [in] */ IView* oldFocus,
+    /* [in] */ IView* newFocus)
+{
+    CheckIsAlive();
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode ViewTreeObserver::DispatchOnGlobalLayout()
+{
+    CheckIsAlive();
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode ViewTreeObserver::DispatchOnPreDraw(
+    /* [out] */ Boolean* cancelDraw)
+{
+    CheckIsAlive();
+
+    *cancelDraw = FALSE;
+    ///final CopyOnWriteArrayList<OnPreDrawListener> listeners = mOnPreDrawListeners;
+    if (mOnPreDrawListeners.GetSize() > 0) {
+        // for (OnPreDrawListener listener : listeners) {
+        //     *cancelDraw |= !listener.onPreDraw();
+        // }
+
+        List<AutoPtr<IOnPreDrawListener> >::Iterator iter = mOnPreDrawListeners.Begin();
+        for (; iter != mOnPreDrawListeners.End(); ++iter) {
+            AutoPtr<IOnPreDrawListener> listener = (AutoPtr<IOnPreDrawListener>)(*iter);
+
+            Boolean isPreDraw = FALSE;
+            listener->OnPreDraw(&isPreDraw);
+            *cancelDraw |= !isPreDraw;
+        }
+    }
+
+    return NOERROR;
+}
+
+ECode ViewTreeObserver::DispatchOnTouchModeChanged(
+    /* [in] */ Boolean inTouchMode)
+{
+    CheckIsAlive();
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode ViewTreeObserver::DispatchOnScrollChanged()
+{
+    CheckIsAlive();
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode ViewTreeObserver::HasComputeInternalInsetsListeners(
+    /* [out] */ Boolean* has)
+{
+    CheckIsAlive();
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode ViewTreeObserver::AddOnPreDrawListener(
+        /* [in] */ IOnPreDrawListener* listener)
+{
+    CheckIsAlive();
+    mOnPreDrawListeners.PushBack(listener);
+
+    return NOERROR;
+}
+
+ECode ViewTreeObserver::RemoveOnPreDrawListener(
+        /* [in] */ IOnPreDrawListener* victim)
+{
+    CheckIsAlive();
+    mOnPreDrawListeners.Remove(victim);
+
+    return NOERROR;
+}

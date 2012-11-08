@@ -338,6 +338,7 @@ View::AttachInfo::AttachInfo(
     assert(SUCCEEDED(CRect::NewByFriend((CRect**)&mVisibleInsets)));
     assert(SUCCEEDED(CRect::NewByFriend((CRect**)&mTmpInvalRect)));
 
+    mTreeObserver = new ViewTreeObserver();
     mGivenInternalInsets = new ViewTreeObserver::InternalInsetsInfo();
 
     assert(SUCCEEDED(CDispatcherState::New((IDispatcherState**)&mKeyDispatchState)));
@@ -5187,7 +5188,7 @@ void View::DispatchAttachedToWindow(
     mAttachInfo = info;
     mWindowAttachCount++;
     if (mFloatingTreeObserver != NULL) {
-//        info->mTreeObserver->Merge(mFloatingTreeObserver);
+        info->mTreeObserver->Merge(mFloatingTreeObserver);
         mFloatingTreeObserver = NULL;
     }
     if ((mPrivateFlags&SCROLL_CONTAINER) != 0) {

@@ -47,6 +47,21 @@ public:
     }
 
     /**
+     * Return a localized string from the application's package's
+     * default string table.
+     *
+     * @param resId Resource id for the string
+     */
+    CARAPI GetString(
+        /* [in] */ Int32 resId,
+        /* [out] */ String* str)
+    {
+        AutoPtr<IResources> resources;
+        GetResources((IResources**)&resources);
+        return resources->GetString(resId, str);
+    }
+
+    /**
      * Set the base theme for this context.  Note that this should be called
      * before any views are instantiated in the Context (for example before
      * calling {@link android.app.Activity#setContentView} or

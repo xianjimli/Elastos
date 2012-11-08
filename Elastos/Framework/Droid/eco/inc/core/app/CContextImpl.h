@@ -91,6 +91,10 @@ public:
         /* [in] */ Int32 resId,
         /* [out] */ ICharSequence** text);
 
+    CARAPI GetString(
+        /* [in] */ Int32 resId,
+        /* [out] */ String* str);
+
     CARAPI SetTheme(
         /* [in] */ Int32 resid);
 

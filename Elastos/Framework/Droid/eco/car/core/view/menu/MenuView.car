@@ -3,6 +3,8 @@ module
 {
     interface IMenuBuilder;
     interface IView;
+    interface IViewGroupMarginLayoutParams;
+    interface IMenuItemImpl;
 
     /**
      * Minimal interface for a menu view.  {@link #initialize(MenuBuilder, int)} must be called for the
@@ -10,7 +12,7 @@ module
      *
      * @hide
      */
-    interface IMenuView extends IView {
+    interface IMenuView {
         /**
          * Initializes the menu to the given menu. This should be called after the
          * view is inflated.
@@ -44,7 +46,7 @@ module
      * Minimal interface for a menu item view.  {@link #initialize(MenuItemImpl, int)} must be called
      * for the item to be functional.
      */
-    interface IMenuItemView extends IView {
+    interface IMenuItemView {
         /**
          * Initializes with the provided MenuItemData.  This should be called after the view is
          * inflated.
@@ -54,7 +56,7 @@ module
          *            {@link MenuBuilder#TYPE_DIALOG}).
          */
         Initialize(
-            [in] IMenuItem* itemData,
+            [in] IMenuItemImpl* itemData,
             [in] Int32 menuType);
 
         /**
@@ -62,22 +64,22 @@ module
          * @return the item data, or null if there is not one
          */
         GetItemData(
-            [out] IMenuItem** itemData);
+            [out] IMenuItemImpl** itemData);
 
         /**
          * Sets the title of the item view.
          * @param title The title to set.
          */
         SetTitle(
-            [in] String title);
+            [in] ICharSequence* title);
 
         /**
          * Sets the enabled state of the item view.
          * @param enabled Whether the item view should be enabled.
-
-        SetEnabled(
+         */
+        // duplicate with IView::SetEnabled, so rename to SetEnabledEx
+        SetEnabledEx(
             [in] Boolean enabled);
-        */
 
         /**
          * Displays the checkbox for the item view.  This does not ensure the item view will be
@@ -103,7 +105,7 @@ module
          */
         SetShortcut(
             [in] Boolean showShortcut,
-            [in] Char16 shortcutKey);
+            [in] Char32 shortcutKey);
 
         /**
          * Set the icon of this item view.

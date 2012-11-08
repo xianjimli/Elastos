@@ -1,0 +1,42 @@
+
+module
+{
+    interface IMenuItemImpl extends IMenuItem {
+        /**
+         * Invokes the item by calling various listeners or callbacks.
+         *
+         * @return true if the invocation was handled, false otherwise
+         */
+        Invoke(
+            [out] Boolean* handled);
+
+        GetOrdering(
+            [out] Int32* ordering);
+
+        SetCallback(
+            [in] IRunnable* cb);
+
+        SetExclusiveCheckable(
+            [in] Boolean exclusive);
+
+        IsExclusiveCheckable(
+            [out] Boolean* checkable);
+
+        /**
+         * Returns a LayoutInflater that is themed for the given menu type.
+         *
+         * @param menuType The type of menu.
+         * @return A LayoutInflater.
+         */
+        GetLayoutInflater(
+            [in] Int32 menuType,
+            [out] ILayoutInflater** inflater);
+
+        /**
+         * @return Whether the given menu type should show icons for menu items.
+         */
+        ShouldShowIcon(
+            [in] Int32 menuType,
+            [out] Boolean* show);
+    }
+}

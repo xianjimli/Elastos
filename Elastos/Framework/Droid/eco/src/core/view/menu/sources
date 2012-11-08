@@ -10,12 +10,22 @@ INCLUDES += $(PREBUILD_INC)/skia/core
 
 C_DEFINES += -D_FRAMEWORK_CORE
 
-SOURCES += CMenuType.cpp
-SOURCES += CMenuItemImpl.cpp
+#SOURCES += CMenuType.cpp
+SOURCES += MenuItemImpl.cpp
+SOURCES += MenuBuilderBase.cpp
 SOURCES += MenuBuilder.cpp
-SOURCES += CMenuBuilder.cpp
+SOURCES += SubMenuBuilderBase.cpp
 SOURCES += SubMenuBuilder.cpp
-SOURCES += CSubMenuBuilder.cpp
-SOURCES += CMenuDialogHelper.cpp
+SOURCES += MenuDialogHelper.cpp
+SOURCES += ContextMenuBuilderBase.cpp
 SOURCES += ContextMenuBuilder.cpp
+SOURCES += ExpandedMenuView.cpp
 SOURCES += CExpandedMenuView.cpp
+SOURCES += IconMenuView.cpp
+SOURCES += CIconMenuView.cpp
+#SOURCES += BaseMenuItemView.cpp
+SOURCES += IconMenuItemView.cpp
+SOURCES += CIconMenuItemView.cpp
+SOURCES += IconMenuViewLayoutParams.cpp
+SOURCES += CIconMenuViewLayoutParams.cpp
+#SOURCES += CListMenuItemView.cpp

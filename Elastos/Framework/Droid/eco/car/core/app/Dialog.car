@@ -2,6 +2,9 @@
 module
 {
     interface IDialogInterface;
+    interface IView;
+    interface IViewGroupLayoutParams;
+    interface ILayoutInflater;
 
     /**
      * Base class for Dialogs.

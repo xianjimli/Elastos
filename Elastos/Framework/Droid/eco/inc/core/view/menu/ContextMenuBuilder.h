@@ -2,25 +2,35 @@
 #ifndef __CONTEXTMENUBUILDER_H__
 #define __CONTEXTMENUBUILDER_H__
 
-#include "CMenuBuilder.h"
+#include "view/menu/ContextMenuBuilderBase.h"
+#include "view/MenuMacro.h"
+#include "view/menu/MenuBuilderMacro.h"
+#include "view/menu/MenuDialogHelper.h"
 #include <elastos/ElRefBase.h>
-#include "MenuBuilderMacro.h"
 
-class CMenuDialogHelper;
-
-//public class ContextMenuBuilder extends MenuBuilder implements ContextMenu {
-class ContextMenuBuilder:
-    public ElRefBase,
-    public MenuBuilder,
-    public IContextMenu {
+/**
+ * Implementation of the {@link android.view.ContextMenu} interface.
+ * <p>
+ * Most clients of the menu framework will never need to touch this
+ * class.  However, if the client has a window that
+ * is not a content view of a Dialog or Activity (for example, the
+ * view was added directly to the window manager) and needs to show
+ * context menus, it will use this class.
+ * <p>
+ * To use this class, instantiate it via {@link #ContextMenuBuilder(Context)},
+ * and optionally populate it with any of your custom items.  Finally,
+ * call {@link #show(View, IBinder)} which will populate the menu
+ * with a view's context menu items and show the context menu.
+ */
+class ContextMenuBuilder
+    : public ElRefBase
+    , public ContextMenuBuilderBase
+    , public IMenuBuilder
+    , public IContextMenu
+{
 public:
-
-    IMENUBUILDER_METHODS_DECL();
-
     ContextMenuBuilder(
-        // /* [in] */ IContext* context): CMenuBuilder(context) {
-        /* [in] */ IContext* context): MenuBuilder(context) {
-    }
+        /* [in] */ IContext* context);
 
     CARAPI_(PInterface) Probe(
         /* [in]  */ REIID riid);
@@ -33,37 +43,8 @@ public:
         /* [in] */ IInterface *pObject,
         /* [out] */ InterfaceID *pIID);
 
-    /**
-     * Sets the context menu header's title to the title given in <var>titleRes</var>
-     * resource identifier.
-     *
-     * @param titleRes The string resource identifier used for the title.
-     * @return This ContextMenu so additional setters can be called.
-     */
-    CARAPI SetHeaderTitle(
-        /* [in] */ Int32 titleRes,
-        /* [out] */ IContextMenu** contextMenu);
-
-    /**
-     * Sets the context menu header's title to the title given in <var>title</var>.
-     *
-     * @param title The character sequence used for the title.
-     * @return This ContextMenu so additional setters can be called.
-     */
-    CARAPI SetHeaderTitleEx(
-        /* [in] */ ICharSequence* title,
-        /* [out] */ IContextMenu** contextMenu);
-
-    /**
-     * Sets the context menu header's icon to the icon given in <var>iconRes</var>
-     * resource id.
-     *
-     * @param iconRes The resource identifier used for the icon.
-     * @return This ContextMenu so additional setters can be called.
-     */
-    CARAPI SetHeaderIcon(
-        /* [in] */ Int32 iconRes,
-        /* [out] */ IContextMenu** contextMenu);
+    IMENU_METHODS_DECL();
+    IMENUBUILDER_METHODS_DECL();
 
     /**
      * Sets the context menu header's icon to the icon given in <var>icon</var>
@@ -73,8 +54,36 @@ public:
      * @return This ContextMenu so additional setters can be called.
      */
     CARAPI SetHeaderIconEx(
-        /* [in] */ IDrawable* icon,
-        /* [out] */ IContextMenu** contextMenu);
+        /* [in] */ IDrawable* icon);
+
+    /**
+     * Sets the context menu header's icon to the icon given in <var>iconRes</var>
+     * resource id.
+     *
+     * @param iconRes The resource identifier used for the icon.
+     * @return This ContextMenu so additional setters can be called.
+     */
+    CARAPI SetHeaderIcon(
+        /* [in] */ Int32 iconRes);
+
+    /**
+     * Sets the context menu header's title to the title given in <var>title</var>.
+     *
+     * @param title The character sequence used for the title.
+     * @return This ContextMenu so additional setters can be called.
+     */
+    CARAPI SetHeaderTitleEx(
+        /* [in] */ ICharSequence* title);
+
+    /**
+     * Sets the context menu header's title to the title given in <var>titleRes</var>
+     * resource identifier.
+     *
+     * @param titleRes The string resource identifier used for the title.
+     * @return This ContextMenu so additional setters can be called.
+     */
+    CARAPI SetHeaderTitle(
+        /* [in] */ Int32 titleRes);
 
     /**
      * Sets the header of the context menu to the {@link View} given in
@@ -85,25 +94,9 @@ public:
      * @return This ContextMenu so additional setters can be called.
      */
     CARAPI SetHeaderView(
-        /* [in] */ IView* view,
-        /* [out] */ IContextMenu** contextMenu);
+        /* [in] */ IView* view);
 
-    /**
-     * Shows this context menu, allowing the optional original view (and its
-     * ancestors) to add items.
-     *
-     * @param originalView Optional, the original view that triggered the
-     *        context menu.
-     * @param token Optional, the window token that should be set on the context
-     *        menu's window.
-     * @return If the context menu was shown, the {@link MenuDialogHelper} for
-     *         dismissing it. Otherwise, null.
-     */
-    CARAPI Show(
-        /* [in] */ IView* originalView,
-        /* [in] */ IBinder* token,
-        /* [out] */ CMenuDialogHelper** helper);
-
+    CARAPI ClearHeader();
 };
 
 #endif  //__CONTEXTMENUBUILDER_H__

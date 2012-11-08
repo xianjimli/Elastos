@@ -454,6 +454,28 @@ module
             [out] ICharSequence** text);
 
         /**
+         * Return a localized string from the application's package's
+         * default string table.
+         *
+         * @param resId Resource id for the string
+         */
+        GetString(
+            [in] Int32 resId,
+            [out] String* str);
+
+//        /**
+//         * Return a localized formatted string from the application's package's
+//         * default string table, substituting the format arguments as defined in
+//         * {@link java.util.Formatter} and {@link java.lang.String#format}.
+//         *
+//         * @param resId Resource id for the format string
+//         * @param formatArgs The format arguments that will be used for substitution.
+//         */
+//        public final String getString(int resId, Object... formatArgs) {
+//            return getResources().getString(resId, formatArgs);
+//        }
+
+        /**
          * Set the base theme for this context.  Note that this should be called
          * before any views are instantiated in the Context (for example before
          * calling {@link android.app.Activity#setContentView} or

@@ -20,8 +20,7 @@ module
          * @return This SubMenu so additional setters can be called.
          */
         SetHeaderTitle(
-            [in] Int32 titleRes,
-            [out] ISubMenu** submenu);
+            [in] Int32 titleRes);
 
         /**
          * Sets the submenu header's title to the title given in <var>title</var>.
@@ -30,8 +29,7 @@ module
          * @return This SubMenu so additional setters can be called.
          */
         SetHeaderTitleEx(
-            [in] ICharSequence* title,
-            [out] ISubMenu** submenu);
+            [in] ICharSequence* title);
 
         /**
          * Sets the submenu header's icon to the icon given in <var>iconRes</var>
@@ -41,8 +39,7 @@ module
          * @return This SubMenu so additional setters can be called.
          */
         SetHeaderIcon(
-            [in] Int32 iconRes,
-            [out] ISubMenu** submenu);
+            [in] Int32 iconRes);
 
         /**
          * Sets the submenu header's icon to the icon given in <var>icon</var>
@@ -52,8 +49,7 @@ module
          * @return This SubMenu so additional setters can be called.
          */
         SetHeaderIconEx(
-            [in] IDrawable* icon,
-            [out] ISubMenu** submenu);
+            [in] IDrawable* icon);
 
         /**
          * Sets the header of the submenu to the {@link View} given in
@@ -64,8 +60,7 @@ module
          * @return This SubMenu so additional setters can be called.
          */
         SetHeaderView(
-            [in] IView* view,
-            [out] ISubMenu** submenu);
+            [in] IView* view);
 
         /**
          * Clears the header of the submenu.
@@ -80,8 +75,7 @@ module
          * @return This SubMenu so additional setters can be called.
          */
         SetIcon(
-            [in] Int32 iconRes,
-            [out] ISubMenu** submenu);
+            [in] Int32 iconRes);
 
         /**
          * Change the icon associated with this submenu's item in its parent menu.
@@ -91,8 +85,7 @@ module
          * @return This SubMenu so additional setters can be called.
          */
         SetIconEx(
-            [in] IDrawable* icon,
-            [out] ISubMenu** submenu);
+            [in] IDrawable* icon);
 
         /**
          * Gets the {@link MenuItem} that represents this submenu in the parent

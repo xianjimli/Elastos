@@ -69,7 +69,6 @@ SOURCES += CListViewSavedState.cpp
 SOURCES += CListView.cpp
 SOURCES += CHeaderViewListAdapter.cpp
 SOURCES += BaseAdapter.cpp
-SOURCES += CMenuAdapter.cpp
 SOURCES += Filter.cpp
 SOURCES += ArrayAdapter.cpp
 SOURCES += CArrayAdapter.cpp

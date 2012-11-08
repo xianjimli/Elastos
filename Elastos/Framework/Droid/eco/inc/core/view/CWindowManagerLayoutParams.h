@@ -161,6 +161,34 @@ public:
 
     CARAPI constructor();
 
+    CARAPI constructor(
+        /* [in] */ Int32 type);
+
+    CARAPI constructor(
+        /* [in] */ Int32 type,
+        /* [in] */ Int32 flags);
+
+    CARAPI constructor(
+        /* [in] */ Int32 type,
+        /* [in] */ Int32 flags,
+        /* [in] */ Int32 format);
+
+    CARAPI constructor(
+        /* [in] */ Int32 w,
+        /* [in] */ Int32 h,
+        /* [in] */ Int32 type,
+        /* [in] */ Int32 flags,
+        /* [in] */ Int32 format);
+
+    CARAPI constructor(
+        /* [in] */ Int32 w,
+        /* [in] */ Int32 h,
+        /* [in] */ Int32 xpos,
+        /* [in] */ Int32 ypos,
+        /* [in] */ Int32 type,
+        /* [in] */ Int32 flags,
+        /* [in] */ Int32 format);
+
 public:
     /**
      * X position for this window.  With the default gravity it is ignored.

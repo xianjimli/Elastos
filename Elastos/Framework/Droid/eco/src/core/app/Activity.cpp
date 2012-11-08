@@ -11,11 +11,6 @@
 
 #include <stdio.h>
 
-Int32 Activity::DEFAULT_KEYS_DISABLE = 0;
-Int32 Activity::DEFAULT_KEYS_DIALER = 1;
-Int32 Activity::DEFAULT_KEYS_SHORTCUT = 2;
-Int32 Activity::DEFAULT_KEYS_SEARCH_LOCAL = 3;
-Int32 Activity::DEFAULT_KEYS_SEARCH_GLOBAL = 4;
 
 Activity::Activity()
     : mManagedDialogs(NULL)
@@ -23,9 +18,8 @@ Activity::Activity()
     , mVisibleFromClient(TRUE)
     , mTitleColor(0)
     , mTitleReady(FALSE)
-    , mDefaultKeyMode(DEFAULT_KEYS_DISABLE)
-{
-}
+    , mDefaultKeyMode(Activity_DEFAULT_KEYS_DISABLE)
+{}
 
 Activity::~Activity()
 {}
@@ -204,6 +198,17 @@ ECode Activity::GetText(
     /* [out] */ ICharSequence** text)
 {
     return mBase->GetText(resId, text);
+}
+
+ECode Activity::GetString(
+    /* [in] */ Int32 resId,
+    /* [out] */ String* str)
+{
+    if (str == NULL) return E_ILLEGAL_ARGUMENT_EXCEPTION;
+
+    AutoPtr<IResources> resources;
+    GetResources((IResources**)&resources);
+    return resources->GetString(resId, str);
 }
 
 ECode Activity::SetTheme(
@@ -588,7 +593,6 @@ ECode Activity::AttachEx(
     /* [in] */ IObjectStringMap* lastNonConfigurationChildInstances,
     /* [in] */ IConfiguration* config)
 {
-    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
     mBase = context;
     mApartment = apartment;
     mInstrumentation = instr;
@@ -601,15 +605,10 @@ ECode Activity::AttachEx(
     CPolicyManager::AcquireSingleton((IPolicyManager**)&pm);
     ec = pm->MakeNewWindow(this, (IWindow**)&mWindow);
     if (FAILED(ec)) {
-        printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
         return ec;
     }
 
-    //mWindow->SetCallback((IWindowCallback*)(this->Probe(EIID_IWindowCallback)));
-    printf("==== File: %s, Line: %d ====, FUNC : %s, mWindow = [%0X].\n", __FILE__, __LINE__, __FUNCTION__, mWindow.Get());
-    mWindow->SetCallback((IWindowCallback*)(this->Probe(EIID_IWindowCallback)));
-    //mWindow->SetCallback(NULL);
-
+    mWindow->SetCallback((IWindowCallback*)this);
 //    if (info.softInputMode != WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED) {
 //        mWindow.setSoftInputMode(info.softInputMode);
 //    }
@@ -618,22 +617,15 @@ ECode Activity::AttachEx(
 
     String str;
     mComponent->FlattenToString(&str);
-printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
-printf("==== File: %s, Line: %d ====, FUNC : %s, mWindow = [%0X].\n", __FILE__, __LINE__, __FUNCTION__, mWindow.Get());
     ec = mWindow->SetWindowManager(NULL, mToken, str);
-
-printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
-//mWindow->SetCallback((IWindowCallback*)(this->Probe(EIID_IWindowCallback)));
-printf("==== File: %s, Line: %d ====, FUNC : %s, mWindow = [%0X].\n", __FILE__, __LINE__, __FUNCTION__, mWindow.Get());
-
     if (mParent != NULL) {
         AutoPtr<IWindow> pWindow;
         mParent->GetWindowEx((IWindow**) &pWindow);
         mWindow->SetContainer(pWindow);
     }
-printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+
     mWindow->GetWindowManager((IWindowManager**)&mWindowManager);
-printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+
     return NOERROR;
 }
 
@@ -1401,8 +1393,8 @@ ECode Activity::RemoveDialog(
 ECode Activity::OnCreatePanelMenu(
     /* [in] */ Int32 featureId,
     /* [in] */ IMenu* menu,
-    /* [out] */ Boolean* allowToShow) {
-    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+    /* [out] */ Boolean* allowToShow)
+{
     if (allowToShow == NULL) {
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
@@ -1417,18 +1409,16 @@ ECode Activity::OnCreatePanelMenu(
 
 ECode Activity::OnCreateOptionsMenu(
     /* [in] */ IMenu* menu,
-    /* [out] */ Boolean* allowToShow) {
-    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+    /* [out] */ Boolean* allowToShow)
+{
     if (allowToShow == NULL) {
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
     if (mParent != NULL) {
-        printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
         mParent->OnCreateOptionsMenu(menu, allowToShow);
     }
 
-    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
     *allowToShow = TRUE;
     return NOERROR;
 }
@@ -1437,124 +1427,128 @@ ECode Activity::OnPreparePanel(
     /* [in] */ Int32 featureId,
     /* [in] */ IView* view,
     /* [in] */ IMenu* menu,
-    /* [out] */ Boolean* allowToShow) {
-    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+    /* [out] */ Boolean* allowToShow)
+{
     if (allowToShow == NULL) {
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
-    *allowToShow = TRUE;
-
     if (featureId == Window_FEATURE_OPTIONS_PANEL && menu != NULL) {
         Boolean goforit = FALSE;
         OnPrepareOptionsMenu(menu, &goforit);
-        printf("==== File: %s, Line: %d ====, FUNC : %s, goforit=[%d].\n", __FILE__, __LINE__, __FUNCTION__, goforit);
-
-        Boolean visible = FALSE;
-        menu->HasVisibleItems(&visible);
-        printf("==== File: %s, Line: %d ====, FUNC : %s, visible=[%d].\n", __FILE__, __LINE__, __FUNCTION__, visible);
-
-        *allowToShow = goforit && visible;
+        if (goforit) {
+            return menu->HasVisibleItems(allowToShow);
+        }
+        *allowToShow = FALSE;
+        return NOERROR;
     }
 
-    printf("==== File: %s, Line: %d ====, FUNC : %s, allowToShow=[%d].\n", __FILE__, __LINE__, __FUNCTION__, *allowToShow);
+    *allowToShow = TRUE;
     return NOERROR;
 }
 
 ECode Activity::OnPrepareOptionsMenu(
     /* [in] */ IMenu* menu,
-    /* [out] */ Boolean* res) {
-    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+    /* [out] */ Boolean* res)
+{
     if (res == NULL) {
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
-    *res = TRUE;
-
     if (mParent != NULL) {
-        printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
-        mParent->OnPrepareOptionsMenu(menu, res);
+        return mParent->OnPrepareOptionsMenu(menu, res);
     }
 
+    *res = TRUE;
     return NOERROR;
 }
 
 ECode Activity::OnMenuOpened(
     /* [in] */ Int32 featureId,
     /* [in] */ IMenu* menu,
-    /* [out] */ Boolean* allowToOpen) {
+    /* [out] */ Boolean* allowToOpen)
+{
     if (allowToOpen == NULL) {
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
     *allowToOpen = TRUE;
-
     return NOERROR;
 }
 
 ECode Activity::OnMenuItemSelected(
     /* [in] */ Int32 featureId,
     /* [in] */ IMenuItem* item,
-    /* [out] */ Boolean* toFinish) {
+    /* [out] */ Boolean* toFinish)
+{
     if (toFinish == NULL) {
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
     switch(featureId) {
         case Window_FEATURE_OPTIONS_PANEL: {
+//            // Put event logging here so it gets called even if subclass
+//            // doesn't call through to superclass's implmeentation of each
+//            // of these methods below
+//            EventLog.writeEvent(50000, 0, item.getTitleCondensed());
             OnOptionsItemSelected(item, toFinish);
             return NOERROR;
         }
         case Window_FEATURE_CONTEXT_MENU: {
+//            EventLog.writeEvent(50000, 1, item.getTitleCondensed());
             OnContextItemSelected(item, toFinish);
             return NOERROR;
         }
     }
 
     *toFinish = FALSE;
-
     return NOERROR;
 }
 
 ECode Activity::OnOptionsItemSelected(
         /* [in] */ IMenuItem* item,
-        /* [out] */ Boolean* res) {
+        /* [out] */ Boolean* res)
+{
     if (res == NULL) {
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
-    *res = FALSE;
     if (mParent != NULL) {
         return mParent->OnOptionsItemSelected(item, res);
     }
 
+    *res = FALSE;
     return NOERROR;
 }
 
 ECode Activity::OnContextItemSelected(
         /* [in] */ IMenuItem* item,
-        /* [out] */ Boolean* res) {
+        /* [out] */ Boolean* res)
+{
     if (res == NULL) {
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
-    *res = FALSE;
     if (mParent != NULL) {
         return mParent->OnContextItemSelected(item, res);
     }
 
+    *res = FALSE;
     return NOERROR;
 }
 
 ECode Activity::OnPanelClosed(
     /* [in] */ Int32 featureId,
-    /* [in] */ IMenu* menu) {
+    /* [in] */ IMenu* menu)
+{
     switch(featureId) {
         case Window_FEATURE_OPTIONS_PANEL: {
-            return OnOptionsMenuClosed(menu);
+            OnOptionsMenuClosed(menu);
+            break;
         }
         case Window_FEATURE_CONTEXT_MENU: {
-            return OnContextMenuClosed(menu);
+            OnContextMenuClosed(menu);
+            break;
         }
     }
 
@@ -1562,7 +1556,8 @@ ECode Activity::OnPanelClosed(
 }
 
 ECode Activity::OnOptionsMenuClosed(
-    /* [in] */ IMenu* menu) {
+    /* [in] */ IMenu* menu)
+{
     if (mParent != NULL) {
         return mParent->OnOptionsMenuClosed(menu);
     }
@@ -1571,7 +1566,8 @@ ECode Activity::OnOptionsMenuClosed(
 }
 
 ECode Activity::OnContextMenuClosed(
-        /* [in] */ IMenu* menu) {
+        /* [in] */ IMenu* menu)
+{
     if (mParent != NULL) {
         return mParent->OnContextMenuClosed(menu);
     }
@@ -1579,22 +1575,22 @@ ECode Activity::OnContextMenuClosed(
     return NOERROR;
 }
 
-ECode Activity::OpenOptionsMenu() {
+ECode Activity::OpenOptionsMenu()
+{
     return mWindow->OpenPanel(Window_FEATURE_OPTIONS_PANEL, NULL);
 }
 
 
-ECode Activity::CloseOptionsMenu() {
+ECode Activity::CloseOptionsMenu()
+{
     return mWindow->ClosePanel(Window_FEATURE_OPTIONS_PANEL);
 }
 
 
 ECode Activity::RegisterForContextMenu(
-    /* [in] */ IView* view) {
-    if (view == NULL) {
-        return E_INVALID_ARGUMENT;
-    }
-
+    /* [in] */ IView* view)
+{
+    assert(view != NULL);
     return view->SetOnCreateContextMenuListener(
         (IViewOnCreateContextMenuListener*)this->Probe(
         EIID_IViewOnCreateContextMenuListener));
@@ -1602,26 +1598,25 @@ ECode Activity::RegisterForContextMenu(
 
 
 ECode Activity::UnregisterForContextMenu(
-    /* [in] */ IView* view) {
-    if (view == NULL) {
-        return E_INVALID_ARGUMENT;
-    }
-
+    /* [in] */ IView* view)
+{
+    assert(view != NULL);
     return view->SetOnCreateContextMenuListener(NULL);
 }
 
 
 ECode Activity::OpenContextMenu(
-    /* [in] */ IView* view) {
+    /* [in] */ IView* view)
+{
+    assert(view != NULL);
     Boolean res;
     return view->ShowContextMenu(&res);
 }
 
 ECode Activity::DispatchKeyEvent(
     /* [in] */ IKeyEvent* event,
-    /* [out] */ Boolean* isConsumed) {
-    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
-    *isConsumed = FALSE;
+    /* [out] */ Boolean* isConsumed)
+{
     OnUserInteraction();
 
     AutoPtr<IWindow> win;
@@ -1629,7 +1624,7 @@ ECode Activity::DispatchKeyEvent(
 
     Boolean succeeded;
     win->SuperDispatchKeyEvent(event, &succeeded);
-    printf("==== File: %s, Line: %d ====, FUNC : %s, succeeded==[%d].\n", __FILE__, __LINE__, __FUNCTION__, succeeded);
+
     if (succeeded) {
         *isConsumed = TRUE;
         return NOERROR;
@@ -1644,21 +1639,17 @@ ECode Activity::DispatchKeyEvent(
     if (decor != NULL) {
         decor->GetKeyDispatcherState((IDispatcherState**)&dispatcher);
     }
-    else {
-        dispatcher = NULL;
-    }
-printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
-    event->DispatchEx((IKeyEventCallback*)this->Probe(EIID_IKeyEventCallback), dispatcher
-                , this->Probe(EIID_IInterface), isConsumed);
+
+    event->DispatchEx((IKeyEventCallback*)this->Probe(EIID_IKeyEventCallback), dispatcher,
+            this->Probe(EIID_IInterface), isConsumed);
 
     return NOERROR;
 }
 
 ECode Activity::DispatchTouchEvent(
     /* [in] */ IMotionEvent* event,
-    /* [out] */ Boolean* isConsumed) {
-    *isConsumed = FALSE;
-
+    /* [out] */ Boolean* isConsumed)
+{
     Int32 action;
     event->GetAction(&action);
     if (action == MotionEvent_ACTION_DOWN) {
@@ -1681,16 +1672,16 @@ ECode Activity::DispatchTouchEvent(
 
 ECode Activity::OnTouchEvent(
         /* [in] */ IMotionEvent* event,
-        /* [out] */ Boolean* res) {
+        /* [out] */ Boolean* res)
+{
     *res = FALSE;
     return NOERROR;
 }
 
 ECode Activity::DispatchTrackballEvent(
     /* [in] */ IMotionEvent* event,
-    /* [out] */ Boolean* isConsumed) {
-    *isConsumed = FALSE;
-
+    /* [out] */ Boolean* isConsumed)
+{
     OnUserInteraction();
     AutoPtr<IWindow> win;
     GetWindowEx((IWindow**) &win);
@@ -1709,17 +1700,16 @@ ECode Activity::DispatchTrackballEvent(
 
 ECode Activity::OnTrackballEvent(
         /* [in] */ IMotionEvent* event,
-        /* [out] */ Boolean* res) {
+        /* [out] */ Boolean* res)
+{
     *res = FALSE;
     return NOERROR;
 }
 
 ECode Activity::DispatchPopulateAccessibilityEvent(
     /* [in] */ IAccessibilityEvent* event,
-    /* [out] */ Boolean* isCompleted) {
-    *isCompleted = FALSE;
-
-    //TODO
+    /* [out] */ Boolean* isCompleted)
+{
 /*    event.setClassName(getClass().getName());
     event.setPackageName(getPackageName());
 
@@ -1740,26 +1730,27 @@ ECode Activity::DispatchPopulateAccessibilityEvent(
 
 ECode Activity::OnCreatePanelView(
     /* [in] */ Int32 featureId,
-    /* [out] */ IView** view) {
+    /* [out] */ IView** view)
+{
     *view = NULL;
     return NOERROR;
 }
 
 ECode Activity::OnWindowAttributesChanged(
-    /* [in] */ IWindowManagerLayoutParams* attrs) {
+    /* [in] */ IWindowManagerLayoutParams* attrs)
+{
+    // Update window manager if: we have a view, that view is
+    // attached to its parent (which will be a RootView), and
+    // this activity is not embedded.
     if (mParent == NULL) {
         AutoPtr<IView> decor = mDecor;
         if (decor != NULL) {
             AutoPtr<IViewParent> parent;
             decor->GetParent((IViewParent**) &parent);
-
             if (parent != NULL) {
                 AutoPtr<IWindowManager> winmanager;
                 GetWindowManagerEx((IWindowManager**) &winmanager);
-
-                if (winmanager != NULL) {
-                    winmanager->UpdateViewLayout(decor, attrs);
-                }
+                winmanager->UpdateViewLayout(decor, attrs);
             }
         }
     }
@@ -1767,34 +1758,40 @@ ECode Activity::OnWindowAttributesChanged(
     return NOERROR;
 }
 
-ECode Activity::OnContentChanged() {
+ECode Activity::OnContentChanged()
+{
     return NOERROR;
 }
 
 ECode Activity::OnWindowFocusChanged(
-    /* [in] */ Boolean hasFocus) {
+    /* [in] */ Boolean hasFocus)
+{
     return NOERROR;
 }
 
-ECode Activity::OnAttachedToWindow() {
+ECode Activity::OnAttachedToWindow()
+{
     return NOERROR;
 }
 
-ECode Activity::OnDetachedFromWindow() {
+ECode Activity::OnDetachedFromWindow()
+{
     return NOERROR;
 }
 
 ECode Activity::OnSearchRequested(
-    /* [out] */ Boolean* isLaunched) {
+    /* [out] */ Boolean* isLaunched)
+{
+    // startSearch(null, false, null, false);
+    // return true;
     return E_NOT_IMPLEMENTED;
 }
 
 ECode Activity::OnKeyDown(
     /* [in] */ Int32 keyCode,
     /* [in] */ IKeyEvent* event,
-    /* [out] */ Boolean* result) {
-    *result = FALSE;
-
+    /* [out] */ Boolean* result)
+{
     if (keyCode == KeyEvent_KEYCODE_BACK) {
         AutoPtr<IApplicationInfo> appInfo;
         GetApplicationInfo((IApplicationInfo**) &appInfo);
@@ -1805,7 +1802,8 @@ ECode Activity::OnKeyDown(
         //if (targetSdkVersion >= Build::VERSION_CODES::ECLAIR) {
         if (targetSdkVersion >= 5) {
             event->StartTracking();
-        } else {
+        }
+        else {
             OnBackPressed();
         }
 
@@ -1813,10 +1811,11 @@ ECode Activity::OnKeyDown(
         return NOERROR;
     }
 
-    if (mDefaultKeyMode == DEFAULT_KEYS_DISABLE) {
+    if (mDefaultKeyMode == Activity_DEFAULT_KEYS_DISABLE) {
         *result = FALSE;
         return NOERROR;
-    } else if (mDefaultKeyMode == DEFAULT_KEYS_SHORTCUT) {
+    }
+    else if (mDefaultKeyMode == Activity_DEFAULT_KEYS_SHORTCUT) {
         AutoPtr<IWindow> win;
         GetWindowEx((IWindow**) &win);
 
@@ -1826,13 +1825,16 @@ ECode Activity::OnKeyDown(
 
         if (state) {
             *result = TRUE;
+            return NOERROR;
         }
 
+        *result = FALSE;
         return NOERROR;
-    } else {
+    }
+    else {
         // Common code for DEFAULT_KEYS_DIALER & DEFAULT_KEYS_SEARCH_*
         Boolean clearSpannable = FALSE;
-        Boolean handled, isSystem;
+        Boolean handled = FALSE, isSystem;
         Int32 repeatCount;
         event->GetRepeatCount(&repeatCount);
         event->IsSystem(&isSystem);
@@ -1875,25 +1877,22 @@ ECode Activity::OnKeyDown(
         *result = handled;
         return NOERROR;
     }
-
-    return NOERROR;
 }
 
 ECode Activity::OnKeyLongPress(
     /* [in] */ Int32 keyCode,
     /* [in] */ IKeyEvent* event,
-    /* [out] */ Boolean* result) {
+    /* [out] */ Boolean* result)
+{
     *result = FALSE;
-
     return NOERROR;
 }
 
 ECode Activity::OnKeyUp(
     /* [in] */ Int32 keyCode,
     /* [in] */ IKeyEvent* event,
-    /* [out] */ Boolean* result) {
-    *result = FALSE;
-
+    /* [out] */ Boolean* result)
+{
     AutoPtr<IApplicationInfo> appInfo;
     GetApplicationInfo((IApplicationInfo**) &appInfo);
     Int32 targetSdkVersion;
@@ -1913,7 +1912,7 @@ ECode Activity::OnKeyUp(
             return NOERROR;
         }
     }
-
+    *result = FALSE;
     return NOERROR;
 }
 
@@ -1921,8 +1920,13 @@ ECode Activity::OnKeyMultiple(
     /* [in] */ Int32 keyCode,
     /* [in] */ Int32 count,
     /* [in] */ IKeyEvent* event,
-    /* [out] */ Boolean* result) {
+    /* [out] */ Boolean* result)
+{
     *result = FALSE;
-
     return NOERROR;
+}
+
+ECode Activity::OnBackPressed()
+{
+    return Finish();
 }

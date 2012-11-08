@@ -13,124 +13,36 @@ module
     interface IView;
     interface IViewGroup;
     interface IMenuView;
-    interface IMenuBuilderType;
     interface IMenu;
+    interface ISubMenuBuilder;
+    interface IMenuItemImpl;
 
     interface IMenuBuilder extends IMenu {
-        CloseEx(
-            [in] Boolean flag);
-
-        IsQwertyMode(
-            [out]Boolean* qwertyMode);
-
-        SetShortcutsVisible(
-            [in] Boolean shortcutsVisible);
-
-        IsShortcutsVisible(
-            [out] Boolean* qwertyMode);
-
-        GetContext(
-            [out] IContext** context);
-
-        GetResources(
-            [out] IResources** resource);
-
-        SetExclusiveItemChecked(
-            [in] IMenuItem* item);
-
-        GetCallback(
-            [out] IMenuBuilderCallback** MenuCallback);
-
-        GetRootMenu(
-            [out] IMenuBuilder** menu);
-
-        OnItemVisibleChanged(
-            [in] IMenuItem* item);
-
-        SetCurrentMenuInfo(
-            [in] IContextMenuInfo* menuInfo);
-
-        SetOptionalIconsVisible(
-            [in] Boolean visible);
-
-        GetOptionalIconsVisible(
-            [out] Boolean* visible);
-
-        SaveHierarchyState(
-            [in] IBundle* outState);
-
-        RestoreHierarchyState(
-            [in] IBundle* inState);
-
-        GetMenuAdapter(
-            [in] Int32 menuType,
-            [out] IMenuAdapter** menuAdapter);
-
-        GetMenuType(
-            [in] Int32 menuType,
-            [out] IMenuBuilderType** type);
-
-        GetMenuView(
-            [in] Int32 menuType,
-            [in] IViewGroup* parent,
-            [out] IMenuView** menuView);
-
-        ClearMenuViews();
-
-        RefreshShortcuts(
-            [in] Boolean shortcutsVisible,
-            [in] Boolean qwertyMode);
-
-        FindItemsWithShortcutForKey(
-            [in] Int32 keyCode,
-            [in] IKeyEvent* event,
-            [out] IObjectContainer** list);
-
-        FindItemWithShortcutForKey(
-            [in] Int32 keyCode,
-            [in] IKeyEvent* event,
-            [out] IMenuItem** menuItem);
-
-        PerformItemAction(
-            [in] IMenuItem* item,
-            [in] Int32 flags,
-            [out] Boolean* state);
-
         SetCallback(
             [in] IMenuBuilderCallback* menuCallback);
 
-        SetHeaderTitleInt(
-            [in] ICharSequence* title,
-            [out] IMenuBuilder** menu);
+        /**
+         * Gets a menu View that contains this menu's items.
+         *
+         * @param menuType The type of menu to get a View for (must be one of
+         *            {@link #TYPE_ICON}, {@link #TYPE_EXPANDED},
+         *            {@link #TYPE_DIALOG}).
+         * @param parent The ViewGroup that provides a set of LayoutParams values
+         *            for this menu view
+         * @return A View for the menu of type <var>menuType</var>
+         */
+        GetMenuView(
+            [in] Int32 menuType,
+            [in] IViewGroup* parent,
+            [out] IView** menuView);
 
-        SetHeaderTitleIntEx(
-            [in] Int32 titleRes,
-            [out] IMenuBuilder** menu);
+        /**
+         * Clears the cached menu views. Call this if the menu views need to another
+         * layout (for example, if the screen size has changed).
+         */
+        ClearMenuViews();
 
-        SetHeaderIconInt(
-            [in] IDrawable* icon,
-            [out] IMenuBuilder** menu);
-
-        SetHeaderIconIntEx(
-            [in] Int32 iconRes,
-            [out] IMenuBuilder** menu);
-
-        SetHeaderViewInt(
-            [in] IView* view,
-            [out] IMenuBuilder** menu);
-
-        GetVisibleItems(
-            [out] IObjectContainer** list);
-
-        GetNumIconMenuItemsShown(
-            [out] Int32* state);
-
-        SetHeaderInternal(
-            [in] Int32 titleRes,
-            [in] ICharSequence* title,
-            [in] Int32 iconRes,
-            [in] IDrawable* icon,
-            [in] IView* view);
+        ClearAll();
 
         FindItemIndex(
             [in] Int32 id,
@@ -145,60 +57,144 @@ module
             [in] Int32 start,
             [out] Int32* index);
 
+        /**
+         * Sets whether the shortcuts should be visible on menus.  Devices without hardware
+         * key input will never make shortcuts visible even if this method is passed 'true'.
+         *
+         * @param shortcutsVisible Whether shortcuts should be visible (if true and a
+         *            menu item does not have a shortcut defined, that item will
+         *            still NOT show a shortcut)
+         */
+        SetShortcutsVisible(
+            [in] Boolean shortcutsVisible);
+
+        /**
+         * @return Whether shortcuts should be visible on menus.
+         */
+        IsShortcutsVisible(
+            [out] Boolean* qwertyMode);
+
+        GetCallback(
+            [out] IMenuBuilderCallback** MenuCallback);
+
+        GetContext(
+            [out] IContext** context);
+
+        PerformItemAction(
+            [in] IMenuItem* item,
+            [in] Int32 flags,
+            [out] Boolean* state);
+
+        CloseEx(
+            [in] Boolean flag);
+
+        GetHeaderTitle(
+            [out] ICharSequence** title);
+
         GetHeaderIcon(
             [out] IDrawable** drawable);
 
         GetHeaderView(
             [out] IView** headerView);
 
-        GetHeaderTitle(
-            [out] ICharSequence** title);
+        /**
+         * Gets the root menu (if this is a submenu, find its root menu).
+         * @return The root menu.
+         */
+        GetRootMenu(
+            [out] IMenuBuilder** menu);
 
-        ClearAll();
+        /**
+         * Sets the current menu info that is set on all items added to this menu
+         * (until this is called again with different menu info, in which case that
+         * one will be added to all subsequent item additions).
+         *
+         * @param menuInfo The extra menu information to add.
+         */
+        SetCurrentMenuInfo(
+            [in] IContextMenuInfo* menuInfo);
+
+        /**
+         * Gets an adapter for providing items and their views.
+         *
+         * @param menuType The type of menu to get an adapter for.
+         * @return A {@link MenuAdapter} for this menu with the given menu type.
+         */
+        GetMenuAdapter(
+            [in] Int32 menuType,
+            [out] IMenuAdapter** menuAdapter);
+
+        SaveHierarchyState(
+            [in/*, out*/] IBundle* outState);
+
+        RestoreHierarchyState(
+            [in] IBundle* inState);
     }
 
+    /**
+     * Called by menu to notify of close and selection changes
+     */
     interface IMenuBuilderCallback {
+        /**
+         * Called when a menu item is selected.
+         * @param menu The menu that is the parent of the item
+         * @param item The menu item that is selected
+         * @return whether the menu item selection was handled
+         */
         OnMenuItemSelected(
             [in] IMenuBuilder* menu,
             [in] IMenuItem* item,
             [out] Boolean* state);
 
+        /**
+         * Called when a menu is closed.
+         * @param menu The menu that was closed.
+         * @param allMenusAreClosing Whether the menus are completely closing (true),
+         *            or whether there is another menu opening shortly
+         *            (false). For example, if the menu is closing because a
+         *            sub menu is about to be shown, <var>allMenusAreClosing</var>
+         *            is false.
+         */
         OnCloseMenu(
             [in] IMenuBuilder* menu,
             [in] Boolean allMenusAreClosing);
 
+        /**
+         * Called when a sub menu is selected.  This is a cue to open the given sub menu's decor.
+         * @param subMenu the sub menu that is being opened
+         * @return whether the sub menu selection was handled by the callback
+         */
         OnSubMenuSelected(
-            [in] ISubMenu* subMenu,
+            [in] ISubMenuBuilder* subMenu,
             [out] Boolean* state);
 
+        /**
+         * Called when a sub menu is closed
+         * @param menu the sub menu that was closed
+         */
         OnCloseSubMenu(
-            [in] ISubMenu* menu);
+            [in] ISubMenuBuilder* menu);
 
+        /**
+         * Called when the mode of the menu changes (for example, from icon to expanded).
+         *
+         * @param menu the menu that has changed modes
+         */
         OnMenuModeChange(
             [in] IMenuBuilder* menu);
     }
 
-    interface IMenuBuilderType {
-        GetInflater(
-            [out] ILayoutInflater** layoutInflater);
-
-        GetMenuView(
-            [in] IViewGroup* parent,
-            [out] IMenuView** menuView);
-
-        GetMenuViewEx(
-            [out] IMenuView** menuView);
-
-        SetMenuView(
-            [in] IMenuView* menuView);
-
-        HasMenuView(
-            [out] Boolean* hasMenu);
-    }
-
+    /**
+     * Called by menu items to execute their associated action
+     */
     interface IMenuBuilderItemInvoker {
         InvokeItem(
-            [in] IMenuItem* item,
+            [in] IMenuItemImpl* item,
             [out] Boolean* state);
+    }
+
+    interface IMenuAdapter extends IBaseAdapter {
+        GetOffset(
+            [out] Int32* offset);
     }
 }
