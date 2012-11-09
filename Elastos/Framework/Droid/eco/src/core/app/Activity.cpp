@@ -3,6 +3,7 @@
 #include "app/Activity.h"
 #include "impl/CPolicyManager.h"
 #include "os/CServiceManager.h"
+#include "view/menu/CMenuInflater.h"
 //TODO
 //#include "Build.h"  //using the integer.
 #else
@@ -1785,6 +1786,13 @@ ECode Activity::OnSearchRequested(
     // startSearch(null, false, null, false);
     // return true;
     return E_NOT_IMPLEMENTED;
+}
+
+ECode Activity::GetMenuInflater (
+    /* [out] */ IMenuInflater** menuInflater) {
+    *menuInflater = NULL;
+
+    return CMenuInflater::New((IContext*)this->Probe(EIID_IContext), menuInflater);
 }
 
 ECode Activity::OnKeyDown(

@@ -56,30 +56,33 @@ module
         GetPath(
             [out] String* path);
 
-	      GetTextNodeCount(
-						[out] Int32* count);
+        GetTextNodeCount(
+			[out] Int32* count);
 
-				GetTextNodeByIndex(
-						[in] Int32 index,
-						[out] String* nodeText);
+		GetTextNodeByIndex(
+			[in] Int32 index,
+			[out] String* nodeText);
 
-				GetTextNodeByChapterIndex(
-						[in] Int32 chapterIndex,
-						[out] Int32* index,
-						[out] String* nodeText);
+		GetTextNodeByChapterIndex(
+			[in] Int32 chapterIndex,
+			[out] Int32* index,
+			[out] String* nodeText);
 
         SetProperty(
             [in] Int32 width,
             [in] Int32 height,
             [in] Int32 lineHeight,
-				    [in] ITextPaint* textPaint);
+			[in] ITextPaint* textPaint);
 
-				GetContentItemByIndex(
-						[in] Int32 index,
-						[out] String* itemText);
+		GetContentItemByIndex(
+			[in] Int32 index,
+			[out] String* itemText);
 
-	      GetContentItemCount(
-						[out] Int32* count);
+	    GetContentItemCount(
+			[out] Int32* count);
+
+        LoadBook(
+            [in] String path);
     }
 
     [deprecated]
@@ -119,7 +122,8 @@ module
             [in] Int32 width,
             [in] Int32 height,
             [in] Int32 lineHeight,
-				    [in] ITextPaint* textPaint);
+            [in] String path,
+			[in] ITextPaint* textPaint);
 
         interface IBook;
     }

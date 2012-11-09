@@ -2168,7 +2168,7 @@ ECode ViewGroup::RemoveAllViewsInLayout()
     Vector<AutoPtr<IView> >::ReverseIterator rit= mChildren.RBegin();
     while (rit != mChildren.REnd()) {
         IView* view = *rit;
-        View* v = (View*)view->Probe(EIID_IView);
+        View* v = (View*)view->Probe(EIID_View);
 
         if (view == focused) {
             v->ClearFocusForRemoval();

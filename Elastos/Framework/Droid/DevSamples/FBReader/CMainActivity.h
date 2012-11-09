@@ -6,6 +6,13 @@
 #include "_CMainActivity.h"
 #include "CBook.h"
 
+enum LISTFLAG {
+    NONE,
+    CONTENTLIST,
+    BOOKSLIST,
+    BOOKMARK
+};
+
 class CMainActivity : public Activity
 {
 public:
@@ -53,6 +60,10 @@ public:
         /* [in] */ IMenu* menu,
         /* [out] */ Boolean* allowToShow);
 
+    virtual CARAPI OnOptionsItemSelected(
+        /* [in] */ IMenuItem* item,
+        /* [out] */ Boolean* res);
+
 protected:
     CARAPI OnCreate(
         /* [in] */ IBundle* savedInstanceState);
@@ -81,14 +92,25 @@ private:
 
 	ECode LoadContentsListView();
 
+    ECode LoadBooksList();
+
 	ECode ShowContentList(
 		 /* [in] */ Int32 pos = -1);
 
+    ECode ShowBooksList(
+        /* [in] */ Int32 pos = -1);
+
+    Int32 GetListFlag() {
+        return m_listFlag;
+    }
+
 private:
-    AutoPtr<IBook> mBook;
+    AutoPtr<IBook>     mBook;
     AutoPtr<ITextView> m_textView1;
-    AutoPtr<ITextView> m_textView2;
 	AutoPtr<IListView> m_contentsListView;
+    AutoPtr<IListView> m_booksListView;
+
+    LISTFLAG           m_listFlag;
 
 	Int32 			   m_pageCount;
 	static Int32 	   m_currentPageIndex;

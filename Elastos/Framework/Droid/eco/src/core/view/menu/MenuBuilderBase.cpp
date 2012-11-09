@@ -71,21 +71,24 @@ AutoPtr<IMenuView> MenuBuilderBase::MenuType::GetMenuView(
         AutoPtr<IView> view;
         GetInflater()->InflateEx2(MenuBuilderBase::LAYOUT_RES_FOR_TYPE[mMenuType], parent,
                     FALSE, (IView**)&view);
+
         menuView = IMenuView::Probe(view);
         menuView->Initialize((IMenuBuilder*)mHost->Probe(EIID_IMenuBuilder), mMenuType);
 
         //Cache the view
         //mMenuView = new WeakReference<MenuView>(menuView);
         mMenuView = menuView;
-
         if (mHost->mFrozenViewStates != NULL) {
             IView* view = IView::Probe(mMenuView);
-//            view->RestoreHierarchyState(mHost->mFrozenViewStates);
 
-            // Clear this menu type's frozen state, since we just restored it
-            Int32 id = 0;
-            view->GetId(&id);
-            mHost->mFrozenViewStates->Erase(id);
+            if (view != NULL) {
+                view->RestoreHierarchyState(mHost->mFrozenViewStates);
+
+                // Clear this menu type's frozen state, since we just restored it
+                Int32 id = 0;
+                view->GetId(&id);
+                mHost->mFrozenViewStates->Put(id, NULL);
+            }
         }
     }
 
@@ -380,6 +383,7 @@ MenuBuilderBase::MenuBuilderBase(
     : mQwertyMode(FALSE)
     , mShortcutsVisible(FALSE)
     , mIsVisibleItemsStale(TRUE)
+    , mFrozenViewStates(NULL)
     , mPreventDispatchingItemsChanged(FALSE)
     , mOptionalIconsVisible(FALSE)
 {
@@ -544,19 +548,19 @@ AutoPtr<IMenuItem> MenuBuilderBase::Add(
 }
 
 AutoPtr<IMenuItem> MenuBuilderBase::Add(
-        /* [in] */ Int32 groupId,
-        /* [in] */ Int32 itemId,
-        /* [in] */ Int32 order,
-        /* [in] */ ICharSequence* title)
+    /* [in] */ Int32 groupId,
+    /* [in] */ Int32 itemId,
+    /* [in] */ Int32 order,
+    /* [in] */ ICharSequence* title)
 {
     return AddInternal(groupId, itemId, order, title);
 }
 
 AutoPtr<IMenuItem> MenuBuilderBase::Add(
-        /* [in] */ Int32 groupId,
-        /* [in] */ Int32 itemId,
-        /* [in] */ Int32 order,
-        /* [in] */ Int32 titleRes)
+    /* [in] */ Int32 groupId,
+    /* [in] */ Int32 itemId,
+    /* [in] */ Int32 order,
+    /* [in] */ Int32 titleRes)
 {
     String str;
     mResources->GetString(titleRes, &str);

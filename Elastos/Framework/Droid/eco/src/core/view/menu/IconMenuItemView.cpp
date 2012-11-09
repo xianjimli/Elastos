@@ -81,6 +81,7 @@ ECode IconMenuItemView::Initialize(
             (IMenuItemView*)this->Probe(EIID_IMenuItemView));
     AutoPtr<IDrawable> icon;
     itemData->GetIcon((IDrawable**) &icon);
+
     Initialize(str, icon);
 
     Boolean isVisible;

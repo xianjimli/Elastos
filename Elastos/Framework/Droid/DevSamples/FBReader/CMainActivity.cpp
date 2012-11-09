@@ -5,14 +5,14 @@
 #include <elastos/AutoPtr.h>
 #include <stdio.h>
 #include <vkey.h>
+#include <elastos/Vector.h>
 
-typedef union {
-	float f;
-	int i;
-}TESTTYPE;
-
-//TESTTYPE g_testy = 100;
-
+const char* g_books_path[4] = {
+    "/data/data/com.elastos.runtime/elastos/FBReader/Books/MiniHelp.en.fb2",
+    "/data/data/com.elastos.runtime/elastos/FBReader/Books/daodejing.epub",
+    "/data/data/com.elastos.runtime/elastos/FBReader/Books/MiniHelp.zh.fb2",
+    "/data/data/com.elastos.runtime/elastos/FBReader/Books/doyle-lost-world.epub"
+};
 
 CMainActivity::MyListener::MyListener(
     /* [in] */ CMainActivity* host) :
@@ -84,7 +84,19 @@ ECode CMainActivity::MyListener::OnItemClick(
 {
 	printf("OnItemClick position = %d, id = %d\n", position, id);
 
-	return mHost->ShowContentList(position);
+    Int32 listFlag = mHost->GetListFlag();
+    switch(listFlag) {
+        case CONTENTLIST: {
+            mHost->ShowContentList(position);
+            break;
+        }
+        case BOOKSLIST: {
+            mHost->ShowBooksList(position);
+            break;
+        }
+    }
+
+	return NOERROR;
 }
 
 ECode CMainActivity::MyListener::OnTouch(
@@ -110,7 +122,7 @@ ECode CMainActivity::MyListener::OnTouch(
 			if (x >= 0 && x <= width / 2) {
 				printf("The previous page..................\n");
 
-				if ( mHost->FindViewById(0x7f040000) == v) {
+				if ( (IView*)mHost->FindViewById(0x7f050000) == v) {
 					if (m_currentPageIndex > 0) {
 						String str("");
 						mHost->GetPageText(-- m_currentPageIndex, &str);
@@ -163,20 +175,31 @@ ECode CMainActivity::MyListener::OnKey(
     event->GetDisplayLabel(&label);
 
     if (action == KeyEvent_ACTION_DOWN) {
-        printf("Key '%c' is down on ImageView\n", (char)label);
+        printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
     }
     else if (action == KeyEvent_ACTION_UP) {
-        printf("Key '%c' is up on ImageView\n", (char)label);
+        printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
 		//menu key
 		if (keyCode == 82) {
-			mHost->ShowContentList();
+            Int32 listFlag = mHost->GetListFlag();
+            switch(listFlag) {
+                case CONTENTLIST: {
+                    mHost->ShowContentList();
+                    break;
+                }
+                case BOOKSLIST: {
+                    mHost->ShowBooksList();
+                    break;
+                }
+            }
+
 		}
     }
 
     if (result) {
         *result = TRUE;
     }
-
+printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
     return NOERROR;
 }
 
@@ -185,14 +208,16 @@ Int32 CMainActivity::m_currentPageIndex = 0;
 ECode CMainActivity::OnCreate(
     /* [in] */ IBundle* savedInstanceState)
 {
+    m_listFlag = NONE;
 	m_pageCount = 0;
 	m_currentPageIndex = 0;
-printf("==== File: %s, Line: %d ==== \n", __FILE__, __LINE__);
+    m_contentsListView = NULL;
+    m_booksListView = NULL;
+
     SetContentView(0x7f020001);
-printf("==== File: %s, Line: %d ==== \n", __FILE__, __LINE__);
-    AutoPtr<IView> view1 = FindViewById(0x7f040000);
+
+    AutoPtr<IView> view1 = FindViewById(0x7f050000);
     assert(view1 != NULL);
-printf("==== File: %s, Line: %d ==== \n", __FILE__, __LINE__);
     m_textView1 = (ITextView*)view1->Probe(EIID_ITextView);
 
     m_textView1->SetFocusable(TRUE);
@@ -202,11 +227,9 @@ printf("==== File: %s, Line: %d ==== \n", __FILE__, __LINE__);
     AutoPtr<MyListener> l = new MyListener(this);
     m_textView1->SetOnTouchListener(l.Get());
     m_textView1->SetOnKeyListener(l.Get());
-	printf("==== File: %s, Line: %d ==== \n", __FILE__, __LINE__);
 
 	m_textView1->SetTextSize(20);
 
-	printf("==== File: %s, Line: %d ==== \n", __FILE__, __LINE__);
 	Float textSize = 0;
 	ITypeface* typeface = NULL;
 
@@ -215,17 +238,14 @@ printf("==== File: %s, Line: %d ==== \n", __FILE__, __LINE__);
 
 	Int32 lineHeight = 0;
 	m_textView1->GetLineHeight(&lineHeight);
-	printf("==== File: %s, Line: %d ==== , m_textView1..................lineHeight	= [%d], textsize1 = [%d].textsize2 = [%f]\n", __FILE__, __LINE__, lineHeight, (unsigned int)textSize, (float)textSize);
 
 	Int32 height = 0, width = 0;
 	m_textView1->GetHeight(&height);
 	m_textView1->GetWidth(&width);
-	printf("==== File: %s, Line: %d ==1== height = [%d],  width = [%d]\n", __FILE__, __LINE__, height, width);
 
 	AutoPtr<ITextPaint> 	mTextPaint;
 	m_textView1->GetPaint((ITextPaint**)&mTextPaint);
-	ECode ec = CBook::New(320, 455, lineHeight, mTextPaint, (IBook**)&mBook);
-    printf("==== File: %s, Line: %d ==== , ec == [%0x].\n", __FILE__, __LINE__, ec);
+	CBook::New(320, 455, lineHeight, String(g_books_path[0]), mTextPaint, (IBook**)&mBook);
 
     String title;
     mBook->GetTitle(&title);
@@ -296,17 +316,23 @@ Int32 CMainActivity::GetPageCount()
 ECode CMainActivity::ShowContentList(
 	/* [in] */ Int32 pos)
 {
+    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
 	if (m_contentsListView == NULL) {
 		return E_INVALID_ARGUMENT;
 	}
 
+    Int32 contentItemCount = 0;
+    FAIL_RETURN(mBook->GetContentItemCount(&contentItemCount));
+    printf("==== File: %s, Line: %d ====, FUNC : %s, contentItemCount=[%d].\n", __FILE__, __LINE__, __FUNCTION__, contentItemCount);
+    if (contentItemCount == 0) {
+        return NOERROR;
+    }
+
 	Int32 visibility;
 	m_contentsListView->GetVisibility(&visibility);
 	if (visibility == 0x00000000) {
-//		m_contentsListView->SetVisibility(View::GONE);
-//		m_textView1->SetVisibility(View::VISIBLE);
-		m_contentsListView->SetVisibility(0x00000008);
-		m_textView1->SetVisibility(0x00000000);
+		m_contentsListView->SetVisibility(View_GONE);
+		m_textView1->SetVisibility(View_VISIBLE);
 
 		if (pos != -1) {
 			AutoPtr<ICharSequence> csq;
@@ -318,86 +344,226 @@ ECode CMainActivity::ShowContentList(
 		}
 	}
 	else if (visibility == 0x00000008) {
-//		m_contentsListView->SetVisibility(View::VISIBLE);
-//		m_textView1->SetVisibility(View::GONE);
-		m_contentsListView->SetVisibility(0x00000000);
-		m_textView1->SetVisibility(0x00000008);
+		m_contentsListView->SetVisibility(View_VISIBLE);
+		m_textView1->SetVisibility(View_GONE);
 	}
 
 	return NOERROR;
 }
 
+ECode CMainActivity::ShowBooksList(
+    /* [in] */ Int32 pos)
+{
+    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+    if (m_booksListView == NULL) {
+        return E_INVALID_ARGUMENT;
+    }
+
+    Int32 visibility;
+    m_booksListView->GetVisibility(&visibility);
+    if (visibility == 0x00000000) {
+        m_booksListView->SetVisibility(View_GONE);
+        m_textView1->SetVisibility(View_VISIBLE);
+    }
+    else if (visibility == 0x00000008) {
+        m_booksListView->SetVisibility(View_VISIBLE);
+        m_textView1->SetVisibility(View_GONE);
+    }
+
+    if (pos != -1 && pos >= 0 && pos < 4 && mBook != NULL) {
+        m_pageCount = 0;
+        m_currentPageIndex = 0;
+
+        //g_books_path
+        mBook->LoadBook(String(g_books_path[pos]));
+        String title;
+        mBook->GetTitle(&title);
+        printf("==== File: %s, Line: %d ==== , title == [%s].\n", __FILE__, __LINE__, (const char*)title);
+
+        AutoPtr<ICharSequence> csq;
+        String str("");
+        GetPageText(m_currentPageIndex, &str);
+        CStringWrapper::New(str, (ICharSequence**)&csq);
+
+        m_textView1->SetText(csq);
+
+        LoadContentsListView();
+
+    }
+
+    return NOERROR;
+}
+
+ECode CMainActivity::OnOptionsItemSelected(
+    /* [in] */ IMenuItem* item,
+    /* [out] */ Boolean* res)
+{
+    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+    Int32 itemID = -1;
+    item->GetItemId(&itemID);
+    printf("==== File: %s, Line: %d ====, FUNC : %s, itemID=[0x%08x].\n", __FILE__, __LINE__, __FUNCTION__, itemID);
+
+    // String title;
+    // AutoPtr<ICharSequence> temp = NULL;
+    // item->GetTitle((ICharSequence**) &temp);
+    // assert(temp != NULL);
+
+    // temp->ToString(&title);
+
+    switch(itemID) {
+        case 0x7f050003 /*showContent*/: {
+            m_listFlag = CONTENTLIST;
+            ShowContentList();
+
+            break;
+        }
+        case 0x7f050004 /*loadBooks*/: {
+            m_listFlag = BOOKSLIST;
+            LoadBooksList();
+            ShowBooksList();
+
+            break;
+        }
+        case 0x7f050005 /*bookmark*/: {
+            m_listFlag = BOOKMARK;
+
+            break;
+        }
+    }
+
+    return Activity::OnOptionsItemSelected(item, res);
+}
+
 ECode CMainActivity::OnCreateOptionsMenu(
     /* [in] */ IMenu* menu,
     /* [out] */ Boolean* allowToShow) {
-
-    printf("==== File: %s, Line: %d ==== , allowToShow == [%d], menu=[0x%08x].\n", __FILE__, __LINE__, *allowToShow, menu);
     if (menu != NULL) {
-        AutoPtr<IMenuItem> item = NULL;
-        AutoPtr<ICharSequence> csq;
-        printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
-        CStringWrapper::New(String("item1"), (ICharSequence**)&csq);
-        menu->AddEx2(0, 1, 1, csq, (IMenuItem**) &item);
+        //1.
+        // AutoPtr<IMenuItem> item = NULL;
+        // AutoPtr<ICharSequence> csq;
+        // printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+        // CStringWrapper::New(String("item1"), (ICharSequence**)&csq);
+        // menu->AddEx2(0, 1, 1, csq, (IMenuItem**) &item);
 
-        if (item == NULL) {
-            printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
-        }
-        else {
-            //printf("==== File: %s, Line: %d ====, FUNC : %s, item=[0x%08x].\n", __FILE__, __LINE__, __FUNCTION__, item.Get());
+        // if (item == NULL) {
+        //     printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+        // }
+        // else {
+        //     //printf("==== File: %s, Line: %d ====, FUNC : %s, item=[0x%08x].\n", __FILE__, __LINE__, __FUNCTION__, item.Get());
+        // }
+
+        // CStringWrapper::New(String("item2"), (ICharSequence**)&csq);
+        // menu->AddEx2(0, 2, 2, csq, (IMenuItem**) &item);
+
+
+        //2. Created by xml
+        AutoPtr<IMenuInflater> menuInflater = NULL;
+        GetMenuInflater((IMenuInflater**) & menuInflater);
+        if (menuInflater == NULL) {
+            assert(0);
         }
 
-/*        CStringWrapper::New(String("item2"), (ICharSequence**)&csq);
-        menu->AddEx2(0, 1, 1, csq, (IMenuItem**) &item);*/
+        //R.menu.menu  --->0x7f040000
+        menuInflater->Inflate(0x7f040000, menu);
     }
 
-    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
     return Activity::OnCreateOptionsMenu(menu, allowToShow);
 }
 
 ECode CMainActivity::LoadContentsListView()
 {
-    AutoPtr<IView> view = FindViewById(0x7f040001);
-    assert(view != NULL);
-	m_contentsListView = IListView::Probe(view);
-	AutoPtr<MyListener> l = new MyListener(this);
-    m_contentsListView->SetOnKeyListener(l.Get());
-	m_contentsListView->SetOnItemClickListener((IOnItemClickListener*)l.Get());
+    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+    if (m_contentsListView == NULL) {
+        AutoPtr<IView> view = FindViewById(0x7f050001);
+        assert(view != NULL);
+    	m_contentsListView = IListView::Probe(view);
+    	AutoPtr<MyListener> l = new MyListener(this);
+        m_contentsListView->SetOnKeyListener(l.Get());
+    	m_contentsListView->SetOnItemClickListener((IOnItemClickListener*)l.Get());
 
-    AutoPtr<IColorDrawable> drawable;
-    CColorDrawable::New(0xFF0000FF, (IColorDrawable**)&drawable);
-	assert(drawable != NULL);
+        AutoPtr<IColorDrawable> drawable;
+        CColorDrawable::New(0xFF0000FF, (IColorDrawable**)&drawable);
+    	assert(drawable != NULL);
 
-    m_contentsListView->SetDivider(drawable);
-	m_contentsListView->SetDividerHeight(1);
+        m_contentsListView->SetDivider(drawable);
+    	m_contentsListView->SetDividerHeight(1);
+    }
 
     FAIL_RETURN(mBook->GetTextNodeCount(&m_pageCount));
 	printf("==== File: %s, Line: %d ==== , m_pageCount == [%d].\n", __FILE__, __LINE__, m_pageCount);
 
 	Int32 contentItemCount = 0;
 	FAIL_RETURN(mBook->GetContentItemCount(&contentItemCount));
-	printf("==== File: %s, Line: %d ==== , contentItemCount == [%d].\n", __FILE__, __LINE__, contentItemCount);
 
 	AutoPtr<ICharSequence> cs;
-	AutoPtr<IObjectContainer> strs;
-    CParcelableObjectContainer::New((IObjectContainer**)&strs);
+	AutoPtr<IObjectContainer> strs = NULL;
+
+    if (contentItemCount > 0) {
+        CParcelableObjectContainer::New((IObjectContainer**)&strs);
+    }
 
 	for (Int32 j = 0; j < contentItemCount; j ++) {
 		String itemText("");
 		FAIL_RETURN(mBook->GetContentItemByIndex(j, &itemText));
 
-		printf("Line: %d ==== , j == [%d], itemText = [%s].\n", __LINE__, j, (const char*)itemText);
+		//printf("Line: %d ==== , j == [%d], itemText = [%s].\n", __LINE__, j, (const char*)itemText);
 
 		CStringWrapper::New(String(itemText), (ICharSequence**)&cs);
         strs->Add(cs);
         cs = NULL;
 	}
 
-    AutoPtr<IArrayAdapter> adapter;
-    CArrayAdapter::New(this, 0x7f020000, strs, (IArrayAdapter**)&adapter);
-    assert(adapter != NULL);
+    if (strs != NULL) {
+        AutoPtr<IArrayAdapter> adapter = NULL;
+        CArrayAdapter::New(this, 0x7f020000, strs, (IArrayAdapter**)&adapter);
+        assert(adapter != NULL);
 
-    m_contentsListView->SetAdapter(adapter.Get());
+        m_contentsListView->SetAdapter(adapter.Get());
+    }
 
 	return NOERROR;
 }
 
+ECode CMainActivity::LoadBooksList() {
+    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+    if (m_booksListView == NULL) {
+        AutoPtr<IView> view = FindViewById(0x7f050002);
+        assert(view != NULL);
+        m_booksListView = IListView::Probe(view);
+        AutoPtr<MyListener> l = new MyListener(this);
+        m_booksListView->SetOnKeyListener(l.Get());
+        m_booksListView->SetOnItemClickListener((IOnItemClickListener*)l.Get());
+
+        AutoPtr<IColorDrawable> drawable;
+        CColorDrawable::New(0xFF0000FF, (IColorDrawable**)&drawable);
+        assert(drawable != NULL);
+
+        m_booksListView->SetDivider(drawable);
+        m_booksListView->SetDividerHeight(1);
+    }
+
+    AutoPtr<ICharSequence> cs;
+    AutoPtr<IObjectContainer> strs = NULL;
+
+    Int32 counts = 4;
+    if (counts > 0) {
+        CParcelableObjectContainer::New((IObjectContainer**)&strs);
+    }
+
+    for (Int32 j = 0; j < counts; j ++) {
+        printf("Line: %d ==== , j == [%d], itemText = [%s].\n", __LINE__, j, g_books_path[j]);
+        CStringWrapper::New(String(g_books_path[j]), (ICharSequence**)&cs);
+        strs->Add(cs);
+        cs = NULL;
+    }
+
+    if (strs != NULL) {
+        AutoPtr<IArrayAdapter> adapter = NULL;
+        CArrayAdapter::New(this, 0x7f020000, strs, (IArrayAdapter**)&adapter);
+        assert(adapter != NULL);
+
+        m_booksListView->SetAdapter(adapter.Get());
+    }
+
+    return NOERROR;
+}

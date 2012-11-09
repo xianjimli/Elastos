@@ -20,41 +20,73 @@ ECode CBook::constructor(
     /* [in] */ Int32 width,
     /* [in] */ Int32 height,
     /* [in] */ Int32 lineHeight,
+    /* [in] */ const String& path,
     /* [in] */ ITextPaint* textPaint)
 {
     assert(width > 0 && height > 0);
-printf("----CBook....  1 .\n");
+
     mWidth = width;
     mHeight = height;
 	mLineHeight = lineHeight;
-	mTextNodeCount = 0;
 	mTextPaint = textPaint;
+
 	mContentItemCount = 0;
+    mChapterCount = 0;
+    mTextNodeCount = 0;
+    if (path.IsNull()) {
+        return NOERROR;
+    }
+
+    return LoadBook(path);
+}
+
+void CBook::Reset() {
+    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+    mChapters.Clear();
+    mTexts.Clear();
+    mContents.Clear();
+
+    mContentItemCount = 0;
+    mChapterCount = 0;
+    mTextNodeCount = 0;
+}
+
+ECode CBook::LoadBook(
+    /* [in] */ const String& path)
+{
+    Reset();
+
+    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+
+    if (path.IsNull()) {
+        return NOERROR;
+    }
 
     int argc = 1;
     char **argv = NULL;
     if (!ZLibrary::init(argc, argv)) {
-		printf("----CBook....  1---1 .\n");
+        //printf("----CBook....  1---1 .\n");
         //Logger::E(TAG, "ZLibrary::init() fail!");
         return E_RUNTIME_EXCEPTION;
     }
-	printf("----CBook....  2 .\n");
+    //printf("----CBook....  2 .\n");
 
-    mBook = Book::loadFromFile(FILE_PATH);
-	printf("----CBook....  3 .\n");
+    //mBook = Book::loadFromFile(FILE_PATH);
+    mBook = Book::loadFromFile((const char*)path);
+    //printf("----CBook....  3 .\n");
 
     if (mBook.isNull()) {
         Logger::E(TAG, "fail Book::loadFromFile!");
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
-	printf("----CBook....  4 .\n");
+    //printf("----CBook....  4 .\n");
 
     mBookModel = new BookModel(mBook);
     if (mBookModel.isNull()) {
         Logger::E(TAG, "fail new BookModel!");
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
-	printf("----CBook....  5 .\n");
+    //printf("----CBook....  5 .\n");
 
 //    const std::string& title = mBook->title();
 //    Logger::I(TAG, title.c_str());
@@ -64,14 +96,14 @@ printf("----CBook....  1 .\n");
 
     //First: Generate chapater node list.
     BuildChapters();
-	printf("----CBook....  6 .\n");
+    //printf("----CBook....  6 .\n");
 
     //Second: Generate a textNode list which one node can fill a page.
     BuildTexts();
-	printf("----CBook....  7 .\n");
+    //printf("----CBook....  7 .\n");
 
     BuildContents();
-	printf("----CBook....  8 .\n");
+    //printf("----CBook....  8 .\n");
 
     return NOERROR;
 }
@@ -117,14 +149,14 @@ ECode CBook::GetPath(
 //Make chapater node list.
 ECode CBook::BuildChapters()
 {
-    printf("<%s, %d>\n",  __FILE__, __LINE__);
+    //printf("<%s, %d>\n",  __FILE__, __LINE__);
     shared_ptr<ZLTextModel> textModel = mBookModel->bookTextModel();
     shared_ptr<ZLTextModel> contentsModel = mBookModel->contentsModel();
 
     Int32 paraNum1 = textModel->paragraphsNumber();
     mChapterCount = contentsModel->paragraphsNumber();
 
-    printf("<%s, %d>, [%d, %d]\n", __FILE__, __LINE__, paraNum1, mChapterCount);
+    //printf("<%s, %d>, [%d, %d]\n", __FILE__, __LINE__, paraNum1, mChapterCount);
     if (mChapterCount == 0 && paraNum1 > 0) {
         mChapterCount = 1;
     }
@@ -198,7 +230,7 @@ ECode CBook::BuildChapters()
     newChapter->SetOrder(order);
 
     if (offset < paraNum1) {
-        printf("<%s, %d>, %d, paraNum1=[%d]\n",  __FILE__, __LINE__, offset, paraNum1);
+        //printf("<%s, %d>, %d, paraNum1=[%d]\n",  __FILE__, __LINE__, offset, paraNum1);
         for (Int32 i = offset; i < paraNum1; i++) {
             const ZLTextParagraph* textParagraph = (*textModel)[i];
 
@@ -251,7 +283,7 @@ ECode CBook::BuildChapters()
 //Generate a textNode list which one node can fill a page.
 ECode CBook::BuildTexts()
 {
-    printf("mChapterCount==[%d], mWidth == [%d], mHeight == [%d]\n", mChapterCount, mWidth, mHeight);
+    //printf("mChapterCount==[%d], mWidth == [%d], mHeight == [%d]\n", mChapterCount, mWidth, mHeight);
     assert(mChapterCount > 0 && mWidth > 0 && mHeight > 0);
     List< AutoPtr<IChapter> >::Iterator it = mChapters.Begin();
 
@@ -276,7 +308,7 @@ ECode CBook::BuildTexts()
 		tmpChapterCount ++;
     }
 
-	printf("==== File: %s, Line: %d ==== mTextNodeCount  = [%d]\n", __FILE__, __LINE__, mTextNodeCount);
+	//printf("==== File: %s, Line: %d ==== mTextNodeCount  = [%d]\n", __FILE__, __LINE__, mTextNodeCount);
 
     return NOERROR;
 }
@@ -287,7 +319,7 @@ ECode CBook::BuildContents()
 	ContentList myContents = mBook->contents();
 	for (ContentList::iterator iterator = myContents.begin(); iterator != myContents.end(); ++ iterator) {
 		if (!iterator->isNull()) {
-			printf("==== File: %s, Line: %d ==== contentText  = [%s]\n", __FILE__, __LINE__, ((*iterator)->getText()).c_str());
+			//printf("==== File: %s, Line: %d ==== contentText  = [%s]\n", __FILE__, __LINE__, ((*iterator)->getText()).c_str());
 			mContents.PushBack(String(((*iterator)->getText()).c_str()));
 
 			mContentItemCount ++;
@@ -313,7 +345,7 @@ ECode CBook::GetTextNodeByIndex(
 	VALIDATE_NOT_NULL(nodeText);
 	*nodeText = "";
 
-	printf("==== File: %s, Line: %d  , index= [%d], mTextNodeCount = [%d]\n", __FILE__, __LINE__, index, mTextNodeCount);
+	//printf("==== File: %s, Line: %d  , index= [%d], mTextNodeCount = [%d]\n", __FILE__, __LINE__, index, mTextNodeCount);
 
 	if (mTextNodeCount == 0 || index < 0 || index >= mTextNodeCount) {
 		return E_INVALID_ARGUMENT;
@@ -400,4 +432,3 @@ ECode CBook::GetContentItemCount(
 
 	return NOERROR;
 }
-

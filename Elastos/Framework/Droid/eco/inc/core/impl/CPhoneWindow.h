@@ -143,6 +143,8 @@ private:
     private:
         CARAPI_(void) DrawableChanged();
 
+        CARAPI_(void) OnAttachedToWindow();
+
         CARAPI_(Boolean) IsOutOfBounds(
             /* [in] */ Int32 x,
             /* [in] */ Int32 y);
@@ -499,6 +501,9 @@ public:
         /* [in] */ PanelFeatureState* st,
         /* [in] */ IKeyEvent* event,
         /* [out] */ Boolean* prepared);
+
+    static void ClearMenuViews(
+        /* [in] */ PanelFeatureState* st);
 
     CARAPI OpenPanel(
         /* [in] */ Int32 featureId,

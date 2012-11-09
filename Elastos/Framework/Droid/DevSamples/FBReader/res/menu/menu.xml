@@ -1,0 +1,8 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/showContent"
+          android:title="Show" />
+    <item android:id="@+id/loadBooks"
+          android:title="Load" />
+    <item android:id="@+id/bookmark"
+          android:title="Bookmark" />
+</menu>

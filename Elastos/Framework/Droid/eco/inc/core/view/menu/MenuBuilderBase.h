@@ -895,7 +895,7 @@ protected:
      * Contains the state of the View hierarchy for all menu views when the menu
      * was frozen.
      */
-    HashMap<Int32, AutoPtr<IParcelable> >* mFrozenViewStates;
+    IObjectIntegerMap* mFrozenViewStates;
 
     /**
      * Prevents onItemsChanged from doing its junk, useful for batching commands

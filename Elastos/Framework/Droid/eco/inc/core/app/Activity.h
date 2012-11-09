@@ -434,6 +434,9 @@ public:
     CARAPI OnSearchRequested(
         /* [out] */ Boolean* isLaunched);
 
+    CARAPI GetMenuInflater (
+        /* [out] */ IMenuInflater** menuInflater);
+
     //For IKeyEventCallback interface.
     CARAPI OnKeyDown(
         /* [in] */ Int32 keyCode,

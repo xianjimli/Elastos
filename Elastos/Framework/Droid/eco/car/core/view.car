@@ -3,6 +3,7 @@ module
 {
     merge("view/AbsSavedState.car");
     merge("view/Menu.car");
+    merge("view/MenuInflater.car");
     merge("view/MenuItem.car");
     merge("view/SubMenu.car");
     merge("view/ContextMenu.car");
@@ -843,5 +844,12 @@ module
 
     singleton class CAnimationUtils {
         interface IAnimationUtils;
+    }
+
+    class CMenuInflater {
+        interface IMenuInflater;
+
+        constructor(
+            [in] IContext* ctx);
     }
 }

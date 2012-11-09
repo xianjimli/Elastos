@@ -722,6 +722,20 @@ void CPhoneWindow::DecorView::DrawableChanged()
 //    }
 }
 
+void CPhoneWindow::DecorView::OnAttachedToWindow()
+{
+    View::OnAttachedToWindow();
+    AutoPtr<IWindowCallback> cb;
+    mHost->GetCallback((IWindowCallback**)&cb);
+    if (cb != NULL && mFeatureId < 0) {
+        cb->OnAttachedToWindow();
+    }
+
+    if (mFeatureId == -1) {
+        mHost->OpenPanelsAfterRestore();
+    }
+}
+
 static Int32 R_Styleable_Theme[] = {
     0x01010030, 0x01010031, 0x01010032, 0x01010033,
     0x01010034, 0x01010035, 0x01010036, 0x01010037,
@@ -762,6 +776,12 @@ static Int32 R_Styleable_Theme[] = {
 CPhoneWindow::PanelFeatureState::PanelFeatureState(
     /* [in] */ Int32 featureId)
     : mFeatureId(featureId)
+    , mBackground(0)
+    , mFullBackground(0)
+    , mGravity(0)
+    , mX(0)
+    , mY(0)
+    , mWindowAnimations(0)
     , mIsPrepared(FALSE)
     , mIsHandled(FALSE)
     , mIsOpen(FALSE)
@@ -1257,7 +1277,35 @@ ECode CPhoneWindow::SetTitleColor(
 ECode CPhoneWindow::OnConfigurationChanged(
     /* [in] */ IConfiguration* newConfig)
 {
-    return E_NOT_IMPLEMENTED;
+    AutoPtr<PanelFeatureState> st = GetPanelState(Window_FEATURE_OPTIONS_PANEL, FALSE);
+
+    if ((st != NULL) && (st->mMenu != NULL)) {
+        AutoPtr<IMenuBuilder> menuBuilder = IMenuBuilder::Probe(st->mMenu);
+
+        if (st->mIsOpen) {
+            // Freeze state
+            AutoPtr<IBundle> state = NULL;
+            CBundle::New((IBundle**) &state);
+            menuBuilder->SaveHierarchyState(state);
+
+            // Remove the menu views since they need to be recreated
+            // according to the new configuration
+            ClearMenuViews(st);
+
+            // Re-open the same menu
+            ReopenMenu(FALSE);
+
+            // Restore state
+            menuBuilder->RestoreHierarchyState(state);
+
+        } else {
+            // Clear menu views so on next menu opening, it will use
+            // the proper layout
+            ClearMenuViews(st);
+        }
+    }
+
+    return NOERROR;
 }
 
 /**
@@ -1376,6 +1424,21 @@ ECode CPhoneWindow::OnKeyUpPanel(
     return NOERROR;
 }
 
+void CPhoneWindow::ClearMenuViews(
+        /* [in] */ PanelFeatureState* st)
+{
+    // This can be called on config changes, so we should make sure
+    // the views will be reconstructed based on the new orientation, etc.
+
+    // Allow the callback to create a new panel view
+    st->mCreatedPanelView = NULL;
+
+    // Causes the decor view to be recreated
+    st->mRefreshDecorView = TRUE;
+
+    IMenuBuilder::Probe(st->mMenu)->ClearMenuViews();
+}
+
 ECode CPhoneWindow::OpenPanel(
     /* [in] */ Int32 featureId,
     /* [in] */ IKeyEvent* event)
@@ -1425,6 +1488,7 @@ Boolean CPhoneWindow::InitializePanelContent(
 
     IMenuBuilder* menu = IMenuBuilder::Probe(st->mMenu);
     AutoPtr<IView> view;
+
     menu->GetMenuView((st->mIsInExpandedMode) ? MenuBuilder::TYPE_EXPANDED
             : MenuBuilder::TYPE_ICON, (IViewGroup*)st->mDecorView->Probe(EIID_IViewGroup),
             (IView**)&view);
@@ -1551,7 +1615,7 @@ void CPhoneWindow::OpenPanel(
     ((CWindowManagerLayoutParams*)wlp.Get())->mWindowAnimations = st->mWindowAnimations;
 
     wm->AddViewEx5((IView*)st->mDecorView.Get(), wlp);
-    // Log.v(TAG, "Adding main menu to window manager.");
+   // Log.v(TAG, "Adding main menu to window manager.");
 }
 
 ECode CPhoneWindow::ClosePanel(

@@ -37,7 +37,7 @@ ECode CTextFactory::ProcessText(
 
 	assert(mLayout != NULL);
 	Int32 lineCount = 0;
-	mLayout->GetLineCount(&lineCount);	
+	mLayout->GetLineCount(&lineCount);
 
 	Int32 limitCount = height / lineHeight;
 	if (limitCount == 0) limitCount = 1;
@@ -48,7 +48,7 @@ ECode CTextFactory::ProcessText(
 	String nodeText("");
 	String tempStr("");
 
-	printf("new page==== File: %s, Line: %d ==== limitCount  = [%d], lineCount  = [%d]\n", __FILE__, __LINE__, limitCount, lineCount);
+	//printf("new page==== File: %s, Line: %d ==== limitCount  = [%d], lineCount  = [%d]\n", __FILE__, __LINE__, limitCount, lineCount);
 
 	if (lineCount <= limitCount) {
 		AutoPtr<IText> textNode = NULL;
@@ -78,7 +78,7 @@ ECode CTextFactory::ProcessText(
 	else {
 		Int32 i = 0;
 		for(i = 0; i < lineCount; i ++) {
-			printf("new page==== File: %s, Line: %d ==== i  = [%d]\n", __FILE__, __LINE__, i);
+			//printf("new page==== File: %s, Line: %d ==== i  = [%d]\n", __FILE__, __LINE__, i);
 			if (i == 0) {
 				mLayout->GetLineStart(i, &sumStart);
 			}
@@ -89,9 +89,9 @@ ECode CTextFactory::ProcessText(
 				Core::Character::GetOffsetByChars(strText, 0, sumEnd, &endLen);
 				nodeText = strText.Substring(startLen, endLen - startLen);
 
-				printf("new page==== File: %s, Line: %d ==== sumStart  = [%d], sumEnd  = [%d]\n", __FILE__, __LINE__, sumStart, sumEnd);
+				//printf("new page==== File: %s, Line: %d ==== sumStart  = [%d], sumEnd  = [%d]\n", __FILE__, __LINE__, sumStart, sumEnd);
 				if (IsValidNodeText(nodeText) && endLen > startLen) {
-					printf("new page==== File: %s, Line: %d ==== pageIndex  = [%d]\n", __FILE__, __LINE__, pageIndex);
+					//printf("new page==== File: %s, Line: %d ==== pageIndex  = [%d]\n", __FILE__, __LINE__, pageIndex);
 					AutoPtr<IText> textNode = NULL;
 					ASSERT_SUCCEEDED(CText::New(nodeText, pageIndex, (IText**)&textNode));
 
@@ -125,7 +125,7 @@ ECode CTextFactory::ProcessText(
 		AutoPtr<IText> textNode = NULL;
 		nodeText = "";
 		for(i = pageIndex * limitCount; i < lineCount; i ++) {
-			printf("new page==== File: %s, Line: %d ==== i  = [%d]\n", __FILE__, __LINE__, i);
+			//printf("new page==== File: %s, Line: %d ==== i  = [%d]\n", __FILE__, __LINE__, i);
 			mLayout->GetLineStart(i, &lineStart);
 
 			if (i + 1 < lineCount) {
@@ -147,11 +147,11 @@ ECode CTextFactory::ProcessText(
 			nodeText = "";
 			pageIndex ++;
 
-			textNode->GetText(&tempStr);		
+			textNode->GetText(&tempStr);
 			(*texts)->Add(textNode);
 		}
 
-		printf("new page==== File: %s, Line: %d ==== pageIndex  = [%d]\n", __FILE__, __LINE__, pageIndex);
+		//printf("new page==== File: %s, Line: %d ==== pageIndex  = [%d]\n", __FILE__, __LINE__, pageIndex);
 	}
 
     return NOERROR;
@@ -160,7 +160,7 @@ ECode CTextFactory::ProcessText(
 Boolean CTextFactory::IsValidNodeText(
 	/* [in] */ const String& text)
 {
-	for (UInt32 i = 0; i < text.GetCharCount(); i ++) {		
+	for (UInt32 i = 0; i < text.GetCharCount(); i ++) {
 		Char32 c = text.GetChar(i);
 
 		if (c == '\n' || c == '\t' || c == ' ') {
@@ -171,7 +171,7 @@ Boolean CTextFactory::IsValidNodeText(
 		}
 	}
 
-	printf("==== File: %s, Line: %d ==== , FUNCTION == [%s].\n", __FILE__, __LINE__, __FUNCTION__);
+	//printf("==== File: %s, Line: %d ==== , FUNCTION == [%s].\n", __FILE__, __LINE__, __FUNCTION__);
 
 	return FALSE;
 }

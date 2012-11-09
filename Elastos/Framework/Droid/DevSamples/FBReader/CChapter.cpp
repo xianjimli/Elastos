@@ -76,7 +76,7 @@ ECode CChapter::GetOrder(
 ECode CChapter::SetOrder(
     /*[in]*/ Int32 order)
 {
-	printf("==== File: %s, Line: %d ==== order  = [%d]\n", __FILE__, __LINE__, order);
+	//printf("==== File: %s, Line: %d ==== order  = [%d]\n", __FILE__, __LINE__, order);
 
     mOrder = order;
     return NOERROR;

@@ -39,9 +39,8 @@ ECode CStringWrapper::ToString(
 ECode CStringWrapper::constructor(
     /* [in] */ const String& str)
 {
-    if (str.IsNull())
-        mString = String("");
-    else
-        mString = str;
+    if (str.IsNull()) return E_ILLEGAL_ARGUMENT_EXCEPTION;
+
+    mString = str;
     return NOERROR;
 }

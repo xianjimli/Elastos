@@ -24,6 +24,7 @@ public:
         /* [in] */ Int32 width,
         /* [in] */ Int32 height,
         /* [in] */ Int32 lineHeight,
+        /* [in] */ const String& path,
 	    /* [in] */ ITextPaint* textPaint);
 
     CARAPI GetTitle(
@@ -57,10 +58,17 @@ public:
 	CARAPI GetContentItemCount(
 		/* [out] */ Int32* count);
 
+    CARAPI LoadBook(
+        /* [in] */ const String& path);
+
 private:
     CARAPI BuildChapters();
+
     CARAPI BuildTexts();
+
     CARAPI BuildContents();
+
+    void Reset();
 
 private:
     static const String TAG;
