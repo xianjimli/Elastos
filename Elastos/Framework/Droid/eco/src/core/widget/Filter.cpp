@@ -145,7 +145,6 @@ ECode Filter::DoFilterEx(
     /* [in] */ IFilterListener* listener)
 {
     if (mRequestApartmentFinished) {
-        mRequestApartment = NULL;
         mRequestApartmentFinished = FALSE;
         mLock.Unlock();
     }
@@ -166,7 +165,7 @@ ECode Filter::DoFilterEx(
     // make sure we use an immutable copy of the constraint, so that
     // it doesn't change while the filter operation is in progress
     //
-    String str;
+    String str("");
     if (constraint) {
         constraint->ToString(&str);
     }
@@ -247,7 +246,7 @@ ECode Filter::HandleFinishMessage()
     if (mRequestApartment != NULL) {
         mRequestApartmentFinished = TRUE;
 //        mThreadHandler.getLooper().quit();
-        mRequestApartment->Finish();
+        mRequestApartment = NULL;
     }
 
     return NOERROR;
