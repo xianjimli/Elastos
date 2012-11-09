@@ -1,9 +1,20 @@
 
 module
 {
-    merge("database/sqlite/SQLiteClosable.car");
-    merge("database/sqlite/SQLiteTransactionListener.car");
-    merge("database/sqlite/SQLiteProgram.car");
+    merge("database/sqlite/ISQLiteClosable.car");
+    merge("database/sqlite/ISQLiteProgram.car");
+    merge("database/sqlite/ISQLiteCursorDriver.car");
+    merge("database/sqlite/ISQLiteQuery.car");
+    merge("database/sqlite/ISQLiteCompiledSql.car");
+    merge("database/sqlite/ISQLiteStatement.car");
+    merge("database/sqlite/ISQLiteDatabase.car");
+    merge("database/sqlite/ISQLiteContentHelper.car");
+    merge("database/sqlite/ISQLiteDebug.car");
+    merge("database/sqlite/ISQLiteDirectCursorDriver.car");
+    merge("database/sqlite/ISQLiteOpenHelper.car");
+    merge("database/sqlite/ISQLiteQueryBuilder.car");
+    merge("database/sqlite/ISQLiteTransactionListener.car");
+    merge("database/sqlite/ISQLiteWrapper.car");
     merge("database/CharArrayBuffer.car");
     merge("database/IContentObserver.car");
     merge("database/ContentObserver.car");
@@ -15,6 +26,12 @@ module
     merge("database/IBulkCursor.car");
     merge("database/MatrixCursor.car");
     merge("database/BulkCursorToCursorAdaptor.car");
+    merge("database/sqlite/ISQLiteCursor.car");
+    
 
+
+    class CSQLiteClosable {
+        interface ISQLiteClosable;
+    }
 }
 

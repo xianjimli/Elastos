@@ -11,6 +11,21 @@ module
         GetUniqueId(
             [out] Int32* value);
 
+        GetSqlString(
+            [out] String* sqlString);
+
+        /**
+         * @deprecated This method is deprecated and must not be used.
+         *
+         * @param sql the SQL string to compile
+         * @param forceCompilation forces the SQL to be recompiled in the event that there is an
+         *  existing compiled SQL program already around
+         */
+        //@Deprecated
+        Compile(
+            [in] String sql,
+            [in] Boolean forceCompilation);
+
         /**
          * Bind a NULL value to this statement. The value remains bound until
          * {@link #clearBindings} is called.

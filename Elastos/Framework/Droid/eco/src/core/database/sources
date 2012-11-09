@@ -23,3 +23,5 @@ SOURCES += AbstractWindowedCursor.cpp
 SOURCES += MergeCursor.cpp
 SOURCES += MatrixCursor.cpp
 SOURCES += BulkCursorToCursorAdaptor.cpp
+
+LIBRARIES = sqlite/sqlite.lib

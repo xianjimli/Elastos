@@ -26,6 +26,7 @@ INCLUDES += $(MAKEDIR)/../../inc/core/widget
 INCLUDES += $(MAKEDIR)/../../inc/core/text
 INCLUDES += $(MAKEDIR)/../../inc/core/text/method
 INCLUDES += $(MAKEDIR)/../../inc/core/database
+INCLUDES += $(MAKEDIR)/../../inc/core/database/sqlite
 INCLUDES += $(MAKEDIR)/../../inc/core/statusbar
 INCLUDES += $(MAKEDIR)/../../inc/core/location
 INCLUDES += $(MAKEDIR)/../../inc/core/systemui/
@@ -73,5 +74,5 @@ else
 LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
 LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
 LIBRARIES += $(XDK_USER_LIB)/crt0.lib
-LIBRARIES += -lexpat -llog -lutils -lbinder -lskia -lskiagl -lsurfaceflinger_client -lui -lcutils
+LIBRARIES += -lexpat -llog -lutils -lbinder -lskia -lskiagl -lsurfaceflinger_client -lui -lcutils -lsqlite
 endif

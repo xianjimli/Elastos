@@ -1,0 +1,33 @@
+module
+{
+    interface ISQLiteProgram;
+    interface ISQLiteStatement extends ISQLiteProgram
+    {
+        /**
+         * Execute this SQL statement, if it is not a query. For example,
+         * CREATE TABLE, DELTE, INSERT, etc.
+         */
+        Execute();
+
+        /**
+         * Execute this SQL statement and return the ID of the row inserted due to this call.
+         * The SQL statement should be an INSERT for this to be a useful call.
+         */
+        ExecuteInsert(
+            [out] Int64* value);
+
+        /**
+         * Execute a statement that returns a 1 by 1 table with a numeric value.
+         * For example, SELECT COUNT(*) FROM table;
+         */
+        SimpleQueryForLong(
+            [out] Int64* value);
+
+        /**
+         * Execute a statement that returns a 1 by 1 table with a text value.
+         * For example, SELECT COUNT(*) FROM table;
+         */
+        SimpleQueryForString(
+            [out] String* value);
+    }
+}

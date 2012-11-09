@@ -108,12 +108,22 @@ ECode SQLiteClosable::GetObjInfo(
     StringBuffer *buff = new StringBuffer();
 //    *buff += this->GetClass();
     *buff += " (";
-    if ((ISQLiteClosable*)this->Probe(EIID_ISQLiteClosable)) {
+    if ((ISQLiteDatabase*)this->Probe(EIID_ISQLiteDatabase)) {
         *buff += "database = ";
+//        buff.append(((SQLiteDatabase)this).getPath()); 
+    } else if ((ISQLiteProgram*)this->Probe(EIID_ISQLiteProgram) ||
+             (ISQLiteStatement*)this->Probe(EIID_ISQLiteStatement) ||
+             ((ISQLiteQuery*)this->Probe(EIID_ISQLiteQuery))) {
+        *buff += "mSql = ";
+//        buff.append(((SQLiteProgram)this).mSql);
     } else if ((ICursorWindow*)this->Probe(EIID_ICursorWindow)) {
         *buff += "mStartPos = ";
+        Int32 position;
+        ((ICursorWindow*)this)->GetStartPosition(&position);
+        *buff += String::FromInt32(position);
     }
     *buff += ") ";
     *objInfo = buff->Substring(0,buff->GetLength() - 1);
-    return E_NOT_IMPLEMENTED;
+
+    return NOERROR;
 }

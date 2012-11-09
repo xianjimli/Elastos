@@ -1,0 +1,38 @@
+module
+{
+    interface ICursorWindow;
+
+    interface IDataSetObserver;
+
+    interface ISQLiteCursor extends ICursorWindow
+    {
+        /**
+         *  support for a cursor variant that doesn't always read all results
+         *  initialRead is the initial number of items that cursor window reads 
+         *  if query contains more than this number of items, a thread will be
+         *  created and handle the left over items so that caller can show 
+         *  results as soon as possible 
+         * @param initialRead initial number of items that cursor read
+         * @param maxRead leftover items read at maxRead items per time
+         * @hide
+         */
+        SetLoadStyle(
+            [in] Int32 initialRead,
+            [in] Int32 maxRead);
+
+        RegisterDataSetObserver(
+            [in] IDataSetObserver* observer);
+
+        /**
+         * @return the SQLiteDatabase that this cursor is associated with.
+         */
+        GetDatabase(
+        );
+
+        /**
+         * Changes the selection arguments. The new values take effect after a call to requery().
+         */
+        SetSelectionArguments(
+            [in] ArrayOf<String> selectionArgs);
+    }
+}

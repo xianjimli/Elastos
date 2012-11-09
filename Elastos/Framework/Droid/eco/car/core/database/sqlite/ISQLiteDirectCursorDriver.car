@@ -1,0 +1,20 @@
+module
+{
+    interface ISQLiteCursorDriver;
+    interface ISQLiteDirectCursorDriver extends ISQLiteCursorDriver{
+ /*       Query(
+            [in] ICursorFactory* factory,
+            [in] ArrayOf<String> selectionArgs,
+            [out] ICursor** cur);
+
+        CursorClosed();
+
+        SetBindArguments(
+            [in] ArrayOf<String> bindArgs);
+
+        CursorDeactivated();
+
+        CursorRequeried(
+            [in] ICursor* cursor);   */
+    }
+}
