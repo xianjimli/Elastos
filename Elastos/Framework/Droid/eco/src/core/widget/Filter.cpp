@@ -50,6 +50,7 @@ ECode Filter::FilterResults::GetInterfaceID(
  * <p>Creates a new asynchronous filter.</p>
  */
 Filter::Filter()
+    : mRequestApartmentFinished(FALSE)
 {
     ASSERT_SUCCEEDED(CApartment::GetDefaultApartment(
         (IApartment**)&mDefaultApartment));
@@ -143,6 +144,12 @@ ECode Filter::DoFilterEx(
     /* [in] */ ICharSequence* constraint,
     /* [in] */ IFilterListener* listener)
 {
+    if (mRequestApartmentFinished) {
+        mRequestApartment = NULL;
+        mRequestApartmentFinished = FALSE;
+        mLock.Unlock();
+    }
+
     Mutex::Autolock lock(mLock);
 
     if (mRequestApartment == NULL) {
@@ -174,8 +181,7 @@ ECode Filter::DoFilterEx(
     CCallbackParcel::New((IParcel**)&params);
     params->WriteInt32((Handle32)args);
 
-    //mThreadHandler.removeMessages(FILTER_TOKEN);
-    //mThreadHandler.removeMessages(FINISH_TOKEN);
+    mRequestApartment->RemoveCppCallbacks((Handle32)this, NULL);
 
     return mRequestApartment->PostCppCallbackDelayed(
         (Handle32)this, *(Handle32*)&pHandlerFunc, params, 0, delay);
@@ -196,8 +202,8 @@ ECode Filter::ConvertResultToString(
 {
     VALIDATE_NOT_NULL(cs);
     String str;
-    if (resultValue) {
-        //resultValue->ToString(&str);
+    if (ICharSequence::Probe(resultValue)) {
+        ICharSequence::Probe(resultValue)->ToString(&str);
     }
 
     return CStringWrapper::New(str, cs);
@@ -239,8 +245,9 @@ ECode Filter::HandleFinishMessage()
 {
     Mutex::Autolock lock(mLock);
     if (mRequestApartment != NULL) {
+        mRequestApartmentFinished = TRUE;
 //        mThreadHandler.getLooper().quit();
-        mRequestApartment = NULL;
+        mRequestApartment->Finish();
     }
 
     return NOERROR;

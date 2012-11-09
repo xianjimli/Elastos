@@ -16,7 +16,11 @@ ECode CPopupWindow::GetBackground(
 {
     VALIDATE_NOT_NULL(background);
 
-    *background = PopupWindow::GetBackground();
+    AutoPtr<IDrawable> temp = PopupWindow::GetBackground();
+    *background = temp;
+    if (*background) {
+        (*background)->AddRef();
+    }
 
     return NOERROR;
 }
@@ -388,12 +392,12 @@ ECode CPopupWindow::UpdateEx4(
 
 ECode CPopupWindow::UpdateEx5(
     /* [in] */ IView* anchor,
-    /* [in] */ Int32 width,
     /* [in] */ Int32 xoff,
     /* [in] */ Int32 yoff,
+    /* [in] */ Int32 width,
     /* [in] */ Int32 height)
 {
-    return PopupWindow::Update(anchor, width, xoff, yoff, height);
+    return PopupWindow::Update(anchor, xoff, yoff, width, height);
 }
 
 ECode CPopupWindow::constructor(

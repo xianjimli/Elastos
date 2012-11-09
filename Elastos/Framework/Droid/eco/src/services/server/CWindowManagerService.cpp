@@ -9612,9 +9612,6 @@ void CWindowManagerService::WindowState::ComputeShownFrameLocked()
     mDtDx = 0;
     mDsDy = 0;
     mDtDy = 1;
-    Int32 l, t;
-    mShownFrame->GetLeft(&l);
-    mShownFrame->GetTop(&t);
 }
 
 void CWindowManagerService::WindowState::ClearAnimation()

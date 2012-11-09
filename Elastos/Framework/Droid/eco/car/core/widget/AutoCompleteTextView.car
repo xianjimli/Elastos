@@ -112,12 +112,6 @@ module
         SetOnItemSelectedListener(
             [in] IOnItemSelectedListener* listener);
 
-        GetItemClickListener(
-            [out] IOnItemClickListener** l);
-
-        GetItemSelectedListener(
-            [out] IOnItemSelectedListener** l);
-
         GetOnItemClickListener(
             [out] IOnItemClickListener** l);
 
@@ -148,9 +142,6 @@ module
 
         IsPerformingCompletion(
             [out] Boolean* result);
-
-        OnFilterComplete(
-            [in] Int32 count);
 
         DismissDropDown();
 

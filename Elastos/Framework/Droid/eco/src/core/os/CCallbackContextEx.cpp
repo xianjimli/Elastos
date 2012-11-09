@@ -379,6 +379,10 @@ ECode CCallbackContextEx::CancelCallbackEvents(
 PCallbackEvent CCallbackContextEx::GetEvent(Flags32 fPriority)
 {
 again:
+    if (m_eventQueue.IsEmpty()) {
+        return NULL;
+    }
+
     Int64 now = SystemClock::GetUptimeMillis();
 
     PCallbackEvent pCallbackEvent = m_eventQueue.First();

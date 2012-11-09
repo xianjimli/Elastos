@@ -23,7 +23,8 @@ CARAPI_(PInterface) CAutoCompleteTextView::Probe(
 ECode CAutoCompleteTextView::OnPreDraw(
     /* [out] */ Boolean* result)
 {
-
+    VALIDATE_NOT_NULL(result);
+    *result = AutoCompleteTextView::OnPreDraw();
     return NOERROR;
 }
 
@@ -31,374 +32,375 @@ ECode CAutoCompleteTextView::SetSelection(
     /* [in] */ Int32 start,
     /* [in] */ Int32 stop)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::SetSelection(start, stop);
 }
+
 
 ECode CAutoCompleteTextView::SetSelectionEx(
     /* [in] */ Int32 index)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::SetSelection(index);
 }
 
 ECode CAutoCompleteTextView::SelectAll()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::SelectAll();
 }
 
 ECode CAutoCompleteTextView::ExtendSelection(
     /* [in] */ Int32 index)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::ExtendSelection(index);
 }
 
 ECode CAutoCompleteTextView::SetCompletionHint(
-    /* [in] */ ICharSequence * pHint)
+    /* [in] */ ICharSequence* hint)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::SetCompletionHint(hint);
 }
 
 ECode CAutoCompleteTextView::GetDropDownWidth(
-    /* [out] */ Int32 * pWidth)
+    /* [out] */ Int32* width)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(width);
+    *width = AutoCompleteTextView::GetDropDownWidth();
+    return NOERROR;
 }
 
 ECode CAutoCompleteTextView::SetDropDownWidth(
     /* [in] */ Int32 width)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::SetDropDownWidth(width);
 }
 
 ECode CAutoCompleteTextView::GetDropDownHeight(
-    /* [out] */ Int32 * pHeight)
+    /* [out] */ Int32* height)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(height);
+    *height = AutoCompleteTextView::GetDropDownHeight();
+    return NOERROR;
 }
 
 ECode CAutoCompleteTextView::SetDropDownHeight(
     /* [in] */ Int32 height)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::SetDropDownHeight(height);
 }
 
 ECode CAutoCompleteTextView::GetDropDownAnchor(
-    /* [out] */ Int32 * pId)
+    /* [out] */ Int32* id)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(id);
+    *id = AutoCompleteTextView::GetDropDownAnchor();
+    return NOERROR;
 }
 
 ECode CAutoCompleteTextView::SetDropDownAnchor(
     /* [in] */ Int32 id)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::SetDropDownAnchor(id);
 }
 
 ECode CAutoCompleteTextView::GetDropDownBackground(
-    /* [out] */ IDrawable ** ppDrawable)
+    /* [out] */ IDrawable** drawable)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(drawable);
+    AutoPtr<IDrawable> temp = AutoCompleteTextView::GetDropDownBackground();
+    *drawable = temp;
+    if (*drawable) {
+        (*drawable)->AddRef();
+    }
+
+    return NOERROR;
 }
 
 ECode CAutoCompleteTextView::SetDropDownBackgroundDrawable(
-    /* [in] */ IDrawable * pD)
+    /* [in] */ IDrawable* d)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::SetDropDownBackgroundDrawable(d);
 }
 
 ECode CAutoCompleteTextView::SetDropDownBackgroundResource(
     /* [in] */ Int32 id)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::SetDropDownBackgroundResource(id);
 }
 
 ECode CAutoCompleteTextView::SetDropDownVerticalOffset(
     /* [in] */ Int32 offset)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::SetDropDownVerticalOffset(offset);
 }
 
 ECode CAutoCompleteTextView::GetDropDownVerticalOffset(
-    /* [out] */ Int32 * pOffset)
+    /* [out] */ Int32* offset)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(offset);
+    *offset = AutoCompleteTextView::GetDropDownVerticalOffset();
+    return NOERROR;
 }
 
 ECode CAutoCompleteTextView::SetDropDownHorizontalOffset(
     /* [in] */ Int32 offset)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::SetDropDownHorizontalOffset(offset);
 }
 
 ECode CAutoCompleteTextView::GetDropDownHorizontalOffset(
-    /* [out] */ Int32 * pOffset)
+    /* [out] */ Int32* offset)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(offset);
+    *offset = AutoCompleteTextView::GetDropDownHorizontalOffset();
+    return NOERROR;
 }
 
 ECode CAutoCompleteTextView::SetDropDownAnimationStyle(
     /* [in] */ Int32 animationStyle)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::SetDropDownAnimationStyle(animationStyle);
 }
 
 ECode CAutoCompleteTextView::GetDropDownAnimationStyle(
-    /* [out] */ Int32 * pStyle)
+    /* [out] */ Int32* style)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(style);
+    *style = AutoCompleteTextView::GetDropDownAnimationStyle();
+    return NOERROR;
 }
 
 ECode CAutoCompleteTextView::IsDropDownAlwaysVisible(
-    /* [out] */ Boolean * pVisible)
+    /* [out] */ Boolean* visible)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(visible);
+    *visible = AutoCompleteTextView::IsDropDownAlwaysVisible();
+    return NOERROR;
 }
 
 ECode CAutoCompleteTextView::SetDropDownAlwaysVisible(
     /* [in] */ Boolean dropDownAlwaysVisible)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::SetDropDownAlwaysVisible(dropDownAlwaysVisible);
 }
 
 ECode CAutoCompleteTextView::IsDropDownDismissedOnCompletion(
-    /* [out] */ Boolean * pDropDownDismissedOnCompletion)
+    /* [out] */ Boolean* dropDownDismissedOnCompletion)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(dropDownDismissedOnCompletion);
+    *dropDownDismissedOnCompletion =
+        AutoCompleteTextView::IsDropDownDismissedOnCompletion();
+    return NOERROR;
 }
 
 ECode CAutoCompleteTextView::SetDropDownDismissedOnCompletion(
     /* [in] */ Boolean dropDownDismissedOnCompletion)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::SetDropDownDismissedOnCompletion(
+        dropDownDismissedOnCompletion);
 }
 
 ECode CAutoCompleteTextView::GetThreshold(
-    /* [out] */ Int32 * pThreshold)
+    /* [out] */ Int32* threshold)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(threshold);
+    *threshold = AutoCompleteTextView::GetThreshold();
+    return NOERROR;
 }
 
 ECode CAutoCompleteTextView::SetThreshold(
     /* [in] */ Int32 threshold)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::SetThreshold(threshold);
 }
 
 ECode CAutoCompleteTextView::SetOnItemClickListener(
-    /* [in] */ IOnItemClickListener * pListener)
+    /* [in] */ IOnItemClickListener* listener)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::SetOnItemClickListener(listener);
 }
 
 ECode CAutoCompleteTextView::SetOnItemSelectedListener(
-    /* [in] */ IOnItemSelectedListener * pListener)
+    /* [in] */ IOnItemSelectedListener* listener)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CAutoCompleteTextView::GetItemClickListener(
-    /* [out] */ IOnItemClickListener ** ppL)
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CAutoCompleteTextView::GetItemSelectedListener(
-    /* [out] */ IOnItemSelectedListener ** ppL)
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::SetOnItemSelectedListener(listener);
 }
 
 ECode CAutoCompleteTextView::GetOnItemClickListener(
-    /* [out] */ IOnItemClickListener ** ppL)
+    /* [out] */ IOnItemClickListener** l)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(l);
+    AutoPtr<IOnItemClickListener> temp =
+        AutoCompleteTextView::GetOnItemClickListener();
+    *l = temp;
+    if (*l) {
+        (*l)->AddRef();
+    }
+
+    return NOERROR;
 }
 
 ECode CAutoCompleteTextView::GetOnItemSelectedListener(
-    /* [out] */ IOnItemSelectedListener ** ppL)
+    /* [out] */ IOnItemSelectedListener** l)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(l);
+    AutoPtr<IOnItemSelectedListener> temp =
+        AutoCompleteTextView::GetOnItemSelectedListener();
+    *l = temp;
+    if (*l) {
+        (*l)->AddRef();
+    }
+
+    return NOERROR;
 }
 
 ECode CAutoCompleteTextView::GetAdapter(
-    /* [out] */ IListAdapter ** ppAdapter)
+    /* [out] */ IListAdapter** adapter)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(adapter);
+    AutoPtr<IListAdapter> temp = AutoCompleteTextView::GetAdapter();
+    *adapter = temp;
+    if (*adapter) {
+        (*adapter)->AddRef();
+    }
+
+    return NOERROR;
 }
 
 ECode CAutoCompleteTextView::SetAdapter(
-    /* [in] */ IListAdapter * pAdapter)
+    /* [in] */ IListAdapter* adapter)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::SetAdapter(adapter);
 }
 
 ECode CAutoCompleteTextView::EnoughToFilter(
-    /* [out] */ Boolean * pResult)
+    /* [out] */ Boolean* result)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(result);
+    *result = AutoCompleteTextView::EnoughToFilter();
+    return NOERROR;
 }
 
 ECode CAutoCompleteTextView::IsPopupShowing(
-    /* [out] */ Boolean * pResult)
+    /* [out] */ Boolean* result)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(result);
+    *result = AutoCompleteTextView::IsPopupShowing();
+    return NOERROR;
 }
 
 ECode CAutoCompleteTextView::ClearListSelection()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::ClearListSelection();
 }
 
 ECode CAutoCompleteTextView::SetListSelection(
     /* [in] */ Int32 position)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::SetListSelection(position);
 }
 
 ECode CAutoCompleteTextView::GetListSelection(
-    /* [out] */ Int32 * pSelection)
+    /* [out] */ Int32* selection)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(selection);
+    *selection = AutoCompleteTextView::GetListSelection();
+    return NOERROR;
 }
 
 ECode CAutoCompleteTextView::PerformCompletion()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::PerformCompletion();
 }
 
 ECode CAutoCompleteTextView::IsPerformingCompletion(
-    /* [out] */ Boolean * pResult)
+    /* [out] */ Boolean* result)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(result);
+    *result = AutoCompleteTextView::IsPerformingCompletion();
+    return NOERROR;
 }
 
 ECode CAutoCompleteTextView::OnFilterComplete(
     /* [in] */ Int32 count)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::OnFilterComplete(count);
 }
 
 ECode CAutoCompleteTextView::DismissDropDown()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::DismissDropDown();
 }
 
 ECode CAutoCompleteTextView::ShowDropDownAfterLayout()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::ShowDropDownAfterLayout();
 }
 
 ECode CAutoCompleteTextView::EnsureImeVisible(
     /* [in] */ Boolean visible)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::EnsureImeVisible(visible);
 }
 
 ECode CAutoCompleteTextView::IsInputMethodNotNeeded(
-    /* [out] */ Boolean * pNeeded)
+    /* [out] */ Boolean* needed)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(needed);
+    *needed = AutoCompleteTextView::IsInputMethodNotNeeded();
+    return NOERROR;
 }
 
 ECode CAutoCompleteTextView::ShowDropDown()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::ShowDropDown();
 }
 
 ECode CAutoCompleteTextView::SetForceIgnoreOutsideTouch(
     /* [in] */ Boolean forceIgnoreOutsideTouch)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::SetForceIgnoreOutsideTouch(forceIgnoreOutsideTouch);
 }
 
 ECode CAutoCompleteTextView::SetValidator(
-    /* [in] */ IValidator * pValidator)
+    /* [in] */ IValidator* validator)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::SetValidator(validator);
 }
 
 ECode CAutoCompleteTextView::GetValidator(
-    /* [out] */ IValidator ** ppValidator)
+    /* [out] */ IValidator** validator)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(validator);
+    AutoPtr<IValidator> temp = AutoCompleteTextView::GetValidator();
+    *validator = temp;
+    if (*validator) {
+        (*validator)->AddRef();
+    }
+
+    return NOERROR;
 }
 
 ECode CAutoCompleteTextView::PerformValidation()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::PerformValidation();
 }
 
 ECode CAutoCompleteTextView::constructor(
-    /* [in] */ IContext * pContext)
+    /* [in] */ IContext* context)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::Init(context);
 }
 
 ECode CAutoCompleteTextView::constructor(
-    /* [in] */ IContext * pContext,
-    /* [in] */ IAttributeSet * pAttrs)
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::Init(context, attrs);
 }
 
 ECode CAutoCompleteTextView::constructor(
-    /* [in] */ IContext * pContext,
-    /* [in] */ IAttributeSet * pAttrs,
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs,
     /* [in] */ Int32 defStyle)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return AutoCompleteTextView::Init(context, attrs, defStyle);
 }
-

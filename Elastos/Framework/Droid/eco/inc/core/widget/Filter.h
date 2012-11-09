@@ -159,5 +159,7 @@ private:
 
     AutoPtr<IApartment> mRequestApartment;
     AutoPtr<IApartment> mDefaultApartment;
+
+    Boolean mRequestApartmentFinished;
 };
 #endif //__FILTER_H__

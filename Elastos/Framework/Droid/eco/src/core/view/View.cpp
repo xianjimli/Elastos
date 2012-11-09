@@ -4347,6 +4347,7 @@ Boolean View::PostDelayed(
 Boolean View::RemoveCallbacks(
     /* [in] */ IRunnable* action)
 {
+    assert(action);
     if (mAttachInfo != NULL) {
         ECode ec = mAttachInfo->mHandler->RemoveCppCallbacks(
             (Handle32)action, NULL);

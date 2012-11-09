@@ -959,8 +959,11 @@ AutoPtr<ICharSequence> SpannableStringBuilder::SubSequence(
     /* [in] */ Int32 start,
     /* [in] */ Int32 end)
 {
-    return NULL;
-    //return new SpannableStringBuilder(this, start, end);
+    AutoPtr<ISpannableStringBuilder> sub;
+    CSpannableStringBuilder::New(
+        (ICharSequence*)this->Probe(EIID_ICharSequence), start, end,
+        (ISpannableStringBuilder**)&sub);
+    return sub;
 }
 
 /**
@@ -998,6 +1001,10 @@ ECode SpannableStringBuilder::GetChars(
 String SpannableStringBuilder::ToString()
 {
     Int32 len = GetLength();
+    if (len == 0) {
+        return String("");
+    }
+
     ArrayOf<Char8>* buf = ArrayOf<Char8>::Alloc(len * 4);
 
     GetChars(0, len, buf, 0);

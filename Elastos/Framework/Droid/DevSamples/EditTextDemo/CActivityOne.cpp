@@ -73,17 +73,37 @@ ECode CActivityOne::MyListener::OnClick(
     return NOERROR;
 }
 
+static const Int32 COUNTRIES_LEN = 15;
+static const String COUNTRIES[] = {
+    String("Afghanistan"), String("Albania"), String("Algeria"),
+    String("American Samoa"), String("Andorra"), String("aaa"),
+    String("aab"), String("aac"), String("aad"),
+    String("aaa bbb"), String("aaa bbc"), String("aaa bbd"),
+    String("aaa bbb ccc"), String("aaa bbb ccd"), String("aaa bbb cce")};
+
 ECode CActivityOne::OnCreate(
     /* [in] */ IBundle* savedInstanceState)
 {
-    printf("OnCreate\n");
-    SetContentView(0x7f030000);
+    SetContentView(0x7f030001);
 
     AutoPtr<IView> view = FindViewById(0x7f050000);
     assert(view != NULL);
 
-    //AutoPtr<MyListener> l = new MyListener(this);
-    //view->SetOnClickListener(l.Get());
+    AutoPtr<IObjectContainer> strs;
+    CParcelableObjectContainer::New((IObjectContainer**)&strs);
+
+    AutoPtr<ICharSequence> cs;
+    for (Int32 i=0; i<COUNTRIES_LEN; i++) {
+        CStringWrapper::New(COUNTRIES[i], (ICharSequence**)&cs);
+        strs->Add(cs);
+        cs = NULL;
+    }
+
+    AutoPtr<IArrayAdapter> adapter;
+    CArrayAdapter::New(this, 0x7f030000, strs, (IArrayAdapter**)&adapter);
+    assert(adapter != NULL);
+
+    IAutoCompleteTextView::Probe(view)->SetAdapter(adapter);
 
     return NOERROR;
 }

@@ -3,6 +3,7 @@
 #include "os/SystemClock.h"
 #include <new>
 
+Boolean CApartment::sHaveKey = FALSE;
 pthread_key_t CApartment::sKey;
 
 // --- InputDispatcherThread ---
@@ -51,8 +52,11 @@ ECode CApartment::constructor(
     assert(mCallbackContext != NULL);
     assert(SUCCEEDED(mCallbackContext->Initialize()));
 
-    assert(pthread_key_create(&sKey, NULL) == 0);
-    assert(pthread_setspecific(sKey, this) == 0);
+    if (!sHaveKey) {
+        assert(pthread_key_create(&sKey, NULL) == 0);
+        assert(pthread_setspecific(sKey, this) == 0);
+        sHaveKey = TRUE;
+    }
 
     return NOERROR;
 }
@@ -105,11 +109,12 @@ ECode CApartment::Finish()
     ECode ec;
     void *ret;
 
+    mFinished = TRUE;
+
     assert(mCallbackContext != NULL);
     ec = mCallbackContext->RequestToFinish(CallbackContextFinish_ASAP);
 
     pthread_join(mThread, &ret);
-    mFinished = TRUE;
 
     return ec;
 }

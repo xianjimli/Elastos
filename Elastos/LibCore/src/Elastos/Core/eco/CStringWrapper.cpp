@@ -2,7 +2,6 @@
 #include "CStringWrapper.h"
 #include "cmdef.h"
 
-
 ECode CStringWrapper::GetLength(
     /* [out] */ Int32* number)
 {
@@ -40,6 +39,9 @@ ECode CStringWrapper::ToString(
 ECode CStringWrapper::constructor(
     /* [in] */ const String& str)
 {
-    mString = str;
+    if (str.IsNull())
+        mString = String("");
+    else
+        mString = str;
     return NOERROR;
 }

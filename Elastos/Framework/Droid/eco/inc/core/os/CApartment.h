@@ -100,6 +100,7 @@ private:
     static void* EntryRoutine(void *arg);
 
 private:
+    static Boolean sHaveKey;
     static pthread_key_t sKey;
 
 private:

@@ -3,72 +3,21 @@
 #define __AUTOCOMPLETETEXTVIEW_H__
 
 #include "widget/EditText.h"
+#include "view/ViewMacro.h"
+#include "widget/ListView.h"
+#include "widget/AdapterViewMacro.h"
+#include "widget/AbsListViewMacro.h"
+#include "widget/ListViewMacro.h"
 
-/**
- * <p>An editable text view that shows completion suggestions automatically
- * while the user is typing. The list of suggestions is displayed in a drop
- * down menu from which the user can choose an item to replace the content
- * of the edit box with.</p>
- *
- * <p>The drop down can be dismissed at any time by pressing the back key or,
- * if no item is selected in the drop down, by pressing the enter/dpad center
- * key.</p>
- *
- * <p>The list of suggestions is obtained from a data adapter and appears
- * only after a given number of characters defined by
- * {@link #getThreshold() the threshold}.</p>
- *
- * <p>The following code snippet shows how to create a text view which suggests
- * various countries names while the user is typing:</p>
- *
- * <pre class="prettyprint">
- * public class CountriesActivity extends Activity {
- *     protected void onCreate(Bundle icicle) {
- *         super.onCreate(icicle);
- *         setContentView(R.layout.countries);
- *
- *         ArrayAdapter&lt;String&gt; adapter = new ArrayAdapter&lt;String&gt;(this,
- *                 android.R.layout.simple_dropdown_item_1line, COUNTRIES);
- *         AutoCompleteTextView textView = (AutoCompleteTextView)
- *                 findViewById(R.id.countries_list);
- *         textView.setAdapter(adapter);
- *     }
- *
- *     private static final String[] COUNTRIES = new String[] {
- *         "Belgium", "France", "Italy", "Germany", "Spain"
- *     };
- * }
- * </pre>
- *
- * <p>See the <a href="{@docRoot}resources/tutorials/views/hello-autocomplete.html">Auto Complete
- * tutorial</a>.</p>
- *
- * @attr ref android.R.styleable#AutoCompleteTextView_completionHint
- * @attr ref android.R.styleable#AutoCompleteTextView_completionThreshold
- * @attr ref android.R.styleable#AutoCompleteTextView_completionHintView
- * @attr ref android.R.styleable#AutoCompleteTextView_dropDownSelector
- * @attr ref android.R.styleable#AutoCompleteTextView_dropDownAnchor
- * @attr ref android.R.styleable#AutoCompleteTextView_dropDownWidth
- * @attr ref android.R.styleable#AutoCompleteTextView_dropDownHeight
- * @attr ref android.R.styleable#AutoCompleteTextView_dropDownVerticalOffset
- * @attr ref android.R.styleable#AutoCompleteTextView_dropDownHorizontalOffset
- */
 class AutoCompleteTextView : public EditText
 {
 public:
     AutoCompleteTextView();
 
     AutoCompleteTextView(
-        /* [in] */ IContext* context);
-
-    AutoCompleteTextView(
-        /* [in] */ IContext* context, 
-        /* [in] */ IAttributeSet* attrs);
-
-    AutoCompleteTextView(
-        /* [in] */ IContext* context, 
-        /* [in] */ IAttributeSet* attrs, 
-        /* [in] */ Int32 defStyle);
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs = NULL,
+        /* [in] */ Int32 defStyle = 0x0101006b/*com.android.internal.R.attr.autoCompleteTextViewStyle*/);
 
     virtual CARAPI SetOnClickListener(
         /* [in] */ IViewOnClickListener* listener);
@@ -84,25 +33,25 @@ public:
      */
     virtual CARAPI SetCompletionHint(
         /* [in] */ ICharSequence* hint);
-    
+
     /**
      * <p>Returns the current width for the auto-complete drop down list. This can
      * be a fixed width, or {@link ViewGroup.LayoutParams#MATCH_PARENT} to fill the screen, or
      * {@link ViewGroup.LayoutParams#WRAP_CONTENT} to fit the width of its anchor view.</p>
-     * 
+     *
      * @return the width for the drop down list
-     * 
+     *
      * @attr ref android.R.styleable#AutoCompleteTextView_dropDownWidth
      */
     virtual CARAPI_(Int32) GetDropDownWidth();
-    
+
     /**
      * <p>Sets the current width for the auto-complete drop down list. This can
      * be a fixed width, or {@link ViewGroup.LayoutParams#MATCH_PARENT} to fill the screen, or
      * {@link ViewGroup.LayoutParams#WRAP_CONTENT} to fit the width of its anchor view.</p>
-     * 
+     *
      * @param width the width to use
-     * 
+     *
      * @attr ref android.R.styleable#AutoCompleteTextView_dropDownWidth
      */
     virtual CARAPI SetDropDownWidth(
@@ -132,83 +81,83 @@ public:
      */
     virtual CARAPI SetDropDownHeight(
         /* [in] */ Int32 height);
-    
+
     /**
      * <p>Returns the id for the view that the auto-complete drop down list is anchored to.</p>
-     *  
+     *
      * @return the view's id, or {@link View#NO_ID} if none specified
-     * 
+     *
      * @attr ref android.R.styleable#AutoCompleteTextView_dropDownAnchor
      */
     virtual CARAPI_(Int32) GetDropDownAnchor();
-    
+
     /**
      * <p>Sets the view to which the auto-complete drop down list should anchor. The view
      * corresponding to this id will not be loaded until the next time it is needed to avoid
      * loading a view which is not yet instantiated.</p>
-     * 
+     *
      * @param id the id to anchor the drop down list view to
-     * 
-     * @attr ref android.R.styleable#AutoCompleteTextView_dropDownAnchor 
+     *
+     * @attr ref android.R.styleable#AutoCompleteTextView_dropDownAnchor
      */
     virtual CARAPI SetDropDownAnchor(
         /* [in] */ Int32 id);
-    
+
     /**
      * <p>Gets the background of the auto-complete drop-down list.</p>
-     * 
+     *
      * @return the background drawable
-     * 
+     *
      * @attr ref android.R.styleable#PopupWindow_popupBackground
      */
     virtual CARAPI_(AutoPtr<IDrawable>) GetDropDownBackground();
-    
+
     /**
      * <p>Sets the background of the auto-complete drop-down list.</p>
-     * 
+     *
      * @param d the drawable to set as the background
-     * 
+     *
      * @attr ref android.R.styleable#PopupWindow_popupBackground
      */
     virtual CARAPI SetDropDownBackgroundDrawable(
         /* [in] */ IDrawable* d);
-    
+
     /**
      * <p>Sets the background of the auto-complete drop-down list.</p>
-     * 
+     *
      * @param id the id of the drawable to set as the background
-     * 
+     *
      * @attr ref android.R.styleable#PopupWindow_popupBackground
      */
     virtual CARAPI SetDropDownBackgroundResource(
         /* [in] */ Int32 id);
-    
+
     /**
      * <p>Sets the vertical offset used for the auto-complete drop-down list.</p>
-     * 
+     *
      * @param offset the vertical offset
      */
     virtual CARAPI SetDropDownVerticalOffset(
         /* [in] */ Int32 offset);
-    
+
     /**
      * <p>Gets the vertical offset used for the auto-complete drop-down list.</p>
-     * 
+     *
      * @return the vertical offset
      */
     virtual CARAPI_(Int32) GetDropDownVerticalOffset();
-    
+
     /**
      * <p>Sets the horizontal offset used for the auto-complete drop-down list.</p>
-     * 
+     *
      * @param offset the horizontal offset
      */
     virtual CARAPI SetDropDownHorizontalOffset(
         /* [in] */ Int32 offset);
-    
+
     /**
      * <p>Gets the horizontal offset used for the auto-complete drop-down list.</p>
-     * 
+     *
      * @return the horizontal offset
      */
     virtual CARAPI_(Int32) GetDropDownHorizontalOffset();
@@ -260,25 +209,25 @@ public:
      */
     virtual CARAPI SetDropDownAlwaysVisible(
         /* [in] */ Boolean dropDownAlwaysVisible);
-   
+
     /**
      * Checks whether the drop-down is dismissed when a suggestion is clicked.
-     * 
+     *
      * @hide Pending API council approval
      */
     virtual CARAPI_(Boolean) IsDropDownDismissedOnCompletion();
 
     /**
-     * Sets whether the drop-down is dismissed when a suggestion is clicked. This is 
+     * Sets whether the drop-down is dismissed when a suggestion is clicked. This is
      * TRUE by default.
-     * 
+     *
      * @param dropDownDismissedOnCompletion Whether to dismiss the drop-down.
-     * 
+     *
      * @hide Pending API council approval
      */
     virtual CARAPI SetDropDownDismissedOnCompletion(
         /* [in] */ Boolean dropDownDismissedOnCompletion);
- 
+
     /**
      * <p>Returns the number of characters the user must type before the drop
      * down list is shown.</p>
@@ -329,26 +278,6 @@ public:
      * in the drop down list.</p>
      *
      * @return the item click listener
-     *
-     * @deprecated Use {@link #getOnItemClickListener()} intead
-     */
-    virtual CARAPI_(AutoPtr<IOnItemClickListener>) GetItemClickListener();
-
-    /**
-     * <p>Returns the listener that is notified whenever the user selects an
-     * item in the drop down list.</p>
-     *
-     * @return the item selected listener
-     *
-     * @deprecated Use {@link #getOnItemSelectedListener()} intead
-     */
-    virtual CARAPI_(AutoPtr<IOnItemSelectedListener>) GetItemSelectedListener();
-
-    /**
-     * <p>Returns the listener that is notified whenever the user clicks an item
-     * in the drop down list.</p>
-     *
-     * @return the item click listener
      */
     virtual CARAPI_(AutoPtr<IOnItemClickListener>) GetOnItemClickListener();
 
@@ -370,13 +299,13 @@ public:
     /**
      * <p>Changes the list of data used for auto completion. The provided list
      * must be a filterable list adapter.</p>
-     * 
+     *
      * <p>The caller is still responsible for managing any resources used by the adapter.
      * Notably, when the AutoCompleteTextView is closed or released, the adapter is not notified.
      * A common case is the use of {@link android.widget.CursorAdapter}, which
      * contains a {@link android.database.Cursor} that must be closed.  This can be done
-     * automatically (see 
-     * {@link android.app.Activity#startManagingCursor(android.database.Cursor) 
+     * automatically (see
+     * {@link android.app.Activity#startManagingCursor(android.database.Cursor)
      * startManagingCursor()}),
      * or by manually closing the cursor when the AutoCompleteTextView is dismissed.</p>
      *
@@ -390,15 +319,15 @@ public:
         /* [in] */ IListAdapter* adapter);
 
     virtual CARAPI_(Boolean) OnKeyPreIme(
-        /* [in] */ Int32 keyCode, 
+        /* [in] */ Int32 keyCode,
         /* [in] */ IKeyEvent* event);
 
     virtual CARAPI_(Boolean) OnKeyUp(
-        /* [in] */ Int32 keyCode, 
+        /* [in] */ Int32 keyCode,
         /* [in] */ IKeyEvent* event);
 
     virtual CARAPI_(Boolean) OnKeyDown(
-        /* [in] */ Int32 keyCode, 
+        /* [in] */ Int32 keyCode,
         /* [in] */ IKeyEvent* event);
 
     /**
@@ -421,27 +350,27 @@ public:
     virtual CARAPI_(Boolean) IsPopupShowing();
 
     /**
-     * <p>Clear the list selection.  This may only be temporary, as user input will often bring 
+     * <p>Clear the list selection.  This may only be temporary, as user input will often bring
      * it back.
      */
     virtual CARAPI ClearListSelection();
-    
+
     /**
      * Set the position of the dropdown view selection.
-     * 
+     *
      * @param position The position to move the selector to.
      */
     virtual CARAPI SetListSelection(
         /* [in] */ Int32 position);
 
     /**
-     * Get the position of the dropdown view selection, if there is one.  Returns 
+     * Get the position of the dropdown view selection, if there is one.  Returns
      * {@link ListView#INVALID_POSITION ListView.INVALID_POSITION} if there is no dropdown or if
      * there is no selection.
-     * 
-     * @return the position of the current selection, if there is one, or 
+     *
+     * @return the position of the current selection, if there is one, or
      * {@link ListView#INVALID_POSITION ListView.INVALID_POSITION} if not.
-     * 
+     *
      * @see ListView#getSelectedItemPosition()
      */
     virtual CARAPI_(Int32) GetListSelection();
@@ -462,17 +391,18 @@ public:
      */
     virtual CARAPI_(Boolean) IsPerformingCompletion();
 
+    using EditText::SetText;
     /**
      * Like {@link #setText(CharSequence)}, except that it can disable filtering.
      *
      * @param filter If <code>FALSE</code>, no filtering will be performed
      *        as a result of this call.
-     * 
+     *
      * @hide Pending API council approval.
      */
-    //virtual CARAPI SetText(
-    //    /* [in] */ ICharSequence* text, 
-    //    /* [in] */ Boolean filter);
+    virtual CARAPI SetText(
+        /* [in] */ ICharSequence* text,
+        /* [in] */ Boolean filter);
 
     /** {@inheritDoc} */
     virtual CARAPI OnFilterComplete(
@@ -492,7 +422,7 @@ public:
      * @hide internal used only by SearchDialog
      */
     virtual CARAPI ShowDropDownAfterLayout();
-    
+
     /**
      * Ensures that the drop down is not obscuring the IME.
      * @param visible whether the ime should be in front. If FALSE, the ime is pushed to
@@ -511,12 +441,12 @@ public:
      * <p>Displays the drop down on screen.</p>
      */
     virtual CARAPI ShowDropDown();
-    
+
     /**
      * Forces outside touches to be ignored. Normally if {@link #isDropDownAlwaysVisible()} is
      * FALSE, we allow outside touch to dismiss the dropdown. If this is set to TRUE, then we
      * ignore outside touch even when the drop down is not set to always visible.
-     * 
+     *
      * @hide used only by SearchDialog
      */
     virtual CARAPI SetForceIgnoreOutsideTouch(
@@ -563,8 +493,6 @@ protected:
      */
     virtual CARAPI_(AutoPtr<ICharSequence>) ConvertSelectionToString(
         /* [in] */ IInterface* selectedItem);
-    
-    
 
     /**
      * <p>Starts filtering the content of the drop down list. The filtering
@@ -577,7 +505,7 @@ protected:
      * this will be NULL when text is being added through a soft input method.
      */
     virtual CARAPI_(void) PerformFiltering(
-        /* [in] */ ICharSequence* text, 
+        /* [in] */ ICharSequence* text,
         /* [in] */ Int32 keyCode);
 
     /**
@@ -594,8 +522,8 @@ protected:
         /* [in] */ Int32 hint);
 
     virtual CARAPI_(void) OnFocusChanged(
-        /* [in] */ Boolean focused, 
-        /* [in] */ Int32 direction, 
+        /* [in] */ Boolean focused,
+        /* [in] */ Int32 direction,
         /* [in] */ IRect* previouslyFocusedRect);
 
     virtual CARAPI_(void) OnAttachedToWindow() ;
@@ -603,9 +531,9 @@ protected:
     virtual CARAPI_(void) OnDetachedFromWindow();
 
     virtual CARAPI_(Boolean) SetFrame(
-        /* [in] */ Int32 l, 
-        /* [in] */ Int32 t, 
-        /* [in] */ Int32 r, 
+        /* [in] */ Int32 l,
+        /* [in] */ Int32 t,
+        /* [in] */ Int32 r,
         /* [in] */ Int32 b);
 
     /**
@@ -614,6 +542,11 @@ protected:
      * a Filterable.
      */
     virtual CARAPI_(AutoPtr<IFilter>) GetFilter();
+
+    CARAPI Init(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs = NULL,
+        /* [in] */ Int32 defStyle = 0x0101006b/*com.android.internal.R.attr.autoCompleteTextViewStyle*/);
 
 private:
     /**
@@ -630,6 +563,9 @@ private:
     class MyWatcher : public ITextWatcher, public ElRefBase
     {
     public:
+        MyWatcher(
+            /* [in] */ AutoCompleteTextView* host);
+
         CARAPI_(PInterface) Probe(
             /* [in]  */ REIID riid);
 
@@ -641,38 +577,40 @@ private:
             /* [in] */ IInterface *pObject,
             /* [out] */ InterfaceID *pIID);
 
-    public:
         virtual CARAPI AfterTextChanged(
-            /* [in] */ IEditable* s); 
+            /* [in] */ IEditable* s);
 
         virtual CARAPI BeforeTextChanged(
-            /* [in] */ ICharSequence* s, 
-            /* [in] */ Int32 start, 
-            /* [in] */ Int32 count, 
+            /* [in] */ ICharSequence* s,
+            /* [in] */ Int32 start,
+            /* [in] */ Int32 count,
             /* [in] */ Int32 after);
 
         virtual CARAPI OnTextChanged(
-            /* [in] */ ICharSequence* s, 
-            /* [in] */ Int32 start, 
-            /* [in] */ Int32 before, 
+            /* [in] */ ICharSequence* s,
+            /* [in] */ Int32 start,
+            /* [in] */ Int32 before,
             /* [in] */ Int32 count);
-    };   
+
+    private:
+        AutoCompleteTextView* mHost;
+    };
 
     CARAPI_(void) PerformCompletion(
-        /* [in] */ IView* selectedView, 
-        /* [in] */ Int32 position, 
+        /* [in] */ IView* selectedView,
+        /* [in] */ Int32 position,
         /* [in] */ Int64 id);
-    
+
     CARAPI_(void) UpdateDropDownForFilter(
         /* [in] */ Int32 count);
-    
+
     /**
      * <p>Used for lazy instantiation of the anchor view from the id we have. If the value of
      * the id is NO_ID or we can't find a view for the given id, we return this TextView as
      * the default anchoring point.</p>
      */
     CARAPI_(AutoPtr<IView>) GetDropDownAnchorView();
- 
+
 
     /**
      * <p>Builds the popup window's content and returns the height the popup
@@ -684,66 +622,57 @@ private:
 
     CARAPI_(AutoPtr<IView>) GetHintView(
         /* [in] */ IContext* context);
- 
-    class ListSelectorHider : public IRunnable, public ElRefBase 
+
+    class ListSelectorHider : public Runnable
     {
     public:
-        CARAPI_(PInterface) Probe(
-            /* [in]  */ REIID riid);
+        ListSelectorHider(
+            /* [in] */ AutoCompleteTextView* host)
+        : mHost(host)
+        {}
 
-        CARAPI_(UInt32) AddRef();
+        CARAPI Run();
 
-        CARAPI_(UInt32) Release();
-
-        CARAPI GetInterfaceID(
-            /* [in] */ IInterface *pObject,
-            /* [out] */ InterfaceID *pIID);
-
-    public:
-        virtual CARAPI Run();
+    private:
+        AutoCompleteTextView* mHost;
     };
 
-    class ResizePopupRunnable : public IRunnable, public ElRefBase 
+    class ShowDropDownRunnable : public Runnable
     {
     public:
-        CARAPI_(PInterface) Probe(
-            /* [in]  */ REIID riid);
+        ShowDropDownRunnable(
+            /* [in] */ AutoCompleteTextView* host)
+            : mHost(host)
+        {}
 
-        CARAPI_(UInt32) AddRef();
+        CARAPI Run();
 
-        CARAPI_(UInt32) Release();
-
-        CARAPI GetInterfaceID(
-            /* [in] */ IInterface *pObject,
-            /* [out] */ InterfaceID *pIID);
-
-    public:
-        virtual CARAPI Run();
+    private:
+        AutoCompleteTextView* mHost;
     };
 
-    class PopupTouchInterceptor : public IRunnable, public ElRefBase 
+    class ResizePopupRunnable : public Runnable
     {
     public:
-        CARAPI_(PInterface) Probe(
-            /* [in]  */ REIID riid);
+        ResizePopupRunnable(
+            /* [in] */ AutoCompleteTextView* host)
+            : mHost(host)
+        {}
 
-        CARAPI_(UInt32) AddRef();
+        CARAPI Run();
 
-        CARAPI_(UInt32) Release();
-
-        CARAPI GetInterfaceID(
-            /* [in] */ IInterface *pObject,
-            /* [out] */ InterfaceID *pIID);
-
-    public:
-        virtual CARAPI_(Boolean) OnTouch(
-            /* [in] */ IView* v, 
-            /* [in] */ IMotionEvent* event);
+    private:
+        AutoCompleteTextView* mHost;
     };
-    
-    class PopupScrollListener : public IOnScrollListener, public ElRefBase
+
+    class PopupTouchInterceptor : public ElRefBase, public IViewOnTouchListener
     {
     public:
+        PopupTouchInterceptor(
+            /* [in] */ AutoCompleteTextView* host)
+            : mHost(host)
+        {}
+
         CARAPI_(PInterface) Probe(
             /* [in]  */ REIID riid);
 
@@ -755,21 +684,56 @@ private:
             /* [in] */ IInterface *pObject,
             /* [out] */ InterfaceID *pIID);
 
+        CARAPI OnTouch(
+            /* [in] */ IView* v,
+            /* [in] */ IMotionEvent* event,
+            /* [out] */ Boolean* res);
+
+    private:
+        AutoCompleteTextView* mHost;
+    };
+
+    class PopupScrollListener : public ElRefBase, public IOnScrollListener
+    {
     public:
-        virtual CARAPI OnScroll(
-            /* [in] */ IAbsListView* view, 
-            /* [in] */ Int32 firstVisibleItem, 
+        PopupScrollListener(
+            /* [in] */ AutoCompleteTextView* host)
+            : mHost(host)
+        {}
+
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI OnScroll(
+            /* [in] */ IAbsListView* view,
+            /* [in] */ Int32 firstVisibleItem,
             /* [in] */ Int32 visibleItemCount,
             /* [in] */ Int32 totalItemCount);
 
-        virtual CARAPI OnScrollStateChanged(
-            /* [in] */ IAbsListView* view, 
+        CARAPI OnScrollStateChanged(
+            /* [in] */ IAbsListView* view,
             /* [in] */ Int32 scrollState);
+
+    private:
+        AutoCompleteTextView* mHost;
     };
 
-    class DropDownItemClickListener : public IOnItemClickListener, public ElRefBase
+    class DropDownItemSelectedListener : public ElRefBase, public IOnItemSelectedListener
     {
     public:
+        DropDownItemSelectedListener(
+            /* [in] */ AutoCompleteTextView* host)
+            : mHost(host)
+        {}
+
         CARAPI_(PInterface) Probe(
             /* [in] */ REIID riid);
 
@@ -781,12 +745,46 @@ private:
             /* [in] */ IInterface *pObject,
             /* [out] */ InterfaceID *pIID);
 
-    public:
-        virtual CARAPI OnItemClick(
-            /* [in] */ IAdapterView* parent, 
-            /* [in] */ IView* v, 
-            /* [in] */ Int32 position, 
+        CARAPI OnItemSelected(
+            /* [in] */ IAdapterView* parent,
+            /* [in] */ IView* v,
+            /* [in] */ Int32 position,
             /* [in] */ Int64 id);
+
+        CARAPI OnNothingSelected(
+            /* [in] */  IAdapterView* parent);
+
+    private:
+        AutoCompleteTextView* mHost;
+    };
+
+    class DropDownItemClickListener : public ElRefBase, public IOnItemClickListener
+    {
+    public:
+        DropDownItemClickListener(
+            /* [in] */ AutoCompleteTextView* host)
+            : mHost(host)
+        {}
+
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI OnItemClick(
+            /* [in] */ IAdapterView* parent,
+            /* [in] */ IView* v,
+            /* [in] */ Int32 position,
+            /* [in] */ Int64 id);
+
+    private:
+        AutoCompleteTextView* mHost;
     };
 
     /**
@@ -795,29 +793,10 @@ private:
      * displayed on screen within a drop down. The focus is never actually
      * passed to the drop down; the list only looks focused.</p>
      */
-    class DropDownListView : public IListView, public ElRefBase 
+    class _DropDownListView : public ListView
     {
+        friend class AutoCompleteTextView;
     public:
-        CARAPI_(PInterface) Probe(
-            /* [in] */ REIID riid);
-
-        CARAPI_(UInt32) AddRef();
-
-        CARAPI_(UInt32) Release();
-
-        CARAPI GetInterfaceID(
-            /* [in] */ IInterface *pObject,
-            /* [out] */ InterfaceID *pIID);
-
-    public:
-        /**
-         * <p>Creates a new list view wrapper.</p>
-         *
-         * @param context this view's context
-         */
-        DropDownListView(
-            /* [in] */ IContext* context);
-
         /**
          * <p>Avoids jarring scrolling effect by ensuring that list elements
          * made of a text view fit on a single line.</p>
@@ -826,8 +805,8 @@ private:
          * @return the view for the specified item
          */
         virtual CARAPI_(AutoPtr<IView>) ObtainView(
-            /* [in] */ Int32 position, 
-            /* [in] */ ArrayOf<Boolean>* isScrap);
+            /* [in] */ Int32 position,
+            /* [in] */ Boolean* isScrap);
 
         virtual CARAPI_(Boolean) IsInTouchMode();
 
@@ -851,7 +830,7 @@ private:
          * @return TRUE always
          */
         virtual CARAPI_(Boolean) HasFocus();
-        
+
     protected:
         virtual CARAPI_(ArrayOf<Int32>*) OnCreateDrawableState(
             /* [in] */ Int32 extraSpace);
@@ -887,14 +866,92 @@ private:
          */
         Boolean mListSelectionHidden;
     };
-    
+
+    class DropDownListView
+        : public ElRefBase
+        , public _DropDownListView
+        , public IListView
+        , public ITextWatcher
+        , public IOnGlobalLayoutListener
+        , public IOnTouchModeChangeListener
+        , public IFilterListener
+        , public IViewParent
+        , public IViewManager
+        , public IDrawableCallback
+        , public IKeyEventCallback
+        , public IAccessibilityEventSource
+    {
+    public:
+        IVIEW_METHODS_DECL();
+
+        IVIEWGROUP_METHODS_DECL();
+
+        IVIEWPARENT_METHODS_DECL();
+
+        IVIEWMANAGER_METHODS_DECL();
+
+        IADAPTERVIEW_METHODS_DECL();
+
+        IABSLISTVIEW_METHODS_DECL();
+
+        ILISTVIEW_METHODS_DECL();
+
+        IDrawableCallback_METHODS_DECL();
+
+        IKeyEventCallback_METHODS_DECL();
+
+        IAccessibilityEventSource_METHODS_DECL();
+
+        DropDownListView(
+            /* [in] */ IContext* context);
+
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI OnTouchModeChanged(
+            /* [in] */ Boolean isInTouchMode);
+
+        CARAPI OnGlobalLayout();
+
+        CARAPI BeforeTextChanged(
+            /* [in] */ ICharSequence* s,
+            /* [in] */ Int32 start,
+            /* [in] */ Int32 count,
+            /* [in] */ Int32 after);
+
+        CARAPI OnTextChanged(
+            /* [in] */ ICharSequence* s,
+            /* [in] */ Int32 start,
+            /* [in] */ Int32 before,
+            /* [in] */ Int32 count);
+
+        CARAPI AfterTextChanged(
+            /* [in] */ IEditable* s);
+
+        CARAPI OnFilterComplete(
+            /* [in] */ Int32 count);
+    };
+
     /**
      * Allows us a private hook into the on click event without preventing users from setting
      * their own click listener.
      */
-    class PassThroughClickListener : public IViewOnClickListener, public ElRefBase
+    class PassThroughClickListener : public ElRefBase, public IViewOnClickListener
     {
     public:
+        PassThroughClickListener(
+            /* [in] */ AutoCompleteTextView* host)
+            : mHost(host)
+        {}
+
         CARAPI_(PInterface) Probe(
             /* [in] */ REIID riid);
 
@@ -906,17 +963,38 @@ private:
             /* [in] */ IInterface *pObject,
             /* [out] */ InterfaceID *pIID);
 
-        /** {@inheritDoc} */
-    public:
-        virtual CARAPI OnClick(
+        CARAPI OnClick(
             /* [in] */ IView* v);
 
+    public:
         AutoPtr<IViewOnClickListener> mWrapped;
+
+    private:
+        AutoCompleteTextView* mHost;
     };
 
-    class PopupDataSetObserver : public IDataSetObserver, public ElRefBase 
+    class  UpdateDropDownForFilterRunnable : public Runnable
     {
     public:
+        UpdateDropDownForFilterRunnable(
+            /* [in] */ AutoCompleteTextView* host)
+            : mHost(host)
+        {}
+
+        CARAPI Run();
+
+    private:
+        AutoCompleteTextView* mHost;
+    };
+
+    class PopupDataSetObserver : public ElRefBase, public IDataSetObserver
+    {
+    public:
+        PopupDataSetObserver(
+            /* [in] */ AutoCompleteTextView* host)
+            : mHost(host)
+        {}
+
         CARAPI_(PInterface) Probe(
             /* [in] */ REIID riid);
 
@@ -928,10 +1006,12 @@ private:
             /* [in] */ IInterface *pObject,
             /* [out] */ InterfaceID *pIID);
 
-    public:
-        virtual CARAPI OnChanged();
+        CARAPI OnChanged();
 
-        virtual CARAPI OnInvalidated();
+        CARAPI OnInvalidated();
+
+    private:
+        AutoCompleteTextView* mHost;
     };
 
     static const Boolean DEBUG = FALSE;
@@ -961,32 +1041,31 @@ private:
     AutoPtr<IView> mDropDownAnchorView;  // view is retrieved lazily from id once needed
     Int32 mDropDownWidth;
     Int32 mDropDownHeight;
-    AutoPtr<IRect> mTempRect;// = new Rect();
+    AutoPtr<CRect> mTempRect;
 
     AutoPtr<IDrawable> mDropDownListHighlight;
 
     AutoPtr<IOnItemClickListener> mItemClickListener;
     AutoPtr<IOnItemSelectedListener> mItemSelectedListener;
 
-    AutoPtr<IOnItemClickListener> mDropDownItemClickListener;/* =
-    new DropDownItemClickListener();*/
+    AutoPtr<IOnItemClickListener> mDropDownItemClickListener;
 
-    Boolean mDropDownAlwaysVisible;// = FALSE;
+    Boolean mDropDownAlwaysVisible;
 
-    Boolean mDropDownDismissedOnCompletion;// = TRUE;
-    
-    Boolean mForceIgnoreOutsideTouch;// = FALSE;
+    Boolean mDropDownDismissedOnCompletion;
 
-    Int32 mLastKeyCode;// = KeyEvent.KEYCODE_UNKNOWN;
+    Boolean mForceIgnoreOutsideTouch;
+
+    Int32 mLastKeyCode;
     Boolean mOpenBefore;
 
-    AutoPtr<IValidator> mValidator;// = NULL;
+    AutoPtr<IValidator> mValidator;
 
     Boolean mBlockCompletion;
 
     AutoPtr<ListSelectorHider> mHideSelector;
     AutoPtr<IRunnable> mShowDropDownRunnable;
-    AutoPtr<IRunnable> mResizePopupRunnable;// = new ResizePopupRunnable();
+    AutoPtr<IRunnable> mResizePopupRunnable;
 
     AutoPtr<PassThroughClickListener> mPassThroughClickListener;
     AutoPtr<PopupDataSetObserver> mObserver;

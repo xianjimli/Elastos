@@ -1781,8 +1781,8 @@ public:
      * if there are any text changed listeners forces the buffer type to
      * Editable if it would not otherwise be and does call this method.
      */
-    //virtual CARAPI_(void) AddTextChangedListener(
-    //    /* [in] */ TextWatcher watcher);
+    virtual CARAPI_(void) AddTextChangedListener(
+        /* [in] */ ITextWatcher* watcher);
 
 
     /**
@@ -1790,8 +1790,8 @@ public:
      * methods are called
      * whenever this TextView's text changes.
      */
-    //virtual CARAPI_(void) RemoveTextChangedListener(
-    //    /* [in] */ TextWatcher watcher);
+    virtual CARAPI_(void) RemoveTextChangedListener(
+        /* [in] */ ITextWatcher* watcher);
 
     /**
      * Not private so it can be called from an inner class without going

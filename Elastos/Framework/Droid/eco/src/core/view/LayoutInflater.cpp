@@ -316,7 +316,7 @@ ECode LayoutInflater::CreateView(
 {
     AutoPtr<IConstructorInfo> constructor;
     AutoPtr<IClassInfo> clazz;
-//printf("====== File: %s, Line: %d, Name: %s ======\n", __FILE__, __LINE__, (const char*)name);
+//zprintf("====== File: %s, Line: %d, Name: %s ======\n", __FILE__, __LINE__, (const char*)name);
 //    try {
     HashMap<String, AutoPtr<IConstructorInfo> >::Iterator it = \
         sConstructorMap->Find(name);

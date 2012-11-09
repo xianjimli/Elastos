@@ -1170,9 +1170,9 @@ ECode PopupWindow::Update(
 
 ECode PopupWindow::Update(
     /* [in] */ IView* anchor,
-    /* [in] */ Int32 width,
     /* [in] */ Int32 xoff,
     /* [in] */ Int32 yoff,
+    /* [in] */ Int32 width,
     /* [in] */ Int32 height)
 {
     return Update(anchor, TRUE, xoff, yoff, TRUE, width, height);
@@ -1240,7 +1240,8 @@ void PopupWindow::UnregisterForScrollChanged()
     if (anchor != NULL) {
         AutoPtr<IViewTreeObserver> vto;
         anchor->GetViewTreeObserver((IViewTreeObserver**)&vto);
-        vto->RemoveOnScrollChangedListener(mOnScrollChangedListener);
+        if (vto != NULL)
+            vto->RemoveOnScrollChangedListener(mOnScrollChangedListener);
     }
     mAnchor = NULL;
 }

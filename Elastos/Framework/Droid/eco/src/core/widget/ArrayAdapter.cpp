@@ -40,8 +40,9 @@ ECode ArrayAdapter::ArrayFilter::PerformFiltering(
                         mHost->mOriginalValues->Begin();
         for (; iter!=mHost->mOriginalValues->End(); ++iter) {
             AutoPtr<IInterface> value = *iter;
-            String valueText;
-            //value->ToString(&valueText);
+            String valueText("");
+            if (ICharSequence::Probe(value.Get()))
+                ICharSequence::Probe(value.Get())->ToString(&valueText);
 
             // First match against the whole, non-splitted value
             if (valueText.StartWith(prefixString, StringCase_Insensitive)) {
@@ -62,6 +63,8 @@ ECode ArrayAdapter::ArrayFilter::PerformFiltering(
                         newValues.PushBack(value);
                         break;
                     }
+                    if (subStr.IsNull())
+                        break;
                     index = subStr.IndexOf(' ');
                 }
             }

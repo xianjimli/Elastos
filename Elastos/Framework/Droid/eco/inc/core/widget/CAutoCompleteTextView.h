@@ -39,31 +39,31 @@ public:
         /* [in] */ Int32 index);
 
     CARAPI SetCompletionHint(
-        /* [in] */ ICharSequence * pHint);
+        /* [in] */ ICharSequence* hint);
 
     CARAPI GetDropDownWidth(
-        /* [out] */ Int32 * pWidth);
+        /* [out] */ Int32* width);
 
     CARAPI SetDropDownWidth(
         /* [in] */ Int32 width);
 
     CARAPI GetDropDownHeight(
-        /* [out] */ Int32 * pHeight);
+        /* [out] */ Int32* height);
 
     CARAPI SetDropDownHeight(
         /* [in] */ Int32 height);
 
     CARAPI GetDropDownAnchor(
-        /* [out] */ Int32 * pId);
+        /* [out] */ Int32* id);
 
     CARAPI SetDropDownAnchor(
         /* [in] */ Int32 id);
 
     CARAPI GetDropDownBackground(
-        /* [out] */ IDrawable ** ppDrawable);
+        /* [out] */ IDrawable** drawable);
 
     CARAPI SetDropDownBackgroundDrawable(
-        /* [in] */ IDrawable * pD);
+        /* [in] */ IDrawable* d);
 
     CARAPI SetDropDownBackgroundResource(
         /* [in] */ Int32 id);
@@ -72,67 +72,61 @@ public:
         /* [in] */ Int32 offset);
 
     CARAPI GetDropDownVerticalOffset(
-        /* [out] */ Int32 * pOffset);
+        /* [out] */ Int32* offset);
 
     CARAPI SetDropDownHorizontalOffset(
         /* [in] */ Int32 offset);
 
     CARAPI GetDropDownHorizontalOffset(
-        /* [out] */ Int32 * pOffset);
+        /* [out] */ Int32* offset);
 
     CARAPI SetDropDownAnimationStyle(
         /* [in] */ Int32 animationStyle);
 
     CARAPI GetDropDownAnimationStyle(
-        /* [out] */ Int32 * pStyle);
+        /* [out] */ Int32* style);
 
     CARAPI IsDropDownAlwaysVisible(
-        /* [out] */ Boolean * pVisible);
+        /* [out] */ Boolean* visible);
 
     CARAPI SetDropDownAlwaysVisible(
         /* [in] */ Boolean dropDownAlwaysVisible);
 
     CARAPI IsDropDownDismissedOnCompletion(
-        /* [out] */ Boolean * pDropDownDismissedOnCompletion);
+        /* [out] */ Boolean* dropDownDismissedOnCompletion);
 
     CARAPI SetDropDownDismissedOnCompletion(
         /* [in] */ Boolean dropDownDismissedOnCompletion);
 
     CARAPI GetThreshold(
-        /* [out] */ Int32 * pThreshold);
+        /* [out] */ Int32* threshold);
 
     CARAPI SetThreshold(
         /* [in] */ Int32 threshold);
 
     CARAPI SetOnItemClickListener(
-        /* [in] */ IOnItemClickListener * pListener);
+        /* [in] */ IOnItemClickListener* listener);
 
     CARAPI SetOnItemSelectedListener(
-        /* [in] */ IOnItemSelectedListener * pListener);
-
-    CARAPI GetItemClickListener(
-        /* [out] */ IOnItemClickListener ** ppL);
-
-    CARAPI GetItemSelectedListener(
-        /* [out] */ IOnItemSelectedListener ** ppL);
+        /* [in] */ IOnItemSelectedListener* listener);
 
     CARAPI GetOnItemClickListener(
-        /* [out] */ IOnItemClickListener ** ppL);
+        /* [out] */ IOnItemClickListener** l);
 
     CARAPI GetOnItemSelectedListener(
-        /* [out] */ IOnItemSelectedListener ** ppL);
+        /* [out] */ IOnItemSelectedListener** l);
 
     CARAPI GetAdapter(
-        /* [out] */ IListAdapter ** ppAdapter);
+        /* [out] */ IListAdapter** adapter);
 
     CARAPI SetAdapter(
-        /* [in] */ IListAdapter * pAdapter);
+        /* [in] */ IListAdapter* adapter);
 
     CARAPI EnoughToFilter(
-        /* [out] */ Boolean * pResult);
+        /* [out] */ Boolean* result);
 
     CARAPI IsPopupShowing(
-        /* [out] */ Boolean * pResult);
+        /* [out] */ Boolean* result);
 
     CARAPI ClearListSelection();
 
@@ -140,12 +134,12 @@ public:
         /* [in] */ Int32 position);
 
     CARAPI GetListSelection(
-        /* [out] */ Int32 * pSelection);
+        /* [out] */ Int32* selection);
 
     CARAPI PerformCompletion();
 
     CARAPI IsPerformingCompletion(
-        /* [out] */ Boolean * pResult);
+        /* [out] */ Boolean* result);
 
     CARAPI OnFilterComplete(
         /* [in] */ Int32 count);
@@ -158,7 +152,7 @@ public:
         /* [in] */ Boolean visible);
 
     CARAPI IsInputMethodNotNeeded(
-        /* [out] */ Boolean * pNeeded);
+        /* [out] */ Boolean* needed);
 
     CARAPI ShowDropDown();
 
@@ -166,23 +160,23 @@ public:
         /* [in] */ Boolean forceIgnoreOutsideTouch);
 
     CARAPI SetValidator(
-        /* [in] */ IValidator * pValidator);
+        /* [in] */ IValidator* validator);
 
     CARAPI GetValidator(
-        /* [out] */ IValidator ** ppValidator);
+        /* [out] */ IValidator** validator);
 
     CARAPI PerformValidation();
 
     CARAPI constructor(
-        /* [in] */ IContext * pContext);
+        /* [in] */ IContext* context);
 
     CARAPI constructor(
-        /* [in] */ IContext * pContext,
-        /* [in] */ IAttributeSet * pAttrs);
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs);
 
     CARAPI constructor(
-        /* [in] */ IContext * pContext,
-        /* [in] */ IAttributeSet * pAttrs,
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs,
         /* [in] */ Int32 defStyle);
 
 private:

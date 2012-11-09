@@ -75,6 +75,9 @@ ECode ViewRoot::CSurfaceHolder::GetSurface(
         return E_INVALID_ARGUMENT;
     }
     *surface = mViewRoot->mSurface;
+    if (*surface) {
+        (*surface)->AddRef();
+    }
 
     return NOERROR;
 }
@@ -771,6 +774,7 @@ void ViewRoot::InitializeGL()
 
 void ViewRoot::InitializeGLInner()
 {
+    mSurface = NULL;
     assert(SUCCEEDED(CSurface::NewByFriend((CSurface**)&mSurface)));
 
     //final EGL10 egl = (EGL10) EGLContext.getEGL();
@@ -1312,7 +1316,7 @@ void ViewRoot::PerformTraversals()
 
     // cache mView since it is used so much below...
     //
-    View* host = (View*)mView->Probe(EIID_View);
+    View* host = mView != NULL ? (View*)mView->Probe(EIID_View) : NULL;
 
     if (DBG) {
         Logger::D(TAG, "======================================");
@@ -1760,6 +1764,7 @@ void ViewRoot::PerformTraversals()
                 }
 
                 mSurfaceHolder->mSurfaceLock.Lock();
+                mSurfaceHolder->mSurface = NULL;
                 CSurface::New((ISurface**)&(mSurfaceHolder->mSurface));
                 mSurfaceHolder->mSurfaceLock.Unlock();
             }
@@ -2986,7 +2991,6 @@ void ViewRoot::DeliverPointerEvent(
     /* [in] */ IMotionEvent* event)
 {
     assert(event);
-    //printf("====== FILE: %s, LINE: %d ======\n", __FILE__, __LINE__);
 
     {
         printf("====================A MotionEvent===================\n");
@@ -3100,7 +3104,6 @@ void ViewRoot::DeliverTrackballEvent(
     /* [in] */ IMotionEvent* event)
 {
     assert(event);
-    printf("====== FILE: %s, LINE: %d ======\n", __FILE__, __LINE__);
     if (DEBUG_TRACKBALL)
         Logger::D(TAG, "Motion event:" /*+ event*/);
 
@@ -3471,7 +3474,6 @@ void ViewRoot::DeliverKeyEvent(
     /* [in] */ IKeyEvent* event,
     /* [in] */ Boolean sendDone)
 {
-    //printf("====== FILE: %s, LINE: %d ======\n", __FILE__, __LINE__);
     assert(event);
     {
         printf("====================A KeyEvent===================\n");
@@ -3483,8 +3485,8 @@ void ViewRoot::DeliverKeyEvent(
         event->IsSymPressed(&sym);
         event->IsLongPress(&longPress);
 
-        printf("isDown = %d, isSystem = %d, alt = %d, shift = %d, sym = %d, longPress = %d\n",
-            isDown, isSystem, alt, shift, sym, longPress);
+        //printf("isDown = %d, isSystem = %d, alt = %d, shift = %d, sym = %d, longPress = %d\n",
+        //    isDown, isSystem, alt, shift, sym, longPress);
 
         Int32 keyCode, scanCode, deviceID, uChar;
         String chars;
@@ -3501,14 +3503,14 @@ void ViewRoot::DeliverKeyEvent(
         event->GetUnicodeChar(&uChar);
         event->GetNumber(&number);
 
-        printf("keyCode = %d, scanCode = %d, deviceID = %d, unicodeChar = %d\n",
-            keyCode, scanCode, deviceID, uChar);
+        // printf("keyCode = %d, scanCode = %d, deviceID = %d, unicodeChar = %d\n",
+        //     keyCode, scanCode, deviceID, uChar);
 
-        printf("characters = %s\n", (const char*)chars);
+        // printf("characters = %s\n", (const char*)chars);
 
-        printf("downTime = %d, eventTime = %d\n", downTime, eventTime);
+        // printf("downTime = %d, eventTime = %d\n", downTime, eventTime);
 
-        printf("label = %d, '%c', number = %d\n", label, (char)label, number);
+        // printf("label = %d, '%c', number = %d\n", label, (char)label, number);
         printf("\n");
     }
     // If mView is NULL, we just consume the key event because it doesn't

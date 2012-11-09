@@ -170,9 +170,9 @@ public:
 
     CARAPI UpdateEx5(
         /* [in] */ IView* anchor,
-        /* [in] */ Int32 width,
         /* [in] */ Int32 xoff,
         /* [in] */ Int32 yoff,
+        /* [in] */ Int32 width,
         /* [in] */ Int32 height);
 
     CARAPI constructor(

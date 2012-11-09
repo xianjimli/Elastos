@@ -831,7 +831,8 @@ ECode AdapterView::DispatchRestoreInstanceState(
 void AdapterView::OnDetachedFromWindow()
 {
     ViewGroup::OnDetachedFromWindow();
-    RemoveCallbacks(mSelectionNotifier);
+    if (mSelectionNotifier != NULL)
+        RemoveCallbacks(mSelectionNotifier);
 }
 
 void AdapterView::SelectionChanged()

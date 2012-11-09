@@ -3267,9 +3267,9 @@ ECode TextView::SetText(
 
     Boolean needEditableForNotification = FALSE;
 
-//    if (mListeners != NULL && mListeners.size() != 0) {
-//        needEditableForNotification = TRUE;
-//    }
+    if (mListeners.GetSize() != 0) {
+        needEditableForNotification = TRUE;
+    }
 
     if (type == BufferType_EDITABLE || mInput != NULL ||
         needEditableForNotification) {
@@ -4755,7 +4755,7 @@ void TextView::OnDraw(
     }
 
     mTextPaint->SetColor(color);
-    ((CTextPaint*)mTextPaint.Get())->mDrawableState = GetDrawableState();
+    ((CTextPaint*)mTextPaint.Get())->mDrawableState = GetDrawableState()->Clone();
 
     canvas->Save(&state);
     /*  Would be faster if we didn't have to do this. Can we chop the
@@ -7190,28 +7190,28 @@ void TextView::OnSelectionChanged(
  * if there are any text changed listeners forces the buffer type to
  * Editable if it would not otherwise be and does call this method.
  */
-//public void addTextChangedListener(TextWatcher watcher) {
-//    if (mListeners == NULL) {
-//        mListeners = new ArrayList<TextWatcher>();
-//    }
-//
-//    mListeners.add(watcher);
-//}
+void TextView::AddTextChangedListener(
+    /* [in] */ ITextWatcher* watcher)
+{
+    mListeners.PushBack(watcher);
+}
 
 /**
  * Removes the specified TextWatcher from the list of those whose
  * methods are called
  * whenever this TextView's text changes.
  */
-//public void removeTextChangedListener(TextWatcher watcher) {
-//    if (mListeners != NULL) {
-//        Int32 i = mListeners.indexOf(watcher);
-//
-//        if (i >= 0) {
-//            mListeners.remove(i);
-//        }
-//    }
-//}
+void TextView::RemoveTextChangedListener(
+    /* [in] */ ITextWatcher* watcher)
+{
+    List<AutoPtr<ITextWatcher> >::Iterator iter = mListeners.Begin();
+    for (; iter != mListeners.End(); ++iter) {
+        if (iter->Get() == watcher) {
+            mListeners.Erase(iter);
+            break;
+        }
+    }
+}
 
 void TextView::SendBeforeTextChanged(
     /* [in] */ ICharSequence* text,
@@ -7219,13 +7219,10 @@ void TextView::SendBeforeTextChanged(
     /* [in] */ Int32 before,
     /* [in] */ Int32 after)
 {
-    /*if (mListeners != NULL) {
-        final ArrayList<TextWatcher> list = mListeners;
-        final Int32 count = list.size();
-        for (Int32 i = 0; i < count; i++) {
-            list.get(i).beforeTextChanged(text, start, before, after);
-        }
-    }*/
+    List<AutoPtr<ITextWatcher> >::Iterator iter = mListeners.Begin();
+    for (; iter != mListeners.End(); ++iter) {
+        (*iter)->BeforeTextChanged(text, start, before, after);
+    }
 }
 
 /**
@@ -7238,13 +7235,10 @@ void TextView::SendOnTextChanged(
     /* [in] */ Int32 before,
     /* [in] */ Int32 after)
 {
-    /*if (mListeners != NULL) {
-        final ArrayList<TextWatcher> list = mListeners;
-        final Int32 count = list.size();
-        for (Int32 i = 0; i < count; i++) {
-            list.get(i).onTextChanged(text, start, before, after);
-        }
-    }*/
+    List<AutoPtr<ITextWatcher> >::Iterator iter = mListeners.Begin();
+    for (; iter != mListeners.End(); ++iter) {
+        (*iter)->OnTextChanged(text, start, before, after);
+    }
 }
 
 /**
@@ -7254,13 +7248,10 @@ void TextView::SendOnTextChanged(
 void TextView::SendAfterTextChanged(
     /* [in] */ IEditable* text)
 {
-    // if (mListeners != NULL) {
-    //     final ArrayList<TextWatcher> list = mListeners;
-    //     final Int32 count = list.size();
-    //     for (Int32 i = 0; i < count; i++) {
-    //         list.get(i).afterTextChanged(text);
-    //     }
-    // }
+    List<AutoPtr<ITextWatcher> >::Iterator iter = mListeners.Begin();
+    for (; iter != mListeners.End(); ++iter) {
+        (*iter)->AfterTextChanged(text);
+    }
 }
 
 /**
@@ -7424,6 +7415,7 @@ ECode TextView::SpanChange(
 //            }
 //        }
 //    }
+    return NOERROR;
 }
 
 void TextView::MakeBlink()
