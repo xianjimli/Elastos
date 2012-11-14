@@ -116,4 +116,6 @@ SOURCES += CExpandableListContextMenuInfo.cpp
 SOURCES += CExpandableListView.cpp
 SOURCES += GridView.cpp
 SOURCES += CGridView.cpp
+SOURCES += AbsSeekBar.cpp
+SOURCES += CAbsSeekBar.cpp
 

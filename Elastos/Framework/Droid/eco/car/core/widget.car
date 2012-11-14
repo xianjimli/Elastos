@@ -45,10 +45,11 @@ module
     merge("widget/RadioGroup.car");
     merge("widget/HeterogeneousExpandableList.car");
     merge("widget/ExpandableListAdapter.car");
-    merge("widget/ExpandableListConnector.car");    
+    merge("widget/ExpandableListConnector.car");
     merge("widget/ExpandableListPosition.car");
     merge("widget/ExpandableListView.car");
     merge("widget/GridView.car");
+    merge("widget/AbsSeekBar.car");
 
     class CScrollBarDrawable {
         interface IScrollBarDrawable;
@@ -993,8 +994,8 @@ module
 
     class CExpandableListContextMenuInfo {
         constructor(
-            [in] IView* targetView, 
-            [in] Int64 packedPosition, 
+            [in] IView* targetView,
+            [in] Int64 packedPosition,
             [in] Int64 id);
 
         interface IExpandableListContextMenuInfo;
@@ -1017,12 +1018,12 @@ module
             [in] IContext* context);
 
         constructor(
-            [in] IContext* context, 
+            [in] IContext* context,
             [in] IAttributeSet* attrs);
 
         constructor(
-            [in] IContext* context, 
-            [in] IAttributeSet* attrs, 
+            [in] IContext* context,
+            [in] IAttributeSet* attrs,
             [in] Int32 defStyle);
 
         interface IExpandableListView;
@@ -1063,22 +1064,41 @@ module
     }
 
     class CGridView {
-    
+
         constructor(
             [in] IContext* context);
 
         constructor(
-            [in] IContext* context, 
+            [in] IContext* context,
             [in] IAttributeSet* attrs);
 
         constructor(
-            [in] IContext* context, 
-            [in] IAttributeSet* attrs, 
+            [in] IContext* context,
+            [in] IAttributeSet* attrs,
             [in] Int32 defStyle);
 
         interface IGridView;
         interface IViewParent;
         interface IViewManager;
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
+    }
+
+    class CAbsSeekBar {
+        constructor(
+            [in] IContext* ctx);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
+
+        interface IAbsSeekBar;
         interface IDrawableCallback;
         interface IKeyEventCallback;
         interface IAccessibilityEventSource;
