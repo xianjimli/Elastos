@@ -1,0 +1,13 @@
+
+module {
+
+    interface IAlphabetIndexer extends IDataSetObserver
+    {
+        /**
+         * Sets a new cursor as the data set and resets the cache of indices.
+         * @param cursor the new cursor to use as the data set
+         */
+        SetCursor(
+            [in] ICursor* cursor);
+    }
+}

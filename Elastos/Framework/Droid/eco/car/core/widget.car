@@ -50,6 +50,7 @@ module
     merge("widget/ExpandableListView.car");
     merge("widget/GridView.car");
     merge("widget/AbsSeekBar.car");
+    merge("widget/AlphabetIndexer.car");
 
     class CScrollBarDrawable {
         interface IScrollBarDrawable;
@@ -1102,6 +1103,16 @@ module
         interface IDrawableCallback;
         interface IKeyEventCallback;
         interface IAccessibilityEventSource;
+    }
+
+    class CAlphabetIndexer {
+        constructor(
+            [in] ICursor* cursor, 
+            [in] Int32 sortedColumnIndex, 
+            [in] ICharSequence* alphabet);
+
+        interface IAlphabetIndexer;
+        interface ISectionIndexer;
     }
 }
 
