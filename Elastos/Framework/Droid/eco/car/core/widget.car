@@ -52,6 +52,7 @@ module
     merge("widget/AbsSeekBar.car");
     merge("widget/AlphabetIndexer.car");
     merge("widget/AnalogClock.car");
+    merge("widget/BaseExpandableListAdapter.car");
 
     class CScrollBarDrawable {
         interface IScrollBarDrawable;
@@ -1133,6 +1134,12 @@ module
         interface IDrawableCallback;
         interface IKeyEventCallback;
         interface IAccessibilityEventSource;
+    }
+
+    class CBaseExpandableListAdapter {
+        interface IBaseExpandableListAdapter;
+        interface IExpandableListAdapter;
+        interface IHeterogeneousExpandableList;
     }
 }
 

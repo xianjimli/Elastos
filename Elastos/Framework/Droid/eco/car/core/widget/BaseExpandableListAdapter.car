@@ -1,0 +1,9 @@
+
+module {
+    interface IBaseExpandableListAdapter
+    {
+        NotifyDataSetInvalidated();
+
+        NotifyDataSetChanged();
+    }
+}
