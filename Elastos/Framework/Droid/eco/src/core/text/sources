@@ -33,3 +33,4 @@ SOURCES += CEditableFactory.cpp
 SOURCES += CNoCopySpan.cpp
 
 LIBRARIES += method/method.lib
+#LIBRARIES += method/format.lib

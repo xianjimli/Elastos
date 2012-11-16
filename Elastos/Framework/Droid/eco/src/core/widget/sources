@@ -120,4 +120,6 @@ SOURCES += AbsSeekBar.cpp
 SOURCES += CAbsSeekBar.cpp
 SOURCES += AlphabetIndexer.cpp
 SOURCES += CAlphabetIndexer.cpp
+SOURCES += AnalogClock.cpp
+SOURCES += CAnalogClock.cpp
 

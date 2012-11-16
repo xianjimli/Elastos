@@ -51,6 +51,7 @@ module
     merge("widget/GridView.car");
     merge("widget/AbsSeekBar.car");
     merge("widget/AlphabetIndexer.car");
+    merge("widget/AnalogClock.car");
 
     class CScrollBarDrawable {
         interface IScrollBarDrawable;
@@ -1067,14 +1068,14 @@ module
     class CGridView {
 
         constructor(
-            [in] IContext* context);
+            [in] IContext* ctx);
 
         constructor(
-            [in] IContext* context,
+            [in] IContext* ctx,
             [in] IAttributeSet* attrs);
 
         constructor(
-            [in] IContext* context,
+            [in] IContext* ctx,
             [in] IAttributeSet* attrs,
             [in] Int32 defStyle);
 
@@ -1113,6 +1114,25 @@ module
 
         interface IAlphabetIndexer;
         interface ISectionIndexer;
+    }
+
+    class CAnalogClock {
+        constructor(
+            [in] IContext* ctx);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
+
+        interface IAnalogClock;
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
     }
 }
 
