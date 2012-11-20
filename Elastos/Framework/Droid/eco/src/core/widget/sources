@@ -124,4 +124,6 @@ SOURCES += AnalogClock.cpp
 SOURCES += CAnalogClock.cpp
 SOURCES += BaseExpandableListAdapter.cpp
 SOURCES += CBaseExpandableListAdapter.cpp
+SOURCES += CheckedTextView.cpp
+SOURCES += CCheckedTextView.cpp
 

@@ -1,0 +1,37 @@
+
+module 
+{
+    interface ICheckedTextView extends ITextView
+    {
+        Toggle();
+
+        IsChecked(
+            [out] Boolean* checked);
+
+        /**
+         * <p>Changes the checked state of this text view.</p>
+         *
+         * @param checked true to check the text, false to uncheck it
+         */
+        SetChecked(
+            [in] Boolean checked);
+
+
+        /**
+         * Set the checkmark to a given Drawable, identified by its resourece id. This will be drawn
+         * when {@link #isChecked()} is true.
+         * 
+         * @param resid The Drawable to use for the checkmark.
+         */
+        SetCheckMarkDrawable(
+            [in] Int32 resid);
+
+        /**
+         * Set the checkmark to a given Drawable. This will be drawn when {@link #isChecked()} is true.
+         *
+         * @param d The Drawable to use for the checkmark.
+         */
+        SetCheckMarkDrawableEx(
+            [in] IDrawable* d);
+    }
+}

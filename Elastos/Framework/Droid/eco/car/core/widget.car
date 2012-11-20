@@ -53,6 +53,7 @@ module
     merge("widget/AlphabetIndexer.car");
     merge("widget/AnalogClock.car");
     merge("widget/BaseExpandableListAdapter.car");
+    merge("widget/CheckedTextView.car");
 
     class CScrollBarDrawable {
         interface IScrollBarDrawable;
@@ -1140,6 +1141,26 @@ module
         interface IBaseExpandableListAdapter;
         interface IExpandableListAdapter;
         interface IHeterogeneousExpandableList;
+    }
+
+    class CCheckedTextView {
+        constructor(
+            [in] IContext* ctx);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
+
+        interface ICheckedTextView;
+        interface IOnPreDrawListener;
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
     }
 }
 
