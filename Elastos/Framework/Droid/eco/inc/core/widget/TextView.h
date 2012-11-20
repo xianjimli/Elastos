@@ -2754,20 +2754,40 @@ private:
     //}
 
     //// Context menu entries
-    //private static final Int32 ID_SELECT_ALL = android.R.id.selectAll;
-    //private static final Int32 ID_START_SELECTING_TEXT = android.R.id.startSelectingText;
-    //private static final Int32 ID_CUT = android.R.id.cut;
-    //private static final Int32 ID_COPY = android.R.id.copy;
-    //private static final Int32 ID_PASTE = android.R.id.paste;
-    //private static final Int32 ID_COPY_URL = android.R.id.copyUrl;
-    //private static final Int32 ID_SWITCH_INPUT_METHOD = android.R.id.switchInputMethod;
-    //private static final Int32 ID_ADD_TO_DICTIONARY = android.R.id.addToDictionary;
+    static const Int32 ID_SELECT_ALL = 0x0102001f/*android.R.id.selectAll*/;
+    static const Int32 ID_START_SELECTING_TEXT = 0x01020028 /*android.R.id.startSelectingText*/;
+    static const Int32 ID_CUT = 0x01020020 /*android.R.id.cut*/;
+    static const Int32 ID_COPY = 0x01020021 /*android.R.id.copy*/;
+    static const Int32 ID_PASTE = 0x01020022 /*android.R.id.paste*/;
+    static const Int32 ID_COPY_URL = 0x01020023 /*android.R.id.copyUrl*/;
+    static const Int32 ID_SWITCH_INPUT_METHOD = 0x01020024 /*android.R.id.switchInputMethod*/;
+    static const Int32 ID_ADD_TO_DICTIONARY = 0x0102002a /*android.R.id.addToDictionary*/;
 
-    //private class MenuHandler implements MenuItem.OnMenuItemClickListener {
-    //    public Boolean onMenuItemClick(MenuItem item) {
-    //        return onTextContextMenuItem(item.getItemId());
-    //    }
-    //}
+    class MenuHandler:
+        public ElRefBase,
+        public IOnMenuItemClickListener {
+    public:
+        MenuHandler(
+            /* [in] */ TextView* host);
+
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI OnMenuItemClick(
+            /* [in] */ IMenuItem* item,
+            /* [out] */ Boolean* isConsumed);
+
+    private:
+        TextView*   mHost;
+    };
 };
 
 #endif //__TEXTVIEW_H__

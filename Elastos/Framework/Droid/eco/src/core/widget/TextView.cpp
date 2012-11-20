@@ -1201,14 +1201,14 @@ const Int32 TextView::SERIF = 2;
 const Int32 TextView::MONOSPACE = 3;
 const Int32 TextView::SIGNED = 2;
 const Int32 TextView::DECIMAL = 4;
-//static const Int32 ID_SELECT_ALL = android.R.id.selectAll;
-//static const Int32 ID_START_SELECTING_TEXT = android.R.id.startSelectingText;
-//static const Int32 ID_CUT = android.R.id.cut;
-//static const Int32 ID_COPY = android.R.id.copy;
-//static const Int32 ID_PASTE = android.R.id.paste;
-//static const Int32 ID_COPY_URL = android.R.id.copyUrl;
-//static const Int32 ID_SWITCH_INPUT_METHOD = android.R.id.switchInputMethod;
-//static const Int32 ID_ADD_TO_DICTIONARY = android.R.id.addToDictionary;
+const Int32 TextView::ID_SELECT_ALL;
+const Int32 TextView::ID_START_SELECTING_TEXT;
+const Int32 TextView::ID_CUT;
+const Int32 TextView::ID_COPY;
+const Int32 TextView::ID_PASTE;
+const Int32 TextView::ID_COPY_URL;
+const Int32 TextView::ID_SWITCH_INPUT_METHOD;
+const Int32 TextView::ID_ADD_TO_DICTIONARY;
 AutoPtr<CRect> TextView::sCursorControllerTempRect = InitsCCTempRect();
 const Int32 TextView::LINES = 1;
 const Int32 TextView::EMS = LINES;
@@ -2933,6 +2933,7 @@ void TextView::UpdateTextColors()
         mCurTextColor = color;
         inval = TRUE;
     }
+
     if (mLinkTextColor != NULL) {
         mLinkTextColor->GetColorForState(GetDrawableState(), 0, &color);
         if (color != ((CTextPaint*)mTextPaint.Get())->mLinkColor) {
@@ -2940,6 +2941,7 @@ void TextView::UpdateTextColors()
             inval = TRUE;
         }
     }
+
     if (mHintTextColor != NULL) {
         mHintTextColor->GetColorForState(GetDrawableState(), 0, &color);
         Int32 len;
@@ -2949,6 +2951,7 @@ void TextView::UpdateTextColors()
             inval = TRUE;
         }
     }
+
     if (inval) {
         Invalidate();
     }
@@ -3234,7 +3237,7 @@ ECode TextView::SetText(
 
     if (!mUserSetTextScaleX) mTextPaint->SetTextScaleX(1.0f);
 
-    Int32 spanStart;
+    //Int32 spanStart;
     // if (ISpanned::Probe(text) &&
     //     (ISpanned::Probe(text)->GetSpanStart(
     //     TextUtilsTruncateAt_MARQUEE, &spanStart), spanStart) >= 0) {
@@ -3404,7 +3407,7 @@ ECode TextView::SetText(
 {
     Int32 oldlen = 0;
 
-    if (start < 0 || len < 0 || start + len > String((const char*)text.GetPayload()).GetCharCount()) {
+    if (start < 0 || len < 0 || start + len > (Int32)String((const char*)text.GetPayload()).GetCharCount()) {
 //        throw new IndexOutOfBoundsException(start + ", " + len);
         return E_INDEX_OUT_OF_BOUNDS_EXCEPTION;
     }
@@ -8323,100 +8326,134 @@ void TextView::SendAccessibilityEventTypeViewTextChanged(
 void TextView::OnCreateContextMenu(
     /* [in] */ IContextMenu* menu)
 {
-    //super.onCreateContextMenu(menu);
-    //Boolean added = FALSE;
-    //mContextMenuTriggeredByKey = mDPadCenterIsDown || mEnterKeyIsDown;
-    //// Problem with context menu on Int64 press: the menu appears while the key in down and when
-    //// the key is released, the view does not receive the key_up event. This ensures that the
-    //// state is reset whenever the context menu action is displayed.
-    //// mContextMenuTriggeredByKey saved that state so that it is available in
-    //// onTextContextMenuItem. We cannot simply clear these flags in onTextContextMenuItem since
-    //// it may not be called (if the user/ discards the context menu with the back key).
-    //mDPadCenterIsDown = mEnterKeyIsDown = FALSE;
+    View::OnCreateContextMenu(menu);
+    Boolean added = FALSE;
+    mContextMenuTriggeredByKey = mDPadCenterIsDown || mEnterKeyIsDown;
+    // Problem with context menu on Int64 press: the menu appears while the key in down and when
+    // the key is released, the view does not receive the key_up event. This ensures that the
+    // state is reset whenever the context menu action is displayed.
+    // mContextMenuTriggeredByKey saved that state so that it is available in
+    // onTextContextMenuItem. We cannot simply clear these flags in onTextContextMenuItem since
+    // it may not be called (if the user/ discards the context menu with the back key).
+    mDPadCenterIsDown = mEnterKeyIsDown = FALSE;
 
-    //if (mIsInTextSelectionMode) {
-    //    MenuHandler handler = new MenuHandler();
-    //
-    //    if (canCut()) {
-    //        menu.add(0, ID_CUT, 0, com.android.internal.R.string.cut).
-    //                setOnMenuItemClickListener(handler).
-    //                setAlphabeticShortcut('x');
-    //        added = TRUE;
-    //    }
+    if (mIsInTextSelectionMode) {
+       AutoPtr<MenuHandler> handler = new MenuHandler(this);
 
-    //    if (canCopy()) {
-    //        menu.add(0, ID_COPY, 0, com.android.internal.R.string.copy).
-    //                setOnMenuItemClickListener(handler).
-    //                setAlphabeticShortcut('c');
-    //        added = TRUE;
-    //    }
+       if (CanCut()) {
+           AutoPtr<IMenuItem> tmp;
+           menu->AddEx3(0, ID_CUT, 0, 0x01040003/*com.android.internal.R.string.cut*/, (IMenuItem**) &tmp);
+           tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
+           tmp->SetAlphabeticShortcut('x');
 
-    //    if (canPaste()) {
-    //        menu.add(0, ID_PASTE, 0, com.android.internal.R.string.paste).
-    //                setOnMenuItemClickListener(handler).
-    //                setAlphabeticShortcut('v');
-    //        added = TRUE;
-    //    }
-    //} else {
-    //    MenuHandler handler = new MenuHandler();
+           added = TRUE;
+       }
 
-    //    if (canSelectText()) {
-    //        if (!hasPasswordTransformationMethod()) {
-    //            // selectCurrentWord is not available on a password field and would return an
-    //            // arbitrary 10-charater selection around pressed position. Discard it.
-    //            // SelectAll is still useful to be able to clear the field using the delete key.
-    //            menu.add(0, ID_START_SELECTING_TEXT, 0, com.android.internal.R.string.selectText).
-    //            setOnMenuItemClickListener(handler);
-    //        }
-    //        menu.add(0, ID_SELECT_ALL, 0, com.android.internal.R.string.selectAll).
-    //                setOnMenuItemClickListener(handler).
-    //                setAlphabeticShortcut('a');
-    //        added = TRUE;
-    //    }
+       if (CanCopy()) {
+           AutoPtr<IMenuItem> tmp;
+           menu->AddEx3(0, ID_COPY, 0, 0x01040001 /*com.android.internal.R.string.copy*/, (IMenuItem**) &tmp);
+           tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
+           tmp->SetAlphabeticShortcut('c');
+           added = TRUE;
+       }
 
-    //    if (mText instanceof Spanned) {
-    //        Int32 selStart = getSelectionStart();
-    //        Int32 selEnd = getSelectionEnd();
+       if (CanPaste()) {
+           AutoPtr<IMenuItem> tmp;
+           menu->AddEx3(0, ID_PASTE, 0, 0x0104000b/*com.android.internal.R.string.paste*/, (IMenuItem**) &tmp);
+           tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
+           tmp->SetAlphabeticShortcut('v');
 
-    //        Int32 min = Math.min(selStart, selEnd);
-    //        Int32 max = Math.max(selStart, selEnd);
+           added = TRUE;
+       }
+    } else {
+       AutoPtr<MenuHandler> handler = new MenuHandler(this);
 
-    //        URLSpan[] urls = ((Spanned) mText).getSpans(min, max,
-    //                URLSpan.class);
-    //        if (urls.length == 1) {
-    //            menu.add(0, ID_COPY_URL, 0, com.android.internal.R.string.copyUrl).
-    //                    setOnMenuItemClickListener(handler);
-    //            added = TRUE;
-    //        }
-    //    }
-    //
-    //    if (canPaste()) {
-    //        menu.add(0, ID_PASTE, 0, com.android.internal.R.string.paste).
-    //                setOnMenuItemClickListener(handler).
-    //                setAlphabeticShortcut('v');
-    //        added = TRUE;
-    //    }
+       if (CanSelectText()) {
+           AutoPtr<IMenuItem> tmp;
 
-    //    if (isInputMethodTarget()) {
-    //        menu.add(1, ID_SWITCH_INPUT_METHOD, 0, com.android.internal.R.string.inputMethod).
-    //                setOnMenuItemClickListener(handler);
-    //        added = TRUE;
-    //    }
+           if (!HasPasswordTransformationMethod()) {
+               // selectCurrentWord is not available on a password field and would return an
+               // arbitrary 10-charater selection around pressed position. Discard it.
+               // SelectAll is still useful to be able to clear the field using the delete key.
+               menu->AddEx3(0, ID_START_SELECTING_TEXT, 0, 0x010402ec/*com.android.internal.R.string.selectText*/, (IMenuItem**) &tmp);
+               tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
+           }
 
-    //    String word = getWordForDictionary();
-    //    if (word != NULL) {
-    //        menu.add(1, ID_ADD_TO_DICTIONARY, 0,
-    //                getContext().getString(com.android.internal.R.string.addToDictionary, word)).
-    //                setOnMenuItemClickListener(handler);
-    //        added = TRUE;
+           menu->AddEx3(0, ID_SELECT_ALL, 0, 0x0104000d /*com.android.internal.R.string.selectAll*/, (IMenuItem**) &tmp);
+           tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
+           tmp->SetAlphabeticShortcut('a');
 
-    //    }
-    //}
+           added = TRUE;
+       }
 
-    //if (added) {
-    //    hideControllers();
-    //    menu.setHeaderTitle(com.android.internal.R.string.editTextMenuTitle);
-    //}
+       if (mText != NULL && mText->Probe(EIID_ISpanned) != NULL) {
+           Int32 selStart = GetSelectionStart();
+           Int32 selEnd = GetSelectionEnd();
+
+           Int32 min = Math::Min(selStart, selEnd);
+           Int32 max = Math::Max(selStart, selEnd);
+
+           // URLSpan[] urls = ((Spanned) mText).getSpans(min, max,
+           //         URLSpan.class);
+           ArrayOf<IInterface*>* urls;
+           ISpanned* sp = ISpanned::Probe(mText);
+           sp->GetSpans(min, max, EIID_IParagraphStyle, &urls);
+
+           if (urls->GetLength() == 1) {
+               AutoPtr<IMenuItem> tmp;
+               menu->AddEx3(0, ID_COPY_URL, 0, 0x01040002 /*com.android.internal.R.string.copyUrl*/, (IMenuItem**) &tmp);
+               tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
+
+               added = TRUE;
+           }
+       }
+
+       if (CanPaste()) {
+           AutoPtr<IMenuItem> tmp;
+           menu->AddEx3(0, ID_PASTE, 0, 0x0104000b /*com.android.internal.R.string.paste*/, (IMenuItem**) &tmp);
+           tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
+           tmp->SetAlphabeticShortcut('v');
+
+           added = TRUE;
+       }
+
+       if (IsInputMethodTarget()) {
+           AutoPtr<IMenuItem> tmp;
+           menu->AddEx3(1, ID_SWITCH_INPUT_METHOD, 0, 0x010402ed /*com.android.internal.R.string.inputMethod*/, (IMenuItem**) &tmp);
+           tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
+
+           added = TRUE;
+       }
+
+       String word;
+       GetWordForDictionary(&word);
+       if (!word.IsNull()) {
+           AutoPtr<IResources> resources;
+           GetContext()->GetResources((IResources**)&resources);
+
+           String dic;
+           resources->GetString(0x010402ee, &dic);
+           AutoPtr<ICharSequence> csq;
+           CStringWrapper::New(dic, (ICharSequence**)&csq);
+
+           AutoPtr<IMenuItem> tmp;
+           menu->AddEx2(1, ID_ADD_TO_DICTIONARY, 0,
+                csq,
+           //TODO:
+           //getContext().getString(0x010402ee /*com.android.internal.R.string.addToDictionary*/, word),
+                (IMenuItem**) &tmp);
+
+           tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
+
+           added = TRUE;
+
+       }
+    }
+
+    if (added) {
+       HideControllers();
+       menu->SetHeaderTitle(0x010402ef /*com.android.internal.R.string.editTextMenuTitle*/);
+    }
 }
 
 /**
@@ -8430,6 +8467,57 @@ Boolean TextView::IsInputMethodTarget()
     return FALSE;
 }
 
+TextView::MenuHandler::MenuHandler(
+    /* [in] */ TextView* host)
+    :mHost(host)
+{
+}
+
+ECode TextView::MenuHandler::OnMenuItemClick(
+    /* [in] */ IMenuItem* item,
+    /* [out] */ Boolean* isConsumed)
+{
+    Int32 id = 0;
+    item->GetItemId(&id);
+    *isConsumed = mHost->OnTextContextMenuItem(id);
+    return NOERROR;
+}
+
+PInterface TextView::MenuHandler::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IOnMenuItemClickListener) {
+        return (PInterface)(IOnMenuItemClickListener*)this;
+    }
+
+    return NULL;
+}
+
+ECode TextView::MenuHandler::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    VALIDATE_NOT_NULL(pIID);
+    if (pObject == (IInterface*)(IOnMenuItemClickListener*)this) {
+        *pIID = EIID_IOnMenuItemClickListener;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+
+    return NOERROR;
+}
+
+UInt32 TextView::MenuHandler::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 TextView::MenuHandler::Release()
+{
+    return ElRefBase::Release();
+}
+
 /**
  * Called when a context menu option for the text view is selected.  Currently
  * this will be one of: {@link android.R.id#selectAll},
@@ -8441,80 +8529,83 @@ Boolean TextView::IsInputMethodTarget()
 Boolean TextView::OnTextContextMenuItem(
     /* [in] */ Int32 id)
 {
-    /*Int32 min = 0;
-    Int32 max = mText.length();
+    assert(0);
+    // Int32 min = 0;
+    // Int32 max = 0;
+    // mText->GetLength(&max);
 
-    if (isFocused()) {
-        final Int32 selStart = getSelectionStart();
-        final Int32 selEnd = getSelectionEnd();
+    // if (IsFocused()) {
+    //     Int32 selStart = GetSelectionStart();
+    //     Int32 selEnd = GetSelectionEnd();
 
-        min = Math.max(0, Math.min(selStart, selEnd));
-        max = Math.max(0, Math.max(selStart, selEnd));
-    }
 
-    ClipboardManager clip = (ClipboardManager)getContext()
-            .getSystemService(Context.CLIPBOARD_SERVICE);
+    //     min = Math::Max(0, Math::Min(selStart, selEnd));
+    //     max = Math::Max(0, Math::Max(selStart, selEnd));
+    // }
 
-    switch (id) {
-        case ID_SELECT_ALL:
-            Selection::SetSelection(ISpannable::Probe(mText), 0, mText.length());
-            startTextSelectionMode();
-            getSelectionController().show();
-            return TRUE;
+    // ClipboardManager clip = (ClipboardManager)getContext()
+    //         .getSystemService(Context.CLIPBOARD_SERVICE);
 
-        case ID_START_SELECTING_TEXT:
-            startTextSelectionMode();
-            getSelectionController().show();
-            return TRUE;
+    // switch (id) {
+    //     case ID_SELECT_ALL:
+    //         Selection::SetSelection(ISpannable::Probe(mText), 0, mText.length());
+    //         startTextSelectionMode();
+    //         getSelectionController().show();
+    //         return TRUE;
 
-        case ID_CUT:
-            clip.setText(mTransformed.subSequence(min, max));
-            (IEditable::Probe(mText)).delete(min, max);
-            stopTextSelectionMode();
-            return TRUE;
+    //     case ID_START_SELECTING_TEXT:
+    //         startTextSelectionMode();
+    //         getSelectionController().show();
+    //         return TRUE;
 
-        case ID_COPY:
-            clip.setText(mTransformed.subSequence(min, max));
-            stopTextSelectionMode();
-            return TRUE;
+    //     case ID_CUT:
+    //         clip.setText(mTransformed.subSequence(min, max));
+    //         (IEditable::Probe(mText)).delete(min, max);
+    //         stopTextSelectionMode();
+    //         return TRUE;
 
-        case ID_PASTE:
-            CharSequence paste = clip.getText();
+    //     case ID_COPY:
+    //         clip.setText(mTransformed.subSequence(min, max));
+    //         stopTextSelectionMode();
+    //         return TRUE;
 
-            if (paste != NULL && paste.length() > 0) {
-                Int64 minMax = prepareSpacesAroundPaste(min, max, paste);
-                min = extractRangeStartFromLong(minMax);
-                max = extractRangeEndFromLong(minMax);
-                Selection::SetSelection(ISpannable::Probe(mText), max);
-                (IEditable::Probe(mText)).replace(min, max, paste);
-                stopTextSelectionMode();
-            }
-            return TRUE;
+    //     case ID_PASTE:
+    //         CharSequence paste = clip.getText();
 
-        case ID_COPY_URL:
-            URLSpan[] urls = ((Spanned) mText).getSpans(min, max, URLSpan.class);
-            if (urls.length == 1) {
-                clip.setText(urls[0].getURL());
-            }
-            return TRUE;
+    //         if (paste != NULL && paste.length() > 0) {
+    //             Int64 minMax = prepareSpacesAroundPaste(min, max, paste);
+    //             min = extractRangeStartFromLong(minMax);
+    //             max = extractRangeEndFromLong(minMax);
+    //             Selection::SetSelection(ISpannable::Probe(mText), max);
+    //             (IEditable::Probe(mText)).replace(min, max, paste);
+    //             stopTextSelectionMode();
+    //         }
+    //         return TRUE;
 
-        case ID_SWITCH_INPUT_METHOD:
-            InputMethodManager imm = InputMethodManager.peekInstance();
-            if (imm != NULL) {
-                imm.showInputMethodPicker();
-            }
-            return TRUE;
+    //     case ID_COPY_URL:
+    //         URLSpan[] urls = ((Spanned) mText).getSpans(min, max, URLSpan.class);
+    //         if (urls.length == 1) {
+    //             clip.setText(urls[0].getURL());
+    //         }
+    //         return TRUE;
 
-        case ID_ADD_TO_DICTIONARY:
-            String word = getWordForDictionary();
-            if (word != NULL) {
-                Intent i = new Intent("com.android.settings.USER_DICTIONARY_INSERT");
-                i.putExtra("word", word);
-                i.setFlags(i.getFlags() | Intent.FLAG_ACTIVITY_NEW_TASK);
-                getContext().startActivity(i);
-            }
-            return TRUE;
-        }*/
+    //     case ID_SWITCH_INPUT_METHOD:
+    //         InputMethodManager imm = InputMethodManager.peekInstance();
+    //         if (imm != NULL) {
+    //             imm.showInputMethodPicker();
+    //         }
+    //         return TRUE;
+
+    //     case ID_ADD_TO_DICTIONARY:
+    //         String word = getWordForDictionary();
+    //         if (word != NULL) {
+    //             Intent i = new Intent("com.android.settings.USER_DICTIONARY_INSERT");
+    //             i.putExtra("word", word);
+    //             i.setFlags(i.getFlags() | Intent.FLAG_ACTIVITY_NEW_TASK);
+    //             getContext().startActivity(i);
+    //         }
+    //         return TRUE;
+    //     }
 
     return FALSE;
 }
@@ -8819,7 +8910,6 @@ ECode TextView::InitFromAttributes(
         (IEditableFactory**)&mEditableFactory));
 
     CStringWrapper::New(String(""), (ICharSequence**)&mText);
-
     AutoPtr<IDisplayMetrics> dm;
     AutoPtr<ICompatibilityInfo> ci;
     GetResources()->GetDisplayMetrics((IDisplayMetrics**)&dm);
@@ -8832,7 +8922,6 @@ ECode TextView::InitFromAttributes(
     // If we get the paint from the skin, we should set it to left, since
     // the layout always wants it to be left.
     // mTextPaint.setTextAlign(Paint.Align.LEFT);
-
     ASSERT_SUCCEEDED(CPaint::New(Paint_ANTI_ALIAS_FLAG,
             (IPaint**)&mHighlightPaint));
     AutoPtr<ICompatibilityInfo> compatibilityInfo;
@@ -8843,7 +8932,6 @@ ECode TextView::InitFromAttributes(
 
     mMovement = GetDefaultMovementMethod();
     mTransformation = NULL;
-
     AutoPtr<ITypedArray> a;
     ASSERT_SUCCEEDED(context->ObtainStyledAttributesEx3(attrs,
             ArrayOf<Int32>(R_Styleable_TextView, sizeof(R_Styleable_TextView) / sizeof(Int32)),/*com.android.internal.R.styleable.TextView*/
@@ -8856,7 +8944,6 @@ ECode TextView::InitFromAttributes(
     Int32 textSize = 15;
     Int32 typefaceIndex = -1;
     Int32 styleIndex = -1;
-
     /*
      * Look the appearance up without checking first if it exists because
      * almost every TextView has one and it greatly simplifies the logic
@@ -9235,10 +9322,10 @@ ECode TextView::InitFromAttributes(
 //            try {
             a->GetResourceId(attr, 0, &value);
             ECode ec = SetInputExtras(value);
-            if (ec == E_XML_PULL_PARSER_EXCEPTION) {
+            if (ec == (Int32)E_XML_PULL_PARSER_EXCEPTION) {
 
             }
-            else if (ec == E_IO_EXCEPTION) {
+            else if (ec == (Int32)E_IO_EXCEPTION) {
 
             }
 //            } catch (XmlPullParserException e) {
@@ -9431,11 +9518,12 @@ ECode TextView::InitFromAttributes(
     SetTextColor(textColor);
     SetHintTextColor(textColorHint);
     SetLinkTextColor(textColorLink);
+
     if (textColorHighlight != 0) {
         SetHighlightColor(textColorHighlight);
     }
-    SetRawTextSize(textSize);
 
+    SetRawTextSize(textSize);
 //    if (password) {
 //        setTransformationMethod(PasswordTransformationMethod.getInstance());
 //        typefaceIndex = MONOSPACE;
@@ -9448,7 +9536,6 @@ ECode TextView::InitFromAttributes(
 //    }
 
     SetTypefaceByIndex(typefaceIndex, styleIndex);
-
     if (shadowcolor != 0) {
         SetShadowLayer(r, dx, dy, shadowcolor);
     }
@@ -9494,12 +9581,11 @@ ECode TextView::InitFromAttributes(
             break;
         }
     }
-    a->Recycle();
 
+    a->Recycle();
     SetFocusable(focusable);
     SetClickable(clickable);
     SetLongClickable(longClickable);
-
     PrepareCursorControllers();
 
     return NOERROR;

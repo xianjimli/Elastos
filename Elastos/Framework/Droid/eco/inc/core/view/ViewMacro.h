@@ -2937,6 +2937,9 @@ ECode className::SetLayoutAnimationListener(                            \
         /* [in] */ IView* originalView,                                 \
         /* [out] */ Boolean* result);                                   \
                                                                         \
+    CARAPI CreateContextMenuEx(                                         \
+        /* [in] */ IContextMenu* menu);                                 \
+                                                                        \
     CARAPI ChildDrawableStateChanged(                                   \
         /* [in] */ IView* child);                                       \
                                                                         \
@@ -3063,6 +3066,12 @@ ECode className::ShowContextMenuForChild(                               \
     *result = superClass::ShowContextMenuForChild(originalView);        \
                                                                         \
     return NOERROR;                                                     \
+}                                                                       \
+                                                                        \
+ECode className::CreateContextMenuEx(                                   \
+    /* [in] */ IContextMenu* menu)                                      \
+{                                                                       \
+    return superClass::CreateContextMenu(menu);                         \
 }                                                                       \
                                                                         \
 ECode className::ChildDrawableStateChanged(                             \

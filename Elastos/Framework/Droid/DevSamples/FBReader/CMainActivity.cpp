@@ -260,6 +260,8 @@ ECode CMainActivity::OnCreate(
 
 	LoadContentsListView();
 
+    InitContextMenu();
+
     return NOERROR;
 }
 
@@ -565,5 +567,44 @@ ECode CMainActivity::LoadBooksList() {
         m_booksListView->SetAdapter(adapter.Get());
     }
 
+    return NOERROR;
+}
+
+void CMainActivity::InitContextMenu()
+{
+    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+    RegisterForContextMenu(m_textView1);
+    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+}
+
+ECode CMainActivity::OnCreateContextMenu(
+    /* [in] */ IContextMenu* menu,
+    /* [in] */ IView* v,
+    /* [in] */ IContextMenuInfo* menuInfo)
+{
+    AutoPtr<IMenuItem> item = NULL;
+    AutoPtr<ICharSequence> csq;
+    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+    CStringWrapper::New(String("ctxItem1"), (ICharSequence**)&csq);
+    menu->AddEx2(0, 1, 1, csq, (IMenuItem**) &item);
+
+    CStringWrapper::New(String("ctxItem2"), (ICharSequence**)&csq);
+    menu->AddEx2(0, 2, 2, csq, (IMenuItem**) &item);
+
+    return NOERROR;
+}
+
+ECode CMainActivity::OnContextItemSelected(
+        /* [in] */ IMenuItem* item,
+        /* [out] */ Boolean* res)
+{
+    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+    Int32 menuID = -1;
+    item->GetItemId(&menuID);
+    switch(menuID) {
+        //case:
+    }
+
+    *res = TRUE;
     return NOERROR;
 }

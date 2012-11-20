@@ -57,6 +57,9 @@ PInterface Activity::Probe(
     else if (riid == EIID_IKeyEventCallback) {
         return (IKeyEventCallback*)this;
     }
+    else if (riid == EIID_IViewOnCreateContextMenuListener) {
+        return (IViewOnCreateContextMenuListener*)this;
+    }
 
     return NULL;
 }
@@ -1587,6 +1590,13 @@ ECode Activity::CloseOptionsMenu()
     return mWindow->ClosePanel(Window_FEATURE_OPTIONS_PANEL);
 }
 
+ECode Activity::OnCreateContextMenu(
+    /* [in] */ IContextMenu* menu,
+    /* [in] */ IView* v,
+    /* [in] */ IContextMenuInfo* menuInfo)
+{
+    return NOERROR;
+}
 
 ECode Activity::RegisterForContextMenu(
     /* [in] */ IView* view)

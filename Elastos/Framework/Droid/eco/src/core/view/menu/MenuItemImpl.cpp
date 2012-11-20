@@ -793,14 +793,12 @@ AutoPtr<IMenuItemView> MenuItemImpl::CreateItemView(
     AutoPtr<ILayoutInflater> layoutInflater;
     GetLayoutInflater(menuType, (ILayoutInflater**)&layoutInflater);
     AutoPtr<IView> view;
-
     ASSERT_SUCCEEDED(layoutInflater->InflateEx2(
             MenuBuilder::ITEM_LAYOUT_RES_FOR_TYPE[menuType],
             parent, FALSE, (IView**)&view));
 
     AutoPtr<IMenuItemView> itemView = IMenuItemView::Probe(view);
     itemView->Initialize(this, menuType);
-
     return itemView;
 }
 

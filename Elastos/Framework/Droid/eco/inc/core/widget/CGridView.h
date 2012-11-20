@@ -1097,6 +1097,9 @@ public:
         /* [in] */ IView * pOriginalView,
         /* [out] */ Boolean * pResult);
 
+    CARAPI CreateContextMenuEx(
+        /* [in] */ IContextMenu* menu);
+
     CARAPI ChildDrawableStateChanged(
         /* [in] */ IView * pChild);
 

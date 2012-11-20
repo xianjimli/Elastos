@@ -64,6 +64,15 @@ public:
         /* [in] */ IMenuItem* item,
         /* [out] */ Boolean* res);
 
+    virtual CARAPI OnCreateContextMenu(
+        /* [in] */ IContextMenu* menu,
+        /* [in] */ IView* v,
+        /* [in] */ IContextMenuInfo* menuInfo);
+
+    virtual CARAPI OnContextItemSelected(
+        /* [in] */ IMenuItem* item,
+        /* [out] */ Boolean* res);
+
 protected:
     CARAPI OnCreate(
         /* [in] */ IBundle* savedInstanceState);
@@ -103,6 +112,8 @@ private:
     Int32 GetListFlag() {
         return m_listFlag;
     }
+
+    void InitContextMenu();
 
 private:
     AutoPtr<IBook>     mBook;

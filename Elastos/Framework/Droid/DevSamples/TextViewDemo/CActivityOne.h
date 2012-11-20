@@ -59,6 +59,12 @@ public:
         Int32 mRef;
     };
 
+public:
+    virtual CARAPI OnCreateContextMenu(
+        /* [in] */ IContextMenu* menu,
+        /* [in] */ IView* v,
+        /* [in] */ IContextMenuInfo* menuInfo);
+
 protected:
     CARAPI OnCreate(
         /* [in] */ IBundle* savedInstanceState);
@@ -73,8 +79,8 @@ protected:
 
     CARAPI OnDestroy();
 
-		CARAPI_(AutoPtr<IDialog>) OnCreateDialog(
-        /* [in] */ Int32 id);
+	CARAPI_(AutoPtr<IDialog>) OnCreateDialog(
+    /* [in] */ Int32 id);
 
 private:
     CARAPI OnActivityResult(

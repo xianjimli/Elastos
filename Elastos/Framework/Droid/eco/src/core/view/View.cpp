@@ -380,9 +380,9 @@ ECode View::ScrollabilityCache::Run()
         // the opacity (alpha) from fully opaque to fully
         // transparent
         Int32 nextFrame = (Int32)now;
-        Int32 framesCount = 0;
+        //Int32 framesCount = 0;
 
-        Interpolator* interpolator = mScrollBarInterpolator;
+        //Interpolator* interpolator = mScrollBarInterpolator;
 
         // Start opaque
 //        interpolator->SetKeyFrame(framesCount++, nextFrame, mHost->mOpaque);
@@ -887,6 +887,7 @@ ECode View::SetOnCreateContextMenuListener(
     if (!IsLongClickable()) {
         SetLongClickable(TRUE);
     }
+
     mOnCreateContextMenuListener = l;
 
     return NOERROR;
@@ -3122,25 +3123,27 @@ Boolean View::CheckInputConnectionProxy(
 ECode View::CreateContextMenu(
     /* [in] */ IContextMenu* menu)
 {
-    //AutoPtr<IContextMenuInfo> menuInfo = GetContextMenuInfo();
+    AutoPtr<IContextMenuInfo> menuInfo = GetContextMenuInfo();
 
-    //// Sets the current menu info so all items added to menu will have
-    //// my extra info set.
-    //((MenuBuilder)menu)->SetCurrentMenuInfo(menuInfo);
+    // Sets the current menu info so all items added to menu will have
+    // my extra info set.
+    IMenuBuilder::Probe(menu)->SetCurrentMenuInfo(menuInfo);
 
-    //OnCreateContextMenu(menu);
-    //if (mOnCreateContextMenuListener != NULL) {
-    //    mOnCreateContextMenuListener->OnCreateContextMenu(menu, this, menuInfo);
-    //}
+    OnCreateContextMenu(menu);
+    if (mOnCreateContextMenuListener != NULL) {
+        mOnCreateContextMenuListener->OnCreateContextMenu(menu, (IView*)this->Probe(EIID_IView),
+                menuInfo.Get());
+    }
 
-    //// Clear the extra information so subsequent items that aren't mine don't
-    //// have my extra info.
-    //((MenuBuilder)menu)->SetCurrentMenuInfo(NULL);
+    // Clear the extra information so subsequent items that aren't mine don't
+    // have my extra info.
+    IMenuBuilder::Probe(menu)->SetCurrentMenuInfo(NULL);
 
-    //if (mParent != NULL) {
-    //    mParent->CreateContextMenu(menu);
-    //}
-    return E_NOT_IMPLEMENTED;
+    if (mParent != NULL) {
+        mParent->CreateContextMenuEx(menu);
+    }
+
+    return NOERROR;
 }
 
 /**
@@ -6439,7 +6442,6 @@ Boolean View::SetFrame(
         mTop = top;
         mRight = right;
         mBottom = bottom;
-
         mPrivateFlags |= HAS_BOUNDS;
 
         Int32 newWidth = right - left;

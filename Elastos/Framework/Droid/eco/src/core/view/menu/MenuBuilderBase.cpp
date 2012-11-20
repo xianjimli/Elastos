@@ -163,6 +163,15 @@ PInterface MenuBuilderBase::MenuAdapter::Probe(
     if (riid == EIID_IMenuAdapter) {
         return (IMenuAdapter*)this;
     }
+    else if (riid == EIID_IBaseAdapter) {
+        return (IBaseAdapter*)this;
+    }
+    else if (riid == EIID_IListAdapter) {
+        return (IListAdapter*)this;
+    }
+    else if (riid == EIID_IAdapter) {
+        return (IAdapter*)this;
+    }
 
     return NULL;
 }
@@ -183,6 +192,15 @@ ECode MenuBuilderBase::MenuAdapter::GetInterfaceID(
 {
     if (pObject == (IInterface*)(IMenuAdapter*)this) {
         *pIID = EIID_IMenuAdapter;
+    }
+    else if (pObject == (IInterface*)(IBaseAdapter*)this) {
+        *pIID = EIID_IBaseAdapter;
+    }
+    else if (pObject == (IInterface*)(IListAdapter*)this) {
+        *pIID = EIID_IListAdapter;
+    }
+    else if (pObject == (IInterface*)(IAdapter*)this) {
+        *pIID = EIID_IAdapter;
     }
     else {
         return E_INVALID_ARGUMENT;

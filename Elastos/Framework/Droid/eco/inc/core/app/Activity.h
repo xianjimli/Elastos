@@ -20,6 +20,7 @@ class Activity
     , public IActivity
     , public IWindowCallback
     , public IKeyEventCallback
+    , public IViewOnCreateContextMenuListener
 {
 public:
 
@@ -353,6 +354,11 @@ public:
      * @see Activity#closeOptionsMenu()
      */
     CARAPI CloseOptionsMenu();
+
+    CARAPI OnCreateContextMenu(
+        /* [in] */ IContextMenu* menu,
+        /* [in] */ IView* v,
+        /* [in] */ IContextMenuInfo* menuInfo);
 
     /**
      * @see Activity#registerForContextMenu(View)

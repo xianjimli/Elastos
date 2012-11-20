@@ -4141,6 +4141,12 @@ ECode ViewRoot::ShowContextMenuForChild(
     return NOERROR;
 }
 
+ECode ViewRoot::CreateContextMenuEx(
+    /* [in] */ IContextMenu* menu)
+{
+    return NOERROR;
+}
+
 void ViewRoot::CreateContextMenu(
     /* [in] */ IContextMenu* menu)
 {

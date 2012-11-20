@@ -123,4 +123,3 @@ ECode CExpandedMenuView::OnFilterComplete(
 {
     return ExpandedMenuView::OnFilterComplete(count);
 }
-

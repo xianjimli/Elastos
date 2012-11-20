@@ -2446,6 +2446,13 @@ ECode CGridView::ShowContextMenuForChild(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode CGridView::CreateContextMenuEx(
+    /* [in] */ IContextMenu* menu)
+{
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
 ECode CGridView::ChildDrawableStateChanged(
     /* [in] */ IView * pChild)
 {

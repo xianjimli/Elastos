@@ -202,6 +202,8 @@ ECode CActivityOne::OnCreate(
 
     AutoPtr<IView> view = FindViewById(0x7f050007);
     assert(view != NULL);
+    printf("==== File: %s, Line: %d ====, FUNC : %s, view == [0x%08x].\n", __FILE__, __LINE__, __FUNCTION__, view.Get());
+    RegisterForContextMenu(view.Get());
 
     AutoPtr<IObjectContainer> strs;
     CParcelableObjectContainer::New((IObjectContainer**)&strs);
@@ -301,82 +303,116 @@ ECode CActivityOne::OnActivityResult(
     return NOERROR;
 }
 
-//AutoPtr<IDialog> CActivityOne::OnCreateDialog(
-//    /* [in] */ Int32 id)
-//{
-//    AutoPtr<IAlertDialogBuilder> builder;
-//    CAlertDialogBuilder::New(this, (IAlertDialogBuilder**)&builder);
-//
-//    AutoPtr<ICharSequence> cs;
-//    CStringWrapper::New(String("普通对话框"), (ICharSequence**)&cs);
-//    builder->SetTitleEx(cs);    //标题
-//
-//    cs = NULL;
-//    CStringWrapper::New(String("这是一个普通对话框"), (ICharSequence**)&cs);
-//    builder->SetMessageEx(cs);    //对话框显示内容
-//
-//      //设置按钮
-//    AutoPtr<MyListener> l = new MyListener(this);
-//
-//    cs = NULL;
-//    CStringWrapper::New(String("确定"), (ICharSequence**)&cs);
-//    builder->SetPositiveButtonEx(cs, (IDialogInterfaceOnClickListener*)l.Get());
-//
-//    cs = NULL;
-//    CStringWrapper::New(String("中立"), (ICharSequence**)&cs);
-//      builder->SetNeutralButtonEx(cs, (IDialogInterfaceOnClickListener*)l.Get());
-//
-//    cs = NULL;
-//    CStringWrapper::New(String("取消"), (ICharSequence**)&cs);
-//      builder->SetNegativeButtonEx(cs, (IDialogInterfaceOnClickListener*)l.Get());
-//
-//      //创建Dialog对象
-//      AutoPtr<IAlertDialog> dlg;
-//      builder->Create((IAlertDialog**)&dlg);
-//
-//      return dlg;
-//}
-
 AutoPtr<IDialog> CActivityOne::OnCreateDialog(
-    /* [in] */ Int32 id)
+   /* [in] */ Int32 id)
 {
-    AutoPtr<IDialog> dlg;
-    CDialog::New(this, (IDialog**)&dlg);
+   AutoPtr<IAlertDialogBuilder> builder;
+   CAlertDialogBuilder::New(this, (IAlertDialogBuilder**)&builder);
 
-    AutoPtr<ICharSequence> cs;
-    CStringWrapper::New(String("对话框"), (ICharSequence**)&cs);
-    dlg->SetTitle(cs);
-    dlg->SetCancelable(TRUE);
-    dlg->SetContentView(0x7f030000);
+   AutoPtr<ICharSequence> cs;
+   CStringWrapper::New(String("普通对话框"), (ICharSequence**)&cs);
+   builder->SetTitleEx(cs);    //标题
 
-    AutoPtr<IWindow> wnd;
-    dlg->GetWindow((IWindow**)&wnd);
-    wnd->SetTitleColor(0xFFFFFFFF);
+   cs = NULL;
+   CStringWrapper::New(String("这是一个普通对话框"), (ICharSequence**)&cs);
+   builder->SetMessageEx(cs);    //对话框显示内容
 
-    AutoPtr<IView> view;
-    dlg->FindViewById(0x7f050002, (IView**)&view);
-    assert(view != NULL);
+     //设置按钮
+   AutoPtr<MyListener> l = new MyListener(this);
 
-    AutoPtr<ITextView> textView = ITextView::Probe(view);
-    cs = NULL;
-    CStringWrapper::New(String("这是一个对话框"), (ICharSequence**)&cs);
-    textView->SetText(cs);    //对话框显示内容
-    textView->SetTextColor(0xFFFFFFFF);
+   cs = NULL;
+   CStringWrapper::New(String("确定"), (ICharSequence**)&cs);
+   builder->SetPositiveButtonEx(cs, (IDialogInterfaceOnClickListener*)l.Get());
 
-    dlg->FindViewById(0x7f050004, (IView**)&mButton1);
-    assert(mButton1 != NULL);
+   cs = NULL;
+   CStringWrapper::New(String("中立"), (ICharSequence**)&cs);
+     builder->SetNeutralButtonEx(cs, (IDialogInterfaceOnClickListener*)l.Get());
 
-    dlg->FindViewById(0x7f050006, (IView**)&mButton2);
-    assert(mButton2 != NULL);
+   cs = NULL;
+   CStringWrapper::New(String("取消"), (ICharSequence**)&cs);
+     builder->SetNegativeButtonEx(cs, (IDialogInterfaceOnClickListener*)l.Get());
 
-    dlg->FindViewById(0x7f050005, (IView**)&mButton3);
-    assert(mButton3 != NULL);
+     //创建Dialog对象
+     AutoPtr<IAlertDialog> dlg;
+     builder->Create((IAlertDialog**)&dlg);
 
-    AutoPtr<MyListener> l = new MyListener(this);
+     return dlg;
+}
 
-    mButton1->SetOnClickListener((IViewOnClickListener*)l.Get());
-    mButton2->SetOnClickListener((IViewOnClickListener*)l.Get());
-    mButton3->SetOnClickListener((IViewOnClickListener*)l.Get());
+// AutoPtr<IDialog> CActivityOne::OnCreateDialog(
+//     /* [in] */ Int32 id)
+// {
+//     AutoPtr<IDialog> dlg;
+//     CDialog::New(this, (IDialog**)&dlg);
 
-    return dlg;
+//     AutoPtr<ICharSequence> cs;
+//     CStringWrapper::New(String("对话框"), (ICharSequence**)&cs);
+//     dlg->SetTitle(cs);
+//     dlg->SetCancelable(TRUE);
+//     dlg->SetContentView(0x7f030000);
+
+//     AutoPtr<IWindow> wnd;
+//     dlg->GetWindow((IWindow**)&wnd);
+//     wnd->SetTitleColor(0xFFFFFFFF);
+
+//     AutoPtr<IView> view;
+//     dlg->FindViewById(0x7f050002, (IView**)&view);
+//     assert(view != NULL);
+
+//     AutoPtr<ITextView> textView = ITextView::Probe(view);
+//     cs = NULL;
+//     CStringWrapper::New(String("这是一个对话框"), (ICharSequence**)&cs);
+//     textView->SetText(cs);    //对话框显示内容
+//     textView->SetTextColor(0xFFFFFFFF);
+
+//     dlg->FindViewById(0x7f050004, (IView**)&mButton1);
+//     assert(mButton1 != NULL);
+
+//     dlg->FindViewById(0x7f050006, (IView**)&mButton2);
+//     assert(mButton2 != NULL);
+
+//     dlg->FindViewById(0x7f050005, (IView**)&mButton3);
+//     assert(mButton3 != NULL);
+
+//     AutoPtr<MyListener> l = new MyListener(this);
+
+//     mButton1->SetOnClickListener((IViewOnClickListener*)l.Get());
+//     mButton2->SetOnClickListener((IViewOnClickListener*)l.Get());
+//     mButton3->SetOnClickListener((IViewOnClickListener*)l.Get());
+
+//     return dlg;
+// }
+
+ECode CActivityOne::OnCreateContextMenu(
+    /* [in] */ IContextMenu* menu,
+    /* [in] */ IView* v,
+    /* [in] */ IContextMenuInfo* menuInfo)
+{
+
+    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+    AutoPtr<IMenuItem> item = NULL;
+    AutoPtr<ICharSequence> csq;
+    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+    CStringWrapper::New(String("ctxItem1"), (ICharSequence**)&csq);
+    menu->AddEx2(0, 1, 1, csq, (IMenuItem**) &item);
+
+    CStringWrapper::New(String("ctxItem2"), (ICharSequence**)&csq);
+    menu->AddEx2(0, 2, 2, csq, (IMenuItem**) &item);
+
+    CStringWrapper::New(String("ctxItem3"), (ICharSequence**)&csq);
+    menu->AddEx2(0, 3, 3, csq, (IMenuItem**) &item);
+
+    CStringWrapper::New(String("ctxItem4"), (ICharSequence**)&csq);
+    menu->AddEx2(0, 4, 4, csq, (IMenuItem**) &item);
+
+    CStringWrapper::New(String("ctxItem5"), (ICharSequence**)&csq);
+    menu->AddEx2(0, 5, 5, csq, (IMenuItem**) &item);
+
+    CStringWrapper::New(String("ctxItem6"), (ICharSequence**)&csq);
+    menu->AddEx2(0, 6, 6, csq, (IMenuItem**) &item);
+
+    CStringWrapper::New(String("ctxItem6"), (ICharSequence**)&csq);
+    menu->AddEx2(0, 7, 7, csq, (IMenuItem**) &item);
+
+    return NOERROR;
 }

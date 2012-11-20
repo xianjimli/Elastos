@@ -523,6 +523,9 @@ public:
         /* [in] */ IView* originalView,
         /* [out] */ Boolean* result);
 
+    CARAPI CreateContextMenuEx(
+        /* [in] */ IContextMenu* menu);
+
     CARAPI_(void) CreateContextMenu(
         /* [in] */ IContextMenu* menu);
 

@@ -44,6 +44,25 @@ module
             [in] IAttributeSet* attrs);
     }
 
+    class CListMenuItemView {
+        interface ILinearLayout;
+        interface IMenuItemView;
+        interface IViewParent;
+        interface IViewManager;
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+    }
+
     class CIconMenuViewLayoutParams {
         interface IIconMenuViewLayoutParams;
 

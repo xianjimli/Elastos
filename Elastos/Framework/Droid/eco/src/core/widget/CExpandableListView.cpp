@@ -2801,6 +2801,13 @@ ECode CExpandableListView::ShowContextMenuForChild(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode CExpandableListView::CreateContextMenuEx(
+    /* [in] */ IContextMenu* menu)
+{
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
 ECode CExpandableListView::ChildDrawableStateChanged(
     /* [in] */ IView * pChild)
 {

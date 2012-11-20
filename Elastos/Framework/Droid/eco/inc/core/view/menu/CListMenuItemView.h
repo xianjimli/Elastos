@@ -2,230 +2,154 @@
 #ifndef _CLISTMENUITEMVIEW_H__
 #define _CLISTMENUITEMVIEW_H__
 
-class CListMenuItemView: public BaseMenuItemView,
+#include "_CListMenuItemView.h"
+#include "view/ViewMacro.h"
+#include "view/menu/MenuItemImpl.h"
+#include <widget/LinearLayout.h>
+#include <elastos/AutoPtr.h>
 
 
+class _ListMenuItemView:
+    public ElRefBase,
+    public LinearLayout
+{
+public:
+    _ListMenuItemView();
 
+    ~_ListMenuItemView();
 
+    CARAPI_(UInt32) AddRef();
 
+    CARAPI_(UInt32) Release();
 
+protected:
+    virtual CARAPI OnFinishInflate();
 
+protected:
+    AutoPtr<MenuItemImpl> mItemData;
 
+    AutoPtr<IImageView> mIconView;
+    AutoPtr<IRadioButton> mRadioButton;
+    AutoPtr<ITextView> mTitleView;
+    AutoPtr<ICheckBox> mCheckBox;
+    AutoPtr<ITextView> mShortcutView;
+
+    AutoPtr<IDrawable> mBackground;
+    Int32 mTextAppearance;
+    AutoPtr<IContext> mTextAppearanceContext;
+
+    Int32 mMenuType;
+};
+
+CarClass(CListMenuItemView), public _ListMenuItemView
+{
+public:
+    IVIEW_METHODS_DECL();
+
+    IVIEWGROUP_METHODS_DECL();
+
+    IVIEWPARENT_METHODS_DECL();
+
+    IVIEWMANAGER_METHODS_DECL();
+
+    IDrawableCallback_METHODS_DECL();
+
+    IKeyEventCallback_METHODS_DECL();
+
+    IAccessibilityEventSource_METHODS_DECL();
+
+    CListMenuItemView();
+
+    ECode constructor(
+        /* [in] */ IContext* ctx,
+        /* [in] */ IAttributeSet* attrs);
+
+    ECode constructor(
+        /* [in] */ IContext* ctx,
+        /* [in] */ IAttributeSet* attrs,
+        /* [in] */ Int32 defStyle);
+
+    CARAPI_(PInterface) Probe(
+    /* [in] */ REIID riid);
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface *pObject,
+        /* [out] */ InterfaceID *pIID);
+
+    CARAPI Initialize(
+        /* [in] */ IMenuItemImpl* itemData,
+        /* [in] */ Int32 menuType);
+
+    CARAPI SetTitle(
+        /* [in] */ ICharSequence* title);
+
+    CARAPI_(AutoPtr<IMenuItemImpl>) GetItemData();
+
+    CARAPI SetCheckable(
+        /* [in] */ Boolean checkable);
+
+    CARAPI SetChecked(
+        /* [in] */ Boolean checked);
+
+    CARAPI SetShortcut(
+        /* [in] */ Boolean showShortcut,
+        /* [in] */ Char32 shortcutKey);
+
+    CARAPI SetIcon(
+        /* [in] */ IDrawable* icon);
+
+    CARAPI PrefersCondensedTitle(
+        /* [out] */ Boolean* prefer);
+
+    CARAPI ShowsIcon(
+        /* [out] */ Boolean* show);
+
+    CARAPI IsBaselineAligned(
+        /* [out] */  Boolean* baselineAligned);
+
+    CARAPI SetBaselineAligned(
+        /* [in] */ Boolean baselineAligned);
+
+    CARAPI GetBaselineAlignedChildIndex(
+        /* [out] */ Int32 * pBaselineAlignedChildIndex);
+
+    CARAPI SetBaselineAlignedChildIndex(
+        /* [in] */ Int32 baselineAlignedChildIndex);
+
+    CARAPI GetWeightSum(
+        /* [out] */ Float * pWeightSum);
+
+    CARAPI SetWeightSum(
+        /* [in] */ Float weightSum);
+
+    CARAPI SetOrientation(
+        /* [in] */ Int32 orientation);
+
+    CARAPI GetOrientation(
+        /* [out] */ Int32* orientation);
+
+    CARAPI SetGravity(
+        /* [in] */ Int32 gravity);
+
+    CARAPI SetHorizontalGravity(
+        /* [in] */ Int32 horizontalGravity);
+
+    CARAPI SetVerticalGravity(
+        /* [in] */ Int32 verticalGravity);
+
+    CARAPI GetItemData(
+        /* [out] */ IMenuItemImpl** itemData);
+
+    CARAPI SetEnabledEx(
+        /* [in] */ Boolean enabled);
+
+private:
+    CARAPI_(void) InsertIconView();
+
+    CARAPI_(void) InsertRadioButton();
+
+    CARAPI_(void) InsertCheckBox();
+};
 
 
 #endif   //_CLISTMENUITEMVIEW_H__
-
-
-
-
-/**
- * The item view for each item in the ListView-based MenuViews.
- */
-public class ListMenuItemView extends LinearLayout implements MenuView.ItemView {
-    private MenuItemImpl mItemData;
-
-    private ImageView mIconView;
-    private RadioButton mRadioButton;
-    private TextView mTitleView;
-    private CheckBox mCheckBox;
-    private TextView mShortcutView;
-
-    private Drawable mBackground;
-    private int mTextAppearance;
-    private Context mTextAppearanceContext;
-
-    private int mMenuType;
-
-    public ListMenuItemView(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs);
-
-        TypedArray a =
-            context.obtainStyledAttributes(
-                attrs, com.android.internal.R.styleable.MenuView, defStyle, 0);
-
-        mBackground = a.getDrawable(com.android.internal.R.styleable.MenuView_itemBackground);
-        mTextAppearance = a.getResourceId(com.android.internal.R.styleable.
-                                          MenuView_itemTextAppearance, -1);
-        mTextAppearanceContext = context;
-
-        a.recycle();
-    }
-
-    public ListMenuItemView(Context context, AttributeSet attrs) {
-        this(context, attrs, 0);
-    }
-
-    @Override
-    protected void onFinishInflate() {
-        super.onFinishInflate();
-
-        setBackgroundDrawable(mBackground);
-
-        mTitleView = (TextView) findViewById(com.android.internal.R.id.title);
-        if (mTextAppearance != -1) {
-            mTitleView.setTextAppearance(mTextAppearanceContext,
-                                         mTextAppearance);
-        }
-
-        mShortcutView = (TextView) findViewById(com.android.internal.R.id.shortcut);
-    }
-
-    public void initialize(MenuItemImpl itemData, int menuType) {
-        mItemData = itemData;
-        mMenuType = menuType;
-
-        setVisibility(itemData.isVisible() ? View.VISIBLE : View.GONE);
-
-        setTitle(itemData.getTitleForItemView(this));
-        setCheckable(itemData.isCheckable());
-        setShortcut(itemData.shouldShowShortcut(), itemData.getShortcut());
-        setIcon(itemData.getIcon());
-        setEnabled(itemData.isEnabled());
-    }
-
-    public void setTitle(CharSequence title) {
-        if (title != null) {
-            mTitleView.setText(title);
-
-            if (mTitleView.getVisibility() != VISIBLE) mTitleView.setVisibility(VISIBLE);
-        } else {
-            if (mTitleView.getVisibility() != GONE) mTitleView.setVisibility(GONE);
-        }
-    }
-
-    public MenuItemImpl getItemData() {
-        return mItemData;
-    }
-
-    public void setCheckable(boolean checkable) {
-
-        if (!checkable && mRadioButton == null && mCheckBox == null) {
-            return;
-        }
-
-        if (mRadioButton == null) {
-            insertRadioButton();
-        }
-        if (mCheckBox == null) {
-            insertCheckBox();
-        }
-
-        // Depending on whether its exclusive check or not, the checkbox or
-        // radio button will be the one in use (and the other will be otherCompoundButton)
-        final CompoundButton compoundButton;
-        final CompoundButton otherCompoundButton;
-
-        if (mItemData.isExclusiveCheckable()) {
-            compoundButton = mRadioButton;
-            otherCompoundButton = mCheckBox;
-        } else {
-            compoundButton = mCheckBox;
-            otherCompoundButton = mRadioButton;
-        }
-
-        if (checkable) {
-            compoundButton.setChecked(mItemData.isChecked());
-
-            final int newVisibility = checkable ? VISIBLE : GONE;
-            if (compoundButton.getVisibility() != newVisibility) {
-                compoundButton.setVisibility(newVisibility);
-            }
-
-            // Make sure the other compound button isn't visible
-            if (otherCompoundButton.getVisibility() != GONE) {
-                otherCompoundButton.setVisibility(GONE);
-            }
-        } else {
-            mCheckBox.setVisibility(GONE);
-            mRadioButton.setVisibility(GONE);
-        }
-    }
-
-    public void setChecked(boolean checked) {
-        CompoundButton compoundButton;
-
-        if (mItemData.isExclusiveCheckable()) {
-            if (mRadioButton == null) {
-                insertRadioButton();
-            }
-            compoundButton = mRadioButton;
-        } else {
-            if (mCheckBox == null) {
-                insertCheckBox();
-            }
-            compoundButton = mCheckBox;
-        }
-
-        compoundButton.setChecked(checked);
-    }
-
-    public void setShortcut(boolean showShortcut, char shortcutKey) {
-        final int newVisibility = (showShortcut && mItemData.shouldShowShortcut())
-                ? VISIBLE : GONE;
-
-        if (newVisibility == VISIBLE) {
-            mShortcutView.setText(mItemData.getShortcutLabel());
-        }
-
-        if (mShortcutView.getVisibility() != newVisibility) {
-            mShortcutView.setVisibility(newVisibility);
-        }
-    }
-
-    public void setIcon(Drawable icon) {
-
-        if (!mItemData.shouldShowIcon(mMenuType)) {
-            return;
-        }
-
-        if (mIconView == null && icon == null) {
-            return;
-        }
-
-        if (mIconView == null) {
-            insertIconView();
-        }
-
-        if (icon != null) {
-            mIconView.setImageDrawable(icon);
-
-            if (mIconView.getVisibility() != VISIBLE) {
-                mIconView.setVisibility(VISIBLE);
-            }
-        } else {
-            mIconView.setVisibility(GONE);
-        }
-    }
-
-    private void insertIconView() {
-        LayoutInflater inflater = mItemData.getLayoutInflater(mMenuType);
-        mIconView = (ImageView) inflater.inflate(com.android.internal.R.layout.list_menu_item_icon,
-                this, false);
-        addView(mIconView, 0);
-    }
-
-    private void insertRadioButton() {
-        LayoutInflater inflater = mItemData.getLayoutInflater(mMenuType);
-        mRadioButton =
-                (RadioButton) inflater.inflate(com.android.internal.R.layout.list_menu_item_radio,
-                this, false);
-        addView(mRadioButton);
-    }
-
-    private void insertCheckBox() {
-        LayoutInflater inflater = mItemData.getLayoutInflater(mMenuType);
-        mCheckBox =
-                (CheckBox) inflater.inflate(com.android.internal.R.layout.list_menu_item_checkbox,
-                this, false);
-        addView(mCheckBox);
-    }
-
-    public boolean prefersCondensedTitle() {
-        return false;
-    }
-
-    public boolean showsIcon() {
-        return false;
-    }
-
-}

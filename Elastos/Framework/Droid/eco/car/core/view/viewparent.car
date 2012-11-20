@@ -170,8 +170,8 @@ module
          *
          * @param menu The menu to populate
          */
-        //createContextMenu(    //TODO:
-        //    [in] IContextMenu* menu);
+        CreateContextMenuEx(
+            [in] IContextMenu* menu);
 
         /**
          * This method is called on the parent when a child's drawable state

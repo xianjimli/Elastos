@@ -358,6 +358,24 @@ module
         CloseOptionsMenu();
 
         /**
+         * Called when a context menu for the {@code view} is about to be shown.
+         * Unlike {@link #onCreateOptionsMenu(Menu)}, this will be called every
+         * time the context menu is about to be shown and should be populated for
+         * the view (or item inside the view for {@link AdapterView} subclasses,
+         * this can be found in the {@code menuInfo})).
+         * <p>
+         * Use {@link #onContextItemSelected(android.view.MenuItem)} to know when an
+         * item has been selected.
+         * <p>
+         * It is not safe to hold onto the context menu after this method returns.
+         * {@inheritDoc}
+         */
+        OnCreateContextMenu(
+            [in] IContextMenu* menu,
+            [in] IView* v,
+            [in] IContextMenuInfo* menuInfo);
+
+        /**
          * Registers a context menu to be shown for the given view (multiple views
          * can show the context menu). This method will set the
          * {@link OnCreateContextMenuListener} on the view to this activity, so

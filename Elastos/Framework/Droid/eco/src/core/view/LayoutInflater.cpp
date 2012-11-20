@@ -177,10 +177,8 @@ ECode LayoutInflater::InflateEx2(
 
     AutoPtr<IResources> res;
     ASSERT_SUCCEEDED(mContext->GetResources((IResources**)&res));
-
     AutoPtr<IXmlResourceParser> parser;
     ASSERT_SUCCEEDED(res->GetLayout(resource, (IXmlResourceParser**)&parser));
-
     ECode ec = InflateEx3(parser, root, attachToRoot, view);
     parser->Close();
     return ec;
@@ -193,7 +191,6 @@ ECode LayoutInflater::InflateEx3(
     /* [out] */ IView** view)
 {
     assert(view != NULL);
-
     Mutex::Autolock lock(mConstructorArgsLock);
 
     AutoPtr<IAttributeSet> attrs = Xml::AsAttributeSet(parser);
@@ -220,6 +217,14 @@ ECode LayoutInflater::InflateEx3(
 
     String name;
     parser->GetName(&name);
+    Int32 tmpIndex = name.LastIndexOf('.');
+    if (tmpIndex >= 0) {
+        //Get the last word.
+        Int32 tmpLen = name.GetLength() - tmpIndex + 1;
+
+        assert(tmpLen > 0);
+        name = name.Substring(tmpIndex + 1, tmpLen);
+    }
 
     if (DEBUG) {
 //        System.out.println("**************************");
@@ -436,9 +441,22 @@ ECode LayoutInflater::CreateViewFromTag(
     /* [out] */ IView** view)
 {
     String name;
-
     if (!_name.Compare("view")) {
         attrs->GetAttributeValueEx(NULL, "class", &name);
+        //In java, the character '$' is internal class' flag.
+        Int32 tmpIndex = name.LastIndexOf('$');
+        if (tmpIndex >= 0) {
+            Int32 tmpLen = name.GetLength() - tmpIndex + 1;
+            assert(tmpIndex >= tmpLen);
+
+            if (tmpIndex == 0) {
+                name = name.Substring(1, tmpLen);
+            }
+            else {
+                String tmpName = name.Substring(0, tmpIndex);
+                name = tmpName + name.Substring(tmpIndex + 1, tmpLen);
+            }
+        }
     }
     else {
         name = _name;

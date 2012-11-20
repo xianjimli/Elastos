@@ -433,7 +433,7 @@ module
             [in] IAttributeSet* attrs);
 
         constructor(
-            [in] IContext* context,
+            [in] IContext* ctx,
             [in] IAttributeSet* attrs,
             [in] Int32 defStyle);
 
@@ -454,7 +454,7 @@ module
             [in] IAttributeSet* attrs);
 
         constructor(
-            [in] IContext* context,
+            [in] IContext* ctx,
             [in] IAttributeSet* attrs,
             [in] Int32 defStyle);
 
@@ -475,7 +475,7 @@ module
             [in] IAttributeSet* attrs);
 
         constructor(
-            [in] IContext* context,
+            [in] IContext* ctx,
             [in] IAttributeSet* attrs,
             [in] Int32 defStyle);
 
@@ -574,7 +574,7 @@ module
          *                 instantiating views.
          */
         constructor(
-            [in] IContext* context,
+            [in] IContext* ctx,
             [in] Int32 textViewResourceId);
 
         /**
@@ -586,7 +586,7 @@ module
          * @param textViewResourceId The id of the TextView within the layout resource to be populated
          */
         constructor(
-            [in] IContext* context,
+            [in] IContext* ctx,
             [in] Int32 resource,
             [in] Int32 textViewResourceId);
 
@@ -599,7 +599,7 @@ module
          * @param objects The objects to represent in the ListView.
          */
         constructor(
-            [in] IContext* context,
+            [in] IContext* ctx,
             [in] Int32 textViewResourceId,
             [in] IObjectContainer* objects);
 
@@ -613,7 +613,7 @@ module
          * @param objects The objects to represent in the ListView.
          */
         constructor(
-            [in] IContext* context,
+            [in] IContext* ctx,
             [in] Int32 resource,
             [in] Int32 textViewResourceId,
             [in] IObjectContainer* objects);
@@ -640,7 +640,7 @@ module
          *        in the from parameter.
          */
         constructor(
-            [in] IContext* context,
+            [in] IContext* ctx,
             [in] IObjectContainer* data,
             [in] Int32 resource,
             [in] ArrayOf<String> from,
@@ -1019,14 +1019,14 @@ module
 
     class CExpandableListView {
         constructor(
-            [in] IContext* context);
+            [in] IContext* ctx);
 
         constructor(
-            [in] IContext* context,
+            [in] IContext* ctx,
             [in] IAttributeSet* attrs);
 
         constructor(
-            [in] IContext* context,
+            [in] IContext* ctx,
             [in] IAttributeSet* attrs,
             [in] Int32 defStyle);
 
@@ -1110,8 +1110,8 @@ module
 
     class CAlphabetIndexer {
         constructor(
-            [in] ICursor* cursor, 
-            [in] Int32 sortedColumnIndex, 
+            [in] ICursor* cursor,
+            [in] Int32 sortedColumnIndex,
             [in] ICharSequence* alphabet);
 
         interface IAlphabetIndexer;
@@ -1161,6 +1161,67 @@ module
         interface IDrawableCallback;
         interface IKeyEventCallback;
         interface IAccessibilityEventSource;
+    }
+
+    class CWeightedLinearLayout {
+        constructor(
+            [in] IContext* ctx);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+
+        interface ILinearLayout;
+        interface IViewParent;
+        interface IViewManager;
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
+    }
+
+    class CDialogTitle {
+        constructor(
+            [in] IContext* ctx);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
+
+        interface ITextView;
+        interface IOnPreDrawListener;
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
+    }
+
+    class CAlertControllerRecycleListView {
+        interface IListView;
+        interface ITextWatcher;
+        interface IOnGlobalLayoutListener;
+        interface IOnTouchModeChangeListener;
+        interface IFilterListener;
+        interface IViewParent;
+        interface IViewManager;
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
+
+        constructor(
+            [in] IContext* ctx);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
     }
 }
 

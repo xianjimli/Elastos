@@ -5,59 +5,13 @@
 #include "ext/frameworkext.h"
 #include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>
+#include "widget/ArrayAdapter.h"
+#include "widget/AdapterMacro.h"
+#include "widget/ListView.h"
 
 class AlertController : public ElRefBase
 {
 public:
-    //class RecycleListView
-    //    : public ElRefBase
-    //    , public IListView
-    //    , public ITextWatcher
-    //    , public IOnGlobalLayoutListener
-    //    , public IOnTouchModeChangeListener
-    //    , public IFilterListener
-    //    , public IViewParent
-    //    , public IViewManager
-    //    , public IDrawableCallback
-    //    , public IKeyEventCallback
-    //    , public IAccessibilityEventSource
-    //{
-    //public:
-    //    RecycleListView(
-    //        /* [in] */ IContext* context)
-    //        : ListView(context)
-    //        , mRecycleOnMeasure(TRUE)
-    //    {
-    //    }
-
-    //    RecycleListView(
-    //        /* [in] */ IContext* context,
-    //        /* [in] */ IAttributeSet* attrs)
-    //        : ListView(context, attrs)
-    //        , mRecycleOnMeasure(TRUE)
-    //    {
-    //    }
-
-    //    RecycleListView(
-    //        /* [in] */ IContext* context,
-    //        /* [in] */ IAttributeSet* attrs,
-    //        /* [in] */ Int32 defStyle)
-    //        : ListView(context)
-    //        , mRecycleOnMeasure(TRUE)
-    //    {
-    //    }
-
-    //protected:
-    //    //@Override
-    //    Boolean RecycleOnMeasure()
-    //    {
-    //        return mRecycleOnMeasure;
-    //    }
-
-    //protected:
-    //    Boolean mRecycleOnMeasure;
-    //};
-
     class AlertParams : public ElRefBase
     {
     public:
@@ -71,7 +25,7 @@ public:
              * Called before the ListView is bound to an adapter.
              * @param listView The ListView that will be shown in the dialog.
              */
-            virtual CARAPI_(void) onPrepareListView(
+            virtual CARAPI_(void) OnPrepareListView(
                 /* [in] */ IListView* listView) = 0;
         };
 
@@ -150,6 +104,137 @@ protected:
 
     private:
         AlertController* mHost;
+    };
+
+private:
+    class _ArrayAdapterBase: public ArrayAdapter
+    {
+    public:
+        _ArrayAdapterBase(
+            /* [in] */ IContext* context,
+            /* [in] */ Int32 resource,
+            /* [in] */ Int32 textViewResourceId,
+            /* [in] */ IObjectContainer* objects,
+            /* [in] */ AlertParams* host,
+            /* [in] */ IListView* listView);
+
+        ~_ArrayAdapterBase();
+
+        CARAPI_(AutoPtr<IView>) GetView(
+            /* [in] */ Int32 position,
+            /* [in] */ IView* convertView,
+            /* [in] */ IViewGroup* parent);
+
+    protected:
+        AlertParams* mHost;
+        AutoPtr<IListView> mListView;
+    };
+
+    class _ArrayAdapter
+        : public ElRefBase
+        , public _ArrayAdapterBase
+        , public IArrayAdapter
+        , public ISpinnerAdapter
+        , public IFilterable
+    {
+    public:
+        IADAPTER_METHODS_DECL();
+
+        ILISTADAPTER_METHODS_DECL();
+
+        IBASEADAPTER_METHODS_DECL();
+
+        _ArrayAdapter(
+            /* [in] */ IContext* context,
+            /* [in] */ Int32 resource,
+            /* [in] */ Int32 textViewResourceId,
+            /* [in] */ IObjectContainer* objects,
+            /* [in] */ AlertParams* host,
+            /* [in] */ IListView* listView);
+
+        ~_ArrayAdapter();
+
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI Add(
+            /* [in] */ IInterface* object);
+
+        CARAPI Insert(
+            /* [in] */ IInterface* object,
+            /* [in] */ Int32 index);
+
+        CARAPI Remove(
+            /* [in] */ IInterface* object);
+
+        CARAPI Clear();
+
+        CARAPI Sort(
+            /* [in] */ IComparator* comparator);
+
+        CARAPI SetNotifyOnChange(
+            /* [in] */ Boolean notifyOnChange);
+
+        CARAPI GetContext(
+            /* [out] */ IContext** context);
+
+        CARAPI GetPosition(
+            /* [in] */ IInterface* item,
+            /* [out] */ Int32* position);
+
+        CARAPI SetDropDownViewResource(
+            /* [in] */ Int32 resource);
+
+        CARAPI GetDropDownView(
+            /* [in] */ Int32 position,
+            /* [in] */ IView* convertView,
+            /* [in] */ IViewGroup* parent,
+            /* [out] */ IView** view);
+
+        CARAPI GetFilter(
+            /* [out] */ IFilter** filter);
+
+    };
+
+    class _ItemClickListener:
+        public ElRefBase,
+        public IOnItemClickListener
+    {
+    public:
+        _ItemClickListener(
+            /* [in] */ AlertParams* host,
+            /* [in] */ AlertController* dialog,
+            /* [in] */ IListView* listView);
+
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI OnItemClick(
+            /* [in] */ IAdapterView* parent,
+            /* [in] */ IView* view,
+            /* [in] */ Int32 position,
+            /* [in] */ Int64 id);
+
+    private:
+        AlertParams* mHost;
+        AlertController* mDialog;
+        AutoPtr<IListView> mListView;
     };
 
 public:
