@@ -54,6 +54,7 @@ module
     merge("widget/AnalogClock.car");
     merge("widget/BaseExpandableListAdapter.car");
     merge("widget/CheckedTextView.car");
+    merge("widget/Chronometer.car");
 
     class CScrollBarDrawable {
         interface IScrollBarDrawable;
@@ -1157,6 +1158,26 @@ module
             [in] Int32 defStyle);
 
         interface ICheckedTextView;
+        interface IOnPreDrawListener;
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
+    }
+
+    class CChronometer {
+        constructor(
+            [in] IContext* ctx);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
+
+        interface IChronometer;
         interface IOnPreDrawListener;
         interface IDrawableCallback;
         interface IKeyEventCallback;
