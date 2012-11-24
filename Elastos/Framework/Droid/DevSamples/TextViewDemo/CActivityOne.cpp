@@ -202,7 +202,7 @@ ECode CActivityOne::OnCreate(
 
     AutoPtr<IView> view = FindViewById(0x7f050007);
     assert(view != NULL);
-    printf("==== File: %s, Line: %d ====, FUNC : %s, view == [0x%08x].\n", __FILE__, __LINE__, __FUNCTION__, view.Get());
+
     RegisterForContextMenu(view.Get());
 
     AutoPtr<IObjectContainer> strs;
@@ -392,7 +392,6 @@ ECode CActivityOne::OnCreateContextMenu(
     printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
     AutoPtr<IMenuItem> item = NULL;
     AutoPtr<ICharSequence> csq;
-    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
     CStringWrapper::New(String("ctxItem1"), (ICharSequence**)&csq);
     menu->AddEx2(0, 1, 1, csq, (IMenuItem**) &item);
 
@@ -411,7 +410,7 @@ ECode CActivityOne::OnCreateContextMenu(
     CStringWrapper::New(String("ctxItem6"), (ICharSequence**)&csq);
     menu->AddEx2(0, 6, 6, csq, (IMenuItem**) &item);
 
-    CStringWrapper::New(String("ctxItem6"), (ICharSequence**)&csq);
+    CStringWrapper::New(String("ctxItem7"), (ICharSequence**)&csq);
     menu->AddEx2(0, 7, 7, csq, (IMenuItem**) &item);
 
     return NOERROR;

@@ -25,13 +25,12 @@ ILISTVIEW_METHODS_IMPL(CAlertControllerRecycleListView, ListView, ListView);
 CAlertControllerRecycleListView::CAlertControllerRecycleListView()
 	: mRecycleOnMeasure(TRUE)
 {
-    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
+
 }
 
 ECode CAlertControllerRecycleListView::constructor(
     /* [in] */ IContext* context)
 {
-    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
 	return ListView::Init(context);
 }
 
@@ -39,7 +38,6 @@ ECode CAlertControllerRecycleListView::constructor(
     /* [in] */ IContext* context,
     /* [in] */ IAttributeSet* attrs)
 {
-    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
 	return ListView::Init(context, attrs);
 }
 
@@ -48,7 +46,6 @@ ECode CAlertControllerRecycleListView::constructor(
     /* [in] */ IAttributeSet* attrs,
     /* [in] */ Int32 defStyle)
 {
-    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
 	return ListView::Init(context, attrs, defStyle);
 }
 

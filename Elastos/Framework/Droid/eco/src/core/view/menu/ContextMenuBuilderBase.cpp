@@ -1,7 +1,6 @@
 
 #include "ext/frameworkext.h"
 #include "view/menu/ContextMenuBuilderBase.h"
-#include <stdio.h>
 
 
 ContextMenuBuilderBase::ContextMenuBuilderBase(
@@ -67,8 +66,7 @@ AutoPtr<MenuDialogHelper> ContextMenuBuilderBase::Show(
 
     if (GetVisibleItems()->GetSize() > 0) {
         //EventLog.writeEvent(50001. 1);
-        AutoPtr<MenuDialogHelper> helper = new MenuDialogHelper((IMenuBuilder*)this);
-        //AutoPtr<MenuDialogHelper> helper = new MenuDialogHelper((IMenuBuilder*)this->Probe(EIID_IMenuBuilder));
+        AutoPtr<MenuDialogHelper> helper = new MenuDialogHelper((IMenuBuilder*)this->Probe(EIID_IMenuBuilder));
         helper->Show(token);
 
         return helper;

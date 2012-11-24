@@ -37,6 +37,8 @@ MenuItemImpl::MenuItemImpl (
     , mCategoryOrder(categoryOrder)
     , mOrdering(ordering)
     , mTitle(title)
+    , mShortcutNumericChar(0)
+    , mShortcutAlphabeticChar(0)
     , mIconResId(NO_ICON)
     , mMenu(menu)
     , mFlags(ENABLED)
@@ -335,8 +337,8 @@ Char32 MenuItemImpl::GetShortcut()
  */
 String MenuItemImpl::GetShortcutLabel()
 {
-
     Char32 shortcut = GetShortcut();
+
     if (shortcut == 0) {
         return String("");
     }
@@ -458,7 +460,6 @@ ECode MenuItemImpl::GetTitle(
     /* [out] */ ICharSequence** title)
 {
     VALIDATE_NOT_NULL(title);
-
     *title = mTitle;
     if (*title != NULL) (*title)->AddRef();
 
@@ -792,6 +793,7 @@ AutoPtr<IMenuItemView> MenuItemImpl::CreateItemView(
     // Create the MenuView
     AutoPtr<ILayoutInflater> layoutInflater;
     GetLayoutInflater(menuType, (ILayoutInflater**)&layoutInflater);
+
     AutoPtr<IView> view;
     ASSERT_SUCCEEDED(layoutInflater->InflateEx2(
             MenuBuilder::ITEM_LAYOUT_RES_FOR_TYPE[menuType],
@@ -799,6 +801,7 @@ AutoPtr<IMenuItemView> MenuItemImpl::CreateItemView(
 
     AutoPtr<IMenuItemView> itemView = IMenuItemView::Probe(view);
     itemView->Initialize(this, menuType);
+
     return itemView;
 }
 

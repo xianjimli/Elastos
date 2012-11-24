@@ -26,7 +26,8 @@ CWeightedLinearLayout::CWeightedLinearLayout()
 }
 
 ECode CWeightedLinearLayout::constructor(
-    /* [in] */ IContext* ctx) {
+    /* [in] */ IContext* ctx)
+{
     LinearLayout::Init(ctx);
 
     return NOERROR;
@@ -98,7 +99,6 @@ void CWeightedLinearLayout::OnMeasure(
     /* [in] */ Int32 widthMeasureSpec,
     /* [in] */ Int32 heightMeasureSpec)
 {
-//    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
     AutoPtr<IResources> res = NULL;
     LinearLayout::GetContext()->GetResources((IResources**) &res);
 

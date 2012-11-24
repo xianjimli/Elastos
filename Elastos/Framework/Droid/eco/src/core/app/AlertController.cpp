@@ -10,11 +10,11 @@
 
 using namespace Elastos::Utility::Logging;
 
-IADAPTER_METHODS_IMPL(AlertController::_ArrayAdapter, ArrayAdapter, ArrayAdapter);
+IADAPTER_METHODS_IMPL(AlertController::_ArrayAdapter, _ArrayAdapterBase, _ArrayAdapterBase);
 
-IListADAPTER_METHODS_IMPL(AlertController::_ArrayAdapter, ArrayAdapter, ArrayAdapter);
+IListADAPTER_METHODS_IMPL(AlertController::_ArrayAdapter, _ArrayAdapterBase, _ArrayAdapterBase);
 
-IBASEADAPTER_METHODS_IMPL(AlertController::_ArrayAdapter, ArrayAdapter, ArrayAdapter);
+IBASEADAPTER_METHODS_IMPL(AlertController::_ArrayAdapter, _ArrayAdapterBase, _ArrayAdapterBase);
 
 
 AlertController::_ArrayAdapterBase::_ArrayAdapterBase(
@@ -969,9 +969,9 @@ void AlertController::SetupContent(
 
             lp = NULL;
             CLinearLayoutLayoutParams::New(
-                //TODO TEST
-                //ViewGroupLayoutParams_MATCH_PARENT, 250, 1.0f,
-                ViewGroupLayoutParams_MATCH_PARENT, 0, 1.0f,
+                //TODO TEST: There is a bug?
+                ViewGroupLayoutParams_MATCH_PARENT, 250, 1.0f,
+                //ViewGroupLayoutParams_MATCH_PARENT, 0, 1.0f,
                 (ILinearLayoutLayoutParams**)&lp);
             contentPanel->SetLayoutParams((IViewGroupLayoutParams*)lp.Get());
         }

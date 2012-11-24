@@ -7,19 +7,19 @@ static Int32 R_Styleable_MenuView[] = {
 };
 
 
-IVIEW_METHODS_IMPL(CListMenuItemView, LinearLayout, LinearLayout);
+IVIEW_METHODS_IMPL(CListMenuItemView, _ListMenuItemView, _ListMenuItemView);
 
-IVIEWGROUP_METHODS_IMPL(CListMenuItemView, LinearLayout, LinearLayout);
+IVIEWGROUP_METHODS_IMPL(CListMenuItemView, _ListMenuItemView, _ListMenuItemView);
 
-IVIEWPARENT_METHODS_IMPL(CListMenuItemView, LinearLayout, LinearLayout);
+IVIEWPARENT_METHODS_IMPL(CListMenuItemView, _ListMenuItemView, _ListMenuItemView);
 
-IVIEWMANAGER_METHODS_IMPL(CListMenuItemView, LinearLayout, LinearLayout);
+IVIEWMANAGER_METHODS_IMPL(CListMenuItemView, _ListMenuItemView, _ListMenuItemView);
 
-IDrawableCallback_METHODS_IMPL(CListMenuItemView, LinearLayout, LinearLayout);
+IDrawableCallback_METHODS_IMPL(CListMenuItemView, _ListMenuItemView, _ListMenuItemView);
 
-IKeyEventCallback_METHODS_IMPL(CListMenuItemView, LinearLayout, LinearLayout);
+IKeyEventCallback_METHODS_IMPL(CListMenuItemView, _ListMenuItemView, _ListMenuItemView);
 
-IAccessibilityEventSource_METHODS_IMPL(CListMenuItemView, LinearLayout, LinearLayout);
+IAccessibilityEventSource_METHODS_IMPL(CListMenuItemView, _ListMenuItemView, _ListMenuItemView);
 
 
 _ListMenuItemView::_ListMenuItemView()
@@ -57,14 +57,12 @@ ECode _ListMenuItemView::OnFinishInflate()
 
     view = FindViewById(0x010201ef /*com.android.internal.R.id.shortcut*/);
     mShortcutView = (ITextView*)view->Probe(EIID_ITextView);
-
     return NOERROR;
 }
 
 
 CListMenuItemView::CListMenuItemView()
 {
-
 }
 
 ECode CListMenuItemView::constructor(
@@ -89,7 +87,6 @@ ECode CListMenuItemView::constructor(
     a->GetResourceId(1/*com.android.internal.R.styleable.MenuView_itemTextAppearance*/, -1, &mTextAppearance);
 
     mTextAppearanceContext = ctx;
-
     a->Recycle();
     return NOERROR;
 }
@@ -153,18 +150,16 @@ ECode CListMenuItemView::Initialize(
 
     AutoPtr<ICharSequence> title = mItemData->GetTitleForItemView(
                 (IMenuItemView*)this->Probe(EIID_IMenuItemView));
-    SetTitle(title);
 
+    SetTitle(title);
     Boolean isCheckable = FALSE;
     mItemData->IsCheckable(&isCheckable);
     SetCheckable(isCheckable);
-
     SetShortcut(mItemData->ShouldShowShortcut(),  mItemData->GetShortcut());
 
     AutoPtr<IDrawable> icon;
     mItemData->GetIcon((IDrawable**) &icon);
     SetIcon(icon);
-
     Boolean isEnabled = FALSE;
     mItemData->IsEnabled(&isEnabled);
     SetEnabled(isEnabled);
@@ -175,12 +170,20 @@ ECode CListMenuItemView::Initialize(
 ECode CListMenuItemView::SetTitle(
     /* [in] */ ICharSequence* title)
 {
+    //TODO :Only if the function OnFinishInflate has been invoked, the mTitleView is valid.
+    if (mTitleView == NULL) {
+        return NOERROR;
+    }
+
     Int32 visibility;
     mTitleView->GetVisibility(&visibility);
 
     if (title != NULL) {
-        mTitleView->SetText(title);
+        //TODO TEST
+        String str;
+        title->ToString(&str);
 
+        mTitleView->SetText(title);
         if (visibility != VISIBLE) {
             mTitleView->SetVisibility(VISIBLE);
         }
@@ -290,13 +293,17 @@ ECode CListMenuItemView::SetShortcut(
         AutoPtr<ICharSequence> cs;
         CStringWrapper::New(txt, (ICharSequence**)&cs);
 
-        mShortcutView->SetText(cs);
+        if (mShortcutView != NULL) {
+            mShortcutView->SetText(cs);
+        }
     }
 
-    Int32 visibility;
-    mShortcutView->GetVisibility(&visibility);
-    if (visibility != newVisibility) {
-        mShortcutView->SetVisibility(newVisibility);
+    if (mShortcutView != NULL) {
+        Int32 visibility;
+        mShortcutView->GetVisibility(&visibility);
+        if (visibility != newVisibility) {
+            mShortcutView->SetVisibility(newVisibility);
+        }
     }
 
     return NOERROR;
