@@ -55,6 +55,8 @@ module
     merge("widget/BaseExpandableListAdapter.car");
     merge("widget/CheckedTextView.car");
     merge("widget/Chronometer.car");
+    merge("widget/FilterQueryProvider.car");
+    merge("widget/CursorAdapter.car");
 
     class CScrollBarDrawable {
         interface IScrollBarDrawable;
@@ -1243,6 +1245,19 @@ module
             [in] IContext* ctx,
             [in] IAttributeSet* attrs,
             [in] Int32 defStyle);
+    }
+
+    class CCursorAdapter {
+        constructor(
+            [in] IContext* ctx, 
+            [in] ICursor* c);
+
+        constructor(
+            [in] IContext* ctx, 
+            [in] ICursor* c, 
+            [in] Boolean autoRequery);
+
+        interface ICursorAdapter;
     }
 }
 

@@ -131,3 +131,5 @@ SOURCES += CheckedTextView.cpp
 SOURCES += CCheckedTextView.cpp
 SOURCES += Chronometer.cpp
 SOURCES += CChronometer.cpp
+SOURCES += CursorAdapter.cpp
+SOURCES += CCursorAdapter.cpp
