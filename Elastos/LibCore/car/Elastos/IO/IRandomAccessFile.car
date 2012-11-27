@@ -1,7 +1,22 @@
 
 module
 {
-    interface IRandomAccessFile {
-
+    interface IDataInput;
+    interface IDataOutput;
+    interface IRandomAccessFile{
+        Close();
+        GetChannel(
+            [out] IFileChannel **channel);
+        GetFD(
+            [out] IFileDescriptor **pFd);
+        GetFilePointer(
+            [out] Int64 *pSeek);
+        GetLength(
+            [out] Int64 *pLen);
+        SetLength(
+            [in] Int64 len);
+        ReadBuffer(
+            [out] ArrayOf<Byte> buffer,
+            [out] Int32 *number);
     }
 }

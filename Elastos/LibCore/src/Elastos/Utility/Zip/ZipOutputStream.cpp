@@ -4,6 +4,7 @@
 #include "CZipFile.h"
 #include <elastos/Algorithm.h>
 #include <elastos/System.h>
+#include <stdio.h>
 
 using namespace Elastos::Core;
 
@@ -77,7 +78,6 @@ ECode ZipOutputStream::CloseEntry()
     if (mCurrentEntry->GetMethod(&method), method == IZipOutputStream_DEFLATED) {
         FAIL_RETURN(DeflaterOutputStream::Finish());
     }
-
     // Verify values for STORED types
     if (mCurrentEntry->GetMethod(&method), method == IZipOutputStream_STORED) {
         Int64 value;
@@ -107,6 +107,8 @@ ECode ZipOutputStream::CloseEntry()
         mCurrentEntry->mSize = value;
         WriteInt64(mOut, mCurrentEntry->mSize);
     }
+    mOut->Flush();
+
     // Update the CentralDirectory
     // http://www.pkware.com/documents/casestudies/APPNOTE.TXT
     Int32 flags = (mCurrentEntry->GetMethod(&method), method) == IZipOutputStream_STORED ?
@@ -152,13 +154,14 @@ ECode ZipOutputStream::CloseEntry()
     WriteInt16(mCDir, 0); // Internal File Attributes
     WriteInt64(mCDir, 0); // External File Attributes
     WriteInt64(mCDir, mOffset);
-    mCDir->WriteBuffer(*mNameBytes);
+    mCDir->WriteBufferEx(0, mNameBytes->GetLength(), *mNameBytes);
     ArrayOf<Byte>::Free(mNameBytes);
     mNameBytes = NULL;
     if (mCurrentEntry->mExtra != NULL) {
         mCDir->WriteBuffer(*mCurrentEntry->mExtra);
     }
-    mOffset += mCurOffset;
+ 
+    mOffset +=mCurOffset;
     if (!c.IsNull()) {
         mCDir->WriteBuffer(ArrayOf<Byte>(
             reinterpret_cast<Byte*>(const_cast<char*>((const char*)c)), c.GetLength()));
@@ -218,6 +221,7 @@ ECode ZipOutputStream::Finish()
     ArrayOf<Byte> *bytes;
     mCDir->ToByteArray(&bytes);
     mOut->WriteBuffer(*bytes);
+    mOut->Flush();
     mCDir = NULL;
     ArrayOf<Byte>::Free(bytes);
     return NOERROR;
@@ -323,13 +327,13 @@ ECode ZipOutputStream::PutNextEntry(
     else {
         WriteInt16(mOut, 0);
     }
-    ArrayOf<Byte>::Free(mNameBytes);
     mNameBytes = ToUTF8Bytes(mCurrentEntry->mName, mNameLength);
-    mOut->WriteBuffer(*mNameBytes);
+    mOut->WriteBufferEx(0, mNameBytes->GetLength(), *mNameBytes);
+    //ArrayOf<Byte>::Free(mNameBytes);
     if (mCurrentEntry->mExtra != NULL) {
         mOut->WriteBuffer(*mCurrentEntry->mExtra);
     }
-
+    //while(1);
     return NOERROR;
 }
 
@@ -444,6 +448,7 @@ ECode ZipOutputStream::WriteBufferEx(
     else {
         FAIL_RETURN(DeflaterOutputStream::WriteBufferEx(off, nbytes, buffer));
     }
+    
     return mCrc->UpdateEx2(buffer, off, nbytes);
 }
 

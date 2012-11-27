@@ -93,6 +93,15 @@ module
         interface IFilterInputStream;
     }
 
+    class CRandomAccessFile{
+        constructor (
+            [in] IFile* pFile);
+        
+        interface IRandomAccessFile;
+        interface IDataInput;
+        interface IDataOutput;
+    }
+
     class CBufferedInputStream {
         /**
          * Constructs a new {@code BufferedInputStream}, providing {@code in} with a buffer

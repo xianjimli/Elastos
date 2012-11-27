@@ -1,6 +1,6 @@
 
 #include "FilterOutputStream.h"
-
+#include <stdio.h>
 FilterOutputStream::FilterOutputStream()
 {
 }
@@ -18,7 +18,8 @@ ECode FilterOutputStream::Init(
 
 ECode FilterOutputStream::Close()
 {
-    ECode ec = Flush();
+    ECode ec;
+    mOut->Flush();
     ECode ec2 = mOut->Close();
     if(ec != NOERROR || ec2 != NOERROR){
         return ec != NOERROR ? ec : ec2;

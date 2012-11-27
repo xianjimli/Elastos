@@ -523,7 +523,7 @@ ECode ZipFile::Init(
         mFileToDeleteOnClose = NULL;
     }
 
-//    mRaf = new RandomAccessFile(fileName, "r");
+    //mRaf = new RandomAccessFile(fileName, "r");
 
     return ReadCentralDir();
 }

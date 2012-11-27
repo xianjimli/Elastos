@@ -11,7 +11,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <utime.h>
-
+#include <stdio.h>
+#include <Elastos.Utility.h>
 using namespace Elastos::Core;
 
 struct DirEntry
@@ -1230,7 +1231,7 @@ ECode File::FilenamesToFiles(
         *files = NULL;
         return NOERROR;
     }
-//    CObjectContainer::New(files);
+        CObjectContainer::New(files);
     Int32 count = filenames->GetLength();
     for (Int32 i = 0; i < count; i++) {
         AutoPtr<IFile> file;

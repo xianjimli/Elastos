@@ -4,10 +4,11 @@
 #include <errno.h>
 #include <unistd.h>
 
-
 ECode Platform2IO(ECode ec)
 {
     switch(ec) {
+    case NOERROR:
+	return NOERROR;
     case E_PLATFORM_IO_EXCEPTION:
         return E_IO_EXCEPTION;
     case E_PLATFORM_FILE_NOT_FOUND_EXCEPTION:
@@ -99,7 +100,6 @@ ECode FileOutputStream::Close()
 
     Mutex* selfLock = GetSelfLock();
     Mutex::Autolock lock(*selfLock);
-
     return CloseLocked();
 }
 
