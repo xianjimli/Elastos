@@ -851,6 +851,7 @@ private:
     Boolean mProfile;
 
     AutoPtr<IRunnable> mFinishedCallback;
+    Mutex mFinishedCallbackLock;
 
     AutoPtr<CSurfaceHolder> mHolder;
 

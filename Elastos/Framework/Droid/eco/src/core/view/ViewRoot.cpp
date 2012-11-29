@@ -2781,6 +2781,7 @@ void ViewRoot::ForceLayout(
 void ViewRoot::StartInputEvent(
     /* [in] */ IRunnable* finishedCallback)
 {
+    Mutex::Autolock lock(mFinishedCallbackLock);
     if (mFinishedCallback != NULL) {
         Logger::W(TAG, "Received a new input event from the input queue but there is "
                 "already an unfinished input event in progress.");
@@ -2791,6 +2792,7 @@ void ViewRoot::StartInputEvent(
 
 void ViewRoot::FinishInputEvent()
 {
+    Mutex::Autolock lock(mFinishedCallbackLock);
     if (LOCAL_LOGV) {
         Logger::D(TAG, "Telling window manager input event is finished");
     }
