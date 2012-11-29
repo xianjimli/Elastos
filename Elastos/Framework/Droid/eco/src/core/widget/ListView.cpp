@@ -684,7 +684,6 @@ AutoPtr<IView> ListView::FillDown(
     /* [in] */ Int32 pos,
     /* [in] */ Int32 nextTop)
 {
-    //printf("ListView::FillDown pos = %d, nextTop = %d\n", pos, nextTop);
     AutoPtr<IView> selectedView;
 
     Int32 end = (mBottom - mTop) - mListPadding->mBottom;
@@ -720,7 +719,6 @@ AutoPtr<IView> ListView::FillUp(
     /* [in] */ Int32 pos,
     /* [in] */ Int32 nextBottom)
 {
-    //printf("ListView::FillUp pos = %d, nextBottom = %d\n", pos, nextBottom);
     AutoPtr<IView> selectedView;
 
     Int32 end = mListPadding->mTop;
@@ -4227,7 +4225,6 @@ ECode ListView::Init(
         1/*com.android.internal.R.styleable.ListView_divider*/,
         (IDrawable**)&d);
 
-    //printf("ListView::Init ListView_divider = 0x%08x\n", d.Get());
     if (d != NULL) {
         // If a divider is specified use its intrinsic height for divider height
         SetDivider(d);
@@ -4237,7 +4234,6 @@ ECode ListView::Init(
     a->GetDrawable(
         6/*com.android.internal.R.styleable.ListView_overScrollHeader*/,
         (IDrawable**)&osHeader);
-    //printf("ListView::Init ListView_overScrollHeader = 0x%08x\n", osHeader.Get());
     if (osHeader != NULL) {
         SetOverscrollHeader(osHeader);
     }
@@ -4246,7 +4242,6 @@ ECode ListView::Init(
     a->GetDrawable(
         7/*com.android.internal.R.styleable.ListView_overScrollFooter*/,
         (IDrawable**)&osFooter);
-    //printf("ListView::Init ListView_overScrollFooter = 0x%08x\n", osFooter.Get());
     if (osFooter != NULL) {
         SetOverscrollFooter(osFooter);
     }

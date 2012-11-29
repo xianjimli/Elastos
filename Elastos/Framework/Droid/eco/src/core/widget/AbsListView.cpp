@@ -1232,8 +1232,6 @@ ECode AbsListView::SetOverScrollMode(
             AutoPtr<IDrawable> glow;
             res->GetDrawable(
                 0x01080239/*R.drawable.overscroll_glow*/, (IDrawable**)&glow);
-            //printf("AbsListView::SetOverScrollMode edge = 0x%08x, glow = 0x%08x\n",
-                //edge.Get(), glow.Get());
             mEdgeGlowTop = new EdgeGlow(edge, glow);
             mEdgeGlowBottom = new EdgeGlow(edge, glow);
         }
@@ -2791,7 +2789,6 @@ ECode AbsListView::OnTouchModeChanged(
 Boolean AbsListView::OnTouchEvent(
     /* [in] */ IMotionEvent* ev)
 {
-    //printf("AbsListView::OnTouchEvent--------------1\n");
     if (!IsEnabled()) {
         // A disabled view that is clickable still consumes the touch
         // events, it just doesn't respond to them.
@@ -2816,11 +2813,9 @@ Boolean AbsListView::OnTouchEvent(
     }
     mVelocityTracker->AddMovement(ev);
 
-    //printf("AbsListView::OnTouchEvent action = 0x%08x--------------2\n", action);
     switch (action & MotionEvent_ACTION_MASK) {
     case MotionEvent_ACTION_DOWN:
         {
-            //printf("AbsListView::OnTouchEvent--------------3\n");
             switch (mTouchMode) {
             case TOUCH_MODE_OVERFLING:
                 {
@@ -3093,13 +3088,11 @@ Boolean AbsListView::OnTouchEvent(
         break;
     case MotionEvent_ACTION_UP:
         {
-            //printf("AbsListView::OnTouchEvent--------------5\n");
             switch (mTouchMode) {
             case TOUCH_MODE_DOWN:
             case TOUCH_MODE_TAP:
             case TOUCH_MODE_DONE_WAITING:
                 {
-                    //printf("AbsListView::OnTouchEvent--------------6\n");
                     Int32 motionPosition = mMotionPosition;
                     AutoPtr<IView> child = GetChildAt(
                         motionPosition - mFirstPosition);
@@ -3134,7 +3127,9 @@ Boolean AbsListView::OnTouchEvent(
                             if (!mDataChanged && isEnabled) {
                                 mTouchMode = TOUCH_MODE_TAP;
                                 SetSelectedPositionInt(mMotionPosition);
-                                //printf("mMotionPosition = %d\n", mMotionPosition);
+                                // ????
+                                SetNextSelectedPositionInt(mMotionPosition);
+
                                 LayoutChildren();
                                 child->SetPressed(TRUE);
                                 PositionSelector(child);
@@ -3168,7 +3163,6 @@ Boolean AbsListView::OnTouchEvent(
                 break;
             case TOUCH_MODE_SCROLL:
                 {
-                    //printf("AbsListView::OnTouchEvent--------------7\n");
                     Int32 childCount = GetChildCount();
                     if (childCount > 0) {
                         Int32 firstChildTop;
@@ -3218,7 +3212,6 @@ Boolean AbsListView::OnTouchEvent(
                 break;
             case TOUCH_MODE_OVERSCROLL:
                 {
-                    //printf("AbsListView::OnTouchEvent--------------8\n");
                     if (mFlingRunnable == NULL) {
                         mFlingRunnable = new FlingRunnable(this);
                     }
@@ -3239,7 +3232,6 @@ Boolean AbsListView::OnTouchEvent(
                 break;
             }
 
-            //printf("AbsListView::OnTouchEvent--------------9\n");
             SetPressed(FALSE);
 
             if (mEdgeGlowTop != NULL) {
@@ -3332,7 +3324,6 @@ Boolean AbsListView::OnTouchEvent(
         break;
     }
 
-    //printf("AbsListView::OnTouchEvent--------------10\n");
     return TRUE;
 }
 
@@ -3370,8 +3361,7 @@ ECode AbsListView::Draw(
                 0, scrollY + mFirstPositionDistanceGuess));
             mEdgeGlowTop->SetSize(width * 2, GetHeight());
             if (mEdgeGlowTop->Draw(canvas)) {
-                //Invalidate();
-                printf("=====%s, %d=====Invalidate()\n", __FILE__, __LINE__);
+                Invalidate();
             }
             canvas->RestoreToCount(restoreCount);
         }
@@ -3387,7 +3377,7 @@ ECode AbsListView::Draw(
             canvas->RotateEx(180, width, 0);
             mEdgeGlowBottom->SetSize(width * 2, height);
             if (mEdgeGlowBottom->Draw(canvas)) {
-                //Invalidate();
+                Invalidate();
             }
             canvas->RestoreToCount(restoreCount);
         }
@@ -4869,7 +4859,6 @@ ECode AbsListView::Init(
     a->GetDrawable(
         0/*com.android.internal.R.styleable.AbsListView_listSelector*/,
         (IDrawable**)&d);
-    //printf("AbsListView::Init listSelector = 0x%08x\n", d.Get());
     if (d != NULL) {
         SetSelector(d);
     }
