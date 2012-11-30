@@ -1,0 +1,48 @@
+
+module
+{
+    interface IBundle;
+    interface IInputBinding;
+    interface IEditorInfo;
+    interface IInputContextStub;
+    interface IInputMethodCallback;
+    interface IResultReceiver;
+    interface IInputMethodSession;
+
+    [deprecated]
+    interface IInputMethod {
+        AttachToken(
+            [in] IBinder* token);
+
+        BindInput(
+            [in] IInputBinding* binding);
+
+        UnbindInput();
+
+        StartInput(
+            [in] IInputContextStub* inputContext,
+            [in] IEditorInfo* attribute);
+
+        RestartInput(
+            [in] IInputContextStub* inputContext,
+            [in] IEditorInfo* attribute);
+
+        CreateSession(
+            [in] IInputMethodCallback* clback);
+
+        SetSessionEnabled(
+            [in] IInputMethodSession* session,
+            [in] Boolean enabled);
+
+        RevokeSession(
+            [in] IInputMethodSession* session);
+
+        ShowSoftInput(
+            [in] Int32 flags,
+            [in] IResultReceiver* resultReceiver);
+
+        HideSoftInput(
+            [in] Int32 flags,
+            [in] IResultReceiver* resultReceiver);
+    }
+}

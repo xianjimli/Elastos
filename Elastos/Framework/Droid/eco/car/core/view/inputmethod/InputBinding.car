@@ -1,0 +1,42 @@
+
+module
+{
+	interface IInputConnection;
+	interface IBinder;
+
+
+    interface IInputBinding {
+	    /**
+	     * Return the connection for interacting back with the application.
+	     */
+	    GetConnection(
+	    	[out] IInputConnection** connection);
+
+	    /**
+	     * Return the token for the connection back to the application.  You can
+	     * not use this directly, it must be converted to a {@link InputConnection}
+	     * for you.
+	     */
+	    GetConnectionToken(
+	    	[out] IBinder** token);
+
+	    /**
+	     * Return the user id of the client associated with this binding.
+	     */
+	    GetUid(
+	    	[out] Int32* uid);
+
+	    /**
+	     * Return the process id where this binding came from.
+	     */
+	    GetPid(
+	    	[out] Int32* pid);
+
+	    //@Override
+	    ToString(
+	    	[out] String* str);
+
+	    DescribeContents(
+	    	[out] Int32* content);
+    }
+}

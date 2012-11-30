@@ -1,0 +1,12 @@
+
+module
+{
+    interface IBundle;
+
+    /* oneway */
+    interface IResultReceiverStub {
+        Send(
+            [in] Int32 resultCode,
+            [in] IBundle* resultData);
+    }
+}

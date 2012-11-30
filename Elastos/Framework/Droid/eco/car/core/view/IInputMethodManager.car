@@ -1,0 +1,87 @@
+
+module
+{
+    interface IInputMethodInfo;
+    interface IInputContextStub;
+    interface IInputMethodClient;
+    interface IInputBindResult;
+    interface IEditorInfo;
+    interface IResultReceiver;
+    interface IBinder;
+
+    interface IInputMethodManagerStub {
+        //List<InputMethodInfo> getInputMethodList();
+        GetInputMethodList(
+            [out] IObjectContainer** infos);
+
+        //List<InputMethodInfo> getEnabledInputMethodList();
+        GetEnabledInputMethodList(
+            [out] IObjectContainer** infos);
+
+        AddClient(
+            [in] IInputMethodClient* client,
+            [in] IInputContextStub* inputContext,
+            [in] Int32 uid,
+            [in] Int32 pid);
+
+        RemoveClient(
+            [in] IInputMethodClient* client);
+
+        StartInput(
+            [in] IInputMethodClient* client,
+            [in] IInputContextStub* inputContext,
+            [in] IEditorInfo* attribute,
+            [in] Boolean initial,
+            [in] Boolean needResult,
+            [out] IInputBindResult** result);
+
+        FinishInput(
+            [in] IInputMethodClient* client);
+
+        ShowSoftInput(
+            [in] IInputMethodClient* client,
+            [in] Int32 flags,
+            [in] IResultReceiver* resultReceiver,
+            [out] Boolean* res);
+
+        HideSoftInput(
+            [in] IInputMethodClient* client,
+            [in] Int32 flags,
+            [in] IResultReceiver* resultReceiver,
+            [out] Boolean* res);
+
+        WindowGainedFocus(
+            [in] IInputMethodClient* client,
+            [in] IBinder* windowToken,
+            [in] Boolean viewHasFocus,
+            [in] Boolean isTextEditor,
+            [in] Int32 softInputMode,
+            [in] Boolean first,
+            [in] Int32 windowFlags);
+
+        ShowInputMethodPickerFromClient(
+            [in] IInputMethodClient* client);
+
+        SetInputMethod(
+            [in] IBinder* token,
+            [in] String id);
+
+        HideMySoftInput(
+            [in] IBinder* token,
+            [in] Int32 flags);
+
+        ShowMySoftInput(
+            [in] IBinder* token,
+            [in] Int32 flags);
+
+        UpdateStatusIcon(
+            [in] IBinder* token,
+            [in] String packageName,
+            [in] Int32 iconId);
+
+        SetInputMethodEnabled(
+            [in] String id,
+            [in] Boolean enabled,
+            [out] Boolean* res);
+    }
+}
