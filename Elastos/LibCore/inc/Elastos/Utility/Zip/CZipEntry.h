@@ -181,6 +181,10 @@ public:
      */
     CARAPI constructor(
         /* [in] */ IZipEntry* ze);
+
+    CARAPI constructor (
+        /* [in] */ Int32 little,
+        /* [in] */ IInputStream *in);
 };
 
 

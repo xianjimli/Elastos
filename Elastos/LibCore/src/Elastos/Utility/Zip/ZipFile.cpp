@@ -1,5 +1,11 @@
-
 #include "ZipFile.h"
+#include <stdio.h>
+#include <Elastos.IO.h>
+#include <Elastos.Utility.h>
+#include "CZipEntry.h"
+#include <elastos/Math.h>
+
+using namespace Elastos::Core;
 
 extern "C" const InterfaceID EIID_ZipFileRAFStream =
     { 0x83f2304, 0xfc73, 0x4727, { 0x86, 0x6a, 0x81, 0xd5, 0xeb, 0x82, 0xf3, 0x43 } };
@@ -10,7 +16,7 @@ ZipFile::RAFStream::RAFStream(
     : mSharedRaf(raf)
     , mOffset(pos)
 {
-//    mLength = raf.length();
+    raf->GetLength(&mLength);
 }
 
 PInterface ZipFile::RAFStream::Probe(
@@ -27,12 +33,18 @@ PInterface ZipFile::RAFStream::Probe(
 
 UInt32 ZipFile::RAFStream::AddRef()
 {
-    return ElRefBase::AddRef();
+    //printf("%s, %d\n", __FILE__, __LINE__);
+    //Int32 ref = ElRefBase::AddRef();
+    //printf("%s, %d\n", __FILE__, __LINE__);
+    return 0;
 }
 
 UInt32 ZipFile::RAFStream::Release()
 {
-    return ElRefBase::Release();
+    //printf("%s, %d\n", __FILE__, __LINE__);
+    //Int32 ref = ElRefBase::Release();
+    //printf("%s, %d\n", __FILE__, __LINE__);
+    return 0;
 }
 
 ECode ZipFile::RAFStream::GetInterfaceID(
@@ -74,19 +86,18 @@ ECode ZipFile::RAFStream::ReadBufferEx(
     /* [out] */ Int32* number)
 {
 //    synchronized (mSharedRaf) {
-//        mSharedRaf.seek(mOffset);
-//        if (len > mLength - mOffset) {
-//            len = (int) (mLength - mOffset);
-//        }
-//        int count = mSharedRaf.read(b, off, len);
-//        if (count > 0) {
-//            mOffset += count;
-//            return count;
-//        } else {
-//            return -1;
-//        }
+      ECode ec = NOERROR;
+        mSharedRaf->Seek(mOffset);
+        if (length > mLength - mOffset) {
+            length = (int) (mLength - mOffset);
+        }
+        ec = mSharedRaf->ReadBufferEx(offset, length, buffer, number);
+        if (*number > 0) {
+            mOffset += *number;
+        } 
+       
 //    }
-    return E_NOT_IMPLEMENTED;
+    return ec;
 }
 
 ECode ZipFile::RAFStream::Skip(
@@ -155,17 +166,20 @@ PInterface ZipFile::ZipInflaterInputStream::Probe(
     else if (riid == EIID_IInflaterInputStream) {
         return (IInflaterInputStream*)this;
     }
+    else if (riid == EIID_IInputStream) {
+        return (IInputStream *)this;
+    }
     return NULL;
 }
 
 UInt32 ZipFile::ZipInflaterInputStream::AddRef()
 {
-    return ElRefBase::AddRef();
+//    return ElRefBase::AddRef();
 }
 
 UInt32 ZipFile::ZipInflaterInputStream::Release()
 {
-    return ElRefBase::Release();
+//    return ElRefBase::Release();
 }
 
 ECode ZipFile::ZipInflaterInputStream::GetInterfaceID(
@@ -211,6 +225,45 @@ ECode ZipFile::ZipInflaterInputStream::Available(
     return NOERROR;
 }
 
+// ------------------------gaojianfeng add 2012-11-29------------------
+ECode ZipFile::ZipInflaterInputStream::Close() 
+{
+    return InflaterInputStream::Close();
+}
+
+ECode ZipFile::ZipInflaterInputStream::Mark(Int32 mark) 
+{
+    return InflaterInputStream::Mark(mark);
+}
+
+ECode ZipFile::ZipInflaterInputStream::IsMarkSupported(Boolean *isMark)
+{
+    return InflaterInputStream::IsMarkSupported(isMark);
+}
+
+ECode ZipFile::ZipInflaterInputStream::Reset()
+{
+    return InflaterInputStream::Reset();
+}
+
+ECode ZipFile::ZipInflaterInputStream::Read(Int32 *value) 
+{
+    VALIDATE_NOT_NULL(value);
+    return InflaterInputStream::Read(value);
+}
+
+ECode ZipFile::ZipInflaterInputStream::ReadBuffer(ArrayOf<Byte> *buffer, Int32 *number) 
+{
+    VALIDATE_NOT_NULL(buffer);
+    VALIDATE_NOT_NULL(number);
+    return ReadBufferEx(0, buffer->GetLength(), buffer, number);
+}
+
+ECode ZipFile::ZipInflaterInputStream::Skip(Int64 offset, Int64*number)
+{
+    VALIDATE_NOT_NULL(number);
+    return InflaterInputStream::Skip(offset, number);    
+}
 
 ZipFile::ZipFile()
 {
@@ -231,12 +284,13 @@ ZipFile::~ZipFile()
  */
 ECode ZipFile::Close()
 {
-//    RandomAccessFile raf = mRaf;
-//
-//    if (raf != null) { // Only close initialized instances
+  //  IRandomAccessFile raf = mRaf;
+
+    if (mRaf != NULL) { // Only close initialized instances
 //        synchronized(raf) {
-//            mRaf = null;
-//            raf.close();
+            //mRaf = null;
+            mRaf->Close();
+            mRaf = NULL;
 //        }
 //        if (fileToDeleteOnClose != null) {
 //            AccessController.doPrivileged(new PrivilegedAction<Object>() {
@@ -249,16 +303,17 @@ ECode ZipFile::Close()
 //            fileToDeleteOnClose = null;
 //        }
 //    }
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode ZipFile::CheckNotClosed()
-{
-    if (mRaf == NULL) {
-//        throw new IllegalStateException("Zip file closed");
-        return E_ILLEGAL_STATE_EXCEPTION;
     }
     return NOERROR;
+}
+
+Boolean ZipFile::CheckNotClosed()
+{
+//    if (mRaf == NULL) {
+//        throw new IllegalStateException("Zip file closed");
+//        return E_ILLEGAL_STATE_EXCEPTION;
+//    }
+    return mRaf == NULL? 0 : 1;
 }
 
 /**
@@ -271,7 +326,24 @@ ECode ZipFile::CheckNotClosed()
 ECode ZipFile::GetEntries(
     /* [out] */ IObjectContainer** entries)
 {
-//    checkNotClosed();
+    ECode ec = NOERROR;
+    if (CheckNotClosed()) {
+        ec = CObjectContainer::New(entries);
+        if (FAILED(ec)) {
+            return ec;
+        }        
+        HashMap<String, AutoPtr<IZipEntry> >::Iterator it = mEntries.Begin();        
+        Int32 count = 0;
+        for (; it != mEntries.End(); ++it) {
+            count++;
+            AutoPtr<IZipEntry> p = it->mSecond;
+            (*entries)->Add(p);
+        }
+        return ec;
+    } else {
+        ec = E_IO_EXCEPTION;
+    }
+    return ec; 
 //    final Iterator<ZipEntry> iterator = mEntries.values().iterator();
 //
 //    return new Enumeration<ZipEntry>() {
@@ -301,7 +373,18 @@ ECode ZipFile::GetEntry(
     /* [in] */ const String& entryName,
     /* [out] */ IZipEntry** entry)
 {
-//    checkNotClosed();
+    if (entryName.IsNull()) {
+         return E_NULL_POINTER_EXCEPTION;
+    }
+
+    if(CheckNotClosed()) {
+        IZipEntry *pEntry = NULL;
+        pEntry = mEntries[entryName];
+        if (pEntry == NULL) {
+            return E_ZIP_EXCEPTION;
+        }
+        *entry = pEntry;
+    }
 //    if (entryName == null) {
 //        throw new NullPointerException();
 //    }
@@ -311,7 +394,7 @@ ECode ZipFile::GetEntry(
 //        ze = mEntries.get(entryName + "/");
 //    }
 //    return ze;
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 /**
@@ -332,34 +415,49 @@ ECode ZipFile::GetInputStream(
 //     * Make sure this ZipEntry is in this Zip file.  We run it through
 //     * the name lookup.
 //     */
-//    entry = getEntry(entry.getName());
-//    if (entry == null) {
-//        return null;
-//    }
-//
+    IZipEntry *pEntry = NULL;
+    String name;
+    entry->GetName(&name);
+    GetEntry(name, &pEntry);
+    if (entry == NULL) {
+        return NULL;
+    }
+
 //    /*
 //     * Create a ZipInputStream at the right part of the file.
 //     */
-//    RandomAccessFile raf = mRaf;
+    IRandomAccessFile *raf = mRaf;
 //    synchronized (raf) {
 //        // We don't know the entry data's start position. All we have is the
 //        // position of the entry's local header. At position 28 we find the
 //        // length of the extra data. In some cases this length differs from
 //        // the one coming in the central header.
-//        RAFStream rafstrm = new RAFStream(raf,
-//                entry.mLocalHeaderRelOffset + 28);
-//        int localExtraLenOrWhatever = ler.readShortLE(rafstrm);
+        RAFStream *rafstrm = new RAFStream(raf, ((CZipEntry*)entry)->mLocalHeaderRelOffset + 28);
+        Int32 localExtraLenOrWhatever;
+        mLer->ReadInt16LE((IInputStream *) rafstrm->Probe(EIID_IInputStream), &localExtraLenOrWhatever);
+        //mLer->ReadShortLE(rafstrm);
 //        // Skip the name and this "extra" data or whatever it is:
-//        rafstrm.skip(entry.nameLen + localExtraLenOrWhatever);
-//        rafstrm.mLength = rafstrm.mOffset + entry.compressedSize;
-//        if (entry.compressionMethod == ZipEntry.DEFLATED) {
-//            int bufSize = Math.max(1024, (int)Math.min(entry.getSize(), 65535L));
-//            return new ZipInflaterInputStream(rafstrm, new Inflater(true), bufSize, entry);
-//        } else {
-//            return rafstrm;
-//        }
+        Int64 number;
+        rafstrm->Skip(((CZipEntry*)entry)->mNameLen + localExtraLenOrWhatever, &number);
+        Int64 compressedSize;
+        entry->GetCompressedSize(&compressedSize);
+        Int32 compressionMethod;
+        entry->GetMethod(&compressionMethod);
+        rafstrm->mLength = rafstrm->mOffset + compressedSize;
+        if (compressionMethod == IDeflater_DEFLATED) {
+            Int64 size;
+            entry->GetSize(&size);
+            Int32 bufSize = Math::Max(1024, Math::Min((Int32)size, 65535L));
+            AutoPtr<IInflater> inf;
+            CInflater::New(TRUE,(IInflater**)&inf); 
+            ZipInflaterInputStream *pInflaterStream = new ZipInflaterInputStream(rafstrm, (IInflater*)inf, bufSize, (CZipEntry *)entry);
+            *is = (IInputStream *)pInflaterStream->Probe(EIID_IInputStream);
+        } else {
+            *is = (IInputStream *) rafstrm->Probe(EIID_IInputStream);
+            return NOERROR;
+        }
 //    }
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 /**
@@ -383,9 +481,10 @@ ECode ZipFile::GetName(
 ECode ZipFile::GetSize(
     /* [out] */ Int32* size)
 {
-//    checkNotClosed();
-//    return mEntries.size();
-    return E_NOT_IMPLEMENTED;
+    if(CheckNotClosed()) {
+        *size = mEntries.GetSize();
+    }
+    return NOERROR;
 }
 
 /**
@@ -411,63 +510,80 @@ ECode ZipFile::ReadCentralDir()
 //     * No need to synchronize mRaf here -- we only do this when we
 //     * first open the Zip file.
 //     */
-//    long scanOffset = mRaf.length() - ENDHDR;
-//    if (scanOffset < 0) {
-//        throw new ZipException("too short to be Zip");
-//    }
-//
-//    long stopOffset = scanOffset - 65536;
-//    if (stopOffset < 0) {
-//        stopOffset = 0;
-//    }
-//
-//    while (true) {
-//        mRaf.seek(scanOffset);
-//        if (ZipEntry.readIntLE(mRaf) == 101010256L) {
-//            break;
-//        }
-//
-//        scanOffset--;
-//        if (scanOffset < stopOffset) {
-//            throw new ZipException("EOCD not found; not a Zip archive?");
-//        }
-//    }
-//
-//    /*
-//     * Found it, read the EOCD.
-//     *
-//     * For performance we want to use buffered I/O when reading the
-//     * file.  We wrap a buffered stream around the random-access file
-//     * object.  If we just read from the RandomAccessFile we'll be
-//     * doing a read() system call every time.
-//     */
-//    RAFStream rafs = new RAFStream(mRaf, mRaf.getFilePointer());
-//    BufferedInputStream bin = new BufferedInputStream(rafs, ENDHDR);
-//
-//    int diskNumber = ler.readShortLE(bin);
-//    int diskWithCentralDir = ler.readShortLE(bin);
-//    int numEntries = ler.readShortLE(bin);
-//    int totalNumEntries = ler.readShortLE(bin);
-//    /*centralDirSize =*/ ler.readIntLE(bin);
-//    long centralDirOffset = ler.readIntLE(bin);
-//    /*commentLen =*/ ler.readShortLE(bin);
-//
-//    if (numEntries != totalNumEntries ||
-//        diskNumber != 0 ||
-//        diskWithCentralDir != 0) {
-//        throw new ZipException("spanned archives not supported");
-//    }
-//
-//    /*
-//     * Seek to the first CDE and read all entries.
-//     */
-//    rafs = new RAFStream(mRaf, centralDirOffset);
-//    bin = new BufferedInputStream(rafs, 4096);
-//    for (int i = 0; i < numEntries; i++) {
-//        ZipEntry newEntry = new ZipEntry(ler, bin);
-//        mEntries.put(newEntry.getName(), newEntry);
-//    }
-    return E_NOT_IMPLEMENTED;
+      Int64 len = 0;
+      ECode ec = NOERROR;
+      ec = mRaf->GetLength(&len);
+      if (FAILED(ec)) {
+          return ec;
+      }
+
+      Int64 scanOffset = len - ZipConstants_ENDHDR;
+      if (scanOffset < 0) {
+          return E_ZIP_EXCEPTION;
+      }
+      Int64 stopOffset = scanOffset - 65536;
+      if (stopOffset < 0) {
+          stopOffset = 0;
+      }
+
+      while(1) {
+          mRaf->Seek(scanOffset);    
+          Int64 curptr;
+          mRaf->GetFilePointer(&curptr);
+          Int64 flag;
+          ec = ZipEntry::ReadInt32LE((IRandomAccessFile*)mRaf, &flag);
+          if (flag == 101010256L) {
+              break;
+          }
+          scanOffset--;
+          if (scanOffset < stopOffset) {
+               return E_ZIP_EXCEPTION;
+          }
+      }
+
+      Int64 offset;
+      mRaf->GetFilePointer(&offset);
+      RAFStream *rafs = new RAFStream(mRaf, offset);
+      AutoPtr<IBufferedInputStream> bin;
+      ec = CBufferedInputStream::New((IInputStream *)rafs->Probe(EIID_IInputStream), ZipConstants_ENDHDR, (IBufferedInputStream **)&bin);
+      Int32 diskNumber;
+      Int32 diskWithCentralDir;
+      Int32 numEntries;
+      Int32 totalNumEntries;
+      Int64 centralDirOffset;
+
+      //mLe-->ReadInt16LE((IInputStream*)rafs->Probe(EIID_IInputStream), &diskNumber);
+      mLer->ReadInt16LE(bin, &diskNumber);
+      mLer->ReadInt16LE(bin, &diskWithCentralDir);
+      mLer->ReadInt16LE(bin, &numEntries);
+      mLer->ReadInt16LE(bin, &totalNumEntries);
+      Int64 dirsize;
+      mLer->ReadInt32LE(bin, &dirsize);
+      Int32 xsize = dirsize;
+      mLer->ReadInt32LE(bin, &centralDirOffset);
+      Int32 off = centralDirOffset;
+
+      if (numEntries != totalNumEntries || diskNumber != 0 || diskWithCentralDir != 0) {
+           return E_ZIP_EXCEPTION;
+      }
+      
+      delete rafs;
+      rafs = NULL;
+      //rafs = new RAFStream(mRaf, centralDirOffset);
+      rafs = new RAFStream(mRaf, off);
+      AutoPtr<IBufferedInputStream> bin1;
+      ec = CBufferedInputStream::New((IInputStream *)rafs->Probe(EIID_IInputStream), 4096, (IBufferedInputStream **)&bin1);
+      for (int i = 0; i < numEntries; i++) {
+          AutoPtr<IZipEntry> newEntry;
+          ec = CZipEntry::New((Int32)mLer, (IInputStream *)bin1->Probe(EIID_IInputStream), (IZipEntry**)&newEntry);
+          if (FAILED(ec)) break;
+          String name;
+          newEntry->GetName(&name);
+          mEntries[name] = newEntry;
+      }
+      delete rafs;
+      rafs = NULL;
+      return ec;
 }
 
 /**
@@ -502,6 +618,7 @@ ECode ZipFile::Init(
     /* [in] */ IFile* file,
     /* [in] */ Int32 mode)
 {
+    ECode ec = NOERROR;
     file->GetPath(&mFileName);
     if (mode != IZipFile_OPEN_READ &&
         mode != (IZipFile_OPEN_READ | IZipFile_OPEN_DELETE)) {
@@ -523,7 +640,10 @@ ECode ZipFile::Init(
         mFileToDeleteOnClose = NULL;
     }
 
-    //mRaf = new RandomAccessFile(fileName, "r");
+    ec = CRandomAccessFile::New(file, (IRandomAccessFile **)&mRaf);
+    if (FAILED(ec)) {
+        return ec;
+    } 
 
     return ReadCentralDir();
 }

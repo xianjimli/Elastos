@@ -249,3 +249,11 @@ ECode CZipEntry::constructor(
 {
     return ZipEntry::Init((CZipEntry*)ze);
 }
+
+
+ECode CZipEntry::constructor(
+    /* in */ Int32 little,
+    /* in */ IInputStream* in)
+{
+    return ZipEntry::Init(little, in);
+}

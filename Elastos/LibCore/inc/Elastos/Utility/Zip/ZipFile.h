@@ -127,6 +127,27 @@ public:
         //@Override
         CARAPI Available(
             /* [out] */ Int32* number);
+        
+        CARAPI Close();
+
+        CARAPI Mark(
+            /* [in] */ Int32 mark);
+
+        CARAPI IsMarkSupported(
+            /* [out] */  Boolean* isMark);
+
+        CARAPI Read(
+            /* [out */ Int32* value);
+
+        CARAPI ReadBuffer(
+            /* [out] */ ArrayOf<Byte>* buffer,
+            /* [out] */ Int32 *number);
+        
+        CARAPI Reset();
+
+        CARAPI Skip(
+            /* [in] */ Int64 offset,
+            /* [out] */ Int64* number);
 
     public:
         AutoPtr<CZipEntry> mEntry;
@@ -242,7 +263,7 @@ protected:
         /* [in] */ const String& name);
 
 private:
-    CARAPI CheckNotClosed();
+    Boolean CheckNotClosed();
 
     /**
      * Find the central directory and read the contents.
@@ -290,7 +311,7 @@ private:
 
     CZipEntry::LittleEndianReader* mLer;
 
-    HashMap<String, AutoPtr<CZipEntry> > mEntries;
+    HashMap<String, AutoPtr<IZipEntry> > mEntries;
 };
 
 #endif //__ZIPFILE_H__

@@ -22,6 +22,9 @@ public:
 
     CARAPI GetFilePointer(
         /* out */ Int64 *pSeek);
+    
+    CARAPI Seek(
+        /* in */ Int64 nSeek);
 
     CARAPI GetLength(
         /* out */ Int64 *pLen);
@@ -113,19 +116,20 @@ public:
     CARAPI WriteInt16(
         /* in */ Int32 value);
 
-private:
-    ECode Read(
+    CARAPI Read(
         /* out */ Int32 *pValue);
 
-    ECode ReadToBuff(
-       /* in */ Int32 count,
-       /* out */ Int32 *number);
-
-    ECode ReadBufferEx(
+    CARAPI ReadBufferEx(
         /* [in] */ Int32 offset,
         /* [in] */ Int32 length,
         /* [out] */ ArrayOf<Byte>* buffer,
         /* [out] */ Int32* number);
+
+private:
+
+    ECode ReadToBuff(
+       /* in */ Int32 count,
+       /* out */ Int32 *number);
 
     ECode ReadBufferExLocked(
         /* [in] */ Int32 offset,

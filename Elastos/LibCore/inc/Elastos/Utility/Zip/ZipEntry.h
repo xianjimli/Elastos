@@ -27,7 +27,7 @@ public:
             /* [in] */ IInputStream* in,
             /* [out] */ Int64* value);
 
-    private:
+    public:
         ArrayOf_<Byte, 4> mB;
         ArrayOf_<Byte, ZipConstants_CENHDR> mHdrBuf;
     };
@@ -186,6 +186,10 @@ public:
      */
 //    static CARAPI_(Int64) ReadInt32LE(
 //        /* [in] */ IRandomAccessFile* raf);
+public:
+     static ReadInt32LE(
+         /* in */ IRandomAccessFile* rafs,
+         /* out */ Int64 *value);
 
 protected:
     /**
@@ -208,6 +212,11 @@ protected:
      */
     CARAPI Init(
         /* [in]*/ ZipEntry* ze);
+
+
+    CARAPI Init(
+        /* [in] */ Int32 little,
+        /* [in] */ IInputStream *is);
 
 private:
     CARAPI MyReadFully(

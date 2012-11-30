@@ -23,7 +23,6 @@ CRandomAccessFile::CRandomAccessFile()
    AutoPtr<IPlatform> platform;
    ASSERT_SUCCEEDED(CPlatform::AcquireSingleton((IPlatform**)&platform));
    ASSERT_SUCCEEDED(platform->GetFileSystem((IFileSystem**)&mFileSystem));
-   printf("Build constructor----------------------\n");
 }
 
 CRandomAccessFile::~CRandomAccessFile()
@@ -86,6 +85,18 @@ ECode CRandomAccessFile::GetFilePointer(
     return NOERROR;
 }
 
+ECode CRandomAccessFile::Seek(
+    /* in */ Int64 nSeek)
+{
+    Int64 result;
+    ECode ec = NOERROR;
+    ec = mFileSystem->Seek(mFd->mDescriptor, nSeek, 1, &result);
+    if (result == -1) {
+    } else {
+    }
+    return ec;
+}
+
 ECode CRandomAccessFile::GetLength(
     /* out */ Int64 *pLen)
 {
@@ -113,7 +124,6 @@ ECode CRandomAccessFile::constructor(
         return E_NULL_POINTER_EXCEPTION;
     }	
  
-    printf("###***###%s,%d\n", __FILE__, __LINE__);
     ECode ec = NOERROR;
     String path;
     pFile->GetAbsolutePath(&path);
@@ -121,8 +131,7 @@ ECode CRandomAccessFile::constructor(
     if (FAILED(ec)) {
     	return ec;
     }
-    mFileSystem->Open(path, IFileSystem_O_RDWR, &mFd->mDescriptor);
-    printf("the fd is %d \n", mFd->mDescriptor);
+    ec = mFileSystem->Open(path, IFileSystem_O_RDWR, &mFd->mDescriptor);
     return ec;
 }
 
@@ -368,11 +377,9 @@ ECode CRandomAccessFile::ReadLine(
         /* out */ String* str)
 {
     assert(str != NULL);
-    printf("%s, %d\n", __FILE__, __LINE__);    
     StringBuf* line = StringBuf::Alloc(80);
     Boolean foundTerminator = FALSE;
 
-    printf("%s, %d\n", __FILE__, __LINE__);    
     while (TRUE) {
         Int32 nextByte;
         FAIL_RETURN(Read(&nextByte));

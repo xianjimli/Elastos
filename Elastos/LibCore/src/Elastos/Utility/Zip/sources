@@ -6,6 +6,7 @@
 TARGET_NAME = Elastos.Utility.Zip
 TARGET_TYPE = eco
 
+IMPORTS += Elastos.Utility.eco
 
 INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/Utility/Zip
 INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/common

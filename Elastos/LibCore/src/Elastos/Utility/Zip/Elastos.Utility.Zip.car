@@ -428,6 +428,12 @@ module
         constructor(
             [in] IZipEntry* ze);
 
+        /* jianfeng add */
+        
+        constructor(
+            [in] Int32 little,
+            [in] IInputStream *is);
+
         interface IZipEntry;
     }
 

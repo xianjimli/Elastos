@@ -11,6 +11,8 @@ module
             [out] IFileDescriptor **pFd);
         GetFilePointer(
             [out] Int64 *pSeek);
+        Seek(
+            [in] Int64 nSeek);
         GetLength(
             [out] Int64 *pLen);
         SetLength(
@@ -18,5 +20,13 @@ module
         ReadBuffer(
             [out] ArrayOf<Byte> buffer,
             [out] Int32 *number);
+        Read(
+            [out] Int32 *value);
+
+        ReadBufferEx(
+    	    [in] Int32 offset,
+            [in] Int32 length,
+            [out] ArrayOf<Byte> buffer,
+            [out] Int32* number);
     }
 }

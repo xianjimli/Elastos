@@ -1,6 +1,6 @@
 
 #include "ZipEntry.h"
-
+#include <stdio.h>
 
 /*
  * Read a two-byte short in little-endian order.
@@ -10,7 +10,6 @@ ECode ZipEntry::LittleEndianReader::ReadInt16LE(
     /* [out] */ Int32* value)
 {
     Int32 count;
-
     in->ReadBufferEx(0, 2, &mB, &count);
     if (count == 2) {
         *value = (mB[0] & 0XFF) | ((mB[1] & 0XFF) << 8);
@@ -29,8 +28,11 @@ ECode ZipEntry::LittleEndianReader::ReadInt32LE(
     /* [in] */ IInputStream* in,
     /* [out] */ Int64* value)
 {
+    assert(in != NULL);
+    assert(value != NULL);
     Int32 count;
-
+    
+    in->Reset();
     in->ReadBufferEx(0, 4, &mB, &count);
     if (count == 4) {
         *value = (((mB[0] & 0XFF))
@@ -320,8 +322,10 @@ ECode ZipEntry::SetTime(
 //  *
 //  * On exit, "in" will be positioned at the start of the next entry.
 //  */
-// ZipEntry(LittleEndianReader ler, InputStream in) throws IOException {
-
+//*ECode ZipEntry::ZipEntry(
+//    /* in */ InputStream *in)
+//{
+//    return NOERROR;
 //     /*
 //      * We're seeing performance issues when we call readShortLE and
 //      * readIntLE, so we're going to read the entire header at once
@@ -383,7 +387,7 @@ ECode ZipEntry::SetTime(
 //     } else {
 //         comment = null;
 //     }
-// }
+//}
 
 ECode ZipEntry::MyReadFully(
     /* [in] */ IInputStream* in,
@@ -465,4 +469,107 @@ ECode ZipEntry::Init(
     mNameLen = ze->mNameLen;
     mLocalHeaderRelOffset = ze->mLocalHeaderRelOffset;
     return NOERROR;
+}
+
+//--------jian feng add 2012-11-29-------------
+
+
+ECode ZipEntry::Init(
+    /* in */ Int32 little,
+    /* in */ IInputStream* in)
+{
+        LittleEndianReader *ler = (LittleEndianReader *) little;
+        ArrayOf_<Byte, ZipConstants_CENHDR> hdrBuf;
+        MyReadFully(in, &hdrBuf);
+
+        Int64 sig = ((hdrBuf)[0] & 0xff) | (((hdrBuf)[1] & 0xff) << 8) |
+            (((hdrBuf)[2] & 0xff) << 16) | (((hdrBuf)[3] << 24) & 0xffffffffL);
+        //if (sig != CENSIG) {
+        //     throw new ZipException("Central Directory Entry not found");
+        //}
+        //
+        mCompressionMethod = ((hdrBuf)[10] & 0xff) | (((hdrBuf)[11] & 0xff) << 8);
+        mTime = ((hdrBuf)[12] & 0xff) | (((hdrBuf)[13] & 0xff) << 8);
+        mModDate = ((hdrBuf)[14] & 0xff) | (((hdrBuf)[15] & 0xff) << 8);
+        mCrc = ((hdrBuf)[16] & 0xff) | (((hdrBuf)[17] & 0xff) << 8)
+                | (((hdrBuf)[18] & 0xff) << 16)
+                | (((hdrBuf)[19] << 24) & 0xffffffffL);
+        mCompressedSize = ((hdrBuf)[20] & 0xff) | (((hdrBuf)[21] & 0xff) << 8)
+                | (((hdrBuf)[22] & 0xff) << 16)
+                | (((hdrBuf)[23] << 24) & 0xffffffffL);
+        mSize = ((hdrBuf)[24] & 0xff) | (((hdrBuf)[25] & 0xff) << 8)
+                | (((hdrBuf)[26] & 0xff) << 16)
+                | (((hdrBuf)[27] << 24) & 0xffffffffL);
+        mNameLen = ((hdrBuf)[28] & 0xff) | (((hdrBuf)[29] & 0xff) << 8);
+        Int32 extraLen = ((hdrBuf)[30] & 0xff) | (((hdrBuf)[31] & 0xff) << 8);
+        Int32 commentLen = ((hdrBuf)[32] & 0xff) | (((hdrBuf)[33] & 0xff) << 8);
+        mLocalHeaderRelOffset = ((hdrBuf)[42] & 0xff) | (((hdrBuf)[43] & 0xff) << 8)
+                | (((hdrBuf)[44] & 0xff) << 16)
+                | (((hdrBuf)[45] << 24) & 0xffffffffL);
+
+        ArrayOf<Byte> *nameBytes = ArrayOf<Byte>::Alloc(mNameLen);
+        MyReadFully(in, nameBytes);
+
+        ArrayOf<Byte> *commentBytes = NULL;
+        if (commentLen > 0) {
+            commentBytes = ArrayOf<Byte>::Alloc(commentLen);
+            MyReadFully(in, commentBytes);
+        }
+
+        ArrayOf<Byte> *extra = NULL;
+        if (extraLen > 0) {
+            extra = ArrayOf<Byte>::Alloc(extraLen);
+            MyReadFully(in, extra);
+        }
+
+        // The RI has always assumed UTF-8. (If GPBF_UTF8_FLAG isn't set, the encoding is
+        // actually IBM-437.)
+        mName = String((const char *)nameBytes->GetPayload(), nameBytes->GetLength());
+        if (commentBytes != NULL) {
+            mComment = String((const char *)commentBytes->GetPayload(), commentBytes->GetLength()); 
+        } else {
+            //mComment = NULL;
+        }
+        if(nameBytes) {
+            ArrayOf<Byte>::Free(nameBytes);
+            nameBytes = NULL;
+        }
+        if(extra) {
+            ArrayOf<Byte>::Free(extra);
+            extra = NULL;
+        }
+        if(commentBytes) {
+            ArrayOf<Byte>::Free(commentBytes);
+            commentBytes = NULL;
+        }
+        return NOERROR;
+}
+
+ECode ZipEntry::ReadInt32LE(
+    /* in */  IRandomAccessFile* rafs,
+    /* out */ Int64 *value)
+{
+
+    Int32 b0; 
+    Int32 b1;
+    Int32 b2;
+    Int32 b3;
+    ECode ec = NOERROR;
+    
+    IDataInput *rafInput = (IDataInput*)rafs->Probe(EIID_IDataInput); 
+
+    //rafInput->Read(&b0);
+    //rafInput->Read(&b1);
+    //rafInput->Read(&b2);
+    //rafInput->Read(&b3);
+    rafs->Read(&b0);
+    rafs->Read(&b1);
+    rafs->Read(&b2);
+    rafs->Read(&b3);
+
+    if (b3 < 0) {
+        return E_EOF_EXCEPTION;
+    }
+    *value = (Int64) b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
+    return ec;
 }
