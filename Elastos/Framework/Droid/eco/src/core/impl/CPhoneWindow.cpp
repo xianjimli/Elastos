@@ -729,9 +729,11 @@ void CPhoneWindow::DecorView::DrawableChanged()
 //    }
 }
 
+//@override
 void CPhoneWindow::DecorView::OnAttachedToWindow()
 {
-    View::OnAttachedToWindow();
+    FrameLayout::OnAttachedToWindow();
+
     AutoPtr<IWindowCallback> cb;
     mHost->GetCallback((IWindowCallback**)&cb);
     if (cb != NULL && mFeatureId < 0) {
@@ -739,6 +741,13 @@ void CPhoneWindow::DecorView::OnAttachedToWindow()
     }
 
     if (mFeatureId == -1) {
+        /*
+         * The main window has been attached, try to restore any panels
+         * that may have been open before. This is called in cases where
+         * an activity is being killed for configuration change and the
+         * menu was open. When the activity is recreated, the menu
+         * should be shown again.
+         */
         mHost->OpenPanelsAfterRestore();
     }
 }
@@ -1286,14 +1295,13 @@ ECode CPhoneWindow::OnConfigurationChanged(
     /* [in] */ IConfiguration* newConfig)
 {
     AutoPtr<PanelFeatureState> st = GetPanelState(Window_FEATURE_OPTIONS_PANEL, FALSE);
-
     if ((st != NULL) && (st->mMenu != NULL)) {
-        AutoPtr<IMenuBuilder> menuBuilder = IMenuBuilder::Probe(st->mMenu);
+        IMenuBuilder* menuBuilder = IMenuBuilder::Probe(st->mMenu);
 
         if (st->mIsOpen) {
             // Freeze state
-            AutoPtr<IBundle> state = NULL;
-            CBundle::New((IBundle**) &state);
+            AutoPtr<IBundle> state;
+            CBundle::New((IBundle**)&state);
             menuBuilder->SaveHierarchyState(state);
 
             // Remove the menu views since they need to be recreated
@@ -1305,8 +1313,8 @@ ECode CPhoneWindow::OnConfigurationChanged(
 
             // Restore state
             menuBuilder->RestoreHierarchyState(state);
-
-        } else {
+        }
+        else {
             // Clear menu views so on next menu opening, it will use
             // the proper layout
             ClearMenuViews(st);
@@ -1494,9 +1502,8 @@ Boolean CPhoneWindow::InitializePanelContent(
         return FALSE;
     }
 
-    IMenuBuilder* menu = IMenuBuilder::Probe(st->mMenu);
     AutoPtr<IView> view;
-
+    IMenuBuilder* menu = IMenuBuilder::Probe(st->mMenu);
     menu->GetMenuView((st->mIsInExpandedMode) ? MenuBuilder::TYPE_EXPANDED
             : MenuBuilder::TYPE_ICON, (IViewGroup*)st->mDecorView->Probe(EIID_IViewGroup),
             (IView**)&view);

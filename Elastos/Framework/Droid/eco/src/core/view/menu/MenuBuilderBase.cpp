@@ -71,7 +71,6 @@ AutoPtr<IMenuView> MenuBuilderBase::MenuType::GetMenuView(
         AutoPtr<IView> view;
         GetInflater()->InflateEx2(MenuBuilderBase::LAYOUT_RES_FOR_TYPE[mMenuType], parent,
                     FALSE, (IView**)&view);
-
         menuView = IMenuView::Probe(view);
         menuView->Initialize((IMenuBuilder*)mHost->Probe(EIID_IMenuBuilder), mMenuType);
 
@@ -80,15 +79,13 @@ AutoPtr<IMenuView> MenuBuilderBase::MenuType::GetMenuView(
         mMenuView = menuView;
         if (mHost->mFrozenViewStates != NULL) {
             IView* view = IView::Probe(mMenuView);
+            assert(view != NULL);
+            view->RestoreHierarchyState(mHost->mFrozenViewStates);
 
-            if (view != NULL) {
-                view->RestoreHierarchyState(mHost->mFrozenViewStates);
-
-                // Clear this menu type's frozen state, since we just restored it
-                Int32 id = 0;
-                view->GetId(&id);
-                mHost->mFrozenViewStates->Put(id, NULL);
-            }
+            // Clear this menu type's frozen state, since we just restored it
+            Int32 id = 0;
+            view->GetId(&id);
+            mHost->mFrozenViewStates->Put(id, NULL);
         }
     }
 
@@ -401,7 +398,6 @@ MenuBuilderBase::MenuBuilderBase(
     : mQwertyMode(FALSE)
     , mShortcutsVisible(FALSE)
     , mIsVisibleItemsStale(TRUE)
-    , mFrozenViewStates(NULL)
     , mPreventDispatchingItemsChanged(FALSE)
     , mOptionalIconsVisible(FALSE)
 {

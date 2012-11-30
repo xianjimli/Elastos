@@ -1799,8 +1799,9 @@ ECode Activity::OnSearchRequested(
 }
 
 ECode Activity::GetMenuInflater (
-    /* [out] */ IMenuInflater** menuInflater) {
-    *menuInflater = NULL;
+    /* [out] */ IMenuInflater** menuInflater)
+{
+    if (menuInflater == NULL) return E_ILLEGAL_ARGUMENT_EXCEPTION;
 
     return CMenuInflater::New((IContext*)this->Probe(EIID_IContext), menuInflater);
 }
