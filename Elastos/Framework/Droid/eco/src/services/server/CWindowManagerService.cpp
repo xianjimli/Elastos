@@ -1423,7 +1423,7 @@ CWindowManagerService::FindWindow(
 
 ECode CWindowManagerService::OpenSession(
     /* [in] */ IInputMethodClient* client,
-    /* [in] */ IInputContext* inputContext,
+    /* [in] */ IInputContextStub* inputContext,
     /* [out] */ IWindowSession** session)
 {
     assert(session != NULL);

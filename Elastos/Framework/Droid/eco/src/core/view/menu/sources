@@ -28,5 +28,6 @@ SOURCES += IconMenuItemView.cpp
 SOURCES += CIconMenuItemView.cpp
 SOURCES += IconMenuViewLayoutParams.cpp
 SOURCES += CIconMenuViewLayoutParams.cpp
+SOURCES += ListMenuItemView.cpp
 SOURCES += CListMenuItemView.cpp
 SOURCES += CMenuInflater.cpp

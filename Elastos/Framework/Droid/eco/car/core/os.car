@@ -13,6 +13,8 @@ module
     merge("os/FileStatus.car");
     merge("os/Vibrator.car");
     merge("os/WorkSource.car");
+    merge("os/IResultReceiverStub.car");
+    merge("os/ResultReceiver.car");
     merge("os/storage/IMountServiceListener.car");
     merge("os/storage/IMountShutdownObserver.car");
     merge("os/storage/IObbActionListener.car");
@@ -114,6 +116,14 @@ module
             [in] IParcel* src);
 
         interface IWorkSource;
+        interface IParcelable;
+    }
+
+    class CResultReceiver {
+        constructor(
+            [in] IApartment* handler);
+
+        interface IResultReceiver;
         interface IParcelable;
     }
 }

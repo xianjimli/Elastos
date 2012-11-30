@@ -101,4 +101,8 @@ module
      * Generic unspecified type for {@link #imeOptions}.
      */
     const EditorInfo_IME_NULL = 0x00000000;
+
+
+    interface IEditorInfo {
+    }
 }

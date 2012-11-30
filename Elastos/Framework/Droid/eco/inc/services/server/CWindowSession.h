@@ -12,7 +12,7 @@ public:
     CARAPI constructor(
         /* [in] */ IWindowManagerEx* wmService,
         /* [in] */ IInputMethodClient* client,
-        /* [in] */ IInputContext* inputContext);
+        /* [in] */ IInputContextStub* inputContext);
 
     CARAPI Add(
         /* [in] */ IInnerWindow* window,
@@ -112,7 +112,7 @@ public:
 public:
     AutoPtr<CWindowManagerService> mWMService;
     AutoPtr<IInputMethodClient> mClient;
-    AutoPtr<IInputContext> mInputContext;
+    AutoPtr<IInputContextStub> mInputContext;
     Int32 mUid;
     Int32 mPid;
     AutoPtr<ISurfaceSession> mSurfaceSession;

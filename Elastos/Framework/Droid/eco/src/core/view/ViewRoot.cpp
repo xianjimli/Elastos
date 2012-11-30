@@ -700,7 +700,7 @@ IWindowSession* ViewRoot::GetWindowSession(
         sm->GetService(String("window"), (IInterface**)(IWindowManagerEx**)&wm);
 
         IInputMethodClient* client = NULL; // imm.getClient()
-        IInputContext* ctx = NULL; // imm.getInputContext()
+        IInputContextStub* ctx = NULL; // imm.getInputContext()
 
         wm->OpenSession(client, ctx, (IWindowSession**)&sWindowSession);
 

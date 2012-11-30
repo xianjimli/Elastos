@@ -2,8 +2,8 @@ ifneq "$(XDK_TARGET_PRODUCT)" "devtools"
 ifeq "$(XDK_TARGET_PLATFORM)" "linux" 
   DIRS += Elastos
   DIRS += External/cURL
-  DIRS += External/fbreader-0.12.10
-  DIRS += Elastos/Framework/Droid/DevSamples/FBReader
+  #DIRS += External/fbreader-0.12.10
+  #DIRS += Elastos/Framework/Droid/DevSamples/FBReader
 else
   DIRS = External/zlib
   DIRS += Elastos

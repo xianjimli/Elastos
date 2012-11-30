@@ -37,13 +37,20 @@ module
     merge("view/inputmethod/ExtractedTextRequest.car");
     merge("view/inputmethod/CompletionInfo.car");
     merge("view/inputmethod/EditorInfo.car");
+    merge("view/inputmethod/InputConnection.car");
+    merge("view/inputmethod/InputBinding.car");
+    merge("view/inputmethod/InputMethodInfo.car");
+    merge("view/inputmethod/IInputMethodSession.car");
+    merge("view/inputmethod/InputMethodManager.car");
     merge("view/InputBindResult.car");
     merge("view/IInputMethodClient.car");
     merge("view/IInputContextCallback.car");
-    merge("view/IInputContext.car");
+    merge("view/IInputContextStub.car");
     merge("view/InputChannel.car");
     merge("view/InputDevice.car");
     merge("view/IInputMethodCallback.car");
+    merge("view/IInputMethod.car");
+    merge("view/IInputMethodManager.car");
     merge("view/IOnKeyguardExitResult.car");
     merge("view/IRotationWatcher.car");
     merge("view/IInnerWindow.car");
@@ -430,6 +437,26 @@ module
         interface ICompletionInfo;
         interface IParcelable;
     }
+
+/*
+    class CInputMethodManager {
+
+    }
+*/
+
+/*
+    class CBaseInputConnection {
+        constructor(
+            [in] IInputMethodManager* mgr,
+            [in] Boolean fullEditor);
+
+        constructor(
+            [in] IView* targetView,
+            [in] Boolean fullEditor);
+
+        interface IInputConnection;
+    }
+*/
 
     class CInputBindResult {
         interface IInputBindResult;

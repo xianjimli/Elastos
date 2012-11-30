@@ -2,7 +2,7 @@
 module
 {
     interface IInputMethodClient;
-    interface IInputContext;
+    interface IInputContextStub;
     interface IWindowSession;
     interface IKeyEvent;
     interface IMotionEvent;
@@ -30,7 +30,7 @@ module
 
         OpenSession(
             [in] IInputMethodClient* client,
-            [in] IInputContext* inputContext,
+            [in] IInputContextStub* inputContext,
             [out] IWindowSession** session);
 
         InputMethodClientHasFocus(

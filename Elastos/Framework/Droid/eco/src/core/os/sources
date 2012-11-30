@@ -35,6 +35,7 @@ SOURCES += CVibrator.cpp
 SOURCES += CWorkSource.cpp
 SOURCES += Binder.cpp
 SOURCES += ElObject.cpp
+SOURCES += CResultReceiver.cpp
 
 ifeq "$(XDK_TARGET_CPU)" "arm"
 ifneq "$(XDK_COMPILER)" "gnu"

@@ -7,58 +7,19 @@ static Int32 R_Styleable_MenuView[] = {
 };
 
 
-IVIEW_METHODS_IMPL(CListMenuItemView, _ListMenuItemView, _ListMenuItemView);
+IVIEW_METHODS_IMPL(CListMenuItemView, ListMenuItemView, ListMenuItemView);
 
-IVIEWGROUP_METHODS_IMPL(CListMenuItemView, _ListMenuItemView, _ListMenuItemView);
+IVIEWGROUP_METHODS_IMPL(CListMenuItemView, ListMenuItemView, ListMenuItemView);
 
-IVIEWPARENT_METHODS_IMPL(CListMenuItemView, _ListMenuItemView, _ListMenuItemView);
+IVIEWPARENT_METHODS_IMPL(CListMenuItemView, ListMenuItemView, ListMenuItemView);
 
-IVIEWMANAGER_METHODS_IMPL(CListMenuItemView, _ListMenuItemView, _ListMenuItemView);
+IVIEWMANAGER_METHODS_IMPL(CListMenuItemView, ListMenuItemView, ListMenuItemView);
 
-IDrawableCallback_METHODS_IMPL(CListMenuItemView, _ListMenuItemView, _ListMenuItemView);
+IDrawableCallback_METHODS_IMPL(CListMenuItemView, ListMenuItemView, ListMenuItemView);
 
-IKeyEventCallback_METHODS_IMPL(CListMenuItemView, _ListMenuItemView, _ListMenuItemView);
+IKeyEventCallback_METHODS_IMPL(CListMenuItemView, ListMenuItemView, ListMenuItemView);
 
-IAccessibilityEventSource_METHODS_IMPL(CListMenuItemView, _ListMenuItemView, _ListMenuItemView);
-
-
-_ListMenuItemView::_ListMenuItemView()
-{
-
-}
-
-_ListMenuItemView::~_ListMenuItemView()
-{
-
-}
-
-UInt32 _ListMenuItemView::AddRef()
-{
-    return ElRefBase::AddRef();
-}
-
-UInt32 _ListMenuItemView::Release()
-{
-    return ElRefBase::Release();
-}
-
-ECode _ListMenuItemView::OnFinishInflate()
-{
-    LinearLayout::OnFinishInflate();
-
-    SetBackgroundDrawable(mBackground);
-
-    AutoPtr<IView> view = FindViewById(0x01020016 /*com.android.internal.R.id.title*/);
-    mTitleView = (ITextView*)view->Probe(EIID_ITextView);
-    if (mTextAppearance != -1) {
-        mTitleView->SetTextAppearance(mTextAppearanceContext,
-                                     mTextAppearance);
-    }
-
-    view = FindViewById(0x010201ef /*com.android.internal.R.id.shortcut*/);
-    mShortcutView = (ITextView*)view->Probe(EIID_ITextView);
-    return NOERROR;
-}
+IAccessibilityEventSource_METHODS_IMPL(CListMenuItemView, ListMenuItemView, ListMenuItemView);
 
 
 CListMenuItemView::CListMenuItemView()

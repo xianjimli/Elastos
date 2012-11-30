@@ -1571,7 +1571,7 @@ public:
 
     CARAPI OpenSession(
         /* [in] */ IInputMethodClient* client,
-        /* [in] */ IInputContext* inputContext,
+        /* [in] */ IInputContextStub* inputContext,
         /* [out] */ IWindowSession** session);
 
     CARAPI InputMethodClientHasFocus(

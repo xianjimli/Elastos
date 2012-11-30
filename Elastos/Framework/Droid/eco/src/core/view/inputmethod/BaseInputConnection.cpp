@@ -89,7 +89,8 @@ BaseInputConnection::~BaseInputConnection()
 }
 
 ECode BaseInputConnection::RemoveComposingSpans(
-    /* [in] */ ISpannable* text) {
+    /* [in] */ ISpannable* text)
+{
     assert(text != NULL);
     text->RemoveSpan(COMPOSING);
 
@@ -118,7 +119,8 @@ ECode BaseInputConnection::RemoveComposingSpans(
 }
 
 ECode BaseInputConnection::SetComposingSpans(
-    /* [in] */ ISpannable* text) {
+    /* [in] */ ISpannable* text)
+{
     assert(text != NULL);
     Int32 len = 0;
     text->GetLength(&len);
@@ -129,7 +131,8 @@ ECode BaseInputConnection::SetComposingSpans(
 ECode BaseInputConnection::SetComposingSpans(
     /* [in] */ ISpannable* text,
     /* [in] */ Int32 start,
-    /* [in] */ Int32 end) {
+    /* [in] */ Int32 end)
+{
     assert(text != NULL);
     ArrayOf<IInterface*>* sps;
     text->GetSpans(0, end, EIID_IInterface, &sps);
@@ -167,20 +170,23 @@ ECode BaseInputConnection::SetComposingSpans(
 
 ECode BaseInputConnection::GetComposingSpanStart(
     /* [in] */ ISpannable* text,
-    /* [out] */ Int32* start) {
+    /* [out] */ Int32* start)
+{
     assert(text != NULL);
     return text->GetSpanStart(COMPOSING, start);
 }
 
 ECode BaseInputConnection::GetComposingSpanEnd(
     /* [in] */ ISpannable* text,
-    /* [out] */ Int32* end) {
+    /* [out] */ Int32* end)
+{
     assert(text != NULL);
     return text->GetSpanEnd(COMPOSING, end);
 }
 
 ECode BaseInputConnection::GetEditable(
-    /* [out] */ IEditable** editable) {
+    /* [out] */ IEditable** editable)
+{
     if (mEditable == NULL) {
         AutoPtr<IEditableFactory> editableFactory;
         ASSERT_SUCCEEDED(CEditableFactory::AcquireSingleton(
@@ -202,20 +208,23 @@ ECode BaseInputConnection::GetEditable(
 }
 
 ECode BaseInputConnection::BeginBatchEdit(
-    /* [out] */ Boolean* state) {
+    /* [out] */ Boolean* state)
+{
     *state = FALSE;
     return NOERROR;
 }
 
 ECode BaseInputConnection::EndBatchEdit(
-    /* [out] */ Boolean* state) {
+    /* [out] */ Boolean* state)
+{
     *state = FALSE;
     return NOERROR;
 }
 
 ECode BaseInputConnection::ClearMetaKeyStates(
     /* [in] */ Int32 states,
-    /* [out] */ Boolean* clear) {
+    /* [out] */ Boolean* clear)
+{
     AutoPtr<IEditable> content = NULL;
     GetEditable((IEditable**) &content);
 
@@ -232,7 +241,8 @@ ECode BaseInputConnection::ClearMetaKeyStates(
 
 ECode BaseInputConnection::CommitCompletion(
     /* [in] */ ICompletionInfo* text,
-    /* [out] */ Boolean* state) {
+    /* [out] */ Boolean* state)
+{
     *state = FALSE;
     return NOERROR;
 }
@@ -240,7 +250,8 @@ ECode BaseInputConnection::CommitCompletion(
 ECode BaseInputConnection::CommitText(
     /* [in] */ ICharSequence* text,
     /* [in] */ Int32 newCursorPosition,
-    /* [out] */ Boolean* state) {
+    /* [out] */ Boolean* state)
+{
     // if (DEBUG) Log.v(TAG, "commitText " + text);
     ReplaceText(text, newCursorPosition, FALSE);
     SendCurrentText();
@@ -252,7 +263,8 @@ ECode BaseInputConnection::CommitText(
 ECode BaseInputConnection::DeleteSurroundingText(
     /* [in] */ Int32 leftLength,
     /* [in] */ Int32 rightLength,
-    /* [out] */ Boolean* state) {
+    /* [out] */ Boolean* state)
+{
     // if (DEBUG) Log.v(TAG, "deleteSurroundingText " + leftLength
     //         + " / " + rightLength);
     AutoPtr<IEditable> content = NULL;
@@ -325,7 +337,8 @@ ECode BaseInputConnection::DeleteSurroundingText(
 }
 
 ECode BaseInputConnection::FinishComposingText(
-    /* [out] */ Boolean* state) {
+    /* [out] */ Boolean* state)
+{
     // if (DEBUG) Log.v(TAG, "finishComposingText");
     AutoPtr<IEditable> content = NULL;
     GetEditable((IEditable**) &content);
@@ -345,7 +358,8 @@ ECode BaseInputConnection::FinishComposingText(
 
 ECode BaseInputConnection::GetCursorCapsMode(
     /* [in] */ Int32 reqModes,
-    /* [out] */ Int32* capsMode) {
+    /* [out] */ Int32* capsMode)
+{
     *capsMode = 0;
     if (mDummyMode) {
         return NOERROR;
@@ -373,7 +387,8 @@ ECode BaseInputConnection::GetCursorCapsMode(
 ECode BaseInputConnection::GetExtractedText(
     /* [in] */ IExtractedTextRequest* request,
     /* [in] */ Int32 flags,
-    /* [out] */ IExtractedText** text) {
+    /* [out] */ IExtractedText** text)
+{
     *text = NULL;
     return NOERROR;
 }
@@ -381,7 +396,8 @@ ECode BaseInputConnection::GetExtractedText(
 ECode BaseInputConnection::GetTextBeforeCursor(
     /* [in] */ Int32 length,
     /* [in] */ Int32 flags,
-    /* [out] */ ICharSequence** text) {
+    /* [out] */ ICharSequence** text)
+{
     AutoPtr<IEditable> content = NULL;
     GetEditable((IEditable**) &content);
     if (content == NULL) {
@@ -418,7 +434,8 @@ ECode BaseInputConnection::GetTextBeforeCursor(
 
 ECode BaseInputConnection::GetSelectedText(
     /* [in] */ Int32 flags,
-    /* [out] */ ICharSequence** text) {
+    /* [out] */ ICharSequence** text)
+{
     AutoPtr<IEditable> content = NULL;
     GetEditable((IEditable**) &content);
     if (content == NULL) {
@@ -453,7 +470,8 @@ ECode BaseInputConnection::GetSelectedText(
 ECode BaseInputConnection::GetTextAfterCursor(
     /* [in] */ Int32 length,
     /* [in] */ Int32 flags,
-    /* [out] */ ICharSequence** text) {
+    /* [out] */ ICharSequence** text)
+{
     AutoPtr<IEditable> content = NULL;
     GetEditable((IEditable**) &content);
     if (content == NULL) {
@@ -493,7 +511,8 @@ ECode BaseInputConnection::GetTextAfterCursor(
 
 ECode BaseInputConnection::PerformEditorAction(
     /* [in] */ Int32 actionCode,
-    /* [out] */ Boolean* state) {
+    /* [out] */ Boolean* state)
+{
     Int64 eventTime = SystemClock::UptimeMillis();
 
     AutoPtr<IKeyEvent> event;
@@ -527,7 +546,8 @@ ECode BaseInputConnection::PerformEditorAction(
 
 ECode BaseInputConnection::PerformContextMenuAction(
     /* [in] */ Int32 id,
-    /* [out] */ Boolean* state) {
+    /* [out] */ Boolean* state)
+{
     *state = FALSE;
     return NOERROR;
 }
@@ -535,7 +555,8 @@ ECode BaseInputConnection::PerformContextMenuAction(
 ECode BaseInputConnection::PerformPrivateCommand(
     /* [in] */ String action,
     /* [in] */ IBundle* data,
-    /* [out] */ Boolean* state) {
+    /* [out] */ Boolean* state)
+{
     *state = FALSE;
     return NOERROR;
 }
@@ -543,7 +564,8 @@ ECode BaseInputConnection::PerformPrivateCommand(
 ECode BaseInputConnection::SetComposingText(
     /* [in] */ ICharSequence* text,
     /* [in] */ Int32 newCursorPosition,
-    /* [out] */ Boolean* state) {
+    /* [out] */ Boolean* state)
+{
     // if (DEBUG) Log.v(TAG, "setComposingText " + text);
     ReplaceText(text, newCursorPosition, TRUE);
 
@@ -554,7 +576,8 @@ ECode BaseInputConnection::SetComposingText(
 ECode BaseInputConnection::SetComposingRegion(
     /* [in] */ Int32 start,
     /* [in] */ Int32 end,
-    /* [out] */ Boolean* state) {
+    /* [out] */ Boolean* state)
+{
     AutoPtr<IEditable> content = NULL;
     GetEditable((IEditable**) &content);
 
@@ -607,7 +630,8 @@ ECode BaseInputConnection::SetComposingRegion(
 ECode BaseInputConnection::SetSelection(
     /* [in] */ Int32 start,
     /* [in] */ Int32 end,
-    /* [out] */ Boolean* state) {
+    /* [out] */ Boolean* state)
+{
     // if (DEBUG) Log.v(TAG, "setSelection " + start + ", " + end);
     AutoPtr<IEditable> content = NULL;
     GetEditable((IEditable**) &content);
@@ -642,7 +666,8 @@ ECode BaseInputConnection::SetSelection(
 
 ECode BaseInputConnection::SendKeyEvent(
     /* [in] */ IKeyEvent* event,
-    /* [out] */ Boolean* state) {
+    /* [out] */ Boolean* state)
+{
     assert(0);
 
     //TODO
@@ -665,13 +690,15 @@ ECode BaseInputConnection::SendKeyEvent(
 
 ECode BaseInputConnection::ReportFullscreenMode(
     /* [in] */ Boolean enabled,
-    /* [out] */ Boolean* state) {
+    /* [out] */ Boolean* state)
+{
     mIMM->SetFullscreenMode(enabled);
     *state = TRUE;
     return NOERROR;
 }
 
-void BaseInputConnection::SendCurrentText() {
+void BaseInputConnection::SendCurrentText()
+{
     if (!mDummyMode) {
         return;
     }
@@ -734,7 +761,8 @@ void BaseInputConnection::SendCurrentText() {
     }
 }
 
-void BaseInputConnection::EnsureDefaultComposingSpans() {
+void BaseInputConnection::EnsureDefaultComposingSpans()
+{
     if (mDefaultComposingSpans == NULL) {
         AutoPtr<IContext> context;
         if (mTargetView != NULL) {
@@ -778,7 +806,8 @@ void BaseInputConnection::EnsureDefaultComposingSpans() {
 void BaseInputConnection::ReplaceText(
     /* [in] */ ICharSequence* text,
     /* [in] */ Int32 newCursorPosition,
-    /* [in] */ Boolean composing){
+    /* [in] */ Boolean composing)
+{
     AutoPtr<IEditable> content = NULL;
     GetEditable((IEditable**) &content);
     if (content == NULL) {

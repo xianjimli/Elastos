@@ -12,3 +12,5 @@ C_DEFINES += -D_FRAMEWORK_CORE
 SOURCES = CExtractedText.cpp
 SOURCES += CExtractedTextRequest.cpp
 SOURCES += CCompletionInfo.cpp
+#SOURCES += BaseInputConnection.cpp
+#SOURCES += CBaseInputConnection.cpp

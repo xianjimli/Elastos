@@ -4,44 +4,11 @@
 
 #include "_CListMenuItemView.h"
 #include "view/ViewMacro.h"
-#include "view/menu/MenuItemImpl.h"
-#include <widget/LinearLayout.h>
 #include <elastos/AutoPtr.h>
+#include "view/menu/ListMenuItemView.h"
 
 
-class _ListMenuItemView:
-    public ElRefBase,
-    public LinearLayout
-{
-public:
-    _ListMenuItemView();
-
-    ~_ListMenuItemView();
-
-    CARAPI_(UInt32) AddRef();
-
-    CARAPI_(UInt32) Release();
-
-protected:
-    virtual CARAPI OnFinishInflate();
-
-protected:
-    AutoPtr<MenuItemImpl> mItemData;
-
-    AutoPtr<IImageView> mIconView;
-    AutoPtr<IRadioButton> mRadioButton;
-    AutoPtr<ITextView> mTitleView;
-    AutoPtr<ICheckBox> mCheckBox;
-    AutoPtr<ITextView> mShortcutView;
-
-    AutoPtr<IDrawable> mBackground;
-    Int32 mTextAppearance;
-    AutoPtr<IContext> mTextAppearanceContext;
-
-    Int32 mMenuType;
-};
-
-CarClass(CListMenuItemView), public _ListMenuItemView
+CarClass(CListMenuItemView), public ListMenuItemView
 {
 public:
     IVIEW_METHODS_DECL();

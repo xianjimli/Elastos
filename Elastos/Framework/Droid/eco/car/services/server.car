@@ -8,7 +8,7 @@ module
         constructor(
             [in] IWindowManagerEx * wmService,
             [in] IInputMethodClient * client,
-            [in] IInputContext * inputContext);
+            [in] IInputContextStub * inputContext);
 
         interface IWindowSession;
     }

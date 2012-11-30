@@ -89,6 +89,12 @@ public:
             /* [in] */ IInterface *pObject,
             /* [out] */ InterfaceID *pIID);
 
+        CARAPI GetChars(
+            /* [in] */ Int32 start,
+            /* [in] */ Int32 end,
+            /* [out] */ ArrayOf<Char8>* dest,
+            /* [in] */ Int32 destoff);
+
         CARAPI GetLength(
             /* [out] */ Int32* len);
 

@@ -161,6 +161,15 @@ ECode Layout::SpannedEllipsizer::GetInterfaceID(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode Layout::SpannedEllipsizer::GetChars(
+    /* [in] */ Int32 start,
+    /* [in] */ Int32 end,
+    /* [out] */ ArrayOf<Char8>* dest,
+    /* [in] */ Int32 destoff)
+{
+    return Ellipsizer::GetChars(start, end, dest, destoff);
+}
+
 ECode Layout::SpannedEllipsizer::GetLength(
     /* [out] */ Int32* len)
 {

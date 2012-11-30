@@ -7,9 +7,9 @@ module
     merge("text/BoringLayout.car");
     merge("text/StaticLayout.car");
     merge("text/DynamicLayout.car");
+    merge("text/GetChars.car");
     merge("text/Spanned.car");
     merge("text/Spannable.car");
-    merge("text/GetChars.car");
     merge("text/GraphicsOperations.car");
     merge("text/NoCopySpan.car");
     merge("text/SpanWatcher.car");
@@ -147,7 +147,6 @@ module
             [in] Int32 end);
 
         interface ISpannable;
-        interface IGetChars;
     }
 
     singleton class CSpannableFactory {
@@ -201,7 +200,6 @@ module
             [in] Int32 end);
 
         interface ISpannableStringBuilder;
-        interface IGetChars;
         interface IGraphicsOperations;
     }
 
