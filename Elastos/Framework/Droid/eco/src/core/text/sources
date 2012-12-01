@@ -34,3 +34,4 @@ SOURCES += CNoCopySpan.cpp
 
 LIBRARIES += method/method.lib
 #LIBRARIES += method/format.lib
+LIBRARIES += style/style.lib

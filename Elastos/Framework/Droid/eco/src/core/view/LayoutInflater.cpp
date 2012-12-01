@@ -439,8 +439,6 @@ ECode LayoutInflater::CreateViewFromTag(
         Int32 tmpIndex = name.LastIndexOf('$');
         if (tmpIndex >= 0) {
             Int32 tmpLen = name.GetLength() - tmpIndex + 1;
-            assert(tmpIndex >= tmpLen);
-
             if (tmpIndex == 0) {
                 name = name.Substring(1, tmpLen);
             }

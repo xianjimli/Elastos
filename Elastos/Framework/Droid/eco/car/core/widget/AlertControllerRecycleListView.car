@@ -1,0 +1,6 @@
+
+module
+{
+    interface IAlertControllerRecycleListView extends IListView {
+    }
+}

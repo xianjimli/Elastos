@@ -887,7 +887,6 @@ ECode View::SetOnCreateContextMenuListener(
     if (!IsLongClickable()) {
         SetLongClickable(TRUE);
     }
-
     mOnCreateContextMenuListener = l;
 
     return NOERROR;
@@ -3132,8 +3131,8 @@ ECode View::CreateContextMenu(
 
     OnCreateContextMenu(menu);
     if (mOnCreateContextMenuListener != NULL) {
-        mOnCreateContextMenuListener->OnCreateContextMenu(menu, (IView*)this->Probe(EIID_IView),
-                menuInfo.Get());
+        mOnCreateContextMenuListener->OnCreateContextMenu(menu,
+                (IView*)this->Probe(EIID_IView), menuInfo);
     }
 
     // Clear the extra information so subsequent items that aren't mine don't
@@ -6448,6 +6447,7 @@ Boolean View::SetFrame(
         mTop = top;
         mRight = right;
         mBottom = bottom;
+
         mPrivateFlags |= HAS_BOUNDS;
 
         Int32 newWidth = right - left;

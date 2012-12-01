@@ -3,18 +3,13 @@
 #include "os/CApartment.h"
 #include "view/CViewGroupLayoutParams.h"
 #include "widget/CLinearLayoutLayoutParams.h"
+#include "widget/CAlertControllerRecycleListView.h"
+#include "widget/CArrayAdapter.h"
 #include "text/TextUtils.h"
 #include "utils/CParcelableObjectContainer.h"
-#include "widget/CAlertControllerRecycleListView.h"
 #include <Logger.h>
 
 using namespace Elastos::Utility::Logging;
-
-IADAPTER_METHODS_IMPL(AlertController::_ArrayAdapter, _ArrayAdapterBase, _ArrayAdapterBase);
-
-IListADAPTER_METHODS_IMPL(AlertController::_ArrayAdapter, _ArrayAdapterBase, _ArrayAdapterBase);
-
-IBASEADAPTER_METHODS_IMPL(AlertController::_ArrayAdapter, _ArrayAdapterBase, _ArrayAdapterBase);
 
 
 AlertController::_ArrayAdapterBase::_ArrayAdapterBase(
@@ -24,31 +19,26 @@ AlertController::_ArrayAdapterBase::_ArrayAdapterBase(
     /* [in] */ IObjectContainer* objects,
     /* [in] */ AlertParams* host,
     /* [in] */ IListView* listView)
-    : mHost(host)
+    : ArrayAdapter(context, resource, textViewResourceId, objects)
+    , mHost(host)
     , mListView(listView)
-{
-
-}
+{}
 
 AlertController::_ArrayAdapterBase::~_ArrayAdapterBase()
-{
-
-}
+{}
 
 AutoPtr<IView> AlertController::_ArrayAdapterBase::GetView(
     /* [in] */ Int32 position,
     /* [in] */ IView* convertView,
     /* [in] */ IViewGroup* parent)
 {
-    IView* view = ArrayAdapter::GetView(position, convertView, parent);
-
+    AutoPtr<IView> view = ArrayAdapter::GetView(position, convertView, parent);
     if (mHost->mCheckedItems != NULL) {
        Boolean isItemChecked = (*mHost->mCheckedItems)[position];
        if (isItemChecked) {
            mListView->SetItemChecked(position, TRUE);
        }
     }
-
     return view;
 }
 
@@ -60,14 +50,10 @@ AlertController::_ArrayAdapter::_ArrayAdapter(
     /* [in] */ AlertParams* host,
     /* [in] */ IListView* listView)
     :_ArrayAdapterBase(context, resource, textViewResourceId, objects, host, listView)
-{
-    _ArrayAdapterBase::Init(context, resource, textViewResourceId, objects);
-}
+{}
 
 AlertController::_ArrayAdapter::~_ArrayAdapter()
-{
-
-}
+{}
 
 UInt32 AlertController::_ArrayAdapter::AddRef()
 {
@@ -121,6 +107,12 @@ ECode AlertController::_ArrayAdapter::GetInterfaceID(
 
     return NOERROR;
 }
+
+IADAPTER_METHODS_IMPL(AlertController::_ArrayAdapter, _ArrayAdapterBase, _ArrayAdapterBase);
+
+IListADAPTER_METHODS_IMPL(AlertController::_ArrayAdapter, _ArrayAdapterBase, _ArrayAdapterBase);
+
+IBASEADAPTER_METHODS_IMPL(AlertController::_ArrayAdapter, _ArrayAdapterBase, _ArrayAdapterBase);
 
 ECode AlertController::_ArrayAdapter::Add(
     /* [in] */ IInterface* object)
@@ -224,9 +216,7 @@ AlertController::_ItemClickListener::_ItemClickListener(
     : mHost(host)
     , mDialog(dialog)
     , mListView(listView)
-{
-
-}
+{}
 
 UInt32 AlertController::_ItemClickListener::AddRef()
 {
@@ -280,16 +270,14 @@ ECode AlertController::_ItemClickListener::OnItemClick(
         if (!mHost->mIsSingleChoice) {
            mDialog->mDialogInterface->Dismiss();
         }
-    } else if (mHost->mOnCheckboxClickListener != NULL) {
+    }
+    else if (mHost->mOnCheckboxClickListener != NULL) {
         Boolean checked = FALSE;
-
         if (mHost->mCheckedItems != NULL) {
             mListView->IsItemChecked(position, &checked);
             (*mHost->mCheckedItems)[position] = checked;
         }
-
         mListView->IsItemChecked(position, &checked);
-
         mHost->mOnCheckboxClickListener->OnClick(
                mDialog->mDialogInterface, position, checked);
     }
@@ -357,7 +345,6 @@ void AlertController::AlertController::AlertParams::Apply(
     if ((mItems != NULL) || (mCursor != NULL) || (mAdapter != NULL)) {
         CreateListView(dialog);
     }
-
     if (mView != NULL) {
         if (mViewSpacingSpecified) {
             dialog->SetView(mView, mViewSpacingLeft, mViewSpacingTop, mViewSpacingRight,
@@ -380,27 +367,22 @@ void AlertController::AlertController::AlertParams::Apply(
 void AlertController::AlertController::AlertParams::CreateListView(
     /* [in] */ AlertController* dialog)
 {
-    AutoPtr<IListView> listView = NULL;
-    mInflater->Inflate(0x0109005e /*R.layout.select_dialog*/, NULL, (IView**) &listView);
+    AutoPtr<IAlertControllerRecycleListView> listView;
+    mInflater->Inflate(0x0109005e/*R.layout.select_dialog*/, NULL, (IView**)&listView);
+    AutoPtr<IListAdapter> adapter;
 
-    AutoPtr<IListAdapter> adapter = NULL;
-
-    AutoPtr<IObjectContainer> strs = NULL;
-    CParcelableObjectContainer::New((IObjectContainer**)&strs);
-
+    AutoPtr<IObjectContainer> items;
     if (mItems != NULL) {
-        AutoPtr<ICharSequence> cs = NULL;
+        CParcelableObjectContainer::New((IObjectContainer**)&items);
         for (Int32 j = 0; j < mItems->GetLength(); j ++) {
-            cs = (*mItems)[j];
-            strs->Add(cs.Get());
-            cs = NULL;
+            items->Add((*mItems)[j]);
         }
     }
 
     if (mIsMultiChoice) {
         if (mCursor == NULL) {
-            adapter = new _ArrayAdapter(mContext, 0x01090013 /* R.layout.select_dialog_multichoice*/,
-                    0x01020014 /* R.id.text1*/, strs, this, listView.Get());
+            adapter = new _ArrayAdapter(mContext, 0x01090013/* R.layout.select_dialog_multichoice*/,
+                    0x01020014/* R.id.text1*/, items, this, listView);
         }
         else {
             //TODO
@@ -434,13 +416,15 @@ void AlertController::AlertController::AlertParams::CreateListView(
     }
     else {
         Int32 layout = mIsSingleChoice
-                ? 0x01090012 /*R.layout.select_dialog_singlechoice*/
-                : 0x01090011 /*R.layout.select_dialog_item*/;
-
+                ? 0x01090012/*R.layout.select_dialog_singlechoice*/
+                : 0x01090011/*R.layout.select_dialog_item*/;
         if (mCursor == NULL) {
-            adapter = (mAdapter != NULL) ? mAdapter
-                //: new ArrayAdapter<CharSequence>(mContext, layout, R.id.text1, mItems);
-                : new _ArrayAdapter(mContext, layout, 0x01020014 /* R.id.text1*/, strs, this, listView.Get());
+            if (mAdapter != NULL) {
+                adapter = mAdapter;
+            }
+            else {
+                CArrayAdapter::New(mContext, layout, 0x01020014/* R.id.text1*/, items, (IArrayAdapter**)&adapter);
+            }
         }
         else {
             //TODO
@@ -457,11 +441,11 @@ void AlertController::AlertController::AlertParams::CreateListView(
     /* Don't directly set the adapter on the ListView as we might
     * want to add a footer to the ListView later.
     */
-    dialog->mAdapter = adapter.Get();
+    dialog->mAdapter = adapter;
     dialog->mCheckedItem = mCheckedItem;
 
     AutoPtr<IOnItemClickListener> itemClickListener = new _ItemClickListener(this, dialog, listView);
-    listView->SetOnItemClickListener(itemClickListener.Get());
+    listView->SetOnItemClickListener(itemClickListener);
 
     // Attach a given OnItemSelectedListener to the ListView
     if (mOnItemSelectedListener != NULL) {
@@ -470,12 +454,12 @@ void AlertController::AlertController::AlertParams::CreateListView(
 
     if (mIsSingleChoice) {
        listView->SetChoiceMode(ListView::CHOICE_MODE_SINGLE);
-    } else if (mIsMultiChoice) {
+    }
+    else if (mIsMultiChoice) {
        listView->SetChoiceMode(ListView::CHOICE_MODE_MULTIPLE);
     }
-
     ((CAlertControllerRecycleListView*)listView.Get())->mRecycleOnMeasure = mRecycleOnMeasure;
-    dialog->mListView = listView.Get();
+    dialog->mListView = listView;
 }
 
 AlertController::ButtonOnClickListener::ButtonOnClickListener(
@@ -621,7 +605,6 @@ void AlertController::InstallContent()
         mWindow->SetFlags(WindowManagerLayoutParams_FLAG_ALT_FOCUSABLE_IM,
                 WindowManagerLayoutParams_FLAG_ALT_FOCUSABLE_IM);
     }
-
     mWindow->SetContentView(0x01090016 /*com.android.internal.R.layout.alert_dialog*/);
     SetupView();
 }
@@ -895,10 +878,10 @@ Boolean AlertController::SetupTitle(
         Boolean hasTextTitle = !TextUtils::IsEmpty(mTitle);
 
         mWindow->FindViewById(0x01020006/*R.id.icon*/, (IView**)&mIconView);
-
         if (hasTextTitle) {
             /* Display the title if a title is supplied, else hide it */
             mWindow->FindViewById(0x0102017d/*R.id.alertTitle*/, (IView**)&mTitleView);
+
             mTitleView->SetText(mTitle);
 
             /* Do this last so that if the user has supplied any
@@ -929,13 +912,11 @@ Boolean AlertController::SetupTitle(
             AutoPtr<IView> titleTemplate;
             mWindow->FindViewById(
                 0x0102017c/*R.id.title_template*/, (IView**)&titleTemplate);
-
             titleTemplate->SetVisibility(View_GONE);
             mIconView->SetVisibility(View_GONE);
             hasTitle = FALSE;
         }
     }
-
     return hasTitle;
 }
 
@@ -964,7 +945,6 @@ void AlertController::SetupContent(
             CLinearLayoutLayoutParams::New(
                 ViewGroupLayoutParams_MATCH_PARENT, ViewGroupLayoutParams_MATCH_PARENT,
                 (ILinearLayoutLayoutParams**)&lp);
-
             contentPanel->AddViewEx3(mListView, (IViewGroupLayoutParams*)lp.Get());
 
             lp = NULL;
@@ -1104,6 +1084,7 @@ void AlertController::SetBackground(
     a->GetResourceId(
         8/*R.styleable.AlertDialog_bottomMedium*/,
         0x01080244/*R.drawable.popup_bottom_medium*/, &bottomMedium);
+
     /*
      * We now set the background of all of the sections of the alert.
      * First collect together each section that is being displayed along
@@ -1134,7 +1115,6 @@ void AlertController::SetBackground(
     views[pos] = (visibility == View_GONE) ? NULL : contentPanel;
     light[pos] = mListView != NULL;
     pos++;
-
     if (customPanel != NULL) {
         views[pos] = customPanel;
         light[pos] = mForceInverseBackground;
@@ -1205,7 +1185,6 @@ void AlertController::SetBackground(
 
     if ((mListView != NULL) && (mAdapter != NULL)) {
         mListView->SetAdapter(mAdapter);
-
         if (mCheckedItem > -1) {
             mListView->SetItemChecked(mCheckedItem, TRUE);
             mListView->SetSelection(mCheckedItem);

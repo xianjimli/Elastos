@@ -25,6 +25,7 @@ INCLUDES += $(MAKEDIR)/../../inc/core/impl
 INCLUDES += $(MAKEDIR)/../../inc/core/widget
 INCLUDES += $(MAKEDIR)/../../inc/core/text
 INCLUDES += $(MAKEDIR)/../../inc/core/text/method
+INCLUDES += $(MAKEDIR)/../../inc/core/text/style
 INCLUDES += $(MAKEDIR)/../../inc/core/database
 INCLUDES += $(MAKEDIR)/../../inc/core/database/sqlite
 INCLUDES += $(MAKEDIR)/../../inc/core/statusbar

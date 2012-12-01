@@ -4,7 +4,7 @@
 
 #include "_CWeightedLinearLayout.h"
 #include "view/ViewMacro.h"
-#include <widget/LinearLayout.h>
+#include "widget/LinearLayout.h"
 
 /**
  * A special layout when measured in AT_MOST will take up a given percentage of
@@ -13,6 +13,18 @@
 CarClass(CWeightedLinearLayout), public LinearLayout
 {
 public:
+    CWeightedLinearLayout();
+
+    CARAPI constructor(
+        /* [in] */ IContext* ctx);
+
+    CARAPI constructor(
+        /* [in] */ IContext* ctx,
+        /* [in] */ IAttributeSet* attrs);
+
+    CARAPI_(PInterface) Probe(
+    /* [in] */ REIID riid);
+
     IVIEW_METHODS_DECL();
 
     IVIEWGROUP_METHODS_DECL();
@@ -27,22 +39,6 @@ public:
 
     IAccessibilityEventSource_METHODS_DECL();
 
-    CWeightedLinearLayout();
-
-    ECode constructor(
-        /* [in] */ IContext* ctx);
-
-    ECode constructor(
-        /* [in] */ IContext* ctx,
-        /* [in] */ IAttributeSet* attrs);
-
-    CARAPI_(PInterface) Probe(
-    /* [in] */ REIID riid);
-
-    CARAPI GetInterfaceID(
-        /* [in] */ IInterface *pObject,
-        /* [out] */ InterfaceID *pIID);
-
     CARAPI IsBaselineAligned(
         /* [out] */  Boolean* baselineAligned);
 
@@ -50,13 +46,13 @@ public:
         /* [in] */ Boolean baselineAligned);
 
     CARAPI GetBaselineAlignedChildIndex(
-        /* [out] */ Int32 * pBaselineAlignedChildIndex);
+        /* [out] */ Int32* baselineAlignedChildIndex);
 
     CARAPI SetBaselineAlignedChildIndex(
         /* [in] */ Int32 baselineAlignedChildIndex);
 
     CARAPI GetWeightSum(
-        /* [out] */ Float * pWeightSum);
+        /* [out] */ Float* weightSum);
 
     CARAPI SetWeightSum(
         /* [in] */ Float weightSum);
@@ -77,13 +73,13 @@ public:
         /* [in] */ Int32 verticalGravity);
 
 protected:
-    virtual CARAPI_(void) OnMeasure(
+    CARAPI_(void) OnMeasure(
         /* [in] */ Int32 widthMeasureSpec,
         /* [in] */ Int32 heightMeasureSpec);
 
 private:
-    Float        mMajorWeight;
-    Float        mMinorWeight;
+    Float mMajorWeight;
+    Float mMinorWeight;
 };
 
 #endif //__CWEIGHTEDLINEARLAYOUT_H__

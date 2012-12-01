@@ -57,6 +57,7 @@ module
     merge("widget/Chronometer.car");
     merge("widget/FilterQueryProvider.car");
     merge("widget/CursorAdapter.car");
+    merge("widget/AlertControllerRecycleListView.car");
 
     class CScrollBarDrawable {
         interface IScrollBarDrawable;
@@ -1223,17 +1224,6 @@ module
     }
 
     class CAlertControllerRecycleListView {
-        interface IListView;
-        interface ITextWatcher;
-        interface IOnGlobalLayoutListener;
-        interface IOnTouchModeChangeListener;
-        interface IFilterListener;
-        interface IViewParent;
-        interface IViewManager;
-        interface IDrawableCallback;
-        interface IKeyEventCallback;
-        interface IAccessibilityEventSource;
-
         constructor(
             [in] IContext* ctx);
 
@@ -1245,16 +1235,27 @@ module
             [in] IContext* ctx,
             [in] IAttributeSet* attrs,
             [in] Int32 defStyle);
+
+        interface IAlertControllerRecycleListView;
+        interface ITextWatcher;
+        interface IOnGlobalLayoutListener;
+        interface IOnTouchModeChangeListener;
+        interface IFilterListener;
+        interface IViewParent;
+        interface IViewManager;
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
     }
 
     class CCursorAdapter {
         constructor(
-            [in] IContext* ctx, 
+            [in] IContext* ctx,
             [in] ICursor* c);
 
         constructor(
-            [in] IContext* ctx, 
-            [in] ICursor* c, 
+            [in] IContext* ctx,
+            [in] ICursor* c,
             [in] Boolean autoRequery);
 
         interface ICursorAdapter;

@@ -379,8 +379,7 @@ ECode CPhoneWindow::DecorView::ShowContextMenuForChild(
 ECode CPhoneWindow::DecorView::CreateContextMenuEx(
     /* [in] */ IContextMenu* menu)
 {
-    FrameLayout::CreateContextMenu(menu);
-    return NOERROR;
+    return FrameLayout::CreateContextMenu(menu);
 }
 
 void CPhoneWindow::DecorView::StartChanging()
@@ -1165,7 +1164,6 @@ ECode CPhoneWindow::SetContentView(
 
     AutoPtr<IView> root;
     mLayoutInflater->Inflate(layoutResID, mContentParent.Get(), (IView**)&root);
-
     AutoPtr<IWindowCallback> cb;
     GetCallback((IWindowCallback**)&cb);
     if (cb != NULL) {
@@ -1805,10 +1803,12 @@ ECode CPhoneWindow::PerformContextMenuIdentifierAction(
     /* [in] */ Int32 flags,
     /* [out] */ Boolean* succeeded)
 {
+    VALIDATE_NOT_NULL(succeeded);
+
     if (mContextMenu != NULL) {
         return mContextMenu->PerformIdentifierAction(id, flags, succeeded);
     }
-
+    *succeeded = FALSE;
     return NOERROR;
 }
 
@@ -2416,7 +2416,6 @@ ECode CPhoneWindow::GenerateLayout(
             drawable = NULL;
             res->GetDrawable(mBackgroundResource, (IDrawable**)&drawable);
         }
-
         mDecor->SetWindowBackground(drawable);
         drawable = NULL;
         if (mFrameResource != 0) {

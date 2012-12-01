@@ -1169,6 +1169,60 @@ void TextView::Blink::RemoveCallbacks(
             (Handle32)action, NULL);
 }
 
+TextView::MenuHandler::MenuHandler(
+    /* [in] */ TextView* host)
+    :mHost(host)
+{
+}
+
+UInt32 TextView::MenuHandler::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 TextView::MenuHandler::Release()
+{
+    return ElRefBase::Release();
+}
+
+PInterface TextView::MenuHandler::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IOnMenuItemClickListener) {
+        return (PInterface)(IOnMenuItemClickListener*)this;
+    }
+
+    return NULL;
+}
+
+ECode TextView::MenuHandler::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    VALIDATE_NOT_NULL(pIID);
+    if (pObject == (IInterface*)(IOnMenuItemClickListener*)this) {
+        *pIID = EIID_IOnMenuItemClickListener;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+
+    return NOERROR;
+}
+
+ECode TextView::MenuHandler::OnMenuItemClick(
+    /* [in] */ IMenuItem* item,
+    /* [out] */ Boolean* isConsumed)
+{
+    assert(isConsumed != NULL);
+
+    Int32 id = 0;
+    item->GetItemId(&id);
+    *isConsumed = mHost->OnTextContextMenuItem(id);
+    return NOERROR;
+}
+
+
 AutoPtr<CRect> InitsCCTempRect()
 {
     AutoPtr<CRect> r;
@@ -2933,7 +2987,6 @@ void TextView::UpdateTextColors()
         mCurTextColor = color;
         inval = TRUE;
     }
-
     if (mLinkTextColor != NULL) {
         mLinkTextColor->GetColorForState(GetDrawableState(), 0, &color);
         if (color != ((CTextPaint*)mTextPaint.Get())->mLinkColor) {
@@ -2941,7 +2994,6 @@ void TextView::UpdateTextColors()
             inval = TRUE;
         }
     }
-
     if (mHintTextColor != NULL) {
         mHintTextColor->GetColorForState(GetDrawableState(), 0, &color);
         Int32 len;
@@ -2951,7 +3003,6 @@ void TextView::UpdateTextColors()
             inval = TRUE;
         }
     }
-
     if (inval) {
         Invalidate();
     }
@@ -8338,121 +8389,109 @@ void TextView::OnCreateContextMenu(
     mDPadCenterIsDown = mEnterKeyIsDown = FALSE;
 
     if (mIsInTextSelectionMode) {
-       AutoPtr<MenuHandler> handler = new MenuHandler(this);
+        AutoPtr<MenuHandler> handler = new MenuHandler(this);
 
-       if (CanCut()) {
-           AutoPtr<IMenuItem> tmp;
-           menu->AddEx3(0, ID_CUT, 0, 0x01040003/*com.android.internal.R.string.cut*/, (IMenuItem**) &tmp);
-           tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
-           tmp->SetAlphabeticShortcut('x');
+        if (CanCut()) {
+            AutoPtr<IMenuItem> tmp;
+            menu->AddEx3(0, ID_CUT, 0, 0x01040003/*com.android.internal.R.string.cut*/, (IMenuItem**)&tmp);
+            tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
+            tmp->SetAlphabeticShortcut('x');
+            added = TRUE;
+        }
 
-           added = TRUE;
-       }
+        if (CanCopy()) {
+            AutoPtr<IMenuItem> tmp;
+            menu->AddEx3(0, ID_COPY, 0, 0x01040001/*com.android.internal.R.string.copy*/, (IMenuItem**)&tmp);
+            tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
+            tmp->SetAlphabeticShortcut('c');
+            added = TRUE;
+        }
 
-       if (CanCopy()) {
-           AutoPtr<IMenuItem> tmp;
-           menu->AddEx3(0, ID_COPY, 0, 0x01040001 /*com.android.internal.R.string.copy*/, (IMenuItem**) &tmp);
-           tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
-           tmp->SetAlphabeticShortcut('c');
-           added = TRUE;
-       }
+        if (CanPaste()) {
+            AutoPtr<IMenuItem> tmp;
+            menu->AddEx3(0, ID_PASTE, 0, 0x0104000b/*com.android.internal.R.string.paste*/, (IMenuItem**)&tmp);
+            tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
+            tmp->SetAlphabeticShortcut('v');
+            added = TRUE;
+        }
+    }
+    else {
+        AutoPtr<MenuHandler> handler = new MenuHandler(this);
 
-       if (CanPaste()) {
-           AutoPtr<IMenuItem> tmp;
-           menu->AddEx3(0, ID_PASTE, 0, 0x0104000b/*com.android.internal.R.string.paste*/, (IMenuItem**) &tmp);
-           tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
-           tmp->SetAlphabeticShortcut('v');
+        if (CanSelectText()) {
+            AutoPtr<IMenuItem> tmp;
+            if (!HasPasswordTransformationMethod()) {
+                // selectCurrentWord is not available on a password field and would return an
+                // arbitrary 10-charater selection around pressed position. Discard it.
+                // SelectAll is still useful to be able to clear the field using the delete key.
+                menu->AddEx3(0, ID_START_SELECTING_TEXT, 0, 0x010402ec/*com.android.internal.R.string.selectText*/, (IMenuItem**)&tmp);
+                tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
+            }
+            tmp = NULL;
+            menu->AddEx3(0, ID_SELECT_ALL, 0, 0x0104000d/*com.android.internal.R.string.selectAll*/, (IMenuItem**)&tmp);
+            tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
+            tmp->SetAlphabeticShortcut('a');
+            added = TRUE;
+        }
 
-           added = TRUE;
-       }
-    } else {
-       AutoPtr<MenuHandler> handler = new MenuHandler(this);
+        if (mText != NULL && mText->Probe(EIID_ISpanned) != NULL) {
+            Int32 selStart = GetSelectionStart();
+            Int32 selEnd = GetSelectionEnd();
 
-       if (CanSelectText()) {
-           AutoPtr<IMenuItem> tmp;
+            Int32 min = Math::Min(selStart, selEnd);
+            Int32 max = Math::Max(selStart, selEnd);
 
-           if (!HasPasswordTransformationMethod()) {
-               // selectCurrentWord is not available on a password field and would return an
-               // arbitrary 10-charater selection around pressed position. Discard it.
-               // SelectAll is still useful to be able to clear the field using the delete key.
-               menu->AddEx3(0, ID_START_SELECTING_TEXT, 0, 0x010402ec/*com.android.internal.R.string.selectText*/, (IMenuItem**) &tmp);
-               tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
-           }
+            ArrayOf<IInterface*>* urls = NULL;
+            ISpanned::Probe(mText)->GetSpans(min, max, EIID_IURLSpan, &urls);
+            if (urls->GetLength() == 1) {
+                AutoPtr<IMenuItem> tmp;
+                menu->AddEx3(0, ID_COPY_URL, 0, 0x01040002/*com.android.internal.R.string.copyUrl*/, (IMenuItem**)&tmp);
+                tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
+                added = TRUE;
+            }
+            for (Int32 i = 0; i < urls->GetLength(); ++i) {
+                (*urls)[i]->Release();
+                (*urls)[i] = NULL;
+            }
+            ArrayOf<IInterface*>::Free(urls);
+        }
 
-           menu->AddEx3(0, ID_SELECT_ALL, 0, 0x0104000d /*com.android.internal.R.string.selectAll*/, (IMenuItem**) &tmp);
-           tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
-           tmp->SetAlphabeticShortcut('a');
+        if (CanPaste()) {
+            AutoPtr<IMenuItem> tmp;
+            menu->AddEx3(0, ID_PASTE, 0, 0x0104000b/*com.android.internal.R.string.paste*/, (IMenuItem**)&tmp);
+            tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
+            tmp->SetAlphabeticShortcut('v');
+            added = TRUE;
+        }
 
-           added = TRUE;
-       }
+        if (IsInputMethodTarget()) {
+            AutoPtr<IMenuItem> tmp;
+            menu->AddEx3(1, ID_SWITCH_INPUT_METHOD, 0, 0x010402ed/*com.android.internal.R.string.inputMethod*/, (IMenuItem**)&tmp);
+            tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
+            added = TRUE;
+        }
 
-       if (mText != NULL && mText->Probe(EIID_ISpanned) != NULL) {
-           Int32 selStart = GetSelectionStart();
-           Int32 selEnd = GetSelectionEnd();
+        String word;
+        GetWordForDictionary(&word);
+        if (!word.IsNull()) {
+            AutoPtr<IResources> resources;
+            GetContext()->GetResources((IResources**)&resources);
 
-           Int32 min = Math::Min(selStart, selEnd);
-           Int32 max = Math::Max(selStart, selEnd);
+            String dic;
+            resources->GetString(0x010402ee/*com.android.internal.R.string.addToDictionary*/, &dic);
+            AutoPtr<ICharSequence> csq;
+            CStringWrapper::New(dic, (ICharSequence**)&csq);
 
-           // URLSpan[] urls = ((Spanned) mText).getSpans(min, max,
-           //         URLSpan.class);
-           ArrayOf<IInterface*>* urls;
-           ISpanned* sp = ISpanned::Probe(mText);
-           sp->GetSpans(min, max, EIID_IParagraphStyle, &urls);
-
-           if (urls->GetLength() == 1) {
-               AutoPtr<IMenuItem> tmp;
-               menu->AddEx3(0, ID_COPY_URL, 0, 0x01040002 /*com.android.internal.R.string.copyUrl*/, (IMenuItem**) &tmp);
-               tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
-
-               added = TRUE;
-           }
-       }
-
-       if (CanPaste()) {
-           AutoPtr<IMenuItem> tmp;
-           menu->AddEx3(0, ID_PASTE, 0, 0x0104000b /*com.android.internal.R.string.paste*/, (IMenuItem**) &tmp);
-           tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
-           tmp->SetAlphabeticShortcut('v');
-
-           added = TRUE;
-       }
-
-       if (IsInputMethodTarget()) {
-           AutoPtr<IMenuItem> tmp;
-           menu->AddEx3(1, ID_SWITCH_INPUT_METHOD, 0, 0x010402ed /*com.android.internal.R.string.inputMethod*/, (IMenuItem**) &tmp);
-           tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
-
-           added = TRUE;
-       }
-
-       String word;
-       GetWordForDictionary(&word);
-       if (!word.IsNull()) {
-           AutoPtr<IResources> resources;
-           GetContext()->GetResources((IResources**)&resources);
-
-           String dic;
-           resources->GetString(0x010402ee, &dic);
-           AutoPtr<ICharSequence> csq;
-           CStringWrapper::New(dic, (ICharSequence**)&csq);
-
-           AutoPtr<IMenuItem> tmp;
-           menu->AddEx2(1, ID_ADD_TO_DICTIONARY, 0,
-                csq,
-           //TODO:
-           //getContext().getString(0x010402ee /*com.android.internal.R.string.addToDictionary*/, word),
-                (IMenuItem**) &tmp);
-
-           tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
-
-           added = TRUE;
-
-       }
+            AutoPtr<IMenuItem> tmp;
+            menu->AddEx2(1, ID_ADD_TO_DICTIONARY, 0, csq, (IMenuItem**)&tmp);
+            tmp->SetOnMenuItemClickListener((IOnMenuItemClickListener*)handler->Probe(EIID_IOnMenuItemClickListener));
+            added = TRUE;
+        }
     }
 
     if (added) {
        HideControllers();
-       menu->SetHeaderTitle(0x010402ef /*com.android.internal.R.string.editTextMenuTitle*/);
+       menu->SetHeaderTitle(0x010402ef/*com.android.internal.R.string.editTextMenuTitle*/);
     }
 }
 
@@ -8465,57 +8504,6 @@ Boolean TextView::IsInputMethodTarget()
     //InputMethodManager imm = InputMethodManager.peekInstance();
     //return imm != NULL && imm.isActive(this);
     return FALSE;
-}
-
-TextView::MenuHandler::MenuHandler(
-    /* [in] */ TextView* host)
-    :mHost(host)
-{
-}
-
-ECode TextView::MenuHandler::OnMenuItemClick(
-    /* [in] */ IMenuItem* item,
-    /* [out] */ Boolean* isConsumed)
-{
-    Int32 id = 0;
-    item->GetItemId(&id);
-    *isConsumed = mHost->OnTextContextMenuItem(id);
-    return NOERROR;
-}
-
-PInterface TextView::MenuHandler::Probe(
-    /* [in] */ REIID riid)
-{
-    if (riid == EIID_IOnMenuItemClickListener) {
-        return (PInterface)(IOnMenuItemClickListener*)this;
-    }
-
-    return NULL;
-}
-
-ECode TextView::MenuHandler::GetInterfaceID(
-    /* [in] */ IInterface *pObject,
-    /* [out] */ InterfaceID *pIID)
-{
-    VALIDATE_NOT_NULL(pIID);
-    if (pObject == (IInterface*)(IOnMenuItemClickListener*)this) {
-        *pIID = EIID_IOnMenuItemClickListener;
-    }
-    else {
-        return E_INVALID_ARGUMENT;
-    }
-
-    return NOERROR;
-}
-
-UInt32 TextView::MenuHandler::AddRef()
-{
-    return ElRefBase::AddRef();
-}
-
-UInt32 TextView::MenuHandler::Release()
-{
-    return ElRefBase::Release();
 }
 
 /**
@@ -8910,6 +8898,7 @@ ECode TextView::InitFromAttributes(
         (IEditableFactory**)&mEditableFactory));
 
     CStringWrapper::New(String(""), (ICharSequence**)&mText);
+
     AutoPtr<IDisplayMetrics> dm;
     AutoPtr<ICompatibilityInfo> ci;
     GetResources()->GetDisplayMetrics((IDisplayMetrics**)&dm);
@@ -8922,6 +8911,7 @@ ECode TextView::InitFromAttributes(
     // If we get the paint from the skin, we should set it to left, since
     // the layout always wants it to be left.
     // mTextPaint.setTextAlign(Paint.Align.LEFT);
+
     ASSERT_SUCCEEDED(CPaint::New(Paint_ANTI_ALIAS_FLAG,
             (IPaint**)&mHighlightPaint));
     AutoPtr<ICompatibilityInfo> compatibilityInfo;
@@ -8932,6 +8922,7 @@ ECode TextView::InitFromAttributes(
 
     mMovement = GetDefaultMovementMethod();
     mTransformation = NULL;
+
     AutoPtr<ITypedArray> a;
     ASSERT_SUCCEEDED(context->ObtainStyledAttributesEx3(attrs,
             ArrayOf<Int32>(R_Styleable_TextView, sizeof(R_Styleable_TextView) / sizeof(Int32)),/*com.android.internal.R.styleable.TextView*/
@@ -8944,6 +8935,7 @@ ECode TextView::InitFromAttributes(
     Int32 textSize = 15;
     Int32 typefaceIndex = -1;
     Int32 styleIndex = -1;
+
     /*
      * Look the appearance up without checking first if it exists because
      * almost every TextView has one and it greatly simplifies the logic
@@ -9518,12 +9510,11 @@ ECode TextView::InitFromAttributes(
     SetTextColor(textColor);
     SetHintTextColor(textColorHint);
     SetLinkTextColor(textColorLink);
-
     if (textColorHighlight != 0) {
         SetHighlightColor(textColorHighlight);
     }
-
     SetRawTextSize(textSize);
+
 //    if (password) {
 //        setTransformationMethod(PasswordTransformationMethod.getInstance());
 //        typefaceIndex = MONOSPACE;
@@ -9536,6 +9527,7 @@ ECode TextView::InitFromAttributes(
 //    }
 
     SetTypefaceByIndex(typefaceIndex, styleIndex);
+
     if (shadowcolor != 0) {
         SetShadowLayer(r, dx, dy, shadowcolor);
     }
@@ -9581,11 +9573,12 @@ ECode TextView::InitFromAttributes(
             break;
         }
     }
-
     a->Recycle();
+
     SetFocusable(focusable);
     SetClickable(clickable);
     SetLongClickable(longClickable);
+
     PrepareCursorControllers();
 
     return NOERROR;

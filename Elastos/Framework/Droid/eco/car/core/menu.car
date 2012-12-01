@@ -27,13 +27,6 @@ module
     }
 
     class CIconMenuItemView {
-        interface IIconMenuItemView;
-        interface IMenuItemView;
-        interface IDrawableCallback;
-        interface IKeyEventCallback;
-        interface IAccessibilityEventSource;
-        interface IOnPreDrawListener;
-
         constructor(
             [in] IContext* ctx,
             [in] IAttributeSet* attrs,
@@ -42,6 +35,13 @@ module
         constructor(
             [in] IContext* ctx,
             [in] IAttributeSet* attrs);
+
+        interface IIconMenuItemView;
+        interface IMenuItemView;
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
+        interface IOnPreDrawListener;
     }
 
     class CListMenuItemView {

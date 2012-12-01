@@ -3,7 +3,6 @@
 #include "view/menu/MenuBuilder.h"
 #include "app/CAlertDialogBuilder.h"
 #include "view/CWindowManagerLayoutParams.h"
-#include <stdio.h>
 
 
 MenuDialogHelper::MenuDialogHelper(
@@ -60,10 +59,6 @@ void MenuDialogHelper::Show(
 
     // Get an adapter for the menu item views
     menu->GetMenuAdapter(MenuBuilder::TYPE_DIALOG, (IMenuAdapter**)&mAdapter);
-
-    //TODO
-    Int32 tmpCount = 0;
-    mAdapter->GetCount(&tmpCount);
 
     // Get the builder for the dialog
     AutoPtr<IContext> context;

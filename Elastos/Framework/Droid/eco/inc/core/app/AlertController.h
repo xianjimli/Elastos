@@ -126,7 +126,7 @@ private:
             /* [in] */ IViewGroup* parent);
 
     protected:
-        AlertParams* mHost;
+        AutoPtr<AlertParams> mHost;
         AutoPtr<IListView> mListView;
     };
 
@@ -138,12 +138,6 @@ private:
         , public IFilterable
     {
     public:
-        IADAPTER_METHODS_DECL();
-
-        ILISTADAPTER_METHODS_DECL();
-
-        IBASEADAPTER_METHODS_DECL();
-
         _ArrayAdapter(
             /* [in] */ IContext* context,
             /* [in] */ Int32 resource,
@@ -153,6 +147,12 @@ private:
             /* [in] */ IListView* listView);
 
         ~_ArrayAdapter();
+
+        IADAPTER_METHODS_DECL();
+
+        ILISTADAPTER_METHODS_DECL();
+
+        IBASEADAPTER_METHODS_DECL();
 
         CARAPI_(PInterface) Probe(
             /* [in]  */ REIID riid);
@@ -201,12 +201,11 @@ private:
 
         CARAPI GetFilter(
             /* [out] */ IFilter** filter);
-
     };
 
-    class _ItemClickListener:
-        public ElRefBase,
-        public IOnItemClickListener
+    class _ItemClickListener
+        : public ElRefBase
+        , public IOnItemClickListener
     {
     public:
         _ItemClickListener(
@@ -232,7 +231,7 @@ private:
             /* [in] */ Int64 id);
 
     private:
-        AlertParams* mHost;
+        AutoPtr<AlertParams> mHost;
         AlertController* mDialog;
         AutoPtr<IListView> mListView;
     };

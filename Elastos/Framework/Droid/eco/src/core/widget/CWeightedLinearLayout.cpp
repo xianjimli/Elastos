@@ -3,6 +3,7 @@
 #include "utils/CDisplayMetrics.h"
 #include <elastos/AutoPtr.h>
 
+
 static Int32 R_Styleable_WeightedLinearLayout[] = {
     0x010102d5, 0x010102d6
 };
@@ -22,31 +23,28 @@ IKeyEventCallback_METHODS_IMPL(CWeightedLinearLayout, LinearLayout, LinearLayout
 IAccessibilityEventSource_METHODS_IMPL(CWeightedLinearLayout, LinearLayout, LinearLayout);
 
 CWeightedLinearLayout::CWeightedLinearLayout()
-{
-}
+{}
 
 ECode CWeightedLinearLayout::constructor(
     /* [in] */ IContext* ctx)
 {
-    LinearLayout::Init(ctx);
-
-    return NOERROR;
+    return LinearLayout::Init(ctx);
 }
 
 ECode CWeightedLinearLayout::constructor(
     /* [in] */ IContext* ctx,
     /* [in] */ IAttributeSet* attrs)
 {
-    LinearLayout::Init(ctx, attrs);
+    FAIL_RETURN(LinearLayout::Init(ctx, attrs));
 
     AutoPtr<ITypedArray> a;
     ctx->ObtainStyledAttributesEx2(
-        attrs, ArrayOf<Int32>(R_Styleable_WeightedLinearLayout,
+        attrs, ArrayOf<Int32>(R_Styleable_WeightedLinearLayout, /* styleable.WeightedLinearLayout */
         sizeof(R_Styleable_WeightedLinearLayout) / sizeof(Int32)),
         (ITypedArray**)&a);
 
-    a->GetFloat(0 /*styleable.WeightedLinearLayout_majorWeight*/, 0.0f, &mMajorWeight);
-    a->GetFloat(1 /*styleable.WeightedLinearLayout_minorWeight*/, 0.0f, &mMinorWeight);
+    a->GetFloat(0/*styleable.WeightedLinearLayout_majorWeight*/, 0.0f, &mMajorWeight);
+    a->GetFloat(1/*styleable.WeightedLinearLayout_minorWeight*/, 0.0f, &mMinorWeight);
 
     a->Recycle();
     return NOERROR;
@@ -62,49 +60,14 @@ PInterface CWeightedLinearLayout::Probe(
     return _CWeightedLinearLayout::Probe(riid);
 }
 
-ECode CWeightedLinearLayout::GetInterfaceID(
-    /* [in] */ IInterface *pObject,
-    /* [out] */ InterfaceID *pIID)
-{
-    if (pIID == NULL) {
-        return E_INVALID_ARGUMENT;
-    }
-
-    if (pObject == (IInterface*)(ILinearLayout*)this) {
-        *pIID = EIID_ILinearLayout;
-    }
-    else if (pObject == (IInterface*)(IViewParent*)this) {
-        *pIID = EIID_IViewParent;
-    }
-    else if (pObject == (IInterface*)(IViewManager*)this) {
-        *pIID = EIID_IViewManager;
-    }
-    else if (pObject == (IInterface*)(IDrawableCallback*)this) {
-        *pIID = EIID_IDrawableCallback;
-    }
-    else if (pObject == (IInterface*)(IKeyEventCallback*)this) {
-        *pIID = EIID_IKeyEventCallback;
-    }
-    else if (pObject == (IInterface*)(IAccessibilityEventSource*)this) {
-        *pIID = EIID_IAccessibilityEventSource;
-    }
-    else {
-        return E_INVALID_ARGUMENT;
-    }
-
-    return NOERROR;
-}
-
 void CWeightedLinearLayout::OnMeasure(
     /* [in] */ Int32 widthMeasureSpec,
     /* [in] */ Int32 heightMeasureSpec)
 {
-    AutoPtr<IResources> res = NULL;
-    LinearLayout::GetContext()->GetResources((IResources**) &res);
-
+    AutoPtr<IResources> res;
+    LinearLayout::GetContext()->GetResources((IResources**)&res);
     AutoPtr<IDisplayMetrics> metrics;
     res->GetDisplayMetrics((IDisplayMetrics**)&metrics);
-
     Int32 screenWidth = ((CDisplayMetrics*)metrics.Get())->mWidthPixels;
     Boolean isPortrait = screenWidth < ((CDisplayMetrics*)metrics.Get())->mHeightPixels;
 
@@ -122,7 +85,7 @@ void CWeightedLinearLayout::OnMeasure(
     Float widthWeight = isPortrait ? mMinorWeight : mMajorWeight;
     if (widthMode == MeasureSpec::AT_MOST && widthWeight > 0.0f) {
         if (width < (Int32)(screenWidth * widthWeight)) {
-            widthMeasureSpec = MeasureSpec::MakeMeasureSpec((Int32) (screenWidth * widthWeight),
+            widthMeasureSpec = MeasureSpec::MakeMeasureSpec((Int32)(screenWidth * widthWeight),
                     MeasureSpec::EXACTLY);
             measure = TRUE;
         }
@@ -133,8 +96,6 @@ void CWeightedLinearLayout::OnMeasure(
     if (measure) {
         LinearLayout::OnMeasure(widthMeasureSpec, heightMeasureSpec);
     }
-
-//    printf("==== File: %s, Line: %d ====, FUNC : %s.\n", __FILE__, __LINE__, __FUNCTION__);
 }
 
 ECode CWeightedLinearLayout::IsBaselineAligned(

@@ -489,6 +489,33 @@ private:
         AutoPtr<IApartment> mApartment;
     };
 
+    class MenuHandler
+        : public ElRefBase
+        , public IOnMenuItemClickListener
+    {
+    public:
+        MenuHandler(
+            /* [in] */ TextView* host);
+
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI OnMenuItemClick(
+            /* [in] */ IMenuItem* item,
+            /* [out] */ Boolean* isConsumed);
+
+    private:
+        TextView* mHost;
+    };
+
 public:
     TextView();
 
@@ -2363,6 +2390,16 @@ public:
 private:
     static const Int32 PRIORITY;
 
+    //// Context menu entries
+    static const Int32 ID_SELECT_ALL = 0x0102001f/*android.R.id.selectAll*/;
+    static const Int32 ID_START_SELECTING_TEXT = 0x01020028 /*android.R.id.startSelectingText*/;
+    static const Int32 ID_CUT = 0x01020020 /*android.R.id.cut*/;
+    static const Int32 ID_COPY = 0x01020021 /*android.R.id.copy*/;
+    static const Int32 ID_PASTE = 0x01020022 /*android.R.id.paste*/;
+    static const Int32 ID_COPY_URL = 0x01020023 /*android.R.id.copyUrl*/;
+    static const Int32 ID_SWITCH_INPUT_METHOD = 0x01020024 /*android.R.id.switchInputMethod*/;
+    static const Int32 ID_ADD_TO_DICTIONARY = 0x0102002a /*android.R.id.addToDictionary*/;
+
     AutoPtr<IColorStateList> mTextColor;
     Int32 mCurTextColor;
     AutoPtr<IColorStateList> mHintTextColor;
@@ -2752,42 +2789,6 @@ private:
     //        }
     //    }
     //}
-
-    //// Context menu entries
-    static const Int32 ID_SELECT_ALL = 0x0102001f/*android.R.id.selectAll*/;
-    static const Int32 ID_START_SELECTING_TEXT = 0x01020028 /*android.R.id.startSelectingText*/;
-    static const Int32 ID_CUT = 0x01020020 /*android.R.id.cut*/;
-    static const Int32 ID_COPY = 0x01020021 /*android.R.id.copy*/;
-    static const Int32 ID_PASTE = 0x01020022 /*android.R.id.paste*/;
-    static const Int32 ID_COPY_URL = 0x01020023 /*android.R.id.copyUrl*/;
-    static const Int32 ID_SWITCH_INPUT_METHOD = 0x01020024 /*android.R.id.switchInputMethod*/;
-    static const Int32 ID_ADD_TO_DICTIONARY = 0x0102002a /*android.R.id.addToDictionary*/;
-
-    class MenuHandler:
-        public ElRefBase,
-        public IOnMenuItemClickListener {
-    public:
-        MenuHandler(
-            /* [in] */ TextView* host);
-
-        CARAPI_(PInterface) Probe(
-            /* [in] */ REIID riid);
-
-        CARAPI GetInterfaceID(
-            /* [in] */ IInterface *pObject,
-            /* [out] */ InterfaceID *pIID);
-
-        CARAPI_(UInt32) AddRef();
-
-        CARAPI_(UInt32) Release();
-
-        CARAPI OnMenuItemClick(
-            /* [in] */ IMenuItem* item,
-            /* [out] */ Boolean* isConsumed);
-
-    private:
-        TextView*   mHost;
-    };
 };
 
 #endif //__TEXTVIEW_H__

@@ -14,6 +14,23 @@
 CarClass(CDialogTitle), public TextView
 {
 public:
+    CDialogTitle();
+
+    CARAPI constructor(
+        /* [in] */ IContext* ctx,
+        /* [in] */ IAttributeSet* attrs,
+        /* [in] */ Int32 defStyle);
+
+    CARAPI constructor(
+        /* [in] */ IContext* ctx,
+        /* [in] */ IAttributeSet* attrs);
+
+    CARAPI constructor(
+        /* [in] */ IContext* ctx);
+
+    CARAPI_(PInterface) Probe(
+    /* [in] */ REIID riid);
+
     IVIEW_METHODS_DECL();
 
     IDrawableCallback_METHODS_DECL();
@@ -24,32 +41,12 @@ public:
 
     ITEXTVIEW_METHODS_DECL();
 
-    CDialogTitle();
-
-    ECode constructor(
-        /* [in] */ IContext* ctx,
-        /* [in] */ IAttributeSet* attrs,
-        /* [in] */ Int32 defStyle);
-
-    ECode constructor(
-        /* [in] */ IContext* ctx,
-        /* [in] */ IAttributeSet* attrs);
-
-    ECode constructor(
-        /* [in] */ IContext* ctx);
-
-    CARAPI_(PInterface) Probe(
-    /* [in] */ REIID riid);
-
-    CARAPI GetInterfaceID(
-        /* [in] */ IInterface *pObject,
-        /* [out] */ InterfaceID *pIID);
-
     CARAPI OnPreDraw(
         /* [out] */ Boolean* result);
 
 protected:
-    virtual CARAPI_(void) OnMeasure(
+    //@Override
+    CARAPI_(void) OnMeasure(
         /* [in] */ Int32 widthMeasureSpec,
         /* [in] */ Int32 heightMeasureSpec);
 };

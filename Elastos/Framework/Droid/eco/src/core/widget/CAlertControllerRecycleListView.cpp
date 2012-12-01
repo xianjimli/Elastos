@@ -24,9 +24,7 @@ ILISTVIEW_METHODS_IMPL(CAlertControllerRecycleListView, ListView, ListView);
 
 CAlertControllerRecycleListView::CAlertControllerRecycleListView()
 	: mRecycleOnMeasure(TRUE)
-{
-
-}
+{}
 
 ECode CAlertControllerRecycleListView::constructor(
     /* [in] */ IContext* context)
@@ -57,51 +55,6 @@ PInterface CAlertControllerRecycleListView::Probe(
     }
 
     return _CAlertControllerRecycleListView::Probe(riid);
-}
-
-ECode CAlertControllerRecycleListView::GetInterfaceID(
-    /* [in] */ IInterface *pObject,
-    /* [out] */ InterfaceID *pIID)
-{
-    if (pIID == NULL) {
-        return E_INVALID_ARGUMENT;
-    }
-
-    if (pObject == (IInterface*)(IListView*)this) {
-        *pIID = EIID_IListView;
-    }
-    else if (pObject == (IInterface*)(ITextWatcher*)this) {
-        *pIID = EIID_ITextWatcher;
-    }
-    else if (pObject == (IInterface*)(IOnGlobalLayoutListener*)this) {
-        *pIID = EIID_IOnGlobalLayoutListener;
-    }
-    else if (pObject == (IInterface*)(IOnTouchModeChangeListener*)this) {
-        *pIID = EIID_IOnTouchModeChangeListener;
-    }
-    else if (pObject == (IInterface*)(IFilterListener*)this) {
-        *pIID = EIID_IFilterListener;
-    }
-    else if (pObject == (IInterface*)(IViewParent*)this) {
-        *pIID = EIID_IViewParent;
-    }
-    else if (pObject == (IInterface*)(IViewManager*)this) {
-        *pIID = EIID_IViewManager;
-    }
-    else if (pObject == (IInterface*)(IDrawableCallback*)this) {
-        *pIID = EIID_IDrawableCallback;
-    }
-    else if (pObject == (IInterface*)(IKeyEventCallback*)this) {
-        *pIID = EIID_IKeyEventCallback;
-    }
-    else if (pObject == (IInterface*)(IAccessibilityEventSource*)this) {
-        *pIID = EIID_IAccessibilityEventSource;
-    }
-    else {
-        return E_INVALID_ARGUMENT;
-    }
-
-    return NOERROR;
 }
 
 Boolean CAlertControllerRecycleListView::RecycleOnMeasure()

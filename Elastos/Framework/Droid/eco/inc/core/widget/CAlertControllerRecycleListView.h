@@ -3,9 +3,9 @@
 #define __CALERTCONTROLLERRECYCLELISTVIEW_H__
 
 #include "ext/frameworkext.h"
-#include "widget/ListView.h"
 #include "_CAlertControllerRecycleListView.h"
 #include "view/ViewMacro.h"
+#include "widget/ListView.h"
 #include "widget/AdapterViewMacro.h"
 #include "widget/AbsListViewMacro.h"
 #include "widget/ListViewMacro.h"
@@ -17,6 +17,23 @@
 CarClass(CAlertControllerRecycleListView), public ListView
 {
 public:
+    CAlertControllerRecycleListView();
+
+    CARAPI constructor(
+        /* [in] */ IContext* context);
+
+    CARAPI constructor(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs);
+
+    CARAPI constructor(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs,
+        /* [in] */ Int32 defStyle);
+
+    CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid);
+
     IVIEW_METHODS_DECL();
 
     IVIEWGROUP_METHODS_DECL();
@@ -36,27 +53,6 @@ public:
     IKeyEventCallback_METHODS_DECL();
 
     IAccessibilityEventSource_METHODS_DECL();
-
-    CAlertControllerRecycleListView();
-
-    ECode constructor(
-        /* [in] */ IContext* context);
-
-    ECode constructor(
-        /* [in] */ IContext* context,
-        /* [in] */ IAttributeSet* attrs);
-
-    ECode constructor(
-        /* [in] */ IContext* context,
-        /* [in] */ IAttributeSet* attrs,
-        /* [in] */ Int32 defStyle);
-
-    CARAPI_(PInterface) Probe(
-        /* [in] */ REIID riid);
-
-    CARAPI GetInterfaceID(
-        /* [in] */ IInterface *pObject,
-        /* [out] */ InterfaceID *pIID);
 
     CARAPI OnTouchModeChanged(
         /* [in] */ Boolean isInTouchMode);
@@ -82,8 +78,8 @@ public:
         /* [in] */ Int32 count);
 
 protected:
-   //@Override
-    virtual CARAPI_(Boolean) RecycleOnMeasure();
+    //@Override
+    CARAPI_(Boolean) RecycleOnMeasure();
 
 public:
     Boolean mRecycleOnMeasure;

@@ -1,0 +1,17 @@
+
+module
+{
+   /**
+     * If an object of this type is attached to the text of a TextView
+     * with a movement method of LinkMovementMethod, the affected spans of
+     * text can be selected.  If clicked, the {@link #onClick} method will
+     * be called.
+     */
+    interface IClickableSpan extends ICharacterStyle {
+        /**
+         * Performs the click action associated with this span.
+         */
+        OnClick(
+            [in] IView* widget);
+    }
+}
