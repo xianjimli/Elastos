@@ -1,0 +1,13 @@
+
+module
+{
+    merge("../../car/IApplet.car");
+
+    class CApplet {
+        virtual interface IAppletEntry;
+        virtual interface IAppletQuit;
+        virtual interface IApplet;
+        callbacks JAppletEvents;
+    }
+
+}

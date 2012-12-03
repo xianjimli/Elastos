@@ -1,0 +1,3 @@
+
+EXPORT_HEADERS = CConsole.h
+EXPORT_HEADERS += Elastos.Frameworks.Vanilla.Console.h

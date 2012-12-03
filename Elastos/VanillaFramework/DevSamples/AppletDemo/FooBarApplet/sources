@@ -1,0 +1,15 @@
+
+TARGET_NAME= FooBarApplet
+TARGET_TYPE= eco
+
+IMPORTS = FooBar.eco
+
+SOURCES = FooBarApplet.car
+SOURCES += CFooBarApplet.cpp
+
+LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
+LIBRARIES += $(XDK_USER_LIB)/crt0.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Frameworks.Vanilla.Console.lib
+LIBRARIES += $(XDK_TARGETS)/Elastos.Frameworks.Vanilla.eco

@@ -1,0 +1,18 @@
+#==========================================================================
+# Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.
+#==========================================================================
+
+TARGET_NAME= FooBar
+TARGET_TYPE= eco
+
+SOURCES = FooBar.car
+SOURCES += CFooBar.cpp
+
+
+LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
+LIBRARIES += $(XDK_USER_LIB)/crt0.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Frameworks.Vanilla.Console.lib
+LIBRARIES += $(XDK_TARGETS)/Elastos.Frameworks.Vanilla.eco

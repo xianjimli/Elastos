@@ -1,0 +1,14 @@
+;;==========================================================================
+;; Copyright (c) 2000-2008,  Elastos, Inc.  All Rights Reserved.
+;;==========================================================================
+
+LIBRARY Elastos.Frameworks.Vanilla.eco
+
+EXPORTS
+    ;;============================================================
+    _Console_Init
+    _Console_Enter
+    _Console_Exit
+    _Console_RequestToFinish
+    _Console_ReleaseAtExit
+    _Console_AddExitRoutine

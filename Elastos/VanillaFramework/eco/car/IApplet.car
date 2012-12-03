@@ -1,0 +1,44 @@
+
+module
+{
+    enum AppletQuit {
+        AppletQuit_Nicely,
+        AppletQuit_ASAP,
+    }
+
+    interface IApplet {
+        Start(
+            [in] BufferOf<CString> args);
+
+        Quit(
+            [in] Int32 n,
+            [in] AppletQuit flag);
+
+        Destroy();
+
+        Activate();
+
+        Deactivate();
+
+        IsActivated(
+            [out] Boolean * pbActivated);
+
+        Snooze();
+
+        Wakeup();
+    }
+
+    interface IAppletEntry {
+        Main(
+            [in] BufferOf<CString> args);
+    }
+
+    interface IAppletQuit {
+        AtQuit(
+            [in] Int32 n);
+    }
+
+    callbacks JAppletEvents {
+        Quitted();
+    }
+}
