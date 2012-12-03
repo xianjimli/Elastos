@@ -338,7 +338,6 @@ Char32 MenuItemImpl::GetShortcut()
 String MenuItemImpl::GetShortcutLabel()
 {
     Char32 shortcut = GetShortcut();
-
     if (shortcut == 0) {
         return String("");
     }

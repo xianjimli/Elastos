@@ -3790,13 +3790,12 @@ Boolean View::GetGlobalVisibleRect(
             outGlobalOffset->Set(-mScrollX, -mScrollY);
         }
 
-        Boolean result;
-        if (mParent != NULL) {
-            mParent->GetChildVisibleRect((IView*)this->Probe(EIID_IView),
-                    outRect, outGlobalOffset, &result);
-        }
+        if (mParent == NULL) return TRUE;
 
-        return mParent == NULL || result;
+        Boolean result;
+        mParent->GetChildVisibleRect((IView*)this->Probe(EIID_IView),
+                outRect, outGlobalOffset, &result);
+        return result;
     }
     return FALSE;
 }
@@ -5110,9 +5109,8 @@ ECode View::AssignParent(
 void View::OnAttachedToWindow()
 {
     if ((mPrivateFlags & REQUEST_TRANSPARENT_REGIONS) != 0) {
-        if (mParent != NULL) {
-            mParent->RequestTransparentRegion((IView*)this->Probe(EIID_IView));
-        }
+        assert(mParent != NULL);
+        mParent->RequestTransparentRegion((IView*)this->Probe(EIID_IView));
     }
     if ((mPrivateFlags & AWAKEN_SCROLL_BARS_ON_ATTACH) != 0) {
         InitialAwakenScrollBars();
@@ -6666,7 +6664,6 @@ ArrayOf<Int32>* View::GetDrawableState()
             ArrayOf<Int32>::Free(mDrawableState);
             mDrawableState = NULL;
         }
-
         OnCreateDrawableState(0, &mDrawableState);
         mPrivateFlags &= ~DRAWABLE_STATE_DIRTY;
         return mDrawableState;
@@ -6694,7 +6691,6 @@ ECode View::OnCreateDrawableState(
 {
     if ((mViewFlags & DUPLICATE_PARENT_STATE) == DUPLICATE_PARENT_STATE &&
             mParent != NULL && mParent->Probe(EIID_IView) != NULL) {
-
         return ((View*)mParent->Probe(EIID_View))->OnCreateDrawableState(
                 extraSpace, _drawableState);
     }
@@ -6714,6 +6710,7 @@ ECode View::OnCreateDrawableState(
     viewStateIndex = (viewStateIndex << 1) + (HasWindowFocus() ? 1 : 0);
 
     const ArrayOf<Int32>* drawableState = (*VIEW_STATE_SETS)[viewStateIndex];
+
     //noinspection ConstantIfStatement
 //    if (FALSE) {
 //        Log.i("View", "drawableStateIndex=" + viewStateIndex);
@@ -7704,7 +7701,6 @@ ECode View::Measure(
         }*/
 
         // measure ourselves, this should set the measured dimension flag back
-
         OnMeasure(widthMeasureSpec, heightMeasureSpec);
 
         // flag not set, setMeasuredDimension() was not invoked, we raise

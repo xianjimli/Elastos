@@ -4,8 +4,8 @@
 
 #include "_CListMenuItemView.h"
 #include "view/ViewMacro.h"
-#include <elastos/AutoPtr.h>
 #include "view/menu/ListMenuItemView.h"
+#include <elastos/AutoPtr.h>
 
 
 CarClass(CListMenuItemView), public ListMenuItemView
@@ -25,32 +25,26 @@ public:
 
     IAccessibilityEventSource_METHODS_DECL();
 
-    CListMenuItemView();
-
-    ECode constructor(
-        /* [in] */ IContext* ctx,
-        /* [in] */ IAttributeSet* attrs);
-
     ECode constructor(
         /* [in] */ IContext* ctx,
         /* [in] */ IAttributeSet* attrs,
-        /* [in] */ Int32 defStyle);
+        /* [in] */ Int32 defStyle = 0);
 
     CARAPI_(PInterface) Probe(
     /* [in] */ REIID riid);
-
-    CARAPI GetInterfaceID(
-        /* [in] */ IInterface *pObject,
-        /* [out] */ InterfaceID *pIID);
 
     CARAPI Initialize(
         /* [in] */ IMenuItemImpl* itemData,
         /* [in] */ Int32 menuType);
 
+    CARAPI GetItemData(
+        /* [out] */ IMenuItemImpl** itemData);
+
     CARAPI SetTitle(
         /* [in] */ ICharSequence* title);
 
-    CARAPI_(AutoPtr<IMenuItemImpl>) GetItemData();
+    CARAPI SetEnabledEx(
+        /* [in] */ Boolean enabled);
 
     CARAPI SetCheckable(
         /* [in] */ Boolean checkable);
@@ -72,7 +66,7 @@ public:
         /* [out] */ Boolean* show);
 
     CARAPI IsBaselineAligned(
-        /* [out] */  Boolean* baselineAligned);
+        /* [out] */ Boolean* baselineAligned);
 
     CARAPI SetBaselineAligned(
         /* [in] */ Boolean baselineAligned);
@@ -103,19 +97,6 @@ public:
 
     CARAPI SetVerticalGravity(
         /* [in] */ Int32 verticalGravity);
-
-    CARAPI GetItemData(
-        /* [out] */ IMenuItemImpl** itemData);
-
-    CARAPI SetEnabledEx(
-        /* [in] */ Boolean enabled);
-
-private:
-    CARAPI_(void) InsertIconView();
-
-    CARAPI_(void) InsertRadioButton();
-
-    CARAPI_(void) InsertCheckBox();
 };
 
 
