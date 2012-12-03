@@ -6,7 +6,8 @@
 
 class SQLiteOpenHelper
 {
-	/**
+public:
+    /**
      * Create a helper object to create, open, and/or manage a database.
      * This method always returns very quickly.  The database is not actually
      * created or opened until one of {@link #getWritableDatabase} or
@@ -18,11 +19,15 @@ class SQLiteOpenHelper
      * @param version number of the database (starting at 1); if the database is older,
      *     {@link #onUpgrade} will be used to upgrade the database
      */
-    SQLiteOpenHelper(
+    CARAPI Init(
         /*[in]*/ IContext* context,
         /*[in]*/ String name,
         /*[in]*/ ICursorFactory* factory,
         /*[in]*/ Int32 version);
+
+    SQLiteOpenHelper();
+
+    virtual ~SQLiteOpenHelper();
 
     /**
      * Create and/or open a database that will be used for reading and writing.
@@ -44,7 +49,7 @@ class SQLiteOpenHelper
      * @return a read/write database object valid until {@link #close} is called
      */
     CARAPI GetWritableDatabase(
-        /*[out]*/ ISQLiteDatabase* database);
+        /*[out]*/ ISQLiteDatabase** database);
 
     /**
      * Create and/or open a database.  This will be the same object returned by
@@ -79,7 +84,7 @@ class SQLiteOpenHelper
      * @param db The database.
      */
     virtual CARAPI OnCreate(
-        /*[in]*/ ISQLiteDatabase* db);
+        /*[in]*/ ISQLiteDatabase* db){};
 
     /**
      * Called when the database needs to be upgraded. The implementation
@@ -99,7 +104,7 @@ class SQLiteOpenHelper
     virtual CARAPI OnUpgrade(
         /*[in]*/ ISQLiteDatabase* db,
         /*[in]*/ Int32 oldVersion,
-        /*[in]*/ Int32 newVersion);
+        /*[in]*/ Int32 newVersion){};
 
     /**
      * Called when the database has been opened.  The implementation

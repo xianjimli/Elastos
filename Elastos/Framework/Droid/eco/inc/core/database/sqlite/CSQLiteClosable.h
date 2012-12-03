@@ -3,8 +3,9 @@
 #define __CSQLITECLOSABLE_H__
 
 #include "_CSQLiteClosable.h"
+#include "SQLiteClosable.h"
 
-CarClass(CSQLiteClosable)
+CarClass(CSQLiteClosable), public SQLiteClosable
 {
 public:
     CARAPI OnAllReferencesReleased();

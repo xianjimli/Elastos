@@ -8,7 +8,7 @@ SQLiteDebug::DbStats::DbStats(
     /*[in]*/ Int64 pageSize, 
     /*[in]*/ Int32 lookaside)
 {
-	this->dbName = dbName;
+    this->dbName = dbName;
     this->pageSize = pageSize / 1024;
     dbSize = (pageCount * pageSize) / 1024;
     this->lookaside = lookaside;
@@ -47,7 +47,7 @@ void SQLiteDebug::GetPagerStats(
     sqlite3_status(SQLITE_STATUS_MEMORY_USED, &memoryUsed, &unused, 0);
     sqlite3_status(SQLITE_STATUS_MALLOC_SIZE, &unused, &largestMemAlloc, 0);
     sqlite3_status(SQLITE_STATUS_PAGECACHE_OVERFLOW, &pageCacheOverflo, &unused, 0);
-/*    env->SetIntField(statsObj, gMemoryUsedField, memoryUsed);
+/*  env->SetIntField(statsObj, gMemoryUsedField, memoryUsed);
     env->SetIntField(statsObj, gPageCacheOverfloField, pageCacheOverflo);
     env->SetIntField(statsObj, gLargestMemAllocField, largestMemAlloc); */
 }
@@ -102,7 +102,7 @@ Int64 SQLiteDebug::GetHeapFreeSize()
 
 
 void SQLiteDebug::getHeapDirtyPages(
-	/* [out] */ ArrayOf<Int32>** pages)
+    /* [out] */ ArrayOf<Int32>** pages)
 {/*
     int _pages[2];
 

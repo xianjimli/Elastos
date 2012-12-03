@@ -7,6 +7,9 @@
 
 class SQLiteQueryBuilder
 {
+public:
+    CARAPI Init();
+
     SQLiteQueryBuilder();
 
     ~SQLiteQueryBuilder();

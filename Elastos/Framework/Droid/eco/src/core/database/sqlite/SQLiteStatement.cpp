@@ -1,6 +1,14 @@
 #include "database/sqlite/SQLiteStatement.h"
 #include <sqlite3.h>
 
+ECode SQLiteStatement::Init(
+    /* [in] */ ISQLiteDatabase* db,
+    /* [in] */ String sql)
+{
+    SQLiteProgram::Init(db, sql);
+    return NOERROR;
+}
+
 SQLiteStatement::SQLiteStatement()
 {
 }
@@ -10,10 +18,10 @@ SQLiteStatement::~SQLiteStatement()
 }
 
 SQLiteStatement::SQLiteStatement(
-        /* [in] */ ISQLiteDatabase* db,
-        /* [in] */ String sql)
+    /* [in] */ ISQLiteDatabase* db,
+    /* [in] */ String sql)
 {
-    SQLiteProgram::SQLiteProgram(db, sql);
+    Init(db,sql);
 }
 
 ECode SQLiteStatement::Execute()
@@ -110,7 +118,7 @@ ECode SQLiteStatement::SimpleQueryForString(
     return NOERROR;
 }
 
-ECode Native_Execute()
+ECode SQLiteStatement::Native_Execute()
 {
     Int32 err;
 /*
@@ -134,7 +142,7 @@ ECode Native_Execute()
     return NOERROR;
 }
 
-Int64 Native_1x1_Long()
+Int64 SQLiteStatement::Native_1x1_Long()
 {
     Int32 err;
 /*
@@ -163,7 +171,7 @@ Int64 Native_1x1_Long()
     return NOERROR;
 }
     
-String Native_1x1_String()
+String SQLiteStatement::Native_1x1_String()
 {
     Int32 err;
 /*

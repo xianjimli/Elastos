@@ -2,6 +2,26 @@
 
 const String SQLiteQuery::TAG = String("Cursor");
 
+ECode SQLiteQuery::Init(
+        /* [in] */ ISQLiteDatabase* db,
+        /* [in] */ String query,
+        /* [in] */ Int32 offsetIndex,
+        /* [in] */ ArrayOf<String>* bindArgs)
+{
+    SQLiteProgram::Init(db, query);
+    mOffsetIndex = offsetIndex;
+    mBindArgs = bindArgs;
+    return NOERROR;
+}
+
+SQLiteQuery::SQLiteQuery(
+        /* [in] */ ISQLiteDatabase* db,
+        /* [in] */ String query,
+        /* [in] */ Int32 offsetIndex,
+        /* [in] */ ArrayOf<String>* bindArgs)
+{
+}
+
 SQLiteQuery::SQLiteQuery()
 {
 }
@@ -10,16 +30,6 @@ SQLiteQuery::~SQLiteQuery()
 {
 }
 
-SQLiteQuery::SQLiteQuery(
-        /* [in] */ ISQLiteDatabase* db,
-        /* [in] */ String query,
-        /* [in] */ Int32 offsetIndex,
-        /* [in] */ ArrayOf<String>* bindArgs) : mClosed(FALSE)
-{
-    SQLiteProgram::SQLiteProgram(db, query);
-    mOffsetIndex = offsetIndex;
-    mBindArgs = bindArgs;
-}
 
 ECode SQLiteQuery::FillWindow(
         /* [in] */ ICursorWindow* window,
@@ -37,9 +47,12 @@ ECode SQLiteQuery::ColumnCountLocked(
 //    try {
 //        return native_column_count();
 //    } finally {
-        ReleaseReference();
+//        ReleaseReference();
 //    }
-    return E_NOT_IMPLEMENTED;
+    *value = Native_Column_Count();
+    ReleaseReference();
+
+    return NOERROR;
 }
 
 ECode SQLiteQuery::ColumnNameLocked(
@@ -50,9 +63,11 @@ ECode SQLiteQuery::ColumnNameLocked(
 //    try {
 //        return native_column_name(columnIndex);
 //    } finally {
-        ReleaseReference();
+//        ReleaseReference();
 //    }
-    return E_NOT_IMPLEMENTED;
+    *value = Native_Column_Name(columnIndex);
+    ReleaseReference();
+    return NOERROR;
 }
 
 ECode SQLiteQuery::toString(
@@ -110,7 +125,7 @@ ECode SQLiteQuery::BindLong(
 {
     (*mBindArgs)[index - 1] = String::FromInt64(value);
     if (!mClosed) {
-        SQLiteProgram::BindLong(index, value);
+        SQLiteProgram::BindInt64(index, value);
     }
     return NOERROR;
 }

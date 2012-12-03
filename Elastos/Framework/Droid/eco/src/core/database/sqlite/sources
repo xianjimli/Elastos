@@ -9,22 +9,33 @@ INCLUDES += ../../
 
 C_DEFINES += -D_FRAMEWORK_CORE
 
-SOURCES = SQLiteClosable.cpp
+SOURCES =  SQLiteClosable.cpp
 SOURCES += CSQLiteClosable.cpp
-SOURCES += SqliteWrapper.cpp
+SOURCES += SQLiteWrapper.cpp
+SOURCES += CSQLiteWrapper.cpp
 SOURCES += SQLiteProgram.cpp
+SOURCES += CSQLiteProgram.cpp
 SOURCES += SQLiteQuery.cpp
+SOURCES += CSQLiteQuery.cpp
 SOURCES += SQLiteCompiledSql.cpp
+SOURCES += CSQLiteCompiledSql.cpp
 SOURCES += SQLiteStatement.cpp
+SOURCES += CSQLiteStatement.cpp
 SOURCES += SQLiteDatabase.cpp
-
+SOURCES += CSQLiteDatabase.cpp
 SOURCES += SQLiteContentHelper.cpp
+SOURCES += CSQLiteContentHelper.cpp
 SOURCES += SQLiteCursor.cpp
+SOURCES += CSQLiteCursor.cpp
 SOURCES += SQLiteCursorDriver.cpp
 SOURCES += SQLiteDebug.cpp
+SOURCES += CSQLiteDebug.cpp
 SOURCES += SQLiteDirectCursorDriver.cpp
+SOURCES += CSQLiteDirectCursorDriver.cpp
 SOURCES += SQLiteOpenHelper.cpp
+SOURCES += CSQLiteOpenHelper.cpp
 SOURCES += SQLiteQueryBuilder.cpp
+SOURCES += CSQLiteQueryBuilder.cpp
 SOURCES += SQLiteTransactionListener.cpp
 
 

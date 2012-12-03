@@ -1,7 +1,9 @@
 module
 {
     interface ISQLiteDatabase;
+    interface IAssetFileDescriptor;
 
+    [deprecated]
     interface ISQLiteContentHelper {
         /**
          * Runs an SQLite query and returns an AssetFileDescriptor for the
@@ -19,6 +21,7 @@ module
         GetBlobColumnAsAssetFile(
             [in] ISQLiteDatabase* db,
             [in] String sql,
-            [out ] ArrayOf<String> selectionArgs);
+            [in] ArrayOf<String>* selectionArgs,
+	    [out] IAssetFileDescriptor** fd);
     }
 }

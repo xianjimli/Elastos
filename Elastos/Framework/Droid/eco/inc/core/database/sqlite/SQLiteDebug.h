@@ -75,7 +75,7 @@ class SQLiteDebug
             /*[in]*/ Int64 pageSize, 
             /*[in]*/ Int32 lookaside);
     };
-
+public:
     /**
      * return all pager and database stats for the current process.
      * @return {@link PagerStats}

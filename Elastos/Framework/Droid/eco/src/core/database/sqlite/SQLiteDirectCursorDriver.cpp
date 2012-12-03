@@ -1,19 +1,24 @@
 #include "database/sqlite/SQLiteDirectCursorDriver.h"
 
-SQLiteDirectCursorDriver::SQLiteDirectCursorDriver(
-        /*[in]*/ ISQLiteDatabase* db,
-        /*[in]*/ String sql, 
-        /*[in]*/ String editTable)
+ECode SQLiteDirectCursorDriver::SQLiteDirectCursorDriver::Init(
+    /*[in]*/ ISQLiteDatabase* db,
+    /*[in]*/ String sql, 
+    /*[in]*/ String editTable)
 {
     mDatabase = db;
     mEditTable = editTable;
     mSql = sql;
+    return NOERROR;
+}
+
+SQLiteDirectCursorDriver::SQLiteDirectCursorDriver()
+{
 }
 
 ECode SQLiteDirectCursorDriver::Query(
-        /*[in]*/ ICursorFactory* factory,
-        /*[in]*/ ArrayOf<String> selectionArgs,
-        /*[out]*/ ICursor** cs)
+    /*[in]*/ ICursorFactory* factory,
+    /*[in]*/ ArrayOf<String>* selectionArgs,
+    /*[out]*/ ICursor** cs)
 {/*
     // Compile the query
     AutoPtr<ISQLiteQuery> query = new SQLiteQuery(mDatabase, mSql, 0, selectionArgs);
@@ -52,7 +57,7 @@ ECode SQLiteDirectCursorDriver::CursorClosed()
 }
 
 ECode SQLiteDirectCursorDriver::SetBindArguments(
-        /*[in]*/ ArrayOf<String> bindArgs)
+        /*[in]*/ ArrayOf<String>* bindArgs)
 {/*
     Int32 numArgs = bindArgs.GetLength();
     for (Int32 i = 0; i < numArgs; i++) {

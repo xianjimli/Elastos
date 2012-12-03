@@ -15,8 +15,23 @@
 class SQLiteStatement : public SQLiteProgram
 {
 public:
+    /**
+     * Don't use SQLiteStatement constructor directly, please use
+     * {@link SQLiteDatabase#compileStatement(String)}
+     * @param db
+     * @param sql
+     */
+    CARAPI Init(
+        /* [in] */ ISQLiteDatabase* db,
+        /* [in] */ String sql);
+
     SQLiteStatement();
+
     ~SQLiteStatement();
+
+    SQLiteStatement(
+        /* [in] */ ISQLiteDatabase* db,
+        /* [in] */ String sql);
 
     /**
      * Execute this SQL statement, if it is not a query. For example,
@@ -60,17 +75,6 @@ public:
      */
     virtual CARAPI SimpleQueryForString(
         /* [out] */ String* value);
-
-    /**
-     * Don't use SQLiteStatement constructor directly, please use
-     * {@link SQLiteDatabase#compileStatement(String)}
-     * @param db
-     * @param sql
-     */
-    SQLiteStatement(
-        /* [in] */ ISQLiteDatabase* db,
-        /* [in] */ String sql);
-
 private:
     CARAPI Native_Execute();
 

@@ -2,10 +2,16 @@
 
 const String SQLiteQueryBuilder::TAG = String("Database");
 
+ECode SQLiteQueryBuilder::Init()
+{
+	mDistinct = false;
+    mFactory = NULL;
+	return NOERROR;
+}
+
 SQLiteQueryBuilder::SQLiteQueryBuilder()
 {
-    mDistinct = false;
-    mFactory = NULL;
+    Init();
 }
 
 SQLiteQueryBuilder::~SQLiteQueryBuilder()

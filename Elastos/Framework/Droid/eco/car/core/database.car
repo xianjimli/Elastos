@@ -10,7 +10,7 @@ module
     merge("database/sqlite/ISQLiteDatabase.car");
     merge("database/sqlite/ISQLiteContentHelper.car");
     merge("database/sqlite/ISQLiteDebug.car");
-    merge("database/sqlite/ISQLiteDirectCursorDriver.car");
+ //   merge("database/sqlite/ISQLiteDirectCursorDriver.car");
     merge("database/sqlite/ISQLiteOpenHelper.car");
     merge("database/sqlite/ISQLiteQueryBuilder.car");
     merge("database/sqlite/ISQLiteTransactionListener.car");
@@ -32,6 +32,136 @@ module
 
     class CSQLiteClosable {
         interface ISQLiteClosable;
+    }
+
+    class CSQLiteProgram {
+        constructor(
+            [in] ISQLiteDatabase* db,
+            [in] String sql);
+
+        interface ISQLiteProgram;
+    }
+
+    [deprecated]
+    class CSQLiteQuery {
+        /**
+         * Create a persistent query object.
+         * 
+         * @param db The database that this query object is associated with
+         * @param query The SQL string for this query. 
+         * @param offsetIndex The 1-based index to the OFFSET parameter, 
+         */
+        constructor(
+            [in] ISQLiteDatabase* db,
+            [in] String query,
+            [in] Int32 offsetIndex,
+            [in] ArrayOf<String>* bindArgs);
+
+        interface ISQLiteQuery;
+    }
+
+    class CSQLiteCompiledSql {
+        constructor(
+            [in] ISQLiteDatabase* db,
+            [in] String sql);
+
+        interface ISQLiteCompiledSql;
+    }
+
+    class CSQLiteStatement {
+        constructor(
+            [in] ISQLiteDatabase* db,
+            [in] String sql);
+
+        interface ISQLiteStatement;
+    }
+
+    interface ICursorFactory;
+
+    class CSQLiteDatabase {
+        /**
+         * Private constructor. See {@link #create} and {@link #openDatabase}.
+         *
+         * @param path The full path to the database
+         * @param factory The factory to use when creating cursors, may be NULL.
+         * @param flags 0 or {@link #NO_LOCALIZED_COLLATORS}.  If the database file already
+         *              exists, mFlags will be updated appropriately.
+         */
+        constructor(
+            [in] String path,
+            [in] ICursorFactory* factory,
+            [in] Int32 flags);
+
+        interface ISQLiteDatabase;
+    }
+
+    class CSQLiteContentHelper {
+        interface ISQLiteContentHelper;
+    }
+
+    class CSQLiteDebug {
+        interface ISQLiteDebug;
+    }
+    
+    
+    class CSQLiteDirectCursorDriver {
+        /**
+         * A cursor driver that uses the given query directly.
+         * 
+         * @hide
+         */
+        constructor(
+            [in] ISQLiteDatabase* db,
+            [in] String sql,
+            [in] String editTable);
+            
+        interface ISQLiteCursorDriver;
+    }
+
+    interface IContext;
+
+    class CSQLiteOpenHelper {
+        /**
+         * Create a helper object to create, open, and/or manage a database.
+         * This method always returns very quickly.  The database is not actually
+         * created or opened until one of {@link #getWritableDatabase} or
+         * {@link #getReadableDatabase} is called.
+         *
+         * @param context to use to open or create the database
+         * @param name of the database file, or null for an in-memory database
+         * @param factory to use for creating cursor objects, or null for the default
+         * @param version number of the database (starting at 1); if the database is older,
+         *     {@link #onUpgrade} will be used to upgrade the database
+         */
+        constructor(
+            [in] IContext* context,
+            [in] String name,
+            [in] ICursorFactory* factory,
+            [in] Int32 number);
+
+        interface ISQLiteOpenHelper;
+    }
+    
+    class CSQLiteQueryBuilder {
+        /**
+         * This is a convience class that helps build SQL queries to be sent to
+         * {@link SQLiteDatabase} objects.
+         */
+        constructor();
+
+        interface ISQLiteQueryBuilder;
+    }
+
+    class CSQLiteWrapper {
+        /*private*/ constructor();
+
+        interface ISQLiteWrapper;
+    }
+    
+    
+
+    class CSQLiteCursor {
+        interface ISQLiteCursor;
     }
 }
 

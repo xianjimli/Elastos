@@ -10,20 +10,23 @@
 
 class SQLiteDirectCursorDriver : public SQLiteCursorDriver
 {
-    SQLiteDirectCursorDriver(
+public:
+    CARAPI Init(
         /*[in]*/ ISQLiteDatabase* db,
         /*[in]*/ String sql, 
         /*[in]*/ String editTable);
 
+    SQLiteDirectCursorDriver();
+
     CARAPI Query(
         /*[in]*/ ICursorFactory* factory,
-        /*[in]*/ ArrayOf<String> selectionArgs,
+        /*[in]*/ ArrayOf<String>* selectionArgs,
         /*[out]*/ ICursor** cs);
 
     CARAPI CursorClosed();
 
     CARAPI SetBindArguments(
-        /*[in]*/ ArrayOf<String> bindArgs);
+        /*[in]*/ ArrayOf<String>* bindArgs);
 
     CARAPI CursorDeactivated();
 

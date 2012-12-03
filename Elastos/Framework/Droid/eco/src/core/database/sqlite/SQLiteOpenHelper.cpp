@@ -1,28 +1,43 @@
 #include "database/sqlite/SQLiteOpenHelper.h"
 #include "database/sqlite/SQLiteDatabase.h"
 
-
-SQLiteOpenHelper::SQLiteOpenHelper(
+ECode SQLiteOpenHelper::Init(
     /*[in]*/ IContext* context,
     /*[in]*/ String name,
     /*[in]*/ ICursorFactory* factory,
     /*[in]*/ Int32 version)
 {
+    if(version<1) return !NOERROR;
+
     mContext = context;
     mName = name;
     mFactory = factory;
     mNewVersion = version;
+
+    return NOERROR;
+}
+
+
+SQLiteOpenHelper::SQLiteOpenHelper()
+{
+    mDatabase = NULL;
+    mIsInitializing = false;
+}
+
+
+SQLiteOpenHelper::~SQLiteOpenHelper()
+{   
 }
 
 ECode SQLiteOpenHelper::GetWritableDatabase(
-    /*[out]*/ ISQLiteDatabase* database)
+    /*[out]*/ ISQLiteDatabase** database)
 {
 	Boolean isopen, isreadonly;
 	mDatabase->IsOpen(&isopen);
 	mDatabase->IsReadOnly(&isreadonly);
 
     if (mDatabase != NULL && isopen && !isreadonly) {
-    	database = mDatabase;
+    	*database = mDatabase;
         return NOERROR;  // The database is already open for business
     }
 
@@ -71,7 +86,7 @@ ECode SQLiteOpenHelper::GetWritableDatabase(
 
         OnOpen(db);
         success = true;
-        database = db;
+        *database = db;
  //       return NOERROR;
 //    } finally {
         mIsInitializing = false;

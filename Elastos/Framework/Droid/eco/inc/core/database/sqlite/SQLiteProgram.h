@@ -8,11 +8,15 @@
 class SQLiteProgram : public SQLiteClosable
 {
 public:
+    CARAPI Init(
+        /* [in] */ ISQLiteDatabase* db,
+        /* [in] */ String& sql);
+
     SQLiteProgram();
 
     SQLiteProgram(
         /* [in] */ ISQLiteDatabase* db,
-        /* [in] */ String sql);
+        /* [in] */ String& sql);
 
     ~SQLiteProgram();
 
@@ -43,7 +47,7 @@ public:
      * @param index The 1-based index to the parameter to bind
      * @param value The value to bind
      */
-    virtual CARAPI BindLong(
+    virtual CARAPI BindInt64(
         /* [in] */ Int32 index,
         /* [in] */ Int64 value);
 
@@ -78,7 +82,7 @@ public:
      */
     virtual CARAPI BindBlob(
         /* [in] */ Int32 index,
-        /* [in] */ ArrayOf<Byte>* value); 
+        /* [in] */ const ArrayOf<Byte>& value); 
 
     /**
      * Clears all existing bindings. Unset bindings are treated as NULL.

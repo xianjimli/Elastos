@@ -2,23 +2,10 @@
 
 const String SQLiteProgram::TAG = String("SQLiteProgram");
 
-void SQLiteProgram::Init()
-{
-    nHandle = 0;
-    nStatement = 0;
-}
 
-SQLiteProgram::SQLiteProgram()
-{
-}
-
-SQLiteProgram::~SQLiteProgram()
-{
-}
-
-SQLiteProgram::SQLiteProgram(
-        /* [in] */ ISQLiteDatabase* db,
-        /* [in] */ String sql)
+ECode SQLiteProgram::Init(
+    /* [in] */ ISQLiteDatabase* db,
+    /* [in] */ String& sql)
 {
     mDatabase = db;
     mSql = sql.Trim();
@@ -73,6 +60,27 @@ SQLiteProgram::SQLiteProgram(
         }
 //        nStatement = mCompiledSql.nStatement;
     }
+
+    return NOERROR;
+}
+
+SQLiteProgram::SQLiteProgram()
+{
+    nHandle = 0;
+    nStatement = 0;
+}
+
+SQLiteProgram::SQLiteProgram(
+    /* [in] */ ISQLiteDatabase* db,
+    /* [in] */ String& sql)
+{
+    nHandle = 0;
+    nStatement = 0;
+    Init(db,sql);
+}
+
+SQLiteProgram::~SQLiteProgram()
+{
 }
 
 ECode SQLiteProgram::OnAllReferencesReleased()
@@ -151,7 +159,7 @@ ECode SQLiteProgram::BindNull(
     return NOERROR;
 }
 
-ECode SQLiteProgram::BindLong(
+ECode SQLiteProgram::BindInt64(
         /* [in] */ Int32 index,
         /* [in] */ Int64 value)
 {
@@ -210,11 +218,8 @@ ECode SQLiteProgram::BindString(
 
 ECode SQLiteProgram::BindBlob(
         /* [in] */ Int32 index,
-        /* [in] */ ArrayOf<Byte>* value)
+        /* [in] */ const ArrayOf<Byte>& value)
 {
-    if (value == NULL) {
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
-    }
     Boolean isOpen;
     mDatabase->IsOpen(&isOpen);
     if (!isOpen) {

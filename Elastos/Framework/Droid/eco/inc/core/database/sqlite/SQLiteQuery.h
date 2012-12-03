@@ -8,10 +8,6 @@
 class SQLiteQuery : public SQLiteProgram
 {
 public:
-    SQLiteQuery();
-
-    ~SQLiteQuery();
-
     /**
      * Create a persistent query object.
      * 
@@ -19,11 +15,21 @@ public:
      * @param query The SQL string for this query. 
      * @param offsetIndex The 1-based index to the OFFSET parameter, 
      */
+    CARAPI Init(
+        /* [in] */ ISQLiteDatabase* db,
+        /* [in] */ String query,
+        /* [in] */ Int32 offsetIndex,
+        /* [in] */ ArrayOf<String>* bindArgs);
+
     SQLiteQuery(
         /* [in] */ ISQLiteDatabase* db,
         /* [in] */ String query,
         /* [in] */ Int32 offsetIndex,
         /* [in] */ ArrayOf<String>* bindArgs);
+
+    SQLiteQuery();
+
+    ~SQLiteQuery();
 
     /**
      * Reads rows into a buffer. This method acquires the database lock.

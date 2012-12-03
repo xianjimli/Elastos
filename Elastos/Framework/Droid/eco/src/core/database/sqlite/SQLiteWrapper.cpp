@@ -1,14 +1,17 @@
-#ifndef __SQLITEWRAPPER_H__
-#define __SQLITEWRAPPER_H__
+#include "database/sqlite/SQLiteWrapper.h"
 
-#include "ext/frameworkext.h"
+const String SQLiteWrapper::TAG = String("SQLiteWrapper");
+const String SQLiteWrapper::SQLITE_EXCEPTION_DETAIL_MESSAGE = String("unable to open database file");
 
-class SqliteWrapper
+SQLiteWrapper::SQLiteWrapper()
 {
-public:
-//    static CARAPI CheckSQLiteException(Context context, SQLiteException e)
+}
 
-    static CARAPI Query(
+SQLiteWrapper::~SQLiteWrapper()
+{
+}
+
+ECode SQLiteWrapper::Query(
         /* [in] */ IContext* context,
         /* [in] */ IContentResolver* resolver,
         /* [in] */ IUri* uri,
@@ -16,46 +19,48 @@ public:
         /* [in] */ String selection,
         /* [in] */ ArrayOf<String> selectionArgs,
         /* [in] */ String sortOrder,
-        /* [out] */ ICursor** c);
+        /* [out] */ ICursor** c)
+{
+    return E_NOT_IMPLEMENTED;
+}
 
-    static CARAPI Requery(
+ECode SQLiteWrapper::Requery(
         /* [in] */ IContext* context,
         /* [in] */ ICursor* cursor,
-        /* [out] */ Boolean* rst);
+        /* [out] */ Boolean* rst)
+{
+    return E_NOT_IMPLEMENTED;
+}
 
-    static CARAPI Update(
+ECode SQLiteWrapper::Update(
         /* [in] */ IContext* context,
         /* [in] */ IContentResolver* resolver,
         /* [in] */ IUri* uri,
         /* [in] */ IContentValues* values,
         /* [in] */ String value,
         /* [in] */ ArrayOf<String> selectionArgs,
-        /* [out] */ Int32* v);
+        /* [out] */ Int32* v)
+{
+    return E_NOT_IMPLEMENTED;
+}
 
-    static CARAPI Delete(
+ECode SQLiteWrapper::Delete(
         /* [in] */ IContext* context,
         /* [in] */ IContentResolver* resolver,
         /* [in] */ IUri* uri,
         /* [in] */ String where,
         /* [in] */ ArrayOf<String> selectionArgs,
-        /* [out] */ Int32* v);
+        /* [out] */ Int32* v)
+{
+    return E_NOT_IMPLEMENTED;
+}
 
-    static CARAPI Insert(
+ECode SQLiteWrapper::Insert(
         /* [in] */ IContext* context,
         /* [in] */ IContentResolver* resolver,
         /* [in] */ IUri* uri,
         /* [in] */ IContentValues* values,
-        /* [out] */ IUri** u);
-
-private:
-    SqliteWrapper();
-
-    ~SqliteWrapper();
-
-//    static CARAPI IsLowMemory(SQLiteException e)
-
-private:
-    const static String TAG;
-    const static String SQLITE_EXCEPTION_DETAIL_MESSAGE;
-};
-#endif //__SQLITEWRAPPER_H__
+        /* [out] */ IUri** u)
+{
+    return E_NOT_IMPLEMENTED;
+}

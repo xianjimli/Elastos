@@ -2,24 +2,10 @@
 
 const String SQLiteCompiledSql::TAG = String("SQLiteCompiledSql");
 
-void SQLiteCompiledSql::Init()
-{
-    nHandle = 0;
-    nStatement = 0;
-    mSqlStmt = NULL;
-    mInUse = FALSE;
-}
-
-SQLiteCompiledSql::SQLiteCompiledSql()
-{
-    Init();
-}
-
-SQLiteCompiledSql::SQLiteCompiledSql(
+ECode SQLiteCompiledSql::Init(
         /* [in] */ ISQLiteDatabase* db,
         /* [in] */ String sql)
 {
-    Init();
     Boolean result;
     db->IsOpen(&result);
     if (!result) {
@@ -30,7 +16,17 @@ SQLiteCompiledSql::SQLiteCompiledSql(
 //    mStackTrace = new DatabaseObjectNotClosedException().fillInStackTrace();
 //    this->nHandle = db->mNativeHandle;
     Compile(sql, TRUE);
+    return NOERROR;
 }
+
+SQLiteCompiledSql::SQLiteCompiledSql()
+{
+    nHandle = 0;
+    nStatement = 0;
+    mSqlStmt = NULL;
+    mInUse = FALSE;
+}
+
 
 ECode SQLiteCompiledSql::Compile(
         /* [in] */ String sql,

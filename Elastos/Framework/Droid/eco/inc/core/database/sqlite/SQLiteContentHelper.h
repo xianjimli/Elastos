@@ -6,6 +6,7 @@
 
 class SQLiteContentHelper
 {
+public:
     /**
      * Runs an SQLite query and returns an AssetFileDescriptor for the
      * blob in column 0 of the first row. If the first column does
@@ -19,11 +20,11 @@ class SQLiteContentHelper
      *         value of column 0 is NULL, or if there is an error creating the
      *         asset file descriptor.
      */
-    static CARAPI getBlobColumnAsAssetFile(
+    static CARAPI GetBlobColumnAsAssetFile(
         /*[in]*/ ISQLiteDatabase* db, 
         /*[in]*/ String sql,
-        /*[in]*/ ArrayOf<String> selectionArgs);
-//        /*[out]*/ IAssetFileDescriptor** fd);
+        /*[in]*/ ArrayOf<String> *selectionArgs,
+        /*[out]*/ IAssetFileDescriptor** fd);
 private:
 	/**
      * Runs an SQLite query and returns a MemoryFile for the
@@ -35,7 +36,7 @@ private:
      * @throws IOException If there is an error creating the memory file.
      */
     // TODO: make this native and use the SQLite blob API to reduce copying
-    static CARAPI simpleQueryForBlobMemoryFile(
+    static CARAPI SimpleQueryForBlobMemoryFile(
         /*[in]*/ ISQLiteDatabase* db, 
         /*[in]*/ String sql,
         /*[in]*/ ArrayOf<String> selectionArgs);

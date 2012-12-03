@@ -2,31 +2,26 @@
 #include "database/sqlite/CSQLiteClosable.h"
 ECode CSQLiteClosable::OnAllReferencesReleased()
 {
-    // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CSQLiteClosable::OnAllReferencesReleasedFromContainer()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return SQLiteClosable::OnAllReferencesReleasedFromContainer();
 }
 
 ECode CSQLiteClosable::AcquireReference()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return SQLiteClosable::AcquireReference();
 }
 
 ECode CSQLiteClosable::ReleaseReference()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return SQLiteClosable::ReleaseReference();
 }
 
 ECode CSQLiteClosable::ReleaseReferenceFromContainer()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return SQLiteClosable::ReleaseReferenceFromContainer();
 }
 

@@ -1,10 +1,10 @@
 #include "database/sqlite/SQLiteContentHelper.h"
 
-SQLiteContentHelper::getBlobColumnAsAssetFile(
+SQLiteContentHelper::GetBlobColumnAsAssetFile(
     /*[in]*/ ISQLiteDatabase* db, 
     /*[in]*/ String sql,
-    /*[in]*/ ArrayOf<String> selectionArgs)
-//    /*[out]*/ IAssetFileDescriptor** fd)
+    /*[in]*/ ArrayOf<String> *selectionArgs,
+    /*[out]*/ IAssetFileDescriptor** fd)
 {/*
     try {
         MemoryFile file = simpleQueryForBlobMemoryFile(db, sql, selectionArgs);
@@ -19,7 +19,7 @@ SQLiteContentHelper::getBlobColumnAsAssetFile(
     return NOERROR;
 }
 
-SQLiteContentHelper::simpleQueryForBlobMemoryFile(
+SQLiteContentHelper::SimpleQueryForBlobMemoryFile(
     	/*[in]*/ ISQLiteDatabase* db, 
     	/*[in]*/ String sql,
         /*[in]*/ ArrayOf<String> selectionArgs)

@@ -14,10 +14,10 @@
  */
 class SQLiteCompiledSql
 {
-protected:
+public:
     SQLiteCompiledSql();
 
-    SQLiteCompiledSql(
+    CARAPI Init(
         /* [in] */ ISQLiteDatabase* db,
         /* [in] */ String sql);
 
@@ -37,7 +37,6 @@ protected:
     ~SQLiteCompiledSql();
 
 private:
-    CARAPI_(void) Init();
 
     /**
      * Compiles the given SQL into a SQLite byte code program using sqlite3_prepare_v2(). If
