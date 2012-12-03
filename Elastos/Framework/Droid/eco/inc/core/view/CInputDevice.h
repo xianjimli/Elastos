@@ -5,6 +5,7 @@
 #include "_CInputDevice.h"
 #include "ext/frameworkext.h"
 #include <elastos/ElRefBase.h>
+#include <elastos/AutoPtr.h>
 
 class ElKeyCharacterMap;
 
@@ -96,7 +97,7 @@ public:
      * @param id The device id.
      * @return The input device or NULL if not found.
      */
-    static CARAPI_(CInputDevice*) GetDevice(
+    static CARAPI_(AutoPtr<CInputDevice>) GetDevice(
         /* [in] */ Int32 id);
 
     /**

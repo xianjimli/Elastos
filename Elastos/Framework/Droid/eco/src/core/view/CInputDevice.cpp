@@ -137,7 +137,7 @@ CInputDevice::~CInputDevice()
 * @param id The device id.
 * @return The input device or NULL if not found.
 */
-CInputDevice* CInputDevice::GetDevice(
+AutoPtr<CInputDevice> CInputDevice::GetDevice(
     /* [in] */ Int32 id)
 {
     AutoPtr<IServiceManager> sm;
