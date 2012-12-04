@@ -1,32 +1,50 @@
 
 module
 {
-    interface IDataInput;
-    interface IDataOutput;
-    interface IRandomAccessFile{
-        Close();
+    interface IFileChannel;
+    interface IFileDescriptor;
+
+    interface IRandomAccessFile extends ICloseable {
         GetChannel(
-            [out] IFileChannel **channel);
+            [out] IFileChannel** channel);
+
         GetFD(
-            [out] IFileDescriptor **pFd);
+            [out] IFileDescriptor** fd);
+
         GetFilePointer(
-            [out] Int64 *pSeek);
+            [out] Int64* offset);
+
         Seek(
-            [in] Int64 nSeek);
+            [in] Int64 offset);
+
         GetLength(
-            [out] Int64 *pLen);
+            [out] Int64* length);
+
         SetLength(
-            [in] Int64 len);
+            [in] Int64 length);
+
+        Read(
+            [out] Int32* value);
+
         ReadBuffer(
             [out] ArrayOf<Byte> buffer,
-            [out] Int32 *number);
-        Read(
-            [out] Int32 *value);
+            [out] Int32* number);
 
         ReadBufferEx(
-    	    [in] Int32 offset,
+            [in] Int32 offset,
             [in] Int32 length,
             [out] ArrayOf<Byte> buffer,
             [out] Int32* number);
+
+        Write(
+            [in] Int32 oneByte);
+
+        WriteBuffer(
+            [in] ArrayOf<Byte> buffer);
+
+        WriteBufferEx(
+            [in] Int32 offset,
+            [in] Int32 count,
+            [in] ArrayOf<Byte> buffer);
     }
 }

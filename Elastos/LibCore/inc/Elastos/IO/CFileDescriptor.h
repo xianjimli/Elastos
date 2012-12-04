@@ -67,6 +67,7 @@ private:
     friend class FileInputStream;
     friend class FileOutputStream;
     friend class CRandomAccessFile;
+    friend class IoUtils;
     friend AutoPtr<IFileDescriptor> CreateFD(Int32 descriptor);
 
     // BEGIN android-changed

@@ -94,8 +94,8 @@ ECode ZipFile::RAFStream::ReadBufferEx(
         ec = mSharedRaf->ReadBufferEx(offset, length, buffer, number);
         if (*number > 0) {
             mOffset += *number;
-        } 
-       
+        }
+
 //    }
     return ec;
 }
@@ -226,12 +226,12 @@ ECode ZipFile::ZipInflaterInputStream::Available(
 }
 
 // ------------------------gaojianfeng add 2012-11-29------------------
-ECode ZipFile::ZipInflaterInputStream::Close() 
+ECode ZipFile::ZipInflaterInputStream::Close()
 {
     return InflaterInputStream::Close();
 }
 
-ECode ZipFile::ZipInflaterInputStream::Mark(Int32 mark) 
+ECode ZipFile::ZipInflaterInputStream::Mark(Int32 mark)
 {
     return InflaterInputStream::Mark(mark);
 }
@@ -246,13 +246,13 @@ ECode ZipFile::ZipInflaterInputStream::Reset()
     return InflaterInputStream::Reset();
 }
 
-ECode ZipFile::ZipInflaterInputStream::Read(Int32 *value) 
+ECode ZipFile::ZipInflaterInputStream::Read(Int32 *value)
 {
     VALIDATE_NOT_NULL(value);
     return InflaterInputStream::Read(value);
 }
 
-ECode ZipFile::ZipInflaterInputStream::ReadBuffer(ArrayOf<Byte> *buffer, Int32 *number) 
+ECode ZipFile::ZipInflaterInputStream::ReadBuffer(ArrayOf<Byte> *buffer, Int32 *number)
 {
     VALIDATE_NOT_NULL(buffer);
     VALIDATE_NOT_NULL(number);
@@ -262,7 +262,7 @@ ECode ZipFile::ZipInflaterInputStream::ReadBuffer(ArrayOf<Byte> *buffer, Int32 *
 ECode ZipFile::ZipInflaterInputStream::Skip(Int64 offset, Int64*number)
 {
     VALIDATE_NOT_NULL(number);
-    return InflaterInputStream::Skip(offset, number);    
+    return InflaterInputStream::Skip(offset, number);
 }
 
 ZipFile::ZipFile()
@@ -331,8 +331,8 @@ ECode ZipFile::GetEntries(
         ec = CObjectContainer::New(entries);
         if (FAILED(ec)) {
             return ec;
-        }        
-        HashMap<String, AutoPtr<IZipEntry> >::Iterator it = mEntries.Begin();        
+        }
+        HashMap<String, AutoPtr<IZipEntry> >::Iterator it = mEntries.Begin();
         Int32 count = 0;
         for (; it != mEntries.End(); ++it) {
             count++;
@@ -343,7 +343,7 @@ ECode ZipFile::GetEntries(
     } else {
         ec = E_IO_EXCEPTION;
     }
-    return ec; 
+    return ec;
 //    final Iterator<ZipEntry> iterator = mEntries.values().iterator();
 //
 //    return new Enumeration<ZipEntry>() {
@@ -449,7 +449,7 @@ ECode ZipFile::GetInputStream(
             entry->GetSize(&size);
             Int32 bufSize = Math::Max(1024, Math::Min((Int32)size, 65535L));
             AutoPtr<IInflater> inf;
-            CInflater::New(TRUE,(IInflater**)&inf); 
+            CInflater::New(TRUE,(IInflater**)&inf);
             ZipInflaterInputStream *pInflaterStream = new ZipInflaterInputStream(rafstrm, (IInflater*)inf, bufSize, (CZipEntry *)entry);
             *is = (IInputStream *)pInflaterStream->Probe(EIID_IInputStream);
         } else {
@@ -527,7 +527,7 @@ ECode ZipFile::ReadCentralDir()
       }
 
       while(1) {
-          mRaf->Seek(scanOffset);    
+          mRaf->Seek(scanOffset);
           Int64 curptr;
           mRaf->GetFilePointer(&curptr);
           Int64 flag;
@@ -566,7 +566,7 @@ ECode ZipFile::ReadCentralDir()
       if (numEntries != totalNumEntries || diskNumber != 0 || diskWithCentralDir != 0) {
            return E_DATA_FORMAT_EXCEPTION;
       }
-      
+
       delete rafs;
       rafs = NULL;
       //rafs = new RAFStream(mRaf, centralDirOffset);
@@ -640,10 +640,7 @@ ECode ZipFile::Init(
         mFileToDeleteOnClose = NULL;
     }
 
-    ec = CRandomAccessFile::New(file, (IRandomAccessFile **)&mRaf);
-    if (FAILED(ec)) {
-        return ec;
-    } 
+    FAIL_RETURN(CRandomAccessFile::New(file, String("r"), (IRandomAccessFile **)&mRaf));
 
     return ReadCentralDir();
 }

@@ -4,19 +4,7 @@
 #include <errno.h>
 #include <unistd.h>
 
-ECode Platform2IO(ECode ec)
-{
-    switch(ec) {
-    case NOERROR:
-	return NOERROR;
-    case E_PLATFORM_IO_EXCEPTION:
-        return E_IO_EXCEPTION;
-    case E_PLATFORM_FILE_NOT_FOUND_EXCEPTION:
-        return E_FILE_NOT_FOUND_EXCEPTION;
-    default:
-        return E_FAIL;
-    }
-}
+extern ECode Platform2IoECode(ECode ec);
 
 FileOutputStream::FileOutputStream()
 {
@@ -100,6 +88,7 @@ ECode FileOutputStream::Close()
 
     Mutex* selfLock = GetSelfLock();
     Mutex::Autolock lock(*selfLock);
+
     return CloseLocked();
 }
 
@@ -159,7 +148,7 @@ ECode FileOutputStream::Write(
     ArrayOf_<Byte, 1> byteArray;
     (byteArray)[0] = (Byte)oneByte;
     Int64 number;
-    return Platform2IO(mFileSystem->Write(
+    return Platform2IoECode(mFileSystem->Write(
             mFd->mDescriptor, byteArray, 0, 1, &number));
 }
 
@@ -196,7 +185,7 @@ ECode FileOutputStream::WriteBufferEx(
 
     FAIL_RETURN(OpenCheck());
     Int64 number;
-    return Platform2IO(mFileSystem->Write(
+    return Platform2IoECode(mFileSystem->Write(
             mFd->mDescriptor, buffer, offset, count, &number));
 }
 

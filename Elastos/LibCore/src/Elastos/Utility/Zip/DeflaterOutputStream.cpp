@@ -1,7 +1,6 @@
 
 #include "cmdef.h"
 #include "DeflaterOutputStream.h"
-#include <stdio.h>
 
 
 const Int32 DeflaterOutputStream::BUF_SIZE;
@@ -27,15 +26,9 @@ DeflaterOutputStream::~DeflaterOutputStream()
 ECode DeflaterOutputStream::Deflate()
 {
     Int32 byteCount;
-    ECode ec = NOERROR;
-    ec = mDef->Deflate(mBuf, &byteCount);
-    while (byteCount != 0) {
-        //FAIL_RETURN(mOut->WriteBufferEx(0, byteCount, *mBuf));
+    while (mDef->Deflate(mBuf, &byteCount), byteCount != 0) {
         FAIL_RETURN(mOut->WriteBufferEx(0, byteCount, *mBuf));
-        mOut->Flush();
-        mDef->Deflate(mBuf, &byteCount);
     }
-    mOut->Flush();
     return NOERROR;
 }
 
@@ -84,7 +77,6 @@ ECode DeflaterOutputStream::Finish()
         FAIL_RETURN(mDef->Deflate(mBuf, &byteCount));
         FAIL_RETURN(mOut->WriteBufferEx(0, byteCount, *mBuf));
     }
-   // mOut->Flush();
     mDone = TRUE;
     return NOERROR;
 }

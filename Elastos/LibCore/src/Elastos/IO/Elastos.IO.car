@@ -44,8 +44,8 @@ module
     merge("../../../car/Elastos/IO/IPrintWriter.car");
     merge("../../../car/Elastos/IO/IStringReader.car");
     merge("../../../car/Elastos/IO/IStringWriter.car");
-    merge("../../../car/Elastos/IO/IRandomAccessFile.car");
     merge("../../../car/Elastos/IO/ICloseable.car");
+    merge("../../../car/Elastos/IO/IRandomAccessFile.car");
     /************************************NIO**********************************/
     merge("../../../car/Elastos/IO/ByteOrder.car");
     merge("../../../car/Elastos/IO/IBuffer.car");
@@ -94,9 +94,14 @@ module
     }
 
     class CRandomAccessFile{
-        constructor (
-            [in] IFile* pFile);
-        
+        constructor(
+            [in] IFile* pFile,
+            [in] String mode);
+
+        constructor(
+            [in] String fileName,
+            [in] String mode);
+
         interface IRandomAccessFile;
         interface IDataInput;
         interface IDataOutput;

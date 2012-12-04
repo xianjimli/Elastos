@@ -4,7 +4,7 @@
 #include <elastos/Math.h>
 #include <unistd.h>
 #include <errno.h>
-#include <stdio.h>
+
 using namespace Elastos::Core;
 
 CInflater::CInflater()
@@ -359,14 +359,11 @@ Int64 CInflater::InflateImplLocked(
     }
     stream->mStream.next_out = reinterpret_cast<Bytef*>(buf->GetPayload() + off);
     stream->mStream.avail_out = nbytes;
-    //printf("mStream avail_in is %d, avail_out is %d\n", stream->mStream.avail_in, stream->mStream.avail_out);
-   
+
     Bytef* initialNextIn = stream->mStream.next_in;
     Bytef* initialNextOut = stream->mStream.next_out;
-    
-    //printf("stream is %x %x %x %x\n",  initialNextIn[0], initialNextIn[1], initialNextIn[2],initialNextIn[3]);    
-    //Int32 err = inflate(initialNextIn + 3, Z_SYNC_FLUSH);
-    Int32 err = inflate(&stream->mStream, 0);
+
+    Int32 err = inflate(&stream->mStream, Z_SYNC_FLUSH);
     if (err != Z_OK) {
         if (err == Z_STREAM_ERROR) {
             return 0;
@@ -406,7 +403,7 @@ ECode CInflater::NeedsDictionary(
     /* [out] */ Boolean* result)
 {
     VALIDATE_NOT_NULL(result);
-    
+
     Mutex::Autolock lock(&_m_syncLock);
 
     *result = mNeedsDictionary;
@@ -426,7 +423,7 @@ ECode CInflater::NeedsInput(
 {
     VALIDATE_NOT_NULL(result);
 
-//    Mutex::Autolock lock(&_m_syncLock);
+    Mutex::Autolock lock(&_m_syncLock);
 
     *result = mInRead == mInLength;
     return NOERROR;

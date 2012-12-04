@@ -15,6 +15,8 @@
 #define ASSERT_SUCCEEDED(expr) assert(SUCCEEDED(expr));
 #define VALIDATE_NOT_NULL(x) if (!x) { return E_ILLEGAL_ARGUMENT_EXCEPTION; }
 
+#include <errno.h>
+
 /*
  * TEMP_FAILURE_RETRY is defined by some, but not all, versions of
  * <unistd.h>. (Alas, it is not as standard as we'd hoped!) So, if it's

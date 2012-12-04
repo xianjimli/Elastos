@@ -2,7 +2,7 @@
 #include "ZipInputStream.h"
 #include "CZipFile.h"
 #include <elastos/Math.h>
-#include <stdio.h>
+
 using namespace Elastos::Core;
 
 
@@ -72,10 +72,8 @@ ECode ZipInputStream::CloseEntry()
     // Ensure all entry bytes are read
     ECode ec;
     Int64 count;
-    
     ec = Skip(Math::INT64_MAX_VALUE, &count);
 
-    
     Int32 inB, out;
     if (mCurrentEntry->mCompressionMethod == IZipInputStream_DEFLATED) {
         mInf->GetTotalIn(&inB);
@@ -90,16 +88,14 @@ ECode ZipInputStream::CloseEntry()
     if (diff != 0) {
         IPushbackInputStream::Probe(mIn)->UnreadBufferEx(mLen - diff, diff, *mBuf);
     }
-    
-    ec = ReadAndVerifyDataDescriptor(inB, out);
-    if (FAILED(ec)) {
-        return ec;
-    }
-    
+
+    FAIL_RETURN(ReadAndVerifyDataDescriptor(inB, out));
+
     mInf->Reset();
     mLastRead = mInRead = mEntryIn = mLen = 0;
     mCrc->Reset();
     mCurrentEntry = NULL;
+
     return ec;
 }
 
@@ -150,7 +146,6 @@ ECode ZipInputStream::GetNextEntry(
         return NOERROR;
     }
 
-    //FAILE_RETURN(Fill());
     Int32 x = 0, count = 0;
     while (count != 4) {
         FAIL_RETURN(mIn->ReadBufferEx(count, 4 - count, mHdrBuf, &x));
@@ -160,15 +155,12 @@ ECode ZipInputStream::GetNextEntry(
             return NOERROR;
         }
     }
-
     Int64 hdr = GetInt64(*mHdrBuf, 0);
     if (hdr == ZipConstants_CENSIG) {
         mEntriesEnd = TRUE;
         *entry = NULL;
         return NOERROR;
     }
-
-    
     if (hdr != ZipConstants_LOCSIG) {
         *entry = NULL;
         return NOERROR;
@@ -207,16 +199,17 @@ ECode ZipInputStream::GetNextEntry(
         return E_ZIP_EXCEPTION;
     }
     Int32 elen = (Int32)GetInt16(*mHdrBuf, ZipConstants_LOCEXT - ZipConstants_LOCVER);
+
     count = 0;
     if (flen > mNameBuf->GetLength()) {
         ArrayOf<Byte>::Free(mNameBuf);
-        mNameBuf = ArrayOf<Byte>::Alloc(flen);
+        mNameBuf = ArrayOf<Byte>::Alloc(flen + 1);
 //        charBuf = new char[flen];
     }
     while (count != flen) {
         FAIL_RETURN(mIn->ReadBufferEx(count, flen - count, mNameBuf, &x));
         count += x;
-        
+
         if (x == -1) {
 //            throw new EOFException();
             return E_EOF_EXCEPTION;
@@ -232,8 +225,8 @@ ECode ZipInputStream::GetNextEntry(
         mCurrentEntry->SetSize(cesize);
         mCurrentEntry->SetCompressedSize(cecompressedSize);
     }
-        count = 0;
     if (elen > 0) {
+        count = 0;
         ArrayOf<Byte>* e = ArrayOf<Byte>::Alloc(elen);
         while (count != elen) {
             FAIL_RETURN(mIn->ReadBufferEx(count, elen - count, e, &x));
@@ -438,13 +431,8 @@ ECode ZipInputStream::Init(
     }
 
     AutoPtr<IPushbackInputStream> is;
-    ECode ec = NOERROR;
-    ec =  CPushbackInputStream::New(stream, BUF_SIZE, (IPushbackInputStream**)&is);
-    if (FAILED(ec)) {
-        return ec;
-    }
+    FAIL_RETURN(CPushbackInputStream::New(stream, BUF_SIZE, (IPushbackInputStream**)&is));
     AutoPtr<CInflater> inflater;
-    CInflater::NewByFriend(1, (CInflater**)&inflater);
-    FAIL_RETURN(InflaterInputStream::Init(is.Get(), (IInflater*)inflater.Get()));
-    return NOERROR;
+    CInflater::NewByFriend(TRUE, (CInflater**)&inflater);
+    return InflaterInputStream::Init(is.Get(), (IInflater*)inflater.Get());
 }

@@ -5,7 +5,7 @@
 #include <unistd.h>
 
 
-extern ECode Platform2IO(ECode ec);
+extern ECode Platform2IoECode(ECode ec);
 
 FileInputStream::FileInputStream()
 {
@@ -78,7 +78,7 @@ ECode FileInputStream::Available(
     /* [out] */ Int32* avail)
 {
     FAIL_RETURN(OpenCheck());
-    return Platform2IO(mFileSystem->IoctlAvailable(
+    return Platform2IoECode(mFileSystem->IoctlAvailable(
             mFd->mDescriptor, avail));
 }
 
@@ -233,7 +233,7 @@ ECode FileInputStream::ReadBufferExLocked(
     // BEGIN android-changed
     // If you only support Linux, there's nothing special about stdin.
     Int64 val;
-    FAIL_RETURN(Platform2IO(mFileSystem->Read(
+    FAIL_RETURN(Platform2IoECode(mFileSystem->Read(
             mFd->mDescriptor, buffer, offset, length, &val)));
     *number = (Int32)val;
     return NOERROR;
