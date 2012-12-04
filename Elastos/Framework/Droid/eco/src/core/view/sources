@@ -56,6 +56,8 @@ SOURCES += ViewBaseSavedState.cpp
 SOURCES += CViewBaseSavedState.cpp
 SOURCES += VelocityTracker.cpp
 SOURCES += GestureDetector.cpp
+SOURCES += SurfaceView.cpp
+SOURCES += CSurfaceView.cpp
 
 LIBRARIES += inputmethod/inputmethod.lib
 LIBRARIES += animation/animation.lib

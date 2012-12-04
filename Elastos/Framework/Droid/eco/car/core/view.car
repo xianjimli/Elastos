@@ -62,6 +62,7 @@ module
     merge("view/TouchDelegate.car");
     merge("view/SoundEffectConstants.car");
     merge("view/HapticFeedbackConstants.car");
+    merge("view/SurfaceView.car");
 
     /**
      * Handle on to a raw buffer that is being managed by the screen compositor.
@@ -880,5 +881,21 @@ module
 
         constructor(
             [in] IContext* ctx);
+    }
+
+    class CSurfaceView {
+        constructor(
+            [in] IContext* context);
+
+        constructor(
+            [in] IContext* context, 
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* context, 
+            [in] IAttributeSet* attrs, 
+            [in] Int32 defStyle);
+
+        interface ISurfaceView;
     }
 }

@@ -1,0 +1,63 @@
+
+module 
+{
+    interface ISurfaceView extends IView
+    {
+        /**
+         * Return the SurfaceHolder providing access and control over this
+         * SurfaceView's underlying surface.
+         * 
+         * @return SurfaceHolder The holder of the surface.
+         */
+        GetHolder(
+            [out] ISurfaceHolder** holder);
+
+        /**
+         * Control whether the surface view's surface is placed on top of another
+         * regular surface view in the window (but still behind the window itself).
+         * This is typically used to place overlays on top of an underlying media
+         * surface view.
+         * 
+         * <p>Note that this must be set before the surface view's containing
+         * window is attached to the window manager.
+         * 
+         * <p>Calling this overrides any previous call to {@link #setZOrderOnTop}.
+         */
+        SetZOrderMediaOverlay(
+            [in] Boolean isMediaOverlay);
+
+        /**
+         * Control whether the surface view's surface is placed on top of its
+         * window.  Normally it is placed behind the window, to allow it to
+         * (for the most part) appear to composite with the views in the
+         * hierarchy.  By setting this, you cause it to be placed above the
+         * window.  This means that none of the contents of the window this
+         * SurfaceView is in will be visible on top of its surface.
+         * 
+         * <p>Note that this must be set before the surface view's containing
+         * window is attached to the window manager.
+         * 
+         * <p>Calling this overrides any previous call to {@link #setZOrderMediaOverlay}.
+         */
+        SetZOrderOnTop(
+            [in] Boolean onTop);
+
+        /**
+         * Hack to allow special layering of windows.  The type is one of the
+         * types in WindowManager.LayoutParams.  This is a hack so:
+         * @hide
+         */
+        SetWindowType(
+            [in] Int32 type);
+
+        /**
+         * Check to see if the surface has fixed size dimensions or if the surface's
+         * dimensions are dimensions are dependent on its current layout.
+         *
+         * @return TRUE if the surface has dimensions that are fixed in size
+         * @hide
+         */
+        IsFixedSize(
+            [out] Boolean* size);
+    }
+}
