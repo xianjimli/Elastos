@@ -10962,6 +10962,38 @@ ECode CCapsuleManagerService::ExtractPublicFiles(
     /* [in] */ CapsuleParser::Capsule* newCapsule,
     /* [in] */ IFile* publicZipFile)
 {
+// ** add ** gaojianfeng 2012-12-01--------------------
+    AutoPtr<IFileOutputStream> fstr;
+    AutoPtr<IZipOutputStream> publicZipOutStream;
+    AutoPtr<IZipFile> privateZip;
+    //ECode ec = NOERROR;
+   
+    FAIL_RETURN(CFileOutputStream::New(publicZipFile, (IFileOutputStream **)&fstr));
+    FAIL_RETURN(CZipOutputStream::New((IFileOutputStream*)fstr, (IZipOutputStream **)&publicZipOutStream));
+    String path;
+    //newCapsule->GetName(&path);  // Now there has no GetPath() or GetName();
+    FAIL_RETURN(CZipFile::New(path, (IZipFile **)&privateZip));
+   
+    AutoPtr<IObjectContainer> container;
+    AutoPtr<IObjectEnumerator> emu;
+    AutoPtr<IInterface> itf;
+    Boolean hasNext;
+
+    FAIL_RETURN(privateZip->GetEntries((IObjectContainer **)&container));
+    FAIL_RETURN(container->GetObjectEnumerator((IObjectEnumerator **)&emu));
+    while(emu->MoveNext(&hasNext), hasNext) {
+        AutoPtr<IZipEntry> entry;
+        emu->Current((IInterface**)&itf);
+        entry = IZipEntry::Probe(itf);
+        String name;
+        entry->GetName(&name);
+        if (name.Equals(String("AndroidManifest.xml")) /*|| name.StartsWith("res/")*/) {
+            CopyZipEntry(entry, privateZip, publicZipOutStream);
+        }
+    }
+    publicZipOutStream->Finish();
+    publicZipOutStream->Flush();
+    publicZipOutStream->Close();
 //    final FileOutputStream fstr = new FileOutputStream(publicZipFile);
 //    final ZipOutputStream publicZipOutStream = new ZipOutputStream(fstr);
 //    final ZipFile privateZip = new ZipFile(newPackage.mPath);
@@ -10996,17 +11028,41 @@ ECode CCapsuleManagerService::ExtractPublicFiles(
 //            publicZipFile.getAbsolutePath(),
 //            FileUtils.S_IRUSR|FileUtils.S_IWUSR|FileUtils.S_IRGRP|FileUtils.S_IROTH,
 //            -1, -1);
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
-//void CCapsuleManagerService::copyZipEntry(ZipEntry zipEntry,
-//                                     ZipFile inZipFile,
-//                                     ZipOutputStream outZipStream) throws IOException
-//{
+ECode CCapsuleManagerService::CopyZipEntry(
+    /* in */ IZipEntry* zipEntry,
+    /* in */ IZipFile* inZipFile,
+    /* in */ IZipOutputStream* outZipStream) 
+{
+      ArrayOf<Byte> * buffer = ArrayOf<Byte>::Alloc(4096);
+      Int32 num;
+      
 //    byte[] buffer = new byte[4096];
 //    int num;
 //
 //    ZipEntry newEntry;
+      Int32 method;
+      AutoPtr<IZipEntry> newEntry;
+      zipEntry->GetMethod(&method);
+      if (method == IZipEntry_STORED) {
+          CZipEntry::New(zipEntry, (IZipEntry **)&newEntry);
+      } else {
+          String name;
+          zipEntry->GetName(&name);
+          CZipEntry::New(name, (IZipEntry **) &newEntry);
+      }
+      
+      outZipStream->PutNextEntry(newEntry);
+      
+      AutoPtr<IInputStream> data;
+      inZipFile->GetInputStream(zipEntry, (IInputStream **) &data);
+      while(data->ReadBufferEx(0, 4096, buffer, &num), num > 0) { 
+          outZipStream->WriteBufferEx(0, num, *buffer);    
+      }
+      outZipStream->Flush();
+      return NOERROR;
 //    if (zipEntry.getMethod() == ZipEntry.STORED) {
 //        // Preserve the STORED method of the input entry.
 //        newEntry = new ZipEntry(zipEntry);
@@ -11021,7 +11077,7 @@ ECode CCapsuleManagerService::ExtractPublicFiles(
 //        outZipStream.write(buffer, 0, num);
 //    }
 //    outZipStream.flush();
-//}
+}
 
 void CCapsuleManagerService::DeleteTempCapsuleFiles()
 {

@@ -21,6 +21,7 @@
 #include <elastos/ElRefBase.h>
 #include <elastos/Mutex.h>
 #include <StringBuffer.h>
+#include <Elastos.Utility.Zip.h>
 
 using namespace Elastos::Core;
 using namespace Elastos::Core::Threading;
@@ -2504,6 +2505,12 @@ private:
     //from PackageHandler
     Boolean mBound;
     List< AutoPtr<HandlerParams> > mPendingInstalls;
+
+private:
+    ECode CopyZipEntry(
+        /* in */ IZipEntry* zipEntry,
+        /* in */ IZipFile* inZipFile,
+        /* in */ IZipOutputStream* outZipStream); 
 };
 
 

@@ -267,7 +267,7 @@ ECode ZipOutputStream::PutNextEntry(
     Vector<String>::Iterator it = Find(mEntries.Begin(), mEntries.End(), ze->mName);
     if (it != mEntries.End()) {
 //        throw new ZipException("Entry already exists: " + ze.name);
-        return E_ZIP_EXCEPTION;
+        return E_ENTRYEXIST_EXCEPTION;
     }
     mNameLength = GetUtf8Count(ze->mName);
     if (mNameLength > 0xffff) {

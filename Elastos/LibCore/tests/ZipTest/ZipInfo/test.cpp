@@ -98,6 +98,55 @@ void test4(IZipFile *pZipFile)
      printf("** OK ** Test GetInputStream Success!\n");
 }
 
+
+void test5(IZipFile *pZipFile)
+{
+     String name("TextViewDemo/res/");
+     IZipEntry *pEntry = NULL;
+     ECode ec = NOERROR;
+     ec = pZipFile->GetEntry(name, &pEntry);
+     if (pEntry == NULL) {
+          printf("Cann't Find entry!\n");
+          return;
+     }
+
+     AutoPtr<IInputStream> is;
+     ec = pZipFile->GetInputStream(pEntry, (IInputStream **) &is);
+     if (FAILED(ec)) {
+         printf("Cann't Get ZipFile InputStream!\n");
+         return;
+     }
+
+     AutoPtr<IFile> file;
+     ec = CFile::New(String("/data/data/com.elastos.runtime/res/"), (IFile **) &file);
+     if (FAILED(ec)) {
+         printf("Cann't Create the pzipfile.xml!\n");
+         return;
+     }
+
+     AutoPtr<IFileOutputStream> fos;
+     ec = CFileOutputStream::New(file, (IFileOutputStream **) &fos);
+     if (FAILED(ec)) {
+         printf("Cann't Create the pzipfile.xml OutputStream!\n");
+         return;
+     }
+
+     ArrayOf<Byte> *buf = ArrayOf<Byte>::Alloc(1024);
+     Int32 len = 0;
+     ec = is->ReadBufferEx(0, 1024, buf, &len);
+     while( ec == NOERROR && len > 0) {
+        ec = fos->WriteBufferEx(0, len, *buf);
+        len = 0;
+        ec = is->ReadBufferEx(0,1024,buf, &len);
+
+     }
+
+     is->Close();
+     fos->Close();
+
+     printf("** OK ** Test GetInputStream Success!\n");
+}
+
 int main(int argc, char *argv[])
 {
     IZipFile *pZipFile = NULL;
@@ -119,7 +168,8 @@ int main(int argc, char *argv[])
     //test1(container);
     //test2(pZipFile);
     //test3(pZipFile);
-    test4(pZipFile);
+    //test4(pZipFile);
+    test5(pZipFile);
 
     pZipFile->Release();
     return 0;

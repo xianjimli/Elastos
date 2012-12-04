@@ -420,7 +420,7 @@ ECode ZipFile::GetInputStream(
     entry->GetName(&name);
     GetEntry(name, &pEntry);
     if (entry == NULL) {
-        return NULL;
+        return E_NOENTRY_EXCEPTION;
     }
 
 //    /*
@@ -537,7 +537,7 @@ ECode ZipFile::ReadCentralDir()
           }
           scanOffset--;
           if (scanOffset < stopOffset) {
-               return E_ZIP_EXCEPTION;
+               return E_DATA_FORMAT_EXCEPTION;
           }
       }
 
@@ -564,7 +564,7 @@ ECode ZipFile::ReadCentralDir()
       Int32 off = centralDirOffset;
 
       if (numEntries != totalNumEntries || diskNumber != 0 || diskWithCentralDir != 0) {
-           return E_ZIP_EXCEPTION;
+           return E_DATA_FORMAT_EXCEPTION;
       }
       
       delete rafs;

@@ -1,6 +1,8 @@
 TARGET_NAME= server
 TARGET_TYPE= lib
 
+IMPORTS += Elastos.Utility.Zip.eco
+
 include $(MAKEDIR)/../../../../sources.inc
 
 INCLUDES += $(MAKEDIR)/../../../inc/core

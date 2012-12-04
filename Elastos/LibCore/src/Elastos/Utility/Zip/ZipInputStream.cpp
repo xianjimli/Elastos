@@ -222,8 +222,8 @@ ECode ZipInputStream::GetNextEntry(
             return E_EOF_EXCEPTION;
         }
     }
-    (*mNameBuf)[flen] = '\0';
-    mCurrentEntry = CreateZipEntry(String((const char *)mNameBuf->GetPayload()));
+    //(*mNameBuf)[flen] = '\0';
+    mCurrentEntry = CreateZipEntry(String((const char *)mNameBuf->GetPayload(), mNameBuf->GetLength()));
     mCurrentEntry->mTime = cetime;
     mCurrentEntry->mModDate = cemodDate;
     mCurrentEntry->SetMethod(cecompressionMethod);

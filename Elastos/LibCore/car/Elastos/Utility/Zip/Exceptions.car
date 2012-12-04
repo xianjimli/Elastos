@@ -10,4 +10,7 @@ module
     // Elastos Zip exception codes (Family: 0x24)
     const E_DATA_FORMAT_EXCEPTION                       = 0xA4010000;
     const E_ZIP_EXCEPTION                               = 0xA4020000;
+    const E_NOENTRY_EXCEPTION                           = 0xA4030000;
+    const E_ENTRYEXIST_EXCEPTION                        = 0xA4040000;
+    const E_ZIP_STREAM_STATE_EXCEPTION                         = 0xA4050000;
 }

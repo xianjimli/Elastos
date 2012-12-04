@@ -52,7 +52,7 @@ ECode CInflater::CreateStream(
 //        throwExceptionForZlibError(env, "java/lang/IllegalArgumentException", err);
         delete stream;
         mStreamHandle = NULL;
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+        return E_ZIP_STREAM_STATE_EXCEPTION;
     }
     mStreamHandle = stream;
     return NOERROR;
@@ -122,7 +122,7 @@ ECode CInflater::GetAdler(
 
     if (mStreamHandle == NULL) {
 //        throw new IllegalStateException();
-        return E_ILLEGAL_STATE_EXCEPTION;
+        return E_NULL_POINTER_EXCEPTION;
     }
     *checksum = GetAdlerImplLocked(mStreamHandle);
 
@@ -178,7 +178,7 @@ ECode CInflater::GetBytesWritten(
     // Throw NPE here
     if (mStreamHandle == NULL) {
 //        throw new NullPointerException();
-        return E_NULL_POINTER_EXCEPTION;
+        return E_ZIP_STREAM_STATE_EXCEPTION;
     }
     *number = GetTotalOutImplLocked(mStreamHandle);
 
@@ -221,7 +221,7 @@ ECode CInflater::GetTotalIn(
 
     if (mStreamHandle == NULL) {
 //        throw new IllegalStateException();
-        return E_ILLEGAL_STATE_EXCEPTION;
+        return E_ZIP_STREAM_STATE_EXCEPTION;
     }
     Int64 totalIn = GetTotalInImplLocked(mStreamHandle);
     *number = (totalIn <= Math::INT32_MAX_VALUE ? (Int32)totalIn
@@ -251,7 +251,7 @@ ECode CInflater::GetTotalOut(
 
     if (mStreamHandle == NULL) {
 //        throw new IllegalStateException();
-        return E_ILLEGAL_STATE_EXCEPTION;
+        return E_ZIP_STREAM_STATE_EXCEPTION;
     }
     Int64 totalOut = GetTotalOutImplLocked(mStreamHandle);
     *number = (totalOut <= Math::INT32_MAX_VALUE ? (Int32)totalOut
@@ -326,7 +326,7 @@ ECode CInflater::InflateEx(
 
     if (mStreamHandle == NULL) {
 //        throw new IllegalStateException();
-        return E_ILLEGAL_STATE_EXCEPTION;
+        return E_ZIP_STREAM_STATE_EXCEPTION;
     }
 
     Boolean need;
@@ -457,7 +457,7 @@ ECode CInflater::ResetImplLocked(
     Int32 err = inflateReset(&stream->mStream);
     if (err != Z_OK) {
 //        throwExceptionForZlibError(env, "java/lang/IllegalArgumentException", err);
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+        return E_ZIP_STREAM_STATE_EXCEPTION;
     }
     return NOERROR;
 }
@@ -604,7 +604,7 @@ Int32 CInflater::SetFileInput(
 
     if (mStreamHandle == NULL) {
 //        throw new IllegalStateException();
-        return E_ILLEGAL_STATE_EXCEPTION;
+        return E_ZIP_STREAM_STATE_EXCEPTION;
     }
     mInRead = 0;
     mInLength = SetFileInputImplLocked(fd, off, nbytes, mStreamHandle);

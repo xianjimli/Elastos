@@ -568,7 +568,7 @@ ECode ZipEntry::ReadInt32LE(
     rafs->Read(&b3);
 
     if (b3 < 0) {
-        return E_EOF_EXCEPTION;
+        return E_DATA_FORMAT_EXCEPTION;
     }
     *value = (Int64) b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
     return ec;
