@@ -3,46 +3,52 @@ module
 {
     interface IInputContextCallback;
     interface IExtractedTextRequest;
+    interface ICharSequence;
     interface ICompletionInfo;
     interface IKeyEvent;
     interface IBundle;
 
-    interface IInputContextStub {
+    /**
+     * Interface from an input method to the application, allowing it to perform
+     * edits on the current input field and other interactions with the application.
+     * {@hide}
+     */
+    /* oneway */ interface IInputContext {
         GetTextBeforeCursor(
             [in] Int32 length,
             [in] Int32 flags,
             [in] Int32 seq,
-            [in] IInputContextCallback* icCallback);
+            [in] IInputContextCallback* inputContextCallback);
 
         GetTextAfterCursor(
             [in] Int32 length,
             [in] Int32 flags,
             [in] Int32 seq,
-            [in] IInputContextCallback* icCallback);
+            [in] IInputContextCallback* inputContextCallback);
 
         GetCursorCapsMode(
             [in] Int32 reqModes,
             [in] Int32 seq,
-            [in] IInputContextCallback* icCallback);
+            [in] IInputContextCallback* inputContextCallback);
 
         GetExtractedText(
             [in] IExtractedTextRequest* request,
             [in] Int32 flags,
             [in] Int32 seq,
-            [in] IInputContextCallback* icCallback);
+            [in] IInputContextCallback* inputContextCallback);
 
         DeleteSurroundingText(
             [in] Int32 leftLength,
             [in] Int32 rightLength);
 
         SetComposingText(
-            [in] ArrayOf<Char8> text,
+            [in] ICharSequence* text,
             [in] Int32 newCursorPosition);
 
         FinishComposingText();
 
         CommitText(
-            [in] ArrayOf<Char8> text,
+            [in] ICharSequence* text,
             [in] Int32 newCursorPosition);
 
         CommitCompletion(
@@ -82,6 +88,6 @@ module
         GetSelectedText(
             [in] Int32 flags,
             [in] Int32 seq,
-            [in] IInputContextCallback* icCallback);
+            [in] IInputContextCallback* inputContextCallback);
     }
 }

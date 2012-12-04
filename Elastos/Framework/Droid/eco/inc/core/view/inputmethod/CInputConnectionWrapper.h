@@ -9,7 +9,8 @@
  * <p>Wrapper class for proxying calls to another InputConnection.  Subclass
  * and have fun!
  */
-CarClass(CInputConnectionWrapper), public IInputConnection {
+CarClass(CInputConnectionWrapper)
+{
 public:
     CInputConnectionWrapper();
 
@@ -17,7 +18,7 @@ public:
         /* [in] */ IInputConnection* target,
         /* [in] */ Boolean mutable);
 
-    CARAPI_(void) SetTarget(
+    CARAPI SetTarget(
         /* [in] */ IInputConnection* target);
 
     CARAPI GetTextBeforeCursor(
@@ -93,7 +94,6 @@ public:
         /* [in] */ IKeyEvent* event,
         /* [out] */ Boolean* flag);
 
-
     CARAPI ClearMetaKeyStates(
         /* [in] */ Int32 states,
         /* [out] */ Boolean* flag);
@@ -109,7 +109,7 @@ public:
 
 private:
     AutoPtr<IInputConnection> mTarget;
-    const Boolean mMutable;
+    Boolean mMutable;
 };
 
 #endif //__CINPUTCONNECTIONWRAPPER_H__

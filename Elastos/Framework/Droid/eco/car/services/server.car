@@ -6,9 +6,9 @@ module
 
     class CWindowSession {
         constructor(
-            [in] IWindowManagerEx * wmService,
-            [in] IInputMethodClient * client,
-            [in] IInputContextStub * inputContext);
+            [in] IWindowManagerEx* wmService,
+            [in] IInputMethodClient* client,
+            [in] IInputContext* inputContext);
 
         interface IWindowSession;
     }

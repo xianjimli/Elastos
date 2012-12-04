@@ -3,17 +3,9 @@ module
 {
     interface IBundle;
 
-    /* oneway */
     interface IResultReceiver {
         Send(
             [in] Int32 resultCode,
             [in] IBundle* resultData);
-
-		OnReceiveResult(
-			[in] Int32 resultCode,
-			[in] IBundle* resultData);
-
-		DescribeContents(
-			[out] Int32* contents);
     }
 }

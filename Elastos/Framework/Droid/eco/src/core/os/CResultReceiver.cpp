@@ -6,66 +6,24 @@
 CResultReceiver::MyRunnable::MyRunnable(
     /* [in] */ Int32 resultCode,
     /* [in] */ IBundle* resultData,
-    /* [in] */ CResultReceiver* host):
-    mResultCode(resultCode),
-    mResultData(resultData),
-    mHost(host)
-{
-
-}
+    /* [in] */ CResultReceiver* host)
+    : mResultCode(resultCode)
+    , mResultData(resultData)
+    , mHost(host)
+{}
 
 ECode CResultReceiver::MyRunnable::Run()
 {
-	assert(mHost != NULL);
-    return mHost->OnReceiveResult(mResultCode, mResultData);
-}
-
-PInterface CResultReceiver::MyRunnable::Probe(
-    /* [in] */ REIID riid)
-{
-    if (EIID_IRunnable == riid) {
-        return (IRunnable *)this;
-    }
-
-    return NULL;
-}
-
-UInt32 CResultReceiver::MyRunnable::AddRef()
-{
-    return ElRefBase::AddRef();
-}
-
-UInt32 CResultReceiver::MyRunnable::Release()
-{
-    return ElRefBase::Release();
-}
-
-ECode CResultReceiver::MyRunnable::GetInterfaceID(
-    /* [in] */ IInterface *pObject,
-    /* [out] */ InterfaceID *pIID)
-{
-    VALIDATE_NOT_NULL(pIID);
-
-    if (pObject == (IInterface*)(IRunnable*)this) {
-        *pIID = EIID_IRunnable;
-    }
-
+    assert(mHost != NULL);
+    mHost->OnReceiveResult(mResultCode, mResultData);
     return NOERROR;
 }
 
+
 CResultReceiver::MyResultReceiver::MyResultReceiver(
-    /* [in] */ CResultReceiver* host):
-    mHost(host)
-{
-
-}
-
-CResultReceiver::MyResultReceiver::~MyResultReceiver()
-{
-    if (mMyRunnable != NULL) {
-        mMyRunnable->Release();
-    }
-}
+    /* [in] */ CResultReceiver* host)
+    : mHost(host)
+{}
 
 ECode CResultReceiver::MyResultReceiver::Send(
     /* [in] */ Int32 resultCode,
@@ -73,16 +31,17 @@ ECode CResultReceiver::MyResultReceiver::Send(
 {
     if (mHost->mHandler != NULL) {
         //mHandler.post(new MyRunnable(resultCode, resultData, mHost));
-        mMyRunnable = new MyRunnable(resultCode, resultData, mHost);
+        AutoPtr<IRunnable> runnable = new MyRunnable(resultCode, resultData, mHost);
         AutoPtr<IParcel> params;
         CCallbackParcel::New((IParcel**)&params);
-        params->WriteInterfacePtr(mMyRunnable->Probe(EIID_IRunnable));
+        params->WriteInterfacePtr(runnable);
 
         //TODO
         // mHandler->PostCppCallbackDelayed(
         //     (Handle32)mMyRunnable.Get(), 0, params, 0);
-    } else {
-        return mHost->OnReceiveResult(resultCode, resultData);
+    }
+    else {
+        mHost->OnReceiveResult(resultCode, resultData);
     }
 
     return NOERROR;
@@ -91,8 +50,8 @@ ECode CResultReceiver::MyResultReceiver::Send(
 PInterface CResultReceiver::MyResultReceiver::Probe(
     /* [in] */ REIID riid)
 {
-    if (EIID_IResultReceiverStub == riid) {
-        return (IResultReceiverStub *)this;
+    if (EIID_IResultReceiver == riid) {
+        return (IResultReceiver *)this;
     }
 
     return NULL;
@@ -114,17 +73,16 @@ ECode CResultReceiver::MyResultReceiver::GetInterfaceID(
 {
     VALIDATE_NOT_NULL(pIID);
 
-    if (pObject == (IInterface*)(IResultReceiverStub*)this) {
-        *pIID = EIID_IResultReceiverStub;
+    if (pObject == (IInterface*)(IResultReceiver*)this) {
+        *pIID = EIID_IResultReceiver;
     }
 
     return NOERROR;
 }
 
 CResultReceiver::CResultReceiver()
-{
-
-}
+    : mLocal(FALSE)
+{}
 
 ECode CResultReceiver::constructor(
     /* [in] */ IApartment* handler)
@@ -143,13 +101,15 @@ ECode CResultReceiver::Send(
         if (mHandler != NULL) {
         	//TODO
             //return mHandler.post(new MyRunnable(resultCode, resultData));
-        } else {
-            return OnReceiveResult(resultCode, resultData);
         }
+        else {
+            OnReceiveResult(resultCode, resultData);
+        }
+        return NOERROR;
     }
 
     if (mReceiver != NULL) {
-        return mReceiver->Send(resultCode, resultData);
+        mReceiver->Send(resultCode, resultData);
     }
 
     return NOERROR;
@@ -158,6 +118,8 @@ ECode CResultReceiver::Send(
 ECode CResultReceiver::DescribeContents(
     /* [out] */ Int32* contents)
 {
+    VALIDATE_NOT_NULL(contents);
+
 	*contents = 0;
     return NOERROR;
 }
@@ -165,7 +127,13 @@ ECode CResultReceiver::DescribeContents(
 ECode CResultReceiver::ReadFromParcel(
     /* [in] */ IParcel *dest)
 {
-    return NOERROR;
+    mLocal = FALSE;
+    mHandler = NULL;
+
+    //TODO
+    //mReceiver = IResultReceiver.Stub.asInterface(in.readStrongBinder());
+
+    return E_NOT_IMPLEMENTED;
 }
 
 ECode CResultReceiver::WriteToParcel(
@@ -183,21 +151,8 @@ ECode CResultReceiver::WriteToParcel(
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CResultReceiver::OnReceiveResult(
+void CResultReceiver::OnReceiveResult(
     /* [in] */ Int32 resultCode,
     /* [in] */ IBundle* resultData)
-{
-	return NOERROR;
-}
+{}
 
-ECode CResultReceiver::constructor(
-    /* [in] */ IParcel* in)
-{
-    mLocal = FALSE;
-    mHandler = NULL;
-
-	//TODO
-    //mReceiver = IResultReceiver.Stub.asInterface(in.readStrongBinder());
-
-    return E_NOT_IMPLEMENTED;
-}

@@ -13,7 +13,6 @@ module
     merge("os/FileStatus.car");
     merge("os/Vibrator.car");
     merge("os/WorkSource.car");
-    merge("os/IResultReceiverStub.car");
     merge("os/ResultReceiver.car");
     merge("os/storage/IMountServiceListener.car");
     merge("os/storage/IMountShutdownObserver.car");

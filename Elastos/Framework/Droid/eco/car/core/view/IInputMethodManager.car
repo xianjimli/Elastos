@@ -2,25 +2,27 @@
 module
 {
     interface IInputMethodInfo;
-    interface IInputContextStub;
+    interface IInputContext;
     interface IInputMethodClient;
     interface IInputBindResult;
     interface IEditorInfo;
     interface IResultReceiver;
     interface IBinder;
 
-    interface IInputMethodManagerStub {
-        //List<InputMethodInfo> getInputMethodList();
+    /**
+     * Public interface to the global input method manager, used by all client
+     * applications.
+     */
+    interface IInputMethodManager {
         GetInputMethodList(
             [out] IObjectContainer** infos);
 
-        //List<InputMethodInfo> getEnabledInputMethodList();
         GetEnabledInputMethodList(
             [out] IObjectContainer** infos);
 
         AddClient(
             [in] IInputMethodClient* client,
-            [in] IInputContextStub* inputContext,
+            [in] IInputContext* inputContext,
             [in] Int32 uid,
             [in] Int32 pid);
 
@@ -29,7 +31,7 @@ module
 
         StartInput(
             [in] IInputMethodClient* client,
-            [in] IInputContextStub* inputContext,
+            [in] IInputContext* inputContext,
             [in] IEditorInfo* attribute,
             [in] Boolean initial,
             [in] Boolean needResult,
@@ -76,7 +78,7 @@ module
 
         UpdateStatusIcon(
             [in] IBinder* token,
-            [in] String packageName,
+            [in] String capsuleName,
             [in] Int32 iconId);
 
         SetInputMethodEnabled(
