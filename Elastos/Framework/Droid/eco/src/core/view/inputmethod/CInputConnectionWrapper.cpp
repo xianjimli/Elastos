@@ -3,29 +3,29 @@
 
 
 CInputConnectionWrapper::CInputConnectionWrapper()
+    : mMutable(FALSE)
 {
 
 }
 
 ECode CInputConnectionWrapper::constructor(
     /* [in] */ IInputConnection* target,
-    /* [in] */ Boolean mutable):
-    mMutable(mutable),
-    mTarget(target)
+    /* [in] */ Boolean mutable)
 {
-    assert(mTarget != NULL);
+    mMutable = mutable;
+    mTarget = target;
     return NOERROR;
 }
 
-void CInputConnectionWrapper::SetTarget(
+ECode CInputConnectionWrapper::SetTarget(
     /* [in] */ IInputConnection* target)
 {
     if (mTarget != NULL && !mMutable) {
         // throw new SecurityException("not mutable");
-        assert(0);
+        return E_SECURITY_EXCEPTION;
     }
-
     mTarget = target;
+    return NOERROR;
 }
 
 ECode CInputConnectionWrapper::GetTextBeforeCursor(

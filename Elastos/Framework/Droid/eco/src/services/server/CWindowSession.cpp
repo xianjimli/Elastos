@@ -4,7 +4,7 @@
 ECode CWindowSession::constructor(
     /* [in] */ IWindowManagerEx* wmService,
     /* [in] */ IInputMethodClient* client,
-    /* [in] */ IInputContextStub* inputContext)
+    /* [in] */ IInputContext* inputContext)
 {
     mWMService = (CWindowManagerService*)wmService;
     mNumWindow = 0;

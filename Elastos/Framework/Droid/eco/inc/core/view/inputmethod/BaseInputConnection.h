@@ -3,27 +3,11 @@
 #define  __BASEINPUTCONNECTION_H__
 
 #include "ext/frameworkext.h"
+#include "view/ElKeyCharacterMap.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/ElRefBase.h>
-#include "view/ElKeyCharacterMap.h"
 
-class ComposingText:
-    public ElRefBase,
-    public INoCopySpan {
-public:
-    ComposingText();
 
-    CARAPI_(PInterface) Probe(
-        /* [in] */ REIID riid);
-
-    CARAPI_(UInt32) AddRef();
-
-    CARAPI_(UInt32) Release();
-
-    CARAPI GetInterfaceID(
-        /* [in] */ IInterface *pObject,
-        /* [out] */ InterfaceID *pIID);
-};
 
 /**
  * Base class for implementors of the InputConnection interface, taking care
@@ -31,9 +15,31 @@ public:
  * Implementors of this class will want to be sure to implement
  * {@link #getEditable} to provide access to their own editable object.
  */
-class BaseInputConnection {
+class BaseInputConnection
+{
+private:
+    class ComposingText
+        : public ElRefBase,
+        , public INoCopySpan
+    {
+    public:
+        ComposingText();
+
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+    };
+
+public:
     BaseInputConnection(
-        /* [in] */ IInputMethodManager* mgr,
+        /* [in] */ ILocalInputMethodManager* mgr,
         /* [in] */ Boolean fullEditor);
 
     BaseInputConnection(
@@ -42,7 +48,6 @@ class BaseInputConnection {
 
     ~BaseInputConnection();
 
-public:
     static CARAPI RemoveComposingSpans(
         /* [in] */ ISpannable* text);
 
@@ -55,13 +60,11 @@ public:
         /* [in] */ Int32 start,
         /* [in] */ Int32 end);
 
-    static CARAPI GetComposingSpanStart(
-        /* [in] */ ISpannable* text,
-        /* [out] */ Int32* start);
+    static CARAPI_(Int32) GetComposingSpanStart(
+        /* [in] */ ISpannable* text);
 
-    static CARAPI GetComposingSpanEnd(
-        /* [in] */ ISpannable* text,
-        /* [out] */ Int32* end);
+    static CARAPI_(Int32) GetComposingSpanEnd(
+        /* [in] */ ISpannable* text);
 
     /**
      * Return the target of edit operations.  The default implementation
@@ -69,62 +72,55 @@ public:
      * subclasses that are real text editors should override this and
      * supply their own.
      */
-    CARAPI GetEditable(
-        /* [out] */ IEditable** editable);
+    virtual CARAPI_(AutoPtr<IEditable>) GetEditable();
 
     /**
      * Default implementation does nothing.
      */
-    CARAPI BeginBatchEdit(
-        /* [out] */ Boolean* state);
+    virtual CARAPI_(Boolean) BeginBatchEdit();
 
     /**
      * Default implementation does nothing.
      */
-    CARAPI EndBatchEdit(
-        /* [out] */ Boolean* state);
+    virtual CARAPI_(Boolean) EndBatchEdit();
 
     /**
      * Default implementation uses
      * {@link MetaKeyKeyListener#clearMetaKeyState(long, int)
      * MetaKeyKeyListener.clearMetaKeyState(long, int)} to clear the state.
      */
-    CARAPI ClearMetaKeyStates(
-        /* [in] */ Int32 states,
-        /* [out] */ Boolean* clear);
+    virtual CARAPI_(Boolean) ClearMetaKeyStates(
+        /* [in] */ Int32 states);
 
     /**
      * Default implementation does nothing.
      */
-    CARAPI CommitCompletion(
-        /* [in] */ ICompletionInfo* text,
-        /* [out] */ Boolean* state);
+    virtual CARAPI_(Boolean) CommitCompletion(
+        /* [in] */ ICompletionInfo* text);
 
     /**
      * Default implementation replaces any existing composing text with
      * the given text.  In addition, only if dummy mode, a key event is
      * sent for the new text and the current editable buffer cleared.
      */
-    CARAPI CommitText(
+    virtual CARAPI_(Boolean) CommitText(
         /* [in] */ ICharSequence* text,
-        /* [in] */ Int32 newCursorPosition,
-        /* [out] */ Boolean* state);
+        /* [in] */ Int32 newCursorPosition);
 
     /**
      * The default implementation performs the deletion around the current
      * selection position of the editable text.
      */
-    CARAPI DeleteSurroundingText(
+    virtual CARAPI_(Boolean) DeleteSurroundingText(
         /* [in] */ Int32 leftLength,
-        /* [in] */ Int32 rightLength,
-        /* [out] */ Boolean* state);
+        /* [in] */ Int32 rightLength);
 
     /**
      * The default implementation removes the composing state from the
      * current editable text.  In addition, only if dummy mode, a key event is
      * sent for the new text and the current editable buffer cleared.
      */
-    CARAPI FinishComposingText(
+    virtual CARAPI_(Boolean) FinishComposingText(
         /* [out] */ Boolean* state);
 
     /**
@@ -132,104 +128,102 @@ public:
      * cursor caps mode for the current selection position in the editable
      * text, unless in dummy mode in which case 0 is always returned.
      */
-    CARAPI GetCursorCapsMode(
-        /* [in] */ Int32 reqModes,
-        /* [out] */ Int32* capsMode);
+    virtual CARAPI_(Int32) GetCursorCapsMode(
+        /* [in] */ Int32 reqModes);
 
     /**
      * The default implementation always returns null.
      */
-    CARAPI GetExtractedText(
+    virtual CARAPI_(AutoPtr<IExtractedText>) GetExtractedText(
         /* [in] */ IExtractedTextRequest* request,
-        /* [in] */ Int32 flags,
-        /* [out] */ IExtractedText** text);
+        /* [in] */ Int32 flags);
 
     /**
      * The default implementation returns the given amount of text from the
      * current cursor position in the buffer.
      */
-    CARAPI GetTextBeforeCursor(
+    virtual CARAPI_(AutoPtr<ICharSequence>) GetTextBeforeCursor(
         /* [in] */ Int32 length,
-        /* [in] */ Int32 flags,
-        /* [out] */ ICharSequence** text);
+        /* [in] */ Int32 flags);
 
     /**
      * The default implementation returns the text currently selected, or null if none is
      * selected.
      */
-    CARAPI GetSelectedText(
-        /* [in] */ Int32 flags,
-        /* [out] */ ICharSequence** text);
+    virtual CARAPI_(AutoPtr<ICharSequence>) GetSelectedText(
+        /* [in] */ Int32 flags);
 
     /**
      * The default implementation returns the given amount of text from the
      * current cursor position in the buffer.
      */
-    CARAPI GetTextAfterCursor(
+    virtual CARAPI_(AutoPtr<ICharSequence>) GetTextAfterCursor(
         /* [in] */ Int32 length,
-        /* [in] */ Int32 flags,
-        /* [out] */ ICharSequence** text);
+        /* [in] */ Int32 flags);
 
     /**
      * The default implementation turns this into the enter key.
      */
-    CARAPI PerformEditorAction(
-        /* [in] */ Int32 actionCode,
-        /* [out] */ Boolean* state);
+    virtual CARAPI_(Boolean) PerformEditorAction(
+        /* [in] */ Int32 actionCode);
 
     /**
      * The default implementation does nothing.
      */
-    CARAPI PerformContextMenuAction(
-        /* [in] */ Int32 id,
-        /* [out] */ Boolean* state);
+    virtual CARAPI_(Boolean) PerformContextMenuAction(
+        /* [in] */ Int32 id);
 
     /**
      * The default implementation does nothing.
      */
-    CARAPI PerformPrivateCommand(
+    virtual CARAPI_(Boolean) PerformPrivateCommand(
         /* [in] */ String action,
-        /* [in] */ IBundle* data,
-        /* [out] */ Boolean* state);
+        /* [in] */ IBundle* data);
 
     /**
      * The default implementation places the given text into the editable,
      * replacing any existing composing text.  The new text is marked as
      * in a composing state with the composing style.
      */
-    CARAPI SetComposingText(
+    virtual CARAPI_(Boolean) SetComposingText(
         /* [in] */ ICharSequence* text,
-        /* [in] */ Int32 newCursorPosition,
-        /* [out] */ Boolean* state);
+        /* [in] */ Int32 newCursorPosition);
 
-    CARAPI SetComposingRegion(
+    virtual CARAPI_(Boolean) SetComposingRegion(
         /* [in] */ Int32 start,
-        /* [in] */ Int32 end,
-        /* [out] */ Boolean* state);
+        /* [in] */ Int32 end);
 
     /**
      * The default implementation changes the selection position in the
      * current editable text.
      */
-    CARAPI SetSelection(
+    virtual CARAPI_(Boolean) SetSelection(
         /* [in] */ Int32 start,
-        /* [in] */ Int32 end,
-        /* [out] */ Boolean* state);
+        /* [in] */ Int32 end);
 
     /**
      * Provides standard implementation for sending a key event to the window
      * attached to the input connection's view.
      */
-    CARAPI SendKeyEvent(
-        /* [in] */ IKeyEvent* event,
-        /* [out] */ Boolean* state);
+    virtual CARAPI_(Boolean) SendKeyEvent(
+        /* [in] */ IKeyEvent* event);
 
     /**
      * Updates InputMethodManager with the current fullscreen mode.
      */
-    CARAPI ReportFullscreenMode(
-        /* [in] */ Boolean enabled,
-        /* [out] */ Boolean* state);
+    virtual CARAPI_(Boolean) ReportFullscreenMode(
+        /* [in] */ Boolean enabled);
+
+protected:
+    BaseInputConnection();
+
+    CARAPI Init(
+        /* [in] */ ILocalInputMethodManager* mgr,
+        /* [in] */ Boolean fullEditor);
+
+    CARAPI Init(
+        /* [in] */ IView* targetView,
+        /* [in] */ Boolean fullEditor);
 
 private:
     CARAPI_(void) SendCurrentText();
@@ -246,7 +240,7 @@ private:
     static const CString TAG;
     static const AutoPtr<IInterface> COMPOSING;
 
-    AutoPtr<IInputMethodManager> mIMM;
+    AutoPtr<ILocalInputMethodManager> mIMM;
     AutoPtr<IView> mTargetView;
     const Boolean mDummyMode;
 

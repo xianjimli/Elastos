@@ -4,13 +4,18 @@ module
     interface IBundle;
     interface IInputBinding;
     interface IEditorInfo;
-    interface IInputContextStub;
+    interface IInputContext;
     interface IInputMethodCallback;
     interface IResultReceiver;
     interface IInputMethodSession;
 
+    /**
+     * Top-level interface to an input method component (implemented in a
+     * Service).
+     * {@hide}
+     */
     [deprecated]
-    interface IInputMethod {
+    /* oneway */ interface IInputMethod {
         AttachToken(
             [in] IBinder* token);
 
@@ -20,15 +25,15 @@ module
         UnbindInput();
 
         StartInput(
-            [in] IInputContextStub* inputContext,
+            [in] IInputContext* inputContext,
             [in] IEditorInfo* attribute);
 
         RestartInput(
-            [in] IInputContextStub* inputContext,
+            [in] IInputContext* inputContext,
             [in] IEditorInfo* attribute);
 
         CreateSession(
-            [in] IInputMethodCallback* clback);
+            [in] IInputMethodCallback* inputMethodCalllback);
 
         SetSessionEnabled(
             [in] IInputMethodSession* session,

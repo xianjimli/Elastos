@@ -1,8 +1,4 @@
 
-/**
- * This class is used to specify meta information of an input method.
- */
-
 module
 {
     interface IServiceInfo;
@@ -19,7 +15,7 @@ module
         /**
          * Return the .apk package that implements this input method.
          */
-        GetPackageName(
+        GetCapsuleName(
             [out] String* name);
 
         /**
@@ -51,7 +47,7 @@ module
          * resources.
          */
         //LoadLabel(
-        //    [in] IPackageManager* pm,
+        //    [in] ICapsuleManager* pm,
         //    [out] ICharSequence** str);
 
         //TODO
@@ -62,7 +58,7 @@ module
          * resources.
          */
         //LoadIcon(
-        //    [in] IPackageManager* pm,
+        //    [in] ICapsuleManager* pm,
         //    [out] IDrawable** drawable);
 
         /**
@@ -86,10 +82,7 @@ module
         GetIsDefaultResourceId(
             [out] Int32* id);
 
-        //public void dump(Printer pw, String prefix);
-
-        DescribeContents(
-            [out] Int32* contents);
-
+        //DescribeContents(
+        //    [out] Int32* contents);
     }
 }

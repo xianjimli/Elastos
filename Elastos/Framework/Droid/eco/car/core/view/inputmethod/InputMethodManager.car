@@ -8,12 +8,13 @@ module
     interface IBinder;
     interface IView;
     interface IInputConnection;
+    interface ICompletionInfo;
     interface IExtractedText;
     interface IBundle;
     interface IKeyEvent;
     interface IInputMethodCallback;
     interface IResultReceiver;
-    interface IInputContextStub;
+    interface IInputContext;
 
 
     /**
@@ -77,42 +78,16 @@ module
     const InputMethodManager_HIDE_NOT_ALWAYS = 0x0002;
 
 
-    interface IInputMethodManager {
-        /**
-         * Retrieve the global InputMethodManager instance, creating it if it
-         * doesn't already exist.
-         * @hide
-         */
-        GetInstance(
-            [in] IContext* context,
-            [out] IInputMethodManager** instance);
-
-        /**
-         * Internally, the input method manager can't be context-dependent, so
-         * we have this here for the places that need it.
-         * @hide
-         */
-        GetInstanceEx(
-            [in] IApartment* looper,
-            [out] IInputMethodManager** instance);
-
-        /**
-         * Private optimization: retrieve the global InputMethodManager instance,
-         * if it exists.
-         * @hide
-         */
-        PeekInstance(
-            [out] IInputMethodManager** instance);
-
+    [deprecated]
+    interface ILocalInputMethodManager {
         /** @hide */
         GetClient(
             [out] IInputMethodClient** client);
 
         /** @hide */
         GetInputContext(
-            [out] IInputContextStub** context);
+            [out] IInputContext** context);
 
-        //public List<InputMethodInfo> getInputMethodList();
         GetInputMethodList(
             [out] IObjectContainer** infos);
 
@@ -121,7 +96,7 @@ module
 
         ShowStatusIcon(
             [in] IBinder* imeToken,
-            [in] String packageName,
+            [in] String capsuleName,
             [in] Int32 iconId);
 
         HideStatusIcon(
@@ -169,7 +144,7 @@ module
 
         DisplayCompletions(
             [in] IView* view,
-            [in] IObjectContainer* completions);
+            [in] ArrayOf<ICompletionInfo*>* completions);
 
         UpdateExtractedText(
             [in] IView* view,
@@ -441,6 +416,5 @@ module
             [in] IInputMethodCallback* cback);
 
         ShowInputMethodPicker();
-
     }
 }

@@ -3,6 +3,7 @@
 #define  _CRESULTRECEIVER_H__
 
 #include "_CResultReceiver.h"
+#include "os/Runnable.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/ElRefBase.h>
 
@@ -16,9 +17,7 @@
 CarClass(CResultReceiver)
 {
 private:
-    class MyRunnable:
-        public ElRefBase,
-        public IRunnable
+    class MyRunnable : public Runnable
     {
     public:
         MyRunnable(
@@ -28,32 +27,19 @@ private:
 
         CARAPI Run();
 
-        CARAPI_(PInterface) Probe(
-            /* [in] */ REIID riid);
-
-        CARAPI_(UInt32) AddRef();
-
-        CARAPI_(UInt32) Release();
-
-        CARAPI GetInterfaceID(
-            /* [in] */ IInterface *pObject,
-            /* [out] */ InterfaceID *pIID);
-
     private:
         const Int32 mResultCode;
         const AutoPtr<IBundle> mResultData;
-        AutoPtr<CResultReceiver> mHost;
+        CResultReceiver* mHost;
     };
 
-    class MyResultReceiver:
-        public ElRefBase,
-        public IResultReceiverStub
+    class MyResultReceiver
+        : public ElRefBase
+        , public IResultReceiver
     {
     public:
         MyResultReceiver(
             /* [in] */ CResultReceiver* host);
-
-        ~MyResultReceiver();
 
         CARAPI Send(
             /* [in] */ Int32 resultCode,
@@ -71,8 +57,7 @@ private:
             /* [out] */ InterfaceID *pIID);
 
     private:
-        AutoPtr<CResultReceiver> mHost;
-        AutoPtr<MyRunnable> mMyRunnable;
+        CResultReceiver* mHost;
     };
 
 public:
@@ -114,19 +99,15 @@ protected:
      * defined by the sender.
      * @param resultData Any additional data provided by the sender.
      */
-    CARAPI OnReceiveResult(
+    virtual CARAPI_(void) OnReceiveResult(
         /* [in] */ Int32 resultCode,
         /* [in] */ IBundle* resultData);
-
-private:
-    CARAPI constructor(
-        /* [in] */ IParcel* in);
 
 private:
     Boolean mLocal;
     AutoPtr<IApartment> mHandler;
 
-    AutoPtr<IResultReceiverStub> mReceiver;
+    AutoPtr<IResultReceiver> mReceiver;
 };
 
 #endif  //_CRESULTRECEIVER_H__

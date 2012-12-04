@@ -3,8 +3,10 @@ module
 {
     interface IExtractedText;
     interface IExtractedTextRequest;
+    interface ICharSequence;
     interface ICompletionInfo;
     interface IKeyEvent;
+    interface IBundle;
 
 
     /**
