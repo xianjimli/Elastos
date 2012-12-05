@@ -142,32 +142,7 @@ public:
         /* in */ Int32 value);
 
 private:
-    // ECode ReadToBuff(
-    //    /* in */ Int32 count,
-    //    /* out */ Int32 *number);
-
-    // ECode ReadBufferExLocked(
-    //     /* [in] */ Int32 offset,
-    //     /* [in] */ Int32 length,
-    //     /* [out] */ ArrayOf<Byte>* buffer,
-    //     /* [out] */ Int32* number);
-
     CARAPI OpenCheck();
-
-    // ECode CloseLocked();
-
-    // ECode GetChannelLocked(
-    //     /* out */ IFileChannel **channel);
-
-    // Int32 CountUTFBytes(
-    //     /* [in] */ Char32 srcChar);
-
-    // void WriteUTFBytesToBuffer(
-    //     /* [in] */ Byte* dstP,
-    //     /* [in] */ Char32 srcChar,
-    //     /* [in] */ Int32 bytes);
-
-
 
 private:
     /**
@@ -188,10 +163,6 @@ private:
     // BEGIN android-added
     Int32 mOptions;
     // END android-added
-
-    // ArrayOf<Byte>*  mBuff;
-    // ArrayOf<Byte>*  mWriteBuff;
-    // Int32 mWritten;
 };
 
 #endif //__CRANDOMACCESSFILE_H__

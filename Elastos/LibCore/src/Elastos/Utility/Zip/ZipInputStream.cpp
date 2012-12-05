@@ -203,7 +203,7 @@ ECode ZipInputStream::GetNextEntry(
     count = 0;
     if (flen > mNameBuf->GetLength()) {
         ArrayOf<Byte>::Free(mNameBuf);
-        mNameBuf = ArrayOf<Byte>::Alloc(flen + 1);
+        mNameBuf = ArrayOf<Byte>::Alloc(flen);
 //        charBuf = new char[flen];
     }
     while (count != flen) {
@@ -215,7 +215,6 @@ ECode ZipInputStream::GetNextEntry(
             return E_EOF_EXCEPTION;
         }
     }
-    //(*mNameBuf)[flen] = '\0';
     mCurrentEntry = CreateZipEntry(String((const char *)mNameBuf->GetPayload(), mNameBuf->GetLength()));
     mCurrentEntry->mTime = cetime;
     mCurrentEntry->mModDate = cemodDate;

@@ -7,9 +7,6 @@
 #include <elastos/Character.h>
 #include <StringBuffer.h>
 
-// #include <stdio.h>
-// #include <errno.h>
-// #include <unistd.h>
 
 using namespace Elastos::Core;
 

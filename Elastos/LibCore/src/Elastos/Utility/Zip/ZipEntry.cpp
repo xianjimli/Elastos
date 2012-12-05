@@ -31,7 +31,7 @@ ECode ZipEntry::LittleEndianReader::ReadInt32LE(
     assert(in != NULL);
     assert(value != NULL);
     Int32 count;
-    
+
     in->Reset();
     in->ReadBufferEx(0, 4, &mB, &count);
     if (count == 4) {
@@ -526,7 +526,7 @@ ECode ZipEntry::Init(
         // actually IBM-437.)
         mName = String((const char *)nameBytes->GetPayload(), nameBytes->GetLength());
         if (commentBytes != NULL) {
-            mComment = String((const char *)commentBytes->GetPayload(), commentBytes->GetLength()); 
+            mComment = String((const char *)commentBytes->GetPayload(), commentBytes->GetLength());
         } else {
             //mComment = NULL;
         }
@@ -550,13 +550,13 @@ ECode ZipEntry::ReadInt32LE(
     /* out */ Int64 *value)
 {
 
-    Int32 b0; 
+    Int32 b0;
     Int32 b1;
     Int32 b2;
     Int32 b3;
     ECode ec = NOERROR;
-    
-    IDataInput *rafInput = (IDataInput*)rafs->Probe(EIID_IDataInput); 
+
+    IDataInput *rafInput = (IDataInput*)rafs->Probe(EIID_IDataInput);
 
     //rafInput->Read(&b0);
     //rafInput->Read(&b1);
@@ -568,7 +568,7 @@ ECode ZipEntry::ReadInt32LE(
     rafs->Read(&b3);
 
     if (b3 < 0) {
-        return E_DATA_FORMAT_EXCEPTION;
+        return E_EOF_EXCEPTION;
     }
     *value = (Int64) b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
     return ec;
