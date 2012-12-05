@@ -1,0 +1,11 @@
+
+module
+{
+    importlib("Elastos.Frameworks.Vanilla.eco");
+
+    class CFooBarApplet inherits CApplet {
+        interface IAppletEntry;
+        interface IAppletQuit;
+        interface IApplet;
+    }
+}
