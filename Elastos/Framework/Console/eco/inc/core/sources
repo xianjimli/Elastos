@@ -1,3 +1,0 @@
-
-EXPORT_HEADERS = ConsoleTypes.h
-EXPORT_HEADERS += ConsoleApi.h

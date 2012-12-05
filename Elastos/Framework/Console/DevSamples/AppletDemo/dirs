@@ -1,4 +1,0 @@
-
-DIRS = FooBar
-DIRS += FooBarApplet
-DIRS += Console
