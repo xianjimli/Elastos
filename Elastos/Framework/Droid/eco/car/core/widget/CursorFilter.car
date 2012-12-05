@@ -1,0 +1,24 @@
+
+module 
+{
+    interface ICursorFilterClient
+    {
+        ConvertToString(
+            [in] ICursor* cursor,
+            [out] ICharSequence** charSequence);
+        
+        RunQueryOnBackgroundThread(
+            [in] ICharSequence* constraint,
+            [out] ICursor** cursor);
+        
+        GetCursor(
+            [out] ICursor** cursor);
+        
+        ChangeCursor(
+            [in] ICursor* cursor);
+    }
+
+    interface ICursorFilter extends IFilter
+    {
+    }
+}

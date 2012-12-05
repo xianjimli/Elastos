@@ -58,6 +58,7 @@ module
     merge("widget/FilterQueryProvider.car");
     merge("widget/CursorAdapter.car");
     merge("widget/AlertControllerRecycleListView.car");
+    merge("widget/CursorFilter.car");
 
     class CScrollBarDrawable {
         interface IScrollBarDrawable;
