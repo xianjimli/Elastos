@@ -10981,10 +10981,10 @@ ECode CCapsuleManagerService::ExtractPublicFiles(
         emu->Current((IInterface**)&obj);
         IZipEntry* zipEntry = IZipEntry::Probe(obj);
         String zipEntryName;
-        zipEntry->GetName(&name);
+        zipEntry->GetName(&zipEntryName);
         if (zipEntryName.Equals("AndroidManifest.xml")
             || zipEntryName.Equals("resources.arsc")
-            || zipEntryName.StartsWith("res/")) {
+            || zipEntryName.StartWith("res/")) {
             // try {
             CopyZipEntry(zipEntry, privateZip, publicZipOutStream);
            //  } catch (IOException e) {
@@ -11031,8 +11031,8 @@ void CCapsuleManagerService::CopyZipEntry(
 
     AutoPtr<IInputStream> data;
     inZipFile->GetInputStream(zipEntry, (IInputStream **)&data);
-    while(data->ReadBuffer(buffer, &num), num > 0) {
-      outZipStream->WriteBufferEx(0, num, *buffer);
+    while(data->ReadBuffer(&buffer, &num), num > 0) {
+      outZipStream->WriteBufferEx(0, num, buffer);
     }
     outZipStream->Flush();
 }
