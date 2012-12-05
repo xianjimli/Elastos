@@ -14,11 +14,11 @@ public:
 
     CARAPI constructor(
         /* [in] */ IFile* file,
-        /* [in] */ const String& mode);
+        /* [in] */ CString mode);
 
     CARAPI constructor(
         /* [in] */ const String& fileName,
-        /* [in] */ const String& mode);
+        /* [in] */ CString mode);
 
     CARAPI Close();
 

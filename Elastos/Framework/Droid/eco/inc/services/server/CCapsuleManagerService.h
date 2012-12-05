@@ -2092,9 +2092,10 @@ private:
         /* [in] */ CapsuleParser::Capsule* newCapsule,
         /* [in] */ IFile* publicZipFile);
 
-//    static void copyZipEntry(ZipEntry zipEntry,
-//                                     ZipFile inZipFile,
-//                                     ZipOutputStream outZipStream)
+    static CARAPI_(void) CopyZipEntry(
+        /* in */ IZipEntry* zipEntry,
+        /* in */ IZipFile* inZipFile,
+        /* in */ IZipOutputStream* outZipStream);
 
     CARAPI_(void) DeleteTempCapsuleFiles();
 
@@ -2505,12 +2506,6 @@ private:
     //from PackageHandler
     Boolean mBound;
     List< AutoPtr<HandlerParams> > mPendingInstalls;
-
-private:
-    ECode CopyZipEntry(
-        /* in */ IZipEntry* zipEntry,
-        /* in */ IZipFile* inZipFile,
-        /* in */ IZipOutputStream* outZipStream); 
 };
 
 

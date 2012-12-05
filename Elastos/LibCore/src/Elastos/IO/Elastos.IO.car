@@ -96,11 +96,11 @@ module
     class CRandomAccessFile{
         constructor(
             [in] IFile* pFile,
-            [in] String mode);
+            [in] CString mode);
 
         constructor(
             [in] String fileName,
-            [in] String mode);
+            [in] CString mode);
 
         interface IRandomAccessFile;
         interface IDataInput;

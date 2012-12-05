@@ -641,7 +641,7 @@ ECode ZipFile::Init(
         mFileToDeleteOnClose = NULL;
     }
 
-    FAIL_RETURN(CRandomAccessFile::New(file, String("r"), (IRandomAccessFile **)&mRaf));
+    FAIL_RETURN(CRandomAccessFile::New(file, "r", (IRandomAccessFile **)&mRaf));
 
     return ReadCentralDir();
 }

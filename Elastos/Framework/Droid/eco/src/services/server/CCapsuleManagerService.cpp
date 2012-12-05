@@ -10962,68 +10962,45 @@ ECode CCapsuleManagerService::ExtractPublicFiles(
     /* [in] */ CapsuleParser::Capsule* newCapsule,
     /* [in] */ IFile* publicZipFile)
 {
-// ** add ** gaojianfeng 2012-12-01--------------------
     AutoPtr<IFileOutputStream> fstr;
     AutoPtr<IZipOutputStream> publicZipOutStream;
     AutoPtr<IZipFile> privateZip;
-    //ECode ec = NOERROR;
-   
     FAIL_RETURN(CFileOutputStream::New(publicZipFile, (IFileOutputStream **)&fstr));
     FAIL_RETURN(CZipOutputStream::New((IFileOutputStream*)fstr, (IZipOutputStream **)&publicZipOutStream));
-    String path;
-    //newCapsule->GetName(&path);  // Now there has no GetPath() or GetName();
-    FAIL_RETURN(CZipFile::New(path, (IZipFile **)&privateZip));
-   
-    AutoPtr<IObjectContainer> container;
-    AutoPtr<IObjectEnumerator> emu;
-    AutoPtr<IInterface> itf;
-    Boolean hasNext;
+    FAIL_RETURN(CZipFile::New(newCapsule->mPath, (IZipFile **)&privateZip));
 
+    // Copy manifest, resources.arsc and res directory to public zip
+
+    AutoPtr<IObjectContainer> container;
     FAIL_RETURN(privateZip->GetEntries((IObjectContainer **)&container));
+    AutoPtr<IObjectEnumerator> emu;
     FAIL_RETURN(container->GetObjectEnumerator((IObjectEnumerator **)&emu));
+    Boolean hasNext;
     while(emu->MoveNext(&hasNext), hasNext) {
-        AutoPtr<IZipEntry> entry;
-        emu->Current((IInterface**)&itf);
-        entry = IZipEntry::Probe(itf);
-        String name;
-        entry->GetName(&name);
-        if (name.Equals(String("AndroidManifest.xml")) /*|| name.StartsWith("res/")*/) {
-            CopyZipEntry(entry, privateZip, publicZipOutStream);
+        AutoPtr<IInterface> obj;
+        emu->Current((IInterface**)&obj);
+        IZipEntry* zipEntry = IZipEntry::Probe(obj);
+        String zipEntryName;
+        zipEntry->GetName(&name);
+        if (zipEntryName.Equals("AndroidManifest.xml")
+            || zipEntryName.Equals("resources.arsc")
+            || zipEntryName.StartsWith("res/")) {
+            // try {
+            CopyZipEntry(zipEntry, privateZip, publicZipOutStream);
+           //  } catch (IOException e) {
+           //     try {
+           //         publicZipOutStream.close();
+           //         throw e;
+           //     } finally {
+           //         publicZipFile.delete();
+           //     }
+           // }
         }
     }
     publicZipOutStream->Finish();
     publicZipOutStream->Flush();
-    publicZipOutStream->Close();
-//    final FileOutputStream fstr = new FileOutputStream(publicZipFile);
-//    final ZipOutputStream publicZipOutStream = new ZipOutputStream(fstr);
-//    final ZipFile privateZip = new ZipFile(newPackage.mPath);
-//
-//    // Copy manifest, resources.arsc and res directory to public zip
-//
-//    final Enumeration<? extends ZipEntry> privateZipEntries = privateZip.entries();
-//    while (privateZipEntries.hasMoreElements()) {
-//        final ZipEntry zipEntry = privateZipEntries.nextElement();
-//        final String zipEntryName = zipEntry.getName();
-//        if ("AndroidManifest.xml".equals(zipEntryName)
-//            || "resources.arsc".equals(zipEntryName)
-//            || zipEntryName.startsWith("res/")) {
-//            try {
-//                copyZipEntry(zipEntry, privateZip, publicZipOutStream);
-//            } catch (IOException e) {
-//                try {
-//                    publicZipOutStream.close();
-//                    throw e;
-//                } finally {
-//                    publicZipFile.delete();
-//                }
-//            }
-//        }
-//    }
-//
-//    publicZipOutStream.finish();
-//    publicZipOutStream.flush();
 //    FileUtils.sync(fstr);
-//    publicZipOutStream.close();
+    publicZipOutStream->Close();
 //    FileUtils.setPermissions(
 //            publicZipFile.getAbsolutePath(),
 //            FileUtils.S_IRUSR|FileUtils.S_IWUSR|FileUtils.S_IRGRP|FileUtils.S_IROTH,
@@ -11031,52 +11008,33 @@ ECode CCapsuleManagerService::ExtractPublicFiles(
     return NOERROR;
 }
 
-ECode CCapsuleManagerService::CopyZipEntry(
+void CCapsuleManagerService::CopyZipEntry(
     /* in */ IZipEntry* zipEntry,
     /* in */ IZipFile* inZipFile,
-    /* in */ IZipOutputStream* outZipStream) 
+    /* in */ IZipOutputStream* outZipStream)
 {
-      ArrayOf<Byte> * buffer = ArrayOf<Byte>::Alloc(4096);
-      Int32 num;
-      
-//    byte[] buffer = new byte[4096];
-//    int num;
-//
-//    ZipEntry newEntry;
-      Int32 method;
-      AutoPtr<IZipEntry> newEntry;
-      zipEntry->GetMethod(&method);
-      if (method == IZipEntry_STORED) {
-          CZipEntry::New(zipEntry, (IZipEntry **)&newEntry);
-      } else {
-          String name;
-          zipEntry->GetName(&name);
-          CZipEntry::New(name, (IZipEntry **) &newEntry);
-      }
-      
-      outZipStream->PutNextEntry(newEntry);
-      
-      AutoPtr<IInputStream> data;
-      inZipFile->GetInputStream(zipEntry, (IInputStream **) &data);
-      while(data->ReadBufferEx(0, 4096, buffer, &num), num > 0) { 
-          outZipStream->WriteBufferEx(0, num, *buffer);    
-      }
-      outZipStream->Flush();
-      return NOERROR;
-//    if (zipEntry.getMethod() == ZipEntry.STORED) {
-//        // Preserve the STORED method of the input entry.
-//        newEntry = new ZipEntry(zipEntry);
-//    } else {
-//        // Create a new entry so that the compressed len is recomputed.
-//        newEntry = new ZipEntry(zipEntry.getName());
-//    }
-//    outZipStream.putNextEntry(newEntry);
-//
-//    InputStream data = inZipFile.getInputStream(zipEntry);
-//    while ((num = data.read(buffer)) > 0) {
-//        outZipStream.write(buffer, 0, num);
-//    }
-//    outZipStream.flush();
+    ArrayOf_<Byte, 4096> buffer;
+    Int32 num;
+
+    Int32 method;
+    AutoPtr<IZipEntry> newEntry;
+    zipEntry->GetMethod(&method);
+    if (method == IZipEntry_STORED) {
+        ASSERT_SUCCEEDED(CZipEntry::New(zipEntry, (IZipEntry **)&newEntry));
+    }
+    else {
+        String name;
+        zipEntry->GetName(&name);
+        ASSERT_SUCCEEDED(CZipEntry::New(name, (IZipEntry **)&newEntry));
+    }
+    outZipStream->PutNextEntry(newEntry);
+
+    AutoPtr<IInputStream> data;
+    inZipFile->GetInputStream(zipEntry, (IInputStream **)&data);
+    while(data->ReadBuffer(buffer, &num), num > 0) {
+      outZipStream->WriteBufferEx(0, num, *buffer);
+    }
+    outZipStream->Flush();
 }
 
 void CCapsuleManagerService::DeleteTempCapsuleFiles()
