@@ -3,68 +3,72 @@
 #include <stdlib.h>
 #include <new>
 #include <Elastos.IO.h>
+#include <elastos/AutoPtr.h>
+
 using namespace Elastos;
 
-IFile *gFile = NULL;
-IDataInput *gInput = NULL;
-IDataOutput *gOutput = NULL;
-IRandomAccessFile *gRFile = NULL;
+AutoPtr<IFile> gFile;
+AutoPtr<IDataInput> gInput;
+AutoPtr<IDataOutput> gOutput;
+AutoPtr<IRandomAccessFile> gRFile;
 
 
-int funcReadLine() {
+int funcReadLine()
+{
    String str;
    gInput->ReadLine(&str);
-   printf("the read line is %s\n", (const char *) str);
-   printf("the function %s test end\n", __FUNCTION__); 
+   printf("the read line is %s\n", (const char *)str);
+   printf("the function %s test end\n", __FUNCTION__);
    return 0;
 }
 
-int funcReadChar() {
+int funcReadChar()
+{
    Char32 pc;
    gInput->ReadChar(&pc);
    printf("\n ******** \n    the read char %c \n", pc);
-   printf("the function %s test end\n", __FUNCTION__); 
+   printf("the function %s test end\n", __FUNCTION__);
    return 0;
 }
 
-int funcReadByte() {
+int funcReadByte()
+{
    Byte bvalue;
    gInput->ReadByte(&bvalue);
    printf("\n ******** \n    the byte %x %c \n", bvalue, bvalue);
-   printf("the function %s test end\n", __FUNCTION__); 
+   printf("the function %s test end\n", __FUNCTION__);
    return 0;
 }
 
-int funcReadBoolean() {
+int funcReadBoolean()
+{
    Boolean bvalue;
    gInput->ReadBoolean(&bvalue);
    printf("\n ******* \n the boolean is %d\n", bvalue);
-   printf("the function %s test end\n", __FUNCTION__); 
+   printf("the function %s test end\n", __FUNCTION__);
    return 0;
 }
-
 
 int funcReadFullyEx()
 {
    ArrayOf_<Byte, 7> buffer;
    gInput->ReadFullyEx(0, 7, &buffer);
-   printf("the Byte is %s \n", (const char *) buffer.GetPayload());
+   printf("the Byte is %s \n", (const char *)buffer.GetPayload());
    return 0;
 }
 
-
 int funcWriteBoolean()
 {
-    Boolean bvalue = FALSE;
+    Boolean bvalue = TRUE;
     gOutput->WriteBoolean((Int32)bvalue);
     return 0;
 }
 
 int funcWriteBytes()
 {
-    ArrayOf<Byte> *buffer = ArrayOf<Byte>::Alloc(7);
-    buffer->Copy((Byte*)"bcdefgh", 7);
-    gOutput->WriteBytes(*buffer);
+    ArrayOf_<Byte, 7> buffer;
+    buffer.Copy((Byte*)"bcdefgh", 7);
+    gOutput->WriteBytes(buffer);
     return 0;
 }
 
@@ -77,19 +81,17 @@ int funcWriteByte()
 
 int initRandomAccessFile(String str)
 {
-    IFile *pFile = NULL;
-    ECode ec = NOERROR;
-    ec = CFile::New(str, &pFile);
+    AutoPtr<IFile> file;
+    ECode ec = CFile::New(str, (IFile**)&file);
     if (FAILED(ec)) {
         printf("Cann't Open the file\n");
- 	return -1;
+ 	      return -1;
     }
-    
-    printf("111111111111111111111111111\n");
-    ec = CRandomAccessFile::New(pFile, &gRFile);
+
+    ec = CRandomAccessFile::New(file, "rw", (IRandomAccessFile**)&gRFile);
     if (FAILED(ec)) {
         printf("Cann't construct Random file\n");
- 	return -1;
+ 	      return -1;
     }
 
     gInput = IDataInput::Probe(gRFile);
@@ -110,7 +112,7 @@ int main(int argc, char *argv[])
     Int32 caseno = atoi(argv[1]);
     printf("the case no is %d\n", caseno);
 
-    String str("/data/data/com.elastos.runtime/elastos/random.txt");    
+    String str("/data/data/com.elastos.runtime/elastos/random.txt");
     initRandomAccessFile(str);
 
     switch(caseno) {
@@ -118,10 +120,10 @@ int main(int argc, char *argv[])
              funcReadLine();
              break;
         case 2:
-	     funcReadChar(); 
+	           funcReadChar();
              break;
         case 3:
-	     funcReadByte(); 
+	           funcReadByte();
              break;
         case 4:
              funcWriteBoolean();

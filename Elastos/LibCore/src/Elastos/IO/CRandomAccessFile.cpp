@@ -78,7 +78,7 @@ CRandomAccessFile::~CRandomAccessFile()
  */
 ECode CRandomAccessFile::constructor(
     /* in */ IFile* file,
-    /* in */ const String& mode)
+    /* in */ CString mode)
 {
     mOptions = 0;
     FAIL_RETURN(CFileDescriptor::NewByFriend((CFileDescriptor**)&mFd));
@@ -159,7 +159,7 @@ ECode CRandomAccessFile::constructor(
  */
 ECode CRandomAccessFile::constructor(
     /* [in] */ const String& fileName,
-    /* [in] */ const String& mode)
+    /* [in] */ CString mode)
 {
     AutoPtr<IFile> file;
     FAIL_RETURN(CFile::New(fileName, (IFile**)&file));
