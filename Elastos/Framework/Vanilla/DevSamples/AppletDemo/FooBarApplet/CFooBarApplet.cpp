@@ -1,7 +1,7 @@
 
 #include "CFooBarApplet.h"
 #include "FooBar.h"
-#include <Elastos.Frameworks.Vanilla>
+#include <Elastos.Framework.Vanilla>
 
 IApplet * gApplet;
 
