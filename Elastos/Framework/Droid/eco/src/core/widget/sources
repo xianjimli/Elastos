@@ -134,3 +134,5 @@ SOURCES += CChronometer.cpp
 SOURCES += CursorAdapter.cpp
 SOURCES += CCursorAdapter.cpp
 SOURCES += CursorFilter.cpp
+SOURCES += CCursorFilter.cpp
+SOURCES += CursorTreeAdapter.cpp

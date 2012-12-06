@@ -59,6 +59,7 @@ module
     merge("widget/CursorAdapter.car");
     merge("widget/AlertControllerRecycleListView.car");
     merge("widget/CursorFilter.car");
+    merge("widget/CursorTreeAdapter.car");
 
     class CScrollBarDrawable {
         interface IScrollBarDrawable;
@@ -1260,6 +1261,13 @@ module
             [in] Boolean autoRequery);
 
         interface ICursorAdapter;
+    }
+
+    class CCursorFilter {
+        constructor(
+            [in] ICursorFilterClient* client);
+
+        interface ICursorFilter;
     }
 }
 

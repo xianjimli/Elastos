@@ -1,0 +1,118 @@
+
+module
+{
+    interface ICursorTreeAdapter extends IBaseExpandableListAdapter
+    {
+        /**
+         * Sets the group Cursor.
+         * 
+         * @param cursor The Cursor to set for the group. If there is an existing cursor 
+         * it will be closed.
+         */
+        SetGroupCursor(
+            [in] ICursor* cursor);
+
+        /**
+         * Sets the children Cursor for a particular group. If there is an existing cursor
+         * it will be closed.
+         * <p>
+         * This is useful when asynchronously querying to prevent blocking the UI.
+         * 
+         * @param groupPosition The group whose children are being set via this Cursor.
+         * @param childrenCursor The Cursor that contains the children of the group.
+         */
+        SetChildrenCursor(
+            [in] Int32 groupPosition, 
+            [in] ICursor* childrenCursor);
+        
+        GetChild(
+            [in] Int32 groupPosition, 
+            [in] Int32 childPosition,
+            [out] ICursor** cursor);
+
+        GetChildId(
+            [in] Int32 groupPosition, 
+            [in] Int32 childPosition,
+            [out] Int64* id);
+
+        GetChildrenCount(
+            [in] Int32 groupPosition,
+            [out] Int32* count);
+
+        GetGroup(
+            [in] Int32 groupPosition,
+            [out] ICursor** group);
+
+        GetGroupCount(
+            [out] Int32* count);
+
+        GetGroupId(
+            [in] Int32 groupPosition,
+            [out] Int64* id);
+
+        GetGroupView(
+            [in] Int32 groupPosition, 
+            [in] Boolean isExpanded, 
+            [in] IView* convertView,
+            [in] IViewGroup* parent,
+            [out] IView** view);
+
+        GetChildView(
+            [in] Int32 groupPosition, 
+            [in] Int32 childPosition, 
+            [in] Boolean isLastChild,
+            [in] IView* convertView, 
+            [in] IViewGroup* parent,
+            [out] IView** view);
+
+        IsChildSelectable(
+            [in] Int32 groupPosition, 
+            [in] Int32 childPosition,
+            [out] Boolean* selectable);
+
+        HasStableIds(
+            [out] Boolean* ids);
+
+        /**
+         * @see CursorAdapter#convertToString(Cursor)
+         */
+        ConvertToString(
+            [in] ICursor* cursor,
+            [out] String* str);
+
+        /**
+         * @see CursorAdapter#runQueryOnBackgroundThread(CharSequence)
+         */
+        RunQueryOnBackgroundThread(
+            [in] ICharSequence* constraint,
+            [out] ICursor** cursor);
+        
+        GetFilter(
+            [out] IFilter** filter);
+
+        /**
+         * @see CursorAdapter#getFilterQueryProvider()
+         */
+        GetFilterQueryProvider(
+            [out] IFilterQueryProvider** provider);
+
+        /**
+         * @see CursorAdapter#setFilterQueryProvider(FilterQueryProvider)
+         */
+        SetFilterQueryProvider(
+            [in] IFilterQueryProvider* filterQueryProvider);
+        
+        /**
+         * @see CursorAdapter#changeCursor(Cursor)
+         */
+        ChangeCursor(
+            [in] ICursor* cursor,
+            [out] IFilterQueryProvider** provider);
+
+        /**
+         * @see CursorAdapter#getCursor()
+         */
+        GetCursor(
+            [out] ICursor** cursor);
+    }
+}

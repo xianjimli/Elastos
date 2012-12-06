@@ -12,17 +12,16 @@ CursorFilter::CursorFilter(
     mClient = client;
 }
 
-AutoPtr<ICharSequence> CursorFilter::ConvertResultToString(
-    /* [in] */ IInterface* resultValue)
+ECode CursorFilter::ConvertResultToString(
+    /* [in] */ IInterface* resultValue,
+    /* [out] */ ICharSequence** cs)
 {
-    AutoPtr<ICharSequence> cs;
-    mClient->ConvertToString((ICursor*) resultValue, (ICharSequence**)&cs);
-
-    return cs;
+    return mClient->ConvertToString((ICursor*) resultValue, cs);
 }
 
-Filter::FilterResults* CursorFilter::PerformFiltering(
-    /* [in] */ ICharSequence* constraint)
+ECode CursorFilter::PerformFiltering(
+    /* [in] */ ICharSequence* constraint,
+    /* [out] */ IFilterResults** filterResults)
 {
     AutoPtr<ICursor> cursor;
     mClient->RunQueryOnBackgroundThread(constraint, (ICursor**)&cursor);
@@ -35,17 +34,23 @@ Filter::FilterResults* CursorFilter::PerformFiltering(
         results->mCount = 0;
         results->mValues = NULL;
     }
-    return results;
+
+    *filterResults = results;
+
+    return NOERROR;
 }
 
-void CursorFilter::PublishResults(
-    /* [in] */ ICharSequence* constraint, 
-    /* [in] */ Filter::FilterResults* results)
+ECode CursorFilter::PublishResults(
+    /* [in] */ ICharSequence* constraint,
+    /* [in] */ IFilterResults* res)
 {
     AutoPtr<ICursor> oldCursor;
     mClient->GetCursor((ICursor**)&oldCursor);
     
+    Filter::FilterResults* results = (Filter::FilterResults*)res;
     if (results->mValues != NULL && results->mValues != oldCursor) {
         mClient->ChangeCursor((ICursor*) results->mValues.Get());
     }
+
+    return NOERROR;
 }

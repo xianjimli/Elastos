@@ -18,15 +18,17 @@ public:
     CursorFilter(
         /* [in] */ ICursorFilterClient* client);
     
-    AutoPtr<ICharSequence> ConvertResultToString(
-        /* [in] */ IInterface* resultValue);
+    virtual CARAPI ConvertResultToString(
+        /* [in] */ IInterface* resultValue,
+        /* [out] */ ICharSequence** cs);
 
-    Filter::FilterResults* PerformFiltering(
-        /* [in] */ ICharSequence* constraint);
+    virtual CARAPI PerformFiltering(
+        /* [in] */ ICharSequence* constraint,
+        /* [out] */ IFilterResults** filterResults);
 
-    virtual CARAPI_(void) PublishResults(
-        /* [in] */ ICharSequence* constraint, 
-        /* [in] */ Filter::FilterResults* results);
+    virtual CARAPI PublishResults(
+        /* [in] */ ICharSequence* constraint,
+        /* [in] */ IFilterResults* results);
 
     AutoPtr<ICursorFilterClient> mClient;
 };
