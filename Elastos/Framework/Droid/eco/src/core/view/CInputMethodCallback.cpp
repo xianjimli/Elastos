@@ -18,8 +18,9 @@ ECode CInputMethodCallback::FinishedEvent(
     return NOERROR;
 }
 
-//ECode CInputMethodCallback::SessionCreated(
-//    /* [in] */ IInputMethodSession* session)
-//{
-//    return E_NOT_IMPLEMENTED;
-//}
+ECode CInputMethodCallback::SessionCreated(
+   /* [in] */ IInputMethodSessionStub* session)
+{
+	assert(0);
+    return E_NOT_IMPLEMENTED;
+}

@@ -1,41 +1,35 @@
 
 module
 {
-    interface IInputContextCallback;
+    interface IInputContextCallbackStub;
     interface IExtractedTextRequest;
-    interface ICharSequence;
     interface ICompletionInfo;
     interface IKeyEvent;
     interface IBundle;
 
-    /**
-     * Interface from an input method to the application, allowing it to perform
-     * edits on the current input field and other interactions with the application.
-     * {@hide}
-     */
-    /* oneway */ interface IInputContext {
+    interface IInputContextStub {
         GetTextBeforeCursor(
             [in] Int32 length,
             [in] Int32 flags,
             [in] Int32 seq,
-            [in] IInputContextCallback* inputContextCallback);
+            [in] IInputContextCallbackStub* icCallback);
 
         GetTextAfterCursor(
             [in] Int32 length,
             [in] Int32 flags,
             [in] Int32 seq,
-            [in] IInputContextCallback* inputContextCallback);
+            [in] IInputContextCallbackStub* icCallback);
 
         GetCursorCapsMode(
             [in] Int32 reqModes,
             [in] Int32 seq,
-            [in] IInputContextCallback* inputContextCallback);
+            [in] IInputContextCallbackStub* icCallback);
 
         GetExtractedText(
             [in] IExtractedTextRequest* request,
             [in] Int32 flags,
             [in] Int32 seq,
-            [in] IInputContextCallback* inputContextCallback);
+            [in] IInputContextCallbackStub* icCallback);
 
         DeleteSurroundingText(
             [in] Int32 leftLength,
@@ -88,6 +82,6 @@ module
         GetSelectedText(
             [in] Int32 flags,
             [in] Int32 seq,
-            [in] IInputContextCallback* inputContextCallback);
+            [in] IInputContextCallbackStub* icCallback);
     }
 }

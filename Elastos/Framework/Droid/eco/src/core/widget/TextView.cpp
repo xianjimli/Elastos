@@ -5457,7 +5457,9 @@ Boolean TextView::OnCheckIsTextEditor()
     return mInputType != InputType_TYPE_NULL;
 }
 
-//@Override public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
+IInputConnection* TextView::OnCreateInputConnection(
+   /* [in] */ IEditorInfo* outAttrs)
+{
 //    if (onCheckIsTextEditor()) {
 //        if (mInputMethodState == NULL) {
 //            mInputMethodState = new InputMethodState();
@@ -5503,8 +5505,10 @@ Boolean TextView::OnCheckIsTextEditor()
 //            return ic;
 //        }
 //    }
-//    return NULL;
-//}
+
+    assert(0);
+    return NULL;
+}
 
 /**
  * If this TextView contains editable content, extract a portion of it

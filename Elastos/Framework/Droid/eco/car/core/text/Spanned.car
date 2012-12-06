@@ -119,7 +119,7 @@ module
      */
     const Spanned_SPAN_PRIORITY = 0x00FF0000;//0xFF << SPAN_PRIORITY_SHIFT;
 
-    interface IGetChars;
+    interface ICharSequence;
 
     /**
      * This is the interface for text that has markup objects attached to
@@ -127,7 +127,7 @@ module
      * see {@link Spannable} for mutable markup and {@link Editable} for
      * mutable text.
      */
-    interface ISpanned extends IGetChars
+    interface ISpanned extends ICharSequence
     {
         /**
          * Return an array of the markup objects attached to the specified

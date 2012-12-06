@@ -8,7 +8,6 @@
 #include <elastos/ElRefBase.h>
 
 
-
 /**
  * Base class for implementors of the InputConnection interface, taking care
  * of most of the common behavior for providing a connection to an Editable.
@@ -18,9 +17,9 @@
 class BaseInputConnection
 {
 private:
-    class ComposingText
-        : public ElRefBase,
-        , public INoCopySpan
+    class ComposingText:
+        public ElRefBase,
+        public INoCopySpan
     {
     public:
         ComposingText();
@@ -120,8 +119,7 @@ public:
      * current editable text.  In addition, only if dummy mode, a key event is
      * sent for the new text and the current editable buffer cleared.
      */
-    virtual CARAPI_(Boolean) FinishComposingText(
-        /* [out] */ Boolean* state);
+    virtual CARAPI_(Boolean) FinishComposingText();
 
     /**
      * The default implementation uses TextUtils.getCapsMode to get the
@@ -242,7 +240,7 @@ private:
 
     AutoPtr<ILocalInputMethodManager> mIMM;
     AutoPtr<IView> mTargetView;
-    const Boolean mDummyMode;
+    Boolean mDummyMode;
 
     ArrayOf<IInterface*>* mDefaultComposingSpans;
 

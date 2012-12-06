@@ -7,10 +7,17 @@ include $(MAKEDIR)/../../../../../sources.inc
 INCLUDES += $(MAKEDIR)/../../../../inc/core
 INCLUDES += ../../
 
+ifeq "$(XDK_TARGET_PLATFORM)" "linux"
+INCLUDES += $(PREBUILD_INC)/skia/utils
+INCLUDES += $(PREBUILD_INC)/skia/core
+endif
+
 C_DEFINES += -D_FRAMEWORK_CORE
 
 SOURCES = CExtractedText.cpp
 SOURCES += CExtractedTextRequest.cpp
 SOURCES += CCompletionInfo.cpp
-#SOURCES += BaseInputConnection.cpp
-#SOURCES += CBaseInputConnection.cpp
+SOURCES += BaseInputConnection.cpp
+SOURCES += CBaseInputConnection.cpp
+SOURCES += CEditorInfo.cpp
+SOURCES += CLocalInputMethodManager.cpp

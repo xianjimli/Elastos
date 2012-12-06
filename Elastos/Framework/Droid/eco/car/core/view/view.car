@@ -40,6 +40,8 @@ module
     interface IAccessibilityEvent;
     interface IAnimation;
     interface IViewTreeObserver;
+    interface IEditorInfo;
+    interface IInputConnection;
 
     /**
      * Interface definition for a callback to be invoked when a key event is
@@ -1321,6 +1323,22 @@ module
             [out] Boolean* result);
 
         /**
+         * Create a new InputConnection for an InputMethod to interact
+         * with the view.  The default implementation returns null, since it doesn't
+         * support input methods.  You can override this to implement such support.
+         * This is only needed for views that take focus and text input.
+         *
+         * <p>When implementing this, you probably also want to implement
+         * {@link #onCheckIsTextEditor()} to indicate you will return a
+         * non-null InputConnection.
+         *
+         * @param outAttrs Fill in with attribute information about the connection.
+         */
+        OnCreateInputConnection(
+            [in] IEditorInfo* outAttrs,
+            [out] IInputConnection** inputConnection);
+
+        /**
          * Called by the {@link android.view.inputmethod.InputMethodManager}
          * when a view who is not the current
          * input connection target is trying to make a call on the manager.  The
@@ -1665,6 +1683,13 @@ module
          */
         IsOpaque(
             [out] Boolean* opaque);
+
+        /**
+         * @return A handler associated with the thread running the View. This
+         * handler can be used to pump events in the UI events queue.
+         */
+        GetHandler(
+            [out] IApartment** apartment);
 
         /**
          * Cause an invalidate to happen on a subsequent cycle through the event loop.

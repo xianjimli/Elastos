@@ -1348,8 +1348,8 @@ public:
 
     virtual CARAPI_(Boolean) OnCheckIsTextEditor();
 
-    //virtual CARAPI_(IInputConnection*) OnCreateInputConnection(
-    //    /* [in] */ IEditorInfo* outAttrs);
+    virtual CARAPI_(IInputConnection*) OnCreateInputConnection(
+        /* [in] */ IEditorInfo* outAttrs);
 
     virtual CARAPI_(Boolean) CheckInputConnectionProxy(
         /* [in] */ IView* view);

@@ -1422,8 +1422,8 @@ CWindowManagerService::FindWindow(
 }
 
 ECode CWindowManagerService::OpenSession(
-    /* [in] */ IInputMethodClient* client,
-    /* [in] */ IInputContext* inputContext,
+    /* [in] */ IInputMethodClientStub* client,
+    /* [in] */ IInputContextStub* inputContext,
     /* [out] */ IWindowSession** session)
 {
     assert(session != NULL);
@@ -1434,7 +1434,7 @@ ECode CWindowManagerService::OpenSession(
 }
 
 ECode CWindowManagerService::InputMethodClientHasFocus(
-    /* [in] */ IInputMethodClient* client,
+    /* [in] */ IInputMethodClientStub* client,
     /* [out] */ Boolean* result)
 {
     VALIDATE_NOT_NULL(result);

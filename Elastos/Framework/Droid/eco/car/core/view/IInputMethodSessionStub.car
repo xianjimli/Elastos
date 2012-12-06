@@ -14,7 +14,7 @@ module
      * {@hide}
      */
     [deprecated]
-    /* oneway */ interface IInputMethodSession {
+    /* oneway */ interface IInputMethodSessionStub {
         FinishInput();
 
         UpdateExtractedText(

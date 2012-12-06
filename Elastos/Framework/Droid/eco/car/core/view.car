@@ -44,15 +44,15 @@ module
     merge("view/inputmethod/InputMethodSession.car");
     merge("view/inputmethod/InputMethodManager.car");
     merge("view/InputBindResult.car");
-    merge("view/IInputMethodClient.car");
-    merge("view/IInputContextCallback.car");
-    merge("view/IInputContext.car");
+    merge("view/IInputMethodClientStub.car");
+    merge("view/IInputContextCallbackStub.car");
+    merge("view/IInputContextStub.car");
     merge("view/InputChannel.car");
     merge("view/InputDevice.car");
+    merge("view/IInputMethodSessionStub.car");
     merge("view/IInputMethodCallback.car");
     merge("view/IInputMethod.car");
-    merge("view/IInputMethodSession.car");
-    merge("view/IInputMethodManager.car");
+    merge("view/IInputMethodManagerStub.car");
     merge("view/IOnKeyguardExitResult.car");
     merge("view/IRotationWatcher.car");
     merge("view/IInnerWindow.car");
@@ -437,20 +437,28 @@ module
     }
 
     class CCompletionInfo {
-        interface ICompletionInfo;
+        interface IEditorInfo;
         interface IParcelable;
     }
 
-/*
-    class CInputMethodManager {
+    class CEditorInfo {
+        constructor();
 
+        interface IEditorInfo;
+        interface IParcelable;
     }
-*/
 
-/*
+    class CLocalInputMethodManager {
+        constructor(
+            [in] IInputMethodManagerStub* service,
+            [in] IApartment* looper);
+
+        interface ILocalInputMethodManager;
+    }
+
     class CBaseInputConnection {
         constructor(
-            [in] IInputMethodManager* mgr,
+            [in] ILocalInputMethodManager* mgr,
             [in] Boolean fullEditor);
 
         constructor(
@@ -459,7 +467,6 @@ module
 
         interface IInputConnection;
     }
-*/
 
     class CInputBindResult {
         interface IInputBindResult;

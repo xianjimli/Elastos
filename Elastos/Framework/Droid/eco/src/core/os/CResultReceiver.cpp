@@ -36,6 +36,7 @@ ECode CResultReceiver::MyResultReceiver::Send(
         CCallbackParcel::New((IParcel**)&params);
         params->WriteInterfacePtr(runnable);
 
+        assert(0);
         //TODO
         // mHandler->PostCppCallbackDelayed(
         //     (Handle32)mMyRunnable.Get(), 0, params, 0);

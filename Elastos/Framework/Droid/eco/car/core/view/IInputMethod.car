@@ -4,10 +4,10 @@ module
     interface IBundle;
     interface IInputBinding;
     interface IEditorInfo;
-    interface IInputContext;
+    interface IInputContextStub;
     interface IInputMethodCallback;
     interface IResultReceiver;
-    interface IInputMethodSession;
+    interface IInputMethodSessionStub;
 
     /**
      * Top-level interface to an input method component (implemented in a
@@ -25,22 +25,22 @@ module
         UnbindInput();
 
         StartInput(
-            [in] IInputContext* inputContext,
+            [in] IInputContextStub* inputContext,
             [in] IEditorInfo* attribute);
 
         RestartInput(
-            [in] IInputContext* inputContext,
+            [in] IInputContextStub* inputContext,
             [in] IEditorInfo* attribute);
 
         CreateSession(
             [in] IInputMethodCallback* inputMethodCalllback);
 
         SetSessionEnabled(
-            [in] IInputMethodSession* session,
+            [in] IInputMethodSessionStub* session,
             [in] Boolean enabled);
 
         RevokeSession(
-            [in] IInputMethodSession* session);
+            [in] IInputMethodSessionStub* session);
 
         ShowSoftInput(
             [in] Int32 flags,

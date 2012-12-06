@@ -325,6 +325,10 @@
     CARAPI OnCheckIsTextEditor(                                         \
         /* [out] */ Boolean* result);                                   \
                                                                         \
+    CARAPI OnCreateInputConnection(                                     \
+        /* [in] */ IEditorInfo* outAttrs,                               \
+        /* [out] */ IInputConnection** inputConnection);                \
+                                                                        \
     CARAPI CheckInputConnectionProxy(                                   \
         /* [in] */ IView* view,                                         \
         /* [out] */ Boolean* result);                                   \
@@ -438,6 +442,9 @@
                                                                         \
     CARAPI IsOpaque(                                                    \
         /* [out] */ Boolean* opaque);                                   \
+                                                                        \
+    CARAPI GetHandler(                                                  \
+        /* [out] */ IApartment** apartment);                            \
                                                                         \
     CARAPI PostInvalidate();                                            \
                                                                         \
@@ -1506,6 +1513,16 @@ ECode className::OnCheckIsTextEditor(                                   \
     return NOERROR;                                                     \
 }                                                                       \
                                                                         \
+ECode className::OnCreateInputConnection(                               \
+    /* [in] */ IEditorInfo* outAttrs,                                   \
+    /* [out] */ IInputConnection** inputConnection)                     \
+{                                                                       \
+    VALIDATE_NOT_NULL(inputConnection);                                 \
+    *inputConnection = superClass::OnCreateInputConnection(outAttrs);   \
+                                                                        \
+    return NOERROR;                                                     \
+}                                                                       \
+                                                                        \
 ECode className::CheckInputConnectionProxy(                             \
     /* [in] */ IView* view,                                             \
     /* [out] */ Boolean* result)                                        \
@@ -1783,6 +1800,15 @@ ECode className::IsOpaque(                                              \
 {                                                                       \
     VALIDATE_NOT_NULL(opaque);                                          \
     *opaque = superClass::IsOpaque();                                   \
+                                                                        \
+    return NOERROR;                                                     \
+}                                                                       \
+                                                                        \
+ECode className::GetHandler(                                            \
+    /* [out] */ IApartment** apartment)                                 \
+{                                                                       \
+    VALIDATE_NOT_NULL(apartment);                                       \
+    *apartment = superClass::GetHandler();                              \
                                                                         \
     return NOERROR;                                                     \
 }                                                                       \

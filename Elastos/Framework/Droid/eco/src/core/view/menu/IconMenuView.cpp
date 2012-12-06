@@ -374,7 +374,7 @@ ECode IconMenuView::UpdateChildren(
     // be a 'More' button or a sixth item
     List< AutoPtr<IMenuItemImpl> >::Iterator it;
     Int32 i;
-    for (it = itemsToShow->Begin(), i = 0; i < minFitMinus1AndNumItems, it != itemsToShow->End(); ++it, ++i) {
+    for (it = itemsToShow->Begin(), i = 0; i < minFitMinus1AndNumItems && it != itemsToShow->End(); ++it, ++i) {
         itemData = *it;
         AutoPtr<IView> view = ((MenuItemImpl*)itemData.Get())->GetItemView(
                 MenuBuilder::TYPE_ICON, (IViewGroup*)this->Probe(EIID_IViewGroup));

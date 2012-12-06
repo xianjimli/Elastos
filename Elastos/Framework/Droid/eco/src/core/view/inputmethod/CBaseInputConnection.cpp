@@ -4,7 +4,7 @@
 BASEINPUTCONNECTION_METHODS_IMPL(CBaseInputConnection, BaseInputConnection, BaseInputConnection);
 
 ECode CBaseInputConnection::constructor(
-    /* [in] */ IInputMethodManager* mgr,
+    /* [in] */ ILocalInputMethodManager* mgr,
     /* [in] */ Boolean fullEditor)
 {
     return BaseInputConnection::Init(mgr, fullEditor);

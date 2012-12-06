@@ -167,7 +167,7 @@ ECode CInputConnectionWrapper::ReportFullscreenMode(
 }
 
 ECode CInputConnectionWrapper::PerformPrivateCommand(
-    /* [in] */ String action,
+    /* [in] */ const String& action,
     /* [in] */ IBundle* data,
     /* [out] */ Boolean* flag)
 {

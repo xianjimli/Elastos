@@ -103,7 +103,7 @@ public:
         /* [out] */ Boolean* flag);
 
     CARAPI PerformPrivateCommand(
-        /* [in] */ String action,
+        /* [in] */ const String& action,
         /* [in] */ IBundle* data,
         /* [out] */ Boolean* flag);
 

@@ -204,6 +204,7 @@ module
 
         interface ISpannableStringBuilder;
         interface IGraphicsOperations;
+        interface IGetChars;
     }
 
     singleton class CEditableFactory {

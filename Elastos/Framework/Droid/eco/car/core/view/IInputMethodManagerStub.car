@@ -2,8 +2,8 @@
 module
 {
     interface IInputMethodInfo;
-    interface IInputContext;
-    interface IInputMethodClient;
+    interface IInputContextStub;
+    interface IInputMethodClientStub;
     interface IInputBindResult;
     interface IEditorInfo;
     interface IResultReceiver;
@@ -13,7 +13,7 @@ module
      * Public interface to the global input method manager, used by all client
      * applications.
      */
-    interface IInputMethodManager {
+    interface IInputMethodManagerStub {
         GetInputMethodList(
             [out] IObjectContainer** infos);
 
@@ -21,39 +21,39 @@ module
             [out] IObjectContainer** infos);
 
         AddClient(
-            [in] IInputMethodClient* client,
-            [in] IInputContext* inputContext,
+            [in] IInputMethodClientStub* client,
+            [in] IInputContextStub* inputContext,
             [in] Int32 uid,
             [in] Int32 pid);
 
         RemoveClient(
-            [in] IInputMethodClient* client);
+            [in] IInputMethodClientStub* client);
 
         StartInput(
-            [in] IInputMethodClient* client,
-            [in] IInputContext* inputContext,
+            [in] IInputMethodClientStub* client,
+            [in] IInputContextStub* inputContext,
             [in] IEditorInfo* attribute,
             [in] Boolean initial,
             [in] Boolean needResult,
             [out] IInputBindResult** result);
 
         FinishInput(
-            [in] IInputMethodClient* client);
+            [in] IInputMethodClientStub* client);
 
         ShowSoftInput(
-            [in] IInputMethodClient* client,
+            [in] IInputMethodClientStub* client,
             [in] Int32 flags,
             [in] IResultReceiver* resultReceiver,
             [out] Boolean* res);
 
         HideSoftInput(
-            [in] IInputMethodClient* client,
+            [in] IInputMethodClientStub* client,
             [in] Int32 flags,
             [in] IResultReceiver* resultReceiver,
             [out] Boolean* res);
 
         WindowGainedFocus(
-            [in] IInputMethodClient* client,
+            [in] IInputMethodClientStub* client,
             [in] IBinder* windowToken,
             [in] Boolean viewHasFocus,
             [in] Boolean isTextEditor,
@@ -62,7 +62,7 @@ module
             [in] Int32 windowFlags);
 
         ShowInputMethodPickerFromClient(
-            [in] IInputMethodClient* client);
+            [in] IInputMethodClientStub* client);
 
         SetInputMethod(
             [in] IBinder* token,

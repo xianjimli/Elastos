@@ -726,6 +726,15 @@ ECode CGridView::OnCheckIsTextEditor(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode CGridView::OnCreateInputConnection(
+    /* [in] */ IEditorInfo* outAttrs,
+    /* [out] */ IInputConnection** inputConnection)
+{
+    assert(0);
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
 ECode CGridView::CheckInputConnectionProxy(
     /* [in] */ IView * pView,
     /* [out] */ Boolean * pResult)
@@ -976,6 +985,14 @@ ECode CGridView::InvalidateEx2()
 ECode CGridView::IsOpaque(
     /* [out] */ Boolean * pOpaque)
 {
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CGridView::GetHandler(
+    /* [out] */ IApartment** apartment)
+{
+    assert(0);
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }

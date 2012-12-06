@@ -726,6 +726,15 @@ ECode CExpandableListView::OnCheckIsTextEditor(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode CExpandableListView::OnCreateInputConnection(
+    /* [in] */ IEditorInfo* outAttrs,
+    /* [out] */ IInputConnection** inputConnection)
+{
+    assert(0);
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
 ECode CExpandableListView::CheckInputConnectionProxy(
     /* [in] */ IView * pView,
     /* [out] */ Boolean * pResult)
@@ -976,6 +985,14 @@ ECode CExpandableListView::InvalidateEx2()
 ECode CExpandableListView::IsOpaque(
     /* [out] */ Boolean * pOpaque)
 {
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CExpandableListView::GetHandler(
+    /* [out] */ IApartment** apartment)
+{
+    assert(0);
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }

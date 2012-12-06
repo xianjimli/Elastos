@@ -329,6 +329,10 @@ public:
     CARAPI OnCheckIsTextEditor(
         /* [out] */ Boolean * pResult);
 
+    CARAPI OnCreateInputConnection(
+        /* [in] */ IEditorInfo* outAttrs,
+        /* [out] */ IInputConnection** inputConnection);
+
     CARAPI CheckInputConnectionProxy(
         /* [in] */ IView * pView,
         /* [out] */ Boolean * pResult);
@@ -442,6 +446,9 @@ public:
 
     CARAPI IsOpaque(
         /* [out] */ Boolean * pOpaque);
+
+    CARAPI GetHandler(
+        /* [out] */ IApartment** apartment);
 
     CARAPI PostInvalidate();
 

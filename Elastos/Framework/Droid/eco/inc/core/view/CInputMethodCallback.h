@@ -17,8 +17,8 @@ public:
         /* [in] */ Int32 seq,
         /* [in]*/ Boolean handled);
 
-//    CARAPI SessionCreated(
-//        /* [in] */ IInputMethodSession* session);
+    CARAPI SessionCreated(
+        /* [in] */ IInputMethodSessionStub* session);
 
 private:
     AutoPtr<ViewRoot> mViewRoot;

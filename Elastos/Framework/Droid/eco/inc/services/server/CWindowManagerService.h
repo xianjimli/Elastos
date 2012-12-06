@@ -1570,12 +1570,12 @@ public:
     // -------------------------------------------------------------
 
     CARAPI OpenSession(
-        /* [in] */ IInputMethodClient* client,
-        /* [in] */ IInputContext* inputContext,
+        /* [in] */ IInputMethodClientStub* client,
+        /* [in] */ IInputContextStub* inputContext,
         /* [out] */ IWindowSession** session);
 
     CARAPI InputMethodClientHasFocus(
-        /* [in] */ IInputMethodClient* client,
+        /* [in] */ IInputMethodClientStub* client,
         /* [out] */ Boolean* result);
 
     // -------------------------------------------------------------

@@ -516,6 +516,9 @@ public:
         /* [in] */ Boolean hasFocus,
         /* [in] */ Boolean inTouchMode);
 
+    CARAPI_(void) DispatchKeyFromIme(
+        /* [in] */ IKeyEvent* event);
+
     CARAPI_(void) DispatchCloseSystemDialogs(
         /* [in] */ const String& reason);
 

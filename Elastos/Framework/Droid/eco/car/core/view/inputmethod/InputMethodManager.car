@@ -1,7 +1,7 @@
 
 module
 {
-    interface IInputMethodClient;
+    interface IInputMethodClientStub;
     interface IContext;
     interface IInputMethodInfo;
     interface IApartment;
@@ -14,7 +14,7 @@ module
     interface IKeyEvent;
     interface IInputMethodCallback;
     interface IResultReceiver;
-    interface IInputContext;
+    interface IInputContextStub;
 
 
     /**
@@ -82,11 +82,11 @@ module
     interface ILocalInputMethodManager {
         /** @hide */
         GetClient(
-            [out] IInputMethodClient** client);
+            [out] IInputMethodClientStub** client);
 
         /** @hide */
         GetInputContext(
-            [out] IInputContext** context);
+            [out] IInputContextStub** context);
 
         GetInputMethodList(
             [out] IObjectContainer** infos);

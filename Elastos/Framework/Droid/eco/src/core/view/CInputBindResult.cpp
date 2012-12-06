@@ -1,6 +1,24 @@
 
 #include "view/CInputBindResult.h"
 
+
+CInputBindResult::CInputBindResult()
+{
+
+}
+
+ECode CInputBindResult::constructor(
+	/* [in] */ IInputMethodSessionStub* _method,
+	/* [in] */ String _id,
+	/* [in] */ Int32 _sequence)
+{
+    mMethod = _method;
+    mId = _id;
+    mSequence = _sequence;
+
+    return NOERROR;
+}
+
 ECode CInputBindResult::ReadFromParcel(
     /* [in] */ IParcel *source)
 {
@@ -10,5 +28,17 @@ ECode CInputBindResult::ReadFromParcel(
 ECode CInputBindResult::WriteToParcel(
     /* [in] */ IParcel *dest)
 {
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CInputBindResult::constructor(
+	/* [in] */ IParcel* source)
+{
+	//TODO
+    // mMethod = IInputMethodSession.Stub.asInterface(source.readStrongBinder());
+    // mId = source.readString();
+    // mSequence = source.readInt();
+
+    assert(0);
     return E_NOT_IMPLEMENTED;
 }

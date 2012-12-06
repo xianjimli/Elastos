@@ -11,7 +11,7 @@ module
             [in] Int32 seq,
             [in] Boolean handled);
 
-//        SessionCreated(
-//            [in] IInputMethodSession* session);
+        SessionCreated(
+            [in] IInputMethodSessionStub* session);
     }
 }

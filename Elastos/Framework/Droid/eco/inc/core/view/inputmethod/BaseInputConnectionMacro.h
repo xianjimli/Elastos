@@ -64,7 +64,7 @@
         /* [out] */ Boolean* state);                                                   \
                                                                                        \
     CARAPI PerformPrivateCommand(                                                      \
-        /* [in] */ String action,                                                      \
+        /* [in] */ const String& action,                                               \
         /* [in] */ IBundle* data,                                                      \
         /* [out] */ Boolean* state);                                                   \
                                                                                        \
@@ -108,7 +108,7 @@
     ECode className::BeginBatchEdit(                                                   \
         /* [out] */ Boolean* state)                                                    \
     {                                                                                  \
-        VALIDATE_NOT_NULL(state);
+        VALIDATE_NOT_NULL(state);                                                      \
                                                                                        \
         *state = superClass::BeginBatchEdit();                                         \
         return NOERROR;                                                                \
@@ -256,7 +256,7 @@
     }                                                                                  \
                                                                                        \
     ECode className::PerformPrivateCommand(                                            \
-        /* [in] */ String action,                                                      \
+        /* [in] */ const String& action,                                               \
         /* [in] */ IBundle* data,                                                      \
         /* [out] */ Boolean* state)                                                    \
     {                                                                                  \

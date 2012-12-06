@@ -18,7 +18,7 @@ public:
     BASEINPUTCONNECTION_METHODS_DECL();
 
     CARAPI constructor(
-        /* [in] */ IInputMethodManager* mgr,
+        /* [in] */ ILocalInputMethodManager* mgr,
         /* [in] */ Boolean fullEditor);
 
     CARAPI constructor(

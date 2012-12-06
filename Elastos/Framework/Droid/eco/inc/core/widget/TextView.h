@@ -1592,8 +1592,8 @@ public:
 
     CARAPI_(Boolean) OnCheckIsTextEditor();
 
-    //virtual CARAPI_(InputConnection) OnCreateInputConnection(
-    //    /* [in] */ EditorInfo outAttrs);
+    virtual CARAPI_(IInputConnection*) OnCreateInputConnection(
+        /* [in] */ IEditorInfo* outAttrs);
 
     /**
      * If this TextView contains editable content, extract a portion of it

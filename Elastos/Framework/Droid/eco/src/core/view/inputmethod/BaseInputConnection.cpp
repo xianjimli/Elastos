@@ -8,8 +8,8 @@
 #include "view/CKeyEvent.h"
 #include "utils/ArrayUtils.h"
 #include "text/CSpannableStringBuilder.h"
-
-
+#include "view/inputmethod/CLocalInputMethodManager.h"
+#include "view/ViewRoot.h"
 
 
 BaseInputConnection::ComposingText::ComposingText()
@@ -61,7 +61,7 @@ BaseInputConnection::BaseInputConnection()
 {}
 
 BaseInputConnection::BaseInputConnection(
-    /* [in] */ IInputMethodManager* mgr,
+    /* [in] */ ILocalInputMethodManager* mgr,
     /* [in] */ Boolean fullEditor)
     : mIMM(mgr)
     , mDummyMode(!fullEditor)
@@ -477,7 +477,7 @@ Boolean BaseInputConnection::PerformEditorAction(
                 KeyEvent_FLAG_SOFT_KEYBOARD | KeyEvent_FLAG_KEEP_TOUCH_MODE
                 | KeyEvent_FLAG_EDITOR_ACTION, (IKeyEvent**)&event));
     SendKeyEvent(event);
-    RETURN TRUE;
+    return TRUE;
 }
 
 Boolean BaseInputConnection::PerformContextMenuAction(
@@ -573,21 +573,34 @@ Boolean BaseInputConnection::SetSelection(
 Boolean BaseInputConnection::SendKeyEvent(
     /* [in] */ IKeyEvent* event)
 {
-    assert(0);
+    {
+        Mutex::Autolock lock(((CLocalInputMethodManager*)mIMM.Get())->sStaticHandlerLock);
 
-    //TODO
-    // synchronized (mIMM.mH) {
-    //     Handler h = mTargetView != null ? mTargetView.getHandler() : null;
-    //     if (h == null) {
-    //         if (mIMM.mServedView != null) {
-    //             h = mIMM.mServedView.getHandler();
-    //         }
-    //     }
-    //     if (h != null) {
-    //         h.sendMessage(h.obtainMessage(ViewRoot.DISPATCH_KEY_FROM_IME,
-    //                 event));
-    //     }
-    // }
+        AutoPtr<IApartment> h;
+        if (mTargetView != NULL) {
+            mTargetView->GetHandler((IApartment**) &h);
+        }
+
+        if (h == NULL) {
+            if (((CLocalInputMethodManager*)mIMM.Get())->mServedView != NULL) {
+                ((CLocalInputMethodManager*)mIMM.Get())->mServedView->GetHandler((IApartment**) &h);
+            }
+        }
+
+        if (h != NULL) {
+            // h.sendMessage(h.obtainMessage(ViewRoot.DISPATCH_KEY_FROM_IME,
+            //         event));
+            void (STDCALL ViewRoot::*pHandlerFunc)(IKeyEvent*);
+            pHandlerFunc = &ViewRoot::DispatchKeyFromIme;
+
+            AutoPtr<IParcel> params;
+            CCallbackParcel::New((IParcel**)&params);
+            params->WriteInterfacePtr((IInterface*) event);
+
+            h->PostCppCallbackDelayed((Handle32)this, *(Handle32*)&pHandlerFunc,
+                    params, 0, 0);
+        }
+    }
 
     return FALSE;
 }
@@ -619,7 +632,9 @@ void BaseInputConnection::SendCurrentText()
                 mKeyCharacterMap = ElKeyCharacterMap::Load(ElKeyCharacterMap::BUILT_IN_KEYBOARD);
             }
             ArrayOf_<Char8, 4> chars;
-            content->GetChars(0, 1, &chars, 0);
+
+            assert(IGetChars::Probe(content) != NULL);
+            IGetChars::Probe(content)->GetChars(0, 1, &chars, 0);
             //todo: error
             Char16 tmpChars[1];
             tmpChars[0] = chars[0];
@@ -656,8 +671,8 @@ void BaseInputConnection::EnsureDefaultComposingSpans()
         if (mTargetView != NULL) {
             mTargetView->GetContext((IContext**)&context);
         }
-        else if (mIMM->mServedView != NULL) {
-            mIMM->mServedView->GetContext((IContext**)&context);
+        else if (((CLocalInputMethodManager*)mIMM.Get())->mServedView != NULL) {
+            ((CLocalInputMethodManager*)mIMM.Get())->mServedView->GetContext((IContext**)&context);
         }
         if (context != NULL) {
             AutoPtr<ITheme> theme;
@@ -719,7 +734,7 @@ void BaseInputConnection::ReplaceText(
     }
 
     if (composing) {
-        assert(text != NULL)
+        assert(text != NULL);
         AutoPtr<ISpannable> sp;
         if (ISpannable::Probe(text) == NULL) {
             CSpannableStringBuilder::New(text, (ISpannableStringBuilder**)&sp);
@@ -787,14 +802,16 @@ void BaseInputConnection::ReplaceText(
 }
 
 ECode BaseInputConnection::Init(
-    /* [in] */ IInputMethodManager* mgr,
+    /* [in] */ ILocalInputMethodManager* mgr,
     /* [in] */ Boolean fullEditor)
 {
     mIMM = mgr;
     mDummyMode = !fullEditor;
+
+    return NOERROR;
 }
 
-BaseInputConnection::Init(
+ECode BaseInputConnection::Init(
     /* [in] */ IView* targetView,
     /* [in] */ Boolean fullEditor)
 {
@@ -806,4 +823,6 @@ BaseInputConnection::Init(
     assert(context != NULL);
     context->GetSystemService(Context_INPUT_METHOD_SERVICE, (IInterface**)&mIMM);
     assert(mIMM != NULL);
+
+    return NOERROR;
 }

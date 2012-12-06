@@ -3088,11 +3088,11 @@ Boolean View::OnCheckIsTextEditor()
  *
  * @param outAttrs Fill in with attribute information about the connection.
  */
-//IInputConnection* View::OnCreateInputConnection(
-//    /* [in] */ IEditorInfo* outAttrs)
-//{
-//    return NULL;
-//}
+IInputConnection* View::OnCreateInputConnection(
+   /* [in] */ IEditorInfo* outAttrs)
+{
+   return NULL;
+}
 
 /**
  * Called by the {@link android.view.inputmethod.InputMethodManager}

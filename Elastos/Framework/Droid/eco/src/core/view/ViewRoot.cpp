@@ -699,8 +699,8 @@ IWindowSession* ViewRoot::GetWindowSession(
         AutoPtr<IWindowManagerEx> wm;
         sm->GetService(String("window"), (IInterface**)(IWindowManagerEx**)&wm);
 
-        IInputMethodClient* client = NULL; // imm.getClient()
-        IInputContext* ctx = NULL; // imm.getInputContext()
+        IInputMethodClientStub* client = NULL; // imm.getClient()
+        IInputContextStub* ctx = NULL; // imm.getInputContext()
 
         wm->OpenSession(client, ctx, (IWindowSession**)&sWindowSession);
 
@@ -4101,6 +4101,23 @@ void ViewRoot::WindowFocusChanged(
     params->WriteBoolean(inTouchMode);
 
     SendMessage(*(Handle32*)&pHandlerFunc, params);
+}
+
+void ViewRoot::DispatchKeyFromIme(
+    /* [in] */ IKeyEvent* event)
+{
+    Int32 flags = 0;
+    event->GetFlags(&flags);
+    if ((flags & KeyEvent_FLAG_FROM_SYSTEM) != 0) {
+        // The IME is trying to say this event is from the
+        // system!  Bad bad bad!
+        AutoPtr<IKeyEvent> badEvent;
+
+        CKeyEvent::ChangeFlags(event, flags &~ KeyEvent_FLAG_FROM_SYSTEM,
+                    (IKeyEvent**) &badEvent);
+    }
+
+    DeliverKeyEventToViewHierarchy(event, FALSE);
 }
 
 void ViewRoot::DispatchCloseSystemDialogs(

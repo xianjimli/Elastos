@@ -2,14 +2,15 @@
 module
 {
     interface IExtractedText;
+    interface ICharSequence;
 
-    /* oneway */ interface IInputContextCallback {
+    /* oneway */ interface IInputContextCallbackStub {
         SetTextBeforeCursor(
-            [in] ArrayOf<Char8> textBeforeCursor,
+            [in] ICharSequence* textBeforeCursor,
             [in] Int32 seq);
 
         SetTextAfterCursor(
-            [in] ArrayOf<Char8> textAfterCursor,
+            [in] ICharSequence* textAfterCursor,
             [in] Int32 seq);
 
         SetCursorCapsMode(
@@ -21,7 +22,7 @@ module
             [in] Int32 seq);
 
         SetSelectedText(
-            [in] ArrayOf<Char8> selectedText,
+            [in] ICharSequence* selectedText,
             [in] Int32 seq);
     }
 }
