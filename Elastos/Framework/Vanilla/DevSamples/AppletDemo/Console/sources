@@ -9,5 +9,5 @@ SOURCES += FooBarAppletConsole.cpp
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
 LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
-LIBRARIES += $(XDK_TARGETS)/Elastos.Frameworks.Vanilla.eco
-LIBRARIES += $(XDK_USER_LIB)/Elastos.Frameworks.Vanilla.Console.lib
+LIBRARIES += $(XDK_TARGETS)/Elastos.Framework.Vanilla.eco
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Framework.Vanilla.Console.lib

@@ -2,7 +2,7 @@
 # Copyright (c) 2000-2008,  Elastos, Inc.  All Rights Reserved.
 #==========================================================================
 
-TARGET_NAME= Elastos.Frameworks.Vanilla.Console
+TARGET_NAME= Elastos.Framework.Vanilla.Console
 TARGET_TYPE= lib
 
 EXPORT_LIBRARY= 1

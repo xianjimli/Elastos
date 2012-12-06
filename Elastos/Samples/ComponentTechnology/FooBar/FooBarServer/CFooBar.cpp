@@ -3,7 +3,7 @@
 //==========================================================================
 
 #include "CFooBar.h"
-#include <Elastos.Console.h>
+#include <Elastos.Framework.Vanilla>
 
 ECode CFooBar::Foo()
 {

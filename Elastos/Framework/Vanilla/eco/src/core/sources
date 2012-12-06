@@ -1,12 +1,11 @@
-
-TARGET_NAME= Elastos.Frameworks.Vanilla
+TARGET_NAME= Elastos.Framework.Vanilla
 TARGET_TYPE= eco
 
 INCLUDES += $(MAKEDIR)/../../inc/core
 
 IMPORTS = Elastos.Core.eco
 
-SOURCES = Elastos.Frameworks.Vanilla.car
+SOURCES = Elastos.Framework.Vanilla.car
 SOURCES += CApplet.cpp
 SOURCES += ConsoleApi.cpp
 

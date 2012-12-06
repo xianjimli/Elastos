@@ -1,0 +1,11 @@
+
+#ifndef __ELASTOS_FRAMEWORK_VANILLA__
+#define __ELASTOS_FRAMEWORK_VANILLA__
+
+#include <elastos.h>
+#include <ConsoleTypes.h>
+#include <CConsole.h>
+
+using namespace Elastos;
+
+#endif //__ELASTOS_FRAMEWORK_VANILLA__

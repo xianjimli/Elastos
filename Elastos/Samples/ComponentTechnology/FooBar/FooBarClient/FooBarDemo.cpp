@@ -59,7 +59,7 @@
 //
 
 #include "FooBarDemo.h"
-#include <Elastos.Console.h>
+#include <Elastos.Framework.Vanilla>
 
 using namespace Elastos;
 
