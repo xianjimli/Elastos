@@ -1,7 +1,7 @@
 
 #include "FooBarApplet.h"
 #include <elastos/AutoPtr.h>
-#include <Elastos.Frameworks.Vanilla.Console.h>
+#include <Elastos.Framework.Vanilla>
 
 ECode OnQuittedEvent(PVoid userData, PInterface sender)
 {

@@ -2,7 +2,7 @@
 // Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.
 //==========================================================================
 
-#include <Elastos.Frameworks.Vanilla.Console.h>
+#include <Elastos.Framework.Vanilla>
 #include "CFooBar.h"
 #include <stdio.h>
 
