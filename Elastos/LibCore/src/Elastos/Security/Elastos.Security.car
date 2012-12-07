@@ -10,7 +10,8 @@ module
     merge("../../../car/Elastos/Security/IKey.car");
     merge("../../../car/Elastos/Security/IPermission.car");
     merge("../../../car/Elastos/Security/IPermissionCollection.car");
-    merge("../../../car/Elastos/Security/IPolicy.car");
+    merge("../../../car/Elastos/Security/IBasicPermission.car");
+/*    merge("../../../car/Elastos/Security/IPolicy.car");*/
     merge("../../../car/Elastos/Security/IPrincipal.car");
     merge("../../../car/Elastos/Security/IPrivateKey.car");
     merge("../../../car/Elastos/Security/IProtectionDomain.car");
@@ -20,7 +21,23 @@ module
     merge("../../../car/Elastos/Security/Cert/ICertificate.car");
     merge("../../../car/Elastos/Security/Cert/ICertPath.car");
 
-    class CDummy {
-        interface IObjectContainer;
+    class CProvider {
+        /**
+         * Constructs a new instance of {@code Provider} with its name, version and
+         * description.
+         *
+         * @param name
+         *            the name of the provider.
+         * @param version
+         *            the version of the provider.
+         * @param info
+         *            a description of the provider.
+         */
+        constructor(
+            [in] String name,
+            [in] String pversion,
+            [in] String info);
+
+        interface IProvider;
     }
 }

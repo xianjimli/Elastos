@@ -1,6 +1,192 @@
 
 module
 {
+    // 2XX: generally "OK"
+    // 3XX: relocation/redirect
+    // 4XX: client error
+    // 5XX: server error
+    /**
+     * Numeric status code, 202: Accepted
+     */
+    const HTTP_ACCEPTED = 202;
+
+    /**
+     * Numeric status code, 502: Bad Gateway
+     */
+    const HTTP_BAD_GATEWAY = 502;
+
+    /**
+     * Numeric status code, 405: Bad Method
+     */
+    const HTTP_BAD_METHOD = 405;
+
+    /**
+     * Numeric status code, 400: Bad Request
+     */
+    const HTTP_BAD_REQUEST = 400;
+
+    /**
+     * Numeric status code, 408: Client Timeout
+     */
+    const HTTP_CLIENT_TIMEOUT = 408;
+
+    /**
+     * Numeric status code, 409: Conflict
+     */
+    const HTTP_CONFLICT = 409;
+
+    /**
+     * Numeric status code, 201: Created
+     */
+    const HTTP_CREATED = 201;
+
+    /**
+     * Numeric status code, 413: Entity too large
+     */
+    const HTTP_ENTITY_TOO_LARGE = 413;
+
+    /**
+     * Numeric status code, 403: Forbidden
+     */
+    const HTTP_FORBIDDEN = 403;
+
+    /**
+     * Numeric status code, 504: Gateway timeout
+     */
+    const HTTP_GATEWAY_TIMEOUT = 504;
+
+    /**
+     * Numeric status code, 410: Gone
+     */
+    const HTTP_GONE = 410;
+
+    /**
+     * Numeric status code, 500: Internal error
+     */
+    const HTTP_INTERNAL_ERROR = 500;
+
+    /**
+     * Numeric status code, 411: Length required
+     */
+    const HTTP_LENGTH_REQUIRED = 411;
+
+    /**
+     * Numeric status code, 301 Moved permanently
+     */
+    const HTTP_MOVED_PERM = 301;
+
+    /**
+     * Numeric status code, 302: Moved temporarily
+     */
+    const HTTP_MOVED_TEMP = 302;
+
+    /**
+     * Numeric status code, 300: Multiple choices
+     */
+    const HTTP_MULT_CHOICE = 300;
+
+    /**
+     * Numeric status code, 204: No content
+     */
+    const HTTP_NO_CONTENT = 204;
+
+    /**
+     * Numeric status code, 406: Not acceptable
+     */
+    const HTTP_NOT_ACCEPTABLE = 406;
+
+    /**
+     * Numeric status code, 203: Not authoritative
+     */
+    const HTTP_NOT_AUTHORITATIVE = 203;
+
+    /**
+     * Numeric status code, 404: Not found
+     */
+    const HTTP_NOT_FOUND = 404;
+
+    /**
+     * Numeric status code, 501: Not implemented
+     */
+    const HTTP_NOT_IMPLEMENTED = 501;
+
+    /**
+     * Numeric status code, 304: Not modified
+     */
+    const HTTP_NOT_MODIFIED = 304;
+
+    /**
+     * Numeric status code, 200: OK
+     */
+    const HTTP_OK = 200;
+
+    /**
+     * Numeric status code, 206: Partial
+     */
+    const HTTP_PARTIAL = 206;
+
+    /**
+     * Numeric status code, 402: Payment required
+     */
+    const HTTP_PAYMENT_REQUIRED = 402;
+
+    /**
+     * Numeric status code, 412: Precondition failed
+     */
+    const HTTP_PRECON_FAILED = 412;
+
+    /**
+     * Numeric status code, 407: Proxy authentication required
+     */
+    const HTTP_PROXY_AUTH = 407;
+
+    /**
+     * Numeric status code, 414: Request too long
+     */
+    const HTTP_REQ_TOO_LONG = 414;
+
+    /**
+     * Numeric status code, 205: Reset
+     */
+    const HTTP_RESET = 205;
+
+    /**
+     * Numeric status code, 303: See other
+     */
+    const HTTP_SEE_OTHER = 303;
+
+    /**
+     * Numeric status code, 500: Internal error
+     *
+     * @deprecated Use {@link #HTTP_INTERNAL_ERROR}
+     */
+    //@Deprecated
+    const HTTP_SERVER_ERROR = 500;
+
+    /**
+     * Numeric status code, 305: Use proxy
+     */
+    const HTTP_USE_PROXY = 305;
+
+    /**
+     * Numeric status code, 401: Unauthorized
+     */
+    const HTTP_UNAUTHORIZED = 401;
+
+    /**
+     * Numeric status code, 415: Unsupported type
+     */
+    const HTTP_UNSUPPORTED_TYPE = 415;
+
+    /**
+     * Numeric status code, 503: Unavailable
+     */
+    const HTTP_UNAVAILABLE = 503;
+
+    /**
+     * Numeric status code, 505: Version not supported
+     */
+    const HTTP_VERSION = 505;
 
     interface IHttpURLConnection extends IURLConnection {
         /**

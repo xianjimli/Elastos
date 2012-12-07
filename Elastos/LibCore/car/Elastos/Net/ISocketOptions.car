@@ -99,6 +99,14 @@ module
      */
     const SocketOption_SO_OOBINLINE = 4099;
 
+    /**
+     * This option can be used to set one specific interface on a multihomed
+     * host on which incoming connections are accepted. It's only available on
+     * server-side sockets. This option supports setting outgoing interfaces
+     * with either IPv4 or IPv6 addresses.
+     */
+    const SocketOption_IP_MULTICAST_IF2 = 31;
+
 
     /**
      * Defines an interface for socket implementations to get and set socket

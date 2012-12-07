@@ -1,0 +1,19 @@
+
+module
+{
+    /**
+	 * This interface defines a factory for socket implementations.
+	 */
+
+    interface ISocketImpl;
+
+    interface ISocketImplFactory {
+        /**
+	     * Creates a new {@code SocketImpl} instance.
+	     *
+	     * @return the created {@code SocketImpl} instance.
+	     */
+	    CreateSocketImpl(
+	        [out] ISocketImpl** createdInstance);
+    }
+}

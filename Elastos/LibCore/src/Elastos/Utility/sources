@@ -8,6 +8,7 @@ TARGET_TYPE = eco
 SPECIAL_TARGET= cpfile
 
 INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Utility
+INCLUDES += $(MAKEDIR)/../../../inc/Elastos/common;
 
 SOURCES = Elastos.Utility.car
 SOURCES += listnode.cpp
@@ -18,6 +19,7 @@ SOURCES += linknode.cpp
 SOURCES += container.cpp
 SOURCES += CObjectEnumerator.cpp
 SOURCES += CObjectContainer.cpp
+#SOURCES += CObjectStringMap.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 ifeq "$(XDK_TARGET_PLATFORM)" "win32"

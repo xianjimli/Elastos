@@ -1,0 +1,15 @@
+
+module
+{
+	interface IDatagramSocketImpl;
+
+    interface IDatagramSocketImplFactory {
+	    /**
+	     * Creates a new {@code DatagramSocketImpl} instance.
+	     *
+	     * @return the new datagram socket implementation.
+	     */
+	    CreateDatagramSocketImpl(
+	    	[out] IDatagramSocketImpl** impl);
+    }
+}

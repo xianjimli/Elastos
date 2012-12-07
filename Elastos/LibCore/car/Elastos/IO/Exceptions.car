@@ -34,4 +34,5 @@ module
     const E_BUFFER_OVER_FLOW_EXCEPTION                  = 0xA2180000;
     const E_INVALID_MARK_EXCEPTION                      = 0xA2190000;
     const E_READ_ONLY_BUFFER_EXCEPTION                  = 0xA21A0000;
+    const E_UNSUPPORTED_ENCODING_EXCEPTION              = 0xA21B0000;
 }

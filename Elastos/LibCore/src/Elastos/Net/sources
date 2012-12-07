@@ -3,9 +3,14 @@ TARGET_TYPE= eco
 
 INCLUDES += $(MAKEDIR)/../../../inc/Elastos/common;
 INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Net;
+INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Security;
+INCLUDES += $(MAKEDIR)/../../../inc/Elastos/IO;
+
+VPATH := $(MAKEDIR)/../Security
 
 IMPORTS = Elastos.Core.eco
-#IMPORTS += Elastos.IO.eco
+IMPORTS += Elastos.IO.eco
+IMPORTS += Elastos.Security.eco
 IMPORTS += Droid.System.eco
 IMPORTS += Com.Kortide.Platform.eco
 
@@ -15,6 +20,53 @@ SOURCES += NetworkUtilities.cpp
 SOURCES += InetAddress.cpp
 SOURCES += CInet4Address.cpp
 SOURCES += CInet6Address.cpp
+SOURCES += URIEncoderDecoder.cpp
+SOURCES += CURI.cpp
+SOURCES += CURL.cpp
+SOURCES += CSocket.cpp
+SOURCES += CInetSocketAddress.cpp
+SOURCES += DefaultFileNameMap.cpp
+SOURCES += URLConnection.cpp
+SOURCES += DatagramSocket.cpp
+SOURCES += CDatagramSocket.cpp
+SOURCES += CDatagramPacket.cpp
+SOURCES += HttpURLConnection.cpp
+SOURCES += CHttpCookie.cpp
+SOURCES += SocketPermissionCollection.cpp
+SOURCES += CMulticastSocket.cpp
+#SOURCES += CSocketPermission.cpp
+SOURCES += NetworkInterface.cpp
+SOURCES += CInterfaceAddress.cpp
+SOURCES += ServerSocket.cpp
+SOURCES += CServerSocket.cpp
+SOURCES += URLStreamHandler.cpp
+SOURCES += Authenticator.cpp
+SOURCES += CNetPermission.cpp
+SOURCES += ProxySelector.cpp
+SOURCES += ProxySelectorImpl.cpp
+SOURCES += CProxy.cpp
+SOURCES += SocketImpl.cpp
+SOURCES += DatagramSocketImpl.cpp
+SOURCES += CookieHandler.cpp
+SOURCES += CCookieManager.cpp
+SOURCES += CookieStoreImpl.cpp
+SOURCES += CCookiePolicyHelper.cpp
+SOURCES += CPAcceptAll.cpp
+SOURCES += CPAcceptNone.cpp
+SOURCES += CPAcceptOriginalServer.cpp
+SOURCES += JarURLConnection.cpp
+SOURCES += URLDecoder.cpp
+SOURCES += URLEncoder.cpp
+SOURCES += ResponseCache.cpp
+SOURCES += CIDN.cpp
+SOURCES += ContentHandler.cpp
+SOURCES += CPasswordAuthentication.cpp
+
+SOURCES += netext.cpp
+
+SOURCES += Permission.cpp
+SOURCES += PermissionCollection.cpp
+SOURCES += BasicPermission.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib

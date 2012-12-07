@@ -1,6 +1,12 @@
 
 module
 {
+    const URI_UNRESERVED = "_-!.~\'()*";
+    const URI_PUNCTUATION = ",;:$&+=";
+    const URI_RESERVED = ",;:$&+=?/[]@";
+    const URI_SOME_LEGAL = "_-!.~\'()*,;:$&+=";
+    const URI_ALL_LEGAL = "_-!.~\'()*,;:$&+=?/[]@";
+
     interface IURI {
         /**
          * Compares this URI with the given argument {@code uri}. This method will
@@ -127,7 +133,7 @@ module
          * @return the scheme part or {@code null} if undefined.
          */
         GetScheme(
-            [out] String* cheme);
+            [out] String* scheme);
 
         /**
          * Gets the decoded scheme-specific part of this URI.
@@ -232,5 +238,16 @@ module
          */
         ToASCIIString(
             [out] String* str);
+
+        /**
+         * Converts this URI instance to a URL.
+         *
+         * @return the created URL representing the same resource as this URI.
+         * @throws MalformedURLException
+         *             if an error occurs while creating the URL or no protocol
+         *             handler could be found.
+         */
+        ToURL(
+            [out] IURL** url);
     }
 }

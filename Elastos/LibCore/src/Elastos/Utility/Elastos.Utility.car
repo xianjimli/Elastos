@@ -4,8 +4,13 @@ module
     merge("../../../car/Elastos/Utility/IComparator.car");
     merge("../../../car/Elastos/Utility/IDate.car");
     merge("../../../car/Elastos/Utility/ILocale.car");
+    //merge("../../../car/Elastos/Utility/IObjectStringMap.car");
 
     class CObjectContainer {
         interface IObjectContainer;
     }
+
+    //class CObjectStringMap {
+    //    interface IObjectStringMap;
+   // }
 }

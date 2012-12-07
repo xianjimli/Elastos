@@ -23,7 +23,7 @@ module
         /**
          * Returns the {@code Domain} attribute.
          */
-        GetDomain(
+        GetDomainAttr(
             [out] String* theDomain);
 
         /**

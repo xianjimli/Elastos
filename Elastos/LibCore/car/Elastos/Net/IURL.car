@@ -6,7 +6,6 @@ module
     interface IURI;
     interface IProxy;
 
-
     interface IURL {
         /**
          * Returns whether this URL refers to the same resource as the given
