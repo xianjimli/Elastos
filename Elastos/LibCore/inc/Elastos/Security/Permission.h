@@ -2,8 +2,11 @@
 #ifndef __PERMISSION_H__
 #define __PERMISSION_H__
 
-#include <elastos.h>
-#include "AutoString.h"
+#ifdef _ELASTOSSECURITY_
+#include "Elastos.Security_server.h"
+#else
+#include "Elastos.Security.h"
+#endif
 
 using namespace Elastos;
 
@@ -16,46 +19,7 @@ using namespace Elastos;
 class Permission
 {
 public:
-    /**
-     * Constructs a new instance of {@code Permission} with its name.
-     *
-     * @param name
-     *            the name of the permission.
-     */
-    Permission(
-        /* [in] */ const String& name);
-
     ~Permission();
-
-    /**
-     * Compares the specified object with this {@code Permission} for equality
-     * and returns {@code true} if the specified object is equal, {@code false}
-     * otherwise.
-     * <p>
-     * The {@link #implies(Permission)} method should be used for making access
-     * control checks.
-     *
-     * @param obj
-     *            object to be compared for equality with this {@code
-     *            Permission}.
-     * @return {@code true} if the specified object is equal to this {@code
-     *         Permission}, otherwise {@code false}.
-     */
-    virtual CARAPI Equals(
-        /* [in] */ IInterface* obj,
-        /* [out] */ Boolean* result) = 0;
-
-    /**
-     * Returns the hash code value for this {@code Permission}. Returns the same
-     * hash code for {@code Permission}s that are equal to each other as
-     * required by the general contract of {@link Object#hashCode}.
-     *
-     * @return the hash code value for this {@code Permission}.
-     * @see Object#equals(Object)
-     * @see Permission#equals(Object)
-     */
-    virtual CARAPI GetHashCode(
-        /* [out] */ Int32* hashCode) = 0;
 
     /**
      * Returns a comma separated string identifying the actions associated with
@@ -126,9 +90,8 @@ public:
      * @return an empty {@link PermissionCollection} or {@code null} if any
      *         permission collection can be used.
      */
-//    public PermissionCollection newPermissionCollection() {
-//        return null;
-//    }
+    virtual CARAPI NewPermissionCollection(
+        /* [out] */ IPermissionCollection** permissionCollection);
 
     /**
      * Returns a string containing a concise, human-readable description of the
@@ -144,10 +107,22 @@ public:
 //        return "(" + getClass().getName() + " " + getName() + actions + ")";
 //    }
 
-private:
-    static const Int64 sSerialVersionUID = -5636570222231596674LL;
+protected:
+    Permission();
 
-    AutoString mName;
-}
+    /**
+     * Constructs a new instance of {@code Permission} with its name.
+     *
+     * @param name
+     *            the name of the permission.
+     */
+    CARAPI_(void) Init(
+        /* [in] */ const String& name);
+
+private:
+    static const Int64 sSerialVersionUID;
+
+    String mName;
+};
 
 #endif //__PERMISSION_H__

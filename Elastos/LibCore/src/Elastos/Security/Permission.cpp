@@ -1,22 +1,36 @@
 
+#include "cmdef.h"
 #include "Permission.h"
+#include <Com.Kortide.Platform.h>
 
 const Int64 Permission::sSerialVersionUID = -5636570222231596674LL;
 
-Permission(
-    /* [in] */ const String& name)
-    : mName(AutoString::Duplicate(name))
+Permission::Permission()
 {}
 
-~Permission()
+void Permission::Init(
+    /* [in] */ const String& name)
+{
+	mName = name;
+}
+
+Permission::~Permission()
 {}
 
 ECode Permission::GetName(
     /* [out] */ String* name)
 {
     assert(name != NULL);
-    *name = String::Dupliate(mName);
+    *name = mName;
     return NOERROR;
+}
+
+ECode Permission::NewPermissionCollection(
+        /* [out] */ IPermissionCollection** permissionCollection)
+{
+	VALIDATE_NOT_NULL(permissionCollection);
+	*permissionCollection = NULL;
+	return NOERROR;
 }
 
 ECode Permission::CheckGuard(

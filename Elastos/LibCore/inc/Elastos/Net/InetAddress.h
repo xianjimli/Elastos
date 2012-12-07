@@ -2,7 +2,6 @@
 #ifndef __INETADDRESS_H__
 #define __INETADDRESS_H__
 
-
 #include "Elastos.Net_server.h"
 #include "AddressCache.h"
 #include <Com.Kortide.Platform.h>
@@ -109,8 +108,11 @@ extern "C" const InterfaceID EIID_InetAddress;
  * @see Inet4Address
  * @see Inet6Address
  */
+class CURI;
+
 class InetAddress
 {
+    friend class CURI;
 public:
     /**
      * Constructs an {@code InetAddress}.
@@ -165,6 +167,8 @@ public:
     static CARAPI GetAllByName(
         /* [in] */ const String& host,
         /* [out, callee] */ ArrayOf<IInetAddress*>** addresses);
+
+    static CARAPI_(Boolean) PreferIPv6Addresses();
 
     /**
      * Returns the address of a host according to the given host string name
@@ -270,6 +274,11 @@ public:
     virtual CARAPI IsMulticastAddress(
         /* [out] */ Boolean* isMulticastAddress);
 
+    static CARAPI GetHostNameInternal(
+        /* [in] */ const String& host,
+        /* [in] */ Boolean isCheck,
+        /* [out] */ String* hostName);
+
     /**
      * Returns a string containing a concise, human-readable description of this
      * IP address.
@@ -278,6 +287,12 @@ public:
      */
 //    @Override
 //    public String toString()
+
+     /**
+     * Returns true if the string is a host name, false if it is an IP Address.
+     */
+    static CARAPI_(Boolean) IsHostName(
+        /* [in] */ const String& value);
 
     /**
      * Returns whether this address is a loopback address or not. This
@@ -532,8 +547,6 @@ protected:
         /* [in] */ const String& ipString,
         /* [out, callee] */ ArrayOf<Byte>** address);
 
-    static CARAPI_(Boolean) PreferIPv6Addresses();
-
     /**
      * Query the IP stack for the host address. The host is in address form.
      *
@@ -545,17 +558,6 @@ protected:
     static CARAPI GetHostByAddrImpl(
         /* [in] */ const ArrayOf<Byte>& addr,
         /* [out] */ IInetAddress** address);
-
-    static CARAPI GetHostNameInternal(
-        /* [in] */ const String& host,
-        /* [in] */ Boolean isCheck,
-        /* [out] */ String* hostName);
-
-    /**
-     * Returns true if the string is a host name, false if it is an IP Address.
-     */
-    static CARAPI_(Boolean) IsHostName(
-        /* [in] */ const String& value);
 
     /**
      * Returns the {@code InetAddress} corresponding to the array of bytes. In
@@ -678,7 +680,7 @@ private:
 
 //    private void readObject(ObjectInputStream stream)
 
-protected:
+public:
     String mHostName;
     Int32 mFamily;
     ArrayOf<Byte>* mIpAddress;

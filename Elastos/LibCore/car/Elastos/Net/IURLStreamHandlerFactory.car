@@ -1,0 +1,19 @@
+
+module
+{
+    interface IURLStreamHandler;
+
+    interface IURLStreamHandlerFactory {
+        /**
+         * Creates a new {@code URLStreamHandler} instance for the given {@code
+         * protocol}.
+         *
+         * @param protocol
+         *            the protocol for which a handler is needed.
+         * @return the created handler.
+         */
+        CreateURLStreamHandler(
+            [in] String protocol,
+            [out] IURLStreamHandler** handler);
+    }
+}

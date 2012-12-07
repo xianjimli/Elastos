@@ -4,7 +4,6 @@
 
 #include "_CInet4Address.h"
 #include "InetAddress.h"
-#include <elastos/AutoPtr.h>
 
 CarClass(CInet4Address), public InetAddress
 {

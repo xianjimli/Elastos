@@ -1,0 +1,13 @@
+
+module
+{
+
+    interface IFileNameMap {
+    	/**
+	     * Returns the MIME type (such as "text/plain") for the given filename, or null.
+	     */
+	    GetContentTypeFor(
+	        [in] String filename,
+	        [out] String* type);
+    }
+}

@@ -3,6 +3,9 @@ module
 {
     interface IInterfaceAddress;
 
+    const NetworkInterface_NO_INTERFACE_INDEX = 0;
+    const NetworkInterface_UNSET_INTERFACE_INDEX = -1;
+
     interface INetworkInterface {
         /**
          * Gets the name associated with this network interface.
