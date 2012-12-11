@@ -1,5 +1,9 @@
 #include "database/AbstractCursor.h"
-#include "stdio.h"
+#include <Logger.h>
+
+
+using namespace Elastos::Utility::Logging;
+
 const String AbstractCursor::TAG = String("Cursor");
 AbstractCursor::AbstractCursor()
 {
@@ -101,14 +105,11 @@ ECode AbstractCursor::CopyStringToBuffer(
         /* [in] */ Int32 columnIndex,
         /* [in] */ CharArrayBuffer* buffer)
 {
-//    String result = FromInt32(columnIndex);
-    char str[12];
-    sprintf(str, "%d", columnIndex);
-    String *result = new String(str, strlen(str));
-    if (*result != NULL) {
+    String result = String::FromInt32(columnIndex);
+    if (!result.IsNull()) {
         ArrayOf<Char8>* data = buffer->data;
-        char* cstr = (char*)result;
-        if (data == NULL || data->GetLength() < (Int32)result->GetLength()) {
+        char* cstr = (char*)&result;
+        if (data == NULL || data->GetLength() < (Int32)result.GetLength()) {
             buffer->data = ArrayOf<Char8>::Alloc(cstr, strlen(cstr));
         } else {
             for(Int32 i = 0; i < (Int32)strlen(cstr); i++) {
@@ -116,7 +117,7 @@ ECode AbstractCursor::CopyStringToBuffer(
                 cstr++;
             }
         }
-        buffer->sizeCopied = (Int32)result->GetLength();
+        buffer->sizeCopied = (Int32)result.GetLength();
     }
     return NOERROR;
 }
@@ -179,7 +180,8 @@ ECode AbstractCursor::FillWindow(
     Int32 cnt;
     FAIL_RETURN(GetCount(&cnt));
     if(position < 0 || position > cnt) {
-        return NULL;
+        window = NULL;
+        return NOERROR;
     }
     FAIL_RETURN(window->AcquireReference());
 
@@ -195,13 +197,10 @@ ECode AbstractCursor::FillWindow(
     FAIL_RETURN(window->AllocRow(&r3));
     while(r2 && r3) {
         for(Int32 i = 0; i < columnNum; i++) {
-//            String field = FromInt32(i);
-            char str[12];
-            sprintf(str, "%d", i);
-            String *field = new String(str, strlen(str));;
-            if(*field != NULL) {
+            String field = String::FromInt32(i);
+            if(!field.IsNull()) {
                 Boolean rst;
-                FAIL_RETURN(window->PutString(*field, mPos, i, &rst));
+                FAIL_RETURN(window->PutString(field, mPos, i, &rst));
                 if(!rst) {
                     FAIL_RETURN(window->FreeLastRow());
                     break;
@@ -332,11 +331,14 @@ ECode AbstractCursor::GetColumnIndex(
             return NOERROR;
         }
     }
-//    if (Config.LOGV) {
-//        if (getCount() > 0) {
-//            Log.w("AbstractCursor", "Unknown column " + columnName);
-//        }
-//    }
+    /*
+    if (Config::LOGV) {
+        Int32 count;
+        GetCount(&count);
+        if (count > 0) {
+            Logger::W("AbstractCursor", "Unknown column " + columnName);
+        }
+    }*/
     *index = -1;
     return NOERROR;
 }

@@ -10,22 +10,32 @@ module
     merge("database/sqlite/ISQLiteDatabase.car");
     merge("database/sqlite/ISQLiteContentHelper.car");
     merge("database/sqlite/ISQLiteDebug.car");
- //   merge("database/sqlite/ISQLiteDirectCursorDriver.car");
+    //merge("database/sqlite/ISQLiteDirectCursorDriver.car");
     merge("database/sqlite/ISQLiteOpenHelper.car");
     merge("database/sqlite/ISQLiteQueryBuilder.car");
     merge("database/sqlite/ISQLiteTransactionListener.car");
     merge("database/sqlite/ISQLiteWrapper.car");
     merge("database/CharArrayBuffer.car");
-    merge("database/IContentObserver.car");
-    merge("database/ContentObserver.car");
+    merge("database/Cursor.car");
     merge("database/DataSetObserver.car");
+    merge("database/ContentObserver.car");
+    merge("database/IContentObserver.car");
     merge("database/Observable.car");
-    merge("database/cursor.car");
-    merge("database/CrossProcessCursor.car");
+    merge("database/DataSetObservable.car");
+    merge("database/ContentObservable.car");
+    merge("database/CursorWrapper.car");
     merge("database/CursorWindow.car");
+    merge("database/CursorJoiner.car");
     merge("database/IBulkCursor.car");
+    merge("database/BulkCursorNative.car");
+    merge("database/BulkCursorProxy.car");
+    merge("database/CrossProcessCursor.car");
+    merge("database/AbstractCursor.car");
+    merge("database/AbstractWindowedCursor.car");
+    merge("database/MergeCursor.car");
     merge("database/MatrixCursor.car");
     merge("database/BulkCursorToCursorAdaptor.car");
+    merge("database/CursorToBulkCursorAdaptor.car");
     merge("database/sqlite/ISQLiteCursor.car");
     
 
@@ -157,8 +167,125 @@ module
 
         interface ISQLiteWrapper;
     }
-    
-    
+
+    class CCharArrayBuffer
+    {
+        constructor();
+
+        constructor(
+            [in] Int32 size);
+
+        constructor(
+            [in] ArrayOf<Char8> buf);
+
+        interface ICharArrayBuffer;
+    }
+
+    class CDataSetObservable
+    {
+        constructor();
+
+        interface IDataSetObservable;
+    }
+
+    class CContentObservable
+    {
+        constructor();
+
+        interface IContentObservable;
+    }
+
+    class CCursorWrapper
+    {
+        constructor();
+
+        constructor(
+            [in] ICursor* cursor);
+
+        interface ICursorWrapper;
+
+        interface ICursor;
+    }
+
+    class CCursorWindow
+    {
+        constructor();
+
+        constructor(
+            [in] Boolean localWindow);
+
+        interface ICursorWindow;
+
+        interface IParcelable;
+    }
+
+    class CCursorJoiner
+    {
+        constructor();
+
+        constructor(
+            [in] ICursor* cursorLeft,
+            [in] ArrayOf<String> columnNamesLeft,
+            [in] ICursor* cursorRight,
+            [in] ArrayOf<String> columnNamesRight);
+
+        interface ICursorJoiner;
+    }
+
+    class CBulkCursorProxy
+    {
+        constructor();
+
+        constructor(
+            [in] IBinder* remote);
+
+        interface IBulkCursorProxy;
+
+        interface IBulkCursor;
+    }
+
+    class CMergeCursor
+    {
+        constructor();
+
+        constructor(
+            [in] ArrayOf<ICursor*> cursors);
+
+        interface IMergeCursor;
+    }
+
+    class CMatrixCursor
+    {
+        constructor();
+
+        constructor(
+            [in] ArrayOf<String> columnNames,
+            [in] Int32 initialCapacity);
+
+        constructor(
+            [in] ArrayOf<String> columnNames);
+
+        interface IMatrixCursor;
+    }
+
+    class CBulkCursorToCursorAdaptor
+    {
+        interface IBulkCursorToCursorAdaptor;
+    }
+
+    class CCursorToBulkCursorAdaptor
+    {
+        constructor(
+            [in] ICursor* cursor, 
+            [in] IContentObserver* observer,
+            [in] String providerName,
+            [in] Boolean allowWrite,
+            [in] ICursorWindow* window);
+
+        interface ICursorToBulkCursorAdaptor;
+
+        interface IBulkCursor;
+    }    
 
     class CSQLiteCursor {
         interface ISQLiteCursor;

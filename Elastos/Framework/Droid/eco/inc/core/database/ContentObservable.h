@@ -7,6 +7,10 @@
 class ContentObservable : public Observable
 {
 public:
+    ContentObservable();
+
+    virtual ~ContentObservable();
+
     CARAPI RegisterObserver(
         /* [in] */ ILocalContentObserver* observer);
 

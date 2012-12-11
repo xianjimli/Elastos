@@ -4,6 +4,13 @@ module
     interface ICursor;
     interface ICursorWindow;
 
+    interface ICharArrayBuffer;
+    interface ILocalContentObserver;
+    interface IDataSetObserver;
+    interface IContentResolver;
+    interface IUri;
+    interface IBundle;
+
     interface ICrossProcessCursor extends ICursor
     {
         /**

@@ -16,8 +16,8 @@ class MergeCursor : public AbstractCursor
 public:
     MergeCursor();
 
-    MergeCursor(
-        /* [in] */ ArrayOf<AutoPtr<ICursor> >* cursors);
+    CARAPI Init(
+        /* [in] */ const ArrayOf<ICursor*> & cursors);
 
     ~MergeCursor();
 
@@ -83,10 +83,10 @@ public:
     CARAPI Close();
 
     CARAPI RegisterContentObserver(
-        /* [in] */ IContentObserver* observer);
+        /* [in] */ ILocalContentObserver* observer);
 
     CARAPI UnregisterContentObserver(
-        /* [in] */ IContentObserver* observer);
+        /* [in] */ ILocalContentObserver* observer);
 
     CARAPI RegisterDataSetObserver(
         /* [in] */ IDataSetObserver* observer);
@@ -118,6 +118,6 @@ private:
 
     AutoPtr<ICursor> mCursor;
 
-    ArrayOf<AutoPtr<ICursor> >* mCursors;
+    ArrayOf<ICursor* >* mCursors;
 };
 #endif // __MERGECURSOR_H__

@@ -1,0 +1,10 @@
+module
+{
+    interface ICursorJoiner
+    {
+        HasNext(
+            [out] Boolean* rst);
+
+        Remove();
+    }
+}

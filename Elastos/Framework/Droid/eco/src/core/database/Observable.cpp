@@ -105,3 +105,13 @@ ECode Observable::UnregisterAll()
 
     return NOERROR;
 }
+
+Observable::Observable()
+{
+
+}
+
+Observable::~Observable()
+{
+    
+}

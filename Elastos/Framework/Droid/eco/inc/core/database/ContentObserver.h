@@ -11,8 +11,65 @@
 using namespace Elastos::Core::Threading;
 class ContentObserver
 {
+/*    private final class NotificationRunnable implements Runnable {
+
+        private boolean mSelf;
+
+        public NotificationRunnable(boolean self) {
+            mSelf = self;
+        }
+
+        public void run() {
+            ContentObserver.this.onChange(mSelf);
+        }
+    }
+
+    private static final class Transport extends IContentObserver.Stub {
+        ContentObserver mContentObserver;
+
+        public Transport(ContentObserver contentObserver) {
+            mContentObserver = contentObserver;
+        }
+
+        public boolean deliverSelfNotifications() {
+            ContentObserver contentObserver = mContentObserver;
+            if (contentObserver != null) {
+                return contentObserver.deliverSelfNotifications();
+            }
+            return false;
+        }
+
+        public void onChange(boolean selfChange) {
+            ContentObserver contentObserver = mContentObserver;
+            if (contentObserver != null) {
+                contentObserver.dispatchChange(selfChange);
+            }
+        }
+
+        public void releaseContentObserver() {
+            mContentObserver = null;
+        }
+    }*/
+
 public:
     ContentObserver();
+
+    /**
+     * onChange() will happen on the provider Handler.
+     *
+     * @param handler The handler to run {@link #onChange} on.
+     */
+/*    public ContentObserver(Handler handler) {
+        mHandler = handler;
+    }*/
+
+    ~ContentObserver();
+
+    virtual CARAPI GetContentObserver(
+        /* [out] */ IContentObserver** observer);
+
+    virtual CARAPI ReleaseContentObserver(
+        /* [out] */ IContentObserver** oldObserver);
 
     virtual CARAPI DeliverSelfNotifications(
         /* [out] */ Boolean* rst);
@@ -24,6 +81,16 @@ public:
         /* [in] */ Boolean selfChange);
 private:
 //    private Transport mTransport;
-    Mutex lock;
+
+    // Protects mTransport
+//    private Object lock = new Object();
+    Mutex mTransportLock;
+
+//    /* package */ Handler mHandler;
+
+
+
+
+
 };
 #endif //__CONTENTOBSERVER_H__

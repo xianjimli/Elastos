@@ -1,8 +1,8 @@
 #include "database/BulkCursorToCursorAdaptor.h"
-#include "database/CursorWindow.h"
+#include "database/CCursorWindow.h"
 const String BulkCursorToCursorAdaptor::TAG = String("BulkCursor");
 
-ECode BulkCursorToCursorAdaptor::Set1(
+ECode BulkCursorToCursorAdaptor::Set(
             /* [in] */ IBulkCursor* bulkCursor)
 {
     mBulkCursor = bulkCursor;
@@ -28,7 +28,7 @@ ECode BulkCursorToCursorAdaptor::Set1(
     return NOERROR;
 }
 
-ECode BulkCursorToCursorAdaptor::Set2(
+ECode BulkCursorToCursorAdaptor::SetEx(
             /* [in] */ IBulkCursor* bulkCursor,
             /* [in] */ Int32 count,
             /* [in] */ Int32 idIndex)
@@ -136,12 +136,13 @@ ECode BulkCursorToCursorAdaptor::Requery(
             /* [out] */ Boolean* rst)
 {
 //    try {
-//        Int32 oldCount = mCount;
+        //Int32 oldCount = mCount;
         //TODO get the window from a pool somewhere to avoid creating the memory dealer
         AutoPtr<IContentObserver> observer;
         GetObserver((IContentObserver**)&observer);
 
-        CursorWindow* cw = new CursorWindow(FALSE);
+        AutoPtr<ICursorWindow> cw;
+        CCursorWindow::New(FALSE, (ICursorWindow**)&cw);
 
         mBulkCursor->Requery(observer, (ICursorWindow*)cw, &mCount);
 
@@ -166,10 +167,11 @@ ECode BulkCursorToCursorAdaptor::Requery(
 //        deactivate();
 //        return false;
 //    }
+    return NOERROR;
 }
 
 ECode BulkCursorToCursorAdaptor::GetColumnNames(
-            /* [out] */ ArrayOf<String>** names)
+            /* [out, callee] */ ArrayOf<String>** names)
 {
     if (mColumns == NULL) {
 //        try {

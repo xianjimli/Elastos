@@ -1,0 +1,27 @@
+module
+{
+    interface IAbstractWindowedCursor extends IAbstractCursor
+    {
+        IsBlob(
+            [in] Int32 columnIndex,
+            [out] Boolean* value);
+
+        IsString(
+            [in] Int32 columnIndex,
+            [out] Boolean* value);
+
+        IsInt64(
+            [in] Int32 columnIndex,
+            [out] Boolean* value);
+
+        IsFloat(
+            [in] Int32 columnIndex,
+            [out] Boolean* value);
+
+        SetWindow(
+            [in] ICursorWindow* window);
+
+        HasWindow(
+            [out] Boolean* rst);
+    }
+}

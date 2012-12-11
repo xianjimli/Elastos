@@ -12,11 +12,6 @@ using namespace Elastos::Core::Threading;
 
 class Observable : public ElRefBase, public IObservable
 {
-protected:
-    Observable() {}
-
-    virtual ~Observable() {}
-
 public:
     CARAPI_(PInterface) Probe(
         /* [in]  */ REIID riid);
@@ -36,6 +31,10 @@ public:
         /* [in] */ IInterface* observer);
 
     virtual CARAPI UnregisterAll();
+
+    Observable();
+
+    virtual ~Observable();
 
 protected:
     /**

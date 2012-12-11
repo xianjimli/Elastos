@@ -3,7 +3,7 @@ module
     interface IBulkCursor;
     interface IContentObserver;
 
-    interface IBulkCursorToCursorAdaptor extends ICursor
+    interface IBulkCursorToCursorAdaptor extends IAbstractWindowedCursor
     {
         Set(
             [in] IBulkCursor* bulkCursor);

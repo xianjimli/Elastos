@@ -2,8 +2,9 @@
 #define __MATRIXCURSOR_H__
 
 #include "ext/frameworkext.h"
-#include <elastos/AutoPtr.h>
 #include "database/AbstractCursor.h"
+#include <elastos/AutoPtr.h>
+
 class MatrixCursor : public AbstractCursor
 {
 public:
@@ -29,28 +30,29 @@ public:
 public:
     MatrixCursor();
 
-    MatrixCursor(
-        /* [in] */ ArrayOf<String>* columnNames,
-        /* [in] */ Int32 initialCapacity);
-
-    MatrixCursor(
-        /* [in] */ ArrayOf<String>* columnNames);
-
     ~MatrixCursor();
 
+    CARAPI Init(
+        /* [in] */ const ArrayOf<String> & columnNames,
+        /* [in] */ Int32 initialCapacity);
+
+    CARAPI Init(
+        /* [in] */ const ArrayOf<String> & columnNames);
+
     virtual CARAPI NewRow(
-        /* [out] */ RowBuilder** obj);
+        /* [out] */ IRowBuilder** obj);
 
     virtual CARAPI AddRow(
-        /* [in] */ ArrayOf<AutoPtr<IInterface> >* columnValues);
+        /* [in] */ const ArrayOf<IInterface*> & columnValues);
 
-//    public void addRow(Iterable<?> columnValues)
+    virtual CARAPI AddRowEx(
+        /* [in] */ IObjectContainer* columnValues);
 
     CARAPI GetCount(
         /* [out] */ Int32* cnt);
 
     CARAPI GetColumnNames(
-        /* [out] */ ArrayOf<String>** names);
+        /* [out, callee] */ ArrayOf<String>** names);
 
     CARAPI GetString(
         /* [in] */ Int32 column,
@@ -89,10 +91,12 @@ private:
     CARAPI EnsureCapacity(
         /* [in] */ Int32 size);
 
-//    private void addRow(ArrayList<?> columnValues, int start)
+    CARAPI AddRow(
+        /* [in] */ Set<IInterface*>* columnValues,
+        /* [in] */ Int32 start);
 private:
     ArrayOf<String>* columnNames;
-    ArrayOf<AutoPtr<IInterface> >* data;
+    ArrayOf<IInterface*>* data;
     Int32 rowCount;
     Int32 columnCount;
 };

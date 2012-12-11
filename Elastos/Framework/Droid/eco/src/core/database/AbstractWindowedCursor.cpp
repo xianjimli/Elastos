@@ -11,7 +11,7 @@ ECode AbstractWindowedCursor::GetBlob(
     Boolean rst;
     IsFieldUpdated(columnIndex, &rst);
     if (rst) {
-//        GetUpdatedField(columnIndex, &blob);
+        GetUpdatedField(columnIndex, (IInterface**)blob);
         return NOERROR;
     }
     mWindow->GetBlob(mPos, columnIndex, blob);
@@ -28,7 +28,7 @@ ECode AbstractWindowedCursor::GetString(
     Boolean rst;
     IsFieldUpdated(columnIndex, &rst);
     if (rst) {
-//        GetUpdatedField(columnIndex, &value);
+        GetUpdatedField(columnIndex, (IInterface**)&value);
         return NOERROR;
     }
     mWindow->GetString(mPos, columnIndex, value);
@@ -50,12 +50,107 @@ ECode AbstractWindowedCursor::CopyStringToBuffer(
     return NOERROR;
 }
 
+ECode AbstractWindowedCursor::GetInt16(
+        /* [in] */ Int32 columnIndex,
+        /* [out] */ Int16* value)
+{
+    FAIL_RETURN(CheckPosition());
+
+    Mutex::Autolock lock(mUpdatedRowsLock);
+    Boolean rst;
+    IsFieldUpdated(columnIndex, &rst);
+        if (rst) {
+            GetUpdatedField(columnIndex, (IInterface**)value);
+            value = (Int16*)value;
+            return NOERROR;
+        }
+
+    mWindow->GetInt32(mPos, columnIndex, (Int32*)value);
+    return NOERROR;
+}
+
+ECode AbstractWindowedCursor::GetInt32(
+        /* [in] */ Int32 columnIndex,
+        /* [out] */ Int32* value)
+{
+    FAIL_RETURN(CheckPosition());
+
+    Mutex::Autolock lock(mUpdatedRowsLock);
+    Boolean rst;
+    IsFieldUpdated(columnIndex, &rst);
+    if (rst) {
+        GetUpdatedField(columnIndex, (IInterface**)value);
+        value = (Int32*)value;
+        return NOERROR;
+    }
+
+    mWindow->GetInt32(mPos, columnIndex, value);
+    return NOERROR;
+}
+
+ECode AbstractWindowedCursor::GetInt64(
+    /* [in] */ Int32 columnIndex,
+    /* [out] */ Int64* value)
+{
+    FAIL_RETURN(CheckPosition());
+
+    Mutex::Autolock lock(mUpdatedRowsLock);
+    Boolean rst;
+    IsFieldUpdated(columnIndex, &rst);
+    if (rst) {
+            GetUpdatedField(columnIndex, (IInterface**)value);
+            value = (Int64*)value;
+            return NOERROR;
+        }
+
+    mWindow->GetInt64(mPos, columnIndex, value);
+    return NOERROR;
+}
+
+ECode AbstractWindowedCursor::GetFloat(
+    /* [in] */ Int32 columnIndex,
+    /* [out] */ Float* value)
+{
+    FAIL_RETURN(CheckPosition());
+
+    Mutex::Autolock lock(mUpdatedRowsLock);
+    Boolean rst;
+    IsFieldUpdated(columnIndex, &rst);
+    if (rst) {
+            GetUpdatedField(columnIndex, (IInterface**)value);
+            value = (Float*)value;
+            return NOERROR;
+        }
+
+    mWindow->GetFloat(mPos, columnIndex, value);
+    return NOERROR;
+}
+
+ECode AbstractWindowedCursor::GetDouble(
+    /* [in] */ Int32 columnIndex,
+    /* [out] */ Double* value)
+{
+    FAIL_RETURN(CheckPosition());
+
+    Mutex::Autolock lock(mUpdatedRowsLock);
+    Boolean rst;
+    IsFieldUpdated(columnIndex, &rst);
+    if (rst) {
+            GetUpdatedField(columnIndex, (IInterface**)value);
+            value = (Double*)value;
+            return NOERROR;
+        }
+
+    mWindow->GetDouble(mPos, columnIndex, value);
+    return NOERROR;
+}
+
 ECode AbstractWindowedCursor::CheckPosition()
 {
     FAIL_RETURN(CheckPosition());
     if (mWindow == NULL) {
 //        throw new StaleDataException("Access closed cursor");
-    	//return E_STALE_DATA_EXCEPTION;
+    	return NULL;
     }
     return NOERROR;
 }

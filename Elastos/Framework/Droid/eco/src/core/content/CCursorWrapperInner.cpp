@@ -8,7 +8,7 @@ ECode CCursorWrapperInner::Close()
 
 ECode CCursorWrapperInner::CopyStringToBuffer(
     /* [in] */ Int32 columnIndex,
-    /* [out] */ ICharArrayBuffer** buffer)
+    /* [in] */ ICharArrayBuffer* buffer)
 {
     return E_NOT_IMPLEMENTED;
 }

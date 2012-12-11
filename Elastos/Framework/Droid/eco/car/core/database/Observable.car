@@ -1,8 +1,6 @@
 
 module
 {
-    interface IDataSetObserver;
-
     /**
      * Provides methods for (un)registering arbitrary observers in an ArrayList.
      */

@@ -1,0 +1,9 @@
+module
+{
+    
+    interface IDataSetObservable extends IObservable{
+        NotifyChanged();
+
+        NotifyInvalidated();
+    }
+}

@@ -2,13 +2,28 @@
 #define __BULKCURSORNATIVE_H__
 
 #include "ext/frameworkext.h"
+#include <elastos/AutoPtr.h>
+#include "database/CBulkCursorProxy.h"
+#include <elastos/ElRefBase.h>
 /**
  * Native implementation of the bulk cursor. This is only for use in implementing
  * IPC, application code should use the Cursor interface.
  */
-class BulkCursorNative : public IBinder
+class BulkCursorNative : public IBinder, public ElRefBase
 {
 public:
+
+    CARAPI_(PInterface) Probe(
+        /* [in]  */ REIID riid);
+
+    CARAPI_(UInt32) AddRef();
+
+    CARAPI_(UInt32) Release();
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface *pObject,
+        /* [out] */ InterfaceID *pIID);
+
     BulkCursorNative();
 
     /**
@@ -28,50 +43,10 @@ public:
 
     virtual CARAPI AsBinder(
         /* [out] */ IBinder** b);
+
+public:
+    static const String IBulkCursor_descriptor;
 };
 #endif //__BULKCURSORNATIVE_H__
 
-#ifndef __BULKCURSORPROXY_H__
-#define __BULKCURSORPROXY_H__
 
-#include "ext/frameworkext.h"
-#include <elastos/AutoPtr.h>
-class BulkCursorProxy
-{
-public:
-    BulkCursorProxy();
-
-    BulkCursorProxy(
-        /* [in] */ IBinder* remote);
-
-    CARAPI AsBinder(
-        /* [out] */ IBinder** b);
-
-    CARAPI GetWindow(
-        /* [in] */ Int32 startPos,
-        /* [out] */ ICursorWindow** cw);
-
-    CARAPI OnMove(
-        /* [in] */ Int32 position);
-
-    CARAPI Count(
-        /* [out] */ Int32* position);
-
-    CARAPI GetColumnNames(
-        /* [out] */ ArrayOf<String>** names);
-
-    CARAPI Deactivate();
-
-    CARAPI Close();
-
-    CARAPI Requery(
-        /* [in] */ ILocalContentObserver* observer,
-        /* [in] */ ICursorWindow* window,
-        /* [out] */ Int32* value);
-
-    
-private:
-    AutoPtr<IBinder> mRemote;
-    AutoPtr<IBundle> mExtras;
-};
-#endif //__BULKCURSORPROXY_H__

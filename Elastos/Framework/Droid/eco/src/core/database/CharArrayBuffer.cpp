@@ -18,8 +18,22 @@ ECode CharArrayBuffer::Init(
 }
 
 ECode CharArrayBuffer::Init(
-        /* [in] */ ArrayOf<Char8>& buf)
+        /* [in] */ const ArrayOf<Char8>& buf)
 {
     data = buf.Clone();
+    return NOERROR;
+}
+
+ECode CharArrayBuffer::GetData(
+    /* [out,callee] */ ArrayOf<Char8>** data)
+{
+    *data = this->data;
+    return NOERROR;
+}
+
+ECode CharArrayBuffer::SetData(
+    /* [in] */ const ArrayOf<Char8>& data)
+{
+    this->data = const_cast<ArrayOf<Char8>*>(&data);
     return NOERROR;
 }

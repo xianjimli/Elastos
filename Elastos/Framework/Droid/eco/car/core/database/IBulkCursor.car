@@ -1,5 +1,18 @@
 module
 {
+    const IBulkCursor_GET_CURSOR_WINDOW_TRANSACTION = 1;
+    const IBulkCursor_COUNT_TRANSACTION = 2;
+    const IBulkCursor_GET_COLUMN_NAMES_TRANSACTION = 3;
+    const IBulkCursor_UPDATE_ROWS_TRANSACTION = 4;
+    const IBulkCursor_DELETE_ROW_TRANSACTION = 5;
+    const IBulkCursor_DEACTIVATE_TRANSACTION = 6;
+    const IBulkCursor_REQUERY_TRANSACTION = 7;
+    const IBulkCursor_ON_MOVE_TRANSACTION = 8;
+    const IBulkCursor_WANTS_ON_MOVE_TRANSACTION = 9;
+    const IBulkCursor_GET_EXTRAS_TRANSACTION = 10;
+    const IBulkCursor_RESPOND_TRANSACTION = 11;
+    const IBulkCursor_CLOSE_TRANSACTION = 12;
+
     interface ICursorWindow;
     interface IContentObserver;
     interface IBundle;
@@ -37,7 +50,10 @@ module
         GetColumnNames(
             [out,callee] ArrayOf<String>* names);
 
-//        public boolean updateRows(Map<? extends Long, ? extends Map<String, Object>> values) throws RemoteException;
+        //public boolean updateRows(Map<? extends Long, ? extends Map<String, Object>> values) throws RemoteException;
+        //UpdateRows(
+        //    [in] Map<Int64, Map<String, IInterface*> > values,
+        //    [out] Boolean* result);
 
         DeleteRow(
             [in] Int32 position,

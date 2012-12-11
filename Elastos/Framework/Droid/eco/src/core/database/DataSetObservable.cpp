@@ -1,6 +1,16 @@
 
 #include "database/DataSetObservable.h"
 
+DataSetObservable::DataSetObservable()
+{
+
+}
+
+DataSetObservable::~DataSetObservable()
+{
+    
+}
+
 /**
  * Invokes onChanged on each observer. Called when the data set being observed has
  * changed, and which when read contains the new state of the data.

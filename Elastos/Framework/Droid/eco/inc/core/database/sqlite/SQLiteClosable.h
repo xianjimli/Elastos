@@ -13,15 +13,10 @@ using namespace Elastos::Core::Threading;
  */
 class SQLiteClosable : public ElRefBase, public ISQLiteClosable
 {
-protected:
-    virtual CARAPI OnAllReferencesReleased() = 0;
-
-    virtual CARAPI OnAllReferencesReleasedFromContainer();
-
 public:
     SQLiteClosable();
 
-    ~SQLiteClosable();
+    virtual ~SQLiteClosable();
 
     CARAPI_(PInterface) Probe(
         /* [in]  */ REIID riid);
@@ -39,6 +34,11 @@ public:
     virtual CARAPI ReleaseReference();
 
     virtual CARAPI ReleaseReferenceFromContainer();
+
+protected:
+    virtual CARAPI OnAllReferencesReleased() = 0;
+
+    virtual CARAPI OnAllReferencesReleasedFromContainer();
 
 private:
     CARAPI GetObjInfo(

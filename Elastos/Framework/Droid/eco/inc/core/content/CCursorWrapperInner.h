@@ -17,7 +17,7 @@ public:
      */
     CARAPI CopyStringToBuffer(
         /* [in] */ Int32 columnIndex,
-        /* [out] */ ICharArrayBuffer** buffer);
+        /* [in] */ ICharArrayBuffer* buffer);
 
     /**
      * Deactivates the Cursor, making all calls on it fail until requery() is called.

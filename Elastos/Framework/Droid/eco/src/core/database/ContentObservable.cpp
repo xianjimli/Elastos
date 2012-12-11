@@ -1,6 +1,14 @@
 
 #include "database/ContentObservable.h"
 
+ContentObservable::ContentObservable()
+{
+}
+
+ContentObservable::~ContentObservable()
+{
+}
+
 ECode ContentObservable::RegisterObserver(
         /* [in] */ ILocalContentObserver* observer)
 {

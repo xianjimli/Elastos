@@ -4,13 +4,14 @@
 #include "ext/frameworkext.h"
 #include "database/sqlite/SQLiteClosable.h"
 #include <elastos/AutoPtr.h>
+
 /**
  * A buffer containing multiple cursor rows.
  */
 class CursorWindow : public SQLiteClosable
 {
 private:
-    CursorWindow(
+    CARAPI Init(
         /* [in] */ IParcel* source);
 
 protected:
@@ -19,14 +20,14 @@ protected:
 public:
     CursorWindow();
 
-    ~CursorWindow();
+    virtual ~CursorWindow();
 
     /**
      * Creates a new empty window.
      *
      * @param localWindow true if this window will be used in this process only
      */
-    CursorWindow(
+    CARAPI Init(
         /* [in] */ Boolean localWindow);
 
     /**
@@ -83,7 +84,7 @@ public:
      * @return false if fail to copy
      */
     virtual CARAPI PutBlob(
-        /* [in] */ ArrayOf<Byte> value,
+        /* [in] */ const ArrayOf<Byte> & value,
         /* [in] */ Int32 row,
         /* [in] */ Int32 col,
         /* [out] */ Boolean* rst);
@@ -235,7 +236,7 @@ public:
     virtual CARAPI CopyStringToBuffer(
         /* [in] */ Int32 row,
         /* [in] */ Int32 col,
-        /* [out] */ ICharArrayBuffer** buffer);
+        /* [in] */ ICharArrayBuffer* buffer);
 
     /**
      * Returns a long for the given field.
@@ -313,17 +314,142 @@ public:
      */
     virtual CARAPI Close();
 
+    /*public static final Parcelable.Creator<CursorWindow> CREATOR
+        = new Parcelable.Creator<CursorWindow>() {
+        public CursorWindow createFromParcel(Parcel source) {
+            return new CursorWindow(source);
+        }
+
+        public CursorWindow[] newArray(int size) {
+            return new CursorWindow[size];
+        }
+    };*/
+
     static CARAPI NewFromParcel(
         /* [in] */ IParcel* p,
         /* [out] */ ICursorWindow** cw);
 
-    virtual CARAPI DescribeContents(
+    CARAPI DescribeContents(
         /* [out] */ Int32* value);
 
-    virtual CARAPI WriteToParcel(
+    CARAPI WriteToParcel(
         /* [in] */ IParcel* dest,
         /* [in] */ Int32 flags);
 
+private:
+    CARAPI GetNumRows_native(
+        /* [out] */ Int32* num);
+
+    CARAPI SetNumColumns_native(
+        /* [in] */ Int32 columnNum,
+        /* [out] */ Boolean* result);
+
+    CARAPI AllocRow_native(
+        /* [out] */ Boolean* result);
+
+    CARAPI FreeLastRow_native();
+
+    CARAPI PutBlob_native(
+        /* [in] */ const ArrayOf<Byte> & value,
+        /* [in] */ Int32 row,
+        /* [in] */ Int32 col,
+        /* [out] */ Boolean* result);
+
+    CARAPI PutString_native(
+        /* [in] */ String value,
+        /* [in] */ Int32 row,
+        /* [in] */ Int32 col,
+        /* [out] */ Boolean* rst);
+
+    CARAPI PutInt64_native(
+        /* [in] */ Int64 value,
+        /* [in] */ Int32 row,
+        /* [in] */ Int32 col,
+        /* [out] */ Boolean* rst);
+
+    CARAPI PutDouble_native(
+        /* [in] */ Double value,
+        /* [in] */ Int32 row,
+        /* [in] */ Int32 col,
+        /* [out] */ Boolean* rst);
+
+    CARAPI PutNull_native(
+        /* [in] */ Int32 row,
+        /* [in] */ Int32 col,
+        /* [out] */ Boolean* rst);
+
+    CARAPI IsNull_native(
+        /* [in] */ Int32 row,
+        /* [in] */ Int32 col,
+        /* [out] */ Boolean* rst);
+
+    CARAPI GetBlob_native(
+        /* [in] */ Int32 row,
+        /* [in] */ Int32 col,
+        /* [out] */ ArrayOf<Byte>** blob);
+
+    CARAPI IsBlob_native(
+        /* [in] */ Int32 row,
+        /* [in] */ Int32 col,
+        /* [out] */ Boolean* rst);
+
+    CARAPI IsInteger_native(
+        /* [in] */ Int32 row,
+        /* [in] */ Int32 col,
+        /* [out] */ Boolean* rst);
+
+    CARAPI IsFloat_native(
+        /* [in] */ Int32 row,
+        /* [in] */ Int32 col,
+        /* [out] */ Boolean* rst);
+
+    CARAPI IsString_native(
+        /* [in] */ Int32 row,
+        /* [in] */ Int32 col,
+        /* [out] */ Boolean* rst);
+
+    CARAPI GetString_native(
+        /* [in] */ Int32 row,
+        /* [in] */ Int32 col,
+        /* [out] */ String* rst);
+
+    CARAPI CopyStringToBuffer_native(
+        /* [in] */ Int32 row,
+        /* [in] */ Int32 col,
+        /* [in] */ ICharArrayBuffer* buffer);
+
+    CARAPI CopyStringToBuffer_native(
+        /* [in] */ Int32 row,
+        /* [in] */ Int32 col,
+        /* [in] */ Int32 bufferSize,
+        /* [in] */ ICharArrayBuffer* buffer,
+        /* [out, callee] */ ArrayOf<Char8>** data);
+
+    CARAPI GetInt64_native(
+        /* [in] */ Int32 row,
+        /* [in] */ Int32 col,
+        /* [out] */ Int64* value);
+
+    CARAPI GetDouble_native(
+        /* [in] */ Int32 row,
+        /* [in] */ Int32 col,
+        /* [out] */ Double* value);
+
+    CARAPI Clear_native();
+
+    CARAPI Close_native();
+
+    /** Get the Binder for the native side of the window */
+    CARAPI Native_GetBinder(
+        /* [out] */ IBinder** binder);
+
+    /** Does the native side initialization for an empty window */
+    CARAPI Native_Init(
+        /* [in] */ Boolean localOnly);
+
+    /** Does the native side initialization with an existing binder from another process */
+    CARAPI Native_Init(
+        /* [in] */ IBinder* nativeBinder);
 private:
     Int32 nWindow;
 

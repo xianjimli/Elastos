@@ -1,0 +1,10 @@
+
+module {
+    interface IContentObservable extends IObservable {
+        DispatchChange(
+            [in] Boolean selfChange);
+
+        NotifyChange(
+            [in] Boolean selfChange);
+    }
+}

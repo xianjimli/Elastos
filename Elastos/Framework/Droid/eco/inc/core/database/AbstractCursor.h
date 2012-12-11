@@ -16,11 +16,13 @@ class AbstractCursor
 public:
     AbstractCursor();
 
+    virtual ~AbstractCursor();
+
     virtual CARAPI GetCount(
         /* [out] */ Int32* cnt) = 0;
 
     virtual CARAPI GetColumnNames(
-        /* [out] */ ArrayOf<String>** names) = 0;
+        /* [out, callee] */ ArrayOf<String>** names) = 0;
 
     virtual CARAPI GetString(
         /* [in] */ Int32 column,
@@ -123,7 +125,7 @@ public:
      * @param position start position of data
      * @param window
      */
-    CARAPI FillWindow(
+    virtual CARAPI FillWindow(
         /* [in] */ Int32 position,
         /* [in] */ ICursorWindow* window);
 
@@ -201,8 +203,6 @@ public:
         /* [out] */ IBundle** result);
 
 protected:
-    virtual ~AbstractCursor();
-
     /**
      * This is hidden until the data set change model has been re-evaluated.
      * @hide

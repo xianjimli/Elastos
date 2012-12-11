@@ -3,5 +3,10 @@ module
 {
     interface ICharArrayBuffer {
 
+        GetData(
+            [out, callee] ArrayOf<Char8>* data);
+
+        SetData(
+            [in] ArrayOf<Char8> data);
     }
 }

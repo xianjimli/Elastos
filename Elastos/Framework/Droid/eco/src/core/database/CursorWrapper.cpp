@@ -157,7 +157,7 @@ ECode CursorWrapper::GetString(
 
 ECode CursorWrapper::CopyStringToBuffer(
         /* [in] */ Int32 columnIndex,
-        /* [out] */ ICharArrayBuffer** buffer)
+        /* [in] */ ICharArrayBuffer* buffer)
 {
     FAIL_RETURN(mCursor->CopyStringToBuffer(columnIndex, buffer));
     return NOERROR;

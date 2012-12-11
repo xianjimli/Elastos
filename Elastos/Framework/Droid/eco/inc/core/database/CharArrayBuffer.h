@@ -15,7 +15,13 @@ public:
         /* [in] */ Int32 size);
 
     CARAPI Init(
-        /* [in] */ ArrayOf<Char8>& buf);
+        /* [in] */ const ArrayOf<Char8>& buf);
+
+    CARAPI GetData(
+        /* [out,callee] */ ArrayOf<Char8>** data);
+
+    CARAPI SetData(
+        /* [in] */ const ArrayOf<Char8>& data);
 
 public:
     ArrayOf<Char8>* data;

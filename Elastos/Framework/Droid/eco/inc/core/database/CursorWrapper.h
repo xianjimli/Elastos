@@ -7,7 +7,7 @@
 /**
  * Wrapper class for Cursor that delegates all calls to the actual cursor object
  */
-class CursorWrapper : public ICursor
+class CursorWrapper
 {
 public:
     CursorWrapper();
@@ -110,7 +110,7 @@ public:
 
     CARAPI CopyStringToBuffer(
         /* [in] */ Int32 columnIndex,
-        /* [out] */ ICharArrayBuffer** buffer);
+        /* [in] */ ICharArrayBuffer* buffer);
 
     CARAPI GetBlob(
             /* [in] */  Int32 columnIndex,
@@ -189,10 +189,10 @@ public:
 //        return mCursor.supportsUpdates();
 //    }
 
-    virtual CARAPI UnregisterContentObserver(
+    CARAPI UnregisterContentObserver(
         /* [in] */ ILocalContentObserver* observer);
 
-    virtual CARAPI UnregisterDataSetObserver(
+    CARAPI UnregisterDataSetObserver(
         /* [in] */ IDataSetObserver* observer);
 
     /**

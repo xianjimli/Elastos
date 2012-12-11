@@ -7,6 +7,10 @@
 class DataSetObservable : public Observable
 {
 public:
+    DataSetObservable();
+
+    virtual ~DataSetObservable();
+
     virtual CARAPI NotifyChanged();
 
     virtual CARAPI NotifyInvalidated();

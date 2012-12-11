@@ -1,6 +1,15 @@
 
 #include "database/sqlite/SQLiteClosable.h"
 
+SQLiteClosable::SQLiteClosable()
+{
+    mReferenceCount = 1;
+}
+
+SQLiteClosable::~SQLiteClosable()
+{
+}
+
 PInterface SQLiteClosable::Probe(
     /* [in]  */ REIID riid)
 {
@@ -37,14 +46,6 @@ ECode SQLiteClosable::GetInterfaceID(
         return E_INVALID_ARGUMENT;
     }
     return NOERROR;
-}
-
-SQLiteClosable::SQLiteClosable() : mReferenceCount(1)
-{
-}
-
-SQLiteClosable::~SQLiteClosable()
-{
 }
 
 ECode SQLiteClosable::OnAllReferencesReleasedFromContainer()

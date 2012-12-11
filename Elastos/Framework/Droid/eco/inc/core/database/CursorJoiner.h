@@ -24,12 +24,12 @@ public:
      */
     CARAPI Init(
         /* [in] */ ICursor* cursorLeft,
-        /* [in] */ ArrayOf<String>* columnNamesLeft,
+        /* [in] */ const ArrayOf<String>& columnNamesLeft,
         /* [in] */ ICursor* cursorRight,
-        /* [in] */ ArrayOf<String>* columnNamesRight);
+        /* [in] */ const ArrayOf<String>& columnNamesRight);
 
-//    CARAPI Iterator(
-//        /* [out] */ Iterator<Result>* value);
+    //CARAPI Iterator(
+    //    /* [out] */ Iterator<Result> value);
 
     /**
      * Returns whether or not there are more rows to compare using next().
@@ -65,7 +65,10 @@ private:
      * @param columnNames the array of names to lookup
      * @return an array of column indices
      */
-//    int[] buildColumnIndiciesArray(Cursor cursor, String[] columnNames);
+    CARAPI BuildColumnIndiciesArray(
+        /* [in] */ ICursor* cursor,
+        /* [in] */ const ArrayOf<String>* columnNames,
+        /* [out] */ ArrayOf<Int32>** columns);
 
     /**
      * Reads the strings from the cursor that are specifed in the columnIndicies
@@ -77,8 +80,11 @@ private:
      * @param columnIndicies the indicies of the values to read from the cursor
      * @param startingIndex the slot in which to start storing values, and must be either 0 or 1.
      */
-//    static void populateValues(String[] values, Cursor cursor, int[] columnIndicies,
-//            int startingIndex);
+    static CARAPI PopulateValues(
+        /* [in] */ ArrayOf<String>* values, 
+        /* [in] */ ICursor* cursor, 
+        /* [in] */ ArrayOf<Int32>* columnIndicies,
+        /* [in] */ Int32 startingIndex);
 
     /**
      * Increment the cursors past the rows indicated in the most recent call to next().

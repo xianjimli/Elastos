@@ -23,15 +23,15 @@ public:
         /* [in] */ Int32 columnIndex,
         /* [in] */ CharArrayBuffer* buffer);
 
-    CARAPI GetShort(
+    CARAPI GetInt16(
         /* [in] */ Int32 columnIndex,
         /* [out] */ Int16* value);
 
-    CARAPI GetInt(
+    CARAPI GetInt32(
         /* [in] */ Int32 columnIndex,
         /* [out] */ Int32* value);
 
-    CARAPI GetLong(
+    CARAPI GetInt64(
         /* [in] */ Int32 columnIndex,
         /* [out] */ Int64* value);
 

@@ -1,0 +1,34 @@
+module
+{
+    interface ICursor;
+    interface ICursorWindow;
+
+    interface ICharArrayBuffer;
+    interface ILocalContentObserver;
+    interface IDataSetObserver;
+    interface IContentResolver;
+    interface IUri;
+    interface IBundle;
+    interface ICrossProcessCursor;
+
+    interface IAbstractCursor extends ICrossProcessCursor
+    {
+        NotifyDataSetChange();
+
+        GetDataSetObservable(
+            [out] IDataSetObservable** dso);
+
+        OnChange(
+            [in] Boolean selfChange);
+
+        IsFieldUpdated(
+            [in] Int32 columnIndex,
+            [out] Boolean* rst);
+
+        GetUpdatedField(
+            [in] Int32 columnIndex,
+            [out] IInterface** obj);
+
+        CheckPosition();
+    }
+}

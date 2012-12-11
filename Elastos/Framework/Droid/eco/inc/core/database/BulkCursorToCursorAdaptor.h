@@ -13,14 +13,14 @@
 class BulkCursorToCursorAdaptor : public AbstractWindowedCursor
 {
 public:
-    CARAPI Set1(
+    CARAPI Set(
             /* [in] */ IBulkCursor* bulkCursor);
 
     /**
      * Version of set() that does fewer Binder calls if the caller
      * already knows BulkCursorToCursorAdaptor's properties.
      */
-    CARAPI Set2(
+    CARAPI SetEx(
             /* [in] */ IBulkCursor* bulkCursor,
             /* [in] */ Int32 count,
             /* [in] */ Int32 idIndex);
@@ -67,7 +67,7 @@ public:
 
 //    @Override
     CARAPI GetColumnNames(
-            /* [out] */ ArrayOf<String>** names);
+            /* [out, callee] */ ArrayOf<String>** names);
 
     /**
      * @hide
