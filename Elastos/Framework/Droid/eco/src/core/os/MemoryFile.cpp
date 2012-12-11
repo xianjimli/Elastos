@@ -5,7 +5,7 @@ const Int32 MemoryFile::PROT_READ;
 const Int32 MemoryFile::PROT_WRITE;
 
 MemoryFile::MemoryFile(
-    /* [in] */ const String& name,
+    /* [in] */ CString name,
     /* [in] */ Int32 length)
     : mAddress(0)
     , mLength(0)

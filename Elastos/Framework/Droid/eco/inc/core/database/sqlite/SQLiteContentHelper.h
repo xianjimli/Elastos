@@ -4,6 +4,11 @@
 #include "ext/frameworkext.h"
 #include "os/MemoryFile.h"
 
+/**
+ * Some helper functions for using SQLite database to implement content providers.
+ *
+ * @hide
+ */
 class SQLiteContentHelper
 {
 public:
@@ -21,10 +26,11 @@ public:
      *         asset file descriptor.
      */
     static CARAPI GetBlobColumnAsAssetFile(
-        /*[in]*/ ISQLiteDatabase* db, 
-        /*[in]*/ String sql,
-        /*[in]*/ ArrayOf<String> *selectionArgs,
+        /*[in]*/ ISQLiteDatabase* db,
+        /*[in]*/ const String& sql,
+        /*[in]*/ ArrayOf<String>* selectionArgs,
         /*[out]*/ IAssetFileDescriptor** fd);
+
 private:
 	/**
      * Runs an SQLite query and returns a MemoryFile for the
@@ -36,11 +42,10 @@ private:
      * @throws IOException If there is an error creating the memory file.
      */
     // TODO: make this native and use the SQLite blob API to reduce copying
-    static CARAPI SimpleQueryForBlobMemoryFile(
-        /*[in]*/ ISQLiteDatabase* db, 
-        /*[in]*/ String sql,
-        /*[in]*/ ArrayOf<String> selectionArgs);
-//        /*[out]*/ IMemoryFile** mf);
+    static CARAPI_(MemoryFile*) SimpleQueryForBlobMemoryFile(
+        /*[in]*/ ISQLiteDatabase* db,
+        /*[in]*/ const String& sql,
+        /*[in]*/ ArrayOf<String>* selectionArgs);
 };
 
 

@@ -62,25 +62,19 @@ ECode AbstractCursor::DeactivateInternal()
     return NOERROR;
 }
 
-ECode AbstractCursor::Requery(
-        /* [out] */ Boolean* value)
+Boolean AbstractCursor::Requery()
 {
-    assert(value != NULL);
     if (mSelfObserver != NULL) {
 //        mContentResolver->RegisterContentObserver(mNotifyUri, TRUE, mSelfObserver);
         mSelfObserverRegistered = TRUE;
     }
     mDataSetObservable->NotifyChanged();
-    *value = TRUE;
-    return NOERROR;
+    return TRUE;
 }
 
-ECode AbstractCursor::IsClosed(
-        /* [out] */ Boolean* value)
+Boolean AbstractCursor::IsClosed()
 {
-    assert(value != NULL);
-    *value = mClosed;
-    return NOERROR;
+    return mClosed;
 }
 
 ECode AbstractCursor::Close()
@@ -130,33 +124,27 @@ ECode AbstractCursor::GetPosition(
     return NOERROR;
 }
 
-ECode AbstractCursor::MoveToPosition(
-        /* [in] */ Int32 position,
-        /* [out] */ Boolean* rst)
+Boolean AbstractCursor::MoveToPosition(
+    /* [in] */ Int32 position)
 {
-    assert(rst != NULL);
-
     // Make sure position isn't past the end of the cursor
     Int32 cnt;
     FAIL_RETURN(GetCount(&cnt));
     const Int32 count = cnt;
     if(position >= count) {
         mPos = count;
-        *rst = FALSE;
-        return NOERROR;
+        return FALSE;
     }
 
     // Make sure position isn't before the beginning of the cursor
     if(position < 0) {
         mPos = -1;
-        *rst = FALSE;
-        return NOERROR;
+        return FALSE;
     }
 
     // Check for no-op moves, and skip the rest of the work for them
     if(position == mPos) {
-        *rst = TRUE;
-        return NOERROR;
+        return TRUE;
     }
 
     Boolean result;
@@ -169,8 +157,7 @@ ECode AbstractCursor::MoveToPosition(
             mCurrentRowID = mRowIdColumnIndex;
         }
     }
-    *rst = result;
-    return NOERROR;
+    return result;
 }
 
 ECode AbstractCursor::FillWindow(
@@ -224,7 +211,7 @@ ECode AbstractCursor::Move(
         /* [out] */ Boolean* rst)
 {
     assert(rst != NULL);
-    FAIL_RETURN(MoveToPosition(mPos + offset, rst));
+    *rst = MoveToPosition(mPos + offset);
     return NOERROR;
 }
 
@@ -232,7 +219,7 @@ ECode AbstractCursor::MoveToFirst(
         /* [out] */ Boolean* rst)
 {
     assert(rst != NULL);
-    FAIL_RETURN(MoveToPosition(0, rst));
+    *rst = MoveToPosition(0);
     return NOERROR;
 }
 
@@ -242,7 +229,7 @@ ECode AbstractCursor::MoveToLast(
     assert(rst != NULL);
     Int32 cnt;
     FAIL_RETURN(GetCount(&cnt));
-    FAIL_RETURN(MoveToPosition(cnt - 1, rst));
+    *rst = MoveToPosition(cnt - 1);
     return NOERROR;
 }
 
@@ -250,7 +237,7 @@ ECode AbstractCursor::MoveToNext(
         /* [out] */ Boolean* rst)
 {
     assert(rst != NULL);
-    FAIL_RETURN(MoveToPosition(mPos + 1, rst));
+    *rst = MoveToPosition(mPos + 1);
     return NOERROR;
 }
 
@@ -258,7 +245,7 @@ ECode AbstractCursor::MoveToPrevious(
         /* [out] */ Boolean* rst)
 {
     assert(rst != NULL);
-    FAIL_RETURN(MoveToPosition(mPos - 1, rst));
+    *rst = MoveToPosition(mPos - 1);
     return NOERROR;
 }
 

@@ -1,6 +1,8 @@
 
 module
 {
+    interface IObjectStringMap;
+
     interface IContentValues {
         PutInt32(
             [in] String key,
@@ -9,5 +11,11 @@ module
         GetInt32(
             [in] String key,
             [out] Int32* value);
+
+        GetSize(
+            [out] Int32* size);
+
+        ValueSet(
+            [out] IObjectStringMap** values);
     }
 }

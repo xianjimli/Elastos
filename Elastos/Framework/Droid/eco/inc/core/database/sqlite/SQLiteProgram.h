@@ -3,33 +3,34 @@
 
 #include "ext/frameworkext.h"
 #include "database/sqlite/SQLiteClosable.h"
+#include "database/sqlite/SQLiteDatabase.h"
+#include "database/sqlite/SQLiteCompiledSql.h"
 #include <elastos/AutoPtr.h>
 #include <sqlite3.h>
+
+/**
+ * A base class for compiled SQLite programs.
+ *
+ * SQLiteProgram is not internally synchronized so code using a SQLiteProgram from multiple
+ * threads should perform its own synchronization when using the SQLiteProgram.
+ */
 class SQLiteProgram : public SQLiteClosable
 {
 public:
-    CARAPI Init(
-        /* [in] */ ISQLiteDatabase* db,
-        /* [in] */ String& sql);
+    /* package */ SQLiteProgram(
+        /* [in] */ SQLiteDatabase* db,
+        /* [in] */ const String& sql);
 
-    SQLiteProgram();
-
-    SQLiteProgram(
-        /* [in] */ ISQLiteDatabase* db,
-        /* [in] */ String& sql);
-
-    ~SQLiteProgram();
+    virtual ~SQLiteProgram();
 
     /**
      * Returns a unique identifier for this program.
      *
      * @return a unique identifier for this program
      */
-    CARAPI GetUniqueId(
-        /* [out] */ Int32* value);
+    CARAPI_(Int32) GetUniqueId();
 
-    virtual CARAPI GetSqlString(
-        /* [out] */ String* value);
+    /* package */ virtual CARAPI_(String) GetSqlString();
 
     /**
      * Bind a NULL value to this statement. The value remains bound until
@@ -71,7 +72,7 @@ public:
      */
     virtual CARAPI BindString(
         /* [in] */ Int32 index,
-        /* [in] */ String value); 
+        /* [in] */ const String& value);
 
     /**
      * Bind a byte array value to this statement. The value remains bound until
@@ -82,7 +83,7 @@ public:
      */
     virtual CARAPI BindBlob(
         /* [in] */ Int32 index,
-        /* [in] */ const ArrayOf<Byte>& value); 
+        /* [in] */ const ArrayOf<Byte>& value);
 
     /**
      * Clears all existing bindings. Unset bindings are treated as NULL.
@@ -95,8 +96,10 @@ public:
     virtual CARAPI Close();
 
 protected:
+    //@Override
     CARAPI OnAllReferencesReleased();
 
+    //@Override
     CARAPI OnAllReferencesReleasedFromContainer();
 
     /**
@@ -106,55 +109,56 @@ protected:
      * @param forceCompilation forces the SQL to be recompiled in the event that there is an
      *  existing compiled SQL program already around
      */
-//    @Deprecated
-    virtual CARAPI Compile(
-        /* [in] */ String sql,
+    //@Deprecated
+    virtual CARAPI_(void) Compile(
+        /* [in] */ const String& sql,
         /* [in] */ Boolean forceCompilation);
-private:
-    CARAPI_(void) Init();
 
-    CARAPI ReleaseCompiledSqlIfNotInCache();
+    /**
+     * @deprecated This method is deprecated and must not be used.
+     * Compiles SQL into a SQLite program.
+     *
+     * <P>The database lock must be held when calling this method.
+     * @param sql The SQL to compile.
+     */
+    //@Deprecated
+    CARAPI NativeCompile(
+        /* [in] */ const String& sql);
 
-    CARAPI Native_Compile(
-        /* [in] */ String sql);
-
-    CARAPI Native_Finalize();
-
-    CARAPI Native_Bind_Null(
+    CARAPI NativeBindNull(
         /* [in] */ Int32 index);
-    
-    CARAPI Native_Bind_Long(
+
+    CARAPI NativeBindInt64(
         /* [in] */ Int32 index,
         /* [in] */ Int64 value);
 
-    CARAPI Native_Bind_Double(
+    CARAPI NativeBindDouble(
         /* [in] */ Int32 index,
         /* [in] */ Double value);
 
-    CARAPI Native_Bind_String(
+    CARAPI NativeBindString(
         /* [in] */ Int32 index,
-        /* [in] */ String value);
+        /* [in] */ const String& value);
 
-    CARAPI Native_Bind_Blob(
+    CARAPI NativeBindBlob(
         /* [in] */ Int32 index,
-        /* [in] */ ArrayOf<Byte> value);
+        /* [in] */ const ArrayOf<Byte>& value);
 
-    CARAPI Native_Clear_Bindings();
 private:
-    static const String TAG;
+    CARAPI_(void) ReleaseCompiledSqlIfNotInCache();
 
-    /**
-     * the SQLiteCompiledSql object for the given sql statement.
-     */
-    AutoPtr<ISQLiteCompiledSql> mCompiledSql;
+    CARAPI NativeClearBindings();
+
+public:
+    /** The SQL used to create this query */
+    /* package */ String mSql;
+
 protected:
     /** The database this program is compiled against.
      * @deprecated do not use this
      */
 //    @Deprecated
-    AutoPtr<ISQLiteDatabase> mDatabase;
-
-    String mSql;
+    AutoPtr<SQLiteDatabase> mDatabase;
 
     /**
      * Native linkage, do not modify. This comes from the database and should not be modified
@@ -162,7 +166,7 @@ protected:
      * @deprecated do not use this
      */
 //    @Deprecated
-    Int32 nHandle;
+    sqlite3* mNativeHandle;
 
     /**
      * SQLiteCompiledSql statement id is populated with the corresponding object from the above
@@ -170,6 +174,15 @@ protected:
      * @deprecated do not use this
      */
 //    @Deprecated
-    Int32 nStatement;
+    sqlite3_stmt* mNativeStatement;
+
+private:
+    static const CString TAG;
+
+    /**
+     * the SQLiteCompiledSql object for the given sql statement.
+     */
+    AutoPtr<SQLiteCompiledSql> mCompiledSql;
 };
+
 #endif //__SQLITEPROGRAM_H__

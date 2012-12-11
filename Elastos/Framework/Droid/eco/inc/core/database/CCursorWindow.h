@@ -7,6 +7,9 @@
 CarClass(CCursorWindow), public CursorWindow
 {
 public:
+    CARAPI_(PInterface) Probe(
+        /* [in]  */ REIID riid);
+
     CARAPI OnAllReferencesReleased();
 
     CARAPI OnAllReferencesReleasedFromContainer();

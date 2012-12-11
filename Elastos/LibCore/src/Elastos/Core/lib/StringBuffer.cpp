@@ -34,6 +34,12 @@ StringBuffer::StringBuffer(const StringBuffer& s)
     Init(s.mString, DEFAULT_STEP);
 }
 
+StringBuffer::StringBuffer(Int32 capacity)
+    : mLength(0)
+{
+    Init(NULL, capacity);
+}
+
 StringBuffer::~StringBuffer()
 {
     delete [] mString;

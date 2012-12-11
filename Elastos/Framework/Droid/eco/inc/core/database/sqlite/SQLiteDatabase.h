@@ -3,32 +3,101 @@
 
 #include "ext/frameworkext.h"
 #include "database/sqlite/SQLiteClosable.h"
-#include "database/sqlite/SQLiteStatement.h"
-//#include "database/sqlite/SQLiteQueryBuilder.h"
-#include "text/TextUtils.h"
+#include "database/sqlite/SQLiteCompiledSql.h"
+#include "utils/ReentrantLock.h"
+#include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>
 #include <elastos/Map.h>
 #include <elastos/HashMap.h>
+#include <elastos/HashSet.h>
 #include <Logger.h>
-#include "os/SystemClock.h"
 #include <StringBuffer.h>
 #include <sqlite3.h>
 
 using namespace Elastos::Utility::Logging;
 
-#define SQLITE_SOFT_HEAP_LIMIT (4 * 1024 * 1024)
-#define UTF16_STORAGE 0
-#define ANDROID_TABLE "android_metadata"
+class SQLiteCompiledSql;
 
-class SQLiteDatabase : public SQLiteClosable
+_ELASTOS_NAMESPACE_BEGIN
+
+template<> struct Hash<AutoPtr<ISQLiteClosable> >
 {
+    size_t operator()(AutoPtr<ISQLiteClosable> name) const
+    {
+        return (size_t)name.Get();
+    }
+};
+
+template<> struct EqualTo<AutoPtr<ISQLiteClosable> >
+{
+    Boolean operator()(const AutoPtr<ISQLiteClosable>& x,
+                       const AutoPtr<ISQLiteClosable>& y) const
+    {
+        return x.Get() == y.Get();
+    }
+};
+
+_ELASTOS_NAMESPACE_END
+
+// #define SQLITE_SOFT_HEAP_LIMIT (4 * 1024 * 1024)
+// #define UTF16_STORAGE 0
+// #define ANDROID_TABLE "android_metadata"
+
+/**
+ * Exposes methods to manage a SQLite database.
+ * <p>SQLiteDatabase has methods to create, delete, execute SQL commands, and
+ * perform other common database management tasks.
+ * <p>See the Notepad sample application in the SDK for an example of creating
+ * and managing a database.
+ * <p> Database names must be unique within an application, not across all
+ * applications.
+ *
+ * <h3>Localized Collation - ORDER BY</h3>
+ * <p>In addition to SQLite's default <code>BINARY</code> collator, Android supplies
+ * two more, <code>LOCALIZED</code>, which changes with the system's current locale
+ * if you wire it up correctly (XXX a link needed!), and <code>UNICODE</code>, which
+ * is the Unicode Collation Algorithm and not tailored to the current locale.
+ */
+class SQLiteDatabase
+    : public ElRefBase
+    , public SQLiteClosable
+    , public ISQLiteDatabase
+{
+public:
+    struct HashKey
+    {
+        size_t operator()(const SQLiteDatabase* s) const
+        {
+            return (size_t)s->GetHashCode();
+        }
+    };
+
+    class ActiveDatabases
+    {
+    public:
+        static ActiveDatabases* GetInstance() { return sActiveDatabases; }
+
+    private:
+        ActiveDatabases() {} // disable instantiation of this class
+
+    private:
+        friend class SQLiteDatabase;
+
+        // HashSet<WeakReference<SQLiteDatabase>> mActiveDatabases =
+        //     new HashSet<WeakReference<SQLiteDatabase>>();
+        HashSet< AutoPtr<SQLiteDatabase>, SQLiteDatabase::HashKey > mActiveDatabases;
+
+        static ActiveDatabases* sActiveDatabases;
+    };
+
 private:
     /**
      * Internal class used to keep track what needs to be marked as changed
      * when an update occurs. This is used for syncing, so the sync engine
      * knows what data has been updated locally.
      */
-    class SyncUpdateInfo {
+    class SyncUpdateInfo
+    {
     public:
         /**
          * Creates the SyncUpdateInfo class.
@@ -39,275 +108,39 @@ private:
          * @param foreignKey The key that refers to the primary key in table
          */
         SyncUpdateInfo(
-            /* [in] */ String masterTable,
-            /* [in] */ String deletedTable,
-            /* [in] */ String foreignKey);
+            /* [in] */ const String& masterTable,
+            /* [in] */ const String& deletedTable,
+            /* [in] */ const String& foreignKey);
 
-    public:            
+    public:
         /** The table containing the _sync_time column */
-        String masterTable;
+        String mMasterTable;
 
         /** The deleted table that corresponds to the master table */
-        String deletedTable;
+        String mDeletedTable;
 
         /** The key in the local table the row in table. It may be _id, if table
          * is the local table. */
-        String foreignKey;
+        String mForeignKey;
     };
-public:
-    /**
-     * Algorithms used in ON CONFLICT clause
-     * http://www.sqlite.org/lang_conflict.html
-     */
-    /**
-     *  When a constraint violation occurs, an immediate ROLLBACK occurs,
-     * thus ending the current transaction, and the command aborts with a
-     * return code of SQLITE_CONSTRAINT. If no transaction is active
-     * (other than the implied transaction that is created on every command)
-     *  then this algorithm works the same as ABORT.
-     */
-    const static Int32 CONFLICT_ROLLBACK = 1;
-
-    /**
-     * When a constraint violation occurs,no ROLLBACK is executed
-     * so changes from prior commands within the same transaction
-     * are preserved. This is the default behavior.
-     */
-    const static Int32 CONFLICT_ABORT = 2;
-
-    /**
-     * When a constraint violation occurs, the command aborts with a return
-     * code SQLITE_CONSTRAINT. But any changes to the database that
-     * the command made prior to encountering the constraint violation
-     * are preserved and are not backed out.
-     */
-    const static Int32 CONFLICT_FAIL = 3;
-
-    /**
-     * When a constraint violation occurs, the one row that contains
-     * the constraint violation is not inserted or changed.
-     * But the command continues executing normally. Other rows before and
-     * after the row that contained the constraint violation continue to be
-     * inserted or updated normally. No error is returned.
-     */
-    const static Int32 CONFLICT_IGNORE = 4;
-
-    /**
-     * When a UNIQUE constraint violation occurs, the pre-existing rows that
-     * are causing the constraint violation are removed prior to inserting
-     * or updating the current row. Thus the insert or update always occurs.
-     * The command continues executing normally. No error is returned.
-     * If a NOT NULL constraint violation occurs, the NULL value is replaced
-     * by the default value for that column. If the column has no default
-     * value, then the ABORT algorithm is used. If a CHECK constraint
-     * violation occurs then the IGNORE algorithm is used. When this conflict
-     * resolution strategy deletes rows in order to satisfy a constraint,
-     * it does not invoke delete triggers on those rows.
-     *  This behavior might change in a future release.
-     */
-    const static Int32 CONFLICT_REPLACE = 5;
-
-    /**
-     * use the following when no conflict action is specified.
-     */
-    const static Int32 CONFLICT_NONE = 0;
-
-
-    /**
-     * Maximum Length Of A LIKE Or GLOB Pattern
-     * The pattern matching algorithm used in the default LIKE and GLOB implementation
-     * of SQLite can exhibit O(N^2) performance (where N is the number of characters in
-     * the pattern) for certain pathological cases. To avoid denial-of-service attacks
-     * the length of the LIKE or GLOB pattern is limited to SQLITE_MAX_LIKE_PATTERN_LENGTH bytes.
-     * The default value of this limit is 50000. A modern workstation can evaluate
-     * even a pathological LIKE or GLOB pattern of 50000 bytes relatively quickly.
-     * The denial of service problem only comes into play when the pattern length gets
-     * into millions of bytes. Nevertheless, since most useful LIKE or GLOB patterns
-     * are at most a few dozen bytes in length, paranoid application developers may
-     * want to reduce this parameter to something in the range of a few hundred
-     * if they know that external users are able to generate arbitrary patterns.
-     */
-    const static Int32 SQLITE_MAX_LIKE_PATTERN_LENGTH = 50000;
-
-    /**
-     * Flag for {@link #openDatabase} to open the database for reading and writing.
-     * If the disk is full, this may fail even before you actually write anything.
-     *
-     * {@more} Note that the value of this flag is 0, so it is the default.
-     */
-    const static Int32 OPEN_READWRITE = 0x00000000;          // update native code if changing
-
-    /**
-     * Flag for {@link #openDatabase} to open the database for reading only.
-     * This is the only reliable way to open a database if the disk may be full.
-     */
-    const static Int32 OPEN_READONLY = 0x00000001;           // update native code if changing
-
-    /**
-     * Flag for {@link #openDatabase} to open the database without support for localized collators.
-     *
-     * {@more} This causes the collator <code>LOCALIZED</code> not to be created.
-     * You must be consistent when using this flag to use the setting the database was
-     * created with.  If this is set, {@link #setLocale} will do nothing.
-     */
-    const static Int32 NO_LOCALIZED_COLLATORS = 0x00000010;  // update native code if changing
-
-    /**
-     * Flag for {@link #openDatabase} to create the database file if it does not already exist.
-     */
-    const static Int32 CREATE_IF_NECESSARY = 0x10000000;     // update native code if changing
-
-
-    /**
-     * @hide
-     */
-    const static Int32 MAX_SQL_CACHE_SIZE = 250;
-private:
-    const static String TAG;
-    const static Int32 EVENT_DB_OPERATION = 52000;
-    const static Int32 EVENT_DB_CORRUPT = 75004;
-
-//    private static final String[] CONFLICT_VALUES = new String[]
-//            {"", " OR ROLLBACK ", " OR ABORT ", " OR FAIL ", " OR IGNORE ", " OR REPLACE "};
-    const static ArrayOf<String>* CONFLICT_VALUES;
-
-    const static Int32 OPEN_READ_MASK = 0x00000001;         // update native code if changing
-
-    /**
-     * Indicates whether the most-recently started transaction has been marked as successful.
-     */
-    Boolean mInnerTransactionIsSuccessful;
-
-    /**
-     * Valid during the life of a transaction, and indicates whether the entire transaction (the
-     * outer one and all of the inner ones) so far has been successful.
-     */
-    Boolean mTransactionIsSuccessful;
-
-    /**
-     * Valid during the life of a transaction.
-     */
-    AutoPtr<ISQLiteTransactionListener> mTransactionListener;
-
-    /** Synchronize on this when accessing the database */
-//    private final ReentrantLock mLock = new ReentrantLock(true);
-
-    Int64 mLockAcquiredWallTime;
-    Int64 mLockAcquiredThreadTime;
-
-    // limit the frequency of complaints about each database to one within 20 sec
-    // unless run command adb shell setprop log.tag.Database VERBOSE
-    const static Int32 LOCK_WARNING_WINDOW_IN_MS = 20000;
-    /** If the lock is held this long then a warning will be printed when it is released. */
-    const static Int32 LOCK_ACQUIRED_WARNING_TIME_IN_MS = 300;
-    const static Int32 LOCK_ACQUIRED_WARNING_THREAD_TIME_IN_MS = 100;
-    const static Int32 LOCK_ACQUIRED_WARNING_TIME_IN_MS_ALWAYS_PRINT = 2000;
-
-    const static Int32 SLEEP_AFTER_YIELD_QUANTUM = 1000;
-
-    // The pattern we remove from database filenames before
-    // potentially logging them.
-//    private static final Pattern EMAIL_IN_DB_PATTERN = Pattern.compile("[\\w\\.\\-]+@[\\w\\.\\-]+");
-
-    Int64 mLastLockMessageTime;
-
-    // Things related to query logging/sampling for debugging
-    // slow/frequent queries during development.  Always log queries
-    // which take (by default) 500ms+; shorter queries are sampled
-    // accordingly.  Commit statements, which are typically slow, are
-    // logged together with the most recently executed SQL statement,
-    // for disambiguation.  The 500ms value is configurable via a
-    // SystemProperty, but developers actively debugging database I/O
-    // should probably use the regular log tunable,
-    // LOG_SLOW_QUERIES_PROPERTY, defined below.
-    const static Int32 sQueryLogTimeInMillis = 0;  // lazily initialized
-    const static Int32 QUERY_LOG_SQL_LENGTH = 64;
-    const static String COMMIT_SQL;
-//    private final Random mRandom = new Random();
-    String mLastSqlStatement;
-
-
-    /** The path for the database file */
-    String mPath;
-
-    /** The anonymized path for the database file for logging purposes */
-    String mPathForLogs;  // lazily populated
-
-    /** The flags passed to open/create */
-    Int32 mFlags;
-
-    /** The optional factory to use when creating new Cursors */
-    AutoPtr<ICursorFactory> mFactory;
-
-//    private WeakHashMap<SQLiteClosable, Object> mPrograms;
-    HashMap<AutoPtr<ISQLiteClosable>, AutoPtr<IInterface> >* mPrograms;
-
-    Int32 mMaxSqlCacheSize; // max cache size per Database instance
-    Int32 mCacheFullWarnings;
-    const static Int32 MAX_WARNINGS_ON_CACHESIZE_CONDITION = 1;
-
-    /** maintain stats about number of cache hits and misses */
-    Int32 mNumCacheHits;
-    Int32 mNumCacheMisses;
-
-    /** the following 2 members maintain the time when a database is opened and closed */
-    String mTimeOpened;
-    String mTimeClosed;
-
-    /** Used to find out where this object was created in case it never got closed. */
-//    private Throwable mStackTrace = null;
-
-    // System property that enables logging of slow queries. Specify the threshold in ms.
-    const static String LOG_SLOW_QUERIES_PROPERTY;
-    const static Int32 mSlowQueryThreshold;
-
-    Boolean mLockingEnabled;
-
-    /** Maps table names to info about what to which _sync_time column to set
-     * to NULL on an update. This is used to support syncing. */
-//    private final Map<String, SyncUpdateInfo> mSyncUpdateInfo =
-//            new HashMap<String, SyncUpdateInfo>();
-    HashMap<String, SyncUpdateInfo*>* mSyncUpdateInfo;
-
-protected:
-    // String prefix for slow database query EventLog records that show
-    // lock acquistions of the database.
-    /* package */ const static String GET_LOCK_LOG_PREFIX;
-
-    /** Used by native code, do not rename */
-    /* package */ Int32 mNativeHandle;
-
-    /** Used to make temp table names unique */
-    /* package */ Int32 mTempTableSequence;
-
-    /**
-     * for each instance of this class, a cache is maintained to store
-     * the compiled query statement ids returned by sqlite database.
-     *     key = sql statement with "?" for bind args
-     *     value = {@link SQLiteCompiledSql}
-     * If an application opens the database and keeps it open during its entire life, then
-     * there will not be an overhead of compilation of sql statements by sqlite.
-     *
-     * why is this cache NOT static? because sqlite attaches compiledsql statements to the
-     * struct created when {@link SQLiteDatabase#openDatabase(String, CursorFactory, int)} is
-     * invoked.
-     *
-     * this cache has an upper limit of mMaxSqlCacheSize (settable by calling the method
-     * (@link setMaxCacheSize(int)}). its default is 0 - i.e., no caching by default because
-     * most of the apps don't use "?" syntax in their sql, caching is not useful for them.
-     */
-//    /* package */ Map<String, SQLiteCompiledSql> mCompiledQueries = Maps.newHashMap();
-    /* package */ Map<String, AutoPtr<ISQLiteCompiledSql> >* mCompiledQueries;
 
 public:
-    virtual CARAPI AddSQLiteClosable(
+    CARAPI_(PInterface) Probe(
+        /* [in]  */ REIID riid);
+
+    CARAPI_(UInt32) AddRef();
+
+    CARAPI_(UInt32) Release();
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface *pObject,
+        /* [out] */ InterfaceID *pIID);
+
+    virtual CARAPI_(void) AddSQLiteClosable(
         /* [in] */ ISQLiteClosable* closable);
 
-    virtual CARAPI RemoveSQLiteClosable(
+    virtual CARAPI_(void) RemoveSQLiteClosable(
         /* [in] */ ISQLiteClosable* closable);
-
-    //@Override
-    CARAPI OnAllReferencesReleased();
 
     /**
      * Attempts to release memory that SQLite holds but does not require to
@@ -315,9 +148,7 @@ public:
      *
      * @return the number of bytes actually released
      */
-//    static public native int releaseMemory();
-     static CARAPI ReleaseMemory(
-        /* [out] */ Int32* value);
+     static CARAPI_(Int32) ReleaseMemory();
 
     /**
      * Control whether or not the SQLiteDatabase is made thread-safe by using locks
@@ -436,7 +267,7 @@ public:
      * throw an exception if that is not the case.
      * @return true if the transaction was yielded
      */
-    virtual CARAPI  YieldIfContendedSafely(
+    virtual CARAPI YieldIfContendedSafely(
         /* [out] */ Boolean* result);
 
     /**
@@ -455,7 +286,7 @@ public:
         /* [out] */ Boolean* result);
 
     virtual CARAPI GetSyncedTables(
-        /* [out] */ HashMap<String,String>* tables);
+        /* [out] */ IObjectStringMap** tables);
 
     /**
      * Open the database according to the flags {@link #OPEN_READWRITE}
@@ -472,10 +303,10 @@ public:
      * @throws SQLiteException if the database cannot be opened
      */
     static CARAPI OpenDatabase(
-        /* [in] */ String path,
+        /* [in] */ const String& path,
         /* [in] */ ICursorFactory* factory,
         /* [in] */ Int32 flags,
-        /* [out] */ ISQLiteDatabase** sdb);
+        /* [out] */ ISQLiteDatabase** db);
 
 
     /**
@@ -484,15 +315,15 @@ public:
     static CARAPI OpenOrCreateDatabase(
         /* [in] */ IFile* file,
         /* [in] */ ICursorFactory* factory,
-        /* [out] */ ISQLiteDatabase** sdb);
+        /* [out] */ ISQLiteDatabase** db);
 
     /**
      * Equivalent to openDatabase(path, factory, CREATE_IF_NECESSARY).
      */
-    static CARAPI OpenOrCreateDatabaseEx(
-        /* [in] */ String path,
+    static CARAPI OpenOrCreateDatabase(
+        /* [in] */ const String& path,
         /* [in] */ ICursorFactory* factory,
-        /* [out] */ ISQLiteDatabase** sdb);
+        /* [out] */ ISQLiteDatabase** db);
 
     /**
      * Create a memory backed SQLite database.  Its contents will be destroyed
@@ -507,14 +338,12 @@ public:
      */
     static CARAPI Create(
         /* [in] */ ICursorFactory* factory,
-        /* [out] */ ISQLiteDatabase** sdb);
+        /* [out] */ ISQLiteDatabase** db);
 
     /**
      * Close the database.
      */
-    CARAPI Close();
-
-    CARAPI Dbclose();
+    virtual CARAPI Close();
 
     /**
      * Gets the database version.
@@ -578,8 +407,8 @@ public:
      *          syncable table
      */
     virtual CARAPI MarkTableSyncable(
-        /* [in] */ String table,
-        /* [in] */ String deletedTable);
+        /* [in] */ const String& table,
+        /* [in] */ const String& deletedTable);
 
     /**
      * Mark this table as syncable, with the _sync_dirty residing in another
@@ -593,9 +422,9 @@ public:
      * @param updateTable this is the table that will have its _sync_dirty
      */
     virtual CARAPI MarkTableSyncableEx(
-        /* [in] */ String table,
-        /* [in] */ String foreignKey,
-        /* [in] */ String updateTable);
+        /* [in] */ const String& table,
+        /* [in] */ const String& foreignKey,
+        /* [in] */ const String& updateTable);
 
     /**
      * Finds the name of the first table, which is editable.
@@ -604,7 +433,7 @@ public:
      * @return the first table listed
      */
     static CARAPI FindEditTable(
-        /* [in] */ String tables,
+        /* [in] */ const String& tables,
         /* [out] */ String* editable);
 
     /**
@@ -620,7 +449,7 @@ public:
      * {@link SQLiteStatement}s are not synchronized, see the documentation for more details.
      */
     virtual CARAPI CompileStatement(
-        /* [in] */ String sql,
+        /* [in] */ const String& sql,
         /* [out] */ ISQLiteStatement** stmt);
 
     /**
@@ -656,14 +485,14 @@ public:
      */
     virtual CARAPI Query(
         /* [in] */ Boolean distinct,
-        /* [in] */ String table,
+        /* [in] */ const String& table,
         /* [in] */ ArrayOf<String>* columns,
-        /* [in] */ String selection,
+        /* [in] */ const String& selection,
         /* [in] */ ArrayOf<String>* selectionArgs,
-        /* [in] */ String groupBy,
-        /* [in] */ String having,
-        /* [in] */ String orderBy,
-        /* [in] */ String limit,
+        /* [in] */ const String& groupBy,
+        /* [in] */ const String& having,
+        /* [in] */ const String& orderBy,
+        /* [in] */ const String& limit,
         /* [out] */ ICursor** cursor);
 
     /**
@@ -701,14 +530,14 @@ public:
     virtual CARAPI QueryWithFactory(
         /* [in] */ ICursorFactory* cursorFactory,
         /* [in] */ Boolean distinct,
-        /* [in] */ String table,
+        /* [in] */ const String& table,
         /* [in] */ ArrayOf<String>* columns,
-        /* [in] */ String selection,
+        /* [in] */ const String& selection,
         /* [in] */ ArrayOf<String>* selectionArgs,
-        /* [in] */ String groupBy,
-        /* [in] */ String having,
-        /* [in] */ String orderBy,
-        /* [in] */ String limit,
+        /* [in] */ const String& groupBy,
+        /* [in] */ const String& having,
+        /* [in] */ const String& orderBy,
+        /* [in] */ const String& limit,
         /* [out] */ ICursor** cursor);
 
     /**
@@ -740,13 +569,13 @@ public:
      * @see Cursor
      */
     virtual CARAPI QueryEx(
-        /* [in] */ String table,
+        /* [in] */ const String& table,
         /* [in] */ ArrayOf<String>* columns,
-        /* [in] */ String selection,
+        /* [in] */ const String& selection,
         /* [in] */ ArrayOf<String>* selectionArgs,
-        /* [in] */ String groupBy,
-        /* [in] */ String having,
-        /* [in] */ String orderBy,
+        /* [in] */ const String& groupBy,
+        /* [in] */ const String& having,
+        /* [in] */ const String& orderBy,
         /* [out] */ ICursor** cursor);
 
     /**
@@ -780,14 +609,14 @@ public:
      * @see Cursor
      */
     virtual CARAPI QueryEx2(
-        /* [in] */ String table, 
+        /* [in] */ const String& table,
         /* [in] */ ArrayOf<String>* columns,
-        /* [in] */ String selection,
+        /* [in] */ const String& selection,
         /* [in] */ ArrayOf<String>* selectionArgs,
-        /* [in] */ String groupBy,
-        /* [in] */ String having,
-        /* [in] */ String orderBy,
-        /* [in] */ String limit,
+        /* [in] */ const String& groupBy,
+        /* [in] */ const String& having,
+        /* [in] */ const String& orderBy,
+        /* [in] */ const String& limit,
         /* [out] */ ICursor** cursor);
 
     /**
@@ -801,7 +630,7 @@ public:
      * {@link Cursor}s are not synchronized, see the documentation for more details.
      */
     virtual CARAPI RawQuery(
-        /* [in] */ String sql,
+        /* [in] */ const String& sql,
         /* [in] */ ArrayOf<String>* selectionArgs,
         /* [out] */ ICursor** cursor);
 
@@ -819,9 +648,9 @@ public:
      */
     virtual CARAPI RawQueryWithFactory(
         /* [in] */ ICursorFactory* cursorFactory,
-        /* [in] */ String sql,
+        /* [in] */ const String& sql,
         /* [in] */ ArrayOf<String>* selectionArgs,
-        /* [in] */ String editTable,
+        /* [in] */ const String& editTable,
         /* [out] */ ICursor** cursor);
 
     /**
@@ -843,7 +672,7 @@ public:
      * @hide
      */
     virtual CARAPI RawQueryEx(
-        /* [in] */ String sql,
+        /* [in] */ const String& sql,
         /* [in] */ ArrayOf<String>* selectionArgs,
         /* [in] */ Int32 initialRead,
         /* [in] */ Int32 maxRead,
@@ -866,10 +695,10 @@ public:
      * @return the row ID of the newly inserted row, or -1 if an error occurred
      */
     virtual CARAPI Insert(
-        /* [in] */ String table,
-        /* [in] */ String nullColumnHack,
+        /* [in] */ const String& table,
+        /* [in] */ const String& nullColumnHack,
         /* [in] */ IContentValues* values,
-        /* [out] */ Int64* value);
+        /* [out] */ Int64* rowId);
 
     /**
      * Convenience method for inserting a row into the database.
@@ -889,10 +718,10 @@ public:
      * @return the row ID of the newly inserted row, or -1 if an error occurred
      */
     virtual CARAPI InsertOrThrow(
-        /* [in] */ String table,
-        /* [in] */ String nullColumnHack,
+        /* [in] */ const String& table,
+        /* [in] */ const String& nullColumnHack,
         /* [in] */ IContentValues* values,
-        /* [out] */ Int64* value);
+        /* [out] */ Int64* rowId);
 
     /**
      * Convenience method for replacing a row in the database.
@@ -910,10 +739,10 @@ public:
      * @return the row ID of the newly inserted row, or -1 if an error occurred
      */
     virtual CARAPI Replace(
-        /* [in] */ String table,
-        /* [in] */ String nullColumnHack,
+        /* [in] */ const String& table,
+        /* [in] */ const String& nullColumnHack,
         /* [in] */ IContentValues* initialValues,
-        /* [out] */ Int64* value);
+        /* [out] */ Int64* rowId);
 
     /**
      * Convenience method for replacing a row in the database.
@@ -932,10 +761,10 @@ public:
      * @return the row ID of the newly inserted row, or -1 if an error occurred
      */
     virtual CARAPI ReplaceOrThrow(
-        /* [in] */ String table,
-        /* [in] */ String nullColumnHack,
+        /* [in] */ const String& table,
+        /* [in] */ const String& nullColumnHack,
         /* [in] */ IContentValues* initialValues,
-        /* [out] */ Int64* value);
+        /* [out] */ Int64* rowId);
 
     /**
      * General method for inserting a row into the database.
@@ -958,11 +787,11 @@ public:
      * OR -1 if any error
      */
     virtual CARAPI InsertWithOnConflict(
-        /* [in] */ String table,
-        /* [in] */ String nullColumnHack,
+        /* [in] */ const String& table,
+        /* [in] */ const String& nullColumnHack,
         /* [in] */ IContentValues* initialValues,
         /* [in] */ Int32 conflictAlgorithm,
-        /* [out] */ Int64* value);
+        /* [out] */ Int64* rowId);
 
     /**
      * Convenience method for deleting rows in the database.
@@ -975,8 +804,8 @@ public:
      *         whereClause.
      */
     virtual CARAPI Delete(
-        /* [in] */ String table,
-        /* [in] */ String whereClause,
+        /* [in] */ const String& table,
+        /* [in] */ const String& whereClause,
         /* [in] */ ArrayOf<String>* whereArgs,
         /* [out] */ Int32* value);
 
@@ -991,9 +820,9 @@ public:
      * @return the number of rows affected
      */
     virtual CARAPI Update(
-        /* [in] */ String table,
+        /* [in] */ const String& table,
         /* [in] */ IContentValues* values,
-        /* [in] */ String whereClause,
+        /* [in] */ const String& whereClause,
         /* [in] */ ArrayOf<String>* whereArgs,
         /* [out] */ Int32* value);
 
@@ -1005,13 +834,15 @@ public:
      *            valid value that will be translated to NULL.
      * @param whereClause the optional WHERE clause to apply when updating.
      *            Passing null will update all rows.
-     * @param conflictAlgorithm for update conflict resolver
+     * @param conflictAlgorithm for update conflict resos.append(name);
+        DatabaseUtils.appendEscapedSQLString(s, clause);
+    }lver
      * @return the number of rows affected
      */
     virtual CARAPI UpdateWithOnConflict(
-        /* [in] */ String table,
+        /* [in] */ const String& table,
         /* [in] */ IContentValues* values,
-        /* [in] */ String whereClause,
+        /* [in] */ const String& whereClause,
         /* [in] */ ArrayOf<String>* whereArgs,
         /* [in] */ Int32 conflictAlgorithm,
         /* [out] */ Int32* value);
@@ -1024,7 +855,7 @@ public:
      * @throws SQLException if the SQL string is invalid
      */
     virtual CARAPI ExecSQL(
-        /* [in] */ String sql);
+        /* [in] */ CString sql);
 
     /**
      * Execute a single SQL statement that is not a query. For example, CREATE
@@ -1036,7 +867,7 @@ public:
      * @throws SQLException if the SQL string is invalid
      */
     virtual CARAPI ExecSQLEx(
-        /* [in] */ String sql,
+        /* [in] */ CString sql,
         /* [in] */ ArrayOf<IInterface*>* bindArgs);
 
     /**
@@ -1054,7 +885,7 @@ public:
 
     virtual CARAPI NeedUpgrade(
         /* [in] */ Int32 newVersion,
-        /* [out] */ Boolean* result);
+        /* [out] */ Boolean* needed);
 
     /**
      * Getter for the path to the database file.
@@ -1079,15 +910,15 @@ public:
      * @hide
      */
     virtual CARAPI IsInCompiledSqlCache(
-        /* [in] */ String sql,
-        /* [out] */ Boolean* isInCompiledSqlCache);
+        /* [in] */ const String& sql,
+        /* [out] */ Boolean* result);
 
     /**
      * purges the given sql from the compiled-sql cache.
      * @hide
      */
     virtual CARAPI PurgeFromCompiledSqlCache(
-        /* [in] */ String sql);
+        /* [in] */ const String& sql);
 
     /**
      * remove everything from the compiled sql cache
@@ -1100,7 +931,7 @@ public:
      * @hide
      */
     virtual CARAPI GetMaxSqlCacheSize(
-        /* [out] */ Int32* maxSqlCacheSize);
+        /* [out] */ Int32* size);
 
     /**
      * set the max size of the compiled sql cache for this database after purging the cache.
@@ -1120,9 +951,8 @@ public:
     virtual CARAPI SetMaxSqlCacheSize(
         /* [in] */ Int32 cacheSize);
 
-
-protected:
-    /* package */ virtual CARAPI OnCorruption();
+public:
+        /* package */ virtual CARAPI_(void) OnCorruption();
 
     /**
      * Locks the database for exclusive access. The database lock must be held when
@@ -1132,14 +962,14 @@ protected:
      *
      * @see #unlock()
      */
-    /* package */ virtual CARAPI Lock();
+    /* package */ virtual CARAPI_(void) Lock();
 
     /**
      * Releases the database lock. This is a no-op if mLockingEnabled is false.
      *
      * @see #unlock()
      */
-    /* package */ virtual CARAPI Unlock();
+    /* package */ virtual CARAPI_(void) Unlock();
 
     /**
      * Call for each row that is updated in a cursor.
@@ -1147,20 +977,18 @@ protected:
      * @param table the table the row is in
      * @param rowId the row ID of the updated row
      */
-    /* package */ virtual CARAPI RowUpdated(
-        /* [in] */ String table,
+    /* package */ virtual CARAPI_(void) RowUpdated(
+        /* [in] */ const String& table,
         /* [in] */ Int32 rowId);
 
-    ~SQLiteDatabase();
-
-    /* package */ virtual CARAPI LogTimeStat(
-        /* [in] */ String sql,
+    /* package */ virtual CARAPI_(void) LogTimeStat(
+        /* [in] */ CString sql,
         /* [in] */ Int64 beginMillis);
 
-    /* package */ virtual CARAPI LogTimeStatEx(
-        /* [in] */ String sql,
+    /* package */ virtual CARAPI_(void) LogTimeStat(
+        /* [in] */ CString sql,
         /* [in] */ Int64 beginMillis,
-        /* [in] */ String prefix);
+        /* [in] */ CString prefix);
 
     /*
      * ============================================================================
@@ -1176,17 +1004,16 @@ protected:
      * the new {@link SQLiteCompiledSql} object is NOT inserted into the cache (i.e.,the current
      * mapping is NOT replaced with the new mapping).
      */
-    /* package */ virtual CARAPI AddToCompiledQueries(
-        /* [in] */ String sql,
-        /* [in] */ ISQLiteCompiledSql* compiledStatement);
+    /* package */ virtual CARAPI_(void) AddToCompiledQueries(
+        /* [in] */ const String& sql,
+        /* [in] */ SQLiteCompiledSql* compiledStatement);
 
     /**
      * from the compiledQueries cache, returns the compiled-statement-id for the given sql.
      * returns null, if not found in the cache.
      */
-    /* package */ virtual CARAPI GetCompiledStatementForSql(
-        /* [in] */ String sql,
-        /* [in] */ ISQLiteCompiledSql* compiledStatement);
+    /* package */ virtual CARAPI_(AutoPtr<SQLiteCompiledSql>) GetCompiledStatementForSql(
+        /* [in] */ const String& sql);
 
 /*    class ActiveDatabases {
         private static final ActiveDatabases activeDatabases = new ActiveDatabases();
@@ -1198,12 +1025,68 @@ protected:
 
     /**
      * this method is used to collect data about ALL open databases in the current process.
-     * bugreport is a user of this data. 
+     * bugreport is a user of this data.
      */
 //    /* package */ static ArrayList<DbStats> getDbStats();
 
+     /**
+     * Native call to execute a raw SQL statement. {@link #lock} must be held
+     * when calling this method.
+     *
+     * @param sql The raw SQL string
+     * @throws SQLException
+     */
+    /* package */ CARAPI NativeExecSQL(
+        /* [in] */ CString sql);
+
+    /**
+     * Native call to set the locale.  {@link #lock} must be held when calling
+     * this method.
+     * @throws SQLException
+     */
+    /* package */ CARAPI NativeSetLocale(
+        /* [in] */ CString loc,
+        /* [in] */ Int32 flags);
+
+    /**
+     * Returns the row ID of the last row inserted into the database.
+     *
+     * @return the row ID of the last row inserted into the database.
+     */
+    /* package */ CARAPI_(Int64) LastInsertRow();
+
+    /**
+     * Returns the number of changes made in the last statement executed.
+     *
+     * @return the number of changes made in the last statement executed.
+     */
+    /* package */ CARAPI_(Int32) LastChangeCount();
+
+    CARAPI AcquireReference();
+
+    CARAPI ReleaseReference();
+
+    CARAPI ReleaseReferenceFromContainer();
+
+protected:
+    virtual ~SQLiteDatabase();
+
+    //@Override
+    CARAPI OnAllReferencesReleased();
+
 private:
-    CARAPI_(void) Init();
+    /**
+     * Private constructor. See {@link #create} and {@link #openDatabase}.
+     *
+     * @param path The full path to the database
+     * @param factory The factory to use when creating cursors, may be NULL.
+     * @param flags 0 or {@link #NO_LOCALIZED_COLLATORS}.  If the database file already
+     *              exists, mFlags will be updated appropriately.
+     */
+    SQLiteDatabase(
+        /* [in] */ const String& path,
+        /* [in] */ ICursorFactory* factory,
+        /* [in] */ Int32 flags);
 
     /**
      * Locks the database for exclusive access. The database lock must be held when
@@ -1213,23 +1096,27 @@ private:
      *
      * @see #unlockForced()
      */
-    CARAPI LockForced();
+    CARAPI_(void) LockForced();
 
     /**
      * Releases the database lock.
      *
      * @see #unlockForced()
      */
-    CARAPI UnlockForced();
+    CARAPI_(void) UnlockForced();
 
-    CARAPI CheckLockHoldTime();
+    CARAPI_(void) CheckLockHoldTime();
 
-    CARAPI YieldIfContendedHelper(
+    CARAPI_(Boolean) YieldIfContendedHelper(
         /* [in] */ Boolean checkFullyYielded,
-        /* [in] */ Int64 sleepAfterYieldDelay,
-        /* [out] */ Boolean* result);
+        /* [in] */ Int64 sleepAfterYieldDelay);
 
     CARAPI CloseClosable();
+
+    /**
+     * Native call to close the database.
+     */
+    CARAPI Dbclose();
 
     /**
      * Mark this table as syncable, with the _sync_dirty residing in another
@@ -1244,37 +1131,22 @@ private:
      * @param deletedTable The deleted table that corresponds to the
      *          updateTable
      */
-    CARAPI MarkTableSyncableEx2(
-        /* [in] */ String table,
-        /* [in] */ String foreignKey,
-        /* [in] */ String updateTable,
-        /* [in] */ String deletedTable);
+    CARAPI MarkTableSyncable(
+        /* [in] */ const String& table,
+        /* [in] */ const String& foreignKey,
+        /* [in] */ const String& updateTable,
+        /* [in] */ const String& deletedTable);
 
-    /**
-     * Private constructor. See {@link #create} and {@link #openDatabase}.
-     *
-     * @param path The full path to the database
-     * @param factory The factory to use when creating cursors, may be NULL.
-     * @param flags 0 or {@link #NO_LOCALIZED_COLLATORS}.  If the database file already
-     *              exists, mFlags will be updated appropriately.
-     */
-    SQLiteDatabase(
-        /* [in] */ String path,
-        /* [in] */ ICursorFactory* factory,
-        /* [in] */ Int32 flags);
-
-    CARAPI GetTime(
-        /* [out] */ String* time);
+    CARAPI_(String) GetTime();
 
     /**
      * Removes email addresses from database filenames before they're
      * logged to the EventLog where otherwise apps could potentially
      * read them.
      */
-    CARAPI GetPathForLogs(
-        /* [out] */ String* pathForLogs);
+    CARAPI_(String) GetPathForLogs();
 
-    CARAPI DeallocCachedSqlStatements();
+    CARAPI_(void) DeallocCachedSqlStatements();
 
     /**
      * get the specified pragma value from sqlite for the specified database.
@@ -1282,10 +1154,9 @@ private:
      * NO JAVA locks are held in this method.
      * TODO: use this to do all pragma's in this class
      */
-    static CARAPI GetPragmaVal(
-        /* [in] */ ISQLiteDatabase* db,
-        /* [in] */ String pragma,
-        /* [out] */ Int64* pragmaVal);
+    static CARAPI_(Int64) GetPragmaVal(
+        /* [in] */ SQLiteDatabase* db,
+        /* [in] */ const String& pragma);
 
     /**
      * returns list of full pathnames of all attached databases
@@ -1301,9 +1172,8 @@ private:
      *
      * @param path The full path to the database
      */
-//    private native void dbopen(String path, int flags);
      CARAPI Dbopen(
-        /* [in] */ String path,
+        /* [in] */ CString path,
         /* [in] */ Int32 flags);
 
     /**
@@ -1312,8 +1182,8 @@ private:
      * @param path the full path to the database
      */
 //    private native void enableSqlTracing(String path);
-     CARAPI EnableSqlTracing(
-        /* [in] */ String path);
+     CARAPI_(void) EnableSqlTracing(
+        /* [in] */ CString path);
 
     /**
      * Native call to setup profiling of all sql statements.
@@ -1323,52 +1193,157 @@ private:
      *
      * @param path the full path to the database
      */
-//    private native void enableSqlProfiling(String path);
-     CARAPI EnableSqlProfiling(
-        /* [in] */ String path);
-
-    /**
-     * Native call to execute a raw SQL statement. {@link #lock} must be held
-     * when calling this method.
-     *
-     * @param sql The raw SQL string
-     * @throws SQLException
-     */
-//    /* package */ native void native_execSQL(String sql) throws SQLException;
-     CARAPI Native_ExecSQL(
-        /* [in] */ String sql);
-
-    /**
-     * Native call to set the locale.  {@link #lock} must be held when calling
-     * this method.
-     * @throws SQLException
-     */
-     CARAPI Native_SetLocale(
-        /* [in] */ String loc,
-        /* [in] */ Int32 flags);
-
-    /**
-     * Returns the row ID of the last row inserted into the database.
-     *
-     * @return the row ID of the last row inserted into the database.
-     */
-    CARAPI_(Int64) LastInsertRow();
-
-    /**
-     * Returns the number of changes made in the last statement executed.
-     *
-     * @return the number of changes made in the last statement executed.
-     */
-    CARAPI_(Int32) LastChangeCount();
+     CARAPI_(void) EnableSqlProfiling(
+        /* [in] */ CString path);
 
     /**
      * return the SQLITE_DBSTATUS_LOOKASIDE_USED documented here
      * http://www.sqlite.org/c3ref/c_dbstatus_lookaside_used.html
      * @return int value of SQLITE_DBSTATUS_LOOKASIDE_USED
      */
-    CARAPI_(Int32) Native_GetDbLookaside();
+    CARAPI_(Int32) NativeGetDbLookaside();
+
+    CARAPI_(Int32) GetHashCode() const;
+
+public:
+    // String prefix for slow database query EventLog records that show
+    // lock acquistions of the database.
+    /* package */ const static CString GET_LOCK_LOG_PREFIX;
+
+    /** Used by native code, do not rename */
+    /* package */ sqlite3* mNativeHandle;
+
+    /** Used to make temp table names unique */
+    /* package */ Int32 mTempTableSequence;
+
+    /**
+     * for each instance of this class, a cache is maintained to store
+     * the compiled query statement ids returned by sqlite database.
+     *     key = sql statement with "?" for bind args
+     *     value = {@link SQLiteCompiledSql}
+     * If an application opens the database and keeps it open during its entire life, then
+     * there will not be an overhead of compilation of sql statements by sqlite.
+     *
+     * why is this cache NOT static? because sqlite attaches compiledsql statements to the
+     * struct created when {@link SQLiteDatabase#openDatabase(String, CursorFactory, int)} is
+     * invoked.
+     *
+     * this cache has an upper limit of mMaxSqlCacheSize (settable by calling the method
+     * (@link setMaxCacheSize(int)}). its default is 0 - i.e., no caching by default because
+     * most of the apps don't use "?" syntax in their sql, caching is not useful for them.
+     */
+//    /* package */ Map<String, SQLiteCompiledSql> mCompiledQueries = Maps.newHashMap();
+    /* package */ HashMap<String, AutoPtr<SQLiteCompiledSql> > mCompiledQueries;
+    /* package */ Mutex mCompiledQueriesLock;
+
+private:
+    const static CString TAG;
+    const static Int32 EVENT_DB_OPERATION = 52000;
+    const static Int32 EVENT_DB_CORRUPT = 75004;
+
+//    private static final String[] CONFLICT_VALUES = new String[]
+//            {"", " OR ROLLBACK ", " OR ABORT ", " OR FAIL ", " OR IGNORE ", " OR REPLACE "};
+    const static CString CONFLICT_VALUES[6];
+
+    const static Int32 OPEN_READ_MASK = 0x00000001;         // update native code if changing
+
+    /**
+     * Indicates whether the most-recently started transaction has been marked as successful.
+     */
+    Boolean mInnerTransactionIsSuccessful;
+
+    /**
+     * Valid during the life of a transaction, and indicates whether the entire transaction (the
+     * outer one and all of the inner ones) so far has been successful.
+     */
+    Boolean mTransactionIsSuccessful;
+
+    /**
+     * Valid during the life of a transaction.
+     */
+    AutoPtr<ISQLiteTransactionListener> mTransactionListener;
+
+    /** Synchronize on this when accessing the database */
+    ReentrantLock mLock;
+
+    Int64 mLockAcquiredWallTime;
+    Int64 mLockAcquiredThreadTime;
+
+    // limit the frequency of complaints about each database to one within 20 sec
+    // unless run command adb shell setprop log.tag.Database VERBOSE
+    const static Int32 LOCK_WARNING_WINDOW_IN_MS = 20000;
+    /** If the lock is held this long then a warning will be printed when it is released. */
+    const static Int32 LOCK_ACQUIRED_WARNING_TIME_IN_MS = 300;
+    const static Int32 LOCK_ACQUIRED_WARNING_THREAD_TIME_IN_MS = 100;
+    const static Int32 LOCK_ACQUIRED_WARNING_TIME_IN_MS_ALWAYS_PRINT = 2000;
+
+    const static Int32 SLEEP_AFTER_YIELD_QUANTUM = 1000;
+
+    // The pattern we remove from database filenames before
+    // potentially logging them.
+//    private static final Pattern EMAIL_IN_DB_PATTERN = Pattern.compile("[\\w\\.\\-]+@[\\w\\.\\-]+");
+
+    Int64 mLastLockMessageTime;
+
+    // Things related to query logging/sampling for debugging
+    // slow/frequent queries during development.  Always log queries
+    // which take (by default) 500ms+; shorter queries are sampled
+    // accordingly.  Commit statements, which are typically slow, are
+    // logged together with the most recently executed SQL statement,
+    // for disambiguation.  The 500ms value is configurable via a
+    // SystemProperty, but developers actively debugging database I/O
+    // should probably use the regular log tunable,
+    // LOG_SLOW_QUERIES_PROPERTY, defined below.
+    const static Int32 sQueryLogTimeInMillis = 0;  // lazily initialized
+    const static Int32 QUERY_LOG_SQL_LENGTH = 64;
+    const static CString COMMIT_SQL;
+//    private final Random mRandom = new Random();
+    String mLastSqlStatement;
 
 
-    
+    /** The path for the database file */
+    String mPath;
+
+    /** The anonymized path for the database file for logging purposes */
+    String mPathForLogs;  // lazily populated
+
+    /** The flags passed to open/create */
+    Int32 mFlags;
+
+    /** The optional factory to use when creating new Cursors */
+    AutoPtr<ICursorFactory> mFactory;
+
+//    private WeakHashMap<SQLiteClosable, Object> mPrograms;
+    HashMap<AutoPtr<ISQLiteClosable>, AutoPtr<IInterface> > mPrograms;
+
+    Int32 mMaxSqlCacheSize; // max cache size per Database instance
+    Int32 mCacheFullWarnings;
+    const static Int32 MAX_WARNINGS_ON_CACHESIZE_CONDITION = 1;
+
+    /** maintain stats about number of cache hits and misses */
+    Int32 mNumCacheHits;
+    Int32 mNumCacheMisses;
+
+    /** the following 2 members maintain the time when a database is opened and closed */
+    String mTimeOpened;
+    String mTimeClosed;
+
+    /** Used to find out where this object was created in case it never got closed. */
+//    private Throwable mStackTrace = null;
+
+    // System property that enables logging of slow queries. Specify the threshold in ms.
+    const static CString LOG_SLOW_QUERIES_PROPERTY;
+    Int32 mSlowQueryThreshold;
+
+    Boolean mLockingEnabled;
+
+    /** Maps table names to info about what to which _sync_time column to set
+     * to NULL on an update. This is used to support syncing. */
+//    private final Map<String, SyncUpdateInfo> mSyncUpdateInfo =
+//            new HashMap<String, SyncUpdateInfo>();
+    HashMap<String, SyncUpdateInfo*> mSyncUpdateInfo;
+    Mutex mSyncUpdateInfoLock;
+
+    Mutex mSyncLock;
 };
 #endif //__SQLITEDATABASE_H__

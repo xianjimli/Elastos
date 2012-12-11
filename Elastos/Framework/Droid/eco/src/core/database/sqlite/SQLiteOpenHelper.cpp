@@ -1,49 +1,43 @@
-#include "database/sqlite/SQLiteOpenHelper.h"
-#include "database/sqlite/SQLiteDatabase.h"
 
-ECode SQLiteOpenHelper::Init(
+#include "database/sqlite/SQLiteOpenHelper.h"
+
+
+const CString SQLiteOpenHelper::TAG = "SQLiteOpenHelper";
+
+SQLiteOpenHelper::SQLiteOpenHelper(
     /*[in]*/ IContext* context,
-    /*[in]*/ String name,
+    /*[in]*/ const String& name,
     /*[in]*/ ICursorFactory* factory,
     /*[in]*/ Int32 version)
+    : mIsInitializing(FALSE)
 {
-    if(version<1) return !NOERROR;
+    if(version < 1) {
+        assert(0);
+        // throw new IllegalArgumentException("Version must be >= 1, was " + version);
+    }
 
     mContext = context;
     mName = name;
     mFactory = factory;
     mNewVersion = version;
-
-    return NOERROR;
-}
-
-
-SQLiteOpenHelper::SQLiteOpenHelper()
-{
-    mDatabase = NULL;
-    mIsInitializing = false;
-}
-
-
-SQLiteOpenHelper::~SQLiteOpenHelper()
-{   
 }
 
 ECode SQLiteOpenHelper::GetWritableDatabase(
     /*[out]*/ ISQLiteDatabase** database)
 {
-	Boolean isopen, isreadonly;
-	mDatabase->IsOpen(&isopen);
-	mDatabase->IsReadOnly(&isreadonly);
+    Mutex::Autolock lock(mLock);
 
-    if (mDatabase != NULL && isopen && !isreadonly) {
-    	*database = mDatabase;
+    Boolean isOpen, isReadonly;
+    if (mDatabase != NULL && (mDatabase->IsOpen(&isOpen), isOpen) &&
+        (mDatabase->IsReadOnly(&isReadonly), !isReadonly)) {
+        *database = (ISQLiteDatabase*)mDatabase.Get();
+        (*database)->AddRef();
         return NOERROR;  // The database is already open for business
     }
 
     if (mIsInitializing) {
-//        throw new IllegalStateException("getWritableDatabase called recursively");
-    	return !NOERROR;
+    //        throw new IllegalStateException("getWritableDatabase called recursively");
+        return E_ILLEGAL_STATE_EXCEPTION;
     }
 
     // If we have a read-only database open, someone could be using it
@@ -52,108 +46,127 @@ ECode SQLiteOpenHelper::GetWritableDatabase(
     // fail waiting for the file lock.  To prevent that, we acquire the
     // lock on the read-only database, which shuts out other users.
 
-    Boolean success = false;
-    ISQLiteDatabase* db = NULL;
+    Boolean success = FALSE;
+    AutoPtr<ISQLiteDatabase> db;
     if (mDatabase != NULL) mDatabase->Lock();
 //    try {
-        mIsInitializing = true;
-        if (mName == NULL) {
-            SQLiteDatabase::Create(NULL,&db);
-        } else {
-//            mContext->OpenOrCreateDatabase(mName, 0, mFactory,&db); ///////////////////////
-        }
+    mIsInitializing = true;
+    if (mName == NULL) {
+        SQLiteDatabase::Create(NULL, (ISQLiteDatabase**)&db);
+    }
+    else {
+//        mContext->OpenOrCreateDatabase(mName, 0, mFactory, (ISQLiteDatabase**)&db);
+    }
 
-        Int32 version;
-        db->GetVersion(&version);
-        if (version != mNewVersion) {
-            db->BeginTransaction();
+    Int32 version;
+    db->GetVersion(&version);
+    if (version != mNewVersion) {
+        db->BeginTransaction();
 //            try {
-                if (version == 0) {
-                    OnCreate(db);
-                } else {
-                    if (version > mNewVersion) {
-              /*          Log.wtf(TAG, "Can't downgrade read-only database from version " +
-                                version + " to " + mNewVersion + ": " + db.getPath());   */
-                    }
-                    OnUpgrade(db, version, mNewVersion);
-                }
-                db->SetVersion(mNewVersion);
-                db->SetTransactionSuccessful();
-//            } finally {
-                db->EndTransaction();
+        if (version == 0) {
+            OnCreate(db);
+        }
+        else {
+            if (version > mNewVersion) {
+                // Log.wtf(TAG, "Can't downgrade read-only database from version " +
+                //         version + " to " + mNewVersion + ": " + db.getPath());
             }
+            OnUpgrade(db, version, mNewVersion);
+        }
+        db->SetVersion(mNewVersion);
+        db->SetTransactionSuccessful();
+//            } finally {
+        db->EndTransaction();
+        }
 //        }
 
-        OnOpen(db);
-        success = true;
-        *database = db;
+    OnOpen(db);
+    success = TRUE;
+    *database = db;
+    if (*database != NULL) (*database)->AddRef();
  //       return NOERROR;
 //    } finally {
-        mIsInitializing = false;
-        if (success) {
-            if (mDatabase != NULL) {
+    mIsInitializing = FALSE;
+    if (success) {
+        if (mDatabase != NULL) {
 //                try { mDatabase->close(); } catch (Exception e) { }
-                mDatabase->Close();
-//              mDatabase->Unlock();           ////////////////////
-            }
-            mDatabase = db;
-        } else {
-            if (mDatabase != NULL)   // mDatabase->Unlock();  ////////////////////
-            if (db != NULL) db->Close();
+            mDatabase->Close();
+            mDatabase->Unlock();
         }
+        mDatabase = (SQLiteDatabase*)db.Get();
+    }
+    else {
+        if (mDatabase != NULL) mDatabase->Unlock();
+        if (db != NULL) db->Close();
+    }
 //    }
     return NOERROR;
 }
 
 ECode SQLiteOpenHelper::GetReadableDatabase(
     	/*[out]*/ ISQLiteDatabase** database)
-{/*
-	if (mDatabase != null && mDatabase.isOpen()) {
-        return mDatabase;  // The database is already open for business
+{
+    Mutex::Autolock lock(mLock);
+
+    Boolean isOpen;
+    if (mDatabase != NULL && (mDatabase->IsOpen(&isOpen), isOpen)) {
+        *database = (ISQLiteDatabase*)mDatabase.Get();  // The database is already open for business
+        (*database)->AddRef();
+        return NOERROR;
     }
 
     if (mIsInitializing) {
-        throw new IllegalStateException("getReadableDatabase called recursively");
+        // throw new IllegalStateException("getReadableDatabase called recursively");
+        return E_ILLEGAL_STATE_EXCEPTION;
     }
 
-    try {
-        return getWritableDatabase();
-    } catch (SQLiteException e) {
-        if (mName == null) throw e;  // Can't open a temp database read-only!
-        Log.e(TAG, "Couldn't open " + mName + " for writing (will try read-only):", e);
+    // try {
+    ECode ec = GetWritableDatabase(database);
+    if (SUCCEEDED(ec)) return NOERROR;
+    // } catch (SQLiteException e) {
+    //     if (mName == null) throw e;  // Can't open a temp database read-only!
+    //     Log.e(TAG, "Couldn't open " + mName + " for writing (will try read-only):", e);
+    // }
+
+    AutoPtr<ISQLiteDatabase> db;
+    // try {
+    mIsInitializing = TRUE;
+    String path;// = mContext->GetDatabasePath(mName).getPath();
+    SQLiteDatabase::OpenDatabase(path, mFactory, SQLiteDatabase_OPEN_READONLY, (ISQLiteDatabase**)&db);
+    Int32 version;
+    db->GetVersion(&version);
+    if (version != mNewVersion) {
+        // throw new SQLiteException("Can't upgrade read-only database from version " +
+        //         db.getVersion() + " to " + mNewVersion + ": " + path);
+        mIsInitializing = FALSE;
+        if (db != NULL && db.Get() != (ISQLiteDatabase*)mDatabase.Get()) db->Close();
+        return E_SQLITE_EXCEPTION;
     }
 
-    SQLiteDatabase db = null;
-    try {
-        mIsInitializing = true;
-        String path = mContext.getDatabasePath(mName).getPath();
-        db = SQLiteDatabase.openDatabase(path, mFactory, SQLiteDatabase.OPEN_READONLY);
-        if (db.getVersion() != mNewVersion) {
-            throw new SQLiteException("Can't upgrade read-only database from version " +
-                    db.getVersion() + " to " + mNewVersion + ": " + path);
-        }
+    OnOpen(db);
+    // Log.w(TAG, "Opened " + mName + " in read-only mode");
+    mDatabase = (SQLiteDatabase*)db.Get();
+    *database = (ISQLiteDatabase*)mDatabase.Get();
+    (*database)->AddRef();
+    // } finally {
+    mIsInitializing = FALSE;
+    if (db != NULL && db.Get() != (ISQLiteDatabase*)mDatabase.Get()) db->Close();
+    // }
 
-        onOpen(db);
-        Log.w(TAG, "Opened " + mName + " in read-only mode");
-        mDatabase = db;
-        return mDatabase;
-    } finally {
-        mIsInitializing = false;
-        if (db != null && db != mDatabase) db.close();
-    }
-    */
     return NOERROR;
 }
 
 ECode SQLiteOpenHelper::Close()
 {
-	if (mIsInitializing) 
+    Mutex::Autolock lock(mLock);
+
+    if (mIsInitializing) {
 //      throw new IllegalStateException("Closed during initialization");
-		return !NOERROR;
-    
-    Boolean isopen;
-    mDatabase->IsOpen(&isopen);
-    if (mDatabase != NULL && isopen) {
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+
+    Boolean isOpen;
+    if (mDatabase != NULL && (mDatabase->IsOpen(&isOpen), isOpen)) {
         mDatabase->Close();
         mDatabase = NULL;
     }

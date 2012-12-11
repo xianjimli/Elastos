@@ -153,8 +153,7 @@ ECode BulkCursorToCursorAdaptor::Requery(
             // super.requery() will call onChanged. Do it here instead of relying on the
             // observer from the far side so that observers can see a correct value for mCount
             // when responding to onChanged.
-            Boolean result;
-            AbstractWindowedCursor::Requery(&result);
+            Boolean result = AbstractWindowedCursor::Requery();
             *rst = TRUE;
             return NOERROR;
         } else {

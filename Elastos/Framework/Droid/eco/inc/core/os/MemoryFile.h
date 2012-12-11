@@ -27,7 +27,7 @@ public:
      * @throws IOException if the memory file could not be created.
      */
     MemoryFile(
-        /* [in] */ const String& name,
+        /* [in] */ CString name,
         /* [in] */ Int32 length);
 
     /**

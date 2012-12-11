@@ -7,7 +7,7 @@ using namespace Elastos::Utility::Logging;
 const String CursorToBulkCursorAdaptor::TAG = String("Cursor");
 
 ECode CursorToBulkCursorAdaptor::Init(
-        /* [in] */ ICursor* cursor, 
+        /* [in] */ ICursor* cursor,
         /* [in] */ IContentObserver* observer,
         /* [in] */ String providerName,
         /* [in] */ Boolean allowWrite,
@@ -21,9 +21,7 @@ ECode CursorToBulkCursorAdaptor::Init(
             Boolean rst;
             windowedCursor->HasWindow(&rst);
             if (rst) {
-                Boolean rst2;
-                Logger::IsLoggable(TAG, Logger::VERBOSE, &rst2);
-                if (rst2 || Config::LOGV) {
+                if (Logger::IsLoggable(TAG, Logger::VERBOSE) || Config::LOGV) {
                     //Logger::V(TAG, "Cross process cursor has a local window before setWindow in "
                     //        + providerName, new RuntimeException());
                     return E_RUNTIME_EXCEPTION;
@@ -61,7 +59,7 @@ ECode CursorToBulkCursorAdaptor::GetWindow(
 {
     Boolean value;
     mCursor->MoveToPosition(startPos, &value);
-    
+
     if (mWindow != NULL) {
         Int32 startPosition, num;
         mWindow->GetStartPosition(&startPosition);
@@ -121,7 +119,7 @@ ECode CursorToBulkCursorAdaptor::Requery(
         /* [in] */ ICursorWindow* window,
         /* [out] */ Int32* value)
 {
-    assert(value != NULL);    
+    assert(value != NULL);
     if (mWindow == NULL) {
         ((IAbstractWindowedCursor*)(ICursor*)mCursor)->SetWindow(window);
     }
@@ -138,7 +136,7 @@ ECode CursorToBulkCursorAdaptor::Requery(
     //            mCursor.isClosed(), e);
     //    throw leakProgram;
     //}
-    
+
     if (mWindow != NULL) {
         mCrossProcessCursor->FillWindow(0, window);
         mWindow = window;

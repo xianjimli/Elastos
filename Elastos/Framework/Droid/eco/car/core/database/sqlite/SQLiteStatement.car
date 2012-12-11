@@ -1,8 +1,6 @@
 module
 {
-    interface ISQLiteProgram;
-    interface ISQLiteStatement extends ISQLiteProgram
-    {
+    interface ISQLiteStatement extends ISQLiteProgram {
         /**
          * Execute this SQL statement, if it is not a query. For example,
          * CREATE TABLE, DELTE, INSERT, etc.
@@ -20,7 +18,7 @@ module
          * Execute a statement that returns a 1 by 1 table with a numeric value.
          * For example, SELECT COUNT(*) FROM table;
          */
-        SimpleQueryForLong(
+        SimpleQueryForInt64(
             [out] Int64* value);
 
         /**

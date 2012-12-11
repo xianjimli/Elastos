@@ -1,40 +1,57 @@
+
 #include "database/sqlite/SQLiteCompiledSql.h"
+#include "database/sqlite/Sqlite3Exception.h"
 
-const String SQLiteCompiledSql::TAG = String("SQLiteCompiledSql");
+const CString SQLiteCompiledSql::TAG = "SQLiteCompiledSql";
 
-ECode SQLiteCompiledSql::Init(
-        /* [in] */ ISQLiteDatabase* db,
-        /* [in] */ String sql)
+SQLiteCompiledSql::SQLiteCompiledSql(
+        /* [in] */ SQLiteDatabase* db,
+        /* [in] */ const String& sql)
+    : mNativeHandle(NULL)
+    , mNativeStatement(NULL)
+    , mInUse(FALSE)
 {
-    Boolean result;
-    db->IsOpen(&result);
-    if (!result) {
-//        return E_ILLEGAL_STATE_EXCEPTION;
+    Boolean isOpen;
+    if (db->IsOpen(&isOpen), !isOpen) {
+        // throw new IllegalStateException("database " + db.getPath() + " already closed");
+        assert(0);
     }
     mDatabase = db;
     mSqlStmt = sql;
 //    mStackTrace = new DatabaseObjectNotClosedException().fillInStackTrace();
-//    this->nHandle = db->mNativeHandle;
+    mNativeHandle = db->mNativeHandle;
     Compile(sql, TRUE);
-    return NOERROR;
 }
 
-SQLiteCompiledSql::SQLiteCompiledSql()
+SQLiteCompiledSql::~SQLiteCompiledSql()
 {
-    nHandle = 0;
-    nStatement = 0;
-    mSqlStmt = NULL;
-    mInUse = FALSE;
+    // try {
+    if (mNativeStatement == NULL) return;
+    // finalizer should NEVER get called
+    // if (SQLiteDebug.DEBUG_ACTIVE_CURSOR_FINALIZATION) {
+    //     Log.v(TAG, "** warning ** Finalized DbObj (id#" + nStatement + ")");
+    // }
+    // if (StrictMode.vmSqliteObjectLeaksEnabled()) {
+    //     int len = mSqlStmt.length();
+    //     StrictMode.onSqliteObjectLeaked(
+    //         "Releasing statement in a finalizer. Please ensure " +
+    //         "that you explicitly call close() on your cursor: " +
+    //         mSqlStmt.substring(0, (len > 100) ? 100 : len),
+    //         mStackTrace);
+    // }
+    ReleaseSqlStatement();
+    // } finally {
+    //     super.finalize();
+    // }
 }
-
 
 ECode SQLiteCompiledSql::Compile(
-        /* [in] */ String sql,
-        /* [in] */ Boolean forceCompilation)
+    /* [in] */ const String& sql,
+    /* [in] */ Boolean forceCompilation)
 {
-    Boolean result;
-    mDatabase->IsOpen(&result);
-    if (!result) {
+    Boolean isOpen;
+    if (mDatabase->IsOpen(&isOpen), !isOpen) {
+        // throw new IllegalStateException("database " + mDatabase.getPath() + " already closed");
         return E_ILLEGAL_STATE_EXCEPTION;
     }
     // Only compile if we don't have a valid statement already or the caller has
@@ -44,118 +61,108 @@ ECode SQLiteCompiledSql::Compile(
 //        try {
             // Note that the native_compile() takes care of destroying any previously
             // existing programs before it compiles.
-            NativeCompile(sql);
+        NativeCompile(sql);
 //        } finally {
-            mDatabase->UnLock();
+        mDatabase->Unlock();
 //        }
     }
     return NOERROR;
 }
 
-ECode SQLiteCompiledSql::NativeCompile(
-        /* [in] */ String sqlString)
-{
-    Int32 err;
-    char const * sql;
-    Int32 sqlLen;
-//  sqlite3_stmt * statement = GET_STATEMENT(env, object);
-    sqlite3_stmt * statement = NULL;
-    sqlite3 * handle = NULL;
-
-    // Make sure not to leak the statement if it already exists
-    if (statement != NULL) {
-        sqlite3_finalize(statement);
- //       env->SetIntField(object, gStatementField, 0);
-    }
-
-    // Compile the SQL
-//    sql = env->GetStringChars(sqlString, NULL);
-//    sqlLen = env->GetStringLength(sqlString);
-    sql = (char *)&sqlString;
-    sqlLen = sqlString.GetLength();
-    err = sqlite3_prepare16_v2(handle, sql, sqlLen * 2, &statement, NULL);
-//    env->ReleaseStringChars(sqlString, sql);
-
-    if (err == SQLITE_OK) {
-        // Store the statement in the Java object for future calls
-//        LOGV("Prepared statement %p on %p", statement, handle);
-//        env->SetIntField(object, gStatementField, (int)statement);
-        return NOERROR;
-    } else {
-        // Error messages like 'near ")": syntax error' are not
-        // always helpful enough, so construct an error string that
-        // includes the query itself.
-/*        const char *query = env->GetStringUTFChars(sqlString, NULL);
-        char *message = (char*) malloc(strlen(query) + 50);
-        if (message) {
-            strcpy(message, ", while compiling: "); // less than 50 chars
-            strcat(message, query);
-        }
-        env->ReleaseStringUTFChars(sqlString, query);
-        throw_sqlite3_exception(env, handle, message);
-        free(message);   */
-        return !NOERROR;
-    }
-    return NOERROR;
-}
-
-ECode SQLiteCompiledSql::ReleaseSqlStatement()
+void SQLiteCompiledSql::ReleaseSqlStatement()
 {
     // Note that native_finalize() checks to make sure that nStatement is
     // non-null before destroying it.
-    if (nStatement != 0) {
+    if (mNativeStatement != NULL) {
 //        if (SQLiteDebug.DEBUG_ACTIVE_CURSOR_FINALIZATION) {
 //            Log.v(TAG, "closed and deallocated DbObj (id#" + nStatement +")");
 //        }
 //        try {
-            mDatabase->Lock();
-            NativeFinalize();
-            nStatement = 0;
+        mDatabase->Lock();
+        NativeFinalize();
+        mNativeStatement = NULL;
 //        } finally {
-            mDatabase->UnLock();
+        mDatabase->Unlock();
 //        }
     }
-    return NOERROR;
 }
 
-ECode SQLiteCompiledSql::NativeFinalize()
+Boolean SQLiteCompiledSql::Acquire()
 {
-//    sqlite3_stmt * statement = GET_STATEMENT(env, object);
-    sqlite3_stmt * statement = NULL;
+    Mutex::Autolock lock(mLock);
 
-    if (statement != NULL) {
-        sqlite3_finalize(statement);
-//        env->SetIntField(object, gStatementField, 0);
-    }
-    return NOERROR;
-}
-
-ECode SQLiteCompiledSql::Acquire(
-        /* [out] */ Boolean* result)
-{
-    assert(result != NULL);
     if (mInUse) {
-        *result = FALSE;
-        return NOERROR;
+        // someone already has acquired it.
+        return FALSE;
     }
     mInUse = TRUE;
 //    if (SQLiteDebug.DEBUG_ACTIVE_CURSOR_FINALIZATION) {
 //        Log.v(TAG, "Acquired DbObj (id#" + nStatement + ") from DB cache");
 //    }
-    *result = TRUE;
-    return NOERROR;
+    return TRUE;
 }
 
-ECode SQLiteCompiledSql::Release()
+void SQLiteCompiledSql::Dismiss()
 {
+    Mutex::Autolock lock(mLock);
+
 //    if (SQLiteDebug.DEBUG_ACTIVE_CURSOR_FINALIZATION) {
 //        Log.v(TAG, "Released DbObj (id#" + nStatement + ") back to DB cache");
 //    }
     mInUse = FALSE;
-    return NOERROR;
 }
 
-SQLiteCompiledSql::~SQLiteCompiledSql()
+ECode SQLiteCompiledSql::NativeCompile(
+    /* [in] */ const String& sqlString)
 {
+    Int32 err;
+    char const * sql;
+    Int32 sqlLen;
+    sqlite3_stmt* statement = mNativeStatement;
 
+    // Make sure not to leak the statement if it already exists
+    if (statement != NULL) {
+        sqlite3_finalize(statement);
+        mNativeStatement = NULL;
+    }
+
+    // Compile the SQL
+    sql = (const char*)sqlString;
+    sqlLen = sqlString.GetLength();
+    err = sqlite3_prepare_v2(mNativeHandle, sql, sqlLen, &statement, NULL);
+
+    if (err == SQLITE_OK) {
+        // Store the statement in the Java object for future calls
+        // LOGV("Prepared statement %p on %p", statement, mNativeHandle);
+        mNativeStatement = statement;
+        return NOERROR;
+    }
+    else {
+        // Error messages like 'near ")": syntax error' are not
+        // always helpful enough, so construct an error string that
+        // includes the query itself.
+//        const char *query = env->GetStringUTFChars(sqlString, NULL);
+//        char *message = (char*) malloc(strlen(query) + 50);
+//        if (message) {
+//            strcpy(message, ", while compiling: "); // less than 50 chars
+//            strcat(message, query);
+//        }
+//        env->ReleaseStringUTFChars(sqlString, query);
+//        throw_sqlite3_exception(env, handle, message);
+//        free(message);
+        return throw_sqlite3_exception(mNativeHandle);
+    }
 }
+
+void SQLiteCompiledSql::NativeFinalize()
+{
+    sqlite3_stmt* statement = mNativeStatement;
+
+    if (statement != NULL) {
+        sqlite3_finalize(statement);
+        mNativeStatement = NULL;
+    }
+}
+
+
+

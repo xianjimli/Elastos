@@ -2,8 +2,25 @@
 #define __SQLITEOPENHELPER_H__
 
 #include "ext/frameworkext.h"
+#include "database/sqlite/SQLiteDatabase.h"
 #include <elastos/AutoPtr.h>
+#include <elastos/Mutex.h>
 
+using namespace Elastos::Core::Threading;
+
+
+/**
+ * Create a helper object to create, open, and/or manage a database.
+ * This method always returns very quickly.  The database is not actually
+ * created or opened until one of {@link #getWritableDatabase} or
+ * {@link #getReadableDatabase} is called.
+ *
+ * @param context to use to open or create the database
+ * @param name of the database file, or null for an in-memory database
+ * @param factory to use for creating cursor objects, or null for the default
+ * @param version number of the database (starting at 1); if the database is older,
+ *     {@link #onUpgrade} will be used to upgrade the database
+ */
 class SQLiteOpenHelper
 {
 public:
@@ -19,15 +36,11 @@ public:
      * @param version number of the database (starting at 1); if the database is older,
      *     {@link #onUpgrade} will be used to upgrade the database
      */
-    CARAPI Init(
+    SQLiteOpenHelper(
         /*[in]*/ IContext* context,
-        /*[in]*/ String name,
+        /*[in]*/ const String& name,
         /*[in]*/ ICursorFactory* factory,
         /*[in]*/ Int32 version);
-
-    SQLiteOpenHelper();
-
-    virtual ~SQLiteOpenHelper();
 
     /**
      * Create and/or open a database that will be used for reading and writing.
@@ -48,7 +61,7 @@ public:
      * @throws SQLiteException if the database cannot be opened for writing
      * @return a read/write database object valid until {@link #close} is called
      */
-    CARAPI GetWritableDatabase(
+    virtual CARAPI GetWritableDatabase(
         /*[out]*/ ISQLiteDatabase** database);
 
     /**
@@ -69,13 +82,13 @@ public:
      * @return a database object valid until {@link #getWritableDatabase}
      *     or {@link #close} is called.
      */
-    CARAPI GetReadableDatabase(
+    virtual CARAPI GetReadableDatabase(
         /*[out]*/ ISQLiteDatabase** database);
 
     /**
      * Close any open database object.
      */
-    CARAPI Close();
+    virtual CARAPI Close();
 
     /**
      * Called when the database is created for the first time. This is where the
@@ -84,7 +97,7 @@ public:
      * @param db The database.
      */
     virtual CARAPI OnCreate(
-        /*[in]*/ ISQLiteDatabase* db){};
+        /*[in]*/ ISQLiteDatabase* db) = 0;
 
     /**
      * Called when the database needs to be upgraded. The implementation
@@ -104,7 +117,7 @@ public:
     virtual CARAPI OnUpgrade(
         /*[in]*/ ISQLiteDatabase* db,
         /*[in]*/ Int32 oldVersion,
-        /*[in]*/ Int32 newVersion){};
+        /*[in]*/ Int32 newVersion) = 0;
 
     /**
      * Called when the database has been opened.  The implementation
@@ -113,23 +126,20 @@ public:
      *
      * @param db The database.
      */
-    CARAPI OnOpen(
+    virtual CARAPI OnOpen(
         /*[in]*/ ISQLiteDatabase* db);
 
 private:
-    static const String TAG;
+    static const CString TAG;
 
     AutoPtr<IContext> mContext;
-
     String mName;
-
     AutoPtr<ICursorFactory> mFactory;
-
     Int32 mNewVersion;
 
-    AutoPtr<ISQLiteDatabase> mDatabase;
-
+    AutoPtr<SQLiteDatabase> mDatabase;
     Boolean mIsInitializing;
+    Mutex mLock;
 };
 
 

@@ -5,29 +5,23 @@
 #include <elastos/AutoPtr.h>
 #include <elastos/Mutex.h>
 #include <StringBuffer.h>
-#include <elastos/ElRefBase.h>
 
 using namespace Elastos::Core::Threading;
+
+extern "C" const InterfaceID EIID_SQLiteClosable;
+
 /**
  * An object created from a SQLiteDatabase that can be closed.
  */
-class SQLiteClosable : public ElRefBase, public ISQLiteClosable
+class SQLiteClosable
 {
 public:
     SQLiteClosable();
 
     virtual ~SQLiteClosable();
 
-    CARAPI_(PInterface) Probe(
-        /* [in]  */ REIID riid);
-
-    CARAPI_(UInt32) AddRef();
-
-    CARAPI_(UInt32) Release();
-
-    CARAPI GetInterfaceID(
-        /* [in] */ IInterface *pObject,
-        /* [out] */ InterfaceID *pIID);
+    virtual CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid) = 0;
 
     virtual CARAPI AcquireReference();
 
@@ -35,18 +29,17 @@ public:
 
     virtual CARAPI ReleaseReferenceFromContainer();
 
-protected:
+//protected
+public:
     virtual CARAPI OnAllReferencesReleased() = 0;
 
     virtual CARAPI OnAllReferencesReleasedFromContainer();
 
 private:
-    CARAPI GetObjInfo(
-        /* [out] */ String* objInfo);
+    CARAPI_(String) GetObjInfo();
 
 private:
     Int32 mReferenceCount;
-//    private Object mLock = new Object();
     Mutex mLock;
 };
 

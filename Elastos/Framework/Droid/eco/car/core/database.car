@@ -1,20 +1,15 @@
 
 module
 {
-    merge("database/sqlite/ISQLiteClosable.car");
-    merge("database/sqlite/ISQLiteProgram.car");
-    merge("database/sqlite/ISQLiteCursorDriver.car");
-    merge("database/sqlite/ISQLiteQuery.car");
-    merge("database/sqlite/ISQLiteCompiledSql.car");
-    merge("database/sqlite/ISQLiteStatement.car");
-    merge("database/sqlite/ISQLiteDatabase.car");
-    merge("database/sqlite/ISQLiteContentHelper.car");
-    merge("database/sqlite/ISQLiteDebug.car");
-    //merge("database/sqlite/ISQLiteDirectCursorDriver.car");
-    merge("database/sqlite/ISQLiteOpenHelper.car");
-    merge("database/sqlite/ISQLiteQueryBuilder.car");
-    merge("database/sqlite/ISQLiteTransactionListener.car");
-    merge("database/sqlite/ISQLiteWrapper.car");
+    merge("database/sqlite/SQLiteClosable.car");
+    merge("database/sqlite/SQLiteProgram.car");
+    merge("database/sqlite/SQLiteCursorDriver.car");
+    merge("database/sqlite/SQLiteQuery.car");
+    merge("database/sqlite/SQLiteStatement.car");
+    merge("database/sqlite/SQLiteDatabase.car");
+    merge("database/sqlite/SQLiteOpenHelper.car");
+    merge("database/sqlite/SQLiteQueryBuilder.car");
+    merge("database/sqlite/SQLiteTransactionListener.car");
     merge("database/CharArrayBuffer.car");
     merge("database/Cursor.car");
     merge("database/DataSetObserver.car");
@@ -36,122 +31,12 @@ module
     merge("database/MatrixCursor.car");
     merge("database/BulkCursorToCursorAdaptor.car");
     merge("database/CursorToBulkCursorAdaptor.car");
-    merge("database/sqlite/ISQLiteCursor.car");
-    
+    merge("database/sqlite/SQLiteCursor.car");
 
+//    singleton class CSQLiteDatabaseHelper {
+//        interface ISQLiteDatabaseHelper;
+//    }
 
-    class CSQLiteClosable {
-        interface ISQLiteClosable;
-    }
-
-    class CSQLiteProgram {
-        constructor(
-            [in] ISQLiteDatabase* db,
-            [in] String sql);
-
-        interface ISQLiteProgram;
-    }
-
-    [deprecated]
-    class CSQLiteQuery {
-        /**
-         * Create a persistent query object.
-         * 
-         * @param db The database that this query object is associated with
-         * @param query The SQL string for this query. 
-         * @param offsetIndex The 1-based index to the OFFSET parameter, 
-         */
-        constructor(
-            [in] ISQLiteDatabase* db,
-            [in] String query,
-            [in] Int32 offsetIndex,
-            [in] ArrayOf<String>* bindArgs);
-
-        interface ISQLiteQuery;
-    }
-
-    class CSQLiteCompiledSql {
-        constructor(
-            [in] ISQLiteDatabase* db,
-            [in] String sql);
-
-        interface ISQLiteCompiledSql;
-    }
-
-    class CSQLiteStatement {
-        constructor(
-            [in] ISQLiteDatabase* db,
-            [in] String sql);
-
-        interface ISQLiteStatement;
-    }
-
-    interface ICursorFactory;
-
-    class CSQLiteDatabase {
-        /**
-         * Private constructor. See {@link #create} and {@link #openDatabase}.
-         *
-         * @param path The full path to the database
-         * @param factory The factory to use when creating cursors, may be NULL.
-         * @param flags 0 or {@link #NO_LOCALIZED_COLLATORS}.  If the database file already
-         *              exists, mFlags will be updated appropriately.
-         */
-        constructor(
-            [in] String path,
-            [in] ICursorFactory* factory,
-            [in] Int32 flags);
-
-        interface ISQLiteDatabase;
-    }
-
-    class CSQLiteContentHelper {
-        interface ISQLiteContentHelper;
-    }
-
-    class CSQLiteDebug {
-        interface ISQLiteDebug;
-    }
-    
-    
-    class CSQLiteDirectCursorDriver {
-        /**
-         * A cursor driver that uses the given query directly.
-         * 
-         * @hide
-         */
-        constructor(
-            [in] ISQLiteDatabase* db,
-            [in] String sql,
-            [in] String editTable);
-            
-        interface ISQLiteCursorDriver;
-    }
-
-    interface IContext;
-
-    class CSQLiteOpenHelper {
-        /**
-         * Create a helper object to create, open, and/or manage a database.
-         * This method always returns very quickly.  The database is not actually
-         * created or opened until one of {@link #getWritableDatabase} or
-         * {@link #getReadableDatabase} is called.
-         *
-         * @param context to use to open or create the database
-         * @param name of the database file, or null for an in-memory database
-         * @param factory to use for creating cursor objects, or null for the default
-         * @param version number of the database (starting at 1); if the database is older,
-         *     {@link #onUpgrade} will be used to upgrade the database
-         */
-        constructor(
-            [in] IContext* context,
-            [in] String name,
-            [in] ICursorFactory* factory,
-            [in] Int32 number);
-
-        interface ISQLiteOpenHelper;
-    }
-    
     class CSQLiteQueryBuilder {
         /**
          * This is a convience class that helps build SQL queries to be sent to
@@ -160,12 +45,6 @@ module
         constructor();
 
         interface ISQLiteQueryBuilder;
-    }
-
-    class CSQLiteWrapper {
-        /*private*/ constructor();
-
-        interface ISQLiteWrapper;
     }
 
     class CCharArrayBuffer
@@ -276,7 +155,7 @@ module
     class CCursorToBulkCursorAdaptor
     {
         constructor(
-            [in] ICursor* cursor, 
+            [in] ICursor* cursor,
             [in] IContentObserver* observer,
             [in] String providerName,
             [in] Boolean allowWrite,
@@ -285,9 +164,29 @@ module
         interface ICursorToBulkCursorAdaptor;
 
         interface IBulkCursor;
-    }    
+    }
 
     class CSQLiteCursor {
+        /**
+         * Execute a query and provide access to its result set through a Cursor
+         * interface. For a query such as: {@code SELECT name, birth, phone FROM
+         * myTable WHERE ... LIMIT 1,20 ORDER BY...} the column names (name, birth,
+         * phone) would be in the projection argument and everything from
+         * {@code FROM} onward would be in the params argument. This constructor
+         * has package scope.
+         *
+         * @param db a reference to a Database object that is already constructed
+         *     and opened
+         * @param editTable the name of the table used for this query
+         * @param query the rest of the query terms
+         *     cursor is finalized
+         */
+        constructor(
+            [in] ISQLiteDatabase* db,
+            [in] ISQLiteCursorDriver* driver,
+            [in] String editTable,
+            [in] ISQLiteQuery* query);
+
         interface ISQLiteCursor;
     }
 }

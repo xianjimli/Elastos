@@ -88,7 +88,7 @@ public:
 	 * @param level
      * @param pIsLoggable
      */
-    static ECode IsLoggable(CString tag, Int32 level, Boolean * pIsLoggable);
+    static Boolean IsLoggable(CString tag, Int32 level);
 
     /*!
      * @brief Low-level logging call.

@@ -1,49 +1,60 @@
 #include "database/sqlite/SQLiteContentHelper.h"
 
-SQLiteContentHelper::GetBlobColumnAsAssetFile(
-    /*[in]*/ ISQLiteDatabase* db, 
-    /*[in]*/ String sql,
-    /*[in]*/ ArrayOf<String> *selectionArgs,
+ECode SQLiteContentHelper::GetBlobColumnAsAssetFile(
+    /*[in]*/ ISQLiteDatabase* db,
+    /*[in]*/ const String& sql,
+    /*[in]*/ ArrayOf<String>* selectionArgs,
     /*[out]*/ IAssetFileDescriptor** fd)
-{/*
-    try {
-        MemoryFile file = simpleQueryForBlobMemoryFile(db, sql, selectionArgs);
-        if (file == null) {
-            throw new FileNotFoundException("No results.");
-        }
-        return AssetFileDescriptor.fromMemoryFile(file);
-    } catch (IOException ex) {
-        throw new FileNotFoundException(ex.toString());
+{
+    VALIDATE_NOT_NULL(fd);
+
+//    try {
+    MemoryFile* file = SimpleQueryForBlobMemoryFile(db, sql, selectionArgs);
+    if (file == NULL) {
+        // throw new FileNotFoundException("No results.");
+        *fd = NULL;
+        return E_FILE_NOT_FOUND_EXCEPTION;
     }
-*/
-    return NOERROR;
+    ECode ec; // = AssetFileDescriptor.fromMemoryFile(file, fd);
+    if (ec == (ECode)E_IO_EXCEPTION) {
+        ec = E_FILE_NOT_FOUND_EXCEPTION;
+    }
+    return ec;
+
+//    } catch (IOException ex) {
+//        throw new FileNotFoundException(ex.toString());
+//    }
 }
 
-SQLiteContentHelper::SimpleQueryForBlobMemoryFile(
-    	/*[in]*/ ISQLiteDatabase* db, 
-    	/*[in]*/ String sql,
-        /*[in]*/ ArrayOf<String> selectionArgs)
- //       /*[out]*/ IMemoryFile** mf)
-{/*
-    Cursor cursor = db.rawQuery(sql, selectionArgs);
-    if (cursor == null) {
-        return null;
+MemoryFile* SQLiteContentHelper::SimpleQueryForBlobMemoryFile(
+    /*[in]*/ ISQLiteDatabase* db,
+    /*[in]*/ const String& sql,
+    /*[in]*/ ArrayOf<String>* selectionArgs)
+{
+    AutoPtr<ICursor> cursor;
+    db->RawQuery(sql, selectionArgs, (ICursor**)&cursor);
+    if (cursor == NULL) {
+        return NULL;
     }
-    try {
-        if (!cursor.moveToFirst()) {
-            return null;
-        }
-        byte[] bytes = cursor.getBlob(0);
-        if (bytes == null) {
-            return null;
-        }
-        MemoryFile file = new MemoryFile(null, bytes.length);
-        file.writeBytes(bytes, 0, 0, bytes.length);
-        file.deactivate();
-        return file;
-    } finally {
-        cursor.close();
+//    try {
+    Boolean succeeded;
+    if (cursor->MoveToFirst(&succeeded), !succeeded) {
+        cursor->Close();
+        return NULL;
     }
-*/
-    return NOERROR;
+    ArrayOf<Byte>* bytes = NULL;
+    cursor->GetBlob(0, &bytes);
+    if (bytes == NULL) {
+        cursor->Close();
+        return NULL;
+    }
+    MemoryFile* file = new MemoryFile(NULL, bytes->GetLength());
+    file->WriteBytes(*bytes, 0, 0, bytes->GetLength());
+    file->Deactivate();
+    cursor->Close();
+    ArrayOf<Byte>::Free(bytes);
+    return file;
+//    } finally {
+//        cursor.close();
+//    }
 }

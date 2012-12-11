@@ -7,143 +7,231 @@
 CarClass(CSQLiteCursor)
 {
 public:
-    CARAPI OnAllReferencesReleased();
+    CARAPI constructor(
+        /* [in] */ ISQLiteDatabase* db,
+        /* [in] */ ISQLiteCursorDriver* driver,
+        /* [in] */ const String& editTable,
+        /* [in] */ ISQLiteQuery* query);
 
-    CARAPI OnAllReferencesReleasedFromContainer();
+    CARAPI GetCount(
+        /* [out] */ Int32* count);
 
-    CARAPI AcquireReference();
+    CARAPI GetPosition(
+        /* [out] */ Int32* position);
 
-    CARAPI ReleaseReference();
+    CARAPI Move(
+        /* [in] */ Int32 offset,
+        /* [out] */ Boolean* value);
 
-    CARAPI ReleaseReferenceFromContainer();
+    CARAPI MoveToPosition(
+        /* [in] */ Int32 position,
+        /* [out] */ Boolean* value);
 
-    CARAPI GetStartPosition(
-        /* [out] */ Int32 * pPos);
+    CARAPI MoveToFirst(
+        /* [out] */ Boolean* value);
 
-    CARAPI SetStartPosition(
-        /* [in] */ Int32 pos);
+    CARAPI MoveToLast(
+        /* [out] */ Boolean* value);
 
-    CARAPI GetNumRows(
-        /* [out] */ Int32 * pNum);
+    CARAPI MoveToNext(
+        /* [out] */ Boolean* value);
 
-    CARAPI SetNumColumns(
-        /* [in] */ Int32 columnNum,
-        /* [out] */ Boolean * pSucceeded);
+    CARAPI MoveToPrevious(
+        /* [out] */ Boolean* value);
 
-    CARAPI AllocRow(
-        /* [out] */ Boolean * pSucceeded);
+    CARAPI IsFirst(
+        /* [out] */ Boolean* value);
 
-    CARAPI FreeLastRow();
+    CARAPI IsLast(
+        /* [out] */ Boolean* value);
 
-    CARAPI PutBlob(
-        /* [in] */ const ArrayOf<Byte> & value,
-        /* [in] */ Int32 row,
-        /* [in] */ Int32 col,
-        /* [out] */ Boolean * pSucceeded);
+    CARAPI IsBeforeFirst(
+        /* [out] */ Boolean* value);
 
-    CARAPI PutString(
-        /* [in] */ const String& value,
-        /* [in] */ Int32 row,
-        /* [in] */ Int32 col,
-        /* [out] */ Boolean * pSucceeded);
+    CARAPI IsAfterLast(
+        /* [out] */ Boolean* value);
 
-    CARAPI PutInt64(
-        /* [in] */ Int64 value,
-        /* [in] */ Int32 row,
-        /* [in] */ Int32 col,
-        /* [out] */ Boolean * pSucceeded);
+    //@Deprecated
+    CARAPI DeleteRow(
+        /* [out] */ Boolean* result);
 
-    CARAPI PutDouble(
-        /* [in] */ Double value,
-        /* [in] */ Int32 row,
-        /* [in] */ Int32 col,
-        /* [out] */ Boolean * pSucceeded);
+    CARAPI GetColumnIndex(
+        /* [in] */ const String& columnName,
+        /* [out] */ Int32* columnIndex);
 
-    CARAPI PutNull(
-        /* [in] */ Int32 row,
-        /* [in] */ Int32 col,
-        /* [out] */ Boolean * pSucceeded);
+    CARAPI GetColumnIndexOrThrow(
+        /* [in] */ const String& columnName,
+        /* [out] */ Int32* columnIndex);
 
-    CARAPI IsNull(
-        /* [in] */ Int32 row,
-        /* [in] */ Int32 col,
-        /* [out] */ Boolean * pSucceeded);
+    CARAPI GetColumnName(
+        /* [in] */ Int32 columnIndex,
+        /* [out] */ String* columnName);
+
+    CARAPI GetColumnNames(
+        /* [out,callee] */ ArrayOf<String>** columnNames);
+
+    CARAPI GetColumnCount(
+        /* [out] */ Int32* columnCount);
 
     CARAPI GetBlob(
-        /* [in] */ Int32 row,
-        /* [in] */ Int32 col,
-        /* [out, callee] */ ArrayOf<Byte> ** ppBlob);
-
-    CARAPI IsBlob(
-        /* [in] */ Int32 row,
-        /* [in] */ Int32 col,
-        /* [out] */ Boolean * pIsBlob);
-
-    CARAPI IsInt64(
-        /* [in] */ Int32 row,
-        /* [in] */ Int32 col,
-        /* [out] */ Boolean * pIsInt64);
-
-    CARAPI IsFloat(
-        /* [in] */ Int32 row,
-        /* [in] */ Int32 col,
-        /* [out] */ Boolean * pIsFloat);
-
-    CARAPI IsString(
-        /* [in] */ Int32 row,
-        /* [in] */ Int32 col,
-        /* [out] */ Boolean * pIsString);
+        /* [in] */ Int32 columnIndex,
+        /* [out,callee] */ ArrayOf<Byte>** blob);
 
     CARAPI GetString(
-        /* [in] */ Int32 row,
-        /* [in] */ Int32 col,
-        /* [out] */ String * pRst);
+        /* [in] */ Int32 columnIndex,
+        /* [out] */ String* columnValue);
 
     CARAPI CopyStringToBuffer(
-        /* [in] */ Int32 row,
-        /* [in] */ Int32 col,
-        /* [in] */ ICharArrayBuffer * pBuffer);
-
-    CARAPI GetInt64(
-        /* [in] */ Int32 row,
-        /* [in] */ Int32 col,
-        /* [out] */ Int64 * pValue);
-
-    CARAPI GetDouble(
-        /* [in] */ Int32 row,
-        /* [in] */ Int32 col,
-        /* [out] */ Double * pValue);
+        /* [in] */ Int32 columnIndex,
+        /* [in, out] */ ICharArrayBuffer* buf);
 
     CARAPI GetInt16(
-        /* [in] */ Int32 row,
-        /* [in] */ Int32 col,
-        /* [out] */ Int16 * pValue);
+        /* [in] */ Int32 columnIndex,
+        /* [out] */ Int16* columnValue);
 
     CARAPI GetInt32(
-        /* [in] */ Int32 row,
-        /* [in] */ Int32 col,
-        /* [out] */ Int32 * pValue);
+        /* [in] */ Int32 columnIndex,
+        /* [out] */ Int32* columnValue);
+
+    CARAPI GetInt64(
+        /* [in] */ Int32 columnIndex,
+        /* [out] */ Int64* columnValue);
 
     CARAPI GetFloat(
-        /* [in] */ Int32 row,
-        /* [in] */ Int32 col,
-        /* [out] */ Float * pValue);
+        /* [in] */ Int32 columnIndex,
+        /* [out] */ Float* columnValue);
 
-    CARAPI Clear();
+    CARAPI GetDouble(
+        /* [in] */ Int32 columnIndex,
+        /* [out] */ Double* columnValue);
+
+    CARAPI IsNull(
+        /* [in] */ Int32 columnIndex,
+        /* [o ut] */ Boolean* value);
+
+    //@Deprecated
+    CARAPI SupportsUpdates(
+        /* [out] */ Boolean* result);
+
+    //@Deprecated
+    CARAPI HasUpdates(
+        /* [out] */ Boolean* result);
+
+    //@Deprecated
+    CARAPI UpdateBlob(
+        /* [in] */ Int32 columnIndex,
+        /* [in] */ const ArrayOf<Byte>& value,
+        /* [out] */ Boolean* succeeded);
+
+    //@Deprecated
+    CARAPI UpdateString(
+        /* [in] */ Int32 columnIndex,
+        /* [in] */ const String& value,
+        /* [out] */ Boolean* succeeded);
+
+    //@Deprecated
+    CARAPI UpdateInt16(
+        /* [in] */ Int32 columnIndex,
+        /* [in] */ Int16 value,
+        /* [out] */ Boolean* succeeded);
+
+    //@Deprecated
+    CARAPI UpdateInt32(
+        /* [in] */ Int32 columnIndex,
+        /* [in] */ Int32 value,
+        /* [out] */ Boolean* succeeded);
+
+    //Deprecated
+    CARAPI UpdateInt64(
+        /* [in] */ Int32 columnIndex,
+        /* [in] */ Int64 value,
+        /* [out] */ Boolean* succeeded);
+
+    //@Deprecated
+    CARAPI UpdateFloat(
+        /* [in] */ Int32 columnIndex,
+        /* [in] */ Float value,
+        /* [out] */ Boolean* succeeded);
+
+    //@Deprecated
+    CARAPI UpdateDouble(
+        /* [in] */ Int32 columnIndex,
+        /* [in] */ Double value,
+        /* [out] */ Boolean* succeeded);
+
+    //@Deprecated
+    CARAPI UpdateToNull(
+        /* [in] */ Int32 columnIndex,
+        /* [out] */ Boolean* succeeded);
+
+    //@Deprecated
+    CARAPI CommitUpdates(
+        /* [out] */ Boolean* succeeded);
+
+//        @Deprecated
+//        boolean commitUpdates(Map<? extends Long,
+//                ? extends Map<String,Object>> values);
+
+    //@Deprecated
+    CARAPI AbortUpdates();
+
+    CARAPI Deactivate();
+
+    CARAPI Requery(
+        /* [out] */ Boolean* succeeded);
 
     CARAPI Close();
+
+    CARAPI IsClosed(
+        /* [out] */ Boolean* closed);
+
+    CARAPI RegisterContentObserver(
+        /* [in] */ ILocalContentObserver* observer);
+
+    CARAPI UnregisterContentObserver(
+        /* [in] */ ILocalContentObserver* observer);
+
+    CARAPI RegisterDataSetObserver(
+        /* [in] */ IDataSetObserver* observer);
+
+    CARAPI UnregisterDataSetObserver(
+        /* [in] */ IDataSetObserver* observer);
+
+    CARAPI SetNotificationUri(
+        /* [in] */ IContentResolver* cr,
+        /* [in] */ IUri* uri);
+
+    CARAPI GetWantsAllOnMoveCalls(
+        /* [out] */ Boolean* result);
+
+    CARAPI GetExtras(
+        /* [out] */ IBundle** extras);
+
+    CARAPI Respond(
+        /* [in] */ IBundle* extras,
+        /* [out] */ IBundle** result);
+
+    CARAPI GetWindow(
+        /* [out] */ ICursorWindow** window);
+
+    CARAPI FillWindow(
+        /* [in] */ Int32 pos,
+        /* [in] */ ICursorWindow* window);
+
+    CARAPI OnMove(
+        /* [in] */ Int32 oldPosition,
+        /* [in] */ Int32 newPosition,
+        /* [out] */ Boolean* succeeded);
 
     CARAPI SetLoadStyle(
         /* [in] */ Int32 initialRead,
         /* [in] */ Int32 maxRead);
 
-    CARAPI RegisterDataSetObserver(
-        /* [in] */ IDataSetObserver * pObserver);
-
-    CARAPI GetDatabase();
+    CARAPI GetDatabase(
+        /* [out] */ ISQLiteDatabase** database);
 
     CARAPI SetSelectionArguments(
-        /* [in] */ const ArrayOf<String> & selectionArgs);
+        /* [in] */ ArrayOf<String>* selectionArgs);
 
 private:
     // TODO: Add your private member variables here.

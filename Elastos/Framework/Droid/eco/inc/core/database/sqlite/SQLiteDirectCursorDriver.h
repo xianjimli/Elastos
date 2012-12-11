@@ -2,26 +2,40 @@
 #define __SQLITEDIRECTCURSORDRIVER_H__
 
 #include "ext/frameworkext.h"
+#include "database/sqlite/SQLiteDatabase.h"
+#include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>
-#include "database/sqlite/SQLiteCursorDriver.h"
-#include "database/sqlite/SQLiteQuery.h"
 
-
-
-class SQLiteDirectCursorDriver : public SQLiteCursorDriver
+/**
+ * A cursor driver that uses the given query directly.
+ *
+ * @hide
+ */
+class SQLiteDirectCursorDriver
+    : public ElRefBase
+    , public ISQLiteCursorDriver
 {
 public:
-    CARAPI Init(
-        /*[in]*/ ISQLiteDatabase* db,
-        /*[in]*/ String sql, 
-        /*[in]*/ String editTable);
+    SQLiteDirectCursorDriver(
+        /*[in]*/ SQLiteDatabase* db,
+        /*[in]*/ const String& sql,
+        /*[in]*/ const String& editTable);
 
-    SQLiteDirectCursorDriver();
+    CARAPI_(PInterface) Probe(
+        /* [in]  */ REIID riid);
+
+    CARAPI_(UInt32) AddRef();
+
+    CARAPI_(UInt32) Release();
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface *pObject,
+        /* [out] */ InterfaceID *pIID);
 
     CARAPI Query(
         /*[in]*/ ICursorFactory* factory,
         /*[in]*/ ArrayOf<String>* selectionArgs,
-        /*[out]*/ ICursor** cs);
+        /*[out]*/ ICursor** cursor);
 
     CARAPI CursorClosed();
 
@@ -32,15 +46,12 @@ public:
 
     CARAPI CursorRequeried(
         /*[in]*/ ICursor* cursor);
+
 private:
-    String mEditTable; 
-
-    AutoPtr<ISQLiteDatabase> mDatabase;
-
+    String mEditTable;
+    AutoPtr<SQLiteDatabase> mDatabase;
     AutoPtr<ICursor> mCursor;
-
     String mSql;
-
     AutoPtr<ISQLiteQuery> mQuery;
 };
 

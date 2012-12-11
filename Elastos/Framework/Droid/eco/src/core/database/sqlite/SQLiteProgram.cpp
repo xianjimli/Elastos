@@ -1,96 +1,86 @@
+
 #include "database/sqlite/SQLiteProgram.h"
+#include "database/sqlite/Sqlite3Exception.h"
 
-const String SQLiteProgram::TAG = String("SQLiteProgram");
 
+const CString SQLiteProgram::TAG = "SQLiteProgram";
 
-ECode SQLiteProgram::Init(
-    /* [in] */ ISQLiteDatabase* db,
-    /* [in] */ String& sql)
+SQLiteProgram::SQLiteProgram(
+    /* [in] */ SQLiteDatabase* db,
+    /* [in] */ const String& sql)
+    : mDatabase(db)
+    , mNativeStatement(NULL)
 {
-    mDatabase = db;
+    assert(db != NULL);
     mSql = sql.Trim();
     db->AcquireReference();
-    db->AddSQLiteClosable(((ISQLiteClosable*)this));
-//    this->nHandle = db.mNativeHandle;
+    db->AddSQLiteClosable(((ISQLiteClosable*)this->Probe(EIID_ISQLiteClosable)));
+    mNativeHandle = db->mNativeHandle;
 
     //Only cache CRUD statements
     String prefixSql = mSql.Substring(0,6);
-    if (!prefixSql.EqualsIgnoreCase("INSERT") && 
+    if (!prefixSql.EqualsIgnoreCase("INSERT") &&
         !prefixSql.EqualsIgnoreCase("UPDATE") &&
         !prefixSql.EqualsIgnoreCase("REPLAC") &&
         !prefixSql.EqualsIgnoreCase("DELETE") &&
         !prefixSql.EqualsIgnoreCase("SELECT")) {
-//        mCompiledSql = new SQLiteCompiledSql(db,sql);
-//        nStatement = mCompiledSql.nStatement;  
+        mCompiledSql = new SQLiteCompiledSql(db, sql);
+        mNativeStatement = mCompiledSql->mNativeStatement;
+        // since it is not in the cache, no need to acquire() it.
+        return;
     }
 
-    db->GetCompiledStatementForSql(sql,(ISQLiteCompiledSql**)&mCompiledSql);
+    // it is not pragma
+    mCompiledSql = db->GetCompiledStatementForSql(sql);
     if (mCompiledSql == NULL) {
         //create a new compiled-sql obj
-//       mCompiledSql = new SQLiteCompiledSql(db,sql);
+        mCompiledSql = new SQLiteCompiledSql(db,sql);
 
         // add it to the cache of compiled-sqls
         // but before adding it and thus making it available for anyone else to use it,
         // make sure it is acquired by me.
-        Boolean result;
-        mCompiledSql->Acquire(&result);
-        db->AddToCompiledQueries(sql,(ISQLiteCompiledSql*)mCompiledSql);
+        mCompiledSql->Acquire();
+        db->AddToCompiledQueries(sql, mCompiledSql);
 //        if (SQLiteDebug.DEBUG_ACTIVE_CURSOR_FINALIZATION) {
 //            Log.v(TAG, "Created DbObj (id#" + mCompiledSql.nStatement +
 //                    ") for sql: " + sql);
-        } else {
+//        }
+    }
+    else {
         //it is already in compiled-sql cache
         //try to acquire the object
-        Boolean result;
-        mCompiledSql->Acquire(&result);
-        if (!result) {
+        if (!mCompiledSql->Acquire()) {
 //            Int32 last = mCompiledSql.nStatement;
                 // the SQLiteCompiledSql in cache is in use by some other SQLiteProgram object.
                 // we can't have two different SQLiteProgam objects can't share the same
                 // CompiledSql object. create a new one.
                 // finalize it when I am done with it in "this" object.
-//                mCompiledSql = new SQLiteCompiledSql(db, sql);
+            mCompiledSql = new SQLiteCompiledSql(db, sql);
 //                if (SQLiteDebug.DEBUG_ACTIVE_CURSOR_FINALIZATION) {
 //                    Log.v(TAG, "** possible bug ** Created NEW DbObj (id#" +
 //                            mCompiledSql.nStatement +
 //                            ") because the previously created DbObj (id#" + last +
 //                            ") was not released for sql:" + sql);
 //                }
-                // since it is not in the cache, no need to acquire() it.
+            // since it is not in the cache, no need to acquire() it.
         }
-//        nStatement = mCompiledSql.nStatement;
     }
-
-    return NOERROR;
-}
-
-SQLiteProgram::SQLiteProgram()
-{
-    nHandle = 0;
-    nStatement = 0;
-}
-
-SQLiteProgram::SQLiteProgram(
-    /* [in] */ ISQLiteDatabase* db,
-    /* [in] */ String& sql)
-{
-    nHandle = 0;
-    nStatement = 0;
-    Init(db,sql);
+    mNativeStatement = mCompiledSql->mNativeStatement;
 }
 
 SQLiteProgram::~SQLiteProgram()
-{
-}
+{}
 
+//@Override
 ECode SQLiteProgram::OnAllReferencesReleased()
 {
     ReleaseCompiledSqlIfNotInCache();
     mDatabase->ReleaseReference();
-    mDatabase->RemoveSQLiteClosable((ISQLiteClosable*)this);
+    mDatabase->RemoveSQLiteClosable((ISQLiteClosable*)this->Probe(EIID_ISQLiteClosable));
     return NOERROR;
 }
 
+//@Override
 ECode SQLiteProgram::OnAllReferencesReleasedFromContainer()
 {
     ReleaseCompiledSqlIfNotInCache();
@@ -98,65 +88,85 @@ ECode SQLiteProgram::OnAllReferencesReleasedFromContainer()
     return NOERROR;
 }
 
-ECode SQLiteProgram::ReleaseCompiledSqlIfNotInCache()
+void SQLiteProgram::ReleaseCompiledSqlIfNotInCache()
 {
     if (mCompiledSql == NULL) {
-        return NOERROR;
+        return;
     }
-//    synchronized(mDatabase.mCompiledQueries) {
-//    if (!mDatabase.mCompiledQueries.containsValue(mCompiledSql)) {
+    Mutex::Autolock lock(mDatabase->mCompiledQueriesLock);
+
+    Boolean found = FALSE;
+    HashMap<String, AutoPtr<SQLiteCompiledSql> >::Iterator it;
+    for (it = mDatabase->mCompiledQueries.Begin(); it != mDatabase->mCompiledQueries.End(); ++it) {
+        if (it->mSecond == mCompiledSql) {
+            found = TRUE;
+            break;
+        }
+    }
+    if (!found) {
         // it is NOT in compiled-sql cache. i.e., responsibility of
         // releasing this statement is on me.
         mCompiledSql->ReleaseSqlStatement();
         mCompiledSql = NULL;
-        nStatement = 0;
-//    } else {
+        mNativeStatement = NULL;
+    }
+    else {
         // it is in compiled-sql cache. reset its CompiledSql#mInUse flag
-        mCompiledSql->Release();
-//    }
-//}
-    return NOERROR;
+        mCompiledSql->Dismiss();
+    }
 }
 
-ECode SQLiteProgram::GetUniqueId(
-        /* [out] */ Int32* value)
+/**
+ * Returns a unique identifier for this program.
+ *
+ * @return a unique identifier for this program
+ */
+Int32 SQLiteProgram::GetUniqueId()
 {
-    assert(value != NULL);
-    *value = nStatement;
-    return NOERROR;
+    return (Int32)mNativeStatement;
 }
 
-ECode SQLiteProgram::GetSqlString(
-        /* [out] */ String* value)
+String SQLiteProgram::GetSqlString()
 {
-    assert(value != NULL);
-    *value = mSql;
-    return NOERROR;
+    return mSql;
 }
 
-ECode SQLiteProgram::Compile(
-        /* [in] */ String sql,
-        /* [in] */ Boolean forceCompilation)
+ /**
+ * @deprecated This method is deprecated and must not be used.
+ *
+ * @param sql the SQL string to compile
+ * @param forceCompilation forces the SQL to be recompiled in the event that there is an
+ *  existing compiled SQL program already around
+ */
+//@Deprecated
+void SQLiteProgram::Compile(
+    /* [in] */ const String& sql,
+    /* [in] */ Boolean forceCompilation)
 {
-    return E_NOT_IMPLEMENTED;
+    // TODO is there a need for this?
 }
 
+/**
+ * Bind a NULL value to this statement. The value remains bound until
+ * {@link #clearBindings} is called.
+ *
+ * @param index The 1-based index to the parameter to bind null to
+ */
 ECode SQLiteProgram::BindNull(
         /* [in] */ Int32 index)
 {
     Boolean isOpen;
-    mDatabase->IsOpen(&isOpen);
-    if (!isOpen) {
+    if (mDatabase->IsOpen(&isOpen), !isOpen) {
+        // throw new IllegalStateException("database " + mDatabase.getPath() + " already closed");
         return E_ILLEGAL_STATE_EXCEPTION;
     }
     AcquireReference();
 //    try {
-//        native_bind_null(index);
+    ECode ec = NativeBindNull(index);
 //    } finally {
-//        releaseReference();
-//    }
     ReleaseReference();
-    return NOERROR;
+//    }
+    return ec;
 }
 
 ECode SQLiteProgram::BindInt64(
@@ -164,17 +174,17 @@ ECode SQLiteProgram::BindInt64(
         /* [in] */ Int64 value)
 {
     Boolean isOpen;
-    mDatabase->IsOpen(&isOpen);
-    if (!isOpen) {
+    if (mDatabase->IsOpen(&isOpen), !isOpen) {
+        // throw new IllegalStateException("database " + mDatabase.getPath() + " already closed");
         return E_ILLEGAL_STATE_EXCEPTION;
     }
+    AcquireReference();
 //    try {
-//        native_bind_long(index, value);
+    ECode ec = NativeBindInt64(index, value);
 //    } finally {
-//        releaseReference();
-//    }
     ReleaseReference();
-    return NOERROR;
+//    }
+    return ec;
 }
 
 ECode SQLiteProgram::BindDouble(
@@ -182,38 +192,39 @@ ECode SQLiteProgram::BindDouble(
         /* [in] */ Double value)
 {
     Boolean isOpen;
-    mDatabase->IsOpen(&isOpen);
-    if (!isOpen) {
+    if (mDatabase->IsOpen(&isOpen), !isOpen) {
+        // throw new IllegalStateException("database " + mDatabase.getPath() + " already closed");
         return E_ILLEGAL_STATE_EXCEPTION;
     }
+    AcquireReference();
 //    try {
-//        native_bind_double(index, value);
+    ECode ec = NativeBindDouble(index, value);
 //    } finally {
-//        releaseReference();
-//    }
     ReleaseReference();
-    return NOERROR;
+//    }
+    return ec;
 }
 
 ECode SQLiteProgram::BindString(
         /* [in] */ Int32 index,
-        /* [in] */ String value)
+        /* [in] */ const String& value)
 {
     if (value.IsNull()) {
+        // throw new IllegalArgumentException("the bind value at index " + index + " is null");
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
     Boolean isOpen;
-    mDatabase->IsOpen(&isOpen);
-    if (!isOpen) {
+    if (mDatabase->IsOpen(&isOpen), !isOpen) {
+        // throw new IllegalStateException("database " + mDatabase.getPath() + " already closed");
         return E_ILLEGAL_STATE_EXCEPTION;
     }
+    AcquireReference();
 //    try {
-//        native_bind_string(index, value);
+    ECode ec = NativeBindString(index, value);
 //    } finally {
-//        releaseReference();
-//    }
     ReleaseReference();
-    return NOERROR;
+//    }
+    return ec;
 }
 
 ECode SQLiteProgram::BindBlob(
@@ -221,187 +232,153 @@ ECode SQLiteProgram::BindBlob(
         /* [in] */ const ArrayOf<Byte>& value)
 {
     Boolean isOpen;
-    mDatabase->IsOpen(&isOpen);
-    if (!isOpen) {
+    if (mDatabase->IsOpen(&isOpen), !isOpen) {
+        // throw new IllegalStateException("database " + mDatabase.getPath() + " already closed");
         return E_ILLEGAL_STATE_EXCEPTION;
     }
+    AcquireReference();
 //    try {
-//        native_bind_blob(index, value);
+    ECode ec = NativeBindBlob(index, value);
 //    } finally {
-//        releaseReference();
-//    }
     ReleaseReference();
-    return NOERROR;
+//    }
+    return ec;
 }
 
 ECode SQLiteProgram::ClearBindings()
 {
     Boolean isOpen;
-    mDatabase->IsOpen(&isOpen);
-    if (!isOpen) {
+    if (mDatabase->IsOpen(&isOpen), !isOpen) {
+        // throw new IllegalStateException("database " + mDatabase.getPath() + " already closed");
         return E_ILLEGAL_STATE_EXCEPTION;
     }
     AcquireReference();
 //    try {
-//        native_clear_bindings();
+    ECode ec = NativeClearBindings();
 //    } finally {
-//        releaseReference();
-//    }
     ReleaseReference();
-    return NOERROR;
+//    }
+    return ec;
 }
 
 ECode SQLiteProgram::Close()
 {
     Boolean isOpen;
-    mDatabase->IsOpen(&isOpen);
-    if (!isOpen) {
+    if (mDatabase->IsOpen(&isOpen), !isOpen) {
         return NOERROR;
     }
     mDatabase->Lock();
 //    try {
-//        releaseReference();;
+    ECode ec = ReleaseReference();
 //    } finally {
-//        mDatabase.unLock();
+    mDatabase->Unlock();
 //    }
-    mDatabase->UnLock();
-    return NOERROR; 
+    return ec;
 }
 
-ECode SQLiteProgram::Native_Compile(
-        /* [in] */ String sql)
-{/*
-    char buf[65];
-    strcpy(buf, "android_database_SQLiteProgram->native_compile() not implemented");
-    throw_sqlite3_exception(env, GET_HANDLE(env, object), buf);
-    return;  */
-    return E_NOT_IMPLEMENTED; 
-}
-
-ECode SQLiteProgram::Native_Finalize()
-{/*
-    char buf[66];
-    strcpy(buf, "android_database_SQLiteProgram->native_finalize() not implemented");
-    throw_sqlite3_exception(env, GET_HANDLE(env, object), buf);
-    return;*/
+ECode SQLiteProgram::NativeCompile(
+        /* [in] */ const String& sql)
+{
+    // char buf[65];
+    // strcpy(buf, "android_database_SQLiteProgram->native_compile() not implemented");
+    // throw_sqlite3_exception(env, GET_HANDLE(env, object), buf);
+    // return;
     return E_NOT_IMPLEMENTED;
 }
 
-ECode SQLiteProgram::Native_Bind_Null(
+ECode SQLiteProgram::NativeBindNull(
         /* [in] */ Int32 index)
 {
     Int32 err;
-//    sqlite3_stmt * statement = GET_STATEMENT(env, object);
-    sqlite3_stmt * statement = NULL;
 
-    err = sqlite3_bind_null(statement, index);
+    err = sqlite3_bind_null(mNativeStatement, index);
     if (err != SQLITE_OK) {
-/*        char buf[32];
-        sprintf(buf, "handle %p", statement);
-        throw_sqlite3_exception(env, GET_HANDLE(env, object), buf);  */
-        return E_ILLEGAL_STATE_EXCEPTION;
+        // char buf[32];
+        // sprintf(buf, "handle %p", statement);
+        // throw_sqlite3_exception(env, GET_HANDLE(env, object), buf);
+        return throw_sqlite3_exception(mNativeHandle);
     }
-    return NOERROR; 
+    return NOERROR;
 }
-    
-ECode SQLiteProgram::Native_Bind_Long(
+
+ECode SQLiteProgram::NativeBindInt64(
         /* [in] */ Int32 index,
         /* [in] */ Int64 value)
 {
     Int32 err;
-//    sqlite3_stmt * statement = GET_STATEMENT(env, object);
-    sqlite3_stmt * statement = NULL;
 
-    err = sqlite3_bind_int64(statement, index, value);
+    err = sqlite3_bind_int64(mNativeStatement, index, value);
     if (err != SQLITE_OK) {
-/*       char buf[32];
-        sprintf(buf, "handle %p", statement);
-        throw_sqlite3_exception(env, GET_HANDLE(env, object), buf); */
-        return E_ILLEGAL_STATE_EXCEPTION;
+        // char buf[32];
+        // sprintf(buf, "handle %p", statement);
+        // throw_sqlite3_exception(env, GET_HANDLE(env, object), buf);
+        return throw_sqlite3_exception(mNativeHandle);
     }
-    return NOERROR; 
+    return NOERROR;
 }
 
-ECode SQLiteProgram::Native_Bind_Double(
+ECode SQLiteProgram::NativeBindDouble(
         /* [in] */ Int32 index,
         /* [in] */ Double value)
 {
     Int32 err;
-//    sqlite3_stmt * statement = GET_STATEMENT(env, object);
-    sqlite3_stmt * statement = NULL;
 
-    err = sqlite3_bind_double(statement, index, value);
+    err = sqlite3_bind_double(mNativeStatement, index, value);
     if (err != SQLITE_OK) {
-/*        char buf[32];
-        sprintf(buf, "handle %p", statement);
-        throw_sqlite3_exception(env, GET_HANDLE(env, object), buf);  */
-        return E_ILLEGAL_STATE_EXCEPTION;
+        // char buf[32];
+        // sprintf(buf, "handle %p", statement);
+        // throw_sqlite3_exception(env, GET_HANDLE(env, object), buf);
+        return throw_sqlite3_exception(mNativeHandle);
     }
-    return NOERROR; 
+    return NOERROR;
 }
 
-ECode SQLiteProgram::Native_Bind_String(
+ECode SQLiteProgram::NativeBindString(
         /* [in] */ Int32 index,
-        /* [in] */ String value)
+        /* [in] */ const String& value)
 {
     Int32 err;
     char const * sql;
     Int32 sqlLen;
-    sqlite3_stmt * statement = NULL;
-//  sqlite3_stmt * statement= GET_STATEMENT(env, object);
 
-//  sql = env->GetStringChars(sqlString, NULL);
-//  sqlLen = env->GetStringLength(sqlString);
-
-    sql = (char *)&value;
+    sql = (const char *)value;
     sqlLen = value.GetLength();
-    err = sqlite3_bind_text16(statement, index, sql, sqlLen * 2, SQLITE_TRANSIENT);
-//  env->ReleaseStringChars(sqlString, sql);
+    err = sqlite3_bind_text(mNativeStatement, index, sql, sqlLen, SQLITE_TRANSIENT);
     if (err != SQLITE_OK) {
-/*      char buf[32];
-        sprintf(buf, "handle %p", statement);
-        throw_sqlite3_exception(env, GET_HANDLE(env, object), buf);  */
-        return E_ILLEGAL_STATE_EXCEPTION;
+        // char buf[32];
+        // sprintf(buf, "handle %p", statement);
+        // throw_sqlite3_exception(env, GET_HANDLE(env, object), buf);
+        return throw_sqlite3_exception(mNativeHandle);
     }
     return NOERROR;
 }
 
-ECode SQLiteProgram::Native_Bind_Blob(
+ECode SQLiteProgram::NativeBindBlob(
         /* [in] */ Int32 index,
-        /* [in] */ ArrayOf<Byte> value)
+        /* [in] */ const ArrayOf<Byte>& value)
 {
     Int32 err;
-//  sqlite3_stmt * statement= GET_STATEMENT(env, object);
-    sqlite3_stmt * statement = NULL;
 
-//  jint len = env->GetArrayLength(value);
-//  jbyte * bytes = env->GetByteArrayElements(value, NULL);
     Int32 len = value.GetLength();
-    Byte *bytes = value.GetPayload();
+    Byte* bytes = value.GetPayload();
 
-
-    err = sqlite3_bind_blob(statement, index, bytes, len, SQLITE_TRANSIENT);
-//  env->ReleaseByteArrayElements(value, bytes, JNI_ABORT);
-
+    err = sqlite3_bind_blob(mNativeStatement, index, bytes, len, SQLITE_TRANSIENT);
     if (err != SQLITE_OK) {
-/*      char buf[32];
-        sprintf(buf, "statement %p", statement);
-        throw_sqlite3_exception(env, GET_HANDLE(env, object), buf); */
-        return E_ILLEGAL_STATE_EXCEPTION;
+        // char buf[32];
+        // sprintf(buf, "statement %p", statement);
+        // throw_sqlite3_exception(env, GET_HANDLE(env, object), buf);
+        return throw_sqlite3_exception(mNativeHandle);
     }
     return NOERROR;
 }
 
-ECode SQLiteProgram::Native_Clear_Bindings()
+ECode SQLiteProgram::NativeClearBindings()
 {
     Int32 err;
-//  sqlite3_stmt * statement = GET_STATEMENT(env, object);
-    sqlite3_stmt * statement = NULL;
 
-    err = sqlite3_clear_bindings(statement);
+    err = sqlite3_clear_bindings(mNativeStatement);
     if (err != SQLITE_OK) {
-//      throw_sqlite3_exception(env, GET_HANDLE(env, object));
-        return E_ILLEGAL_STATE_EXCEPTION;
+        return throw_sqlite3_exception(mNativeHandle);
     }
     return NOERROR;
 }

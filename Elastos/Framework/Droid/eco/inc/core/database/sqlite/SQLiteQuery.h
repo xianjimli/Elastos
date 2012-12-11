@@ -3,33 +3,47 @@
 
 #include "ext/frameworkext.h"
 #include "database/sqlite/SQLiteProgram.h"
+#include <elastos/ElRefBase.h>
 #include <sqlite3.h>
 
-class SQLiteQuery : public SQLiteProgram
+/**
+ * A SQLite program that represents a query that reads the resulting rows into a CursorWindow.
+ * This class is used by SQLiteCursor and isn't useful itself.
+ *
+ * SQLiteQuery is not internally synchronized so code using a SQLiteQuery from multiple
+ * threads should perform its own synchronization when using the SQLiteQuery.
+ */
+class SQLiteQuery
+    : public ElRefBase
+    , public SQLiteProgram
+    , public ISQLiteQuery
 {
 public:
     /**
      * Create a persistent query object.
-     * 
+     *
      * @param db The database that this query object is associated with
-     * @param query The SQL string for this query. 
-     * @param offsetIndex The 1-based index to the OFFSET parameter, 
+     * @param query The SQL string for this query.
+     * @param offsetIndex The 1-based index to the OFFSET parameter,
      */
-    CARAPI Init(
-        /* [in] */ ISQLiteDatabase* db,
-        /* [in] */ String query,
+    /* package */ SQLiteQuery(
+        /* [in] */ SQLiteDatabase* db,
+        /* [in] */ const String& query,
         /* [in] */ Int32 offsetIndex,
         /* [in] */ ArrayOf<String>* bindArgs);
-
-    SQLiteQuery(
-        /* [in] */ ISQLiteDatabase* db,
-        /* [in] */ String query,
-        /* [in] */ Int32 offsetIndex,
-        /* [in] */ ArrayOf<String>* bindArgs);
-
-    SQLiteQuery();
 
     ~SQLiteQuery();
+
+    CARAPI_(PInterface) Probe(
+        /* [in]  */ REIID riid);
+
+    CARAPI_(UInt32) AddRef();
+
+    CARAPI_(UInt32) Release();
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface *pObject,
+        /* [out] */ InterfaceID *pIID);
 
     /**
      * Reads rows into a buffer. This method acquires the database lock.
@@ -37,7 +51,7 @@ public:
      * @param window The window to fill into
      * @return number of total rows in the query
      */
-    virtual CARAPI FillWindow(
+    /* package */ virtual CARAPI FillWindow(
         /* [in] */ ICursorWindow* window,
         /* [in] */ Int32 maxRead,
         /* [in] */ Int32 lastPos,
@@ -47,26 +61,24 @@ public:
      * Get the column count for the statement. Only valid on query based
      * statements. The database must be locked
      * when calling this method.
-     * 
+     *
      * @return The number of column in the statement's result set.
      */
-    virtual CARAPI ColumnCountLocked(
-        /* [out] */ Int32* value);
+    /* package */ virtual CARAPI_(Int32) ColumnCountLocked();
 
     /**
      * Retrieves the column name for the given column index. The database must be locked
      * when calling this method.
-     * 
+     *
      * @param columnIndex the index of the column to get the name for
      * @return The requested column's name
      */
-    /* package */ 
-    virtual CARAPI ColumnNameLocked(
-        /* [in] */ Int32 columnIndex,
-        /* [out] */ String* value);
+    /* package */
+    virtual CARAPI_(String) ColumnNameLocked(
+        /* [in] */ Int32 columnIndex);
 
     //@Override
-    CARAPI toString(
+    CARAPI ToString(
         /* [out] */ String* value);
 
     //@Override
@@ -83,7 +95,7 @@ public:
         /* [in] */ Int32 index);
 
     //@Override
-    CARAPI BindLong(
+    CARAPI BindInt64(
         /* [in] */ Int32 index,
         /* [in] */ Int64 value);
 
@@ -95,29 +107,45 @@ public:
     //@Override
     CARAPI BindString(
         /* [in] */ Int32 index,
-        /* [in] */ String value);
+        /* [in] */ const String& value);
+
+    CARAPI AcquireReference();
+
+    CARAPI ReleaseReference();
+
+    CARAPI ReleaseReferenceFromContainer();
+
+    CARAPI GetUniqueId(
+        /* [out] */ Int32* value);
+
+    CARAPI BindBlob(
+        /* [in] */ Int32 index,
+        /* [in] */ const ArrayOf<Byte>& value);
+
+    CARAPI ClearBindings();
 
 private:
-    CARAPI_(Int32) Native_Fill_Window(
+    CARAPI NativeFillWindow(
         /* [in] */ ICursorWindow* window,
         /* [in] */ Int32 startPos,
         /* [in] */ Int32 offsetParam,
         /* [in] */ Int32 maxRead,
-        /* [in] */ Int32 lastPos);
-    
-    CARAPI_(Int32) Native_Column_Count();
+        /* [in] */ Int32 lastPos,
+        /* [out] */ Int32* rowNum);
 
-    CARAPI_(String) Native_Column_Name(
+    CARAPI_(Int32) NativeColumnCount();
+
+    CARAPI_(String) NativeColumnName(
         /* [in] */ Int32 columnIndex);
 
-    const static String TAG;
+private:
+    const static CString TAG;
 
     /** The index of the unbound OFFSET parameter */
     Int32 mOffsetIndex;
 
     /** Args to bind on requery */
     ArrayOf<String>* mBindArgs;
-
 
     Boolean mClosed;
 };

@@ -2,8 +2,13 @@
 #define __SQLITECOMPILEDSQL_H__
 
 #include "ext/frameworkext.h"
+#include "database/sqlite/SQLiteDatabase.h"
 #include <elastos/AutoPtr.h>
+#include <elastos/ElRefBase.h>
 #include <sqlite3.h>
+
+class SQLiteDatabase;
+
 /**
  * This class encapsulates compilation of sql statement and release of the compiled statement obj.
  * Once a sql statement is compiled, it is cached in {@link SQLiteDatabase}
@@ -12,29 +17,27 @@
  * 2. if this is not cached in {@link SQLiteDatabase}, {@link android.database.Cursor#close()}
  * releaases this obj.
  */
-class SQLiteCompiledSql
+class SQLiteCompiledSql : public ElRefBase
 {
 public:
-    SQLiteCompiledSql();
-
-    CARAPI Init(
-        /* [in] */ ISQLiteDatabase* db,
-        /* [in] */ String sql);
-
-    /* package */ virtual CARAPI ReleaseSqlStatement();
-
-    /**
-     * returns true if acquire() succeeds. false otherwise.
-     */
-    /* package */ virtual CARAPI Acquire(
-        /* [out] */ Boolean* result);
-
-    /* package */ virtual CARAPI Release();
+    SQLiteCompiledSql(
+        /* [in] */ SQLiteDatabase* db,
+        /* [in] */ const String& sql);
 
     /**
      * Make sure that the native resource is cleaned up.
      */
-    ~SQLiteCompiledSql();
+    virtual ~SQLiteCompiledSql();
+
+    /* package */ virtual CARAPI_(void) ReleaseSqlStatement();
+
+    /**
+     * returns true if acquire() succeeds. false otherwise.
+     */
+    /* package */ virtual CARAPI_(Boolean) Acquire();
+
+    // rename Release to Dismiss
+    /* package */ virtual CARAPI_(void) Dismiss();
 
 private:
 
@@ -51,30 +54,29 @@ private:
      * @param forceCompilation forces the SQL to be recompiled in the event that there is an
      *  existing compiled SQL program already around
      */
-    virtual CARAPI Compile(
-        /* [in] */ String sql,
+    CARAPI Compile(
+        /* [in] */ const String& sql,
         /* [in] */ Boolean forceCompilation);
 
-    CARAPI NativeCompile(
-        /* [in] */ String sql);
-
-    CARAPI NativeFinalize();
     /**
      * Compiles SQL into a SQLite program.
      *
      * <P>The database lock must be held when calling this method.
      * @param sql The SQL to compile.
      */
-//    private final native void native_compile(String sql);
-//    private final native void native_finalize();
-protected:
+    CARAPI NativeCompile(
+        /* [in] */ const String& sql);
+
+    CARAPI_(void) NativeFinalize();
+
+public:
     /** The database this program is compiled against. */
-    /* package */ AutoPtr<ISQLiteDatabase> mDatabase;
+    /* package */ AutoPtr<SQLiteDatabase> mDatabase;
 
     /**
      * Native linkage, do not modify. This comes from the database.
      */
-    /* package */ Int32 nHandle;
+    /* package */ sqlite3* mNativeHandle;
 
     /**
      * Native linkage, do not modify. When non-0 this holds a reference to a valid
@@ -82,17 +84,18 @@ protected:
      * checked in this class when the database lock is held to determine if there
      * is a valid native-side program or not.
      */
-    /* package */ Int32 nStatement;
+    /* package */ sqlite3_stmt* mNativeStatement;
+
 private:
-    static const String TAG;
+    static const CString TAG;
 
     /** the following are for debugging purposes */
     String mSqlStmt;
-
 //    private Throwable mStackTrace = null;
 
     /** when in cache and is in use, this member is set */
     Boolean mInUse;
+    Mutex mLock;
 };
 
 #endif //__SQLITECOMPILEDSQL_H__

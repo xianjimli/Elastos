@@ -3,6 +3,9 @@
 
 #include "ext/frameworkext.h"
 #include "database/sqlite/SQLiteProgram.h"
+#include "database/sqlite/SQLiteDatabase.h"
+#include <elastos/ElRefBase.h>
+
 /**
  * A pre-compiled statement against a {@link SQLiteDatabase} that can be reused.
  * The statement cannot return multiple rows, but 1x1 result sets are allowed.
@@ -12,7 +15,10 @@
  * SQLiteStatement is not internally synchronized so code using a SQLiteStatement from multiple
  * threads should perform its own synchronization when using the SQLiteStatement.
  */
-class SQLiteStatement : public SQLiteProgram
+class SQLiteStatement
+    : public ElRefBase
+    , public SQLiteProgram
+    , public ISQLiteStatement
 {
 public:
     /**
@@ -21,17 +27,22 @@ public:
      * @param db
      * @param sql
      */
-    CARAPI Init(
-        /* [in] */ ISQLiteDatabase* db,
-        /* [in] */ String sql);
-
-    SQLiteStatement();
+    /* package */ SQLiteStatement(
+        /* [in] */ SQLiteDatabase* db,
+        /* [in] */ const String& sql);
 
     ~SQLiteStatement();
 
-    SQLiteStatement(
-        /* [in] */ ISQLiteDatabase* db,
-        /* [in] */ String sql);
+    CARAPI_(PInterface) Probe(
+        /* [in]  */ REIID riid);
+
+    CARAPI_(UInt32) AddRef();
+
+    CARAPI_(UInt32) Release();
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface *pObject,
+        /* [out] */ InterfaceID *pIID);
 
     /**
      * Execute this SQL statement, if it is not a query. For example,
@@ -62,7 +73,7 @@ public:
      *
      * @throws android.database.sqlite.SQLiteDoneException if the query returns zero rows
      */
-    virtual CARAPI SimpleQueryForLong(
+    virtual CARAPI SimpleQueryForInt64(
         /* [out] */ Int64* value);
 
     /**
@@ -75,11 +86,50 @@ public:
      */
     virtual CARAPI SimpleQueryForString(
         /* [out] */ String* value);
-private:
-    CARAPI Native_Execute();
 
-    CARAPI_(Int64) Native_1x1_Long();
-    
-    CARAPI_(String) Native_1x1_String();
+    CARAPI AcquireReference();
+
+    CARAPI ReleaseReference();
+
+    CARAPI ReleaseReferenceFromContainer();
+
+    CARAPI GetUniqueId(
+        /* [out] */ Int32* value);
+
+    CARAPI BindNull(
+        /* [in] */ Int32 index);
+
+    CARAPI BindInt64(
+        /* [in] */ Int32 index,
+        /* [in] */ Int64 value);
+
+    CARAPI BindDouble(
+        /* [in] */ Int32 index,
+        /* [in] */ Double value);
+
+    CARAPI BindString(
+        /* [in] */ Int32 index,
+        /* [in] */ const String& value);
+
+    CARAPI BindBlob(
+        /* [in] */ Int32 index,
+        /* [in] */ const ArrayOf<Byte>& value);
+
+    /**
+     * Clears all existing bindings. Unset bindings are treated as NULL.
+     */
+    CARAPI ClearBindings();
+
+    /**
+     * Release this program's resources, making it invalid.
+     */
+    CARAPI Close();
+
+private:
+    CARAPI NativeExecute();
+    CARAPI Native1x1Int64(
+        /* [out] */ Int64* value);
+    CARAPI Native1x1String(
+        /* [out] */ String* value);
 };
 #endif //__SQLITESTATEMENT_H__

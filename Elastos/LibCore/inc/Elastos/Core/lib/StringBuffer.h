@@ -45,6 +45,8 @@ public:
 		@param  A reference to a constant StringBuffer itself.
 	*/
     StringBuffer(const StringBuffer&);
+
+    StringBuffer(Int32 capacity);
 	/*!
 		@brief A destructor.
 	*/

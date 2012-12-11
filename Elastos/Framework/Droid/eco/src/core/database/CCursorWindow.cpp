@@ -1,5 +1,16 @@
 
 #include "database/CCursorWindow.h"
+
+
+PInterface CCursorWindow::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_SQLiteClosable) {
+        return reinterpret_cast<PInterface>((SQLiteClosable*)this);
+    }
+    else return _CCursorWindow::Probe(riid);
+}
+
 ECode CCursorWindow::OnAllReferencesReleased()
 {
     // TODO: Add your code here
@@ -265,7 +276,6 @@ ECode CCursorWindow::WriteToParcel(
 
 ECode CCursorWindow::constructor()
 {
-    CursorWindow::CursorWindow();
     return NOERROR;
 }
 

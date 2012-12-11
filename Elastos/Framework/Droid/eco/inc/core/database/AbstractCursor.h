@@ -60,7 +60,7 @@ public:
     /* Methods that may optionally be implemented by subclasses */
     /**@implements
      * returns a pre-filled window, return NULL if no such window
-     */            
+     */
     CARAPI GetWindow(
         /* [out] */ ICursorWindow** window);
 
@@ -71,11 +71,9 @@ public:
 
     virtual CARAPI DeactivateInternal();
 
-    virtual CARAPI Requery(
-        /* [out] */ Boolean* value);
+    virtual CARAPI_(Boolean) Requery();
 
-    virtual CARAPI IsClosed(
-        /* [out] */ Boolean* value);
+    virtual CARAPI_(Boolean) IsClosed();
 
     virtual CARAPI Close();
 
@@ -108,7 +106,7 @@ public:
         /* [in] */ Int32 oldPosition,
         /* [in] */ Int32 newPosition,
         /* [out] */ Boolean* value);
-    
+
     virtual CARAPI CopyStringToBuffer(
         /* [in] */ Int32 columnIndex,
         /* [in] */ CharArrayBuffer* buffer);
@@ -116,9 +114,8 @@ public:
     CARAPI GetPosition(
         /* [out] */ Int32* position);
 
-    CARAPI MoveToPosition(
-        /* [in] */ Int32 position,
-        /* [out] */ Boolean* rst);
+    CARAPI_(Boolean) MoveToPosition(
+        /* [in] */ Int32 position);
 
     /**@implements
      * Copy data from cursor to CursorWindow
@@ -208,7 +205,7 @@ protected:
      * @hide
      */
     virtual CARAPI NotifyDataSetChange();
-    
+
     /**
      * This is hidden until the data set change model has been re-evaluated.
      * @hide

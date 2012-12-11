@@ -171,7 +171,7 @@ ECode DatabaseUtils::SqlEscapeString(
 }
 
 const ECode DatabaseUtils::AppendValueToSql(
-        /* [in] */ StringBuffer* sql, 
+        /* [in] */ StringBuffer* sql,
         /* [in] */ IInterface* value)
 {
     if (value == NULL) {
@@ -394,9 +394,9 @@ ECode DatabaseUtils::CursorStringToContentValues(
 }
 
 ECode DatabaseUtils::CursorStringToInsertHelper(
-        /* [in] */ ICursor* cursor, 
+        /* [in] */ ICursor* cursor,
         /* [in] */ String field,
-        /* [in] */ InsertHelper* inserter, 
+        /* [in] */ InsertHelper* inserter,
         /* [in] */ Int32 index)
 {
     Int32 columnIndexOrThrow;
@@ -410,7 +410,7 @@ ECode DatabaseUtils::CursorStringToInsertHelper(
 ECode DatabaseUtils::CursorStringToContentValues(
         /* [in] */ ICursor* cursor,
         /* [in] */ String field,
-        /* [in] */ IContentValues* values, 
+        /* [in] */ IContentValues* values,
         /* [in] */ String key)
 {
     //values.put(key, cursor.getString(cursor.getColumnIndexOrThrow(field)));
@@ -427,8 +427,8 @@ ECode DatabaseUtils::CursorIntToContentValues(
 }
 
 ECode DatabaseUtils::CursorIntToContentValues(
-        /* [in] */ ICursor* cursor, 
-        /* [in] */ String field, 
+        /* [in] */ ICursor* cursor,
+        /* [in] */ String field,
         /* [in] */ IContentValues* values,
         /* [in] */ String key)
 {
@@ -445,8 +445,8 @@ ECode DatabaseUtils::CursorIntToContentValues(
 }
 
 ECode DatabaseUtils::CursorLongToContentValues(
-        /* [in] */ ICursor* cursor, 
-        /* [in] */ String field, 
+        /* [in] */ ICursor* cursor,
+        /* [in] */ String field,
         /* [in] */ IContentValues* values)
 {
     CursorLongToContentValues(cursor, field, values, field);
@@ -454,8 +454,8 @@ ECode DatabaseUtils::CursorLongToContentValues(
 }
 
 ECode DatabaseUtils::CursorLongToContentValues(
-        /* [in] */ ICursor* cursor, 
-        /* [in] */ String field, 
+        /* [in] */ ICursor* cursor,
+        /* [in] */ String field,
         /* [in] */ IContentValues* values,
         /* [in] */ String key)
 {
@@ -474,8 +474,8 @@ ECode DatabaseUtils::CursorLongToContentValues(
 }
 
 ECode DatabaseUtils::CursorDoubleToCursorValues(
-        /* [in] */ ICursor* cursor, 
-        /* [in] */ String field, 
+        /* [in] */ ICursor* cursor,
+        /* [in] */ String field,
         /* [in] */ IContentValues* values)
 {
     CursorDoubleToContentValues(cursor, field, values, field);
@@ -484,8 +484,8 @@ ECode DatabaseUtils::CursorDoubleToCursorValues(
 
 
 ECode DatabaseUtils::CursorDoubleToContentValues(
-        /* [in] */ ICursor* cursor, 
-        /* [in] */ String field, 
+        /* [in] */ ICursor* cursor,
+        /* [in] */ String field,
         /* [in] */ IContentValues* values,
         /* [in] */ String key)
 {
@@ -571,7 +571,7 @@ ECode DatabaseUtils::LongForQuery(
             //BindObjectToProgram(prog, i + 1, (*selectionArgs)[i]);
         }
     }
-    prog->SimpleQueryForLong(longValue);
+    prog->SimpleQueryForInt64(longValue);
     return NOERROR;
 }
 
@@ -638,7 +638,7 @@ ECode DatabaseUtils::CursorLongToContentValuesIfPresent(
     cursor->IsNull(index, &value);
     if (!value) {
         Int64 columnValue;
-        cursor->GetInt64(index, &columnValue);   
+        cursor->GetInt64(index, &columnValue);
         //values.put(column, columnValue);
     }
     return NOERROR;
@@ -655,7 +655,7 @@ ECode DatabaseUtils::CursorShortToContentValuesIfPresent(
     cursor->IsNull(index, &value);
     if (!value) {
         Int16 columnValue;
-        cursor->GetInt16(index, &columnValue); 
+        cursor->GetInt16(index, &columnValue);
         //values.put(column, columnValue);
     }
     return NOERROR;
@@ -672,7 +672,7 @@ ECode DatabaseUtils::CursorIntToContentValuesIfPresent(
     cursor->IsNull(index, &value);
     if (!value) {
         Int32 columnValue;
-        cursor->GetInt32(index, &columnValue); 
+        cursor->GetInt32(index, &columnValue);
         //values.put(column, columnValue);
     }
     return NOERROR;
@@ -689,7 +689,7 @@ ECode DatabaseUtils::CursorFloatToContentValuesIfPresent(
     cursor->IsNull(index, &value);
     if (!value) {
         Float columnValue;
-        cursor->GetFloat(index, &columnValue); 
+        cursor->GetFloat(index, &columnValue);
         //values.put(column, columnValue);
     }
     return NOERROR;
@@ -816,17 +816,17 @@ ECode DatabaseUtils::InsertHelper::GetStatement(
     } else {
         if (mInsertStatement == NULL) {
             if (mInsertSQL == NULL) {
-                BuildSQL();    
-            } 
+                BuildSQL();
+            }
             mDb->CompileStatement(mInsertSQL, (ISQLiteStatement**)&mInsertStatement);
         }
         *statement = mInsertStatement;
         return NOERROR;
-    }    
+    }
 }
 
 ECode DatabaseUtils::InsertHelper::InsertInternal(
-            /* [in] */ IContentValues* values, 
+            /* [in] */ IContentValues* values,
             /* [in] */ Boolean allowReplace,
             /* [out] */ Int64* value)
 {
@@ -1034,7 +1034,7 @@ ECode DatabaseUtils::CreateDbFromSqlStatements(
     // TODO: this is not quite safe since it assumes that all semicolons at the end of a line
     // terminate statements. It is possible that a text field contains ;\n. We will have to fix
     // this if that turns out to be a problem.
-    Arrayof<String>* statements; 
+    Arrayof<String>* statements;
     TextUtils::split(sqlStatements, String(";\n"), &statements);
     for (String statement : statements) {
         if (TextUtils.isEmpty(statement)) continue;

@@ -83,7 +83,7 @@ ECode Logger::W(CString tag, CString msg)
     return PrintlnImpl(LOG_ID_MAIN, ANDROID_LOG_WARN, tag, msg);
 }
 
-ECode Logger::IsLoggable(CString tag, Int32 level, Boolean * pIsLoggable)
+Boolean Logger::IsLoggable(CString tag, Int32 level)
 {
     return E_NOT_IMPLEMENTED;
 }

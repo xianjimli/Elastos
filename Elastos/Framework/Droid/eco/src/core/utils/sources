@@ -27,3 +27,4 @@ SOURCES += FinitePool.cpp
 SOURCES += SynchronizedPool.cpp
 SOURCES += Pools.cpp
 SOURCES += Config.cpp
+SOURCES += ReentrantLock.cpp

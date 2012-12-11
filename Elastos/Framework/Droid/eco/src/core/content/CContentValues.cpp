@@ -2,7 +2,7 @@
 #include "content/CContentValues.h"
 
 ECode CContentValues::constructor()
-{    
+{
     return NOERROR;
 }
 
@@ -12,10 +12,22 @@ ECode CContentValues::PutInt32(
 {
     return E_NOT_IMPLEMENTED;
 }
-    
+
 ECode CContentValues::GetInt32(
     /* [in] */ const String& key,
     /* [out] */ Int32* value)
 {
     return E_NOT_IMPLEMENTED;
-}   
+}
+
+ECode CContentValues::GetSize(
+    /* [out] */ Int32* size)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CContentValues::ValueSet(
+    /* [out] */ IObjectStringMap** values)
+{
+    return E_NOT_IMPLEMENTED;
+}

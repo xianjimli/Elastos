@@ -1,35 +1,21 @@
+
 #include "database/sqlite/SQLiteStatement.h"
+#include "database/sqlite/Sqlite3Exception.h"
 #include <sqlite3.h>
 
-ECode SQLiteStatement::Init(
-    /* [in] */ ISQLiteDatabase* db,
-    /* [in] */ String sql)
-{
-    SQLiteProgram::Init(db, sql);
-    return NOERROR;
-}
-
-SQLiteStatement::SQLiteStatement()
-{
-}
-
-SQLiteStatement::~SQLiteStatement()
-{
-}
 
 SQLiteStatement::SQLiteStatement(
-    /* [in] */ ISQLiteDatabase* db,
-    /* [in] */ String sql)
-{
-    Init(db,sql);
-}
+    /* [in] */ SQLiteDatabase* db,
+    /* [in] */ const String& sql)
+    : SQLiteProgram(db, sql)
+{}
 
 ECode SQLiteStatement::Execute()
 {
 //    BlockGuard.getThreadPolicy().onWriteToDisk();
     Boolean result;
-    mDatabase->IsOpen(&result);
-    if (!result) {
+    if (mDatabase->IsOpen(&result), !result) {
+        // throw new IllegalStateException("database " + mDatabase.getPath() + " already closed");
         return E_ILLEGAL_STATE_EXCEPTION;
     }
 //    long timeStart = SystemClock.uptimeMillis();
@@ -37,22 +23,24 @@ ECode SQLiteStatement::Execute()
 
     AcquireReference();
 //    try {
-        Native_Execute();
+    ECode ec = NativeExecute();
 //        mDatabase->LogTimeStat(mSql, timeStart);
 //    } finally {
-        ReleaseReference();
-        mDatabase->UnLock();
+    ReleaseReference();
+    mDatabase->Unlock();
 //    }
-    return NOERROR;
+    return ec;
 }
 
 ECode SQLiteStatement::ExecuteInsert(
-        /* [out] */ Int64* value)
+    /* [out] */ Int64* value)
 {
+    VALIDATE_NOT_NULL(value);
+
 //    BlockGuard.getThreadPolicy().onWriteToDisk();
     Boolean result;
-    mDatabase->IsOpen(&result);
-    if (!result) {
+    if (mDatabase->IsOpen(&result), !result) {
+        // throw new IllegalStateException("database " + mDatabase.getPath() + " already closed");
         return E_ILLEGAL_STATE_EXCEPTION;
     }
 //    long timeStart = SystemClock.uptimeMillis();
@@ -60,23 +48,25 @@ ECode SQLiteStatement::ExecuteInsert(
 
     AcquireReference();
 //    try {
-        Native_Execute();
+    ECode ec = NativeExecute();
  //       mDatabase->LogTimeStat(mSql, timeStart);
- //       return (mDatabase.lastChangeCount() > 0) ? mDatabase.lastInsertRow() : -1;
+    *value =  (mDatabase->LastChangeCount() > 0) ? mDatabase->LastInsertRow() : -1;
 //    } finally {
-        ReleaseReference();
-        mDatabase->UnLock();
+    ReleaseReference();
+    mDatabase->Unlock();
 //    }
-    return NOERROR;
+    return ec;
 }
 
-ECode SQLiteStatement::SimpleQueryForLong(
-        /* [out] */ Int64* value)
+ECode SQLiteStatement::SimpleQueryForInt64(
+    /* [out] */ Int64* value)
 {
+    VALIDATE_NOT_NULL(value);
+
 //    BlockGuard.getThreadPolicy().onReadFromDisk();
     Boolean result;
-    mDatabase->IsOpen(&result);
-    if (!result) {
+    if (mDatabase->IsOpen(&result), !result) {
+        // throw new IllegalStateException("database " + mDatabase.getPath() + " already closed");
         return E_ILLEGAL_STATE_EXCEPTION;
     }
 //    long timeStart = SystemClock.uptimeMillis();
@@ -84,23 +74,23 @@ ECode SQLiteStatement::SimpleQueryForLong(
 
     AcquireReference();
 //    try {
-//        long retValue = native_1x1_long();
+    ECode ec = Native1x1Int64(value);
 //        mDatabase->LogTimeStat(mSql, timeStart);
-//        *value = retValue;
 //    } finally {
-        ReleaseReference();
-        mDatabase->UnLock();
+    ReleaseReference();
+    mDatabase->Unlock();
 //    }
-    return NOERROR;
+    return ec;
 }
 
 ECode SQLiteStatement::SimpleQueryForString(
-        /* [out] */ String* value)
+    /* [out] */ String* value)
 {
+    VALIDATE_NOT_NULL(value);
+
 //    BlockGuard.getThreadPolicy().onReadFromDisk();
     Boolean result;
-    mDatabase->IsOpen(&result);
-    if (!result) {
+    if (mDatabase->IsOpen(&result), !result) {
         return E_ILLEGAL_STATE_EXCEPTION;
     }
 //    long timeStart = SystemClock.uptimeMillis();
@@ -108,50 +98,43 @@ ECode SQLiteStatement::SimpleQueryForString(
 
     AcquireReference();
 //    try {
-//        String retValue = native_1x1_string();
+    ECode ec = Native1x1String(value);
 //        mDatabase->LogTimeStat(mSql, timeStart);
-//        return retValue;
 //    } finally {
-        ReleaseReference();
-        mDatabase->UnLock();
+    ReleaseReference();
+    mDatabase->Unlock();
 //    }
-    return NOERROR;
+    return ec;
 }
 
-ECode SQLiteStatement::Native_Execute()
+ECode SQLiteStatement::NativeExecute()
 {
     Int32 err;
-/*
-    sqlite3 * handle = GET_HANDLE(env, object);
-    sqlite3_stmt * statement = GET_STATEMENT(env, object);
-*/
- //   sqlite3 * handle = NULL;
-    sqlite3_stmt * statement = NULL;
+    sqlite3* handle = mNativeHandle;
+    sqlite3_stmt* statement = mNativeStatement;
+    ECode ec = NOERROR;
 
     // Execute the statement
     err = sqlite3_step(statement);
 
     // Throw an exception if an error occured
     if (err != SQLITE_DONE) {
-//        throw_sqlite3_exception_errcode(env, err, sqlite3_errmsg(handle));
-        return !NOERROR;
+        ec = throw_sqlite3_exception_errcode(err);
     }
 
     // Reset the statment so it's ready to use again
     sqlite3_reset(statement);
-    return NOERROR;
+    return ec;
 }
 
-Int64 SQLiteStatement::Native_1x1_Long()
+ECode SQLiteStatement::Native1x1Int64(
+    /* [out] */ Int64* value)
 {
     Int32 err;
-/*
-    sqlite3 * handle = GET_HANDLE(env, object);
-    sqlite3_stmt * statement = GET_STATEMENT(env, object);
-    */
-//    sqlite3 * handle = NULL;
-    sqlite3_stmt * statement = NULL;
-    Int64 value = -1;
+    sqlite3* handle = mNativeHandle;
+    sqlite3_stmt* statement = mNativeStatement;
+    ECode ec = NOERROR;
+    *value = -1;
 
     // Execute the statement
     err = sqlite3_step(statement);
@@ -159,28 +142,26 @@ Int64 SQLiteStatement::Native_1x1_Long()
     // Handle the result
     if (err == SQLITE_ROW) {
         // No errors, read the data and return it
-        value = sqlite3_column_int64(statement, 0);
-    } else {
-//        throw_sqlite3_exception_errcode(env, err, sqlite3_errmsg(handle));
-        return !NOERROR;
+        *value = sqlite3_column_int64(statement, 0);
+    }
+    else {
+        ec = throw_sqlite3_exception_errcode(err);
     }
 
     // Reset the statment so it's ready to use again
     sqlite3_reset(statement);
 
-    return NOERROR;
+    return ec;
 }
-    
-String SQLiteStatement::Native_1x1_String()
+
+ECode SQLiteStatement::Native1x1String(
+    /* [out] */ String* value)
 {
     Int32 err;
-/*
-    sqlite3 * handle = GET_HANDLE(env, object);
-    sqlite3_stmt * statement = GET_STATEMENT(env, object);
-    */
-//    sqlite3 * handle = NULL;
-    sqlite3_stmt * statement = NULL;
-    String value;
+    sqlite3* handle = mNativeHandle;
+    sqlite3_stmt* statement = mNativeStatement;
+    ECode ec = NOERROR;
+    *value = NULL;
 
     // Execute the statement
     err = sqlite3_step(statement);
@@ -189,15 +170,14 @@ String SQLiteStatement::Native_1x1_String()
     if (err == SQLITE_ROW) {
         // No errors, read the data and return it
         char const * text = (char const *)sqlite3_column_text(statement, 0);
- //       value = env->NewStringUTF(text);
-        value = String(text);
-    } else {
- //       throw_sqlite3_exception_errcode(env, err, sqlite3_errmsg(handle));
-        return String("error");
+        *value = text;
+    }
+    else {
+        ec = throw_sqlite3_exception_errcode(err);
     }
 
     // Reset the statment so it's ready to use again
-    sqlite3_reset(statement);  
+    sqlite3_reset(statement);
 
-    return value;
+    return ec;
 }

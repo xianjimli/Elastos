@@ -2,11 +2,6 @@
 module
 {
     interface ISQLiteClosable {
-
-        OnAllReferencesReleased();
-
-        OnAllReferencesReleasedFromContainer();
-
         AcquireReference();
 
         ReleaseReference();

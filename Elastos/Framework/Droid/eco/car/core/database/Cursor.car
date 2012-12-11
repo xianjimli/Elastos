@@ -252,7 +252,7 @@ module
          */
         CopyStringToBuffer(
             [in] Int32 columnIndex,
-            [in] ICharArrayBuffer* buf);
+            [in /*, out*/] ICharArrayBuffer* buf);
 
         /**
          * Returns the value of the requested column as a short.
