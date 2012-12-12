@@ -1,0 +1,9 @@
+
+module 
+{
+    interface INumberPickerButton extends IImageButton
+    {
+        SetNumberPicker(
+            [in] INumberPicker* picker);
+    }
+}

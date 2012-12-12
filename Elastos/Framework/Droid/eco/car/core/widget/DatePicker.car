@@ -1,0 +1,54 @@
+
+module
+{
+    interface IDatePicker;
+
+    /**
+     * The callback used to indicate the user changes the date.
+     */
+    interface IOnDateChangedListener 
+    {
+        /**
+         * @param view The view associated with this listener.
+         * @param year The year that was set.
+         * @param monthOfYear The month that was set (0-11) for compatibility
+         *  with {@link java.util.Calendar}.
+         * @param dayOfMonth The day of the month that was set.
+         */
+        OnDateChanged(
+            [in] IDatePicker* view, 
+            [in] Int32 year, 
+            [in] Int32 monthOfYear, 
+            [in] Int32 dayOfMonth);
+    }
+
+    interface IDatePicker extends IFrameLayout
+    {
+        UpdateDate(
+            [in] Int32 year, 
+            [in] Int32 monthOfYear, 
+            [in] Int32 dayOfMonth);
+
+        /**
+         * Initialize the state.
+         * @param year The initial year.
+         * @param monthOfYear The initial month.
+         * @param dayOfMonth The initial day of the month.
+         * @param onDateChangedListener How user is notified date is changed by user, can be NULL.
+         */
+        Init(
+            [in] Int32 year, 
+            [in] Int32 monthOfYear, 
+            [in] Int32 dayOfMonth,
+            [in] IOnDateChangedListener* onDateChangedListener);
+
+        GetYear(
+            [out] Int32* year);
+
+        GetMonth(
+            [out] Int32* month);
+
+        GetDayOfMonth(
+            [out] Int32* day);
+    }
+}

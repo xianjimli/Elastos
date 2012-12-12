@@ -1,0 +1,110 @@
+
+module
+{
+    interface INumberPicker;
+
+    /**
+     * The callback interface used to indicate the number value has been adjusted.
+     */
+    interface IOnChangedListener 
+    {
+        /**
+         * @param picker The NumberPicker associated with this listener.
+         * @param oldVal The previous value.
+         * @param newVal The new value.
+         */
+        OnChanged(
+            [in] INumberPicker* picker, 
+            [in] Int32 oldVal, 
+            [in] Int32 newVal);
+    }
+
+    /**
+     * Interface used to format the number into a string for presentation
+     */
+    interface IFormatter 
+    {
+        ToString(
+            [in] Int32 value,
+            [out] String* str);
+    }
+
+    interface INumberPicker extends ILinearLayout
+    {
+        /**
+         * Set the callback that indicates the number has been adjusted by the user.
+         * @param listener the callback, should not be NULL.
+         */
+        SetOnChangeListener(
+            [in] IOnChangedListener* listener);
+
+        /**
+         * Set the formatter that will be used to format the number for presentation
+         * @param formatter the formatter object.  If formatter is NULL, String.valueOf()
+         * will be used
+         */
+        SetFormatter(
+            [in] IFormatter* formatter);
+
+        /**
+         * Set the range of numbers allowed for the number picker. The current
+         * value will be automatically set to the start.
+         *
+         * @param start the start of the range (inclusive)
+         * @param end the end of the range (inclusive)
+         */
+        SetRange(
+            [in] Int32 start, 
+            [in] Int32 end);
+
+        /**
+         * Set the range of numbers allowed for the number picker. The current
+         * value will be automatically set to the start. Also provide a mapping
+         * for values used to display to the user.
+         *
+         * @param start the start of the range (inclusive)
+         * @param end the end of the range (inclusive)
+         * @param displayedValues the values displayed to the user.
+         */
+        SetRangeEx(
+            [in] Int32 start, 
+            [in] Int32 end, 
+            [in] ArrayOf<String> displayedValues);
+
+        /**
+         * Set the current value for the number picker.
+         *
+         * @param current the current value the start of the range (inclusive)
+         * @throws IllegalArgumentException when current is not within the range
+         *         of of the number picker
+         */
+        SetCurrent(
+            [in] Int32 current);
+
+        /**
+         * Sets the speed at which the numbers will scroll when the +/-
+         * buttons are longpressed
+         *
+         * @param speed The speed (in milliseconds) at which the numbers will scroll
+         * default 300ms
+         */
+        SetSpeed(
+            [in] Int64 speed);
+
+        /**
+         * @hide
+         */
+        CancelIncrement();
+
+        /**
+         * @hide
+         */
+        CancelDecrement();
+        /**
+         * Returns the current value of the NumberPicker
+         * @return the current value.
+         */
+        GetCurrent(
+            [out] Int32* current);
+    }
+}
