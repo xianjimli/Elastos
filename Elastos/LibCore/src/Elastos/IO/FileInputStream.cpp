@@ -284,7 +284,9 @@ ECode FileInputStream::SkipLocked(
     // exception if it couldn't perform exactly the seek we asked for.
     mFileSystem->Seek(mFd->mDescriptor, 0, IFileSystem_SEEK_CUR, &cur);
     mFileSystem->Seek(mFd->mDescriptor, count, IFileSystem_SEEK_CUR, number);
-    return *number - cur;
+    *number = *number - cur;
+    
+    return NOERROR;
 }
 
 ECode FileInputStream::OpenCheck()
