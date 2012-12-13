@@ -4,7 +4,7 @@ module
     interface IExtractedText;
     interface ICharSequence;
 
-    /* oneway */ interface IInputContextCallbackStub {
+    /* oneway */ interface IInputContextCallbackStub extends IBinder {
         SetTextBeforeCursor(
             [in] ICharSequence* textBeforeCursor,
             [in] Int32 seq);

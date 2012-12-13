@@ -109,6 +109,27 @@ ECode CContextImpl::GetContentResolver(
     return NOERROR;
 }
 
+ECode CContextImpl::GetApplicationContext(
+    /* [out] */ IContext** ctx)
+{
+    VALIDATE_NOT_NULL(ctx);
+
+    *ctx = NULL;
+    if (mCapsuleInfo != NULL) {
+        *ctx = mCapsuleInfo->GetApplication();
+        if (*ctx != NULL) {
+            (*ctx)->AddRef();
+        }
+    }
+    else {
+        assert(0);
+        //TODO
+        //ActivityThread::GetApplication();
+    }
+
+    return NOERROR;
+}
+
 ECode CContextImpl::GetText(
     /* [in] */ Int32 resId,
     /* [out] */ ICharSequence** text)

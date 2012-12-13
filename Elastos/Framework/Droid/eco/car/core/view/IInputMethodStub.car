@@ -5,7 +5,7 @@ module
     interface IInputBinding;
     interface IEditorInfo;
     interface IInputContextStub;
-    interface IInputMethodCallback;
+    interface IInputMethodCallbackStub;
     interface IResultReceiver;
     interface IInputMethodSessionStub;
 
@@ -15,7 +15,7 @@ module
      * {@hide}
      */
     [deprecated]
-    /* oneway */ interface IInputMethod {
+    /* oneway */ interface IInputMethodStub extends IBinder{
         AttachToken(
             [in] IBinder* token);
 
@@ -33,7 +33,7 @@ module
             [in] IEditorInfo* attribute);
 
         CreateSession(
-            [in] IInputMethodCallback* inputMethodCalllback);
+            [in] IInputMethodCallbackStub* inputMethodCalllback);
 
         SetSessionEnabled(
             [in] IInputMethodSessionStub* session,

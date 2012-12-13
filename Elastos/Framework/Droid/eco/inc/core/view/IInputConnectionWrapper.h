@@ -44,17 +44,6 @@ private:
         SomeArgs* mArgObj;
     };
 
-    // class MyHandler extends Handler {
-    //     MyHandler(Looper looper) {
-    //         super(looper);
-    //     }
-
-    //     @Override
-    //     public void handleMessage(Message msg) {
-    //         ExecuteMessage(msg);
-    //     }
-    // };
-
 public:
     IInputConnectionWrapper(
         /* [in] */ IApartment* mainLooper,
@@ -148,6 +137,9 @@ public:
     CARAPI PerformPrivateCommand(
         /* [in] */ const String& action,
         /* [in] */ IBundle* data);
+
+    CARAPI GetDescription(
+        /* [out] */ String* str);
 
 private:
     CARAPI DispatchMessage(

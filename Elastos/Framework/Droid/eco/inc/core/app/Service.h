@@ -22,6 +22,9 @@ public:
 
     virtual ~Service();
 
+    CARAPI GetApplication(
+        /* [out] */ IApplication** application);
+
     virtual CARAPI Initialize();
 
     CARAPI_(PInterface) Probe(
@@ -102,7 +105,7 @@ public:
         /* [in] */ IServiceConnection* conn);
 
     CARAPI GetSystemService(
-        /* [in] */ const String& name,
+        /* [in] */ CString name,
         /* [out] */ IInterface** object);
 
     CARAPI CreateCapsuleContext(
@@ -139,6 +142,9 @@ public:
 
     CARAPI GetContentResolver(
         /* [out] */ IContentResolver** resolver);
+
+    CARAPI GetApplicationContext(
+        /* [out] */ IContext** ctx);
 
     CARAPI GetText(
         /* [in] */ Int32 resId,
@@ -188,6 +194,11 @@ public:
 
     CARAPI GetClassName(
         /* [out] */ String* className);
+
+    CARAPI OnConfigurationChanged(
+        /* [in] */ IConfiguration* newConfig);
+
+    CARAPI OnLowMemory();
 
 protected:
     virtual CARAPI OnCreate();

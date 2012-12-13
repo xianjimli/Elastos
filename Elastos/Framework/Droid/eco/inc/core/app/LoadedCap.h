@@ -254,6 +254,8 @@ public:
 
     ~LoadedCap();
 
+    CARAPI_(AutoPtr<IApplication>) GetApplication();
+
     CARAPI_(Boolean) IsSecurityViolation();
 
     CARAPI GetCapsuleName(

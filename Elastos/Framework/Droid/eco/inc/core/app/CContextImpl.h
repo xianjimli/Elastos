@@ -87,6 +87,9 @@ public:
     CARAPI GetContentResolver(
         /* [out] */ IContentResolver** resolver);
 
+    CARAPI GetApplicationContext(
+        /* [out] */ IContext** ctx);
+
     CARAPI GetText(
         /* [in] */ Int32 resId,
         /* [out] */ ICharSequence** text);

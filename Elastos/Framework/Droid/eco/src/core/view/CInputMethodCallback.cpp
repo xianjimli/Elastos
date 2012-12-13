@@ -24,3 +24,9 @@ ECode CInputMethodCallback::SessionCreated(
 	assert(0);
     return E_NOT_IMPLEMENTED;
 }
+
+ECode CInputMethodCallback::GetDescription(
+    /* [out] */ String* description)
+{
+    return E_NOT_IMPLEMENTED;
+}

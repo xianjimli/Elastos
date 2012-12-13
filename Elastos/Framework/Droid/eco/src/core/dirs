@@ -11,6 +11,7 @@ DIRS += ext
 DIRS += impl
 DIRS += widget
 DIRS += text
+DIRS += inputmethodservice
 DIRS += emoji
 DIRS += database
 DIRS += statusbar

@@ -27,6 +27,12 @@ ECode ContextWrapper::GetContentResolver(
     return mBase->GetContentResolver(resolver);
 }
 
+ECode ContextWrapper::GetApplicationContext(
+    /* [out] */ IContext** ctx)
+{
+    return mBase->GetApplicationContext(ctx);
+}
+
 ECode ContextWrapper::SetTheme(
     /* [in] */ Int32 resid)
 {

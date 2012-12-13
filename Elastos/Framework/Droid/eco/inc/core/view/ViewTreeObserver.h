@@ -19,7 +19,9 @@
 class ViewTreeObserver : public ElRefBase, public IViewTreeObserver
 {
 public:
-    class InternalInsetsInfo
+    class InternalInsetsInfo:
+        public ElRefBase,
+        public IInternalInsetsInfo
     {
     public:
         /**
@@ -43,15 +45,33 @@ public:
     public:
         InternalInsetsInfo();
 
-        CARAPI_(void) SetTouchableInsets(
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        /**
+         * Set which parts of the window can be touched: either
+         * {@link #TOUCHABLE_INSETS_FRAME}, {@link #TOUCHABLE_INSETS_CONTENT},
+         * or {@link #TOUCHABLE_INSETS_VISIBLE}.
+         */
+        CARAPI SetTouchableInsets(
             /* [in] */ Int32 val);
 
-        CARAPI_(Int32) GetTouchableInsets();
+        CARAPI GetTouchableInsets(
+            /* [out] */ Int32* val);
+
+        CARAPI Equals(
+            /* [in] */ IInternalInsetsInfo* o,
+            /* [out] */ Boolean* equal);
 
         CARAPI_(void) Reset();
-
-        CARAPI_(Boolean) Equals(
-            /* [in] */ InternalInsetsInfo* other);
 
         CARAPI_(void) Set(
             /* [in] */ InternalInsetsInfo* other);
@@ -130,6 +150,35 @@ public:
      */
     CARAPI RemoveOnTouchModeChangeListener(
         /* [in] */ IOnTouchModeChangeListener* victim);
+
+    /**
+     * Register a callback to be invoked when the invoked when it is time to
+     * compute the window's internal insets.
+     *
+     * @param listener The callback to add
+     *
+     * @throws IllegalStateException If {@link #isAlive()} returns false
+     *
+     * We are not yet ready to commit to this API and support it, so
+     * @hide
+     */
+    CARAPI AddOnComputeInternalInsetsListener(
+        /* [in] */ IOnComputeInternalInsetsListener* listener);
+
+    /**
+     * Remove a previously installed internal insets computation callback
+     *
+     * @param victim The callback to remove
+     *
+     * @throws IllegalStateException If {@link #isAlive()} returns false
+     *
+     * @see #addOnComputeInternalInsetsListener(OnComputeInternalInsetsListener)
+     *
+     * We are not yet ready to commit to this API and support it, so
+     * @hide
+     */
+    CARAPI RemoveOnComputeInternalInsetsListener(
+        /* [in] */ IOnComputeInternalInsetsListener* victim);
 
     /**
      * Register a callback to be invoked when the view tree is about to be drawn
@@ -257,6 +306,12 @@ public:
     CARAPI HasComputeInternalInsetsListeners(
         /* [out] */ Boolean* has);
 
+    /**
+     * Calls all listeners to compute the current insets.
+     */
+    CARAPI DispatchOnComputeInternalInsets(
+        /* [in] */ IInternalInsetsInfo* inoutInfo);
+
 private:
     void CheckIsAlive() {
         if (!mAlive) {
@@ -284,6 +339,7 @@ private:
     // private CopyOnWriteArrayList<OnPreDrawListener> mOnPreDrawListeners;
     // private CopyOnWriteArrayList<OnTouchModeChangeListener> mOnTouchModeChangeListeners;
     // private CopyOnWriteArrayList<OnComputeInternalInsetsListener> mOnComputeInternalInsetsListeners;
+    List<AutoPtr<IOnComputeInternalInsetsListener> > mOnComputeInternalInsetsListeners;
     // private CopyOnWriteArrayList<OnScrollChangedListener> mOnScrollChangedListeners;
 
     Boolean mAlive;

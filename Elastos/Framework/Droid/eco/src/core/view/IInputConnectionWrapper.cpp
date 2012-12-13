@@ -255,6 +255,12 @@ ECode IInputConnectionWrapper::PerformPrivateCommand(
     return DispatchMessage(ObtainMessageOO(DO_PERFORM_PRIVATE_COMMAND, action, data));
 }
 
+ECode IInputConnectionWrapper::GetDescription(
+    /* [out] */ String* str)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
 ECode IInputConnectionWrapper::DispatchMessage(
     /* [in] */ Message* msg) {
     // If we are calling this from the main thread, then we can call

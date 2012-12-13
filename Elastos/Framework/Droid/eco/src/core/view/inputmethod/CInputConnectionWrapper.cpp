@@ -1,5 +1,6 @@
 
 #include "view/inputmethod/CInputConnectionWrapper.h"
+#include "ext/frameworkext.h"
 
 
 CInputConnectionWrapper::CInputConnectionWrapper()
@@ -10,9 +11,9 @@ CInputConnectionWrapper::CInputConnectionWrapper()
 
 ECode CInputConnectionWrapper::constructor(
     /* [in] */ IInputConnection* target,
-    /* [in] */ Boolean mutable)
+    /* [in] */ Boolean mutables)
 {
-    mMutable = mutable;
+    mMutable = mutables;
     mTarget = target;
     return NOERROR;
 }
@@ -24,6 +25,7 @@ ECode CInputConnectionWrapper::SetTarget(
         // throw new SecurityException("not mutable");
         return E_SECURITY_EXCEPTION;
     }
+
     mTarget = target;
     return NOERROR;
 }

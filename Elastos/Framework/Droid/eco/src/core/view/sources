@@ -34,6 +34,7 @@ SOURCES += CGravity.cpp
 SOURCES += CViewRootW.cpp
 SOURCES += CInputMethodCallback.cpp
 SOURCES += IInputConnectionWrapper.cpp
+SOURCES += LocalInputConnectionWrapper.cpp
 SOURCES += ViewConfiguration.cpp
 SOURCES += BaseSurfaceHolder.cpp
 SOURCES += InputQueue.cpp

@@ -16,7 +16,7 @@ public:
 
     ECode constructor(
         /* [in] */ IInputConnection* target,
-        /* [in] */ Boolean mutable);
+        /* [in] */ Boolean mutables);
 
     CARAPI SetTarget(
         /* [in] */ IInputConnection* target);
@@ -82,7 +82,7 @@ public:
 
     CARAPI PerformContextMenuAction(
         /* [in] */ Int32 id,
-        /* [out] */ Boolean* flag)
+        /* [out] */ Boolean* flag);
 
     CARAPI BeginBatchEdit(
         /* [out] */ Boolean* flag);

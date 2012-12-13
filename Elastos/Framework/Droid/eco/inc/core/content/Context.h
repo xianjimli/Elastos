@@ -31,6 +31,9 @@ public:
     virtual CARAPI GetContentResolver(
         /* [out] */ IContentResolver** resolver) = 0;
 
+    virtual CARAPI GetApplicationContext(
+        /* [out] */ IContext** ctx) = 0;
+
     /**
      * Return a localized, styled CharSequence from the application's package's
      * default string table.

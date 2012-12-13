@@ -12,6 +12,9 @@
     CARAPI GetContentResolver(                                              \
         /* [out] */ IContentResolver** resolver);                           \
                                                                             \
+    CARAPI GetApplicationContext(                                           \
+        /* [out] */ IContext** ctx);                                        \
+                                                                            \
     CARAPI GetText(                                                         \
         /* [in] */ Int32 resId,                                             \
         /* [out] */ ICharSequence** text);                                  \
@@ -126,6 +129,12 @@ ECode className::GetContentResolver(                                        \
     /* [out] */ IContentResolver** resolver)                                \
 {                                                                           \
     return superClass::GetContentResolver(resolver);                        \
+}                                                                           \
+                                                                            \
+ECode className::GetApplicationContext(                                     \
+    /* [out] */ IContext** ctx)                                             \
+{                                                                           \
+    return superClass::GetApplicationContext(ctx);                          \
 }                                                                           \
                                                                             \
 ECode className::GetText(                                                   \

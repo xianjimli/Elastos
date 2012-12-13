@@ -15,6 +15,18 @@ Service::~Service()
 {
 }
 
+ECode Service::GetApplication(
+    /* [out] */ IApplication** application)
+{
+    assert(application != NULL);
+    *application = mApplication;
+    if (*application != NULL) {
+        (*application)->AddRef();
+    }
+
+    return NOERROR;
+}
+
 ECode Service::Initialize()
 {
     return NOERROR;
@@ -247,7 +259,7 @@ ECode Service::UnbindService(
 }
 
 ECode Service::GetSystemService(
-    /* [in] */ const String& name,
+    /* [in] */ CString name,
     /* [out] */ IInterface** object)
 {
     if (!String(Context_LAYOUT_INFLATER_SERVICE).Compare(name)) {
@@ -335,6 +347,12 @@ ECode Service::GetContentResolver(
     /* [out] */ IContentResolver** resolver)
 {
     return mBase->GetContentResolver(resolver);
+}
+
+ECode Service::GetApplicationContext(
+    /* [out] */ IContext** ctx)
+{
+    return mBase->GetApplicationContext(ctx);
 }
 
 ECode Service::GetText(
@@ -438,6 +456,17 @@ ECode Service::GetClassName(
     if (className == NULL) return E_INVALID_ARGUMENT;
 
     *className = mClassName;
+    return NOERROR;
+}
+
+ECode Service::OnConfigurationChanged(
+    /* [in] */ IConfiguration* newConfig)
+{
+    return NOERROR;
+}
+
+ECode Service::OnLowMemory()
+{
     return NOERROR;
 }
 

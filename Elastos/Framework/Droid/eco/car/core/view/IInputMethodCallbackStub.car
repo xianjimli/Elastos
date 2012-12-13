@@ -2,11 +2,11 @@
 module
 {
     /**
-     * Helper interface for IInputMethod to allow the input method to call back
+     * Helper interface for IInputMethodStub to allow the input method to call back
      * to its client with results from incoming calls.
      * {@hide}
      */
-    /* oneway */ interface IInputMethodCallback {
+    /* oneway */ interface IInputMethodCallbackStub extends IBinder {
         FinishedEvent(
             [in] Int32 seq,
             [in] Boolean handled);

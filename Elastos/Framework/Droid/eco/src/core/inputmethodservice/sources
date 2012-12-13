@@ -1,0 +1,25 @@
+
+TARGET_NAME= inputmethodservice
+TARGET_TYPE= lib
+
+include $(MAKEDIR)/../../../../sources.inc
+
+INCLUDES += $(MAKEDIR)/../../../inc/core
+INCLUDES += ../
+ifeq "$(XDK_TARGET_PLATFORM)" "linux"
+INCLUDES += $(PREBUILD_INC)/skia/utils
+INCLUDES += $(PREBUILD_INC)/skia/core
+endif
+
+C_DEFINES += -D_FRAMEWORK_CORE
+
+SOURCES += CExtractButton.cpp
+SOURCES += SoftInputWindow.cpp
+SOURCES += AbstractInputMethodImpl.cpp
+SOURCES += AbstractInputMethodSessionImpl.cpp
+SOURCES += AbstractInputMethodService.cpp
+SOURCES += CAbstractInputMethodService.cpp
+SOURCES += CExtractEditText.cpp
+SOURCES += CInputMethodService.cpp
+SOURCES += IInputMethodWrapper.cpp
+SOURCES += IInputMethodSessionWrapper.cpp

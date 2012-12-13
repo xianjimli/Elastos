@@ -119,6 +119,18 @@ ECode Activity::GetClassID(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode Activity::GetApplication(
+    /* [out] */ IApplication** application)
+{
+    assert(application != NULL);
+    *application = mApplication;
+    if (*application != NULL) {
+        (*application)->AddRef();
+    }
+
+    return NOERROR;
+}
+
 ECode Activity::IsChild(
     /* [out] */ Boolean* isChild)
 {
@@ -195,6 +207,12 @@ ECode Activity::GetContentResolver(
     /* [out] */ IContentResolver** resolver)
 {
     return mBase->GetContentResolver(resolver);
+}
+
+ECode Activity::GetApplicationContext(
+    /* [out] */ IContext** ctx)
+{
+    return mBase->GetApplicationContext(ctx);
 }
 
 ECode Activity::GetText(
@@ -602,6 +620,7 @@ ECode Activity::AttachEx(
     mInstrumentation = instr;
     mToken = token;
     mIntent = intent;
+    mApplication = application;
     ECode ec = NOERROR;
     intent->GetComponent((IComponentName**)&mComponent);
 

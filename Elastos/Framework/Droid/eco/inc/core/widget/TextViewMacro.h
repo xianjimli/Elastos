@@ -28,6 +28,12 @@
     CARAPI SetKeyListener(                                                  \
         /* [int] */ IKeyListener* listener);                                \
                                                                             \
+    CARAPI GetMovementMethod(                                               \
+        /* [out] */ IMovementMethod** movement);                            \
+                                                                            \
+    CARAPI SetMovementMethod(                                               \
+        /* [int] */ IMovementMethod* movement);                             \
+                                                                            \
     CARAPI GetCompoundPaddingTop(                                           \
         /* [out] */ Int32 * pTop);                                          \
                                                                             \
@@ -501,6 +507,25 @@ ECode className::SetKeyListener(                                                
     /* [in] */ IKeyListener* input)                                                             \
 {                                                                                               \
     return superClass::SetKeyListener(input);                                                   \
+}                                                                                               \
+                                                                                                \
+ECode className::GetMovementMethod(                                                             \
+    /* [out] */ IMovementMethod** movement)                                                     \
+{                                                                                               \
+    VALIDATE_NOT_NULL(movement);                                                                \
+    AutoPtr<IMovementMethod> temp = superClass::GetMovementMethod();                            \
+    *movement = temp;                                                                           \
+    if (*movement) {                                                                            \
+        (*movement)->AddRef();                                                                  \
+    }                                                                                           \
+                                                                                                \
+    return NOERROR;                                                                             \
+}                                                                                               \
+                                                                                                \
+ECode className::SetMovementMethod(                                                             \
+    /* [int] */ IMovementMethod* movement)                                                      \
+{                                                                                               \
+    return superClass::SetMovementMethod(movement);                                             \
 }                                                                                               \
                                                                                                 \
 ECode className::GetCompoundPaddingTop(                                                         \

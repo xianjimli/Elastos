@@ -1915,12 +1915,17 @@ void ViewRoot::PerformTraversals()
                 insets->mVisibleInsets, (IRect**)&visibleInsets);
         }
 
-        if (insetsPending || !mLastGivenInsets->Equals(insets)) {
+        Boolean equal = FALSE;
+        mLastGivenInsets->Equals(insets, &equal);
+        if (insetsPending || !equal) {
             mLastGivenInsets->Set(insets);
             //try {
-                sWindowSession->SetInsets(
-                    mWindow, insets->GetTouchableInsets(),
-                    contentInsets, visibleInsets);
+            Int32 tmpInset = 0;
+            insets->GetTouchableInsets(&tmpInset);
+
+            sWindowSession->SetInsets(
+                mWindow, tmpInset,
+                contentInsets, visibleInsets);
             //} catch (RemoteException e) {
             //}
         }

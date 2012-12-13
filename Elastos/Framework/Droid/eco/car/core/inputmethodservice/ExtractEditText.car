@@ -1,0 +1,32 @@
+
+module
+{
+	interface IEditText;
+	interface IInputMethodService;
+
+
+	interface IExtractEditText extends IEditText {
+	    SetIME(
+	        [in] IInputMethodService* ime);
+
+	    /**
+	     * Start making changes that will not be reported to the client.  That
+	     * is, {@link #onSelectionChanged(int, int)} will not result in sending
+	     * the new selection to the client
+	     */
+	    StartInternalChanges();
+
+	    /**
+	     * Finish making changes that will not be reported to the client.  That
+	     * is, {@link #onSelectionChanged(int, int)} will not result in sending
+	     * the new selection to the client
+	     */
+	    FinishInternalChanges();
+
+	    /**
+	     * Return true if the edit text is currently showing a scroll bar.
+	     */
+		HasVerticalScrollBar(
+		    [out] Boolean* has);
+	}
+}

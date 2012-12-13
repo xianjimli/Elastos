@@ -69,6 +69,10 @@ private:
         CARAPI GetInterfaceID(
             /* [in] */ IInterface *pObject,
             /* [out] */ InterfaceID *pIID);
+
+        CARAPI GetDescription(
+            /* [out] */ String* str);
+
     private:
         CLocalInputMethodManager* mHost;
     };
@@ -442,7 +446,7 @@ public:
         /* [in] */ IContext* context,
         /* [in] */ Int32 seq,
         /* [in] */ IKeyEvent* key,
-        /* [in] */ IInputMethodCallback* callback);
+        /* [in] */ IInputMethodCallbackStub* callback);
 
     CARAPI ShowInputMethodPicker();
 
@@ -479,7 +483,7 @@ private:
         /* [in] */ IContext* context,
         /* [in] */ Int32 seq,
         /* [in] */ IMotionEvent* motion,
-        /* [in] */ IInputMethodCallback* callback);
+        /* [in] */ IInputMethodCallbackStub* callback);
 
     CARAPI_(void) HandleMsgBind(
         /* [in] */ IInputBindResult* res);

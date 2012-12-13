@@ -58,4 +58,8 @@ module
         interface IRunnable;
     }
 
+//    class CInputMethodManagerService {
+//        interface IInputMethodManagerStub;
+//        interface IServiceConnection;
+//    }
 }

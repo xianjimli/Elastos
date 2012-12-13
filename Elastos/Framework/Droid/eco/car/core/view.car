@@ -50,8 +50,8 @@ module
     merge("view/InputChannel.car");
     merge("view/InputDevice.car");
     merge("view/IInputMethodSessionStub.car");
-    merge("view/IInputMethodCallback.car");
-    merge("view/IInputMethod.car");
+    merge("view/IInputMethodCallbackStub.car");
+    merge("view/IInputMethodStub.car");
     merge("view/IInputMethodManagerStub.car");
     merge("view/IOnKeyguardExitResult.car");
     merge("view/IRotationWatcher.car");
@@ -473,6 +473,32 @@ module
         interface IParcelable;
     }
 
+    class CInputBinding {
+        constructor(
+            [in] IInputConnection* conn,
+            [in] IBinder* connToken,
+            [in] Int32 uid,
+            [in] Int32 pid);
+
+        constructor(
+            [in] IInputConnection* conn,
+            [in] IInputBinding* binding);
+
+        constructor(
+            [in] IParcel* source);
+
+        interface IInputBinding;
+        interface IParcelable;
+    }
+
+    class CInputConnectionWrapper {
+        constructor(
+            [in] IInputConnection* target,
+            [in] Boolean mutable);
+
+        interface IInputConnection;
+    }
+
     class CInputChannel {
         interface IInputChannel;
         interface IParcelable;
@@ -491,7 +517,7 @@ module
         constructor(
             [in] Handle32 viewRoot);
 
-        interface IInputMethodCallback;
+        interface IInputMethodCallbackStub;
     }
 
     class CTouchDelegate {
@@ -895,12 +921,12 @@ module
             [in] IContext* context);
 
         constructor(
-            [in] IContext* context, 
+            [in] IContext* context,
             [in] IAttributeSet* attrs);
 
         constructor(
-            [in] IContext* context, 
-            [in] IAttributeSet* attrs, 
+            [in] IContext* context,
+            [in] IAttributeSet* attrs,
             [in] Int32 defStyle);
 
         interface ISurfaceView;

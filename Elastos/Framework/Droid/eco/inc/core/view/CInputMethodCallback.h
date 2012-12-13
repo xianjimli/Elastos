@@ -20,6 +20,9 @@ public:
     CARAPI SessionCreated(
         /* [in] */ IInputMethodSessionStub* session);
 
+    CARAPI GetDescription(
+        /* [out] */ String* description);
+
 private:
     AutoPtr<ViewRoot> mViewRoot;
 };

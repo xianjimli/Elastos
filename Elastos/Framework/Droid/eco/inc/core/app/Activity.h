@@ -53,6 +53,9 @@ public:
     CARAPI GetClassID(
         /* [out] */ ClassID *pCLSID);
 
+    CARAPI GetApplication(
+        /* [out] */ IApplication** application);
+
     /** Is this activity embedded inside of another activity? */
     CARAPI IsChild(
         /* [out] */ Boolean* isChild);
@@ -215,6 +218,9 @@ public:
 
     CARAPI GetContentResolver(
         /* [out] */ IContentResolver** resolver);
+
+    CARAPI GetApplicationContext(
+        /* [out] */ IContext** ctx);
 
     CARAPI GetText(
         /* [in] */ Int32 resId,
@@ -645,6 +651,7 @@ private:
     // set by the thread after the constructor and before onCreate(Bundle savedInstanceState) is called.
     AutoPtr<IInstrumentation> mInstrumentation;
     String mEmbeddedID;
+    AutoPtr<IApplication> mApplication;
     AutoPtr<IIntent> mIntent;
     AutoPtr<IComponentName> mComponent;
     AutoPtr<IApplicationApartment> mApartment;

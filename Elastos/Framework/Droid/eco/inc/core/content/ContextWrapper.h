@@ -23,6 +23,9 @@ public:
     CARAPI GetContentResolver(
         /* [out] */ IContentResolver** resolver);
 
+    CARAPI GetApplicationContext(
+        /* [out] */ IContext** ctx);
+
     CARAPI SetTheme(
         /* [in] */ Int32 resid);
 

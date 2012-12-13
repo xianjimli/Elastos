@@ -155,6 +155,12 @@ ECode CLocalInputMethodManager::_InputMethodClientStub::GetInterfaceID(
     return NOERROR;
 }
 
+ECode CLocalInputMethodManager::_InputMethodClientStub::GetDescription(
+    /* [out] */ String* str)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
 CLocalInputMethodManager::CLocalInputMethodManager():
     mActive(FALSE),
     mHasBeenInactive(TRUE),
@@ -816,7 +822,7 @@ ECode CLocalInputMethodManager::DispatchKeyEvent(
     /* [in] */ IContext* context,
     /* [in] */ Int32 seq,
     /* [in] */ IKeyEvent* key,
-    /* [in] */ IInputMethodCallback* callback)
+    /* [in] */ IInputMethodCallbackStub* callback)
 {
     {
         Mutex::Autolock lock(sStaticHandlerLock);
@@ -1129,7 +1135,7 @@ void CLocalInputMethodManager::DispatchTrackballEvent(
     /* [in] */ IContext* context,
     /* [in] */ Int32 seq,
     /* [in] */ IMotionEvent* motion,
-    /* [in] */ IInputMethodCallback* callback)
+    /* [in] */ IInputMethodCallbackStub* callback)
 {
     {
         Mutex::Autolock lock(sStaticHandlerLock);

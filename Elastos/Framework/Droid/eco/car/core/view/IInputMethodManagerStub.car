@@ -13,7 +13,7 @@ module
      * Public interface to the global input method manager, used by all client
      * applications.
      */
-    interface IInputMethodManagerStub {
+    interface IInputMethodManagerStub extends IBinder{
         GetInputMethodList(
             [out] IObjectContainer** infos);
 

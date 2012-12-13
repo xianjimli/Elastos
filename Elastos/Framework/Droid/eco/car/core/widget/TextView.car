@@ -137,8 +137,8 @@ module
          * @return the movement method being used for this TextView.
          * This will frequently be null for non-EditText TextViews.
          */
-        //GetMovementMethod(
-        //    [out] IMovementMethod** movement);
+        GetMovementMethod(
+            [out] IMovementMethod** movement);
 
         /**
          * Sets the movement method (arrow key handler) to be used for
@@ -151,8 +151,8 @@ module
          * {@link #setFocusable} again after calling this to get the focusability
          * back the way you want it.
          */
-        //SetMovementMethod(
-        //    [in] IMovementMethod* movement);
+        SetMovementMethod(
+            [in] IMovementMethod* movement);
 
         /**
          * @return the current transformation method for this TextView.

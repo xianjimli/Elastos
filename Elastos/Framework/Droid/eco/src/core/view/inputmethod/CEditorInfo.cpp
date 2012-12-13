@@ -2,6 +2,7 @@
 #include "view/inputmethod/CEditorInfo.h"
 
 CEditorInfo::CEditorInfo():
+	mInputType(InputType_TYPE_NULL),
 	mImeOptions(EditorInfo_IME_NULL),
 	mActionId(0),
 	mInitialSelStart(-1),

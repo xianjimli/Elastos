@@ -14,15 +14,79 @@ ViewTreeObserver::InternalInsetsInfo::InternalInsetsInfo()
     assert(SUCCEEDED(CRect::New((IRect**)&mVisibleInsets)));
 }
 
-void ViewTreeObserver::InternalInsetsInfo::SetTouchableInsets(
+PInterface ViewTreeObserver::InternalInsetsInfo::Probe(
+    /* [in] */ REIID riid)
+{
+    if (EIID_IInternalInsetsInfo == riid) {
+        return (IInternalInsetsInfo*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 ViewTreeObserver::InternalInsetsInfo::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 ViewTreeObserver::InternalInsetsInfo::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode ViewTreeObserver::InternalInsetsInfo::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    assert(pObject != NULL && pIID != NULL);
+    if (pObject == (IInterface*)(IInternalInsetsInfo*)this) {
+        *pIID = EIID_IInternalInsetsInfo;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+
+    return NOERROR;
+}
+
+ECode ViewTreeObserver::InternalInsetsInfo::SetTouchableInsets(
     /* [in] */ Int32 val)
 {
     mTouchableInsets = val;
+    return NOERROR;
 }
 
-Int32 ViewTreeObserver::InternalInsetsInfo::GetTouchableInsets()
+ECode ViewTreeObserver::InternalInsetsInfo::GetTouchableInsets(
+    /* [in] */ Int32* val)
 {
-    return mTouchableInsets;
+    assert(val != NULL);
+    *val = mTouchableInsets;
+    return NOERROR;
+}
+
+ECode ViewTreeObserver::InternalInsetsInfo::Equals(
+    /* [in] */ IInternalInsetsInfo* other,
+    /* [out] */ Boolean* equal)
+{
+    assert(equal != NULL);
+    if (other == NULL) {
+        *equal = FALSE;
+        return NOERROR;
+    }
+
+    Boolean isEqual;
+    if (mContentInsets->Equals(((InternalInsetsInfo*)other)->mContentInsets, &isEqual), !isEqual) {
+        *equal = FALSE;
+        return NOERROR;
+    }
+
+    if (mVisibleInsets->Equals(((InternalInsetsInfo*)other)->mVisibleInsets, &isEqual), !isEqual) {
+        *equal = FALSE;
+        return NOERROR;
+    }
+
+    *equal = mTouchableInsets == ((InternalInsetsInfo*)other)->mTouchableInsets;
+    return NOERROR;
 }
 
 void ViewTreeObserver::InternalInsetsInfo::Reset()
@@ -30,25 +94,6 @@ void ViewTreeObserver::InternalInsetsInfo::Reset()
     mContentInsets->Set(0, 0, 0, 0);
     mVisibleInsets->Set(0, 0, 0, 0);
     mTouchableInsets = TOUCHABLE_INSETS_FRAME;
-}
-
-Boolean ViewTreeObserver::InternalInsetsInfo::Equals(
-    /* [in] */ InternalInsetsInfo* other)
-{
-    if (other == NULL) {
-        return FALSE;
-    }
-
-    Boolean isEqual;
-    if (mContentInsets->Equals(other->mContentInsets, &isEqual), !isEqual) {
-        return FALSE;
-    }
-
-    if (mVisibleInsets->Equals(other->mVisibleInsets, &isEqual), !isEqual) {
-        return FALSE;
-    }
-
-    return mTouchableInsets == other->mTouchableInsets;
 }
 
 void ViewTreeObserver::InternalInsetsInfo::Set(
@@ -119,6 +164,29 @@ ECode ViewTreeObserver::RemoveOnTouchModeChangeListener(
 {
     CheckIsAlive();
     return E_NOT_IMPLEMENTED;
+}
+
+ECode ViewTreeObserver::AddOnComputeInternalInsetsListener(
+    /* [in] */ IOnComputeInternalInsetsListener* listener)
+{
+    CheckIsAlive();
+
+    // if (mOnComputeInternalInsetsListeners == NULL) {
+    //     mOnComputeInternalInsetsListeners =
+    //             new CopyOnWriteArrayList<OnComputeInternalInsetsListener>();
+    // }
+
+    mOnComputeInternalInsetsListeners.PushBack(listener);
+    return NOERROR;
+}
+
+ECode ViewTreeObserver::RemoveOnComputeInternalInsetsListener(
+    /* [in] */ IOnComputeInternalInsetsListener* victim)
+{
+    CheckIsAlive();
+
+    mOnComputeInternalInsetsListeners.Remove(victim);
+    return NOERROR;
 }
 
 ECode ViewTreeObserver::Merge(
@@ -269,6 +337,24 @@ ECode ViewTreeObserver::HasComputeInternalInsetsListeners(
 {
     CheckIsAlive();
     return E_NOT_IMPLEMENTED;
+}
+
+ECode ViewTreeObserver::DispatchOnComputeInternalInsets(
+    /* [in] */ IInternalInsetsInfo* inoutInfo)
+{
+    // NOTE: because of the use of CopyOnWriteArrayList, we *must* use an iterator to
+    // perform the dispatching. The iterator is a safe guard against listeners that
+    // could mutate the list by calling the various add/remove methods. This prevents
+    // the array from being modified while we iterate it.
+
+    List<AutoPtr<IOnComputeInternalInsetsListener> >::Iterator iter = mOnComputeInternalInsetsListeners.Begin();
+    for (; iter != mOnComputeInternalInsetsListeners.End(); ++iter) {
+        AutoPtr<IOnComputeInternalInsetsListener> listener = (AutoPtr<IOnComputeInternalInsetsListener>)(*iter);
+
+        listener->OnComputeInternalInsets(inoutInfo);
+    }
+
+    return NOERROR;
 }
 
 ECode ViewTreeObserver::AddOnPreDrawListener(

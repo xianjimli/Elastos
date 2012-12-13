@@ -22,6 +22,17 @@ public:
 
 public:
     /**
+     * The content type of the text box, whose bits are defined by
+     * {@link InputType}.
+     *
+     * @see InputType
+     * @see #TYPE_MASK_CLASS
+     * @see #TYPE_MASK_VARIATION
+     * @see #TYPE_MASK_FLAGS
+     */
+    Int32 mInputType;
+
+    /**
      * Extended type information for the editor, to help the IME better
      * integrate with it.
      */

@@ -212,6 +212,11 @@ LoadedCap::~LoadedCap()
 {
 }
 
+AutoPtr<IApplication> LoadedCap::GetApplication()
+{
+    return mApplication;
+}
+
 Boolean LoadedCap::IsSecurityViolation()
 {
     return mSecurityViolation;

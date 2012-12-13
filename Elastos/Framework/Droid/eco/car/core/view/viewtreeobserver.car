@@ -74,24 +74,48 @@ module
     }
 
     /**
+     * Parameters used with OnComputeInternalInsetsListener.
+     *
+     * We are not yet ready to commit to this API and support it, so
+     * @hide
+     */
+    interface IInternalInsetsInfo {
+        /**
+         * Set which parts of the window can be touched: either
+         * {@link #TOUCHABLE_INSETS_FRAME}, {@link #TOUCHABLE_INSETS_CONTENT},
+         * or {@link #TOUCHABLE_INSETS_VISIBLE}.
+         */
+        SetTouchableInsets(
+            [in] Int32 val);
+
+        GetTouchableInsets(
+            [out] Int32* set);
+
+        Equals(
+            [in] IInternalInsetsInfo* o,
+            [out] Boolean* res);
+    }
+
+    /**
      * Interface definition for a callback to be invoked when layout has
      * completed and the client can compute its interior insets.
      *
      * We are not yet ready to commit to this API and support it, so
      * @hide
      */
-//    interface IOnComputeInternalInsetsListener {
-//        /**
-//         * Callback method to be invoked when layout has completed and the
-//         * client can compute its interior insets.
-//         *
-//         * @param inoutInfo Should be filled in by the implementation with
-//         * the information about the insets of the window.  This is called
-//         * with whatever values the previous OnComputeInternalInsetsListener
-//         * returned, if there are multiple such listeners in the window.
-//         */
-//        OnComputeInternalInsets(InternalInsetsInfo inoutInfo);
-//    }
+    interface IOnComputeInternalInsetsListener {
+        /**
+         * Callback method to be invoked when layout has completed and the
+         * client can compute its interior insets.
+         *
+         * @param inoutInfo Should be filled in by the implementation with
+         * the information about the insets of the window.  This is called
+         * with whatever values the previous OnComputeInternalInsetsListener
+         * returned, if there are multiple such listeners in the window.
+         */
+        OnComputeInternalInsets(
+            [in] IInternalInsetsInfo* inoutInfo);
+    }
 
     interface IViewTreeObserver {
         /**
@@ -226,8 +250,8 @@ module
          * We are not yet ready to commit to this API and support it, so
          * @hide
          */
-        //AddOnComputeInternalInsetsListener(
-        //    [in] IOnComputeInternalInsetsListener* listener);
+        AddOnComputeInternalInsetsListener(
+            [in] IOnComputeInternalInsetsListener* listener);
 
         /**
          * Remove a previously installed internal insets computation callback
@@ -241,8 +265,8 @@ module
          * We are not yet ready to commit to this API and support it, so
          * @hide
          */
-        //RemoveOnComputeInternalInsetsListener(
-        //    [in] IOnComputeInternalInsetsListener* victim);
+        RemoveOnComputeInternalInsetsListener(
+            [in] IOnComputeInternalInsetsListener* victim);
 
         /**
          * Indicates whether this ViewTreeObserver is alive. When an observer is not alive,
@@ -303,7 +327,7 @@ module
         /**
          * Calls all listeners to compute the current insets.
          */
-        //DispatchOnComputeInternalInsets(
-        //    /* [in] */ InternalInsetsInfo* inoutInfo);
+        DispatchOnComputeInternalInsets(
+            [in] IInternalInsetsInfo* inoutInfo);
     }
 }
