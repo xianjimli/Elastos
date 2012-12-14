@@ -26,6 +26,10 @@ module
     }
 
     class CPattern {
+        constructor(
+            [in] String regex,
+            [in] Int32 flags);
+
         interface IPattern;
     }
 }

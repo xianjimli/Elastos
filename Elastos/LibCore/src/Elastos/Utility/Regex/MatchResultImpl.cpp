@@ -1,6 +1,7 @@
 
 #include "MatchResultImpl.h"
 #include "cmdef.h"
+#include <stdio.h>
 
 MatchResultImpl::MatchResultImpl(
     /* [in] */ const String& text,
@@ -25,12 +26,17 @@ PInterface MatchResultImpl::Probe(
 
 UInt32 MatchResultImpl::AddRef()
 {
-    return ElRefBase::AddRef();
+//    UInt32 ref = ElRefBase::AddRef();
+//    printf("add ref is %d\n", ref);
+    return 0;
 }
 
 UInt32 MatchResultImpl::Release()
 {
-    return ElRefBase::Release();
+
+//    UInt32 ref = ElRefBase::Release();
+//    printf("release ref is %d\n", ref);
+    return 0;
 }
 
 ECode MatchResultImpl::GetInterfaceID(
@@ -65,7 +71,7 @@ ECode MatchResultImpl::Group(
     Int32 startId, endId;
     Start(&startId);
     End(&endId);
-    *text = mText.Substring(startId, endId);
+    *text = mText.Substring(startId, endId - startId);
 
     return NOERROR;
 }
@@ -82,7 +88,7 @@ ECode MatchResultImpl::GroupEx(
         *text = String(NULL);
     }
     else {
-        *text = mText.Substring(from, to);
+        *text = mText.Substring(from, to - from);
     }
 
     return NOERROR;
@@ -112,5 +118,5 @@ ECode MatchResultImpl::StartEx(
 ECode MatchResultImpl::Start(
     /* [out] */ Int32* index)
 {
-    return Start(0);
+    return StartEx(0, index);
 }

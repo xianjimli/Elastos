@@ -3,6 +3,7 @@
 #include "Splitter.h"
 #include "cmdef.h"
 #include "StringBuffer.h"
+#include <stdio.h>
 
 CPattern::CPattern()
     : mFlags(0)
@@ -14,7 +15,6 @@ ECode CPattern::Matcher(
     /* [out] */ IMatcher** matcher)
 {
     VALIDATE_NOT_NULL(matcher);
-
     return CMatcher::New((IPattern*)this, input, matcher);
 }
 
@@ -44,7 +44,6 @@ ECode CPattern::Pattern(
 {
     VALIDATE_NOT_NULL(pattern);
     *pattern = mPattern;
-
     return NOERROR;
 }
 
@@ -57,10 +56,20 @@ ECode CPattern::Flags(
     return NOERROR;
 }
 
+ECode CPattern::constructor(
+    /* [in] */ const String& regex,
+    /* [in] */ Int32 flags)
+{
+    mPattern = regex;
+    mFlags = flags;
+    CompileEx2();
+    return NOERROR;
+}
+
 ECode CPattern::Compile(
     /* [in] */ const String& regularExpression,
     /* [in] */ Int32 flags,
-    /* [in] */ CPattern** obj)
+    /* [out] */ CPattern** obj)
 {
     VALIDATE_NOT_NULL(obj);
 
@@ -72,6 +81,7 @@ ECode CPattern::Compile(
     *obj = new CPattern(regularExpression, flags);
 
     return (*obj)->CompileEx2();
+    //return NOERROR;
 }
 
 ECode CPattern::CompileEx(
@@ -107,6 +117,7 @@ ECode CPattern::CompileEx2()
             | IPattern_MULTILINE | IPattern_DOTALL | IPattern_UNIX_LINES);
 
     mNativeMatcher = CompileImpl(icuPattern, icuFlags);
+    //mNativeMatcher = CompileImpl(icuPattern, 0);
 
     return NOERROR;
 }
@@ -156,11 +167,15 @@ RegexPattern* CPattern::CompileImpl(
     UParseError error;
     error.offset = -1;
 
-//    UnicodeString& regexString(regex);
-//    RegexPattern* result = RegexPattern::compile(regexString, flags, error, status);
-//    if (!U_SUCCESS(status)) {
+    //UnicodeString regexString(temp.unicodeString());
+    //UText *pUText = utext_openUTF8(NULL, regex.string(), regex.GetLength(), &status);
+    //UnicodeString regexString("ad", 2, 0);
+    UnicodeString regexString = UNICODE_STRING((const char*)regex, regex.GetLength());
+    RegexPattern* result = RegexPattern::compile(regexString, flags, error, status);
+    if (!U_SUCCESS(status)) {
+          return NULL;
 //        return E_PATTERN_SYNTAX_EXCEPTION;
 //        throwPatternSyntaxException(env, status, regex, error);
-//    }
-    return NULL;
+    }
+    return result;
 }

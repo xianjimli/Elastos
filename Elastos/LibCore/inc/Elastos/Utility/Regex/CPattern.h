@@ -30,6 +30,9 @@ public:
     CARAPI Flags(
         /* [out] */ Int32* flags);
 
+    CARAPI constructor(
+        /* [in] */ const String& regex,
+        /* [in] */ Int32 flags);
     /**
      * Returns a compiled form of the given {@code regularExpression}, as modified by the
      * given {@code flags}. See the <a href="#flags">flags overview</a> for more on flags.
@@ -48,7 +51,7 @@ public:
     static CARAPI Compile(
         /* [in] */ const String& regularExpression,
         /* [in] */ Int32 flags,
-        /* [in] */ CPattern** obj);
+        /* [out] */ CPattern** obj);
 
     /**
      * Equivalent to {@code Pattern.compile(pattern, 0)}.

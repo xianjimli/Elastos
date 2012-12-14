@@ -5,6 +5,7 @@
 #include "cmdef.h"
 #include "StringBuffer.h"
 #include "Elastos.Core.h"
+#include <stdio.h>
 
 /**
 * Checks if an error has occurred, throwing a suitable exception if so.
@@ -56,7 +57,23 @@ public:
             return;
         }
 
-        mUText = utext_openUTF8(NULL, mInput.string(), mInput.GetLength(), &mStatus);
+        //mUText = utext_openUTF8(NULL, mInput.string(), mInput.GetLength(), &mStatus);
+        //UChar pchar[256] = {0};
+        //StringBuf put((char *)(const char *)mInput, mInput.GetLength());
+        //char *p = "abcd";
+        //StringBuf x(p, 4);
+        char *p = NULL;
+        UnicodeString in = UNICODE_STRING((const char *)input, input.GetLength());
+        
+        Int64 len = in.length();
+        mUText = utext_openUChars(NULL, in.getBuffer(), len, &mStatus);
+        
+        if(U_FAILURE(mStatus))
+ 	{
+        } else {
+        }
+
+
         if (mUText == NULL) {
             return;
         }
@@ -139,7 +156,7 @@ ECode CMatcher::AppendReplacement(
 
     Int32 index;
     Start(&index);
-    *result += (mInput.Substring(mAppendPos, index));
+    *result += (mInput.Substring(mAppendPos, index - mAppendPos));
     AppendEvaluated(replacement, result);
     End(&mAppendPos);
 
@@ -241,12 +258,13 @@ ECode CMatcher::UsePattern(
         mNativeMatcher = NULL;
     }
     mNativeMatcher = OpenImpl(((CPattern*)pattern)->mNativeMatcher);
-
     if (!mInput.IsNull()) {
         ResetForInput();
     }
 
-    mMatchOffsets = NULL;
+    Int32 count;
+    GroupCount(&count);
+    mMatchOffsets = ArrayOf<Int32>::Alloc((count + 1) * 2);
     mMatchFound = FALSE;
 
     return NOERROR;
@@ -414,7 +432,7 @@ ECode CMatcher::Matches(
 
     mMatchFound = MatchesImpl(mNativeMatcher, mInput, mMatchOffsets);
     if (mMatchFound) {
-        mFindPos = (*mMatchOffsets)[1];
+        mFindPos = (*mMatchOffsets)[0];
     }
     *matched = mMatchFound;
 
@@ -683,6 +701,31 @@ Boolean CMatcher::MatchesImpl(
 {
     MatcherAccessor matcherAccessor(matcher, s, FALSE);
     UBool result = matcherAccessor->matches(matcherAccessor.Status());
+    /*{
+        UParseError err;
+        UErrorCode errcode;
+        RegexPattern *pat = RegexPattern::compile(UNICODE_STRING("a*b", 3), 0, err, errcode);
+        RegexMatcher *ma = pat->matcher(errcode);
+        UChar a[2] = {'a', 'b'}; 
+        UText *pt = utext_openUChars(NULL, a, 2, &errcode);
+      
+        
+        ma->reset(pt);
+        if (ma->matches(errcode)) {
+            printf("Greate Flag is Success!\n");
+        } else {
+            printf("Greate Flag is FAILED!\n");
+        } 
+    }
+    UParseError err;
+    UErrorCode errCode;
+    UBool result = matcherAccessor->matches(xUNICODE_STRING("3", 1), UNICODE_STRING("a3b", 3), err, errCode);
+    
+    UErrorCode errCode;
+    RegexMatcher *tst =new  RegexMatcher(UNICODE_STRING("a*b", 3), UNICODE_STRING("ab", 2), 0, errCode);
+    UBool result = tst->matches(errCode);
+    printf("the UBool is %d\n", result);
+    */
     if (result) {
         matcherAccessor.UpdateOffsets(offsets);
     }

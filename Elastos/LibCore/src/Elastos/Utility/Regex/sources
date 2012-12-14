@@ -21,6 +21,5 @@ else
 LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
 LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
 LIBRARIES += $(XDK_USER_LIB)/crt0.lib
-
-LIBRARIES += -licuuc
+LIBRARIES += -licuuc -licui18n
 endif

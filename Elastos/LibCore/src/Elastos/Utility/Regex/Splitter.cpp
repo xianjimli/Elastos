@@ -58,7 +58,7 @@ ArrayOf<String>* Splitter::FastSplit(
     Int32 end;
     while ((end = input.IndexOf(ch, begin)) != -1 && list->GetSize() + 1 < maxSize) {
         list->PushBack(input.Substring(begin, end));
-        begin = end + 1;
+        begin = begin + end + 1;
     }
     return FinishSplit(list, input, begin, maxSize, limit);
 }
@@ -90,12 +90,15 @@ ArrayOf<String>* Splitter::Split(
     Int32 begin = 0;
     Boolean result;
     matcher->Find(&result);
+
     while (result && list->GetSize() + 1 < maxSize) {
         Int32 index;
         matcher->Start(&index);
-        list->PushBack(input.Substring(begin, index));
+        list->PushBack(input.Substring(begin, index - begin));
         matcher->End(&begin);
+        matcher->Find(&result);
     }
+
     return FinishSplit(list, input, begin, maxSize, limit);
 }
 
@@ -128,6 +131,5 @@ ArrayOf<String>* Splitter::FinishSplit(
     for (Int32 i = 0; it != list->End(); ++i, ++it) {
         (*arrayOfStr)[i] = *it;
     }
-
     return arrayOfStr;
 }
