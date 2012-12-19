@@ -244,7 +244,8 @@ Int32 SQLiteCursor::GetColumnIndex(
  * @deprecated
  */
 //@Override
-Boolean SQLiteCursor::DeleteRow()
+ECode SQLiteCursor::DeleteRow(
+    /* [out] */ Boolean* succeeded)
 {
     CheckPosition();
 
@@ -253,7 +254,8 @@ Boolean SQLiteCursor::DeleteRow()
         // Log.e(TAG,
         //         "Could not delete row because either the row ID column is not available or it" +
         //         "has not been read.");
-        return FALSE;
+        *succeeded = FALSE;
+        return NOERROR;
     }
 
     Boolean success;
@@ -275,7 +277,7 @@ Boolean SQLiteCursor::DeleteRow()
         // }
 
         Int32 pos = mPos;
-        Requery();
+        Requery(succeeded);
 
         /*
          * Ensure proper cursor state. Note that mCurrentRowID changes
@@ -288,10 +290,12 @@ Boolean SQLiteCursor::DeleteRow()
 
     if (success) {
         OnChange(TRUE);
-        return TRUE;
+        *succeeded = TRUE;
+        return NOERROR;
     }
     else {
-        return FALSE;
+        *succeeded = FALSE;
+        return NOERROR;
     }
 }
 
@@ -432,10 +436,12 @@ ECode SQLiteCursor::Close()
 }
 
 //@Override
-Boolean SQLiteCursor::Requery()
+ECode SQLiteCursor::Requery(
+    /* [out] */ Boolean* succeeded)
 {
     if (IsClosed()) {
-        return FALSE;
+        *succeeded = FALSE;
+        return NOERROR;
     }
     Int64 timeStart = 0;
     // if (Config.LOGV) {
@@ -469,13 +475,12 @@ Boolean SQLiteCursor::Requery()
     //     Log.v("DatabaseWindow", "closing window in requery()");
     //     Log.v(TAG, "--- Requery()ed cursor " + this + ": " + mQuery);
     // }
-
-    Boolean result = AbstractWindowedCursor::Requery();
+    ECode ec = AbstractWindowedCursor::Requery(succeeded);
     // if (Config.LOGV) {
     //     long timeEnd = System.currentTimeMillis();
     //     Log.v(TAG, "requery (" + (timeEnd - timeStart) + " ms): " + mDriver.toString());
     // }
-    return result;
+    return ec;
 }
 
 //@Override

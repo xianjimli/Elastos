@@ -1,12 +1,12 @@
 
 module
 {
+    [deprecated]
     interface ICharArrayBuffer {
-
         GetData(
-            [out, callee] ArrayOf<Char8>* data);
+            [out, callee] ArrayOf<Char32>* data);
 
         SetData(
-            [in] ArrayOf<Char8> data);
+            [in] ArrayOf<Char32>* data);
     }
 }

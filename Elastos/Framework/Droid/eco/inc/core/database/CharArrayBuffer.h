@@ -4,28 +4,32 @@
 
 #include "ext/frameworkext.h"
 
+/**
+ * This is used for {@link Cursor#copyStringToBuffer}
+ */
 class CharArrayBuffer
 {
 public:
-    CharArrayBuffer();
-
     ~CharArrayBuffer();
+
+    CARAPI GetData(
+        /* [out,callee] */ ArrayOf<Char32>** data);
+
+    CARAPI SetData(
+        /* [in] */ ArrayOf<Char32>* data);
+
+protected:
+    CharArrayBuffer();
 
     CARAPI Init(
         /* [in] */ Int32 size);
 
     CARAPI Init(
-        /* [in] */ const ArrayOf<Char8>& buf);
-
-    CARAPI GetData(
-        /* [out,callee] */ ArrayOf<Char8>** data);
-
-    CARAPI SetData(
-        /* [in] */ const ArrayOf<Char8>& data);
+        /* [in] */ ArrayOf<Char32>* buf);
 
 public:
-    ArrayOf<Char8>* data;
-
-    Int32 sizeCopied;
+    ArrayOf<Char32>* mData;
+    Int32 mSizeCopied;
 };
+
 #endif //_CHARARRAYBUFFER_H_

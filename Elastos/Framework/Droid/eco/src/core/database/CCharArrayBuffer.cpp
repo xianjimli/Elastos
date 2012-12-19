@@ -1,36 +1,29 @@
 
+#include "ext/frameworkdef.h"
 #include "database/CCharArrayBuffer.h"
-ECode CCharArrayBuffer::GetData(
-    /* [out, callee] */ ArrayOf<Char8> ** ppData)
-{
-    CharArrayBuffer::GetData(ppData);
-    return NOERROR;
-}
 
-ECode CCharArrayBuffer::SetData(
-    /* [in] */ const ArrayOf<Char8> & data)
-{
-    CharArrayBuffer::SetData(data);
-    return NOERROR;
-}
-
-ECode CCharArrayBuffer::constructor()
-{
-    CharArrayBuffer::CharArrayBuffer();
-    return NOERROR;
-}
 
 ECode CCharArrayBuffer::constructor(
     /* [in] */ Int32 size)
 {
-    CharArrayBuffer::Init(size);
-    return NOERROR;
+    return CharArrayBuffer::Init(size);
 }
 
 ECode CCharArrayBuffer::constructor(
-    /* [in] */ const ArrayOf<Char8> & buf)
+    /* [in] */ ArrayOf<Char32>* buf)
 {
-    CharArrayBuffer::Init(buf);
-    return NOERROR;
+    return CharArrayBuffer::Init(buf);
 }
 
+ECode CCharArrayBuffer::GetData(
+    /* [out, callee] */ ArrayOf<Char32>** data)
+{
+    VALIDATE_NOT_NULL(data);
+    return CharArrayBuffer::GetData(data);
+}
+
+ECode CCharArrayBuffer::SetData(
+    /* [in] */ ArrayOf<Char32>* data)
+{
+    return CharArrayBuffer::SetData(data);
+}

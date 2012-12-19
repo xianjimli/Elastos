@@ -1,7 +1,6 @@
 module
 {
-    interface ICursorToBulkCursorAdaptor extends IBulkCursorNative
-    {
+    interface ICursorToBulkCursorAdaptor extends IBulkCursor {
         BinderDied();
     }
 }

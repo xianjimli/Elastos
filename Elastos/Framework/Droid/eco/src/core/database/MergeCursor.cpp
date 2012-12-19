@@ -1,38 +1,97 @@
 #include "database/MergeCursor.h"
 
-void MergeCursor::Init()
+
+MergeCursor::MyDataSetObserver::MyDataSetObserver()
+{}
+
+MergeCursor::MyDataSetObserver::~MyDataSetObserver()
+{}
+
+PInterface MergeCursor::MyDataSetObserver::Probe(
+    /* [in]  */ REIID riid)
 {
-    mObserver = new SubDataSetObserver();
+    if (riid == EIID_IInterface) {
+        return (PInterface)(IDataSetObserver*)this;
+    }
+    else if (riid == EIID_IDataSetObserver) {
+        return (IDataSetObserver*)this;
+    }
+
+    return NULL;
 }
+
+UInt32 MergeCursor::MyDataSetObserver::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 MergeCursor::MyDataSetObserver::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode MergeCursor::MyDataSetObserver::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    if (pIID == NULL) {
+        return E_INVALID_ARGUMENT;
+    }
+
+    if (pObject == (IInterface*)(IDataSetObserver*)this) {
+        *pIID = EIID_IDataSetObserver;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+
+    return NOERROR;
+}
+
+ECode MergeCursor::MyDataSetObserver::OnChanged()
+{
+    //mPos = -1;
+    return NOERROR;
+}
+
+ECode MergeCursor::MyDataSetObserver::OnInvalidated()
+{
+    //mPos = -1;
+    return NOERROR;
+}
+
 
 MergeCursor::MergeCursor()
+    : mCursors(NULL)
 {
-    Init();
-}
-
-ECode MergeCursor::Init(
-        /* [in] */ const ArrayOf<ICursor* > & cursors)
-{
-    Init();
-    mCursors = const_cast<ArrayOf<ICursor*>* >(&cursors);
-    mCursor = cursors[0];
-    for (Int32 i = 0; i < mCursors->GetLength(); i++) {
-        if ((*mCursors)[i] == NULL) {
-            continue;
-        }
-        (*mCursors)[i]->RegisterDataSetObserver((IDataSetObserver*)mObserver);
-    }
-    return NOERROR;
+    mObserver = new MyDataSetObserver();
 }
 
 MergeCursor::~MergeCursor()
 {
+    if (mCursors != NULL) {
+        for (Int32 i = 0; i < mCursors->GetLength(); ++i) {
+            (*mCursors)[i] = NULL;
+        }
+        ArrayOf< AutoPtr<ICursor> >::Free(mCursors);
+    }
 }
 
-ECode MergeCursor::GetCount(
-        /* [out] */ Int32* cnt)
+ECode MergeCursor::Init(
+    /* [in] */ ArrayOf<ICursor*>* cursors)
 {
-    assert(cnt != NULL);
+    assert(mCursors == NULL);
+    mCursors = (ArrayOf< AutoPtr<ICursor> >*)cursors;
+    mCursor = (*cursors)[0];
+    for (Int32 i = 0; i < mCursors->GetLength(); i++) {
+        if ((*mCursors)[i] == NULL) continue;
+        (*mCursors)[i]->RegisterDataSetObserver(mObserver.Get());
+    }
+    return NOERROR;
+}
+
+Int32 MergeCursor::GetCount()
+{
     Int32 count = 0;
     Int32 length = mCursors->GetLength();
     for (Int32 i = 0; i < length; i++) {
@@ -42,16 +101,14 @@ ECode MergeCursor::GetCount(
             count += c;
         }
     }
-    *cnt = count;
-    return NOERROR;
+    return count;
 }
 
-ECode MergeCursor::OnMove(
-        /* [in] */ Int32 oldPosition,
-        /* [in] */ Int32 newPosition,
-        /* [out] */ Boolean* value)
+Boolean MergeCursor::OnMove(
+    /* [in] */ Int32 oldPosition,
+    /* [in] */ Int32 newPosition)
 {
-    assert(value != NULL);
+    /* Find the right cursor */
     mCursor = NULL;
     Int32 cursorStartPos = 0;
     Int32 length = mCursors->GetLength();
@@ -62,7 +119,6 @@ ECode MergeCursor::OnMove(
 
         Int32 c;
         (*mCursors)[i]->GetCount(&c);
-
         if (newPosition < (cursorStartPos + c)) {
             mCursor = (*mCursors)[i];
             break;
@@ -75,84 +131,94 @@ ECode MergeCursor::OnMove(
     if (mCursor != NULL) {
         Boolean ret;
         mCursor->MoveToPosition(newPosition - cursorStartPos, &ret);
-        *value = ret;
-        return NOERROR;
+        return ret;
     }
-    *value = FALSE;
+    return FALSE;
+}
+
+ECode MergeCursor::DeleteRow(
+    /* [out] */ Boolean* succeeded)
+{
+    return mCursor->DeleteRow(succeeded);
+}
+
+ECode MergeCursor::CommitUpdates(
+    /* [out] */ Boolean* succeeded)
+{
+    Int32 length = mCursors->GetLength();
+    for (Int32 i = 0 ; i < length ; i++) {
+        if ((*mCursors)[i] != NULL) {
+            FAIL_RETURN((*mCursors)[i]->CommitUpdates(succeeded));
+        }
+    }
+    OnChange(TRUE);
+    *succeeded = TRUE;
     return NOERROR;
 }
 
 ECode MergeCursor::GetString(
-        /* [in] */ Int32 column,
-        /* [out] */ String* value)
+    /* [in] */ Int32 column,
+    /* [out] */ String* str)
 {
-    mCursor->GetString(column, value);
-    return NOERROR;
+    return mCursor->GetString(column, str);
 }
 
 ECode MergeCursor::GetInt16(
-        /* [in] */ Int32 column,
-        /* [out] */ Int16* value)
+    /* [in] */ Int32 column,
+    /* [out] */ Int16* value)
 {
-    mCursor->GetInt16(column, value);
-    return NOERROR;
+    return mCursor->GetInt16(column, value);
 }
 
 ECode MergeCursor::GetInt32(
-        /* [in] */ Int32 column,
-        /* [out] */ Int32* value)
+    /* [in] */ Int32 column,
+    /* [out] */ Int32* value)
 {
-    mCursor->GetInt32(column, value);
-    return NOERROR;
+    return mCursor->GetInt32(column, value);
 }
 
 ECode MergeCursor::GetInt64(
-        /* [in] */ Int32 column,
-        /* [out] */ Int64* value)
+    /* [in] */ Int32 column,
+    /* [out] */ Int64* value)
 {
-    mCursor->GetInt64(column, value);
-    return NOERROR;
+    return mCursor->GetInt64(column, value);
 }
 
 ECode MergeCursor::GetFloat(
-        /* [in] */ Int32 column,
-        /* [out] */ Float* value)
+    /* [in] */ Int32 column,
+    /* [out] */ Float* value)
 {
-    mCursor->GetFloat(column, value);
-    return NOERROR;
+    return mCursor->GetFloat(column, value);
 }
 
 ECode MergeCursor::GetDouble(
-        /* [in] */ Int32 column,
-        /* [out] */ Double* value)
+    /* [in] */ Int32 column,
+    /* [out] */ Double* value)
 {
-    mCursor->GetDouble(column, value);
-    return NOERROR;
+    return mCursor->GetDouble(column, value);
 }
 
 ECode MergeCursor::IsNull(
-        /* [in] */ Int32 column,
-        /* [out] */ Boolean* value)
+    /* [in] */ Int32 column,
+    /* [out] */ Boolean* value)
 {
-    mCursor->IsNull(column, value);
-    return NOERROR;
+    return mCursor->IsNull(column, value);
 }
 
 ECode MergeCursor::GetBlob(
     /* [in] */ Int32 column,
     /* [out] */ ArrayOf<Byte>** blob)
 {
-    mCursor->GetBlob(column, blob);
-    return NOERROR;
+    return mCursor->GetBlob(column, blob);
 }
 
 ECode MergeCursor::GetColumnNames(
     /* [out] */ ArrayOf<String>** names)
 {
     if (mCursor != NULL) {
-        mCursor->GetColumnNames(names);
-        return NOERROR;
-    } else {
+        return mCursor->GetColumnNames(names);
+    }
+    else {
         *names = ArrayOf<String>::Alloc(1);
         return NOERROR;
     }
@@ -162,28 +228,25 @@ ECode MergeCursor::Deactivate()
 {
     Int32 length = mCursors->GetLength();
     for (Int32 i = 0 ; i < length; i++) {
-        if ((*mCursors)[i] == NULL) {
+        if ((*mCursors)[i] != NULL) {
             (*mCursors)[i]->Deactivate();
         }
     }
-    AbstractCursor::Deactivate();
-    return NOERROR;
+    return AbstractCursor::Deactivate();
 }
 
 ECode MergeCursor::Close()
 {
     Int32 length = mCursors->GetLength();
     for (Int32 i = 0 ; i < length; i++) {
-        if ((*mCursors)[i] == NULL) {
-            (*mCursors)[i]->Close();
-        }
+        if ((*mCursors)[i] == NULL) continue;
+        (*mCursors)[i]->Close();
     }
-    AbstractCursor::Close();
-    return NOERROR;
+    return AbstractCursor::Close();
 }
 
 ECode MergeCursor::RegisterContentObserver(
-        /* [in] */ ILocalContentObserver* observer)
+    /* [in] */ ILocalContentObserver* observer)
 {
     Int32 length = mCursors->GetLength();
     for (Int32 i = 0; i < length; i++) {
@@ -195,7 +258,7 @@ ECode MergeCursor::RegisterContentObserver(
 }
 
 ECode MergeCursor::UnregisterContentObserver(
-        /* [in] */ ILocalContentObserver* observer)
+    /* [in] */ ILocalContentObserver* observer)
 {
     Int32 length = mCursors->GetLength();
     for (Int32 i = 0; i < length; i++) {
@@ -207,7 +270,7 @@ ECode MergeCursor::UnregisterContentObserver(
 }
 
 ECode MergeCursor::RegisterDataSetObserver(
-        /* [in] */ IDataSetObserver* observer)
+    /* [in] */ IDataSetObserver* observer)
 {
     Int32 length = mCursors->GetLength();
     for (Int32 i = 0; i < length; i++) {
@@ -219,7 +282,7 @@ ECode MergeCursor::RegisterDataSetObserver(
 }
 
 ECode MergeCursor::UnregisterDataSetObserver(
-        /* [in] */ IDataSetObserver* observer)
+    /* [in] */ IDataSetObserver* observer)
 {
     Int32 length = mCursors->GetLength();
     for (Int32 i = 0; i < length; i++) {
@@ -231,13 +294,14 @@ ECode MergeCursor::UnregisterDataSetObserver(
 }
 
 ECode MergeCursor::Requery(
-        /* [out] */ Boolean* value)
+    /* [out] */ Boolean* value)
 {
     Int32 length = mCursors->GetLength();
     for (Int32 i = 0 ; i < length; i++) {
         if ((*mCursors)[i] == NULL) {
             continue;
         }
+
         Boolean v;
         (*mCursors)[i]->Requery(&v);
         if (v == FALSE) {
@@ -245,26 +309,7 @@ ECode MergeCursor::Requery(
             return NOERROR;
         }
     }
+
     *value = TRUE;
-    return NOERROR;
-}
-
-MergeCursor::SubDataSetObserver::SubDataSetObserver()
-{
-}
-
-MergeCursor::SubDataSetObserver::~SubDataSetObserver()
-{
-}
-
-ECode MergeCursor::SubDataSetObserver::OnChanged()
-{
-    //mPos = -1;
-    return NOERROR;
-}
-
-ECode MergeCursor::SubDataSetObserver::OnInvalidated()
-{
-    //mPos = -1;
     return NOERROR;
 }

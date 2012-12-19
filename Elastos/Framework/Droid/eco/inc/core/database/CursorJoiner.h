@@ -3,30 +3,35 @@
 
 #include "ext/frameworkext.h"
 #include <elastos/AutoPtr.h>
+
 /**
  * Does a join on two cursors using the specified columns. The cursors must already
  * be sorted on each of the specified columns in ascending order. This joiner only
  * supports the case where the tuple of key column values is unique.
+ * <p>
+ * Typical usage:
+ *
+ * <pre>
+ * CursorJoiner joiner = new CursorJoiner(cursorA, keyColumnsofA, cursorB, keyColumnsofB);
+ * for (CursorJointer.Result joinerResult : joiner) {
+ *     switch (joinerResult) {
+ *         case LEFT:
+ *             // handle case where a row in cursorA is unique
+ *             break;
+ *         case RIGHT:
+ *             // handle case where a row in cursorB is unique
+ *             break;
+ *         case BOTH:
+ *             // handle case where a row with the same key is in both cursors
+ *             break;
+ *     }
+ * }
+ * </pre>
  */
 class CursorJoiner
 {
 public:
-    CursorJoiner();
-    ~CursorJoiner();
-
-    /**
-     * Initializes the CursorJoiner and resets the cursors to the first row. The left and right
-     * column name arrays must have the same number of columns.
-     * @param cursorLeft The left cursor to compare
-     * @param columnNamesLeft The column names to compare from the left cursor
-     * @param cursorRight The right cursor to compare
-     * @param columnNamesRight The column names to compare from the right cursor
-     */
-    CARAPI Init(
-        /* [in] */ ICursor* cursorLeft,
-        /* [in] */ const ArrayOf<String>& columnNamesLeft,
-        /* [in] */ ICursor* cursorRight,
-        /* [in] */ const ArrayOf<String>& columnNamesRight);
+    virtual ~CursorJoiner();
 
     //CARAPI Iterator(
     //    /* [out] */ Iterator<Result> value);
@@ -36,7 +41,7 @@ public:
      * @return true if there are more rows to compare
      */
     CARAPI HasNext(
-        /* [out] */ Boolean* rst);
+        /* [out] */ Boolean* result);
 
     /**
      * Returns the comparison result of the next row from each cursor. If one cursor
@@ -53,10 +58,27 @@ public:
      *   if the row pointed to by the right cursor is unique, BOTH if the rows in both
      *   cursors are the same.
      */
-//    CARAPI Next(
-//        /* [out] */ Result value);
+    CARAPI GetNext(
+        /* [out] */ CursorJoinerResult* result);
 
     CARAPI Remove();
+
+protected:
+    CursorJoiner();
+
+    /**
+     * Initializes the CursorJoiner and resets the cursors to the first row. The left and right
+     * column name arrays must have the same number of columns.
+     * @param cursorLeft The left cursor to compare
+     * @param columnNamesLeft The column names to compare from the left cursor
+     * @param cursorRight The right cursor to compare
+     * @param columnNamesRight The column names to compare from the right cursor
+     */
+    CARAPI Init(
+        /* [in] */ ICursor* cursorLeft,
+        /* [in] */ const ArrayOf<String>& columnNamesLeft,
+        /* [in] */ ICursor* cursorRight,
+        /* [in] */ const ArrayOf<String>& columnNamesRight);
 
 private:
     /**
@@ -65,10 +87,9 @@ private:
      * @param columnNames the array of names to lookup
      * @return an array of column indices
      */
-    CARAPI BuildColumnIndiciesArray(
+    CARAPI_(ArrayOf<Int32>*) BuildColumnIndiciesArray(
         /* [in] */ ICursor* cursor,
-        /* [in] */ const ArrayOf<String>* columnNames,
-        /* [out] */ ArrayOf<Int32>** columns);
+        /* [in] */ const ArrayOf<String>& columnNames);
 
     /**
      * Reads the strings from the cursor that are specifed in the columnIndicies
@@ -80,17 +101,17 @@ private:
      * @param columnIndicies the indicies of the values to read from the cursor
      * @param startingIndex the slot in which to start storing values, and must be either 0 or 1.
      */
-    static CARAPI PopulateValues(
-        /* [in] */ ArrayOf<String>* values, 
-        /* [in] */ ICursor* cursor, 
-        /* [in] */ ArrayOf<Int32>* columnIndicies,
+    static CARAPI_(void) PopulateValues(
+        /* [in] */ ArrayOf<String>& values,
+        /* [in] */ ICursor* cursor,
+        /* [in] */ const ArrayOf<Int32>& columnIndicies,
         /* [in] */ Int32 startingIndex);
 
     /**
      * Increment the cursors past the rows indicated in the most recent call to next().
      * This will only have an affect once per call to next().
      */
-    CARAPI IncrementCursors();
+    CARAPI_(void) IncrementCursors();
 
     /**
      * Compare the values. Values contains n pairs of strings. If all the pairs of strings match
@@ -100,30 +121,18 @@ private:
      * @param values the n pairs of values to compare
      * @return -1, 0, or 1 as described above.
      */
-//    static int compareStrings(String... values)
-
-public:
-    /**
-     * The result of a call to next().
-     */
-    enum Result {
-        /** The row currently pointed to by the left cursor is unique */
-        RIGHT,
-        /** The row currently pointed to by the right cursor is unique */
-        LEFT,
-        /** The rows pointed to by both cursors are the same */
-        BOTH
-    };
+    static CARAPI CompareStrings(
+        /* [in] */ const ArrayOf<String>& values,
+        /* [out] */ Int32* result);
 
 private:
     AutoPtr<ICursor> mCursorLeft;
     AutoPtr<ICursor> mCursorRight;
     Boolean mCompareResultIsValid;
-    Result mCompareResult;
+    CursorJoinerResult mCompareResult;
     ArrayOf<Int32>* mColumnsLeft;
     ArrayOf<Int32>* mColumnsRight;
     ArrayOf<String>* mValues;
-
-
 };
+
 #endif //__CURSORJOINER_H__

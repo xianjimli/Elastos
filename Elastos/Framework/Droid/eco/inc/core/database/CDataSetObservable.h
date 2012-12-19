@@ -4,22 +4,21 @@
 
 #include "_CDataSetObservable.h"
 #include "database/DataSetObservable.h"
+
 CarClass(CDataSetObservable), public DataSetObservable
 {
 public:
     CARAPI RegisterObserver(
-        /* [in] */ IInterface * pObserver);
+        /* [in] */ IInterface* observer);
 
     CARAPI UnregisterObserver(
-        /* [in] */ IInterface * pObserver);
+        /* [in] */ IInterface* observer);
 
     CARAPI UnregisterAll();
 
     CARAPI NotifyChanged();
 
     CARAPI NotifyInvalidated();
-
-    CARAPI constructor();
 
 private:
     // TODO: Add your private member variables here.

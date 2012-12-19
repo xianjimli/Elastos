@@ -2,9 +2,21 @@
 #ifndef __NATIVECURSORWINDOW_H__
 #define __NATIVECURSORWINDOW_H__
 
+#include <elastos.h>
 #include <binder/IMemory.h>
 #include <utils/RefBase.h>
 
+using namespace Elastos;
+
+#define DEFAULT_WINDOW_SIZE 4096
+#define MAX_WINDOW_SIZE (1024 * 1024)
+#define WINDOW_ALLOCATION_SIZE 4096
+
+#define ROW_SLOT_CHUNK_NUM_ROWS 16
+
+// Row slots are allocated in chunks of ROW_SLOT_CHUNK_NUM_ROWS,
+// with an offset after the rows that points to the next chunk
+#define ROW_SLOT_CHUNK_SIZE ((ROW_SLOT_CHUNK_NUM_ROWS * sizeof(row_slot_t)) + sizeof(uint32_t))
 
 #if LOG_NDEBUG
 
@@ -61,10 +73,10 @@ class NativeCursorWindow
 public:
     NativeCursorWindow(size_t maxSize);
     NativeCursorWindow() {}
-    bool setMemory(const android::sp<android::IMemory>&);
+    Boolean setMemory(const android::sp<android::IMemory>&);
     ~NativeCursorWindow();
 
-    bool initBuffer(bool localOnly);
+    Boolean initBuffer(Boolean localOnly);
     android::sp<android::IMemory> getMemory() {return mMemory;}
 
     size_t size() {return mSize;}
@@ -77,7 +89,7 @@ public:
             mHeader->numRows--;
         }
     }
-    bool setNumColumns(uint32_t numColumns)
+    Boolean setNumColumns(uint32_t numColumns)
     {
         uint32_t cur = mHeader->numColumns;
         if (cur > 0 && cur != numColumns) {
@@ -105,7 +117,7 @@ public:
      * of the allocation, or 0 if there isn't enough space.
      * If aligned is true, the allocation gets 4 byte alignment.
      */
-    uint32_t alloc(size_t size, bool aligned = false);
+    uint32_t alloc(size_t size, Boolean aligned = false);
 
     uint32_t read_field_slot(int row, int column, field_slot_t * slot);
 
@@ -117,16 +129,16 @@ public:
     void copyIn(uint32_t offset, double data);
 
     void copyOut(uint32_t offset, uint8_t * data, size_t size);
-    int64_t copyOutLong(uint32_t offset);
+    int64_t copyOutInt64(uint32_t offset);
     double copyOutDouble(uint32_t offset);
 
-    bool putLong(unsigned int row, unsigned int col, int64_t value);
-    bool putDouble(unsigned int row, unsigned int col, double value);
-    bool putNull(unsigned int row, unsigned int col);
+    Boolean putInt64(unsigned int row, unsigned int col, int64_t value);
+    Boolean putDouble(unsigned int row, unsigned int col, Double value);
+    Boolean putNull(unsigned int row, unsigned int col);
 
-    bool getLong(unsigned int row, unsigned int col, int64_t * valueOut);
-    bool getDouble(unsigned int row, unsigned int col, double * valueOut);
-    bool getNull(unsigned int row, unsigned int col, bool * valueOut);
+    Boolean getInt64(unsigned int row, unsigned int col, int64_t * valueOut);
+    Boolean getDouble(unsigned int row, unsigned int col, Double * valueOut);
+    Boolean getNull(unsigned int row, unsigned int col, Boolean * valueOut);
 
     uint8_t* offsetToPtr(uint32_t offset) {return mData + offset;}
 

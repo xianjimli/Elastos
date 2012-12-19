@@ -1,7 +1,5 @@
 module
 {
-    interface IMergeCursor extends IAbstractCursor
-    {
-    
+    interface IMergeCursor extends ICrossProcessCursor {
     }
 }

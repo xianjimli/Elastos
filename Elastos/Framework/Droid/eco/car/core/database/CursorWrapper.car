@@ -1,7 +1,5 @@
-module 
+module
 {
-    interface ICursorWrapper
-    {
-
+    interface ICursorWrapper extends ICursor {
     }
 }

@@ -1,132 +1,331 @@
 
 #include "database/CCursorToBulkCursorAdaptor.h"
-ECode CCursorToBulkCursorAdaptor::GetDescription(
-    /* [out] */ String * pDescription)
+#include "utils/Config.h"
+#include <Logger.h>
+
+
+using namespace Elastos::Utility::Logging;
+
+
+CCursorToBulkCursorAdaptor::ContentObserverProxy::ContentObserverProxy(
+    /* [in] */ IContentObserver* remoteObserver /*,  [in] DeathRecipient recipient*/)
+    // : ContentObserver(NULL)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mRemote = remoteObserver;
+    // try {
+    //     remoteObserver.asBinder().linkToDeath(recipient, 0);
+    // } catch (RemoteException e) {
+    //     // Do nothing, the far side is dead
+    // }
 }
 
-ECode CCursorToBulkCursorAdaptor::AsInterface(
-    /* [in] */ IBinder * pObj,
-    /* [out] */ IBulkCursor ** ppBc)
+PInterface CCursorToBulkCursorAdaptor::ContentObserverProxy::Probe(
+    /* [in]  */ REIID riid)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    if (riid == EIID_IInterface) {
+        return (PInterface)(ILocalContentObserver*)this;
+    }
+    else if (riid == EIID_ILocalContentObserver) {
+        return (ILocalContentObserver*)this;
+    }
+
+    return NULL;
 }
 
-ECode CCursorToBulkCursorAdaptor::OnTransact(
-    /* [in] */ Int32 code,
-    /* [in] */ IParcel * pData,
-    /* [in] */ IParcel * pReply,
-    /* [in] */ Int32 flags,
-    /* [out] */ Boolean * pRst)
+UInt32 CCursorToBulkCursorAdaptor::ContentObserverProxy::AddRef()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return ElRefBase::AddRef();
 }
 
-ECode CCursorToBulkCursorAdaptor::AsBinder(
-    /* [out] */ IBinder ** ppB)
+UInt32 CCursorToBulkCursorAdaptor::ContentObserverProxy::Release()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return ElRefBase::Release();
+}
+
+ECode CCursorToBulkCursorAdaptor::ContentObserverProxy::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    if (pIID == NULL) {
+        return E_INVALID_ARGUMENT;
+    }
+
+    if (pObject == (IInterface*)(ILocalContentObserver*)this) {
+        *pIID = EIID_ILocalContentObserver;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+
+    return NOERROR;
+}
+
+//public boolean unlinkToDeath(DeathRecipient recipient)
+
+ECode CCursorToBulkCursorAdaptor::ContentObserverProxy::GetContentObserver(
+    /* [out] */ IContentObserver** observer)
+{
+    VALIDATE_NOT_NULL(observer);
+
+    AutoPtr<IContentObserver> _observer = ContentObserver::GetContentObserver();
+    *observer = _observer.Get();
+    if (*observer != NULL) (*observer)->AddRef();
+    return NOERROR;
+}
+
+ECode CCursorToBulkCursorAdaptor::ContentObserverProxy::ReleaseContentObserver(
+    /* [out] */ IContentObserver** oldObserver)
+{
+    VALIDATE_NOT_NULL(oldObserver);
+
+    AutoPtr<IContentObserver> _observer = ContentObserver::ReleaseContentObserver();
+    *oldObserver = _observer.Get();
+    if (*oldObserver != NULL) (*oldObserver)->AddRef();
+    return NOERROR;
+}
+
+//@Override
+ECode CCursorToBulkCursorAdaptor::ContentObserverProxy::DeliverSelfNotifications(
+    /* [out] */ Boolean* result)
+{
+    VALIDATE_NOT_NULL(result);
+
+    // The far side handles the self notifications.
+    *result = FALSE;
+    return NOERROR;
+}
+
+//@Override
+ECode CCursorToBulkCursorAdaptor::ContentObserverProxy::OnChange(
+    /* [in] */ Boolean selfChange)
+{
+    // try {
+    return mRemote->OnChange(selfChange);
+    // } catch (RemoteException ex) {
+    //     // Do nothing, the far side is dead
+    // }
+}
+
+ECode CCursorToBulkCursorAdaptor::ContentObserverProxy::DispatchChange(
+    /* [in] */ Boolean selfChange)
+{
+    return ContentObserver::DispatchChange(selfChange);
+}
+
+
+const CString CCursorToBulkCursorAdaptor::TAG = "Cursor";
+
+ECode CCursorToBulkCursorAdaptor::constructor(
+        /* [in] */ ICursor* cursor,
+        /* [in] */ IContentObserver* observer,
+        /* [in] */ const String& providerName,
+        /* [in] */ Boolean allowWrite,
+        /* [in] */ ICursorWindow* window)
+{
+    //try {
+    mCursor = ICrossProcessCursor::Probe(cursor);
+    assert(mCursor != NULL);
+
+    if (IAbstractWindowedCursor::Probe(mCursor) != NULL) {
+        IAbstractWindowedCursor* windowedCursor = IAbstractWindowedCursor::Probe(mCursor);
+        Boolean hasWindow;
+        windowedCursor->HasWindow(&hasWindow);
+        if (hasWindow) {
+            if (Logger::IsLoggable(TAG, Logger::VERBOSE) || Config::LOGV) {
+                //Logger::V(TAG, "Cross process cursor has a local window before setWindow in "
+                //        + providerName, new RuntimeException());
+            }
+        }
+        windowedCursor->SetWindow(window);
+    }
+    else {
+        mWindow = window;
+        mCursor->FillWindow(0, window);
+    }
+    //} catch (ClassCastException e) {
+        // TODO Implement this case.
+    //    throw new UnsupportedOperationException(
+    //            "Only CrossProcessCursor cursors are supported across process for now", e);
+    //}
+    mProviderName = providerName;
+    mReadOnly = !allowWrite;
+
+    return CreateAndRegisterObserverProxy(observer);
 }
 
 ECode CCursorToBulkCursorAdaptor::BinderDied()
 {
-    CursorToBulkCursorAdaptor::BinderDied();
+    mCursor->Close();
+    if (mWindow != NULL) {
+        mWindow->Close();
+    }
     return NOERROR;
 }
 
 ECode CCursorToBulkCursorAdaptor::GetWindow(
     /* [in] */ Int32 startPos,
-    /* [out] */ ICursorWindow ** ppCw)
+    /* [out] */ ICursorWindow** window)
 {
-    CursorToBulkCursorAdaptor::GetWindow(startPos, ppCw);
-    return NOERROR;
+    VALIDATE_NOT_NULL(window);
+
+    Boolean succeeded;
+    mCursor->MoveToPosition(startPos, &succeeded);
+
+    if (mWindow != NULL) {
+        Int32 startPosition, num;
+        mWindow->GetStartPosition(&startPosition);
+        mWindow->GetNumRows(&num);
+        if (startPos < startPosition ||
+                startPos >= (startPosition + num)) {
+            mCursor->FillWindow(startPos, mWindow);
+        }
+        *window = ICursorWindow::Probe(mWindow);
+        assert(*window != NULL);
+        (*window)->AddRef();
+        return NOERROR;
+    }
+    else {
+        return mCursor->GetWindow(window);
+    }
 }
 
 ECode CCursorToBulkCursorAdaptor::OnMove(
     /* [in] */ Int32 position)
 {
-    CursorToBulkCursorAdaptor::OnMove(position);
-    return E_NOT_IMPLEMENTED;
+    Int32 pos;
+    mCursor->GetPosition(&pos);
+    Boolean succeeded;
+    return mCursor->OnMove(pos, position, &succeeded);
 }
 
-ECode CCursorToBulkCursorAdaptor::Count(
-    /* [out] */ Int32 * pCount)
+ECode CCursorToBulkCursorAdaptor::GetCount(
+    /* [out] */ Int32* value)
 {
-    CursorToBulkCursorAdaptor::Count(pCount);
-    return NOERROR;
+    return mCursor->GetCount(value);
 }
 
 ECode CCursorToBulkCursorAdaptor::GetColumnNames(
-    /* [out, callee] */ ArrayOf<String> ** ppNames)
+    /* [out, callee] */ ArrayOf<String>** columnNames)
 {
-    CursorToBulkCursorAdaptor::GetColumnNames(ppNames);
-    return NOERROR;
-}
-
-ECode CCursorToBulkCursorAdaptor::DeleteRow(
-    /* [in] */ Int32 position,
-    /* [out] */ Boolean * pSucceeded)
-{
-    CursorToBulkCursorAdaptor::DeleteRow(position, pSucceeded);
-    return NOERROR;
+    return mCursor->GetColumnNames(columnNames);
 }
 
 ECode CCursorToBulkCursorAdaptor::Deactivate()
 {
-    CursorToBulkCursorAdaptor::Deactivate();
-    return NOERROR;
+    MaybeUnregisterObserverProxy();
+    return mCursor->Deactivate();
 }
 
 ECode CCursorToBulkCursorAdaptor::Close()
 {
-    CursorToBulkCursorAdaptor::Close();
-    return NOERROR;
+    MaybeUnregisterObserverProxy();
+    return mCursor->Close();
 }
 
 ECode CCursorToBulkCursorAdaptor::Requery(
-    /* [in] */ IContentObserver * pObserver,
-    /* [in] */ ICursorWindow * pWindow,
-    /* [out] */ Int32 * pValue)
+    /* [in] */ IContentObserver* observer,
+    /* [in] */ ICursorWindow* window,
+    /* [out] */ Int32* value)
 {
-    CursorToBulkCursorAdaptor::Requery(pObserver, pWindow, pValue);
-    return NOERROR;
+    VALIDATE_NOT_NULL(value);
+
+    if (mWindow == NULL) {
+        IAbstractWindowedCursor::Probe(mCursor)->SetWindow(window);
+    }
+    //try {
+    Boolean succeeded;
+    mCursor->Requery(&succeeded);
+    if (!succeeded) {
+        *value = -1;
+        return NOERROR;
+    }
+    //} catch (IllegalStateException e) {
+    //    IllegalStateException leakProgram = new IllegalStateException(
+    //            mProviderName + " Requery misuse db, mCursor isClosed:" +
+    //            mCursor.isClosed(), e);
+    //    throw leakProgram;
+    //}
+
+    if (mWindow != NULL) {
+        mCursor->FillWindow(0, window);
+        mWindow = window;
+    }
+    MaybeUnregisterObserverProxy();
+    CreateAndRegisterObserverProxy(observer);
+    return mCursor->GetCount(value);
 }
 
 ECode CCursorToBulkCursorAdaptor::GetWantsAllOnMoveCalls(
-    /* [out] */ Boolean * pResult)
+    /* [out] */ Boolean* result)
 {
-    CursorToBulkCursorAdaptor::GetWantsAllOnMoveCalls(pResult);
+    return mCursor->GetWantsAllOnMoveCalls(result);
+}
+
+ECode CCursorToBulkCursorAdaptor::CreateAndRegisterObserverProxy(
+    /* [in] */ IContentObserver* observer)
+{
+    if (mObserver != NULL) {
+        //throw new IllegalStateException("an observer is already registered");
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+    mObserver = new ContentObserverProxy(observer/*, this*/);
+    mCursor->RegisterContentObserver(mObserver);
     return NOERROR;
+}
+
+ECode CCursorToBulkCursorAdaptor::MaybeUnregisterObserverProxy()
+{
+    if (mObserver != NULL) {
+        mCursor->UnregisterContentObserver(mObserver);
+        // mObserver.unlinkToDeath(this);
+        mObserver = NULL;
+    }
+    return NOERROR;
+}
+
+// public boolean updateRows(Map<? extends Long, ? extends Map<String, Object>> values) {
+//     if (mReadOnly) {
+//         Log.w("ContentProvider", "Permission Denial: modifying "
+//                 + mProviderName
+//                 + " from pid=" + Binder.getCallingPid()
+//                 + ", uid=" + Binder.getCallingUid());
+//         return false;
+//     }
+//     return mCursor.commitUpdates(values);
+// }
+
+ECode CCursorToBulkCursorAdaptor::DeleteRow(
+    /* [in] */ Int32 position,
+    /* [out] */ Boolean* result)
+{
+    VALIDATE_NOT_NULL(result);
+
+    if (mReadOnly) {
+        //Logger::W("ContentProvider", "Permission Denial: modifying "
+        //        + mProviderName
+        //        + " from pid=" + Binder.getCallingPid()
+        //        + ", uid=" + Binder.getCallingUid());
+        *result = FALSE;
+        return NOERROR;
+    }
+    Boolean succeeded;
+    mCursor->MoveToPosition(position, &succeeded);
+    if (!succeeded) {
+        *result = FALSE;
+        return NOERROR;
+    }
+    return mCursor->DeleteRow(result);
 }
 
 ECode CCursorToBulkCursorAdaptor::GetExtras(
-    /* [out] */ IBundle ** ppExtras)
+    /* [out] */ IBundle** extras)
 {
-    CursorToBulkCursorAdaptor::GetExtras(ppExtras);
-    return NOERROR;
+    return mCursor->GetExtras(extras);
 }
 
 ECode CCursorToBulkCursorAdaptor::Respond(
-    /* [in] */ IBundle * pExtras,
-    /* [out] */ IBundle ** ppResult)
+    /* [in] */ IBundle* extras,
+    /* [out] */ IBundle** respond)
 {
-    CursorToBulkCursorAdaptor::Respond(pExtras, ppResult);
-    return NOERROR;
+    return mCursor->Respond(extras, respond);
 }
-
-ECode CCursorToBulkCursorAdaptor::constructor(
-    /* [in] */ ICursor * pCursor,
-    /* [in] */ IContentObserver * pObserver,
-    /* [in] */ const String& providerName,
-    /* [in] */ Boolean allowWrite,
-    /* [in] */ ICursorWindow * pWindow)
-{
-    CursorToBulkCursorAdaptor::Init(pCursor, pObserver, providerName, allowWrite, pWindow);
-    return NOERROR;
-}
-

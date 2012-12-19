@@ -1,7 +1,9 @@
+
 #ifndef __DATASETONSERVER_H__
 #define __DATASETOBSERVER_H__
 
 #include "ext/frameworkext.h"
+
 /**
  * Receives call backs when a data set has been changed, or made invalid. The typically data sets
  * that are observed are {@link Cursor}s or {@link android.widget.Adapter}s.
@@ -10,10 +12,6 @@
 class DataSetObserver
 {
 public:
-    DataSetObserver();
-
-    ~DataSetObserver();
-
     /**
      * This method is called when the entire data set has changed,
      * most likely through a call to {@link Cursor#requery()} on a {@link Cursor}.
@@ -27,4 +25,5 @@ public:
      */
     virtual CARAPI OnInvalidated();
 };
+
 #endif //__DATASETONSERVER_H__

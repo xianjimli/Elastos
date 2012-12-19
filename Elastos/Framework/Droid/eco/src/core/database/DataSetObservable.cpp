@@ -1,15 +1,6 @@
 
 #include "database/DataSetObservable.h"
 
-DataSetObservable::DataSetObservable()
-{
-
-}
-
-DataSetObservable::~DataSetObservable()
-{
-    
-}
 
 /**
  * Invokes onChanged on each observer. Called when the data set being observed has
@@ -19,11 +10,13 @@ ECode DataSetObservable::NotifyChanged()
 {
     Mutex::Autolock lock(mObserversLock);
 
-    Set<AutoPtr<IDataSetObserver> >::Iterator iter;
-    Set<AutoPtr<IDataSetObserver> >(mObservers);
-    for (iter = mObservers.Begin(); iter != mObservers.End(); ++iter) {
-        (*iter)->OnChanged();
+    List< AutoPtr<IInterface> >::Iterator it;
+    for (it = mObservers.Begin(); it != mObservers.End(); ++it) {
+        IDataSetObserver* observer = IDataSetObserver::Probe(*it);
+        assert(observer != NULL);
+        observer->OnChanged();
     }
+
     return NOERROR;
 }
 
@@ -35,26 +28,12 @@ ECode DataSetObservable::NotifyInvalidated()
 {
     Mutex::Autolock lock(mObserversLock);
 
-    Set<AutoPtr<IDataSetObserver> >::Iterator iter;
-    Set<AutoPtr<IDataSetObserver> >(mObservers);
-    for (iter = mObservers.Begin(); iter != mObservers.End(); ++iter) {
-        (*iter)->OnInvalidated();
+    List< AutoPtr<IInterface> >::Iterator it;
+    for (it = mObservers.Begin(); it != mObservers.End(); ++it) {
+        IDataSetObserver* observer = IDataSetObserver::Probe(*it);
+        assert(observer != NULL);
+        observer->OnInvalidated();
     }
+
     return NOERROR;
 }
-
-ECode DataSetObservable::RegisterObserver(
-        /* [in] */ IDataSetObserver* observer)
-{
-    Observable::RegisterObserver(observer);
-    return NOERROR;
-}
-
-ECode DataSetObservable::UnregisterObserver(
-        /* [in] */ IDataSetObserver* observer)
-{
-    Observable::UnregisterObserver(observer);
-    return NOERROR;
-}
-
-

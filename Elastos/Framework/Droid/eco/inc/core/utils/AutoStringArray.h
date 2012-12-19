@@ -27,7 +27,7 @@ public:
         if (mPtr) {
             Int32 len = mPtr->GetLength();
             for (Int32 i = 0; i < len; ++i) {
-                ((*mPtr)[i]).~String();
+                (*mPtr)[i] = NULL;
             }
             ArrayOf<String>::Free(mPtr);
         }

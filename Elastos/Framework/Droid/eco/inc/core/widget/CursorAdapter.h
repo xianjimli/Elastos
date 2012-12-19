@@ -3,10 +3,11 @@
 #define __CURSORADAPTER_H__
 
 #include "widget/BaseAdapter.h"
+#include <elastos/ElRefBase.h>
 
 /**
- * Adapter that exposes data from a {@link android.database.Cursor Cursor} to a 
- * {@link android.widget.ListView ListView} widget. The Cursor must include 
+ * Adapter that exposes data from a {@link android.database.Cursor Cursor} to a
+ * {@link android.widget.ListView ListView} widget. The Cursor must include
  * a column named "_id" or this class will not work.
  */
 class CursorAdapter : public BaseAdapter
@@ -22,7 +23,7 @@ public:
      * @param context The context
      */
     CursorAdapter(
-        /* [in] */ IContext* context, 
+        /* [in] */ IContext* context,
         /* [in] */ ICursor* c);
 
     /**
@@ -34,8 +35,8 @@ public:
      *                    data is always displayed.
      */
     CursorAdapter(
-        /* [in] */ IContext* context, 
-        /* [in] */ ICursor* c, 
+        /* [in] */ IContext* context,
+        /* [in] */ ICursor* c,
         /* [in] */ Boolean autoRequery);
 
     /**
@@ -48,7 +49,7 @@ public:
      * @see android.widget.ListAdapter#getCount()
      */
     virtual CARAPI_(Int32) GetCount();
-    
+
     /**
      * @see android.widget.ListAdapter#getItem(Int32)
      */
@@ -60,22 +61,22 @@ public:
      */
     virtual CARAPI_(Int64) GetItemId(
         /* [in] */ Int32 position);
-    
+
     virtual CARAPI_(Boolean) HasStableIds();
 
     /**
      * @see android.widget.ListAdapter#getView(Int32, View, ViewGroup)
      */
     virtual CARAPI_(AutoPtr<IView>) GetView(
-        /* [in] */ Int32 position, 
-        /* [in] */ IView* convertView, 
+        /* [in] */ Int32 position,
+        /* [in] */ IView* convertView,
         /* [in] */ IViewGroup* parent);
 
     virtual CARAPI_(AutoPtr<IView>) GetDropDownView(
-        /* [in] */ Int32 position, 
-        /* [in] */ IView* convertView, 
+        /* [in] */ Int32 position,
+        /* [in] */ IView* convertView,
         /* [in] */ IViewGroup* parent);
-    
+
     /**
      * Makes a new view to hold the data pointed to by cursor.
      * @param context Interface to application's global information
@@ -85,8 +86,8 @@ public:
      * @return the newly created view.
      */
     virtual CARAPI_(AutoPtr<IView>) NewView(
-        /* [in] */ IContext* context, 
-        /* [in] */ ICursor* cursor, 
+        /* [in] */ IContext* context,
+        /* [in] */ ICursor* cursor,
         /* [in] */ IViewGroup* parent){}
 
     /**
@@ -98,8 +99,8 @@ public:
      * @return the newly created view.
      */
     virtual CARAPI_(AutoPtr<IView>) NewDropDownView(
-        /* [in] */ IContext* context, 
-        /* [in] */ ICursor* cursor, 
+        /* [in] */ IContext* context,
+        /* [in] */ ICursor* cursor,
         /* [in] */ IViewGroup* parent);
 
     /**
@@ -110,14 +111,14 @@ public:
      * moved to the correct position.
      */
     virtual CARAPI BindView(
-        /* [in] */ IView* view, 
-        /* [in] */ IContext* context, 
+        /* [in] */ IView* view,
+        /* [in] */ IContext* context,
         /* [in] */ ICursor* cursor){}
-    
+
     /**
      * Change the underlying cursor to a new cursor. If there is an existing cursor it will be
      * closed.
-     * 
+     *
      * @param cursor the new cursor to be used
      */
     virtual CARAPI ChangeCursor(
@@ -148,7 +149,7 @@ public:
      *
      * This method is always executed on a background thread, not on the
      * application's main thread (or UI thread.)
-     * 
+     *
      * Contract: when constraint is NULL or empty, the original results,
      * prior to any filtering, must be returned.
      *
@@ -193,14 +194,14 @@ public:
 
 protected:
     virtual CARAPI_(void) Init(
-        /* [in] */ IContext* context, 
-        /* [in] */ ICursor* c, 
+        /* [in] */ IContext* context,
+        /* [in] */ ICursor* c,
         /* [in] */ Boolean autoRequery);
     /**
      * Called when the {@link ContentObserver} on the cursor receives a change notification.
      * The default implementation provides the auto-requery logic, but may be overridden by
      * sub classes.
-     * 
+     *
      * @see ContentObserver#onChange(Boolean)
      */
     virtual CARAPI_(void) OnContentChanged();

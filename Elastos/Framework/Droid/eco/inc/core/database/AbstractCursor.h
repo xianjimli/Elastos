@@ -2,15 +2,19 @@
 #define __ABSTRACTCURSOR_H__
 
 #include "ext/frameworkext.h"
-#include <elastos/AutoPtr.h>
-#include <elastos/Mutex.h>
 #include "database/DataSetObservable.h"
 #include "database/ContentObservable.h"
-#include "content/ContentResolver.h"
 #include "database/CharArrayBuffer.h"
-#include <elastos/HashMap.h>
+#include "content/ContentResolver.h"
 #include <elastos/Map.h>
+#include <elastos/HashMap.h>
+#include <elastos/AutoPtr.h>
+#include <elastos/Mutex.h>
 
+/**
+ * This is an abstract cursor class that handles a lot of the common code
+ * that all cursors need to deal with and is provided for convenience reasons.
+ */
 class AbstractCursor
 {
 public:
@@ -18,15 +22,14 @@ public:
 
     virtual ~AbstractCursor();
 
-    virtual CARAPI GetCount(
-        /* [out] */ Int32* cnt) = 0;
+    virtual CARAPI_(Int32) GetCount() = 0;
 
     virtual CARAPI GetColumnNames(
         /* [out, callee] */ ArrayOf<String>** names) = 0;
 
     virtual CARAPI GetString(
         /* [in] */ Int32 column,
-        /* [out] */ String* value) = 0;
+        /* [out] */ String* str) = 0;
 
     virtual CARAPI GetInt16(
         /* [in] */ Int32 column,
@@ -50,7 +53,7 @@ public:
 
     virtual CARAPI IsNull(
         /* [in] */ Int32 column,
-        /* [out] */ Boolean* value) = 0;
+        /* [out] */ Boolean* isNull) = 0;
 
     // TODO implement getBlob in all cursor types
     virtual CARAPI GetBlob(
@@ -61,17 +64,16 @@ public:
     /**@implements
      * returns a pre-filled window, return NULL if no such window
      */
-    CARAPI GetWindow(
-        /* [out] */ ICursorWindow** window);
+    virtual CARAPI_(AutoPtr<ICursorWindow>) GetWindow();
 
-    virtual CARAPI GetColumnCount(
-        /* [out] */ Int32* count);
+    virtual CARAPI_(Int32) GetColumnCount();
 
     virtual CARAPI Deactivate();
 
     virtual CARAPI DeactivateInternal();
 
-    virtual CARAPI_(Boolean) Requery();
+    virtual CARAPI Requery(
+        /* [out] */ Boolean* result);
 
     virtual CARAPI_(Boolean) IsClosed();
 
@@ -89,9 +91,9 @@ public:
      * @hide
      * @deprecated
      */
-//    public boolean deleteRow() {
-//        return false;
-//    }
+    virtual CARAPI DeleteRow(
+        /* [out] */ Boolean* succeeded);
+
     /**@implements
      * This function is called every time the cursor is successfully scrolled
      * to a new position, giving the subclass a chance to update any state it
@@ -102,17 +104,15 @@ public:
      * @param newPosition the position that we're moving to
      * @return true if the move is successful, false otherwise
      */
-    CARAPI OnMove(
+    virtual CARAPI_(Boolean) OnMove(
         /* [in] */ Int32 oldPosition,
-        /* [in] */ Int32 newPosition,
-        /* [out] */ Boolean* value);
+        /* [in] */ Int32 newPosition);
 
     virtual CARAPI CopyStringToBuffer(
         /* [in] */ Int32 columnIndex,
-        /* [in] */ CharArrayBuffer* buffer);
+        /* [in] */ ICharArrayBuffer* buffer);
 
-    CARAPI GetPosition(
-        /* [out] */ Int32* position);
+    CARAPI_(Int32) GetPosition();
 
     CARAPI_(Boolean) MoveToPosition(
         /* [in] */ Int32 position);
@@ -126,45 +126,131 @@ public:
         /* [in] */ Int32 position,
         /* [in] */ ICursorWindow* window);
 
-    CARAPI Move(
-        /* [in] */ Int32 offset,
-        /* [out] */ Boolean* rst);
+    CARAPI_(Boolean) Move(
+        /* [in] */ Int32 offset);
 
-    CARAPI MoveToFirst(
-        /* [out] */ Boolean* rst);
+    CARAPI_(Boolean) MoveToFirst();
 
-    CARAPI MoveToLast(
-        /* [out] */ Boolean* rst);
+    CARAPI_(Boolean) MoveToLast();
 
-    CARAPI MoveToNext(
-        /* [out] */ Boolean* rst);
+    CARAPI_(Boolean) MoveToNext();
 
-    CARAPI MoveToPrevious(
-        /* [out] */ Boolean* rst);
+    CARAPI_(Boolean) MoveToPrevious();
 
-    CARAPI IsFirst(
-        /* [out] */ Boolean* rst);
+    CARAPI_(Boolean) IsFirst();
 
-    CARAPI IsLast(
-        /* [out] */ Boolean* rst);
+    CARAPI_(Boolean) IsLast();
 
-    CARAPI IsBeforeFirst(
-        /* [out] */ Boolean* rst);
+    CARAPI_(Boolean) IsBeforeFirst();
 
-    CARAPI IsAfterLast(
-        /* [out] */ Boolean* rst);
+    CARAPI_(Boolean) IsAfterLast();
 
-    virtual CARAPI GetColumnIndex(
-        /* [in] */ String columnName,
-        /* [out] */ Int32* index);
+    virtual CARAPI_(Int32) GetColumnIndex(
+        /* [in] */ const String& columnName);
 
     virtual CARAPI GetColumnIndexOrThrow(
-        /* [in] */ String columnName,
+        /* [in] */ const String& columnName,
         /* [out] */ Int32* index);
 
-    virtual CARAPI GetColumnName(
+    virtual CARAPI_(String) GetColumnName(
+        /* [in] */ Int32 columnIndex);
+
+    /**
+     * @hide
+     * @deprecated
+     */
+    virtual CARAPI_(Boolean) UpdateBlob(
         /* [in] */ Int32 columnIndex,
-        /* [out] */ String* name);
+        /* [in, out] */ const ArrayOf<Byte>& value);
+
+    /**
+     * @hide
+     * @deprecated
+     */
+    virtual CARAPI_(Boolean) UpdateString(
+        /* [in] */ Int32 columnIndex,
+        /* [in] */ const String& value);
+
+    /**
+     * @hide
+     * @deprecated
+     */
+    virtual CARAPI_(Boolean) UpdateInt16(
+        /* [in] */ Int32 columnIndex,
+        /* [in] */ Int16 value);
+
+    /**
+     * @hide
+     * @deprecated
+     */
+    virtual CARAPI_(Boolean) UpdateInt32(
+        /* [in] */ Int32 columnIndex,
+        /* [in] */ Int32 value);
+
+    /**
+     * @hide
+     * @deprecated
+     */
+    virtual CARAPI_(Boolean) UpdateInt64(
+        /* [in] */ Int32 columnIndex,
+        /* [in] */ Int64 value);
+
+    /**
+     * @hide
+     * @deprecated
+     */
+    virtual CARAPI_(Boolean) UpdateFloat(
+        /* [in] */ Int32 columnIndex,
+        /* [in] */ Float value);
+
+    /**
+     * @hide
+     * @deprecated
+     */
+    virtual CARAPI_(Boolean) UpdateDouble(
+        /* [in] */ Int32 columnIndex,
+        /* [in] */ Double value);
+
+    /**
+     * @hide
+     * @deprecated
+     */
+    virtual CARAPI_(Boolean) UpdateToNull(
+        /* [in] */ Int32 columnIndex);
+
+    /**
+     * @hide
+     * @deprecated
+     */
+    // public boolean update(int columnIndex, Object obj)
+
+    /**
+     * Returns <code>true</code> if there are pending updates that have not yet been committed.
+     *
+     * @return <code>true</code> if there are pending updates that have not yet been committed.
+     * @hide
+     * @deprecated
+     */
+    virtual CARAPI_(Boolean) HasUpdates();
+
+    /**
+     * @hide
+     * @deprecated
+     */
+    virtual CARAPI AbortUpdates();
+
+    /**
+     * @hide
+     * @deprecated
+     */
+    virtual CARAPI CommitUpdates(
+        /* [out] */ Boolean* succeeded);
+
+    /**
+     * @hide
+     * @deprecated
+     */
+    virtual CARAPI_(Boolean) SupportsUpdates();
 
     virtual CARAPI RegisterContentObserver(
         /* [in] */ ILocalContentObserver* observer);
@@ -189,29 +275,27 @@ public:
          /* [in] */ IContentResolver* cr,
          /* [in] */ IUri* notifyUri);
 
-     virtual CARAPI GetWantsAllOnMoveCalls(
-        /* [out] */ Boolean* result);
+     virtual CARAPI_(Boolean) GetWantsAllOnMoveCalls();
 
      virtual CARAPI GetExtras(
         /* [out] */ IBundle** extras);
 
      virtual CARAPI Respond(
         /* [in] */ IBundle* extras,
-        /* [out] */ IBundle** result);
+        /* [out] */ IBundle** v);
 
 protected:
     /**
      * This is hidden until the data set change model has been re-evaluated.
      * @hide
      */
-    virtual CARAPI NotifyDataSetChange();
+    virtual CARAPI_(void) NotifyDataSetChange();
 
     /**
      * This is hidden until the data set change model has been re-evaluated.
      * @hide
      */
-    virtual CARAPI GetDataSetObservable(
-        /* [out] */ DataSetObservable** dso);
+    virtual CARAPI_(AutoPtr<IDataSetObservable>) GetDataSetObservable();
 
     /**
      * Subclasses must call this method when they finish committing updates to notify all
@@ -219,7 +303,7 @@ protected:
      *
      * @param selfChange
      */
-    virtual CARAPI OnChange(
+    virtual CARAPI_(void) OnChange(
         /* [in] */ Boolean selfChange);
 
     /**
@@ -232,9 +316,8 @@ protected:
      * @param columnIndex the column index of the field to check
      * @return true if the field has been updated, false otherwise
      */
-    virtual CARAPI IsFieldUpdated(
-        /* [in] */ Int32 columnIndex,
-        /* [out] */ Boolean* rst);
+    virtual CARAPI_(Boolean) IsFieldUpdated(
+        /* [in] */ Int32 columnIndex);
 
     /**
      * This function returns the uncommitted updated value for the field
@@ -244,9 +327,8 @@ protected:
      * @param columnIndex the column index of the field to retrieve
      * @return the updated value
      */
-    virtual CARAPI GetUpdatedField(
-        /* [in] */ Int32 columnIndex,
-        /* [out] */ IInterface** obj);
+    virtual CARAPI_(AutoPtr<IInterface>) GetUpdatedField(
+        /* [in] */ Int32 columnIndex);
 
     /**
      * This function throws CursorIndexOutOfBoundsException if
@@ -279,26 +361,17 @@ protected:
 //        WeakReference<AbstractCursor> mCursor;
 //    };
 
-private:
-    const static String TAG;
-    AutoPtr<IUri> mNotifyUri;
-    AutoPtr<ILocalContentObserver> mSelfObserver;
-
-    //final private Object mSelfObserverLock = new Object();
-    Mutex mSelfObserverLock;
-
-    Boolean mSelfObserverRegistered;
-
 protected:
-    DataSetObservable* mDataSetObservable;
-    ContentObservable* mContentObservable;
+    AutoPtr<IDataSetObservable> mDataSetObservable;
+    AutoPtr<IContentObservable> mContentObservable;
+
     /**
      * This HashMap contains a mapping from Long rowIDs to another Map
      * that maps from String column names to new values. A NULL value means to
      * remove an existing value, and all numeric values are in their class
      * forms, i.e. Integer, Long, Float, etc.
      */
-    HashMap<Int64, Map<String, AutoPtr<IInterface> > > *mUpdatedRows;
+    HashMap<Int64, Map<String, AutoPtr<IInterface> >* > mUpdatedRows;
     Mutex mUpdatedRowsLock;
 
     /**
@@ -309,8 +382,15 @@ protected:
 
     Int32 mPos;
     Int64 mCurrentRowID;
-    ContentResolver* mContentResolver;
+    AutoPtr<IContentResolver> mContentResolver;
     Boolean mClosed;
 
+private:
+    const static CString TAG;
+    AutoPtr<IUri> mNotifyUri;
+    AutoPtr<ILocalContentObserver> mSelfObserver;
+    Mutex mSelfObserverLock;
+
+    Boolean mSelfObserverRegistered;
 };
 #endif //__ABSTRACTCURSOR_H__

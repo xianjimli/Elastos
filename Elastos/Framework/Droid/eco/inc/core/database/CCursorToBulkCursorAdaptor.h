@@ -1,76 +1,131 @@
+#ifndef __CURSORTOBULKCURSORADAPTOR_H__
+#define __CURSORTOBULKCURSORADAPTOR_H__
 
-#ifndef __CCURSORTOBULKCURSORADAPTOR_H__
-#define __CCURSORTOBULKCURSORADAPTOR_H__
-
+#include "ext/frameworkext.h"
 #include "_CCursorToBulkCursorAdaptor.h"
-#include "database/CursorToBulkCursorAdaptor.h"
-CarClass(CCursorToBulkCursorAdaptor), public CursorToBulkCursorAdaptor
+#include "database/ContentObserver.h"
+#include <elastos/ElRefBase.h>
+#include <elastos/AutoPtr.h>
+
+/**
+ * Wraps a BulkCursor around an existing Cursor making it remotable.
+ *
+ * {@hide}
+ */
+CarClass(CCursorToBulkCursorAdaptor)
 {
+private:
+    class ContentObserverProxy
+        : public ElRefBase
+        , public ContentObserver
+        , public ILocalContentObserver
+    {
+    public:
+        ContentObserverProxy(
+            /* [in] */ IContentObserver* remoteObserver /*,  [in] DeathRecipient recipient*/);
+
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        //public boolean unlinkToDeath(DeathRecipient recipient)
+
+        CARAPI GetContentObserver(
+            /* [out] */ IContentObserver** observer);
+
+        CARAPI ReleaseContentObserver(
+            /* [out] */ IContentObserver** oldObserver);
+
+        //@Override
+        CARAPI DeliverSelfNotifications(
+            /* [out] */ Boolean* result);
+
+        //@Override
+        CARAPI OnChange(
+            /* [in] */ Boolean selfChange);
+
+        CARAPI DispatchChange(
+            /* [in] */ Boolean selfChange);
+
+    protected:
+        AutoPtr<IContentObserver> mRemote;
+    };
+
 public:
-    CARAPI GetDescription(
-        /* [out] */ String * pDescription);
-
-    CARAPI AsInterface(
-        /* [in] */ IBinder * pObj,
-        /* [out] */ IBulkCursor ** ppBc);
-
-    CARAPI OnTransact(
-        /* [in] */ Int32 code,
-        /* [in] */ IParcel * pData,
-        /* [in] */ IParcel * pReply,
-        /* [in] */ Int32 flags,
-        /* [out] */ Boolean * pRst);
-
-    CARAPI AsBinder(
-        /* [out] */ IBinder ** ppB);
+    CARAPI constructor(
+        /* [in] */ ICursor* cursor,
+        /* [in] */ IContentObserver* observer,
+        /* [in] */ const String& providerName,
+        /* [in] */ Boolean allowWrite,
+        /* [in] */ ICursorWindow* window);
 
     CARAPI BinderDied();
 
     CARAPI GetWindow(
         /* [in] */ Int32 startPos,
-        /* [out] */ ICursorWindow ** ppCw);
+        /* [out] */ ICursorWindow** window);
 
     CARAPI OnMove(
         /* [in] */ Int32 position);
 
-    CARAPI Count(
-        /* [out] */ Int32 * pCount);
+    CARAPI GetCount(
+        /* [out] */ Int32* value);
 
     CARAPI GetColumnNames(
-        /* [out, callee] */ ArrayOf<String> ** ppNames);
-
-    CARAPI DeleteRow(
-        /* [in] */ Int32 position,
-        /* [out] */ Boolean * pSucceeded);
+        /* [out, callee] */ ArrayOf<String>** columnNames);
 
     CARAPI Deactivate();
 
     CARAPI Close();
 
     CARAPI Requery(
-        /* [in] */ IContentObserver * pObserver,
-        /* [in] */ ICursorWindow * pWindow,
-        /* [out] */ Int32 * pValue);
+        /* [in] */ IContentObserver* observer,
+        /* [in] */ ICursorWindow* window,
+        /* [out] */ Int32* value);
 
     CARAPI GetWantsAllOnMoveCalls(
-        /* [out] */ Boolean * pResult);
+        /* [out] */ Boolean* result);
+
+    //public boolean updateRows(Map<? extends Long, ? extends Map<String, Object>> values)
+
+    CARAPI DeleteRow(
+        /* [in] */ Int32 position,
+        /* [out] */ Boolean* result);
 
     CARAPI GetExtras(
-        /* [out] */ IBundle ** ppExtras);
+        /* [out] */ IBundle** extras);
 
     CARAPI Respond(
-        /* [in] */ IBundle * pExtras,
-        /* [out] */ IBundle ** ppResult);
-
-    CARAPI constructor(
-        /* [in] */ ICursor * pCursor,
-        /* [in] */ IContentObserver * pObserver,
-        /* [in] */ const String& providerName,
-        /* [in] */ Boolean allowWrite,
-        /* [in] */ ICursorWindow * pWindow);
+        /* [in] */ IBundle* extras,
+        /* [out] */ IBundle** respond);
 
 private:
-    // TODO: Add your private member variables here.
+    /**
+     * Create a ContentObserver from the observer and register it as an observer on the
+     * underlying cursor.
+     * @param observer the IContentObserver that wants to monitor the cursor
+     * @throws IllegalStateException if an observer is already registered
+     */
+    CARAPI CreateAndRegisterObserverProxy(
+        /* [in] */ IContentObserver* observer);
+
+    /** Unregister the observer if it is already registered. */
+    CARAPI MaybeUnregisterObserverProxy();
+
+private:
+    static const CString TAG;
+    AutoPtr<ICrossProcessCursor> mCursor;
+    AutoPtr<ICursorWindow> mWindow;
+    String mProviderName;
+    Boolean mReadOnly;
+    AutoPtr<ContentObserverProxy> mObserver;
 };
 
-#endif // __CCURSORTOBULKCURSORADAPTOR_H__
+#endif //__CURSORTOBULKCURSORADAPTOR_H__

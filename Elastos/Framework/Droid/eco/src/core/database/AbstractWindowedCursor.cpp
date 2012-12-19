@@ -1,91 +1,87 @@
 
+#include "ext/frameworkdef.h"
 #include "database/AbstractWindowedCursor.h"
 
+
 ECode AbstractWindowedCursor::GetBlob(
-        /* [in] */ Int32 columnIndex,
-        /* [out] */ ArrayOf<Byte>** blob)
+    /* [in] */ Int32 columnIndex,
+    /* [out] */ ArrayOf<Byte>** blob)
 {
-    CheckPosition();
+    FAIL_RETURN(CheckPosition());
 
     Mutex::Autolock lock(mUpdatedRowsLock);
-    Boolean rst;
-    IsFieldUpdated(columnIndex, &rst);
-    if (rst) {
-        GetUpdatedField(columnIndex, (IInterface**)blob);
-        return NOERROR;
+
+    if (IsFieldUpdated(columnIndex)) {
+        // return (byte[])getUpdatedField(columnIndex);
+        return E_NOT_IMPLEMENTED;
     }
-    mWindow->GetBlob(mPos, columnIndex, blob);
-    return NOERROR;
+
+    return mWindow->GetBlob(mPos, columnIndex, blob);
 }
 
 ECode AbstractWindowedCursor::GetString(
-        /* [in] */ Int32 columnIndex,
-        /* [out] */ String* value)
+    /* [in] */ Int32 columnIndex,
+    /* [out] */ String* str)
 {
-    assert(value != NULL);
+    FAIL_RETURN(CheckPosition());
 
     Mutex::Autolock lock(mUpdatedRowsLock);
-    Boolean rst;
-    IsFieldUpdated(columnIndex, &rst);
-    if (rst) {
-        GetUpdatedField(columnIndex, (IInterface**)&value);
-        return NOERROR;
+
+    if (IsFieldUpdated(columnIndex)) {
+        // return (String)getUpdatedField(columnIndex);
+        return E_NOT_IMPLEMENTED;
     }
-    mWindow->GetString(mPos, columnIndex, value);
-    return NOERROR;
+
+    return mWindow->GetString(mPos, columnIndex, str);
 }
 
 ECode AbstractWindowedCursor::CopyStringToBuffer(
-        /* [in] */ Int32 columnIndex,
-        /* [in] */ CharArrayBuffer* buffer)
+    /* [in] */ Int32 columnIndex,
+    /* [in] */ ICharArrayBuffer* buffer)
 {
     FAIL_RETURN(CheckPosition());
+
     Mutex::Autolock lock(mUpdatedRowsLock);
-    Boolean rst;
-    IsFieldUpdated(columnIndex, &rst);
-    if (rst) {
-    	AbstractCursor::CopyStringToBuffer(columnIndex, buffer);
+
+    if (IsFieldUpdated(columnIndex)) {
+    	   AbstractCursor::CopyStringToBuffer(columnIndex, buffer);
     }
-    mWindow->CopyStringToBuffer(mPos, columnIndex, (ICharArrayBuffer*)buffer);
-    return NOERROR;
+
+    return mWindow->CopyStringToBuffer(mPos, columnIndex, buffer);
 }
 
 ECode AbstractWindowedCursor::GetInt16(
-        /* [in] */ Int32 columnIndex,
-        /* [out] */ Int16* value)
+    /* [in] */ Int32 columnIndex,
+    /* [out] */ Int16* value)
 {
     FAIL_RETURN(CheckPosition());
 
     Mutex::Autolock lock(mUpdatedRowsLock);
-    Boolean rst;
-    IsFieldUpdated(columnIndex, &rst);
-        if (rst) {
-            GetUpdatedField(columnIndex, (IInterface**)value);
-            value = (Int16*)value;
-            return NOERROR;
-        }
 
-    mWindow->GetInt32(mPos, columnIndex, (Int32*)value);
-    return NOERROR;
+    if (IsFieldUpdated(columnIndex)) {
+        // Number value = (Number)getUpdatedField(columnIndex);
+        // return value.shortValue();
+        return E_NOT_IMPLEMENTED;
+    }
+
+    return mWindow->GetInt16(mPos, columnIndex, value);
 }
 
 ECode AbstractWindowedCursor::GetInt32(
-        /* [in] */ Int32 columnIndex,
-        /* [out] */ Int32* value)
+    /* [in] */ Int32 columnIndex,
+    /* [out] */ Int32* value)
 {
     FAIL_RETURN(CheckPosition());
 
     Mutex::Autolock lock(mUpdatedRowsLock);
-    Boolean rst;
-    IsFieldUpdated(columnIndex, &rst);
-    if (rst) {
-        GetUpdatedField(columnIndex, (IInterface**)value);
-        value = (Int32*)value;
-        return NOERROR;
+
+    if (IsFieldUpdated(columnIndex)) {
+        // Number value = (Number)getUpdatedField(columnIndex);
+        // return value.intValue();
+        return E_NOT_IMPLEMENTED;
     }
 
-    mWindow->GetInt32(mPos, columnIndex, value);
-    return NOERROR;
+    return mWindow->GetInt32(mPos, columnIndex, value);
 }
 
 ECode AbstractWindowedCursor::GetInt64(
@@ -95,16 +91,14 @@ ECode AbstractWindowedCursor::GetInt64(
     FAIL_RETURN(CheckPosition());
 
     Mutex::Autolock lock(mUpdatedRowsLock);
-    Boolean rst;
-    IsFieldUpdated(columnIndex, &rst);
-    if (rst) {
-            GetUpdatedField(columnIndex, (IInterface**)value);
-            value = (Int64*)value;
-            return NOERROR;
-        }
 
-    mWindow->GetInt64(mPos, columnIndex, value);
-    return NOERROR;
+    if (IsFieldUpdated(columnIndex)) {
+        // Number value = (Number)getUpdatedField(columnIndex);
+        // return value.longValue();
+        return E_NOT_IMPLEMENTED;
+    }
+
+    return mWindow->GetInt64(mPos, columnIndex, value);
 }
 
 ECode AbstractWindowedCursor::GetFloat(
@@ -114,16 +108,14 @@ ECode AbstractWindowedCursor::GetFloat(
     FAIL_RETURN(CheckPosition());
 
     Mutex::Autolock lock(mUpdatedRowsLock);
-    Boolean rst;
-    IsFieldUpdated(columnIndex, &rst);
-    if (rst) {
-            GetUpdatedField(columnIndex, (IInterface**)value);
-            value = (Float*)value;
-            return NOERROR;
-        }
 
-    mWindow->GetFloat(mPos, columnIndex, value);
-    return NOERROR;
+    if (IsFieldUpdated(columnIndex)) {
+        // Number value = (Number)getUpdatedField(columnIndex);
+        // return value.floatValue();
+        return E_NOT_IMPLEMENTED;
+    }
+
+    return mWindow->GetFloat(mPos, columnIndex, value);
 }
 
 ECode AbstractWindowedCursor::GetDouble(
@@ -133,127 +125,117 @@ ECode AbstractWindowedCursor::GetDouble(
     FAIL_RETURN(CheckPosition());
 
     Mutex::Autolock lock(mUpdatedRowsLock);
-    Boolean rst;
-    IsFieldUpdated(columnIndex, &rst);
-    if (rst) {
-            GetUpdatedField(columnIndex, (IInterface**)value);
-            value = (Double*)value;
-            return NOERROR;
-        }
 
-    mWindow->GetDouble(mPos, columnIndex, value);
-    return NOERROR;
+    if (IsFieldUpdated(columnIndex)) {
+        // Number value = (Number)getUpdatedField(columnIndex);
+        // return value.doubleValue();
+        return E_NOT_IMPLEMENTED;
+    }
+
+    return mWindow->GetDouble(mPos, columnIndex, value);
+}
+
+ECode AbstractWindowedCursor::IsNull(
+    /* [in] */ Int32 columnIndex,
+    /* [out] */ Boolean* isNull)
+{
+    FAIL_RETURN(CheckPosition());
+
+    Mutex::Autolock lock(mUpdatedRowsLock);
+
+    if (IsFieldUpdated(columnIndex)) {
+        	// return getUpdatedField(columnIndex) == null;
+        return E_NOT_IMPLEMENTED;
+    }
+
+    return mWindow->IsNull(mPos, columnIndex, isNull);
+}
+
+ECode AbstractWindowedCursor::IsBlob(
+    /* [in] */ Int32 columnIndex,
+    /* [out] */ Boolean* isBlob)
+{
+    FAIL_RETURN(CheckPosition());
+
+    Mutex::Autolock lock(mUpdatedRowsLock);
+
+    if (IsFieldUpdated(columnIndex)) {
+        // Object object = getUpdatedField(columnIndex);
+        // return object == null || object instanceof byte[];
+        return E_NOT_IMPLEMENTED;
+    }
+
+    return mWindow->IsBlob(mPos, columnIndex, isBlob);
+}
+
+ECode AbstractWindowedCursor::IsString(
+    /* [in] */ Int32 columnIndex,
+    /* [out] */ Boolean* isString)
+{
+    FAIL_RETURN(CheckPosition());
+
+    Mutex::Autolock lock(mUpdatedRowsLock);
+
+    if (IsFieldUpdated(columnIndex)) {
+        // Object object = getUpdatedField(columnIndex);
+        // return object == null || object instanceof String;
+        return E_NOT_IMPLEMENTED;
+    }
+
+    return mWindow->IsString(mPos, columnIndex, isString);
+}
+
+ECode AbstractWindowedCursor::IsInt64(
+    /* [in] */ Int32 columnIndex,
+    /* [out] */ Boolean* isInt64)
+{
+    FAIL_RETURN(CheckPosition());
+
+    Mutex::Autolock lock(mUpdatedRowsLock);
+
+    if (IsFieldUpdated(columnIndex)) {
+        // Object object = getUpdatedField(columnIndex);
+        // return object != null && (object instanceof Integer || object instanceof Long);
+        return E_NOT_IMPLEMENTED;
+    }
+
+    return mWindow->IsInt64(mPos, columnIndex, isInt64);
+}
+
+ECode AbstractWindowedCursor::IsFloat(
+    /* [in] */ Int32 columnIndex,
+    /* [out] */ Boolean* isFloat)
+{
+    FAIL_RETURN(CheckPosition());
+
+    Mutex::Autolock lock(mUpdatedRowsLock);
+
+    if (IsFieldUpdated(columnIndex)) {
+        // Object object = getUpdatedField(columnIndex);
+        // return object != null && (object instanceof Float || object instanceof Double);
+    }
+
+    return mWindow->IsFloat(mPos, columnIndex, isFloat);
 }
 
 ECode AbstractWindowedCursor::CheckPosition()
 {
-    FAIL_RETURN(CheckPosition());
+    FAIL_RETURN(AbstractCursor::CheckPosition());
+
     if (mWindow == NULL) {
 //        throw new StaleDataException("Access closed cursor");
-    	return NULL;
+        return E_STALE_DATA_EXCEPTION;
     }
     return NOERROR;
 }
 
-ECode AbstractWindowedCursor::IsNull(
-        /* [in] */ Int32 columnIndex,
-        /* [out] */ Boolean* value)
+AutoPtr<ICursorWindow> AbstractWindowedCursor::GetWindow()
 {
-    FAIL_RETURN(CheckPosition());
-    Mutex::Autolock lock(mUpdatedRowsLock);
-    Boolean rst;
-    IsFieldUpdated(columnIndex, &rst);
-    if (rst) {
-    	AutoPtr<IInterface> i;
-    	GetUpdatedField(columnIndex, (IInterface**)&i);
-    	*value = (i == NULL) ? TRUE : FALSE;
-    	return NOERROR;
-    }
-    mWindow->IsNull(mPos, columnIndex, value);
-    return NOERROR;
-}
-
-ECode AbstractWindowedCursor::IsBlob(
-        /* [in] */ Int32 columnIndex,
-        /* [out] */ Boolean* value)
-{
-    FAIL_RETURN(CheckPosition());
-    Mutex::Autolock lock(mUpdatedRowsLock);
-    Boolean rst;
-    IsFieldUpdated(columnIndex, &rst);
-    if (rst) {
-    	AutoPtr<IInterface> object;
-    	GetUpdatedField(columnIndex, (IInterface**)&object);
-//    	*value = ((object == NULL) || (object->Probe(EIID_ArrayOf<Byte>))) ? TRUE : FALSE;
-    	return NOERROR;
-    }
-    mWindow->IsBlob(mPos, columnIndex, value);
-    return NOERROR;
-}
-
-ECode AbstractWindowedCursor::IsString(
-        /* [in] */ Int32 columnIndex,
-        /* [out] */ Boolean* value)
-{
-    FAIL_RETURN(CheckPosition());
-    Mutex::Autolock lock(mUpdatedRowsLock);
-    Boolean rst;
-    IsFieldUpdated(columnIndex, &rst);
-    if (rst) {
-    	AutoPtr<IInterface> object;
-    	GetUpdatedField(columnIndex, (IInterface**)&object);
-//    	*value = ((object == NULL) || (object->Probe(EIID_String))) ? TRUE : FALSE;
-    	return NOERROR;
-    }
-    mWindow->IsString(mPos, columnIndex, value);
-    return NOERROR;
-}
-
-ECode AbstractWindowedCursor::IsInt64(
-        /* [in] */ Int32 columnIndex,
-        /* [out] */ Boolean* value)
-{
-    FAIL_RETURN(CheckPosition());
-    Mutex::Autolock lock(mUpdatedRowsLock);
-    Boolean rst;
-    IsFieldUpdated(columnIndex, &rst);
-    if (rst) {
-    	AutoPtr<IInterface> object;
-    	GetUpdatedField(columnIndex, (IInterface**)&object);
-//    	*value = ((object == NULL) || ((object->Probe(EIID_Int32)) || (object->Probe(EIID_Int64)))) ? TRUE : FALSE;
-    	return NOERROR;
-    }
-    mWindow->IsInt64(mPos, columnIndex, value);
-    return NOERROR;
-}
-
-ECode AbstractWindowedCursor::IsFloat(
-        /* [in] */ Int32 columnIndex,
-        /* [out] */ Boolean* value)
-{
-    FAIL_RETURN(CheckPosition());
-    Mutex::Autolock lock(mUpdatedRowsLock);
-    Boolean rst;
-    IsFieldUpdated(columnIndex, &rst);
-    if (rst) {
-    	AutoPtr<IInterface> object;
-    	GetUpdatedField(columnIndex, (IInterface**)&object);
-//    	*value = ((object == NULL) || ((object->Probe(EIID_Float)) || (object->Probe(EIID_Double)))) ? TRUE : FALSE;
-    	return NOERROR;
-    }
-    mWindow->IsFloat(mPos, columnIndex, value);
-    return NOERROR;
-}
-
-ECode AbstractWindowedCursor::GetWindow(
-        /* [out] */ ICursorWindow** window)
-{
-    *window = mWindow;
-    return NOERROR;
+    return mWindow;
 }
 
 ECode AbstractWindowedCursor::SetWindow(
-        /* [in] */ ICursorWindow* window)
+    /* [in] */ ICursorWindow* window)
 {
     if (mWindow != NULL) {
         mWindow->Close();
@@ -262,10 +244,7 @@ ECode AbstractWindowedCursor::SetWindow(
     return NOERROR;
 }
 
-ECode AbstractWindowedCursor::HasWindow(
-        /* [out] */ Boolean* rst)
+Boolean AbstractWindowedCursor::HasWindow()
 {
-    assert(rst != NULL);
-    *rst = (mWindow != NULL) ? TRUE : FALSE;
-    return NOERROR;
+    return mWindow != NULL;
 }

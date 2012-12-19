@@ -4,13 +4,14 @@
 
 #include "database/Observable.h"
 
+/**
+ * A specialization of Observable for ContentObserver that provides methods for
+ * invoking the various callback methods of ContentObserver.
+ */
 class ContentObservable : public Observable
 {
 public:
-    ContentObservable();
-
-    virtual ~ContentObservable();
-
+    //@Override
     CARAPI RegisterObserver(
         /* [in] */ ILocalContentObserver* observer);
 
@@ -28,8 +29,6 @@ public:
      */
     virtual CARAPI NotifyChange(
         /* [in] */ Boolean selfChange);
-
-    CARAPI UnregisterObserver(
-        /* [in] */ ILocalContentObserver* observer);
 };
+
 #endif //__CONTENTOBSERVABLE_H__

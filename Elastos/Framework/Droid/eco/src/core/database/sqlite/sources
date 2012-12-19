@@ -24,3 +24,4 @@ SOURCES += SQLiteDirectCursorDriver.cpp
 SOURCES += SQLiteOpenHelper.cpp
 SOURCES += SQLiteQueryBuilder.cpp
 SOURCES += CSQLiteQueryBuilder.cpp
+SOURCES += Sqlite3Exception.cpp

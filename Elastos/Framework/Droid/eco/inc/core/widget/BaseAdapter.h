@@ -3,7 +3,6 @@
 #define __BASEADAPTER_H__
 
 #include "ext/frameworkext.h"
-#include "database/DataSetObservable.h"
 #include <elastos/AutoPtr.h>
 
 /**
@@ -17,7 +16,7 @@ class BaseAdapter
 protected:
     BaseAdapter();
 
-public: 
+public:
     virtual CARAPI NotifyDataSetChanged();
 
     virtual CARAPI NotifyDataSetInvalidated();
@@ -61,6 +60,7 @@ public:
         /* [in] */ IViewGroup* parent);
 
 private:
-    AutoPtr<DataSetObservable> mDataSetObservable;
+    AutoPtr<IDataSetObservable> mDataSetObservable;
 };
+
 #endif //__BASEADAPTER_H__

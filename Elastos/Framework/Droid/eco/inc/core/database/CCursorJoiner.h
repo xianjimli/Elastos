@@ -4,21 +4,23 @@
 
 #include "_CCursorJoiner.h"
 #include "database/CursorJoiner.h"
+
 CarClass(CCursorJoiner), public CursorJoiner
 {
 public:
+    CARAPI constructor(
+        /* [in] */ ICursor* cursorLeft,
+        /* [in] */ const ArrayOf<String>& columnNamesLeft,
+        /* [in] */ ICursor* cursorRight,
+        /* [in] */ const ArrayOf<String>& columnNamesRight);
+
     CARAPI HasNext(
-        /* [out] */ Boolean * pRst);
+        /* [out] */ Boolean* result);
+
+    CARAPI GetNext(
+        /* [out] */ CursorJoinerResult* result);
 
     CARAPI Remove();
-
-    CARAPI constructor();
-
-    CARAPI constructor(
-        /* [in] */ ICursor * pCursorLeft,
-        /* [in] */ const ArrayOf<String> & columnNamesLeft,
-        /* [in] */ ICursor * pCursorRight,
-        /* [in] */ const ArrayOf<String> & columnNamesRight);
 
 private:
     // TODO: Add your private member variables here.

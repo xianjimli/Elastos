@@ -2,8 +2,8 @@
 module
 {
     interface IContentObserver;
-    interface ILocalContentObserver
-    {
+
+    interface ILocalContentObserver {
         /**
          * Gets access to the binder transport object. Not for public consumption.
          *

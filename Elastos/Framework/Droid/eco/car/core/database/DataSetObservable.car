@@ -1,9 +1,16 @@
 module
 {
-    
-    interface IDataSetObservable extends IObservable{
+    interface IDataSetObservable extends IObservable {
+        /**
+         * Invokes onChanged on each observer. Called when the data set being observed has
+         * changed, and which when read contains the new state of the data.
+         */
         NotifyChanged();
 
+        /**
+         * Invokes onInvalidated on each observer. Called when the data set being monitored
+         * has changed such that it is no longer valid.
+         */
         NotifyInvalidated();
     }
 }

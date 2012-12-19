@@ -1,75 +1,83 @@
+
 #include "database/AbstractCursor.h"
+#include "database/CDataSetObservable.h"
+#include "database/CContentObservable.h"
+#include "utils/AutoStringArray.h"
 #include <Logger.h>
 
 
 using namespace Elastos::Utility::Logging;
 
-const String AbstractCursor::TAG = String("Cursor");
+const CString AbstractCursor::TAG = "Cursor";
+
 AbstractCursor::AbstractCursor()
+    : mRowIdColumnIndex(-1)
+    , mPos(-1)
+    , mCurrentRowID(-1)
+    , mClosed(FALSE)
 {
-    mPos = -1;
-    mRowIdColumnIndex = -1;
-    mClosed = FALSE;
-    mCurrentRowID = NULL;
-    mUpdatedRows = new HashMap<Int64, Map<String, AutoPtr<IInterface> > > ();
+    CDataSetObservable::New((IDataSetObservable**)&mDataSetObservable);
+    CContentObservable::New((IContentObservable**)&mContentObservable);
 }
 
 AbstractCursor::~AbstractCursor()
 {
-    if (mSelfObserver != NULL && mSelfObserverRegistered == TRUE) {
-//        mContentResolver->UnregisterContentObserver(mSelfObserver);
+    if (mSelfObserver != NULL && mSelfObserverRegistered) {
+        // mContentResolver->UnregisterContentObserver(mSelfObserver);
     }
+    mUpdatedRows.Clear();
 }
 
+// TODO implement getBlob in all cursor types
 ECode AbstractCursor::GetBlob(
-        /* [in] */ Int32 column,
-        /* [out] */ ArrayOf<Byte>** blob)
+    /* [in] */ Int32 column,
+    /* [out] */ ArrayOf<Byte>** blob)
 {
 //    throw new UnsupportedOperationException("getBlob is not supported");
     return E_UNSUPPORTED_OPERATION_EXCEPTION;
 }
 
-ECode AbstractCursor::GetWindow(
-        /* [out] */ ICursorWindow** window)
+AutoPtr<ICursorWindow> AbstractCursor::GetWindow()
 {
-    *window = NULL;
-    return NOERROR;
+    return NULL;
 }
 
-ECode AbstractCursor::GetColumnCount(
-        /* [out] */ Int32* count)
+Int32 AbstractCursor::GetColumnCount()
 {
-    assert(count != NULL);
-    ArrayOf<String> *names;
-    FAIL_RETURN(GetColumnNames(&names));
-    *count = names->GetLength();
-    return NOERROR;
+    ArrayOf<String>* names;
+    ASSERT_SUCCEEDED(GetColumnNames(&names));
+    Int32 count = names->GetLength();
+    for (Int32 i = 0; i < count; ++i) {
+        (*names)[i] = NULL;
+    }
+    ArrayOf<String>::Free(names);
+    return count;
 }
 
 ECode AbstractCursor::Deactivate()
 {
-    FAIL_RETURN(DeactivateInternal());
-    return NOERROR;
+    return DeactivateInternal();
 }
 
 ECode AbstractCursor::DeactivateInternal()
 {
     if (mSelfObserver != NULL) {
-//        mContentResolver->UnregisterContentObserver(mSelfObserver);
+        // mContentResolver->UnregisterContentObserver(mSelfObserver);
         mSelfObserverRegistered = FALSE;
     }
-    mDataSetObservable->NotifyInvalidated();
-    return NOERROR;
+    return mDataSetObservable->NotifyInvalidated();
 }
 
-Boolean AbstractCursor::Requery()
+ECode AbstractCursor::Requery(
+    /* [out] */ Boolean* result)
 {
-    if (mSelfObserver != NULL) {
-//        mContentResolver->RegisterContentObserver(mNotifyUri, TRUE, mSelfObserver);
+    if (mSelfObserver != NULL && !mSelfObserverRegistered) {
+        // mContentResolver->RegisterContentObserver(mNotifyUri, TRUE, mSelfObserver);
         mSelfObserverRegistered = TRUE;
     }
     mDataSetObservable->NotifyChanged();
-    return TRUE;
+    *result = TRUE;
+    return NOERROR;
 }
 
 Boolean AbstractCursor::IsClosed()
@@ -81,56 +89,60 @@ ECode AbstractCursor::Close()
 {
     mClosed = TRUE;
     FAIL_RETURN(mContentObservable->UnregisterAll());
-    FAIL_RETURN(DeactivateInternal());
+    return DeactivateInternal();
+}
+
+// /**
+//  * @hide
+//  * @deprecated
+//  */
+// public boolean commitUpdates(Map<? extends Long,? extends Map<String,Object>> values) {
+//     return false;
+// }
+
+ECode AbstractCursor::DeleteRow(
+    /* [out] */ Boolean* succeeded)
+{
+    *succeeded = FALSE;
     return NOERROR;
 }
 
-ECode AbstractCursor::OnMove(
-        /* [in] */ Int32 oldPosition,
-        /* [in] */ Int32 newPosition,
-        /* [out] */ Boolean* value)
+Boolean AbstractCursor::OnMove(
+    /* [in] */ Int32 oldPosition,
+    /* [in] */ Int32 newPosition)
 {
-    assert(value != NULL);
-    *value = TRUE;
-    return NOERROR;
+    return TRUE;
 }
 
 ECode AbstractCursor::CopyStringToBuffer(
-        /* [in] */ Int32 columnIndex,
-        /* [in] */ CharArrayBuffer* buffer)
+    /* [in] */ Int32 columnIndex,
+    /* [in] */ ICharArrayBuffer* buffer)
 {
-    String result = String::FromInt32(columnIndex);
+    // Default implementation, uses getString
+    String result;
+    GetString(columnIndex, &result);
     if (!result.IsNull()) {
-        ArrayOf<Char8>* data = buffer->data;
-        char* cstr = (char*)&result;
-        if (data == NULL || data->GetLength() < (Int32)result.GetLength()) {
-            buffer->data = ArrayOf<Char8>::Alloc(cstr, strlen(cstr));
-        } else {
-            for(Int32 i = 0; i < (Int32)strlen(cstr); i++) {
-                (*data)[i] = *cstr;
-                cstr++;
-            }
-        }
-        buffer->sizeCopied = (Int32)result.GetLength();
+        // char[] data = buffer.data;
+        // if (data == null || data.length < result.length()) {
+        //     buffer.data = result.toCharArray();
+        // } else {
+        //     result.getChars(0, result.length(), data, 0);
+        // }
+        // buffer.sizeCopied = result.length();
     }
     return NOERROR;
 }
 
-ECode AbstractCursor::GetPosition(
-        /* [out] */ Int32* position)
+Int32 AbstractCursor::GetPosition()
 {
-    assert(position != NULL);
-    *position = mPos;
-    return NOERROR;
+    return mPos;
 }
 
 Boolean AbstractCursor::MoveToPosition(
     /* [in] */ Int32 position)
 {
     // Make sure position isn't past the end of the cursor
-    Int32 cnt;
-    FAIL_RETURN(GetCount(&cnt));
-    const Int32 count = cnt;
+    const Int32 count = GetCount();
     if(position >= count) {
         mPos = count;
         return FALSE;
@@ -147,177 +159,139 @@ Boolean AbstractCursor::MoveToPosition(
         return TRUE;
     }
 
-    Boolean result;
-    FAIL_RETURN(OnMove(mPos, position, &result));
+    Boolean result = OnMove(mPos, position);
     if(result == FALSE) {
         mPos = -1;
-    } else {
+    }
+    else {
         mPos = position;
         if(mRowIdColumnIndex != -1) {
-            mCurrentRowID = mRowIdColumnIndex;
+            GetInt64(mRowIdColumnIndex, &mCurrentRowID);
         }
     }
+
     return result;
 }
 
 ECode AbstractCursor::FillWindow(
-        /* [in] */ Int32 position,
-        /* [in] */ ICursorWindow* window)
+    /* [in] */ Int32 position,
+    /* [in] */ ICursorWindow* window)
 {
-    Int32 cnt;
-    FAIL_RETURN(GetCount(&cnt));
-    if(position < 0 || position > cnt) {
-        window = NULL;
+    if(position < 0 || position > GetCount()) {
         return NOERROR;
     }
-    FAIL_RETURN(window->AcquireReference());
-
+    window->AcquireReference();
+    // try {
     Int32 oldpos = mPos;
     mPos = position - 1;
-    FAIL_RETURN(window->Clear());
-    Int32 columnNum;
-    FAIL_RETURN(GetColumnCount(&columnNum));
-    Boolean r1, r2, r3;
-    FAIL_RETURN(window->SetNumColumns(columnNum, &r1));
-
-    FAIL_RETURN(MoveToNext(&r2));
-    FAIL_RETURN(window->AllocRow(&r3));
-    while(r2 && r3) {
+    window->Clear();
+    window->SetStartPosition(position);
+    Int32 columnNum = GetColumnCount();
+    Boolean result;
+    window->SetNumColumns(columnNum, &result);
+    while(MoveToNext() && (window->AllocRow(&result), result)) {
         for(Int32 i = 0; i < columnNum; i++) {
-            String field = String::FromInt32(i);
+            String field;
+            GetString(i, &field);
             if(!field.IsNull()) {
-                Boolean rst;
-                FAIL_RETURN(window->PutString(field, mPos, i, &rst));
-                if(!rst) {
-                    FAIL_RETURN(window->FreeLastRow());
+                window->PutString(field, mPos, i, &result);
+                if(!result) {
+                    window->FreeLastRow();
                     break;
                 }
-            } else {
-                Boolean rst;
-                FAIL_RETURN(window->PutNull(mPos, i, &rst));
-                if(!rst) {
-                    FAIL_RETURN(window->FreeLastRow());
+            }
+            else {
+                window->PutNull(mPos, i, &result);
+                if(!result) {
+                    window->FreeLastRow();
                     break;
                 }
             }
         }
     }
+
     mPos = oldpos;
+    // } catch (IllegalStateException e){
+    //     // simply ignore it
+    // } finally {
+    window->ReleaseReference();
+    // }
     return NOERROR;
 }
 
-ECode AbstractCursor::Move(
-        /* [in] */ Int32 offset,
-        /* [out] */ Boolean* rst)
+Boolean AbstractCursor::Move(
+    /* [in] */ Int32 offset)
 {
-    assert(rst != NULL);
-    *rst = MoveToPosition(mPos + offset);
-    return NOERROR;
+    return MoveToPosition(mPos + offset);
 }
 
-ECode AbstractCursor::MoveToFirst(
-        /* [out] */ Boolean* rst)
+Boolean AbstractCursor::MoveToFirst()
 {
-    assert(rst != NULL);
-    *rst = MoveToPosition(0);
-    return NOERROR;
+    return MoveToPosition(0);
 }
 
-ECode AbstractCursor::MoveToLast(
-        /* [out] */ Boolean* rst)
+Boolean AbstractCursor::MoveToLast()
 {
-    assert(rst != NULL);
-    Int32 cnt;
-    FAIL_RETURN(GetCount(&cnt));
-    *rst = MoveToPosition(cnt - 1);
-    return NOERROR;
+    return MoveToPosition(GetCount() - 1);
 }
 
-ECode AbstractCursor::MoveToNext(
-        /* [out] */ Boolean* rst)
+Boolean AbstractCursor::MoveToNext()
 {
-    assert(rst != NULL);
-    *rst = MoveToPosition(mPos + 1);
-    return NOERROR;
+    return MoveToPosition(mPos + 1);
 }
 
-ECode AbstractCursor::MoveToPrevious(
-        /* [out] */ Boolean* rst)
+Boolean AbstractCursor::MoveToPrevious()
 {
-    assert(rst != NULL);
-    *rst = MoveToPosition(mPos - 1);
-    return NOERROR;
+    return MoveToPosition(mPos - 1);
 }
 
-ECode AbstractCursor::IsFirst(
-        /* [out] */ Boolean* rst)
+Boolean AbstractCursor::IsFirst()
 {
-    assert(rst != NULL);
-    Int32 cnt;
-    FAIL_RETURN(GetCount(&cnt));
-    *rst = (mPos == 0 && cnt != 0) ? TRUE : FALSE;
-    return NOERROR;
+    return mPos == 0 && GetCount() != 0;
 }
 
-ECode AbstractCursor::IsLast(
-        /* [out] */ Boolean* rst)
+Boolean AbstractCursor::IsLast()
 {
-    assert(rst != NULL);
-    Int32 cnt;
-    FAIL_RETURN(GetCount(&cnt));
-    *rst = (mPos == (cnt - 1) && cnt != 0) ? TRUE : FALSE;
-    return NOERROR;
+    Int32 cnt = GetCount();
+    return mPos == (cnt - 1) && cnt != 0;
 }
 
-ECode AbstractCursor::IsBeforeFirst(
-        /* [out] */ Boolean* rst)
+Boolean AbstractCursor::IsBeforeFirst()
 {
-    assert(rst != NULL);
-    Int32 cnt;
-    FAIL_RETURN(GetCount(&cnt));
-    if (cnt == 0) {
-        *rst = TRUE;
-        return NOERROR;
+    if (GetCount() == 0) {
+        return TRUE;
     }
-    *rst = (mPos == -1) ? TRUE : FALSE;
-    return NOERROR;
+    return mPos == -1;
 }
 
-ECode AbstractCursor::IsAfterLast(
-        /* [out] */ Boolean* rst)
+Boolean AbstractCursor::IsAfterLast()
 {
-    assert(rst != NULL);
-    Int32 cnt;
-    FAIL_RETURN(GetCount(&cnt));
-    if (cnt == 0) {
-        *rst = TRUE;
-        return NOERROR;
+    if (GetCount() == 0) {
+        return TRUE;
     }
-    *rst = (mPos == cnt) ? TRUE : FALSE;
-    return NOERROR;
+    return mPos == GetCount();
 }
 
-ECode AbstractCursor::GetColumnIndex(
-        /* [in] */ String columnName,
-        /* [out] */ Int32* index)
+Int32 AbstractCursor::GetColumnIndex(
+    /* [in] */ const String& _columnName)
 {
-    assert(index != NULL);
+    String columnName = _columnName;
     const Int32 periodIndex = columnName.LastIndexOf('.');
     if (periodIndex != -1) {
         //Exception e = new Exception();
         //Log.e(TAG, "requesting column name with table name -- " + columnName, e);
         columnName = columnName.Substring(periodIndex + 1);
     }
-    ArrayOf<String>* columnNames;
-    GetColumnNames(&columnNames);
-    Int32 length = columnNames->GetLength();
 
+    AutoStringArray columnNames;
+    GetColumnNames((ArrayOf<String>**)&columnNames);
+    Int32 length = columnNames->GetLength();
     for(Int32 i = 0; i < length; i++) {
         if((*columnNames)[i].EqualsIgnoreCase(columnName)) {
-            *index = i;
-            return NOERROR;
+            return i;
         }
     }
+
     /*
     if (Config::LOGV) {
         Int32 count;
@@ -326,17 +300,14 @@ ECode AbstractCursor::GetColumnIndex(
             Logger::W("AbstractCursor", "Unknown column " + columnName);
         }
     }*/
-    *index = -1;
-    return NOERROR;
+    return -1;
 }
 
 ECode AbstractCursor::GetColumnIndexOrThrow(
-        /* [in] */ String columnName,
-        /* [out] */ Int32* i)
+    /* [in] */ const String& columnName,
+    /* [out] */ Int32* i)
 {
-    Int32 j;
-    FAIL_RETURN(GetColumnIndex(columnName, &j));
-    const Int32 index = j;
+    const Int32 index = GetColumnIndex(columnName);
     if (index < 0) {
 //        throw new IllegalArgumentException("column '" + columnName + "' does not exist");
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
@@ -345,159 +316,285 @@ ECode AbstractCursor::GetColumnIndexOrThrow(
     return NOERROR;
 }
 
-ECode AbstractCursor::GetColumnName(
-        /* [in] */ Int32 columnIndex,
-        /* [out] */ String* name)
+String AbstractCursor::GetColumnName(
+    /* [in] */ Int32 columnIndex)
 {
-    assert(name != NULL);
-    ArrayOf<String>* columnNames;
-    GetColumnNames(&columnNames);
-    *name = (*columnNames)[columnIndex];
+    AutoStringArray columnNames;
+    GetColumnNames((ArrayOf<String>**)&columnNames);
+    return (*columnNames)[columnIndex];
+}
+
+/**
+ * @hide
+ * @deprecated
+ */
+Boolean AbstractCursor::UpdateBlob(
+    /* [in] */ Int32 columnIndex,
+    /* [in, out] */ const ArrayOf<Byte>& value)
+{
+    // return update(columnIndex, value);
+    return FALSE;
+}
+
+/**
+ * @hide
+ * @deprecated
+ */
+Boolean AbstractCursor::UpdateString(
+    /* [in] */ Int32 columnIndex,
+    /* [in] */ const String& value)
+{
+    // return update(columnIndex, value);
+    return FALSE;
+}
+
+/**
+ * @hide
+ * @deprecated
+ */
+Boolean AbstractCursor::UpdateInt16(
+    /* [in] */ Int32 columnIndex,
+    /* [in] */ Int16 value)
+{
+    // return update(columnIndex, Short.valueOf(value));
+    return FALSE;
+}
+
+/**
+ * @hide
+ * @deprecated
+ */
+Boolean AbstractCursor::UpdateInt32(
+    /* [in] */ Int32 columnIndex,
+    /* [in] */ Int32 value)
+{
+    // return update(columnIndex, Integer.valueOf(value));
+    return FALSE;
+}
+
+/**
+ * @hide
+ * @deprecated
+ */
+Boolean AbstractCursor::UpdateInt64(
+    /* [in] */ Int32 columnIndex,
+    /* [in] */ Int64 value)
+{
+    // return update(columnIndex, Long.valueOf(value));
+    return FALSE;
+}
+
+/**
+ * @hide
+ * @deprecated
+ */
+Boolean AbstractCursor::UpdateFloat(
+    /* [in] */ Int32 columnIndex,
+    /* [in] */ Float value)
+{
+    // return update(columnIndex, Float.valueOf(value));
+    return FALSE;
+}
+
+/**
+ * @hide
+ * @deprecated
+ */
+Boolean AbstractCursor::UpdateDouble(
+    /* [in] */ Int32 columnIndex,
+    /* [in] */ Double value)
+{
+    // return update(columnIndex, Double.valueOf(value));
+    return FALSE;
+}
+
+/**
+ * @hide
+ * @deprecated
+ */
+Boolean AbstractCursor::UpdateToNull(
+    /* [in] */ Int32 columnIndex)
+{
+    // return update(columnIndex, null);
+    return FALSE;
+}
+
+/**
+ * @hide
+ * @deprecated
+ */
+// public boolean update(int columnIndex, Object obj) {
+//     if (!supportsUpdates()) {
+//         return false;
+//     }
+
+//     // Long.valueOf() returns null sometimes!
+// //        Long rowid = Long.valueOf(getLong(mRowIdColumnIndex));
+//     Long rowid = new Long(getLong(mRowIdColumnIndex));
+//     if (rowid == null) {
+//         throw new IllegalStateException("null rowid. mRowIdColumnIndex = " + mRowIdColumnIndex);
+//     }
+
+//     synchronized(mUpdatedRows) {
+//         Map<String, Object> row = mUpdatedRows.get(rowid);
+//         if (row == null) {
+//             row = new HashMap<String, Object>();
+//             mUpdatedRows.put(rowid, row);
+//         }
+//         row.put(getColumnNames()[columnIndex], obj);
+//     }
+
+//     return true;
+// }
+
+Boolean AbstractCursor::HasUpdates()
+{
+    Mutex::Autolock lock(mUpdatedRowsLock);
+
+    return mUpdatedRows.Begin() != mUpdatedRows.End();
+}
+
+ECode AbstractCursor::AbortUpdates()
+{
+    Mutex::Autolock lock(mUpdatedRowsLock);
+
+    mUpdatedRows.Clear();
     return NOERROR;
+}
+
+ECode AbstractCursor::CommitUpdates(
+    /* [out] */ Boolean* succeeded)
+{
+    // return commitUpdates(null);
+    return E_NOT_IMPLEMENTED;
+}
+
+Boolean AbstractCursor::SupportsUpdates()
+{
+    return mRowIdColumnIndex != -1;
 }
 
 ECode AbstractCursor::RegisterContentObserver(
-        /* [in] */ ILocalContentObserver* observer)
+    /* [in] */ ILocalContentObserver* observer)
 {
-    FAIL_RETURN(mContentObservable->RegisterObserver(observer));
-    return NOERROR;
+    return mContentObservable->RegisterObserver(observer);
 }
 
 ECode AbstractCursor::UnregisterContentObserver(
-        /* [in] */ ILocalContentObserver* observer)
+    /* [in] */ ILocalContentObserver* observer)
 {
+    // cursor will unregister all observers when it close
     if(!mClosed) {
-        FAIL_RETURN(mContentObservable->UnregisterObserver(observer));
+        return mContentObservable->UnregisterObserver(observer);
     }
     return NOERROR;
 }
 
-ECode AbstractCursor::RegisterDataSetObserver(
-        /* [in] */ IDataSetObserver* observer)
+void AbstractCursor::NotifyDataSetChange()
 {
-    FAIL_RETURN(mDataSetObservable->RegisterObserver(observer));
-    return NOERROR;
+    mDataSetObservable->NotifyChanged();
+}
+
+AutoPtr<IDataSetObservable> AbstractCursor::GetDataSetObservable()
+{
+    return mDataSetObservable;
+}
+
+ECode AbstractCursor::RegisterDataSetObserver(
+    /* [in] */ IDataSetObserver* observer)
+{
+    return mDataSetObservable->RegisterObserver(observer);
 }
 
 ECode AbstractCursor::UnregisterDataSetObserver(
         /* [in] */ IDataSetObserver* observer)
 {
-    FAIL_RETURN(mDataSetObservable->UnregisterObserver(observer));
-    return NOERROR;
+    return mDataSetObservable->UnregisterObserver(observer);
+}
+
+void AbstractCursor::OnChange(
+    /* [in] */ Boolean selfChange)
+{
+    Mutex::Autolock lock(mSelfObserverLock);
+
+    mContentObservable->DispatchChange(selfChange);
+    if (mNotifyUri != NULL && selfChange) {
+        // mContentResolver->NotifyChange(mNotifyUri, mSelfObserver);
+    }
 }
 
 ECode AbstractCursor::SetNotificationUri(
-         /* [in] */ IContentResolver* cr,
-         /* [in] */ IUri* notifyUri)
+     /* [in] */ IContentResolver* cr,
+     /* [in] */ IUri* notifyUri)
 {
     Mutex::Autolock lock(mSelfObserverLock);
-//    mNotifyUri = notifyUri;
-//    mContentResolver = cr;
-//    if (mSelfObserver != NULL) {
-//        mContentResolver->UnregisterContentObserver(mSelfObserver);
-//    }
-//    mSelfObserver = new SelfContentObserver(this);
-//    mContentResolver.registerContentObserver(mNotifyUri, true, mSelfObserver);
-//    mSelfObserverRegistered = true;
-    return E_NOT_IMPLEMENTED;
-}
 
-ECode AbstractCursor::GetWantsAllOnMoveCalls(
-        /* [out] */ Boolean* result)
-{
-    assert(result != NULL);
-    *result = FALSE;
+    mNotifyUri = notifyUri;
+    mContentResolver = cr;
+    if (mSelfObserver != NULL) {
+       // mContentResolver->UnregisterContentObserver(mSelfObserver);
+    }
+    // mSelfObserver = new SelfContentObserver(this);
+    // mContentResolver->RegisterContentObserver(mNotifyUri, TRUE, mSelfObserver);
+    mSelfObserverRegistered = TRUE;
     return NOERROR;
 }
 
+Boolean AbstractCursor::GetWantsAllOnMoveCalls()
+{
+    return FALSE;
+}
+
 ECode AbstractCursor::GetExtras(
-        /* [out] */ IBundle** extras)
+    /* [out] */ IBundle** extras)
 {
 //    return Bundle.EMPTY;
     return E_NOT_IMPLEMENTED;
 }
 
 ECode AbstractCursor::Respond(
-        /* [in] */ IBundle* extras,
-        /* [out] */ IBundle** result)
+    /* [in] */ IBundle* extras,
+    /* [out] */ IBundle** v)
 {
 //    return Bundle.EMPTY;
     return E_NOT_IMPLEMENTED;
 }
 
-ECode AbstractCursor::NotifyDataSetChange()
+Boolean AbstractCursor::IsFieldUpdated(
+    /* [in] */ Int32 columnIndex)
 {
-    FAIL_RETURN(mDataSetObservable->NotifyChanged());
-    return NOERROR;
-}
-
-ECode AbstractCursor::GetDataSetObservable(
-        /* [out] */ DataSetObservable** dso)
-{
-    *dso = mDataSetObservable;
-    return NOERROR;
-}
-
-ECode AbstractCursor::OnChange(
-        /* [in] */ Boolean selfChange)
-{
-    Mutex::Autolock lock(mSelfObserverLock);
-    mContentObservable->DispatchChange(selfChange);
-    if (mNotifyUri != NULL && selfChange) {
-//        mContentResolver.notifyChange(mNotifyUri, mSelfObserver);
-    }
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode AbstractCursor::IsFieldUpdated(
-        /* [in] */ Int32 columnIndex,
-        /* [out] */ Boolean* rst)
-{
-    assert(rst != NULL);
-    if (mRowIdColumnIndex != -1 && mUpdatedRows->GetSize() > 0) {
-        HashMap<Int64, Map<String, AutoPtr<IInterface> > >::Iterator find = mUpdatedRows->Find(mCurrentRowID);
-        Map<String, AutoPtr<IInterface> > updates;
-        if (find != mUpdatedRows->End()) {
-            updates = find->mSecond;
-        }
-        ArrayOf<String>* names;
-        FAIL_RETURN(GetColumnNames(&names));
-        Map<String, AutoPtr<IInterface> >::Iterator secFind = updates.Find((*names)[columnIndex]);
-        Boolean result = (secFind != updates.End()) ? TRUE : FALSE;
-        if (!updates.IsEmpty() && result) {
-            *rst = TRUE;
-            return NOERROR;
+    if (mRowIdColumnIndex != -1 && mUpdatedRows.Begin() != mUpdatedRows.End()) {
+        HashMap<Int64, Map<String, AutoPtr<IInterface> >* >::Iterator it = mUpdatedRows.Find(mCurrentRowID);
+        if (it != mUpdatedRows.End()) {
+            Map<String, AutoPtr<IInterface> >* updates = it->mSecond;
+            AutoStringArray names;
+            GetColumnNames((ArrayOf<String>**)&names);
+            if (updates->Find((*names)[columnIndex]) != updates->End()) {
+                return TRUE;
+            }
         }
     }
-    *rst = FALSE;
-    return NOERROR;
+    return FALSE;
 }
 
-ECode AbstractCursor::GetUpdatedField(
-        /* [in] */ Int32 columnIndex,
-        /* [out] */ IInterface** obj)
+AutoPtr<IInterface> AbstractCursor::GetUpdatedField(
+    /* [in] */ Int32 columnIndex)
 {
-    HashMap<Int64, Map<String, AutoPtr<IInterface> > >::Iterator find = mUpdatedRows->Find(mCurrentRowID);
-    Map<String, AutoPtr<IInterface> > updates;
-    if (find != mUpdatedRows->End()) {
-        updates = find->mSecond;
-    }
-    ArrayOf<String>* names;
-    FAIL_RETURN(GetColumnNames(&names));
-    Map<String, AutoPtr<IInterface> >::Iterator secFind = updates.Find((*names)[columnIndex]);
-    if (secFind != updates.End()) {
-        *obj = secFind->mSecond;
-    }
-    return NOERROR;
+    HashMap<Int64, Map<String, AutoPtr<IInterface> >* >::Iterator it = mUpdatedRows.Find(mCurrentRowID);
+    assert(it != mUpdatedRows.End());
+    Map<String, AutoPtr<IInterface> >* updates = it->mSecond;
+    AutoStringArray names;
+    GetColumnNames((ArrayOf<String>**)&names);
+    Map<String, AutoPtr<IInterface> >::Iterator it2 = updates->Find((*names)[columnIndex]);
+    if (it2 == updates->End()) return NULL;
+    return it2->mSecond;
 }
 
 ECode AbstractCursor::CheckPosition()
 {
-    Int32 cnt;
-    FAIL_RETURN(GetCount(&cnt));
-    if (-1 == mPos || cnt == mPos) {
+    if (-1 == mPos || GetCount() == mPos) {
         //throw new CursorIndexOutOfBoundsException(mPos, getCount());
-        return E_INDEX_OUT_OF_BOUNDS_EXCEPTION;
+        return E_CURSOR_INDEX_OUT_OF_BOUNDS_EXCEPTION;
     }
     return NOERROR;
 }

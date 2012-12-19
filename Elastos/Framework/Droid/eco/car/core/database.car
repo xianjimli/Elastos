@@ -22,10 +22,7 @@ module
     merge("database/CursorWindow.car");
     merge("database/CursorJoiner.car");
     merge("database/IBulkCursor.car");
-    merge("database/BulkCursorNative.car");
-    merge("database/BulkCursorProxy.car");
     merge("database/CrossProcessCursor.car");
-    merge("database/AbstractCursor.car");
     merge("database/AbstractWindowedCursor.car");
     merge("database/MergeCursor.car");
     merge("database/MatrixCursor.car");
@@ -47,61 +44,41 @@ module
         interface ISQLiteQueryBuilder;
     }
 
-    class CCharArrayBuffer
-    {
-        constructor();
-
+    [deprecated]
+    class CCharArrayBuffer {
         constructor(
             [in] Int32 size);
 
         constructor(
-            [in] ArrayOf<Char8> buf);
+            [in] ArrayOf<Char32>* buf);
 
         interface ICharArrayBuffer;
     }
 
-    class CDataSetObservable
-    {
-        constructor();
-
+    class CDataSetObservable {
         interface IDataSetObservable;
     }
 
-    class CContentObservable
-    {
-        constructor();
-
+    class CContentObservable {
         interface IContentObservable;
     }
 
-    class CCursorWrapper
-    {
-        constructor();
-
+    class CCursorWrapper {
         constructor(
             [in] ICursor* cursor);
 
         interface ICursorWrapper;
-
-        interface ICursor;
     }
 
-    class CCursorWindow
-    {
-        constructor();
-
+    class CCursorWindow {
         constructor(
             [in] Boolean localWindow);
 
         interface ICursorWindow;
-
         interface IParcelable;
     }
 
-    class CCursorJoiner
-    {
-        constructor();
-
+    class CCursorJoiner {
         constructor(
             [in] ICursor* cursorLeft,
             [in] ArrayOf<String> columnNamesLeft,
@@ -111,49 +88,31 @@ module
         interface ICursorJoiner;
     }
 
-    class CBulkCursorProxy
-    {
-        constructor();
-
+    [deprecated]
+    class CMergeCursor {
         constructor(
-            [in] IBinder* remote);
-
-        interface IBulkCursorProxy;
-
-        interface IBulkCursor;
-    }
-
-    class CMergeCursor
-    {
-        constructor();
-
-        constructor(
-            [in] ArrayOf<ICursor*> cursors);
+            [in] ArrayOf<ICursor*>* cursors);
 
         interface IMergeCursor;
     }
 
-    class CMatrixCursor
-    {
-        constructor();
-
+    [deprecated]
+    class CMatrixCursor {
         constructor(
-            [in] ArrayOf<String> columnNames,
+            [in] ArrayOf<String>* columnNames,
             [in] Int32 initialCapacity);
 
         constructor(
-            [in] ArrayOf<String> columnNames);
+            [in] ArrayOf<String>* columnNames);
 
         interface IMatrixCursor;
     }
 
-    class CBulkCursorToCursorAdaptor
-    {
+    class CBulkCursorToCursorAdaptor {
         interface IBulkCursorToCursorAdaptor;
     }
 
-    class CCursorToBulkCursorAdaptor
-    {
+    class CCursorToBulkCursorAdaptor {
         constructor(
             [in] ICursor* cursor,
             [in] IContentObserver* observer,
@@ -162,8 +121,6 @@ module
             [in] ICursorWindow* window);
 
         interface ICursorToBulkCursorAdaptor;
-
-        interface IBulkCursor;
     }
 
     class CSQLiteCursor {
