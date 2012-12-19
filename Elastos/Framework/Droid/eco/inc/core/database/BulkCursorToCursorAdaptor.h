@@ -4,6 +4,7 @@
 #include "ext/frameworkext.h"
 #include "database/AbstractWindowedCursor.h"
 #include <elastos/AutoPtr.h>
+
 /**
  * Adapts an {@link IBulkCursor} to a {@link Cursor} for use in the local
  * process.
@@ -13,21 +14,27 @@
 class BulkCursorToCursorAdaptor : public AbstractWindowedCursor
 {
 public:
+    BulkCursorToCursorAdaptor();
+
+    virtual ~BulkCursorToCursorAdaptor();
+
     CARAPI Set(
-            /* [in] */ IBulkCursor* bulkCursor);
+        /* [in] */ IBulkCursor* bulkCursor);
 
     /**
      * Version of set() that does fewer Binder calls if the caller
      * already knows BulkCursorToCursorAdaptor's properties.
      */
-    CARAPI SetEx(
-            /* [in] */ IBulkCursor* bulkCursor,
-            /* [in] */ Int32 count,
-            /* [in] */ Int32 idIndex);
+    CARAPI Set(
+        /* [in] */ IBulkCursor* bulkCursor,
+        /* [in] */ Int32 count,
+        /* [in] */ Int32 idIndex);
 
-    static CARAPI FindRowIdColumnIndex(
-            /* [in] */ ArrayOf<String>* columnNames,
-            /* [out] */ Int32* index);
+    /**
+     * Returns column index of "_id" column, or -1 if not found.
+     */
+    static CARAPI_(Int32) FindRowIdColumnIndex(
+        /* [in] */ ArrayOf<String>* columnNames);
 
     /**
      * Gets a SelfDataChangeOberserver that can be sent to a remote
@@ -35,18 +42,15 @@ public:
      *
      * @return A SelfContentObserver hooked up to this Cursor
      */
-    CARAPI GetObserver(
-            /* [out] */ IContentObserver** ico);
+    CARAPI_(AutoPtr<IContentObserver>) GetObserver();
 
 //    @Override
-    CARAPI GetCount(
-            /* [out] */ Int32* cnt);
+    CARAPI_(Int32) GetCount();
 
 //    @Override
-    CARAPI OnMove(
+    CARAPI_(Boolean) OnMove(
             /* [in] */ Int32 oldPosition,
-            /* [in] */ Int32 newPosition,
-            /* [out] */ Boolean* rst);
+            /* [in] */ Int32 newPosition);
 
 //    @Override
     CARAPI Deactivate();
@@ -56,18 +60,19 @@ public:
 
 //    @Override
     CARAPI Requery(
-            /* [out] */ Boolean* rst);
+        /* [out] */ Boolean* succeeded);
 
     /**
      * @hide
      * @deprecated
      */
-//    @Override
-//    public boolean deleteRow()
+    // @Override
+    CARAPI DeleteRow(
+        /* [out] */ Boolean* succeeded);
 
 //    @Override
     CARAPI GetColumnNames(
-            /* [out, callee] */ ArrayOf<String>** names);
+        /* [out] */ ArrayOf<String>** names);
 
     /**
      * @hide
@@ -79,20 +84,23 @@ public:
 
 //    @Override
     CARAPI GetExtras(
-            /* [out] */ IBundle** extras);
+        /* [out] */ IBundle** extras);
 
 //    @Override
     CARAPI Respond(
-            /* [in] */ IBundle* extras,
-            /* [out] */ IBundle** v);
+        /* [in] */ IBundle* extras,
+        /* [out] */ IBundle** v);
+
 private:
-    static const String TAG;
+    static const CString TAG;
 
 //    private SelfContentObserver mObserverBridge;
     AutoPtr<IBulkCursor> mBulkCursor;
     Int32 mCount;
-    ArrayOf<String> *mColumns;
+    ArrayOf<String>* mColumns;
     Boolean mWantsAllOnMoveCalls;
+
+    Mutex mLock;
 };
 
 

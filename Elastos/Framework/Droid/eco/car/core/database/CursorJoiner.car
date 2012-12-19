@@ -1,9 +1,44 @@
 module
 {
-    interface ICursorJoiner
-    {
+    /**
+     * The result of a call to next().
+     */
+    enum CursorJoinerResult {
+        /** The row currently pointed to by the left cursor is unique */
+        CursorJoinerResult_RIGHT,
+        /** The row currently pointed to by the right cursor is unique */
+        CursorJoinerResult_LEFT,
+        /** The rows pointed to by both cursors are the same */
+        CursorJoinerResult_BOTH
+    }
+
+    interface ICursorJoiner {
+//        public Iterator<Result> iterator()
+
+        /**
+         * Returns whether or not there are more rows to compare using next().
+         * @return true if there are more rows to compare
+         */
         HasNext(
-            [out] Boolean* rst);
+            [out] Boolean* result);
+
+        /**
+         * Returns the comparison result of the next row from each cursor. If one cursor
+         * has no more rows but the other does then subsequent calls to this will indicate that
+         * the remaining rows are unique.
+         * <p>
+         * The caller must check that hasNext() returns true before calling this.
+         * <p>
+         * Once next() has been called the cursors specified in the result of the call to
+         * next() are guaranteed to point to the row that was indicated. Reading values
+         * from the cursor that was not indicated in the call to next() will result in
+         * undefined behavior.
+         * @return LEFT, if the row pointed to by the left cursor is unique, RIGHT
+         *   if the row pointed to by the right cursor is unique, BOTH if the rows in both
+         *   cursors are the same.
+         */
+        GetNext(
+            [out] CursorJoinerResult* result);
 
         Remove();
     }

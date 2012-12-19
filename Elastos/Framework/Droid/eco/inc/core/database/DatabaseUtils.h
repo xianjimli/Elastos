@@ -2,11 +2,11 @@
 #define __DATABASEUTILS_H__
 
 #include "ext/frameworkext.h"
+#include "text/TextUtils.h"
 #include "utils/Config.h"
 #include <StringBuffer.h>
 #include <elastos/AutoPtr.h>
 #include <elastos/HashMap.h>
-#include "text/TextUtils.h"
 
 /**
  * Static utility methods for dealing with databases and {@link Cursor}s.
@@ -19,17 +19,16 @@ public:
      * compile the SQL insert statement only once, which may increase
      * performance.
      */
-    class InsertHelper{
+    class InsertHelper
+    {
     public:
-        InsertHelper();
-
         /**
          * @param db the SQLiteDatabase to insert into
          * @param tableName the name of the table to insert into
          */
         InsertHelper(
             /* [in] */ ISQLiteDatabase* db,
-            /* [in] */ String tableName);
+            /* [in] */ const String& tableName);
 
         ~InsertHelper();
 
@@ -40,7 +39,7 @@ public:
          * @return the index of the column
          */
         CARAPI GetColumnIndex(
-            /* [in] */ String key,
+            /* [in] */ const String& key,
             /* [out] */ Int32* columnIndex);
 
         /**
@@ -119,7 +118,7 @@ public:
          */
         CARAPI Bind(
             /* [in] */ Int32 index,
-            /* [in] */ String value);
+            /* [in] */ const String& value);
 
         /**
          * Performs an insert, adding a new row with the given values.
@@ -134,7 +133,7 @@ public:
          */
         CARAPI Insert(
             /* [in] */ IContentValues* values,
-            /* [out] */ Int64* value);
+            /* [out] */ Int64* rowId);
 
 
         /**
@@ -189,7 +188,7 @@ public:
          */
         CARAPI Replace(
             /* [in] */ IContentValues* values,
-            /* [out] */ Int64* value);
+            /* [out] */ Int64* rowId);
 
         /**
          * Close this object and release any resources associated with
@@ -217,11 +216,9 @@ public:
          * @return the row ID of the newly inserted row, or -1 if an
          * error occurred
          */
-        CARAPI InsertInternal(
-            /* [in] */ IContentValues* values, 
-            /* [in] */ Boolean allowReplace,
-            /* [out] */ Int64* value);
-
+        CARAPI_(Int64) InsertInternal(
+            /* [in] */ IContentValues* values,
+            /* [in] */ Boolean allowReplace);
 
     public:
         /**
@@ -241,13 +238,11 @@ public:
         AutoPtr<ISQLiteStatement> mInsertStatement;
         AutoPtr<ISQLiteStatement> mReplaceStatement;
         AutoPtr<ISQLiteStatement> mPreparedStatement;
+
+        Mutex mLock;
     };
 
 public:
-    DatabaseUtils();
-
-    ~DatabaseUtils();
-
     /**
      * Special function for writing an exception result at the header of
      * a parcel, to be used when returning an exception from a transaction.
@@ -257,9 +252,9 @@ public:
      * @see Parcel#writeNoException
      * @see Parcel#writeException
      */
-//    static const CARAPI WriteExceptionToParcel(
-//        /* [in] */ IParcel* reply, 
-//        /* [in] */ Exception e);
+    static CARAPI_(void) WriteExceptionToParcel(
+        /* [in] */ IParcel* reply,
+        /* [in] */ ECode e);
 
     /**
      * Special function for reading an exception result from the header of
@@ -270,7 +265,7 @@ public:
      * @see Parcel#writeNoException
      * @see Parcel#readException
      */
-    static const CARAPI ReadExceptionFromParcel(
+    static CARAPI ReadExceptionFromParcel(
         /* [in] */ IParcel* reply);
 
     static CARAPI ReadExceptionWithFileNotFoundExceptionFromParcel(
@@ -312,50 +307,46 @@ public:
      * @param sqlString the raw string to be appended, which may contain single
      *                  quotes
      */
-    static CARAPI AppendEscapedSQLString(
-        /* [in] */ StringBuffer* sb,
-        /* [in] */ String sqlString);
+    static CARAPI_(void) AppendEscapedSQLString(
+        /* [in] */ StringBuffer& sb,
+        /* [in] */ const String& sqlString);
 
     /**
      * SQL-escape a string.
      */
-    static CARAPI SqlEscapeString(
-        /* [in] */ String value,
-        /* [out] */ String* sqlEscapeString);
+    static CARAPI_(String) SqlEscapeString(
+        /* [in] */ const String& value);
 
     /**
      * Appends an Object to an SQL string with the proper escaping, etc.
      */
-    static const CARAPI AppendValueToSql(
-        /* [in] */ StringBuffer* sql, 
+    static const CARAPI_(void) AppendValueToSql(
+        /* [in] */ StringBuffer& sql,
         /* [in] */ IInterface* value);
 
     /**
      * Concatenates two SQL WHERE clauses, handling empty or null values.
      * @hide
      */
-    static CARAPI ConcatenateWhere(
-        /* [in] */ String a,
-        /* [in] */ String b,
-        /* [out] */ String* where);
+    static CARAPI_(String) ConcatenateWhere(
+        /* [in] */ const String& a,
+        /* [in] */ const String& b);
 
     /**
      * return the collation key
      * @param name
      * @return the collation key
      */
-    static CARAPI GetCollationKey(
-        /* [in] */ String name,
-        /* [out] */ String* collationKey);
+    static CARAPI_(String) GetCollationKey(
+        /* [in] */ const String& name);
 
     /**
      * return the collation key in hex format
      * @param name
      * @return the collation key in hex format
      */
-    static CARAPI GetHexCollationKey(
-        /* [in] */ String name,
-        /* [out] */ String* hexCollationKey);
+    static CARAPI_(String) GetHexCollationKey(
+        /* [in] */ const String& name);
 
     /**
      * Prints the contents of a Cursor to System.out. The position is restored
@@ -363,7 +354,7 @@ public:
      *
      * @param cursor the cursor to print
      */
-    static CARAPI DumpCursor(
+    static CARAPI_(void) DumpCursor(
         /* [in] */ ICursor* cursor);
 
     /**
@@ -384,9 +375,9 @@ public:
      * @param cursor the cursor to print
      * @param sb the StringBuilder to print to
      */
-    static CARAPI DumpCursor(
+    static CARAPI_(void) DumpCursor(
         /* [in] */ ICursor* cursor,
-        /* [in] */ StringBuffer* sb);
+        /* [in] */ StringBuffer& sb);
 
     /**
      * Prints the contents of a Cursor to a String. The position is restored
@@ -395,16 +386,15 @@ public:
      * @param cursor the cursor to print
      * @return a String that contains the dumped cursor
      */
-    static CARAPI DumpCursorToString(
-        /* [in] */ ICursor* cursor,
-        /* [out] */ String* dumpCursor);
+    static CARAPI_(String) DumpCursorToString(
+        /* [in] */ ICursor* cursor);
 
     /**
      * Prints the contents of a Cursor's current row to System.out.
      *
      * @param cursor the cursor to print from
      */
-    static CARAPI DumpCurrentRow(
+    static CARAPI_(void) DumpCurrentRow(
         /* [in] */ ICursor* cursor);
 
     /**
@@ -423,9 +413,9 @@ public:
      * @param cursor the cursor to print
      * @param sb the StringBuilder to print to
      */
-    static CARAPI DumpCurrentRow(
+    static CARAPI_(void) DumpCurrentRow(
         /* [in] */ ICursor* cursor,
-        /* [in] */ StringBuffer* sb);
+        /* [in] */ StringBuffer& sb);
 
     /**
      * Dump the contents of a Cursor's current row to a String.
@@ -433,9 +423,8 @@ public:
      * @param cursor the cursor to print
      * @return a String that contains the dumped cursor row
      */
-    static CARAPI DumpCurrentRowToString(
-        /* [in] */ ICursor* cursor,
-        /* [out] */ String* dumpCurrentRow);
+    static CARAPI_(String) DumpCurrentRowToString(
+        /* [in] */ ICursor* cursor);
 
     /**
      * Reads a String out of a field in a Cursor and writes it to a Map.
@@ -444,9 +433,9 @@ public:
      * @param field The TEXT field to read
      * @param values The {@link ContentValues} to put the value into, with the field as the key
      */
-    static CARAPI CursorStringToContentValues(
+    static CARAPI_(void) CursorStringToContentValues(
         /* [in] */ ICursor* cursor,
-        /* [in] */ String field,
+        /* [in] */ const String& field,
         /* [in] */ IContentValues* values);
 
     /**
@@ -457,10 +446,10 @@ public:
      * @param inserter The InsertHelper to bind into
      * @param index the index of the bind entry in the InsertHelper
      */
-    static CARAPI CursorStringToInsertHelper(
-        /* [in] */ ICursor* cursor, 
-        /* [in] */ String field,
-        /* [in] */ InsertHelper* inserter, 
+    static CARAPI_(void) CursorStringToInsertHelper(
+        /* [in] */ ICursor* cursor,
+        /* [in] */ const String& field,
+        /* [in] */ InsertHelper* inserter,
         /* [in] */ Int32 index);
 
     /**
@@ -471,11 +460,11 @@ public:
      * @param values The {@link ContentValues} to put the value into, with the field as the key
      * @param key The key to store the value with in the map
      */
-    static CARAPI CursorStringToContentValues(
+    static CARAPI_(void) CursorStringToContentValues(
         /* [in] */ ICursor* cursor,
-        /* [in] */ String field,
-        /* [in] */ IContentValues* values, 
-        /* [in] */ String key);
+        /* [in] */ const String& field,
+        /* [in] */ IContentValues* values,
+        /* [in] */ const String& key);
 
     /**
      * Reads an Integer out of a field in a Cursor and writes it to a Map.
@@ -484,9 +473,9 @@ public:
      * @param field The INTEGER field to read
      * @param values The {@link ContentValues} to put the value into, with the field as the key
      */
-    static CARAPI CursorIntToContentValues(
+    static CARAPI_(void) CursorInt32ToContentValues(
         /* [in] */ ICursor* cursor,
-        /* [in] */ String field,
+        /* [in] */ const String& field,
         /* [in] */ IContentValues* values);
 
     /**
@@ -497,11 +486,11 @@ public:
      * @param values The {@link ContentValues} to put the value into, with the field as the key
      * @param key The key to store the value with in the map
      */
-    static CARAPI CursorIntToContentValues(
-        /* [in] */ ICursor* cursor, 
-        /* [in] */ String field, 
+    static CARAPI_(void) CursorInt32ToContentValues(
+        /* [in] */ ICursor* cursor,
+        /* [in] */ const String& field,
         /* [in] */ IContentValues* values,
-        /* [in] */ String key);
+        /* [in] */ const String& key);
 
     /**
      * Reads a Long out of a field in a Cursor and writes it to a Map.
@@ -510,9 +499,9 @@ public:
      * @param field The INTEGER field to read
      * @param values The {@link ContentValues} to put the value into, with the field as the key
      */
-    static CARAPI CursorLongToContentValues(
-        /* [in] */ ICursor* cursor, 
-        /* [in] */ String field, 
+    static CARAPI_(void) CursorInt64ToContentValues(
+        /* [in] */ ICursor* cursor,
+        /* [in] */ const String& field,
         /* [in] */ IContentValues* values);
 
     /**
@@ -523,11 +512,11 @@ public:
      * @param values The {@link ContentValues} to put the value into
      * @param key The key to store the value with in the map
      */
-    static CARAPI CursorLongToContentValues(
-        /* [in] */ ICursor* cursor, 
-        /* [in] */ String field, 
+    static CARAPI_(void) CursorInt64ToContentValues(
+        /* [in] */ ICursor* cursor,
+        /* [in] */ const String& field,
         /* [in] */ IContentValues* values,
-        /* [in] */ String key);
+        /* [in] */ const String& key);
 
     /**
      * Reads a Double out of a field in a Cursor and writes it to a Map.
@@ -536,9 +525,9 @@ public:
      * @param field The REAL field to read
      * @param values The {@link ContentValues} to put the value into
      */
-    static CARAPI CursorDoubleToCursorValues(
-        /* [in] */ ICursor* cursor, 
-        /* [in] */ String field, 
+    static CARAPI_(void) CursorDoubleToCursorValues(
+        /* [in] */ ICursor* cursor,
+        /* [in] */ const String& field,
         /* [in] */ IContentValues* values);
 
     /**
@@ -549,11 +538,11 @@ public:
      * @param values The {@link ContentValues} to put the value into
      * @param key The key to store the value with in the map
      */
-    static CARAPI CursorDoubleToContentValues(
-        /* [in] */ ICursor* cursor, 
-        /* [in] */ String field, 
+    static CARAPI_(void) CursorDoubleToContentValues(
+        /* [in] */ ICursor* cursor,
+        /* [in] */ const String& field,
         /* [in] */ IContentValues* values,
-        /* [in] */ String key);
+        /* [in] */ const String& key);
 
     /**
      * Read the entire contents of a cursor row and store them in a ContentValues.
@@ -561,7 +550,7 @@ public:
      * @param cursor the cursor to read from.
      * @param values the {@link ContentValues} to put the row into.
      */
-    static CARAPI CursorRowToContentValues(
+    static CARAPI_(void) CursorRowToContentValues(
         /* [in] */ ICursor* cursor,
         /* [in] */ IContentValues* values);
 
@@ -573,27 +562,27 @@ public:
      */
     static CARAPI QueryNumEntries(
         /* [in] */ ISQLiteDatabase* db,
-        /* [in] */ String table,
+        /* [in] */ const String& table,
         /* [out] */ Int64* numEntries);
 
     /**
      * Utility method to run the query on the db and return the value in the
      * first column of the first row.
      */
-    static CARAPI LongForQuery(
+    static CARAPI Int64ForQuery(
         /* [in] */ ISQLiteDatabase* db,
-        /* [in] */ String query,
+        /* [in] */ const String& query,
         /* [in] */ ArrayOf<String>* selectionArgs,
-        /* [out] */ Int64* longValue);
+        /* [out] */ Int64* value);
 
     /**
      * Utility method to run the pre-compiled query and return the value in the
      * first column of the first row.
      */
-    static CARAPI LongForQuery(
+    static CARAPI Int64ForQuery(
         /* [in] */ ISQLiteStatement* prog,
         /* [in] */ ArrayOf<String>* selectionArgs,
-        /* [out] */ Int64* longValue);
+        /* [out] */ Int64* value);
 
     /**
      * Utility method to run the query on the db and return the value in the
@@ -601,9 +590,9 @@ public:
      */
     static CARAPI StringForQuery(
         /* [in] */ ISQLiteDatabase* db,
-        /* [in] */ String query,
+        /* [in] */ const String& query,
         /* [in] */ ArrayOf<String>* selectionArgs,
-        /* [out] */ String* stringValue);
+        /* [out] */ String* value);
 
     /**
      * Utility method to run the pre-compiled query and return the value in the
@@ -612,7 +601,7 @@ public:
     static CARAPI StringForQuery(
         /* [in] */ ISQLiteStatement* prog,
         /* [in] */ ArrayOf<String>* selectionArgs,
-        /* [out] */ String* stringValue);
+        /* [out] */ String* value);
 
     /**
      * Reads a String out of a column in a Cursor and writes it to a ContentValues.
@@ -622,10 +611,10 @@ public:
      * @param column The column to read
      * @param values The {@link ContentValues} to put the value into
      */
-    static CARAPI CursorStringToContentValuesIfPresent(
+    static CARAPI_(void) CursorStringToContentValuesIfPresent(
         /* [in] */ ICursor* cursor,
         /* [in] */ IContentValues* values,
-        /* [in] */ String column);
+        /* [in] */ const String& column);
 
     /**
      * Reads a Long out of a column in a Cursor and writes it to a ContentValues.
@@ -635,10 +624,10 @@ public:
      * @param column The column to read
      * @param values The {@link ContentValues} to put the value into
      */
-    static CARAPI CursorLongToContentValuesIfPresent(
+    static CARAPI_(void) CursorInt64ToContentValuesIfPresent(
         /* [in] */ ICursor* cursor,
         /* [in] */ IContentValues* values,
-        /* [in] */ String column);
+        /* [in] */ const String& column);
 
     /**
      * Reads a Short out of a column in a Cursor and writes it to a ContentValues.
@@ -648,10 +637,10 @@ public:
      * @param column The column to read
      * @param values The {@link ContentValues} to put the value into
      */
-    static CARAPI CursorShortToContentValuesIfPresent(
+    static CARAPI_(void) CursorInt16ToContentValuesIfPresent(
         /* [in] */ ICursor* cursor,
         /* [in] */ IContentValues* values,
-        /* [in] */ String column);
+        /* [in] */ const String& column);
 
     /**
      * Reads a Integer out of a column in a Cursor and writes it to a ContentValues.
@@ -661,10 +650,10 @@ public:
      * @param column The column to read
      * @param values The {@link ContentValues} to put the value into
      */
-    static CARAPI CursorIntToContentValuesIfPresent(
+    static CARAPI_(void) CursorInt32ToContentValuesIfPresent(
         /* [in] */ ICursor* cursor,
         /* [in] */ IContentValues* values,
-        /* [in] */ String column);
+        /* [in] */ const String& column);
 
     /**
      * Reads a Float out of a column in a Cursor and writes it to a ContentValues.
@@ -674,10 +663,10 @@ public:
      * @param column The column to read
      * @param values The {@link ContentValues} to put the value into
      */
-    static CARAPI CursorFloatToContentValuesIfPresent(
+    static CARAPI_(void) CursorFloatToContentValuesIfPresent(
         /* [in] */ ICursor* cursor,
         /* [in] */ IContentValues* values,
-        /* [in] */ String column);
+        /* [in] */ const String& column);
 
     /**
      * Reads a Double out of a column in a Cursor and writes it to a ContentValues.
@@ -687,10 +676,10 @@ public:
      * @param column The column to read
      * @param values The {@link ContentValues} to put the value into
      */
-    static CARAPI CursorDoubleToContentValuesIfPresent(
+    static CARAPI_(void) CursorDoubleToContentValuesIfPresent(
         /* [in] */ ICursor* cursor,
         /* [in] */ IContentValues* values,
-        /* [in] */ String column);
+        /* [in] */ const String& column);
 
     /**
      * Creates a db and populates it with the sql statements in sqlStatements.
@@ -704,34 +693,33 @@ public:
      */
     static CARAPI CreateDbFromSqlStatements(
             /* [in] */ IContext* context,
-            /* [in] */ String dbName,
+            /* [in] */ const String& dbName,
             /* [in] */ Int32 dbVersion,
-            /* [in] */ String sqlStatements);
+            /* [in] */ const String& sqlStatements);
 
 private:
-    static const CARAPI ReadExceptionFromParcel(
+    static CARAPI ReadExceptionFromParcel(
         /* [in] */ IParcel* reply,
-        /* [in] */ String msg,
+        /* [in] */ const String& msg,
         /* [in] */ Int32 code);
 
-    static CARAPI GetKeyLen(
-        /* [in] */ ArrayOf<Byte>* arr,
-        /* [out] */ Int32* keyLen);
+    static CARAPI_(Int32) GetKeyLen(
+        /* [in] */ const ArrayOf<Byte>& arr);
 
-    static CARAPI GetCollationKeyInBytes(
-        /* [in] */ String name,
-        /* [out] */ ArrayOf<Byte>** collationKeyInBytes);
+    static CARAPI_(ArrayOf<Byte>*) GetCollationKeyInBytes(
+        /* [in] */ const String& name);
 
 private:
-    static const String TAG;
+    static const CString TAG;
 
-    static const Boolean DEBUG = false;
+    static const Boolean DEBUG = FALSE;
     static const Boolean LOCAL_LOGV = DEBUG ? Config::LOGD : Config::LOGV;
 
-    static const ArrayOf<String>* countProjection;// = new String[]{"count(*)"};
+    static const ArrayOf<CString>* sCountProjection;// = new String[]{"count(*)"};
 
     //static Collator mColl = null;
 
-    static const Char8 DIGITS[16];
+    // static const Char8 DIGITS[16];
 };
+
 #endif //__DATABASEUTILS_H__

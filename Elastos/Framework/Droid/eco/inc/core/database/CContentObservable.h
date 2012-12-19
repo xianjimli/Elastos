@@ -4,14 +4,15 @@
 
 #include "_CContentObservable.h"
 #include "database/ContentObservable.h"
+
 CarClass(CContentObservable), public ContentObservable
 {
 public:
     CARAPI RegisterObserver(
-        /* [in] */ IInterface * pObserver);
+        /* [in] */ IInterface* observer);
 
     CARAPI UnregisterObserver(
-        /* [in] */ IInterface * pObserver);
+        /* [in] */ IInterface* observer);
 
     CARAPI UnregisterAll();
 
@@ -20,8 +21,6 @@ public:
 
     CARAPI NotifyChange(
         /* [in] */ Boolean selfChange);
-
-    CARAPI constructor();
 
 private:
     // TODO: Add your private member variables here.

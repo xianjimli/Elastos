@@ -1,42 +1,32 @@
 
 #include "database/CContentObservable.h"
+
+
 ECode CContentObservable::RegisterObserver(
-    /* [in] */ IInterface * pObserver)
+    /* [in] */ IInterface* observer)
 {
-    ContentObservable::RegisterObserver((ILocalContentObserver*)pObserver);
-    return NOERROR;
+    return ContentObservable::RegisterObserver(ILocalContentObserver::Probe(observer));
 }
 
 ECode CContentObservable::UnregisterObserver(
-    /* [in] */ IInterface * pObserver)
+    /* [in] */ IInterface* observer)
 {
-    ContentObservable::UnregisterObserver((ILocalContentObserver*)pObserver);
-    return NOERROR;
+    return ContentObservable::UnregisterObserver(ILocalContentObserver::Probe(observer));
 }
 
 ECode CContentObservable::UnregisterAll()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return ContentObservable::UnregisterAll();
 }
 
 ECode CContentObservable::DispatchChange(
     /* [in] */ Boolean selfChange)
 {
-    ContentObservable::DispatchChange(selfChange);
-    return NOERROR;
+    return ContentObservable::DispatchChange(selfChange);
 }
 
 ECode CContentObservable::NotifyChange(
     /* [in] */ Boolean selfChange)
 {
-    ContentObservable::NotifyChange(selfChange);
-    return NOERROR;
+    return ContentObservable::NotifyChange(selfChange);
 }
-
-ECode CContentObservable::constructor()
-{
-    ContentObservable::ContentObservable();
-    return NOERROR;
-}
-

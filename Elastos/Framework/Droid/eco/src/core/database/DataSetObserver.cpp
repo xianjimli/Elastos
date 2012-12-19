@@ -1,12 +1,6 @@
+
 #include "database/DataSetObserver.h"
 
-DataSetObserver::DataSetObserver()
-{
-}
-
-DataSetObserver::~DataSetObserver()
-{
-}
 
 ECode DataSetObserver::OnChanged()
 {

@@ -2,38 +2,44 @@
 #include "database/CharArrayBuffer.h"
 
 CharArrayBuffer::CharArrayBuffer()
-{
-}
+    : mData(NULL)
+    , mSizeCopied(0)
+{}
 
 CharArrayBuffer::~CharArrayBuffer()
 {
-    ArrayOf<Char8>::Free(data);
+    if (mData != NULL) {
+        ArrayOf<Char32>::Free(mData);
+    }
 }
 
 ECode CharArrayBuffer::Init(
-        /* [in] */ Int32 size)
+    /* [in] */ Int32 size)
 {
-    data = ArrayOf<Char8>::Alloc(size);
+    mData = ArrayOf<Char32>::Alloc(size);
     return NOERROR;
 }
 
 ECode CharArrayBuffer::Init(
-        /* [in] */ const ArrayOf<Char8>& buf)
+    /* [in] */ ArrayOf<Char32>* buf)
 {
-    data = buf.Clone();
+    mData = buf;
     return NOERROR;
 }
 
 ECode CharArrayBuffer::GetData(
-    /* [out,callee] */ ArrayOf<Char8>** data)
+    /* [out,callee] */ ArrayOf<Char32>** data)
 {
-    *data = this->data;
+    *data = mData->Clone();
     return NOERROR;
 }
 
 ECode CharArrayBuffer::SetData(
-    /* [in] */ const ArrayOf<Char8>& data)
+    /* [in] */ ArrayOf<Char32>* data)
 {
-    this->data = const_cast<ArrayOf<Char8>*>(&data);
+    if (mData != NULL) {
+        ArrayOf<Char32>::Free(mData);
+    }
+    mData = data;
     return NOERROR;
 }

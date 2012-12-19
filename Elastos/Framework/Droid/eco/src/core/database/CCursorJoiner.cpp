@@ -1,31 +1,32 @@
 
+#include "ext/frameworkdef.h"
 #include "database/CCursorJoiner.h"
-ECode CCursorJoiner::HasNext(
-    /* [out] */ Boolean * pRst)
+
+
+ECode CCursorJoiner::constructor(
+    /* [in] */ ICursor* cursorLeft,
+    /* [in] */ const ArrayOf<String>& columnNamesLeft,
+    /* [in] */ ICursor* cursorRight,
+    /* [in] */ const ArrayOf<String>& columnNamesRight)
 {
-    CursorJoiner::HasNext(pRst);
-    return NOERROR;
+    return CursorJoiner::Init(cursorLeft, columnNamesLeft, cursorRight, columnNamesRight);
+}
+
+ECode CCursorJoiner::HasNext(
+    /* [out] */ Boolean* result)
+{
+    VALIDATE_NOT_NULL(result);
+    return CursorJoiner::HasNext(result);
+}
+
+ECode CCursorJoiner::GetNext(
+    /* [out] */ CursorJoinerResult* result)
+{
+    VALIDATE_NOT_NULL(result);
+    return CursorJoiner::GetNext(result);
 }
 
 ECode CCursorJoiner::Remove()
 {
-    CursorJoiner::Remove();
-    return NOERROR;
+    return CursorJoiner::Remove();
 }
-
-ECode CCursorJoiner::constructor()
-{
-    CursorJoiner::CursorJoiner();
-    return NOERROR;
-}
-
-ECode CCursorJoiner::constructor(
-    /* [in] */ ICursor * pCursorLeft,
-    /* [in] */ const ArrayOf<String> & columnNamesLeft,
-    /* [in] */ ICursor * pCursorRight,
-    /* [in] */ const ArrayOf<String> & columnNamesRight)
-{
-    CursorJoiner::Init(pCursorLeft, columnNamesLeft, pCursorRight, columnNamesRight);
-    return NOERROR;
-}
-

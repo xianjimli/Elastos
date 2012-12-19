@@ -1,8 +1,0 @@
-module
-{
-    interface IBulkCursorProxy
-    {
-        AsBinder(
-            [out] IBinder** b);
-    }
-}

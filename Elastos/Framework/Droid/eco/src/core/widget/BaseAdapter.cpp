@@ -1,9 +1,10 @@
 
 #include "widget/BaseAdapter.h"
+#include "database/CDataSetObservable.h"
 
 BaseAdapter::BaseAdapter()
 {
-    mDataSetObservable = new DataSetObservable();
+    CDataSetObservable::New((IDataSetObservable**)&mDataSetObservable);
 }
 
 Boolean BaseAdapter::HasStableIds()

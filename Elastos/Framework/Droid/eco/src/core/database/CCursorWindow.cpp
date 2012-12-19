@@ -1,6 +1,13 @@
 
+#include "ext/frameworkdef.h"
 #include "database/CCursorWindow.h"
 
+
+ECode CCursorWindow::constructor(
+    /* [in] */ Boolean localWindow)
+{
+    return CursorWindow::Init(localWindow);
+}
 
 PInterface CCursorWindow::Probe(
     /* [in]  */ REIID riid)
@@ -11,85 +18,78 @@ PInterface CCursorWindow::Probe(
     else return _CCursorWindow::Probe(riid);
 }
 
-ECode CCursorWindow::OnAllReferencesReleased()
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CCursorWindow::OnAllReferencesReleasedFromContainer()
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
 ECode CCursorWindow::AcquireReference()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return CursorWindow::AcquireReference();
 }
 
 ECode CCursorWindow::ReleaseReference()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return CursorWindow::ReleaseReference();
 }
 
 ECode CCursorWindow::ReleaseReferenceFromContainer()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return CursorWindow::ReleaseReferenceFromContainer();
 }
 
 ECode CCursorWindow::GetStartPosition(
-    /* [out] */ Int32 * pPos)
+    /* [out] */ Int32* pos)
 {
-    CursorWindow::GetStartPosition(pPos);
+    VALIDATE_NOT_NULL(pos);
+
+    *pos = CursorWindow::GetStartPosition();
     return NOERROR;
 }
 
 ECode CCursorWindow::SetStartPosition(
     /* [in] */ Int32 pos)
 {
-    CursorWindow::SetStartPosition(pos);
-    return NOERROR;
+    return CursorWindow::SetStartPosition(pos);
 }
 
 ECode CCursorWindow::GetNumRows(
-    /* [out] */ Int32 * pNum)
+    /* [out] */ Int32* num)
 {
-    CursorWindow::GetNumRows(pNum);
+    VALIDATE_NOT_NULL(num);
+
+    *num = CursorWindow::GetNumRows();
     return NOERROR;
 }
 
 ECode CCursorWindow::SetNumColumns(
     /* [in] */ Int32 columnNum,
-    /* [out] */ Boolean * pSucceeded)
+    /* [out] */ Boolean* succeeded)
 {
-    CursorWindow::SetNumColumns(columnNum, pSucceeded);
+    VALIDATE_NOT_NULL(succeeded);
+
+    *succeeded = CursorWindow::SetNumColumns(columnNum);
     return NOERROR;
 }
 
 ECode CCursorWindow::AllocRow(
-    /* [out] */ Boolean * pSucceeded)
+    /* [out] */ Boolean* succeeded)
 {
-    CursorWindow::AllocRow(pSucceeded);
+    VALIDATE_NOT_NULL(succeeded);
+
+    *succeeded = CursorWindow::AllocRow();
     return NOERROR;
 }
 
 ECode CCursorWindow::FreeLastRow()
 {
-    CursorWindow::FreeLastRow();
-    return NOERROR;
+    return CursorWindow::FreeLastRow();
 }
 
 ECode CCursorWindow::PutBlob(
-    /* [in] */ const ArrayOf<Byte> & value,
+    /* [in] */ const ArrayOf<Byte>& value,
     /* [in] */ Int32 row,
     /* [in] */ Int32 col,
-    /* [out] */ Boolean * pSucceeded)
+    /* [out] */ Boolean* succeeded)
 {
-    CursorWindow::PutBlob(value, row, col, pSucceeded);
+    VALIDATE_NOT_NULL(succeeded);
+
+    *succeeded = CursorWindow::PutBlob(value, row, col);
     return NOERROR;
 }
 
@@ -97,9 +97,11 @@ ECode CCursorWindow::PutString(
     /* [in] */ const String& value,
     /* [in] */ Int32 row,
     /* [in] */ Int32 col,
-    /* [out] */ Boolean * pSucceeded)
+    /* [out] */ Boolean* succeeded)
 {
-    CursorWindow::PutString(value, row, col, pSucceeded);
+    VALIDATE_NOT_NULL(succeeded);
+
+    *succeeded = CursorWindow::PutString(value, row, col);
     return NOERROR;
 }
 
@@ -107,9 +109,11 @@ ECode CCursorWindow::PutInt64(
     /* [in] */ Int64 value,
     /* [in] */ Int32 row,
     /* [in] */ Int32 col,
-    /* [out] */ Boolean * pSucceeded)
+    /* [out] */ Boolean* succeeded)
 {
-    CursorWindow::PutInt64(value, row, col, pSucceeded);
+    VALIDATE_NOT_NULL(succeeded);
+
+    *succeeded = CursorWindow::PutInt64(value, row, col);
     return NOERROR;
 }
 
@@ -117,172 +121,173 @@ ECode CCursorWindow::PutDouble(
     /* [in] */ Double value,
     /* [in] */ Int32 row,
     /* [in] */ Int32 col,
-    /* [out] */ Boolean * pSucceeded)
+    /* [out] */ Boolean* succeeded)
 {
-    CursorWindow::PutDouble(value, row, col, pSucceeded);
+    VALIDATE_NOT_NULL(succeeded);
+
+    *succeeded = CursorWindow::PutDouble(value, row, col);
     return NOERROR;
 }
 
 ECode CCursorWindow::PutNull(
     /* [in] */ Int32 row,
     /* [in] */ Int32 col,
-    /* [out] */ Boolean * pSucceeded)
+    /* [out] */ Boolean* succeeded)
 {
-    CursorWindow::PutNull(row, col, pSucceeded);
+    VALIDATE_NOT_NULL(succeeded);
+
+    *succeeded = CursorWindow::PutNull(row, col);
     return NOERROR;
 }
 
 ECode CCursorWindow::IsNull(
     /* [in] */ Int32 row,
     /* [in] */ Int32 col,
-    /* [out] */ Boolean * pSucceeded)
+    /* [out] */ Boolean* isNull)
 {
-    CursorWindow::IsNull(row, col, pSucceeded);
+    VALIDATE_NOT_NULL(isNull);
+
+    *isNull = CursorWindow::IsNull(row, col);
     return NOERROR;
 }
 
 ECode CCursorWindow::GetBlob(
     /* [in] */ Int32 row,
     /* [in] */ Int32 col,
-    /* [out, callee] */ ArrayOf<Byte> ** ppBlob)
+    /* [out, callee] */ ArrayOf<Byte>** blob)
 {
-    CursorWindow::GetBlob(row, col, ppBlob);
-    return NOERROR;
+    VALIDATE_NOT_NULL(blob);
+
+    return CursorWindow::GetBlob(row, col, blob);
 }
 
 ECode CCursorWindow::IsBlob(
     /* [in] */ Int32 row,
     /* [in] */ Int32 col,
-    /* [out] */ Boolean * pIsBlob)
+    /* [out] */ Boolean* isBlob)
 {
-    CursorWindow::IsBlob(row, col, pIsBlob);
-    return NOERROR;
+    VALIDATE_NOT_NULL(isBlob);
+
+    return CursorWindow::IsBlob(row, col, isBlob);
 }
 
 ECode CCursorWindow::IsInt64(
     /* [in] */ Int32 row,
     /* [in] */ Int32 col,
-    /* [out] */ Boolean * pIsInt64)
+    /* [out] */ Boolean* isInt64)
 {
-    CursorWindow::IsInt64(row, col, pIsInt64);
-    return NOERROR;
+    VALIDATE_NOT_NULL(isInt64);
+
+    return CursorWindow::IsInt64(row, col, isInt64);
 }
 
 ECode CCursorWindow::IsFloat(
     /* [in] */ Int32 row,
     /* [in] */ Int32 col,
-    /* [out] */ Boolean * pIsFloat)
+    /* [out] */ Boolean* isFloat)
 {
-    CursorWindow::IsFloat(row, col, pIsFloat);
-    return NOERROR;
+    VALIDATE_NOT_NULL(isFloat);
+
+    return CursorWindow::IsFloat(row, col, isFloat);
 }
 
 ECode CCursorWindow::IsString(
     /* [in] */ Int32 row,
     /* [in] */ Int32 col,
-    /* [out] */ Boolean * pIsString)
+    /* [out] */ Boolean* isString)
 {
-    CursorWindow::IsString(row, col, pIsString);
-    return NOERROR;
+    VALIDATE_NOT_NULL(isString);
+
+    return CursorWindow::IsString(row, col, isString);
 }
 
 ECode CCursorWindow::GetString(
     /* [in] */ Int32 row,
     /* [in] */ Int32 col,
-    /* [out] */ String * pRst)
+    /* [out] */ String* str)
 {
-    CursorWindow::GetString(row, col, pRst);
-    return NOERROR;
+    VALIDATE_NOT_NULL(str);
+
+    return CursorWindow::GetString(row, col, str);
 }
 
 ECode CCursorWindow::CopyStringToBuffer(
     /* [in] */ Int32 row,
     /* [in] */ Int32 col,
-    /* [in] */ ICharArrayBuffer * pBuffer)
+    /* [in] */ ICharArrayBuffer* buffer)
 {
-    CursorWindow::CopyStringToBuffer(row, col, pBuffer);
-    return NOERROR;
+    return CursorWindow::CopyStringToBuffer(row, col, buffer);
 }
 
 ECode CCursorWindow::GetInt64(
     /* [in] */ Int32 row,
     /* [in] */ Int32 col,
-    /* [out] */ Int64 * pValue)
+    /* [out] */ Int64* value)
 {
-    CursorWindow::GetInt64(row, col, pValue);
-    return NOERROR;
+    VALIDATE_NOT_NULL(value);
+
+    return CursorWindow::GetInt64(row, col, value);
 }
 
 ECode CCursorWindow::GetDouble(
     /* [in] */ Int32 row,
     /* [in] */ Int32 col,
-    /* [out] */ Double * pValue)
+    /* [out] */ Double* value)
 {
-    CursorWindow::GetDouble(row, col, pValue);
-    return NOERROR;
+    VALIDATE_NOT_NULL(value);
+
+    return CursorWindow::GetDouble(row, col, value);
 }
 
 ECode CCursorWindow::GetInt16(
     /* [in] */ Int32 row,
     /* [in] */ Int32 col,
-    /* [out] */ Int16 * pValue)
+    /* [out] */ Int16* value)
 {
-    CursorWindow::GetInt16(row, col, pValue);
-    return NOERROR;
+    VALIDATE_NOT_NULL(value);
+
+    return CursorWindow::GetInt16(row, col, value);
 }
 
 ECode CCursorWindow::GetInt32(
     /* [in] */ Int32 row,
     /* [in] */ Int32 col,
-    /* [out] */ Int32 * pValue)
+    /* [out] */ Int32* value)
 {
-    CursorWindow::GetInt32(row, col, pValue);
-    return NOERROR;
+    VALIDATE_NOT_NULL(value);
+
+    return CursorWindow::GetInt32(row, col, value);
 }
 
 ECode CCursorWindow::GetFloat(
     /* [in] */ Int32 row,
     /* [in] */ Int32 col,
-    /* [out] */ Float * pValue)
+    /* [out] */ Float* value)
 {
-    CursorWindow::GetFloat(row, col, pValue);
-    return NOERROR;
+    VALIDATE_NOT_NULL(value);
+
+    return CursorWindow::GetFloat(row, col, value);
 }
 
 ECode CCursorWindow::Clear()
 {
-    CursorWindow::Clear();
-    return NOERROR;
+    return CursorWindow::Clear();
 }
 
 ECode CCursorWindow::Close()
 {
-    CursorWindow::Close();
-    return NOERROR;
+    return CursorWindow::Close();
 }
 
 ECode CCursorWindow::ReadFromParcel(
-    /* [in] */ IParcel * pSource)
+    /* [in] */ IParcel* source)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CCursorWindow::WriteToParcel(
-    /* [in] */ IParcel * pDest)
+    /* [in] */ IParcel* dest)
 {
     return E_NOT_IMPLEMENTED;
 }
-
-ECode CCursorWindow::constructor()
-{
-    return NOERROR;
-}
-
-ECode CCursorWindow::constructor(
-    /* [in] */ Boolean localWindow)
-{
-    CursorWindow::Init(localWindow);
-    return NOERROR;
-}
-

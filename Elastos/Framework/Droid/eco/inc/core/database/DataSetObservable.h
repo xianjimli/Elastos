@@ -4,21 +4,24 @@
 
 #include "database/Observable.h"
 
+/**
+ * A specialization of Observable for DataSetObserver that provides methods for
+ * invoking the various callback methods of DataSetObserver.
+ */
 class DataSetObservable : public Observable
 {
 public:
-    DataSetObservable();
-
-    virtual ~DataSetObservable();
-
+    /**
+     * Invokes onChanged on each observer. Called when the data set being observed has
+     * changed, and which when read contains the new state of the data.
+     */
     virtual CARAPI NotifyChanged();
 
+    /**
+     * Invokes onInvalidated on each observer. Called when the data set being monitored
+     * has changed such that it is no longer valid.
+     */
     virtual CARAPI NotifyInvalidated();
-
-    CARAPI RegisterObserver(
-        /* [in] */ IDataSetObserver* observer);
-
-    CARAPI UnregisterObserver(
-        /* [in] */ IDataSetObserver* observer);
 };
+
 #endif //__DATASETOBSERVABLE_H__

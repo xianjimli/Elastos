@@ -145,7 +145,8 @@ public:
      * @deprecated
      */
     // @Override
-    CARAPI_(Boolean) DeleteRow();
+    CARAPI DeleteRow(
+        /* [out] */ Boolean* succeeded);
 
     // @Override
     CARAPI_(ArrayOf<String>*) GetColumnNames();
@@ -172,7 +173,8 @@ public:
     CARAPI Close();
 
     // @Override
-    CARAPI_(Boolean) Requery();
+    CARAPI Requery(
+        /* [out] */ Boolean* succeeded);
 
     // @Override
     CARAPI SetWindow(

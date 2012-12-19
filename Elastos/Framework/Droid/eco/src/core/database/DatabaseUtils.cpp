@@ -1,80 +1,395 @@
+
+#include "ext/frameworkdef.h"
 #include "database/DatabaseUtils.h"
 #include <Logger.h>
 
 using namespace Elastos::Utility::Logging;
 
-const String DatabaseUtils::TAG = String("DatabaseUtils");
 
-const ArrayOf<String>* DatabaseUtils::countProjection = ArrayOf<String>::Alloc(1);
+DatabaseUtils::InsertHelper::InsertHelper(
+    /* [in] */ ISQLiteDatabase* db,
+    /* [in] */ const String& tableName)
+    : mDb(db)
+    , mTableName(tableName)
+    , mColumns(NULL)
+{}
 
-const Char8 DatabaseUtils::DIGITS[16] = {
-    '0','1','2','3','4','5','6','7',
-    '8','9','A','B','C','D','E','F'};
-
-DatabaseUtils::DatabaseUtils()
+DatabaseUtils::InsertHelper::~InsertHelper()
 {
+    if (mColumns != NULL) {
+        mColumns->Clear();
+        delete mColumns;
+    }
 }
 
-DatabaseUtils::~DatabaseUtils()
+ECode DatabaseUtils::InsertHelper::BuildSQL()
 {
+    StringBuffer sb(128);
+    sb += "INSERT INTO ";
+    sb += mTableName;
+    sb += " (";
+
+    StringBuffer sbv(128);
+    sbv += "VALUES (";
+
+    Int32 i = 1;
+    AutoPtr<ICursor> cur;
+    //try {
+        StringBuffer sql(128);
+        sql = "PRAGMA table_info(";
+        sql += mTableName;
+        sql += ")";
+        mDb->RawQuery(String(sql), NULL, (ICursor**)&cur);
+        Int32 count;
+        cur->GetCount(&count);
+        mColumns = new HashMap<String, Int32>(count);
+        Boolean moveToNext;
+        while (cur->MoveToNext(&moveToNext), moveToNext) {
+            String columnName, defaultValue;
+            cur->GetString(TABLE_INFO_PRAGMA_COLUMNNAME_INDEX, &columnName);
+            cur->GetString(TABLE_INFO_PRAGMA_DEFAULT_INDEX, &defaultValue);
+
+            (*mColumns)[columnName] = i;
+            sb += "'";
+            sb += columnName;
+            sb += "'";
+
+            if (defaultValue.IsNull()) {
+                sbv += "?";
+            }
+            else {
+                sbv += "COALESCE(?, ";
+                sbv += defaultValue;
+                sbv += ")";
+            }
+
+            sb += (i == count ? ") " : ", ");
+            sbv += (i == count ? ");" : ", ");
+            ++i;
+        }
+    //} finally {
+    if (cur != NULL) {
+        cur->Close();
+    }
+    //}
+
+    sb += sbv;
+
+    mInsertSQL = (const char*)sb;
+    if (LOCAL_LOGV) {
+        StringBuffer log;
+        log = "insert statement is ";
+        log += mInsertSQL;
+        Logger::V(TAG, (const char*)log);
+    }
+    return NOERROR;
 }
 
-const ECode DatabaseUtils::ReadExceptionFromParcel(
-        /* [in] */ IParcel* reply)
+ECode DatabaseUtils::InsertHelper::GetStatement(
+    /* [in] */ Boolean allowReplace,
+    /* [out] */ ISQLiteStatement** statement)
 {
-    Int32 code = 0;
-//    reply->ReadExceptionCode(&code);
-    if (code == 0) {
+    if (allowReplace) {
+        if (mReplaceStatement == NULL) {
+            if (mInsertSQL == NULL) {
+                BuildSQL();
+            }
+            // chop "INSERT" off the front and prepend "INSERT OR REPLACE" instead.
+            String replaceSQL = String("INSERT OR REPLACE") + mInsertSQL.Substring(6);
+            mDb->CompileStatement(replaceSQL, (ISQLiteStatement**)&mReplaceStatement);
+        }
+        *statement = mReplaceStatement;
+        (*statement)->AddRef();
         return NOERROR;
     }
-    String msg = String(" ");
-    reply->ReadString(&msg);
-    DatabaseUtils::ReadExceptionFromParcel(reply, msg, code);
+    else {
+        if (mInsertStatement == NULL) {
+            if (mInsertSQL == NULL) {
+                BuildSQL();
+            }
+            mDb->CompileStatement(mInsertSQL, (ISQLiteStatement**)&mInsertStatement);
+        }
+        *statement = mInsertStatement;
+        (*statement)->AddRef();
+        return NOERROR;
+    }
+}
+
+Int64 DatabaseUtils::InsertHelper::InsertInternal(
+    /* [in] */ IContentValues* values,
+    /* [in] */ Boolean allowReplace)
+{
+    Mutex::Autolock lock(mLock);
+
+    //try {
+    AutoPtr<ISQLiteStatement> stmt;
+    GetStatement(allowReplace, (ISQLiteStatement**)&stmt);
+    stmt->ClearBindings();
+    if (LOCAL_LOGV) {
+        Logger::V(TAG, StringBuffer("--- inserting in table ") + mTableName);
+    }
+    /*for (Map.Entry<String, Object> e: values.valueSet()) {
+        final String key = e.getKey();
+        int i = getColumnIndex(key);
+        DatabaseUtils.bindObjectToProgram(stmt, i, e.getValue());
+        if (LOCAL_LOGV) {
+            Log.v(TAG, "binding " + e.getValue() + " to column " +
+                  i + " (" + key + ")");
+        }
+    }
+    return stmt.executeInsert();*/
+    return -1;
+    //} catch (SQLException e) {
+        //Log.e(TAG, "Error inserting " + values + " into table  " + mTableName, e);
+        //return -1;
+    //}
+}
+
+ECode DatabaseUtils::InsertHelper::GetColumnIndex(
+    /* [in] */ const String& key,
+    /* [out] */ Int32* columnIndex)
+{
+    VALIDATE_NOT_NULL(columnIndex);
+
+    AutoPtr<ISQLiteStatement> stmt;
+    GetStatement(FALSE, (ISQLiteStatement**)&stmt);
+    HashMap<String, Int32 >::Iterator it = mColumns->Find(key);
+    if (it == mColumns->End()) {
+        //throw new IllegalArgumentException("column '" + key + "' is invalid");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+    *columnIndex = it->mSecond;
     return NOERROR;
+}
+
+ECode DatabaseUtils::InsertHelper::Bind(
+    /* [in] */ Int32 index,
+    /* [in] */ Double value)
+{
+    return mPreparedStatement->BindDouble(index, value);
+}
+
+ECode DatabaseUtils::InsertHelper::Bind(
+    /* [in] */ Int32 index,
+    /* [in] */ Float value)
+{
+    return mPreparedStatement->BindDouble(index, value);
+}
+
+ECode DatabaseUtils::InsertHelper::Bind(
+    /* [in] */ Int32 index,
+    /* [in] */ Int64 value)
+{
+    return mPreparedStatement->BindInt64(index, value);
+}
+
+ECode DatabaseUtils::InsertHelper::Bind(
+    /* [in] */ Int32 index,
+    /* [in] */ Int32 value)
+{
+    return mPreparedStatement->BindInt64(index, value);
+}
+
+ECode DatabaseUtils::InsertHelper::Bind(
+    /* [in] */ Int32 index,
+    /* [in] */ Boolean value)
+{
+    return mPreparedStatement->BindInt64(index, value ? 1 : 0);
+}
+
+ECode DatabaseUtils::InsertHelper::BindNull(
+    /* [in] */ Int32 index)
+{
+    return mPreparedStatement->BindNull(index);
+}
+
+ECode DatabaseUtils::InsertHelper::Bind(
+    /* [in] */ Int32 index,
+    /* [in] */ ArrayOf<Byte>* value)
+{
+    if (value == NULL) {
+        return mPreparedStatement->BindNull(index);
+    }
+    else {
+        return mPreparedStatement->BindBlob(index, *value);
+    }
+}
+
+ECode DatabaseUtils::InsertHelper::Bind(
+    /* [in] */ Int32 index,
+    /* [in] */ const String& value)
+{
+    if (value.IsNull()) {
+        return mPreparedStatement->BindNull(index);
+    }
+    else {
+        return mPreparedStatement->BindString(index, value);
+    }
+}
+
+ECode DatabaseUtils::InsertHelper::Insert(
+    /* [in] */ IContentValues* values,
+    /* [out] */ Int64* rowId)
+{
+    VALIDATE_NOT_NULL(rowId);
+
+    *rowId = InsertInternal(values, FALSE);
+    return NOERROR;
+}
+
+ECode DatabaseUtils::InsertHelper::Execute(
+    /* [out] */ Int64* value)
+{
+    VALIDATE_NOT_NULL(value);
+
+    if (mPreparedStatement == NULL) {
+        //throw new IllegalStateException("you must prepare this inserter before calling "
+               // + "execute");
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+    //try {
+    if (LOCAL_LOGV) {
+        Logger::V(TAG, StringBuffer("--- doing insert or replace in table ") + mTableName);
+    }
+    return mPreparedStatement->ExecuteInsert(value);
+    //} catch (SQLException e) {
+        //Log.e(TAG, "Error executing InsertHelper with table " + mTableName, e);
+        //return -1;
+    //} finally {
+    // you can only call this once per prepare
+    mPreparedStatement = NULL;
+    //}
+}
+
+ECode DatabaseUtils::InsertHelper::PrepareForInsert()
+{
+    FAIL_RETURN(GetStatement(FALSE, (ISQLiteStatement**)&mPreparedStatement));
+    return mPreparedStatement->ClearBindings();
+}
+
+ECode DatabaseUtils::InsertHelper::PrepareForReplace()
+{
+    FAIL_RETURN(GetStatement(TRUE, (ISQLiteStatement**)&mPreparedStatement));
+    return mPreparedStatement->ClearBindings();
+}
+
+ECode DatabaseUtils::InsertHelper::Replace(
+    /* [in] */ IContentValues* values,
+    /* [out] */ Int64* rowId)
+{
+    VALIDATE_NOT_NULL(rowId);
+
+    *rowId = InsertInternal(values, TRUE);
+    return NOERROR;
+}
+
+ECode DatabaseUtils::InsertHelper::Close()
+{
+    if (mInsertStatement != NULL) {
+        mInsertStatement->Close();
+        mInsertStatement = NULL;
+    }
+    if (mReplaceStatement != NULL) {
+        mReplaceStatement->Close();
+        mReplaceStatement = NULL;
+    }
+    mInsertSQL = NULL;
+    mColumns = NULL;
+    return NOERROR;
+}
+
+
+const CString DatabaseUtils::TAG = "DatabaseUtils";
+
+const ArrayOf<CString>* DatabaseUtils::sCountProjection;// = new String[]{"count(*)"};
+
+// const Char8 DatabaseUtils::DIGITS[16] = {
+//     '0','1','2','3','4','5','6','7',
+//     '8','9','A','B','C','D','E','F' };
+
+
+void DatabaseUtils::WriteExceptionToParcel(
+    /* [in] */ IParcel* reply,
+    /* [in] */ ECode e)
+{
+    // int code = 0;
+    // boolean logException = true;
+    // if (e instanceof FileNotFoundException) {
+    //     code = 1;
+    //     logException = false;
+    // } else if (e instanceof IllegalArgumentException) {
+    //     code = 2;
+    // } else if (e instanceof UnsupportedOperationException) {
+    //     code = 3;
+    // } else if (e instanceof SQLiteAbortException) {
+    //     code = 4;
+    // } else if (e instanceof SQLiteConstraintException) {
+    //     code = 5;
+    // } else if (e instanceof SQLiteDatabaseCorruptException) {
+    //     code = 6;
+    // } else if (e instanceof SQLiteFullException) {
+    //     code = 7;
+    // } else if (e instanceof SQLiteDiskIOException) {
+    //     code = 8;
+    // } else if (e instanceof SQLiteException) {
+    //     code = 9;
+    // } else if (e instanceof OperationApplicationException) {
+    //     code = 10;
+    // } else {
+    //     reply.writeException(e);
+    //     Log.e(TAG, "Writing exception to parcel", e);
+    //     return;
+    // }
+    // reply.writeInt(code);
+    // reply.writeString(e.getMessage());
+
+    // if (logException) {
+    //     Log.e(TAG, "Writing exception to parcel", e);
+    // }
+}
+
+ECode DatabaseUtils::ReadExceptionFromParcel(
+    /* [in] */ IParcel* reply)
+{
+    // int code = reply.readExceptionCode();
+    // if (code == 0) return;
+    // String msg = reply.readString();
+    // DatabaseUtils.readExceptionFromParcel(reply, msg, code);
+    return E_NOT_IMPLEMENTED;
 }
 
 ECode DatabaseUtils::ReadExceptionWithFileNotFoundExceptionFromParcel(
-        /* [in] */ IParcel* reply)
+    /* [in] */ IParcel* reply)
 {
-    Int32 code = 0;
-//    reply->ReadExceptionCode(&code);
-    if (code == 0) {
-        return NOERROR;
-    }
-    String msg = String(" ");
-    reply->ReadString(&msg);
-    if (code == 1) {
-        //throw new FileNotFoundException(msg);
-        return E_FILE_NOT_FOUND_EXCEPTION;
-    } else {
-        DatabaseUtils::ReadExceptionFromParcel(reply, msg, code);
-    }
-    return NOERROR;
+    // int code = reply.readExceptionCode();
+    // if (code == 0) return;
+    // String msg = reply.readString();
+    // if (code == 1) {
+    //     throw new FileNotFoundException(msg);
+    // } else {
+    //     DatabaseUtils.readExceptionFromParcel(reply, msg, code);
+    // }
+    return E_NOT_IMPLEMENTED;
 }
 
 ECode DatabaseUtils::ReadExceptionWithOperationApplicationExceptionFromParcel(
-        /* [in] */ IParcel* reply)
+    /* [in] */ IParcel* reply)
 {
-    Int32 code = 0;
-//    reply->ReadExceptionCode(&code);
-    if (code == 0) {
-        return NOERROR;
-    }
-    String msg = String(" ");
-    reply->ReadString(&msg);
-    if (code == 10) {
-        //throw new OperationApplicationException(msg);
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
-    } else {
-        DatabaseUtils::ReadExceptionFromParcel(reply, msg, code);
-    }
-    return NOERROR;
+    // int code = reply.readExceptionCode();
+    // if (code == 0) return;
+    // String msg = reply.readString();
+    // if (code == 10) {
+    //     throw new OperationApplicationException(msg);
+    // } else {
+    //     DatabaseUtils.readExceptionFromParcel(reply, msg, code);
+    // }
+    return E_NOT_IMPLEMENTED;
 }
 
-const ECode DatabaseUtils::ReadExceptionFromParcel(
-        /* [in] */ IParcel* reply,
-        /* [in] */ String msg,
-        /* [in] */ Int32 code)
+ECode DatabaseUtils::ReadExceptionFromParcel(
+    /* [in] */ IParcel* reply,
+    /* [in] */ const String& msg,
+    /* [in] */ Int32 code)
 {
     switch (code) {
         case 2:
@@ -82,35 +397,35 @@ const ECode DatabaseUtils::ReadExceptionFromParcel(
             return E_ILLEGAL_ARGUMENT_EXCEPTION;
         case 3:
             //throw new UnsupportedOperationException(msg);
-            return E_ILLEGAL_ARGUMENT_EXCEPTION;
+            return E_UNSUPPORTED_OPERATION_EXCEPTION;
         case 4:
             //throw new SQLiteAbortException(msg);
-            return E_ILLEGAL_ARGUMENT_EXCEPTION;
+            return E_SQLITE_ABORT_EXCEPTION;
         case 5:
             //throw new SQLiteConstraintException(msg);
-            return E_ILLEGAL_ARGUMENT_EXCEPTION;
+            return E_SQLITE_CONSTRAINT_EXCEPTION;
         case 6:
             //throw new SQLiteDatabaseCorruptException(msg);
-            return E_ILLEGAL_ARGUMENT_EXCEPTION;
+            return E_SQLITE_DATABASE_CORRUPT_EXCEPTION;
         case 7:
             //throw new SQLiteFullException(msg);
-            return E_ILLEGAL_ARGUMENT_EXCEPTION;
+            return E_SQLITE_FULL_EXCEPTION;
         case 8:
             //throw new SQLiteDiskIOException(msg);
-            return E_ILLEGAL_ARGUMENT_EXCEPTION;
+            return E_SQLITE_DISK_IO_EXCEPTION;
         case 9:
             //throw new SQLiteException(msg);
-            return E_ILLEGAL_ARGUMENT_EXCEPTION;
+            return E_SQLITE_EXCEPTION;
         default:
             //reply->readException(code, msg);
-            return NOERROR;
+            return E_NOT_IMPLEMENTED;
     }
 }
 
 ECode DatabaseUtils::BindObjectToProgram(
-        /* [in] */ ISQLiteProgram* prog,
-        /* [in] */ Int32 index,
-        /* [in] */ IInterface* value)
+    /* [in] */ ISQLiteProgram* prog,
+    /* [in] */ Int32 index,
+    /* [in] */ IInterface* value)
 {
     /*if (value == NULL) {
         prog->BindNull(index);
@@ -133,49 +448,42 @@ ECode DatabaseUtils::BindObjectToProgram(
     return E_NOT_IMPLEMENTED;
 }
 
-ECode DatabaseUtils::AppendEscapedSQLString(
-        /* [in] */ StringBuffer* sb,
-        /* [in] */ String sqlString)
+void DatabaseUtils::AppendEscapedSQLString(
+    /* [in] */ StringBuffer& sb,
+    /* [in] */ const String& sqlString)
 {
-    *sb += '\'';
+    sb += '\'';
     if (sqlString.IndexOf('\'') != -1) {
-        Int32 length = (Int32)sqlString.GetLength();
+        Int32 length = sqlString.GetLength();
         for (Int32 i = 0; i < length; i++) {
-            Char8 c = sqlString.GetChar(i);
+            Char32 c = sqlString.GetChar(i);
             if (c == '\'') {
-                *sb += '\'';
+                sb += '\'';
             }
-            *sb += c;
+            sb += c;
         }
     } else {
-        *sb += sqlString;
+        sb += sqlString;
     }
-    *sb += '\'';
-    return NOERROR;
+    sb += '\'';
 }
 
-ECode DatabaseUtils::SqlEscapeString(
-        /* [in] */ String value,
-        /* [out] */ String* sqlEscapeString)
+String DatabaseUtils::SqlEscapeString(
+    /* [in] */ const String& value)
 {
-    assert(sqlEscapeString != NULL);
-
-    StringBuffer *escaper = new StringBuffer();
+    StringBuffer escaper;
 
     AppendEscapedSQLString(escaper, value);
 
-    Int32 end = escaper->GetLength();
-    *sqlEscapeString = escaper->Substring(0, end);
-
-    return NOERROR;
+    return String(escaper);
 }
 
-const ECode DatabaseUtils::AppendValueToSql(
-        /* [in] */ StringBuffer* sql,
-        /* [in] */ IInterface* value)
+const void DatabaseUtils::AppendValueToSql(
+    /* [in] */ StringBuffer& sql,
+    /* [in] */ IInterface* value)
 {
     if (value == NULL) {
-        *sql += String("NULL");
+        sql += "NULL";
     }/* else if (value instanceof Boolean) {
         Boolean bool = (Boolean)value;
         if (bool) {
@@ -186,324 +494,296 @@ const ECode DatabaseUtils::AppendValueToSql(
     } else {
         AppendEscapedSQLString(sql, value.toString());
     }*/
-    return E_NOT_IMPLEMENTED;
 }
 
-ECode DatabaseUtils::ConcatenateWhere(
-        /* [in] */ String a,
-        /* [in] */ String b,
-        /* [out] */ String* where)
+String DatabaseUtils::ConcatenateWhere(
+    /* [in] */ const String& a,
+    /* [in] */ const String& b)
 {
-    assert(where != NULL);
-    /*AutoPtr<ICharSequence> csa = (ICharSequence**)&a;
-    AutoPtr<ICharSequence> csb = (ICharSequence**)&b;
-    if (TextUtils::IsEmpty(csa)) {
-        *where = b;
-        return NOERROR;
+    if (a.IsNullOrEmpty()) {
+        return b;
     }
-    if (TextUtils::IsEmpty(csb)) {
-        *where = a;
-        return NOERROR;
+    if (b.IsNullOrEmpty()) {
+        return a;
     }
 
-    *where = String("(" + a + ") AND (" + b + ")");*/
-    return E_NOT_IMPLEMENTED;
+    StringBuffer sb;
+    sb += "(" + a + ") AND (" + b + ")";
+    return String(sb);
 }
 
-ECode DatabaseUtils::GetCollationKey(
-        /* [in] */ String name,
-        /* [out] */ String* collationKey)
+String DatabaseUtils::GetCollationKey(
+    /* [in] */ const String& name)
 {
-    assert(collationKey != NULL);
-
-    ArrayOf<Byte>* arr;
-    GetCollationKeyInBytes(name, &arr);
-
-    //try {
-        //return new String(arr, 0, getKeyLen(arr), "ISO8859_1");
-
-        Int32 keyLen;
-        GetKeyLen(arr, &keyLen);
-        Char8* value = new Char8;
-        for (Int32 i = 0; i < keyLen; ++i) {
-            value[i] = (Char8)((*arr)[i] & 0xFF);
-        }
-        *collationKey = String(value);
-    //} catch (Exception ex) {
-    //    return "";
-    //}
-    return NOERROR;
+    // byte [] arr = getCollationKeyInBytes(name);
+    // try {
+    //     return new String(arr, 0, getKeyLen(arr), "ISO8859_1");
+    // } catch (Exception ex) {
+    //     return "";
+    // }
+    return String(NULL);
 }
 
-ECode DatabaseUtils::GetHexCollationKey(
-        /* [in] */ String name,
-        /* [out] */ String* hexCollationKey)
+String DatabaseUtils::GetHexCollationKey(
+    /* [in] */ const String& name)
 {
-    assert(hexCollationKey != NULL);
-
-    ArrayOf<Byte>* arr;
-    GetCollationKeyInBytes(name, &arr);
-
-    //char[] keys = Hex.encodeHex(arr);
-
-    Int32 I = arr->GetLength();
-    Char8 keys[I<<1];
-    for (Int32 i = 0, j = 0; i < I; i++) {
-        keys[j++] = DIGITS[0xF0 & (*arr)[i] >> 4];
-        keys[j++] = DIGITS[0x0F & (*arr)[i]];
-    }
-
-    //return new String(keys, 0, getKeyLen(arr) * 2);
-    Int32 keyLen;
-    GetKeyLen(arr, &keyLen);
-    Char8* value = new Char8;
-    for (Int32 i = 0; i < keyLen * 2; ++i) {
-        value[i] = keys[i];
-    }
-    *hexCollationKey = String(value);
-    return NOERROR;
+    // byte [] arr = getCollationKeyInBytes(name);
+    // char[] keys = Hex.encodeHex(arr);
+    // return new String(keys, 0, getKeyLen(arr) * 2);
+    return String(NULL);
 }
 
-ECode DatabaseUtils::GetKeyLen(
-        /* [in] */ ArrayOf<Byte>* arr,
-        /* [out] */ Int32* keyLen)
+Int32 DatabaseUtils::GetKeyLen(
+    /* [in] */ const ArrayOf<Byte>& arr)
 {
-    assert(keyLen != NULL);
-
-    if ((*arr)[arr->GetLength() - 1] != 0) {
-        *keyLen = arr->GetLength();
-        return NOERROR;
-    } else {
+    Int32 size = arr.GetLength();
+    if (arr[size - 1] != 0) {
+        return size;
+    }
+    else {
         // remove zero "termination"
-        *keyLen = arr->GetLength() - 1;
-        return NOERROR;
+        return size - 1;
     }
 }
 
-ECode DatabaseUtils::GetCollationKeyInBytes(
-        /* [in] */ String name,
-        /* [out] */ ArrayOf<Byte>** collationKeyInBytes)
+ArrayOf<Byte>* DatabaseUtils::GetCollationKeyInBytes(
+    /* [in] */ const String& name)
 {
-    /*if (mColl == null) {
-        mColl = Collator.getInstance();
-        mColl.setStrength(Collator.PRIMARY);
-    }
-    return mColl.getCollationKey(name).toByteArray(); */
-    return E_NOT_IMPLEMENTED;
+    // if (mColl == null) {
+    //     mColl = Collator.getInstance();
+    //     mColl.setStrength(Collator.PRIMARY);
+    // }
+    // return mColl.getCollationKey(name).toByteArray();
+    return NULL;
 }
 
-ECode DatabaseUtils::DumpCursor(
-        /* [in] */ ICursor* cursor)
+void DatabaseUtils::DumpCursor(
+    /* [in] */ ICursor* cursor)
 {
     //DumpCursor(cursor, System.out);
-    return E_NOT_IMPLEMENTED;
 }
 
-ECode DatabaseUtils::DumpCursor(
-        /* [in] */ ICursor* cursor,
-        /* [in] */ StringBuffer* sb)
-{
-    *sb += ">>>>> Dumping cursor ";
-    //*sb += (*cursor);
-    *sb += "\n";
-    if (cursor != NULL) {
-        Int32 startPos;
-        cursor->GetPosition(&startPos);
+// public static void dumpCursor(Cursor cursor, PrintStream stream) {
+//     stream.println(">>>>> Dumping cursor " + cursor);
+//     if (cursor != null) {
+//         int startPos = cursor.getPosition();
 
-        Boolean value1, value2;
-        cursor->MoveToPosition(-1, &value1);
-        cursor->MoveToNext(&value2);
-        while (value2) {
-            DumpCurrentRow(cursor, sb);
-            cursor->MoveToNext(&value2);
-        }
-        cursor->MoveToPosition(startPos, &value1);
-    }
-    *sb += "<<<<<\n";
-    return NOERROR;
+//         cursor.moveToPosition(-1);
+//         while (cursor.moveToNext()) {
+//             dumpCurrentRow(cursor, stream);
+//         }
+//         cursor.moveToPosition(startPos);
+//     }
+//     stream.println("<<<<<");
+// }
+
+void DatabaseUtils::DumpCursor(
+    /* [in] */ ICursor* cursor,
+    /* [in] */ StringBuffer& sb)
+{
+    // *sb += ">>>>> Dumping cursor ";
+    // //*sb += (*cursor);
+    // *sb += "\n";
+    // if (cursor != NULL) {
+    //     Int32 startPos;
+    //     cursor->GetPosition(&startPos);
+
+    //     Boolean value1, value2;
+    //     cursor->MoveToPosition(-1, &value1);
+    //     cursor->MoveToNext(&value2);
+    //     while (value2) {
+    //         DumpCurrentRow(cursor, sb);
+    //         cursor->MoveToNext(&value2);
+    //     }
+    //     cursor->MoveToPosition(startPos, &value1);
+    // }
+    // *sb += "<<<<<\n";
 }
 
-ECode DatabaseUtils::DumpCursorToString(
-        /* [in] */ ICursor* cursor,
-        /* [out] */ String* dumpCursor)
+String DatabaseUtils::DumpCursorToString(
+    /* [in] */ ICursor* cursor)
 {
-    assert(dumpCursor != NULL);
-
-    StringBuffer* sb = new StringBuffer();
+    StringBuffer sb;
     DumpCursor(cursor, sb);
-    *dumpCursor = sb->Substring(0, sb->GetLength());
-    return NOERROR;
+    return String(sb);
 }
 
-ECode DatabaseUtils::DumpCurrentRow(
-        /* [in] */ ICursor* cursor)
+void DatabaseUtils::DumpCurrentRow(
+    /* [in] */ ICursor* cursor)
 {
     //dumpCurrentRow(cursor, System.out);
-    return E_NOT_IMPLEMENTED;
 }
 
-ECode DatabaseUtils::DumpCurrentRow(
-        /* [in] */ ICursor* cursor,
-        /* [in] */ StringBuffer* sb)
+// public static void dumpCurrentRow(Cursor cursor, PrintStream stream) {
+//     String[] cols = cursor.getColumnNames();
+//     stream.println("" + cursor.getPosition() + " {");
+//     int length = cols.length;
+//     for (int i = 0; i< length; i++) {
+//         String value;
+//         try {
+//             value = cursor.getString(i);
+//         } catch (SQLiteException e) {
+//             // assume that if the getString threw this exception then the column is not
+//             // representable by a string, e.g. it is a BLOB.
+//             value = "<unprintable>";
+//         }
+//         stream.println("   " + cols[i] + '=' + value);
+//     }
+//     stream.println("}");
+// }
+
+void DatabaseUtils::DumpCurrentRow(
+    /* [in] */ ICursor* cursor,
+    /* [in] */ StringBuffer& sb)
 {
-    ArrayOf<String>* cols;
-    cursor->GetColumnNames(&cols);
-    *sb += "";
-    Int32 pos;
-    cursor->GetPosition(&pos);
-    *sb += pos;
-    *sb += " {\n";
-    Int32 length = cols->GetLength();
-    for (Int32 i = 0; i < length; i++) {
-        String value;
-        //try {
-            cursor->GetString(i, &value);
-        //} catch (SQLiteException e) {
-            // assume that if the getString threw this exception then the column is not
-            // representable by a string, e.g. it is a BLOB.
-        //    value = "<unprintable>";
-        //}
-        *sb += "   ";
-        *sb += cols[i];
-        *sb += '=';
-        *sb += value;
-        *sb += "\n";
-    }
-    *sb += "}\n";
-    return NOERROR;
+    // ArrayOf<String>* cols;
+    // cursor->GetColumnNames(&cols);
+    // *sb += "";
+    // Int32 pos;
+    // cursor->GetPosition(&pos);
+    // *sb += pos;
+    // *sb += " {\n";
+    // Int32 length = cols->GetLength();
+    // for (Int32 i = 0; i < length; i++) {
+    //     String value;
+    //     //try {
+    //         cursor->GetString(i, &value);
+    //     //} catch (SQLiteException e) {
+    //         // assume that if the getString threw this exception then the column is not
+    //         // representable by a string, e.g. it is a BLOB.
+    //     //    value = "<unprintable>";
+    //     //}
+    //     *sb += "   ";
+    //     *sb += cols[i];
+    //     *sb += '=';
+    //     *sb += value;
+    //     *sb += "\n";
+    // }
+    // *sb += "}\n";
 }
 
-ECode DatabaseUtils::DumpCurrentRowToString(
-        /* [in] */ ICursor* cursor,
-        /* [out] */ String* dumpCurrentRow)
+String DatabaseUtils::DumpCurrentRowToString(
+    /* [in] */ ICursor* cursor)
 {
-    assert(dumpCurrentRow != NULL);
-    StringBuffer* sb = new StringBuffer();
+    StringBuffer sb;
     DumpCurrentRow(cursor, sb);
-    *dumpCurrentRow = sb->Substring(0, sb->GetLength());
-    return NOERROR;
+    return String(sb);
 }
 
-ECode DatabaseUtils::CursorStringToContentValues(
-        /* [in] */ ICursor* cursor,
-        /* [in] */ String field,
-        /* [in] */ IContentValues* values)
+void DatabaseUtils::CursorStringToContentValues(
+    /* [in] */ ICursor* cursor,
+    /* [in] */ const String& field,
+    /* [in] */ IContentValues* values)
 {
     CursorStringToContentValues(cursor, field, values, field);
-    return NOERROR;
 }
 
-ECode DatabaseUtils::CursorStringToInsertHelper(
-        /* [in] */ ICursor* cursor,
-        /* [in] */ String field,
-        /* [in] */ InsertHelper* inserter,
-        /* [in] */ Int32 index)
+void DatabaseUtils::CursorStringToInsertHelper(
+    /* [in] */ ICursor* cursor,
+    /* [in] */ const String& field,
+    /* [in] */ InsertHelper* inserter,
+    /* [in] */ Int32 index)
 {
-    Int32 columnIndexOrThrow;
-    cursor->GetColumnIndexOrThrow(field, &columnIndexOrThrow);
-    String str;
-    cursor->GetString(columnIndexOrThrow, &str);
-    inserter->Bind(index, str);
-    return NOERROR;
+    // Int32 columnIndexOrThrow;
+    // cursor->GetColumnIndexOrThrow(field, &columnIndexOrThrow);
+    // String str;
+    // cursor->GetString(columnIndexOrThrow, &str);
+    // inserter->Bind(index, str);
 }
 
-ECode DatabaseUtils::CursorStringToContentValues(
-        /* [in] */ ICursor* cursor,
-        /* [in] */ String field,
-        /* [in] */ IContentValues* values,
-        /* [in] */ String key)
+void DatabaseUtils::CursorStringToContentValues(
+    /* [in] */ ICursor* cursor,
+    /* [in] */ const String& field,
+    /* [in] */ IContentValues* values,
+    /* [in] */ const String& key)
 {
     //values.put(key, cursor.getString(cursor.getColumnIndexOrThrow(field)));
-    return E_NOT_IMPLEMENTED;
 }
 
-ECode DatabaseUtils::CursorIntToContentValues(
-        /* [in] */ ICursor* cursor,
-        /* [in] */ String field,
-        /* [in] */ IContentValues* values)
+void DatabaseUtils::CursorInt32ToContentValues(
+    /* [in] */ ICursor* cursor,
+    /* [in] */ const String& field,
+    /* [in] */ IContentValues* values)
 {
-    CursorIntToContentValues(cursor, field, values, field);
-    return NOERROR;
+    CursorInt32ToContentValues(cursor, field, values, field);
 }
 
-ECode DatabaseUtils::CursorIntToContentValues(
-        /* [in] */ ICursor* cursor,
-        /* [in] */ String field,
-        /* [in] */ IContentValues* values,
-        /* [in] */ String key)
+void DatabaseUtils::CursorInt32ToContentValues(
+    /* [in] */ ICursor* cursor,
+    /* [in] */ const String& field,
+    /* [in] */ IContentValues* values,
+    /* [in] */ const String& key)
 {
     Int32 colIndex;
     cursor->GetColumnIndex(field, &colIndex);
-    Boolean value;
-    cursor->IsNull(colIndex, &value);
-    if (!value) {
+    Boolean isNull;
+    cursor->IsNull(colIndex, &isNull);
+    if (!isNull) {
         //values.put(key, cursor.getInt(colIndex));
-    } else {
+    }
+    else {
         //values.put(key, (Integer) null);
     }
-    return E_NOT_IMPLEMENTED;
 }
 
-ECode DatabaseUtils::CursorLongToContentValues(
-        /* [in] */ ICursor* cursor,
-        /* [in] */ String field,
-        /* [in] */ IContentValues* values)
+void DatabaseUtils::CursorInt64ToContentValues(
+    /* [in] */ ICursor* cursor,
+    /* [in] */ const String& field,
+    /* [in] */ IContentValues* values)
 {
-    CursorLongToContentValues(cursor, field, values, field);
-    return NOERROR;
+    CursorInt64ToContentValues(cursor, field, values, field);
 }
 
-ECode DatabaseUtils::CursorLongToContentValues(
-        /* [in] */ ICursor* cursor,
-        /* [in] */ String field,
-        /* [in] */ IContentValues* values,
-        /* [in] */ String key)
+void DatabaseUtils::CursorInt64ToContentValues(
+    /* [in] */ ICursor* cursor,
+    /* [in] */ const String& field,
+    /* [in] */ IContentValues* values,
+    /* [in] */ const String& key)
 {
     Int32 colIndex;
     cursor->GetColumnIndex(field, &colIndex);
-    Boolean res;
-    cursor->IsNull(colIndex, &res);
-    if (!res) {
+    Boolean isNUll;
+    cursor->IsNull(colIndex, &isNUll);
+    if (!isNUll) {
         Int64 value;
         cursor->GetInt64(colIndex, &value);
         //values.put(key, value);
-    } else {
+    }
+    else {
         //values.put(key, (Long) null);
     }
-    return NOERROR;
 }
 
-ECode DatabaseUtils::CursorDoubleToCursorValues(
-        /* [in] */ ICursor* cursor,
-        /* [in] */ String field,
-        /* [in] */ IContentValues* values)
+void DatabaseUtils::CursorDoubleToCursorValues(
+    /* [in] */ ICursor* cursor,
+    /* [in] */ const String& field,
+    /* [in] */ IContentValues* values)
 {
     CursorDoubleToContentValues(cursor, field, values, field);
-    return NOERROR;
 }
 
 
-ECode DatabaseUtils::CursorDoubleToContentValues(
-        /* [in] */ ICursor* cursor,
-        /* [in] */ String field,
-        /* [in] */ IContentValues* values,
-        /* [in] */ String key)
+void DatabaseUtils::CursorDoubleToContentValues(
+    /* [in] */ ICursor* cursor,
+    /* [in] */ const String& field,
+    /* [in] */ IContentValues* values,
+    /* [in] */ const String& key)
 {
     Int32 colIndex;
     cursor->GetColumnIndex(field, &colIndex);
-    Boolean res;
-    cursor->IsNull(colIndex, &res);
-    if (!res) {
+    Boolean isNUll;
+    cursor->IsNull(colIndex, &isNUll);
+    if (!isNUll) {
         //values.put(key, cursor.getDouble(colIndex));
-    } else {
+    }
+    else {
         //values.put(key, (Double) null);
     }
-    return NOERROR;
 }
 
-ECode DatabaseUtils::CursorRowToContentValues(
-        /* [in] */ ICursor* cursor,
-        /* [in] */ IContentValues* values)
+void DatabaseUtils::CursorRowToContentValues(
+    /* [in] */ ICursor* cursor,
+    /* [in] */ IContentValues* values)
 {
     /*AbstractWindowedCursor awc =
             (cursor instanceof AbstractWindowedCursor) ? (AbstractWindowedCursor) cursor : null;
@@ -516,54 +796,55 @@ ECode DatabaseUtils::CursorRowToContentValues(
             values.put(columns[i], cursor.getString(i));
         }
     }*/
-    return E_NOT_IMPLEMENTED;
 }
 
 ECode DatabaseUtils::QueryNumEntries(
-        /* [in] */ ISQLiteDatabase* db,
-        /* [in] */ String table,
-        /* [out] */ Int64* numEntries)
+    /* [in] */ ISQLiteDatabase* db,
+    /* [in] */ const String& table,
+    /* [out] */ Int64* numEntries)
 {
-    assert(numEntries != NULL);
+    VALIDATE_NOT_NULL(numEntries);
 
     AutoPtr<ICursor> cursor;
-
     //db->QueryEx(table, countProjection,
     //        String(NULL), NULL, String(NULL), String(NULL), String(NULL), &cursor);
     //try {
-        Boolean result;
-        cursor->MoveToFirst(&result);
+    Boolean result;
+    ECode ec = cursor->MoveToFirst(&result);
+    if (SUCCEEDED(ec)) {
+        ec = cursor->GetInt64(0, numEntries);
+    }
 
-        cursor->GetInt64(0, numEntries);
-
-        return E_NOT_IMPLEMENTED;
     //} finally {
-        //cursor.close();
+    cursor->Close();
     //}
+    return ec;
 }
 
-ECode DatabaseUtils::LongForQuery(
-        /* [in] */ ISQLiteDatabase* db,
-        /* [in] */ String query,
-        /* [in] */ ArrayOf<String>* selectionArgs,
-        /* [out] */ Int64* longValue)
+ECode DatabaseUtils::Int64ForQuery(
+    /* [in] */ ISQLiteDatabase* db,
+    /* [in] */ const String& query,
+    /* [in] */ ArrayOf<String>* selectionArgs,
+    /* [out] */ Int64* value)
 {
+    VALIDATE_NOT_NULL(value);
+
     AutoPtr<ISQLiteStatement> prog;
     db->CompileStatement(query, (ISQLiteStatement**)&prog);
     //try {
-        LongForQuery(prog, selectionArgs, longValue);
-        return NOERROR;
+    ECode ec = Int64ForQuery(prog, selectionArgs, value);
     //} finally {
-    //    prog.close();
+    prog->Close();
     //}
+    return ec;
 }
 
-ECode DatabaseUtils::LongForQuery(
-        /* [in] */ ISQLiteStatement* prog,
-        /* [in] */ ArrayOf<String>* selectionArgs,
-        /* [out] */ Int64* longValue)
+ECode DatabaseUtils::Int64ForQuery(
+    /* [in] */ ISQLiteStatement* prog,
+    /* [in] */ ArrayOf<String>* selectionArgs,
+    /* [out] */ Int64* value)
 {
-    assert(longValue != NULL);
+    VALIDATE_NOT_NULL(value);
 
     if (selectionArgs != NULL) {
         Int32 size = selectionArgs->GetLength();
@@ -571,34 +852,33 @@ ECode DatabaseUtils::LongForQuery(
             //BindObjectToProgram(prog, i + 1, (*selectionArgs)[i]);
         }
     }
-    prog->SimpleQueryForInt64(longValue);
-    return NOERROR;
+    return prog->SimpleQueryForInt64(value);
 }
 
 ECode DatabaseUtils::StringForQuery(
-        /* [in] */ ISQLiteDatabase* db,
-        /* [in] */ String query,
-        /* [in] */ ArrayOf<String>* selectionArgs,
-        /* [out] */ String* stringValue)
+    /* [in] */ ISQLiteDatabase* db,
+    /* [in] */ const String& query,
+    /* [in] */ ArrayOf<String>* selectionArgs,
+    /* [out] */ String* str)
 {
-    assert(stringValue != NULL);
+    VALIDATE_NOT_NULL(str);
 
     AutoPtr<ISQLiteStatement> prog;
     db->CompileStatement(query, (ISQLiteStatement**)&prog);
     //try {
-        StringForQuery(prog, selectionArgs, stringValue);
-        return NOERROR;
+    ECode ec = StringForQuery(prog, selectionArgs, str);
     //} finally {
-        //prog.close();
+    prog->Close();
     //}
+    return ec;
 }
 
 ECode DatabaseUtils::StringForQuery(
-        /* [in] */ ISQLiteStatement* prog,
-        /* [in] */ ArrayOf<String>* selectionArgs,
-        /* [out] */ String* stringValue)
+    /* [in] */ ISQLiteStatement* prog,
+    /* [in] */ ArrayOf<String>* selectionArgs,
+    /* [out] */ String* str)
 {
-    assert(stringValue != NULL);
+    VALIDATE_NOT_NULL(str);
 
     if (selectionArgs != NULL) {
         Int32 size = selectionArgs->GetLength();
@@ -606,429 +886,110 @@ ECode DatabaseUtils::StringForQuery(
             //BindObjectToProgram(prog, i + 1, (*selectionArgs)[i]);
         }
     }
-    prog->SimpleQueryForString(stringValue);
-    return NOERROR;
+    return prog->SimpleQueryForString(str);
 }
 
-ECode DatabaseUtils::CursorStringToContentValuesIfPresent(
-        /* [in] */ ICursor* cursor,
-        /* [in] */ IContentValues* values,
-        /* [in] */ String column)
+void DatabaseUtils::CursorStringToContentValuesIfPresent(
+    /* [in] */ ICursor* cursor,
+    /* [in] */ IContentValues* values,
+    /* [in] */ const String& column)
 {
     Int32 index;
     cursor->GetColumnIndexOrThrow(column, &index);
-    Boolean value;
-    cursor->IsNull(index, &value);
-    if (!value) {
-        String* columnValue = new String;
-        cursor->GetString(index, columnValue);
+    Boolean isNUll;
+    cursor->IsNull(index, &isNUll);
+    if (!isNUll) {
+        String columnValue;
+        cursor->GetString(index, &columnValue);
         //values.put(column, *columnValue);
     }
-    return NOERROR;
 }
 
-ECode DatabaseUtils::CursorLongToContentValuesIfPresent(
-        /* [in] */ ICursor* cursor,
-        /* [in] */ IContentValues* values,
-        /* [in] */ String column)
+void DatabaseUtils::CursorInt64ToContentValuesIfPresent(
+    /* [in] */ ICursor* cursor,
+    /* [in] */ IContentValues* values,
+    /* [in] */ const String& column)
 {
     Int32 index;
     cursor->GetColumnIndexOrThrow(column, &index);
-    Boolean value;
-    cursor->IsNull(index, &value);
-    if (!value) {
+    Boolean isNull;
+    cursor->IsNull(index, &isNull);
+    if (!isNull) {
         Int64 columnValue;
         cursor->GetInt64(index, &columnValue);
         //values.put(column, columnValue);
     }
-    return NOERROR;
 }
 
-ECode DatabaseUtils::CursorShortToContentValuesIfPresent(
-        /* [in] */ ICursor* cursor,
-        /* [in] */ IContentValues* values,
-        /* [in] */ String column)
+void DatabaseUtils::CursorInt16ToContentValuesIfPresent(
+    /* [in] */ ICursor* cursor,
+    /* [in] */ IContentValues* values,
+    /* [in] */ const String& column)
 {
     Int32 index;
     cursor->GetColumnIndexOrThrow(column, &index);
-    Boolean value;
-    cursor->IsNull(index, &value);
-    if (!value) {
+    Boolean isNull;
+    cursor->IsNull(index, &isNull);
+    if (!isNull) {
         Int16 columnValue;
         cursor->GetInt16(index, &columnValue);
         //values.put(column, columnValue);
     }
-    return NOERROR;
 }
 
-ECode DatabaseUtils::CursorIntToContentValuesIfPresent(
-        /* [in] */ ICursor* cursor,
-        /* [in] */ IContentValues* values,
-        /* [in] */ String column)
+void DatabaseUtils::CursorInt32ToContentValuesIfPresent(
+    /* [in] */ ICursor* cursor,
+    /* [in] */ IContentValues* values,
+    /* [in] */ const String& column)
 {
     Int32 index;
     cursor->GetColumnIndexOrThrow(column, &index);
-    Boolean value;
-    cursor->IsNull(index, &value);
-    if (!value) {
+    Boolean isNull;
+    cursor->IsNull(index, &isNull);
+    if (!isNull) {
         Int32 columnValue;
         cursor->GetInt32(index, &columnValue);
         //values.put(column, columnValue);
     }
-    return NOERROR;
 }
 
-ECode DatabaseUtils::CursorFloatToContentValuesIfPresent(
-        /* [in] */ ICursor* cursor,
-        /* [in] */ IContentValues* values,
-        /* [in] */ String column)
+void DatabaseUtils::CursorFloatToContentValuesIfPresent(
+    /* [in] */ ICursor* cursor,
+    /* [in] */ IContentValues* values,
+    /* [in] */ const String& column)
 {
     Int32 index;
     cursor->GetColumnIndexOrThrow(column, &index);
-    Boolean value;
-    cursor->IsNull(index, &value);
-    if (!value) {
+    Boolean isNull;
+    cursor->IsNull(index, &isNull);
+    if (!isNull) {
         Float columnValue;
         cursor->GetFloat(index, &columnValue);
         //values.put(column, columnValue);
     }
-    return NOERROR;
 }
 
-ECode DatabaseUtils::CursorDoubleToContentValuesIfPresent(
-        /* [in] */ ICursor* cursor,
-        /* [in] */ IContentValues* values,
-        /* [in] */ String column)
+void DatabaseUtils::CursorDoubleToContentValuesIfPresent(
+    /* [in] */ ICursor* cursor,
+    /* [in] */ IContentValues* values,
+    /* [in] */ const String& column)
 {
     Int32 index;
     cursor->GetColumnIndexOrThrow(column, &index);
-    Boolean value;
-    cursor->IsNull(index, &value);
-    if (!value) {
+    Boolean isNull;
+    cursor->IsNull(index, &isNull);
+    if (!isNull) {
         Double columnValue;
         cursor->GetDouble(index, &columnValue);
         //values.put(column, columnValue);
     }
-    return NOERROR;
-}
-
-DatabaseUtils::InsertHelper::InsertHelper()
-{
-    mInsertSQL = String(NULL);
-
-    mInsertStatement = NULL;
-    mReplaceStatement = NULL;
-    mPreparedStatement = NULL;
-}
-
-DatabaseUtils::InsertHelper::InsertHelper(
-            /* [in] */ ISQLiteDatabase* db,
-            /* [in] */ String tableName)
-{
-    mDb = db;
-    mTableName = tableName;
-}
-
-ECode DatabaseUtils::InsertHelper::BuildSQL()
-{
-    StringBuffer* sb = new StringBuffer();
-    *sb += "INSERT INTO ";
-    *sb += mTableName;
-    *sb += " (";
-
-    StringBuffer* sbv = new StringBuffer();
-    *sbv += "VALUES (";
-
-    Int32 i = 1;
-    AutoPtr<ICursor> cur;
-    //try {
-        StringBuffer* tmp = new StringBuffer();
-        *tmp = "PRAGMA table_info(";
-        *tmp += mTableName;
-        *tmp += ")";
-        String sql = tmp->Substring(0, tmp->GetLength());
-        //mDb->RawQuery(sql, NULL, (ICursor**)&cur);
-        Int32 count;
-        cur->GetCount(&count);
-        mColumns = new HashMap<String, Int32>(count);
-        Boolean moveToNext;
-        cur->MoveToNext(&moveToNext);
-        while (moveToNext) {
-            String* columnName = new String;;
-            cur->GetString(TABLE_INFO_PRAGMA_COLUMNNAME_INDEX, columnName);
-            String* defaultValue = new String;
-            cur->GetString(TABLE_INFO_PRAGMA_DEFAULT_INDEX, defaultValue);
-
-            //mColumns->Insert(columnName, i);
-            *sb += "'";
-            *sb += columnName;
-            *sb += "'";
-
-            if (defaultValue->IsNull()) {
-                *sbv += "?";
-            } else {
-                *sbv += "COALESCE(?, ";
-                *sbv += defaultValue;
-                *sbv += ")";
-            }
-
-            *sb += (i == count ? ") " : ", ");
-            *sbv += (i == count ? ");" : ", ");
-            ++i;
-
-            cur->MoveToNext(&moveToNext);
-        }
-    //} finally {
-    //    if (cur != null) cur.close();
-    //}
-
-    *sb += *sbv;
-
-    mInsertSQL = sb->Substring(0, sb->GetLength());
-    if (LOCAL_LOGV) {
-        StringBuffer* tmp2 = new StringBuffer();
-        *tmp2 = "insert statement is ";
-        *tmp2 += mInsertSQL;
-        String args2 = tmp2->Substring(0, tmp2->GetLength());
-        Logger::V(TAG, args2);
-    }
-    return NOERROR;
-}
-
-ECode DatabaseUtils::InsertHelper::GetStatement(
-            /* [in] */ Boolean allowReplace,
-            /* [out] */ ISQLiteStatement** statement)
-{
-    if (allowReplace) {
-        if (mReplaceStatement == NULL) {
-            if (mInsertSQL == NULL) {
-                BuildSQL();
-            }
-            // chop "INSERT" off the front and prepend "INSERT OR REPLACE" instead.
-            StringBuffer* sb = new StringBuffer();
-            *sb = "INSERT OR REPLACE";
-            *sb += mInsertSQL.Substring(6);
-            String replaceSQL = sb->Substring(0, sb->GetLength());
-            mDb->CompileStatement(replaceSQL, (ISQLiteStatement**)&mReplaceStatement);
-        }
-        *statement = mReplaceStatement;
-        return NOERROR;
-    } else {
-        if (mInsertStatement == NULL) {
-            if (mInsertSQL == NULL) {
-                BuildSQL();
-            }
-            mDb->CompileStatement(mInsertSQL, (ISQLiteStatement**)&mInsertStatement);
-        }
-        *statement = mInsertStatement;
-        return NOERROR;
-    }
-}
-
-ECode DatabaseUtils::InsertHelper::InsertInternal(
-            /* [in] */ IContentValues* values,
-            /* [in] */ Boolean allowReplace,
-            /* [out] */ Int64* value)
-{
-    //try {
-        AutoPtr<ISQLiteStatement> stmt;
-        GetStatement(allowReplace, (ISQLiteStatement**)&stmt);
-        stmt->ClearBindings();
-        if (LOCAL_LOGV) {
-            StringBuffer* tmp = new StringBuffer();
-            *tmp = "--- inserting in table ";
-            *tmp += mTableName;
-            String sql = tmp->Substring(0, tmp->GetLength());
-            Logger::V(TAG, sql);
-        }
-        /*for (Map.Entry<String, Object> e: values.valueSet()) {
-            final String key = e.getKey();
-            int i = getColumnIndex(key);
-            DatabaseUtils.bindObjectToProgram(stmt, i, e.getValue());
-            if (LOCAL_LOGV) {
-                Log.v(TAG, "binding " + e.getValue() + " to column " +
-                      i + " (" + key + ")");
-            }
-        }
-        return stmt.executeInsert();*/
-        return E_NOT_IMPLEMENTED;
-    //} catch (SQLException e) {
-        //Log.e(TAG, "Error inserting " + values + " into table  " + mTableName, e);
-        //return -1;
-    //}
-}
-
-ECode DatabaseUtils::InsertHelper::GetColumnIndex(
-            /* [in] */ String key,
-            /* [out] */ Int32* columnIndex)
-{
-    assert(columnIndex != NULL);
-
-    AutoPtr<ISQLiteStatement> stmt;
-    GetStatement(FALSE, (ISQLiteStatement**)&stmt);
-    //final Integer index = mColumns.get(key);
-    HashMap<String, Int32 >::Iterator iter = mColumns->Begin();
-    for (; iter != mColumns->End(); ++iter) {
-        if(iter == mColumns->Find(key))
-            break;
-    }
-    Int32 index;
-    if(iter != mColumns->End()) {
-        index = iter->mSecond;
-    }
-    //if (index == NULL) {
-        //throw new IllegalArgumentException("column '" + key + "' is invalid");
-        //return E_ILLEGAL_ARGUMENT_EXCEPTION;
-    //}
-    *columnIndex = index;
-    return NOERROR;
-}
-
-ECode DatabaseUtils::InsertHelper::Bind(
-            /* [in] */ Int32 index,
-            /* [in] */ Double value)
-{
-    mPreparedStatement->BindDouble(index, value);
-    return NOERROR;
-}
-
-ECode DatabaseUtils::InsertHelper::Bind(
-            /* [in] */ Int32 index,
-            /* [in] */ Float value)
-{
-    mPreparedStatement->BindDouble(index, value);
-    return NOERROR;
-}
-
-ECode DatabaseUtils::InsertHelper::Bind(
-            /* [in] */ Int32 index,
-            /* [in] */ Int64 value)
-{
-    mPreparedStatement->BindInt64(index, value);
-    return NOERROR;
-}
-
-ECode DatabaseUtils::InsertHelper::Bind(
-            /* [in] */ Int32 index,
-            /* [in] */ Int32 value)
-{
-    mPreparedStatement->BindInt64(index, value);
-    return NOERROR;
-}
-
-ECode DatabaseUtils::InsertHelper::Bind(
-            /* [in] */ Int32 index,
-            /* [in] */ Boolean value)
-{
-    mPreparedStatement->BindInt64(index, value ? 1 : 0);
-    return NOERROR;
-}
-
-ECode DatabaseUtils::InsertHelper::BindNull(
-            /* [in] */ Int32 index)
-{
-    mPreparedStatement->BindNull(index);
-    return NOERROR;
-}
-
-ECode DatabaseUtils::InsertHelper::Bind(
-            /* [in] */ Int32 index,
-            /* [in] */ ArrayOf<Byte>* value)
-{
-    if (value == NULL) {
-        mPreparedStatement->BindNull(index);
-    } else {
-        mPreparedStatement->BindBlob(index, *value);
-    }
-    return NOERROR;
-}
-
-ECode DatabaseUtils::InsertHelper::Bind(
-            /* [in] */ Int32 index,
-            /* [in] */ String value)
-{
-    if (value == NULL) {
-        mPreparedStatement->BindNull(index);
-    } else {
-        mPreparedStatement->BindString(index, value);
-    }
-    return NOERROR;
-}
-
-ECode DatabaseUtils::InsertHelper::Insert(
-            /* [in] */ IContentValues* values,
-            /* [out] */ Int64* value)
-{
-    InsertInternal(values, FALSE, value);
-    return NOERROR;
-}
-
-ECode DatabaseUtils::InsertHelper::Execute(
-            /* [out] */ Int64* value)
-{
-    assert(value != NULL);
-    if (mPreparedStatement == NULL) {
-        //throw new IllegalStateException("you must prepare this inserter before calling "
-               // + "execute");
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
-    }
-    //try {
-        if (LOCAL_LOGV) {
-            Logger::V(TAG, "--- doing insert or replace in table " + mTableName);
-        }
-        mPreparedStatement->ExecuteInsert(value);
-        return NOERROR;
-    //} catch (SQLException e) {
-        //Log.e(TAG, "Error executing InsertHelper with table " + mTableName, e);
-        //return -1;
-    //} finally {
-        // you can only call this once per prepare
-        //mPreparedStatement = null;
-    //}
-}
-
-ECode DatabaseUtils::InsertHelper::PrepareForInsert()
-{
-    GetStatement(FALSE, (ISQLiteStatement**)&mPreparedStatement);
-    mPreparedStatement->ClearBindings();
-    return NOERROR;
-}
-
-ECode DatabaseUtils::InsertHelper::PrepareForReplace()
-{
-    GetStatement(TRUE, (ISQLiteStatement**)&mPreparedStatement);
-    mPreparedStatement->ClearBindings();
-    return NOERROR;
-}
-
-ECode DatabaseUtils::InsertHelper::Replace(
-            /* [in] */ IContentValues* values,
-            /* [out] */ Int64* value)
-{
-    InsertInternal(values, TRUE, value);
-    return NOERROR;
-}
-
-ECode DatabaseUtils::InsertHelper::Close()
-{
-    if (mInsertStatement != NULL) {
-        mInsertStatement->Close();
-        mInsertStatement = NULL;
-    }
-    if (mReplaceStatement != NULL) {
-        mReplaceStatement->Close();
-        mReplaceStatement = NULL;
-    }
-    mInsertSQL = NULL;
-    mColumns = NULL;
-    return NOERROR;
 }
 
 ECode DatabaseUtils::CreateDbFromSqlStatements(
-            /* [in] */ IContext* context,
-            /* [in] */ String dbName,
-            /* [in] */ Int32 dbVersion,
-            /* [in] */ String sqlStatements)
+    /* [in] */ IContext* context,
+    /* [in] */ const String& dbName,
+    /* [in] */ Int32 dbVersion,
+    /* [in] */ const String& sqlStatements)
 {
     /*SQLiteDatabase db = context.openOrCreateDatabase(dbName, 0, null);
     // TODO: this is not quite safe since it assumes that all semicolons at the end of a line

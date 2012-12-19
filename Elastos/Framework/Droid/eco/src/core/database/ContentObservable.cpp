@@ -1,57 +1,44 @@
 
 #include "database/ContentObservable.h"
 
-ContentObservable::ContentObservable()
-{
-}
-
-ContentObservable::~ContentObservable()
-{
-}
 
 ECode ContentObservable::RegisterObserver(
         /* [in] */ ILocalContentObserver* observer)
 {
-    Observable::RegisterObserver(observer);
-    return NOERROR;
+    return Observable::RegisterObserver(observer);
 }
 
 ECode ContentObservable::DispatchChange(
         /* [in] */ Boolean selfChange)
 {
     Mutex::Autolock lock(mObserversLock);
-    Set<AutoPtr<ILocalContentObserver> >::Iterator iter;
-    Set<AutoPtr<ILocalContentObserver> >(mObservers);
+
+    List< AutoPtr<IInterface> >::Iterator iter;
     for (iter = mObservers.Begin(); iter != mObservers.End(); ++iter) {
-        Boolean rst;
-        (*iter)->DeliverSelfNotifications(&rst);
-        if (!selfChange || rst) {
-            FAIL_RETURN((*iter)->DispatchChange(selfChange));
+        ILocalContentObserver* observer = ILocalContentObserver::Probe(*iter);
+        assert(observer != NULL);
+        Boolean result;
+        if (!selfChange || (observer->DeliverSelfNotifications(&result), result)) {
+            FAIL_RETURN(observer->DispatchChange(selfChange));
         }
     }
     return NOERROR;
-    
+
 }
 
 ECode ContentObservable::NotifyChange(
         /* [in] */ Boolean selfChange)
 {
     Mutex::Autolock lock(mObserversLock);
-    Set<AutoPtr<ILocalContentObserver> >::Iterator iter;
-    Set<AutoPtr<ILocalContentObserver> >(mObservers);
+
+    List< AutoPtr<IInterface> >::Iterator iter;
     for (iter = mObservers.Begin(); iter != mObservers.End(); ++iter) {
-        Boolean rst;
-        (*iter)->DeliverSelfNotifications(&rst);
-        if (!selfChange || rst) {
-            FAIL_RETURN((*iter)->OnChange(selfChange));
+        ILocalContentObserver* observer = ILocalContentObserver::Probe(*iter);
+        assert(observer != NULL);
+        Boolean result;
+        if (!selfChange || (observer->DeliverSelfNotifications(&result), result)) {
+            FAIL_RETURN(observer->OnChange(selfChange));
         }
     }
-    return NOERROR;
-}
-
-ECode ContentObservable::UnregisterObserver(
-        /* [in] */ ILocalContentObserver* observer)
-{
-    Observable::UnregisterObserver(observer);
     return NOERROR;
 }

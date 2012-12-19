@@ -1,18 +1,9 @@
 
 module
 {
-    interface ICursor;
     interface ICursorWindow;
 
-    interface ICharArrayBuffer;
-    interface ILocalContentObserver;
-    interface IDataSetObserver;
-    interface IContentResolver;
-    interface IUri;
-    interface IBundle;
-
-    interface ICrossProcessCursor extends ICursor
-    {
+    interface ICrossProcessCursor extends ICursor {
         /**
          * returns a pre-filled window, return NULL if no such window
          */

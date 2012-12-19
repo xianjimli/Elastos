@@ -9,6 +9,9 @@
 #include <elastos/HashMap.h>
 #include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>
+#include <elastos/Mutex.h>
+
+using namespace Elastos::Core::Threading;
 
 extern "C" const InterfaceID EIID_MenuBuilderBase;
 

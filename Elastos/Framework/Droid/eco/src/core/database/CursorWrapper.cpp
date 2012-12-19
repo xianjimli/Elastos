@@ -2,322 +2,354 @@
 #include "database/CursorWrapper.h"
 
 CursorWrapper::CursorWrapper()
-{
-}
-
-CursorWrapper::~CursorWrapper()
-{
-}
+{}
 
 ECode CursorWrapper::Init(
-        /* [in] */ ICursor* cursor)
+    /* [in] */ ICursor* cursor)
 {
     mCursor = cursor;
     return NOERROR;
 }
 
+ECode CursorWrapper::AbortUpdates()
+{
+    return mCursor->AbortUpdates();
+}
+
 ECode CursorWrapper::Close()
 {
-    FAIL_RETURN(mCursor->Close());
-    return NOERROR;
+    return mCursor->Close();
 }
 
 ECode CursorWrapper::IsClosed(
-        /* [out] */ Boolean* res)
+    /* [out] */ Boolean* isClosed)
 {
-    assert(res != NULL);
-    FAIL_RETURN(mCursor->IsClosed(res));
-    return NOERROR;
+    return mCursor->IsClosed(isClosed);
 }
 
-ECode CursorWrapper::GetCount(
-        /* [out] */ Int32* cnt)
+ECode CursorWrapper::CommitUpdates(
+    /* [out] */ Boolean* succeeded)
 {
-    assert(cnt != NULL);
-    FAIL_RETURN(mCursor->GetCount(cnt));
-    return NOERROR;
+    return mCursor->CommitUpdates(succeeded);
+}
+
+/**
+ * @hide
+ * @deprecated
+ */
+// public boolean commitUpdates(
+//         Map<? extends Long, ? extends Map<String, Object>> values) {
+//     return mCursor.commitUpdates(values);
+// }
+
+ECode CursorWrapper::GetCount(
+    /* [out] */ Int32* count)
+{
+    return mCursor->GetCount(count);
 }
 
 ECode CursorWrapper::Deactivate()
 {
-    FAIL_RETURN(mCursor->Deactivate());
-    return NOERROR;
+    return mCursor->Deactivate();
+}
+
+ECode CursorWrapper::DeleteRow(
+    /* [out] */ Boolean* succeeded)
+{
+    return mCursor->DeleteRow(succeeded);
 }
 
 ECode CursorWrapper::MoveToFirst(
-        /* [out] */ Boolean* rst)
+    /* [out] */ Boolean* succeeded)
 {
-    assert(rst != NULL);
-    FAIL_RETURN(mCursor->MoveToFirst(rst));
-    return NOERROR;
+    return mCursor->MoveToFirst(succeeded);
 }
 
 ECode CursorWrapper::GetColumnCount(
-        /* [out] */ Int32* cnt)
+    /* [out] */ Int32* count)
 {
-    assert(cnt != NULL);
-    FAIL_RETURN(mCursor->GetColumnCount(cnt));
-    return NOERROR;
+    return mCursor->GetColumnCount(count);
 }
 
 ECode CursorWrapper::GetColumnIndex(
-        /* [in] */ String columnName,
-        /* [out] */ Int32* index)
+    /* [in] */ const String& columnName,
+    /* [out] */ Int32* index)
 {
-    assert(index != NULL);
-    FAIL_RETURN(mCursor->GetColumnIndex(columnName, index));
-    return NOERROR;
+    return mCursor->GetColumnIndex(columnName, index);
 }
 
 ECode CursorWrapper::GetColumnIndexOrThrow(
-        /* [in] */ String columnName,
-        /* [out] */ Int32* index)
+    /* [in] */ const String& columnName,
+    /* [out] */ Int32* index)
 {
-    assert(index != NULL);
-    FAIL_RETURN(mCursor->GetColumnIndexOrThrow(columnName, index));
-    return NOERROR;
+    return mCursor->GetColumnIndexOrThrow(columnName, index);
 }
 
 ECode CursorWrapper::GetColumnName(
-        /* [in] */ Int32 columnIndex,
-        /* [out] */ String* name)
+    /* [in] */ Int32 columnIndex,
+    /* [out] */ String* name)
 {
-    assert(name != NULL);
-    FAIL_RETURN(mCursor->GetColumnName(columnIndex, name));
-    return NOERROR;
+    return mCursor->GetColumnName(columnIndex, name);
 }
 
 ECode CursorWrapper::GetColumnNames(
-        /* [out,callee] */ ArrayOf<String>** columnNames)
+    /* [out,callee] */ ArrayOf<String>** columnNames)
 {
-    FAIL_RETURN(mCursor->GetColumnNames(columnNames));
-    return NOERROR;
+    return mCursor->GetColumnNames(columnNames);
 }
 
 ECode CursorWrapper::GetDouble(
-        /* [in] */ Int32 columnIndex,
-        /* [out] */ Double* value)
+    /* [in] */ Int32 columnIndex,
+    /* [out] */ Double* value)
 {
-    assert(value != NULL);
-    FAIL_RETURN(mCursor->GetDouble(columnIndex, value));
-    return NOERROR;
+    return mCursor->GetDouble(columnIndex, value);
 }
 
 ECode CursorWrapper::GetExtras(
     /* [out] */ IBundle** extras)
 {
-    FAIL_RETURN(mCursor->GetExtras(extras));
-    return NOERROR;
+    return mCursor->GetExtras(extras);
 }
 
 ECode CursorWrapper::GetFloat(
     /* [in] */ Int32 columnIndex,
     /* [out] */ Float* value)
 {
-    assert(value != NULL);
-    FAIL_RETURN(mCursor->GetFloat(columnIndex, value));
-    return NOERROR;
+    return mCursor->GetFloat(columnIndex, value);
 }
 
 ECode CursorWrapper::GetInt32(
     /* [in] */ Int32 columnIndex,
     /* [out] */ Int32* value)
 {
-    assert(value != NULL);
-    FAIL_RETURN(mCursor->GetInt32(columnIndex, value));
-    return NOERROR;
+    return mCursor->GetInt32(columnIndex, value);
 }
 
 ECode CursorWrapper::GetInt64(
     /* [in] */ Int32 columnIndex,
     /* [out] */ Int64* value)
 {
-    assert(value != NULL);
-    FAIL_RETURN(mCursor->GetInt64(columnIndex, value));
-    return NOERROR;
+    return mCursor->GetInt64(columnIndex, value);
 }
 
 ECode CursorWrapper::GetInt16(
     /* [in] */ Int32 columnIndex,
     /* [out] */ Int16* value)
 {
-    assert(value != NULL);
-    FAIL_RETURN(mCursor->GetInt16(columnIndex, value));
-    return NOERROR;
+    return mCursor->GetInt16(columnIndex, value);
 }
 
 ECode CursorWrapper::GetString(
     /* [in] */ Int32 columnIndex,
     /* [out] */ String* value)
 {
-    assert(value != NULL);
-    FAIL_RETURN(mCursor->GetString(columnIndex, value));
-    return NOERROR;
+    return mCursor->GetString(columnIndex, value);
 }
 
 ECode CursorWrapper::CopyStringToBuffer(
-        /* [in] */ Int32 columnIndex,
-        /* [in] */ ICharArrayBuffer* buffer)
+    /* [in] */ Int32 columnIndex,
+    /* [in] */ ICharArrayBuffer* buffer)
 {
-    FAIL_RETURN(mCursor->CopyStringToBuffer(columnIndex, buffer));
-    return NOERROR;
+    return mCursor->CopyStringToBuffer(columnIndex, buffer);
 }
 
- ECode CursorWrapper::GetBlob(
-             /* [in] */  Int32 columnIndex,
-             /* [out,callee] */ ArrayOf<Byte>** blob)
+ECode CursorWrapper::GetBlob(
+    /* [in] */  Int32 columnIndex,
+    /* [out,callee] */ ArrayOf<Byte>** blob)
 {
-    FAIL_RETURN(mCursor->GetBlob(columnIndex, blob));
-    return NOERROR;
-}
-
-ECode CursorWrapper::IsAfterLast(
-    /* [out] */ Boolean* rst)
-{
-    assert(rst != NULL);
-    FAIL_RETURN(mCursor->IsAfterLast(rst));
-    return NOERROR;
-}
-
-ECode CursorWrapper::IsBeforeFirst(
-    /* [out] */ Boolean* rst)
-{
-    assert(rst != NULL);
-    FAIL_RETURN(mCursor->IsBeforeFirst(rst));
-    return NOERROR;
+    return mCursor->GetBlob(columnIndex, blob);
 }
 
 ECode CursorWrapper::GetWantsAllOnMoveCalls(
-            /* [out] */ Boolean* value)
+    /* [out] */ Boolean* value)
 {
-    assert(value != NULL);
-    FAIL_RETURN(mCursor->GetWantsAllOnMoveCalls(value));
-    return NOERROR;
+    return mCursor->GetWantsAllOnMoveCalls(value);
+}
+
+ECode CursorWrapper::HasUpdates(
+    /* [out] */ Boolean* result)
+{
+    return mCursor->HasUpdates(result);
+}
+
+ECode CursorWrapper::IsAfterLast(
+    /* [out] */ Boolean* result)
+{
+    return mCursor->IsAfterLast(result);
+}
+
+ECode CursorWrapper::IsBeforeFirst(
+    /* [out] */ Boolean* result)
+{
+    return mCursor->IsBeforeFirst(result);
 }
 
 ECode CursorWrapper::IsFirst(
-    /* [out] */ Boolean* rst)
+    /* [out] */ Boolean* result)
 {
-    assert(rst != NULL);
-    FAIL_RETURN(mCursor->IsFirst(rst));
-    return NOERROR;
+    return mCursor->IsFirst(result);
 }
 
 ECode CursorWrapper::IsLast(
-    /* [out] */ Boolean* rst)
+    /* [out] */ Boolean* result)
 {
-    assert(rst != NULL);
-    FAIL_RETURN(mCursor->IsLast(rst));
-    return NOERROR;
+    return mCursor->IsLast(result);
 }
 
 ECode CursorWrapper::IsNull(
     /* [in] */ Int32 columnIndex,
-    /* [out] */ Boolean* rst)
+    /* [out] */ Boolean* result)
 {
-    assert(rst != NULL);
-    FAIL_RETURN(mCursor->IsNull(columnIndex, rst));
-    return NOERROR;
+    return mCursor->IsNull(columnIndex, result);
 }
 
 ECode CursorWrapper::MoveToLast(
-    /* [out] */ Boolean* rst)
+    /* [out] */ Boolean* succeeded)
 {
-    assert(rst != NULL);
-    FAIL_RETURN(mCursor->MoveToLast(rst));
-    return NOERROR;
+    return mCursor->MoveToLast(succeeded);
 }
 
 ECode CursorWrapper::Move(
     /* [in] */ Int32 offset,
-    /* [out] */ Boolean* rst)
+    /* [out] */ Boolean* succeeded)
 {
-    assert(rst != NULL);
-    FAIL_RETURN(mCursor->Move(offset, rst));
-    return NOERROR;
+    return mCursor->Move(offset, succeeded);
 }
 
 ECode CursorWrapper::MoveToPosition(
     /* [in] */ Int32 position,
-    /* [out] */ Boolean* rst)
+    /* [out] */ Boolean* succeeded)
 {
-    assert(rst != NULL);
-    FAIL_RETURN(mCursor->MoveToPosition(position, rst));
-    return NOERROR;
+    return mCursor->MoveToPosition(position, succeeded);
 }
 
 ECode CursorWrapper::MoveToNext(
-    /* [out] */ Boolean* rst)
+    /* [out] */ Boolean* succeeded)
 {
-    assert(rst != NULL);
-    FAIL_RETURN(mCursor->MoveToNext(rst));
-    return NOERROR;
+    return mCursor->MoveToNext(succeeded);
 }
 
 ECode CursorWrapper::GetPosition(
     /*[out]*/ Int32* position)
 {
-    assert(position != NULL);
-    FAIL_RETURN(mCursor->GetPosition(position));
-    return NOERROR;
+    return mCursor->GetPosition(position);
 }
 
 ECode CursorWrapper::MoveToPrevious(
-    /* [out] */ Boolean* rst)
+    /* [out] */ Boolean* succeeded)
 {
-    assert(rst != NULL);
-    FAIL_RETURN(mCursor->MoveToPrevious(rst));
-    return NOERROR;
+    return mCursor->MoveToPrevious(succeeded);
 }
 
 ECode CursorWrapper::RegisterContentObserver(
-        /* [in] */ ILocalContentObserver* observer)
+    /* [in] */ ILocalContentObserver* observer)
 {
-    FAIL_RETURN(mCursor->RegisterContentObserver(observer));
-    return NOERROR;
+    return mCursor->RegisterContentObserver(observer);
 }
 
 ECode CursorWrapper::RegisterDataSetObserver(
-        /* [in] */IDataSetObserver* observer)
+    /* [in] */IDataSetObserver* observer)
 {
-    FAIL_RETURN(mCursor->RegisterDataSetObserver(observer));
-    return NOERROR;
+    return mCursor->RegisterDataSetObserver(observer);
 }
 
 ECode CursorWrapper::Requery(
-    /* [out] */ Boolean* rst)
+    /* [out] */ Boolean* succeeded)
 {
-    assert(rst != NULL);
-    FAIL_RETURN(mCursor->Requery(rst));
-    return NOERROR;
+    return mCursor->Requery(succeeded);
 }
 
 ECode CursorWrapper::Respond(
-        /* [in] */ IBundle* extras,
-        /* [out] */ IBundle** bundle)
+    /* [in] */ IBundle* extras,
+    /* [out] */ IBundle** bundle)
 {
-    FAIL_RETURN(mCursor->Respond(extras, bundle));
-    return NOERROR;
+    return mCursor->Respond(extras, bundle);
 }
 
 ECode CursorWrapper::SetNotificationUri(
-        /* [in] */ IContentResolver* cr,
-        /* [in] */ IUri* uri)
+    /* [in] */ IContentResolver* cr,
+    /* [in] */ IUri* uri)
 {
-    FAIL_RETURN(mCursor->SetNotificationUri(cr, uri));
-    return NOERROR;
+    return mCursor->SetNotificationUri(cr, uri);
+}
+
+ECode CursorWrapper::SupportsUpdates(
+    /* [out] */ Boolean* result)
+{
+    return mCursor->SupportsUpdates(result);
 }
 
 ECode CursorWrapper::UnregisterContentObserver(
-        /* [in] */ ILocalContentObserver* observer)
+    /* [in] */ ILocalContentObserver* observer)
 {
-    FAIL_RETURN(mCursor->UnregisterContentObserver(observer));
-    return NOERROR;
+    return mCursor->UnregisterContentObserver(observer);
 }
 
 ECode CursorWrapper::UnregisterDataSetObserver(
-        /* [in] */IDataSetObserver* observer)
+    /* [in] */IDataSetObserver* observer)
 {
-    FAIL_RETURN(mCursor->UnregisterDataSetObserver(observer));
-    return NOERROR;
+    return mCursor->UnregisterDataSetObserver(observer);
+}
+
+ECode CursorWrapper::UpdateDouble(
+    /* [in] */ Int32 columnIndex,
+    /* [in] */ Double value,
+    /* [out] */ Boolean* succeeded)
+{
+    return mCursor->UpdateDouble(columnIndex, value, succeeded);
+}
+
+ECode CursorWrapper::UpdateFloat(
+    /* [in] */ Int32 columnIndex,
+    /* [in] */ Float value,
+    /* [out] */ Boolean* succeeded)
+{
+    return mCursor->UpdateFloat(columnIndex, value, succeeded);
+}
+
+ECode CursorWrapper::UpdateInt32(
+    /* [in] */ Int32 columnIndex,
+    /* [in] */ Int32 value,
+    /* [out] */ Boolean* succeeded)
+{
+    return mCursor->UpdateInt32(columnIndex, value, succeeded);
+}
+
+ECode CursorWrapper::UpdateInt64(
+    /* [in] */ Int32 columnIndex,
+    /* [in] */ Int64 value,
+    /* [out] */ Boolean* succeeded)
+{
+    return mCursor->UpdateInt64(columnIndex, value, succeeded);
+}
+
+ECode CursorWrapper::UpdateInt16(
+    /* [in] */ Int32 columnIndex,
+    /* [in] */ Int16 value,
+    /* [out] */ Boolean* succeeded)
+{
+    return mCursor->UpdateInt16(columnIndex, value, succeeded);
+}
+
+ECode CursorWrapper::UpdateString(
+    /* [in] */ Int32 columnIndex,
+    /* [in] */ const String& value,
+    /* [out] */ Boolean* succeeded)
+{
+    return mCursor->UpdateString(columnIndex, value, succeeded);
+}
+
+ECode CursorWrapper::UpdateBlob(
+    /* [in] */ Int32 columnIndex,
+    /* [in, out] */ const ArrayOf<Byte>& value,
+    /* [out] */ Boolean* succeeded)
+{
+    return mCursor->UpdateBlob(columnIndex, value, succeeded);
+}
+
+ECode CursorWrapper::UpdateToNull(
+    /* [in] */ Int32 columnIndex,
+    /* [out] */ Boolean* succeeded)
+{
+    return mCursor->UpdateToNull(columnIndex, succeeded);
 }

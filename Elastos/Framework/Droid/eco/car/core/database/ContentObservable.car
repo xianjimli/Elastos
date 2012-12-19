@@ -1,9 +1,18 @@
 
 module {
     interface IContentObservable extends IObservable {
+        /**
+         * invokes dispatchUpdate on each observer, unless the observer doesn't want
+         * self-notifications and the update is from a self-notification
+         * @param selfChange
+         */
         DispatchChange(
             [in] Boolean selfChange);
 
+        /**
+         * invokes onChange on each observer
+         * @param selfChange
+         */
         NotifyChange(
             [in] Boolean selfChange);
     }

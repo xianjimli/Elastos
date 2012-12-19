@@ -1,27 +1,28 @@
 module
 {
-    interface IAbstractWindowedCursor extends IAbstractCursor
-    {
+    interface ICursorWindow;
+
+    interface IAbstractWindowedCursor extends ICrossProcessCursor {
         IsBlob(
             [in] Int32 columnIndex,
-            [out] Boolean* value);
+            [out] Boolean* result);
 
         IsString(
             [in] Int32 columnIndex,
-            [out] Boolean* value);
+            [out] Boolean* result);
 
         IsInt64(
             [in] Int32 columnIndex,
-            [out] Boolean* value);
+            [out] Boolean* result);
 
         IsFloat(
             [in] Int32 columnIndex,
-            [out] Boolean* value);
+            [out] Boolean* result);
 
         SetWindow(
             [in] ICursorWindow* window);
 
         HasWindow(
-            [out] Boolean* rst);
+            [out] Boolean* result);
     }
 }

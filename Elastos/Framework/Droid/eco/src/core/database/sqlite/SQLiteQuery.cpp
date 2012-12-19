@@ -1,7 +1,7 @@
 
 #include "database/sqlite/SQLiteQuery.h"
-#include "database/sqlite/NativeCursorWindow.h"
 #include "database/sqlite/Sqlite3Exception.h"
+#include "database/NativeCursorWindow.h"
 
 const CString SQLiteQuery::TAG = "Cursor";
 
@@ -380,7 +380,7 @@ ECode SQLiteQuery::NativeFillWindow(
                 else if (type == SQLITE_INTEGER) {
                     // INTEGER data
                     int64_t value = sqlite3_column_int64(statement, i);
-                    if (!window->putLong(numRows, i, value)) {
+                    if (!window->putInt64(numRows, i, value)) {
                         window->freeLastRow();
                         LOGE("Failed allocating space for a long in column %d", i);
                         *rowNum = startPos + numRows + finish_program_and_get_row_count(statement) + 1;

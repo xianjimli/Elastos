@@ -4,39 +4,30 @@
 
 #include "ext/frameworkext.h"
 #include <elastos/AutoPtr.h>
+
 /**
  * Wrapper class for Cursor that delegates all calls to the actual cursor object
  */
 class CursorWrapper
 {
 public:
-    CursorWrapper();
+    /**
+     * @hide
+     * @deprecated
+     */
+    virtual CARAPI AbortUpdates();
 
-    CARAPI Init(
-        /* [in] */ ICursor* cursor);
+    virtual CARAPI Close();
 
-    ~CursorWrapper();
+    virtual CARAPI IsClosed(
+        /* [out] */ Boolean* isClosed);
 
     /**
      * @hide
      * @deprecated
      */
-//    public void abortUpdates() {
-//        mCursor.abortUpdates();
-//    }
-
-    CARAPI Close();
-
-    CARAPI IsClosed(
-        /* [out] */ Boolean* res);
-
-    /**
-     * @hide
-     * @deprecated
-     */
-//    public boolean commitUpdates() {
-//        return mCursor.commitUpdates();
-//    }
+    virtual CARAPI CommitUpdates(
+        /* [out] */ Boolean* succeeded);
 
     /**
      * @hide
@@ -47,137 +38,134 @@ public:
 //        return mCursor.commitUpdates(values);
 //    }
 
-    CARAPI GetCount(
-        /* [out] */ Int32* cnt);
+    virtual CARAPI GetCount(
+        /* [out] */ Int32* count);
 
-    CARAPI Deactivate();
+    virtual CARAPI Deactivate();
 
     /**
      * @hide
      * @deprecated
      */
-//    public boolean deleteRow() {
-//        return mCursor.deleteRow();
-//    }
+    virtual CARAPI DeleteRow(
+        /* [out] */ Boolean* succeeded);
 
-    CARAPI MoveToFirst(
-        /* [out] */ Boolean* rst);
-        
-    CARAPI GetColumnCount(
-        /* [out] */ Int32* cnt);
-        
-    CARAPI GetColumnIndex(
-        /* [in] */ String columnName,
+    virtual CARAPI MoveToFirst(
+        /* [out] */ Boolean* succeeded);
+
+    virtual CARAPI GetColumnCount(
+        /* [out] */ Int32* count);
+
+    virtual CARAPI GetColumnIndex(
+        /* [in] */ const String& columnName,
         /* [out] */ Int32* index);
-        
-    CARAPI GetColumnIndexOrThrow(
-        /* [in] */  String columnName,
+
+    virtual CARAPI GetColumnIndexOrThrow(
+        /* [in] */  const String& columnName,
         /* [out] */ Int32* columnIndex);
-        
-    CARAPI GetColumnName(
+
+    virtual CARAPI GetColumnName(
         /* [in] */ Int32 columnIndex,
         /* [out] */ String* name);
-        
-    CARAPI GetColumnNames(
-        /* [out,callee] */ ArrayOf<String>** columnNames);
 
-    CARAPI GetDouble(
+    virtual CARAPI GetColumnNames(
+        /* [out, callee] */ ArrayOf<String>** columnNames);
+
+    virtual CARAPI GetDouble(
         /* [in] */ Int32 columnIndex,
         /* [out] */ Double* value);
 
-    CARAPI GetExtras(
+    virtual CARAPI GetExtras(
         /* [out] */ IBundle** extras);
 
-    CARAPI GetFloat(
+    virtual CARAPI GetFloat(
         /* [in] */ Int32 columnIndex,
         /* [out] */ Float* value);
 
-    CARAPI GetInt32(
+    virtual CARAPI GetInt32(
         /* [in] */ Int32 columnIndex,
         /* [out] */ Int32* value);
 
-    CARAPI GetInt64(
+    virtual CARAPI GetInt64(
         /* [in] */ Int32 columnIndex,
         /* [out] */ Int64* value);
 
-    CARAPI GetInt16(
+    virtual CARAPI GetInt16(
         /* [in] */ Int32 columnIndex,
         /* [out] */ Int16* value);
 
-    CARAPI GetString(
+    virtual CARAPI GetString(
         /* [in] */ Int32 columnIndex,
         /* [out] */ String* value);
 
-    CARAPI CopyStringToBuffer(
+    virtual CARAPI CopyStringToBuffer(
         /* [in] */ Int32 columnIndex,
         /* [in] */ ICharArrayBuffer* buffer);
 
-    CARAPI GetBlob(
-            /* [in] */  Int32 columnIndex,
-            /* [out,callee] */ ArrayOf<Byte>** blob);
+    virtual CARAPI GetBlob(
+        /* [in] */  Int32 columnIndex,
+        /* [out,callee] */ ArrayOf<Byte>** blob);
 
-
-    CARAPI GetWantsAllOnMoveCalls(
-            /* [out] */ Boolean* value);
+    virtual CARAPI GetWantsAllOnMoveCalls(
+        /* [out] */ Boolean* value);
 
     /**
      * @hide
      * @deprecated
      */
-//    public boolean hasUpdates() {
-//        return mCursor.hasUpdates();
-//    }
+    virtual CARAPI HasUpdates(
+        /* [out] */ Boolean* result);
 
-    CARAPI IsAfterLast(
-        /* [out] */ Boolean* rst);
+    virtual CARAPI IsAfterLast(
+        /* [out] */ Boolean* result);
 
-    CARAPI IsBeforeFirst(
-        /* [out] */ Boolean* rst);
+    virtual CARAPI IsBeforeFirst(
+        /* [out] */ Boolean* result);
 
-    CARAPI IsFirst(
-        /* [out] */ Boolean* rst);
+    virtual CARAPI IsFirst(
+        /* [out] */ Boolean* result);
 
-    CARAPI IsLast(
-        /* [out] */ Boolean* rst);
+    virtual CARAPI IsLast(
+        /* [out] */ Boolean* result);
 
-    CARAPI IsNull(
+    virtual CARAPI IsNull(
         /* [in] */ Int32 columnIndex,
-        /* [out] */ Boolean* rst);
+        /* [out] */ Boolean* result);
 
-    CARAPI MoveToLast(
-        /* [out] */ Boolean* rst);
+    virtual CARAPI MoveToLast(
+        /* [out] */ Boolean* succeeded);
 
-    CARAPI Move(
+    virtual CARAPI Move(
         /* [in] */ Int32 offset,
-        /* [out] */ Boolean* rst);
+        /* [out] */ Boolean* succeeded);
 
-    CARAPI MoveToPosition(
+    virtual CARAPI MoveToPosition(
         /* [in] */ Int32 position,
-        /* [out] */ Boolean* rst);
+        /* [out] */ Boolean* succeeded);
 
-    CARAPI MoveToNext(
-        /* [out] */ Boolean* rst);
+    virtual CARAPI MoveToNext(
+        /* [out] */ Boolean* succeeded);
 
-    CARAPI GetPosition(
+    virtual CARAPI GetPosition(
         /*[out]*/ Int32* position);
 
-    CARAPI MoveToPrevious(
-        /* [out] */ Boolean* rst);
+    virtual CARAPI MoveToPrevious(
+        /* [out] */ Boolean* succeeded);
 
-    CARAPI RegisterContentObserver(
+    virtual CARAPI RegisterContentObserver(
         /* [in] */ ILocalContentObserver* observer);
 
-    CARAPI RegisterDataSetObserver(
+    virtual CARAPI RegisterDataSetObserver(
         /* [in] */IDataSetObserver* observer);
 
-    CARAPI Requery(
-        /* [out] */ Boolean* rst);
+    virtual CARAPI Requery(
+        /* [out] */ Boolean* succeeded);
 
-    CARAPI Respond(
+    virtual CARAPI Respond(
         /* [in] */ IBundle* extras,
         /* [out] */ IBundle** bundle);
 
-    CARAPI SetNotificationUri(
+    virtual CARAPI SetNotificationUri(
         /* [in] */ IContentResolver* cr,
         /* [in] */ IUri* uri);
 
@@ -185,81 +173,94 @@ public:
      * @hide
      * @deprecated
      */
-//    public boolean supportsUpdates() {
-//        return mCursor.supportsUpdates();
-//    }
+    virtual CARAPI SupportsUpdates(
+        /* [out] */ Boolean* result);
 
-    CARAPI UnregisterContentObserver(
+    virtual CARAPI UnregisterContentObserver(
         /* [in] */ ILocalContentObserver* observer);
 
-    CARAPI UnregisterDataSetObserver(
+    virtual CARAPI UnregisterDataSetObserver(
         /* [in] */ IDataSetObserver* observer);
 
     /**
      * @hide
      * @deprecated
      */
-//    public boolean updateDouble(int columnIndex, double value) {
-//        return mCursor.updateDouble(columnIndex, value);
-//    }
+    virtual CARAPI UpdateDouble(
+        /* [in] */ Int32 columnIndex,
+        /* [in] */ Double value,
+        /* [out] */ Boolean* succeeded);
 
     /**
      * @hide
      * @deprecated
      */
-//    public boolean updateFloat(int columnIndex, float value) {
-//        return mCursor.updateFloat(columnIndex, value);
-//    }
+    virtual CARAPI UpdateFloat(
+        /* [in] */ Int32 columnIndex,
+        /* [in] */ Float value,
+        /* [out] */ Boolean* succeeded);
 
     /**
      * @hide
      * @deprecated
      */
-//    public boolean updateInt(int columnIndex, int value) {
-//        return mCursor.updateInt(columnIndex, value);
-//    }
+    virtual CARAPI UpdateInt32(
+        /* [in] */ Int32 columnIndex,
+        /* [in] */ Int32 value,
+        /* [out] */ Boolean* succeeded);
 
     /**
      * @hide
      * @deprecated
      */
-//    public boolean updateLong(int columnIndex, long value) {
-//        return mCursor.updateLong(columnIndex, value);
-//    }
+    virtual CARAPI UpdateInt64(
+        /* [in] */ Int32 columnIndex,
+        /* [in] */ Int64 value,
+        /* [out] */ Boolean* succeeded);
 
     /**
      * @hide
      * @deprecated
      */
-//    public boolean updateShort(int columnIndex, short value) {
-//        return mCursor.updateShort(columnIndex, value);
-//    }
+    virtual CARAPI UpdateInt16(
+        /* [in] */ Int32 columnIndex,
+        /* [in] */ Int16 value,
+        /* [out] */ Boolean* succeeded);
 
     /**
      * @hide
      * @deprecated
      */
-//    public boolean updateString(int columnIndex, String value) {
-//        return mCursor.updateString(columnIndex, value);
-//    }
+    virtual CARAPI UpdateString(
+        /* [in] */ Int32 columnIndex,
+        /* [in] */ const String& value,
+        /* [out] */ Boolean* succeeded);
 
     /**
      * @hide
      * @deprecated
      */
-//    public boolean updateBlob(int columnIndex, byte[] value) {
-//        return mCursor.updateBlob(columnIndex, value);
-//    }
+    virtual CARAPI UpdateBlob(
+        /* [in] */ Int32 columnIndex,
+        /* [in, out] */ const ArrayOf<Byte>& value,
+        /* [out] */ Boolean* succeeded);
 
     /**
      * @hide
      * @deprecated
      */
-//    public boolean updateToNull(int columnIndex) {
-//        return mCursor.updateToNull(columnIndex);
-//    }
+    virtual CARAPI UpdateToNull(
+        /* [in] */ Int32 columnIndex,
+        /* [out] */ Boolean* succeeded);
+
+protected:
+    CursorWrapper();
+
+    CARAPI Init(
+        /* [in] */ ICursor* cursor);
 
 private:
     AutoPtr<ICursor> mCursor;
 };
+
 #endif //_CURSORWRAPPER_H_

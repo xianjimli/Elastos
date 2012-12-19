@@ -1,400 +1,429 @@
 
+#include "ext/frameworkdef.h"
 #include "database/CCursorWrapper.h"
-ECode CCursorWrapper::GetCount(
-    /* [out] */ Int32 * pCount)
+
+
+ECode CCursorWrapper::constructor(
+    /* [in] */ ICursor* cursor)
 {
-    CursorWrapper::GetCount(pCount);
-    return NOERROR;
+    return CursorWrapper::Init(cursor);
+}
+
+ECode CCursorWrapper::GetCount(
+    /* [out] */ Int32* count)
+{
+    VALIDATE_NOT_NULL(count);
+
+    return CursorWrapper::GetCount(count);
 }
 
 ECode CCursorWrapper::GetPosition(
-    /* [out] */ Int32 * pPosition)
+    /* [out] */ Int32* position)
 {
-    CursorWrapper::GetPosition(pPosition);
-    return NOERROR;
+    VALIDATE_NOT_NULL(position);
+
+    return CursorWrapper::GetPosition(position);
 }
 
 ECode CCursorWrapper::Move(
     /* [in] */ Int32 offset,
-    /* [out] */ Boolean * pValue)
+    /* [out] */ Boolean* succeeded)
 {
-    CursorWrapper::Move(offset, pValue);
-    return NOERROR;
+    VALIDATE_NOT_NULL(succeeded);
+
+    return CursorWrapper::Move(offset, succeeded);
 }
 
 ECode CCursorWrapper::MoveToPosition(
     /* [in] */ Int32 position,
-    /* [out] */ Boolean * pValue)
+    /* [out] */ Boolean* succeeded)
 {
-    CursorWrapper::MoveToPosition(position, pValue);
-    return NOERROR;
+    VALIDATE_NOT_NULL(succeeded);
+
+    return CursorWrapper::MoveToPosition(position, succeeded);
 }
 
 ECode CCursorWrapper::MoveToFirst(
-    /* [out] */ Boolean * pValue)
+    /* [out] */ Boolean* succeeded)
 {
-    CursorWrapper::MoveToFirst(pValue);
-    return NOERROR;
+    VALIDATE_NOT_NULL(succeeded);
+
+    return CursorWrapper::MoveToFirst(succeeded);
 }
 
 ECode CCursorWrapper::MoveToLast(
-    /* [out] */ Boolean * pValue)
+    /* [out] */ Boolean* succeeded)
 {
-    CursorWrapper::MoveToLast(pValue);
-    return NOERROR;
+    VALIDATE_NOT_NULL(succeeded);
+
+    return CursorWrapper::MoveToLast(succeeded);
 }
 
 ECode CCursorWrapper::MoveToNext(
-    /* [out] */ Boolean * pValue)
+    /* [out] */ Boolean* succeeded)
 {
-    CursorWrapper::MoveToNext(pValue);
-    return NOERROR;
+    VALIDATE_NOT_NULL(succeeded);
+
+    return CursorWrapper::MoveToNext(succeeded);
 }
 
 ECode CCursorWrapper::MoveToPrevious(
-    /* [out] */ Boolean * pValue)
+    /* [out] */ Boolean* succeeded)
 {
-    CursorWrapper::MoveToPrevious(pValue);
-    return NOERROR;
+    VALIDATE_NOT_NULL(succeeded);
+
+    return CursorWrapper::MoveToPrevious(succeeded);
 }
 
 ECode CCursorWrapper::IsFirst(
-    /* [out] */ Boolean * pValue)
+    /* [out] */ Boolean* result)
 {
-    CursorWrapper::IsFirst(pValue);
-    return NOERROR;
+    VALIDATE_NOT_NULL(result);
+
+    return CursorWrapper::IsFirst(result);
 }
 
 ECode CCursorWrapper::IsLast(
-    /* [out] */ Boolean * pValue)
+    /* [out] */ Boolean* result)
 {
-    CursorWrapper::IsLast(pValue);
-    return NOERROR;
+    VALIDATE_NOT_NULL(result);
+
+    return CursorWrapper::IsLast(result);
 }
 
 ECode CCursorWrapper::IsBeforeFirst(
-    /* [out] */ Boolean * pValue)
+    /* [out] */ Boolean* result)
 {
-    CursorWrapper::IsBeforeFirst(pValue);
-    return NOERROR;
+    VALIDATE_NOT_NULL(result);
+
+    return CursorWrapper::IsBeforeFirst(result);
 }
 
 ECode CCursorWrapper::IsAfterLast(
-    /* [out] */ Boolean * pValue)
+    /* [out] */ Boolean* result)
 {
-    CursorWrapper::IsAfterLast(pValue);
-    return NOERROR;
+    VALIDATE_NOT_NULL(result);
+
+    return CursorWrapper::IsAfterLast(result);
 }
 
 ECode CCursorWrapper::DeleteRow(
-    /* [out] */ Boolean * pResult)
+    /* [out] */ Boolean* result)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(result);
+
+    return CursorWrapper::DeleteRow(result);
 }
 
 ECode CCursorWrapper::GetColumnIndex(
     /* [in] */ const String& columnName,
-    /* [out] */ Int32 * pColumnIndex)
+    /* [out] */ Int32* columnIndex)
 {
-    CursorWrapper::GetColumnIndex(columnName, pColumnIndex);
-    return NOERROR;
+    VALIDATE_NOT_NULL(columnIndex);
+
+    return CursorWrapper::GetColumnIndex(columnName, columnIndex);
 }
 
 ECode CCursorWrapper::GetColumnIndexOrThrow(
     /* [in] */ const String& columnName,
-    /* [out] */ Int32 * pColumnIndex)
+    /* [out] */ Int32* columnIndex)
 {
-    CursorWrapper::GetColumnIndexOrThrow(columnName, pColumnIndex);
-    return NOERROR;
+    VALIDATE_NOT_NULL(columnIndex);
+
+    return CursorWrapper::GetColumnIndexOrThrow(columnName, columnIndex);
 }
 
 ECode CCursorWrapper::GetColumnName(
     /* [in] */ Int32 columnIndex,
-    /* [out] */ String * pColumnName)
+    /* [out] */ String* columnName)
 {
-    CursorWrapper::GetColumnName(columnIndex, pColumnName);
-    return NOERROR;
+    VALIDATE_NOT_NULL(columnName);
+
+    return CursorWrapper::GetColumnName(columnIndex, columnName);
 }
 
 ECode CCursorWrapper::GetColumnNames(
-    /* [out, callee] */ ArrayOf<String> ** ppColumnNames)
+    /* [out, callee] */ ArrayOf<String>** columnNames)
 {
-    CursorWrapper::GetColumnNames(ppColumnNames);
-    return NOERROR;
+    VALIDATE_NOT_NULL(columnNames);
+
+    return CursorWrapper::GetColumnNames(columnNames);
 }
 
 ECode CCursorWrapper::GetColumnCount(
-    /* [out] */ Int32 * pColumnCount)
+    /* [out] */ Int32* columnCount)
 {
-    CursorWrapper::GetColumnCount(pColumnCount);
-    return NOERROR;
+    VALIDATE_NOT_NULL(columnCount);
+
+    return CursorWrapper::GetColumnCount(columnCount);
 }
 
 ECode CCursorWrapper::GetBlob(
     /* [in] */ Int32 columnIndex,
-    /* [out, callee] */ ArrayOf<Byte> ** ppBlob)
+    /* [out, callee] */ ArrayOf<Byte>** blob)
 {
-    CursorWrapper::GetBlob(columnIndex, ppBlob);
-    return NOERROR;
+    VALIDATE_NOT_NULL(blob);
+
+    return CursorWrapper::GetBlob(columnIndex, blob);
 }
 
 ECode CCursorWrapper::GetString(
     /* [in] */ Int32 columnIndex,
-    /* [out] */ String * pColumnValue)
+    /* [out] */ String* columnValue)
 {
-    CursorWrapper::GetString(columnIndex, pColumnValue);
-    return NOERROR;
+    VALIDATE_NOT_NULL(columnValue);
+
+    return CursorWrapper::GetString(columnIndex, columnValue);
 }
 
 ECode CCursorWrapper::CopyStringToBuffer(
     /* [in] */ Int32 columnIndex,
-    /* [in] */ ICharArrayBuffer * pBuf)
+    /* [in] */ ICharArrayBuffer* buffer)
 {
-    CursorWrapper::CopyStringToBuffer(columnIndex, pBuf);
-    return NOERROR;
+    return CursorWrapper::CopyStringToBuffer(columnIndex, buffer);
 }
 
 ECode CCursorWrapper::GetInt16(
     /* [in] */ Int32 columnIndex,
-    /* [out] */ Int16 * pColumnValue)
+    /* [out] */ Int16* columnValue)
 {
-    CursorWrapper::GetInt16(columnIndex, pColumnValue);
-    return NOERROR;
+    VALIDATE_NOT_NULL(columnValue);
+
+    return CursorWrapper::GetInt16(columnIndex, columnValue);
 }
 
 ECode CCursorWrapper::GetInt32(
     /* [in] */ Int32 columnIndex,
-    /* [out] */ Int32 * pColumnValue)
+    /* [out] */ Int32* columnValue)
 {
-    CursorWrapper::GetInt32(columnIndex, pColumnValue);
-    return NOERROR;
+    VALIDATE_NOT_NULL(columnValue);
+
+    return CursorWrapper::GetInt32(columnIndex, columnValue);
 }
 
 ECode CCursorWrapper::GetInt64(
     /* [in] */ Int32 columnIndex,
-    /* [out] */ Int64 * pColumnValue)
+    /* [out] */ Int64* columnValue)
 {
-    CursorWrapper::GetInt64(columnIndex, pColumnValue);
-    return NOERROR;
+    VALIDATE_NOT_NULL(columnValue);
+
+    return CursorWrapper::GetInt64(columnIndex, columnValue);
 }
 
 ECode CCursorWrapper::GetFloat(
     /* [in] */ Int32 columnIndex,
-    /* [out] */ Float * pColumnValue)
+    /* [out] */ Float* columnValue)
 {
-    CursorWrapper::GetFloat(columnIndex, pColumnValue);
-    return NOERROR;
+    VALIDATE_NOT_NULL(columnValue);
+
+    return CursorWrapper::GetFloat(columnIndex, columnValue);
 }
 
 ECode CCursorWrapper::GetDouble(
     /* [in] */ Int32 columnIndex,
-    /* [out] */ Double * pColumnValue)
+    /* [out] */ Double* columnValue)
 {
-    CursorWrapper::GetDouble(columnIndex, pColumnValue);
-    return NOERROR;
+    VALIDATE_NOT_NULL(columnValue);
+
+    return CursorWrapper::GetDouble(columnIndex, columnValue);
 }
 
 ECode CCursorWrapper::IsNull(
     /* [in] */ Int32 columnIndex,
-    /* [out] */ Boolean * pValue)
+    /* [out] */ Boolean* result)
 {
-    CursorWrapper::IsNull(columnIndex, pValue);
-    return NOERROR;
+    VALIDATE_NOT_NULL(result);
+
+    return CursorWrapper::IsNull(columnIndex, result);
 }
 
 ECode CCursorWrapper::SupportsUpdates(
-    /* [out] */ Boolean * pResult)
+    /* [out] */ Boolean* result)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(result);
+
+    return CursorWrapper::SupportsUpdates(result);
 }
 
 ECode CCursorWrapper::HasUpdates(
-    /* [out] */ Boolean * pResult)
+    /* [out] */ Boolean* result)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(result);
+
+    return CursorWrapper::HasUpdates(result);
 }
 
 ECode CCursorWrapper::UpdateBlob(
     /* [in] */ Int32 columnIndex,
-    /* [in] */ const ArrayOf<Byte> & value,
-    /* [out] */ Boolean * pSucceeded)
+    /* [in] */ const ArrayOf<Byte>& value,
+    /* [out] */ Boolean* succeeded)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(succeeded);
+
+    return CursorWrapper::UpdateBlob(columnIndex, value, succeeded);
 }
 
 ECode CCursorWrapper::UpdateString(
     /* [in] */ Int32 columnIndex,
     /* [in] */ const String& value,
-    /* [out] */ Boolean * pSucceeded)
+    /* [out] */ Boolean* succeeded)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(succeeded);
+
+    return CursorWrapper::UpdateString(columnIndex, value, succeeded);
 }
 
 ECode CCursorWrapper::UpdateInt16(
     /* [in] */ Int32 columnIndex,
     /* [in] */ Int16 value,
-    /* [out] */ Boolean * pSucceeded)
+    /* [out] */ Boolean* succeeded)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(succeeded);
+
+    return CursorWrapper::UpdateInt16(columnIndex, value, succeeded);
 }
 
 ECode CCursorWrapper::UpdateInt32(
     /* [in] */ Int32 columnIndex,
     /* [in] */ Int32 value,
-    /* [out] */ Boolean * pSucceeded)
+    /* [out] */ Boolean* succeeded)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(succeeded);
+
+    return CursorWrapper::UpdateInt32(columnIndex, value, succeeded);
 }
 
 ECode CCursorWrapper::UpdateInt64(
     /* [in] */ Int32 columnIndex,
     /* [in] */ Int64 value,
-    /* [out] */ Boolean * pSucceeded)
+    /* [out] */ Boolean* succeeded)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(succeeded);
+
+    return CursorWrapper::UpdateInt64(columnIndex, value, succeeded);
 }
 
 ECode CCursorWrapper::UpdateFloat(
     /* [in] */ Int32 columnIndex,
     /* [in] */ Float value,
-    /* [out] */ Boolean * pSucceeded)
+    /* [out] */ Boolean* succeeded)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(succeeded);
+
+    return CursorWrapper::UpdateFloat(columnIndex, value, succeeded);
 }
 
 ECode CCursorWrapper::UpdateDouble(
     /* [in] */ Int32 columnIndex,
     /* [in] */ Double value,
-    /* [out] */ Boolean * pSucceeded)
+    /* [out] */ Boolean* succeeded)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(succeeded);
+
+    return CursorWrapper::UpdateDouble(columnIndex, value, succeeded);
 }
 
 ECode CCursorWrapper::UpdateToNull(
     /* [in] */ Int32 columnIndex,
-    /* [out] */ Boolean * pSucceeded)
+    /* [out] */ Boolean* succeeded)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(succeeded);
+
+    return CursorWrapper::UpdateToNull(columnIndex, succeeded);
 }
 
 ECode CCursorWrapper::CommitUpdates(
-    /* [out] */ Boolean * pSucceeded)
+    /* [out] */ Boolean* succeeded)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(succeeded);
+
+    return CursorWrapper::CommitUpdates(succeeded);
 }
 
 ECode CCursorWrapper::AbortUpdates()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return CursorWrapper::AbortUpdates();
 }
 
 ECode CCursorWrapper::Deactivate()
 {
-    CursorWrapper::Deactivate();
-    return NOERROR;
+    return CursorWrapper::Deactivate();
 }
 
 ECode CCursorWrapper::Requery(
-    /* [out] */ Boolean * pSucceeded)
+    /* [out] */ Boolean* succeeded)
 {
-    CursorWrapper::Requery(pSucceeded);
-    return NOERROR;
+    VALIDATE_NOT_NULL(succeeded);
+
+    return CursorWrapper::Requery(succeeded);
 }
 
 ECode CCursorWrapper::Close()
 {
-    CursorWrapper::Close();
-    return NOERROR;
+    return CursorWrapper::Close();
 }
 
 ECode CCursorWrapper::IsClosed(
-    /* [out] */ Boolean * pClosed)
+    /* [out] */ Boolean* isClosed)
 {
-    CursorWrapper::IsClosed(pClosed);
-    return NOERROR;
+    VALIDATE_NOT_NULL(isClosed);
+
+    return CursorWrapper::IsClosed(isClosed);
 }
 
 ECode CCursorWrapper::RegisterContentObserver(
-    /* [in] */ ILocalContentObserver * pObserver)
+    /* [in] */ ILocalContentObserver* observer)
 {
-    CursorWrapper::RegisterContentObserver(pObserver);
-    return NOERROR;
+    return CursorWrapper::RegisterContentObserver(observer);
 }
 
 ECode CCursorWrapper::UnregisterContentObserver(
-    /* [in] */ ILocalContentObserver * pObserver)
+    /* [in] */ ILocalContentObserver* observer)
 {
-    CursorWrapper::UnregisterContentObserver(pObserver);
-    return NOERROR;
+    return CursorWrapper::UnregisterContentObserver(observer);
 }
 
 ECode CCursorWrapper::RegisterDataSetObserver(
-    /* [in] */ IDataSetObserver * pObserver)
+    /* [in] */ IDataSetObserver* observer)
 {
-    CursorWrapper::RegisterDataSetObserver(pObserver);
-    return NOERROR;
+    return CursorWrapper::RegisterDataSetObserver(observer);
 }
 
 ECode CCursorWrapper::UnregisterDataSetObserver(
-    /* [in] */ IDataSetObserver * pObserver)
+    /* [in] */ IDataSetObserver* observer)
 {
-    CursorWrapper::UnregisterDataSetObserver(pObserver);
-    return NOERROR;
+    return CursorWrapper::UnregisterDataSetObserver(observer);
 }
 
 ECode CCursorWrapper::SetNotificationUri(
-    /* [in] */ IContentResolver * pCr,
-    /* [in] */ IUri * pUri)
+    /* [in] */ IContentResolver* cr,
+    /* [in] */ IUri* uri)
 {
-    CursorWrapper::SetNotificationUri(pCr, pUri);
-    return NOERROR;
+    return CursorWrapper::SetNotificationUri(cr, uri);
 }
 
 ECode CCursorWrapper::GetWantsAllOnMoveCalls(
-    /* [out] */ Boolean * pResult)
+    /* [out] */ Boolean* result)
 {
-    CursorWrapper::GetWantsAllOnMoveCalls(pResult);
-    return NOERROR;
+    VALIDATE_NOT_NULL(result);
+
+    return CursorWrapper::GetWantsAllOnMoveCalls(result);
 }
 
 ECode CCursorWrapper::GetExtras(
-    /* [out] */ IBundle ** ppExtras)
+    /* [out] */ IBundle** extras)
 {
-    CursorWrapper::GetExtras(ppExtras);
-    return NOERROR;
+    VALIDATE_NOT_NULL(extras);
+
+    return CursorWrapper::GetExtras(extras);
 }
 
 ECode CCursorWrapper::Respond(
-    /* [in] */ IBundle * pExtras,
-    /* [out] */ IBundle ** ppResult)
+    /* [in] */ IBundle* extras,
+    /* [out] */ IBundle** result)
 {
-    CursorWrapper::Respond(pExtras, ppResult);
-    return NOERROR;
-}
+    VALIDATE_NOT_NULL(result);
 
-ECode CCursorWrapper::constructor()
-{
-    CursorWrapper::CursorWrapper();
-    return NOERROR;
-}
-
-ECode CCursorWrapper::constructor(
-    /* [in] */ ICursor * pCursor)
-{
-    CursorWrapper::Init(pCursor);
-    return NOERROR;
+    return CursorWrapper::Respond(extras, result);
 }
 
