@@ -4,8 +4,6 @@
 
 ECode CResolveInfo::constructor()
 {
-    //TODO
-    assert(0);
     return NOERROR;
 }
 
