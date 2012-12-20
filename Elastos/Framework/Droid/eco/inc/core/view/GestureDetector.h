@@ -164,7 +164,7 @@ public:
             /* [in] */ Float distanceX,
             /* [in] */ Float distanceY);
 
-        Boolean OnFling(
+        virtual Boolean OnFling(
             /* [in] */ IMotionEvent* e1,
             /* [in] */ IMotionEvent* e2,
             /* [in] */ Float velocityX,

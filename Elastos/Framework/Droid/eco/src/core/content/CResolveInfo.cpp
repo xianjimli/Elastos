@@ -2,6 +2,57 @@
 #include "ext/frameworkdef.h"
 #include "content/CResolveInfo.h"
 
+ECode CResolveInfo::constructor()
+{
+    //TODO
+    assert(0);
+    return NOERROR;
+}
+
+ECode CResolveInfo::constructor(
+    /* [in] */ IParcel* source)
+{
+    assert(source != NULL);
+    Int32 type = 0;
+    source->ReadInt32(&type);
+    switch (type) {
+        case 1:
+            assert(0);
+            //TODO
+            // activityInfo = ActivityInfo.CREATOR.createFromParcel(source);
+            // serviceInfo = NULL;
+            break;
+        case 2:
+            assert(0);
+            //TODO
+            // serviceInfo = ServiceInfo.CREATOR.createFromParcel(source);
+            // activityInfo = NULL;
+            break;
+        default:
+            mActivityInfo = NULL;
+            mServiceInfo = NULL;
+            break;
+    }
+
+    source->ReadInt32(&type);
+    assert(0);
+    // if (type != 0) {
+    //     filter = IntentFilter.CREATOR.createFromParcel(source);
+    // }
+
+    // priority = source.readInt();
+    // preferredOrder = source.readInt();
+    // match = source.readInt();
+    // specificIndex = source.readInt();
+    // labelRes = source.readInt();
+    // nonLocalizedLabel
+    //         = TextUtils.CHAR_SEQUENCE_CREATOR.createFromParcel(source);
+    // icon = source.readInt();
+    // resolvePackageName = source.readString();
+
+    return NOERROR;
+}
+
 ECode CResolveInfo::GetActivityInfo(
     /* [out] */ IActivityInfo** activityInfo)
 {

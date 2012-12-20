@@ -2,7 +2,7 @@
 #include "server/CWindowSession.h"
 
 ECode CWindowSession::constructor(
-    /* [in] */ IWindowManagerEx* wmService,
+    /* [in] */ IWindowManagerStub* wmService,
     /* [in] */ IInputMethodClientStub* client,
     /* [in] */ IInputContextStub* inputContext)
 {

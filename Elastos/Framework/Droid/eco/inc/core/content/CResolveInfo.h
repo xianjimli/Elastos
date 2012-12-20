@@ -26,6 +26,11 @@ public:
 
     ~CResolveInfo() {}
 
+    CARAPI constructor();
+
+    CARAPI constructor(
+        /* [in] */ IParcel* source);
+
 public:
     CARAPI GetActivityInfo(
         /* [out] */ IActivityInfo** activityInfo);

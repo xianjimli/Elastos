@@ -216,7 +216,7 @@ ECode CMenuInflater::ParseMenu(
 {
     MenuState* menuState = new MenuState(menu, this);
 
-    int eventType = 0;
+    Int32 eventType = 0;
     parser->GetEventType(&eventType);
     String tagName;
     Boolean lookingForEndOfUnknownTag = FALSE;

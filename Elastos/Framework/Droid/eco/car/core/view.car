@@ -58,7 +58,7 @@ module
     merge("view/IInnerWindow.car");
     merge("view/IWindowSession.car");
     merge("view/IApplicationToken.car");
-    merge("view/IWindowManagerEx.car");
+    merge("view/IWindowManagerStub.car");
     merge("view/TouchDelegate.car");
     merge("view/SoundEffectConstants.car");
     merge("view/HapticFeedbackConstants.car");
@@ -190,6 +190,10 @@ module
 
         interface IWindowManagerLayoutParams;
         interface IParcelable;
+    }
+
+    singleton class CWindowManagerLayoutParamsHelper {
+        interface IWindowManagerLayoutParamsHelper;
     }
 
     class CDisplay {
@@ -469,6 +473,14 @@ module
     }
 
     class CInputBindResult {
+        constructor(
+            [in] IParcel* source);
+
+        constructor(
+            [in] IInputMethodSessionStub* _method,
+            [in] String id,
+            [in] Int32 sequence);
+
         interface IInputBindResult;
         interface IParcelable;
     }
@@ -497,6 +509,24 @@ module
             [in] Boolean mutable);
 
         interface IInputConnection;
+    }
+
+    class CInputMethodInfo {
+        constructor(
+            [in] IContext* ctx,
+            [in] IResolveInfo* service);
+
+        constructor(
+            [in] IParcel* source);
+
+        constructor(
+            [in] String packageName,
+            [in] String className,
+            [in] ICharSequence* label,
+            [in] String settingsActivity);
+
+        interface IInputMethodInfo;
+        interface IParcelable;
     }
 
     class CInputChannel {

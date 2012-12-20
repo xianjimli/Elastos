@@ -11,7 +11,7 @@ ECode SystemServer::Init()
     AutoPtr<IServiceManager> serviceManager;
     AutoPtr<IActivityManager> activityManagerService;
     AutoPtr<ICapsuleManager> capsuleManager;
-    AutoPtr<IWindowManagerEx> windowManager;
+    AutoPtr<IWindowManagerStub> windowManager;
 
     AutoPtr<IApartment> apartment;
     CApartment::New(FALSE, (IApartment**)&apartment);
@@ -23,7 +23,7 @@ ECode SystemServer::Init()
     ec = serviceManager->AddService(String("capsule"), capsuleManager.Get());
     if (FAILED(ec)) return ec;
 
-    CWindowManagerService::New((IWindowManagerEx**)&windowManager);
+    CWindowManagerService::New((IWindowManagerStub**)&windowManager);
     ec = serviceManager->AddService(String("window"), windowManager.Get());
     if (FAILED(ec)) return ec;
 

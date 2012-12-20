@@ -11,6 +11,41 @@ using namespace Elastos::Core::Threading;
 class TextUtils
 {
 public:
+    class SimpleStringSplitter {
+    public:
+        /**
+         * Initializes the splitter. setString may be called later.
+         * @param delimiter the delimeter on which to split
+         */
+        SimpleStringSplitter(
+            /* [in] */ Char32 delimiter);
+
+        /**
+         * Sets the string to split
+         * @param string the string to split
+         */
+        CARAPI_(void) SetString(
+            /* [in] */ const String& string);
+
+        // public Iterator<String> iterator() {
+        //     return this;
+        // }
+
+        CARAPI_(Boolean) HasNext();
+
+        CARAPI_(void) Next(
+            /* [out] */ String* str);
+
+        CARAPI_(void) Remove();
+
+    private:
+        String mString;
+        Char32 mDelimiter;
+        Int32 mPosition;
+        Int32 mLength;
+    };
+
+public:
     static CARAPI_(void) GetChars(
         /* [in] */ ICharSequence* s,
         /* [in] */ Int32 start,
@@ -73,7 +108,7 @@ public:
     /**
      * Create a new String object containing the given range of characters
      * from the source string.  This is different than simply calling
-     * {@link CharSequence#subSequence(int, int) CharSequence.subSequence}
+     * {@link CharSequence#subSequence(Int32, Int32) CharSequence.subSequence}
      * in that it does not preserve any style runs in the source sequence,
      * allowing a more efficient implementation.
      */

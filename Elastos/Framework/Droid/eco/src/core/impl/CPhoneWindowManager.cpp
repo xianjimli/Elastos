@@ -267,7 +267,7 @@ void CPhoneWindowManager::ShowRecentAppsDialog()
 /** {@inheritDoc} */
 ECode CPhoneWindowManager::Init(
     /* [in] */ IContext* context,
-    /* [in] */ IWindowManagerEx* windowManager
+    /* [in] */ IWindowManagerStub* windowManager
     /* [in] */ /*LocalPowerManager powerManager*/)
 {
     mContext = context;

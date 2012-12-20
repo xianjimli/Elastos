@@ -1430,7 +1430,7 @@ ECode CWindowManagerService::OpenSession(
 //    if (client == NULL) throw new IllegalArgumentException("NULL client");
 //    if (inputContext == NULL) throw new IllegalArgumentException("NULL inputContext");
     return CWindowSession::NewByFriend(
-        (IWindowManagerEx*)this, client, inputContext, (CWindowSession**)session);
+        (IWindowManagerStub*)this, client, inputContext, (CWindowSession**)session);
 }
 
 ECode CWindowManagerService::InputMethodClientHasFocus(

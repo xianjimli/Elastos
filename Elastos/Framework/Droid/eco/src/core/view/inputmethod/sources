@@ -23,3 +23,4 @@ SOURCES += CEditorInfo.cpp
 SOURCES += CLocalInputMethodManager.cpp
 SOURCES += CInputBinding.cpp
 SOURCES += CInputConnectionWrapper.cpp
+SOURCES += CInputMethodInfo.cpp

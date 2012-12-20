@@ -540,8 +540,8 @@ ECode ElKeyCharacterMap::DeviceHasKeys(
     AutoPtr<IServiceManager> sm;
     FAIL_RETURN(GetServiceManager((IServiceManager**)&sm));
 
-    AutoPtr<IWindowManagerEx> wm;
-    FAIL_RETURN(sm->GetService(String("window"), (IInterface**)(IWindowManagerEx**)&wm));
+    AutoPtr<IWindowManagerStub> wm;
+    FAIL_RETURN(sm->GetService(String("window"), (IInterface**)(IWindowManagerStub**)&wm));
 
     //wm->HasKeys(keyCodes, *results);
 

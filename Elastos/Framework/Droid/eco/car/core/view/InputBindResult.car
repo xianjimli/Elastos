@@ -1,6 +1,10 @@
 
 module
 {
+	interface IInputMethodSessionStub;
+
     interface IInputBindResult {
+    	GetIIMSessionStub(
+    		[out] IInputMethodSessionStub** stub);
     }
 }

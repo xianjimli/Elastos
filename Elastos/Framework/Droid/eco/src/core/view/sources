@@ -24,6 +24,7 @@ SOURCES += CInputDevice.cpp
 SOURCES += CViewGroupLayoutParams.cpp
 SOURCES += CViewGroupMarginLayoutParams.cpp
 SOURCES += CWindowManagerLayoutParams.cpp
+SOURCES += CWindowManagerLayoutParamsHelper.cpp
 SOURCES += ViewRoot.cpp
 SOURCES += Window.cpp
 SOURCES += LayoutInflater.cpp

@@ -3,7 +3,7 @@ TARGET_TYPE= eco
 
 IMPORTS += Elastos.Utility.Zip.eco
 
-VPATH := $(MAKEDIR)/../core/os:$(MAKEDIR)/../core/ext:$(MAKEDIR)/../core/view:$(MAKEDIR)/../core/view/animation:$(MAKEDIR)/../core/location:$(MAKEDIR)/../core/net:$(MAKEDIR)/../core/content:$(MAKEDIR)/../core/app:$(MAKEDIR)/../core/capsule:$(MAKEDIR)/../core/utils:$(MAKEDIR)/../core/location
+VPATH := $(MAKEDIR)/../core/os:$(MAKEDIR)/../core/ext:$(MAKEDIR)/../core/view:$(MAKEDIR)/../core/view/animation:$(MAKEDIR)/../core/location:$(MAKEDIR)/../core/net:$(MAKEDIR)/../core/content:$(MAKEDIR)/../core/app:$(MAKEDIR)/../core/capsule:$(MAKEDIR)/../core/utils:$(MAKEDIR)/../core/location:$(MAKEDIR)/../core/text
 
 include $(MAKEDIR)/../../../sources.inc
 
@@ -70,6 +70,10 @@ SOURCES += ActivityManagerNative.cpp
 SOURCES += XmlUtils.cpp
 SOURCES += Xml.cpp
 SOURCES += LocationProvider.cpp
+SOURCES += BroadcastReceiver.cpp
+SOURCES += ArrayUtils.cpp
+SOURCES += TextUtils.cpp
+SOURCES += Binder.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
@@ -88,5 +92,5 @@ else
 LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
 LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
 LIBRARIES += $(XDK_USER_LIB)/crt0.lib
-LIBRARIES += -llog -lutils -lui -lcutils
+LIBRARIES += -llog -lutils -lui -lcutils -lbinder
 endif

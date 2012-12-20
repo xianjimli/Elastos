@@ -696,8 +696,8 @@ IWindowSession* ViewRoot::GetWindowSession(
         AutoPtr<IServiceManager> sm;
         GetServiceManager((IServiceManager**)&sm);
 
-        AutoPtr<IWindowManagerEx> wm;
-        sm->GetService(String("window"), (IInterface**)(IWindowManagerEx**)&wm);
+        AutoPtr<IWindowManagerStub> wm;
+        sm->GetService(String("window"), (IInterface**)(IWindowManagerStub**)&wm);
 
         IInputMethodClientStub* client = NULL; // imm.getClient()
         IInputContextStub* ctx = NULL; // imm.getInputContext()

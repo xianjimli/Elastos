@@ -12,7 +12,7 @@ public:
 
     CARAPI constructor(
     	/* [in] */ IInputMethodSessionStub* _method,
-    	/* [in] */ String _id,
+    	/* [in] */ const String& _id,
     	/* [in] */ Int32 _sequence);
 
     CARAPI ReadFromParcel(
@@ -21,9 +21,11 @@ public:
     CARAPI WriteToParcel(
         /* [in] */ IParcel *dest);
 
-private:
     CARAPI constructor(
     	/* [in] */ IParcel* source);
+
+    CARAPI GetIIMSessionStub(
+        /* [out] */ IInputMethodSessionStub** stub);
 
 public:
     /**

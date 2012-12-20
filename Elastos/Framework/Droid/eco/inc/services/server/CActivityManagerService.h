@@ -874,7 +874,7 @@ public:
         /* [in] */ IConfiguration* values);
 
     CARAPI constructor(
-        /* [in] */ IWindowManagerEx* wm);
+        /* [in] */ IWindowManagerStub* wm);
 
 private:
     CARAPI_(void) UpdateCpuStats();

@@ -4,6 +4,7 @@ module
 	merge("inputmethodservice/ExtractEditText.car");
 	merge("inputmethodservice/AbstractInputMethodService.car");
 	merge("inputmethodservice/InputMethodService.car");
+	merge("inputmethodservice/KeyboardView.car");
 
 
 	class CExtractButton {
@@ -56,5 +57,22 @@ module
 		interface IInputMethodService;
 		interface IComponentCallbacks;
 		interface IKeyEventCallback;
+	}
+
+	class CKeyboardView {
+	    constructor(
+	        [in] IContext* ctx,
+	        [in] IAttributeSet* attrs);
+
+	    constructor(
+	        [in] IContext* ctx,
+	        [in] IAttributeSet* attrs,
+	        [in] Int32 defStyle);
+
+	    interface IKeyboardView;
+	    interface IViewOnClickListener;
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
 	}
 }

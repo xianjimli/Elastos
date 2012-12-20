@@ -6,7 +6,7 @@ module
 
     class CWindowSession {
         constructor(
-            [in] IWindowManagerEx* wmService,
+            [in] IWindowManagerStub* wmService,
             [in] IInputMethodClientStub* client,
             [in] IInputContextStub* inputContext);
 
@@ -14,7 +14,7 @@ module
     }
 
     class CWindowManagerService {
-        interface IWindowManagerEx;
+        interface IWindowManagerStub;
     }
 
     class CCapsuleManagerService {
@@ -58,8 +58,12 @@ module
         interface IRunnable;
     }
 
-//    class CInputMethodManagerService {
-//        interface IInputMethodManagerStub;
-//        interface IServiceConnection;
-//    }
+    class CInputMethodManagerService {
+        constructor(
+            [in] IContext* context,
+            [in] IStatusBarService* statusBar);
+
+        interface IInputMethodManagerStub;
+        interface IServiceConnection;
+    }
 }

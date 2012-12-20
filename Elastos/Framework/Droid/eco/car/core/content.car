@@ -395,6 +395,11 @@ module
     }
 
     class CResolveInfo {
+        constructor();
+
+        constructor(
+            [in] IParcel* source);
+
         interface IResolveInfo;
         interface IParcelable;
     }

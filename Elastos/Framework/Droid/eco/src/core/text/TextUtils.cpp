@@ -12,6 +12,44 @@ const Int32 TextUtils::CAP_MODE_SENTENCES;
 Mutex TextUtils::sLock;
 ArrayOf<Char8>* TextUtils::sTemp = NULL;
 
+TextUtils::SimpleStringSplitter::SimpleStringSplitter(
+    /* [in] */ Char32 delimiter):
+    mPosition(0),
+    mLength(0)
+{
+    mDelimiter = delimiter;
+}
+
+void TextUtils::SimpleStringSplitter::SetString(
+    /* [in] */ const String& string)
+{
+    mString = string;
+    mPosition = 0;
+    mLength = mString.GetLength();
+}
+
+Boolean TextUtils::SimpleStringSplitter::HasNext()
+{
+    return mPosition < mLength;
+}
+
+void TextUtils::SimpleStringSplitter::Next(
+    /* [out] */ String* str)
+{
+    Int32 end = mString.IndexOf(mDelimiter, mPosition);
+    if (end == -1) {
+        end = mLength;
+    }
+
+    *str = mString.Substring(mPosition, end);
+    mPosition = end + 1; // Skip the delimiter.
+}
+
+void TextUtils::SimpleStringSplitter::Remove() {
+    assert(0);
+    //throw new UnsupportedOperationException();
+}
+
 void TextUtils::GetChars(
     /* [in] */ ICharSequence* s,
     /* [in] */ Int32 start,

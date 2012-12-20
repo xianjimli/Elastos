@@ -893,6 +893,7 @@ ECode CLocalInputMethodManager::constructor(
 
     //TODO: The argument:TRUE
     CApartment::New(TRUE, (IApartment**)&mH);
+    mH->Start(ApartmentAttr_New);
     assert(mH != NULL);
 
     mH->Start(ApartmentAttr_New);

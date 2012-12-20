@@ -75,7 +75,7 @@ public:
 
     CARAPI Init(
         /* [in] */ IContext* context,
-        /* [in] */ IWindowManagerEx* windowManager
+        /* [in] */ IWindowManagerStub* windowManager
         /* [in] */ /*LocalPowerManager powerManager*/);
 
     CARAPI CheckAddPermission(
@@ -487,7 +487,7 @@ private:
     Mutex mLock;
 
     AutoPtr<IContext> mContext;
-    AutoPtr<IWindowManagerEx> mWindowManager;
+    AutoPtr<IWindowManagerStub> mWindowManager;
     //LocalPowerManager mPowerManager;
     //Vibrator mVibrator; // Vibrator for giving feedback of orientation changes
 

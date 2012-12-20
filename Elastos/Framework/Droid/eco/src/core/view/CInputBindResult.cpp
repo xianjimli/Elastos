@@ -9,7 +9,7 @@ CInputBindResult::CInputBindResult()
 
 ECode CInputBindResult::constructor(
 	/* [in] */ IInputMethodSessionStub* _method,
-	/* [in] */ String _id,
+	/* [in] */ const String& _id,
 	/* [in] */ Int32 _sequence)
 {
     mMethod = _method;
@@ -41,4 +41,17 @@ ECode CInputBindResult::constructor(
 
     assert(0);
     return E_NOT_IMPLEMENTED;
+}
+
+ECode CInputBindResult::GetIIMSessionStub(
+    /* [out] */ IInputMethodSessionStub** stub)
+{
+    assert(stub != NULL);
+
+    *stub = mMethod;
+    if (*stub != NULL) {
+        (*stub)->AddRef();
+    }
+
+    return NOERROR;
 }
