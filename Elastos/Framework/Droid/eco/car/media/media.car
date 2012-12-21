@@ -1,0 +1,30 @@
+
+module
+{
+    merge("media/AudioFocusDispatcher.car");
+    merge("media/AudioService.car");
+    merge("media/MediaScannerListener.car");
+    merge("media/MediaScannerService.car");
+    merge("media/AudioTrack.car");
+
+    class CAudioTrack {
+        constructor(
+            [in] Int32 streamType,
+            [in] Int32 sampleRateInHz,
+            [in] Int32 channelConfig,
+            [in] Int32 audioFormat,
+            [in] Int32 bufferSizeInBytes,
+            [in] Int32 mode);
+
+        constructor(
+            [in] Int32 streamType,
+            [in] Int32 sampleRateInHz,
+            [in] Int32 channelConfig,
+            [in] Int32 audioFormat,
+            [in] Int32 bufferSizeInBytes,
+            [in] Int32 mode,
+            [in] Int32 sessionId);
+
+        interface IAudioTrack;
+    }
+}

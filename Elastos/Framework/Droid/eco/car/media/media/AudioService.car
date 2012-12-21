@@ -1,0 +1,122 @@
+
+module
+{
+    interface IAudioService
+    {
+        AdjustVolume(
+            [in] Int32 direction,
+            [in] Int32 flags);
+
+        AdjustSuggestedStreamVolume(
+            [in] Int32 direction,
+            [in] Int32 suggestedStreamType,
+            [in] Int32 flags);
+
+        AdjustStreamVolume(
+            [in] Int32 streamType,
+            [in] Int32 direction,
+            [in] Int32 flags);
+
+        SetStreamVolume(
+            [in] Int32 streamType,
+            [in] Int32 index,
+            [in] Int32 flags);
+
+        SetStreamSolo(
+            [in] Int32 streamType,
+            [in] Boolean state,
+            [in] IBinder* cb);
+
+        SetStreamMute(
+            [in] Int32 streamType,
+            [in] Boolean state,
+            [in] IBinder* cb);
+
+        GetStreamVolume(
+            [in] Int32 streamType,
+            [out] Int32* volume);
+
+        GetStreamMaxVolume(
+            [in] Int32 streamType,
+            [out] Int32* volume);
+
+        SetRingerMode(
+            [in] Int32 ringerMode);
+
+        GetRingerMode(
+            [out] Int32* mode);
+
+        SetVibrateSetting(
+            [in] Int32 vibrateType,
+            [in] Int32 vibrateSetting);
+
+        GetVibrateSetting(
+            [in] Int32 vibrateType,
+            [out] Int32* vibrateSetting);
+
+        ShouldVibrate(
+            [in] Int32 vibrateType,
+            [out] Boolean* vibrate);
+
+        SetMode(
+            [in] Int32 mode,
+            [in] IBinder* cb);
+
+        GetMode(
+            [out] Int32* mode);
+
+        PlaySoundEffect(
+            [in] Int32 effectType);
+
+        PlaySoundEffectVolume(
+            [in] Int32 effectType,
+            [in] Float volume);
+
+        LoadSoundEffects(
+            [out] Boolean* load);
+
+        UnloadSoundEffects();
+
+        ReloadAudioSettings();
+
+        SetSpeakerphoneOn(
+            [in] Boolean on);
+
+        IsSpeakerphoneOn(
+            [out] Boolean* speakerphoneOn);
+
+        SetBluetoothScoOn(
+            [in] Boolean on);
+
+        IsBluetoothScoOn(
+            [out] Boolean* on);
+
+        RequestAudioFocus(
+            [in] Int32 mainStreamType,
+            [in] Int32 durationHint,
+            [in] IBinder* cb,
+            [in] IAudioFocusDispatcher* l,
+            [in] String clientId,
+            [out] Int32* focus);
+
+        AbandonAudioFocus(
+            [in] IAudioFocusDispatcher* l,
+            [in] String clientId,
+            [out] Int32* focus);
+
+        UnregisterAudioFocusClient(
+            [in] String clientId);
+
+        RegisterMediaButtonEventReceiver(
+            [in] IComponentName* eventReceiver);
+
+        UnregisterMediaButtonEventReceiver(
+            [in] IComponentName* eventReceiver);
+
+        StartBluetoothSco(
+            [in] IBinder* cb);
+
+        StopBluetoothSco(
+            [in] IBinder* cb);
+    }
+}

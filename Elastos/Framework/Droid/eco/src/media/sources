@@ -1,0 +1,69 @@
+TARGET_NAME= Elastos.Framework.Media
+TARGET_TYPE= eco
+
+IMPORTS += Elastos.Utility.Zip.eco
+
+VPATH := $(MAKEDIR)/../core/os:$(MAKEDIR)/../core/ext:$(MAKEDIR)/../core/view:$(MAKEDIR)/../core/view/animation:$(MAKEDIR)/../core/location:$(MAKEDIR)/../core/net:$(MAKEDIR)/../core/content:$(MAKEDIR)/../core/app:$(MAKEDIR)/../core/capsule:$(MAKEDIR)/../core/utils:$(MAKEDIR)/../core/location
+
+include $(MAKEDIR)/../../../sources.inc
+
+INCLUDES += $(MAKEDIR)/../../inc/core
+INCLUDES += $(MAKEDIR)/../../inc/core/app
+INCLUDES += $(MAKEDIR)/../../inc/core/capsule
+INCLUDES += $(MAKEDIR)/../../inc/core/content
+INCLUDES += $(MAKEDIR)/../../inc/core/content/cm
+INCLUDES += $(MAKEDIR)/../../inc/core/ext
+INCLUDES += $(MAKEDIR)/../../inc/core/net
+INCLUDES += $(MAKEDIR)/../../inc/core/utils
+INCLUDES += $(MAKEDIR)/../../inc/core/xg
+INCLUDES += $(MAKEDIR)/../../inc/core/xmlparser
+INCLUDES += $(MAKEDIR)/../../inc/core/os
+INCLUDES += $(MAKEDIR)/../../inc/core/graphics
+INCLUDES += $(MAKEDIR)/../../inc/core/graphics/drawable
+INCLUDES += $(MAKEDIR)/../../inc/core/graphics/drawable/shapes
+INCLUDES += $(MAKEDIR)/../../inc/core/view
+INCLUDES += $(MAKEDIR)/../../inc/core/view/inputmethod
+INCLUDES += $(MAKEDIR)/../../inc/core/view/animation
+INCLUDES += $(MAKEDIR)/../../inc/core/view/menu
+INCLUDES += $(MAKEDIR)/../../inc/core/impl
+INCLUDES += $(MAKEDIR)/../../inc/core/widget
+INCLUDES += $(MAKEDIR)/../../inc/core/text
+INCLUDES += $(MAKEDIR)/../../inc/core/database
+INCLUDES += $(MAKEDIR)/../../inc/core/statusbar
+INCLUDES += $(MAKEDIR)/../../inc/core/location
+INCLUDES += $(MAKEDIR)/../../inc/core/systemui/
+INCLUDES += $(MAKEDIR)/../../inc/core/systemui/statusbar
+INCLUDES += $(MAKEDIR)/../../inc/services
+INCLUDES += $(MAKEDIR)/../../inc/services/server
+INCLUDES += $(MAKEDIR)/../../inc/services/server/location
+INCLUDES += $(MAKEDIR)/../../inc/media
+INCLUDES += $(MAKEDIR)/../../inc/media/media
+ifeq "$(XDK_TARGET_PLATFORM)" "linux"
+INCLUDES += $(PREBUILD_INC)/skia/utils
+INCLUDES += $(PREBUILD_INC)/skia/core
+endif
+
+C_DEFINES += -D_FRAMEWORK_MEDIA
+
+SOURCES = Elastos.Framework.Media.car
+SOURCES += utils.cpp
+
+LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Core.lib
+LIBRARIES += media/media.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.Logging.lib
+
+ifeq "$(XDK_TARGET_PLATFORM)" "win32"
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Runtime.lib
+LIBRARIES += $(XDK_LIB_PATH)/KD.lib
+LIBRARIES += $(XDK_LIB_PATH)/dbus-1.lib
+LIBRARIES += $(XDK_USER_LIB)/libexpat.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Presentation.CompoundControls.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Presentation.Controls.lib
+else
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
+LIBRARIES += $(XDK_USER_LIB)/crt0.lib
+LIBRARIES += -lexpat -llog -lutils -lbinder -lskia -lskiagl -lsurfaceflinger_client -lui -lcutils -lsqlite
+endif

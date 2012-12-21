@@ -1,0 +1,17 @@
+
+module
+{
+    /**
+     * AIDL for the AudioService to signal audio focus listeners of focus updates.
+     *
+     * {@hide}
+     */
+    interface IAudioFocusDispatcher
+    {
+
+        DispatchAudioFocusChange(
+            [in] Int32 focusChange,
+            [in] String clientId);
+
+    }
+}

@@ -1,3 +1,4 @@
 
 DIRS = core
 DIRS += services
+DIRS += media
