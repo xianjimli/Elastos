@@ -1,6 +1,8 @@
 
 module
 {
+    interface ILocalLocationListener;
+
     /**
      * Name of the network location provider.  This provider determines location based on
      * availability of cell tower and WiFi access points. Results are retrieved
@@ -242,7 +244,7 @@ module
             [in] String provider,
             [in] Int64 minTime,
             [in] Float minDistance,
-            [in] ILocationListener* listener);
+            [in] ILocalLocationListener* listener);
 
         /**
          * Registers the current activity to be notified periodically by
@@ -294,7 +296,7 @@ module
             [in] String provider,
             [in] Int64 minTime,
             [in] Float minDistance,
-            [in] ILocationListener* listener,
+            [in] ILocalLocationListener* listener,
             [in] IApartment* looper);
 
         /**
@@ -349,7 +351,7 @@ module
             [in] Int64 minTime,
             [in] Float minDistance,
             [in] ICriteria* criteria,
-            [in] ILocationListener* listener,
+            [in] ILocalLocationListener* listener,
             [in] IApartment* looper);
 
         /**
@@ -486,7 +488,7 @@ module
          */
         RequestSingleUpdate(
             [in] String provider,
-            [in] ILocationListener* listener,
+            [in] ILocalLocationListener* listener,
             [in] IApartment* looper);
 
         /**
@@ -522,7 +524,7 @@ module
          */
         RequestSingleUpdateEx(
             [in] ICriteria* criteria,
-            [in] ILocationListener* listener,
+            [in] ILocalLocationListener* listener,
             [in] IApartment* looper);
 
         /**
@@ -579,7 +581,7 @@ module
          * @throws IllegalArgumentException if listener is null
          */
         RemoveUpdates(
-            [in] ILocationListener* listener);
+            [in] ILocalLocationListener* listener);
 
         /**
          * Removes any current registration for location updates of the current activity
@@ -874,7 +876,8 @@ module
          * @return status object containing updated GPS status.
          */
         GetGpsStatus(
-            [out] IGpsStatus** status);
+            [in] IGpsStatus* inStatus,
+            [out] IGpsStatus** outStatus);
 
         /**
          * Sends additional commands to a location provider.

@@ -1,9 +1,17 @@
 
 #include "server/CLocationManagerService.h"
+// #include "content/CIntent.h"
+// #include "content/CIntentFilter.h"
 #include "server/location/GpsLocationProvider.h"
 #include "server/location/PassiveProvider.h"
+// #include "location/CCriteria.h"
+// #include "location/CLocation.h"
+// #include "os/CWorkSource.h"
+// #include "os/CBundle.h"
+// #include "utils/CApartment.h"
 #include <StringBuffer.h>
 #include <elastos/Math.h>
+#include <elastos/System.h>
 
 const CString CLocationManagerService::TAG = "LocationManagerService";
 const Boolean CLocationManagerService::LOCAL_LOGV;
@@ -27,6 +35,13 @@ const Int32 CLocationManagerService::LpCapabilityComparator::SPEED_SCORE;
 
 Boolean CLocationManagerService::sProvidersLoaded = FALSE;
 
+CLocationManagerService::CLocationManagerService()
+    : mPendingBroadcasts(0),
+      mNetworkState(LocationProvider_TEMPORARILY_UNAVAILABLE)
+{
+    ASSERT_SUCCEEDED(CWorkSource::New((IWorkSource**)&mTmpWorkSource));
+}
+
 CLocationManagerService::Receiver::Receiver(
     /* [in] */ CLocationManagerService* locationMS,
     /* [in] */ ILocationListener* listener)
@@ -34,7 +49,7 @@ CLocationManagerService::Receiver::Receiver(
       mListener(listener),
       mPendingBroadcasts(0)
 {
-//    mKey = listener.asBinder();
+    mKey = (IInterface*)listener;
 }
 
 CLocationManagerService::Receiver::Receiver(
@@ -44,7 +59,7 @@ CLocationManagerService::Receiver::Receiver(
       mPendingIntent(intent),
       mPendingBroadcasts(0)
 {
-//    mKey = intent;
+    mKey = (IInterface*)intent;
 }
 
 PInterface CLocationManagerService::Receiver::Probe(
@@ -101,7 +116,7 @@ Boolean CLocationManagerService::Receiver::IsPendingIntent()
 ECode CLocationManagerService::Receiver::GetListener(
     /* [out] */ ILocationListener** locationListener)
 {
-    assert(locationListener != NULL);
+    VALIDATE_NOT_NULL(locationListener);
 
 	if (mListener != NULL) {
         *locationListener = mListener;
@@ -115,7 +130,7 @@ ECode CLocationManagerService::Receiver::GetListener(
 ECode CLocationManagerService::Receiver::GetPendingIntent(
     /* [out] */ IPendingIntent** pendingIntent)
 {
-	assert(pendingIntent != NULL);
+	VALIDATE_NOT_NULL(pendingIntent);
 
 	if (mPendingIntent != NULL) {
         *pendingIntent = mPendingIntent;
@@ -133,7 +148,8 @@ Boolean CLocationManagerService::Receiver::CallStatusChangedLocked(
 {
     if (mListener != NULL) {
 //        try {
-//            synchronized (this) {
+        Mutex::Autolock lock(mSync);
+
         // synchronize to ensure incrementPendingBroadcastsLocked()
         // is called before decrementPendingBroadcasts()
         ECode ec = mListener->OnStatusChanged(provider, status, extras);
@@ -146,7 +162,6 @@ Boolean CLocationManagerService::Receiver::CallStatusChangedLocked(
             // if we throw an exeption.
             IncrementPendingBroadcastsLocked();
         }
-//            }
 //        } catch (RemoteException e) {
 //            return false;
 //        }
@@ -176,7 +191,7 @@ Boolean CLocationManagerService::Receiver::CallLocationChangedLocked(
 {
     if (mListener != NULL) {
 //        try {
-//            synchronized (this) {
+        Mutex::Autolock lock(mSync);
         // synchronize to ensure incrementPendingBroadcastsLocked()
         // is called before decrementPendingBroadcasts()
         ECode ec = mListener->OnLocationChanged(location);
@@ -189,7 +204,6 @@ Boolean CLocationManagerService::Receiver::CallLocationChangedLocked(
             // if we throw an exeption.
             IncrementPendingBroadcastsLocked();
         }
-//            }
 //        } catch (RemoteException e) {
 //            return false;
 //        }
@@ -222,7 +236,7 @@ Boolean CLocationManagerService::Receiver::CallProviderEnabledLocked(
 {
     if (mListener != NULL) {
 //        try {
-//            synchronized (this) {
+        Mutex::Autolock lock(mSync);
         // synchronize to ensure incrementPendingBroadcastsLocked()
         // is called before decrementPendingBroadcasts()
         ECode ec = NOERROR;
@@ -241,7 +255,6 @@ Boolean CLocationManagerService::Receiver::CallProviderEnabledLocked(
             // if we throw an exeption.
             IncrementPendingBroadcastsLocked();
         }
-//            }
 //        } catch (RemoteException e) {
 //            return false;
 //        }
@@ -271,15 +284,16 @@ void CLocationManagerService::Receiver::BinderDied()
     if (LOCAL_LOGV) {
 //        Slog.v(TAG, "Location listener died");
     }
-//    synchronized (mLock) {
-    mLocationMS->RemoveUpdatesLocked(this);
-//    }
-//    synchronized (this) {
+    {
+        Mutex::Autolock lock(mLocationMS->mLock);
+        mLocationMS->RemoveUpdatesLocked(this);
+    }
+
+    Mutex::Autolock lock(mSync);
     if (mPendingBroadcasts > 0) {
         mLocationMS->DecrementPendingBroadcasts();
         mPendingBroadcasts = 0;
     }
-//    }
 }
 
 void CLocationManagerService::Receiver::OnSendFinished(
@@ -289,9 +303,8 @@ void CLocationManagerService::Receiver::OnSendFinished(
     /* [in] */ String resultData,
     /* [in] */ IBundle* resultExtras)
 {
-//    synchronized (this) {
+    Mutex::Autolock lock(mSync);
     DecrementPendingBroadcastsLocked();
-//    }
 }
 
 // this must be called while synchronized by caller in a synchronized block
@@ -310,123 +323,6 @@ void CLocationManagerService::Receiver::DecrementPendingBroadcastsLocked()
     }
 }
 
-PInterface CLocationManagerService::LocationWorkerHandler::Probe(
-    /* [in]  */ REIID riid)
-{
-    if (riid == EIID_IInterface) {
-        return (IInterface*)this;
-    }
-    else if (riid == EIID_IApartment) {
-        return (IApartment*)this;
-    }
-
-    return NULL;
-}
-
-UInt32 CLocationManagerService::LocationWorkerHandler::AddRef()
-{
-    return ElRefBase::AddRef();
-}
-
-UInt32 CLocationManagerService::LocationWorkerHandler::Release()
-{
-    return ElRefBase::Release();
-}
-
-ECode CLocationManagerService::LocationWorkerHandler::GetInterfaceID(
-    /* [in] */ IInterface* pObject,
-    /* [out] */ InterfaceID* pIID)
-{
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CLocationManagerService::LocationWorkerHandler::Start(
-    /* [in] */ ApartmentAttr attr)
-{
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CLocationManagerService::LocationWorkerHandler::Finish()
-{
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CLocationManagerService::LocationWorkerHandler::PostCppCallback(
-    /* [in] */ Handle32 target,
-    /* [in] */ Handle32 func,
-    /* [in] */ IParcel* params,
-    /* [in] */ Int32 id)
-{
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CLocationManagerService::LocationWorkerHandler::PostCppCallbackAtTime(
-    /* [in] */ Handle32 target,
-    /* [in] */ Handle32 func,
-    /* [in] */ IParcel* params,
-    /* [in] */ Int32 id,
-    /* [in] */ Millisecond64 uptimeMillis)
-{
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CLocationManagerService::LocationWorkerHandler::PostCppCallbackDelayed(
-    /* [in] */ Handle32 target,
-    /* [in] */ Handle32 func,
-    /* [in] */ IParcel* params,
-    /* [in] */ Int32 id,
-    /* [in] */ Millisecond64 delayMillis)
-{
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CLocationManagerService::LocationWorkerHandler::PostCppCallbackAtFrontOfQueue(
-    /* [in] */ Handle32 target,
-    /* [in] */ Handle32 func,
-    /* [in] */ IParcel* params,
-    /* [in] */ Int32 id)
-{
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CLocationManagerService::LocationWorkerHandler::RemoveCppCallbacks(
-    /* [in] */ Handle32 target,
-    /* [in] */ Handle32 func)
-{
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CLocationManagerService::LocationWorkerHandler::RemoveCppCallbacksEx(
-    /* [in] */ Handle32 target,
-    /* [in] */ Handle32 func,
-    /* [in] */ Int32 id)
-{
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CLocationManagerService::LocationWorkerHandler::HasCppCallbacks(
-    /* [in] */ Handle32 target,
-    /* [in] */ Handle32 func,
-    /* [out] */ Boolean* result)
-{
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CLocationManagerService::LocationWorkerHandler::HasCppCallbacksEx(
-    /* [in] */ Handle32 target,
-    /* [in] */ Handle32 func,
-    /* [in] */ Int32 id,
-    /* [out] */ Boolean* result)
-{
-    return E_NOT_IMPLEMENTED;
-}
-
-CLocationManagerService::CLocationManagerService()
-    : mPendingBroadcasts(0),
-      mNetworkState(LocationProvider_TEMPORARILY_UNAVAILABLE)
-{
-}
-
 // for reporting callback completion
 ECode CLocationManagerService::LocationCallbackFinished(
     /* [in] */ ILocationListener* listener)
@@ -443,12 +339,11 @@ ECode CLocationManagerService::LocationCallbackFinished(
         receiver = it->mSecond;
     }
     if (receiver != NULL) {
-//        synchronized (receiver) {
+        Mutex::Autolock lock(receiver->mSync);
             // so wakelock calls will succeed
 //        Int64 identity = Binder.clearCallingIdentity();
         receiver->DecrementPendingBroadcastsLocked();
 //        Binder.restoreCallingIdentity(identity);
-//       }
     }
 
     return NOERROR;
@@ -501,16 +396,16 @@ void CLocationManagerService::_LoadProvidersLocked()
     // Attempt to load "real" providers first
     if (GpsLocationProvider::IsSupported()) {
         // Create a gps location provider
-        AutoPtr<GpsLocationProvider> gpsProvider = new GpsLocationProvider(mContext, (ILocationManager*)this);
+        GpsLocationProvider* gpsProvider = new GpsLocationProvider(mContext, (ILocationManager*)this);
         mGpsStatusProvider = gpsProvider->GetGpsStatusProvider();
 //        mNetInitiatedListener = gpsProvider.getNetInitiatedListener();
-        AddProvider((LocationProviderInterface*)gpsProvider.Get());
+        AddProvider((LocationProviderInterface*)gpsProvider);
         mGpsLocationProvider = (LocationProviderInterface*)gpsProvider;
     }
 
     // create a passive location provider, which is always enabled
-    AutoPtr<PassiveProvider> passiveProvider = new PassiveProvider((ILocationManager*)this);
-    AddProvider((LocationProviderInterface*)passiveProvider.Get());
+    PassiveProvider* passiveProvider = new PassiveProvider((ILocationManager*)this);
+    AddProvider((LocationProviderInterface*)passiveProvider);
     mEnabledProviders.Insert(passiveProvider->GetName());
 
     // initialize external network location and geocoder services
@@ -554,7 +449,10 @@ void* CLocationManagerService::EntryRoutine(void *arg)
     }
 
     CLocationManagerService* lms = (CLocationManagerService*)arg;
-    lms->Run();
+    CApartment::New(TRUE, (IApartment**)(&(lms->mLocationHandler)));
+    lms->Initialize();
+    lms->mLocationHandler->Start(ApartmentAttr_Current);
+
     return (void*)NOERROR;
 }
 
@@ -600,17 +498,6 @@ void CLocationManagerService::Initialize()
 //    mSettings = new ContentQueryMap(settingsCursor, Settings.System.NAME, true, mLocationHandler);
 //    SettingsObserver* settingsObserver = new SettingsObserver();
 //    mSettings.addObserver(settingsObserver);
-}
-
-ECode CLocationManagerService::Run()
-{
-//    Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-//    Looper.prepare();
-//    mLocationHandler = new LocationWorkerHandler();
-//    initialize();
-//    Looper.loop();
-
-    return E_NOT_IMPLEMENTED;
 }
 
 Boolean CLocationManagerService::IsAllowedBySettingsLocked(
@@ -687,15 +574,13 @@ Boolean CLocationManagerService::IsAllowedProviderSafe(
 }
 
 ECode CLocationManagerService::GetAllProviders(
-    /* [out] */ ArrayOf<String>* allProviders)
+    /* [out, callee] */ ArrayOf<String>** allProviders)
 {
 //    try {
-//        synchronized (mLock) {
     VALIDATE_NOT_NULL(allProviders);
-
-    allProviders = _GetAllProvidersLocked();
+    Mutex::Autolock lock(mLock);
+    *allProviders = _GetAllProvidersLocked();
     return NOERROR;
-//        }
 //    } catch (SecurityException se) {
 //        throw se;
 //    } catch (Exception e) {
@@ -723,23 +608,20 @@ ArrayOf<String>* CLocationManagerService::_GetAllProvidersLocked()
 ECode CLocationManagerService::GetProviders(
     /* [in] */ ICriteria* criteria,
     /* [in] */ Boolean enabledOnly,
-    /* [out] */ ArrayOf<String>* providers)
+    /* [out, callee] */ ArrayOf<String>** providers)
 {
 //    try {
-//        synchronized (mLock) {
     VALIDATE_NOT_NULL(providers);
+    Mutex::Autolock lock(mLock);
 
-    providers = _GetProvidersLocked(criteria, enabledOnly);
+    *providers = _GetProvidersLocked(criteria, enabledOnly);
     return NOERROR;
-//        }
 //    } catch (SecurityException se) {
 //        throw se;
 //    } catch (Exception e) {
 //        Slog.e(TAG, "getProviders got exception:", e);
 //        return null;
 //    }
-
-    return E_NOT_IMPLEMENTED;
 }
 
 ArrayOf<String>* CLocationManagerService::_GetProvidersLocked(
@@ -978,20 +860,20 @@ ECode CLocationManagerService::LpCapabilityComparator::Equals(
 AutoPtr<LocationProviderInterface> CLocationManagerService::Best(
     /* [in] */ const ArrayOf<String>& providerNames)
 {
-//    synchronized (mLock) {
-    Int32 size = providerNames.GetLength();
     List<AutoPtr<LocationProviderInterface> > providers;
-    Int32 i = 0;
-    for (; i < size ; ++i) {
-        HashMap<String, AutoPtr<LocationProviderInterface> >::Iterator it = mProvidersByName.Find(providerNames[i]);
-        if (it != mProvidersByName.End() && it->mSecond != NULL) {
-            providers.PushBack(it->mSecond);
+    {
+        Mutex::Autolock lock(mLock);
+
+        Int32 size = providerNames.GetLength();
+        for (Int32 i = 0; i < size ; ++i) {
+            HashMap<String, AutoPtr<LocationProviderInterface> >::Iterator it = mProvidersByName.Find(providerNames[i]);
+            if (it != mProvidersByName.End() && it->mSecond != NULL) {
+                providers.PushBack(it->mSecond);
+            }
         }
     }
-//    }
 
-    size = providers.GetSize();
-    if (size < 2) {
+    if (providers.GetSize() < 2) {
         return *(providers.Begin());
     }
 
@@ -1036,7 +918,7 @@ ECode CLocationManagerService::GetBestProvider(
 	VALIDATE_NOT_NULL(provider);
 
 	ArrayOf<String>* goodProviders;
-    GetProviders(criteria, enabledOnly, goodProviders);
+    GetProviders(criteria, enabledOnly, &goodProviders);
     if (goodProviders->GetLength() > 0) {
         *provider = Best(*goodProviders)->GetName();
         return NOERROR;
@@ -1052,7 +934,7 @@ ECode CLocationManagerService::GetBestProvider(
     while ((goodProviders->GetLength() == 0) && (power != Criteria_NO_REQUIREMENT)) {
         power = NextPower(power);
         criteriaCopy->SetPowerRequirement(power);
-        GetProviders(criteriaCopy, enabledOnly, goodProviders);
+        GetProviders(criteriaCopy, enabledOnly, &goodProviders);
     }
     if (goodProviders->GetLength() > 0) {
         *provider = Best(*goodProviders)->GetName();
@@ -1065,7 +947,7 @@ ECode CLocationManagerService::GetBestProvider(
     while ((goodProviders->GetLength() == 0) && (accuracy != Criteria_NO_REQUIREMENT)) {
         accuracy = NextAccuracy(accuracy);
         criteriaCopy->SetAccuracy(accuracy);
-        GetProviders(criteriaCopy, enabledOnly, goodProviders);
+        GetProviders(criteriaCopy, enabledOnly, &goodProviders);
     }
     if (goodProviders->GetLength() > 0) {
         *provider = Best(*goodProviders)->GetName();
@@ -1074,7 +956,7 @@ ECode CLocationManagerService::GetBestProvider(
 
     // Remove bearing requirement
     criteriaCopy->SetBearingRequired(FALSE);
-    GetProviders(criteriaCopy, enabledOnly, goodProviders);
+    GetProviders(criteriaCopy, enabledOnly, &goodProviders);
     if (goodProviders->GetLength() > 0) {
         *provider = Best(*goodProviders)->GetName();
         return NOERROR;
@@ -1082,7 +964,7 @@ ECode CLocationManagerService::GetBestProvider(
 
     // Remove speed requirement
     criteriaCopy->SetSpeedRequired(FALSE);
-    GetProviders(criteriaCopy, enabledOnly, goodProviders);
+    GetProviders(criteriaCopy, enabledOnly, &goodProviders);
     if (goodProviders->GetLength() > 0) {
         *provider = Best(*goodProviders)->GetName();
         return NOERROR;
@@ -1090,7 +972,7 @@ ECode CLocationManagerService::GetBestProvider(
 
     // Remove altitude requirement
     criteriaCopy->SetAltitudeRequired(FALSE);
-    GetProviders(criteriaCopy, enabledOnly, goodProviders);
+    GetProviders(criteriaCopy, enabledOnly, &goodProviders);
     if (goodProviders->GetLength() > 0) {
         *provider = Best(*goodProviders)->GetName();
         return NOERROR;
@@ -1196,7 +1078,7 @@ void CLocationManagerService::UpdateProviderListenersLocked(
     if (enabled) {
         p->Enable();
         if (listeners > 0) {
-//            p->SetMinTime(GetMinTimeLocked(provider), mTmpWorkSource);
+            p->SetMinTime(GetMinTimeLocked(provider), mTmpWorkSource);
             p->EnableLocationTracking(TRUE);
         }
     }
@@ -1215,7 +1097,7 @@ Int64 CLocationManagerService::GetMinTimeLocked(
     if (hmit != mRecordsByProvider.End()) {
         records = hmit->mSecond;
     }
-//    mTmpWorkSource.clear();
+    mTmpWorkSource->Clear();
     if (records != NULL) {
         List<UpdateRecord*>::ReverseIterator rit;
         for (rit = records->RBegin(); rit != records->REnd(); ++rit) {
@@ -1229,7 +1111,8 @@ Int64 CLocationManagerService::GetMinTimeLocked(
         for (rit = records->RBegin(); rit != records->REnd(); ++rit) {
             UpdateRecord* ur = *rit;
             if (ur->mMinTime <= inclTime) {
-//                mTmpWorkSource.add(ur.mUid);
+                Boolean result;
+                mTmpWorkSource->AddEx(ur->mUid, &result);
             }
         }
     }
@@ -1438,7 +1321,9 @@ ECode CLocationManagerService::RequestLocationUpdatesLocked(
 	/* [in] */ Boolean singleShot,
 	/* [in] */ Receiver* receiver)
 {
-	AutoPtr<LocationProviderInterface> p;
+	Mutex::Autolock lock(mLock);
+
+    AutoPtr<LocationProviderInterface> p;
 	HashMap<String, AutoPtr<LocationProviderInterface> >::Iterator it = mProvidersByName.Find(provider);
 	if (it != mProvidersByName.End()) {
 		p = it->mSecond;
@@ -1471,13 +1356,13 @@ ECode CLocationManagerService::RequestLocationUpdatesLocked(
 	receiver->mUpdateRecords[provider] = r;
 
 	if (newUid) {
-//		p->AddListener(callingUid);
+		p->AddListener(0/*callingUid*/);
 	}
 
 	Boolean isProviderEnabled = IsAllowedBySettingsLocked(provider);
 	if (isProviderEnabled) {
-//		Int32 minTimeForProvider = GetMinTimeLocked(provider);
-//		p->SetMinTime(minTimeForProvider, mTmpWorkSource);
+		Int32 minTimeForProvider = GetMinTimeLocked(provider);
+		p->SetMinTime(minTimeForProvider, mTmpWorkSource);
 		// try requesting single shot if singleShot is true, and fall back to
 		// regular location tracking if requestSingleShotFix() is not supported
 		if (!singleShot || !p->RequestSingleShotFix()) {
@@ -1501,9 +1386,9 @@ ECode CLocationManagerService::RemoveUpdates(
     /* [in] */ ILocationListener* listener)
 {
 //	try {
-//		synchronized (mLock) {
+    Mutex::Autolock lock(mLock);
+
 	RemoveUpdatesLocked(GetReceiver(listener));
-//		}
 //	} catch (SecurityException se) {
 //		throw se;
 //	} catch (IllegalArgumentException iae) {
@@ -1512,16 +1397,16 @@ ECode CLocationManagerService::RemoveUpdates(
 //		Slog.e(TAG, "removeUpdates got exception:", e);
 //	}
 
-	return E_NOT_IMPLEMENTED;
+	return NOERROR;
 }
 
 ECode CLocationManagerService::RemoveUpdatesPI(
     /* [in] */ IPendingIntent* intent)
 {
 //	try {
-//		synchronized (mLock) {
+	Mutex::Autolock lock(mLock);
+
 	RemoveUpdatesLocked(GetReceiver(intent));
-//		}
 //	} catch (SecurityException se) {
 //		throw se;
 //	} catch (IllegalArgumentException iae) {
@@ -1530,7 +1415,7 @@ ECode CLocationManagerService::RemoveUpdatesPI(
 //		Slog.e(TAG, "removeUpdates got exception:", e);
 //	}
 
-	return E_NOT_IMPLEMENTED;
+	return NOERROR;
 }
 
 void CLocationManagerService::RemoveUpdatesLocked(
@@ -1544,18 +1429,17 @@ void CLocationManagerService::RemoveUpdatesLocked(
 //    Int32 callingUid = Binder.getCallingUid();
 //	Int64 identity = Binder.clearCallingIdentity();
 //	try {
-//	HashMap<AutoPtr<IInterface>, AutoPtr<Receiver> >::Iterator it = mReceivers.Find(receiver->mKey);
-////	if (mReceivers.remove(receiver.mKey) != null && receiver.isListener()) {
-//	if (it != mReceivers.End() && receiver->IsListener()) {
-//		receiver->GetListener().asBinder().unlinkToDeath(receiver, 0);
-//		synchronized(receiver) {
-//		Mutex::Autolock lock(receiver->mSync);
-//		if(receiver->mPendingBroadcasts > 0) {
-//			DecrementPendingBroadcasts();
-//			receiver->mPendingBroadcasts = 0;
-//		}
-//		}
-//	}
+    HashMap<AutoPtr<IInterface>, AutoPtr<Receiver> >::Iterator it = mReceivers.Find(receiver->mKey);
+    if (it != mReceivers.End() && receiver->IsListener()) {
+        mReceivers.Erase(it);
+//        receiver->GetListener().asBinder().unlinkToDeath(receiver, 0);
+        Mutex::Autolock lock(receiver->mSync);
+
+        if(receiver->mPendingBroadcasts > 0) {
+            DecrementPendingBroadcasts();
+            receiver->mPendingBroadcasts = 0;
+        }
+    }
 
 	// Record which providers were associated with this listener
 	HashSet<String>* providers = new HashSet<String>();
@@ -1580,9 +1464,6 @@ void CLocationManagerService::RemoveUpdatesLocked(
 		// Accumulate providers
 		providers->Insert(oldit->mFirst);
 	}
-//	// Accumulate providers
-//	providers->AddAll(oldRecords.keySet());
-//	}
 
 	// See if the providers associated with this listener have any
 	// other listeners; if one does, inform it of the new smallest minTime
@@ -1612,7 +1493,7 @@ void CLocationManagerService::RemoveUpdatesLocked(
 		}
 		if (p != NULL) {
 			if (hasOtherListener) {
-//				p->SetMinTime(getMinTimeLocked(provider), mTmpWorkSource);
+				p->SetMinTime(GetMinTimeLocked(provider), mTmpWorkSource);
 			}
 			else {
 				p->EnableLocationTracking(FALSE);
@@ -1631,7 +1512,8 @@ ECode CLocationManagerService::AddGpsStatusListener(
 	VALIDATE_NOT_NULL(result);
 
 	if (mGpsStatusProvider == NULL) {
-		return FALSE;
+        *result = FALSE;
+		return NOERROR;
 	}
 	Int32 perm;
 	mContext->CheckCallingOrSelfPermission(String(ACCESS_FINE_LOCATION), &perm);
@@ -1658,13 +1540,13 @@ ECode CLocationManagerService::AddGpsStatusListener(
 ECode CLocationManagerService::RemoveGpsStatusListener(
     /* [in] */ IGpsStatusListener* listener)
 {
-//	synchronized (mLock) {
+	Mutex::Autolock lock(mLock);
 //		try {
-	return mGpsStatusProvider->RemoveGpsStatusListener(listener);
+	ECode ec = mGpsStatusProvider->RemoveGpsStatusListener(listener);
+    return ec;
 //		} catch (Exception e) {
 //			Slog.e(TAG, "mGpsStatusProvider.removeGpsStatusListener failed", e);
 //		}
-//	}
 }
 
 ECode CLocationManagerService::SendExtraCommand(
@@ -1693,7 +1575,7 @@ ECode CLocationManagerService::SendExtraCommand(
 //		throw new SecurityException("Requires ACCESS_LOCATION_EXTRA_COMMANDS permission");
 	}
 
-//	synchronized (mLock) {
+	Mutex::Autolock lock(mLock);
 	AutoPtr<LocationProviderInterface> p;
 	HashMap<String, AutoPtr<LocationProviderInterface> >::Iterator it = mProvidersByName.Find(provider);
 	if (it != mProvidersByName.End()) {
@@ -1705,7 +1587,6 @@ ECode CLocationManagerService::SendExtraCommand(
 	}
 
     *result = p->SendExtraCommand(command, inExtras, outExtras);
-//	}
 
 	return NOERROR;
 }
@@ -1721,15 +1602,17 @@ ECode CLocationManagerService::SendNiResponse(
 //				"calling sendNiResponse from outside of the system is not allowed");
 //	}
 //	try {
-//	return mNetInitiatedListener.sendNiResponse(notifId, userResponse);
+	ECode ec = mNetInitiatedListener->SendNiResponse(notifId, userResponse, result);
+    if (FAILED(ec)) {
+        *result = FALSE;
+    }
+    return ec;
 //	}
 //	catch (RemoteException e)
 //	{
 //		Slog.e(TAG, "RemoteException in LocationManagerService.sendNiResponse");
 //		return false;
 //	}
-
-	return E_NOT_IMPLEMENTED;
 }
 
 CLocationManagerService::ProximityAlert::ProximityAlert(
@@ -1746,7 +1629,7 @@ CLocationManagerService::ProximityAlert::ProximityAlert(
 	  mExpiration(expiration),
 	  mIntent(intent)
 {
-	CLocation::New(String(""), (ILocation**)&mLocation);
+	ASSERT_SUCCEEDED(CLocation::New(String(""), (ILocation**)&mLocation));
 	mLocation->SetLatitude(latitude);
 	mLocation->SetLongitude(longitude);
 }
@@ -1790,7 +1673,7 @@ Boolean CLocationManagerService::ProximityAlert::IsInProximity(
 	/* [in] */ Float accuracy)
 {
 	AutoPtr<ILocation> loc;
-	CLocation::New(String(""), (ILocation**)&loc);
+	ASSERT_SUCCEEDED(CLocation::New(String(""), (ILocation**)&loc));
 	loc->SetLatitude(latitude);
 	loc->SetLongitude(longitude);
 
@@ -1862,7 +1745,7 @@ ECode CLocationManagerService::ProximityListener::OnLocationChanged(
 	}
 
 	// Process proximity alerts
-//	Int64 now = System.currentTimeMillis();
+	Int64 now = System::GetCurrentTimeMillis();
 	Double latitude, longitude;
 	loc->GetLatitude(&latitude);
 	loc->GetLongitude(&longitude);
@@ -1871,20 +1754,20 @@ ECode CLocationManagerService::ProximityListener::OnLocationChanged(
 	List<AutoPtr<IPendingIntent> >* intentsToRemove = NULL;
 
 	HashMap<AutoPtr<IPendingIntent>, AutoPtr<ProximityAlert> >::Iterator it;
-	for (it = mLocationManagerService->mProximityAlerts.Begin(); it != mLocationManagerService->mProximityAlerts.End(); ++it) {
+	for (it = mLocationManagerService->mProximityAlerts.Begin();
+            it != mLocationManagerService->mProximityAlerts.End(); ++it) {
 		AutoPtr<ProximityAlert> alert = it->mSecond;
 		AutoPtr<IPendingIntent> intent = alert->GetIntent();
 		Int64 expiration = alert->GetExpiration();
 
-		if (expiration == -1/* || (now <= expiration)*/) {
+		if (expiration == -1 || (now <= expiration)) {
 			Boolean entered = FALSE;
 			HashSet<AutoPtr<ProximityAlert>, ProximityAlert::HashKey>::Iterator hsIt =
 					mLocationManagerService->mProximitiesEntered.Find(alert);
 	        if (hsIt != mLocationManagerService->mProximitiesEntered.End()) {
 	        	entered = TRUE;
 	        }
-			Boolean inProximity =
-				alert->IsInProximity(latitude, longitude, accuracy);
+			Boolean inProximity = alert->IsInProximity(latitude, longitude, accuracy);
 			if (!entered && inProximity) {
 //				if (LOCAL_LOGV) {
 //					Slog.v(TAG, "Entered alert");
@@ -2060,6 +1943,7 @@ ECode CLocationManagerService::AddProximityAlertLocked(
 	/* [in] */ Int64 expiration,
 	/* [in] */ IPendingIntent* intent)
 {
+    Mutex::Autolock lock(mLock);
 //	if (LOCAL_LOGV) {
 //		Slog.v(TAG, "addProximityAlert: latitude = " + latitude +
 //				", longitude = " + longitude +
@@ -2075,7 +1959,7 @@ ECode CLocationManagerService::AddProximityAlertLocked(
 	}
 
 	if (expiration != -1) {
-//		expiration += System.currentTimeMillis();
+		expiration += System::GetCurrentTimeMillis();
 	}
 	AutoPtr<ProximityAlert> alert = new ProximityAlert(0/*Binder.getCallingUid()*/,
 			latitude, longitude, radius, expiration, intent);
@@ -2116,6 +2000,7 @@ ECode CLocationManagerService::RemoveProximityAlert(
 ECode CLocationManagerService::RemoveProximityAlertLocked(
     /* [in] */ IPendingIntent* intent)
 {
+    Mutex::Autolock lock(mLock);
 //	if (LOCAL_LOGV) {
 //		Slog.v(TAG, "removeProximityAlert: intent = " + intent);
 //	}
@@ -2154,7 +2039,8 @@ ECode CLocationManagerService::_GetProviderInfoLocked(
 	/* [in] */ String provider,
 	/* [out] */ IBundle** info)
 {
-	VALIDATE_NOT_NULL(info);
+	Mutex::Autolock lock(mLock);
+    VALIDATE_NOT_NULL(info);
 
 	AutoPtr<LocationProviderInterface> p;
 	HashMap<String, AutoPtr<LocationProviderInterface> >::Iterator it = mProvidersByName.Find(provider);
@@ -2221,19 +2107,50 @@ ECode CLocationManagerService::ReportLocation(
 //		throw new SecurityException("Requires INSTALL_LOCATION_PROVIDER permission");
 	}
 
-//	mLocationHandler->RemoveMessages(MESSAGE_LOCATION_CHANGED, location);
-//	Message m = Message.obtain(mLocationHandler, MESSAGE_LOCATION_CHANGED, location);
-//	m.arg1 = (passive ? 1 : 0);
-//	mLocationHandler.sendMessageAtFrontOfQueue(m);
+    void (STDCALL CLocationManagerService::*pHandlerFunc)(ILocation*, Boolean);
+    pHandlerFunc = &CLocationManagerService::HandleLocationChanged;
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    params->WriteInterfacePtr((IInterface*)location);
+    params->WriteBoolean(passive);
+    mLocationHandler->RemoveCppCallbacks((Handle32)this, *(Handle32*)&pHandlerFunc);
+    mLocationHandler->PostCppCallbackAtFrontOfQueue((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 
 	return NOERROR;
+}
+
+void CLocationManagerService::HandleLocationChanged(
+    /* [in] */ ILocation* location,
+    /* [in] */ Boolean passive)
+{
+    // log("LocationWorkerHandler: MESSAGE_LOCATION_CHANGED!");
+
+    Mutex::Autolock lock(mLock);
+    String provider;
+    location->GetProvider(&provider);
+
+    if (!passive) {
+        // notify other providers of the new location
+        List<AutoPtr<LocationProviderInterface> >::ReverseIterator rit;
+        for (rit = mProviders.RBegin(); rit != mProviders.REnd(); ++rit) {
+            AutoPtr<LocationProviderInterface> p = *rit;
+            if (!(provider == p->GetName())) {
+                p->UpdateLocation(location);
+            }
+        }
+    }
+
+    if (IsAllowedBySettingsLocked(provider)) {
+        HandleLocationChangedLocked(location, passive);
+    }
 }
 
 ECode CLocationManagerService::_IsProviderEnabledLocked(
 	/* [in] */ String provider,
 	/* [out] */ Boolean* isEnabled)
 {
-	VALIDATE_NOT_NULL(isEnabled);
+	Mutex::Autolock lock(mLock);
+    VALIDATE_NOT_NULL(isEnabled);
 
 	ECode ec = CheckPermissionsSafe(provider);
 	if (FAILED(ec)) {
@@ -2281,7 +2198,8 @@ ECode CLocationManagerService::_GetLastKnownLocationLocked(
 	/* [in] */ String provider,
 	/* [out] */ ILocation** location)
 {
-	VALIDATE_NOT_NULL(location);
+	Mutex::Autolock lock(mLock);
+    VALIDATE_NOT_NULL(location);
 
 	ECode ec = CheckPermissionsSafe(provider);
 	if (FAILED(ec)) {
@@ -2456,11 +2374,10 @@ void CLocationManagerService::HandleLocationChangedLocked(
 	}
 }
 
-
 void CLocationManagerService::IncrementPendingBroadcasts()
 {
 //	synchronized (mWakeLock) {
-	if (mPendingBroadcasts++ == 0) {
+//	if (mPendingBroadcasts++ == 0) {
 //		try {
 //		mWakeLock->Acquire();
 //		log("Acquired wakelock");
@@ -2469,14 +2386,14 @@ void CLocationManagerService::IncrementPendingBroadcasts()
 //			// already released lock.
 //			Slog.e(TAG, "exception in acquireWakeLock()", e);
 //		}
-	}
+//	}
 //}
 }
 
 void CLocationManagerService::DecrementPendingBroadcasts()
 {
 //	synchronized (mWakeLock) {
-	if (--mPendingBroadcasts == 0) {
+//	if (--mPendingBroadcasts == 0) {
 //		try {
 		// Release wake lock
 //		if (mWakeLock->IsHeld()) {
@@ -2490,7 +2407,7 @@ void CLocationManagerService::DecrementPendingBroadcasts()
 //			// already released lock.
 //			Slog.e(TAG, "exception in releaseWakeLock()", e);
 //		}
-	}
+//	}
 //	}
 }
 
@@ -2624,6 +2541,11 @@ ECode CLocationManagerService::SetTestProviderStatus(
 
 ECode CLocationManagerService::ClearTestProviderStatus(
     /* [in] */ const String& provider)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CLocationManagerService::Run()
 {
     return E_NOT_IMPLEMENTED;
 }

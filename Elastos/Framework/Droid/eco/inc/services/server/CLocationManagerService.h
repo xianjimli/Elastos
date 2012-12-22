@@ -121,7 +121,7 @@ private:
         AutoPtr<CLocationManagerService> mLocationMS;
         AutoPtr<ILocationListener> mListener;
         AutoPtr<IPendingIntent> mPendingIntent;
-//        Object mKey;
+        AutoPtr<IInterface> mKey;
         HashMap<String, UpdateRecord*> mUpdateRecords;
         Int32 mPendingBroadcasts;
         Mutex mSync;
@@ -251,72 +251,6 @@ private:
 //    {
 //    };
 
-    class LocationWorkerHandler : public ElRefBase, IApartment
-    {
-    public:
-        CARAPI_(PInterface) Probe(
-            /* [in] */ REIID riid);
-
-        CARAPI_(UInt32) AddRef();
-
-        CARAPI_(UInt32) Release();
-
-        CARAPI GetInterfaceID(
-            /* [in] */ IInterface *pObject,
-            /* [out] */ InterfaceID *pIID);
-
-        CARAPI Start(
-            /* [in] */ ApartmentAttr attr);
-
-        CARAPI Finish();
-
-        CARAPI PostCppCallback(
-            /* [in] */ Handle32 target,
-            /* [in] */ Handle32 func,
-            /* [in] */ IParcel* params,
-            /* [in] */ Int32 id);
-
-        CARAPI PostCppCallbackAtTime(
-            /* [in] */ Handle32 target,
-            /* [in] */ Handle32 func,
-            /* [in] */ IParcel* params,
-            /* [in] */ Int32 id,
-            /* [in] */ Millisecond64 uptimeMillis);
-
-        CARAPI PostCppCallbackDelayed(
-            /* [in] */ Handle32 target,
-            /* [in] */ Handle32 func,
-            /* [in] */ IParcel* params,
-            /* [in] */ Int32 id,
-            /* [in] */ Millisecond64 delayMillis);
-
-        CARAPI PostCppCallbackAtFrontOfQueue(
-            /* [in] */ Handle32 target,
-            /* [in] */ Handle32 func,
-            /* [in] */ IParcel* params,
-            /* [in] */ Int32 id);
-
-        CARAPI RemoveCppCallbacks(
-            /* [in] */ Handle32 target,
-            /* [in] */ Handle32 func);
-
-        CARAPI RemoveCppCallbacksEx(
-            /* [in] */ Handle32 target,
-            /* [in] */ Handle32 func,
-            /* [in] */ Int32 id);
-
-        CARAPI HasCppCallbacks(
-            /* [in] */ Handle32 target,
-            /* [in] */ Handle32 func,
-            /* [out] */ Boolean* result);
-
-        CARAPI HasCppCallbacksEx(
-            /* [in] */ Handle32 target,
-            /* [in] */ Handle32 func,
-            /* [in] */ Int32 id,
-            /* [out] */ Boolean* result);
-    };
-
 public:
     class ProximityAlert : public ElRefBase
     {
@@ -424,15 +358,13 @@ public:
 
     CARAPI_(void) SystemReady();
 
-    CARAPI Run();
-
     CARAPI GetAllProviders(
-        /* [out] */ ArrayOf<String>* allProviders);
+        /* [out, callee] */ ArrayOf<String>** allProviders);
 
     CARAPI GetProviders(
         /* [in] */ ICriteria* criteria,
         /* [in] */ Boolean enabledOnly,
-        /* [out] */ ArrayOf<String>* providers);
+        /* [out, callee] */ ArrayOf<String>** providers);
 
     CARAPI GetBestProvider(
         /* [in] */ ICriteria* criteria,
@@ -579,6 +511,8 @@ public:
     CARAPI ClearTestProviderStatus(
         /* [in] */ const String& provider);
 
+    CARAPI Run();
+
 private:
     static void* EntryRoutine(void *arg);
 
@@ -680,6 +614,10 @@ private:
     	/* [in] */ String provider,
     	/* [out] */ IBundle** info);
 
+    CARAPI_(void) HandleLocationChanged(
+    /* [in] */ ILocation* location,
+    /* [in] */ Boolean passive);
+
     CARAPI _IsProviderEnabledLocked(
     	/* [in] */ String provider,
     	/* [out] */ Boolean* isEnabled);
@@ -695,7 +633,7 @@ private:
     CARAPI_(void) IncrementPendingBroadcasts();
 
     CARAPI_(void) DecrementPendingBroadcasts();
-    
+
     // Mock Providers
 
     CARAPI CheckMockPermissionsSafe();
@@ -721,7 +659,7 @@ private:
     GeocoderProxy* mGeocodeProvider;
     AutoPtr<IGpsStatusProvider> mGpsStatusProvider;
     AutoPtr<INetInitiatedListener> mNetInitiatedListener;
-    LocationWorkerHandler* mLocationHandler;
+    AutoPtr<IApartment> mLocationHandler;
 
     // Cache the real providers for use in addTestProvider() and removeTestProvider()
     AutoPtr<LocationProviderProxy> mNetworkLocationProvider;
@@ -746,7 +684,7 @@ private:
     /**
      * Object used internally for synchronization
      */
-//    Object mLock = new Object();
+    Mutex mLock;// = new Object();
 
     /**
      * Mapping from provider name to all its UpdateRecords
@@ -757,7 +695,7 @@ private:
      * Temporary filled in when computing min time for a provider.  Access is
      * protected by global lock mLock.
      */
-//    WorkSource mTmpWorkSource = new WorkSource();
+    AutoPtr<IWorkSource> mTmpWorkSource;
 
     // Proximity listeners
     AutoPtr<Receiver> mProximityReceiver;

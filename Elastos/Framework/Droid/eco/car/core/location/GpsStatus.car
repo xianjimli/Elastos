@@ -2,6 +2,28 @@
 module
 {
     /**
+     * Event sent when the GPS system has started.
+     */
+    const GpsStatus_GPS_EVENT_STARTED = 1;
+
+    /**
+     * Event sent when the GPS system has stopped.
+     */
+    const GpsStatus_GPS_EVENT_STOPPED = 2;
+
+    /**
+     * Event sent when the GPS system has received its first fix since starting.
+     * Call {@link #getTimeToFirstFix()} to find the time from start to first fix.
+     */
+    const GpsStatus_GPS_EVENT_FIRST_FIX = 3;
+
+    /**
+     * Event sent periodically to report GPS satellite status.
+     * Call {@link #getSatellites()} to retrieve the status for each satellite.
+     */
+    const GpsStatus_GPS_EVENT_SATELLITE_STATUS = 4;
+
+    /**
      * Used for receiving notifications when GPS status has changed.
      */
     interface ILocalGpsStatusListener {
@@ -41,6 +63,33 @@ module
 
     interface IGpsStatus {
         /**
+         * Used internally within {@link LocationManager} to copy GPS status
+         * data from the Location Manager Service to its cached GpsStatus instance.
+         * Is synchronized to ensure that GPS status updates are atomic.
+         */
+        SetStatus(
+            [in] Int32 svCount,
+            [in] ArrayOf<Int32> prns,
+            [in] ArrayOf<Float> snrs,
+            [in] ArrayOf<Float> elevations,
+            [in] ArrayOf<Float> azimuths,
+            [in] Int32 ephemerisMask,
+            [in] Int32 almanacMask,
+            [in] Int32 usedInFixMask);
+
+        /**
+         * Used by {@link LocationManager#getGpsStatus} to copy LocationManager's
+         * cached GpsStatus instance to the client's copy.
+         * Since this method is only used within {@link LocationManager#getGpsStatus},
+         * it does not need to be synchronized.
+         */
+        SetStatusEx(
+            [in] IGpsStatus* status);
+
+        SetTimeToFirstFix(
+            [in] Int32 ttff);
+
+        /**
          * Returns the time required to receive the first fix since the most recent
          * restart of the GPS engine.
          *
@@ -56,7 +105,7 @@ module
          * @return the list of satellites
          */
         GetSatellites(
-            [out] IObjectContainer** satellites);
+            [out] IObjectEnumerator** satellites);
 
         /**
          * Returns the maximum number of satellites that can be in the satellite

@@ -1,6 +1,27 @@
 
 module
 {
+    /**
+     * Constant used to specify formatting of a latitude or longitude
+     * in the form "[+-]DDD.DDDDD where D indicates degrees.
+     */
+    const Location_FORMAT_DEGREES = 0;
+
+    /**
+     * Constant used to specify formatting of a latitude or longitude
+     * in the form "[+-]DDD:MM.MMMMM" where D indicates degrees and
+     * M indicates minutes of arc (1 minute = 1/60th of a degree).
+     */
+    const Location_FORMAT_MINUTES = 1;
+
+    /**
+     * Constant used to specify formatting of a latitude or longitude
+     * in the form "DDD:MM:SS.SSSSS" where D indicates degrees, M
+     * indicates minutes of arc, and S indicates seconds of arc (1
+     * minute = 1/60th of a degree, 1 second = 1/3600th of a degree).
+     */
+    const Location_FORMAT_SECONDS = 2;
+
     interface ILocation {
 		/**
          * Sets the contents of the location to the values from the given location.

@@ -2,13 +2,181 @@
 #ifndef __CLOCATIONMANAGER_H__
 #define __CLOCATIONMANAGER_H__
 
+#include "ext/frameworkdef.h"
 #include "_CLocationManager.h"
+#include "location/LocationProvider.h"
+#include <elastos/AutoPtr.h>
+#include <elastos/HashMap.h>
+#include <elastos/List.h>
+#include <elastos/ElRefBase.h>
+#include <elastos/Mutex.h>
 
-using namespace Elastos;
+_ELASTOS_NAMESPACE_BEGIN
+
+template<> struct Hash<AutoPtr<ILocalGpsStatusListener> >
+{
+    size_t operator()(AutoPtr<ILocalGpsStatusListener> s) const
+    {
+        assert(s != NULL);
+        return (size_t)s.Get();
+    }
+};
+
+template<> struct Hash<AutoPtr<ILocalGpsStatusNmeaListener> >
+{
+    size_t operator()(AutoPtr<ILocalGpsStatusNmeaListener> s) const
+    {
+        assert(s != NULL);
+        return (size_t)s.Get();
+    }
+};
+
+template<> struct Hash<AutoPtr<ILocalLocationListener> >
+{
+    size_t operator()(AutoPtr<ILocalLocationListener> s) const
+    {
+        assert(s != NULL);
+        return (size_t)s.Get();
+    }
+};
+
+_ELASTOS_NAMESPACE_END
+
+using namespace Elastos::Core::Threading;
 
 CarClass(CLocationManager)
 {
+private:
+    static const CString TAG;
+
+private:
+    class ListenerTransport : public ElRefBase, ILocationListener
+    {
+    public:
+        ListenerTransport(
+            /* [in] */ ILocalLocationListener* listener,
+            /* [in] */ IApartment* apartment);
+
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI OnLocationChanged(
+            /* [in] */ ILocation* location);
+
+        CARAPI_(void) HandleLocationChanged(
+            /* [in] */ ILocation* location);
+
+        CARAPI OnStatusChanged(
+            /* [in] */ const String& provider,
+            /* [in] */ Int32 status,
+            /* [in] */ IBundle* extras);
+
+        CARAPI_(void) HandleStatusChanged(
+            /* [in] */ const String& provider,
+            /* [in] */ Int32 status,
+            /* [in] */ IBundle* extras);
+
+        CARAPI OnProviderEnabled(
+            /* [in] */ const String& provider);
+
+        CARAPI_(void) HandleProviderEnabled(
+            /* [in] */ const String& provider);
+
+        CARAPI OnProviderDisabled(
+            /* [in] */ const String& provider);
+
+        CARAPI_(void) HandleProviderDisabled(
+            /* [in] */ const String& provider);
+
+    private:
+        AutoPtr<ILocalLocationListener> mLocalListener;
+        AutoPtr<IApartment> mListenerHandler;
+    };
+
+    // GPS-specific support
+
+    // This class is used to send GPS status events to the client's main thread.
+    class GpsStatusListenerTransport : public ElRefBase, IGpsStatusListener
+    {
+    private:
+        class Nmea
+        {
+        public:
+            Nmea(
+                /* [in] */ Int64 timestamp,
+                /* [in] */ const String& nmea);
+
+        public:
+            Int64 mTimestamp;
+            String mNmea;
+        };
+
+    public:
+        GpsStatusListenerTransport(
+            /* [in] */ CLocationManager* locManager,
+            /* [in] */ ILocalGpsStatusListener* listener);
+
+        GpsStatusListenerTransport(
+            /* [in] */ CLocationManager* locManager,
+            /* [in] */ ILocalGpsStatusNmeaListener* listener);
+
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI OnGpsStarted();
+
+        CARAPI OnGpsStopped();
+
+        CARAPI OnFirstFix(
+            /* [in] */ Int32 ttff);
+
+        CARAPI OnSvStatusChanged(
+            /* [in] */ Int32 svCount,
+            /* [in] */ const ArrayOf<Int32>& prns,
+            /* [in] */ const ArrayOf<Float>& snrs,
+            /* [in] */ const ArrayOf<Float>& elevations,
+            /* [in] */ const ArrayOf<Float>& azimuths,
+            /* [in] */ Int32 ephemerisMask,
+            /* [in] */ Int32 almanacMask,
+            /* [in] */ Int32 usedInFixMask);
+
+        CARAPI_(void) HandleGpsChanged(
+            /* [in] */ Int32 event);
+
+        CARAPI OnNmeaReceived(
+            /* [in] */ Int64 timestamp,
+            /* [in] */ const String& nmea);
+
+        CARAPI_(void) HandleNmeaReceived();
+
+    private:
+        AutoPtr<CLocationManager> mLocationManager;
+        AutoPtr<ILocalGpsStatusListener> mListener;
+        AutoPtr<ILocalGpsStatusNmeaListener> mNmeaListener;
+        List<Nmea*> mNmeaBuffer;
+        Mutex mNmeaBufferLock;
+        AutoPtr<IApartment> mGpsHandler;
+    };
+
 public:
+    CLocationManager();
+
 	/**
      * Returns a list of the names of all known location providers.  All
      * providers are returned, including ones that are not permitted to be
@@ -136,7 +304,7 @@ public:
         /* [in] */ const String& provider,
         /* [in] */ Int64 minTime,
         /* [in] */ Float minDistance,
-        /* [in] */ ILocationListener* listener);
+        /* [in] */ ILocalLocationListener* listener);
 
     /**
      * Registers the current activity to be notified periodically by
@@ -188,8 +356,8 @@ public:
         /* [in] */ const String& provider,
         /* [in] */ Int64 minTime,
         /* [in] */ Float minDistance,
-        /* [in] */ ILocationListener* listener,
-        /* [in] */ IApartment* looper);
+        /* [in] */ ILocalLocationListener* listener,
+        /* [in] */ IApartment* apartment);
 
     /**
      * Registers the current activity to be notified periodically based on
@@ -243,8 +411,8 @@ public:
         /* [in] */ Int64 minTime,
         /* [in] */ Float minDistance,
         /* [in] */ ICriteria* criteria,
-        /* [in] */ ILocationListener* listener,
-        /* [in] */ IApartment* looper);
+        /* [in] */ ILocalLocationListener* listener,
+        /* [in] */ IApartment* apartment);
 
     /**
      * Registers the current activity to be notified periodically by
@@ -380,8 +548,8 @@ public:
      */
     CARAPI RequestSingleUpdate(
         /* [in] */ const String& provider,
-        /* [in] */ ILocationListener* listener,
-        /* [in] */ IApartment* looper);
+        /* [in] */ ILocalLocationListener* listener,
+        /* [in] */ IApartment* apartment);
 
     /**
      * Registers the current activity to be notified periodically based on
@@ -416,8 +584,8 @@ public:
      */
     CARAPI RequestSingleUpdateEx(
         /* [in] */ ICriteria* criteria,
-        /* [in] */ ILocationListener* listener,
-        /* [in] */ IApartment* looper);
+        /* [in] */ ILocalLocationListener* listener,
+        /* [in] */ IApartment* apartment);
 
     /**
      * Registers the current activity to be notified periodically by
@@ -473,7 +641,7 @@ public:
      * @throws IllegalArgumentException if listener is null
      */
     CARAPI RemoveUpdates(
-        /* [in] */ ILocationListener* listener);
+        /* [in] */ ILocalLocationListener* listener);
 
     /**
      * Removes any current registration for location updates of the current activity
@@ -768,7 +936,8 @@ public:
      * @return status object containing updated GPS status.
      */
     CARAPI GetGpsStatus(
-        /* [out] */ IGpsStatus** status);
+        /* [in] */ IGpsStatus* inStatus,
+        /* [out] */ IGpsStatus** outStatus);
 
     /**
      * Sends additional commands to a location provider.
@@ -812,7 +981,37 @@ public:
         /* [in] */ ILocationManager* service);
 
 private:
-    // TODO: Add your private member variables here.
+    CARAPI_(AutoPtr<ILocalLocationProvider>) CreateProvider(
+        /* [in] */ const String& name,
+        /* [in] */ IBundle* info);
+
+    CARAPI_(void) _RequestLocationUpdates(
+        /* [in] */ const String& provider,
+        /* [in] */ ICriteria* criteria,
+        /* [in] */ Int64 minTime,
+        /* [in] */ Float minDistance,
+        /* [in] */ Boolean singleShot,
+        /* [in] */ ILocalLocationListener* listener,
+        /* [in] */ IApartment* apartment);
+
+    CARAPI_(void) _RequestLocationUpdatesPI(
+        /* [in] */ const String& provider,
+        /* [in] */ ICriteria* criteria,
+        /* [in] */ Int64 minTime,
+        /* [in] */ Float minDistance,
+        /* [in] */ Boolean singleShot,
+        /* [in] */ IPendingIntent* intent);
+
+private:
+    AutoPtr<ILocationManager> mService;
+    HashMap<AutoPtr<ILocalGpsStatusListener>, AutoPtr<GpsStatusListenerTransport> > mGpsStatusListeners;
+    HashMap<AutoPtr<ILocalGpsStatusNmeaListener>, AutoPtr<GpsStatusListenerTransport> > mNmeaListeners;
+    AutoPtr<IGpsStatus> mGpsStatus;;
+    Mutex mGpsStatusLock;
+
+    // Map from LocationListeners to their associated ListenerTransport objects
+    HashMap<AutoPtr<ILocalLocationListener>, AutoPtr<ListenerTransport> > mListeners;
+    Mutex mListenersLock;
 };
 
 #endif // __CLOCATIONMANAGER_H__

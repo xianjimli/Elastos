@@ -2,13 +2,16 @@
 #ifndef __CGEOCODERPARAMS_H__
 #define __CGEOCODERPARAMS_H__
 
+#include "ext/frameworkdef.h"
 #include "_CGeocoderParams.h"
-
-using namespace Elastos;
+#include <elastos/AutoPtr.h>
 
 CarClass(CGeocoderParams)
 {
 public:
+    CARAPI GetLocale(
+        /* [out] */ ILocale** locale);
+
     /**
      * returns the package name of the Geocoder's client
      */
@@ -31,7 +34,8 @@ public:
         /* [in] */ ILocale* locale);
 
 private:
-    // TODO: Add your private member variables here.
+    AutoPtr<ILocale> mLocale;
+    String mCapsuleName;
 };
 
 #endif // __CGEOCODERPARAMS_H__

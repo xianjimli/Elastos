@@ -14,7 +14,9 @@ module
     merge("location/Location.car");
     merge("location/LocationManager.car");
     merge("location/LocationProvider.car");
-
+    merge("location/LocationListener.car");
+    merge("location/Geocoder.car");
+    merge("location/GpsSatellite.car");
 
     class CAddress {
         constructor(
@@ -61,5 +63,29 @@ module
             [in] ILocationManager* service);
 
         interface ILocalLocationManager;
+    }
+
+    class CGpsStatus {
+        constructor();
+
+        interface IGpsStatus;
+    }
+
+    class CGeocoder {
+        constructor(
+            [in] IContext* context,
+            [in] ILocale* locale);
+
+        constructor(
+            [in] IContext* context);
+
+        interface IGeocoder;
+    }
+
+    class CGpsSatellite {
+        constructor(
+            [in] Int32 prn);
+
+        interface IGpsSatellite;
     }
 }

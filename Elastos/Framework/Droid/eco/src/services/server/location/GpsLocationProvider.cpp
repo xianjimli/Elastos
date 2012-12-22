@@ -1,8 +1,15 @@
 
 #include "server/location/GpsLocationProvider.h"
 #include "server/location/GpsXtraDownloader.h"
-#include "os/SystemClock.h"
+// #include "content/CIntentFilter.h"
+// #include "content/CIntent.h"
+// #include "location/CLocation.h"
+// #include "location/GpsNetInitiatedHandler.h"
 #include "net/SntpClient.h"
+// #include "os/CApartment.h"
+// #include "os/CServiceManager.h"
+// #include "os/CBundle.h"
+#include "os/SystemClock.h"
 #include <elastos/System.h>
 
 using namespace Elastos::Core;
@@ -176,6 +183,8 @@ ECode GpsLocationProvider::MyGpsStatusProvider::RemoveGpsStatusListener(
         mGpsLocationProvider->mListeners.Remove(l);
 //        binder.unlinkToDeath(l, 0);
     }
+
+    return NOERROR;
 }
 
 AutoPtr<IGpsStatusProvider> GpsLocationProvider::GetGpsStatusProvider()
@@ -340,11 +349,10 @@ void* GpsLocationProvider::EntryRoutine(void *arg)
 
     GpsLocationProvider* p = (GpsLocationProvider*)arg;
 
-    CApartment::New(TRUE, (IApartment**)(&(p->mHandler)));
-    p->mHandler->Start(ApartmentAttr_Current);
-
 //    Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
     p->Initialize();
+    CApartment::New(TRUE, (IApartment**)(&(p->mHandler)));
+    p->mHandler->Start(ApartmentAttr_Current);
 //    Looper.prepare();
 //    mHandler = new ProviderHandler();
 //    // signal when we are initialized and ready to go
@@ -1198,7 +1206,7 @@ void GpsLocationProvider::ReportStatus(
             // update battery stats
         HashMap<Int32, Int32>::Iterator hmit;
         for (hmit = mClientUids.Begin(); hmit != mClientUids.End(); ++hmit) {
-            Int32 uid = hmit->mFirst;
+//            Int32 uid = hmit->mFirst;
             if (mNavigating) {
 //                mBatteryStats.noteStartGps(uid);
             }

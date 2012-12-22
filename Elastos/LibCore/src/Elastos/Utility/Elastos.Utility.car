@@ -10,6 +10,38 @@ module
         interface IObjectContainer;
     }
 
+    class CLocale {
+        constructor();
+
+        /**
+	     * Constructs a new {@code Locale} using the specified language.
+	     */
+        constructor(
+            [in] String language);
+
+        /**
+	     * Constructs a new {@code Locale} using the specified language and country codes.
+	     */
+        constructor(
+            [in] String language,
+            [in] String country);
+
+        /**
+	     * Constructs a new {@code Locale} using the specified language, country,
+	     * and variant codes.
+	     */
+        constructor(
+            [in] String language,
+            [in] String country,
+            [in] String variant);
+
+        interface ILocale;
+    }
+
+    singleton class CLocaleHelper {
+        interface ILocaleHelper;
+    }
+
     //class CObjectStringMap {
     //    interface IObjectStringMap;
    // }

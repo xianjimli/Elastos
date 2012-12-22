@@ -2,6 +2,7 @@
 #ifndef __CCRITERIA_H__
 #define __CCRITERIA_H__
 
+#include "ext/frameworkdef.h"
 #include "_CCriteria.h"
 
 using namespace Elastos;
@@ -9,6 +10,8 @@ using namespace Elastos;
 CarClass(CCriteria)
 {
 public:
+    CCriteria();
+
     /**
      * Indicates the desired horizontal accuracy (latitude and longitude).
      * Accuracy may be {@link #ACCURACY_LOW}, {@link #ACCURACY_MEDIUM},
@@ -128,7 +131,15 @@ public:
         /* [in] */ ICriteria* criteria);
 
 private:
-    // TODO: Add your private member variables here.
+    Int32 mHorizontalAccuracy;
+    Int32 mVerticalAccuracy;
+    Int32 mSpeedAccuracy;
+    Int32 mBearingAccuracy;
+    Int32 mPowerRequirement;
+    Boolean mAltitudeRequired;
+    Boolean mBearingRequired;
+    Boolean mSpeedRequired;
+    Boolean mCostAllowed;
 };
 
 #endif // __CCRITERIA_H__

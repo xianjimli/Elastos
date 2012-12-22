@@ -1,450 +1,404 @@
 
 #include "location/CAddress.h"
+#include "os/CBundle.h"
+#include <elastos/Math.h>
 
+CAddress::CAddress()
+    : mMaxAddressLineIndex(-1)
+    , mHasLatitude(FALSE)
+    , mHasLongitude(FALSE)
+{
+}
 
-/**
- * Returns the Locale associated with this address.
- */
 ECode CAddress::GetLocale(
     /* [out] */ ILocale** locale)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(locale);
+    *locale = mLocale;
+
+    return NOERROR;
 }
 
-/**
- * Returns the largest index currently in use to specify an address line.
- * If no address lines are specified, -1 is returned.
- */
 ECode CAddress::GetMaxAddressLineIndex(
     /* [out] */ Int32* index)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(index);
+    *index = mMaxAddressLineIndex;
+
+    return NOERROR;
 }
 
-/**
- * Returns a line of the address numbered by the given index
- * (starting at 0), or null if no such line is present.
- *
- * @throws IllegalArgumentException if index < 0
- */
 ECode CAddress::GetAddressLine(
     /* [in] */ Int32 index,
     /* [out] */ String* line)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(line);
+    if (index < 0) {
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+//        throw new IllegalArgumentException("index = " + index + " < 0");
+    }
+
+    if (mAddressLines != NULL) {
+        HashMap<Int32, String>::Iterator it = mAddressLines->Find(index);
+        if (it != mAddressLines->End()) {
+            *line = it->mSecond;
+        }
+    }
+    else {
+        *line = String(NULL);
+    }
+
+    return NOERROR;
 }
 
-/**
- * Sets the line of the address numbered by index (starting at 0) to the
- * given String, which may be null.
- *
- * @throws IllegalArgumentException if index < 0
- */
 ECode CAddress::SetAddressLine(
     /* [in] */ Int32 index,
     /* [in] */ const String& line)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    if (index < 0) {
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+//        throw new IllegalArgumentException("index = " + index + " < 0");
+    }
+    if (mAddressLines == NULL) {
+        mAddressLines = new HashMap<Int32, String>();
+    }
+    (*mAddressLines)[index] = line;
+
+    if (line.IsNull()) {
+        // We've eliminated a line, recompute the max index
+        mMaxAddressLineIndex = -1;
+        HashMap<Int32, String>::Iterator it;
+        for (it = mAddressLines->Begin(); it != mAddressLines->End(); ++it) {
+            mMaxAddressLineIndex = Math::Max(mMaxAddressLineIndex, it->mFirst);
+        }
+    }
+    else {
+        mMaxAddressLineIndex = Math::Max(mMaxAddressLineIndex, index);
+    }
+    return NOERROR;
 }
 
-/**
- * Returns the feature name of the address, for example, "Golden Gate Bridge", or null
- * if it is unknown
- */
 ECode CAddress::GetFeatureName(
     /* [out] */ String* featureName)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(featureName);
+    *featureName = mFeatureName;
+
+    return NOERROR;
 }
 
-/**
- * Sets the feature name of the address to the given String, which may be null
- */
 ECode CAddress::SetFeatureName(
     /* [in] */ const String& featureName)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mFeatureName = featureName;
+
+    return NOERROR;
 }
 
-/**
- * Returns the administrative area name of the address, for example, "CA", or null if
- * it is unknown
- */
 ECode CAddress::GetAdminArea(
     /* [out] */ String* adminArea)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(adminArea);
+    *adminArea = mAdminArea;
+
+    return NOERROR;
 }
 
-/**
- * Sets the administrative area name of the address to the given String, which may be null
- */
 ECode CAddress::SetAdminArea(
     /* [in] */ const String& adminArea)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mAdminArea = adminArea;
+
+    return NOERROR;
 }
 
-/**
- * Returns the sub-administrative area name of the address, for example, "Santa Clara County",
- * or null if it is unknown
- */
 ECode CAddress::GetSubAdminArea(
     /* [out] */ String* subAdminArea)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(subAdminArea);
+    *subAdminArea = mSubAdminArea;
+
+    return NOERROR;
 }
 
-/**
- * Sets the sub-administrative area name of the address to the given String, which may be null
- */
 ECode CAddress::SetSubAdminArea(
     /* [in] */ const String& subAdminArea)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mSubAdminArea = subAdminArea;
+
+    return NOERROR;
 }
 
-/**
- * Returns the locality of the address, for example "Mountain View", or null if it is unknown.
- */
 ECode CAddress::GetLocality(
     /* [out] */ String* locality)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(locality);
+    *locality = mLocality;
+
+    return NOERROR;
 }
 
-/**
- * Sets the locality of the address to the given String, which may be null.
- */
 ECode CAddress::SetLocality(
     /* [in] */ const String& locality)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mLocality = locality;
+
+    return NOERROR;
 }
 
-/**
- * Returns the sub-locality of the address, or null if it is unknown.
- * For example, this may correspond to the neighborhood of the locality.
- */
 ECode CAddress::GetSubLocality(
     /* [out] */ String* sublocality)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(sublocality);
+    *sublocality = mSubLocality;
+
+    return NOERROR;
 }
 
-/**
- * Sets the sub-locality of the address to the given String, which may be null.
- */
 ECode CAddress::SetSubLocality(
     /* [in] */ const String& sublocality)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mSubLocality = sublocality;
+
+    return NOERROR;
 }
 
-/**
- * Returns the thoroughfare name of the address, for example, "1600 Ampitheater Parkway",
- * which may be null
- */
 ECode CAddress::GetThoroughfare(
     /* [out] */ String* thoroughfare)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(thoroughfare);
+    *thoroughfare = mThoroughfare;
+
+    return NOERROR;
 }
 
-/**
- * Sets the thoroughfare name of the address, which may be null.
- */
 ECode CAddress::SetThoroughfare(
     /* [in] */ const String& thoroughfare)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mThoroughfare = thoroughfare;
+
+    return NOERROR;
 }
 
-/**
- * Returns the sub-thoroughfare name of the address, which may be null.
- * This may correspond to the street number of the address.
- */
 ECode CAddress::GetSubThoroughfare(
     /* [out] */ String* subthoroughfare)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(subthoroughfare);
+    *subthoroughfare = mSubThoroughfare;
+
+    return NOERROR;
 }
 
-/**
- * Sets the sub-thoroughfare name of the address, which may be null.
- */
 ECode CAddress::SetSubThoroughfare(
     /* [in] */ const String& subthoroughfare)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mSubThoroughfare = subthoroughfare;
+
+    return NOERROR;
 }
 
-/**
- * Returns the premises of the address, or null if it is unknown.
- */
 ECode CAddress::GetPremises(
     /* [out] */ String* premises)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(premises);
+    *premises = mPremises;
+
+    return NOERROR;
 }
 
-/**
- * Sets the premises of the address to the given String, which may be null.
- */
 ECode CAddress::SetPremises(
     /* [in] */ const String& premises)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mPremises = premises;
+
+    return NOERROR;
 }
 
-/**
- * Returns the postal code of the address, for example "94110",
- * or null if it is unknown.
- */
 ECode CAddress::GetPostalCode(
     /* [out] */ String* postalCode)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(postalCode);
+    *postalCode = mPostalCode;
+
+    return NOERROR;
 }
 
-/**
- * Sets the postal code of the address to the given String, which may
- * be null.
- */
 ECode CAddress::SetPostalCode(
     /* [in] */ const String& postalCode)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mPostalCode = postalCode;
+
+    return NOERROR;
 }
 
-/**
- * Returns the country code of the address, for example "US",
- * or null if it is unknown.
- */
 ECode CAddress::GetCountryCode(
     /* [out] */ String* countryCode)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(countryCode);
+    *countryCode = mCountryCode;
+
+    return NOERROR;
 }
 
-/**
- * Sets the country code of the address to the given String, which may
- * be null.
- */
 ECode CAddress::SetCountryCode(
     /* [in] */ const String& countryCode)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mCountryCode = countryCode;
+
+    return NOERROR;
 }
 
-/**
- * Returns the localized country name of the address, for example "Iceland",
- * or null if it is unknown.
- */
 ECode CAddress::GetCountryName(
     /* [out] */ String* countryName)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(countryName);
+    *countryName = mCountryName;
+
+    return NOERROR;
 }
 
-/**
- * Sets the country name of the address to the given String, which may
- * be null.
- */
 ECode CAddress::SetCountryName(
     /* [in] */ const String& countryName)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mCountryName = countryName;
+
+    return NOERROR;
 }
 
-/**
- * Returns true if a latitude has been assigned to this Address,
- * false otherwise.
- */
 ECode CAddress::HasLatitude(
     /* [out] */ Boolean* hasLatitude)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(hasLatitude);
+    *hasLatitude = mHasLatitude;
+
+    return NOERROR;
 }
 
-/**
- * Returns the latitude of the address if known.
- *
- * @throws IllegalStateException if this Address has not been assigned
- * a latitude.
- */
 ECode CAddress::GetLatitude(
     /* [out] */ Double* latitude)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(latitude);
+
+    if (mHasLatitude) {
+        *latitude = mLatitude;
+        return NOERROR;
+    }
+    else {
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+//        throw new IllegalStateException();
+    }
 }
 
-/**
- * Sets the latitude associated with this address.
- */
 ECode CAddress::SetLatitude(
     /* [in] */ Double latitude)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mLatitude = latitude;
+    mHasLatitude = TRUE;
+
+    return NOERROR;
 }
 
-/**
- * Removes any latitude associated with this address.
- */
 ECode CAddress::ClearLatitude()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mHasLatitude = FALSE;
+
+    return NOERROR;
 }
 
-/**
- * Returns true if a longitude has been assigned to this Address,
- * false otherwise.
- */
 ECode CAddress::HasLongitude(
     /* [out] */ Boolean* hasLongitude)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(hasLongitude);
+    *hasLongitude = mHasLongitude;
+
+    return NOERROR;
 }
 
-/**
- * Returns the longitude of the address if known.
- *
- * @throws IllegalStateException if this Address has not been assigned
- * a longitude.
- */
 ECode CAddress::GetLongitude(
     /* [out] */ Double* longitude)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(longitude);
+
+    if (mHasLongitude) {
+        *longitude =mLongitude;
+        return NOERROR;
+    }
+    else {
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+//        throw new IllegalStateException();
+    }
 }
 
-/**
- * Sets the longitude associated with this address.
- */
 ECode CAddress::SetLongitude(
     /* [in] */ Double longitude)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mLongitude = longitude;
+    mHasLongitude = TRUE;
+
+    return NOERROR;
 }
 
-/**
- * Removes any longitude associated with this address.
- */
 ECode CAddress::ClearLongitude()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mHasLongitude = FALSE;
+
+    return NOERROR;
 }
 
-/**
- * Returns the phone number of the address if known,
- * or null if it is unknown.
- *
- * @throws IllegalStateException if this Address has not been assigned
- * a latitude.
- */
 ECode CAddress::GetPhone(
     /* [out] */ String* phone)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(phone);
+    *phone = mPhone;
+
+    return NOERROR;
 }
 
-/**
- * Sets the phone number associated with this address.
- */
 ECode CAddress::SetPhone(
     /* [in] */ const String& phone)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mPhone = phone;
+
+    return NOERROR;
 }
 
-/**
- * Returns the public URL for the address if known,
- * or null if it is unknown.
- */
 ECode CAddress::GetUrl(
     /* [out] */ String* url)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(url);
+    *url = mUrl;
+
+    return NOERROR;
 }
 
-/**
- * Sets the public URL associated with this address.
- */
 ECode CAddress::SetUrl(
     /* [in] */ const String& Url)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mUrl = Url;
+
+    return NOERROR;
 }
 
-/**
- * Returns additional provider-specific information about the
- * address as a Bundle.  The keys and values are determined
- * by the provider.  If no additional information is available,
- * null is returned.
- *
- * <!--
- * <p> A number of common key/value pairs are listed
- * below. Providers that use any of the keys on this list must
- * provide the corresponding value as described below.
- *
- * <ul>
- * </ul>
- * -->
- */
 ECode CAddress::GetExtras(
     /* [out] */ IBundle** extras)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(extras);
+    *extras = mExtras;
+
+    return NOERROR;
 }
 
-/**
- * Sets the extra information associated with this fix to the
- * given Bundle.
- */
 ECode CAddress::SetExtras(
     /* [in] */ IBundle* extras)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    if (extras != NULL) {
+        ASSERT_SUCCEEDED(CBundle::New(extras, (IBundle**)&mExtras));
+    }
+    else {
+        mExtras = NULL;
+    }
+
+    return NOERROR;
 }
 
 ECode CAddress::GetDescription(
@@ -457,7 +411,65 @@ ECode CAddress::GetDescription(
 ECode CAddress::ReadFromParcel(
     /* [in] */ IParcel* source)
 {
-    return E_NOT_IMPLEMENTED;
+    String language, country;
+    source->ReadString(&language);
+    source->ReadString(&country);
+    AutoPtr<ILocale> locale;
+    country.GetLength() > 0 ?
+        CLocale::New(language, country, (ILocale**)&locale) :
+        CLocale::New(language, (ILocale**)&locale);
+    AutoPtr<CAddress> a;
+    ASSERT_SUCCEEDED(CAddress::NewByFriend(locale, (CAddress**)&a));
+
+    Int32 N;
+    source->ReadInt32(&N);
+    if (N > 0) {
+        a->mAddressLines = new HashMap<Int32, String>(N);
+        for (Int32 i = 0; i < N; i++) {
+            Int32 index;
+            source->ReadInt32(&index);
+            String line;
+            source->ReadString(&line);
+            (*(a->mAddressLines))[index] = line;
+            a->mMaxAddressLineIndex =
+                Math::Max(a->mMaxAddressLineIndex, index);
+        }
+    }
+    else {
+        a->mAddressLines = NULL;
+        a->mMaxAddressLineIndex = -1;
+    }
+    source->ReadString(&(a->mFeatureName));
+    source->ReadString(&(a->mAdminArea));
+    source->ReadString(&(a->mSubAdminArea));
+    source->ReadString(&(a->mLocality));
+    source->ReadString(&(a->mSubLocality));
+    source->ReadString(&(a->mThoroughfare));
+    source->ReadString(&(a->mSubThoroughfare));
+    source->ReadString(&(a->mPremises));
+    source->ReadString(&(a->mPostalCode));
+    source->ReadString(&(a->mCountryCode));
+    source->ReadString(&(a->mCountryName));
+    Int32 value;
+    source->ReadInt32(&value);
+    a->mHasLatitude = value == 0 ? FALSE : TRUE;
+    if (a->mHasLatitude) {
+        source->ReadDouble(&(a->mLatitude));
+    }
+    source->ReadInt32(&value);
+    a->mHasLongitude = value == 0 ? FALSE : TRUE;
+    if (a->mHasLongitude) {
+        source->ReadDouble(&(a->mLongitude));
+    }
+    source->ReadString(&(a->mPhone));
+    source->ReadString(&(a->mUrl));
+
+    AutoPtr<IInterface> info;
+    source->ReadInterfacePtrPtr((Handle32*)&info);
+    a->mExtras = (info != NULL)? (IBundle*)
+            info->Probe(EIID_IBundle) : NULL;
+
+    return NOERROR;
 }
 
 ECode CAddress::WriteToParcel(
@@ -469,5 +481,7 @@ ECode CAddress::WriteToParcel(
 ECode CAddress::constructor(
     /* [in] */ ILocale* locale)
 {
-    return E_NOT_IMPLEMENTED;
+    mLocale = locale;
+
+    return NOERROR;
 }

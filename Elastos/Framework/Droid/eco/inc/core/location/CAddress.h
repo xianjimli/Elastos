@@ -2,13 +2,18 @@
 #ifndef __CADDRESS_H__
 #define __CADDRESS_H__
 
+#include "ext/frameworkdef.h"
 #include "_CAddress.h"
+#include <elastos/AutoPtr.h>
+#include <elastos/HashMap.h>
 
-using namespace Elastos;
+using namespace Elastos::Core;
 
 CarClass(CAddress)
 {
 public:
+    CAddress();
+
     /**
      * Returns the Locale associated with this address.
      */
@@ -307,7 +312,28 @@ public:
         /* [in] */ ILocale* locale);
 
 private:
-    // TODO: Add your private member variables here.
+    AutoPtr<ILocale> mLocale;
+
+    String mFeatureName;
+    HashMap<Int32, String>* mAddressLines;
+    Int32 mMaxAddressLineIndex;
+    String mAdminArea;
+    String mSubAdminArea;
+    String mLocality;
+    String mSubLocality;
+    String mThoroughfare;
+    String mSubThoroughfare;
+    String mPremises;
+    String mPostalCode;
+    String mCountryCode;
+    String mCountryName;
+    Double mLatitude;
+    Double mLongitude;
+    Boolean mHasLatitude;
+    Boolean mHasLongitude;
+    String mPhone;
+    String mUrl;
+    AutoPtr<IBundle> mExtras;
 };
 
 #endif // __CADDRESS_H__

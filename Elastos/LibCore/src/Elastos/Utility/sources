@@ -19,6 +19,8 @@ SOURCES += linknode.cpp
 SOURCES += container.cpp
 SOURCES += CObjectEnumerator.cpp
 SOURCES += CObjectContainer.cpp
+SOURCES += CLocale.cpp
+SOURCES += CLocaleHelper.cpp
 #SOURCES += CObjectStringMap.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib

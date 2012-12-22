@@ -16,4 +16,8 @@ SOURCES += CAddress.cpp
 SOURCES += LocationProvider.cpp
 SOURCES += DummyLocationProvider.cpp
 SOURCES += GpsNetInitiatedHandler.cpp
+SOURCES += CGeocoder.cpp
+SOURCES += CGpsSatellite.cpp
+SOURCES += CGpsStatus.cpp
+
 

@@ -2,13 +2,18 @@
 #ifndef __CLOCATION_H__
 #define __CLOCATION_H__
 
+#include "ext/frameworkdef.h"
 #include "_CLocation.h"
+#include <elastos/AutoPtr.h>
+#include <elastos/Mutex.h>
 
-using namespace Elastos;
+using namespace Elastos::Core::Threading;
 
 CarClass(CLocation)
 {
 public:
+    CLocation();
+
     /**
      * Sets the contents of the location to the values from the given location.
      */
@@ -19,6 +24,58 @@ public:
      * Clears the contents of the location.
      */
     CARAPI Reset();
+
+    /**
+     * Converts a coordinate to a String representation. The outputType
+     * may be one of FORMAT_DEGREES, FORMAT_MINUTES, or FORMAT_SECONDS.
+     * The coordinate must be a valid double between -180.0 and 180.0.
+     *
+     * @throws IllegalArgumentException if coordinate is less than
+     * -180.0, greater than 180.0, or is not a number.
+     * @throws IllegalArgumentException if outputType is not one of
+     * FORMAT_DEGREES, FORMAT_MINUTES, or FORMAT_SECONDS.
+     */
+    static CARAPI Convert(
+        /* [in] */ Double coordinate,
+        /* [in] */ Int32 outputType,
+        /* [out] */ String* representation);
+
+    /** Converts a String in one of the formats described by
+     * FORMAT_DEGREES, FORMAT_MINUTES, or FORMAT_SECONDS into a
+     * double.
+     *
+     * @throws NullPointerException if coordinate is null
+     * @throws IllegalArgumentException if the coordinate is not
+     * in one of the valid formats.
+     */
+    static CARAPI ConvertEx(
+        /* [in] */ String coordinate,
+        /* [out] */ Double* representation);
+
+    /**
+     * Computes the approximate distance in meters between two
+     * locations, and optionally the initial and final bearings of the
+     * shortest path between them.  Distance and bearing are defined using the
+     * WGS84 ellipsoid.
+     *
+     * <p> The computed distance is stored in results[0].  If results has length
+     * 2 or greater, the initial bearing is stored in results[1]. If results has
+     * length 3 or greater, the final bearing is stored in results[2].
+     *
+     * @param startLatitude the starting latitude
+     * @param startLongitude the starting longitude
+     * @param endLatitude the ending latitude
+     * @param endLongitude the ending longitude
+     * @param results an array of floats to hold the results
+     *
+     * @throws IllegalArgumentException if results is null or has length < 1
+     */
+    static CARAPI DistanceBetween(
+        /* [in] */ Double startLatitude,
+        /* [in] */ Double startLongitude,
+        /* [in] */ Double endLatitude,
+        /* [in] */ Double endLongitude,
+        /* [in] */ ArrayOf<Float>* results);
 
     /**
      * Returns the approximate distance in meters between this
@@ -229,7 +286,39 @@ public:
         /* [in] */ ILocation* l);
 
 private:
-    // TODO: Add your private member variables here.
+    static CARAPI_(void) ComputeDistanceAndBearing(
+        /* [in] */ Double lat1,
+        /* [in] */ Double lon1,
+        /* [in] */ Double lat2,
+        /* [in] */ Double lon2,
+        /* [in] */ ArrayOf<Float>* results);
+
+private:
+    String mProvider;
+    Int64 mTime;
+    Double mLatitude;
+    Double mLongitude;
+    Boolean mHasAltitude;
+    Double mAltitude;
+    Boolean mHasSpeed;
+    Float mSpeed;
+    Boolean mHasBearing;
+    Float mBearing;
+    Boolean mHasAccuracy;
+    Float mAccuracy;
+    AutoPtr<IBundle> mExtras;
+
+    // Cache the inputs and outputs of computeDistanceAndBearing
+    // so calls to distanceTo() and bearingTo() can share work
+    Double mLat1;
+    Double mLon1;
+    Double mLat2;
+    Double mLon2;
+    Float mDistance;
+    Float mInitialBearing;
+    // Scratchpad
+    ArrayOf<Float>* mResults;
+    Mutex mResultsLock;
 };
 
 #endif // __CLOCATION_H__

@@ -1,14 +1,22 @@
 
 #include "location/CGeocoderParams.h"
 
+ECode CGeocoderParams::GetLocale(
+    /* [out] */ ILocale** locale)
+{
+    VALIDATE_NOT_NULL(locale);
+    *locale = mLocale;
 
-/**
- * returns the package name of the Geocoder's client
- */
+    return NOERROR;
+}
+
 ECode CGeocoderParams::GetClientCapsule(
     /* [out] */ String* name)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(name);
+    *name = mCapsuleName;
+
+    return NOERROR;
 }
 
 ECode CGeocoderParams::GetDescription(
@@ -21,7 +29,16 @@ ECode CGeocoderParams::GetDescription(
 ECode CGeocoderParams::ReadFromParcel(
     /* [in] */ IParcel* source)
 {
-    return E_NOT_IMPLEMENTED;
+    AutoPtr<CGeocoderParams> gp;
+    ASSERT_SUCCEEDED(CGeocoderParams::NewByFriend((CGeocoderParams**)&gp));
+    String language, country, variant;
+    source->ReadString(&language);
+    source->ReadString(&country);
+    source->ReadString(&variant);
+    ASSERT_SUCCEEDED(CLocale::New(language, country, variant, (ILocale**)&(gp->mLocale)));
+    source->ReadString(&(gp->mCapsuleName));
+
+    return NOERROR;
 }
 
 ECode CGeocoderParams::WriteToParcel(
@@ -32,12 +49,15 @@ ECode CGeocoderParams::WriteToParcel(
 
 ECode CGeocoderParams::constructor()
 {
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CGeocoderParams::constructor(
     /* [in] */ IContext* ctx,
     /* [in] */ ILocale* locale)
 {
-    return E_NOT_IMPLEMENTED;
+    mLocale = locale;
+    ctx->GetCapsuleName(&mCapsuleName);
+
+    return NOERROR;
 }

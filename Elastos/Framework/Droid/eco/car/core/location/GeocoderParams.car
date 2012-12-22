@@ -5,8 +5,8 @@ module
         /**
          * returns the Geocoder's locale
          */
-//        GetLocale(
-//            [out] ILocale** locale);
+        GetLocale(
+            [out] ILocale** locale);
 
         /**
          * returns the package name of the Geocoder's client

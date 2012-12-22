@@ -12,12 +12,12 @@ module
 
     interface ILocationManager {
         GetAllProviders(
-            [out] ArrayOf<String> allProviders);
+            [out, callee] ArrayOf<String>* allProviders);
 
         GetProviders(
             [in] ICriteria* criteria,
             [in] Boolean enabledOnly,
-            [out] ArrayOf<String> providers);
+            [out, callee] ArrayOf<String>* providers);
 
         GetBestProvider(
             [in] ICriteria* criteria,
