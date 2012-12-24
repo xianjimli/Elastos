@@ -19,7 +19,7 @@ module
     const E_SQL_TRANSIENT_CONNECTION_EXCEPTION              = 0xA8090000;
     const E_SQL_TRANSACTION_ROLLBACK_EXCEPTION              = 0xA80A0000;
     const E_SQL_DATA_EXCEPTION                              = 0xA80B0000;
-    const E_SQL_NON_TRANSIENT_EXCEPTION                     = 0xA80C0000;
+//  const E_SQL_NON_TRANSIENT_EXCEPTION                     = 0xA80C0000;
     const E_SQL_SYNTAX_ERROR_EXCEPTION                      = 0xA80D0000;
     const E_SQL_RECOVERABLE_EXCEPTION                       = 0xA80E0000;
     const E_SQL_TRANSIENT_EXCEPTION                         = 0xA80F0000;

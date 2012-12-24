@@ -1,0 +1,26 @@
+TARGET_NAME= Elastos.SQL
+TARGET_TYPE= eco
+
+INCLUDES += $(MAKEDIR)/../../../inc/Elastos/common;
+INCLUDES += $(MAKEDIR)/../../../inc/Elastos/SQL;
+
+IMPORTS = Elastos.Core.eco
+IMPORTS += Elastos.IO.eco
+IMPORTS += Droid.System.eco
+IMPORTS += Com.Kortide.Platform.eco
+
+SOURCES = Elastos.SQL.car
+SOURCES += Statement.cpp
+SOURCES += JDBCStatement.cpp
+SOURCES += Wrapper.cpp
+
+LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Core.lib
+ifeq "$(XDK_TARGET_PLATFORM)" "win32"
+LIBRARIES += $(XDK_LIB_PATH)/Elastos.Runtime.lib
+else
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
+LIBRARIES += $(XDK_USER_LIB)/crt0.lib
+endif
