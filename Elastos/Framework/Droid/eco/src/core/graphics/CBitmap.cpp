@@ -131,9 +131,9 @@ ECode CBitmap::CopyPixelsToBuffer(
 
     // now update the buffer's position
     Int32 position = 0;
-    dst->Position(&position);
+    dst->GetPosition(&position);
     position += pixelSize >> shift;
-    dst->PositionEx(position);
+    dst->SetPosition(position);
     return NOERROR;
 }
 
