@@ -7,9 +7,6 @@ module
         Array(
             [out, callee] ArrayOf<Int32>* array);
 
-        ArrayOffset(
-            [out] Int32* offset);
-
         /**
          * Returns a read-only buffer that shares its content with this buffer.
          * <p>

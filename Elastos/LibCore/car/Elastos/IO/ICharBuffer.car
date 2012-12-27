@@ -5,10 +5,7 @@ module
     interface ICharBuffer extends IBuffer {
 
         Array(
-            [out, callee] ArrayOf<Char8>* array);
-
-        ArrayOffset(
-            [out] Int32* offset);
+            [out, callee] ArrayOf<Char32>* array);
 
         /**
          * Returns a read-only buffer that shares its content with this buffer.
@@ -39,9 +36,9 @@ module
          * @exception IndexOutOfBoundsException
          *                if the index is invalid.
          */
-        CharAt(
+        GetCharAt(
             [in] Int32 index,
-            [out] Char8* value);
+            [out] Char32* value);
 
         /**
          * Compacts this char buffer.
@@ -96,7 +93,7 @@ module
          *                if the position is equal or greater than limit.
          */
         GetChar(
-            [out] Char8* value);
+            [out] Char32* value);
 
         /**
          * Returns a char at the specified index; the position is not changed.
@@ -109,7 +106,7 @@ module
          */
         GetCharEx(
             [in] Int32 index,
-            [out] Char8* value);
+            [out] Char32* value);
 
         /**
          * Reads chars from the current position into the specified char array and
@@ -125,7 +122,7 @@ module
          *                if {@code dst.length} is greater than {@code remaining()}.
          */
         GetChars(
-            [out] ArrayOf<Char8> dst);
+            [out] ArrayOf<Char32> dst);
 
         /**
          * Reads chars from the current position into the specified char array,
@@ -149,14 +146,14 @@ module
         GetCharsEx(
             [in] Int32 off,
             [in] Int32 len,
-            [out] ArrayOf<Char8> dst);
+            [out] ArrayOf<Char32> dst);
 
         /**
          * Returns the number of remaining chars.
          *
          * @return the number of remaining chars.
          */
-        Length(
+        GetLength(
             [out] Int32* number);
 
         /**
@@ -185,7 +182,7 @@ module
          *                if no changes may be made to the contents of this buffer.
          */
         PutChar(
-            [in] Char8 c);
+            [in] Char32 c);
 
         /**
          * Writes a char to the specified index of this buffer; the position is not
@@ -203,7 +200,7 @@ module
          */
         PutCharEx(
             [in] Int32 index,
-            [in] Char8 c);
+            [in] Char32 c);
 
         /**
          * Writes chars from the given char array to the current position and
@@ -221,7 +218,7 @@ module
          *                if no changes may be made to the contents of this buffer.
          */
         PutChars(
-            [in] ArrayOf<Char8> src);
+            [in] ArrayOf<Char32> src);
 
         /**
          * Writes chars from the given char array, starting from the specified offset,
@@ -247,7 +244,7 @@ module
         PutCharsEx(
             [in] Int32 off,
             [in] Int32 len,
-            [in] ArrayOf<Char8> src);
+            [in] ArrayOf<Char32> src);
 
         /**
          * Writes all the remaining chars of the {@code src} char buffer to this
@@ -375,7 +372,7 @@ module
          *                if no changes may be made to the contents of this buffer.
          */
         AppendChar(
-            [in] Char8 c);
+            [in] Char32 c);
 
         /**
          * Writes all chars of the given character sequence {@code csq} to the
