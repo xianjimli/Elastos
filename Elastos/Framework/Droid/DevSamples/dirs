@@ -1,5 +1,6 @@
 
 DIRS = TextViewDemo
+DIRS += SurfaceViewDemo
 #DIRS += ActivityDemo
 #DIRS += ServiceDemo
 #DIRS += ContentProviderDemo

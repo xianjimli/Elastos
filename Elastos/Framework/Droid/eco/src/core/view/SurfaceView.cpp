@@ -1,10 +1,12 @@
 
+#include "view/ViewRoot.h"
 #include "view/SurfaceView.h"
 #include "view/CSurfaceView.h"
 #include "view/CWindowManagerLayoutParams.h"
 #include "content/CConfiguration.h"
 #include "graphics/ElPixelFormat.h"
 #include "utils/CDisplayMetrics.h"
+#include "os/CApartment.h"
 
 //const String SurfaceView::TAG;
 const Boolean SurfaceView::DEBUG;
@@ -18,50 +20,68 @@ SurfaceView::SurfaceView()
 }
 
 SurfaceView::SurfaceView(
-    /* [in] */ IContext* context) : View(context)
+    /* [in] */ IContext* context) :
+    View(context)
 {
     Init();
 }
 
 SurfaceView::SurfaceView(
-    /* [in] */ IContext* context, 
-    /* [in] */ IAttributeSet* attrs) : View(context)
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs) :
+    View(context)
 {
     Init();
 }
 
 SurfaceView::SurfaceView(
-    /* [in] */ IContext* context, 
-    /* [in] */ IAttributeSet* attrs, 
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs,
     /* [in] */ Int32 defStyle)
 {
     Init();
 }
 
+SurfaceView::~SurfaceView()
+{
+    if (mCallbacks != NULL) {
+        ArrayOf<AutoPtr<ISurfaceHolderCallback> >::Free(mCallbacks);
+        mCallbacks = NULL;
+    }
+}
+
 void SurfaceView::Init()
 {
+    mCallbacks = NULL;
     mLocation = ArrayOf<Int32>::Alloc(2);// = new Int32[2];
-    
+
     //ReentrantLock mSurfaceLock = new ReentrantLock();
     CSurface::New((ISurface**)&mSurface);
     mDrawingStopped = TRUE;
 
     CWindowManagerLayoutParams::New((IWindowManagerLayoutParams**)&mLayout);
-    CRect::NewByFriend((CRect**)&mVisibleInsets);
-    CRect::NewByFriend((CRect**)&mWinFrame);
-    CRect::NewByFriend((CRect**)&mContentInsets);
+    // CRect::NewByFriend((CRect**)&mVisibleInsets);
+    // CRect::NewByFriend((CRect**)&mWinFrame);
+    // CRect::NewByFriend((CRect**)&mContentInsets);
+    CRect::New((IRect**)&mVisibleInsets);
+    CRect::New((IRect**)&mWinFrame);
+    CRect::New((IRect**)&mContentInsets);
+
     CConfiguration::New((IConfiguration**)&mConfiguration);
-    
+
     mWindowType = WindowManagerLayoutParams_TYPE_APPLICATION_MEDIA;
-    
+
     mIsCreating = FALSE;
-            
+
+    CApartment::New(TRUE, (IApartment**) &mHandler);
+    mHandler->Start(ApartmentAttr_New);
+
     mRequestedVisible = FALSE;
     mWindowVisibility = FALSE;
     mViewVisibility = FALSE;
     mRequestedWidth = -1;
     mRequestedHeight = -1;
-    
+
     /* Set SurfaceView's format to 565 by default to maintain backward
      * compatibility with applications assuming this format.
      */
@@ -72,7 +92,7 @@ void SurfaceView::Init()
     mDestroyReportNeeded = FALSE;
     mNewSurfaceNeeded = FALSE;
     mLastLockTime = 0;
-    
+
     mVisible = FALSE;
     mLeft = -1;
     mTop = -1;
@@ -90,7 +110,7 @@ void SurfaceView::Init()
 /**
  * Return the SurfaceHolder providing access and control over this
  * SurfaceView's underlying surface.
- * 
+ *
  * @return SurfaceHolder The holder of the surface.
  */
 AutoPtr<ISurfaceHolder> SurfaceView::GetHolder()
@@ -101,10 +121,13 @@ AutoPtr<ISurfaceHolder> SurfaceView::GetHolder()
 void SurfaceView::OnAttachedToWindow()
 {
     View::OnAttachedToWindow();
-    //mParent->RequestTransparentRegion(this);
+    mParent->RequestTransparentRegion((IView*)this->Probe(EIID_IView));
     mSession = GetWindowSession();
-    //((CWindowManagerLayoutParams*)mLayout.Get())->token = GetWindowToken();
-    //mLayout->SetTitle(String("SurfaceView"));
+    ((CWindowManagerLayoutParams*)mLayout.Get())->mToken = GetWindowToken();
+
+    AutoPtr<ICharSequence> text;
+    CStringWrapper::New(String("SurfaceView"), (ICharSequence**) &text);
+    mLayout->SetTitle(text);
     mViewVisibility = GetVisibility() == VISIBLE;
     GetViewTreeObserver()->AddOnScrollChangedListener(mScrollChangedListener);
 }
@@ -133,9 +156,9 @@ ECode SurfaceView::SetVisibility(
  * This method is not intended for general use. It was created
  * temporarily to improve performance of 3D layers in Launcher
  * and should be removed and fixed properly.
- * 
+ *
  * Do not call this method. Ever.
- * 
+ *
  * @hide
  */
 void SurfaceView::ShowSurface()
@@ -149,26 +172,31 @@ void SurfaceView::ShowSurface()
  * This method is not intended for general use. It was created
  * temporarily to improve performance of 3D layers in Launcher
  * and should be removed and fixed properly.
- * 
+ *
  * Do not call this method. Ever.
- * 
+ *
  * @hide
  */
 void SurfaceView::HideSurface()
 {
     if (mSession != NULL && mWindow != NULL) {
-        //mSurfaceLock.lock();
-        //try {
+        {
+            Mutex::Autolock lock(mSurfaceLock);
             AutoPtr<IDisplayMetrics> metrics;
             GetResources()->GetDisplayMetrics((IDisplayMetrics**)&metrics);
             ((CWindowManagerLayoutParams*)mLayout.Get())->mX = ((CDisplayMetrics*)metrics.Get())->mWidthPixels * 3;
-            /*mSession->Relayout(mWindow, mLayout, mWidth, mHeight, VISIBLE, FALSE,
-                    mWinFrame, mContentInsets, mVisibleInsets, mConfiguration, (ISurface**)&mSurface);*/
-        //} catch (RemoteException e) {
-            // Ignore
-        //} finally {
-            //mSurfaceLock.unlock();
-        //}
+
+            AutoPtr<IRect> outFrame, outContentInsets, outVisibleInsets;
+            AutoPtr<IConfiguration> outConfig;
+            Int32 result = 0;
+            AutoPtr<ISurface> outSurface;
+
+            mSession->Relayout(mWindow, mLayout, mWidth, mHeight, VISIBLE, FALSE,
+                    mWinFrame, mContentInsets, mVisibleInsets, mConfiguration, mSurface,
+                    (IRect**) &outFrame, (IRect**) &outContentInsets,
+                    (IRect**) &outVisibleInsets, (IConfiguration**) &outConfig,
+                    &result, (ISurface**)&outSurface);
+        }
     }
 }
 
@@ -179,21 +207,19 @@ void SurfaceView::OnDetachedFromWindow()
     UpdateWindow(FALSE, FALSE);
     mHaveFrame = FALSE;
     if (mWindow != NULL) {
-        //try {
-            //mSession->Remove(mWindow);
-        //} catch (RemoteException ex) {
-        //}
+        mSession->Remove(mWindow);
         mWindow = NULL;
     }
+
     mSession = NULL;
-    //((CWindowManagerLayoutParams*)mLayout.Get())->token = NULL;
+    ((CWindowManagerLayoutParams*)mLayout.Get())->mToken = NULL;
 
     View::OnDetachedFromWindow();
 }
 
 void SurfaceView::OnMeasure(
-    /* [in] */ Int32 widthMeasureSpec, 
-    /* [in] */ Int32 heightMeasureSpec) 
+    /* [in] */ Int32 widthMeasureSpec,
+    /* [in] */ Int32 heightMeasureSpec)
 {
     Int32 width = GetDefaultSize(mRequestedWidth, widthMeasureSpec);
     Int32 height = GetDefaultSize(mRequestedHeight, heightMeasureSpec);
@@ -202,9 +228,9 @@ void SurfaceView::OnMeasure(
 
 /** @hide */
 Boolean SurfaceView::SetFrame(
-    /* [in] */ Int32 left, 
-    /* [in] */ Int32 top, 
-    /* [in] */ Int32 right, 
+    /* [in] */ Int32 left,
+    /* [in] */ Int32 top,
+    /* [in] */ Int32 right,
     /* [in] */ Int32 bottom)
 {
     Boolean result = View::SetFrame(left, top, right, bottom);
@@ -218,7 +244,7 @@ Boolean SurfaceView::GatherTransparentRegion(
     if (mWindowType == WindowManagerLayoutParams_TYPE_APPLICATION_PANEL) {
         return View::GatherTransparentRegion(region);
     }
-    
+
     Boolean opaque = TRUE;
     if ((mPrivateFlags & SKIP_DRAW) == 0) {
         // this view draws, remove it from the transparent region
@@ -265,7 +291,7 @@ void SurfaceView::DispatchDraw(
             canvas->DrawColorEx(0, PorterDuffMode_CLEAR);
         }
     }
-    // reposition ourselves where the surface is 
+    // reposition ourselves where the surface is
     mHaveFrame = TRUE;
     UpdateWindow(FALSE, FALSE);
     View::DispatchDraw(canvas);
@@ -276,10 +302,10 @@ void SurfaceView::DispatchDraw(
  * regular surface view in the window (but still behind the window itself).
  * This is typically used to place overlays on top of an underlying media
  * surface view.
- * 
+ *
  * <p>Note that this must be set before the surface view's containing
  * window is attached to the window manager.
- * 
+ *
  * <p>Calling this overrides any previous call to {@link #setZOrderOnTop}.
  */
 ECode SurfaceView::SetZOrderMediaOverlay(
@@ -299,14 +325,14 @@ ECode SurfaceView::SetZOrderMediaOverlay(
  * hierarchy.  By setting this, you cause it to be placed above the
  * window.  This means that none of the contents of the window this
  * SurfaceView is in will be visible on top of its surface.
- * 
+ *
  * <p>Note that this must be set before the surface view's containing
  * window is attached to the window manager.
- * 
+ *
  * <p>Calling this overrides any previous call to {@link #setZOrderMediaOverlay}.
  */
 ECode SurfaceView::SetZOrderOnTop(
-    /* [in] */ Boolean onTop) 
+    /* [in] */ Boolean onTop)
 {
     if (onTop) {
         mWindowType = WindowManagerLayoutParams_TYPE_APPLICATION_PANEL;
@@ -334,21 +360,22 @@ ECode SurfaceView::SetWindowType(
 }
 
 void SurfaceView::UpdateWindow(
-    /* [in] */ Boolean force, 
-    /* [in] */ Boolean redrawNeeded) 
+    /* [in] */ Boolean force,
+    /* [in] */ Boolean redrawNeeded)
 {
     if (!mHaveFrame) {
         return;
     }
-    //AutoPtr<ViewRoot> viewRoot;
-    //GetRootView()->GetParent((IViewParent**)&viewRoot);
-    //if (viewRoot != NULL) {
-        //mTranslator = viewRoot->mTranslator;
-    //}
+
+    AutoPtr<ViewRoot> viewRoot;
+    GetRootView()->GetParent((IViewParent**)&viewRoot);
+    if (viewRoot != NULL) {
+        mTranslator = viewRoot->mTranslator;
+    }
 
     AutoPtr<IResources> res;
     GetContext()->GetResources((IResources**)&res);
-    
+
     Boolean isSupportScreen;
     AutoPtr<ICompatibilityInfo> info;
     res->GetCompatibilityInfo((ICompatibilityInfo**)&info);
@@ -358,7 +385,7 @@ void SurfaceView::UpdateWindow(
         res->GetDisplayMetrics((IDisplayMetrics**)&dm);
         mSurface->SetCompatibleDisplayMetrics(dm, mTranslator);
     }
-    
+
     Int32 myWidth = mRequestedWidth;
     if (myWidth <= 0) myWidth = GetWidth();
     Int32 myHeight = mRequestedHeight;
@@ -391,16 +418,17 @@ void SurfaceView::UpdateWindow(
             mType = mRequestedType;
 
             // Scaling/Translate window's layout here because mLayout is not used elsewhere.
-            
+
             // Places the window relative
             ((CWindowManagerLayoutParams*)mLayout.Get())->mX = mLeft;
             ((CWindowManagerLayoutParams*)mLayout.Get())->mY = mTop;
             ((CWindowManagerLayoutParams*)mLayout.Get())->mWidth = GetWidth();
             ((CWindowManagerLayoutParams*)mLayout.Get())->mHeight = GetHeight();
             if (mTranslator != NULL) {
+                //TODO
                 //mTranslator->TranslateLayoutParamsInAppWindowToScreen(mLayout);
             }
-            
+
             ((CWindowManagerLayoutParams*)mLayout.Get())->mFormat = mRequestedFormat;
             ((CWindowManagerLayoutParams*)mLayout.Get())->mFlags |=WindowManagerLayoutParams_FLAG_NOT_TOUCHABLE
                           | WindowManagerLayoutParams_FLAG_NOT_FOCUSABLE
@@ -409,6 +437,8 @@ void SurfaceView::UpdateWindow(
                           | WindowManagerLayoutParams_FLAG_NOT_FOCUSABLE
                           | WindowManagerLayoutParams_FLAG_NOT_TOUCHABLE
                           ;
+
+            //TODO
             //if (!GetContext()->GetResources()->GetCompatibilityInfo()->SupportsScreen()) {
                 ((CWindowManagerLayoutParams*)mLayout.Get())->mFlags |= WindowManagerLayoutParams_FLAG_COMPATIBLE_WINDOW;
             //}
@@ -416,60 +446,69 @@ void SurfaceView::UpdateWindow(
             ((CWindowManagerLayoutParams*)mLayout.Get())->mMemoryType = mRequestedType;
 
             if (mWindow == NULL) {
-                //mWindow = new MyWindow(this);
+                mWindow = new MyWindow((ISurfaceView*)this->Probe(EIID_ISurfaceView));
                 ((CWindowManagerLayoutParams*)mLayout.Get())->mType = mWindowType;
                 ((CWindowManagerLayoutParams*)mLayout.Get())->mGravity = Gravity_LEFT|Gravity_TOP;
-                //mSession->AddWithoutInputChannel(mWindow, mLayout,
-                        //mVisible ? VISIBLE : GONE, mContentInsets);
+
+                Int32 result = 0;
+                mSession->AddWithoutInputChannel(mWindow, mLayout,
+                        mVisible ? VISIBLE : GONE, (IRect**)&mContentInsets, &result);
             }
-            
+
             if (visibleChanged && (!visible || mNewSurfaceNeeded)) {
                 ReportSurfaceDestroyed();
             }
 
             mNewSurfaceNeeded = FALSE;
-            
+
             Boolean realSizeChanged;
             Boolean reportDrawNeeded;
-            
-            //mSurfaceLock.lock();
-            //try {
+
+            {
+                Mutex::Autolock lock(mSurfaceLock);
                 mUpdateWindowNeeded = FALSE;
                 reportDrawNeeded = mReportDrawNeeded;
                 mReportDrawNeeded = FALSE;
                 mDrawingStopped = !visible;
 
-                Int32 relayoutResult/* = mSession->Relayout(
-                    mWindow, mLayout, mWidth, mHeight,
-                        visible ? VISIBLE : GONE, FALSE, mWinFrame, mContentInsets,
-                        mVisibleInsets, mConfiguration, (ISurface**)&mSurface)*/;
-                if ((relayoutResult&WindowManagerImpl_RELAYOUT_FIRST_TIME) != 0) {
+                Int32 relayoutResult = 0;
+
+                AutoPtr<IRect> outFrame, outContentInsets, outVisibleInsets;
+                AutoPtr<IConfiguration> outConfig;
+                AutoPtr<ISurface> outSurface;
+
+                mSession->Relayout(mWindow, mLayout, mWidth, mHeight, visible ? VISIBLE : GONE, FALSE,
+                        mWinFrame, mContentInsets, mVisibleInsets, mConfiguration, mSurface,
+                        (IRect**) &outFrame, (IRect**) &outContentInsets,
+                        (IRect**) &outVisibleInsets, (IConfiguration**) &outConfig,
+                        &relayoutResult, (ISurface**)&outSurface);
+
+                if ((relayoutResult & WindowManagerImpl_RELAYOUT_FIRST_TIME) != 0) {
                     mReportDrawNeeded = TRUE;
                 }
-                
+
                 /*if (localLOGV) Log.i(TAG, "New surface: " + mSurface
                         + ", vis=" + visible + ", frame=" + mWinFrame);*/
-                
+
                 mSurfaceFrame->mLeft = 0;
                 mSurfaceFrame->mTop = 0;
                 if (mTranslator == NULL) {
                     mWinFrame->GetWidth(&mSurfaceFrame->mRight);
                     mWinFrame->GetHeight(&mSurfaceFrame->mBottom);
                 } else {
-                    /*Float appInvertedScale = ((CTranslator*)mTranslator.Get())->ApplicationInvertedScale;
-                    mSurfaceFrame->mRight = (Int32) (mWinFrame.width() * appInvertedScale + 0.5f);
-                    mSurfaceFrame->mBottom = (Int32) (mWinFrame.height() * appInvertedScale + 0.5f);*/
+                    //TODO
+                    // Float appInvertedScale = ((CTranslator*)mTranslator.Get())->ApplicationInvertedScale;
+                    // mSurfaceFrame->mRight = (Int32) (mWinFrame.width() * appInvertedScale + 0.5f);
+                    // mSurfaceFrame->mBottom = (Int32) (mWinFrame.height() * appInvertedScale + 0.5f);
                 }
-                
+
                 Int32 surfaceWidth = mSurfaceFrame->mRight;
                 Int32 surfaceHeight = mSurfaceFrame->mBottom;
                 realSizeChanged = mLastSurfaceWidth != surfaceWidth
                         || mLastSurfaceHeight != surfaceHeight;
                 mLastSurfaceWidth = surfaceWidth;
                 mLastSurfaceHeight = surfaceHeight;
-            //} finally {
-               // mSurfaceLock.unlock();
-           // }
+            }
 
             //try {
                 redrawNeeded |= creating | reportDrawNeeded;
@@ -477,39 +516,56 @@ void SurfaceView::UpdateWindow(
                 if (visible) {
                     mDestroyReportNeeded = TRUE;
 
-                    /*SurfaceHolder.Callback callbacks[];
-                    synchronized (mCallbacks) {
-                        callbacks = new SurfaceHolder.Callback[mCallbacks.size()];
-                        mCallbacks.toArray(callbacks);
+                    if (visibleChanged) {
+                        assert(mCallbacks != NULL);
+                        mIsCreating = TRUE;
+
+                        AutoPtr<ISurfaceHolderCallback> c;
+                        for (Int32 i = 0; i < mCallbacks->GetLength(); ++i)
+                        {
+                            c = (*mCallbacks)[i];
+                            assert(c != NULL);
+                            c->SurfaceCreated(mSurfaceHolder.Get());
+                        }
                     }
 
-                    if (visibleChanged) {
-                        mIsCreating = TRUE;
-                        for (SurfaceHolder.Callback c : callbacks) {
-                            c.surfaceCreated(mSurfaceHolder);
-                        }
-                    }
                     if (creating || formatChanged || sizeChanged
                             || visibleChanged || realSizeChanged) {
-                        for (SurfaceHolder.Callback c : callbacks) {
-                            c.surfaceChanged(mSurfaceHolder, mFormat, myWidth, myHeight);
+                        assert(mCallbacks != NULL);
+                        AutoPtr<ISurfaceHolderCallback> c;
+                        for (Int32 i = 0; i < mCallbacks->GetLength(); ++i)
+                        {
+                            c = (*mCallbacks)[i];
+                            assert(c != NULL);
+                            c->SurfaceChanged(mSurfaceHolder.Get(), mFormat, myWidth, myHeight);
                         }
                     }
+
                     if (redrawNeeded) {
-                        for (SurfaceHolder.Callback c : callbacks) {
-                            if (c instanceof SurfaceHolder.Callback2) {
-                                ((SurfaceHolder.Callback2)c).surfaceRedrawNeeded(
+                        assert(mCallbacks != NULL);
+                        AutoPtr<ISurfaceHolderCallback> c;
+                        for (Int32 i = 0; i < mCallbacks->GetLength(); ++i)
+                        {
+                            c = (*mCallbacks)[i];
+                            if (ISurfaceHolderCallback2::Probe(c) != NULL) {
+                                ISurfaceHolderCallback2::Probe(c)->SurfaceRedrawNeeded(
                                         mSurfaceHolder);
                             }
                         }
-                    }*/
+                    }
                 } else {
+                    //TODO
                     //mSurface.release();
+                }
+
+                mIsCreating = FALSE;
+                if (redrawNeeded) {
+                    mSession->FinishDrawing(mWindow);
                 }
             //} finally {
                 /*mIsCreating = FALSE;
                 if (redrawNeeded) {
-                    mSession.finishDrawing(mWindow);
+                    mSession->FinishDrawing(mWindow);
                 }*/
             //}
         //} catch (RemoteException ex) {
@@ -521,19 +577,21 @@ void SurfaceView::UpdateWindow(
     }
 }
 
-void SurfaceView::ReportSurfaceDestroyed() 
+void SurfaceView::ReportSurfaceDestroyed()
 {
-    /*if (mDestroyReportNeeded) {
+    if (mDestroyReportNeeded) {
         mDestroyReportNeeded = FALSE;
-        SurfaceHolder.Callback callbacks[];
-        synchronized (mCallbacks) {
-            callbacks = new SurfaceHolder.Callback[mCallbacks.size()];
-            mCallbacks.toArray(callbacks);
-        }            
-        for (SurfaceHolder.Callback c : callbacks) {
-            c.surfaceDestroyed(mSurfaceHolder);
+
+        assert(mCallbacks != NULL);
+        AutoPtr<ISurfaceHolderCallback> c;
+        for (Int32 i = 0; i < mCallbacks->GetLength(); ++i)
+        {
+            c = (*mCallbacks)[i];
+            assert(c != NULL);
+            c->SurfaceDestroyed(mSurfaceHolder);
         }
-    }*/
+    }
+
     View::OnDetachedFromWindow();
 }
 
@@ -556,18 +614,20 @@ Boolean SurfaceView::IsFixedSize()
 }
 
 SurfaceView::MyWindow::MyWindow(
-    /* [in] */ ISurfaceView* surfaceView)
+    /* [in] */ ISurfaceView* surfaceView):
+    mSurfaceView(surfaceView),
+    mCurWidth(-1),
+    mCurHeight(-1)
 {
     //mSurfaceView = new WeakReference<SurfaceView>(surfaceView);
-    mSurfaceView = surfaceView;
 }
 
-void SurfaceView::MyWindow::Resized(
-    /* [in] */ Int32 w, 
-    /* [in] */ Int32 h, 
+ECode SurfaceView::MyWindow::Resized(
+    /* [in] */ Int32 w,
+    /* [in] */ Int32 h,
     /* [in] */ IRect* coveredInsets,
-    /* [in] */ IRect* visibleInsets, 
-    /* [in] */ Boolean reportDraw, 
+    /* [in] */ IRect* visibleInsets,
+    /* [in] */ Boolean reportDraw,
     /* [in] */ IConfiguration* newConfig)
 {
     AutoPtr<ISurfaceView> surfaceView = mSurfaceView;
@@ -575,52 +635,109 @@ void SurfaceView::MyWindow::Resized(
         /*if (localLOGV) Log.v(
                 "SurfaceView", surfaceView + " got resized: w=" +
                         w + " h=" + h + ", cur w=" + mCurWidth + " h=" + mCurHeight);*/
-        //surfaceView.mSurfaceLock.lock();
-        //try {
-            Int32 width, height;
-            if (reportDraw) {
-                ((CSurfaceView*)surfaceView.Get())->mUpdateWindowNeeded = TRUE;
-                ((CSurfaceView*)surfaceView.Get())->mReportDrawNeeded = TRUE;
-                //((CSurfaceView*)surfaceView.Get())->mHandler->SendEmptyMessage(UPDATE_WINDOW_MSG);
-            } else if ((((CSurfaceView*)surfaceView.Get())->mWinFrame->GetWidth(&width), width) != w
-                    || (((CSurfaceView*)surfaceView.Get())->mWinFrame->GetHeight(&height), height) != h) {
-                ((CSurfaceView*)surfaceView.Get())->mUpdateWindowNeeded = TRUE;
-                //((CSurfaceView*)surfaceView.Get())->mHandler->SendEmptyMessage(UPDATE_WINDOW_MSG);
-            }
-        /*} finally {
-            surfaceView.mSurfaceLock.unlock();
-        }*/
+        Mutex::Autolock lock(((CSurfaceView*)surfaceView.Get())->mSurfaceLock);
+
+        Int32 width, height;
+        if (reportDraw) {
+            ((CSurfaceView*)surfaceView.Get())->mUpdateWindowNeeded = TRUE;
+            ((CSurfaceView*)surfaceView.Get())->mReportDrawNeeded = TRUE;
+
+            void (STDCALL SurfaceView::*pHandlerFunc)(Boolean, Boolean);
+            pHandlerFunc = &SurfaceView::UpdateWindow;
+            AutoPtr<IParcel> params;
+            CCallbackParcel::New((IParcel**)&params);
+            params->WriteBoolean(FALSE);
+            params->WriteBoolean(FALSE);
+
+            ((CSurfaceView*)surfaceView.Get())->mHandler->PostCppCallback(
+                    (Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
+
+        } else if ((((CSurfaceView*)surfaceView.Get())->mWinFrame->GetWidth(&width), width) != w
+                || (((CSurfaceView*)surfaceView.Get())->mWinFrame->GetHeight(&height), height) != h) {
+            ((CSurfaceView*)surfaceView.Get())->mUpdateWindowNeeded = TRUE;
+
+            void (STDCALL SurfaceView::*pHandlerFunc)(Boolean, Boolean);
+            pHandlerFunc = &SurfaceView::UpdateWindow;
+            AutoPtr<IParcel> params;
+            CCallbackParcel::New((IParcel**)&params);
+            params->WriteBoolean(FALSE);
+            params->WriteBoolean(FALSE);
+
+            ((CSurfaceView*)surfaceView.Get())->mHandler->PostCppCallback(
+                    (Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
+        }
     }
+
+    return NOERROR;
 }
 
-void SurfaceView::MyWindow::DispatchAppVisibility(
+ECode SurfaceView::MyWindow::DispatchAppVisibility(
     /* [in] */ Boolean visible)
 {
     // The point of SurfaceView is to let the app control the surface.
+    return NOERROR;
 }
 
-void SurfaceView::MyWindow::DispatchGetNewSurface()
+ECode SurfaceView::MyWindow::DispatchGetNewSurface()
 {
-    AutoPtr<ISurfaceView> surfaceView;// = mSurfaceView.get();
-    if (surfaceView != NULL) {
-        /*AutoPtr<IMessage> msg;
-        ((CSurfaceView*)surfaceView.Get())->mHandler->ObtainMessage(GET_NEW_SURFACE_MSG, (IMessage**)&msg);
-        ((CSurfaceView*)surfaceView.Get())->mHandler->SendMessage(msg);*/
+    if (mSurfaceView != NULL) {
+        void (STDCALL SurfaceView::*pHandlerFunc)();
+        pHandlerFunc = &SurfaceView::HandleGetNewSurface;
+
+        ((CSurfaceView*)mSurfaceView.Get())->mHandler->PostCppCallback(
+                (Handle32)this, *(Handle32*)&pHandlerFunc, NULL, 0);
     }
+
+    return NOERROR;
 }
 
-void SurfaceView::MyWindow::WindowFocusChanged(
-    /* [in] */ Boolean hasFocus, 
+ECode SurfaceView::MyWindow::WindowFocusChanged(
+    /* [in] */ Boolean hasFocus,
     /* [in] */ Boolean touchEnabled)
 {
     //Log.w("SurfaceView", "Unexpected focus in surface: focus=" + hasFocus + ", touchEnabled=" + touchEnabled);
+    return NOERROR;
 }
 
-void SurfaceView::MyWindow::ExecuteCommand(
-    /* [in] */ String command, 
-    /* [in] */ String parameters, 
+ECode SurfaceView::MyWindow::ExecuteCommand(
+    /* [in] */ const String& command,
+    /* [in] */ const String& parameters,
     /* [in] */ IParcelFileDescriptor* out)
 {
+    return NOERROR;
+}
+
+ECode SurfaceView::MyWindow::CloseSystemDialogs(
+    /* [in] */ const String& reason)
+{
+    return NOERROR;
+}
+
+ECode SurfaceView::MyWindow::DispatchWallpaperOffsets(
+    /* [in] */ Float x,
+    /* [in] */ Float y,
+    /* [in] */ Float xStep,
+    /* [in] */ Float yStep,
+    /* [in] */ Boolean sync)
+{
+    return NOERROR;
+}
+
+ECode SurfaceView::MyWindow::DispatchWallpaperCommand(
+    /* [in] */ const String& action,
+    /* [in] */ Int32 x,
+    /* [in] */ Int32 y,
+    /* [in] */ Int32 z,
+    /* [in] */ IBundle* extras,
+    /* [in] */ Boolean sync)
+{
+    return NOERROR;
+}
+
+ECode SurfaceView::MyWindow::GetDescription(
+    /* [out] */ String* description)
+{
+    return E_NOT_IMPLEMENTED;
 }
 
 PInterface SurfaceView::MyWindow::Probe(

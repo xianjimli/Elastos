@@ -21,51 +21,59 @@ PInterface CSurfaceView::Probe(
 ECode CSurfaceView::GetHolder(
     /* [out] */ ISurfaceHolder ** ppHolder)
 {
-    // TODO: Add your code here
+    assert(ppHolder != NULL);
+    *ppHolder = SurfaceView::GetHolder();
+    if (*ppHolder != NULL) {
+        (*ppHolder)->AddRef();
+    }
+
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CSurfaceView::SetZOrderMediaOverlay(
     /* [in] */ Boolean isMediaOverlay)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return SurfaceView::SetZOrderMediaOverlay(isMediaOverlay);
 }
 
 ECode CSurfaceView::SetZOrderOnTop(
     /* [in] */ Boolean onTop)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return SurfaceView::SetZOrderOnTop(onTop);
 }
 
 ECode CSurfaceView::SetWindowType(
     /* [in] */ Int32 type)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return SurfaceView::SetWindowType(type);
 }
 
 ECode CSurfaceView::IsFixedSize(
     /* [out] */ Boolean * pSize)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    assert(pSize != NULL);
+    *pSize = SurfaceView::IsFixedSize();
+
+    return NOERROR;
 }
 
 ECode CSurfaceView::constructor(
     /* [in] */ IContext * pContext)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    View::Init(pContext);
+    SurfaceView::Init();
+
+    return NOERROR;
 }
 
 ECode CSurfaceView::constructor(
     /* [in] */ IContext * pContext,
     /* [in] */ IAttributeSet * pAttrs)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    View::Init(pContext, pAttrs);
+    SurfaceView::Init();
+
+    return NOERROR;
 }
 
 ECode CSurfaceView::constructor(
@@ -73,7 +81,9 @@ ECode CSurfaceView::constructor(
     /* [in] */ IAttributeSet * pAttrs,
     /* [in] */ Int32 defStyle)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    View::Init(pContext, pAttrs, defStyle);
+    SurfaceView::Init();
+
+    return NOERROR;
 }
 
