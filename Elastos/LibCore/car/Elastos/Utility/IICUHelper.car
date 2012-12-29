@@ -1,0 +1,82 @@
+
+module
+{
+    interface ILocale;
+
+    interface IICUHelper {
+        /**
+         * Returns an array of ISO language names (two-letter codes), fetched either
+         * from ICU's database or from our memory cache.
+         *
+         * @return The array.
+         */
+        GetISOLanguages(
+            [out, callee] ArrayOf<String>* languages);
+
+        /**
+         * Returns an array of ISO country names (two-letter codes), fetched either
+         * from ICU's database or from our memory cache.
+         *
+         * @return The array.
+         */
+        GetISOCountries(
+            [out, callee] ArrayOf<String>* countries);
+
+        /**
+         * Returns the appropriate {@code Locale} given a {@code String} of the form returned
+         * by {@code toString}. This is very lenient, and doesn't care what's between the underscores:
+         * this method can parse strings that {@code Locale.toString} won't produce.
+         * Used to remove duplication.
+         */
+        LocaleFromString(
+            [in] String localeName,
+            [out] ILocale** locale);
+
+        LocalesFromStrings(
+            [in] ArrayOf<String> localeNames,
+            [out, callee] ArrayOf<ILocale*>* locales);
+
+        GetAvailableLocales(
+            [out, callee] ArrayOf<ILocale*>* locales);
+
+        GetAvailableBreakIteratorLocales(
+            [out, callee] ArrayOf<ILocale*>* locales);
+
+        GetAvailableCalendarLocales(
+            [out, callee] ArrayOf<ILocale*>* locales);
+
+        GetAvailableCollatorLocales(
+            [out, callee] ArrayOf<ILocale*>* locales);
+
+        GetAvailableDateFormatLocales(
+            [out, callee] ArrayOf<ILocale*>* locales);
+
+        GetAvailableDateFormatSymbolsLocales(
+            [out, callee] ArrayOf<ILocale*>* locales);
+
+        GetAvailableDecimalFormatSymbolsLocales(
+            [out, callee] ArrayOf<ILocale*>* locales);
+
+        GetAvailableNumberFormatLocales(
+            [out, callee] ArrayOf<ILocale*>* locales);
+
+        ToLowerCase(
+            [in] String inStr,
+            [out] String* localname);
+
+        ToUpperCase(
+            [in] String inStr,
+            [out] String* localname);
+
+        GetISO3CountryNative(
+            [in] String locale,
+            [out] String* country);
+
+        GetISO3LanguageNative(
+            [in] String locale,
+            [out] String* language);
+
+        GetAvailableLocalesNative(
+            [out, callee] ArrayOf<String> *locales);
+    }
+}

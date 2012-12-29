@@ -1,6 +1,6 @@
 
 #include "CLocale.h"
-
+#include <stdio.h>
 /**
  * Returns the country code for this locale, or {@code ""} if this locale
  * doesn't correspond to a specific country.
@@ -9,7 +9,9 @@ ECode CLocale::GetCountry(
     /* [out] */ String* country)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    printf("***%s %d\n", __FILE__, __LINE__);
+    *country = countryCode;
+    return NOERROR;
 }
 
 /**
@@ -126,7 +128,12 @@ ECode CLocale::GetISO3Country(
     /* [out] */ String* country)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    if (countryCode.GetLength() == 0) {
+        *country = countryCode;
+        return NOERROR;
+    }
+    //icuHelper->GetISO3CountryNative(ToString(), country);
+    return NOERROR;
 }
 
 /**
@@ -141,7 +148,12 @@ ECode CLocale::GetISO3Language(
     /* [out] */ String* language)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    if (languageCode.GetLength() == 0) {
+        *language = languageCode;
+        return NOERROR;
+    }
+    //icuHelper->GetISO3LanguageNative(ToString(), language);
+    return NOERROR;
 }
 
 /**
@@ -154,7 +166,8 @@ ECode CLocale::GetLanguage(
     /* [out] */ String* language)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    *language = languageCode;
+    return NOERROR;
 }
 
 /**
@@ -167,13 +180,14 @@ ECode CLocale::GetVariant(
     /* [out] */ String* variant)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    *variant = variantCode;
+    return NOERROR;
 }
 
 ECode CLocale::constructor()
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return constructor(String("en"), String("US"), String(""));
 }
 
 /**
@@ -183,7 +197,7 @@ ECode CLocale::constructor(
     /* [in] */ String language)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return constructor(language, String(""), String(""));
 }
 
 /**
@@ -194,7 +208,7 @@ ECode CLocale::constructor(
     /* [in] */ String country)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return constructor(language, country, String(""));
 }
 
 /**
@@ -207,5 +221,53 @@ ECode CLocale::constructor(
     /* [in] */ String variant)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+//        if (language == null || country == null || variant == null) {
+//            throw new NullPointerException();
+//        }
+//    ECode ec = NOERROR;
+//    ec = CICUHelper::AcquireSingleton((IICUHelper**) &icuHelper);
+
+    if(language.IsNull() && country.IsNull()){
+        printf("%s, %d\n", __FILE__, __LINE__);
+        languageCode = String("");
+        countryCode = String("");
+        variantCode = variant;
+        return NOERROR;
+    }
+        // BEGIN android-changed
+        // this.uLocale = new ULocale(language, country, variant);
+        // languageCode = uLocale.getLanguage();
+//---gaojianfeng delete-------languageCode = Util.toASCIILowerCase(language);
+    languageCode = language;
+        // END android-changed
+        // Map new language codes to the obsolete language
+        // codes so the correct resource bundles will be used.
+    if (languageCode.Equals("he")) {
+        languageCode = "iw";
+    } else if (languageCode.Equals("id")) {
+        languageCode = "in";
+    } else if (languageCode.Equals("yi")) {
+        languageCode = "ji";
+    }
+
+        // countryCode is defined in ASCII character set
+        // BEGIN android-changed
+        // countryCode = country.length()!=0?uLocale.getCountry():"";
+//---gaojianfeng delete-------countryCode = Util.toASCIIUpperCase(country);
+    countryCode = country;
+        // END android-changed
+
+        // Work around for be compatible with RI
+    variantCode = variant;
+    return NOERROR;
+}
+
+String CLocale::ToString()
+{
+    return String("");
+}
+
+String CLocale::ToNewString()
+{
+    return String("");
 }

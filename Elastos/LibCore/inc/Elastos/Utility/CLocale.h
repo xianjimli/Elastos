@@ -4,6 +4,7 @@
 
 #include "_CLocale.h"
 #include <elastos/AutoPtr.h>
+#include "CICUHelper.h"
 
 CarClass(CLocale)
 {
@@ -148,8 +149,17 @@ public:
         /* [in] */ String language,
         /* [in] */ String country,
         /* [in] */ String variant);
+private:
+    String ToString();
+    String ToNewString();
 
 private:
+    String countryCode;
+    String languageCode;
+    String variantCode;
+    String cachedToStringResult;
+
+    AutoPtr<IICUHelper> icuHelper;
 
 };
 

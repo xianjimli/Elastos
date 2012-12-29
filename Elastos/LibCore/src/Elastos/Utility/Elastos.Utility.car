@@ -4,10 +4,20 @@ module
     merge("../../../car/Elastos/Utility/IComparator.car");
     merge("../../../car/Elastos/Utility/IDate.car");
     merge("../../../car/Elastos/Utility/ILocale.car");
+    merge("../../../car/Elastos/Utility/ICalendar.car");
+    merge("../../../car/Elastos/Utility/IICUHelper.car");
     //merge("../../../car/Elastos/Utility/IObjectStringMap.car");
 
     class CObjectContainer {
         interface IObjectContainer;
+    }
+   
+    class CDate {
+        interface IDate;
+    }
+
+    class CCalendar {
+        interface ICalendar;
     }
 
     class CLocale {
@@ -40,6 +50,10 @@ module
 
     singleton class CLocaleHelper {
         interface ILocaleHelper;
+    }
+   
+    singleton class CICUHelper {
+        interface IICUHelper;
     }
 
     //class CObjectStringMap {

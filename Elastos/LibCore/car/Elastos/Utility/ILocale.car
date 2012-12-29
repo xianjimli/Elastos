@@ -117,6 +117,12 @@ module
          */
         GetVariant(
             [out] String* variant);
+
+        /**
+         * Returns true if {@code object} is a locale with the same language,
+         * country and variant.
+        */
+        //-------------
     }
 
     interface ILocaleHelper {
