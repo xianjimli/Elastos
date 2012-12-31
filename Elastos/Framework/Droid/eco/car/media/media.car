@@ -6,6 +6,8 @@ module
     merge("media/MediaScannerListener.car");
     merge("media/MediaScannerService.car");
     merge("media/AudioTrack.car");
+    merge("media/AudioSystem.car");
+    merge("media/AudioManager.car");
 
     class CAudioTrack {
         constructor(
@@ -26,5 +28,12 @@ module
             [in] Int32 sessionId);
 
         interface IAudioTrack;
+    }
+
+    class CAudioManager {
+        constructor(
+            [in] IContext* context);
+
+        interface IAudioManager;
     }
 }

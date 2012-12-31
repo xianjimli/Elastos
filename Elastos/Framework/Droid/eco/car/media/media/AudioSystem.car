@@ -1,0 +1,19 @@
+
+module
+{
+    /*
+     * Handles the audio error callback.
+     */
+    interface IErrorCallback
+    {
+        /*
+         * Callback for audio server errors.
+         * param error   error code:
+         * - AUDIO_STATUS_OK
+         * - AUDIO_STATUS_SERVER_DIED
+         * - AUDIO_STATUS_ERROR
+         */
+        OnError(
+            [in] Int32 error);
+    }
+}

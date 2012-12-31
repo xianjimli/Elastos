@@ -1,325 +1,29 @@
 
+#ifndef __AUDIOMANAGER_H__
+#define __AUDIOMANAGER_H__
+
+#include "media/AudioSystem.h"
+#include <elastos/Math.h>
+#include <elastos/HashMap.h>
+
+using namespace Elastos::Core;
+
 /**
  * AudioManager provides access to volume and ringer mode control.
  * <p>
  * Use <code>Context.getSystemService(Context.AUDIO_SERVICE)</code> to get
  * an instance of this class.
  */
-public class AudioManager {
-
-    private final Context mContext;
-    private final Handler mHandler;
-
-    private static String TAG = "AudioManager";
-    private static Boolean DEBUG = FALSE;
-    private static Boolean localLOGV = DEBUG || android.util.Config.LOGV;
-
-    /**
-     * Broadcast intent, a hint for applications that audio is about to become
-     * 'noisy' due to a change in audio outputs. For example, this intent may
-     * be sent when a wired headset is unplugged, or when an A2DP audio
-     * sink is disconnected, and the audio system is about to automatically
-     * switch audio route to the speaker. Applications that are controlling
-     * audio streams may consider pausing, reducing volume or some other action
-     * on receipt of this intent so as not to surprise the user with audio
-     * from the speaker.
-     */
-    @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
-    public static final String ACTION_AUDIO_BECOMING_NOISY = "android.media.AUDIO_BECOMING_NOISY";
-
-    /**
-     * Sticky broadcast intent action indicating that the ringer mode has
-     * changed. Includes the new ringer mode.
-     *
-     * @see #EXTRA_RINGER_MODE
-     */
-    @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
-    public static final String RINGER_MODE_CHANGED_ACTION = "android.media.RINGER_MODE_CHANGED";
-
-    /**
-     * The new ringer mode.
-     *
-     * @see #RINGER_MODE_CHANGED_ACTION
-     * @see #RINGER_MODE_NORMAL
-     * @see #RINGER_MODE_SILENT
-     * @see #RINGER_MODE_VIBRATE
-     */
-    public static final String EXTRA_RINGER_MODE = "android.media.EXTRA_RINGER_MODE";
-
-    /**
-     * Broadcast intent action indicating that the vibrate setting has
-     * changed. Includes the vibrate type and its new setting.
-     *
-     * @see #EXTRA_VIBRATE_TYPE
-     * @see #EXTRA_VIBRATE_SETTING
-     */
-    @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
-    public static final String VIBRATE_SETTING_CHANGED_ACTION = "android.media.VIBRATE_SETTING_CHANGED";
-
-    /**
-     * @hide Broadcast intent when the volume for a particular stream type changes.
-     * Includes the stream, the new volume and previous volumes
-     *
-     * @see #EXTRA_VOLUME_STREAM_TYPE
-     * @see #EXTRA_VOLUME_STREAM_VALUE
-     * @see #EXTRA_PREV_VOLUME_STREAM_VALUE
-     */
-    @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
-    public static final String VOLUME_CHANGED_ACTION = "android.media.VOLUME_CHANGED_ACTION";
-
-    /**
-     * The new vibrate setting for a particular type.
-     *
-     * @see #VIBRATE_SETTING_CHANGED_ACTION
-     * @see #EXTRA_VIBRATE_TYPE
-     * @see #VIBRATE_SETTING_ON
-     * @see #VIBRATE_SETTING_OFF
-     * @see #VIBRATE_SETTING_ONLY_SILENT
-     */
-    public static final String EXTRA_VIBRATE_SETTING = "android.media.EXTRA_VIBRATE_SETTING";
-
-    /**
-     * The vibrate type whose setting has changed.
-     *
-     * @see #VIBRATE_SETTING_CHANGED_ACTION
-     * @see #VIBRATE_TYPE_NOTIFICATION
-     * @see #VIBRATE_TYPE_RINGER
-     */
-    public static final String EXTRA_VIBRATE_TYPE = "android.media.EXTRA_VIBRATE_TYPE";
-
-    /**
-     * @hide The stream type for the volume changed intent.
-     */
-    public static final String EXTRA_VOLUME_STREAM_TYPE = "android.media.EXTRA_VOLUME_STREAM_TYPE";
-
-    /**
-     * @hide The volume associated with the stream for the volume changed intent.
-     */
-    public static final String EXTRA_VOLUME_STREAM_VALUE =
-        "android.media.EXTRA_VOLUME_STREAM_VALUE";
-
-    /**
-     * @hide The previous volume associated with the stream for the volume changed intent.
-     */
-    public static final String EXTRA_PREV_VOLUME_STREAM_VALUE =
-        "android.media.EXTRA_PREV_VOLUME_STREAM_VALUE";
-
-    /** The audio stream for phone calls */
-    public static final Int32 STREAM_VOICE_CALL = AudioSystem.STREAM_VOICE_CALL;
-    /** The audio stream for system sounds */
-    public static final Int32 STREAM_SYSTEM = AudioSystem.STREAM_SYSTEM;
-    /** The audio stream for the phone ring */
-    public static final Int32 STREAM_RING = AudioSystem.STREAM_RING;
-    /** The audio stream for music playback */
-    public static final Int32 STREAM_MUSIC = AudioSystem.STREAM_MUSIC;
-    /** The audio stream for alarms */
-    public static final Int32 STREAM_ALARM = AudioSystem.STREAM_ALARM;
-    /** The audio stream for notifications */
-    public static final Int32 STREAM_NOTIFICATION = AudioSystem.STREAM_NOTIFICATION;
-    /** @hide The audio stream for phone calls when connected to bluetooth */
-    public static final Int32 STREAM_BLUETOOTH_SCO = AudioSystem.STREAM_BLUETOOTH_SCO;
-    /** @hide The audio stream for enforced system sounds in certain countries (e.g camera in Japan) */
-    public static final Int32 STREAM_SYSTEM_ENFORCED = AudioSystem.STREAM_SYSTEM_ENFORCED;
-    /** The audio stream for DTMF Tones */
-    public static final Int32 STREAM_DTMF = AudioSystem.STREAM_DTMF;
-    /** @hide The audio stream for text to speech (TTS) */
-    public static final Int32 STREAM_TTS = AudioSystem.STREAM_TTS;
-    /** Number of audio streams */
-    /**
-     * @deprecated Use AudioSystem.getNumStreamTypes() instead
-     */
-    @Deprecated public static final Int32 NUM_STREAMS = AudioSystem.NUM_STREAMS;
-
-
-    /**  @hide Default volume index values for audio streams */
-    public static final Int32[] DEFAULT_STREAM_VOLUME = new Int32[] {
-        4,  // STREAM_VOICE_CALL
-        7,  // STREAM_SYSTEM
-        5,  // STREAM_RING
-        11, // STREAM_MUSIC
-        6,  // STREAM_ALARM
-        5,  // STREAM_NOTIFICATION
-        7,  // STREAM_BLUETOOTH_SCO
-        7,  // STREAM_SYSTEM_ENFORCED
-        11, // STREAM_DTMF
-        11  // STREAM_TTS
-    };
-
-    /**
-     * Increase the ringer volume.
-     *
-     * @see #adjustVolume(Int32, Int32)
-     * @see #adjustStreamVolume(Int32, Int32, Int32)
-     */
-    public static final Int32 ADJUST_RAISE = 1;
-
-    /**
-     * Decrease the ringer volume.
-     *
-     * @see #adjustVolume(Int32, Int32)
-     * @see #adjustStreamVolume(Int32, Int32, Int32)
-     */
-    public static final Int32 ADJUST_LOWER = -1;
-
-    /**
-     * Maintain the previous ringer volume. This may be useful when needing to
-     * show the volume toast without actually modifying the volume.
-     *
-     * @see #adjustVolume(Int32, Int32)
-     * @see #adjustStreamVolume(Int32, Int32, Int32)
-     */
-    public static final Int32 ADJUST_SAME = 0;
-
-    // Flags should be powers of 2!
-
-    /**
-     * Show a toast containing the current volume.
-     *
-     * @see #adjustStreamVolume(Int32, Int32, Int32)
-     * @see #adjustVolume(Int32, Int32)
-     * @see #setStreamVolume(Int32, Int32, Int32)
-     * @see #setRingerMode(Int32)
-     */
-    public static final Int32 FLAG_SHOW_UI = 1 << 0;
-
-    /**
-     * Whether to include ringer modes as possible options when changing volume.
-     * For example, if TRUE and volume level is 0 and the volume is adjusted
-     * with {@link #ADJUST_LOWER}, then the ringer mode may switch the silent or
-     * vibrate mode.
-     * <p>
-     * By default this is on for the ring stream. If this flag is included,
-     * this behavior will be present regardless of the stream type being
-     * affected by the ringer mode.
-     *
-     * @see #adjustVolume(Int32, Int32)
-     * @see #adjustStreamVolume(Int32, Int32, Int32)
-     */
-    public static final Int32 FLAG_ALLOW_RINGER_MODES = 1 << 1;
-
-    /**
-     * Whether to play a sound when changing the volume.
-     * <p>
-     * If this is given to {@link #adjustVolume(Int32, Int32)} or
-     * {@link #adjustSuggestedStreamVolume(Int32, Int32, Int32)}, it may be ignored
-     * in some cases (for example, the decided stream type is not
-     * {@link AudioManager#STREAM_RING}, or the volume is being adjusted
-     * downward).
-     *
-     * @see #adjustStreamVolume(Int32, Int32, Int32)
-     * @see #adjustVolume(Int32, Int32)
-     * @see #setStreamVolume(Int32, Int32, Int32)
-     */
-    public static final Int32 FLAG_PLAY_SOUND = 1 << 2;
-
-    /**
-     * Removes any sounds/vibrate that may be in the queue, or are playing (related to
-     * changing volume).
-     */
-    public static final Int32 FLAG_REMOVE_SOUND_AND_VIBRATE = 1 << 3;
-
-    /**
-     * Whether to vibrate if going into the vibrate ringer mode.
-     */
-    public static final Int32 FLAG_VIBRATE = 1 << 4;
-
-    /**
-     * Ringer mode that will be silent and will not vibrate. (This overrides the
-     * vibrate setting.)
-     *
-     * @see #setRingerMode(Int32)
-     * @see #getRingerMode()
-     */
-    public static final Int32 RINGER_MODE_SILENT = 0;
-
-    /**
-     * Ringer mode that will be silent and will vibrate. (This will cause the
-     * phone ringer to always vibrate, but the notification vibrate to only
-     * vibrate if set.)
-     *
-     * @see #setRingerMode(Int32)
-     * @see #getRingerMode()
-     */
-    public static final Int32 RINGER_MODE_VIBRATE = 1;
-
-    /**
-     * Ringer mode that may be audible and may vibrate. It will be audible if
-     * the volume before changing out of this mode was audible. It will vibrate
-     * if the vibrate setting is on.
-     *
-     * @see #setRingerMode(Int32)
-     * @see #getRingerMode()
-     */
-    public static final Int32 RINGER_MODE_NORMAL = 2;
-
-    /**
-     * Vibrate type that corresponds to the ringer.
-     *
-     * @see #setVibrateSetting(Int32, Int32)
-     * @see #getVibrateSetting(Int32)
-     * @see #shouldVibrate(Int32)
-     */
-    public static final Int32 VIBRATE_TYPE_RINGER = 0;
-
-    /**
-     * Vibrate type that corresponds to notifications.
-     *
-     * @see #setVibrateSetting(Int32, Int32)
-     * @see #getVibrateSetting(Int32)
-     * @see #shouldVibrate(Int32)
-     */
-    public static final Int32 VIBRATE_TYPE_NOTIFICATION = 1;
-
-    /**
-     * Vibrate setting that suggests to never vibrate.
-     *
-     * @see #setVibrateSetting(Int32, Int32)
-     * @see #getVibrateSetting(Int32)
-     */
-    public static final Int32 VIBRATE_SETTING_OFF = 0;
-
-    /**
-     * Vibrate setting that suggests to vibrate when possible.
-     *
-     * @see #setVibrateSetting(Int32, Int32)
-     * @see #getVibrateSetting(Int32)
-     */
-    public static final Int32 VIBRATE_SETTING_ON = 1;
-
-    /**
-     * Vibrate setting that suggests to only vibrate when in the vibrate ringer
-     * mode.
-     *
-     * @see #setVibrateSetting(Int32, Int32)
-     * @see #getVibrateSetting(Int32)
-     */
-    public static final Int32 VIBRATE_SETTING_ONLY_SILENT = 2;
-
-    /**
-     * Suggests using the default stream type. This may not be used in all
-     * places a stream type is needed.
-     */
-    public static final Int32 USE_DEFAULT_STREAM_TYPE = Integer.MIN_VALUE;
-
-    private static IAudioService sService;
+class AudioManager 
+{
+public:
+    AudioManager();
 
     /**
      * @hide
      */
-    public AudioManager(Context context) {
-        mContext = context;
-        mHandler = new Handler(context.getMainLooper());
-    }
-
-    private static IAudioService getService()
-    {
-        if (sService != null) {
-            return sService;
-        }
-        IBinder b = ServiceManager.getService(Context.AUDIO_SERVICE);
-        sService = IAudioService.Stub.asInterface(b);
-        return sService;
-    }
+    AudioManager(
+        /* [in] */ IContext* context);
 
     /**
      * Adjusts the volume of a particular stream by one step in a direction.
@@ -337,14 +41,10 @@ public class AudioManager {
      * @see #adjustVolume(Int32, Int32)
      * @see #setStreamVolume(Int32, Int32, Int32)
      */
-    public void adjustStreamVolume(Int32 streamType, Int32 direction, Int32 flags) {
-        IAudioService service = getService();
-        try {
-            service.adjustStreamVolume(streamType, direction, flags);
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in adjustStreamVolume", e);
-        }
-    }
+    virtual CARAPI AdjustStreamVolume(
+        /* [in] */ Int32 streamType, 
+        /* [in] */ Int32 direction, 
+        /* [in] */ Int32 flags);
 
     /**
      * Adjusts the volume of the most relevant stream. For example, if a call is
@@ -363,14 +63,9 @@ public class AudioManager {
      * @see #adjustStreamVolume(Int32, Int32, Int32)
      * @see #setStreamVolume(Int32, Int32, Int32)
      */
-    public void adjustVolume(Int32 direction, Int32 flags) {
-        IAudioService service = getService();
-        try {
-            service.adjustVolume(direction, flags);
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in adjustVolume", e);
-        }
-    }
+    virtual CARAPI AdjustVolume(
+        /* [in] */ Int32 direction, 
+        /* [in] */ Int32 flags);
 
     /**
      * Adjusts the volume of the most relevant stream, or the given fallback
@@ -389,14 +84,10 @@ public class AudioManager {
      * @see #adjustStreamVolume(Int32, Int32, Int32)
      * @see #setStreamVolume(Int32, Int32, Int32)
      */
-    public void adjustSuggestedStreamVolume(Int32 direction, Int32 suggestedStreamType, Int32 flags) {
-        IAudioService service = getService();
-        try {
-            service.adjustSuggestedStreamVolume(direction, suggestedStreamType, flags);
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in adjustVolume", e);
-        }
-    }
+    virtual CARAPI AdjustSuggestedStreamVolume(
+        /* [in] */ Int32 direction, 
+        /* [in] */ Int32 suggestedStreamType, 
+        /* [in] */ Int32 flags);
 
     /**
      * Returns the current ringtone mode.
@@ -405,15 +96,7 @@ public class AudioManager {
      *         {@link #RINGER_MODE_SILENT}, or {@link #RINGER_MODE_VIBRATE}.
      * @see #setRingerMode(Int32)
      */
-    public Int32 getRingerMode() {
-        IAudioService service = getService();
-        try {
-            return service.getRingerMode();
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in getRingerMode", e);
-            return RINGER_MODE_NORMAL;
-        }
-    }
+    virtual CARAPI_(Int32) GetRingerMode();
 
     /**
      * Returns the maximum volume index for a particular stream.
@@ -422,15 +105,8 @@ public class AudioManager {
      * @return The maximum valid volume index for the stream.
      * @see #getStreamVolume(Int32)
      */
-    public Int32 getStreamMaxVolume(Int32 streamType) {
-        IAudioService service = getService();
-        try {
-            return service.getStreamMaxVolume(streamType);
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in getStreamMaxVolume", e);
-            return 0;
-        }
-    }
+    virtual CARAPI_(Int32) GetStreamMaxVolume(
+        /* [in] */ Int32 streamType);
 
     /**
      * Returns the current volume index for a particular stream.
@@ -440,15 +116,8 @@ public class AudioManager {
      * @see #getStreamMaxVolume(Int32)
      * @see #setStreamVolume(Int32, Int32, Int32)
      */
-    public Int32 getStreamVolume(Int32 streamType) {
-        IAudioService service = getService();
-        try {
-            return service.getStreamVolume(streamType);
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in getStreamVolume", e);
-            return 0;
-        }
-    }
+    virtual CARAPI_(Int32) GetStreamVolume(
+        /* [in] */ Int32 streamType);
 
     /**
      * Sets the ringer mode.
@@ -461,14 +130,8 @@ public class AudioManager {
      *            {@link #RINGER_MODE_SILENT}, or {@link #RINGER_MODE_VIBRATE}.
      * @see #getRingerMode()
      */
-    public void setRingerMode(Int32 ringerMode) {
-        IAudioService service = getService();
-        try {
-            service.setRingerMode(ringerMode);
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in setRingerMode", e);
-        }
-    }
+    virtual CARAPI SetRingerMode(
+        /* [in] */ Int32 ringerMode);
 
     /**
      * Sets the volume index for a particular stream.
@@ -480,14 +143,10 @@ public class AudioManager {
      * @see #getStreamMaxVolume(Int32)
      * @see #getStreamVolume(Int32)
      */
-    public void setStreamVolume(Int32 streamType, Int32 index, Int32 flags) {
-        IAudioService service = getService();
-        try {
-            service.setStreamVolume(streamType, index, flags);
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in setStreamVolume", e);
-        }
-    }
+    virtual CARAPI SetStreamVolume(
+        /* [in] */ Int32 streamType, 
+        /* [in] */ Int32 index, 
+        /* [in] */ Int32 flags);
 
     /**
      * Solo or unsolo a particular stream. All other streams are muted.
@@ -506,14 +165,9 @@ public class AudioManager {
      * @param streamType The stream to be soloed/unsoloed.
      * @param state The required solo state: TRUE for solo ON, FALSE for solo OFF
      */
-    public void setStreamSolo(Int32 streamType, Boolean state) {
-        IAudioService service = getService();
-        try {
-            service.setStreamSolo(streamType, state, mICallBack);
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in setStreamSolo", e);
-        }
-    }
+    virtual CARAPI SetStreamSolo(
+        /* [in] */ Int32 streamType, 
+        /* [in] */ Boolean state);
 
     /**
      * Mute or unmute an audio stream.
@@ -535,14 +189,9 @@ public class AudioManager {
      * @param streamType The stream to be muted/unmuted.
      * @param state The required mute state: TRUE for mute ON, FALSE for mute OFF
      */
-    public void setStreamMute(Int32 streamType, Boolean state) {
-        IAudioService service = getService();
-        try {
-            service.setStreamMute(streamType, state, mICallBack);
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in setStreamMute", e);
-        }
-    }
+    virtual CARAPI SetStreamMute(
+        /* [in] */ Int32 streamType, 
+        /* [in] */ Boolean state);
 
     /**
      * Returns whether a particular type should vibrate according to user
@@ -561,15 +210,8 @@ public class AudioManager {
      * @see #setVibrateSetting(Int32, Int32)
      * @see #getVibrateSetting(Int32)
      */
-    public Boolean shouldVibrate(Int32 vibrateType) {
-        IAudioService service = getService();
-        try {
-            return service.shouldVibrate(vibrateType);
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in shouldVibrate", e);
-            return FALSE;
-        }
-    }
+    virtual CARAPI_(Boolean) ShouldVibrate(
+        /* [in] */ Int32 vibrateType);
 
     /**
      * Returns whether the user's vibrate setting for a vibrate type.
@@ -586,15 +228,8 @@ public class AudioManager {
      * @see #setVibrateSetting(Int32, Int32)
      * @see #shouldVibrate(Int32)
      */
-    public Int32 getVibrateSetting(Int32 vibrateType) {
-        IAudioService service = getService();
-        try {
-            return service.getVibrateSetting(vibrateType);
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in getVibrateSetting", e);
-            return VIBRATE_SETTING_OFF;
-        }
-    }
+    virtual CARAPI_(Int32) GetVibrateSetting(
+        /* [in] */ Int32 vibrateType);
 
     /**
      * Sets the setting for when the vibrate type should vibrate.
@@ -612,14 +247,9 @@ public class AudioManager {
      * @see #getVibrateSetting(Int32)
      * @see #shouldVibrate(Int32)
      */
-    public void setVibrateSetting(Int32 vibrateType, Int32 vibrateSetting) {
-        IAudioService service = getService();
-        try {
-            service.setVibrateSetting(vibrateType, vibrateSetting);
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in setVibrateSetting", e);
-        }
-    }
+    virtual CARAPI SetVibrateSetting(
+        /* [in] */ Int32 vibrateType, 
+        /* [in] */ Int32 vibrateSetting);
 
     /**
      * Sets the speakerphone on or off.
@@ -630,29 +260,15 @@ public class AudioManager {
      * @param on set <var>TRUE</var> to turn on speakerphone;
      *           <var>FALSE</var> to turn it off
      */
-    public void setSpeakerphoneOn(Boolean on){
-        IAudioService service = getService();
-        try {
-            service.setSpeakerphoneOn(on);
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in setSpeakerphoneOn", e);
-        }
-    }
+    virtual CARAPI SetSpeakerphoneOn(
+        /* [in] */ Boolean on);
 
     /**
      * Checks whether the speakerphone is on or off.
      *
      * @return TRUE if speakerphone is on, FALSE if it's off
      */
-    public Boolean isSpeakerphoneOn() {
-        IAudioService service = getService();
-        try {
-            return service.isSpeakerphoneOn();
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in isSpeakerphoneOn", e);
-            return FALSE;
-        }
-     }
+    virtual CARAPI_(Boolean) IsSpeakerphoneOn();
 
     //====================================================================
     // Bluetooth SCO control
@@ -664,31 +280,32 @@ public class AudioManager {
      *
      * @see #startBluetoothSco()
      */
-    @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
-    public static final String ACTION_SCO_AUDIO_STATE_CHANGED =
-            "android.media.SCO_AUDIO_STATE_CHANGED";
+    static const String ACTION_SCO_AUDIO_STATE_CHANGED/* =
+            "android.media.SCO_AUDIO_STATE_CHANGED"*/;
     /**
      * Extra for intent {@link #ACTION_SCO_AUDIO_STATE_CHANGED} containing the new
      * bluetooth SCO connection state.
      */
-    public static final String EXTRA_SCO_AUDIO_STATE =
-            "android.media.extra.SCO_AUDIO_STATE";
+    static const String EXTRA_SCO_AUDIO_STATE/* =
+            "android.media.extra.SCO_AUDIO_STATE"*/;
 
     /**
      * Value for extra {@link #EXTRA_SCO_AUDIO_STATE} indicating that the
      * SCO audio channel is not established
      */
-    public static final Int32 SCO_AUDIO_STATE_DISCONNECTED = 0;
+    static const Int32 SCO_AUDIO_STATE_DISCONNECTED = 0;
+
     /**
      * Value for extra {@link #EXTRA_SCO_AUDIO_STATE} indicating that the
      * SCO audio channel is established
      */
-    public static final Int32 SCO_AUDIO_STATE_CONNECTED = 1;
+    static const Int32 SCO_AUDIO_STATE_CONNECTED = 1;
+
     /**
      * Value for extra {@link #EXTRA_SCO_AUDIO_STATE} indicating that
      * there was an error trying to obtain the state
      */
-    public static final Int32 SCO_AUDIO_STATE_ERROR = -1;
+    static const Int32 SCO_AUDIO_STATE_ERROR = -1;
 
 
     /**
@@ -699,11 +316,8 @@ public class AudioManager {
      * @return TRUE if bluetooth SCO can be used for audio when not in call
      *         FALSE otherwise
      * @see #startBluetoothSco()
-    */
-    public Boolean isBluetoothScoAvailableOffCall() {
-        return mContext.getResources().getBoolean(
-               com.android.internal.R.bool.config_bluetooth_sco_off_call);
-    }
+     */
+    virtual CARAPI_(Boolean) IsBluetoothScoAvailableOffCall();
 
     /**
      * Start bluetooth SCO audio connection.
@@ -737,14 +351,7 @@ public class AudioManager {
      * @see #stopBluetoothSco()
      * @see #ACTION_SCO_AUDIO_STATE_CHANGED
      */
-    public void startBluetoothSco(){
-        IAudioService service = getService();
-        try {
-            service.startBluetoothSco(mICallBack);
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in startBluetoothSco", e);
-        }
-    }
+    virtual CARAPI StartBluetoothSco();
 
     /**
      * Stop bluetooth SCO audio connection.
@@ -755,14 +362,7 @@ public class AudioManager {
      * when finished with the SCO connection or if the establishment times out.
      * @see #startBluetoothSco()
      */
-    public void stopBluetoothSco(){
-        IAudioService service = getService();
-        try {
-            service.stopBluetoothSco(mICallBack);
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in stopBluetoothSco", e);
-        }
-    }
+    virtual CARAPI StopBluetoothSco();
 
     /**
      * Request use of Bluetooth SCO headset for communications.
@@ -773,14 +373,8 @@ public class AudioManager {
      * @param on set <var>TRUE</var> to use bluetooth SCO for communications;
      *               <var>FALSE</var> to not use bluetooth SCO for communications
      */
-    public void setBluetoothScoOn(Boolean on){
-        IAudioService service = getService();
-        try {
-            service.setBluetoothScoOn(on);
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in setBluetoothScoOn", e);
-        }
-    }
+    virtual CARAPI SetBluetoothScoOn(
+        /* [in] */ Boolean on);
 
     /**
      * Checks whether communications use Bluetooth SCO.
@@ -788,23 +382,15 @@ public class AudioManager {
      * @return TRUE if SCO is used for communications;
      *         FALSE if otherwise
      */
-    public Boolean isBluetoothScoOn() {
-        IAudioService service = getService();
-        try {
-            return service.isBluetoothScoOn();
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in isBluetoothScoOn", e);
-            return FALSE;
-        }
-    }
+    virtual CARAPI_(Boolean) IsBluetoothScoOn();
 
     /**
      * @param on set <var>TRUE</var> to route A2DP audio to/from Bluetooth
      *           headset; <var>FALSE</var> disable A2DP audio
      * @deprecated Do not use.
      */
-    @Deprecated public void setBluetoothA2dpOn(Boolean on){
-    }
+    virtual CARAPI SetBluetoothA2dpOn(
+        /* [in] */ Boolean on);
 
     /**
      * Checks whether A2DP audio routing to the Bluetooth headset is on or off.
@@ -812,14 +398,7 @@ public class AudioManager {
      * @return TRUE if A2DP audio is being routed to/from Bluetooth headset;
      *         FALSE if otherwise
      */
-    public Boolean isBluetoothA2dpOn() {
-        if (AudioSystem.getDeviceConnectionState(AudioSystem.DEVICE_OUT_BLUETOOTH_A2DP,"")
-            == AudioSystem.DEVICE_STATE_UNAVAILABLE) {
-            return FALSE;
-        } else {
-            return TRUE;
-        }
-    }
+    virtual CARAPI_(Boolean) IsBluetoothA2dpOn();
 
     /**
      * Sets audio routing to the wired headset on or off.
@@ -828,8 +407,8 @@ public class AudioManager {
      *           headset; <var>FALSE</var> disable wired headset audio
      * @deprecated Do not use.
      */
-    @Deprecated public void setWiredHeadsetOn(Boolean on){
-    }
+    virtual CARAPI SetWiredHeadsetOn(
+        /* [in] */ Boolean on);
 
     /**
      * Checks whether audio routing to the wired headset is on or off.
@@ -837,16 +416,7 @@ public class AudioManager {
      * @return TRUE if audio is being routed to/from wired headset;
      *         FALSE if otherwise
      */
-    public Boolean isWiredHeadsetOn() {
-        if (AudioSystem.getDeviceConnectionState(AudioSystem.DEVICE_OUT_WIRED_HEADSET,"")
-                == AudioSystem.DEVICE_STATE_UNAVAILABLE &&
-            AudioSystem.getDeviceConnectionState(AudioSystem.DEVICE_OUT_WIRED_HEADPHONE,"")
-                == AudioSystem.DEVICE_STATE_UNAVAILABLE) {
-            return FALSE;
-        } else {
-            return TRUE;
-        }
-    }
+    virtual CARAPI_(Boolean) IsWiredHeadsetOn();
 
     /**
      * Sets the microphone mute on or off.
@@ -857,18 +427,15 @@ public class AudioManager {
      * @param on set <var>TRUE</var> to mute the microphone;
      *           <var>FALSE</var> to turn mute off
      */
-    public void setMicrophoneMute(Boolean on){
-        AudioSystem.muteMicrophone(on);
-    }
+    virtual CARAPI SetMicrophoneMute(
+        /* [in] */ Boolean on);
 
     /**
      * Checks whether the microphone mute is on or off.
      *
      * @return TRUE if microphone is muted, FALSE if it's not
      */
-    public Boolean isMicrophoneMute() {
-        return AudioSystem.isMicrophoneMuted();
-    }
+    virtual CARAPI_(Boolean) IsMicrophoneMute();
 
     /**
      * Sets the audio mode.
@@ -884,14 +451,8 @@ public class AudioManager {
      *              Informs the HAL about the current audio state so that
      *              it can route the audio appropriately.
      */
-    public void setMode(Int32 mode) {
-        IAudioService service = getService();
-        try {
-            service.setMode(mode, mICallBack);
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in setMode", e);
-        }
-    }
+    virtual CARAPI SetMode(
+        /* [in] */ Int32 mode);
 
     /**
      * Returns the current audio mode.
@@ -899,15 +460,7 @@ public class AudioManager {
      * @return      the current audio mode (NORMAL, RINGTONE, or IN_CALL).
      *              Returns the current current audio state from the HAL.
      */
-    public Int32 getMode() {
-        IAudioService service = getService();
-        try {
-            return service.getMode();
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in getMode", e);
-            return MODE_INVALID;
-        }
-    }
+    virtual CARAPI_(Int32) GetMode();
 
     /* modes for setMode/getMode/setRoute/getRoute */
     /**
@@ -916,28 +469,33 @@ public class AudioManager {
     /**
      * Invalid audio mode.
      */
-    public static final Int32 MODE_INVALID            = AudioSystem.MODE_INVALID;
+    static const Int32 MODE_INVALID            = AudioSystem::MODE_INVALID;
+
     /**
      * Current audio mode. Used to apply audio routing to current mode.
      */
-    public static final Int32 MODE_CURRENT            = AudioSystem.MODE_CURRENT;
+    static const Int32 MODE_CURRENT            = AudioSystem::MODE_CURRENT;
+
     /**
      * Normal audio mode: not ringing and no call established.
      */
-    public static final Int32 MODE_NORMAL             = AudioSystem.MODE_NORMAL;
+    static const Int32 MODE_NORMAL             = AudioSystem::MODE_NORMAL;
+
     /**
      * Ringing audio mode. An incoming is being signaled.
      */
-    public static final Int32 MODE_RINGTONE           = AudioSystem.MODE_RINGTONE;
+    static const Int32 MODE_RINGTONE           = AudioSystem::MODE_RINGTONE;
+
     /**
      * In call audio mode. A telephony call is established.
      */
-    public static final Int32 MODE_IN_CALL            = AudioSystem.MODE_IN_CALL;
+    static const Int32 MODE_IN_CALL            = AudioSystem::MODE_IN_CALL;
+
     /**
      * @hide
      * In communication audio mode. An audio/video chat or VoIP call is established.
      */
-    public static final Int32 MODE_IN_COMMUNICATION   = AudioSystem.MODE_IN_COMMUNICATION;
+    static const Int32 MODE_IN_COMMUNICATION   = AudioSystem::MODE_IN_COMMUNICATION;
 
     /* Routing bits for setRouting/getRouting API */
     /**
@@ -945,43 +503,49 @@ public class AudioManager {
      * @deprecated   Do not set audio routing directly, use setSpeakerphoneOn(),
      * setBluetoothScoOn() methods instead.
      */
-    @Deprecated public static final Int32 ROUTE_EARPIECE          = AudioSystem.ROUTE_EARPIECE;
+    static const Int32 ROUTE_EARPIECE          = AudioSystem::ROUTE_EARPIECE;
+
     /**
      * Routing audio output to speaker
      * @deprecated   Do not set audio routing directly, use setSpeakerphoneOn(),
      * setBluetoothScoOn() methods instead.
      */
-    @Deprecated public static final Int32 ROUTE_SPEAKER           = AudioSystem.ROUTE_SPEAKER;
+    static const Int32 ROUTE_SPEAKER           = AudioSystem::ROUTE_SPEAKER;
+
     /**
      * @deprecated use {@link #ROUTE_BLUETOOTH_SCO}
      * @deprecated   Do not set audio routing directly, use setSpeakerphoneOn(),
      * setBluetoothScoOn() methods instead.
      */
-    @Deprecated public static final Int32 ROUTE_BLUETOOTH = AudioSystem.ROUTE_BLUETOOTH_SCO;
+    static const Int32 ROUTE_BLUETOOTH = AudioSystem::ROUTE_BLUETOOTH_SCO;
+
     /**
      * Routing audio output to bluetooth SCO
      * @deprecated   Do not set audio routing directly, use setSpeakerphoneOn(),
      * setBluetoothScoOn() methods instead.
      */
-    @Deprecated public static final Int32 ROUTE_BLUETOOTH_SCO     = AudioSystem.ROUTE_BLUETOOTH_SCO;
+    static const Int32 ROUTE_BLUETOOTH_SCO     = AudioSystem::ROUTE_BLUETOOTH_SCO;
+
     /**
      * Routing audio output to headset
      * @deprecated   Do not set audio routing directly, use setSpeakerphoneOn(),
      * setBluetoothScoOn() methods instead.
      */
-    @Deprecated public static final Int32 ROUTE_HEADSET           = AudioSystem.ROUTE_HEADSET;
+    static const Int32 ROUTE_HEADSET           = AudioSystem::ROUTE_HEADSET;
+
     /**
      * Routing audio output to bluetooth A2DP
      * @deprecated   Do not set audio routing directly, use setSpeakerphoneOn(),
      * setBluetoothScoOn() methods instead.
      */
-    @Deprecated public static final Int32 ROUTE_BLUETOOTH_A2DP    = AudioSystem.ROUTE_BLUETOOTH_A2DP;
+    static const Int32 ROUTE_BLUETOOTH_A2DP    = AudioSystem::ROUTE_BLUETOOTH_A2DP;
+
     /**
      * Used for mask parameter of {@link #setRouting(Int32,Int32,Int32)}.
      * @deprecated   Do not set audio routing directly, use setSpeakerphoneOn(),
      * setBluetoothScoOn() methods instead.
      */
-    @Deprecated public static final Int32 ROUTE_ALL               = AudioSystem.ROUTE_ALL;
+    static const Int32 ROUTE_ALL               = AudioSystem::ROUTE_ALL;
 
     /**
      * Sets the audio routing for a specified mode
@@ -995,9 +559,10 @@ public class AudioManager {
      * @deprecated   Do not set audio routing directly, use setSpeakerphoneOn(),
      * setBluetoothScoOn() methods instead.
      */
-    @Deprecated
-    public void setRouting(Int32 mode, Int32 routes, Int32 mask) {
-    }
+    virtual CARAPI SetRouting(
+        /* [in] */ Int32 mode, 
+        /* [in] */ Int32 routes, 
+        /* [in] */ Int32 mask);
 
     /**
      * Returns the current audio routing bit vector for a specified mode.
@@ -1008,19 +573,15 @@ public class AudioManager {
      * @deprecated   Do not query audio routing directly, use isSpeakerphoneOn(),
      * isBluetoothScoOn(), isBluetoothA2dpOn() and isWiredHeadsetOn() methods instead.
      */
-    @Deprecated
-    public Int32 getRouting(Int32 mode) {
-        return -1;
-    }
+    virtual CARAPI_(Int32) GetRouting(
+        /* [in] */ Int32 mode);
 
     /**
      * Checks whether any music is active.
      *
      * @return TRUE if any music tracks are active.
      */
-    public Boolean isMusicActive() {
-        return AudioSystem.isStreamActive(STREAM_MUSIC);
-    }
+    virtual CARAPI_(Boolean) IsMusicActive();
 
     /*
      * Sets a generic audio configuration parameter. The use of these parameters
@@ -1030,16 +591,16 @@ public class AudioManager {
      *
      * TODO: Replace with a more generic key:value get/set mechanism
      *
-     * param key   name of parameter to set. Must not be null.
-     * param value value of parameter. Must not be null.
+     * param key   name of parameter to set. Must not be NULL.
+     * param value value of parameter. Must not be NULL.
      */
     /**
      * @hide
      * @deprecated Use {@link #setPrameters(String)} instead
      */
-    @Deprecated public void setParameter(String key, String value) {
-        setParameters(key+"="+value);
-    }
+    virtual CARAPI SetParameter(
+        /* [in] */ String key, 
+        /* [in] */ String value);
 
     /**
      * Sets a variable number of parameter values to audio hardware.
@@ -1048,9 +609,8 @@ public class AudioManager {
      *    key1=value1;key2=value2;...
      *
      */
-    public void setParameters(String keyValuePairs) {
-        AudioSystem.setParameters(keyValuePairs);
-    }
+    virtual CARAPI SetParameters(
+        /* [in] */ String keyValuePairs);
 
     /**
      * Sets a varaible number of parameter values to audio hardware.
@@ -1059,60 +619,68 @@ public class AudioManager {
      * @return list of parameters key value pairs in the form:
      *    key1=value1;key2=value2;...
      */
-    public String getParameters(String keys) {
-        return AudioSystem.getParameters(keys);
-    }
+    virtual CARAPI_(String) GetParameters(
+        /* [in] */ String keys);
 
     /* Sound effect identifiers */
     /**
      * Keyboard and direction pad click sound
      * @see #playSoundEffect(Int32)
      */
-    public static final Int32 FX_KEY_CLICK = 0;
+    static const Int32 FX_KEY_CLICK = 0;
+
     /**
      * Focus has moved up
      * @see #playSoundEffect(Int32)
      */
-    public static final Int32 FX_FOCUS_NAVIGATION_UP = 1;
+    static const Int32 FX_FOCUS_NAVIGATION_UP = 1;
+
     /**
      * Focus has moved down
      * @see #playSoundEffect(Int32)
      */
-    public static final Int32 FX_FOCUS_NAVIGATION_DOWN = 2;
+    static const Int32 FX_FOCUS_NAVIGATION_DOWN = 2;
+
     /**
      * Focus has moved left
      * @see #playSoundEffect(Int32)
      */
-    public static final Int32 FX_FOCUS_NAVIGATION_LEFT = 3;
+    static const Int32 FX_FOCUS_NAVIGATION_LEFT = 3;
+
     /**
      * Focus has moved right
      * @see #playSoundEffect(Int32)
      */
-    public static final Int32 FX_FOCUS_NAVIGATION_RIGHT = 4;
+    static const Int32 FX_FOCUS_NAVIGATION_RIGHT = 4;
+
     /**
      * IME standard keypress sound
      * @see #playSoundEffect(Int32)
      */
-    public static final Int32 FX_KEYPRESS_STANDARD = 5;
+    static const Int32 FX_KEYPRESS_STANDARD = 5;
+
     /**
      * IME spacebar keypress sound
      * @see #playSoundEffect(Int32)
      */
-    public static final Int32 FX_KEYPRESS_SPACEBAR = 6;
+    static const Int32 FX_KEYPRESS_SPACEBAR = 6;
+
     /**
      * IME delete keypress sound
      * @see #playSoundEffect(Int32)
      */
-    public static final Int32 FX_KEYPRESS_DELETE = 7;
+    static const Int32 FX_KEYPRESS_DELETE = 7;
+
     /**
      * IME return_keypress sound
      * @see #playSoundEffect(Int32)
      */
-    public static final Int32 FX_KEYPRESS_RETURN = 8;
+    static const Int32 FX_KEYPRESS_RETURN = 8;
+
     /**
      * @hide Number of sound effects
      */
-    public static final Int32 NUM_SOUND_EFFECTS = 9;
+    static const Int32 NUM_SOUND_EFFECTS = 9;
 
     /**
      * Plays a sound effect (Key clicks, lid open/close...)
@@ -1129,22 +697,8 @@ public class AudioManager {
      * NOTE: This version uses the UI settings to determine
      * whether sounds are heard or not.
      */
-    public void  playSoundEffect(Int32 effectType) {
-        if (effectType < 0 || effectType >= NUM_SOUND_EFFECTS) {
-            return;
-        }
-
-        if (!querySoundEffectsEnabled()) {
-            return;
-        }
-
-        IAudioService service = getService();
-        try {
-            service.playSoundEffect(effectType);
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in playSoundEffect"+e);
-        }
-    }
+    virtual CARAPI PlaySoundEffect(
+        /* [in] */ Int32 effectType);
 
     /**
      * Plays a sound effect (Key clicks, lid open/close...)
@@ -1164,60 +718,31 @@ public class AudioManager {
      * NOTE: This version is for applications that have their own
      * settings panel for enabling and controlling volume.
      */
-    public void  playSoundEffect(Int32 effectType, float volume) {
-        if (effectType < 0 || effectType >= NUM_SOUND_EFFECTS) {
-            return;
-        }
-
-        IAudioService service = getService();
-        try {
-            service.playSoundEffectVolume(effectType, volume);
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in playSoundEffect"+e);
-        }
-    }
-
-    /**
-     * Settings has an in memory cache, so this is fast.
-     */
-    private Boolean querySoundEffectsEnabled() {
-        return Settings.System.getInt(mContext.getContentResolver(), Settings.System.SOUND_EFFECTS_ENABLED, 0) != 0;
-    }
+    virtual CARAPI PlaySoundEffect(
+        /* [in] */ Int32 effectType, 
+        /* [in] */ Float volume);
 
 
     /**
      *  Load Sound effects.
      *  This method must be called when sound effects are enabled.
      */
-    public void loadSoundEffects() {
-        IAudioService service = getService();
-        try {
-            service.loadSoundEffects();
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in loadSoundEffects"+e);
-        }
-    }
+    virtual CARAPI LoadSoundEffects();
 
     /**
      *  Unload Sound effects.
      *  This method can be called to free some memory when
      *  sound effects are disabled.
      */
-    public void unloadSoundEffects() {
-        IAudioService service = getService();
-        try {
-            service.unloadSoundEffects();
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in unloadSoundEffects"+e);
-        }
-    }
+    virtual CARAPI UnloadSoundEffects();
 
     /**
      * Used to indicate a gain of audio focus, or a request of audio focus, of unknown duration.
      * @see OnAudioFocusChangeListener#onAudioFocusChange(Int32)
      * @see #requestAudioFocus(OnAudioFocusChangeListener, Int32, Int32)
      */
-    public static final Int32 AUDIOFOCUS_GAIN = 1;
+    static const Int32 AUDIOFOCUS_GAIN = 1;
+    
     /**
      * Used to indicate a temporary gain or request of audio focus, anticipated to last a short
      * amount of time. Examples of temporary changes are the playback of driving directions, or an
@@ -1225,7 +750,8 @@ public class AudioManager {
      * @see OnAudioFocusChangeListener#onAudioFocusChange(Int32)
      * @see #requestAudioFocus(OnAudioFocusChangeListener, Int32, Int32)
      */
-    public static final Int32 AUDIOFOCUS_GAIN_TRANSIENT = 2;
+    static const Int32 AUDIOFOCUS_GAIN_TRANSIENT = 2;
+    
     /**
      * Used to indicate a temporary request of audio focus, anticipated to last a short
      * amount of time, and where it is acceptable for other audio applications to keep playing
@@ -1235,121 +761,79 @@ public class AudioManager {
      * @see OnAudioFocusChangeListener#onAudioFocusChange(Int32)
      * @see #requestAudioFocus(OnAudioFocusChangeListener, Int32, Int32)
      */
-    public static final Int32 AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK = 3;
+    static const Int32 AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK = 3;
+    
     /**
      * Used to indicate a loss of audio focus of unknown duration.
      * @see OnAudioFocusChangeListener#onAudioFocusChange(Int32)
      */
-    public static final Int32 AUDIOFOCUS_LOSS = -1 * AUDIOFOCUS_GAIN;
+    static const Int32 AUDIOFOCUS_LOSS = -1 * AUDIOFOCUS_GAIN;
+    
     /**
      * Used to indicate a transient loss of audio focus.
      * @see OnAudioFocusChangeListener#onAudioFocusChange(Int32)
      */
-    public static final Int32 AUDIOFOCUS_LOSS_TRANSIENT = -1 * AUDIOFOCUS_GAIN_TRANSIENT;
+    static const Int32 AUDIOFOCUS_LOSS_TRANSIENT = -1 * AUDIOFOCUS_GAIN_TRANSIENT;
+    
     /**
      * Used to indicate a transient loss of audio focus where the loser of the audio focus can
      * lower its output volume if it wants to continue playing (also referred to as "ducking"), as
      * the new focus owner doesn't require others to be silent.
      * @see OnAudioFocusChangeListener#onAudioFocusChange(Int32)
      */
-    public static final Int32 AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK =
+    static const Int32 AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK =
             -1 * AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK;
 
-    /**
-     * Interface definition for a callback to be invoked when the audio focus of the system is
-     * updated.
-     */
-    public interface OnAudioFocusChangeListener {
-        /**
-         * Called on the listener to notify it the audio focus for this listener has been changed.
-         * The focusChange value indicates whether the focus was gained,
-         * whether the focus was lost, and whether that loss is transient, or whether the new focus
-         * holder will hold it for an unknown amount of time.
-         * When losing focus, listeners can use the focus change information to decide what
-         * behavior to adopt when losing focus. A music player could for instance elect to lower
-         * the volume of its music stream (duck) for transient focus losses, and pause otherwise.
-         * @param focusChange the type of focus change, one of {@link AudioManager#AUDIOFOCUS_GAIN},
-         *   {@link AudioManager#AUDIOFOCUS_LOSS}, {@link AudioManager#AUDIOFOCUS_LOSS_TRANSIENT}
-         *   and {@link AudioManager#AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK}.
-         */
-        public void onAudioFocusChange(Int32 focusChange);
-    }
-
+private:
     /**
      * Map to convert focus event listener IDs, as used in the AudioService audio focus stack,
      * to actual listener objects.
      */
-    private HashMap<String, OnAudioFocusChangeListener> mAudioFocusIdListenerMap =
-            new HashMap<String, OnAudioFocusChangeListener>();
+    HashMap<String, AutoPtr<IOnAudioFocusChangeListener> > mAudioFocusIdListenerMap;/* =
+            new HashMap<String, OnAudioFocusChangeListener>();*/
     /**
      * Lock to prevent concurrent changes to the list of focus listeners for this AudioManager
      * instance.
      */
-    private final Object mFocusListenerLock = new Object();
+    AutoPtr<IInterface> mFocusListenerLock;// = new Object();
 
-    private OnAudioFocusChangeListener findFocusListener(String id) {
-        return mAudioFocusIdListenerMap.get(id);
-    }
-
-    /**
-     * Handler for audio focus events coming from the audio service.
-     */
-    private FocusEventHandlerDelegate mAudioFocusEventHandlerDelegate =
-            new FocusEventHandlerDelegate();
+    AutoPtr<IOnAudioFocusChangeListener> FindFocusListener(
+        /* [in] */ String id);
 
     /**
      * Helper class to handle the forwarding of audio focus events to the appropriate listener
      */
-    private class FocusEventHandlerDelegate {
-        private final Handler mHandler;
+    class FocusEventHandlerDelegate 
+    {
+    public:
+        FocusEventHandlerDelegate();
 
-        FocusEventHandlerDelegate() {
-            Looper looper;
-            if ((looper = Looper.myLooper()) == null) {
-                looper = Looper.getMainLooper();
-            }
+        AutoPtr<IHandler> GetHandler();
 
-            if (looper != null) {
-                // implement the event handler delegate to receive audio focus events
-                mHandler = new Handler(looper) {
-                    @Override
-                    public void handleMessage(Message msg) {
-                        OnAudioFocusChangeListener listener = null;
-                        synchronized(mFocusListenerLock) {
-                            listener = findFocusListener((String)msg.obj);
-                        }
-                        if (listener != null) {
-                            listener.onAudioFocusChange(msg.what);
-                        }
-                    }
-                };
-            } else {
-                mHandler = null;
-            }
-        }
+    private:
+        AutoPtr<IHandler> mHandler;
+    };
 
-        Handler getHandler() {
-            return mHandler;
-        }
-    }
+    /**
+     * Handler for audio focus events coming from the audio service.
+     */
+    FocusEventHandlerDelegate* mAudioFocusEventHandlerDelegate;/* =
+            new FocusEventHandlerDelegate();*/
 
-    private IAudioFocusDispatcher mAudioFocusDispatcher = new IAudioFocusDispatcher.Stub() {
+
+    AutoPtr<IAudioFocusDispatcher> mAudioFocusDispatcher;/* = new IAudioFocusDispatcher.Stub() {
 
         public void dispatchAudioFocusChange(Int32 focusChange, String id) {
             Message m = mAudioFocusEventHandlerDelegate.getHandler().obtainMessage(focusChange, id);
             mAudioFocusEventHandlerDelegate.getHandler().sendMessage(m);
         }
 
-    };
+    };*/
 
-    private String getIdForAudioFocusListener(OnAudioFocusChangeListener l) {
-        if (l == null) {
-            return new String(this.toString());
-        } else {
-            return new String(this.toString() + l.toString());
-        }
-    }
+    CARAPI_(String) GetIdForAudioFocusListener(
+        /* [in] */ IOnAudioFocusChangeListener* l);
 
+public:
     /**
      * @hide
      * Registers a listener to be called when audio focus changes. Calling this method is optional
@@ -1357,37 +841,26 @@ public class AudioManager {
      * will register the listener as well if it wasn't registered already.
      * @param l the listener to be notified of audio focus changes.
      */
-    public void registerAudioFocusListener(OnAudioFocusChangeListener l) {
-        synchronized(mFocusListenerLock) {
-            if (mAudioFocusIdListenerMap.containsKey(getIdForAudioFocusListener(l))) {
-                return;
-            }
-            mAudioFocusIdListenerMap.put(getIdForAudioFocusListener(l), l);
-        }
-    }
+    virtual CARAPI RegisterAudioFocusListener(
+        /* [in] */ IOnAudioFocusChangeListener* l);
 
     /**
      * @hide
      * Causes the specified listener to not be called anymore when focus is gained or lost.
      * @param l the listener to unregister.
      */
-    public void unregisterAudioFocusListener(OnAudioFocusChangeListener l) {
-
-        // remove locally
-        synchronized(mFocusListenerLock) {
-            mAudioFocusIdListenerMap.remove(getIdForAudioFocusListener(l));
-        }
-    }
-
+    virtual CARAPI UnregisterAudioFocusListener(
+        /* [in] */ IOnAudioFocusChangeListener* l);
 
     /**
      * A failed focus change request.
      */
-    public static final Int32 AUDIOFOCUS_REQUEST_FAILED = 0;
+    static const Int32 AUDIOFOCUS_REQUEST_FAILED = 0;
+
     /**
      * A successful focus change request.
      */
-    public static final Int32 AUDIOFOCUS_REQUEST_GRANTED = 1;
+    static const Int32 AUDIOFOCUS_REQUEST_GRANTED = 1;
 
 
     /**
@@ -1404,24 +877,10 @@ public class AudioManager {
      *      as the playback of a song or a video.
      *  @return {@link #AUDIOFOCUS_REQUEST_FAILED} or {@link #AUDIOFOCUS_REQUEST_GRANTED}
      */
-    public Int32 requestAudioFocus(OnAudioFocusChangeListener l, Int32 streamType, Int32 durationHint) {
-        Int32 status = AUDIOFOCUS_REQUEST_FAILED;
-        if ((durationHint < AUDIOFOCUS_GAIN) || (durationHint > AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK))
-        {
-            Log.e(TAG, "Invalid duration hint, audio focus request denied");
-            return status;
-        }
-        registerAudioFocusListener(l);
-        //TODO protect request by permission check?
-        IAudioService service = getService();
-        try {
-            status = service.requestAudioFocus(streamType, durationHint, mICallBack,
-                    mAudioFocusDispatcher, getIdForAudioFocusListener(l));
-        } catch (RemoteException e) {
-            Log.e(TAG, "Can't call requestAudioFocus() from AudioService due to "+e);
-        }
-        return status;
-    }
+    virtual CARAPI_(Int32) RequestAudioFocus(
+        /* [in] */ IOnAudioFocusChangeListener* l, 
+        /* [in] */ Int32 streamType, 
+        /* [in] */ Int32 durationHint);
 
 
     /**
@@ -1429,18 +888,8 @@ public class AudioManager {
      *  @param l the listener with which focus was requested.
      *  @return {@link #AUDIOFOCUS_REQUEST_FAILED} or {@link #AUDIOFOCUS_REQUEST_GRANTED}
      */
-    public Int32 abandonAudioFocus(OnAudioFocusChangeListener l) {
-        Int32 status = AUDIOFOCUS_REQUEST_FAILED;
-        unregisterAudioFocusListener(l);
-        IAudioService service = getService();
-        try {
-            status = service.abandonAudioFocus(mAudioFocusDispatcher,
-                    getIdForAudioFocusListener(l));
-        } catch (RemoteException e) {
-            Log.e(TAG, "Can't call abandonAudioFocus() from AudioService due to "+e);
-        }
-        return status;
-    }
+    virtual CARAPI_(Int32) AbandonAudioFocus(
+        /* [in] */ IOnAudioFocusChangeListener* l);
 
 
     //====================================================================
@@ -1451,29 +900,16 @@ public class AudioManager {
      *      that will receive the media button intent. This broadcast receiver must be declared
      *      in the application manifest.
      */
-    public void registerMediaButtonEventReceiver(ComponentName eventReceiver) {
-        //TODO enforce the rule about the receiver being declared in the manifest
-        IAudioService service = getService();
-        try {
-            service.registerMediaButtonEventReceiver(eventReceiver);
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in registerMediaButtonEventReceiver"+e);
-        }
-    }
+    virtual CARAPI RegisterMediaButtonEventReceiver(
+        /* [in] */ IComponentName* eventReceiver);
 
     /**
      * Unregister the receiver of MEDIA_BUTTON intents.
      * @param eventReceiver identifier of a {@link android.content.BroadcastReceiver}
      *      that was registered with {@link #registerMediaButtonEventReceiver(ComponentName)}.
      */
-    public void unregisterMediaButtonEventReceiver(ComponentName eventReceiver) {
-        IAudioService service = getService();
-        try {
-            service.unregisterMediaButtonEventReceiver(eventReceiver);
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in unregisterMediaButtonEventReceiver"+e);
-        }
-    }
+    virtual CARAPI UnregisterMediaButtonEventReceiver(
+        /* [in] */ IComponentName* eventReceiver);
 
     /**
      *  @hide
@@ -1481,17 +917,324 @@ public class AudioManager {
      *  agent when audio settings are restored and causes the AudioService
      *  to read and apply restored settings.
      */
-    public void reloadAudioSettings() {
-        IAudioService service = getService();
-        try {
-            service.reloadAudioSettings();
-        } catch (RemoteException e) {
-            Log.e(TAG, "Dead object in reloadAudioSettings"+e);
-        }
-    }
+    virtual CARAPI ReloadAudioSettings();
+    
+private:
+    static CARAPI_(AutoPtr<IAudioService>) GetService();
 
-     /**
-      * {@hide}
-      */
-     private IBinder mICallBack = new Binder();
-}
+    /**
+     * Settings has an in memory cache, so this is fast.
+     */
+    CARAPI_(Boolean) QuerySoundEffectsEnabled();
+
+    /**
+     * {@hide}
+     */
+    AutoPtr<IBinder> mICallBack;/// = new Binder();
+
+    AutoPtr<IContext> mContext;
+    AutoPtr<IHandler> mHandler;
+
+    static String TAG;// = "AudioManager";
+    static Boolean DEBUG;// = FALSE;
+    static Boolean localLOGV;// = DEBUG;// || android.util.Config.LOGV;
+
+    static AutoPtr<IAudioService> sService;
+
+public:
+    /**
+     * Broadcast intent, a hint for applications that audio is about to become
+     * 'noisy' due to a change in audio outputs. For example, this intent may
+     * be sent when a wired headset is unplugged, or when an A2DP audio
+     * sink is disconnected, and the audio system is about to automatically
+     * switch audio route to the speaker. Applications that are controlling
+     * audio streams may consider pausing, reducing volume or some other action
+     * on receipt of this intent so as not to surprise the user with audio
+     * from the speaker.
+     */
+    static const String ACTION_AUDIO_BECOMING_NOISY/* = "android.media.AUDIO_BECOMING_NOISY"*/;
+
+    /**
+     * Sticky broadcast intent action indicating that the ringer mode has
+     * changed. Includes the new ringer mode.
+     *
+     * @see #EXTRA_RINGER_MODE
+     */
+    static const String RINGER_MODE_CHANGED_ACTION/* = "android.media.RINGER_MODE_CHANGED"*/;
+
+    /**
+     * The new ringer mode.
+     *
+     * @see #RINGER_MODE_CHANGED_ACTION
+     * @see #RINGER_MODE_NORMAL
+     * @see #RINGER_MODE_SILENT
+     * @see #RINGER_MODE_VIBRATE
+     */
+    static const String EXTRA_RINGER_MODE/* = "android.media.EXTRA_RINGER_MODE"*/;
+
+    /**
+     * Broadcast intent action indicating that the vibrate setting has
+     * changed. Includes the vibrate type and its new setting.
+     *
+     * @see #EXTRA_VIBRATE_TYPE
+     * @see #EXTRA_VIBRATE_SETTING
+     */
+    static const String VIBRATE_SETTING_CHANGED_ACTION/* = "android.media.VIBRATE_SETTING_CHANGED"*/;
+
+    /**
+     * @hide Broadcast intent when the volume for a particular stream type changes.
+     * Includes the stream, the new volume and previous volumes
+     *
+     * @see #EXTRA_VOLUME_STREAM_TYPE
+     * @see #EXTRA_VOLUME_STREAM_VALUE
+     * @see #EXTRA_PREV_VOLUME_STREAM_VALUE
+     */
+    static const String VOLUME_CHANGED_ACTION/* = "android.media.VOLUME_CHANGED_ACTION"*/;
+
+    /**
+     * The new vibrate setting for a particular type.
+     *
+     * @see #VIBRATE_SETTING_CHANGED_ACTION
+     * @see #EXTRA_VIBRATE_TYPE
+     * @see #VIBRATE_SETTING_ON
+     * @see #VIBRATE_SETTING_OFF
+     * @see #VIBRATE_SETTING_ONLY_SILENT
+     */
+    static const String EXTRA_VIBRATE_SETTING/* = "android.media.EXTRA_VIBRATE_SETTING"*/;
+
+    /**
+     * The vibrate type whose setting has changed.
+     *
+     * @see #VIBRATE_SETTING_CHANGED_ACTION
+     * @see #VIBRATE_TYPE_NOTIFICATION
+     * @see #VIBRATE_TYPE_RINGER
+     */
+    static const String EXTRA_VIBRATE_TYPE/* = "android.media.EXTRA_VIBRATE_TYPE"*/;
+
+    /**
+     * @hide The stream type for the volume changed intent.
+     */
+    static const String EXTRA_VOLUME_STREAM_TYPE/* = "android.media.EXTRA_VOLUME_STREAM_TYPE"*/;
+
+    /**
+     * @hide The volume associated with the stream for the volume changed intent.
+     */
+    static const String EXTRA_VOLUME_STREAM_VALUE/* =
+        "android.media.EXTRA_VOLUME_STREAM_VALUE"*/;
+
+    /**
+     * @hide The previous volume associated with the stream for the volume changed intent.
+     */
+    static const String EXTRA_PREV_VOLUME_STREAM_VALUE/* =
+        "android.media.EXTRA_PREV_VOLUME_STREAM_VALUE"*/;
+
+    /** The audio stream for phone calls */
+    static const Int32 STREAM_VOICE_CALL = AudioSystem::STREAM_VOICE_CALL;
+
+    /** The audio stream for system sounds */
+    static const Int32 STREAM_SYSTEM = AudioSystem::STREAM_SYSTEM;
+
+    /** The audio stream for the phone ring */
+    static const Int32 STREAM_RING = AudioSystem::STREAM_RING;
+
+    /** The audio stream for music playback */
+    static const Int32 STREAM_MUSIC = AudioSystem::STREAM_MUSIC;
+
+    /** The audio stream for alarms */
+    static const Int32 STREAM_ALARM = AudioSystem::STREAM_ALARM;
+
+    /** The audio stream for notifications */
+    static const Int32 STREAM_NOTIFICATION = AudioSystem::STREAM_NOTIFICATION;
+
+    /** @hide The audio stream for phone calls when connected to bluetooth */
+    static const Int32 STREAM_BLUETOOTH_SCO = AudioSystem::STREAM_BLUETOOTH_SCO;
+
+    /** @hide The audio stream for enforced system sounds in certain countries (e.g camera in Japan) */
+    static const Int32 STREAM_SYSTEM_ENFORCED = AudioSystem::STREAM_SYSTEM_ENFORCED;
+
+    /** The audio stream for DTMF Tones */
+    static const Int32 STREAM_DTMF = AudioSystem::STREAM_DTMF;
+
+    /** @hide The audio stream for text to speech (TTS) */
+    static const Int32 STREAM_TTS = AudioSystem::STREAM_TTS;
+    
+    /** Number of audio streams */
+    /**
+     * @deprecated Use AudioSystem::getNumStreamTypes() instead
+     */
+    static const Int32 NUM_STREAMS = AudioSystem::NUM_STREAMS;
+
+
+    /**  @hide Default volume index values for audio streams */
+    static const Int32 DEFAULT_STREAM_VOLUME[];
+    //=  {
+    //    4,  // STREAM_VOICE_CALL
+    //    7,  // STREAM_SYSTEM
+    //    5,  // STREAM_RING
+    //    11, // STREAM_MUSIC
+    //    6,  // STREAM_ALARM
+    //    5,  // STREAM_NOTIFICATION
+    //    7,  // STREAM_BLUETOOTH_SCO
+    //    7,  // STREAM_SYSTEM_ENFORCED
+    //    11, // STREAM_DTMF
+    //    11  // STREAM_TTS
+    //};
+
+    /**
+     * Increase the ringer volume.
+     *
+     * @see #adjustVolume(Int32, Int32)
+     * @see #adjustStreamVolume(Int32, Int32, Int32)
+     */
+    static const Int32 ADJUST_RAISE = 1;
+
+    /**
+     * Decrease the ringer volume.
+     *
+     * @see #adjustVolume(Int32, Int32)
+     * @see #adjustStreamVolume(Int32, Int32, Int32)
+     */
+    static const Int32 ADJUST_LOWER = -1;
+
+    /**
+     * Maintain the previous ringer volume. This may be useful when needing to
+     * show the volume toast without actually modifying the volume.
+     *
+     * @see #adjustVolume(Int32, Int32)
+     * @see #adjustStreamVolume(Int32, Int32, Int32)
+     */
+    static const Int32 ADJUST_SAME = 0;
+
+    // Flags should be powers of 2!
+
+    /**
+     * Show a toast containing the current volume.
+     *
+     * @see #adjustStreamVolume(Int32, Int32, Int32)
+     * @see #adjustVolume(Int32, Int32)
+     * @see #setStreamVolume(Int32, Int32, Int32)
+     * @see #setRingerMode(Int32)
+     */
+    static const Int32 FLAG_SHOW_UI = 1 << 0;
+
+    /**
+     * Whether to include ringer modes as possible options when changing volume.
+     * For example, if TRUE and volume level is 0 and the volume is adjusted
+     * with {@link #ADJUST_LOWER}, then the ringer mode may switch the silent or
+     * vibrate mode.
+     * <p>
+     * By default this is on for the ring stream. If this flag is included,
+     * this behavior will be present regardless of the stream type being
+     * affected by the ringer mode.
+     *
+     * @see #adjustVolume(Int32, Int32)
+     * @see #adjustStreamVolume(Int32, Int32, Int32)
+     */
+    static const Int32 FLAG_ALLOW_RINGER_MODES = 1 << 1;
+
+    /**
+     * Whether to play a sound when changing the volume.
+     * <p>
+     * If this is given to {@link #adjustVolume(Int32, Int32)} or
+     * {@link #adjustSuggestedStreamVolume(Int32, Int32, Int32)}, it may be ignored
+     * in some cases (for example, the decided stream type is not
+     * {@link AudioManager#STREAM_RING}, or the volume is being adjusted
+     * downward).
+     *
+     * @see #adjustStreamVolume(Int32, Int32, Int32)
+     * @see #adjustVolume(Int32, Int32)
+     * @see #setStreamVolume(Int32, Int32, Int32)
+     */
+    static const Int32 FLAG_PLAY_SOUND = 1 << 2;
+
+    /**
+     * Removes any sounds/vibrate that may be in the queue, or are playing (related to
+     * changing volume).
+     */
+    static const Int32 FLAG_REMOVE_SOUND_AND_VIBRATE = 1 << 3;
+
+    /**
+     * Whether to vibrate if going into the vibrate ringer mode.
+     */
+    static const Int32 FLAG_VIBRATE = 1 << 4;
+
+    /**
+     * Ringer mode that will be silent and will not vibrate. (This overrides the
+     * vibrate setting.)
+     *
+     * @see #setRingerMode(Int32)
+     * @see #getRingerMode()
+     */
+    static const Int32 RINGER_MODE_SILENT = 0;
+
+    /**
+     * Ringer mode that will be silent and will vibrate. (This will cause the
+     * phone ringer to always vibrate, but the notification vibrate to only
+     * vibrate if set.)
+     *
+     * @see #setRingerMode(Int32)
+     * @see #getRingerMode()
+     */
+    static const Int32 RINGER_MODE_VIBRATE = 1;
+
+    /**
+     * Ringer mode that may be audible and may vibrate. It will be audible if
+     * the volume before changing out of this mode was audible. It will vibrate
+     * if the vibrate setting is on.
+     *
+     * @see #setRingerMode(Int32)
+     * @see #getRingerMode()
+     */
+    static const Int32 RINGER_MODE_NORMAL = 2;
+
+    /**
+     * Vibrate type that corresponds to the ringer.
+     *
+     * @see #setVibrateSetting(Int32, Int32)
+     * @see #getVibrateSetting(Int32)
+     * @see #shouldVibrate(Int32)
+     */
+    static const Int32 VIBRATE_TYPE_RINGER = 0;
+
+    /**
+     * Vibrate type that corresponds to notifications.
+     *
+     * @see #setVibrateSetting(Int32, Int32)
+     * @see #getVibrateSetting(Int32)
+     * @see #shouldVibrate(Int32)
+     */
+    static const Int32 VIBRATE_TYPE_NOTIFICATION = 1;
+
+    /**
+     * Vibrate setting that suggests to never vibrate.
+     *
+     * @see #setVibrateSetting(Int32, Int32)
+     * @see #getVibrateSetting(Int32)
+     */
+    static const Int32 VIBRATE_SETTING_OFF = 0;
+
+    /**
+     * Vibrate setting that suggests to vibrate when possible.
+     *
+     * @see #setVibrateSetting(Int32, Int32)
+     * @see #getVibrateSetting(Int32)
+     */
+    static const Int32 VIBRATE_SETTING_ON = 1;
+
+    /**
+     * Vibrate setting that suggests to only vibrate when in the vibrate ringer
+     * mode.
+     *
+     * @see #setVibrateSetting(Int32, Int32)
+     * @see #getVibrateSetting(Int32)
+     */
+    static const Int32 VIBRATE_SETTING_ONLY_SILENT = 2;
+
+    /**
+     * Suggests using the default stream type. This may not be used in all
+     * places a stream type is needed.
+     */
+    static const Int32 USE_DEFAULT_STREAM_TYPE = 0x80000000;//Math::INT32_MIN_VALUE;
+};
+
+#endif
