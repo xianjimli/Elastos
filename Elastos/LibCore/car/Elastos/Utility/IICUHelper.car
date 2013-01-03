@@ -61,22 +61,49 @@ module
             [out, callee] ArrayOf<ILocale*>* locales);
 
         ToLowerCase(
-            [in] String inStr,
-            [out] String* localname);
+            [in] String s,
+            [in] String localname,
+            [out] String* ls);
 
         ToUpperCase(
-            [in] String inStr,
-            [out] String* localname);
+            [in] String s,
+            [in] String localname,
+            [out] String* us);
 
-        GetISO3CountryNative(
+        GetCurrencyCode(
             [in] String locale,
-            [out] String* country);
+            [out] String* currencyCode);
 
-        GetISO3LanguageNative(
+        GetCurrencyFractionDigits(
+            [in] String currencyCode,
+            [out] Int32* currencyFractionDigits);
+
+        GetCurrencySymbol(
             [in] String locale,
-            [out] String* language);
+            [in] String currencyCode,
+            [out] String* currencySymbol);
 
-        GetAvailableLocalesNative(
-            [out, callee] ArrayOf<String> *locales);
+        GetDisplayCountry(
+            [in] String countryCode,
+            [in] String locale,
+            [out] String* displayCountry);
+
+        GetDisplayLanguage(
+            [in] String languageCode,
+            [in] String locale,
+            [out] String* displayLanguage);
+
+        GetDisplayVariant(
+            [in] String variantCode,
+            [in] String locale,
+            [out] String* displayVariant);
+
+        GetISO3Country(
+            [in] String locale,
+            [out] String* ISO3country);
+
+        GetISO3Language(
+            [in] String locale,
+            [out] String* ISO3Language);
     }
 }

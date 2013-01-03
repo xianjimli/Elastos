@@ -24,7 +24,7 @@ public:
      * @see java.util.Calendar#getAvailableLocales()
      */
     CARAPI GetAvailableLocales(
-        /* [out] */ IObjectContainer** locales);
+        /* [out] */ ArrayOf<ILocale*>** locales);
 
     /**
      * Returns the user's preferred locale. This may have been overridden for

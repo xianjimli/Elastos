@@ -10,26 +10,32 @@ SPECIAL_TARGET= cpfile
 INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Utility
 INCLUDES += $(MAKEDIR)/../../../inc/Elastos/common;
 
+IMPORTS = Elastos.Core.eco
+
 SOURCES = Elastos.Utility.car
-SOURCES += listnode.cpp
-SOURCES += treenode.cpp
-SOURCES += quicklist.cpp
-SOURCES += multitreenode.cpp
-SOURCES += linknode.cpp
-SOURCES += container.cpp
+#SOURCES += listnode.cpp
+#SOURCES += treenode.cpp
+#SOURCES += quicklist.cpp
+#SOURCES += multitreenode.cpp
+#SOURCES += linknode.cpp
+#SOURCES += container.cpp
 SOURCES += CObjectEnumerator.cpp
 SOURCES += CObjectContainer.cpp
 SOURCES += CLocale.cpp
 SOURCES += CLocaleHelper.cpp
-SOURCES += CCalendar.cpp
 SOURCES += CDate.cpp
-SOURCES += CICUHelper.cpp
 #SOURCES += CObjectStringMap.cpp
+SOURCES += Grego.cpp
+SOURCES += ICU.cpp
+SOURCES += CICUHelper.cpp
+SOURCES += Util.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 ifeq "$(XDK_TARGET_PLATFORM)" "win32"
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Runtime.lib
 else
 LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
-LIBRARIES += $(XDK_USER_LIB)/crt0.lib -licuuc
+LIBRARIES += $(XDK_TARGETS)/Elastos.Core.eco
+LIBRARIES += $(XDK_USER_LIB)/crt0.lib
+LIBRARIES += -licuuc -licui18n
 endif

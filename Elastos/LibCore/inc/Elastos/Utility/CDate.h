@@ -8,43 +8,43 @@ CarClass(CDate)
 {
 public:
     CARAPI IsAfter(
-        /* [in] */ IDate * pDate,
-        /* [out] */ Boolean * pIsAfter);
+        /* [in] */ IDate* date,
+        /* [out] */ Boolean* isAfter);
 
     CARAPI IsBefore(
-        /* [in] */ IDate * pDate,
-        /* [out] */ Boolean * pIsBefore);
+        /* [in] */ IDate* date,
+        /* [out] */ Boolean* isBefore);
 
     CARAPI CompareTo(
-        /* [in] */ IDate * pDate,
-        /* [out] */ Int32 * pResult);
+        /* [in] */ IDate* date,
+        /* [out] */ Int32* result);
 
     CARAPI GetDate(
-        /* [out] */ Int32 * pDate);
+        /* [out] */ Int32* date);
 
     CARAPI GetDay(
-        /* [out] */ Int32 * pDay);
+        /* [out] */ Int32* day);
 
     CARAPI GetHours(
-        /* [out] */ Int32 * pHours);
+        /* [out] */ Int32* hours);
 
     CARAPI GetMinutes(
-        /* [out] */ Int32 * pMinutes);
+        /* [out] */ Int32* minutes);
 
     CARAPI GetMonth(
-        /* [out] */ Int32 * pMonth);
+        /* [out] */ Int32* month);
 
     CARAPI GetSeconds(
-        /* [out] */ Int32 * pSeconds);
+        /* [out] */ Int32* seconds);
 
     CARAPI GetTime(
-        /* [out] */ Int64 * pTime);
+        /* [out] */ Int64* time);
 
     CARAPI GetTimezoneOffset(
-        /* [out] */ Int32 * pTimezoneOffset);
+        /* [out] */ Int32* timezoneOffset);
 
     CARAPI GetYear(
-        /* [out] */ Int32 * pYear);
+        /* [out] */ Int32* year);
 
     CARAPI SetDate(
         /* [in] */ Int32 day);
@@ -68,13 +68,13 @@ public:
         /* [in] */ Int32 year);
 
     CARAPI ToGMTString(
-        /* [out] */ String * pGmtStr);
+        /* [out] */ String* gmtStr);
 
     CARAPI ToLocaleString(
-        /* [out] */ String * pLocaleStr);
+        /* [out] */ String* localeStr);
 
     CARAPI ToString(
-        /* [out] */ String * pStr);
+        /* [out] */ String* str);
 
 private:
     // TODO: Add your private member variables here.

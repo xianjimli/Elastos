@@ -25,7 +25,7 @@ AutoPtr<CLocale> CLocaleHelper::sDefaultLocale = CreateLocale();
  * @see java.util.Calendar#getAvailableLocales()
  */
 ECode CLocaleHelper::GetAvailableLocales(
-    /* [out] */ IObjectContainer** locales)
+    /* [out] */ ArrayOf<ILocale*>** locales)
 {
     return E_NOT_IMPLEMENTED;
 }

@@ -1,6 +1,10 @@
 
+#include "cmdef.h"
 #include "CLocale.h"
-#include <stdio.h>
+#include "Util.h"
+#include "ICU.h"
+#include <Elastos.Core.h>
+
 /**
  * Returns the country code for this locale, or {@code ""} if this locale
  * doesn't correspond to a specific country.
@@ -8,9 +12,9 @@
 ECode CLocale::GetCountry(
     /* [out] */ String* country)
 {
-    // TODO: Add your code here
-    printf("***%s %d\n", __FILE__, __LINE__);
-    *country = countryCode;
+    VALIDATE_NOT_NULL(country);
+
+    *country = mCountryCode;
     return NOERROR;
 }
 
@@ -127,12 +131,13 @@ ECode CLocale::GetDisplayVariantEx(
 ECode CLocale::GetISO3Country(
     /* [out] */ String* country)
 {
-    // TODO: Add your code here
-    if (countryCode.GetLength() == 0) {
-        *country = countryCode;
+    VALIDATE_NOT_NULL(country);
+
+    if (mCountryCode.GetLength() == 0) {
+        *country = mCountryCode;
         return NOERROR;
     }
-    //icuHelper->GetISO3CountryNative(ToString(), country);
+    *country = ICU::GetISO3Country(ToString());
     return NOERROR;
 }
 
@@ -147,12 +152,13 @@ ECode CLocale::GetISO3Country(
 ECode CLocale::GetISO3Language(
     /* [out] */ String* language)
 {
-    // TODO: Add your code here
-    if (languageCode.GetLength() == 0) {
-        *language = languageCode;
+    VALIDATE_NOT_NULL(language);
+
+    if (mLanguageCode.GetLength() == 0) {
+        *language = mLanguageCode;
         return NOERROR;
     }
-    //icuHelper->GetISO3LanguageNative(ToString(), language);
+    *language = ICU::GetISO3Language(ToString());
     return NOERROR;
 }
 
@@ -165,8 +171,9 @@ ECode CLocale::GetISO3Language(
 ECode CLocale::GetLanguage(
     /* [out] */ String* language)
 {
-    // TODO: Add your code here
-    *language = languageCode;
+    VALIDATE_NOT_NULL(language);
+
+    *language = mLanguageCode;
     return NOERROR;
 }
 
@@ -179,24 +186,26 @@ ECode CLocale::GetLanguage(
 ECode CLocale::GetVariant(
     /* [out] */ String* variant)
 {
-    // TODO: Add your code here
-    *variant = variantCode;
+    VALIDATE_NOT_NULL(variant);
+
+    *variant = mVariantCode;
     return NOERROR;
 }
 
 ECode CLocale::constructor()
 {
-    // TODO: Add your code here
-    return constructor(String("en"), String("US"), String(""));
+    mLanguageCode = "en";
+    mCountryCode = "US";
+    mVariantCode = "";
+    return NOERROR;
 }
 
 /**
  * Constructs a new {@code Locale} using the specified language.
  */
 ECode CLocale::constructor(
-    /* [in] */ String language)
+    /* [in] */ const String& language)
 {
-    // TODO: Add your code here
     return constructor(language, String(""), String(""));
 }
 
@@ -204,10 +213,9 @@ ECode CLocale::constructor(
  * Constructs a new {@code Locale} using the specified language and country codes.
  */
 ECode CLocale::constructor(
-    /* [in] */ String language,
-    /* [in] */ String country)
+    /* [in] */ const String& language,
+    /* [in] */ const String& country)
 {
-    // TODO: Add your code here
     return constructor(language, country, String(""));
 }
 
@@ -216,58 +224,75 @@ ECode CLocale::constructor(
  * and variant codes.
  */
 ECode CLocale::constructor(
-    /* [in] */ String language,
-    /* [in] */ String country,
-    /* [in] */ String variant)
+    /* [in] */ const String& language,
+    /* [in] */ const String& country,
+    /* [in] */ const String& variant)
 {
-    // TODO: Add your code here
-//        if (language == null || country == null || variant == null) {
-//            throw new NullPointerException();
-//        }
-//    ECode ec = NOERROR;
-//    ec = CICUHelper::AcquireSingleton((IICUHelper**) &icuHelper);
-
-    if(language.IsNull() && country.IsNull()){
-        printf("%s, %d\n", __FILE__, __LINE__);
-        languageCode = String("");
-        countryCode = String("");
-        variantCode = variant;
+    if (language.IsNull() || country.IsNull() || variant.IsNull()) {
+        // throw new NullPointerException();
+        return E_NULL_POINTER_EXCEPTION;
+    }
+    if(language.IsEmpty() && country.IsEmpty()){
+        mLanguageCode = "";
+        mCountryCode = "";
+        mVariantCode = variant;
         return NOERROR;
     }
-        // BEGIN android-changed
-        // this.uLocale = new ULocale(language, country, variant);
-        // languageCode = uLocale.getLanguage();
-//---gaojianfeng delete-------languageCode = Util.toASCIILowerCase(language);
-    languageCode = language;
-        // END android-changed
-        // Map new language codes to the obsolete language
-        // codes so the correct resource bundles will be used.
-    if (languageCode.Equals("he")) {
-        languageCode = "iw";
-    } else if (languageCode.Equals("id")) {
-        languageCode = "in";
-    } else if (languageCode.Equals("yi")) {
-        languageCode = "ji";
+    // BEGIN android-changed
+    // this.uLocale = new ULocale(language, country, variant);
+    // languageCode = uLocale.getLanguage();
+    mLanguageCode = Util::ToASCIILowerCase(language);
+    // END android-changed
+    // Map new language codes to the obsolete language
+    // codes so the correct resource bundles will be used.
+    if (mLanguageCode.Equals("he")) {
+        mLanguageCode = "iw";
+    }
+    else if (mLanguageCode.Equals("id")) {
+        mLanguageCode = "in";
+    }
+    else if (mLanguageCode.Equals("yi")) {
+        mLanguageCode = "ji";
     }
 
-        // countryCode is defined in ASCII character set
-        // BEGIN android-changed
-        // countryCode = country.length()!=0?uLocale.getCountry():"";
-//---gaojianfeng delete-------countryCode = Util.toASCIIUpperCase(country);
-    countryCode = country;
-        // END android-changed
+    // countryCode is defined in ASCII character set
+    // BEGIN android-changed
+    // countryCode = country.length()!=0?uLocale.getCountry():"";
+    mCountryCode = Util::ToASCIIUpperCase(country);
+    // END android-changed
 
-        // Work around for be compatible with RI
-    variantCode = variant;
+    // Work around for be compatible with RI
+    mVariantCode = variant;
     return NOERROR;
 }
 
 String CLocale::ToString()
 {
+    // String result = cachedToStringResult;
+    // return (result == null) ? (cachedToStringResult = toNewString()) : result;
     return String("");
 }
 
 String CLocale::ToNewString()
 {
+    // // The string form of a locale that only has a variant is the empty string.
+    // if (languageCode.length() == 0 && countryCode.length() == 0) {
+    //     return "";
+    // }
+    // // Otherwise, the output format is "ll_cc_variant", where language and country are always
+    // // two letters, but the variant is an arbitrary length. A size of 11 characters has room
+    // // for "en_US_POSIX", the largest "common" value. (In practice, the string form is almost
+    // // always 5 characters: "ll_cc".)
+    // StringBuilder result = new StringBuilder(11);
+    // result.append(languageCode);
+    // if (countryCode.length() > 0 || variantCode.length() > 0) {
+    //     result.append('_');
+    // }
+    // result.append(countryCode);
+    // if (variantCode.length() > 0) {
+    //     result.append('_');
+    // }
+    // result.append(variantCode);
+    // return result.toString();
     return String("");
 }

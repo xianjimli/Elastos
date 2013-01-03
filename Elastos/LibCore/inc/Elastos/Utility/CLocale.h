@@ -126,41 +126,54 @@ public:
     CARAPI GetVariant(
         /* [out] */ String* variant);
 
+    /**
+     * Returns the string representation of this {@code Locale}. It consists of the
+     * language code, country code and variant separated by underscores.
+     * If the language is missing the string begins
+     * with an underscore. If the country is missing there are 2 underscores
+     * between the language and the variant. The variant cannot stand alone
+     * without a language and/or country code: in this case this method would
+     * return the empty string.
+     *
+     * <p>Examples: "en", "en_US", "_US", "en__POSIX", "en_US_POSIX"
+     *
+     * @return the string representation of this {@code Locale}.
+     */
+    //@Override
+    CARAPI_(String) ToString();
+
     CARAPI constructor();
 
     /**
      * Constructs a new {@code Locale} using the specified language.
      */
     CARAPI constructor(
-        /* [in] */ String language);
+        /* [in] */ const String& language);
 
     /**
      * Constructs a new {@code Locale} using the specified language and country codes.
      */
     CARAPI constructor(
-        /* [in] */ String language,
-        /* [in] */ String country);
+        /* [in] */ const String& language,
+        /* [in] */ const String& country);
 
     /**
      * Constructs a new {@code Locale} using the specified language, country,
      * and variant codes.
      */
     CARAPI constructor(
-        /* [in] */ String language,
-        /* [in] */ String country,
-        /* [in] */ String variant);
-private:
-    String ToString();
-    String ToNewString();
+        /* [in] */ const String& language,
+        /* [in] */ const String& country,
+        /* [in] */ const String& variant);
 
 private:
-    String countryCode;
-    String languageCode;
-    String variantCode;
-    String cachedToStringResult;
+    CARAPI_(String) ToNewString();
 
-    AutoPtr<IICUHelper> icuHelper;
-
+private:
+    String mCountryCode;
+    String mLanguageCode;
+    String mVariantCode;
+    String mCachedToStringResult;
 };
 
 #endif //__CLOCALE_H__

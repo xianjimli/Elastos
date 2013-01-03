@@ -1,6 +1,6 @@
 
-DIRS = Elastos/Utility
-DIRS += Elastos/Core
+DIRS = Elastos/Core
+DIRS += Elastos/Utility
 DIRS += Droid
 DIRS += Com
 DIRS += Elastos/UtilityLib

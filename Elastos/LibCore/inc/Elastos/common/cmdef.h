@@ -15,6 +15,15 @@
 #define ASSERT_SUCCEEDED(expr) assert(SUCCEEDED(expr));
 #define VALIDATE_NOT_NULL(x) if (!x) { return E_ILLEGAL_ARGUMENT_EXCEPTION; }
 
+#define FREE_ARRAY_OF_STRING(var) \
+    if (var != NULL) { \
+        for (Int32 i = 0; i < var->GetLength(); ++i) { \
+            (*var)[i] = NULL; \
+        } \
+        ArrayOf<String>::Free(var); \
+        var = NULL; \
+    }
+
 #include <errno.h>
 
 /*

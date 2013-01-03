@@ -4,6 +4,7 @@ module
 //    interface ILocale;
 //    interface ITimeZone;
       interface IDate;
+
     /**
      * Value of the {@code MONTH} field indicating the first month of the
      * year.
@@ -351,8 +352,7 @@ module
      */
     const Calendar_LONG = 2;
 
-    interface ICalendar
-	{
+    interface ICalendar {
 		/**
 		 * Adds the specified amount to a {@code Calendar} field.
 		 *
@@ -380,7 +380,7 @@ module
 		 *                if the time is not set and the time cannot be computed
 		 *                from the current field values.
 		 */
-		After(
+		IsAfter(
             [in] IInterface* calendar,
             [out] Boolean* result);
 
@@ -396,7 +396,7 @@ module
 		 *                if the time is not set and the time cannot be computed
 		 *                from the current field values.
 		 */
-		Before(
+		IsBefore(
             [in] IInterface* calendar,
             [out] Boolean* result);
 
@@ -412,7 +412,7 @@ module
 		 * @param field
 		 *            the field to clear.
 		 */
-		Clear2(
+		ClearEx(
             [in] Int32 field);
 
 		/**
@@ -493,8 +493,9 @@ module
 		 * @return a {@code Calendar} subclass instance set to the current date and time in
 		 *         the default {@code Timezone}.
 		 */
-		GetInstance(
-		    [out] ICalendar** newObj); 
+//		public static synchronized Calendar getInstance() {
+//            return new GregorianCalendar();
+//        }
 
 		/**
 		 * Constructs a new instance of the {@code Calendar} subclass appropriate for the
@@ -670,8 +671,8 @@ module
 		 * @param increment
 		 *            {@code true} to increment the field, {@code false} to decrement.
 		 */
-		Roll2(
-            [in] Int32 field, 
+		RollEx(
+            [in] Int32 field,
             [in] Boolean increment);
 
 		/**
@@ -697,7 +698,7 @@ module
 		 * @param day
 		 *            the day of the month.
 		 */
-		Set2(
+		SetEx(
             [in] Int32 year,
             [in] Int32 month,
             [in] Int32 day);
@@ -717,7 +718,7 @@ module
 		 * @param minute
 		 *            the minute.
 		 */
-		Set3(
+		SetEx2(
             [in] Int32 year,
             [in] Int32 month,
             [in] Int32 day,
@@ -741,7 +742,7 @@ module
 		 * @param second
 		 *            the second.
 		 */
-		Set4(
+		SetEx3(
             [in] Int32 year,
             [in] Int32 month,
             [in] Int32 day,
