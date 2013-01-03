@@ -25,7 +25,7 @@ LIBRARIES += $(XDK_USER_LIB)/Elastos.Presentation.MessageBufferManager.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Presentation.Global.lib
 else
 LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
-LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Core.eco
 LIBRARIES += $(XDK_USER_LIB)/crt0.lib
 endif
 

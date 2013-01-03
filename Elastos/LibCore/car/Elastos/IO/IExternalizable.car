@@ -1,8 +1,10 @@
 module
 {
-    interface ISerializable;
-
-    interface IDataInput extends ISerializable{
+    /**
+     * Defines an interface for classes that want to be serializable, but have their
+     * own binary representation.
+     */
+    interface IExternalizable extends ISerializable {
         /**
          * Reads the next object from the ObjectInput <code>input</code>.
          *
@@ -15,7 +17,7 @@ module
          */
         ReadExternal(
             [in] IObjectInput* input);
-    
+
         /**
          * Writes the receiver to the ObjectOutput <code>output</code>.
          *

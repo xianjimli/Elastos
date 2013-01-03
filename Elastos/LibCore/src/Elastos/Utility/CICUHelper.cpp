@@ -1,186 +1,210 @@
 
+#include "cmdef.h"
 #include "CICUHelper.h"
-#include "unicode/locid.h"
-#include "CLocale.h"
-#include <stdio.h>
+#include "ICU.h"
+#include <Elastos.Core.h>
 
-ArrayOf<String> *CICUHelper::ToArrayString(const char * const * strings)
-{
-    Int32 count = 0;
-    while(strings[count] != NULL) {
-        count++;
-    }
-
-    ArrayOf<String>* strArray = ArrayOf<String>::Alloc(count);
-    count = 0;
-    while(strings[count] != NULL) {
-        (*strArray)[count] = String(strings[count]);
-        count ++;
-    }
-
-    return strArray;
-}
 
 ECode CICUHelper::GetISOLanguages(
-    /* [out, callee] */ ArrayOf<String> ** ppLanguages)
+    /* [out, callee] */ ArrayOf<String>** languages)
 {
-    // TODO: Add your code here
-    *ppLanguages = ToArrayString(Locale::getISOLanguages());
-    return NOERROR;
+    VALIDATE_NOT_NULL(languages);
+
+    return ICU::GetISOLanguages(languages);
 }
 
 ECode CICUHelper::GetISOCountries(
-    /* [out, callee] */ ArrayOf<String> ** ppCountries)
+    /* [out, callee] */ ArrayOf<String>** countries)
 {
-    // TODO: Add your code here
-    *ppCountries = ToArrayString(Locale::getISOCountries());
-    return NOERROR;
+    VALIDATE_NOT_NULL(countries);
+
+    return ICU::GetISOCountries(countries);
 }
 
 ECode CICUHelper::LocaleFromString(
     /* [in] */ const String& localeName,
-    /* [out] */ ILocale ** ppLocale)
+    /* [out] */ ILocale** locale)
 {
-    ECode ec = NOERROR;
-    Int32 first = localeName.IndexOf('_');
-    Int32 second = localeName.IndexOf('_', first + 1);
+    VALIDATE_NOT_NULL(locale);
 
-    printf("the first is %d, %d\n", first, second);
-    printf("the string is %s\n", (const char *)localeName);
-    if (first == -1) {
-        // Language only ("ja").
-        ec = CLocale::New(localeName, ppLocale);
-    } else if (second == -1) {
-        // Language and country ("ja_JP").
-        ec = CLocale::New(localeName.Substring(0, first), localeName.Substring(first + 1), ppLocale);
-    } else {
-        // Language and country and variant ("ja_JP_TRADITIONAL").
-        ec = CLocale::New(localeName.Substring(0, first), localeName.Substring(first + 1, second), localeName.Substring(first + second + 2), ppLocale);
-    }
-    //printf("the third string is %s", (const char *)localeName.Substring(first + second + 2));
-    // TODO: Add your code here
-    return ec;
+    return ICU::LocaleFromString(localeName, locale);
 }
 
 ECode CICUHelper::LocalesFromStrings(
-    /* [in] */ const ArrayOf<String> & localeNames,
-    /* [out, callee] */ ArrayOf<ILocale*> ** ppLocales)
+    /* [in] */ const ArrayOf<String>& localeNames,
+    /* [out, callee] */ ArrayOf<ILocale*>** locales)
 {
-    // TODO: Add your code here
-    Int32 len = localeNames.GetLength();
-    if (len < 1) {
-        printf("%s ,%d\n", __FILE__, __LINE__);
-        *ppLocales = NULL;
-        return NOERROR;
-    }
-    printf("%s ,%d\n", __FILE__, __LINE__);
-    *ppLocales = ArrayOf<ILocale *>::Alloc(len);
-    for (Int32 count = 0; count < len; ++count) {
-        printf("===========================\n");
-        ILocale *locale;
-        LocaleFromString(localeNames[count], &locale);
-        (**ppLocales)[count] = locale;
-    }
-    printf("===========================1\n");
-    return NOERROR;
+    VALIDATE_NOT_NULL(locales);
+
+    return ICU::LocalesFromStrings(localeNames, locales);
 }
 
 ECode CICUHelper::GetAvailableLocales(
-    /* [out, callee] */ ArrayOf<ILocale*> ** ppLocales)
+    /* [out, callee] */ ArrayOf<ILocale*>** locales)
 {
-    // TODO: Add your code here
-    if (availableLocalesCache != NULL) {
-        *ppLocales = availableLocalesCache;
-    } else {
-        //GetAvailableLocalesNative(&availableLocalesCache);
-        *ppLocales = availableLocalesCache;
-    }
-    return NOERROR;
+    VALIDATE_NOT_NULL(locales);
+
+    return ICU::GetAvailableLocales(locales);
 }
 
 ECode CICUHelper::GetAvailableBreakIteratorLocales(
-    /* [out, callee] */ ArrayOf<ILocale*> ** ppLocales)
+    /* [out, callee] */ ArrayOf<ILocale*>** locales)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(locales);
+
+    return ICU::GetAvailableBreakIteratorLocales(locales);
 }
 
 ECode CICUHelper::GetAvailableCalendarLocales(
-    /* [out, callee] */ ArrayOf<ILocale*> ** ppLocales)
+    /* [out, callee] */ ArrayOf<ILocale*>** locales)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(locales);
+
+    return ICU::GetAvailableCalendarLocales(locales);
 }
 
 ECode CICUHelper::GetAvailableCollatorLocales(
-    /* [out, callee] */ ArrayOf<ILocale*> ** ppLocales)
+    /* [out, callee] */ ArrayOf<ILocale*>** locales)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(locales);
+
+    return ICU::GetAvailableCollatorLocales(locales);
 }
 
 ECode CICUHelper::GetAvailableDateFormatLocales(
-    /* [out, callee] */ ArrayOf<ILocale*> ** ppLocales)
+    /* [out, callee] */ ArrayOf<ILocale*>** locales)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(locales);
+
+    return ICU::GetAvailableDateFormatLocales(locales);
 }
 
 ECode CICUHelper::GetAvailableDateFormatSymbolsLocales(
-    /* [out, callee] */ ArrayOf<ILocale*> ** ppLocales)
+    /* [out, callee] */ ArrayOf<ILocale*>** locales)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(locales);
+
+    return ICU::GetAvailableDateFormatSymbolsLocales(locales);
 }
 
 ECode CICUHelper::GetAvailableDecimalFormatSymbolsLocales(
-    /* [out, callee] */ ArrayOf<ILocale*> ** ppLocales)
+    /* [out, callee] */ ArrayOf<ILocale*>** locales)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(locales);
+
+    return ICU::GetAvailableDateFormatSymbolsLocales(locales);
 }
 
 ECode CICUHelper::GetAvailableNumberFormatLocales(
-    /* [out, callee] */ ArrayOf<ILocale*> ** ppLocales)
+    /* [out, callee] */ ArrayOf<ILocale*>** locales)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(locales);
+
+    return ICU::GetAvailableNumberFormatLocales(locales);
 }
 
 ECode CICUHelper::ToLowerCase(
-    /* [in] */ const String& inStr,
-    /* [out] */ String * pLocalname)
+    /* [in] */ const String& s,
+    /* [in] */ const String& localname,
+    /* [out] */ String* ls)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(ls);
+
+    *ls = ICU::ToLowerCase(s, localname);
+    return NOERROR;
 }
 
 ECode CICUHelper::ToUpperCase(
-    /* [in] */ const String& inStr,
-    /* [out] */ String * pLocalname)
+    /* [in] */ const String& s,
+    /* [in] */ const String& localname,
+    /* [out] */ String* us)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(us);
+
+    *us = ICU::ToUpperCase(s, localname);
+    return NOERROR;
 }
 
-ECode CICUHelper::GetISO3CountryNative(
+ECode CICUHelper::GetCurrencyCode(
     /* [in] */ const String& locale,
-    /* [out] */ String * country)
+    /* [out] */ String* currencyCode)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(currencyCode);
+
+    *currencyCode = ICU::GetCurrencyCode(locale);
+    return NOERROR;
 }
 
+ECode CICUHelper::GetCurrencyFractionDigits(
+    /* [in] */ const String& currencyCode,
+    /* [out] */ Int32* currencyFractionDigits)
+{
+    VALIDATE_NOT_NULL(currencyFractionDigits);
 
-ECode CICUHelper::GetISO3LanguageNative(
+    *currencyFractionDigits = ICU::GetCurrencyFractionDigits(currencyCode);
+    return NOERROR;
+}
+
+ECode CICUHelper::GetCurrencySymbol(
     /* [in] */ const String& locale,
-    /* [out] */ String * language)
+    /* [in] */ const String& currencyCode,
+    /* [out] */ String* currencySymbol)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(currencySymbol);
+
+    *currencySymbol = ICU::GetCurrencySymbol(locale, currencyCode);
+    return NOERROR;
 }
 
-ECode CICUHelper::GetAvailableLocalesNative(
-    /* [out, callee] */ ArrayOf<String> **ppLocales)
+ECode CICUHelper::GetDisplayCountry(
+    /* [in] */ const String& countryCode,
+    /* [in] */ const String& locale,
+    /* [out] */ String* displayCountry)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(displayCountry);
+
+    *displayCountry = ICU::GetDisplayCountry(countryCode, locale);
+    return NOERROR;
+}
+
+ECode CICUHelper::GetDisplayLanguage(
+    /* [in] */ const String& languageCode,
+    /* [in] */ const String& locale,
+    /* [out] */ String* displayLanguage)
+{
+    VALIDATE_NOT_NULL(displayLanguage);
+
+    *displayLanguage = ICU::GetDisplayLanguage(languageCode, locale);
+    return NOERROR;
+}
+
+ECode CICUHelper::GetDisplayVariant(
+    /* [in] */ const String& variantCode,
+    /* [in] */ const String& locale,
+    /* [out] */ String* displayVariant)
+{
+    VALIDATE_NOT_NULL(displayVariant);
+
+    *displayVariant = ICU::GetDisplayVariant(variantCode, locale);
+    return NOERROR;
+}
+
+ECode CICUHelper::GetISO3Country(
+    /* [in] */ const String& locale,
+    /* [out] */ String* ISO3country)
+{
+    VALIDATE_NOT_NULL(ISO3country);
+
+    *ISO3country = ICU::GetISO3Country(locale);
+    return NOERROR;
+}
+
+ECode CICUHelper::GetISO3Language(
+    /* [in] */ const String& locale,
+    /* [out] */ String* ISO3Language)
+{
+    VALIDATE_NOT_NULL(ISO3Language);
+
+    *ISO3Language = ICU::GetISO3Language(locale);
+    return NOERROR;
 }

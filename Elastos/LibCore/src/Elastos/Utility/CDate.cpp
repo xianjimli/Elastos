@@ -1,87 +1,89 @@
 
 #include "CDate.h"
+
+
 ECode CDate::IsAfter(
-    /* [in] */ IDate * pDate,
-    /* [out] */ Boolean * pIsAfter)
+    /* [in] */ IDate* date,
+    /* [out] */ Boolean* isAfter)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CDate::IsBefore(
-    /* [in] */ IDate * pDate,
-    /* [out] */ Boolean * pIsBefore)
+    /* [in] */ IDate* date,
+    /* [out] */ Boolean* isBefore)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CDate::CompareTo(
-    /* [in] */ IDate * pDate,
-    /* [out] */ Int32 * pResult)
+    /* [in] */ IDate* date,
+    /* [out] */ Int32* result)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CDate::GetDate(
-    /* [out] */ Int32 * pDate)
+    /* [out] */ Int32* date)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CDate::GetDay(
-    /* [out] */ Int32 * pDay)
+    /* [out] */ Int32* day)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CDate::GetHours(
-    /* [out] */ Int32 * pHours)
+    /* [out] */ Int32* hours)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CDate::GetMinutes(
-    /* [out] */ Int32 * pMinutes)
+    /* [out] */ Int32* minutes)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CDate::GetMonth(
-    /* [out] */ Int32 * pMonth)
+    /* [out] */ Int32* month)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CDate::GetSeconds(
-    /* [out] */ Int32 * pSeconds)
+    /* [out] */ Int32* seconds)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CDate::GetTime(
-    /* [out] */ Int64 * pTime)
+    /* [out] */ Int64* time)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CDate::GetTimezoneOffset(
-    /* [out] */ Int32 * pTimezoneOffset)
+    /* [out] */ Int32* timezoneOffset)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CDate::GetYear(
-    /* [out] */ Int32 * pYear)
+    /* [out] */ Int32* year)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -137,23 +139,22 @@ ECode CDate::SetYear(
 }
 
 ECode CDate::ToGMTString(
-    /* [out] */ String * pGmtStr)
+    /* [out] */ String* gmtStr)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CDate::ToLocaleString(
-    /* [out] */ String * pLocaleStr)
+    /* [out] */ String* localeStr)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CDate::ToString(
-    /* [out] */ String * pStr)
+    /* [out] */ String* str)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
-

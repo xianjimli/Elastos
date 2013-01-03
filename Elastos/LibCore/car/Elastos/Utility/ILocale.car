@@ -63,7 +63,7 @@ module
          * @return a variant name.
          */
         GetDisplayVariant(
-            [out] String* variantName);
+            [out] String* displayVariant);
 
         /**
          * Gets the full variant name in the specified {@code Locale} for the variant code
@@ -76,7 +76,7 @@ module
          */
         GetDisplayVariantEx(
             [in] ILocale* locale,
-            [out] String* variantName);
+            [out] String* displayVariant);
 
          /**
          * Gets the three letter ISO country code which corresponds to the country
@@ -117,12 +117,6 @@ module
          */
         GetVariant(
             [out] String* variant);
-
-        /**
-         * Returns true if {@code object} is a locale with the same language,
-         * country and variant.
-        */
-        //-------------
     }
 
     interface ILocaleHelper {
@@ -141,7 +135,7 @@ module
          * @see java.util.Calendar#getAvailableLocales()
          */
         GetAvailableLocales(
-            [out] IObjectContainer** locales);
+            [out, callee] ArrayOf<ILocale*>* locales);
 
         /**
          * Returns the user's preferred locale. This may have been overridden for

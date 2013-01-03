@@ -11,13 +11,10 @@ module
     class CObjectContainer {
         interface IObjectContainer;
     }
-   
-    class CDate {
-        interface IDate;
-    }
 
-    class CCalendar {
-        interface ICalendar;
+    class CDate {
+//        constructor();
+        interface IDate;
     }
 
     class CLocale {
@@ -51,7 +48,7 @@ module
     singleton class CLocaleHelper {
         interface ILocaleHelper;
     }
-   
+
     singleton class CICUHelper {
         interface IICUHelper;
     }
