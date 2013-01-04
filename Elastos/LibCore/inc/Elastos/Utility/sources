@@ -2,14 +2,6 @@
 # Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.
 #==========================================================================
 
-EXPORT_HEADERS = listnode.h
-EXPORT_HEADERS += linknode.h
-EXPORT_HEADERS += container.h
-EXPORT_HEADERS += quicklist.h
-EXPORT_HEADERS += treenode.h
-EXPORT_HEADERS += multitreenode.h
-EXPORT_HEADERS += ElUtilities.h
-
 EXPORT_HEADERS += elastos/ElRefBase.h
 EXPORT_HEADERS += elastos/Algorithm.h
 EXPORT_HEADERS += elastos/AutoPtr.h
