@@ -31,7 +31,7 @@ module
             [in] IInnerWindow* window,
             [in] IWindowManagerLayoutParams* attrs,
             [in] Int32 viewVisibility,
-            [out] IRect** outContentInsets,
+            [in] IRect* inOutContentInsets,
             [out] Int32* result);
 
         Remove(

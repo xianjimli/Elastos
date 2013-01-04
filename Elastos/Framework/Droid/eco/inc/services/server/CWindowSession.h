@@ -28,7 +28,7 @@ public:
         /* [in] */ IInnerWindow* window,
         /* [in] */ IWindowManagerLayoutParams* attrs,
         /* [in] */ Int32 viewVisibility,
-        /* [out] */ IRect** outContentInsets,
+        /* [in, out] */ IRect* inOutContentInsets,
         /* [out] */ Int32* result);
 
     CARAPI Remove(

@@ -961,4 +961,11 @@ module
 
         interface ISurfaceView;
     }
+
+    class CSurfaceViewWindow {
+        constructor(
+            [in] ISurfaceView* surfaceView);
+
+        interface IInnerWindow;
+    }
 }

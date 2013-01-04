@@ -35,10 +35,16 @@ ECode CWindowSession::AddWithoutInputChannel(
     /* [in] */ IInnerWindow* window,
     /* [in] */ IWindowManagerLayoutParams* attrs,
     /* [in] */ Int32 viewVisibility,
-    /* [out] */ IRect** outContentInsets,
+    /* [in, out] */ IRect* inOutContentInsets,
     /* [out] */ Int32* result)
 {
-    return E_NOT_IMPLEMENTED;
+    assert(inOutContentInsets != NULL);
+    assert(mWMService);
+    AutoPtr<IRect> tempOut;
+    *result =  mWMService->AddWindow(this, window, attrs, viewVisibility,
+            inOutContentInsets, NULL, (IRect**)&tempOut, NULL);
+
+    return NOERROR;
 }
 
 ECode CWindowSession::Remove(
@@ -72,6 +78,7 @@ ECode CWindowSession::Relayout(
             requestedWidth, requestedHeight, viewFlags, insetsPending,
             inFrame, inContentInsets, inVisibleInsets, inConfig, inSurface,
             outFrame, outContentInsets, outVisibleInsets, outConfig, outSurface);
+
     //Log.d(TAG, "<<<<<< EXITING relayout to " + Binder.getCallingPid());
     return NOERROR;
 }

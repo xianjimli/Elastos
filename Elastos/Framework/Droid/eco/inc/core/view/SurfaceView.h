@@ -46,8 +46,80 @@
  * {@link SurfaceHolder.Callback#surfaceDestroyed SurfaceHolder.Callback.surfaceDestroyed()}.
  * </ul>
  */
+
+class CSurfaceViewWindow;
+
 class SurfaceView : public View
 {
+private:
+    class _SurfaceHolder:
+        public ElRefBase,
+        public ISurfaceHolder
+    {
+    public:
+        _SurfaceHolder(
+            /* [in] */ SurfaceView* host);
+
+        ~_SurfaceHolder();
+
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI IsCreating(
+            /* [in] */ Boolean* result);
+
+        CARAPI AddCallback(
+            /* [in] */ ISurfaceHolderCallback* callback);
+
+        CARAPI RemoveCallback(
+            /* [in] */ ISurfaceHolderCallback* callback);
+
+        CARAPI SetFixedSize(
+            /* [in] */ Int32 width,
+            /* [in] */ Int32 height);
+
+        CARAPI SetSizeFromLayout();
+
+        CARAPI SetFormat(
+            /* [in] */ Int32 format);
+
+        CARAPI SetType(
+            /* [in] */ Int32 type);
+
+        CARAPI SetKeepScreenOn(
+            /* [in] */ Boolean screenOn);
+
+        CARAPI LockCanvas(
+            /* [out] */ ICanvas** canvas);
+
+        CARAPI LockCanvasEx(
+            /* [in]*/ IRect* dirty,
+            /* [out]*/ ICanvas** canvas);
+
+        CARAPI UnlockCanvasAndPost(
+            /* [in]*/ ICanvas* canvas);
+
+        CARAPI GetSurface(
+            /* [out]*/ ISurface** surface);
+
+        CARAPI GetSurfaceFrame(
+            /* [out]*/ IRect** rect);
+
+    private:
+        CARAPI_(AutoPtr<ICanvas>) InternalLockCanvas(
+            /* [in]*/ IRect* dirty);
+
+    private:
+        SurfaceView*    mHost;
+    };
 public:
     SurfaceView();
 
@@ -185,78 +257,11 @@ private:
 
     virtual CARAPI_(void) HandleGetNewSurface();
 
-    class MyWindow : /*public IBaseIWindow,*/
-        public ElRefBase,
-        public IInnerWindow
-    {
-    public:
-        MyWindow(
-            /* [in] */ ISurfaceView* surfaceView);
-
-        CARAPI Resized(
-            /* [in] */ Int32 w,
-            /* [in] */ Int32 h,
-            /* [in] */ IRect* coveredInsets,
-            /* [in] */ IRect* visibleInsets,
-            /* [in] */ Boolean reportDraw,
-            /* [in] */ IConfiguration* newConfig);
-
-        CARAPI DispatchAppVisibility(
-            /* [in] */ Boolean visible);
-
-        CARAPI DispatchGetNewSurface();
-
-        CARAPI WindowFocusChanged(
-            /* [in] */ Boolean hasFocus,
-            /* [in] */ Boolean touchEnabled);
-
-        CARAPI ExecuteCommand(
-            /* [in] */ const String& command,
-            /* [in] */ const String& parameters,
-            /* [in] */ IParcelFileDescriptor* out);
-
-        CARAPI CloseSystemDialogs(
-            /* [in] */ const String& reason);
-
-        CARAPI DispatchWallpaperOffsets(
-            /* [in] */ Float x,
-            /* [in] */ Float y,
-            /* [in] */ Float xStep,
-            /* [in] */ Float yStep,
-            /* [in] */ Boolean sync);
-
-        CARAPI DispatchWallpaperCommand(
-            /* [in] */ const String& action,
-            /* [in] */ Int32 x,
-            /* [in] */ Int32 y,
-            /* [in] */ Int32 z,
-            /* [in] */ IBundle* extras,
-            /* [in] */ Boolean sync);
-
-        CARAPI GetDescription(
-                /* [out] */ String* description);
-
-        CARAPI_(PInterface) Probe(
-            /* [in]  */ REIID riid);
-
-        CARAPI_(UInt32) AddRef();
-
-        CARAPI_(UInt32) Release();
-
-        CARAPI GetInterfaceID(
-            /* [in] */ IInterface *pObject,
-            /* [out] */ InterfaceID *pIID);
-
-    private:
-        AutoPtr<ISurfaceView> mSurfaceView;
-
-        Int32 mCurWidth;// = -1;
-        Int32 mCurHeight;// = -1;
-    };
-
 public:
     Mutex mSurfaceLock;
     AutoPtr<IApartment> mHandler;
+    Mutex mCallbacksLock;
+    AutoPtr<ISurface> mSurface;// = new Surface();
 
 private:
     AutoPtr<ISurfaceHolder> mSurfaceHolder;
@@ -267,18 +272,17 @@ private:
 
     /*ArrayList<SurfaceHolder.Callback> mCallbacks
             = new ArrayList<SurfaceHolder.Callback>();*/
-    ArrayOf<AutoPtr<ISurfaceHolderCallback> >* mCallbacks;
+    List<AutoPtr<ISurfaceHolderCallback> > mCallbacks;
 
     ArrayOf<Int32>* mLocation;// = new Int32[2];
 
     //ReentrantLock mSurfaceLock = new ReentrantLock();
-    AutoPtr<ISurface> mSurface;// = new Surface();
     Boolean mDrawingStopped;// = TRUE;
 
     AutoPtr<IWindowManagerLayoutParams> mLayout;
             //= new WindowManager.LayoutParams();
     AutoPtr<IWindowSession> mSession;
-    AutoPtr<MyWindow> mWindow;
+    AutoPtr<IInnerWindow> mWindow;
     AutoPtr<IRect> mVisibleInsets;// = new Rect();
     AutoPtr<IRect> mWinFrame;// = new Rect();
     AutoPtr<IRect> mContentInsets;// = new Rect();
@@ -339,14 +343,15 @@ private:
     Int32 mHeight;// = -1;
     Int32 mFormat;// = -1;
     Int32 mType;// = -1;
-    AutoPtr<CRect> mSurfaceFrame;// = new Rect();
+    AutoPtr<IRect> mSurfaceFrame;// = new Rect();
     Int32 mLastSurfaceWidth;// = -1;
     Int32 mLastSurfaceHeight;// = -1;
     Boolean mUpdateWindowNeeded;
     Boolean mReportDrawNeeded;
     AutoPtr<ITranslator> mTranslator;
 
-    Mutex mCallbacksLock;
+friend class _SurfaceHolder;
+friend class CSurfaceViewWindow;
 };
 
 #endif
