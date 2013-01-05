@@ -15,6 +15,7 @@ module
     const E_NULL_POINTER_EXCEPTION                      = 0xA0040000;
     const E_RUNTIME_EXCEPTION                           = 0xA0050000;
     const E_ILLEGAL_STATE_EXCEPTION                     = 0xA0060000;
+    const E_ILLEGAL_THREAD_STATE_EXCEPTION             = 0xA0070000;
 
-    const E_UNSUPPORTED_OPERATION_EXCEPTION             = 0xA0070000;
+    const E_UNSUPPORTED_OPERATION_EXCEPTION             = 0xA0080000;
 }

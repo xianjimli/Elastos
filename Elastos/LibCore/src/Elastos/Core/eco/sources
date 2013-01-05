@@ -3,6 +3,11 @@ TARGET_TYPE= eco
 
 INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/common;
 INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/Core/eco;
+INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/Core/eco/elastos;
+
+C_DEFINES += -DHAVE_ANDROID_PTHREAD_SETNAME_NP
+C_DEFINES += -DHAVE_GETTID
+C_DEFINES += -DELASTOS_CORE_ECO
 
 SOURCES = Elastos.Core.car
 SOURCES += listnode.cpp
@@ -12,6 +17,11 @@ SOURCES += multitreenode.cpp
 SOURCES += linknode.cpp
 SOURCES += container.cpp
 SOURCES += CStringWrapper.cpp
+SOURCES += Init.cpp
+SOURCES += NativeThread.cpp
+SOURCES += Thread.cpp
+SOURCES += ThreadGroup.cpp
+
 
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Runtime.lib
 
@@ -22,4 +32,5 @@ else
 LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
 #LIBRARIES += $(XDK_TARGETS)/Elastos.Core.eco
 LIBRARIES += $(XDK_USER_LIB)/crt0.lib
+LIBRARIES += -lcutils
 endif

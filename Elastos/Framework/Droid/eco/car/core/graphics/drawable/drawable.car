@@ -4,7 +4,6 @@ module
     enum PorterDuffMode;
 
     interface IDrawable;
-    interface IRunnable;
     interface IResources;
     interface ICanvas;
     interface IRect;

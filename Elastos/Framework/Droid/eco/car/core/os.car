@@ -1,7 +1,6 @@
 module
 {
     merge("os/apartment.car");
-    merge("os/Runnable.car");
     merge("os/ClassLoader.car");
     merge("os/Binder.car");
     merge("os/BatteryStats.car");
