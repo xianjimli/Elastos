@@ -4,7 +4,6 @@ module
     interface IMenu;
     interface IMenuItem;
     interface IDrawable;
-    interface IRunnable;
     interface IIntent;
     interface ISubMenu;
     interface IContextMenuInfo;

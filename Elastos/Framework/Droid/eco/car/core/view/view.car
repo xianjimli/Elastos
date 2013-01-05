@@ -31,7 +31,6 @@ module
     interface IBinder;
     interface IResources;
     interface IDrawable;
-    interface IRunnable;
     interface IKeyEvent;
     interface ITouchDelegate;
     interface IDispatcherState;

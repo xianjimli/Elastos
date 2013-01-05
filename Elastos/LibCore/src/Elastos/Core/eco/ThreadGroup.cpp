@@ -1,0 +1,7 @@
+
+#include "ThreadGroup.h"
+
+// {8BF3F538-74DA-4997-B0DC-0F8086BA8835}
+extern "C" const InterfaceID EIID_ThreadGroup =
+        { 0x8bf3f538, 0x74da, 0x4997, { 0xb0, 0xdc, 0xf, 0x80, 0x86, 0xba, 0x88, 0x35 } };
+
