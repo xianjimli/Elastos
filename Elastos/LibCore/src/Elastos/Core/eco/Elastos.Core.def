@@ -55,3 +55,7 @@ EXPORTS
     ObjectContainerCurrent
     ObjectContainerAdd
     ObjectContainerRemove
+
+    ;;NativeThread
+    NativeThreadSelf
+    NativeCreateThread

@@ -19,6 +19,7 @@ SOURCES += Math.cpp
 SOURCES += Character.cpp
 SOURCES += StringBuffer.cpp
 SOURCES += Thread.cpp
+SOURCES += ThreadGroup.cpp
 
 ifeq "$(XDK_TARGET_PLATFORM)" "win32"
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib

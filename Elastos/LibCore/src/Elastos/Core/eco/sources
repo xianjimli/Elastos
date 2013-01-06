@@ -21,6 +21,7 @@ SOURCES += Init.cpp
 SOURCES += NativeThread.cpp
 SOURCES += Thread.cpp
 SOURCES += ThreadGroup.cpp
+SOURCES += CThread.cpp
 
 
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Runtime.lib
