@@ -10,4 +10,5 @@ DIRS += Elastos/Xml
 #DIRS += Elastos/Net
 DIRS += Elastos/Utility/Zip
 DIRS += Elastos/Utility/Regex
+DIRS += Elastos/Process
 DIRS += Elastos/Test

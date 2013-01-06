@@ -1,0 +1,12 @@
+
+module
+{
+    importlib("Elastos.IO.eco");
+
+    merge("../../../car/Elastos/Process/IProcess.car");
+    merge("../../../car/Elastos/Process/IRuntime.car");
+
+    singleton class CRuntime {
+        interface IRuntime;
+    }
+}
