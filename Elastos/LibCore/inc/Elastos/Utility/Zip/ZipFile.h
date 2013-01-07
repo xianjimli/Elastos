@@ -90,6 +90,7 @@ public:
 
     public:
         AutoPtr<IRandomAccessFile> mSharedRaf;
+        Mutex mSharedRafLock;
         Int64 mOffset;
         Int64 mLength;
     };
@@ -127,7 +128,7 @@ public:
         //@Override
         CARAPI Available(
             /* [out] */ Int32* number);
-        
+
         CARAPI Close();
 
         CARAPI Mark(
@@ -142,7 +143,7 @@ public:
         CARAPI ReadBuffer(
             /* [out] */ ArrayOf<Byte>* buffer,
             /* [out] */ Int32 *number);
-        
+
         CARAPI Reset();
 
         CARAPI Skip(
@@ -263,7 +264,7 @@ protected:
         /* [in] */ const String& name);
 
 private:
-    Boolean CheckNotClosed();
+    CARAPI CheckNotClosed();
 
     /**
      * Find the central directory and read the contents.

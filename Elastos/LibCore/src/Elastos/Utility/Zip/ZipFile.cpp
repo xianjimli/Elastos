@@ -33,18 +33,12 @@ PInterface ZipFile::RAFStream::Probe(
 
 UInt32 ZipFile::RAFStream::AddRef()
 {
-    //printf("%s, %d\n", __FILE__, __LINE__);
-    //Int32 ref = ElRefBase::AddRef();
-    //printf("%s, %d\n", __FILE__, __LINE__);
-    return 0;
+    return ElRefBase::AddRef();
 }
 
 UInt32 ZipFile::RAFStream::Release()
 {
-    //printf("%s, %d\n", __FILE__, __LINE__);
-    //Int32 ref = ElRefBase::Release();
-    //printf("%s, %d\n", __FILE__, __LINE__);
-    return 0;
+    return ElRefBase::Release();
 }
 
 ECode ZipFile::RAFStream::GetInterfaceID(
@@ -85,18 +79,19 @@ ECode ZipFile::RAFStream::ReadBufferEx(
     /* [out] */ ArrayOf<Byte>* buffer,
     /* [out] */ Int32* number)
 {
-//    synchronized (mSharedRaf) {
-      ECode ec = NOERROR;
-        mSharedRaf->Seek(mOffset);
-        if (length > mLength - mOffset) {
-            length = (int) (mLength - mOffset);
-        }
-        ec = mSharedRaf->ReadBufferEx(offset, length, buffer, number);
-        if (*number > 0) {
-            mOffset += *number;
-        }
+    Mutex::Autolock lock(mSharedRafLock);
 
-//    }
+    ECode ec = NOERROR;
+    mSharedRaf->Seek(mOffset);
+    if (length > mLength - mOffset) {
+        length = (int) (mLength - mOffset);
+    }
+    ec = mSharedRaf->ReadBufferEx(offset, length, buffer, number);
+    if (*number > 0) {
+        mOffset += *number;
+    }
+    else *number = -1;
+
     return ec;
 }
 
@@ -174,12 +169,12 @@ PInterface ZipFile::ZipInflaterInputStream::Probe(
 
 UInt32 ZipFile::ZipInflaterInputStream::AddRef()
 {
-//    return ElRefBase::AddRef();
+    return ElRefBase::AddRef();
 }
 
 UInt32 ZipFile::ZipInflaterInputStream::Release()
 {
-//    return ElRefBase::Release();
+    return ElRefBase::Release();
 }
 
 ECode ZipFile::ZipInflaterInputStream::GetInterfaceID(
@@ -307,13 +302,13 @@ ECode ZipFile::Close()
     return NOERROR;
 }
 
-Boolean ZipFile::CheckNotClosed()
+ECode ZipFile::CheckNotClosed()
 {
-//    if (mRaf == NULL) {
-//        throw new IllegalStateException("Zip file closed");
-//        return E_ILLEGAL_STATE_EXCEPTION;
-//    }
-    return mRaf == NULL? 0 : 1;
+   if (mRaf == NULL) {
+       // throw new IllegalStateException("Zip file closed");
+       return E_ILLEGAL_STATE_EXCEPTION;
+   }
+   return NOERROR;
 }
 
 /**
@@ -326,38 +321,16 @@ Boolean ZipFile::CheckNotClosed()
 ECode ZipFile::GetEntries(
     /* [out] */ IObjectContainer** entries)
 {
-    ECode ec = NOERROR;
-    if (CheckNotClosed()) {
-        ec = CObjectContainer::New(entries);
-        if (FAILED(ec)) {
-            return ec;
-        }
-        HashMap<String, AutoPtr<IZipEntry> >::Iterator it = mEntries.Begin();
-        Int32 count = 0;
-        for (; it != mEntries.End(); ++it) {
-            count++;
-            AutoPtr<IZipEntry> p = it->mSecond;
-            (*entries)->Add(p);
-        }
-        return ec;
-    } else {
-        ec = E_IO_EXCEPTION;
+    FAIL_RETURN(CheckNotClosed());
+
+    FAIL_RETURN(CObjectContainer::New(entries));
+
+    HashMap<String, AutoPtr<IZipEntry> >::Iterator it = mEntries.Begin();
+    for (; it != mEntries.End(); ++it) {
+        AutoPtr<IZipEntry> p = it->mSecond;
+        (*entries)->Add(p);
     }
-    return ec;
-//    final Iterator<ZipEntry> iterator = mEntries.values().iterator();
-//
-//    return new Enumeration<ZipEntry>() {
-//        public boolean hasMoreElements() {
-//            checkNotClosed();
-//            return iterator.hasNext();
-//        }
-//
-//        public ZipEntry nextElement() {
-//            checkNotClosed();
-//            return iterator.next();
-//        }
-//    };
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 /**
@@ -377,23 +350,17 @@ ECode ZipFile::GetEntry(
          return E_NULL_POINTER_EXCEPTION;
     }
 
-    if(CheckNotClosed()) {
-        IZipEntry *pEntry = NULL;
-        pEntry = mEntries[entryName];
-        if (pEntry == NULL) {
-            return E_ZIP_EXCEPTION;
-        }
-        *entry = pEntry;
+    FAIL_RETURN(CheckNotClosed());
+
+    *entry = NULL;
+    HashMap<String, AutoPtr<IZipEntry> >::Iterator it = mEntries.Find(entryName);
+    if (it == mEntries.End()) {
+        it = mEntries.Find(entryName + "/");
     }
-//    if (entryName == null) {
-//        throw new NullPointerException();
-//    }
-//
-//    ZipEntry ze = mEntries.get(entryName);
-//    if (ze == null) {
-//        ze = mEntries.get(entryName + "/");
-//    }
-//    return ze;
+    if (it != mEntries.End()) {
+        *entry = it->mSecond;
+        if (*entry != NULL) (*entry)->AddRef();
+    }
     return NOERROR;
 }
 
@@ -482,9 +449,8 @@ ECode ZipFile::GetName(
 ECode ZipFile::GetSize(
     /* [out] */ Int32* size)
 {
-    if(CheckNotClosed()) {
-        *size = mEntries.GetSize();
-    }
+    FAIL_RETURN(CheckNotClosed());
+    *size = mEntries.GetSize();
     return NOERROR;
 }
 
