@@ -11,8 +11,6 @@ class OutputStreamWriter : public Writer
 protected:
     OutputStreamWriter();
 
-    ~OutputStreamWriter();
-
     /**
      * Constructs a new OutputStreamWriter using {@code out} as the target
      * stream to write converted characters to. The default character encoding
@@ -167,13 +165,15 @@ public:
         /* [in] */ Int32 offset,
         /* [in] */ Int32 count,
         /* [in] */ CString str);
-private:
-    CheckStatus();
-    
-//    Convert(
-//        /* [in] */ CharBuffer chars);
 
-    ArrayOf<Byte>* mBuf;
+private:
+    CARAPI CheckStatus();
+
+    CARAPI Convert(
+       /* [in] */ ICharBuffer* chars);
+
+private:
+    AutoPtr<IByteBuffer> mBytes;
 
     AutoPtr<IOutputStream> mOut;
 

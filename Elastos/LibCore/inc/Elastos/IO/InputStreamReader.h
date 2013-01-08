@@ -12,8 +12,6 @@ class InputStreamReader : public Reader
 protected:
     InputStreamReader();
 
-    ~InputStreamReader();
-
     /**
      * Constructs a new {@code InputStreamReader} on the {@link InputStream}
      * {@code in}. This constructor sets the character converter to the encoding
@@ -124,6 +122,19 @@ public:
      */
     CARAPI IsReady(
         /* [out] */ Boolean* ready);
+
+private:
+    CARAPI_(Boolean) IsOpen();
+
+private:
+    AutoPtr<IInputStream> mIn;
+    Mutex mInLock;
+
+    Boolean mEndOfInput;
+
+//    CharsetDecoder decoder;
+
+    AutoPtr<IByteBuffer> mBytes;
 };
 
 #endif //__INPUTSTREAMREADER_H__
