@@ -13,7 +13,11 @@ module
     }
 
     class CDate {
-//        constructor();
+        constructor();
+
+        constructor(
+            [in] Int64 milliseconds);
+
         interface IDate;
     }
 

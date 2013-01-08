@@ -2,6 +2,17 @@
 #include "CDate.h"
 
 
+ECode CDate::constructor()
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CDate::constructor(
+    /* [in] */ Int64 milliseconds)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
 ECode CDate::IsAfter(
     /* [in] */ IDate* date,
     /* [out] */ Boolean* isAfter)

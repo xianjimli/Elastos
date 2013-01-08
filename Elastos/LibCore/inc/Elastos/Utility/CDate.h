@@ -7,6 +7,11 @@
 CarClass(CDate)
 {
 public:
+    CARAPI constructor();
+
+    CARAPI constructor(
+        /* [in] */ Int64 milliseconds);
+
     CARAPI IsAfter(
         /* [in] */ IDate* date,
         /* [out] */ Boolean* isAfter);
