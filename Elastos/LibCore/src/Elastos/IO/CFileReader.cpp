@@ -1,5 +1,7 @@
 
 #include "CFileReader.h"
+#include "CFileInputStream.h"
+#include "cmdef.h"
 
 /**
  * Constructs a new FileReader on the given {@code file}.
@@ -12,7 +14,14 @@
 ECode CFileReader::constructor(
     /* [in] */ IFile* file)
 {
-    return E_NOT_IMPLEMENTED;
+    AutoPtr<IFileInputStream> fileInputstream;
+    ASSERT_SUCCEEDED(CFileInputStream::New(file, (IFileInputStream**)&fileInputstream));
+    if (fileInputstream && fileInputstream->Probe(EIID_IInputStream) != NULL) {
+        return Init((IInputStream*)fileInputstream->Probe(EIID_IInputStream));
+    }
+    else {
+        return E_FILE_NOT_FOUND_EXCEPTION;
+    }
 }
 
 /**
@@ -26,7 +35,14 @@ ECode CFileReader::constructor(
 ECode CFileReader::constructor(
     /* [in] */ IFileDescriptor* fd)
 {
-    return E_NOT_IMPLEMENTED;
+    AutoPtr<IFileInputStream> fileInputstream;
+    ASSERT_SUCCEEDED(CFileInputStream::New(fd, (IFileInputStream**)&fileInputstream));
+    if (fileInputstream && fileInputstream->Probe(EIID_IInputStream) != NULL) {
+        return Init((IInputStream*)fileInputstream->Probe(EIID_IInputStream));
+    }
+    else {
+        return E_FILE_NOT_FOUND_EXCEPTION;
+    }
 }
 
 /**
@@ -40,37 +56,44 @@ ECode CFileReader::constructor(
 ECode CFileReader::constructor(
     /* [in] */ const String& filename)
 {
-    return E_NOT_IMPLEMENTED;
+    AutoPtr<IFileInputStream> fileInputstream;
+    ASSERT_SUCCEEDED(CFileInputStream::New(filename, (IFileInputStream**)&fileInputstream));
+    if (fileInputstream && fileInputstream->Probe(EIID_IInputStream) != NULL) {
+        return Init((IInputStream*)fileInputstream->Probe(EIID_IInputStream));
+    }
+    else {
+        return E_FILE_NOT_FOUND_EXCEPTION;
+    }
 }
 
 ECode CFileReader::Close()
 {
-    return E_NOT_IMPLEMENTED;
+    return FileReader::Close();
 }
 
 ECode CFileReader::Mark(
     /* [in] */ Int32 readLimit)
 {
-    return E_NOT_IMPLEMENTED;
+    return FileReader::Mark(readLimit);
 }
 
 ECode CFileReader::IsMarkSupported(
     /* [out] */ Boolean* supported)
 {
-    return E_NOT_IMPLEMENTED;
+    return FileReader::IsMarkSupported(supported);
 }
 
 ECode CFileReader::Read(
     /* [out] */ Int32* value)
 {
-    return E_NOT_IMPLEMENTED;
+    return FileReader::Read(value);
 }
 
 ECode CFileReader::ReadBuffer(
     /* [out] */ ArrayOf<Char8>* buffer,
     /* [out] */ Int32* number)
 {
-    return E_NOT_IMPLEMENTED;
+    return FileReader::ReadBuffer(buffer, number);
 }
 
 ECode CFileReader::ReadBufferEx(
@@ -79,31 +102,31 @@ ECode CFileReader::ReadBufferEx(
     /* [out] */ ArrayOf<Char8>* buffer,
     /* [out] */ Int32* number)
 {
-    return E_NOT_IMPLEMENTED;
+    return FileReader::ReadBufferEx(offset, count, buffer, number);
 }
 
 ECode CFileReader::IsReady(
     /* [out] */ Boolean* ready)
 {
-    return E_NOT_IMPLEMENTED;
+    return FileReader::IsReady(ready);
 }
 
 ECode CFileReader::Reset()
 {
-    return E_NOT_IMPLEMENTED;
+    return FileReader::Reset();
 }
 
 ECode CFileReader::Skip(
     /* [in] */ Int64 count,
     /* [out] */ Int64* number)
 {
-    return E_NOT_IMPLEMENTED;
+    return FileReader::Skip(count, number);
 }
 
 ECode CFileReader::GetEncoding(
     /* [out] */ String* encoding)
 {
-    return E_NOT_IMPLEMENTED;
+    return FileReader::GetEncoding(encoding);
 }
 
 Mutex* CFileReader::GetSelfLock()
