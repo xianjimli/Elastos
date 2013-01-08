@@ -1,17 +1,18 @@
 #include "cmdef.h"
 #include "InputStreamReader.h"
+#include "ByteBuffer.h"
+#include "CharBuffer.h"
 
 InputStreamReader::InputStreamReader()
+    : mEndOfInput(FALSE)
 {
-}
-
-InputStreamReader::~InputStreamReader()
-{
+    ASSERT_SUCCEEDED(ByteBuffer::Allocate(8192, (IByteBuffer**)&mBytes));
 }
 
 ECode InputStreamReader::Init(
     /* [in] */ IInputStream *in)
 {
+//    this(in, Charset.defaultCharset());
     return E_NOT_IMPLEMENTED;
 }
 
@@ -19,24 +20,66 @@ ECode InputStreamReader::Init(
     /* [in] */ IInputStream *in,
     /* [in] */ const String &enc)
 {
-    return E_NOT_IMPLEMENTED;
+    Reader::Init(&mInLock);
+//    super(in);
+    if (enc.IsNull()) {
+        return E_NULL_POINTER_EXCEPTION;
+//        throw new NullPointerException();
+    }
+    mIn = in;
+    // try {
+    //     decoder = Charset.forName(enc).newDecoder().onMalformedInput(
+    //             CodingErrorAction.REPLACE).onUnmappableCharacter(
+    //             CodingErrorAction.REPLACE);
+    // } catch (IllegalArgumentException e) {
+    //     throw (UnsupportedEncodingException)
+    //             new UnsupportedEncodingException(enc).initCause(e);
+    // }
+    return mBytes->SetLimit(0);
 }
 
 ECode InputStreamReader::Close()
 {
-    return E_NOT_IMPLEMENTED;
+    Mutex::Autolock lock(mLock);
+    // BEGIN android-added
+    // if (mdecoder != NULL) {
+    //     decoder.reset();
+    // }
+    // END android-added
+    //mDecoder = NULL;
+    if (mIn != NULL) {
+        FAIL_RETURN(mIn->Close());
+        mIn = NULL;
+    }
+    return NOERROR;
 }
 
 ECode InputStreamReader::GetEncoding(
     /* [out] */ String* encoding)
 {
+    VALIDATE_NOT_NULL(encoding);
+    if (!IsOpen()) {
+        *encoding = String(NULL);
+        return NOERROR;
+    }
+ //   return HistoricalNamesUtil.getHistoricalName(decoder.charset().name());
     return E_NOT_IMPLEMENTED;
 }
 
 ECode InputStreamReader::Read(
     /* [out] */ Int32* value)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(value);
+    Mutex::Autolock lock(mLock);
+    if (!IsOpen()) {
+        return E_IO_EXCEPTION;
+//        throw new IOException("InputStreamReader is closed");
+    }
+    ArrayOf<Char8>* buf = ArrayOf<Char8>::Alloc(1);
+    Int32 number;
+    FAIL_RETURN(ReadBufferEx(0, 1, buf, &number));
+    *value = number != -1 ? (*buf)[0] : -1;
+    return NOERROR;
 }
 
 ECode InputStreamReader::ReadBufferEx(
@@ -45,13 +88,142 @@ ECode InputStreamReader::ReadBufferEx(
     /* [out] */ ArrayOf<Char8>* buffer,
     /* [out] */ Int32* number)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(buffer);
+    VALIDATE_NOT_NULL(number);
+    Mutex::Autolock lock(mLock);
+
+    if (!IsOpen()) {
+        return E_IO_EXCEPTION;
+//        throw new IOException("InputStreamReader is closed");
+    }
+    // RI exception compatibility so we can run more tests.
+    if (offset < 0) {
+        return E_INDEX_OUT_OF_BOUNDS_EXCEPTION;
+//        throw new IndexOutOfBoundsException();
+    }
+    if (buffer == NULL) {
+        return E_NULL_POINTER_EXCEPTION;
+//        throw new NullPointerException("buffer == null");
+    }
+    if (count < 0 || offset > buffer->GetLength() - count) {
+        return E_INDEX_OUT_OF_BOUNDS_EXCEPTION;
+//        throw new IndexOutOfBoundsException();
+    }
+    if (count == 0) {
+        *number = 0;
+        return NOERROR;
+    }
+
+    AutoPtr<ICharSequence> charSeq;
+    CStringWrapper::New(String(buffer->GetPayload()), (ICharSequence**)&charSeq);
+    AutoPtr<ICharBuffer> out;
+    CharBuffer::WrapEx3(charSeq, offset, count, (ICharBuffer**)&out);
+    //CoderResult result = CoderResult.UNDERFLOW;
+
+    // bytes.remaining() indicates number of bytes in buffer
+    // when 1-st time entered, it'll be equal to zero
+    Boolean hasRemaining;
+    mBytes->HasRemaining(&hasRemaining);
+    Boolean needInput = !hasRemaining;
+
+    while(out->HasRemaining(&hasRemaining), hasRemaining) {
+        // fill the buffer if needed
+        if (needInput) {
+            //try {
+            Int32 num, position;
+            mIn->Available(&num);
+            out->GetPosition(&position);
+            if (num == 0 && position > offset) {
+                // we could return the result without blocking read
+                break;
+            }
+            // } catch (IOException e) {
+            //     // available didn't work so just try the read
+            // }
+
+            Int32 capacity, limit, offset;
+            mBytes->Capacity(&capacity);
+            mBytes->GetLimit(&limit);
+            mBytes->ArrayOffset(&offset);
+            Int32 to_read = capacity - limit;
+            Int32 off = offset + limit;
+            ArrayOf<Byte>* buf;
+            mBytes->Array(&buf);
+            Int32 was_red;
+            mIn->ReadBufferEx(off, to_read, buf, &was_red);
+            if (was_red == -1) {
+                mEndOfInput = TRUE;
+                break;
+            }
+            else if (was_red == 0) {
+                break;
+            }
+            mBytes->SetLimit(limit + was_red);
+            needInput = FALSE;
+        }
+
+        // decode bytes
+        //result = decoder.decode(bytes, out, false);
+
+        //if (result.isUnderflow()) {
+            // compact the buffer if no space left
+            Int32 limit, capacity;
+            mBytes->Capacity(&capacity);
+            mBytes->GetLimit(&limit);
+            if (limit == capacity) {
+                mBytes->Compact();
+                Int32 pos;
+                mBytes->GetPosition(&pos);
+                mBytes->SetLimit(pos);
+                mBytes->SetPosition(0);
+            }
+            needInput = TRUE;
+        //}
+        //else {
+        //    break;
+       // }
+    }
+
+    // if (result == CoderResult.UNDERFLOW && endOfInput) {
+    //     result = decoder.decode(bytes, out, true);
+    //     decoder.flush(out);
+    //     decoder.reset();
+    // }
+    // if (result.isMalformed()) {
+    //     throw new MalformedInputException(result.length());
+    // } else if (result.isUnmappable()) {
+    //     throw new UnmappableCharacterException(result.length());
+    // }
+
+    Int32 charBufPos;
+    out->GetPosition(&charBufPos);
+    *number = charBufPos == 0 ? -1 : charBufPos - offset;
+    return NOERROR;
+}
+
+Boolean InputStreamReader::IsOpen()
+{
+    return mIn != NULL;
 }
 
 ECode InputStreamReader::IsReady(
     /* [out] */ Boolean* ready)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(ready);
+    Mutex::Autolock lock(mLock);
+    if (mIn == NULL) {
+        return E_IO_EXCEPTION;
+//        throw new IOException("InputStreamReader is closed");
+    }
+    //try {
+    Boolean hasRemaining;
+    mBytes->HasRemaining(&hasRemaining);
+    Int32 number;
+    mIn->Available(&number);
+    *ready = hasRemaining || number > 0;
+    return NOERROR;
+    // } catch (IOException e) {
+    //     return false;
+    // }
 }
 
- 
