@@ -76,6 +76,13 @@ public:
 
     CARAPI SetData(
         /* [in] */ IUri *pData);
+	
+    CARAPI SetType(
+        /*[in]*/ const String& type);
+
+    CARAPI SetDataAndType(
+	/*[in]*/ IUri* data,
+	/*[in]*/ const String& type);
 
     CARAPI SetFlags(
         /* [in] */ Int32 flags);

@@ -1462,6 +1462,13 @@ module
         GetData(
             [out] IUri** data);
 
+        SetType(
+	    [in] String type);
+
+        SetDataAndType(
+	    [in] IUri* data,
+	    [in] String type);
+
         SetFlags(
             [in] Int32 flags);
 

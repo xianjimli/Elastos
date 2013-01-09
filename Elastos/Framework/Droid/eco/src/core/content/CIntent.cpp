@@ -194,6 +194,25 @@ ECode CIntent::SetData(
     return NOERROR;
 }
 
+ECode CIntent::SetType(
+	/*[in]*/ const String& type)
+{
+	mData = NULL;
+	mType = type;
+
+	return NOERROR;
+}
+
+ECode CIntent::SetDataAndType(
+	/*[in]*/ IUri* data,
+	/*[in]*/ const String& type)
+{
+	mData = data;
+	mType = type;
+
+	return NOERROR;
+}
+
 ECode CIntent::SetFlags(
     /* [in] */ Int32 flags)
 {
@@ -227,9 +246,10 @@ ECode CIntent::GetScheme(
 }
 
 ECode CIntent::GetType(
-    /* [out] */ String* type)
+	/*[out]*/ String* type)
 {
-    return E_NOT_IMPLEMENTED;
+    *type = mType;
+	return NOERROR;
 }
 
 ECode CIntent::AddCategory(

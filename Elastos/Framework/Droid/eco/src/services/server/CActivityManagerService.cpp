@@ -980,11 +980,11 @@ void CActivityManagerService::StartSetupActivityLocked()
 void CActivityManagerService::ReportResumedActivityLocked(
     /* [in] */ CActivityRecord* r)
 {
-//    //Slog.i(TAG, "**** REPORT RESUME: " + r);
-//
-//    final int identHash = System.identityHashCode(r);
+    //Slog.i(TAG, "**** REPORT RESUME: " + r);
+
+//     final int identHash = System.identityHashCode(r);
 //    updateUsageStats(r, true);
-//
+
 //    int i = mWatchers.beginBroadcast();
 //    while (i > 0) {
 //        i--;
@@ -1134,97 +1134,151 @@ ECode CActivityManagerService::StartNextMatchingActivity(
     /* [in] */ IIntent* intent,
     /* [out] */ Boolean* result)
 {
-//    // Refuse possible leaked file descriptors
-//    if (intent != null && intent.hasFileDescriptors() == true) {
-//        throw new IllegalArgumentException("File descriptors passed in Intent");
-//    }
-//
-//    synchronized (this) {
-//        int index = mMainStack.indexOfTokenLocked(callingActivity);
-//        if (index < 0) {
-//            return false;
-//        }
-//        ActivityRecord r = (ActivityRecord)mMainStack.mHistory.get(index);
-//        if (r.app == null || r.app.thread == null) {
-//            // The caller is not running...  d'oh!
-//            return false;
-//        }
-//        intent = new Intent(intent);
-//        // The caller is not allowed to change the data.
-//        intent.setDataAndType(r.intent.getData(), r.intent.getType());
-//        // And we are resetting to find the next component...
-//        intent.setComponent(null);
-//
-//        ActivityInfo aInfo = null;
-//        try {
-//            List<ResolveInfo> resolves =
-//                AppGlobals.getPackageManager().queryIntentActivities(
-//                        intent, r.resolvedType,
-//                        PackageManager.MATCH_DEFAULT_ONLY | STOCK_PM_FLAGS);
-//
-//            // Look for the original activity in the list...
-//            final int N = resolves != null ? resolves.size() : 0;
-//            for (int i=0; i<N; i++) {
-//                ResolveInfo rInfo = resolves.get(i);
-//                if (rInfo.activityInfo.packageName.equals(r.packageName)
-//                        && rInfo.activityInfo.name.equals(r.info.name)) {
-//                    // We found the current one...  the next matching is
-//                    // after it.
-//                    i++;
-//                    if (i<N) {
-//                        aInfo = resolves.get(i).activityInfo;
-//                    }
-//                    break;
-//                }
-//            }
-//        } catch (RemoteException e) {
-//        }
-//
-//        if (aInfo == null) {
-//            // Nobody who is next!
-//            return false;
-//        }
-//
-//        intent.setComponent(new ComponentName(
-//                aInfo.applicationInfo.packageName, aInfo.name));
-//        intent.setFlags(intent.getFlags()&~(
-//                Intent.FLAG_ACTIVITY_FORWARD_RESULT|
-//                Intent.FLAG_ACTIVITY_CLEAR_TOP|
-//                Intent.FLAG_ACTIVITY_MULTIPLE_TASK|
-//                Intent.FLAG_ACTIVITY_NEW_TASK));
-//
-//        // Okay now we need to start the new activity, replacing the
-//        // currently running activity.  This is a little tricky because
-//        // we want to start the new one as if the current one is finished,
-//        // but not finish the current one first so that there is no flicker.
-//        // And thus...
-//        final boolean wasFinishing = r.finishing;
-//        r.finishing = true;
-//
-//        // Propagate reply information over to the new activity.
-//        final ActivityRecord resultTo = r.resultTo;
-//        final String resultWho = r.resultWho;
-//        final int requestCode = r.requestCode;
-//        r.resultTo = null;
-//        if (resultTo != null) {
-//            resultTo.removeResultsLocked(r, resultWho, requestCode);
-//        }
-//
-//        final long origId = Binder.clearCallingIdentity();
-//        // XXX we are not dealing with propagating grantedUriPermissions...
-//        // those are not yet exposed to user code, so there is no need.
-//        int res = mMainStack.startActivityLocked(r.app.thread, intent,
-//                r.resolvedType, null, 0, aInfo, resultTo, resultWho,
-//                requestCode, -1, r.launchedFromUid, false, false);
-//        Binder.restoreCallingIdentity(origId);
-//
-//        r.finishing = wasFinishing;
-//        if (res != START_SUCCESS) {
-//            return false;
-//        }
-//        return true;
-//    }
-    return E_NOT_IMPLEMENTED;
+    // Refuse possible leaked file descriptors
+    AutoPtr<IIntent> newIntent;
+    CIntent::New(intent, (IIntent**)&newIntent);
+
+    Boolean hasFD;
+
+    if (newIntent != NULL && (newIntent->HasFileDescriptors(&hasFD),hasFD)) {
+
+        Slogger::E(TAG, "File descriptors passed in Intent.\n");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+
+    {
+        Mutex::Autolock lock(_m_syncLock);
+
+        Int32 index = mMainStack->GetIndexOfTokenLocked(callingActivity);
+        if (index < 0) {
+            return FALSE;
+        }
+        AutoPtr<CActivityRecord> r = (CActivityRecord*)mMainStack->mHistory[index];
+        if (r->mApp == NULL || r->mApp->mAppApartment== NULL) {
+            // The caller is not running...  d'oh!
+            return FALSE;
+        }
+        AutoPtr<IIntent> newIntent;
+        CIntent::New(intent, (IIntent**)&newIntent);
+        // The caller is not allowed to change the data.
+        String mGetType;
+        r->mIntent->GetType(&mGetType);
+        IUri* mGetData;
+        r->mIntent->GetData(&mGetData);
+        newIntent->SetDataAndType(mGetData, mGetType);
+        // And we are resetting to find the next component...
+        newIntent->SetComponent(NULL);
+
+        AutoPtr<IActivityInfo> aInfo;
+        CActivityInfo::New((IActivityInfo**)&aInfo);
+        aInfo = NULL;
+        try {
+            AutoPtr<ICapsuleManager> mCapslManager;
+            AutoPtr<IObjectContainer> out_OContainer;
+            CParcelableObjectContainer::New((IObjectContainer**)&out_OContainer);
+            mCapslManager->QueryIntentActivities(
+                        newIntent, r->mResolvedType,
+                        CapsuleManager_MATCH_DEFAULT_ONLY | STOCK_PM_FLAGS,
+                        (IObjectContainer**)&out_OContainer);
+            Int32 container_Count;
+            out_OContainer->GetObjectCount(&container_Count);
+
+
+            // Look for the original activity in the list...
+            const Int32 N = out_OContainer != NULL ? container_Count : 0;
+            AutoPtr<IObjectEnumerator> oEnumerator;
+            out_OContainer->GetObjectEnumerator((IObjectEnumerator**)&oEnumerator);
+            AutoPtr<IResolveInfo> resolve;
+            Boolean to_Next = TRUE;
+            for (Int32 i=0; i<N; i++) {
+                oEnumerator->Current((IInterface**)&resolve);
+                AutoPtr<IResolveInfo> rInfo;
+                CResolveInfo::New((IResolveInfo**)&rInfo);
+                rInfo = resolve;
+                AutoPtr<IActivityInfo> rInfo_ActivityInfo;
+                rInfo->GetActivityInfo((IActivityInfo**)&rInfo_ActivityInfo);
+                String rInfo_CapsuleName;
+                rInfo_ActivityInfo->GetCapsuleName(&rInfo_CapsuleName);
+                String rInfo_Name;
+                rInfo_ActivityInfo->GetName(&rInfo_Name);
+                String r_Name;
+                r->mInfo->GetName(&r_Name);
+
+                if (rInfo_CapsuleName==(r->mCapsuleName)
+                        && rInfo_Name==(r_Name)) {
+                    // We found the current one...  the next matching is
+                    // after it.
+                    i++;
+                    oEnumerator->MoveNext(&to_Next);
+                    if (i<N) {
+                        AutoPtr<IResolveInfo> nResolve;
+                        oEnumerator->Current((IInterface**)&nResolve);
+                        nResolve->GetActivityInfo((IActivityInfo**)&aInfo);
+                    }
+                    break;
+                }
+                oEnumerator->MoveNext(&to_Next);
+            }
+        } catch (RemoteException e) {
+        }
+
+        if (aInfo == NULL) {
+            // Nobody who is next!
+            return FALSE;
+        }
+
+        AutoPtr<IComponentName> cName;
+        CComponentName::New((IComponentName**)&cName);
+        //CComponentName* cName;
+        AutoPtr<IApplicationInfo> aInfo_ApplicationInfo;
+        aInfo->GetApplicationInfo((IApplicationInfo**)&aInfo_ApplicationInfo);
+        String app_CapsuleName;
+        aInfo_ApplicationInfo->GetCapsuleName(&app_CapsuleName);
+        String aInfo_Name;
+        aInfo->GetName(&aInfo_Name);
+        CComponentName::New(app_CapsuleName, aInfo_Name,(IComponentName**)&cName);
+        newIntent->SetComponent((IComponentName*)cName);
+        Int32* outFlags;
+        newIntent->GetFlags(outFlags);
+        newIntent->SetFlags(*outFlags&~(
+                Intent_FLAG_ACTIVITY_FORWARD_RESULT|
+                Intent_FLAG_ACTIVITY_CLEAR_TOP|
+                Intent_FLAG_ACTIVITY_MULTIPLE_TASK|
+                Intent_FLAG_ACTIVITY_NEW_TASK));
+
+        // Okay now we need to start the new activity, replacing the
+        // currently running activity.  This is a little tricky because
+        // we want to start the new one as if the current one is finished,
+        // but not finish the current one first so that there is no flicker.
+        // And thus...
+        const Boolean wasFinishing = r->mFinishing;
+        r->mFinishing = TRUE;
+
+        // Propagate reply information over to the new activity.
+         AutoPtr<CActivityRecord> resultTo = r->mResultTo;
+        const String resultWho = r->mResultWho;
+        const Int32 requestCode = r->mRequestCode;
+        r->mResultTo = NULL;
+        if (resultTo != NULL) {
+            resultTo->RemoveResultsLocked(r, resultWho, requestCode);
+        }
+
+        const long origId = Process::ClearCallingIdentity();
+        // XXX we are not dealing with propagating grantedUriPermissions...
+        // those are not yet exposed to user code, so there is no need.
+        Int32 res;
+        mMainStack->StartActivityLocked(r->mApp->mAppApartment, newIntent,
+                r->mResolvedType, NULL, 0, aInfo, resultTo, resultWho,
+                requestCode, -1, r->mLaunchedFromUid, FALSE, FALSE,&res);
+        Process::RestoreCallingIdentity(origId);
+
+        r->mFinishing = wasFinishing;
+        if (res != ActivityManager_START_SUCCESS) {
+            return FALSE;
+        }
+        return TRUE;
+    }
+    //return E_NOT_IMPLEMENTED;
 }
 
 ECode CActivityManagerService::StartActivityInCapsule(
@@ -1237,46 +1291,67 @@ ECode CActivityManagerService::StartActivityInCapsule(
     /* [in] */ Boolean onlyIfNeeded,
     /* [out] */ Int32* result)
 {
-//    // This is so super not safe, that only the system (or okay root)
-//    // can do it.
-//    final int callingUid = Binder.getCallingUid();
-//    if (callingUid != 0 && callingUid != Process.myUid()) {
-//        throw new SecurityException(
-//                "startActivityInPackage only available to the system");
-//    }
-//
-//    final boolean componentSpecified = intent.getComponent() != null;
-//
-//    // Don't modify the client's object!
-//    intent = new Intent(intent);
-//
-//    // Collect information about the target of the Intent.
-//    ActivityInfo aInfo;
-//    try {
-//        ResolveInfo rInfo =
+    // This is so super not safe, that only the system (or okay root)
+    // can do it.
+
+    const Int32 callingUid = Process::GetCallingUid();
+    if (callingUid != 0 && callingUid != Process::MyUid()) {
+        Slogger::E(TAG, "startActivityInPackage only available to the system");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+
+    AutoPtr<IComponentName> mCName;
+    intent->GetComponent((IComponentName**)&mCName);
+
+    const Boolean componentSpecified = mCName != NULL;
+
+    // Don't modify the client's object!
+    AutoPtr<IIntent> newIntent;
+    CIntent::New(intent, (IIntent**)&newIntent);
+
+    // Collect information about the target of the Intent.
+    AutoPtr<IActivityInfo> aInfo;
+    try {
+        AutoPtr<ICapsuleManager> mCapslManager;
+        AutoPtr<IResolveInfo> rInfo;
+        AutoPtr<IActivityInfo> mAct_Info;
+        rInfo->GetActivityInfo((IActivityInfo**)&mAct_Info);
 //            AppGlobals.getPackageManager().resolveIntent(
-//                    intent, resolvedType,
-//                    PackageManager.MATCH_DEFAULT_ONLY | STOCK_PM_FLAGS);
-//        aInfo = rInfo != null ? rInfo.activityInfo : null;
-//    } catch (RemoteException e) {
-//        aInfo = null;
-//    }
-//
-//    if (aInfo != null) {
-//        // Store the found target back into the intent, because now that
-//        // we have it we never want to do this again.  For example, if the
-//        // user navigates back to this point in the history, we should
-//        // always restart the exact same activity.
-//        intent.setComponent(new ComponentName(
-//                aInfo.applicationInfo.packageName, aInfo.name));
-//    }
-//
-//    synchronized(this) {
-//        return mMainStack.startActivityLocked(null, intent, resolvedType,
-//                null, 0, aInfo, resultTo, resultWho, requestCode, -1, uid,
-//                onlyIfNeeded, componentSpecified);
-//    }
-    return E_NOT_IMPLEMENTED;
+        mCapslManager->ResolveIntent(
+                    newIntent, resolvedType,
+                    CapsuleManager_MATCH_DEFAULT_ONLY | STOCK_PM_FLAGS, (IResolveInfo**)&rInfo);
+        aInfo = rInfo != NULL ? mAct_Info : NULL;
+    } catch (RemoteException e) {
+        aInfo = NULL;
+    }
+
+    if (aInfo != NULL) {
+        // Store the found target back into the intent, because now that
+        // we have it we never want to do this again.  For example, if the
+        // user navigates back to this point in the history, we should
+        // always restart the exact same activity.
+        AutoPtr<IComponentName> mCName;
+        AutoPtr<IApplicationInfo> mAppInfo;
+        String mCapslName;
+        aInfo->GetApplicationInfo((IApplicationInfo**)&mAppInfo);
+        mAppInfo->GetCapsuleName(&mCapslName);
+        String mName;
+        aInfo->GetName(&mName);
+        CComponentName::New(mCapslName,mName,(IComponentName**)&mCName);
+        newIntent->SetComponent(mCName);
+    }
+
+
+    {
+        Mutex::Autolock lock(_m_syncLock);
+
+        Int32 res;
+        mMainStack->StartActivityLocked(NULL, intent, resolvedType,
+                NULL, 0, aInfo, resultTo, resultWho, requestCode, -1, uid,
+                onlyIfNeeded, componentSpecified, &res);
+        return res;
+    }
+//    return E_NOT_IMPLEMENTED;
 }
 
 void CActivityManagerService::AddRecentTaskLocked(
@@ -1495,30 +1570,31 @@ ECode CActivityManagerService::FinishSubActivity(
     /* [in] */ const String& resultWho,
     /* [in] */ Int32 requestCode)
 {
-//    synchronized(this) {
-//        int index = mMainStack.indexOfTokenLocked(token);
-//        if (index < 0) {
-//            return;
-//        }
-//        ActivityRecord self = (ActivityRecord)mMainStack.mHistory.get(index);
-//
-//        final long origId = Binder.clearCallingIdentity();
-//
-//        int i;
-//        for (i=mMainStack.mHistory.size()-1; i>=0; i--) {
-//            ActivityRecord r = (ActivityRecord)mMainStack.mHistory.get(i);
-//            if (r.resultTo == self && r.requestCode == requestCode) {
-//                if ((r.resultWho == null && resultWho == null) ||
-//                    (r.resultWho != null && r.resultWho.equals(resultWho))) {
-//                    mMainStack.finishActivityLocked(r, i,
-//                            Activity.RESULT_CANCELED, null, "request-sub");
-//                }
-//            }
-//        }
-//
-//        Binder.restoreCallingIdentity(origId);
-//    }
-    return E_NOT_IMPLEMENTED;
+    {
+        Mutex::Autolock lock(_m_syncLock);
+        Int32 index = mMainStack->GetIndexOfTokenLocked(token);
+        if (index < 0) {
+            return FALSE;
+        }
+        AutoPtr<CActivityRecord> self = (CActivityRecord*)mMainStack->mHistory[index];
+
+        const long origId = Process::ClearCallingIdentity();
+
+        Int32 i;
+        for (i=mMainStack->mHistory.GetSize()-1; i>=0; i--) {
+            AutoPtr<CActivityRecord> r = (CActivityRecord*)mMainStack->mHistory[i];
+            if (r->mResultTo == self && r->mRequestCode == requestCode) {
+                if ((r->mResultWho == NULL && resultWho == NULL) ||
+                    (r->mResultWho != NULL && r->mResultWho == (resultWho))) {
+                    mMainStack->FinishActivityLocked(r, i,
+                            Activity_RESULT_CANCELED, NULL, "request-sub");
+                }
+            }
+        }
+
+        Process::RestoreCallingIdentity(origId);
+    }
+    //return E_NOT_IMPLEMENTED;
 }
 
 ECode CActivityManagerService::WillActivityBeVisible(
@@ -2903,24 +2979,26 @@ ECode CActivityManagerService::GetCallingActivity(
     /* [in] */ IBinder* token,
     /* [out] */ IComponentName** activity)
 {
-//    synchronized (this) {
-//        ActivityRecord r = getCallingRecordLocked(token);
-//        return r != null ? r.intent.getComponent() : null;
-//    }
-    return E_NOT_IMPLEMENTED;
+    {
+        Mutex::Autolock lock(_m_syncLock);
+
+        AutoPtr<CActivityRecord> r = GetCallingRecordLocked(token);
+        r != NULL ? r->mIntent->GetComponent(activity) : NULL;
+        return NOERROR;
+    }
+    //return E_NOT_IMPLEMENTED;
 }
 
 CActivityRecord* CActivityManagerService::GetCallingRecordLocked(
     /* [in] */ IBinder* token)
 {
-//    int index = mMainStack.indexOfTokenLocked(token);
-//    if (index >= 0) {
-//        ActivityRecord r = (ActivityRecord)mMainStack.mHistory.get(index);
-//        if (r != null) {
-//            return r.resultTo;
-//        }
-//    }
-//    return null;
+    Int32 index = mMainStack->GetIndexOfTokenLocked(token);
+    if (index >= 0) {
+        AutoPtr<CActivityRecord> r = (CActivityRecord*)mMainStack->mHistory[index];
+        if (r != NULL) {
+            return r->mResultTo;
+        }
+    }
     return NULL;
 }
 
@@ -2928,15 +3006,17 @@ ECode CActivityManagerService::GetActivityClassForToken(
     /* [in] */ IBinder* token,
     /* [out] */ IComponentName** activityCls)
 {
-//    synchronized(this) {
-//        int index = mMainStack.indexOfTokenLocked(token);
-//        if (index >= 0) {
-//            ActivityRecord r = (ActivityRecord)mMainStack.mHistory.get(index);
-//            return r.intent.getComponent();
-//        }
-//        return null;
-//    }
-    return E_NOT_IMPLEMENTED;
+    {
+        Mutex::Autolock lock(_m_syncLock);
+        Int32 index = mMainStack->GetIndexOfTokenLocked(token);
+        if (index >= 0) {
+            AutoPtr<CActivityRecord> r = (CActivityRecord*)mMainStack->mHistory[index];
+            r->mIntent->GetComponent(activityCls);
+
+        }
+        return NULL;
+    }
+    //return E_NOT_IMPLEMENTED;
 }
 
 ECode CActivityManagerService::GetCapsuleForToken(
@@ -4389,31 +4469,32 @@ ECode CActivityManagerService::GetTaskForActivity(
     /* [in] */ Boolean onlyRoot,
     /* [out] */ Int32* taskId)
 {
-//    synchronized(this) {
-//        return getTaskForActivityLocked(token, onlyRoot);
-//    }
-    return E_NOT_IMPLEMENTED;
+    {
+        Mutex::Autolock lock(_m_syncLock);
+        return GetTaskForActivityLocked(token, onlyRoot);
+    }
+    //return E_NOT_IMPLEMENTED;
 }
 
 Int32 CActivityManagerService::GetTaskForActivityLocked(
     /* [in] */ IBinder* token,
     /* [in] */ Boolean onlyRoot)
 {
-//    final int N = mMainStack.mHistory.size();
-//    TaskRecord lastTask = null;
-//    for (int i=0; i<N; i++) {
-//        ActivityRecord r = (ActivityRecord)mMainStack.mHistory.get(i);
-//        if (r == token) {
-//            if (!onlyRoot || lastTask != r.task) {
-//                return r.task.taskId;
-//            }
-//            return -1;
-//        }
-//        lastTask = r.task;
-//    }
-//
-//    return -1;
-    return 0;
+    const Int32 N = mMainStack->mHistory.GetSize();
+    TaskRecord* lastTask = NULL;
+    for (Int32 i=0; i<N; i++) {
+        AutoPtr<CActivityRecord> r = (CActivityRecord*)mMainStack->mHistory[i];
+        if (r == token) {
+            if (!onlyRoot || lastTask != r->mTask) {
+                return r->mTask->mTaskId;
+            }
+            return -1;
+        }
+        lastTask = r->mTask;
+    }
+
+    return -1;
+//    return 0;
 }
 
 ECode CActivityManagerService::FinishOtherInstances(
@@ -5475,12 +5556,13 @@ ECode CActivityManagerService::SetAlwaysFinish(
 ECode CActivityManagerService::SetActivityController(
     /* [in] */ IActivityController* controller)
 {
-//    enforceCallingPermission(android.Manifest.permission.SET_ACTIVITY_WATCHER,
-//            "setActivityController()");
-//    synchronized (this) {
-//        mController = controller;
-//    }
-    return E_NOT_IMPLEMENTED;
+    EnforceCallingPermission(String("elastos.permission.SET_ACTIVITY_WATCHER"),/*android.Manifest.permission.SET_ACTIVITY_WATCHER,*/
+            "setActivityController()");
+    {
+        Mutex::Autolock lock(_m_syncLock);
+        mController = controller;
+    }
+    return NOERROR;
 }
 
 ECode CActivityManagerService::IsUserAMonkey(

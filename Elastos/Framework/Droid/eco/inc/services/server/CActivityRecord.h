@@ -106,7 +106,7 @@ public:
     AutoPtr<IBinder> mCaller;
     Boolean mSendResult;
     String mActivityName;
-
+    String mResolvedType; // as per original caller;
     String mCapsuleName; // the package implementing intent's component
     String mProcessName; // process where this component wants to run
     String mTaskAffinity; // as per ActivityInfo.taskAffinity
