@@ -14,3 +14,6 @@ SOURCES += CCredentials.cpp
 SOURCES += CLocalSocketAddress.cpp
 SOURCES += CLocalSocket.cpp
 SOURCES += SntpClient.cpp
+SOURCES += CNetworkInfo.cpp
+SOURCES += CConnectivityManager.cpp
+SOURCES += CConnectivityManagerHelper.cpp

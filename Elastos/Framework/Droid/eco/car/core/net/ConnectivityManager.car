@@ -153,7 +153,46 @@ module
     /** {@hide} */
     const ConnectivityManager_TYPE_ETHERNET    = 9;
 
+    /** {@hide} TODO: Need to adjust this for WiMAX. */
+    const ConnectivityManager_MAX_RADIO_TYPE   = 9;
+
+    /** {@hide} TODO: Need to adjust this for WiMAX. */
+    const ConnectivityManager_MAX_NETWORK_TYPE = 9;
+
     const ConnectivityManager_DEFAULT_NETWORK_PREFERENCE = 1;
+
+    /** {@hide} */
+    const ConnectivityManager_TETHER_ERROR_NO_ERROR           = 0;
+
+    /** {@hide} */
+    const ConnectivityManager_TETHER_ERROR_UNKNOWN_IFACE      = 1;
+
+    /** {@hide} */
+    const ConnectivityManager_TETHER_ERROR_SERVICE_UNAVAIL    = 2;
+
+    /** {@hide} */
+    const ConnectivityManager_TETHER_ERROR_UNSUPPORTED        = 3;
+
+    /** {@hide} */
+    const ConnectivityManager_TETHER_ERROR_UNAVAIL_IFACE      = 4;
+
+    /** {@hide} */
+    const ConnectivityManager_TETHER_ERROR_MASTER_ERROR       = 5;
+    
+    /** {@hide} */
+    const ConnectivityManager_TETHER_ERROR_TETHER_IFACE_ERROR = 6;
+
+    /** {@hide} */
+    const ConnectivityManager_TETHER_ERROR_UNTETHER_IFACE_ERROR = 7;
+
+    /** {@hide} */
+    const ConnectivityManager_TETHER_ERROR_ENABLE_NAT_ERROR     = 8;
+
+    /** {@hide} */
+    const ConnectivityManager_TETHER_ERROR_DISABLE_NAT_ERROR    = 9;
+
+    /** {@hide} */
+    const ConnectivityManager_TETHER_ERROR_IFACE_CFG_ERROR      = 10;
 
     interface ILocalConnectivityManager {
         SetNetworkPreference(
@@ -171,6 +210,17 @@ module
 
         GetAllNetworkInfo(
             [out] IObjectContainer** networkInfo);
+
+        /** {@hide} */
+        SetRadios(
+            [in] Boolean turnOn,
+            [out] Boolean* result);
+
+        /** {@hide} */
+        SetRadio(
+            [in] Int32 networkType,
+            [in] Boolean turnOn,
+            [out] Boolean* result);
 
         /**
          * Tells the underlying networking system that the caller wants to
@@ -215,7 +265,7 @@ module
          */
         RequestRouteToHost(
             [in] Int32 networkType,
-            [in] String hostAddress,
+            [in] Int32 hostAddress,
             [out] Boolean* result);
 
         /**
@@ -231,5 +281,115 @@ module
          */
         GetBackgroundDataSetting(
             [out] Boolean* isAllowed);
+
+        /**
+         * Sets the value of the setting for background data usage.
+         *
+         * @param allowBackgroundData Whether an application should use data while
+         *            it is in the background.
+         *
+         * @attr ref android.Manifest.permission#CHANGE_BACKGROUND_DATA_SETTING
+         * @see #getBackgroundDataSetting()
+         * @hide
+         */
+        SetBackgroundDataSetting(
+            [in] Boolean allowBackgroundData);
+
+        /**
+         * Gets the value of the setting for enabling Mobile data.
+         *
+         * @return Whether mobile data is enabled.
+         * @hide
+         */
+        GetMobileDataEnabled(
+            [out] Boolean* result);
+
+        /**
+         * Sets the persisted value for enabling/disabling Mobile data.
+         *
+         * @param enabled Whether the mobile data connection should be
+         *            used or not.
+         * @hide
+         */
+        SetMobileDataEnabled(
+            [in] Boolean enabled);
+
+        /**
+         * {@hide}
+         */
+        GetTetherableIfaces(
+            [out, callee] ArrayOf<String>* result);
+
+        /**
+         * {@hide}
+         */
+        GetTetheredIfaces(
+            [out, callee] ArrayOf<String>* result);
+
+        /**
+         * {@hide}
+         */
+        GetTetheringErroredIfaces(
+            [out, callee] ArrayOf<String>* result);
+
+        /**
+         * @return error A TETHER_ERROR value indicating success or failure type
+         * {@hide}
+         */
+        Tether(
+            [in] String iface,
+            [out] Int32* result);
+
+        /**
+         * @return error A TETHER_ERROR value indicating success or failure type
+         * {@hide}
+         */
+        Untether(
+            [in] String iface,
+            [out] Int32* result);
+
+        /**
+         * {@hide}
+         */
+        IsTetheringSupported(
+            [out] Boolean* result);
+
+        /**
+         * {@hide}
+         */
+        GetTetherableUsbRegexs(
+            [out, callee] ArrayOf<String>* result);
+
+        /**
+         * {@hide}
+         */
+        GetTetherableWifiRegexs(
+            [out, callee] ArrayOf<String>* result);
+
+        /**
+         * @param iface The name of the interface we're interested in
+         * @return error The error code of the last error tethering or untethering the named
+         *               interface
+         * {@hide}
+         */
+        GetLastTetherError(
+            [in] String iface,
+            [out] Int32* result);
+
+        /**
+         * @param networkType The type of network you want to report on
+         * @param percentage The quality of the connection 0 is bad, 100 is good
+         * {@hide}
+         */
+        ReportInetCondition(
+            [in] Int32 networkType,
+            [in] Int32 percentage);
+    }
+
+    interface ILocalConnectivityManagerHelper {
+
+        IsNetworkTypeValid(
+            [in] Int32 networkType,
+            [out] Boolean* isNetworkTypeValid);
     }
 }

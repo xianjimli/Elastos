@@ -56,7 +56,6 @@ module
         NetworkInfoDetailedState_FAILED
     }
 
-
     interface INetworkInfo {
         /**
          * Reports the type of network (currently mobile or Wi-Fi) to which the
