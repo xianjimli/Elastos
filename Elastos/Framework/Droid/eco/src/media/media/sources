@@ -17,3 +17,5 @@ SOURCES += CAudioTrack.cpp
 SOURCES += AudioSystem.cpp
 SOURCES += AudioManager.cpp
 SOURCES += CAudioManager.cpp
+SOURCES += AudioService.cpp
+SOURCES += CAudioService.cpp

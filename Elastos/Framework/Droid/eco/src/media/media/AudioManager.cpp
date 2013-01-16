@@ -2,6 +2,25 @@
 #include "media/AudioManager.h"
 #include "os/ServiceManager.h"
 
+const String AudioManager::VOLUME_CHANGED_ACTION/* = "android.media.VOLUME_CHANGED_ACTION"*/;
+
+const String AudioManager::EXTRA_VIBRATE_SETTING/* = "android.media.EXTRA_VIBRATE_SETTING"*/;
+
+const String AudioManager::EXTRA_VIBRATE_TYPE/* = "android.media.EXTRA_VIBRATE_TYPE"*/;
+
+const String AudioManager::EXTRA_VOLUME_STREAM_TYPE/* = "android.media.EXTRA_VOLUME_STREAM_TYPE"*/;
+
+const String AudioManager::EXTRA_VOLUME_STREAM_VALUE/* =
+    "android.media.EXTRA_VOLUME_STREAM_VALUE"*/;
+
+const String AudioManager::ACTION_AUDIO_BECOMING_NOISY/* = "android.media.AUDIO_BECOMING_NOISY"*/;
+
+/**
+ * @hide The previous volume associated with the stream for the volume changed intent.
+ */
+const String AudioManager::EXTRA_PREV_VOLUME_STREAM_VALUE/* =
+    "android.media.EXTRA_PREV_VOLUME_STREAM_VALUE"*/;
+
 AutoPtr<IAudioService> AudioManager::sService;
 
 static const Int32 R_Bool_Config_bluetooth_sco_off_call=0x010d0011;

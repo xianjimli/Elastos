@@ -2,6 +2,7 @@
 module
 {
     merge("media/AudioFocusDispatcher.car");
+    merge("media/IAudioService.car");
     merge("media/AudioService.car");
     merge("media/MediaScannerListener.car");
     merge("media/MediaScannerService.car");
@@ -35,5 +36,12 @@ module
             [in] IContext* context);
 
         interface IAudioManager;
+    }
+
+    class CAudioService {
+        constructor(
+            [in] IContext* context);
+
+        interface IAudioService;
     }
 }
