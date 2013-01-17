@@ -5,6 +5,7 @@
 #include "Elastos.Net_server.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/Mutex.h>
+#include <elastos/ElRefBase.h>
 
 using namespace Elastos;
 using namespace Elastos::Core::Threading;
@@ -22,26 +23,63 @@ extern "C" const InterfaceID EIID_Authenticator;
  * @see #setDefault
  * @see #getPasswordAuthentication
  */
-class Authenticator
+class Authenticator : public ElRefBase
 {
 public:
     Authenticator();
 
+    /**
+     * Returns the collected username and password for authorization. The
+     * subclass has to override this method to return a value different to the
+     * default which is {@code null}.
+     * <p>
+     * Returns {@code null} by default.
+     *
+     * @return collected password authentication data.
+     */
     virtual CARAPI GetPasswordAuthentication(
         /* [out] */ IPasswordAuthentication** passwordAuthentication);
 
+    /**
+     * Returns the port of the connection that requests authorization.
+     *
+     * @return port of the connection.
+     */
     virtual CARAPI GetRequestingPort(
         /* [out] */ Int32* port);
 
+    /**
+     * Returns the address of the connection that requests authorization or
+     * {@code null} if unknown.
+     *
+     * @return address of the connection.
+     */
     virtual CARAPI GetRequestingSite(
         /* [out] */ IInetAddress** address);
 
+    /**
+     * Returns the realm (prompt string) of the connection that requests
+     * authorization.
+     *
+     * @return prompt string of the connection.
+     */
     virtual CARAPI GetRequestingPrompt(
         /* [out] */ String* prompt);
 
+    /**
+     * Returns the protocol of the connection that requests authorization.
+     *
+     * @return protocol of the connection.
+     */
     virtual CARAPI GetRequestingProtocol(
         /* [out] */ String* protocol);
 
+    /**
+     * Returns the scheme of the connection that requests authorization, for
+     * example HTTP Basic Authentication.
+     *
+     * @return scheme of the connection.
+     */
     virtual CARAPI GetRequestingScheme(
         /* [out] */ String* scheme);
 
@@ -159,22 +197,38 @@ public:
         /* [in] */ AuthenticatorRequestorType reqType,
         /* [out] */ IPasswordAuthentication** passwordAuthentication);
 
+    /**
+     * Returns the host name of the connection that requests authentication or
+     * {@code null} if unknown.
+     *
+     * @return name of the requesting host or {@code null}.
+     */
     virtual CARAPI GetRequestingHost(
         /* [out] */ String* hostName);
 
+    /**
+     * Returns the URL of the authentication request.
+     *
+     * @return authentication request url.
+     */
     virtual CARAPI GetRequestingURL(
         /* [out] */ IURL** url);
 
+    /**
+     * Returns the type of this request, it can be {@code PROXY} or {@code SERVER}.
+     *
+     * @return RequestorType of the authentication request.
+     */
     virtual CARAPI GetRequestorType(
         /* [out] */ AuthenticatorRequestorType* requestorType);
 
 private:
     // the default authenticator that needs to be set
-    static AutoPtr<IAuthenticator> mThisAuthenticator;
+    static AutoPtr<Authenticator> sThisAuthenticator;
 
-    static AutoPtr<INetPermission> mRequestPasswordAuthenticationPermission;
+    static AutoPtr<INetPermission> sRequestPasswordAuthenticationPermission;
 
-    static AutoPtr<INetPermission> mSetDefaultAuthenticatorPermission;
+    static AutoPtr<INetPermission> sSetDefaultAuthenticatorPermission;
 
     // the requester connection info
     String mHost;
@@ -193,7 +247,7 @@ private:
 
     AuthenticatorRequestorType mRt;
 
-    static Mutex* mLock;
+    static Mutex sLock;
 };
 
 #endif //__AUTHENTICATOR_H__

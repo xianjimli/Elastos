@@ -71,15 +71,3 @@ ECode CObjectStringMap::GetAllItems(
 
     return NOERROR;
 }
-
-// ECode CObjectStringMap::ReadFromParcel(
-//     /* [in] */ IParcel *source)
-// {
-//     return E_NOT_IMPLEMENTED;
-// }
-
-// ECode CObjectStringMap::WriteToParcel(
-//     /* [in] */ IParcel *dest)
-// {
-//     return E_NOT_IMPLEMENTED;
-// }

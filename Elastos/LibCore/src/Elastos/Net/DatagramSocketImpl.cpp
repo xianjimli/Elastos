@@ -1,6 +1,7 @@
 
 #include "cmdef.h"
 #include "DatagramSocketImpl.h"
+#include <Com.Kortide.Platform.h>
 
 DatagramSocketImpl::DatagramSocketImpl()
     : mLocalPort(-1)
@@ -9,28 +10,31 @@ DatagramSocketImpl::DatagramSocketImpl()
 ECode DatagramSocketImpl::GetFileDescriptor(
     /* [out] */ IFileDescriptor** fileDescriptor)
 {
-    VALIDATE_NOT_NULL(fileDescriptor);
+    assert(fileDescriptor != NULL);
     *fileDescriptor = mFd;
+    if (*fileDescriptor != NULL) (*fileDescriptor)->AddRef();
     return NOERROR;
 }
 
 ECode DatagramSocketImpl::GetLocalAddress(
     /* [out] */ IInetAddress** address)
 {
-    VALIDATE_NOT_NULL(address);
+    assert(address != NULL);
 
     AutoPtr<IPlatform> platform;
     AutoPtr<INetworkSystem> netSystem;
-    ASSERT_SUCCEEDED(CPlatform::AcquireSingleton((IPlatform**)&platform));
-    ASSERT_SUCCEEDED(platform->GetNetworkSystem((INetworkSystem**)&netSystem));
-
-    return E_NOT_IMPLEMENTED;//netSystem->GetSocketLocalAddress(mFd, address);
+    FAIL_RETURN(CPlatform::AcquireSingleton((IPlatform**)&platform));
+    FAIL_RETURN(platform->GetNetworkSystem((INetworkSystem**)&netSystem));
+    //Todo:
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+    // return netSystem->GetSocketLocalAddress(mFd, address);
 }
 
 ECode DatagramSocketImpl::GetLocalPort(
     /* [out] */ Int32* port)
 {
-    VALIDATE_NOT_NULL(port);
+    assert(port != NULL);
     *port = mLocalPort;
     return NOERROR;
 }

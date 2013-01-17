@@ -430,7 +430,7 @@ ECode CActivityManagerService::GetCommonServicesLocked(
         (*mAppBindArgs)[String(Context_ALARM_SERVICE)] = serviceManager;
     }
 
-    CObjectStringMap::New(services);
+    CParcelableObjectStringMap::New(services);
     (*services)->Put(String("capsule"), (*mAppBindArgs)[String("capsule")]);
     (*services)->Put(String("window"), (*mAppBindArgs)[String("window")]);
     (*services)->Put(String(Context_ALARM_SERVICE), (*mAppBindArgs)[String(Context_ALARM_SERVICE)]);

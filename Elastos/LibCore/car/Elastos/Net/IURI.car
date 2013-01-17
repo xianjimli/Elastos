@@ -1,11 +1,7 @@
 
 module
 {
-    const URI_UNRESERVED = "_-!.~\'()*";
-    const URI_PUNCTUATION = ",;:$&+=";
-    const URI_RESERVED = ",;:$&+=?/[]@";
-    const URI_SOME_LEGAL = "_-!.~\'()*,;:$&+=";
-    const URI_ALL_LEGAL = "_-!.~\'()*,;:$&+=?/[]@";
+    interface IURL;
 
     interface IURI {
         /**

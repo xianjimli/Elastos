@@ -210,6 +210,51 @@ Int32 StringBuffer::GetLength()
     return mLength;
 }
 
+void StringBuffer::SetLength(Int32 length)
+{
+    assert(0);
+}
+
+// Note that this function takes O(N) time to calculate the value.
+// No cache value is stored.
+UInt32 StringBuffer::GetCharCount() const
+{
+    Int32 number;
+    Character::GetCharCount(CString(mString), 0, mLength, &number);
+    return number;
+}
+
+Int32 StringBuffer::GetChar(UInt32 index) const
+{
+    Char32 c;
+    Character::GetCharAt(CString(mString), index, &c);
+    return (Int32)c;
+}
+
+void StringBuffer::Insert(Int32 index, const String& str)
+{
+    //Todo: not implemented;
+    assert(0);
+}
+
+void StringBuffer::Insert(Int32 index, const char* str)
+{
+    //Todo: not implemented;
+    assert(0);
+}
+
+void StringBuffer::SetChar(Int32 index, Char32 ch)
+{
+    //Todo: not implemented;
+    assert(0);
+}
+
+void StringBuffer::DeleteChar(Int32 index)
+{
+    //Todo: not implemented;
+    assert(0);
+}
+
 } // Utility
 } // Elastos
 
@@ -268,4 +313,3 @@ StringBuffer operator+(const StringBuffer& left, const void* right)
     tmp += right;
     return tmp;
 }
-

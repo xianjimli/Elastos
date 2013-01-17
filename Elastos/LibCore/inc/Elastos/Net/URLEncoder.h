@@ -4,7 +4,6 @@
 
 #include "cmdef.h"
 #include <elastos.h>
-#include <Com.Kortide.Platform.h>
 #include <StringBuffer.h>
 
 using namespace Elastos;
@@ -33,7 +32,7 @@ public:
     //@Deprecated
     static CARAPI Encode(
         /* [in] */ const String& s,
-        /* [out] */ String* encodeS);
+        /* [out] */ String* encodedStr);
 
     /**
      * Encodes the given string {@code s} in a x-www-form-urlencoded string
@@ -52,10 +51,10 @@ public:
      * @throws UnsupportedEncodingException
      *             if the specified encoding scheme is invalid.
      */
-    static CARAPI EncodeEx(
+    static CARAPI Encode(
         /* [in] */ const String& s,
         /* [in] */ const String& enc,
-        /* [out] */ String* encodeS);
+        /* [out] */ String* encodedStr);
 
 private:
     /**
@@ -65,11 +64,11 @@ private:
 
     static CARAPI_(void) Convert(
         /* [in] */ const String& s,
-        /* [in] */ StringBuffer buf,
+        /* [in] */ StringBuffer& buf,
         /* [in] */ const String& enc);
 
 public:
-    static const String mDigits;
+    static const CString sDigits;
 };
 
 #endif //__URLENCODER_H__

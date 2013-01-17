@@ -7,6 +7,7 @@
 #include <StringBuffer.h>
 #include <elastos/Math.h>
 #include <elastos/AutoPtr.h>
+#include <Elastos.Security.h>
 
 using namespace Elastos::Core;
 
@@ -20,12 +21,12 @@ ECode URLStreamHandler::OpenConnectionEx(
     /* [out] */ IURLConnection** urlConnection)
 {
 //    throw new UnsupportedOperationException();
-    return E_NOT_IMPLEMENTED;
+    return E_UNSUPPORTED_OPERATION_EXCEPTION;
 }
 
 ECode URLStreamHandler::ParseURL(
     /* [in] */ IURL* u,
-    /* [in] */ String str,
+    /* [in] */ const String& str,
     /* [in] */ Int32 start,
     /* [in] */ Int32 end)
 {
@@ -34,21 +35,21 @@ ECode URLStreamHandler::ParseURL(
     if (temp.StartWith("//")
             && str.IndexOf('/', start + 2) == -1
             && end <= Math::INT32_MIN_VALUE + 1) {
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;//todo: the error code should be changed
 //        throw new StringIndexOutOfBoundsException(end - 2 - start);
+        return E_STRING_INDEX_OUT_OF_BOUNDS_EXCEPTION;
     }
 
     if (end < start) {
         URLStreamHandler* handler =
                 (URLStreamHandler*)((CURL*)u)->mStrmHandler->Probe(EIID_URLStreamHandler);
         if (this != handler) {
-            return E_ILLEGAL_ARGUMENT_EXCEPTION;//todo: the error code should be changed
 //            throw new SecurityException();
+            return E_SECURITY_EXCEPTION;
         }
         return NOERROR;
     }
 
-    String parseString = String("");
+    String parseString("");
     if (start < end) {
         parseString = str.Substring(start, end);
     }
@@ -80,7 +81,7 @@ ECode URLStreamHandler::ParseURL(
         if (fileIdx == -1) {
             fileIdx = end;
             // Use default
-            file = String("");
+            file = "";
         }
         Int32 hostEnd = fileIdx;
         if (refIdx != -1 && refIdx < fileIdx) {
@@ -99,8 +100,8 @@ ECode URLStreamHandler::ParseURL(
         // if there are square braces, ie. IPv6 address, use last ':'
         if (endOfIPv6Addr != -1) {
 //            try {
-            if (parseString.GetLength() > (UInt32)(endOfIPv6Addr + 1)) {
-                Char32 c = parseString[endOfIPv6Addr + 1];
+            if (parseString.GetCharCount() > endOfIPv6Addr + 1) {
+                Char32 c = parseString.GetChar(endOfIPv6Addr + 1);
                 if (c == ':') {
                     portIdx = endOfIPv6Addr + 1;
                 }
@@ -122,7 +123,7 @@ ECode URLStreamHandler::ParseURL(
         else {
             host = parseString.Substring(hostIdx, portIdx);
             String portString = parseString.Substring(portIdx + 1, hostEnd);
-            if (portString.GetLength() == 0) {
+            if (portString.GetCharCount() == 0) {
                 port = -1;
             }
             else {
@@ -151,19 +152,21 @@ ECode URLStreamHandler::ParseURL(
             file = file.Substring(0, last);
         }
         fileEnd = queryIdx;
-    } //else
-    // Don't inherit query unless only the ref is changed
-    if (refIdx != 0) {
-        query = NULL;
+    }
+    else {
+        // Don't inherit query unless only the ref is changed
+        if (refIdx != 0) {
+            query = NULL;
+        }
     }
 
     if (fileIdx > -1) {
-        if (fileIdx < end && parseString[fileIdx] == '/') {
+        if (fileIdx < end && parseString.GetChar(fileIdx) == '/') {
             file = parseString.Substring(fileIdx, fileEnd);
         }
         else if (fileEnd > fileIdx) {
             if (file == NULL) {
-                file = String("");
+                file = "";
             }
             else if (file.IsEmpty()) {
                 file = "/";
@@ -182,16 +185,17 @@ ECode URLStreamHandler::ParseURL(
         }
     }
     if (file == NULL) {
-        file = String("");
+        file = "";
     }
 
     if (host == NULL) {
-        host = String("");
+        host = "";
     }
 
     if (canonicalize) {
         // modify file if there's any relative referencing
-//        file = URLUtil.canonicalizePath(file);
+        assert(0);
+        // file = URLUtil.canonicalizePath(file);
     }
 
     String protocol;
@@ -202,42 +206,40 @@ ECode URLStreamHandler::ParseURL(
 
 ECode URLStreamHandler::SetURL(
     /* [in] */ IURL* u,
-    /* [in] */ String protocol,
-    /* [in] */ String host,
+    /* [in] */ const String& protocol,
+    /* [in] */ const String& host,
     /* [in] */ Int32 port,
-    /* [in] */ String file,
-    /* [in] */ String ref)
+    /* [in] */ const String& file,
+    /* [in] */ const String& ref)
 {
     URLStreamHandler* handler =
             (URLStreamHandler*)((CURL*)u)->mStrmHandler->Probe(EIID_URLStreamHandler);
     if (this != handler) {
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;//todo: the error code should be changed
 //            throw new SecurityException();
+        return E_SECURITY_EXCEPTION;
     }
     ((CURL*)u)->Set(protocol, host, port, file, ref);
-
     return NOERROR;
 }
 
 ECode URLStreamHandler::SetURLEx(
     /* [in] */ IURL* u,
-    /* [in] */ String protocol,
-    /* [in] */ String host,
+    /* [in] */ const String& protocol,
+    /* [in] */ const String& host,
     /* [in] */ Int32 port,
-    /* [in] */ String authority,
-    /* [in] */ String userInfo,
-    /* [in] */ String file,
-    /* [in] */ String query,
-    /* [in] */ String ref)
+    /* [in] */ const String& authority,
+    /* [in] */ const String& userInfo,
+    /* [in] */ const String& file,
+    /* [in] */ const String& query,
+    /* [in] */ const String& ref)
 {
     URLStreamHandler* handler =
             (URLStreamHandler*)((CURL*)u)->mStrmHandler->Probe(EIID_URLStreamHandler);
     if (this != handler) {
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;//todo: the error code should be changed
 //            throw new SecurityException();
+        return E_SECURITY_EXCEPTION;
     }
-    ((CURL*)u)->Set(protocol, host, port, file, ref);
-
+    ((CURL*)u)->Set(protocol, host, port, authority, userInfo, file, query, ref);
     return NOERROR;
 }
 
@@ -245,7 +247,7 @@ ECode URLStreamHandler::ToExternalForm(
     /* [in] */ IURL* url,
     /* [out] */ String* s)
 {
-    VALIDATE_NOT_NULL(s);
+    assert(s != NULL);
 
     StringBuffer answer;
     String protocol;
@@ -269,8 +271,7 @@ ECode URLStreamHandler::ToExternalForm(
         answer += '#';
         answer += ref;
     }
-    *s = String(answer);
-
+    *s = answer;
     return NOERROR;
 }
 
@@ -279,11 +280,10 @@ ECode URLStreamHandler::Equals(
     /* [in] */ IURL* url2,
     /* [out] */ Boolean* isEquals)
 {
-    VALIDATE_NOT_NULL(isEquals);
+    assert(isEquals != NULL);
 
     Boolean isSame;
-    SameFile(url1, url2, &isSame);
-    if (!isSame) {
+    if (SameFile(url1, url2, &isSame), !isSame) {
         *isEquals = FALSE;
         return NOERROR;
     }
@@ -294,14 +294,13 @@ ECode URLStreamHandler::Equals(
     url2->GetQuery(&query2);
     *isEquals = ref1.Equals(ref2)
             && query1.Equals(query2);
-
     return NOERROR;
 }
 
 ECode URLStreamHandler::GetDefaultPort(
     /* [out] */ Int32* portNum)
 {
-    VALIDATE_NOT_NULL(portNum);
+    assert(portNum != NULL);
     *portNum = -1;
     return NOERROR;
 }
@@ -310,11 +309,11 @@ ECode URLStreamHandler::GetHostAddress(
     /* [in] */ IURL* url,
     /* [out] */ IInetAddress** hostAddress)
 {
-    VALIDATE_NOT_NULL(hostAddress);
+    assert(hostAddress != NULL);
 //    try {
     String host;
     url->GetHost(&host);
-    if (host.IsNull() || host.GetLength() == 0) {
+    if (host.IsNull() || host.GetCharCount() == 0) {
         *hostAddress = NULL;
         return NOERROR;
     }
@@ -328,12 +327,11 @@ ECode URLStreamHandler::HashCode(
     /* [in] */ IURL* url,
     /* [out] */ Int32* code)
 {
-    VALIDATE_NOT_NULL(code);
+    assert(code != NULL);
 
     String s;
     ToExternalForm(url, &s);
     *code = s.GetHashCode();
-
     return NOERROR;
 }
 
@@ -342,12 +340,14 @@ ECode URLStreamHandler::HostsEqual(
     /* [in] */ IURL* b,
     /* [out] */ Boolean* isEqual)
 {
-    VALIDATE_NOT_NULL(isEqual);
+    assert(isEqual != NULL);
 
     /*
      * URLs with the same case-insensitive host name have equal hosts
      */
-    if (!GetHost(a).IsNull() && GetHost(a).EqualsIgnoreCase(GetHost(a))) {
+    String aHost = GetHost(a);
+    String bHost = GetHost(b);
+    if (!aHost.IsNull() && aHost.EqualsIgnoreCase(bHost)) {
         *isEqual = TRUE;
         return NOERROR;
     }
@@ -376,7 +376,7 @@ ECode URLStreamHandler::SameFile(
     /* [in] */ IURL* url2,
     /* [out] */ Boolean* isSame)
 {
-    VALIDATE_NOT_NULL(isSame);
+    assert(isSame != NULL);
 
     String protocol1, protocol2, file1, file2;
     url1->GetProtocol(&protocol1);
@@ -400,7 +400,6 @@ ECode URLStreamHandler::SameFile(
     //         && Objects.equal(url1.getFile(), url2.getFile())
     //         && hostsEqual(url1, url2)
     //         && url1.getEffectivePort() == url2.getEffectivePort();
-
     return NOERROR;
 }
 
@@ -411,8 +410,8 @@ String URLStreamHandler::GetHost(
     url->GetHost(&host);
     String protocol;
     url->GetProtocol(&protocol);
-    if (String("file").Equals(protocol) && host.IsEmpty()) {
-        host = String("localhost");
+    if (CString("file").Equals(protocol) && host.IsEmpty()) {
+        host = "localhost";
     }
     return host;
 }

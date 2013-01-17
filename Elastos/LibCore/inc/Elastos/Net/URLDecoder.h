@@ -4,7 +4,6 @@
 
 #include "cmdef.h"
 #include <elastos.h>
-#include <Com.Kortide.Platform.h>
 
 using namespace Elastos;
 
@@ -32,7 +31,7 @@ public:
     //@Deprecated
     static CARAPI Decode(
         /* [in] */ const String& s,
-        /* [out] */ String* decodeS);
+        /* [out] */ String* decodedStr);
 
     /**
      * Decodes the argument which is assumed to be encoded in the {@code
@@ -52,16 +51,18 @@ public:
      * @throws UnsupportedEncodingException
      *             if the specified encoding scheme is invalid.
      */
-    static CARAPI DecodeEx(
+    static CARAPI Decode(
         /* [in] */ const String& s,
         /* [in] */ const String& encoding,
-        /* [out] */ String* decodeS);
+        /* [out] */ String* decodedStr);
 
 private:
-    // static CARAPI DecodeEx2(
-    //     /* [in] */ const String& s,
-    //     /* [in] */ Charset charset,
-    //     /* [out] */ String* decodeS);
+    URLDecoder();
+
+//    static CARAPI Decode(
+//        /* [in] */ const String& s,
+//        /* [in] */ Charset charset,
+//        /* [out] */ String* decodedStr);
 };
 
 #endif //__URLDECODER_H__

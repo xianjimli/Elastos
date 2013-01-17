@@ -1,8 +1,6 @@
 
 #include "CProvider.h"
 
-CProvider::CProvider()
-{}
 
 ECode CProvider::GetName(
     /* [out] */ String* name)

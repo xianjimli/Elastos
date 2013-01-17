@@ -3,17 +3,16 @@
 #define __CSOCKET_H__
 
 #include "_CSocket.h"
+#include "Socket.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/Mutex.h>
 
 using namespace Elastos;
 using namespace Elastos::Core::Threading;
 
-CarClass(CSocket)
+CarClass(CSocket), public Socket
 {
 public:
-    CSocket();
-
     CARAPI Close();
 
     CARAPI GetInetAddress(
@@ -139,14 +138,6 @@ public:
     CARAPI SendUrgentData(
         /* [in] */ Int32 value);
 
-    /**
-     * Set the appropriate flags for a socket created by {@code
-     * ServerSocket.accept()}.
-     *
-     * @see ServerSocket#implAccept
-     */
-    CARAPI_(void) Accepted();
-
     CARAPI GetChannel(
         /* [out] */ ISocketChannel** channel);
 
@@ -214,7 +205,7 @@ private:
      *             if a security manager exists and it denies the permission to
      *             connect to the given address and port.
      */
-    CARAPI_(void) TryAllAddresses(
+    CARAPI TryAllAddresses(
         /* [in] */ const String& dstName,
         /* [in] */ Int32 dstPort,
         /* [in] */ IInetAddress* localAddress,
@@ -242,7 +233,7 @@ private:
      * @param dstPort
      *            the port on the destination host.
      */
-    CARAPI_(void) CheckConnectPermission(
+    CARAPI CheckConnectPermission(
         /* [in] */ const String& hostname,
         /* [in] */ Int32 dstPort);
 
@@ -283,23 +274,7 @@ private:
 
     CARAPI_(void) CacheLocalAddress();
 
-public:
-    AutoPtr<ISocketImpl> mImpl;
-
-private:
-    static AutoPtr<ISocketImplFactory> mFactory;
-
-    AutoPtr<IProxy> mProxy;
-
-    Boolean mIsCreated;
-    Boolean mIsBound;
-    Boolean mIsConnected;
-    Boolean mIsClosed;
-    Boolean mIsInputShutdown;
-    Boolean mIsOutputShutdown;
-
-    AutoPtr<IInetAddress> mLocalAddress;
-    Mutex* mLock;
+    CARAPI_(Mutex*) GetSelfLock();
 };
 
 #endif //__CSOCKET_H__

@@ -6,9 +6,10 @@ INCLUDES := $(MAKEDIR)/../../../inc/Elastos/Security;
 INCLUDES += $(MAKEDIR)/../../../inc/Elastos/common;
 INCLUDES += $(INCLUDESTEMP);
 
-IMPORTS = Com.Kortide.Platform.eco
+#IMPORTS = Com.Kortide.Platform.eco
+IMPORTS = Elastos.Core.eco
 
-C_DEFINES += -D_ELASTOSSECURITY_
+C_DEFINES += -DELASTOS_SECURITY_ECO
 
 SOURCES = Elastos.Security.car
 SOURCES += Permission.cpp

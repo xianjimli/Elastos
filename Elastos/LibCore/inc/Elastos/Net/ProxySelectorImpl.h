@@ -5,12 +5,13 @@
 #include "ProxySelector.h"
 #include <elastos/ElRefBase.h>
 
-//extern "C" const InterfaceID EIID_ProxySelectorImpl;
-
 /**
  * Default implementation for {@code ProxySelector}.
  */
-class ProxySelectorImpl : public ElRefBase, IProxySelector, ProxySelector
+class ProxySelectorImpl
+    : public ElRefBase
+    , public IProxySelector
+    , public ProxySelector
 {
 public:
     CARAPI_(PInterface) Probe(
@@ -24,11 +25,13 @@ public:
         /* [in] */ IInterface *pObject,
         /* [out] */ InterfaceID *pIID);
 
+    //@Override
     CARAPI ConnectFailed(
         /* [in] */ IURI* uri,
-        /* [in] */ ISocketAddress* sa
-        /*[in] IOException ioe*/);
+        /* [in] */ ISocketAddress* sa,
+        /* [in] */ ECode ec);
 
+    //@Override
     CARAPI Select(
         /* [in] */ IURI* uri,
         /* [out] */ IObjectContainer** container);
@@ -111,7 +114,7 @@ private:
      * gets system property, privileged operation. If the value of the property
      * is null or empty String, it returns defaultValue.
      */
-    CARAPI_(String) GetSystemPropertyEx(
+    CARAPI_(String) GetSystemProperty(
         /* [in] */ const String& property,
         /* [in] */ const String& defaultValue);
 

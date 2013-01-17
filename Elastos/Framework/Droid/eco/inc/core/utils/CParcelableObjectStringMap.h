@@ -1,20 +1,20 @@
 
-#ifndef __COBJECTSTRINGMAP_H__
-#define __COBJECTSTRINGMAP_H__
+#ifndef __CPARCELABLEOBJECTSTRINGMAP_H__
+#define __CPARCELABLEOBJECTSTRINGMAP_H__
 
 #include "ext/frameworkext.h"
+#include "_CParcelableObjectStringMap.h"
 #include <elastos/HashMap.h>
 #include <elastos/AutoPtr.h>
-#include "_CObjectStringMap.h"
 
 using namespace Elastos;
 
-CarClass(CObjectStringMap)
+CarClass(CParcelableObjectStringMap)
 {
 public:
-    CObjectStringMap();
+    CParcelableObjectStringMap();
 
-    ~CObjectStringMap();
+    ~CParcelableObjectStringMap();
 
     CARAPI Get(
         /* [in] */ const String& key,
@@ -41,4 +41,4 @@ private:
     HashMap<String, AutoPtr<IInterface> > mMap;
 };
 
-#endif //__COBJECTSTRINGMAP_H__
+#endif //__CPARCELABLEOBJECTSTRINGMAP_H__

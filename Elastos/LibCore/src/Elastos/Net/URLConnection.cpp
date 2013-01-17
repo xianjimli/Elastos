@@ -3,18 +3,10 @@
 #include "URLConnection.h"
 #include "DefaultFileNameMap.h"
 #include <elastos/Character.h>
+#include <StringBuffer.h>
 
 using namespace Elastos::Core;
 
-extern "C" const InterfaceID EIID_URLConnection =
-    { 0x6ef700a4, 0x2101, 0x4d37, { 0xbe, 0x26, 0x1f, 0xf9, 0xf6, 0x46, 0x35, 0x4f } };
-
-
-Boolean URLConnection::mDefaultAllowUserInteraction = FALSE;
-Boolean URLConnection::mDefaultUseCaches = TRUE;
-HashMap<String, AutoPtr<IContentHandler> > URLConnection::mContentHandlers;
-AutoPtr<IContentHandlerFactory> URLConnection::mContentHandlerFactory;
-AutoPtr<IFileNameMap> URLConnection::mFileNameMap;
 
 PInterface URLConnection::DefaultContentHandler::Probe(
     /* [in]  */ REIID riid)
@@ -50,44 +42,58 @@ ECode URLConnection::DefaultContentHandler::GetContent(
     /* [in] */ IURLConnection* uConn,
     /* [out] */ IInterface** obj)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(obj);
+    return uConn->GetInputStream((IInputStream**)obj);
 }
 
 ECode URLConnection::DefaultContentHandler::GetContentEx(
     /* [in] */ IURLConnection* uConn,
-    /* [in] */ const ArrayOf<IInterface*>& types,
+    /* [in] */ const ArrayOf<InterfaceID>& types,
     /* [out] */ IInterface** obj)
 {
     return E_NOT_IMPLEMENTED;
 }
 
+
+// extern "C" const InterfaceID EIID_URLConnection =
+//     { 0x6ef700a4, 0x2101, 0x4d37, { 0xbe, 0x26, 0x1f, 0xf9, 0xf6, 0x46, 0x35, 0x4f } };
+
+
+Boolean URLConnection::sDefaultAllowUserInteraction = FALSE;
+Boolean URLConnection::sDefaultUseCaches = TRUE;
+HashMap<String, AutoPtr<IContentHandler> > URLConnection::sContentHandlers;
+AutoPtr<IContentHandlerFactory> URLConnection::sContentHandlerFactory;
+AutoPtr<IFileNameMap> URLConnection::sFileNameMap;
+Mutex URLConnection::sLock;
+
 URLConnection::URLConnection()
     : mIfModifiedSince(0)
-    , mUseCaches(mDefaultUseCaches)
+    , mUseCaches(sDefaultUseCaches)
     , mConnected(FALSE)
     , mDoOutput(FALSE)
     , mDoInput(TRUE)
-    , mAllowUserInteraction(mDefaultAllowUserInteraction)
+    , mAllowUserInteraction(sDefaultAllowUserInteraction)
     , mLastModified(-1)
     , mReadTimeout(0)
     , mConnectTimeout(0)
 {
-    mDefaultHandler = (IContentHandler*)new DefaultContentHandler();
-}
-
-void URLConnection::Init(
-    /* [in] */ IURL* url)
-{
-    mUrl = url;
+    mDefaultHandler = new DefaultContentHandler();
 }
 
 URLConnection::~URLConnection()
 {}
 
+ECode URLConnection::Init(
+    /* [in] */ IURL* url)
+{
+    mUrl = url;
+    return NOERROR;
+}
+
 ECode URLConnection::GetAllowUserInteraction(
     /* [out] */ Boolean* value)
 {
-    VALIDATE_NOT_NULL(value);
+    assert(value != NULL);
     *value = mAllowUserInteraction;
     return NOERROR;
 }
@@ -95,7 +101,7 @@ ECode URLConnection::GetAllowUserInteraction(
 ECode URLConnection::GetContent(
     /* [out] */ IInterface** content)
 {
-    VALIDATE_NOT_NULL(content);
+    assert(content != NULL);
 
     if (!mConnected) {
         Connect();
@@ -115,11 +121,10 @@ ECode URLConnection::GetContent(
     if (!mContentType.IsNull()) {
         AutoPtr<IContentHandler> handler;
         GetContentHandler(mContentType, (IContentHandler**)&handler);
-        return handler->GetContent((IURLConnection*)this, content);
+        return handler->GetContent((IURLConnection*)this->Probe(EIID_IURLConnection), content);
     }
 
     *content = NULL;
-
     return NOERROR;
 }
 
@@ -128,7 +133,7 @@ ECode URLConnection::GetContent(
 ECode URLConnection::GetContentEncoding(
     /* [out] */ String* encoding)
 {
-    VALIDATE_NOT_NULL(encoding);
+    assert(encoding != NULL);
 
     return GetHeaderFieldByKey(String("Content-Encoding"), encoding);
 }
@@ -138,20 +143,22 @@ ECode URLConnection::GetContentHandler(
     /* [out] */ IContentHandler** contentHandler)
 {
     // Replace all non-alphanumeric character by '_'
-//    String typeString = ParseTypeString(type.Replace('/', '.'));
+    String typeString = ParseTypeString(type.Replace("/", "."));
 
     // if there's a cached content handler, use it
-    HashMap<String, AutoPtr<IContentHandler> >::Iterator it = mContentHandlers.Find(type);
-    if (it != mContentHandlers.End()) {
+    HashMap<String, AutoPtr<IContentHandler> >::Iterator it = sContentHandlers.Find(type);
+    if (it != sContentHandlers.End()) {
         *contentHandler = it->mSecond;
+        if (*contentHandler != NULL) (*contentHandler)->AddRef();
         return NOERROR;
     }
 
     AutoPtr<IContentHandler> cHandler;
-    if (mContentHandlerFactory != NULL) {
-        mContentHandlerFactory->CreateContentHandler(type, (IContentHandler**)&cHandler);
-        mContentHandlers[type] = cHandler;
+    if (sContentHandlerFactory != NULL) {
+        sContentHandlerFactory->CreateContentHandler(type, (IContentHandler**)&cHandler);
+        sContentHandlers[type] = cHandler;
         *contentHandler = cHandler;
+        if (*contentHandler != NULL) (*contentHandler)->AddRef();
         return NOERROR;
     }
 
@@ -196,14 +203,15 @@ ECode URLConnection::GetContentHandler(
 //        if (!(cHandler instanceof ContentHandler)) {
 //            throw new UnknownServiceException();
 //        }
-        mContentHandlers[type] = cHandler; // if we got the handler,
+        sContentHandlers[type] = cHandler; // if we got the handler,
         // cache it for next time
         *contentHandler = cHandler;
+        if (*contentHandler != NULL) (*contentHandler)->AddRef();
         return NOERROR;
     }
 
     *contentHandler = mDefaultHandler;
-
+    if (*contentHandler != NULL) (*contentHandler)->AddRef();
     return NOERROR;
 }
 
@@ -227,7 +235,7 @@ ECode URLConnection::GetDate(
 
 Boolean URLConnection::GetDefaultAllowUserInteraction()
 {
-    return mDefaultAllowUserInteraction;
+    return sDefaultAllowUserInteraction;
 }
 
 String URLConnection::GetDefaultRequestProperty(
@@ -240,7 +248,7 @@ ECode URLConnection::GetDefaultUseCaches(
     /* [out] */ Boolean* value)
 {
     VALIDATE_NOT_NULL(value);
-    *value = mDefaultUseCaches;
+    *value = sDefaultUseCaches;
     return NOERROR;
 }
 
@@ -268,20 +276,20 @@ ECode URLConnection::GetExpiration(
 
 AutoPtr<IFileNameMap> URLConnection::GetFileNameMap()
 {
-//    synchronized (URLConnection.class) {
-    if (mFileNameMap == NULL) {
-        mFileNameMap = (IFileNameMap*)new DefaultFileNameMap();
+    Mutex::Autolock lock(&sLock);
+
+    if (sFileNameMap == NULL) {
+        sFileNameMap = new DefaultFileNameMap();
     }
-    return mFileNameMap;
-//    }
+    return sFileNameMap;
 }
 
 ECode URLConnection::GetHeaderFieldByPosition(
     /* [in] */ Int32 pos,
     /* [out] */ String* value)
 {
-    VALIDATE_NOT_NULL(value);
-    *value = String(NULL);
+    assert(value != NULL);
+    *value = NULL;
     return NOERROR;
 }
 
@@ -292,8 +300,8 @@ ECode URLConnection::GetHeaderFieldByPosition(
 ECode URLConnection::CheckNotConnected()
 {
     if (mConnected) {
-        return E_ILLEGAL_STATE_EXCEPTION;
 //        throw new IllegalStateException("Already connected");
+        return E_ILLEGAL_STATE_EXCEPTION;
     }
 
     return NOERROR;
@@ -303,12 +311,11 @@ ECode URLConnection::AddRequestProperty(
     /* [in] */ const String& field,
     /* [in] */ const String& newValue)
 {
-    CheckNotConnected();
+    FAIL_RETURN(CheckNotConnected());
     if (field.IsNull()) {
-        return E_NULL_POINTER_EXCEPTION;
 //        throw new NullPointerException("field == null");
+        return E_NULL_POINTER_EXCEPTION;
     }
-
     return NOERROR;
 }
 
@@ -316,8 +323,8 @@ ECode URLConnection::GetHeaderFieldByKey(
     /* [in] */ const String& key,
     /* [out] */ String* value)
 {
-    VALIDATE_NOT_NULL(value);
-    *value = String(NULL);
+    assert(value != NULL);
+    *value = NULL;
     return NOERROR;
 }
 
@@ -326,19 +333,21 @@ ECode URLConnection::GetHeaderFieldDate(
     /* [in] */ Int64 defaultValue,
     /* [out] */ Int64* value)
 {
-    VALIDATE_NOT_NULL(value);
+    assert(value != NULL);
 
-//    String date;
-//    GetHeaderField(field, date);
-//    if (date.IsNull()) {
+    String date;
+    FAIL_RETURN(GetHeaderFieldByKey(field, &date));
+    if (date.IsNull()) {
         *value = defaultValue;
         return NOERROR;
-//    }
+    }
 //    try {
 //        return Date.parse(date);
 //    } catch (Exception e) {
 //        return defaultValue;
 //    }
+    assert(0);
+    return E_NOT_IMPLEMENTED;
 }
 
 ECode URLConnection::GetHeaderFieldInt32(
@@ -346,15 +355,15 @@ ECode URLConnection::GetHeaderFieldInt32(
     /* [in] */ Int32 defaultValue,
     /* [out] */ Int32* value)
 {
+    assert(value != NULL);
 //    try {
 //    return Integer.parseInt(getHeaderField(field));
     String s;
-    ECode ec = GetHeaderFieldByKey(field, &s);
-    if (FAILED(ec)) {
+    GetHeaderFieldByKey(field, &s);
+    *value = s.ToInt32();
+    if (*value == -1) {
         *value = defaultValue;
     }
-
-    *value = s.ToInt32();
     return NOERROR;
 //    } catch (NumberFormatException e) {
 //        return defaultValue;
@@ -365,15 +374,15 @@ ECode URLConnection::GetHeaderFieldKey(
     /* [in] */ Int32 posn,
     /* [out] */ String* key)
 {
-    VALIDATE_NOT_NULL(key);
-    *key = String(NULL);
+    assert(key != NULL);
+    *key = NULL;
     return NOERROR;
 }
 
 ECode URLConnection::GetIfModifiedSince(
     /* [out] */ Int64* time)
 {
-    VALIDATE_NOT_NULL(time);
+    assert(time != NULL);
     *time = mIfModifiedSince;
     return NOERROR;
 }
@@ -381,14 +390,14 @@ ECode URLConnection::GetIfModifiedSince(
 ECode URLConnection::GetInputStream(
     /* [out] */ IInputStream** is)
 {
-    return E_UNKNOWN_SERVICE_EXCEPTION;
 //    throw new UnknownServiceException("Does not support writing to the input stream");
+    return E_UNKNOWN_SERVICE_EXCEPTION;
 }
 
 ECode URLConnection::GetLastModified(
     /* [out] */ Int64* value)
 {
-    VALIDATE_NOT_NULL(value);
+    assert(value != NULL);
 
     if (mLastModified != -1) {
         *value = mLastModified;
@@ -396,15 +405,14 @@ ECode URLConnection::GetLastModified(
     }
     GetHeaderFieldDate(String("Last-Modified"), 0, &mLastModified);
     *value = mLastModified;
-
     return NOERROR;
 }
 
 ECode URLConnection::GetOutputStream(
     /* [out] */ IOutputStream** os)
 {
-    return E_UNKNOWN_SERVICE_EXCEPTION;
 //    throw new UnknownServiceException("Does not support writing to the output stream");
+    return E_UNKNOWN_SERVICE_EXCEPTION;
 }
 
 //        public java.security.Permission getPermission();
@@ -413,25 +421,26 @@ ECode URLConnection::GetRequestProperty(
     /* [in] */ const String& field,
     /* [out] */ String* property)
 {
-    VALIDATE_NOT_NULL(property);
+    assert(property != NULL);
 
-    CheckNotConnected();
-    *property = String(NULL);
+    FAIL_RETURN(CheckNotConnected());
+    *property = NULL;
     return NOERROR;
 }
 
 ECode URLConnection::GetURL(
     /* [out] */ IURL** url)
 {
-    VALIDATE_NOT_NULL(url);
+    assert(url != NULL);
     *url = mUrl;
+    if (*url != NULL) (*url)->AddRef();
     return NOERROR;
 }
 
 ECode URLConnection::GetUseCaches(
     /* [out] */ Boolean* allowed)
 {
-    VALIDATE_NOT_NULL(allowed);
+    assert(allowed != NULL);
     *allowed = mUseCaches;
     return NOERROR;
 }
@@ -448,54 +457,52 @@ String URLConnection::GuessContentTypeFromStream(
     /* [in] */ IInputStream* is)
 {
     Boolean supported;
-    is->IsMarkSupported(&supported);
-    if (!supported) {
+    if (is->IsMarkSupported(&supported), !supported) {
         return String(NULL);
     }
     // Look ahead up to 64 bytes for the longest encoded header
     is->Mark(64);
-    ArrayOf<Byte>* bytes = ArrayOf<Byte>::Alloc(64);
+    ArrayOf_<Byte, 64> bytes;
     Int32 length;
-    is->ReadBuffer(bytes, &length);
+    is->ReadBuffer(&bytes, &length);
     is->Reset();
 
     // If there is no data from the input stream, we can't determine content type.
     if (length == -1) {
-        ArrayOf<Byte>::Free(bytes);
         return String(NULL);
     }
 
     // Check for Unicode BOM encoding indicators
-    String encoding("US-ASCII");
+    CString encoding = "US-ASCII";
     Int32 start = 0;
     if (length > 1) {
-        if (((*bytes)[0] == (Byte) 0xFF) && ((*bytes)[1] == (Byte) 0xFE)) {
+        if ((bytes[0] == (Byte)0xFF) && (bytes[1] == (Byte)0xFE)) {
             encoding = "UTF-16LE";
             start = 2;
             length -= length & 1;
         }
-        if (((*bytes)[0] == (Byte) 0xFE) && ((*bytes)[1] == (Byte) 0xFF)) {
+        if ((bytes[0] == (Byte)0xFE) && (bytes[1] == (Byte)0xFF)) {
             encoding = "UTF-16BE";
             start = 2;
             length -= length & 1;
         }
         if (length > 2) {
-            if (((*bytes)[0] == (Byte) 0xEF) && ((*bytes)[1] == (Byte) 0xBB)
-                    && ((*bytes)[2] == (Byte) 0xBF)) {
+            if ((bytes[0] == (Byte)0xEF) && (bytes[1] == (Byte)0xBB)
+                    && (bytes[2] == (Byte)0xBF)) {
                 encoding = "UTF-8";
                 start = 3;
             }
             if (length > 3) {
-                if (((*bytes)[0] == (Byte) 0x00) && ((*bytes)[1] == (Byte) 0x00)
-                        && ((*bytes)[2] == (Byte) 0xFE)
-                        && ((*bytes)[3] == (Byte) 0xFF)) {
+                if ((bytes[0] == (Byte)0x00) && (bytes[1] == (Byte)0x00)
+                        && (bytes[2] == (Byte)0xFE)
+                        && (bytes[3] == (Byte)0xFF)) {
                     encoding = "UTF-32BE";
                     start = 4;
                     length -= length & 3;
                 }
-                if (((*bytes)[0] == (Byte) 0xFF) && ((*bytes)[1] == (Byte) 0xFE)
-                        && ((*bytes)[2] == (Byte) 0x00)
-                        && ((*bytes)[3] == (Byte) 0x00)) {
+                if ((bytes[0] == (Byte)0xFF) && (bytes[1] == (Byte)0xFE)
+                        && (bytes[2] == (Byte)0x00)
+                        && (bytes[3] == (Byte)0x00)) {
                     encoding = "UTF-32LE";
                     start = 4;
                     length -= length & 3;
@@ -504,16 +511,13 @@ String URLConnection::GuessContentTypeFromStream(
         }
     }
 
-    String temp((const char*)bytes->GetPayload());
-    String header = temp.Substring(start, length - start/*, encoding*/);
+    String header((const char*)bytes.GetPayload() + start, length - start/*, encoding*/);
 
     // Check binary types
     if (header.StartWith("PK")) {
-        ArrayOf<Byte>::Free(bytes);
         return String("application/zip");
     }
     if (header.StartWith("GI")) {
-        ArrayOf<Byte>::Free(bytes);
         return String("image/gif");
     }
 
@@ -525,29 +529,26 @@ String URLConnection::GuessContentTypeFromStream(
             textHeader.StartWith("<HEAD") ||
             textHeader.StartWith("<BODY") ||
             textHeader.StartWith("<HEAD")) {
-        ArrayOf<Byte>::Free(bytes);
         return String("text/html");
     }
 
     if (textHeader.StartWith("<?XML")) {
-        ArrayOf<Byte>::Free(bytes);
         return String("application/xml");
     }
 
     // Give up
-    ArrayOf<Byte>::Free(bytes);
     return String(NULL);
 }
 
 String URLConnection::ParseTypeString(
     /* [in] */ const String& typeString)
 {
-    StringBuf typeStringBuffer(const_cast<char*>((const char*)typeString), typeString.GetLength());
-    for (Int32 i = 0; i < typeStringBuffer.GetLength(); i++) {
+    StringBuffer typeStringBuffer(typeString);
+    for (Int32 i = 0; i < typeStringBuffer.GetCharCount(); i++) {
         // if non-alphanumeric, replace it with '_'
-        Char32 c = typeStringBuffer[i];
+        Char32 c = typeStringBuffer.GetChar(i);
         if (!(Character::IsLetter(c) || Character::IsDigit(c) || c == '.')) {
-            typeStringBuffer.Replace(i, 1, "_");
+            typeStringBuffer.SetChar(i, '_');
         }
     }
     return (String)typeStringBuffer;
@@ -556,31 +557,33 @@ String URLConnection::ParseTypeString(
 ECode URLConnection::SetAllowUserInteraction(
     /* [in] */ Boolean newValue)
 {
-    CheckNotConnected();
+    FAIL_RETURN(CheckNotConnected());
     mAllowUserInteraction = newValue;
 
-    return NOERROR  ;
+    return NOERROR;
 }
 
 ECode URLConnection::SetContentHandlerFactory(
     /* [in] */ IContentHandlerFactory* contentFactory)
 {
-    if (mContentHandlerFactory != NULL) {
-        return NOERROR;
+    Mutex::Autolock lock(&sLock);
+
+    if (sContentHandlerFactory != NULL) {
 //        throw new Error("Factory already set");
+        return NOERROR;
     }
 //    SecurityManager sManager = System.getSecurityManager();
 //    if (sManager != null) {
 //        sManager.checkSetFactory();
 //    }
-    mContentHandlerFactory = contentFactory;
+    sContentHandlerFactory = contentFactory;
     return NOERROR;
 }
 
 void URLConnection::SetDefaultAllowUserInteraction(
     /* [in] */ Boolean allows)
 {
-    mDefaultAllowUserInteraction = allows;
+    sDefaultAllowUserInteraction = allows;
 }
 
 void URLConnection::SetDefaultRequestProperty(
@@ -592,15 +595,14 @@ void URLConnection::SetDefaultRequestProperty(
 ECode URLConnection::SetDefaultUseCaches(
     /* [in] */ Boolean newValue)
 {
-    mDefaultUseCaches = newValue;
-
+    sDefaultUseCaches = newValue;
     return NOERROR;
 }
 
 ECode URLConnection::SetDoInput(
     /* [in] */ Boolean newValue)
 {
-    CheckNotConnected();
+    FAIL_RETURN(CheckNotConnected());
     mDoInput = newValue;
 
     return NOERROR;
@@ -609,7 +611,7 @@ ECode URLConnection::SetDoInput(
 ECode URLConnection::SetDoOutput(
     /* [in] */ Boolean newValue)
 {
-    CheckNotConnected();
+    FAIL_RETURN(CheckNotConnected());
     mDoOutput = newValue;
 
     return NOERROR;
@@ -622,15 +624,15 @@ void URLConnection::SetFileNameMap(
 //    if (manager != null) {
 //        manager.checkSetFactory();
 //    }
-//    synchronized (URLConnection.class) {
-    mFileNameMap = map;
-//    }
+    Mutex::Autolock lock(&sLock);
+
+    sFileNameMap = map;
 }
 
 ECode URLConnection::SetIfModifiedSince(
     /* [in] */ Int64 newValue)
 {
-    CheckNotConnected();
+    FAIL_RETURN(CheckNotConnected());
     mIfModifiedSince = newValue;
 
     return NOERROR;
@@ -640,19 +642,18 @@ ECode URLConnection::SetRequestProperty(
     /* [in] */ const String& field,
     /* [in] */ const String& newValue)
 {
-    CheckNotConnected();
+    FAIL_RETURN(CheckNotConnected());
     if (field.IsNull()) {
-        return E_NULL_POINTER_EXCEPTION;
 //        throw new NullPointerException("field == null");
+        return E_NULL_POINTER_EXCEPTION;
     }
-
     return NOERROR;
 }
 
 ECode URLConnection::SetUseCaches(
     /* [in] */ Boolean newValue)
 {
-    CheckNotConnected();
+    FAIL_RETURN(CheckNotConnected());
     mUseCaches = newValue;
 
     return NOERROR;
@@ -662,18 +663,17 @@ ECode URLConnection::SetConnectTimeout(
     /* [in] */ Int32 timeout)
 {
     if (timeout < 0) {
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
 //        throw new IllegalArgumentException("timeout < 0");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
     mConnectTimeout = timeout;
-
     return NOERROR;
 }
 
 ECode URLConnection::GetConnectTimeout(
     /* [out] */ Int32* timeout)
 {
-    VALIDATE_NOT_NULL(timeout);
+    assert(timeout != NULL);
     *timeout = mConnectTimeout;
     return NOERROR;
 }
@@ -682,18 +682,17 @@ ECode URLConnection::SetReadTimeout(
     /* [in] */ Int32 timeout)
 {
     if (timeout < 0) {
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
-//        throw new IllegalArgumentException("timeout < 0");
+//        throw new IllegalArgumentException("timeout < 0")
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;;
     }
     mReadTimeout = timeout;
-
     return NOERROR;
 }
 
 ECode URLConnection::GetReadTimeout(
     /* [out] */ Int32* timeout)
 {
-    VALIDATE_NOT_NULL(timeout);
+    assert(timeout != NULL);
     *timeout = mReadTimeout;
     return NOERROR;
 }

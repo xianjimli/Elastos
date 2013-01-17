@@ -98,7 +98,7 @@ public:
         /* [out] */ String* decodeS);
 
 private:
-    static const String mDigits;
+    static const CString sDigits;
 };
 
 #endif //__URIENCODERDECODER_H__

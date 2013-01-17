@@ -24,7 +24,7 @@ public:
 
     CARAPI Accept(
         /* [in] */ Int32 serverFd,
-        /* [out] */ ArrayOf<Byte>* ipAddress,
+        /* [out, callee] */ ArrayOf<Byte>** ipAddress,
         /* [out] */ Int32* port,
         /* [out] */ Int32* localPort,
         /* [out] */ Int32* clientFd);
@@ -97,7 +97,7 @@ public:
         /* [in] */ Boolean peek,
         /* [in] */ Boolean connected,
         /* [out] */ ArrayOf<Byte>* data,
-        /* [out] */ ArrayOf<Byte>* ipAddress,
+        /* [out, callee] */ ArrayOf<Byte>** ipAddress,
         /* [out] */ Int32* port,
         /* [out] */ Int32* number);
 
@@ -108,7 +108,7 @@ public:
         /* [in] */ Int32 length,
         /* [in] */ Boolean peek,
         /* [in] */ Boolean connected,
-        /* [out] */ ArrayOf<Byte>* ipAddress,
+        /* [out, callee] */ ArrayOf<Byte>** ipAddress,
         /* [out] */ Int32* port,
         /* [out] */ Int32* number);
 
@@ -141,7 +141,7 @@ public:
 
     CARAPI GetSocketLocalAddress(
         /* [in] */ Int32 fd,
-        /* [out] */ ArrayOf<Byte>* ipAddress);
+        /* [out, callee] */ ArrayOf<Byte>** ipAddress);
 
     CARAPI Select(
         /* [in] */ const ArrayOf<Int32>& readFDs,

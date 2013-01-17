@@ -7,70 +7,34 @@
 using namespace Elastos;
 using namespace Elastos::Core;
 
-String CHttpCookie::BROWSER_COMPATIBLE_DATE_FORMATS[] =
-        {String("EEEE, dd-MMM-yy HH:mm:ss zzz") // RFC 1036
-        , String("EEE MMM d HH:mm:ss yyyy") // ANSI C asctime()
-        , String("EEE, dd-MMM-yyyy HH:mm:ss z")
-        , String("EEE, dd-MMM-yyyy HH-mm-ss z")
-        , String("EEE, dd MMM yy HH:mm:ss z")
-        , String("EEE dd-MMM-yyyy HH:mm:ss z")
-        , String("EEE dd MMM yyyy HH:mm:ss z")
-        , String("EEE dd-MMM-yyyy HH-mm-ss z")
-        , String("EEE dd-MMM-yy HH:mm:ss z")
-        , String("EEE dd MMM yy HH:mm:ss z")
-        , String("EEE,dd-MMM-yy HH:mm:ss z")
-        , String("EEE,dd-MMM-yyyy HH:mm:ss z")
-        , String("EEE, dd-MM-yyyy HH:mm:ss z")};
 
-const ArrayOf<String> CHttpCookie::ARRAYOF_BROWSER_COMPATIBLE_DATE_FORMATS(BROWSER_COMPATIBLE_DATE_FORMATS, 13);
-
-HashSet<String>& CHttpCookie::InitReservedNames()
-{
-    RESERVED_NAMES.Insert(String("comment"));   //           RFC 2109  RFC 2965
-    RESERVED_NAMES.Insert(String("commenturl"));//                     RFC 2965
-    RESERVED_NAMES.Insert(String("discard"));   //                     RFC 2965
-    RESERVED_NAMES.Insert(String("domain"));    // Netscape  RFC 2109  RFC 2965
-    RESERVED_NAMES.Insert(String("expires"));   // Netscape
-    RESERVED_NAMES.Insert(String("max-age"));   //           RFC 2109  RFC 2965
-    RESERVED_NAMES.Insert(String("path"));      // Netscape  RFC 2109  RFC 2965
-    RESERVED_NAMES.Insert(String("port"));      //                     RFC 2965
-    RESERVED_NAMES.Insert(String("secure"));    // Netscape  RFC 2109  RFC 2965
-    RESERVED_NAMES.Insert(String("version"));   //           RFC 2109  RFC 2965
-
-    return RESERVED_NAMES;
-}
-
-HashSet<String> CHttpCookie::RESERVED_NAMES = CHttpCookie::InitReservedNames();
-
-const String CHttpCookie::CookieParser::ATTRIBUTE_NAME_TERMINATORS(",;= \t");
-const String CHttpCookie::CookieParser::WHITESPACE(" \t");
+const CString CHttpCookie::CookieParser::ATTRIBUTE_NAME_TERMINATORS = ",;= \t";
+const CString CHttpCookie::CookieParser::WHITESPACE = " \t";
 
 CHttpCookie::CookieParser::CookieParser(
     /* [in] */ const String& input)
-    : mInput(input)
-    , mPos(0)
-    , mHasExpires(FALSE)
+    : mHasExpires(FALSE)
     , mHasMaxAge(FALSE)
     , mHasVersion(FALSE)
+    , mInput(input)
+    , mPos(0)
 {
-    mInputLowerCase = mInput;
+    mInputLowerCase.SetTo(mInput.string());
     mInputLowerCase.ToLowerCase();
 }
 
 ECode CHttpCookie::CookieParser::Parse(
-    /* [out] */ List<AutoPtr<IHttpCookie> >* httpCookies)
+    /* [out] */ List< AutoPtr<IHttpCookie> >& cookies)
 {
-    List<AutoPtr<IHttpCookie> >* cookies = new List<AutoPtr<IHttpCookie> >(2);
-
     // The RI permits input without either the "Set-Cookie:" or "Set-Cookie2" headers.
     Boolean pre2965 = TRUE;
     if (mInputLowerCase.StartWith("set-cookie2:")) {
-        mPos += String("set-cookie2:").GetLength();
+        mPos += CString("set-cookie2:").GetLength();
         pre2965 = FALSE;
         mHasVersion = TRUE;
     }
     else if (mInputLowerCase.StartWith("set-cookie:")) {
-        mPos += String("set-cookie:").GetLength();
+        mPos += CString("set-cookie:").GetLength();
     }
 
     /*
@@ -80,26 +44,25 @@ ECode CHttpCookie::CookieParser::Parse(
     while (TRUE) {
         String name = ReadAttributeName(FALSE);
         if (name.IsNull()) {
-            if (cookies->IsEmpty()) {
-                return E_ILLEGAL_ARGUMENT_EXCEPTION;
+            if (cookies.IsEmpty()) {
 //                throw new IllegalArgumentException("No cookies in " + input);
+                return E_ILLEGAL_ARGUMENT_EXCEPTION;
             }
-            httpCookies = cookies;
             return NOERROR;
         }
 
         if (!ReadEqualsSign()) {
-            return E_ILLEGAL_ARGUMENT_EXCEPTION;
 //            throw new IllegalArgumentException(
 //                    "Expected '=' after " + name + " in " + input);
+            return E_ILLEGAL_ARGUMENT_EXCEPTION;
         }
 
         String value;
-        ReadAttributeValue(pre2965 ? String(";") : String(",;"), &value);
+        FAIL_RETURN(ReadAttributeValue(pre2965 ? ";" : ",;", &value));
         AutoPtr<CHttpCookie> cookie;
-        CHttpCookie::NewByFriend(name, value, (CHttpCookie**)&cookie);
+        FAIL_RETURN(CHttpCookie::NewByFriend(name, value, (CHttpCookie**)&cookie));
         cookie->mVersion = pre2965 ? 0 : 1;
-        cookies->PushBack((IHttpCookie*)cookie);
+        cookies.PushBack((IHttpCookie*)cookie.Get());
 
         /*
          * Read the attributes of the current cookie. Each iteration of this loop should
@@ -112,11 +75,11 @@ ECode CHttpCookie::CookieParser::Parse(
                 break;
             }
 
-            if (mInput[mPos] == ',') {
+            if (mInput.GetChar(mPos) == ',') {
                 mPos++;
                 break; // a true comma delimiter; the current cookie is complete.
             }
-            else if (mInput[mPos] == ';') {
+            else if (mInput.GetChar(mPos) == ';') {
                 mPos++;
             }
 
@@ -129,13 +92,13 @@ ECode CHttpCookie::CookieParser::Parse(
              * Since expires and port attributes commonly include comma delimiters, always
              * scan until a semicolon when parsing these attributes.
              */
-            String terminators = pre2965
-                    || String("expires").Equals(attributeName) || String("port").Equals(attributeName)
-                    ? String(";")
-                    : String(";,");
-            String attributeValue = String(NULL);
+            CString terminators = pre2965
+                    || CString("expires").Equals(attributeName) || CString("port").Equals(attributeName)
+                    ? ";"
+                    : ";,";
+            String attributeValue;
             if (ReadEqualsSign()) {
-                ReadAttributeValue(terminators, &attributeValue);
+                FAIL_RETURN(ReadAttributeValue(terminators, &attributeValue));
             }
             SetAttribute(cookie, attributeName, attributeValue);
         }
@@ -148,7 +111,6 @@ ECode CHttpCookie::CookieParser::Parse(
         }
     }
 
-    httpCookies = cookies;
     return NOERROR;
 }
 
@@ -157,21 +119,21 @@ void CHttpCookie::CookieParser::SetAttribute(
     /* [in] */ const String& name,
     /* [in] */ const String& value)
 {
-    if (name.Equals(String("comment")) && cookie->mComment.IsNull()) {
+    if (name.Equals("comment") && cookie->mComment.IsNull()) {
         cookie->mComment = value;
     }
-    else if (name.Equals(String("commenturl")) && cookie->mCommentURL.IsNull()) {
+    else if (name.Equals("commenturl") && cookie->mCommentURL.IsNull()) {
         cookie->mCommentURL = value;
     }
-    else if (name.Equals(String("discard"))) {
+    else if (name.Equals("discard")) {
         cookie->mDiscard = TRUE;
     }
-    else if (name.Equals(String("domain")) && cookie->mDomain.IsNull()) {
+    else if (name.Equals("domain") && cookie->mDomain.IsNull()) {
         cookie->mDomain = value;
     }
-    else if (name.Equals(String("expires"))) {
+    else if (name.Equals("expires")) {
         mHasExpires = TRUE;
-        if (cookie->mMaxAge == -1L) {
+        if (cookie->mMaxAge == -1ll) {
             AutoPtr<IDate> date = ParseHttpDate(value);
             if (date != NULL) {
                 cookie->SetExpires(date);
@@ -181,20 +143,20 @@ void CHttpCookie::CookieParser::SetAttribute(
             }
         }
     }
-    else if (name.Equals(String("max-age")) && cookie->mMaxAge == -1L) {
+    else if (name.Equals("max-age") && cookie->mMaxAge == -1ll) {
         mHasMaxAge = TRUE;
         cookie->mMaxAge = value.ToInt64();
     }
-    else if (name.Equals(String("path")) && cookie->mPath == NULL) {
+    else if (name.Equals("path") && cookie->mPath.IsNull()) {
         cookie->mPath = value;
     }
     else if (name.Equals(String("port")) && cookie->mPortList == NULL) {
         cookie->mPortList = value != NULL ? value : String("");
     }
-    else if (name.Equals(String("secure"))) {
+    else if (name.Equals("secure")) {
         cookie->mSecure = TRUE;
     }
-    else if (name.Equals(String("version")) && !mHasVersion) {
+    else if (name.Equals("version") && !mHasVersion) {
         cookie->mVersion = value.ToInt32();
     }
 }
@@ -233,7 +195,7 @@ String CHttpCookie::CookieParser::ReadAttributeName(
 Boolean CHttpCookie::CookieParser::ReadEqualsSign()
 {
     SkipWhitespace();
-    if ((UInt32)mPos < mInput.GetLength() && mInput[mPos] == '=') {
+    if ((UInt32)mPos < mInput.GetLength() && mInput.GetChar(mPos) == '=') {
         mPos++;
         return TRUE;
     }
@@ -242,7 +204,7 @@ Boolean CHttpCookie::CookieParser::ReadEqualsSign()
 }
 
 ECode CHttpCookie::CookieParser::ReadAttributeValue(
-    /* [in] */ const String& terminators,
+    /* [in] */ CString terminators,
     /* [out] */ String* value)
 {
     SkipWhitespace();
@@ -251,12 +213,12 @@ ECode CHttpCookie::CookieParser::ReadAttributeValue(
      * Quoted string: read 'til the close quote. The spec mentions only "double quotes"
      * but RI bug 6901170 claims that 'single quotes' are also used.
      */
-    if ((UInt32)mPos < mInput.GetLength() && (mInput[mPos] == '"' || mInput[mPos] == '\'')) {
-        Char32 quoteCharacter = mInput[mPos++];
+    if ((UInt32)mPos < mInput.GetLength() && (mInput.GetChar(mPos) == '"' || mInput.GetChar(mPos) == '\'')) {
+        Char32 quoteCharacter = mInput.GetChar(mPos++);
         Int32 closeQuote = mInput.IndexOf(quoteCharacter, mPos);
         if (closeQuote == -1) {
-            return E_ILLEGAL_ARGUMENT_EXCEPTION;
 //            throw new IllegalArgumentException("Unterminated string literal in " + input);
+            return E_ILLEGAL_ARGUMENT_EXCEPTION;
         }
         *value = mInput.Substring(mPos, closeQuote);
         mPos = closeQuote + 1;
@@ -270,10 +232,10 @@ ECode CHttpCookie::CookieParser::ReadAttributeValue(
 }
 
 Int32 CHttpCookie::CookieParser::Find(
-    /* [in] */ const String& chars)
+    /* [in] */ CString chars)
 {
     for (Int32 c = mPos; (UInt32)c < mInput.GetLength(); c++) {
-        if (chars.IndexOf(mInput[c]) != -1) {
+        if (chars.IndexOf(mInput.GetChar(c)) != -1) {
             return c;
         }
     }
@@ -283,15 +245,56 @@ Int32 CHttpCookie::CookieParser::Find(
 void CHttpCookie::CookieParser::SkipWhitespace()
 {
     for (; (UInt32)mPos < mInput.GetLength(); mPos++) {
-        if (WHITESPACE.IndexOf(mInput[mPos]) == -1) {
+        if (WHITESPACE.IndexOf(mInput.GetChar(mPos)) == -1) {
             break;
         }
     }
 }
 
+
+CString CHttpCookie::BROWSER_COMPATIBLE_DATE_FORMATS[] = {
+    /* This list comes from  {@code org.apache.http.impl.cookie.BrowserCompatSpec}. */
+    "EEEE, dd-MMM-yy HH:mm:ss zzz", // RFC 1036
+    "EEE MMM d HH:mm:ss yyyy", // ANSI C asctime()
+    "EEE, dd-MMM-yyyy HH:mm:ss z",
+    "EEE, dd-MMM-yyyy HH-mm-ss z",
+    "EEE, dd MMM yy HH:mm:ss z",
+    "EEE dd-MMM-yyyy HH:mm:ss z",
+    "EEE dd MMM yyyy HH:mm:ss z",
+    "EEE dd-MMM-yyyy HH-mm-ss z",
+    "EEE dd-MMM-yy HH:mm:ss z",
+    "EEE dd MMM yy HH:mm:ss z",
+    "EEE,dd-MMM-yy HH:mm:ss z",
+    "EEE,dd-MMM-yyyy HH:mm:ss z",
+    "EEE, dd-MM-yyyy HH:mm:ss z",
+
+    /* RI bug 6641315 claims a cookie of this format was once served by www.yahoo.com */
+    "EEE MMM d yyyy HH:mm:ss z",
+};
+
+static HashSet<String>* InitRESERVED_NAMES()
+{
+    HashSet<String>* names = new HashSet<String>();
+
+    names->Insert(String("comment"));   //           RFC 2109  RFC 2965
+    names->Insert(String("commenturl"));//                     RFC 2965
+    names->Insert(String("discard"));   //                     RFC 2965
+    names->Insert(String("domain"));    // Netscape  RFC 2109  RFC 2965
+    names->Insert(String("expires"));   // Netscape
+    names->Insert(String("max-age"));   //           RFC 2109  RFC 2965
+    names->Insert(String("path"));      // Netscape  RFC 2109  RFC 2965
+    names->Insert(String("port"));      //                     RFC 2965
+    names->Insert(String("secure"));    // Netscape  RFC 2109  RFC 2965
+    names->Insert(String("version"));   //           RFC 2109  RFC 2965
+
+    return names;
+}
+
+HashSet<String>* CHttpCookie::RESERVED_NAMES = InitRESERVED_NAMES();
+
 CHttpCookie::CHttpCookie()
     : mDiscard(FALSE)
-    , mMaxAge(-1l)
+    , mMaxAge(-1ll)
     , mSecure(FALSE)
     , mVersion(1)
 {
@@ -305,9 +308,9 @@ Boolean CHttpCookie::DomainMatches(
         return FALSE;
     }
 
-    String a = host;
+    String a(host.string());
     a.ToLowerCase();
-    String b = domainPattern;
+    String b(domainPattern.string());
     b.ToLowerCase();
 
     /*
@@ -363,7 +366,7 @@ Boolean CHttpCookie::SecureMatches(
     cookie->GetSecure(&secure);
     String scheme;
     uri->GetScheme(&scheme);
-    return !secure || String("https").EqualsIgnoreCase(scheme);
+    return !secure || CString("https").EqualsIgnoreCase(scheme);
 }
 
 Boolean CHttpCookie::PortMatches(
@@ -378,9 +381,9 @@ Boolean CHttpCookie::PortMatches(
     Int32 port;
     uri->GetEffectivePort(&port);
 
-    return FALSE;
 //    return Arrays.asList(cookie.getPortlist().split(","))
 //            .contains(Integer.toString());
+    return FALSE;
 }
 
 String CHttpCookie::MatchablePath(
@@ -407,9 +410,9 @@ Boolean CHttpCookie::IsFullyQualifiedDomainName(
 
 ECode CHttpCookie::Parse(
     /* [in] */ const String& header,
-    /* [out] */ List<AutoPtr<IHttpCookie> >* httpCookies)
+    /* [out] */ List<AutoPtr<IHttpCookie> >& httpCookies)
 {
-    CookieParser* parser = new CookieParser(header);
+    AutoPtr<CookieParser> parser = new CookieParser(header);
     return parser->Parse(httpCookies);
 }
 
@@ -418,20 +421,13 @@ Boolean CHttpCookie::IsValidName(
 {
     // name cannot be empty or begin with '$' or equals the reserved
     // attributes (case-insensitive)
-    String temp = n;
-    temp.ToLowerCase();
-    HashSet<String>::Iterator it;
-    Boolean isContain = FALSE;
-    for (it = RESERVED_NAMES.Begin(); it != RESERVED_NAMES.End(); ++it) {
-        if (temp.Equals(*it)) {
-            isContain = TRUE;
-            break;
-        }
-    }
-    Boolean isValid = !(n.GetLength() == 0 || n.StartWith("$") || isContain);
+    String ln(n.string());
+    ln.ToLowerCase();
+    Boolean isValid = !(n.GetLength() == 0 || n.StartWith("$") ||
+            (RESERVED_NAMES->Find(ln) != RESERVED_NAMES->End()));
     if (isValid) {
         for (Int32 i = 0; (UInt32)i < n.GetLength(); i++) {
-            Char32 nameChar = n[i];
+            Char32 nameChar = n.GetChar(i);
             // name must be ASCII characters and cannot contain ';', ',' and
             // whitespace
             if (nameChar < 0
@@ -553,15 +549,15 @@ ECode CHttpCookie::HasExpired(
 
     // -1 indicates the cookie will persist until browser shutdown
     // so the cookie is not expired.
-    if (mMaxAge == -1l) {
+    if (mMaxAge == -1ll) {
         *expired = FALSE;
         return NOERROR;
     }
 
-    if (mMaxAge <= 0l) {
+    *expired = FALSE;
+    if (mMaxAge <= 0ll) {
         *expired = TRUE;
     }
-    *expired = FALSE;
     return NOERROR;
 }
 
@@ -590,10 +586,10 @@ ECode CHttpCookie::SetDomain(
     /* [in] */ const String& pattern)
 {
     if (pattern.IsNull()) {
-        mDomain = String(NULL);
+        mDomain = NULL;
     }
     else {
-        mDomain = pattern;
+        mDomain = pattern.string();
         mDomain.ToLowerCase();
     }
     return NOERROR;
@@ -648,8 +644,8 @@ ECode CHttpCookie::SetVersion(
     /* [in] */ Int32 v)
 {
     if (v != 0 && v != 1) {
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
 //        throw new IllegalArgumentException();
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
     mVersion = v;
     return NOERROR;
@@ -678,7 +674,7 @@ String CHttpCookie::ToString()
 }
 
 void CHttpCookie::AppendAttribute(
-    /* [in] */ StringBuffer builder,
+    /* [in] */ StringBuffer& builder,
     /* [in] */ const String& name,
     /* [in] */ const String& value)
 {
@@ -697,8 +693,8 @@ ECode CHttpCookie::constructor(
 {
     String ntrim = name.Trim(); // erase leading and trailing whitespace
     if (!IsValidName(ntrim)) {
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
 //        throw new IllegalArgumentException();
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
     mName = ntrim;

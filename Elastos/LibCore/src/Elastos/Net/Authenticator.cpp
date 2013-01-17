@@ -4,31 +4,29 @@
 #include "CNetPermission.h"
 #include <Com.Kortide.Platform.h>
 
+
 // {83E9D351-ACF2-49a2-AD77-643EC6CDDAF7}
 extern "C" const InterfaceID EIID_Authenticator =
     { 0x83e9d351, 0xacf2, 0x49a2, { 0xad, 0x77, 0x64, 0x3e, 0xc6, 0xcd, 0xda, 0xf7 } };
+
 
 AutoPtr<INetPermission> InitAuthenticationPermission(
     /* [in] */ const String& name)
 {
     AutoPtr<INetPermission> netPermission;
-    assert(CNetPermission::New(name, (INetPermission**)&netPermission));
-    netPermission->AddRef();
-
+    ASSERT_SUCCEEDED(CNetPermission::New(name, (INetPermission**)&netPermission));
     return netPermission;
 }
 
-AutoPtr<IAuthenticator> Authenticator::mThisAuthenticator;
+AutoPtr<Authenticator> Authenticator::sThisAuthenticator;
 
-AutoPtr<INetPermission> Authenticator::mRequestPasswordAuthenticationPermission =
-        InitAuthenticationPermission(
-                String("requestPasswordAuthentication"));
+AutoPtr<INetPermission> Authenticator::sRequestPasswordAuthenticationPermission =
+        InitAuthenticationPermission(String("requestPasswordAuthentication"));
 
-AutoPtr<INetPermission> Authenticator::mSetDefaultAuthenticatorPermission =
-        InitAuthenticationPermission(
-                String("setDefaultAuthenticator"));
+AutoPtr<INetPermission> Authenticator::sSetDefaultAuthenticatorPermission =
+        InitAuthenticationPermission(String("setDefaultAuthenticator"));
 
-Mutex* Authenticator::mLock;
+Mutex Authenticator::sLock;
 
 Authenticator::Authenticator()
     : mPort(0)
@@ -37,7 +35,7 @@ Authenticator::Authenticator()
 ECode Authenticator::GetPasswordAuthentication(
     /* [out] */ IPasswordAuthentication** passwordAuthentication)
 {
-    VALIDATE_NOT_NULL(passwordAuthentication);
+    assert(passwordAuthentication != NULL);
     *passwordAuthentication = NULL;
     return NOERROR;
 }
@@ -45,7 +43,7 @@ ECode Authenticator::GetPasswordAuthentication(
 ECode Authenticator::GetRequestingPort(
     /* [out] */ Int32* port)
 {
-    VALIDATE_NOT_NULL(port);
+    assert(port != NULL);
     *port = mPort;
     return NOERROR;
 }
@@ -53,15 +51,16 @@ ECode Authenticator::GetRequestingPort(
 ECode Authenticator::GetRequestingSite(
     /* [out] */ IInetAddress** address)
 {
-    VALIDATE_NOT_NULL(address);
+    assert(address != NULL);
     *address = mAddr;
+    if (*address != NULL) (*address)->AddRef();
     return NOERROR;
 }
 
 ECode Authenticator::GetRequestingPrompt(
     /* [out] */ String* prompt)
 {
-    VALIDATE_NOT_NULL(prompt);
+    assert(prompt != NULL);
     *prompt = mPrompt;
     return NOERROR;
 }
@@ -69,7 +68,7 @@ ECode Authenticator::GetRequestingPrompt(
 ECode Authenticator::GetRequestingProtocol(
     /* [out] */ String* protocol)
 {
-    VALIDATE_NOT_NULL(protocol);
+    assert(protocol != NULL);
     *protocol = mProtocol;
     return NOERROR;
 }
@@ -77,7 +76,7 @@ ECode Authenticator::GetRequestingProtocol(
 ECode Authenticator::GetRequestingScheme(
     /* [out] */ String* scheme)
 {
-    VALIDATE_NOT_NULL(scheme);
+    assert(scheme != NULL);
     *scheme = mScheme;
     return NOERROR;
 }
@@ -90,33 +89,30 @@ ECode Authenticator::RequestPasswordAuthentication(
     /* [in] */ const String& rScheme,
     /* [out] */ IPasswordAuthentication** passwordAuthentication)
 {
-    Mutex::Autolock lock(mLock);
+    assert(passwordAuthentication != NULL);
 
-    VALIDATE_NOT_NULL(passwordAuthentication);
+    Mutex::Autolock lock(sLock);
 
 //    SecurityManager sm = System.getSecurityManager();
 //    if (sm != null) {
 //        sm.checkPermission(requestPasswordAuthenticationPermission);
 //    }
-    if (mThisAuthenticator == NULL) {
+    if (sThisAuthenticator == NULL) {
         *passwordAuthentication = NULL;
         return NOERROR;
     }
     // set the requester info so it knows what it is requesting
     // authentication for
-    Authenticator* authenticator = (Authenticator*)mThisAuthenticator->Probe(EIID_Authenticator);
-    if (authenticator != NULL) {
-        authenticator->mAddr = rAddr;
-        authenticator->mPort = rPort;
-        authenticator->mProtocol = rProtocol;
-        authenticator->mPrompt = rPrompt;
-        authenticator->mScheme = rScheme;
-        authenticator->mRt = AuthenticatorRequestorType_SERVER;
-    }
+    sThisAuthenticator->mAddr = rAddr;
+    sThisAuthenticator->mPort = rPort;
+    sThisAuthenticator->mProtocol = rProtocol;
+    sThisAuthenticator->mPrompt = rPrompt;
+    sThisAuthenticator->mScheme = rScheme;
+    sThisAuthenticator->mRt = AuthenticatorRequestorType_SERVER;
 
     // returns the authentication info obtained by the registered
     // Authenticator
-    return authenticator->GetPasswordAuthentication(passwordAuthentication);
+    return sThisAuthenticator->GetPasswordAuthentication(passwordAuthentication);
 }
 
 void Authenticator::SetDefault(
@@ -126,7 +122,7 @@ void Authenticator::SetDefault(
     // if (sm != null) {
     //     sm.checkPermission(setDefaultAuthenticatorPermission);
     // }
-    mThisAuthenticator = a;
+    sThisAuthenticator = a == NULL ? NULL : (Authenticator*)a->Probe(EIID_Authenticator);
 }
 
 ECode Authenticator::RequestPasswordAuthenticationEx(
@@ -138,40 +134,37 @@ ECode Authenticator::RequestPasswordAuthenticationEx(
     /* [in] */ const String& rScheme,
     /* [out] */ IPasswordAuthentication** passwordAuthentication)
 {
-    Mutex::Autolock lock(mLock);
+    assert(passwordAuthentication != NULL);
 
-    VALIDATE_NOT_NULL(passwordAuthentication);
+    Mutex::Autolock lock(sLock);
 
     // SecurityManager sm = System.getSecurityManager();
     // if (sm != null) {
     //     sm.checkPermission(requestPasswordAuthenticationPermission);
     // }
-    if (mThisAuthenticator == NULL) {
+    if (sThisAuthenticator == NULL) {
         *passwordAuthentication = NULL;
         return NOERROR;
     }
     // set the requester info so it knows what it is requesting
     // authentication for
-    Authenticator* authenticator = (Authenticator*)mThisAuthenticator->Probe(EIID_Authenticator);
-    if (authenticator != NULL) {
-        authenticator->mHost = rHost;
-        authenticator->mAddr = rAddr;
-        authenticator->mPort = rPort;
-        authenticator->mProtocol = rProtocol;
-        authenticator->mPrompt = rPrompt;
-        authenticator->mScheme = rScheme;
-        authenticator->mRt = AuthenticatorRequestorType_SERVER;
-    }
+    sThisAuthenticator->mHost = rHost;
+    sThisAuthenticator->mAddr = rAddr;
+    sThisAuthenticator->mPort = rPort;
+    sThisAuthenticator->mProtocol = rProtocol;
+    sThisAuthenticator->mPrompt = rPrompt;
+    sThisAuthenticator->mScheme = rScheme;
+    sThisAuthenticator->mRt = AuthenticatorRequestorType_SERVER;
 
     // returns the authentication info obtained by the registered
     // Authenticator
-    return authenticator->GetPasswordAuthentication(passwordAuthentication);
+    return sThisAuthenticator->GetPasswordAuthentication(passwordAuthentication);
 }
 
 ECode Authenticator::GetRequestingHost(
     /* [out] */ String* hostName)
 {
-    VALIDATE_NOT_NULL(hostName);
+    assert(hostName != NULL);
     *hostName = mHost;
     return NOERROR;
 }
@@ -187,50 +180,48 @@ ECode Authenticator::RequestPasswordAuthenticationEx2(
     /* [in] */ AuthenticatorRequestorType reqType,
     /* [out] */ IPasswordAuthentication** passwordAuthentication)
 {
-    Mutex::Autolock lock(mLock);
+    assert(passwordAuthentication != NULL);
 
-    VALIDATE_NOT_NULL(passwordAuthentication);
+    Mutex::Autolock lock(sLock);
 
     // SecurityManager sm = System.getSecurityManager();
     // if (null != sm) {
     //     sm.checkPermission(requestPasswordAuthenticationPermission);
     // }
-    if (NULL == mThisAuthenticator) {
+    if (sThisAuthenticator == NULL) {
         *passwordAuthentication = NULL;
         return NOERROR;
     }
     // sets the requester info so it knows what it is requesting
     // authentication for
-    Authenticator* authenticator = (Authenticator*)mThisAuthenticator->Probe(EIID_Authenticator);
-    if (authenticator != NULL) {
-        authenticator->mHost = rHost;
-        authenticator->mAddr = rAddr;
-        authenticator->mPort = rPort;
-        authenticator->mProtocol = rProtocol;
-        authenticator->mPrompt = rPrompt;
-        authenticator->mScheme = rScheme;
-        authenticator->mUrl = rURL;
-        authenticator->mRt = reqType;
-        authenticator->mRt = AuthenticatorRequestorType_SERVER;
-    }
+    sThisAuthenticator->mHost = rHost;
+    sThisAuthenticator->mAddr = rAddr;
+    sThisAuthenticator->mPort = rPort;
+    sThisAuthenticator->mProtocol = rProtocol;
+    sThisAuthenticator->mPrompt = rPrompt;
+    sThisAuthenticator->mScheme = rScheme;
+    sThisAuthenticator->mUrl = rURL;
+    sThisAuthenticator->mRt = reqType;
+    sThisAuthenticator->mRt = AuthenticatorRequestorType_SERVER;
 
     // returns the authentication info obtained by the registered
     // Authenticator
-    return authenticator->GetPasswordAuthentication(passwordAuthentication);
+    return sThisAuthenticator->GetPasswordAuthentication(passwordAuthentication);
 }
 
 ECode Authenticator::GetRequestingURL(
     /* [out] */ IURL** url)
 {
-    VALIDATE_NOT_NULL(url);
+    assert(url != NULL);
     *url = mUrl;
+    if (*url != NULL) (*url)->AddRef();
     return NOERROR;
 }
 
 ECode Authenticator::GetRequestorType(
     /* [out] */ AuthenticatorRequestorType* requestorType)
 {
-    VALIDATE_NOT_NULL(requestorType);
+    assert(requestorType != NULL);
     *requestorType = mRt;
     return NOERROR;
 }

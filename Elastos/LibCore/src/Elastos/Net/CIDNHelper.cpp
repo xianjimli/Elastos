@@ -1,16 +1,15 @@
 
 #include "cmdef.h"
-#include "CIDN.h"
+#include "CIDNHelper.h"
+#include "IDN.h"
 
-void CIDN::Init()
-{}
 
-String CIDN::ToASCII(
+ECode CIDNHelper::ToASCIIEx(
     /* [in] */ const String& input,
-    /* [in] */ Int32 flags)
+    /* [in] */ Int32 flags,
+    /* [out] */ String* result)
 {
-//    return NativeIDN.toASCII(input, flags);
-    return String(NULL);
+    return IDN::ToASCII(input, flags, result);
 }
 
 /**
@@ -20,10 +19,11 @@ String CIDN::ToASCII(
  * @return the ACE name
  * @throws IllegalArgumentException if {@code input} does not conform to RFC 3490
  */
-String CIDN::ToASCIIEx(
-    /* [in] */ const String& input)
+ECode CIDNHelper::ToASCII(
+    /* [in] */ const String& input,
+    /* [out] */ String* result)
 {
-    return ToASCII(input, 0);
+    return ToASCIIEx(input, 0, result);
 }
 
  /**
@@ -41,12 +41,12 @@ String CIDN::ToASCIIEx(
  * @param flags 0, {@code ALLOW_UNASSIGNED}, {@code USE_STD3_ASCII_RULES},
  *         or {@code ALLOW_UNASSIGNED | USE_STD3_ASCII_RULES}
  */
-String CIDN::ToUnicode(
+ECode CIDNHelper::ToUnicodeEx(
     /* [in] */ const String& input,
-    /* [in] */ Int32 flags)
+    /* [in] */ Int32 flags,
+    /* [out] */ String* result)
 {
-//    return NativeIDN.toUnicode(input, flags);
-    return String(NULL);
+   return IDN::ToUnicode(input, flags, result);
 }
 
 /**
@@ -55,9 +55,9 @@ String CIDN::ToUnicode(
  * @param input the ACE name
  * @return the Unicode name
  */
-String CIDN::ToUnicodeEx(
-    /* [in] */ const String& input)
+ECode CIDNHelper::ToUnicode(
+    /* [in] */ const String& input,
+    /* [out] */ String* result)
 {
-    return ToUnicode(input, 0);
+    return ToUnicodeEx(input, 0, result);
 }
-

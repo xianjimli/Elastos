@@ -7,8 +7,6 @@
 CarClass(CProvider)
 {
 public:
-    CProvider();
-
     CARAPI GetName(
         /* [out] */ String* name);
 
@@ -20,11 +18,8 @@ public:
 
     CARAPI constructor(
         /* [in] */ const String& name,
-        /* [in] */ const String& pversion,
+        /* [in] */ const String& version,
         /* [in] */ const String& info);
-
-private:
-
 };
 
 #endif //__CPROVIDER_H__

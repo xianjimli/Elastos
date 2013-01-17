@@ -3,7 +3,6 @@
 #define __COOKIEHANDLER_H__
 
 #include "Elastos.Net_server.h"
-#include <Com.Kortide.Platform.h>
 #include <elastos/AutoPtr.h>
 
 /**
@@ -26,9 +25,20 @@ public:
      * @param cHandler
      *            a cookie handler to set as the system-wide default handler.
      */
-    static CARAPI_(void) setDefault(
+    static CARAPI SetDefault(
         /* [in] */ ICookieHandler* cHandler);
 
+    /**
+     * Gets all cookies for a specific URI from the cookie cache.
+     *
+     * @param uri
+     *            a URI to search for applicable cookies.
+     * @param requestHeaders
+     *            a list of request headers.
+     * @return an unchangeable map of all appropriate cookies.
+     * @throws IOException
+     *             if an error occurs during the I/O operation.
+     */
     virtual CARAPI Get(
         /* [in] */ IURI* uri,
         /* [in] */ IObjectStringMap* requestHeaders,
@@ -49,15 +59,14 @@ public:
         /* [in] */ IURI* uri,
         /* [in] */ IObjectStringMap* requestHeaders) = 0;
 
+    static CARAPI StaticInit();
+
 private:
-    static AutoPtr<ICookieHandler> mSystemWideCookieHandler;
+    static AutoPtr<ICookieHandler> sSystemWideCookieHandler;
 
-    static AutoPtr<INetPermission> mGetCookieHandlerPermission;// = new NetPermission(
-//            "getCookieHandler");
+    static AutoPtr<INetPermission> sGetCookieHandlerPermission;
 
-    static AutoPtr<INetPermission> mSetCookieHandlerPermission;// = new NetPermission(
-//            "setCookieHandler");
-
+    static AutoPtr<INetPermission> sSetCookieHandlerPermission;
 };
 
 #endif //__COOKIEHANDLER_H__

@@ -3,22 +3,21 @@
 #include "CookieHandler.h"
 #include "CNetPermission.h"
 
+
 AutoPtr<INetPermission> InitNetPermission(
     /* [in] */ const String& name)
 {
     AutoPtr<INetPermission> permission;
     ASSERT_SUCCEEDED(CNetPermission::New(name, (INetPermission**)&permission));
-    permission->AddRef();
-
     return permission;
 }
 
-AutoPtr<ICookieHandler> CookieHandler::mSystemWideCookieHandler;
+AutoPtr<ICookieHandler> CookieHandler::sSystemWideCookieHandler;
 
-AutoPtr<INetPermission> CookieHandler::mGetCookieHandlerPermission =
+AutoPtr<INetPermission> CookieHandler::sGetCookieHandlerPermission =
         InitNetPermission(String("getCookieHandler"));
 
-AutoPtr<INetPermission> CookieHandler::mSetCookieHandlerPermission =
+AutoPtr<INetPermission> CookieHandler::sSetCookieHandlerPermission =
         InitNetPermission(String("setCookieHandler"));
 
 ECode CookieHandler::GetDefault(
@@ -30,7 +29,8 @@ ECode CookieHandler::GetDefault(
     // if (null != sm) {
     //     sm.checkPermission(getCookieHandlerPermission);
     // }
-    *handler = mSystemWideCookieHandler;
+    *handler = sSystemWideCookieHandler;
+    if (*handler != NULL) (*handler)->AddRef();
 
     return NOERROR;
 }
@@ -41,12 +41,13 @@ ECode CookieHandler::GetDefault(
  * @param cHandler
  *            a cookie handler to set as the system-wide default handler.
  */
-void CookieHandler::setDefault(
+ECode CookieHandler::SetDefault(
     /* [in] */ ICookieHandler* cHandler)
 {
     // SecurityManager sm = System.getSecurityManager();
     // if (null != sm) {
     //     sm.checkPermission(setCookieHandlerPermission);
     // }
-    mSystemWideCookieHandler = cHandler;
+    sSystemWideCookieHandler = cHandler;
+    return NOERROR;
 }

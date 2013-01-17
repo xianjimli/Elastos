@@ -10,7 +10,7 @@ C_DEFINES += -D_FRAMEWORK_CORE
 
 SOURCES = CParcelableObjectContainer.cpp
 SOURCES += CObjectEnumerator.cpp
-SOURCES += CObjectStringMap.cpp
+SOURCES += CParcelableObjectStringMap.cpp
 SOURCES += CObjectIntegerMap.cpp
 SOURCES += CDisplayMetrics.cpp
 SOURCES += CTypedValue.cpp

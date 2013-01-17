@@ -108,11 +108,8 @@ extern "C" const InterfaceID EIID_InetAddress;
  * @see Inet4Address
  * @see Inet6Address
  */
-class CURI;
-
 class InetAddress
 {
-    friend class CURI;
 public:
     /**
      * Constructs an {@code InetAddress}.
@@ -167,6 +164,18 @@ public:
     static CARAPI GetAllByName(
         /* [in] */ const String& host,
         /* [out, callee] */ ArrayOf<IInetAddress*>** addresses);
+
+    /**
+     * Returns the InetAddresses for {@code host}. The returned array is shared
+     * and must be cloned before it is returned to application code.
+     */
+    /* package */ static CARAPI GetAllByNameImpl(
+        /* [in] */ const String& host,
+        /* [out, callee] */ ArrayOf<IInetAddress*>** addresses);
+
+    /* package */ static CARAPI IpStringToByteArray(
+        /* [in] */ const String& ipString,
+        /* [out, callee] */ ArrayOf<Byte>** address);
 
     static CARAPI_(Boolean) PreferIPv6Addresses();
 
@@ -534,18 +543,6 @@ protected:
         /* [in] */ ArrayOf<ArrayOf<Byte>*>* rawAddresses,
         /* [in] */ const String& hostName,
         /* [out, callee] */ ArrayOf<IInetAddress*>** addresses);
-
-    /**
-     * Returns the InetAddresses for {@code host}. The returned array is shared
-     * and must be cloned before it is returned to application code.
-     */
-    static CARAPI GetAllByNameImpl(
-        /* [in] */ const String& host,
-        /* [out, callee] */ ArrayOf<IInetAddress*>** addresses);
-
-    static CARAPI IpStringToByteArray(
-        /* [in] */ const String& ipString,
-        /* [out, callee] */ ArrayOf<Byte>** address);
 
     /**
      * Query the IP stack for the host address. The host is in address form.

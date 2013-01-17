@@ -5,6 +5,7 @@ module
     interface ISocketAddress;
 
 
+    [deprecated]
     interface IDatagramPacket {
         /**
          * Gets the sender or destination IP address of this datagram packet.
@@ -65,7 +66,7 @@ module
          *            the buffer to store the data.
          */
         SetData(
-            [in] ArrayOf<Byte> buf);
+            [in] ArrayOf<Byte>* buf);
 
         /**
          * Sets the data buffer for this datagram packet.
@@ -79,7 +80,7 @@ module
          *            store the received data.
          */
         SetDataEx(
-            [in] ArrayOf<Byte> buf,
+            [in] ArrayOf<Byte>* buf,
             [in] Int32 anOffset,
             [in] Int32 aLength);
 

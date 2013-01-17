@@ -189,7 +189,7 @@ module
          *            the URL to determine the hashcode.
          * @return the hashcode of the given URL.
          */
-        HashCode(
+        GetHashCode(
             [in] IURL* url,
             [out] Int32* code);
 
@@ -217,7 +217,7 @@ module
          * @return {@code true} if both URLs refer to the same file, {@code false}
          *         otherwise.
          */
-        SameFile(
+        IsSameFile(
             [in] IURL* url1,
             [in] IURL* url2,
             [out] Boolean* isSame);

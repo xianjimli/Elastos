@@ -15,8 +15,6 @@
 class ProxySelector
 {
 public:
-    ProxySelector();
-
     /**
      * Gets the default {@code ProxySelector} of the system.
      *
@@ -44,29 +42,63 @@ public:
     static CARAPI SetDefault(
         /* [in] */ IProxySelector* selector);
 
+    /**
+     * Gets all applicable proxies based on the accessing protocol of {@code
+     * uri}. The format of URI is defined as below:
+     * <p>
+     * <li>http URI stands for http connection.</li>
+     * <li>https URI stands for https connection.</li>
+     * <li>ftp URI stands for ftp connection.</li>
+     * <li>socket:://ip:port URI stands for tcp client sockets connection.</li>
+     *
+     * @param uri
+     *            the target URI object.
+     * @return a list containing all applicable proxies. If no proxy is
+     *         available, the list contains only the {@code Proxy.NO_PROXY}
+     *         element.
+     * @throws IllegalArgumentException
+     *             if {@code uri} is {@code null}.
+     */
     virtual CARAPI Select(
         /* [in] */ IURI* uri,
         /* [out] */ IObjectContainer** container) = 0;
 
+    /**
+     * Notifies the {@code ProxySelector} that a connection to the proxy server
+     * could not be established. A concrete implementation should upon this
+     * notification maintain the list of available proxies, since an updated
+     * version should be provided by {@code select()}.
+     *
+     * @param uri
+     *            the URI to which the connection could not be established.
+     * @param sa
+     *            the address of the proxy.
+     * @param ioe
+     *            the exception which was thrown during connection
+     *            establishment.
+     * @throws IllegalArgumentException
+     *             if any argument is {@code null}.
+     * @see #select(URI)
+     */
     virtual CARAPI ConnectFailed(
         /* [in] */ IURI* uri,
-        /* [in] */ ISocketAddress* sa
-        /*[in] IOException ioe*/) = 0;
+        /* [in] */ ISocketAddress* sa,
+        /* [in] */ ECode ec) = 0;
 
 private:
-    static AutoPtr<IProxySelector> mDefaultSelector;
+    static AutoPtr<IProxySelector> sDefaultSelector;
 
     /*
      * "getProxySelector" permission. getDefault method requires this
      * permission.
      */
-    static AutoPtr<INetPermission> mGetProxySelectorPermission;
+    static AutoPtr<INetPermission> sGetProxySelectorPermission;
 
     /*
      * "setProxySelector" permission. setDefault method requires this
      * permission.
      */
-    static AutoPtr<INetPermission> mSetProxySelectorPermission;
+    static AutoPtr<INetPermission> sSetProxySelectorPermission;
 };
 
 #endif //__ProxySelector_H__

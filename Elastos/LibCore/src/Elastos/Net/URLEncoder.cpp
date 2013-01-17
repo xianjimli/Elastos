@@ -1,58 +1,57 @@
 
 #include "URLEncoder.h"
+#include <Elastos.Core.h>
 #include <elastos/Character.h>
 
 using namespace Elastos::Core;
 
-const String URLEncoder::mDigits = String("123456789ABCDEF");
+const CString URLEncoder::sDigits = "123456789ABCDEF";
 
 URLEncoder::URLEncoder()
 {}
 
 ECode URLEncoder::Encode(
     /* [in] */ const String& s,
-    /* [out] */ String* encodeS)
+    /* [out] */ String* encodedS)
 {
-    VALIDATE_NOT_NULL(encodeS);
+    VALIDATE_NOT_NULL(encodedS);
 
     // Guess a bit bigger for encoded form
     StringBuffer buf;
-    for (UInt32 i = 0; i < s.GetLength(); i++) {
-        Char32 ch = s[i];
+    for (Int32 i = 0; i < s.GetCharCount(); i++) {
+        Char32 ch = s.GetChar(i);
         if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')
-                || (ch >= '0' && ch <= '9') || String(".-*_").IndexOf(ch) > -1) {
+                || (ch >= '0' && ch <= '9') || CString(".-*_").IndexOf(ch) > -1) {
             buf += ch;
         }
         else if (ch == ' ') {
             buf += '+';
         }
         else {
-            //byte[] bytes = new String(new char[] { ch }).getBytes();
-            Byte b = Character::GetDirectionality(ch);
-            buf += '%';
-            buf += mDigits[(b & 0xf0) >> 4];
-            buf += mDigits[b & 0xf];
-            // for (int j = 0; j < bytes.length; j++) {
-            //     buf.append('%');
-            //     buf.append(digits.charAt((bytes[j] & 0xf0) >> 4));
-            //     buf.append(digits.charAt(bytes[j] & 0xf));
-            // }
+            Int32 length;
+            ArrayOf_<Char8, 4> bytes;
+            Character::ToChars(ch, bytes, 0, &length);
+            for (Int32 j = 0; j < length; j++) {
+                buf += '%';
+                buf += sDigits[(bytes[j] & 0xf0) >> 4];
+                buf += sDigits[bytes[j] & 0xf];
+            }
         }
     }
-    *encodeS = String(buf);
+    *encodedS = String(buf);
     return NOERROR;
 }
 
-ECode URLEncoder::EncodeEx(
+ECode URLEncoder::Encode(
     /* [in] */ const String& s,
     /* [in] */  const String& enc,
-    /* [out] */ String* encodeS)
+    /* [out] */ String* encodedS)
 {
-    VALIDATE_NOT_NULL(encodeS);
+    VALIDATE_NOT_NULL(encodedS);
 
     if (s.IsNull() || enc.IsNull()) {
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
 //        throw new NullPointerException();
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
     // check for UnsupportedEncodingException
 //    "".getBytes(enc);
@@ -60,10 +59,10 @@ ECode URLEncoder::EncodeEx(
     // Guess a bit bigger for encoded form
     StringBuffer buf;
     Int32 start = -1;
-    for (UInt32 i = 0; i < s.GetLength(); i++) {
-        Char32 ch = s[i];
+    for (Int32 i = 0; i < s.GetCharCount(); i++) {
+        Char32 ch = s.GetChar(i);
         if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')
-                || (ch >= '0' && ch <= '9') || String(" .-*_").IndexOf(ch) > -1) {
+                || (ch >= '0' && ch <= '9') || CString(" .-*_").IndexOf(ch) > -1) {
             if (start >= 0) {
                 Convert(s.Substring(start, i), buf, enc);
                 start = -1;
@@ -84,13 +83,13 @@ ECode URLEncoder::EncodeEx(
     if (start >= 0) {
         Convert(s.Substring(start, s.GetLength()), buf, enc);
     }
-    *encodeS = String(buf);
+    *encodedS = String(buf);
     return NOERROR;
 }
 
 void URLEncoder::Convert(
     /* [in] */ const String& s,
-    /* [in] */ StringBuffer buf,
+    /* [in] */ StringBuffer& buf,
     /* [in] */ const String& enc)
 {
     // byte[] bytes = s.getBytes(enc);
@@ -99,4 +98,5 @@ void URLEncoder::Convert(
     //     buf.append(digits.charAt((bytes[j] & 0xf0) >> 4));
     //     buf.append(digits.charAt(bytes[j] & 0xf));
     // }
+    assert(0);
 }

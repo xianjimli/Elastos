@@ -119,7 +119,7 @@ module
          *                if an error occurs while receiving the packet.
          */
         Receive(
-            [in/*, out*/] IDatagramPacket* pack);
+            [in] IDatagramPacket* pack);
 
         /**
          * Sends a packet over this socket. The packet must satisfy the security

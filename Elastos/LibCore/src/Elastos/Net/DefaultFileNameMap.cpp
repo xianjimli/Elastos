@@ -35,7 +35,6 @@ ECode DefaultFileNameMap::GetContentTypeFor(
     /* [in] */ const String& filename,
     /* [out] */ String* type)
 {
-    return E_NOT_IMPLEMENTED;
 //    VALIDATE_NOT_NULL(type);
 
 //    if (filename.EndWith("/")) {
@@ -53,4 +52,5 @@ ECode DefaultFileNameMap::GetContentTypeFor(
 //        ext = filename.Substring(firstCharInExtension, lastCharInExtension);
 //    }
 //    return MimeUtils.guessMimeTypeFromExtension(ext.toLowerCase());
+    return E_NOT_IMPLEMENTED;
 }

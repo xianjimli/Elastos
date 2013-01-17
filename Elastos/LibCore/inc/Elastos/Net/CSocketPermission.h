@@ -6,10 +6,64 @@
 #include "Permission.h"
 #include <elastos/AutoPtr.h>
 
+/**
+ * Regulates the access to network operations available through sockets through
+ * permissions. A permission consists of a target (a host), and an associated
+ * action list. The target should identify the host by either indicating the
+ * (possibly wildcarded (eg. {@code .company.com})) DNS style name of the host
+ * or its IP address in standard {@code nn.nn.nn.nn} ("dot") notation. The
+ * action list can be made up of one or more of the following actions separated
+ * by a comma:
+ * <dl>
+ * <dt>connect</dt>
+ * <dd>requests permission to connect to the host</dd>
+ * <dt>listen</dt>
+ * <dd>requests permission to listen for connections from the host</dd>
+ * <dt>accept</dt>
+ * <dd>requests permission to accept connections from the host</dd>
+ * <dt>resolve</dt>
+ * <dd>requests permission to resolve the hostname</dd>
+ * </dl>
+ * Note that {@code resolve} is implied when any (or none) of the others are
+ * present.
+ * <p>
+ * Access to a particular port can be requested by appending a colon and a
+ * single digit to the name (eg. {@code .company.com:7000}). A range of port
+ * numbers can also be specified, by appending a pattern of the form
+ * <i>LOW-HIGH</i> where <i>LOW</i> and <i>HIGH</i> are valid port numbers. If
+ * either <i>LOW</i> or <i>HIGH</i> is omitted it is equivalent to entering the
+ * lowest or highest possible value respectively. For example:
+ *
+ * <pre>
+ * {@code SocketPermission(&quot;www.company.com:7000-&quot;, &quot;connect,accept&quot;)}
+ * </pre>
+ *
+ * represents the permission to connect to and accept connections from {@code
+ * www.company.com} on ports in the range {@code 7000} to {@code 65535}.
+ */
 CarClass(CSocketPermission), public Permission
 {
 public:
     CSocketPermission();
+
+    /**
+     * Constructs a new {@code SocketPermission} instance. The hostname can be a
+     * DNS name, an individual hostname, an IP address or the empty string which
+     * implies {@code localhost}. The port or port range is optional.
+     * <p>
+     * The action list is a comma-separated list which can consists of the
+     * possible operations {@code "connect"}, {@code "listen"}, {@code "accept"}
+     * , and {@code "resolve"}. They are case-insensitive and can be put
+     * together in any order. {@code "resolve"} is implied per default.
+     *
+     * @param host
+     *            the hostname this permission is valid for.
+     * @param action
+     *            the action string of this permission.
+     */
+    CARAPI constructor(
+        /* [in] */ const String& host,
+        /* [in] */ const String& action);
 
     CARAPI GetActions(
         /* [out] */ String* actions);
@@ -27,10 +81,6 @@ public:
      */
     CARAPI_(Boolean) CheckHost(
         /* [in] */ ISocketPermission* sp);
-
-    CARAPI constructor(
-        /* [in] */ const String& host,
-        /* [in] */ const String& action);
 
 private:
     /**
@@ -123,12 +173,12 @@ public:
     Int32 mActionsMask;
 
 private:
-    static const Int64 mSerialVersionUID;
+    static const Int64 sSerialVersionUID;
 
     // list of actions permitted for socket permission in order, indexed by mask
     // value
     //@SuppressWarnings("nls")
-    static const String mActionNames[];
+    static const CString sActionNames[];
 
     // If a wildcard is present store the information
     Boolean mIsPartialWild;

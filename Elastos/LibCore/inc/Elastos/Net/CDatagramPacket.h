@@ -14,6 +14,125 @@ CarClass(CDatagramPacket)
 public:
     CDatagramPacket();
 
+    ~CDatagramPacket();
+
+    /**
+     * Constructs a new {@code DatagramPacket} object to receive data up to
+     * {@code length} bytes.
+     *
+     * @param data
+     *            a byte array to store the read characters.
+     * @param length
+     *            the length of the data buffer.
+     */
+    CARAPI constructor(
+        /* [in] */ ArrayOf<Byte>* data,
+        /* [in] */ Int32 length);
+
+    /**
+     * Constructs a new {@code DatagramPacket} object to receive data up to
+     * {@code length} bytes with a specified buffer offset.
+     *
+     * @param data
+     *            a byte array to store the read characters.
+     * @param offset
+     *            the offset of the byte array where the bytes is written.
+     * @param length
+     *            the length of the data.
+     */
+    CARAPI constructor(
+        /* [in] */ ArrayOf<Byte>* data,
+        /* [in] */ Int32 offset,
+        /* [in] */ Int32 length);
+
+    /**
+     * Constructs a new {@code DatagramPacket} object to send data to the port
+     * {@code aPort} of the address {@code host}. The {@code length} must be
+     * lesser than or equal to the size of {@code data}. The first {@code
+     * length} bytes from the byte array position {@code offset} are sent.
+     *
+     * @param data
+     *            a byte array which stores the characters to be sent.
+     * @param offset
+     *            the offset of {@code data} where to read from.
+     * @param length
+     *            the length of data.
+     * @param host
+     *            the address of the target host.
+     * @param aPort
+     *            the port of the target host.
+     */
+    CARAPI constructor(
+        /* [in] */ ArrayOf<Byte>* data,
+        /* [in] */ Int32 offset,
+        /* [in] */ Int32 length,
+        /* [in] */ IInetAddress* host,
+        /* [in] */ Int32 aPort);
+
+    /**
+     * Constructs a new {@code DatagramPacket} object to send data to the port
+     * {@code aPort} of the address {@code host}. The {@code length} must be
+     * lesser than or equal to the size of {@code data}. The first {@code
+     * length} bytes are sent.
+     *
+     * @param data
+     *            a byte array which stores the characters to be sent.
+     * @param length
+     *            the length of data.
+     * @param host
+     *            the address of the target host.
+     * @param port
+     *            the port of the target host.
+     */
+    CARAPI constructor(
+        /* [in] */ ArrayOf<Byte>* data,
+        /* [in] */ Int32 length,
+        /* [in] */ IInetAddress* host,
+        /* [in] */ Int32 port);
+
+    /**
+     * Constructs a new {@code DatagramPacket} object to send data to the
+     * address {@code sockAddr}. The {@code length} must be lesser than or equal
+     * to the size of {@code data}. The first {@code length} bytes of the data
+     * are sent.
+     *
+     * @param data
+     *            the byte array to store the data.
+     * @param length
+     *            the length of the data.
+     * @param sockAddr
+     *            the target host address and port.
+     * @throws SocketException
+     *             if an error in the underlying protocol occurs.
+     */
+    CARAPI constructor(
+        /* [in] */ ArrayOf<Byte>* data,
+        /* [in] */ Int32 length,
+        /* [in] */ ISocketAddress* sockAddr);
+
+    /**
+     * Constructs a new {@code DatagramPacket} object to send data to the
+     * address {@code sockAddr}. The {@code length} must be lesser than or equal
+     * to the size of {@code data}. The first {@code length} bytes of the data
+     * are sent.
+     *
+     * @param data
+     *            the byte array to store the data.
+     * @param offset
+     *            the offset of the data.
+     * @param length
+     *            the length of the data.
+     * @param sockAddr
+     *            the target host address and port.
+     * @throws SocketException
+     *             if an error in the underlying protocol occurs.
+     */
+    CARAPI constructor(
+        /* [in] */ ArrayOf<Byte>* data,
+        /* [in] */ Int32 offset,
+        /* [in] */ Int32 length,
+        /* [in] */ ISocketAddress* sockAddr);
+
     CARAPI GetAddress(
         /* [out] */ IInetAddress** address);
 
@@ -33,7 +152,7 @@ public:
         /* [in] */ IInetAddress* addr);
 
     CARAPI SetData(
-        /* [in] */ const ArrayOf<Byte>& buf);
+        /* [in] */ ArrayOf<Byte>* buf);
 
     /**
      * Gets the current capacity value.
@@ -43,7 +162,7 @@ public:
     CARAPI_(Int32) GetCapacity();
 
     CARAPI SetDataEx(
-        /* [in] */ const ArrayOf<Byte>& buf,
+        /* [in] */ ArrayOf<Byte>* buf,
         /* [in] */ Int32 anOffset,
         /* [in] */ Int32 aLength);
 
@@ -68,39 +187,6 @@ public:
     CARAPI SetSocketAddress(
         /* [in] */ ISocketAddress* sockAddr);
 
-    CARAPI constructor(
-        /* [in] */ const ArrayOf<Byte>& data,
-        /* [in] */ Int32 length);
-
-    CARAPI constructor(
-        /* [in] */ const ArrayOf<Byte>& data,
-        /* [in] */ Int32 offset,
-        /* [in] */ Int32 length);
-
-    CARAPI constructor(
-        /* [in] */ const ArrayOf<Byte>& data,
-        /* [in] */ Int32 offset,
-        /* [in] */ Int32 length,
-        /* [in] */ IInetAddress* host,
-        /* [in] */ Int32 aPort);
-
-    CARAPI constructor(
-        /* [in] */ const ArrayOf<Byte>& data,
-        /* [in] */ Int32 length,
-        /* [in] */ IInetAddress* host,
-        /* [in] */ Int32 port);
-
-    CARAPI constructor(
-        /* [in] */ const ArrayOf<Byte>& data,
-        /* [in] */ Int32 length,
-        /* [in] */ ISocketAddress* sockAddr);
-
-    CARAPI constructor(
-        /* [in] */ const ArrayOf<Byte>& data,
-        /* [in] */ Int32 offset,
-        /* [in] */ Int32 length,
-        /* [in] */ ISocketAddress* sockAddr);
-
 public:
     ArrayOf<Byte>* mData;
 
@@ -121,8 +207,6 @@ public:
     Int32 mPort; // The default port number is -1
 
     Int32 mOffset;
-
-    Mutex* mLock;
 };
 
 #endif //__CDATAGRAMPACKET_H__

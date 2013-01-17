@@ -1,19 +1,24 @@
 
 module
 {
-	interface IContentHandler;
+    interface IContentHandler;
 
+    /**
+     * Defines a factory which is responsible for creating a {@code ContentHandler}.
+     *
+     * @see ContentHandler
+     */
     interface IContentHandlerFactory {
-    	/**
-	     * Creates a content handler to handle {@code contentType}.
-	     *
-	     * @param contentType
-	     *            specifies the content type which is handled by the returned
-	     *            {@code ContentHandler}.
-	     * @return content handler object for a specific content type.
-	     */
-	    CreateContentHandler(
-	    	[in] String contentType,
-	    	[out] IContentHandler** handler);
+        /**
+         * Creates a content handler to handle {@code contentType}.
+         *
+         * @param contentType
+         *            specifies the content type which is handled by the returned
+         *            {@code ContentHandler}.
+         * @return content handler object for a specific content type.
+         */
+        CreateContentHandler(
+            [in] String contentType,
+            [out] IContentHandler** handler);
     }
 }

@@ -2,7 +2,7 @@
 #ifndef __BASICPERMISSION_H__
 #define __BASICPERMISSION_H__
 
-#ifdef _ELASTOSSECURITY_
+#ifdef ELASTOS_SECURITY_ECO
 #include "Elastos.Security_server.h"
 #else
 #include "Elastos.Security.h"
@@ -27,6 +27,56 @@ using namespace Elastos;
 class BasicPermission : public Permission
 {
 public:
+    /**
+     * Returns the actions associated with this permission. Since {@code
+     * BasicPermission} instances have no actions, an empty string is returned.
+     *
+     * @return an empty string.
+     */
+    // @Override
+    CARAPI GetActions(
+        /* [out] */ String* actions);
+
+    /**
+     * Indicates whether the specified permission is implied by this permission.
+     *
+     * @param permission
+     *            the permission to check against this permission.
+     * @return {@code true} if the specified permission is implied by this
+     *         permission, {@code false} otherwise.
+     */
+    // @Override
+    CARAPI Implies(
+        /* [in] */ IPermission* permission,
+        /* [out] */ Boolean* result);
+
+    /**
+     * Checks if {@code thisName} implies {@code thatName},
+     * accordingly to hierarchical property naming convention.
+     * It is assumed that names cannot be {@code null} or empty.
+     */
+    static CARAPI_(Boolean) NameImplies(
+        /* [in] */ const String& thisName,
+        /* [in] */ const String& thatName);
+
+    /**
+     * Returns an empty {@link PermissionCollection} for holding permissions.
+     * <p>
+     * For {@code PermissionCollection} (and subclasses which do not override
+     * this method), the collection which is returned does <em>not</em> invoke
+     * the {@link #implies(Permission)} method of the permissions which are
+     * stored in it when checking if the collection implies a permission.
+     * Instead, it assumes that if the type of the permission is correct, and
+     * the name of the permission is correct, there is a match.
+     *
+     * @return an empty {@link PermissionCollection} for holding permissions.
+     * @see BasicPermissionCollection
+     */
+    // @Override
+    CARAPI NewPermissionCollection(
+        /* [out] */ IPermissionCollection** permissionCollection);
+
+protected:
     /**
      * Constructs a new instance of {@code BasicPermission} with the specified
      * name.
@@ -56,25 +106,6 @@ public:
         /* [in] */ const String& name,
         /* [in] */ const String& action);
 
-    CARAPI GetActions(
-        /* [out] */ String* actions);
-
-    CARAPI Implies(
-        /* [in] */ IPermission* permission,
-        /* [out] */ Boolean* result);
-
-    /**
-     * Checks if {@code thisName} implies {@code thatName},
-     * accordingly to hierarchical property naming convention.
-     * It is assumed that names cannot be {@code null} or empty.
-     */
-    static CARAPI_(Boolean) NameImplies(
-        /* [in] */ const String& thisName,
-        /* [in] */ const String& thatName);
-
-    CARAPI NewPermissionCollection(
-        /* [out] */ IPermissionCollection** permissionCollection);
-
 private:
     /**
      * Checks name parameter
@@ -83,8 +114,6 @@ private:
         /* [in] */ const String& name);
 
 private:
-    static const Int64 sSerialVersionUID;
-    String name;
 };
 
 #endif //__BASICPERMISSION_H__

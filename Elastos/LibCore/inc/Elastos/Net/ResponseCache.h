@@ -21,17 +21,18 @@ public:
     /**
      * Returns the system's default response cache, or null.
      */
-    static CARAPI_(AutoPtr<IResponseCache>) GetDefault();
+    static CARAPI GetDefault(
+        /* [out] */ IResponseCache** responseCache);
 
     /**
      * Sets the system's default response cache. Use null to remove the response cache.
      */
-    CARAPI_(void) SetDefault(
+    static CARAPI SetDefault(
         /* [in] */ IResponseCache* responseCache);
 
     virtual CARAPI Get(
         /* [in] */ IURI* uri,
-        /* [in] */ String requestMethod,
+        /* [in] */ const String& requestMethod,
         /* [in] */ IObjectStringMap* requestHeaders,
         /* [out] */ ICacheResponse** cache) = 0;
 
@@ -41,7 +42,7 @@ public:
         /* [out] */ ICacheRequest** cache) = 0;
 
 private:
-    static AutoPtr<IResponseCache> mDefaultResponseCache;
+    static AutoPtr<IResponseCache> sDefaultResponseCache;
 };
 
 #endif //__RESPONSECACHE_H__

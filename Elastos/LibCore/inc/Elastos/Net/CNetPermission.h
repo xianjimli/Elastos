@@ -6,7 +6,7 @@
 #include "BasicPermission.h"
 #include <elastos/AutoPtr.h>
 
-CarClass(CNetPermission) , public BasicPermission
+CarClass(CNetPermission), public BasicPermission
 {
 public:
     CARAPI constructor(
@@ -18,8 +18,6 @@ public:
 
 private:
     static const Int64 sSerialVersionUID;
-
-    Mutex* mLock;
 };
 
 #endif //__CNETPERMISSION_H__

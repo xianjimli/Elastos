@@ -23,6 +23,7 @@ module
         /**
          * Returns the {@code Domain} attribute.
          */
+        // the original name is GetDomain, but it's conflict with the method of IObject
         GetDomainAttr(
             [out] String* theDomain);
 

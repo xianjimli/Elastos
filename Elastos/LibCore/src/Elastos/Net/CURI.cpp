@@ -7,13 +7,189 @@
 #include <StringBuffer.h>
 #include <elastos/Character.h>
 
+
+const String CURI::UNRESERVED = String("_-!.~\'()*");
+const String CURI::PUNCTUATION = String(",;:$&+=");
+const String CURI::RESERVED = String(",;:$&+=?/[]@");
+const String CURI::SOME_LEGAL = String("_-!.~\'()*,;:$&+=");
+const String CURI::ALL_LEGAL = String("_-!.~\'()*,;:$&+=?/[]@");
+
+AutoPtr<INetworkSystem> InitNetworkSystem()
+{
+    AutoPtr<IPlatform> platform;
+    ASSERT_SUCCEEDED(CPlatform::AcquireSingleton((IPlatform**)&platform));
+    AutoPtr<INetworkSystem> networkSystem;
+    platform->GetNetworkSystem((INetworkSystem**)&networkSystem);
+    return networkSystem;
+}
+
+AutoPtr<INetworkSystem> CURI::NETWORK_SYSTEM = InitNetworkSystem();
+
 CURI::CURI()
     : mPort(-1)
     , mOpaque(FALSE)
     , mAbsolute(FALSE)
     , mServerAuthority(FALSE)
     , mHash(-1)
+{}
+
+ECode CURI::constructor()
 {
+    return NOERROR;
+}
+
+ECode CURI::constructor(
+    /* [in] */ const String& uri)
+{
+    return ParseURI(uri, FALSE);
+}
+
+ECode CURI::constructor(
+    /* [in] */ const String& scheme,
+    /* [in] */ const String& ssp,
+    /* [in] */ const String& frag)
+{
+    StringBuffer uri;
+    if (!scheme.IsNull()) {
+        uri += scheme;
+        uri += ':';
+    }
+    if (!ssp.IsNull()) {
+        // QUOTE ILLEGAL CHARACTERS
+        uri += QuoteComponent(ssp, ALL_LEGAL);
+    }
+    if (!frag.IsNull()) {
+        uri += '#';
+        // QUOTE ILLEGAL CHARACTERS
+        uri += QuoteComponent(frag, ALL_LEGAL);
+    }
+
+    return ParseURI(String(uri), FALSE);
+}
+
+ECode CURI::constructor(
+    /* [in] */ const String& scheme,
+    /* [in] */ const String& userInfo,
+    /* [in] */ const String& host,
+    /* [in] */ Int32 port,
+    /* [in] */ const String& path,
+    /* [in] */ const String& query,
+    /* [in] */ const String& fragment)
+{
+    if (scheme.IsNull() && userInfo.IsNull() && host.IsNull() && path.IsNull()
+            && query.IsNull() && fragment.IsNull()) {
+        mPath = "";
+        return NOERROR;
+    }
+
+    if (!scheme.IsNull() && !path.IsNull() && path.GetCharCount() > 0
+            && path.GetChar(0) != '/') {
+//        throw new URISyntaxException(path, "Relative path");
+        return E_URI_SYNTAX_EXCEPTION;
+    }
+
+    StringBuffer uri;
+    if (!scheme.IsNull()) {
+        uri += scheme;
+        uri += ':';
+    }
+
+    if (!userInfo.IsNull() || !host.IsNull() || port != -1) {
+        uri += "//";
+    }
+
+    if (!userInfo.IsNull()) {
+        // QUOTE ILLEGAL CHARACTERS in userInfo
+        uri += QuoteComponent(userInfo, SOME_LEGAL);
+        uri += '@';
+    }
+
+    if (!host.IsNull()) {
+        // check for IPv6 addresses that hasn't been enclosed
+        // in square brackets
+        String temp = host;
+        if (host.IndexOf(':') != -1 && host.IndexOf(']') == -1
+                && host.IndexOf('[') == -1) {
+//            host = "[" + host + "]";
+            temp = String("[") + host + String("]");
+        }
+        uri += temp;
+    }
+
+    if (port != -1) {
+        uri += ':';
+        uri += port;
+    }
+
+    if (!path.IsNull()) {
+        // QUOTE ILLEGAL CHARS
+        uri += QuoteComponent(path, String("/@") + SOME_LEGAL);
+    }
+
+    if (!query.IsNull()) {
+        uri += '?';
+        // QUOTE ILLEGAL CHARS
+        uri += QuoteComponent(query, ALL_LEGAL);
+    }
+
+    if (!fragment.IsNull()) {
+        // QUOTE ILLEGAL CHARS
+        uri += '#';
+        uri += QuoteComponent(fragment, ALL_LEGAL);
+    }
+
+    return ParseURI(String(uri), TRUE);
+}
+
+ECode CURI::constructor(
+    /* [in] */ const String& scheme,
+    /* [in] */ const String& host,
+    /* [in] */ const String& path,
+    /* [in] */ const String& fragment)
+{
+    return constructor(scheme, String(NULL), host, -1, path, String(NULL), fragment);
+}
+
+ECode CURI::constructor(
+    /* [in] */ const String& scheme,
+    /* [in] */ const String& authority,
+    /* [in] */ const String& path,
+    /* [in] */ const String& query,
+    /* [in] */ const String& fragment)
+{
+    if (scheme.IsNull() && !path.IsNull() && path.GetCharCount() > 0
+            && path.GetChar(0) != '/') {
+//        throw new URISyntaxException(path, "Relative path");
+        return E_URI_SYNTAX_EXCEPTION;
+    }
+
+    StringBuffer uri;
+    if (!scheme.IsNull()) {
+        uri += scheme;
+        uri += ':';
+    }
+    if (!authority.IsNull()) {
+        uri += "//";
+        // QUOTE ILLEGAL CHARS
+        uri += QuoteComponent(authority, String("@[]") + SOME_LEGAL);
+    }
+
+    if (!path.IsNull()) {
+        // QUOTE ILLEGAL CHARS
+        uri += QuoteComponent(path, String("/@") + SOME_LEGAL);
+    }
+    if (!query.IsNull()) {
+        // QUOTE ILLEGAL CHARS
+        uri += '?';
+        uri += QuoteComponent(query, ALL_LEGAL);
+    }
+    if (!fragment.IsNull()) {
+        // QUOTE ILLEGAL CHARS
+        uri += '#';
+        uri += QuoteComponent(fragment, ALL_LEGAL);
+    }
+
+    return ParseURI(String(uri), FALSE);
 }
 
 ECode CURI::ParseURI(
@@ -32,7 +208,7 @@ ECode CURI::ParseURI(
     if (index != -1) {
         // remove the fragment from the end
         mFragment = temp.Substring(index + 1);
-        ValidateFragment(uri, mFragment, index + 1);
+        FAIL_RETURN(ValidateFragment(uri, mFragment, index + 1));
         temp = temp.Substring(0, index);
     }
 
@@ -49,14 +225,14 @@ ECode CURI::ParseURI(
         mAbsolute = TRUE;
         mScheme = temp.Substring(0, index);
         if (mScheme.GetLength() == 0) {
-            return E_URI_SYNTAX_EXCEPTION;
 //            throw new URISyntaxException(uri, "Scheme expected", index);
+            return E_URI_SYNTAX_EXCEPTION;
         }
-        ValidateScheme(uri, mScheme, 0);
+        FAIL_RETURN(ValidateScheme(uri, mScheme, 0));
         mSchemeSpecificPart = temp.Substring(index + 1);
         if (mSchemeSpecificPart.GetLength() == 0) {
-            return E_URI_SYNTAX_EXCEPTION;
 //            throw new URISyntaxException(uri, "Scheme-specific part expected", index + 1);
+            return E_URI_SYNTAX_EXCEPTION;
         }
     }
     else {
@@ -64,8 +240,8 @@ ECode CURI::ParseURI(
         mSchemeSpecificPart = temp;
     }
 
-    if (mScheme.IsNull() || mSchemeSpecificPart.GetLength() > 0
-            && mSchemeSpecificPart[0] == '/') {
+    if (mScheme.IsNull() || mSchemeSpecificPart.GetCharCount() > 0
+            && mSchemeSpecificPart.GetChar(0) == '/') {
         mOpaque = FALSE;
         // the URI is hierarchical
 
@@ -75,7 +251,7 @@ ECode CURI::ParseURI(
         if (index != -1) {
             mQuery = temp.Substring(index + 1);
             temp = temp.Substring(0, index);
-            ValidateQuery(uri, mQuery, index2 + 1 + index);
+            FAIL_RETURN(ValidateQuery(uri, mQuery, index2 + 1 + index));
         }
 
         // Authority and Path
@@ -89,8 +265,8 @@ ECode CURI::ParseURI(
                 mAuthority = temp.Substring(2);
                 if (mAuthority.GetLength() == 0 && mQuery.IsNull()
                         && mFragment.IsNull()) {
-                    return E_URI_SYNTAX_EXCEPTION;
 //                    throw new URISyntaxException(uri, "Authority expected", uri.length());
+                    return E_URI_SYNTAX_EXCEPTION;
                 }
 
                 mPath = "";
@@ -99,10 +275,10 @@ ECode CURI::ParseURI(
             }
 
             if (mAuthority.GetLength() == 0) {
-                mAuthority = String(NULL);
+                mAuthority = NULL;
             }
             else {
-                ValidateAuthority(uri, mAuthority, index1 + 3);
+                FAIL_RETURN(ValidateAuthority(uri, mAuthority, index1 + 3));
             }
         }
         else { // no authority specified
@@ -116,11 +292,11 @@ ECode CURI::ParseURI(
         if (index > -1) {
             pathIndex += index;
         }
-        ValidatePath(uri, mPath, pathIndex);
+        FAIL_RETURN(ValidatePath(uri, mPath, pathIndex));
     }
     else { // if not hierarchical, URI is opaque
         mOpaque = TRUE;
-        ValidateSsp(uri, mSchemeSpecificPart, index2 + 2 + index);
+        FAIL_RETURN(ValidateSsp(uri, mSchemeSpecificPart, index2 + 2 + index));
     }
 
     return ParseAuthority(forceServer);
@@ -132,14 +308,17 @@ ECode CURI::ValidateScheme(
     /* [in] */ Int32 index)
 {
     // first char needs to be an alpha char
-    Char32 ch = scheme[0];
+    Char32 ch = scheme.GetChar(0);
     if (!((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z'))) {
-        return E_URI_SYNTAX_EXCEPTION;
 //        throw new URISyntaxException(uri, "Illegal character in scheme", 0);
+        return E_URI_SYNTAX_EXCEPTION;
     }
 
 //    try {
     return URIEncoderDecoder::ValidateSimple(scheme, String("+-."));
+    // } catch (URISyntaxException e) {
+    //     throw new URISyntaxException(uri, "Illegal character in scheme", index + e.getIndex());
+    // }
 }
 
 ECode CURI::ValidateSsp(
@@ -147,7 +326,12 @@ ECode CURI::ValidateSsp(
     /* [in] */ const String& ssp,
     /* [in] */ Int32 index)
 {
-    return URIEncoderDecoder::Validate(ssp, String(URI_ALL_LEGAL));
+    // try {
+    return URIEncoderDecoder::Validate(ssp, ALL_LEGAL);
+    // } catch (URISyntaxException e) {
+    //     throw new URISyntaxException(uri,
+    //             e.getReason() + " in schemeSpecificPart", index + e.getIndex());
+    // }
 }
 
 ECode CURI::ValidateAuthority(
@@ -155,7 +339,11 @@ ECode CURI::ValidateAuthority(
     /* [in] */ const String& authority,
     /* [in] */ Int32 index)
 {
-    return URIEncoderDecoder::Validate(authority, String("@[]") + String(URI_SOME_LEGAL));
+    // try {
+    return URIEncoderDecoder::Validate(authority, String("@[]") + SOME_LEGAL);
+    // } catch (URISyntaxException e) {
+    //     throw new URISyntaxException(uri, e.getReason() + " in authority", index + e.getIndex());
+    // }
 }
 
 ECode CURI::ValidatePath(
@@ -163,7 +351,11 @@ ECode CURI::ValidatePath(
     /* [in] */ const String& path,
     /* [in] */ Int32 index)
 {
-    return URIEncoderDecoder::Validate(path, String("/@") + String(URI_SOME_LEGAL));
+    // try {
+    return URIEncoderDecoder::Validate(path, String("/@") + SOME_LEGAL);
+    // } catch (URISyntaxException e) {
+    //     throw new URISyntaxException(uri, e.getReason() + " in path", index + e.getIndex());
+    // }
 }
 
 ECode CURI::ValidateQuery(
@@ -171,7 +363,11 @@ ECode CURI::ValidateQuery(
     /* [in] */ const String& query,
     /* [in] */ Int32 index)
 {
-    return URIEncoderDecoder::Validate(query, String(URI_ALL_LEGAL));
+    // try {
+    return URIEncoderDecoder::Validate(query, ALL_LEGAL);
+    // } catch (URISyntaxException e) {
+    //     throw new URISyntaxException(uri, e.getReason() + " in query", index + e.getIndex());
+    // }
 }
 
 ECode CURI::ValidateFragment(
@@ -179,7 +375,11 @@ ECode CURI::ValidateFragment(
     /* [in] */ const String& fragment,
     /* [in] */ Int32 index)
 {
-    return URIEncoderDecoder::Validate(fragment, String(URI_ALL_LEGAL));
+    // try {
+    return URIEncoderDecoder::Validate(fragment, ALL_LEGAL);
+    // } catch (URISyntaxException e) {
+    //     throw new URISyntaxException(uri, e.getReason() + " in fragment", index + e.getIndex());
+    // }
 }
 
 ECode CURI::ParseAuthority(
@@ -189,14 +389,14 @@ ECode CURI::ParseAuthority(
         return NOERROR;
     }
 
-    String tempUserInfo = String(NULL);
+    String tempUserInfo;
     String temp = mAuthority;
     Int32 index = temp.IndexOf('@');
     Int32 hostIndex = 0;
     if (index != -1) {
         // remove user info
         tempUserInfo = temp.Substring(0, index);
-        ValidateUserInfo(mAuthority, tempUserInfo, 0);
+        FAIL_RETURN(ValidateUserInfo(mAuthority, tempUserInfo, 0));
         temp = temp.Substring(index + 1); // host[:port] is left
         hostIndex = index + 1;
     }
@@ -215,9 +415,9 @@ ECode CURI::ParseAuthority(
             tempPort = temp.Substring(index + 1).ToInt32();//Integer.parseInt(temp.Substring(index + 1));
             if (tempPort < 0) {
                 if (forceServer) {
-                    return E_URI_SYNTAX_EXCEPTION;
 //                    throw new URISyntaxException(authority,
-//                            "Invalid port number", hostIndex + index + 1);
+//                            "Invalid port number", hostIndex + index + 1);S
+                    return E_URI_SYNTAX_EXCEPTION;
                 }
                 return NOERROR;
             }
@@ -236,14 +436,14 @@ ECode CURI::ParseAuthority(
 
     if (tempHost.IsEmpty()) {
         if (forceServer) {
-            return E_URI_SYNTAX_EXCEPTION;
 //            throw new URISyntaxException(authority, "Expected host", hostIndex);
+            return E_URI_SYNTAX_EXCEPTION;
         }
         return NOERROR;
     }
 
     Boolean isValid;
-    IsValidHost(forceServer, tempHost, &isValid);
+    FAIL_RETURN(IsValidHost(forceServer, tempHost, &isValid));
     if (!isValid) {
         return NOERROR;
     }
@@ -263,11 +463,12 @@ ECode CURI::ValidateUserInfo(
     /* [in] */ const String& userInfo,
     /* [in] */ Int32 index)
 {
-    for (Int32 i = 0; (UInt32)i < userInfo.GetLength(); i++) {
-        Char32 ch = userInfo[i];
+    Int32 count = userInfo.GetCharCount();
+    for (Int32 i = 0; i < count; i++) {
+        Char32 ch = userInfo.GetChar(i);
         if (ch == ']' || ch == '[') {
-            return E_URI_SYNTAX_EXCEPTION;
 //            throw new URISyntaxException(uri, "Illegal character in userInfo", index + i);
+            return E_URI_SYNTAX_EXCEPTION;
         }
     }
 
@@ -279,18 +480,18 @@ ECode CURI::IsValidHost(
     /* [in] */ const String& host,
     /* [out] */ Boolean* isValid)
 {
-    VALIDATE_NOT_NULL(isValid);
+    assert(isValid != NULL);
 
     if (host.StartWith("[")) {
         // IPv6 address
         if (!host.EndWith("]")) {
-            return E_URI_SYNTAX_EXCEPTION;
 //            throw new URISyntaxException(host,
 //                    "Expected a closing square bracket for IPv6 address", 0);
+            return E_URI_SYNTAX_EXCEPTION;
         }
 //        try {
         ArrayOf<Byte>* bytes;
-        InetAddress::IpStringToByteArray(host, &bytes);
+        FAIL_RETURN(InetAddress::IpStringToByteArray(host, &bytes));
         /*
          * The native IP parser may return 4 bytes for addresses like
          * "[::FFFF:127.0.0.1]". This is allowed, but we must not accept
@@ -298,32 +499,34 @@ ECode CURI::IsValidHost(
          */
         if (bytes->GetLength() == 16 || bytes->GetLength() == 4 && host.Contains(":")) {
             *isValid = TRUE;
+            ArrayOf<Byte>::Free(bytes);
             return NOERROR;
         }
 //        } catch (UnknownHostException e) {
 //        }
-        return E_URI_SYNTAX_EXCEPTION;
 //        throw new URISyntaxException(host, "Malformed IPv6 address");
+        ArrayOf<Byte>::Free(bytes);
+        return E_URI_SYNTAX_EXCEPTION;
     }
 
     // '[' and ']' can only be the first char and last char
     // of the host name
     if (host.IndexOf('[') != -1 || host.IndexOf(']') != -1) {
-        return E_URI_SYNTAX_EXCEPTION;
 //        throw new URISyntaxException(host, "Illegal character in host name", 0);
+        return E_URI_SYNTAX_EXCEPTION;
     }
 
     Int32 index = host.LastIndexOf('.');
-    if (index < 0 || (UInt32)index == host.GetLength() - 1
-            || !Character::IsDigit(host[index + 1])) {
+    if (index < 0 || (UInt32)index == host.GetCharCount() - 1
+            || !Character::IsDigit(host.GetChar(index + 1))) {
         // domain name
         if (IsValidDomainName(host)) {
             *isValid = TRUE;
             return NOERROR;
         }
         if (forceServer) {
-            return E_URI_SYNTAX_EXCEPTION;
 //            throw new URISyntaxException(host, "Illegal character in host name", 0);
+            return E_URI_SYNTAX_EXCEPTION;
         }
         *isValid = FALSE;
         return NOERROR;
@@ -332,17 +535,19 @@ ECode CURI::IsValidHost(
     // IPv4 address
 //    try {
     ArrayOf<Byte>* bytes;
-    InetAddress::IpStringToByteArray(host, &bytes);
+    FAIL_RETURN(InetAddress::IpStringToByteArray(host, &bytes));
     if (bytes->GetLength() == 4) {
         *isValid = TRUE;
+        ArrayOf<Byte>::Free(bytes);
         return NOERROR;
     }
 //    } catch (UnknownHostException e) {
 //    }
 
+    ArrayOf<Byte>::Free(bytes);
     if (forceServer) {
-        return E_URI_SYNTAX_EXCEPTION;
 //        throw new URISyntaxException(host, "Malformed IPv4 address", 0);
+        return E_URI_SYNTAX_EXCEPTION;
     }
 
     *isValid = FALSE;
@@ -357,7 +562,7 @@ Boolean CURI::IsValidDomainName(
         return FALSE;
     }
 
-    String lastLabel = String(NULL);
+    String lastLabel;
     StringTokenizer* st = new StringTokenizer(host, ".");
     while (st->HasMoreTokens()) {
         lastLabel = st->NextToken();
@@ -371,7 +576,7 @@ Boolean CURI::IsValidDomainName(
     }
 
     if (!lastLabel.Equals(host)) {
-        Char32 ch = lastLabel[0];
+        Char32 ch = lastLabel.GetChar(0);
         if (ch >= '0' && ch <= '9') {
             return FALSE;
         }
@@ -407,17 +612,17 @@ ECode CURI::CompareTo(
     Int32 ret;
 
     // compare schemes
-    AutoPtr<CURI> uriCls = (CURI*)uri;
-    if (mScheme.IsNull() && !uriCls->mScheme.IsNull()) {
+    CURI* uriObj = (CURI*)uri;
+    if (mScheme.IsNull() && !uriObj->mScheme.IsNull()) {
         *result = -1;
         return NOERROR;
     }
-    else if (!mScheme.IsNull() && uriCls->mScheme.IsNull()) {
+    else if (!mScheme.IsNull() && uriObj->mScheme.IsNull()) {
         *result = 1;
         return NOERROR;
     }
-    else if (!mScheme.IsNull() && !uriCls->mScheme.IsNull()) {
-        ret = mScheme.EqualsIgnoreCase(uriCls->mScheme);
+    else if (!mScheme.IsNull() && !uriObj->mScheme.IsNull()) {
+        ret = mScheme.Compare(uriObj->mScheme, StringCase_Insensitive);
         if (ret != 0) {
             *result = ret;
             return NOERROR;
@@ -425,16 +630,16 @@ ECode CURI::CompareTo(
     }
 
     // compare opacities
-    if (!mOpaque && uriCls->mOpaque) {
+    if (!mOpaque && uriObj->mOpaque) {
         *result = -1;
         return NOERROR;
     }
-    else if (mOpaque && !uriCls->mOpaque) {
+    else if (mOpaque && !uriObj->mOpaque) {
         *result = 1;
         return NOERROR;
     }
-    else if (mOpaque && uriCls->mOpaque) {
-        ret = mSchemeSpecificPart.Compare(uriCls->mSchemeSpecificPart);
+    else if (mOpaque && uriObj->mOpaque) {
+        ret = mSchemeSpecificPart.Compare(uriObj->mSchemeSpecificPart);
         if (ret != 0) {
             *result = ret;
             return NOERROR;
@@ -444,27 +649,27 @@ ECode CURI::CompareTo(
         // otherwise both must be hierarchical
 
         // compare authorities
-        if (!mAuthority.IsNull() && uriCls->mAuthority.IsNull()) {
+        if (!mAuthority.IsNull() && uriObj->mAuthority.IsNull()) {
             *result = 1;
             return NOERROR;
         }
-        else if (mAuthority.IsNull() && !uriCls->mAuthority.IsNull()) {
+        else if (mAuthority.IsNull() && !uriObj->mAuthority.IsNull()) {
             *result = -1;
             return NOERROR;
         }
-        else if (!mAuthority.IsNull() && !uriCls->mAuthority.IsNull()) {
-            if (!mHost.IsNull() && !uriCls->mHost.IsNull()) {
+        else if (!mAuthority.IsNull() && !uriObj->mAuthority.IsNull()) {
+            if (!mHost.IsNull() && !uriObj->mHost.IsNull()) {
                 // both are server based, so compare userInfo, host, port
-                if (!mUserInfo.IsNull() && uriCls->mUserInfo.IsNull()) {
+                if (!mUserInfo.IsNull() && uriObj->mUserInfo.IsNull()) {
                     *result = 1;
                     return NOERROR;
                 }
-                else if (mUserInfo.IsNull() && !uriCls->mUserInfo.IsNull()) {
+                else if (mUserInfo.IsNull() && !uriObj->mUserInfo.IsNull()) {
                     *result = -1;
                     return NOERROR;
                 }
-                else if (!mUserInfo.IsNull() && !uriCls->mUserInfo.IsNull()) {
-                    ret = mUserInfo.Compare(uriCls->mUserInfo);
+                else if (!mUserInfo.IsNull() && !uriObj->mUserInfo.IsNull()) {
+                    ret = mUserInfo.Compare(uriObj->mUserInfo);
                     if (ret != 0) {
                         *result = ret;
                         return NOERROR;
@@ -472,20 +677,20 @@ ECode CURI::CompareTo(
                 }
 
                 // userInfo's are the same, compare hostname
-                ret = mHost.EqualsIgnoreCase(uriCls->mHost);
+                ret = mHost.Compare(uriObj->mHost, StringCase_Insensitive);
                 if (ret != 0) {
                     *result = ret;
                     return NOERROR;
                 }
 
                 // compare port
-                if (mPort != uriCls->mPort) {
-                    return mPort - uriCls->mPort;
+                if (mPort != uriObj->mPort) {
+                    return mPort - uriObj->mPort;
                 }
             }
             else { // one or both are registry based, compare the whole
                 // authority
-                ret = mAuthority.Compare(uriCls->mAuthority);
+                ret = mAuthority.Compare(uriObj->mAuthority);
                 if (ret != 0) {
                     *result = ret;
                     return NOERROR;
@@ -495,7 +700,7 @@ ECode CURI::CompareTo(
 
         // authorities are the same
         // compare paths
-        ret = mPath.Compare(uriCls->mPath);
+        ret = mPath.Compare(uriObj->mPath);
         if (ret != 0) {
             *result = ret;
             return NOERROR;
@@ -503,16 +708,16 @@ ECode CURI::CompareTo(
 
         // compare queries
 
-        if (!mQuery.IsNull() && uriCls->mQuery.IsNull()) {
+        if (!mQuery.IsNull() && uriObj->mQuery.IsNull()) {
             *result = 1;
             return NOERROR;
         }
-        else if (mQuery.IsNull() && !uriCls->mQuery.IsNull()) {
+        else if (mQuery.IsNull() && !uriObj->mQuery.IsNull()) {
             *result = -1;
             return NOERROR;
         }
-        else if (!mQuery.IsNull() && !uriCls->mQuery.IsNull()) {
-            ret = mQuery.Compare(uriCls->mQuery);
+        else if (!mQuery.IsNull() && !uriObj->mQuery.IsNull()) {
+            ret = mQuery.Compare(uriObj->mQuery);
             if (ret != 0) {
                 *result = ret;
                 return NOERROR;
@@ -521,16 +726,16 @@ ECode CURI::CompareTo(
     }
 
     // everything else is identical, so compare fragments
-    if (!mFragment.IsNull() && uriCls->mFragment.IsNull()) {
+    if (!mFragment.IsNull() && uriObj->mFragment.IsNull()) {
         *result = 1;
         return NOERROR;
     }
-    else if (mFragment.IsNull() && !uriCls->mFragment.IsNull()) {
+    else if (mFragment.IsNull() && !uriObj->mFragment.IsNull()) {
         *result = -1;
         return NOERROR;
     }
-    else if (!mFragment.IsNull() && !uriCls->mFragment.IsNull()) {
-        ret = mFragment.Compare(uriCls->mFragment);
+    else if (!mFragment.IsNull() && !uriObj->mFragment.IsNull()) {
+        ret = mFragment.Compare(uriObj->mFragment);
         if (ret != 0) {
             *result = ret;
             return NOERROR;
@@ -546,14 +751,14 @@ ECode CURI::Create(
     /* [in] */ const String& uri,
     /* [out] */ IURI** obj)
 {
-//    try {
     VALIDATE_NOT_NULL(obj);
-    ECode ec = CURI::New(uri, obj);
-    if (FAILED(ec)) {
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
-    }
 
-    return NOERROR;
+//    try {
+    ECode ec = CURI::New(uri, obj);
+    if (ec == E_URI_SYNTAX_EXCEPTION) {
+        ec = E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+    return ec;
 //    } catch (URISyntaxException e) {
 //        throw new IllegalArgumentException(e.getMessage());
 //    }
@@ -561,7 +766,8 @@ ECode CURI::Create(
 
 AutoPtr<CURI> CURI::Duplicate()
 {
-    AutoPtr<CURI> clone = new CURI();
+    AutoPtr<CURI> clone;
+    CURI::NewByFriend((CURI**)&clone);
     clone->mAbsolute = mAbsolute;
     clone->mAuthority = mAuthority;
     clone->mFragment = mFragment;
@@ -634,11 +840,11 @@ ECode CURI::Equals(
 {
     VALIDATE_NOT_NULL(result);
 
-    if (((IURI*)o->Probe(EIID_IURI)) == NULL) {
+    if (o == NULL || IURI::Probe(o) == NULL) {
         *result = FALSE;
         return NOERROR;
     }
-    AutoPtr<CURI> uri = (CURI*)(IURI*)o->Probe(EIID_IURI);
+    CURI* uri = (CURI*)IURI::Probe(o);
 
     if (uri->mFragment.IsNull() && !mFragment.IsNull() || !uri->mFragment.IsNull()
             && mFragment.IsNull()) {
@@ -701,6 +907,7 @@ ECode CURI::Equals(
             else if (uri->mHost.IsNull() && mHost.IsNull()) {
                 // both are registry based, so compare the whole authority
                 *result = EscapedEquals(uri->mAuthority, mAuthority);
+                return NOERROR;
             }
             else { // uri.host != null && host != null, so server-based
                 if (!mHost.EqualsIgnoreCase(uri->mHost)) {
@@ -720,6 +927,7 @@ ECode CURI::Equals(
                 }
                 else if (!uri->mUserInfo.IsNull() && !mUserInfo.IsNull()) {
                     *result = EscapedEquals(mUserInfo, uri->mUserInfo);
+                    return NOERROR;
                 }
                 else {
                     *result = TRUE;
@@ -739,8 +947,6 @@ ECode CURI::Equals(
         *result = FALSE;
         return NOERROR;
     }
-
-    return NOERROR;
 }
 
 ECode CURI::GetAuthority(
@@ -786,23 +992,23 @@ ECode CURI::GetEffectivePort(
     /* [out] */ Int32* port)
 {
     VALIDATE_NOT_NULL(port);
-    *port = GetEffectivePortEx(mScheme, mPort);
+    *port = GetEffectivePort(mScheme, mPort);
 
     return NOERROR;
 }
 
-Int32 CURI::GetEffectivePortEx(
-    /* [in] */ String scheme,
+Int32 CURI::GetEffectivePort(
+    /* [in] */ const String& scheme,
     /* [in] */ Int32 specifiedPort)
 {
     if (specifiedPort != -1) {
         return specifiedPort;
     }
 
-    if (String("http").EqualsIgnoreCase(scheme)) {
+    if (CString("http").EqualsIgnoreCase(scheme)) {
         return 80;
     }
-    else if (String("http").EqualsIgnoreCase(scheme)) {
+    else if (CString("https").EqualsIgnoreCase(scheme)) {
         return 443;
     }
     else {
@@ -924,18 +1130,18 @@ ECode CURI::IsOpaque(
     return NOERROR;
 }
 
-String CURI::NormalizeInner(
+String CURI::Normalize(
     /* [in] */ const String& path)
 {
     // count the number of '/'s, to determine number of segments
     Int32 index = -1;
-    Int32 pathLength = path.GetLength();
+    Int32 pathLength = path.GetCharCount();
     Int32 size = 0;
-    if (pathLength > 0 && path[0] != '/') {
+    if (pathLength > 0 && path.GetChar(0) != '/') {
         size++;
     }
     while ((index = path.IndexOf('/', index + 1)) != -1) {
-        if (index + 1 < pathLength && path[index + 1] != '/') {
+        if (index + 1 < pathLength && path.GetChar(index + 1) != '/') {
             size++;
         }
     }
@@ -946,7 +1152,7 @@ String CURI::NormalizeInner(
     // break the path into segments and store in the list
     Int32 current = 0;
     Int32 index2;
-    index = (pathLength > 0 && path[0] == '/') ? 1 : 0;
+    index = (pathLength > 0 && path.GetChar(0) == '/') ? 1 : 0;
     while ((index2 = path.IndexOf('/', index + 1)) != -1) {
         (*segList)[current++] = path.Substring(index, index2);
         index = index2 + 1;
@@ -980,8 +1186,7 @@ String CURI::NormalizeInner(
     }
 
     // put the path back together
-//    StringBuilder newPath = new StringBuilder();
-    String newPath;
+    StringBuffer newPath;
     if (path.StartWith("/")) {
         newPath += "/";
     }
@@ -998,21 +1203,26 @@ String CURI::NormalizeInner(
     // trailing '/'
     if (!path.EndWith("/") && segList->GetLength() > 0
             && (*include)[segList->GetLength() - 1]) {
-        newPath = newPath.Substring(0, newPath.GetLength() - 1);
+        newPath.DeleteChar(newPath.GetCharCount() - 1);
     }
+
+    String result = String(newPath);
 
     // check for a ':' in the first segment if one exists,
     // prepend "./" to normalize
-    index = newPath.IndexOf(':');
-    index2 = newPath.IndexOf('/');
+    index = result.IndexOf(':');
+    index2 = result.IndexOf('/');
     if (index != -1 && (index < index2 || index2 == -1)) {
-        newPath = String("./") + newPath;
-//        newPath.insert(0, "./");
+        newPath.Insert(0, "./");
+        result = newPath;
     }
 
+    for (Int32 i = 0; i < segList->GetLength(); ++i) {
+        (*segList)[i] = NULL;
+    }
     ArrayOf<String>::Free(segList);
     ArrayOf<Boolean>::Free(include);
-    return newPath;
+    return result;
 }
 
 ECode CURI::Normalize(
@@ -1022,12 +1232,14 @@ ECode CURI::Normalize(
 
     if (mOpaque) {
         *uri = (IURI*)this;
+        (*uri)->AddRef();
         return NOERROR;
     }
-    String normalizedPath = NormalizeInner(mPath);
+    String normalizedPath = Normalize(mPath);
     // if the path is already normalized, return this
     if (mPath.Equals(normalizedPath)) {
         *uri = (IURI*)this;
+        (*uri)->AddRef();
         return NOERROR;
     }
     // get an exact copy of the URI re-calculate the scheme specific part
@@ -1035,17 +1247,16 @@ ECode CURI::Normalize(
     AutoPtr<CURI> result = Duplicate();
     result->mPath = normalizedPath;
     result->SetSchemeSpecificPart();
-    *uri = (IURI*)result;
-
+    *uri = (IURI*)result.Get();
+    (*uri)->AddRef();
     return NOERROR;
 }
 
 ECode CURI::ParseServerAuthority()
 {
     if (!mServerAuthority) {
-        ParseAuthority(TRUE);
+        return ParseAuthority(TRUE);
     }
-
     return NOERROR;
 }
 
@@ -1055,27 +1266,30 @@ ECode CURI::Relativize(
 {
     VALIDATE_NOT_NULL(uri);
 
-    AutoPtr<CURI> relativeURI = (CURI*)relative;
-    if (relativeURI->mOpaque || mOpaque) {
+    CURI* relativeObj = (CURI*)relative;
+    if (relativeObj->mOpaque || mOpaque) {
         *uri = relative;
+        (*uri)->AddRef();
         return NOERROR;
     }
 
-    if (mScheme.IsNull() ? !relativeURI->mScheme.IsNull() : !mScheme
-            .Equals(relativeURI->mScheme)) {
+    if (mScheme.IsNull() ? !relativeObj->mScheme.IsNull() : !mScheme
+            .Equals(relativeObj->mScheme)) {
         *uri = relative;
+        (*uri)->AddRef();
         return NOERROR;
     }
 
-    if (mAuthority.IsNull() ? !relativeURI->mAuthority.IsNull() : !mAuthority
-            .Equals(relativeURI->mAuthority)) {
+    if (mAuthority.IsNull() ? !relativeObj->mAuthority.IsNull() : !mAuthority
+            .Equals(relativeObj->mAuthority)) {
         *uri = relative;
+        (*uri)->AddRef();
         return NOERROR;
     }
 
     // normalize both paths
-    String thisPath = NormalizeInner(mPath);
-    String relativePath = NormalizeInner(relativeURI->mPath);
+    String thisPath = Normalize(mPath);
+    String relativePath = Normalize(relativeObj->mPath);
 
     /*
      * if the paths aren't equal, then we need to determine if this URI's
@@ -1093,18 +1307,20 @@ ECode CURI::Relativize(
          */
         if (!relativePath.StartWith(thisPath)) {
             *uri = relative;
+            (*uri)->AddRef();
             return NOERROR;
         }
     }
 
-    AutoPtr<CURI> result = new CURI();
-    result->mFragment = relativeURI->mFragment;
-    result->mQuery = relativeURI->mQuery;
+    AutoPtr<CURI> result;
+    CURI::NewByFriend((CURI**)&result);
+    result->mFragment = relativeObj->mFragment;
+    result->mQuery = relativeObj->mQuery;
     // the result URI is the remainder of the relative URI's path
     result->mPath = relativePath.Substring(thisPath.GetLength());
     result->SetSchemeSpecificPart();
-    *uri = (IURI*)result;
-
+    *uri = (IURI*)result.Get();
+    (*uri)->AddRef();
     return NOERROR;
 }
 
@@ -1114,32 +1330,34 @@ ECode CURI::Resolve(
 {
     VALIDATE_NOT_NULL(uri);
 
-    AutoPtr<CURI> relativeURI = (CURI*)relative;
-    if (relativeURI->mAbsolute || mOpaque) {
+    CURI* relativeObj = (CURI*)relative;
+    if (relativeObj->mAbsolute || mOpaque) {
         *uri = relative;
+        (*uri)->AddRef();
         return NOERROR;
     }
 
     AutoPtr<CURI> result;
-    if (relativeURI->mPath.IsEmpty() && relativeURI->mScheme.IsNull()
-            && relativeURI->mAuthority.IsNull() && relativeURI->mQuery.IsNull()
-            && !relativeURI->mFragment.IsNull()) {
+    if (relativeObj->mPath.IsEmpty() && relativeObj->mScheme.IsNull()
+            && relativeObj->mAuthority.IsNull() && relativeObj->mQuery.IsNull()
+            && !relativeObj->mFragment.IsNull()) {
         // if the relative URI only consists of fragment,
         // the resolved URI is very similar to this URI,
         // except that it has the fragment from the relative URI.
         result = Duplicate();
-        result->mFragment = relativeURI->mFragment;
+        result->mFragment = relativeObj->mFragment;
         // no need to re-calculate the scheme specific part,
         // since fragment is not part of scheme specific part.
-        *uri = (IURI*)result;
+        *uri = (IURI*)result.Get();
+        (*uri)->AddRef();
         return NOERROR;
     }
 
-    if (!relativeURI->mAuthority.IsNull()) {
+    if (!relativeObj->mAuthority.IsNull()) {
         // if the relative URI has authority,
         // the resolved URI is almost the same as the relative URI,
         // except that it has the scheme of this URI.
-        result = relativeURI->Duplicate();
+        result = relativeObj->Duplicate();
         result->mScheme = mScheme;
         result->mAbsolute = mAbsolute;
     }
@@ -1149,23 +1367,24 @@ ECode CURI::Resolve(
         // except that it has the query and fragment of the relative URI,
         // and the path is different.
         result = Duplicate();
-        result->mFragment = relativeURI->mFragment;
-        result->mQuery = relativeURI->mQuery;
-        if (relativeURI->mPath.StartWith("/")) {
-            result->mPath = relativeURI->mPath;
+        result->mFragment = relativeObj->mFragment;
+        result->mQuery = relativeObj->mQuery;
+        if (relativeObj->mPath.StartWith("/")) {
+            result->mPath = relativeObj->mPath;
         }
         else {
             // resolve a relative reference
             Int32 endIndex = mPath.LastIndexOf('/') + 1;
-            result->mPath = NormalizeInner(mPath.Substring(0, endIndex)
-                    + relativeURI->mPath);
+            result->mPath = Normalize(mPath.Substring(0, endIndex)
+                    + relativeObj->mPath);
         }
         // re-calculate the scheme specific part since
         // query and path of the resolved URI is different from this URI.
         result->SetSchemeSpecificPart();
     }
 
-    *uri = (IURI*)result;
+    *uri = (IURI*)result.Get();
+    (*uri)->AddRef();
     return NOERROR;
 }
 
@@ -1184,15 +1403,17 @@ void CURI::SetSchemeSpecificPart()
     }
     mSchemeSpecificPart = (String)ssp;
     // reset string, so that it can be re-calculated correctly when asked.
-    mString = String(NULL);
+    mString = NULL;
 }
 
 ECode CURI::ResolveEx(
     /* [in] */ const String& relative,
     /* [out] */ IURI** uri)
 {
+    VALIDATE_NOT_NULL(uri);
+
     AutoPtr<IURI> relativeURI;
-    Create(relative, (IURI**)&relativeURI);
+    FAIL_RETURN(Create(relative, (IURI**)&relativeURI));
     return Resolve(relativeURI, uri);
 }
 
@@ -1208,10 +1429,10 @@ ECode CURI::EncodeNonAscii(
      * platform one 3. Only other chars need to be converted
      */
     ECode ec = URIEncoderDecoder::EncodeOthers(s, encodeS);
-    if (FAILED(ec)) {
-        return E_RUNTIME_EXCEPTION;
+    if (ec == E_UNSUPPORTED_ENCODING_EXCEPTION) {
+        ec = E_RUNTIME_EXCEPTION;
     }
-    return NOERROR;
+    return ec;
 //    } catch (UnsupportedEncodingException e) {
 //        throw new RuntimeException(e.toString());
 //    }
@@ -1219,18 +1440,18 @@ ECode CURI::EncodeNonAscii(
 
 ECode CURI::Decode(
     /* [in] */ const String& s,
-    /* [out] */ String* decodeS)
+    /* [out] */ String* decodedS)
 {
     if (s.IsNull()) {
-        *decodeS = s;
+        *decodedS = s;
     }
 
 //    try {
-    ECode ec = URIEncoderDecoder::Decode(s, decodeS);
+    ECode ec = URIEncoderDecoder::Decode(s, decodedS);
     if (ec == E_UNSUPPORTED_ENCODING_EXCEPTION) {
-        return E_RUNTIME_EXCEPTION;
+        ec = E_RUNTIME_EXCEPTION;
     }
-    return NOERROR;
+    return ec;
 //    } catch (UnsupportedEncodingException e) {
 //        throw new RuntimeException(e.toString());
 //    }
@@ -1239,6 +1460,8 @@ ECode CURI::Decode(
 ECode CURI::ToASCIIString(
     /* [out] */ String* str)
 {
+    VALIDATE_NOT_NULL(str);
+
     String s;
     ToString(&s);
     return EncodeNonAscii(s, str);
@@ -1281,7 +1504,6 @@ ECode CURI::ToString(
 
         mString = (String)result;
     }
-
     *s = mString;
     return NOERROR;
 }
@@ -1341,169 +1563,11 @@ ECode CURI::ToURL(
     VALIDATE_NOT_NULL(url);
 
     if (!mAbsolute) {
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
 //        throw new IllegalArgumentException("URI is not absolute: " + toString());
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
     String s;
     ToString(&s);
-    return NOERROR;
     return CURL::New(s, url);
 }
-
-ECode CURI::constructor(
-    /* [in] */ const String& uri)
-{
-    return ParseURI(uri, FALSE);
-}
-
-ECode CURI::constructor(
-    /* [in] */ const String& scheme,
-    /* [in] */ const String& ssp,
-    /* [in] */ const String& frag)
-{
-    StringBuffer uri;
-    if (!scheme.IsNull()) {
-        uri += scheme;
-        uri += ':';
-    }
-    if (!ssp.IsNull()) {
-        // QUOTE ILLEGAL CHARACTERS
-        uri += QuoteComponent(ssp, String(URI_ALL_LEGAL));
-    }
-    if (!frag.IsNull()) {
-        uri += '#';
-        // QUOTE ILLEGAL CHARACTERS
-        uri += QuoteComponent(frag, String(URI_ALL_LEGAL));
-    }
-
-    return ParseURI(String(uri), FALSE);
-}
-
-ECode CURI::constructor(
-    /* [in] */ const String& scheme,
-    /* [in] */ const String& userInfo,
-    /* [in] */ const String& host,
-    /* [in] */ Int32 port,
-    /* [in] */ const String& path,
-    /* [in] */ const String& query,
-    /* [in] */ const String& fragment)
-{
-    if (scheme.IsNull() && userInfo.IsNull() && host.IsNull() && path.IsNull()
-            && query.IsNull() && fragment.IsNull()) {
-        mPath = "";
-        return NOERROR;
-    }
-
-    if (!scheme.IsNull() && !path.IsNull() && path.GetLength() > 0
-            && path[0] != '/') {
-        return E_URI_SYNTAX_EXCEPTION;
-//        throw new URISyntaxException(path, "Relative path");
-    }
-
-    StringBuffer uri;
-    if (!scheme.IsNull()) {
-        uri += scheme;
-        uri += ':';
-    }
-
-    if (!userInfo.IsNull() || !host.IsNull() || port != -1) {
-        uri += "//";
-    }
-
-    if (!userInfo.IsNull()) {
-        // QUOTE ILLEGAL CHARACTERS in userInfo
-        uri += QuoteComponent(userInfo, String(URI_SOME_LEGAL));
-        uri += '@';
-    }
-
-    if (!host.IsNull()) {
-        // check for IPv6 addresses that hasn't been enclosed
-        // in square brackets
-        String temp = host;
-        if (host.IndexOf(':') != -1 && host.IndexOf(']') == -1
-                && host.IndexOf('[') == -1) {
-//            host = "[" + host + "]";
-            //todo the value of host has been changed
-            temp = String("[") + host + String("]");
-        }
-        uri += temp;
-    }
-
-    if (port != -1) {
-        uri += ':';
-        uri += port;
-    }
-
-    if (!path.IsNull()) {
-        // QUOTE ILLEGAL CHARS
-        uri += QuoteComponent(path, String("/@") + String(URI_SOME_LEGAL));
-    }
-
-    if (!query.IsNull()) {
-        uri += '?';
-        // QUOTE ILLEGAL CHARS
-        uri += QuoteComponent(query, String(URI_ALL_LEGAL));
-    }
-
-    if (!fragment.IsNull()) {
-        // QUOTE ILLEGAL CHARS
-        uri += '#';
-        uri += QuoteComponent(fragment, String(URI_ALL_LEGAL));
-    }
-
-    return ParseURI(String(uri), TRUE);
-}
-
-ECode CURI::constructor(
-    /* [in] */ const String& scheme,
-    /* [in] */ const String& host,
-    /* [in] */ const String& path,
-    /* [in] */ const String& fragment)
-{
-    return constructor(scheme, String(NULL), host, -1, path, String(NULL), fragment);
-}
-
-ECode CURI::constructor(
-    /* [in] */ const String& scheme,
-    /* [in] */ const String& authority,
-    /* [in] */ const String& path,
-    /* [in] */ const String& query,
-    /* [in] */ const String& fragment)
-{
-    if (scheme.IsNull() && !path.IsNull() && path.GetLength() > 0
-            && path[0] != '/') {
-        return E_URI_SYNTAX_EXCEPTION;
-//        throw new URISyntaxException(path, "Relative path");
-    }
-
-    StringBuffer uri;
-    if (!scheme.IsNull()) {
-        uri += scheme;
-        uri += ':';
-    }
-    if (!authority.IsNull()) {
-        uri += "//";
-        // QUOTE ILLEGAL CHARS
-        uri += QuoteComponent(authority, String("@[]") + String(URI_SOME_LEGAL));
-    }
-
-    if (!path.IsNull()) {
-        // QUOTE ILLEGAL CHARS
-        uri += QuoteComponent(path, String("/@") + String(URI_SOME_LEGAL));
-    }
-    if (!query.IsNull()) {
-        // QUOTE ILLEGAL CHARS
-        uri += '?';
-        uri += QuoteComponent(query, String(URI_ALL_LEGAL));
-    }
-    if (!fragment.IsNull()) {
-        // QUOTE ILLEGAL CHARS
-        uri += '#';
-        uri += QuoteComponent(fragment, String(URI_ALL_LEGAL));
-    }
-
-    return ParseURI(String(uri), FALSE);
-}
-
-

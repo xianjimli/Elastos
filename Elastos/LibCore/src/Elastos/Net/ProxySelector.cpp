@@ -5,37 +5,24 @@
 #include "ProxySelectorImpl.h"
 #include <Com.Kortide.Platform.h>
 
-AutoPtr<IProxySelector> InitDefaultSelector()
-{
-    ProxySelectorImpl* impl = new ProxySelectorImpl();
-    AutoPtr<IProxySelector> selector = (IProxySelector*)impl->Probe(EIID_IProxySelector);
-    selector->AddRef();
-
-    return selector;
-}
 
 AutoPtr<INetPermission> InitProxySelectorPermission(
     /* [in] */ const String& name)
 {
     AutoPtr<INetPermission> netPermission;
     assert(CNetPermission::New(name, (INetPermission**)&netPermission));
-    netPermission->AddRef();
 
     return netPermission;
 }
 
-AutoPtr<IProxySelector> ProxySelector::mDefaultSelector = InitDefaultSelector();
+AutoPtr<IProxySelector> ProxySelector::sDefaultSelector = new ProxySelectorImpl();
 
-AutoPtr<INetPermission> ProxySelector::mGetProxySelectorPermission =
-        InitProxySelectorPermission(
-                String("getProxySelector"));
+AutoPtr<INetPermission> ProxySelector::sGetProxySelectorPermission =
+        InitProxySelectorPermission(String("getProxySelector"));
 
-AutoPtr<INetPermission> ProxySelector::mSetProxySelectorPermission =
-        InitProxySelectorPermission(
-                String("setProxySelector"));
+AutoPtr<INetPermission> ProxySelector::sSetProxySelectorPermission =
+        InitProxySelectorPermission(String("setProxySelector"));
 
-ProxySelector::ProxySelector()
-{}
 
 ECode ProxySelector::GetDefault(
     /* [in] */ IProxySelector** defaultSelector)
@@ -45,7 +32,8 @@ ECode ProxySelector::GetDefault(
     // if (null != sm) {
     //     sm.checkPermission(getProxySelectorPermission);
     // }
-    *defaultSelector = mDefaultSelector;
+    *defaultSelector = sDefaultSelector;
+    if (*defaultSelector != NULL) (*defaultSelector)->AddRef();
     return NOERROR;
 }
 
@@ -56,6 +44,6 @@ ECode ProxySelector::SetDefault(
     // if (null != sm) {
     //     sm.checkPermission(setProxySelectorPermission);
     // }
-    mDefaultSelector = selector;
+    sDefaultSelector = selector;
     return NOERROR;
 }

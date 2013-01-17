@@ -2,6 +2,7 @@
 #include "cmdef.h"
 #include "SocketImpl.h"
 
+
 SocketImpl::SocketImpl()
     : mPort(0)
     , mLocalport(0)
@@ -17,7 +18,7 @@ ECode SocketImpl::GetFileDescriptor(
 {
     VALIDATE_NOT_NULL(fileDescriptor);
     *fileDescriptor = mFd;
-
+    if (*fileDescriptor != NULL) (*fileDescriptor)->AddRef();
     return NOERROR;
 }
 
@@ -26,7 +27,7 @@ ECode SocketImpl::GetInetAddress(
 {
     VALIDATE_NOT_NULL(netAddress);
     *netAddress = mAddress;
-
+    if (*netAddress != NULL) (*netAddress)->AddRef();
     return NOERROR;
 }
 
@@ -48,16 +49,31 @@ ECode SocketImpl::GetPort(
     return NOERROR;
 }
 
+ECode SocketImpl::Write(
+    /* [in] */ const ArrayOf<Byte>& buffer,
+    /* [in] */ Int32 offset,
+    /* [in] */ Int32 count,
+    /* [out] */ Int32* number)
+{
+    // if (mStreaming) {
+    //     return mNetImpl->Write(mFd, buffer, offset, count, number);
+    // }
+    // else {
+    //     return mNetImpl->Send(mFd, buffer, offset, count, mPort, mAddress, number);
+    // }
+    return E_NOT_IMPLEMENTED;
+}
+
 ECode SocketImpl::ShutdownInput()
 {
-    return E_IO_EXCEPTION;
 //    throw new IOException("Method has not been implemented");
+    return E_IO_EXCEPTION;
 }
 
 ECode SocketImpl::ShutdownOutput()
 {
-    return E_IO_EXCEPTION;
 //    throw new IOException("Method has not been implemented");
+    return E_IO_EXCEPTION;
 }
 
 ECode SocketImpl::SupportsUrgentData(

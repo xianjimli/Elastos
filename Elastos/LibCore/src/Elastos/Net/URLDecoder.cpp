@@ -10,34 +10,36 @@ ECode URLDecoder::Decode(
     return E_NOT_IMPLEMENTED;
 }
 
-ECode URLDecoder::DecodeEx(
+ECode URLDecoder::Decode(
     /* [in] */ const String& s,
     /* [in] */  const String& encoding,
-    /* [out] */ String* decodeS)
+    /* [out] */ String* decodedS)
 {
-    VALIDATE_NOT_NULL(decodeS);
+    VALIDATE_NOT_NULL(decodedS);
 
     if (encoding.IsNull()) {
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
 //        throw new NullPointerException();
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
     if (encoding.IsEmpty()) {
-        return E_UNSUPPORTED_ENCODING_EXCEPTION;
 //        throw new UnsupportedEncodingException(encoding);
+        return E_UNSUPPORTED_ENCODING_EXCEPTION;
     }
 
     if (s.IndexOf('%') == -1) {
         if (s.IndexOf('+') == -1) {
-            *decodeS = s;
+            *decodedS = s;
             return NOERROR;
         }
+        //Todo: wrong
+        assert(0);
         StringBuf* str = StringBuf::Alloc(s.GetLength());
         str->Copy(s);
         for (Int32 i = 0; i < str->GetLength(); i++) {
             if ((*str)[i] == '+')
                 (*str)[i] = ' ';
         }
-        *decodeS = (String)*str;
+        *decodedS = (String)*str;
         StringBuf::Free(str);
         return NOERROR;
     }
