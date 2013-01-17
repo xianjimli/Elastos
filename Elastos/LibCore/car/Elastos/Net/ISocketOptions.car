@@ -128,7 +128,7 @@ module
          */
         GetOption(
             [in] Int32 optID,
-            [out] Int32* optVal);
+            [out] IInterface** optVal);
 
         /**
          * Sets the value of the specified socket option.
@@ -142,6 +142,6 @@ module
          */
         SetOption(
             [in] Int32 optID,
-            [in] Int32 optVal);
+            [in] IInterface* optVal);
     }
 }

@@ -2,11 +2,11 @@
 #ifndef __COBJECTSTRINGMAP_H__
 #define __COBJECTSTRINGMAP_H__
 
-#include <elastos.h>
 #include "cmdef.h"
+#include "_CObjectStringMap.h"
 #include <elastos/HashMap.h>
 #include <elastos/AutoPtr.h>
-#include "_CObjectStringMap.h"
+
 
 CarClass(CObjectStringMap)
 {
@@ -29,12 +29,6 @@ public:
     CARAPI GetAllItems(
         /* [out] */ ArrayOf<String>** keys,
         /* [out] */ IObjectContainer** values);
-
-    // CARAPI ReadFromParcel(
-    //     /* [in] */ IParcel *source);
-
-    // CARAPI WriteToParcel(
-    //     /* [in] */ IParcel *dest);
 
 private:
     HashMap<String, AutoPtr<IInterface> > mMap;

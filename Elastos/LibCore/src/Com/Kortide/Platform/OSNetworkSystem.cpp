@@ -91,7 +91,7 @@ ECode ByteArrayToSocketAddress(const ArrayOf<Byte>& byteArray, Int32 port, socka
     return NOERROR;
 }
 
-ECode SocketAddressToByteArray(sockaddr_storage* ss, ArrayOf<Byte>* ipAddress)
+ECode SocketAddressToByteArray(sockaddr_storage* ss, ArrayOf<Byte>** ipAddress)
 {
     void* rawAddress;
     size_t addressLength;
@@ -115,11 +115,9 @@ ECode SocketAddressToByteArray(sockaddr_storage* ss, ArrayOf<Byte>* ipAddress)
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
-    if (ipAddress->GetLength() < addressLength) {
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
-    }
-
-    memcpy(ipAddress->GetPayload(), rawAddress, addressLength);
+    *ipAddress = ArrayOf<Byte>::Alloc(addressLength);
+    assert(*ipAddress != NULL);
+    memcpy((*ipAddress)->GetPayload(), rawAddress, addressLength);
     return NOERROR;
 }
 
@@ -488,7 +486,7 @@ ECode OSNetworkSystem::GetInterfaceID(
 
 ECode OSNetworkSystem::Accept(
     /* [in] */ Int32 serverFd,
-    /* [out] */ ArrayOf<Byte>* ipAddress,
+    /* [out, callee] */ ArrayOf<Byte>** ipAddress,
     /* [out] */ Int32* port,
     /* [out] */ Int32* localPort,
     /* [out] */ Int32* clientFd)
@@ -810,7 +808,7 @@ ECode OSNetworkSystem::Recv(
     /* [in] */ Boolean peek,
     /* [in] */ Boolean connected,
     /* [out] */ ArrayOf<Byte>* data,
-    /* [out] */ ArrayOf<Byte>* ipAddress,
+    /* [out, callee] */ ArrayOf<Byte>** ipAddress,
     /* [out] */ Int32* port,
     /* [out] */ Int32* number)
 {
@@ -831,7 +829,7 @@ ECode OSNetworkSystem::RecvDirect(
     /* [in] */ Int32 length,
     /* [in] */ Boolean peek,
     /* [in] */ Boolean connected,
-    /* [out] */ ArrayOf<Byte>* ipAddress,
+    /* [out, callee] */ ArrayOf<Byte>** ipAddress,
     /* [out] */ Int32* port,
     /* [out] */ Int32* number)
 {
@@ -1047,7 +1045,7 @@ ECode OSNetworkSystem::Connect(
 
 ECode OSNetworkSystem::GetSocketLocalAddress(
     /* [in] */ Int32 fd,
-    /* [out] */ ArrayOf<Byte>* ipAddress)
+    /* [out, callee] */ ArrayOf<Byte>** ipAddress)
 {
     VALIDATE_NOT_NULL(ipAddress);
 
@@ -1294,7 +1292,7 @@ ECode OSNetworkSystem::GetSocketOption(
             sockaddr_in* sa = reinterpret_cast<sockaddr_in*>(&ss);
             FAIL_RETURN(GetSocketOptionImpl(fd, IPPROTO_IP, IP_MULTICAST_IF, &sa->sin_addr));
 
-            return SocketAddressToByteArray(&ss, reinterpret_cast<ArrayOf<Byte>*>(optVal));
+            return SocketAddressToByteArray(&ss, reinterpret_cast<ArrayOf<Byte>**>(optVal));
         }
     case SOCKOPT_IP_MULTICAST_IF2:
         if (family == AF_INET) {

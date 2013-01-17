@@ -1,14 +1,12 @@
 
 #include "cmdef.h"
 #include "BasicPermission.h"
-#include <Com.Kortide.Platform.h>
-
-const Int64 BasicPermission::sSerialVersionUID = -5636570222231596674L;
+#include <Elastos.Core.h>
 
 ECode BasicPermission::Init(
     /* [in] */ const String& name)
 {
-    Permission::Init(name);
+    FAIL_RETURN(Permission::Init(name));
     return CheckName(name);
 }
 
@@ -16,7 +14,7 @@ ECode BasicPermission::Init(
     /* [in] */ const String& name,
     /* [in] */ const String& action)
 {
-    Permission::Init(name);
+    FAIL_RETURN(Permission::Init(name));
     return CheckName(name);
 }
 
@@ -24,12 +22,12 @@ ECode BasicPermission::CheckName(
     /* [in] */ const String& name)
 {
     if (name.IsNull()) {
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
 //        throw new NullPointerException("name == null");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
     if (name.IsEmpty()) {
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
 //        throw new IllegalArgumentException("name.isEmpty()");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
     return NOERROR;
@@ -39,7 +37,7 @@ ECode BasicPermission::GetActions(
     /* [out] */ String* actions)
 {
     VALIDATE_NOT_NULL(actions);
-    *actions = String("");
+    *actions = "";
     return NOERROR;
 }
 
@@ -47,6 +45,11 @@ ECode BasicPermission::Implies(
     /* [in] */ IPermission* permission,
     /* [out] */ Boolean* result)
 {
+    VALIDATE_NOT_NULL(result);
+    // if (permission != null && permission.getClass() == this.getClass()) {
+    //     return nameImplies(getName(), permission.getName());
+    // }
+    // return false;
     return E_NOT_IMPLEMENTED;
 }
 
@@ -57,21 +60,21 @@ Boolean BasicPermission::NameImplies(
     if (thisName == thatName) {
         return TRUE;
     }
-    Int32 end = thisName.GetLength();
-    if ((UInt32)end > thatName.GetLength()) {
+    Int32 end = thisName.GetCharCount();
+    if (end > thatName.GetCharCount()) {
         return FALSE;
     }
-    if (thisName[--end] == '*'
-        && (end == 0 || thisName[end - 1] == '.')) {
+    if (thisName.GetChar(--end) == '*'
+        && (end == 0 || thisName.GetChar(end - 1) == '.')) {
         //wildcard found
         end--;
     }
-    else if ((UInt32)end != (thatName.GetLength()-1)) {
+    else if (end != (thatName.GetCharCount() - 1)) {
         //names are not equal
         return FALSE;
     }
     for (Int32 i = end; i >= 0; i--) {
-        if (thisName[i] != thatName[i]) {
+        if (thisName.GetChar(i) != thatName.GetChar(i)) {
             return FALSE;
         }
     }
@@ -81,6 +84,7 @@ Boolean BasicPermission::NameImplies(
 ECode BasicPermission::NewPermissionCollection(
     /* [out] */ IPermissionCollection** permissionCollection)
 {
+    // return new BasicPermissionCollection();
     return E_NOT_IMPLEMENTED;
 }
 

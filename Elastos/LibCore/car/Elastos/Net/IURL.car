@@ -17,7 +17,7 @@ module
          * @return {@code true} if both instances refer to the same resource,
          *         {@code false} otherwise.
          */
-        SameFile(
+        IsSameFile(
             [in] IURL* otherURL,
             [out] Boolean* isSame);
 

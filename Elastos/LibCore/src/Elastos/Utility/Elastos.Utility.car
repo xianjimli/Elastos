@@ -6,7 +6,7 @@ module
     merge("../../../car/Elastos/Utility/ILocale.car");
     merge("../../../car/Elastos/Utility/ICalendar.car");
     merge("../../../car/Elastos/Utility/IICUHelper.car");
-    //merge("../../../car/Elastos/Utility/IObjectStringMap.car");
+    merge("../../../car/Elastos/Utility/IObjectStringMap.car");
 
     class CObjectContainer {
         interface IObjectContainer;
@@ -57,7 +57,7 @@ module
         interface IICUHelper;
     }
 
-    //class CObjectStringMap {
-    //    interface IObjectStringMap;
-   // }
+    class CObjectStringMap {
+        interface IObjectStringMap;
+    }
 }

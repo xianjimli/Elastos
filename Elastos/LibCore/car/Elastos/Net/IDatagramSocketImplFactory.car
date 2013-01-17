@@ -1,15 +1,22 @@
 
 module
 {
-	interface IDatagramSocketImpl;
+    interface IDatagramSocketImpl;
 
+    /**
+     * This interface defines a factory for datagram socket implementations. It is
+     * used by the class {@code DatagramSocket} to create a new datagram socket
+     * implementation.
+     *
+     * @see DatagramSocket
+     */
     interface IDatagramSocketImplFactory {
-	    /**
-	     * Creates a new {@code DatagramSocketImpl} instance.
-	     *
-	     * @return the new datagram socket implementation.
-	     */
-	    CreateDatagramSocketImpl(
-	    	[out] IDatagramSocketImpl** impl);
+        /**
+         * Creates a new {@code DatagramSocketImpl} instance.
+         *
+         * @return the new datagram socket implementation.
+         */
+        CreateDatagramSocketImpl(
+            [out] IDatagramSocketImpl** impl);
     }
 }

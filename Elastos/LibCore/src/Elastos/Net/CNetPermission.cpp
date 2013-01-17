@@ -1,7 +1,7 @@
 
 #include "CNetPermission.h"
 
-const Int64 CNetPermission::sSerialVersionUID = -8343910153355041693L;
+const Int64 CNetPermission::sSerialVersionUID = -8343910153355041693ll;
 
 ECode CNetPermission::constructor(
     /* [in] */ const String& name)

@@ -7,14 +7,34 @@
 #include <StringBuffer.h>
 
 const Int32 ProxySelectorImpl::HTTP_PROXY_PORT;
-
 const Int32 ProxySelectorImpl::HTTPS_PROXY_PORT;
-
 const Int32 ProxySelectorImpl::FTP_PROXY_PORT;
-
 const Int32 ProxySelectorImpl::SOCKS_PROXY_PORT;
 
 //    static AutoPtr<IProperties> mNetProps;// = null;
+
+// read net.properties file
+    // static {
+    //     AccessController.doPrivileged(new java.security.PrivilegedAction() {
+    //         public Object run() {
+    //             File f = new File(System.getProperty("java.home")
+    //                     + File.separator + "lib" + File.separator
+    //                     + "net.properties");
+
+    //             if (f.exists()) {
+    //                 try {
+    //                     FileInputStream fis = new FileInputStream(f);
+    //                     InputStream is = new BufferedInputStream(fis);
+    //                     netProps = new Properties();
+    //                     netProps.load(is);
+    //                     is.close();
+    //                 } catch (IOException e) {
+    //                 }
+    //             }
+    //             return null;
+    //         }
+    //     });
+    // }
 
 PInterface ProxySelectorImpl::Probe(
     /* [in]  */ REIID riid)
@@ -48,12 +68,12 @@ ECode ProxySelectorImpl::GetInterfaceID(
 
 ECode ProxySelectorImpl::ConnectFailed(
     /* [in] */ IURI* uri,
-    /* [in] */ ISocketAddress* sa
-    /*[in] IOException ioe*/)
+    /* [in] */ ISocketAddress* sa,
+    /* [in] */ ECode ec)
 {
-    if (uri == NULL || sa == NULL/* || ioe == null*/) {
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    if (uri == NULL || sa == NULL || SUCCEEDED(ec)) {
 //        throw new IllegalArgumentException();
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
     return NOERROR;
@@ -64,39 +84,39 @@ ECode ProxySelectorImpl::Select(
     /* [out] */ IObjectContainer** container)
 {
     VALIDATE_NOT_NULL(container);
+
     // argument check
     if (uri == NULL) {
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
 //        throw new IllegalArgumentException("uri == null");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
     // check scheme
     String scheme;
     uri->GetScheme(&scheme);
-    if (NULL == scheme) {
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    if (scheme.IsNull()) {
 //        throw new IllegalArgumentException();
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
     String host;
     uri->GetHost(&host);
     AutoPtr<IProxy> proxy = CProxy::NO_PROXY;
 
-    if (String("http").Equals(scheme)) {
+    if (CString("http").Equals(scheme)) {
         proxy = SelectHttpProxy(host);
     }
-    else if (String("https").Equals(scheme)) {
+    else if (CString("https").Equals(scheme)) {
         proxy = SelectHttpsProxy();
     }
-    else if (String("ftp").Equals(scheme)) {
+    else if (CString("ftp").Equals(scheme)) {
         proxy = SelectFtpProxy(host);
     }
-    else if (String("socket").Equals(scheme)) {
+    else if (CString("socket").Equals(scheme)) {
         proxy = SelectSocksProxy();
     }
 
-    ASSERT_SUCCEEDED(CObjectContainer::New(container));
+    FAIL_RETURN(CObjectContainer::New(container));
     (*container)->Add(proxy);
-
     return NOERROR;
 }
 
@@ -104,7 +124,7 @@ AutoPtr<IProxy> ProxySelectorImpl::SelectHttpProxy(
     /* [in] */ const String& uriHost)
 {
     String host;
-    String port = String(NULL);
+    String port;
     ProxyType type = ProxyType_DIRECT;
 
     String nonProxyHosts = GetSystemProperty(String("http.nonProxyHosts"));
@@ -120,7 +140,7 @@ AutoPtr<IProxy> ProxySelectorImpl::SelectHttpProxy(
         port = GetSystemPropertyOrAlternative(String("http.proxyPort"),
                 String("proxyPort"), String::FromInt32(HTTP_PROXY_PORT));
     }
-    else if (!(host = GetSystemPropertyEx(String("proxyHost"), String(NULL))).IsNull()) {
+    else if (!(host = GetSystemProperty(String("proxyHost"), String(NULL))).IsNull()) {
         // case 2: proxyHost is set, use exact http proxy
         type = ProxyType_HTTP;
         port = GetSystemPropertyOrAlternative(String("proxyPort"),
@@ -130,12 +150,11 @@ AutoPtr<IProxy> ProxySelectorImpl::SelectHttpProxy(
     else if (!(host = GetSystemProperty(String("socksProxyHost"))).IsNull()) {
         // case 3: use socks proxy instead
         type = ProxyType_SOCKS;
-        port = GetSystemPropertyEx(
+        port = GetSystemProperty(
                 String("socksProxyPort"), String::FromInt32(SOCKS_PROXY_PORT));
     }
     Int32 defaultPort = (type == ProxyType_SOCKS) ? SOCKS_PROXY_PORT
             : HTTP_PROXY_PORT;
-
     return CreateProxy(type, host, port, defaultPort);
 }
 
@@ -145,14 +164,14 @@ AutoPtr<IProxy> ProxySelectorImpl::SelectHttpProxy(
 AutoPtr<IProxy> ProxySelectorImpl::SelectHttpsProxy()
 {
     String host;
-    String port = String(NULL);
+    String port;
     ProxyType type = ProxyType_DIRECT;
 
     host = GetSystemProperty(String("https.proxyHost"));
     if (!host.IsNull()) {
         // case 1: use exact https proxy
         type = ProxyType_HTTP;
-        port = GetSystemPropertyEx(
+        port = GetSystemProperty(
                 String("https.proxyPort"), String::FromInt32(HTTPS_PROXY_PORT));
     }
     else {
@@ -160,13 +179,12 @@ AutoPtr<IProxy> ProxySelectorImpl::SelectHttpsProxy()
         if (!host.IsNull()) {
             // case 2: use socks proxy instead
             type = ProxyType_SOCKS;
-            port = GetSystemPropertyEx(
+            port = GetSystemProperty(
                     String("socksProxyPort"), String::FromInt32(SOCKS_PROXY_PORT));
         }
     }
     Int32 defaultPort = (type == ProxyType_SOCKS) ? SOCKS_PROXY_PORT
             : HTTPS_PROXY_PORT;
-
     return CreateProxy(type, host, port, defaultPort);
 }
 
@@ -177,7 +195,7 @@ AutoPtr<IProxy> ProxySelectorImpl::SelectFtpProxy(
     /* [in] */ const String& uriHost)
 {
     String host;
-    String port = String(NULL);
+    String port;
     ProxyType type = ProxyType_DIRECT;
     String nonProxyHosts = GetSystemProperty(String("ftp.nonProxyHosts"));
     // if host is in non proxy host list, returns Proxy.NO_PROXY
@@ -189,7 +207,7 @@ AutoPtr<IProxy> ProxySelectorImpl::SelectFtpProxy(
     if (!host.IsNull()) {
         // case 1: use exact ftp proxy
         type = ProxyType_HTTP;
-        port = GetSystemPropertyEx(
+        port = GetSystemProperty(
                 String("ftp.proxyPort"), String::FromInt32(FTP_PROXY_PORT));
     }
     else {
@@ -197,13 +215,12 @@ AutoPtr<IProxy> ProxySelectorImpl::SelectFtpProxy(
         if (!host.IsNull()) {
             // case 2: use socks proxy instead
             type = ProxyType_SOCKS;
-            port = GetSystemPropertyEx(
+            port = GetSystemProperty(
                     String("socksProxyPort"), String::FromInt32(SOCKS_PROXY_PORT));
         }
     }
     Int32 defaultPort = (type == ProxyType_SOCKS) ? SOCKS_PROXY_PORT
             : FTP_PROXY_PORT;
-
     return CreateProxy(type, host, port, defaultPort);
 }
 
@@ -213,13 +230,13 @@ AutoPtr<IProxy> ProxySelectorImpl::SelectFtpProxy(
 AutoPtr<IProxy> ProxySelectorImpl::SelectSocksProxy()
 {
     String host;
-    String port = String(NULL);
+    String port;
     ProxyType type = ProxyType_DIRECT;
 
     host = GetSystemProperty(String("socksProxyHost"));
     if (!host.IsNull()) {
         type = ProxyType_SOCKS;
-        port = GetSystemPropertyEx(
+        port = GetSystemProperty(
                 String("socksProxyPort"), String::FromInt32(SOCKS_PROXY_PORT));
     }
     return CreateProxy(type, host, port, SOCKS_PROXY_PORT);
@@ -240,8 +257,8 @@ Boolean ProxySelectorImpl::IsNonProxyHost(
     // Construct regex expression of nonProxyHosts
     Char32 ch;
     StringBuffer buf;
-    for (Int32 i = 0; (UInt32)i < nonProxyHosts.GetLength(); i++) {
-        ch = nonProxyHosts[i];
+    for (Int32 i = 0; (UInt32)i < nonProxyHosts.GetCharCount(); i++) {
+        ch = nonProxyHosts.GetChar(i);
         switch (ch) {
             case '.':
                 buf += "\\.";
@@ -255,7 +272,10 @@ Boolean ProxySelectorImpl::IsNonProxyHost(
     }
     String nonProxyHostsReg(buf);
     // check whether the host is the nonProxyHosts.
-    return host == nonProxyHostsReg;
+    //Todo:
+    // return host.matches(nonProxyHostsReg);
+    assert(0);
+    return FALSE;
 }
 
 /*
@@ -276,17 +296,18 @@ AutoPtr<IProxy> ProxySelectorImpl::CreateProxy(
 //        try {
             // BEGIN android-changed
         iPort = port.ToInt32();
+        if (iPort == -1) {
+            iPort = defaultPort;
+        }
             // END android-changed
 //        } catch (NumberFormatException e) {
 //            iPort = defaultPort;
 //        }
         AutoPtr<IInetSocketAddress> address;
-        AutoPtr<ISocketAddress> addr;
-        CInetSocketAddress::CreateUnresolved(host,iPort, (IInetSocketAddress**)&address);
-        if (address != NULL && address->Probe(EIID_ISocketAddress) != NULL) {
-            addr = (ISocketAddress*)address->Probe(EIID_ISocketAddress);
-        }
-        CProxy::New(type, addr, (IProxy**)&proxy);
+        ASSERT_SUCCEEDED(CInetSocketAddress::CreateUnresolved(
+                host, iPort, (IInetSocketAddress**)&address));
+        ASSERT_SUCCEEDED(CProxy::New(type,
+                ISocketAddress::Probe(address), (IProxy**)&proxy));
     }
     return proxy;
 }
@@ -298,14 +319,14 @@ AutoPtr<IProxy> ProxySelectorImpl::CreateProxy(
 String ProxySelectorImpl::GetSystemProperty(
     /* [in] */ const String& property)
 {
-    return GetSystemPropertyEx(property, String(NULL));
+    return GetSystemProperty(property, String(NULL));
 }
 
 /*
  * gets system property, privileged operation. If the value of the property
  * is null or empty String, it returns defaultValue.
  */
-String ProxySelectorImpl::GetSystemPropertyEx(
+String ProxySelectorImpl::GetSystemProperty(
     /* [in] */ const String& property,
     /* [in] */ const String& defaultValue)
 {
@@ -317,7 +338,6 @@ String ProxySelectorImpl::GetSystemPropertyEx(
     //             : defaultValue;
     // }
     // return value;
-
     return String(NULL);
 }
 

@@ -44,8 +44,6 @@ module
     merge("../../../car/Elastos/Net/IProxySelector.car");
     merge("../../../car/Elastos/Net/ICookieHandler.car");
     merge("../../../car/Elastos/Net/ICookieManager.car");
-    merge("../../../car/Elastos/Net/ICookiePolicyHelper.car");
-    merge("../../../car/Elastos/Net/IJarURLConnection.car");
     merge("../../../car/Elastos/Net/IResponseCache.car");
     merge("../../../car/Elastos/Net/ICacheRequest.car");
     merge("../../../car/Elastos/Net/ICacheResponse.car");
@@ -104,6 +102,9 @@ module
     }
 
     class CURI {
+        /* private */
+        constructor();
+
         /**
          * Creates a new URI instance according to the given string {@code uri}.
          *
@@ -609,6 +610,15 @@ module
             [in] String host,
             [in] Int32 port);
 
+        /*
+         * Internal constructor for InetSocketAddress(String, int) and
+         * createUnresolved(String, int);
+         */
+        constructor(
+            [in] String hostname,
+            [in] Int32 port,
+            [in] Boolean needResolved);
+
         interface IInetSocketAddress;
     }
 
@@ -684,6 +694,7 @@ module
      *
      * @see DatagramSocket
      */
+    [deprecated]
     class CDatagramPacket {
         /**
          * Constructs a new {@code DatagramPacket} object to receive data up to
@@ -695,7 +706,7 @@ module
          *            the length of the data buffer.
          */
         constructor(
-            [in] ArrayOf<Byte> data,
+            [in] ArrayOf<Byte>* data,
             [in] Int32 length);
 
         /**
@@ -710,7 +721,7 @@ module
          *            the length of the data.
          */
         constructor(
-            [in] ArrayOf<Byte> data,
+            [in] ArrayOf<Byte>* data,
             [in] Int32 offset,
             [in] Int32 length);
 
@@ -732,7 +743,7 @@ module
          *            the port of the target host.
          */
         constructor(
-            [in] ArrayOf<Byte> data,
+            [in] ArrayOf<Byte>* data,
             [in] Int32 offset,
             [in] Int32 length,
             [in] IInetAddress* host,
@@ -754,7 +765,7 @@ module
          *            the port of the target host.
          */
         constructor(
-            [in] ArrayOf<Byte> data,
+            [in] ArrayOf<Byte>* data,
             [in] Int32 length,
             [in] IInetAddress* host,
             [in] Int32 port);
@@ -775,7 +786,7 @@ module
          *             if an error in the underlying protocol occurs.
          */
         constructor(
-            [in] ArrayOf<Byte> data,
+            [in] ArrayOf<Byte>* data,
             [in] Int32 length,
             [in] ISocketAddress* sockAddr);
 
@@ -797,7 +808,7 @@ module
          *             if an error in the underlying protocol occurs.
          */
         constructor(
-            [in] ArrayOf<Byte> data,
+            [in] ArrayOf<Byte>* data,
             [in] Int32 offset,
             [in] Int32 length,
             [in] ISocketAddress* sockAddr);
@@ -891,28 +902,28 @@ module
      * represents the permission to connect to and accept connections from {@code
      * www.company.com} on ports in the range {@code 7000} to {@code 65535}.
      */
-    //class CSocketPermission {
-    //    /**
-    //     * Constructs a new {@code SocketPermission} instance. The hostname can be a
-    //     * DNS name, an individual hostname, an IP address or the empty string which
-    //     * implies {@code localhost}. The port or port range is optional.
-    //     * <p>
-    //     * The action list is a comma-separated list which can consists of the
-    //     * possible operations {@code "connect"}, {@code "listen"}, {@code "accept"}
-    //     * , and {@code "resolve"}. They are case-insensitive and can be put
-    //     * together in any order. {@code "resolve"} is implied per default.
-    //     *
-    //     * @param host
-    //     *            the hostname this permission is valid for.
-    //     * @param action
-    //     *            the action string of this permission.
-    //     */
-    //    constructor(
-    //        [in] String host,
-    //        [in] String action);
+    class CSocketPermission {
+        /**
+         * Constructs a new {@code SocketPermission} instance. The hostname can be a
+         * DNS name, an individual hostname, an IP address or the empty string which
+         * implies {@code localhost}. The port or port range is optional.
+         * <p>
+         * The action list is a comma-separated list which can consists of the
+         * possible operations {@code "connect"}, {@code "listen"}, {@code "accept"}
+         * , and {@code "resolve"}. They are case-insensitive and can be put
+         * together in any order. {@code "resolve"} is implied per default.
+         *
+         * @param host
+         *            the hostname this permission is valid for.
+         * @param action
+         *            the action string of this permission.
+         */
+        constructor(
+            [in] String host,
+            [in] String action);
 
-    //    interface ISocketPermission;
-   // }
+        interface ISocketPermission;
+    }
 
     /**
      * This class implements a multicast socket for sending and receiving IP
@@ -959,23 +970,6 @@ module
             [in] ISocketAddress* localAddr);
 
         interface IMulticastSocket;
-    }
-
-    /**
-     * Identifies one of a network interface's addresses.
-     * These are passed back from the JNI behind NetworkInterface.getNetworkInterfaces.
-     * Multiple addresses for the same interface are collected together on the Java side.
-     *
-     * @since 1.6
-     */
-    class CInterfaceAddress {
-        constructor(
-            [in] Int32 index,
-            [in] String name,
-            [in] IInetAddress* address,
-            [in] IInetAddress* mask);
-
-        interface IInterfaceAddress;
     }
 
     /**
@@ -1096,6 +1090,12 @@ module
             [in] ProxyType type,
             [in] ISocketAddress* sa);
 
+        /*
+         * Constructs a Proxy instance, which is Proxy.DIRECT type with null
+         * SocketAddress. This constructor is used for NO_PROXY.
+         */
+        constructor();
+
         interface IProxy;
     }
 
@@ -1131,8 +1131,8 @@ module
         interface ICookiePolicyHelper;
     }
 
-    class CIDN {
-        interface IIDN;
+    singleton class CIDNHelper {
+        interface IIDNHelper;
     }
 
     class CPasswordAuthentication {

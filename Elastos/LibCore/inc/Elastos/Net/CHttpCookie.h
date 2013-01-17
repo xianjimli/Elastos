@@ -4,6 +4,7 @@
 
 #include "cmdef.h"
 #include "_CHttpCookie.h"
+#include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>
 #include <elastos/HashSet.h>
 #include <elastos/List.h>
@@ -12,15 +13,16 @@
 CarClass(CHttpCookie)
 {
 public:
-    class CookieParser
+    class CookieParser : public ElRefBase
     {
     public:
         CookieParser(
             /* [in] */ const String& input);
 
         CARAPI Parse(
-            /* [out] */ List<AutoPtr<IHttpCookie> >* httpCookies);
+            /* [out] */ List< AutoPtr<IHttpCookie> >& httpCookies);
 
+    private:
         CARAPI_(void) SetAttribute(
             /* [in] */ CHttpCookie* cookie,
             /* [in] */ const String& name,
@@ -47,7 +49,7 @@ public:
          * is not consumed.
          */
         CARAPI ReadAttributeValue(
-            /* [in] */ const String& terminators,
+            /* [in] */ CString terminators,
             /* [out] */ String* value);
 
         /**
@@ -55,16 +57,9 @@ public:
          * of the string.
          */
         CARAPI_(Int32) Find(
-            /* [in] */ const String& chars);
+            /* [in] */ CString chars);
 
         CARAPI_(void) SkipWhitespace();
-
-    private:
-        static const String ATTRIBUTE_NAME_TERMINATORS;
-        static const String WHITESPACE;
-        String mInput;
-        String mInputLowerCase;
-        Int32 mPos;
 
     public:
         /*
@@ -78,9 +73,18 @@ public:
         Boolean mHasExpires;
         Boolean mHasMaxAge;
         Boolean mHasVersion;
+
+    private:
+        static const CString ATTRIBUTE_NAME_TERMINATORS;
+        static const CString WHITESPACE;
+        String mInput;
+        String mInputLowerCase;
+        Int32 mPos;
     };
 
 public:
+    static CARAPI StaticInit();
+
     CHttpCookie();
 
     /**
@@ -139,7 +143,7 @@ public:
      */
     static CARAPI Parse(
         /* [in] */ const String& header,
-        /* [out] */ List<AutoPtr<IHttpCookie> >* httpCookies);
+        /* [out] */ List< AutoPtr<IHttpCookie> >& httpCookies);
 
     CARAPI GetComment(
         /* [out] */ String* comment);
@@ -218,8 +222,6 @@ public:
         /* [in] */ const String& value);
 
 private:
-    static CARAPI_(HashSet<String>&) InitReservedNames();
-
     /**
      * Returns a non-null path ending in "/".
      */
@@ -246,18 +248,24 @@ private:
         /* [in] */ IDate* expires);
 
     CARAPI_(void) AppendAttribute(
-        /* [in] */ StringBuffer builder,
+        /* [in] */ StringBuffer& builder,
         /* [in] */ const String& name,
         /* [in] */ const String& value);
 
 private:
-    /**
-     * If we fail to parse a date in a non-standard format, try each of these formats in sequence.
-     */
-    static String BROWSER_COMPATIBLE_DATE_FORMATS[];
-    static const ArrayOf<String> ARRAYOF_BROWSER_COMPATIBLE_DATE_FORMATS;
+    static CString BROWSER_COMPATIBLE_DATE_FORMATS[];
+    static HashSet<String>* RESERVED_NAMES;
 
-    static HashSet<String> RESERVED_NAMES;
+    /**
+     * Most websites serve cookies in the blessed format. Eagerly create the parser to ensure such
+     * cookies are on the fast path.
+     */
+    // private static final ThreadLocal<DateFormat> STANDARD_DATE_FORMAT
+    //         = new ThreadLocal<DateFormat>() {
+    //     @Override protected DateFormat initialValue() {
+    //         return new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US); // RFC 1123
+    //     }
+    // };
 
     String mComment;
     String mCommentURL;
@@ -269,7 +277,6 @@ private:
     String mPortList;
     Boolean mSecure;
     String mValue;
-
     Int32 mVersion;
 };
 

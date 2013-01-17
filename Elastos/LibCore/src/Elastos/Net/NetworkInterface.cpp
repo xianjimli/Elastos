@@ -1,64 +1,46 @@
 
 #include "cmdef.h"
 #include "NetworkInterface.h"
-#include "CInterfaceAddress.h"
+#include "InterfaceAddress.h"
 #include "CInet6Address.h"
 #include <elastos/Map.h>
 
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <net/if.h>
+#include <unistd.h>
+
+// A smart pointer that closes the given fd on going out of scope.
+// Use this when the fd is incidental to the purpose of your function,
+// but needs to be cleaned up on exit.
+class ScopedFd {
+public:
+    explicit ScopedFd(int fd) : fd(fd) {
+    }
+
+    ~ScopedFd() {
+        close(fd);
+    }
+
+    int get() const {
+        return fd;
+    }
+
+private:
+    int fd;
+
+    // Disallow copy and assignment.
+    ScopedFd(const ScopedFd&);
+    void operator=(const ScopedFd&);
+};
+
 const Int32 NetworkInterface::CHECK_CONNECT_NO_PORT;
 
-NetworkInterface::NetworkInterface(
-    /* [in]  */ const String& name,
-    /* [in]  */ const String& displayName,
-    /* [in]  */ ArrayOf<AutoPtr<IInetAddress> >* addresses,
-    /* [in]  */ Int32 interfaceIndex)
-    : mInterfaceIndex(0)
-{
-    mName = name;
-    mDisplayName = displayName;
-    mInterfaceIndex = interfaceIndex;
-    if (addresses != NULL) {
-        for (Int32 i = 0; i < addresses->GetLength(); ++i) {
-            mAddresses.PushBack((*addresses)[i]);
-        }
-    }
-}
-
-PInterface NetworkInterface::Probe(
-    /* [in]  */ REIID riid)
-{
-    if (riid == EIID_IInterface) {
-        return (PInterface)this;
-    }
-    else if (riid == EIID_INetworkInterface) {
-        return (INetworkInterface*)this;
-    }
-
-    return NULL;
-}
-
-UInt32 NetworkInterface::AddRef()
-{
-    return ElRefBase::AddRef();
-}
-
-UInt32 NetworkInterface::Release()
-{
-    return ElRefBase::Release();
-}
-
-ECode NetworkInterface::GetInterfaceID(
-    /* [in] */ IInterface *pObject,
-    /* [out] */ InterfaceID *pIID)
-{
-    return E_NOT_IMPLEMENTED;
-}
-
-//    ECode NetworkInterface::~NetworkInterface();
-
 ECode NetworkInterface::GetAllInterfaceAddressesImpl(
-    /* [out] */ IObjectContainer** addresses)
+    /* [out, callee] */ ArrayOf< AutoPtr<IInterfaceAddress> >** addresses)
 {
+    VALIDATE_NOT_NULL(addresses);
+
     // Get the list of interface addresses.
     // ScopedInterfaceAddresses addresses;
     // if (!addresses.init()) {
@@ -115,69 +97,116 @@ ECode NetworkInterface::GetAllInterfaceAddressesImpl(
 }
 
 ECode NetworkInterface::GetNetworkInterfacesImpl(
-    /* [out] */ ArrayOf<NetworkInterface*>* interfaces)
+    /* [out, callee] */ ArrayOf< AutoPtr<NetworkInterface> >** interfaces)
 {
     VALIDATE_NOT_NULL(interfaces);
 
-    Map<String, NetworkInterface*> networkInterfaces;
-    AutoPtr<IObjectContainer> addresses;
-    GetAllInterfaceAddressesImpl((IObjectContainer**)&addresses);
+    HashMap<String, NetworkInterface*> networkInterfaces(13);
+    ArrayOf< AutoPtr<IInterfaceAddress> >* addresses;
+    GetAllInterfaceAddressesImpl(&addresses);
     if (addresses != NULL) {
-        AutoPtr<IObjectEnumerator> enumerator;
-        addresses->GetObjectEnumerator((IObjectEnumerator**)&enumerator);
-        Boolean hasNext;
-        while(enumerator->MoveNext(&hasNext), hasNext) {
-            AutoPtr<IInterfaceAddress> ia;
-            enumerator->Current((IInterface**)&ia);
+        for (Int32 i = 0; i < addresses->GetLength(); ++i) {
+            IInterfaceAddress* ia = (*addresses)[i];
             if (ia != NULL) { // The array may contain harmless null elements.
-                String name = ((CInterfaceAddress*)ia.Get())->mName;
-                Map<String, NetworkInterface*>::Iterator it = networkInterfaces.Find(name);
-                NetworkInterface* ni = NULL;
+                String name = ((InterfaceAddress*)ia)->mName;
+                HashMap<String, NetworkInterface*>::Iterator it = networkInterfaces.Find(name);
+                AutoPtr<NetworkInterface> ni;
                 if (it == networkInterfaces.End()) {
-                    ArrayOf<AutoPtr<IInetAddress> >* addrArrayOf = ArrayOf<AutoPtr<IInetAddress> >::Alloc(1);
-                    (*addrArrayOf)[0] = ((CInterfaceAddress*)ia.Get())->mAddress;
-                    ni = new NetworkInterface(name, name, addrArrayOf, ((CInterfaceAddress*)ia.Get())->mIndex);
+                    ArrayOf_<IInetAddress*, 1> addrs;
+                    addrs[0] = ((InterfaceAddress*)ia)->mAddress;
+                    ni = new NetworkInterface(name, name, &addrs, ((InterfaceAddress*)ia)->mIndex);
                     ni->mInterfaceAddresses.PushBack(ia);
                     networkInterfaces[name] = ni;
-                    ArrayOf<AutoPtr<IInetAddress> >::Free(addrArrayOf);
                 }
                 else {
                     ni = it->mSecond;
                     assert(ni);
-                    ni->mAddresses.PushBack(((CInterfaceAddress*)ia.Get())->mAddress);
+                    ni->mAddresses.PushBack(((InterfaceAddress*)ia)->mAddress);
                     ni->mInterfaceAddresses.PushBack(ia);
                 }
             }
         }
     }
 
-    Map<String, NetworkInterface*>::Iterator it;
-    Int32 i =0;
+    *interfaces = ArrayOf< AutoPtr<NetworkInterface> >::Alloc(networkInterfaces.GetSize());
+    HashMap<String, NetworkInterface*>::Iterator it;
+    Int32 i = 0;
     for (it = networkInterfaces.Begin(); it != networkInterfaces.End(); ++it) {
-        (*interfaces)[i] = it->mSecond;
+        (**interfaces)[i] = it->mSecond;
         i++;
+    }
+
+    //free addresses
+    if (addresses != NULL) {
+        for (Int32 i = 0; i < addresses->GetLength(); ++i) {
+            (*addresses)[i] = NULL;
+        }
+        ArrayOf< AutoPtr<IInterfaceAddress> >::Free(addresses);
     }
 
     return NOERROR;
 }
+
+NetworkInterface::NetworkInterface(
+    /* [in]  */ const String& name,
+    /* [in]  */ const String& displayName,
+    /* [in]  */ ArrayOf<IInetAddress*>* addresses,
+    /* [in]  */ Int32 interfaceIndex)
+    : mName(name)
+    , mDisplayName(displayName)
+    , mInterfaceIndex(interfaceIndex)
+{
+    if (addresses != NULL) {
+        for (Int32 i = 0; i < addresses->GetLength(); ++i) {
+            mAddresses.PushBack((*addresses)[i]);
+        }
+    }
+}
+
+PInterface NetworkInterface::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (PInterface)this;
+    }
+    else if (riid == EIID_INetworkInterface) {
+        return (INetworkInterface*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 NetworkInterface::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 NetworkInterface::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode NetworkInterface::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+NetworkInterface::~NetworkInterface()
+{}
 
 Int32 NetworkInterface::GetIndex()
 {
     return mInterfaceIndex;
 }
 
-ECode NetworkInterface::GetFirstAddress(
-    /* [out] */ IInetAddress** firstAddr)
+AutoPtr<IInetAddress> NetworkInterface::GetFirstAddress()
 {
-    VALIDATE_NOT_NULL(firstAddr);
-
     if (mAddresses.GetSize() >= 1) {
-        *firstAddr = mAddresses[0];
-        return NOERROR;
+        return mAddresses[0];
     }
-
-    *firstAddr = NULL;
-    return NOERROR;
+    return NULL;
 }
 
 ECode NetworkInterface::GetName(
@@ -191,17 +220,17 @@ ECode NetworkInterface::GetName(
 ECode NetworkInterface::GetInetAddresses(
     /* [out] */ IObjectContainer** addresses)
 {
+    VALIDATE_NOT_NULL(addresses);
 //    SecurityManager sm = System.getSecurityManager();
 //    if (sm == null || mAddresses.IsEmpty()) {
 //        return Collections.enumeration(addresses);
 //    }
     // TODO: Android should ditch SecurityManager and the associated pollution.
-    VALIDATE_NOT_NULL(addresses);
 
-    ASSERT_SUCCEEDED(CObjectContainer::New(addresses));
-    List<AutoPtr<IInetAddress> >::Iterator it;
+    FAIL_RETURN(CObjectContainer::New(addresses));
+    List< AutoPtr<IInetAddress> >::Iterator it;
     for (it = mAddresses.Begin(); it != mAddresses.End(); ++it) {
-        AutoPtr<IInetAddress> address = *it;
+        IInetAddress* address = *it;
 //        try {
 //        sm.checkConnect(address.getHostName(), CHECK_CONNECT_NO_PORT);
 //        } catch (SecurityException e) {
@@ -209,19 +238,17 @@ ECode NetworkInterface::GetInetAddresses(
 //        }
         (*addresses)->Add(address);
     }
-
     return NOERROR;
 }
 
 ECode NetworkInterface::GetDisplayName(
     /* [out] */ String* name)
 {
+    VALIDATE_NOT_NULL(name);
     /*
      * we should return the display name unless it is blank in this case
      * return the name so that something is displayed.
      */
-    VALIDATE_NOT_NULL(name);
-
     *name = mDisplayName.IsEmpty() ? mName : mDisplayName;
 
     return NOERROR;
@@ -231,20 +258,22 @@ ECode NetworkInterface::GetByName(
     /* [in] */ const String& interfaceName,
     /* [out] */ INetworkInterface** networkInterface)
 {
+    VALIDATE_NOT_NULL(networkInterface);
+
     if (interfaceName.IsNull()) {
-        return E_NULL_POINTER_EXCEPTION;
 //        throw new NullPointerException();
+        return E_NULL_POINTER_EXCEPTION;
     }
-    List<NetworkInterface*> interfaceList;
-    FAIL_RETURN(GetNetworkInterfacesList(&interfaceList));
-    List<NetworkInterface*>::Iterator it;
+    List< AutoPtr<NetworkInterface> > interfaceList;
+    FAIL_RETURN(GetNetworkInterfacesList(interfaceList));
+    List< AutoPtr<NetworkInterface> >::Iterator it;
     for (it = interfaceList.Begin(); it != interfaceList.End(); ++it) {
         if ((*it)->mName.Equals(interfaceName)) {
             *networkInterface = (INetworkInterface*)(*it);
+            if (*networkInterface != NULL) (*networkInterface)->AddRef();
             return NOERROR;
         }
     }
-
     *networkInterface = NULL;
     return NOERROR;
 }
@@ -253,70 +282,72 @@ ECode NetworkInterface::GetByInetAddress(
     /* [in] */ IInetAddress* address,
     /* [out] */ INetworkInterface** networkInterface)
 {
+    VALIDATE_NOT_NULL(networkInterface);
+
     if (address == NULL) {
-        return E_NULL_POINTER_EXCEPTION;
 //        throw new NullPointerException("address == null");
+        return E_NULL_POINTER_EXCEPTION;
     }
 
-    List<NetworkInterface*> interfaceList;
-    FAIL_RETURN(GetNetworkInterfacesList(&interfaceList));
-    List<NetworkInterface*>::Iterator it;
+    List< AutoPtr<NetworkInterface> > interfaceList;
+    FAIL_RETURN(GetNetworkInterfacesList(interfaceList));
+    List< AutoPtr<NetworkInterface> >::Iterator it;
     for (it = interfaceList.Begin(); it != interfaceList.End(); ++it) {
-        List<AutoPtr<IInetAddress> >::Iterator addrIt;
-        for (addrIt = (*it)->mAddresses.Begin(); addrIt != (*it)->mAddresses.End(); ++addrIt) {
-            if ((*addrIt).Get() == address) {
-                *networkInterface = (INetworkInterface*)(*it);
-                return NOERROR;
-            }
+        if (Find((*it)->mAddresses.Begin(), (*it)->mAddresses.End(), AutoPtr<IInetAddress>(address))
+                != (*it)->mAddresses.End()) {
+            *networkInterface = (INetworkInterface*)(*it);
+            if (*networkInterface != NULL) (*networkInterface)->AddRef();
+            return NOERROR;
         }
     }
-
     *networkInterface = NULL;
     return NOERROR;
 }
 
 ECode NetworkInterface::GetNetworkInterfaces(
-    /* [out] */ IObjectContainer** netWrokInterfaces)
+    /* [out] */ IObjectContainer** networkInterfaces)
 {
-    ASSERT_SUCCEEDED(CObjectContainer::New(netWrokInterfaces));
+    VALIDATE_NOT_NULL(networkInterfaces);
 
-    List<NetworkInterface*> interfaceList;
-    FAIL_RETURN(GetNetworkInterfacesList(&interfaceList));
-    List<NetworkInterface*>::Iterator it;
-    for (it = interfaceList.Begin(); it != interfaceList.End(); ++it) {
-        (*netWrokInterfaces)->Add((INetworkInterface*)(*it));
-    }
 //    return Collections.enumeration(getNetworkInterfacesList());
+    FAIL_RETURN(CObjectContainer::New(networkInterfaces));
+
+    List< AutoPtr<NetworkInterface> > interfaceList;
+    FAIL_RETURN(GetNetworkInterfacesList(interfaceList));
+    List< AutoPtr<NetworkInterface> >::Iterator it;
+    for (it = interfaceList.Begin(); it != interfaceList.End(); ++it) {
+        (*networkInterfaces)->Add((INetworkInterface*)(*it));
+    }
 
     return NOERROR;
 }
 
 ECode NetworkInterface::GetNetworkInterfacesList(
-    /* [out] */ List<NetworkInterface*>* interfaceList)
+    /* [out] */ List< AutoPtr<NetworkInterface> >& interfaceList)
 {
-    ArrayOf<NetworkInterface*>* interfaces;
-    FAIL_RETURN(GetNetworkInterfacesImpl(interfaces));
+    ArrayOf< AutoPtr<NetworkInterface> >* interfaces;
+    FAIL_RETURN(GetNetworkInterfacesImpl(&interfaces));
 
-    if (interfaces != NULL) {
-        for (Int32 i = 0; i < interfaces->GetLength(); ++i) {
-            NetworkInterface* netif = (*interfaces)[i];
-            // Ensure that current NetworkInterface is bound to at least
-            // one InetAddress before processing
-            List<AutoPtr<IInetAddress> >::Iterator it;
-            //begin from this, whether the iobjcontainer should be modified?
-            for (it = netif->mAddresses.Begin(); it != netif->mAddresses.End(); ++it) {
-                AutoPtr<IInetAddress> addr = *it;
-//                if (addr.ipaddress->GetLength() == 16) {//todo: how to Transform to inetaddress?
-                    Boolean isLinkLocalAddress, isSiteLocalAddress;
-                    addr->IsLinkLocalAddress(&isLinkLocalAddress);
-                    addr->IsSiteLocalAddress(&isSiteLocalAddress);
-                    if (isLinkLocalAddress || isSiteLocalAddress) {
-                        ((CInet6Address*)addr.Get())->mScopedIf = (INetworkInterface*)netif;
-                        ((CInet6Address*)addr.Get())->mIfname = netif->mName;
-                        ((CInet6Address*)addr.Get())->mScopeIfnameSet = TRUE;
-                    }
-//                }
-            }
+    assert(interfaces != NULL);
+    for (Int32 i = 0; i < interfaces->GetLength(); ++i) {
+        NetworkInterface* netif = (*interfaces)[i];
+        // Ensure that current NetworkInterface is bound to at least
+        // one InetAddress before processing
+        List< AutoPtr<IInetAddress> >::Iterator it;
+        //begin from this, whether the iobjcontainer should be modified?
+        for (it = netif->mAddresses.Begin(); it != netif->mAddresses.End(); ++it) {
+            IInetAddress* addr = *it;
+            assert(0);
+            //todo:
+            // if (addr.ipaddress->GetLength() == 16) {
+                Boolean isLinkLocalAddress, isSiteLocalAddress;
+                if ((addr->IsLinkLocalAddress(&isLinkLocalAddress), isLinkLocalAddress) ||
+                    (addr->IsSiteLocalAddress(&isSiteLocalAddress), isSiteLocalAddress)) {
+                    ((CInet6Address*)addr)->mScopedIf = (INetworkInterface*)netif;
+                    ((CInet6Address*)addr)->mIfname = netif->mName;
+                    ((CInet6Address*)addr)->mScopeIfnameSet = TRUE;
+                }
+            // }
         }
     }
 
@@ -341,11 +372,15 @@ ECode NetworkInterface::GetNetworkInterfacesList(
             }
         }
         // Tagged as peeked
-        interfaceList->PushBack((*interfaces)[counter]);
+        interfaceList.PushBack((*interfaces)[counter]);
         (*peeked)[counter] = TRUE;
     }
 
-    ArrayOf<NetworkInterface*>::Free(interfaces);
+    //free interfaces;
+    for (Int32 i = 0; i < interfaces->GetLength(); ++i) {
+        (*interfaces)[i] = NULL;
+    }
+    ArrayOf< AutoPtr<NetworkInterface> >::Free(interfaces);
     ArrayOf<Boolean>::Free(peeked);
 
     return NOERROR;
@@ -355,10 +390,11 @@ ECode NetworkInterface::GetInterfaceAddresses(
     /* [out] */ IObjectContainer** addresses)
 {
     VALIDATE_NOT_NULL(addresses);
+
 //    SecurityManager sm = System.getSecurityManager();
 //    if (sm == NULL) {
-        ASSERT_SUCCEEDED(CObjectContainer::New(addresses));
-        List<AutoPtr<IInterfaceAddress> >::Iterator it;
+        FAIL_RETURN(CObjectContainer::New(addresses));
+        List< AutoPtr<IInterfaceAddress> >::Iterator it;
         for (it = mInterfaceAddresses.Begin(); it != mInterfaceAddresses.End(); ++it) {
             (*addresses)->Add(*it);
         }
@@ -384,14 +420,13 @@ ECode NetworkInterface::GetSubInterfaces(
 {
     VALIDATE_NOT_NULL(subInterfaces);
 
-    ASSERT_SUCCEEDED(CObjectContainer::New(subInterfaces));
-    List<AutoPtr<INetworkInterface> >::Iterator it;
+    FAIL_RETURN(CObjectContainer::New(subInterfaces));
+    List< AutoPtr<INetworkInterface> >::Iterator it;
     for (it = mChildren.Begin(); it != mChildren.End(); ++it) {
         (*subInterfaces)->Add(*it);
     }
 
     return NOERROR;
-
 //    return Collections.enumeration(children);
 }
 
@@ -400,6 +435,7 @@ ECode NetworkInterface::GetParent(
 {
     VALIDATE_NOT_NULL(parent);
     *parent = mParent;
+    if (*parent != NULL) (*parent)->AddRef();
 
     return NOERROR;
 }
@@ -417,11 +453,46 @@ ECode NetworkInterface::IsUp(
     return IsUpImpl(mName, isUp);
 }
 
+static ECode DoIoctl(const String& name, Int32 request, ifreq& ifr, Boolean* result)
+{
+    // Copy the name into the ifreq structure, if there's room...
+    Int32 nameLength = name.GetCharCount();
+    if (nameLength >= IFNAMSIZ) {
+        errno = ENAMETOOLONG;
+        *result = FALSE;
+        return E_SOCKET_EXCEPTION;
+    }
+    memset(&ifr, 0, sizeof(ifr));
+    memcpy(ifr.ifr_name, name.string(), name.GetLength());
+
+    // ...and do the ioctl.
+    ScopedFd fd(socket(AF_INET, SOCK_DGRAM, 0));
+    if (fd.get() == -1) {
+        *result = FALSE;
+        return E_SOCKET_EXCEPTION;
+    }
+    Int32 rc = ioctl(fd.get(), request, &ifr);
+    if (rc == -1) {
+        *result = FALSE;
+        return E_SOCKET_EXCEPTION;
+    }
+    *result = TRUE;
+    return NOERROR;
+}
+
+static ECode HasFlag(const String& name, Int32 flag, Boolean* result)
+{
+    ifreq ifr;
+    FAIL_RETURN(DoIoctl(name, SIOCGIFFLAGS, ifr, result)); // May throw.
+    *result = (ifr.ifr_flags & flag) != 0;
+    return NOERROR;
+}
+
 ECode NetworkInterface::IsUpImpl(
     /* [in] */ const String& n,
-    /* [out] */ Boolean* isUP)
+    /* [out] */ Boolean* isUp)
 {
-    return E_NOT_IMPLEMENTED;
+    return HasFlag(n, IFF_UP, isUp);
 }
 
 ECode NetworkInterface::IsLoopback(
@@ -441,7 +512,7 @@ ECode NetworkInterface::IsLoopbackImpl(
     /* [in] */ const String& n,
     /* [out] */ Boolean* isLoopback)
 {
-    return E_NOT_IMPLEMENTED;
+    return HasFlag(n, IFF_LOOPBACK, isLoopback);
 }
 
 ECode NetworkInterface::IsPointToPoint(
@@ -461,7 +532,7 @@ ECode NetworkInterface::IsPointToPointImpl(
     /* [in] */ const String& n,
     /* [out] */ Boolean* isPointToPoint)
 {
-    return E_NOT_IMPLEMENTED;
+    return HasFlag(n, IFF_POINTOPOINT, isPointToPoint); // Unix API typo!
 }
 
 ECode NetworkInterface::SupportsMulticast(
@@ -481,7 +552,7 @@ ECode NetworkInterface::SupportsMulticastImpl(
     /* [in] */ const String& n,
     /* [out] */ Boolean* multicast)
 {
-    return E_NOT_IMPLEMENTED;
+    return HasFlag(n, IFF_MULTICAST, multicast);
 }
 
 ECode NetworkInterface::GetHardwareAddress(
@@ -501,7 +572,28 @@ ECode NetworkInterface::GetHardwareAddressImpl(
     /* [in] */ const String& n,
     /* [out, callee] */ ArrayOf<Byte>** address)
 {
-    return E_NOT_IMPLEMENTED;
+    ifreq ifr;
+    Boolean result;
+    FAIL_RETURN(DoIoctl(n, SIOCGIFHWADDR, ifr, &result))
+    if (!result) {
+        *address = NULL;
+        return NOERROR;
+    }
+    Byte bytes[IFHWADDRLEN];
+    Boolean isEmpty = TRUE;
+    for (Int32 i = 0; i < IFHWADDRLEN; ++i) {
+        bytes[i] = ifr.ifr_hwaddr.sa_data[i];
+        if (bytes[i] != 0) {
+            isEmpty = FALSE;
+        }
+    }
+    if (isEmpty) {
+        *address = NULL;
+        return NOERROR;
+    }
+    *address = ArrayOf<Byte>::Alloc(IFHWADDRLEN);
+    memcpy((*address)->GetPayload(), bytes, IFHWADDRLEN);
+    return NOERROR;
 }
 
 ECode NetworkInterface::GetMTU(
@@ -521,7 +613,11 @@ ECode NetworkInterface::GetMTUImpl(
     /* [in] */ const String& n,
     /* [out] */ Int32* mtu)
 {
-    return E_NOT_IMPLEMENTED;
+    ifreq ifr;
+    Boolean result;
+    FAIL_RETURN(DoIoctl(n, SIOCGIFMTU, ifr, &result)); // May throw.
+    *mtu = ifr.ifr_mtu;
+    return NOERROR;
 }
 
 ECode NetworkInterface::IsVirtual(

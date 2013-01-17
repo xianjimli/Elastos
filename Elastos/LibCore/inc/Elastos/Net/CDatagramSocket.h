@@ -42,7 +42,7 @@ public:
         /* [out] */ Int32* timeout);
 
     CARAPI Receive(
-        /* [in, out] */ IDatagramPacket* pack);
+        /* [in] */ IDatagramPacket* pack);
 
     CARAPI Send(
         /* [in] */ IDatagramPacket* pack);
@@ -109,6 +109,9 @@ public:
 
     CARAPI constructor(
         /* [in] */ ISocketAddress* localAddr);
+
+private:
+    CARAPI_(Mutex*) GetSelfLock();
 };
 
 #endif //__CDATAGRAMSOCKET_H__

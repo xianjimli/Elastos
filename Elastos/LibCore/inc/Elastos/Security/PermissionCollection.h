@@ -26,29 +26,59 @@ using namespace Elastos;
 class PermissionCollection
 {
 public:
-    ~PermissionCollection();
-
+    /**
+     * Adds the specified {@code Permission} to this collection.
+     *
+     * @param permission
+     *            the {@code Permission} to add.
+     * @throws IllegalStateException
+     *             if the collection is read only.
+     */
     virtual CARAPI Add(
         /* [in] */ IPermission* permission) = 0;
 
+    /**
+     * Returns an enumeration over all {@link Permission}s encapsulated by this
+     * {@code PermissionCollection}.
+     *
+     * @return an enumeration over all {@link Permission}s.
+     */
     virtual CARAPI GetElements(
         /* [out] */ IObjectContainer** permissions) = 0;
 
+    /**
+     * Indicates whether the specified permission is implied by this {@code
+     * PermissionCollection}.
+     *
+     * @param permission
+     *            the permission to check.
+     * @return {@code true} if the given permission is implied by the
+     *         permissions in this collection, {@code false} otherwise.
+     */
     virtual CARAPI Implies(
         /* [in] */ IPermission* permission,
         /* [out] */ Boolean* isImplied) = 0;
 
+    /**
+     * Indicates whether new permissions can be added to this {@code
+     * PermissionCollection}.
+     *
+     * @return {@code true} if the receiver is read only, {@code false} if new
+     *         elements can still be added to this {@code PermissionCollection}.
+     */
     virtual CARAPI IsReadOnly(
         /* [out] */ Boolean* isReadOnly);
 
+    /**
+     * Marks this {@code PermissionCollection} as read only, so that no new
+     * permissions can be added to it.
+     */
     virtual CARAPI SetReadOnly();
 
 protected:
     PermissionCollection();
 
 private:
-    static const Int64 sSerialVersionUID;
-
     Boolean mReadOnly;
 };
 

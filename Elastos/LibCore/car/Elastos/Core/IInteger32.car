@@ -1,0 +1,8 @@
+
+module
+{
+    interface IInteger32 {
+        GetValue(
+            [out] Int32* value);
+    }
+}

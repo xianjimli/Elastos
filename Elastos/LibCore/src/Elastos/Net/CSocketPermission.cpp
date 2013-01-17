@@ -1,32 +1,53 @@
 
 #include "cmdef.h"
 #include "CSocketPermission.h"
-#include <StringBuffer.h>
 #include "SocketPermissionCollection.h"
-#include "InetAddress.cpp"
+#include "InetAddress.h"
+#include <StringBuffer.h>
+
 
 const Int32 CSocketPermission::SP_CONNECT = 1;
 const Int32 CSocketPermission::SP_LISTEN = 2;
 const Int32 CSocketPermission::SP_ACCEPT = 4;
 const Int32 CSocketPermission::SP_RESOLVE = 8;
 
-const Int64 CSocketPermission::mSerialVersionUID = -7204263841984476862L;
+const Int64 CSocketPermission::sSerialVersionUID = -7204263841984476862ll;
 
-const String CSocketPermission::mActionNames[] = { String(""), String("connect"), String("listen"), String(""),
-            String("accept"), String(""), String(""), String(""), String("resolve") };
+const CString CSocketPermission::sActionNames[] = {
+        "", "connect", "listen", "", "accept", "", "", "", "resolve" };
 
 const Int32 CSocketPermission::HIGHEST_PORT = 65535;
 const Int32 CSocketPermission::LOWEST_PORT = 0;
 
 CSocketPermission::CSocketPermission()
-    : Permission()
-    , mResolved(FALSE)
+    : mResolved(FALSE)
     , mPortMin(LOWEST_PORT)
     , mPortMax(HIGHEST_PORT)
     , mActionsMask(SP_RESOLVE)
     , mIsPartialWild(FALSE)
     , mIsWild(FALSE)
 {}
+
+ECode CSocketPermission::constructor(
+    /* [in] */ const String& host,
+    /* [in] */ const String& action)
+{
+    FAIL_RETURN(Permission::Init(host.IsEmpty() ? String("localhost") : host));
+    GetHostString(host, &mHostName);
+    if (action.IsNull()) {
+//        throw new NullPointerException();
+        return E_NULL_POINTER_EXCEPTION;
+    }
+    if (action.IsEmpty()) {
+//        throw new IllegalArgumentException();
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+
+    SetActions(action);
+    mActions = ToCanonicalActionString(action);
+    // Use host since we are only checking for port presence
+    return ParsePort(host, mHostName);
+}
 
 ECode CSocketPermission::GetActions(
     /* [out] */ String* actions)
@@ -46,11 +67,11 @@ ECode CSocketPermission::SetActions(
     Boolean parsing = TRUE;
     String action;
     StringBuffer sb;
-    Int32 pos = 0, length = actions.GetLength();
+    Int32 pos = 0, length = actions.GetCharCount();
     while (parsing) {
         Char32 c;
-//        sb.setLength(0);
-        while (pos < length && (c = actions[pos++]) != ',') {
+        sb.SetLength(0);
+        while (pos < length && (c = actions.GetChar(pos++)) != ',') {
             sb += c;
         }
         if (pos == length) {
@@ -58,21 +79,21 @@ ECode CSocketPermission::SetActions(
         }
         action = ((String)sb).Trim();
         action.ToLowerCase();
-        if (action.Equals(mActionNames[SP_CONNECT])) {
+        if (action.Equals(sActionNames[SP_CONNECT])) {
             mActionsMask |= SP_CONNECT;
         }
-        else if (action.Equals(mActionNames[SP_LISTEN])) {
+        else if (action.Equals(sActionNames[SP_LISTEN])) {
             mActionsMask |= SP_LISTEN;
         }
-        else if (action.Equals(mActionNames[SP_ACCEPT])) {
+        else if (action.Equals(sActionNames[SP_ACCEPT])) {
             mActionsMask |= SP_ACCEPT;
         }
-        else if (action.Equals(mActionNames[SP_RESOLVE])) {
+        else if (action.Equals(sActionNames[SP_RESOLVE])) {
             // do nothing
         }
         else {
-            return E_ILLEGAL_ARGUMENT_EXCEPTION;
 //            throw new IllegalArgumentException("Invalid action: " + action);
+            return E_ILLEGAL_ARGUMENT_EXCEPTION;
         }
     }
 
@@ -83,12 +104,11 @@ ECode CSocketPermission::Implies(
     /* [in] */ IPermission* permission,
     /* [out] */ Boolean* isImplied)
 {
-    AutoPtr<ISocketPermission> sp;
+    VALIDATE_NOT_NULL(isImplied);
+
+    ISocketPermission* sp = NULL;
 //    try {
-    if (permission != NULL && permission->Probe(EIID_ISocketPermission) != NULL) {
-        sp = (ISocketPermission*)permission->Probe(EIID_ISocketPermission);
-    }
-    else {
+    if (permission == NULL || (sp = ISocketPermission::Probe(permission)) == NULL) {
         *isImplied = FALSE;
         return NOERROR;
     }
@@ -98,8 +118,8 @@ ECode CSocketPermission::Implies(
 
     // tests if the action list of p is the subset of the one of the
     // receiver
-    AutoPtr<CSocketPermission> spCls = (CSocketPermission*)sp.Get();
-    if ((mActionsMask & spCls->mActionsMask) != spCls->mActionsMask) {
+    CSocketPermission* spObj = (CSocketPermission*)sp;
+    if ((mActionsMask & spObj->mActionsMask) != spObj->mActionsMask) {
         *isImplied = FALSE;
         return NOERROR;
     }
@@ -107,9 +127,11 @@ ECode CSocketPermission::Implies(
     // only check the port range if the action string of the current object
     // is not "resolve"
     String actions;
-    permission->GetActions(&actions);
-    if (!actions.Equals(String("resolve"))) {
-        if ((spCls->mPortMin < mPortMin) || (spCls->mPortMax > mPortMax)) {
+    //Todo:
+    assert(0);
+    // permission->GetActions(&actions);
+    if (!actions.Equals("resolve")) {
+        if ((spObj->mPortMin < mPortMin) || (spObj->mPortMax > mPortMax)) {
             *isImplied = FALSE;
             return NOERROR;
         }
@@ -117,7 +139,6 @@ ECode CSocketPermission::Implies(
 
     // Verify the host is valid
     *isImplied = CheckHost(sp);
-
     return NOERROR;
 }
 
@@ -126,10 +147,8 @@ ECode CSocketPermission::NewPermissionCollection(
 {
     VALIDATE_NOT_NULL(permissionCollection);
 
-    SocketPermissionCollection* socketPermissionCollection= new SocketPermissionCollection();
-    *permissionCollection =
-            (IPermissionCollection*)socketPermissionCollection->Probe(EIID_IPermissionCollection);
-
+    *permissionCollection = new SocketPermissionCollection();
+    (*permissionCollection)->AddRef();
     return NOERROR;
 }
 
@@ -147,7 +166,7 @@ ECode CSocketPermission::ParsePort(
         return NOERROR;
     }
 
-    if (String(":*").Equals(port)) {
+    if (CString(":*").Equals(port)) {
         // The port range should be 0-65535
         mPortMin = 0;
         mPortMax = 65535;
@@ -168,19 +187,19 @@ ECode CSocketPermission::ParsePort(
         strPortMin = port.Substring(0, negIdx);
         strPortMax = port.Substring(negIdx + 1);
         if (emptyString.Equals(strPortMin)) {
-            strPortMin = String("0");
+            strPortMin = "0";
         }
         if (emptyString.Equals(strPortMax)) {
-            strPortMax = String("65535");
+            strPortMax = "65535";
         }
     }
 //    try {
     mPortMin = strPortMin.ToInt32();//Integer.valueOf(strPortMin).intValue();
     mPortMax = strPortMax.ToInt32();//Integer.valueOf(strPortMax).intValue();
 
-    if (mPortMin > mPortMax) {
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    if (mPortMin == -1 || mPortMax == -1 ||  mPortMin > mPortMax) {
 //        throw new IllegalArgumentException("MinPort is greater than MaxPort: " + port);
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
     // } catch (NumberFormatException e) {
     //     throw new IllegalArgumentException("Invalid port number: " + port);
@@ -193,24 +212,24 @@ String CSocketPermission::ToCanonicalActionString(
     /* [in] */ const String& action)
 {
     if (action.IsNull() || action.IsEmpty() || mActionsMask == SP_RESOLVE) {
-        return mActionNames[SP_RESOLVE]; // If none specified return the
+        return String(sActionNames[SP_RESOLVE]); // If none specified return the
     }
     // implied action resolve
     StringBuffer sb;
     if ((mActionsMask & SP_CONNECT) == SP_CONNECT) {
         sb += ',';
-        sb += mActionNames[SP_CONNECT];
+        sb += sActionNames[SP_CONNECT];
     }
     if ((mActionsMask & SP_LISTEN) == SP_LISTEN) {
         sb += ',';
-        sb += mActionNames[SP_LISTEN];
+        sb += sActionNames[SP_LISTEN];
     }
     if ((mActionsMask & SP_ACCEPT) == SP_ACCEPT) {
         sb += ',';
-        sb += mActionNames[SP_ACCEPT];
+        sb += sActionNames[SP_ACCEPT];
     }
     sb += ',';
-    sb += mActionNames[SP_RESOLVE];// Resolve is always implied
+    sb += sActionNames[SP_RESOLVE];// Resolve is always implied
     // Don't copy the first ','.
     return mActions = sb.Substring(1, sb.GetLength());
 }
@@ -233,16 +252,16 @@ ECode CSocketPermission::GetHostString(
     /* [in] */ const String& host,
     /* [out] */ String* hostName)
 {
-    VALIDATE_NOT_NULL(hostName);
+    assert(hostName != NULL);
 
     String hostTemp = host;
     hostTemp = hostTemp.Trim();
     Int32 idx = -1;
-    idx = host.IndexOf(':');
-    mIsPartialWild = (hostTemp.GetLength() > 0 && hostTemp[0] == '*');
+    idx = hostTemp.IndexOf(':');
+    mIsPartialWild = (hostTemp.GetCharCount() > 0 && hostTemp.GetChar(0) == '*');
     if (mIsPartialWild) {
         mResolved = TRUE;
-        mIsWild = (hostTemp.GetLength() == 1);
+        mIsWild = (hostTemp.GetCharCount() == 1);
         if (mIsWild) {
             *hostName = hostTemp;
             return NOERROR;
@@ -267,12 +286,12 @@ ECode CSocketPermission::GetHostString(
         return NOERROR;
     }
         // maybe ipv6
-    Boolean isFirstBracket = (hostTemp[0] == '[');
+    Boolean isFirstBracket = (hostTemp.GetChar(0) == '[');
     if (!isFirstBracket) {
         // No bracket, should be in full form
         Int32 colonNum = 0;
-        for (Int32 i = 0; (UInt32)i < hostTemp.GetLength(); ++i) {
-            if (hostTemp[i] == ':') {
+        for (Int32 i = 0; (UInt32)i < hostTemp.GetCharCount(); ++i) {
+            if (hostTemp.GetChar(i) == ':') {
                 colonNum++;
             }
         }
@@ -285,15 +304,15 @@ ECode CSocketPermission::GetHostString(
             hostName->ToLowerCase();
             return NOERROR;
         }
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
 //        throw new IllegalArgumentException("Invalid port number: " + host);
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
     // forward bracket found
     Int32 bbracketIdx = hostTemp.IndexOf(']');
     if (-1 == bbracketIdx) {
         // no back bracket found, wrong
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
 //        throw new IllegalArgumentException("Invalid port number: " + host);
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
     hostTemp = hostTemp.Substring(0, bbracketIdx + 1);
     if (IsValidIP6Address(hostTemp)) {
@@ -301,8 +320,8 @@ ECode CSocketPermission::GetHostString(
         hostName->ToLowerCase();
         return NOERROR;
     }
-    return E_ILLEGAL_ARGUMENT_EXCEPTION;
 //    throw new IllegalArgumentException("Invalid port number: " + host);
+    return E_ILLEGAL_ARGUMENT_EXCEPTION;
 }
 
 Boolean CSocketPermission::IsValidHexChar(
@@ -315,11 +334,11 @@ Boolean CSocketPermission::IsValidIP4Word(
     /* [in] */ const String& word)
 {
     Char32 c;
-    if (word.GetLength() < 1 || word.GetLength() > 3) {
+    if (word.GetCharCount() < 1 || word.GetCharCount() > 3) {
         return FALSE;
     }
-    for (Int32 i = 0; (UInt32)i < word.GetLength(); i++) {
-        c = word[i];
+    for (Int32 i = 0; (UInt32)i < word.GetCharCount(); i++) {
+        c = word.GetChar(i);
         if (!(c >= '0' && c <= '9')) {
             return FALSE;
         }
@@ -347,7 +366,7 @@ Boolean CSocketPermission::IsIP6AddressInFullForm(
 Boolean CSocketPermission::IsValidIP6Address(
     /* [in] */ const String& ipAddress)
 {
-    Int32 length = ipAddress.GetLength();
+    Int32 length = ipAddress.GetCharCount();
     Boolean doubleColon = FALSE;
     Int32 numberOfColons = 0;
     Int32 numberOfPeriods = 0;
@@ -363,7 +382,7 @@ Boolean CSocketPermission::IsValidIP6Address(
 
     for (Int32 i = 0; i < length; i++) {
         prevChar = c;
-        c = ipAddress[i];
+        c = ipAddress.GetChar(i);
         switch (c) {
 
             // case for an open bracket [x:x:x:...x]
@@ -371,7 +390,7 @@ Boolean CSocketPermission::IsValidIP6Address(
             if (i != 0) {
                 return FALSE; // must be first character
             }
-            if (ipAddress[length - 1] != ']') {
+            if (ipAddress.GetChar(length - 1) != ']') {
                 return FALSE; // must have a close ]
             }
             offset = 1;
@@ -385,7 +404,7 @@ Boolean CSocketPermission::IsValidIP6Address(
             if (i != length - 1) {
                 return FALSE; // must be last character
             }
-            if (ipAddress[0] != '[') {
+            if (ipAddress.GetChar(0) != '[') {
                 return FALSE; // must have a open [
             }
             break;
@@ -404,8 +423,8 @@ Boolean CSocketPermission::IsValidIP6Address(
             }
             // a special case ::1:2:3:4:5:d.d.d.d allows 7 colons with an
             // IPv4 ending, otherwise 7 :'s is bad
-            if (numberOfColons == 7 && ipAddress[0 + offset] != ':'
-                    && ipAddress[1 + offset] != ':') {
+            if (numberOfColons == 7 && ipAddress.GetChar(0 + offset) != ':'
+                    && ipAddress.GetChar(1 + offset) != ':') {
                 return FALSE;
             }
             word = "";
@@ -440,7 +459,10 @@ Boolean CSocketPermission::IsValidIP6Address(
                 return FALSE;
             }
 //            try {
-            ipAddress.Substring(i + 1).ToInt32();//Integer.parseInt(ipAddress.substring(i + 1));
+            //Integer.parseInt(ipAddress.substring(i + 1));
+            if (ipAddress.Substring(i + 1).ToInt32() == -1) {
+                return FALSE;
+            }
 //            } catch (NumberFormatException e) {
                 // right now we just support an integer after the % so if
                 // this is not
@@ -451,14 +473,14 @@ Boolean CSocketPermission::IsValidIP6Address(
 
         default:
             if (numberOfPercent == 0) {
-                if (word.GetLength() > 3) {
+                if (word.GetCharCount() > 3) {
                     return FALSE;
                 }
                 if (!IsValidHexChar(c)) {
                     return FALSE;
                 }
             }
-            word += (const char*)c;
+            word.AppendFormat("%c", c);
         }
     }
 
@@ -479,8 +501,8 @@ Boolean CSocketPermission::IsValidIP6Address(
         // a : or a .
         // If we did not end in :: then this is invalid
         if (numberOfPercent == 0) {
-            if (word == "" && ipAddress[length - 1 - offset] == ':'
-                    && ipAddress[length - 2 - offset] != ':') {
+            if (word == "" && ipAddress.GetChar(length - 1 - offset) == ':'
+                    && ipAddress.GetChar(length - 2 - offset) != ':') {
                 return FALSE;
             }
         }
@@ -492,41 +514,18 @@ Boolean CSocketPermission::IsValidIP6Address(
 Boolean CSocketPermission::CheckHost(
     /* [in] */ ISocketPermission* sp)
 {
-    AutoPtr<CSocketPermission> spCls = (CSocketPermission*)sp->Probe(EIID_CSocketPermission);
+    CSocketPermission* spObj = (CSocketPermission*)sp;
     if (mIsPartialWild) {
         if (mIsWild) {
             return TRUE; // Match on any host
         }
-        Int32 length = mHostName.GetLength() - 1;
-        String s = spCls->mHostName.Substring(spCls->mHostName.GetLength() - length);
+        Int32 length = mHostName.GetCharCount() - 1;
+        String s = spObj->mHostName.Substring(spObj->mHostName.GetCharCount() - length);
         return s.Equals(mHostName.Substring(1, length));
     }
     // The ipString may not be the same, some hosts resolve to
     // multiple ips
-    return (!GetIPString(FALSE).IsNull() && mIpString.Equals(spCls->GetIPString(FALSE)))
-            || mHostName.Equals(spCls->mHostName);
-}
-
-ECode CSocketPermission::constructor(
-    /* [in] */ const String& host,
-    /* [in] */ const String& action)
-{
-    Permission::Init(host.IsEmpty() ? String("localhost") : host);
-    GetHostString(host, &mHostName);
-    if (action.IsNull()) {
-        return E_NULL_POINTER_EXCEPTION;
-//        throw new NullPointerException();
-    }
-    if (action.IsEmpty()) {
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
-//        throw new IllegalArgumentException();
-    }
-
-    SetActions(action);
-    mActions = ToCanonicalActionString(action);
-    // Use host since we are only checking for port presence
-    ParsePort(host, mHostName);
-
-    return NOERROR;
+    return (!GetIPString(FALSE).IsNull() && mIpString.Equals(spObj->GetIPString(FALSE)))
+            || mHostName.Equals(spObj->mHostName);
 }
 

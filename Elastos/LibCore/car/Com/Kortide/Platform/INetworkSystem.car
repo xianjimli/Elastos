@@ -14,7 +14,7 @@ module
     interface INetworkSystem {
         Accept(
             [in] Int32 serverFd,
-            [out] ArrayOf<Byte> ipAddress,
+            [out, callee] ArrayOf<Byte>* ipAddress,
             [out] Int32* port,
             [out] Int32* localPort,
             [out] Int32* clientFd);
@@ -87,7 +87,7 @@ module
             [in] Boolean peek,
             [in] Boolean connected,
             [out] ArrayOf<Byte> data,
-            [out] ArrayOf<Byte> ipAddress,
+            [out, callee] ArrayOf<Byte>* ipAddress,
             [out] Int32* port,
             [out] Int32* number);
 
@@ -98,7 +98,7 @@ module
             [in] Int32 length,
             [in] Boolean peek,
             [in] Boolean connected,
-            [out] ArrayOf<Byte> ipAddress,
+            [out, callee] ArrayOf<Byte>* ipAddress,
             [out] Int32* port,
             [out] Int32* number);
 
@@ -131,7 +131,7 @@ module
 
         GetSocketLocalAddress(
             [in] Int32 fd,
-            [out] ArrayOf<Byte> ipAddress);
+            [out, callee] ArrayOf<Byte>* ipAddress);
 
         /**
          * Select the given file descriptors for read and write operations.

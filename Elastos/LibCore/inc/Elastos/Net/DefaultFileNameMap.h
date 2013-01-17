@@ -9,7 +9,9 @@
 /**
  * Implements {@link FileNameMap} in terms of {@link libcore.net.MimeUtils}.
  */
-class DefaultFileNameMap: public ElRefBase, public IFileNameMap
+class DefaultFileNameMap
+    : public ElRefBase
+    , public IFileNameMap
 {
 public:
     CARAPI_(PInterface) Probe(

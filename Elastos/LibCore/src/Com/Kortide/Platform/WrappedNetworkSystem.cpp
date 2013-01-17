@@ -50,11 +50,16 @@ ECode WrappedNetworkSystem::GetInterfaceID(
 
 ECode WrappedNetworkSystem::Accept(
     /* [in] */ Int32 serverFd,
-    /* [out] */ ArrayOf<Byte>* ipAddress,
+    /* [out, callee] */ ArrayOf<Byte>** ipAddress,
     /* [out] */ Int32* port,
     /* [out] */ Int32* localPort,
     /* [out] */ Int32* clientFd)
 {
+    VALIDATE_NOT_NULL(ipAddress);
+    VALIDATE_NOT_NULL(port);
+    VALIDATE_NOT_NULL(localPort);
+    VALIDATE_NOT_NULL(clientFd);
+
     AutoPtr<IPolicy> policy;
     mBlockGuard->GetThreadPolicy((IPolicy**)&policy);
     FAIL_RETURN(policy->OnNetwork());
@@ -76,6 +81,8 @@ ECode WrappedNetworkSystem::Read(
     /* [out] */ ArrayOf<Byte>* data,
     /* [out] */ Int32* number)
 {
+    VALIDATE_NOT_NULL(number);
+
     AutoPtr<IPolicy> policy;
     mBlockGuard->GetThreadPolicy((IPolicy**)&policy);
     FAIL_RETURN(policy->OnNetwork());
@@ -88,6 +95,8 @@ ECode WrappedNetworkSystem::ReadDirect(
     /* [in] */ Int32 count,
     /* [out] */ Int32* number)
 {
+    VALIDATE_NOT_NULL(number);
+
     AutoPtr<IPolicy> policy;
     mBlockGuard->GetThreadPolicy((IPolicy**)&policy);
     FAIL_RETURN(policy->OnNetwork());
@@ -101,6 +110,8 @@ ECode WrappedNetworkSystem::Write(
     /* [in] */ Int32 count,
     /* [out] */ Int32* number)
 {
+    VALIDATE_NOT_NULL(number);
+
     AutoPtr<IPolicy> policy;
     mBlockGuard->GetThreadPolicy((IPolicy**)&policy);
     FAIL_RETURN(policy->OnNetwork());
@@ -114,6 +125,8 @@ ECode WrappedNetworkSystem::WriteDirect(
     /* [in] */ Int32 count,
     /* [out] */ Int32* number)
 {
+    VALIDATE_NOT_NULL(number);
+
     AutoPtr<IPolicy> policy;
     mBlockGuard->GetThreadPolicy((IPolicy**)&policy);
     FAIL_RETURN(policy->OnNetwork());
@@ -126,6 +139,8 @@ ECode WrappedNetworkSystem::ConnectNonBlocking(
     /* [in] */ Int32 port,
     /* [out] */ Boolean* succeeded)
 {
+    VALIDATE_NOT_NULL(succeeded);
+
     AutoPtr<IPolicy> policy;
     mBlockGuard->GetThreadPolicy((IPolicy**)&policy);
     FAIL_RETURN(policy->OnNetwork());
@@ -137,6 +152,8 @@ ECode WrappedNetworkSystem::IsConnected(
     /* [in] */ Int32 timeout,
     /* [out] */ Boolean* isConnected)
 {
+    VALIDATE_NOT_NULL(isConnected);
+
     AutoPtr<IPolicy> policy;
     mBlockGuard->GetThreadPolicy((IPolicy**)&policy);
     FAIL_RETURN(policy->OnNetwork());
@@ -152,6 +169,8 @@ ECode WrappedNetworkSystem::Send(
     /* [in] */ ArrayOf<Byte>* ipAddress,
     /* [out] */ Int32* number)
 {
+    VALIDATE_NOT_NULL(number);
+
     // Note: no BlockGuard violation.  We permit datagrams
     // without hostname lookups.  (short, bounded amount of time)
     return mNetworkSystem->Send(fd, data, offset, length, port, ipAddress, number);
@@ -166,6 +185,8 @@ ECode WrappedNetworkSystem::SendDirect(
     /* [in] */ ArrayOf<Byte>* ipAddress,
     /* [out] */ Int32* number)
 {
+    VALIDATE_NOT_NULL(number);
+
     // Note: no BlockGuard violation.  We permit datagrams
     // without hostname lookups.  (short, bounded amount of time)
     return mNetworkSystem->SendDirect(fd, address, offset, length, port, ipAddress, number);
@@ -178,10 +199,14 @@ ECode WrappedNetworkSystem::Recv(
     /* [in] */ Boolean peek,
     /* [in] */ Boolean connected,
     /* [out] */ ArrayOf<Byte>* data,
-    /* [out] */ ArrayOf<Byte>* ipAddress,
+    /* [out, callee] */ ArrayOf<Byte>** ipAddress,
     /* [out] */ Int32* port,
     /* [out] */ Int32* number)
 {
+    VALIDATE_NOT_NULL(ipAddress);
+    VALIDATE_NOT_NULL(port);
+    VALIDATE_NOT_NULL(number);
+
     AutoPtr<IPolicy> policy;
     mBlockGuard->GetThreadPolicy((IPolicy**)&policy);
     FAIL_RETURN(policy->OnNetwork());
@@ -195,10 +220,14 @@ ECode WrappedNetworkSystem::RecvDirect(
     /* [in] */ Int32 length,
     /* [in] */ Boolean peek,
     /* [in] */ Boolean connected,
-    /* [out] */ ArrayOf<Byte>* ipAddress,
+    /* [out, callee] */ ArrayOf<Byte>** ipAddress,
     /* [out] */ Int32* port,
     /* [out] */ Int32* number)
 {
+    VALIDATE_NOT_NULL(ipAddress);
+    VALIDATE_NOT_NULL(port);
+    VALIDATE_NOT_NULL(number);
+
     AutoPtr<IPolicy> policy;
     mBlockGuard->GetThreadPolicy((IPolicy**)&policy);
     FAIL_RETURN(policy->OnNetwork());
@@ -215,6 +244,8 @@ ECode WrappedNetworkSystem::Socket(
     /* [in] */ Boolean stream,
     /* [out] */ Int32* fd)
 {
+    VALIDATE_NOT_NULL(fd);
+
     return mNetworkSystem->Socket(stream, fd);
 }
 
@@ -258,8 +289,10 @@ ECode WrappedNetworkSystem::Connect(
 
 ECode WrappedNetworkSystem::GetSocketLocalAddress(
     /* [in] */ Int32 fd,
-    /* [out] */ ArrayOf<Byte>* ipAddress)
+    /* [out, callee] */ ArrayOf<Byte>** ipAddress)
 {
+    VALIDATE_NOT_NULL(ipAddress);
+
     return mNetworkSystem->GetSocketLocalAddress(fd, ipAddress);
 }
 
@@ -272,6 +305,8 @@ ECode WrappedNetworkSystem::Select(
     /* [out] */ ArrayOf<Int32>* flags,
     /* [out] */ Boolean* succeeded)
 {
+    VALIDATE_NOT_NULL(succeeded);
+
     AutoPtr<IPolicy> policy;
     mBlockGuard->GetThreadPolicy((IPolicy**)&policy);
     FAIL_RETURN(policy->OnNetwork());
@@ -282,6 +317,8 @@ ECode WrappedNetworkSystem::GetSocketLocalPort(
     /* [in] */ Int32 fd,
     /* [out] */ Int32* localPort)
 {
+    VALIDATE_NOT_NULL(localPort);
+
     return mNetworkSystem->GetSocketLocalPort(fd, localPort);
 }
 
@@ -290,6 +327,8 @@ ECode WrappedNetworkSystem::GetSocketOption(
     /* [in] */ Int32 option,
     /* [out] */ Int32* optVal)
 {
+    VALIDATE_NOT_NULL(optVal);
+
     return mNetworkSystem->GetSocketOption(fd, option, optVal);
 }
 

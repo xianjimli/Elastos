@@ -12,7 +12,7 @@
 //==========================================================================
 // Elastos Framework error codes (Family: 0x20)
 #define E_REMOTE_EXCEPTION              FRAMEWORK_ERROR(0x01)
-#define E_SECURITY_EXCEPTION            FRAMEWORK_ERROR(0x02)
+//#define E_SECURITY_EXCEPTION            FRAMEWORK_ERROR(0x02)
 #define E_LAUNCH_EXCEPTION              FRAMEWORK_ERROR(0x03)
 //#define E_RUNTIME_EXCEPTION             FRAMEWORK_ERROR(0x05)
 //#define E_ILLEGAL_STATE_EXCEPTION       FRAMEWORK_ERROR(0x06)

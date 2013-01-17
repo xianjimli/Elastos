@@ -11,50 +11,53 @@ using namespace Elastos::Core;
 const CString CCookieManager::VERSION_ZERO_HEADER = "Set-cookie";
 const CString CCookieManager::VERSION_ONE_HEADER = "Set-cookie2";
 
-ECode CCookieManager::SetCookiePolicy(
-	/* [in] */ ICookiePolicy* cookiePolicy)
-{
-	if (cookiePolicy != NULL) {
-        mPolicy = cookiePolicy;
-    }
 
-    return NOERROR;
+ECode CCookieManager::constructor()
+{
+    return constructor(NULL, NULL);
 }
 
-ECode CCookieManager::GetCookieStore(
-	/* [out] */ ICookieStore** cookieStore)
+ECode CCookieManager::constructor(
+    /* [in] */ ICookieStore* store,
+    /* [in] */ ICookiePolicy* cookiePolicy)
 {
-	VALIDATE_NOT_NULL(cookieStore);
-    *cookieStore = mStore;
+    mStore = store == NULL ? new CookieStoreImpl() : store;
+
+    if (cookiePolicy == NULL) {
+        mPolicy = CCookiePolicyHelper::GetCookiePolicy(
+                CookiePolicyKind_ACCEPT_ORIGINAL_SERVER);
+    }
+    else mPolicy = cookiePolicy;
+
     return NOERROR;
 }
 
 ECode CCookieManager::Get(
-	/* [in] */ IURI* uri,
+    /* [in] */ IURI* uri,
     /* [in] */ IObjectStringMap* requestHeaders,
     /* [out] */ IObjectStringMap** cookiesMap)
 {
-	if (uri == NULL || requestHeaders == NULL) {
-		return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    VALIDATE_NOT_NULL(cookiesMap);
+
+    if (uri == NULL || requestHeaders == NULL) {
 //        throw new IllegalArgumentException();
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
-    List<AutoPtr<IHttpCookie> > result;
+    List< AutoPtr<IHttpCookie> > result;
     AutoPtr<IObjectContainer> cookies;
     mStore->Get(uri, (IObjectContainer**)&cookies);
-    if (cookies != NULL) {
-        AutoPtr<IObjectEnumerator> enumerator;
-        cookies->GetObjectEnumerator((IObjectEnumerator**)&enumerator);
-        Boolean hasNext;
-        while(enumerator->MoveNext(&hasNext), hasNext) {
-            AutoPtr<IHttpCookie> cookie;
-            enumerator->Current((IInterface**)&cookie);
-            if (CHttpCookie::PathMatches(cookie, uri)
-	                && CHttpCookie::SecureMatches(cookie, uri)
-	                && CHttpCookie::PortMatches(cookie, uri)) {
-            	//begin from this
-	            result.PushBack(cookie);
-	        }
+    assert(cookies != NULL);
+    AutoPtr<IObjectEnumerator> enumerator;
+    cookies->GetObjectEnumerator((IObjectEnumerator**)&enumerator);
+    Boolean hasNext;
+    while(enumerator->MoveNext(&hasNext), hasNext) {
+        AutoPtr<IHttpCookie> cookie;
+        enumerator->Current((IInterface**)&cookie);
+        if (CHttpCookie::PathMatches(cookie, uri)
+                && CHttpCookie::SecureMatches(cookie, uri)
+                && CHttpCookie::PortMatches(cookie, uri)) {
+            result.PushBack(cookie);
         }
     }
 
@@ -62,12 +65,14 @@ ECode CCookieManager::Get(
 }
 
 ECode CCookieManager::CookiesToHeaders(
-	/* [in] */ List<AutoPtr<IHttpCookie> > cookies,
-	/* [out] */ IObjectStringMap** cookiesMap)
+    /* [in] */ List<AutoPtr<IHttpCookie> >& cookies,
+    /* [out] */ IObjectStringMap** cookiesMap)
 {
-	if (cookies.Begin() == cookies.End()) {
-		return NOERROR;
+    assert(cookiesMap != NULL);
+
+    if (cookies.IsEmpty()) {
 //        return Collections.emptyMap();
+        return CObjectStringMap::New(cookiesMap);
     }
 
     StringBuffer result;
@@ -76,61 +81,58 @@ ECode CCookieManager::CookiesToHeaders(
     Int32 minVersion = 1;
     List<AutoPtr<IHttpCookie> >::Iterator it;
     for(it = cookies.Begin(); it != cookies.End(); ++it) {
-    	AutoPtr<IHttpCookie> cookie = *it;
+        IHttpCookie* cookie = *it;
         Int32 version;
         cookie->GetVersion(&version);
         minVersion = Math::Min(minVersion, version);
     }
-
-    AutoPtr<IObjectContainer> stringWrappers;
-    ASSERT_SUCCEEDED(CObjectContainer::New((IObjectContainer**)&stringWrappers));
     if (minVersion == 1) {
-//        result += "$Version=\"1\"; ";
-        AutoPtr<ICharSequence> sw;
-        CStringWrapper::New(String("$Version=\"1\"; "), (ICharSequence**)&sw);
-        stringWrappers->Add(sw);
+        result += "$Version=\"1\"; ";
     }
 
-    for(it = cookies.Begin(); it != cookies.End(); ++it) {
-    	AutoPtr<CHttpCookie> cookieCls = (CHttpCookie*)(*it).Get();
-    	AutoPtr<ICharSequence> sw;
-        ASSERT_SUCCEEDED(CStringWrapper::New(cookieCls->ToString(), (ICharSequence**)&sw));
-        stringWrappers->Add(sw);
+    it = cookies.Begin();
+    CHttpCookie* cookieObj = (CHttpCookie*)(*it).Get();
+    result += cookieObj->ToString();
+    for(++it; it != cookies.End(); ++it) {
+        cookieObj = (CHttpCookie*)(*it).Get();
+        result += "; ";
+        result += cookieObj->ToString();
     }
 
-    ASSERT_SUCCEEDED(CObjectStringMap::New(cookiesMap));
-    (*cookiesMap)->Put(String("Cookie"), stringWrappers);
+    AutoPtr<IObjectContainer> container;
+    FAIL_RETURN(CObjectContainer::New((IObjectContainer**)&container));
+    AutoPtr<ICharSequence> cookiesStr;
+    FAIL_RETURN(CStringWrapper::New(String(result), (ICharSequence**)&cookiesStr));
+    container->Add(cookiesStr);
+
+    FAIL_RETURN(CObjectStringMap::New(cookiesMap));
+    (*cookiesMap)->Put(String("Cookie"), container);
 
     return NOERROR;
-
-    // for (int i = 1; i < cookies.size(); i++) {
-    //     result.append("; ").append(cookies.get(i).toString());
-    // }
-
-    // return Collections.singletonMap("Cookie", Collections.singletonList(result.toString()));
 }
 
 ECode CCookieManager::Put(
-	/* [in] */ IURI* uri,
-	/* [in] */ IObjectStringMap* responseHeaders)
+    /* [in] */ IURI* uri,
+    /* [in] */ IObjectStringMap* responseHeaders)
 {
-	if (uri == NULL || responseHeaders == NULL) {
-		return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    if (uri == NULL || responseHeaders == NULL) {
 //        throw new IllegalArgumentException();
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
     //parse and construct cookies according to the map
-    List<AutoPtr<IHttpCookie> > cookies = ParseCookie(responseHeaders);
-    List<AutoPtr<IHttpCookie> >::Iterator it;
-    for (it = cookies.Begin(); it != cookies.End(); ++it) {
-    	AutoPtr<IHttpCookie> cookie = *it;
+    //ToDo: when to delete cookies?
+    List< AutoPtr<IHttpCookie> >* cookies = ParseCookie(responseHeaders);
+    List< AutoPtr<IHttpCookie> >::Iterator it;
+    for (it = cookies->Begin(); it != cookies->End(); ++it) {
+        IHttpCookie* cookie = *it;
 
-    	// if the cookie doesn't have a domain, set one. The policy will do validation.
-    	String domain;
-    	cookie->GetDomainAttr(&domain);
+        // if the cookie doesn't have a domain, set one. The policy will do validation.
+        String domain;
+        cookie->GetDomainAttr(&domain);
         if (domain.IsNull()) {
-        	String host;
-        	uri->GetHost(&host);
+            String host;
+            uri->GetHost(&host);
             cookie->SetDomain(host);
         }
 
@@ -138,8 +140,8 @@ ECode CCookieManager::Put(
         String path;
         cookie->GetPath(&path);
         if (path.IsNull()) {
-        	String uriPath;
-        	uri->GetPath(&uriPath);
+            String uriPath;
+            uri->GetPath(&uriPath);
             cookie->SetPath(PathToCookiePath(uriPath));
         }
         else if (!CHttpCookie::PathMatches(cookie, uri)) {
@@ -149,7 +151,7 @@ ECode CCookieManager::Put(
         // if the cookie has the placeholder port list "", set the port. Otherwise validate it.
         String portList;
         cookie->GetPortList(&portList);
-        if (String("").Equals(portList)) {
+        if (portList.Equals("")) {
             Int32 port;
             uri->GetEffectivePort(&port);
             cookie->SetPortList(String::FromInt32(port));
@@ -166,7 +168,7 @@ ECode CCookieManager::Put(
         }
     }
 
-	return NOERROR;
+    return NOERROR;
 }
 
 String CCookieManager::PathToCookiePath(
@@ -179,100 +181,69 @@ String CCookieManager::PathToCookiePath(
     return path.Substring(0, lastSlash + 1);
 }
 
-List<AutoPtr<IHttpCookie> > CCookieManager::ParseCookie(
-	/* [in] */ IObjectStringMap* responseHeaders)
+List<AutoPtr<IHttpCookie> >* CCookieManager::ParseCookie(
+    /* [in] */ IObjectStringMap* responseHeaders)
 {
-	List<AutoPtr<IHttpCookie> > cookies;
-	ArrayOf<String>* keys;
-	AutoPtr<IObjectContainer> container;
-	responseHeaders->GetAllItems(&keys, (IObjectContainer**)&container);
+    List< AutoPtr<IHttpCookie> >* cookies = new List< AutoPtr<IHttpCookie> >;
+    ArrayOf<String>* keys;
+    AutoPtr<IObjectContainer> values;
+    responseHeaders->GetAllItems(&keys, (IObjectContainer**)&values);
 
-	AutoPtr<IObjectEnumerator> enumerator;
-    container->GetObjectEnumerator((IObjectEnumerator**)&enumerator);
+    AutoPtr<IObjectEnumerator> enumerator;
+    values->GetObjectEnumerator((IObjectEnumerator**)&enumerator);
     Boolean hasNext;
-    enumerator->MoveNext(&hasNext);
-	for(Int32 i = 0; i < keys->GetLength(); ++i) {
-		String key = (*keys)[i];
-		AutoPtr<IObjectContainer> stringWrappers;
-		if (hasNext) {
-            enumerator->Current((IInterface**)&stringWrappers);
-            enumerator->MoveNext(&hasNext);
-		}
-		else {
-			break;
-		}
+    for(Int32 i = 0; i < keys->GetLength(); ++i) {
+        String key = (*keys)[i];
+        enumerator->MoveNext(&hasNext);
+        assert(hasNext);
+        // Only "Set-cookie" and "Set-cookie2" pair will be parsed
+        if (!key.IsNull() && (key.EqualsIgnoreCase(VERSION_ZERO_HEADER)
+                || key.EqualsIgnoreCase(VERSION_ONE_HEADER))) {
+            AutoPtr<IObjectContainer> container;
+            enumerator->Current((IInterface**)&container);
+            AutoPtr<IObjectEnumerator> conEnumrator;
+            container->GetObjectEnumerator((IObjectEnumerator**)&conEnumrator);
+            Boolean hasNext;
+            while(conEnumrator->MoveNext(&hasNext), hasNext) {
+                // try{
+                AutoPtr<ICharSequence> wrapper;
+                conEnumrator->Current((IInterface**)&wrapper);
+                String cookiesStr;
+                wrapper->ToString(&cookiesStr);
+                //Todo: CHttpCookie::Parse maybe should return IObjectContainer
+                List< AutoPtr<IHttpCookie> > httpCookieList;
+                CHttpCookie::Parse(cookiesStr, httpCookieList);
+                List< AutoPtr<IHttpCookie> >::Iterator it;
+                for (it = httpCookieList.Begin(); it != httpCookieList.End(); ++it) {
+                    cookies->PushBack(*it);
+                }
+                // } catch (IllegalArgumentException ignored) {
+                //     // this string is invalid, jump to the next one.
+                // }
+            }
+        }
+    }
 
-		if (!key.IsNull() && (key.EqualsIgnoreCase(String(VERSION_ZERO_HEADER)))
-				|| key.EqualsIgnoreCase(String(VERSION_ONE_HEADER))) {
-			AutoPtr<IObjectEnumerator> swenum;
-		    stringWrappers->GetObjectEnumerator((IObjectEnumerator**)&swenum);
-		    Boolean hasNext;
-		    while(enumerator->MoveNext(&hasNext), hasNext) {
-		    	AutoPtr<ICharSequence> stringWrapper;
-		    	swenum->Current((IInterface**)&stringWrapper);
-		    	String cookieStr;
-		    	stringWrapper->ToString(&cookieStr);
-		    	List<AutoPtr<IHttpCookie> > httpCookieList;
-		    	CHttpCookie::Parse(cookieStr, &httpCookieList);
-		    	List<AutoPtr<IHttpCookie> >::Iterator it;
-		    	for (it = httpCookieList.Begin(); it != httpCookieList.End(); ++it) {
-		    		cookies.PushBack(*it);
-		    	}
-		    }
-		}
-	}
+    FREE_ARRAY_OF_STRING(keys);
 
-    // for (Map.Entry<String, List<String>> entry : responseHeaders.entrySet()) {
-    //     String key = entry.getKey();
-    //     // Only "Set-cookie" and "Set-cookie2" pair will be parsed
-    //     if (key != null && (key.equalsIgnoreCase(VERSION_ZERO_HEADER)
-    //             || key.equalsIgnoreCase(VERSION_ONE_HEADER))) {
-    //         // parse list elements one by one
-    //         for (String cookieStr : entry.getValue()) {
-    //             try {
-    //                 for (HttpCookie cookie : HttpCookie.parse(cookieStr)) {
-    //                     cookies.add(cookie);
-    //                 }
-    //             } catch (IllegalArgumentException ignored) {
-    //                 // this string is invalid, jump to the next one.
-    //             }
-    //         }
-    //     }
-    // }
     return cookies;
 }
 
-ECode CCookieManager::constructor()
-{
-	return constructor(NULL, NULL);
-}
-
-ECode CCookieManager::constructor(
-    /* [in] */ ICookieStore* store,
+ECode CCookieManager::SetCookiePolicy(
     /* [in] */ ICookiePolicy* cookiePolicy)
 {
-	if (store == NULL) {
-		CookieStoreImpl* storeImpl = new CookieStoreImpl();
-		if (storeImpl != NULL && storeImpl->Probe(EIID_ICookieStore) != NULL) {
-			mStore = (ICookieStore*)storeImpl->Probe(EIID_ICookieStore);
-		}
-		else {
-			mStore = NULL;
-		}
-	}
-	else {
-		mStore = store;
-	}
+    if (cookiePolicy != NULL) {
+        mPolicy = cookiePolicy;
+    }
 
-	if (cookiePolicy == NULL) {
-		AutoPtr<ICookiePolicyHelper> helper;
-	    CCookiePolicyHelper::AcquireSingleton((ICookiePolicyHelper**)&helper);
-	    helper->GetCookiePolicy(
-	    		String(CookiePolicy_ACCEPT_ORIGINAL_SERVER), (ICookiePolicy**)&mPolicy);
-	}
-	else {
-		mPolicy = cookiePolicy;
-	}
+    return NOERROR;
+}
 
-	return NOERROR;
+ECode CCookieManager::GetCookieStore(
+    /* [out] */ ICookieStore** cookieStore)
+{
+    VALIDATE_NOT_NULL(cookieStore);
+    *cookieStore = mStore;
+    if (*cookieStore != NULL) (*cookieStore)->AddRef();
+    return NOERROR;
 }

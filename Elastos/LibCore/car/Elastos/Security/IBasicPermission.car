@@ -1,7 +1,7 @@
 
 module
 {
-	interface IPermission;
+    interface IPermission;
 
     interface IBasicPermission extends IPermission {
     }

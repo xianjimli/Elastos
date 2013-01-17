@@ -3,7 +3,6 @@
 #include "SocketPermissionCollection.h"
 #include <Com.Kortide.Platform.h>
 
-const Int64 SocketPermissionCollection::sSerialVersionUID = -2787186408602843674L;
 
 SocketPermissionCollection::SocketPermissionCollection()
 	: PermissionCollection()
@@ -43,12 +42,11 @@ ECode SocketPermissionCollection::Add(
     /* [in] */ IPermission* permission)
 {
 	Boolean isReadOnly;
-    IsReadOnly(&isReadOnly);
-    if (isReadOnly) {
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    if (IsReadOnly(&isReadOnly), isReadOnly) {
 //        throw new IllegalStateException();
+        return E_ILLEGAL_STATE_EXCEPTION;
     }
-    if (permission->Probe(EIID_ISocketPermission) == NULL) {
+    if (ISocketPermission::Probe(permission) == NULL) {
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
     mPermissions.PushBack(permission);
@@ -61,14 +59,12 @@ ECode SocketPermissionCollection::GetElements(
 {
 	VALIDATE_NOT_NULL(permissions);
 
-    AutoPtr<IObjectContainer> container;
-    ASSERT_SUCCEEDED(CObjectContainer::New((IObjectContainer**)&container));
+    FAIL_RETURN(CObjectContainer::New(permissions));
     Vector<AutoPtr<IPermission> >::Iterator it;
     for (it = mPermissions.Begin(); it != mPermissions.End(); ++it) {
-        container->Add(*it);
+        (*permissions)->Add(*it);
     }
 
-    *permissions = container;
     return NOERROR;
 }
 
@@ -78,7 +74,7 @@ ECode SocketPermissionCollection::Implies(
 {
 	VALIDATE_NOT_NULL(isImplied);
 
-    if (permission->Probe(EIID_ISocketPermission) == NULL) {
+    if (ISocketPermission::Probe(permission) == NULL) {
         *isImplied = FALSE;
         return NOERROR;
     }
@@ -122,6 +118,8 @@ ECode SocketPermissionCollection::Implies(
 ECode SocketPermissionCollection::IsReadOnly(
     /* [out] */ Boolean* isReadOnly)
 {
+    VALIDATE_NOT_NULL(isReadOnly);
+
 	return PermissionCollection::IsReadOnly(isReadOnly);
 }
 

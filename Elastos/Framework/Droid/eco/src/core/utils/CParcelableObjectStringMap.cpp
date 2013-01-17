@@ -1,17 +1,17 @@
 
-#include "utils/CObjectStringMap.h"
+#include "utils/CParcelableObjectStringMap.h"
 #include "utils/CParcelableObjectContainer.h"
 
-CObjectStringMap::CObjectStringMap() :
+CParcelableObjectStringMap::CParcelableObjectStringMap() :
     mMap(11)
 {}
 
-CObjectStringMap::~CObjectStringMap()
+CParcelableObjectStringMap::~CParcelableObjectStringMap()
 {
     mMap.Clear();
 }
 
-ECode CObjectStringMap::Get(
+ECode CParcelableObjectStringMap::Get(
     /* [in] */ const String& key,
     /* [out] */ IInterface** value)
 {
@@ -28,7 +28,7 @@ ECode CObjectStringMap::Get(
     return NOERROR;
 }
 
-ECode CObjectStringMap::Put(
+ECode CParcelableObjectStringMap::Put(
     /* [in] */ const String& key,
     /* [in] */ IInterface* value)
 {
@@ -38,7 +38,7 @@ ECode CObjectStringMap::Put(
     return NOERROR;
 }
 
-ECode CObjectStringMap::GetSize(
+ECode CParcelableObjectStringMap::GetSize(
     /* [out] */ Int32* size)
 {
     VALIDATE_NOT_NULL(size);
@@ -47,7 +47,7 @@ ECode CObjectStringMap::GetSize(
     return NOERROR;
 }
 
-ECode CObjectStringMap::GetAllItems(
+ECode CParcelableObjectStringMap::GetAllItems(
     /* [out] */ ArrayOf<String>** keys,
     /* [out] */ IObjectContainer** values)
 {
@@ -71,13 +71,13 @@ ECode CObjectStringMap::GetAllItems(
     return NOERROR;
 }
 
-ECode CObjectStringMap::ReadFromParcel(
+ECode CParcelableObjectStringMap::ReadFromParcel(
     /* [in] */ IParcel *source)
 {
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CObjectStringMap::WriteToParcel(
+ECode CParcelableObjectStringMap::WriteToParcel(
     /* [in] */ IParcel *dest)
 {
     return E_NOT_IMPLEMENTED;

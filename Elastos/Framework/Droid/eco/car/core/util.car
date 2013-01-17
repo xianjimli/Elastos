@@ -3,7 +3,6 @@ module
 {
     merge("util/Describable.car");
     merge("util/Comparable.car");
-    merge("util/ObjectStringMap.car");
     merge("util/AttributeSet.car");
     merge("util/DisplayMetrics.car");
     merge("util/TypedValue.car");
@@ -17,7 +16,7 @@ module
         interface IParcelable;
     }
 
-    class CObjectStringMap {
+    class CParcelableObjectStringMap {
         interface IObjectStringMap;
         interface IParcelable;
     }

@@ -188,6 +188,7 @@ module
      */
     const HTTP_VERSION = 505;
 
+
     interface IHttpURLConnection extends IURLConnection {
         /**
          * Closes the connection to the HTTP server.

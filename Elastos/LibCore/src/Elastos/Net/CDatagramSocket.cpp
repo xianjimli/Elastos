@@ -2,6 +2,7 @@
 #include "cmdef.h"
 #include "CDatagramSocket.h"
 
+
 ECode CDatagramSocket::Close()
 {
     return DatagramSocket::Close();
@@ -22,47 +23,54 @@ ECode CDatagramSocket::Disconnect()
 ECode CDatagramSocket::GetInetAddress(
     /* [out] */ IInetAddress** address)
 {
+    VALIDATE_NOT_NULL(address);
     return DatagramSocket::GetInetAddress(address);
 }
 
 ECode CDatagramSocket::GetLocalAddress(
     /* [out] */ IInetAddress** address)
 {
+    VALIDATE_NOT_NULL(address);
     return DatagramSocket::GetLocalAddress(address);
 }
 
 ECode CDatagramSocket::GetLocalPort(
     /* [out] */ Int32* port)
 {
+    VALIDATE_NOT_NULL(port);
     return DatagramSocket::GetLocalPort(port);
 }
 
 ECode CDatagramSocket::GetPort(
     /* [out] */ Int32* port)
 {
+    VALIDATE_NOT_NULL(port);
     return DatagramSocket::GetPort(port);
-}
-
-ECode CDatagramSocket::GetReceiveBufferSize(
-    /* [out] */ Int32* size)
-{
-    return DatagramSocket::GetReceiveBufferSize(size);
 }
 
 ECode CDatagramSocket::GetSendBufferSize(
     /* [out] */ Int32* size)
 {
+    VALIDATE_NOT_NULL(size);
     return DatagramSocket::GetSendBufferSize(size);
+}
+
+ECode CDatagramSocket::GetReceiveBufferSize(
+    /* [out] */ Int32* size)
+{
+    VALIDATE_NOT_NULL(size);
+    return DatagramSocket::GetReceiveBufferSize(size);
 }
 
 ECode CDatagramSocket::GetSoTimeout(
     /* [out] */ Int32* timeout)
 {
+    VALIDATE_NOT_NULL(timeout);
     return DatagramSocket::GetSoTimeout(timeout);
 }
 
 ECode CDatagramSocket::Receive(
-    /* [in, out] */ IDatagramPacket* pack)
+    /* [in] */ IDatagramPacket* pack)
 {
     return DatagramSocket::Receive(pack);
 }
@@ -106,24 +114,28 @@ ECode CDatagramSocket::ConnectEx(
 ECode CDatagramSocket::IsBound(
     /* [out] */ Boolean* isBound)
 {
+    VALIDATE_NOT_NULL(isBound);
     return DatagramSocket::IsBound(isBound);
 }
 
 ECode CDatagramSocket::IsConnected(
     /* [out] */ Boolean* isConnected)
 {
+    VALIDATE_NOT_NULL(isConnected);
     return DatagramSocket::IsConnected(isConnected);
 }
 
 ECode CDatagramSocket::GetRemoteSocketAddress(
     /* [out] */ ISocketAddress** address)
 {
+    VALIDATE_NOT_NULL(address);
     return DatagramSocket::GetRemoteSocketAddress(address);
 }
 
 ECode CDatagramSocket::GetLocalSocketAddress(
     /* [out] */ ISocketAddress** address)
 {
+    VALIDATE_NOT_NULL(address);
     return DatagramSocket::GetLocalSocketAddress(address);
 }
 
@@ -136,6 +148,7 @@ ECode CDatagramSocket::SetReuseAddress(
 ECode CDatagramSocket::GetReuseAddress(
     /* [out] */ Boolean* reuse)
 {
+    VALIDATE_NOT_NULL(reuse);
     return DatagramSocket::GetReuseAddress(reuse);
 }
 
@@ -148,6 +161,7 @@ ECode CDatagramSocket::SetBroadcast(
 ECode CDatagramSocket::GetBroadcast(
     /* [out] */ Boolean* broadcast)
 {
+    VALIDATE_NOT_NULL(broadcast);
     return DatagramSocket::GetBroadcast(broadcast);
 }
 
@@ -160,18 +174,21 @@ ECode CDatagramSocket::SetTrafficClass(
 ECode CDatagramSocket::GetTrafficClass(
     /* [out] */ Int32* value)
 {
+    VALIDATE_NOT_NULL(value);
     return DatagramSocket::GetTrafficClass(value);
 }
 
 ECode CDatagramSocket::IsClosed(
     /* [out] */ Boolean* isClosed)
 {
+    VALIDATE_NOT_NULL(isClosed);
     return DatagramSocket::IsClosed(isClosed);
 }
 
 ECode CDatagramSocket::GetChannel(
     /* [out] */ IDatagramChannel** channel)
 {
+    VALIDATE_NOT_NULL(channel);
     return DatagramSocket::GetChannel(channel);
 }
 
@@ -197,4 +214,9 @@ ECode CDatagramSocket::constructor(
     /* [in] */ ISocketAddress* localAddr)
 {
     return DatagramSocket::Init(localAddr);
+}
+
+Mutex* CDatagramSocket::GetSelfLock()
+{
+    return &_m_syncLock;
 }

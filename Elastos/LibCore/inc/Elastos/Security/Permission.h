@@ -2,7 +2,7 @@
 #ifndef __PERMISSION_H__
 #define __PERMISSION_H__
 
-#ifdef _ELASTOSSECURITY_
+#ifdef ELASTOS_SECURITY_ECO
 #include "Elastos.Security_server.h"
 #else
 #include "Elastos.Security.h"
@@ -19,8 +19,6 @@ using namespace Elastos;
 class Permission
 {
 public:
-    ~Permission();
-
     /**
      * Returns a comma separated string identifying the actions associated with
      * this permission. The returned actions are in canonical form. For example:
@@ -116,12 +114,10 @@ protected:
      * @param name
      *            the name of the permission.
      */
-    CARAPI_(void) Init(
+    CARAPI Init(
         /* [in] */ const String& name);
 
 private:
-    static const Int64 sSerialVersionUID;
-
     String mName;
 };
 

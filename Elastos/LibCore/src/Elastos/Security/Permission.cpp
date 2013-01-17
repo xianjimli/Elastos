@@ -1,21 +1,17 @@
 
 #include "cmdef.h"
 #include "Permission.h"
-#include <Com.Kortide.Platform.h>
-
-const Int64 Permission::sSerialVersionUID = -5636570222231596674LL;
+#include <Elastos.Core.h>
 
 Permission::Permission()
 {}
 
-void Permission::Init(
+ECode Permission::Init(
     /* [in] */ const String& name)
 {
 	mName = name;
+    return NOERROR;
 }
-
-Permission::~Permission()
-{}
 
 ECode Permission::GetName(
     /* [out] */ String* name)
@@ -40,6 +36,6 @@ ECode Permission::CheckGuard(
 //    if (sm != null) {
 //        sm.checkPermission(this);
 //    }
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 

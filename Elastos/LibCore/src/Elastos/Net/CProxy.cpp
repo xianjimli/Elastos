@@ -2,40 +2,15 @@
 #include "cmdef.h"
 #include "CProxy.h"
 
-AutoPtr<IProxy> CProxy::InitProxy()
+
+AutoPtr<IProxy> StaticInitProxy()
 {
-    CProxy* proxy = new CProxy();
-    proxy->Init();
-    AutoPtr<IProxy> ip = (IProxy*)proxy->Probe(EIID_IProxy);
-    ip->AddRef();
-    return ip;
+    AutoPtr<CProxy> proxy;
+    CProxy::NewByFriend((CProxy**)&proxy);
+    return (IProxy*)proxy.Get();
 }
 
-AutoPtr<IProxy> CProxy::NO_PROXY = CProxy::InitProxy();
-
-void CProxy::Init()
-{
-    mType = ProxyType_DIRECT;
-    mAddress = NULL;
-}
-
-ECode CProxy::GetType(
-    /* [out] */ ProxyType* type)
-{
-    VALIDATE_NOT_NULL(type);
-    *type = mType;
-
-    return NOERROR;
-}
-
-ECode CProxy::GetAddress(
-    /* [out] */ ISocketAddress** address)
-{
-    VALIDATE_NOT_NULL(address);
-    *address = mAddress;
-
-    return NOERROR;
-}
+AutoPtr<IProxy> CProxy::NO_PROXY = StaticInitProxy();
 
 ECode CProxy::constructor(
     /* [in] */ ProxyType type,
@@ -46,11 +21,34 @@ ECode CProxy::constructor(
      * SocketAddress must NOT be null.
      */
     if (type == ProxyType_DIRECT || sa == NULL) {
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
 //        throw new IllegalArgumentException("Illegal Proxy.Type or SocketAddress argument");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
     mType = type;
     mAddress = sa;
+    return NOERROR;
+}
 
+ECode CProxy::constructor()
+{
+    mType = ProxyType_DIRECT;
+    mAddress = NULL;
+    return NOERROR;
+}
+
+ECode CProxy::GetType(
+    /* [out] */ ProxyType* type)
+{
+    VALIDATE_NOT_NULL(type);
+    *type = mType;
+    return NOERROR;
+}
+
+ECode CProxy::GetAddress(
+    /* [out] */ ISocketAddress** address)
+{
+    VALIDATE_NOT_NULL(address);
+    *address = mAddress;
+    if (*address != NULL) (*address)->AddRef();
     return NOERROR;
 }

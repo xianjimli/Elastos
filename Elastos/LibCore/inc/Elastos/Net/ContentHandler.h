@@ -22,7 +22,7 @@ public:
 
     virtual CARAPI GetContentEx(
         /* [in] */ IURLConnection* uConn,
-        /* [in] */ const ArrayOf<IInterface*>& types,
+        /* [in] */ const ArrayOf<InterfaceID>& types,
         /* [out] */ IInterface** obj);
 };
 

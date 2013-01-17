@@ -4,17 +4,42 @@
 
 #include "cmdef.h"
 #include "Elastos.Net_server.h"
-#include <Com.Kortide.Platform.h>
 #include <elastos/AutoPtr.h>
 #include <elastos/ElRefBase.h>
 #include <elastos/List.h>
-#include <elastos/Map.h>
+#include <elastos/HashMap.h>
 #include <elastos/Mutex.h>
 
 using namespace Elastos;
 using namespace Elastos::Core::Threading;
 
-class CookieStoreImpl : public ElRefBase, ICookieStore
+_ELASTOS_NAMESPACE_BEGIN
+
+template<> struct Hash<AutoPtr<IURI> >
+{
+    size_t operator()(AutoPtr<IURI> name) const
+    {
+        return (size_t)name.Get();
+    }
+};
+
+template<> struct EqualTo<AutoPtr<IURI> >
+{
+    Boolean operator()(const AutoPtr<IURI>& x,
+                       const AutoPtr<IURI>& y) const
+    {
+        return x == y;
+    }
+};
+
+_ELASTOS_NAMESPACE_END
+
+/**
+ * An in-memory cookie store.
+ */
+class CookieStoreImpl
+    : public ElRefBase
+    , public ICookieStore
 {
 public:
     ~CookieStoreImpl();
@@ -58,9 +83,9 @@ private:
 
 private:
     /** this map may have null keys! */
-    Map<AutoPtr<IURI>, List<AutoPtr<IHttpCookie> >*> mMap;
+    HashMap<AutoPtr<IURI>, List<AutoPtr<IHttpCookie> >*> mMap;
 
-    Mutex* mLock;
+    Mutex mLock;
 };
 
 #endif //__COOKIESTOREIMPL_H__

@@ -1,0 +1,8 @@
+
+module
+{
+    interface IBoolean {
+        GetValue(
+            [out] Boolean* value);
+    }
+}

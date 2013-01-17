@@ -1,10 +1,10 @@
 
-#ifndef __CIDN_H__
-#define __CIDN_H__
+#ifndef __CIDNHELPER_H__
+#define __CIDNHELPER_H__
 
-#include "_CIDN.h"
+#include "_CIDNHelper.h"
 
-CarClass(CIDN)
+CarClass(CIDNHelper)
 {
 public:
     /**
@@ -25,9 +25,10 @@ public:
      * @return the ACE name
      * @throws IllegalArgumentException if {@code input} does not conform to RFC 3490
      */
-    static CARAPI_(String) ToASCII(
+    CARAPI ToASCIIEx(
         /* [in] */ const String& input,
-        /* [in] */ Int32 flags);
+        /* [in] */ Int32 flags,
+        /* [out] */ String* result);
 
     /**
      * Equivalent to {@code toASCII(input, 0)}.
@@ -36,8 +37,9 @@ public:
      * @return the ACE name
      * @throws IllegalArgumentException if {@code input} does not conform to RFC 3490
      */
-    static CARAPI_(String) ToASCIIEx(
-        /* [in] */ const String& input);
+    CARAPI ToASCII(
+        /* [in] */ const String& input,
+        /* [out] */ String* result);
 
      /**
      * Translates a string from ASCII Compatible Encoding (ACE) to Unicode
@@ -54,9 +56,10 @@ public:
      * @param flags 0, {@code ALLOW_UNASSIGNED}, {@code USE_STD3_ASCII_RULES},
      *         or {@code ALLOW_UNASSIGNED | USE_STD3_ASCII_RULES}
      */
-    static CARAPI_(String) ToUnicode(
+    CARAPI ToUnicodeEx(
         /* [in] */ const String& input,
-        /* [in] */ Int32 flags);
+        /* [in] */ Int32 flags,
+        /* [out] */ String* result);
 
     /**
      * Equivalent to {@code toUnicode(input, 0)}.
@@ -64,11 +67,9 @@ public:
      * @param input the ACE name
      * @return the Unicode name
      */
-    static CARAPI_(String) ToUnicodeEx(
-        /* [in] */ const String& input);
-
-private:
-    CARAPI_(void) Init();
+    CARAPI ToUnicode(
+        /* [in] */ const String& input,
+        /* [out] */ String* result);
 };
 
-#endif //__CIDN_H__
+#endif //__CIDNHELPER_H__

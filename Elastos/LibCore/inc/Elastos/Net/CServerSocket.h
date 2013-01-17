@@ -8,7 +8,19 @@
 CarClass(CServerSocket) , public ServerSocket
 {
 public:
-    CServerSocket();
+    CARAPI constructor();
+
+    CARAPI constructor(
+        /* [in] */ Int32 aPort);
+
+    CARAPI constructor(
+        /* [in] */ Int32 aport,
+        /* [in] */ Int32 backlog);
+
+    CARAPI constructor(
+        /* [in] */ Int32 aport,
+        /* [in] */ Int32 backlog,
+        /* [in] */ IInetAddress* localAddr);
 
     CARAPI Accept(
         /* [out] */ ISocket** socket);
@@ -62,20 +74,6 @@ public:
         /* [in] */ Int32 connectionTime,
         /* [in] */ Int32 latency,
         /* [in] */ Int32 bandwidth);
-
-    CARAPI constructor();
-
-    CARAPI constructor(
-        /* [in] */ Int32 aPort);
-
-    CARAPI constructor(
-        /* [in] */ Int32 aport,
-        /* [in] */ Int32 backlog);
-
-    CARAPI constructor(
-        /* [in] */ Int32 aport,
-        /* [in] */ Int32 backlog,
-        /* [in] */ IInetAddress* localAddr);
 };
 
 #endif //__CSERVERSOCKET_H__

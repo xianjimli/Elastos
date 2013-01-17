@@ -3,6 +3,10 @@ module
 {
     interface IURLStreamHandler;
 
+    /**
+     * Defines a factory which creates an {@code URLStreamHandler} for a specified
+     * protocol. It is used by the class {@code URL}.
+     */
     interface IURLStreamHandlerFactory {
         /**
          * Creates a new {@code URLStreamHandler} instance for the given {@code
