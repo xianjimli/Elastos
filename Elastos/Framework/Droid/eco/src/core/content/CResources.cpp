@@ -9,6 +9,7 @@
 #include "content/XmlBlock.h"
 #include "utils/CDisplayMetrics.h"
 #include "utils/CTypedValue.h"
+#include "utils/XmlUtils.h"
 #include "view/CDisplay.h"
 #include "graphics/CMovie.h"
 #include "graphics/drawable/CColorDrawable.h"
@@ -633,7 +634,11 @@ ECode CResources::UpdateConfiguration(
             mConfiguration->UpdateFrom(config, &configChanges);
         }
         if (mConfiguration->mLocale == NULL) {
-            mConfiguration->mLocale = Locale::GetDefault();
+            AutoPtr<ILocaleHelper> helper;
+            FAIL_RETURN(CLocaleHelper::AcquireSingleton(
+                (ILocaleHelper**)&helper));
+            FAIL_RETURN(helper->GetDefault(
+                (ILocale**)&mConfiguration->mLocale));
         }
         if (metrics != NULL) {
             mMetrics->SetTo(metrics);
@@ -644,9 +649,14 @@ ECode CResources::UpdateConfiguration(
 
         StringBuffer locale;
         if (mConfiguration->mLocale != NULL) {
-            locale = mConfiguration->mLocale->GetLanguage();
-            if (!mConfiguration->mLocale->GetCountry().IsNull()) {
-                locale += "-" + mConfiguration->mLocale->GetCountry();
+            String str;
+            FAIL_RETURN(mConfiguration->mLocale->GetLanguage(&str));
+            locale = str;
+
+            String country;
+            FAIL_RETURN(mConfiguration->mLocale->GetCountry(&country));
+            if (!country.IsNull()) {
+                locale += "-" + country;
             }
         }
         Int32 width, height;
@@ -851,71 +861,107 @@ ECode CResources::ParseBundleExtras(
     /* [in] */ IXmlResourceParser* parser,
     /* [in, out] */ IBundle* outBundle)
 {
-//	    int outerDepth = parser.getDepth();
-//	    int type;
-//	    while ((type=parser.next()) != XmlPullParser.END_DOCUMENT
-//	           && (type != XmlPullParser.END_TAG || parser.getDepth() > outerDepth)) {
-//	        if (type == XmlPullParser.END_TAG || type == XmlPullParser.TEXT) {
-//	            continue;
-//	        }
-//
-//	        String nodeName = parser.getName();
-//	        if (nodeName.equals("extra")) {
-//	            parseBundleExtra("extra", parser, outBundle);
-//	            XmlUtils.skipCurrentTag(parser);
-//
-//	        } else {
-//	            XmlUtils.skipCurrentTag(parser);
-//	        }
-//	    }
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(outBundle);
+
+    Int32 outerDepth;
+    FAIL_RETURN(parser->GetDepth(&outerDepth));
+
+    Int32 type;
+    Int32 depth;
+    while ((parser->Next(&type), type != IXmlPullParser_END_DOCUMENT)
+           && (type != IXmlPullParser_END_TAG || (parser->GetDepth(&depth), depth > outerDepth))) {
+        if (type == IXmlPullParser_END_TAG || type == IXmlPullParser_TEXT) {
+            continue;
+        }
+
+        String nodeName;
+        FAIL_RETURN(parser->GetName(&nodeName));
+        if (nodeName.Equals("extra")) {
+            FAIL_RETURN(ParseBundleExtra(nodeName, IAttributeSet::Probe(parser), outBundle));
+            XmlUtils::SkipCurrentTag(parser);
+        }
+        else {
+            XmlUtils::SkipCurrentTag(parser);
+        }
+    }
+
+    return NOERROR;
 }
+
+static Int32 R_Styleable_Extra[] = {
+    0x01010003, 0x01010024
+};
 
 ECode CResources::ParseBundleExtra(
     /* [in] */ const String& tagName,
     /* [in] */ IAttributeSet* attrs,
     /* [in, out] */ IBundle* outBundle)
 {
-//	    TypedArray sa = obtainAttributes(attrs,
-//	            com.android.internal.R.styleable.Extra);
-//
-//	    String name = sa.getString(
-//	            com.android.internal.R.styleable.Extra_name);
-//	    if (name == null) {
-//	        sa.recycle();
-//	        throw new XmlPullParserException("<" + tagName
-//	                + "> requires an android:name attribute at "
-//	                + attrs.getPositionDescription());
-//	    }
-//
-//	    TypedValue v = sa.peekValue(
-//	            com.android.internal.R.styleable.Extra_value);
-//	    if (v != null) {
-//	        if (v.type == TypedValue.TYPE_STRING) {
-//	            CharSequence cs = v.coerceToString();
-//	            outBundle.putCharSequence(name, cs);
-//	        } else if (v.type == TypedValue.TYPE_INT_BOOLEAN) {
-//	            outBundle.putBoolean(name, v.data != 0);
-//	        } else if (v.type >= TypedValue.TYPE_FIRST_INT
-//	                && v.type <= TypedValue.TYPE_LAST_INT) {
-//	            outBundle.putInt(name, v.data);
-//	        } else if (v.type == TypedValue.TYPE_FLOAT) {
-//	            outBundle.putFloat(name, v.getFloat());
-//	        } else {
-//	            sa.recycle();
-//	            throw new XmlPullParserException("<" + tagName
-//	                    + "> only supports string, integer, float, color, and boolean at "
-//	                    + attrs.getPositionDescription());
-//	        }
-//	    } else {
-//	        sa.recycle();
-//	        throw new XmlPullParserException("<" + tagName
-//	                + "> requires an android:value or android:resource attribute at "
-//	                + attrs.getPositionDescription());
-//	    }
-//
-//	    sa.recycle();
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(outBundle);
+    assert(attrs != NULL);
+
+    AutoPtr<ITypedArray> sa;
+    FAIL_RETURN(ObtainAttributes(attrs,
+        ArrayOf<Int32>(R_Styleable_Extra, /*com.android.internal.R.styleable.Extra*/
+            sizeof(R_Styleable_Extra) / sizeof(Int32)),
+        (ITypedArray**)&sa));
+
+    String name;
+    FAIL_RETURN(sa->GetString(0 /*com.android.internal.R.styleable.Extra_name*/, &name));
+    if (name.IsNull()) {
+        sa->Recycle();
+//      throw new XmlPullParserException("<" + tagName
+//              + "> requires an android:name attribute at "
+//              + attrs.getPositionDescription());
+        return E_XML_PULL_PARSER_EXCEPTION;
+    }
+
+    AutoPtr<ITypedValue> v;
+    FAIL_RETURN(sa->PeekValue(1 /*com.android.internal.R.styleable.Extra_value*/, (ITypedValue**)&v));
+    if (v != NULL) {
+        Int32 type;
+        FAIL_RETURN(v->GetType(&type));
+        if (type == TypedValue_TYPE_STRING) {
+            AutoPtr<ICharSequence> cs;
+            FAIL_RETURN(v->CoerceToString((ICharSequence**)&cs));
+            // TODO: ALEX need PutCharSequence
+            // outBundle->PutCharSequence(name, cs);
+        }
+        else if (type == TypedValue_TYPE_INT_BOOLEAN) {
+            Int32 data;
+            FAIL_RETURN(v->GetData(&data));
+            outBundle->PutBoolean(name, (data != 0));
+        }
+        else if (type >= TypedValue_TYPE_FIRST_INT
+            && type <= TypedValue_TYPE_LAST_INT) {
+            Int32 data;
+            FAIL_RETURN(v->GetData(&data));
+            outBundle->PutInt32(name, data);
+        }
+        else if (type == TypedValue_TYPE_FLOAT) {
+            Float data;
+            FAIL_RETURN(v->GetFloat(&data));
+	        outBundle->PutFloat(name, data);
+        }
+        else {
+            sa->Recycle();
+//          throw new XmlPullParserException("<" + tagName
+//                  + "> only supports string, integer, float, color, and boolean at "
+//                  + attrs.getPositionDescription());
+            return E_XML_PULL_PARSER_EXCEPTION;
+        }
+    }
+    else {
+        sa->Recycle();
+//	    throw new XmlPullParserException("<" + tagName
+//	            + "> requires an android:value or android:resource attribute at "
+//	            + attrs.getPositionDescription());
+        return E_XML_PULL_PARSER_EXCEPTION;
+    }
+
+    sa->Recycle();
+
+    return NOERROR;
 }
 
 ECode CResources::GetAssets(
@@ -932,19 +978,20 @@ ECode CResources::GetAssets(
 
 ECode CResources::FlushLayoutCache()
 {
-//	    synchronized (mCachedXmlBlockIds) {
-//	        // First see if this block is in our cache.
-//	        final int num = mCachedXmlBlockIds.length;
-//	        for (int i=0; i<num; i++) {
-//	            mCachedXmlBlockIds[i] = -0;
-//	            XmlBlock oldBlock = mCachedXmlBlocks[i];
-//	            if (oldBlock != null) {
-//	                oldBlock.close();
-//	            }
-//	            mCachedXmlBlocks[i] = null;
-//	        }
-//	    }
-    return E_NOT_IMPLEMENTED;
+    Mutex::Autolock lock(mCachedXmlBlockIdsLock);
+
+    // First see if this block is in our cache.
+    Int32 num = 4; /*mCachedXmlBlockIds.length*/
+    for (Int32 i = 0; i < num; i++) {
+        mCachedXmlBlockIds[i] = -0;
+        AutoPtr<XmlBlock> oldBlock = mCachedXmlBlocks[i];
+        if (oldBlock != NULL) {
+            oldBlock->Close();
+        }
+        mCachedXmlBlocks[i] = NULL;
+    }
+
+    return NOERROR;
 }
 
 ECode CResources::StartPreloading()
