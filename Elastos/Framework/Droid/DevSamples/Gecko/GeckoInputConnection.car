@@ -1,0 +1,41 @@
+module {
+    importlib("Elastos.Framework.Core.eco");
+
+    interface IGeckoInputConnection extends IInputConnection
+    {
+
+		OnKeyDel(
+                [out] Boolean* flag);
+
+		NotifyTextChange(
+                [in] ILocalInputMethodManager* imm, 
+                [in] String text,
+                [in] Int32 start,
+                [in] Int32 oldEnd, 
+                [in] Int32 newEnd);
+
+		NotifySelectionChange(
+                [in] ILocalInputMethodManager* imm,
+                [in] Int32 start,
+                [in] Int32 end);
+
+        Reset();
+
+        SetSelectionStart(
+            [in] Int32 selectionStart);
+
+        SetSelectionLength(
+            [in] Int32 selectionLength);
+
+        PutResult(
+            [in] String result);
+    }
+
+    class CGeckoInputConnection {
+
+	    constructor(
+	        [in] IView* targetView);
+
+	    interface IGeckoInputConnection;
+	}
+}

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+      package="org.mozilla.fennec_unofficial"
+      android:installLocation="auto"
+      android:versionCode="2013010918"
+      android:versionName="7.0"
+      android:sharedUserId="org.mozilla.fennec_unofficial.sharedID">
+    <uses-sdk android:minSdkVersion="5"
+              android:targetSdkVersion="5"/>
+
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT"/>
+
+    <uses-feature android:name="android.hardware.location" android:required="false"/>
+    <uses-feature android:name="android.hardware.location.gps" android:required="false"/>
+    <uses-feature android:name="android.hardware.touchscreen"/>
+
+    <application android:label="Fennec"
+		 android:icon="@drawable/icon"
+		 android:debuggable="true">
+
+        <activity android:name="CApp"
+                  android:label="Fennec"
+                  android:configChanges="keyboard|keyboardHidden|mcc|mnc"
+                  android:windowSoftInputMode="stateUnspecified|adjustResize"
+                  android:launchMode="singleTask"
+                  android:theme="@style/GreyTheme">
+            <intent-filter>
+                <action android:name="elastos.intent.action.MAIN" />
+                <category android:name="elastos.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Default browser intents -->
+            <intent-filter>
+                <action android:name="elastos.intent.action.VIEW" />
+                <category android:name="elastos.intent.category.DEFAULT" />
+                <category android:name="elastos.intent.category.BROWSABLE" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:scheme="about" />
+                <data android:scheme="javascript" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="elastos.intent.action.VIEW" />
+                <category android:name="elastos.intent.category.BROWSABLE" />
+                <category android:name="elastos.intent.category.DEFAULT" />
+                <data android:scheme="file" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:mimeType="text/html"/>
+                <data android:mimeType="text/plain"/>
+                <data android:mimeType="application/xhtml+xml"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="elastos.intent.action.WEB_SEARCH" />
+                <category android:name="elastos.intent.category.DEFAULT" />
+                <category android:name="elastos.intent.category.BROWSABLE" />
+                <data android:scheme="" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+            </intent-filter>
+
+            <!-- For debugging -->
+            <intent-filter>
+                <action android:name="org.mozilla.gecko.DEBUG" />
+                <category android:name="elastos.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <receiver android:name="CNotificationHandler">
+            <intent-filter>
+                <action android:name="org.mozilla.gecko.ACTION_ALERT_CLICK" />
+                <action android:name="org.mozilla.gecko.ACTION_ALERT_CLEAR" />
+            </intent-filter>
+        </receiver>
+
+        <activity android:name="CRestarter"
+                  android:process="org.mozilla.fennec_unofficialRestarter"
+                  android:theme="@style/GreyTheme">
+          <intent-filter>
+            <action android:name="org.mozilla.gecko.restart"/>
+          </intent-filter>
+        </activity>
+	<activity android:name="CCrashReporter"
+                  android:label="@string/crash_reporter_title"
+		  android:icon="@drawable/crash_reporter" >
+          <intent-filter>
+            <action android:name="org.mozilla.gecko.reportCrash" />
+          </intent-filter>
+	</activity>
+    </application>
+</manifest>

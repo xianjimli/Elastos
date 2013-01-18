@@ -1,0 +1,35 @@
+
+module
+{
+    importlib("Elastos.Framework.Core.eco");
+    interface IContext;
+    interface IUri;
+
+    interface IAlertNotification extends INotification {
+        IsProgressStyle(
+            [out] Boolean* isProgressStyle);
+
+        Show();
+
+        SetCustomIcon(
+            [in] IUri* aIconUri);
+
+        UpdateProgress(
+            [in] String aAlertText,
+            [in] Int32 aProgress,
+            [in] Int32 aProgressMax);
+    }
+
+    class CAlertNotification {
+        constructor(
+            [in] IContext* context,
+            [in] Int32 aNotificationId,
+            [in] Int32 aIcon,
+            [in] String aTitle,
+            [in] String aText,
+            [in] Int64 when);
+
+        interface IAlertNotification;
+    }
+}
+

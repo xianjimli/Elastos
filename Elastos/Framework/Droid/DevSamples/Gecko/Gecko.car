@@ -1,0 +1,11 @@
+module
+{
+    merge("GeckoInputConnection.car");
+    merge("App.car");
+    merge("Restarter.car");
+    merge("NotificationHandler.car");
+    merge("CrashReporter.car");
+    merge("AlertNotification.car");
+    merge("GeckoSurfaceView.car");
+}
+

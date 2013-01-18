@@ -1,0 +1,10 @@
+
+module
+{
+    importlib("Elastos.Framework.Core.eco");
+
+    class CGeckoConnectivityReceiver {
+        interface IObjectEnumerator;
+    }
+}
+

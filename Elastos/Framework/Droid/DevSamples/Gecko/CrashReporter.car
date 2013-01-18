@@ -1,0 +1,8 @@
+module
+{
+    importlib("Elastos.Framework.Core.eco");
+
+    class CCrashReporter {
+        interface IActivity;
+    }
+}
