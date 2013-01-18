@@ -22,6 +22,7 @@ SOURCES = Elastos.Utility.car
 SOURCES += CObjectEnumerator.cpp
 SOURCES += CObjectContainer.cpp
 SOURCES += CLocale.cpp
+SOURCES += Locale.cpp
 SOURCES += CLocaleHelper.cpp
 SOURCES += CDate.cpp
 SOURCES += CObjectStringMap.cpp
@@ -29,6 +30,13 @@ SOURCES += Grego.cpp
 SOURCES += ICU.cpp
 SOURCES += CICUHelper.cpp
 SOURCES += Util.cpp
+SOURCES += TimeZone.cpp
+SOURCES += CTimeZone.cpp
+SOURCES += CTimeZoneHelper.cpp
+SOURCES += CSimpleTimeZone.cpp
+SOURCES += Calendar.cpp
+SOURCES += CCalendarHelper.cpp
+SOURCES += CGregorianCalendar.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 ifeq "$(XDK_TARGET_PLATFORM)" "win32"
@@ -37,5 +45,6 @@ else
 LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
 LIBRARIES += $(XDK_TARGETS)/Elastos.Core.eco
 LIBRARIES += $(XDK_USER_LIB)/crt0.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Core.lib
 LIBRARIES += -licuuc -licui18n
 endif

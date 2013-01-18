@@ -1,9 +1,9 @@
 
 module
 {
-//    interface ILocale;
-//    interface ITimeZone;
-      interface IDate;
+    interface ILocale;
+    interface ITimeZone;
+    interface IDate;
 
     /**
      * Value of the {@code MONTH} field indicating the first month of the
@@ -880,5 +880,23 @@ module
 //			}
 //			return result.isEmpty() ? null : result;
 //		}
+	}
+
+	interface ICalendarHelper {
+	    GetInstance(
+	        [out] ICalendar** calenar);
+
+        GetInstanceEx(
+            [in] ILocale* locale,
+            [out] ICalendar** calenar);
+
+        GetInstanceEx1(
+            [in] ITimeZone* timezone,
+            [out] ICalendar** calenar);
+
+        GetInstanceEx2(
+            [in] ITimeZone* timezone,
+            [in] ILocale* locale,
+            [out] ICalendar** calenar);
 	}
 }

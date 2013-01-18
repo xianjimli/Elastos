@@ -5,13 +5,22 @@ module
     merge("../../../car/Elastos/Utility/IDate.car");
     merge("../../../car/Elastos/Utility/ILocale.car");
     merge("../../../car/Elastos/Utility/ICalendar.car");
+    merge("../../../car/Elastos/Utility/IGregorianCalendar.car");
     merge("../../../car/Elastos/Utility/IICUHelper.car");
+<<<<<<< HEAD
     merge("../../../car/Elastos/Utility/IObjectStringMap.car");
+=======
+    merge("../../../car/Elastos/Utility/ITimeZone.car");
+    merge("../../../car/Elastos/Utility/ISimpleTimeZone.car");
+
+    //merge("../../../car/Elastos/Utility/IObjectStringMap.car");
+>>>>>>> add locale data, timezone, calendar
 
     class CObjectContainer {
         interface IObjectContainer;
     }
 
+<<<<<<< HEAD
     class CDate {
         constructor();
 
@@ -21,6 +30,8 @@ module
         interface IDate;
     }
 
+=======
+>>>>>>> add locale data, timezone, calendar
     class CLocale {
         constructor();
 
@@ -57,7 +68,83 @@ module
         interface IICUHelper;
     }
 
+<<<<<<< HEAD
     class CObjectStringMap {
         interface IObjectStringMap;
     }
+=======
+    class CDate {
+        constructor();
+
+        constructor(
+            [in] Int32 year,
+            [in] Int32 month,
+            [in] Int32 day);
+
+        constructor(
+            [in] Int32 year,
+            [in] Int32 month,
+            [in] Int32 day,
+            [in] Int32 hour,
+            [in] Int32 minute);
+
+        constructor(
+            [in] Int32 year,
+            [in] Int32 month,
+            [in] Int32 day,
+            [in] Int32 hour,
+            [in] Int32 minute,
+            [in] Int32 second);
+
+        constructor(
+            [in] Int64 milliseconds);
+
+        constructor(
+            [in] String string);
+
+        interface IDate;
+    }
+
+    class CGregorianCalendar {
+        constructor();
+
+        constructor(
+            [in] ILocale* locale);
+
+        constructor(
+            [in] ITimeZone* ITimeZone);
+
+        constructor(
+            [in] ITimeZone* ITimeZone,
+            [in] ILocale* locale);
+
+        constructor(
+            [in] Int64 milliseconds);
+
+        constructor(
+            [in] Boolean ignored);
+
+        interface IGregorianCalendar;
+    }
+
+    singleton class CCalendarHelper {
+        interface ICalendarHelper;
+    }
+
+    singleton class CTimeZoneHelper {
+        interface ITimeZoneHelper;
+    }
+
+    class CSimpleTimeZone {
+        constructor(
+            [in] Int32 offset,
+            [in] String name);
+
+        interface ISimpleTimeZone;
+    }
+
+    //class CObjectStringMap {
+    //    interface IObjectStringMap;
+   // }
+>>>>>>> add locale data, timezone, calendar
 }

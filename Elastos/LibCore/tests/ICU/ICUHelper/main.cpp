@@ -12,13 +12,14 @@ PTestEntry TestEntry[] =
     &CTest::test3,
     &CTest::test4,
     &CTest::test5,
+    &CTest::test6,
 };
 
 int main(int argc, char* argv[])
 {
-    printf("%s %d", __FILE__, __LINE__);
+    printf("%s %d\n", __FILE__, __LINE__);
     int nIndex = atoi(argv[1]);
-    printf("%s %d", __FILE__, __LINE__);
+    printf("%s %d\n", __FILE__, __LINE__);
     CTest testObj;
     (testObj.*TestEntry[nIndex-1])(argc, argv);
    /*

@@ -1,6 +1,15 @@
 
-#include "CLocaleHelper.h"
 #include "Locale.h"
+#include "ICU.h"
+static AutoPtr<ILocale> CreateLocale()
+{
+    AutoPtr<ILocale> l;
+    CLocale::NewByFriend((CLocale**)&l);
+    return l;
+}
+
+AutoPtr<ILocale> Locale::sDefaultLocale = CreateLocale();
+
 /**
  * Returns the system's installed locales. This array always includes {@code
  * Locale.US}, and usually several others. Most locale-sensitive classes
@@ -15,10 +24,10 @@
  * @see java.text.NumberFormat#getAvailableLocales()
  * @see java.util.Calendar#getAvailableLocales()
  */
-ECode CLocaleHelper::GetAvailableLocales(
+ECode Locale::GetAvailableLocales(
     /* [out] */ ArrayOf<ILocale*>** locales)
 {
-    return Locale::GetAvailableLocales(locales);
+    return ICU::GetAvailableLocales(locales);
 }
 
 /**
@@ -28,10 +37,13 @@ ECode CLocaleHelper::GetAvailableLocales(
  * <p>Since the user's locale changes dynamically, avoid caching this value.
  * Instead, use this method to look it up for each use.
  */
-ECode CLocaleHelper::GetDefault(
+ECode Locale::GetDefault(
     /* [out] */ ILocale** defaultLocale)
 {
-    return Locale::GetDefault(defaultLocale);
+    assert(defaultLocale != NULL);
+    *defaultLocale = (ILocale*)sDefaultLocale;
+
+    return NOERROR;
 }
 
 /**
@@ -40,10 +52,10 @@ ECode CLocaleHelper::GetDefault(
  *
  * @return an array of strings.
  */
-ECode CLocaleHelper::GetISOCountries(
+ECode Locale::GetISOCountries(
     /* [out] */ ArrayOf<String>** codes)
 {
-    return Locale::GetISOCountries(codes);
+    return ICU::GetISOCountries(codes);
 }
 
 /**
@@ -52,10 +64,10 @@ ECode CLocaleHelper::GetISOCountries(
  *
  * @return an array of strings.
  */
-ECode CLocaleHelper::GetISOLanguages(
+ECode Locale::GetISOLanguages(
     /* [out] */ ArrayOf<String>** codes)
 {
-    return Locale::GetISOLanguages(codes);
+    return ICU::GetISOLanguages(codes);;
 }
 
 /**
@@ -66,8 +78,19 @@ ECode CLocaleHelper::GetISOLanguages(
  * passing the appropriate locale to each locale-sensitive method that's
  * called.
  */
-ECode CLocaleHelper::SetDefault(
+ECode Locale::SetDefault(
     /* [in] */ ILocale* locale)
 {
-    return Locale::SetDefault(locale);
+//    sDefaultLocale = locale;
+   if (locale == NULL) {
+        return E_INVALID_ARGUMENT;
+    }
+
+//    SecurityManager security = System.getSecurityManager();
+//    if (security != null) {
+//        security.checkPermission(setLocalePermission);
+//    }
+
+    sDefaultLocale = locale;
+    return NOERROR;
 }

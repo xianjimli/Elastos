@@ -3,8 +3,12 @@
 #include "CLocale.h"
 #include "Util.h"
 #include "ICU.h"
+#include "Locale.h"
 #include <Elastos.Core.h>
+#include <stdio.h>
+#include <StringBuffer.h>
 
+using namespace Elastos::Core;
 /**
  * Returns the country code for this locale, or {@code ""} if this locale
  * doesn't correspond to a specific country.
@@ -25,7 +29,9 @@ ECode CLocale::GetDisplayCountry(
     /* [out] */ String* country)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    AutoPtr<ILocale> locale;
+    Locale::GetDefault((ILocale **)&locale);
+    return GetDisplayCountryEx((ILocale*)locale, country);
 }
 
  /**
@@ -38,7 +44,19 @@ ECode CLocale::GetDisplayCountryEx(
     /* [out] */ String* country)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    if (mCountryCode.IsEmpty()) {
+        *country = String("");
+        return NOERROR;
+    }
+
+    String result = ICU::GetDisplayCountry(ToString(), ((CLocale *)locale)->ToString());
+    if (result.IsNull()) { // TODO: do we need to do this, or does ICU do it for us?
+        AutoPtr<ILocale> loc;
+        Locale::GetDefault((ILocale **) &loc);
+        result = ICU::GetDisplayCountry(ToString(), ((CLocale *)(ILocale *)loc)->ToString());
+    }
+    *country = result;
+    return NOERROR;
 }
 
 /**
@@ -48,7 +66,9 @@ ECode CLocale::GetDisplayLanguage(
     /* [out] */ String* language)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    AutoPtr<ILocale> locale;
+    Locale::GetDefault((ILocale **)&locale);
+    return GetDisplayLanguageEx((ILocale*)locale, language);
 }
 
 /**
@@ -60,7 +80,18 @@ ECode CLocale::GetDisplayLanguageEx(
     /* [out] */ String* language)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    if (mLanguageCode.IsEmpty()) {
+        *language = String("");
+        return NOERROR;
+    }
+    String result = ICU::GetDisplayLanguage(ToString(), ((CLocale *)locale)->ToString());
+    if (result.IsNull()) { // TODO: do we need to do this, or does ICU do it for us?
+        AutoPtr<ILocale> loc;
+        Locale::GetDefault((ILocale **) &loc);
+        result = ICU::GetDisplayLanguage(ToString(), ((CLocale *)(ILocale *)loc)->ToString());
+    }
+    *language = result;
+    return NOERROR;
 }
 
 /**
@@ -70,7 +101,9 @@ ECode CLocale::GetDisplayName(
     /* [out] */ String* name)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    AutoPtr<ILocale> locale;
+    Locale::GetDefault((ILocale **)&locale);
+    return GetDisplayNameEx((ILocale*)locale, name);;
 }
 
 /**
@@ -86,7 +119,51 @@ ECode CLocale::GetDisplayNameEx(
     /* [out] */ String* name)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    Int32 count = 0;
+    StringBuffer buffer;
+    if (!mLanguageCode.IsEmpty()) {
+        String displayLanguage;
+        GetDisplayLanguageEx(locale, &displayLanguage);
+        if (displayLanguage.IsEmpty()) {
+            buffer += mLanguageCode;
+        } else {
+            buffer += displayLanguage;
+        }
+        ++count;
+    }
+    if (!mCountryCode.IsEmpty()) {
+        if (count == 1) {
+            buffer += String(" (");
+        }
+        String displayCountry;
+        GetDisplayCountryEx(locale, &displayCountry);
+        if (displayCountry.IsEmpty()) {
+            buffer += mCountryCode;
+        } else {
+            buffer += displayCountry;
+        }
+        ++count;
+    }
+    if (!mVariantCode.IsEmpty()) {
+        if (count == 1) {
+            buffer += String(" (");
+        } else {
+            buffer += String(",");
+        }
+        String displayVariant;
+        GetDisplayVariantEx(locale, &displayVariant);
+        if (displayVariant.IsEmpty()) {
+            buffer += mVariantCode;
+        } else {
+            buffer += displayVariant;
+        }
+        ++count;
+    }
+    if (count > 1) {
+        buffer += String(")");
+    }
+    *name = buffer.Substring(0, buffer.GetLength());
+    return NOERROR;
 }
 
 /**
@@ -100,7 +177,9 @@ ECode CLocale::GetDisplayVariant(
     /* [out] */ String* variantName)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    AutoPtr<ILocale> locale;
+    Locale::GetDefault((ILocale **)&locale);
+    return GetDisplayVariantEx((ILocale*)locale, variantName);;
 }
 
 /**
@@ -117,7 +196,18 @@ ECode CLocale::GetDisplayVariantEx(
     /* [out] */ String* variantName)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    if (mVariantCode.GetLength() == 0) {
+        *variantName = mVariantCode;
+        return NOERROR;
+    }
+    String result = ICU::GetDisplayVariant(ToString(), ((CLocale *)locale)->ToString());
+    if (result.IsNull()) { // TODO: do we need to do this, or does ICU do it for us?
+        AutoPtr<ILocale> loc;
+        Locale::GetDefault((ILocale **) &loc);
+        result = ICU::GetDisplayVariant(ToString(), ((CLocale *)(ILocale *)loc)->ToString());
+    }
+    *variantName = result;
+    return NOERROR;
 }
 
  /**
@@ -241,6 +331,11 @@ ECode CLocale::constructor(
     // BEGIN android-changed
     // this.uLocale = new ULocale(language, country, variant);
     // languageCode = uLocale.getLanguage();
+//    String str("1234-abcA-ddmN-*");
+//    String str1 = Util::ToASCIILowerCase(str);
+//    printf("the str is: %s \n the Lower is: %s\n", (const char*) str, (const char *) str1);
+//    str1 = Util::ToASCIIUpperCase(str);
+//    printf("the str is: %s \n the Upper is: %s\n", (const char*) str, (const char *) str1);
     mLanguageCode = Util::ToASCIILowerCase(language);
     // END android-changed
     // Map new language codes to the obsolete language
@@ -268,31 +363,32 @@ ECode CLocale::constructor(
 
 String CLocale::ToString()
 {
-    // String result = cachedToStringResult;
-    // return (result == null) ? (cachedToStringResult = toNewString()) : result;
-    return String("");
+    String result = mCachedToStringResult;
+    return (result.IsNull()) ? (mCachedToStringResult = ToNewString()) : result;
 }
 
 String CLocale::ToNewString()
 {
     // // The string form of a locale that only has a variant is the empty string.
-    // if (languageCode.length() == 0 && countryCode.length() == 0) {
-    //     return "";
-    // }
+    if (mLanguageCode.GetLength() == 0 && mCountryCode.GetLength() == 0) {
+        return String("");
+    }
     // // Otherwise, the output format is "ll_cc_variant", where language and country are always
     // // two letters, but the variant is an arbitrary length. A size of 11 characters has room
     // // for "en_US_POSIX", the largest "common" value. (In practice, the string form is almost
     // // always 5 characters: "ll_cc".)
-    // StringBuilder result = new StringBuilder(11);
-    // result.append(languageCode);
-    // if (countryCode.length() > 0 || variantCode.length() > 0) {
-    //     result.append('_');
-    // }
-    // result.append(countryCode);
-    // if (variantCode.length() > 0) {
-    //     result.append('_');
-    // }
-    // result.append(variantCode);
-    // return result.toString();
-    return String("");
+    StringBuffer result(11);
+    result += mLanguageCode;
+
+    if (mCountryCode.GetLength() > 0 || mVariantCode.GetLength() > 0) {
+         result += String("_");
+    }
+    result += mCountryCode;
+
+    if (mVariantCode.GetLength() > 0) {
+        result += String("_");
+    }
+
+    result += mVariantCode;
+    return result.Substring(0, result.GetLength());
 }
