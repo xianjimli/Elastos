@@ -291,7 +291,8 @@ void NativeInputManager::notifySwitch(
         }
         break;
     default:
-        assert(FALSE);
+        ;
+        //assert(FALSE);
     }
 }
 

@@ -649,13 +649,11 @@ ECode CResources::UpdateConfiguration(
 
         StringBuffer locale;
         if (mConfiguration->mLocale != NULL) {
-            String str;
-            FAIL_RETURN(mConfiguration->mLocale->GetLanguage(&str));
+            String str = mConfiguration->mLocale->GetLanguage();
             locale = str;
 
-            String country;
-            FAIL_RETURN(mConfiguration->mLocale->GetCountry(&country));
-            if (!country.IsNull()) {
+            String country = mConfiguration->mLocale->GetCountry();
+            if (!country.IsNullOrEmpty()) {
                 locale += "-" + country;
             }
         }
