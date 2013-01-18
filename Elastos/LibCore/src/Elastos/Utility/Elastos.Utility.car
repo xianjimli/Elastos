@@ -7,31 +7,14 @@ module
     merge("../../../car/Elastos/Utility/ICalendar.car");
     merge("../../../car/Elastos/Utility/IGregorianCalendar.car");
     merge("../../../car/Elastos/Utility/IICUHelper.car");
-<<<<<<< HEAD
     merge("../../../car/Elastos/Utility/IObjectStringMap.car");
-=======
     merge("../../../car/Elastos/Utility/ITimeZone.car");
     merge("../../../car/Elastos/Utility/ISimpleTimeZone.car");
-
-    //merge("../../../car/Elastos/Utility/IObjectStringMap.car");
->>>>>>> add locale data, timezone, calendar
 
     class CObjectContainer {
         interface IObjectContainer;
     }
 
-<<<<<<< HEAD
-    class CDate {
-        constructor();
-
-        constructor(
-            [in] Int64 milliseconds);
-
-        interface IDate;
-    }
-
-=======
->>>>>>> add locale data, timezone, calendar
     class CLocale {
         constructor();
 
@@ -68,11 +51,10 @@ module
         interface IICUHelper;
     }
 
-<<<<<<< HEAD
     class CObjectStringMap {
         interface IObjectStringMap;
     }
-=======
+
     class CDate {
         constructor();
 
@@ -142,9 +124,4 @@ module
 
         interface ISimpleTimeZone;
     }
-
-    //class CObjectStringMap {
-    //    interface IObjectStringMap;
-   // }
->>>>>>> add locale data, timezone, calendar
 }

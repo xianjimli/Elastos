@@ -7,16 +7,6 @@
 
 using namespace Elastos::Core;
 
-ECode CDate::constructor()
-{
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CDate::constructor(
-    /* [in] */ Int64 milliseconds)
-{
-    return E_NOT_IMPLEMENTED;
-}
 
 ECode CDate::IsAfter(
     /* [in] */ IDate* date,
