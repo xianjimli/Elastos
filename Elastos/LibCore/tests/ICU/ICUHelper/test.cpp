@@ -2,51 +2,65 @@
 #include <stdio.h>
 #include <Elastos.Utility.h>
 #include <elastos/AutoPtr.h>
-
+#include <elastos/System.h>
 using namespace Elastos;
+using namespace Elastos::Core;
+//using namespace Elastos::Core;
 
 int CTest::test1(int argc, char* argv[])
 {
-    ArrayOf<String> *languages;
-    AutoPtr<IICUHelper> pICUHelper;
-    ECode ec = NOERROR;
-    ec = CICUHelper::AcquireSingleton((IICUHelper **)&pICUHelper);
-
-    //Get ICUHelper
-    printf("========================================\n");
-    pICUHelper->GetISOLanguages(&languages);
-
-    for(Int32 count = 0; count < languages->GetLength(); count++) {
-        printf("the str is %s\n", (const char *)(*languages)[count]);
-    }
-
-    ArrayOf<String>::Free(languages);
-
-    String localName("jp_JPddd_TRANDITIONAL");
-    AutoPtr<ILocale> locale;
-    pICUHelper->LocaleFromString(localName, (ILocale **)&locale);
+//    ArrayOf<String> *languages;
+//    AutoPtr<IICUHelper> pICUHelper;
+//    ECode ec = NOERROR;
+//    ec = CICUHelper::AcquireSingleton((IICUHelper **)&pICUHelper);
+//
+//    //Get ICUHelper
+//    printf("========================================\n");
+//    pICUHelper->GetISOLanguages(&languages);
+//
+//    for(Int32 count = 0; count < languages->GetLength(); count++) {
+//        printf("the str is %s\n", (const char *)(*languages)[count]);
+//    }
+//
+//    ArrayOf<String>::Free(languages);
+//
+//    String localName("jp_JPddd_TRANDITIONAL");
+//    AutoPtr<ILocale> locale;
+//    pICUHelper->LocaleFromString(localName, (ILocale **)&locale);
     return 0;
 }
 
 int CTest::test2(int argc, char* argv[])
 {
-    ArrayOf<String> *str = ArrayOf<String>::Alloc(2);
-    (*str)[0] = String("jp_JP_TRADITION");
-    (*str)[1] = String("zh_ZH_FFHHFF");
-    printf("%s %d", __FILE__, __LINE__);
-    ArrayOf<ILocale*> *ppLocales;
-    AutoPtr<IICUHelper> pICUHelper;
-    ECode ec = NOERROR;
-    ec = CICUHelper::AcquireSingleton((IICUHelper **)&pICUHelper);
-
-    pICUHelper->LocalesFromStrings((*str), &ppLocales);
-    printf("***%s %d\n", __FILE__, __LINE__);
-    String strCountry;
-    (*ppLocales)[0]->GetLanguage(&strCountry);
-    printf("the languages is %s\n", (const char*)strCountry);
-    (*ppLocales)[1]->GetLanguage(&strCountry);
-    printf("the languages is %s\n", (const char*)strCountry);
-    ArrayOf<ILocale*>::Free(ppLocales);
+//    ArrayOf<String> *str = ArrayOf<String>::Alloc(2);
+//    (*str)[0] = String("jp_JP_TRADITION");
+//    (*str)[1] = String("zh_ZH_FFHHFF");
+//    printf("%s %d", __FILE__, __LINE__);
+//    ArrayOf<ILocale*> *ppLocales;
+//    AutoPtr<IICUHelper> pICUHelper;
+//    ECode ec = NOERROR;
+//    ec = CICUHelper::AcquireSingleton((IICUHelper **)&pICUHelper);
+//
+//    pICUHelper->LocalesFromStrings((*str), &ppLocales);
+//    printf("***%s %d\n", __FILE__, __LINE__);
+//    String strCountry;
+//    (*ppLocales)[0]->GetLanguage(&strCountry);
+//    printf("the languages is %s\n", (const char*)strCountry);
+//    (*ppLocales)[1]->GetLanguage(&strCountry);
+//    printf("the languages is %s\n", (const char*)strCountry);
+//    ArrayOf<ILocale*>::Free(ppLocales);
+//
+//    pICUHelper->GetAvailableLocales(&ppLocales);
+////    (*ppLocales)[0]->GetLanguage(&strCountry);
+////    printf("the languages is %s\n", (const char*)strCountry);
+////    (*ppLocales)[1]->GetLanguage(&strCountry);
+////    printf("the languages is %s\n", (const char*)strCountry);
+//    for(Int32 count = 0; count < ppLocales->GetLength(); count++) {
+//        (*ppLocales)[count]->GetCountry(&strCountry);
+//         printf("the str is %s\n", (const char *)strCountry);
+//        (*ppLocales)[count]->GetVariant(&strCountry);
+//        printf("the var is %s\n", (const char *)strCountry);
+//    }
     return 0;
 }
 
@@ -54,16 +68,69 @@ int CTest::test2(int argc, char* argv[])
 
 int CTest::test3(int argc, char* argv[])
 {
+    AutoPtr<IDate> date;
+    ECode ec = NOERROR;
+    ec = CDate::New((IDate **)&date);
     return 0;
 }
 
 int CTest::test4(int argc, char* argv[])
 {
+    String name;
+    if (name.IsNull()) {
+        printf("NULL **** NULL NULL **** NULL\n");
+    }
+
+    name = String("");
+
+    if (name.IsEmpty()) {
+        printf("IsEmpty **** IsEmpty IsEmpty **** IsEmpty\n");
+    }
     return 0;
 }
 
 
 int CTest::test5(int argc, char* argv[])
 {
+    AutoPtr<IDate> pdate;
+    printf("%s, %d\n", __FILE__, __LINE__);
+    Int64 mli = System::GetCurrentTimeMillis();
+    printf("mli is %lld\n", mli);
+
+    CDate::New(System::GetCurrentTimeMillis(), (IDate **) &pdate);
+    printf("%s, %d\n", __FILE__, __LINE__);
+    Int32 da = 0;
+    printf("%s, %d\n", __FILE__, __LINE__);
+    pdate->GetDate(&da);
+    printf("####################the date is %d\n", da);
+    Int32 year = 0;
+    pdate->GetYear(&year);
+    printf("###############the year is %d\n", year);
+    Int32 day = 0;
+    pdate->GetDay(&day);
+    printf("###############the day is %d\n", day);
+    return 0;
+}
+
+
+int CTest::test6(int argc, char* argv[])
+{
+    AutoPtr<IDate> date1;
+    AutoPtr<IDate> date2;
+
+    CDate::New(System::GetCurrentTimeMillis(), (IDate **) &date1);
+    Int32 count = 0;
+    while(count < 10000) count++;
+
+    CDate::New(System::GetCurrentTimeMillis(), (IDate **) &date2);
+
+    Boolean isAfter, isBef;
+    date1->IsAfter((IDate*)date2, &isAfter);
+    printf("the date2 is after date1 is %d\n", isAfter);
+
+    date1->IsBefore((IDate*)date2, &isBef);
+    printf("the date2 is after date1 is %d\n", isBef);
+
+    printf("OK!\n");
     return 0;
 }

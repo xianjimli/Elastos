@@ -1,29 +1,43 @@
 
 #include "Util.h"
 #include <StringBuffer.h>
-
+#include <stdio.h>
 using namespace Elastos::Core;
 
 String Util::ToASCIILowerCase(
     /* [in] */ const String& s)
 {
-    // int len = s.GetLength();
-    // StringBuilder buffer = new StringBuilder(len);
-    // for (int i = 0; i < len; i++) {
-    //     char c = s.charAt(i);
-    //     if ('A' <= c && c <= 'Z') {
-    //         buffer.append((char) (c + ('a' - 'A')));
-    //     } else {
-    //         buffer.append(c);
-    //     }
-    // }
-    // return buffer.toString();
-    return s;
+    Int32 len = s.GetLength();
+    StringBuffer buffer(len);
+    for (Int32 i = 0; i < len; i++) {
+         String c = s.Substring(i, 1);
+
+         if ('A' <= (char)(*(const char*)c) && (char)(*(const char *)c) <= 'Z') {
+             char c1 = (*(const char *)c) + ('a' - 'A');
+             buffer += String(&c1, 1);
+         } else {
+             buffer += c;
+         }
+    }
+    return buffer.Substring(0,len);
+//    return s;
 }
 
 String Util::ToASCIIUpperCase(
     /* [in] */ const String& s)
 {
+    Int32 len = s.GetLength();
+    StringBuffer buffer(len);
+    for (Int32 i = 0; i < len; i++) {
+         String c = s.Substring(i, 1);
+         if ('a' <= (char)(*(const char*)c) && (char)(*(const char *)c) <= 'z') {
+             char c1 = (*(const char *)c) -  ('a' - 'A');
+             buffer += String(&c1, 1);
+         } else {
+             buffer += c;
+         }
+    }
+    return buffer.Substring(0,len);
     // int len = s.length();
     // StringBuilder buffer = new StringBuilder(len);
     // for (int i = 0; i < len; i++) {

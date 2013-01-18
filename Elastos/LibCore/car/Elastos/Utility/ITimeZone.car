@@ -1,0 +1,83 @@
+module
+{
+    interface ILocale;
+    interface IDate;
+
+    interface ITimeZone{
+        GetDisplayName(
+            [out] String* name);
+
+        GetDisplayNameEx(
+            [in] ILocale* locale,
+            [out] String* name);
+
+        GetDisplayNameEx1(
+            [in] Boolean daylightTime,
+            [in] Int32 style,
+            [out] String* name);
+
+        GetDisplayNameEx2(
+            [in] Boolean daylightTime,
+            [in] Int32 style,
+            [in] ILocale* locale,
+            [out] String* name);
+
+        GetID(
+            [out] String* id);
+
+        GetDSTSavings(
+            [out] Int32* savings);
+
+        GetOffset(
+            [in] Int64 time,
+            [out] Int32* offset);
+
+        GetOffsetVir(
+            [in] Int32 era,
+            [in] Int32 year,
+            [in] Int32 month,
+            [in] Int32 day,
+            [in] Int32 dayOfWeek,
+            [in] Int32 timeOfDayMillis,
+            [out] Int32* offset);
+
+        GetRawOffsetVir(
+            [out] Int32* rawOffset);
+
+        HasSameRules(
+            [in] ITimeZone* timeZone,
+            [out] Boolean *hasRules);
+
+        InDaylightTimeVir(
+            [in] IDate* time,
+            [out] Boolean* isIn);
+
+        SetID(
+            [in] String id);
+
+        SetRawOffsetVir(
+            [in] Int32 offsetMillis);
+
+        UseDaylightTimeVir(
+            [out] Boolean* isUsed);
+    }
+
+    interface ITimeZoneHelper {
+        GetAvailableIDs(
+            [out,callee] ArrayOf<String>* array);
+
+        GetAvailableIDsEx(
+            [in] Int32 offsetMillis,
+            [out,callee] ArrayOf<String>* array);
+
+        GetDefault(
+            [out] ITimeZone** timezone);
+
+        GetTimeZone(
+            [in] String id,
+            [out] ITimeZone** timezone);
+
+        SetDefault(
+            [in] ITimeZone* timeZone);
+    }
+}

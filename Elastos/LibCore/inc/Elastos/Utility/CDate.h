@@ -4,6 +4,7 @@
 
 #include "_CDate.h"
 
+
 CarClass(CDate)
 {
 public:
@@ -81,8 +82,37 @@ public:
     CARAPI ToString(
         /* [out] */ String* str);
 
+    CARAPI constructor();
+
+    CARAPI constructor(
+        /* [in] */ Int32 year,
+        /* [in] */ Int32 month,
+        /* [in] */ Int32 day);
+
+    CARAPI constructor(
+        /* [in] */ Int32 year,
+        /* [in] */ Int32 month,
+        /* [in] */ Int32 day,
+        /* [in] */ Int32 hour,
+        /* [in] */ Int32 minute);
+
+    CARAPI constructor(
+        /* [in] */ Int32 year,
+        /* [in] */ Int32 month,
+        /* [in] */ Int32 day,
+        /* [in] */ Int32 hour,
+        /* [in] */ Int32 minute,
+        /* [in] */ Int32 second);
+
+    CARAPI constructor(
+        /* [in] */ Int64 milliseconds);
+
+    CARAPI constructor(
+        /* [in] */ const String& string);
+
 private:
     // TODO: Add your private member variables here.
+    Int64 mMilliseconds;
 };
 
 #endif // __CDATE_H__

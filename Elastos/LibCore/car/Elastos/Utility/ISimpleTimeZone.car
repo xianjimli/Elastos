@@ -1,0 +1,45 @@
+module
+{
+    interface ITimeZone;
+
+    interface ISimpleTimeZone extends ITimeZone {
+        SetEndRule(
+            [in] Int32 month,
+            [in] Int32 dayOfMonth,
+            [in] Int32 time);
+
+        SetEndRuleEx(
+            [in] Int32 month,
+            [in] Int32 day,
+            [in] Int32 dayOfWeek,
+            [in] Int32 time);
+
+        SetEndRuleEx1(
+            [in] Int32 month,
+            [in] Int32 day,
+            [in] Int32 dayOfWeek,
+            [in] Int32 time,
+            [in] Boolean after);
+
+        SetStartRule(
+            [in] Int32 month,
+            [in] Int32 dayOfMonth,
+            [in] Int32 time);
+
+        SetStartRuleEx(
+            [in] Int32 month,
+            [in] Int32 day,
+            [in] Int32 dayOfWeek,
+            [in] Int32 time);
+
+        SetStartRuleEx1(
+            [in] Int32 month,
+            [in] Int32 day,
+            [in] Int32 dayOfWeek,
+            [in] Int32 time,
+            [in] Boolean after);
+
+        SetStartYear(
+            [in] Int32 year);
+    }
+}

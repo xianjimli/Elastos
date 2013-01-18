@@ -1,0 +1,26 @@
+module
+{
+    interface ICalendar;
+    interface IDate;
+
+    const Calendar_AD = 1;
+    const Calendar_BC = 0;
+
+    interface IGregorianCalendar extends ICalendar {
+    /**
+     * Sets the gregorian change date of this calendar.
+     *
+     * @param date
+     *            a {@code Date} which represents the gregorian change date.
+     */
+        SetGregorianChange(
+            [in] IDate* date);
+
+        IsLeapYear(
+            [in] Int32 year,
+            [out] Boolean* isLeap);
+
+        GetGregorianChange(
+            [out] IDate** ppDate);
+    }
+}

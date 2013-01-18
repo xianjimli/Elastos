@@ -18,6 +18,7 @@ public:
     int test3(int argc, char* argv[]);
     int test4(int argc, char* argv[]);
     int test5(int argc, char* argv[]);
+    int test6(int argc, char* argv[]);
 
 private:
 };
