@@ -1,0 +1,12 @@
+module
+{
+    importlib("Elastos.Framework.Core.eco");
+
+    class CGeckoSurfaceView {
+        constructor(
+            [in] IContext* context);
+        interface ISurfaceView;
+        interface IKeyEventCallback;
+    }
+}
+

@@ -1,0 +1,42 @@
+TARGET_NAME= Gecko
+TARGET_TYPE= eco
+
+IMPORTS = Elastos.Framework.Core.eco
+IMPORTS += Elastos.Utility.Zip.eco
+IMPORTS += Elastos.Core.eco
+IMPORTS += Elastos.Utility.eco
+IMPORTS += Elastos.IO.eco
+
+SOURCES =  Gecko.car
+
+SOURCES += CAlertNotification.cpp \
+        GeckoEvent.cpp \
+		CGeckoInputConnection.cpp \
+		CGeckoSurfaceView.cpp \
+		GeckoAppShell.cpp \
+		GeckoApp.cpp \
+		CApp.cpp \
+		CRestarter.cpp \
+		CNotificationHandler.cpp \
+		CCrashReporter.cpp
+
+LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
+LIBRARIES += $(XDK_USER_LIB)/framework.lib
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
+LIBRARIES += $(XDK_USER_LIB)/crt0.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Core.lib
+LIBRARIES += $(XDK_TARGETS)/Elastos.Core.eco
+
+ifeq "$(XDK_TARGET_PLATFORM)" "win32"
+LIBRARIES += $(XDK_LIB_PATH)/Elastos.Runtime.lib
+else
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
+LIBRARIES += -ldl
+endif
+
+APPPACK = 1
+DIRRESOURCES += $(MAKEDIR)/res;
+DIRRESOURCES += $(MAKEDIR)/data;
+

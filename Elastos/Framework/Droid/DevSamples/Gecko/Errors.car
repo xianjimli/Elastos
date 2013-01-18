@@ -1,0 +1,5 @@
+
+module {
+    const E_GECKO_ERROR                 = 0x80080000;
+    const E_GECKO_ERROR_INVALID_SURFACE = 0X80080001;
+}
