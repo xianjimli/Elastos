@@ -24,7 +24,6 @@
 <!ENTITY  continue_label "Continue">
 ]>
 <resources>
-  <string name="app_name">Gecko</string>
   <string name="splash_screen_loading">&splash_screen_loading;</string>
   <string name="splash_screen_installing_libs">&splash_screen_installing_libs;</string>
   <string name="splash_firstrun">&splash_firstrun;</string>

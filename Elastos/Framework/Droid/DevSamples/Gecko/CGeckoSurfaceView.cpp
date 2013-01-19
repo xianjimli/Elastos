@@ -1,19 +1,24 @@
 
+#include "cmdef.h"
 #include "GeckoApp.h"
 #include "GeckoAppShell.h"
 #include "CGeckoSurfaceView.h"
 #include "GeckoErrors.h"
 #include "GeckoEvent.h"
 //#include "ByteBuffer.h"
+#include <Logger.h>
 #include <stdio.h>
+#include <pthread.h>
 
-Boolean CGeckoSurfaceView::sShowingSplashScreen = FALSE;
+using namespace Elastos::Utility::Logging;
+
+
+Boolean CGeckoSurfaceView::sShowingSplashScreen = TRUE;
 String CGeckoSurfaceView::sSplashStatusMsg("");
 
 CGeckoSurfaceView::MySurfaceHoderCallback::MySurfaceHoderCallback(
-    /* [in]  */ CGeckoSurfaceView* pHost)
-    : mHost(pHost)
-    , mRef(0)
+    /* [in]  */ CGeckoSurfaceView* host)
+    : mHost(host)
 {
 }
 
@@ -32,24 +37,12 @@ PInterface CGeckoSurfaceView::MySurfaceHoderCallback::Probe(
 
 UInt32 CGeckoSurfaceView::MySurfaceHoderCallback::AddRef()
 {
-    // atomic_inc of android bionic C library will return
-    // the old value of mRef before it is increased
-    Int32 ref = atomic_inc(&mRef);
-    // so we should increase ref before return
-    return ++ref;
+    return ElRefBase::AddRef();
 }
 
 UInt32 CGeckoSurfaceView::MySurfaceHoderCallback::Release()
 {
-    // atomic_inc of android bionic C library will return
-    // the old value of mRef before it is decreased
-    Int32 ref = atomic_dec(&mRef);
-    // so we should decrease ref
-    if (--ref == 0) {
-        delete this;
-    }
-    assert(ref >= 0);
-    return ref;
+    return ElRefBase::Release();
 }
 
 ECode CGeckoSurfaceView::MySurfaceHoderCallback::GetInterfaceID(
@@ -72,11 +65,11 @@ ECode CGeckoSurfaceView::MySurfaceHoderCallback::GetInterfaceID(
 }
 
 ECode CGeckoSurfaceView::MySurfaceHoderCallback::SurfaceCreated(
-    /* [in] */ ISurfaceHolder* pHolder)
+    /* [in] */ ISurfaceHolder* holder)
 {
-    GeckoEvent* pGeckoEvent = new GeckoEvent(GeckoEvent::SURFACE_CREATED);
-    if (!pGeckoEvent) return E_OUT_OF_MEMORY;
-    GeckoAppShell::SendEventToGecko(pGeckoEvent);
+    AutoPtr<GeckoEvent> geckoEvent = new GeckoEvent(GeckoEvent::SURFACE_CREATED);
+    assert(geckoEvent != NULL);
+    GeckoAppShell::SendEventToGecko(geckoEvent);
     if (sShowingSplashScreen) {
         mHost->DrawSplashScreen();
     }
@@ -85,15 +78,20 @@ ECode CGeckoSurfaceView::MySurfaceHoderCallback::SurfaceCreated(
 }
 
 ECode CGeckoSurfaceView::MySurfaceHoderCallback::SurfaceChanged(
-    /* [in] */ ISurfaceHolder* pHolder,
+    /* [in] */ ISurfaceHolder* holder,
     /* [in] */ Int32 format,
     /* [in] */ Int32 width,
     /* [in] */ Int32 height)
 {
+printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+    ECode ec = NOERROR;
     if (sShowingSplashScreen) {
-        mHost->DrawSplashScreen(pHolder, width, height);
+        printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+        mHost->DrawSplashScreen(holder, width, height);
+        printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
     }
     //mSurfaceLock.Lock();
+    pthread_mutex_lock(&mHost->mSurfaceLock);
 
     //try {
         if (mHost->mInDrawing) {
@@ -103,29 +101,17 @@ ECode CGeckoSurfaceView::MySurfaceHoderCallback::SurfaceChanged(
         Boolean invalidSize;
 
         if (width == 0 || height == 0) {
-            if (mHost->mSoftwareBuffer) {
-                mHost->mSoftwareBuffer->Release();
-                mHost->mSoftwareBuffer = NULL;
-            }
-
-            if (mHost->mSoftwareBufferCopy) {
-                mHost->mSoftwareBufferCopy->Release();
-                mHost->mSoftwareBufferCopy = NULL;
-            }
-
-            if (mHost->mSoftwareBitmap) {
-                mHost->mSoftwareBitmap->Release();
-                mHost->mSoftwareBitmap = NULL;
-            }
+            mHost->mSoftwareBitmap = NULL;
+            mHost->mSoftwareBuffer = NULL;
+            mHost->mSoftwareBufferCopy = NULL;
             invalidSize = TRUE;
         }
         else {
             invalidSize = FALSE;
         }
-
-        Boolean result;
-        GeckoApp::CheckLaunchState(GeckoApp::LaunchState_GeckoRunning, &result);
-        Boolean doSyncDraw = mHost->mDrawMode == DRAW_2D  && !invalidSize && result;
+printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+        Boolean result = GeckoApp::CheckLaunchState(GeckoApp::LaunchState_GeckoRunning);
+        Boolean doSyncDraw = mHost->mDrawMode == DRAW_2D && !invalidSize && result;
         mHost->mSyncDraw = doSyncDraw;
 
         mHost->mFormat = format;
@@ -136,71 +122,54 @@ ECode CGeckoSurfaceView::MySurfaceHoderCallback::SurfaceChanged(
         printf("GeckoAppJava sufaceChanged: fmt: %d, dim: %d %d\n",
              format, width, height);
 
-        IDisplayMetrics* pIMetrics;
-        ECode ec = CDisplayMetrics::New(&pIMetrics);
-        if (FAILED(ec)) {
-            //mSurfaceLock.Unlock();
-            return ec;
-        }
-
-        IDisplay* pIDisplay;
-        ec = GeckoApp::mAppContext->GetWindowManager()->GetDefaultDisplay(&pIDisplay);
-        if (FAILED(ec)) {
-            pIMetrics->Release();
-            //mSurfaceLock.Unlock();
-            return ec;
-        }
-
-        ec = pIDisplay->GetMetrics(pIMetrics);
-        pIDisplay->Release();
-        if (FAILED(ec)) {
-            pIMetrics->Release();
-            //mSurfaceLock.Unlock();
-            return ec;
-        }
-
-        /*GeckoEvent* pGeckoEvent = new GeckoEvent(
+        AutoPtr<IDisplayMetrics> metrics;
+        ASSERT_SUCCEEDED(CDisplayMetrics::New((IDisplayMetrics**)&metrics));
+        AutoPtr<IDisplay> display;
+        ASSERT_SUCCEEDED(GeckoApp::sAppContext->GetWindowManager()->GetDefaultDisplay((IDisplay**)&display));
+printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+        // ASSERT_SUCCEEDED(display->GetMetrics(metrics));
+// printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+        AutoPtr<GeckoEvent> geckoEvent = new GeckoEvent(
                     GeckoEvent::SIZE_CHANGED, width, height,
-                    pIMetrics->mWidthPixels, pIMetrics->mHeightPixels);
-        if (!pGeckoEvent) return E_OUT_OF_MEMORY;
-        GeckoAppShell::SendEventToGecko(pGeckoEvent);*/
-        pIMetrics->Release();
-
+                    320/*pIMetrics->mWidthPixels*/, 480/*pIMetrics->mHeightPixels*/);
+        assert(geckoEvent != NULL);
+        GeckoAppShell::SendEventToGecko(geckoEvent);
+printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
         if (doSyncDraw) {
             if (mHost->mDrawMode == DRAW_GLES_2 || sShowingSplashScreen) {
                 //mSurfaceLock.Unlock();
+                pthread_mutex_unlock(&mHost->mSurfaceLock);
                 return NOERROR;
             }
-            ICanvas* pICanvas;
-            ec = pHolder->LockCanvas(&pICanvas);
-            if (FAILED(ec)) {
-                //mSurfaceLock.Unlock();
-                return ec;
-            }
-            pICanvas->DrawARGB(255, 255, 255, 255);
-            pHolder->UnlockCanvasAndPost(pICanvas);
-            pICanvas->Release();
+ printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+            AutoPtr<ICanvas> canvas;
+            ASSERT_SUCCEEDED(holder->LockCanvas((ICanvas**)&canvas));
+            ASSERT_SUCCEEDED(canvas->DrawARGB(255, 255, 255, 255));
+            ASSERT_SUCCEEDED(holder->UnlockCanvasAndPost(canvas));
         }
         else {
+printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
             GeckoAppShell::ScheduleRedraw();
         }
-        //mSurfaceLock.Unlock();
+
+        // mSurfaceLock.Unlock();
+        pthread_mutex_unlock(&mHost->mSurfaceLock);
     //} finally {
     //    mSurfaceLock.Unlock();
     //}
 
-    IInterface* pSyncDrawObject = NULL;
+    AutoPtr<IInterface> syncDrawObject;
     //ec = mSyncDraws->Take(&pSyncDrawObject);
     if (FAILED(ec)) return ec;
 
-    IBitmap* pIBitmap = IBitmap::Probe(pSyncDrawObject);
-    if (pIBitmap) {
-        ec =  mHost->Draw(pHolder, pIBitmap);
-    }
-    else {
-        ec = mHost->Draw(pHolder, IBuffer::Probe(pSyncDrawObject));
-    }
-    pSyncDrawObject->Release();
+    // IBitmap* bitmap = IBitmap::Probe(syncDrawObject);
+    // if (bitmap) {
+    //     ec =  mHost->Draw(holder, bitmap);
+    // }
+    // else {
+    //     ec = mHost->Draw(holder, IBuffer::Probe(syncDrawObject));
+    // }
+printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
     return ec;
 }
 
@@ -229,63 +198,46 @@ ECode CGeckoSurfaceView::MySurfaceHoderCallback::SurfaceDestroyed(
 }
 
 ECode CGeckoSurfaceView::constructor(
-    /* [in] */ IContext* pContext)
+    /* [in] */ IContext* context)
 {
-    ECode ec = CGeckoSurfaceView::New(pContext, &mSurfaceView);
-    if (FAILED(ec)) return ec;
+    printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+    ASSERT_SUCCEEDED(CSurfaceView::New(context, (ISurfaceView**)&mSurfaceView));
 
-    ISurfaceHolder* pIHolder;
-    ec = GetHolder(&pIHolder);
-    if (FAILED(ec)) return ec;
+    AutoPtr<ISurfaceHolder> holder;
+    ASSERT_SUCCEEDED(GetHolder((ISurfaceHolder**)&holder));
 
-    MySurfaceHoderCallback* pCallback = new MySurfaceHoderCallback(this);
-    if (!pCallback) return E_OUT_OF_MEMORY;
+    AutoPtr<ISurfaceHolderCallback> callback = new MySurfaceHoderCallback(this);
+    assert(callback != NULL);
 
-    pIHolder->AddCallback(pCallback);
-    pIHolder->Release();
+    holder->AddCallback(callback);
 
-    ec = CGeckoInputConnection::New(this, &mInputConnection);
-    if (FAILED(ec)) return ec;
+    // ASSERT_SUCCEEDED(CGeckoInputConnection::New(this, (IGeckoInputConnection**)&mInputConnection));
     SetFocusable(TRUE);
     SetFocusableInTouchMode(TRUE);
 
-    IDisplayMetrics* pIMetrics;
-    ec = CDisplayMetrics::New(&pIMetrics);
-    if (FAILED(ec)) return ec;
+    AutoPtr<IDisplayMetrics> metrics;
+    ASSERT_SUCCEEDED(CDisplayMetrics::New((IDisplayMetrics**)&metrics));
+    AutoPtr<IDisplay> display;
+    ASSERT_SUCCEEDED(GeckoApp::sAppContext->GetWindowManager()->GetDefaultDisplay((IDisplay**)&display));
+printf("==== File: %s, Line: %d, display: %p ====\n", __FILE__, __LINE__, display.Get());
+    // display->GetMetrics(metrics);
+    mWidth = 320;//pIMetrics->mWidthPixels;
+    mHeight = 480;//pIMetrics->mHeightPixels;
 
-    IDisplay* pIDisplay;
-    ec = GeckoApp::mAppContext->GetWindowManager()->GetDefaultDisplay(&pIDisplay);
-    if (FAILED(ec)) {
-        pIMetrics->Release();
-        return ec;
-    }
+    // ASSERT_SUCCEEDED(CEditableFactory::AcquireSingleton((IEditableFactory**)&mEditableFactory));
 
-    ec = pIDisplay->GetMetrics(pIMetrics);
-    pIDisplay->Release();
-    if (FAILED(ec)) {
-        pIMetrics->Release();
-        return ec;
-    }
-
-    //mWidth = pIMetrics->mWidthPixels;
-    //mHeight = pIMetrics->mHeightPixels;
-    pIMetrics->Release();
-
-    ec = CEditableFactory::AcquireSingleton(&mEditableFactory);
-    if (FAILED(ec)) return ec;
-
-    ICharSequence* pICharSequence;
-    ec = CStringWrapper::New(String(""), &pICharSequence);
-    if (FAILED(ec)) return ec;
-    InitEditable(pICharSequence);
-    pICharSequence->Release();
-
+    AutoPtr<ICharSequence> str;
+    CStringWrapper::New(String(""), (ICharSequence**)&str);
+    // InitEditable(str);
+printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
     return NOERROR;
 }
 
 CGeckoSurfaceView::CGeckoSurfaceView()
     : mInputConnection(NULL)
     , mIMEState(IME_STATE_DISABLED)
+    , mIMETypeHint("")
+    , mIMEActionHint("")
     , mIMELandscapeFS(FALSE)
     , mSurfaceValid(FALSE)
     , mInDrawing(FALSE)
@@ -304,37 +256,28 @@ CGeckoSurfaceView::CGeckoSurfaceView()
     , mSoftwareBufferCopy(NULL)
     , mSurfaceView(NULL)
 {
-    mIMETypeHint = "";
-    mIMEActionHint = "";
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutex_init(&mSurfaceLock, &attr);
+    pthread_mutexattr_destroy(&attr);
 }
 
 CGeckoSurfaceView::~CGeckoSurfaceView()
 {
-    if (mSoftwareBufferCopy) {
-        mSoftwareBufferCopy->Release();
-    }
-    if (mSoftwareBuffer) {
-        mSoftwareBuffer->Release();
-    }
-    if (mSoftwareBitmap) {
-        mSoftwareBitmap->Release();
-    }
-    if (mEditableFactory) {
-        mEditableFactory->Release();
-    }
-    if (mEditable) {
-        mEditable->Release();
-    }
-    if (mKeyListener) {
-        mKeyListener->Release();
-    }
-    if (mInputConnection) {
-        mInputConnection->Release();
-    }
-    if (mSurfaceView) {
-        mSurfaceView->Release();
-    }
+}
 
+const InterfaceID EIID_View =
+        {0xbbbbbbbb,0xbbbb,0xbbbb,{0xbb,0xbb,0xbb,0xbb,0xbb,0xbb,0xbb,0xbb}};
+
+PInterface CGeckoSurfaceView::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_View) {
+        // printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+        return mSurfaceView->Probe(riid);
+    }
+    return _CGeckoSurfaceView::Probe(riid);
 }
 
 ECode CGeckoSurfaceView::Finalize()
@@ -345,73 +288,56 @@ ECode CGeckoSurfaceView::Finalize()
 
 ECode CGeckoSurfaceView::DrawSplashScreen()
 {
-    ISurfaceHolder* pISurfaceHodler;
-    ECode ec = GetHolder(&pISurfaceHodler);
-    if (FAILED(ec)) return ec;
+    AutoPtr<ISurfaceHolder> holder;
+    ASSERT_SUCCEEDED(GetHolder((ISurfaceHolder**)&holder));
 
-    ec = DrawSplashScreen(pISurfaceHodler, mWidth, mHeight);
-    pISurfaceHodler->Release();
-    return ec;
+    return DrawSplashScreen(holder, mWidth, mHeight);
 }
 
 ECode CGeckoSurfaceView::DrawSplashScreen(
-    /* [in] */ ISurfaceHolder* pHolder,
+    /* [in] */ ISurfaceHolder* holder,
     /* [in] */ Int32 width,
     /* [in] */ Int32 height)
 {
-    ICanvas* pICanvas;
-    ECode ec = pHolder->LockCanvas(&pICanvas);
-    if (FAILED(ec)) {
-        printf("GeckoSurfaceView LockCanvas failed %x\n", ec);
-        return ec;
+printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+    AutoPtr<ICanvas> canvas;
+    ASSERT_SUCCEEDED(holder->LockCanvas((ICanvas**)&canvas));
+    if (canvas == NULL) {
+        Logger::I("GeckoSurfaceView", "canvas is NULL");
+        return NOERROR;
     }
 
-    IResources* pIResources = NULL;
-    ec = GetResources(&pIResources);
-    if (FAILED(ec)) goto exit;
-
+    AutoPtr<IResources> resources;
+    ASSERT_SUCCEEDED(GetResources((IResources**)&resources));
+printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
     Int32 color;
-    ec = pIResources->GetColor(0x7f040000, &color); //R.color.splash_background
-    if (FAILED(ec)) goto exit;
-    ec = pICanvas->DrawColor(color);
-    if (FAILED(ec)) goto exit;
-
-    IDrawable* pIDrawable;
-    ec = pIResources->GetDrawable(0x7f020005, &pIDrawable);//R.drawable.splash
-    if (FAILED(ec)) goto exit;
+    ASSERT_SUCCEEDED(resources->GetColor(0x7f040000, &color)); //R.color.splash_background
+printf("==== File: %s, Line: %d, canvas: %p ====\n", __FILE__, __LINE__, canvas.Get());
+    ASSERT_SUCCEEDED(canvas->DrawColor(color));
+printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+    AutoPtr<IDrawable> drawable;
+    ASSERT_SUCCEEDED(resources->GetDrawable(0x7f020005, (IDrawable**)&drawable));//R.drawable.splash
     Int32 x, y, w, h;
-    pIDrawable->GetIntrinsicWidth(&w);
-    pIDrawable->GetIntrinsicHeight(&h);
+    drawable->GetIntrinsicWidth(&w);
+    drawable->GetIntrinsicHeight(&h);
     x = (width - w)/2;
     y = (height - h)/2 - 16;
-    pIDrawable->SetBounds(x, y, x + w, y + h);
-    pIDrawable->Draw(pICanvas);
-    pIDrawable->Release();
-
-    IPaint* pIPaint;
-    ec = CPaint::New(&pIPaint);
-    if (FAILED(ec)) goto exit;
-    pIPaint->SetTextAlign(PaintAlign_CENTER);
-    pIPaint->SetTextSize(32);
-    pIPaint->SetAntiAlias(TRUE);
-    ec = pIResources->GetColor(0x7f040001, &color);//R.color.splash_font
-    if (FAILED(ec)) {
-        pIPaint->Release();
-        goto exit;
-    }
-    pIPaint->SetColor(color);
-
-    ec = pICanvas->DrawTextInString(
-                sSplashStatusMsg, width/2, y + h + 16, pIPaint);
-    pIPaint->Release();
-    if (FAILED(ec)) goto exit;
-    ec = pHolder->UnlockCanvasAndPost(pICanvas);
-exit:
-    pICanvas->Release();
-    if (pIResources != NULL) {
-        pIResources->Release();
-    }
-    return ec;
+    drawable->SetBounds(x, y, x + w, y + h);
+    drawable->Draw(canvas);
+printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+    AutoPtr<IPaint> paint;
+    ASSERT_SUCCEEDED(CPaint::New((IPaint**)&paint));
+    paint->SetTextAlign(PaintAlign_CENTER);
+    paint->SetTextSize(32);
+    paint->SetAntiAlias(TRUE);
+    ASSERT_SUCCEEDED(resources->GetColor(0x7f040001, &color));//R.color.splash_font
+    paint->SetColor(color);
+printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+    ASSERT_SUCCEEDED(canvas->DrawTextInString(
+                sSplashStatusMsg, width/2, y + h + 16, paint));
+    ASSERT_SUCCEEDED(holder->UnlockCanvasAndPost(canvas));
+printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+    return NOERROR;
 }
 
 ECode CGeckoSurfaceView::Draw(
@@ -506,7 +432,7 @@ ECode CGeckoSurfaceView::GetSoftwareDrawBitmap(
         if (FAILED(ec)) return ec;
 
         ec = pIBitmapFactory->CreateBitmapEx3(mWidth, mHeight,
-                         BitmapConfig_RGB_565, &mSoftwareBitmap);
+                         BitmapConfig_RGB_565, (IBitmap**)&mSoftwareBitmap);
         pIBitmapFactory->Release();
         if (FAILED(ec)) return ec;
     }
@@ -555,7 +481,7 @@ ECode CGeckoSurfaceView::GetSoftwareDrawBuffer(
         if (FAILED(ec)) return ec;
 
         ec = pIBitmapFactory->CreateBitmapEx3(mWidth, mHeight,
-                         BitmapConfig_RGB_565, &mSoftwareBufferCopy);
+                         BitmapConfig_RGB_565, (IBitmap**)&mSoftwareBufferCopy);
         pIBitmapFactory->Release();
         if (FAILED(ec)) return ec;
     }
@@ -739,19 +665,16 @@ ECode CGeckoSurfaceView::SetEditable(
 }
 
 ECode CGeckoSurfaceView::InitEditable(
-    /* [in] */ ICharSequence* pContents)
+    /* [in] */ ICharSequence* contents)
 {
-    ECode ec = mEditableFactory->NewEditable(pContents, &mEditable);
-    if (FAILED(ec)) return ec;
+    ASSERT_SUCCEEDED(mEditableFactory->NewEditable(contents, (IEditable**)&mEditable));
 
     Int32 length = 0;
-    ec = pContents->GetLength(&length);
-    if (FAILED(ec)) return ec;
-    ec = mEditable->SetSpan(mInputConnection,
-                        0, length, Spanned_SPAN_INCLUSIVE_INCLUSIVE);
-    if (FAILED(ec)) return ec;
+    contents->GetLength(&length);
+    ASSERT_SUCCEEDED(mEditable->SetSpan(mInputConnection,
+                        0, length, Spanned_SPAN_INCLUSIVE_INCLUSIVE));
     //ec = Selection::SetSelection(mEditable, length);
-    return ec;
+    return NOERROR;
 }
 
 ECode CGeckoSurfaceView::GetVerticalFadingEdgeLength(

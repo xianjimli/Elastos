@@ -22,21 +22,25 @@ SOURCES += CAlertNotification.cpp \
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.Logging.lib
 LIBRARIES += $(XDK_USER_LIB)/framework.lib
 LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
 LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
 LIBRARIES += $(XDK_USER_LIB)/crt0.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Core.lib
 LIBRARIES += $(XDK_TARGETS)/Elastos.Core.eco
+#LIBRARIES += $(XDK_TARGETS)/libxul.so
 
 ifeq "$(XDK_TARGET_PLATFORM)" "win32"
 LIBRARIES += $(XDK_LIB_PATH)/Elastos.Runtime.lib
 else
 LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
-LIBRARIES += -ldl
+LIBRARIES += -ldl -llog
+#LIBRARIES += -lxul
 endif
 
 APPPACK = 1
 DIRRESOURCES += $(MAKEDIR)/res;
 DIRRESOURCES += $(MAKEDIR)/data;
+#DIRRESOURCES += $(MAKEDIR)/lib;
 

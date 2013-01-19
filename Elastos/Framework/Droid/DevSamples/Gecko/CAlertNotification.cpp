@@ -60,7 +60,7 @@ ECode CAlertNotification::IsProgressStyle(
 
 ECode CAlertNotification::Show()
 {
-    
+
     return E_NOT_IMPLEMENTED;
     //return mNotificationManager->Notify(mId, this);
 }
@@ -72,7 +72,7 @@ ECode CAlertNotification::SetCustomIcon(
     // Custom view
     Int32 layout = 0x7f030001;//R.layout.notification_icon_text;
     String packageName;
-    GeckoApp::mAppContext->GetPackageName(&packageName);
+    GeckoApp::sAppContext->GetPackageName(&packageName);
     IRemoteViews* pView;
     ECode ec;
     //ec = CRemoteViews::New(packageName, layout, &pView);
@@ -121,7 +121,7 @@ ECode CAlertNotification::UpdateProgress(
                 0x7f030003 : 0x7f030002; //R.layout.notification_progress_text : R.layout.notification_progress;
 
         String packageName;
-        GeckoApp::mAppContext->GetPackageName(&packageName);
+        GeckoApp::sAppContext->GetPackageName(&packageName);
         IRemoteViews* pView;
         //ec = CRemoteViews::New(packageName, layout, &pView);
         //if (FAILED(ec)) return ec;
@@ -131,7 +131,7 @@ ECode CAlertNotification::UpdateProgress(
 
         SetContentView(pView);
         pView->Release();
-        
+
         Int32 flags;
         mNotification->GetFlags(&flags);
         flags |= Notification_FLAG_ONGOING_EVENT;

@@ -5,6 +5,7 @@ module
     class CGeckoSurfaceView {
         constructor(
             [in] IContext* context);
+
         interface ISurfaceView;
         interface IKeyEventCallback;
     }

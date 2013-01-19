@@ -1,4 +1,5 @@
 
+#include "cmdef.h"
 #include "GeckoEvent.h"
 
 const Int32 GeckoEvent::INVALID = -1;
@@ -39,96 +40,178 @@ const Int32 GeckoEvent::IME_RANGE_FORECOLOR = 2;
 const Int32 GeckoEvent::IME_RANGE_BACKCOLOR = 4;
 
 GeckoEvent::~GeckoEvent ()
-{
-    InitMembers();
-}
+{}
 
 GeckoEvent::GeckoEvent()
-{
-    InitMembers();
-    mType = NATIVE_POKE;
-}
+    : mType(NATIVE_POKE)
+    , mAction(0)
+    , mTime(0)
+    , mX(0)
+    , mY(0)
+    , mZ(0)
+    , mAlpha(0)
+    , mBeta(0)
+    , mGamma(0)
+    , mMetaState(0)
+    , mFlags(0)
+    , mKeyCode(0)
+    , mUnicodeChar(0)
+    , mOffset(0)
+    , mCount(0)
+    , mRangeType(0)
+    , mRangeStyles(0)
+    , mRangeForeColor(0)
+    , mRangeBackColor(0)
+    , mNativeWindow(0)
+{}
 
 GeckoEvent::GeckoEvent(
     /* [in] */ Int32 evType)
+    : mType(evType)
+    , mAction(0)
+    , mTime(0)
+    , mX(0)
+    , mY(0)
+    , mZ(0)
+    , mAlpha(0)
+    , mBeta(0)
+    , mGamma(0)
+    , mMetaState(0)
+    , mFlags(0)
+    , mKeyCode(0)
+    , mUnicodeChar(0)
+    , mOffset(0)
+    , mCount(0)
+    , mRangeType(0)
+    , mRangeStyles(0)
+    , mRangeForeColor(0)
+    , mRangeBackColor(0)
+    , mNativeWindow(0)
+{}
+
+GeckoEvent::GeckoEvent(
+    /* [in] */ IKeyEvent* k)
+    : mType(KEY_EVENT)
+    , mAction(0)
+    , mTime(0)
+    , mX(0)
+    , mY(0)
+    , mZ(0)
+    , mAlpha(0)
+    , mBeta(0)
+    , mGamma(0)
+    , mMetaState(0)
+    , mFlags(0)
+    , mKeyCode(0)
+    , mUnicodeChar(0)
+    , mOffset(0)
+    , mCount(0)
+    , mRangeType(0)
+    , mRangeStyles(0)
+    , mRangeForeColor(0)
+    , mRangeBackColor(0)
+    , mNativeWindow(0)
 {
-    InitMembers();
-    mType = evType;
+    ASSERT_SUCCEEDED(k->GetAction(&mAction));
+    ASSERT_SUCCEEDED(k->GetEventTime(&mTime));
+    ASSERT_SUCCEEDED(k->GetMetaState(&mMetaState));
+    ASSERT_SUCCEEDED(k->GetFlags(&mFlags));
+    ASSERT_SUCCEEDED(k->GetKeyCode(&mKeyCode));
+    ASSERT_SUCCEEDED(k->GetUnicodeChar(&mUnicodeChar));
+    ASSERT_SUCCEEDED(k->GetCharacters(&mCharacters));
 }
 
 GeckoEvent::GeckoEvent(
-    /* [in] */ IKeyEvent * pK)
+    /* [in] */ IMotionEvent* m)
+    : mType(MOTION_EVENT)
+    , mAction(0)
+    , mTime(0)
+    , mX(0)
+    , mY(0)
+    , mZ(0)
+    , mAlpha(0)
+    , mBeta(0)
+    , mGamma(0)
+    , mMetaState(0)
+    , mFlags(0)
+    , mKeyCode(0)
+    , mUnicodeChar(0)
+    , mOffset(0)
+    , mCount(0)
+    , mRangeType(0)
+    , mRangeStyles(0)
+    , mRangeForeColor(0)
+    , mRangeBackColor(0)
+    , mNativeWindow(0)
 {
-    InitMembers();
-    ECode ec = NOERROR;
-
-    mType = KEY_EVENT;
-    ec = pK->GetAction(&mAction);
-    if (FAILED(ec)) return;
-    ec = pK->GetEventTime(&mTime);
-    if (FAILED(ec)) return;
-    ec = pK->GetMetaState(&mMetaState);
-    if (FAILED(ec)) return;
-    ec = pK->GetFlags(&mFlags);
-    if (FAILED(ec)) return;
-    ec = pK->GetKeyCode(&mKeyCode);
-    if (FAILED(ec)) return;
-    ec = pK->GetUnicodeChar(&mUnicodeChar);
-    if (FAILED(ec)) return;
-    ec = pK->GetCharacters(&mCharacters);
-}
-
-GeckoEvent::GeckoEvent(
-    /* [in] */ IMotionEvent * pM)
-{
-    InitMembers();
-    mType = MOTION_EVENT;
-    ECode ec = pM->GetAction(&mAction);
-    ec = pM->GetEventTime(&mTime);
-    if (FAILED(ec)) return;
-    ec = pM->GetMetaState(&mMetaState);
-    if (FAILED(ec)) return;
+    ASSERT_SUCCEEDED(m->GetAction(&mAction));
+    ASSERT_SUCCEEDED(m->GetEventTime(&mTime));
+    ASSERT_SUCCEEDED(m->GetMetaState(&mMetaState));
     Float x = 0, y = 0;
-    ec = pM->GetXEx(0, &x);
-    if (FAILED(ec)) return;
-    ec = pM->GetYEx(0, &y);
-    if (FAILED(ec)) return;
+    ASSERT_SUCCEEDED(m->GetXEx(0, &x));
+    ASSERT_SUCCEEDED(m->GetYEx(0, &y));
+    ASSERT_SUCCEEDED(CPoint::New((Int32)x, (Int32)y, (IPoint**)&mP0));
 
-    ec = CPoint::New((Int32)x, (Int32)y, (IPoint**)&mP0);
-    if (!mP0) return;
-
-    ec = pM->GetPointerCount(&mCount);
+    ASSERT_SUCCEEDED(m->GetPointerCount(&mCount));
     if (mCount > 1) {
-        ec = pM->GetXEx(1, &x);
-        if (FAILED(ec)) return;
-        ec = pM->GetYEx(1, &y);
-        if (FAILED(ec)) return;
-        ec = CPoint::New((Int32)x, (Int32)y,(IPoint**)&mP1);;
-        if (!mP1) return;
+        ASSERT_SUCCEEDED(m->GetXEx(1, &x));
+        ASSERT_SUCCEEDED(m->GetYEx(1, &y));
+        ASSERT_SUCCEEDED(CPoint::New((Int32)x, (Int32)y,(IPoint**)&mP1));
     }
 }
 
 GeckoEvent::GeckoEvent(
-    /* [in] */ ILocation * pL,
-    /* [in] */ IAddress* pA)
-{
-    InitMembers();
-    mType = LOCATION_EVENT;
-    mLocation = pL;
-    mAddress  = pA;
-}
+    /* [in] */ ILocation* l,
+    /* [in] */ IAddress* a)
+    : mType(LOCATION_EVENT)
+    , mAction(0)
+    , mTime(0)
+    , mX(0)
+    , mY(0)
+    , mZ(0)
+    , mAlpha(0)
+    , mBeta(0)
+    , mGamma(0)
+    , mMetaState(0)
+    , mFlags(0)
+    , mKeyCode(0)
+    , mUnicodeChar(0)
+    , mOffset(0)
+    , mCount(0)
+    , mRangeType(0)
+    , mRangeStyles(0)
+    , mRangeForeColor(0)
+    , mRangeBackColor(0)
+    , mLocation(l)
+    , mAddress(a)
+    , mNativeWindow(0)
+{}
 
 GeckoEvent::GeckoEvent(
     /* [in] */ Int32 imeAction,
     /* [in] */ Int32 offset,
     /* [in] */ Int32 count)
-{
-    InitMembers();
-    mType = IME_EVENT;
-    mAction = imeAction;
-    mOffset = offset;
-    mCount = count;
-}
+    : mType(IME_EVENT)
+    , mAction(imeAction)
+    , mTime(0)
+    , mX(0)
+    , mY(0)
+    , mZ(0)
+    , mAlpha(0)
+    , mBeta(0)
+    , mGamma(0)
+    , mMetaState(0)
+    , mFlags(0)
+    , mKeyCode(0)
+    , mUnicodeChar(0)
+    , mOffset(offset)
+    , mCount(count)
+    , mRangeType(0)
+    , mRangeStyles(0)
+    , mRangeForeColor(0)
+    , mRangeBackColor(0)
+    , mNativeWindow(0)
+{}
 
 GeckoEvent::GeckoEvent(
     /* [in] */ Int32 offset,
@@ -138,12 +221,28 @@ GeckoEvent::GeckoEvent(
     /* [in] */ Int32 rangeForeColor,
     /* [in] */ Int32 rangeBackColor,
     /* [in] */ const String& text)
-{
-    InitMembers();
-    InitIMERange(IME_SET_TEXT, offset, count, rangeType, rangeStyles,
-                     rangeForeColor, rangeBackColor);
-    mCharacters = text;
-}
+    : mType(IME_EVENT)
+    , mAction(IME_SET_TEXT)
+    , mTime(0)
+    , mX(0)
+    , mY(0)
+    , mZ(0)
+    , mAlpha(0)
+    , mBeta(0)
+    , mGamma(0)
+    , mMetaState(0)
+    , mFlags(0)
+    , mKeyCode(0)
+    , mUnicodeChar(0)
+    , mOffset(offset)
+    , mCount(count)
+    , mCharacters(text)
+    , mRangeType(rangeType)
+    , mRangeStyles(rangeStyles)
+    , mRangeForeColor(rangeForeColor)
+    , mRangeBackColor(rangeBackColor)
+    , mNativeWindow(0)
+{}
 
 GeckoEvent::GeckoEvent(
     /* [in] */ Int32 offset,
@@ -152,24 +251,59 @@ GeckoEvent::GeckoEvent(
     /* [in] */ Int32 rangeStyles,
     /* [in] */ Int32 rangeForeColor,
     /* [in] */ Int32 rangeBackColor)
-{
-    InitMembers();
-    InitIMERange(IME_ADD_RANGE, offset, count, rangeType, rangeStyles,
-                 rangeForeColor, rangeBackColor);
-}
+    : mType(IME_EVENT)
+    , mAction(IME_ADD_RANGE)
+    , mTime(0)
+    , mX(0)
+    , mY(0)
+    , mZ(0)
+    , mAlpha(0)
+    , mBeta(0)
+    , mGamma(0)
+    , mMetaState(0)
+    , mFlags(0)
+    , mKeyCode(0)
+    , mUnicodeChar(0)
+    , mOffset(offset)
+    , mCount(count)
+    , mRangeType(rangeType)
+    , mRangeStyles(rangeStyles)
+    , mRangeForeColor(rangeForeColor)
+    , mRangeBackColor(rangeBackColor)
+    , mNativeWindow(0)
+{}
 
 GeckoEvent::GeckoEvent(
     /* [in] */ Int32 etype,
-    /* [in] */ IRect * pDirty)
+    /* [in] */ IRect* dirty)
+    : mType(0)
+    , mAction(0)
+    , mTime(0)
+    , mX(0)
+    , mY(0)
+    , mZ(0)
+    , mAlpha(0)
+    , mBeta(0)
+    , mGamma(0)
+    , mMetaState(0)
+    , mFlags(0)
+    , mKeyCode(0)
+    , mUnicodeChar(0)
+    , mOffset(0)
+    , mCount(0)
+    , mRangeType(0)
+    , mRangeStyles(0)
+    , mRangeForeColor(0)
+    , mRangeBackColor(0)
+    , mNativeWindow(0)
 {
-    InitMembers();
     if (etype != DRAW) {
         mType = INVALID;
         return;
     }
 
     mType = etype;
-    mRect = pDirty;
+    mRect = dirty;
 }
 
 GeckoEvent::GeckoEvent(
@@ -178,8 +312,27 @@ GeckoEvent::GeckoEvent(
     /* [in] */ Int32 h,
     /* [in] */ Int32 screenw,
     /* [in] */ Int32 screenh)
+    : mType(0)
+    , mAction(0)
+    , mTime(0)
+    , mX(0)
+    , mY(0)
+    , mZ(0)
+    , mAlpha(0)
+    , mBeta(0)
+    , mGamma(0)
+    , mMetaState(0)
+    , mFlags(0)
+    , mKeyCode(0)
+    , mUnicodeChar(0)
+    , mOffset(0)
+    , mCount(0)
+    , mRangeType(0)
+    , mRangeStyles(0)
+    , mRangeForeColor(0)
+    , mRangeBackColor(0)
+    , mNativeWindow(0)
 {
-    InitMembers();
     if (etype != SIZE_CHANGED) {
         mType = INVALID;
         return;
@@ -187,15 +340,42 @@ GeckoEvent::GeckoEvent(
 
     mType = etype;
 
-    CPoint::New(w, h, (IPoint**)&mP0);
-    CPoint::New(screenw, screenh, (IPoint**)&mP1);
+    ASSERT_SUCCEEDED(CPoint::New(w, h, (IPoint**)&mP0));
+    ASSERT_SUCCEEDED(CPoint::New(screenw, screenh, (IPoint**)&mP1));
 }
 
 GeckoEvent::GeckoEvent(
     /* [in] */ const String& uri)
+    : mType(LOAD_URI)
+    , mAction(0)
+    , mTime(0)
+    , mX(0)
+    , mY(0)
+    , mZ(0)
+    , mAlpha(0)
+    , mBeta(0)
+    , mGamma(0)
+    , mMetaState(0)
+    , mFlags(0)
+    , mKeyCode(0)
+    , mUnicodeChar(0)
+    , mOffset(0)
+    , mCount(0)
+    , mCharacters(uri)
+    , mRangeType(0)
+    , mRangeStyles(0)
+    , mRangeForeColor(0)
+    , mRangeBackColor(0)
+    , mNativeWindow(0)
+{}
+
+UInt32 GeckoEvent::AddRef()
 {
-    InitMembers();
-    mType = LOAD_URI;
-    mCharacters = uri;
+    return ElRefBase::AddRef();
+}
+
+UInt32 GeckoEvent::Release()
+{
+    return ElRefBase::Release();
 }
 

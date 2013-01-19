@@ -26,12 +26,12 @@ private:
         LooperThread();
 
         ECode Run();
-    
+
         CARAPI_(PInterface) Probe(
             /* [in]  */ REIID riid);
 
         CARAPI_(Mutex*) GetSelfLock();
-    
+
         UInt32 AddRef();
 
         UInt32 Release();
@@ -462,7 +462,7 @@ public:
     static Int32 sUserColumn;
 
 private:
-    static List<GeckoEvent*> gPendingEvents;
+    static List< AutoPtr<GeckoEvent> > gPendingEvents;
 
     static Boolean gRestartScheduled;
 

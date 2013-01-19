@@ -3,12 +3,12 @@
 #define __GECKOEVENT_H__
 
 #include "Elastos.Framework.Core.h"
-#include <elastos.h>
+#include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>
 
 using namespace Elastos;
 
-class GeckoEvent
+class GeckoEvent : public ElRefBase
 {
 public:
     ~GeckoEvent();
@@ -60,6 +60,11 @@ public:
 
     GeckoEvent(
         /* [in] */ const String& uri);
+
+    CARAPI_(UInt32) AddRef();
+
+    CARAPI_(UInt32) Release();
+
 public:
     const static Int32 INVALID;
     const static Int32 NATIVE_POKE;
@@ -97,11 +102,12 @@ public:
     const static Int32 IME_RANGE_UNDERLINE;
     const static Int32 IME_RANGE_FORECOLOR;
     const static Int32 IME_RANGE_BACKCOLOR;
+
 public:
     Int32 mType;
     Int32 mAction;
     Int64 mTime;
-    AutoPtr<IPoint>  mP0;
+    AutoPtr<IPoint> mP0;
     AutoPtr<IPoint> mP1;
     AutoPtr<IRect> mRect;
     Double mX, mY, mZ;
@@ -117,6 +123,7 @@ public:
     AutoPtr<IAddress>  mAddress;
 
     Int32 mNativeWindow;
+
 private:
     // TODO: Add your private member variables here.
     Void InitIMERange(Int32 action, Int32 offset, Int32 count,
@@ -131,34 +138,6 @@ private:
         mRangeForeColor = rangeForeColor;
         mRangeBackColor = rangeBackColor;
         return;
-    }
-
-    Void InitMembers() {
-        mType = 0;
-        mAction = 0;
-        mTime = 0;
-        mX = 0;
-        mY = 0;
-        mZ = 0;
-        mAlpha = 0;
-        mBeta = 0;
-        mGamma = 0;
-        mMetaState = 0;
-        mFlags = 0;
-        mKeyCode = 0;
-        mUnicodeChar = 0;
-        mOffset = 0;
-        mCount = 0;
-        mRangeType = 0;
-        mRangeStyles = 0;
-        mRangeForeColor = 0;
-        mRangeBackColor = 0;
-        mNativeWindow = 0;
-        mP0 = NULL;
-        mP1 = NULL;
-        mRect = NULL;
-        mLocation = NULL;
-        mAddress = NULL;
     }
 };
 

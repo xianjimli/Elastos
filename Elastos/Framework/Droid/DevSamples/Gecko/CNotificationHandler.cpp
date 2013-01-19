@@ -43,9 +43,9 @@ ECode CNotificationHandler::HandleIntent(
 
     printf("GeckoAppJava Handle notification ID %d\n", notificationID);
 
-    if (CApp::mAppContext) {
+    if (CApp::sAppContext) {
         // This should call the observer, if any
-        CApp::mAppContext->HandleNotification(action, alertName, alertCookie);
+        CApp::sAppContext->HandleNotification(action, alertName, alertCookie);
     } else {
         // The app is not running, just cancel this notification
         INotificationManager* pNotificationManager;
