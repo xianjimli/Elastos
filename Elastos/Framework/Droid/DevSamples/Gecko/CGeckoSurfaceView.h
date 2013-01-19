@@ -5,15 +5,18 @@
 #include "_CGeckoSurfaceView.h"
 //#include "ReentrantLock.h"
 #include "CGeckoInputConnection.h"
+#include <elastos/ElRefBase.h>
 
 CarClass(CGeckoSurfaceView)
 {
 public:
-    class MySurfaceHoderCallback : public ISurfaceHolderCallback
+    class MySurfaceHoderCallback
+        : public ElRefBase
+        , public ISurfaceHolderCallback
     {
     public:
         MySurfaceHoderCallback(
-            /* [in] */ CGeckoSurfaceView* pHost);
+            /* [in] */ CGeckoSurfaceView* host);
 
         CARAPI_(PInterface) Probe(
             /* [in] */ REIID riid);
@@ -27,26 +30,28 @@ public:
             /* [in] */ InterfaceID* pIID);
 
         CARAPI SurfaceCreated(
-            /* [in] */ ISurfaceHolder* pHolder);
+            /* [in] */ ISurfaceHolder* holder);
 
         CARAPI SurfaceChanged(
-            /* [in] */ ISurfaceHolder* pHolder,
+            /* [in] */ ISurfaceHolder* holder,
             /* [in] */ Int32 format,
             /* [in] */ Int32 width,
             /* [in] */ Int32 height);
 
         CARAPI SurfaceDestroyed(
-            /* [in] */ ISurfaceHolder* pHolder);
+            /* [in] */ ISurfaceHolder* holder);
 
     private:
-        CGeckoSurfaceView* mHost;
-        Int32 mRef;
+        AutoPtr<CGeckoSurfaceView> mHost;
     };
 
 public:
     CGeckoSurfaceView();
 
     ~CGeckoSurfaceView();
+
+    CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid);
 
     ECode Draw(
         /* [in] */ ISurfaceHolder* pHolder,
@@ -852,11 +857,12 @@ public:
         IME_STATE_PLUGIN
     };
 
-    IGeckoInputConnection* mInputConnection;
+    AutoPtr<IGeckoInputConnection> mInputConnection;
     IME_STATE mIMEState;
     String mIMETypeHint;
     String mIMEActionHint;
     Boolean mIMELandscapeFS;
+
 private:
     Boolean mSurfaceValid;  //Is this surface valid for drawing into?
     Boolean mInDrawing; //Are we actively between beginDrawing/endDrawing
@@ -865,6 +871,7 @@ private:
     //ReentrantLock mSurfaceLock; //let's not change stuff around while we're in
                                 //the middle of starting drawing, ending drawing,
                                 //or changing surface characteristics
+    pthread_mutex_t mSurfaceLock;
     Int32 mFormat;  //Surface format, from surfaceChanged.Largely useless
 
     //the dimensions  of the surface
@@ -876,19 +883,19 @@ private:
     Int32 mBufferWidth;
     Int32 mBufferHeight;
 
-    IKeyListener* mKeyListener;
-    IEditable* mEditable;
-    IEditableFactory* mEditableFactory;
+    AutoPtr<IKeyListener> mKeyListener;
+    AutoPtr<IEditable> mEditable;
+    AutoPtr<IEditableFactory> mEditableFactory;
 
     //Software rendering
-    IBitmap* mSoftwareBitmap;
+    AutoPtr<IBitmap> mSoftwareBitmap;
     Mutex mSoftwareBitmapLock;
-    IBuffer* mSoftwareBuffer;
+    AutoPtr<IBuffer> mSoftwareBuffer;
     Mutex mSoftwareBufferLock;
-    IBitmap* mSoftwareBufferCopy;
+    AutoPtr<IBitmap> mSoftwareBufferCopy;
 
     //const SynchronousQueue<IInterface*> mSyncDraws;
-    ISurfaceView* mSurfaceView;
+    AutoPtr<ISurfaceView> mSurfaceView;
 
     friend class MySurfaceHoderCallback;
 };

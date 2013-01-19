@@ -10,25 +10,12 @@
 using namespace Elastos;
 using namespace Elastos::Core;
 
-CarClass(CGeckoInputConnection) , public ITextWatcher
-                                , public ElRefBase
+CarClass(CGeckoInputConnection)
 {
 public:
-
-    CARAPI_(PInterface) Probe(
-        /* [in]  */ REIID riid);
-
-    CARAPI_(UInt32) AddRef();
-
-    CARAPI_(UInt32) Release();
-
     CGeckoInputConnection();
 
     ~CGeckoInputConnection();
-
-    CARAPI GetInterfaceID(
-        /* [in] */ IInterface *pObject,
-        /* [out] */ InterfaceID *pIID);
 
     CARAPI GetTextBeforeCursor(
         /* [in] */ Int32 n,
@@ -190,12 +177,13 @@ public:
      */
     CARAPI AfterTextChanged(
             /* [in] */ IEditable* s);
+
 private:
     // TODO: Add your private member variables here.
         // Is a composition active?
     Boolean mComposing;
     // Composition text when a composition is active
-    String* mComposingText;
+    String mComposingText;
     // Start index of the composition within the text body
     Int32 mCompositionStart;
     /* During a composition, we should not alter the real selection,

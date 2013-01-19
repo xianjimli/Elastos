@@ -8,65 +8,19 @@
 #include <stdio.h>
 
 CGeckoInputConnection::CGeckoInputConnection()
+    : mComposing(FALSE)
+    , mComposingText("")
+    , mCompositionStart(0)
+    , mCompositionSelStart(0)
+    , mCompositionSelLen(0)
+    , mSelectionStart(0)
+    , mSelectionLength(0)
 {
 }
 
 CGeckoInputConnection::~CGeckoInputConnection()
 {
-    if (mComposingText) {
-        mComposingText=NULL;
-    }
 }
-
-PInterface CGeckoInputConnection::Probe(
-    /* [in] */ REIID riid)
-{
-    if (EIID_ITextWatcher == riid) {
-        return (IInterface*)(ITextWatcher*)this;
-    }else if (EIID_IGeckoInputConnection == riid)
-    {
-        return (IInterface*)(IGeckoInputConnection*)this;
-    }else if(EIID_IObject==EIID_IObject)
-    {
-        return (IInterface*)(IObject*)this;
-    }else {
-        return NULL;
-    }
-
-    return NULL;
-}
-
-UInt32 CGeckoInputConnection::AddRef()
-{
-    return ElRefBase::AddRef();
-}
-
-UInt32 CGeckoInputConnection::Release()
-{
-    return ElRefBase::Release();
-}
-
-ECode CGeckoInputConnection::GetInterfaceID(
-    /* [in] */ IInterface *pObject,
-    /* [out] */ InterfaceID *pIID)
-{
-
-    if (pIID == NULL) return E_INVALID_ARGUMENT;
-    if (pObject == (IInterface*)(ITextWatcher*)this)
-    {
-        *pIID = EIID_ITextWatcher;
-    }else if (pObject == (IInterface*)(IGeckoInputConnection*)this) {
-        *pIID = EIID_IGeckoInputConnection;
-    }
-    else if (pObject == (IInterface*)(IObject*)this) {
-        *pIID = EIID_IObject;
-    }
-    else {
-        return E_INVALID_ARGUMENT;
-    }
-    return NOERROR;
-}
-
 
 ECode CGeckoInputConnection::GetTextBeforeCursor(
     /* [in] */ Int32 length,
@@ -239,17 +193,17 @@ ECode CGeckoInputConnection::DeleteSurroundingText(
     if (mComposing) {
         GeckoAppShell::SendEventToGecko(
             new GeckoEvent(GeckoEvent::IME_COMPOSITION_BEGIN, 0, 0));
-        if (mComposingText->GetLength() > 0) {
+        if (mComposingText.GetCharCount() > 0) {
             /* IME_SET_TEXT doesn't work well with empty strings */
             GeckoAppShell::SendEventToGecko(
                 new GeckoEvent(
                                0,
-                               mComposingText->GetLength(),
+                               mComposingText.GetCharCount(),
                                GeckoEvent::IME_RANGE_RAWINPUT,
                                GeckoEvent::IME_RANGE_UNDERLINE,
                                0,
                                0,
-                               *mComposingText));
+                               mComposingText));
         }
     } else {
         GeckoAppShell::SendEventToGecko(
@@ -267,12 +221,12 @@ ECode CGeckoInputConnection::SetComposingText(
 {
     if (NULL == pFlag) return E_INVALID_ARGUMENT;
     // Set new composing text
-    if (text != NULL) text->ToString(mComposingText);
-    else  mComposingText->SetTo("");
+    if (text != NULL) text->ToString(&mComposingText);
+    else  mComposingText = "";
     ECode ec = NOERROR;
 
     if (!mComposing) {
-        if (mComposingText->GetLength() == 0) {
+        if (mComposingText.GetCharCount() == 0) {
             // Some IMEs such as iWnn sometimes call with empty composing
             // text.  (See bug 664364)
             // If composing text is empty, ignore this and don't start
@@ -301,7 +255,7 @@ ECode CGeckoInputConnection::SetComposingText(
     Int32 nLen = 0;
     // Set new selection
     // New selection should be within the composition
-    mCompositionSelStart = newCursorPosition > 0 ? mComposingText->GetLength() : 0;
+    mCompositionSelStart = newCursorPosition > 0 ? mComposingText.GetCharCount() : 0;
     mCompositionSelLen = 0;
 
     AutoPtr<ISpanned> span = ISpanned::Probe(text);
@@ -398,7 +352,7 @@ ECode CGeckoInputConnection::SetComposingText(
     GeckoAppShell::SendEventToGecko(
         new GeckoEvent(mCompositionSelStart + mCompositionSelLen, 0,
                        GeckoEvent::IME_RANGE_CARETPOSITION, 0, 0, 0,
-                       *mComposingText));
+                       mComposingText));
     *pFlag = TRUE;
     return ec;
 }
@@ -419,13 +373,13 @@ ECode CGeckoInputConnection::FinishComposingText(
     if (mComposing) {
         // Set style to none
         GeckoAppShell::SendEventToGecko(
-            new GeckoEvent(0, mComposingText->GetLength(),
+            new GeckoEvent(0, mComposingText.GetCharCount(),
                            GeckoEvent::IME_RANGE_RAWINPUT, 0, 0, 0,
-                           *mComposingText));
+                           mComposingText));
         GeckoAppShell::SendEventToGecko(
             new GeckoEvent(GeckoEvent::IME_COMPOSITION_END, 0, 0));
         mComposing = FALSE;
-        mComposingText->SetTo("");
+        mComposingText = "";
 
         // Make sure caret stays at the same position
         GeckoAppShell::SendEventToGecko(
@@ -476,13 +430,13 @@ ECode CGeckoInputConnection::SetSelection(
 
         if (start < 0)
             start = 0;
-        else if (start > mComposingText->GetLength())
-            start = mComposingText->GetLength();
+        else if (start > mComposingText.GetCharCount())
+            start = mComposingText.GetCharCount();
 
         if (end < 0)
             end = 0;
-        else if (end > mComposingText->GetLength())
-            end = mComposingText->GetLength();
+        else if (end > mComposingText.GetCharCount())
+            end = mComposingText.GetCharCount();
 
         mCompositionSelStart = start;
         mCompositionSelLen = end - start;
@@ -614,21 +568,11 @@ ECode CGeckoInputConnection::PerformPrivateCommand(
 }
 
 ECode CGeckoInputConnection::constructor(
-     IView * pTargetView)
+     IView * targetView)
 {
     //mQueryResult = new SynchronousQueue<String>();
-    mComposing = FALSE;
-    mComposingText = NULL;
-    mCompositionStart = 0;
-    mCompositionSelStart = 0;
-    mCompositionSelLen = 0;
-    mUpdateRequest = NULL;
-    //mUpdateExtract = NULL;
-    mSelectionStart = NULL;
-    mSelectionLength = NULL;
-    ECode ec = CBaseInputConnection::New(
-        pTargetView, TRUE, (IInputConnection**)&mBaseInputConnection);
-    return ec;
+    return CBaseInputConnection::New(
+        targetView, TRUE, (IInputConnection**)&mBaseInputConnection);
 }
 
 ECode CGeckoInputConnection::BeforeTextChanged(
@@ -699,12 +643,12 @@ ECode CGeckoInputConnection::OnKeyDel(
     if (!mComposing)
         *pFlag = FALSE;
 
-    if (mComposingText->GetLength() > 0) {
-         *mComposingText = mComposingText->Substring(
+    if (mComposingText.GetCharCount() > 0) {
+         mComposingText = mComposingText.Substring(
                                     0,
-                                    mComposingText->GetLength() - 1);
+                                    mComposingText.GetCharCount() - 1);
 
-        if (mComposingText->GetLength() > 0)
+        if (mComposingText.GetCharCount() > 0)
             *pFlag = FALSE;
     }
 
@@ -778,7 +722,7 @@ ECode CGeckoInputConnection::NotifySelectionChange(
 ECode CGeckoInputConnection::Reset()
 {
     mComposing = FALSE;
-    mComposingText->SetTo("");
+    mComposingText = "";
 
     if (mUpdateRequest)
     {

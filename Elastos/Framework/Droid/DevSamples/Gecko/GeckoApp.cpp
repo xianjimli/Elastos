@@ -1,133 +1,19 @@
 
+#include "cmdef.h"
 #include "GeckoApp.h"
-#include <elastos/ElRefBase.h>
 #include "GeckoRunnable.h"
 #include "GeckoAppShell.h"
 #include <stdio.h>
+#include <elastos/ElRefBase.h>
 //#include "CGeckoConnectivityReceiver.h"
-
-IFrameLayout* GeckoApp::mainLayout = NULL;
-CGeckoSurfaceView* GeckoApp::surfaceView = NULL;
-GeckoApp* GeckoApp::mAppContext = NULL;
-Boolean GeckoApp::mFullscreen = FALSE;
-IFile* GeckoApp::sGREDir = NULL;
-GeckoApp::LaunchState GeckoApp::sLaunchState = GeckoApp::LaunchState_PreLaunch;
-Mutex GeckoApp::sSyncLaunchState;
-
-GeckoApp::GeckoApp()
-    : mLibLoadThread(NULL)
-    , mMainHandler(NULL)
-    , haveKilledZombies(FALSE)
-    , mLaunchButton(NULL)
-    , mLaunchIntent(NULL)
-    , mConnectivityFilter(NULL)
-    , mConnectivityReceiver(NULL)
-{
-}
-
-GeckoApp::~GeckoApp()
-{
-    if (mainLayout) {
-        mainLayout->Release();
-        mainLayout = NULL;
-    }
-    if (surfaceView) {
-        surfaceView->Probe(EIID_ISurfaceView)->Release();
-        surfaceView = NULL;
-    }
-    if (sGREDir) {
-        sGREDir->Release();
-        sGREDir = NULL;
-    }
-    if (mMainHandler) {
-        mMainHandler->Release();
-        mMainHandler = NULL;
-    }
-    if (mLibLoadThread) {
-        mLibLoadThread->Release();
-        mLibLoadThread = NULL;
-    }
-    if (mLaunchButton) {
-        mLaunchButton->Release();
-        mLaunchButton = NULL;
-    }
-    if (mLaunchIntent) {
-        mLaunchIntent->Release();
-        mLaunchIntent = NULL;
-    }
-    if (mConnectivityFilter) {
-        mConnectivityFilter->Release();
-        mConnectivityFilter = NULL;
-    }
-    if (mConnectivityReceiver) {
-        mConnectivityReceiver->Release();
-        mConnectivityReceiver = NULL;
-    }
-}
-
-ECode GeckoApp::CheckLaunchState(
-    /* [in] */ LaunchState checkState,
-    /* [out] */ Boolean* pResult)
-{
-    if (!pResult) return E_INVALID_ARGUMENT;
-
-    Mutex::Autolock lock(sSyncLaunchState);
-    *pResult = (sLaunchState == checkState);
-    return NOERROR;
-}
-
-ECode GeckoApp::SetLaunchState(
-    /* [in] */ LaunchState setState)
-{
-    Mutex::Autolock lock(sSyncLaunchState);
-    sLaunchState = setState;
-    return NOERROR;
-}
-
-// if mLaunchState is equal to checkState this sets mLaunchState to setState
-// and return true. Otherwise we return false.
-ECode GeckoApp::CheckAndSetLaunchState(
-    /* [in] */ LaunchState checkState,
-    /* [in] */ LaunchState setState,
-    /* [out] */ Boolean* pResult)
-{
-    if (!pResult) return E_INVALID_ARGUMENT;
-
-    Mutex::Autolock lock(sSyncLaunchState);
-    if (sLaunchState != checkState) {
-        *pResult = FALSE;
-    }
-    sLaunchState = setState;
-    *pResult = TRUE;
-    return NOERROR;
-}
-
-ECode GeckoApp::ShowErrorDialog(
-    /* [in] */ const String& message)
-{
-    /*new AlertDialog.Builder(this)
-            .setMessage(message)
-            .setCancelable(false)
-            .setPositiveButton(0x7f05000d, //R.string.exit_label,
-                               new DialogInterface.OnClickListener() {
-                                   public void onClick(DialogInterface dialog,
-                                                       int id)
-                                   {
-                                       GeckoApp.this.finish();
-                                       System.exit(0);
-                                   }
-                               }).show();*/
-     return E_NOT_IMPLEMENTED;
-}
 
 class LaunchRunnable : public GeckoRunnable
 {
 public:
     LaunchRunnable(
-        /* [in] */ GeckoApp* pHost)
-        : GeckoRunnable((Void*)pHost)    
-    {
-    }
+        /* [in] */ GeckoApp* host)
+        : GeckoRunnable((Void*)host)
+    {}
 
     ECode Run()
     {
@@ -135,29 +21,26 @@ public:
         ECode ec;// = System::CurrentTimeMillis(&startup_time);
         //if (FAILED(ec)) return ec;
 
-        GeckoApp* pHost = (GeckoApp*)mHost;
+        GeckoApp* host = (GeckoApp*)mHost;
         //try {
-            if (!pHost->mLibLoadThread) {
-                pHost->mLibLoadThread->Join();
+            if (!host->mLibLoadThread) {
+                host->mLibLoadThread->Join();
             }
         //} catch (InterruptedException ie) {}
-        IResources* pIRes;
-        ec = pHost->GetResources(&pIRes);
-        if (FAILED(ec)) return ec;
-        ec = pIRes->GetString(0x7f050000, //R.string.splash_screen_loading,
-                         &GeckoApp::surfaceView->sSplashStatusMsg);
-        pIRes->Release();
-        if (FAILED(ec)) return ec;
-        GeckoApp::surfaceView->DrawSplashScreen();
+        AutoPtr<IResources> res;
+        FAIL_RETURN(host->GetResources((IResources**)&res));
+        FAIL_RETURN(res->GetString(0x7f050000, //R.string.splash_screen_loading,
+                         &GeckoApp::sSurfaceView->sSplashStatusMsg));
+        GeckoApp::sSurfaceView->DrawSplashScreen();
         // unpack files in the components directory
         //try {
-        ec = pHost->UnpackComponents();
+        ec = host->UnpackComponents();
         if (ec == E_FILE_NOT_FOUND_EXCEPTION) {
             printf("GeckoApp error unpacking components: file not found\n");
             //Looper:Prepare();
             String error;
-            pHost->GetString(0x7f050004, &error); //R.string.error_loading_file
-            pHost->ShowErrorDialog(error);
+            host->GetString(0x7f050004, &error); //R.string.error_loading_file
+            host->ShowErrorDialog(error);
             //Looper::Loop();
             return NOERROR;
         }
@@ -193,22 +76,16 @@ public:
         // and then fire us up
         //try {
             String env;
-            ec = pHost->mLaunchIntent->GetStringExtra(String("env0"), &env);
-            if (FAILED(ec)) return ec;
+            FAIL_RETURN(host->mLaunchIntent->GetStringExtra(String("env0"), &env));
 
-            IApplication* pApp;
-            ec = pHost->GetApplication(&pApp);
-            if (FAILED(ec)) return ec;
+            AutoPtr<IApplication> app;
+            FAIL_RETURN(host->GetApplication((IApplication**)&app));
             String resPath;
             //ec = pApp->GetPackageResourcePath(resPath&);
-            pApp->Release();
-            if (FAILED(ec)) return ec;
 
             String args, data;
-            ec = pHost->mLaunchIntent->GetStringExtra(String("args"), &args);
-            if (FAILED(ec)) return ec;
-            //ec = pHost->mLaunchIntent->GetDataString(&data);
-            if (FAILED(ec)) return ec;
+            FAIL_RETURN(host->mLaunchIntent->GetStringExtra(String("args"), &args));
+            //FAIL_RETURN(host->mLaunchIntent->GetDataString(&data));
             ec = GeckoAppShell::RunGecko(resPath, args, data);
             if (FAILED(ec)) {
                 printf("GeckoApp top level exception RunGecko %x\n", ec);
@@ -226,52 +103,13 @@ public:
 
 };
 
-// Returns true when the intent is going to be handled by gecko launch
-ECode GeckoApp::Launch(
-    /* [in] */ IIntent* pIntent,
-    /* [out] */ Boolean* pResult)
-{
-    if (!pResult) return E_INVALID_ARGUMENT;
-
-    Boolean result;
-    CheckAndSetLaunchState(LaunchState_Launching, LaunchState_Launched, &result);
-    if (!result) {
-        *pResult = FALSE;
-        return NOERROR;
-    }
-
-    ECode ec;
-    if (!pIntent) {
-        pIntent = GetIntent();
-        if (FAILED(ec)) return ec;
-    }
-    mLaunchIntent = pIntent;
-    mLaunchIntent->AddRef();
-
-    LaunchRunnable* pRunnable = new LaunchRunnable(this);
-    if (!pRunnable) return E_OUT_OF_MEMORY;
-
-    IThread* pThread;
-    ec = CThread::New(IRunnable::Probe(pRunnable), &pThread);
-    if (FAILED(ec)) {
-        delete pRunnable;
-        return ec;
-    }
-    pThread->Start();
-    pThread->Release();
-
-    *pResult = TRUE;
-    return NOERROR;
-}
-
 class LoopRunnable : public GeckoRunnable
 {
 public:
     LoopRunnable(
-        /* [in] */ GeckoApp* pHost)
-        : GeckoRunnable((Void*)pHost)    
-    {
-    }
+        /* [in] */ GeckoApp* host)
+        : GeckoRunnable((Void*)host)
+    {}
 
     ECode Run()
     {
@@ -289,8 +127,8 @@ class LibLoadRunnable : public GeckoRunnable
 {
 public:
     LibLoadRunnable(
-        /* [in] */ GeckoApp* pHost)
-        : GeckoRunnable((Void*)pHost)    
+        /* [in] */ GeckoApp* host)
+        : GeckoRunnable((Void*)host)
     {
     }
 
@@ -298,39 +136,27 @@ public:
     {
         // At some point while loading the gecko libs our default locale gets set
         // so just save it to locale here and reset it as default after the join
-        ILocale* pLocale;
-        ECode ec;
+        AutoPtr<ILocale> locale;
         //ec = Locale::GetDefault(&pLocale);
         //if (FAILED(ec)) return ec;
 
-        GeckoApp* pHost = (GeckoApp*)mHost;
-        IApplication* pApp;
+        GeckoApp* host = (GeckoApp*)mHost;
+        AutoPtr<IApplication> app;
         String path;
-        ec = pHost->GetApplication(&pApp);
-        if (FAILED(ec)) goto exit;
+        FAIL_RETURN(host->GetApplication((IApplication**)&app));
         //ec = pApp->GetPackageResourcePath(&path);
-        pApp->Release();
-        if (FAILED(ec)) goto exit;
-        ec = GeckoAppShell::LoadGeckoLibs(path);
-        if (FAILED(ec)) goto exit;
+        FAIL_RETURN(GeckoAppShell::LoadGeckoLibs(path));
 
         //ec = Locale::SetDefault(pLocale);
         //if (FAILED(ec)) goto exit;
 
-        IContext* pIContext;
-        ec = pHost->GetBaseContext(&pIContext);
-        if (FAILED(ec)) goto exit;
-        IResources* pRes;
-        ec = pIContext->GetResources(&pRes);
-        pIContext->Release();
-        if (FAILED(ec)) goto exit;
+        AutoPtr<IContext> context;
+        FAIL_RETURN(host->GetBaseContext((IContext**)&context));
+        AutoPtr<IResources> res;
+        FAIL_RETURN(context->GetResources((IResources**)&res));
 
-        IConfiguration* pConfig;
-        ec = pRes->GetConfiguration(&pConfig);
-        if (FAILED(ec)) {
-            pRes->Release();
-            goto exit;
-        }
+        AutoPtr<IConfiguration> config;
+        FAIL_RETURN(res->GetConfiguration((IConfiguration**)&config));
         /*pConfig->SetLocale(pLocale);
         IDisplayMerics* pIDM;
         ec = pRes->GetDisplayMetrics(&pIDM);
@@ -341,19 +167,209 @@ public:
         }
         pRes->UpdateConfiguration(pConfig, pIDM);
         pIDM->Release();*/
-        pRes->Release();
-        pConfig->Release();
 
-exit:
-        pLocale->Release();
         return NOERROR;
     }
 };
 
+AutoPtr<IFrameLayout> GeckoApp::sMainLayout;
+AutoPtr<CGeckoSurfaceView> GeckoApp::sSurfaceView;
+AutoPtr<GeckoApp> GeckoApp::sAppContext;
+Boolean GeckoApp::sFullscreen = FALSE;
+AutoPtr<IFile> GeckoApp::sGREDir;
+GeckoApp::LaunchState GeckoApp::sLaunchState = GeckoApp::LaunchState_PreLaunch;
+Mutex GeckoApp::sSyncLaunchState;
+
+GeckoApp::GeckoApp()
+    : mHaveKilledZombies(FALSE)
+{
+}
+
+GeckoApp::~GeckoApp()
+{
+    // if (sSurfaceView) {
+    //     sSurfaceView->Probe(EIID_IsSurfaceView)->Release();
+    //     sSurfaceView = NULL;
+    // }
+}
+
+Boolean GeckoApp::CheckLaunchState(
+    /* [in] */ LaunchState checkState)
+{
+    Mutex::Autolock lock(&sSyncLaunchState);
+    return sLaunchState == checkState;
+}
+
+void GeckoApp::SetLaunchState(
+    /* [in] */ LaunchState setState)
+{
+    Mutex::Autolock lock(&sSyncLaunchState);
+    sLaunchState = setState;
+}
+
+// if mLaunchState is equal to checkState this sets mLaunchState to setState
+// and return true. Otherwise we return false.
+Boolean GeckoApp::CheckAndSetLaunchState(
+    /* [in] */ LaunchState checkState,
+    /* [in] */ LaunchState setState)
+{
+    Mutex::Autolock lock(&sSyncLaunchState);
+    if (sLaunchState != checkState) {
+        return FALSE;
+    }
+    sLaunchState = setState;
+    return TRUE;
+}
+
+ECode GeckoApp::ShowErrorDialog(
+    /* [in] */ const String& message)
+{
+    /*new AlertDialog.Builder(this)
+            .setMessage(message)
+            .setCancelable(false)
+            .setPositiveButton(0x7f05000d, //R.string.exit_label,
+                               new DialogInterface.OnClickListener() {
+                                   public void onClick(DialogInterface dialog,
+                                                       int id)
+                                   {
+                                       GeckoApp.this.finish();
+                                       System.exit(0);
+                                   }
+                               }).show();*/
+     return E_NOT_IMPLEMENTED;
+}
+
+void* GeckoApp::LaunchEntryRoutine(void *arg)
+{
+    ECode ec;
+printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+    if (arg == NULL) {
+        pthread_exit((void*)E_THREAD_ABORTED);
+    }
+
+    Int64 startup_time;
+    // = System::CurrentTimeMillis(&startup_time);
+    //if (FAILED(ec)) return ec;
+
+    GeckoApp* host = (GeckoApp*)arg;
+    //try {
+        if (!host->mLibLoadThread) {
+// printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+            // host->mLibLoadThread->Join();
+        }
+    //} catch (InterruptedException ie) {}
+    AutoPtr<IResources> res;
+    ASSERT_SUCCEEDED(host->GetResources((IResources**)&res));
+    ASSERT_SUCCEEDED(res->GetString(0x7f050000, //R.string.splash_screen_loading,
+                     &GeckoApp::sSurfaceView->sSplashStatusMsg));
+    ASSERT_SUCCEEDED(GeckoApp::sSurfaceView->DrawSplashScreen());
+printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+    // unpack files in the components directory
+    //try {
+//    ec = host->UnpackComponents();
+//    if (ec == E_FILE_NOT_FOUND_EXCEPTION) {
+//        printf("GeckoApp error unpacking components: file not found\n");
+//        //Looper:Prepare();
+//        String error;
+//        host->GetString(0x7f050004, &error); //R.string.error_loading_file
+//        host->ShowErrorDialog(error);
+//        //Looper::Loop();
+//        return NOERROR;
+//    }
+//    else if (ec == E_IO_EXCEPTION){
+//        printf("GeckoApp error unpacking components: io error\n");
+//        String msg("io error");
+//        //Looper::Prepare();
+//        /*if (msg != null && msg.equalsIgnoreCase("No space left on device"))
+//            showErrorDialog(getString(0x7f050003)); //R.string.no_space_to_start_error
+//        else
+//            showErrorDialog(getString(0x7f050004)); //R.string.error_loading_file*/
+//        //Looper::Loop();
+//        return NOERROR;
+//    }
+//    /*} catch (FileNotFoundException fnfe) {
+//        Log.e("GeckoApp", "error unpacking components", fnfe);
+//        Looper.prepare();
+//        showErrorDialog(getString(0x7f050004));//R.string.error_loading_file
+//        Looper.loop();
+//        return;
+//    } catch (IOException ie) {
+//        Log.e("GeckoApp", "error unpacking components", ie);
+//        String msg = ie.getMessage();
+//        Looper.prepare();
+//        if (msg != null && msg.equalsIgnoreCase("No space left on device"))
+//            showErrorDialog(getString(R.string.no_space_to_start_error));
+//        else
+//            showErrorDialog(getString(R.string.error_loading_file));
+//        Looper.loop();
+//        return;
+//    }*/
+
+    // and then fire us up
+    //try {
+       String env;
+       // ASSERT_SUCCEEDED(host->mLaunchIntent->GetStringExtra(String("env0"), &env));
+
+       AutoPtr<IApplication> app;
+       ASSERT_SUCCEEDED(host->GetApplication((IApplication**)&app));
+       String resPath;
+       //ec = pApp->GetPackageResourcePath(resPath&);
+
+       String args, data;
+       // ASSERT_SUCCEEDED(host->mLaunchIntent->GetStringExtra(String("args"), &args));
+       //FAIL_RETURN(host->mLaunchIntent->GetDataString(&data));
+       ASSERT_SUCCEEDED(GeckoAppShell::RunGecko(resPath, args, data));
+       if (FAILED(ec)) {
+           printf("GeckoApp top level exception RunGecko %x\n", ec);
+           String error("run gecko failed");
+           GeckoAppShell::ReportJavaCrash(error);
+       }
+    /*} catch (Exception e) {
+        Log.e("GeckoApp", "top level exception", e);
+        StringWriter sw = new StringWriter();
+        e.printStackTrace(new PrintWriter(sw));
+        GeckoAppShell.reportJavaCrash(sw.toString());
+    }*/
+    return (void*)ec;
+}
+
+// Returns true when the intent is going to be handled by gecko launch
+Boolean GeckoApp::Launch(
+    /* [in] */ IIntent* _intent)
+{
+printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+    if (!CheckAndSetLaunchState(LaunchState_Launching, LaunchState_Launched)) {
+        return FALSE;
+    }
+
+    AutoPtr<IIntent> intent = _intent;
+    if (intent == NULL) {
+        intent = GetIntent();
+    }
+
+    mLaunchIntent = intent;
+
+    pthread_t thread;
+    if (pthread_create(&thread, NULL, LaunchEntryRoutine, (void*)this)) {
+        assert(0);
+        return E_THREAD_ABORTED;
+    }
+
+    // AutoPtr<LaunchRunnable> runnable = new LaunchRunnable(this);
+    // assert(runnable != NULL);
+
+    // AutoPtr<IThread> thread;
+    // ASSERT_SUCCEEDED(CThread::New(IRunnable::Probe(runnable.Get()), (IThread**)&thread));
+    // thread->Start();
+printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+    return TRUE;
+}
+
 ECode GeckoApp::OnCreate(
     /* [in] */ IBundle* savedInstanceState)
 {
-    mAppContext = this;
+printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+    sAppContext = this;
     ECode ec;
     /*ec = CHandler::New(&mMainHandler);
     if (FAILED(ec)) return ec;
@@ -382,141 +398,90 @@ ECode GeckoApp::OnCreate(
     printf("GeckoApp create\n");
     Activity::OnCreate(savedInstanceState);
 
-    if (!sGREDir) {
-        String dataDir;
-        /*IApplicationInfo* pAppInfo;
-        ec = GetApplicationInfo(&pAppInfo);
-        if (FAILED(ec)) return ec;
+//    if (!sGREDir) {
+//        String dataDir;
+//        /*IApplicationInfo* pAppInfo;
+//        ec = GetApplicationInfo(&pAppInfo);
+//        if (FAILED(ec)) return ec;
+//
+//        ec = pAppInfo->GetDataDir(&dataDir);
+//        pAppInfo->Release();
+//        if (FAILED(ec)) return ec;*/
+//        FAIL_RETURN(CFile::New(dataDir, (IFile**)&sGREDir));
+//    }
+    AutoPtr<IWindow> window;
+    ASSERT_SUCCEEDED(GetWindowEx((IWindow**)&window));
 
-        ec = pAppInfo->GetDataDir(&dataDir);
-        pAppInfo->Release();
-        if (FAILED(ec)) return ec;*/
-        ec = CFile::New(dataDir, &sGREDir);
-        if (FAILED(ec)) return ec;
-    }
-
-    IWindow* pIWindow;
-    ec = GetWindowEx(&pIWindow);
-    if (FAILED(ec)) return ec;
-
-    ec = pIWindow->SetFlags(mFullscreen ?
-                         WindowManagerLayoutParams_FLAG_FULLSCREEN : 0,
-                         WindowManagerLayoutParams_FLAG_FULLSCREEN);
-    pIWindow->Release();
-    if (FAILED(ec)) return ec;
-
-    if (!surfaceView) {
-        ec = CGeckoSurfaceView::NewByFriend(this, &surfaceView);
+    ASSERT_SUCCEEDED(window->SetFlags(sFullscreen ?
+             WindowManagerLayoutParams_FLAG_FULLSCREEN : 0,
+             WindowManagerLayoutParams_FLAG_FULLSCREEN));
+    if (!sSurfaceView) {
+        ASSERT_SUCCEEDED(CGeckoSurfaceView::NewByFriend(this, (CGeckoSurfaceView**)&sSurfaceView));
     }
     else {
-        ec = mainLayout->RemoveViewInLayout(surfaceView);
+        ASSERT_SUCCEEDED(sMainLayout->RemoveViewInLayout(sSurfaceView));
     }
-    if (FAILED(ec)) return ec;
+    ASSERT_SUCCEEDED(CFrameLayout::New(this, (IFrameLayout**)&sMainLayout));
+    AutoPtr<IFrameLayoutLayoutParams> fLayoutParams;
+    ASSERT_SUCCEEDED(CFrameLayoutLayoutParams::New(ViewGroupLayoutParams_FILL_PARENT,
+            ViewGroupLayoutParams_FILL_PARENT, (IFrameLayoutLayoutParams**)&fLayoutParams));
+    ASSERT_SUCCEEDED(sMainLayout->AddViewEx3(sSurfaceView, fLayoutParams));
+    AutoPtr<IViewGroupLayoutParams> vgLayoutParams;
+    ASSERT_SUCCEEDED(CViewGroupLayoutParams::New(ViewGroupLayoutParams_FILL_PARENT,
+            ViewGroupLayoutParams_FILL_PARENT, (IViewGroupLayoutParams**)&vgLayoutParams));
+    SetContentView(sMainLayout, vgLayoutParams);
 
-    ec = CFrameLayout::New(this, &mainLayout);
-    if (FAILED(ec)) return ec;
+    // ASSERT_SUCCEEDED((CIntentFilter::New((IIntentFilter**)&mConnectivityFilter)));
+    // mConnectivityFilter->AddAction(
+    //         String(ConnectivityManager_CONNECTIVITY_ACTION));
+    // ASSERT_SUCCEEDED(CGeckoConnectivityReceiver::New(&mConnectivityReceiver));
 
-    IFrameLayoutLayoutParams* pLayoutParams;
-    ec = CFrameLayoutLayoutParams::New(ViewGroupLayoutParams_FILL_PARENT,
-                        ViewGroupLayoutParams_FILL_PARENT, &pLayoutParams);
-    if (FAILED(ec)) return ec;
-    ec = mainLayout->AddViewEx3(surfaceView, pLayoutParams);
-    pLayoutParams->Release();
-    if (FAILED(ec)) return ec;
+    if (!GeckoApp::CheckAndSetLaunchState(LaunchState_PreLaunch,
+        LaunchState_Launching)) return NOERROR;
 
-    IViewGroupLayoutParams* pVGroupLayoutParams;
-    ec = CViewGroupLayoutParams::New(ViewGroupLayoutParams_FILL_PARENT,
-                        ViewGroupLayoutParams_FILL_PARENT, &pVGroupLayoutParams);
-    if (FAILED(ec)) return ec;
-    SetContentView(mainLayout, pVGroupLayoutParams);
-    pVGroupLayoutParams->Release();
-    if (FAILED(ec)) return ec;
+    // CheckAndLaunchUpdate();
 
-    if (!mConnectivityFilter) {
-        ec = CIntentFilter::New(&mConnectivityFilter);
-        if (FAILED(ec)) return ec;
-    }
-    mConnectivityFilter->AddAction(
-                String(ConnectivityManager_CONNECTIVITY_ACTION));
-
-    if (!mConnectivityReceiver) {
-        //ec = CGeckoConnectivityReceiver::New(&mConnectivityReceiver);
-        //if (FAILED(ec)) return ec;
-    }
-
-    Boolean result;
-    GeckoApp::CheckAndSetLaunchState(LaunchState_PreLaunch,
-                                LaunchState_Launching, &result);
-    if (!result) return NOERROR;
-
-    CheckAndLaunchUpdate();
-
-    LibLoadRunnable* pLibLoadRunnable = new LibLoadRunnable(this);
-    if (!pLibLoadRunnable) return E_OUT_OF_MEMORY;
-    ec = CThread::New(IRunnable::Probe(pLibLoadRunnable), &mLibLoadThread);
-    if (FAILED(ec)) {
-        delete pLibLoadRunnable;
-        return ec;
-    }
-
-    IFile* pCacheFile;
-    ec = GeckoAppShell::GetCacheDir(&pCacheFile);
-    if (FAILED(ec)) return ec;
-
-    IFile* pLibxulFile;
-    ec = CFile::New(pCacheFile, String("libxul.so"), &pLibxulFile);
-    pCacheFile->Release();
-    if (FAILED(ec)) return ec;
-
-    IApplication* pIApplication;
-    ec = GetApplication(&pIApplication);
-    if (FAILED(ec)) {
-        pLibxulFile->Release();
-        return ec;
-    }
-    String resourcePath;
+    // AutoPtr<LibLoadRunnable> libLoadRunnable = new LibLoadRunnable(this);
+    // assert(libLoadRunnable != NULL);
+    // ASSERT_SUCCEEDED(CThread::New(IRunnable::Probe(libLoadRunnable), (IThread**)&mLibLoadThread));
+// printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+//     AutoPtr<IFile> cacheFile;
+//     ASSERT_SUCCEEDED(GeckoAppShell::GetCacheDir((IFile**)&cacheFile));
+// printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+//     AutoPtr<IFile> libXulFile;
+//     ASSERT_SUCCEEDED(CFile::New(cacheFile, String("libxul.so"), (IFile**)&libXulFile));
+// printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+//     AutoPtr<IApplication> app;
+//     ASSERT_SUCCEEDED(GetApplication((IApplication**)&app));
+//     String resourcePath;
     //ec = pIApplication->GetPackageResourcePath(&resourcePath);
-    pIApplication->Release();
-    if (FAILED(ec)) {
-        pLibxulFile->Release();
-        return ec;
-    }
-    IFile* pRes;
-    ec = CFile::New(resourcePath, &pRes);
-    if (FAILED(ec)) {
-        pLibxulFile->Release();
-        return ec;
-    }
+//     AutoPtr<IFile> res;
+//     ASSERT_SUCCEEDED(CFile::New(resourcePath, (IFile**)&res));
+// printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+//     Int64 resModifyTime, xulModifyTime;
+//     res->LastModified(&resModifyTime);
+//     libXulFile->LastModified(&xulModifyTime);
+// printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+//     Int32 freeSpace = 0;
+//     Boolean exist = FALSE;
+//     GeckoAppShell::GetFreeSpace(&freeSpace);
+//     libXulFile->Exists(&exist);
 
-    Int64 resModifyTime, xulModifyTime;
-    pRes->LastModified(&resModifyTime);
-    pRes->Release();
-    pLibxulFile->LastModified(&xulModifyTime);
-
-    Int32 freeSpace = 0;
-    Boolean exist = FALSE;
-    GeckoAppShell::GetFreeSpace(&freeSpace);
-    pLibxulFile->Exists(&exist);
-    pLibxulFile->Release();
-
-    IResources* pIResources;
-    ec = GetResources(&pIResources);
-    if (FAILED(ec)) return ec;
-    if (freeSpace > GeckoAppShell::kFreeSpaceThreshold &&
-        (!exist || resModifyTime >= xulModifyTime)) {
-        ec = pIResources->GetString(
-                    0x7f050001, //R.string.splash_screen_installing_libs,
-                    &surfaceView->sSplashStatusMsg);
-    }
-    else {
-        ec = pIResources->GetString(
-                    0x7f050000, //R.string.splash_screen_loading,
-                    &surfaceView->sSplashStatusMsg);
-    }
-    pIResources->Release();
-    if (FAILED(ec)) return ec;
-
-    mLibLoadThread->Start();
+    AutoPtr<IResources> resources;
+    ASSERT_SUCCEEDED(GetResources((IResources**)&resources));
+//     if (freeSpace > GeckoAppShell::kFreeSpaceThreshold &&
+//         (!exist || resModifyTime >= xulModifyTime)) {
+//         ASSERT_SUCCEEDED(resources->GetString(
+//                 0x7f050001, //R.string.splash_screen_installing_libs,
+//                 &sSurfaceView->sSplashStatusMsg));
+//     }
+//     else {
+        ASSERT_SUCCEEDED(resources->GetString(
+                0x7f050000, //R.string.splash_screen_loading,
+                &sSurfaceView->sSplashStatusMsg));
+//    }
+printf("==== File: %s, Line: %d, str: %s ====\n", __FILE__, __LINE__, sSurfaceView->sSplashStatusMsg.string());
+//    mLibLoadThread->Start();
     return NOERROR;
 }
 
@@ -528,10 +493,9 @@ ECode GeckoApp::OnStart()
 
 ECode GeckoApp::OnResume()
 {
+printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
     printf("GeckoApp resume\n");
-    Boolean result, result2;
-    CheckLaunchState(LaunchState_GeckoRunning, &result);
-    if (result) {
+    if (CheckLaunchState(LaunchState_GeckoRunning)) {
         GeckoAppShell::OnResume();
     }
     // After an onPause, the activity is back in the foreground.
@@ -539,13 +503,11 @@ ECode GeckoApp::OnResume()
     Activity::OnResume();
 
     // Just in case. Normally we start in onNewIntent
-    CheckLaunchState(LaunchState_PreLaunch, &result);
-    CheckLaunchState(LaunchState_Launching, &result2);
-    if (result || result2) {
-        AutoPtr<IIntent> pIIntent = GetIntent();
-        OnNewIntent(pIIntent);
+    if (CheckLaunchState(LaunchState_PreLaunch) ||
+        CheckLaunchState(LaunchState_Launching)) {
+        OnNewIntent(GetIntent());
     }
-
+printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
     //RegisterReceiver(mConnectivityReceiver, mConnectivityFilter);
     return NOERROR;
 }
@@ -623,9 +585,7 @@ ECode GeckoApp::OnConfigurationChanged(
 ECode GeckoApp::OnLowMemory()
 {
     printf("GeckoApp low memory\n");
-    Boolean result;
-    CheckLaunchState(LaunchState_GeckoRunning, &result);
-    if (result) {
+    if (CheckLaunchState(LaunchState_GeckoRunning)) {
         GeckoAppShell::OnLowMemory();
     }
 
@@ -759,15 +719,15 @@ ECode GeckoApp::ShowFilePicker(
     return NOERROR;
 }
 
-class CButtonClickListener : public ElRefBase
-                           , public IViewOnClickListener
+class ButtonClickListener
+    : public ElRefBase
+    , public IViewOnClickListener
 {
 public:
-    CButtonClickListener(
-        /* [in] */ GeckoApp* pHost)
-        : mHost(pHost)
-    {
-    }
+    ButtonClickListener(
+        /* [in] */ GeckoApp* host)
+        : mHost(host)
+    {}
 
     UInt32 AddRef()
     {
@@ -803,69 +763,60 @@ public:
         /* [in] */ IView* v)
     {
         // hide the button so we can't be launched again
-        mHost->mainLayout->RemoveViewInLayout(mHost->mLaunchButton);
+        mHost->sMainLayout->RemoveViewInLayout(mHost->mLaunchButton);
         mHost->SetLaunchState(GeckoApp::LaunchState_Launching);
-        Boolean result;
-        mHost->Launch(NULL, &result);
+        mHost->Launch(NULL);
 
         return NOERROR;
     }
 
 private:
-    GeckoApp* mHost;
+    AutoPtr<GeckoApp> mHost;
 };
 
 ECode GeckoApp::OnNewIntent(
-    /* [in] */ IIntent* pIntent)
+    /* [in] */ IIntent* intent)
 {
+printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+    ECode ec = NOERROR;
     Boolean result;
-    CheckLaunchState(LaunchState_GeckoExiting, &result);
-    if (result) {
+    if (CheckLaunchState(LaunchState_GeckoExiting)) {
         // We're exiting and shouldn't try to do anything else just incase
         // we're hung for some reason we'll force the process to exit
-        //System.exit(0);
+        exit(0);
         return NOERROR;
     }
 
     String action;
-    ECode ec = pIntent->GetAction(&action);
-    if (FAILED(ec)) return ec;
+    intent->GetAction(&action);
+printf("==== File: %s, Line: %d, action: %s ====\n", __FILE__, __LINE__, action.string());
+    if (action.Equals("org.mozilla.gecko.DEBUG") &&
+        CheckAndSetLaunchState(LaunchState_Launching, LaunchState_WaitButton)) {
+printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+        CButton::New(this, (IButton**)&mLaunchButton);
 
-    CheckLaunchState(LaunchState_Launching, &result);
-    if (action.Equals("org.mozilla.gecko.DEBUG")) {
-        SetLaunchState(LaunchState_WaitButton);
-        if (result) {
-            ec = CButton::New(this, &mLaunchButton);
-            if (FAILED(ec)) return ec;
+        AutoPtr<ICharSequence> text;
+        CStringWrapper::New(String("Launch"), (ICharSequence**)&text);
 
-            ICharSequence* pText;
-            ec = CStringWrapper::New(String("Launch"), &pText);
-            if (FAILED(ec)) return ec;
+        mLaunchButton->SetText(text); // don't need to localize
 
-            mLaunchButton->SetText(pText); // don't need to localize
-            pText->Release();
+        AutoPtr<IViewOnClickListener> listener = new ButtonClickListener(this);
+        assert(listener != NULL);
+        mLaunchButton->SetOnClickListener(listener);
+        sMainLayout->AddViewEx2(mLaunchButton, 300, 200);
 
-            CButtonClickListener* listener = new CButtonClickListener(this);
-            if (!listener) return E_OUT_OF_MEMORY;
-            mLaunchButton->SetOnClickListener(IViewOnClickListener::Probe(listener));
-            mainLayout->AddViewEx2(mLaunchButton, 300, 200);
-
-            return NOERROR;
-        }
+        return NOERROR;
     }
 
-    CheckLaunchState(LaunchState_WaitButton, &result);
-    if (result) return NOERROR;
-
-    ec = Launch(pIntent, &result);
-    if (result) return NOERROR;
-
+    if (CheckLaunchState(LaunchState_WaitButton)) return NOERROR;
+    if (Launch(intent)) return NOERROR;
+printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
     if (1) {//action.Equals(Intent_ACTION_VIEW)) {
         String uri;
         //ec = pIntent->GetDataString(&uri);
         //if (FAILED(ec)) return ec;
         GeckoEvent* pEvent = new GeckoEvent(uri);
-        if (!pEvent) return E_OUT_OF_MEMORY;        
+        if (!pEvent) return E_OUT_OF_MEMORY;
         GeckoAppShell::SendEventToGecko(pEvent);
         printf("GeckoApp onNewIntent: %s\n", uri.string());
     }
@@ -877,7 +828,7 @@ ECode GeckoApp::OnNewIntent(
     }
     else if (action.Equals("org.mozilla.fennec.WEBAPP")) {
         String uri;
-        ec = pIntent->GetStringExtra(String("args"), &uri);
+        ec = intent->GetStringExtra(String("args"), &uri);
         if (FAILED(ec)) return ec;
         GeckoEvent* pEvent = new GeckoEvent(uri);
         if (!pEvent) return E_OUT_OF_MEMORY;
@@ -1014,7 +965,7 @@ ECode GeckoApp::OnActivityResult(
             IFile* pIFile = NULL;
             IFileOutputStream* pFos = NULL;
             IInputStream* pIs = NULL;
-            
+
             String fileName("tmp_");
             String fileExt;
             Int32 period;
@@ -1163,13 +1114,13 @@ ECode GeckoApp::UnpackFile(
     ec = GetResources(&pIRes);
     if (FAILED(ec)) goto exit;
     ec = pIRes->GetString(0x7f050002, //R.string.splash_firstrun,
-                    &surfaceView->sSplashStatusMsg);
+                    &sSurfaceView->sSplashStatusMsg);
     pIRes->Release();
     if (FAILED(ec)) goto exit;
-    surfaceView->DrawSplashScreen();
+    sSurfaceView->DrawSplashScreen();
 
-    if (!haveKilledZombies) {
-        haveKilledZombies = TRUE;
+    if (!mHaveKilledZombies) {
+        mHaveKilledZombies = TRUE;
         GeckoAppShell::KillAnyZombies();
     }
 
@@ -1225,7 +1176,7 @@ ECode GeckoApp::CheckAndLaunchUpdate()
 
     ECode ec;
     Int32 statusCode = 8; // UNEXPECTED_ERROR
-    IFile* pBaseUpdateDir = NULL;
+    AutoPtr<IFile> baseUpdateDir;
     /*if (Build_VERSION.SDK_INT >= 8) {
         ec = GetExternalFilesDir(
                 Environment_DIRECTORY_DOWNLOADS, &pBaseUpdateDir);
@@ -1242,51 +1193,39 @@ ECode GeckoApp::CheckAndLaunchUpdate()
     }
     if (FAILED(ec)) return ec;*/
 
-    IFile* pTemp;
-    IFile* pUpdateDir;
-    ec = CFile::New(pBaseUpdateDir, String("updates"), &pTemp);
-    pBaseUpdateDir->Release();
-    if (FAILED(ec)) return ec;
-    ec = CFile::New(pTemp, String("0"), &pUpdateDir);
-    pTemp->Release();
-    if (FAILED(ec)) return ec;
+    AutoPtr<IFile> temp, updateDir;
+    ASSERT_SUCCEEDED(CFile::New(baseUpdateDir, String("updates"), (IFile**)&temp));
+    ASSERT_SUCCEEDED(CFile::New(temp, String("0"), (IFile**)&updateDir));
 
-    IFile *pUpdateFile = NULL, *pStatusFile = NULL;
+    AutoPtr<IFile> updateFile, statusFile;
     Boolean exist;
     String updateStatus;
     String status;
     String packageName;
-    ec = CFile::New(pUpdateDir, String("update.apk"), &pUpdateFile);
-    if (FAILED(ec)) goto exit;
-    ec = CFile::New(pUpdateDir, String("update.status"), &pStatusFile);
-    if (FAILED(ec)) goto exit;
+    ASSERT_SUCCEEDED(CFile::New(updateDir, String("update.apk"), (IFile**)&updateFile));
+    ASSERT_SUCCEEDED(CFile::New(updateDir, String("update.status"), (IFile**)&statusFile));
 
-    pStatusFile->Exists(&exist);
-    ReadUpdateStatus(pStatusFile, &updateStatus);
+    statusFile->Exists(&exist);
+    ReadUpdateStatus(statusFile, &updateStatus);
     if (!exist || !updateStatus.Equals("pending")) {
-        goto exit;
+        return NOERROR;
     }
 
-    pUpdateFile->Exists(&exist);
-    if (!exist) goto exit;
+    updateFile->Exists(&exist);
+    if (!exist) return NOERROR;
 
     printf("GeckoAppJava Update is available!\n");
 
     // Launch APK
     GetPackageName(&packageName);
-    IFile* pUpdateFileToRun;
-    ec = CFile::New(pUpdateDir, packageName + "-update.apk", &pUpdateFileToRun);
-    if (FAILED(ec)) goto exit;
+    AutoPtr<IFile> updateFileToRun;
+    ASSERT_SUCCEEDED(CFile::New(updateDir, packageName + "-update.apk", (IFile**)&updateFileToRun));
     //try {
         Boolean succeeded;
-        ec = pUpdateFile->RenameTo(pUpdateFileToRun, &succeeded);
-        if (FAILED(ec)) {
-            pUpdateFileToRun->Release();
-            goto exit;
-        }
+        ASSERT_SUCCEEDED(updateFile->RenameTo(updateFileToRun, &succeeded));
         if (succeeded) {
             String path;
-            pUpdateFileToRun->GetPath(&path);
+            updateFileToRun->GetPath(&path);
             String amCmd("/system/bin/am start -a android.intent.action.VIEW ");
             amCmd += "-n com.android.packageinstaller/.PackageInstallerActivity -d file://";
             amCmd += path;
@@ -1305,7 +1244,6 @@ ECode GeckoApp::CheckAndLaunchUpdate()
             printf("GeckoAppJava Cannot rename the update file!\n");
             statusCode = 7; // WRITE_ERROR
         }
-        pUpdateFileToRun->Release();
     //} catch (Exception e) {
     //    Log.i("GeckoAppJava", "error launching installer to update", e);
     //}
@@ -1319,18 +1257,15 @@ ECode GeckoApp::CheckAndLaunchUpdate()
         status += + statusCode + "\n";
     }
 
-    IFileOutputStream* pIOutStream;
+    AutoPtr<IFileOutputStream> os;
     //try {
     {
         ArrayOf<Byte> buf((Byte*)status.string(), status.GetLength());
 
-        ec = CFileOutputStream::New(pStatusFile, &pIOutStream);
-        if (FAILED(ec)) goto exit;
+        ASSERT_SUCCEEDED(CFileOutputStream::New(statusFile, (IFileOutputStream**)&os));
 
-        ec = pIOutStream->WriteBufferEx(0, buf.GetLength(), buf);
-        pIOutStream->Close();
-        pIOutStream->Release();
-        if (FAILED(ec)) goto exit;
+        os->WriteBufferEx(0, buf.GetLength(), buf);
+        os->Close();
     }
     //} catch (Exception e) {
     //    Log.i("GeckoAppJava", "error writing status file", e);
@@ -1339,16 +1274,6 @@ ECode GeckoApp::CheckAndLaunchUpdate()
     if (statusCode == 0) {
     //    System::Exit(0);
     }
-
-exit:
-    if (pUpdateFile) {
-        pUpdateFile->Release();
-    }
-    if (pStatusFile) {
-        pStatusFile->Release();
-    }
-    pUpdateDir->Release();
-    return ec;
 }
 
 ECode GeckoApp::ReadUpdateStatus(

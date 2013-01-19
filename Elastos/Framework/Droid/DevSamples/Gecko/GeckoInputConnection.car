@@ -8,10 +8,10 @@ module {
                 [out] Boolean* flag);
 
 		NotifyTextChange(
-                [in] ILocalInputMethodManager* imm, 
+                [in] ILocalInputMethodManager* imm,
                 [in] String text,
                 [in] Int32 start,
-                [in] Int32 oldEnd, 
+                [in] Int32 oldEnd,
                 [in] Int32 newEnd);
 
 		NotifySelectionChange(
@@ -37,5 +37,6 @@ module {
 	        [in] IView* targetView);
 
 	    interface IGeckoInputConnection;
+        interface ITextWatcher;
 	}
 }

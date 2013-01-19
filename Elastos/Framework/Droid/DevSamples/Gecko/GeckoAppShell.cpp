@@ -10,12 +10,15 @@
 #include <elastos/List.h>
 #include <elastos/AutoPtr.h>
 //#include <elastos/ByteBuffer.h>
+#include <StringBuffer.h>
+
+using namespace Elastos::Core;
 
 //const ITimer* GeckoAppShell::mIMETimer = NULL;
 //ICountDownLatch* GeckoAppShell::sGeckoPendingAcks = NULL;
 Int32 GeckoAppShell::sPidColumn = -1;
 Int32 GeckoAppShell::sUserColumn = -1;
-List<GeckoEvent*> GeckoAppShell::gPendingEvents;
+List< AutoPtr<GeckoEvent> > GeckoAppShell::gPendingEvents;
 Boolean GeckoAppShell::gRestartScheduled = FALSE;
 HashMap<Int32, IAlertNotification*> GeckoAppShell::mAlertNotifications;
 IFile* GeckoAppShell::sCacheFile = NULL;
@@ -236,7 +239,7 @@ ECode GeckoAppShell::GetMainHandler(
 {
     if (!ppHandler) return E_INVALID_ARGUMENT;
 
-    *ppHandler = GeckoApp::mAppContext->mMainHandler;
+    *ppHandler = GeckoApp::sAppContext->mMainHandler;
     if (*ppHandler) {
         (*ppHandler)->AddRef();
     }
@@ -270,7 +273,7 @@ ECode GeckoAppShell::GetCacheDir(
     if (!ppFile) return E_INVALID_ARGUMENT;
 
     if (!sCacheFile){
-        //ECode ec = GeckoApp::mAppContext->GetCacheDir(&sCacheFile);
+        //ECode ec = GeckoApp::sAppContext->GetCacheDir(&sCacheFile);
         //if (FAILED(ec)) return ec;
     }
     *ppFile = sCacheFile;
@@ -392,7 +395,7 @@ ECode GeckoAppShell::MoveFile(
             goto exit;
         }
 
-        ec = pInChannel->TransferTo(0, size, 
+        ec = pInChannel->TransferTo(0, size,
             (IWritableByteChannel*)pOutChannel->Probe(EIID_IWritableByteChannel),
              &number);
         pInChannel->Release();
@@ -509,7 +512,7 @@ ECode GeckoAppShell::LoadGeckoLibs(
     // libxul will depend on.  Not ideal.
     dlopen("/data/data/com.elastos.runtime/elastos/org.mozilla.fennec_unofficial/libmozutil.so", RTLD_LAZY);
 
-    GeckoApp* pGeckoApp = GeckoApp::mAppContext;
+    GeckoApp* pGeckoApp = GeckoApp::sAppContext;
     String homeDir, resPath;
     IApplication* pIApplication;
     ECode ec = pGeckoApp->GetApplication(&pIApplication);
@@ -580,7 +583,7 @@ ECode GeckoAppShell::LoadGeckoLibs(
             pExtProf->Release();
         }
         pProfileDir->Release();
-    } 
+    }
     else {
         IFile* pHome;
         //ec = pGeckoApp->GetExternalFilesDir(NULL, &pHome);
@@ -725,7 +728,7 @@ ECode GeckoAppShell::LoadGeckoLibs(
                 pDownloadDir->Release();
                 return ec;
             }*/
-        } 
+        }
         else {
             String path;
             /*IFile* pIFile;
@@ -808,44 +811,41 @@ ECode GeckoAppShell::RunGecko(
     GeckoAppShell::NativeInit();
 
     // Tell Gecko where the target surface view is for rendering
-    GeckoAppShell::SetSurfaceView(GeckoApp::surfaceView);
+    GeckoAppShell::SetSurfaceView(GeckoApp::sSurfaceView);
 
     // First argument is the .apk path
-    String combinedArgs(apkPath);
-    combinedArgs.Append(" -greomni ");
-    combinedArgs.Append(apkPath);
-    if (!args.IsNullOrEmpty()) {
-        combinedArgs.Append(" ");
-        combinedArgs.Append(args);
+    StringBuffer combinedArgs(apkPath);
+    combinedArgs += " -greomni ";
+    combinedArgs += apkPath;
+    if (!args.IsNull()) {
+        combinedArgs += " ";
+        combinedArgs += args;
     }
-    if (!url.IsNullOrEmpty()) {
-        combinedArgs.Append(" ");
-        combinedArgs.Append(url);
+    if (!url.IsNull()) {
+        combinedArgs += " ";
+        combinedArgs += url;
     }
     // and go
-    GeckoAppShell::NativeRun(combinedArgs);
+    GeckoAppShell::NativeRun(String(combinedArgs));
     return NOERROR;
 }
 
 ECode GeckoAppShell::SendEventToGecko(
-    /* [in] */ GeckoEvent* pEvent)
+    /* [in] */ GeckoEvent* event)
 {
-    Boolean result;
-    GeckoApp::CheckLaunchState(GeckoApp::LaunchState_GeckoRunning, &result);
-    if (result) {
-        NotifyGeckoOfEvent(pEvent);
-        delete pEvent;
-    } 
+    if (GeckoApp::CheckLaunchState(GeckoApp::LaunchState_GeckoRunning)) {
+        NotifyGeckoOfEvent(event);
+    }
     else {
-        gPendingEvents.PushBack(pEvent);
+        gPendingEvents.PushBack(event);
     }
     return NOERROR;
 }
 
 ECode GeckoAppShell::SendEventToGeckoSync(
-    /* [in] */ GeckoEvent* pEvent)
+    /* [in] */ GeckoEvent* event)
 {
-    SendEventToGecko(pEvent);
+    SendEventToGecko(event);
     GeckoEventSync();
     return NOERROR;
 }
@@ -886,7 +886,7 @@ ECode GeckoAppShell::NotifyIME(
     /* [in] */ Int32 type,
     /* [in] */ Int32 state)
 {
-    if (!GeckoApp::surfaceView) {
+    if (!GeckoApp::sSurfaceView) {
         return NOERROR;
     }
     ECode ec;
@@ -894,14 +894,14 @@ ECode GeckoAppShell::NotifyIME(
     case NOTIFY_IME_RESETINPUTSTATE:
         // Composition event is already fired from widget.
         // So reset IME flags.
-        GeckoApp::surfaceView->mInputConnection->Reset();
+        GeckoApp::sSurfaceView->mInputConnection->Reset();
 
         // Don't use IMEStateUpdater for reset.
         // Because IME may not work showSoftInput()
         // after calling restartInput() immediately.
         // So we have to call showSoftInput() delay.
         IContext* pIContext;
-        ec = GeckoApp::surfaceView->GetContext(&pIContext);
+        ec = GeckoApp::sSurfaceView->GetContext(&pIContext);
         if (FAILED(ec)) return ec;
         ILocalInputMethodManager* pImm;
         ec = pIContext->GetSystemService(
@@ -912,7 +912,7 @@ ECode GeckoAppShell::NotifyIME(
             //IMEStateUpdater.ResetIME();
         }
         else {
-            pImm->RestartInput(GeckoApp::surfaceView);
+            pImm->RestartInput(GeckoApp::sSurfaceView);
             pImm->Release();
         }
 
@@ -937,16 +937,16 @@ ECode GeckoAppShell::NotifyIMEEnabled(
     /* [in] */ const String& actionHint,
     /* [in] */ Boolean landscapeFS)
 {
-    if (!GeckoApp::surfaceView) {
+    if (!GeckoApp::sSurfaceView) {
         return NOERROR;
     }
 
     /* When IME is 'disabled', IME processing is disabled.
        In addition, the IME UI is hidden */
-    /*GeckoApp::surfaceView.mIMEState = state;
-    GeckoApp::surfaceView.mIMETypeHint = typeHint;
-    GeckoApp::surfaceView.mIMEActionHint = actionHint;
-    GeckoApp::surfaceView.mIMELandscapeFS = landscapeFS;
+    /*GeckoApp::sSurfaceView.mIMEState = state;
+    GeckoApp::sSurfaceView.mIMETypeHint = typeHint;
+    GeckoApp::sSurfaceView.mIMEActionHint = actionHint;
+    GeckoApp::sSurfaceView.mIMELandscapeFS = landscapeFS;
     IMEStateUpdater.EnableIME();*/
 
     return NOERROR;
@@ -958,13 +958,13 @@ ECode GeckoAppShell::NotifyIMEChange(
     /* [in] */ Int32 end,
     /* [in] */ Int32 newEnd)
 {
-    if (!GeckoApp::surfaceView ||
-        !GeckoApp::surfaceView->mInputConnection) {
+    if (!GeckoApp::sSurfaceView ||
+        !GeckoApp::sSurfaceView->mInputConnection) {
         return NOERROR;
     }
 
     IContext* pIContext;
-    ECode ec = GeckoApp::surfaceView->GetContext(&pIContext);
+    ECode ec = GeckoApp::sSurfaceView->GetContext(&pIContext);
     if (FAILED(ec)) return ec;
     ILocalInputMethodManager* pImm;
     ec = pIContext->GetSystemService(
@@ -973,11 +973,11 @@ ECode GeckoAppShell::NotifyIMEChange(
     if (FAILED(ec)) return ec;
 
     if (newEnd < 0) {
-        ec = GeckoApp::surfaceView->mInputConnection->NotifySelectionChange(
+        ec = GeckoApp::sSurfaceView->mInputConnection->NotifySelectionChange(
             pImm, start, end);
     }
     else {
-        ec = GeckoApp::surfaceView->mInputConnection->NotifyTextChange(
+        ec = GeckoApp::sSurfaceView->mInputConnection->NotifyTextChange(
             pImm, text, start, end, newEnd);
     }
     pImm->Release();
@@ -1063,7 +1063,7 @@ public:
 
     ECode Run()
     {
-        CGeckoSurfaceView* view = GeckoApp::surfaceView;
+        CGeckoSurfaceView* view = GeckoApp::sSurfaceView;
         IContext* pIContext;
         ECode ec = view->GetContext(&pIContext);
         if (FAILED(ec)) return ec;
@@ -1136,7 +1136,7 @@ ECode GeckoAppShell::EnableLocation(
 ECode GeckoAppShell::MoveTaskToBack()
 {
     //Boolean result;
-    //return GeckoApp::mAppContext->MoveTaskToBack(TRUE, &result);
+    //return GeckoApp::sAppContext->MoveTaskToBack(TRUE, &result);
     return E_NOT_IMPLEMENTED;
 }
 
@@ -1145,10 +1145,10 @@ ECode GeckoAppShell::ReturnIMEQueryResult(
     /* [in] */ Int32 selectionStart,
     /* [in] */ Int32 selectionLength)
 {
-    GeckoApp::surfaceView->mInputConnection->SetSelectionStart(selectionStart);
-    GeckoApp::surfaceView->mInputConnection->SetSelectionLength(selectionLength);
+    GeckoApp::sSurfaceView->mInputConnection->SetSelectionStart(selectionStart);
+    GeckoApp::sSurfaceView->mInputConnection->SetSelectionLength(selectionLength);
     //try {
-        GeckoApp::surfaceView->mInputConnection->PutResult(result);
+        GeckoApp::sSurfaceView->mInputConnection->PutResult(result);
     //} catch (InterruptedException e) {
     //}
     return NOERROR;
@@ -1168,10 +1168,10 @@ ECode GeckoAppShell::OnXreExit()
     GeckoApp::SetLaunchState(GeckoApp::LaunchState_GeckoExiting);
     printf("GeckoAppJava XRE exited\n");
     if (gRestartScheduled) {
-        GeckoApp::mAppContext->DoRestart();
+        GeckoApp::sAppContext->DoRestart();
     } else {
         printf("GeckoAppJava we're done, good bye\n");
-        //GeckoApp::mAppContext->Finish();
+        //GeckoApp::sAppContext->Finish();
     }
     //System::Exit(0);
     return NOERROR;
@@ -1199,9 +1199,9 @@ ECode GeckoAppShell::InstallWebApplication(
     if (FAILED(ec)) return ec;
 
     String packageName;
-    GeckoApp::mAppContext->GetPackageName(&packageName);
+    GeckoApp::sAppContext->GetPackageName(&packageName);
     packageName.Append(".App");
-    //ec = pShortcutIntent->SetClassName(GeckoApp::mAppContext, packageName);
+    //ec = pShortcutIntent->SetClassName(GeckoApp::sAppContext, packageName);
     if (FAILED(ec)) {
         pShortcutIntent->Release();
         return ec;
@@ -1243,7 +1243,7 @@ ECode GeckoAppShell::InstallWebApplication(
     ec = pIIntent->SetAction(String("com.android.launcher.action.INSTALL_SHORTCUT"));
     if (FAILED(ec)) goto exit;
 
-    ec = GeckoApp::mAppContext->SendBroadcast(pIIntent);
+    ec = GeckoApp::sAppContext->SendBroadcast(pIIntent);
 
 exit:
     pIIntent->Release();
@@ -1307,7 +1307,7 @@ ECode GeckoAppShell::GetHandlersForIntent(
     if (!ppHandlers) return E_INVALID_ARGUMENT;
 
     IContext* pIContext;
-    ECode ec = GeckoApp::surfaceView->GetContext(&pIContext);
+    ECode ec = GeckoApp::sSurfaceView->GetContext(&pIContext);
     if (FAILED(ec)) return ec;
 
     //IPackageManager* pPm;
@@ -1503,7 +1503,7 @@ ECode GeckoAppShell::OpenUriExternal(
     if (FAILED(ec)) goto exit;
     //try {
         IContext* pIContext;
-        ec = GeckoApp::surfaceView->GetContext(&pIContext);
+        ec = GeckoApp::sSurfaceView->GetContext(&pIContext);
         if (FAILED(ec)) goto exit;
 
         ec = pIContext->StartActivity(pIIntent);
@@ -1528,7 +1528,7 @@ public:
     ECode Run()
     {
         IContext* pContext;
-        ECode ec = GeckoApp::surfaceView->GetContext(&pContext);
+        ECode ec = GeckoApp::sSurfaceView->GetContext(&pContext);
         if (FAILED(ec)) return ec;
 
         //IClipboardManager* pCm;
@@ -1587,7 +1587,7 @@ public:
     ECode Run()
     {
         IContext* pContext;
-        ECode ec = GeckoApp::surfaceView->GetContext(&pContext);
+        ECode ec = GeckoApp::sSurfaceView->GetContext(&pContext);
         if (FAILED(ec)) return ec;
 
         /*IClipboardManager* pCm;
@@ -1668,7 +1668,7 @@ ECode GeckoAppShell::ShowAlertNotification(
     //ec = System::CurrentTimeMillis(&timeMillis);
     //if (FAILED(ec)) goto exit;
 
-    ec = CAlertNotification::New(GeckoApp::mAppContext, notificationID,
+    ec = CAlertNotification::New(GeckoApp::sAppContext, notificationID,
                      icon, aAlertTitle, aAlertText, timeMillis, &pNotification);
     if (FAILED(ec)) goto exit;
 
@@ -1677,14 +1677,14 @@ ECode GeckoAppShell::ShowAlertNotification(
     ec = CIntent::New(String(GeckoApp_ACTION_ALERT_CLICK), &pNotificationIntent);
     if (FAILED(ec)) goto exit;
 
-    ec = GeckoApp::mAppContext->GetPackageName(&packageName);
+    ec = GeckoApp::sAppContext->GetPackageName(&packageName);
     if (FAILED(ec)){
         pNotificationIntent->Release();
         goto exit;
     }
     packageName.Append(".NotificationHandler");
     /*ec = pNotificationIntent->SetClassName(
-                    GeckoApp::mAppContext, packageName);
+                    GeckoApp::sAppContext, packageName);
     if (FAILED(ec)){
         pNotificationIntent->Release();
         goto exit;
@@ -1704,12 +1704,12 @@ ECode GeckoAppShell::ShowAlertNotification(
     }
 
     /*IPendingIntent* pContentIntent;
-    ec = PendingIntent::GetBroadcast(GeckoApp::mAppContext,
+    ec = PendingIntent::GetBroadcast(GeckoApp::sAppContext,
                         0, pNotificationIntent, 0, &pContentIntent);
     pNotificationIntent->Release();
     if (FAILED(ec)) goto exit;
 
-    ec = pNotification->SetLatestEventInfo(GeckoApp::mAppContext,
+    ec = pNotification->SetLatestEventInfo(GeckoApp::sAppContext,
                              aAlertTitle, aAlertText, pContentIntent);
     pContentIntent->Release();
     if (FAILED(ec)) goto exit;
@@ -1721,13 +1721,13 @@ ECode GeckoAppShell::ShowAlertNotification(
     ec = CIntent::New(String(GeckoApp_ACTION_ALERT_CLEAR), &pClearNotificationIntent);
     if (FAILED(ec)) goto exit;
 
-    GeckoApp::mAppContext->GetPackageName(&packageName);
+    GeckoApp::sAppContext->GetPackageName(&packageName);
     packageName += ".NotificationHandler";
-    //pClearNotificationIntent->SetClassName(GeckoApp::mAppContext, packageName);
+    //pClearNotificationIntent->SetClassName(GeckoApp::sAppContext, packageName);
     //pClearNotificationIntent->SetData(pDataUri);
 
     /*IPendingIntent* pDeleteIntent;
-    ec = PendingIntent::GetBroadcast(GeckoApp::mAppContext,
+    ec = PendingIntent::GetBroadcast(GeckoApp::sAppContext,
                          0, pClearNotificationIntent, 0, &pDeleteIntent);
     pClearNotificationIntent->Release();
     if (FAILED(ec)) goto exit;
@@ -1758,7 +1758,7 @@ ECode GeckoAppShell::AlertsProgressListener_OnProgress(
         "progress = " + aProgress +" / " + aProgressMax + ", text = '" + aAlertText + "'");*/
 
     Int32 notificationID = aAlertName.GetHashCode();
-    HashMap<Int32, IAlertNotification*>::Iterator it = 
+    HashMap<Int32, IAlertNotification*>::Iterator it =
                         mAlertNotifications.Find(notificationID);
     if (it == mAlertNotifications.End()) return NOERROR;
     IAlertNotification* pNotification = it->mSecond;
@@ -1797,7 +1797,7 @@ ECode GeckoAppShell::HandleNotification(
     if (aAction.Equals(GeckoApp_ACTION_ALERT_CLICK)) {
         printf("GeckoAppJava GeckoAppShell.handleNotification: callObserver(alertclickcallback)\n");
         CallObserver(aAlertName, String("alertclickcallback"), aAlertCookie);
-        HashMap<Int32, IAlertNotification*>::Iterator it = 
+        HashMap<Int32, IAlertNotification*>::Iterator it =
                     mAlertNotifications.Find(notificationID);
         if (it == mAlertNotifications.End()) return NOERROR;
         IAlertNotification* pNotification = it->mSecond;
@@ -1823,7 +1823,7 @@ ECode GeckoAppShell::RemoveNotification(
     mAlertNotifications.Erase(notificationID);
 
     INotificationManager* pNotificationManager;
-    ECode ec = GeckoApp::mAppContext->GetSystemService(
+    ECode ec = GeckoApp::sAppContext->GetSystemService(
                             Context_NOTIFICATION_SERVICE,
                             (IInterface**)&pNotificationManager);
     if (FAILED(ec)) return ec;
@@ -1840,7 +1840,7 @@ ECode GeckoAppShell::GetDpi(
     if (FAILED(ec)) return ec;
 
     IWindowManager* pIWinManager;
-    ec = GeckoApp::mAppContext->GetWindowManagerEx(&pIWinManager);
+    ec = GeckoApp::sAppContext->GetWindowManagerEx(&pIWinManager);
     if (FAILED(ec)) goto exit;
 
     IDisplay* pIDisplay;
@@ -1862,14 +1862,14 @@ exit:
 ECode GeckoAppShell::SetFullScreen(
     /* [in] */ Boolean fullscreen)
 {
-    GeckoApp::mFullscreen = fullscreen;
+    GeckoApp::sFullscreen = fullscreen;
 
     // force a reconfiguration to hide/show the system bar
-    /*GeckoApp::mAppContext->SetRequestedOrientation(
+    /*GeckoApp::sAppContext->SetRequestedOrientation(
                     ActivityInfo_SCREEN_ORIENTATION_PORTRAIT);
-    GeckoApp::mAppContext->SetRequestedOrientation(
+    GeckoApp::sAppContext->SetRequestedOrientation(
                     ActivityInfo_SCREEN_ORIENTATION_LANDSCAPE);
-    GeckoApp::mAppContext->SetRequestedOrientation(
+    GeckoApp::sAppContext->SetRequestedOrientation(
                     ActivityInfo_SCREEN_ORIENTATION_USER);*/
 
     return NOERROR;
@@ -1885,14 +1885,14 @@ ECode GeckoAppShell::ShowFilePicker(
     ECode ec = GetMimeTypeFromExtensions(aFilters, &mimeType);
     if (FAILED(ec)) return ec;
 
-    return GeckoApp::mAppContext->ShowFilePicker(mimeType, pPicker);
+    return GeckoApp::sAppContext->ShowFilePicker(mimeType, pPicker);
 }
 
 ECode GeckoAppShell::PerformHapticFeedback(
     /* [in] */ Boolean aIsLongPress)
 {
     Boolean result;
-    return GeckoApp::surfaceView->PerformHapticFeedback(aIsLongPress ?
+    return GeckoApp::sSurfaceView->PerformHapticFeedback(aIsLongPress ?
                                   HapticFeedbackConstants_LONG_PRESS :
                                   HapticFeedbackConstants_VIRTUAL_KEY, &result);
 }
@@ -1900,7 +1900,7 @@ ECode GeckoAppShell::PerformHapticFeedback(
 ECode GeckoAppShell::ShowInputMethodPicker()
 {
     IContext* pIContext;
-    ECode ec = GeckoApp::surfaceView->GetContext(&pIContext);
+    ECode ec = GeckoApp::sSurfaceView->GetContext(&pIContext);
     if (FAILED(ec)) return ec;
 
     ILocalInputMethodManager* pImm;
@@ -1932,7 +1932,7 @@ public:
 
     ECode Run()
     {
-        GeckoApp::surfaceView->SetKeepScreenOn(mScreenOn);
+        GeckoApp::sSurfaceView->SetKeepScreenOn(mScreenOn);
         return NOERROR;
     }
 private:
@@ -1944,7 +1944,7 @@ ECode GeckoAppShell::SetKeepScreenOn(
 {
     SetScreenRunnable* pRunnable = new SetScreenRunnable(on);
     if (!pRunnable) return E_OUT_OF_MEMORY;
-    //return GeckoApp::mAppContext->RunOnUiThread(IRunnable::Probe(pRunnable));
+    //return GeckoApp::sAppContext->RunOnUiThread(IRunnable::Probe(pRunnable));
     return NOERROR;
 }
 
@@ -1954,7 +1954,7 @@ ECode GeckoAppShell::IsNetworkLinkUp(
     if (!pIsLinkUp) return E_INVALID_ARGUMENT;
 
     IConnectivityManager* pCm;
-    ECode ec = GeckoApp::mAppContext->GetSystemService(
+    ECode ec = GeckoApp::sAppContext->GetSystemService(
                 Context_CONNECTIVITY_SERVICE, (IInterface**)&pCm);
     if (FAILED(ec)) return ec;
 
@@ -1988,7 +1988,7 @@ ECode GeckoAppShell::IsNetworkLinkKnown(
     if (!pIsLinkKnown) return E_INVALID_ARGUMENT;
 
     IConnectivityManager* pCm;
-    ECode ec = GeckoApp::mAppContext->GetSystemService(
+    ECode ec = GeckoApp::sAppContext->GetSystemService(
                 Context_CONNECTIVITY_SERVICE, (IInterface**)&pCm);
     if (FAILED(ec)) return ec;
 
@@ -2011,7 +2011,7 @@ ECode GeckoAppShell::SetSelectedLocale(
 {
     ECode ec;
     /*ISharedPreferences* pSettings;
-    ec = GeckoApp::mAppContext->GetPreferences(
+    ec = GeckoApp::sAppContext->GetPreferences(
                         Activity_MODE_PRIVATE, &pSettings);
     if (FAILED(ec)) return ec;
     ISharedPreferencesEditor* pEditor;
@@ -2019,7 +2019,7 @@ ECode GeckoAppShell::SetSelectedLocale(
     pSettings->Release();
     if (FAILED(ec)) return ec;
     String packageName;
-    GeckoApp::mAppContext->GetPackageName(&packageName);
+    GeckoApp::sAppContext->GetPackageName(&packageName);
     packageName += ".locale";
     pEditor->PutString(packageName,localeCode);
     ec = pEditor->Commit();
@@ -2039,7 +2039,7 @@ ECode GeckoAppShell::SetSelectedLocale(
     //Locale::SetDefault(pLocale);
 
     IContext* pIContext;
-    ec = GeckoApp::mAppContext->GetBaseContext(&pIContext);
+    ec = GeckoApp::sAppContext->GetBaseContext(&pIContext);
     if (FAILED(ec)) {
         pLocale->Release();
         return ec;
@@ -2100,7 +2100,7 @@ ECode GeckoAppShell::GetSystemColors(
 
     ECode ec;
     IContextThemeWrapper* pContextThemeWrapper;
-    ec = CContextThemeWrapper::New(GeckoApp::mAppContext,
+    ec = CContextThemeWrapper::New(GeckoApp::sAppContext,
              0x0103003e, &pContextThemeWrapper);//android.R.style.TextAppearance
     if (FAILED(ec)) goto exit;
 
@@ -2157,7 +2157,7 @@ ECode GeckoAppShell::KillAnyZombies()
 class GeckoPidCallback : public GeckoAppShell::GeckoProcessesVisitor
 {
 public:
-    GeckoPidCallback() 
+    GeckoPidCallback()
         : otherPidExist(FALSE)
     {
     }
@@ -2236,7 +2236,7 @@ ECode GeckoAppShell::GetIconForExtension(
         }
 
         /*IContext* pIContext;
-        ECode ec = GeckoApp::surfaceView->GetContext(&pIContext);
+        ECode ec = GeckoApp::sSurfaceView->GetContext(&pIContext);
         if (FAILED(ec)) return ec;
 
         IPackageManager* pPm;
@@ -2311,13 +2311,18 @@ ECode GeckoAppShell::GetIconForExtension(
     //}
 }
 
+// extern "C" {
+//     void Java_org_mozilla_gecko_GeckoAppShell_notifyGeckoOfEvent(void*, void*, void*);
+// }
+
 // Tell the Gecko event loop that an event is available.
 Void GeckoAppShell::NotifyGeckoOfEvent(
-    /* [in] */ GeckoEvent* pEvent)
+    /* [in] */ GeckoEvent* event)
 {
-    //call native function.
-    //return notifyGeckoOfEvent(pEvent);
-    return;
+    printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+    // Java_org_mozilla_gecko_GeckoAppShell_notifyGeckoOfEvent(NULL, NULL, NULL);
+    void* module = dlopen("/data/data/com.elastos.runtime/elastos/libxul.so", RTLD_LAZY);
+    assert(module != NULL);
 }
 
 /* The Android-side API: API methods that Android calls */
@@ -2385,7 +2390,7 @@ Void GeckoAppShell::LoadLibs(
 {
     //return loadLibs(apkName, shouldExtract);
     return;
-    
+
 }
 
 Void GeckoAppShell::OnChangeNetworkLinkStatus(
@@ -2420,7 +2425,7 @@ ECode GeckoAppShell::PutLocaleEnv()
 ECode GeckoAppShell::SendPendingEventsToGecko()
 {
     //try {
-        List<GeckoEvent*>::Iterator it = gPendingEvents.Begin();
+        List< AutoPtr<GeckoEvent> >::Iterator it = gPendingEvents.Begin();
         for (; it != gPendingEvents.End(); ++it) {
             GeckoEvent* pEvent = *it;
             NotifyGeckoOfEvent(pEvent);

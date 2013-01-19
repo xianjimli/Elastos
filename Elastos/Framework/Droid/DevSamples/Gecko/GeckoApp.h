@@ -5,6 +5,7 @@
 #include "Activity.h"
 #include "CGeckoSurfaceView.h"
 #include <Elastos.Utility.Zip.h>
+#include <elastos/AutoPtr.h>
 
 using namespace Elastos;
 
@@ -27,32 +28,30 @@ public:
         LaunchState_GeckoRunning,
         LaunchState_GeckoExiting
      };
+
 public:
     GeckoApp();
 
     ~GeckoApp();
 
-    static ECode CheckLaunchState(
-        /* [in] */ LaunchState checkState,
-        /* [out] */ Boolean* pResult);
+    static CARAPI_(Boolean) CheckLaunchState(
+        /* [in] */ LaunchState checkState);
 
-    static ECode SetLaunchState(
+    static CARAPI_(void) SetLaunchState(
         /* [in] */ LaunchState setState);
 
     // if mLaunchState is equal to checkState this sets mLaunchState to setState
     // and return true. Otherwise we return false.
-    static ECode CheckAndSetLaunchState(
+    static CARAPI_(Boolean) CheckAndSetLaunchState(
         /* [in] */ LaunchState checkState,
-        /* [in] */ LaunchState setState,
-        /* [out] */ Boolean* pResult);
+        /* [in] */ LaunchState setState);
 
-    ECode ShowErrorDialog(
+    CARAPI ShowErrorDialog(
         /* [in] */ const String& message);
 
     // Returns true when the intent is going to be handled by gecko launch
-    ECode Launch(
-        /* [in] */ IIntent* pIntent,
-        /* [out] */ Boolean* pResult);
+    CARAPI_(Boolean) Launch(
+        /* [in] */ IIntent* intent);
 
     CARAPI OnCreate(
         /* [in] */ IBundle* savedInstanceState);
@@ -70,14 +69,14 @@ public:
     CARAPI OnDestroy();
 
     CARAPI OnConfigurationChanged(
-        /* [in] */ IConfiguration* pNewConfig);
+        /* [in] */ IConfiguration* newConfig);
 
     CARAPI OnLowMemory();
 
     ECode RemoveFiles();
 
     ECode AddEnvToIntent(
-        /* [in] */ IIntent* pIntent);
+        /* [in] */ IIntent* intent);
 
     ECode DoRestart();
 
@@ -88,59 +87,61 @@ public:
 
     ECode ShowFilePicker(
         /* [in] */ const String& aMimeType,
-        /* [out] */ String* pFilePickerResult);
+        /* [out] */ String* filePickerResult);
 
     virtual ECode GetPackageName(
-        /* [out] */ String* pPackageName) = 0;
+        /* [out] */ String* packageName) = 0;
 
     virtual ECode GetContentProcessName(
-        /* [out] */ String* pProcessName) = 0;
+        /* [out] */ String* processName) = 0;
 
     ECode UnpackComponents();
 
 protected:
     CARAPI OnNewIntent(
-        /* [in] */ IIntent* pIntent);
+        /* [in] */ IIntent* intent);
 
     CARAPI OnActivityResult(
         /* [in] */ Int32 requestCode,
         /* [in] */ Int32 resultCode,
-        /* [in] */ IIntent* pData);
+        /* [in] */ IIntent* data);
 
 private:
     ECode UnpackFile(
-        /* [in] */ IZipFile* pZip,
+        /* [in] */ IZipFile* zip,
         /* [in] */ ArrayOf<Byte>* buf,
-        /* [in] */ IZipEntry* pFileEntry,
+        /* [in] */ IZipEntry* fileEntry,
         /* [in] */ const String& name,
-        /* [out] */ Boolean* pResult);
+        /* [out] */ Boolean* result);
 
     ECode CheckAndLaunchUpdate();
 
     ECode ReadUpdateStatus(
-        /* [in] */ IFile* pStatusFile,
-        /* [out] */ String* pStatus);
+        /* [in] */ IFile* statusFile,
+        /* [out] */ String* status);
+
+    static void* LaunchEntryRoutine(void *arg);
 
 public:
 
-    static IFrameLayout* mainLayout;
-    static CGeckoSurfaceView* surfaceView;
-    static GeckoApp* mAppContext;
-    static Boolean mFullscreen;
-    static IFile* sGREDir;
+    static AutoPtr<IFrameLayout> sMainLayout;
+    static AutoPtr<CGeckoSurfaceView> sSurfaceView;
+    static AutoPtr<GeckoApp> sAppContext;
+    static Boolean sFullscreen;
+    static AutoPtr<IFile> sGREDir;
 
-    IThread* mLibLoadThread;
-    IHandler* mMainHandler;
-    Boolean haveKilledZombies;
-    IButton* mLaunchButton;
-    IIntent* mLaunchIntent;
+    AutoPtr<IThread> mLibLoadThread;
+    AutoPtr<IHandler> mMainHandler;
+    Boolean mHaveKilledZombies;
+    AutoPtr<IButton> mLaunchButton;
+    AutoPtr<IIntent> mLaunchIntent;
 
 private:
     static LaunchState sLaunchState;
     static Mutex sSyncLaunchState;
 
-    IIntentFilter* mConnectivityFilter;
-    IBroadcastReceiver* mConnectivityReceiver;
+    AutoPtr<IIntentFilter> mConnectivityFilter;
+    AutoPtr<IBroadcastReceiver> mConnectivityReceiver;
     //SynchronousQueue<String> mFilePickerResult;
 };
 
