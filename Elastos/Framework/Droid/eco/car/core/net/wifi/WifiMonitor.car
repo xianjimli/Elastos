@@ -1,0 +1,12 @@
+
+module
+{
+    interface INetworkStateTracker;
+
+    interface IWifiMonitor {
+        StartMonitoring();
+
+        GetNetworkStateTracker(
+            [out] INetworkStateTracker** tracker);
+    }
+}

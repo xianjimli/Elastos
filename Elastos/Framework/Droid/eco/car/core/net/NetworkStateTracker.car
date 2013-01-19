@@ -1,0 +1,163 @@
+
+module
+{
+    interface INetworkInfo;
+    enum NetworkInfoDetailedState;
+
+    interface INetworkStateTracker {
+        GetNetworkInfo(
+            [out] INetworkInfo** networkInfo);
+
+        /**
+         * Return the system properties name associated with the tcp buffer sizes
+         * for this network.
+         */
+        GetTcpBufferSizesPropName(
+            [out] String* propName);
+
+        /**
+         * Return the IP addresses of the DNS servers available for the mobile data
+         * network interface.
+         * @return a list of DNS addresses, with no holes.
+         */
+        GetNameServers(
+            [out, callee] ArrayOf<String>* servers);
+
+        AddPrivateDnsRoutes();
+
+        RemovePrivateDnsRoutes();
+
+        AddDefaultRoute();
+
+        RemoveDefaultRoute();
+
+        /**
+         * Reads the network specific TCP buffer sizes from SystemProperties
+         * net.tcp.buffersize.[default|wifi|umts|edge|gprs] and set them for system
+         * wide use
+         */
+        UpdateNetworkSettings();
+
+        /**
+         * Release the wakelock, if any, that may be held while handling a
+         * disconnect operation.
+         */
+        ReleaseWakeLock();
+
+        /**
+         * Record the detailed state of a network, and if it is a
+         * change from the previous state, send a notification to
+         * any listeners.
+         * @param state the new @{code DetailedState}
+         */
+        SetDetailedState(
+            [in] NetworkInfoDetailedState state);
+
+        /**
+         * Record the detailed state of a network, and if it is a
+         * change from the previous state, send a notification to
+         * any listeners.
+         * @param state the new @{code DetailedState}
+         * @param reason a {@code String} indicating a reason for the state change,
+         * if one was supplied. May be {@code null}.
+         * @param extraInfo optional {@code String} providing extra information about the state change
+         */
+        SetDetailedState(
+            [in] NetworkInfoDetailedState state,
+            [in] String reason,
+            [in] String extraInfo);
+
+        SetTeardownRequested(
+            [in] Boolean isRequested);
+
+        IsTeardownRequested(
+            [out] Boolean* result);
+
+        StartMonitoring();
+
+        /**
+         * Disable connectivity to a network
+         * @return {@code true} if a teardown occurred, {@code false} if the
+         * teardown did not occur.
+         */
+        Teardown(
+            [out] Boolean* succeeded);
+
+        /**
+         * Reenable connectivity to a network after a {@link #teardown()}.
+         */
+        Reconnect(
+            [out] Boolean* succeeded);
+
+        /**
+         * Turn the wireless radio off for a network.
+         * @param turnOn {@code true} to turn the radio on, {@code false}
+         */
+        SetRadio(
+            [in] Boolean turnOn,
+            [out] Boolean* succeeded);
+
+        /**
+         * Returns an indication of whether this network is available for
+         * connections. A value of {@code false} means that some quasi-permanent
+         * condition prevents connectivity to this network.
+         */
+        IsAvailable(
+            [out] Boolean* isAvailable);
+
+        /**
+         * Tells the underlying networking system that the caller wants to
+         * begin using the named feature. The interpretation of {@code feature}
+         * is completely up to each networking implementation.
+         * @param feature the name of the feature to be used
+         * @param callingPid the process ID of the process that is issuing this request
+         * @param callingUid the user ID of the process that is issuing this request
+         * @return an integer value representing the outcome of the request.
+         * The interpretation of this value is specific to each networking
+         * implementation+feature combination, except that the value {@code -1}
+         * always indicates failure.
+         */
+        StartUsingNetworkFeature(
+            [in] String feature,
+            [in] Int32 callingPid,
+            [in] Int32 callingUid,
+            [out] Int32* outcome);
+
+        /**
+         * Tells the underlying networking system that the caller is finished
+         * using the named feature. The interpretation of {@code feature}
+         * is completely up to each networking implementation.
+         * @param feature the name of the feature that is no longer needed.
+         * @param callingPid the process ID of the process that is issuing this request
+         * @param callingUid the user ID of the process that is issuing this request
+         * @return an integer value representing the outcome of the request.
+         * The interpretation of this value is specific to each networking
+         * implementation+feature combination, except that the value {@code -1}
+         * always indicates failure.
+         */
+        StopUsingNetworkFeature(
+            [in] String feature,
+            [in] Int32 callingPid,
+            [in] Int32 callingUid,
+            [out] Int32* outcome);
+
+        /**
+         * Ensure that a network route exists to deliver traffic to the specified
+         * host via this network interface.
+         * @param hostAddress the IP address of the host to which the route is desired
+         * @return {@code true} on success, {@code false} on failure
+         */
+        RequestRouteToHost(
+            [in] Int32 hostAddress,
+            [out] Boolean* succeeded);
+
+        /**
+         * Interprets scan results. This will be called at a safe time for
+         * processing, and from a safe thread.
+         */
+        InterpretScanResultsAvailable();
+
+        GetInterfaceName(
+            [out] String* name);
+    }
+}

@@ -126,3 +126,9 @@ module
         interface ILocalConnectivityManager;
     }
 }
+
+//    class CWifiMonitor {
+//        constructor(
+//            [in] IWifiStateTracker* tracker);
+//    }
+}
