@@ -193,7 +193,8 @@ ECode SurfaceView::_SurfaceHolder::LockCanvas(
     /* [out] */ ICanvas** canvas)
 {
     assert(canvas != NULL);
-    *canvas = InternalLockCanvas(NULL);
+    AutoPtr<ICanvas> _canvas = InternalLockCanvas(NULL);
+    *canvas = _canvas.Get();
     if (*canvas != NULL) {
         (*canvas)->AddRef();
     }
@@ -206,7 +207,8 @@ ECode SurfaceView::_SurfaceHolder::LockCanvasEx(
     /* [out]*/ ICanvas** canvas)
 {
     assert(canvas != NULL);
-    *canvas = InternalLockCanvas(dirty);
+    AutoPtr<ICanvas> _canvas = InternalLockCanvas(dirty);
+    *canvas = _canvas.Get();
     if (*canvas != NULL) {
         (*canvas)->AddRef();
     }
