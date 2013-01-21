@@ -19,15 +19,16 @@ PInterface CSurfaceView::Probe(
 }
 
 ECode CSurfaceView::GetHolder(
-    /* [out] */ ISurfaceHolder ** ppHolder)
+    /* [out] */ ISurfaceHolder** holder)
 {
-    assert(ppHolder != NULL);
-    *ppHolder = SurfaceView::GetHolder();
-    if (*ppHolder != NULL) {
-        (*ppHolder)->AddRef();
+    assert(holder != NULL);
+    AutoPtr<ISurfaceHolder> _holder = SurfaceView::GetHolder();
+    *holder = _holder;
+    if (*holder != NULL) {
+        (*holder)->AddRef();
     }
 
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CSurfaceView::SetZOrderMediaOverlay(
