@@ -22,4 +22,6 @@ module
     const E_SECURITY_EXCEPTION                            = 0xA0090000;
 
     const E_STRING_INDEX_OUT_OF_BOUNDS_EXCEPTION       = 0xA00A0000;
+
+    const E_NO_SUCH_METHOD_EXCEPTION                    = 0xA00B0000;
 }

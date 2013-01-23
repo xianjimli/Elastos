@@ -448,5 +448,9 @@ module
          */
         //@Deprecated
         Suspend();
+
+        Wait(
+            [in] Int64 time,
+            [in] Int32 frac);
     }
 }
