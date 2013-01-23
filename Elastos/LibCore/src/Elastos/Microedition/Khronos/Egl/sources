@@ -1,0 +1,22 @@
+
+TARGET_NAME= Elastos.Microedition.Khronos.Egl
+TARGET_TYPE= eco
+
+INCLUDES += $(MAKEDIR)/../../../../../inc/Elastos/common;
+INCLUDES += $(MAKEDIR)/../../../../../inc/Elastos/Microedition/Khronos/Egl;
+
+IMPORTS += Elastos.Core.eco
+
+SOURCES = Elastos.Microedition.Khronos.Egl.car
+SOURCES += _EGLContext.cpp
+SOURCES += EGLConfigImpl.cpp
+SOURCES += EGLContextImpl.cpp
+SOURCES += EGLDisplayImpl.cpp
+SOURCES += EGLSurfaceImpl.cpp
+SOURCES += EGLImpl.cpp
+
+
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Runtime.lib
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Core.eco
+LIBRARIES += $(XDK_USER_LIB)/crt0.lib

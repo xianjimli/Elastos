@@ -1,0 +1,8 @@
+
+module
+{
+    const IEGL11_EGL_CONTEXT_LOST       = 0x300E;
+
+    interface IEGL11 extends IEGL10 {
+    }
+}

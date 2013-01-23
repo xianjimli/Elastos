@@ -1,0 +1,8 @@
+
+module
+{
+    interface IEGLDisplayImpl extends IEGLDisplay {
+//        GetNativeEGLDisplay(
+//            [out] Handle32* display);
+    }
+}

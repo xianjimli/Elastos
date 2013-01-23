@@ -1,0 +1,8 @@
+
+module
+{
+    interface IEGLSurfaceImpl extends IEGLSurface {
+//        GetNativeEGLSurface(
+//            [out] Handle32* surface);
+    }
+}

@@ -1,0 +1,8 @@
+
+module
+{
+    interface IEGLContextImpl extends IEGLContext {
+//        GetNativeEGLContext(
+//            [out] Handle32* context);
+    }
+}
