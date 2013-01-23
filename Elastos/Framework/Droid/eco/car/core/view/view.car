@@ -23,6 +23,297 @@ module
      */
     const View_GONE = 0x00000008;
 
+    /**
+     * Mask for use with setFlags indicating bits used for visibility.
+     * {@hide}
+     */
+    const View_VISIBILITY_MASK = 0x0000000C;
+
+     /**
+     * This view is enabled. Intrepretation varies by subclass.
+     * Use with ENABLED_MASK when calling setFlags.
+     * {@hide}
+     */
+    const View_ENABLED = 0x00000000;
+
+    /**
+     * This view is disabled. Intrepretation varies by subclass.
+     * Use with ENABLED_MASK when calling setFlags.
+     * {@hide}
+     */
+    const View_DISABLED = 0x00000020;
+
+   /**
+    * Mask for use with setFlags indicating bits used for indicating whether
+    * this view is enabled
+    * {@hide}
+    */
+    const View_ENABLED_MASK = 0x00000020;
+
+    /**
+     * This view won't draw. {@link #onDraw} won't be called and further
+     * optimizations
+     * will be performed. It is okay to have this flag set and a background.
+     * Use with DRAW_MASK when calling setFlags.
+     * {@hide}
+     */
+    const View_WILL_NOT_DRAW = 0x00000080;
+
+    /**
+     * Mask for use with setFlags indicating bits used for indicating whether
+     * this view is will draw
+     * {@hide}
+     */
+    const View_DRAW_MASK = 0x00000080;
+
+    /**
+     * <p>This view doesn't show scrollbars.</p>
+     * {@hide}
+     */
+    const View_SCROLLBARS_NONE = 0x00000000;
+
+    /**
+     * <p>This view shows horizontal scrollbars.</p>
+     * {@hide}
+     */
+    const View_SCROLLBARS_HORIZONTAL = 0x00000100;
+
+    /**
+     * <p>This view shows vertical scrollbars.</p>
+     * {@hide}
+     */
+    const View_SCROLLBARS_VERTICAL = 0x00000200;
+
+    /**
+     * <p>Mask for use with setFlags indicating bits used for indicating which
+     * scrollbars are enabled.</p>
+     * {@hide}
+     */
+    const View_SCROLLBARS_MASK = 0x00000300;
+
+    /**
+     * Indicates that the view should filter touches when its window is obscured.
+     * Refer to the class comments for more information about this security feature.
+     * {@hide}
+     */
+    const View_FILTER_TOUCHES_WHEN_OBSCURED = 0x00000400;
+
+    /**
+     * <p>This view doesn't show fading edges.</p>
+     * {@hide}
+     */
+    const View_FADING_EDGE_NONE = 0x00000000;
+
+    /**
+     * <p>Indicates this view can be clicked. When clickable, a View reacts
+     * to clicks by notifying the OnClickListener.<p>
+     * {@hide}
+     */
+    const View_CLICKABLE = 0x00004000;
+
+    /**
+     * <p>Indicates this view is caching its drawing into a bitmap.</p>
+     * {@hide}
+     */
+    const View_DRAWING_CACHE_ENABLED = 0x00008000;
+
+    /**
+     * <p>Indicates that no icicle should be saved for this view.<p>
+     * {@hide}
+     */
+    const View_SAVE_DISABLED = 0x000010000;
+
+    /**
+     * <p>Mask for use with setFlags indicating bits used for the saveEnabled
+     * property.</p>
+     * {@hide}
+     */
+    const View_SAVE_DISABLED_MASK = 0x000010000;
+
+    /**
+     * <p>Indicates that no drawing cache should ever be created for this view.<p>
+     * {@hide}
+     */
+    const View_WILL_NOT_CACHE_DRAWING = 0x000020000;
+
+    /**
+     * <p>Indicates this view can take / keep focus when int touch mode.</p>
+     * {@hide}
+     */
+    const View_FOCUSABLE_IN_TOUCH_MODE = 0x00040000;
+
+    /**
+     * <p>Enables low quality mode for the drawing cache.</p>
+     */
+    const View_DRAWING_CACHE_QUALITY_LOW = 0x00080000;
+
+    /**
+     * <p>Enables high quality mode for the drawing cache.</p>
+     */
+    const View_DRAWING_CACHE_QUALITY_HIGH = 0x00100000;
+
+    /**
+     * <p>Enables automatic quality mode for the drawing cache.</p>
+     */
+    const View_DRAWING_CACHE_QUALITY_AUTO = 0x00000000;
+
+    /*private static final int[] DRAWING_CACHE_QUALITY_FLAGS = {
+            DRAWING_CACHE_QUALITY_AUTO, DRAWING_CACHE_QUALITY_LOW, DRAWING_CACHE_QUALITY_HIGH
+    };*/
+
+    /**
+     * <p>Mask for use with setFlags indicating bits used for the cache
+     * quality property.</p>
+     * {@hide}
+     */
+    const View_DRAWING_CACHE_QUALITY_MASK = 0x00180000;
+
+    /**
+     * <p>
+     * Indicates this view can be long clicked. When long clickable, a View
+     * reacts to long clicks by notifying the OnLongClickListener or showing a
+     * context menu.
+     * </p>
+     * {@hide}
+     */
+    const View_LONG_CLICKABLE = 0x00200000;
+
+    /**
+     * <p>Indicates that this view gets its drawable states from its direct parent
+     * and ignores its original internal states.</p>
+     *
+     * @hide
+     */
+    const View_DUPLICATE_PARENT_STATE = 0x00400000;
+
+    /**
+     * <p>This view shows horizontal fading edges.</p>
+     * {@hide}
+     */
+    const View_FADING_EDGE_HORIZONTAL = 0x00001000;
+
+    /**
+     * <p>This view shows vertical fading edges.</p>
+     * {@hide}
+     */
+    const View_FADING_EDGE_VERTICAL = 0x00002000;
+
+    /**
+     * <p>Mask for use with setFlags indicating bits used for indicating which
+     * fading edges are enabled.</p>
+     * {@hide}
+     */
+    const View_FADING_EDGE_MASK = 0x00003000;
+
+    /**
+     * The scrollbar style to display the scrollbars inside the content area,
+     * without increasing the padding. The scrollbars will be overlaid with
+     * translucency on the view's content.
+     */
+    const View_SCROLLBARS_INSIDE_OVERLAY = 0;
+
+    /**
+     * The scrollbar style to display the scrollbars inside the padded area,
+     * increasing the padding of the view. The scrollbars will not overlap the
+     * content area of the view.
+     */
+    const View_SCROLLBARS_INSIDE_INSET = 0x01000000;
+
+    /**
+     * The scrollbar style to display the scrollbars at the edge of the view,
+     * without increasing the padding. The scrollbars will be overlaid with
+     * translucency.
+     */
+    const View_SCROLLBARS_OUTSIDE_OVERLAY = 0x02000000;
+
+    /**
+     * The scrollbar style to display the scrollbars at the edge of the view,
+     * increasing the padding of the view. The scrollbars will only overlap the
+     * background, if any.
+     */
+    const View_SCROLLBARS_OUTSIDE_INSET = 0x03000000;
+
+    /**
+     * Mask to check if the scrollbar style is overlay or inset.
+     * {@hide}
+     */
+    const View_SCROLLBARS_INSET_MASK = 0x01000000;
+
+    /**
+     * Mask to check if the scrollbar style is inside or outside.
+     * {@hide}
+     */
+    const View_SCROLLBARS_OUTSIDE_MASK = 0x02000000;
+
+    /**
+     * Mask for scrollbar style.
+     * {@hide}
+     */
+    const View_SCROLLBARS_STYLE_MASK = 0x03000000;
+
+    /**
+     * View flag indicating that the screen should remain on while the
+     * window containing this view is visible to the user.  This effectively
+     * takes care of automatically setting the WindowManager's
+     * {@link WindowManager.LayoutParams#FLAG_KEEP_SCREEN_ON}.
+     */
+    const View_KEEP_SCREEN_ON = 0x04000000;
+
+    /**
+     * View flag indicating whether this view should have sound effects enabled
+     * for events such as clicking and touching.
+     */
+    const View_SOUND_EFFECTS_ENABLED = 0x08000000;
+
+    /**
+     * View flag indicating whether this view should have haptic feedback
+     * enabled for events such as long presses.
+     */
+    const View_HAPTIC_FEEDBACK_ENABLED = 0x10000000;
+
+    /**
+     * View flag indicating whether {@link #addFocusables(ArrayList, int, int)}
+     * should add all focusable Views regardless if they are focusable in touch mode.
+     */
+    const View_FOCUSABLES_ALL = 0x00000000;
+
+    /**
+     * View flag indicating whether {@link #addFocusables(ArrayList, int, int)}
+     * should add only Views focusable in touch mode.
+     */
+    const View_FOCUSABLES_TOUCH_MODE = 0x00000001;
+
+    /**
+     * Use with {@link #focusSearch}. Move focus to the previous selectable
+     * item.
+     */
+    const View_FOCUS_BACKWARD = 0x00000001;
+
+    /**
+     * Use with {@link #focusSearch}. Move focus to the next selectable
+     * item.
+     */
+    const View_FOCUS_FORWARD = 0x00000002;
+
+    /**
+     * Use with {@link #focusSearch}. Move focus to the left.
+     */
+    const View_FOCUS_LEFT = 0x00000011;
+
+    /**
+     * Use with {@link #focusSearch}. Move focus up.
+     */
+    const View_FOCUS_UP = 0x00000021;
+
+    /**
+     * Use with {@link #focusSearch}. Move focus to the right.
+     */
+    const View_FOCUS_RIGHT = 0x00000042;
+
+    /**
+     * Use with {@link #focusSearch}. Move focus down.
+     */
+    const View_FOCUS_DOWN = 0x00000082;
 
     interface IContext;
     interface IViewParent;
