@@ -474,6 +474,7 @@ Boolean NativeCreateThread(
      */
     // dvmSetFieldInt(vmThreadObj, gDvm.offJavaLangVMThread_vmData, (u4)newThread);
     // dvmSetFieldObject(threadObj, gDvm.offJavaLangThread_vmThread, vmThreadObj);
+    threadObj->mNativeThread = newThread;
 
     /*
      * Thread creation might take a while, so release the lock.
@@ -1060,6 +1061,39 @@ NativeThreadStatus NativeChangeStatus(
 }
 
 /*
+ * Given a VMThread object, return the associated Thread*.
+ *
+ * NOTE: if the thread detaches, the struct Thread will disappear, and
+ * we will be touching invalid data.  For safety, lock the thread list
+ * before calling this.
+ */
+NativeThread* NativeGetThreadFromThreadObject(
+    /* [in] */ Thread* threadObj)
+{
+    // Int32 vmData;
+
+    // vmData = dvmGetFieldInt(vmThreadObj, gDvm.offJavaLangVMThread_vmData);
+    assert(threadObj != NULL);
+    NativeThread* thread = threadObj->mNativeThread;
+    if (FALSE) {
+        thread = gDvm.mThreadList;
+        while (thread != NULL) {
+            if (threadObj == thread->mThreadObj)
+                break;
+
+            thread = thread->mNext;
+        }
+        // if (thread == NULL) {
+        //     //LOGW("WARNING: vmThreadObj=%p has thread=%p, not in thread list\n",
+        //     //    vmThreadObj, (Thread*)vmData);
+        //     vmData = 0;
+        // }
+    }
+
+    return thread;
+}
+
+/*
  * Conversion map for "nice" values.
  *
  * We use Android thread priority constants to be consistent with the rest
@@ -1113,4 +1147,44 @@ void NativeChangeThreadPriority(
         // LOGV("setPriority(%d) to prio=%d(n=%d)\n",
         //     pid, newPriority, newNice);
     }
+}
+
+/*
+ * Implement java.lang.Thread.interrupt().
+ */
+void NativeThreadInterrupt(
+    /* [in] */ NativeThread* thread)
+{
+    assert(thread != NULL);
+
+    NativeLockMutex(&thread->mWaitMutex);
+
+    /*
+     * If the interrupted flag is already set no additional action is
+     * required.
+     */
+    if (thread->mInterrupted == TRUE) {
+        NativeUnlockMutex(&thread->mWaitMutex);
+        return;
+    }
+
+    /*
+     * Raise the "interrupted" flag.  This will cause it to bail early out
+     * of the next wait() attempt, if it's not currently waiting on
+     * something.
+     */
+    thread->mInterrupted = TRUE;
+
+    /*
+     * Is the thread waiting?
+     *
+     * Note that fat vs. thin doesn't matter here;  waitMonitor
+     * is only set when a thread actually waits on a monitor,
+     * which implies that the monitor has already been fattened.
+     */
+    // if (thread->mWaitMonitor != NULL) {
+    //     pthread_cond_signal(&thread->mWaitCond);
+    // }
+
+    NativeUnlockMutex(&thread->mWaitMutex);
 }

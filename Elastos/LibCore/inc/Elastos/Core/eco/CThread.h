@@ -552,6 +552,12 @@ public:
     //@Deprecated
     CARAPI Suspend();
 
+    CARAPI Wait(
+        /* [in] */ Int64 time,
+        /* [in] */ Int32 frac);
+
+    CARAPI Run();
+
 private:
     CARAPI_(Mutex*) GetSelfLock();
 };

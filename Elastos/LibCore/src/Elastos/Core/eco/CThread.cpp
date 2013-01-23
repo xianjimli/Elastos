@@ -210,7 +210,7 @@ PInterface CThread::Probe(
  */
 ECode CThread::CheckAccess()
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::CheckAccess();
 }
 
 /**
@@ -225,7 +225,7 @@ ECode CThread::CheckAccess()
 ECode CThread::CountStackFrames(
     /* [out] */ Int32* number)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::CountStackFrames(number);
 }
 
 /**
@@ -236,7 +236,7 @@ ECode CThread::CountStackFrames(
 //@Deprecated
 ECode CThread::Destroy()
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::Destroy();
 }
 
 /**
@@ -272,7 +272,7 @@ ECode CThread::Destroy()
 ECode CThread::GetId(
     /* [out] */ Int64* id)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::GetId(id);
 }
 
 /**
@@ -283,7 +283,7 @@ ECode CThread::GetId(
 ECode CThread::GetName(
     /* [out] */ String* name)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::GetName(name);
 }
 
 /**
@@ -295,7 +295,7 @@ ECode CThread::GetName(
 ECode CThread::GetPriority(
     /* [out] */ Int32* priority)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::GetPriority(priority);
 }
 
 /**
@@ -323,7 +323,7 @@ ECode CThread::GetPriority(
 ECode CThread::GetState(
     /* [out] */ ThreadState* state)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::GetState(state);
 }
 
 /**
@@ -334,7 +334,7 @@ ECode CThread::GetState(
 ECode CThread::GetThreadGroup(
     /* [out] */ IThreadGroup** group)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::GetThreadGroup(group);
 }
 
 /**
@@ -379,7 +379,7 @@ ECode CThread::GetThreadGroup(
  */
 ECode CThread::Interrupt()
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::Interrupt();
 }
 
 /**
@@ -394,7 +394,7 @@ ECode CThread::Interrupt()
 ECode CThread::IsAlive(
     /* [out] */ Boolean* isAlive)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::IsAlive(isAlive);
 }
 
 /**
@@ -410,7 +410,7 @@ ECode CThread::IsAlive(
 ECode CThread::IsDaemon(
     /* [out] */ Boolean* isDaemon)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::IsDaemon(isDaemon);
 }
 
 /**
@@ -425,7 +425,7 @@ ECode CThread::IsDaemon(
 ECode CThread::IsInterrupted(
     /* [out] */ Boolean* isInterrupted)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::IsInterrupted(isInterrupted);
 }
 
 /**
@@ -439,7 +439,7 @@ ECode CThread::IsInterrupted(
  */
 ECode CThread::Join()
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::Join();
 }
 
 /**
@@ -456,7 +456,7 @@ ECode CThread::Join()
 ECode CThread::JoinEx(
     /* [in] */ Int64 millis)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::JoinEx(millis);
 }
 
 /**
@@ -475,7 +475,7 @@ ECode CThread::JoinEx2(
     /* [in] */ Int64 millis,
     /* [in] */ Int32 nanos)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::JoinEx2(millis, nanos);
 }
 
 /**
@@ -492,7 +492,7 @@ ECode CThread::JoinEx2(
 //@Deprecated
 ECode CThread::Resume()
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::Resume();
 }
 
 /**
@@ -523,7 +523,7 @@ ECode CThread::Resume()
 ECode CThread::SetDaemon(
     /* [in] */ Boolean isDaemon)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::SetDaemon(isDaemon);
 }
 
 /**
@@ -537,7 +537,7 @@ ECode CThread::SetDaemon(
 ECode CThread::SetName(
     /* [in] */ const String& threadName)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::SetName(threadName);
 }
 
 /**
@@ -558,7 +558,7 @@ ECode CThread::SetName(
 ECode CThread::SetPriority(
     /* [in] */ Int32 priority)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::SetPriority(priority);
 }
 
 /**
@@ -585,7 +585,7 @@ ECode CThread::SetPriority(
  */
 ECode CThread::Start()
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::Start();
 }
 
 /**
@@ -601,7 +601,7 @@ ECode CThread::Start()
 //@Deprecated
 ECode CThread::Stop()
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::Stop();
 }
 
 /**
@@ -636,7 +636,19 @@ ECode CThread::Stop()
 //@Deprecated
 ECode CThread::Suspend()
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::Suspend();
+}
+
+ECode CThread::Wait(
+    /* [in] */ Int64 time,
+    /* [in] */ Int32 frac)
+{
+    return Thread::Wait(time, frac);
+}
+
+ECode CThread::Run()
+{
+    return Thread::Run();
 }
 
 Mutex* CThread::GetSelfLock()

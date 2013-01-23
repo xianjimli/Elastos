@@ -1,10 +1,72 @@
 
 #include "ProcessManager.h"
 #include <sys/resource.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <errno.h>
+
+/*
+ * These are constants shared with the higher level code in
+ * ProcessManager.java.
+ */
+#define WAIT_STATUS_UNKNOWN (-1)       // unknown child status
+#define WAIT_STATUS_NO_CHILDREN (-2)   // no children to wait for
+#define WAIT_STATUS_STRANGE_ERRNO (-3) // observed an undocumented errno
+
+const ProcessManager* ProcessManager::mInstance = new ProcessManager();
+
+ProcessManager::ProcessThread::ProcessThread(
+    /* [in] */ ProcessManager* pMg)
+    : mPMg(pMg)
+{}
+
+PInterface ProcessManager::ProcessThread::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (PInterface)this;
+    }
+    else if (riid == EIID_IRunnable) {
+        return (IRunnable*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 ProcessManager::ProcessThread::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 ProcessManager::ProcessThread::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode ProcessManager::ProcessThread::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode ProcessManager::ProcessThread::Run()
+{
+    mPMg->WatchChildren();
+    return NOERROR;
+}
+
+ProcessManager::ProcessManager()
+{
+    ProcessThread* processThread = new ProcessThread(this);
+    AutoPtr<IRunnable> runnable = (IRunnable*)processThread->Probe(EIID_IRunnable);
+    AutoPtr<IThread> pThread;
+    ASSERT_SUCCEEDED(CThread::New(runnable, String("ProcessManager"), (IThread**)&pThread));
+    pThread->SetDaemon(TRUE);
+    pThread->Start();
+}
 
 /**
  * Kills the process with the given ID.
@@ -19,6 +81,152 @@ ECode ProcessManager::Kill(
         // jniThrowIOException(env, errno);
         return E_IO_EXCEPTION;
     }
+    return NOERROR;
+}
+
+void ProcessManager::CleanUp()
+{
+    // ProcessReference reference;
+    // while ((reference = referenceQueue.poll()) != null) {
+    //     synchronized (processReferences) {
+    //         processReferences.remove(reference.processId);
+    //     }
+    // }
+}
+
+void ProcessManager::WatchChildren()
+{
+    // if (onExitMethod == NULL) {
+    //     jniThrowException(env, "java/lang/IllegalStateException",
+    //             "staticInitialize() must run first.");
+    // }
+
+    while (1) {
+        Int32 status;
+
+        /* wait for children in our process group */
+        pid_t pid = waitpid(0, &status, 0);
+
+        if (pid >= 0) {
+            // Extract real status.
+            if (WIFEXITED(status)) {
+                status = WEXITSTATUS(status);
+            }
+            else if (WIFSIGNALED(status)) {
+                status = WTERMSIG(status);
+            }
+            else if (WIFSTOPPED(status)) {
+                status = WSTOPSIG(status);
+            }
+            else {
+                status = WAIT_STATUS_UNKNOWN;
+            }
+        }
+        else {
+            /*
+             * The pid should be -1 already, but force it here just in case
+             * we somehow end up with some other negative value.
+             */
+            pid = -1;
+
+            switch (errno) {
+                case ECHILD: {
+                    /*
+                     * Expected errno: There are no children to wait()
+                     * for. The callback will sleep until it is
+                     * informed of another child coming to life.
+                     */
+                    status = WAIT_STATUS_NO_CHILDREN;
+                    break;
+                }
+                case EINTR: {
+                    /*
+                     * An unblocked signal came in while waiting; just
+                     * retry the wait().
+                     */
+                    continue;
+                }
+                default: {
+                    /*
+                     * Unexpected errno, so squawk! Note: Per the
+                     * Linux docs, there are no errnos defined for
+                     * wait() other than the two that are handled
+                     * immediately above.
+                     */
+                    // LOGE("Error %d calling wait(): %s", errno,
+                    //         strerror(errno));
+                    status = WAIT_STATUS_STRANGE_ERRNO;
+                    break;
+                }
+            }
+        }
+
+        OnExit(pid, status);
+        //if (env->ExceptionOccurred()) {
+            /*
+             * The callback threw, so break out of the loop and return,
+             * letting the exception percolate up.
+             */
+        //    break;
+       // }
+    }
+}
+
+ECode ProcessManager::OnExit(
+    /* [in] */ Int32 pid,
+    /* [in] */ Int32 exitValue)
+{
+    //ProcessReference processReference = null;
+    AutoPtr<IProcess> exitProcess;
+
+    {
+        Mutex::Autolock lock(mProcessesLock);
+        CleanUp();
+        if (pid >= 0) {
+            HashMap<Int32, AutoPtr<IProcess> >::Iterator it = mProcesses.Find(pid);
+            if (it != mProcesses.End()) {
+                exitProcess = it->mSecond;
+                mProcesses.Erase(it);
+            }
+        }
+        else if (exitValue == WAIT_STATUS_NO_CHILDREN) {
+            if (mProcesses.Begin() == mProcesses.End()) {
+                /*
+                 * There are no eligible children; wait for one to be
+                 * added. The wait() will return due to the
+                 * notifyAll() call below.
+                 */
+                //try {
+                //    processReferences.wait();
+                //} catch (InterruptedException ex) {
+                    // This should never happen.
+                //    throw new AssertionError("unexpected interrupt");
+                //}
+                return E_NOT_IMPLEMENTED;
+            }
+            else {
+                /*
+                 * A new child was spawned just before we entered
+                 * the synchronized block. We can just fall through
+                 * without doing anything special and land back in
+                 * the native wait().
+                 */
+            }
+        }
+        else {
+            // Something weird is happening; abort!
+            return E_ASSERTION_ERROR;
+            //throw new AssertionError("unexpected wait() behavior");
+        }
+    }
+
+    if (exitProcess != NULL) {
+        ProcessImpl* process = (ProcessImpl*)exitProcess.Get();
+        if (process != NULL) {
+            process->SetExitValue(exitValue);
+        }
+    }
+
     return NOERROR;
 }
 
@@ -257,4 +465,443 @@ ECode ProcessManager::Exec(
 
     *procId = (Int32)result;
     return ec;
+}
+
+ECode ProcessManager::Exec(
+    /* [in] */ const ArrayOf<String>* taintedCommand,
+    /* [in] */ const ArrayOf<String>* taintedEnvironment,
+    /* [in] */ IFile* workingDirectory,
+    /* [in] */ Boolean redirectErrorStream,
+    /* [out] */ IProcess** proc)
+{
+    VALIDATE_NOT_NULL(proc);
+    // Make sure we throw the same exceptions as the RI.
+    if (taintedCommand == NULL) {
+        return E_NULL_POINTER_EXCEPTION;
+//        throw new NullPointerException();
+    }
+    if (taintedCommand->GetLength() == 0) {
+        return E_INDEX_OUT_OF_BOUNDS_EXCEPTION;
+//        throw new IndexOutOfBoundsException();
+    }
+
+    // Handle security and safety by copying mutable inputs and checking them.
+    ArrayOf<String>* command = taintedCommand->Clone();
+    ArrayOf<String>* environment = taintedEnvironment != NULL ? taintedEnvironment->Clone() : NULL;
+    // SecurityManager securityManager = System.getSecurityManager();
+    // if (securityManager != null) {
+    //     securityManager.checkExec(command[0]);
+    // }
+    // Check we're not passing null Strings to the native exec.
+    String arg(NULL);
+    for (Int32 i = 0; i < command->GetLength(); ++i) {
+        arg = (*command)[i];
+        if (arg.IsNull()) {
+            return E_NULL_POINTER_EXCEPTION;
+//            throw new NullPointerException();
+        }
+    }
+    // The environment is allowed to be null or empty, but no element may be null.
+    if (environment != NULL) {
+        String env(NULL);
+        for (Int32 j = 0; j < environment->GetLength(); ++j) {
+            env = (*environment)[j];
+            if (env.IsNull()) {
+                return E_NULL_POINTER_EXCEPTION;
+    //            throw new NullPointerException();
+            }
+        }
+    }
+
+    AutoPtr<IFileDescriptor> in, out, err;
+    ASSERT_SUCCEEDED(CFileDescriptor::New((IFileDescriptor**)&in));
+    ASSERT_SUCCEEDED(CFileDescriptor::New((IFileDescriptor**)&out));
+    ASSERT_SUCCEEDED(CFileDescriptor::New((IFileDescriptor**)&err));
+
+    String workingPath(NULL);
+    if (workingDirectory != NULL) {
+        workingDirectory->GetPath(&workingPath);
+    }
+
+    // Ensure onExit() doesn't access the process map before we add our
+    // entry.
+    Mutex::Autolock lock(mProcessesLock);
+    Int32 pid;
+    //try {
+    FAIL_RETURN(Exec(command, environment, workingPath,
+           in, out, err, redirectErrorStream, &pid));
+    //     } catch (IOException e) {
+    //         IOException wrapper = new IOException("Error running exec()."
+    //                 + " Command: " + Arrays.toString(command)
+    //                 + " Working Directory: " + workingDirectory
+    //                 + " Environment: " + Arrays.toString(environment));
+    //         wrapper.initCause(e);
+    //         throw wrapper;
+    //     }
+    ProcessImpl* process = new ProcessImpl(pid, in, out, err);
+    // ProcessReference processReference
+    //         = new ProcessReference(process, referenceQueue);
+    processReferences[pid] = (IProcess*)process->Probe(EIID_IProcess);
+
+    /*
+     * This will wake up the child monitor thread in case there
+     * weren't previously any children to wait on.
+     */
+    //processReferences.notifyAll();
+
+    *proc = (IProcess*)process->Probe(EIID_IProcess);
+    return NOERROR;
+}
+
+PInterface ProcessManager::ProcessImpl::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (PInterface)this;
+    }
+    else if (riid == EIID_IProcess) {
+        return (IProcess*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 ProcessManager::ProcessImpl::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 ProcessManager::ProcessImpl::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode ProcessManager::ProcessImpl::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ProcessManager::ProcessImpl::ProcessImpl(
+    /* [in] */ Int32 id,
+    /* [in] */ IFileDescriptor* in,
+    /* [in] */ IFileDescriptor* out,
+    /* [in] */ IFileDescriptor* err)
+    : mId(id)
+    , mExitValue(0)
+{
+    mErrorStream = (IInputStream*)(new ProcessInputStream(err))->Probe(EIID_IInputStream);
+    mInputStream = (IInputStream*)(new ProcessInputStream(in))->Probe(EIID_IInputStream);
+    mOutputStream = (IOutputStream*)(new ProcessOutputStream(out))->Probe(EIID_IOutputStream);
+}
+
+ECode ProcessManager::ProcessImpl::Destroy()
+{
+//    try {
+    return ProcessManager::Kill(mId);
+//    } catch (IOException e) {
+//        Logger.getLogger(Runtime.class.getName()).log(Level.FINE,
+//                "Failed to destroy process " + id + ".", e);
+//    }
+}
+
+ECode ProcessManager::ProcessImpl::ExitValue(
+    /* [out] */ Int32* value)
+{
+    VALIDATE_NOT_NULL(value);
+    Mutex::Autolock lock(mExitValueLock);
+    // if (exitValue == NULL) {
+    //     return E_ILLEGAL_THREAD_STATE_EXCEPTION;
+    //     throw new IllegalThreadStateException(
+    //             "Process has not yet terminated.");
+    // }
+
+    *value = mExitValue;
+    return NOERROR;
+}
+
+ECode ProcessManager::ProcessImpl::GetErrorStream(
+    /* [out] */ IInputStream** es)
+{
+    VALIDATE_NOT_NULL(es);
+    *es = mErrorStream;
+    return NOERROR;
+}
+
+ECode ProcessManager::ProcessImpl::GetInputStream(
+    /* [out] */ IInputStream** is)
+{
+    VALIDATE_NOT_NULL(is);
+    *is = mInputStream;
+    return NOERROR;
+}
+
+ECode ProcessManager::ProcessImpl::GetOutputStream(
+    /* [out] */ IOutputStream** os)
+{
+    VALIDATE_NOT_NULL(os);
+    *os = mOutputStream;
+    return NOERROR;
+}
+
+ECode ProcessManager::ProcessImpl::WaitFor(
+    /* [out] */ Int32* value)
+{
+    VALIDATE_NOT_NULL(value);
+    Mutex::Autolock lock(mExitValueLock);
+    // while (mExitValue == null) {
+    //     mExitValueLock.Wait();
+    // }
+    *value = mExitValue;
+
+    return NOERROR;
+}
+
+void ProcessManager::ProcessImpl::SetExitValue(
+    /* [in] */ Int32 exitValue)
+{
+    Mutex::Autolock lock(mExitValueLock);
+    mExitValue = exitValue;
+//    mExitValueLock.notifyAll();
+}
+
+ProcessManager::ProcessInputStream::ProcessInputStream(
+    /* [in]  */ IFileDescriptor* fd)
+    : mFd(fd)
+{
+    ASSERT_SUCCEEDED(CFileInputStream::New(fd, (IFileInputStream**)&mFIn));
+}
+
+PInterface ProcessManager::ProcessInputStream::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (PInterface)this;
+    }
+    else if (riid == EIID_IFileInputStream) {
+        return (IFileInputStream*)this;
+    }
+    else if (riid == EIID_IInputStream) {
+        return (IInputStream*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 ProcessManager::ProcessInputStream::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 ProcessManager::ProcessInputStream::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode ProcessManager::ProcessInputStream::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode ProcessManager::ProcessInputStream::Available(
+    /* [out] */ Int32* number)
+{
+    return mFIn->Available(number);
+}
+
+ECode ProcessManager::ProcessInputStream::Close()
+{
+    //try {
+    mFIn->Close();
+    //} finally {
+    Mutex::Autolock lock(m_lock);
+    Boolean isValid;
+    mFd->Valid(&isValid);
+    if (mFd != NULL && isValid) {
+        //try {
+        Int32 nativeFd;
+        mFd->GetDescriptor(&nativeFd);
+        Int32 rc = TEMP_FAILURE_RETRY(close(nativeFd));
+        if (rc == -1) {
+    //        jniThrowIOException(env, errno);
+            mFd = NULL;
+            return E_IO_EXCEPTION;
+        }
+        mFd->SetDescriptor(-1);
+        //} finally {
+        mFd = NULL;
+        //}
+    }
+    //}
+    return NOERROR;
+}
+
+ECode ProcessManager::ProcessInputStream::Mark(
+    /* [in] */ Int32 readLimit)
+{
+    return mFIn->Mark(readLimit);
+}
+
+ECode ProcessManager::ProcessInputStream::IsMarkSupported(
+    /* [out] */ Boolean* supported)
+{
+    return mFIn->IsMarkSupported(supported);
+}
+
+ECode ProcessManager::ProcessInputStream::Read(
+    /* [out] */ Int32* value)
+{
+    return mFIn->Read(value);
+}
+
+ECode ProcessManager::ProcessInputStream::ReadBuffer(
+    /* [out] */ ArrayOf<Byte>* buffer,
+    /* [out] */ Int32* number)
+{
+    return mFIn->ReadBuffer(buffer, number);
+}
+
+ECode ProcessManager::ProcessInputStream::ReadBufferEx(
+    /* [in] */ Int32 offset,
+    /* [in] */ Int32 length,
+    /* [out] */ ArrayOf<Byte>* buffer,
+    /* [out] */ Int32* number)
+{
+    return mFIn->ReadBufferEx(offset, length, buffer, number);
+}
+
+ECode ProcessManager::ProcessInputStream::Reset()
+{
+    return mFIn->Reset();
+}
+
+ECode ProcessManager::ProcessInputStream::Skip(
+    /* [in] */ Int64 count,
+    /* [out] */ Int64* number)
+{
+    return mFIn->Skip(count, number);
+}
+
+ECode ProcessManager::ProcessInputStream::GetChannel(
+    /* [out] */ IFileChannel** channel)
+{
+    return mFIn->GetChannel(channel);
+}
+
+ECode ProcessManager::ProcessInputStream::GetFD(
+    /* [out] */ IFileDescriptor** fd)
+{
+    return mFIn->GetFD(fd);
+}
+
+ProcessManager::ProcessOutputStream::ProcessOutputStream(
+    /* [in]  */ IFileDescriptor* fd)
+    : mFd(fd)
+{
+    ASSERT_SUCCEEDED(CFileOutputStream::New(fd, (IFileOutputStream**)&mFOut));
+}
+
+PInterface ProcessManager::ProcessOutputStream::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (PInterface)this;
+    }
+    else if (riid == EIID_IFileOutputStream) {
+        return (IFileOutputStream*)this;
+    }
+    else if (riid == EIID_IOutputStream) {
+        return (IOutputStream*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 ProcessManager::ProcessOutputStream::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 ProcessManager::ProcessOutputStream::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode ProcessManager::ProcessOutputStream::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode ProcessManager::ProcessOutputStream::Close()
+{
+    //try {
+    mFOut->Close();
+    //} finally {
+    Mutex::Autolock lock(m_lock);
+    Boolean isValid;
+    mFd->Valid(&isValid);
+    if (mFd != NULL && isValid) {
+        //try {
+        Int32 nativeFd;
+        mFd->GetDescriptor(&nativeFd);
+        Int32 rc = TEMP_FAILURE_RETRY(close(nativeFd));
+        if (rc == -1) {
+    //        jniThrowIOException(env, errno);
+            mFd = NULL;
+            return E_IO_EXCEPTION;
+        }
+        mFd->SetDescriptor(-1);
+        //} finally {
+        mFd = NULL;
+        //}
+    }
+    //}
+    return NOERROR;
+}
+
+ECode ProcessManager::ProcessOutputStream::Flush()
+{
+    return mFOut->Flush();
+}
+
+ECode ProcessManager::ProcessOutputStream::Write(
+    /* [in] */ Int32 oneByte)
+{
+    return mFOut->Write(oneByte);
+}
+
+ECode ProcessManager::ProcessOutputStream::WriteBuffer(
+    /* [in] */ const ArrayOf<Byte>& buffer)
+{
+    return mFOut->WriteBuffer(buffer);
+}
+
+ECode ProcessManager::ProcessOutputStream::WriteBufferEx(
+    /* [in] */ Int32 offset,
+    /* [in] */ Int32 count,
+    /* [in] */ const ArrayOf<Byte>& buffer)
+{
+    return mFOut->WriteBufferEx(offset, count, buffer);
+}
+
+ECode ProcessManager::ProcessOutputStream::GetChannel(
+    /* [out] */ IFileChannel** channel)
+{
+    return mFOut->GetChannel(channel);
+}
+
+ECode ProcessManager::ProcessOutputStream::GetFD(
+    /* [out] */ IFileDescriptor** fd)
+{
+    return mFOut->GetFD(fd);
+}
+
+ProcessManager* ProcessManager::GetInstance()
+{
+    return mInstance;
 }

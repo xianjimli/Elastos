@@ -282,10 +282,26 @@ ELAPI_(Boolean) NativeCreateThread(
 ELAPI_(void) NativeDetachCurrentThread();
 
 /*
+ * Given a VMThread object, return the associated Thread*.
+ *
+ * NOTE: if the thread detaches, the struct Thread will disappear, and
+ * we will be touching invalid data.  For safety, lock the thread list
+ * before calling this.
+ */
+ELAPI_(NativeThread*) NativeGetThreadFromThreadObject(
+    /* [in] */ Thread* threadObj);
+
+/*
  * Update the priority value of the underlying pthread.
  */
 ELAPI_(void) NativeChangeThreadPriority(
     /* [in] */ NativeThread* thread,
     /* [in] */ Int32 newPriority);
+
+/*
+ * Implement java.lang.Thread.interrupt().
+ */
+ELAPI_(void) NativeThreadInterrupt(
+    /* [in] */ NativeThread* thread);
 
 #endif //__NATIVETHREAD_H__

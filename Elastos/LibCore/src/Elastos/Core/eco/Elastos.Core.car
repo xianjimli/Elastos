@@ -199,5 +199,44 @@ module
             [in] Int64 stackSize);
 
         interface IThread;
+        interface IRunnable;
+    }
+
+    class CThreadGroup {
+        /**
+         * Constructs a new {@code ThreadGroup} with the given name. The new {@code ThreadGroup}
+         * will be child of the {@code ThreadGroup} to which the calling thread belongs.
+         *
+         * @param name the name
+         * @throws SecurityException if {@code checkAccess()} for the parent
+         *         group fails with a SecurityException
+         * @see java.lang.Thread#currentThread
+         */
+        constructor(
+            [in] String name);
+
+        /**
+         * Constructs a new {@code ThreadGroup} with the given name, as a child of the
+         * given {@code ThreadGroup}.
+         *
+         * @param parent the parent
+         * @param name the name
+         * @throws NullPointerException if {@code parent == null}
+         * @throws SecurityException if {@code checkAccess()} for the parent
+         *         group fails with a SecurityException
+         * @throws IllegalThreadStateException if {@code parent} has been
+         *         destroyed already
+         */
+         constructor(
+            [in] IThreadGroup* parent,
+            [in] String name);
+
+        /**
+         * Initialize the special "system" ThreadGroup. Was "main" in Harmony,
+         * but we have an additional group above that in Android.
+         */
+        constructor();
+
+        interface IThreadGroup;
     }
 }

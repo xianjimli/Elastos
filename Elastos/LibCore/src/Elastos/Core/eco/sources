@@ -1,6 +1,8 @@
 TARGET_NAME= Elastos.Core
 TARGET_TYPE= eco
 
+VPATH := $(MAKEDIR)/../lib
+
 INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/common;
 INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/Core/eco;
 INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/Core/eco/elastos;
@@ -24,6 +26,10 @@ SOURCES += NativeThread.cpp
 SOURCES += Thread.cpp
 SOURCES += ThreadGroup.cpp
 SOURCES += CThread.cpp
+SOURCES += CThreadGroup.cpp
+
+SOURCES += Math.cpp
+SOURCES += System.cpp
 
 
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Runtime.lib
@@ -36,4 +42,6 @@ LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
 #LIBRARIES += $(XDK_TARGETS)/Elastos.Core.eco
 LIBRARIES += $(XDK_USER_LIB)/crt0.lib
 LIBRARIES += -lcutils
+LIBRARIES += $(PREBUILD_LIB)/libm.a
+LIBRARIES += $(PREBUILD_LIB)/libicuuc.a
 endif
