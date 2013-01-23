@@ -11,7 +11,7 @@ INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Utility
 INCLUDES += $(MAKEDIR)/../../../inc/Elastos/common;
 
 IMPORTS = Elastos.Core.eco
-IMPORTS += Elastos.IO.eco
+#IMPORTS += Elastos.IO.eco
 
 SOURCES = Elastos.Utility.car
 #SOURCES += listnode.cpp
@@ -38,9 +38,9 @@ SOURCES += CSimpleTimeZone.cpp
 SOURCES += Calendar.cpp
 SOURCES += CCalendarHelper.cpp
 SOURCES += CGregorianCalendar.cpp
-SOURCES += ZoneInfo.cpp
-SOURCES += ZoneInfoDB.cpp
-SOURCES += TimeZoneGetter.cpp
+#SOURCES += ZoneInfo.cpp
+#SOURCES += ZoneInfoDB.cpp
+#SOURCES += TimeZoneGetter.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 ifeq "$(XDK_TARGET_PLATFORM)" "win32"
