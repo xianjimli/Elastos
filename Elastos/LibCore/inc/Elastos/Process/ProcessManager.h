@@ -263,7 +263,7 @@ public:
         /* [out] */ IProcess** proc);
 
     /** Gets the process manager. */
-    static CARAPI_(ProcessManager*) GetInstance();
+    static CARAPI_(const ProcessManager*) GetInstance();
 
 private:
     ProcessManager();
