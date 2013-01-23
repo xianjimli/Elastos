@@ -541,7 +541,7 @@ ECode ProcessManager::Exec(
     ProcessImpl* process = new ProcessImpl(pid, in, out, err);
     // ProcessReference processReference
     //         = new ProcessReference(process, referenceQueue);
-    processReferences[pid] = (IProcess*)process->Probe(EIID_IProcess);
+    mProcesses[pid] = (IProcess*)process->Probe(EIID_IProcess);
 
     /*
      * This will wake up the child monitor thread in case there
@@ -901,7 +901,7 @@ ECode ProcessManager::ProcessOutputStream::GetFD(
     return mFOut->GetFD(fd);
 }
 
-ProcessManager* ProcessManager::GetInstance()
+const ProcessManager* ProcessManager::GetInstance()
 {
     return mInstance;
 }
