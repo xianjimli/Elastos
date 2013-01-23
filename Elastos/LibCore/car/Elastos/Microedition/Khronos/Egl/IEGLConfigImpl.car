@@ -1,0 +1,8 @@
+
+module
+{
+    interface IEGLConfigImpl extends IEGLConfig {
+//        GetNativeEGLConfig(
+//            [out] Handle32* config);
+    }
+}

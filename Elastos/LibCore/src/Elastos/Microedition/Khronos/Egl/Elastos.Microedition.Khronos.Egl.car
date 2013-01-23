@@ -1,0 +1,20 @@
+
+module
+{
+    merge("../../../../../car/Elastos/Microedition/Khronos/Egl/IEGLConfig.car");
+    merge("../../../../../car/Elastos/Microedition/Khronos/Egl/IEGLContext.car");
+    merge("../../../../../car/Elastos/Microedition/Khronos/Egl/IEGLDisplay.car");
+    merge("../../../../../car/Elastos/Microedition/Khronos/Egl/IEGLSurface.car");
+    merge("../../../../../car/Elastos/Microedition/Khronos/Egl/IEGL.car");
+    merge("../../../../../car/Elastos/Microedition/Khronos/Egl/IEGL10.car");
+    merge("../../../../../car/Elastos/Microedition/Khronos/Egl/IEGL11.car");
+    merge("../../../../../car/Elastos/Microedition/Khronos/Egl/IEGLConfigImpl.car");
+    merge("../../../../../car/Elastos/Microedition/Khronos/Egl/IEGLContextImpl.car");
+    merge("../../../../../car/Elastos/Microedition/Khronos/Egl/IEGLDisplayImpl.car");
+    merge("../../../../../car/Elastos/Microedition/Khronos/Egl/IEGLSurfaceImpl.car");
+
+
+    singleton class CEGLContextHelper {
+        interface IEGLContextHelper;
+    }
+}

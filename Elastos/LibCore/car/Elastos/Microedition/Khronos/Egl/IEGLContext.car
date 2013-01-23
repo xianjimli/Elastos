@@ -1,0 +1,13 @@
+
+module
+{
+    interface IEGL;
+
+    interface IEGLContext {
+    }
+
+    interface IEGLContextHelper {
+        GetEGL(
+            [out] IEGL** egl);
+    }
+}
