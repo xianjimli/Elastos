@@ -38,6 +38,7 @@ INCLUDES += $(MAKEDIR)/../../inc/services/server
 INCLUDES += $(MAKEDIR)/../../inc/services/server/location
 INCLUDES += $(MAKEDIR)/../../inc/media
 INCLUDES += $(MAKEDIR)/../../inc/media/media
+INCLUDES += $(MAKEDIR)/../../inc/media/media/audiofx
 ifeq "$(XDK_TARGET_PLATFORM)" "linux"
 INCLUDES += $(PREBUILD_INC)/skia/utils
 INCLUDES += $(PREBUILD_INC)/skia/core
@@ -52,6 +53,7 @@ LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Core.lib
 LIBRARIES += media/media.lib
+LIBRARIES += media/audiofx/audiofx.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.Logging.lib
 
 ifeq "$(XDK_TARGET_PLATFORM)" "win32"
