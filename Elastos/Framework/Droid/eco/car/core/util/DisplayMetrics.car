@@ -1,6 +1,8 @@
 
 module
 {
+    interface ICompatibilityInfo;
+
     /**
      * Standard quantized DPI for low-density screens.
      */
@@ -26,11 +28,33 @@ module
      */
     const DisplayMetrics_DENSITY_DEFAULT = 160; // DisplayMetrics_DENSITY_MEDIUM;
 
+    /**
+     * The device's density.
+     * @hide becase eventually this should be able to change while
+     * running, so shouldn't be a constant.
+     */
+    // public static final int DENSITY_DEVICE = getDeviceDensity();
+
     interface IDisplayMetrics {
         SetTo(
             [in] IDisplayMetrics* o);
 
         SetToDefaults();
+
+        /**
+         * Update the display metrics based on the compatibility info and orientation
+         * NOTE: DO NOT EXPOSE THIS API!  It is introducing a circular dependency
+         * with the higher-level android.res package.
+         * {@hide}
+         */
+        UpdateMetrics(
+            [in] ICompatibilityInfo* compatibilityInfo,
+            [in] Int32 orientation,
+            [in] Int32 screenLayout);
+
+        // TODO:
+        // ToString(
+        //     [out] String* result);
 
         GetDescription(
             [out] String* str);
@@ -40,5 +64,17 @@ module
 
         SetDensity(
             [in] Float density);
+    }
+
+    interface IDisplayMetricsHelper {
+
+        /**
+         * The device's density.
+         * @hide becase eventually this should be able to change while
+         * running, so shouldn't be a constant.
+         */
+        // public static final int DENSITY_DEVICE = getDeviceDensity();
+        GetDensityDevice(
+            [out] Int32* result);
     }
 }

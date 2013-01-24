@@ -773,7 +773,7 @@ Int32 IntentFilter::Match(
     String action, type, scheme;
     intent->GetAction(&action);
     if (resolver != NULL) {
-        intent->ResolveType(resolver, &type);
+        intent->ResolveTypeEx(resolver, &type);
     }
     else {
         intent->GetType(&type);

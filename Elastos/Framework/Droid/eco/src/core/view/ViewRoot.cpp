@@ -2738,7 +2738,12 @@ void ViewRoot::UpdateConfiguration(
         //assert(config);
         //config->Release();
 
-        if (force || mLastConfiguration->Diff((CConfiguration*)config) != 0) {
+        Int32 result;
+        if (FAILED(mLastConfiguration->Diff((CConfiguration*)config, &result))) {
+            return;
+        }
+
+        if (force || (result != 0)) {
             mLastConfiguration->SetTo(config);
             mView->DispatchConfigurationChanged(config);
         }

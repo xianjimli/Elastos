@@ -2,31 +2,28 @@
 #include "content/CIntent.h"
 #include "os/CBundle.h"
 #include "net/CStringUri.h"
+#include "graphics/CRect.h"
 #include <elastos/Algorithm.h>
-
 
 CIntent::FilterComparison::FilterComparison(
     /* [in] */ IIntent* intent)
 {
     assert(intent != NULL);
     mIntent = intent;
-    intent->GetFilterHashCode(&mHashCode);
+    intent->FilterHashCode(&mHashCode);
 }
 
-IIntent*
-CIntent::FilterComparison::GetIntent()
+IIntent* CIntent::FilterComparison::GetIntent()
 {
     return mIntent;
 }
 
-Int32
-CIntent::FilterComparison::GetHashCode()
+Int32 CIntent::FilterComparison::GetHashCode()
 {
     return mHashCode;
 }
 
-Boolean
-CIntent::FilterComparison::Equals(
+Boolean CIntent::FilterComparison::Equals(
     /* [in] */ FilterComparison* obj)
 {
     if (obj == NULL) return FALSE;
@@ -36,8 +33,7 @@ CIntent::FilterComparison::Equals(
     return isEqual;
 }
 
-ECode
-CIntent::FilterComparison::GetDescription(
+ECode CIntent::FilterComparison::GetDescription(
     /* [out] */ String* description)
 {
     return E_NOT_IMPLEMENTED;
@@ -49,6 +45,9 @@ CIntent::CIntent() : mCategories(NULL)
 
 CIntent::~CIntent()
 {
+    if (mCategories) {
+        delete mCategories;
+    }
 }
 
 ECode CIntent::constructor()
@@ -72,14 +71,27 @@ ECode CIntent::constructor(
         String className;
         componentName->GetCapsuleName(&capsuleName);
         componentName->GetClassName(&className);
-        CComponentName::NewByFriend(capsuleName, className, (CComponentName**)&mComponent);
+        CComponentName::New(
+            capsuleName, className, (IComponentName**)&mComponent);
     }
 
-//    if (o.mCategories != null) {
-//        this.mCategories = new HashSet<String>(o.mCategories);
-//    }
+    if (o->mCategories != NULL) {
+        mCategories = new Set<String>();
+        if (!mCategories) {
+            return E_OUT_OF_MEMORY;
+        }
+
+        Set<String>::Iterator it;
+        for (it = o->mCategories->Begin(); it != o->mCategories->End(); ++it) {
+            String s = *it;
+            mCategories->Insert(s);
+        }
+    }
     if (o->mExtras != NULL) {
         CBundle::New(o->mExtras, (IBundle**)&mExtras);
+    }
+    if (o->mSourceBounds != NULL) {
+        CRect::New(o->mSourceBounds, (IRect**)&mSourceBounds);
     }
 
     return NOERROR;
@@ -101,12 +113,22 @@ ECode CIntent::constructor(
         String className;
         componentName->GetCapsuleName(&capsuleName);
         componentName->GetClassName(&className);
-        CComponentName::NewByFriend(capsuleName, className, (CComponentName**)&mComponent);
+        CComponentName::NewByFriend(
+            capsuleName, className, (CComponentName**)&mComponent);
     }
 
-//    if (o.mCategories != null) {
-//        this.mCategories = new HashSet<String>(o.mCategories);
-//    }
+
+    if (o->mCategories != NULL) {
+        mCategories = new Set<String>();
+        if (!mCategories) {
+            return E_OUT_OF_MEMORY;
+        }
+        Set<String>::Iterator it;
+        for (it = o->mCategories->Begin(); it != o->mCategories->End(); ++it) {
+            String s = *it;
+            mCategories->Insert(s);
+        }
+    }
 
     return NOERROR;
 }
@@ -130,49 +152,19 @@ ECode CIntent::constructor(
     return NOERROR;
 }
 
-/**
- * Make a clone of only the parts of the Intent that are relevant for
- * filter matching: the action, data, type, component, and categories.
- */
 ECode CIntent::CloneFilter(
-    /* [out] */ IIntent** intent)
+    /* [out] */ IIntent** result)
 {
-    if (intent == NULL) return E_INVALID_ARGUMENT;
+    VALIDATE_NOT_NULL(result);
 
-    return CIntent::New(this, FALSE, intent);
-}
-
-ECode CIntent::GetComponent(
-    /* [out] */ IComponentName** component)
-{
-    if (component == NULL) return E_INVALID_ARGUMENT;
-
-    *component = (IComponentName*)(CComponentName*)mComponent;
-    if (*component != NULL) (*component)->AddRef();
-
-    return NOERROR;
-}
-
-ECode CIntent::SetComponent(
-    /* [in] */ IComponentName* component)
-{
-    mComponent = (CComponentName*)component;
-
-    return NOERROR;
+    return CIntent::New(this, FALSE, result);
 }
 
 ECode CIntent::GetAction(
-    /* [out] */ String *action)
+    /* [out] */ String* action)
 {
+    VALIDATE_NOT_NULL(action);
     *action = mAction;
-
-    return NOERROR;
-}
-
-ECode CIntent::SetAction(
-    /* [in] */ const String& action)
-{
-    mAction = action;
 
     return NOERROR;
 }
@@ -180,344 +172,1552 @@ ECode CIntent::SetAction(
 ECode CIntent::GetData(
     /* [out] */ IUri** data)
 {
+    VALIDATE_NOT_NULL(data);
     *data = mData;
-    if (*data != NULL) (*data)->AddRef();
+    if (mData != NULL) mData->AddRef();
 
     return NOERROR;
 }
 
-ECode CIntent::SetData(
-    /* [in] */ IUri* data)
+ECode CIntent::GetDataString(
+    /* [out] */ String* dataString)
 {
-    mData = data;
-
-    return NOERROR;
-}
-
-ECode CIntent::SetType(
-	/*[in]*/ const String& type)
-{
-	mData = NULL;
-	mType = type;
-
-	return NOERROR;
-}
-
-ECode CIntent::SetDataAndType(
-	/*[in]*/ IUri* data,
-	/*[in]*/ const String& type)
-{
-	mData = data;
-	mType = type;
-
-	return NOERROR;
-}
-
-ECode CIntent::SetFlags(
-    /* [in] */ Int32 flags)
-{
-    mFlags = flags;
-
-    return NOERROR;
-}
-
-ECode CIntent::AddFlags(
-    /* [in] */ Int32 flags)
-{
-    mFlags |= flags;
-
-    return NOERROR;
-}
-
-ECode CIntent::GetFlags(
-    /* [out] */ Int32* flags)
-{
-    if (flags == NULL) return E_INVALID_ARGUMENT;
-
-    *flags = mFlags;
-
-    return NOERROR;
+    VALIDATE_NOT_NULL(dataString);
+    if (mData != NULL) {
+        // TODO: ALEX
+        // return mData->ToString(dataString);
+        return E_NOT_IMPLEMENTED;
+    }
+    else {
+        dataString->SetTo(NULL);
+        return NOERROR;
+    }
 }
 
 ECode CIntent::GetScheme(
     /* [out] */ String* scheme)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(scheme);
+    if (mData != NULL) {
+        return mData->GetScheme(scheme);
+    }
+    else {
+        scheme->SetTo(NULL);
+        return NOERROR;
+    }
 }
 
 ECode CIntent::GetType(
-	/*[out]*/ String* type)
+    /* [out] */ String* type)
 {
+    VALIDATE_NOT_NULL(type);
     *type = mType;
+
 	return NOERROR;
 }
 
-ECode CIntent::AddCategory(
-    /* [in] */ const String& category)
+ECode CIntent::ResolveType(
+    /* [in] */ IContext* context,
+    /* [out] */ String* type)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(context);
+    VALIDATE_NOT_NULL(type);
+
+    AutoPtr<IContentResolver> resolver;
+    FAIL_RETURN(context->GetContentResolver((IContentResolver**)&resolver));
+
+    return ResolveTypeEx(resolver, type);
+}
+
+ECode CIntent::ResolveTypeEx(
+    /* [in] */ IContentResolver* resolver,
+    /* [out] */ String* type)
+{
+    VALIDATE_NOT_NULL(resolver);
+    VALIDATE_NOT_NULL(type);
+
+    if (!mType.IsNull()) {
+        *type = mType;
+        return NOERROR;
+    }
+
+    if (mData != NULL) {
+        String scheme;
+        FAIL_RETURN(mData->GetScheme(&scheme));
+        if (scheme.Equals("content")) {
+            return resolver->GetType(mData, type);
+        }
+    }
+
+    type->SetTo(NULL);
+
+    return NOERROR;
+}
+
+ECode CIntent::ResolveTypeIfNeeded(
+    /* [in] */ IContentResolver* resolver,
+    /* [out] */ String* type)
+{
+    VALIDATE_NOT_NULL(resolver);
+    VALIDATE_NOT_NULL(type);
+
+    if (mComponent != NULL) {
+        *type = mType;
+        return NOERROR;
+    }
+
+    return ResolveTypeEx(resolver, type);
 }
 
 ECode CIntent::HasCategory(
     /* [in] */ const String& category,
-    /* [out] */ Boolean* hasCategory)
+    /* [out] */ Boolean* result)
 {
-    if (hasCategory == NULL) return E_INVALID_ARGUMENT;
+    VALIDATE_NOT_NULL(result);
 
-    *hasCategory = FALSE;
+    *result = FALSE;
     if (mCategories != NULL) {
         Set<String>::Iterator it;
         for (it = mCategories->Begin(); it != mCategories->End(); ++it) {
             if (!(*it).Compare(category)) {
-                *hasCategory = TRUE;
+                *result = TRUE;
                 break;
             }
         }
     }
+
     return NOERROR;
 }
 
 ECode CIntent::GetCategories(
     /* [out, callee] */ ArrayOf<String>** categories)
 {
-    if (categories == NULL) return E_INVALID_ARGUMENT;
+    VALIDATE_NOT_NULL(categories);
 
     *categories = NULL;
     if (mCategories != NULL) {
         *categories = ArrayOf<String>::Alloc(mCategories->GetSize());
+        if (!*categories) {
+            return E_OUT_OF_MEMORY;
+        }
+
         Set<String>::Iterator it;
         Int32 idx = 0;
-        for (it = mCategories->Begin();
-             it != mCategories->End(); ++it, ++idx) {
+        for (it = mCategories->Begin(); it != mCategories->End(); ++it, ++idx) {
             (**categories)[idx] = *it;
         }
     }
+
+    return NOERROR;
+}
+
+ECode CIntent::SetExtrasClassLoader(
+    /* [in] */ IClassLoader* loader)
+{
+    if (mExtras != NULL) {
+        return mExtras->SetClassLoader(loader);
+    }
+    else {
+        return NOERROR;
+    }
+}
+
+ECode CIntent::HasExtra(
+    /* [in] */ const String& name,
+    /* [out] */ Boolean* result)
+{
+    VALIDATE_NOT_NULL(result);
+
+    if (mExtras != NULL) {
+        Boolean containsKey;
+        FAIL_RETURN(mExtras->ContainsKey(name, &containsKey));
+        *result = containsKey;
+    }
+    else {
+        *result = FALSE;
+    }
+
     return NOERROR;
 }
 
 ECode CIntent::HasFileDescriptors(
-    /* [out] */ Boolean* hasFD)
+    /* [out] */ Boolean* result)
 {
-    if (hasFD == NULL) return E_INVALID_ARGUMENT;
+    VALIDATE_NOT_NULL(result);
 
-    *hasFD = FALSE;
     if (mExtras != NULL) {
-        return mExtras->HasFileDescriptors(hasFD);
+        return mExtras->HasFileDescriptors(result);
     }
-
-    return NOERROR;
-}
-
-ECode CIntent::PutBooleanExtra(
-    /* [in] */ const String& name,
-    /* [in] */ Boolean value)
-{
-    ECode ec = NOERROR;
-
-    if (mExtras == NULL) {
-        ec = CBundle::New((IBundle**)&mExtras);
+    else {
+        *result = FALSE;
+        return NOERROR;
     }
-
-    ec = mExtras->PutBoolean(name, value);
-
-    return ec;
 }
 
-ECode CIntent::GetBooleanExtra(
+/**
+ * Retrieve extended data from the intent.
+ *
+ * @param name The name of the desired item.
+ *
+ * @return the value of an item that previously added with putExtra()
+ * or null if none was found.
+ *
+ * @deprecated
+ * @hide
+ */
+// @Deprecated
+// public Object getExtra(String name);
+
+ECode CIntent::GetBooleanExtraEx(
     /* [in] */ const String& name,
-    /* [out] */ Boolean *pValue)
+    /* [in] */ Boolean defaultValue,
+    /* [out] */ Boolean* value)
 {
-    ECode ec = NOERROR;
+    VALIDATE_NOT_NULL(value);
 
-    if (mExtras == NULL) return E_DOES_NOT_EXIST;
-    ec = mExtras->GetBoolean(name, pValue);
-
-    return ec;
-}
-
-ECode CIntent::PutByteExtra(
-    /* [in] */ const String& name,
-    /* [in] */ Byte value)
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CIntent::GetByteExtra(
-    /* [in] */ const String& name,
-    /* [out] */ Byte * pValue)
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CIntent::PutCharExtra(
-    /* [in] */ const String& name,
-    /* [in] */ Char16 value)
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CIntent::GetCharExtra(
-    /* [in] */ const String& name,
-    /* [out] */ Char16 * pValue)
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CIntent::PutInt16Extra(
-    /* [in] */ const String& name,
-    /* [in] */ Int16 value)
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CIntent::GetInt16Extra(
-    /* [in] */ const String& name,
-    /* [out] */ Int16 * pValue)
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CIntent::PutInt32Extra(
-    /* [in] */ const String& name,
-    /* [in] */ Int32 value)
-{
-    ECode ec = NOERROR;
-
-    if (mExtras == NULL) {
-        ec = CBundle::New((IBundle**)&mExtras);
+    if (mExtras != NULL) {
+        return mExtras->GetBooleanEx(name, defaultValue, value);
     }
-
-    ec = mExtras->PutInt32(name, value);
-
-    return ec;
+    else {
+        *value = defaultValue;
+        return NOERROR;
+    }
 }
 
-ECode CIntent::GetInt32Extra(
+ECode CIntent::GetByteExtraEx(
     /* [in] */ const String& name,
-    /* [out] */ Int32 *pValue)
+    /* [in] */ Byte defaultValue,
+    /* [out] */ Byte* value)
 {
-    ECode ec = NOERROR;
+    VALIDATE_NOT_NULL(value);
 
-    if (mExtras == NULL) return E_DOES_NOT_EXIST;
-    ec = mExtras->GetInt32(name, pValue);
-
-    return ec;
+    if (mExtras != NULL) {
+        return mExtras->GetByteEx(name, defaultValue, value);
+    }
+    else {
+        *value = defaultValue;
+        return NOERROR;
+    }
 }
 
-ECode CIntent::PutInt64Extra(
+ECode CIntent::GetInt16ExtraEx(
     /* [in] */ const String& name,
-    /* [in] */ Int64 value)
+    /* [in] */ Int16 defaultValue,
+    /* [out] */ Int16* value)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(value);
+
+    if (mExtras != NULL) {
+        return mExtras->GetInt16Ex(name, defaultValue, value);
+    }
+    else {
+        *value = defaultValue;
+        return NOERROR;
+    }
 }
 
-ECode CIntent::GetInt64Extra(
+ECode CIntent::GetCharExtraEx(
     /* [in] */ const String& name,
-    /* [out] */ Int64 * pValue)
+    /* [in] */ Char32 defaultValue,
+    /* [out] */ Char32* value)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(value);
+
+    if (mExtras != NULL) {
+        return mExtras->GetCharEx(name, defaultValue, value);
+    }
+    else {
+        *value = defaultValue;
+        return NOERROR;
+    }
 }
 
-ECode CIntent::PutFloatExtra(
+ECode CIntent::GetInt32ExtraEx(
     /* [in] */ const String& name,
-    /* [in] */ Float value)
+    /* [in] */ Int32 defaultValue,
+    /* [out] */ Int32* value)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(value);
+
+    if (mExtras != NULL) {
+        return mExtras->GetInt32Ex(name, defaultValue, value);
+    }
+    else {
+        *value = defaultValue;
+        return NOERROR;
+    }
 }
 
-ECode CIntent::GetFloatExtra(
+ECode CIntent::GetInt64ExtraEx(
     /* [in] */ const String& name,
-    /* [out] */ Float * pValue)
+    /* [in] */ Int64 defaultValue,
+    /* [out] */ Int64* value)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(value);
+
+    if (mExtras != NULL) {
+        return mExtras->GetInt64Ex(name, defaultValue, value);
+    }
+    else {
+        *value = defaultValue;
+        return NOERROR;
+    }
 }
 
-ECode CIntent::PutDoubleExtra(
+ECode CIntent::GetFloatExtraEx(
     /* [in] */ const String& name,
-    /* [in] */ Double value)
+    /* [in] */ Float defaultValue,
+    /* [out] */ Float* value)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(value);
+
+    if (mExtras != NULL) {
+        return mExtras->GetFloatEx(name, defaultValue, value);
+    }
+    else {
+        *value = defaultValue;
+        return NOERROR;
+    }
 }
 
-ECode CIntent::GetDoubleExtra(
+ECode CIntent::GetDoubleExtraEx(
     /* [in] */ const String& name,
-    /* [out] */ Double * pValue)
+    /* [in] */ Double defaultValue,
+    /* [out] */ Double* value)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
+    VALIDATE_NOT_NULL(value);
 
-ECode CIntent::PutStringExtra(
-    /* [in] */ const String& name,
-    /* [in] */ const String& value)
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    if (mExtras != NULL) {
+        return mExtras->GetDoubleEx(name, defaultValue, value);
+    }
+    else {
+        *value = defaultValue;
+        return NOERROR;
+    }
 }
 
 ECode CIntent::GetStringExtra(
     /* [in] */ const String& name,
-    /* [out] */ String * pValue)
+    /* [out] */ String* value)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(value);
+
+    if (mExtras != NULL) {
+        return mExtras->GetString(name, value);
+    }
+    else {
+        value->SetTo(NULL);
+        return NOERROR;
+    }
 }
 
-ECode CIntent::PutExtras(
-    /* [in] */ IBundle * pExtras)
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CIntent::GetExtras(
-    /* [out] */ IBundle ** ppValue)
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CIntent::PutParcelableExtra(
+ECode CIntent::GetCharSequenceExtra(
     /* [in] */ const String& name,
-    /* [in] */ IParcelable* value)
+    /* [out] */ ICharSequence** value)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(value);
+
+    if (mExtras != NULL) {
+        return mExtras->GetCharSequence(name, value);
+    }
+    else {
+        *value = NULL;
+        return NOERROR;
+    }
 }
 
 ECode CIntent::GetParcelableExtra(
     /* [in] */ const String& name,
     /* [out] */ IParcelable** value)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(value);
+
+    if (mExtras != NULL) {
+        return mExtras->GetParcelable(name, value);
+    }
+    else {
+        *value = NULL;
+        return NOERROR;
+    }
+}
+
+ECode CIntent::GetParcelableArrayExtra(
+    /* [in] */ const String& name,
+    /* [out, callee] */ ArrayOf<IParcelable*>** value)
+{
+    VALIDATE_NOT_NULL(value);
+
+    if (mExtras != NULL) {
+        return mExtras->GetParcelableArray(name, value);
+    }
+    else {
+        *value = NULL;
+        return NOERROR;
+    }
+}
+
+ECode CIntent::GetParcelableArrayListExtra(
+    /* [in] */ const String& name,
+    /* [out] */ IObjectContainer** value)
+{
+    VALIDATE_NOT_NULL(value);
+
+    if (mExtras != NULL) {
+        return mExtras->GetParcelableArrayList(name, value);
+    }
+    else {
+        *value = NULL;
+        return NOERROR;
+    }
+}
+
+/**
+ * Retrieve extended data from the intent.
+ *
+ * @param name The name of the desired item.
+ *
+ * @return the value of an item that previously added with putExtra()
+ * or null if no Serializable value was found.
+ *
+ * @see #putExtra(String, Serializable)
+ */
+// GetSerializableExtra(
+//     /* [in] */ const String& name,
+//     /* [out] */ ISerializable** value);
+
+ECode CIntent::GetIntegerArrayListExtra(
+    /* [in] */ const String& name,
+    /* [out] */ IObjectContainer** value)
+{
+    VALIDATE_NOT_NULL(value);
+
+    if (mExtras != NULL) {
+        return mExtras->GetIntegerArrayList(name, value);
+    }
+    else {
+        *value = NULL;
+        return NOERROR;
+    }
+}
+
+ECode CIntent::GetStringArrayListExtra(
+    /* [in] */ const String& name,
+    /* [out] */ IObjectContainer** value)
+{
+    VALIDATE_NOT_NULL(value);
+
+    if (mExtras != NULL) {
+        return mExtras->GetStringArrayList(name, value);
+    }
+    else {
+        *value = NULL;
+        return NOERROR;
+    }
+}
+
+ECode CIntent::GetCharSequenceArrayListExtra(
+    /* [in] */ const String& name,
+    /* [out] */ IObjectContainer** value)
+{
+    VALIDATE_NOT_NULL(value);
+
+    if (mExtras != NULL) {
+        return mExtras->GetCharSequenceArrayList(name, value);
+    }
+    else {
+        *value = NULL;
+        return NOERROR;
+    }
+}
+
+ECode CIntent::GetBooleanArrayExtra(
+    /* [in] */ const String& name,
+    /* [out, callee] */ ArrayOf<Boolean>** value)
+{
+    VALIDATE_NOT_NULL(value);
+
+    if (mExtras != NULL) {
+        return mExtras->GetBooleanArray(name, value);
+    }
+    else {
+        *value = NULL;
+        return NOERROR;
+    }
+}
+
+ECode CIntent::GetByteArrayExtra(
+    /* [in] */ const String& name,
+    /* [out, callee] */ ArrayOf<Byte>** value)
+{
+    VALIDATE_NOT_NULL(value);
+
+    if (mExtras != NULL) {
+        return mExtras->GetByteArray(name, value);
+    }
+    else {
+        *value = NULL;
+        return NOERROR;
+    }
+}
+
+ECode CIntent::GetInt16ArrayExtra(
+    /* [in] */ const String& name,
+    /* [out, callee] */ ArrayOf<Int16>** value)
+{
+    VALIDATE_NOT_NULL(value);
+
+    if (mExtras != NULL) {
+        return mExtras->GetInt16Array(name, value);
+    }
+    else {
+        *value = NULL;
+        return NOERROR;
+    }
+}
+
+ECode CIntent::GetCharArrayExtra(
+    /* [in] */ const String& name,
+    /* [out, callee] */ ArrayOf<Char32>** value)
+{
+    VALIDATE_NOT_NULL(value);
+
+    if (mExtras != NULL) {
+        return mExtras->GetCharArray(name, value);
+    }
+    else {
+        *value = NULL;
+        return NOERROR;
+    }
+}
+
+ECode CIntent::GetInt32ArrayExtra(
+    /* [in] */ const String& name,
+    /* [out, callee] */ ArrayOf<Int32>** value)
+{
+    VALIDATE_NOT_NULL(value);
+
+    if (mExtras != NULL) {
+        return mExtras->GetInt32Array(name, value);
+    }
+    else {
+        *value = NULL;
+        return NOERROR;
+    }
+}
+
+ECode CIntent::GetInt64ArrayExtra(
+    /* [in] */ const String& name,
+    /* [out, callee] */ ArrayOf<Int64>** value)
+{
+    VALIDATE_NOT_NULL(value);
+
+    if (mExtras != NULL) {
+        return mExtras->GetInt64Array(name, value);
+    }
+    else {
+        *value = NULL;
+        return NOERROR;
+    }
+}
+
+ECode CIntent::GetFloatArrayExtra(
+    /* [in] */ const String& name,
+    /* [out, callee] */ ArrayOf<Float>** value)
+{
+    VALIDATE_NOT_NULL(value);
+
+    if (mExtras != NULL) {
+        return mExtras->GetFloatArray(name, value);
+    }
+    else {
+        *value = NULL;
+        return NOERROR;
+    }
+}
+
+ECode CIntent::GetDoubleArrayExtra(
+    /* [in] */ const String& name,
+    /* [out, callee] */ ArrayOf<Double>** value)
+{
+    VALIDATE_NOT_NULL(value);
+
+    if (mExtras != NULL) {
+        return mExtras->GetDoubleArray(name, value);
+    }
+    else {
+        *value = NULL;
+        return NOERROR;
+    }
 }
 
 ECode CIntent::GetStringArrayExtra(
     /* [in] */ const String& name,
-    /* [out, callee] */ ArrayOf<String>** array)
+    /* [out, callee] */ ArrayOf<String>** value)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(value);
+
+    if (mExtras != NULL) {
+        return mExtras->GetStringArray(name, value);
+    }
+    else {
+        *value = NULL;
+        return NOERROR;
+    }
+}
+
+ECode CIntent::GetCharSequenceArrayExtra(
+    /* [in] */ const String& name,
+    /* [out, callee] */ ArrayOf<ICharSequence*>** value)
+{
+    VALIDATE_NOT_NULL(value);
+
+    if (mExtras != NULL) {
+        return mExtras->GetCharSequenceArray(name, value);
+    }
+    else {
+        *value = NULL;
+        return NOERROR;
+    }
+}
+
+ECode CIntent::GetBundleExtra(
+    /* [in] */ const String& name,
+    /* [out] */ IBundle** value)
+{
+    VALIDATE_NOT_NULL(value);
+
+    if (mExtras != NULL) {
+        return mExtras->GetBundle(name, value);
+    }
+    else {
+        *value = NULL;
+        return NOERROR;
+    }
+}
+
+/**
+ * Retrieve extended data from the intent.
+ *
+ * @param name The name of the desired item.
+ *
+ * @return the value of an item that previously added with putExtra()
+ * or null if no IBinder value was found.
+ *
+ * @see #putExtra(String, IBinder)
+ *
+ * @deprecated
+ * @hide
+ */
+// @Deprecated
+// public IBinder getIBinderExtra(String name);
+
+/**
+ * Retrieve extended data from the intent.
+ *
+ * @param name The name of the desired item.
+ * @param defaultValue The default value to return in case no item is
+ * associated with the key 'name'
+ *
+ * @return the value of an item that previously added with putExtra()
+ * or defaultValue if none was found.
+ *
+ * @see #putExtra
+ *
+ * @deprecated
+ * @hide
+ */
+// @Deprecated
+// public Object getExtra(String name, Object defaultValue);
+
+ECode CIntent::GetExtras(
+    /* [out] */ IBundle** extras)
+{
+    VALIDATE_NOT_NULL(extras);
+
+    if (mExtras != NULL) {
+        return CBundle::New(mExtras, extras);
+    }
+    else {
+        *extras = NULL;
+        return NOERROR;
+    }
+}
+
+ECode CIntent::GetFlags(
+    /* [out] */ Int32* flags)
+{
+    VALIDATE_NOT_NULL(flags);
+    *flags = mFlags;
+
+    return NOERROR;
 }
 
 ECode CIntent::GetCapsule(
     /* [out] */ String* capsuleName)
 {
-    if (capsuleName == NULL) return E_INVALID_ARGUMENT;
-
+    VALIDATE_NOT_NULL(capsuleName);
     *capsuleName = mCapsule;
+
+    return NOERROR;
+}
+
+ECode CIntent::GetComponent(
+    /* [out] */ IComponentName** result)
+{
+    VALIDATE_NOT_NULL(result);
+
+    *result = (IComponentName*)(CComponentName*)mComponent;
+    if (*result != NULL) (*result)->AddRef();
+
+    return NOERROR;
+}
+
+ECode CIntent::GetSourceBounds(
+    /* [out] */ IRect** result)
+{
+    VALIDATE_NOT_NULL(result);
+
+    *result = mSourceBounds;
+    if (mSourceBounds != NULL) mSourceBounds->AddRef();
+
+    return NOERROR;
+}
+
+ECode CIntent::ResolveActivity(
+    /* [in] */ ICapsuleManager* cm,
+    /* [out] */ IComponentName** result)
+{
+    // TODO: ALEX
+    return E_NOT_IMPLEMENTED;
+#if 0
+    VALIDATE_NOT_NULL(cm);
+    VALIDATE_NOT_NULL(result);
+
+    if (mComponent != NULL) {
+        *result = mComponent;
+        mComponent->AddRef();
+        return NOERROR;
+    }
+
+    AutoPtr<IResolveInfo> info;
+    FAIL_RETURN(cm->ResolveActivity(
+        this,
+        CapsuleManager_MATCH_DEFAULT_ONLY,
+        (IResolveInfo**)&info));
+
+    AutoPtr<IActivityInfo> activityInfo;
+    FAIL_RETURN(info->GetActivityInfo((IActivityInfo**)&activityInfo));
+
+    AutoPtr<IApplicationInfo> applicationInfo;
+    FAIL_RETURN(activityInfo->GetApplicationInfo(
+        (IApplicationInfo**)&applicationInfo));
+
+    String packageName;
+    FAIL_RETURN(applicationInfo->GetCapsuleName(&packageName));
+
+    String name;
+    FAIL_RETURN(activityInfo->GetName(&name));
+
+    return CComponentName::New(packageName, name, result);
+#endif
+}
+
+ECode CIntent::ResolveActivityInfo(
+    /* [in] */ ICapsuleManager* cm,
+    /* [in] */ Int32 flags,
+    /* [out] */ IActivityInfo** result)
+{
+    // TODO: ALEX
+    return E_NOT_IMPLEMENTED;
+#if 0
+    VALIDATE_NOT_NULL(cm);
+    VALIDATE_NOT_NULL(result);
+
+    *result = NULL;
+    if (mComponent != NULL) {
+        // try {
+        cm->GetActivityInfo(mComponent, flags, &result);
+        return NOERROR;
+        // } catch (PackageManager.NameNotFoundException e) {
+        //     // ignore
+        // }
+    }
+    else {
+        AutoPtr<IResolveInfo> info;
+        cm->ResolveActivity(
+            this,
+            CapsuleManager_MATCH_DEFAULT_ONLY | flags,
+            (IResolveInfo**)&info);
+        if (info != NULL) {
+            info->GetActivityInfo(result);
+        }
+    }
+
+    return NOERROR;
+#endif
+}
+
+ECode CIntent::SetActionEx(
+    /* [in] */ const String& action,
+    /* [out] */ IIntent** result)
+{
+    mAction = action;
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::SetDataEx(
+    /* [in] */ IUri* data,
+    /* [out] */ IIntent** result)
+{
+    mData = data;
+    mType.SetTo(NULL);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::SetTypeEx(
+  /* [in] */ const String& type,
+  /* [out] */ IIntent** result)
+{
+    mData = NULL;
+    mType = type;
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::SetDataAndTypeEx(
+    /* [in] */ IUri* data,
+    /* [in] */ const String& type,
+    /* [out] */ IIntent** result)
+{
+    mData = data;
+    mType = type;
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::AddCategoryEx(
+    /* [in] */ const String& category,
+    /* [out] */ IIntent** result)
+{
+    if (mCategories == NULL) {
+        mCategories = new Set<String>();
+        if (!mCategories) {
+            return E_OUT_OF_MEMORY;
+        }
+    }
+
+    mCategories->Insert(category);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::RemoveCategory(
+    /* [in] */ const String& category)
+{
+    if (mCategories != NULL) {
+        Set<String>::Iterator it = mCategories->Find(category);
+        if (it == mCategories->End()) {
+            return NOERROR;
+        }
+
+        mCategories->Erase(category);
+        if (mCategories->GetSize() == 0) {
+            delete mCategories;
+            mCategories = NULL;
+        }
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutBooleanExtraEx(
+    /* [in] */ const String& name,
+    /* [in] */ Boolean value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutBoolean(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutByteExtraEx(
+    /* [in] */ const String& name,
+    /* [in] */ Byte value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutByte(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutCharExtraEx(
+    /* [in] */ const String& name,
+    /* [in] */ Char32 value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutChar(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutInt16ExtraEx(
+    /* [in] */ const String& name,
+    /* [in] */ Int16 value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutInt16(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutInt32ExtraEx(
+    /* [in] */ const String& name,
+    /* [in] */ Int32 value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutInt32(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutInt64ExtraEx(
+    /* [in] */ const String& name,
+    /* [in] */ Int64 value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutInt64(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutFloatExtraEx(
+    /* [in] */ const String& name,
+    /* [in] */ Float value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutFloat(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutDoubleExtraEx(
+    /* [in] */ const String& name,
+    /* [in] */ Double value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutDouble(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutStringExtraEx(
+    /* [in] */ const String& name,
+    /* [in] */ const String& value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutString(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutCharSequenceExtra(
+    /* [in] */ const String& name,
+    /* [in] */ ICharSequence* value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutCharSequence(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutParcelableExtraEx(
+    /* [in] */ const String& name,
+    /* [in] */ IParcelable* value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutParcelable(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutParcelableArrayExtra(
+    /* [in] */ const String& name,
+    /* [in] */ ArrayOf<IParcelable*>* value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutParcelableArray(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutParcelableArrayListExtra(
+    /* [in] */ const String& name,
+    /* [in] */ IObjectContainer* value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutParcelableArrayList(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutIntegerArrayListExtra(
+    /* [in] */ const String& name,
+    /* [in] */ IObjectContainer* value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutIntegerArrayList(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutStringArrayListExtra(
+    /* [in] */ const String& name,
+    /* [in] */ IObjectContainer* value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutStringArrayList(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutCharSequenceArrayListExtra(
+    /* [in] */ const String& name,
+    /* [in] */ IObjectContainer* value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutCharSequenceArrayList(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+
+// PutSerializableExtra(
+//     /* [in] */ const String& name,
+//     /* [in] */ ISerializable* value,
+//     /* [out] */ IIntent** result);
+
+ECode CIntent::PutBooleanArrayExtra(
+    /* [in] */ const String& name,
+    /* [in] */ ArrayOf<Boolean>* value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutBooleanArray(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutByteArrayExtra(
+    /* [in] */ const String& name,
+    /* [in] */ ArrayOf<Byte>* value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutByteArray(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutInt16ArrayExtra(
+    /* [in] */ const String& name,
+    /* [in] */ ArrayOf<Int16>* value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutInt16Array(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutCharArrayExtra(
+    /* [in] */ const String& name,
+    /* [in] */ ArrayOf<Char32>* value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutCharArray(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutInt32ArrayExtra(
+    /* [in] */ const String& name,
+    /* [in] */ ArrayOf<Int32>* value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutInt32Array(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutInt64ArrayExtra(
+    /* [in] */ const String& name,
+    /* [in] */ ArrayOf<Int64>* value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutInt64Array(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutFloatArrayExtra(
+    /* [in] */ const String& name,
+    /* [in] */ ArrayOf<Float>* value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutFloatArray(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutDoubleArrayExtra(
+    /* [in] */ const String& name,
+    /* [in] */ ArrayOf<Double>* value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutDoubleArray(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutStringArrayExtra(
+    /* [in] */ const String& name,
+    /* [in] */ ArrayOf<String>* value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutStringArray(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutCharSequenceArrayExtra(
+    /* [in] */ const String& name,
+    /* [in] */ ArrayOf<ICharSequence*>* value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutCharSequenceArray(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutBundleExtra(
+    /* [in] */ const String& name,
+    /* [in] */ IBundle* value,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutBundle(name, value);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+/**
+ * Add extended data to the intent.  The name must include a package
+ * prefix, for example the app com.android.contacts would use names
+ * like "com.android.contacts.ShowAll".
+ *
+ * @param name The name of the extra data, with package prefix.
+ * @param value The IBinder data value.
+ *
+ * @return Returns the same Intent object, for chaining multiple calls
+ * into a single statement.
+ *
+ * @see #putExtras
+ * @see #removeExtra
+ * @see #getIBinderExtra(String)
+ *
+ * @deprecated
+ * @hide
+ */
+// @Deprecated
+// public Intent putExtra(String name, IBinder value);
+
+ECode CIntent::PutExtras2(
+    /* [in] */ IIntent* src,
+    /* [out] */ IIntent** result)
+{
+    VALIDATE_NOT_NULL(src);
+
+    CIntent* intent = (CIntent*)src;
+
+    if (intent->mExtras != NULL) {
+        if (mExtras == NULL) {
+            FAIL_RETURN(CBundle::New(intent->mExtras, (IBundle**)&mExtras));
+        }
+        else {
+            mExtras->PutAll(intent->mExtras);
+        }
+    }
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::PutExtrasEx(
+    /* [in] */ IBundle* extras,
+    /* [out] */ IIntent** result)
+{
+    if (mExtras == NULL) {
+        FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
+    }
+
+    mExtras->PutAll(extras);
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::ReplaceExtrasEx(
+    /* [in] */ IIntent* src,
+    /* [out] */ IIntent** result)
+{
+    VALIDATE_NOT_NULL(src);
+
+    CIntent* intent = (CIntent*)src;
+    mExtras = NULL;
+    if (intent->mExtras != NULL) {
+        FAIL_RETURN(CBundle::New(intent->mExtras, (IBundle**)&mExtras));
+    }
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::ReplaceExtras2(
+    /* [in] */ IBundle* extras,
+    /* [out] */ IIntent** result)
+{
+    VALIDATE_NOT_NULL(extras);
+
+    mExtras = NULL;
+    if (extras != NULL) {
+        FAIL_RETURN(CBundle::New(extras, (IBundle**)&mExtras));
+    }
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::RemoveExtra(
+    /* [in] */ const String& name)
+{
+    if (mExtras != NULL) {
+        mExtras->Remove(name);
+        Int32 size;
+        FAIL_RETURN(mExtras->Size(&size));
+        if (size == 0) {
+            mExtras = NULL;
+        }
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::SetFlagsEx(
+    /* [in] */ Int32 flags,
+    /* [out] */ IIntent** result)
+{
+    mFlags = flags;
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CIntent::AddFlagsEx(
+    /* [in] */ Int32 flags,
+    /* [out] */ IIntent** result)
+{
+    mFlags |= flags;
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
 
     return NOERROR;
 }
@@ -530,105 +1730,83 @@ ECode CIntent::SetCapsule(
     return NOERROR;
 }
 
-ECode CIntent::SetClassName(
-    /* [in] */ const String& capsuleName,
-    /* [in] */ const String& className)
+ECode CIntent::SetComponentEx(
+    /* [in] */ IComponentName* component,
+    /* [out] */ IIntent** result)
 {
-    return CComponentName::NewByFriend(
-            capsuleName, className, (CComponentName**)&mComponent);
-}
+    mComponent = (CComponentName*)component;
 
-ECode CIntent::ResolveActivityInfo(
-    /* [in] */ ICapsuleManager* pm,
-    /* [in] */ Int32 flags,
-    /* [out] */ IActivityInfo** info)
-{
-    return E_NOT_IMPLEMENTED;
-}
-
-/**
- * Return the MIME data type of this intent.  If the type field is
- * explicitly set, that is simply returned.  Otherwise, if the data is set,
- * the type of that data is returned.  If neither fields are set, a null is
- * returned.
- *
- * @param resolver A ContentResolver that can be used to determine the MIME
- *                 type of the intent's data.
- *
- * @return The MIME type of this intent.
- *
- * @see #getType
- * @see #resolveType(Context)
- */
-ECode CIntent::ResolveType(
-    /* [in] */ IContentResolver* resolver,
-    /* [out] */ String* type)
-{
-    if (type == NULL) return E_INVALID_ARGUMENT;
-
-    if (!mType.IsNull()) {
-        *type = mType;
-        return NOERROR;
+    if (result) {
+        *result = this;
+        this->AddRef();
     }
-    if (mData != NULL) {
-//        if ("content".equals(mData.getScheme())) {
-//            return resolver.getType(mData);
-//        }
-    }
-    *type = NULL;
+
     return NOERROR;
 }
 
-/**
- * Return the MIME data type of this intent, only if it will be needed for
- * intent resolution.  This is not generally useful for application code;
- * it is used by the frameworks for communicating with back-end system
- * services.
- *
- * @param resolver A ContentResolver that can be used to determine the MIME
- *                 type of the intent's data.
- *
- * @return The MIME type of this intent, or null if it is unknown or not
- *         needed.
- */
-ECode CIntent::ResolveTypeIfNeeded(
-    /* [in] */ IContentResolver* resolver,
-    /* [out] */ String* type)
+ECode CIntent::SetClassName2(
+    /* [in] */ IContext* packageContext,
+    /* [in] */ const String& className,
+    /* [out] */ IIntent** result)
 {
-    if (type == NULL) return E_INVALID_ARGUMENT;
+    // TODO: ALEX
+    return E_NOT_IMPLEMENTED;
+#if 0
+    VALIDATE_NOT_NULL(packageContext);
 
-    if (mComponent != NULL) {
-        *type = mType;
-        return NOERROR;
+    mComponent = NULL;
+    FAIL_RETURN(CComponentName::New(
+        packageContext,
+        className,
+        (IComponentName**)&mComponent));
+
+    if (result) {
+        *result = this;
+        this->AddRef();
     }
 
-    return ResolveType(resolver, type);
+    return NOERROR;
+#endif
 }
 
-/**
- * Completely replace the extras in the Intent with the extras in the
- * given Intent.
- *
- * @param src The exact extras contained in this Intent are copied
- * into the target intent, replacing any that were previously there.
- */
-ECode CIntent::ReplaceExtras(
-    /* [in] */ IIntent* src)
+ECode CIntent::SetClassNameEx(
+    /* [in] */ const String& packageName,
+    /* [in] */ const String& className,
+    /* [out] */ IIntent** result)
 {
+    FAIL_RETURN(CComponentName::New(
+        packageName,
+        className,
+        (IComponentName**)&mComponent));
+
+    if (result) {
+        *result = this;
+        this->AddRef();
+    }
+
+    return NOERROR;
+}
+
+// TODO: ALEX
+// public Intent setClass(Context packageContext, Class<?> cls);
+
+ECode CIntent::SetSourceBounds(
+    /* [in] */ IRect* r)
+{
+    mSourceBounds = r;
+
+    return NOERROR;
+}
+
+ECode CIntent::FillIn(
+    /* [in] */ IIntent* other,
+    /* [in] */ Int32 flags,
+    /* [out] */ Int32* result)
+{
+    // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
-/**
- * Determine if two intents are the same for the purposes of intent
- * resolution (filtering). That is, if their action, data, type,
- * class, and categories are the same.  This does <em>not</em> compare
- * any extra data included in the intents.
- *
- * @param other The other Intent to compare against.
- *
- * @return Returns true if action, data, type, class, and categories
- *         are the same.
- */
 ECode CIntent::FilterEquals(
     /* [in] */ IIntent* other,
     /* [out] */ Boolean* isEqual)
@@ -695,11 +1873,11 @@ ECode CIntent::FilterEquals(
     }
 //    if (mCategories != other.mCategories) {
 //        if (mCategories != null) {
-//            if (!mCategories.equals(other.mCategories)) {
+//            if (!mCategories->equals(other.mCategories)) {
 //                return false;
 //            }
 //        } else {
-//            if (!other.mCategories.equals(mCategories)) {
+//            if (!other.mCategories->equals(mCategories)) {
 //                return false;
 //            }
 //        }
@@ -709,18 +1887,10 @@ ECode CIntent::FilterEquals(
     return NOERROR;
 }
 
-/**
- * Generate hash code that matches semantics of IsFilterEquals().
- *
- * @return Returns the hash value of the action, data, type, class, and
- *         categories.
- *
- * @see #IsFilterEquals
- */
-ECode CIntent::GetFilterHashCode(
-    /* [out] */ Int32* hashCode)
+ECode CIntent::FilterHashCode(
+    /* [out] */ Int32* result)
 {
-    if (hashCode == NULL) return E_INVALID_ARGUMENT;
+    if (result == NULL) return E_INVALID_ARGUMENT;
 
     Int32 code = 0;
     if (!mAction.IsNull()) {
@@ -736,14 +1906,265 @@ ECode CIntent::GetFilterHashCode(
         code += mCapsule.GetHashCode();
     }
     if (mComponent != NULL) {
-        mComponent->GetHashCode(hashCode);
-        code += *hashCode;
+        Int32 hashCode;
+        mComponent->GetHashCode(&hashCode);
+        code += hashCode;
     }
 //    if (mCategories != null) {
-//        code += mCategories.hashCode();
+//        code += mCategories->hashCode();
 //    }
-    *hashCode = code;
+    *result = code;
+
     return NOERROR;
+}
+
+// @Override
+// public String toString();
+
+/** @hide */
+ECode CIntent::ToShortString(
+    /* [in] */ Boolean comp,
+    /* [in] */ Boolean extras,
+    /* [out] */ String* result)
+{
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
+/** @hide */
+ECode CIntent::ToShortString2(
+    /* [in] */ const String& b,
+    /* [in] */ Boolean comp,
+    /* [in] */ Boolean extras)
+{
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
+/**
+ * Call {@link #toUri} with 0 flags.
+ * @deprecated Use {@link #toUri} instead.
+ */
+// @Deprecated
+// public String toURI();
+
+/**
+ * Convert this Intent into a String holding a URI representation of it.
+ * The returned URI string has been properly URI encoded, so it can be
+ * used with {@link Uri#parse Uri.parse(String)}.  The URI contains the
+ * Intent's data as the base URI, with an additional fragment describing
+ * the action, categories, type, flags, package, component, and extras.
+ *
+ * <p>You can convert the returned string back to an Intent with
+ * {@link #getIntent}.
+ *
+ * @param flags Additional operating flags.  Either 0 or
+ * {@link #URI_INTENT_SCHEME}.
+ *
+ * @return Returns a URI encoding URI string describing the entire contents
+ * of the Intent.
+ */
+ECode CIntent::ToUri(
+    /* [in] */ Int32 flags,
+    /* [out] */ String* result)
+{
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CIntent::SetComponent(
+    /* [in] */ IComponentName* component)
+{
+    return SetComponentEx(component, NULL);
+}
+
+ECode CIntent::SetAction(
+    /* [in] */ const String& action)
+{
+    return SetActionEx(action, NULL);
+}
+
+ECode CIntent::SetData(
+    /* [in] */ IUri* data)
+{
+    return SetDataEx(data, NULL);
+}
+
+ECode CIntent::SetType(
+	/*[in]*/ const String& type)
+{
+	return SetTypeEx(type, NULL);
+}
+
+ECode CIntent::SetDataAndType(
+	/*[in]*/ IUri* data,
+	/*[in]*/ const String& type)
+{
+	return SetDataAndTypeEx(data, type, NULL);
+}
+
+ECode CIntent::SetFlags(
+    /* [in] */ Int32 flags)
+{
+    return SetFlagsEx(flags, NULL);
+}
+
+ECode CIntent::AddFlags(
+    /* [in] */ Int32 flags)
+{
+    return AddFlagsEx(flags, NULL);
+}
+
+ECode CIntent::AddCategory(
+    /* [in] */ const String& category)
+{
+    return AddCategoryEx(category, NULL);
+}
+
+ECode CIntent::PutBooleanExtra(
+    /* [in] */ const String& name,
+    /* [in] */ Boolean value)
+{
+    return PutBooleanExtraEx(name, value, NULL);
+}
+
+ECode CIntent::GetBooleanExtra(
+    /* [in] */ const String& name,
+    /* [out] */ Boolean *pValue)
+{
+    return GetBooleanExtraEx(name, FALSE, pValue);
+}
+
+ECode CIntent::PutByteExtra(
+    /* [in] */ const String& name,
+    /* [in] */ Byte value)
+{
+    return PutByteExtraEx(name, value, NULL);
+}
+
+ECode CIntent::GetByteExtra(
+    /* [in] */ const String& name,
+    /* [out] */ Byte * pValue)
+{
+    return GetByteExtraEx(name, 0, pValue);
+}
+
+ECode CIntent::PutCharExtra(
+    /* [in] */ const String& name,
+    /* [in] */ Char32 value)
+{
+    return PutCharExtraEx(name, value, NULL);
+}
+
+ECode CIntent::GetCharExtra(
+    /* [in] */ const String& name,
+    /* [out] */ Char32 * pValue)
+{
+    return GetCharExtraEx(name, (Char32)0, pValue);
+}
+
+ECode CIntent::PutInt16Extra(
+    /* [in] */ const String& name,
+    /* [in] */ Int16 value)
+{
+    return PutInt16ExtraEx(name, value, NULL);
+}
+
+ECode CIntent::GetInt16Extra(
+    /* [in] */ const String& name,
+    /* [out] */ Int16 * pValue)
+{
+    return GetInt16ExtraEx(name, 0, pValue);
+}
+
+ECode CIntent::PutInt32Extra(
+    /* [in] */ const String& name,
+    /* [in] */ Int32 value)
+{
+    return PutInt32ExtraEx(name, value, NULL);
+}
+
+ECode CIntent::GetInt32Extra(
+    /* [in] */ const String& name,
+    /* [out] */ Int32 *pValue)
+{
+    return GetInt32ExtraEx(name, 0, pValue);
+}
+
+ECode CIntent::PutInt64Extra(
+    /* [in] */ const String& name,
+    /* [in] */ Int64 value)
+{
+    return PutInt64ExtraEx(name, value, NULL);
+}
+
+ECode CIntent::GetInt64Extra(
+    /* [in] */ const String& name,
+    /* [out] */ Int64 * pValue)
+{
+    return GetInt64ExtraEx(name, 0, pValue);
+}
+
+ECode CIntent::PutFloatExtra(
+    /* [in] */ const String& name,
+    /* [in] */ Float value)
+{
+    return PutFloatExtraEx(name, value, NULL);
+}
+
+ECode CIntent::GetFloatExtra(
+    /* [in] */ const String& name,
+    /* [out] */ Float * pValue)
+{
+    return GetFloatExtraEx(name, 0.0f, pValue);
+}
+
+ECode CIntent::PutDoubleExtra(
+    /* [in] */ const String& name,
+    /* [in] */ Double value)
+{
+    return PutDoubleExtraEx(name, value, NULL);
+}
+
+ECode CIntent::GetDoubleExtra(
+    /* [in] */ const String& name,
+    /* [out] */ Double * pValue)
+{
+    return GetDoubleExtraEx(name, 0.0f, pValue);
+}
+
+ECode CIntent::PutStringExtra(
+    /* [in] */ const String& name,
+    /* [in] */ const String& value)
+{
+    return PutStringExtraEx(name, value, NULL);
+}
+
+ECode CIntent::PutExtras(
+    /* [in] */ IBundle * pExtras)
+{
+    return PutExtrasEx(pExtras, NULL);
+}
+
+ECode CIntent::PutParcelableExtra(
+    /* [in] */ const String& name,
+    /* [in] */ IParcelable* value)
+{
+    return PutParcelableExtraEx(name, value, NULL);
+}
+
+ECode CIntent::SetClassName(
+    /* [in] */ const String& capsuleName,
+    /* [in] */ const String& className)
+{
+    return CComponentName::NewByFriend(
+            capsuleName, className, (CComponentName**)&mComponent);
+}
+
+ECode CIntent::ReplaceExtras(
+    /* [in] */ IIntent* src)
+{
+    return ReplaceExtrasEx(src, NULL);
 }
 
 ECode CIntent::GetDescription(

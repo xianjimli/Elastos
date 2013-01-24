@@ -1,0 +1,14 @@
+
+module
+{
+    interface ICharacterStyle;
+
+    interface IForegroundColorSpan extends ICharacterStyle {
+
+        GetSpanTypeId(
+            [out] Int32* result);
+
+        GetForegroundColor(
+            [out] Int32* result);
+    }
+}

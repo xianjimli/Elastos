@@ -35,7 +35,7 @@ Key::Key(
     }
     if (i != NULL) {
         Int32 tmp;
-        i->GetFilterHashCode(&tmp);
+        i->FilterHashCode(&tmp);
         hash = (ODD_PRIME_NUMBER * hash) + tmp;
     }
     if (!it.IsNull()) {

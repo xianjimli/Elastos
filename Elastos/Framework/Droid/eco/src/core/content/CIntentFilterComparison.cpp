@@ -50,6 +50,6 @@ ECode CIntentFilterComparison::constructor(
 {
     assert(intent != NULL);
     mIntent = intent;
-    mIntent->GetFilterHashCode(&mHashCode);
+    mIntent->FilterHashCode(&mHashCode);
     return NOERROR;
 }

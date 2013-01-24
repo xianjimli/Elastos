@@ -22,7 +22,7 @@ String PluralRules::StringForQuantity(
 }
 
 PluralRules* PluralRules::RuleForLocale(
-    /* [in] */ Locale* locale)
+    /* [in] */ ILocale* locale)
 {
     return NULL; // E_NOT_IMPLEMENTED
 }
