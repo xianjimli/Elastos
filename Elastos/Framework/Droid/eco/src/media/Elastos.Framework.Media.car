@@ -12,5 +12,6 @@ module
     importlib("Elastos.Framework.Core.eco");
 
     merge("../../car/media/media.car");
+    merge("../../car/media/media/audiofx.car");
 }
 

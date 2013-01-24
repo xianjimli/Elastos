@@ -1,0 +1,16 @@
+
+TARGET_NAME= audiofx
+TARGET_TYPE= lib
+
+include $(MAKEDIR)/../../../../../sources.inc
+
+INCLUDES += $(MAKEDIR)/../../../../inc/core
+INCLUDES += $(MAKEDIR)/../../../../inc/media
+INCLUDES += $(MAKEDIR)/../../../../inc/media/audiofx
+INCLUDES += ../../
+INCLUDES += $(PREBUILD_INC)/skia/utils
+INCLUDES += $(PREBUILD_INC)/skia/core
+
+C_DEFINES += -D_FRAMEWORK_MEDIA
+
+SOURCES = CAudioEffect.cpp

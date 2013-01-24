@@ -1,0 +1,15 @@
+
+module
+{
+    merge("audiofx/AudioEffect.car");
+
+    class CAudioEffect {
+        constructor(
+            //[in] IUUID* type,
+            //[in] IUUID* uuid,
+            [in] Int32 priority,
+            [in] Int32 audioSession);
+
+        interface IAudioEffect;
+    }
+}
