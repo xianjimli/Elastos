@@ -24,6 +24,10 @@ module
     class CDisplayMetrics {
         interface IDisplayMetrics;
     }
+    
+    singleton class CDisplayMetricsHelper {
+        interface IDisplayMetricsHelper;
+    }
 
     class CTypedValue {
         interface ITypedValue;
@@ -35,5 +39,5 @@ module
 
     class CObjectIntegerMap {
         interface IObjectIntegerMap;
-    }
+    }    
 }
