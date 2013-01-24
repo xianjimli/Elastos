@@ -2,9 +2,9 @@
 #ifndef __HH__PLURALRULES_H
 #define __HH__PLURALRULES_H
 
-#include <elastos/Locale.h>
+#include <Elastos.Utility.h>
 
-using namespace Elastos::Utility;
+using namespace Elastos;
 
 class PluralRules
 {
@@ -29,7 +29,7 @@ public:
         /* [in] */ Int32 quantity);
 
     static CARAPI_(PluralRules*) RuleForLocale(
-        /* [in] */ Locale* locale);
+        /* [in] */ ILocale* locale);
 
 private:
 };

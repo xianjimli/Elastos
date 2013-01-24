@@ -65,7 +65,7 @@ public:
     CARAPI SetDensity(
         /* [in] */ Float density);
 
-private:
+public:
     static CARAPI_(Int32) GetDeviceDensity();
 
 public:

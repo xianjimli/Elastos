@@ -31,11 +31,15 @@ module
     merge("text/style/ParcelableSpan.car");
     merge("text/style/ClickableSpan.car");
     merge("text/style/URLSpan.car");
+    merge("text/style/BackgroundColorSpan.car");
+    merge("text/style/ForegroundColorSpan.car");
+    merge("text/style/UnderlineSpan.car");
     merge("text/method/KeyListener.car");
     merge("text/method/TransformationMethod.car");
     merge("text/method/MovementMethod.car");
     merge("text/method/TextKeyListener.car");
     merge("text/method/QwertyKeyListener.car");
+    merge("text/ClipboardManager.car");
 
     class CTextPaint {
 
@@ -250,5 +254,47 @@ module
 
     class CArrowKeyMovementMethod {
         interface IMovementMethod;
+    }
+
+    class CClipboardManager {
+        /** {@hide} */
+        constructor(
+            [in] IContext* context); /* Handler handler */
+        interface IClipboardManager;
+    }
+
+    class CBackgroundColorSpan {
+
+        constructor(
+            [in] Int32 color);
+
+        constructor(
+            [in] IParcel* src);
+
+        interface IBackgroundColorSpan;
+        interface IParcelable;
+    }
+
+    class CForegroundColorSpan {
+
+        constructor(
+            [in] Int32 color);
+
+        constructor(
+            [in] IParcel* src);
+
+        interface IForegroundColorSpan;
+        interface IParcelable;
+    }
+
+    class CUnderlineSpan {
+
+        constructor();
+
+        constructor(
+            [in] IParcel* src);
+
+        interface IUnderlineSpan;
+        interface IParcelable;
     }
 }

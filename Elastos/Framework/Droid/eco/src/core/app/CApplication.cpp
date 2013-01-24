@@ -29,3 +29,27 @@ ECode CApplication::OnCreate()
 {
     return NOERROR;
 }
+
+ECode CApplication::OnTerminate()
+{
+    return NOERROR;
+}
+
+ECode CApplication::OnConfigurationChanged(
+    /* [in] */ IConfiguration* newConfig)
+{
+    return NOERROR;
+}
+
+
+ECode CApplication::OnLowMemory()
+{
+    return NOERROR;
+}
+
+Void CApplication::Attach(
+    /* [in] */ IContext* context)
+{
+    AttachBaseContext(context);
+}
+

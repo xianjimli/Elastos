@@ -12,3 +12,6 @@ C_DEFINES += -D_FRAMEWORK_CORE
 SOURCES = CharacterStyle.cpp
 SOURCES += ClickableSpan.cpp
 SOURCES += CURLSpan.cpp
+SOURCES += CBackgroundColorSpan.cpp
+SOURCES += CForegroundColorSpan.cpp
+SOURCES += CUnderlineSpan.cpp

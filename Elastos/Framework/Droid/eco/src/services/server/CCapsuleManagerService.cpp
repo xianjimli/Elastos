@@ -12149,7 +12149,7 @@ void CCapsuleManagerService::SendCapsuleChangedBroadcast(
     for (it = componentNames.Begin(); it != componentNames.End(); ++it) {
         (*nameList)[i++] = *it;
     }
-    extras->PutStringArray(String(Intent_EXTRA_CHANGED_COMPONENT_NAME_LIST), *nameList);
+    extras->PutStringArray(String(Intent_EXTRA_CHANGED_COMPONENT_NAME_LIST), nameList);
     extras->PutBoolean(String(Intent_EXTRA_DONT_KILL_APP), killFlag);
     extras->PutInt32(String(Intent_EXTRA_UID), capsuleUid);
     SendCapsuleBroadcast(String(Intent_ACTION_CAPSULE_CHANGED), capsuleName, extras, NULL);
@@ -12507,9 +12507,17 @@ void CCapsuleManagerService::SendResourcesChangedBroadcast(
         // Send broadcasts here
         AutoPtr<IBundle> extras; // = new Bundle();
         ASSERT_SUCCEEDED(CBundle::New((IBundle**)&extras));
-        extras->PutStringArray(String(Intent_EXTRA_CHANGED_CAPSULE_LIST), *caps.Get());
+        // TODO: ALEX
+        ArrayOf<String>* newCaps = caps.Get();
+        assert(newCaps);
+        newCaps = newCaps->Clone();
+        assert(newCaps);
+        extras->PutStringArray(String(Intent_EXTRA_CHANGED_CAPSULE_LIST), newCaps);
         if (uidArr != NULL) {
-            extras->PutInt32Array(String(Intent_EXTRA_CHANGED_UID_LIST), *uidArr);
+            // TODO: ALEX
+            ArrayOf<Int32>* newUidArr = uidArr->Clone();
+            assert(newUidArr);
+            extras->PutInt32Array(String(Intent_EXTRA_CHANGED_UID_LIST), newUidArr);
         }
         String action = mediaStatus
             ? String(Intent_ACTION_EXTERNAL_APPLICATIONS_AVAILABLE)

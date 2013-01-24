@@ -21,11 +21,6 @@ CConfiguration::CConfiguration()
 {
 }
 
-CConfiguration::~CConfiguration()
-{
-    if (mLocale) delete mLocale;
-}
-
 ECode CConfiguration::constructor()
 {
     return SetToDefaults();
@@ -34,7 +29,7 @@ ECode CConfiguration::constructor()
 ECode CConfiguration::constructor(
     /* [in] */ IConfiguration* o)
 {
-    VALIDATE_NOT_NULL(o);
+    assert(o != NULL);
 
     return SetTo(o);
 }
@@ -42,14 +37,15 @@ ECode CConfiguration::constructor(
 ECode CConfiguration::SetTo(
     /* [in] */ IConfiguration* o)
 {
-    VALIDATE_NOT_NULL(o);
+    assert(o != NULL);
 
     CConfiguration* c = (CConfiguration*)o;
     mFontScale = c->mFontScale;
     mMcc = c->mMcc;
     mMnc = c->mMnc;
     if (c->mLocale != NULL) {
-        mLocale = c->mLocale->Clone();
+        // TODO: ALEX
+        // mLocale = c->mLocale->Clone();
     }
     mUserSetLocale = c->mUserSetLocale;
     mTouchscreen = c->mTouchscreen;
@@ -78,7 +74,7 @@ ECode CConfiguration::GetDescription(
     sb.Append("/");
     sb.Append(mMnc);
     sb.Append(" loc=");
-    sb.Append((Int32)mLocale);
+    sb.Append((Int32)((ILocale*)mLocale));
     sb.Append(" touch=");
     sb.Append(mTouchscreen);
     sb.Append(" keys=");
@@ -129,121 +125,248 @@ ECode CConfiguration::UpdateFrom(
     /* [in] */ IConfiguration* delta,
     /* [out] */ Int32* changes)
 {
-//	    VALIDATE_NOT_NULL(delta);
-//	    VALIDATE_NOT_NULL(changes);
-//
-//	    Int32 changed = 0;
-//	    CConfiguration* d = (CConfiguration*)delta;
-//	    if (d->mFontScale > 0 && mFontScale != d->mFontScale) {
-//	        changed |= ActivityInfo.CONFIG_FONT_SCALE;
-//	        fontScale = delta.fontScale;
-//	    }
-//	    if (delta.mcc != 0 && mcc != delta.mcc) {
-//	        changed |= ActivityInfo.CONFIG_MCC;
-//	        mcc = delta.mcc;
-//	    }
-//	    if (delta.mnc != 0 && mnc != delta.mnc) {
-//	        changed |= ActivityInfo.CONFIG_MNC;
-//	        mnc = delta.mnc;
-//	    }
-//	    if (delta.locale != null
-//	            && (locale == null || !locale.equals(delta.locale))) {
-//	        changed |= ActivityInfo.CONFIG_LOCALE;
-//	        locale = delta.locale != null
-//	                ? (Locale) delta.locale.clone() : null;
-//	    }
-//	    if (delta.userSetLocale && (!userSetLocale || ((changed & ActivityInfo.CONFIG_LOCALE) != 0)))
-//	    {
-//	        userSetLocale = true;
-//	        changed |= ActivityInfo.CONFIG_LOCALE;
-//	    }
-//	    if (delta.touchscreen != TOUCHSCREEN_UNDEFINED
-//	            && touchscreen != delta.touchscreen) {
-//	        changed |= ActivityInfo.CONFIG_TOUCHSCREEN;
-//	        touchscreen = delta.touchscreen;
-//	    }
-//	    if (delta.keyboard != KEYBOARD_UNDEFINED
-//	            && keyboard != delta.keyboard) {
-//	        changed |= ActivityInfo.CONFIG_KEYBOARD;
-//	        keyboard = delta.keyboard;
-//	    }
-//	    if (delta.keyboardHidden != KEYBOARDHIDDEN_UNDEFINED
-//	            && keyboardHidden != delta.keyboardHidden) {
-//	        changed |= ActivityInfo.CONFIG_KEYBOARD_HIDDEN;
-//	        keyboardHidden = delta.keyboardHidden;
-//	    }
-//	    if (delta.hardKeyboardHidden != HARDKEYBOARDHIDDEN_UNDEFINED
-//	            && hardKeyboardHidden != delta.hardKeyboardHidden) {
-//	        changed |= ActivityInfo.CONFIG_KEYBOARD_HIDDEN;
-//	        hardKeyboardHidden = delta.hardKeyboardHidden;
-//	    }
-//	    if (delta.navigation != NAVIGATION_UNDEFINED
-//	            && navigation != delta.navigation) {
-//	        changed |= ActivityInfo.CONFIG_NAVIGATION;
-//	        navigation = delta.navigation;
-//	    }
-//	    if (delta.navigationHidden != NAVIGATIONHIDDEN_UNDEFINED
-//	            && navigationHidden != delta.navigationHidden) {
-//	        changed |= ActivityInfo.CONFIG_KEYBOARD_HIDDEN;
-//	        navigationHidden = delta.navigationHidden;
-//	    }
-//	    if (delta.orientation != ORIENTATION_UNDEFINED
-//	            && orientation != delta.orientation) {
-//	        changed |= ActivityInfo.CONFIG_ORIENTATION;
-//	        orientation = delta.orientation;
-//	    }
-//	    if (delta.screenLayout != SCREENLAYOUT_SIZE_UNDEFINED
-//	            && screenLayout != delta.screenLayout) {
-//	        changed |= ActivityInfo.CONFIG_SCREEN_LAYOUT;
-//	        screenLayout = delta.screenLayout;
-//	    }
-//	    if (delta.uiMode != (UI_MODE_TYPE_UNDEFINED|UI_MODE_NIGHT_UNDEFINED)
-//	            && uiMode != delta.uiMode) {
-//	        changed |= ActivityInfo.CONFIG_UI_MODE;
-//	        if ((delta.uiMode&UI_MODE_TYPE_MASK) != UI_MODE_TYPE_UNDEFINED) {
-//	            uiMode = (uiMode&~UI_MODE_TYPE_MASK)
-//	                    | (delta.uiMode&UI_MODE_TYPE_MASK);
-//	        }
-//	        if ((delta.uiMode&UI_MODE_NIGHT_MASK) != UI_MODE_NIGHT_UNDEFINED) {
-//	            uiMode = (uiMode&~UI_MODE_NIGHT_MASK)
-//	                    | (delta.uiMode&UI_MODE_NIGHT_MASK);
-//	        }
-//	    }
-//
-//	    if (delta.seq != 0) {
-//	        seq = delta.seq;
-//	    }
-//
-//	    return changed;
-    return E_NOT_IMPLEMENTED;
+    assert(delta != NULL);
+    VALIDATE_NOT_NULL(changes);
+
+    CConfiguration* c = (CConfiguration*)delta;
+    Int32 changed = 0;
+
+    if (c->mFontScale > 0 && mFontScale != c->mFontScale) {
+        changed |= ActivityInfo_CONFIG_FONT_SCALE;
+        mFontScale = c->mFontScale;
+    }
+    if (c->mMcc != 0 && mMcc  != c->mMcc ) {
+        changed |= ActivityInfo_CONFIG_MCC;
+        mMcc  = c->mMcc ;
+    }
+    if (c->mMnc != 0 && mMnc!= c->mMnc) {
+        changed |= ActivityInfo_CONFIG_MNC;
+        mMnc = c->mMnc;
+    }
+    if (c->mLocale != NULL
+            && (mLocale == NULL || (ILocale*)mLocale != (ILocale*)c->mLocale)) {
+        changed |= ActivityInfo_CONFIG_LOCALE;
+        // TODO: ALEX
+        // mLocale = c->mLocale != NULL
+        //         ? c->mLocale->Clone() : NULL;
+    }
+    if (c->mUserSetLocale && (!mUserSetLocale
+        || ((changed & ActivityInfo_CONFIG_LOCALE) != 0)))
+    {
+        mUserSetLocale = true;
+        changed |= ActivityInfo_CONFIG_LOCALE;
+    }
+    if (c->mTouchscreen != Configuration_TOUCHSCREEN_UNDEFINED
+            && mTouchscreen != c->mTouchscreen) {
+        changed |= ActivityInfo_CONFIG_TOUCHSCREEN;
+        mTouchscreen = c->mTouchscreen;
+    }
+    if (c->mKeyboard != Configuration_KEYBOARD_UNDEFINED
+            && mKeyboard != c->mKeyboard) {
+        changed |= ActivityInfo_CONFIG_KEYBOARD;
+        mKeyboard = c->mKeyboard;
+    }
+    if (c->mKeyboardHidden != Configuration_KEYBOARDHIDDEN_UNDEFINED
+            && mKeyboardHidden != c->mKeyboardHidden) {
+        changed |= ActivityInfo_CONFIG_KEYBOARD_HIDDEN;
+        mKeyboardHidden = c->mKeyboardHidden;
+    }
+    if (c->mHardKeyboardHidden != Configuration_HARDKEYBOARDHIDDEN_UNDEFINED
+            && mHardKeyboardHidden != c->mHardKeyboardHidden) {
+        changed |= ActivityInfo_CONFIG_KEYBOARD_HIDDEN;
+        mHardKeyboardHidden = c->mHardKeyboardHidden;
+    }
+    if (c->mNavigation != Configuration_NAVIGATION_UNDEFINED
+            && mNavigation != c->mNavigation) {
+        changed |= ActivityInfo_CONFIG_NAVIGATION;
+        mNavigation = c->mNavigation;
+    }
+    if (c->mNavigationHidden != Configuration_NAVIGATIONHIDDEN_UNDEFINED
+            && mNavigationHidden != c->mNavigationHidden) {
+        changed |= ActivityInfo_CONFIG_KEYBOARD_HIDDEN;
+        mNavigationHidden = c->mNavigationHidden;
+    }
+    if (c->mOrientation != Configuration_ORIENTATION_UNDEFINED
+            && mOrientation != c->mOrientation) {
+        changed |= ActivityInfo_CONFIG_ORIENTATION;
+        mOrientation = c->mOrientation;
+    }
+    if (c->mScreenLayout != Configuration_SCREENLAYOUT_SIZE_UNDEFINED
+            && mScreenLayout != c->mScreenLayout) {
+        changed |= ActivityInfo_CONFIG_SCREEN_LAYOUT;
+        mScreenLayout = c->mScreenLayout;
+    }
+    if (c->mUiMode != (Configuration_UI_MODE_TYPE_UNDEFINED
+        | Configuration_UI_MODE_NIGHT_UNDEFINED)
+            && mUiMode != c->mUiMode) {
+        changed |= ActivityInfo_CONFIG_UI_MODE;
+        if ((c->mUiMode & Configuration_UI_MODE_TYPE_MASK)
+            != Configuration_UI_MODE_TYPE_UNDEFINED) {
+            mUiMode = (mUiMode & ~Configuration_UI_MODE_TYPE_MASK)
+                    | (c->mUiMode & Configuration_UI_MODE_TYPE_MASK);
+        }
+        if ((c->mUiMode & Configuration_UI_MODE_NIGHT_MASK)
+            != Configuration_UI_MODE_NIGHT_UNDEFINED) {
+            mUiMode = (mUiMode & ~Configuration_UI_MODE_NIGHT_MASK)
+                    | (c->mUiMode & Configuration_UI_MODE_NIGHT_MASK);
+        }
+    }
+
+    if (c->mSeq != 0) {
+        mSeq = c->mSeq;
+    }
+
+    *changes = changed;
+
+    return NOERROR;
 }
 
 ECode CConfiguration::Diff(
     /* [in] */ IConfiguration* delta,
     /* [out] */ Int32* result)
 {
-    return E_NOT_IMPLEMENTED;
+    assert(delta != NULL);
+    VALIDATE_NOT_NULL(result);
+
+    CConfiguration* c = (CConfiguration*)delta;
+    Int32 changed = 0;
+
+    if (c->mFontScale > 0 && mFontScale != c->mFontScale) {
+        changed |= ActivityInfo_CONFIG_FONT_SCALE;
+    }
+    if (c->mMcc != 0 && mMcc != c->mMcc) {
+        changed |= ActivityInfo_CONFIG_MCC;
+    }
+    if (c->mMnc != 0 && mMnc != c->mMnc) {
+        changed |= ActivityInfo_CONFIG_MNC;
+    }
+    if (c->mLocale != NULL
+        && (mLocale == NULL || (ILocale*)mLocale != (ILocale*)c->mLocale)) {
+        changed |= ActivityInfo_CONFIG_LOCALE;
+    }
+    if (c->mTouchscreen != Configuration_TOUCHSCREEN_UNDEFINED
+            && mTouchscreen != c->mTouchscreen) {
+        changed |= ActivityInfo_CONFIG_TOUCHSCREEN;
+    }
+    if (c->mKeyboard != Configuration_KEYBOARD_UNDEFINED
+            && mKeyboard != c->mKeyboard) {
+        changed |= ActivityInfo_CONFIG_KEYBOARD;
+    }
+    if (c->mKeyboardHidden != Configuration_KEYBOARDHIDDEN_UNDEFINED
+            && mKeyboardHidden != c->mKeyboardHidden) {
+        changed |= ActivityInfo_CONFIG_KEYBOARD_HIDDEN;
+    }
+    if (c->mHardKeyboardHidden != Configuration_HARDKEYBOARDHIDDEN_UNDEFINED
+            && mHardKeyboardHidden != c->mHardKeyboardHidden) {
+        changed |= ActivityInfo_CONFIG_KEYBOARD_HIDDEN;
+    }
+    if (c->mNavigation != Configuration_NAVIGATION_UNDEFINED
+            && mNavigation != c->mNavigation) {
+        changed |= ActivityInfo_CONFIG_NAVIGATION;
+    }
+    if (c->mNavigationHidden != Configuration_NAVIGATIONHIDDEN_UNDEFINED
+            && mNavigationHidden != c->mNavigationHidden) {
+        changed |= ActivityInfo_CONFIG_KEYBOARD_HIDDEN;
+    }
+    if (c->mOrientation != Configuration_ORIENTATION_UNDEFINED
+            && mOrientation != c->mOrientation) {
+        changed |= ActivityInfo_CONFIG_ORIENTATION;
+    }
+    if (c->mScreenLayout != Configuration_SCREENLAYOUT_SIZE_UNDEFINED
+            && mScreenLayout != c->mScreenLayout) {
+        changed |= ActivityInfo_CONFIG_SCREEN_LAYOUT;
+    }
+    if (c->mUiMode != (Configuration_UI_MODE_TYPE_UNDEFINED
+        | Configuration_UI_MODE_NIGHT_UNDEFINED) && mUiMode != c->mUiMode) {
+        changed |= ActivityInfo_CONFIG_UI_MODE;
+    }
+
+    *result = changed;
+
+    return NOERROR;
 }
 
 ECode CConfiguration::IsOtherSeqNewer(
     /* [in] */ IConfiguration* other,
     /* [out] */ Boolean* isBetter)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(isBetter);
+    CConfiguration* c = (CConfiguration*)other;
+
+    if (other == NULL) {
+        // Sanity check.
+        *isBetter = FALSE;
+        return NOERROR;
+    }
+    if (c->mSeq == 0) {
+        // If the other sequence is not specified, then we must assume
+        // it is newer since we don't know any better.
+        *isBetter = TRUE;
+        return NOERROR;
+    }
+    if (mSeq == 0) {
+        // If this sequence is not specified, then we also consider the
+        // other is better.  Yes we have a preference for other.  Sue us.
+        *isBetter = TRUE;
+        return NOERROR;
+    }
+    int diff = c->mSeq - mSeq;
+    if (diff > 0x10000) {
+        // If there has been a sufficiently large jump, assume the
+        // sequence has wrapped around.
+        *isBetter = FALSE;
+        return NOERROR;
+    }
+
+    *isBetter = (diff > 0);
+
+    return NOERROR;
 }
 
 ECode CConfiguration::Equals(
     /* [in] */ IConfiguration* that,
     /* [out] */ Boolean* isEqual)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(isEqual);
+
+    if (that == NULL) {
+        *isEqual = FALSE;
+        return NOERROR;
+    }
+
+    if (that == this) {
+        *isEqual = TRUE;
+        return NOERROR;
+    }
+
+    Int32 result;
+    FAIL_RETURN(CompareTo(that, &result));
+
+    return (result == 0);
 }
 
 ECode CConfiguration::EqualsEx(
     /* [in] */ IInterface* that,
     /* [out] */ Boolean* isEqual)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(isEqual);
+
+    if (!that) {
+        *isEqual = FALSE;
+        return NOERROR;
+    }
+
+    // try {
+    IConfiguration * object = IConfiguration::Probe(that);
+    if (!object) {
+        *isEqual = FALSE;
+        return NOERROR;
+    }
+
+    return Equals(object, isEqual);
+    // } catch (ClassCastException e) {
+    // }
+    // return false;
 }
 
 ECode CConfiguration::GetFontScale(
@@ -381,10 +504,215 @@ ECode CConfiguration::SetSeq(
     return NOERROR;
 }
 
-ECode CConfiguration::ReadFromParcel(
-    /* [in] */ IParcel *source)
+ECode CConfiguration::GetMcc(
+    /* [out] */ Int32* mcc)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(mcc);
+    *mcc = mMcc;
+
+    return NOERROR;
+}
+
+ECode CConfiguration::SetMcc(
+    /* [in] */ Int32 mcc)
+{
+    mMcc = mcc;
+
+    return NOERROR;
+}
+
+ECode CConfiguration::GetMnc(
+    /* [out] */ Int32* mnc)
+{
+    VALIDATE_NOT_NULL(mnc);
+    *mnc = mMnc;
+
+    return NOERROR;
+}
+
+ECode CConfiguration::SetMnc(
+    /* [in] */ Int32 mnc)
+{
+    mMnc = mnc;
+
+    return NOERROR;
+}
+
+ECode CConfiguration::GetUiMode(
+    /* [out] */ Int32* uiMode)
+{
+    VALIDATE_NOT_NULL(uiMode);
+    *uiMode = mUiMode;
+
+    return NOERROR;
+}
+
+ECode CConfiguration::SetUiMode(
+    /* [in] */ Int32 uiMode)
+{
+    mUiMode = uiMode;
+
+    return NOERROR;
+}
+
+ECode CConfiguration::CompareTo(
+    /* [in] */ IConfiguration* object,
+    /* [out] */ Int32* result)
+{
+    assert(object != NULL);
+    VALIDATE_NOT_NULL(result);
+
+    CConfiguration* c = (CConfiguration*)object;
+    Int32 n;
+    Float a = mFontScale;
+    Float b = c->mFontScale;
+    if (a < b) {
+        *result = -1;
+        return NOERROR;
+    }
+    if (a > b) {
+        *result = 1;
+        return NOERROR;
+    }
+    n = mMcc - c->mMcc;
+    if (n != 0) {
+        *result = n;
+        return NOERROR;
+    }
+    n = mMnc - c->mMnc;
+    if (n != 0) {
+        *result = n;
+        return NOERROR;
+    }
+    if (mLocale == NULL) {
+        if (c->mLocale != NULL) {
+            *result = 1;
+            return NOERROR;
+        }
+    } else if (c->mLocale == NULL) {
+        *result = -1;
+        return NOERROR;
+    } else {
+        String str1;
+        String str2;
+
+        FAIL_RETURN(mLocale->GetLanguage(&str1));
+        FAIL_RETURN(c->mLocale->GetLanguage(&str2));
+        n = str1.Compare(str2);
+        if (n != 0) {
+            *result = n;
+            return NOERROR;
+        }
+
+        FAIL_RETURN(mLocale->GetCountry(&str1));
+        FAIL_RETURN(c->mLocale->GetCountry(&str2));
+        n = str1.Compare(str2);
+        if (n != 0) {
+            *result = n;
+            return NOERROR;
+        }
+
+        FAIL_RETURN(mLocale->GetVariant(&str1));
+        FAIL_RETURN(c->mLocale->GetVariant(&str2));
+        n = str1.Compare(str2);
+        if (n != 0) {
+            *result = n;
+            return NOERROR;
+        }
+    }
+    n = mTouchscreen - c->mTouchscreen;
+    if (n != 0) {
+        *result = n;
+        return NOERROR;
+    }
+    n = mKeyboard - c->mKeyboard;
+    if (n != 0) {
+        *result = n;
+        return NOERROR;
+    }
+    n = mKeyboardHidden - c->mKeyboardHidden;
+    if (n != 0) {
+        *result = n;
+        return NOERROR;
+    }
+    n = mHardKeyboardHidden - c->mHardKeyboardHidden;
+    if (n != 0) {
+        *result = n;
+        return NOERROR;
+    }
+    n = mNavigation - c->mNavigation;
+    if (n != 0) {
+        *result = n;
+        return NOERROR;
+    }
+    n = mNavigationHidden - c->mNavigationHidden;
+    if (n != 0) {
+        *result = n;
+        return NOERROR;
+    }
+    n = mOrientation - c->mOrientation;
+    if (n != 0) {
+        *result = n;
+        return NOERROR;
+    }
+    n = mScreenLayout - c->mScreenLayout;
+    if (n != 0) {
+        *result = n;
+        return NOERROR;
+    }
+    n = mUiMode - c->mUiMode;
+    //if (n != 0) return n;
+    *result = n;
+
+    return NOERROR;
+}
+
+ECode CConfiguration::ReadFromParcel(
+    /* [in] */ IParcel* source)
+{
+    VALIDATE_NOT_NULL(source);
+
+    FAIL_RETURN(source->ReadFloat(&mFontScale));
+    FAIL_RETURN(source->ReadInt32(&mMcc));
+    FAIL_RETURN(source->ReadInt32(&mMnc));
+
+    Int32 value;
+    FAIL_RETURN(source->ReadInt32(&value));
+    if (value != 0) {
+        String language;
+        String country;
+        String variant;
+        FAIL_RETURN(source->ReadString(&language));
+        FAIL_RETURN(source->ReadString(&country));
+        FAIL_RETURN(source->ReadString(&variant));
+        FAIL_RETURN(CLocale::New(
+            language, country, variant, (ILocale**)&mLocale));
+    }
+
+    FAIL_RETURN(source->ReadInt32(&value));
+    mUserSetLocale = (value == 1);
+    FAIL_RETURN(source->ReadInt32(&value));
+    mTouchscreen = value;
+    FAIL_RETURN(source->ReadInt32(&value));
+    mKeyboard = value;
+    FAIL_RETURN(source->ReadInt32(&value));
+    mKeyboardHidden = value;
+    FAIL_RETURN(source->ReadInt32(&value));
+    mHardKeyboardHidden = value;
+    FAIL_RETURN(source->ReadInt32(&value));
+    mNavigation = value;
+    FAIL_RETURN(source->ReadInt32(&value));
+    mNavigationHidden = value;
+    FAIL_RETURN(source->ReadInt32(&value));
+    mOrientation = value;
+    FAIL_RETURN(source->ReadInt32(&value));
+    mScreenLayout = value;
+    FAIL_RETURN(source->ReadInt32(&value));
+    mUiMode = value;
+    FAIL_RETURN(source->ReadInt32(&value));
+    mSeq = value;
+
+    return NOERROR;
 }
 
 ECode CConfiguration::constructor(
@@ -396,19 +724,62 @@ ECode CConfiguration::constructor(
 }
 
 ECode CConfiguration::WriteToParcel(
-    /* [in] */ IParcel *dest)
+    /* [in] */ IParcel* dest)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(dest);
+
+    dest->WriteFloat(mFontScale);
+    dest->WriteInt32(mMcc);
+    dest->WriteInt32(mMnc);
+    if (mLocale == NULL) {
+        dest->WriteInt32(0);
+    } else {
+        dest->WriteInt32(1);
+        String language;
+        String country;
+        String variant;
+        FAIL_RETURN(mLocale->GetLanguage(&language));
+        FAIL_RETURN(mLocale->GetCountry(&country));
+        FAIL_RETURN(mLocale->GetVariant(&variant));
+        dest->WriteString(language);
+        dest->WriteString(country);
+        dest->WriteString(variant);
+    }
+    if (mUserSetLocale) {
+        dest->WriteInt32(1);
+    } else {
+        dest->WriteInt32(0);
+    }
+    dest->WriteInt32(mTouchscreen);
+    dest->WriteInt32(mKeyboard);
+    dest->WriteInt32(mKeyboardHidden);
+    dest->WriteInt32(mHardKeyboardHidden);
+    dest->WriteInt32(mNavigation);
+    dest->WriteInt32(mNavigationHidden);
+    dest->WriteInt32(mOrientation);
+    dest->WriteInt32(mScreenLayout);
+    dest->WriteInt32(mUiMode);
+    dest->WriteInt32(mSeq);
+
+    return NOERROR;
 }
 
 ECode CConfiguration::GetHashCode(
     /* [out] */ Int32* hashCode)
 {
+    VALIDATE_NOT_NULL(hashCode);
+
+    // TODO: ALEX need mLocale.hashCode()
+    /*
+    *hashCode = ((int)mFontScale) + mMcc + mMnc
+                + (mLocale != NULL ? mLocale.hashCode() : 0)
+                + mTouchscreen
+                + mKeyboard + mKeyboardHidden + mHardKeyboardHidden
+                + mNavigation + mNavigationHidden
+                + mOrientation + mScreenLayout + mUiMode;
+
+    return NOERROR;
+    */
     return E_NOT_IMPLEMENTED;
 }
 
-Int32 CConfiguration::Diff(
-    /* [in] */ CConfiguration* delta)
-{
-    return E_NOT_IMPLEMENTED;
-}

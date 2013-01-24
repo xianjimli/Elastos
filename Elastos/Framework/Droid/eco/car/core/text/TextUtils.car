@@ -8,6 +8,60 @@ module
         TextUtilsTruncateAt_MARQUEE,
     }
 
+    /** @hide */
+    const TextUtils_ALIGNMENT_SPAN = 1;
+
+    /** @hide */
+    const TextUtils_FOREGROUND_COLOR_SPAN = 2;
+
+    /** @hide */
+    const TextUtils_RELATIVE_SIZE_SPAN = 3;
+
+    /** @hide */
+    const TextUtils_SCALE_X_SPAN = 4;
+
+    /** @hide */
+    const TextUtils_STRIKETHROUGH_SPAN = 5;
+
+    /** @hide */
+    const TextUtils_UNDERLINE_SPAN = 6;
+
+    /** @hide */
+    const TextUtils_STYLE_SPAN = 7;
+
+    /** @hide */
+    const TextUtils_BULLET_SPAN = 8;
+
+    /** @hide */
+    const TextUtils_QUOTE_SPAN = 9;
+
+    /** @hide */
+    const TextUtils_LEADING_MARGIN_SPAN = 10;
+
+    /** @hide */
+    const TextUtils_URL_SPAN = 11;
+
+    /** @hide */
+    const TextUtils_BACKGROUND_COLOR_SPAN = 12;
+
+    /** @hide */
+    const TextUtils_TYPEFACE_SPAN = 13;
+
+    /** @hide */
+    const TextUtils_SUPERSCRIPT_SPAN = 14;
+
+    /** @hide */
+    const TextUtils_SUBSCRIPT_SPAN = 15;
+
+    /** @hide */
+    const TextUtils_ABSOLUTE_SIZE_SPAN = 16;
+
+    /** @hide */
+    const TextUtils_TEXT_APPEARANCE_SPAN = 17;
+
+    /** @hide */
+    const ANNOTATION = 18;
+
     interface IEllipsizeCallback {
         /**
          * This method is called to report that the specified region of

@@ -1,0 +1,11 @@
+
+module
+{
+    interface ICharacterStyle;
+
+    interface IUnderlineSpan extends ICharacterStyle {
+
+        GetSpanTypeId(
+            [out] Int32* result);
+    }
+}

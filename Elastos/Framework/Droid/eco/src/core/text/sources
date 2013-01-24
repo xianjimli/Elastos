@@ -31,6 +31,7 @@ SOURCES += SpannableStringBuilder.cpp
 SOURCES += CSpannableStringBuilder.cpp
 SOURCES += CEditableFactory.cpp
 SOURCES += CNoCopySpan.cpp
+SOURCES += CClipboardManager.cpp
 
 LIBRARIES += method/method.lib
 #LIBRARIES += method/format.lib

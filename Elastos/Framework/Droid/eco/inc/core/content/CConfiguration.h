@@ -3,16 +3,12 @@
 #define __CCONFIGURATION_H__
 
 #include "_CConfiguration.h"
-#include <elastos/Locale.h>
-
-using namespace Elastos::Utility;
+#include <elastos/AutoPtr.h>
 
 CarClass(CConfiguration)
 {
 public:
     CConfiguration();
-
-    ~CConfiguration();
 
 public:
     CARAPI SetTo(
@@ -94,6 +90,24 @@ public:
     CARAPI SetSeq(
         /* [in] */ Int32 seq);
 
+    CARAPI GetMcc(
+        /* [out] */ Int32* mcc);
+
+    CARAPI SetMcc(
+        /* [in] */ Int32 mcc);
+
+    CARAPI GetMnc(
+        /* [out] */ Int32* mnc);
+
+    CARAPI SetMnc(
+        /* [in] */ Int32 mnc);
+
+    CARAPI GetUiMode(
+        /* [out] */ Int32* uiMode);
+
+    CARAPI SetUiMode(
+        /* [in] */ Int32 uiMode);
+
     CARAPI ReadFromParcel(
         /* [in] */ IParcel *source);
 
@@ -106,6 +120,10 @@ public:
     CARAPI GetHashCode(
         /* [out] */ Int32* hashCode);
 
+    CARAPI CompareTo(
+        /* [in] */ IConfiguration* object,
+        /* [out] */ Int32* result);
+
     CARAPI constructor();
 
     CARAPI constructor(
@@ -113,10 +131,6 @@ public:
 
     CARAPI constructor(
         /* [in] */ IParcel* source);
-
-public:
-    CARAPI_(Int32) Diff(
-        /* [in] */ CConfiguration* delta);
 
 public:
     /**
@@ -138,12 +152,7 @@ public:
     /**
      * Current user preference for the locale.
      */
-    Locale* mLocale;
-
-    /**
-    * Current user preference for the locale.
-    */
-    //Locale mLocale;
+    AutoPtr<ILocale> mLocale;
 
     /**
     * Locale should persist on setting.  This is hidden because it is really

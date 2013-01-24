@@ -13,6 +13,7 @@ SOURCES += CObjectEnumerator.cpp
 SOURCES += CParcelableObjectStringMap.cpp
 SOURCES += CObjectIntegerMap.cpp
 SOURCES += CDisplayMetrics.cpp
+SOURCES += CDisplayMetricsHelper.cpp
 SOURCES += CTypedValue.cpp
 SOURCES += CTypedValueHelper.cpp
 SOURCES += Xml.cpp
