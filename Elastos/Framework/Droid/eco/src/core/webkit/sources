@@ -1,0 +1,33 @@
+TARGET_NAME= webkit
+TARGET_TYPE= lib
+
+include $(MAKEDIR)/../../../../sources.inc
+
+INCLUDES += $(MAKEDIR)/../../../inc/core
+INCLUDES += ../
+
+C_DEFINES += -D_FRAMEWORK_CORE
+
+SOURCES = CBrowserFrame.cpp
+SOURCES += CByteArrayBuilder.cpp
+SOURCES += CCacheManager.cpp
+SOURCES += CCallbackProxy.cpp
+SOURCES += CConsoleMessage.cpp
+SOURCES += CCookieManager.cpp
+SOURCES += CCookieSyncManager.cpp
+SOURCES += CDateSorter.cpp
+SOURCES += CGeolocationPermissions.cpp
+SOURCES += CMimeTypeMap.cpp
+SOURCES += CMockGeolocation.cpp
+SOURCES += CPlugin.cpp
+SOURCES += CPluginData.cpp
+SOURCES += CPluginList.cpp
+SOURCES += CPluginManager.cpp
+SOURCES += CURLUtil.cpp
+SOURCES += CUrlInterceptRegistry.cpp
+SOURCES += CWebChromeClient.cpp
+SOURCES += CWebIconDatabase.cpp
+SOURCES += CWebStorage.cpp
+SOURCES += CWebView.cpp
+SOURCES += CWebViewClient.cpp
+SOURCES += CWebViewDatabase.cpp

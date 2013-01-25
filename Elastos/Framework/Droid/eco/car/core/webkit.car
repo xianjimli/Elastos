@@ -1,0 +1,182 @@
+
+module
+{
+  merge("webkit/BrowserFrame.car");
+  merge("webkit/ByteArrayBuilder.car");
+  merge("webkit/CacheManager.car");
+  merge("webkit/WebSettings.car");
+  merge("webkit/WebViewCore.car");
+  merge("webkit/ValueCallback.car");
+  merge("webkit/WebView.car");
+  merge("webkit/WebChromeClient.car");
+  merge("webkit/WebStorage.car");
+  merge("webkit/GeolocationPermissions.car");
+  merge("webkit/ConsoleMessage.car");
+  merge("webkit/CallbackProxy.car");
+  merge("webkit/WebViewClient.car");
+  merge("webkit/DownloadListener.car");
+  merge("webkit/WebBackForwardListClient.car");
+  merge("webkit/JsResult.car");
+  merge("webkit/JsPromptResult.car");
+  merge("webkit/SslErrorHandler.car");
+  merge("webkit/WebHistoryItem.car");
+  merge("webkit/CookieManager.car");
+  merge("webkit/CookieSyncManager.car");
+  merge("webkit/DateSorter.car");
+  merge("webkit/DebugFlags.car");
+  merge("webkit/HttpAuthHandler.car");
+  merge("webkit/Plugin.car");
+  merge("webkit/PluginData.car");
+  merge("webkit/PluginList.car");
+  merge("webkit/PluginStub.car");
+  merge("webkit/URLUtil.car");
+  merge("webkit/UrlInterceptHandler.car");
+  merge("webkit/UrlInterceptRegistry.car");
+  merge("webkit/WebViewDatabase.car");
+  merge("webkit/WebIconDatabase.car");
+  merge("webkit/PluginManager.car");
+  merge("webkit/MockGeolocation.car");
+  merge("webkit/MimeTypeMap.car");
+  merge("webkit/WebBackForwardList.car");
+
+  class CBrowserFrame {
+
+      constructor(
+         [in] IContext* context, 
+         [in] Handle32  webViewCore,  /* WebViewCore */
+         [in] ICallbackProxy* proxy,
+         [in] Handle32 settings, /* WebSettings */ 
+         [in] IObjectStringMap* javascriptInterfaces);
+
+      interface IBrowserFrame;    
+  }
+
+  class CByteArrayBuilder {
+   constructor();
+
+   interface IByteArrayBuilder;
+  }
+
+  class CCacheManager {
+  	interface ICacheManager;
+  }
+
+  class CCallbackProxy {
+    constructor(
+       [in] IContext* context,
+       [in] IWebView* w);
+
+    interface ICallbackProxy;
+  }
+
+  class CConsoleMessage {
+    constructor(
+       [in] CString message,
+       [in] CString sourceId,
+       [in] Int32 lineNumber,
+       [in] Int32 msgLevel);
+
+    interface IConsoleMessage;
+  }
+
+  singleton class CCookieManager {
+    interface ICookieManager;
+  }
+
+  singleton class CCookieSyncManager {
+    interface ICookieSyncManager;
+  }
+
+  class CDateSorter {
+    constructor(
+       [in] IContext* context);
+
+    interface IDateSorter;
+  }
+
+  singleton class CGeolocationPermissions {
+    interface IGeolocationPermissions;
+  }
+
+  singleton class CMimeTypeMap {
+    interface IMimeTypeMap;
+  }
+
+  singleton class CMockGeolocation {
+    interface IMockGeolocation;
+  }
+
+  class CPlugin {
+    constructor(
+       [in] CString name,
+       [in] CString path,
+       [in] CString fileName,
+       [in] CString description);
+
+    interface IPlugin;
+  }
+
+  class CPluginData {
+    constructor(
+       [in] IInputStream* stream,
+       [in] Int64 length,
+       [in] IObjectStringMap* headers,
+       [in] Int32 code);
+
+    interface IPluginData;
+  }
+
+  class CPluginList {
+    constructor();
+
+    interface IPluginList;
+  }
+
+  singleton class CPluginManager {
+    interface IPluginManager;
+  }
+
+  class CURLUtil {
+    interface IURLUtil;
+  }
+
+  class CUrlInterceptRegistry {
+    interface IUrlInterceptRegistry;
+  }
+
+  class CWebChromeClient {
+    interface IWebChromeClient;
+  }
+
+  singleton class CWebIconDatabase {
+    interface IWebIconDatabase;
+  }
+
+  singleton class CWebStorage {
+    interface IWebStorage;
+  }
+
+  class CWebView {
+    constructor(
+       [in] IContext* context);
+
+    constructor(
+       [in] IContext* context,
+       [in] IAttributeSet* attrs);
+
+    constructor(
+       [in] IContext* context,
+       [in] IAttributeSet* attrs,
+       [in] Int32 defStyle);
+
+    interface IWebView;
+  }
+
+  class CWebViewClient {
+    interface IWebViewClient;
+  }
+
+  singleton class CWebViewDatabase {
+    interface IWebViewDatabase;
+  }
+}

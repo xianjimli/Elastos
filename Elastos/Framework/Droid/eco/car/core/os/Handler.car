@@ -1,0 +1,10 @@
+
+module
+{
+    interface IHandlerCallback {
+    
+    }
+
+    interface IHandler {
+    }
+}

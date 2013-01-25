@@ -1,0 +1,10 @@
+
+module
+{
+
+    interface IDName {
+    }
+
+	interface ISslCertificate {	    
+	}
+}

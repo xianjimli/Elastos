@@ -1,0 +1,10 @@
+
+module
+{
+
+	interface IHeaderCallback {
+    }
+
+	interface IHeaders {
+	}
+}
