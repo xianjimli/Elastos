@@ -10,4 +10,10 @@ module
      * The unique id for a row.
      */
     const BaseColumns_ID = "_id";
+
+
+    interface IBaseColumns {
+
+    }
+
 }

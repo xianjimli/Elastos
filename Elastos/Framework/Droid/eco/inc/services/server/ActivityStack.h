@@ -193,6 +193,11 @@ public:
         /* [in] */ Int32 resultCode,
         /* [in] */ IIntent* data);
 
+	CARAPI_(void)ActivityIdleInternal(
+		IBinder* token, 
+	    Boolean fromTimeout,
+	    IConfiguration* config);
+
     CARAPI_(Boolean) RequestFinishActivityLocked(
         /* [in] */ IBinder* token,
         /* [in] */ Int32 resultCode,

@@ -7,6 +7,9 @@ module
         PutInt32(
             [in] String key,
             [in] Int32 value);
+        PutString(
+            [in] String key,
+            [in] String value);
 
         GetInt32(
             [in] String key,

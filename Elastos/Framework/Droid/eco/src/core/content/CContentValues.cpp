@@ -13,6 +13,14 @@ ECode CContentValues::PutInt32(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode CContentValues::PutString(
+	/* [in] */ const String& key,
+	/* [in] */ const String& value) 
+{
+	return E_NOT_IMPLEMENTED;
+}
+
+
 ECode CContentValues::GetInt32(
     /* [in] */ const String& key,
     /* [out] */ Int32* value)

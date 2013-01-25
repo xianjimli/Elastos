@@ -3,7 +3,7 @@ TARGET_TYPE= eco
 
 IMPORTS += Elastos.Utility.Zip.eco
 
-VPATH := $(MAKEDIR)/../core/os:$(MAKEDIR)/../core/ext:$(MAKEDIR)/../core/view:$(MAKEDIR)/../core/view/animation:$(MAKEDIR)/../core/location:$(MAKEDIR)/../core/net:$(MAKEDIR)/../core/content:$(MAKEDIR)/../core/app:$(MAKEDIR)/../core/capsule:$(MAKEDIR)/../core/utils:$(MAKEDIR)/../core/location:$(MAKEDIR)/../core/text
+VPATH := $(MAKEDIR)/../core/os:$(MAKEDIR)/../core/ext:$(MAKEDIR)/../core/view:$(MAKEDIR)/../core/view/animation:$(MAKEDIR)/../core/location:$(MAKEDIR)/../core/net:$(MAKEDIR)/../core/content:$(MAKEDIR)/../core/app:$(MAKEDIR)/../core/capsule:$(MAKEDIR)/../core/utils:$(MAKEDIR)/../core/location:$(MAKEDIR)/../core/text:$(MAKEDIR)/../core/provider
 
 include $(MAKEDIR)/../../../sources.inc
 
@@ -12,6 +12,7 @@ INCLUDES += $(MAKEDIR)/../../inc/core/app
 INCLUDES += $(MAKEDIR)/../../inc/core/capsule
 INCLUDES += $(MAKEDIR)/../../inc/core/content
 INCLUDES += $(MAKEDIR)/../../inc/core/content/cm
+INCLUDES += $(MAKEDIR)/../../inc/core/provider
 INCLUDES += $(MAKEDIR)/../../inc/core/ext
 INCLUDES += $(MAKEDIR)/../../inc/core/net
 INCLUDES += $(MAKEDIR)/../../inc/core/utils

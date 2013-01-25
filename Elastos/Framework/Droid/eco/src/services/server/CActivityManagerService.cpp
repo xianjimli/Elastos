@@ -6,9 +6,11 @@
 #include "server/CServiceRestarter.h"
 #include "server/AttributeCache.h"
 #include "content/ContentResolver.h"
+#include "content/Context.h"
 #include "os/SystemClock.h"
 #include "os/Process.h"
 #include "os/SystemProperties.h"
+#include "os/Binder.h"
 #include "utils/EventLogTags.h"
 #include "utils/AutoStringArray.h"
 #include "view/WindowManagerPolicy.h"
@@ -927,22 +929,25 @@ Boolean CActivityManagerService::StartHomeActivityLocked()
  */
 void CActivityManagerService::StartSetupActivityLocked()
 {
-//    // Only do this once per boot.
-//    if (mCheckedForSetup) {
-//        return;
-//    }
-//
-//    // We will show this screen if the current one is a different
-//    // version than the last one shown, and we are not running in
-//    // low-level factory test mode.
-//    final ContentResolver resolver = mContext.getContentResolver();
-//    if (mFactoryTest != SystemServer.FACTORY_TEST_LOW_LEVEL &&
-//            Settings.Secure.getInt(resolver,
-//                    Settings.Secure.DEVICE_PROVISIONED, 0) != 0) {
-//        mCheckedForSetup = true;
-//
-//        // See if we should be showing the platform update setup UI.
-//        Intent intent = new Intent(Intent.ACTION_UPGRADE_SETUP);
+/*    // Only do this once per boot.
+    if (mCheckedForSetup) {
+        return;
+    }
+
+    // We will show this screen if the current one is a different
+    // version than the last one shown, and we are not running in
+    // low-level factory test mode.
+    const AutoPtr<IContentResolver> resolver;
+    AutoPtr<IContext> mContext;
+    mContext->GetContentResolver((IContentResolver**)&resolver);//final ContentResolver resolver = mContext.getContentResolver();
+    Int32 mInt;
+    CSettings::Secure::GetInt((IContentResolver*)resolver,CSettings::Secure::DEVICE_PROVISIONED, 0,&mInt);
+    if (mFactoryTest != SystemServer::FACTORY_TEST_LOW_LEVEL && mInt != 0) {
+        mCheckedForSetup = TRUE;
+
+*/        // See if we should be showing the platform update setup UI.
+//        IIntent* intent;
+//        CIntent::New(String(Intent_ACTION_UPGRADE_SETUP),(IIntent**)&intent);
 //        List<ResolveInfo> ris = mSelf.mContext.getPackageManager()
 //                .queryIntentActivities(intent, PackageManager.GET_META_DATA);
 //
@@ -1263,14 +1268,14 @@ ECode CActivityManagerService::StartNextMatchingActivity(
             resultTo->RemoveResultsLocked(r, resultWho, requestCode);
         }
 
-        const long origId = Process::ClearCallingIdentity();
+        const long origId = Binder::ClearCallingIdentity();
         // XXX we are not dealing with propagating grantedUriPermissions...
         // those are not yet exposed to user code, so there is no need.
         Int32 res;
         mMainStack->StartActivityLocked(r->mApp->mAppApartment, newIntent,
                 r->mResolvedType, NULL, 0, aInfo, resultTo, resultWho,
                 requestCode, -1, r->mLaunchedFromUid, FALSE, FALSE,&res);
-        Process::RestoreCallingIdentity(origId);
+        Binder::RestoreCallingIdentity(origId);
 
         r->mFinishing = wasFinishing;
         if (res != ActivityManager_START_SUCCESS) {
@@ -1445,29 +1450,31 @@ ECode CActivityManagerService::FinishActivity(
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
-    Mutex::Autolock lock(_m_syncLock);
+    {
+        Mutex::Autolock lock(_m_syncLock);
 
-    if (mController != NULL) {
-        // Find the first activity that is not finishing.
-        AutoPtr<CActivityRecord> next = \
-                mMainStack->GetTopRunningActivityLocked(token, 0);
-        if (next != NULL) {
-            // ask watcher if this is allowed
-            Boolean resumeOK = TRUE;
-            if (FAILED(mController->ActivityResuming(
-                    next->mCapsuleName, &resumeOK))) {
-                mController = NULL;
-            }
+        if (mController != NULL) {
+            // Find the first activity that is not finishing.
+            AutoPtr<CActivityRecord> next = \
+                    mMainStack->GetTopRunningActivityLocked(token, 0);
+            if (next != NULL) {
+                // ask watcher if this is allowed
+                Boolean resumeOK = TRUE;
+                if (FAILED(mController->ActivityResuming(
+                        next->mCapsuleName, &resumeOK))) {
+                    mController = NULL;
+                }
 
-            if (!resumeOK) {
-                *finished = FALSE;
-                return NOERROR;
+                if (!resumeOK) {
+                    *finished = FALSE;
+                    return NOERROR;
+                }
             }
         }
+        *finished = mMainStack->RequestFinishActivityLocked(token, resultCode,
+                resultData, "app-request");
+        return NOERROR;
     }
-    *finished = mMainStack->RequestFinishActivityLocked(token, resultCode,
-            resultData, "app-request");
-    return NOERROR;
 }
 
 ECode CActivityManagerService::FinishHeavyWeightApp()
@@ -1578,7 +1585,7 @@ ECode CActivityManagerService::FinishSubActivity(
         }
         AutoPtr<CActivityRecord> self = (CActivityRecord*)mMainStack->mHistory[index];
 
-        const long origId = Process::ClearCallingIdentity();
+        const long origId = Binder::ClearCallingIdentity();
 
         Int32 i;
         for (i=mMainStack->mHistory.GetSize()-1; i>=0; i--) {
@@ -1592,7 +1599,7 @@ ECode CActivityManagerService::FinishSubActivity(
             }
         }
 
-        Process::RestoreCallingIdentity(origId);
+        Binder::RestoreCallingIdentity(origId);
     }
     //return E_NOT_IMPLEMENTED;
 }
@@ -2816,10 +2823,10 @@ ECode CActivityManagerService::ActivityIdle(
     /* [in] */ IBinder* token,
     /* [in] */ IConfiguration* config)
 {
-//    final long origId = Binder.clearCallingIdentity();
-//    mMainStack.activityIdleInternal(token, false, config);
-//    Binder.restoreCallingIdentity(origId);
-    return E_NOT_IMPLEMENTED;
+    const long origId = Binder::ClearCallingIdentity();
+    mMainStack->ActivityIdleInternal(token, FALSE, config);
+    Binder::RestoreCallingIdentity(origId);
+    //return E_NOT_IMPLEMENTED;
 }
 
 void CActivityManagerService::EnableScreenAfterBoot()

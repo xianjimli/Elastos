@@ -1785,6 +1785,8 @@ private:
     Boolean mWaitingUpdate;
     Boolean mDidUpdate;
 
+    Boolean mCheckedForSetup;
+
     Int32 mFactoryTest;
 
     /**

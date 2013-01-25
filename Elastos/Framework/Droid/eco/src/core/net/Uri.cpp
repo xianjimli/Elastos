@@ -176,3 +176,16 @@ ECode Uri::FromParts(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode Uri::WithAppendedPath(
+	/* [in] */ IUri* baseUri,
+	/* [in] */ const String& pathSegment,
+	/* [out] */ IUri** uri) 
+{
+//	Builder builder = baseUri.buildUpon();
+//	builder = builder.appendEncodedPath(pathSegment);
+//	return builder.build();
+    return E_NOT_IMPLEMENTED;
+}
+
+
+

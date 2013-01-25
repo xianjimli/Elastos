@@ -34,6 +34,8 @@ INCLUDES += $(MAKEDIR)/../../inc/core/location
 INCLUDES += $(MAKEDIR)/../../inc/core/systemui/
 INCLUDES += $(MAKEDIR)/../../inc/core/systemui/statusbar
 INCLUDES += $(MAKEDIR)/../../inc/core/hardware/usb
+INCLUDES += $(MAKEDIR)/../../inc/core/provider
+
 ifeq "$(XDK_TARGET_PLATFORM)" "linux"
 INCLUDES += $(PREBUILD_INC)/skia/utils
 INCLUDES += $(PREBUILD_INC)/skia/core
@@ -50,6 +52,7 @@ LIBRARIES += $(XDK_USER_LIB)/Elastos.Core.lib
 LIBRARIES += capsule/capsule.lib
 LIBRARIES += net/net.lib
 LIBRARIES += content/content.lib
+LIBRARIES += provider/provider.lib
 LIBRARIES += app/application.lib
 LIBRARIES += utils/utils.lib
 LIBRARIES += ext/ext.lib

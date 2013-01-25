@@ -10,6 +10,10 @@ public:
     CARAPI PutInt32(
         /* [in] */ const String& key,
         /* [in] */ Int32 value);
+	
+	CARAPI PutString(
+		/* [in] */ const String& key,
+		/* [in] */ const String& value);
 
     CARAPI GetInt32(
         /* [in] */ const String& key,

@@ -36,23 +36,6 @@ Int32 Process::GetCallingUid()
     return -1;
 }
 
-Int64 Process::ClearCallingIdentity()
-{
-    //int64_t token = ((int64_t)mCallingUid<<32) | mCallingPid;
-    //clearCaller();
-    //return token;
-    return -1;
-}
-
-void Process::RestoreCallingIdentity(
-	/*[in]*/Int64 token)
-{
-//    mCallingUid = (int)(token>>32);
-//    mCallingPid = (int)token;
-}
-
-
-
 ECode Process::SetProcessGroup(
     /* [in] */ Int32 pid,
     /* [in] */ Int32 group)

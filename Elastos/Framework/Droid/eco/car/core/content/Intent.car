@@ -320,6 +320,19 @@ module
     const Intent_ACTION_LOCALE_CHANGED = "elastos.intent.action.LOCALE_CHANGED";
 
     /**
+     * Activity Action: Setup wizard to launch after a platform update.  This
+     * activity should have a string meta-data field associated with it,
+     * {@link #METADATA_SETUP_VERSION}, which defines the current version of
+     * the platform for setup.  The activity will be launched only if
+     * {@link android.provider.Settings.Secure#LAST_SETUP_SHOWN} is not the
+     * same value.
+     * <p>Input: Nothing.
+     * <p>Output: Nothing.
+     * @hide
+     */
+    const Intent_ACTION_UPGRADE_SETUP = "android.intent.action.UPGRADE_SETUP";
+
+    /**
      * Broadcast Action:  This is a <em>sticky broadcast</em> containing the
      * charging state, level, and other information about the battery.
      * See {@link elastos.os.BatteryManager} for documentation on the

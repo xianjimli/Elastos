@@ -154,6 +154,12 @@ public:
         /* [in] */ const String& ssp,
         /* [in] */ const String& fragment,
         /* [out] */ IUri** uri);
+	
+	static CARAPI WithAppendedPath(
+	    /* [in] */ IUri* baseUri,
+	    /* [in] */ const String& pathSegment,
+	    /* [out] */ IUri** uri);
+
 
 private:
     /**

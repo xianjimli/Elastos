@@ -1,0 +1,19 @@
+TARGET_NAME= provider
+TARGET_TYPE= lib
+
+include $(MAKEDIR)/../../../../sources.inc
+
+INCLUDES += $(MAKEDIR)/../../../inc/core
+INCLUDES += ../
+
+C_DEFINES += -D_FRAMEWORK_CORE
+
+SOURCES = CBaseColumns.cpp
+SOURCES += CSettings.cpp
+SOURCES += CSettingsNameValueTable.cpp
+SOURCES += SettingsNameValueTable.cpp
+SOURCES += CSettingsSystem.cpp
+SOURCES += CSettingsSecure.cpp
+SOURCES += CSettingsBookmarks.cpp
+
+

@@ -1,0 +1,292 @@
+module
+{
+    const SettingsSystem_STAY_ON_WHILE_PLUGGED_IN = "stay_on_while_plugged_in";
+
+    const SettingsSystem_END_BUTTON_BEHAVIOR = "end_button_behavior";
+
+    const SettingsSystem_END_BUTTON_BEHAVIOR_HOME = 0x1;
+
+    const SettingsSystem_END_BUTTON_BEHAVIOR_SLEEP = 0x2;
+
+    //const SettingsSystem_END_BUTTON_BEHAVIOR_DEFAULT = SettingsSystem_END_BUTTON_BEHAVIOR_SLEEP;
+
+    const SettingsSystem_AIRPLANE_MODE_ON = "airplane_mode_on";
+
+    const SettingsSystem_RADIO_BLUETOOTH = "bluetooth";
+
+    const SettingsSystem_RADIO_WIFI = "wifi";
+
+    const SettingsSystem_RADIO_CELL = "cell";
+
+    const SettingsSystem_RADIO_WIMAX = "wimax";
+
+    const SettingsSystem_AIRPLANE_MODE_RADIOS = "airplane_mode_radios";
+
+    const SettingsSystem_AIRPLANE_MODE_TOGGLEABLE_RADIOS = "airplane_mode_toggleable_radios";
+
+    const SettingsSystem_WIFI_SLEEP_POLICY = "wifi_sleep_policy";
+
+    const SettingsSystem_WIFI_SLEEP_POLICY_DEFAULT = 0;
+
+    const SettingsSystem_WIFI_SLEEP_POLICY_NEVER_WHILE_PLUGGED = 1;
+
+    const SettingsSystem_WIFI_SLEEP_POLICY_NEVER = 2;
+
+    const SettingsSystem_WIFI_USE_STATIC_IP = "wifi_use_static_ip";
+
+    const SettingsSystem_WIFI_STATIC_IP = "wifi_static_ip";
+
+    const SettingsSystem_WIFI_STATIC_GATEWAY = "wifi_static_gateway";
+
+    const SettingsSystem_WIFI_STATIC_NETMASK = "wifi_static_netmask";
+
+    const SettingsSystem_WIFI_STATIC_DNS1 = "wifi_static_dns1";
+
+    const SettingsSystem_WIFI_STATIC_DNS2 = "wifi_static_dns2";
+
+    const SettingsSystem_WIFI_NUM_ALLOWED_CHANNELS = "wifi_num_allowed_channels";
+
+    const SettingsSystem_BLUETOOTH_DISCOVERABILITY = "bluetooth_discoverability";
+
+    const SettingsSystem_BLUETOOTH_DISCOVERABILITY_TIMEOUT = "bluetooth_discoverability_timeout";
+
+    const SettingsSystem_LOCK_PATTERN_VISIBLE = "lock_pattern_visible_pattern";
+
+    const SettingsSystem_LOCK_PATTERN_TACTILE_FEEDBACK_ENABLED = "lock_pattern_tactile_feedback_enabled";
+
+    const SettingsSystem_NEXT_ALARM_FORMATTED = "next_alarm_formatted";
+
+    const SettingsSystem_FONT_SCALE = "font_scale";
+
+    const SettingsSystem_DEBUG_APP = "debug_app";
+
+    const SettingsSystem_WAIT_FOR_DEBUGGER = "wait_for_debugger";
+
+    const SettingsSystem_DIM_SCREEN = "dim_screen";
+
+    const SettingsSystem_SCREEN_OFF_TIMEOUT = "screen_off_timeout";
+
+    const SettingsSystem_COMPATIBILITY_MODE = "compatibility_mode";
+
+    const SettingsSystem_SCREEN_BRIGHTNESS = "screen_brightness";
+
+    const SettingsSystem_SCREEN_BRIGHTNESS_MODE = "screen_brightness_mode";
+
+    const SettingsSystem_SCREEN_BRIGHTNESS_MODE_MANUAL = 0;
+
+    const SettingsSystem_SCREEN_BRIGHTNESS_MODE_AUTOMATIC = 1;
+
+    const SettingsSystem_SHOW_PROCESSES = "show_processes";
+
+    const SettingsSystem_ALWAYS_FINISH_ACTIVITIES = "always_finish_activities";
+
+    const SettingsSystem_MODE_RINGER = "mode_ringer";
+
+    const SettingsSystem_MODE_RINGER_STREAMS_AFFECTED = "mode_ringer_streams_affected";
+
+    const SettingsSystem_MUTE_STREAMS_AFFECTED = "mute_streams_affected";
+
+    const SettingsSystem_VIBRATE_ON = "vibrate_on";
+
+    const SettingsSystem_VOLUME_RING = "volume_ring";
+
+    const SettingsSystem_VOLUME_SYSTEM = "volume_system";
+
+    const SettingsSystem_VOLUME_VOICE = "volume_voice";
+
+    const SettingsSystem_VOLUME_MUSIC = "volume_music";
+
+    const SettingsSystem_VOLUME_ALARM = "volume_alarm";
+
+    const SettingsSystem_VOLUME_NOTIFICATION = "volume_notification";
+
+    const SettingsSystem_VOLUME_BLUETOOTH_SCO = "volume_bluetooth_sco";
+
+    const SettingsSystem_NOTIFICATIONS_USE_RING_VOLUME = "notifications_use_ring_volume";
+
+    const SettingsSystem_VIBRATE_IN_SILENT = "vibrate_in_silent";
+
+    const SettingsSystem_APPEND_FOR_LAST_AUDIBLE = "_last_audible";
+
+    const SettingsSystem_RINGTONE = "ringtone";
+
+    const SettingsSystem_NOTIFICATION_SOUND = "notification_sound";
+
+    const SettingsSystem_ALARM_ALERT = "alarm_alert";
+
+    const SettingsSystem_TEXT_AUTO_REPLACE = "auto_replace";
+
+    const SettingsSystem_TEXT_AUTO_CAPS = "auto_caps";
+
+    const SettingsSystem_TEXT_AUTO_PUNCTUATE = "auto_punctuate";
+
+    const SettingsSystem_TEXT_SHOW_PASSWORD = "show_password";
+
+    const SettingsSystem_SHOW_GTALK_SERVICE_STATUS = "SHOW_GTALK_SERVICE_STATUS";
+
+    const SettingsSystem_WALLPAPER_ACTIVITY = "wallpaper_activity";
+
+    const SettingsSystem_AUTO_TIME = "auto_time";
+
+    const SettingsSystem_TIME_12_24 = "time_12_24";
+
+    const SettingsSystem_DATE_FORMAT = "date_format";
+
+    const SettingsSystem_SETUP_WIZARD_HAS_RUN = "setup_wizard_has_run";
+
+    const SettingsSystem_WINDOW_ANIMATION_SCALE = "window_animation_scale";
+
+    const SettingsSystem_TRANSITION_ANIMATION_SCALE = "transition_animation_scale";
+
+    const SettingsSystem_FANCY_IME_ANIMATIONS = "fancy_ime_animations";
+
+    const SettingsSystem_ACCELEROMETER_ROTATION = "accelerometer_rotation";
+
+    const SettingsSystem_DTMF_TONE_WHEN_DIALING = "dtmf_tone";
+
+    const SettingsSystem_DTMF_TONE_TYPE_WHEN_DIALING = "dtmf_tone_type";
+
+    const SettingsSystem_EMERGENCY_TONE = "emergency_tone";
+
+    const SettingsSystem_CALL_AUTO_RETRY = "call_auto_retry";
+
+    const SettingsSystem_HEARING_AID = "hearing_aid";
+
+    const SettingsSystem_TTY_MODE = "tty_mode";
+
+    const SettingsSystem_SOUND_EFFECTS_ENABLED = "sound_effects_enabled";
+
+    const SettingsSystem_HAPTIC_FEEDBACK_ENABLED = "haptic_feedback_enabled";
+
+    const SettingsSystem_SHOW_WEB_SUGGESTIONS = "show_web_suggestions";
+
+    const SettingsSystem_NOTIFICATION_LIGHT_PULSE = "notification_light_pulse";
+
+    const SettingsSystem_POINTER_LOCATION = "pointer_location";
+
+    const SettingsSystem_POWER_SOUNDS_ENABLED = "power_sounds_enabled";
+
+    const SettingsSystem_DOCK_SOUNDS_ENABLED = "dock_sounds_enabled";
+
+    const SettingsSystem_LOCKSCREEN_SOUNDS_ENABLED = "lockscreen_sounds_enabled";
+
+    const SettingsSystem_LOW_BATTERY_SOUND = "low_battery_sound";
+
+    const SettingsSystem_DESK_DOCK_SOUND = "desk_dock_sound";
+
+    const SettingsSystem_DESK_UNDOCK_SOUND = "desk_undock_sound";
+
+    const SettingsSystem_CAR_DOCK_SOUND = "car_dock_sound";
+
+    const SettingsSystem_CAR_UNDOCK_SOUND = "car_undock_sound";
+
+    const SettingsSystem_LOCK_SOUND = "lock_sound";
+
+    const SettingsSystem_UNLOCK_SOUND = "unlock_sound";
+
+    const SettingsSystem_SIP_RECEIVE_CALLS = "sip_receive_calls";
+
+    const SettingsSystem_SIP_CALL_OPTIONS = "sip_call_options";
+
+    const SettingsSystem_SIP_ALWAYS = "SIP_ALWAYS";
+
+    const SettingsSystem_SIP_ADDRESS_ONLY = "SIP_ADDRESS_ONLY";
+
+    const SettingsSystem_SIP_ASK_ME_EACH_TIME = "SIP_ASK_ME_EACH_TIME";
+
+    const SettingsSystem_SYS_PROP_SETTING_VERSION = "sys.settings_system_version";
+
+
+    interface ISettingsSystem {
+
+        GetString(
+            [in] IContentResolver* resolver,
+            [in] String name,
+            [out] String* outString);
+
+        PutString(
+            [in] IContentResolver* resolver,
+            [in] String name,
+            [in] String value,
+            [out] Boolean* outBoolean);
+
+
+        GetUriFor(
+            [in] String name,
+            [out] IUri** outUri);
+
+        GetInt(
+            [in] IContentResolver* cr,
+            [in] String name,
+            [in] Int32 def,
+            [out] Int32* outInt);
+
+        GetIntExtra(
+            [in] IContentResolver* cr,
+            [in] String name,
+            [out] Int32* outInt);
+
+        PutInt(
+            [in] IContentResolver* cr,
+            [in] String name,
+            [in] Int32 value,
+            [out] Boolean* outBoolean);
+
+        GetLong(
+            [in] IContentResolver* cr,
+            [in] String name,
+            [in] Int64 def,
+            [out] Int64* outLong);
+
+        GetLongExtra(
+            [in] IContentResolver* cr,
+            [in] String name,
+            [out] Int64* outLong);
+
+        PutLong(
+            [in] IContentResolver* cr,
+            [in] String name,
+            [in] Int64 value,
+            [out] Boolean* outBoolean);
+
+        GetFloat(
+            [in] IContentResolver* cr,
+            [in] String name,
+            [in] Float def,
+            [out] Float* outFloat);
+
+        GetFloatExtra(
+            [in] IContentResolver* cr,
+            [in] String name,
+            [out] Float* outFloat);
+
+        PutFloat(
+            [in] IContentResolver* cr,
+            [in] String name,
+            [in] Float value,
+            [out] Boolean* outBoolean);
+
+
+        GetConfiguration(
+            [in] IContentResolver* cr,
+            [in] IConfiguration* outConfig);
+
+        PutConfiguration(
+            [in] IContentResolver* cr,
+            [in] IConfiguration* config,
+            [out] Boolean* outBoolean);
+
+        HasInterestingConfigurationChanges(
+            [in] Int32 changes,
+            [out] Boolean* outBoolean);
+
+        GetShowGTalkServiceStatus(
+            [in] IContentResolver* cr,
+            [out] Boolean* outBoolean);
+
+        SetShowGTalkServiceStatus(
+            [in] IContentResolver* cr,
+            [in] Boolean flag);
+
+    }
+}

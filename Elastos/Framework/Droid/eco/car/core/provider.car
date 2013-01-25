@@ -4,4 +4,32 @@ module
     merge("provider/contacts.car");
     merge("provider/calllog.car");
     merge("provider/basecolumns.car");
+    merge("provider/settings.car");
+    merge("provider/settingssystem.car");
+    merge("provider/settingssecure.car");
+
+    class CBaseColumns {
+        interface IBaseColumns;
+    }
+    
+    singleton class CSettings {
+        interface ISettings;
+    }
+
+    singleton class CSettingsBookmarks {
+        interface ISettingsBookmarks;
+    }
+
+    singleton class CSettingsNameValueTable {
+        interface ISettingsNameValueTable;
+    }
+
+    singleton class CSettingsSystem {
+        interface ISettingsSystem;
+    }
+
+    singleton class CSettingsSecure {
+        interface ISettingsSecure;
+    }
+
 }

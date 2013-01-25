@@ -2882,6 +2882,151 @@ ECode ActivityStack::SendActivityResultLocked(
     return ec;
 }
 
+void ActivityStack::ActivityIdleInternal(
+	/*[in]*/ IBinder* token,
+	/*[in]*/ Boolean fromTimeout,
+	/*[in]*/ IConfiguration* config)
+{
+	 //if (localLOGV) Slog.v(TAG, "Activity idle: " + token);
+
+	// ArrayList<ActivityRecord> stops = null;
+	// ArrayList<ActivityRecord> finishes = null;
+	// ArrayList<ActivityRecord> thumbnails = null;
+	// int NS = 0;
+	// int NF = 0;
+	// int NT = 0;
+	// IApplicationThread sendThumbnail = null;
+	// boolean booting = false;
+	// boolean enableScreen = false;
+
+	// synchronized (mService) {
+	// 	if (token != null) {
+	// 		mHandler.removeMessages(IDLE_TIMEOUT_MSG, token);
+	// 	}
+
+	// 	// Get the activity record.
+	// 	int index = indexOfTokenLocked(token);
+	// 	if (index >= 0) {
+	// 		ActivityRecord r = (ActivityRecord)mHistory.get(index);
+
+	// 		if (fromTimeout) {
+	// 			reportActivityLaunchedLocked(fromTimeout, r, -1, -1);
+	// 		}
+
+	// 		// This is a hack to semi-deal with a race condition
+	// 		// in the client where it can be constructed with a
+	// 		// newer configuration from when we asked it to launch.
+	// 		// We'll update with whatever configuration it now says
+	// 		// it used to launch.
+	// 		if (config != null) {
+	// 			r.configuration = config;
+	// 		}
+
+	// 		// No longer need to keep the device awake.
+	// 		if (mResumedActivity == r && mLaunchingActivity.isHeld()) {
+	// 			mHandler.removeMessages(LAUNCH_TIMEOUT_MSG);
+	// 			mLaunchingActivity.release();
+	// 		}
+
+	// 		// We are now idle.  If someone is waiting for a thumbnail from
+	// 		// us, we can now deliver.
+	// 		r.idle = true;
+	// 		mService.scheduleAppGcsLocked();
+	// 		if (r.thumbnailNeeded && r.app != null && r.app.thread != null) {
+	// 			sendThumbnail = r.app.thread;
+	// 			r.thumbnailNeeded = false;
+	// 		}
+
+	// 		// If this activity is fullscreen, set up to hide those under it.
+
+	// 		if (DEBUG_VISBILITY) Slog.v(TAG, "Idle activity for " + r);
+	// 		ensureActivitiesVisibleLocked(null, 0);
+
+	// 		//Slog.i(TAG, "IDLE: mBooted=" + mBooted + ", fromTimeout=" + fromTimeout);
+	// 		if (mMainStack) {
+	// 			if (!mService.mBooted && !fromTimeout) {
+	// 				mService.mBooted = true;
+	// 				enableScreen = true;
+	// 			}
+	// 		}
+
+	// 	} else if (fromTimeout) {
+	// 		reportActivityLaunchedLocked(fromTimeout, null, -1, -1);
+	// 	}
+
+	// 	// Atomically retrieve all of the other things to do.
+	// 	stops = processStoppingActivitiesLocked(true);
+	// 	NS = stops != null ? stops.size() : 0;
+	// 	if ((NF=mFinishingActivities.size()) > 0) {
+	// 		finishes = new ArrayList<ActivityRecord>(mFinishingActivities);
+	// 		mFinishingActivities.clear();
+	// 	}
+	// 	if ((NT=mService.mCancelledThumbnails.size()) > 0) {
+	// 		thumbnails = new ArrayList<ActivityRecord>(mService.mCancelledThumbnails);
+	// 		mService.mCancelledThumbnails.clear();
+	// 	}
+
+	// 	if (mMainStack) {
+	// 		booting = mService.mBooting;
+	// 		mService.mBooting = false;
+	// 	}
+	// }
+
+	// int i;
+
+	// // Send thumbnail if requested.
+	// if (sendThumbnail != null) {
+	// 	try {
+	// 		sendThumbnail.requestThumbnail(token);
+	// 	} catch (Exception e) {
+	// 		Slog.w(TAG, "Exception thrown when requesting thumbnail", e);
+	// 		mService.sendPendingThumbnail(null, token, null, null, true);
+	// 	}
+	// }
+
+	// // Stop any activities that are scheduled to do so but have been
+	// // waiting for the next one to start.
+	// for (i=0; i<NS; i++) {
+	// 	ActivityRecord r = (ActivityRecord)stops.get(i);
+	// 	synchronized (mService) {
+	// 		if (r.finishing) {
+	// 			finishCurrentActivityLocked(r, FINISH_IMMEDIATELY);
+	// 		} else {
+	// 			stopActivityLocked(r);
+	// 		}
+	// 	}
+	// }
+
+	// // Finish any activities that are scheduled to do so but have been
+	// // waiting for the next one to start.
+	// for (i=0; i<NF; i++) {
+	// 	ActivityRecord r = (ActivityRecord)finishes.get(i);
+	// 	synchronized (mService) {
+	// 		destroyActivityLocked(r, true);
+	// 	}
+	// }
+
+	// // Report back to any thumbnail receivers.
+	// for (i=0; i<NT; i++) {
+	// 	ActivityRecord r = (ActivityRecord)thumbnails.get(i);
+	// 	mService.sendPendingThumbnail(r, null, null, null, true);
+	// }
+
+	// if (booting) {
+	// 	mService.finishBooting();
+	// }
+
+	// mService.trimApplications();
+	// //dump();
+	// //mWindowManager.dump();
+
+	// if (enableScreen) {
+	// 	mService.enableScreenAfterBoot();
+	// }
+}
+
+
+
 /**
  * @return Returns true if the activity is being finished, false if for
  * some reason it is being left as-is.

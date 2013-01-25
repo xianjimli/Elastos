@@ -18,3 +18,4 @@ DIRS += statusbar
 DIRS += location
 DIRS += systemui
 DIRS += hardware
+DIRS += provider
