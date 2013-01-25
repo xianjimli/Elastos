@@ -2590,7 +2590,7 @@ ECode ActivityStack::StartActivityMayWait(
     /* [out] */ Int32* status)
 {
     // Refuse possible leaked file descriptors
-    Boolean hasFD;
+    Boolean hasFD = FALSE;
     if (intent != NULL && (intent->HasFileDescriptors(&hasFD), hasFD)) {
         Slogger::E(TAG, "File descriptors passed in Intent.\n");
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
