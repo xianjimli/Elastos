@@ -12,7 +12,7 @@ protected:
     AutoPtr<IJDBCResultSet> mRs;
     Int32 mUpdcnt;
     Int32 mMaxrows = 0;
-	
+    
 private:
     //private ArrayList<String> batch;
 
@@ -25,12 +25,12 @@ protected:
 public:
     JDBCStatement();
 
-	~JDBCStatement();
+    ~JDBCStatement();
 
     CARAPI Init(
         /* [in] */ IJDBCConnection* conn);
 
-	CARAPI SetFetchSize(
+    CARAPI SetFetchSize(
         /* [in] */ Int32 fetchSize);
 
     CARAPI GetFetchSize(
@@ -39,7 +39,7 @@ public:
     CARAPI GetMaxRows(
         /* [out] */ Int32* maxrows);
 
-	CARAPI SetMaxRows(
+    CARAPI SetMaxRows(
         /* [in] */ Int32 maxrows);
 
     CARAPI SetFetchDirection(
@@ -102,7 +102,7 @@ public:
         /* [out] */ Int32* updcnt);
 
 //    public SQLWarning getWarnings() throws SQLException {
-//	return null;
+//    return null;
 //    }
 
     CARAPI SetCursorName(
@@ -165,11 +165,11 @@ public:
         /* [out] */ Boolean* poolable);
 
 //    public <T> T unwrap(java.lang.Class<T> iface) throws SQLException {
-// 	throw new SQLException("unsupported");
+//     throw new SQLException("unsupported");
 //    }
 
 //    public boolean isWrapperFor(java.lang.Class iface) throws SQLException {
-//	return false;
+//    return false;
 //    }
 
 };
