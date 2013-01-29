@@ -68,9 +68,9 @@ Timer::TimerImpl::TimerImpl(
     /* [in] */ String name,
     /* [in] */ Boolean isDaemon)
 {
-    SetName(name);
-    SetDaemon(isDaemon);
-    Start();
+//    SetName(name);
+//    SetDaemon(isDaemon);
+//    Start();
 }
 
 ECode Timer::TimerImpl::Run()
