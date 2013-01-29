@@ -134,3 +134,50 @@ int CTest::test6(int argc, char* argv[])
     printf("OK!\n");
     return 0;
 }
+
+class A
+{
+public:
+    A() {i=0;}
+public:
+    void fun() {printf("A fun\n");
+        printf("the is is %d\n", i);
+        }
+    virtual void fun1() {printf("A fun1\n" ); i++;}
+private:
+    virtual void fun2() {printf("A fun2\n"); i++;}
+
+public:
+    int i;
+};
+
+class B : public A
+{
+public:
+    void fun() {
+        printf("----------------------------------fun\n");
+        A::fun();
+        printf("B fun\n");
+        }
+    virtual void fun1() {
+        printf("----------------------------------fun1\n");
+        //A::fun1();
+        printf("B fun1\n");
+        i++;
+        printf("the is is %d\n", i);
+        }
+};
+
+
+
+int CTest::test7(int argc, char* argv[])
+{
+    A* a;
+    B b;
+    a = &b;
+    a->fun();
+    a->fun1();
+
+    b.fun();
+    b.fun1();
+}
