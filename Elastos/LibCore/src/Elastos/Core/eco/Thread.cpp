@@ -61,7 +61,6 @@ ECode Thread::Init()
 ECode Thread::Init(
     /* [in] */ IRunnable* runnable)
 {
-    printf("=======fun: %s========,========line: %d========\n", __FUNCTION__, __LINE__);
     return Create(NULL, runnable, String(NULL), 0);
 }
 
@@ -301,6 +300,7 @@ ECode Thread::Create(
     //         }
     //     }
     // }
+
     // AutoPtr<IThread> currentThread = Thread::GetCurrentThread();
     // if (group == NULL) {
     //     currentThread->GetThreadGroup(&group);
