@@ -1,0 +1,49 @@
+module
+{
+    /**
+    * The DRM permission of play.
+    */
+    const DrmRights_DRM_PERMISSION_PLAY = 1;
+
+    /**
+     * The DRM permission of display.
+     */
+    const DrmRights_DRM_PERMISSION_DISPLAY = 2;
+
+    /**
+     * The DRM permission of execute.
+     */
+    const DrmRights_DRM_PERMISSION_EXECUTE = 3;
+
+    /**
+     * The DRM permission of print.
+     */
+    const DrmRights_DRM_PERMISSION_PRINT = 4;
+
+    interface IDrmConstraintInfo;
+
+    interface IDrmRights {
+     /**
+     * Get the constraint of the given permission on this rights object.
+     *
+     * @param permission the given permission.
+     *
+     * @return a DrmConstraint instance.
+     */
+    GetConstraint(
+        [in] Int32 permission,
+        [out] IDrmConstraintInfo** constraint);
+
+    /**
+     * Consume the rights of the given permission.
+     *
+     * @param permission the given permission.
+     *
+     * @return true if consume success.
+     *         false if consume failure.
+     */
+    ConsumeRights(
+        [in] Int32 permission,
+        [out] Boolean* result);
+    }
+}

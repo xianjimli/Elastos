@@ -39,6 +39,8 @@ INCLUDES += $(MAKEDIR)/../../inc/services/server/location
 INCLUDES += $(MAKEDIR)/../../inc/media
 INCLUDES += $(MAKEDIR)/../../inc/media/media
 INCLUDES += $(MAKEDIR)/../../inc/media/media/audiofx
+INCLUDES += $(MAKEDIR)/../../inc/media/Drm
+INCLUDES += $(MAKEDIR)/../../inc/media/Drm/Mobile1
 ifeq "$(XDK_TARGET_PLATFORM)" "linux"
 INCLUDES += $(PREBUILD_INC)/skia/utils
 INCLUDES += $(PREBUILD_INC)/skia/core
@@ -54,6 +56,7 @@ LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Core.lib
 LIBRARIES += media/media.lib
 LIBRARIES += media/audiofx/audiofx.lib
+LIBRARIES += Drm/Mobile1/Mobile1.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.Logging.lib
 
 ifeq "$(XDK_TARGET_PLATFORM)" "win32"
@@ -67,5 +70,5 @@ else
 LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
 LIBRARIES += $(XDK_TARGETS)/Elastos.Core.eco
 LIBRARIES += $(XDK_USER_LIB)/crt0.lib
-LIBRARIES += -lexpat -llog -lutils -lbinder -lskia -lskiagl -lsurfaceflinger_client -lui -lcutils -lsqlite
+LIBRARIES += -lexpat -llog -lutils -lbinder -lskia -lskiagl -lsurfaceflinger_client -lui -lcutils -lsqlite -ldrm1
 endif

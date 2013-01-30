@@ -1,35 +1,23 @@
 
-#ifndef __DRMCONSTRAINTINFO_H__
-#define __DRMCONSTRAINTINFO_H__
+#ifndef __CDRMCONSTRAINTINFO_H__
+#define __CDRMCONSTRAINTINFO_H__
 
-#include "Elastos.Droid.Drm.Mobile1_server.h"
-#include <elastos/ElRefBase.h>
-#include <elastos/AutoPtr.h>
+#include "_CDrmConstraintInfo.h"
+//#include "Elastos.Droid.Drm.Mobile1_server.h"
 
 /**
  * This class provides interfaces to access the DRM constraint.
  */
-class DrmConstraintInfo
-    : public ElRefBase
-    , public IDrmConstraintInfo
+CarClass(CDrmConstraintInfo)
 {
 public:
+    CARAPI GetInterfaceID(
+        /*[in]*/ IInterface *pObject,
+        /*[out]*/ InterfaceID *pIID);
     /**
      * Construct the DrmConstraint.
      */
-    /* package */ DrmConstraintInfo();
-
-    CARAPI_(PInterface) Probe(
-        /* [in]  */ REIID riid);
-
-    CARAPI_(UInt32) AddRef();
-
-    CARAPI_(UInt32) Release();
-
-    CARAPI GetInterfaceID(
-        /* [in] */ IInterface *pObject,
-        /* [out] */ InterfaceID *pIID);
-
+    CARAPI constructor();
     /**
      * Get the count constraint.
      *
@@ -62,7 +50,7 @@ public:
     CARAPI GetInterval(
         /* [out] */ Int64* interval);
 
-private:
+public:
     /**
      * The constraint of count.
      */
@@ -85,5 +73,5 @@ private:
 };
 
 
-#endif //__DRMCONSTRAINTINFO_H__
+#endif // __CDRMCONSTRAINTINFO_H__
 

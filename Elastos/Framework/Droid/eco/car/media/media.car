@@ -9,6 +9,8 @@ module
     merge("media/AudioTrack.car");
     merge("media/AudioSystem.car");
     merge("media/AudioManager.car");
+    merge("Drm/Mobile1/DrmConstraintInfo.car");
+    merge("Drm/Mobile1/DrmRights.car");
 
     class CAudioTrack {
         constructor(
@@ -43,5 +45,15 @@ module
             [in] IContext* context);
 
         interface IAudioService;
+    }
+    
+    class CDrmConstraintInfo {
+        constructor(); 
+        interface IDrmConstraintInfo;
+    }
+
+    class CDrmRights {
+        constructor();  
+        interface IDrmRights;
     }
 }
