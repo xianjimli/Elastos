@@ -3,17 +3,24 @@
 
 #include "TimerTask.h"
 #include "CDate.h"
-#include <elastos/Thread.h>
 #include <elastos/Mutex.h>
+#include "Elastos.Core.h"
+#include <elastos/AutoPtr.h>
 //#include <elastos.h>
 //
 using namespace Elastos;
 using namespace Elastos::Core;
 using namespace Elastos::Core::Threading;
 
+//class TimerImplA : public CThread
+//{
+//public:
+//    void SetX( const String& name) { SetName(name);}
+//};
+
 class Timer
 {
-    class TimerImpl : public Thread
+    class TimerImpl
     {
             class TimerHeap {
             private:
@@ -70,6 +77,8 @@ class Timer
          */
             TimerHeap* mTasks;
 
+            AutoPtr<IThread> mThread;
+
         public:
             TimerImpl(
                 /* [in] */ String name,
@@ -84,10 +93,10 @@ class Timer
             CARAPI InsertTask(
                 /* [in] */ TimerTask* newTask);
 
-            virtual IInterface* Probe(
-                /* [in] */ const InterfaceID & id) {};
-
-            virtual Mutex* GetSelfLock() {};
+//            virtual IInterface* Probe(
+//                /* [in] */ const InterfaceID & id) {};
+//
+//            virtual Mutex* GetSelfLock() {};
     };
 
     class FinalizerHelper
