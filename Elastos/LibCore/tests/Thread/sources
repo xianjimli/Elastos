@@ -6,6 +6,7 @@ IMPORTS = Elastos.Core.eco
 
 SOURCES = main.cpp
 SOURCES += MyThread.cpp
+SOURCES += MyRunnable.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco

@@ -5,7 +5,7 @@
 #include <cutils/sched_policy.h>
 #include <cutils/atomic.h>
 #include <unistd.h>
-
+#include "stdio.h"
 
 static NativeThread* AllocThread(Int32 stackSize);
 static void SetThreadSelf(NativeThread* thread);
@@ -165,9 +165,10 @@ pid_t NativeGetSysThreadId()
 static Boolean PrepareThread(
     /* [in] */ NativeThread* thread)
 {
+    thread->mSystemTid = NativeGetSysThreadId();
     AssignThreadId(thread);
     thread->mHandle = pthread_self();
-    thread->mSystemTid = NativeGetSysThreadId();
+    //thread->mSystemTid = NativeGetSysThreadId();
 
     //LOGI("SYSTEM TID IS %d (pid is %d)\n", (int) thread->systemTid,
     //    (int) getpid());
@@ -286,7 +287,10 @@ static void FreeThread(NativeThread* thread)
  */
 NativeThread* NativeThreadSelf()
 {
-    return (NativeThread*)pthread_getspecific(gDvm.mPthreadKeySelf);
+printf("=======the value of key: %d========,========line: %d========\n", gDvm.mPthreadKeySelf, __LINE__);
+    NativeThread* nt = (NativeThread*)pthread_getspecific(gDvm.mPthreadKeySelf);
+printf("=======fun: %s========,========line: %d========\n", __FUNCTION__, __LINE__);
+    return nt;
 }
 
 /*
@@ -358,15 +362,19 @@ static void ReleaseThreadId(
 static void SetThreadName(
     /* [in] */ const char *threadName)
 {
+    printf("======function: %s======, ======line: %d======\n", __FUNCTION__, __LINE__);
     Int32 hasAt = 0;
     Int32 hasDot = 0;
     const char *s = threadName;
+    printf("======function: %s======, ======line: %c======\n", __FUNCTION__, *s);
     while (*s) {
         if (*s == '.') hasDot = 1;
         else if (*s == '@') hasAt = 1;
         s++;
     }
+    printf("======function: %s======, ======line: %d======\n", __FUNCTION__, __LINE__);
     Int32 len = s - threadName;
+    printf("======function: %s======, ======line: %d======\n", __FUNCTION__, __LINE__);
     if (len < 15 || hasAt || !hasDot) {
         s = threadName;
     }
@@ -374,6 +382,7 @@ static void SetThreadName(
         s = threadName + len - 15;
     }
 #if defined(HAVE_ANDROID_PTHREAD_SETNAME_NP)
+    printf("======function: %s======, ======line: %d======\n", __FUNCTION__, __LINE__);
     /* pthread_setname_np fails rather than truncating long strings */
     char buf[16];       // MAX_TASK_COMM_LEN=16 is hard-coded into bionic
     strncpy(buf, s, sizeof(buf) - 1);
@@ -384,6 +393,7 @@ static void SetThreadName(
         //     buf, strerror(err));
     }
 #elif defined(HAVE_PRCTL)
+    printf("======function: %s======, ======line: %d======\n", __FUNCTION__, __LINE__);
     prctl(PR_SET_NAME, (unsigned long) s, 0, 0, 0);
 #else
     // LOGD("No way to set current thread's name (%s)\n", s);
@@ -421,10 +431,9 @@ Boolean NativeCreateThread(
     Int32 cc;
 
     assert(threadObj != NULL);
-
-    self = NativeThreadSelf();
+    //self = NativeThreadSelf();
     if (reqStackSize == 0) {
-        stackSize = gDvm.mStackSize;
+        stackSize = kDefaultStackSize;//gDvm.mStackSize;
     }
     else if (reqStackSize < kMinStackSize) {
         stackSize = kMinStackSize;
@@ -439,6 +448,7 @@ Boolean NativeCreateThread(
     pthread_attr_init(&threadAttr);
     pthread_attr_setdetachstate(&threadAttr, PTHREAD_CREATE_DETACHED);
 
+    printf("======function: %s======, ======stackSize: %d======\n", __FUNCTION__, stackSize);
     newThread = AllocThread(stackSize);
     if (newThread == NULL) {
         goto fail;
@@ -455,7 +465,7 @@ Boolean NativeCreateThread(
      * because it's handy and we're going to need to grab it again soon
      * anyway.
      */
-    NativeLockThreadList(self);
+    //NativeLockThreadList(self);
 
     // if (dvmGetFieldObject(threadObj, gDvm.offJavaLangThread_vmThread) != NULL) {
     //     dvmUnlockThreadList();
@@ -479,12 +489,12 @@ Boolean NativeCreateThread(
     /*
      * Thread creation might take a while, so release the lock.
      */
-    NativeUnlockThreadList();
-
-    oldStatus = NativeChangeStatus(self, NTHREAD_VMWAIT);
+    //NativeUnlockThreadList();
+printf("======function: %s======, ======line: %d======\n", __FUNCTION__, __LINE__);
+    //oldStatus = NativeChangeStatus(self, NTHREAD_VMWAIT);
     cc = pthread_create(&threadHandle, &threadAttr, ThreadEntry, newThread);
-    oldStatus = NativeChangeStatus(self, oldStatus);
-
+    //oldStatus = NativeChangeStatus(self, oldStatus);
+printf("======function: %s======, ======line: %d======\n", __FUNCTION__, __LINE__);
     if (cc != 0) {
         /*
          * Failure generally indicates that we have exceeded system
@@ -579,29 +589,38 @@ Boolean NativeCreateThread(
      * This would be protected by the thread list lock and set by a
      * suspend-all.
      */
-    NativeLockThreadList(self);
-    assert(self->mStatus == NTHREAD_RUNNING);
-    self->mStatus = NTHREAD_VMWAIT;
+    //NativeLockThreadList(self);
+    //assert(self->mStatus == NTHREAD_RUNNING);
+    //self->mStatus = NTHREAD_VMWAIT;
+printf("======function: %s======, ======status: %d======\n", __FUNCTION__, newThread->mStatus);
     while (newThread->mStatus != NTHREAD_STARTING) {
         pthread_cond_wait(&gDvm.mThreadStartCond, &gDvm.mThreadListLock);
     }
-
+printf("======function: %s======, ======line: %d======\n", __FUNCTION__, __LINE__);
     // LOG_THREAD("threadid=%d: adding to list\n", newThread->threadId);
-    newThread->mNext = gDvm.mThreadList->mNext;
+    if (gDvm.mThreadList != NULL) {
+        newThread->mNext = gDvm.mThreadList->mNext;
+        newThread->mPrev = gDvm.mThreadList;
+        gDvm.mThreadList->mNext = newThread;
+    }
+    else {
+        gDvm.mThreadList = newThread;
+    }
+    //newThread->mNext = gDvm.mThreadList->mNext;
     if (newThread->mNext != NULL) {
         newThread->mNext->mPrev = newThread;
     }
-    newThread->mPrev = gDvm.mThreadList;
-    gDvm.mThreadList->mNext = newThread;
-
+    // newThread->mPrev = gDvm.mThreadList;
+    // gDvm.mThreadList->mNext = newThread;
+printf("======function: %s======, ======line: %d======\n", __FUNCTION__, __LINE__);
     // if (!dvmGetFieldBoolean(threadObj, gDvm.offJavaLangThread_daemon)) {
     //     gDvm.nonDaemonThreadCount++;        // guarded by thread list lock
     // }
 
-    NativeUnlockThreadList();
+    //NativeUnlockThreadList();
 
     /* change status back to RUNNING, self-suspending if necessary */
-    NativeChangeStatus(self, NTHREAD_RUNNING);
+    //NativeChangeStatus(self, NTHREAD_RUNNING);
 
     /*
      * Tell the new thread to start.
@@ -614,18 +633,19 @@ Boolean NativeCreateThread(
      * We move it to VMWAIT, and it then shifts itself to RUNNING, which
      * comes with a suspend-pending check.
      */
-    NativeLockThreadList(self);
+    //NativeLockThreadList(self);
 
     assert(newThread->mStatus == NTHREAD_STARTING);
     newThread->mStatus = NTHREAD_VMWAIT;
     pthread_cond_broadcast(&gDvm.mThreadStartCond);
-
-    NativeUnlockThreadList();
+printf("======function: %s======, ======line: %d======\n", __FUNCTION__, __LINE__);
+    //NativeUnlockThreadList();
 
     // DvmReleaseTrackedAlloc(vmThreadObj, NULL);
     return TRUE;
 
 fail:
+printf("======function: %s======, ======line: %d======\n", __FUNCTION__, __LINE__);
     FreeThread(newThread);
     // dvmReleaseTrackedAlloc(vmThreadObj, NULL);
     return FALSE;
@@ -636,17 +656,18 @@ fail:
  */
 static void* ThreadEntry(void* arg)
 {
+printf("======function: %s======, ======line: %d======\n", __FUNCTION__, __LINE__);
     NativeThread* self = (NativeThread*)arg;
 
     const char* threadName = self->mThreadObj->mName.string();
     SetThreadName(threadName);
-
+printf("======function: %s======, ======line: %d======\n", __FUNCTION__, __LINE__);
     /*
      * Finish initializing the Thread struct.
      */
     NativeLockThreadList(self);
     PrepareThread(self);
-
+printf("======function: %s======, ======line: %d======\n", __FUNCTION__, __LINE__);
     // LOG_THREAD("threadid=%d: created from interp\n", self->threadId);
 
     /*
@@ -655,7 +676,7 @@ static void* ThreadEntry(void* arg)
      */
     self->mStatus = NTHREAD_STARTING;
     pthread_cond_broadcast(&gDvm.mThreadStartCond);
-
+printf("======function: %s======, ======line: %d======\n", __FUNCTION__, __LINE__);
     /*
      * Wait until the parent says we can go.  Assuming there wasn't a
      * suspend pending, this will happen immediately.  When it completes,
@@ -672,7 +693,7 @@ static void* ThreadEntry(void* arg)
     while (self->mStatus != NTHREAD_VMWAIT) {
         pthread_cond_wait(&gDvm.mThreadStartCond, &gDvm.mThreadListLock);
     }
-
+printf("======function: %s======, ======line: %d======\n", __FUNCTION__, __LINE__);
     NativeUnlockThreadList();
 
     /*
@@ -685,7 +706,7 @@ static void* ThreadEntry(void* arg)
      * in progress this call will suspend us.
      */
     NativeChangeStatus(self, NTHREAD_RUNNING);
-
+printf("======function: %s======, ======line: %d======\n", __FUNCTION__, __LINE__);
     /*
      * Notify the debugger & DDM.  The debugger notification may cause
      * us to suspend ourselves (and others).
@@ -704,7 +725,7 @@ static void* ThreadEntry(void* arg)
      */
     Int32 priority = self->mThreadObj->mPriority;
     NativeChangeThreadPriority(self, priority);
-
+printf("======function: %s======, ======line: %d======\n", __FUNCTION__, __LINE__);
     /*
      * Execute the "run" method.
      *

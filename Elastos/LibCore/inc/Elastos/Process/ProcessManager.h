@@ -28,7 +28,7 @@ _ELASTOS_NAMESPACE_END
 class ProcessManager
 {
 public:
-    class ProcessImpl : public ElRefBase, IProcess
+    class ProcessImpl : public ElRefBase, public IProcess
     {
     public:
         ProcessImpl(
@@ -87,7 +87,7 @@ public:
     };
 
 private:
-    class ProcessThread : public ElRefBase, IRunnable
+    class ProcessThread : public ElRefBase, public IRunnable
     {
     public:
         ProcessThread(
@@ -111,7 +111,7 @@ private:
     };
 
     /** Automatically closes fd when collected. */
-    class ProcessInputStream : public ElRefBase, IFileInputStream
+    class ProcessInputStream : public ElRefBase, public IFileInputStream
     {
     public:
         ProcessInputStream(
@@ -171,7 +171,7 @@ private:
     };
 
     /** Automatically closes fd when collected. */
-    class ProcessOutputStream : public ElRefBase, IFileOutputStream
+    class ProcessOutputStream : public ElRefBase, public IFileOutputStream
     {
     public:
         ProcessOutputStream(

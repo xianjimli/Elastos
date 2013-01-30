@@ -59,3 +59,8 @@ EXPORTS
     ;;NativeThread
     NativeThreadSelf
     NativeCreateThread
+    NativeGetThreadFromThreadObject
+    NativeThreadInterrupt
+    NativeLockThreadList
+    NativeUnlockThreadList
+    NativeChangeThreadPriority

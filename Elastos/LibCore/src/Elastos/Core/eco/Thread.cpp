@@ -5,6 +5,7 @@
 #include "ThreadGroup.h"
 #include <elastos/Math.h>
 #include <elastos/System.h>
+#include "stdio.h"
 
 const Int32 Thread::NANOS_PER_MILLI = 1000000;
 Int32 Thread::sCount = 0;
@@ -60,6 +61,7 @@ ECode Thread::Init()
 ECode Thread::Init(
     /* [in] */ IRunnable* runnable)
 {
+    printf("=======fun: %s========,========line: %d========\n", __FUNCTION__, __LINE__);
     return Create(NULL, runnable, String(NULL), 0);
 }
 
@@ -299,28 +301,26 @@ ECode Thread::Create(
     //         }
     //     }
     // }
+    // AutoPtr<IThread> currentThread = Thread::GetCurrentThread();
+    // if (group == NULL) {
+    //     currentThread->GetThreadGroup(&group);
+    // }
 
-    AutoPtr<IThread> currentThread = Thread::GetCurrentThread();
-    if (group == NULL) {
-        currentThread->GetThreadGroup(&group);
-    }
-
-    FAIL_RETURN(group->CheckAccess());
-    Boolean isDestroyed;
-    if (group->IsDestroyed(&isDestroyed), isDestroyed) {
-        // throw new IllegalThreadStateException("Group already destroyed");
-        group->Release();
-        return E_ILLEGAL_THREAD_STATE_EXCEPTION;
-    }
-
-    mGroup = (ThreadGroup*)group->Probe(EIID_ThreadGroup);
-
+    // FAIL_RETURN(group->CheckAccess());
+    // Boolean isDestroyed;
+    // if (group->IsDestroyed(&isDestroyed), isDestroyed) {
+    //     // throw new IllegalThreadStateException("Group already destroyed");
+    //     group->Release();
+    //     return E_ILLEGAL_THREAD_STATE_EXCEPTION;
+    // }
+    //mGroup = (ThreadGroup*)group->Probe(EIID_ThreadGroup);
     // synchronized (Thread.class) {
     //     id = ++Thread.count;
     // }
-
+    mId = ++Thread::sCount;
+printf("=======fun: %s========,========line: %d========\n", __FUNCTION__, __LINE__);
     if (threadName.IsNull()) {
-        // this.name = "Thread-" + id;
+        mName = String("Thread-" + mId);
     }
     else {
         mName = threadName;
@@ -329,8 +329,7 @@ ECode Thread::Create(
     mTarget = runnable;
     mStackSize = stackSize;
 
-    currentThread->GetPriority(&mPriority);
-
+    //currentThread->GetPriority(&mPriority);
     // this.contextClassLoader = currentThread.contextClassLoader;
 
     // Transfer over InheritableThreadLocals.
@@ -343,8 +342,8 @@ ECode Thread::Create(
     // SecurityUtils.putContext(this, AccessController.getContext());
 
     // add ourselves to our ThreadGroup of choice
-    mGroup->AddThread((IThread*)this->Probe(EIID_IThread));
-    group->Release();
+    //mGroup->AddThread((IThread*)this->Probe(EIID_IThread));
+    //group->Release();
     return NOERROR;
 }
 
@@ -399,7 +398,12 @@ AutoPtr<IThread> Thread::GetCurrentThread()
 
 AutoPtr<IThread> Thread::NativeGetCurrentThread()
 {
-    return AutoPtr<IThread>((IThread*)NativeThreadSelf()->mThreadObj->Probe(EIID_IThread));
+    NativeThread* nt = NativeThreadSelf();
+    if (nt == NULL) {
+        printf("=======fun: %s========,========line: %d========\n", __FUNCTION__, __LINE__);
+    }
+    return AutoPtr<IThread>((IThread*)nt->mThreadObj->Probe(EIID_IThread));
+    //return AutoPtr<IThread>((IThread*)NativeThreadSelf()->mThreadObj->Probe(EIID_IThread));
 }
 
 /**
@@ -935,8 +939,10 @@ ECode Thread::Resume()
  */
 ECode Thread::Run()
 {
+    printf("=======fun: %s========,========line: %d========\n", __FUNCTION__, __LINE__);
     ECode ec = NOERROR;
     if (mTarget != NULL) {
+        printf("=======fun: %s========,========line: %d========\n", __FUNCTION__, __LINE__);
         ec = mTarget->Run();
     }
     return ec;

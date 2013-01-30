@@ -25,7 +25,36 @@ public:
         /* [in] */ IInterface *pObject,
         /* [out] */ InterfaceID *pIID);
 
-    CARAPI Run();
+    MyThread();
+
+    MyThread(
+        /* [in] */ IRunnable* runnable);
+
+    MyThread(
+        /* [in] */ IRunnable* runnable,
+        /* [in] */ const String& threadName);
+
+    MyThread(
+        /* [in] */ const String& threadName);
+
+    MyThread(
+        /* [in] */ IThreadGroup* group,
+        /* [in] */ IRunnable* runnable);
+
+    MyThread(
+        /* [in] */ IThreadGroup* group,
+        /* [in] */ IRunnable* runnable,
+        /* [in] */ const String& threadName);
+
+    MyThread(
+        /* [in] */ IThreadGroup* group,
+        /* [in] */ const String& threadName);
+
+    MyThread(
+        /* [in] */ IThreadGroup* group,
+        /* [in] */ IRunnable* runnable,
+        /* [in] */ const String& threadName,
+        /* [in] */ Int64 stackSize);
 
     CARAPI CheckAccess();
 
@@ -85,6 +114,12 @@ public:
     CARAPI Stop();
 
     CARAPI Suspend();
+
+    CARAPI Wait(
+        /* [in] */ Int64 time,
+        /* [in] */ Int32 frac);
+
+    CARAPI Run();
 
 private:
     CARAPI_(Mutex*) GetSelfLock();

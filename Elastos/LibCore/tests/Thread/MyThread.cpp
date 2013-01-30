@@ -1,6 +1,6 @@
 
 #include "MyThread.h"
-
+#include "stdio.h"
 
 UInt32 MyThread::AddRef()
 {
@@ -43,134 +43,196 @@ ECode MyThread::GetInterfaceID(
     return NOERROR;
 }
 
-ECode MyThread::Run()
+MyThread::MyThread()
 {
-    return NOERROR;
+    Thread::Init();
+}
+
+MyThread::MyThread(
+    /* [in] */ IRunnable* runnable)
+{
+    Thread::Init(runnable);
+}
+
+MyThread::MyThread(
+    /* [in] */ IRunnable* runnable,
+    /* [in] */ const String& threadName)
+{
+    Thread::Init(runnable, threadName);
+}
+
+MyThread::MyThread(
+    /* [in] */ const String& threadName)
+{
+    Thread::Init(threadName);
+}
+
+MyThread::MyThread(
+    /* [in] */ IThreadGroup* group,
+    /* [in] */ IRunnable* runnable)
+{
+    Thread::Init(group, runnable);
+}
+
+MyThread::MyThread(
+    /* [in] */ IThreadGroup* group,
+    /* [in] */ IRunnable* runnable,
+    /* [in] */ const String& threadName)
+{
+    Thread::Init(group, runnable, threadName);
+}
+
+MyThread::MyThread(
+    /* [in] */ IThreadGroup* group,
+    /* [in] */ const String& threadName)
+{
+    Thread::Init(group, threadName);
+}
+
+MyThread::MyThread(
+    /* [in] */ IThreadGroup* group,
+    /* [in] */ IRunnable* runnable,
+    /* [in] */ const String& threadName,
+    /* [in] */ Int64 stackSize)
+{
+    Thread::Init(group, runnable, threadName, stackSize);
 }
 
 ECode MyThread::CheckAccess()
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::CheckAccess();
 }
 
 ECode MyThread::CountStackFrames(
     /* [out] */ Int32* number)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::CountStackFrames(number);
 }
 
 ECode MyThread::Destroy()
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::Destroy();
 }
 
 ECode MyThread::GetId(
     /* [out] */ Int64* id)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::GetId(id);
 }
 
 ECode MyThread::GetName(
     /* [out] */ String* name)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::GetName(name);
 }
 
 ECode MyThread::GetPriority(
     /* [out] */ Int32* priority)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::GetPriority(priority);
 }
 
 ECode MyThread::GetState(
     /* [out] */ ThreadState* state)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::GetState(state);
 }
 
 ECode MyThread::GetThreadGroup(
     /* [out] */ IThreadGroup** group)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::GetThreadGroup(group);
 }
 
 ECode MyThread::Interrupt()
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::Interrupt();
 }
 
 ECode MyThread::IsAlive(
     /* [out] */ Boolean* isAlive)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::IsAlive(isAlive);
 }
 
 ECode MyThread::IsDaemon(
     /* [out] */ Boolean* isDaemon)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::IsDaemon(isDaemon);
 }
 
 ECode MyThread::IsInterrupted(
     /* [out] */ Boolean* isInterrupted)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::IsInterrupted(isInterrupted);
 }
 
 ECode MyThread::Join()
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::Join();
 }
 
 ECode MyThread::JoinEx(
     /* [in] */ Int64 millis)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::JoinEx(millis);
 }
 
 ECode MyThread::JoinEx2(
     /* [in] */ Int64 millis,
     /* [in] */ Int32 nanos)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::JoinEx2(millis, nanos);
 }
 
 ECode MyThread::Resume()
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::Resume();
 }
 
 ECode MyThread::SetDaemon(
     /* [in] */ Boolean isDaemon)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::SetDaemon(isDaemon);
 }
 
 ECode MyThread::SetName(
     /* [in] */ const String& threadName)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::SetName(threadName);
 }
 
 ECode MyThread::SetPriority(
     /* [in] */ Int32 priority)
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::SetPriority(priority);
 }
 
 ECode MyThread::Start()
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::Start();
 }
 
 ECode MyThread::Stop()
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::Stop();
 }
 
 ECode MyThread::Suspend()
 {
-    return E_NOT_IMPLEMENTED;
+    return Thread::Suspend();
+}
+
+ECode MyThread::Wait(
+    /* [in] */ Int64 time,
+    /* [in] */ Int32 frac)
+{
+    return Thread::Wait(time, frac);
+}
+
+ECode MyThread::Run()
+{
+    return Thread::Run();
 }
 
 Mutex* MyThread::GetSelfLock()
