@@ -1,19 +1,23 @@
 
 #include "cmdef.h"
-#include "DrmConstraintInfo.h"
+#include "CDrmConstraintInfo.h"
+#include <elastos/ElRefBase.h>
+#include <elastos/AutoPtr.h>
 
 
 /**
  * Construct the DrmConstraint.
  */
-DrmConstraintInfo::DrmConstraintInfo()
-    : mCount(-1)
-    , mStartDate(-1)
-    , mEndDate(-1)
-    , mInterval(-1)
-{}
+ECode CDrmConstraintInfo::constructor(){
+    mCount = -1;
+    mStartDate = -1;
+    mEndDate = -1;
+    mInterval = -1;
+    return NOERROR;
+}
 
-PInterface DrmConstraintInfo::Probe(
+
+PInterface IDrmConstraintInfo::Probe(
     /* [in]  */ REIID riid)
 {
     if (riid == EIID_IInterface) {
@@ -26,19 +30,21 @@ PInterface DrmConstraintInfo::Probe(
     return NULL;
 }
 
-UInt32 DrmConstraintInfo::AddRef()
+
+UInt32 AddRef()
 {
-    return ElRefBase::AddRef();
+    //return ElRefBase::AddRef();
 }
 
-UInt32 DrmConstraintInfo::Release()
+UInt32 Release()
 {
-    return ElRefBase::Release();
+    //return ElRefBase::Release();
 }
-
-ECode DrmConstraintInfo::GetInterfaceID(
-    /* [in] */ IInterface *pObject,
-    /* [out] */ InterfaceID *pIID)
+/*
+*/
+ECode CDrmConstraintInfo::GetInterfaceID(
+     /*[in]*/   IInterface *pObject,
+     /*[out]*/   InterfaceID *pIID)
 {
     if (pIID == NULL) {
         return E_INVALID_ARGUMENT;
@@ -54,12 +60,14 @@ ECode DrmConstraintInfo::GetInterfaceID(
     return NOERROR;
 }
 
+
+
 /**
  * Get the count constraint.
  *
  * @return the count or -1 if no limit.
  */
-ECode DrmConstraintInfo::GetCount(
+ECode CDrmConstraintInfo::GetCount(
     /* [out] */ Int32* count)
 {
     VALIDATE_NOT_NULL(count);
@@ -72,7 +80,7 @@ ECode DrmConstraintInfo::GetCount(
  *
  * @return the start date or null if no limit.
  */
-ECode DrmConstraintInfo::GetStartDate(
+ECode CDrmConstraintInfo::GetStartDate(
     /* [out] */ IDate** startDate)
 {
     VALIDATE_NOT_NULL(startDate);
@@ -90,7 +98,7 @@ ECode DrmConstraintInfo::GetStartDate(
  *
  * @return the end date or null if no limit.
  */
-ECode DrmConstraintInfo::GetEndDate(
+ECode CDrmConstraintInfo::GetEndDate(
     /* [out] */ IDate** endDate)
 {
     VALIDATE_NOT_NULL(endDate);
@@ -108,7 +116,7 @@ ECode DrmConstraintInfo::GetEndDate(
  *
  * @return the interval or -1 if no limit.
  */
-ECode DrmConstraintInfo::GetInterval(
+ECode CDrmConstraintInfo::GetInterval(
     /* [out] */ Int64* interval)
 {
     VALIDATE_NOT_NULL(interval);

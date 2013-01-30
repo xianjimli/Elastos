@@ -6,7 +6,7 @@
 #define __USE_MALLOC
 #endif
 
-#include <Elastos.Core.h>
+//#include <Elastos.Core.h>
 
 #define FAIL_RETURN(expr) \
     do { \

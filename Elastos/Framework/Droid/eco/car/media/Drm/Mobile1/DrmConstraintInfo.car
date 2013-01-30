@@ -1,6 +1,8 @@
 
 module
 {
+    importlib("Elastos.Utility.eco");
+    
     interface IDrmConstraintInfo {
         /**
          * Get the count constraint.
