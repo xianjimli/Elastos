@@ -5579,7 +5579,7 @@ void CWindowManagerService::PerformLayoutAndPlaceSurfacesLockedInner(
 //                        + ", " + w->mShownFrame.top, NULL);
                 w->mShownFrame->GetLeft(&w->mSurfaceX);
                 w->mShownFrame->GetTop(&w->mSurfaceY);
-                ec = w->mSurface->SetPosition(w->mSurfaceY, w->mSurfaceY);
+                ec = w->mSurface->SetPosition(w->mSurfaceX, w->mSurfaceY);
                 if (FAILED(ec)) {
 //                    Slog.w(TAG, "Error positioning surface in " + w, e);
                     if (!recoveringMemory) {
