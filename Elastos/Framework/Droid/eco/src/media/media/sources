@@ -19,3 +19,7 @@ SOURCES += AudioManager.cpp
 SOURCES += CAudioManager.cpp
 SOURCES += AudioService.cpp
 SOURCES += CAudioService.cpp
+SOURCES += Metadata.cpp
+SOURCES += CMetadata.cpp
+SOURCES += MediaPlayer.cpp
+SOURCES += CMediaPlayer.cpp

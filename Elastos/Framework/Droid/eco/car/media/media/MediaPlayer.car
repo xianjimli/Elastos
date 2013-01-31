@@ -1,0 +1,486 @@
+
+module
+{
+    interface IMediaPlayer;
+
+    /**
+     * Interface definition for a callback to be invoked when the media
+     * source is ready for playback.
+     */
+    interface IOnPreparedListener
+    {
+        /**
+         * Called when the media file is ready for playback.
+         *
+         * @param mp the MediaPlayer that is ready for playback
+         */
+        OnPrepared(
+            [in] IMediaPlayer* mp);
+    }
+
+    /**
+     * Interface definition for a callback to be invoked when playback of
+     * a media source has completed.
+     */
+    interface IOnCompletionListener
+    {
+        /**
+         * Called when the end of a media source is reached during playback.
+         *
+         * @param mp the MediaPlayer that reached the end of the file
+         */
+        OnCompletion(
+            [in] IMediaPlayer* mp);
+    }
+
+    /**
+     * Interface definition of a callback to be invoked indicating buffering
+     * status of a media resource being streamed over the network.
+     */
+    interface IOnBufferingUpdateListener
+    {
+        /**
+         * Called to update status in buffering a media stream.
+         *
+         * @param mp      the MediaPlayer the update pertains to
+         * @param percent the percentage (0-100) of the buffer
+         *                that has been filled thus far
+         */
+        OnBufferingUpdate(
+            [in] IMediaPlayer* mp,
+            [in] Int32 percent);
+    }
+
+    /**
+     * Interface definition of a callback to be invoked indicating
+     * the completion of a seek operation.
+     */
+    interface IOnSeekCompleteListener
+    {
+        /**
+         * Called to indicate the completion of a seek operation.
+         *
+         * @param mp the MediaPlayer that issued the seek operation
+         */
+        OnSeekComplete(
+            [in] IMediaPlayer* mp);
+    }
+
+    /**
+     * Interface definition of a callback to be invoked when the
+     * video size is first known or updated
+     */
+    interface IOnVideoSizeChangedListener
+    {
+        /**
+         * Called to indicate the video size
+         *
+         * @param mp        the MediaPlayer associated with this callback
+         * @param width     the width of the video
+         * @param height    the height of the video
+         */
+        OnVideoSizeChanged(
+            [in] IMediaPlayer* mp,
+            [in] Int32 width,
+            [in] Int32 height);
+    }
+
+    /**
+     * Interface definition of a callback to be invoked when there
+     * has been an error during an asynchronous operation (other errors
+     * will throw exceptions at method call time).
+     */
+    interface IOnErrorListener
+    {
+        /**
+         * Called to indicate an error.
+         *
+         * @param mp      the MediaPlayer the error pertains to
+         * @param what    the type of error that has occurred:
+         * <ul>
+         * <li>{@link #MEDIA_ERROR_UNKNOWN}
+         * <li>{@link #MEDIA_ERROR_SERVER_DIED}
+         * </ul>
+         * @param extra an extra code, specific to the error. Typically
+         * implementation dependant.
+         * @return True if the method handled the error, FALSE if it didn't.
+         * Returning FALSE, or not having an OnErrorListener at all, will
+         * cause the OnCompletionListener to be called.
+         */
+        OnError(
+            [in] IMediaPlayer* mp,
+            [in] Int32 what,
+            [in] Int32 extra,
+            [out] Boolean* res);
+    }
+
+    /**
+     * Interface definition of a callback to be invoked to communicate some
+     * info and/or warning about the media or its playback.
+     */
+    interface IOnInfoListener
+    {
+        /**
+         * Called to indicate an info or a warning.
+         *
+         * @param mp      the MediaPlayer the info pertains to.
+         * @param what    the type of info or warning.
+         * <ul>
+         * <li>{@link #MEDIA_INFO_UNKNOWN}
+         * <li>{@link #MEDIA_INFO_VIDEO_TRACK_LAGGING}
+         * <li>{@link #MEDIA_INFO_BAD_INTERLEAVING}
+         * <li>{@link #MEDIA_INFO_NOT_SEEKABLE}
+         * <li>{@link #MEDIA_INFO_METADATA_UPDATE}
+         * </ul>
+         * @param extra an extra code, specific to the info. Typically
+         * implementation dependant.
+         * @return True if the method handled the info, FALSE if it didn't.
+         * Returning FALSE, or not having an OnErrorListener at all, will
+         * cause the info to be discarded.
+         */
+        OnInfo(
+            [in] IMediaPlayer* mp,
+            [in] Int32 what,
+            [in] Int32 extra,
+            [out] Boolean* res);
+    }
+
+    interface IMediaPlayer
+    {
+        /**
+         * Create a request parcel which can be routed to the native media
+         * player using {@link #invoke(Parcel, Parcel)}. The Parcel
+         * returned has the proper InterfaceToken set. The caller should
+         * not overwrite that token, i.e it can only append data to the
+         * Parcel.
+         *
+         * @return A parcel suitable to hold a request for the native
+         * player.
+         * {@hide}
+         */
+        NewRequest(
+            [out] IParcel** parcel);
+
+        /**
+         * Invoke a generic method on the native player using opaque
+         * parcels for the request and reply. Both payloads' format is a
+         * convention between the java caller and the native player.
+         * Must be called after setDataSource to make sure a native player
+         * exists.
+         *
+         * @param request Parcel with the data for the extension. The
+         * caller must use {@link #newRequest()} to get one.
+         *
+         * @param reply Output parcel with the data returned by the
+         * native player.
+         *
+         * @return The status code see utils/Errors.h
+         * {@hide}
+         */
+        Invoke(
+            [in] IParcel* request,
+            [in] IParcel* reply,
+            [out] Int32* status);
+
+        /**
+         * Sets the SurfaceHolder to use for displaying the video portion of the media.
+         * This call is optional. Not calling it when playing back a video will
+         * result in only the audio track being played.
+         *
+         * @param sh the SurfaceHolder to use for video display
+         */
+        SetDisplay(
+            [in] ISurfaceHolder* sh);
+
+        /**
+         * Convenience method to create a MediaPlayer for a given Uri.
+         * On success, {@link #prepare()} will already have been called and must not be called again.
+         * <p>When done with the MediaPlayer, you should call  {@link #release()},
+         * to free the resources. If not released, too many MediaPlayer instances will
+         * result in an exception.</p>
+         *
+         * @param context the Context to use
+         * @param uri the Uri from which to get the datasource
+         * @return a MediaPlayer object, or NULL if creation failed
+         */
+        Create(
+            [in] IContext* context,
+            [in] IUri* uri,
+            [out] IMediaPlayer** player);
+
+        /**
+         * Convenience method to create a MediaPlayer for a given Uri.
+         * On success, {@link #prepare()} will already have been called and must not be called again.
+         * <p>When done with the MediaPlayer, you should call  {@link #release()},
+         * to free the resources. If not released, too many MediaPlayer instances will
+         * result in an exception.</p>
+         *
+         * @param context the Context to use
+         * @param uri the Uri from which to get the datasource
+         * @param holder the SurfaceHolder to use for displaying the video
+         * @return a MediaPlayer object, or NULL if creation failed
+         */
+        CreateEx(
+            [in] IContext* context,
+            [in] IUri* uri,
+            [in] ISurfaceHolder* holder,
+            [out] IMediaPlayer** player);
+
+        /**
+         * Convenience method to create a MediaPlayer for a given resource id.
+         * On success, {@link #prepare()} will already have been called and must not be called again.
+         * <p>When done with the MediaPlayer, you should call  {@link #release()},
+         * to free the resources. If not released, too many MediaPlayer instances will
+         * result in an exception.</p>
+         *
+         * @param context the Context to use
+         * @param resid the raw resource id (<var>R.raw.&lt;something></var>) for
+         *              the resource to use as the datasource
+         * @return a MediaPlayer object, or NULL if creation failed
+         */
+        CreateEx2(
+            [in] IContext* context,
+            [in] Int32 resid,
+            [out] IMediaPlayer** player);
+
+        /**
+         * Sets the data source as a content Uri.
+         *
+         * @param context the Context to use when resolving the Uri
+         * @param uri the Content URI of the data you want to play
+         * @throws IllegalStateException if it is called in an invalid state
+         */
+        SetDataSource(
+            [in] IContext* context,
+            [in] IUri* uri);
+
+        /**
+         * Sets the data source as a content Uri.
+         *
+         * @param context the Context to use when resolving the Uri
+         * @param uri the Content URI of the data you want to play
+         * @param headers the headers to be sent together with the request for the data
+         * @throws IllegalStateException if it is called in an invalid state
+         * @hide pending API council
+         */
+        /*SetDataSourceEx(
+            [in] IContext* context,
+            [in] IUri* uri,
+            [in] Map<String, String> headers);*/
+
+        /**
+         * Sets the data source (FileDescriptor) to use. It is the caller's responsibility
+         * to close the file descriptor. It is safe to do so as soon as this call returns.
+         *
+         * @param fd the FileDescriptor for the file you want to play
+         * @throws IllegalStateException if it is called in an invalid state
+         */
+        SetDataSourceEx2(
+            [in] IFileDescriptor* fd);
+
+        /**
+         * Starts or resumes playback. If playback had previously been paused,
+         * playback will continue from where it was paused. If playback had
+         * been stopped, or never started before, playback will start at the
+         * beginning.
+         *
+         * @throws IllegalStateException if it is called in an invalid state
+         */
+        Start();
+
+        /**
+         * Stops playback after playback has been stopped or paused.
+         *
+         * @throws IllegalStateException if the internal player engine has not been
+         * initialized.
+         */
+        Stop();
+
+        /**
+         * Pauses playback. Call start() to resume.
+         *
+         * @throws IllegalStateException if the internal player engine has not been
+         * initialized.
+         */
+        Pause();
+
+        /**
+         * Set the low-level power management behavior for this MediaPlayer.  This
+         * can be used when the MediaPlayer is not playing through a SurfaceHolder
+         * set with {@link #setDisplay(SurfaceHolder)} and thus can use the
+         * high-level {@link #setScreenOnWhilePlaying(Boolean)} feature.
+         *
+         * <p>This function has the MediaPlayer access the low-level power manager
+         * service to control the device's power usage while playing is occurring.
+         * The parameter is a combination of {@link android.os.PowerManager} wake flags.
+         * Use of this method requires {@link android.Manifest.permission#WAKE_LOCK}
+         * permission.
+         * By default, no attempt is made to keep the device awake during playback.
+         *
+         * @param context the Context to use
+         * @param mode    the power/wake mode to set
+         * @see android.os.PowerManager
+         */
+        SetWakeMode(
+            [in] IContext* context,
+            [in] Int32 mode);
+
+        /**
+         * Control whether we should use the attached SurfaceHolder to keep the
+         * screen on while video playback is occurring.  This is the preferred
+         * method over {@link #setWakeMode} where possible, since it doesn't
+         * require that the application have permission for low-level wake lock
+         * access.
+         *
+         * @param screenOn Supply TRUE to keep the screen on, FALSE to allow it
+         * to turn off.
+         */
+        SetScreenOnWhilePlaying(
+            [in] Boolean screenOn);
+
+        /**
+         * Gets the media metadata.
+         *
+         * @param update_only controls whether the full set of available
+         * metadata is returned or just the set that changed since the
+         * last call. See {@see #METADATA_UPDATE_ONLY} and {@see
+         * #METADATA_ALL}.
+         *
+         * @param apply_filter if TRUE only metadata that matches the
+         * filter is returned. See {@see #APPLY_METADATA_FILTER} and {@see
+         * #BYPASS_METADATA_FILTER}.
+         *
+         * @return The metadata, possibly empty. NULL if an error occured.
+         // FIXME: unhide.
+         * {@hide}
+         */
+        GetMetadata(
+            [in] Boolean update_only,
+            [in] Boolean apply_filter,
+            [out] IMetadata** metadata);
+
+        /**
+         * Set a filter for the metadata update notification and update
+         * retrieval. The caller provides 2 set of metadata keys, allowed
+         * and blocked. The blocked set always takes precedence over the
+         * allowed one.
+         * Metadata.MATCH_ALL and Metadata.MATCH_NONE are 2 sets available as
+         * shorthands to allow/block all or no metadata.
+         *
+         * By default, there is no filter set.
+         *
+         * @param allow Is the set of metadata the client is interested
+         *              in receiving new notifications for.
+         * @param block Is the set of metadata the client is not interested
+         *              in receiving new notifications for.
+         * @return The call status code.
+         *
+         // FIXME: unhide.
+         * {@hide}
+         */
+        /*SetMetadataFilter(
+            [in] Set<Integer> allow,
+            [in] Set<Integer> block,
+            [out] Int32* status);*/
+
+        /**
+         * Releases resources associated with this MediaPlayer object.
+         * It is considered good practice to call this method when you're
+         * done using the MediaPlayer.
+         */
+        ReleaseEx();
+
+        /**
+         * Resets the MediaPlayer to its uninitialized state. After calling
+         * this method, you will have to initialize it again by setting the
+         * data source and calling prepare().
+         */
+        Reset();
+
+        /**
+         * Suspends the MediaPlayer. The only methods that may be called while
+         * suspended are {@link #reset()}, {@link #release()} and {@link #resume()}.
+         * MediaPlayer will release its hardware resources as far as
+         * possible and reasonable. A successfully suspended MediaPlayer will
+         * cease sending events.
+         * If suspension is successful, this method returns TRUE, otherwise
+         * FALSE is returned and the player's state is not affected.
+         * @hide
+         */
+        Suspend(
+            [out] Boolean* res);
+
+        /**
+         * Resumes the MediaPlayer. Only to be called after a previous (successful)
+         * call to {@link #suspend()}.
+         * MediaPlayer will return to a state close to what it was in before
+         * suspension.
+         * @hide
+         */
+        Resume(
+            [out] Boolean* res);
+
+        /**
+         * Register a callback to be invoked when the media source is ready
+         * for playback.
+         *
+         * @param listener the callback that will be run
+         */
+        SetOnPreparedListener(
+            [in] IOnPreparedListener* listener);
+
+
+        /**
+         * Register a callback to be invoked when the end of a media source
+         * has been reached during playback.
+         *
+         * @param listener the callback that will be run
+         */
+        SetOnCompletionListener(
+            [in] IOnCompletionListener* listener);
+
+        /**
+         * Register a callback to be invoked when the status of a network
+         * stream's buffer has changed.
+         *
+         * @param listener the callback that will be run.
+         */
+        SetOnBufferingUpdateListener(
+            [in] IOnBufferingUpdateListener* listener);
+
+        /**
+         * Register a callback to be invoked when a seek operation has been
+         * completed.
+         *
+         * @param listener the callback that will be run
+         */
+        SetOnSeekCompleteListener(
+            [in] IOnSeekCompleteListener* listener);
+
+        /**
+         * Register a callback to be invoked when the video size is
+         * known or updated.
+         *
+         * @param listener the callback that will be run
+         */
+        SetOnVideoSizeChangedListener(
+            [in] IOnVideoSizeChangedListener* listener);
+
+        /**
+         * Register a callback to be invoked when an error has happened
+         * during an asynchronous operation.
+         *
+         * @param listener the callback that will be run
+         */
+        SetOnErrorListener(
+            [in] IOnErrorListener* listener);
+
+        /**
+         * Register a callback to be invoked when an info/warning is available.
+         *
+         * @param listener the callback that will be run
+         */
+        SetOnInfoListener(
+            [in] IOnInfoListener* listener);
+    }
+}

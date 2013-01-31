@@ -1,0 +1,78 @@
+
+module
+{
+    interface IMetadata
+    {
+        /**
+         * Check a parcel containing metadata is well formed. The header
+         * is checked as well as the individual records format. However, the
+         * data inside the record is not checked because we do lazy access
+         * (we check/unmarshall only data the user asks for.)
+         *
+         * Format of a metadata parcel:
+         <pre>
+                             1                   2                   3
+          0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+          |                     metadata total size                       |
+          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+          |     'M'       |     'E'       |     'T'       |     'A'       |
+          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+          |                                                               |
+          |                .... metadata records ....                     |
+          |                                                               |
+          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+         </pre>
+         *
+         * @param parcel With the serialized data. Metadata keeps a
+         *               reference on it to access it later on. The caller
+         *               should not modify the parcel after this call (and
+         *               not call recycle on it.)
+         * @return false if an error occurred.
+         */
+        Parse(
+            [in] IParcel* parcel,
+            [out] Boolean* res);
+
+        /**
+         * @return The set of metadata ID found.
+         */
+        /*KeySet(
+            [out] Set<Int32>* set);*/
+
+        /**
+         * @return true if a value is present for the given key.
+         */
+        Has(
+            [in] Int32 metadataId,
+            [out] Boolean* present);
+
+        // Accessors.
+        // Caller must make sure the key is present using the {@code has}
+        // method otherwise a RuntimeException will occur.
+
+        GetString(
+            [in] Int32 key,
+            [out] String* str);
+
+        GetInt32(
+            [in] Int32 key,
+            [out] Int32* res);
+
+        GetBoolean(
+            [in] Int32 key,
+            [out] Boolean* res);
+
+        GetInt64(
+            [in] Int32 key,
+            [out] Int64* res);
+
+        GetDouble(
+            [in] Int32 key,
+            [out] Double* res);
+
+        GetByteArray(
+            [in] Int32 key,
+            [out, callee] ArrayOf<Byte>* result);
+    }
+}

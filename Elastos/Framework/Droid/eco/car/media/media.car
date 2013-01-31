@@ -11,6 +11,8 @@ module
     merge("media/AudioManager.car");
     merge("Drm/Mobile1/DrmConstraintInfo.car");
     merge("Drm/Mobile1/DrmRights.car");
+    merge("media/Metadata.car");
+    merge("media/MediaPlayer.car");
 
     class CAudioTrack {
         constructor(
@@ -55,5 +57,17 @@ module
     class CDrmRights {
         constructor();  
         interface IDrmRights;
+    }
+
+    class CMetadata {
+        constructor();
+
+        interface IMetadata;
+    }
+
+    class CMediaPlayer {
+        constructor();
+
+        interface IMediaPlayer;
     }
 }
