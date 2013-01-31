@@ -11032,7 +11032,7 @@ Boolean CActivityManagerService::UpdateConfigurationLocked(
         AutoPtr<IConfiguration> newConfig;
         CConfiguration::New(mConfiguration, (IConfiguration**)&newConfig);
         newConfig->UpdateFrom(values, &changes);
-        if (changes != 0) {
+        if (FALSE/*changes != 0*/) {
             if (DEBUG_SWITCH || DEBUG_CONFIGURATION) {
                 String confDes;
                 values->GetDescription(&confDes);

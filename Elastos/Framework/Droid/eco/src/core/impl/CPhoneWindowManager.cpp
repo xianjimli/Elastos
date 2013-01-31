@@ -543,7 +543,7 @@ ECode CPhoneWindowManager::AdjustWindowParamsLw(
 void CPhoneWindowManager::ReadLidState()
 {
     Int32 sw = 0;
-    mWindowManager->GetSwitchState(SW_LID, &sw);
+    // mWindowManager->GetSwitchState(SW_LID, &sw);
 
     if (sw >= 0) {
         mLidOpen = sw == 0;
