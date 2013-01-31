@@ -9,7 +9,7 @@
 #include "view/CViewRootW.h"
 #include "view/CInputMethodCallback.h"
 #include "view/BaseSurfaceHolder.h"
-#include "view/InputQueue.h"
+#include "view/CInputQueue.h"
 #include "view/ViewTreeObserver.h"
 #include "graphics/CRect.h"
 #include "graphics/CRegion.h"
@@ -786,8 +786,8 @@ public:
 
     View::AttachInfo* mAttachInfo;
     AutoPtr<CInputChannel> mInputChannel;
-    InputQueue::Callback* mInputQueueCallback;
-    InputQueue* mInputQueue;
+    AutoPtr<IInputQueueCallback> mInputQueueCallback;
+    AutoPtr<IInputQueue> mInputQueue;
 
     AutoPtr<CRect> mTempRect; // used in the transaction to not thrash the heap.
     AutoPtr<CRect> mVisRect; // used to retrieve visible rect of focused view.

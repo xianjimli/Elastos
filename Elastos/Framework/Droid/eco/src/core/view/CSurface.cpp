@@ -1391,6 +1391,16 @@ void CSurface::GetSurface()
 #endif
 }
 
+ECode CSurface::GetSurface(
+    /* [out] */ Handle32* surface)
+{
+    VALIDATE_NOT_NULL(surface);
+    GetSurface();
+    *surface = (Handle32)mNativeSurface.get();
+
+    return NOERROR;
+}
+
 #ifdef _linux
 void CSurface::SetSurface(
         /* [in] */ const android::sp<android::Surface>& surface)

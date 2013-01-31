@@ -565,6 +565,9 @@ public:
         /* [in] */ Int32 flags,
         /* [in] */ Int32 mask);
 
+    CARAPI GetSurface(
+        /* [out] */ Handle32* surface);
+
     CARAPI constructor(
         /* [in] */ ISurfaceSession * pS,
         /* [in] */ Int32 pid,

@@ -55,6 +55,8 @@ ECode CApartment::constructor(
     if (!sHaveKey) {
         assert(pthread_key_create(&sKey, NULL) == 0);
         assert(pthread_setspecific(sKey, this) == 0);
+        //todo:
+        this->AddRef();
         sHaveKey = TRUE;
     }
 

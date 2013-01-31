@@ -50,7 +50,7 @@ module
     interface IWindowManagerLayoutParams;
     interface IViewGroupLayoutParams;
     interface ISurfaceHolderCallback2;
-//    interface IInputQueueCallback;
+    interface IInputQueueCallback;
     interface ILayoutInflater;
 
     /**
@@ -351,8 +351,8 @@ module
          * longer read and dispatch input events from the queue; it is your
          * responsibility to do so.
          */
-//        TakeInputQueue(
-//            [in] IInputQueueCallback* cb);
+        TakeInputQueue(
+            [in] IInputQueueCallback* cb);
 
         /**
          * Return whether this window is being displayed with a floating style

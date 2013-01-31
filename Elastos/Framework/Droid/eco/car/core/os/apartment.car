@@ -62,5 +62,8 @@ module
     interface IApartmentHelper {
         GetDefaultApartment(
             [out] IApartment** apartment);
+
+        GetNativeMessageQueue(
+            [out] Handle32* messageQueue);
     }
 }

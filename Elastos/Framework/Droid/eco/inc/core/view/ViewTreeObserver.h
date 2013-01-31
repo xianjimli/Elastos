@@ -42,6 +42,12 @@ public:
          */
         static const Int32 TOUCHABLE_INSETS_VISIBLE = 2;
 
+        /**
+         * Option for {@link #setTouchableInsets(int)}: the area inside of
+         * the provided touchable region in {@link #touchableRegion} can be tou
+         */
+        static const Int32 TOUCHABLE_INSETS_REGION = 3;
+
     public:
         InternalInsetsInfo();
 

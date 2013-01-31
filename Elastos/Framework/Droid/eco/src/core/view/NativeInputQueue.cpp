@@ -2,7 +2,7 @@
 #include "view/NativeInputQueue.h"
 #include "view/CKeyEvent.h"
 #include "view/CMotionEvent.h"
-#include "view/InputQueue.h"
+#include "view/CInputQueue.h"
 #include <Slogger.h>
 #include <StringBuffer.h>
 #include <elastos/AutoPtr.h>
@@ -403,7 +403,7 @@ int NativeInputQueue::HandleReceiveCallback(
 #if DEBUG_DISPATCH_CYCLE
         Slogger::D(TAG, "Invoking input handler.");
 #endif
-        ec = InputQueue::DispatchKeyEvent(inputHandler, keyEvent.Get(), finishedToken);
+        ec = CInputQueue::DispatchKeyEvent(inputHandler, keyEvent.Get(), finishedToken);
 #if DEBUG_DISPATCH_CYCLE
         Slogger::D(TAG, "Returned from input handler.");
 #endif
@@ -430,7 +430,7 @@ int NativeInputQueue::HandleReceiveCallback(
 #if DEBUG_DISPATCH_CYCLE
         Slogger::D(TAG, "Invoking input handler.");
 #endif
-        ec = InputQueue::DispatchMotionEvent(inputHandler, motionEvent.Get(), finishedToken);
+        ec = CInputQueue::DispatchMotionEvent(inputHandler, motionEvent.Get(), finishedToken);
 #if DEBUG_DISPATCH_CYCLE
         Slogger::D(TAG, "Returned from input handler.");
 #endif

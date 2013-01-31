@@ -1,5 +1,5 @@
 
-#include "view/InputQueue.h"
+#include "view/CInputQueue.h"
 #include "view/NativeInputQueue.h"
 #include <Slogger.h>
 #include <elastos/Mutex.h>
@@ -13,20 +13,20 @@ static NativeInputQueue gNativeInputQueue;
 
 static Mutex sLock;
 
-const Boolean InputQueue::FinishedCallback::DEBUG_RECYCLING;
-const Int32 InputQueue::FinishedCallback::RECYCLE_MAX_COUNT;
+const Boolean CInputQueue::FinishedCallback::DEBUG_RECYCLING;
+const Int32 CInputQueue::FinishedCallback::RECYCLE_MAX_COUNT;
 
-const char* InputQueue::TAG = "InputQueue";
-const Boolean InputQueue::DEBUG;
+const char* CInputQueue::TAG = "CInputQueue";
+const Boolean CInputQueue::DEBUG;
 
-AutoPtr<InputQueue::FinishedCallback> InputQueue::FinishedCallback::sRecycleHead;
-Int32 InputQueue::FinishedCallback::sRecycleCount = 0;
+AutoPtr<CInputQueue::FinishedCallback> CInputQueue::FinishedCallback::sRecycleHead;
+Int32 CInputQueue::FinishedCallback::sRecycleCount = 0;
 
-InputQueue::FinishedCallback::FinishedCallback()
+CInputQueue::FinishedCallback::FinishedCallback()
 {
 }
 
-AutoPtr<InputQueue::FinishedCallback> InputQueue::FinishedCallback::Obtain(
+AutoPtr<CInputQueue::FinishedCallback> CInputQueue::FinishedCallback::Obtain(
     /* [in] */ Int64 finishedToken)
 {
     Mutex::Autolock lock(sLock);
@@ -45,16 +45,16 @@ AutoPtr<InputQueue::FinishedCallback> InputQueue::FinishedCallback::Obtain(
     return callback;
 }
 
-ECode InputQueue::FinishedCallback::Run()
+ECode CInputQueue::FinishedCallback::Run()
 {
     Mutex::Autolock lock(sLock);
 
     if (mFinishedToken == -1) {
-        Slogger::E(InputQueue::TAG, "Event finished callback already invoked.");
+        Slogger::E(CInputQueue::TAG, "Event finished callback already invoked.");
         return E_ILLEGAL_STATE_EXCEPTION;
     }
 
-    android::status_t status = gNativeInputQueue.Finished(mFinishedToken, FALSE);
+    android::status_t status = gNativeInputQueue.Finished(mFinishedToken, TRUE);
 
     // We ignore the case where an event could not be finished because the input channel
     // was no longer registered (DEAD_OBJECT) since it is a common race that can occur
@@ -74,7 +74,7 @@ ECode InputQueue::FinishedCallback::Run()
 
         if (DEBUG_RECYCLING) {
             Slogger::D(
-                InputQueue::TAG, StringBuffer("Recycled finished callbacks: ")
+                CInputQueue::TAG, StringBuffer("Recycled finished callbacks: ")
                 + sRecycleCount);
         }
     }
@@ -82,10 +82,16 @@ ECode InputQueue::FinishedCallback::Run()
     return NOERROR;
 }
 
-InputQueue::InputQueue(
-    /* [in] */ CInputChannel* channel) :
-    mChannel(channel)
+CInputQueue::CInputQueue()
 {
+}
+
+ECode CInputQueue::constructor(
+    /* [in] */ IInputChannel* channel)
+{
+    mChannel = channel;
+
+    return NOERROR;
 }
 
 /**
@@ -95,7 +101,7 @@ InputQueue::InputQueue(
  * @param messageQueue The message queue on whose thread the handler should be invoked.
  * @hide
  */
-ECode InputQueue::RegisterInputChannel(
+ECode CInputQueue::RegisterInputChannel(
     /* [in] */ CInputChannel* inputChannel,
     /* [in] */ InputHandler* inputHandler,
     /* [in] */ NativeMessageQueue* messageQueue)
@@ -138,7 +144,7 @@ ECode InputQueue::RegisterInputChannel(
  * @param inputChannel The input channel to unregister.
  * @hide
  */
-ECode InputQueue::UnregisterInputChannel(
+ECode CInputQueue::UnregisterInputChannel(
     /* [in] */ CInputChannel* inputChannel)
 {
     if (inputChannel == NULL) {
@@ -165,20 +171,48 @@ ECode InputQueue::UnregisterInputChannel(
     return NOERROR;
 }
 
-ECode InputQueue::DispatchKeyEvent(
+ECode CInputQueue::DispatchKeyEvent(
     /* [in] */ InputHandler* inputHandler,
     /* [in] */ CKeyEvent* event,
     /* [in] */ Int64 finishedToken)
 {
-    AutoPtr<IRunnable> finishedCallback = FinishedCallback::Obtain(finishedToken);
-    return inputHandler->HandleKey(event, finishedCallback.Get());
+    // AutoPtr<IRunnable> finishedCallback = FinishedCallback::Obtain(finishedToken);
+    // return inputHandler->HandleKey(event, finishedCallback.Get());
+
+    //TODO: comsume key event, not dispatch temproary
+    Mutex::Autolock lock(sLock);
+
+    android::status_t status = gNativeInputQueue.Finished(finishedToken, TRUE);
+
+    // We ignore the case where an event could not be finished because the input channel
+    // was no longer registered (DEAD_OBJECT) since it is a common race that can occur
+    // during application shutdown.  The input dispatcher recovers gracefully anyways.
+    //
+    if (status != android::OK && status != android::DEAD_OBJECT) {
+        Slogger::E(TAG, "Failed to finish input event.  Check logs for details.");
+        return E_RUNTIME_EXCEPTION;
+    }
+
+    return NOERROR;
 }
 
-ECode InputQueue::DispatchMotionEvent(
+ECode CInputQueue::DispatchMotionEvent(
     /* [in] */ InputHandler* inputHandler,
     /* [in] */ CMotionEvent* event,
     /* [in] */ Int64 finishedToken)
 {
     AutoPtr<IRunnable> finishedCallback = FinishedCallback::Obtain(finishedToken);
     return inputHandler->HandleMotion(event, finishedCallback.Get());
+}
+
+ECode CInputQueue::GetInputChannel(
+    /* [out] */ IInputChannel** inputChannel)
+{
+    VALIDATE_NOT_NULL(inputChannel);
+    *inputChannel = mChannel;
+    if (*inputChannel) {
+        (*inputChannel)->AddRef();
+    }
+
+    return NOERROR;
 }

@@ -21,13 +21,115 @@ CarClass(CPhoneWindow)
     friend class ViewRoot;
 
 private:
+    class _DecorView :
+        public FrameLayout,
+        public RootViewSurfaceTaker
+    {
+    public:
+        _DecorView(
+            /* [in] */ CPhoneWindow* host,
+            /* [in] */ IContext* context,
+            /* [in] */ Int32 featureId);
+
+        CARAPI WillYouTakeTheSurface(
+            /* [out] */ ISurfaceHolderCallback2** cback);
+
+        CARAPI SetSurfaceType(
+            /* [in] */ Int32 type);
+
+        CARAPI SetSurfaceFormat(
+            /* [in] */ Int32 format);
+
+        CARAPI SetSurfaceKeepScreenOn(
+            /* [in] */ Boolean keepOn);
+
+        CARAPI WillYouTakeTheInputQueue(
+            /* [out] */ IInputQueueCallback** inputQueueCallback);
+
+    public:
+        CARAPI_(void) StartChanging();
+
+        CARAPI_(void) FinishChanging();
+
+        CARAPI_(void) SetWindowBackground(
+            /* [in] */ IDrawable* drawable);
+
+        CARAPI_(Boolean) DispatchKeyEvent(
+            /* [in] */ IKeyEvent* event);
+
+        CARAPI_(Boolean) DispatchTouchEvent(
+            /* [in] */ IMotionEvent* event);
+
+        CARAPI_(Boolean) DispatchTrackballEvent(
+            /* [in] */ IMotionEvent* event);
+
+        CARAPI_(Boolean) SuperDispatchKeyEvent(
+            /* [in] */ IKeyEvent* event);
+
+        CARAPI_(Boolean) SuperDispatchTouchEvent(
+            /* [in] */ IMotionEvent* event);
+
+        CARAPI_(Boolean) SuperDispatchTrackballEvent(
+            /* [in] */ IMotionEvent* event);
+
+        CARAPI_(Boolean) OnTouchEvent(
+            /* [in] */ IMotionEvent* event);
+
+        CARAPI_(Boolean) OnInterceptTouchEvent(
+            /* [in] */ IMotionEvent* event);
+
+        CARAPI_(void) SetWindowFrame(
+            /* [in] */ IDrawable* drawable);
+
+        CARAPI OnWindowFocusChanged(
+            /* [in] */ Boolean hasWindowFocus);
+
+        CARAPI_(Boolean) ShowContextMenuForChild(
+            /* [in] */ IView* originalView);
+
+    private:
+        CARAPI_(void) DrawableChanged();
+
+        CARAPI_(void) OnAttachedToWindow();
+
+        CARAPI_(Boolean) IsOutOfBounds(
+            /* [in] */ Int32 x,
+            /* [in] */ Int32 y);
+
+    protected:
+        CPhoneWindow* mHost;
+
+    private:
+
+        /** The feature ID of the panel, or -1 if this is the application's DecorView */
+        Int32 mFeatureId;
+
+        AutoPtr<CRect> mDrawingBounds;
+
+        AutoPtr<CRect> mBackgroundPadding;
+
+        AutoPtr<CRect> mFramePadding;
+
+        AutoPtr<CRect> mFrameOffsets;
+
+        Boolean mChanging;
+
+        AutoPtr<IDrawable> mMenuBackground;
+
+        Boolean mWatchingForMenu;
+
+        Int32 mDownY;
+
+    public:
+        Int32 mDefaultOpacity;
+    };
+
     class DecorView :
         public ElRefBase,
-        public FrameLayout,
+        public _DecorView,
         public IFrameLayout,
         public IViewParent,
         public IViewManager,
-        public RootViewSurfaceTaker,
         public IDrawableCallback,
         public IKeyEventCallback,
         public IAccessibilityEventSource
@@ -89,90 +191,6 @@ private:
 
         CARAPI GetConsiderGoneChildrenWhenMeasuring(
             /* [out] */ Boolean* measureAll);
-
-        CARAPI WillYouTakeTheSurface(
-            /* [out] */ ISurfaceHolderCallback2** cback);
-
-        CARAPI SetSurfaceType(
-            /* [in] */ Int32 type);
-
-        CARAPI SetSurfaceFormat(
-            /* [in] */ Int32 format);
-
-        CARAPI SetSurfaceKeepScreenOn(
-            /* [in] */ Boolean keepOn);
-
-        CARAPI WillYouTakeTheInputQueue(
-            /* [out] */ InputQueue::Callback** inputQueueCallback);
-
-    public:
-        CARAPI_(void) StartChanging();
-
-        CARAPI_(void) FinishChanging();
-
-        CARAPI_(void) SetWindowBackground(
-            /* [in] */ IDrawable* drawable);
-
-        CARAPI_(Boolean) DispatchKeyEvent(
-            /* [in] */ IKeyEvent* event);
-
-        CARAPI_(Boolean) DispatchTouchEvent(
-            /* [in] */ IMotionEvent* event);
-
-        CARAPI_(Boolean) DispatchTrackballEvent(
-            /* [in] */ IMotionEvent* event);
-
-        CARAPI_(Boolean) SuperDispatchKeyEvent(
-            /* [in] */ IKeyEvent* event);
-
-        CARAPI_(Boolean) SuperDispatchTouchEvent(
-            /* [in] */ IMotionEvent* event);
-
-        CARAPI_(Boolean) SuperDispatchTrackballEvent(
-            /* [in] */ IMotionEvent* event);
-
-        CARAPI_(Boolean) OnTouchEvent(
-            /* [in] */ IMotionEvent* event);
-
-        CARAPI_(Boolean) OnInterceptTouchEvent(
-            /* [in] */ IMotionEvent* event);
-
-        CARAPI_(void) SetWindowFrame(
-            /* [in] */ IDrawable* drawable);
-
-    private:
-        CARAPI_(void) DrawableChanged();
-
-        CARAPI_(void) OnAttachedToWindow();
-
-        CARAPI_(Boolean) IsOutOfBounds(
-            /* [in] */ Int32 x,
-            /* [in] */ Int32 y);
-
-    private:
-        CPhoneWindow* mHost;
-
-        /** The feature ID of the panel, or -1 if this is the application's DecorView */
-        Int32 mFeatureId;
-
-        AutoPtr<CRect> mDrawingBounds;
-
-        AutoPtr<CRect> mBackgroundPadding;
-
-        AutoPtr<CRect> mFramePadding;
-
-        AutoPtr<CRect> mFrameOffsets;
-
-        Boolean mChanging;
-
-        AutoPtr<IDrawable> mMenuBackground;
-
-        Boolean mWatchingForMenu;
-
-        Int32 mDownY;
-
-    public:
-        Int32 mDefaultOpacity;
     };
 
     class PanelFeatureState : public ElRefBase
@@ -403,7 +421,7 @@ public:
         /* [in] */ ISurfaceHolderCallback2* cb);
 
     CARAPI TakeInputQueue(
-        /* [in] */ InputQueue::Callback* callback);
+        /* [in] */ IInputQueueCallback* callback);
 
     CARAPI IsFloating(
         /* [out] */ Boolean* isFloating);
@@ -827,7 +845,7 @@ private:
 
     AutoPtr<BaseSurfaceHolder> mSurfaceHolder;
 
-    InputQueue::Callback* mTakeInputQueueCallback;
+    AutoPtr<IInputQueueCallback> mTakeInputQueueCallback;
 
     Boolean mIsFloating;
 

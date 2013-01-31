@@ -2,7 +2,6 @@
 #define __ROOTVIEWSURFACETAKER_H__
 
 #include "ext/frameworkext.h"
-#include "view/InputQueue.h"
 
 extern "C" const InterfaceID EIID_RootViewSurfaceTaker;
 
@@ -21,7 +20,7 @@ interface RootViewSurfaceTaker
         /* [in] */ Boolean keepOn) = 0;
 
     virtual CARAPI WillYouTakeTheInputQueue(
-        /* [out] */ InputQueue::Callback** inputQueueCallback) = 0;
+        /* [out] */ IInputQueueCallback** inputQueueCallback) = 0;
 };
 
 #endif //__ROOTVIEWSURFACETAKER_H__

@@ -13,3 +13,18 @@ ECode CApartmentHelper::GetDefaultApartment(
 
     return NOERROR;
 }
+
+ECode CApartmentHelper::GetNativeMessageQueue(
+    /* [out] */ Handle32* messageQueue)
+{
+    VALIDATE_NOT_NULL(messageQueue);
+
+    CApartment* apartment = (CApartment*)pthread_getspecific(CApartment::sKey);
+    if (apartment != NULL) {
+        *messageQueue = (Handle32)apartment->mMessageQueue;
+    }
+    else {
+        *messageQueue = NULL;
+    }
+    return NOERROR;
+}

@@ -1,7 +1,8 @@
 
-#ifndef __INPUTQUEUE_H__
-#define __INPUTQUEUE_H__
+#ifndef __CINPUTQUEUE_H__
+#define __CINPUTQUEUE_H__
 
+#include "_CInputQueue.h"
 #include "ext/frameworkext.h"
 #include "view/CInputChannel.h"
 #include "view/InputHandler.h"
@@ -15,32 +16,12 @@
  * An input queue provides a mechanism for an application to receive incoming
  * input events.  Currently only usable from native code.
  */
-class InputQueue
+
+CarClass(CInputQueue)
 {
     friend class NativeInputQueue;
 
 public:
-    /**
-     * Interface to receive notification of when an InputQueue is associated
-     * and dissociated with a thread.
-     */
-    interface Callback
-    {
-        /**
-         * Called when the given InputQueue is now associated with the
-         * thread making this call, so it can start receiving events from it.
-         */
-        virtual CARAPI_(void) OnInputQueueCreated(
-            /* [in] */ InputQueue* queue) = 0;
-
-        /**
-         * Called when the given InputQueue is no longer associated with
-         * the thread and thus not dispatching events.
-         */
-        virtual CARAPI_(void) OnInputQueueDestroyed(
-            /* [in] */ InputQueue* queue) = 0;
-    };
-
     class FinishedCallback : public Runnable
     {
     private:
@@ -65,8 +46,13 @@ public:
     };
 
 public:
-    InputQueue(
-        /* [in] */ CInputChannel* channel);
+    CInputQueue();
+
+    CARAPI constructor(
+        /* [in] */ IInputChannel* channel);
+
+    CARAPI GetInputChannel(
+        /* [out] */ IInputChannel** inputChannel);
 
     static CARAPI RegisterInputChannel(
         /* [in] */ CInputChannel* inputChannel,
@@ -92,7 +78,7 @@ private:
 
     static const Boolean DEBUG = FALSE;
 
-    AutoPtr<CInputChannel> mChannel;
+    AutoPtr<IInputChannel> mChannel;
 };
 
-#endif //__INPUTQUEUE_H__
+#endif //__CINPUTQUEUE_H__

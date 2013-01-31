@@ -6,6 +6,8 @@
 #include "view/CViewGroupLayoutParams.h"
 #include "view/ElKeyCharacterMap.h"
 #include "view/menu/MenuBuilder.h"
+#include "view/CKeyEvent.h"
+#include "view/CMotionEvent.h"
 #include "content/CConfiguration.h"
 #include <Logger.h>
 
@@ -20,22 +22,7 @@ extern "C" const InterfaceID EIID_RootViewSurfaceTaker =
 
 const CString CPhoneWindow::TAG = "PhoneWindow";
 
-IVIEW_METHODS_IMPL(
-    CPhoneWindow::DecorView, FrameLayout, CPhoneWindow::DecorView);
-
-IVIEWGROUP_METHODS_IMPL(
-    CPhoneWindow::DecorView, FrameLayout, CPhoneWindow::DecorView);
-
-IDrawableCallback_METHODS_IMPL(
-    CPhoneWindow::DecorView, FrameLayout, CPhoneWindow::DecorView);
-
-IKeyEventCallback_METHODS_IMPL(
-    CPhoneWindow::DecorView, FrameLayout, CPhoneWindow::DecorView);
-
-IAccessibilityEventSource_METHODS_IMPL(
-    CPhoneWindow::DecorView, FrameLayout, CPhoneWindow::DecorView);
-
-CPhoneWindow::DecorView::DecorView(
+CPhoneWindow::_DecorView::_DecorView(
     /* [in] */ CPhoneWindow* host,
     /* [in] */ IContext* context,
     /* [in] */ Int32 featureId) :
@@ -51,250 +38,7 @@ CPhoneWindow::DecorView::DecorView(
     ASSERT_SUCCEEDED(CRect::NewByFriend((CRect**)&mFrameOffsets));
 }
 
-PInterface CPhoneWindow::DecorView::Probe(
-    /* [in] */ REIID riid)
-{
-    if (riid == EIID_IInterface) {
-        return (IInterface*)(IFrameLayout*)this;
-    }
-    else if (riid == EIID_IView) {
-        return (IView*)this;
-    }
-    else if (riid == EIID_IFrameLayout) {
-        return (IFrameLayout*)this;
-    }
-    else if (riid == EIID_IViewGroup) {
-        return (IViewGroup*)(IFrameLayout*)this;
-    }
-    else if (riid == EIID_IViewParent) {
-        return (IViewParent*)this;
-    }
-    else if (riid == EIID_IViewManager) {
-        return (IViewManager*)this;
-    }
-    else if (riid == EIID_IDrawableCallback) {
-        return (IDrawableCallback*)this;
-    }
-    else if (riid == EIID_IKeyEventCallback) {
-        return (IKeyEventCallback*)this;
-    }
-    else if (riid == EIID_IAccessibilityEvent) {
-        return (IAccessibilityEvent*)this;
-    }
-    else if (riid == EIID_View) {
-        return reinterpret_cast<PInterface>((View*)(FrameLayout*)this);
-    }
-    else if (riid == EIID_RootViewSurfaceTaker) {
-        return reinterpret_cast<PInterface>((RootViewSurfaceTaker*)this);
-    }
-
-    return NULL;
-}
-
-UInt32 CPhoneWindow::DecorView::AddRef()
-{
-    return ElRefBase::AddRef();
-}
-
-UInt32 CPhoneWindow::DecorView::Release()
-{
-    return ElRefBase::Release();
-}
-
-ECode CPhoneWindow::DecorView::GetInterfaceID(
-    /* [in] */ IInterface *pObject,
-    /* [out] */ InterfaceID *pIID)
-{
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CPhoneWindow::DecorView::RequestLayoutEx()
-{
-    return RequestLayout();
-}
-
-ECode CPhoneWindow::DecorView::IsLayoutRequestedEx(
-    /* [out] */ Boolean* result)
-{
-    return IsLayoutRequested(result);
-}
-
-ECode CPhoneWindow::DecorView::RequestTransparentRegion(
-    /* [in] */ IView* child)
-{
-    return FrameLayout::RequestTransparentRegion(child);
-}
-
-ECode CPhoneWindow::DecorView::InvalidateChild(
-    /* [in] */ IView* child,
-    /* [in] */ IRect* r)
-{
-    return FrameLayout::InvalidateChild(child, r);
-}
-
-ECode CPhoneWindow::DecorView::InvalidateChildInParent(
-    /* [in] */ ArrayOf<Int32>* location,
-    /* [in] */ IRect* r,
-    /* [out] */ IViewParent** parent)
-{
-    VALIDATE_NOT_NULL(parent);
-    AutoPtr<IViewParent> temp = FrameLayout::InvalidateChildInParent(location, r);
-    *parent = temp;
-    if (*parent) {
-        (*parent)->AddRef();
-    }
-
-    return NOERROR;
-}
-
-ECode CPhoneWindow::DecorView::GetParentEx(
-    /* [out] */ IViewParent** parent)
-{
-    return GetParent(parent);
-}
-
-ECode CPhoneWindow::DecorView::RequestChildFocus(
-    /* [in] */ IView* child,
-    /* [in] */ IView* focused)
-{
-    return FrameLayout::RequestChildFocus(child, focused);
-}
-
-ECode CPhoneWindow::DecorView::RecomputeViewAttributes(
-    /* [in] */ IView* child)
-{
-    return FrameLayout::RecomputeViewAttributes(child);
-}
-
-ECode CPhoneWindow::DecorView::ClearChildFocus(
-    /* [in] */ IView* child)
-{
-    return FrameLayout::ClearChildFocus(child);
-}
-
-ECode CPhoneWindow::DecorView::GetChildVisibleRect(
-    /* [in] */ IView* child,
-    /* [in] */ IRect* r,
-    /* [in] */ IPoint* offset,
-    /* [out] */ Boolean* result)
-{
-    VALIDATE_NOT_NULL(result);
-
-    return FrameLayout::GetChildVisibleRect(child, r, offset, result);
-}
-
-ECode CPhoneWindow::DecorView::FocusSearchEx(
-    /* [in] */ IView* focused,
-    /* [in] */ Int32 direction,
-    /* [out] */ IView** focus)
-{
-    VALIDATE_NOT_NULL(focus);
-    AutoPtr<IView> v = FrameLayout::FocusSearch(focused, direction);
-    *focus = v.Get();
-    if (*focus) {
-        (*focus)->AddRef();
-    }
-
-    return NOERROR;
-}
-
-ECode CPhoneWindow::DecorView::BringChildToFront(
-    /* [in] */ IView* child)
-{
-    return FrameLayout::BringChildToFront(child);
-}
-
-ECode CPhoneWindow::DecorView::FocusableViewAvailable(
-    /* [in] */ IView* v)
-{
-    return FrameLayout::FocusableViewAvailable(v);
-}
-
-ECode CPhoneWindow::DecorView::ChildDrawableStateChanged(
-    /* [in] */ IView* child)
-{
-    return FrameLayout::ChildDrawableStateChanged(child);
-}
-
-ECode CPhoneWindow::DecorView::RequestDisallowInterceptTouchEvent(
-    /* [in] */ Boolean disallowIntercept)
-{
-    return FrameLayout::RequestDisallowInterceptTouchEvent(disallowIntercept);
-}
-
-ECode CPhoneWindow::DecorView::RequestChildRectangleOnScreen(
-    /* [in] */ IView* child,
-    /* [in] */ IRect* rectangle,
-    /* [in] */ Boolean immediate,
-    /* [out] */ Boolean* result)
-{
-    VALIDATE_NOT_NULL(result);
-    *result = FrameLayout::RequestChildRectangleOnScreen(child, rectangle, immediate);
-
-    return NOERROR;
-}
-
-ECode CPhoneWindow::DecorView::AddViewEx5(
-    /* [in] */ IView* view,
-    /* [in] */ IViewGroupLayoutParams* params)
-{
-    return FrameLayout::AddView(view, params);
-}
-
-ECode CPhoneWindow::DecorView::UpdateViewLayout(
-    /* [in] */ IView* view,
-    /* [in] */ IViewGroupLayoutParams* params)
-{
-    return FrameLayout::UpdateViewLayout(view, params);
-}
-
-ECode CPhoneWindow::DecorView::RemoveView(
-    /* [in] */ IView* view)
-{
-    return FrameLayout::RemoveView(view);
-}
-
-ECode CPhoneWindow::DecorView::SetForegroundGravity(
-    /* [in] */ Int32 foregroundGravity)
-{
-    return FrameLayout::SetForegroundGravity(foregroundGravity);
-}
-
-ECode CPhoneWindow::DecorView::SetForeground(
-    /* [in] */ IDrawable* drawable)
-{
-    return FrameLayout::SetForeground(drawable);
-}
-
-ECode CPhoneWindow::DecorView::GetForeground(
-    /* [out] */ IDrawable** foreground)
-{
-    VALIDATE_NOT_NULL(foreground);
-    AutoPtr<IDrawable> d = FrameLayout::GetForeground();
-    *foreground = d.Get();
-    if (*foreground) {
-        (*foreground)->AddRef();
-    }
-
-    return NOERROR;
-}
-
-ECode CPhoneWindow::DecorView::SetMeasureAllChildren(
-    /* [in] */ Boolean measureAll)
-{
-    return FrameLayout::SetMeasureAllChildren(measureAll);
-}
-
-ECode CPhoneWindow::DecorView::GetConsiderGoneChildrenWhenMeasuring(
-    /* [out] */ Boolean* measureAll)
-{
-    VALIDATE_NOT_NULL(measureAll)
-    *measureAll = FrameLayout::GetConsiderGoneChildrenWhenMeasuring();
-
-    return NOERROR;
-}
-
-ECode CPhoneWindow::DecorView::WillYouTakeTheSurface(
+ECode CPhoneWindow::_DecorView::WillYouTakeTheSurface(
     /* [out] */ ISurfaceHolderCallback2** cback)
 {
     VALIDATE_NOT_NULL(cback);
@@ -311,19 +55,19 @@ ECode CPhoneWindow::DecorView::WillYouTakeTheSurface(
     return NOERROR;
 }
 
-ECode CPhoneWindow::DecorView::SetSurfaceType(
+ECode CPhoneWindow::_DecorView::SetSurfaceType(
     /* [in] */ Int32 type)
 {
     return mHost->SetType(type);
 }
 
-ECode CPhoneWindow::DecorView::SetSurfaceFormat(
+ECode CPhoneWindow::_DecorView::SetSurfaceFormat(
     /* [in] */ Int32 format)
 {
     return mHost->SetFormat(format);
 }
 
-ECode CPhoneWindow::DecorView::SetSurfaceKeepScreenOn(
+ECode CPhoneWindow::_DecorView::SetSurfaceKeepScreenOn(
     /* [in] */ Boolean keepOn)
 {
     if (keepOn) {
@@ -336,8 +80,8 @@ ECode CPhoneWindow::DecorView::SetSurfaceKeepScreenOn(
     return NOERROR;
 }
 
-ECode CPhoneWindow::DecorView::WillYouTakeTheInputQueue(
-    /* [out] */ InputQueue::Callback** inputQueueCallback)
+ECode CPhoneWindow::_DecorView::WillYouTakeTheInputQueue(
+    /* [out] */ IInputQueueCallback** inputQueueCallback)
 {
     VALIDATE_NOT_NULL(inputQueueCallback);
     if (mFeatureId < 0) {
@@ -350,54 +94,21 @@ ECode CPhoneWindow::DecorView::WillYouTakeTheInputQueue(
     return NOERROR;
 }
 
-ECode CPhoneWindow::DecorView::ShowContextMenuForChild(
-    /* [in] */ IView* originalView,
-    /* [out] */ Boolean* result)
-{
-    VALIDATE_NOT_NULL(result);
-
-    // Reuse the context menu builder
-    if (mHost->mContextMenu == NULL) {
-        AutoPtr<IContext> context;
-        GetContext((IContext**) &context);
-
-        mHost->mContextMenu = new ContextMenuBuilder(context);
-        mHost->mContextMenu->SetCallback(mHost->mContextMenuCallback);
-    }
-    else {
-        mHost->mContextMenu->ClearAll();
-    }
-
-    AutoPtr<IBinder> binder;
-    originalView->GetWindowToken((IBinder**)&binder);
-    mHost->mContextMenuHelper = mHost->mContextMenu->Show(originalView, binder);
-    *result = mHost->mContextMenuHelper != NULL;
-
-    return NOERROR;
-}
-
-ECode CPhoneWindow::DecorView::CreateContextMenuEx(
-    /* [in] */ IContextMenu* menu)
-{
-    return FrameLayout::CreateContextMenu(menu);
-}
-
-void CPhoneWindow::DecorView::StartChanging()
+void CPhoneWindow::_DecorView::StartChanging()
 {
     mChanging = TRUE;
 }
 
-void CPhoneWindow::DecorView::FinishChanging()
+void CPhoneWindow::_DecorView::FinishChanging()
 {
     mChanging = FALSE;
     DrawableChanged();
 }
 
-void CPhoneWindow::DecorView::SetWindowBackground(
+void CPhoneWindow::_DecorView::SetWindowBackground(
     /* [in] */ IDrawable* drawable)
 {
-    AutoPtr<IDrawable> bg;
-    GetBackground((IDrawable**)&bg);
+    AutoPtr<IDrawable> bg = GetBackground();
     if (bg.Get() != drawable) {
         SetBackgroundDrawable(drawable);
         if (drawable != NULL) {
@@ -410,11 +121,10 @@ void CPhoneWindow::DecorView::SetWindowBackground(
     }
 }
 
-void CPhoneWindow::DecorView::SetWindowFrame(
+void CPhoneWindow::_DecorView::SetWindowFrame(
     /* [in] */ IDrawable* drawable)
 {
-    AutoPtr<IDrawable> bg;
-    GetBackground((IDrawable**)&bg);
+    AutoPtr<IDrawable> bg = GetBackground();
     if (bg.Get() != drawable) {
         SetForeground(drawable);
         if (drawable != NULL) {
@@ -427,7 +137,7 @@ void CPhoneWindow::DecorView::SetWindowFrame(
     }
 }
 
-Boolean CPhoneWindow::DecorView::DispatchKeyEvent(
+Boolean CPhoneWindow::_DecorView::DispatchKeyEvent(
     /* [in] */ IKeyEvent* event)
 {
     Int32 keyCode;
@@ -513,7 +223,7 @@ Boolean CPhoneWindow::DecorView::DispatchKeyEvent(
             : mHost->OnKeyUp(mFeatureId, keyCode, event);
 }
 
-Boolean CPhoneWindow::DecorView::DispatchTouchEvent(
+Boolean CPhoneWindow::_DecorView::DispatchTouchEvent(
     /* [in] */ IMotionEvent* event)
 {
     AutoPtr<IWindowCallback> cb;
@@ -530,7 +240,7 @@ Boolean CPhoneWindow::DecorView::DispatchTouchEvent(
     return handled;
 }
 
-Boolean CPhoneWindow::DecorView::DispatchTrackballEvent(
+Boolean CPhoneWindow::_DecorView::DispatchTrackballEvent(
     /* [in] */ IMotionEvent* event)
 {
     AutoPtr<IWindowCallback> cb;
@@ -547,31 +257,31 @@ Boolean CPhoneWindow::DecorView::DispatchTrackballEvent(
     return handled;
 }
 
-Boolean CPhoneWindow::DecorView::SuperDispatchKeyEvent(
+Boolean CPhoneWindow::_DecorView::SuperDispatchKeyEvent(
     /* [in] */ IKeyEvent* event)
 {
     return FrameLayout::DispatchKeyEvent(event);
 }
 
-Boolean CPhoneWindow::DecorView::SuperDispatchTouchEvent(
+Boolean CPhoneWindow::_DecorView::SuperDispatchTouchEvent(
     /* [in] */ IMotionEvent* event)
 {
     return FrameLayout::DispatchTouchEvent(event);
 }
 
-Boolean CPhoneWindow::DecorView::SuperDispatchTrackballEvent(
+Boolean CPhoneWindow::_DecorView::SuperDispatchTrackballEvent(
     /* [in] */ IMotionEvent* event)
 {
     return FrameLayout::DispatchTrackballEvent(event);
 }
 
-Boolean CPhoneWindow::DecorView::OnTouchEvent(
+Boolean CPhoneWindow::_DecorView::OnTouchEvent(
     /* [in] */ IMotionEvent* event)
 {
     return OnInterceptTouchEvent(event);
 }
 
-Boolean CPhoneWindow::DecorView::IsOutOfBounds(
+Boolean CPhoneWindow::_DecorView::IsOutOfBounds(
     /* [in] */ Int32 x,
     /* [in] */ Int32 y)
 {
@@ -579,7 +289,7 @@ Boolean CPhoneWindow::DecorView::IsOutOfBounds(
         || y > (FrameLayout::GetHeight() + 5);
 }
 
-Boolean CPhoneWindow::DecorView::OnInterceptTouchEvent(
+Boolean CPhoneWindow::_DecorView::OnInterceptTouchEvent(
     /* [in] */ IMotionEvent* event)
 {
     Int32 action;
@@ -666,7 +376,7 @@ Boolean CPhoneWindow::DecorView::OnInterceptTouchEvent(
     return FALSE;
 }
 
-void CPhoneWindow::DecorView::DrawableChanged()
+void CPhoneWindow::_DecorView::DrawableChanged()
 {
 //    if (mChanging) {
 //        return;
@@ -728,11 +438,29 @@ void CPhoneWindow::DecorView::DrawableChanged()
 //    }
 }
 
-//@override
-void CPhoneWindow::DecorView::OnAttachedToWindow()
+ECode CPhoneWindow::_DecorView::OnWindowFocusChanged(
+    /* [in] */ Boolean hasWindowFocus)
 {
-    FrameLayout::OnAttachedToWindow();
+    FrameLayout::OnWindowFocusChanged(hasWindowFocus);
 
+    // If the user is chording a menu shortcut, release the chord since
+    // this window lost focus
+    if (!hasWindowFocus && mHost->mPanelChordingKey != 0) {
+        mHost->ClosePanel(Window_FEATURE_OPTIONS_PANEL);
+    }
+
+    AutoPtr<IWindowCallback> cb;
+    mHost->GetCallback((IWindowCallback**)&cb);
+    if (cb != NULL /*&& !IsDestroyed()*/ && mFeatureId < 0) {
+        cb->OnWindowFocusChanged(hasWindowFocus);
+    }
+
+    return NOERROR;
+}
+
+void CPhoneWindow::_DecorView::OnAttachedToWindow()
+{
+    View::OnAttachedToWindow();
     AutoPtr<IWindowCallback> cb;
     mHost->GetCallback((IWindowCallback**)&cb);
     if (cb != NULL && mFeatureId < 0) {
@@ -749,6 +477,152 @@ void CPhoneWindow::DecorView::OnAttachedToWindow()
          */
         mHost->OpenPanelsAfterRestore();
     }
+}
+
+Boolean CPhoneWindow::_DecorView::ShowContextMenuForChild(
+    /* [in] */ IView* originalView)
+{
+    // Reuse the context menu builder
+    if (mHost->mContextMenu == NULL) {
+        AutoPtr<IContext> context = GetContext();
+
+        mHost->mContextMenu = new ContextMenuBuilder(context);
+        mHost->mContextMenu->SetCallback(mHost->mContextMenuCallback);
+    }
+    else {
+        mHost->mContextMenu->ClearAll();
+    }
+
+    AutoPtr<IBinder> binder;
+    originalView->GetWindowToken((IBinder**)&binder);
+    mHost->mContextMenuHelper = mHost->mContextMenu->Show(originalView, binder);
+    return mHost->mContextMenuHelper != NULL;
+}
+
+IVIEW_METHODS_IMPL(
+    CPhoneWindow::DecorView, CPhoneWindow::_DecorView, CPhoneWindow::_DecorView);
+
+IVIEWGROUP_METHODS_IMPL(
+    CPhoneWindow::DecorView, CPhoneWindow::_DecorView, CPhoneWindow::_DecorView);
+
+IVIEWPARENT_METHODS_IMPL(
+    CPhoneWindow::DecorView, CPhoneWindow::_DecorView, CPhoneWindow::_DecorView);
+
+IVIEWMANAGER_METHODS_IMPL(
+    CPhoneWindow::DecorView, CPhoneWindow::_DecorView, CPhoneWindow::_DecorView);
+
+IDrawableCallback_METHODS_IMPL(
+    CPhoneWindow::DecorView, CPhoneWindow::_DecorView, CPhoneWindow::_DecorView);
+
+IKeyEventCallback_METHODS_IMPL(
+    CPhoneWindow::DecorView, CPhoneWindow::_DecorView, CPhoneWindow::_DecorView);
+
+IAccessibilityEventSource_METHODS_IMPL(
+    CPhoneWindow::DecorView, CPhoneWindow::_DecorView, CPhoneWindow::_DecorView);
+
+CPhoneWindow::DecorView::DecorView(
+    /* [in] */ CPhoneWindow* host,
+    /* [in] */ IContext* context,
+    /* [in] */ Int32 featureId) :
+    _DecorView(host, context, featureId)
+{
+}
+
+PInterface CPhoneWindow::DecorView::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (IInterface*)(IFrameLayout*)this;
+    }
+    else if (riid == EIID_IView) {
+        return (IView*)this;
+    }
+    else if (riid == EIID_IFrameLayout) {
+        return (IFrameLayout*)this;
+    }
+    else if (riid == EIID_IViewGroup) {
+        return (IViewGroup*)(IFrameLayout*)this;
+    }
+    else if (riid == EIID_IViewParent) {
+        return (IViewParent*)this;
+    }
+    else if (riid == EIID_IViewManager) {
+        return (IViewManager*)this;
+    }
+    else if (riid == EIID_IDrawableCallback) {
+        return (IDrawableCallback*)this;
+    }
+    else if (riid == EIID_IKeyEventCallback) {
+        return (IKeyEventCallback*)this;
+    }
+    else if (riid == EIID_IAccessibilityEvent) {
+        return (IAccessibilityEvent*)this;
+    }
+    else if (riid == EIID_View) {
+        return reinterpret_cast<PInterface>((View*)(FrameLayout*)this);
+    }
+    else if (riid == EIID_RootViewSurfaceTaker) {
+        return reinterpret_cast<PInterface>((RootViewSurfaceTaker*)this);
+    }
+
+    return NULL;
+}
+
+UInt32 CPhoneWindow::DecorView::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CPhoneWindow::DecorView::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode CPhoneWindow::DecorView::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPhoneWindow::DecorView::SetForegroundGravity(
+    /* [in] */ Int32 foregroundGravity)
+{
+    return _DecorView::SetForegroundGravity(foregroundGravity);
+}
+
+ECode CPhoneWindow::DecorView::SetForeground(
+    /* [in] */ IDrawable* drawable)
+{
+    return _DecorView::SetForeground(drawable);
+}
+
+ECode CPhoneWindow::DecorView::GetForeground(
+    /* [out] */ IDrawable** foreground)
+{
+    VALIDATE_NOT_NULL(foreground);
+    AutoPtr<IDrawable> d = _DecorView::GetForeground();
+    *foreground = d.Get();
+    if (*foreground) {
+        (*foreground)->AddRef();
+    }
+
+    return NOERROR;
+}
+
+ECode CPhoneWindow::DecorView::SetMeasureAllChildren(
+    /* [in] */ Boolean measureAll)
+{
+    return _DecorView::SetMeasureAllChildren(measureAll);
+}
+
+ECode CPhoneWindow::DecorView::GetConsiderGoneChildrenWhenMeasuring(
+    /* [out] */ Boolean* measureAll)
+{
+    VALIDATE_NOT_NULL(measureAll)
+    *measureAll = _DecorView::GetConsiderGoneChildrenWhenMeasuring();
+
+    return NOERROR;
 }
 
 static Int32 R_Styleable_Theme[] = {
@@ -1072,8 +946,7 @@ ECode CPhoneWindow::ContextMenuCallback::OnSubMenuSelected(
 }
 
 CPhoneWindow::CPhoneWindow()
-    : mTakeInputQueueCallback(NULL)
-    , mBackgroundResource(0)
+    : mBackgroundResource(0)
     , mFrameResource(0)
     , mTextColor(0)
     , mTitleColor(0)
@@ -1081,7 +954,6 @@ CPhoneWindow::CPhoneWindow()
 
 CPhoneWindow::~CPhoneWindow()
 {
-    delete mTakeInputQueueCallback;
 }
 
 ECode CPhoneWindow::constructor(
@@ -1164,6 +1036,7 @@ ECode CPhoneWindow::SetContentView(
 
     AutoPtr<IView> root;
     mLayoutInflater->Inflate(layoutResID, mContentParent.Get(), (IView**)&root);
+
     AutoPtr<IWindowCallback> cb;
     GetCallback((IWindowCallback**)&cb);
     if (cb != NULL) {
@@ -1245,7 +1118,7 @@ ECode CPhoneWindow::TakeSurface(
 }
 
 ECode CPhoneWindow::TakeInputQueue(
-    /* [in] */ InputQueue::Callback* callback)
+    /* [in] */ IInputQueueCallback* callback)
 {
     mTakeInputQueueCallback = callback;
 
@@ -1293,8 +1166,9 @@ ECode CPhoneWindow::OnConfigurationChanged(
     /* [in] */ IConfiguration* newConfig)
 {
     AutoPtr<PanelFeatureState> st = GetPanelState(Window_FEATURE_OPTIONS_PANEL, FALSE);
+
     if ((st != NULL) && (st->mMenu != NULL)) {
-        IMenuBuilder* menuBuilder = IMenuBuilder::Probe(st->mMenu);
+        AutoPtr<IMenuBuilder> menuBuilder = IMenuBuilder::Probe(st->mMenu);
 
         if (st->mIsOpen) {
             // Freeze state

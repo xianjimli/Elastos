@@ -9,6 +9,9 @@ CarClass(CApartmentHelper)
 public:
     CARAPI GetDefaultApartment(
         /* [out] */ IApartment** apartment);
+
+    CARAPI GetNativeMessageQueue(
+        /* [out] */ Handle32* messageQueue);
 };
 
 

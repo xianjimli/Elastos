@@ -247,6 +247,9 @@ module
         SetFlags(
             [in] Int32 flags,
             [in] Int32 mask);
+
+        GetSurface(
+            [out] Handle32* surface);
     }
 
     interface ISurfaceHelper {

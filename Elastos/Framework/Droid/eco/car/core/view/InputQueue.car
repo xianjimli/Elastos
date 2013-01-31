@@ -1,0 +1,26 @@
+
+module
+{
+	interface IInputChannel;
+
+	interface IInputQueue {
+		GetInputChannel(
+			[out] IInputChannel** inputChannel);
+	}
+
+	interface IInputQueueCallback {
+        /**
+         * Called when the given InputQueue is now associated with the
+         * thread making this call, so it can start receiving events from it.
+         */
+        OnInputQueueCreated(
+            [in] IInputQueue* queue);
+
+        /**
+         * Called when the given InputQueue is no longer associated with
+         * the thread and thus not dispatching events.
+         */
+        OnInputQueueDestroyed(
+            [in] IInputQueue* queue);
+    }
+}

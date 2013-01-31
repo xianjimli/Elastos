@@ -150,8 +150,8 @@ public:
      * longer read and dispatch input events from the queue; it is your
      * responsibility to do so.
      */
-//    CARAPI TakeInputQueue(
-//        /* [in] */ IInputQueueCallback* cb) = 0;
+    CARAPI TakeInputQueue(
+        /* [in] */ IInputQueueCallback* cb) = 0;
 
     /**
      * Return whether this window is being displayed with a floating style

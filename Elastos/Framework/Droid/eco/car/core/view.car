@@ -48,6 +48,7 @@ module
     merge("view/IInputContextCallbackStub.car");
     merge("view/IInputContextStub.car");
     merge("view/InputChannel.car");
+    merge("view/InputQueue.car");
     merge("view/InputDevice.car");
     merge("view/IInputMethodSessionStub.car");
     merge("view/IInputMethodCallbackStub.car");
@@ -532,6 +533,13 @@ module
     class CInputChannel {
         interface IInputChannel;
         interface IParcelable;
+    }
+
+    class CInputQueue {
+        constructor(
+            [in] IInputChannel* channel);
+
+        interface IInputQueue;
     }
 
     singleton class CInputChannelHelper {

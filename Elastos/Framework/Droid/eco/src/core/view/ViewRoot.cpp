@@ -1075,15 +1075,15 @@ ECode ViewRoot::SetView(
         }
 
         if (rootViewST) {
-            rootViewST->WillYouTakeTheInputQueue(&mInputQueueCallback);
+            rootViewST->WillYouTakeTheInputQueue((IInputQueueCallback**)&mInputQueueCallback);
         }
 
         if (mInputQueueCallback != NULL) {
-            mInputQueue = new InputQueue((CInputChannel*)mInputChannel.Get());
+            CInputQueue::New((CInputChannel*)mInputChannel.Get(), (IInputQueue**)&mInputQueue);
             mInputQueueCallback->OnInputQueueCreated(mInputQueue);
         }
         else {
-            assert(SUCCEEDED(InputQueue::RegisterInputChannel((CInputChannel*)mInputChannel.Get(),
+            assert(SUCCEEDED(CInputQueue::RegisterInputChannel((CInputChannel*)mInputChannel.Get(),
                     mInputHandler, CApartment::GetNativeMessageQueue())));
         }
 
@@ -2693,7 +2693,7 @@ void ViewRoot::DispatchDetachedFromWindow()
             mInputQueueCallback = NULL;
         }
         else {
-            InputQueue::UnregisterInputChannel(mInputChannel);
+            CInputQueue::UnregisterInputChannel(mInputChannel);
         }
     }
 
