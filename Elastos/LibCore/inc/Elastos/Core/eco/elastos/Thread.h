@@ -781,6 +781,19 @@ protected:
         /* [in] */ const String& threadName,
         /* [in] */ Int64 stackSize);
 
+    /**
+     * Package-scope method invoked by Dalvik VM to create "internal"
+     * threads or attach threads created externally.
+     *
+     * Don't call Thread.currentThread(), since there may not be such
+     * a thing (e.g. for Main).
+     */
+    CARAPI Init(
+        /* [in] */ IThreadGroup* group,
+        /* [in] */ const String& name,
+        /* [in] */ Int32 priority,
+        /* [in] */ Boolean daemon);
+
     virtual CARAPI_(Mutex*) GetSelfLock() = 0;
 
 private:
@@ -905,8 +918,6 @@ protected:
 
 private:
     static const Int32 NANOS_PER_MILLI;
-
-    static Int32 sCount;
 
     /**
      * Holds the thread's ID. We simply count upwards, so

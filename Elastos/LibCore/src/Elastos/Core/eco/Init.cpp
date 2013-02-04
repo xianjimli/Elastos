@@ -2,15 +2,23 @@
 #include "Globals.h"
 #include "NativeThread.h"
 
+
+ELAPI_(Int32) CoreStartup();
+
+CoreGlobals::CoreGlobals()
+{
+    assert(CoreStartup() == 0);
+}
+
 /* global state */
-struct DvmGlobals gDvm;
+struct CoreGlobals gCore;
 
 /*
  * Set defaults for fields altered or modified by arguments.
  *
  * Globals are initialized to 0 (a/k/a NULL or false).
  */
-static void SetCommandLineDefaults()
+ELAPI_(void) SetCommandLineDefaults()
 {
     // const char* envStr;
 
@@ -28,9 +36,9 @@ static void SetCommandLineDefaults()
     /* Defaults overridden by -Xms and -Xmx.
      * TODO: base these on a system or application-specific default
      */
-    gDvm.mHeapSizeStart = 2 * 1024 * 1024;   // Spec says 16MB; too big for us.
-    gDvm.mHeapSizeMax = 16 * 1024 * 1024;    // Spec says 75% physical mem
-    gDvm.mStackSize = kDefaultStackSize;
+    gCore.mHeapSizeStart = 2 * 1024 * 1024;   // Spec says 16MB; too big for us.
+    gCore.mHeapSizeMax = 16 * 1024 * 1024;    // Spec says 75% physical mem
+    gCore.mStackSize = kDefaultStackSize;
 
     //gDvm.concurrentMarkSweep = true;
 
@@ -79,7 +87,7 @@ static void SetCommandLineDefaults()
  * same thread that started the VM, a/k/a the main thread, but we don't
  * want to assume that.)
  */
-void NativeShutdown()
+ELAPI_(void) CoreShutdown()
 {}
 
 /*
@@ -88,7 +96,7 @@ void NativeShutdown()
  *
  * Returns 0 on success.
  */
-Int32 NativeStartup()
+ELAPI_(Int32) CoreStartup()
 {
     //LOGV("VM init args (%d):\n", argc);
     // for (i = 0; i < argc; i++)
@@ -99,8 +107,9 @@ Int32 NativeStartup()
     /*
      * Initialize components.
      */
-    if (!NativeThreadStartup())
+    if (!NativeThreadStartup()) {
         goto fail;
+    }
 
     /*
      * At this point, the VM is in a pretty good state.  Finish prep on
@@ -108,20 +117,9 @@ Int32 NativeStartup()
      * along with our Thread struct).  Note we will probably be executing
      * some interpreted class initializer code in here.
      */
-    if (!NativePrepMainThread())
+    if (!NativePrepMainThread()) {
         goto fail;
-
-    /*
-     * Init for either zygote mode or non-zygote mode.  The key difference
-     * is that we don't start any additional threads in Zygote mode.
-     */
-    // if (gDvm.zygote) {
-    //     if (!dvmInitZygote())
-    //         goto fail;
-    // } else {
-    //     if (!dvmInitAfterZygote())
-    //         goto fail;
-    // }
+    }
 
     // assert(!dvmCheckException(dvmThreadSelf()));
     // gDvm.initExceptionCount = 0;
@@ -129,6 +127,6 @@ Int32 NativeStartup()
     return 0;
 
 fail:
-    NativeShutdown();
+    CoreShutdown();
     return 1;
 }

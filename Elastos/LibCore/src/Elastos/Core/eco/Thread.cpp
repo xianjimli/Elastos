@@ -12,7 +12,6 @@ extern "C" const InterfaceID EIID_Thread =
         { 0x69757a0, 0x1b05, 0x4c16, { 0xba, 0x3e, 0x38, 0x48, 0xda, 0xc8, 0xd, 0xa8 } };
 
 const Int32 Thread::NANOS_PER_MILLI = 1000000;
-Int32 Thread::sCount = 0;
 
 const ThreadState Thread::STATE_MAP[] = {
     ThreadState_TERMINATED,     // ZOMBIE
@@ -249,6 +248,44 @@ ECode Thread::Init(
 }
 
 /**
+ * Package-scope method invoked by Dalvik VM to create "internal"
+ * threads or attach threads created externally.
+ *
+ * Don't call Thread.currentThread(), since there may not be such
+ * a thing (e.g. for Main).
+ */
+ECode Thread::Init(
+    /* [in] */ IThreadGroup* group,
+    /* [in] */ const String& name,
+    /* [in] */ Int32 priority,
+    /* [in] */ Boolean daemon)
+{
+    // synchronized (Thread.class) {
+    //     id = ++Thread.count;
+    // }
+
+    // if (name == null) {
+    //     this.name = "Thread-" + id;
+    // } else
+    //     this.name = name;
+
+    // if (group == null) {
+    //     throw new InternalError("group not specified");
+    // }
+
+    // this.group = group;
+
+    // this.target = null;
+    // this.stackSize = 0;
+    // this.priority = priority;
+    // this.daemon = daemon;
+
+    // /* add ourselves to our ThreadGroup of choice */
+    // this.group.addThread(this);
+    return NOERROR;
+}
+
+/**
  * Initializes a new, existing Thread object with a runnable object,
  * the given name and belonging to the ThreadGroup passed as parameter.
  * This is the method that the several public constructors delegate their
@@ -321,8 +358,8 @@ ECode Thread::Create(
     // synchronized (Thread.class) {
     //     id = ++Thread.count;
     // }
-    mId = ++Thread::sCount;
-printf("=======fun: %s========,========line: %d========\n", __FUNCTION__, __LINE__);
+    mId = NativeGetCount();
+
     if (threadName.IsNull()) {
         mName = String("Thread-" + mId);
     }
@@ -943,10 +980,8 @@ ECode Thread::Resume()
  */
 ECode Thread::Run()
 {
-    printf("=======fun: %s========,========line: %d========\n", __FUNCTION__, __LINE__);
     ECode ec = NOERROR;
     if (mTarget != NULL) {
-        printf("=======fun: %s========,========line: %d========\n", __FUNCTION__, __LINE__);
         ec = mTarget->Run();
     }
     return ec;

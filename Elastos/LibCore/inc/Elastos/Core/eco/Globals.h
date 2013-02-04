@@ -14,7 +14,8 @@ using namespace Elastos;
  * Storage allocated here must be freed by a subsystem shutdown function or
  * from within freeGlobals().
  */
-struct DvmGlobals {
+struct CoreGlobals
+{
 //    /*
 //     * Some options from the command line or environment.
 //     */
@@ -369,6 +370,8 @@ struct DvmGlobals {
 //     * on a condition variable.
 //     */
     Int32         mNonDaemonThreadCount;   /* must hold threadListLock to access */
+    Int32         mThreadCount;
+    pthread_mutex_t mThreadCountLock;
 //    //pthread_mutex_t vmExitLock;
 //    pthread_cond_t  vmExitCond;
 
@@ -620,8 +623,9 @@ struct DvmGlobals {
 
 //    /* some RegisterMap statistics, useful during development */
 //    void*       registerMapStats;
+    CoreGlobals();
 };
 
-extern struct DvmGlobals gDvm;
+extern struct CoreGlobals gCore;
 
 #endif //__GLOBALS_H__

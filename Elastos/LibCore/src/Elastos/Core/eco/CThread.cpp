@@ -189,11 +189,20 @@ ECode CThread::constructor(
     return Thread::Init(group, runnable, threadName, stackSize);
 }
 
+ECode CThread::constructor(
+    /* [in] */ IThreadGroup* group,
+    /* [in] */ const String& name,
+    /* [in] */ Int32 priority,
+    /* [in] */ Boolean daemon)
+{
+    return Thread::Init(group, name, priority, daemon);
+}
+
 PInterface CThread::Probe(
     /* [in] */ REIID riid)
 {
     if (riid == EIID_Thread) {
-        reinterpret_cast<PInterface>((Thread*)this);
+        return reinterpret_cast<PInterface>((Thread*)this);
     }
     else
         return _CThread::Probe(riid);

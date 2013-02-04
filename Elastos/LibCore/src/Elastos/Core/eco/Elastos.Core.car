@@ -198,6 +198,19 @@ module
             [in] String threadName,
             [in] Int64 stackSize);
 
+        /**
+         * Package-scope method invoked by Dalvik VM to create "internal"
+         * threads or attach threads created externally.
+         *
+         * Don't call Thread.currentThread(), since there may not be such
+         * a thing (e.g. for Main).
+         */
+        constructor(
+            [in] IThreadGroup* group,
+            [in] String name,
+            [in] Int32 priority,
+            [in] Boolean daemon);
+
         interface IThread;
         interface IRunnable;
     }

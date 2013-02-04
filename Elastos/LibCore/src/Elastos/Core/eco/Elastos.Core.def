@@ -64,3 +64,4 @@ EXPORTS
     NativeLockThreadList
     NativeUnlockThreadList
     NativeChangeThreadPriority
+    NativeGetCount

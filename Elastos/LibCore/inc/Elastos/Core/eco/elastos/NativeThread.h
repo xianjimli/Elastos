@@ -33,6 +33,13 @@ typedef enum NativeThreadStatus
     NTHREAD_SUSPENDED    = 9,        /* suspended, usually by GC or debugger */
 } NativeThreadStatus;
 
+/* thread priorities, from java.lang.Thread */
+enum {
+    NTHREAD_MIN_PRIORITY     = 1,
+    NTHREAD_NORM_PRIORITY    = 5,
+    NTHREAD_MAX_PRIORITY     = 10,
+};
+
 /* reserve this many bytes for handling StackOverflowError */
 #define STACK_OVERFLOW_RESERVE  768
 
@@ -321,5 +328,7 @@ ELAPI_(void) NativeChangeThreadPriority(
  */
 ELAPI_(void) NativeThreadInterrupt(
     /* [in] */ NativeThread* thread);
+
+ELAPI_(Int32) NativeGetCount();
 
 #endif //__NATIVETHREAD_H__
