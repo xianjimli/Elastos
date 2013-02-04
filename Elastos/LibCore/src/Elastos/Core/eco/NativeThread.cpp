@@ -1,6 +1,7 @@
 
 #include "NativeThread.h"
 #include "Globals.h"
+#include "CThread.h"
 #include <sys/resource.h>
 #include <cutils/sched_policy.h>
 #include <cutils/atomic.h>
@@ -11,6 +12,71 @@ static NativeThread* AllocThread(Int32 stackSize);
 static void SetThreadSelf(NativeThread* thread);
 static void AssignThreadId(NativeThread* thread);
 static void* ThreadEntry(void* arg);
+static void ThreadExitCheck(void* arg);
+static Boolean PrepareThread(NativeThread* thread);
+
+/*
+ * Initialize thread list and main thread's environment.  We need to set
+ * up some basic stuff so that dvmThreadSelf() will work when we start
+ * loading classes (e.g. to check for exceptions).
+ */
+Boolean NativeThreadStartup()
+{
+    NativeThread* thread = NULL;
+
+    /* allocate a TLS slot */
+    if (pthread_key_create(&gDvm.mPthreadKeySelf, ThreadExitCheck) != 0) {
+        //LOGE("ERROR: pthread_key_create failed\n");
+        return FALSE;
+    }
+
+    /* test our pthread lib */
+    if (pthread_getspecific(gDvm.mPthreadKeySelf) != NULL)
+        //LOGW("WARNING: newly-created pthread TLS slot is not NULL\n");
+
+    /* prep thread-related locks and conditions */
+    NativeInitMutex(&gDvm.mThreadListLock);
+    pthread_cond_init(&gDvm.mThreadStartCond, NULL);
+    //dvmInitMutex(&gDvm.vmExitLock);
+    //pthread_cond_init(&gDvm.vmExitCond, NULL);
+    NativeInitMutex(&gDvm.mThreadSuspendLock);
+    NativeInitMutex(&gDvm.mThreadSuspendCountLock);
+    pthread_cond_init(&gDvm.mThreadSuspendCountCond, NULL);
+// #ifdef WITH_DEADLOCK_PREDICTION
+//     dvmInitMutex(&gDvm.deadlockHistoryLock);
+// #endif
+
+    /*
+     * Dedicated monitor for Thread.sleep().
+     * TODO: change this to an Object* so we don't have to expose this
+     * call, and we interact better with JDWP monitor calls.  Requires
+     * deferring the object creation to much later (e.g. final "main"
+     * thread prep) or until first use.
+     */
+    // gDvm.threadSleepMon = dvmCreateMonitor(NULL);
+
+    // gDvm.threadIdMap = dvmAllocBitVector(kMaxThreadId, false);
+
+    thread = AllocThread(gDvm.mStackSize);
+    if (thread == NULL)
+        return FALSE;
+
+    /* switch mode for when we run initializers */
+    thread->mStatus = NTHREAD_RUNNING;
+
+    /*
+     * We need to assign the threadId early so we can lock/notify
+     * object monitors.  We'll set the "threadObj" field later.
+     */
+    PrepareThread(thread);
+    gDvm.mThreadList = thread;
+
+// #ifdef COUNT_PRECISE_METHODS
+//     gDvm.preciseMethods = dvmPointerSetAlloc(200);
+// #endif
+
+    return TRUE;
+}
 
 /*
  * Grab the thread list global lock.
@@ -67,6 +133,137 @@ void NativeLockThreadList(
 void NativeUnlockThreadList()
 {
     NativeUnlockMutex(&gDvm.mThreadListLock);
+}
+
+/*
+ * Finish preparing the main thread, allocating some objects to represent
+ * it.  As part of doing so, we finish initializing Thread and ThreadGroup.
+ * This will execute some interpreted code (e.g. class initializers).
+ */
+Boolean NativePrepMainThread()
+{
+    NativeThread* thread;
+    AutoPtr<IThreadGroup> groupObj;
+    // Object* threadObj;
+    // Object* vmThreadObj;
+    // StringObject* threadNameStr;
+    // Method* init;
+    // JValue unused;
+
+    //LOGV("+++ finishing prep on main VM thread\n");
+
+    /* main thread is always first in list at this point */
+    thread = gDvm.mThreadList;
+    assert(thread->mThreadId == kMainThreadId);
+
+    /*
+     * Make sure the classes are initialized.  We have to do this before
+     * we create an instance of them.
+     */
+    // if (!dvmInitClass(gDvm.classJavaLangClass)) {
+    //     LOGE("'Class' class failed to initialize\n");
+    //     return false;
+    // }
+    // if (!dvmInitClass(gDvm.classJavaLangThreadGroup) ||
+    //     !dvmInitClass(gDvm.classJavaLangThread) ||
+    //     !dvmInitClass(gDvm.classJavaLangVMThread))
+    // {
+    //     LOGE("thread classes failed to initialize\n");
+    //     return false;
+    // }
+
+    // groupObj = dvmGetMainThreadGroup();
+    // if (groupObj == NULL)
+    //     return false;
+
+    /*
+     * Allocate and construct a Thread with the internal-creation
+     * constructor.
+     */
+    // threadObj = dvmAllocObject(gDvm.classJavaLangThread, ALLOC_DEFAULT);
+    // if (threadObj == NULL) {
+    //     LOGE("unable to allocate main thread object\n");
+    //     return false;
+    // }
+    // dvmReleaseTrackedAlloc(threadObj, NULL);
+
+    // threadNameStr = dvmCreateStringFromCstr("main");
+    // if (threadNameStr == NULL)
+    //     return false;
+    // dvmReleaseTrackedAlloc((Object*)threadNameStr, NULL);
+
+    // init = dvmFindDirectMethodByDescriptor(gDvm.classJavaLangThread, "<init>",
+    //         "(Ljava/lang/ThreadGroup;Ljava/lang/String;IZ)V");
+    // assert(init != NULL);
+    // dvmCallMethod(thread, init, threadObj, &unused, groupObj, threadNameStr,
+    //     THREAD_NORM_PRIORITY, false);
+    // if (dvmCheckException(thread)) {
+    //     LOGE("exception thrown while constructing main thread object\n");
+    //     return false;
+    // }
+    AutoPtr<IThread> mainThread;
+    const String threadName = String("main");
+    CThread::New(groupObj, threadName, (IThread**)&mainThread);
+    thread->mThreadObj = (Thread*)mainThread->Probe(EIID_Thread);
+
+    /*
+     * Allocate and construct a VMThread.
+     */
+    // vmThreadObj = dvmAllocObject(gDvm.classJavaLangVMThread, ALLOC_DEFAULT);
+    // if (vmThreadObj == NULL) {
+    //     LOGE("unable to allocate main vmthread object\n");
+    //     return false;
+    // }
+    // dvmReleaseTrackedAlloc(vmThreadObj, NULL);
+
+    // init = dvmFindDirectMethodByDescriptor(gDvm.classJavaLangVMThread, "<init>",
+    //         "(Ljava/lang/Thread;)V");
+    // dvmCallMethod(thread, init, vmThreadObj, &unused, threadObj);
+    // if (dvmCheckException(thread)) {
+    //     LOGE("exception thrown while constructing main vmthread object\n");
+    //     return false;
+    // }
+
+    // /* set the VMThread.vmData field to our Thread struct */
+    // assert(gDvm.offJavaLangVMThread_vmData != 0);
+    // dvmSetFieldInt(vmThreadObj, gDvm.offJavaLangVMThread_vmData, (u4)thread);
+
+    /*
+     * Stuff the VMThread back into the Thread.  From this point on, other
+     * Threads will see that this Thread is running (at least, they would,
+     * if there were any).
+     */
+    // dvmSetFieldObject(threadObj, gDvm.offJavaLangThread_vmThread,
+    //     vmThreadObj);
+
+    // thread->threadObj = threadObj;
+
+    /*
+     * Set the context class loader.  This invokes a ClassLoader method,
+     * which could conceivably call Thread.currentThread(), so we want the
+     * Thread to be fully configured before we do this.
+     */
+    // Object* systemLoader = dvmGetSystemClassLoader();
+    // if (systemLoader == NULL) {
+    //     LOGW("WARNING: system class loader is NULL (setting main ctxt)\n");
+    //     /* keep going */
+    // }
+    // int ctxtClassLoaderOffset = dvmFindFieldOffset(gDvm.classJavaLangThread,
+    //     "contextClassLoader", "Ljava/lang/ClassLoader;");
+    // if (ctxtClassLoaderOffset < 0) {
+    //     LOGE("Unable to find contextClassLoader field in Thread\n");
+    //     return false;
+    // }
+    // dvmSetFieldObject(threadObj, ctxtClassLoaderOffset, systemLoader);
+
+    /*
+     * Finish our thread prep.
+     */
+
+    /* include self in non-daemon threads (mainly for AttachCurrentThread) */
+    gDvm.mNonDaemonThreadCount++;
+
+    return TRUE;
 }
 
 /*
@@ -310,6 +507,63 @@ static void SetThreadSelf(
             // LOGE("pthread_setspecific(%p) failed, err=%d\n", thread, cc);
             // dvmAbort();     /* the world is fundamentally hosed */
         }
+    }
+}
+
+/*
+ * This is associated with the pthreadKeySelf key.  It's called by the
+ * pthread library when a thread is exiting and the "self" pointer in TLS
+ * is non-NULL, meaning the VM hasn't had a chance to clean up.  In normal
+ * operation this will not be called.
+ *
+ * This is mainly of use to ensure that we don't leak resources if, for
+ * example, a thread attaches itself to us with AttachCurrentThread and
+ * then exits without notifying the VM.
+ *
+ * We could do the detach here instead of aborting, but this will lead to
+ * portability problems.  Other implementations do not do this check and
+ * will simply be unaware that the thread has exited, leading to resource
+ * leaks (and, if this is a non-daemon thread, an infinite hang when the
+ * VM tries to shut down).
+ *
+ * Because some implementations may want to use the pthread destructor
+ * to initiate the detach, and the ordering of destructors is not defined,
+ * we want to iterate a couple of times to give those a chance to run.
+ */
+static void ThreadExitCheck(void* arg)
+{
+    const Int32 kMaxCount = 2;
+
+    NativeThread* self = (NativeThread*)arg;
+    assert(self != NULL);
+
+    // LOGV("threadid=%d: threadExitCheck(%p) count=%d\n",
+    //     self->threadId, arg, self->threadExitCheckCount);
+
+    if (self->mStatus == NTHREAD_ZOMBIE) {
+        // LOGW("threadid=%d: Weird -- shouldn't be in threadExitCheck\n",
+        //     self->threadId);
+        return;
+    }
+
+    if (self->mThreadExitCheckCount < kMaxCount) {
+        /*
+         * Spin a couple of times to let other destructors fire.
+         */
+        // LOGD("threadid=%d: thread exiting, not yet detached (count=%d)\n",
+        //     self->threadId, self->threadExitCheckCount);
+        self->mThreadExitCheckCount++;
+        Int32 cc = pthread_setspecific(gDvm.mPthreadKeySelf, self);
+        if (cc != 0) {
+            // LOGE("threadid=%d: unable to re-add thread to TLS\n",
+            //     self->threadId);
+            //NativeAbort();
+        }
+    }
+    else {
+        // LOGE("threadid=%d: native thread exited without detaching\n",
+        //     self->threadId);
+        //NativeAbort();
     }
 }
 

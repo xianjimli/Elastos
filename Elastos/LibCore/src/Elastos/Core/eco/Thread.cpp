@@ -7,6 +7,10 @@
 #include <elastos/System.h>
 #include "stdio.h"
 
+// {069757A0-1B05-4c16-BA3E-3848DAC80DA8}
+extern "C" const InterfaceID EIID_Thread =
+        { 0x69757a0, 0x1b05, 0x4c16, { 0xba, 0x3e, 0x38, 0x48, 0xda, 0xc8, 0xd, 0xa8 } };
+
 const Int32 Thread::NANOS_PER_MILLI = 1000000;
 Int32 Thread::sCount = 0;
 
