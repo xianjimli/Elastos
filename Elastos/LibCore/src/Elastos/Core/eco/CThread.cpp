@@ -192,7 +192,11 @@ ECode CThread::constructor(
 PInterface CThread::Probe(
     /* [in] */ REIID riid)
 {
-    return _CThread::Probe(riid);
+    if (riid == EIID_Thread) {
+        reinterpret_cast<PInterface>((Thread*)this);
+    }
+    else
+        return _CThread::Probe(riid);
 }
 
 /**
