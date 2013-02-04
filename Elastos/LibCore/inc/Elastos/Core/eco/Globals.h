@@ -21,8 +21,8 @@ struct DvmGlobals {
 //    char*       bootClassPathStr;
 //    char*       classPathStr;
 
-//    unsigned int    heapSizeStart;
-//    unsigned int    heapSizeMax;
+    UInt32 mHeapSizeStart;
+    UInt32 mHeapSizeMax;
     UInt32 mStackSize;
 
 //    bool        verboseGc;
@@ -85,7 +85,7 @@ struct DvmGlobals {
 //    /*
 //     * VM init management.
 //     */
-//    bool        initializing;
+    Boolean        mInitializing;
 //    int         initExceptionCount;
 //    bool        optimizing;
 
@@ -305,41 +305,41 @@ struct DvmGlobals {
 
     pthread_cond_t mThreadStartCond;
 
-//    /*
-//     * The thread code grabs this before suspending all threads.  There
-//     * are a few things that can cause a "suspend all":
-//     *  (1) the GC is starting;
-//     *  (2) the debugger has sent a "suspend all" request;
-//     *  (3) a thread has hit a breakpoint or exception that the debugger
-//     *      has marked as a "suspend all" event;
-//     *  (4) the SignalCatcher caught a signal that requires suspension.
-//     *  (5) (if implemented) the JIT needs to perform a heavyweight
-//     *      rearrangement of the translation cache or JitTable.
-//     *
-//     * Because we use "safe point" self-suspension, it is never safe to
-//     * do a blocking "lock" call on this mutex -- if it has been acquired,
-//     * somebody is probably trying to put you to sleep.  The leading '_' is
-//     * intended as a reminder that this lock is special.
-//     */
-//    pthread_mutex_t _threadSuspendLock;
+   /*
+    * The thread code grabs this before suspending all threads.  There
+    * are a few things that can cause a "suspend all":
+    *  (1) the GC is starting;
+    *  (2) the debugger has sent a "suspend all" request;
+    *  (3) a thread has hit a breakpoint or exception that the debugger
+    *      has marked as a "suspend all" event;
+    *  (4) the SignalCatcher caught a signal that requires suspension.
+    *  (5) (if implemented) the JIT needs to perform a heavyweight
+    *      rearrangement of the translation cache or JitTable.
+    *
+    * Because we use "safe point" self-suspension, it is never safe to
+    * do a blocking "lock" call on this mutex -- if it has been acquired,
+    * somebody is probably trying to put you to sleep.  The leading '_' is
+    * intended as a reminder that this lock is special.
+    */
+   pthread_mutex_t mThreadSuspendLock;
 
-//    /*
-//     * Guards Thread->suspendCount for all threads, and provides the lock
-//     * for the condition variable that all suspended threads sleep on
-//     * (threadSuspendCountCond).
-//     *
-//     * This has to be separate from threadListLock because of the way
-//     * threads put themselves to sleep.
-//     */
-//    pthread_mutex_t threadSuspendCountLock;
+   /*
+    * Guards Thread->suspendCount for all threads, and provides the lock
+    * for the condition variable that all suspended threads sleep on
+    * (threadSuspendCountCond).
+    *
+    * This has to be separate from threadListLock because of the way
+    * threads put themselves to sleep.
+    */
+   pthread_mutex_t mThreadSuspendCountLock;
 
-//    /*
-//     * Suspended threads sleep on this.  They should sleep on the condition
-//     * variable until their "suspend count" is zero.
-//     *
-//     * Paired with "threadSuspendCountLock".
-//     */
-//    pthread_cond_t  threadSuspendCountCond;
+   /*
+    * Suspended threads sleep on this.  They should sleep on the condition
+    * variable until their "suspend count" is zero.
+    *
+    * Paired with "threadSuspendCountLock".
+    */
+   pthread_cond_t  mThreadSuspendCountCond;
 
 //    /*
 //     * Sum of all threads' suspendCount fields.  The JIT needs to know if any
@@ -368,7 +368,7 @@ struct DvmGlobals {
 //     * have exited.  If the main thread returns early, we need to sleep
 //     * on a condition variable.
 //     */
-//    int         nonDaemonThreadCount;   /* must hold threadListLock to access */
+    Int32         mNonDaemonThreadCount;   /* must hold threadListLock to access */
 //    //pthread_mutex_t vmExitLock;
 //    pthread_cond_t  vmExitCond;
 

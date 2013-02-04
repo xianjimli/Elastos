@@ -17,6 +17,8 @@ using namespace Elastos;
 using namespace Elastos::Core;
 using namespace Elastos::Core::Threading;
 
+extern "C" const InterfaceID EIID_Thread;
+
 enum {
     /*
      * ***********************************************

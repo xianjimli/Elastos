@@ -40,6 +40,9 @@ typedef enum NativeThreadStatus
 #define kDefaultStackSize   (12 * 1024)   /* three 4K pages */
 #define kMaxStackSize       (256 * 1024 + STACK_OVERFLOW_RESERVE)
 
+#define kMaxThreadId        ((1 << 16) - 1)
+#define kMainThreadId       1
+
 class Thread;
 
 /*
@@ -168,7 +171,7 @@ typedef struct NativeThread
     struct NativeThread* mNext;
 
     /* used by threadExitCheck when a thread exits without detaching */
-    // int         threadExitCheckCount;
+    Int32         mThreadExitCheckCount;
 
     /* JDWP invoke-during-breakpoint support */
     // DebugInvokeReq  invokeReq;
@@ -204,15 +207,30 @@ typedef struct NativeThread
 ELAPI_(pid_t) NativeGetSysThreadId();
 
 /*
+ * Finish preparing the main thread, allocating some objects to represent
+ * it.  As part of doing so, we finish initializing Thread and ThreadGroup.
+ * This will execute some interpreted code (e.g. class initializers).
+ */
+ELAPI_(Boolean) NativePrepMainThread();
+
+/*
  * Get our Thread* from TLS.
  *
  * Returns NULL if this isn't a thread that the VM is aware of.
  */
 ELAPI_(NativeThread*) NativeThreadSelf();
 
+/*
+ * Initialize thread list and main thread's environment.  We need to set
+ * up some basic stuff so that dvmThreadSelf() will work when we start
+ * loading classes (e.g. to check for exceptions).
+ */
+ELAPI_(Boolean) NativeThreadStartup();
+
 /* grab the thread list global lock */
 ELAPI_(void) NativeLockThreadList(
     /* [in] */ NativeThread* self);
+
 /* release the thread list global lock */
 ELAPI_(void) NativeUnlockThreadList();
 
