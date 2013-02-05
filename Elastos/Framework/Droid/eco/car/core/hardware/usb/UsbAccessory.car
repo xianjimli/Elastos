@@ -1,0 +1,58 @@
+
+module
+{
+    interface IUsbAccessory {
+        /**
+         * Returns the manufacturer of the accessory.
+         *
+         * @return the accessory manufacturer
+         */
+        GetManufacturer(
+            [out] String* manufacturer);
+
+        /**
+         * Returns the model name of the accessory.
+         *
+         * @return the accessory model
+         */
+        GetModel(
+            [out] String* model);
+
+        /**
+         * Returns a user visible description of the accessory.
+         *
+         * @return the accessory description
+         */
+        GetDescription(
+            [out] String* description);
+
+        /**
+         * Returns the version of the accessory.
+         *
+         * @return the accessory version
+         */
+        GetVersion(
+            [out] String* ver);
+
+        /**
+         * Returns the URI for the accessory.
+         * This is an optional URI that might show information about the accessory
+         * or provide the option to download an application for the accessory
+         *
+         * @return the accessory URI
+         */
+        GetUri(
+            [out] String* uri);
+
+        /**
+         * Returns the unique serial number for the accessory.
+         * This is an optional serial number that can be used to differentiate
+         * between individual accessories of the same model and manufacturer
+         *
+         * @return the unique serial number
+         */
+        GetSerial(
+            [out] String* serial);
+
+    }
+}
