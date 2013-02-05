@@ -13,10 +13,16 @@ module
     merge("os/Vibrator.car");
     merge("os/WorkSource.car");
     merge("os/ResultReceiver.car");
+    merge("os/RemoteCallbackList.car");
     merge("os/storage/IMountServiceListener.car");
     merge("os/storage/IMountShutdownObserver.car");
     merge("os/storage/IObbActionListener.car");
     merge("os/storage/IMountService.car");
+
+    class CRemoteCallbackList {
+        constructor();
+        interface IRemoteCallbackList;
+    }
 
     class CApartment {
         constructor(

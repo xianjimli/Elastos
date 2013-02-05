@@ -145,6 +145,12 @@ public:
     CARAPI_(CActivityRecord*) MoveActivityToFrontLocked(
         /* [in] */ Int32 where);
 
+	CARAPI_(void) ReportActivityLaunchedLocked(
+	    /* [in] */ Boolean timeout,
+	    /* [in] */ CActivityRecord* r,
+	    /* [in] */ Int64 thisTime,
+	    /* [in] */ Int64 totalTime);
+
     CARAPI StartActivityLocked(
         /* [in] */ IApplicationApartment* caller,
         /* [in] */ IIntent* intent,
@@ -159,7 +165,7 @@ public:
         /* [in] */ Int32 callingUid,
         /* [in] */ Boolean onlyIfNeeded,
         /* [in] */ Boolean componentSpecified,
-        /* [in] */ Int32* status);
+        /* [out] */ Int32* status);
 
     CARAPI StartActivityUncheckedLocked(
         /* [in] */ CActivityRecord* r,
@@ -193,8 +199,12 @@ public:
         /* [in] */ Int32 resultCode,
         /* [in] */ IIntent* data);
 
+	CARAPI_(List<AutoPtr<CActivityRecord> >*)
+		ProcessStoppingActivitiesLocked(
+		/* [in] */ Boolean remove);
+
 	CARAPI_(void)ActivityIdleInternal(
-		IBinder* token, 
+		IBinder* token,
 	    Boolean fromTimeout,
 	    IConfiguration* config);
 
@@ -243,6 +253,10 @@ public:
         /* [in] */ TaskRecord* tr,
         /* [in] */ CActivityRecord* reason);
 
+    CARAPI_(Boolean) MoveTaskToBackLocked(
+		/* [in] */ Int32 task,
+		/* [in] */ CActivityRecord* reason);
+
     CARAPI_(void) FinishTaskMoveLocked(
         /* [in] */ Int32 task);
 
@@ -269,6 +283,9 @@ private:
         /* [in] */ ProcessRecord* app);
 
     CARAPI_(ICapsuleManager*) GetCapsuleManager();
+
+    CARAPI_(void) StopActivityLocked(
+        /* [in] */ CActivityRecord* r);
 
 private:
     friend class CActivityManagerService;

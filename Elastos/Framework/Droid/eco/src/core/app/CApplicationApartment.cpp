@@ -2606,6 +2606,13 @@ ECode CApplicationApartment::ScheduleExit()
     return E_NOT_IMPLEMENTED;
 }
 
+ECode CApplicationApartment::RequestThumbnail(
+	/* [in] */ IBinder* token)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+
 ECode CApplicationApartment::HandleContextCleanup(
     /* [in] */ ContextCleanupInfo* cci)
 {

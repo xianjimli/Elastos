@@ -222,8 +222,11 @@ CActivityManagerService::CActivityManagerService() :
     mWaitForDebugger(FALSE),
     mDebugTransient(FALSE),
     mOrigWaitForDebugger(FALSE),
-    mProcessLimit(0)
+    mProcessLimit(0),
+    mBooted(FALSE),
+    mBooting(FALSE)
 {
+    CRemoteCallbackList::New((IRemoteCallbackList**)&mWatchers);
     AutoPtr<IApartmentHelper> helper;
     assert(SUCCEEDED(CApartmentHelper::AcquireSingleton((IApartmentHelper**)&helper)));
     assert(SUCCEEDED(helper->GetDefaultApartment((IApartment**)&mApartment))
@@ -980,6 +983,7 @@ void CActivityManagerService::StartSetupActivityLocked()
 //            }
 //        }
 //    }
+
 }
 
 void CActivityManagerService::ReportResumedActivityLocked(
@@ -987,21 +991,23 @@ void CActivityManagerService::ReportResumedActivityLocked(
 {
     //Slog.i(TAG, "**** REPORT RESUME: " + r);
 
-//     final int identHash = System.identityHashCode(r);
-//    updateUsageStats(r, true);
+    const Int32 identHash = 0; //System.identityHashCode(r);
+    UpdateUsageStats(r, TRUE);
 
-//    int i = mWatchers.beginBroadcast();
-//    while (i > 0) {
-//        i--;
-//        IActivityWatcher w = mWatchers.getBroadcastItem(i);
-//        if (w != null) {
+    Int32 i;
+    mWatchers->BeginBroadcast(&i);
+    while (i > 0) {
+        i--;
+        AutoPtr<IActivityWatcher> w;
+        mWatchers->GetBroadcastItem(i,(IInterface**)&w);
+        if (w != NULL) {
 //            try {
-//                w.activityResuming(identHash);
+            w->ActivityResuming(identHash);
 //            } catch (RemoteException e) {
 //            }
-//        }
-//    }
-//    mWatchers.finishBroadcast();
+        }
+    }
+    mWatchers->FinishBroadcast();
 }
 
 void CActivityManagerService::DoPendingActivityLaunchesLocked(
@@ -1283,7 +1289,6 @@ ECode CActivityManagerService::StartNextMatchingActivity(
         }
         return TRUE;
     }
-    //return E_NOT_IMPLEMENTED;
 }
 
 ECode CActivityManagerService::StartActivityInCapsule(
@@ -1356,7 +1361,6 @@ ECode CActivityManagerService::StartActivityInCapsule(
                 onlyIfNeeded, componentSpecified, &res);
         return res;
     }
-//    return E_NOT_IMPLEMENTED;
 }
 
 void CActivityManagerService::AddRecentTaskLocked(
@@ -1601,7 +1605,6 @@ ECode CActivityManagerService::FinishSubActivity(
 
         Binder::RestoreCallingIdentity(origId);
     }
-    //return E_NOT_IMPLEMENTED;
 }
 
 ECode CActivityManagerService::WillActivityBeVisible(
@@ -2826,7 +2829,6 @@ ECode CActivityManagerService::ActivityIdle(
     const long origId = Binder::ClearCallingIdentity();
     mMainStack->ActivityIdleInternal(token, FALSE, config);
     Binder::RestoreCallingIdentity(origId);
-    //return E_NOT_IMPLEMENTED;
 }
 
 void CActivityManagerService::EnableScreenAfterBoot()
@@ -3023,7 +3025,6 @@ ECode CActivityManagerService::GetActivityClassForToken(
         }
         return NULL;
     }
-    //return E_NOT_IMPLEMENTED;
 }
 
 ECode CActivityManagerService::GetCapsuleForToken(
@@ -4435,16 +4436,16 @@ ECode CActivityManagerService::MoveActivityTaskToBack(
     /* [in] */ Boolean nonRoot,
     /* [out] */ Boolean* result)
 {
-//    synchronized(this) {
-//        final long origId = Binder.clearCallingIdentity();
-//        int taskId = getTaskForActivityLocked(token, !nonRoot);
-//        if (taskId >= 0) {
-//            return mMainStack.moveTaskToBackLocked(taskId, null);
-//        }
-//        Binder.restoreCallingIdentity(origId);
-//    }
-//    return false;
-    return E_NOT_IMPLEMENTED;
+    {
+        Mutex::Autolock lock(_m_syncLock);
+        const Int64 origId = Binder::ClearCallingIdentity();
+        Int32 taskId = GetTaskForActivityLocked(token, !nonRoot);
+        if (taskId >= 0) {
+            return mMainStack->MoveTaskToBackLocked(taskId, NULL);
+        }
+        Binder::RestoreCallingIdentity(origId);
+    }
+    return FALSE;
 }
 
 ECode CActivityManagerService::MoveTaskBackwards(
@@ -4476,11 +4477,9 @@ ECode CActivityManagerService::GetTaskForActivity(
     /* [in] */ Boolean onlyRoot,
     /* [out] */ Int32* taskId)
 {
-    {
-        Mutex::Autolock lock(_m_syncLock);
-        return GetTaskForActivityLocked(token, onlyRoot);
-    }
-    //return E_NOT_IMPLEMENTED;
+    Mutex::Autolock lock(_m_syncLock);
+    return GetTaskForActivityLocked(token, onlyRoot);
+
 }
 
 Int32 CActivityManagerService::GetTaskForActivityLocked(
@@ -4501,7 +4500,6 @@ Int32 CActivityManagerService::GetTaskForActivityLocked(
     }
 
     return -1;
-//    return 0;
 }
 
 ECode CActivityManagerService::FinishOtherInstances(
@@ -5586,19 +5584,19 @@ ECode CActivityManagerService::IsUserAMonkey(
 ECode CActivityManagerService::RegisterActivityWatcher(
     /* [in] */ IActivityWatcher* watcher)
 {
-//    synchronized (this) {
-//        mWatchers.register(watcher);
-//    }
-    return E_NOT_IMPLEMENTED;
+    Mutex::Autolock lock(_m_syncLock);
+    Boolean outBoolean;
+    mWatchers->Register(watcher, &outBoolean);
+
 }
 
 ECode CActivityManagerService::UnregisterActivityWatcher(
     /* [in] */ IActivityWatcher* watcher)
 {
-//    synchronized (this) {
-//        mWatchers.unregister(watcher);
-//    }
-    return E_NOT_IMPLEMENTED;
+    Mutex::Autolock lock(_m_syncLock);
+    Boolean outBoolean;
+    mWatchers->Unregister(watcher, &outBoolean);
+
 }
 
 ECode CActivityManagerService::EnterSafeMode()

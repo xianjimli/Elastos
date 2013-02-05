@@ -333,6 +333,13 @@ module
     const Intent_ACTION_UPGRADE_SETUP = "android.intent.action.UPGRADE_SETUP";
 
     /**
+     * A string associated with a {@link #ACTION_UPGRADE_SETUP} activity
+     * describing the last run version of the platform that was setup.
+     * @hide
+     */
+    const Intent_METADATA_SETUP_VERSION = "android.SETUP_VERSION";
+
+    /**
      * Broadcast Action:  This is a <em>sticky broadcast</em> containing the
      * charging state, level, and other information about the battery.
      * See {@link elastos.os.BatteryManager} for documentation on the

@@ -1,0 +1,40 @@
+module
+{
+
+    interface IRemoteCallbackList {
+        Register(
+            [in] IInterface* mcallback,
+            [out] Boolean* outBoolean);
+
+        RegisterExtra(
+            [in] IInterface* mcallback,
+            [in] IInterface* cookie,
+            [out] Boolean* outBoolean);
+
+        Unregister(
+            [in] IInterface* mcallback,
+            [out] Boolean* outBoolean);
+
+        Kill();
+
+        OnCallbackDied(
+            [in] IInterface* mcallback);
+
+        OnCallbackDiedExtra(
+            [in] IInterface* mcallback,
+            [in] IInterface* cookie);
+
+        BeginBroadcast(
+            [out] Int32* outInt);
+
+        GetBroadcastItem(
+            [in] Int32 index,
+            [out] IInterface** outIInterface);
+
+        GetBroadcastCookie(
+            [in] Int32 index,
+            [out] IInterface** outObject);
+
+        FinishBroadcast();
+    }
+}

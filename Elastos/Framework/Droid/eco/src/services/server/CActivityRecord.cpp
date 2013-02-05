@@ -28,7 +28,7 @@ CActivityRecord::CActivityRecord() :
 //    visible = true;
 //    waitingVisible = false;
     mNowVisible(FALSE),
-//    thumbnailNeeded = false;
+    mThumbnailNeeded(FALSE),
 //    idle = false;
     mHasBeenLaunched(FALSE)
 {}

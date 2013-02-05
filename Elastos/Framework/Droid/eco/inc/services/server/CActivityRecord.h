@@ -149,6 +149,7 @@ public:
     Boolean mVisible;        // does this activity's window need to be shown?
     Boolean mWaitingVisible; // true if waiting for a new act to become vis
     Boolean mNowVisible;     // is this activity's window visible?
+    Boolean mThumbnailNeeded;// has someone requested a thumbnail?
     Boolean mIdle;           // has the activity gone idle?
     Boolean mHasBeenLaunched; // has this activity ever been launched?
     Boolean mFrozenBeforeDestroy;// has been frozen but not yet destroyed.

@@ -1845,8 +1845,12 @@ private:
     AutoPtr<IActivityController> mController;
 
     Int32 mProcessLimit;
+    Boolean mBooted;
+    Boolean mBooting;
 
     AutoPtr<CWindowManagerService> mWindowManager;
+
+    AutoPtr<IRemoteCallbackList> mWatchers;
 };
 
 #endif // __CACTIVITYMANAGERSERVICE_H__

@@ -57,6 +57,9 @@ module
 
         ScheduleExit();
 
+        RequestThumbnail(
+            [in] IBinder* token);
+
         ScheduleLaunchActivity(
             [in] IIntent* intent,
             [in] IBinder* token,
