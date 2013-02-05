@@ -1,0 +1,35 @@
+
+module
+{
+
+    interface IPointF {
+
+    set(
+        [in] Float x,
+        [in] Float y);
+
+    setEx(
+        [in] IPointF* p);
+
+    negate();
+
+    offset(
+        [in] Float dx,
+        [in] Float dy);
+
+    equals(
+        [in] Float x,
+        [in] Float y,
+        [out] Boolean* result);
+
+    lengthEx(
+        [out] Float* length);
+
+    length(
+        [in] Float x,
+        [in] Float y,
+        [out] Float* length);
+
+    }
+
+}

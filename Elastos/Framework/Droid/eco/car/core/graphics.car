@@ -45,6 +45,32 @@ module
     merge("graphics/drawable/PaintDrawable.car");
     merge("graphics/drawable/PictureDrawable.car");
     merge("graphics/drawable/shapes/Shape.car");
+	merge("graphics/camera.car");
+	merge("graphics/ComposeShader.car");
+	merge("graphics/YuvImage.car");
+	merge("graphics/ImageFormat.car");
+	merge("graphics/DiscretePathEffect.car");
+	merge("graphics/SumPathEffect.car");
+	merge("graphics/RegionIterator.car");
+	merge("graphics/BlurMaskFilter.car");
+	merge("graphics/PathMeasure.car");
+	merge("graphics/LightingColorFilter.car");
+	merge("graphics/ColorMatrix.car");
+	merge("graphics/ColorMatrixColorFilter.car");
+	merge("graphics/PointF.car");
+	merge("graphics/EmbossMaskFilter.car");
+	merge("graphics/TableMaskFilter.car");
+	merge("graphics/ComposePathEffect.car");
+	merge("graphics/LargeBitmap.car");
+	merge("graphics/Color.car");
+	merge("graphics/PixelXorXfermode.car");
+	merge("graphics/CornerPathEffect.car");
+	merge("graphics/AvoidXfermode.car");
+	merge("graphics/PathDashPathEffect.car");
+	merge("graphics/LayerRasterizer.car");
+	merge("graphics/PaintFlagsDrawFilter.car");
+	merge("graphics/BitmapRegionDecoder.car");
+	merge("graphics/utils/BoundaryPatch.car");
 
     class CPoint {
         constructor();
@@ -811,6 +837,12 @@ module
         interface IPath;
     }
 
+	class CDrawFilter {
+        constructor();
+
+        interface IDrawFilter;
+    }
+
     class CBitmapShader {
         constructor(
             [in] IBitmap* bitmap,
@@ -818,6 +850,211 @@ module
             [in] ShaderTileMode tileY);
 
         interface IShader;
+    }
+
+    class CCamera {
+        constructor();
+
+        interface ICamera;
+    }
+
+    class CComposeShader {
+        constructor(
+            [in] IShader* shaderA,
+            [in] IShader* shaderB,
+            [in] IXfermode* mode);
+
+        constructor(
+            [in] IShader* shaderA,
+            [in] IShader* shaderB,
+            [in] PorterDuffMode mode1);
+
+        interface IShader;
+    }
+
+    class CYuvImage {
+        constructor(
+            [in] ArrayOf<Byte> yuv,
+            [in] Int32 format,
+			[in] Int32 width,
+			[in] Int32 height,
+            [in] ArrayOf<Int32> strides);
+		interface IYuvImage;
+    }
+
+	class CImageFormat {
+        constructor();
+		interface IImageFormat;
+    }
+
+	class CDiscretePathEffect {
+        constructor(
+			[in] Float segmentLength,
+			[in] Float deviation);
+		interface IDiscretePathEffect;
+    }
+
+	class CSumPathEffect {
+        constructor(
+			[in] IPathEffect* first,
+			[in] IPathEffect* second);
+		interface ISumPathEffect;
+    }
+
+	class CRegionIterator {
+        constructor(
+			[in] IRegion * pRegion);
+		interface IRegionIterator;
+    }
+
+	class CBlurMaskFilter {
+        constructor(
+            [in] Float radius,
+            [in] Int32 style);
+		interface IBlurMaskFilter;
+    }
+
+	class CPathMeasure {		
+		constructor();
+     	constructor(
+			[in] IPath* path,
+			[in] Boolean forceClosed);
+ 		interface IPathMeasure;
+    }
+
+	class CLightingColorFilter {		
+     	constructor(
+			[in] Int32 mul,
+			[in] Int32 add);
+ 		interface ILightingColorFilter;
+    }
+
+	class CColorMatrix {
+		constructor();		
+     	constructor(
+			[in] ArrayOf<Float> src);
+		constructor(
+			[in] IColorMatrix* array);
+ 		interface IColorMatrix;
+    }
+
+	class CColorMatrixColorFilter {		
+     	constructor(
+			[in] IColorMatrix* matrix);
+		constructor(
+			[in] ArrayOf<Float> array);
+ 		interface IColorMatrixColorFilter;
+    }
+
+	class CPointF {
+		constructor();		
+     	constructor(
+			[in] Float x,
+			[in] Float y);
+		constructor(
+			[in] IPoint* point);
+ 		interface IPointF;
+    }
+
+	class CEmbossMaskFilter {		
+     	constructor(
+			[in] ArrayOf<Float> direction,
+			[in] Float ambient,
+			[in] Float specular,
+			[in] Float blurRadius);
+
+ 		interface IEmbossMaskFilter;
+    }
+
+	class CTableMaskFilter {		
+     	constructor(
+			[in] Int32 Ni);
+		constructor(
+			[in] ArrayOf<Byte> table);
+
+ 		interface ITableMaskFilter;
+    }
+
+	class CComposePathEffect {		
+     	constructor(
+			[in] IPathEffect* outerpe,
+			[in] IPathEffect* innerpe);
+
+ 		interface IComposePathEffect;
+    }
+
+	class CLargeBitmap {		
+     	constructor(
+			[in] Int32 ibm);
+
+ 		interface ILargeBitmap;
+    }
+
+  	class CColor {		
+     	constructor();
+
+ 		interface IColor;
+    }
+
+  	class CPixelXorXfermode {		
+     	constructor(
+			[in] Int32 opColor);
+
+ 		interface IPixelXorXfermode;
+    }
+
+  	class CCornerPathEffect {		
+     	constructor(
+			[in] Float radius);
+
+ 		interface ICornerPathEffect;
+    }
+
+  	class CAvoidXfermode {
+     	constructor(
+			[in] Int32 opColor,
+			[in] Int32 tolerance,
+			[in] Int32 mode);
+
+ 		interface IAvoidXfermode;
+    }
+
+  	class CPathDashPathEffect {
+     	constructor(
+			[in] IPath* shape,
+			[in] Float advance,
+			[in] Float phase,
+			[in] PathDashPathEffectStyle style);
+
+ 		interface IPathDashPathEffect;
+    }
+
+  	class CLayerRasterizer {
+     	constructor();
+
+ 		interface ILayerRasterizer;
+    }
+
+   	class CPaintFlagsDrawFilter {
+     	constructor(
+			[in] Int32 clearBits, 
+			[in] Int32 setBits);
+
+ 		interface IPaintFlagsDrawFilter;
+    }
+
+   	class CBitmapRegionDecoder {
+     	constructor(
+			[in] Int32 decoder);
+
+ 		interface IBitmapRegionDecoder;
+    }
+
+    class CBoundaryPatch {
+     	constructor(
+			[in] Int32 decoder);
+
+ 		interface IBoundaryPatch;
     }
 
     class CTypeface {

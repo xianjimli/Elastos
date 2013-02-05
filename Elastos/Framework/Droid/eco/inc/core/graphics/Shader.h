@@ -31,7 +31,9 @@ public:
      */
     CARAPI_(void) SetLocalMatrix(
         /* [in] */ IMatrix* localM);
-
+	
+	SkShader* Ni();
+	
 private:
     static CARAPI_(void) NativeDestructor(
         /* [in] */ SkShader* shader);

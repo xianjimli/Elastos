@@ -1,0 +1,13 @@
+
+module
+{
+    interface IRegionIterator {
+
+        next(
+            [in] IRect* r,
+            [out] Boolean* result);
+
+        finalize();
+    }
+
+}

@@ -1,0 +1,45 @@
+
+module
+{
+    const PATHMEASURE_POSITION_MATRIX_FLAG = 0x01;    // must match flags in SkPathMeasure.h
+    const PATHMEASURE_TANGENT_MATRIX_FLAG  = 0x02;    // must match flags in SkPathMeasure.h
+
+    interface IPath;
+    interface IMatrix;
+    interface IPathMeasure {
+
+        setPath(
+            [in] IPath* path,
+            [in] Boolean forceClosed);
+
+        getLength(
+            [out] Float* length);
+
+        getPosTan(
+            [in] Float distance,
+            [out, callee] ArrayOf<Float>* pos,
+            [out, callee] ArrayOf<Float>* tan,
+            [out] Boolean* result);
+
+        getMatrix(
+            [in] Float distance,
+            [in] IMatrix* matrix,
+            [in] Int32 flags,
+            [out] Boolean* result);
+
+        getSegment(
+            [in] Float startD,
+            [in] Float stopD,
+            [in] IPath* dst,
+            [in] Boolean startWithMoveTo,
+            [out] Boolean* result);
+
+        isClosed(
+            [out] Boolean* result);
+
+
+        nextContour(
+            [out] Boolean* result);
+    }
+
+}

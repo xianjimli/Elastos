@@ -25,7 +25,8 @@ private:
     static CARAPI_(void) NativeDestructor(
         /* [in] */ SkMaskFilter* nObj);
 
-private:
+//private:
+protected:
     SkMaskFilter* mNativeInstance;
 };
 

@@ -1,0 +1,36 @@
+
+module
+{
+	interface IMatrix;
+	interface ICanvas;
+    interface ICamera {
+    	
+		save();
+		restore();
+
+		translate(
+            [in] Float x,
+            [in] Float y,
+			[in] Float z);
+
+		rotateX(
+			[in] Float deg);
+		rotateY(
+			[in] Float deg);
+		rotateZ(
+			[in] Float deg);
+
+		getMatrix(
+			[in]IMatrix* matrix);
+		applyToCanvas(
+			[in]ICanvas* canvas);
+
+		dotWithNormal(
+			[in] Float dx,
+            [in] Float dy,
+			[in] Float dz,
+			[out] Float* result);
+
+    }
+
+}

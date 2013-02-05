@@ -52,3 +52,9 @@ void Shader::NativeSetLocalMatrix(
         }
     }
 }
+
+SkShader* Shader::Ni()
+{
+    return mNative;
+}
+

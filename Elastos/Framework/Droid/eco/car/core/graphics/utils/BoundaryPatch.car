@@ -1,0 +1,32 @@
+
+module
+{
+    interface IBoundaryPatch {
+
+		setCubicBoundary(
+			[in] ArrayOf<Float> pts, 
+			[in] Int32 offset, 
+			[in] Int32 rows, 
+			[in] Int32 cols);
+
+		setTexture(
+			[in] IBitmap* texture); 
+
+		getPaintFlags(
+			[out] Int32* flags);
+
+		setPaintFlags(
+			[in] Int32 flags);
+
+		setXfermode(
+			[in] IXfermode* mode);
+
+		setAlpha(
+			[in] Int32 alpha);
+
+		draw(
+			[in] ICanvas* canvas);
+
+		buildCache();
+	}
+}

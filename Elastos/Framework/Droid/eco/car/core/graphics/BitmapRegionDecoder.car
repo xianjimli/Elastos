@@ -1,0 +1,50 @@
+
+module
+{
+    interface IBitmapRegionDecoder {
+    	
+		newInstance(
+			[in] ArrayOf<Byte> data,
+			[in] Int32 offset, 
+			[in] Int32 length, 
+			[in] Boolean isShareable,
+			[out] IBitmapRegionDecoder** IBrd);
+
+		newInstanceEx(
+			[in] IFileDescriptor* fd,
+			[in] Boolean isShareable,
+			[out] IBitmapRegionDecoder** IBrd);
+
+		newInstanceEx2(
+			[in] IInputStream* is,
+			[in] Boolean isShareable,
+			[out] IBitmapRegionDecoder** IBrd);
+
+		newInstanceEx3(
+			[in] String pathName,
+			[in] Boolean isShareable,
+			[out] IBitmapRegionDecoder** IBrd);
+
+		decodeRegion(
+			[in] IRect* rect,
+			[in] IBitmapFactoryOptions* options,
+			[out] IBitmap** bitmap); 
+
+		getWidth(
+			[out] Int32* width); 
+
+		getHeight(
+			[out] Int32* height);
+
+		recycle();
+
+		isRecycled(
+			[out] Boolean* result);
+
+		checkRecycled(
+			[in] String errorMessage);
+
+
+    }
+
+}

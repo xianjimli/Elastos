@@ -1,0 +1,16 @@
+
+module
+{
+
+    interface ITableMaskFilter {
+        CreateClipTable(
+            [in] Int32 min,
+            [in] Int32 max,
+            [out] ITableMaskFilter** tf);
+
+        CreateGammaTable(
+            [in] Float gamma,
+            [out] ITableMaskFilter** tf);
+    }
+
+}

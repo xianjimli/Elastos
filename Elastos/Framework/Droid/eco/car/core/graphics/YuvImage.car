@@ -1,0 +1,80 @@
+
+module
+{
+    /**
+     * Number of bytes of temp storage we use for communicating between the
+     * native compressor and the java OutputStream.
+     */
+    const YUVIMAGE_WORKING_COMPRESS_STORAGE = 4096;
+
+
+    interface IRect;
+    interface IYuvImage {
+
+    /**
+     * Compress a rectangle region in the YuvImage to a jpeg.
+     * Only ImageFormat.NV21 and ImageFormat.YUY2
+     * are supported for now.
+     *
+     * @param rectangle The rectangle region to be compressed. The medthod checks if rectangle is
+     *                  inside the image. Also, the method modifies rectangle if the chroma pixels
+     *                  in it are not matched with the luma pixels in it.
+     * @param quality   Hint to the compressor, 0-100. 0 meaning compress for
+     *                  small size, 100 meaning compress for max quality.
+     * @param stream    OutputStream to write the compressed data.
+     * @return          True if the compression is successful.
+     * @throws IllegalArgumentException if rectangle is invalid; quality is not within [0,
+     *                  100]; or stream is null.
+     */
+    compressToJpeg(
+        [in] IRect* rectangle,
+        [in] Int32 quality,
+        [in] IOutputStream* stream,
+        [out] Boolean* result);
+
+
+    /**
+     * @return the YUV data.
+     */
+    getYuvData(
+        [out, callee] ArrayOf<Byte>* data);
+
+    /**
+     * @return the YUV format as defined in {@link PixelFormat}.
+     */
+    getYuvFormat(
+        [out] Int32* format);
+
+    /**
+     * @return the number of row bytes in each image plane.
+     */
+    getStrides(
+        [out, callee] ArrayOf<Int32>* strides);
+
+    /**
+     * @return the width of the image.
+     */
+    getWidth(
+        [out] Int32* width);
+
+    /**
+     * @return the height of the image.
+     */
+    getHeight(
+        [out] Int32* height);
+
+    calculateOffsets(
+        [in] Int32 left,
+        [in] Int32 top,
+        [out, callee] ArrayOf<Int32>* offsets);
+
+    calculateStrides(
+        [in] Int32 width,
+        [in] Int32 format,
+        [out, callee] ArrayOf<Int32>* strides);
+
+    adjustRectangle(
+        [in] IRect* rect);
+
+    }
+}

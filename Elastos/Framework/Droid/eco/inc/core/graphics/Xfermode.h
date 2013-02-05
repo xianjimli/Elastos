@@ -19,7 +19,8 @@ private:
     static CARAPI_(void) Finalizer(
         /* [in] */ SkXfermode* xfermode);
 
-protected:
+//protected:
+public:
     SkXfermode* mNativeInstance;
 };
 

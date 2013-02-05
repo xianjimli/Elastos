@@ -20,7 +20,8 @@ private:
     static CARAPI_(void) Finalizer(
         /* [in] */ SkColorFilter* nObj);
 
-private:
+//private:
+protected:
     SkColorFilter* mNativeInstance;
 };
 

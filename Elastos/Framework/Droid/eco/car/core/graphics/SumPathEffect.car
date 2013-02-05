@@ -1,0 +1,10 @@
+
+module
+{
+    interface IPathEffect;
+    interface ISumPathEffect {
+
+
+    }
+
+}

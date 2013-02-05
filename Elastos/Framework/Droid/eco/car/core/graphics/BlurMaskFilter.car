@@ -1,0 +1,19 @@
+
+module
+{
+
+    enum BlUR{
+        BLUR_NORMAL = 0,  //!< blur inside and outside of the original border
+        BLUR_SOLID = 1,   //!< include the original mask, blur outside
+        BLUR_OUTER = 2,   //!< just blur outside the original border
+        BLUR_INNER = 3,
+    }
+
+    interface IBlurMaskFilter {
+
+        Blur(
+            [in] Int32 value);
+
+    }
+
+}

@@ -20,7 +20,8 @@ private:
     static CARAPI_(void) Finalizer(
         /* [in] */ SkRasterizer* nObj);
 
-private:
+//private:
+protected:
     SkRasterizer* mNativeInstance;
 };
 

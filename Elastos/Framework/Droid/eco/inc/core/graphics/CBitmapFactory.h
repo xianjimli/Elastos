@@ -118,6 +118,10 @@ public:
     CARAPI SetDefaultConfig(
         /* [in] */ BitmapConfig config);
 
+    static CARAPI_(void) GetMimeTypeString(
+        /* [in] */ SkImageDecoder::Format format,
+        /* [out] */ String* typeStr);
+
 private:
     CARAPI FinishDecode(
         /* [in] */ IBitmap* bm,
@@ -145,10 +149,6 @@ private:
         /* [in] */ SkStream* stream,
         /* [in] */ Int32 sampleSize,
         /* [in] */ Boolean ditherImage);
-
-    static CARAPI_(void) GetMimeTypeString(
-        /* [in] */ SkImageDecoder::Format format,
-        /* [out] */ String* typeStr);
 
     /*  make a deep copy of the asset, and return it as a stream, or NULL if there
         was an error.

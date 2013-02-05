@@ -1,0 +1,16 @@
+
+module
+{
+	
+    interface ILayerRasterizer {
+		
+		addLayer(
+			[in] IPaint* paint,
+			[in] Float dx,
+			[in] Float dy);
+
+		addLayerEx(
+			[in] IPaint* paint);
+    }
+
+}

@@ -17,3 +17,9 @@ void PathEffect::NativeDestructor(
 {
     nObj->safeUnref();
 }
+
+SkPathEffect* PathEffect::Ni()
+{
+	return mNativeInstance;
+}
+
