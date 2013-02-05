@@ -1,0 +1,63 @@
+
+module
+{
+    merge("hardware/usb/UsbAccessory.car");
+    merge("hardware/usb/UsbConstants.car");
+    merge("hardware/usb/UsbEndpoint.car");
+    merge("hardware/usb/UsbInterface.car");
+
+    class CUsbAccessory {
+        /**
+         * UsbAccessory should only be instantiated by UsbService implementation
+         * @hide
+         */
+        constructor(
+            [in] String manufacturer,
+            [in] String model,
+            [in] String description,
+            [in] String ver,
+            [in] String uri,
+            [in] String serial);
+
+        /**
+         * UsbAccessory should only be instantiated by UsbService implementation
+         * @hide
+         */
+        constructor(
+            [in] ArrayOf<String> strings);
+
+        interface IUsbAccessory;
+        interface IParcelable;
+    }
+
+    class CUsbEndpoint {
+        /**
+         * UsbEndpoint should only be instantiated by UsbService implementation
+         * @hide
+         */
+        constructor(
+            [in] Int32 address,
+            [in] Int32 attributes,
+            [in] Int32 size,
+            [in] Int32 interval);
+
+        interface IUsbEndpoint;
+        interface IParcelable;
+    }
+
+    class CUsbInterface {
+        /**
+         * UsbInterface should only be instantiated by UsbService implementation
+         * @hide
+         */
+        constructor(
+            [in] Int32 id,
+            [in] Int32 cls,
+            [in] Int32 subCls,
+            [in] Int32 protocol,
+            [in] ArrayOf<IParcelable*> endpoints);
+
+        interface IUsbInterface;
+        interface IParcelable;
+    }
+}
