@@ -88,10 +88,10 @@ private:
     CARAPI_(void) CloseStreamAndSendEndData();
 
 private:
-	static final int MSG_STATUS = 100;  // Send status to loader
-	static final int MSG_HEADERS = 101; // Send headers to loader
-	static final int MSG_DATA = 102;  // Send data to loader
-	static final int MSG_END = 103;  // Send endData to loader
+	static const Int32 MSG_STATUS = 100;  // Send status to loader
+	static const Int32 MSG_HEADERS = 101; // Send headers to loader
+	static const Int32 MSG_DATA = 102;  // Send data to loader
+	static const Int32 MSG_END = 103;  // Send endData to loader
 
 	ArrayOf<Byte> mData; // buffer to pass data to loader with.
 

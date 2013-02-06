@@ -18,7 +18,7 @@ public:
      */
     virtual CARAPI_(View) GetEmbeddedView(
         /* [in] */ Int32 NPP, 
-        /* [in] */ Context context) = 0;
+        /* [in] */ IContext* context) = 0;
 
     /**
      * Return a custom full-screen view to be displayed when the user requests
@@ -28,9 +28,9 @@ public:
      * @param context The current application's Context.
      * @return A custom View that will be managed by the application.
      */
-    virtual CARAPI_(View) getFullScreenView(
+    virtual CARAPI_(IView*) getFullScreenView(
         /* [in] */ Int32 NPP, 
-        /* [in] */ Context context) = 0;
+        /* [in] */ IContext* context) = 0;
 };
 
 #endif //__IPLUGINSTUB_H__

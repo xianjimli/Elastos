@@ -18,13 +18,13 @@ public:
      */
     /* package */
 	HttpAuthHandler(
-		/* [in] */ Network network);
+		/* [in] */ INetworkInfo* network);
 
 public:
     // Use to synchronize when making synchronous calls to
     // onReceivedHttpAuthRequest(). We can't use a single Boolean object for
     // both the lock and the state, because Boolean is immutable.
-    Object mRequestInFlightLock;
+    IInterface* mRequestInFlightLock;
     Boolean mRequestInFlight;
     String mUsername;
     String mPassword;
@@ -32,7 +32,7 @@ public:
 public:
     //@Override
 	virtual CARAPI_(void) HandleMessage(
-		/* [in] */ Message msg);
+		/* [in] */ IMessage* msg);
 
     /**
      * Helper method used to unblock handleAuthRequest(), which in the case of a
@@ -85,14 +85,14 @@ public:
      */
     /* package */
 	virtual CARAPI_(void) HandleAuthRequest(
-		/* [in] */ LoadListener loader);
+		/* [in] */ ILoadListener* loader);
 
     /**
      * Informs the WebView of a new set of credentials.
      * @hide Pending API council review
      */
 	static CARAPI_(void) OnReceivedCredentials(
-		/* [in] */ LoadListener loader,
+		/* [in] */ ILoadListener* loader,
 		/* [in] */ CString host, 
 		/* [in] */ CString realm, 
 		/* [in] */ CString username, 
@@ -118,7 +118,7 @@ private:
      * (like our subwindow and the main window).
      */
 
-	static const String LOGTAG = "network";
+	static const String LOGTAG;// = "network";
 
     /**
      * Network.
@@ -128,7 +128,7 @@ private:
     /**
      * Loader queue.
      */
-	LinkedList<LoadListener> mLoaderQueue;
+//	LinkedList<LoadListener> mLoaderQueue;
 
 
     // Message id for handling the user response

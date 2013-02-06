@@ -38,7 +38,7 @@ public:
      * @param location The new location, as a Location object.
      */
 	virtual CARAPI_(void) OnLocationChanged(
-		/* [in] */ Location location);
+		/* [in] */ ILocation* location);
 
     /**
      * LocationListener implementation.
@@ -50,7 +50,7 @@ public:
 	virtual CARAPI_(void) OnStatusChanged(
 		/* [in] */ CString providerName, 
 		/* [in] */ Int32 status, 
-		/* [in] */ Bundle extras);
+		/* [in] */ IBundle* extras);
 
     /**
      * LocationListener implementation.
@@ -88,7 +88,7 @@ private:
     // Native functions
 	static CARAPI_(void) NativeNewLocationAvailable(
 		/* [in] */ Int64 nativeObject, 
-		/* [in] */ Location location);
+		/* [in] */ ILocation* location);
 
 	static CARAPI_(void) NativeNewErrorAvailable(
 		/* [in] */ Int64 nativeObject, 
@@ -96,10 +96,10 @@ private:
 
 private:
 	// Log tag
-    static const CString TAG = "geolocationService";
+    static const CString TAG;// = "geolocationService";
 
 	Int64 mNativeObject;
-	LocationManager mLocationManager;
+	ILocationManager* mLocationManager;
 	Boolean mIsGpsEnabled;
 	Boolean mIsRunning;
 	Boolean mIsNetworkProviderAvailable;

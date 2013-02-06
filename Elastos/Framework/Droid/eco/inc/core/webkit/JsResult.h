@@ -6,7 +6,7 @@ class JsResult {
 public:
 	/*package*/ 
     JsResult(
-    	/* [in] */ CallbackProxy proxy, 
+    	/* [in] */ ICallbackProxy* proxy, 
     	/* [in] */ Boolean defaultVal);
 
 public:
@@ -37,7 +37,7 @@ protected:
      *  This is the caller of the prompt and is the object that is waiting.
      *  @hide
      */
-	const CallbackProxy mProxy;
+	const ICallbackProxy* mProxy;
 
     /* Wake up the WebCore thread. */
 	virtual CARAPI_(void) WakeUp();

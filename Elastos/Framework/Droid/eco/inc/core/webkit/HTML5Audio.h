@@ -22,7 +22,7 @@ public:
 public:
     //@Override
 	virtual CARAPI_(void) HandleMessage(
-		/* [in] */ Message msg);
+		/* [in] */ IMessage* msg);
 
     // event listeners for MediaPlayer
     // Those are called from the same thread we created the MediaPlayer
@@ -30,26 +30,26 @@ public:
 
     // MediaPlayer.OnBufferingUpdateListener
 	virtual CARAPI_(void) OnBufferingUpdate(
-		/* [in] */ MediaPlayer mp, 
+		/* [in] */ IMediaPlayer* mp, 
 		/* [in] */ Int32 percent);
 
     // MediaPlayer.OnCompletionListener;
 	virtual CARAPI_(void) OnCompletion(
-		/* [in] */ MediaPlayer mp);
+		/* [in] */ IMediaPlayer* mp);
 
     // MediaPlayer.OnErrorListener
 	virtual CARAPI_(Boolean) OnError(
-		/* [in] */ MediaPlayer mp, 
+		/* [in] */ IMediaPlayer* mp, 
 		/* [in] */ Int32 what, 
 		/* [in] */ Int32 extra);
 
     // MediaPlayer.OnPreparedListener
 	virtual CARAPI_(void) OnPrepared(
-		/* [in] */ MediaPlayer mp);
+		/* [in] */ IMediaPlayer* mp);
 
     // MediaPlayer.OnSeekCompleteListener
 	virtual CARAPI_(void) OnSeekComplete(
-		/* [in] */ MediaPlayer mp);
+		/* [in] */ IMediaPlayer* mp);
 
 private:
 	class TimeupdateTask : public TimerTask 
@@ -93,9 +93,9 @@ private:
 
 private:
     // Logging tag.
-	static const CString LOGTAG = "HTML5Audio";
+	static const CString LOGTAG;// = "HTML5Audio";
 
-	MediaPlayer mMediaPlayer;
+	IMediaPlayer* mMediaPlayer;
 
     // The C++ MediaPlayerPrivateAndroid object.
 	Int32 mNativePointer;

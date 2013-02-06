@@ -19,7 +19,7 @@ public:
      *
      * @deprecated Do not use, this interface is deprecated.
      */
-	virtual CARAPI_(CacheResult) Service(
+	virtual CARAPI_(ICacheManagerCacheResult*) Service(
 		/* [in] */ CString url, 
 		/* [in] */ IObjectStringMap* headers) = 0;
 
@@ -34,7 +34,7 @@ public:
      *
      * @deprecated Do not use, this interface is deprecated.
      */
-	virtual CARAPI_(PluginData) GetPluginData(
+	virtual CARAPI_(IPluginData*) GetPluginData(
 		/* [in] */ CString url, 
 		/* [in] */ IObjectStringMap* headers) = 0;
 };

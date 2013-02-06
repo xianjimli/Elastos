@@ -1,12 +1,14 @@
 #ifndef __FILELOADER_H__
 #define __FILELOADER_H__
 
+#include "StreamLoader.h"
+
 /**
  * This class is a concrete implementation of StreamLoader that uses a
  * file or asset as the source for the stream.
  *
  */
-class FileLoader extends StreamLoader {
+class FileLoader : public StreamLoader {
 
 public:
     // used for files under asset directory
@@ -15,7 +17,6 @@ public:
     static const Int32 TYPE_RES = 2;
     // generic file
     static const Int32 TYPE_FILE = 3;
-
     
 public:
     /**
@@ -39,18 +40,19 @@ protected:
 	virtual CARAPI_(Boolean) SetupStreamAndSendStatus();
 
     //@Override
-    virtual CARAPI_(void) BuildHeaders(Headers headers);
+    virtual CARAPI_(void) BuildHeaders(
+        /* [in] */ IHeaders* headers);
 
 private:
-    CString ErrString(
-    	/* [in] */ Exception ex);
+//    CString ErrString(
+//    	/* [in] */ Exception ex);
 
 private:
 	CString mPath;  // Full path to the file to load
 	Int32 mType;  // Indicates the type of the load
 	Boolean mAllowFileAccess; // Allow/block file system access
 
-	static const CString LOGTAG = "webkit";
+	static const CString LOGTAG;// = "webkit";
 };
 
 #endif //__FILELOADER_H__

@@ -59,7 +59,7 @@ public:
 	/* native */	
 	virtual CARAPI_(void) SetNetworkType(
 		/* [in] */ CString type, 
-		/* [in] */ String subtype);
+		/* [in] */ CString subtype);
 
 	/* native */
 	virtual CARAPI_(void) AddPackageNames(
@@ -150,8 +150,8 @@ private:
 
     /*native*/
     CARAPI_(void) NativeUpdatePluginDirectories(
-    	CARAPI_(String[]) directories, 
-    	CARAPI_(Boolean) reload);
+    	/* [in] */ ArrayOf<String> directories, 
+    	/* [in] */ Boolean reload);
 
 private:
 	// Identifier for the timer message.

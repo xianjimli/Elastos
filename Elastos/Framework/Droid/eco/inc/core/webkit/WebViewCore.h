@@ -547,7 +547,7 @@ public:
     static CARAPI_(void) ResumePriority();
 
     static CARAPI_(void) PauseUpdatePicture(
-    	/* [in] */ WebViewCore core);
+    	/* [in] */ WebViewCore* core);
 
     static CARAPI_(void) ResumeUpdatePicture(
     	/* [in] */ WebViewCore core);

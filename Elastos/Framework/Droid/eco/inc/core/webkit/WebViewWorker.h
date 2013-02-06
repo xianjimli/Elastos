@@ -15,12 +15,12 @@ public:
      */
 	struct CacheCreateData 
 	{
-        LoadListener mListener;
+        ILoadListener* mListener;
         CString mUrl;
         CString mMimeType;
         Int32 mStatusCode;
         Int64 mPostId;
-        Headers mHeaders;
+        IHeaders* mHeaders;
     };
 
     /**
@@ -28,7 +28,7 @@ public:
      */
 	struct CacheSaveData 
 	{
-        LoadListener mListener;
+        ILoadListener* mListener;
         CString mUrl;
         Int64 mPostId;
     };
@@ -38,7 +38,7 @@ public:
      */
 	struct CacheEncoding 
 	{
-        LoadListener mListener;
+        ILoadListener* mListener;
         CString mEncoding;
     };
 
@@ -47,13 +47,13 @@ public:
      */
 	struct CacheData 
 	{
-        LoadListener mListener;
-        ByteArrayBuilder.Chunk mChunk;
+        ILoadListener* mListener;
+        IByteArrayBuilderChunk* mChunk;
     };
 
 public:
 	/* synchronized */
-	static CARAPI_(WebViewWorker) GetHandler();
+	static CARAPI_(WebViewWorker*) GetHandler();
 
     // message ids
     static const Int32 MSG_ADD_STREAMLOADER = 101;
@@ -71,7 +71,7 @@ public:
 
     //@Override
 	virtual CARAPI_(void) HandleMessage(
-		/* [in] */ Message msg);
+		/* [in] */ IMessage* msg);
 
 private:
 	WebViewWorker(
@@ -82,9 +82,9 @@ private:
 
 	static Boolean mCacheTickersBlocked;
 
-	static const CString THREAD_NAME = "WebViewWorkerThread";
+	static const CString THREAD_NAME;// = "WebViewWorkerThread";
 
-	static WebViewWorker sWorkerHandler;
+	static WebViewWorker* sWorkerHandler;
 
 	static Map<LoadListener, CacheManager.CacheResult> mCacheResultMap;
 };

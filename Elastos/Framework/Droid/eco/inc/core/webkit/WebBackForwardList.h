@@ -32,7 +32,7 @@ public:
      *
      * synchronized
      */
-	virtual CARAPI_(int) GetCurrentIndex();
+	virtual CARAPI_(Int32) GetCurrentIndex();
 
     /**
      * Get the history item at the given index. The index range is from 0...n
@@ -41,8 +41,8 @@ public:
      *
      * synchronized
      */
-	virtual CARAPI_(WebHistoryItem) GetItemAtIndex(
-		/* [in] */ int index);
+	virtual CARAPI_(WebHistoryItem*) GetItemAtIndex(
+		/* [in] */ Int32 index);
 
     /**
      * Get the total size of the back/forward list.

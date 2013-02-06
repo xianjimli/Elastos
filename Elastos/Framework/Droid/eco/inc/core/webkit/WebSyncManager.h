@@ -35,7 +35,7 @@ protected:
 		/* [in] */ CString name);
 
 	virtual CARAPI_(void) onSyncInit();
-	virtual CARAPI_(Object) clone();
+	virtual CARAPI_(IInterface*) clone();
 
 protected:
 	// handler of the sync thread

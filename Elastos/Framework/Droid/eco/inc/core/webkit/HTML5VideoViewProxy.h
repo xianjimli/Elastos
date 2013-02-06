@@ -14,15 +14,15 @@ public:
     // A bunch event listeners for our VideoView
     // MediaPlayer.OnPreparedListener
 	virtual CARAPI_(void) OnPrepared(
-		/* [in] */ MediaPlayer mp);
+		/* [in] */ IMediaPlayer* mp);
 
     // MediaPlayer.OnCompletionListener;
 	virtual CARAPI_(void) OnCompletion(
-		/* [in] */ MediaPlayer mp);
+		/* [in] */ IMediaPlayer* mp);
 
     // MediaPlayer.OnErrorListener
 	virtual CARAPI_(Boolean) OnError(
-		/* [in] */ MediaPlayer mp, 
+		/* [in] */ IMediaPlayer* mp, 
 		/* [in] */ Int32 what, 
 		/* [in] */ Int32 extra);
 
@@ -35,9 +35,9 @@ public:
     // Handler for the messages from WebCore or Timer thread to the UI thread.
     //@Override
 	virtual CARAPI_(void) HandleMessage(
-		/* [in] */ Message msg);
+		/* [in] */ IMessage* msg);
 
-	virtual CARAPI_(Context) GetContext();
+	virtual CARAPI_(IContext*) GetContext();
 
     // The public methods below are all called from WebKit only.
     /**
@@ -45,7 +45,7 @@ public:
      * @param url is the URL of the video stream.
      */
 	virtual CARAPI_(void) Play(
-		/* [in] */ String url);
+		/* [in] */ CString url);
 
     /**
      * Seek into the video stream.
@@ -77,12 +77,12 @@ public:
      *
      * @return a new HTML5VideoViewProxy object.
      */
-	static CARAPI_(HTML5VideoViewProxy) GetInstance(
-		/* [in] */ WebViewCore webViewCore, 
+	static CARAPI_(HTML5VideoViewProxy*) GetInstance(
+		/* [in] */ WebViewCore* webViewCore, 
 		/* [in] */ Int32 nativePtr);
 
     /* package */ 
-	virtual CARAPI_(WebView) GetWebView();
+	virtual CARAPI_(IWebView*) GetWebView();
 
 public:
 	// The C++ MediaPlayerPrivateAndroid object.
@@ -95,7 +95,7 @@ private:
      * @param nativePtr is the C++ pointer to the MediaPlayerPrivate object.
      */
 	HTML5VideoViewProxy(
-		/* [in] */ WebView webView, 
+		/* [in] */ IWebView* webView, 
 		/* [in] */ Int32 nativePtr);
 
 private:
@@ -109,7 +109,7 @@ private:
 	public:
 		PosterDownloader(
 			/* [in] */ CString url, 
-			/* [in] */ HTML5VideoViewProxy proxy);
+			/* [in] */ HTML5VideoViewProxy* proxy);
 
         // Start the download. Called on WebCore thread.
 		virtual CARAPI_(void) Start();
@@ -134,14 +134,14 @@ private:
 		virtual CARAPI_(void) EndData();
 
 		virtual CARAPI_(void) Certificate(
-			/* [in] */ SslCertificate certificate);
+			/* [in] */ ISslCertificate* certificate);
 
 		virtual CARAPI_(void) Error(
 			/* [in] */ Int32 id, 
 			/* [in] */ CString description);
 
 		virtual CARAPI_(Boolean) HandleSslErrorRequest(
-			/* [in] */ SslError error);
+			/* [in] */ ISslError* error);
 
 	private:
         // Tears down the poster bytes stream. Called on network thread.
@@ -167,9 +167,9 @@ private:
         // The response status code.
 		Int32 mStatusCode;
         // The response headers.
-		Headers mHeaders;
+		IHeaders* mHeaders;
         // The handler to handle messages on the WebCore thread.
-		Handler mHandler;
+		IHandler* mHandler;
     };
 
 	static class VideoPlayer 
@@ -180,20 +180,20 @@ private:
 		static CARAPI_(void) Play(
 			/* [in] */ CString url, 
 			/* [in] */ Int32 time, 
-			/* [in] */ HTML5VideoViewProxy proxy,
-			/* [in] */ WebChromeClient client);
+			/* [in] */ HTML5VideoViewProxy* proxy,
+			/* [in] */ IWebChromeClient* client);
 
 		static CARAPI_(Boolean) IsPlaying(
-			/* [in] */ HTML5VideoViewProxy proxy);
+			/* [in] */ HTML5VideoViewProxy* proxy);
 
 		static CARAPI_(Int32) GetCurrentPosition();
 
 		static CARAPI_(void) Seek(
 			/* [in] */ Int32 time, 
-			/* [in] */ HTML5VideoViewProxy proxy);
+			/* [in] */ HTML5VideoViewProxy* proxy);
 
 		static CARAPI_(void) Pause(
-			/* [in] */ HTML5VideoViewProxy proxy);
+			/* [in] */ HTML5VideoViewProxy* proxy);
 
 		static CARAPI_(void) OnPrepared();
 
@@ -204,9 +204,9 @@ private:
         // http://b/issue?id=1973663 is fixed.
 		static VideoView mVideoView;
         // The progress view.
-		static View mProgressView;
+		static IView* mProgressView;
         // The container for the progress view and video view
-		static FrameLayout mLayout;
+		static IFrameLayout* mLayout;
         // The timer for timeupate events.
         // See http://www.whatwg.org/specs/web-apps/current-work/#event-media-timeupdate
 		static Timer mTimer;
@@ -216,7 +216,7 @@ private:
 		{
 		public:
 			TimeupdateTask(
-				/* [in] */ HTML5VideoViewProxy proxy);
+				/* [in] */ HTML5VideoViewProxy* proxy);
 
 			virtual CARAPI_(void) Run();
 
@@ -227,7 +227,7 @@ private:
         // The spec says the timer should fire every 250 ms or less.
 		static const Int32 TIMEUPDATE_PERIOD = 250;  // ms
 
-		static const WebChromeClient.CustomViewCallback mCallback;
+		static const IWebChromeClientCustomViewCallback* mCallback;
     };
 
 private:
@@ -235,7 +235,7 @@ private:
 	CARAPI_(void) CreateWebCoreHandler();
 
 	CARAPI_(void) DoSetPoster(
-		/* [in] */ Bitmap poster);
+		/* [in] */ IBitmap* poster);
 
 	CARAPI_(void) SendTimeupdate();
 
@@ -252,7 +252,7 @@ private:
 		/* [in] */ Int32 nativePointer);
 
 	CARAPI_(void) NativeOnPosterFetched(
-		/* [in] */ Bitmap poster, 
+		/* [in] */ IBitmap* poster, 
 		/* [in] */ Int32 nativePointer);
 
 	CARAPI_(void) NativeOnTimeupdate(
@@ -261,7 +261,7 @@ private:
 
 private:
 	// Logging tag.
-    static const CString LOGTAG = "HTML5VideoViewProxy";
+    static const CString LOGTAG;// = "HTML5VideoViewProxy";
 
     // Message Ids for WebCore thread -> UI thread communication.
 	static const Int32 PLAY                = 100;
@@ -276,19 +276,19 @@ private:
 	static const Int32 POSTER_FETCHED    = 202;
 	static const Int32 PAUSED            = 203;
 
-	static const CString COOKIE = "Cookie";
+	static const CString COOKIE;// = "Cookie";
 
     // Timer thread -> UI thread
 	static const Int32 TIMEUPDATE = 300;
 
 private:
     // The handler for WebCore thread messages;
-	Handler mWebCoreHandler;
+	IHandler* mWebCoreHandler;
     // The WebView instance that created this view.
-	WebView mWebView;
+	IWebView* mWebView;
     // The poster image to be shown when the video is not playing.
     // This ref prevents the bitmap from being GC'ed.
-	Bitmap mPoster;
+	IBitmap* mPoster;
     // The poster downloader.
 	PosterDownloader mPosterDownloader;
     // The seek position.

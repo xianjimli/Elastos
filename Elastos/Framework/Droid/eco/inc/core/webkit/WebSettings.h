@@ -12,7 +12,9 @@
 class WebSettings {
 
 public:
-	    /**
+    WebSettings();
+
+    /**
      * Package constructor to prevent clients from creating a new settings
      * instance.
      */

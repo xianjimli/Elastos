@@ -11,9 +11,9 @@ public:
     // Public functions
     // =========================================================================
 
-	static CARAPI_(LoadListener) GetLoadListener(
-		/* [in] */ Context context,
-		/* [in] */ BrowserFrame frame, 
+	static CARAPI_(ILoadListener*) GetLoadListener(
+		/* [in] */ IContext* context,
+		/* [in] */ IBrowserFrame* frame, 
 		/* [in] */ CString url, 
 		/* [in] */ Int32 nativeLoader,
 		/* [in] */ Boolean synchronous, 
@@ -27,8 +27,8 @@ public:
 	static CARAPI_(Int32) GetNativeLoaderCount();
 
     LoadListener(
-    	/* [in] */ Context context, 
-    	/* [in] */ BrowserFrame frame, 
+    	/* [in] */ IContext* context, 
+    	/* [in] */ IBrowserFrame* frame, 
     	/* [in] */ CString url,
     	/* [in] */ Int32 nativeLoader, 
     	/* [in] */ Boolean synchronous, 
@@ -45,14 +45,14 @@ public:
      * thread and the browser thread.
      */
 	virtual CARAPI_(void) HandleMessage(
-		/* [in] */ Message msg);
+		/* [in] */ IMessage* msg);
 
     /**
      * @return The loader's BrowserFrame.
      */
-    virtual CARAPI_(BrowserFrame) GetFrame();
+    virtual CARAPI_(IBrowserFrame*) GetFrame();
 
-    virtual CARAPI_(Context) GetContext();
+    virtual CARAPI_(IContext*) GetContext();
 
     /* package */ 
     virtual CARAPI_(Boolean) IsSynchronous();
@@ -69,7 +69,7 @@ public:
      * directly
      */
 	virtual CARAPI_(void) Headers(
-		/* [in] */ Headers headers);
+		/* [in] */ IHeaders* headers);
 
 
 
@@ -104,7 +104,7 @@ public:
      * was not secure
      */
 	virtual CARAPI_(void) Certificate(
-		/* [in] */ SslCertificate certificate);
+		/* [in] */ ISslCertificate* certificate);
 
     /**
      * Implementation of error handler for EventHandler.
@@ -153,7 +153,7 @@ public:
      * @return true if cached response is used.
      */
     virtual CARAPI_(Boolean) CheckCache(
-    	/* [in] */ Map<String, String> headers);
+    	/* [in] */ IObjectStringMap* headers);
 
     /**
      * SSL certificate error callback. Handles SSL error(s) on the way up
@@ -162,7 +162,7 @@ public:
      * directly
      */
 	virtual CARAPI_(Boolean) HandleSslErrorRequest(
-		/* [in] */ SslError error);
+		/* [in] */ ISslError* error);
 
     /**
      * @return HTTP authentication realm or null if none.
@@ -178,7 +178,7 @@ public:
     /**
      * @return The last SSL error or null if there is none
      */
-    virtual CARAPI_(SslError) SslError();
+    virtual CARAPI_(ISslError*) SslError();
 
     /**
      * Handles SSL error(s) on the way down from the user
@@ -209,7 +209,7 @@ public:
      */
     virtual CARAPI_(void) SetRequestData(
     	/* [in] */ String method, 
-    	/* [in] */ Map<String, String> headers, 
+    	/* [in] */ IObjectStringMap* headers, 
     	/* [in] */ ArrayOf<Byte> postData);
 
     /**
@@ -220,7 +220,7 @@ public:
     /**
      * @return The current WebAddress associated with this load.
      */
-    virtual CARAPI_(WebAddress) GetWebAddress();
+    virtual CARAPI_(IWebAddress*) GetWebAddress();
 
     /**
      * @return URL hostname (current URL).
@@ -235,7 +235,7 @@ public:
     virtual CARAPI_(Int64) PostIdentifier();
 
     virtual CARAPI_(void) AttachRequestHandle(
-    	/* [in] */ RequestHandle requestHandle);
+    	/* [in] */ RequestHandle* requestHandle);
 
     /*
      * This function is called from native WebCore code to
@@ -322,7 +322,7 @@ private:
 
     // Handle the certificate on the WebCore thread.
     CARAPI_(void) HandleCertificate(
-		/* [in] */ SslCertificate certificate);
+		/* [in] */ ISslCertificate* certificate);
 
     // Handle the error on the WebCore thread.
     CARAPI_(void) HandleError(
@@ -334,11 +334,11 @@ private:
 
     // Handle the ssl error on the WebCore thread.
     CARAPI_(void) HandleSslError(
-		/* [in] */ SslError error);
+		/* [in] */ ISslError* error);
 
 	// Does the header parsing work on the WebCore thread.
     CARAPI_(void) HandleHeaders(
-		/* [in] */ Headers headers);
+		/* [in] */ IHeaders* headers);
 
     // Commit the headers if the status code is not a redirect.
     CARAPI_(void) CommitHeadersCheckRedirect();
@@ -431,7 +431,7 @@ private:
      * synchronous load.
      */
     CARAPI_(void) SendMessageInternal(
-		/* [in] */ Message msg);
+		/* [in] */ IMessage* msg);
 
     //=========================================================================
     // native functions
@@ -516,23 +516,23 @@ private:
 	// This is the same regex that DOMImplementation uses to check for xml
     // content. Use this to check if another Activity wants to handle the
     // content before giving it to webkit.
-	static final String XML_MIME_TYPE =
-            "^[\\w_\\-+~!$\\^{}|.%'`#&*]+/" +
-            "[\\w_\\-+~!$\\^{}|.%'`#&*]+\\+xml$";
+	static const String XML_MIME_TYPE;// =
+       //     "^[\\w_\\-+~!$\\^{}|.%'`#&*]+/" +
+       //     "[\\w_\\-+~!$\\^{}|.%'`#&*]+\\+xml$";
 
 	/**
      * Parses the content-type header.
      * The first part only allows '-' if it follows x or X.
      */
-	static const Pattern CONTENT_TYPE_PATTERN =
-            Pattern.compile("^((?:[xX]-)?[a-zA-Z\\*]+/[\\w\\+\\*-]+[\\.[\\w\\+-]+]*)$");
+	static const Pattern CONTENT_TYPE_PATTERN;// =
+        //    Pattern.compile("^((?:[xX]-)?[a-zA-Z\\*]+/[\\w\\+\\*-]+[\\.[\\w\\+-]+]*)$");
 
     // This count is transferred from RequestHandle to LoadListener when
     // loading from the cache so that we can detect redirect loops that switch
     // between the network and the cache.
 	Int32 mCacheRedirectCount;
 
-	static const CString LOGTAG = "webkit";
+	static const CString LOGTAG;// = "webkit";
 
     // Messages used internally to communicate state between the
     // Network thread and the WebCore thread.
@@ -568,37 +568,37 @@ private:
 
 	static Int32 sNativeLoaderCount;
 
-	const ByteArrayBuilder mDataBuilder;
+	const IByteArrayBuilder* mDataBuilder;
 
-	CString   mUrl;
-	WebAddress mUri;
-	Boolean  mPermanent;
-	CString   mOriginalUrl;
-	Context  mContext;
-	BrowserFrame mBrowserFrame;
-	Int32      mNativeLoader;
-	CString   mMimeType;
-	CString   mEncoding;
-	CString   mTransferEncoding;
-	Int32      mStatusCode;
-	CString   mStatusText;
+	CString        mUrl;
+	IWebAddress*   mUri;
+	Boolean        mPermanent;
+	CString        mOriginalUrl;
+	IContext*      mContext;
+	IBrowserFrame* mBrowserFrame;
+	Int32          mNativeLoader;
+	CString        mMimeType;
+	CString        mEncoding;
+	CString        mTransferEncoding;
+	Int32          mStatusCode;
+	CString        mStatusText;
 
-	Boolean  mCancelled;  // The request has been cancelled.
-	Boolean  mAuthFailed;  // indicates that the prev. auth failed
-	CacheLoader mCacheLoader;
-	Boolean  mFromCache = false;
+	Boolean        mCancelled;  // The request has been cancelled.
+	Boolean        mAuthFailed;  // indicates that the prev. auth failed
+	CacheLoader    mCacheLoader;
+	Boolean        mFromCache;
 	HttpAuthHeader mAuthHeader;
-	Int32      mErrorID = OK;
-	CString   mErrorDescription;
-	SslError mSslError;
-	RequestHandle mRequestHandle;
-	RequestHandle mSslErrorRequestHandle;
-	Int64     mPostIdentifier;
+	Int32          mErrorID;
+	CString        mErrorDescription;
+	ISslError*     mSslError;
+	RequestHandle  mRequestHandle;
+	RequestHandle  mSslErrorRequestHandle;
+	Int64          mPostIdentifier;
 
     // Request data. It is only valid when we are doing a load from the
     // cache. It is needed if the cache returns a redirect
 	CString mMethod;
-	Map<String, String> mRequestHeaders;
+	IObjectStringMap* mRequestHeaders;
 	ArrayOf<Byte> mPostData;
     // Flag to indicate that this load is synchronous.
 	Boolean mSynchronous;
@@ -610,7 +610,7 @@ private:
 	const Boolean mIsMainResourceLoader;
 	const Boolean mUserGesture;
 
-	Headers mHeaders;
+	IHeaders* mHeaders;
 
 	const CString mUsername;
 	const CString mPassword;

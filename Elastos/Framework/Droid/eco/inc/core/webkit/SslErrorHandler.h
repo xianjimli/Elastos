@@ -6,11 +6,11 @@
  * passed as a parameter to BrowserCallback.displaySslErrorDialog and is meant
  * to receive the user's response.
  */
-public class SslErrorHandler extends Handler {
+public class SslErrorHandler : public Handler {
 
     //@Override
 	virtual CARAPI_(void) HandleMessage(
-		/* [in] */ Message msg);
+		/* [in] */ IMessage* msg);
 
     /**
      * Creates a new error handler with an empty loader queue.
@@ -24,7 +24,7 @@ public class SslErrorHandler extends Handler {
      */
     /* package */ 
 	virtual CARAPI_(Boolean) SaveState(
-		/* [in] */ Bundle outState);
+		/* [in] */ IBundle* outState);
 
     /**
      * Restores this handler's state from a map.
@@ -32,7 +32,7 @@ public class SslErrorHandler extends Handler {
      */
     /* package */ 
 	virtual CARAPI_(Boolean) RestoreState(
-		/* [in] */ Bundle inState);
+		/* [in] */ IBundle* inState);
 
     /**
      * Clears SSL error preference table.
@@ -45,7 +45,7 @@ public class SslErrorHandler extends Handler {
      */
     /* package */
 	virtual CARAPI_(void) handleSslErrorRequest(
-		/* [in] */ LoadListener loader);
+		/* [in] */ ILoadListener* loader);
 
     /**
      * Check the preference table for a ssl error that has already been shown
@@ -53,8 +53,8 @@ public class SslErrorHandler extends Handler {
      */
     /* package */
 	virtual CARAPI_(Boolean) CheckSslPrefTable(
-		/* [in] */ LoadListener loader,
-		/* [in] */ SslError error);
+		/* [in] */ ILoadListener* loader,
+		/* [in] */ ISslError* error);
 
     /**
      * Processes queued SSL-error confirmation requests in
@@ -79,16 +79,17 @@ public class SslErrorHandler extends Handler {
      */
     /* package */
 	virtual CARAPI_(void) HandleSslErrorResponse(
-		/* [in] */ LoadListener loader,
-		/* [in] */ SslError error, boolean proceed);
+		/* [in] */ ILoadListener* loader,
+		/* [in] */ ISslError* error, 
+        /* [in] */ Boolean proceed);
 
 private:
 	/**
      * Create a new error handler that will be passed to the client.
      */
 	SslErrorHandler(
-		/* [in] */ SslErrorHandler origin, 
-		/* [in] */ LoadListener listener);
+		/* [in] */ ISslErrorHandler* origin, 
+		/* [in] */ ILoadListener* listener);
 
 	/**
      * Processes the next loader in the queue.
@@ -103,7 +104,7 @@ private:
      * that have SSL-related problems and process errors one by one in the
      * order they were received.
      */
-	static const String LOGTAG = "network";
+	static const String LOGTAG;// = "network";
 
     /**
      * Queue of loaders that experience SSL-related problems.
@@ -113,11 +114,11 @@ private:
     /**
      * SSL error preference table.
      */
-	Bundle mSslPrefTable;
+	IBundle* mSslPrefTable;
 
     // These are only used in the client facing SslErrorHandler.
-	const SslErrorHandler mOriginHandler;
-	const LoadListener mLoadListener;
+	const ISslErrorHandler* mOriginHandler;
+	const ILoadListener* mLoadListener;
 
     // Message id for handling the response
 	static const Int32 HANDLE_RESPONSE = 100;

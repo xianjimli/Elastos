@@ -14,7 +14,7 @@ public:
 
     /*package*/
 	JsPromptResult(
-		/* [in] */ CallbackProxy proxy);
+		/* [in] */ ICallbackProxy* proxy);
 
 public:
     /**

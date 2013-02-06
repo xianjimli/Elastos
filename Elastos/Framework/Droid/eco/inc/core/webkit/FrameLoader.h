@@ -1,17 +1,19 @@
 #ifndef __FRAMELOADER_H__
 #define __FRAMELOADER_H__
 
+#include "WebSettings.h"
+
 class FrameLoader {
 
 public:
-    static const CString HEADER_STR = "text/xml, text/html, " +
-        "application/xhtml+xml, image/png, text/plain, */*;q=0.8";
+    static const CString HEADER_STR;// = "text/xml, text/html, " +
+        //"application/xhtml+xml, image/png, text/plain, */*;q=0.8";
 
 public:
     FrameLoader(
-    	/* [in] */ LoadListener listener, 
-    	/* [in] */ WebSettings settings,
-    	/* [in] */ String method);
+    	/* [in] */ ILoadListener* listener, 
+    	/* [in] */ WebSettings* settings,
+    	/* [in] */ CString method);
 
 	virtual CARAPI_(void) SetReferrer(
 		/* [in] */ CString ref);
@@ -26,9 +28,9 @@ public:
 		/* [in] */ Int32 cacheMode);
 
 	virtual CARAPI_(void) SetHeaders(
-		/* [in] */ HashMap headers);
+		/* [in] */ IHashMap* headers);
 
-	virtual CARAPI_(LoadListener) GetLoadListener();
+	virtual CARAPI_(ILoadListener*) GetLoadListener();
 
     /**
      * Issues the load request.
@@ -42,9 +44,9 @@ public:
 
     /* package */
     static CARAPI_(Boolean) HandleLocalFile(
-    	/* [in] */ String url, 
-    	/* [in] */ LoadListener loadListener,
-    	/* [in] */ WebSettings settings);
+    	/* [in] */ CString url, 
+    	/* [in] */ ILoadListener* loadListener,
+    	/* [in] */ WebSettings* settings);
 
     virtual CARAPI_(Boolean) HandleHTTPLoad();
 
@@ -54,7 +56,7 @@ private:
      * setup a load from the byte stream in a CacheResult.
      */
     CARAPI_(void) StartCacheLoad(
-    	/* [in] */ CacheResult result);
+    	/* [in] */ ICacheManagerCacheResult* result);
 
     /*
      * This function is used by the handleHTTPLoad to setup the cache headers
@@ -75,26 +77,26 @@ private:
 	CARAPI_(void) PopulateHeaders();
 
 private:
-	const LoadListener mListener;
+	const ILoadListener* mListener;
 	const CString mMethod;
 	const WebSettings mSettings;
-	Map<String, String> mHeaders;
+	IObjectStringMap* mHeaders;
 	ArrayOf<Byte> mPostData;
-	Network mNetwork;
+	INetworkInfo* mNetwork;
 	Int32 mCacheMode;
 	CString mReferrer;
 	CString mContentType;
 
 	static const Int32 URI_PROTOCOL = 0x100;
 
-	static const CString CONTENT_TYPE = "content-type";
+	static const CString CONTENT_TYPE;// = "content-type";
 
     // Contents of an about:blank page
-	static const CString mAboutBlank =
-            "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EB\">" +
-            "<html><head><title>about:blank</title></head><body></body></html>";
+	static const CString mAboutBlank;// =
+            //"<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EB\">" +
+            //"<html><head><title>about:blank</title></head><body></body></html>";
 
-	static const CString LOGTAG = "webkit";
+	static const CString LOGTAG;// = "webkit";
 };
 
 #endif //__FRAMELOADER_H__

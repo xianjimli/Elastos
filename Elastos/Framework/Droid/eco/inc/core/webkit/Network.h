@@ -9,8 +9,8 @@ public:
      *
      * synchronized
      */
-	static CARAPI_(Network) GetInstance(
-		/* [in] */ Context context);
+	static CARAPI_(Network*) GetInstance(
+		/* [in] */ IContext* context);
 
     /**
      * Enables data state and proxy tracking
@@ -34,9 +34,9 @@ public:
      */
 	virtual CARAPI_(Boolean) RequestURL(
 		/* [in] */ CString method,
-		/* [in] */ Map<String, String> headers,
+		/* [in] */ IObjectStringMap* headers,
 		/* [in] */ ArrayOf<Byte> postData,
-		/* [in] */ LoadListener loader);
+		/* [in] */ ILoadListener* loader);
 
     /**
      * @return True iff there is a valid proxy set.
@@ -91,7 +91,7 @@ public:
      * @return True iff succeeds.
      */
 	virtual CARAPI_(Boolean) SaveState(
-		/* [in] */ Bundle outState);
+		/* [in] */ IBundle* outState);
 
     /**
      * Restores the state of network handlers (user SSL and HTTP-authentication
@@ -100,7 +100,7 @@ public:
      * @return True iff succeeds.
      */
 	virtual CARAPI_(Boolean) RestoreState(
-		/* [in] */ Bundle inState);
+		/* [in] */ IBundle* inState);
 
     /**
      * Clears user SSL-error preference table.
@@ -113,12 +113,12 @@ public:
      * @param loader The loader that resulted in SSL errors.
      */
 	virtual CARAPI_(void) HandleSslErrorRequest(
-		/* [in] */ LoadListener loader);
+		/* [in] */ ILoadListener* loader);
 
     /* package */ 
 	virtual CARAPI(Boolean) CheckSslPrefTable(
-		/* [in] */ LoadListener loader,
-		/* [in] */ SslError error);
+		/* [in] */ ILoadListener* loader,
+		/* [in] */ ISslError* error);
 
     /**
      * Handles authentication requests on their way up to the user (the user
@@ -127,7 +127,7 @@ public:
      * authentication request.
      */
 	virtual CARAPI_(void) HandleAuthRequest(
-		/* [in] */ LoadListener loader);
+		/* [in] */ ILoadListener* loader);
 
     // Performance probe
 	virtual CARAPI_(void) StartTiming();
@@ -140,16 +140,16 @@ private:
      * XXX: Must be created in the same thread as WebCore!!!!!
      */
 	Network(
-		/* [in] */ Context context);
+		/* [in] */ IContext* context);
 
 private:
 
-	static const CString LOGTAG = "network";
+	static const CString LOGTAG;// = "network";
 
     /**
      * Static instance of a Network object.
      */
-	static Network sNetwork;
+	static Network* sNetwork;
     
     /**
      * Flag to store the state of platform notifications, for the case
@@ -183,7 +183,7 @@ private:
      * SSL error handler: takes care of synchronization of multiple async
      * loaders with SSL-related problems.
      */
-	SslErrorHandler mSslErrorHandler;
+	ISslErrorHandler* mSslErrorHandler;
 
     /**
      * HTTP authentication handler: takes care of synchronization of HTTP

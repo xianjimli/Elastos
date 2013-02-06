@@ -7,11 +7,11 @@ public:
     class ChildView 
     {
     public:
-        int x;
-        int y;
-        int width;
-        int height;
-        View mView; // generic view to show
+        Int32 x;
+        Int32 y;
+        Int32 width;
+        Int32 height;
+        IView* mView; // generic view to show
 
 	public:
         ChildView();
@@ -59,7 +59,7 @@ public:
 
     virtual CARAPI_(void) PostReadyToDrawAll();
 
-    virtual CARAPI_(ChildView) HitTest(
+    virtual CARAPI_(ChildView*) HitTest(
     	/* [in] */ Int32 contentX, 
     	/* [in] */ Int32 contentY);
 

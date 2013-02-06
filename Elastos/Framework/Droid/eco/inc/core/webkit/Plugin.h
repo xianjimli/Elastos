@@ -15,7 +15,7 @@ public:
 	class PreferencesClickHandler {
 	public:
 		virtual CARAPI_(void) handleClickEvent(
-			/* [in] */ Context context) = 0;
+			/* [in] */ IContext* context) = 0;
     };
 
     /**
@@ -70,7 +70,7 @@ public:
      */
     //@Deprecated
 	virtual CARAPI_(void) SetName(
-		/* [in] */ String name);
+		/* [in] */ CString name);
 
     /**
      * @deprecated This interface was intended to be used by Gears. Since Gears was
@@ -102,7 +102,7 @@ public:
      */
     //@Deprecated
 	virtual CARAPI_(void) SetClickHandler(
-		/* [in] */ PreferencesClickHandler handler);
+		/* [in] */ PreferencesClickHandler* handler);
 
    /**
     * Invokes the click handler for this plugin.
@@ -112,7 +112,7 @@ public:
     */
     //@Deprecated
 	virtual CARAPI_(void) DispatchClickEvent(
-		/* [in] */ Context context);
+		/* [in] */ IContext* context);
 
 private:
    /**
@@ -128,7 +128,7 @@ private:
 	public:       
         //@Deprecated
 		virtual CARAPI_(void) HandleClickEvent(
-			/* [in] */ Context context);
+			/* [in] */ IContext* context);
 
         /**
          * @deprecated This interface was intended to be used by Gears. Since Gears was
@@ -136,7 +136,7 @@ private:
          */
         //@Deprecated
 		virtual CARAPI_(void) OnClick(
-			/* [in] */ DialogInterface dialog, 
+			/* [in] */ IDialogInterface* dialog, 
 			/* [in] */ Int32 which);
 
     private:
