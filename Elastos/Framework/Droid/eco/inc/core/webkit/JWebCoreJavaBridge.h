@@ -1,7 +1,8 @@
 #ifndef __JWEBCOREJAVABRIDGE_H_
 #define __JWEBCOREJAVABRIDGE_H_
 
-class JWebCoreJavaBridge : public Handler {
+class JWebCoreJavaBridge //: public Handler 
+{
 
 public:
 

@@ -5,6 +5,8 @@ include $(MAKEDIR)/../../../../sources.inc
 
 INCLUDES += $(MAKEDIR)/../../../inc/core
 INCLUDES += ../
+INCLUDES += $(PREBUILD_INC)/skia/utils
+INCLUDES += $(PREBUILD_INC)/skia/core
 
 C_DEFINES += -D_FRAMEWORK_CORE
 
