@@ -1,0 +1,12 @@
+
+module
+{
+	interface IValueCallback {
+
+	    /**
+	     * Invoked when we have the result
+	     */
+	    OnReceiveValue(
+	       [in] IInterface* value);
+	}
+}

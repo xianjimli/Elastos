@@ -1,0 +1,103 @@
+
+module
+{
+    interface IValueCallback;
+
+	interface IWebStorageQuotaUpdater {
+	        UpdateQuota(
+	           [in] Int64 newQuota);
+	}
+
+	interface IWebStorage {	    
+
+	    /**
+	     * @hide
+	     * Message handler, UI side
+	     */
+	    CreateUIHandler();
+
+	    /**
+	     * @hide
+	     * Message handler, webcore side
+	     */
+	    CreateHandler();
+
+	    /*
+	     * When calling getOrigins(), getUsageForOrigin() and getQuotaForOrigin(),
+	     * we need to get the values from webcore, but we cannot block while doing so
+	     * as we used to do, as this could result in a full deadlock (other webcore
+	     * messages received while we are still blocked here, see http://b/2127737).
+	     *
+	     * We have to do everything asynchronously, by providing a callback function.
+	     * We post a message on the webcore thread (mHandler) that will get the result
+	     * from webcore, and we post it back on the UI thread (using mUIHandler).
+	     * We can then use the callback function to return the value.
+	     */
+
+	    /**
+	     * Returns a list of origins having a database
+	     */
+	    GetOrigins(
+	       [in] IValueCallback* callBack);
+
+	    /**
+	     * Returns a list of origins having a database
+	     * should only be called from WebViewCore.
+	     */
+	    GetOriginsSync();
+
+	    /**
+	     * Returns the use for a given origin
+	     */
+	    GetUsageForOrigin(
+	       [in] CString origin, 
+	       [in] IValueCallback* callBack);
+
+	    /**
+	     * Returns the quota for a given origin
+	     */
+	    GetQuotaForOrigin(
+	       [in] CString origin, 
+	       [in] IValueCallback* callBack);
+
+	    /**
+	     * Set the quota for a given origin
+	     */
+	    SetQuotaForOrigin(
+	       [in] CString origin, 
+	       [in] Int64 quota);
+
+	    /**
+	     * Delete a given origin
+	     */
+	    DeleteOrigin(
+	       [in] CString origin);
+
+	    /**
+	     * Delete all databases
+	     */
+	    DeleteAllData();
+
+	    /**
+	     * Sets the maximum size of the ApplicationCache.
+	     * This should only ever be called on the WebKit thread.
+	     * @hide Pending API council approval
+	     */
+	    SetAppCacheMaximumSize(
+	       [in] Int64 size);
+
+	    /**
+	     * Get the global instance of WebStorage.
+	     * @return A single instance of WebStorage.
+	     */
+	    GetInstance(
+	       [out] IWebStorage** instance);
+
+	    /**
+	     * @hide
+	     * Post a Sync request
+	     */
+	    Update();
+	}
+
+}

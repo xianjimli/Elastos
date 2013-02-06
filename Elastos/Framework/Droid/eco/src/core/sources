@@ -35,6 +35,7 @@ INCLUDES += $(MAKEDIR)/../../inc/core/systemui/
 INCLUDES += $(MAKEDIR)/../../inc/core/systemui/statusbar
 INCLUDES += $(MAKEDIR)/../../inc/core/hardware/usb
 INCLUDES += $(MAKEDIR)/../../inc/core/provider
+INCLUDES += $(MAKEDIR)/../../inc/core/webkit/
 
 ifeq "$(XDK_TARGET_PLATFORM)" "linux"
 INCLUDES += $(PREBUILD_INC)/skia/utils
@@ -69,8 +70,10 @@ LIBRARIES += statusbar/statusbar.lib
 LIBRARIES += location/location.lib
 LIBRARIES += systemui/systemui.lib
 LIBRARIES += hardware/hardware.lib
-LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.Logging.lib
+LIBRARIES += webkit/webkit.lib
 
+
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.Logging.lib
 ifeq "$(XDK_TARGET_PLATFORM)" "win32"
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Runtime.lib
 LIBRARIES += $(XDK_LIB_PATH)/KD.lib

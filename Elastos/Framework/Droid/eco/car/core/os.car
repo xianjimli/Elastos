@@ -18,6 +18,8 @@ module
     merge("os/storage/IMountShutdownObserver.car");
     merge("os/storage/IObbActionListener.car");
     merge("os/storage/IMountService.car");
+    merge("os/Handler.car");
+    merge("os/Message.car");
 
     class CRemoteCallbackList {
         constructor();

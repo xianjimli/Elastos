@@ -1,0 +1,18 @@
+
+module
+{
+	interface IConsoleMessage {
+
+		MessageLevel(
+		   [out] Int32* messageLevel);
+
+		Message(
+		   [out] String* message);
+
+		SourceId(
+		   [out] String* sourceId);
+
+		LineNumber(
+		   [out] Int32* lineNumber);
+	}
+}

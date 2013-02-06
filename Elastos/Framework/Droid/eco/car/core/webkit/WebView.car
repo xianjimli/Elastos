@@ -1,0 +1,1221 @@
+
+module
+{
+
+	/**
+     * URI scheme for telephone number
+     */
+    const SCHEME_TEL = "tel:";
+    /**
+     * URI scheme for email address
+     */
+    const SCHEME_MAILTO = "mailto:";
+    /**
+     * URI scheme for map address
+     */
+    const SCHEME_GEO = "geo:0,0?q=";
+
+
+    /**
+     * Default HitTestResult, where the target is unknown
+     */
+	const UNKNOWN_TYPE = 0;
+    /**
+     * HitTestResult for hitting a HTML::a tag
+     */
+	const ANCHOR_TYPE = 1;
+    /**
+     * HitTestResult for hitting a phone number
+     */
+	const PHONE_TYPE = 2;
+    /**
+     * HitTestResult for hitting a map address
+     */
+	const GEO_TYPE = 3;
+    /**
+     * HitTestResult for hitting an email address
+     */
+	const EMAIL_TYPE = 4;
+    /**
+     * HitTestResult for hitting an HTML::img tag
+     */
+	const IMAGE_TYPE = 5;
+    /**
+     * HitTestResult for hitting a HTML::a tag which contains HTML::img
+     */
+	const IMAGE_ANCHOR_TYPE = 6;
+    /**
+     * HitTestResult for hitting a HTML::a tag with src=http
+     */
+	const SRC_ANCHOR_TYPE = 7;
+    /**
+     * HitTestResult for hitting a HTML::a tag with src=http + HTML::img
+     */
+	const SRC_IMAGE_ANCHOR_TYPE = 8;
+    /**
+     * HitTestResult for hitting an edit text area
+     */
+	const EDIT_TEXT_TYPE = 9;
+
+	interface IAbsoluteLayout;
+	interface IWebView;
+	interface IPicture;
+	interface IContext;
+	interface ISslCertificate;
+	interface IBundle;
+	interface IMessage;
+	interface IView;
+	interface IWebViewClient;
+	interface IDownloadListener;
+	interface IWebChromeClient;
+	interface IWebBackForwardListClient;
+	interface ICanvas;
+	interface IViewGroupLayoutParams;
+	interface IEditorInfo;
+	interface IKeyEvent;
+	interface IMotionEvent;
+	interface IRect;
+
+	interface IWebViewTransport {
+        
+        /**
+         * Set the WebView to the transportation object.
+         * @param webview The WebView to transport.
+         *
+         * synchronized
+         */
+		SetWebView(
+		   [in] IWebView* webview);
+
+        /**
+         * Return the WebView object.
+         * @return WebView The transported WebView object.
+         *
+         * synchronized
+         */
+		GetWebView();
+    }
+
+    /**
+     * Interface to listen for new pictures as they change.
+     */
+	interface IWebViewPictureListener {
+        /**
+         * Notify the listener that the picture has changed.
+         * @param view The WebView that owns the picture.
+         * @param picture The new picture.
+         */
+		OnNewPicture(
+		   [in] IWebView* view, 
+		   [in] IPicture* picture);
+    }
+
+    // FIXME: Want to make this public, but need to change the API file.
+	interface IWebViewHitTestResult {
+
+		GetType();
+
+		GetExtra();
+    }
+
+    /** @hide */
+	interface IWebViewDragTracker {
+
+		OnStartDrag(
+		   [in] Float x, 
+		   [in] Float y);
+
+		OnStretchChange(
+		   [in] Float sx, 
+		   [in] Float sy);
+
+		OnStopDrag();
+
+		OnBitmapChange(
+		   [in] IBitmap* bm);
+
+		OnDraw(
+		   [in] ICanvas* canvas);
+    }
+
+	interface IWebView extends IAbsoluteLayout
+	{
+
+		UpdateMultiTouchSupport(
+		   [in] IContext* context);
+
+	    //@Override
+/*		SetOverScrollMode(
+		   [in] Int32 mode);*/
+
+	    //@Override
+/*		SetScrollBarStyle(
+		   [in] Int32 style);*/
+
+	    /**
+	     * Specify whether the horizontal scrollbar has overlay style.
+	     * @param overlay TRUE if horizontal scrollbar should have overlay style.
+	     */
+		SetHorizontalScrollbarOverlay(
+		   [in] Boolean overlay);
+
+	    /**
+	     * Specify whether the vertical scrollbar has overlay style.
+	     * @param overlay TRUE if vertical scrollbar should have overlay style.
+	     */
+		SetVerticalScrollbarOverlay(
+		   [in] Boolean overlay);
+
+	    /**
+	     * Return whether horizontal scrollbar has overlay style
+	     * @return TRUE if horizontal scrollbar has overlay style.
+	     */
+		OverlayHorizontalScrollbar();
+
+	    /**
+	     * Return whether vertical scrollbar has overlay style
+	     * @return TRUE if vertical scrollbar has overlay style.
+	     */
+		OverlayVerticalScrollbar();
+
+		/**
+	     * @return The SSL certificate for the main top-level page or null if
+	     * there is no certificate (the site is not secure).
+	     */
+		GetCertificate();
+
+	    /**
+	     * Sets the SSL certificate for the main top-level page.
+	     */
+		SetCertificate(
+		   [in] ISslCertificate* certificate);
+
+	    //-------------------------------------------------------------------------
+	    // Methods called by activity
+	    //-------------------------------------------------------------------------
+
+	    /**
+	     * Save the username and password for a particular host in the WebView's
+	     * internal database.
+	     * @param host The host that required the credentials.
+	     * @param username The username for the given host.
+	     * @param password The password for the given host.
+	     */
+		SavePassword(
+		   [in] CString host, 
+		   [in] CString username, 
+		   [in] CString password);
+
+	    /**
+	     * Set the HTTP authentication credentials for a given host and realm.
+	     *
+	     * @param host The host for the credentials.
+	     * @param realm The realm for the credentials.
+	     * @param username The username for the password. If it is null, it means
+	     *                 password can't be saved.
+	     * @param password The password
+	     */
+		SetHttpAuthUsernamePassword(
+		   [in] CString host, 
+		   [in] CString realm,
+		   [in] CString username, 
+		   [in] CString password);
+
+	    /**
+	     * Retrieve the HTTP authentication username and password for a given
+	     * host & realm pair
+	     *
+	     * @param host The host for which the credentials apply.
+	     * @param realm The realm for which the credentials apply.
+	     * @return String[] if found, String[0] is username, which can be null and
+	     *         String[1] is password. Return null if it can't find anything.
+	     */
+		GetHttpAuthUsernamePassword(
+		   [in] CString host, 
+		   [in] CString realm);
+
+	    /**
+	     * Destroy the internal state of the WebView. This method should be called
+	     * after the WebView has been removed from the view system. No other
+	     * methods may be called on a WebView after destroy.
+	     */
+		Destroy();
+
+	    /**
+	     * Enables platform notifications of data state and proxy changes.
+	     */
+		EnablePlatformNotifications();
+
+	    /**
+	     * If platform notifications are enabled, this should be called
+	     * from the Activity's onPause() or onStop().
+	     */
+		DisablePlatformNotifications();
+
+	    /**
+	     * Sets JavaScript engine flags.
+	     *
+	     * @param flags JS engine flags in a String
+	     *
+	     * @hide pending API solidification
+	     */
+		SetJsFlags(
+		   [in] CString flags);
+
+	    /**
+	     * Inform WebView of the network state. This is used to set
+	     * the javascript property window.navigator.isOnline and
+	     * generates the online/offline event as specified in HTML5, sec. 5.7.7
+	     * @param networkUp boolean indicating if network is available
+	     */
+		SetNetworkAvailable(
+		   [in] Boolean networkUp);
+
+	    /**
+	     * Inform WebView about the current network type.
+	     * {@hide}
+	     */
+		SetNetworkType(
+		   [in] CString type, 
+		   [in] CString subtype);
+
+	    /**
+	     * Save the state of this WebView used in
+	     * {@link android.app.Activity#onSaveInstanceState}. Please note that this
+	     * method no longer stores the display data for this WebView. The previous
+	     * behavior could potentially leak files if {@link #restoreState} was never
+	     * called. See {@link #savePicture} and {@link #restorePicture} for saving
+	     * and restoring the display data.
+	     * @param outState The Bundle to store the WebView state.
+	     * @return The same copy of the back/forward list used to save the state. If
+	     *         saveState fails, the returned list will be null.
+	     * @see #savePicture
+	     * @see #restorePicture
+	     */
+		SaveState(
+		   [in] IBundle* outState);
+
+	    /**
+	     * Save the current display data to the Bundle given. Used in conjunction
+	     * with {@link #saveState}.
+	     * @param b A Bundle to store the display data.
+	     * @param dest The file to store the serialized picture data. Will be
+	     *             overwritten with this WebView's picture data.
+	     * @return True if the picture was successfully saved.
+	     */
+		SavePicture(
+		   [in] IBundle* b, 
+		   [in] IFile* dest);
+
+	    /**
+	     * Restore the display data that was save in {@link #savePicture}. Used in
+	     * conjunction with {@link #restoreState}.
+	     * @param b A Bundle containing the saved display data.
+	     * @param src The file where the picture data was stored.
+	     * @return True if the picture was successfully restored.
+	     */
+		RestorePicture(
+		   [in] IBundle* b, 
+		   [in] IFile* src);
+
+	    /**
+	     * Restore the state of this WebView from the given map used in
+	     * {@link android.app.Activity#onRestoreInstanceState}. This method should
+	     * be called to restore the state of the WebView before using the object. If
+	     * it is called after the WebView has had a chance to build state (load
+	     * pages, create a back/forward list, etc.) there may be undesirable
+	     * side-effects. Please note that this method no longer restores the
+	     * display data for this WebView. See {@link #savePicture} and {@link
+	     * #restorePicture} for saving and restoring the display data.
+	     * @param inState The incoming Bundle of state.
+	     * @return The restored back/forward list or null if restoreState failed.
+	     * @see #savePicture
+	     * @see #restorePicture
+	     */
+		RestoreState(
+		   [in] IBundle* inState);
+
+	    /**
+	     * Load the given url with the extra headers.
+	     * @param url The url of the resource to load.
+	     * @param extraHeaders The extra headers sent with this url. This should not
+	     *            include the common headers like "user-agent". If it does, it
+	     *            will be replaced by the intrinsic value of the WebView.
+	     */
+		LoadUrlEx(
+		   [in] CString url, 
+		   [in] IObjectStringMap* extraHeaders);
+
+	    /**
+	     * Load the given url.
+	     * @param url The url of the resource to load.
+	     */
+		LoadUrl(
+		   [in] CString url);
+
+	    /**
+	     * Load the url with postData using "POST" method into the WebView. If url
+	     * is not a network url, it will be loaded with {link
+	     * {@link #loadUrl(String)} instead.
+	     *
+	     * @param url The url of the resource to load.
+	     * @param postData The data will be passed to "POST" request.
+	     */
+		PostUrl(
+		   [in] CString url, 
+		   [in] ArrayOf<Byte> postData);
+
+	    /**
+	     * Load the given data into the WebView. This will load the data into
+	     * WebView using the data: scheme. Content loaded through this mechanism
+	     * does not have the ability to load content from the network.
+	     * @param data A String of data in the given encoding. The date must
+	     * be URI-escaped -- '#', '%', '\', '?' should be replaced by %23, %25,
+	     * %27, %3f respectively.
+	     * @param mimeType The MIMEType of the data. i.e. text/html, image/jpeg
+	     * @param encoding The encoding of the data. i.e. utf-8, base64
+	     */
+		LoadData(
+		   [in] CString data, 
+		   [in] CString mimeType, 
+		   [in] CString encoding);
+
+	    /**
+	     * Load the given data into the WebView, use the provided URL as the base
+	     * URL for the content. The base URL is the URL that represents the page
+	     * that is loaded through this interface. As such, it is used to resolve any
+	     * relative URLs. The historyUrl is used for the history entry.
+	     * <p>
+	     * Note for post 1.0. Due to the change in the WebKit, the access to asset
+	     * files through "file:///android_asset/" for the sub resources is more
+	     * restricted. If you provide null or empty string as baseUrl, you won't be
+	     * able to access asset files. If the baseUrl is anything other than
+	     * http(s)/ftp(s)/about/javascript as scheme, you can access asset files for
+	     * sub resources.
+	     *
+	     * @param baseUrl Url to resolve relative paths with, if null defaults to
+	     *            "about:blank"
+	     * @param data A String of data in the given encoding.
+	     * @param mimeType The MIMEType of the data. i.e. text/html. If null,
+	     *            defaults to "text/html"
+	     * @param encoding The encoding of the data. i.e. utf-8, us-ascii
+	     * @param historyUrl URL to use as the history entry.  Can be null.
+	     */
+		LoadDataWithBaseURL(
+		   [in] CString baseUrl, 
+		   [in] CString data,
+		   [in] CString mimeType, 
+		   [in] CString encoding, 
+		   [in] CString historyUrl);
+
+	    /**
+	     * Stop the current load.
+	     */
+		StopLoading();
+
+	    /**
+	     * Reload the current url.
+	     */
+		Reload();
+
+	    /**
+	     * Return true if this WebView has a back history item.
+	     * @return True iff this WebView has a back history item.
+	     */
+		CanGoBack();
+
+	    /**
+	     * Go back in the history of this WebView.
+	     */
+		GoBack();
+
+	    /**
+	     * Return true if this WebView has a forward history item.
+	     * @return True iff this Webview has a forward history item.
+	     */
+		CanGoForward();
+
+	    /**
+	     * Go forward in the history of this WebView.
+	     */
+		GoForward();
+
+	    /**
+	     * Return true if the page can go back or forward the given
+	     * number of steps.
+	     * @param steps The negative or positive number of steps to move the
+	     *              history.
+	     */
+		CanGoBackOrForward(
+		   [in] Int32 steps);
+
+	    /**
+	     * Go to the history item that is the number of steps away from
+	     * the current item. Steps is negative if backward and positive
+	     * if forward.
+	     * @param steps The number of steps to take back or forward in the back
+	     *              forward list.
+	     */
+		GoBackOrForward(
+		   [in] Int32 steps);
+
+	    /**
+	     * Scroll the contents of the view up by half the view size
+	     * @param top true to jump to the top of the page
+	     * @return true if the page was scrolled
+	     */
+		PageUp(
+		   [in] Boolean top);
+
+	    /**
+	     * Scroll the contents of the view down by half the page size
+	     * @param bottom true to jump to bottom of page
+	     * @return true if the page was scrolled
+	     */
+		PageDown(
+		   [in] Boolean bottom);
+
+	    /**
+	     * Clear the view so that onDraw() will draw nothing but white background,
+	     * and onMeasure() will return 0 if MeasureSpec is not MeasureSpec.EXACTLY
+	     */
+		ClearView();
+
+	    /**
+	     * Return a new picture that captures the current display of the webview.
+	     * This is a copy of the display, and will be unaffected if the webview
+	     * later loads a different URL.
+	     *
+	     * @return a picture containing the current contents of the view. Note this
+	     *         picture is of the entire document, and is not restricted to the
+	     *         bounds of the view.
+	     */
+		CapturePicture();
+
+	    /**
+	     * Return the current scale of the WebView
+	     * @return The current scale.
+	     */
+		GetScale();
+
+	    /**
+	     * Set the initial scale for the WebView. 0 means default. If
+	     * {@link WebSettings#getUseWideViewPort()} is true, it zooms out all the
+	     * way. Otherwise it starts with 100%. If initial scale is greater than 0,
+	     * WebView starts will this value as initial scale.
+	     *
+	     * @param scaleInPercent The initial scale in percent.
+	     */
+		SetInitialScale(
+		   [in] Int32 scaleInPercent);
+
+	    /**
+	     * Invoke the graphical zoom picker widget for this WebView. This will
+	     * result in the zoom widget appearing on the screen to control the zoom
+	     * level of this WebView.
+	     */
+		InvokeZoomPicker();
+
+	    /**
+	     * Return a HitTestResult based on the current cursor node. If a HTML::a tag
+	     * is found and the anchor has a non-javascript url, the HitTestResult type
+	     * is set to SRC_ANCHOR_TYPE and the url is set in the "extra" field. If the
+	     * anchor does not have a url or if it is a javascript url, the type will
+	     * be UNKNOWN_TYPE and the url has to be retrieved through
+	     * {@link #requestFocusNodeHref} asynchronously. If a HTML::img tag is
+	     * found, the HitTestResult type is set to IMAGE_TYPE and the url is set in
+	     * the "extra" field. A type of
+	     * SRC_IMAGE_ANCHOR_TYPE indicates an anchor with a url that has an image as
+	     * a child node. If a phone number is found, the HitTestResult type is set
+	     * to PHONE_TYPE and the phone number is set in the "extra" field of
+	     * HitTestResult. If a map address is found, the HitTestResult type is set
+	     * to GEO_TYPE and the address is set in the "extra" field of HitTestResult.
+	     * If an email address is found, the HitTestResult type is set to EMAIL_TYPE
+	     * and the email is set in the "extra" field of HitTestResult. Otherwise,
+	     * HitTestResult type is set to UNKNOWN_TYPE.
+	     */
+		GetHitTestResult();
+
+	    /**
+	     * Request the href of an anchor element due to getFocusNodePath returning
+	     * "href." If hrefMsg is null, this method returns immediately and does not
+	     * dispatch hrefMsg to its target.
+	     *
+	     * @param hrefMsg This message will be dispatched with the result of the
+	     *            request as the data member with "url" as key. The result can
+	     *            be null.
+	     */
+	    // FIXME: API change required to change the name of this function.  We now
+	    // look at the cursor node, and not the focus node.  Also, what is
+	    // getFocusNodePath?
+		RequestFocusNodeHref(
+		   [in] IMessage* hrefMsg);
+
+	    /**
+	     * Request the url of the image last touched by the user. msg will be sent
+	     * to its target with a String representing the url as its object.
+	     *
+	     * @param msg This message will be dispatched with the result of the request
+	     *            as the data member with "url" as key. The result can be null.
+	     */
+		RequestImageRef(
+		   [in] IMessage* msg);
+
+	    /**
+	     * Add or remove a title bar to be embedded into the WebView, and scroll
+	     * along with it vertically, while remaining in view horizontally. Pass
+	     * null to remove the title bar from the WebView, and return to drawing
+	     * the WebView normally without translating to account for the title bar.
+	     * @hide
+	     */
+		SetEmbeddedTitleBar(
+		   [in] IView* v);
+
+	    /**
+	     * Get the url for the current page. This is not always the same as the url
+	     * passed to WebViewClient.onPageStarted because although the load for
+	     * that url has begun, the current page may not have changed.
+	     * @return The url for the current page.
+	     */
+		GetUrl();
+
+	    /**
+	     * Get the original url for the current page. This is not always the same
+	     * as the url passed to WebViewClient.onPageStarted because although the
+	     * load for that url has begun, the current page may not have changed.
+	     * Also, there may have been redirects resulting in a different url to that
+	     * originally requested.
+	     * @return The url that was originally requested for the current page.
+	     */
+		GetOriginalUrl();
+
+	    /**
+	     * Get the title for the current page. This is the title of the current page
+	     * until WebViewClient.onReceivedTitle is called.
+	     * @return The title for the current page.
+	     */
+		GetTitle();
+
+	    /**
+	     * Get the favicon for the current page. This is the favicon of the current
+	     * page until WebViewClient.onReceivedIcon is called.
+	     * @return The favicon for the current page.
+	     */
+		GetFavicon();
+
+	    /**
+	     * Get the touch icon url for the apple-touch-icon <link> element.
+	     * @hide
+	     */
+		GetTouchIconUrl();
+
+	    /**
+	     * Get the progress for the current page.
+	     * @return The progress for the current page between 0 and 100.
+	     */
+		GetProgress();
+
+	    /**
+	     * @return the height of the HTML content.
+	     */
+		GetContentHeight();
+
+	    /**
+	     * @return the width of the HTML content.
+	     * @hide
+	     */
+		GetContentWidth();
+
+	    /**
+	     * Pause all layout, parsing, and javascript timers for all webviews. This
+	     * is a global requests, not restricted to just this webview. This can be
+	     * useful if the application has been paused.
+	     */
+		PauseTimers();
+
+	    /**
+	     * Resume all layout, parsing, and javascript timers for all webviews.
+	     * This will resume dispatching all timers.
+	     */
+		ResumeTimers();
+
+	    /**
+	     * Call this to pause any extra processing associated with this view and
+	     * its associated DOM/plugins/javascript/etc. For example, if the view is
+	     * taken offscreen, this could be called to reduce unnecessary CPU and/or
+	     * network traffic. When the view is again "active", call onResume().
+	     *
+	     * Note that this differs from pauseTimers(), which affects all views/DOMs
+	     * @hide
+	     */
+		OnPause();
+
+	    /**
+	     * Call this to balanace a previous call to onPause()
+	     * @hide
+	     */
+		OnResume();
+
+	    /**
+	     * Returns true if the view is paused, meaning onPause() was called. Calling
+	     * onResume() sets the paused state back to false.
+	     * @hide
+	     */
+		IsPaused();
+
+	    /**
+	     * Call this to inform the view that memory is low so that it can
+	     * free any available memory.
+	     */
+		FreeMemory();
+
+	    /**
+	     * Clear the resource cache. Note that the cache is per-application, so
+	     * this will clear the cache for all WebViews used.
+	     *
+	     * @param includeDiskFiles If false, only the RAM cache is cleared.
+	     */
+		ClearCache(
+		   [in] Boolean includeDiskFiles);
+
+	    /**
+	     * Make sure that clearing the form data removes the adapter from the
+	     * currently focused textfield if there is one.
+	     */
+		ClearFormData();
+
+	    /**
+	     * Tell the WebView to clear its internal back/forward list.
+	     */
+		ClearHistory();
+
+	    /**
+	     * Clear the SSL preferences table stored in response to proceeding with SSL
+	     * certificate errors.
+	     */
+		ClearSslPreferences();
+
+	    /**
+	     * Return the WebBackForwardList for this WebView. This contains the
+	     * back/forward list for use in querying each item in the history stack.
+	     * This is a copy of the private WebBackForwardList so it contains only a
+	     * snapshot of the current state. Multiple calls to this method may return
+	     * different objects. The object returned from this method will not be
+	     * updated to reflect any new state.
+	     */
+		CopyBackForwardList();
+
+	    /*
+	     * Highlight and scroll to the next occurance of String in findAll.
+	     * Wraps the page infinitely, and scrolls.  Must be called after
+	     * calling findAll.
+	     *
+	     * @param forward Direction to search.
+	     */
+		FindNext(
+		   [in] Boolean forward);
+
+	    /*
+	     * Find all instances of find on the page and highlight them.
+	     * @param find  String to find.
+	     * @return int  The number of occurances of the String "find"
+	     *              that were found.
+	     */
+		FindAll(
+		   [in] CString find);
+
+	    /**
+	     * @hide
+	     */
+		SetFindIsUp(
+		   [in] Boolean isUp);
+
+	    /**
+	     * @hide
+	     */
+		FindIndex();
+
+	    /**
+	     * Return the first substring consisting of the address of a physical
+	     * location. Currently, only addresses in the United States are detected,
+	     * and consist of:
+	     * - a house number
+	     * - a street name
+	     * - a street type (Road, Circle, etc), either spelled out or abbreviated
+	     * - a city name
+	     * - a state or territory, either spelled out or two-letter abbr.
+	     * - an optional 5 digit or 9 digit zip code.
+	     *
+	     * All names must be correctly capitalized, and the zip code, if present,
+	     * must be valid for the state. The street type must be a standard USPS
+	     * spelling or abbreviation. The state or territory must also be spelled
+	     * or abbreviated using USPS standards. The house number may not exceed
+	     * five digits.
+	     * @param addr The string to search for addresses.
+	     *
+	     * @return the address, or if no address is found, return null.
+	     */
+		FindAddress(
+		   [in] CString addr);
+
+	    /**
+	     * @hide
+	     * Return the first substring consisting of the address of a physical
+	     * location. Currently, only addresses in the United States are detected,
+	     * and consist of:
+	     * - a house number
+	     * - a street name
+	     * - a street type (Road, Circle, etc), either spelled out or abbreviated
+	     * - a city name
+	     * - a state or territory, either spelled out or two-letter abbr.
+	     * - an optional 5 digit or 9 digit zip code.
+	     *
+	     * Names are optionally capitalized, and the zip code, if present,
+	     * must be valid for the state. The street type must be a standard USPS
+	     * spelling or abbreviation. The state or territory must also be spelled
+	     * or abbreviated using USPS standards. The house number may not exceed
+	     * five digits.
+	     * @param addr The string to search for addresses.
+	     * @param caseInsensitive addr Set to true to make search ignore case.
+	     *
+	     * @return the address, or if no address is found, return null.
+	     */
+		FindAddressEx(
+		   [in] CString addr, 
+		   [in] Boolean caseInsensitive);
+
+	    /*
+	     * Clear the highlighting surrounding text matches created by findAll.
+	     */
+		ClearMatches();
+
+	    /**
+	     * @hide
+	     */
+		NotifyFindDialogDismissed();
+
+	    /**
+	     * @hide
+	     */
+		SetFindDialogHeight(
+		   [in] Int32 height);
+
+	    /**
+	     * Query the document to see if it contains any image references. The
+	     * message object will be dispatched with arg1 being set to 1 if images
+	     * were found and 0 if the document does not reference any images.
+	     * @param response The message that will be dispatched with the result.
+	     */
+		DocumentHasImages(
+		   [in] IMessage* response);
+
+	    //@Override
+//		ComputeScroll();
+
+	    /**
+	     * Set the WebViewClient that will receive various notifications and
+	     * requests. This will replace the current handler.
+	     * @param client An implementation of WebViewClient.
+	     */
+		SetWebViewClient(
+		   [in] IWebViewClient* client);
+
+	    /**
+	     * Gets the WebViewClient
+	     * @return the current WebViewClient instance.
+	     *
+	     *@hide pending API council approval.
+	     */
+		GetWebViewClient();
+
+	    /**
+	     * Register the interface to be used when content can not be handled by
+	     * the rendering engine, and should be downloaded instead. This will replace
+	     * the current handler.
+	     * @param listener An implementation of DownloadListener.
+	     */
+		SetDownloadListener(
+		   [in] IDownloadListener* listener);
+
+	    /**
+	     * Set the chrome handler. This is an implementation of WebChromeClient for
+	     * use in handling Javascript dialogs, favicons, titles, and the progress.
+	     * This will replace the current handler.
+	     * @param client An implementation of WebChromeClient.
+	     */
+		SetWebChromeClient(
+		   [in] IWebChromeClient* client);
+
+	    /**
+	     * Gets the chrome handler.
+	     * @return the current WebChromeClient instance.
+	     *
+	     * @hide API council approval.
+	     */
+		GetWebChromeClient();
+
+	    /**
+	     * Set the back/forward list client. This is an implementation of
+	     * WebBackForwardListClient for handling new items and changes in the
+	     * history index.
+	     * @param client An implementation of WebBackForwardListClient.
+	     * {@hide}
+	     */
+		SetWebBackForwardListClient(
+		   [in] IWebBackForwardListClient* client);
+
+	    /**
+	     * Gets the WebBackForwardListClient.
+	     * {@hide}
+	     */
+		GetWebBackForwardListClient();
+
+	    /**
+	     * Set the Picture listener. This is an interface used to receive
+	     * notifications of a new Picture.
+	     * @param listener An implementation of WebView.PictureListener.
+	     */
+		SetPictureListener(
+		   [in] IWebViewPictureListener* listener);
+
+	    /**
+	     * {@hide}
+	     */
+	    /* FIXME: Debug only! Remove for SDK! */
+		ExternalRepresentation(
+		   [in] IMessage* callBack);
+
+	    /**
+	     * {@hide}
+	     */
+	    /* FIXME: Debug only! Remove for SDK! */
+		DocumentAsText(
+		   [in] IMessage* callBack);
+
+	    /**
+	     * Use this function to bind an object to Javascript so that the
+	     * methods can be accessed from Javascript.
+	     * <p><strong>IMPORTANT:</strong>
+	     * <ul>
+	     * <li> Using addJavascriptInterface() allows JavaScript to control your
+	     * application. This can be a very useful feature or a dangerous security
+	     * issue. When the HTML in the WebView is untrustworthy (for example, part
+	     * or all of the HTML is provided by some person or process), then an
+	     * attacker could inject HTML that will execute your code and possibly any
+	     * code of the attacker's choosing.<br>
+	     * Do not use addJavascriptInterface() unless all of the HTML in this
+	     * WebView was written by you.</li>
+	     * <li> The Java object that is bound runs in another thread and not in
+	     * the thread that it was constructed in.</li>
+	     * </ul></p>
+	     * @param obj The class instance to bind to Javascript
+	     * @param interfaceName The name to used to expose the class in Javascript
+	     */
+		AddJavascriptInterface(
+		   [in] IInterface* obj, 
+		   [in] CString interfaceName);
+
+	    /**
+	     * Return the WebSettings object used to control the settings for this
+	     * WebView.
+	     * @return A WebSettings object that can be used to control this WebView's
+	     *         settings.
+	     */
+		GetSettings();
+
+	    /**
+	     * Use this method to inform the webview about packages that are installed
+	     * in the system. This information will be used by the
+	     * navigator.isApplicationInstalled() API.
+	     * @param packageNames is a set of package names that are known to be
+	     * installed in the system.
+	     *
+	     * @hide not a public API
+	     */
+		AddPackageNames(
+		   [in] IObjectContainer* packageNames);
+
+	    /**
+	     * Use this method to inform the webview about single packages that are
+	     * installed in the system. This information will be used by the
+	     * navigator.isApplicationInstalled() API.
+	     * @param packageName is the name of a package that is known to be
+	     * installed in the system.
+	     *
+	     * @hide not a public API
+	     */
+		AddPackageName(
+		   [in] CString packageName);
+
+	    /**
+	     * Use this method to inform the webview about packages that are uninstalled
+	     * in the system. This information will be used by the
+	     * navigator.isApplicationInstalled() API.
+	     * @param packageName is the name of a package that has been uninstalled in
+	     * the system.
+	     *
+	     * @hide not a public API
+	     */
+		RemovePackageName(
+		   [in] CString packageName);
+
+	   /**
+	    * Return the list of currently loaded plugins.
+	    * @return The list of currently loaded plugins.
+	    *
+	    * @deprecated This was used for Gears, which has been deprecated.
+	    * synchronized
+	    */
+		GetPluginList();
+
+	   /**
+	    * @deprecated This was used for Gears, which has been deprecated.
+	    */
+		RefreshPlugins(
+		   [in] Boolean reloadOpenPages);
+
+	    //-------------------------------------------------------------------------
+	    // Override View methods
+	    //-------------------------------------------------------------------------
+
+	    //@Override
+/*		Draw(
+		   [in] ICanvas* canvas);*/
+
+	    //@Override
+/*		SetLayoutParams(
+		   [in] IViewGroupLayoutParams* params);*/
+
+	    //@Override
+//		PerformLongClick();
+
+	    //@Override
+/*		OnCreateInputConnection(
+		   [in] IEditorInfo* outAttrs);*/
+
+	    /**
+	     * Dump the display tree to "/sdcard/displayTree.txt"
+	     *
+	     * @hide debug only
+	     */
+		DumpDisplayTree();
+
+	    /**
+	     * Dump the dom tree to adb shell if "toFile" is False, otherwise dump it to
+	     * "/sdcard/domTree.txt"
+	     *
+	     * @hide debug only
+	     */
+		DumpDomTree(
+		   [in] Boolean toFile);
+
+	    /**
+	     * Dump the render tree to adb shell if "toFile" is False, otherwise dump it
+	     * to "/sdcard/renderTree.txt"
+	     *
+	     * @hide debug only
+	     */
+		DumpRenderTree(
+		   [in] Boolean toFile);
+
+	    /**
+	     * Dump the V8 counters to standard output.
+	     * Note that you need a build with V8 and WEBCORE_INSTRUMENTATION set to
+	     * true. Otherwise, this will do nothing.
+	     *
+	     * @hide debug only
+	     */
+		DumpV8Counters();
+
+	    //@Override
+		OnKeyMultiple(
+		   [in] Int32 keyCode, 
+		   [in] Int32 repeatCount, 
+		   [in] IKeyEvent* event);
+
+	    //@Override
+		OnKeyDown(
+		   [in] Int32 keyCode, 
+		   [in] IKeyEvent* event);
+
+	    //@Override
+		OnKeyUp(
+		   [in] Int32 keyCode, 
+		   [in] IKeyEvent* event);
+
+	    /**
+	     * @hide pending API council approval.
+	     */
+		SetUpSelect();
+
+	    /**
+	     * Use this method to put the WebView into text selection mode.
+	     * Do not rely on this functionality; it will be deprecated in the future.
+	     */
+		EmulateShiftHeld();
+
+	    /**
+	     * @hide pending API council approval.
+	     */
+		SelectAll();
+
+	    /**
+	     * @hide pending API council approval.
+	     */
+		SelectDialogIsUp();
+
+	    /**
+	     * @hide pending API council approval.
+	     */
+		NotifySelectDialogDismissed();
+
+	    /**
+	     * @hide pending API council approval.
+	     */
+		SelectionDone();
+
+	    /**
+	     * @hide pending API council approval.
+	     */
+		CopySelection();
+
+	    /**
+	     * @hide pending API council approval.
+	     */
+		GetSelection();
+
+	    /**
+	     * @deprecated WebView no longer needs to implement
+	     * ViewGroup.OnHierarchyChangeListener.  This method does nothing now.
+	     */
+		OnChildViewAdded(
+		   [in] IView* parent, 
+		   [in] IView* child);
+
+	    /**
+	     * @deprecated WebView no longer needs to implement
+	     * ViewGroup.OnHierarchyChangeListener.  This method does nothing now.
+	     */
+		OnChildViewRemoved(
+		   [in] IView* p, 
+		   [in] IView* child);
+
+	    /**
+	     * @deprecated WebView should not have implemented
+	     * ViewTreeObserver.OnGlobalFocusChangeListener.  This method
+	     * does nothing now.
+	     */
+		OnGlobalFocusChanged(
+		   [in] IView* oldFocus, 
+		   [in] IView* newFocus);
+
+	    // To avoid drawing the cursor ring, and remove the TextView when our window
+	    // loses focus.
+	    //@Override
+/*		OnWindowFocusChanged(
+		   [in] Boolean hasWindowFocus);*/
+
+	    //@Override
+/*		DispatchKeyEvent(
+		   [in] IKeyEvent* event);*/
+
+	    /** @hide */
+		GetDragTracker();
+
+	    /** @hide */
+		SetDragTracker(
+		   [in] IWebViewDragTracker* tracker);
+
+	    //@Override
+/*		OnTouchEvent(
+		   [in] IMotionEvent* ev);*/
+
+		SetMapTrackballToArrowKeys(
+		   [in] Boolean setMap);
+
+	    //@Override
+/*		OnTrackballEvent(
+		   [in] IMotionEvent* ev);*/
+
+		FlingScroll(
+		   [in] Int32 vx, 
+		   [in] Int32 vy);
+
+	    /**
+	     * Returns a view containing zoom controls i.e. +/- buttons. The caller is
+	     * in charge of installing this view to the view hierarchy. This view will
+	     * become visible when the user starts scrolling via touch and fade away if
+	     * the user does not interact with it.
+	     * <p/>
+	     * API version 3 introduces a built-in zoom mechanism that is shown
+	     * automatically by the MapView. This is the preferred approach for
+	     * showing the zoom UI.
+	     *
+	     * @deprecated The built-in zoom mechanism is preferred, see
+	     *             {@link WebSettings#setBuiltInZoomControls(boolean)}.
+	     */
+		GetZoomControls();
+
+	    /**
+	     * Gets the {@link ZoomButtonsController} which can be used to add
+	     * additional buttons to the zoom controls window.
+	     *
+	     * @return The instance of {@link ZoomButtonsController} used by this class,
+	     *         or null if it is unavailable.
+	     * @hide
+	     */
+		GetZoomButtonsController();
+
+	    /**
+	     * Perform zoom in in the webview
+	     * @return TRUE if zoom in succeeds. FALSE if no zoom changes.
+	     */
+		ZoomIn();
+
+	    /**
+	     * Perform zoom out in the webview
+	     * @return TRUE if zoom out succeeds. FALSE if no zoom changes.
+	     */
+		ZoomOut();
+
+/*	    //@Override
+		RequestFocus(
+		   [in] Int32 direction, 
+		   [in] IRect* previouslyFocusedRect);*/
+
+	    //@Override
+		RequestChildRectangleOnScreen(
+		   [in] IView* child,
+		   [in] IRect* rect,
+		   [in] Boolean immediate);
+
+	    /**
+	     * Set the background color. It's white by default. Pass
+	     * zero to make the view transparent.
+	     * @param color   the ARGB color described by Color.java
+	     */
+/*		SetBackgroundColor(
+		   [in] Int32 color);*/
+
+		DebugDump();
+
+	    /**
+	     * Draw the HTML page into the specified canvas. This call ignores any
+	     * view-specific zoom, scroll offset, or other changes. It does not draw
+	     * any view-specific chrome, such as progress or URL bars.
+	     *
+	     * @hide only needs to be accessible to Browser and testing
+	     */
+		DrawPage(
+		   [in] ICanvas* canvas);
+
+	    /**
+	     * Set the time to wait between passing touches to WebCore. See also the
+	     * TOUCH_SENT_INTERVAL member for further discussion.
+	     *
+	     * @hide This is only used by the DRT test application.
+	     */
+		SetTouchInterval(
+		   [in] Int32 interval);
+	}
+}

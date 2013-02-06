@@ -1,0 +1,16 @@
+
+module
+{
+	interface IJsResult {
+	   
+	    /**
+	     * Handle the result if the user cancelled the dialog.
+	     */
+		Cancel();
+
+	    /**
+	     * Handle a confirmation response from the user.
+	     */
+		Confirm();
+	}
+}

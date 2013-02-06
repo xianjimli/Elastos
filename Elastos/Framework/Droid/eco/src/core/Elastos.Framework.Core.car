@@ -29,4 +29,5 @@ module
     merge("../../car/core/location.car");
     merge("../../car/core/systemui.car");
     merge("../../car/core/hardware.car");
+    merge("../../car/core/webkit.car");
 }

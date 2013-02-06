@@ -1,0 +1,36 @@
+
+module
+{
+    /** must be >= 3 */
+    const DAY_COUNT = 5;
+
+	interface IDateSorter {
+
+	    /**
+	     * @param time time since the Epoch in milliseconds, such as that
+	     * returned by Calendar.getTimeInMillis()
+	     * @return an index from 0 to (DAY_COUNT - 1) that identifies which
+	     * date bin this date belongs to
+	     */
+	    GetIndex(
+	       [out] Int32* lastDay,
+	       [in] Int64 time);
+
+	    /**
+	     * @param index date bin index as returned by getIndex()
+	     * @return string label suitable for display to user
+	     */
+	    GetLabel(
+	       [out] String* label,
+	       [in] Int32 index);
+
+
+	    /**
+	     * @param index date bin index as returned by getIndex()
+	     * @return date boundary at given index
+	     */
+	    GetBoundary(
+	       [out] Int64* boundary,
+	       [in] Int32 index);
+	}
+}

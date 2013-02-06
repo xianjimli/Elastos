@@ -1,0 +1,59 @@
+
+module
+{
+	interface IPluginList {
+
+	   /**
+	    * Returns the list of plugins as a java.util.List.
+	    *
+	    * @deprecated This interface was intended to be used by Gears. Since Gears was
+	    * deprecated, so is this class.
+	    * synchronized
+	    */
+		GetList(
+		   [out] IObjectContainer** list);
+
+	   /**
+	    * Adds a plugin to the list.
+	    *
+	    * @deprecated This interface was intended to be used by Gears. Since Gears was
+	    * deprecated, so is this class.
+	    * synchronized
+	    */
+		AddPlugin(
+		   [in] IPlugin* plugin);
+
+	   /**
+	    * Removes a plugin from the list.
+	    *
+	    * @deprecated This interface was intended to be used by Gears. Since Gears was
+	    * deprecated, so is this class.
+	    *
+	    * synchronized
+	    */
+		RemovePlugin(
+		   [in] IPlugin* plugin);
+
+	   /**
+	    * Clears the plugin list.
+	    *
+	    * @deprecated This interface was intended to be used by Gears. Since Gears was
+	    * deprecated, so is this class.
+	    *
+	    * synchronized
+	    */
+		Clear();
+
+	   /**
+	    * Dispatches the click event to the appropriate plugin.
+	    *
+	    * @deprecated This interface was intended to be used by Gears. Since Gears was
+	    * deprecated, so is this class.
+	    *
+	    * synchronized
+	    */
+		PluginClicked(
+		   [in] IContext* context, 
+		   [in] Int32 position);
+	}
+}

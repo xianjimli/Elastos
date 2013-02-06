@@ -1,0 +1,78 @@
+
+module
+{
+	interface IBitmap;
+	interface IContentResolver;
+
+	interface IWebIconDatabaseIconListener {
+        /**
+         * Called when the icon has been retrieved from the database and the
+         * result is non-null.
+         * @param url The url passed in the request.
+         * @param icon The favicon for the given url.
+         */
+		OnReceivedIcon(
+		   [in] CString url, 
+		   [in] IBitmap* icon);
+    }
+
+	interface IWebIconDatabase {
+		
+		/**
+	     * Open a the icon database and store the icons in the given path.
+	     * @param path The directory path where the icon database will be stored.
+	     */
+		Open(
+		   [in] CString path);
+
+	    /**
+	     * Close the shared instance of the icon database.
+	     */
+		Close();
+
+	    /**
+	     * Removes all the icons in the database.
+	     */
+		RemoveAllIcons();
+
+	    /**
+	     * Request the Bitmap representing the icon for the given page
+	     * url. If the icon exists, the listener will be called with the result.
+	     * @param url The page's url.
+	     * @param listener An implementation on IconListener to receive the result.
+	     */
+		RequestIconForPageUrl(
+		   [in] CString url, 
+		   [in] IWebIconDatabaseIconListener* listener);
+
+	    /** {@hide}
+	     */
+		BulkRequestIconForPageUrl(
+		   [in] IContentResolver* cr, 
+		   [in] CString where,
+		   [in] IWebIconDatabaseIconListener* listener);
+
+	    /**
+	     * Retain the icon for the given page url.
+	     * @param url The page's url.
+	     */
+		RetainIconForPageUrl(
+		   [in] CString url);
+
+	    /**
+	     * Release the icon for the given page url.
+	     * @param url The page's url.
+	     */
+		ReleaseIconForPageUrl(
+		   [in] CString url);
+
+	    /**
+	     * Get the global instance of WebIconDatabase.
+	     * @return A single instance of WebIconDatabase. It will be the same
+	     *         instance for the current process each time this method is
+	     *         called.
+	     */
+		GetInstance(
+		   [out] IWebIconDatabase** instance);
+	}
+}

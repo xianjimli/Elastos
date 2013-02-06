@@ -507,7 +507,7 @@ module
     class CInputConnectionWrapper {
         constructor(
             [in] IInputConnection* target,
-            [in] Boolean mutable);
+            [in] Boolean bMutable);
 
         interface IInputConnection;
     }

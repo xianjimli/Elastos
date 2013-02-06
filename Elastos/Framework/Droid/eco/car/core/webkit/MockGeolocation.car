@@ -1,0 +1,28 @@
+
+module
+{
+	interface IMockGeolocation {
+
+	    /**
+	     * Set the position for the mock Geolocation service.
+	     */
+		SetPosition(
+		   [in] Double latitude, 
+		   [in] Double longitude, 
+		   [in] Double accuracy);
+
+	    /**
+	     * Set the error for the mock Geolocation service.
+	     */
+		SetError(
+		   [in] Int32 code, 
+		   [in] CString message);
+
+	    /**
+	     * Get the global instance of MockGeolocation.
+	     * @return The global MockGeolocation instance.
+	     */
+		GetInstance(
+		   [out] IMockGeolocation** instance);
+	}
+}

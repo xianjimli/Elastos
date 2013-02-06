@@ -1,0 +1,91 @@
+
+module
+{
+	// Message ids
+    const GET_ORIGINS_GP = 0;
+    const GET_ALLOWED = 1;
+    const CLEAR = 2;
+    const ALLOW = 3;
+    const CLEAR_ALL = 4;
+
+    // Message ids on the UI thread
+    const RETURN_ORIGINS_GP = 0;
+    const RETURN_ALLOWED = 1;
+
+    interface IValueCallback;
+
+    interface IGeolocationPermissionsCallback {
+        Invoke(
+           [in] CString origin, 
+           [in] Boolean allow, 
+           [in] Boolean remember);
+    }
+
+	interface IGeolocationPermissions {
+
+	    /**
+	     * Gets the singleton instance of the class.
+	     */
+	    GetInstance(
+	       [out] IGeolocationPermissions** instance);
+
+	    /**
+	     * Creates the UI message handler. Must be called on the UI thread.
+	     * @hide
+	     */
+	    CreateUIHandler();
+
+	    /**
+	     * Creates the message handler. Must be called on the WebKit thread.
+	     * @hide
+	     *
+	     * synchronized
+	     */
+	    CreateHandler();
+
+	    /**
+	     * Gets the set of origins for which Geolocation permissions are stored.
+	     * Note that we represent the origins as strings. These are created using
+	     * WebCore::SecurityOrigin::toString(). As long as all 'HTML 5 modules'
+	     * (Database, Geolocation etc) do so, it's safe to match up origins based
+	     * on this string.
+	     *
+	     * Callback is a ValueCallback object whose onReceiveValue method will be
+	     * called asynchronously with the set of origins.
+	     */
+	    GetOrigins(
+	       [in] IValueCallback* callBack);
+
+	    /**
+	     * Gets the permission state for the specified origin.
+	     *
+	     * Callback is a ValueCallback object whose onReceiveValue method will be
+	     * called asynchronously with the permission state for the origin.
+	     */
+	    GetAllowed(
+	       [in] CString origin, 
+	       [in] IValueCallback* callBack);
+
+	    /**
+	     * Clears the permission state for the specified origin. This method may be
+	     * called before the WebKit thread has intialized the message handler.
+	     * Messages will be queued until this time.
+	     */
+	    Clear(
+	       [in] CString origin);
+
+	    /**
+	     * Allows the specified origin. This method may be called before the WebKit
+	     * thread has intialized the message handler. Messages will be queued until
+	     * this time.
+	     */
+	    Allow(
+	       [in] CString origin);
+
+	    /**
+	     * Clears the permission state for all origins.
+	     */
+	    ClearAll();
+	}
+
+}

@@ -9,6 +9,12 @@ module
     merge("net/ConnectivityManager.car");
     merge("net/IConnectivityManager.car");
 
+    merge("net/http/Headers.car");
+    merge("net/http/SslCertificate.car");
+    merge("net/http/HttpAuthHandler.car");
+    merge("net/http/SslError.car");
+    merge("net/WebAddress.car");
+
     class CStringUri {
         constructor(
             [in] String uriString);
