@@ -17,15 +17,6 @@ ECode CAudioEffect::constructor(
     /* [in] */ Int32 proiority,
     /* [in] */ Int32 audioSession)
 {
-    return NOERROR;
-}
-
-ECode CAudioEffect::AudioEffect(
-    /* [in] */ //IUUID* type,
-    /* [in] */ //IUUID* uuid,
-    /* [in] */ Int32 proiority,
-    /* [in] */ Int32 audioSession)
-{
     ArrayOf_<Int32, 1> id;
     ArrayOf_< AutoPtr<IAudioEffectDescriptor>, 1> desc;
     // native initialization
@@ -72,13 +63,14 @@ ECode CAudioEffect::AudioEffect(
 ECode CAudioEffect::ReleaseIt()
 {
     Mutex::Autolock lock(mStateLock);
-    /*
-        synchronized (mStateLock) {
-            native_release();
-            mState = STATE_UNINITIALIZED;
-        }
-    */
-    return E_NOT_IMPLEMENTED;
+    Native_Release();
+    mState = AudioEffect_STATE_UNINITIALIZED;
+    return NOERROR;
+}
+
+void CAudioEffect::Finalize()
+{
+    Native_Finalize();
 }
 
 ECode CAudioEffect::GetDescriptor(
@@ -96,23 +88,24 @@ ECode CAudioEffect::GetDescriptor(
 ECode CAudioEffect::QueryEffects(
     /* [out, callee] */ ArrayOf<IAudioEffectDescriptor>** descriptor)
 {
-    return E_NOT_IMPLEMENTED;
+    /*
+    return (Descriptor[]) native_query_effects();
+    */
+    //E_NOT_IMPLEMENTED;
 }
 
 ECode CAudioEffect::SetEnabled(
     /* [in]  */ Boolean enabled,
     /* [out] */ Int32* result)
 {
-    CheckState("setEnabled()");
-    /*
-    return native_setEnabled(enabled);
-    */
-    return E_NOT_IMPLEMENTED;
+    CheckState("SetEnabled()");
+    return Native_SetEnabled(enabled);
 }
 
 ECode CAudioEffect::SetParameter(
     /* [in] */ const ArrayOf<Byte>& param,
-    /* [in] */ const ArrayOf<Byte>& value)
+    /* [in] */ const ArrayOf<Byte>& value,
+    /* [out] */ Int32* result)
 {
     CheckState("SetParameter()");
     /*
@@ -123,42 +116,45 @@ ECode CAudioEffect::SetParameter(
 
 ECode CAudioEffect::SetParameterEx(
     /* [in] */ Int32 param,
-    /* [in] */ Int32 value)
+    /* [in] */ Int32 value,
+    /* [out] */ Int32* result)
 {
-    /*
-    byte[] p = intToByteArray(param);
-    byte[] v = intToByteArray(value);
-    return setParameter(p, v);
-    */
-    return E_NOT_IMPLEMENTED;
+    ArrayOf<Byte>* p;
+    Int32ToByteArray(param, p);
+    ArrayOf<Byte>* v;
+    Int32ToByteArray(value, v);
+    SetParameter(*p, *v, result);
+    return NOERROR;
 }
 
 ECode CAudioEffect::SetParameterEx2(
     /* [in] */ Int32 param,
-    /* [in] */ Int16 value)
+    /* [in] */ Int16 value,
+    /* [out] */ Int32* result)
 {
-    /*
-    byte[] p = intToByteArray(param);
-    byte[] v = shortToByteArray(value);
-    return setParameter(p, v);
-    */
-    return E_NOT_IMPLEMENTED;
+    ArrayOf<Byte>* p;
+    Int32ToByteArray(param, p);
+    ArrayOf<Byte>* v;
+    Int16ToByteArray(value, v);
+    SetParameter(*p, *v, result);
+    return NOERROR;
 }
 
 ECode CAudioEffect::SetParameterEx3(
     /* [in] */ Int32 param,
-    /* [in] */ const ArrayOf<Byte>& value)
+    /* [in] */ const ArrayOf<Byte>& value,
+    /* [out] */ Int32* result)
 {
-    /*
-    byte[] p = intToByteArray(param);
-    return setParameter(p, value);
-    */
-    return E_NOT_IMPLEMENTED;
+    ArrayOf<Byte>* p;
+    Int32ToByteArray(param, p);
+    SetParameter(*p, value, result);
+    return NOERROR;
 }
 
 ECode CAudioEffect::SetParameterEx4(
     /* [in] */ const ArrayOf<Int32>& param,
-    /* [in] */ const ArrayOf<Int32>& value)
+    /* [in] */ const ArrayOf<Int32>& value,
+    /* [out] */ Int32* result)
 {
     if (param.GetLength() > 2 || value.GetLength() > 2) {
         return AudioEffect_ERROR_BAD_VALUE;
@@ -181,7 +177,8 @@ ECode CAudioEffect::SetParameterEx4(
 
 ECode CAudioEffect::SetParameterEx5(
     /* [in] */ const ArrayOf<Int32>& param,
-    /* [in] */ const ArrayOf<Int16>& value)
+    /* [in] */ const ArrayOf<Int16>& value,
+    /* [out] */ Int32* result)
 {
     if (param.GetLength() > 2 || value.GetLength() > 2) {
         return AudioEffect_ERROR_BAD_VALUE;
@@ -204,7 +201,8 @@ ECode CAudioEffect::SetParameterEx5(
 }
 ECode CAudioEffect::SetParameterEx6(
         /* [in] */ const ArrayOf<Int32>& param,
-        /* [in] */ const ArrayOf<Byte>& value)
+        /* [in] */ const ArrayOf<Byte>& value,
+        /* [out] */ Int32* result)
 {
     if (param.GetLength()> 2) {
         return AudioEffect_ERROR_BAD_VALUE;
@@ -357,7 +355,8 @@ ECode CAudioEffect::GetParameterEx5(
 
 ECode CAudioEffect::GetParameterEx6(
     /* [in] */ const ArrayOf<Int32>& param,
-    /* [in] */ const ArrayOf<Byte>& value)
+    /* [in] */ const ArrayOf<Byte>& value,
+    /* [out] */ Int32* status)
 {
     if (param.GetLength() > 2) {
         return AudioEffect_ERROR_BAD_VALUE;
@@ -484,6 +483,92 @@ void CAudioEffect::CreateNativeEventHandler()
     //E_NOT_IMPLEMENTED;
 }
 
+void CAudioEffect::PostEventFromNative(
+    /* [in] */ IObject* effect_ref,
+    /* [in] */ Int32 what,
+    /* [in] */ Int32 arg1,
+    /* [in] */ Int32 arg2,
+    /* [in] */ IObject* obj)
+{
+    //E_NOT_IMPLEMENTED;
+}
+
+void CAudioEffect::Native_Init()
+{
+    //E_NOT_IMPLEMENTED;
+}
+
+Int32 CAudioEffect::Native_Setup(
+    /* [in] */ IObject* audioeffect_this,
+    /* [in] */ String type,
+    /* [in] */ String uuid,
+    /* [in] */ Int32 priority,
+    /* [in] */ Int32 audioSession,
+    /* [in] */ ArrayOf<Int32> id,
+    /* [in] */ ArrayOf<IObject>* desc)
+{
+    //E_NOT_IMPLEMENTED;
+}
+
+void CAudioEffect::Native_Finalize()
+{
+    //E_NOT_IMPLEMENTED;
+}
+
+void CAudioEffect::Native_Release()
+{
+    //E_NOT_IMPLEMENTED;
+}
+
+Int32 CAudioEffect::Native_SetEnabled(
+    /* [in] */ Boolean enabled)
+{
+    //E_NOT_IMPLEMENTED;
+}
+
+Boolean CAudioEffect::Native_GetEnabled()
+{
+    //E_NOT_IMPLEMENTED;
+}
+
+Boolean CAudioEffect::Native_HasControl()
+{
+    //E_NOT_IMPLEMENTED;
+}
+
+Int32 CAudioEffect::Native_SetParameter(
+    /* [in] */ Int32 psize,
+    /* [in] */ ArrayOf<Byte> param,
+    /* [in] */ Int32 vsize,
+    /* [in] */ ArrayOf<Byte> value)
+{
+    //E_NOT_IMPLEMENTED;
+}
+
+Int32 CAudioEffect::Native_GetParameter(
+    /* [in] */ Int32 psize,
+    /* [in] */ ArrayOf<Byte> param,
+    /* [in] */ ArrayOf<Int32> vsize,
+    /* [in] */ ArrayOf<Byte> value)
+{
+    //E_NOT_IMPLEMENTED;
+}
+
+Int32 CAudioEffect::Native_Command(
+    /* [in] */ Int32 cmdCode,
+    /* [in] */ Int32 cmdSize,
+    /* [in] */ ArrayOf<Byte> cmdData,
+    /* [in] */ ArrayOf<Int32> repSize,
+    /* [in] */ ArrayOf<Byte> repData)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ArrayOf<IObject*> CAudioEffect::Native_Query_Effects()
+{
+    //return E_NOT_IMPLEMENTED;
+}
+
 ECode CAudioEffect::CheckState(
     /* [in] */ CString methodName)
 {
@@ -522,15 +607,15 @@ ECode CAudioEffect::CheckStatus(
 
 ECode CAudioEffect::ByteArrayToInt32(
     /* [in] */ const ArrayOf<Byte>& valueBuf,
-    /* [out] */ Int32* value)
+    /* [out] */ Int32* result)
 {
-    return ByteArrayToInt32Ex(valueBuf, 0, value);
+    return ByteArrayToInt32Ex(valueBuf, 0, result);
 }
 
 ECode CAudioEffect::ByteArrayToInt32Ex(
     /* [in] */ const ArrayOf<Byte>& valueBuf,
     /* [in] */ Int32 offset,
-    /* [out] */ Int32* value)
+    /* [out] */ Int32* result)
 {
     /*
         ByteBuffer converter = ByteBuffer.wrap(valueBuf);
@@ -541,7 +626,8 @@ ECode CAudioEffect::ByteArrayToInt32Ex(
 }
 
 ECode CAudioEffect::Int32ToByteArray(
-    /* [in] */ Int32 value)
+    /* [in] */ Int32 value,
+    /* [out] */ ArrayOf<Byte>* result)
 {
     /*
         ByteBuffer converter = ByteBuffer.allocate(4);
@@ -553,14 +639,16 @@ ECode CAudioEffect::Int32ToByteArray(
 }
 
 ECode CAudioEffect::ByteArrayToInt16(
-    /* [in] */ const ArrayOf<Byte>& valueBuf)
+    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [out] */ Int16* result)
 {
-    return ByteArrayToInt16Ex(valueBuf, 0);
+    return ByteArrayToInt16Ex(valueBuf, 0, result);
 }
 
 ECode CAudioEffect::ByteArrayToInt16Ex(
     /* [in] */ const ArrayOf<Byte>& valueBuf,
-    /* [in] */ Int32 offset)
+    /* [in] */ Int32 offset,
+    /* [out] */ Int16* result)
 {
     /*
         ByteBuffer converter = ByteBuffer.wrap(valueBuf);
@@ -571,7 +659,8 @@ ECode CAudioEffect::ByteArrayToInt16Ex(
 }
 
 ECode CAudioEffect::Int16ToByteArray(
-    /* [in] */ Int16 value)
+    /* [in] */ Int16 value,
+    /* [out] */ ArrayOf<Byte>* result)
 {
     /*
         ByteBuffer converter = ByteBuffer.allocate(2);
