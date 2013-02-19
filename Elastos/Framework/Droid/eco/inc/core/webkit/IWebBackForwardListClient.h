@@ -6,7 +6,7 @@
  * {@link WebBackForwardList}.
  * {@hide}
  */
-class IWebBackForwardListClient {
+class WebBackForwardListClient {
 
 public:
     /**

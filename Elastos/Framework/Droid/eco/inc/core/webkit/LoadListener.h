@@ -1,17 +1,14 @@
 #ifndef __LOADLISTENER_H__
 #define __LOADLISTENER_H__
 
-class LoadListener extends Handler implements EventHandler {
-
-
-public long mContentLength; // Content length of the incoming data
-
+class LoadListener // extends Handler implements EventHandler 
+{
 public:
     // =========================================================================
     // Public functions
     // =========================================================================
 
-	static CARAPI_(ILoadListener*) GetLoadListener(
+	static CARAPI_(LoadListener*) GetLoadListener(
 		/* [in] */ IContext* context,
 		/* [in] */ IBrowserFrame* frame, 
 		/* [in] */ CString url, 
@@ -144,7 +141,7 @@ public:
      * serviced by the Cache. */
     /* package */ 
     virtual CARAPI_(void) SetCacheLoader(
-    	/* [in] */ CacheLoader c);
+    	/* [in] */ /*CacheLoader c*/);
 
     /**
      * Check the cache for the current URL, and load it if it is valid.
@@ -235,7 +232,7 @@ public:
     virtual CARAPI_(Int64) PostIdentifier();
 
     virtual CARAPI_(void) AttachRequestHandle(
-    	/* [in] */ RequestHandle* requestHandle);
+    	/* [in] */ /*RequestHandle* requestHandle*/);
 
     /*
      * This function is called from native WebCore code to
@@ -310,6 +307,9 @@ public:
     /* package */ 
     virtual CARAPI_(void) ParseContentTypeHeader(
     	/* [in] */ CString contentType);
+
+public:
+    long mContentLength; // Content length of the incoming data
 
 private:
 
@@ -393,8 +393,8 @@ private:
      * strongest one. If there are several schemes of the same
      * strength, we pick the one that comes first.
      */
-    CARAPI_(HttpAuthHeader) ParseAuthHeader(
-		/* [in] */ CString header);
+//    CARAPI_(HttpAuthHeader) ParseAuthHeader(
+//		/* [in] */ CString header);
 
     /**
      * If the content is a redirect or not modified we should not send
@@ -524,7 +524,7 @@ private:
      * Parses the content-type header.
      * The first part only allows '-' if it follows x or X.
      */
-	static const Pattern CONTENT_TYPE_PATTERN;// =
+//	static const Pattern CONTENT_TYPE_PATTERN;// =
         //    Pattern.compile("^((?:[xX]-)?[a-zA-Z\\*]+/[\\w\\+\\*-]+[\\.[\\w\\+-]+]*)$");
 
     // This count is transferred from RequestHandle to LoadListener when
@@ -558,7 +558,7 @@ private:
 	static const Int32 HTTP_NOT_FOUND = 404;
 	static const Int32 HTTP_PROXY_AUTH = 407;
 
-	static HashMap<String, String> sCertificateTypeMap;
+	static IHashMap* sCertificateTypeMap;
     /*static {
         sCertificateTypeMap = new HashMap<String, String>();
         sCertificateTypeMap.put("application/x-x509-ca-cert", CertTool.CERT);
@@ -585,14 +585,14 @@ private:
 
 	Boolean        mCancelled;  // The request has been cancelled.
 	Boolean        mAuthFailed;  // indicates that the prev. auth failed
-	CacheLoader    mCacheLoader;
+//	CacheLoader    mCacheLoader;
 	Boolean        mFromCache;
-	HttpAuthHeader mAuthHeader;
+//	HttpAuthHeader mAuthHeader;
 	Int32          mErrorID;
 	CString        mErrorDescription;
 	ISslError*     mSslError;
-	RequestHandle  mRequestHandle;
-	RequestHandle  mSslErrorRequestHandle;
+//	RequestHandle  mRequestHandle;
+//	RequestHandle  mSslErrorRequestHandle;
 	Int64          mPostIdentifier;
 
     // Request data. It is only valid when we are doing a load from the
@@ -602,7 +602,7 @@ private:
 	ArrayOf<Byte> mPostData;
     // Flag to indicate that this load is synchronous.
 	Boolean mSynchronous;
-	Vector<Message> mMessageQueue;
+//	Vector<Message> mMessageQueue;
 
     // Does this loader correspond to the main-frame top-level page?
 	Boolean mIsMainPageLoader;

@@ -1,12 +1,16 @@
 #ifndef __WEBVIEWWORKER_H__
 #define __WEBVIEWWORKER_H__
 
+#include <utils/Looper.h>
+
+class LoadListener;
+
 /**
  * WebViewWorker executes in a separate thread other than UI and WebViewCore. To
  * avoid blocking UI or WebKit's execution, the caller can send a message to
  * WebViewWorker.getHandler() and it will be handled in the WebViewWorkerThread.
  */
-class WebViewWorker : public Handler 
+class WebViewWorker// : public Handler 
 {
 
 public:
@@ -15,7 +19,7 @@ public:
      */
 	struct CacheCreateData 
 	{
-        ILoadListener* mListener;
+        LoadListener* mListener;
         CString mUrl;
         CString mMimeType;
         Int32 mStatusCode;
@@ -28,7 +32,7 @@ public:
      */
 	struct CacheSaveData 
 	{
-        ILoadListener* mListener;
+        LoadListener* mListener;
         CString mUrl;
         Int64 mPostId;
     };
@@ -38,7 +42,7 @@ public:
      */
 	struct CacheEncoding 
 	{
-        ILoadListener* mListener;
+        LoadListener* mListener;
         CString mEncoding;
     };
 
@@ -47,7 +51,7 @@ public:
      */
 	struct CacheData 
 	{
-        ILoadListener* mListener;
+        LoadListener* mListener;
         IByteArrayBuilderChunk* mChunk;
     };
 
@@ -75,7 +79,7 @@ public:
 
 private:
 	WebViewWorker(
-		/* [in] */ Looper looper);
+		/* [in] */ /*Looper* looper*/);
 
     // trigger transaction once a minute
 	static const Int32 CACHE_TRANSACTION_TICKER_INTERVAL = 60 * 1000;
@@ -86,7 +90,7 @@ private:
 
 	static WebViewWorker* sWorkerHandler;
 
-	static Map<LoadListener, CacheManager.CacheResult> mCacheResultMap;
+//	static Map<LoadListener, CacheManager.CacheResult> mCacheResultMap;
 };
 
 #endif //__WEBVIEWWORKER_H__

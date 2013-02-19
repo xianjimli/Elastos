@@ -1,7 +1,8 @@
 #ifndef __WEBSYNCMANAGER_H__
 #define __WEBSYNCMANAGER_H__
 
-class WebSyncManager : public Runnable {    
+class WebSyncManager// : public Runnable 
+{    
 
 public:
 	virtual CARAPI_(void) Run();
@@ -44,10 +45,11 @@ protected:
 	IWebViewDatabase* mDataBase;
 
 	// log tag
-	static const CString LOGTAG = "websync";
+	static const CString LOGTAG;// = "websync";
 
 private:
-	class SyncHandler : public IHandler {
+	class SyncHandler// : public IHandler 
+	{
 	public:
     	//@Override
     	CARAPI_(void) HandleMessage(
@@ -63,7 +65,7 @@ private:
 	static const Int32 SYNC_LATER_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 	// thread for syncing
-	Thread mSyncThread;
+//	Thread mSyncThread;
 	// Name of thread
 	CString mThreadName;
 	// Ref count for calls to start/stop sync

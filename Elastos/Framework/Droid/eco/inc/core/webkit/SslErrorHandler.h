@@ -1,12 +1,15 @@
 #ifndef __SSLERRORHANDLER_H__
 #define __SSLERRORHANDLER_H__
 
+class LoadListener;
+
 /**
  * SslErrorHandler: class responsible for handling SSL errors. This class is
  * passed as a parameter to BrowserCallback.displaySslErrorDialog and is meant
  * to receive the user's response.
  */
-public class SslErrorHandler : public Handler {
+class SslErrorHandler // : public Handler 
+{
 
     //@Override
 	virtual CARAPI_(void) HandleMessage(
@@ -45,7 +48,7 @@ public class SslErrorHandler : public Handler {
      */
     /* package */
 	virtual CARAPI_(void) handleSslErrorRequest(
-		/* [in] */ ILoadListener* loader);
+		/* [in] */ LoadListener* loader);
 
     /**
      * Check the preference table for a ssl error that has already been shown
@@ -53,7 +56,7 @@ public class SslErrorHandler : public Handler {
      */
     /* package */
 	virtual CARAPI_(Boolean) CheckSslPrefTable(
-		/* [in] */ ILoadListener* loader,
+		/* [in] */ LoadListener* loader,
 		/* [in] */ ISslError* error);
 
     /**
@@ -79,7 +82,7 @@ public class SslErrorHandler : public Handler {
      */
     /* package */
 	virtual CARAPI_(void) HandleSslErrorResponse(
-		/* [in] */ ILoadListener* loader,
+		/* [in] */ LoadListener* loader,
 		/* [in] */ ISslError* error, 
         /* [in] */ Boolean proceed);
 
@@ -89,7 +92,7 @@ private:
      */
 	SslErrorHandler(
 		/* [in] */ ISslErrorHandler* origin, 
-		/* [in] */ ILoadListener* listener);
+		/* [in] */ LoadListener* listener);
 
 	/**
      * Processes the next loader in the queue.
@@ -109,7 +112,7 @@ private:
     /**
      * Queue of loaders that experience SSL-related problems.
      */
-	LinkedList<LoadListener> mLoaderQueue;
+//	LinkedList<LoadListener> mLoaderQueue;
 
     /**
      * SSL error preference table.
@@ -118,7 +121,7 @@ private:
 
     // These are only used in the client facing SslErrorHandler.
 	const ISslErrorHandler* mOriginHandler;
-	const ILoadListener* mLoadListener;
+	const LoadListener* mLoadListener;
 
     // Message id for handling the response
 	static const Int32 HANDLE_RESPONSE = 100;

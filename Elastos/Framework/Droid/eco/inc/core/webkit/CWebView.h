@@ -1227,8 +1227,8 @@ public:
 
 public:
 
-    CARAPI UpdateMultiTouchSupport(
-        /* [in] */ IContext* context);
+ //   CARAPI UpdateMultiTouchSupport(
+ //       /* [in] */ IContext* context);
 
     /* package */
     CARAPI_(void) UpdateDefaultZoomDensity(
@@ -2927,7 +2927,7 @@ public:
      * or at the top of the screen if the title bar is not visible.  This
      * drawable serves that purpose.
      */
-    Drawable* mTitleShadow;
+    IDrawable* mTitleShadow;
 
 
     // Used to know whether the find dialog is open.  Affects whether

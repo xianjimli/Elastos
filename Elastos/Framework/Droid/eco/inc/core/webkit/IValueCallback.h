@@ -4,12 +4,12 @@
 /**
  * A callback interface used to returns values asynchronously
  */
-template<class T>
-class IValueCallback {
+template<typename T>
+class ValueCallback {
     /**
      * Invoked when we have the result
      */
-	virtual CARAPA_(void) onReceiveValue(
+	virtual CARAPI_(void) onReceiveValue(
 		/* [in] */ T value) = 0;
 };
 

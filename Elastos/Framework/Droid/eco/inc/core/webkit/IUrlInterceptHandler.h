@@ -5,7 +5,7 @@
  * @deprecated This interface was inteded to be used by Gears. Since Gears was
  * deprecated, so is this class.
  */
-class IUrlInterceptHandler {
+class UrlInterceptHandler {
 
 public:
     /**

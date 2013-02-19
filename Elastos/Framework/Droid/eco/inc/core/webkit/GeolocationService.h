@@ -4,7 +4,8 @@
 /**
  * Implements the Java side of GeolocationServiceAndroid.
  */
-class GeolocationService : public LocationListener {
+class GeolocationService //: public LocationListener 
+{
 
 public:
     /**

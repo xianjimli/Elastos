@@ -1,6 +1,8 @@
 #ifndef __WEBTEXTVIEW_H__
 #define __WEBTEXTVIEW_H__
 
+#include "widget/AutoCompleteTextView.h"
+
 /**
  * WebTextView is a specialized version of EditText used by WebView
  * to overlay html textfields (and textareas) to use our standard
@@ -10,7 +12,37 @@
  class WebTextView : public AutoCompleteTextView {
 
  public:
-    static final String LOGTAG = "webtextview";
+    static const CString LOGTAG;// = "webtextview";
+
+    /**
+     *  This is a special version of ArrayAdapter which changes its text size
+     *  to match the text size of its host TextView.
+     */
+    class AutoCompleteAdapter// : public ArrayAdapter<String> 
+    {
+    public:
+
+        AutoCompleteAdapter(
+            /* [in] */ IContext* context//, 
+            /* [in] */ /*ArrayList<String> entries*/);
+
+        /**
+         * {@inheritDoc}
+         */
+        virtual CARAPI_(IView*) GetView(
+            /* [in] */ Int32 position, 
+            /* [in] */ IView* convertView, 
+            /* [in] */ IViewGroup* parent);
+
+    private:
+        /**
+         * Set the TextView so we can match its text size.
+         */
+        CARAPI_(void) SetTextView(
+            /* [in] */ ITextView* tv);
+
+        ITextView* mTextView;
+    };
 
     /**
      * Create a new WebTextView.
@@ -19,12 +51,12 @@
      */
     /* package */ 
 	WebTextView(
-		/* [in] */ Context context, 
-		/* [in] */ WebView webView);
+		/* [in] */ IContext* context, 
+		/* [in] */ IWebView* webView);
 
     //@Override
 	virtual CARAPI_(Boolean) DispatchKeyEvent(
-		/* [in] */ KeyEvent event);
+		/* [in] */ IKeyEvent* event);
 
     /**
      *  Determine whether this WebTextView currently represents the node
@@ -37,25 +69,23 @@
 	virtual CARAPI_(Boolean) IsSameTextField(
 		/* [in] */ Int32 ptr);
 
-
-
     //@Override 
-	virtual CARAPI_(InputConnection) OnCreateInputConnection(
-		/* [in] */ EditorInfo outAttrs);
+	virtual CARAPI_(IInputConnection*) OnCreateInputConnection(
+		/* [in] */ IEditorInfo* outAttrs);
 
 	virtual CARAPI_(void) OnDrawSubstitute();
 
     //@Override
-	virtual CARAPI_(void) OnEditorAction(
+	virtual CARAPI OnEditorAction(
 		/* [in] */ Int32 actionCode);    
 
     //@Override
 	virtual CARAPI_(Boolean) OnTouchEvent(
-		/* [in] */ MotionEvent event);
+		/* [in] */ IMotionEvent* event);
 
     //@Override
 	virtual CARAPI_(Boolean) OnTrackballEvent(
-		/* [in] */ MotionEvent event);
+		/* [in] */ IMotionEvent* event);
 
     //@Override
 	virtual CARAPI_(Boolean) PerformLongClick();
@@ -75,37 +105,7 @@
      *  the WebTextView.
      */
 	virtual CARAPI_(void) SetAdapterCustom(
-		/* [in] */ AutoCompleteAdapter adapter);
-
-    /**
-     *  This is a special version of ArrayAdapter which changes its text size
-     *  to match the text size of its host TextView.
-     */
-	static class AutoCompleteAdapter : public ArrayAdapter<String> 
-	{
-	public:
-
-        AutoCompleteAdapter(
-        	/* [in] */ Context context, 
-        	/* [in] */ ArrayList<String> entries);
-
-        /**
-         * {@inheritDoc}
-         */
-		virtual CARAPI_(View) GetView(
-			/* [in] */ Int32 position, 
-			/* [in] */ View convertView, 
-			/* [in] */ ViewGroup parent);
-
-	private:
-        /**
-         * Set the TextView so we can match its text size.
-         */
-		CARAPI_(void) SetTextView(
-			/* [in] */ TextView tv);
-
-		TextView mTextView;
-    };
+		/* [in] */ AutoCompleteAdapter* adapter);
 
     /**
      * Sets the selection when the user clicks on a textfield or textarea with
@@ -125,7 +125,7 @@
 		CARAPI_(Boolean) inPassword);
 
     //@Override
-	virtual CARAPI_(void) SetInputType(
+	virtual CARAPI SetInputType(
 		/* [in] */ Int32 type);
 
 
@@ -137,9 +137,8 @@
      *          WebTextView represents.
      */
     /* package */ 
-    virtual void setNodePointer(int ptr) {
-        mNodePointer = ptr;
-    }
+    virtual void setNodePointer(
+        /* [in] */ Int32 ptr);
 
     /**
      * Determine the position and size of WebTextView, and add it to the
@@ -195,18 +194,18 @@
 
     //@Override
 	virtual CARAPI_(Boolean) RequestRectangleOnScreen(
-		/* [in] */ Rect rectangle);
+		/* [in] */ IRect* rectangle);
 
 protected:
 	//@Override
 	virtual CARAPI_(void) OnDraw(
-		/* [in] */ Canvas canvas);
+		/* [in] */ ICanvas* canvas);
 
 	//@Override
 	virtual CARAPI_(void) OnFocusChanged(
 		/* [in] */ Boolean focused, 
 		/* [in] */ Int32 direction,
-		/* [in] */ Rect previouslyFocusedRect);
+		/* [in] */ IRect* previouslyFocusedRect);
 
     //@Override
 	virtual CARAPI_(void) OnScrollChanged(
@@ -222,7 +221,7 @@ protected:
 
     //@Override
 	virtual CARAPI_(void) OnTextChanged(
-		/* [in] */ CharSequence s,
+		/* [in] */ ICharSequence* s,
 		/* [in] */ Int32 start,
 		/* [in] */ Int32 before,
 		/* [in] */ Int32 count);
@@ -238,16 +237,16 @@ private:
      *  @param event    KeyEvent to be translated into a DOM event.
      */
     CARAPI_(void) SendDomEvent(
-		/* [in] */ KeyEvent event);
+		/* [in] */ IKeyEvent* event);
 
     /**
      * Private class used for the background of a password textfield.
      */
-	static class OutlineDrawable : public Drawable 
+    class OutlineDrawable //: public Drawable 
 	{
 	public:
 		virtual CARAPI_(void) Draw(
-			/* [in] */ Canvas canvas);
+			/* [in] */ ICanvas* canvas);
 
         // Always want it to be opaque.
 		virtual CARAPI_(Int32) GetOpacity();
@@ -257,7 +256,7 @@ private:
 			/* [in] */ Int32 alpha);
 
 		virtual CARAPI_(void) SetColorFilter(
-			/* [in] */ ColorFilter cf);
+			/* [in] */ IColorFilter* cf);
     };
 
     /**
@@ -272,7 +271,7 @@ private:
 		/* [in] */ Int32 maxLength);
 
 private:
-	WebView         mWebView;
+	IWebView*       mWebView;
 	Boolean         mSingle;
 	Int32           mWidthSpec;
 	Int32           mHeightSpec;
@@ -285,7 +284,7 @@ private:
     // Keep track of the text before the change so we know whether we actually
     // need to send down the DOM events.
 	CString         mPreChange;
-	Drawable        mBackground;
+//	Drawable        mBackground;
     // Variables for keeping track of the touch down, to send to the WebView
     // when a drag starts
 	Float           mDragStartX;
@@ -314,12 +313,12 @@ private:
 	Boolean         mInSetTextAndKeepSelection;
     // Array to store the final character added in onTextChanged, so that its
     // KeyEvents may be determined.
-	char[]          mCharacter;
+	Byte            mCharacter[];
     // This is used to reset the length filter when on a textfield
     // with no max length.
     // FIXME: This can be replaced with TextView.NO_FILTERS if that
     // is made public/protected.
-	static const InputFilter[] NO_FILTERS;
+//	static const InputFilter NO_FILTERS[];
 };
 
 #endif //__WEBTEXTVIEW_H__

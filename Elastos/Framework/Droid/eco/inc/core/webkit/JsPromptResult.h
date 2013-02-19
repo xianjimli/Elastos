@@ -1,6 +1,8 @@
 #ifndef __JSPROMPTRESULT_H__
 #define __JSPROMPTRESULT_H__
 
+#include "JsResult.h"
+
 /**
  * Public class for handling javascript prompt requests. A
  * JsDialogHandlerInterface implentation will receive a jsPrompt call with a

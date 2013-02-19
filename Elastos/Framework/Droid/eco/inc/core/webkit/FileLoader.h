@@ -3,6 +3,8 @@
 
 #include "StreamLoader.h"
 
+class LoadListener;
+
 /**
  * This class is a concrete implementation of StreamLoader that uses a
  * file or asset as the source for the stream.
@@ -31,7 +33,7 @@ public:
      */
     FileLoader(
     	/* [in] */ CString url, 
-    	/* [in] */ ILoadListener* loadListener, 
+    	/* [in] */ LoadListener* loadListener, 
     	/* [in] */ Int32 type,
     	/* [in] */ Boolean allowFileAccess);
 

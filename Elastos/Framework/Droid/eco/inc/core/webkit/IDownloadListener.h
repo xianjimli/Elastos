@@ -1,7 +1,7 @@
 #ifndef __IDOWNLOADLISTENER_H__
 #define __IDOWNLOADLISTENER_H__
 
-class IDownloadListener {
+class DownloadListener {
 
     /**
      * Notify the host application that a file should be downloaded

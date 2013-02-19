@@ -19,8 +19,8 @@ public:
      * instance.
      */
     WebSettings(
-    	/* [in] */ Context context, 
-    	/* [in] */ WebView webview);
+    	/* [in] */ IContext* context, 
+    	/* [in] */ IWebView* webview);
 
 public:
     /**
@@ -36,7 +36,7 @@ public:
         NORMAL,
         SINGLE_COLUMN,
         NARROW_COLUMNS
-    }
+    };
 
     /**
      * Enum for specifying the text size.
@@ -48,14 +48,14 @@ public:
      */
 	struct TextSize 
 	{
-		enum
+		enum 
 		{
 	        SMALLEST = 50,
 	        SMALLER  = 75,
 	        NORMAL   = 100,
 	        LARGER   = 150,
 	        LARGEST  = 200
-    	}
+    	};
 
         TextSize(Int32 size) {
             value = size;
@@ -77,7 +77,7 @@ public:
 	        FAR    = 150,  // 240dpi
 	        MEDIUM = 100,  // 160dpi
 	        CLOSE  = 75    // 120dpi
-    	}
+    	};
 
         ZoomDensity(Int32 size) {
             value = size;
@@ -89,38 +89,38 @@ public:
     /**
      * Default cache usage pattern  Use with {@link #setCacheMode}.
      */
-	static const Int32 LOAD_DEFAULT = -1;
+	static const Int32 WS_LOAD_DEFAULT = -1;
 
     /**
      * Normal cache usage pattern  Use with {@link #setCacheMode}.
      */
-	static const Int32 LOAD_NORMAL = 0;
+	static const Int32 WS_LOAD_NORMAL = 0;
 
     /**
      * Use cache if content is there, even if expired (eg, history nav)
      * If it is not in the cache, load from network.
      * Use with {@link #setCacheMode}.
      */
-	static const Int32 LOAD_CACHE_ELSE_NETWORK = 1;
+	static const Int32 WS_LOAD_CACHE_ELSE_NETWORK = 1;
 
     /**
      * Don't use the cache, load from network
      * Use with {@link #setCacheMode}.
      */
-	static const Int32 LOAD_NO_CACHE = 2;
+	static const Int32 WS_LOAD_NO_CACHE = 2;
     
     /**
      * Don't use the network, load from cache only.
      * Use with {@link #setCacheMode}.
      */
-	static const Int32 LOAD_CACHE_ONLY = 3;
+	static const Int32 WS_LOAD_CACHE_ONLY = 3;
 
 	enum RenderPriority 
 	{
-        NORMAL,
-        HIGH,
-        LOW
-    }
+        RP_NORMAL,
+        RP_HIGH,
+        RP_LOW
+    };
 
     /**
      * The plugin state effects how plugins are treated on a page. ON means
@@ -136,7 +136,7 @@ public:
         ON,
         ON_DEMAND,
         OFF
-    }
+    };
 
 public:
 
@@ -255,14 +255,14 @@ public:
      * @see WebSettings.TextSize
      */
 	virtual CARAPI_(void) SetTextSize(
-		/* [in] */ TextSize t);
+		/* [in] */ TextSize* t);
 
     /**
      * Get the text size of the page.
      * @return A TextSize enum value describing the text size.
      * @see WebSettings.TextSize
      */
-	virtual CARAPI_(TextSize) GetTextSize();
+	virtual CARAPI_(TextSize*) GetTextSize();
 
     /**
      * Set the default zoom density of the page. This should be called from UI
@@ -271,7 +271,7 @@ public:
      * @see WebSettings.ZoomDensity
      */
 	virtual CARAPI_(void) SetDefaultZoom(
-		/* [in] */ ZoomDensity zoom);
+		/* [in] */ ZoomDensity* zoom);
 
     /**
      * Get the default zoom density of the page. This should be called from UI
@@ -279,7 +279,7 @@ public:
      * @return A ZoomDensity value
      * @see WebSettings.ZoomDensity
      */
-	virtual CARAPI_(ZoomDensity) GetDefaultZoom();
+	virtual CARAPI_(ZoomDensity*) GetDefaultZoom();
 
     /**
      * Enables using light touches to make a selection and activate mouseovers.
@@ -573,7 +573,7 @@ public:
      * @deprecated This method has been deprecated in favor of
      *             {@link #setPluginState}
      */
-	virtual CARAPI(void) SetPluginsEnabled(
+	virtual CARAPI_(void) SetPluginsEnabled(
 		/* [in] */ Boolean flag);
 
     /**
@@ -825,7 +825,7 @@ public:
      */
     /*package*/
 	virtual CARAPI_(void) SyncSettingsAndCreateHandler(
-		/* [in] */ BrowserFrame frame);
+		/* [in] */ IBrowserFrame* frame);
 
     /**
      * Let the Settings object know that our owner is being destroyed.
@@ -834,91 +834,8 @@ public:
 	virtual CARAPI_(void) OnDestroyed();
 
 private:
-
-    // WebView associated with this WebSettings.
-	WebView mWebView;
-    // BrowserFrame used to access the native frame pointer.
-	BrowserFrame mBrowserFrame;
-    // Flag to prevent multiple SYNC messages at one time.
-	Boolean mSyncPending;
-    // Custom handler that queues messages until the WebCore thread is active.
-	const EventHandler mEventHandler;
-
-    // Private settings so we don't have to go into native code to
-    // retrieve the values. After setXXX, postSync() needs to be called.
-    //
-    // The default values need to match those in WebSettings.cpp
-    // If the defaults change, please also update the JavaDocs so developers
-    // know what they are.
-	LayoutAlgorithm mLayoutAlgorithm;
-	Context         mContext;
-	TextSize        mTextSize;
-	String          mStandardFontFamily;
-	String          mFixedFontFamily;
-	String          mSansSerifFontFamily;
-	String          mSerifFontFamily;
-	String          mCursiveFontFamily;
-	String          mFantasyFontFamily;
-	String          mDefaultTextEncoding;
-	String          mUserAgent;
-	Boolean         mUseDefaultUserAgent;
-	String          mAcceptLanguage;
-	Int32           mMinimumFontSize;
-	Int32           mMinimumLogicalFontSize;
-	Int32           mDefaultFontSize;
-	Int32           mDefaultFixedFontSize;
-	Int32           mPageCacheCapacity;
-	Boolean         mLoadsImagesAutomatically;
-	Boolean         mBlockNetworkImage;
-	Boolean         mBlockNetworkLoads;
-	Boolean         mJavaScriptEnabled;
-	PluginState     mPluginState;
-	Boolean         mJavaScriptCanOpenWindowsAutomatically;
-	Boolean         mUseDoubleTree;
-	Boolean         mUseWideViewport;
-	Boolean         mSupportMultipleWindows;
-	Boolean         mShrinksStandaloneImagesToFit;
-    // HTML5 API flags
-	Boolean         mAppCacheEnabled;
-	Boolean         mDatabaseEnabled;
-	Boolean         mDomStorageEnabled;
-	Boolean         mWorkersEnabled;  // only affects V8.
-	Boolean         mGeolocationEnabled;
-    // HTML5 configuration parameters
-	Int64           mAppCacheMaxSize;
-	String          mAppCachePath;
-	String          mDatabasePath;
-    // The WebCore DatabaseTracker only allows the database path to be set
-    // once. Keep track of when the path has been set.
-	Boolean         mDatabasePathHasBeenSet;
-	String          mGeolocationDatabasePath;
-    // Don't need to synchronize the get/set methods as they
-    // are basic types, also none of these values are used in
-    // native WebCore code.
-	ZoomDensity     mDefaultZoom;
-	RenderPriority  mRenderPriority;
-	Int32           mOverrideCacheMode;
-	Boolean         mSaveFormData;
-	Boolean         mSavePassword;
-	Boolean         mLightTouchEnabled;
-	Boolean         mNeedInitialFocus;
-	Boolean         mNavDump;
-	Boolean         mSupportZoom;
-	Boolean         mBuiltInZoomControls;
-	Boolean         mAllowFileAccess;
-	Boolean         mAllowContentAccess;
-	Boolean         mLoadWithOverviewMode;
-	Boolean         mUseWebViewBackgroundOverscrollBackground;
-
-    // private WebSettings, not accessible by the host activity
-    static Int32      mDoubleTapToastCount;
-
-	static const CString PREF_FILE = "WebViewSettings";
-	static const CString DOUBLE_TAP_TOAST_COUNT = "double_tap_toast_count";
-
-private:
     // Class to handle messages before WebCore is ready.
-	class EventHandler {
+	class WS_EventHandler {
 	public:
         // Message id for syncing
         static const Int32 SYNC = 0;
@@ -929,7 +846,7 @@ private:
 
     private:
         // Actual WebCore thread handler
-        Handler mHandler;
+        IHandler* mHandler;
 
     private:
 		CARAPI_(void) CreateHandler();
@@ -940,20 +857,103 @@ private:
          * Send a message to the private queue or handler.
          */
 		CARAPI_(Boolean) SendMessage(
-			/* [in] */ Message msg);
+			/* [in] */ IMessage* msg);
     };
 
     // User agent strings.
-	static const CString DESKTOP_USERAGENT =
+	static const CString DESKTOP_USERAGENT;/* =
             "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_5_7; en-us)"
             + " AppleWebKit/530.17 (KHTML, like Gecko) Version/4.0"
-            + " Safari/530.17";
-	static const CString IPHONE_USERAGENT = 
+            + " Safari/530.17";*/
+	static const CString IPHONE_USERAGENT;/* = 
             "Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us)"
             + " AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0"
-            + " Mobile/7A341 Safari/528.16";
-	static Locale sLocale;
-	static Object sLockForLocaleSettings;
+            + " Mobile/7A341 Safari/528.16";*/
+	static ILocale* sLocale;
+	static IInterface* sLockForLocaleSettings;
+
+private:
+
+    // WebView associated with this WebSettings.
+    IWebView* mWebView;
+    // BrowserFrame used to access the native frame pointer.
+    IBrowserFrame* mBrowserFrame;
+    // Flag to prevent multiple SYNC messages at one time.
+    Boolean mSyncPending;
+    // Custom handler that queues messages until the WebCore thread is active.
+    const WS_EventHandler mEventHandler;
+
+    // Private settings so we don't have to go into native code to
+    // retrieve the values. After setXXX, postSync() needs to be called.
+    //
+    // The default values need to match those in WebSettings.cpp
+    // If the defaults change, please also update the JavaDocs so developers
+    // know what they are.
+    LayoutAlgorithm mLayoutAlgorithm;
+    IContext*       mContext;
+    TextSize        mTextSize;
+    String          mStandardFontFamily;
+    String          mFixedFontFamily;
+    String          mSansSerifFontFamily;
+    String          mSerifFontFamily;
+    String          mCursiveFontFamily;
+    String          mFantasyFontFamily;
+    String          mDefaultTextEncoding;
+    String          mUserAgent;
+    Boolean         mUseDefaultUserAgent;
+    String          mAcceptLanguage;
+    Int32           mMinimumFontSize;
+    Int32           mMinimumLogicalFontSize;
+    Int32           mDefaultFontSize;
+    Int32           mDefaultFixedFontSize;
+    Int32           mPageCacheCapacity;
+    Boolean         mLoadsImagesAutomatically;
+    Boolean         mBlockNetworkImage;
+    Boolean         mBlockNetworkLoads;
+    Boolean         mJavaScriptEnabled;
+    PluginState     mPluginState;
+    Boolean         mJavaScriptCanOpenWindowsAutomatically;
+    Boolean         mUseDoubleTree;
+    Boolean         mUseWideViewport;
+    Boolean         mSupportMultipleWindows;
+    Boolean         mShrinksStandaloneImagesToFit;
+    // HTML5 API flags
+    Boolean         mAppCacheEnabled;
+    Boolean         mDatabaseEnabled;
+    Boolean         mDomStorageEnabled;
+    Boolean         mWorkersEnabled;  // only affects V8.
+    Boolean         mGeolocationEnabled;
+    // HTML5 configuration parameters
+    Int64           mAppCacheMaxSize;
+    String          mAppCachePath;
+    String          mDatabasePath;
+    // The WebCore DatabaseTracker only allows the database path to be set
+    // once. Keep track of when the path has been set.
+    Boolean         mDatabasePathHasBeenSet;
+    String          mGeolocationDatabasePath;
+    // Don't need to synchronize the get/set methods as they
+    // are basic types, also none of these values are used in
+    // native WebCore code.
+    ZoomDensity     mDefaultZoom;
+    RenderPriority  mRenderPriority;
+    Int32           mOverrideCacheMode;
+    Boolean         mSaveFormData;
+    Boolean         mSavePassword;
+    Boolean         mLightTouchEnabled;
+    Boolean         mNeedInitialFocus;
+    Boolean         mNavDump;
+    Boolean         mSupportZoom;
+    Boolean         mBuiltInZoomControls;
+    Boolean         mAllowFileAccess;
+    Boolean         mAllowContentAccess;
+    Boolean         mLoadWithOverviewMode;
+    Boolean         mUseWebViewBackgroundOverscrollBackground;
+
+    // private WebSettings, not accessible by the host activity
+    static Int32      mDoubleTapToastCount;
+
+    static const CString PREF_FILE;// = "WebViewSettings";
+    static const CString DOUBLE_TAP_TOAST_COUNT;// = "double_tap_toast_count";
     
 private:
     /**

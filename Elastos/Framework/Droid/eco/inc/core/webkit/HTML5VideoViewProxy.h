@@ -1,28 +1,31 @@
 #ifndef __HTML5VIDEOVIEWPROXY_H__
 #define __HTML5VIDEOVIEWPROXY_H__
 
+class MediaPlayer;
+class WebViewCore;
+
 /**
  * <p>Proxy for HTML5 video views.
  */
-class HTML5VideoViewProxy : public Handler
-                            public MediaPlayer.OnPreparedListener,
-                            public MediaPlayer.OnCompletionListener,
-                            public MediaPlayer.OnErrorListener 
+class HTML5VideoViewProxy// : public Handler
+                         //   public MediaPlayer.OnPreparedListener,
+                         //   public MediaPlayer.OnCompletionListener,
+                         //   public MediaPlayer.OnErrorListener 
 {
 
 public:
     // A bunch event listeners for our VideoView
     // MediaPlayer.OnPreparedListener
 	virtual CARAPI_(void) OnPrepared(
-		/* [in] */ IMediaPlayer* mp);
+		/* [in] */ MediaPlayer* mp);
 
     // MediaPlayer.OnCompletionListener;
 	virtual CARAPI_(void) OnCompletion(
-		/* [in] */ IMediaPlayer* mp);
+		/* [in] */ MediaPlayer* mp);
 
     // MediaPlayer.OnErrorListener
 	virtual CARAPI_(Boolean) OnError(
-		/* [in] */ IMediaPlayer* mp, 
+		/* [in] */ MediaPlayer* mp, 
 		/* [in] */ Int32 what, 
 		/* [in] */ Int32 extra);
 
@@ -104,7 +107,7 @@ private:
     // the EventHandler methods, which are called on the network thread.
 
     // A helper class that knows how to download posters
-	static class PosterDownloader : public EventHandler 
+	class PosterDownloader //: public EventHandler 
 	{
 	public:
 		PosterDownloader(
@@ -125,10 +128,10 @@ private:
 			/* [in] */ CString reason_phrase);
 
 		virtual CARAPI_(void) Headers(
-			/* [in] */ Headers headers);
+			/* [in] */ IHeaders* headers);
 
 		virtual CARAPI_(void) Data(
-			/* [in] */ ArrayOf<Byte> data, 
+			/* [in] */ Byte data[], 
 			/* [in] */ Int32 len);
 
 		virtual CARAPI_(void) EndData();
@@ -154,16 +157,16 @@ private:
 
 	private:
         // The request queue. This is static as we have one queue for all posters.
-		static RequestQueue mRequestQueue;
+//		static RequestQueue mRequestQueue;
 		static Int32 mQueueRefCount;
         // The poster URL
 		CString mUrl;
         // The proxy we're doing this for.
-		const HTML5VideoViewProxy mProxy;
+		const HTML5VideoViewProxy* mProxy;
         // The poster bytes. We only touch this on the network thread.
-		ByteArrayOutputStream mPosterBytes;
+//		ByteArrayOutputStream mPosterBytes;
         // The request handle. We only touch this on the WebCore thread.
-		RequestHandle mRequestHandle;
+//		RequestHandle mRequestHandle;
         // The response status code.
 		Int32 mStatusCode;
         // The response headers.
@@ -172,7 +175,7 @@ private:
 		IHandler* mHandler;
     };
 
-	static class VideoPlayer 
+	class VideoPlayer 
 	{
 	public:
 		static Boolean isVideoSelfEnded;
@@ -202,17 +205,17 @@ private:
 		static HTML5VideoViewProxy mCurrentProxy;
         // The VideoView instance. This is a singleton for now, at least until
         // http://b/issue?id=1973663 is fixed.
-		static VideoView mVideoView;
+//		static VideoView mVideoView;
         // The progress view.
 		static IView* mProgressView;
         // The container for the progress view and video view
 		static IFrameLayout* mLayout;
         // The timer for timeupate events.
         // See http://www.whatwg.org/specs/web-apps/current-work/#event-media-timeupdate
-		static Timer mTimer;
+//		static Timer mTimer;
 
 	private:
-		static class TimeupdateTask : public TimerTask 
+		class TimeupdateTask //: public TimerTask 
 		{
 		public:
 			TimeupdateTask(
@@ -221,7 +224,7 @@ private:
 			virtual CARAPI_(void) Run();
 
 		private:
-			HTML5VideoViewProxy mProxy;
+			HTML5VideoViewProxy* mProxy;
         };
 
         // The spec says the timer should fire every 250 ms or less.
@@ -290,7 +293,7 @@ private:
     // This ref prevents the bitmap from being GC'ed.
 	IBitmap* mPoster;
     // The poster downloader.
-	PosterDownloader mPosterDownloader;
+//	PosterDownloader mPosterDownloader;
     // The seek position.
 	Int32 mSeekPosition;
     // A helper class to control the playback. This executes on the UI thread!

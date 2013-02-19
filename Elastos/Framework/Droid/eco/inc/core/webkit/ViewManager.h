@@ -39,9 +39,9 @@ public:
 public:
 
     ViewManager(
-    	/* [in] */ WebView w);
+    	/* [in] */ IWebView* w);
 
-    virtual CARAPI_(ChildView) CreateView();
+    virtual CARAPI_(ChildView*) CreateView();
 
 
 
@@ -68,11 +68,11 @@ private:
      * This should only be called from the UI thread.
      */
 	CARAPI_(void) RequestLayout(
-		/* [in] */ ChildView v);
+		/* [in] */ ChildView* v);
 
 private:
-	const WebView mWebView;
-	const ArrayList<ChildView> mChildren;
+	const IWebView* mWebView;
+//	const ArrayList<ChildView> mChildren;
     Boolean mHidden;
     Boolean mReadyToDraw;
     Boolean mZoomInProgress;

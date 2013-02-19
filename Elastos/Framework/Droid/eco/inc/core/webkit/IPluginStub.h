@@ -8,7 +8,7 @@
  * implementation will be provided the same NPP instance that is created
  * through the native interface.
  */
-class IPluginStub {
+class PluginStub {
 public:
     /**
      * Return a custom embedded view to draw the plugin.
@@ -16,7 +16,7 @@ public:
      * @param context The current application's Context.
      * @return A custom View that will be managed by WebView.
      */
-    virtual CARAPI_(View) GetEmbeddedView(
+    virtual CARAPI_(IView*) GetEmbeddedView(
         /* [in] */ Int32 NPP, 
         /* [in] */ IContext* context) = 0;
 

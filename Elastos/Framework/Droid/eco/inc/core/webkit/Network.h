@@ -1,6 +1,9 @@
 #ifndef __NETWORK_H__
 #define __NETWORK_H__
 
+class HttpAuthHandler;
+class LoadListener;
+
 class Network {
 
 public:
@@ -36,7 +39,7 @@ public:
 		/* [in] */ CString method,
 		/* [in] */ IObjectStringMap* headers,
 		/* [in] */ ArrayOf<Byte> postData,
-		/* [in] */ ILoadListener* loader);
+		/* [in] */ LoadListener* loader);
 
     /**
      * @return True iff there is a valid proxy set.
@@ -113,11 +116,11 @@ public:
      * @param loader The loader that resulted in SSL errors.
      */
 	virtual CARAPI_(void) HandleSslErrorRequest(
-		/* [in] */ ILoadListener* loader);
+		/* [in] */ LoadListener* loader);
 
     /* package */ 
-	virtual CARAPI(Boolean) CheckSslPrefTable(
-		/* [in] */ ILoadListener* loader,
+	virtual CARAPI_(Boolean) CheckSslPrefTable(
+		/* [in] */ LoadListener* loader,
 		/* [in] */ ISslError* error);
 
     /**
@@ -127,7 +130,7 @@ public:
      * authentication request.
      */
 	virtual CARAPI_(void) HandleAuthRequest(
-		/* [in] */ ILoadListener* loader);
+		/* [in] */ LoadListener* loader);
 
     // Performance probe
 	virtual CARAPI_(void) StartTiming();
@@ -177,7 +180,7 @@ private:
     /**
      * Network request queue (requests are added from the browser thread).
      */
-	RequestQueue mRequestQueue;
+//	RequestQueue mRequestQueue;
 
     /**
      * SSL error handler: takes care of synchronization of multiple async
@@ -189,7 +192,7 @@ private:
      * HTTP authentication handler: takes care of synchronization of HTTP
      * authentication requests.
      */
-	HttpAuthHandler mHttpAuthHandler;
+	HttpAuthHandler* mHttpAuthHandler;
 };
 
 #endif //__NETWORK_H__

@@ -1,47 +1,49 @@
 #ifndef __PLUGINFULLSCREENHOLDER_H__
 #define __PLUGINFULLSCREENHOLDER_H__
 
+#include "app/Dialog.h"
+
 class PluginFullScreenHolder : public Dialog {
 
 public:
 	PluginFullScreenHolder(
-		/* [in] */ WebView webView, 
+		/* [in] */ IWebView* webView, 
 		/* [in] */ Int32 npp);
 
 public:
     //@Override
-	virtual CARAPI_(void) SetContentView(
-		/* [in] */ View contentView);
+	virtual CARAPI SetContentView(
+		/* [in] */ IView* contentView);
 
     //@Override
-	virtual CARAPI_(void) OnBackPressed();
+	virtual CARAPI OnBackPressed();
 
     //@Override
 	virtual CARAPI_(Boolean) OnKeyDown(
 		/* [in] */ Int32 keyCode, 
-		/* [in] */ KeyEvent event);
+		/* [in] */ IKeyEvent* event);
 
     //@Override
 	virtual CARAPI_(Boolean) OnKeyUp(
 		/* [in] */ Int32 keyCode, 
-		/* [in] */ KeyEvent event);
+		/* [in] */ IKeyEvent* event);
 
     //@Override
 	virtual CARAPI_(Boolean) OnTouchEvent(
-		/* [in] */ MotionEvent event);
+		/* [in] */ IMotionEvent* event);
 
     //@Override
 	virtual CARAPI_(Boolean) OnTrackballEvent(
-		/* [in] */ MotionEvent event);
+		/* [in] */ IMotionEvent* event);
 
 protected:
     //@Override
 	virtual CARAPI_(void) OnStop();
 
 private:
-	const WebView mWebView;
+	const IWebView* mWebView;
 	const Int32 mNpp;
-	View mContentView;
+	IView* mContentView;
 
 };
 

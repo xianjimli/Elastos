@@ -1,12 +1,16 @@
 #ifndef __WEBBACKFORWARDLIST_H__
 #define __WEBBACKFORWARDLIST_H__
 
+class WebHistoryItem;
+class CallbackProxy;
+
 /**
  * This class contains the back/forward list for a WebView.
  * WebView.copyBackForwardList() will return a copy of this class used to
  * inspect the entries in the list.
  */
-class WebBackForwardList : public Cloneable, public Serializable {
+class WebBackForwardList //: public Cloneable, public Serializable 
+{
 
 public:
     /**
@@ -14,7 +18,7 @@ public:
      */
     /*package*/ 
      WebBackForwardList(
-     	/* [in] */ CallbackProxy proxy);
+     	/* [in] */ ICallbackProxy* proxy);
 
     /**
      * Return the current history item. This method returns null if the list is
@@ -23,7 +27,7 @@ public:
      *
      * synchronized
      */
-	virtual CARAPI_(WebHistoryItem) GetCurrentItem();
+	virtual CARAPI_(WebHistoryItem*) GetCurrentItem();
 
     /**
      * Get the index of the current history item. This index can be used to
@@ -123,7 +127,7 @@ protected:
      *
      * synchronized
      */
-	virtual CARAPI_(WebBackForwardList) Clone();
+	virtual CARAPI_(WebBackForwardList*) Clone();
 
 private:
     /* Remove the item at the given index. Called by JNI only. */
@@ -134,11 +138,11 @@ private:
 	// Current position in the list.
 	Int32 mCurrentIndex;
     // ArrayList of WebHistoryItems for maintaining our copy.
-	ArrayList<WebHistoryItem> mArray;
+//	ArrayList<WebHistoryItem> mArray;
     // Flag to indicate that the list is invalid
 	Boolean mClearPending;
     // CallbackProxy to issue client callbacks.
-	const CallbackProxy mCallbackProxy;
+	const CallbackProxy* mCallbackProxy;
 
     /* Close the native list. */
     /* native */

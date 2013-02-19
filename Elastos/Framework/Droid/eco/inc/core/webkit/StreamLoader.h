@@ -1,6 +1,8 @@
 #ifndef __STREAMLOADER_H__
 #define __STREAMLOADER_H__
 
+class LoadListener;
+
 /**
  * This abstract class is used for all content loaders that rely on streaming
  * content into the rendering engine loading framework.
@@ -29,7 +31,7 @@ public:
      * @param loadlistener The LoadListener to call with the data.
      */
     StreamLoader(
-    	/* [in] */ ILoadListener* loadListener)
+    	/* [in] */ LoadListener* loadListener);
 
     /**
      * Calling this method starts the load of the content for this StreamLoader.
@@ -44,8 +46,8 @@ public:
 
 protected:
 	const IContext* mContext;
-	const ILoadListener* mLoadListener; // loader class
-	const IInputStream mDataStream; // stream to read data from
+	const LoadListener* mLoadListener; // loader class
+	const IInputStream* mDataStream; // stream to read data from
 	long mContentLength; // content length of data
 
 	/**

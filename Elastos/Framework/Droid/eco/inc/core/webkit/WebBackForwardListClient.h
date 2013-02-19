@@ -9,7 +9,7 @@ class WebHistoryItem;
  * {@link WebBackForwardList}.
  * {@hide}
  */
-class WebBackForwardListClient {
+class CWebBackForwardListClient {
 
 public:
     /**

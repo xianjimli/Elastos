@@ -3,6 +3,8 @@
 
 #include "StreamLoader.h"
 
+class LoadListener;
+
 /**
  * This class is a concrete implementation of StreamLoader that uses the
  * content supplied as a URL as the source for the stream. The mimetype
@@ -19,7 +21,7 @@ public:
      */
     DataLoader(
     	/* [in] */ CString dataUrl, 
-    	/* [in] */ ILoadListener* loadListener);
+    	/* [in] */ LoadListener* loadListener);
 
 protected:
     //@Override

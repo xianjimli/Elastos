@@ -1,6 +1,9 @@
 #ifndef __WEBVIEWCORE_H__
 #define __WEBVIEWCORE_H__
 
+#include "ViewManager.h"
+#include "WebSettings.h"
+
 class WebViewCore {
 
 public:
@@ -20,7 +23,7 @@ public:
         	/* [in] */ Int32 frame, 
         	/* [in] */ Int32 node, 
         	/* [in] */ Int32 x, 
-        	/* [in] */ Int32 y) 
+        	/* [in] */ Int32 y);
 
         Int32 mMoveGeneration;
         Int32 mFrame;
@@ -31,21 +34,21 @@ public:
 
 	struct JSInterfaceData 
 	{
-        Object mObject;
+        IInterface* mObject;
         CString mInterfaceName;
     };
 
 	struct JSKeyData 
 	{
         CString mCurrentText;
-        KeyEvent mEvent;
+        IKeyEvent* mEvent;
     };
 
 	struct MotionUpData 
 	{
         Int32 mFrame;
         Int32 mNode;
-        Rect mBounds;
+        IRect* mBounds;
         Int32 mX;
         Int32 mY;
     };
@@ -53,13 +56,13 @@ public:
 	struct GetUrlData 
 	{
         CString mUrl;
-        Map<String, String> mExtraHeaders;
+        IObjectStringMap* mExtraHeaders;
     };
 
 	struct PostUrlData 
 	{
         CString mUrl;
-        byte[] mPostData;
+        byte mPostData[];
     };
 
 	struct ReplaceTextData 
@@ -130,7 +133,7 @@ public:
         Int32 mMinPrefWidth;
         RestoreState mRestoreState; // only non-null if it is for the first
                                     // picture set after the first layout
-        boolean mFocusSizeChanged;
+        Boolean mFocusSizeChanged;
     };
 
 	// called by JNI
@@ -248,10 +251,10 @@ public:
 		static const Int32 DESTROY =     200;
 
         // Private handler for WebCore messages.
-		Handler mHandler;
+		IHandler* mHandler;
         // Message queue for containing messages before the WebCore thread is
         // ready.
-		ArrayList<Message> mMessages;
+//		ArrayList<Message> mMessages;
         // Flag for blocking messages. This is used during DESTROY to avoid
         // posting more messages to the EventHub or to WebView's event handler.
 		Boolean mBlockMessages;
@@ -277,7 +280,7 @@ public:
          * synchronized
          */
 		CARAPI_(void) SendMessage(
-			/* [in] */ Message msg);
+			/* [in] */ IMessage* msg);
 
 		/* synchronized */
         CARAPI_(void) RemoveMessages(
@@ -289,7 +292,7 @@ public:
 
         /* synchronized */
 		CARAPI_(void) SendMessageDelayed(
-			/* [in] */ Message msg, 
+			/* [in] */ IMessage* msg, 
 			/* [in] */ Int64 delay);
 
         /**
@@ -298,7 +301,7 @@ public:
          * synchronized
          */
 		CARAPI_(void) SendMessageAtFrontOfQueue(
-			/* [in] */ Message msg);
+			/* [in] */ IMessage* msg);
 
         /**
          * Remove all the messages.
@@ -326,13 +329,13 @@ public:
     // The thread name used to identify the WebCore thread and for use in
     // debugging other classes that require operation within the WebCore thread.
     /* package */ 
-	static const CString THREAD_NAME = "WebViewCoreThread";
+	static const CString THREAD_NAME;// = "WebViewCoreThread";
 
 	WebViewCore(
-		/* [in] */ Context context, 
-		/* [in] */ WebView w, 
-		/* [in] */ CallbackProxy proxy,
-		/* [in] */ Map<String, Object> javascriptInterfaces);
+		/* [in] */ IContext* context, 
+		/* [in] */ IWebView* w, 
+		/* [in] */ ICallbackProxy* proxy,
+		/* [in] */ IObjectStringMap* javascriptInterfaces);
 
     /* Initialize private data within the WebCore thread.
      */
@@ -348,7 +351,7 @@ public:
     /* Get the BrowserFrame component. This is used for subwindow creation and
      * is called only from BrowserFrame in the WebCore thread. */
     /* package */ 
-    virtual CARAPI_(BrowserFrame) GetBrowserFrame();
+    virtual CARAPI_(IBrowserFrame*) GetBrowserFrame();
 
     //-------------------------------------------------------------------------
     // Common methods
@@ -365,7 +368,7 @@ public:
      */
 	static CARAPI_(void) ResumeTimers();
 
-	virtual CARAPI_(WebSettings) GetSettings();
+	virtual CARAPI_(WebSettings*) GetSettings();
 
     /*
      * Given mimeType, check whether it's supported in Android media framework.
@@ -373,7 +376,7 @@ public:
      */
     /* package */
 	static CARAPI_(Boolean) SupportsMimeType(
-		/* [in] */ String mimeType);
+		/* [in] */ CString mimeType);
 
 
 
@@ -395,7 +398,7 @@ public:
     static const Int32 ACTION_LONGPRESS = 0x100;
     static const Int32 ACTION_DOUBLETAP = 0x200;
 
-    static const String[] HandlerDebugString = {
+    static const String HandlerDebugString[];/* = {
         "REQUEST_LABEL", // 97
         "UPDATE_FRAME_CACHE_IF_LOADING", // = 98
         "SCROLL_TEXT_INPUT", // = 99
@@ -446,7 +449,7 @@ public:
         "ON_RESUME",    // = 144
         "FREE_MEMORY",  // = 145
         "VALID_NODE_BOUNDS", // = 146
-    };
+    };*/
 
     
 
@@ -463,14 +466,14 @@ public:
     //-------------------------------------------------------------------------
 
     virtual CARAPI_(void) SendMessage(
-    	/* [in] */ Message msg);
+    	/* [in] */ IMessage* msg);
 
     virtual CARAPI_(void) SendMessage(
     	/* [in] */ Int32 what);
 
     virtual CARAPI_(void) SendMessage(
     	/* [in] */ Int32 what, 
-    	/* [in] */ Object obj);
+    	/* [in] */ IInterface* obj);
 
     virtual CARAPI_(void) SendMessage(
     	/* [in] */ Int32 what, 
@@ -484,21 +487,21 @@ public:
     virtual CARAPI_(void) SendMessage(
     	/* [in] */ Int32 what, 
     	/* [in] */ Int32 arg1, 
-    	/* [in] */ Object obj);
+    	/* [in] */ IInterface* obj);
 
     virtual CARAPI_(void) SendMessage(
     	/* [in] */ Int32 what, 
     	/* [in] */ Int32 arg1, 
     	/* [in] */ Int32 arg2, 
-    	/* [in] */ Object obj);
+    	/* [in] */ IInterface* obj);
 
     virtual CARAPI_(void) SendMessageAtFrontOfQueue(
     	/* [in] */ Int32 what, 
-    	/* [in] */ Object obj);
+    	/* [in] */ IInterface* obj);
 
     virtual CARAPI_(void) SendMessageDelayed(
     	/* [in] */ Int32 what, 
-    	/* [in] */ Object obj, 
+    	/* [in] */ IInterface* obj, 
     	/* [in] */ Int64 delay);
 
     virtual CARAPI_(void) RemoveMessages(
@@ -517,19 +520,19 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     // These are called from the UI thread, not our thread
 
-    static const Int32 ZOOM_BITS = Paint.FILTER_BITMAP_FLAG |
+    static const Int32 ZOOM_BITS;/* = Paint.FILTER_BITMAP_FLAG |
                                          Paint.DITHER_FLAG |
-                                         Paint.SUBPIXEL_TEXT_FLAG;
-    static const Int32 SCROLL_BITS = Paint.FILTER_BITMAP_FLAG |
-                                           Paint.DITHER_FLAG;
+                                         Paint.SUBPIXEL_TEXT_FLAG;*/
+    static const Int32 SCROLL_BITS;/* = Paint.FILTER_BITMAP_FLAG |
+                                           Paint.DITHER_FLAG;*/
 
-    const DrawFilter mZoomFilter;
+    const IDrawFilter* mZoomFilter;
     // If we need to trade better quality for speed, set mScrollFilter to null
-    const DrawFilter mScrollFilter;
+    const IDrawFilter* mScrollFilter;
 
     /* package */ 
 	virtual CARAPI_(void) DrawContentPicture(
-		/* [in] */ Canvas canvas, 
+		/* [in] */ ICanvas* canvas, 
 		/* [in] */ Int32 color,
 		/* [in] */ Boolean animatingZoom,
 		/* [in] */ Boolean animatingScroll);
@@ -540,7 +543,7 @@ public:
 
     /*package*/ 
     /*synchronized*/
-	virtual CARAPI_(Picture) CopyContentPicture();
+	virtual CARAPI_(IPicture*) CopyContentPicture();
 
     static CARAPI_(void) ReducePriority();
 
@@ -550,7 +553,7 @@ public:
     	/* [in] */ WebViewCore* core);
 
     static CARAPI_(void) ResumeUpdatePicture(
-    	/* [in] */ WebViewCore core);
+    	/* [in] */ WebViewCore* core);
 
     //-------------------------------------------------------------------------
     // Implement abstract methods in WebViewCore, native WebKit callback part
@@ -567,11 +570,11 @@ public:
 	virtual CARAPI_(void) SignalRepaintDone();
 
     /* package */
-	virtual CARAPI_(WebView) GetWebView();
+	virtual CARAPI_(IWebView*) GetWebView();
 
 
 protected:
-	    /**
+    /**
      * Add an error message to the client's console.
      * @param message The message to add
      * @param lineNumber the line on which the error occurred
@@ -682,16 +685,16 @@ private:
 
 	CARAPI_(void) LoadUrl(
 		/* [in] */ CString url, 
-		/* [in] */ Map<String, String> extraHeaders);
+		/* [in] */ IObjectStringMap* extraHeaders);
 
 	CARAPI_(void) Key(
-		/* [in] */ KeyEvent evt, 
+		/* [in] */ IKeyEvent* evt, 
 		/* [in] */ Boolean isDown);
 
     // These values are used to avoid requesting a layout based on old values
-	Int32 mCurrentViewWidth = 0;
-	Int32 mCurrentViewHeight = 0;
-	Float mCurrentViewScale = 1.0f;
+	Int32 mCurrentViewWidth;
+	Int32 mCurrentViewHeight;
+	Float mCurrentViewScale;
 
     // notify webkit that our virtual view size changed size (after inv-zoom)
 	CARAPI_(void) ViewSizeChanged(
@@ -737,7 +740,7 @@ private:
      */
     /*native*/
 	CARAPI_(void) NativeCopyContentToPicture(
-		/* [in] */ Picture picture);
+		/* [in] */ IPicture* picture);
 
     /**
      * Draw the picture set with a background color. Returns true
@@ -746,7 +749,7 @@ private:
      */
 	/*native*/
 	CARAPI_(Boolean) NativeDrawContent(
-		/* [in] */ Canvas canvas, 
+		/* [in] */ ICanvas* canvas, 
 		/* [in] */ Int32 color);
 
     /**
@@ -761,8 +764,8 @@ private:
      */
     /*native*/
 	CARAPI_(Boolean) NativeRecordContent(
-		/* [in] */ Region invalRegion, 
-		/* [in] */ Point wh);
+		/* [in] */ IRegion* invalRegion, 
+		/* [in] */ IPoint* wh);
 
     /*native*/
 	CARAPI_(Boolean) NativeFocusBoundsChanged();
@@ -784,65 +787,6 @@ private:
 		/* [in] */ Boolean isSym,
 		/* [in] */ Boolean isDown);
 
-	/*native*/
-	 /**
-     * Empty the picture set.
-     */
-    /*native*/
-	CARAPI_(void) NativeClearContent();
-
-    /**
-     * Create a flat picture from the set of pictures.
-     */
-    /*native*/
-	CARAPI_(void) NativeCopyContentToPicture(
-		/* [in] */ Picture picture);
-
-    /**
-     * Draw the picture set with a background color. Returns true
-     * if some individual picture took too long to draw and can be
-     * split into parts. Called from the UI thread.
-     */
-    /*native*/
-	CARAPI_(Boolean) NativeDrawContent(
-		/* [in] */ Canvas canvas, 
-		/* [in] */ Int32 color);
-
-    /**
-     * check to see if picture is blank and in progress
-     */
-    /*native*/
-	CARAPI_(Boolean) NativePictureReady();
-
-    /**
-     * Redraw a portion of the picture set. The Point wh returns the
-     * width and height of the overall picture.
-     */
-    /*native*/
-	CARAPI_(Boolean) NativeRecordContent(
-		/* [in] */ Region invalRegion, 
-		/* [in] */ Point wh);
-
-    /*native*/
-	CARAPI_(Boolean) NativeFocusBoundsChanged();
-
-    /**
-     * Splits slow parts of the picture set. Called from the webkit
-     * thread after nativeDrawContent returns true.
-     */
-    /*native*/
-	CARAPI_(void) NativeSplitContent();
-
-	/*native*/
-	CARAPI_(Boolean) NativeKey(
-		/* [in] */ Int32 keyCode, 
-		/* [in] */ Int32 unichar,
-		/* [in] */ Int32 repeatCount, 
-		/* [in] */ Boolean isShift, 
-		/* [in] */ Boolean isAlt, 
-		/* [in] */ Boolean isSym,
-		/* [in] */ Boolean isDown);
-
     /*native*/
 	CARAPI_(void) NativeClick(
 		/* [in] */ Int32 framePtr, 
@@ -850,7 +794,7 @@ private:
 
     /*native*/
 	CARAPI_(void) NativeSendListBoxChoices(
-		/* [in] */ boolean[] choices, 
+		/* [in] */ Boolean choices[], 
 		/* [in] */ Int32 size);
 
     /*native*/
@@ -1037,15 +981,16 @@ private:
      */
     /* native */
 	CARAPI_(void) NativeProvideVisitedHistory(
-		/* [in] */ String[] history);
+		/* [in] */ CString history[]);
 
 
     // EventHub for processing messages
 	const EventHub mEventHub;
     // WebCore thread handler
-	static Handler sWebCoreHandler;
+	static IHandler* sWebCoreHandler;
     // Class for providing Handler creation inside the WebCore thread.
-	static class WebCoreThread : public Runnable {
+    class WebCoreThread// : public Runnable 
+    {
 	public:
 		virtual CARAPI_(void) Run();
 
@@ -1054,219 +999,6 @@ private:
 		static const Int32 INITIALIZE = 0;
 		static const Int32 REDUCE_PRIORITY = 1;
 		static const Int32 RESUME_PRIORITY = 2;
-    };
-
-    CARAPI_(void) NativeClick(
-    	/* [in] */ Int32 framePtr, 
-    	/* [in] */ Int32 nodePtr);
-
-    /*native*/
-	CARAPI_(void) NativeSendListBoxChoices(
-		/* [in] */ boolean[] choices, 
-		/* [in] */ int size);
-
-    /*native*/
-	CARAPI_(void) NativeSendListBoxChoice(
-		/* [in] */ Int32 choice);
-
-    /*  Tell webkit what its width and height are, for the purposes
-        of layout/line-breaking. These coordinates are in document space,
-        which is the same as View coords unless we have zoomed the document
-        (see nativeSetZoom).
-        screenWidth is used by layout to wrap column around. If viewport uses
-        fixed size, screenWidth can be different from width with zooming.
-        should this be called nativeSetViewPortSize?
-    */
-    /*native*/
-	CARAPI_(void) NativeSetSize(
-		/* [in] */ Int32 width, 
-		/* [in] */ Int32 height, 
-		/* [in] */ Int32 screenWidth,
-		/* [in] */ Float scale, 
-		/* [in] */ Int32 realScreenWidth, 
-		/* [in] */ Int32 screenHeight, 
-		/* [in] */ Int32 anchorX,
-		/* [in] */ Int32 anchorY, 
-		/* [in] */ Boolean ignoreHeight);
-
-    /*native*/
-	CARAPI_(Int32) NativeGetContentMinPrefWidth();
-
-    // Start: functions that deal with text editing
-    /*native*/
-	CARAPI_(void) NativeReplaceTextfieldText(
-		/* [in] */ Int32 oldStart, 
-		/* [in] */ Int32 oldEnd, 
-		/* [in] */ CString replace, 
-		/* [in] */ Int32 newStart, 
-		/* [in] */ Int32 newEnd,
-		/* [in] */ Int32 textGeneration);
-
-    /*native*/
-	CARAPI_(void) PassToJs(
-		/* [in] */ Int32 gen,
-		/* [in] */ CString currentText, 
-		/* [in] */ Int32 keyCode, 
-		/* [in] */ Int32 keyValue, 
-		/* [in] */ Boolean down,
-		/* [in] */ Boolean cap, 
-		/* [in] */ Boolean fn, 
-		/* [in] */ Boolean sym);
-
-    /*native*/
-	CARAPI_(void) NativeSetFocusControllerActive(
-		/* [in] */ Boolean active);
-
-    /*native*/
-	CARAPI_(void) NativeSaveDocumentState(
-		/* [in] */ Int32 frame);
-
-    /*native*/
-	CARAPI_(void) NativeMoveFocus(
-		/* [in] */ Int32 framePtr, 
-		/* [in] */ Int32 nodePointer);
-
-    /*native*/
-	CARAPI_(void) NativeMoveMouse(
-		/* [in] */ Int32 framePtr, 
-		/* [in] */ Int32 x, 
-		/* [in] */ Int32 y);
-
-    /*native*/
-	CARAPI_(void) NativeMoveMouseIfLatest(
-		/* [in] */ Int32 moveGeneration,
-		/* [in] */ Int32 framePtr, 
-		/* [in] */ Int32 x, 
-		/* [in] */ Int32 y);
-
-    /*native*/
-	CARAPI_(String) NativeRetrieveHref(
-		/* [in] */ Int32 framePtr, 
-		/* [in] */ Int32 nodePtr);
-
-    /*native*/
-	CARAPI_(CString) NativeRetrieveAnchorText(
-		/* [in] */ Int32 framePtr, 
-		/* [in] */ Int32 nodePtr);
-
-    /*native*/
-	CARAPI_(void) NativeTouchUp(
-		/* [in] */ Int32 touchGeneration,
-		/* [in] */ Int32 framePtr, 
-		/* [in] */ Int32 nodePtr, 
-		/* [in] */ Int32 x, 
-		/* [in] */ Int32 y);
-
-    /*native*/
-	CARAPI_(Boolean) NativeHandleTouchEvent(
-		/* [in] */ Int32 action, 
-		/* [in] */ Int32 x, 
-		/* [in] */ Int32 y,
-		/* [in] */ Int32 metaState);
-
-    /*native*/
-	CARAPI_(void) NativeUpdateFrameCache();
-
-    /*native*/
-	CARAPI_(void) NativeSetBackgroundColor(
-		/* [in] */ Int32 color);
-
-    /*native*/
-	CARAPI_(void) NativeDumpDomTree(
-		/* [in] */ Boolean useFile);
-
-    /*native*/
-	CARAPI_(void) NativeDumpRenderTree(
-		/* [in] */ Boolean useFile);
-
-    /*native*/
-	CARAPI_(void) NativeDumpNavTree();
-
-    /*native*/
-	CARAPI_(void) NativeDumpV8Counters();
-
-    /*native*/
-	CARAPI_(void) NativeSetJsFlags(
-		/* [in] */ CString flags);
-
-    /**
-     *  Delete text from start to end in the focused textfield. If there is no
-     *  focus, or if start == end, silently fail.  If start and end are out of
-     *  order, swap them.
-     *  @param  start   Beginning of selection to delete.
-     *  @param  end     End of selection to delete.
-     *  @param  textGeneration Text generation number when delete was pressed.
-     */
-    /*native*/
-	CARAPI_(void) NativeDeleteSelection(
-		/* [in] */ Int32 start, 
-		/* [in] */ Int32 end,
-		/* [in] */ Int32 textGeneration);
-
-    /**
-     *  Set the selection to (start, end) in the focused textfield. If start and
-     *  end are out of order, swap them.
-     *  @param  start   Beginning of selection.
-     *  @param  end     End of selection.
-     */
-    /*native*/
-	CARAPI_(void) NativeSetSelection(
-		/* [in] */ Int32 start, 
-		/* [in] */ Int32 end);
-
-    // Register a scheme to be treated as local scheme so that it can access
-    // local asset files for resources
-    /*native*/
-	CARAPI_(void) NativeRegisterURLSchemeAsLocal(
-		/* [in] */ CString scheme);
-
-    /*
-     * Inform webcore that the user has decided whether to allow or deny new
-     * quota for the current origin or more space for the app cache, and that
-     * the main thread should wake up now.
-     * @param limit Is the new quota for an origin or new app cache max size.
-     */
-    /*native*/
-	CARAPI_(void) NativeSetNewStorageLimit(
-		/* [in] */ Int64 limit);
-
-    /**
-     * Provide WebCore with a Geolocation permission state for the specified
-     * origin.
-     * @param origin The origin for which Geolocation permissions are provided.
-     * @param allow Whether Geolocation permissions are allowed.
-     * @param remember Whether this decision should be remembered beyond the
-     *     life of the current page.
-     */
-    /*native*/
-	CARAPI_(void) NativeGeolocationPermissionsProvide(
-		/* [in] */ CString origin, 
-		/* [in] */ Boolean allow, 
-		/* [in] */ Boolean remember);
-
-    /**
-     * Provide WebCore with the previously visted links from the history database
-     */
-    /*native*/
-	CARAPI_(void)  NativeProvideVisitedHistory(
-		/* [in] */ String[] history);
-
-    // EventHub for processing messages
-	const EventHub mEventHub;
-    // WebCore thread handler
-	static Handler sWebCoreHandler;
-
-    // Class for providing Handler creation inside the WebCore thread.
-	static class WebCoreThread : public Runnable 
-	{
-	private:
-        // Message id for initializing a new WebViewCore.
-		static const Int32 INITIALIZE = 0;
-		static const Int32 REDUCE_PRIORITY = 1;
-		static const Int32 RESUME_PRIORITY = 2;
-
-	public:
-		virtual CARAPI_(void) Run();
     };
 
 	/**
@@ -1279,7 +1011,7 @@ private:
 
     //////////////////////////////////////////////////////////////////////////
 
-	CARAPI_(void) RestoreState(
+	CARAPI_(void) _RestoreState(
 		/* [in] */ Int32 index);
 
     // called by JNI
@@ -1397,14 +1129,14 @@ private:
 
     // called by JNI
 	CARAPI_(void) RequestListBox(
-		/* [in] */ String[] array, 
-		/* [in] */ int[] enabledArray,
-		/* [in] */ int[] selectedArray);
+		/* [in] */ CString array[], 
+		/* [in] */ int enabledArray[],
+		/* [in] */ int selectedArray[]);
 
     // called by JNI
 	CARAPI_(void) RequestListBox(
-		/* [in] */ String[] array, 
-		/* [in] */ int[] enabledArray,
+		/* [in] */ CString array[], 
+		/* [in] */ int enabledArray[],
 		/* [in] */ int selection);
 
     // called by JNI
@@ -1419,17 +1151,17 @@ private:
 		/* [in] */ Boolean showKeyboard);
 
     // called by JNI
-	CARAPI_(Context) GetContext();
+	CARAPI_(IContext*) GetContext();
 
     // called by JNI
-	CARAPI_(Class<?>) GetPluginClass(
+	CARAPI_(IInterface*) GetPluginClass(
 		/* [in] */ CString libName, 
 		/* [in] */ CString clsName);
 
     // called by JNI. PluginWidget function to launch a full-screen view using a
     // View object provided by the plugin class.
 	CARAPI_(void) ShowFullScreenPlugin(
-		/* [in] */ ViewManager.ChildView childView, 
+		/* [in] */ ViewManager::ChildView* childView, 
 		/* [in] */ Int32 npp);
 
     // called by JNI
@@ -1437,22 +1169,22 @@ private:
 
     // called by JNI.  PluginWidget functions for creating an embedded View for
     // the surface drawing model.
-	CARAPI_(ViewManager.ChildView) AddSurface(
-		/* [in] */ View pluginView, 
+	CARAPI_(ViewManager::ChildView*) AddSurface(
+		/* [in] */ IView* pluginView, 
 		/* [in] */ Int32 x, 
 		/* [in] */ Int32 y,
 		/* [in] */ Int32 width, 
 		/* [in] */ Int32 height);
 
 	CARAPI_(void) UpdateSurface(
-		/* [in] */ ViewManager.ChildView childView, 
+		/* [in] */ ViewManager::ChildView* childView, 
 		/* [in] */ Int32 x, 
 		/* [in] */ Int32 y,
 		/* [in] */ Int32 width, 
 		/* [in] */ Int32 height);
 
 	CARAPI_(void) DestroySurface(
-		/* [in] */ ViewManager.ChildView childView);
+		/* [in] */ ViewManager::ChildView childView);
 
 
 
@@ -1491,38 +1223,38 @@ private:
 
     /*native*/
 	CARAPI_(void) NativeFullScreenPluginHidden(
-		/* [in] */ int npp);
+		/* [in] */ Int32 npp);
 
     /*native*/
 	CARAPI_(Boolean) NativeValidNodeAndBounds(
 		/* [in] */ Int32 frame, 
 		/* [in] */ Int32 node,
-		/* [in] */ Rect bounds);
+		/* [in] */ IRect* bounds);
 
 private:
 
 	static Boolean mRepaintScheduled;
 
-	static const CString LOGTAG = "webcore";
+	static const CString LOGTAG;// = "webcore";
 
     /*
      * WebViewCore always executes in the same thread as the native webkit.
      */
 
     // The WebView that corresponds to this WebViewCore.
-	WebView mWebView;
+	IWebView* mWebView;
     // Proxy for handling callbacks from native code
-	const CallbackProxy mCallbackProxy;
+	const ICallbackProxy* mCallbackProxy;
     // Settings object for maintaining all settings
 	const WebSettings mSettings;
     // Context for initializing the BrowserFrame with the proper assets.
-	const Context mContext;
+	const IContext* mContext;
     // The pointer to a native view object.
 	Int32 mNativeClass;
     // The BrowserFrame is an interface to the native Frame component.
-	BrowserFrame mBrowserFrame;
+	IBrowserFrame* mBrowserFrame;
     // Custom JS interfaces to add during the initialization.
-	Map<String, Object> mJavascriptInterfaces;
+	IObjectStringMap* mJavascriptInterfaces;
     /*
      * range is from 200 to 10,000. 0 is a special value means device-width. -1
      * means undefined.

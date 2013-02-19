@@ -1,13 +1,18 @@
 #ifndef __HTTPAUTHHANDLER_H__
 #define __HTTPAUTHHANDLER_H__
 
+#include "Network.h"
+
+class LoadListener;
+
 /**
  * HTTP authentication handler: local handler that takes care
  * of HTTP authentication requests. This class is passed as a
  * parameter to BrowserCallback.displayHttpAuthDialog and is
  * meant to receive the user's response.
  */
-public class HttpAuthHandler : public Handler {
+class HttpAuthHandler //: public Handler 
+{
 
 public:
 	/**
@@ -85,14 +90,14 @@ public:
      */
     /* package */
 	virtual CARAPI_(void) HandleAuthRequest(
-		/* [in] */ ILoadListener* loader);
+		/* [in] */ LoadListener* loader);
 
     /**
      * Informs the WebView of a new set of credentials.
      * @hide Pending API council review
      */
 	static CARAPI_(void) OnReceivedCredentials(
-		/* [in] */ ILoadListener* loader,
+		/* [in] */ LoadListener* loader,
 		/* [in] */ CString host, 
 		/* [in] */ CString realm, 
 		/* [in] */ CString username, 

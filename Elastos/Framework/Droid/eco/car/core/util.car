@@ -10,6 +10,7 @@ module
     merge("util/Pool.car");
     merge("util/Poolable.car");
     merge("util/PoolableManager.car");
+    merge("util/HashMap.car");
 
     class CParcelableObjectContainer {
         interface IObjectContainer;

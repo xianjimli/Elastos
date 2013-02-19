@@ -1,15 +1,19 @@
 #ifndef __HTML5AUDIO_H__
 #define __HTML5AUDIO_H__
 
+//#include "../media/media/MediaPlayer.h"
+
+class MediaPlayer;
+
 /**
  * <p>HTML5 support class for Audio.
  */
-class HTML5Audio public: Handler,
+class HTML5Audio /*public: Handler,
                  public: MediaPlayer::OnBufferingUpdateListener,
                  public: MediaPlayer::OnCompletionListener,
                  public: MediaPlayer::OnErrorListener,
                  public: MediaPlayer::OnPreparedListener,
-                 public: MediaPlayer::OnSeekCompleteListener 
+                 public: MediaPlayer::OnSeekCompleteListener */
 {
 public:
 
@@ -30,29 +34,29 @@ public:
 
     // MediaPlayer.OnBufferingUpdateListener
 	virtual CARAPI_(void) OnBufferingUpdate(
-		/* [in] */ IMediaPlayer* mp, 
+		/* [in] */ MediaPlayer* mp, 
 		/* [in] */ Int32 percent);
 
     // MediaPlayer.OnCompletionListener;
 	virtual CARAPI_(void) OnCompletion(
-		/* [in] */ IMediaPlayer* mp);
+		/* [in] */ MediaPlayer* mp);
 
     // MediaPlayer.OnErrorListener
 	virtual CARAPI_(Boolean) OnError(
-		/* [in] */ IMediaPlayer* mp, 
+		/* [in] */ MediaPlayer* mp, 
 		/* [in] */ Int32 what, 
 		/* [in] */ Int32 extra);
 
     // MediaPlayer.OnPreparedListener
 	virtual CARAPI_(void) OnPrepared(
-		/* [in] */ IMediaPlayer* mp);
+		/* [in] */ MediaPlayer* mp);
 
     // MediaPlayer.OnSeekCompleteListener
 	virtual CARAPI_(void) OnSeekComplete(
-		/* [in] */ IMediaPlayer* mp);
+		/* [in] */ MediaPlayer* mp);
 
 private:
-	class TimeupdateTask : public TimerTask 
+	class TimeupdateTask // : public TimerTask 
 	{
 	public:
 		virtual CARAPI_(void) Run();
@@ -95,19 +99,19 @@ private:
     // Logging tag.
 	static const CString LOGTAG;// = "HTML5Audio";
 
-	IMediaPlayer* mMediaPlayer;
+	MediaPlayer* mMediaPlayer;
 
     // The C++ MediaPlayerPrivateAndroid object.
 	Int32 mNativePointer;
 
-	static Int32 IDLE        =  0;
-	static Int32 INITIALIZED =  1;
-	static Int32 PREPARED    =  2;
-	static Int32 STARTED     =  4;
-	static Int32 COMPLETE    =  5;
-	static Int32 PAUSED      =  6;
-	static Int32 STOPPED     = -2;
-	static Int32 ERROR       = -1;
+	static Int32 IDLE;
+	static Int32 INITIALIZED;
+	static Int32 PREPARED;
+	static Int32 STARTED;
+	static Int32 COMPLETE;
+	static Int32 PAUSED;
+	static Int32 STOPPED;
+	static Int32 ERROR;
 
 	Int32 mState;
 
@@ -121,7 +125,7 @@ private:
 	static const Int32 TIMEUPDATE_PERIOD = 250;  // ms
     // The timer for timeupate events.
     // See http://www.whatwg.org/specs/web-apps/current-work/#event-media-timeupdate
-	Timer mTimer;
+//	Timer mTimer;
 };
 
 #endif //__HTML5AUDIO_H__

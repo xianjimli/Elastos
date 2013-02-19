@@ -3,6 +3,8 @@
 
 #include "WebSettings.h"
 
+class LoadListener;
+
 class FrameLoader {
 
 public:
@@ -11,7 +13,7 @@ public:
 
 public:
     FrameLoader(
-    	/* [in] */ ILoadListener* listener, 
+    	/* [in] */ LoadListener* listener, 
     	/* [in] */ WebSettings* settings,
     	/* [in] */ CString method);
 
@@ -30,7 +32,7 @@ public:
 	virtual CARAPI_(void) SetHeaders(
 		/* [in] */ IHashMap* headers);
 
-	virtual CARAPI_(ILoadListener*) GetLoadListener();
+	virtual CARAPI_(LoadListener*) GetLoadListener();
 
     /**
      * Issues the load request.
@@ -45,7 +47,7 @@ public:
     /* package */
     static CARAPI_(Boolean) HandleLocalFile(
     	/* [in] */ CString url, 
-    	/* [in] */ ILoadListener* loadListener,
+    	/* [in] */ LoadListener* loadListener,
     	/* [in] */ WebSettings* settings);
 
     virtual CARAPI_(Boolean) HandleHTTPLoad();
@@ -77,7 +79,7 @@ private:
 	CARAPI_(void) PopulateHeaders();
 
 private:
-	const ILoadListener* mListener;
+	const LoadListener* mListener;
 	const CString mMethod;
 	const WebSettings mSettings;
 	IObjectStringMap* mHeaders;

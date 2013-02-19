@@ -18,11 +18,11 @@ public:
 
 	/* synchronized */
     static CARAPI_(void) SetActiveWebView(
-    	/* [in] */ WebView webview);
+    	/* [in] */ IWebView* webview);
 
     /* synchronized */
     static  CARAPI_(void) RemoveActiveWebView(
-    	/* [in] */ WebView webview);
+    	/* [in] */ IWebView* webview);
 
     /**
      * handleMessage
@@ -32,7 +32,7 @@ public:
      */
     //@Override
 	virtual CARAPI_(void) HandleMessage(
-		/* [in] */ Message msg);
+		/* [in] */ IMessage* msg);
 
     /**
      * Pause all timers.
@@ -64,7 +64,7 @@ public:
 
 	/* native */
 	virtual CARAPI_(void) AddPackageNames(
-		/* [in] */ Set<String> packageNames);
+		/* [in] */ /*Set<String> packageNames*/);
 
 	/* native */
 	virtual CARAPI_(void) AddPackageName(
@@ -113,7 +113,7 @@ private:
     /**
      * Returns an array of plugin directoies
      */
-	CARAPI_(String[]) GetPluginDirectories();
+	CARAPI_(String*) GetPluginDirectories();
 
     /**
      * Returns the path of the plugin data directory
@@ -132,10 +132,10 @@ private:
      */
 	CARAPI_(void) StopSharedTimer();
 
-	CARAPI_(String[]) GetKeyStrengthList();
+	CARAPI_(String) GetKeyStrengthList();
 
     /*synchronized*/ 
-    CARAPI_(CString) GetSignedPublicKey(
+    CARAPI_(String) GetSignedPublicKey(
     	/* [in] */ Int32 index, 
     	/* [in] */ CString challenge,
     	/* [in] */ String url);
@@ -160,7 +160,7 @@ private:
     // ID for servicing functionptr queue
 	static const Int32 FUNCPTR_MESSAGE = 2;
     // Log system identifier.
-	static const CString LOGTAG = "webkit-timers";
+	static const CString LOGTAG;// = "webkit-timers";
 
     // Native object pointer for interacting in native code.
 	Int32 mNativeBridge;
@@ -176,7 +176,7 @@ private:
 
     // keep track of the main WebView attached to the current window so that we
     // can get the proper Context.
-	static WeakReference<WebView> sCurrentMainWebView;
+//	static WeakReference<WebView> sCurrentMainWebView;
 };
 
 #endif //__JWEBCOREJAVABRIDGE_H_

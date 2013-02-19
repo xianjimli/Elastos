@@ -17,7 +17,7 @@ public:
      */
     /*package*/ 
 	WebHistoryItem(
-		/* [in] */ byte[] data);
+		/* [in] */ Byte data[]);
 
 public:
     /**
@@ -60,7 +60,7 @@ public:
      * Note: The VM ensures 32-bit atomic read/write operations so we don't have
      * to synchronize this method.
      */
-	virtual CARAPI_(Bitmap) GetFavicon();
+	virtual CARAPI_(IBitmap*) GetFavicon();
 
     /**
      * Return the touch icon url.
@@ -72,7 +72,7 @@ public:
      * Return the custom data provided by the client.
      * @hide
      */
-	virtual CARAPI_(Object) GetCustomData();
+	virtual CARAPI_(IInterface*) GetCustomData();
 
     /**
      * Set the custom data field.
@@ -81,7 +81,7 @@ public:
      * @hide
      */
 	virtual CARAPI_(void) SetCustomData(
-		/* [in] */ Object data);
+		/* [in] */ IInterface* data);
 
     /**
      * Set the favicon.
@@ -91,7 +91,7 @@ public:
      */
     /*package*/ 
 	virtual CARAPI_(void) SetFavicon(
-		/* [in] */ Bitmap icon);
+		/* [in] */ IBitmap* icon);
 
     /**
      * Set the touch icon url.
@@ -107,7 +107,7 @@ public:
      * to synchronize this method.
      */
     /*package*/ 
-    virtual CARAPI_(byte[]) GetFlattenedData();
+    virtual CARAPI_(Byte*) GetFlattenedData();
 
     /**
      * Inflate this item.
@@ -122,7 +122,7 @@ protected:
     /**
      * Clone the history item for use by clients of WebView.
      */
-	virtual CARAPI_(WebHistoryItem) clone();
+	virtual CARAPI_(WebHistoryItem*) clone();
 
 private:
 	// Global identifier count.
@@ -136,13 +136,13 @@ private:
     // The original requested url of this item.
 	String mOriginalUrl;
     // The favicon for this item.
-	Bitmap mFavicon;
+	IBitmap* mFavicon;
     // The pre-flattened data used for saving the state.
-	byte[] mFlattenedData;
+	Byte mFlattenedData;
     // The apple-touch-icon url for use when adding the site to the home screen
 	String mTouchIconUrl;
     // Custom client data that is not flattened or read by native code.
-	Object mCustomData;
+	IInterface* mCustomData;
 
 private:
 
@@ -150,14 +150,15 @@ private:
      */
 	CARAPI_(void) Inflate(
 		/* [in] */ Int32 nativeFrame, 
-		/* [in] */ byte[] data);
+		/* [in] */ Byte data[]);
 
     /* Called by jni when the item is updated */
 	CARAPI_(void) Update(
 		/* [in] */ CString url, 
 		/* [in] */ CString originalUrl, 
 		/* [in] */ String title,
-		/* [in] */ Bitmap favicon, byte[] data);
+		/* [in] */ IBitmap* favicon,
+        /* [in] */ Byte data[]);
 
     /**
      * Basic constructor that assigns a unique id to the item. Called by JNI
@@ -170,7 +171,7 @@ private:
      * @param item The history item to clone.
      */
 	WebHistoryItem(
-		/* [in] */ WebHistoryItem item);
+		/* [in] */ WebHistoryItem* item);
 };
 
 #endif //__WEBHISTORYITEM_H__

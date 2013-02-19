@@ -122,8 +122,8 @@ private:
     * deprecated, so is this class.
     */
     //@Deprecated
-    class DefaultClickHandler : public PreferencesClickHandler,
-                                public DialogInterface::OnClickListener 
+    class DefaultClickHandler : public PreferencesClickHandler//,
+                             //   public DialogInterface::OnClickListener 
 	{
 	public:       
         //@Deprecated
@@ -140,15 +140,15 @@ private:
 			/* [in] */ Int32 which);
 
     private:
-		AlertDialog mDialog;
-    }
+		IAlertDialog* mDialog;
+    };
 
 private:
 	CString mName;
 	CString mPath;
 	CString mFileName;
 	CString mDescription;
-	PreferencesClickHandler mHandler;
+	PreferencesClickHandler* mHandler;
 };
 
 #endif //__PLUGIN_H__
