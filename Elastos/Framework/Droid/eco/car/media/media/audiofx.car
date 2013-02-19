@@ -2,6 +2,7 @@
 module
 {
     merge("audiofx/AudioEffect.car");
+    merge("audiofx/BassBoost.car");
 
     class CAudioEffect {
         constructor(
@@ -12,4 +13,13 @@ module
 
         interface IAudioEffect;
     }
+    
+    class CBassBoost {
+        constructor(
+            [in] Int32 priority,
+            [in] Int32 audioSession);
+
+        interface IBassBoost;
+    }
+
 }

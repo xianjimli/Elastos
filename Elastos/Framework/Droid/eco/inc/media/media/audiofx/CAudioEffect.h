@@ -13,17 +13,20 @@ private:
     class NativeEventHandler : public Runnable
     {
         public:
+        /*
+        public NativeEventHandler(AudioEffect ae, Looper looper)
+
+        public void handleMessage(Message msg)
+         */
         private:
+
+        /*
+        private AudioEffect mAudioEffect;
+         */
     };
 public:
     CAudioEffect();
     CARAPI constructor(
-        /* [in] */ //IUUID* type,
-        /* [in] */ //IUUID* uuid,
-        /* [in] */ Int32 proiority,
-        /* [in] */ Int32 audioSession);
-
-    CARAPI AudioEffect(
         /* [in] */ //IUUID* type,
         /* [in] */ //IUUID* uuid,
         /* [in] */ Int32 proiority,
@@ -92,7 +95,8 @@ public:
      */
     CARAPI SetParameter(
         /* [in] */ const ArrayOf<Byte>& param,
-        /* [in] */ const ArrayOf<Byte>& value);
+        /* [in] */ const ArrayOf<Byte>& value,
+        /* [out] */ Int32* result);
 
     /**
      * Set effect parameter. The parameter and its value are integers.
@@ -102,7 +106,8 @@ public:
      */        
     CARAPI SetParameterEx(
         /* [in] */ Int32 param,
-        /* [in] */ Int32 value);
+        /* [in] */ Int32 value,
+        /* [out] */ Int32* result);
 
     /**
      * Set effect parameter. The parameter is an integer and the value is a
@@ -113,7 +118,8 @@ public:
      */
     CARAPI SetParameterEx2(
         /* [in] */ Int32 param,
-        /* [in] */ Int16 value);
+        /* [in] */ Int16 value,
+        /* [out] */ Int32* result);
 
     /**
      * Set effect parameter. The parameter is an integer and the value is an
@@ -124,7 +130,8 @@ public:
      */
     CARAPI SetParameterEx3(
         /* [in] */ Int32 param,
-        /* [in] */ const ArrayOf<Byte>& value);
+        /* [in] */ const ArrayOf<Byte>& value,
+        /* [out] */ Int32* result);
 
     /**
      * Set effect parameter. The parameter is an array of 1 or 2 integers and
@@ -135,7 +142,8 @@ public:
      */
     CARAPI SetParameterEx4(
         /* [in] */ const ArrayOf<Int32>& param,
-        /* [in] */ const ArrayOf<Int32>& value);
+        /* [in] */ const ArrayOf<Int32>& value,
+        /* [out] */ Int32* result);
 
     /**
      * Set effect parameter. The parameter is an array of 1 or 2 integers and
@@ -146,7 +154,8 @@ public:
      */
     CARAPI SetParameterEx5(
         /* [in] */ const ArrayOf<Int32>& param,
-        /* [in] */ const ArrayOf<Int16>& value);
+        /* [in] */ const ArrayOf<Int16>& value,
+        /* [out] */ Int32* result);
 
     /**
      * Set effect parameter. The parameter is an array of 1 or 2 integers and
@@ -157,7 +166,8 @@ public:
      */
     SetParameterEx6(
         /* [in] */ const ArrayOf<Int32>& param,
-        /* [in] */ const ArrayOf<Byte>& value);
+        /* [in] */ const ArrayOf<Byte>& value,
+        /* [out] */ Int32* result);
     /**
      * Get effect parameter. The getParameter method is provided in several
      * forms addressing most common parameter formats. This form is the most
@@ -250,7 +260,8 @@ public:
      */
     CARAPI GetParameterEx6(
         /* [in] */ const ArrayOf<Int32>& param,
-        /* [in] */ const ArrayOf<Byte>& value);
+        /* [in] */ const ArrayOf<Byte>& value,
+        /* [out] */ Int32* status);
 
     /**
      * Send a command to the effect engine. This method is intended to send
@@ -344,7 +355,7 @@ public:
      */
     CARAPI ByteArrayToInt32(
         /* [in] */ const ArrayOf<Byte>& valueBuf,
-        /* [out] */ Int32* value);
+        /* [out] */ Int32* result);
 
     /**
      * @hide
@@ -352,32 +363,36 @@ public:
     CARAPI ByteArrayToInt32Ex(
         /* [in] */ const ArrayOf<Byte>& valueBuf,
         /* [in] */ Int32 offset,
-        /* [out] */ Int32* value);
+        /* [out] */ Int32* result);
 
     /**
      * @hide
      */
     CARAPI Int32ToByteArray(
-        /* [in] */ Int32 value);
+        /* [in] */ Int32 value,
+        /* [out] */ ArrayOf<Byte>* result);
 
     /**
      * @hide
      */
     CARAPI ByteArrayToInt16(
-        /* [in] */ const ArrayOf<Byte>& valueBuf);
+        /* [in] */ const ArrayOf<Byte>& valueBuf,
+        /* [out] */ Int16* result);
 
     /**
      * @hide
      */
     CARAPI ByteArrayToInt16Ex(
         /* [in] */ const ArrayOf<Byte>& valueBuf,
-        /* [in] */ Int32 offset);
+        /* [in] */ Int32 offset,
+        /* [out] */ Int16* result);
 
     /**
      * @hide
      */
     CARAPI Int16ToByteArray(
-        /* [in] */ Int16 value);
+        /* [in] */ Int16 value,
+        /* [out] */ ArrayOf<Byte>* result);
 
     /**
      * @hide
@@ -386,13 +401,83 @@ public:
         /* [in] */ const ArrayOf<Byte>& array1,
         /* [in] */ const ArrayOf<Byte>& array2,
         /* [out, callee] */ ArrayOf<Byte>** result);
-private:
+    /*
+    public NativeEventHandler(AudioEffect ae, Looper looper) {
+        super(looper);
+        mAudioEffect = ae;
+    }
 
+    @Override
+    public void handleMessage(Message msg) {
+
+    */
+protected:
+    CARAPI_(void) Finalize();
+
+private:
     // Convenience method for the creation of the native event handler
     // It is called only when a non-null event listener is set.
     // precondition:
     // mNativeEventHandler is null
     CARAPI_(void) CreateNativeEventHandler();
+
+    // ---------------------------------------------------------
+    // Java methods called from the native side
+    // --------------------
+    CARAPI_(void) PostEventFromNative(
+        /* [in] */ IObject* effect_ref,
+        /* [in] */ Int32 what,
+        /* [in] */ Int32 arg1,
+        /* [in] */ Int32 arg2,
+        /* [in] */ IObject* obj);
+
+    // ---------------------------------------------------------
+    // Native methods called from the Java side
+    // --------------------
+
+    CARAPI_(void) Native_Init();
+
+    CARAPI_(Int32) Native_Setup(
+        /* [in] */ IObject* audioeffect_this,
+        /* [in] */ String type,
+        /* [in] */ String uuid,
+        /* [in] */ Int32 priority,
+        /* [in] */ Int32 audioSession,
+        /* [in] */ ArrayOf<Int32> id,
+        /* [in] */ ArrayOf<IObject>* desc);
+
+    CARAPI_(void) Native_Finalize();
+
+    CARAPI_(void) Native_Release();
+
+    CARAPI_(Int32) Native_SetEnabled(
+        /* [in] */ Boolean enabled);
+
+    CARAPI_(Boolean) Native_GetEnabled();
+
+    CARAPI_(Boolean) Native_HasControl();
+
+    CARAPI_(Int32) Native_SetParameter(
+        /* [in] */ Int32 psize,
+        /* [in] */ ArrayOf<Byte> param,
+        /* [in] */ Int32 vsize,
+        /* [in] */ ArrayOf<Byte> value);
+
+    CARAPI_(Int32) Native_GetParameter(
+        /* [in] */ Int32 psize,
+        /* [in] */ ArrayOf<Byte> param,
+        /* [in] */ ArrayOf<Int32> vsize,
+        /* [in] */ ArrayOf<Byte> value);
+
+    CARAPI_(Int32) Native_Command(
+        /* [in] */ Int32 cmdCode,
+        /* [in] */ Int32 cmdSize,
+        /* [in] */ ArrayOf<Byte> cmdData,
+        /* [in] */ ArrayOf<Int32> repSize,
+        /* [in] */ ArrayOf<Byte> repData);
+
+    CARAPI_(ArrayOf<IObject*>) Native_Query_Effects();
+
 public:
     /**
      * Lock to protect listeners updates against event notifications
