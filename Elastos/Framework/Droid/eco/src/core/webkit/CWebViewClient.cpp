@@ -1,9 +1,9 @@
 
 #include "webkit/CWebViewClient.h"
 ECode CWebViewClient::ShouldOverrideUrlLoading(
-    /* [out] */ Boolean * pFlag,
     /* [in] */ IWebView * pView,
-    /* [in] */ CString url)
+    /* [in] */ CString url,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -91,9 +91,9 @@ ECode CWebViewClient::OnReceivedHttpAuthRequest(
 }
 
 ECode CWebViewClient::ShouldOverrideKeyEvent(
-    /* [out] */ Boolean * pFlag,
     /* [in] */ IWebView * pView,
-    /* [in] */ IKeyEvent * pEvent)
+    /* [in] */ IKeyEvent * pEvent,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;

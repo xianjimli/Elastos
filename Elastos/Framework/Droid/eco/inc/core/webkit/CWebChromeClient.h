@@ -31,11 +31,11 @@ public:
     CARAPI OnHideCustomView();
 
     CARAPI OnCreateWindow(
-        /* [out] */ Boolean * pFlag,
         /* [in] */ IWebView * pView,
         /* [in] */ Boolean dialog,
         /* [in] */ Boolean userGesture,
-        /* [in] */ IMessage * pResultMsg);
+        /* [in] */ IMessage * pResultMsg,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI OnRequestFocus(
         /* [in] */ IWebView * pView);
@@ -44,33 +44,33 @@ public:
         /* [in] */ IWebView * pWindow);
 
     CARAPI OnJsAlert(
-        /* [out] */ Boolean * pFlag,
         /* [in] */ IWebView * pView,
         /* [in] */ CString url,
         /* [in] */ CString message,
-        /* [in] */ IJsResult * pResult);
+        /* [in] */ IJsResult * pResult,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI OnJsConfirm(
-        /* [out] */ Boolean * pFlag,
         /* [in] */ IWebView * pView,
         /* [in] */ CString url,
         /* [in] */ const String& message,
-        /* [in] */ IJsResult * pResult);
+        /* [in] */ IJsResult * pResult,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI OnJsPrompt(
-        /* [out] */ Boolean * pFlag,
         /* [in] */ IWebView * pView,
         /* [in] */ CString url,
         /* [in] */ CString message,
         /* [in] */ CString defaultValue,
-        /* [in] */ IJsPromptResult * pResult);
+        /* [in] */ IJsPromptResult * pResult,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI OnJsBeforeUnload(
-        /* [out] */ Boolean * pFlag,
         /* [in] */ IWebView * pView,
         /* [in] */ CString url,
         /* [in] */ CString message,
-        /* [in] */ IJsResult * pResult);
+        /* [in] */ IJsResult * pResult,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI OnExceededDatabaseQuota(
         /* [in] */ CString url,
@@ -100,8 +100,8 @@ public:
         /* [in] */ CString sourceID);
 
     CARAPI OnConsoleMessageEx(
-        /* [out] */ Boolean * pFlag,
-        /* [in] */ IConsoleMessage * pConsoleMessage);
+        /* [in] */ IConsoleMessage * pConsoleMessage,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI GetDefaultVideoPoster(
         /* [out] */ IBitmap ** ppBitmap);

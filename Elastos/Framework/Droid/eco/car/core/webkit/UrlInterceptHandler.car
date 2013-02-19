@@ -1,41 +1,41 @@
 
 module
 {
-	interface ICacheManagerCacheResult;
-	interface IPluginData;
+    interface ICacheManagerCacheResult;
+    interface IPluginData;
 
-	interface IUrlInterceptHandler {
+    interface IUrlInterceptHandler {
 
-	    /**
-	     * Given an URL, returns the CacheResult which contains the
-	     * surrogate response for the request, or null if the handler is
-	     * not interested.
-	     *
-	     * @param url URL string.
-	     * @param headers The headers associated with the request. May be null.
-	     * @return The CacheResult containing the surrogate response.
-	     *
-	     * @deprecated Do not use, this interface is deprecated.
-	     */
-		Service(
-		   [out] ICacheManagerCacheResult** result,
-		   [in] CString url, 
-		   [in] IObjectStringMap* headers);
+        /**
+         * Given an URL, returns the CacheResult which contains the
+         * surrogate response for the request, or null if the handler is
+         * not interested.
+         *
+         * @param url URL string.
+         * @param headers The headers associated with the request. May be null.
+         * @return The CacheResult containing the surrogate response.
+         *
+         * @deprecated Do not use, this interface is deprecated.
+         */
+        Service(
+           [in] CString url, 
+           [in] IObjectStringMap* headers,
+           [out] ICacheManagerCacheResult** result);
 
-	    /**
-	     * Given an URL, returns the PluginData which contains the
-	     * surrogate response for the request, or null if the handler is
-	     * not interested.
-	     *
-	     * @param url URL string.
-	     * @param headers The headers associated with the request. May be null.
-	     * @return The PluginData containing the surrogate response.
-	     *
-	     * @deprecated Do not use, this interface is deprecated.
-	     */
-		GetPluginData(
-		   [out] IPluginData** data,
-		   [in] CString url, 
-		   [in] IObjectStringMap* headers);
-	}
+        /**
+         * Given an URL, returns the PluginData which contains the
+         * surrogate response for the request, or null if the handler is
+         * not interested.
+         *
+         * @param url URL string.
+         * @param headers The headers associated with the request. May be null.
+         * @return The PluginData containing the surrogate response.
+         *
+         * @deprecated Do not use, this interface is deprecated.
+         */
+        GetPluginData(
+           [in] CString url, 
+           [in] IObjectStringMap* headers,
+           [out] IPluginData** data);
+    }
 }

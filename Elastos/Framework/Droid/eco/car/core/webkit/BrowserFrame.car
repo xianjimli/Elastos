@@ -21,144 +21,144 @@ module
     const FRAME_LOADTYPE_REDIRECT = 7;
     const FRAME_LOADTYPE_REPLACE = 8;
 
-	interface IHandler;
-	interface ISslCertificate;
-	interface IMessage;
+    interface IHandler;
+    interface ISslCertificate;
+    interface IMessage;
 
-	interface IBrowserFrame extends IHandler {
+    interface IBrowserFrame extends IHandler {
 
-	    /**
-	     * Load a url from the network or the filesystem into the main frame.
-	     * Following the same behaviour as Safari, javascript: URLs are not passed
-	     * to the main frame, instead they are evaluated immediately.
-	     * @param url The url to load.
-	     * @param extraHeaders The extra headers sent with this url. This should not
-	     *            include the common headers like "user-agent". If it does, it
-	     *            will be replaced by the intrinsic value of the WebView.
-	     */
-	    LoadUrl(
-	        [in] CString url, 
-	        [in] IObjectStringMap*  extraHeaders);
+        /**
+         * Load a url from the network or the filesystem into the main frame.
+         * Following the same behaviour as Safari, javascript: URLs are not passed
+         * to the main frame, instead they are evaluated immediately.
+         * @param url The url to load.
+         * @param extraHeaders The extra headers sent with this url. This should not
+         *            include the common headers like "user-agent". If it does, it
+         *            will be replaced by the intrinsic value of the WebView.
+         */
+        LoadUrl(
+            [in] CString url, 
+            [in] IObjectStringMap*  extraHeaders);
 
-	    /**
-	     * Load a url with "POST" method from the network into the main frame.
-	     * @param url The url to load.
-	     * @param data The data for POST request.
-	     */
-	    PostUrl(
-	        [in] String url, 
-	        [in] ArrayOf<Byte> data);
+        /**
+         * Load a url with "POST" method from the network into the main frame.
+         * @param url The url to load.
+         * @param data The data for POST request.
+         */
+        PostUrl(
+            [in] String url, 
+            [in] ArrayOf<Byte> data);
 
-	    /**
-	     * Load the content as if it was loaded by the provided base URL. The
-	     * historyUrl is used as the history entry for the load data.
-	     * 
-	     * @param baseUrl Base URL used to resolve relative paths in the content
-	     * @param data Content to render in the browser
-	     * @param mimeType Mimetype of the data being passed in
-	     * @param encoding Character set encoding of the provided data.
-	     * @param historyUrl URL to use as the history entry.
-	     */
-	    LoadData(
-	        [in] CString baseUrl, 
-	        [in] CString data, 
-	        [in] CString mimeType,
-	        [in] CString encoding, 
-	        [in] CString historyUrl);
+        /**
+         * Load the content as if it was loaded by the provided base URL. The
+         * historyUrl is used as the history entry for the load data.
+         * 
+         * @param baseUrl Base URL used to resolve relative paths in the content
+         * @param data Content to render in the browser
+         * @param mimeType Mimetype of the data being passed in
+         * @param encoding Character set encoding of the provided data.
+         * @param historyUrl URL to use as the history entry.
+         */
+        LoadData(
+            [in] CString baseUrl, 
+            [in] CString data, 
+            [in] CString mimeType,
+            [in] CString encoding, 
+            [in] CString historyUrl);
 
-	    /**
-	     * Go back or forward the number of steps given.
-	     * @param steps A negative or positive number indicating the direction
-	     *              and number of steps to move.
-	     */
-	    GoBackOrForward(
-	        [in] Int32 steps);
+        /**
+         * Go back or forward the number of steps given.
+         * @param steps A negative or positive number indicating the direction
+         *              and number of steps to move.
+         */
+        GoBackOrForward(
+            [in] Int32 steps);
 
-	    /**
-	     * Destroy all native components of the BrowserFrame.
-	     */
-	    Destroy();
+        /**
+         * Destroy all native components of the BrowserFrame.
+         */
+        Destroy();
 
-	    /**
-	     * Handle messages posted to us.
-	     * @param msg The message to handle.
-	     */
-	    //@Override
-	    HandleMessage(
-	        [in] IMessage* msg);
+        /**
+         * Handle messages posted to us.
+         * @param msg The message to handle.
+         */
+        //@Override
+        HandleMessage(
+            [in] IMessage* msg);
 
-	    /**
-	     * Retrieves the render tree of this frame and puts it as the object for
-	     * the message and sends the message.
-	     * @param callback the message to use to send the render tree
-	     */
-	    ExternalRepresentation(
-	        [in] IMessage* callBack);
+        /**
+         * Retrieves the render tree of this frame and puts it as the object for
+         * the message and sends the message.
+         * @param callback the message to use to send the render tree
+         */
+        ExternalRepresentation(
+            [in] IMessage* callBack);
 
-	    /**
-	     * Retrieves the visual text of the current frame, puts it as the object for
-	     * the message and sends the message.
-	     * @param callback the message to use to send the visual text
-	     */
-	    DocumentAsText(
-	        [in] IMessage* callBack);
+        /**
+         * Retrieves the visual text of the current frame, puts it as the object for
+         * the message and sends the message.
+         * @param callback the message to use to send the visual text
+         */
+        DocumentAsText(
+            [in] IMessage* callBack);
 
-	    /**
-	     * This method is called by WebCore to check whether application
-	     * wants to hijack url loading
-	     */
-	    HandleUrl(
-	        [out] Boolean* flag,
-	        [in] CString url);
+        /**
+         * This method is called by WebCore to check whether application
+         * wants to hijack url loading
+         */
+        HandleUrl(
+            [in] CString url,
+            [out] Boolean* flag);
 
-	    AddJavascriptInterface(
-	        [in] IInterface* obj, 
-	        [in] CString interfaceName);
+        AddJavascriptInterface(
+            [in] IInterface* obj, 
+            [in] CString interfaceName);
 
-	    //==========================================================================
-	    // native functions
-	    //==========================================================================
+        //==========================================================================
+        // native functions
+        //==========================================================================
 
-	    /**
-	     * Destroy the native frame.
-	     */
-	    /*native*/
-	    NativeDestroyFrame();
+        /**
+         * Destroy the native frame.
+         */
+        /*native*/
+        NativeDestroyFrame();
 
-	    /**
-	     * Reload the current main frame.
-	     */
-	    /*native*/
-	    Reload(
-	       [in] Boolean allowStale);
+        /**
+         * Reload the current main frame.
+         */
+        /*native*/
+        Reload(
+           [in] Boolean allowStale);
 
-	    /**
-	     * stringByEvaluatingJavaScriptFromString will execute the
-	     * JS passed in in the context of this browser frame.
-	     * @param script A javascript string to execute
-	     * 
-	     * @return string result of execution or null
-	     */
-	    StringByEvaluatingJavaScriptFromString(
-	       [out] String* scriptString,
-	       [in] CString script);
+        /**
+         * stringByEvaluatingJavaScriptFromString will execute the
+         * JS passed in in the context of this browser frame.
+         * @param script A javascript string to execute
+         * 
+         * @return string result of execution or null
+         */
+        StringByEvaluatingJavaScriptFromString(
+           [in] CString script,
+           [out] String* scriptString);
 
-	    CacheDisabled(
-	       [out] Boolean* flag);
+        CacheDisabled(
+           [out] Boolean* flag);
 
-	    /*native*/
-	    ClearCache();
+        /*native*/
+        ClearCache();
 
-	    /**
-	     * Stop loading the current page.
-	     */
-	    StopLoading();
+        /**
+         * Stop loading the current page.
+         */
+        StopLoading();
 
-	    /**
-	     * Return true if the document has images.
-	     */
-	    /*native*/
-	    DocumentHasImages(
-	       [out] Boolean* flag);
-	}
+        /**
+         * Return true if the document has images.
+         */
+        /*native*/
+        DocumentHasImages(
+           [out] Boolean* flag);
+    }
 }

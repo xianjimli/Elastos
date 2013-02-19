@@ -38,16 +38,16 @@ ECode CCookieManager::SetCookieEx(
 }
 
 ECode CCookieManager::GetCookie(
-    /* [out] */ String * pCookie,
-    /* [in] */ CString url)
+    /* [in] */ CString url,
+    /* [out] */ String * pCookie)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CCookieManager::GetCookieEx(
-    /* [out] */ String * pCookie,
-    /* [in] */ IWebAddress * pUri)
+    /* [in] */ IWebAddress * pUri,
+    /* [out] */ String * pCookie)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;

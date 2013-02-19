@@ -1,40 +1,40 @@
 
 #include "webkit/CMimeTypeMap.h"
 ECode CMimeTypeMap::GetFileExtensionFromUrl(
-    /* [out] */ String * pOutUrl,
-    /* [in] */ CString inUrl)
+    /* [in] */ CString inUrl,
+    /* [out] */ String * pOutUrl)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CMimeTypeMap::HasMimeType(
-    /* [out] */ Boolean * pFlag,
-    /* [in] */ CString mimeType)
+    /* [in] */ CString mimeType,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CMimeTypeMap::GetMimeTypeFromExtension(
-    /* [out] */ String * pMimeType,
-    /* [in] */ CString extension)
+    /* [in] */ CString extension,
+    /* [out] */ String * pMimeType)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CMimeTypeMap::HasExtension(
-    /* [out] */ Boolean * pFlag,
-    /* [in] */ CString extension)
+    /* [in] */ CString extension,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CMimeTypeMap::GetExtensionFromMimeType(
-    /* [out] */ String * pExtensionFrom,
-    /* [in] */ CString mimeType)
+    /* [in] */ CString mimeType,
+    /* [out] */ String * pExtensionFrom)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;

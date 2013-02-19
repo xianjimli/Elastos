@@ -1,8 +1,8 @@
 
 #include "webkit/CWebViewDatabase.h"
 ECode CWebViewDatabase::GetInstance(
-    /* [out] */ IWebViewDatabase ** ppInstance,
-    /* [in] */ IContext * pContext)
+    /* [in] */ IContext * pContext,
+    /* [out] */ IWebViewDatabase ** ppInstance)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;

@@ -1,14 +1,14 @@
 
 module
 {
-	interface IJsResult;
+    interface IJsResult;
 
-	interface IJsPromptResult extends IJsResult {
+    interface IJsPromptResult extends IJsResult {
 
-	    /**
-	     * Handle a confirmation response from the user.
-	     */
-		ConfirmPrompt(
-		   [in] CString result);
-	}
+        /**
+         * Handle a confirmation response from the user.
+         */
+        ConfirmPrompt(
+           [in] CString result);
+    }
 }

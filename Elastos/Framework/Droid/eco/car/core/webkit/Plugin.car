@@ -1,102 +1,102 @@
 
 module
 {
-	interface IPluginPreferencesClickHandler {
-		HandleClickEvent(
-		   [in] IContext* context);
-	}
+    interface IPluginPreferencesClickHandler {
+        HandleClickEvent(
+           [in] IContext* context);
+    }
 
-	interface IPlugin {
+    interface IPlugin {
 
-	    /**
-	     * @deprecated This interface was intended to be used by Gears. Since Gears was
-	     * deprecated, so is this class.
-	     */
-	    //@Deprecated
-		ToString(
-		   [out] String* name);
+        /**
+         * @deprecated This interface was intended to be used by Gears. Since Gears was
+         * deprecated, so is this class.
+         */
+        //@Deprecated
+        ToString(
+           [out] String* name);
 
-	    /**
-	     * @deprecated This interface was intended to be used by Gears. Since Gears was
-	     * deprecated, so is this class.
-	     */
-	    //@Deprecated
-		GetName(
-		   [out] String* name);
+        /**
+         * @deprecated This interface was intended to be used by Gears. Since Gears was
+         * deprecated, so is this class.
+         */
+        //@Deprecated
+        GetName(
+           [out] String* name);
 
-	    /**
-	     * @deprecated This interface was intended to be used by Gears. Since Gears was
-	     * deprecated, so is this class.
-	     */
-	    //@Deprecated
-		GetPath(
-		   [out] String* path);
+        /**
+         * @deprecated This interface was intended to be used by Gears. Since Gears was
+         * deprecated, so is this class.
+         */
+        //@Deprecated
+        GetPath(
+           [out] String* path);
 
-	    /**
-	     * @deprecated This interface was intended to be used by Gears. Since Gears was
-	     * deprecated, so is this class.
-	     */
-	    //@Deprecated
-		getFileName(
-		   [out] String* fileName);
+        /**
+         * @deprecated This interface was intended to be used by Gears. Since Gears was
+         * deprecated, so is this class.
+         */
+        //@Deprecated
+        getFileName(
+           [out] String* fileName);
 
-	    /**
-	     * @deprecated This interface was intended to be used by Gears. Since Gears was
-	     * deprecated, so is this class.
-	     */
-	    //@Deprecated
-		GetDescription(
-		   [out] String* description);
+        /**
+         * @deprecated This interface was intended to be used by Gears. Since Gears was
+         * deprecated, so is this class.
+         */
+        //@Deprecated
+        GetDescription(
+           [out] String* description);
 
-	    /**
-	     * @deprecated This interface was intended to be used by Gears. Since Gears was
-	     * deprecated, so is this class.
-	     */
-	    //@Deprecated
-		SetName(
-		   [in] CString name);
+        /**
+         * @deprecated This interface was intended to be used by Gears. Since Gears was
+         * deprecated, so is this class.
+         */
+        //@Deprecated
+        SetName(
+           [in] CString name);
 
-	    /**
-	     * @deprecated This interface was intended to be used by Gears. Since Gears was
-	     * deprecated, so is this class.
-	     */
-	    //@Deprecated
-		SetPath(
-		   [in] CString path);
+        /**
+         * @deprecated This interface was intended to be used by Gears. Since Gears was
+         * deprecated, so is this class.
+         */
+        //@Deprecated
+        SetPath(
+           [in] CString path);
 
-	    /**
-	     * @deprecated This interface was intended to be used by Gears. Since Gears was
-	     * deprecated, so is this class.
-	     */
-	    //@Deprecated
-		SetFileName(
-		   [in] CString fileName);
+        /**
+         * @deprecated This interface was intended to be used by Gears. Since Gears was
+         * deprecated, so is this class.
+         */
+        //@Deprecated
+        SetFileName(
+           [in] CString fileName);
 
-	    /**
-	     * @deprecated This interface was intended to be used by Gears. Since Gears was
-	     * deprecated, so is this class.
-	     */
-	    //@Deprecated
-		SetDescription(
-		   [in] CString description);
+        /**
+         * @deprecated This interface was intended to be used by Gears. Since Gears was
+         * deprecated, so is this class.
+         */
+        //@Deprecated
+        SetDescription(
+           [in] CString description);
 
-	    /**
-	     * @deprecated This interface was intended to be used by Gears. Since Gears was
-	     * deprecated, so is this class.
-	     */
-	    //@Deprecated
-		SetClickHandler(
-		   [in] IPluginPreferencesClickHandler* handler);
+        /**
+         * @deprecated This interface was intended to be used by Gears. Since Gears was
+         * deprecated, so is this class.
+         */
+        //@Deprecated
+        SetClickHandler(
+           [in] IPluginPreferencesClickHandler* handler);
 
-	   /**
-	    * Invokes the click handler for this plugin.
-	    *
-	    * @deprecated This interface was intended to be used by Gears. Since Gears was
-	    * deprecated, so is this class.
-	    */
-	    //@Deprecated
-		DispatchClickEvent(
-		   [in] IContext* context);	   
-	}
+       /**
+        * Invokes the click handler for this plugin.
+        *
+        * @deprecated This interface was intended to be used by Gears. Since Gears was
+        * deprecated, so is this class.
+        */
+        //@Deprecated
+        DispatchClickEvent(
+           [in] IContext* context);       
+    }
 
 }

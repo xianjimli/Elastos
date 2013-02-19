@@ -1,109 +1,109 @@
 
 module
 {
-	interface IWebAddress;
+    interface IWebAddress;
 
-	interface ICookieManager {
+    interface ICookieManager {
 
-	    /**
-	     * Get a singleton CookieManager. If this is called before any
-	     * {@link WebView} is created or outside of {@link WebView} context, the
-	     * caller needs to call {@link CookieSyncManager#createInstance(Context)}
-	     * first.
-	     * 
-	     * @return CookieManager
-	     * synchronized
-	     */
-	    GetInstance(
-	       [out] ICookieManager** instance);
+        /**
+         * Get a singleton CookieManager. If this is called before any
+         * {@link WebView} is created or outside of {@link WebView} context, the
+         * caller needs to call {@link CookieSyncManager#createInstance(Context)}
+         * first.
+         * 
+         * @return CookieManager
+         * synchronized
+         */
+        GetInstance(
+           [out] ICookieManager** instance);
 
-	    /**
-	     * Control whether cookie is enabled or disabled
-	     * @param accept TRUE if accept cookie
-	     * synchronized
-	     */
-	    SetAcceptCookie(
-	       [in] Boolean accept);
+        /**
+         * Control whether cookie is enabled or disabled
+         * @param accept TRUE if accept cookie
+         * synchronized
+         */
+        SetAcceptCookie(
+           [in] Boolean accept);
 
-	    /**
-	     * Return whether cookie is enabled
-	     * @return TRUE if accept cookie
-	     * synchronized
-	     */
-	    AcceptCookie(
-	       [out] Boolean* acceptCookie);
+        /**
+         * Return whether cookie is enabled
+         * @return TRUE if accept cookie
+         * synchronized
+         */
+        AcceptCookie(
+           [out] Boolean* acceptCookie);
 
-	    /**
-	     * Set cookie for a given url. The old cookie with same host/path/name will
-	     * be removed. The new cookie will be added if it is not expired or it does
-	     * not have expiration which implies it is session cookie.
-	     * @param url The url which cookie is set for
-	     * @param value The value for set-cookie: in http response header
-	     */
-	    SetCookie(
-	       [in] CString url, 
-	       [in] CString value);
+        /**
+         * Set cookie for a given url. The old cookie with same host/path/name will
+         * be removed. The new cookie will be added if it is not expired or it does
+         * not have expiration which implies it is session cookie.
+         * @param url The url which cookie is set for
+         * @param value The value for set-cookie: in http response header
+         */
+        SetCookie(
+           [in] CString url, 
+           [in] CString value);
 
-	    /**
-	     * Set cookie for a given uri. The old cookie with same host/path/name will
-	     * be removed. The new cookie will be added if it is not expired or it does
-	     * not have expiration which implies it is session cookie.
-	     * @param uri The uri which cookie is set for
-	     * @param value The value for set-cookie: in http response header
-	     * @hide - hide this because it takes in a parameter of type WebAddress,
-	     * a system private class.
-	     *
-	     * synchronized
-	     */
-	    SetCookieEx(
-	       [in] IWebAddress* uri, 
-	       [in] CString value);
+        /**
+         * Set cookie for a given uri. The old cookie with same host/path/name will
+         * be removed. The new cookie will be added if it is not expired or it does
+         * not have expiration which implies it is session cookie.
+         * @param uri The uri which cookie is set for
+         * @param value The value for set-cookie: in http response header
+         * @hide - hide this because it takes in a parameter of type WebAddress,
+         * a system private class.
+         *
+         * synchronized
+         */
+        SetCookieEx(
+           [in] IWebAddress* uri, 
+           [in] CString value);
 
-	    /**
-	     * Get cookie(s) for a given url so that it can be set to "cookie:" in http
-	     * request header.
-	     * @param url The url needs cookie
-	     * @return The cookies in the format of NAME=VALUE [; NAME=VALUE]
-	     */
-	    GetCookie(
-	       [out] String* cookie,
-	       [in] CString url);
+        /**
+         * Get cookie(s) for a given url so that it can be set to "cookie:" in http
+         * request header.
+         * @param url The url needs cookie
+         * @return The cookies in the format of NAME=VALUE [; NAME=VALUE]
+         */
+        GetCookie(
+           [in] CString url,
+           [out] String* cookie);
 
-	    /**
-	     * Get cookie(s) for a given uri so that it can be set to "cookie:" in http
-	     * request header.
-	     * @param uri The uri needs cookie
-	     * @return The cookies in the format of NAME=VALUE [; NAME=VALUE]
-	     * @hide - hide this because it has a parameter of type WebAddress, which
-	     * is a system private class.
-	     *
-	     * synchronized
-	     */
-	    GetCookieEx(
-	       [out] String* cookie,
-	       [in] IWebAddress* uri);
+        /**
+         * Get cookie(s) for a given uri so that it can be set to "cookie:" in http
+         * request header.
+         * @param uri The uri needs cookie
+         * @return The cookies in the format of NAME=VALUE [; NAME=VALUE]
+         * @hide - hide this because it has a parameter of type WebAddress, which
+         * is a system private class.
+         *
+         * synchronized
+         */
+        GetCookieEx(
+           [in] IWebAddress* uri,
+           [out] String* cookie);
 
-	    /**
-	     * Remove all session cookies, which are cookies without expiration date
-	     */
-	    RemoveSessionCookie();
+        /**
+         * Remove all session cookies, which are cookies without expiration date
+         */
+        RemoveSessionCookie();
 
-	    /**
-	     * Remove all cookies
-	     */
-	    RemoveAllCookie();
+        /**
+         * Remove all cookies
+         */
+        RemoveAllCookie();
 
-	    /**
-	     *  Return true if there are stored cookies.
-	     *
-	     * synchronized
-	     */
-	    HasCookies(
-	       [out] Boolean* flag);
+        /**
+         *  Return true if there are stored cookies.
+         *
+         * synchronized
+         */
+        HasCookies(
+           [out] Boolean* flag);
 
-	    /**
-	     * Remove all expired cookies
-	     */
-	    RemoveExpiredCookie();
-	}
+        /**
+         * Remove all expired cookies
+         */
+        RemoveExpiredCookie();
+    }
 }

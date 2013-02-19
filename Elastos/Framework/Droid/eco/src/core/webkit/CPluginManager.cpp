@@ -1,8 +1,8 @@
 
 #include "webkit/CPluginManager.h"
 ECode CPluginManager::GetInstance(
-    /* [out] */ IPluginManager ** ppInstance,
-    /* [in] */ IContext * pContext)
+    /* [in] */ IContext * pContext,
+    /* [out] */ IPluginManager ** ppInstance)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;

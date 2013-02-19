@@ -1,78 +1,78 @@
 
 module
 {
-	interface IBitmap;
+    interface IBitmap;
 
-	interface IWebHistoryItem {
+    interface IWebHistoryItem {
 
-	    /**
-	     * Return an identifier for this history item. If an item is a copy of
-	     * another item, the identifiers will be the same even if they are not the
-	     * same object.
-	     * @return The id for this item.
-	     */
-		GetId(
-		   [out] Int32* id);
+        /**
+         * Return an identifier for this history item. If an item is a copy of
+         * another item, the identifiers will be the same even if they are not the
+         * same object.
+         * @return The id for this item.
+         */
+        GetId(
+           [out] Int32* id);
 
-	    /**
-	     * Return the url of this history item. The url is the base url of this
-	     * history item. See getTargetUrl() for the url that is the actual target of
-	     * this history item.
-	     * @return The base url of this history item.
-	     * Note: The VM ensures 32-bit atomic read/write operations so we don't have
-	     * to synchronize this method.
-	     */
-		GetUrl(
-	       [out] CString* url);
+        /**
+         * Return the url of this history item. The url is the base url of this
+         * history item. See getTargetUrl() for the url that is the actual target of
+         * this history item.
+         * @return The base url of this history item.
+         * Note: The VM ensures 32-bit atomic read/write operations so we don't have
+         * to synchronize this method.
+         */
+        GetUrl(
+           [out] CString* url);
 
-	    /**
-	     * Return the original url of this history item. This was the requested
-	     * url, the final url may be different as there might have been 
-	     * redirects while loading the site.
-	     * @return The original url of this history item.
-	     */
-		GetOriginalUrl(
-		   [out] String* originalUrl);
-	    
-	    /**
-	     * Return the document title of this history item.
-	     * @return The document title of this history item.
-	     * Note: The VM ensures 32-bit atomic read/write operations so we don't have
-	     * to synchronize this method.
-	     */
-		GetTitle(
-		   [out] String* title);
+        /**
+         * Return the original url of this history item. This was the requested
+         * url, the final url may be different as there might have been 
+         * redirects while loading the site.
+         * @return The original url of this history item.
+         */
+        GetOriginalUrl(
+           [out] String* originalUrl);
+        
+        /**
+         * Return the document title of this history item.
+         * @return The document title of this history item.
+         * Note: The VM ensures 32-bit atomic read/write operations so we don't have
+         * to synchronize this method.
+         */
+        GetTitle(
+           [out] String* title);
 
-	    /**
-	     * Return the favicon of this history item or null if no favicon was found.
-	     * @return A Bitmap containing the favicon for this history item or null.
-	     * Note: The VM ensures 32-bit atomic read/write operations so we don't have
-	     * to synchronize this method.
-	     */
-		GetFavicon(
-		   [out] IBitmap** favicon);
+        /**
+         * Return the favicon of this history item or null if no favicon was found.
+         * @return A Bitmap containing the favicon for this history item or null.
+         * Note: The VM ensures 32-bit atomic read/write operations so we don't have
+         * to synchronize this method.
+         */
+        GetFavicon(
+           [out] IBitmap** favicon);
 
-	    /**
-	     * Return the touch icon url.
-	     * @hide
-	     */
-		GetTouchIconUrl(
-		   [out] String* touchIconUrl);
+        /**
+         * Return the touch icon url.
+         * @hide
+         */
+        GetTouchIconUrl(
+           [out] String* touchIconUrl);
 
-	    /**
-	     * Return the custom data provided by the client.
-	     * @hide
-	     */
-		GetCustomData(
-		   [out] IInterface** customData);
+        /**
+         * Return the custom data provided by the client.
+         * @hide
+         */
+        GetCustomData(
+           [out] IInterface** customData);
 
-	    /**
-	     * Set the custom data field.
-	     * @param data An Object containing any data the client wishes to associate
-	     *             with the item.
-	     * @hide
-	     */
-		SetCustomData(
-		   [in] IInterface* data);
-	}
+        /**
+         * Set the custom data field.
+         * @param data An Object containing any data the client wishes to associate
+         *             with the item.
+         * @hide
+         */
+        SetCustomData(
+           [in] IInterface* data);
+    }
 }

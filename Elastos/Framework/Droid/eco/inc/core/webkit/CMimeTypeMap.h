@@ -8,24 +8,24 @@ CarClass(CMimeTypeMap)
 {
 public:
     CARAPI GetFileExtensionFromUrl(
-        /* [out] */ String * pOutUrl,
-        /* [in] */ CString inUrl);
+        /* [in] */ CString inUrl,
+        /* [out] */ String * pOutUrl);
 
     CARAPI HasMimeType(
-        /* [out] */ Boolean * pFlag,
-        /* [in] */ CString mimeType);
+        /* [in] */ CString mimeType,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI GetMimeTypeFromExtension(
-        /* [out] */ String * pMimeType,
-        /* [in] */ CString extension);
+        /* [in] */ CString extension,
+        /* [out] */ String * pMimeType);
 
     CARAPI HasExtension(
-        /* [out] */ Boolean * pFlag,
-        /* [in] */ CString extension);
+        /* [in] */ CString extension,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI GetExtensionFromMimeType(
-        /* [out] */ String * pExtensionFrom,
-        /* [in] */ CString mimeType);
+        /* [in] */ CString mimeType,
+        /* [out] */ String * pExtensionFrom);
 
     CARAPI GetSingleton(
         /* [out] */ IMimeTypeMap ** ppInstance);

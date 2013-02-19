@@ -1,140 +1,140 @@
 
 #include "webkit/CURLUtil.h"
 ECode CURLUtil::GuessUrl(
-    /* [out] */ String * pOutUrl,
-    /* [in] */ CString inUrl)
+    /* [in] */ CString inUrl,
+    /* [out] */ String * pOutUrl)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CURLUtil::ComposeSearchUrl(
-    /* [out] */ String * pUrl,
     /* [in] */ CString inQuery,
     /* [in] */ CString strTemplate,
-    /* [in] */ CString queryPlaceHolder)
+    /* [in] */ CString queryPlaceHolder,
+    /* [out] */ String * pUrl)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CURLUtil::Decode(
-    /* [out] */ ArrayOf<Byte> * pOutUrl,
-    /* [in] */ const ArrayOf<Byte> & url)
+    /* [in] */ const ArrayOf<Byte> & url,
+    /* [out] */ ArrayOf<Byte> * pOutUrl)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CURLUtil::IsAssetUrl(
-    /* [out] */ Boolean * pFlag,
-    /* [in] */ CString url)
+    /* [in] */ CString url,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CURLUtil::IsResourceUrl(
-    /* [out] */ Boolean * pFlag,
-    /* [in] */ CString url)
+    /* [in] */ CString url,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CURLUtil::IsCookielessProxyUrl(
-    /* [out] */ Boolean * pFlag,
-    /* [in] */ CString url)
+    /* [in] */ CString url,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CURLUtil::IsFileUrl(
-    /* [out] */ Boolean * pFlag,
-    /* [in] */ CString url)
+    /* [in] */ CString url,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CURLUtil::IsAboutUrl(
-    /* [out] */ Boolean * pFlag,
-    /* [in] */ CString url)
+    /* [in] */ CString url,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CURLUtil::IsDataUrl(
-    /* [out] */ Boolean * pFlag,
-    /* [in] */ CString url)
+    /* [in] */ CString url,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CURLUtil::IsJavaScriptUrl(
-    /* [out] */ Boolean * pFlag,
-    /* [in] */ CString url)
+    /* [in] */ CString url,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CURLUtil::IsHttpUrl(
-    /* [out] */ Boolean * pFlag,
-    /* [in] */ CString url)
+    /* [in] */ CString url,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CURLUtil::IsHttpsUrl(
-    /* [out] */ Boolean * pFlag,
-    /* [in] */ CString url)
+    /* [in] */ CString url,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CURLUtil::IsNetworkUrl(
-    /* [out] */ Boolean * pFlag,
-    /* [in] */ const String& url)
+    /* [in] */ const String& url,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CURLUtil::IsContentUrl(
-    /* [out] */ Boolean * pFlag,
-    /* [in] */ CString url)
+    /* [in] */ CString url,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CURLUtil::IsValidUrl(
-    /* [out] */ Boolean * pFlag,
-    /* [in] */ CString url)
+    /* [in] */ CString url,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CURLUtil::StripAnchor(
-    /* [out] */ String * pOutUrl,
-    /* [in] */ const String& url)
+    /* [in] */ const String& url,
+    /* [out] */ String * pOutUrl)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CURLUtil::GuessFileName(
-    /* [out] */ String * pName,
     /* [in] */ CString url,
     /* [in] */ CString contentDisposition,
-    /* [in] */ CString mimeType)
+    /* [in] */ CString mimeType,
+    /* [out] */ String * pName)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;

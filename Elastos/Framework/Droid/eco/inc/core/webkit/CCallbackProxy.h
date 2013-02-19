@@ -26,12 +26,12 @@ public:
         /* [out] */ IWebBackForwardList ** ppList);
 
     CARAPI UiOverrideUrlLoading(
-        /* [out] */ Boolean * pFlag,
-        /* [in] */ CString overrideUrl);
+        /* [in] */ CString overrideUrl,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI UiOverrideKeyEvent(
-        /* [out] */ Boolean * pFlag,
-        /* [in] */ IKeyEvent * pEvent);
+        /* [in] */ IKeyEvent * pEvent,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI HandleMessage(
         /* [in] */ IMessage * pMsg);
@@ -60,8 +60,8 @@ public:
         /* [in] */ IMessage * pResend);
 
     CARAPI ShouldOverrideUrlLoading(
-        /* [out] */ Boolean * pFlag,
-        /* [in] */ CString url);
+        /* [in] */ CString url,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI OnReceivedHttpAuthRequest(
         /* [in] */ IHttpAuthHandler * pHandler,
@@ -90,19 +90,19 @@ public:
         /* [in] */ Float newScale);
 
     CARAPI OnDownloadStart(
-        /* [out] */ Boolean * pFlag,
         /* [in] */ CString url,
         /* [in] */ CString userAgent,
         /* [in] */ CString contentDisposition,
         /* [in] */ CString mimetype,
-        /* [in] */ Int64 contentLength);
+        /* [in] */ Int64 contentLength,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI OnSavePassword(
-        /* [out] */ Boolean * pFlag,
         /* [in] */ CString schemePlusHost,
         /* [in] */ CString username,
         /* [in] */ const String& password,
-        /* [in] */ IMessage * pResumeMsg);
+        /* [in] */ IMessage * pResumeMsg,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI OnReceivedHttpAuthCredentials(
         /* [in] */ CString host,
@@ -114,9 +114,9 @@ public:
         /* [in] */ Int32 newProgress);
 
     CARAPI CreateWindow(
-        /* [out] */ IBrowserFrame ** ppBrowseFrame,
         /* [in] */ Boolean dialog,
-        /* [in] */ Boolean userGesture);
+        /* [in] */ Boolean userGesture,
+        /* [out] */ IBrowserFrame ** ppBrowseFrame);
 
     CARAPI OnRequestFocus();
 
@@ -134,20 +134,20 @@ public:
         /* [in] */ CString message);
 
     CARAPI OnJsConfirm(
-        /* [out] */ Boolean * pFlag,
-        /* [in] */ CString url,
-        /* [in] */ CString message);
-
-    CARAPI OnJsPrompt(
-        /* [out] */ String * pResult,
         /* [in] */ CString url,
         /* [in] */ CString message,
-        /* [in] */ CString defaultValue);
+        /* [out] */ Boolean * pFlag);
+
+    CARAPI OnJsPrompt(
+        /* [in] */ CString url,
+        /* [in] */ CString message,
+        /* [in] */ CString defaultValue,
+        /* [out] */ String * pResult);
 
     CARAPI OnJsBeforeUnload(
-        /* [out] */ Boolean * pResult,
         /* [in] */ CString url,
-        /* [in] */ CString message);
+        /* [in] */ CString message,
+        /* [out] */ Boolean * pResult);
 
     CARAPI OnExceededDatabaseQuota(
         /* [in] */ CString url,

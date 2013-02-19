@@ -14,22 +14,22 @@ public:
         /* [out] */ Boolean * pFlag);
 
     CARAPI RegisterHandler(
-        /* [out] */ Boolean * pFlag,
-        /* [in] */ IUrlInterceptHandler * pHandler);
+        /* [in] */ IUrlInterceptHandler * pHandler,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI UnregisterHandler(
-        /* [out] */ Boolean * pFlag,
-        /* [in] */ IUrlInterceptHandler * pHandler);
+        /* [in] */ IUrlInterceptHandler * pHandler,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI GetSurrogate(
-        /* [out] */ ICacheManagerCacheResult ** ppResult,
         /* [in] */ CString url,
-        /* [in] */ IObjectStringMap * pHeaders);
+        /* [in] */ IObjectStringMap * pHeaders,
+        /* [out] */ ICacheManagerCacheResult ** ppResult);
 
     CARAPI GetPluginData(
-        /* [out] */ IPluginData ** ppData,
         /* [in] */ CString url,
-        /* [in] */ IObjectStringMap * pHeaders);
+        /* [in] */ IObjectStringMap * pHeaders,
+        /* [out] */ IPluginData ** ppData);
 
 private:
     // TODO: Add your private member variables here.

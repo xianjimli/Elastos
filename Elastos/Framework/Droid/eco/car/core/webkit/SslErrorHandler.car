@@ -1,24 +1,24 @@
 
 module
 {
-	interface IHandler;
-	interface IMessage;
+    interface IHandler;
+    interface IMessage;
 
-	interface ISslErrorHandler extends IHandler {
+    interface ISslErrorHandler extends IHandler {
 
-	    //@Override
-		HandleMessage(
-		   [in] IMessage* msg);
+        //@Override
+        HandleMessage(
+           [in] IMessage* msg);
 
-	    /**
-	     * Proceed with the SSL certificate.
-	     */
-		Proceed();
+        /**
+         * Proceed with the SSL certificate.
+         */
+        Proceed();
 
-	    /**
-	     * Cancel this request and all pending requests for the WebView that had
-	     * the error.
-	     */
-		Cancel();
-	}
+        /**
+         * Cancel this request and all pending requests for the WebView that had
+         * the error.
+         */
+        Cancel();
+    }
 }

@@ -1,51 +1,51 @@
 
 module
 {
-	interface IContext;
+    interface IContext;
 
-	interface IWebViewDatabase {
+    interface IWebViewDatabase {
 
-		GetInstance(
-		   [out] IWebViewDatabase** instance,
-		   [in] IContext* context);
+        GetInstance(
+           [in] IContext* context,
+           [out] IWebViewDatabase** instance);
 
-	    /**
-	     * Find out if there are any passwords saved. 
-	     *
-	     * @return TRUE if there is passwords saved
-	     */
-		HasUsernamePassword(
-		   [out] Boolean* flag);
+        /**
+         * Find out if there are any passwords saved. 
+         *
+         * @return TRUE if there is passwords saved
+         */
+        HasUsernamePassword(
+           [out] Boolean* flag);
 
-	    /**
-	     * Clear password database
-	     */
-		ClearUsernamePassword();
+        /**
+         * Clear password database
+         */
+        ClearUsernamePassword();
 
-	    /**
-	     *  Find out if there are any HTTP authentication passwords saved.   
-	     *
-	     * @return TRUE if there are passwords saved
-	     */
-		HasHttpAuthUsernamePassword(
-		   [out] Boolean* flag);
+        /**
+         *  Find out if there are any HTTP authentication passwords saved.   
+         *
+         * @return TRUE if there are passwords saved
+         */
+        HasHttpAuthUsernamePassword(
+           [out] Boolean* flag);
 
-	    /**
-	     * Clear HTTP authentication password database
-	     */
-		ClearHttpAuthUsernamePassword();
+        /**
+         * Clear HTTP authentication password database
+         */
+        ClearHttpAuthUsernamePassword();
 
-	    /**
-	     * Find out if there is form data saved.
-	     *
-	     * @return TRUE if there is form data in the database
-	     */
-		HasFormData(
-		   [out] Boolean* flag);
+        /**
+         * Find out if there is form data saved.
+         *
+         * @return TRUE if there is form data in the database
+         */
+        HasFormData(
+           [out] Boolean* flag);
 
-	    /**
-	     * Clear form database
-	     */
-		ClearFormData();
-	}
+        /**
+         * Clear form database
+         */
+        ClearFormData();
+    }
 }

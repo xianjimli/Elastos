@@ -1,26 +1,26 @@
 
 module
 {
-	interface IWebHistoryItem;
+    interface IWebHistoryItem;
 
-	interface IWebBackForwardListClient {
+    interface IWebBackForwardListClient {
 
-	    /**
-	     * Notify the client that <var>item</var> has been added to the
-	     * WebBackForwardList.
-	     * @param item The newly created WebHistoryItem
-	     */
-		OnNewHistoryItem(
-		   [in] IWebHistoryItem* item);
+        /**
+         * Notify the client that <var>item</var> has been added to the
+         * WebBackForwardList.
+         * @param item The newly created WebHistoryItem
+         */
+        OnNewHistoryItem(
+           [in] IWebHistoryItem* item);
 
-	    /**
-	     * Notify the client that the <var>item</var> at <var>index</var> is now
-	     * the current history item.
-	     * @param item A WebHistoryItem
-	     * @param index The new history index
-	     */
-		OnIndexChanged(
-		   [in] IWebHistoryItem* item, 
-		   [in] Int32 index);
-	}
+        /**
+         * Notify the client that the <var>item</var> at <var>index</var> is now
+         * the current history item.
+         * @param item A WebHistoryItem
+         * @param index The new history index
+         */
+        OnIndexChanged(
+           [in] IWebHistoryItem* item, 
+           [in] Int32 index);
+    }
 }

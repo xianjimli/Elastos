@@ -11,8 +11,8 @@ public:
         /* [out] */ ICookieSyncManager ** ppCookieSyncManager);
 
     CARAPI CreateInstance(
-        /* [out] */ ICookieSyncManager ** ppCookieSyncManager,
-        /* [in] */ IContext * pContext);
+        /* [in] */ IContext * pContext,
+        /* [out] */ ICookieSyncManager ** ppCookieSyncManager);
 
 private:
     // TODO: Add your private member variables here.

@@ -1,15 +1,15 @@
 
 module
 {
-	const HEADER_KEY_IFMODIFIEDSINCE = "if-modified-since";
+    const HEADER_KEY_IFMODIFIEDSINCE = "if-modified-since";
     
     const HEADER_KEY_IFNONEMATCH = "if-none-match";
 
-	interface IObjectStringMap;
-	interface IInputStream;
-	interface IOutputStream;
-	interface IContext;
-	interface IHeaders;
+    interface IObjectStringMap;
+    interface IInputStream;
+    interface IOutputStream;
+    interface IContext;
+    interface IHeaders;
 
     interface ICacheManagerCacheResult {
         
@@ -61,96 +61,96 @@ module
                [in] CString encoding);
     }
 
-	interface ICacheManager {
+    interface ICacheManager {
         
-	    /**
-	     * initialize the CacheManager. WebView should handle this for each process.
-	     * 
-	     * @param context The application context.
-	     */
-	    Init(
-	       [in] IContext* context);
-	    
-	    /**
-	     * get the base directory of the cache. With localPath of the CacheResult,
-	     * it identifies the cache file.
-	     * 
-	     * @return File The base directory of the cache.
-	     */
-	    GetCacheFileBaseDir(
-	       [out] IFile** dir);
+        /**
+         * initialize the CacheManager. WebView should handle this for each process.
+         * 
+         * @param context The application context.
+         */
+        Init(
+           [in] IContext* context);
+        
+        /**
+         * get the base directory of the cache. With localPath of the CacheResult,
+         * it identifies the cache file.
+         * 
+         * @return File The base directory of the cache.
+         */
+        GetCacheFileBaseDir(
+           [out] IFile** dir);
 
-	    /**
-	     * get the state of the current cache, enabled or disabled
-	     * 
-	     * @return return if it is disabled
-	     */
-	    CacheDisabled(
-	       [out] Boolean* disabled);
+        /**
+         * get the state of the current cache, enabled or disabled
+         * 
+         * @return return if it is disabled
+         */
+        CacheDisabled(
+           [out] Boolean* disabled);
 
-	    // only called from WebCore Thread
-	    // make sure to call startCacheTransaction/endCacheTransaction in pair
-	    /**
-	     * @deprecated Always returns false.
-	     */
-	    //@Deprecated
-	    StartCacheTransaction(
-	       [out] Boolean* flag);
+        // only called from WebCore Thread
+        // make sure to call startCacheTransaction/endCacheTransaction in pair
+        /**
+         * @deprecated Always returns false.
+         */
+        //@Deprecated
+        StartCacheTransaction(
+           [out] Boolean* flag);
 
-	    // only called from WebCore Thread
-	    // make sure to call startCacheTransaction/endCacheTransaction in pair
-	    /**
-	     * @deprecated Always returns false.
-	     */
-	    //@Deprecated
-	    EndCacheTransaction(
-	       [out] Boolean* flag);
+        // only called from WebCore Thread
+        // make sure to call startCacheTransaction/endCacheTransaction in pair
+        /**
+         * @deprecated Always returns false.
+         */
+        //@Deprecated
+        EndCacheTransaction(
+           [out] Boolean* flag);
 
-	    /**
-	     * Given a url, returns the CacheResult if exists. Otherwise returns null.
-	     * If headers are provided and a cache needs validation,
-	     * HEADER_KEY_IFNONEMATCH or HEADER_KEY_IFMODIFIEDSINCE will be set in the
-	     * cached headers.
-	     * 
-	     * @return the CacheResult for a given url
-	     */
-	    GetCacheFile(
-	          [out] ICacheManagerCacheResult** result,
-	          [in] CString url,
-	          [in] IObjectStringMap* headers);
+        /**
+         * Given a url, returns the CacheResult if exists. Otherwise returns null.
+         * If headers are provided and a cache needs validation,
+         * HEADER_KEY_IFNONEMATCH or HEADER_KEY_IFMODIFIEDSINCE will be set in the
+         * cached headers.
+         * 
+         * @return the CacheResult for a given url
+         */
+        GetCacheFile(
+              [in] CString url,
+              [in] IObjectStringMap* headers,
+              [out] ICacheManagerCacheResult** result);
 
-	    GetCacheFileEx(
-	          [out] ICacheManagerCacheResult** result,
-	          [in] CString url, 
-	          [in] Int64 postIdentifier,
-	          [in] IObjectStringMap* headers);
+        GetCacheFileEx(
+              [in] CString url, 
+              [in] Int64 postIdentifier,
+              [in] IObjectStringMap* headers,
+              [out] ICacheManagerCacheResult** result);
 
-	    /**
-	     * Given a url and its full headers, returns CacheResult if a local cache
-	     * can be stored. Otherwise returns null. The mimetype is passed in so that
-	     * the function can use the mimetype that will be passed to WebCore which
-	     * could be different from the mimetype defined in the headers.
-	     * forceCache is for out-of-package callers to force creation of a
-	     * CacheResult, and is used to supply surrogate responses for URL
-	     * interception.
-	     * @return CacheResult for a given url
-	     * @hide - hide createCacheFile since it has a parameter of type headers, which is
-	     * in a hidden package.
-	     */
-	    CreateCacheFile(
-	          [out] ICacheManagerCacheResult** result,
-	          [in] CString url, 
-	          [in] Int32 statusCode,
-	          [in] IHeaders* headers, 
-	          [in] CString mimeType, 
-	          [in] Boolean forceCache);
+        /**
+         * Given a url and its full headers, returns CacheResult if a local cache
+         * can be stored. Otherwise returns null. The mimetype is passed in so that
+         * the function can use the mimetype that will be passed to WebCore which
+         * could be different from the mimetype defined in the headers.
+         * forceCache is for out-of-package callers to force creation of a
+         * CacheResult, and is used to supply surrogate responses for URL
+         * interception.
+         * @return CacheResult for a given url
+         * @hide - hide createCacheFile since it has a parameter of type headers, which is
+         * in a hidden package.
+         */
+        CreateCacheFile(
+              [in] CString url, 
+              [in] Int32 statusCode,
+              [in] IHeaders* headers, 
+              [in] CString mimeType, 
+              [in] Boolean forceCache,
+              [out] ICacheManagerCacheResult** result);
 
-	    /**
-	     * Save the info of a cache file for a given url to the CacheMap so that it
-	     * can be reused later
-	     */
-	    SaveCacheFile(
-	          [in] CString url, 
-	          [in] ICacheManagerCacheResult* cacheRet);
-	}
+        /**
+         * Save the info of a cache file for a given url to the CacheMap so that it
+         * can be reused later
+         */
+        SaveCacheFile(
+              [in] CString url, 
+              [in] ICacheManagerCacheResult* cacheRet);
+    }
 }

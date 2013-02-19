@@ -1,36 +1,36 @@
 
 module
 {
-	interface IByteArrayBuilderChunk {
+    interface IByteArrayBuilderChunk {
 
         /**
          * Release the chunk and make it available for reuse.
          */
         ChunkRelease();
-	}
+    }
 
-	interface IByteArrayBuilder {
+    interface IByteArrayBuilder {
 
-    	Append(
-    	   [in] ArrayOf<Byte> array, 
-    	   [in] Int32 offset, 
-    	   [in] Int32 length);
+        Append(
+           [in] ArrayOf<Byte> array, 
+           [in] Int32 offset, 
+           [in] Int32 length);
 
-	    /**
-	     * The fastest way to retrieve the data is to iterate through the
-	     * chunks.  This returns the first chunk.  Note: this pulls the
-	     * chunk out of the queue.  The caller must call Chunk.release() to
-	     * dispose of it.
-	     */
-	    GetFirstChunk(
-	       [out] IByteArrayBuilderChunk** chunk);
+        /**
+         * The fastest way to retrieve the data is to iterate through the
+         * chunks.  This returns the first chunk.  Note: this pulls the
+         * chunk out of the queue.  The caller must call Chunk.release() to
+         * dispose of it.
+         */
+        GetFirstChunk(
+           [out] IByteArrayBuilderChunk** chunk);
 
-	    IsEmpty(
-	       [out] Boolean* flag);
+        IsEmpty(
+           [out] Boolean* flag);
 
-	    GetByteSize(
-	       [out] Int32* size);
+        GetByteSize(
+           [out] Int32* size);
 
-	    Clear();
-	}
+        Clear();
+    }
 }

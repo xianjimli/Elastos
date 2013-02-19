@@ -22,7 +22,7 @@ module
     const WEB_VIEW = 0/*false*/;
     const WEB_VIEW_CORE = 0/*false*/;
 
-	interface IDebugFlags{
+    interface IDebugFlags{
 
-	}
+    }
 }

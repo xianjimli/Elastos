@@ -8,76 +8,76 @@ CarClass(CURLUtil)
 {
 public:
     CARAPI GuessUrl(
-        /* [out] */ String * pOutUrl,
-        /* [in] */ CString inUrl);
+        /* [in] */ CString inUrl,
+        /* [out] */ String * pOutUrl);
 
     CARAPI ComposeSearchUrl(
-        /* [out] */ String * pUrl,
         /* [in] */ CString inQuery,
         /* [in] */ CString strTemplate,
-        /* [in] */ CString queryPlaceHolder);
+        /* [in] */ CString queryPlaceHolder,
+        /* [out] */ String * pUrl);
 
     CARAPI Decode(
-        /* [out] */ ArrayOf<Byte> * pOutUrl,
-        /* [in] */ const ArrayOf<Byte> & url);
+        /* [in] */ const ArrayOf<Byte> & url,
+        /* [out] */ ArrayOf<Byte> * pOutUrl);
 
     CARAPI IsAssetUrl(
-        /* [out] */ Boolean * pFlag,
-        /* [in] */ CString url);
+        /* [in] */ CString url,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI IsResourceUrl(
-        /* [out] */ Boolean * pFlag,
-        /* [in] */ CString url);
+        /* [in] */ CString url,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI IsCookielessProxyUrl(
-        /* [out] */ Boolean * pFlag,
-        /* [in] */ CString url);
+        /* [in] */ CString url,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI IsFileUrl(
-        /* [out] */ Boolean * pFlag,
-        /* [in] */ CString url);
+        /* [in] */ CString url,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI IsAboutUrl(
-        /* [out] */ Boolean * pFlag,
-        /* [in] */ CString url);
+        /* [in] */ CString url,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI IsDataUrl(
-        /* [out] */ Boolean * pFlag,
-        /* [in] */ CString url);
+        /* [in] */ CString url,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI IsJavaScriptUrl(
-        /* [out] */ Boolean * pFlag,
-        /* [in] */ CString url);
+        /* [in] */ CString url,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI IsHttpUrl(
-        /* [out] */ Boolean * pFlag,
-        /* [in] */ CString url);
+        /* [in] */ CString url,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI IsHttpsUrl(
-        /* [out] */ Boolean * pFlag,
-        /* [in] */ CString url);
+        /* [in] */ CString url,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI IsNetworkUrl(
-        /* [out] */ Boolean * pFlag,
-        /* [in] */ const String& url);
+        /* [in] */ const String& url,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI IsContentUrl(
-        /* [out] */ Boolean * pFlag,
-        /* [in] */ CString url);
+        /* [in] */ CString url,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI IsValidUrl(
-        /* [out] */ Boolean * pFlag,
-        /* [in] */ CString url);
+        /* [in] */ CString url,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI StripAnchor(
-        /* [out] */ String * pOutUrl,
-        /* [in] */ const String& url);
+        /* [in] */ const String& url,
+        /* [out] */ String * pOutUrl);
 
     CARAPI GuessFileName(
-        /* [out] */ String * pName,
         /* [in] */ CString url,
         /* [in] */ CString contentDisposition,
-        /* [in] */ CString mimeType);
+        /* [in] */ CString mimeType,
+        /* [out] */ String * pName);
 
 private:
     // TODO: Add your private member variables here.

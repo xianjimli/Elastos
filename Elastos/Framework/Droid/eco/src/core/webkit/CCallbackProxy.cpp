@@ -43,16 +43,16 @@ ECode CCallbackProxy::GetBackForwardList(
 }
 
 ECode CCallbackProxy::UiOverrideUrlLoading(
-    /* [out] */ Boolean * pFlag,
-    /* [in] */ CString overrideUrl)
+    /* [in] */ CString overrideUrl,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CCallbackProxy::UiOverrideKeyEvent(
-    /* [out] */ Boolean * pFlag,
-    /* [in] */ IKeyEvent * pEvent)
+    /* [in] */ IKeyEvent * pEvent,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -113,8 +113,8 @@ ECode CCallbackProxy::OnFormResubmission(
 }
 
 ECode CCallbackProxy::ShouldOverrideUrlLoading(
-    /* [out] */ Boolean * pFlag,
-    /* [in] */ CString url)
+    /* [in] */ CString url,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -175,23 +175,23 @@ ECode CCallbackProxy::OnScaleChanged(
 }
 
 ECode CCallbackProxy::OnDownloadStart(
-    /* [out] */ Boolean * pFlag,
     /* [in] */ CString url,
     /* [in] */ CString userAgent,
     /* [in] */ CString contentDisposition,
     /* [in] */ CString mimetype,
-    /* [in] */ Int64 contentLength)
+    /* [in] */ Int64 contentLength,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CCallbackProxy::OnSavePassword(
-    /* [out] */ Boolean * pFlag,
     /* [in] */ CString schemePlusHost,
     /* [in] */ CString username,
     /* [in] */ const String& password,
-    /* [in] */ IMessage * pResumeMsg)
+    /* [in] */ IMessage * pResumeMsg,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -215,9 +215,9 @@ ECode CCallbackProxy::OnProgressChanged(
 }
 
 ECode CCallbackProxy::CreateWindow(
-    /* [out] */ IBrowserFrame ** ppBrowseFrame,
     /* [in] */ Boolean dialog,
-    /* [in] */ Boolean userGesture)
+    /* [in] */ Boolean userGesture,
+    /* [out] */ IBrowserFrame ** ppBrowseFrame)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -259,28 +259,28 @@ ECode CCallbackProxy::OnJsAlert(
 }
 
 ECode CCallbackProxy::OnJsConfirm(
-    /* [out] */ Boolean * pFlag,
     /* [in] */ CString url,
-    /* [in] */ CString message)
+    /* [in] */ CString message,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CCallbackProxy::OnJsPrompt(
-    /* [out] */ String * pResult,
     /* [in] */ CString url,
     /* [in] */ CString message,
-    /* [in] */ CString defaultValue)
+    /* [in] */ CString defaultValue,
+    /* [out] */ String * pResult)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CCallbackProxy::OnJsBeforeUnload(
-    /* [out] */ Boolean * pResult,
     /* [in] */ CString url,
-    /* [in] */ CString message)
+    /* [in] */ CString message,
+    /* [out] */ Boolean * pResult)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;

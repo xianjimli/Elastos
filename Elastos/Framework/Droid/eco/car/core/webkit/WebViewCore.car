@@ -1,27 +1,27 @@
 
 module
 {
-	interface IWebSettings;
+    interface IWebSettings;
 
-	interface IWebViewCore {
+    interface IWebViewCore {
 
-	    //-------------------------------------------------------------------------
-	    // Common methods
-	    //-------------------------------------------------------------------------
+        //-------------------------------------------------------------------------
+        // Common methods
+        //-------------------------------------------------------------------------
 
-	    /**
-	     * Causes all timers to pause. This applies to all WebViews in the current
-	     * app process.
-	     */
-		PauseTimers();
+        /**
+         * Causes all timers to pause. This applies to all WebViews in the current
+         * app process.
+         */
+        PauseTimers();
 
-	    /**
-	     * Resume all timers. This applies to all WebViews in the current process.
-	     */
-		ResumeTimers();
+        /**
+         * Resume all timers. This applies to all WebViews in the current process.
+         */
+        ResumeTimers();
 
-		GetSettings(
-		   [out] IWebSettings** webSettings);
-	}
+        GetSettings(
+           [out] IWebSettings** webSettings);
+    }
 
 }

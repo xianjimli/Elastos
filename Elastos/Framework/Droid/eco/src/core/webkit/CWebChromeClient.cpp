@@ -48,11 +48,11 @@ ECode CWebChromeClient::OnHideCustomView()
 }
 
 ECode CWebChromeClient::OnCreateWindow(
-    /* [out] */ Boolean * pFlag,
     /* [in] */ IWebView * pView,
     /* [in] */ Boolean dialog,
     /* [in] */ Boolean userGesture,
-    /* [in] */ IMessage * pResultMsg)
+    /* [in] */ IMessage * pResultMsg,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -73,45 +73,45 @@ ECode CWebChromeClient::OnCloseWindow(
 }
 
 ECode CWebChromeClient::OnJsAlert(
-    /* [out] */ Boolean * pFlag,
     /* [in] */ IWebView * pView,
     /* [in] */ CString url,
     /* [in] */ CString message,
-    /* [in] */ IJsResult * pResult)
+    /* [in] */ IJsResult * pResult,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CWebChromeClient::OnJsConfirm(
-    /* [out] */ Boolean * pFlag,
     /* [in] */ IWebView * pView,
     /* [in] */ CString url,
     /* [in] */ const String& message,
-    /* [in] */ IJsResult * pResult)
+    /* [in] */ IJsResult * pResult,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CWebChromeClient::OnJsPrompt(
-    /* [out] */ Boolean * pFlag,
     /* [in] */ IWebView * pView,
     /* [in] */ CString url,
     /* [in] */ CString message,
     /* [in] */ CString defaultValue,
-    /* [in] */ IJsPromptResult * pResult)
+    /* [in] */ IJsPromptResult * pResult,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CWebChromeClient::OnJsBeforeUnload(
-    /* [out] */ Boolean * pFlag,
     /* [in] */ IWebView * pView,
     /* [in] */ CString url,
     /* [in] */ CString message,
-    /* [in] */ IJsResult * pResult)
+    /* [in] */ IJsResult * pResult,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -169,8 +169,8 @@ ECode CWebChromeClient::OnConsoleMessage(
 }
 
 ECode CWebChromeClient::OnConsoleMessageEx(
-    /* [out] */ Boolean * pFlag,
-    /* [in] */ IConsoleMessage * pConsoleMessage)
+    /* [in] */ IConsoleMessage * pConsoleMessage,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;

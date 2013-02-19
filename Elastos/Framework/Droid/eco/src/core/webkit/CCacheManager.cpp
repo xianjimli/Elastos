@@ -36,31 +36,31 @@ ECode CCacheManager::EndCacheTransaction(
 }
 
 ECode CCacheManager::GetCacheFile(
-    /* [out] */ ICacheManagerCacheResult ** ppResult,
     /* [in] */ CString url,
-    /* [in] */ IObjectStringMap * pHeaders)
+    /* [in] */ IObjectStringMap * pHeaders,
+    /* [out] */ ICacheManagerCacheResult ** ppResult)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CCacheManager::GetCacheFileEx(
-    /* [out] */ ICacheManagerCacheResult ** ppResult,
     /* [in] */ CString url,
     /* [in] */ Int64 postIdentifier,
-    /* [in] */ IObjectStringMap * pHeaders)
+    /* [in] */ IObjectStringMap * pHeaders,
+    /* [out] */ ICacheManagerCacheResult ** ppResult)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CCacheManager::CreateCacheFile(
-    /* [out] */ ICacheManagerCacheResult ** ppResult,
     /* [in] */ CString url,
     /* [in] */ Int32 statusCode,
     /* [in] */ IHeaders * pHeaders,
     /* [in] */ CString mimeType,
-    /* [in] */ Boolean forceCache)
+    /* [in] */ Boolean forceCache,
+    /* [out] */ ICacheManagerCacheResult ** ppResult)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;

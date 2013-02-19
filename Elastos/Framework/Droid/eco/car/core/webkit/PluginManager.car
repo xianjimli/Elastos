@@ -1,7 +1,7 @@
 
 module
 {
-	/**
+    /**
      * Service Action: A plugin wishes to be loaded in the WebView must provide
      * {@link android.content.IntentFilter IntentFilter} that accepts this
      * action in their AndroidManifest.xml.
@@ -10,31 +10,31 @@ module
      * public.
      */
     //@SdkConstant(SdkConstantType.SERVICE_ACTION)
-	const PLUGIN_ACTION = "android.webkit.PLUGIN";
+    const PLUGIN_ACTION = "android.webkit.PLUGIN";
 
     /**
      * A plugin wishes to be loaded in the WebView must provide this permission
      * in their AndroidManifest.xml.
      */
-	const PLUGIN_PERMISSION = "android.webkit.permission.PLUGIN";
+    const PLUGIN_PERMISSION = "android.webkit.permission.PLUGIN";
 
-	interface IPluginManager {
-	    
-		GetInstance(
-		   [out] IPluginManager** instance,
-		   [in] IContext* context);
+    interface IPluginManager {
+        
+        GetInstance(
+           [in] IContext* context,
+           [out] IPluginManager** instance);
 
-	    /**
-	     * Signal the WebCore thread to refresh its list of plugins. Use this if the
-	     * directory contents of one of the plugin directories has been modified and
-	     * needs its changes reflecting. May cause plugin load and/or unload.
-	     * 
-	     * @param reloadOpenPages Set to true to reload all open pages.
-	     */
-		RefreshPlugins(
-		   [in] Boolean reloadOpenPages);
+        /**
+         * Signal the WebCore thread to refresh its list of plugins. Use this if the
+         * directory contents of one of the plugin directories has been modified and
+         * needs its changes reflecting. May cause plugin load and/or unload.
+         * 
+         * @param reloadOpenPages Set to true to reload all open pages.
+         */
+        RefreshPlugins(
+           [in] Boolean reloadOpenPages);
 
-		GetPluginDirectories(
-	       [out] ArrayOf<String> pluginDirectories);
-	}
+        GetPluginDirectories(
+           [out] ArrayOf<String> pluginDirectories);
+    }
 }

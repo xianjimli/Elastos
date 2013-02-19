@@ -15,34 +15,34 @@ ECode CUrlInterceptRegistry::UrlInterceptDisabled(
 }
 
 ECode CUrlInterceptRegistry::RegisterHandler(
-    /* [out] */ Boolean * pFlag,
-    /* [in] */ IUrlInterceptHandler * pHandler)
+    /* [in] */ IUrlInterceptHandler * pHandler,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CUrlInterceptRegistry::UnregisterHandler(
-    /* [out] */ Boolean * pFlag,
-    /* [in] */ IUrlInterceptHandler * pHandler)
+    /* [in] */ IUrlInterceptHandler * pHandler,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CUrlInterceptRegistry::GetSurrogate(
-    /* [out] */ ICacheManagerCacheResult ** ppResult,
     /* [in] */ CString url,
-    /* [in] */ IObjectStringMap * pHeaders)
+    /* [in] */ IObjectStringMap * pHeaders,
+    /* [out] */ ICacheManagerCacheResult ** ppResult)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CUrlInterceptRegistry::GetPluginData(
-    /* [out] */ IPluginData ** ppData,
     /* [in] */ CString url,
-    /* [in] */ IObjectStringMap * pHeaders)
+    /* [in] */ IObjectStringMap * pHeaders,
+    /* [out] */ IPluginData ** ppData)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;

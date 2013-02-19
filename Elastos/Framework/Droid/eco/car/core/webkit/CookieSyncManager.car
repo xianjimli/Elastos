@@ -1,28 +1,28 @@
 
 module
 {
-	interface IContext;
+    interface IContext;
 
-	interface ICookieSyncManager {
+    interface ICookieSyncManager {
 
-	    /**
-	     * Singleton access to a {@link CookieSyncManager}. An
-	     * IllegalStateException will be thrown if
-	     * {@link CookieSyncManager#createInstance(Context)} is not called before.
-	     * 
-	     * @return CookieSyncManager
-	     */
-		GetInstance(
-	       [out] ICookieSyncManager** cookieSyncManager);
+        /**
+         * Singleton access to a {@link CookieSyncManager}. An
+         * IllegalStateException will be thrown if
+         * {@link CookieSyncManager#createInstance(Context)} is not called before.
+         * 
+         * @return CookieSyncManager
+         */
+        GetInstance(
+           [out] ICookieSyncManager** cookieSyncManager);
 
-	    /**
-	     * Create a singleton CookieSyncManager within a context
-	     * @param context
-	     * @return CookieSyncManager
-	     */
-		CreateInstance(
-		   [out] ICookieSyncManager** cookieSyncManager,
-		   [in] IContext* context);
-	}
+        /**
+         * Create a singleton CookieSyncManager within a context
+         * @param context
+         * @return CookieSyncManager
+         */
+        CreateInstance(
+           [in] IContext* context,
+           [out] ICookieSyncManager** cookieSyncManager);
+    }
 
 }

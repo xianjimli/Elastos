@@ -63,8 +63,8 @@ ECode CBrowserFrame::DocumentAsText(
 }
 
 ECode CBrowserFrame::HandleUrl(
-    /* [out] */ Boolean * pFlag,
-    /* [in] */ CString url)
+    /* [in] */ CString url,
+    /* [out] */ Boolean * pFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -92,8 +92,8 @@ ECode CBrowserFrame::Reload(
 }
 
 ECode CBrowserFrame::StringByEvaluatingJavaScriptFromString(
-    /* [out] */ String * pScriptString,
-    /* [in] */ CString script)
+    /* [in] */ CString script,
+    /* [out] */ String * pScriptString)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;

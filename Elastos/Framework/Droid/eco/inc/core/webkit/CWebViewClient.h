@@ -8,9 +8,9 @@ CarClass(CWebViewClient)
 {
 public:
     CARAPI ShouldOverrideUrlLoading(
-        /* [out] */ Boolean * pFlag,
         /* [in] */ IWebView * pView,
-        /* [in] */ CString url);
+        /* [in] */ CString url,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI OnPageStarted(
         /* [in] */ IWebView * pView,
@@ -58,9 +58,9 @@ public:
         /* [in] */ CString realm);
 
     CARAPI ShouldOverrideKeyEvent(
-        /* [out] */ Boolean * pFlag,
         /* [in] */ IWebView * pView,
-        /* [in] */ IKeyEvent * pEvent);
+        /* [in] */ IKeyEvent * pEvent,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI OnUnhandledKeyEvent(
         /* [in] */ IWebView * pView,

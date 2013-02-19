@@ -8,8 +8,8 @@ CarClass(CPluginManager)
 {
 public:
     CARAPI GetInstance(
-        /* [out] */ IPluginManager ** ppInstance,
-        /* [in] */ IContext * pContext);
+        /* [in] */ IContext * pContext,
+        /* [out] */ IPluginManager ** ppInstance);
 
     CARAPI RefreshPlugins(
         /* [in] */ Boolean reloadOpenPages);

@@ -1,329 +1,329 @@
 
 module
 {
-	interface IHandler;
-	interface IWebViewClient;
-	interface IDownloadListener;
-	interface IWebBackForwardListClient;
-	interface IKeyEvent;
-	interface IBitmap;
-	interface IMessage;
-	interface IHttpAuthHandler;
-	interface ISslErrorHandler;
-	interface ISslError;
-	interface ISslCertificate;
-	interface IWebView;
-	interface IWebStorageQuotaUpdater;
-	interface IGeolocationPermissionsCallback;
-	interface IWebHistoryItem;
-	interface IWebBackForwardList;
-	interface IMessage;
-	interface IBrowserFrame;
+    interface IHandler;
+    interface IWebViewClient;
+    interface IDownloadListener;
+    interface IWebBackForwardListClient;
+    interface IKeyEvent;
+    interface IBitmap;
+    interface IMessage;
+    interface IHttpAuthHandler;
+    interface ISslErrorHandler;
+    interface ISslError;
+    interface ISslCertificate;
+    interface IWebView;
+    interface IWebStorageQuotaUpdater;
+    interface IGeolocationPermissionsCallback;
+    interface IWebHistoryItem;
+    interface IWebBackForwardList;
+    interface IMessage;
+    interface IBrowserFrame;
 
-	interface ICallbackProxy extends IHandler {
+    interface ICallbackProxy extends IHandler {
 
-	   /**
-	     * Set the WebViewClient.
-	     * @param client An implementation of WebViewClient.
-	     */
-	    SetWebViewClient(
-	       [in] IWebViewClient* client);
+       /**
+         * Set the WebViewClient.
+         * @param client An implementation of WebViewClient.
+         */
+        SetWebViewClient(
+           [in] IWebViewClient* client);
 
-	    /**
-	     * Get the WebViewClient.
-	     * @return the current WebViewClient instance.
-	     *
-	     *@hide pending API council approval.
-	     */
-	    GetWebViewClient(
-	       [out] IWebViewClient** client);
+        /**
+         * Get the WebViewClient.
+         * @return the current WebViewClient instance.
+         *
+         *@hide pending API council approval.
+         */
+        GetWebViewClient(
+           [out] IWebViewClient** client);
 
-	    /**
-	     * Set the WebChromeClient.
-	     * @param client An implementation of WebChromeClient.
-	     */
-	    SetWebChromeClient(
-	       [in] IWebChromeClient* client);
+        /**
+         * Set the WebChromeClient.
+         * @param client An implementation of WebChromeClient.
+         */
+        SetWebChromeClient(
+           [in] IWebChromeClient* client);
 
-	    /**
-	     * Get the WebChromeClient.
-	     * @return the current WebChromeClient instance.
-	     */
-	    GetWebChromeClient(
-	       [out] IWebChromeClient** client);
+        /**
+         * Get the WebChromeClient.
+         * @return the current WebChromeClient instance.
+         */
+        GetWebChromeClient(
+           [out] IWebChromeClient** client);
 
-	    /**
-	     * Set the client DownloadListener.
-	     * @param client An implementation of DownloadListener.
-	     */
-	    SetDownloadListener(
-	       [in] IDownloadListener* client);
+        /**
+         * Set the client DownloadListener.
+         * @param client An implementation of DownloadListener.
+         */
+        SetDownloadListener(
+           [in] IDownloadListener* client);
 
-	    /**
-	     * Get the Back/Forward list to return to the user or to update the cached
-	     * history list.
-	     */
-	    GetBackForwardList(
-	       [out] IWebBackForwardList** list);
+        /**
+         * Get the Back/Forward list to return to the user or to update the cached
+         * history list.
+         */
+        GetBackForwardList(
+           [out] IWebBackForwardList** list);
 
-	    /**
-	     * Called by the UI side.  Calling overrideUrlLoading from the WebCore
-	     * side will post a message to call this method.
-	     */
-	    UiOverrideUrlLoading(
-	       [out] Boolean* flag,
-	       [in] CString overrideUrl);
+        /**
+         * Called by the UI side.  Calling overrideUrlLoading from the WebCore
+         * side will post a message to call this method.
+         */
+        UiOverrideUrlLoading(
+           [in] CString overrideUrl,
+           [out] Boolean* flag);
 
-	    /**
-	     * Called by UI side.
-	     */
-	    UiOverrideKeyEvent(
-	       [out] Boolean* flag,
-	       [in] IKeyEvent* event);
+        /**
+         * Called by UI side.
+         */
+        UiOverrideKeyEvent(
+           [in] IKeyEvent* event,
+           [out] Boolean* flag);
 
-	    //@Override
-		HandleMessage(
-		   [in] IMessage* msg);
+        //@Override
+        HandleMessage(
+           [in] IMessage* msg);
 
-	    /**
-	     * Return the latest progress.
-	     */
-	    GetProgress(
-	       [out] Int32* progress);
+        /**
+         * Return the latest progress.
+         */
+        GetProgress(
+           [out] Int32* progress);
 
-	    OnPageStarted(
-	       [in] CString url, 
-	       [in] IBitmap* favicon);
+        OnPageStarted(
+           [in] CString url, 
+           [in] IBitmap* favicon);
 
-	    OnPageFinished(
-	       [in] CString url);
+        OnPageFinished(
+           [in] CString url);
 
-	    // Because this method is public and because CallbackProxy is mistakenly
-	    // party of the public classes, we cannot remove this method.
-	    OnTooManyRedirects(
-	       [in] IMessage* cancelMsg, 
-	       [in] IMessage* continueMsg);
+        // Because this method is public and because CallbackProxy is mistakenly
+        // party of the public classes, we cannot remove this method.
+        OnTooManyRedirects(
+           [in] IMessage* cancelMsg, 
+           [in] IMessage* continueMsg);
 
-	    OnReceivedError(
-	       [in] Int32 errorCode, 
-	       [in] CString description,
-	       [in] CString failingUrl);
+        OnReceivedError(
+           [in] Int32 errorCode, 
+           [in] CString description,
+           [in] CString failingUrl);
 
-	    OnFormResubmission(
-	       [in] IMessage* dontResend,
-	       [in] IMessage* resend);
+        OnFormResubmission(
+           [in] IMessage* dontResend,
+           [in] IMessage* resend);
 
-	    /**
-	     * Called by the WebCore side
-	     */
-	    ShouldOverrideUrlLoading(
-	       [out] Boolean* flag,
-	       [in] CString url);
+        /**
+         * Called by the WebCore side
+         */
+        ShouldOverrideUrlLoading(
+           [in] CString url,
+           [out] Boolean* flag);
 
-	    OnReceivedHttpAuthRequest(
-	       [in] IHttpAuthHandler* handler,
-	       [in] CString hostName, 
-	       [in] CString realmName);
+        OnReceivedHttpAuthRequest(
+           [in] IHttpAuthHandler* handler,
+           [in] CString hostName, 
+           [in] CString realmName);
 
-	    /**
-	     * @hide - hide this because it contains a parameter of type SslError.
-	     * SslError is located in a hidden package.
-	     */
-	    OnReceivedSslError(
-	       [in] ISslErrorHandler* handler, 
-	       [in] ISslError* error);
+        /**
+         * @hide - hide this because it contains a parameter of type SslError.
+         * SslError is located in a hidden package.
+         */
+        OnReceivedSslError(
+           [in] ISslErrorHandler* handler, 
+           [in] ISslError* error);
 
-	    /**
-	     * @hide - hide this because it contains a parameter of type SslCertificate,
-	     * which is located in a hidden package.
-	     */
+        /**
+         * @hide - hide this because it contains a parameter of type SslCertificate,
+         * which is located in a hidden package.
+         */
 
-	    OnReceivedCertificate(
-	       [in] ISslCertificate* certificate);
+        OnReceivedCertificate(
+           [in] ISslCertificate* certificate);
 
-	    DoUpdateVisitedHistory(
-	       [in] CString url, 
-	       [in] Boolean isReload);
+        DoUpdateVisitedHistory(
+           [in] CString url, 
+           [in] Boolean isReload);
 
-	    OnLoadResource(
-	       [in] CString url);
+        OnLoadResource(
+           [in] CString url);
 
-	    OnUnhandledKeyEvent(
-	       [in] IKeyEvent* event);
+        OnUnhandledKeyEvent(
+           [in] IKeyEvent* event);
 
-	    OnScaleChanged(
-	       [in] Float oldScale, 
-	       [in] Float newScale);
+        OnScaleChanged(
+           [in] Float oldScale, 
+           [in] Float newScale);
 
-	    //--------------------------------------------------------------------------
-	    // DownloadListener functions.
-	    //--------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
+        // DownloadListener functions.
+        //--------------------------------------------------------------------------
 
-	    /**
-	     * Starts a download if a download listener has been registered, otherwise
-	     * return false.
-	     */
-	    OnDownloadStart(
-	       [out] Boolean* flag,
-	       [in] CString url, 
-	       [in] CString userAgent,
-	       [in] CString contentDisposition, 
-	       [in] CString mimetype, 
-	       [in] Int64 contentLength);
+        /**
+         * Starts a download if a download listener has been registered, otherwise
+         * return false.
+         */
+        OnDownloadStart(
+           [in] CString url, 
+           [in] CString userAgent,
+           [in] CString contentDisposition, 
+           [in] CString mimetype, 
+           [in] Int64 contentLength,
+           [out] Boolean* flag);
 
 
-	    //--------------------------------------------------------------------------
-	    // WebView specific functions that do not interact with a client. These
-	    // functions just need to operate within the UI thread.
-	    //--------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
+        // WebView specific functions that do not interact with a client. These
+        // functions just need to operate within the UI thread.
+        //--------------------------------------------------------------------------
 
-	    OnSavePassword(
-	       [out] Boolean* flag,
-	       [in] CString schemePlusHost, 
-	       [in] CString username,
-	       [in] String password, 
-	       [in] IMessage* resumeMsg);
+        OnSavePassword(
+           [in] CString schemePlusHost, 
+           [in] CString username,
+           [in] String password, 
+           [in] IMessage* resumeMsg,
+           [out] Boolean* flag);
 
-	    OnReceivedHttpAuthCredentials(
-	       [in] CString host, 
-	       [in] CString realm,
-	       [in] CString username, 
-	       [in] CString password);
+        OnReceivedHttpAuthCredentials(
+           [in] CString host, 
+           [in] CString realm,
+           [in] CString username, 
+           [in] CString password);
 
-	    //--------------------------------------------------------------------------
-	    // WebChromeClient methods
-	    //--------------------------------------------------------------------------
+        //--------------------------------------------------------------------------
+        // WebChromeClient methods
+        //--------------------------------------------------------------------------
 
-	    OnProgressChanged(
-	       [in] Int32 newProgress);
+        OnProgressChanged(
+           [in] Int32 newProgress);
 
-	    CreateWindow(
-	       [out] IBrowserFrame** browseFrame,
-	       [in] Boolean dialog, 
-	       [in] Boolean userGesture);
+        CreateWindow(
+           [in] Boolean dialog, 
+           [in] Boolean userGesture,
+           [out] IBrowserFrame** browseFrame);
 
-	    OnRequestFocus();
+        OnRequestFocus();
 
-	    OnCloseWindow(
-	       [in] IWebView* window);
+        OnCloseWindow(
+           [in] IWebView* window);
 
-	    OnReceivedIcon(
-	       [in] IBitmap* icon);
+        OnReceivedIcon(
+           [in] IBitmap* icon);
 
-	    OnReceivedTitle(
-	       [in] CString title);
+        OnReceivedTitle(
+           [in] CString title);
 
-	    OnJsAlert(
-	       [in] CString url, 
-	       [in] CString message);
+        OnJsAlert(
+           [in] CString url, 
+           [in] CString message);
 
-	    OnJsConfirm(
-	       [out] Boolean* flag,
-	       [in] CString url, 
-	       [in] CString message);
+        OnJsConfirm(
+           [in] CString url, 
+           [in] CString message,
+           [out] Boolean* flag);
 
-	    OnJsPrompt(
-	       [out] String* result,
-	       [in] CString url, 
-	       [in] CString message, 
-	       [in] CString defaultValue);
+        OnJsPrompt(
+           [in] CString url, 
+           [in] CString message, 
+           [in] CString defaultValue,
+           [out] String* result);
 
-	    OnJsBeforeUnload(
-	       [out] Boolean* result,
-	       [in] CString url, 
-	       [in] CString message);
+        OnJsBeforeUnload(
+           [in] CString url, 
+           [in] CString message,
+           [out] Boolean* result);
 
-	    /**
-	     * Called by WebViewCore to inform the Java side that the current origin
-	     * has overflowed it's database quota. Called in the WebCore thread so
-	     * posts a message to the UI thread that will prompt the WebChromeClient
-	     * for what to do. On return back to C++ side, the WebCore thread will
-	     * sleep pending a new quota value.
-	     * @param url The URL that caused the quota overflow.
-	     * @param databaseIdentifier The identifier of the database that the
-	     *     transaction that caused the overflow was running on.
-	     * @param currentQuota The current quota the origin is allowed.
-	     * @param estimatedSize The estimated size of the database.
-	     * @param totalUsedQuota is the sum of all origins' quota.
-	     * @param quotaUpdater An instance of a class encapsulating a callback
-	     *     to WebViewCore to run when the decision to allow or deny more
-	     *     quota has been made.
-	     */
-	    OnExceededDatabaseQuota(
-	       [in] CString url, 
-	       [in] CString databaseIdentifier, 
-	       [in] Int64 currentQuota,
-	       [in] Int64 estimatedSize, 
-	       [in] Int64 totalUsedQuota,
-	       [in] IWebStorageQuotaUpdater* quotaUpdater);
+        /**
+         * Called by WebViewCore to inform the Java side that the current origin
+         * has overflowed it's database quota. Called in the WebCore thread so
+         * posts a message to the UI thread that will prompt the WebChromeClient
+         * for what to do. On return back to C++ side, the WebCore thread will
+         * sleep pending a new quota value.
+         * @param url The URL that caused the quota overflow.
+         * @param databaseIdentifier The identifier of the database that the
+         *     transaction that caused the overflow was running on.
+         * @param currentQuota The current quota the origin is allowed.
+         * @param estimatedSize The estimated size of the database.
+         * @param totalUsedQuota is the sum of all origins' quota.
+         * @param quotaUpdater An instance of a class encapsulating a callback
+         *     to WebViewCore to run when the decision to allow or deny more
+         *     quota has been made.
+         */
+        OnExceededDatabaseQuota(
+           [in] CString url, 
+           [in] CString databaseIdentifier, 
+           [in] Int64 currentQuota,
+           [in] Int64 estimatedSize, 
+           [in] Int64 totalUsedQuota,
+           [in] IWebStorageQuotaUpdater* quotaUpdater);
 
-	    /**
-	     * Called by WebViewCore to inform the Java side that the appcache has
-	     * exceeded its max size.
-	     * @param spaceNeeded is the amount of disk space that would be needed
-	     * in order for the last appcache operation to succeed.
-	     * @param totalUsedQuota is the sum of all origins' quota.
-	     * @param quotaUpdater An instance of a class encapsulating a callback
-	     * to WebViewCore to run when the decision to allow or deny a bigger
-	     * app cache size has been made.
-	     */
-	    OnReachedMaxAppCacheSize(
-	       [in] Int64 spaceNeeded,
-	       [in] Int64 totalUsedQuota, 
-	       [in] IWebStorageQuotaUpdater* quotaUpdater);
+        /**
+         * Called by WebViewCore to inform the Java side that the appcache has
+         * exceeded its max size.
+         * @param spaceNeeded is the amount of disk space that would be needed
+         * in order for the last appcache operation to succeed.
+         * @param totalUsedQuota is the sum of all origins' quota.
+         * @param quotaUpdater An instance of a class encapsulating a callback
+         * to WebViewCore to run when the decision to allow or deny a bigger
+         * app cache size has been made.
+         */
+        OnReachedMaxAppCacheSize(
+           [in] Int64 spaceNeeded,
+           [in] Int64 totalUsedQuota, 
+           [in] IWebStorageQuotaUpdater* quotaUpdater);
 
-	    /**
-	     * Called by WebViewCore to instruct the browser to display a prompt to ask
-	     * the user to set the Geolocation permission state for the given origin.
-	     * @param origin The origin requesting Geolocation permsissions.
-	     * @param callback The callback to call once a permission state has been
-	     *     obtained.
-	     */
-	    OnGeolocationPermissionsShowPrompt(
-	       [in] CString origin, 
-	       [in] IGeolocationPermissionsCallback* callBack);
+        /**
+         * Called by WebViewCore to instruct the browser to display a prompt to ask
+         * the user to set the Geolocation permission state for the given origin.
+         * @param origin The origin requesting Geolocation permsissions.
+         * @param callback The callback to call once a permission state has been
+         *     obtained.
+         */
+        OnGeolocationPermissionsShowPrompt(
+           [in] CString origin, 
+           [in] IGeolocationPermissionsCallback* callBack);
 
-	    /**
-	     * Called by WebViewCore to instruct the browser to hide the Geolocation
-	     * permissions prompt.
-	     */
-	    OnGeolocationPermissionsHidePrompt();
+        /**
+         * Called by WebViewCore to instruct the browser to hide the Geolocation
+         * permissions prompt.
+         */
+        OnGeolocationPermissionsHidePrompt();
 
-	    /**
-	     * Called by WebViewCore when we have a message to be added to the JavaScript
-	     * error console. Sends a message to the Java side with the details.
-	     * @param message The message to add to the console.
-	     * @param lineNumber The lineNumber of the source file on which the error
-	     *     occurred.
-	     * @param sourceID The filename of the source file in which the error
-	     *     occurred.
-	     * @param msgLevel The message level, corresponding to the MessageLevel enum in
-	     *     WebCore/page/Console.h
-	     */
-	    AddMessageToConsole(
-	       [in] CString message, 
-	       [in] Int32 lineNumber, 
-	       [in] CString sourceID, 
-	       [in] Int32 msgLevel);
+        /**
+         * Called by WebViewCore when we have a message to be added to the JavaScript
+         * error console. Sends a message to the Java side with the details.
+         * @param message The message to add to the console.
+         * @param lineNumber The lineNumber of the source file on which the error
+         *     occurred.
+         * @param sourceID The filename of the source file in which the error
+         *     occurred.
+         * @param msgLevel The message level, corresponding to the MessageLevel enum in
+         *     WebCore/page/Console.h
+         */
+        AddMessageToConsole(
+           [in] CString message, 
+           [in] Int32 lineNumber, 
+           [in] CString sourceID, 
+           [in] Int32 msgLevel);
 
-	    OnJsTimeout(
-	       [out] Boolean* flag);
+        OnJsTimeout(
+           [out] Boolean* flag);
 
-	    GetVisitedHistory(
-	       [in] IValueCallback* callBack);
+        GetVisitedHistory(
+           [in] IValueCallback* callBack);
 
-	    /**
-	     * Called by WebViewCore to open a file chooser.
-	     */
-	    /* package */
-	    OpenFileChooser();
+        /**
+         * Called by WebViewCore to open a file chooser.
+         */
+        /* package */
+        OpenFileChooser();
 
-	    OnNewHistoryItem(
-	       [in] IWebHistoryItem* item);
+        OnNewHistoryItem(
+           [in] IWebHistoryItem* item);
 
-	    OnIndexChanged(
-	       [in] IWebHistoryItem* item, 
-	       [in] Int32 index);
-	}
+        OnIndexChanged(
+           [in] IWebHistoryItem* item, 
+           [in] Int32 index);
+    }
 
 }

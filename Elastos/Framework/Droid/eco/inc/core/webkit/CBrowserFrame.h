@@ -37,8 +37,8 @@ public:
         /* [in] */ IMessage * pCallBack);
 
     CARAPI HandleUrl(
-        /* [out] */ Boolean * pFlag,
-        /* [in] */ CString url);
+        /* [in] */ CString url,
+        /* [out] */ Boolean * pFlag);
 
     CARAPI AddJavascriptInterface(
         /* [in] */ IInterface * pObj,
@@ -50,8 +50,8 @@ public:
         /* [in] */ Boolean allowStale);
 
     CARAPI StringByEvaluatingJavaScriptFromString(
-        /* [out] */ String * pScriptString,
-        /* [in] */ CString script);
+        /* [in] */ CString script,
+        /* [out] */ String * pScriptString);
 
     CARAPI CacheDisabled(
         /* [out] */ Boolean * pFlag);

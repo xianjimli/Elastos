@@ -8,8 +8,8 @@ CarClass(CWebViewDatabase)
 {
 public:
     CARAPI GetInstance(
-        /* [out] */ IWebViewDatabase ** ppInstance,
-        /* [in] */ IContext * pContext);
+        /* [in] */ IContext * pContext,
+        /* [out] */ IWebViewDatabase ** ppInstance);
 
     CARAPI HasUsernamePassword(
         /* [out] */ Boolean * pFlag);

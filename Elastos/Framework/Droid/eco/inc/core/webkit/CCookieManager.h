@@ -25,12 +25,12 @@ public:
         /* [in] */ CString value);
 
     CARAPI GetCookie(
-        /* [out] */ String * pCookie,
-        /* [in] */ CString url);
+        /* [in] */ CString url,
+        /* [out] */ String * pCookie);
 
     CARAPI GetCookieEx(
-        /* [out] */ String * pCookie,
-        /* [in] */ IWebAddress * pUri);
+        /* [in] */ IWebAddress * pUri,
+        /* [out] */ String * pCookie);
 
     CARAPI RemoveSessionCookie();
 

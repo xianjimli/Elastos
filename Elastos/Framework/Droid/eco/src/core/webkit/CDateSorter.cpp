@@ -1,24 +1,24 @@
 
 #include "webkit/CDateSorter.h"
 ECode CDateSorter::GetIndex(
-    /* [out] */ Int32 * pLastDay,
-    /* [in] */ Int64 time)
+    /* [in] */ Int64 time,
+    /* [out] */ Int32 * pLastDay)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CDateSorter::GetLabel(
-    /* [out] */ String * pLabel,
-    /* [in] */ Int32 index)
+    /* [in] */ Int32 index,
+    /* [out] */ String * pLabel)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CDateSorter::GetBoundary(
-    /* [out] */ Int64 * pBoundary,
-    /* [in] */ Int32 index)
+    /* [in] */ Int32 index,
+    /* [out] */ Int64 * pBoundary)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;

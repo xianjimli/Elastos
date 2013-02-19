@@ -23,23 +23,23 @@ public:
         /* [out] */ Boolean * pFlag);
 
     CARAPI GetCacheFile(
-        /* [out] */ ICacheManagerCacheResult ** ppResult,
         /* [in] */ CString url,
-        /* [in] */ IObjectStringMap * pHeaders);
+        /* [in] */ IObjectStringMap * pHeaders,
+        /* [out] */ ICacheManagerCacheResult ** ppResult);
 
     CARAPI GetCacheFileEx(
-        /* [out] */ ICacheManagerCacheResult ** ppResult,
         /* [in] */ CString url,
         /* [in] */ Int64 postIdentifier,
-        /* [in] */ IObjectStringMap * pHeaders);
+        /* [in] */ IObjectStringMap * pHeaders,
+        /* [out] */ ICacheManagerCacheResult ** ppResult);
 
     CARAPI CreateCacheFile(
-        /* [out] */ ICacheManagerCacheResult ** ppResult,
         /* [in] */ CString url,
         /* [in] */ Int32 statusCode,
         /* [in] */ IHeaders * pHeaders,
         /* [in] */ CString mimeType,
-        /* [in] */ Boolean forceCache);
+        /* [in] */ Boolean forceCache,
+        /* [out] */ ICacheManagerCacheResult ** ppResult);
 
     CARAPI SaveCacheFile(
         /* [in] */ CString url,
