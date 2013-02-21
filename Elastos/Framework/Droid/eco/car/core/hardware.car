@@ -5,6 +5,7 @@ module
     merge("hardware/usb/UsbConstants.car");
     merge("hardware/usb/UsbEndpoint.car");
     merge("hardware/usb/UsbInterface.car");
+    merge("hardware/usb/UsbDevice.car");
 
     class CUsbAccessory {
         /**
@@ -59,5 +60,27 @@ module
 
         interface IUsbInterface;
         interface IParcelable;
+    }
+
+    class CUsbDevice {
+        /**
+         * UsbDevice should only be instantiated by UsbService implementation
+         * @hide
+         */
+        constructor(
+            [in] String name,
+            [in] Int32 vendorId,
+            [in] Int32 productId,
+            [in] Int32 cls,
+            [in] Int32 subCls,
+            [in] Int32 protocol,
+            [in] ArrayOf<IParcelable*> interfaces);
+
+        interface IUsbDevice;
+        interface IParcelable;
+    }
+
+    singleton class CUsbDeviceHelper {
+        interface IUsbDeviceHelper;
     }
 }
