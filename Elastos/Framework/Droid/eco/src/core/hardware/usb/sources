@@ -16,3 +16,6 @@ C_DEFINES += -D_FRAMEWORK_CORE
 SOURCES = CUsbAccessory.cpp
 SOURCES += CUsbEndpoint.cpp
 SOURCES += CUsbInterface.cpp
+SOURCES += CUsbDevice.cpp
+SOURCES += CUsbDeviceHelper.cpp
+SOURCES += UsbDevice.cpp
