@@ -54,6 +54,6 @@ SOURCES += CCapsuleStats.cpp
 SOURCES += CapsuleHelper.cpp
 SOURCES += ContextThemeWrapper.cpp
 SOURCES += CContextThemeWrapper.cpp
-
+SOURCES += COpenResourceIdResult.cpp
 
 LIBRARIES += cm/cm.lib
