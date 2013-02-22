@@ -76,6 +76,12 @@ module
         interface IContentResolver;
     }
 
+    class COpenResourceIdResult {
+        constructor();
+
+        interface IOpenResourceIdResult;
+    }
+
     class CPathPermission {
         constructor(
             [in] String pattern,
