@@ -34,11 +34,6 @@ _InputMethodService::_InputMethodService():
 
 }
 
-_InputMethodService::~_InputMethodService()
-{
-
-}
-
 ECode _InputMethodService::SetTheme(
     /* [in] */ Int32 theme)
 {
@@ -210,7 +205,7 @@ ECode CInputMethodService::_OnClickListener::OnClick(
 
 CInputMethodService::InputMethodImpl::InputMethodImpl(
     /* [in] */ CInputMethodService* host):
-    AbstractInputMethodImpl((CAbstractInputMethodService*)host),
+    AbstractInputMethodImpl((AbstractInputMethodService*)host),
     mHost(host)
 {
     assert(mHost != NULL);
@@ -343,7 +338,7 @@ ECode CInputMethodService::InputMethodImpl::ShowSoftInput(
 
 CInputMethodService::InputMethodSessionImpl::InputMethodSessionImpl(
     /* [in] */ CInputMethodService* host):
-    AbstractInputMethodSessionImpl((CAbstractInputMethodService*)host)
+    AbstractInputMethodSessionImpl((AbstractInputMethodService*)host)
 {}
 
 CInputMethodService::InputMethodSessionImpl::~InputMethodSessionImpl()
@@ -519,16 +514,6 @@ CInputMethodService::~CInputMethodService()
         delete mTmpLocation;
         mTmpLocation = NULL;
     }
-}
-
-UInt32 CInputMethodService::AddRef()
-{
-    return ElRefBase::AddRef();
-}
-
-UInt32 CInputMethodService::Release()
-{
-    return ElRefBase::Release();
 }
 
 ECode CInputMethodService::OnCreate()
@@ -1840,7 +1825,7 @@ ECode CInputMethodService::OnExtractingInputChanged(
 ECode CInputMethodService::GetBaseContext(
     /* [out] */ IContext** context)
 {
-    return ContextWrapper::GetBaseContext(context);
+    return _InputMethodService::GetBaseContext(context);
 }
 
 ECode CInputMethodService::Attach(
@@ -2349,3 +2334,40 @@ void CInputMethodService::StartExtractingText(
     }
 }
 
+ECode CInputMethodService::StopSelf()
+{
+    return _InputMethodService::StopSelf();
+}
+
+ECode CInputMethodService::StopSelfEx(
+        /* [in] */ Int32 startId)
+{
+    return _InputMethodService::StopSelfEx(startId);
+}
+
+ECode CInputMethodService::StopSelfResult(
+        /* [in] */ Int32 startId,
+        /* [out] */ Boolean* res)
+{
+    VALIDATE_NOT_NULL(res);
+    return _InputMethodService::StopSelfResult(startId, res);
+}
+
+ECode CInputMethodService::SetForeground(
+        /* [in] */ Boolean isForeground)
+{
+    return _InputMethodService::SetForeground(isForeground);
+}
+
+ECode CInputMethodService::StartForeground(
+        /* [in] */ Int32 id,
+        /* [in] */ INotification* notification)
+{
+    return _InputMethodService::StartForeground(id ,notification);
+}
+
+ECode CInputMethodService::StopForeground(
+        /* [in] */ Boolean removeNotification)
+{
+    return _InputMethodService::StopForeground(removeNotification);
+}

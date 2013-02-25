@@ -54,7 +54,7 @@ ECode CInputQueue::FinishedCallback::Run()
         return E_ILLEGAL_STATE_EXCEPTION;
     }
 
-    android::status_t status = gNativeInputQueue.Finished(mFinishedToken, TRUE);
+    android::status_t status = gNativeInputQueue.Finished(mFinishedToken, FALSE);
 
     // We ignore the case where an event could not be finished because the input channel
     // was no longer registered (DEAD_OBJECT) since it is a common race that can occur
@@ -176,24 +176,8 @@ ECode CInputQueue::DispatchKeyEvent(
     /* [in] */ CKeyEvent* event,
     /* [in] */ Int64 finishedToken)
 {
-    // AutoPtr<IRunnable> finishedCallback = FinishedCallback::Obtain(finishedToken);
-    // return inputHandler->HandleKey(event, finishedCallback.Get());
-
-    //TODO: comsume key event, not dispatch temproary
-    Mutex::Autolock lock(sLock);
-
-    android::status_t status = gNativeInputQueue.Finished(finishedToken, TRUE);
-
-    // We ignore the case where an event could not be finished because the input channel
-    // was no longer registered (DEAD_OBJECT) since it is a common race that can occur
-    // during application shutdown.  The input dispatcher recovers gracefully anyways.
-    //
-    if (status != android::OK && status != android::DEAD_OBJECT) {
-        Slogger::E(TAG, "Failed to finish input event.  Check logs for details.");
-        return E_RUNTIME_EXCEPTION;
-    }
-
-    return NOERROR;
+    AutoPtr<IRunnable> finishedCallback = FinishedCallback::Obtain(finishedToken);
+    return inputHandler->HandleKey(event, finishedCallback.Get());
 }
 
 ECode CInputQueue::DispatchMotionEvent(

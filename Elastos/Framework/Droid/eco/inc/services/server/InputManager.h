@@ -108,6 +108,13 @@ public:
     CARAPI UnregisterInputChannel(
         /* [in] */ IInputChannel* _inputChannel);
 
+    CARAPI_(Int32) InjectInputEvent(
+        /* [in] */ IInputEvent* event,
+        /* [in] */ Int32 injectorPid,
+        /* [in] */ Int32 injectorUid,
+        /* [in] */ Int32 syncMode,
+        /* [in] */ Int32 timeoutMillis);
+
     CARAPI SetInputWindows(
         /* [in] */ InputWindow** windows);
 

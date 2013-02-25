@@ -1,0 +1,13 @@
+
+module
+{
+    interface IConfiguration;
+    interface ISystemUI {
+        Start();
+    
+        OnConfigurationChanged(
+            [in] IConfiguration* newConfig);
+
+        //Dump(FileDescriptor fd, PrintWriter pw, String[] args);
+    }
+}

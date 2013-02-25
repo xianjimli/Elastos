@@ -69,6 +69,20 @@ ECode CActivityOne::MyListener::GetInterfaceID(
 ECode CActivityOne::MyListener::OnClick(
     /* [in] */ IView* v)
 {
+    printf("OnClick\n");
+    AutoPtr<IServiceManager> sm;
+    AutoPtr<IActivityManager> am;
+    CServiceManager::AcquireSingleton((IServiceManager**)&sm);
+    sm->GetService(String("ActivityManagerService"), (IInterface**)&am);
+
+    AutoPtr<IIntent> intent;
+    CIntent::New((IIntent**)&intent);
+    intent->SetCapsule(String("TextViewDemo"));
+    intent->SetAction(String("elastos.intent.action.MAIN"));
+
+    Int32 status;
+    am->StartActivity(NULL, intent, String(NULL),
+            NULL, 0, NULL, String(NULL), -1, FALSE, FALSE, &status);
 
     return NOERROR;
 }
@@ -81,8 +95,8 @@ ECode CActivityOne::OnCreate(
     AutoPtr<IView> view = FindViewById(0x7f050000);
     assert(view != NULL);
 
-    //AutoPtr<MyListener> l = new MyListener(this);
-    //view->SetOnClickListener(l.Get());
+    AutoPtr<MyListener> l = new MyListener(this);
+    view->SetOnClickListener(l.Get());
 
     return NOERROR;
 }

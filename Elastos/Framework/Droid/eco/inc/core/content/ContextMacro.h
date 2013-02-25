@@ -141,14 +141,14 @@ ECode className::GetText(                                                   \
     /* [in] */ Int32 resId,                                                 \
     /* [out] */ ICharSequence** text)                                       \
 {                                                                           \
-    return Context::GetText(resId, text);                                   \
+    return superClass::GetText(resId, text);                                \
 }                                                                           \
                                                                             \
 ECode className::GetString(                                                 \
     /* [in] */ Int32 resId,                                                 \
     /* [out] */ String* str)                                                \
 {                                                                           \
-    return Context::GetString(resId, str);                                  \
+    return superClass::GetString(resId, str);                               \
 }                                                                           \
                                                                             \
 ECode className::SetTheme(                                                  \
@@ -167,7 +167,7 @@ ECode className::ObtainStyledAttributes(                                    \
     /* [in] */ const ArrayOf<Int32>& attrs,                                 \
     /* [out] */ ITypedArray** styles)                                       \
 {                                                                           \
-    return Context::ObtainStyledAttributes(attrs, styles);                  \
+    return superClass::ObtainStyledAttributes(attrs, styles);               \
 }                                                                           \
                                                                             \
 ECode className::ObtainStyledAttributesEx(                                  \
@@ -175,7 +175,7 @@ ECode className::ObtainStyledAttributesEx(                                  \
     /* [in] */ const ArrayOf<Int32>& attrs,                                 \
     /* [out] */ ITypedArray** styles)                                       \
 {                                                                           \
-    return Context::ObtainStyledAttributesEx(resid, attrs, styles);         \
+    return superClass::ObtainStyledAttributesEx(resid, attrs, styles);      \
 }                                                                           \
                                                                             \
 ECode className::ObtainStyledAttributesEx2(                                 \
@@ -183,7 +183,7 @@ ECode className::ObtainStyledAttributesEx2(                                 \
     /* [in] */ const ArrayOf<Int32>& attrs,                                 \
     /* [out] */ ITypedArray** styles)                                       \
 {                                                                           \
-    return Context::ObtainStyledAttributesEx2(set, attrs, styles);          \
+    return superClass::ObtainStyledAttributesEx2(set, attrs, styles);       \
 }                                                                           \
                                                                             \
 ECode className::ObtainStyledAttributesEx3(                                 \
@@ -193,7 +193,7 @@ ECode className::ObtainStyledAttributesEx3(                                 \
     /* [in] */ Int32 defStyleRes,                                           \
     /* [out] */ ITypedArray** styles)                                       \
 {                                                                           \
-    return Context::ObtainStyledAttributesEx3(                              \
+    return superClass::ObtainStyledAttributesEx3(                           \
         set, attrs, defStyleAttr, defStyleRes, styles);                     \
 }                                                                           \
                                                                             \

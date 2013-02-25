@@ -5,7 +5,7 @@
 #include "ext/frameworkext.h"
 #include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>
-#include "inputmethodservice/CAbstractInputMethodService.h"
+#include "inputmethodservice/AbstractInputMethodService.h"
 
 
 class AbstractInputMethodImpl:
@@ -15,7 +15,7 @@ class AbstractInputMethodImpl:
 {
 public:
     AbstractInputMethodImpl(
-        /* [in] */ CAbstractInputMethodService* host);
+        /* [in] */ AbstractInputMethodService* host);
 
     ~AbstractInputMethodImpl();
 
@@ -65,7 +65,7 @@ public:
         /* [in] */ IResultReceiver* resultReceiver);
 
 private:
-	CAbstractInputMethodService* mHost;
+	AbstractInputMethodService* mHost;
 };
 
 #endif  //_ABSTRACTINPUTMETHODIMPL_H__

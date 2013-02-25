@@ -47,10 +47,6 @@ module
         interface IAccessibilityEventSource;
 	}
 
-	class CAbstractInputMethodService {
-		interface IAbstractInputMethodService;
-	}
-
 	class CInputMethodService {
 		constructor();
 

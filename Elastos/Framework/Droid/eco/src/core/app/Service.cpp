@@ -1,6 +1,7 @@
 
 #ifdef _FRAMEWORK_CORE
 #include "app/Service.h"
+#include "content/CComponentName.h"
 #else
 #include "Service.h"
 #endif
@@ -44,14 +45,14 @@ PInterface Service::Probe(
     if (riid == EIID_IService) {
         return (IService*)this;
     }
-    else if (riid == EIID_IContextThemeWrapper) {
-       return (IContextThemeWrapper*)this;
-    }
     else if (riid == EIID_IContextWrapper) {
        return (IContextWrapper*)this;
     }
     else if (riid == EIID_IContext) {
        return (IContext*)this;
+    }
+    else if (riid == EIID_IComponentCallbacks) {
+       return (IComponentCallbacks*)this;
     }
 
     return NULL;
@@ -362,6 +363,13 @@ ECode Service::GetText(
     return mBase->GetText(resId, text);
 }
 
+ECode Service::GetString(
+    /* [in] */ Int32 resId,
+    /* [out] */ String* str)
+{
+    return mBase->GetString(resId, str);
+}
+
 ECode Service::SetTheme(
     /* [in] */ Int32 resid)
 {
@@ -505,4 +513,153 @@ ECode Service::InitializeTheme()
     }
 
     return OnApplyThemeResource(mTheme, mThemeResource, first);
+}
+
+/**
+ * Stop the service, if it was previously started.  This is the same as
+ * calling {@link android.content.Context#stopService} for this particular service.
+ *  
+ * @see #stopSelfResult(int)
+ */
+ECode Service::StopSelf()
+{
+    return StopSelfEx(-1);
+}
+
+/**
+ * Old version of {@link #stopSelfResult} that doesn't return a result.
+ *  
+ * @see #stopSelfResult
+ */
+ECode Service::StopSelfEx(
+    /* [in] */ Int32 startId)
+{
+    if (mActivityManager == NULL) {
+        return NOERROR;
+    }
+
+    Boolean res;
+    String capsuleName;
+    GetCapsuleName(&capsuleName);
+    AutoPtr<IComponentName> name;
+    CComponentName::New(capsuleName, mClassName, (IComponentName**)&name);
+
+    return mActivityManager->StopServiceToken(
+                name, mToken, startId, &res);
+}
+
+/**
+ * Stop the service if the most recent time it was started was 
+ * <var>startId</var>.  This is the same as calling {@link 
+ * android.content.Context#stopService} for this particular service but allows you to 
+ * safely avoid stopping if there is a start request from a client that you 
+ * haven't yet seen in {@link #onStart}. 
+ * 
+ * <p><em>Be careful about ordering of your calls to this function.</em>.
+ * If you call this function with the most-recently received ID before
+ * you have called it for previously received IDs, the service will be
+ * immediately stopped anyway.  If you may end up processing IDs out
+ * of order (such as by dispatching them on separate threads), then you
+ * are responsible for stopping them in the same order you received them.</p>
+ * 
+ * @param startId The most recent start identifier received in {@link 
+ *                #onStart}.
+ * @return Returns true if the startId matches the last start request
+ * and the service will be stopped, else false.
+ *  
+ * @see #stopSelf()
+ */
+ECode Service::StopSelfResult(
+    /* [in] */ Int32 startId,
+    /* [out] */ Boolean* res)
+{
+    *res = FALSE;
+    if (mActivityManager == NULL) {
+        return NOERROR;
+    }
+
+    String capsuleName;
+    GetCapsuleName(&capsuleName);
+    AutoPtr<IComponentName> name;
+    CComponentName::New(capsuleName, mClassName, (IComponentName**)&name);
+
+    return mActivityManager->StopServiceToken(
+        name, mToken, startId, res);
+}
+
+/**
+ * @deprecated This is a now a no-op, use
+ * {@link #startForeground(int, Notification)} instead.  This method
+ * has been turned into a no-op rather than simply being deprecated
+ * because analysis of numerous poorly behaving devices has shown that
+ * increasingly often the trouble is being caused in part by applications
+ * that are abusing it.  Thus, given a choice between introducing
+ * problems in existing applications using this API (by allowing them to
+ * be killed when they would like to avoid it), vs allowing the performance
+ * of the entire system to be decreased, this method was deemed less
+ * important.
+ */
+//@Deprecated
+ECode Service::SetForeground(
+    /* [in] */ Boolean isForeground)
+{
+    //Log.w(TAG, "setForeground: ignoring old API call on " + getClass().getName());
+    return NOERROR;
+}
+
+/**
+ * Make this service run in the foreground, supplying the ongoing
+ * notification to be shown to the user while in this state.
+ * By default services are background, meaning that if the system needs to
+ * kill them to reclaim more memory (such as to display a large page in a
+ * web browser), they can be killed without too much harm.  You can set this
+ * flag if killing your service would be disruptive to the user, such as
+ * if your service is performing background music playback, so the user
+ * would notice if their music stopped playing.
+ * 
+ * <p>If you need your application to run on platform versions prior to API
+ * level 5, you can use the following model to call the the older {@link #setForeground}
+ * or this modern method as appropriate:
+ * 
+ * {@sample development/samples/ApiDemos/src/com/example/android/apis/app/ForegroundService.java
+ *   foreground_compatibility}
+ * 
+ * @param id The identifier for this notification as per
+ * {@link NotificationManager#notify(int, Notification)
+ * NotificationManager.notify(int, Notification)}.
+ * @param notification The Notification to be displayed.
+ * 
+ * @see #stopForeground(boolean)
+ */
+ECode Service::StartForeground(
+    /* [in] */ Int32 id,
+    /* [in] */ INotification* notification)
+{
+    String capsuleName;
+    GetCapsuleName(&capsuleName);
+    AutoPtr<IComponentName> name;
+    CComponentName::New(capsuleName, mClassName, (IComponentName**)&name);
+
+    return mActivityManager->SetServiceForeground(
+        name, mToken, id, notification, TRUE);
+}
+
+/**
+ * Remove this service from foreground state, allowing it to be killed if
+ * more memory is needed.
+ * @param removeNotification If true, the notification previously provided
+ * to {@link #startForeground} will be removed.  Otherwise it will remain
+ * until a later call removes it (or the service is destroyed).
+ * @see #startForeground(int, Notification)
+ */
+ECode Service::StopForeground(
+    /* [in] */ Boolean removeNotification)
+{
+    String capsuleName;
+    GetCapsuleName(&capsuleName);
+    AutoPtr<IComponentName> name;
+    CComponentName::New(capsuleName, mClassName, (IComponentName**)&name);
+
+    return mActivityManager->SetServiceForeground(
+        name, mToken, 0, NULL, removeNotification);
 }

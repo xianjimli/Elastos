@@ -136,14 +136,17 @@ ECode CIntent::constructor(
 ECode CIntent::constructor(
     /* [in] */ const String& action)
 {
-    return E_NOT_IMPLEMENTED;
+    mAction = action;
+    return NOERROR;
 }
 
 ECode CIntent::constructor(
     /* [in] */ const String& action,
     /* [in] */ IUri* uri)
 {
-    return E_NOT_IMPLEMENTED;
+    mAction = action;
+    mData = uri;
+    return NOERROR;
 }
 
 ECode CIntent::constructor(

@@ -99,6 +99,8 @@ public:
         /* [out] */ IKeyEvent** newEvent);
 
 public:
+    CARAPI constructor();
+
     CARAPI constructor(
         /* [in] */ Int32 action,
         /* [in] */ Int32 code);

@@ -408,11 +408,22 @@ ECode CMotionEvent::ObtainNoHistory(
     return NOERROR;
 }
 
+CMotionEvent::CMotionEvent()
+    : mPointerIdentifiers(NULL)
+    , mDataSamples(NULL)
+    , mEventTimeNanoSamples(NULL)
+{}
+
 CMotionEvent::~CMotionEvent()
 {
     delete[] mPointerIdentifiers;
     delete[] mDataSamples;
     delete[] mEventTimeNanoSamples;
+}
+
+ECode CMotionEvent::constructor()
+{
+    return NOERROR;
 }
 
 ECode CMotionEvent::constructor(
@@ -2040,14 +2051,21 @@ ECode CMotionEvent::ReadFromParcel(
     source->ReadInt32(&mMetaState);
     source->ReadInt32(&mFlags);
 
+    delete[] mPointerIdentifiers;
+    delete[] mDataSamples;
+    delete[] mEventTimeNanoSamples;
+
+    mPointerIdentifiers = new Int32[NP];
     for (Int32 i = 0; i < NP; i++) {
         source->ReadInt32(mPointerIdentifiers + i);
     }
 
+    mEventTimeNanoSamples = new Int64[NS];
     for (Int32 i = 0; i < NS; i++) {
         source->ReadInt64(mEventTimeNanoSamples + i);
     }
 
+    mDataSamples = new Float[NI];
     for (Int32 i = 0; i < NI; i++) {
         source->ReadFloat(mDataSamples + i);
     }

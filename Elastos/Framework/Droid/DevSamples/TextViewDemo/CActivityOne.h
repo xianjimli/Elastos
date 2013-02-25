@@ -88,6 +88,8 @@ private:
         /* [in] */ Int32 resultCode,
         /* [in] */ IIntent *data);
 
+    CARAPI CreateNavigationBar();
+
 private:
     AutoPtr<IDrawable> mDrawable1;
     AutoPtr<IDrawable> mDrawable2;
@@ -104,6 +106,11 @@ private:
     AutoPtr<IView> mAnimationButton;
     AutoPtr<IView> mDialogButton;
     AutoPtr<IView> mContent;
+
+
+    AutoPtr<IView> mBack;
+    AutoPtr<IView> mHome;
+    AutoPtr<IView> mMenu;
 };
 
 #endif // __CACTIVITYONE_H__

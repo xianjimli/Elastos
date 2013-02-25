@@ -8,66 +8,6 @@ AbstractInputMethodService::AbstractInputMethodService()
 	assert(SUCCEEDED(CDispatcherState::New((IDispatcherState**)&mDispatcherState)));
 }
 
-AbstractInputMethodService::~AbstractInputMethodService()
-{}
-
-UInt32 AbstractInputMethodService::AddRef()
-{
-    return ElRefBase::AddRef();
-}
-
-UInt32 AbstractInputMethodService::Release()
-{
-    return ElRefBase::Release();
-}
-
-PInterface AbstractInputMethodService::Probe(
-    /* [in] */ REIID riid)
-{
-    if (riid == EIID_IObject) {
-        return (PInterface)(IObject*)this;
-    }
-    if (riid == EIID_IInterface) {
-        return (PInterface)(IService*)this;
-    }
-    if (riid == EIID_IService) {
-        return (IService*)this;
-    }
-    else if (riid == EIID_IContextThemeWrapper) {
-       return (IContextThemeWrapper*)this;
-    }
-    else if (riid == EIID_IContextWrapper) {
-       return (IContextWrapper*)this;
-    }
-    else if (riid == EIID_IContext) {
-       return (IContext*)this;
-    }
-    else if (riid == EIID_IKeyEventCallback) {
-       return (IKeyEventCallback*)this;
-    }
-
-    return NULL;
-}
-
-ECode AbstractInputMethodService::GetInterfaceID(
-    /* [in] */ IInterface *pObject,
-    /* [out] */ InterfaceID *pIID)
-{
-    VALIDATE_NOT_NULL(pIID);
-
-    if (pObject == (IInterface*)(IService*)this) {
-        *pIID = EIID_IService;
-    }
-    else if (pObject == (IInterface*)(IKeyEventCallback*)this) {
-        *pIID = EIID_IKeyEventCallback;
-    }
-    else {
-        return E_INVALID_ARGUMENT;
-    }
-
-    return NOERROR;
-}
-
 ECode AbstractInputMethodService::GetKeyDispatcherState(
     /* [out] */ IDispatcherState** dispatcherState)
 {

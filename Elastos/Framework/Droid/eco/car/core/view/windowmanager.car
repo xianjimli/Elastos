@@ -188,6 +188,8 @@ module
      */
     const WindowManagerLayoutParams_TYPE_SECURE_SYSTEM_OVERLAY = 2015;
 
+    const WindowManagerLayoutParams_TYPE_NAVIGATION_BAR = 2019;
+
     /**
      * End of types of system windows.
      */

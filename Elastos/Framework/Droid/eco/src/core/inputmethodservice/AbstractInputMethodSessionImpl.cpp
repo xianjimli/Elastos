@@ -2,7 +2,7 @@
 #include "inputmethodservice/AbstractInputMethodSessionImpl.h"
 
 AbstractInputMethodSessionImpl::AbstractInputMethodSessionImpl(
-	/* [in] */ CAbstractInputMethodService* host):
+	/* [in] */ AbstractInputMethodService* host):
     mEnabled(TRUE),
     mRevoked(FALSE),
     mHost(host)

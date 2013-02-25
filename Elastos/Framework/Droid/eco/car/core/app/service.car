@@ -91,9 +91,9 @@ module
     interface IApplicationApartment;
     interface IApplication;
     interface IActivityManager;
-    interface IContextThemeWrapper;
+    interface INotification;
 
-    interface IService extends IContextThemeWrapper {
+    interface IService extends IContextWrapper {
         Attach(
             [in] IContext* ctx,
             [in] IApplicationApartment* apartment,
@@ -126,6 +126,25 @@ module
 
         Rebind(
             [in] IIntent* intent);
+
+        StopSelf();
+
+        StopSelfEx(
+            [in] Int32 startId);
+
+        StopSelfResult(
+            [in] Int32 startId,
+            [out] Boolean* res);
+
+        SetForeground(
+            [in] Boolean isForeground);
+
+        StartForeground(
+            [in] Int32 id,
+            [in] INotification* notification);
+
+        StopForeground(
+            [in] Boolean removeNotification);
 
         GetClassName(
             [out] String* className);
