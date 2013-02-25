@@ -1,4 +1,4 @@
-#ifdef _RESULTSETMETADATA_H_
+#ifndef _RESULTSETMETADATA_H_
 #define _RESULTSETMETADATA_H_
 
 #include <elastos.h>

@@ -1,17 +1,21 @@
-#ifdef _JDBCSTATEMENT_H_
+#ifndef _JDBCSTATEMENT_H_
 #define _JDBCSTATEMENT_H_
 
 #include <elastos.h>
+#include <Elastos.SQL_server.h>
 #include <elastos/AutoPtr.h>
+#include "JDBCConnection.h"
+#include "Statement.h"
+
 using namespace Elastos;
 
-class JDBCStatement
+class JDBCStatement : public Statement
 {
 protected:
     AutoPtr<IJDBCConnection> mConn;
     AutoPtr<IJDBCResultSet> mRs;
     Int32 mUpdcnt;
-    Int32 mMaxrows = 0;
+    Int32 mMaxrows;
     
 private:
     //private ArrayList<String> batch;
@@ -95,7 +99,7 @@ public:
     CARAPI GetMaxFieldSize(
         /* [out] */ Int32* maxFieldSize);
 
-    CARAPI GetMoreResults((
+    CARAPI GetMoreResults(
         /* [out] */ Boolean* result);
 
     CARAPI GetUpdateCount(

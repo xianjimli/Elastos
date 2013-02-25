@@ -1,4 +1,4 @@
-#ifdef _STRUVT_H_
+#ifndef _STRUVT_H_
 #define _STRUVT_H_
 
 #include <elastos.h>

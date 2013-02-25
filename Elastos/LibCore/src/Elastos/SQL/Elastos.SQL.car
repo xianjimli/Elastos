@@ -3,6 +3,8 @@ module
 {
     importlib("Droid.System.eco");
     importlib("Elastos.IO.eco");
+    importlib("Elastos.Net.eco");
+    importlib("Elastos.Utility.eco");
 
     merge("../../../car/Elastos/SQL/Exceptions.car");
     merge("../../../car/Elastos/SQL/IArray.car");
@@ -14,8 +16,11 @@ module
     merge("../../../car/Elastos/SQL/IDatabaseMetaData.car");
     merge("../../../car/Elastos/SQL/IDataTruncation.car");
     merge("../../../car/Elastos/SQL/IResultSet.car");
-    merge("../../../car/Elastos/SQL/IResultSetMetaData.car");	
+    merge("../../../car/Elastos/SQL/IResultSetMetaData.car");
+    merge("../../../car/Elastos/SQL/IJDBCResultSet.car");
+    merge("../../../car/Elastos/SQL/IJDBCDatabaseMetaData.car");
     merge("../../../car/Elastos/SQL/IStatement.car");
+    merge("../../../car/Elastos/SQL/IJDBCConnection.car");
     merge("../../../car/Elastos/SQL/IParameterMetaData.car");
     merge("../../../car/Elastos/SQL/IPreparedStatement.car");
     merge("../../../car/Elastos/SQL/ISavepoint.car");
@@ -28,7 +33,7 @@ module
     merge("../../../car/Elastos/Utility/IDate.car");
     merge("../../../car/Elastos/SQL/ITime.car");
     merge("../../../car/Elastos/SQL/ITimestamp.car");
-    merge("../../../car/Elastos/Lang/INumber.car");
+    merge("../../../car/Elastos/Core/INumber.car");
     merge("../../../car/Elastos/Math/IRoundingMode.car");
     merge("../../../car/Elastos/Math/IMathContext.car");
     merge("../../../car/Elastos/Utility/IRandom.car");
@@ -36,7 +41,18 @@ module
     merge("../../../car/Elastos/Math/IBigInteger.car");
     merge("../../../car/Elastos/Math/IBigDecimal.car");
     merge("../../../car/Elastos/Utility/ICalendar.car");
-    //merge("../../../car/Elastos/SQL/ICallableStatement.car");
+    merge("../../../car/Elastos/SQL/ICallableStatement.car");
+
+    class CJDBCConnection {
+        constructor(
+            [in] String url,
+            [in] String enc,
+            [in] String pwd,
+            [in] String drep,
+            [in] String vfs);
+
+        interface IJDBCConnection;
+    }
 
     class CJDBCStatement {
         constructor(

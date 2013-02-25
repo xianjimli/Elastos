@@ -16,7 +16,7 @@ module
          *
          * @return the index number of the column or of the parameter.
          */
-        GetIndex()
+        GetIndex(
             [out] Int32* index);
 
         /**

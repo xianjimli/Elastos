@@ -1,4 +1,4 @@
-#ifdef _DIME_H_
+#ifndef _DIME_H_
 #define _DIME_H_
 
 #include <elastos.h>

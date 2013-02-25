@@ -1,4 +1,4 @@
-#ifdef _TIMESTAMP_H_
+#ifndef _TIMESTAMP_H_
 #define _TIMESTAMP_H_
 
 #include <elastos.h>

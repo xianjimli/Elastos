@@ -1,4 +1,4 @@
-#ifdef  _WRRAY_H_
+#ifndef  _WRRAY_H_
 #define _WRRAY_H_
 
 #include <elastos.h>

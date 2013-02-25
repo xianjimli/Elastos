@@ -1,4 +1,4 @@
-#ifdef _REF_H_
+#ifndef _REF_H_
 #define _REF_H_
 
 #include <elastos.h>

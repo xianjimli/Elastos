@@ -1,4 +1,4 @@
-#ifdef _JDBCPREPAREDSTATEMENT_H_
+#ifndef _JDBCPREPAREDSTATEMENT_H_
 #define _JDBCPREPAREDSTATEMENT_H_
 
 #include <elastos.h>

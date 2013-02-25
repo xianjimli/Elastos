@@ -1,4 +1,4 @@
-#ifdef _CONNECTION_H_
+#ifndef _CONNECTION_H_
 #define _CONNECTION_H_
 
 #include <elastos.h>
@@ -16,7 +16,7 @@ public:
      * @throws SQLException
      *             if there is a problem accessing the database.
      */
-	virtual CARAPI ClearWarnings()=0;
+    virtual CARAPI ClearWarnings()=0;
 
     /**
      * Causes the instant release of all database and driver connection
@@ -787,8 +787,8 @@ public:
      * @throws SQLClientInfoException if this connection is closed, or there's a problem setting
      * a property.
      */
-    virtual CARAPI SetClientInfoEx(
-        /** [in] **/IProperties* properties)=0;
+//    virtual CARAPI SetClientInfoEx(
+//        /** [in] **/IProperties* properties)=0;
 
     /**
      * Returns the value corresponding to the given client info property, or null if unset.
@@ -804,8 +804,8 @@ public:
      * @throws SQLClientInfoException if this connection is closed, or there's a problem getting
      * a property.
      */
-    virtual CARAPI GetClientInfo(
-        /** [out] **/IProperties** properties)=0;
+//    virtual CARAPI GetClientInfo(
+//        /** [out] **/IProperties** properties)=0;
 
     /**
      * Returns a new {@link Array} containing the given {@code elements}.
@@ -828,18 +828,18 @@ public:
         /** [in] **/String typeName, 
         /** [in] **/ArrayOf<IInterface*> attributes,
         /** [out] **/IStruct** result)=0;
-public:
+//public:
 	/**
      * A constant indicating that transactions are not supported.
      */
-    static const Int32 TRANSACTION_NONE;// = 0;
+//    static const Int32 TRANSACTION_NONE;// = 0;
 
     /**
      * No <i>dirty reads</i> are permitted, therefore transactions may not read
      * a row containing uncommitted values - but does not prevent an application
      * from <i>non-repeatable reads</i> and <i>phantom reads</i>.
      */
-    static const Int32 TRANSACTION_READ_COMMITTED;// = 2;
+//    static const Int32 TRANSACTION_READ_COMMITTED;// = 2;
 
     /**
      * In the case that reading uncommitted values is allowed, the following
@@ -850,13 +850,13 @@ public:
      * <li><i>phantom reads</i></li>
      * </ul>
      */
-    static const Int32 TRANSACTION_READ_UNCOMMITTED;// = 1;
+//    static const Int32 TRANSACTION_READ_UNCOMMITTED;// = 1;
 
     /**
      * A constant indicating that <i>dirty reads</i> and <i>non-repeatable
      * reads</i> are <b>prevented</b> but <i>phantom reads</i> can occur.
      */
-    static const Int32 TRANSACTION_REPEATABLE_READ;// = 4;
+//    static const Int32 TRANSACTION_REPEATABLE_READ;// = 4;
 
     /**
      * The constant that indicates that the following incidents are <b>all
@@ -867,6 +867,7 @@ public:
      * <li><i>phantom reads</i></li>
      * </ul>
      */
-    static const Int32 TRANSACTION_SERIALIZABLE;// = 8;
+//    static const Int32 TRANSACTION_SERIALIZABLE;// = 8;
 };
-#endif//_CONNECTION_H_
+
+#endif //_CONNECTION_H_

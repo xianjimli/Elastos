@@ -1,4 +1,4 @@
-#ifdef _SQLOUTPUT_H_
+#ifndef _SQLOUTPUT_H_
 #define _SQLOUTPUT_H_
 
 #include <elastos.h>

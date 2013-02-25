@@ -1,4 +1,4 @@
-#ifdef _WRAPPER_H_
+#ifndef _WRAPPER_H_
 #define _WRAPPER_H_
 
 #include <elastos.h>

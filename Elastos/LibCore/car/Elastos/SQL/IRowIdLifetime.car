@@ -6,8 +6,11 @@ module
      *
      */
     enum RowIdLifetime {
-        ROWID_UNSUPPORTED = 0, ROWID_VALID_OTHER =1, ROWID_VALID_SESSION =2,
-		ROWID_VALID_TRANSACTION = 3, ROWID_VALID_FOREVER = 4,
+        RowIdLifetime_ROWID_UNSUPPORTED = 0, 
+        RowIdLifetime_ROWID_VALID_OTHER =1, 
+        RowIdLifetime_ROWID_VALID_SESSION =2,
+		RowIdLifetime_ROWID_VALID_TRANSACTION = 3, 
+        RowIdLifetime_ROWID_VALID_FOREVER = 4,
 	}
     /*
      * Licensed to the Apache Software Foundation (ASF) under one or more

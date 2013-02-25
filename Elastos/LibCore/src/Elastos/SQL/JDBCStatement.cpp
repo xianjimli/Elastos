@@ -221,7 +221,7 @@ ECode JDBCStatement::GetMaxFieldSize(
     return NOERROR;
 }
 
-ECode JDBCStatement::GetMoreResults((
+ECode JDBCStatement::GetMoreResults(
     /* [out] */ Boolean* result)
 {
     assert(result != NULL);

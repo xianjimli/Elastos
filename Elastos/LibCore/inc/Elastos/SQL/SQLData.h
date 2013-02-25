@@ -1,4 +1,4 @@
-#ifdef _SQLDATA_H_
+#ifndef _SQLDATA_H_
 #define _SQLDATA_H_
 
 #include <elastos.h>

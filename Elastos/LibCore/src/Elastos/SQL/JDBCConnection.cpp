@@ -1,55 +1,51 @@
 #include "JDBCStatement.h"
 #include "cmdef.h"
 
-DatabaseX::DatabaseX()
-{
-}
+//DatabaseX::DatabaseX()
+//{
+//}
 
-DatabaseX::~DatabaseX()
-{
-}
+//DatabaseX::~DatabaseX()
+//{
+//}
 
-ECode DatabaseX::Wait(
-        /* [in] */Int32 ms)
-{
+//ECode DatabaseX::Wait(
+//        /* [in] */Int32 ms)
+//{
+//}
 
-}
+//ECode DatabaseX::Exec(
+//    /* [in] */String sql, 
+//    /* [in] */SQLite.Callback cb)
+//{
+//}
 
-ECode DatabaseX::Exec(
-    /* [in] */String sql, 
-    /* [in] */SQLite.Callback cb)
-{
+//ECode DatabaseX::ExecEx(
+//    /* [in] */String sql, 
+//    /* [in] */SQLite.Callback cb, 
+//    /* [in] */ArrayOf<String> args)
+//{
+//}
 
-}
+//ECode DatabaseX::Get_table(
+//    /* [in] */String sql, 
+//    /* [in] */ArrayOf<String> args,
+//    /* [out] */ITableResult** result)
+//{
+//}
 
-ECode DatabaseX::ExecEx(
-    /* [in] */String sql, 
-    /* [in] */SQLite.Callback cb, 
-    /* [in] */ArrayOf<String> args)
-{
+//ECode DatabaseX::Get_table(
+//    /* [in] */String sql, 
+//    /* [in] */ArrayOf<String> args, 
+//    /* [in] */ITableResult* tbl)
+//{
+//}
 
-}
-
-ECode DatabaseX::Get_table(
-    /* [in] */String sql, 
-    /* [in] */ArrayOf<String> args,
-    /* [out] */ITableResult** result)
-{
-
-}
-
-ECode DatabaseX::Get_table(
-    /* [in] */String sql, 
-    /* [in] */ArrayOf<String> args, 
-    /* [in] */ITableResult* tbl)
-{
-
-}
-
-Boolean JDBCConnection::Busy0(
-        /* [in] */DatabaseX db, 
-        /* [in] */Int32 count)
-{/*
+//Boolean JDBCConnection::Busy0(
+//        /* [in] */DatabaseX db, 
+//        /* [in] */Int32 count)
+//{
+    /*
     if (count <= 1) {
         t0 = System.currentTimeMillis();
     }
@@ -62,13 +58,14 @@ Boolean JDBCConnection::Busy0(
         return true;
     }
     return false;*/
-    return NOERROR;
-}
+//    return NOERROR;
+//}
 
-Boolean JDBCConnection::Busy3(
-    /* [in] */DatabaseX db, 
-    /* [in] */Int32 count)
-{/*
+//Boolean JDBCConnection::Busy3(
+//    /* [in] */DatabaseX db, 
+//    /* [in] */Int32 count)
+//{
+    /*
     if (count <= 1) {
         t0 = System.currentTimeMillis();
     }
@@ -80,13 +77,14 @@ Boolean JDBCConnection::Busy3(
         return true;
     }
     return false;*/
-    return NOERROR;
-}
+//    return NOERROR;
+//}
 
-JDBCConnection::Open(
-    /* [in] */Boolean readonly,
-    /* [out] */IDatabaseX** result)
-{/*
+//JDBCConnection::Open(
+//    /* [in] */Boolean readonly,
+//    /* [out] */IDatabaseX** result)
+//{
+    /*
     DatabaseX dbx = null;
     try {
         dbx = new DatabaseX();
@@ -120,15 +118,21 @@ JDBCConnection::Open(
         break;
     }
     return dbx;*/
-    return NOERROR;
-}
+//    return NOERROR;
+//}
 
-JDBCConnection()
+JDBCConnection::JDBCConnection()
+    :mAutocommit(TRUE)
+    ,mIntrans(FALSE)
+    ,mTimeout(1000000)
+    ,mUseJulian(FALSE)
+    ,mDbfile(NULL)
+    ,mReadonly(FALSE)
 {
 
 }
 
-~JDBCConnection()
+JDBCConnection::~JDBCConnection()
 {
 
 }
@@ -139,6 +143,7 @@ ECode JDBCConnection::Busy(
     /* [out] */Boolean* result)
 {
     //return busy0(db, count);
+    return NOERROR;
 }
 
 ECode JDBCConnection::Init(
@@ -183,11 +188,12 @@ ECode JDBCConnection::Init(
 }
 
 /* non-standard */
-ECode JDBCConnection::GetSQLiteDatabase(
-    /* [out] */IDatabase** result)
-{
+//ECode JDBCConnection::GetSQLiteDatabase(
+//    /* [out] */IDatabase** result)
+//{
     //return (SQLite.Database) db;
-}
+//    return NOERROR;
+//}
 
 ECode JDBCConnection::CreateStatement(
     /* [out] */IStatement** result)
@@ -223,6 +229,7 @@ ECode JDBCConnection::GetMetaData(
         meta = new JDBCDatabaseMetaData(this);
     }
     return meta;*/
+    return NOERROR;
 }
 
 ECode JDBCConnection::Close()
@@ -241,13 +248,14 @@ ECode JDBCConnection::Close()
         throw new SQLException(e.toString());
         }
     }*/
+    return NOERROR;
 }
 
 ECode JDBCConnection::IsClosed(
     /* [out] */Boolean* result)
 {
     assert(result!=NULL);
-    *result = mDb == NULL;
+ //   *result = mDb == NULL;
     return NOERROR;
 }
 
@@ -255,7 +263,7 @@ ECode JDBCConnection::IsReadOnly(
     /* [out] */Boolean* result)
 {
     assert(result!=NULL);
-    *result = readonly;
+    *result = mReadonly;
     return NOERROR;
 }
 
@@ -285,7 +293,7 @@ ECode JDBCConnection::GetAutoCommit(
     /* [out] */Boolean* result)
 {
     assert(result!=NULL);
-    *result = autocommit;
+    *result = mAutocommit;
     return NOERROR;
 }
 
@@ -301,7 +309,7 @@ ECode JDBCConnection::GetTransactionIsolation(
     /* [out] */Int32* result)
 {
     assert(result!=NULL);
-    *result = mTrmode;
+ //   *result = mTrmode;
     return NOERROR;
 }
 
@@ -377,7 +385,7 @@ ECode JDBCConnection::Rollback()
 }
 
 ECode JDBCConnection::SetAutoCommit(
-    /* [in] */boolean ac)
+    /* [in] */Boolean ac)
 {/*
     if (ac && intrans && db != null) {
         try {
@@ -399,7 +407,7 @@ ECode JDBCConnection::SetCatalog(
 }
 
 ECode JDBCConnection::SetReadOnly(
-    /* [in] */boolean ro)
+    /* [in] */Boolean ro)
 {/*
     if (intrans) {
         throw new SQLException("incomplete transaction");
@@ -455,16 +463,17 @@ ECode JDBCConnection::SetTransactionIsolation(
 
 //    ECode JDBCConnection::java.util.Map<String, Class<?>> getTypeMap(){}
 
-ECode JDBCConnection::SetTypeMap(
-    /* [in] */java.util.Map map)
-{
-    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
-}
+//ECode JDBCConnection::SetTypeMap(
+//    /* [in] */java.util.Map map)
+//{
+//    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
+//}
 
 ECode JDBCConnection::GetHoldability(
     /* [out] */Int32* result)
 {
     //return ResultSet.HOLD_CURSORS_OVER_COMMIT;
+    return NOERROR;
 }
 
 ECode JDBCConnection::SetHoldability(
@@ -474,6 +483,7 @@ ECode JDBCConnection::SetHoldability(
         return;
     }
     throw new SQLFeatureNotSupportedException("unsupported holdability");*/
+    return NOERROR;
 }
 
 ECode JDBCConnection::SetSavepoint(
@@ -606,11 +616,11 @@ ECode JDBCConnection::SetClientInfo(
     return E_SQL_CLIENT_INFO_EXCEPTION;
 }
 
-ECode JDBCConnection::SetClientInfoEx(
-    /* [in] */Properties prop)
-{
-    return E_SQL_CLIENT_INFO_EXCEPTION;
-}
+//ECode JDBCConnection::SetClientInfoEx(
+//    /* [in] */Properties prop)
+//{
+ //   return E_SQL_CLIENT_INFO_EXCEPTION;
+//}
 
 ECode JDBCConnection::GetClientInfo(
     /* [in] */String name,
@@ -619,12 +629,12 @@ ECode JDBCConnection::GetClientInfo(
     return E_SQL_EXCEPTION;
 }
 
-ECode JDBCConnection::GetClientInfo(
-    /* [out] */IProperties** info)
-{
-    //return new Properties();
-    return NOERROR;
-}
+//ECode JDBCConnection::GetClientInfo(
+//    /* [out] */IProperties** info)
+//{
+//    //return new Properties();
+//    return NOERROR;
+//}
 
 ECode JDBCConnection::CreateArrayOf(
     /* [in] */String type, 

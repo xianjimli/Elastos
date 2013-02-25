@@ -10,9 +10,9 @@ IMPORTS += Droid.System.eco
 IMPORTS += Com.Kortide.Platform.eco
 
 SOURCES = Elastos.SQL.car
-SOURCES += Statement.cpp
-SOURCES += JDBCStatement.cpp
-SOURCES += Wrapper.cpp
+SOURCES += JDBCConnection.cpp
+
+
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib

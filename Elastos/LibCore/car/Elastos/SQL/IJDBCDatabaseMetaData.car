@@ -1,0 +1,8 @@
+
+module
+{
+    interface IDatabaseMetaData;
+
+    interface IJDBCDatabaseMetaData extends IDatabaseMetaData {
+    }
+}

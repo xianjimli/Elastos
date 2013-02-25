@@ -1,4 +1,4 @@
-#ifdef _JDBCRESULTSETMETADATA_H_
+#ifndef _JDBCRESULTSETMETADATA_H_
 #define _JDBCRESULTSETMETADATA_H_
 
 #include <elastos.h>

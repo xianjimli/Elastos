@@ -1,50 +1,52 @@
-#ifdef _JDBCCONNECTION_H_
+#ifndef _JDBCCONNECTION_H_
 #define _JDBCCONNECTION_H_
 
 #include <elastos.h>
 #include <elastos/AutoPtr.h>
+#include "Connection.h"
+
 using namespace Elastos;
 
-class DatabaseX : public Database 
-{
+//class DatabaseX : public Database 
+//{
 
     //static Object lock = new Object();
 
-    DatabaseX();
+//    DatabaseX();
 
-    ~DatabaseX();
+//    ~DatabaseX();
 
-    CARAPI Wait(
-        /* [in] */Int32 ms);
+//    CARAPI Wait(
+//        /* [in] */Int32 ms);
 
-    CARAPI Exec(
-        /* [in] */String sql, 
-        /* [in] */SQLite.Callback cb);
+//    CARAPI Exec(
+//        /* [in] */String sql, 
+//        /* [in] */SQLite.Callback cb);
 
-    CARAPI ExecEx(
-        /* [in] */String sql, 
-        /* [in] */SQLite.Callback cb, 
-        /* [in] */ArrayOf<String> args);
+//    CARAPI ExecEx(
+//        /* [in] */String sql, 
+//        /* [in] */SQLite.Callback cb, 
+//        /* [in] */ArrayOf<String> args);
 
-    CARAPI Get_table(
-        /* [in] */String sql, 
-        /* [in] */ArrayOf<String> args,
-        /* [out] */ITableResult** result);
+//    CARAPI Get_table(
+//        /* [in] */String sql, 
+//        /* [in] */ArrayOf<String> args,
+//        /* [out] */ITableResult** result);
 
-    CARAPI Get_table(
-        /* [in] */String sql, 
-        /* [in] */ArrayOf<String> args, 
-        /* [in] */ITableResult* tbl);
-};
+//    CARAPI Get_table(
+//        /* [in] */String sql, 
+//       /* [in] */ArrayOf<String> args, 
+//        /* [in] */ITableResult* tbl);
+//};
 
 
-class JDBCConnection
+class JDBCConnection : public Connection
 {
 protected:
     /**
      * Open database.
      */
-    AutoPtr<IDatabaseX> mDb;
+//    AutoPtr<IDatabaseX> mDb;
 
     /**
      * Database URL.
@@ -64,64 +66,63 @@ protected:
     /**
      * Autocommit flag, true means autocommit.
      */
-    Boolean mAutocommit = true;
+    Boolean mAutocommit;
 
     /**
      * In-transaction flag.
      * Can be true only when autocommit false.
      */
-    Boolean mInt32rans = false;
+    Boolean mIntrans;
 
     /**
      * Timeout for Database.exec()
      */
-    Int3232 mTimeout = 1000000;
+    Int32 mTimeout;
 
     /**
      * Use double/julian date representation.
      */
-    Boolean mUseJulian = false;
+    Boolean mUseJulian;
 
+private:
     /**
      * File name of database.
      */
-
-private:
-    String mDbfile = null;
+    String mDbfile;
 
     /**
      * Reference to meta data or null.
      */
-    AutoPtr<IJDBCDatabaseMetaData> mMeta = null;
+    AutoPtr<IJDBCDatabaseMetaData> mMeta;
 
     /**
      * Base time value for timeout handling.
      */
-    Int3264 t0;
+    Int64 t0;
 
     /**
      * Database in readonly mode.
      */
-    Boolean readonly = false;
+    Boolean mReadonly;
 
     /**
      * Transaction isolation mode.
      */
-    Int3232 trmode = TRANSACTION_SERIALIZABLE;
+//   Int32 trmode = TRANSACTION_SERIALIZABLE;///////////////////
 
 private:
-    Boolean Busy0(
-        /* [in] */DatabaseX db, 
-        /* [in] */Int32 count);
+//    Boolean Busy0(
+//        /* [in] */DatabaseX db, 
+//        /* [in] */Int32 count);
 
-    Open(
-        /* [in] */Boolean readonly,
-        /* [out] */IDatabaseX** result);
+//    Open(
+//        /* [in] */Boolean readonly,
+//        /* [out] */IDatabaseX** result);
 
 protected:
-    Boolean Busy3(
-        /* [in] */DatabaseX db, 
-        /* [in] */Int32 count);
+//    Boolean Busy3(
+//        /* [in] */DatabaseX db, 
+//        /* [in] */Int32 count);
 
 
 public:
@@ -142,8 +143,8 @@ public:
         /* [in] */String vfs);
 
     /* non-standard */
-    CARAPI GetSQLiteDatabase(
-        /* [out] */IDatabase** result);
+//    CARAPI GetSQLiteDatabase(
+///        /* [out] */IDatabase** result);
   
     CARAPI CreateStatement(
         /* [out] */IStatement** result);
@@ -206,21 +207,21 @@ public:
     CARAPI Rollback();
 
     CARAPI SetAutoCommit(
-        /* [in] */boolean ac);
+        /* [in] */Boolean ac);
 
     CARAPI SetCatalog(
         /* [in] */String catalog);
 
     CARAPI SetReadOnly(
-        /* [in] */boolean ro);
+        /* [in] */Boolean ro);
 
     CARAPI SetTransactionIsolation(
         /* [in] */Int32 level);
 
 //    CARAPI java.util.Map<String, Class<?>> getTypeMap();
 
-    CARAPI SetTypeMap(
-        /* [in] */java.util.Map map);
+ //   CARAPI SetTypeMap(
+ //       /* [in] */java.util.Map map);
   
     CARAPI GetHoldability(
         /* [out] */Int32* result);
@@ -296,15 +297,15 @@ public:
         /* [in] */String name, 
         /* [in] */String value);
 
-    CARAPI SetClientInfoEx(
-        /* [in] */Properties prop);
+//    CARAPI SetClientInfoEx(
+//        /* [in] */IProperties* prop);
 
     CARAPI GetClientInfo(
         /* [in] */String name,
         /* [out] */String* str);
 
-    CARAPI GetClientInfo(
-        /* [out] */IProperties** info);
+//    CARAPI GetClientInfo(
+ //       /* [out] */IProperties** info);
 
     CARAPI CreateArrayOf(
         /* [in] */String type, 
@@ -322,4 +323,5 @@ public:
 //        /* [in] */java.lang.Class iface);
 
 };
-#endif//_JDBCCONNECTION_H_
+
+#endif //_JDBCCONNECTION_H_

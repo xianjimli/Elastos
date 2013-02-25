@@ -1,4 +1,4 @@
-#ifdef _DATATRUNCATION_H_
+#ifndef _DATATRUNCATION_H_
 #define _DATATRUNCATION_H_
 
 #include <elastos.h>

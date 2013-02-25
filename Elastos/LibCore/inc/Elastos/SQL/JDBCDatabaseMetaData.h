@@ -1,4 +1,4 @@
-#ifdef _JDBCDATABASEMETADATA_H_
+#ifndef _JDBCDATABASEMETADATA_H_
 #define _JDBCDATABASEMETADATA_H_
 
 #include <elastos.h>

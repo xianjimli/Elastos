@@ -1,4 +1,4 @@
-#ifdef _SAVEPOINT_H_
+#ifndef _SAVEPOINT_H_
 #define _SAVEPOINT_H_
 
 #include <elastos.h>

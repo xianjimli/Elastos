@@ -1,4 +1,4 @@
-#ifdef _ROWID_H_
+#ifndef _ROWID_H_
 #define _ROWID_H_
 
 #include <elastos.h>

@@ -8,10 +8,10 @@ module
      * @since 1.6
      */
     enum ClientInfoStatus {
-        REASON_UNKNOWN = 0, 
-        REASON_UNKNOWN_PROPERTY = 1, 
-        REASON_VALUE_INVALID = 2,
-        REASON_VALUE_TRUNCATED = 3,
+        ClientInfoStatus_REASON_UNKNOWN = 0, 
+        ClientInfoStatus_REASON_UNKNOWN_PROPERTY = 1, 
+        ClientInfoStatus_REASON_VALUE_INVALID = 2,
+        ClientInfoStatus_REASON_VALUE_TRUNCATED = 3,
     }
 
     /*
@@ -32,7 +32,7 @@ module
      */
     interface IClientInfoStatus
 	{
-        ECode Func(
+        Func(
             [in] ClientInfoStatus clientInfoStatusEnum);
 	}
 }

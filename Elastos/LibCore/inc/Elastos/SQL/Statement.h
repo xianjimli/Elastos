@@ -1,10 +1,11 @@
-#ifdef _STATEMENT_H_
+#ifndef _STATEMENT_H_
 #define _STATEMENT_H_
 
 #include <elastos.h>
+#include <Elastos.SQL_server.h>
 #include "Wrapper.h"
 
-using namespace ELastos;
+using namespace Elastos;
 
 class Statement : public Wrapper
 {
@@ -646,46 +647,6 @@ public:
      */
     virtual CARAPI IsPoolable(
             /** [out] **/ Boolean* isPoolable) = 0;
-
-public:
-    /**
-     * Passing this constant to {@link #getMoreResults} implies that all {@code
-     * ResultSet} objects previously kept open should be closed.
-     */
-    static const Int32 IStatement_CLOSE_ALL_RESULTS;// = 3;
-
-    /**
-     * Passing this constant to {@link #getMoreResults} implies that the current
-     * {@code ResultSet} object should be closed.
-     */
-    static const Int32 IStatement_CLOSE_CURRENT_RESULT;// = 1;
-
-    /**
-     * Indicates that an error was encountered during execution of a batch
-     * statement.
-     */
-    static const Int32 IStatement_EXECUTE_FAILED;// = -3;
-
-    /**
-     * Passing this constant to <i>getMoreResults</i> implies that the current
-     * {@code ResultSet} object should not be closed.
-     */
-    static const Int32 IStatement_KEEP_CURRENT_RESULT;// = 2;
-
-    /**
-     * Indicates that generated keys should not be accessible for retrieval.
-     */
-    static const Int32 IStatement_NO_GENERATED_KEYS;// = 2;
-
-    /**
-     * Indicates that generated keys should be accessible for retrieval.
-     */
-    static const Int32 IStatement_RETURN_GENERATED_KEYS;// = 1;
-
-    /**
-     * Indicates that a batch statement was executed with a successful result,
-     * but a count of the number of rows it affected is unavailable.
-     */
-    static const Int32 IStatement_SUCCESS_NO_INFO;// = -2;
 };
-#endif
+
+#endif//_STATEMENT_H_

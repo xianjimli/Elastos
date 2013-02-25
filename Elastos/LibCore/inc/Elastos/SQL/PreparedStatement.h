@@ -1,4 +1,4 @@
-#ifdef _PREPAREDSTATEMENT_H_
+#ifndef _PREPAREDSTATEMENT_H_
 #define _PREPAREDSTATEMENT_H_
 
 #include <elastos.h>

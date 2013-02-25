@@ -1,4 +1,4 @@
-#ifdef _DATABASEMETADATE_H_
+#ifndef _DATABASEMETADATE_H_
 #define _DATABASEMETADATE_H_
 
 #include <elastos.h>

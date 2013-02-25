@@ -1,4 +1,4 @@
-#ifdef _SQLINPUT_H_
+#ifndef _SQLINPUT_H_
 #define _SQLINPUT_H_
 
 #include <elastos.h>

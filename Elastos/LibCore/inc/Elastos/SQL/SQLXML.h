@@ -1,4 +1,4 @@
-#ifdef _SQLXML_H_
+#ifndef _SQLXML_H_
 #define _SQLXML_H_
 
 #include <elastos.h>

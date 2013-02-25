@@ -1,0 +1,8 @@
+
+module
+{
+    interface IConnection;
+
+    interface IJDBCConnection extends IConnection {
+    }
+}

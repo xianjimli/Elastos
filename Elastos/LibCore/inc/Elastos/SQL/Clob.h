@@ -1,4 +1,4 @@
-#ifdef _CLOB_H_
+#ifndef _CLOB_H_
 #define _CLOB_H_
 
 #include <elastos.h>

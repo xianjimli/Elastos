@@ -1,4 +1,4 @@
-#ifdef _DRIVERMANAGER_H_
+#ifndef _DRIVERMANAGER_H_
 #define _DRIVERMANAGER_H_
 
 #include <elastos.h>

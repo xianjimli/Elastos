@@ -1,4 +1,4 @@
-#ifdef _PARAMETERMETADATA_H_
+#ifndef _PARAMETERMETADATA_H_
 #define _PARAMETERMETADATA_H_
 
 #include <elastos.h>

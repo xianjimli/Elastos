@@ -1,4 +1,4 @@
-#ifdef _CALLABLESTATEMENT_H_
+#ifndef _CALLABLESTATEMENT_H_
 #define _CALLABLESTATEMENT_H_
 
 #include <elastos.h>

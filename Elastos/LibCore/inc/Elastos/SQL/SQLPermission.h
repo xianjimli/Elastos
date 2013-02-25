@@ -1,4 +1,4 @@
-#ifdef _SQLPERMISSION_H_
+#ifndef _SQLPERMISSION_H_
 #define _SQLPERMISSION_H_
 
 #include <elastos.h>

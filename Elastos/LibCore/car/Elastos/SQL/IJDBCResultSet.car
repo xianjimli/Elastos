@@ -1,0 +1,8 @@
+
+module
+{
+    interface IResultSet;
+
+    interface IJDBCResultSet extends IResultSet {
+    }
+}

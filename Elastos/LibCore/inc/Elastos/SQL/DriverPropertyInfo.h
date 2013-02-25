@@ -1,4 +1,4 @@
-#ifdef _DRIVERPROPERTYINFO_H_
+#ifndef _DRIVERPROPERTYINFO_H_
 #define _DRIVERPROPERTYINFO_H_
 
 #include <elastos.h>

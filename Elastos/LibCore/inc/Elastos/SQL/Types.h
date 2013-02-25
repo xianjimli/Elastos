@@ -1,4 +1,4 @@
-#ifdef _TYPE_H_
+#ifndef _TYPE_H_
 #define _TYPE_H_
 
 #include <elastos.h>

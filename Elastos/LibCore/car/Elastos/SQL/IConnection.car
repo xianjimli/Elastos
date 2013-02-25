@@ -45,7 +45,7 @@ module
      * a row containing uncommitted values - but does not prevent an application
      * from <i>non-repeatable reads</i> and <i>phantom reads</i>.
      */
-   const IConnection_TRANSACTION_READ_COMMITTED = 2;
+    const IConnection_TRANSACTION_READ_COMMITTED = 2;
 
     /**
      * In the case that reading uncommitted values is allowed, the following
