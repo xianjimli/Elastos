@@ -1,0 +1,165 @@
+
+
+module 
+{
+    interface IGestureStroke;
+    
+    /**
+    * A gesture is a hand-drawn shape on a touch screen. It can have one or multiple strokes.
+    * Each stroke is a sequence of timed points. A user-defined gesture can be recognized by 
+    * a GestureLibrary and a built-in alphabet gesture can be recognized by a LetterRecognizer.
+    */
+    //public class Gesture implements Parcelable
+    interface IGesture
+    {
+         
+        Clone(
+            [out] IGesture** gesture);
+    
+        /**
+        * @return all the strokes of the gesture
+        */
+
+        
+        GetStrokes(
+            [out] IObjectContainer ** strokes ); //ArrayList<GestureStroke>
+
+        /**
+        * @return the number of strokes included by this gesture
+        */
+        GetStrokesCount(
+            [out] Int32* strokeCount);
+        /**
+        * Adds a stroke to the gesture.
+        * 
+        * @param stroke
+        */
+        
+        AddStroke(
+            [in] IGestureStroke* stroke);
+            
+        /**
+        * Calculates the total length of the gesture. When there are multiple strokes in
+        * the gesture, this returns the sum of the lengths of all the strokes.
+        * 
+        * @return the length of the gesture
+        */
+        GetLength(
+            [out] Float* length);
+
+        /**
+        * @return the bounding box of the gesture
+        */
+       
+        GetBoundingBox(
+            [out] IRectF** rectf);
+            
+        ToPath(
+            [out] IPath** path);
+
+        ToPathEx(
+            [in] IPath* path,
+            [out] IPath** pathret);
+               
+        ToPathEx2(
+            [in] Int32 width,
+            [in] Int32 height,
+            [in] Int32 edge,
+            [in] Int32 numSample,
+            [out] IPath** path);
+  
+        ToPathEx3(
+            [in] IPath* path,
+            [in] Int32 width,
+            [in] Int32 height,
+            [in] Int32 edge,
+            [in] Int32 numSample,
+            [out] IPath** pathret);
+
+        /**
+         * Sets the id of the gesture.
+         * 
+         * @param id
+         */
+        SetID(
+            [in] Int64 id);
+
+        /**
+         * @return the id of the gesture
+        */
+        GetID(
+            [out] Int64* id); 
+            
+        /**
+        * Creates a bitmap of the gesture with a transparent background.
+        * 
+        * @param width width of the target bitmap
+        * @param height height of the target bitmap
+        * @param edge the edge
+        * @param numSample
+        * @param color
+        * @return the bitmap
+        */
+
+        ToBitmap(
+            [in] Int32 width,
+            [in] Int32 height,
+            [in] Int32 edge,
+            [in] Int32 numSample,
+            [in] Int32 color,
+            [out] IBitmap** bitmap );
+            
+        /**
+        * Creates a bitmap of the gesture with a transparent background.
+        * 
+        * @param width
+        * @param height
+        * @param inset
+        * @param color
+        * @return the bitmap
+        */
+
+        ToBitmapEx(
+            [in] Int32 width,
+            [in] Int32 height,
+            [in] Int32 inset,
+            [in] Int32 color,
+            [out] IBitmap** bitmap );
+
+       
+        Serialize(
+            [in] IDataOutputStream* outStream);
+
+/*static
+        Deserialize(
+            [in] IDataInputStream* inStream,
+            [out] IGesture** gesture );
+*/        
+        //Method name WriteToParcel is duplicated in class.
+        /*
+        WriteToParcel(
+            [in] IParcel* outParcel,
+            [in] Int32 flags);
+        */
+             
+        DescribeContents(
+            [out] Int32* ret);
+    }
+    
+    //The member variable is public, so it needs to declare it as an interface 
+/*
+    interface IParcelableCreatorGesture
+    {
+
+        CreateFromParcel(
+            [in] IParcel* inParcel,
+            [out] IGesture** gesture);
+
+        NewArray(
+            [in] Int32 size,
+            [out, callee] ArrayOf<IGesture*>* gestures);
+
+    }
+*/    
+}
+

@@ -1,0 +1,171 @@
+
+module
+{
+    merge("gesture/Gesture.car");
+    merge("gesture/GestureConstants.car");
+    merge("gesture/GestureLibraries.car");
+    merge("gesture/GestureLibrary.car");
+    merge("gesture/GestureOverlayView.car");
+    merge("gesture/GesturePoint.car");
+    merge("gesture/GestureStore.car");
+    merge("gesture/GestureStroke.car");
+    merge("gesture/GestureUtils.car");
+    merge("gesture/Instance.car");
+    merge("gesture/Learner.car");
+    merge("gesture/OrientedBoundingBox.car");
+    merge("gesture/Prediction.car");
+
+    /**
+    * A gesture is a hand-drawn shape on a touch screen. It can have one or multiple strokes.
+    * Each stroke is a sequence of timed points. A user-defined gesture can be recognized by 
+    * a GestureLibrary and a built-in alphabet gesture can be recognized by a LetterRecognizer.
+    */
+    class CGesture {
+        constructor(); 
+        interface IParcelable;
+        interface IGesture;
+    }
+
+/*
+    class CGestureConstants {
+        interface IGestureConstants;
+    }
+*/
+
+    /**
+    * A transparent overlay for gesture input that can be placed on top of other
+    * widgets or contain other widgets.
+    *
+    * @attr ref android.R.styleable#GestureOverlayView_eventsInterceptionEnabled
+    * @attr ref android.R.styleable#GestureOverlayView_fadeDuration
+    * @attr ref android.R.styleable#GestureOverlayView_fadeOffset
+    * @attr ref android.R.styleable#GestureOverlayView_fadeEnabled
+    * @attr ref android.R.styleable#GestureOverlayView_gestureStrokeWidth
+    * @attr ref android.R.styleable#GestureOverlayView_gestureStrokeAngleThreshold
+    * @attr ref android.R.styleable#GestureOverlayView_gestureStrokeLengthThreshold
+    * @attr ref android.R.styleable#GestureOverlayView_gestureStrokeSquarenessThreshold
+    * @attr ref android.R.styleable#GestureOverlayView_gestureStrokeType
+    * @attr ref android.R.styleable#GestureOverlayView_gestureColor
+    * @attr ref android.R.styleable#GestureOverlayView_orientation
+    * @attr ref android.R.styleable#GestureOverlayView_uncertainGestureColor
+    */
+    /*@Widget*/
+    class CGestureOverlayView {
+        constructor(
+            [in] IContext* context);
+
+        constructor(
+            [in] IContext* context, 
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
+        interface IGestureOverlayView;
+    }   
+
+    /**
+     * A timed point of a gesture stroke. Multiple points form a stroke.
+     */
+    class CGesturePoint {
+        constructor(
+            [in] Float x,
+            [in] Float y,
+            [in] Int64 t);
+        interface IGesturePoint;
+    }
+
+    /**
+    * A timed point of a gesture stroke. Multiple points form a stroke.
+     */
+    class CGestureStore {
+        constructor();
+        interface IGestureStore;
+    }
+
+    /**
+    * A gesture stroke started on a touch down and ended on a touch up. A stroke
+    * consists of a sequence of timed points. One or multiple strokes form a gesture.
+    */
+    class CGestureStroke {
+        constructor(
+            [in] IObjectContainer* points); //ArrayList<GesturePoint>
+
+        constructor(
+            [in] IRectF* bbx,
+            [in] Float len,
+            [in] ArrayOf<Float> pts,
+            [in] ArrayOf<Int64> times);
+        interface IGestureStroke;
+    }
+
+    /**
+    * Utility functions for gesture processing & analysis, including methods for:
+    * <ul> 
+    * <li>feature extraction (e.g., samplers and those for calculating bounding
+    * boxes and gesture path lengths);
+    * <li>geometric transformation (e.g., translation, rotation and scaling);
+    * <li>gesture similarity comparison (e.g., calculating Euclidean or Cosine
+    * distances between two gestures).
+    * </ul>
+    */
+    class CGestureUtils {
+        constructor();        
+        interface IGestureUtils;
+    }         
+
+    /**
+    * An instance represents a sample if the label is available or a query if the
+     * label is null.
+     */
+     class CInstance {
+
+        constructor(
+            [in] Int64 id,
+            [in] ArrayOf<Float> sample,
+            [in] String sampleName);
+        interface IInstance;     
+    }
+
+    class CInstanceLearner {
+        interface ILearner;
+    }
+    
+    class COrientedBoundingBox {
+
+        constructor(
+            [in] Float angle,
+            [in] Float cx,
+            [in] Float cy,
+            [in] Float w,
+            [in] Float h);
+        interface IOrientedBoundingBox;
+    }
+
+    class CPrediction {
+        constructor(
+            [in] String label,
+            [in] Double predictionScore);
+         interface IPrediction;
+    }
+
+    class CFileGestureLibrary {
+        constructor(
+            [in] IFile* path);
+        interface IGestureLibrary;
+    }
+    
+    class CResourceGestureLibrary {
+        constructor(
+            [in] IContext* context,
+            [in] Int32 resourceId);
+        interface IGestureLibrary;
+    }
+    
+    /*
+    class CGestureLibraries {
+        constructor();
+        interface IGestureLibraries;
+    }*/             
+}

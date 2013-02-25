@@ -1,0 +1,23 @@
+
+
+module
+{
+    interface IGesturePoint {
+        GetX(
+            [out] Float* x);
+
+        GetY(
+            [out] Float* y);
+
+        GetTimestamp(
+            [out] Int64* timestamp);
+
+/* static
+        Deserialize(
+            [in] IDataInputStream* inStream,
+            [out] IGesturePoint** gesturePoint);     
+*/
+        Clone(
+            [out] IGesturePoint** gesturePoint);
+    }
+}

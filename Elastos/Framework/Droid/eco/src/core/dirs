@@ -20,3 +20,4 @@ DIRS += systemui
 DIRS += hardware
 DIRS += provider
 DIRS += webkit
+DIRS += gesture

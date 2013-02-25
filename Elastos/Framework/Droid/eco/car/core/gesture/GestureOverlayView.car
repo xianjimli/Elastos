@@ -1,0 +1,215 @@
+
+
+module
+{
+	interface IGestureOverlayView;
+    interface IGesture;
+
+    interface IOnGesturingListener
+    {
+        OnGesturingStarted(
+            [in] IGestureOverlayView* overlay);
+
+        OnGesturingEnded(
+            [in] IGestureOverlayView* overlay);
+    }
+
+    interface IOnGestureListener
+     {
+                
+        OnGestureStarted(
+            [in] IGestureOverlayView* overlay,
+            [in] IMotionEvent* event);
+
+        OnGesture(
+            [in] IGestureOverlayView* overlay,
+            [in] IMotionEvent* event);
+
+        OnGestureEnded(
+            [in] IGestureOverlayView* overlay,
+            [in] IMotionEvent* event);
+
+        OnGestureCancelled(
+            [in] IGestureOverlayView* overlay,
+            [in] IMotionEvent* event);
+    }
+
+    interface IOnGesturePerformedListener
+    {
+        OnGesturePerformed(
+            [in] IGestureOverlayView* overlay,
+            [in] IGesture* gesture);
+    }
+    
+    const GestureOverlayView_GESTURE_STROKE_TYPE_SINGLE = 0;
+    const GestureOverlayView_GESTURE_STROKE_TYPE_MULTIPLE = 1;
+    const GestureOverlayView_ORIENTATION_HORIZONTAL = 0;
+    const GestureOverlayView_ORIENTATION_VERTICAL = 1;
+    const GestureOverlayView_FADE_ANIMATION_RATE = 16;
+
+	/**
+	 * A transparent overlay for gesture input that can be placed on top of other
+	 * widgets or contain other widgets.
+	 *
+	 * @attr ref android.R.styleable#GestureOverlayView_eventsInterceptionEnabled
+	 * @attr ref android.R.styleable#GestureOverlayView_fadeDuration
+	 * @attr ref android.R.styleable#GestureOverlayView_fadeOffset
+	 * @attr ref android.R.styleable#GestureOverlayView_fadeEnabled
+	 * @attr ref android.R.styleable#GestureOverlayView_gestureStrokeWidth
+	 * @attr ref android.R.styleable#GestureOverlayView_gestureStrokeAngleThreshold
+	 * @attr ref android.R.styleable#GestureOverlayView_gestureStrokeLengthThreshold
+	 * @attr ref android.R.styleable#GestureOverlayView_gestureStrokeSquarenessThreshold
+	 * @attr ref android.R.styleable#GestureOverlayView_gestureStrokeType
+	 * @attr ref android.R.styleable#GestureOverlayView_gestureColor
+	 * @attr ref android.R.styleable#GestureOverlayView_orientation
+	 * @attr ref android.R.styleable#GestureOverlayView_uncertainGestureColor
+	 */
+	//@Widget        
+    //public class GestureOverlayView extends FrameLayout
+    interface IGestureOverlayView extends IFrameLayout
+    {
+         //public ArrayList<GesturePoint> getCurrentStroke()
+         GetCurrentStroke(
+            [out] IObjectContainer** stroke);
+
+         GetOrientation(
+            [out] Int32* orientation);
+
+        SetOrientation(
+            [in] Int32 orientation);
+
+        SetGestureColor(
+            [in] Int32 color);
+
+        SetUncertainGestureColor(
+            [in] Int32 color);
+
+        GetUncertainGestureColor(
+            [out] Int32* uncertainGestureColor);
+
+        GetGestureColor(
+            [out] Int32* gestureColor);
+
+        GetGestureStrokeWidth(
+            [out] Float* gestureStrokeWidth);
+
+        SetGestureStrokeWidth(
+            [in] Float gestureStrokeWidth); 
+
+        GetGestureStrokeType(
+            [out] Int32* gestureStrokeType);
+
+        SetGestureStrokeType(
+            [in] Int32 gestureStrokeType);
+
+        GetGestureStrokeLengthThreshold(
+            [out] Float* gestureStrokeLengthThreshold);
+
+        SetGestureStrokeLengthThreshold(
+            [in] Float gestureStrokeLengthThreshold);
+
+        GetGestureStrokeSquarenessTreshold(
+            [out] Float* gestureStrokeSquarenessTreshold);
+
+        SetGestureStrokeSquarenessTreshold(
+            [in] Float gestureStrokeSquarenessTreshold);
+
+        GetGestureStrokeAngleThreshold(
+            [out] Float* gestureStrokeAngleThreshold); 
+
+        SetGestureStrokeAngleThreshold(
+            [in] Float gestureStrokeAngleThreshold);
+
+        IsEventsInterceptionEnabled(
+            [out] Boolean* eventsInterceptionEnabled);
+
+        SetEventsInterceptionEnabled(
+            [in] Boolean enabled); 
+
+        IsFadeEnabled(
+            [out] Boolean* fadeEnabled); 
+
+        SetFadeEnabled(
+            [in] Boolean fadeEnabled);
+
+        GetGesture(
+            [out] IGesture **gesture); 
+
+        SetGesture(
+            [in] IGesture* gesture);
+
+        GetGesturePath(
+            [out] IPath **path); 
+
+        GetGesturePathEx(
+            [in] IPath* path,
+            [out] IPath **pathret);
+
+        IsGestureVisible(
+            [out] Boolean* gestureVisible); 
+
+        SetGestureVisible(
+            [in] Boolean visible); 
+
+        GetFadeOffset(
+            [out] Int64* fadeOffset);
+
+        SetFadeOffset(
+            [in] Int64 fadeOffset);
+
+        AddOnGestureListener(
+            [in] IOnGestureListener* listener);
+
+        RemoveOnGestureListener(
+            [in] IOnGestureListener* listener);
+
+        RemoveAllOnGestureListeners();
+
+        AddOnGesturePerformedListener(
+            [in] IOnGesturePerformedListener* listener); 
+
+        RemoveOnGesturePerformedListener(
+            [in] IOnGesturePerformedListener* listener);
+
+        RemoveAllOnGesturePerformedListeners();
+
+        AddOnGesturingListener(
+            [in] IOnGesturingListener* listener);
+
+        RemoveOnGesturingListener(
+            [in] IOnGesturingListener* listener);
+
+        RemoveAllOnGesturingListeners();
+
+        IsGesturing(
+            [out] Boolean* gesturing); 
+
+        //@hide
+        GetGesturePaint(
+            [out] IPaint **paint); 
+
+        //@Override
+        /*
+        Draw(
+            [in] ICanvas* canvas);
+        */
+
+        Clear(
+            [in] Boolean animated);     
+
+        CancelClearAnimation();
+
+        CancelGesture();
+
+        //@Override
+        //protected void onDetachedFromWindow() {
+        //OnDetachedFromWindow(); 
+
+        //@Override
+        /*
+        DispatchTouchEvent(
+            [in] IMotionEvent* event,
+            [out] Boolean* ret);
+        */    
+    }
+}

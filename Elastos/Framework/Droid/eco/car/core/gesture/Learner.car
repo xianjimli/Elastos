@@ -1,0 +1,53 @@
+
+
+module
+{ 
+    interface IInstance;
+
+    /**
+     * The abstract class of a gesture learner
+    */
+    interface ILearner
+    {
+        /**
+         * Add an instance to the learner
+         * 
+         * @param instance
+         */
+        AddInstance(
+            [in] IInstance* instance);
+
+        /**
+         * Retrieve all the instances
+         * 
+         * @return instances
+         */
+
+       GetInstances(
+            [out] IObjectContainer** ret); //IObjectContainer<IInstance *>**
+
+        /**
+         * Remove an instance based on its id
+         * 
+         * @param id
+         */
+        RemoveInstance(
+            [in] Int64 id);
+
+        /**
+         * Remove all the instances of a category
+         * 
+         * @param name the category name
+         */
+        RemoveInstances(
+            [in] String name);
+
+        Classify(
+            [in] Int32 sequenceType,
+            [in] Int32 orientationType,
+            [in] ArrayOf<Float> vectorParam,
+            [out] IObjectContainer** ret); //ArrayList<Prediction> 
+
+      }      
+        
+}
