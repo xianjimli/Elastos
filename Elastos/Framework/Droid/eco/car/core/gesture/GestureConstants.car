@@ -1,0 +1,14 @@
+
+
+module
+{
+
+    const GestureConstants_STROKE_STRING_BUFFER_SIZE = 1024;
+    const GestureConstants_STROKE_POINT_BUFFER_SIZE = 100; // number of points
+    const GestureConstants_IO_BUFFER_SIZE = 32768; // 32K
+    const GestureConstants_LOG_TAG = "Gestures";
+
+    interface IGestureConstants {
+
+    }
+}

@@ -37,6 +37,7 @@ INCLUDES += $(MAKEDIR)/../../inc/core/webkit
 INCLUDES += $(MAKEDIR)/../../inc/core/hardware/usb
 INCLUDES += $(MAKEDIR)/../../inc/core/provider
 INCLUDES += $(MAKEDIR)/../../inc/core/webkit/
+INCLUDES += $(MAKEDIR)/../../inc/core/gesture
 
 ifeq "$(XDK_TARGET_PLATFORM)" "linux"
 INCLUDES += $(PREBUILD_INC)/skia/utils
@@ -73,6 +74,7 @@ LIBRARIES += systemui/systemui.lib
 LIBRARIES += webkit/webkit.lib
 LIBRARIES += hardware/hardware.lib
 LIBRARIES += webkit/webkit.lib
+LIBRARIES += gesture/gesture.lib
 
 
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.Logging.lib

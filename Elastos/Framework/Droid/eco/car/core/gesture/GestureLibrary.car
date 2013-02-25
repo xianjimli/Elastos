@@ -1,0 +1,75 @@
+module
+{
+    interface IGesture;
+    interface ILearner; 
+    interface IPrediction;
+
+    interface IGestureLibrary
+    {
+
+        Save(
+            [out] Boolean* ret);
+       
+        Load(
+            [out] Boolean* ret);
+
+        IsReadOnly(
+            [out] Boolean* readOnly);
+    
+        /** @hide */
+        //GetLearner(
+        //    [out] ILearner** learner);
+
+        SetOrientationStyle(
+            [in] Int32 style);
+
+        GetOrientationStyle(
+            [out] Int32* orientationStyle);
+
+        SetSequenceType(
+            [in] Int32 type);
+
+        GetSequenceType(
+            [out] Int32* sequenceType);
+
+         /*
+        GetGestureEntries(
+            [out] ISet<String>** gestureEntries);
+         */
+
+        GetGestureEntries(
+            [out, callee] ArrayOf<String> * gestureEntries);
+
+         /*
+        Recognize(
+            [in] IGesture *gesture,
+            [out] IList<IPrediction* >** arrayList); 
+         */
+
+        Recognize(
+            [in] IGesture *gesture,
+            [out] IObjectContainer** arrayList);
+
+        AddGesture(
+            [in] String entryName,
+            [in] IGesture* gesture);
+
+        RemoveGesture(
+            [in] String entryName,
+            [in] IGesture* gesture);
+
+        RemoveEntry(
+            [in] String entryName);
+
+         /*
+        GetGestures(
+            [in] String entryName,
+            [out] IList<IGesture* >** gestures);
+        */
+
+        GetGestures(
+            [in] String entryName,
+            [out] IObjectContainer** gestures);    
+
+    }
+}

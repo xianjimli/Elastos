@@ -1,0 +1,35 @@
+
+module
+{
+    /**
+    * An oriented bounding box
+    */
+    interface IOrientedBoundingBox {
+        GetSquareness(
+            [out] Float* squareness);
+
+        GetWidth(
+            [out] Float* width);
+
+        GetHeight(
+            [out] Float* height);
+
+        GetOrientation(
+            [out] Float* orientation);
+
+        GetCenterX(
+            [out] Float* centerX);
+
+        GetCenterY(
+            [out] Float* centerY);
+
+        /**
+         * Currently used for debugging purpose only.
+          *
+         * @hide
+          */
+        ToPath(
+            [out] IPath** path);
+        
+    }
+}

@@ -1,0 +1,54 @@
+
+
+module
+{
+    interface IGestureLibrary;
+
+    interface IFileGestureLibrary
+    {
+        IsReadOnly(
+            [out] Boolean* readOnly);
+
+        Save(
+            [out] Boolean* ret); 
+
+        Load(
+            [out] Boolean* ret);
+    }
+
+    interface IResourceGestureLibrary
+    {
+        IsReadOnly(
+            [out] Boolean* readOnly);
+
+        Save(
+            [out] Boolean* ret);
+
+        Load(
+            [out] Boolean* ret); 
+    } 
+
+
+    interface IGestureLibraries
+    {    
+/* static             
+        FromFile(
+            [in] String path,
+            [out] IGestureLibrary** gestureLibrary);
+
+        FromFileEx(
+            [in] IFile* path,
+            [out] IGestureLibrary** gestureLibrary);
+
+        FromPrivateFile(
+            [in] IContext* context,
+            [in] String name,
+            [out] IGestureLibrary** gestureLibrary);
+              
+         FromRawResource(
+            [in] IContext* context,
+            [in] Int32 resourceId,
+            [out] IGestureLibrary** gestureLibrary);
+*/
+    }
+}

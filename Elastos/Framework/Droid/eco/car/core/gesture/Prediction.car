@@ -1,0 +1,16 @@
+
+
+module
+{
+    interface IPrediction {
+        /*@Override*/
+        ToString( 
+            [out] String* ret);
+
+        GetScore(
+            [out] Double* score);
+
+        SetScore(
+            [in] Double score);
+    }
+}
