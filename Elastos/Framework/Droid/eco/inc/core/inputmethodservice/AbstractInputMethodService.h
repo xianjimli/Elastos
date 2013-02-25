@@ -14,24 +14,10 @@
 #endif
 
 class AbstractInputMethodService:
-    public Service,
-    public IKeyEventCallback
+    public Service
 {
 public:
     AbstractInputMethodService();
-
-    ~AbstractInputMethodService();
-
-    CARAPI_(UInt32) AddRef();
-
-    CARAPI_(UInt32) Release();
-
-    CARAPI_(PInterface) Probe(
-        /* [in] */ REIID riid);
-
-    CARAPI GetInterfaceID(
-        /* [in] */ IInterface *pObject,
-        /* [out] */ InterfaceID *pIID);
 
     /**
      * Return the global {@link KeyEvent.DispatcherState KeyEvent.DispatcherState}

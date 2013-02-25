@@ -33,6 +33,7 @@ INCLUDES += $(MAKEDIR)/../../inc/core/statusbar
 INCLUDES += $(MAKEDIR)/../../inc/core/location
 INCLUDES += $(MAKEDIR)/../../inc/core/systemui/
 INCLUDES += $(MAKEDIR)/../../inc/core/systemui/statusbar
+INCLUDES += $(MAKEDIR)/../../inc/core/systemui/statusbar/phone
 INCLUDES += $(MAKEDIR)/../../inc/core/webkit
 INCLUDES += $(MAKEDIR)/../../inc/core/hardware/usb
 INCLUDES += $(MAKEDIR)/../../inc/core/provider

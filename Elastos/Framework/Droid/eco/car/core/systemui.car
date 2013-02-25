@@ -1,6 +1,7 @@
 
 module
 {
+    merge("systemui/SystemUI.car");
     merge("systemui/statusbar/StatusBarView.car");
     merge("systemui/statusbar/FixedSizeDrawable.car");
 
@@ -22,5 +23,10 @@ module
             [in] IDrawable* that);
 
         interface IFixedSizeDrawable;
+    }
+
+    class CSystemUIService {
+        interface IService;
+        interface IComponentCallbacks;
     }
 }

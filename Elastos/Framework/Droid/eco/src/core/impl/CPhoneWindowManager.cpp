@@ -40,6 +40,7 @@ const Int32 CPhoneWindowManager::KEYGUARD_LAYER;
 const Int32 CPhoneWindowManager::KEYGUARD_DIALOG_LAYER;
 const Int32 CPhoneWindowManager::SYSTEM_OVERLAY_LAYER;
 const Int32 CPhoneWindowManager::SECURE_SYSTEM_OVERLAY_LAYER;
+const Int32 CPhoneWindowManager::NAVIGATION_BAR_LAYER;
 const Int32 CPhoneWindowManager::APPLICATION_MEDIA_SUBLAYER;
 const Int32 CPhoneWindowManager::APPLICATION_MEDIA_OVERLAY_SUBLAYER;
 const Int32 CPhoneWindowManager::APPLICATION_PANEL_SUBLAYER;
@@ -58,6 +59,7 @@ AutoPtr<CRect> CPhoneWindowManager::mTmpParentFrame;
 AutoPtr<CRect> CPhoneWindowManager::mTmpDisplayFrame;
 AutoPtr<CRect> CPhoneWindowManager::mTmpContentFrame;
 AutoPtr<CRect> CPhoneWindowManager::mTmpVisibleFrame;
+AutoPtr<CRect> CPhoneWindowManager::mTmpNavigationFrame;
 
 CPhoneWindowManager::CPhoneWindowManager() :
     mLongPressVibePattern(NULL),
@@ -97,6 +99,7 @@ CPhoneWindowManager::CPhoneWindowManager() :
     assert(SUCCEEDED(CRect::NewByFriend((CRect**)&mTmpDisplayFrame)));
     assert(SUCCEEDED(CRect::NewByFriend((CRect**)&mTmpContentFrame)));
     assert(SUCCEEDED(CRect::NewByFriend((CRect**)&mTmpVisibleFrame)));
+    assert(SUCCEEDED(CRect::NewByFriend((CRect**)&mTmpNavigationFrame)));
 }
 
 Boolean CPhoneWindowManager::UseSensorForOrientationLp(
@@ -657,6 +660,9 @@ ECode CPhoneWindowManager::WindowTypeToLayerLw(
         case WindowManagerLayoutParams_TYPE_WALLPAPER:
             *layer = WALLPAPER_LAYER;
             break;
+        case WindowManagerLayoutParams_TYPE_NAVIGATION_BAR:
+            *layer = NAVIGATION_BAR_LAYER;
+            break;
         default:
             Logger::E(TAG, StringBuffer("Unknown window type: ") + type);
             *layer = APPLICATION_LAYER;
@@ -937,6 +943,13 @@ ECode CPhoneWindowManager::PrepareAddWindowLw(
 
             mStatusBar = win;
             break;
+        case WindowManagerLayoutParams_TYPE_NAVIGATION_BAR:
+            // mContext.enforceCallingOrSelfPermission(
+            //         android.Manifest.permission.STATUS_BAR_SERVICE,
+            //         "PhoneWindowManager");
+            mNavigationBar = win;
+            //if (DEBUG_LAYOUT) Log.i(TAG, "NAVIGATION BAR: " + mNavigationBar);
+            break;
         case WindowManagerLayoutParams_TYPE_STATUS_BAR_PANEL:
             //mContext.enforceCallingOrSelfPermission(
             //    android.Manifest.permission.STATUS_BAR_SERVICE,
@@ -965,6 +978,9 @@ ECode CPhoneWindowManager::RemoveWindowLw(
     }
     else if (mKeyguard.Get() == win) {
         mKeyguard = NULL;
+    }
+    else if (mNavigationBar.Get() == win) {
+        mNavigationBar = NULL;
     }
     else {
         mStatusBarPanels.Remove(win);
@@ -1258,6 +1274,57 @@ ECode CPhoneWindowManager::BeginLayoutLw(
     mDockBottom = mContentBottom = mCurBottom = displayHeight;
     mDockLayer = 0x10000000;
 
+    // Boolean navVisible = (mNavigationBar == NULL || mNavigationBar.isVisibleLw()) &&
+    //             (mLastSystemUiFlags&View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0;
+    Boolean navVisible = TRUE;
+
+    if (mNavigationBar != NULL) {
+        // Force the navigation bar to its appropriate place and
+        // size.  We need to do this directly, instead of relying on
+        // it to bubble up from the nav bar, because this needs to
+        // change atomically with screen rotations.
+        if (displayWidth < displayHeight) {
+            Int32 navigationBarHeight = 28;
+            // Portrait screen; nav bar goes on bottom.
+            mTmpNavigationFrame->Set(0, displayHeight-navigationBarHeight,
+                    displayWidth, displayHeight);
+            if (navVisible) {
+                mDockBottom = mTmpNavigationFrame->mTop;
+            }
+            else {
+                // We currently want to hide the navigation UI.  Do this by just
+                // moving it off the screen, so it can still receive input events
+                // to know when to be re-shown.
+                mTmpNavigationFrame->Offset(0, navigationBarHeight);
+            }
+        }
+        else {
+            Int32 navigationBarWidth = 25;
+            // Landscape screen; nav bar goes to the right.
+            mTmpNavigationFrame->Set(displayWidth-navigationBarWidth, 0,
+                    displayWidth, displayHeight);
+            if (navVisible) {
+                mDockRight = mTmpNavigationFrame->mLeft;
+            }
+            else {
+                // We currently want to hide the navigation UI.  Do this by just
+                // moving it off the screen, so it can still receive input events
+                // to know when to be re-shown.
+                mTmpNavigationFrame->Offset(navigationBarWidth, 0);
+            }
+        }
+        // Make sure the content and current rectangles are updated to
+        // account for the restrictions from the navigation bar.
+        mContentTop = mCurTop = mDockTop;
+        mContentBottom = mCurBottom = mDockBottom;
+        mContentLeft = mCurLeft = mDockLeft;
+        mContentRight = mCurRight = mDockRight;
+        // And compute the final frame.
+        mNavigationBar->ComputeFrameLw(mTmpNavigationFrame, mTmpNavigationFrame,
+                mTmpNavigationFrame, mTmpNavigationFrame);
+        //if (DEBUG_LAYOUT) Log.i(TAG, "mNavigationBar frame: " + mTmpNavigationFrame);
+    }
+
     // decide where the status bar goes ahead of time
     if (mStatusBar != NULL) {
         CRect* pf = mTmpParentFrame;
@@ -1268,15 +1335,19 @@ ECode CPhoneWindowManager::BeginLayoutLw(
         pf->mRight = df->mRight = vf->mRight = displayWidth;
         pf->mBottom = df->mBottom = vf->mBottom = displayHeight;
 
-        //mStatusBar->ComputeFrameLw(pf, df, vf, vf);
-        //if (mStatusBar.IsVisibleLw()) {
-        //    // If the status bar is hidden, we don't want to cause
-        //    // windows behind it to scroll.
-        //    mDockTop = mContentTop = mCurTop = mStatusBar.getFrameLw()->mBottom;
-        //    if (DEBUG_LAYOUT) Log.v(TAG, "Status bar: mDockBottom="
-        //        + mDockBottom + " mContentBottom="
-        //        + mContentBottom + " mCurBottom=" + mCurBottom);
-        //}
+        mStatusBar->ComputeFrameLw(pf, df, vf, vf);
+        Boolean isVisibleLw;
+        mStatusBar->IsVisibleLw(&isVisibleLw);
+        if (isVisibleLw) {
+           // If the status bar is hidden, we don't want to cause
+           // windows behind it to scroll
+            AutoPtr<IRect> rect;
+            mStatusBar->GetFrameLw((IRect**)&rect);
+           mDockTop = mContentTop = mCurTop = ((CRect*)rect.Get())->mBottom;
+           // if (DEBUG_LAYOUT) Log.v(TAG, "Status bar: mDockBottom="
+           //     + mDockBottom + " mContentBottom="
+           //     + mContentBottom + " mCurBottom=" + mCurBottom);
+        }
     }
 
     return NOERROR;
@@ -1346,7 +1417,7 @@ ECode CPhoneWindowManager::LayoutWindowLw(
     /* [in] */ IWindowState* attached)
 {
     // we've already done the status bar
-    if (win == mStatusBar) {
+    if (win == mStatusBar || win == mNavigationBar) {
        return NOERROR;
     }
 
@@ -1394,8 +1465,8 @@ ECode CPhoneWindowManager::LayoutWindowLw(
            else {
                pf->mLeft = df->mLeft = 0;
                pf->mTop = df->mTop = 0;
-               pf->mRight = df->mRight = mW;
-               pf->mBottom = df->mBottom = mH;
+               pf->mRight = df->mRight = mDockRight;//For NavigationBar
+               pf->mBottom = df->mBottom = mDockBottom;//For NavigationBar
                if ((sim & WindowManagerLayoutParams_SOFT_INPUT_MASK_ADJUST)
                    != WindowManagerLayoutParams_SOFT_INPUT_ADJUST_RESIZE) {
                    cf->mLeft = mDockLeft;
@@ -1420,8 +1491,8 @@ ECode CPhoneWindowManager::LayoutWindowLw(
            // gets everything, period.
            pf->mLeft = df->mLeft = cf->mLeft = 0;
            pf->mTop = df->mTop = cf->mTop = 0;
-           pf->mRight = df->mRight = cf->mRight = mW;
-           pf->mBottom = df->mBottom = cf->mBottom = mH;
+           pf->mRight = df->mRight = cf->mRight = mDockRight;//For NavigationBar
+           pf->mBottom = df->mBottom = cf->mBottom = mDockBottom;//For NavigationBar
            vf->mLeft = mCurLeft;
            vf->mTop = mCurTop;
            vf->mRight = mCurRight;

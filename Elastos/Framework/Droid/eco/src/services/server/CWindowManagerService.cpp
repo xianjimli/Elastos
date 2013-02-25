@@ -5,6 +5,7 @@
 #include "view/ViewTreeObserver.h"
 #include "graphics/ElPixelFormat.h"
 #include "os/SystemClock.h"
+#include "os/Binder.h"
 #include <elastos/Math.h>
 #include <Logger.h>
 
@@ -45,6 +46,7 @@ CWindowManagerService::WindowToken::WindowToken(
     mToken(token),
     mWindowType(type),
     mExplicit(ex),
+    mAppWindowToken(NULL),
     mPaused(FALSE),
     mHidden(FALSE),
     mHasVisible(FALSE),
@@ -64,7 +66,8 @@ void CWindowManagerService::WindowToken::GetDescription(
 //        sb.append(Integer.toHexString(System.identityHashCode(this)));
         sb += " token=";
         String tmp;
-        mToken->GetDescription((String*)&tmp);
+        if (mToken != NULL)
+            mToken->GetDescription((String*)&tmp);
         sb += tmp;
         sb += "}";
         mStringName = (const char*)sb;
@@ -1552,19 +1555,17 @@ ECode CWindowManagerService::InjectKeyEvent(
             repeatCount, metaState, deviceId, scancode,
             KeyEvent_FLAG_FROM_SYSTEM, source, (IKeyEvent**)&newEvent)));
 
-//    final int pid = Binder.getCallingPid();
-//    final int uid = Binder.getCallingUid();
-//    final long ident = Binder.clearCallingIdentity();
+    Int32 pid = Binder::GetCallingPid();
+    Int32 uid = Binder::GetCallingUid();
+    Int64 ident = Binder::ClearCallingIdentity();
 
-//    Int32 res = mInputManager->InjectInputEvent(newEvent, pid, uid,
-//            sync ? InputManager::INPUT_EVENT_INJECTION_SYNC_WAIT_FOR_FINISH
-//                    : InputManager::INPUT_EVENT_INJECTION_SYNC_WAIT_FOR_RESULT,
-//            INJECTION_TIMEOUT_MILLIS);
+    Int32 res = mInputManager->InjectInputEvent(newEvent, pid, uid,
+        sync ? InputManager::INPUT_EVENT_INJECTION_SYNC_WAIT_FOR_FINISH
+        : InputManager::INPUT_EVENT_INJECTION_SYNC_WAIT_FOR_RESULT,
+        INJECTION_TIMEOUT_MILLIS);
 
-//    Binder.restoreCallingIdentity(ident);
-//    *result = ReportInjectionResult(res);
-    *result = FALSE;
-    return NOERROR;
+    Binder::RestoreCallingIdentity(ident);
+    return ReportInjectionResult(res, result);
 }
 
 ECode CWindowManagerService::InjectPointerEvent(
@@ -1574,9 +1575,9 @@ ECode CWindowManagerService::InjectPointerEvent(
 {
     VALIDATE_NOT_NULL(result);
 
-//    final int pid = Binder.getCallingPid();
-//    final int uid = Binder.getCallingUid();
-//    final long ident = Binder.clearCallingIdentity();
+    Int32 pid = Binder::GetCallingPid();
+    Int32 uid = Binder::GetCallingUid();
+    Int64 ident = Binder::ClearCallingIdentity();
 
     AutoPtr<IMotionEventHelper> helper;
     CMotionEventHelper::AcquireSingleton((IMotionEventHelper**)&helper);
@@ -1588,15 +1589,13 @@ ECode CWindowManagerService::InjectPointerEvent(
         newEvent->SetSource(InputDevice_SOURCE_TOUCHSCREEN);
     }
 
-//    Int32 res = mInputManager.injectInputEvent(newEvent, pid, uid,
-//            sync ? InputManager::INPUT_EVENT_INJECTION_SYNC_WAIT_FOR_FINISH
-//                    : InputManager::INPUT_EVENT_INJECTION_SYNC_WAIT_FOR_RESULT,
-//            INJECTION_TIMEOUT_MILLIS);
+    Int32 res = mInputManager->InjectInputEvent(newEvent, pid, uid,
+        sync ? InputManager::INPUT_EVENT_INJECTION_SYNC_WAIT_FOR_FINISH
+        : InputManager::INPUT_EVENT_INJECTION_SYNC_WAIT_FOR_RESULT,
+        INJECTION_TIMEOUT_MILLIS);
 
-//    Binder.restoreCallingIdentity(ident);
-//    *result = ReportInjectionResult(res);
-    *result = FALSE;
-    return NOERROR;
+    Binder::RestoreCallingIdentity(ident);
+    return ReportInjectionResult(res, result);
 }
 
 ECode CWindowManagerService::InjectTrackballEvent(
@@ -1606,9 +1605,9 @@ ECode CWindowManagerService::InjectTrackballEvent(
 {
     VALIDATE_NOT_NULL(result);
 
-//    final int pid = Binder.getCallingPid();
-//    final int uid = Binder.getCallingUid();
-//    final long ident = Binder.clearCallingIdentity();
+    Int32 pid = Binder::GetCallingPid();
+    Int32 uid = Binder::GetCallingUid();
+    Int64 ident = Binder::ClearCallingIdentity();
 
     AutoPtr<IMotionEventHelper> helper;
     CMotionEventHelper::AcquireSingleton((IMotionEventHelper**)&helper);
@@ -1620,15 +1619,13 @@ ECode CWindowManagerService::InjectTrackballEvent(
         newEvent->SetSource(InputDevice_SOURCE_CLASS_TRACKBALL);
     }
 
-//    Int32 res = mInputManager->InjectInputEvent(newEvent, pid, uid,
-//            sync ? InputManager::INPUT_EVENT_INJECTION_SYNC_WAIT_FOR_FINISH
-//                    : InputManager::INPUT_EVENT_INJECTION_SYNC_WAIT_FOR_RESULT,
-//            INJECTION_TIMEOUT_MILLIS);
+    Int32 res = mInputManager->InjectInputEvent(newEvent, pid, uid,
+        sync ? InputManager::INPUT_EVENT_INJECTION_SYNC_WAIT_FOR_FINISH
+        : InputManager::INPUT_EVENT_INJECTION_SYNC_WAIT_FOR_RESULT,
+        INJECTION_TIMEOUT_MILLIS);
 
-//    Binder.restoreCallingIdentity(ident);
-//    *result = ReportInjectionResult(res);
-    *result = FALSE;
-    return NOERROR;
+    Binder::RestoreCallingIdentity(ident);
+    return ReportInjectionResult(res, result);
 }
 
 ECode CWindowManagerService::InjectInputEventNoWait(
@@ -1637,19 +1634,16 @@ ECode CWindowManagerService::InjectInputEventNoWait(
 {
     VALIDATE_NOT_NULL(result);
 
-//    final int pid = Binder.getCallingPid();
-//    final int uid = Binder.getCallingUid();
-//    final long ident = Binder.clearCallingIdentity();
+    Int32 pid = Binder::GetCallingPid();
+    Int32 uid = Binder::GetCallingUid();
+    Int64 ident = Binder::ClearCallingIdentity();
 
-//    Int32 res = mInputManager->InjectInputEvent(ev, pid, uid,
-//            InputManager::INPUT_EVENT_INJECTION_SYNC_NONE,
-//            INJECTION_TIMEOUT_MILLIS);
+    Int32 res = mInputManager->InjectInputEvent(ev, pid, uid,
+        InputManager::INPUT_EVENT_INJECTION_SYNC_NONE,
+        INJECTION_TIMEOUT_MILLIS);
 
-//    Binder.restoreCallingIdentity(ident);
-//    *result = ReportInjectionResult(res);
-    *result = FALSE;
-
-    return NOERROR;
+    Binder::RestoreCallingIdentity(ident);
+    return ReportInjectionResult(res, result);
 }
 
 ECode CWindowManagerService::ReportInjectionResult(
@@ -3450,10 +3444,12 @@ Int32 CWindowManagerService::AddWindow(
 
         Boolean addToken = FALSE;
         WindowToken* token = NULL;
-        HashMap<AutoPtr<IBinder>, WindowToken*>::Iterator tokenIt
-            = mTokenMap.Find(attrsToken);
-        if (tokenIt != mTokenMap.End()) {
-            token = tokenIt->mSecond;
+        if (attrsToken != NULL) {
+            HashMap<AutoPtr<IBinder>, WindowToken*>::Iterator tokenIt
+                = mTokenMap.Find(attrsToken);
+            if (tokenIt != mTokenMap.End()) {
+                token = tokenIt->mSecond;
+            }
         }
 
         if (token == NULL) {
@@ -3554,7 +3550,8 @@ Int32 CWindowManagerService::AddWindow(
 //        final long origId = Binder.clearCallingIdentity();
 
         if (addToken) {
-            mTokenMap[attrsToken] = token;
+            if (attrsToken != NULL)
+                mTokenMap[attrsToken] = token;
             mTokenList.PushBack(token);
         }
         win->Attach();
@@ -6659,6 +6656,7 @@ void CWindowManagerService::AddWindowToListInOrderLocked(
                             break;
                         }
                     }
+                    
                     if (pos != NULL) {
                         // Move in front of any windows attached to this
                         // one.
@@ -6820,7 +6818,7 @@ void CWindowManagerService::RemoveWindowInnerLocked(
 //            TAG, "**** Removing window " + win + ": count="
 //            + token.windows.size());
     if (token->mWindows.Begin() == token->mWindows.End()) {
-        if (!token->mExplicit) {
+        if (!token->mExplicit && token->mToken != NULL) {
             mTokenMap.Erase(token->mToken);
             mTokenList.Remove(token);
         }
@@ -8510,7 +8508,8 @@ void CWindowManagerService::AppWindowToken::GetDescription(
 //        sb.append(Integer.toHexString(System.identityHashCode(this)));
         sb += " token=";
         String tmp;
-        mToken->GetDescription((String*)&tmp);
+        if (mToken)
+            mToken->GetDescription((String*)&tmp);
         sb += tmp;
         sb += "}";
         mStringName = (const char*)sb;
@@ -8675,8 +8674,9 @@ CWindowManagerService::WindowState::WindowState(
     WindowToken* appToken = appWin->mToken;
     while (appToken->mAppWindowToken == NULL) {
         WindowToken* parent = NULL;
-        HashMap<AutoPtr<IBinder>, WindowToken*>::Iterator it
-            = mWMService->mTokenMap.Find(appToken->mToken);
+        HashMap<AutoPtr<IBinder>, WindowToken*>::Iterator it = mWMService->mTokenMap.End();
+        if (appToken->mToken != NULL)
+            it = mWMService->mTokenMap.Find(appToken->mToken);
         if (it != mWMService->mTokenMap.End()) {
             parent = it->mSecond;
         }

@@ -51,6 +51,8 @@ private:
     // things in here CAN NOT take focus, but are shown on top of everything else.
     static const Int32 SYSTEM_OVERLAY_LAYER = 16;
     static const Int32 SECURE_SYSTEM_OVERLAY_LAYER = 17;
+    // the navigation bar, if available, shows atop most things
+    static const Int32 NAVIGATION_BAR_LAYER = 18;
 
     static const Int32 APPLICATION_MEDIA_SUBLAYER = -2;
     static const Int32 APPLICATION_MEDIA_OVERLAY_SUBLAYER = -1;
@@ -511,6 +513,7 @@ private:
 
     Boolean mSafeMode;
     AutoPtr<IWindowState> mStatusBar;
+    AutoPtr<IWindowState> mNavigationBar;
     List<AutoPtr<IWindowState> > mStatusBarPanels;
     AutoPtr<IWindowState> mKeyguard;
     //KeyguardViewMediator mKeyguardMediator;
@@ -588,6 +591,7 @@ private:
     static AutoPtr<CRect> mTmpDisplayFrame;
     static AutoPtr<CRect> mTmpContentFrame;
     static AutoPtr<CRect> mTmpVisibleFrame;
+    static AutoPtr<CRect> mTmpNavigationFrame;
 
     AutoPtr<IWindowState> mTopFullscreenOpaqueWindowState;
     Boolean mForceStatusBar;

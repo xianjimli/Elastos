@@ -177,7 +177,11 @@ private:
         /* [out] */ CMotionEvent** event);
 
 public:
+    CMotionEvent();
+
     ~CMotionEvent();
+
+    CARAPI constructor();
 
     CARAPI constructor(
         /* [in] */ Int32 pointerCount,

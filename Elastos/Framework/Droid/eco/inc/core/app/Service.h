@@ -16,6 +16,7 @@ class Service
     : public ElRefBase
     , public IObject
     , public IService
+    , public IComponentCallbacks
 {
 public:
     Service();
@@ -150,6 +151,10 @@ public:
         /* [in] */ Int32 resId,
         /* [out] */ ICharSequence** text);
 
+    CARAPI GetString(
+        /* [in] */ Int32 resId,
+        /* [out] */ String* str);
+
     CARAPI SetTheme(
         /* [in] */ Int32 resid);
 
@@ -199,6 +204,25 @@ public:
         /* [in] */ IConfiguration* newConfig);
 
     CARAPI OnLowMemory();
+
+    CARAPI StopSelf();
+
+    CARAPI StopSelfEx(
+        /* [in] */ Int32 startId);
+
+    CARAPI StopSelfResult(
+        /* [in] */ Int32 startId,
+        /* [out] */ Boolean* res);
+
+    CARAPI SetForeground(
+        /* [in] */ Boolean isForeground);
+
+    CARAPI StartForeground(
+        /* [in] */ Int32 id,
+        /* [in] */ INotification* notification);
+
+    CARAPI StopForeground(
+        /* [in] */ Boolean removeNotification);
 
 protected:
     virtual CARAPI OnCreate();

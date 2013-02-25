@@ -12,15 +12,12 @@
 #include "inputmethodservice/AbstractInputMethodSessionImpl.h"
 #include "view/ViewTreeObserver.h"
 #include "content/ContextMacro.h"
-#include "content/ContextWrapper.h"
 
 
-class _InputMethodService: public ContextWrapper
+class _InputMethodService: public AbstractInputMethodService
 {
 public:
     _InputMethodService();
-
-    ~_InputMethodService();
 
     /**
      * You can call this to customize the theme used by your IME's window.
@@ -39,8 +36,7 @@ protected:
 };
 
 CarClass(CInputMethodService),
-    public _InputMethodService,
-    public AbstractInputMethodService
+    public _InputMethodService
 {
 private:
     class _OnComputeInternalInsetsListener:
@@ -297,10 +293,6 @@ public:
     CInputMethodService();
 
     ~CInputMethodService();
-
-    CARAPI_(UInt32) AddRef();
-
-    CARAPI_(UInt32) Release();
 
     CARAPI_(PInterface) Probe(
         /* [in] */ REIID riid);
@@ -1108,6 +1100,25 @@ public:
 
     CARAPI GetKeyDispatcherState(
         /* [out] */ IDispatcherState** dispatcherState);
+
+    CARAPI StopSelf();
+
+    CARAPI StopSelfEx(
+        /* [in] */ Int32 startId);
+
+    CARAPI StopSelfResult(
+        /* [in] */ Int32 startId,
+        /* [out] */ Boolean* res);
+
+    CARAPI SetForeground(
+        /* [in] */ Boolean isForeground);
+
+    CARAPI StartForeground(
+        /* [in] */ Int32 id,
+        /* [in] */ INotification* notification);
+
+    CARAPI StopForeground(
+        /* [in] */ Boolean removeNotification);
 
 private:
     CARAPI_(void) InitViews();

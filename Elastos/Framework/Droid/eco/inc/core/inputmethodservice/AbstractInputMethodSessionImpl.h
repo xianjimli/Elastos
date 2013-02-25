@@ -3,7 +3,7 @@
 #define  _ABSTRACTINPUTMETHODSESSIONIMPL_H__
 
 #include <elastos/ElRefBase.h>
-#include "inputmethodservice/CAbstractInputMethodService.h"
+#include "inputmethodservice/AbstractInputMethodService.h"
 
 
 /**
@@ -18,7 +18,7 @@ class AbstractInputMethodSessionImpl:
 {
 public:
 	AbstractInputMethodSessionImpl(
-		/* [in] */ CAbstractInputMethodService* host);
+		/* [in] */ AbstractInputMethodService* host);
 
 	~AbstractInputMethodSessionImpl();
 
@@ -114,7 +114,7 @@ private:
     Boolean mRevoked;
 
 protected:
-    CAbstractInputMethodService* mHost;
+    AbstractInputMethodService* mHost;
 };
 
 

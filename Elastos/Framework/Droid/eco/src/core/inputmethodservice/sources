@@ -18,7 +18,6 @@ SOURCES += SoftInputWindow.cpp
 SOURCES += AbstractInputMethodImpl.cpp
 SOURCES += AbstractInputMethodSessionImpl.cpp
 SOURCES += AbstractInputMethodService.cpp
-SOURCES += CAbstractInputMethodService.cpp
 SOURCES += CExtractEditText.cpp
 SOURCES += CInputMethodService.cpp
 SOURCES += IInputMethodWrapper.cpp

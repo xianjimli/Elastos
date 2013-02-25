@@ -4,7 +4,7 @@
 
 
 AbstractInputMethodImpl::AbstractInputMethodImpl(
-	/* [in] */ CAbstractInputMethodService* host):
+	/* [in] */ AbstractInputMethodService* host):
 	mHost(host)
 {}
 

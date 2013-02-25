@@ -18,3 +18,5 @@ SOURCES = StatusBarView.cpp
 SOURCES += CStatusBarView.cpp
 SOURCES += FixedSizeDrawable.cpp
 SOURCES += CFixedSizeDrawable.cpp
+
+LIBRARIES += phone/phone.lib

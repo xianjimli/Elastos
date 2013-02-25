@@ -11,6 +11,11 @@ const Int32 CKeyEvent::LAST_KEYCODE;
 const Boolean CKeyEvent::DEBUG;
 const char* CKeyEvent::TAG = "KeyEvent";
 
+ECode CKeyEvent::constructor()
+{
+    return NOERROR;
+}
+
 /**
  * Create a new key event.
  *

@@ -414,11 +414,15 @@ module
         constructor(
             [in] IParcel* parcel);
 
+        constructor();
+
         interface IKeyEvent;
         interface IParcelable;
     }
 
     class CMotionEvent {
+        constructor();
+        
         constructor(
             [in] Int32 pointerCount,
             [in] Int32 sampleCount);

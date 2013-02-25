@@ -4,6 +4,7 @@
 #include <elastos/AutoPtr.h>
 #include <stdio.h>
 #include <StringBuffer.h>
+#include <utils/SystemClock.h>
 
 using namespace Elastos::Core;
 
@@ -141,6 +142,34 @@ ECode CActivityOne::MyListener::OnClick(
         }
         count++;
     }
+    else if (view == mHost->mBack.Get()
+        || view == mHost->mHome.Get()
+        || view == mHost->mMenu.Get()) {
+        Int32 keyCode;
+        if (view == mHost->mBack.Get()) {
+            keyCode = KeyEvent_KEYCODE_BACK;
+        }
+        else if (view == mHost->mHome.Get()) {
+            keyCode = KeyEvent_KEYCODE_HOME;
+        }
+        else if (view == mHost->mMenu.Get()) {
+            keyCode = KeyEvent_KEYCODE_MENU;
+        }
+
+        AutoPtr<IKeyEvent> ev;
+        CKeyEvent::New(
+            android::uptimeMillis(), android::uptimeMillis(), KeyEvent_ACTION_DOWN, keyCode,
+            0, 0, -1, 0, KeyEvent_FLAG_FROM_SYSTEM | KeyEvent_FLAG_VIRTUAL_HARD_KEY,
+            InputDevice_SOURCE_KEYBOARD, (IKeyEvent**)&ev);
+
+        AutoPtr<IServiceManager> sm;
+        CServiceManager::AcquireSingleton((IServiceManager**)&sm);
+
+        AutoPtr<IWindowManagerStub> wm;
+        sm->GetService(String("window"), (IInterface**)(IWindowManagerStub**)&wm);
+        Boolean res;
+        wm->InjectInputEventNoWait(ev.Get(), &res);
+    }
     return NOERROR;
 }
 
@@ -242,10 +271,12 @@ ECode CActivityOne::OnCreate(
     assert(mDialogButton != NULL);
 
     mDialogButton->SetOnClickListener((IViewOnClickListener*)l.Get());
+    mDialogButton->SetOnKeyListener((IViewOnKeyListener*)l.Get());
 
     AutoPtr<IViewParent> parent;
     view->GetParent((IViewParent**)&parent);
     mContent = IView::Probe(parent);
+    mContent->SetOnKeyListener((IViewOnKeyListener*)l.Get());
 
     CAlphaAnimation::New(0.3f, 1.0f, (IAnimation**)&mAlphaAnimation);
     mAlphaAnimation->SetDuration(3000);
@@ -262,6 +293,8 @@ ECode CActivityOne::OnCreate(
         (IAnimation**)&mTranslateAnimation);
     mTranslateAnimation->SetDuration(3000);
 
+    CreateNavigationBar();
+    
     return NOERROR;
 }
 
@@ -412,6 +445,50 @@ ECode CActivityOne::OnCreateContextMenu(
 
     CStringWrapper::New(String("ctxItem7"), (ICharSequence**)&csq);
     menu->AddEx2(0, 7, 7, csq, (IMenuItem**) &item);
+
+    return NOERROR;
+}
+
+ECode CActivityOne::CreateNavigationBar()
+{
+    AutoPtr<ILayoutInflater> inflater;
+
+    GetSystemService(
+        Context_LAYOUT_INFLATER_SERVICE, (IInterface**)&inflater);
+    AutoPtr<IView> navigationBar;
+    inflater->Inflate(0x7f030003, NULL, (IView**)&navigationBar);
+
+    AutoPtr<IWindowManagerLayoutParams> lp;
+    CWindowManagerLayoutParams::New(
+        ViewGroupLayoutParams_MATCH_PARENT, ViewGroupLayoutParams_MATCH_PARENT,
+        WindowManagerLayoutParams_TYPE_NAVIGATION_BAR,
+        0 | WindowManagerLayoutParams_FLAG_TOUCHABLE_WHEN_WAKING
+        | WindowManagerLayoutParams_FLAG_NOT_FOCUSABLE
+        | WindowManagerLayoutParams_FLAG_NOT_TOUCH_MODAL
+        | WindowManagerLayoutParams_FLAG_SPLIT_TOUCH,
+        -1/*PixelFormat.OPAQUE*/, (IWindowManagerLayoutParams**)&lp);
+
+    lp->SetGravity(Gravity_BOTTOM | Gravity_FILL_HORIZONTAL);
+    AutoPtr<ICharSequence> cs;
+    CStringWrapper::New(String("NavigationBar"), (ICharSequence**)&cs);
+    lp->SetTitle(cs);
+
+    AutoPtr<MyListener> l = new MyListener(this);
+    navigationBar->FindViewById(0x7f05000e, (IView**)&mBack);
+    assert(mBack != NULL);
+    mBack->SetOnClickListener((IViewOnClickListener*)l.Get());
+
+    navigationBar->FindViewById(0x7f05000d, (IView**)&mHome);
+    assert(mHome != NULL);
+    mHome->SetOnClickListener((IViewOnClickListener*)l.Get());
+
+    navigationBar->FindViewById(0x7f05000c, (IView**)&mMenu);
+    assert(mMenu != NULL);
+    mMenu->SetOnClickListener((IViewOnClickListener*)l.Get());
+
+    AutoPtr<IWindowManager> wm;
+    CWindowManagerImpl::AcquireSingleton((IWindowManager**)&wm);
+    wm->AddViewEx5(navigationBar, lp);
 
     return NOERROR;
 }

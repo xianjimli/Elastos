@@ -4,6 +4,7 @@
 #include "view/NativeInputChannel.h"
 #include <Slogger.h>
 #include <StringBuffer.h>
+#include <utils/Timers.h>
 
 using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
@@ -46,6 +47,142 @@ static void InputManager_handleInputChannelDisposed(
     if (gNativeInputManager != NULL) {
         gNativeInputManager->unregisterInputChannel(inputChannel);
     }
+}
+
+void KeyEvent_toNative(
+        /* [in] */ IKeyEvent* event,
+        /* [in] */ android::KeyEvent* androidEvent)
+{
+    Int32 deviceId;
+    event->GetDeviceId(&deviceId);
+    Int32 source;
+    event->GetSource(&source);
+    Int32 metaState;
+    event->GetMetaState(&metaState);
+    Int32 action;
+    event->GetAction(&action);
+    Int32 keyCode;
+    event->GetKeyCode(&keyCode);
+    Int32 scanCode;
+    event->GetScanCode(&scanCode);
+    Int32 repeatCount;
+    event->GetRepeatCount(&repeatCount);
+    Int32 flags;
+    event->GetFlags(&flags);
+    Int64 downTime;
+    event->GetDownTime(&downTime);
+    Int64 eventTime;
+    event->GetEventTime(&eventTime);
+
+    androidEvent->initialize(deviceId, source, action, flags, keyCode, scanCode, metaState, repeatCount,
+            milliseconds_to_nanoseconds(downTime),
+            milliseconds_to_nanoseconds(eventTime));
+}
+
+void MotionEvent_toNative(
+    /* [in] */ IMotionEvent* event,
+    /* [in] */ android::MotionEvent* androidEvent)
+{
+    Int32 deviceId;
+    Int32 source;
+    Int64 downTimeNano;
+    Int32 action;
+    Float xOffset;
+    Float yOffset;
+    Float xPrecision;
+    Float yPrecision;
+    Int32 edgeFlags;
+    Int32 metaState;
+    Int32 flags;
+    Int32 numPointers;
+    Int32 numSamples;
+
+    AutoPtr<IParcel> parcel;
+    CCallbackParcel::New((IParcel**)&parcel);
+    IParcelable::Probe(event)->WriteToParcel(parcel);
+
+    Int32 parcelToken;
+    parcel->ReadInt32(&parcelToken);
+
+    Int32 NP;
+    parcel->ReadInt32(&NP);
+
+    Int32 NS;
+    parcel->ReadInt32(&NS);
+
+    Int32 NI= NP * NS * 9;
+
+    numPointers = NP;
+    numSamples = NS;
+
+    LOG_FATAL_IF(numPointers == 0, "numPointers was zero");
+    LOG_FATAL_IF(numSamples == 0, "numSamples was zero");
+
+    parcel->ReadInt32(&deviceId);
+    parcel->ReadInt32(&source);
+
+    parcel->ReadInt64(&downTimeNano);
+    parcel->ReadInt32(&action);
+    parcel->ReadFloat(&xOffset);
+    parcel->ReadFloat(&yOffset);
+    parcel->ReadFloat(&xPrecision);
+    parcel->ReadFloat(&yPrecision);
+    parcel->ReadInt32(&edgeFlags);
+    parcel->ReadInt32(&metaState);
+    parcel->ReadInt32(&flags);
+
+    Int32* pointerIdentifiers = new Int32[NP];
+    for (Int32 i = 0; i < NP; i++) {
+        parcel->ReadInt32(pointerIdentifiers + i);
+    }
+
+    Int64* srcEventTimeNanoSamples = new Int64[NS];
+    for (Int32 i = 0; i < NS; i++) {
+        parcel->ReadInt64(srcEventTimeNanoSamples + i);
+    }
+
+    Float* srcDataSamples = new Float[NI];
+    for (Int32 i = 0; i < NI; i++) {
+        parcel->ReadFloat(srcDataSamples + i);
+    }
+
+    Int64 sampleEventTime = *(srcEventTimeNanoSamples++);
+    android::PointerCoords samplePointerCoords[MAX_POINTERS];
+    for (Int32 j = 0; j < numSamples; j++) {
+        samplePointerCoords[j].x = *(srcDataSamples++);
+        samplePointerCoords[j].y = *(srcDataSamples++);
+        samplePointerCoords[j].pressure = *(srcDataSamples++);
+        samplePointerCoords[j].size = *(srcDataSamples++);
+        samplePointerCoords[j].touchMajor = *(srcDataSamples++);
+        samplePointerCoords[j].touchMinor = *(srcDataSamples++);
+        samplePointerCoords[j].toolMajor = *(srcDataSamples++);
+        samplePointerCoords[j].toolMinor = *(srcDataSamples++);
+        samplePointerCoords[j].orientation = *(srcDataSamples++);
+    }
+
+    androidEvent->initialize(deviceId, source, action, flags, edgeFlags, metaState,
+            xOffset, yOffset, xPrecision, yPrecision, downTimeNano, sampleEventTime,
+            numPointers, pointerIdentifiers, samplePointerCoords);
+
+    for (Int32 i = 1; i < numSamples; i++) {
+        sampleEventTime = *(srcEventTimeNanoSamples++);
+        for (Int32 j = 0; j < numPointers; j++) {
+            samplePointerCoords[j].x = *(srcDataSamples++);
+            samplePointerCoords[j].y = *(srcDataSamples++);
+            samplePointerCoords[j].pressure = *(srcDataSamples++);
+            samplePointerCoords[j].size = *(srcDataSamples++);
+            samplePointerCoords[j].touchMajor = *(srcDataSamples++);
+            samplePointerCoords[j].touchMinor = *(srcDataSamples++);
+            samplePointerCoords[j].toolMajor = *(srcDataSamples++);
+            samplePointerCoords[j].toolMinor = *(srcDataSamples++);
+            samplePointerCoords[j].orientation = *(srcDataSamples++);
+        }
+        androidEvent->addSample(sampleEventTime, samplePointerCoords);
+    }
+
+    delete[] pointerIdentifiers;
+    delete[] srcEventTimeNanoSamples;
+    delete[] srcDataSamples;
 }
 
 InputManager::InputManager(
@@ -430,20 +567,49 @@ ECode InputManager::UnregisterInputChannel(
  * @param timeoutMillis The injection timeout in milliseconds.
  * @return One of the INPUT_EVENT_INJECTION_XXX constants.
  */
-//public int injectInputEvent(InputEvent event, int injectorPid, int injectorUid,
-//        int syncMode, int timeoutMillis) {
-//    if (event == null) {
-//        throw new IllegalArgumentException("event must not be null");
-//    }
-//    if (injectorPid < 0 || injectorUid < 0) {
-//        throw new IllegalArgumentException("injectorPid and injectorUid must not be negative.");
-//    }
-//    if (timeoutMillis <= 0) {
-//        throw new IllegalArgumentException("timeoutMillis must be positive");
-//    }
-//
-//    return nativeInjectInputEvent(event, injectorPid, injectorUid, syncMode, timeoutMillis);
-//}
+Int32 InputManager::InjectInputEvent(
+    /* [in] */ IInputEvent* event,
+    /* [in] */ Int32 injectorPid,
+    /* [in] */ Int32 injectorUid,
+    /* [in] */ Int32 syncMode,
+    /* [in] */ Int32 timeoutMillis)
+{
+    if (event == NULL) {
+        Slogger::E("InputManager", "event must not be null");
+        return INPUT_EVENT_INJECTION_FAILED;
+    }
+    if (injectorPid < 0 || injectorUid < 0) {
+        Slogger::E("InputManager", "injectorPid and injectorUid must not be negative.");
+        return INPUT_EVENT_INJECTION_FAILED;
+    }
+    if (timeoutMillis <= 0) {
+        Slogger::E("InputManager", "timeoutMillis must be positive.");
+        return INPUT_EVENT_INJECTION_FAILED;
+    }
+
+    if (CheckInputManagerUnitialized()) {
+        return INPUT_EVENT_INJECTION_FAILED;
+    }
+
+    if (IKeyEvent::Probe(event)) {
+        android::KeyEvent keyEvent;
+        KeyEvent_toNative(IKeyEvent::Probe(event), &keyEvent);
+
+        return gNativeInputManager->getInputManager()->getDispatcher()->injectInputEvent(
+            &keyEvent, injectorPid, injectorUid, syncMode, timeoutMillis);
+    }
+    else if (IMotionEvent::Probe(event)) {
+        android::MotionEvent motionEvent;
+        MotionEvent_toNative(IMotionEvent::Probe(event), &motionEvent);
+
+        return gNativeInputManager->getInputManager()->getDispatcher()->injectInputEvent(
+            & motionEvent, injectorPid, injectorUid, syncMode, timeoutMillis);
+    }
+    else {
+        Slogger::E("InputManager", "Invalid input event type.");
+        return INPUT_EVENT_INJECTION_FAILED;
+    }
+}
 
 ECode InputManager::SetInputWindows(
         /* [in] */ InputWindow** windows)

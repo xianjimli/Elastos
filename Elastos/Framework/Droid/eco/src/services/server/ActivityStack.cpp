@@ -719,6 +719,7 @@ void ActivityStack::CompletePauseLocked()
 //
     if (prev != NULL) {
         prev->ResumeKeyDispatchingLocked();
+        prev->mCpuTimeAtResume = 0; // reset it
     }
 //
 //    if (prev.app != null && prev.cpuTimeAtResume > 0
@@ -740,7 +741,6 @@ void ActivityStack::CompletePauseLocked()
 //            }
 //        }
 //    }
-    prev->mCpuTimeAtResume = 0; // reset it
 }
 
 /**
