@@ -197,6 +197,7 @@ ECode CCallbackParcel::GrowDataBuffer(int minSize)
 				elemPtr += 8;
                 break;
 
+            case Type_CString:
             case Type_String:
             case Type_Struct:
             case Type_EMuid:
