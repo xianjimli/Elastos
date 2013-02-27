@@ -25,9 +25,15 @@ public:
         /* [in] */ const ArrayOf<Byte> & table);
 
 private:
-    static CARAPI_(SkMaskFilter*) nativeNewTable(const ArrayOf<Byte> & table);
-    static CARAPI_(Int32) nativeNewClip(Int32 min, Int32 max);
-    static CARAPI_(Int32) nativeNewGamma(Float gamma);
+    static CARAPI_(SkMaskFilter*) NativeNewTable(
+        /* [in] */ const ArrayOf<Byte> & table);
+
+    static CARAPI_(Int32) NativeNewClip(
+        /* [in] */ Int32 min,
+        /* [in] */ Int32 max);
+
+    static CARAPI_(Int32) NativeNewGamma(
+        /* [in] */ Float gamma);
 };
 
 #endif // __CTABLEMASKFILTER_H__

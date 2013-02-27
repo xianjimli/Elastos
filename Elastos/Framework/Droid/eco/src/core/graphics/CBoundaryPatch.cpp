@@ -28,7 +28,7 @@
 * @param cols The number of points down to approximate the boundary.
 *             Must be >= 2, though very large values may slow down drawing
 */
-ECode CBoundaryPatch::setCubicBoundary(
+ECode CBoundaryPatch::SetCubicBoundary(
     /* [in] */ const ArrayOf<Float> & pts,
     /* [in] */ Int32 offset,
     /* [in] */ Int32 rows,
@@ -53,7 +53,7 @@ ECode CBoundaryPatch::setCubicBoundary(
 /**
 * Reference a bitmap texture to be mapped onto the patch.
 */
-ECode CBoundaryPatch::setTexture(
+ECode CBoundaryPatch::SetTexture(
     /* [in] */ IBitmap * pTexture)
 {
     if (mTexture != pTexture) {
@@ -91,7 +91,7 @@ ECode CBoundaryPatch::setTexture(
 /**
 * @param pFlags the paint flags for the patch
 */
-ECode CBoundaryPatch::getPaintFlags(
+ECode CBoundaryPatch::GetPaintFlags(
     /* [out] */ Int32 * pFlags)
 {
     mPaint->GetFlags(pFlags);
@@ -101,7 +101,7 @@ ECode CBoundaryPatch::getPaintFlags(
 /**
 * Set the paint flags for the patch
 */
-ECode CBoundaryPatch::setPaintFlags(
+ECode CBoundaryPatch::SetPaintFlags(
     /* [in] */ Int32 flags)
 {
     mPaint->SetFlags(flags);
@@ -111,7 +111,7 @@ ECode CBoundaryPatch::setPaintFlags(
 /**
 * Set the xfermode for the patch
 */
-ECode CBoundaryPatch::setXfermode(
+ECode CBoundaryPatch::SetXfermode(
     /* [in] */ IXfermode * pMode)
 {
     mPaint->SetXfermode(pMode);
@@ -122,7 +122,7 @@ ECode CBoundaryPatch::setXfermode(
 /**
 * Set the alpha for the patch
 */
-ECode CBoundaryPatch::setAlpha(
+ECode CBoundaryPatch::SetAlpha(
     /* [in] */ Int32 alpha)
 {
     mPaint->SetAlpha(alpha);
@@ -135,11 +135,11 @@ ECode CBoundaryPatch::setAlpha(
 *
 * setCubicBoundary() and setTexture() must be called before drawing.
 */
-ECode CBoundaryPatch::draw(
+ECode CBoundaryPatch::Draw(
     /* [in] */ ICanvas * pCanvas)
 {
     if (mDirty) {
-        buildCache();
+        BuildCache();
         mDirty = false;
     }
 
@@ -157,7 +157,7 @@ ECode CBoundaryPatch::draw(
 }
 
 
-ECode CBoundaryPatch::buildCache()
+ECode CBoundaryPatch::BuildCache()
 {
     // we need mRows * mCols points, for verts and another set for textures
     // so *2 for going from points -> floats, and *2 for verts and textures
@@ -179,7 +179,7 @@ ECode CBoundaryPatch::buildCache()
     mTexture->GetWidth(&mtwidth);
     mTexture->GetHeight(&mtheight);
 
-    nativeComputeCubicPatch(mCubicPoints,
+    NativeComputeCubicPatch(mCubicPoints,
                         mtwidth, mtheight,
                         mRows, mCols, mVerts, mIndices);
     return NOERROR;
@@ -200,14 +200,14 @@ ECode CBoundaryPatch::constructor(
     return NOERROR;
 }
 
-void CBoundaryPatch::nativeComputeCubicPatch(
-                                        AutoFree< ArrayOf<Float> > cubicPoints,
-                                        Int32 texW,
-                                        Int32 texH,
-                                        Int32 rows,
-                                        Int32 cols,
-                                        AutoFree< ArrayOf<Float> > verts,
-                                        AutoFree< ArrayOf<Int16> > indices)
+void CBoundaryPatch::NativeComputeCubicPatch(
+    /* [in] */ AutoFree< ArrayOf<Float> > cubicPoints,
+    /* [in] */ Int32 texW,
+    /* [in] */ Int32 texH,
+    /* [in] */ Int32 rows,
+    /* [in] */ Int32 cols,
+    /* [in] */ AutoFree< ArrayOf<Float> > verts,
+    /* [in] */ AutoFree< ArrayOf<Int16> > indices)
 {
     if (*cubicPoints) {
         Int32 mclength = (*cubicPoints).GetLength();

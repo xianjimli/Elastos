@@ -16,10 +16,11 @@ public:
         /* [in] */ PathDashPathEffectStyle style);
 
 private:
-    static CARAPI_(SkPathEffect*) nativeCreate(SkPath* native_path,
-                                    Float advance,
-                                    Float phase,
-                                    Int32 native_style);
+    static CARAPI_(SkPathEffect*) NativeCreate(
+        /* [in] */ SkPath* native_path,
+        /* [in] */ Float advance,
+        /* [in] */ Float phase,
+        /* [in] */ Int32 native_style);
 };
 
 #endif // __CPATHDASHPATHEFFECT_H__

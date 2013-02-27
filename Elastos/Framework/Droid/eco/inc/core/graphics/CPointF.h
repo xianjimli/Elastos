@@ -7,30 +7,25 @@
 CarClass(CPointF)
 {
 public:
-    CARAPI set(
+    CARAPI Set(
         /* [in] */ Float x,
         /* [in] */ Float y);
 
-    CARAPI setEx(
+    CARAPI SetEx(
         /* [in] */ IPointF * pP);
 
-    CARAPI negate();
+    CARAPI Negate();
 
-    CARAPI offset(
+    CARAPI Offset(
         /* [in] */ Float dx,
         /* [in] */ Float dy);
 
-    CARAPI equals(
+    CARAPI Equals(
         /* [in] */ Float x,
         /* [in] */ Float y,
         /* [out] */ Boolean * pResult);
 
-    CARAPI lengthEx(
-        /* [out] */ Float * pLength);
-
-    CARAPI length(
-        /* [in] */ Float x,
-        /* [in] */ Float y,
+    CARAPI Length(
         /* [out] */ Float * pLength);
 
     CARAPI constructor();

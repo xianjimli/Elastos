@@ -8,31 +8,31 @@
 CarClass(CBoundaryPatch)
 {
 public:
-    CARAPI setCubicBoundary(
+    CARAPI SetCubicBoundary(
         /* [in] */ const ArrayOf<Float> & pts,
         /* [in] */ Int32 offset,
         /* [in] */ Int32 rows,
         /* [in] */ Int32 cols);
 
-    CARAPI setTexture(
+    CARAPI SetTexture(
         /* [in] */ IBitmap * pTexture);
 
-    CARAPI getPaintFlags(
+    CARAPI GetPaintFlags(
         /* [out] */ Int32 * pFlags);
 
-    CARAPI setPaintFlags(
+    CARAPI SetPaintFlags(
         /* [in] */ Int32 flags);
 
-    CARAPI setXfermode(
+    CARAPI SetXfermode(
         /* [in] */ IXfermode * pMode);
 
-    CARAPI setAlpha(
+    CARAPI SetAlpha(
         /* [in] */ Int32 alpha);
 
-    CARAPI draw(
+    CARAPI Draw(
         /* [in] */ ICanvas * pCanvas);
 
-    CARAPI buildCache();
+    CARAPI BuildCache();
 
     CARAPI constructor(
         /* [in] */ Int32 decoder);
@@ -48,14 +48,14 @@ private:
     AutoFree< ArrayOf<Float> > mVerts;
     AutoFree< ArrayOf<Int16> > mIndices;
 
-    static void nativeComputeCubicPatch(
-                                        AutoFree< ArrayOf<Float> > cubicPoints,
-                                        Int32 texW,
-                                        Int32 texH,
-                                        Int32 rows,
-                                        Int32 cols,
-                                        AutoFree< ArrayOf<Float> > verts,
-                                        AutoFree< ArrayOf<Int16> > indices);
+    static void NativeComputeCubicPatch(
+        /* [in] */ AutoFree< ArrayOf<Float> > cubicPoints,
+        /* [in] */ Int32 texW,
+        /* [in] */ Int32 texH,
+        /* [in] */ Int32 rows,
+        /* [in] */ Int32 cols,
+        /* [in] */ AutoFree< ArrayOf<Float> > verts,
+        /* [in] */ AutoFree< ArrayOf<Int16> > indices);
 };
 
 #endif // __CBOUNDARYPATCH_H__

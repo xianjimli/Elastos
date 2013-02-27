@@ -7,7 +7,7 @@
 CarClass(CImageFormat)
 {
 public:
-    CARAPI getBitsPerPixel(
+    CARAPI GetBitsPerPixel(
         /* [in] */ Int32 format,
         /* [out] */ Int32 * pBits);
 

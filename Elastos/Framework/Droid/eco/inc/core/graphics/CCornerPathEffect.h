@@ -12,7 +12,8 @@ public:
         /* [in] */ Float radius);
 
 private:
-    static CARAPI_(SkPathEffect*)nativeCreate(Float radius);
+    static CARAPI_(SkPathEffect*)NativeCreate(
+        /* [in] */ Float radius);
 };
 
 #endif // __CCORNERPATHEFFECT_H__

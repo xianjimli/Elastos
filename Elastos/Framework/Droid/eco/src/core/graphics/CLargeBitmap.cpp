@@ -11,46 +11,48 @@
 * @return The decoded bitmap, or null if the image data could not be
 *         decoded.
 */
-ECode CLargeBitmap::decodeRegion(
+ECode CLargeBitmap::DecodeRegion(
     /* [in] */ IRect * pRect,
     /* [in] */ IBitmapFactoryOptions * pOptions,
     /* [out] */ IBitmap ** ppBitmap)
 {
-    checkRecycled((Int32)"decodeRegion called on recycled large bitmap");
+    CheckRecycled((Int32)"decodeRegion called on recycled large bitmap");
 
     Int32 width;
     Int32 height;
 
-    getWidth(&width);
-    getHeight(&height);
+    GetWidth(&width);
+    GetHeight(&height);
 
     if (((CRect*)pRect)->mLeft < 0 || ((CRect*)pRect)->mTop < 0 ||
         ((CRect*)pRect)->mRight > width || ((CRect*)pRect)->mBottom > height)
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
 
-    *ppBitmap = nativeDecodeRegion((SkBitmapRegionDecoder *)mNativeLargeBitmap, ((CRect*)pRect)->mLeft,
-												        ((CRect*)pRect)->mTop, 
-												        ((CRect*)pRect)->mRight -((CRect*)pRect)->mLeft, 
-												        ((CRect*)pRect)->mBottom - ((CRect*)pRect)->mTop, pOptions);
+    *ppBitmap = NativeDecodeRegion(
+                    (SkBitmapRegionDecoder *)mNativeLargeBitmap,
+                    ((CRect*)pRect)->mLeft,
+                    ((CRect*)pRect)->mTop,
+                    ((CRect*)pRect)->mRight -((CRect*)pRect)->mLeft,
+                    ((CRect*)pRect)->mBottom - ((CRect*)pRect)->mTop, pOptions);
 
     return NOERROR;
 }
 
 /** @param pLength the original image's width */
-ECode CLargeBitmap::getWidth(
+ECode CLargeBitmap::GetWidth(
     /* [out] */ Int32 * pLength)
 {
-    checkRecycled((Int32)"getWidth called on recycled large bitmap");
-    *pLength = nativeGetWidth(mNativeLargeBitmap);
+    CheckRecycled((Int32)"getWidth called on recycled large bitmap");
+    *pLength = NativeGetWidth(mNativeLargeBitmap);
     return NOERROR;
 }
 
 /** @param pHeight the original image's height */
-ECode CLargeBitmap::getHeight(
+ECode CLargeBitmap::GetHeight(
     /* [out] */ Int32 * pHeight)
 {
-    checkRecycled((Int32)"getHeight called on recycled large bitmap");
-    *pHeight =  nativeGetHeight(mNativeLargeBitmap);
+    CheckRecycled((Int32)"getHeight called on recycled large bitmap");
+    *pHeight =  NativeGetHeight(mNativeLargeBitmap);
     return NOERROR;
 }
 
@@ -63,10 +65,10 @@ ECode CLargeBitmap::getHeight(
 * and normally need not be called, since the normal GC process will free up this
 * memory when there are no more references to this bitmap.
 */
-ECode CLargeBitmap::recycle()
+ECode CLargeBitmap::Recycle()
 {
     if (!mRecycled) {
-        nativeClean(mNativeLargeBitmap);
+        NativeClean(mNativeLargeBitmap);
         mRecycled = true;
     }
     return NOERROR;
@@ -78,7 +80,7 @@ ECode CLargeBitmap::recycle()
 *
 * @return true if the large bitmap has been recycled
 */
-ECode CLargeBitmap::isRecycled(
+ECode CLargeBitmap::IsRecycled(
     /* [out] */ Boolean * pResult)
 {
     *pResult = mRecycled;
@@ -90,7 +92,7 @@ ECode CLargeBitmap::isRecycled(
 * Called by methods that want to throw an exception if the bitmap
 * has already been recycled.
 */
-ECode CLargeBitmap::checkRecycled(
+ECode CLargeBitmap::CheckRecycled(
     /* [in] */ Int32 errorMessage)
 {
     if (mRecycled) {
@@ -108,13 +110,13 @@ ECode CLargeBitmap::constructor(
     return NOERROR;
 }
 
-IBitmap* CLargeBitmap::nativeDecodeRegion(
-                                SkBitmapRegionDecoder * brd,
-                                Int32 start_x,
-                                Int32 start_y,
-                                Int32 width,
-                                Int32 height,
-                                IBitmapFactoryOptions * options)
+IBitmap* CLargeBitmap::NativeDecodeRegion(
+    /* [in] */ SkBitmapRegionDecoder * brd,
+    /* [in] */ Int32 start_x,
+    /* [in] */ Int32 start_y,
+    /* [in] */ Int32 width,
+    /* [in] */ Int32 height,
+    /* [in] */ IBitmapFactoryOptions * options)
 {
 #if 0
     SkImageDecoder *decoder = brd->getDecoder();
@@ -181,18 +183,23 @@ IBitmap* CLargeBitmap::nativeDecodeRegion(
     // now create the java bitmap
     return GraphicsJNI::createBitmap(env, bitmap, false, NULL);
 #endif
-	return NULL; 
+    return NULL;
 }
 
-Int32 CLargeBitmap::nativeGetWidth(Int32 lbm)
+Int32 CLargeBitmap::NativeGetWidth(
+    /* [in] */ Int32 lbm)
 {
     return NULL;
 }
-Int32 CLargeBitmap::nativeGetHeight(Int32 lbm)
+
+Int32 CLargeBitmap::NativeGetHeight(
+    /* [in] */ Int32 lbm)
 {
     return NULL;
 }
-void CLargeBitmap::nativeClean(Int32 lbm)
+
+void CLargeBitmap::NativeClean(
+    /* [in] */ Int32 lbm)
 {
 
 }

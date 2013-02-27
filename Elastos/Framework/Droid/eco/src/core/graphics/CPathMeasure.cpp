@@ -4,14 +4,16 @@
 /**
  * Assign a new path, or null to have none.
  */
-ECode CPathMeasure::setPath(
+ECode CPathMeasure::SetPath(
     /* [in] */ IPath * pPath,
     /* [in] */ Boolean forceClosed)
 {
     // note: the native side makes a copy of path, so we don't need a java
     // reference to it here, since it's fine if it gets GC'd
-    native_setPath(native_instance, pPath != NULL ? ((CPath*)pPath)->Ni() : 0,
-                    forceClosed);
+    Native_setPath(
+        native_instance,
+        pPath != NULL ? ((CPath*)pPath)->Ni() : 0,
+        forceClosed);
     return NOERROR;
 }
 
@@ -19,10 +21,10 @@ ECode CPathMeasure::setPath(
 * pResult pLength the total length of the current contour, or 0 if no path is
 * associated with this measure object.
 */
-ECode CPathMeasure::getLength(
+ECode CPathMeasure::GetLength(
     /* [out] */ Float * pLength)
 {
-    *pLength = native_getLength(native_instance);
+    *pLength = Native_getLength(native_instance);
     return NOERROR;
 }
 
@@ -37,7 +39,7 @@ ECode CPathMeasure::getLength(
 * @param tan If not null, returns the sampled tangent (x==[0], y==[1])
 * @param pResult false if there was no path associated with this measure object
 */
-ECode CPathMeasure::getPosTan(
+ECode CPathMeasure::GetPosTan(
     /* [in] */ Float distance,
     /* [out, callee] */ ArrayOf<Float> ** ppPos,
     /* [out, callee] */ ArrayOf<Float> ** ppTan,
@@ -48,7 +50,12 @@ ECode CPathMeasure::getPosTan(
         return E_ARRAY_INDEX_OUT_OF_BOUNDS_EXCEPTION;
     }
 
-    *pResult = native_getPosTan(native_instance, distance, ppPos, ppTan);
+    *pResult = Native_getPosTan(
+                native_instance,
+                distance,
+                ppPos,
+                ppTan);
+
     return NOERROR;
 }
 
@@ -63,14 +70,18 @@ ECode CPathMeasure::getPosTan(
 *        associated with the position and tangent at the specified distance
 * @param flags Specified what aspects should be returned in the matrix.
 */
-ECode CPathMeasure::getMatrix(
+ECode CPathMeasure::GetMatrix(
     /* [in] */ Float distance,
     /* [in] */ IMatrix * pMatrix,
     /* [in] */ Int32 flags,
     /* [out] */ Boolean * pResult)
 {
-    *pResult = native_getMatrix(native_instance, distance, ((CMatrix*)pMatrix)->Ni(),
-                                 flags);
+    *pResult = Native_getMatrix(
+                native_instance,
+                distance,
+                ((CMatrix*)pMatrix)->Ni(),
+                flags);
+
     return NOERROR;
 }
 
@@ -81,25 +92,30 @@ ECode CPathMeasure::getMatrix(
 * If startD <= stopD then @param pResult false (and leave dst untouched).
 * Begin the segment with a moveTo if startWithMoveTo is true
 */
-ECode CPathMeasure::getSegment(
+ECode CPathMeasure::GetSegment(
     /* [in] */ Float startD,
     /* [in] */ Float stopD,
     /* [in] */ IPath * pDst,
     /* [in] */ Boolean startWithMoveTo,
     /* [out] */ Boolean * pResult)
 {
-    *pResult = native_getSegment(native_instance, startD, stopD, ((CPath*)pDst)->Ni(),
-                                 startWithMoveTo);
+    *pResult = Native_getSegment(
+                native_instance,
+                startD,
+                stopD,
+                ((CPath*)pDst)->Ni(),
+                startWithMoveTo);
+
     return NOERROR;
 }
 
 /**
 * @param pResult true if the current contour is closed()
 */
-ECode CPathMeasure::isClosed(
+ECode CPathMeasure::IsClosed(
     /* [out] */ Boolean * pResult)
 {
-    *pResult = native_isClosed(native_instance);
+    *pResult = Native_isClosed(native_instance);
     return NOERROR;
 }
 
@@ -107,10 +123,10 @@ ECode CPathMeasure::isClosed(
 * Move to the next contour in the path. @param pResult true if one exists, or
 * false if we're done with the path.
 */
-ECode CPathMeasure::nextContour(
+ECode CPathMeasure::NextContour(
     /* [out] */ Boolean * pResult)
 {
-    *pResult = native_nextContour(native_instance);
+    *pResult = Native_nextContour(native_instance);
     return NOERROR;
 }
 
@@ -125,7 +141,7 @@ ECode CPathMeasure::nextContour(
 */
 ECode CPathMeasure::constructor()
 {
-    native_instance = native_create(0, false);
+    native_instance = Native_create(0, false);
     return NOERROR;
 }
 
@@ -147,17 +163,23 @@ ECode CPathMeasure::constructor(
     /* [in] */ IPath * pPath,
     /* [in] */ Boolean forceClosed)
 {
-    native_instance = native_create(pPath != NULL ? ((CPath*)pPath)->Ni() : 0,
-                                        forceClosed);
+    native_instance = Native_create(
+                        pPath != NULL ? ((CPath*)pPath)->Ni() : 0,
+                        forceClosed);
     return NOERROR;
 }
 
-PathMeasurePair* CPathMeasure::native_create(SkPath* native_path, Boolean forceClosed)
+PathMeasurePair* CPathMeasure::Native_create(
+    /* [in] */ SkPath* native_path,
+    /* [in] */ Boolean forceClosed)
 {
-    return native_path ? new PathMeasurePair(*native_path, forceClosed) : new PathMeasurePair;;
+    return native_path ? new PathMeasurePair(*native_path, forceClosed) : new PathMeasurePair;
 }
 
-void CPathMeasure::native_setPath(PathMeasurePair* native_instance, SkPath* native_path, Boolean forceClosed)
+void CPathMeasure::Native_setPath(
+    /* [in] */ PathMeasurePair* native_instance,
+    /* [in] */ SkPath* native_path,
+    /* [in] */ Boolean forceClosed)
 {
     if (NULL == native_path) {
         native_instance->fPath.reset();
@@ -167,25 +189,31 @@ void CPathMeasure::native_setPath(PathMeasurePair* native_instance, SkPath* nati
     native_instance->fMeasure.setPath(&native_instance->fPath, forceClosed);
 }
 
-Float CPathMeasure::native_getLength(PathMeasurePair* native_instance)
+Float CPathMeasure::Native_getLength(
+    /* [in] */ PathMeasurePair* native_instance)
 {
     return SkScalarToFloat(native_instance->fMeasure.getLength());;
 }
 
-void CPathMeasure::convertTwoElemFloatArray(ArrayOf<Float> *  array, SkScalar* src) 
+void CPathMeasure::ConvertTwoElemFloatArray(
+    /* [out] */ ArrayOf<Float> *  array,
+    /* [in] */ SkScalar* src)
 {
-	SkASSERT(array);
+    SkASSERT(array);
 
-	if (array->GetLength() < 2) {
-		return ;
-	}
-	
+    if (array->GetLength() < 2) {
+        return ;
+    }
+
     array->GetPayload()[0] = SkScalarToFloat(src[0]);
     array->GetPayload()[1] = SkScalarToFloat(src[1]);
 }
 
-Boolean CPathMeasure::native_getPosTan(PathMeasurePair* native_instance, Float distance,
-        ArrayOf<Float> ** ppPos, ArrayOf<Float> ** ppTan)
+Boolean CPathMeasure::Native_getPosTan(
+    /* [in] */ PathMeasurePair* native_instance,
+    /* [in] */ Float distance,
+    /* [out] */ ArrayOf<Float> ** ppPos,
+    /* [out] */ ArrayOf<Float> ** ppTan)
 {
     SkScalar    tmpPos[2], tmpTan[2];
     SkScalar*   posPtr = (*ppPos)->GetPayload() ? tmpPos : NULL;
@@ -197,40 +225,50 @@ Boolean CPathMeasure::native_getPosTan(PathMeasurePair* native_instance, Float d
     }
 
     if ((*ppPos)->GetPayload()) {
-        convertTwoElemFloatArray(*ppPos, tmpPos);
+        ConvertTwoElemFloatArray(*ppPos, tmpPos);
     }
     if ((*ppTan)->GetPayload()) {
-        convertTwoElemFloatArray(*ppTan, tmpTan);
+        ConvertTwoElemFloatArray(*ppTan, tmpTan);
     }
 
     return true;
 }
 
-Boolean CPathMeasure::native_getMatrix(PathMeasurePair* native_instance, Float distance,
-    SkMatrix* native_matrix, Int32 flags)
+Boolean CPathMeasure::Native_getMatrix(
+    /* [in] */ PathMeasurePair* native_instance,
+    /* [in] */ Float distance,
+    /* [out] */ SkMatrix* native_matrix,
+    /* [in] */ Int32 flags)
 {
     return native_instance->fMeasure.getMatrix(SkFloatToScalar(distance), native_matrix,
         (SkPathMeasure::MatrixFlags)flags);
 }
 
-Boolean CPathMeasure::native_getSegment(PathMeasurePair* native_instance, Float startF, Float stopF,
-        SkPath* native_path, Boolean startWithMoveTo)
+Boolean CPathMeasure::Native_getSegment(
+    /* [in] */ PathMeasurePair* native_instance,
+    /* [in] */ Float startF,
+    /* [in] */ Float stopF,
+    /* [out] */ SkPath* native_path,
+    /* [in] */ Boolean startWithMoveTo)
 {
     return native_instance->fMeasure.getSegment(SkFloatToScalar(startF), SkFloatToScalar(stopF),
         native_path, startWithMoveTo);
 }
 
-Boolean CPathMeasure::native_isClosed(PathMeasurePair* native_instance)
+Boolean CPathMeasure::Native_isClosed(
+    /* [in] */ PathMeasurePair* native_instance)
 {
     return native_instance->fMeasure.isClosed();;
 }
 
-Boolean CPathMeasure::native_nextContour(PathMeasurePair* native_instance)
+Boolean CPathMeasure::Native_nextContour(
+    /* [in] */ PathMeasurePair* native_instance)
 {
     return native_instance->fMeasure.nextContour();;
 }
 
-void CPathMeasure::native_destroy(PathMeasurePair* native_instance)
+void CPathMeasure::Native_destroy(
+    /* [in] */ PathMeasurePair* native_instance)
 {
     delete native_instance;
 }

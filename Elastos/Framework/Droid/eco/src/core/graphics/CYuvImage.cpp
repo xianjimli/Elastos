@@ -18,7 +18,7 @@
  *                  100]; or stream is null.
 */
 
-ECode CYuvImage::compressToJpeg(
+ECode CYuvImage::CompressToJpeg(
     /* [in] */ IRect * pRectangle,
     /* [in] */ Int32 quality,
     /* [in] */ IOutputStream * pStream,
@@ -42,14 +42,16 @@ ECode CYuvImage::compressToJpeg(
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
-    adjustRectangle(pRectangle);
+    AdjustRectangle(pRectangle);
 
     AutoFree< ArrayOf<Int32> > pOffsets;
-    calculateOffsets(((CRect*)pRectangle)->mLeft, ((CRect*)pRectangle)->mTop,
-             (ArrayOf<Int32> **)&pOffsets);
+    CalculateOffsets(
+        ((CRect*)pRectangle)->mLeft,
+        ((CRect*)pRectangle)->mTop,
+        (ArrayOf<Int32> **)&pOffsets);
 
 
-    AutoFree< ArrayOf<Byte> > pNewByte = ArrayOf<Byte>::Alloc(YUVIMAGE_WORKING_COMPRESS_STORAGE);
+    AutoFree< ArrayOf<Byte> > pNewByte = ArrayOf<Byte>::Alloc(4096/*YUVIMAGE_WORKING_COMPRESS_STORAGE*/);
     if (pNewByte == NULL) {
         return E_OUT_OF_MEMORY_ERROR;
     }
@@ -60,49 +62,56 @@ ECode CYuvImage::compressToJpeg(
     pRectangle->GetWidth(&width);
     pRectangle->GetHeight(&height);
 
-    *pResult = nativeCompressToJpeg(*mData, mFormat, width,
-												             height, *pOffsets, *mStrides, quality, pStream,
-												             *pNewByte);
+    *pResult = NativeCompressToJpeg(
+                *mData,
+                mFormat,
+                width,
+                height,
+                *pOffsets,
+                *mStrides,
+                quality,
+                pStream,
+                *pNewByte);
 
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
-ECode CYuvImage::getYuvData(
+ECode CYuvImage::GetYuvData(
     /* [out, callee] */ ArrayOf<Byte> ** ppData)
 {
     *ppData = mData->Clone();
     return NOERROR;
 }
 
-ECode CYuvImage::getYuvFormat(
+ECode CYuvImage::GetYuvFormat(
     /* [out] */ Int32 * pFormat)
 {
     *pFormat = mFormat;
     return NOERROR;
 }
 
-ECode CYuvImage::getStrides(
+ECode CYuvImage::GetStrides(
     /* [out, callee] */ ArrayOf<Int32> ** ppStrides)
 {
     *ppStrides = mStrides->Clone();
     return NOERROR;
 }
 
-ECode CYuvImage::getWidth(
+ECode CYuvImage::GetWidth(
     /* [out] */ Int32 * pWidth)
 {
     *pWidth = mWidth;
     return NOERROR;
 }
 
-ECode CYuvImage::getHeight(
+ECode CYuvImage::GetHeight(
     /* [out] */ Int32 * pHeight)
 {
     *pHeight = mHeight;
     return NOERROR;
 }
 
-ECode CYuvImage::calculateOffsets(
+ECode CYuvImage::CalculateOffsets(
     /* [in] */ Int32 left,
     /* [in] */ Int32 top,
     /* [out, callee] */ ArrayOf<Int32> ** ppOffsets)
@@ -119,7 +128,7 @@ ECode CYuvImage::calculateOffsets(
     return NOERROR;
 }
 
-ECode CYuvImage::calculateStrides(
+ECode CYuvImage::CalculateStrides(
     /* [in] */ Int32 width,
     /* [in] */ Int32 format,
     /* [out, callee] */ ArrayOf<Int32> ** ppStrides)
@@ -135,7 +144,7 @@ ECode CYuvImage::calculateStrides(
     return NOERROR;
 }
 
-ECode CYuvImage::adjustRectangle(
+ECode CYuvImage::AdjustRectangle(
     /* [in] */ IRect * pRect)
 {
     Int32 width;
@@ -201,7 +210,7 @@ ECode CYuvImage::constructor(
         }
 
         if (strides.GetPayload() == NULL) {
-            calculateStrides(width, format, (ArrayOf<Int32> **)&mStrides);
+            CalculateStrides(width, format, (ArrayOf<Int32> **)&mStrides);
         } else {
             mStrides = strides.Clone();
         }
@@ -215,19 +224,19 @@ ECode CYuvImage::constructor(
 }
 
 
-Boolean CYuvImage::nativeCompressToJpeg(ArrayOf<Byte> & oriYuv,
-																						Int32 format, 
-																						Int32 width, 
-																						Int32 height, 
-																						ArrayOf<Int32> & offsets, 
-																						ArrayOf<Int32> & strides,
-																						Int32 quality, 
-																						IOutputStream* stream, 
-																						ArrayOf<Byte> & tempStorage)
+Boolean CYuvImage::NativeCompressToJpeg(
+    /* [in] */ ArrayOf<Byte> & oriYuv,
+    /* [in] */ Int32 format,
+    /* [in] */ Int32 width,
+    /* [in] */ Int32 height,
+    /* [in] */ ArrayOf<Int32> & offsets,
+    /* [in] */ ArrayOf<Int32> & strides,
+    /* [in] */ Int32 quality,
+    /* [in] */ IOutputStream* stream,
+    /* [out] */ ArrayOf<Byte> & tempStorage)
 {
-#if 0	
-
-	Byte* yuv = oriYuv;
+#if 0
+    Byte* yuv = oriYuv;
     Int32* imgOffsets = offsets;
     Int32* imgStrides = strides;
 

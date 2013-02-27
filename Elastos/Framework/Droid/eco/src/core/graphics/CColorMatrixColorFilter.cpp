@@ -8,8 +8,8 @@ ECode CColorMatrixColorFilter::constructor(
 {
     AutoFree< ArrayOf<Float> > pArray;
 
-    pMatrix->getArray((ArrayOf<Float> **)& pArray);
-    mNativeInstance = nativeColorMatrixFilter(pArray);
+    pMatrix->GetArray((ArrayOf<Float> **)& pArray);
+    mNativeInstance = NativeColorMatrixFilter(pArray);
     return NOERROR;
 }
 
@@ -22,27 +22,28 @@ ECode CColorMatrixColorFilter::constructor(
 
     AutoFree< ArrayOf<Float> > pArray;
     pArray = array.Clone();
-    mNativeInstance = nativeColorMatrixFilter(pArray);
+    mNativeInstance = NativeColorMatrixFilter(pArray);
     return NOERROR;
 }
 
-SkColorFilter* CColorMatrixColorFilter::nativeColorMatrixFilter(ArrayOf<Float>* pArray)
+SkColorFilter* CColorMatrixColorFilter::NativeColorMatrixFilter(
+    /* [in] */ ArrayOf<Float>* pArray)
 {
-	SkASSERT(pArray);
+    SkASSERT(pArray);
 
-	if (pArray->GetLength() < 20) {
-		return NULL;
-	}
+    if (pArray->GetLength() < 20) {
+        return NULL;
+    }
 
-	const Float* src = pArray->GetPayload();
-	
+    const Float* src = pArray->GetPayload();
+
 #ifdef SK_SCALAR_IS_FIXED
-	SkFixed array[20];
-	for (int i = 0; i < 20; i++) {
-	    array[i] = SkFloatToScalar(src[i]);
-	}
-	return new SkColorMatrixFilter(array);
+    SkFixed array[20];
+    for (int i = 0; i < 20; i++) {
+        array[i] = SkFloatToScalar(src[i]);
+    }
+    return new SkColorMatrixFilter(array);
 #else
-	return new SkColorMatrixFilter(src);
+    return new SkColorMatrixFilter(src);
 #endif
 }

@@ -13,9 +13,9 @@ public:
         /* [in] */ Float deviation);
 
 private:
-    static CARAPI_(SkPathEffect*) nativeCreate(Float length, Float deviation);
+    static CARAPI_(SkPathEffect*) NativeCreate(
+        /* [in] */ Float length,
+        /* [in] */ Float deviation);
 };
-
-
 
 #endif // __CDISCRETEPATHEFFECT_H__

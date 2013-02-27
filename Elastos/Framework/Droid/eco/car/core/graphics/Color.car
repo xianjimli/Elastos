@@ -15,48 +15,48 @@ module
     const COLOR_TRANSPARENT = 0;
 
     interface IColor {
-        alpha(
+        Alpha(
             [in] Int32 color,
             [out] Int32* alpha);
 
-        red(
+        Red(
             [in] Int32 color,
             [out] Int32* red);
 
-        green(
+        Green(
             [in] Int32 color,
             [out] Int32* green);
 
-        blue(
+        Blue(
             [in] Int32 color,
             [out] Int32* blue);
 
-        rgb(
+        Rgb(
             [in] Int32 red,
             [in] Int32 green,
             [in] Int32 blue,
             [out] Int32* rgb);
 
-        argb(
+        Argb(
             [in] Int32 alpha,
             [in] Int32 red,
             [in] Int32 green,
             [in] Int32 blue,
             [out] Int32* argb);
 
-        hue(
+        Hue(
             [in] Int32 color,
             [out] Float* h);
 
-        saturation(
+        Saturation(
             [in] Int32 color,
             [out] Float* s);
 
-        brightness(
+        Brightness(
             [in] Int32 color,
             [out] Float* b);
 
-        parseColor(
+        ParseColor(
             [in] Int32 colorString,
             [out] Int32* color);
 
@@ -76,7 +76,7 @@ module
             [in] Int32 blue,
             [out, callee] ArrayOf<Float>* hsv);
 
-        colorToHSV(
+        ColorToHSV(
             [in] Int32 color,
             [out, callee] ArrayOf<Float>* hsv);
 
@@ -89,5 +89,4 @@ module
             [in] ArrayOf<Float> hsv,
             [out] Int32* color);
         }
-
 }

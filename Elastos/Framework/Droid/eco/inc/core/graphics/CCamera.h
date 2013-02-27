@@ -9,31 +9,31 @@
 CarClass(CCamera)
 {
 public:
-    CARAPI save();
+    CARAPI Save();
 
-    CARAPI restore();
+    CARAPI Restore();
 
-    CARAPI translate(
+    CARAPI Translate(
         /* [in] */ Float x,
         /* [in] */ Float y,
         /* [in] */ Float z);
 
-    CARAPI rotateX(
+    CARAPI RotateX(
         /* [in] */ Float deg);
 
-    CARAPI rotateY(
+    CARAPI RotateY(
         /* [in] */ Float deg);
 
-    CARAPI rotateZ(
+    CARAPI RotateZ(
         /* [in] */ Float deg);
 
-    CARAPI getMatrix(
+    CARAPI GetMatrix(
         /* [in] */ IMatrix * pMatrix);
 
-    CARAPI applyToCanvas(
+    CARAPI ApplyToCanvas(
         /* [in] */ ICanvas * pCanvas);
 
-    CARAPI dotWithNormal(
+    CARAPI DotWithNormal(
         /* [in] */ Float dx,
         /* [in] */ Float dy,
         /* [in] */ Float dz,
@@ -45,16 +45,16 @@ private:
     // TODO: Add your private member variables here.
     Int32 native_instance;
 
-	Sk3DView*  mView;
-    
-    CARAPI nativeConstructor();
+    Sk3DView*  mView;
 
-    CARAPI nativeDestructor();
+    CARAPI NativeConstructor();
 
-    CARAPI nativeGetMatrix(
+    CARAPI NativeDestructor();
+
+    CARAPI NativeGetMatrix(
         /* [in] */ Int32 native_matrix);
 
-    CARAPI nativeApplyToCanvas(
+    CARAPI NativeApplyToCanvas(
         /* [in] */ Int32 native_canvas);
 };
 

@@ -9,7 +9,7 @@
  * @return the number of bits per pixel of the given format or -1 if the
  *         format doesn't exist or is not supported.
 */
-ECode CImageFormat::getBitsPerPixel(
+ECode CImageFormat::GetBitsPerPixel(
     /* [in] */ Int32 format,
     /* [out] */ Int32 * pBits)
 {
@@ -26,7 +26,7 @@ ECode CImageFormat::getBitsPerPixel(
             *pBits = 12;
         default:
         return E_NOT_IMPLEMENTED;
-        }
+    }
 
     return NOERROR;
 }

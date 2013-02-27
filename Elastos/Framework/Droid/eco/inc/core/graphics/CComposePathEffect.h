@@ -13,9 +13,9 @@ public:
         /* [in] */ IPathEffect * pInnerpe);
 
 private:
-    static SkPathEffect* nativeCreate(
-                SkPathEffect* outerpe,
-                SkPathEffect* innerpe);
+    static SkPathEffect* NativeCreate(
+        /* [in] */ SkPathEffect* outerpe,
+        /* [in] */ SkPathEffect* innerpe);
 };
 
 #endif // __CCOMPOSEPATHEFFECT_H__

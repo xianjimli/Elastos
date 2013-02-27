@@ -8,43 +8,43 @@
 CarClass(CColorMatrix)
 {
 public:
-    CARAPI getArray(
+    CARAPI GetArray(
         /* [out, callee] */ ArrayOf<Float> ** ppPArray);
 
-    CARAPI reset();
+    CARAPI Reset();
 
-    CARAPI set(
+    CARAPI Set(
         /* [in] */ IColorMatrix * pSrc);
 
-    CARAPI setEx(
+    CARAPI SetEx(
         /* [in] */ const ArrayOf<Float> & src);
 
-    CARAPI setScale(
+    CARAPI SetScale(
         /* [in] */ Float rScale,
         /* [in] */ Float gScale,
         /* [in] */ Float bScale,
         /* [in] */ Float aScale);
 
-    CARAPI setRotate(
+    CARAPI SetRotate(
         /* [in] */ Int32 axis,
         /* [in] */ Float degrees);
 
-    CARAPI setConcat(
+    CARAPI SetConcat(
         /* [in] */ IColorMatrix * pMatA,
         /* [in] */ IColorMatrix * pMatB);
 
-    CARAPI preConcat(
+    CARAPI PreConcat(
         /* [in] */ IColorMatrix * pPrematrix);
 
-    CARAPI postConcat(
+    CARAPI PostConcat(
         /* [in] */ IColorMatrix * pPostmatrix);
 
-    CARAPI setSaturation(
+    CARAPI SetSaturation(
         /* [in] */ Float sat);
 
-    CARAPI setRGB2YUV();
+    CARAPI SetRGB2YUV();
 
-    CARAPI setYUV2RGB();
+    CARAPI SetYUV2RGB();
 
     CARAPI constructor();
 

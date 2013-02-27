@@ -1,10 +1,7 @@
 
 module
 {
-    interface IPathEffect;
-    interface IDiscretePathEffect {
-
+    interface IDiscretePathEffect extends IPathEffect {
 
     }
-
 }

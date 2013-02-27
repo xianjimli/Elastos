@@ -13,9 +13,9 @@ public:
         /* [in] */ Int32 setBits);
 
 private:
-    static CARAPI_(SkDrawFilter*) nativeConstructor(
-                                        Int32 clearBits,
-                                        Int32 setBits);
+    static CARAPI_(SkDrawFilter*) NativeConstructor(
+        /* [in] */ Int32 clearBits,
+        /* [in] */ Int32 setBits);
 };
 
 #endif // __CPAINTFLAGSDRAWFILTER_H__

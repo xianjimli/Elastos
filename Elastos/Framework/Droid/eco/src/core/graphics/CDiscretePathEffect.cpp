@@ -6,12 +6,17 @@ ECode CDiscretePathEffect::constructor(
     /* [in] */ Float segmentLength,
     /* [in] */ Float deviation)
 {
-    mNativeInstance = nativeCreate(segmentLength, deviation);
+    mNativeInstance = NativeCreate(
+                        segmentLength,
+                        deviation);
     return NOERROR;
 }
 
-SkPathEffect* CDiscretePathEffect::nativeCreate(float length, float deviation)
+SkPathEffect* CDiscretePathEffect::NativeCreate(
+    /* [in] */ Float length,
+    /* [in] */ Float deviation)
 {
-	return new SkDiscretePathEffect(SkFloatToScalar(length),
-																	SkFloatToScalar(deviation));
+    return new SkDiscretePathEffect(
+                SkFloatToScalar(length),
+                SkFloatToScalar(deviation));
 }

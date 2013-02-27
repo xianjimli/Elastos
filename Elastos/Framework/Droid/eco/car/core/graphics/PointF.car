@@ -1,35 +1,34 @@
 
 module
 {
-
     interface IPointF {
+        Set(
+            [in] Float x,
+            [in] Float y);
 
-    set(
-        [in] Float x,
-        [in] Float y);
+        SetEx(
+            [in] IPointF* p);
 
-    setEx(
-        [in] IPointF* p);
+        Negate();
 
-    negate();
+        Offset(
+            [in] Float dx,
+            [in] Float dy);
 
-    offset(
-        [in] Float dx,
-        [in] Float dy);
+        Equals(
+            [in] Float x,
+            [in] Float y,
+            [out] Boolean* result);
 
-    equals(
-        [in] Float x,
-        [in] Float y,
-        [out] Boolean* result);
-
-    lengthEx(
-        [out] Float* length);
-
-    length(
-        [in] Float x,
-        [in] Float y,
-        [out] Float* length);
+        Length(
+            [out] Float* length);
 
     }
 
+    interface IPointFHelper {
+        Length(
+            [in] Float x,
+            [in] Float y,
+            [out] Float* length);
+    }
 }

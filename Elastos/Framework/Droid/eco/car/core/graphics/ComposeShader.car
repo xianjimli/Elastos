@@ -1,9 +1,7 @@
 
 module
 {
+    interface IComposeShader extends IShader {
 
-    interface IComposeShader {
-    	
     }
-
 }

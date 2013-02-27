@@ -1,48 +1,43 @@
 
 module
 {
-
-    const COLORMATRIXARRAYCOUNT = 20;
     interface IColorMatrix {
+        GetArray(
+            [out, callee] ArrayOf<Float>* pArray);
 
-    getArray(
-        [out, callee] ArrayOf<Float>* pArray);
+        Reset();
 
-    reset();
+        Set(
+            [in] IColorMatrix* src);
 
-    set(
-        [in] IColorMatrix* src);
+        SetEx(
+            [in] ArrayOf<Float> src);
 
-    setEx(
-        [in] ArrayOf<Float> src);
+        SetScale(
+            [in] Float rScale,
+            [in] Float gScale,
+            [in] Float bScale,
+            [in] Float aScale);
 
-    setScale(
-        [in] Float rScale,
-        [in] Float gScale,
-        [in] Float bScale,
-        [in] Float aScale);
+        SetRotate(
+            [in] Int32 axis,
+            [in] Float degrees);
 
-    setRotate(
-        [in] Int32 axis,
-        [in] Float degrees);
+        SetConcat(
+            [in] IColorMatrix* matA,
+            [in] IColorMatrix* matB);
 
-    setConcat(
-        [in] IColorMatrix* matA,
-        [in] IColorMatrix* matB);
+        PreConcat(
+            [in] IColorMatrix* prematrix);
 
-    preConcat(
-        [in] IColorMatrix* prematrix);
+        PostConcat(
+            [in] IColorMatrix* postmatrix);
 
-    postConcat(
-        [in] IColorMatrix* postmatrix);
+        SetSaturation(
+            [in] Float sat);
 
-    setSaturation(
-        [in] Float sat);
+        SetRGB2YUV();
 
-    setRGB2YUV();
-
-    setYUV2RGB();
-
+        SetYUV2RGB();
     }
-
 }

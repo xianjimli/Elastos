@@ -12,7 +12,8 @@ public:
         /* [in] */ Int32 opColor);
 
 private:
-    static SkXfermode* nativeCreate(Int32 opColor);
+    static SkXfermode* NativeCreate(
+        /* [in] */ Int32 opColor);
 };
 
 #endif // __CPIXELXORXFERMODE_H__

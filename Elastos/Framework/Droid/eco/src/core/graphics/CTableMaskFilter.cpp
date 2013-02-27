@@ -8,7 +8,7 @@ ECode CTableMaskFilter::CreateClipTable(
     /* [out] */ ITableMaskFilter ** ppTf)
 {
 
-    New(nativeNewClip(min, max), ppTf);
+    New(NativeNewClip(min, max), ppTf);
 
     return NOERROR;
 }
@@ -17,7 +17,7 @@ ECode CTableMaskFilter::CreateGammaTable(
     /* [in] */ Float gamma,
     /* [out] */ ITableMaskFilter ** ppTf)
 {
-    New(nativeNewGamma(gamma), ppTf);
+    New(NativeNewGamma(gamma), ppTf);
     return NOERROR;
 }
 
@@ -35,27 +35,31 @@ ECode CTableMaskFilter::constructor(
         return E_RUNTIME_EXCEPTION;
     }
 
-    mNativeInstance = nativeNewTable(table);
+    mNativeInstance = NativeNewTable(table);
     return NOERROR;
 }
 
-SkMaskFilter* CTableMaskFilter::nativeNewTable(const ArrayOf<Byte> & table)
+SkMaskFilter* CTableMaskFilter::NativeNewTable(
+    /* [in] */ const ArrayOf<Byte> & table)
 {
-	SkASSERT(table);
+    SkASSERT(table);
 
-	if (table.GetLength() < 256) {
-		return NULL;
-	}
-	
-	return new SkTableMaskFilter((const uint8_t*)table.GetPayload());
+    if (table.GetLength() < 256) {
+        return NULL;
+    }
+
+    return new SkTableMaskFilter((const uint8_t*)table.GetPayload());
 }
 
-Int32 CTableMaskFilter::nativeNewClip(Int32 min, Int32 max)
+Int32 CTableMaskFilter::NativeNewClip(
+    /* [in] */ Int32 min,
+    /* [in] */ Int32 max)
 {
     return (Int32)SkTableMaskFilter::CreateClip(min, max);
 }
 
-Int32 CTableMaskFilter::nativeNewGamma(Float gamma)
+Int32 CTableMaskFilter::NativeNewGamma(
+    /* [in] */ Float gamma)
 {
     return (Int32)SkTableMaskFilter::CreateGamma(gamma);
 }

@@ -4,7 +4,7 @@
 #include "graphics/CRect.h"
 
 
-ECode CRegionIterator::next(
+ECode CRegionIterator::Next(
     /* [in] */ IRect * pR,
     /* [out] */ Boolean * pResult)
 {
@@ -12,14 +12,14 @@ ECode CRegionIterator::next(
         return E_NULL_POINTER_EXCEPTION;
     }
 
-    *pResult = nativeNext(mNativeIter, pR);
+    *pResult = NativeNext(mNativeIter, pR);
 
     return NOERROR;
 }
 
-ECode CRegionIterator::finalize()
+ECode CRegionIterator::Finalize()
 {
-    nativeDestructor(mNativeIter);
+    NativeDestructor(mNativeIter);
 
     return NOERROR;
 }
@@ -27,42 +27,45 @@ ECode CRegionIterator::finalize()
 ECode CRegionIterator::constructor(
     /* [in] */ IRegion * pRegion)
 {
-    mNativeIter = nativeConstructor(((CRegion*)pRegion)->Ni());
+    mNativeIter = NativeConstructor(((CRegion*)pRegion)->Ni());
 
     return NOERROR;
 }
 
-RgnIterPair* CRegionIterator::nativeConstructor(SkRegion* native_region)
+RgnIterPair* CRegionIterator::NativeConstructor(
+    /* [in] */ SkRegion* native_region)
 {
-    SkASSERT(native_region);    
+    SkASSERT(native_region);
     return new RgnIterPair(*native_region);
 }
 
-void CRegionIterator::nativeDestructor(RgnIterPair* native_iter) 
+void CRegionIterator::NativeDestructor(
+    /* [in] */ RgnIterPair* native_iter)
 {
-	SkASSERT(native_iter);
-	delete native_iter;
+    SkASSERT(native_iter);
+    delete native_iter;
 }
 
-Boolean CRegionIterator::nativeNext(RgnIterPair* native_iter, IRect* r)
+Boolean CRegionIterator::NativeNext(
+    /* [in] */ RgnIterPair* native_iter,
+    /* [in] */ IRect* r)
 {
-	// the caller has checked that rectObject is not nul
-	SkASSERT(native_iter);
-	SkASSERT(r);
+    // the caller has checked that rectObject is not nul
+    SkASSERT(native_iter);
+    SkASSERT(r);
 
-	RgnIterPair* pair = native_iter;
-	
-	if (!pair->fIter.done()) {
-			const SkIRect  Rect = pair->fIter.rect();
-			
-			((CRect*)r)->mLeft = Rect.fLeft;
-			((CRect*)r)->mTop = Rect.fTop;
-			((CRect*)r)->mRight = Rect.fRight;
-			((CRect*)r)->mBottom = Rect.fBottom;
-			
-			pair->fIter.next();
-			return true;
-	}
-	
-	return false;
+    RgnIterPair* pair = native_iter;
+
+    if (!pair->fIter.done()) {
+        const SkIRect  Rect = pair->fIter.rect();
+
+        ((CRect*)r)->mLeft = Rect.fLeft;
+        ((CRect*)r)->mTop = Rect.fTop;
+        ((CRect*)r)->mRight = Rect.fRight;
+        ((CRect*)r)->mBottom = Rect.fBottom;
+
+        pair->fIter.next();
+        return true;
+    }
+    return false;
 }

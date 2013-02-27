@@ -12,31 +12,32 @@ ECode CEmbossMaskFilter::constructor(
         return E_ARRAY_INDEX_OUT_OF_BOUNDS_EXCEPTION;
     }
 
-    mNativeInstance = nativeConstructor(direction, ambient, specular, blurRadius);
+    mNativeInstance = NativeConstructor(direction, ambient, specular, blurRadius);
 
     return E_NOT_IMPLEMENTED;
 }
 
-SkMaskFilter* CEmbossMaskFilter::nativeConstructor(
-            const ArrayOf<Float> & dirArray,
-            Float ambient,
-            Float specular,
-            Float blurRadius)
+SkMaskFilter* CEmbossMaskFilter::NativeConstructor(
+    /* [in] */ const ArrayOf<Float> & dirArray,
+    /* [in] */ Float ambient,
+    /* [in] */ Float specular,
+    /* [in] */ Float blurRadius)
 {
-	SkASSERT(dirArray);
+    SkASSERT(dirArray);
 
-	if (dirArray.GetLength() < 3) {
-		return NULL;
-	}
-	
-	SkScalar direction[3];	
-	for (int i = 0; i < 3; i++) {
-	    direction[i] = SkFloatToScalar(dirArray[i]);
-	}
+    if (dirArray.GetLength() < 3) {
+        return NULL;
+    }
 
-	SkMaskFilter* filter =  SkBlurMaskFilter::CreateEmboss(direction,
-	                                              SkFloatToScalar(ambient),
-	                                              SkFloatToScalar(specular),
-	                                              SkFloatToScalar(blurRadius));	
-	return filter;
+    SkScalar direction[3];
+    for (int i = 0; i < 3; i++) {
+        direction[i] = SkFloatToScalar(dirArray[i]);
+    }
+
+    SkMaskFilter* filter =  SkBlurMaskFilter::CreateEmboss(
+                                direction,
+                                SkFloatToScalar(ambient),
+                                SkFloatToScalar(specular),
+                                SkFloatToScalar(blurRadius));
+    return filter;
 }

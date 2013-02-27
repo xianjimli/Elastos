@@ -9,45 +9,24 @@ CarClass(CBitmapRegionDecoder)
 {
 public:
     ~CBitmapRegionDecoder();
-    CARAPI newInstance(
-        /* [in] */ const ArrayOf<Byte> & data,
-        /* [in] */ Int32 offset,
-        /* [in] */ Int32 length,
-        /* [in] */ Boolean isShareable,
-        /* [out] */ IBitmapRegionDecoder ** ppIBrd);
 
-    CARAPI newInstanceEx(
-        /* [in] */ IFileDescriptor * pFd,
-        /* [in] */ Boolean isShareable,
-        /* [out] */ IBitmapRegionDecoder ** ppIBrd);
-
-    CARAPI newInstanceEx2(
-        /* [in] */ IInputStream * pIs,
-        /* [in] */ Boolean isShareable,
-        /* [out] */ IBitmapRegionDecoder ** ppIBrd);
-
-    CARAPI newInstanceEx3(
-        /* [in] */ const String& pathName,
-        /* [in] */ Boolean isShareable,
-        /* [out] */ IBitmapRegionDecoder ** ppIBrd);
-
-    CARAPI decodeRegion(
+    CARAPI DecodeRegion(
         /* [in] */ IRect * pRect,
         /* [in] */ IBitmapFactoryOptions * pOptions,
         /* [out] */ IBitmap ** ppBitmap);
 
-    CARAPI getWidth(
+    CARAPI GetWidth(
         /* [out] */ Int32 * pWidth);
 
-    CARAPI getHeight(
+    CARAPI GetHeight(
         /* [out] */ Int32 * pHeight);
 
-    CARAPI recycle();
+    CARAPI Recycle();
 
-    CARAPI isRecycled(
+    CARAPI IsRecycled(
         /* [out] */ Boolean * pResult);
 
-    CARAPI checkRecycled(
+    CARAPI CheckRecycled(
         /* [in] */ const String& errorMessage);
 
     CARAPI constructor(
@@ -57,34 +36,22 @@ private:
     SkBitmapRegionDecoder* mNativeBitmapRegionDecoder;
     Boolean mRecycled;
 
-    static IBitmap* nativeDecodeRegion(
-                        SkBitmapRegionDecoder* brd,
-                        Int32 start_x,
-                        Int32 start_y,
-                        Int32 width,
-                        Int32 height,
-                        IBitmapFactoryOptions* options);
-    static Int32 nativeGetWidth(SkBitmapRegionDecoder* brd);
-    static Int32 nativeGetHeight(SkBitmapRegionDecoder* brd);
-    static void nativeClean(SkBitmapRegionDecoder* brd);
+    static IBitmap* NativeDecodeRegion(
+        /* [in] */ SkBitmapRegionDecoder* brd,
+        /* [in] */ Int32 start_x,
+        /* [in] */ Int32 start_y,
+        /* [in] */ Int32 width,
+        /* [in] */ Int32 height,
+        /* [in] */ IBitmapFactoryOptions* options);
 
-    static IBitmapRegionDecoder* nativeNewInstance(
-                        const ArrayOf<Byte> & data,
-                        Int32 offset,
-                        Int32 length,
-                        Boolean isShareable);
-    static IBitmapRegionDecoder* nativeNewInstance(
-                        IFileDescriptor* fd,
-                        Boolean isShareable);
-    static IBitmapRegionDecoder* nativeNewInstance(
-                        IInputStream* is,
-                        //ArrayOf<Byte> & storage,
-                        Byte* storage,
-                        Boolean isShareable);
-    static IBitmapRegionDecoder* nativeNewInstance(
-                        Int32 asset,
-                        Boolean isShareable);
+    static Int32 NativeGetWidth(
+        /* [in] */ SkBitmapRegionDecoder* brd);
 
+    static Int32 NativeGetHeight(
+        /* [in] */ SkBitmapRegionDecoder* brd);
+
+    static void NativeClean(
+        /* [in] */ SkBitmapRegionDecoder* brd);
 };
 
 #endif // __CBITMAPREGIONDECODER_H__

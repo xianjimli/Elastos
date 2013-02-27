@@ -28,12 +28,12 @@ public:
 
 private:
     // TODO: Add your private member variables here.
-    static CARAPI_(SkShader*) nativeCreate1(
+    static CARAPI_(SkShader*) NativeCreate1(
         /* [in] */ SkShader * native_shaderA,
         /* [in] */ SkShader * native_shaderB,
         /* [in] */ SkXfermode * native_mode);
 
-    static CARAPI_(SkShader*) nativeCreate2(
+    static CARAPI_(SkShader*) NativeCreate2(
         /* [in] */ SkShader * native_shaderA,
         /* [in] */ SkShader * native_shaderB,
         /* [in] */ Int32 porterDuffMode);

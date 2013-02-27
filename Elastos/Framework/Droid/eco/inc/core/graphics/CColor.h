@@ -7,48 +7,48 @@
 CarClass(CColor)
 {
 public:
-    CARAPI alpha(
+    CARAPI Alpha(
         /* [in] */ Int32 color,
         /* [out] */ Int32 * pAlpha);
 
-    CARAPI red(
+    CARAPI Red(
         /* [in] */ Int32 color,
         /* [out] */ Int32 * pRed);
 
-    CARAPI green(
+    CARAPI Green(
         /* [in] */ Int32 color,
         /* [out] */ Int32 * pGreen);
 
-    CARAPI blue(
+    CARAPI Blue(
         /* [in] */ Int32 color,
         /* [out] */ Int32 * pBlue);
 
-    CARAPI rgb(
+    CARAPI Rgb(
         /* [in] */ Int32 red,
         /* [in] */ Int32 green,
         /* [in] */ Int32 blue,
         /* [out] */ Int32 * pRgb);
 
-    CARAPI argb(
+    CARAPI Argb(
         /* [in] */ Int32 alpha,
         /* [in] */ Int32 red,
         /* [in] */ Int32 green,
         /* [in] */ Int32 blue,
         /* [out] */ Int32 * pArgb);
 
-    CARAPI hue(
+    CARAPI Hue(
         /* [in] */ Int32 color,
         /* [out] */ Float * pH);
 
-    CARAPI saturation(
+    CARAPI Saturation(
         /* [in] */ Int32 color,
         /* [out] */ Float * pS);
 
-    CARAPI brightness(
+    CARAPI Brightness(
         /* [in] */ Int32 color,
         /* [out] */ Float * pB);
 
-    CARAPI parseColor(
+    CARAPI ParseColor(
         /* [in] */ Int32 colorString,
         /* [out] */ Int32 * pColor);
 
@@ -68,7 +68,7 @@ public:
         /* [in] */ Int32 blue,
         /* [out, callee] */ ArrayOf<Float> ** ppHsv);
 
-    CARAPI colorToHSV(
+    CARAPI ColorToHSV(
         /* [in] */ Int32 color,
         /* [out, callee] */ ArrayOf<Float> ** ppHsv);
 
@@ -84,8 +84,15 @@ public:
     CARAPI constructor();
 
 private:
-    static CARAPI_(void) nativeRGBToHSV(Int32 red, Int32 green, Int32 blue, ArrayOf<Float> ** hsvArray);
-    static CARAPI_(Int32) nativeHSVToColor(Int32 alpha, const ArrayOf<Float> & hsvArray);
+    static CARAPI_(void) NativeRGBToHSV(
+        /* [in] */ Int32 red,
+        /* [in] */ Int32 green,
+        /* [in] */ Int32 blue,
+        /* [in] */ ArrayOf<Float> ** hsvArray);
+
+    static CARAPI_(Int32) NativeHSVToColor(
+        /* [in] */ Int32 alpha,
+        /* [in] */ const ArrayOf<Float> & hsvArray);
 
     // HashMap<String, Integer> sColorNameMap;
 

@@ -1,8 +1,6 @@
 
 module
 {
-    interface IPathEffect;
-
     interface IDashPathEffect extends IPathEffect {
     }
 }

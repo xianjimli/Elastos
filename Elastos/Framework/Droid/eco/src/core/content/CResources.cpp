@@ -12,6 +12,7 @@
 #include "utils/XmlUtils.h"
 #include "view/CDisplay.h"
 #include "graphics/CMovie.h"
+#include "graphics/CMovieHelper.h"
 #include "graphics/drawable/CColorDrawable.h"
 #include <Logger.h>
 #include <elastos/Locale.h>
@@ -363,7 +364,10 @@ ECode CResources::GetMovie(
 
     AutoPtr<IInputStream> is;
     OpenRawResource(id, (IInputStream**)&is);
-    ECode ec = CMovie::DecodeStream(is, movie);
+		
+	IMovieHelper* pIMoiveHelper;
+	CMovieHelper::AcquireSingleton(&pIMoiveHelper);
+    ECode ec = pIMoiveHelper->DecodeStream(is, movie);
     is->Close(); // don't care, since the return value is valid
 
     return ec;

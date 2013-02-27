@@ -7,39 +7,36 @@ module
     interface IPath;
     interface IMatrix;
     interface IPathMeasure {
-
-        setPath(
+        SetPath(
             [in] IPath* path,
             [in] Boolean forceClosed);
 
-        getLength(
+        GetLength(
             [out] Float* length);
 
-        getPosTan(
+        GetPosTan(
             [in] Float distance,
             [out, callee] ArrayOf<Float>* pos,
             [out, callee] ArrayOf<Float>* tan,
             [out] Boolean* result);
 
-        getMatrix(
+        GetMatrix(
             [in] Float distance,
             [in] IMatrix* matrix,
             [in] Int32 flags,
             [out] Boolean* result);
 
-        getSegment(
+        GetSegment(
             [in] Float startD,
             [in] Float stopD,
             [in] IPath* dst,
             [in] Boolean startWithMoveTo,
             [out] Boolean* result);
 
-        isClosed(
+        IsClosed(
             [out] Boolean* result);
 
-
-        nextContour(
+        NextContour(
             [out] Boolean* result);
     }
-
 }

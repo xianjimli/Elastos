@@ -5,11 +5,13 @@
 ECode CCornerPathEffect::constructor(
     /* [in] */ Float radius)
 {
-    mNativeInstance = nativeCreate(radius);
+    mNativeInstance = NativeCreate(radius);
     return NOERROR;
 }
 
-SkPathEffect* CCornerPathEffect::nativeCreate(Float radius)
+SkPathEffect* CCornerPathEffect::NativeCreate(
+    /* [in] */ Float radius)
 {
-    return new SkCornerPathEffect(SkFloatToScalar(radius));
+    return new SkCornerPathEffect(
+                SkFloatToScalar(radius));
 }

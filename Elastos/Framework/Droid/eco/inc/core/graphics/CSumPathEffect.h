@@ -13,7 +13,9 @@ public:
         /* [in] */ IPathEffect * pSecond);
 
 private:
-    static CARAPI_(SkPathEffect*) nativeCreate(SkPathEffect* first, SkPathEffect* second);
+    static CARAPI_(SkPathEffect*) NativeCreate(
+        /* [in] */ SkPathEffect* first,
+        /* [in] */ SkPathEffect* second);
 };
 
 #endif // __CSUMPATHEFFECT_H__

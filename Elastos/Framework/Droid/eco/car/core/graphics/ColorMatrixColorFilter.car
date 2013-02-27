@@ -1,9 +1,7 @@
 
 module
 {
+    interface IColorMatrixColorFilter extends IColorFilter {
 
-    interface IColorMatrixColorFilter {
-    	
     }
-
 }

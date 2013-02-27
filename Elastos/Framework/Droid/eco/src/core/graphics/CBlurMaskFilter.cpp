@@ -13,14 +13,17 @@ ECode CBlurMaskFilter::constructor(
     /* [in] */ Float radius,
     /* [in] */ Int32 style)
 {
-    mNativeInstance = nativeConstructor(radius, style);
+    mNativeInstance = NativeConstructor(radius, style);
     return NOERROR;
 }
 
-SkMaskFilter* CBlurMaskFilter::nativeConstructor(Float radius, Int32 style)
+SkMaskFilter* CBlurMaskFilter::NativeConstructor(
+    /* [in] */ Float radius,
+    /* [in] */ Int32 style)
 {
-	SkMaskFilter* filter = SkBlurMaskFilter::Create(SkFloatToScalar(radius),
-	                            (SkBlurMaskFilter::BlurStyle)style);
-	
-	return filter;
+    SkMaskFilter* filter = SkBlurMaskFilter::Create(
+                                SkFloatToScalar(radius),
+                                (SkBlurMaskFilter::BlurStyle)style);
+
+    return filter;
 }

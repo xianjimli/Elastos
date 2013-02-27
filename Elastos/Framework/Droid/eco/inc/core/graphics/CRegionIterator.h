@@ -8,7 +8,7 @@
 struct RgnIterPair {
     SkRegion            fRgn;   // a copy of the caller's region
     SkRegion::Iterator  fIter;  // an iterator acting upon the copy (fRgn)
-    
+
     RgnIterPair(const SkRegion& rgn) : fRgn(rgn) {
         // have our iterator reference our copy (fRgn), so we know it will be
         // unchanged for the lifetime of the iterator
@@ -19,19 +19,23 @@ struct RgnIterPair {
 CarClass(CRegionIterator)
 {
 public:
-    CARAPI next(
+    CARAPI Next(
         /* [in] */ IRect * pR,
         /* [out] */ Boolean * pResult);
 
-    CARAPI finalize();
+    CARAPI Finalize();
 
     CARAPI constructor(
         /* [in] */ IRegion * pRegion);
 
 private:
-    static CARAPI_(RgnIterPair*) nativeConstructor(SkRegion* native_region);
-    static CARAPI_(void) nativeDestructor(RgnIterPair* native_iter);
-    static CARAPI_(Boolean) nativeNext(RgnIterPair* native_iter, IRect* r);
+    static CARAPI_(RgnIterPair*) NativeConstructor(
+        /* [in] */ SkRegion* native_region);
+    static CARAPI_(void) NativeDestructor(
+        /* [in] */ RgnIterPair* native_iter);
+    static CARAPI_(Boolean) NativeNext(
+        /* [in] */ RgnIterPair* native_iter,
+        /* [in] */ IRect* r);
 
     RgnIterPair* mNativeIter;
 };

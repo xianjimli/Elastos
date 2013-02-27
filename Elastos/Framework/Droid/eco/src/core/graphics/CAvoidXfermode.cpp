@@ -11,13 +11,13 @@ ECode CAvoidXfermode::constructor(
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
-    mNativeInstance = nativeCreate(opColor, tolerance, mode);
+    mNativeInstance = NativeCreate(opColor, tolerance, mode);
     return NOERROR;
 }
 
-SkXfermode* CAvoidXfermode::nativeCreate(Int32 opColor,
-                                Int32 tolerance,
-                                Int32 nativeMode)
+SkXfermode* CAvoidXfermode::NativeCreate(Int32 opColor,
+    /* [in] */ Int32 tolerance,
+    /* [in] */ Int32 nativeMode)
 {
     return new SkAvoidXfermode(opColor, tolerance, (SkAvoidXfermode::Mode)nativeMode);
 }

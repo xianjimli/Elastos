@@ -1,15 +1,13 @@
 
 module
 {
-	enum PathDashPathEffectStyle {
-		PathDashPathEffect_TRANSLATE = 0,   //!< translate the shape to each position
+    enum PathDashPathEffectStyle {
+        PathDashPathEffect_TRANSLATE = 0,   //!< translate the shape to each position
         PathDashPathEffect_ROTATE = 1,      //!< rotate the shape about its center
         PathDashPathEffect_MORPH = 2       //!< transform each point, and turn lines into curves
-	}
-
-    interface IPathDashPathEffect {
-    	
-
     }
 
+    interface IPathDashPathEffect extends IPathEffect {
+
+    }
 }

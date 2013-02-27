@@ -1,13 +1,11 @@
 
 module
 {
-    interface IRegionIterator {
+    interface IRect;
 
-        next(
+    interface IRegionIterator {
+        Next(
             [in] IRect* r,
             [out] Boolean* result);
-
-        finalize();
     }
-
 }

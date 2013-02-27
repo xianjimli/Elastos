@@ -1,11 +1,13 @@
 
 #include "graphics/CPointF.h"
 #include "graphics/CPoint.h"
+#include "graphics/CPointFHelper.h"
+
 
 /**
 * Set the point's x and y coordinates
 */
-ECode CPointF::set(
+ECode CPointF::Set(
     /* [in] */ Float x,
     /* [in] */ Float y)
 {
@@ -14,7 +16,7 @@ ECode CPointF::set(
     return NOERROR;
 }
 
-ECode CPointF::setEx(
+ECode CPointF::SetEx(
     /* [in] */ IPointF * pP)
 {
     this->x = ((CPoint*)pP)->mX;
@@ -22,14 +24,14 @@ ECode CPointF::setEx(
     return NOERROR;
 }
 
-ECode CPointF::negate()
+ECode CPointF::Negate()
 {
     x = -x;
     y = -y;
     return NOERROR;
 }
 
-ECode CPointF::offset(
+ECode CPointF::Offset(
     /* [in] */ Float dx,
     /* [in] */ Float dy)
 {
@@ -38,7 +40,7 @@ ECode CPointF::offset(
     return NOERROR;
 }
 
-ECode CPointF::equals(
+ECode CPointF::Equals(
     /* [in] */ Float x,
     /* [in] */ Float y,
     /* [out] */ Boolean * pResult)
@@ -47,19 +49,13 @@ ECode CPointF::equals(
     return NOERROR;
 }
 
-ECode CPointF::lengthEx(
+ECode CPointF::Length(
     /* [out] */ Float * pLength)
 {
-    length(x, y, pLength);
-    return NOERROR;
-}
+    IPointFHelper* pPointFHelper = NULL;
+    CPointFHelper::AcquireSingleton(&pPointFHelper);
 
-ECode CPointF::length(
-    /* [in] */ Float x,
-    /* [in] */ Float y,
-    /* [out] */ Float * pLength)
-{
-    //*pLength = FloatMath.sqrt(x * x + y * y); FloatMath can not found
+    pPointFHelper->Length(x, y, pLength);
     return NOERROR;
 }
 

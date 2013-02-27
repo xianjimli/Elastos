@@ -23,7 +23,7 @@ using namespace Elastos::Core;
 * @param pAlpha: the alpha component of a color int. This is the same as saying
 * color >>> 24
 */
-ECode CColor::alpha(
+ECode CColor::Alpha(
     /* [in] */ Int32 color,
     /* [out] */ Int32 * pAlpha)
 {
@@ -35,7 +35,7 @@ ECode CColor::alpha(
 * @param pRed: the red component of a color int. This is the same as saying
 * (color >> 16) & 0xFF
 */
-ECode CColor::red(
+ECode CColor::Red(
     /* [in] */ Int32 color,
     /* [out] */ Int32 * pRed)
 {
@@ -47,7 +47,7 @@ ECode CColor::red(
 * @param pGreen: the green component of a color int. This is the same as saying
 * (color >> 8) & 0xFF
 */
-ECode CColor::green(
+ECode CColor::Green(
     /* [in] */ Int32 color,
     /* [out] */ Int32 * pGreen)
 {
@@ -59,7 +59,7 @@ ECode CColor::green(
 * Return the blue component of a color int. This is the same as saying
 * color & 0xFF
 */
-ECode CColor::blue(
+ECode CColor::Blue(
     /* [in] */ Int32 color,
     /* [out] */ Int32 * pBlue)
 {
@@ -78,7 +78,7 @@ ECode CColor::blue(
 * @param blue  Blue component [0..255] of the color
 * @param pRgb  the rgb value
 */
-ECode CColor::rgb(
+ECode CColor::Rgb(
     /* [in] */ Int32 red,
     /* [in] */ Int32 green,
     /* [in] */ Int32 blue,
@@ -99,7 +99,7 @@ ECode CColor::rgb(
 * @param blue  Blue component [0..255] of the color
 * @param pArgb  the argb value
 */
-ECode CColor::argb(
+ECode CColor::Argb(
     /* [in] */ Int32 alpha,
     /* [in] */ Int32 red,
     /* [in] */ Int32 green,
@@ -117,7 +117,7 @@ ECode CColor::argb(
 *
 * @hide Pending API council
 */
-ECode CColor::hue(
+ECode CColor::Hue(
     /* [in] */ Int32 color,
     /* [out] */ Float * pH)
 {
@@ -164,7 +164,7 @@ ECode CColor::hue(
 *
 * @hide Pending API council
 */
-ECode CColor::saturation(
+ECode CColor::Saturation(
     /* [in] */ Int32 color,
     /* [out] */ Float * pS)
 {
@@ -195,7 +195,7 @@ ECode CColor::saturation(
 *
 * @hide Pending API council
 */
-ECode CColor::brightness(
+ECode CColor::Brightness(
     /* [in] */ Int32 color,
     /* [out] */ Float * pB)
 {
@@ -218,7 +218,7 @@ ECode CColor::brightness(
 * 'red', 'blue', 'green', 'black', 'white', 'gray', 'cyan', 'magenta',
 * 'yellow', 'lightgray', 'darkgray'
 */
-ECode CColor::parseColor(
+ECode CColor::ParseColor(
     /* [in] */ Int32 colorString,
     /* [out] */ Int32 * pColor)
 {
@@ -354,7 +354,7 @@ ECode CColor::RGBToHSV(
         return E_RUNTIME_EXCEPTION;
     }
 
-    nativeRGBToHSV(red, green, blue, ppHsv);
+    NativeRGBToHSV(red, green, blue, ppHsv);
     return NOERROR;
 }
 
@@ -366,7 +366,7 @@ ECode CColor::RGBToHSV(
 * @param color the argb color to convert. The alpha component is ignored.
 * @param hsv  3 element array which holds the resulting HSV components.
 */
-ECode CColor::colorToHSV(
+ECode CColor::ColorToHSV(
     /* [in] */ Int32 color,
     /* [out, callee] */ ArrayOf<Float> ** ppHsv)
 {
@@ -410,7 +410,7 @@ ECode CColor::HSVToColorEx(
     if (hsv.GetLength() < 3) {
         return E_RUNTIME_EXCEPTION;
     }
-    *pColor = nativeHSVToColor(alpha, hsv);
+    *pColor = NativeHSVToColor(alpha, hsv);
     return NOERROR;
 }
 
@@ -420,36 +420,42 @@ ECode CColor::constructor()
     return NOERROR;
 }
 
-void CColor::nativeRGBToHSV(Int32 red, Int32 green, Int32 blue, ArrayOf<Float> ** hsvArray)
+void CColor::NativeRGBToHSV(
+    /* [in] */ Int32 red,
+    /* [in] */ Int32 green,
+    /* [in] */ Int32 blue,
+    /* [in] */ ArrayOf<Float> ** hsvArray)
 {
     SkScalar hsv[3];
     SkRGBToHSV(red, green, blue, hsv);
 
-	SkASSERT(hsvArray);
-	if ((*hsvArray)->GetLength() < 3) {
-		return;
-	}
-	
+    SkASSERT(hsvArray);
+    if ((*hsvArray)->GetLength() < 3) {
+        return;
+    }
+
     Float* values = (*hsvArray)->GetPayload();
     for (int i = 0; i < 3; i++) {
         values[i] = SkScalarToFloat(hsv[i]);
     }
 }
 
-Int32 CColor::nativeHSVToColor(Int32 alpha, const ArrayOf<Float> & hsvArray)
+Int32 CColor::NativeHSVToColor(
+    /* [in] */ Int32 alpha,
+    /* [in] */ const ArrayOf<Float> & hsvArray)
 {
-	SkASSERT(hsvArray.GetPayload());
+    SkASSERT(hsvArray.GetPayload());
 
-	if (hsvArray.GetLength() < 3) {
-		return NULL;
-	}
-	
+    if (hsvArray.GetLength() < 3) {
+        return NULL;
+    }
+
     Float* values = hsvArray.GetPayload();
     SkScalar hsv[3];
 
     for (int i = 0; i < 3; i++) {
         hsv[i] = SkFloatToScalar(values[i]);
     }
-    
+
     return SkHSVToColor(alpha, hsv);
 }

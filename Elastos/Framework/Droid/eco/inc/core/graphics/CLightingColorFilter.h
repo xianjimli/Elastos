@@ -13,7 +13,9 @@ public:
         /* [in] */ Int32 add);
 
 private:
-    static CARAPI_(SkColorFilter*) native_CreateLightingFilter(Int32 mul, Int32 add);
+    static CARAPI_(SkColorFilter*) Native_CreateLightingFilter(
+        /* [in] */ Int32 mul,
+        /* [in] */ Int32 add);
 };
 
 #endif // __CLIGHTINGCOLORFILTER_H__

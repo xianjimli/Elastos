@@ -1,50 +1,50 @@
 
 module
 {
+    interface IFileDescriptor;
+    interface IInputStream;
+    interface IRect;
+    interface IBitmapFactoryOptions;
+
     interface IBitmapRegionDecoder {
-    	
-		newInstance(
-			[in] ArrayOf<Byte> data,
-			[in] Int32 offset, 
-			[in] Int32 length, 
-			[in] Boolean isShareable,
-			[out] IBitmapRegionDecoder** IBrd);
+        DecodeRegion(
+            [in] IRect* rect,
+            [in] IBitmapFactoryOptions* options,
+            [out] IBitmap** bitmap);
 
-		newInstanceEx(
-			[in] IFileDescriptor* fd,
-			[in] Boolean isShareable,
-			[out] IBitmapRegionDecoder** IBrd);
+        GetWidth(
+            [out] Int32* width);
 
-		newInstanceEx2(
-			[in] IInputStream* is,
-			[in] Boolean isShareable,
-			[out] IBitmapRegionDecoder** IBrd);
+        GetHeight(
+            [out] Int32* height);
 
-		newInstanceEx3(
-			[in] String pathName,
-			[in] Boolean isShareable,
-			[out] IBitmapRegionDecoder** IBrd);
+        Recycle();
 
-		decodeRegion(
-			[in] IRect* rect,
-			[in] IBitmapFactoryOptions* options,
-			[out] IBitmap** bitmap); 
-
-		getWidth(
-			[out] Int32* width); 
-
-		getHeight(
-			[out] Int32* height);
-
-		recycle();
-
-		isRecycled(
-			[out] Boolean* result);
-
-		checkRecycled(
-			[in] String errorMessage);
-
-
+        IsRecycled(
+            [out] Boolean* result);
     }
 
+    interface IBitmapRegionDecoderHelper {
+        NewInstance(
+            [in] ArrayOf<Byte> data,
+            [in] Int32 offset,
+            [in] Int32 length,
+            [in] Boolean isShareable,
+            [out] IBitmapRegionDecoder** IBrd);
+
+        NewInstanceEx(
+            [in] IFileDescriptor* fd,
+            [in] Boolean isShareable,
+            [out] IBitmapRegionDecoder** IBrd);
+
+        NewInstanceEx2(
+            [in] IInputStream* is,
+            [in] Boolean isShareable,
+            [out] IBitmapRegionDecoder** IBrd);
+
+        NewInstanceEx3(
+            [in] String pathName,
+            [in] Boolean isShareable,
+            [out] IBitmapRegionDecoder** IBrd);
+    }
 }

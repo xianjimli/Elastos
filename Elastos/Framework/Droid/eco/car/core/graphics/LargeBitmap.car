@@ -1,27 +1,24 @@
 
 module
 {
-
     interface ILargeBitmap {
-        decodeRegion(
+        DecodeRegion(
             [in] IRect* rect,
             [in] IBitmapFactoryOptions* options,
             [out] IBitmap** Bitmap);
 
-        getWidth(
+        GetWidth(
             [out] Int32* length);
 
-        getHeight(
+        GetHeight(
             [out] Int32* height);
 
-        recycle();
+        Recycle();
 
-        isRecycled(
+        IsRecycled(
             [out] Boolean* result);
 
-        checkRecycled(
+        CheckRecycled(
             [in] Int32 errorMessage);
-
     }
-
 }

@@ -5,11 +5,12 @@
 ECode CPixelXorXfermode::constructor(
     /* [in] */ Int32 opColor)
 {
-    mNativeInstance = nativeCreate(opColor);
+    mNativeInstance = NativeCreate(opColor);
     return NOERROR;
 }
 
-SkXfermode* CPixelXorXfermode::nativeCreate(Int32 opColor)
+SkXfermode* CPixelXorXfermode::NativeCreate(
+    /* [in] */ Int32 opColor)
 {
     return new SkPixelXorXfermode(opColor);
 }

@@ -10,24 +10,23 @@
 CarClass(CLayerRasterizer), public Rasterizer
 {
 public:
-    CARAPI addLayer(
+    CARAPI AddLayer(
         /* [in] */ IPaint * pPaint,
         /* [in] */ Float dx,
         /* [in] */ Float dy);
 
-    CARAPI addLayerEx(
+    CARAPI AddLayerEx(
         /* [in] */ IPaint * pPaint);
 
     CARAPI constructor();
 
 private:
-    static CARAPI_(SkLayerRasterizer*)nativeConstructor();
-    static CARAPI_(void)nativeAddLayer(
-                                    SkRasterizer* native_layer,
-                                    SkPaint* native_paint,
-                                    Float dx,
-                                    Float dy);
-
+    static CARAPI_(SkLayerRasterizer*)NativeConstructor();
+    static CARAPI_(void)NativeAddLayer(
+        /* [in] */ SkRasterizer* native_layer,
+        /* [in] */ SkPaint* native_paint,
+        /* [in] */ Float dx,
+        /* [in] */ Float dy);
 };
 
 #endif // __CLAYERRASTERIZER_H__

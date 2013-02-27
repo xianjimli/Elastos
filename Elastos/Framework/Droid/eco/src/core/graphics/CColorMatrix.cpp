@@ -7,7 +7,7 @@
 /**
 * @Parma ppPArray :the array of floats representing this colormatrix.
 */
-ECode CColorMatrix::getArray(
+ECode CColorMatrix::GetArray(
     /* [out, callee] */ ArrayOf<Float> ** ppPArray)
 {
     *ppPArray = (*mArray).Clone();
@@ -21,7 +21,7 @@ ECode CColorMatrix::getArray(
 *   0 0 1 0 0   - blue vector
 *   0 0 0 1 0 ] - alpha vector
 */
-ECode CColorMatrix::reset()
+ECode CColorMatrix::Reset()
 {
     //AutoPtr< ArrayOf<Float> > a = mArray;
 
@@ -35,29 +35,29 @@ ECode CColorMatrix::reset()
 /**
 * Assign the src colormatrix into this matrix, copying all of its values.
 */
-ECode CColorMatrix::set(
+ECode CColorMatrix::Set(
     /* [in] */ IColorMatrix * pSrc)
 {
     //System.arraycopy(((CColorMatrix*)pSrc)->mArray, 0, mArray, 0, 20);
-    memcpy(*mArray, *((CColorMatrix*)pSrc)->mArray, sizeof(Float)*COLORMATRIXARRAYCOUNT);
+    memcpy(*mArray, *((CColorMatrix*)pSrc)->mArray, sizeof(Float) * 20);
     return NOERROR;
 }
 
 /**
 * Assign the array of floats into this matrix, copying all of its values.
 */
-ECode CColorMatrix::setEx(
+ECode CColorMatrix::SetEx(
     /* [in] */ const ArrayOf<Float> & src)
 {
     //System.arraycopy(src, 0, mArray, 0, 20);
-    memcpy(*mArray, &src, sizeof(Float)*COLORMATRIXARRAYCOUNT);
+    memcpy(*mArray, &src, sizeof(Float) * 20);
     return E_NOT_IMPLEMENTED;
 }
 
 /**
 * Set this colormatrix to scale by the specified values.
 */
-ECode CColorMatrix::setScale(
+ECode CColorMatrix::SetScale(
     /* [in] */ Float rScale,
     /* [in] */ Float gScale,
     /* [in] */ Float bScale,
@@ -81,11 +81,11 @@ ECode CColorMatrix::setScale(
 * axis=1 correspond to a rotation around the GREEN color
 * axis=2 correspond to a rotation around the BLUE color
 */
-ECode CColorMatrix::setRotate(
+ECode CColorMatrix::SetRotate(
     /* [in] */ Int32 axis,
     /* [in] */ Float degrees)
 {
-    reset();
+    Reset();
 
     //Float radians = degrees * (Float)Math.PI / 180; temporary marked
     Float cosine = 0;//FloatMath.cos(radians);  temporary marked
@@ -123,7 +123,7 @@ ECode CColorMatrix::setRotate(
 * as applying matB and then applying matA. It is legal for either matA or
 * matB to be the same colormatrix as this.
 */
-ECode CColorMatrix::setConcat(
+ECode CColorMatrix::SetConcat(
     /* [in] */ IColorMatrix * pMatA,
     /* [in] */ IColorMatrix * pMatB)
 {
@@ -151,7 +151,7 @@ ECode CColorMatrix::setConcat(
 
     if (*tmp != mArray) {
         //System.arraycopy(*tmp, 0, mArray, 0, 20);
-        memcpy(mArray, *tmp, sizeof(Float)*COLORMATRIXARRAYCOUNT);
+        memcpy(mArray, *tmp, sizeof(Float) * 20);
     }
     return NOERROR;
 }
@@ -160,10 +160,10 @@ ECode CColorMatrix::setConcat(
 * Concat this colormatrix with the specified prematrix. This is logically
 * the same as calling setConcat(this, prematrix);
 */
-ECode CColorMatrix::preConcat(
+ECode CColorMatrix::PreConcat(
     /* [in] */ IColorMatrix * pPrematrix)
 {
-    setConcat(this, pPrematrix);
+    SetConcat(this, pPrematrix);
     return NOERROR;
 }
 
@@ -171,10 +171,10 @@ ECode CColorMatrix::preConcat(
 * Concat this colormatrix with the specified postmatrix. This is logically
 * the same as calling setConcat(postmatrix, this);
 */
-ECode CColorMatrix::postConcat(
+ECode CColorMatrix::PostConcat(
     /* [in] */ IColorMatrix * pPostmatrix)
 {
-    setConcat(pPostmatrix, this);
+    SetConcat(pPostmatrix, this);
     return NOERROR;
 }
 
@@ -182,10 +182,10 @@ ECode CColorMatrix::postConcat(
 * Set the matrix to affect the saturation of colors. A value of 0 maps the
 * color to gray-scale. 1 is identity.
 */
-ECode CColorMatrix::setSaturation(
+ECode CColorMatrix::SetSaturation(
     /* [in] */ Float sat)
 {
-    reset();
+    Reset();
     //AutoPtr< ArrayOf<Float> > m = mArray;
 
     Float invSat = 1 - sat;
@@ -203,9 +203,9 @@ ECode CColorMatrix::setSaturation(
 /**
 * Set the matrix to convert RGB to YUV
 */
-ECode CColorMatrix::setRGB2YUV()
+ECode CColorMatrix::SetRGB2YUV()
 {
-    reset();
+    Reset();
     //AutoPtr< ArrayOf<Float> > m = mArray;
     // these coefficients match those in libjpeg
     (*mArray)[0]  = 0.299f;    (*mArray)[1]  = 0.587f;    (*mArray)[2]  = 0.114f;
@@ -217,9 +217,9 @@ ECode CColorMatrix::setRGB2YUV()
 // /**
 // * Set the matrix to convert from YUV to RGB
 // */
-ECode CColorMatrix::setYUV2RGB()
+ECode CColorMatrix::SetYUV2RGB()
 {
-    reset();
+    Reset();
     //AutoPtr< ArrayOf<Float> > m = mArray;
     // these coefficients match those in libjpeg
     (*mArray)[2] = 1.402f;
@@ -247,12 +247,12 @@ ECode CColorMatrix::setYUV2RGB()
 ECode CColorMatrix::constructor()
 {
     mArray = NULL;
-    mArray = ArrayOf<Float>::Alloc(COLORMATRIXARRAYCOUNT);
+    mArray = ArrayOf<Float>::Alloc(20);
     if (mArray == NULL) {
         return E_OUT_OF_MEMORY_ERROR;
     }
 
-    reset();
+    Reset();
     return NOERROR;
 }
 
@@ -260,13 +260,13 @@ ECode CColorMatrix::constructor(
     /* [in] */ const ArrayOf<Float> & src)
 {
     mArray = NULL;
-    mArray = ArrayOf<Float>::Alloc(COLORMATRIXARRAYCOUNT);
+    mArray = ArrayOf<Float>::Alloc(20);
     if (mArray == NULL) {
         return E_OUT_OF_MEMORY_ERROR;
     }
 
     //System.arraycopy(src, 0, mArray, 0, 20);
-    memcpy(*mArray, &src, sizeof(Float)*COLORMATRIXARRAYCOUNT);
+    memcpy(*mArray, &src, sizeof(Float) * 20);
     return NOERROR;
 }
 
@@ -274,13 +274,13 @@ ECode CColorMatrix::constructor(
     /* [in] */ IColorMatrix * pArray)
 {
     mArray = NULL;
-    mArray = ArrayOf<Float>::Alloc(COLORMATRIXARRAYCOUNT);
+    mArray = ArrayOf<Float>::Alloc(20);
     if (mArray == NULL) {
         return E_OUT_OF_MEMORY_ERROR;
     }
 
     //System.arraycopy(((CColorMatrix *)pArray)->mArray, 0, mArray, 0, 20)
-    memcpy(*mArray, *((CColorMatrix*)pArray)->mArray, sizeof(Float)*COLORMATRIXARRAYCOUNT);
+    memcpy(*mArray, *((CColorMatrix*)pArray)->mArray, sizeof(Float) * 20);
     return NOERROR;
 }
 

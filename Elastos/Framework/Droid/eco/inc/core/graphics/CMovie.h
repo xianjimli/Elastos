@@ -36,37 +36,11 @@ public:
         /* [in] */ Float x,
         /* [in] */ Float y);
 
-    CARAPI decodeFile(
-        /* [in] */ const String& pathName,
-        /* [out] */ IMovie ** ppMovie);
-
-    CARAPI decodeTempStream(
-        /* [in] */ IInputStream * pIs,
-        /* [out] */ IMovie ** ppMovie);
-
     CARAPI constructor(
         /* [in] */ Int32 nativeMovie);
 
-    static ECode DecodeStream(IInputStream * pIs,
-                                IMovie ** ppMovie);
-
-    static ECode decodeByteArray(ArrayOf<Byte> data,
-									 Int32 offset,
-    								 Int32 length,
-									 IMovie ** ppMovie);
-
 private:
     Int32 mNativeMovie;
-
-    Int32 width();
-    Int32 height();
-    Boolean isOpaque();
-    Int32 duration();
-
-    Boolean setTime(Int32 relativeMilliseconds);
-
-    void draw(ICanvas* canvas, Float x, Float y, IPaint* paint);
-
 };
 
 #endif // __CMOVIE_H__

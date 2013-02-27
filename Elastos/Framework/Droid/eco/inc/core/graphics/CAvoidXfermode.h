@@ -14,9 +14,9 @@ public:
         /* [in] */ Int32 mode);
 
 private:
-    static CARAPI_(SkXfermode*) nativeCreate(Int32 opColor,
-                                Int32 tolerance,
-                                Int32 nativeMode);
+    static CARAPI_(SkXfermode*) NativeCreate(Int32 opColor,
+        /* [in] */ Int32 tolerance,
+        /* [in] */ Int32 nativeMode);
 };
 
 #endif // __CAVOIDXFERMODE_H__

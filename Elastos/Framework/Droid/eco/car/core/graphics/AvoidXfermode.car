@@ -3,12 +3,10 @@ module
 {
 	enum AvoidXfermode {
 		AvoidXfermode_AVOID = 0,
-		AvoidXfermode_TARGET = 1		
+		AvoidXfermode_TARGET = 1
 	}
 
-    interface IAvoidXfermode {
-
+    interface IAvoidXfermode extends IXfermode {
 
     }
-
 }

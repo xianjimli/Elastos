@@ -16,7 +16,9 @@ public:
         /* [in] */ Int32 style);
 
 private:
-    static CARAPI_(SkMaskFilter*) nativeConstructor(Float radius, Int32 style);
+    static CARAPI_(SkMaskFilter*) NativeConstructor(
+        /* [in] */ Float radius,
+        /* [in] */ Int32 style);
 
     Int32 native_int;
 };

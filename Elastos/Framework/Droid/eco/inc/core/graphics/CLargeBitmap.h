@@ -9,23 +9,23 @@
 CarClass(CLargeBitmap)
 {
 public:
-    CARAPI decodeRegion(
+    CARAPI DecodeRegion(
         /* [in] */ IRect * pRect,
         /* [in] */ IBitmapFactoryOptions * pOptions,
         /* [out] */ IBitmap ** ppBitmap);
 
-    CARAPI getWidth(
+    CARAPI GetWidth(
         /* [out] */ Int32 * pLength);
 
-    CARAPI getHeight(
+    CARAPI GetHeight(
         /* [out] */ Int32 * pHeight);
 
-    CARAPI recycle();
+    CARAPI Recycle();
 
-    CARAPI isRecycled(
+    CARAPI IsRecycled(
         /* [out] */ Boolean * pResult);
 
-    CARAPI checkRecycled(
+    CARAPI CheckRecycled(
         /* [in] */ Int32 errorMessage);
 
     CARAPI constructor(
@@ -35,20 +35,22 @@ private:
     Int32 mNativeLargeBitmap;
     Boolean mRecycled;
 
-    static IBitmap* nativeDecodeRegion(
-                                    SkBitmapRegionDecoder * brd,
-                                    Int32 start_x,
-                                    Int32 start_y,
-                                    Int32 width,
-                                    Int32 height,
-                                    IBitmapFactoryOptions * options);
+    static IBitmap* NativeDecodeRegion(
+        /* [in] */ SkBitmapRegionDecoder * brd,
+        /* [in] */ Int32 start_x,
+        /* [in] */ Int32 start_y,
+        /* [in] */ Int32 width,
+        /* [in] */ Int32 height,
+        /* [in] */ IBitmapFactoryOptions * options);
 
-    static Int32 nativeGetWidth(Int32 lbm);
+    static Int32 NativeGetWidth(
+        /* [in] */ Int32 lbm);
 
-    static Int32 nativeGetHeight(Int32 lbm);
+    static Int32 NativeGetHeight(
+        /* [in] */ Int32 lbm);
 
-    static void nativeClean(Int32 lbm);
-
+    static void NativeClean(
+        /* [in] */ Int32 lbm);
 };
 
 #endif // __CLARGEBITMAP_H__

@@ -15,7 +15,8 @@ public:
         /* [in] */ const ArrayOf<Float> & array);
 
 private:
-    static SkColorFilter* nativeColorMatrixFilter(ArrayOf<Float>* pArray);
+    static SkColorFilter* NativeColorMatrixFilter(
+        /* [in] */ ArrayOf<Float>* pArray);
 };
 
 #endif // __CCOLORMATRIXCOLORFILTER_H__

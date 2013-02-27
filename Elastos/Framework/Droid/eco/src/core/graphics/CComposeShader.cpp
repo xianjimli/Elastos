@@ -31,8 +31,10 @@ ECode CComposeShader::constructor(
     /* [in] */ IXfermode * pMode)
 {
     // TODO: Add your code here
-    mNative = nativeCreate1(((Shader*)pShaderA)->Ni(), ((Shader*)pShaderB)->Ni(),
-                                    (pMode != NULL) ? ((Xfermode*)pMode)->mNativeInstance : 0);
+    mNative = NativeCreate1(
+                ((Shader*)pShaderA)->Ni(),
+                ((Shader*)pShaderB)->Ni(),
+                (pMode != NULL) ? ((Xfermode*)pMode)->mNativeInstance : 0);
 
     return NOERROR;
 }
@@ -44,26 +46,35 @@ ECode CComposeShader::constructor(
 {
     // TODO: Add your code here
 
-    mNative = nativeCreate2(((Shader*)pShaderA)->Ni(), ((Shader*)pShaderB)->Ni(), mode);
+    mNative = NativeCreate2(
+                ((Shader*)pShaderA)->Ni(),
+                ((Shader*)pShaderB)->Ni(),
+                mode);
 
     return NOERROR;
 }
 
-SkShader* CComposeShader::nativeCreate1(
-		/* [in] */ SkShader * native_shaderA,
-		/* [in] */ SkShader * native_shaderB,
-		/* [in] */ SkXfermode * native_mode)
+SkShader* CComposeShader::NativeCreate1(
+    /* [in] */ SkShader * native_shaderA,
+    /* [in] */ SkShader * native_shaderB,
+    /* [in] */ SkXfermode * native_mode)
 {
-	return new SkComposeShader(native_shaderA, native_shaderB, native_mode);
+    return new SkComposeShader(
+                native_shaderA,
+                native_shaderB,
+                native_mode);
 }
 
-SkShader* CComposeShader::nativeCreate2(
-		/* [in] */ SkShader * native_shaderA,
-		/* [in] */ SkShader * native_shaderB,
-		/* [in] */ Int32 porterDuffMode)
+SkShader* CComposeShader::NativeCreate2(
+    /* [in] */ SkShader * native_shaderA,
+    /* [in] */ SkShader * native_shaderB,
+    /* [in] */ Int32 porterDuffMode)
 {
-	SkAutoUnref au(SkPorterDuff::CreateXfermode((SkPorterDuff::Mode)porterDuffMode));
+    SkAutoUnref au(SkPorterDuff::CreateXfermode((SkPorterDuff::Mode)porterDuffMode));
 
-	return new SkComposeShader(native_shaderA, native_shaderB, (SkXfermode*)au.get());
+    return new SkComposeShader(
+                native_shaderA,
+                native_shaderB,
+                (SkXfermode*)au.get());
 }
 

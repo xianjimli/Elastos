@@ -9,39 +9,26 @@
 CarClass(CYuvImage)
 {
 public:
-    CARAPI compressToJpeg(
+    CARAPI CompressToJpeg(
         /* [in] */ IRect * pRectangle,
         /* [in] */ Int32 quality,
         /* [in] */ IOutputStream * pStream,
         /* [out] */ Boolean * pResult);
 
-    CARAPI getYuvData(
+    CARAPI GetYuvData(
         /* [out, callee] */ ArrayOf<Byte> ** ppData);
 
-    CARAPI getYuvFormat(
+    CARAPI GetYuvFormat(
         /* [out] */ Int32 * pFormat);
 
-    CARAPI getStrides(
+    CARAPI GetStrides(
         /* [out, callee] */ ArrayOf<Int32> ** ppStrides);
 
-    CARAPI getWidth(
+    CARAPI GetWidth(
         /* [out] */ Int32 * pWidth);
 
-    CARAPI getHeight(
+    CARAPI GetHeight(
         /* [out] */ Int32 * pHeight);
-
-    CARAPI calculateOffsets(
-        /* [in] */ Int32 left,
-        /* [in] */ Int32 top,
-        /* [out, callee] */ ArrayOf<Int32> ** ppOffsets);
-
-    CARAPI calculateStrides(
-        /* [in] */ Int32 width,
-        /* [in] */ Int32 format,
-        /* [out, callee] */ ArrayOf<Int32> ** ppStrides);
-
-    CARAPI adjustRectangle(
-        /* [in] */ IRect * pRect);
 
     CARAPI constructor(
         /* [in] */ const ArrayOf<Byte> & yuv,
@@ -55,15 +42,29 @@ public:
     //     int quality, OutputStream stream, ArrayOf<Byte> tempStorage);
 
 private:
-	static Boolean nativeCompressToJpeg(ArrayOf<Byte> & oriYuv,
-																	Int32 format, 
-																	Int32 width, 
-																	Int32 height, 
-																	ArrayOf<Int32> & offsets, 
-																	ArrayOf<Int32> & strides,
-																	Int32 quality, 
-																	IOutputStream* stream, 
-																	ArrayOf<Byte> & tempStorage);
+    CARAPI CalculateOffsets(
+        /* [in] */ Int32 left,
+        /* [in] */ Int32 top,
+        /* [out, callee] */ ArrayOf<Int32> ** ppOffsets);
+
+    CARAPI CalculateStrides(
+        /* [in] */ Int32 width,
+        /* [in] */ Int32 format,
+        /* [out, callee] */ ArrayOf<Int32> ** ppStrides);
+
+    CARAPI AdjustRectangle(
+        /* [in] */ IRect * pRect);
+
+    static Boolean NativeCompressToJpeg(
+        /* [in] */ ArrayOf<Byte> & oriYuv,
+        /* [in] */ Int32 format,
+        /* [in] */ Int32 width,
+        /* [in] */ Int32 height,
+        /* [in] */ ArrayOf<Int32> & offsets,
+        /* [in] */ ArrayOf<Int32> & strides,
+        /* [in] */ Int32 quality,
+        /* [in] */ IOutputStream* stream,
+        /* [out] */ ArrayOf<Byte> & tempStorage);
 
     /**
      * The YUV format as defined in {@link PixelFormat}.

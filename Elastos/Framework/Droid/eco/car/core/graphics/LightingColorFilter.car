@@ -1,9 +1,7 @@
 
 module
 {
+    interface ILightingColorFilter extends IColorFilter {
 
-    interface ILightingColorFilter {
-    	
     }
-
 }

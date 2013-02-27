@@ -5,12 +5,15 @@ ECode CSumPathEffect::constructor(
     /* [in] */ IPathEffect * pFirst,
     /* [in] */ IPathEffect * pSecond)
 {
-    mNativeInstance = nativeCreate(((PathEffect*)pFirst)->Ni(),
-                                       ((PathEffect*)pSecond)->Ni());
+    mNativeInstance = NativeCreate((
+                        (PathEffect*)pFirst)->Ni(),
+                        ((PathEffect*)pSecond)->Ni());
     return NOERROR;
 }
 
-SkPathEffect* CSumPathEffect::nativeCreate(SkPathEffect* first, SkPathEffect* second) {
+SkPathEffect* CSumPathEffect::NativeCreate(
+    /* [in] */ SkPathEffect* first,
+    /* [in] */ SkPathEffect* second) {
 
     return new SkSumPathEffect(first, second);
 }

@@ -16,11 +16,11 @@ public:
         /* [in] */ Float blurRadius);
 
 private:
-    static SkMaskFilter* nativeConstructor(
-            const ArrayOf<Float> & dirArray,
-            Float ambient,
-            Float specular,
-            Float blurRadius);
+    static SkMaskFilter* NativeConstructor(
+        /* [in] */ const ArrayOf<Float> & dirArray,
+        /* [in] */ Float ambient,
+        /* [in] */ Float specular,
+        /* [in] */ Float blurRadius);
 };
 
 #endif // __CEMBOSSMASKFILTER_H__

@@ -1,38 +1,38 @@
 
 #include "graphics/CLayerRasterizer.h"
 
-ECode CLayerRasterizer::addLayer(
+ECode CLayerRasterizer::AddLayer(
     /* [in] */ IPaint * pPaint,
     /* [in] */ Float dx,
     /* [in] */ Float dy)
 {
-    nativeAddLayer(mNativeInstance, ((Paint*)pPaint)->mNativePaint, dx, dy);
-    return E_NOT_IMPLEMENTED;
+    NativeAddLayer(mNativeInstance, ((Paint*)pPaint)->mNativePaint, dx, dy);
+    return NOERROR;
 }
 
-ECode CLayerRasterizer::addLayerEx(
+ECode CLayerRasterizer::AddLayerEx(
     /* [in] */ IPaint * pPaint)
 {
-    nativeAddLayer(mNativeInstance, ((Paint*)pPaint)->mNativePaint, 0, 0);
-    return E_NOT_IMPLEMENTED;
+    NativeAddLayer(mNativeInstance, ((Paint*)pPaint)->mNativePaint, 0, 0);
+    return NOERROR;
 }
 
 ECode CLayerRasterizer::constructor()
 {
-    mNativeInstance = nativeConstructor();
-    return E_NOT_IMPLEMENTED;
+    mNativeInstance = NativeConstructor();
+    return NOERROR;
 }
 
-SkLayerRasterizer* CLayerRasterizer::nativeConstructor()
+SkLayerRasterizer* CLayerRasterizer::NativeConstructor()
 {
     return new SkLayerRasterizer();
 }
 
-void CLayerRasterizer::nativeAddLayer(
-                                SkRasterizer* native_layer,
-                                SkPaint* native_paint,
-                                Float dx,
-                                Float dy)
+void CLayerRasterizer::NativeAddLayer(
+    /* [in] */ SkRasterizer* native_layer,
+    /* [in] */ SkPaint* native_paint,
+    /* [in] */ Float dx,
+    /* [in] */ Float dy)
 {
     SkASSERT(native_layer);
     SkASSERT(native_paint);
