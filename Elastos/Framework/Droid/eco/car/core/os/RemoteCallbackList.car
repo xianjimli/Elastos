@@ -1,6 +1,5 @@
 module
 {
-
     interface IRemoteCallbackList {
         Register(
             [in] IInterface* mcallback,

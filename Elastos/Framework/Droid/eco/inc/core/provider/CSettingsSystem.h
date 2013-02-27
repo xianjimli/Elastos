@@ -22,7 +22,7 @@ public:
     CARAPI GetString(
         /*[in]*/ IContentResolver* resolver,
         /*[in]*/ const String& name,
-        /*[out]*/ String* outString);
+        /*[out]*/ String* value);
 
     /**
      * Store a name/value pair into the database.
@@ -35,7 +35,7 @@ public:
         /*[in]*/ IContentResolver* resolver,
         /*[in]*/ const String& name,
         /*[in]*/ const String& value,
-        /*[out]*/ Boolean* outBoolean);
+        /*[out]*/ Boolean* result);
 
     /**
      * Construct the content URI for a particular name/value pair,
@@ -45,7 +45,7 @@ public:
      */
     CARAPI GetUriFor(
         /*[in]*/ const String& name,
-        /*[out]*/ IUri** outUri);
+        /*[out]*/ IUri** uri);
 
     /**
      * Convenience function for retrieving a single system settings value
@@ -65,7 +65,7 @@ public:
         /*[in]*/ IContentResolver* cr,
         /*[in]*/ const String& name,
         /*[in]*/ Int32 def,
-        /*[out]*/ Int32* outInt);
+        /*[out]*/ Int32* value);
 
     /**
      * Convenience function for retrieving a single system settings value
@@ -88,7 +88,7 @@ public:
     CARAPI GetIntExtra(
         /*[in]*/ IContentResolver* cr,
         /*[in]*/ const String& name,
-        /*[out]*/ Int32* outInt);
+        /*[out]*/ Int32* value);
 
     /**
      * Convenience function for updating a single settings value as an
@@ -107,7 +107,7 @@ public:
         /*[in]*/ IContentResolver* cr,
         /*[in]*/ const String& name,
         /*[in]*/ Int32 value,
-        /*[out]*/ Boolean* outBoolean);
+        /*[out]*/ Boolean* result);
 
     /**
      * Convenience function for retrieving a single system settings value
@@ -127,7 +127,7 @@ public:
         /*[in]*/ IContentResolver* cr,
         /*[in]*/ const String& name,
         /*[in]*/ Int64 def,
-        /*[out]*/ Int64* outLong);
+        /*[out]*/ Int64* value);
 
     /**
      * Convenience function for retrieving a single system settings value
@@ -149,7 +149,7 @@ public:
     CARAPI GetLongExtra(
         /*[in]*/ IContentResolver* cr,
         /*[in]*/ const String& name,
-        /*[out]*/ Int64* outLong);
+        /*[out]*/ Int64* value);
 
     /**
      * Convenience function for updating a single settings value as a long
@@ -168,7 +168,7 @@ public:
         /*[in]*/ IContentResolver* cr,
         /*[in]*/ const String& name,
         /*[in]*/ Int64 value,
-        /*[out]*/ Boolean* outBoolean);
+        /*[out]*/ Boolean* result);
 
     /**
      * Convenience function for retrieving a single system settings value
@@ -188,7 +188,7 @@ public:
         /*[in]*/ IContentResolver* cr,
         /*[in]*/ const String& name,
         /*[in]*/ Float def,
-        /*[out]*/ Float* outFloat);
+        /*[out]*/ Float* value);
 
     /**
      * Convenience function for retrieving a single system settings value
@@ -211,7 +211,7 @@ public:
     CARAPI GetFloatExtra(
         /*[in]*/ IContentResolver* cr,
         /*[in]*/ const String& name,
-        /*[out]*/ Float* outFloat);
+        /*[out]*/ Float* value);
 
     /**
      * Convenience function for updating a single settings value as a
@@ -230,7 +230,7 @@ public:
         /*[in]*/ IContentResolver* cr,
         /*[in]*/ const String& name,
         /*[in]*/ Float value,
-        /*[out]*/ Boolean* outBoolean);
+        /*[out]*/ Boolean* result);
 
     /**
      * Convenience function to read all of the current
@@ -255,16 +255,16 @@ public:
     CARAPI PutConfiguration(
         /*[in]*/ IContentResolver* cr,
         /*[in]*/ IConfiguration* config,
-        /*[out]*/ Boolean* outBoolean);
+        /*[out]*/ Boolean* result);
 
     /** @hide */
     CARAPI HasInterestingConfigurationChanges(
         /*[in]*/ Int32 changes,
-        /*[out]*/ Boolean* outBoolean);
+        /*[out]*/ Boolean* result);
 
     CARAPI GetShowGTalkServiceStatus(
         /*[in]*/ IContentResolver* cr,
-        /*[out]*/ Boolean* outBoolean);
+        /*[out]*/ Boolean* result);
 
     CARAPI SetShowGTalkServiceStatus(
         /*[in]*/ IContentResolver* cr,

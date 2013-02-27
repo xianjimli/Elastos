@@ -9,8 +9,8 @@ using namespace Elastos::Core;
 ECode CSettingsNameValueTable::GetUriFor(
     /*[in]*/ IUri* uri,
     /*[in]*/ const String& name,
-    /*[out]*/ IUri** outUri)
+    /*[out]*/ IUri** value)
 {
-    return SettingsNameValueTable::GetUriFor(uri,name,outUri);
+    return SettingsNameValueTable::GetUriFor(uri,name,value);
 }
 

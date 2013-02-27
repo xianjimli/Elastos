@@ -41,7 +41,7 @@ CSettings::System::MOVED_TO_SECURE.add(Secure.WIFI_WATCHDOG_PING_TIMEOUT_MS);
 ECode CSettingsSystem::GetString(
     /*[in]*/ IContentResolver* resolver,
     /*[in]*/ const String& name,
-    /*[out]*/ String* outString)
+    /*[out]*/ String* value)
 {
     return E_NOT_IMPLEMENTED;
 }
@@ -50,7 +50,7 @@ ECode CSettingsSystem::PutString(
     /*[in]*/ IContentResolver* resolver,
     /*[in]*/ const String& name,
     /*[in]*/ const String& value,
-    /*[out]*/ Boolean* outBoolean)
+    /*[out]*/ Boolean* result)
 {
     return E_NOT_IMPLEMENTED;
 }
@@ -58,7 +58,7 @@ ECode CSettingsSystem::PutString(
 
 ECode CSettingsSystem::GetUriFor(
     /*[in]*/ const String& name,
-    /*[out]*/ IUri** outUri)
+    /*[out]*/ IUri** uri)
 {
     return E_NOT_IMPLEMENTED;
 }
@@ -67,7 +67,7 @@ ECode CSettingsSystem::GetInt(
     /*[in]*/ IContentResolver* cr,
     /*[in]*/ const String& name,
     /*[in]*/ Int32 def,
-    /*[out]*/ Int32* outInt)
+    /*[out]*/ Int32* value)
 {
     return E_NOT_IMPLEMENTED;
 }
@@ -75,7 +75,7 @@ ECode CSettingsSystem::GetInt(
 ECode CSettingsSystem::GetIntExtra(
     /*[in]*/ IContentResolver* cr,
     /*[in]*/ const String& name,
-    /*[out]*/ Int32* outInt)
+    /*[out]*/ Int32* value)
 {
     return E_NOT_IMPLEMENTED;
 }
@@ -84,7 +84,7 @@ ECode CSettingsSystem::PutInt(
     /*[in]*/ IContentResolver* cr,
     /*[in]*/ const String& name,
     /*[in]*/ Int32 value,
-    /*[out]*/ Boolean* outBoolean)
+    /*[out]*/ Boolean* result)
 {
     return E_NOT_IMPLEMENTED;
 }
@@ -93,7 +93,7 @@ ECode CSettingsSystem::GetLong(
     /*[in]*/ IContentResolver* cr,
     /*[in]*/ const String& name,
     /*[in]*/ Int64 def,
-    /*[out]*/ Int64* outLong)
+    /*[out]*/ Int64* value)
 {
     return E_NOT_IMPLEMENTED;
 }
@@ -101,7 +101,7 @@ ECode CSettingsSystem::GetLong(
 ECode CSettingsSystem::GetLongExtra(
     /*[in]*/ IContentResolver* cr,
     /*[in]*/ const String& name,
-    /*[out]*/ Int64* outLong)
+    /*[out]*/ Int64* value)
 {
     return E_NOT_IMPLEMENTED;
 }
@@ -110,7 +110,7 @@ ECode CSettingsSystem::PutLong(
     /*[in]*/ IContentResolver* cr,
     /*[in]*/ const String& name,
     /*[in]*/ Int64 value,
-    /*[out]*/ Boolean* outBoolean)
+    /*[out]*/ Boolean* result)
 {
     return E_NOT_IMPLEMENTED;
 }
@@ -119,7 +119,7 @@ ECode CSettingsSystem::GetFloat(
     /*[in]*/ IContentResolver* cr,
     /*[in]*/ const String& name,
     /*[in]*/ Float def,
-    /*[out]*/ Float* outFloat)
+    /*[out]*/ Float* value)
 {
     return E_NOT_IMPLEMENTED;
 }
@@ -127,7 +127,7 @@ ECode CSettingsSystem::GetFloat(
 ECode CSettingsSystem::GetFloatExtra(
     /*[in]*/ IContentResolver* cr,
     /*[in]*/ const String& name,
-    /*[out]*/ Float* outFloat)
+    /*[out]*/ Float* value)
 {
     return E_NOT_IMPLEMENTED;
 }
@@ -136,7 +136,7 @@ ECode CSettingsSystem::PutFloat(
     /*[in]*/ IContentResolver* cr,
     /*[in]*/ const String& name,
     /*[in]*/ Float value,
-    /*[out]*/ Boolean* outBoolean)
+    /*[out]*/ Boolean* result)
 {
     return E_NOT_IMPLEMENTED;
 }
@@ -151,7 +151,7 @@ ECode CSettingsSystem::GetConfiguration(
 ECode CSettingsSystem::PutConfiguration(
     /*[in]*/ IContentResolver* cr,
     /*[in]*/ IConfiguration* config,
-    /*[out]*/ Boolean* outBoolean)
+    /*[out]*/ Boolean* result)
 {
     return E_NOT_IMPLEMENTED;
 
@@ -160,14 +160,14 @@ ECode CSettingsSystem::PutConfiguration(
     /** @hide */
 ECode CSettingsSystem::HasInterestingConfigurationChanges(
     /*[in]*/ Int32 changes,
-    /*[out]*/ Boolean* outBoolean)
+    /*[out]*/ Boolean* result)
  {
      return E_NOT_IMPLEMENTED;
  }
 
 ECode CSettingsSystem::GetShowGTalkServiceStatus(
     /*[in]*/ IContentResolver* cr,
-    /*[out]*/ Boolean* outBoolean)
+    /*[out]*/ Boolean* result)
 {
      return E_NOT_IMPLEMENTED;
 }

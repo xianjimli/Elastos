@@ -21,8 +21,8 @@ public:
      */
     CARAPI GetIntentForShortcut(
         /*[in]*/ IContentResolver* cr,
-        /*[in]*/ Char8 shortcut,
-        /*[out]*/ IIntent** outIntent);
+        /*[in]*/ Char32 shortcut,
+        /*[out]*/ IIntent** intent);
 
     /**
      * Add a new bookmark to the system.
@@ -43,9 +43,9 @@ public:
         /*[in]*/ IIntent* intent,
         /*[in]*/ const String& title,
         /*[in]*/ const String& folder,
-        /*[in]*/ Char8 shortcut,
+        /*[in]*/ Char32 shortcut,
         /*[in]*/ Int32 ordering,
-        /*[out]*/ IUri** outUri);
+        /*[out]*/ IUri** uri);
 
     /**
      * Return the folder name as it should be displayed to the user.  This
@@ -58,9 +58,10 @@ public:
      * @return CharSequence The label for this folder that should be shown
      *         to the user.
      */
-    //static /*CharSequence*/ GetLabelForFolder(
-    //    /*[in]*/ IResources* r,
-    //    /*[in]*/ const String& folder);
+    CARAPI GetLabelForFolder(
+        /*[in]*/ IResources* r,
+        /*[in]*/ const String& folder,
+        /*[out]*/ ICharSequence** fName);
 
     /**
      * Return the title as it should be displayed to the user. This takes
@@ -73,9 +74,10 @@ public:
      * @return A title that is localized and can be displayed to the user,
      *         or the empty string if one could not be found.
      */
-    //static /*CharSequence*/ GetTitle(
-    //    /*[in]*/ IContext* context,
-    //    /*[in]*/ ICursor* cursor);
+    CARAPI GetTitle(
+        /*[in]*/ IContext* context,
+        /*[in]*/ ICursor* cursor,
+        /*[out]*/ ICharSequence** title);
 
 
 

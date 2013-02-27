@@ -5,13 +5,7 @@ module
     merge("provider/calllog.car");
     merge("provider/basecolumns.car");
     merge("provider/settings.car");
-    merge("provider/settingssystem.car");
-    merge("provider/settingssecure.car");
 
-    class CBaseColumns {
-        interface IBaseColumns;
-    }
-    
     singleton class CSettings {
         interface ISettings;
     }

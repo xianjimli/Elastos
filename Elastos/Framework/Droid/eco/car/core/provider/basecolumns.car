@@ -11,9 +11,6 @@ module
      */
     const BaseColumns_ID = "_id";
 
-
     interface IBaseColumns {
-
     }
-
 }

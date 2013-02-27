@@ -998,7 +998,7 @@ private:
 
     CARAPI_(void) EnsureBootCompleted();
 
-    CARAPI_(CActivityRecord*) GetCallingRecordLocked(
+    CARAPI_(AutoPtr<CActivityRecord>) GetCallingRecordLocked(
         /* [in] */ IBinder* token);
 
     CARAPI GetIntentSenderLocked(

@@ -17,7 +17,7 @@ public:
     CARAPI GetString(
         /*[in]*/ IContentResolver* resolver,
         /*[in]*/ const String& name,
-        /*[out]*/ String* outString);
+        /*[out]*/ String* value);
 
     /**
      * Store a name/value pair into the database.
@@ -30,7 +30,7 @@ public:
         /*[in]*/ IContentResolver* resolver,
         /*[in]*/ const String& name,
         /*[in]*/ const String& value,
-        /*[out]*/ Boolean* outBoolean);
+        /*[out]*/ Boolean* result);
 
     /**
      * Construct the content URI for a particular name/value pair,
@@ -40,7 +40,7 @@ public:
      */
     CARAPI GetUriFor(
         /*[in]*/ const String& name,
-        /*[out]*/ IUri** outUri);
+        /*[out]*/ IUri** uri);
 
     /**
      * Convenience function for retrieving a single secure settings value
@@ -60,7 +60,7 @@ public:
         /*[in]*/ IContentResolver* cr,
         /*[in]*/ const String& name,
         /*[in]*/ Int32 def,
-        /*[out]*/ Int32* outInt);
+        /*[out]*/ Int32* value);
 
     /**
      * Convenience function for retrieving a single secure settings value
@@ -83,7 +83,7 @@ public:
     CARAPI GetIntExtra(
         /*[in]*/ IContentResolver* cr,
         /*[in]*/ const String& name,
-        /*[out]*/ Int32* outInt);
+        /*[out]*/ Int32* value);
 
     /**
      * Convenience function for updating a single settings value as an
@@ -102,7 +102,7 @@ public:
         /*[in]*/ IContentResolver* cr,
         /*[in]*/ const String& name,
         /*[in]*/ Int32 value,
-        /*[out]*/ Boolean* outBoolean);
+        /*[out]*/ Boolean* result);
 
     /**
      * Convenience function for retrieving a single secure settings value
@@ -122,7 +122,7 @@ public:
         /*[in]*/ IContentResolver* cr,
         /*[in]*/ const String& name,
         /*[in]*/ Int64 def,
-        /*[out]*/ Int64* outLong);
+        /*[out]*/ Int64* value);
 
     /**
      * Convenience function for retrieving a single secure settings value
@@ -144,7 +144,7 @@ public:
     CARAPI GetLongExtra(
         /*[in]*/ IContentResolver* cr,
         /*[in]*/ const String& name,
-        /*[out]*/ Int64* outLong);
+        /*[out]*/ Int64* value);
 
     /**
      * Convenience function for updating a secure settings value as a long
@@ -163,7 +163,7 @@ public:
         /*[in]*/ IContentResolver* cr,
         /*[in]*/ const String& name,
         /*[in]*/ Int64 value,
-        /*[out]*/ Boolean* outBoolean);
+        /*[out]*/ Boolean* result);
 
     /**
      * Convenience function for retrieving a single secure settings value
@@ -183,7 +183,7 @@ public:
         /*[in]*/ IContentResolver* cr,
         /*[in]*/ const String& name,
         /*[in]*/ Float def,
-        /*[out]*/ Float* outFloat);
+        /*[out]*/ Float* value);
 
     /**
      * Convenience function for retrieving a single secure settings value
@@ -206,7 +206,7 @@ public:
     CARAPI GetFloatExtra(
         /*[in]*/ IContentResolver* cr,
         /*[in]*/ const String& name,
-        /*[out]*/ Float* outFloat);
+        /*[out]*/ Float* value);
 
     /**
      * Convenience function for updating a single settings value as a
@@ -225,7 +225,7 @@ public:
         /*[in]*/ IContentResolver* cr,
         /*[in]*/ const String& name,
         /*[in]*/ Float value,
-        /*[out]*/ Boolean* outBoolean);
+        /*[out]*/ Boolean* result);
 
 
     /**
@@ -234,7 +234,7 @@ public:
      */
     CARAPI GetBluetoothHeadsetPriorityKey(
         /*[in]*/ const String& address,
-        /*[out]*/ String* outString);
+        /*[out]*/ String* key);
 
     /**
      * Get the key that retrieves a bluetooth a2dp sink's priority.
@@ -242,7 +242,7 @@ public:
      */
     CARAPI GetBluetoothA2dpSinkPriorityKey(
         /*[in]*/ const String& address,
-        /*[out]*/ String* outString);
+        /*[out]*/ String* key);
 
     /**
      * Helper method for determining if a location provider is enabled.
@@ -253,7 +253,7 @@ public:
     CARAPI IsLocationProviderEnabled(
         /*[in]*/ IContentResolver* cr,
         /*[in]*/ const String& provider,
-        /*[out]*/ Boolean* outBoolean);
+        /*[out]*/ Boolean* result);
 
     /**
      * Thread-safe method for enabling or disabling a single location provider.

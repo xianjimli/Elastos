@@ -8,7 +8,6 @@ INCLUDES += ../
 
 C_DEFINES += -D_FRAMEWORK_CORE
 
-SOURCES = CBaseColumns.cpp
 SOURCES += CSettings.cpp
 SOURCES += CSettingsNameValueTable.cpp
 SOURCES += SettingsNameValueTable.cpp

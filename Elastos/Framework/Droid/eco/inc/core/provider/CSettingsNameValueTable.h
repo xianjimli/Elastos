@@ -13,7 +13,7 @@ public:
     CARAPI GetUriFor(
         /*[in]*/ IUri* uri,
         /*[in]*/ const String& name,
-        /*[out]*/ IUri** outUri);
+        /*[out]*/ IUri** value);
 
 };
 #endif //__CSETTINGSNAMEVALUETABLE_H__

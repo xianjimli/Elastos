@@ -112,3 +112,13 @@ ECode CSettings::NameValueCache::GetString(
             }*/
     return E_NOT_IMPLEMENTED;
 }
+
+ECode CSettings::GetGTalkDeviceId(
+	/*[in]*/ Int64 androidId,
+	/*[out]*/ String* deviceId)
+{
+//    return "android-" + Long.toHexString(androidId);
+    return E_NOT_IMPLEMENTED;
+}
+
+

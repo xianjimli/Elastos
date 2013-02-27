@@ -8,7 +8,6 @@ using namespace Elastos;
 class SettingsNameValueTable
 {
 public:
-
    static CARAPI GetUriFor(
         /*[in]*/ IUri* uri,
         /*[in]*/ const String& name,

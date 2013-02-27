@@ -17,12 +17,21 @@ using namespace Elastos;
 CarClass(CSettings)
 {
 public:
-    //friend class CSettingsSystem;
-    //friend class CSettingsSecure;
+    friend class CSettingsSystem;
+    friend class CSettingsSecure;
 
+    /**
+     * Returns the device ID that we should use when connecting to the mobile gtalk server.
+     * This is a string like "android-0x1242", where the hex string is the Android ID obtained
+     * from the GoogleLoginService.
+     *
+     * @param androidId The Android ID for this device.
+     * @return The device ID that should be used when connecting to the mobile gtalk server.
+     * @hide
+     */
     CARAPI GetGTalkDeviceId(
         /*[in]*/ Int64 androidId,
-        /*[out]*/ String* mString);
+        /*[out]*/ String* deviceId);
 
 private:
     static const String JID_RESOURCE_PREFIX;
@@ -41,7 +50,7 @@ private:
         CARAPI GetString(
             /*[in]*/ IContentResolver* cr,
             /*[in]*/ const String& name,
-            /*[out]*/ String* string);
+            /*[out]*/ String* value);
 
 
 
