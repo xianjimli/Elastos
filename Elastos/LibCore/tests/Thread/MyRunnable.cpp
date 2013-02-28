@@ -1,8 +1,10 @@
 
+#include <elastos/Thread.h>
 #include "MyRunnable.h"
 #include "stdio.h"
 
 MyRunnable::MyRunnable()
+    : mStop(FALSE)
 {
 }
 
@@ -49,7 +51,16 @@ ECode MyRunnable::GetInterfaceID(
 
 ECode MyRunnable::Run()
 {
-    printf("==========runrunrunrunrunrun=========\n");
+    while ( !mStop ) {
+        printf("==========runrunrunrunrunrun=========\n");
+        ECode ec = Thread::Sleep(1000);
+        if (ec == E_INTERRUPTED_EXCEPTION) {
+            printf("======Thread interrupted...======\n");
+        }
+
+    }
+
+    printf("======Thread exiting under request...======\n");
     return NOERROR;
 }
 

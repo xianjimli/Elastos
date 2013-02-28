@@ -8,6 +8,8 @@
 
 using namespace Elastos;
 
+struct Monitor;
+
 /*
  * Current status; these map to JDWP constants, so don't rearrange them.
  * (If you do alter this, update the strings in dvmDumpThread and the
@@ -155,7 +157,7 @@ typedef struct NativeThread
     /* pointer to the monitor lock we're currently waiting on */
     /* guarded by waitMutex */
     /* TODO: consider changing this to Object* for better JDWP interaction */
-    // Monitor*    waitMonitor;
+    struct Monitor*    mWaitMonitor;
 
     /* thread "interrupted" status; stays raised until queried or thrown */
     /* guarded by waitMutex */
@@ -288,6 +290,17 @@ inline void NativeLockMutex(
 }
 
 /*
+ * Try grabbing a plain mutex.  Returns 0 if successful.
+ */
+inline Int32 NativeTryLockMutex(
+    /* [in] */ pthread_mutex_t* mutex)
+{
+    Int32 cc = pthread_mutex_trylock(mutex);
+    assert(cc == 0 || cc == 16/*EBUSY*/);
+    return cc;
+}
+
+/*
  * Unlock pthread mutex.
  */
 inline void NativeUnlockMutex(
@@ -323,12 +336,73 @@ ELAPI_(void) NativeChangeThreadPriority(
     /* [in] */ NativeThread* thread,
     /* [in] */ Int32 newPriority);
 
+ELAPI_(Int32) NativeGetCount();
+
+
+//sync
+/*
+ * Create and initialize a monitor.
+ */
+ELAPI_(Monitor*) NativeCreateMonitor(
+    /* [in] */ IInterface* obj);
+
+/*
+ * Converts the given relative waiting time into an absolute time.
+ */
+ELAPI_(void) AbsoluteTime(
+    /* [in] */ Int64 msec,
+    /* [in] */ Int32 nsec,
+    /* [in] */ struct timespec* ts);
+
+/*
+ * Object.wait().  Also called for class init.
+ */
+ELAPI_(ECode) NativeThreadWait(
+    /* [in] */ NativeThread* self,
+    /* [in] */ Thread* t,
+    /* [in] */ Int64 msec,
+    /* [in] */ Int32 nsec,
+    /* [in] */ Boolean interruptShouldThrow);
+
 /*
  * Implement java.lang.Thread.interrupt().
  */
 ELAPI_(void) NativeThreadInterrupt(
     /* [in] */ NativeThread* thread);
 
-ELAPI_(Int32) NativeGetCount();
+/*
+ * This implements java.lang.Thread.sleep(long msec, int nsec).
+ *
+ * The sleep is interruptible by other threads, which means we can't just
+ * plop into an OS sleep call.  (We probably could if we wanted to send
+ * signals around and rely on EINTR, but that's inefficient and relies
+ * on native code respecting our signal mask.)
+ *
+ * We have to do all of this stuff for Object.wait() as well, so it's
+ * easiest to just sleep on a private Monitor.
+ *
+ * It appears that we want sleep(0,0) to go through the motions of sleeping
+ * for a very short duration, rather than just returning.
+ */
+ELAPI_(ECode) NativeThreadSleep(
+    /* [in] */ Int64 msec,
+    /* [in] */ Int32 nsec);
+
+//misc
+/*
+ * Get the current time, in nanoseconds.  This is "relative" time, meaning
+ * it could be wall-clock time or a monotonic counter, and is only suitable
+ * for computing time deltas.
+ */
+ELAPI_(UInt64) NativeGetRelativeTimeNsec();
+
+/*
+ * Get the current time, in microseconds.  This is "relative" time, meaning
+ * it could be wall-clock time or a monotonic counter, and is only suitable
+ * for computing time deltas.
+ */
+inline UInt64 NativeGetRelativeTimeUsec() {
+    return NativeGetRelativeTimeNsec() / 1000;
+}
 
 #endif //__NATIVETHREAD_H__

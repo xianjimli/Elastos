@@ -44,6 +44,7 @@ ECode MyThread::GetInterfaceID(
 }
 
 MyThread::MyThread()
+    : mStop(FALSE)
 {
     Thread::Init();
 }
@@ -232,7 +233,16 @@ ECode MyThread::Wait(
 
 ECode MyThread::Run()
 {
-    return Thread::Run();
+    while ( !mStop ) {
+        ECode ec = Thread::Sleep(1000);
+        if (ec == E_INTERRUPTED_EXCEPTION) {
+            printf("======Thread interrupted...======\n");
+        }
+
+    }
+
+    printf("======Thread exiting under request...======\n");
+    return NOERROR;
 }
 
 Mutex* MyThread::GetSelfLock()

@@ -9,6 +9,61 @@
 using namespace Elastos;
 
 /*
+ * Monitors provide:
+ *  - mutually exclusive access to resources
+ *  - a way for multiple threads to wait for notification
+ *
+ * In effect, they fill the role of both mutexes and condition variables.
+ *
+ * Only one thread can own the monitor at any time.  There may be several
+ * threads waiting on it (the wait call unlocks it).  One or more waiting
+ * threads may be getting interrupted or notified at any given time.
+ *
+ * TODO: the various members of monitor are not SMP-safe.
+ */
+struct Monitor {
+    NativeThread*     mOwner;          /* which thread currently owns the lock? */
+    Int32             mLockCount;     /* owner's recursive lock depth */
+    //Object*     obj;            /* what object are we part of [debug only] */
+
+    NativeThread*     mWaitSet;    /* threads currently waiting on this monitor */
+
+    pthread_mutex_t   mLock;
+
+    Monitor*          mNext;
+
+    /*
+     * Who last acquired this monitor, when lock sampling is enabled.
+     * Even when enabled, ownerFileName may be NULL.
+     */
+    String       mOwnerFileName;
+    UInt32       mOwnerLineNumber;
+
+//#ifdef WITH_DEADLOCK_PREDICTION
+    /*
+     * Objects that have been locked immediately after this one in the
+     * past.  We use an expanding flat array, allocated on first use, to
+     * minimize allocations.  Deletions from the list, expected to be
+     * infrequent, are crunched down.
+     */
+//    ExpandingObjectList historyChildren;
+
+    /*
+     * We also track parents.  This isn't strictly necessary, but it makes
+     * the cleanup at GC time significantly faster.
+     */
+//    ExpandingObjectList historyParents;
+
+    /* used during cycle detection */
+//    bool        historyMark;
+
+    /* stack trace, established the first time we locked the object */
+//    int         historyStackDepth;
+//    int*        historyRawStackTrace;
+//#endif
+};
+
+/*
  * All fields are initialized to zero.
  *
  * Storage allocated here must be freed by a subsystem shutdown function or
@@ -42,13 +97,13 @@ struct CoreGlobals
 //    /* use wall clock as method profiler clock source? */
 //    bool        profilerWallClock;
 
-//    /*
-//     * Lock profiling threshold value in milliseconds.  Acquires that
-//     * exceed threshold are logged.  Acquires within the threshold are
-//     * logged with a probability of $\frac{time}{threshold}$ .  If the
-//     * threshold is unset no additional logging occurs.
-//     */
-//    u4          lockProfThreshold;
+   /*
+    * Lock profiling threshold value in milliseconds.  Acquires that
+    * exceed threshold are logged.  Acquires within the threshold are
+    * logged with a probability of $\frac{time}{threshold}$ .  If the
+    * threshold is unset no additional logging occurs.
+    */
+   UInt32          mLockProfThreshold;
 
 //    int         (*vfprintfHook)(FILE*, const char*, va_list);
 //    void        (*exitHook)(int);
@@ -428,11 +483,11 @@ struct CoreGlobals
 //    Object*     internalErrorObj;
 //    Object*     noClassDefFoundErrorObj;
 
-//    /* Monitor list, so we can free them */
-//    /*volatile*/ Monitor* monitorList;
+   /* Monitor list, so we can free them */
+   /*volatile*/ Monitor* mMonitorList;
 
-//    /* Monitor for Thread.sleep() implementation */
-//    Monitor*    threadSleepMon;
+    /* Monitor for Thread.sleep() implementation */
+    Monitor*    mThreadSleepMon;
 
 //    /* set when we create a second heap inside the zygote */
 //    bool        newZygoteHeapAllocated;

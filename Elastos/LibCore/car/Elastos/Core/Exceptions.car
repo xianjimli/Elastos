@@ -25,5 +25,6 @@ module
 
     const E_NO_SUCH_METHOD_EXCEPTION                    = 0xA00B0000;
 
-    const E_ACTIVITY_NOT_FOUND_EXCEPTION                = 0xA00C0000;
+    const E_ILLEGAL_MONITOR_STATE_EXCEPTION            = 0xA00C0000;
+    const E_INTERRUPTED_EXCEPTION            = 0xA00C0000;
 }

@@ -3,9 +3,11 @@
 #include "Globals.h"
 #include "CThread.h"
 #include <sys/resource.h>
+#include <sys/time.h>
 #include <cutils/sched_policy.h>
 #include <cutils/atomic.h>
 #include <unistd.h>
+#include <errno.h>
 #include "stdio.h"
 
 static NativeThread* AllocThread(Int32 stackSize);
@@ -55,7 +57,7 @@ Boolean NativeThreadStartup()
      * deferring the object creation to much later (e.g. final "main"
      * thread prep) or until first use.
      */
-    // gDvm.threadSleepMon = dvmCreateMonitor(NULL);
+    gCore.mThreadSleepMon = NativeCreateMonitor(NULL);
 
     // gDvm.threadIdMap = dvmAllocBitVector(kMaxThreadId, false);
 
@@ -444,7 +446,7 @@ static void SetThreadSelf(
          */
         if (thread != NULL) {
             // LOGE("pthread_setspecific(%p) failed, err=%d\n", thread, cc);
-            // dvmAbort();     /* the world is fundamentally hosed */
+            //dvmAbort();     /* the world is fundamentally hosed */
         }
     }
 }
@@ -1338,7 +1340,7 @@ void NativeChangeThreadPriority(
     }
 
     if (setpriority(PRIO_PROCESS, pid, newNice) != 0) {
-        const char* str = thread->mThreadObj->mName.string();
+        //const char* str = thread->mThreadObj->mName.string();
         // LOGI("setPriority(%d) '%s' to prio=%d(n=%d) failed: %s\n",
         //     pid, str, newPriority, newNice, strerror(errno));
     }
@@ -1346,6 +1348,202 @@ void NativeChangeThreadPriority(
         // LOGV("setPriority(%d) to prio=%d(n=%d)\n",
         //     pid, newPriority, newNice);
     }
+}
+
+Int32 NativeGetCount()
+{
+    NativeLockMutex(&gCore.mThreadListLock);
+    Int32 count = gCore.mThreadCount++;
+    NativeUnlockMutex(&gCore.mThreadListLock);
+    return count;
+}
+
+//sync
+/*
+ * Create and initialize a monitor.
+ */
+Monitor* NativeCreateMonitor(
+    /* [in] */ IInterface* obj)
+{
+    Monitor* mon;
+
+    mon = (Monitor*)calloc(1, sizeof(Monitor));
+    if (mon == NULL) {
+        //LOGE("Unable to allocate monitor\n");
+        //dvmAbort();
+    }
+    if (((UInt32)mon & 7) != 0) {
+        //LOGE("Misaligned monitor: %p\n", mon);
+        //dvmAbort();
+    }
+    //mon->obj = obj;
+    NativeInitMutex(&mon->mLock);
+
+    /* replace the head of the list with the new monitor */
+    //do {
+        mon->mNext = gCore.mMonitorList;
+    //}
+    //while (android_atomic_release_cas((int32_t)mon->next, (int32_t)mon,
+    //        (int32_t*)(void*)&gDvm.monitorList) != 0);
+
+    return mon;
+}
+
+/*
+ * Checks the wait set for circular structure.  Returns 0 if the list
+ * is not circular.  Otherwise, returns 1.  Used only by asserts.
+ */
+#ifndef NDEBUG
+static Int32 WaitSetCheck(
+    /* [in] */ Monitor* mon)
+{
+    NativeThread *fast, *slow;
+    size_t n;
+
+    assert(mon != NULL);
+    fast = slow = mon->mWaitSet;
+    n = 0;
+    for (;;) {
+        if (fast == NULL) return 0;
+        if (fast->mWaitNext == NULL) return 0;
+        if (fast == slow && n > 0) return 1;
+        n += 2;
+        fast = fast->mWaitNext->mWaitNext;
+        slow = slow->mWaitNext;
+    }
+}
+#endif
+
+/*
+ * Links a thread into a monitor's wait set.  The monitor lock must be
+ * held by the caller of this routine.
+ */
+static void WaitSetAppend(
+    /* [in] */ Monitor* mon,
+    /* [in] */ NativeThread* thread)
+{
+    NativeThread* elt;
+
+    assert(mon != NULL);
+    assert(mon->mOwner == NativeThreadSelf());
+    assert(thread != NULL);
+    assert(thread->mWaitNext == NULL);
+    assert(WaitSetCheck(mon) == 0);
+    if (mon->mWaitSet == NULL) {
+        mon->mWaitSet = thread;
+        return;
+    }
+    elt = mon->mWaitSet;
+    while (elt->mWaitNext != NULL) {
+        elt = elt->mWaitNext;
+    }
+    elt->mWaitNext = thread;
+}
+
+/*
+ * Unlinks a thread from a monitor's wait set.  The monitor lock must
+ * be held by the caller of this routine.
+ */
+static void WaitSetRemove(
+    /* [in] */ Monitor* mon,
+    /* [in] */ NativeThread* thread)
+{
+    NativeThread *elt;
+
+    assert(mon != NULL);
+    assert(mon->mOwner == NativeThreadSelf());
+    assert(thread != NULL);
+    assert(WaitSetCheck(mon) == 0);
+    if (mon->mWaitSet == NULL) {
+        return;
+    }
+    if (mon->mWaitSet == thread) {
+        mon->mWaitSet = thread->mWaitNext;
+        thread->mWaitNext = NULL;
+        return;
+    }
+    elt = mon->mWaitSet;
+    while (elt->mWaitNext != NULL) {
+        if (elt->mWaitNext == thread) {
+            elt->mWaitNext = thread->mWaitNext;
+            thread->mWaitNext = NULL;
+            return;
+        }
+        elt = elt->mWaitNext;
+    }
+}
+
+/*
+ * Converts the given relative waiting time into an absolute time.
+ */
+void AbsoluteTime(
+    /* [in] */ Int64 msec,
+    /* [in] */ Int32 nsec,
+    /* [in] */ struct timespec* ts)
+{
+    Int64 endSec;
+
+#ifdef HAVE_TIMEDWAIT_MONOTONIC
+    clock_gettime(CLOCK_MONOTONIC, ts);
+#else
+    {
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        ts->tv_sec = tv.tv_sec;
+        ts->tv_nsec = tv.tv_usec * 1000;
+    }
+#endif
+    endSec = ts->tv_sec + msec / 1000;
+    if (endSec >= 0x7fffffff) {
+        //LOGV("NOTE: end time exceeds epoch\n");
+        endSec = 0x7ffffffe;
+    }
+    ts->tv_sec = endSec;
+    ts->tv_nsec = (ts->tv_nsec + (msec % 1000) * 1000000) + nsec;
+
+    /* catch rollover */
+    if (ts->tv_nsec >= 1000000000L) {
+        ts->tv_sec++;
+        ts->tv_nsec -= 1000000000L;
+    }
+}
+
+/*
+ * Object.wait().  Also called for class init.
+ */
+ECode NativeThreadWait(
+    /* [in] */ NativeThread* self,
+    /* [in] */ Thread* t,
+    /* [in] */ Int64 msec,
+    /* [in] */ Int32 nsec,
+    /* [in] */ Boolean interruptShouldThrow)
+{
+    // Monitor* mon;
+    // UInt32 thin = t->m_lock;
+
+    /* If the lock is still thin, we need to fatten it.
+     */
+    // if (LW_SHAPE(thin) == LW_SHAPE_THIN) {
+    //     /* Make sure that 'self' holds the lock.
+    //      */
+    //     if (LW_LOCK_OWNER(thin) != self->threadId) {
+    //         dvmThrowException("Ljava/lang/IllegalMonitorStateException;",
+    //             "object not locked by thread before wait()");
+    //         return;
+    //     }
+
+        /* This thread holds the lock.  We need to fatten the lock
+         * so 'self' can block on it.  Don't update the object lock
+         * field yet, because 'self' needs to acquire the lock before
+         * any other thread gets a chance.
+         */
+    //     inflateMonitor(self, obj);
+    //     LOG_THIN("(%d) lock %p fattened by wait() to count %d",
+    //              self->threadId, &obj->lock, mon->lockCount);
+    // }
+    // mon = LW_MONITOR(obj->lock);
+    // waitMonitor(self, mon, msec, nsec, interruptShouldThrow);
+    return E_NOT_IMPLEMENTED;
 }
 
 /*
@@ -1381,17 +1579,348 @@ void NativeThreadInterrupt(
      * is only set when a thread actually waits on a monitor,
      * which implies that the monitor has already been fattened.
      */
-    // if (thread->mWaitMonitor != NULL) {
-    //     pthread_cond_signal(&thread->mWaitCond);
-    // }
+    if (thread->mWaitMonitor != NULL) {
+        pthread_cond_signal(&thread->mWaitCond);
+    }
 
     NativeUnlockMutex(&thread->mWaitMutex);
 }
 
-Int32 NativeGetCount()
+/*
+ * Lock a monitor.
+ */
+static void LockMonitor(
+    /* [in] */ NativeThread* self,
+    /* [in] */ Monitor* mon)
 {
-    NativeLockMutex(&gCore.mThreadListLock);
-    Int32 count = gCore.mThreadCount++;
-    NativeUnlockMutex(&gCore.mThreadListLock);
-    return count;
+    NativeThreadStatus oldStatus;
+    UInt32 waitThreshold, samplePercent;
+    UInt64 waitStart, waitEnd, waitMs;
+
+    if (mon->mOwner == self) {
+        mon->mLockCount++;
+        return;
+    }
+
+    if (NativeTryLockMutex(&mon->mLock) != 0) {
+        printf("======function: %s, line: %d======\n", __FUNCTION__, __LINE__);
+        oldStatus = NativeChangeStatus(self, NTHREAD_MONITOR);
+        waitThreshold = gCore.mLockProfThreshold;
+        if (waitThreshold) {
+            waitStart = NativeGetRelativeTimeUsec();
+        }
+        //const char* currentOwnerFileName = mon->mOwnerFileName;
+        //UInt32 currentOwnerLineNumber = mon->mOwnerLineNumber;
+
+        NativeLockMutex(&mon->mLock);
+        if (waitThreshold) {
+            waitEnd = NativeGetRelativeTimeUsec();
+        }
+        NativeChangeStatus(self, oldStatus);
+        if (waitThreshold) {
+            waitMs = (waitEnd - waitStart) / 1000;
+            if (waitMs >= waitThreshold) {
+                samplePercent = 100;
+            }
+            else {
+                samplePercent = 100 * waitMs / waitThreshold;
+            }
+            // if (samplePercent != 0 && ((UInt32)rand() % 100 < samplePercent)) {
+            //     logContentionEvent(self, waitMs, samplePercent,
+            //                        currentOwnerFileName, currentOwnerLineNumber);
+            // }
+        }
+    }
+    mon->mOwner = self;
+    assert(mon->mLockCount == 0);
+
+    // When debugging, save the current monitor holder for future
+    // acquisition failures to use in sampled logging.
+    if (gCore.mLockProfThreshold > 0) {
+        //const StackSaveArea *saveArea;
+        //const Method *meth;
+        mon->mOwnerLineNumber = 0;
+        //if (self->curFrame == NULL) {
+        mon->mOwnerFileName = String("no_frame");
+        //} else if ((saveArea = SAVEAREA_FROM_FP(self->curFrame)) == NULL) {
+        //     mon->ownerFileName = "no_save_area";
+        // } else if ((meth = saveArea->method) == NULL) {
+        //     mon->ownerFileName = "no_method";
+        // } else {
+        //     u4 relativePc = saveArea->xtra.currentPc - saveArea->method->insns;
+        //     mon->ownerFileName = (char*) dvmGetMethodSourceFile(meth);
+        //     if (mon->ownerFileName == NULL) {
+        //         mon->ownerFileName = "no_method_file";
+        //     } else {
+        //         mon->ownerLineNumber = dvmLineNumFromPC(meth, relativePc);
+        //     }
+        // }
+    }
+}
+
+/*
+ * Unlock a monitor.
+ *
+ * Returns true if the unlock succeeded.
+ * If the unlock failed, an exception will be pending.
+ */
+static Boolean UnlockMonitor(
+    /* [in] */ NativeThread* self,
+    /* [in] */ Monitor* mon)
+{
+    assert(self != NULL);
+    assert(mon != NULL);
+    if (mon->mOwner == self) {
+        /*
+         * We own the monitor, so nobody else can be in here.
+         */
+        if (mon->mLockCount == 0) {
+            mon->mOwner = NULL;
+            mon->mOwnerFileName = String("unlocked");
+            mon->mOwnerLineNumber = 0;
+            NativeUnlockMutex(&mon->mLock);
+        }
+        else {
+            mon->mLockCount--;
+        }
+    }
+    else {
+        /*
+         * We don't own this, so we're not allowed to unlock it.
+         * The JNI spec says that we should throw IllegalMonitorStateException
+         * in this case.
+         */
+        //dvmThrowException("Ljava/lang/IllegalMonitorStateException;",
+        //                  "unlock of unowned monitor");
+        return FALSE;
+    }
+    return TRUE;
+}
+
+/*
+ * Wait on a monitor until timeout, interrupt, or notification.  Used for
+ * Object.wait() and (somewhat indirectly) Thread.sleep() and Thread.join().
+ *
+ * If another thread calls Thread.interrupt(), we throw InterruptedException
+ * and return immediately if one of the following are true:
+ *  - blocked in wait(), wait(long), or wait(long, int) methods of Object
+ *  - blocked in join(), join(long), or join(long, int) methods of Thread
+ *  - blocked in sleep(long), or sleep(long, int) methods of Thread
+ * Otherwise, we set the "interrupted" flag.
+ *
+ * Checks to make sure that "nsec" is in the range 0-999999
+ * (i.e. fractions of a millisecond) and throws the appropriate
+ * exception if it isn't.
+ *
+ * The spec allows "spurious wakeups", and recommends that all code using
+ * Object.wait() do so in a loop.  This appears to derive from concerns
+ * about pthread_cond_wait() on multiprocessor systems.  Some commentary
+ * on the web casts doubt on whether these can/should occur.
+ *
+ * Since we're allowed to wake up "early", we clamp extremely long durations
+ * to return at the end of the 32-bit time epoch.
+ */
+static ECode WaitMonitor(
+    /* [in] */ NativeThread* self,
+    /* [in] */ Monitor* mon,
+    /* [in] */ Int64 msec,
+    /* [in] */ Int32 nsec,
+    /* [in] */ Boolean interruptShouldThrow)
+{
+    struct timespec ts;
+    Boolean wasInterrupted = FALSE;
+    Boolean timed;
+    Int32 ret;
+    const char* savedFileName;
+    UInt32 savedLineNumber;
+
+    assert(self != NULL);
+    assert(mon != NULL);
+
+    /* Make sure that we hold the lock. */
+    if (mon->mOwner != self) {
+        // dvmThrowException("Ljava/lang/IllegalMonitorStateException;",
+        //     "object not locked by thread before wait()");
+        return E_ILLEGAL_MONITOR_STATE_EXCEPTION;
+    }
+
+    /*
+     * Enforce the timeout range.
+     */
+    if (msec < 0 || nsec < 0 || nsec > 999999) {
+        // dvmThrowException("Ljava/lang/IllegalArgumentException;",
+        //     "timeout arguments out of range");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+
+    /*
+     * Compute absolute wakeup time, if necessary.
+     */
+    if (msec == 0 && nsec == 0) {
+        timed = FALSE;
+    }
+    else {
+        AbsoluteTime(msec, nsec, &ts);
+        timed = TRUE;
+    }
+
+    /*
+     * Add ourselves to the set of threads waiting on this monitor, and
+     * release our hold.  We need to let it go even if we're a few levels
+     * deep in a recursive lock, and we need to restore that later.
+     *
+     * We append to the wait set ahead of clearing the count and owner
+     * fields so the subroutine can check that the calling thread owns
+     * the monitor.  Aside from that, the order of member updates is
+     * not order sensitive as we hold the pthread mutex.
+     */
+    WaitSetAppend(mon, self);
+    Int32 prevLockCount = mon->mLockCount;
+    mon->mLockCount = 0;
+    mon->mOwner = NULL;
+    savedFileName = mon->mOwnerFileName;
+    mon->mOwnerFileName = String(NULL);
+    savedLineNumber = mon->mOwnerLineNumber;
+    mon->mOwnerLineNumber = 0;
+
+    /*
+     * Update thread status.  If the GC wakes up, it'll ignore us, knowing
+     * that we won't touch any references in this state, and we'll check
+     * our suspend mode before we transition out.
+     */
+    if (timed)
+        NativeChangeStatus(self, NTHREAD_TIMED_WAIT);
+    else
+        NativeChangeStatus(self, NTHREAD_WAIT);
+
+    NativeLockMutex(&self->mWaitMutex);
+
+    /*
+     * Set waitMonitor to the monitor object we will be waiting on.
+     * When waitMonitor is non-NULL a notifying or interrupting thread
+     * must signal the thread's waitCond to wake it up.
+     */
+    assert(self->mWaitMonitor == NULL);
+    self->mWaitMonitor = mon;
+
+    /*
+     * Handle the case where the thread was interrupted before we called
+     * wait().
+     */
+    if (self->mInterrupted) {
+        wasInterrupted = TRUE;
+        self->mWaitMonitor = NULL;
+        NativeUnlockMutex(&self->mWaitMutex);
+        goto done;
+    }
+
+    /*
+     * Release the monitor lock and wait for a notification or
+     * a timeout to occur.
+     */
+    NativeUnlockMutex(&mon->mLock);
+
+    if (!timed) {
+        ret = pthread_cond_wait(&self->mWaitCond, &self->mWaitMutex);
+        assert(ret == 0);
+    }
+    else {
+#ifdef HAVE_TIMEDWAIT_MONOTONIC
+        ret = pthread_cond_timedwait_monotonic(&self->mWaitCond, &self->mWaitMutex, &ts);
+#else
+        ret = pthread_cond_timedwait(&self->mWaitCond, &self->mWaitMutex, &ts);
+#endif
+        assert(ret == 0 || ret == ETIMEDOUT);
+    }
+    if (self->mInterrupted) {
+        wasInterrupted = TRUE;
+    }
+
+    self->mInterrupted = FALSE;
+    self->mWaitMonitor = NULL;
+
+    NativeUnlockMutex(&self->mWaitMutex);
+
+    /* Reacquire the monitor lock. */
+    LockMonitor(self, mon);
+
+done:
+    /*
+     * We remove our thread from wait set after restoring the count
+     * and owner fields so the subroutine can check that the calling
+     * thread owns the monitor. Aside from that, the order of member
+     * updates is not order sensitive as we hold the pthread mutex.
+     */
+    mon->mOwner = self;
+    mon->mLockCount = prevLockCount;
+    mon->mOwnerFileName = savedFileName;
+    mon->mOwnerLineNumber = savedLineNumber;
+    WaitSetRemove(mon, self);
+
+    /* set self->status back to THREAD_RUNNING, and self-suspend if needed */
+    NativeChangeStatus(self, NTHREAD_RUNNING);
+
+    if (wasInterrupted) {
+        /*
+         * We were interrupted while waiting, or somebody interrupted an
+         * un-interruptible thread earlier and we're bailing out immediately.
+         *
+         * The doc sayeth: "The interrupted status of the current thread is
+         * cleared when this exception is thrown."
+         */
+        self->mInterrupted = FALSE;
+        if (interruptShouldThrow)
+            //dvmThrowException("Ljava/lang/InterruptedException;", NULL);
+            return E_INTERRUPTED_EXCEPTION;
+    }
+}
+
+/*
+ * This implements java.lang.Thread.sleep(long msec, int nsec).
+ *
+ * The sleep is interruptible by other threads, which means we can't just
+ * plop into an OS sleep call.  (We probably could if we wanted to send
+ * signals around and rely on EINTR, but that's inefficient and relies
+ * on native code respecting our signal mask.)
+ *
+ * We have to do all of this stuff for Object.wait() as well, so it's
+ * easiest to just sleep on a private Monitor.
+ *
+ * It appears that we want sleep(0,0) to go through the motions of sleeping
+ * for a very short duration, rather than just returning.
+ */
+ECode NativeThreadSleep(
+    /* [in] */ Int64 msec,
+    /* [in] */ Int32 nsec)
+{
+    NativeThread* self = NativeThreadSelf();
+    Monitor* mon = gCore.mThreadSleepMon;
+
+    /* sleep(0,0) wakes up immediately, wait(0,0) means wait forever; adjust */
+    if (msec == 0 && nsec == 0)
+        nsec++;
+
+    LockMonitor(self, mon);
+    ECode ec = WaitMonitor(self, mon, msec, nsec, TRUE);
+    UnlockMonitor(self, mon);
+    return ec;
+}
+
+//misc
+/*
+ * Get the current time, in nanoseconds.  This is "relative" time, meaning
+ * it could be wall-clock time or a monotonic counter, and is only suitable
+ * for computing time deltas.
+ */
+UInt64 NativeGetRelativeTimeNsec()
+{
+// #ifdef HAVE_POSIX_CLOCKS
+//     struct timespec now;
+//     clock_gettime(CLOCK_MONOTONIC, &now);
+//     return (u8)now.tv_sec*1000000000LL + now.tv_nsec;
+// #else
+    struct timeval now;
+    gettimeofday(&now, NULL);
+    return (UInt64)now.tv_sec*1000000000LL + now.tv_usec * 1000LL;
+//#endif
 }

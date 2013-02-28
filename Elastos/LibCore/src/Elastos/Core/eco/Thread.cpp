@@ -1147,14 +1147,13 @@ ECode Thread::SetPriority(
 
     mPriority = priority;
 
-    //begin from this
     // VMThread vmt = this.vmThread;
     // if (vmt != null) {
     //     vmt.setPriority(priority);
     // }
     NativeSetPriority(priority);
 
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 /*
@@ -1211,8 +1210,7 @@ ECode Thread::Sleep(
     /* [in] */ Int64 millis,
     /* [in] */ Int32 nanos)
 {
-    //dvmThreadSleep(GET_ARG_LONG(args,0), args[2]);
-    return E_NOT_IMPLEMENTED;
+    return NativeThreadSleep(millis, nanos);
 }
 
 /**
@@ -1371,6 +1369,5 @@ ECode Thread::Wait(
     /* [in] */ Int64 time,
     /* [in] */ Int32 frac)
 {
-//    NativeObjectWait(NativeThreadSelf(), this, GET_ARG_LONG(args,1), (s4)args[3], true);
-    return E_NOT_IMPLEMENTED;
+    return NativeThreadWait(NativeThreadSelf(), this, time, frac, TRUE);
 }

@@ -28,6 +28,9 @@ public:
 
     CARAPI Run();
 
+public:
+    Boolean mStop;
+
 private:
     CARAPI_(Mutex*) GetSelfLock();
 

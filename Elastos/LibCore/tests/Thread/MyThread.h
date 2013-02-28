@@ -124,6 +124,9 @@ public:
 private:
     CARAPI_(Mutex*) GetSelfLock();
 
+public:
+    Boolean mStop;
+
 private:
     Mutex mLock;
 };
