@@ -3,21 +3,22 @@
 #define __CDRAWFILTER_H__
 
 #include "ext/frameworkext.h"
-#include <elastos.h>
-#include "SkDrawFilter.h"
+#include <SkDrawFilter.h>
+
+
+extern "C" const InterfaceID EIID_DrawFilter;
 
 class DrawFilter
 {
 public:
-    DrawFilter();
-    ~DrawFilter();
+    virtual ~DrawFilter();
 
-protected:
-    SkDrawFilter* nativeDrawFilter;
 private:
     static CARAPI_(void) NativeDestructor(
         /* [in] */ SkDrawFilter* nativeDrawFilter);
 
+protected:
+    SkDrawFilter* nativeDrawFilter;
 };
 
 #endif // __CDRAWFILTER_H__

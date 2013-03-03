@@ -12,7 +12,6 @@
 #include "utils/XmlUtils.h"
 #include "view/CDisplay.h"
 #include "graphics/CMovie.h"
-#include "graphics/CMovieHelper.h"
 #include "graphics/drawable/CColorDrawable.h"
 #include <Logger.h>
 #include <elastos/Locale.h>
@@ -364,10 +363,7 @@ ECode CResources::GetMovie(
 
     AutoPtr<IInputStream> is;
     OpenRawResource(id, (IInputStream**)&is);
-		
-	IMovieHelper* pIMoiveHelper;
-	CMovieHelper::AcquireSingleton(&pIMoiveHelper);
-    ECode ec = pIMoiveHelper->DecodeStream(is, movie);
+    ECode ec = CMovie::DecodeStream(is, movie);
     is->Close(); // don't care, since the return value is valid
 
     return ec;
@@ -685,36 +681,36 @@ ECode CResources::UpdateConfiguration(
                 (Int32)(mMetrics->mDensity * 160), mConfiguration->mKeyboard,
                 keyboardHidden, mConfiguration->mNavigation, width, height,
                 mConfiguration->mScreenLayout, mConfiguration->mUiMode, sSdkVersion);
-//	        int N = mDrawableCache.size();
+//            int N = mDrawableCache.size();
         if (DEBUG_CONFIG) {
             Logger::D(TAG, StringBuffer("Cleaning up drawables config changes: 0x") + configChanges);
         }
-//	        for (int i=0; i < N; i++) {
-//	            WeakReference<Drawable.ConstantState> ref = mDrawableCache.valueAt(i);
-//	            if (ref != null) {
-//	                Drawable.ConstantState cs = ref.get();
-//	                if (cs != null) {
-//	                    if (Configuration.needNewResources(
-//	                            configChanges, cs.getChangingConfigurations())) {
-//	                        if (DEBUG_CONFIG) {
-//	                            Log.d(TAG, "FLUSHING #0x"
-//	                                    + Long.toHexString(mDrawableCache.keyAt(i))
-//	                                    + " / " + cs + " with changes: 0x"
-//	                                    + Integer.toHexString(cs.getChangingConfigurations()));
-//	                        }
-//	                        mDrawableCache.setValueAt(i, null);
-//	                    } else if (DEBUG_CONFIG) {
-//	                        Log.d(TAG, "(Keeping #0x"
-//	                                + Long.toHexString(mDrawableCache.keyAt(i))
-//	                                + " / " + cs + " with changes: 0x"
-//	                                + Integer.toHexString(cs.getChangingConfigurations())
-//	                                + ")");
-//	                    }
-//	                }
-//	            }
-//	        }
-//	        mDrawableCache.clear();
-//	        mColorStateListCache.clear();
+//            for (int i=0; i < N; i++) {
+//                WeakReference<Drawable.ConstantState> ref = mDrawableCache.valueAt(i);
+//                if (ref != null) {
+//                    Drawable.ConstantState cs = ref.get();
+//                    if (cs != null) {
+//                        if (Configuration.needNewResources(
+//                                configChanges, cs.getChangingConfigurations())) {
+//                            if (DEBUG_CONFIG) {
+//                                Log.d(TAG, "FLUSHING #0x"
+//                                        + Long.toHexString(mDrawableCache.keyAt(i))
+//                                        + " / " + cs + " with changes: 0x"
+//                                        + Integer.toHexString(cs.getChangingConfigurations()));
+//                            }
+//                            mDrawableCache.setValueAt(i, null);
+//                        } else if (DEBUG_CONFIG) {
+//                            Log.d(TAG, "(Keeping #0x"
+//                                    + Long.toHexString(mDrawableCache.keyAt(i))
+//                                    + " / " + cs + " with changes: 0x"
+//                                    + Integer.toHexString(cs.getChangingConfigurations())
+//                                    + ")");
+//                        }
+//                    }
+//                }
+//            }
+//            mDrawableCache.clear();
+//            mColorStateListCache.clear();
         FlushLayoutCache();
     }
     {
@@ -784,11 +780,11 @@ ECode CResources::GetIdentifier(
     if (!id) {
         return E_INVALID_ARGUMENT;
     }
-//	    try {
-//	        return Integer.parseInt(name);
-//	    } catch (Exception e) {
-//	        // Ignore
-//	    }
+//        try {
+//            return Integer.parseInt(name);
+//        } catch (Exception e) {
+//            // Ignore
+//        }
     *id = mAssets->GetResourceIdentifier(name, defType, defPackage);
     return NOERROR;
 }
@@ -945,7 +941,7 @@ ECode CResources::ParseBundleExtra(
         else if (type == TypedValue_TYPE_FLOAT) {
             Float data;
             FAIL_RETURN(v->GetFloat(&data));
-	        outBundle->PutFloat(name, data);
+            outBundle->PutFloat(name, data);
         }
         else {
             sa->Recycle();
@@ -957,9 +953,9 @@ ECode CResources::ParseBundleExtra(
     }
     else {
         sa->Recycle();
-//	    throw new XmlPullParserException("<" + tagName
-//	            + "> requires an android:value or android:resource attribute at "
-//	            + attrs.getPositionDescription());
+//        throw new XmlPullParserException("<" + tagName
+//                + "> requires an android:value or android:resource attribute at "
+//                + attrs.getPositionDescription());
         return E_XML_PULL_PARSER_EXCEPTION;
     }
 
@@ -1027,10 +1023,10 @@ ECode CResources::LoadDrawable(
 {
     if (TRACE_FOR_PRELOAD) {
         // Log only framework resources
-//	        if ((id >>> 24) == 0x1) {
-//	            final String name = GetResourceName(id);
-//	            if (name != null) android.util.Log.d("PreloadDrawable", name);
-//	        }
+//            if ((id >>> 24) == 0x1) {
+//                final String name = GetResourceName(id);
+//                if (name != null) android.util.Log.d("PreloadDrawable", name);
+//            }
     }
 
     Int64 key = (((Int64)((CTypedValue*)value)->mAssetCookie) << 32) | ((CTypedValue*)value)->mData;
@@ -1069,23 +1065,23 @@ ECode CResources::LoadDrawable(
             }
 
             if (file.EndWith(".xml")) {
-//	                try {
+//                    try {
                  AutoPtr<IXmlResourceParser> rp;
                  LoadXmlResourceParser(file, id, ((CTypedValue*)value)->mAssetCookie,
                         "drawable", (IXmlResourceParser**)&rp);
                  Drawable::CreateFromXml(this, rp, drawable);
                  rp->Close();
-//	                } catch (Exception e) {
-//	                    NotFoundException rnf = new NotFoundException(
-//	                        "File " + file + " from drawable resource ID #0x"
-//	                        + Integer.toHexString(id));
-//	                    rnf.initCause(e);
-//	                    throw rnf;
-//	                }
+//                    } catch (Exception e) {
+//                        NotFoundException rnf = new NotFoundException(
+//                            "File " + file + " from drawable resource ID #0x"
+//                            + Integer.toHexString(id));
+//                        rnf.initCause(e);
+//                        throw rnf;
+//                    }
 //
             }
             else {
-//	                try {
+//                    try {
                 AutoPtr<IInputStream> is;
                 ASSERT_SUCCEEDED(mAssets->OpenNonAssetEx3(
                     ((CTypedValue*)value)->mAssetCookie, file,
@@ -1095,13 +1091,13 @@ ECode CResources::LoadDrawable(
                         file, NULL, drawable);
                 is->Close();
     //                System.out.println("Created stream: " + dr);
-//	                } catch (Exception e) {
-//	                    NotFoundException rnf = new NotFoundException(
-//	                        "File " + file + " from drawable resource ID #0x"
-//	                        + Integer.toHexString(id));
-//	                    rnf.initCause(e);
-//	                    throw rnf;
-//	                }
+//                    } catch (Exception e) {
+//                        NotFoundException rnf = new NotFoundException(
+//                            "File " + file + " from drawable resource ID #0x"
+//                            + Integer.toHexString(id));
+//                        rnf.initCause(e);
+//                        throw rnf;
+//                    }
             }
         }
     }
@@ -1137,16 +1133,16 @@ ECode CResources::GetCachedDrawable(
     if (it != mDrawableCache.End()) {
         IDrawableConstantState* wr = it->mSecond;
         if (wr != NULL) {   // we have the key
-//	        Drawable.ConstantState entry = wr.get();
-//	        if (entry != null) {
-//	            //Log.i(TAG, "Returning cached drawable @ #" +
-//	            //        Integer.toHexString(((Integer)key).intValue())
-//	            //        + " in " + this + ": " + entry);
-//	            return entry.newDrawable(this);
-//	        }
-//	        else {  // our entry has been purged
-//	            mDrawableCache.delete(key);
-//	        }
+//            Drawable.ConstantState entry = wr.get();
+//            if (entry != null) {
+//                //Log.i(TAG, "Returning cached drawable @ #" +
+//                //        Integer.toHexString(((Integer)key).intValue())
+//                //        + " in " + this + ": " + entry);
+//                return entry.newDrawable(this);
+//            }
+//            else {  // our entry has been purged
+//                mDrawableCache.delete(key);
+//            }
             wr->NewDrawableEx((IResources*)this, drawable);
             return NOERROR;
         }
@@ -1160,13 +1156,13 @@ ECode CResources::LoadColorStateList(
     /* [in] */ Int32 id,
     /* [out] */ IColorStateList** csl)
 {
-//	    if (TRACE_FOR_PRELOAD) {
-//	        // Log only framework resources
-//	        if ((id >>> 24) == 0x1) {
-//	            final String name = getResourceName(id);
-//	            if (name != null) android.util.Log.d("PreloadColorStateList", name);
-//	        }
-//	    }
+//        if (TRACE_FOR_PRELOAD) {
+//            // Log only framework resources
+//            if ((id >>> 24) == 0x1) {
+//                final String name = getResourceName(id);
+//                if (name != null) android.util.Log.d("PreloadColorStateList", name);
+//            }
+//        }
 
     Int32 key = (((CTypedValue*)value)->mAssetCookie << 24) | ((CTypedValue*)value)->mData;
 
@@ -1259,16 +1255,16 @@ ECode CResources::GetCachedColorStateList(
     HashMap<Int32, AutoPtr<IColorStateList> >::Iterator it = mColorStateListCache.Find(key);
     *csl = it != mColorStateListCache.End()? it->mSecond : NULL;
     if (*csl != NULL) {   // we have the key
-//	        ColorStateList entry = wr.get();
-//	        if (entry != null) {
-//	            //Log.i(TAG, "Returning cached color state list @ #" +
-//	            //        Integer.toHexString(((Integer)key).intValue())
-//	            //        + " in " + this + ": " + entry);
-//	            return entry;
-//	        }
-//	        else {  // our entry has been purged
-//	            mColorStateListCache.delete(key);
-//	        }
+//            ColorStateList entry = wr.get();
+//            if (entry != null) {
+//                //Log.i(TAG, "Returning cached color state list @ #" +
+//                //        Integer.toHexString(((Integer)key).intValue())
+//                //        + " in " + this + ": " + entry);
+//                return entry;
+//            }
+//            else {  // our entry has been purged
+//                mColorStateListCache.delete(key);
+//            }
         (*csl)->AddRef();
         return NOERROR;
     }

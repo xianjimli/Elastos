@@ -8,7 +8,7 @@ module
             [out] IBitmap** Bitmap);
 
         GetWidth(
-            [out] Int32* length);
+            [out] Int32* width);
 
         GetHeight(
             [out] Int32* height);
@@ -17,8 +17,5 @@ module
 
         IsRecycled(
             [out] Boolean* result);
-
-        CheckRecycled(
-            [in] Int32 errorMessage);
     }
 }

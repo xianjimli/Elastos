@@ -7,102 +7,107 @@
 #include "graphics/CMatrix.h"
 #include <skia/core/SkPathMeasure.h>
 
-struct PathMeasurePair {
-    PathMeasurePair() {}
-    PathMeasurePair(const SkPath& path, Boolean forceClosed)
-        : fPath(path), fMeasure(fPath, forceClosed) {}
-
-    SkPath          fPath;      // copy of the user's path
-    SkPathMeasure   fMeasure;   // this guy points to fPath
-};
 
 CarClass(CPathMeasure)
 {
+private:
+    struct PathMeasurePair {
+        PathMeasurePair() {}
+        PathMeasurePair(const SkPath& path, Boolean forceClosed)
+            : fPath(path), fMeasure(fPath, forceClosed) {}
+
+        SkPath fPath;      // copy of the user's path
+        SkPathMeasure fMeasure;   // this guy points to fPath
+    };
+
 public:
+    ~CPathMeasure();
+
     CARAPI SetPath(
-        /* [in] */ IPath * pPath,
+        /* [in] */ IPath* path,
         /* [in] */ Boolean forceClosed);
 
     CARAPI GetLength(
-        /* [out] */ Float * pLength);
+        /* [out] */ Float* length);
 
     CARAPI GetPosTan(
         /* [in] */ Float distance,
-        /* [out, callee] */ ArrayOf<Float> ** ppPos,
-        /* [out, callee] */ ArrayOf<Float> ** ppTan,
-        /* [out] */ Boolean * pResult);
+        /* [out] */ ArrayOf<Float>* pos,
+        /* [out] */ ArrayOf<Float>* tan,
+        /* [out] */ Boolean* result);
 
     CARAPI GetMatrix(
         /* [in] */ Float distance,
-        /* [in] */ IMatrix * pMatrix,
+        /* [in] */ IMatrix* matrix,
         /* [in] */ Int32 flags,
-        /* [out] */ Boolean * pResult);
+        /* [out] */ Boolean* result);
 
     CARAPI GetSegment(
         /* [in] */ Float startD,
         /* [in] */ Float stopD,
-        /* [in] */ IPath * pDst,
+        /* [in] */ IPath* dst,
         /* [in] */ Boolean startWithMoveTo,
-        /* [out] */ Boolean * pResult);
+        /* [out] */ Boolean* result);
 
     CARAPI IsClosed(
-        /* [out] */ Boolean * pResult);
+        /* [out] */ Boolean* result);
 
     CARAPI NextContour(
-        /* [out] */ Boolean * pResult);
+        /* [out] */ Boolean* result);
 
     CARAPI constructor();
 
     CARAPI constructor(
-        /* [in] */ IPath * pPath,
+        /* [in] */ IPath* path,
         /* [in] */ Boolean forceClosed);
 
 private:
-    static CARAPI_(PathMeasurePair*) Native_create(
-        /* [in] */ SkPath* native_path,
+    static CARAPI_(PathMeasurePair*) NativeCreate(
+        /* [in] */ SkPath* nativePath,
         /* [in] */ Boolean forceClosed);
 
-    static CARAPI_(void) Native_setPath(
-        /* [in] */ PathMeasurePair* native_instance,
-        /* [in] */ SkPath* native_path,
+    static CARAPI_(void) NativeSetPath(
+        /* [in] */ PathMeasurePair* nativeInstance,
+        /* [in] */ SkPath* nativePath,
         /* [in] */ Boolean forceClosed);
 
-    static CARAPI_(Float) Native_getLength(
-        /* [in] */ PathMeasurePair* native_instance);
+    static CARAPI_(Float) NativeGetLength(
+        /* [in] */ PathMeasurePair* nativeInstance);
 
     static CARAPI_(void) ConvertTwoElemFloatArray(
-        /* [out] */ ArrayOf<Float> * array,
+        /* [out] */ ArrayOf<Float>* array,
         /* [in] */ SkScalar* src);
 
-    static CARAPI_(Boolean) Native_getPosTan(
-        /* [in] */ PathMeasurePair* native_instance,
+    static CARAPI_(Boolean) NativeGetPosTan(
+        /* [in] */ PathMeasurePair* nativeInstance,
         /* [in] */ Float distance,
-        /* [out] */ ArrayOf<Float> ** ppPos,
-        /* [out] */ ArrayOf<Float> ** ppTan);
+        /* [out] */ ArrayOf<Float>* pos,
+        /* [out] */ ArrayOf<Float>* tan);
 
-    static CARAPI_(Boolean) Native_getMatrix(
-        /* [in] */ PathMeasurePair* native_instance,
+    static CARAPI_(Boolean) NativeGetMatrix(
+        /* [in] */ PathMeasurePair* nativeInstance,
         /* [in] */ Float distance,
-        /* [out] */ SkMatrix* native_matrix,
+        /* [out] */ SkMatrix* nativeMatrix,
         /* [in] */ Int32 flags);
 
-    static CARAPI_(Boolean) Native_getSegment(
-        /* [in] */ PathMeasurePair* native_instance,
+    static CARAPI_(Boolean) NativeGetSegment(
+        /* [in] */ PathMeasurePair* nativeInstance,
         /* [in] */ Float startF,
         /* [in] */ Float stopF,
-        /* [out] */ SkPath* native_path,
+        /* [out] */ SkPath* nativePath,
         /* [in] */ Boolean startWithMoveTo);
 
-    static CARAPI_(Boolean) Native_isClosed(
-        /* [in] */ PathMeasurePair* native_instance);
+    static CARAPI_(Boolean) NativeIsClosed(
+        /* [in] */ PathMeasurePair* nativeInstance);
 
-    static CARAPI_(Boolean) Native_nextContour(
-        /* [in] */ PathMeasurePair* native_instance);
+    static CARAPI_(Boolean) NativeNextContour(
+        /* [in] */ PathMeasurePair* nativeInstance);
 
-    static CARAPI_(void) Native_destroy(
-        /* [in] */ PathMeasurePair* native_instance);
+    static CARAPI_(void) NativeDestroy(
+        /* [in] */ PathMeasurePair* nativeInstance);
 
-    PathMeasurePair* native_instance;
+private:
+    PathMeasurePair* mNativeInstance;
 };
 
 

@@ -45,7 +45,7 @@ public:
      * Image are loaded with the {@link Bitmap.Config#ARGB_8888} config by
      * default.
      */
-    Int32 mInPreferredConfig;
+    BitmapConfig mInPreferredConfig;
 
 
     /**

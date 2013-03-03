@@ -676,7 +676,7 @@ ECode CBitmapFactory::DoDecode(
         // TODO: set the mimeType field with the data from the codec.
         // but how to reuse a set of strings, rather than allocating new one
         // each time?
-        GetMimeTypeString(decoder->getFormat(), &coptions->mOutMimeType);
+        coptions->mOutMimeType = GetMimeTypeString(decoder->getFormat());
     }
 
     // if we're in justBounds mode, return now (skip the java bitmap)
@@ -723,7 +723,7 @@ ECode CBitmapFactory::DoDecode(
     pr->setImmutable();
     // now create the java bitmap
     CBitmap* bm = NULL;
-    FAIL_RETURN(CBitmap::NewByFriend((Int32)bitmap, FALSE, *ninePatchChunk, -1, &bm));
+    FAIL_RETURN(CBitmap::NewByFriend((Int32)bitmap, FALSE, ninePatchChunk, -1, &bm));
     *ppBitmap = (IBitmap*)bm->Probe(EIID_IBitmap);
     return NOERROR;
 }
@@ -747,12 +747,9 @@ SkPixelRef* CBitmapFactory::InstallPixelRef(
     return pr;
 }
 
-void CBitmapFactory::GetMimeTypeString(
-    /* [in] */ SkImageDecoder::Format format,
-    /* [out] */ String* typeStr)
+CString CBitmapFactory::GetMimeTypeString(
+    /* [in] */ SkImageDecoder::Format format)
 {
-    assert(typeStr);
-
     static const struct {
         SkImageDecoder::Format fFormat;
         const char*            fMimeType;
@@ -773,7 +770,7 @@ void CBitmapFactory::GetMimeTypeString(
         }
     }
 
-    *typeStr = cstr;
+    return cstr;
 }
 
 SkStream* CBitmapFactory::CopyAssetToStream(

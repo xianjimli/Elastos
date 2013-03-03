@@ -1,6 +1,26 @@
 
 #include "graphics/CLargeBitmap.h"
 #include "graphics/CRect.h"
+#include "graphics/CBitmapFactoryOptions.h"
+#include "graphics/CBitmapFactory.h"
+#include "graphics/AutoDecoderCancel.h"
+#include "graphics/Graphics.h"
+#include <skia/core/SkTemplates.h>
+#include <skia/core/SkPixelRef.h>
+
+
+CLargeBitmap::~CLargeBitmap()
+{
+    Recycle();
+}
+
+ECode CLargeBitmap::constructor(
+    /* [in] */ Handle32 lbm)
+{
+    mNativeLargeBitmap = (SkBitmapRegionDecoder*)lbm;
+    mRecycled = FALSE;
+    return NOERROR;
+}
 
 /**
 * Decodes a rectangle region in the image specified by rect.
@@ -12,47 +32,53 @@
 *         decoded.
 */
 ECode CLargeBitmap::DecodeRegion(
-    /* [in] */ IRect * pRect,
-    /* [in] */ IBitmapFactoryOptions * pOptions,
-    /* [out] */ IBitmap ** ppBitmap)
+    /* [in] */ IRect* rect,
+    /* [in] */ IBitmapFactoryOptions* options,
+    /* [out] */ IBitmap** bitmap)
 {
-    CheckRecycled((Int32)"decodeRegion called on recycled large bitmap");
+    VALIDATE_NOT_NULL(bitmap);
+
+    FAIL_RETURN(CheckRecycled("decodeRegion called on recycled large bitmap"));
 
     Int32 width;
     Int32 height;
-
     GetWidth(&width);
     GetHeight(&height);
 
-    if (((CRect*)pRect)->mLeft < 0 || ((CRect*)pRect)->mTop < 0 ||
-        ((CRect*)pRect)->mRight > width || ((CRect*)pRect)->mBottom > height)
+    if (((CRect*)rect)->mLeft < 0 || ((CRect*)rect)->mTop < 0 ||
+        ((CRect*)rect)->mRight > width || ((CRect*)rect)->mBottom > height) {
+        // throw new IllegalArgumentException("rectangle is not inside the image");
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
 
-    *ppBitmap = NativeDecodeRegion(
-                    (SkBitmapRegionDecoder *)mNativeLargeBitmap,
-                    ((CRect*)pRect)->mLeft,
-                    ((CRect*)pRect)->mTop,
-                    ((CRect*)pRect)->mRight -((CRect*)pRect)->mLeft,
-                    ((CRect*)pRect)->mBottom - ((CRect*)pRect)->mTop, pOptions);
-
-    return NOERROR;
+    return NativeDecodeRegion(
+                    mNativeLargeBitmap,
+                    ((CRect*)rect)->mLeft,
+                    ((CRect*)rect)->mTop,
+                    ((CRect*)rect)->mRight -((CRect*)rect)->mLeft,
+                    ((CRect*)rect)->mBottom - ((CRect*)rect)->mTop, options,
+                    bitmap);
 }
 
 /** @param pLength the original image's width */
 ECode CLargeBitmap::GetWidth(
-    /* [out] */ Int32 * pLength)
+    /* [out] */ Int32* length)
 {
-    CheckRecycled((Int32)"getWidth called on recycled large bitmap");
-    *pLength = NativeGetWidth(mNativeLargeBitmap);
+    VALIDATE_NOT_NULL(length);
+
+    FAIL_RETURN(CheckRecycled("getWidth called on recycled large bitmap"));
+    *length = NativeGetWidth(mNativeLargeBitmap);
     return NOERROR;
 }
 
 /** @param pHeight the original image's height */
 ECode CLargeBitmap::GetHeight(
-    /* [out] */ Int32 * pHeight)
+    /* [out] */ Int32* height)
 {
-    CheckRecycled((Int32)"getHeight called on recycled large bitmap");
-    *pHeight =  NativeGetHeight(mNativeLargeBitmap);
+    VALIDATE_NOT_NULL(height);
+
+    FAIL_RETURN(CheckRecycled("getHeight called on recycled large bitmap"));
+    *height =  NativeGetHeight(mNativeLargeBitmap);
     return NOERROR;
 }
 
@@ -69,7 +95,7 @@ ECode CLargeBitmap::Recycle()
 {
     if (!mRecycled) {
         NativeClean(mNativeLargeBitmap);
-        mRecycled = true;
+        mRecycled = TRUE;
     }
     return NOERROR;
 }
@@ -81,9 +107,11 @@ ECode CLargeBitmap::Recycle()
 * @return true if the large bitmap has been recycled
 */
 ECode CLargeBitmap::IsRecycled(
-    /* [out] */ Boolean * pResult)
+    /* [out] */ Boolean* result)
 {
-    *pResult = mRecycled;
+    VALIDATE_NOT_NULL(result);
+
+    *result = mRecycled;
     return NOERROR;
 }
 
@@ -93,113 +121,103 @@ ECode CLargeBitmap::IsRecycled(
 * has already been recycled.
 */
 ECode CLargeBitmap::CheckRecycled(
-    /* [in] */ Int32 errorMessage)
+    /* [in] */ CString errorMessage)
 {
     if (mRecycled) {
+        // throw new IllegalStateException(errorMessage);
         return E_ILLEGAL_STATE_EXCEPTION;
     }
-
     return NOERROR;
 }
 
-ECode CLargeBitmap::constructor(
-    /* [in] */ Int32 ibm)
-{
-    mNativeLargeBitmap = ibm;
-    mRecycled = false;
-    return NOERROR;
-}
-
-IBitmap* CLargeBitmap::NativeDecodeRegion(
-    /* [in] */ SkBitmapRegionDecoder * brd,
-    /* [in] */ Int32 start_x,
-    /* [in] */ Int32 start_y,
+ECode CLargeBitmap::NativeDecodeRegion(
+    /* [in] */ SkBitmapRegionDecoder* lbm,
+    /* [in] */ Int32 startX,
+    /* [in] */ Int32 startY,
     /* [in] */ Int32 width,
     /* [in] */ Int32 height,
-    /* [in] */ IBitmapFactoryOptions * options)
+    /* [in] */ IBitmapFactoryOptions* options,
+    /* [out] */ IBitmap** bitmap)
 {
-#if 0
-    SkImageDecoder *decoder = brd->getDecoder();
+    SkImageDecoder* decoder = lbm->getDecoder();
     Int32 sampleSize = 1;
     SkBitmap::Config prefConfig = SkBitmap::kNo_Config;
-    Boolean doDither = true;
-    Boolean preferQualityOverSpeed = false;
+    bool doDither = true;
+    bool preferQualityOverSpeed = false;
+    CBitmapFactoryOptions* optObj = (CBitmapFactoryOptions*)options;
 
-    if (NULL != options) {
-        sampleSize = env->GetIntField(options, gOptions_sampleSizeFieldID);
+    if (NULL != optObj) {
+        sampleSize = optObj->mInSampleSize;
         // initialize these, in case we fail later on
-        env->SetIntField(options, gOptions_widthFieldID, -1);
-        env->SetIntField(options, gOptions_heightFieldID, -1);
-        env->SetObjectField(options, gOptions_mimeFieldID, 0);
+        optObj->mOutWidth = -1;
+        optObj->mOutHeight = -1;
+        optObj->mOutMimeType = NULL;
 
-        jobject jconfig = env->GetObjectField(options, gOptions_configFieldID);
-        prefConfig = GraphicsJNI::getNativeBitmapConfig(env, jconfig);
-        doDither = env->GetBooleanField(options, gOptions_ditherFieldID);
-        preferQualityOverSpeed = env->GetBooleanField(options,
-                gOptions_preferQualityOverSpeedFieldID);
+        prefConfig = Graphics::GetNativeBitmapConfig(optObj->mInPreferredConfig);
+        doDither = (bool)optObj->mInDither;
+        preferQualityOverSpeed = (bool)optObj->mInPreferQualityOverSpeed;
     }
 
     decoder->setDitherImage(doDither);
     decoder->setPreferQualityOverSpeed(preferQualityOverSpeed);
-    SkBitmap*           bitmap = new SkBitmap;
-    SkAutoTDelete<SkBitmap>       adb(bitmap);
-    AutoDecoderCancel   adc(options, decoder);
+    SkBitmap* nativeBitmap = new SkBitmap;
+    SkAutoTDelete<SkBitmap> adb(nativeBitmap);
+    AutoDecoderCancel adc(options, decoder);
 
     // To fix the race condition in case "requestCancelDecode"
     // happens earlier than AutoDecoderCancel object is added
     // to the gAutoDecoderCancelMutex linked list.
-    if (NULL != options && env->GetBooleanField(options, gOptions_mCancelID)) {
-        return nullObjectReturn("gOptions_mCancelID");;
+    if (NULL != optObj && optObj->mCancel) {
+        *bitmap = NULL;
+        return NOERROR;
     }
 
     SkIRect region;
-    region.fLeft = start_x;
-    region.fTop = start_y;
-    region.fRight = start_x + width;
-    region.fBottom = start_y + height;
+    region.fLeft = startX;
+    region.fTop = startY;
+    region.fRight = startX + width;
+    region.fBottom = startY + height;
 
-    if (!brd->decodeRegion(bitmap, region, prefConfig, sampleSize)) {
-        return nullObjectReturn("decoder->decodeRegion returned false");
+    if (!lbm->decodeRegion(nativeBitmap, region, prefConfig, sampleSize)) {
+        *bitmap = NULL;
+        return NOERROR;
     }
 
     // update options (if any)
-    if (NULL != options) {
-        env->SetIntField(options, gOptions_widthFieldID, bitmap->width());
-        env->SetIntField(options, gOptions_heightFieldID, bitmap->height());
+    if (NULL != optObj) {
+        optObj->mOutWidth = nativeBitmap->width();
+        optObj->mOutHeight = nativeBitmap->height();
         // TODO: set the mimeType field with the data from the codec.
         // but how to reuse a set of strings, rather than allocating new one
         // each time?
-        env->SetObjectField(options, gOptions_mimeFieldID,
-                            getMimeTypeString(env, decoder->getFormat()));
+        optObj->mOutMimeType = CBitmapFactory::GetMimeTypeString(decoder->getFormat());
     }
 
     // detach bitmap from its autotdeleter, since we want to own it now
     adb.detach();
 
     SkPixelRef* pr;
-    pr = bitmap->pixelRef();
+    pr = nativeBitmap->pixelRef();
     // promise we will never change our pixels (great for sharing and pictures)
     pr->setImmutable();
     // now create the java bitmap
-    return GraphicsJNI::createBitmap(env, bitmap, false, NULL);
-#endif
-    return NULL;
+    return Graphics::CreateBitmap(nativeBitmap, FALSE, NULL, -1, bitmap);
 }
 
 Int32 CLargeBitmap::NativeGetWidth(
-    /* [in] */ Int32 lbm)
+    /* [in] */ SkBitmapRegionDecoder* lbm)
 {
-    return NULL;
+    return lbm->getWidth();
 }
 
 Int32 CLargeBitmap::NativeGetHeight(
-    /* [in] */ Int32 lbm)
+    /* [in] */ SkBitmapRegionDecoder* lbm)
 {
-    return NULL;
+    return lbm->getHeight();
 }
 
 void CLargeBitmap::NativeClean(
-    /* [in] */ Int32 lbm)
+    /* [in] */ SkBitmapRegionDecoder* lbm)
 {
-
+    delete lbm;
 }

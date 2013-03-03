@@ -4,10 +4,124 @@
 #include "graphics/Graphics.h"
 #include "graphics/AutoDecoderCancel.h"
 #include "graphics/CBitmapFactory.h"
+#include "graphics/CBitmapFactoryOptions.h"
+#include "graphics/Utils.h"
 #include <elastos/AutoFree.h>
 #include <skia/images/SkImageDecoder.h>
 #include <skia/core/SkTemplates.h>
 #include <skia/core/SkPixelRef.h>
+#include <sys/stat.h>
+#include <utils/Asset.h>
+#include <unistd.h>
+
+// #include "content/AssetInputStream.h"
+// #include "graphics/Utils.h"
+
+CBitmapRegionDecoder::~CBitmapRegionDecoder()
+{
+    // try {
+    Recycle();
+    // } finally {
+    //     super.finalize();
+    // }
+}
+
+/*  Private constructor that must receive an already allocated native
+region decoder int (pointer).
+*/
+ECode CBitmapRegionDecoder::constructor(
+    /* [in] */ Handle32 decoder)
+{
+    mNativeBitmapRegionDecoder = (SkBitmapRegionDecoder*)decoder;
+    mRecycled = FALSE;
+    return NOERROR;
+}
+
+ECode CBitmapRegionDecoder::NewInstance(
+    /* [in] */ const ArrayOf<Byte>& data,
+    /* [in] */ Int32 offset,
+    /* [in] */ Int32 length,
+    /* [in] */ Boolean isShareable,
+    /* [out] */ IBitmapRegionDecoder** decoder)
+{
+    VALIDATE_NOT_NULL(decoder);
+
+    if ((offset | length) < 0 || data.GetLength() < offset + length) {
+        // throw new ArrayIndexOutOfBoundsException();
+        return E_ARRAY_INDEX_OUT_OF_BOUNDS_EXCEPTION;
+    }
+
+    return NativeNewInstance(data, offset, length, isShareable, decoder);
+}
+
+ECode CBitmapRegionDecoder::NewInstance(
+    /* [in] */ IFileDescriptor* fd,
+    /* [in] */ Boolean isShareable,
+    /* [out] */ IBitmapRegionDecoder** decoder)
+{
+    VALIDATE_NOT_NULL(decoder);
+
+    return NativeNewInstance(fd, isShareable, decoder);
+}
+
+ECode CBitmapRegionDecoder::NewInstance(
+    /* [in] */ IInputStream* _is,
+    /* [in] */ Boolean isShareable,
+    /* [out] */ IBitmapRegionDecoder** decoder)
+{
+    VALIDATE_NOT_NULL(decoder);
+
+    AutoPtr<IInputStream> is;
+
+    Boolean support;
+    if (_is->IsMarkSupported(&support), !support) {
+        CBufferedInputStream::New(is, 16 * 1024, (IBufferedInputStream**)&is);
+    }
+    else is = _is;
+
+    if (IAssetInputStream::Probe(is.Get()) != NULL) {
+        Int32 Value;
+        IAssetInputStream::Probe(is.Get())->GetAssetInt32(&Value);
+        return NativeNewInstance(Value, isShareable, decoder);
+    }
+    else {
+        // pass some temp storage down to the native code. 1024 is made up,
+        // but should be large enough to avoid too many small calls back
+        // into is.read(...).
+        Byte tempStorage[16 * 1024];
+        return NativeNewInstance(is, tempStorage, isShareable, decoder);
+    }
+}
+
+ECode CBitmapRegionDecoder::NewInstance(
+    /* [in] */ const String& pathName,
+    /* [in] */ Boolean isShareable,
+    /* [out] */ IBitmapRegionDecoder** decoder)
+{
+    VALIDATE_NOT_NULL(decoder);
+
+    AutoPtr<IInputStream> stream;
+
+    // try {
+    ECode ec;
+    ec = CFileInputStream::New(pathName, (IFileInputStream**)&stream);
+    if (SUCCEEDED(ec)) ec = NewInstance(stream, isShareable, decoder);
+    // } finally {
+    //     if (stream != null) {
+    //         try {
+    //             stream.close();
+    //         } catch (IOException e) {
+    //             // do nothing here
+    //         }
+    //     }
+    // }
+
+    if (stream != NULL) {
+        stream->Close();
+    }
+
+    return ec;
+}
 
 /**
 * Decodes a rectangle region in the image specified by rect.
@@ -19,12 +133,13 @@
 *         decoded.
 */
 ECode CBitmapRegionDecoder::DecodeRegion(
-    /* [in] */ IRect * pRect,
-    /* [in] */ IBitmapFactoryOptions * pOptions,
-    /* [out] */ IBitmap ** ppBitmap)
+    /* [in] */ IRect* rect,
+    /* [in] */ IBitmapFactoryOptions* options,
+    /* [out] */ IBitmap** bitmap)
 {
+    VALIDATE_NOT_NULL(bitmap);
 
-    CheckRecycled(String("decodeRegion called on recycled region decoder"));
+    FAIL_RETURN(CheckRecycled("decodeRegion called on recycled region decoder"));
 
     Int32 width;
     Int32 height;
@@ -32,34 +147,36 @@ ECode CBitmapRegionDecoder::DecodeRegion(
     GetWidth(&width);
     GetHeight(&height);
 
-    if (((CRect*)pRect)->mLeft < 0 || ((CRect*)pRect)->mTop < 0 || ((CRect*)pRect)->mRight > width
-        || ((CRect*)pRect)->mBottom > height) {
+    CRect* rectObj = (CRect*)rect;
+    if (rectObj->mLeft < 0 || rectObj->mTop < 0 || rectObj->mRight > width
+            || rectObj->mBottom > height) {
+        // throw new IllegalArgumentException("rectangle is not inside the image");
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
-    *ppBitmap = NativeDecodeRegion(mNativeBitmapRegionDecoder, ((CRect*)pRect)->mLeft, ((CRect*)pRect)->mTop,
-    ((CRect*)pRect)->mRight - ((CRect*)pRect)->mLeft, ((CRect*)pRect)->mBottom - ((CRect*)pRect)->mTop, pOptions);
-
-    return NOERROR;
+    return NativeDecodeRegion(mNativeBitmapRegionDecoder, rectObj->mLeft, rectObj->mTop,
+            rectObj->mRight - rectObj->mLeft, rectObj->mBottom - rectObj->mTop, options, bitmap);
 }
 
 /** @param pWidth the original image's width */
 ECode CBitmapRegionDecoder::GetWidth(
-    /* [out] */ Int32 * pWidth)
+    /* [out] */ Int32* width)
 {
-    CheckRecycled(String("getWidth called on recycled region decoder"));
-    *pWidth = NativeGetWidth(mNativeBitmapRegionDecoder);
+    VALIDATE_NOT_NULL(width);
 
+    FAIL_RETURN(CheckRecycled("getWidth called on recycled region decoder"));
+    *width = NativeGetWidth(mNativeBitmapRegionDecoder);
     return NOERROR;
 }
 
 /** @param pHeight the original image's height */
 ECode CBitmapRegionDecoder::GetHeight(
-    /* [out] */ Int32 * pHeight)
+    /* [out] */ Int32* height)
 {
-    CheckRecycled(String("getHeight called on recycled region decoder"));
-    *pHeight = NativeGetHeight(mNativeBitmapRegionDecoder);
+    VALIDATE_NOT_NULL(height);
 
+    FAIL_RETURN(CheckRecycled("getHeight called on recycled region decoder"));
+    *height = NativeGetHeight(mNativeBitmapRegionDecoder);
     return NOERROR;
 }
 
@@ -77,7 +194,7 @@ ECode CBitmapRegionDecoder::Recycle()
 {
     if (!mRecycled) {
         NativeClean(mNativeBitmapRegionDecoder);
-        mRecycled = true;
+        mRecycled = TRUE;
     }
     return NOERROR;
 }
@@ -89,9 +206,11 @@ ECode CBitmapRegionDecoder::Recycle()
 * @return true if the region decoder has been recycled
 */
 ECode CBitmapRegionDecoder::IsRecycled(
-    /* [out] */ Boolean * pResult)
+    /* [out] */ Boolean* result)
 {
-    *pResult = mRecycled;
+    VALIDATE_NOT_NULL(result);
+
+    *result = mRecycled;
     return NOERROR;
 }
 
@@ -100,114 +219,145 @@ ECode CBitmapRegionDecoder::IsRecycled(
 * has already been recycled.
 */
 ECode CBitmapRegionDecoder::CheckRecycled(
-    /* [in] */ const String& errorMessage)
+    /* [in] */ CString errorMessage)
 {
     if (mRecycled) {
+        // throw new IllegalStateException(errorMessage);
         return E_ILLEGAL_STATE_EXCEPTION;
     }
-
     return NOERROR;
 }
 
-/*  Private constructor that must receive an already allocated native
-region decoder int (pointer).
-
-*/
-ECode CBitmapRegionDecoder::constructor(
-    /* [in] */ Int32 decoder)
+static SkMemoryStream* BuildSkMemoryStream(
+    /* [in] */ SkStream *stream)
 {
-    mNativeBitmapRegionDecoder = (SkBitmapRegionDecoder*)decoder;
-    mRecycled = false;
+    size_t bufferSize = 4096;
+    size_t streamLen = 0;
+    size_t len;
+    char* data = (char*)sk_malloc_throw(bufferSize);
 
-    return NOERROR;
+    while ((len = stream->read(data + streamLen,
+                    bufferSize - streamLen)) != 0) {
+        streamLen += len;
+        if (streamLen == bufferSize) {
+            bufferSize *= 2;
+            data = (char*)sk_realloc_throw(data, bufferSize);
+        }
+    }
+    data = (char*)sk_realloc_throw(data, streamLen);
+
+    SkMemoryStream* streamMem = new SkMemoryStream();
+    streamMem->setMemoryOwned(data, streamLen);
+    return streamMem;
 }
 
-
-CBitmapRegionDecoder::~CBitmapRegionDecoder()
+static ECode DoBuildTileIndex(
+    /* [in] */ SkStream* stream,
+    /* [out] */ IBitmapRegionDecoder** _decoder)
 {
-    Recycle();
+    assert(_decoder != NULL);
+
+    SkImageDecoder* decoder = SkImageDecoder::Factory(stream);
+    int width, height;
+    if (NULL == decoder) {
+        *_decoder = NULL;
+        return NOERROR;
+    }
+
+    //todo:
+    // CppPixelAllocator* cppAllocator = new CppPixelAllocator(true);
+    // decoder->setAllocator(cppAllocator);
+    // CppMemoryUsageReporter* cppMemoryReporter = new CppMemoryUsageReporter();
+    // decoder->setReporter(cppMemoryReporter);
+    // cppAllocator->unref();
+    // cppMemoryReporter->unref();
+
+    if (!decoder->buildTileIndex(stream, &width, &height)) {
+        char msg[100];
+        snprintf(msg, sizeof(msg), "Image failed to decode using %s decoder",
+                decoder->getFormatName());
+        // doThrowIOE(env, msg);
+        // return nullObjectReturn("decoder->buildTileIndex returned false");
+        return E_IO_EXCEPTION;
+    }
+
+    SkBitmapRegionDecoder *bm = new SkBitmapRegionDecoder(decoder, width, height);
+
+    return Graphics::CreateBitmapRegionDecoder(bm, _decoder);
 }
 
-Int32 gOptions_sampleSizeFieldID = 0;
-Int32 gOptions_widthFieldID = 0;
-Int32 gOptions_heightFieldID = 0;
-String gOptions_mimeFieldID ;
-Int32 gOptions_configFieldID = 0;
-
-Boolean gOptions_ditherFieldID = false;
-Boolean gOptions_preferQualityOverSpeedFieldID = false;
-Boolean gOptions_mCancelID = false;
-
-IBitmap* CBitmapRegionDecoder::NativeDecodeRegion(
+ECode CBitmapRegionDecoder::NativeDecodeRegion(
     /* [in] */ SkBitmapRegionDecoder* brd,
-    /* [in] */ Int32 start_x,
-    /* [in] */ Int32 start_y,
+    /* [in] */ Int32 startX,
+    /* [in] */ Int32 startY,
     /* [in] */ Int32 width,
     /* [in] */ Int32 height,
-    /* [in] */ IBitmapFactoryOptions* options)
+    /* [in] */ IBitmapFactoryOptions* options,
+    /* [out] */ IBitmap** bitmap)
 {
-    SkImageDecoder *decoder = brd->getDecoder();
+    SkImageDecoder* decoder = brd->getDecoder();
     Int32 sampleSize = 1;
     SkBitmap::Config prefConfig = SkBitmap::kNo_Config;
-    Boolean doDither = true;
-    Boolean preferQualityOverSpeed = false;
+    bool doDither = true;
+    bool preferQualityOverSpeed = false;
+    CBitmapFactoryOptions* optObj = (CBitmapFactoryOptions*)options;
 
-    if (NULL != options) {
-        sampleSize = gOptions_sampleSizeFieldID;
+    if (NULL != optObj) {
+        sampleSize = optObj->mInSampleSize;
         // initialize these, in case we fail later on
-        gOptions_widthFieldID = -1;
-        gOptions_heightFieldID = -1;
-        gOptions_mimeFieldID = 0;
+        optObj->mOutWidth = -1;
+        optObj->mOutHeight = -1;
+        optObj->mOutMimeType = NULL;
 
-        Int32 jconfig = gOptions_configFieldID;
-        prefConfig = Graphics::GetNativeBitmapConfig(jconfig);
-        doDither = gOptions_ditherFieldID;
-        preferQualityOverSpeed = gOptions_preferQualityOverSpeedFieldID;
+        prefConfig = Graphics::GetNativeBitmapConfig(optObj->mInPreferredConfig);
+        doDither = (bool)optObj->mInDither;
+        preferQualityOverSpeed = (bool)optObj->mInPreferQualityOverSpeed;
     }
 
     decoder->setDitherImage(doDither);
     decoder->setPreferQualityOverSpeed(preferQualityOverSpeed);
-    SkBitmap* bitmap = new SkBitmap;
-    SkAutoTDelete<SkBitmap> adb(bitmap);
+    SkBitmap* nativeBitmap = new SkBitmap;
+    SkAutoTDelete<SkBitmap> adb(nativeBitmap);
     AutoDecoderCancel adc(options, decoder);
 
     // To fix the race condition in case "requestCancelDecode"
     // happens earlier than AutoDecoderCancel object is added
     // to the gAutoDecoderCancelMutex linked list.
-    if (NULL != options && gOptions_mCancelID) {
-        return NULL;
+    if (NULL != optObj && optObj->mCancel) {
+        *bitmap = NULL;
+        return NOERROR;
     }
 
     SkIRect region;
-    region.fLeft = start_x;
-    region.fTop = start_y;
-    region.fRight = start_x + width;
-    region.fBottom = start_y + height;
+    region.fLeft = startX;
+    region.fTop = startY;
+    region.fRight = startX + width;
+    region.fBottom = startY + height;
 
-    if (!brd->decodeRegion(bitmap, region, prefConfig, sampleSize)) {
-        return NULL;
+    if (!brd->decodeRegion(nativeBitmap, region, prefConfig, sampleSize)) {
+        *bitmap = NULL;
+        return NOERROR;
     }
 
     // update options (if any)
-    if (NULL != options) {
-        gOptions_widthFieldID = bitmap->width();
-        gOptions_heightFieldID = bitmap->height();
+    if (NULL != optObj) {
+        optObj->mOutWidth = nativeBitmap->width();
+        optObj->mOutHeight = nativeBitmap->height();
         // TODO: set the mimeType field with the data from the codec.
         // but how to reuse a set of strings, rather than allocating new one
         // each time?
-
-        CBitmapFactory::GetMimeTypeString(decoder->getFormat(), &gOptions_mimeFieldID);
+        optObj->mOutMimeType = CBitmapFactory::GetMimeTypeString(decoder->getFormat());
     }
 
     // detach bitmap from its autotdeleter, since we want to own it now
     adb.detach();
 
     SkPixelRef* pr;
-    pr = bitmap->pixelRef();
+    pr = nativeBitmap->pixelRef();
     // promise we will never change our pixels (great for sharing and pictures)
     pr->setImmutable();
     // now create the java bitmap
-    return NULL;//GraphicsJNI::createBitmap(env, bitmap, false, NULL);
+    return Graphics::CreateBitmap(nativeBitmap, FALSE, NULL, -1, bitmap);
 }
 
 Int32 CBitmapRegionDecoder::NativeGetWidth(
@@ -226,4 +376,106 @@ void CBitmapRegionDecoder::NativeClean(
     /* [in] */ SkBitmapRegionDecoder* brd)
 {
     delete brd;
+}
+
+ECode CBitmapRegionDecoder::NativeNewInstance(
+    /* [in] */ const ArrayOf<Byte> & data,
+    /* [in] */ Int32 offset,
+    /* [in] */ Int32 length,
+    /* [in] */ Boolean isShareable,
+    /* [out] */ IBitmapRegionDecoder** decoder)
+{
+    /*  If isShareable we could decide to just wrap the java array and
+    share it, but that means adding a globalref to the java array object
+    For now we just always copy the array's data if isShareable.
+    */
+    SkStream* stream = new SkMemoryStream(data.GetPayload() + offset, length, TRUE);
+    return DoBuildTileIndex(stream, decoder);
+}
+
+ECode CBitmapRegionDecoder::NativeNewInstance(
+    /* [in] */ IFileDescriptor* fd,
+    /* [in] */ Boolean isShareable,
+    /* [out] */ IBitmapRegionDecoder** decoder)
+{
+    if (fd == NULL) {
+        return E_NULL_POINTER_EXCEPTION;
+    }
+
+    Int32 descriptor;
+    fd->GetDescriptor(&descriptor);
+    SkStream *stream = NULL;
+    struct stat fdStat;
+    Int32 newFD;
+    if (fstat(descriptor, &fdStat) == -1) {
+        *decoder = NULL;
+        return E_IO_EXCEPTION;
+    }
+
+    if (isShareable &&
+            S_ISREG(fdStat.st_mode) &&
+            (newFD = ::dup(descriptor)) != -1) {
+        SkFDStream* fdStream = new SkFDStream(newFD, true);
+        if (!fdStream->isValid()) {
+            fdStream->unref();
+            *decoder = NULL;
+            return NOERROR;
+        }
+        stream = fdStream;
+    }
+    else {
+        /* Restore our offset when we leave, so we can be called more than once
+           with the same descriptor. This is only required if we didn't dup the
+           file descriptor, but it is OK to do it all the time.
+        */
+        AutoFDSeek as(descriptor);
+
+        SkFDStream* fdStream = new SkFDStream(descriptor, false);
+        if (!fdStream->isValid()) {
+            fdStream->unref();
+            *decoder = NULL;
+            return NOERROR;
+        }
+        stream = BuildSkMemoryStream(fdStream);
+        fdStream->unref();
+    }
+
+    return DoBuildTileIndex(stream, decoder);
+}
+
+ECode CBitmapRegionDecoder::NativeNewInstance(
+    /* [in] */ IInputStream* is,
+    /* [in] */ //ArrayOf<Byte> & storage,
+    /* [in] */ Byte* storage,
+    /* [in] */ Boolean isShareable,
+    /* [out] */ IBitmapRegionDecoder** decoder)
+{
+    ECode ec = NOERROR;
+    *decoder = NULL;
+
+    assert(0);
+    SkStream* stream = NULL;//CreateJavaInputStreamAdaptor(env, is, storage, 1024);
+
+    if (stream) {
+        // for now we don't allow shareable with java inputstreams
+        SkMemoryStream *mStream = BuildSkMemoryStream(stream);
+        ec = DoBuildTileIndex(mStream, decoder);
+        stream->unref();
+    }
+
+    return ec;
+}
+
+ECode CBitmapRegionDecoder::NativeNewInstance(
+    /* [in] */ Int32 asset,
+    /* [in] */ Boolean isShareable,
+    /* [out] */ IBitmapRegionDecoder** decoder)
+{
+    assert(0);
+    SkStream* stream, *assStream;
+    // android::Asset* asset = NULL;//reinterpret_cast<Asset*>(native_asset);
+    // assStream = new AssetStreamAdaptor(asset);
+    // stream = BuildSkMemoryStream(assStream);
+    // assStream->unref();
+    return DoBuildTileIndex(stream, decoder);
 }

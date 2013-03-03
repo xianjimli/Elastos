@@ -10,10 +10,7 @@ public:
     CARAPI Length(
         /* [in] */ Float x,
         /* [in] */ Float y,
-        /* [out] */ Float * pLength);
-
-private:
-    // TODO: Add your private member variables here.
+        /* [out] */ Float* length);
 };
 
 #endif // __CPOINTFHELPER_H__

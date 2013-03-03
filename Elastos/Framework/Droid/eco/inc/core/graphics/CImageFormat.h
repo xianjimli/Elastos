@@ -9,12 +9,7 @@ CarClass(CImageFormat)
 public:
     CARAPI GetBitsPerPixel(
         /* [in] */ Int32 format,
-        /* [out] */ Int32 * pBits);
-
-    CARAPI constructor();
-
-private:
-    // TODO: Add your private member variables here.
+        /* [out] */ Int32* bits);
 };
 
 #endif // __CIMAGEFORMAT_H__

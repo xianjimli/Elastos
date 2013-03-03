@@ -10,53 +10,51 @@ CarClass(CYuvImage)
 {
 public:
     CARAPI CompressToJpeg(
-        /* [in] */ IRect * pRectangle,
+        /* [in] */ IRect* rectangle,
         /* [in] */ Int32 quality,
-        /* [in] */ IOutputStream * pStream,
-        /* [out] */ Boolean * pResult);
+        /* [in] */ IOutputStream* stream,
+        /* [out] */ Boolean* result);
 
     CARAPI GetYuvData(
-        /* [out, callee] */ ArrayOf<Byte> ** ppData);
+        /* [out, callee] */ ArrayOf<Byte>** data);
 
     CARAPI GetYuvFormat(
-        /* [out] */ Int32 * pFormat);
+        /* [out] */ Int32* format);
 
     CARAPI GetStrides(
-        /* [out, callee] */ ArrayOf<Int32> ** ppStrides);
+        /* [out, callee] */ ArrayOf<Int32>** strides);
 
     CARAPI GetWidth(
-        /* [out] */ Int32 * pWidth);
+        /* [out] */ Int32* width);
 
     CARAPI GetHeight(
-        /* [out] */ Int32 * pHeight);
+        /* [out] */ Int32* height);
 
     CARAPI constructor(
-        /* [in] */ const ArrayOf<Byte> & yuv,
+        /* [in] */ const ArrayOf<Byte>& yuv,
         /* [in] */ Int32 format,
         /* [in] */ Int32 width,
         /* [in] */ Int32 height,
-        /* [in] */ const ArrayOf<Int32> & strides);
+        /* [in] */ ArrayOf<Int32>* strides);
 
     // static Boolean nativeCompressToJpeg(ArrayOf<Byte> oriYuv,
     //     int format, int width, int height, ArrayOf<Int32> offsets, ArrayOf<Int32> strides,
     //     int quality, OutputStream stream, ArrayOf<Byte> tempStorage);
 
 private:
-    CARAPI CalculateOffsets(
+    CARAPI_(ArrayOf<Int32>*) CalculateOffsets(
         /* [in] */ Int32 left,
-        /* [in] */ Int32 top,
-        /* [out, callee] */ ArrayOf<Int32> ** ppOffsets);
+        /* [in] */ Int32 top);
 
-    CARAPI CalculateStrides(
+    CARAPI_(ArrayOf<Int32>*) CalculateStrides(
         /* [in] */ Int32 width,
-        /* [in] */ Int32 format,
-        /* [out, callee] */ ArrayOf<Int32> ** ppStrides);
+        /* [in] */ Int32 format);
 
-    CARAPI AdjustRectangle(
-        /* [in] */ IRect * pRect);
+    CARAPI_(void) AdjustRectangle(
+        /* [in] */ IRect* rect);
 
-    static Boolean NativeCompressToJpeg(
-        /* [in] */ ArrayOf<Byte> & oriYuv,
+    static CARAPI_(Boolean) NativeCompressToJpeg(
+        /* [in] */ ArrayOf<Byte>& oriYuv,
         /* [in] */ Int32 format,
         /* [in] */ Int32 width,
         /* [in] */ Int32 height,
@@ -65,6 +63,13 @@ private:
         /* [in] */ Int32 quality,
         /* [in] */ IOutputStream* stream,
         /* [out] */ ArrayOf<Byte> & tempStorage);
+
+private:
+    /**
+     * Number of bytes of temp storage we use for communicating between the
+     * native compressor and the java OutputStream.
+     */
+    static const Int32 WORKING_COMPRESS_STORAGE = 4096;
 
     /**
      * The YUV format as defined in {@link PixelFormat}.

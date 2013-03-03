@@ -1,179 +1,11 @@
 
+#include "ext/frameworkdef.h"
 #include "graphics/CYuvImage.h"
+#include <elastos/AutoPtr.h>
 #include <skia/core/SkStream.h>
 
-/**
- * Compress a rectangle region in the YuvImage to a jpeg.
- * Only ImageFormat.NV21 and ImageFormat.YUY2
- * are supported for now.
- *
- * @param rectangle The rectangle region to be compressed. The medthod checks if rectangle is
- *                  inside the image. Also, the method modifies rectangle if the chroma pixels
- *                  in it are not matched with the luma pixels in it.
- * @param quality   Hint to the compressor, 0-100. 0 meaning compress for
- *                  small size, 100 meaning compress for max quality.
- * @param stream    OutputStream to write the compressed data.
- * @return          True if the compression is successful.
- * @throws IllegalArgumentException if rectangle is invalid; quality is not within [0,
- *                  100]; or stream is null.
-*/
 
-ECode CYuvImage::CompressToJpeg(
-    /* [in] */ IRect * pRectangle,
-    /* [in] */ Int32 quality,
-    /* [in] */ IOutputStream * pStream,
-    /* [out] */ Boolean * pResult)
-{
-    CRect wholeImage;
-    wholeImage.mRight = mWidth;
-    wholeImage.mBottom = mHeight;
-
-    Boolean res;
-    wholeImage.ContainsEx2(pRectangle, &res);
-    if (!res) {
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
-    }
-
-    if (quality < 0 || quality > 100) {
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
-    }
-
-    if (pStream == NULL) {
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
-    }
-
-    AdjustRectangle(pRectangle);
-
-    AutoFree< ArrayOf<Int32> > pOffsets;
-    CalculateOffsets(
-        ((CRect*)pRectangle)->mLeft,
-        ((CRect*)pRectangle)->mTop,
-        (ArrayOf<Int32> **)&pOffsets);
-
-
-    AutoFree< ArrayOf<Byte> > pNewByte = ArrayOf<Byte>::Alloc(4096/*YUVIMAGE_WORKING_COMPRESS_STORAGE*/);
-    if (pNewByte == NULL) {
-        return E_OUT_OF_MEMORY_ERROR;
-    }
-
-    Int32 width;
-    Int32 height;
-
-    pRectangle->GetWidth(&width);
-    pRectangle->GetHeight(&height);
-
-    *pResult = NativeCompressToJpeg(
-                *mData,
-                mFormat,
-                width,
-                height,
-                *pOffsets,
-                *mStrides,
-                quality,
-                pStream,
-                *pNewByte);
-
-    return NOERROR;
-}
-
-ECode CYuvImage::GetYuvData(
-    /* [out, callee] */ ArrayOf<Byte> ** ppData)
-{
-    *ppData = mData->Clone();
-    return NOERROR;
-}
-
-ECode CYuvImage::GetYuvFormat(
-    /* [out] */ Int32 * pFormat)
-{
-    *pFormat = mFormat;
-    return NOERROR;
-}
-
-ECode CYuvImage::GetStrides(
-    /* [out, callee] */ ArrayOf<Int32> ** ppStrides)
-{
-    *ppStrides = mStrides->Clone();
-    return NOERROR;
-}
-
-ECode CYuvImage::GetWidth(
-    /* [out] */ Int32 * pWidth)
-{
-    *pWidth = mWidth;
-    return NOERROR;
-}
-
-ECode CYuvImage::GetHeight(
-    /* [out] */ Int32 * pHeight)
-{
-    *pHeight = mHeight;
-    return NOERROR;
-}
-
-ECode CYuvImage::CalculateOffsets(
-    /* [in] */ Int32 left,
-    /* [in] */ Int32 top,
-    /* [out, callee] */ ArrayOf<Int32> ** ppOffsets)
-{
-    if (mFormat == IMAGEFORMAT_NV21) {
-        *ppOffsets = ArrayOf<Int32>::Alloc((top * (*mStrides)[0] + left) *
-            (mHeight * (*mStrides)[0] + top / 2 * (*mStrides)[1] + left / 2 * 2 ));
-    }
-
-    if (mFormat == IMAGEFORMAT_YUY2) {
-        *ppOffsets = ArrayOf<Int32>::Alloc(top * (*mStrides)[0] + left / 2 * 4);
-    }
-
-    return NOERROR;
-}
-
-ECode CYuvImage::CalculateStrides(
-    /* [in] */ Int32 width,
-    /* [in] */ Int32 format,
-    /* [out, callee] */ ArrayOf<Int32> ** ppStrides)
-{
-    if (format == IMAGEFORMAT_NV21) {
-        *ppStrides = ArrayOf<Int32>::Alloc(width * width);
-    }
-
-    if (format == IMAGEFORMAT_YUY2) {
-        *ppStrides = ArrayOf<Int32>::Alloc(width * 2);
-    }
-
-    return NOERROR;
-}
-
-ECode CYuvImage::AdjustRectangle(
-    /* [in] */ IRect * pRect)
-{
-    Int32 width;
-    Int32 height;
-
-    pRect->GetWidth(&width);
-    pRect->GetHeight(&height);
-
-    if (mFormat == IMAGEFORMAT_NV21) {
-       // Make sure left, top, width and height are all even.
-       width &= ~1;
-       height &= ~1;
-       ((CRect*)pRect)->mLeft &= ~1;
-       ((CRect*)pRect)->mTop &= ~1;
-       ((CRect*)pRect)->mRight = ((CRect*)pRect)->mLeft + width;
-       ((CRect*)pRect)->mBottom = ((CRect*)pRect)->mTop + height;
-    }
-
-    if (mFormat == IMAGEFORMAT_YUY2) {
-        // Make sure left and width are both even.
-        width &= ~1;
-        ((CRect*)pRect)->mLeft &= ~1;
-        ((CRect*)pRect)->mRight = ((CRect*)pRect)->mLeft + width;
-    }
-    return NOERROR;
-}
-
-//////////// native methods
-
+const Int32 CYuvImage::WORKING_COMPRESS_STORAGE;
 
 /**
  * Construct an YuvImage.
@@ -190,39 +22,224 @@ ECode CYuvImage::AdjustRectangle(
  *                null.
 */
 ECode CYuvImage::constructor(
-    /* [in] */ const ArrayOf<Byte> & yuv,
+    /* [in] */ const ArrayOf<Byte>& yuv,
     /* [in] */ Int32 format,
     /* [in] */ Int32 width,
     /* [in] */ Int32 height,
-    /* [in] */ const ArrayOf<Int32> & strides)
+    /* [in] */ ArrayOf<Int32>* strides)
 {
     if (format != IMAGEFORMAT_NV21 &&
                 format != IMAGEFORMAT_YUY2) {
-            return E_ILLEGAL_ARGUMENT_EXCEPTION;
-        }
+        // throw new IllegalArgumentException(
+        //             "only support ImageFormat.NV21 " +
+        //             "and ImageFormat.YUY2 for now");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
 
-        if (width <= 0  || height <= 0) {
-            return E_ILLEGAL_ARGUMENT_EXCEPTION;
-        }
+    if (width <= 0  || height <= 0) {
+        // throw new IllegalArgumentException(
+        //             "width and height must large than 0");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
 
-        if (yuv.GetPayload() == NULL) {
-            return E_ILLEGAL_ARGUMENT_EXCEPTION;
-        }
+    if (strides == NULL) {
+        mStrides = CalculateStrides(width, format);
+    }
+    else {
+        mStrides = strides->Clone();
+    }
 
-        if (strides.GetPayload() == NULL) {
-            CalculateStrides(width, format, (ArrayOf<Int32> **)&mStrides);
-        } else {
-            mStrides = strides.Clone();
-        }
-
-        mData = yuv.Clone();
-        mFormat = format;
-        mWidth = width;
-        mHeight = height;
+    mData = yuv.Clone();
+    mFormat = format;
+    mWidth = width;
+    mHeight = height;
 
     return NOERROR;
 }
 
+/**
+ * Compress a rectangle region in the YuvImage to a jpeg.
+ * Only ImageFormat.NV21 and ImageFormat.YUY2
+ * are supported for now.
+ *
+ * @param rectangle The rectangle region to be compressed. The medthod checks if rectangle is
+ *                  inside the image. Also, the method modifies rectangle if the chroma pixels
+ *                  in it are not matched with the luma pixels in it.
+ * @param quality   Hint to the compressor, 0-100. 0 meaning compress for
+ *                  small size, 100 meaning compress for max quality.
+ * @param stream    OutputStream to write the compressed data.
+ * @return          True if the compression is successful.
+ * @throws IllegalArgumentException if rectangle is invalid; quality is not within [0,
+ *                  100]; or stream is null.
+*/
+ECode CYuvImage::CompressToJpeg(
+    /* [in] */ IRect* rectangle,
+    /* [in] */ Int32 quality,
+    /* [in] */ IOutputStream* stream,
+    /* [out] */ Boolean* result)
+{
+    VALIDATE_NOT_NULL(result);
+
+    AutoPtr<IRect> wholeImage;
+    CRect::New(0, 0, mWidth, mHeight, (IRect**)&wholeImage);
+
+    Boolean res;
+    wholeImage->ContainsEx2(rectangle, &res);
+    if (!res) {
+        // throw new IllegalArgumentException(
+        //             "rectangle is not inside the image");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+
+    if (quality < 0 || quality > 100) {
+        // throw new IllegalArgumentException("quality must be 0..100");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+
+    if (stream == NULL) {
+        // throw new IllegalArgumentException("stream cannot be null");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+
+    AdjustRectangle(rectangle);
+    ArrayOf<Int32>* offsets = CalculateOffsets(
+        ((CRect*)rectangle)->mLeft,
+        ((CRect*)rectangle)->mTop);
+
+    Int32 width;
+    Int32 height;
+    rectangle->GetWidth(&width);
+    rectangle->GetHeight(&height);
+
+    ArrayOf_<Byte, WORKING_COMPRESS_STORAGE> tempStorage;
+    *result = NativeCompressToJpeg(
+                *mData,
+                mFormat,
+                width,
+                height,
+                *offsets,
+                *mStrides,
+                quality,
+                stream,
+                tempStorage);
+
+    ArrayOf<Int32>::Free(offsets);
+    return NOERROR;
+}
+
+ECode CYuvImage::GetYuvData(
+    /* [out, callee] */ ArrayOf<Byte>** data)
+{
+    VALIDATE_NOT_NULL(data);
+
+    *data = mData->Clone();
+    return NOERROR;
+}
+
+ECode CYuvImage::GetYuvFormat(
+    /* [out] */ Int32* format)
+{
+    VALIDATE_NOT_NULL(format);
+
+    *format = mFormat;
+    return NOERROR;
+}
+
+ECode CYuvImage::GetStrides(
+    /* [out, callee] */ ArrayOf<Int32>** strides)
+{
+    VALIDATE_NOT_NULL(strides);
+
+    *strides = mStrides->Clone();
+    return NOERROR;
+}
+
+ECode CYuvImage::GetWidth(
+    /* [out] */ Int32* width)
+{
+    VALIDATE_NOT_NULL(width);
+
+    *width = mWidth;
+    return NOERROR;
+}
+
+ECode CYuvImage::GetHeight(
+    /* [out] */ Int32* height)
+{
+    VALIDATE_NOT_NULL(height);
+
+    *height = mHeight;
+    return NOERROR;
+}
+
+ArrayOf<Int32>* CYuvImage::CalculateOffsets(
+    /* [in] */ Int32 left,
+    /* [in] */ Int32 top)
+{
+    ArrayOf<Int32>* offsets = NULL;
+    if (mFormat == IMAGEFORMAT_NV21) {
+        offsets = ArrayOf<Int32>::Alloc(2);
+        (*offsets)[0] = top * (*mStrides)[0] + left;
+        (*offsets)[1] = mHeight * (*mStrides)[0] + top / 2 * (*mStrides)[1] + left / 2 * 2;
+        return offsets;
+    }
+
+    if (mFormat == IMAGEFORMAT_YUY2) {
+        offsets = ArrayOf<Int32>::Alloc(1);
+        (*offsets)[0] = top * (*mStrides)[0] + left / 2 * 4;
+        return offsets;
+    }
+
+    return offsets;
+}
+
+ArrayOf<Int32>* CYuvImage::CalculateStrides(
+    /* [in] */ Int32 width,
+    /* [in] */ Int32 format)
+{
+    ArrayOf<Int32>* strides = NULL;
+    if (format == IMAGEFORMAT_NV21) {
+        strides = ArrayOf<Int32>::Alloc(2);
+        (*strides)[0] = (*strides)[1] = width;
+        return strides;
+    }
+
+    if (format == IMAGEFORMAT_YUY2) {
+        strides = ArrayOf<Int32>::Alloc(1);
+        (*strides)[0] = width * 2;
+        return strides;
+    }
+
+    return strides;
+}
+
+void CYuvImage::AdjustRectangle(
+    /* [in] */ IRect* rect)
+{
+    Int32 width;
+    Int32 height;
+    rect->GetWidth(&width);
+    rect->GetHeight(&height);
+    CRect* rectObj = (CRect*)rect;
+    if (mFormat == IMAGEFORMAT_NV21) {
+       // Make sure left, top, width and height are all even.
+       width &= ~1;
+       height &= ~1;
+       rectObj->mLeft &= ~1;
+       rectObj->mTop &= ~1;
+       rectObj->mRight = rectObj->mLeft + width;
+       rectObj->mBottom = rectObj->mTop + height;
+    }
+
+    if (mFormat == IMAGEFORMAT_YUY2) {
+        // Make sure left and width are both even.
+        width &= ~1;
+        rectObj->mLeft &= ~1;
+        rectObj->mRight = rectObj->mLeft + width;
+    }
+}
+
+//////////// native methods
 
 Boolean CYuvImage::NativeCompressToJpeg(
     /* [in] */ ArrayOf<Byte> & oriYuv,
@@ -255,4 +272,3 @@ Boolean CYuvImage::NativeCompressToJpeg(
 #endif
     return true;
 }
-

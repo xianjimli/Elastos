@@ -12,7 +12,7 @@ public:
         /* [in] */ Float y);
 
     CARAPI SetEx(
-        /* [in] */ IPointF * pP);
+        /* [in] */ IPointF* p);
 
     CARAPI Negate();
 
@@ -23,10 +23,10 @@ public:
     CARAPI Equals(
         /* [in] */ Float x,
         /* [in] */ Float y,
-        /* [out] */ Boolean * pResult);
+        /* [out] */ Boolean* result);
 
     CARAPI Length(
-        /* [out] */ Float * pLength);
+        /* [out] */ Float* length);
 
     CARAPI constructor();
 
@@ -35,12 +35,15 @@ public:
         /* [in] */ Float y);
 
     CARAPI constructor(
-        /* [in] */ IPoint * pPoint);
+        /* [in] */ IPoint * point);
 
-    Float x;
-    Float y;
-private:
-    // TODO: Add your private member variables here.
+    static CARAPI_(Float) Length(
+        /* [in] */ Float x,
+        /* [in] */ Float y);
+
+public:
+    Float mX;
+    Float mY;
 };
 
 #endif // __CPOINTF_H__

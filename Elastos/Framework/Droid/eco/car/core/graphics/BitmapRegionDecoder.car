@@ -30,21 +30,21 @@ module
             [in] Int32 offset,
             [in] Int32 length,
             [in] Boolean isShareable,
-            [out] IBitmapRegionDecoder** IBrd);
+            [out] IBitmapRegionDecoder** decoder);
 
         NewInstanceEx(
             [in] IFileDescriptor* fd,
             [in] Boolean isShareable,
-            [out] IBitmapRegionDecoder** IBrd);
+            [out] IBitmapRegionDecoder** decoder);
 
         NewInstanceEx2(
             [in] IInputStream* is,
             [in] Boolean isShareable,
-            [out] IBitmapRegionDecoder** IBrd);
+            [out] IBitmapRegionDecoder** decoder);
 
         NewInstanceEx3(
             [in] String pathName,
             [in] Boolean isShareable,
-            [out] IBitmapRegionDecoder** IBrd);
+            [out] IBitmapRegionDecoder** decoder);
     }
 }

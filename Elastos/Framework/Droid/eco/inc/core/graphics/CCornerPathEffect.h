@@ -11,8 +11,11 @@ public:
     CARAPI constructor(
         /* [in] */ Float radius);
 
+    CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
 private:
-    static CARAPI_(SkPathEffect*)NativeCreate(
+    static CARAPI_(SkPathEffect*) NativeCreate(
         /* [in] */ Float radius);
 };
 

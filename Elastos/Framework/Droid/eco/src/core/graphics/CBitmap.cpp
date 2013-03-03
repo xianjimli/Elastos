@@ -575,9 +575,9 @@ ECode CBitmap::WriteToParcel(
 }
 
 ECode CBitmap::constructor(
-    /* [in] */ Int32 nativeBitmap,
+    /* [in] */ Handle32 nativeBitmap,
     /* [in] */ Boolean isMutable,
-    /* [in] */ const ArrayOf<Byte>& ninePatchChunk,
+    /* [in] */ ArrayOf<Byte>* ninePatchChunk,
     /* [in] */ Int32 density)
 {
     if (nativeBitmap == 0) {
@@ -588,7 +588,7 @@ ECode CBitmap::constructor(
     // we delete this in our finalizer
     mNativeBitmap = (SkBitmap*)nativeBitmap;
     mIsMutable = isMutable;
-    mNinePatchChunk = ninePatchChunk.Clone();
+    mNinePatchChunk = ninePatchChunk;
     if (density >= 0) {
         mDensity = density;
     }
@@ -970,7 +970,7 @@ ECode CBitmap::NativeCreate(
     FAIL_RETURN(Graphics::SetPixels(colors, offset, stride, 0, 0, width, height, bmp));
 
     return CBitmap::NewByFriend(
-        (Int32)new SkBitmap(bmp), isMutable, ArrayOf<Byte>(NULL, 0), -1, bitmap);
+        (Int32)new SkBitmap(bmp), isMutable, NULL, -1, bitmap);
 }
 
 ECode CBitmap::NativeCopy(
@@ -989,7 +989,7 @@ ECode CBitmap::NativeCopy(
     }
 
     return CBitmap::NewByFriend(
-        (Int32)new SkBitmap(result), isMutable, ArrayOf<Byte>(NULL, 0), -1, bitmap);
+        (Int32)new SkBitmap(result), isMutable, NULL, -1, bitmap);
 }
 
 void CBitmap::NativeDestructor(
@@ -1277,7 +1277,7 @@ ECode CBitmap::NativeCreateFromParcel(
     bmp->unlockPixels();
 
     return CBitmap::NewByFriend(
-        (Int32)bmp, isMutable, ArrayOf<Byte>(NULL, 0), density, bitmap);
+        (Int32)bmp, isMutable, NULL, density, bitmap);
 }
 
 Boolean CBitmap::NativeWriteToParcel(
@@ -1337,7 +1337,7 @@ ECode CBitmap::NativeExtractAlpha(
     }
 
     return CBitmap::NewByFriend(
-        (Int32)dst, TRUE, ArrayOf<Byte>(NULL, 0), -1, bitmap);
+        (Int32)dst, TRUE, NULL, -1, bitmap);
 }
 
 void CBitmap::NativePrepareToDraw(

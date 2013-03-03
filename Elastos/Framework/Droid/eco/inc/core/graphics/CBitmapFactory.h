@@ -118,9 +118,8 @@ public:
     CARAPI SetDefaultConfig(
         /* [in] */ BitmapConfig config);
 
-    static CARAPI_(void) GetMimeTypeString(
-        /* [in] */ SkImageDecoder::Format format,
-        /* [out] */ String* typeStr);
+    static CARAPI_(CString) GetMimeTypeString(
+        /* [in] */ SkImageDecoder::Format format);
 
 private:
     CARAPI FinishDecode(

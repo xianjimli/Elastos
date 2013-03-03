@@ -22,7 +22,7 @@ module
     merge("graphics/porterduff.car");
     merge("graphics/canvas.car");
     merge("graphics/colorfilter.car");
-    merge("graphics/movie.car");
+    merge("graphics/Movie.car");
     merge("graphics/ninepatch.car");
     merge("graphics/drawable/drawable.car");
     merge("graphics/drawable/bitmapdrawable.car");
@@ -45,7 +45,7 @@ module
     merge("graphics/drawable/PaintDrawable.car");
     merge("graphics/drawable/PictureDrawable.car");
     merge("graphics/drawable/shapes/Shape.car");
-    merge("graphics/camera.car");
+    merge("graphics/Camera.car");
     merge("graphics/ComposeShader.car");
     merge("graphics/YuvImage.car");
     merge("graphics/ImageFormat.car");
@@ -214,11 +214,12 @@ module
         interface IMatrix;
     }
 
+    [deprecated]
     class CBitmap {
         /*private*/ constructor(
-            [in] Int32 nativeBitmap,
+            [in] Handle32 nativeBitmap,
             [in] Boolean isMutable,
-            [in] ArrayOf<Byte> ninePatchChunk,
+            [in] ArrayOf<Byte>* ninePatchChunk,
             [in] Int32 density);
 
         interface IBitmap;
@@ -841,12 +842,6 @@ module
         interface IPath;
     }
 
-    class CDrawFilter {
-        constructor();
-
-        interface IDrawFilter;
-    }
-
     class CBitmapShader {
         constructor(
             [in] IBitmap* bitmap,
@@ -857,8 +852,6 @@ module
     }
 
     class CCamera {
-        constructor();
-
         interface ICamera;
     }
 
@@ -876,20 +869,19 @@ module
         interface IShader;
     }
 
+    [deprecated]
     class CYuvImage {
         constructor(
             [in] ArrayOf<Byte> yuv,
             [in] Int32 format,
             [in] Int32 width,
             [in] Int32 height,
-            [in] ArrayOf<Int32> strides);
+            [in] ArrayOf<Int32>* strides);
 
         interface IYuvImage;
     }
 
-    class CImageFormat {
-        constructor();
-
+    singleton class CImageFormat {
         interface IImageFormat;
     }
 
@@ -949,7 +941,7 @@ module
             [in] ArrayOf<Float> src);
 
         constructor(
-            [in] IColorMatrix* array);
+            [in] IColorMatrix* matrix);
 
         interface IColorMatrix;
     }
@@ -1011,14 +1003,12 @@ module
 
     class CLargeBitmap {
         constructor(
-            [in] Int32 ibm);
+            [in] Int32 lbm);
 
         interface ILargeBitmap;
     }
 
-    class CColor {
-        constructor();
-
+    singleton class CColor {
         interface IColor;
     }
 
@@ -1076,16 +1066,11 @@ module
         interface IBitmapRegionDecoder;
     }
 
-
     singleton class CBitmapRegionDecoderHelper {
         interface IBitmapRegionDecoderHelper;
     }
 
-
     class CBoundaryPatch {
-        constructor(
-            [in] Int32 decoder);
-
         interface IBoundaryPatch;
     }
 

@@ -9,7 +9,5 @@ module
     }
 
     interface IBlurMaskFilter extends IMaskFilter {
-        Blur(
-            [in] Int32 value);
     }
 }

@@ -10,17 +10,20 @@ CarClass(CPathDashPathEffect), public PathEffect
 {
 public:
     CARAPI constructor(
-        /* [in] */ IPath * pShape,
+        /* [in] */ IPath* shape,
         /* [in] */ Float advance,
         /* [in] */ Float phase,
         /* [in] */ PathDashPathEffectStyle style);
 
+    CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
 private:
     static CARAPI_(SkPathEffect*) NativeCreate(
-        /* [in] */ SkPath* native_path,
+        /* [in] */ SkPath* nativePath,
         /* [in] */ Float advance,
         /* [in] */ Float phase,
-        /* [in] */ Int32 native_style);
+        /* [in] */ Int32 nativeStyle);
 };
 
 #endif // __CPATHDASHPATHEFFECT_H__

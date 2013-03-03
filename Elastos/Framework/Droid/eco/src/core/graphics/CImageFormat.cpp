@@ -11,29 +11,27 @@
 */
 ECode CImageFormat::GetBitsPerPixel(
     /* [in] */ Int32 format,
-    /* [out] */ Int32 * pBits)
+    /* [out] */ Int32* bits)
 {
     switch (format) {
         case IMAGEFORMAT_RGB_565:
-            *pBits = 16;
+            *bits = 16;
+            break;
         case IMAGEFORMAT_NV16:
-            *pBits = 16;
+            *bits = 16;
+            break;
         case IMAGEFORMAT_YUY2:
-            *pBits = 16;
+            *bits = 16;
+            break;
         case IMAGEFORMAT_YV12:
-            *pBits = 12;
+            *bits = 12;
+            break;
         case IMAGEFORMAT_NV21:
-            *pBits = 12;
+            *bits = 12;
+            break;
         default:
-        return E_NOT_IMPLEMENTED;
+            *bits = -1;
     }
 
     return NOERROR;
 }
-
-ECode CImageFormat::constructor()
-{
-    // TODO: Add your code here
-    return NOERROR;
-}
-

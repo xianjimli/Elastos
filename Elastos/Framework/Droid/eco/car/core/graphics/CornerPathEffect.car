@@ -1,7 +1,6 @@
 
 module
 {
-    interface ICornerPathEffect extends IPathEffect{
-
+    interface ICornerPathEffect extends IPathEffect {
     }
 }

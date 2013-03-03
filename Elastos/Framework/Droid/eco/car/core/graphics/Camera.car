@@ -24,10 +24,10 @@ module
             [in] Float deg);
 
         GetMatrix(
-            [in]IMatrix* matrix);
+            [in] IMatrix* matrix);
 
         ApplyToCanvas(
-            [in]ICanvas* canvas);
+            [in] ICanvas* canvas);
 
         DotWithNormal(
             [in] Float dx,

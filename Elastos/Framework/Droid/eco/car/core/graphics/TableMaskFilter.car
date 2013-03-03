@@ -2,6 +2,9 @@
 module
 {
     interface ITableMaskFilter extends IMaskFilter {
+    }
+
+    interface ITableMaskFilterHelper {
         CreateClipTable(
             [in] Int32 min,
             [in] Int32 max,

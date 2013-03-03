@@ -9,8 +9,11 @@ CarClass(CSumPathEffect), public PathEffect
 {
 public:
     CARAPI constructor(
-        /* [in] */ IPathEffect * pFirst,
-        /* [in] */ IPathEffect * pSecond);
+        /* [in] */ IPathEffect* first,
+        /* [in] */ IPathEffect* second);
+
+    CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
 
 private:
     static CARAPI_(SkPathEffect*) NativeCreate(

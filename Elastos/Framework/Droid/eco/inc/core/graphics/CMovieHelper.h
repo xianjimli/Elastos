@@ -10,21 +10,17 @@ CarClass(CMovieHelper)
 public:
     CARAPI DecodeFile(
         /* [in] */ const String& pathName,
-        /* [out] */ IMovie ** ppMovie);
+        /* [out] */ IMovie** movie);
 
     CARAPI DecodeStream(
-        /* [in] */ IInputStream * pPIs,
-        /* [out] */ IMovie ** ppMovie);
+        /* [in] */ IInputStream* is,
+        /* [out] */ IMovie** movie);
 
     CARAPI DecodeByteArray(
-        /* [in] */ const ArrayOf<Byte> & data,
+        /* [in] */ const ArrayOf<Byte>& data,
         /* [in] */ Int32 offset,
         /* [in] */ Int32 length,
-        /* [out] */ IMovie ** ppMovie);
-private:
-    CARAPI DecodeTempStream(
-        /* [in] */ IInputStream * pIs,
-        /* [out] */ IMovie ** ppMovie);
+        /* [out] */ IMovie** movie);
 };
 
 #endif // __CMOVIEHELPER_H__

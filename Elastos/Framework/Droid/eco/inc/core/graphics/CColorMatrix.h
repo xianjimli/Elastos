@@ -8,16 +8,20 @@
 CarClass(CColorMatrix)
 {
 public:
+    CColorMatrix();
+
+    ~CColorMatrix();
+
     CARAPI GetArray(
-        /* [out, callee] */ ArrayOf<Float> ** ppPArray);
+        /* [out, callee] */ ArrayOf<Float>** array);
 
     CARAPI Reset();
 
     CARAPI Set(
-        /* [in] */ IColorMatrix * pSrc);
+        /* [in] */ IColorMatrix* src);
 
     CARAPI SetEx(
-        /* [in] */ const ArrayOf<Float> & src);
+        /* [in] */ const ArrayOf<Float>& src);
 
     CARAPI SetScale(
         /* [in] */ Float rScale,
@@ -30,14 +34,14 @@ public:
         /* [in] */ Float degrees);
 
     CARAPI SetConcat(
-        /* [in] */ IColorMatrix * pMatA,
-        /* [in] */ IColorMatrix * pMatB);
+        /* [in] */ IColorMatrix* matA,
+        /* [in] */ IColorMatrix* matB);
 
     CARAPI PreConcat(
-        /* [in] */ IColorMatrix * pPrematrix);
+        /* [in] */ IColorMatrix* prematrix);
 
     CARAPI PostConcat(
-        /* [in] */ IColorMatrix * pPostmatrix);
+        /* [in] */ IColorMatrix* postmatrix);
 
     CARAPI SetSaturation(
         /* [in] */ Float sat);
@@ -49,12 +53,11 @@ public:
     CARAPI constructor();
 
     CARAPI constructor(
-        /* [in] */ const ArrayOf<Float> & mul);
+        /* [in] */ const ArrayOf<Float>& src);
 
     CARAPI constructor(
-        /* [in] */ IColorMatrix * pArray);
+        /* [in] */ IColorMatrix* src);
 
-    ~CColorMatrix();
 private:
     ArrayOf<Float>* mArray;
 };

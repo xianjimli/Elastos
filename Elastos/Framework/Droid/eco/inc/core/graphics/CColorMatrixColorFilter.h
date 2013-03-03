@@ -9,14 +9,17 @@ CarClass(CColorMatrixColorFilter), public ColorFilter
 {
 public:
     CARAPI constructor(
-        /* [in] */ IColorMatrix * pMatrix);
+        /* [in] */ IColorMatrix* matrix);
 
     CARAPI constructor(
-        /* [in] */ const ArrayOf<Float> & array);
+        /* [in] */ const ArrayOf<Float>& array);
+
+    CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
 
 private:
-    static SkColorFilter* NativeColorMatrixFilter(
-        /* [in] */ ArrayOf<Float>* pArray);
+    static CARAPI_(SkColorFilter*) NativeColorMatrixFilter(
+        /* [in] */ const ArrayOf<Float>& array);
 };
 
 #endif // __CCOLORMATRIXCOLORFILTER_H__

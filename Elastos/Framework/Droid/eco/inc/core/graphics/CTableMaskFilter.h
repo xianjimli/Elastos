@@ -9,30 +9,33 @@
 CarClass(CTableMaskFilter), public MaskFilter
 {
 public:
-    CARAPI CreateClipTable(
+    CARAPI constructor(
+        /* [in] */ Handle32 Ni);
+
+    CARAPI constructor(
+        /* [in] */ const ArrayOf<Byte>& table);
+
+    CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+    static CARAPI CreateClipTable(
         /* [in] */ Int32 min,
         /* [in] */ Int32 max,
-        /* [out] */ ITableMaskFilter ** ppTf);
+        /* [out] */ ITableMaskFilter** tf);
 
-    CARAPI CreateGammaTable(
+    static CARAPI CreateGammaTable(
         /* [in] */ Float gamma,
-        /* [out] */ ITableMaskFilter ** ppTf);
-
-    CARAPI constructor(
-        /* [in] */ Int32 Ni);
-
-    CARAPI constructor(
-        /* [in] */ const ArrayOf<Byte> & table);
+        /* [out] */ ITableMaskFilter** tf);
 
 private:
     static CARAPI_(SkMaskFilter*) NativeNewTable(
-        /* [in] */ const ArrayOf<Byte> & table);
+        /* [in] */ const ArrayOf<Byte>& table);
 
-    static CARAPI_(Int32) NativeNewClip(
+    static CARAPI_(SkMaskFilter*) NativeNewClip(
         /* [in] */ Int32 min,
         /* [in] */ Int32 max);
 
-    static CARAPI_(Int32) NativeNewGamma(
+    static CARAPI_(SkMaskFilter*) NativeNewGamma(
         /* [in] */ Float gamma);
 };
 

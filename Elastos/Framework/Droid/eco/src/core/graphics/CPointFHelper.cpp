@@ -1,15 +1,16 @@
 
+#include "ext/frameworkdef.h"
 #include "graphics/CPointFHelper.h"
-#include <elastos/Math.h>
+#include "graphics/CPointF.h"
 
 
 ECode CPointFHelper::Length(
     /* [in] */ Float x,
     /* [in] */ Float y,
-    /* [out] */ Float * pLength)
+    /* [out] */ Float* length)
 {
-    *pLength = Elastos::Core::Math::Sqrt(x * x + y * y);
+    VALIDATE_NOT_NULL(length);
 
+    *length = CPointF::Length(x, y);
     return NOERROR;
 }
-
