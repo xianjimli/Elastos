@@ -1,65 +1,69 @@
 
+#include "ext/frameworkdef.h"
 #include "graphics/CTableMaskFilter.h"
 
 
-ECode CTableMaskFilter::CreateClipTable(
-    /* [in] */ Int32 min,
-    /* [in] */ Int32 max,
-    /* [out] */ ITableMaskFilter ** ppTf)
-{
-
-    New(NativeNewClip(min, max), ppTf);
-
-    return NOERROR;
-}
-
-ECode CTableMaskFilter::CreateGammaTable(
-    /* [in] */ Float gamma,
-    /* [out] */ ITableMaskFilter ** ppTf)
-{
-    New(NativeNewGamma(gamma), ppTf);
-    return NOERROR;
-}
-
 ECode CTableMaskFilter::constructor(
-    /* [in] */ Int32 Ni)
+    /* [in] */ Handle32 Ni)
 {
     mNativeInstance = (SkMaskFilter*)Ni;
     return NOERROR;
 }
 
 ECode CTableMaskFilter::constructor(
-    /* [in] */ const ArrayOf<Byte> & table)
+    /* [in] */ const ArrayOf<Byte>& table)
 {
     if (table.GetLength() < 256) {
+        // throw new RuntimeException("table.length must be >= 256");
         return E_RUNTIME_EXCEPTION;
     }
-
     mNativeInstance = NativeNewTable(table);
     return NOERROR;
 }
 
-SkMaskFilter* CTableMaskFilter::NativeNewTable(
-    /* [in] */ const ArrayOf<Byte> & table)
+PInterface CTableMaskFilter::Probe(
+    /* [in]  */ REIID riid)
 {
-    SkASSERT(table);
-
-    if (table.GetLength() < 256) {
-        return NULL;
+    if (riid == EIID_MaskFilter) {
+        return reinterpret_cast<PInterface>((MaskFilter*)this);
     }
+    return _CTableMaskFilter::Probe(riid);
+}
 
+ECode CTableMaskFilter::CreateClipTable(
+    /* [in] */ Int32 min,
+    /* [in] */ Int32 max,
+    /* [out] */ ITableMaskFilter** tf)
+{
+    VALIDATE_NOT_NULL(tf);
+
+    return CTableMaskFilter::New((Handle32)NativeNewClip(min, max), tf);
+}
+
+ECode CTableMaskFilter::CreateGammaTable(
+    /* [in] */ Float gamma,
+    /* [out] */ ITableMaskFilter** tf)
+{
+    VALIDATE_NOT_NULL(tf);
+
+    return CTableMaskFilter::New((Handle32)NativeNewGamma(gamma), tf);
+}
+
+SkMaskFilter* CTableMaskFilter::NativeNewTable(
+    /* [in] */ const ArrayOf<Byte>& table)
+{
     return new SkTableMaskFilter((const uint8_t*)table.GetPayload());
 }
 
-Int32 CTableMaskFilter::NativeNewClip(
+SkMaskFilter* CTableMaskFilter::NativeNewClip(
     /* [in] */ Int32 min,
     /* [in] */ Int32 max)
 {
-    return (Int32)SkTableMaskFilter::CreateClip(min, max);
+    return SkTableMaskFilter::CreateClip(min, max);
 }
 
-Int32 CTableMaskFilter::NativeNewGamma(
+SkMaskFilter* CTableMaskFilter::NativeNewGamma(
     /* [in] */ Float gamma)
 {
-    return (Int32)SkTableMaskFilter::CreateGamma(gamma);
+    return SkTableMaskFilter::CreateGamma(gamma);
 }

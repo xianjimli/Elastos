@@ -46,18 +46,18 @@ module
 
         Hue(
             [in] Int32 color,
-            [out] Float* h);
+            [out] Float* hue);
 
         Saturation(
             [in] Int32 color,
-            [out] Float* s);
+            [out] Float* saturation);
 
         Brightness(
             [in] Int32 color,
-            [out] Float* b);
+            [out] Float* brightness);
 
         ParseColor(
-            [in] Int32 colorString,
+            [in] String colorString,
             [out] Int32* color);
 
         HSBtoColor(
@@ -74,11 +74,11 @@ module
             [in] Int32 red,
             [in] Int32 green,
             [in] Int32 blue,
-            [out, callee] ArrayOf<Float>* hsv);
+            [out] ArrayOf<Float> hsv);
 
         ColorToHSV(
             [in] Int32 color,
-            [out, callee] ArrayOf<Float>* hsv);
+            [out] ArrayOf<Float> hsv);
 
         HSVToColor(
             [in] ArrayOf<Float> hsv,
@@ -88,5 +88,5 @@ module
             [in] Int32 alpha,
             [in] ArrayOf<Float> hsv,
             [out] Int32* color);
-        }
+    }
 }

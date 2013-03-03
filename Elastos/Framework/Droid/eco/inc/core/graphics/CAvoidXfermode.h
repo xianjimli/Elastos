@@ -13,8 +13,12 @@ public:
         /* [in] */ Int32 tolerance,
         /* [in] */ Int32 mode);
 
+    CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
 private:
-    static CARAPI_(SkXfermode*) NativeCreate(Int32 opColor,
+    static CARAPI_(SkXfermode*) NativeCreate(
+        /* [in] */ Int32 opColor,
         /* [in] */ Int32 tolerance,
         /* [in] */ Int32 nativeMode);
 };

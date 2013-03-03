@@ -15,6 +15,7 @@ INCLUDES += $(MAKEDIR)/../../inc/core/xg
 INCLUDES += $(MAKEDIR)/../../inc/core/xmlparser
 INCLUDES += $(MAKEDIR)/../../inc/core/os
 INCLUDES += $(MAKEDIR)/../../inc/core/graphics
+INCLUDES += $(MAKEDIR)/../../inc/core/graphics/utils
 INCLUDES += $(MAKEDIR)/../../inc/core/graphics/drawable
 INCLUDES += $(MAKEDIR)/../../inc/core/graphics/drawable/shapes
 INCLUDES += $(MAKEDIR)/../../inc/core/view

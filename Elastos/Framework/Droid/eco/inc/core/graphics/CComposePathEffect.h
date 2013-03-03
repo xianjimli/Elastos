@@ -9,11 +9,14 @@ CarClass(CComposePathEffect), public PathEffect
 {
 public:
     CARAPI constructor(
-        /* [in] */ IPathEffect * pOuterpe,
-        /* [in] */ IPathEffect * pInnerpe);
+        /* [in] */ IPathEffect* outerpe,
+        /* [in] */ IPathEffect* innerpe);
+
+    CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
 
 private:
-    static SkPathEffect* NativeCreate(
+    static CARAPI_(SkPathEffect*) NativeCreate(
         /* [in] */ SkPathEffect* outerpe,
         /* [in] */ SkPathEffect* innerpe);
 };

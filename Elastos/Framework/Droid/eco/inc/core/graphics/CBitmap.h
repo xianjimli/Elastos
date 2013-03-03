@@ -169,9 +169,9 @@ public:
         /* [in] */ IParcel* dest);
 
     /*private*/ constructor(
-        /* [in] */ Int32 nativeBitmap,
+        /* [in] */ Handle32 nativeBitmap,
         /* [in] */ Boolean isMutable,
-        /* [in] */ const ArrayOf<Byte>& ninePatchChunk,
+        /* [in] */ ArrayOf<Byte>* ninePatchChunk,
         /* [in] */ Int32 density);
 
     static CARAPI CreateScaledBitmap(

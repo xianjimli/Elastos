@@ -2,12 +2,6 @@
 #include "graphics/CBlurMaskFilter.h"
 #include <skia/effects/SkBlurMaskFilter.h>
 
-ECode CBlurMaskFilter::Blur(
-    /* [in] */ Int32 value)
-{
-    native_int = value;
-    return NOERROR;
-}
 
 ECode CBlurMaskFilter::constructor(
     /* [in] */ Float radius,
@@ -17,6 +11,15 @@ ECode CBlurMaskFilter::constructor(
     return NOERROR;
 }
 
+PInterface CBlurMaskFilter::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_MaskFilter) {
+        return reinterpret_cast<PInterface>((MaskFilter*)this);
+    }
+    return _CBlurMaskFilter::Probe(riid);
+}
+
 SkMaskFilter* CBlurMaskFilter::NativeConstructor(
     /* [in] */ Float radius,
     /* [in] */ Int32 style)
@@ -24,6 +27,6 @@ SkMaskFilter* CBlurMaskFilter::NativeConstructor(
     SkMaskFilter* filter = SkBlurMaskFilter::Create(
                                 SkFloatToScalar(radius),
                                 (SkBlurMaskFilter::BlurStyle)style);
-
+    assert(filter != NULL);
     return filter;
 }

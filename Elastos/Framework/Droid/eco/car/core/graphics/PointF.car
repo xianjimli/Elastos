@@ -22,7 +22,6 @@ module
 
         Length(
             [out] Float* length);
-
     }
 
     interface IPointFHelper {

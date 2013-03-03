@@ -5,19 +5,27 @@
 #include <skia/core/SkColor.h>
 
 using namespace Elastos::Core;
-/*
-* The Color class defines methods for creating and converting color ints.
-* Colors are represented as packed ints, made up of 4 bytes: alpha, red,
-* green, blue. The values are unpremultiplied, meaning any transparency is
-* stored solely in the alpha component, and not in the color components. The
-* components are stored as follows (alpha << 24) | (red << 16) |
-* (green << 8) | blue. Each component ranges between 0..255 with 0
-* meaning no contribution for that component, and 255 meaning 100%
-* contribution. Thus opaque-black would be 0xFF000000 (100% opaque but
-* no contributions from red, green, or blue), and opaque-white would be
-* 0xFFFFFFFF
-*/
 
+
+static HashMap<String, Int32>* InitColorNameMap()
+{
+    HashMap<String, Int32>* map = new HashMap<String, Int32>(11);
+    assert(map != NULL);
+    (*map)[String("black")] = COLOR_BLACK;
+    (*map)[String("darkgray")] = COLOR_DKGRAY;
+    (*map)[String("gray")] = COLOR_GRAY;
+    (*map)[String("lightgray")] = COLOR_LTGRAY;
+    (*map)[String("white")] = COLOR_WHITE;
+    (*map)[String("red")] = COLOR_RED;
+    (*map)[String("green")] = COLOR_GREEN;
+    (*map)[String("blue")] = COLOR_BLUE;
+    (*map)[String("yellow")] = COLOR_YELLOW;
+    (*map)[String("cyan")] = COLOR_CYAN;
+    (*map)[String("magenta")] = COLOR_MAGENTA;
+    return map;
+}
+
+HashMap<String, Int32>* CColor::sColorNameMap = InitColorNameMap();
 
 /**
 * @param pAlpha: the alpha component of a color int. This is the same as saying
@@ -25,9 +33,9 @@ using namespace Elastos::Core;
 */
 ECode CColor::Alpha(
     /* [in] */ Int32 color,
-    /* [out] */ Int32 * pAlpha)
+    /* [out] */ Int32* alpha)
 {
-    *pAlpha = color >> 24;
+    *alpha = color >> 24;
     return NOERROR;
 }
 
@@ -37,9 +45,9 @@ ECode CColor::Alpha(
 */
 ECode CColor::Red(
     /* [in] */ Int32 color,
-    /* [out] */ Int32 * pRed)
+    /* [out] */ Int32* red)
 {
-    *pRed = (color >> 16) & 0xFF;
+    *red = (color >> 16) & 0xFF;
     return NOERROR;
 }
 
@@ -49,9 +57,9 @@ ECode CColor::Red(
 */
 ECode CColor::Green(
     /* [in] */ Int32 color,
-    /* [out] */ Int32 * pGreen)
+    /* [out] */ Int32* green)
 {
-    *pGreen = (color >> 8) & 0xFF;
+    *green = (color >> 8) & 0xFF;
     return NOERROR;
 }
 
@@ -61,9 +69,9 @@ ECode CColor::Green(
 */
 ECode CColor::Blue(
     /* [in] */ Int32 color,
-    /* [out] */ Int32 * pBlue)
+    /* [out] */ Int32* blue)
 {
-    *pBlue = color & 0xFF;
+    *blue = color & 0xFF;
     return NOERROR;
 }
 
@@ -82,9 +90,9 @@ ECode CColor::Rgb(
     /* [in] */ Int32 red,
     /* [in] */ Int32 green,
     /* [in] */ Int32 blue,
-    /* [out] */ Int32 * pRgb)
+    /* [out] */ Int32* rgb)
 {
-    *pRgb = (0xFF << 24) | (red << 16) | (green << 8) | blue;
+    *rgb = (0xFF << 24) | (red << 16) | (green << 8) | blue;
     return NOERROR;
 }
 
@@ -104,9 +112,9 @@ ECode CColor::Argb(
     /* [in] */ Int32 red,
     /* [in] */ Int32 green,
     /* [in] */ Int32 blue,
-    /* [out] */ Int32 * pArgb)
+    /* [out] */ Int32* argb)
 {
-    *pArgb = (alpha << 24) | (red << 16) | (green << 8) | blue;
+    *argb = (alpha << 24) | (red << 16) | (green << 8) | blue;
     return NOERROR;
 }
 
@@ -119,7 +127,7 @@ ECode CColor::Argb(
 */
 ECode CColor::Hue(
     /* [in] */ Int32 color,
-    /* [out] */ Float * pH)
+    /* [out] */ Float* hue)
 {
     Int32 r = (color >> 16) & 0xFF;
     Int32 g = (color >> 8) & 0xFF;
@@ -141,9 +149,11 @@ ECode CColor::Hue(
 
         if (r == V) {
             H = cb - cg;
-        } else if (g == V) {
+        }
+        else if (g == V) {
             H = 2 + cr - cb;
-        } else {
+        }
+        else {
             H = 4 + cg - cr;
         }
 
@@ -153,7 +163,7 @@ ECode CColor::Hue(
         }
     }
 
-    *pH = H;
+    *hue = H;
     return NOERROR;
 }
 
@@ -166,7 +176,7 @@ ECode CColor::Hue(
 */
 ECode CColor::Saturation(
     /* [in] */ Int32 color,
-    /* [out] */ Float * pS)
+    /* [out] */ Float* saturation)
 {
     Int32 r = (color >> 16) & 0xFF;
     Int32 g = (color >> 8) & 0xFF;
@@ -180,11 +190,12 @@ ECode CColor::Saturation(
 
     if (V == temp) {
         S = 0;
-    } else {
+    }
+    else {
         S = (V - temp) / (Float) V;
     }
 
-    *pS = S;
+    *saturation = S;
     return NOERROR;
 }
 
@@ -197,7 +208,7 @@ ECode CColor::Saturation(
 */
 ECode CColor::Brightness(
     /* [in] */ Int32 color,
-    /* [out] */ Float * pB)
+    /* [out] */ Float* brightness)
 {
     Int32 r = (color >> 16) & 0xFF;
     Int32 g = (color >> 8) & 0xFF;
@@ -205,7 +216,7 @@ ECode CColor::Brightness(
 
     Int32 V = Math::Max(b, Math::Max(r, g));
 
-    *pB = (V / 255.f);
+    *brightness = (V / 255.f);
     return NOERROR;
 }
 
@@ -219,8 +230,8 @@ ECode CColor::Brightness(
 * 'yellow', 'lightgray', 'darkgray'
 */
 ECode CColor::ParseColor(
-    /* [in] */ Int32 colorString,
-    /* [out] */ Int32 * pColor)
+    /* [in] */ const String& colorString,
+    /* [out] */ Int32* color)
 {
     // if (colorString.charAt(0) == '#') {
     //     // Use a long to avoid rollovers on #ffXXXXXX
@@ -254,11 +265,10 @@ ECode CColor::ParseColor(
 * @hide Pending API council
 */
 ECode CColor::HSBtoColor(
-    /* [in] */ const ArrayOf<Float> & hsb,
-    /* [out] */ Int32 * pColor)
+    /* [in] */ const ArrayOf<Float>& hsb,
+    /* [out] */ Int32* color)
 {
-    HSBtoColorEx(hsb[0], hsb[1], hsb[2], pColor);
-    return NOERROR;
+    return HSBtoColorEx(hsb[0], hsb[1], hsb[2], color);
 }
 
 /**
@@ -278,9 +288,9 @@ ECode CColor::HSBtoColorEx(
     /* [in] */ Float h,
     /* [in] */ Float s,
     /* [in] */ Float b,
-    /* [out] */ Int32 * pColor)
+    /* [out] */ Int32* color)
 {
-    //the MathUtils.constrain is not achieved
+    //TODO:
     // h = MathUtils.constrain(h, 0.0f, 1.0f);
     // s = MathUtils.constrain(s, 0.0f, 1.0f);
     // b = MathUtils.constrain(b, 0.0f, 1.0f);
@@ -329,7 +339,7 @@ ECode CColor::HSBtoColorEx(
             break;
     }
 
-    *pColor = 0xFF000000 | (((Int32) (red * 255.0f)) << 16) |
+    *color = 0xFF000000 | (((Int32) (red * 255.0f)) << 16) |
             (((Int32) (green * 255.0f)) << 8) | ((Int32) (blue * 255.0f));
     return NOERROR;
 }
@@ -348,13 +358,14 @@ ECode CColor::RGBToHSV(
     /* [in] */ Int32 red,
     /* [in] */ Int32 green,
     /* [in] */ Int32 blue,
-    /* [out, callee] */ ArrayOf<Float> ** ppHsv)
+    /* [out] */ ArrayOf<Float>* hsv)
 {
-    if ((*ppHsv)->GetLength() < 3) {
+    if (hsv->GetLength() < 3) {
+        // throw new RuntimeException("3 components required for hsv");
         return E_RUNTIME_EXCEPTION;
     }
 
-    NativeRGBToHSV(red, green, blue, ppHsv);
+    NativeRGBToHSV(red, green, blue, hsv);
     return NOERROR;
 }
 
@@ -368,10 +379,9 @@ ECode CColor::RGBToHSV(
 */
 ECode CColor::ColorToHSV(
     /* [in] */ Int32 color,
-    /* [out, callee] */ ArrayOf<Float> ** ppHsv)
+    /* [out] */ ArrayOf<Float>* hsv)
 {
-    RGBToHSV((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, ppHsv);
-    return NOERROR;
+    return RGBToHSV((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, hsv);
 }
 
 /**
@@ -384,11 +394,10 @@ ECode CColor::ColorToHSV(
 * @return the resulting argb color
 */
 ECode CColor::HSVToColor(
-    /* [in] */ const ArrayOf<Float> & hsv,
-    /* [out] */ Int32 * pColor)
+    /* [in] */ const ArrayOf<Float>& hsv,
+    /* [out] */ Int32* color)
 {
-    HSVToColorEx(0xFF, hsv, pColor);
-    return NOERROR;
+    return HSVToColorEx(0xFF, hsv, color);
 }
 
 /**
@@ -404,19 +413,14 @@ ECode CColor::HSVToColor(
 */
 ECode CColor::HSVToColorEx(
     /* [in] */ Int32 alpha,
-    /* [in] */ const ArrayOf<Float> & hsv,
-    /* [out] */ Int32 * pColor)
+    /* [in] */ const ArrayOf<Float>& hsv,
+    /* [out] */ Int32* color)
 {
     if (hsv.GetLength() < 3) {
+        // throw new RuntimeException("3 components required for hsv");
         return E_RUNTIME_EXCEPTION;
     }
-    *pColor = NativeHSVToColor(alpha, hsv);
-    return NOERROR;
-}
-
-ECode CColor::constructor()
-{
-    // TODO: Add your code here
+    *color = NativeHSVToColor(alpha, hsv);
     return NOERROR;
 }
 
@@ -424,36 +428,35 @@ void CColor::NativeRGBToHSV(
     /* [in] */ Int32 red,
     /* [in] */ Int32 green,
     /* [in] */ Int32 blue,
-    /* [in] */ ArrayOf<Float> ** hsvArray)
+    /* [out] */ ArrayOf<Float>* hsvArray)
 {
     SkScalar hsv[3];
     SkRGBToHSV(red, green, blue, hsv);
 
     SkASSERT(hsvArray);
-    if ((*hsvArray)->GetLength() < 3) {
-        return;
+    if (hsvArray->GetLength() < 3) {
+        sk_throw();
     }
 
-    Float* values = (*hsvArray)->GetPayload();
-    for (int i = 0; i < 3; i++) {
+    Float* values = hsvArray->GetPayload();
+    for (Int32 i = 0; i < 3; i++) {
         values[i] = SkScalarToFloat(hsv[i]);
     }
 }
 
 Int32 CColor::NativeHSVToColor(
     /* [in] */ Int32 alpha,
-    /* [in] */ const ArrayOf<Float> & hsvArray)
+    /* [out] */ const ArrayOf<Float>& hsvArray)
 {
-    SkASSERT(hsvArray.GetPayload());
-
     if (hsvArray.GetLength() < 3) {
-        return NULL;
+        sk_throw();
+        return 0;
     }
 
     Float* values = hsvArray.GetPayload();
     SkScalar hsv[3];
 
-    for (int i = 0; i < 3; i++) {
+    for (Int32 i = 0; i < 3; i++) {
         hsv[i] = SkFloatToScalar(values[i]);
     }
 

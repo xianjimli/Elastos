@@ -1,8 +1,33 @@
 
+#include "ext/frameworkdef.h"
 #include "graphics/CPointF.h"
 #include "graphics/CPoint.h"
-#include "graphics/CPointFHelper.h"
+#include <elastos/Math.h>
 
+
+using namespace Elastos::Core;
+
+ECode CPointF::constructor()
+{
+    return NOERROR;
+}
+
+ECode CPointF::constructor(
+    /* [in] */ Float x,
+    /* [in] */ Float y)
+{
+    mX = x;
+    mY = y;
+    return NOERROR;
+}
+
+ECode CPointF::constructor(
+    /* [in] */ IPoint* point)
+{
+    mX = ((CPoint*)point)->mX;
+    mY = ((CPoint*)point)->mY;
+    return NOERROR;
+}
 
 /**
 * Set the point's x and y coordinates
@@ -11,23 +36,23 @@ ECode CPointF::Set(
     /* [in] */ Float x,
     /* [in] */ Float y)
 {
-    this->x = x;
-    this->y = y;
+    mX = x;
+    mY = y;
     return NOERROR;
 }
 
 ECode CPointF::SetEx(
-    /* [in] */ IPointF * pP)
+    /* [in] */ IPointF* p)
 {
-    this->x = ((CPoint*)pP)->mX;
-    this->y = ((CPoint*)pP)->mY;
+    mX = ((CPointF*)p)->mX;
+    mY = ((CPointF*)p)->mY;
     return NOERROR;
 }
 
 ECode CPointF::Negate()
 {
-    x = -x;
-    y = -y;
+    mX = -mX;
+    mY = -mY;
     return NOERROR;
 }
 
@@ -35,50 +60,34 @@ ECode CPointF::Offset(
     /* [in] */ Float dx,
     /* [in] */ Float dy)
 {
-    x += dx;
-    y += dy;
+    mX += dx;
+    mY += dy;
     return NOERROR;
 }
 
 ECode CPointF::Equals(
     /* [in] */ Float x,
     /* [in] */ Float y,
-    /* [out] */ Boolean * pResult)
+    /* [out] */ Boolean* result)
 {
-    *pResult = ((this->x == x) && (this->y == y));
+    VALIDATE_NOT_NULL(result);
+
+    *result = (mX == x) && (mY == y);
     return NOERROR;
 }
 
 ECode CPointF::Length(
-    /* [out] */ Float * pLength)
+    /* [out] */ Float* length)
 {
-    IPointFHelper* pPointFHelper = NULL;
-    CPointFHelper::AcquireSingleton(&pPointFHelper);
+    VALIDATE_NOT_NULL(length);
 
-    pPointFHelper->Length(x, y, pLength);
+    *length = Length(mX, mY);
     return NOERROR;
 }
 
-ECode CPointF::constructor()
-{
-    // TODO: Add your code here
-    return NOERROR;
-}
-
-ECode CPointF::constructor(
+Float CPointF::Length(
     /* [in] */ Float x,
     /* [in] */ Float y)
 {
-    this->x = x;
-    this->y = y;
-    return NOERROR;
+    return Math::Sqrt(x * x + y * y);
 }
-
-ECode CPointF::constructor(
-    /* [in] */ IPoint * pPoint)
-{
-    this->x = ((CPoint*)pPoint)->mX;
-    this->y = ((CPoint*)pPoint)->mY;
-    return NOERROR;
-}
-

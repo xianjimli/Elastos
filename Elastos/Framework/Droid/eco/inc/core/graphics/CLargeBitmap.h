@@ -9,48 +9,52 @@
 CarClass(CLargeBitmap)
 {
 public:
+    ~CLargeBitmap();
+
     CARAPI DecodeRegion(
-        /* [in] */ IRect * pRect,
-        /* [in] */ IBitmapFactoryOptions * pOptions,
-        /* [out] */ IBitmap ** ppBitmap);
+        /* [in] */ IRect* rect,
+        /* [in] */ IBitmapFactoryOptions* options,
+        /* [out] */ IBitmap** bitmap);
 
     CARAPI GetWidth(
-        /* [out] */ Int32 * pLength);
+        /* [out] */ Int32* width);
 
     CARAPI GetHeight(
-        /* [out] */ Int32 * pHeight);
+        /* [out] */ Int32* height);
 
     CARAPI Recycle();
 
     CARAPI IsRecycled(
-        /* [out] */ Boolean * pResult);
-
-    CARAPI CheckRecycled(
-        /* [in] */ Int32 errorMessage);
+        /* [out] */ Boolean* result);
 
     CARAPI constructor(
-        /* [in] */ Int32 ibm);
+        /* [in] */ Handle32 lbm);
 
 private:
-    Int32 mNativeLargeBitmap;
-    Boolean mRecycled;
+    CARAPI CheckRecycled(
+        /* [in] */ CString errorMessage);
 
-    static IBitmap* NativeDecodeRegion(
-        /* [in] */ SkBitmapRegionDecoder * brd,
-        /* [in] */ Int32 start_x,
-        /* [in] */ Int32 start_y,
+    static CARAPI NativeDecodeRegion(
+        /* [in] */ SkBitmapRegionDecoder* brd,
+        /* [in] */ Int32 startX,
+        /* [in] */ Int32 startY,
         /* [in] */ Int32 width,
         /* [in] */ Int32 height,
-        /* [in] */ IBitmapFactoryOptions * options);
+        /* [in] */ IBitmapFactoryOptions* options,
+        /* [out] */ IBitmap** bitmap);
 
-    static Int32 NativeGetWidth(
-        /* [in] */ Int32 lbm);
+    static CARAPI_(Int32) NativeGetWidth(
+        /* [in] */ SkBitmapRegionDecoder* lbm);
 
-    static Int32 NativeGetHeight(
-        /* [in] */ Int32 lbm);
+    static CARAPI_(Int32) NativeGetHeight(
+        /* [in] */ SkBitmapRegionDecoder* lbm);
 
-    static void NativeClean(
-        /* [in] */ Int32 lbm);
+    static CARAPI_(void) NativeClean(
+        /* [in] */ SkBitmapRegionDecoder* lbm);
+
+private:
+    SkBitmapRegionDecoder* mNativeLargeBitmap;
+    Boolean mRecycled;
 };
 
 #endif // __CLARGEBITMAP_H__

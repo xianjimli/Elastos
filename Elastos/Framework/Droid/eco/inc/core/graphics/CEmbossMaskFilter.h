@@ -10,14 +10,17 @@ CarClass(CEmbossMaskFilter), public MaskFilter
 {
 public:
     CARAPI constructor(
-        /* [in] */ const ArrayOf<Float> & direction,
+        /* [in] */ const ArrayOf<Float>& direction,
         /* [in] */ Float ambient,
         /* [in] */ Float specular,
         /* [in] */ Float blurRadius);
 
+    CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
 private:
-    static SkMaskFilter* NativeConstructor(
-        /* [in] */ const ArrayOf<Float> & dirArray,
+    static CARAPI_(SkMaskFilter*) NativeConstructor(
+        /* [in] */ const ArrayOf<Float>& dirArray,
         /* [in] */ Float ambient,
         /* [in] */ Float specular,
         /* [in] */ Float blurRadius);

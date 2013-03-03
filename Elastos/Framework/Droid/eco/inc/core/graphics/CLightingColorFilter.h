@@ -5,6 +5,7 @@
 #include "_CLightingColorFilter.h"
 #include "graphics/ColorFilter.h"
 
+
 CarClass(CLightingColorFilter), public ColorFilter
 {
 public:
@@ -12,8 +13,11 @@ public:
         /* [in] */ Int32 mul,
         /* [in] */ Int32 add);
 
+    CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
 private:
-    static CARAPI_(SkColorFilter*) Native_CreateLightingFilter(
+    static CARAPI_(SkColorFilter*) NativeCreateLightingFilter(
         /* [in] */ Int32 mul,
         /* [in] */ Int32 add);
 };

@@ -9,35 +9,36 @@
 CarClass(CComposeShader), public Shader
 {
 public:
+    CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
     CARAPI GetLocalMatrix(
-        /* [in] */ IMatrix * pLocalM,
-        /* [out] */ Boolean * pResult);
+        /* [in] */ IMatrix* localM,
+        /* [out] */ Boolean* result);
 
     CARAPI SetLocalMatrix(
-        /* [in] */ IMatrix * pLocalM);
+        /* [in] */ IMatrix* localM);
 
     CARAPI constructor(
-        /* [in] */ IShader * pShaderA,
-        /* [in] */ IShader * pShaderB,
-        /* [in] */ IXfermode * pMode);
+        /* [in] */ IShader* shaderA,
+        /* [in] */ IShader* shaderB,
+        /* [in] */ IXfermode* mode);
 
     CARAPI constructor(
-        /* [in] */ IShader * pShaderA,
-        /* [in] */ IShader * pShaderB,
+        /* [in] */ IShader* shaderA,
+        /* [in] */ IShader* shaderB,
         /* [in] */ PorterDuffMode mode);
 
 private:
-    // TODO: Add your private member variables here.
     static CARAPI_(SkShader*) NativeCreate1(
-        /* [in] */ SkShader * native_shaderA,
-        /* [in] */ SkShader * native_shaderB,
-        /* [in] */ SkXfermode * native_mode);
+        /* [in] */ SkShader* nativeShaderA,
+        /* [in] */ SkShader* nativeShaderB,
+        /* [in] */ SkXfermode* nativeMode);
 
     static CARAPI_(SkShader*) NativeCreate2(
-        /* [in] */ SkShader * native_shaderA,
-        /* [in] */ SkShader * native_shaderB,
+        /* [in] */ SkShader* nativeShaderA,
+        /* [in] */ SkShader* nativeShaderB,
         /* [in] */ Int32 porterDuffMode);
-
 };
 
 #endif // __CCOMPOSESHADER_H__

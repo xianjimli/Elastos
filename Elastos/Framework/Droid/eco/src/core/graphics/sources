@@ -67,7 +67,6 @@ SOURCES += CSumPathEffect.cpp
 SOURCES += CRegionIterator.cpp
 SOURCES += CBlurMaskFilter.cpp
 SOURCES += DrawFilter.cpp
-SOURCES += CDrawFilter.cpp
 SOURCES += CPathMeasure.cpp
 SOURCES += CLightingColorFilter.cpp
 SOURCES += CColorMatrix.cpp
@@ -87,7 +86,7 @@ SOURCES += CLayerRasterizer.cpp
 SOURCES += CPaintFlagsDrawFilter.cpp
 SOURCES += CBitmapRegionDecoder.cpp
 SOURCES += CBitmapRegionDecoderHelper.cpp
-SOURCES += CBoundaryPatch.cpp
 
 LIBRARIES += drawable/drawable.lib
 LIBRARIES += drawable/shapes/shapes.lib
+LIBRARIES += utils/utils.lib

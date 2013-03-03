@@ -4,13 +4,25 @@
 #include <elastos/AutoFree.h>
 
 
+using namespace Elastos::Core;
+
+CColorMatrix::CColorMatrix()
+{
+    mArray = ArrayOf<Float>::Alloc(20);
+}
+
+CColorMatrix::~CColorMatrix()
+{
+    ArrayOf<Float>::Free(mArray);
+}
+
 /**
 * @Parma ppPArray :the array of floats representing this colormatrix.
 */
 ECode CColorMatrix::GetArray(
-    /* [out, callee] */ ArrayOf<Float> ** ppPArray)
+    /* [out, callee] */ ArrayOf<Float>** array)
 {
-    *ppPArray = (*mArray).Clone();
+    *array = mArray->Clone();
     return NOERROR;
 }
 
@@ -23,8 +35,6 @@ ECode CColorMatrix::GetArray(
 */
 ECode CColorMatrix::Reset()
 {
-    //AutoPtr< ArrayOf<Float> > a = mArray;
-
     for (Int32 i = 19; i > 0; --i) {
         (*mArray)[i] = 0;
     }
@@ -36,10 +46,9 @@ ECode CColorMatrix::Reset()
 * Assign the src colormatrix into this matrix, copying all of its values.
 */
 ECode CColorMatrix::Set(
-    /* [in] */ IColorMatrix * pSrc)
+    /* [in] */ IColorMatrix* src)
 {
-    //System.arraycopy(((CColorMatrix*)pSrc)->mArray, 0, mArray, 0, 20);
-    memcpy(*mArray, *((CColorMatrix*)pSrc)->mArray, sizeof(Float) * 20);
+    memcpy(mArray->GetPayload(), ((CColorMatrix*)src)->mArray->GetPayload(), sizeof(Float) * 20);
     return NOERROR;
 }
 
@@ -47,11 +56,10 @@ ECode CColorMatrix::Set(
 * Assign the array of floats into this matrix, copying all of its values.
 */
 ECode CColorMatrix::SetEx(
-    /* [in] */ const ArrayOf<Float> & src)
+    /* [in] */ const ArrayOf<Float>& src)
 {
-    //System.arraycopy(src, 0, mArray, 0, 20);
-    memcpy(*mArray, &src, sizeof(Float) * 20);
-    return E_NOT_IMPLEMENTED;
+    memcpy(mArray->GetPayload(), src.GetPayload(), sizeof(Float) * 20);
+    return NOERROR;
 }
 
 /**
@@ -63,9 +71,7 @@ ECode CColorMatrix::SetScale(
     /* [in] */ Float bScale,
     /* [in] */ Float aScale)
 {
-    //AutoPtr< ArrayOf<Float> >a = mArray;
-
-    for (int i = 19; i > 0; --i) {
+    for (Int32 i = 19; i > 0; --i) {
         (*mArray)[i] = 0;
     }
     (*mArray)[0] = rScale;
@@ -86,12 +92,9 @@ ECode CColorMatrix::SetRotate(
     /* [in] */ Float degrees)
 {
     Reset();
-
-    //Float radians = degrees * (Float)Math.PI / 180; temporary marked
-    Float cosine = 0;//FloatMath.cos(radians);  temporary marked
-    Float sine = 0;//FloatMath.sin(radians);    temporary marked
-
-    //AutoPtr< ArrayOf<Float> > a = mArray;
+    Float radians = degrees * (Float)Math::DOUBLE_PI / 180;
+    Float cosine = (Float)Math::Cos((Double)radians);
+    Float sine = (Float)Math::Sin((Double)radians);
     switch (axis) {
     // Rotation around the red color
         case 0:
@@ -112,6 +115,7 @@ ECode CColorMatrix::SetRotate(
         (*mArray)[5] = -sine;
         break;
         default:
+        // throw new RuntimeException();
         return E_RUNTIME_EXCEPTION;
     }
     return NOERROR;
@@ -124,20 +128,20 @@ ECode CColorMatrix::SetRotate(
 * matB to be the same colormatrix as this.
 */
 ECode CColorMatrix::SetConcat(
-    /* [in] */ IColorMatrix * pMatA,
-    /* [in] */ IColorMatrix * pMatB)
+    /* [in] */ IColorMatrix* matA,
+    /* [in] */ IColorMatrix* matB)
 {
-    AutoFree< ArrayOf<Float> > tmp = NULL;
+    ArrayOf<Float>* tmp = NULL;
 
-    if (pMatA == this || pMatB == this) {
+    if (matA == (IColorMatrix*)this || matB == (IColorMatrix*)this) {
         tmp = ArrayOf<Float>::Alloc(20);
     }
     else {
-        tmp = (*mArray).Clone();
+        tmp = mArray;
     }
 
-    AutoFree< ArrayOf<Float> > a = (*((CColorMatrix*)pMatA)->mArray).Clone();
-    AutoFree< ArrayOf<Float> > b = (*((CColorMatrix*)pMatB)->mArray).Clone();
+    ArrayOf<Float>* a = ((CColorMatrix*)matA)->mArray;
+    ArrayOf<Float>* b = ((CColorMatrix*)matB)->mArray;
     Int32 index = 0;
     for (Int32 j = 0; j < 20; j += 5) {
         for (Int32 i = 0; i < 4; i++) {
@@ -149,9 +153,9 @@ ECode CColorMatrix::SetConcat(
                         (*a)[j + 4];
     }
 
-    if (*tmp != mArray) {
-        //System.arraycopy(*tmp, 0, mArray, 0, 20);
-        memcpy(mArray, *tmp, sizeof(Float) * 20);
+    if (tmp != mArray) {
+        memcpy(mArray->GetPayload(), tmp->GetPayload(), sizeof(Float) * 20);
+        ArrayOf<Float>::Free(tmp);
     }
     return NOERROR;
 }
@@ -161,10 +165,9 @@ ECode CColorMatrix::SetConcat(
 * the same as calling setConcat(this, prematrix);
 */
 ECode CColorMatrix::PreConcat(
-    /* [in] */ IColorMatrix * pPrematrix)
+    /* [in] */ IColorMatrix* prematrix)
 {
-    SetConcat(this, pPrematrix);
-    return NOERROR;
+    return SetConcat((IColorMatrix*)this, prematrix);
 }
 
 /**
@@ -172,10 +175,9 @@ ECode CColorMatrix::PreConcat(
 * the same as calling setConcat(postmatrix, this);
 */
 ECode CColorMatrix::PostConcat(
-    /* [in] */ IColorMatrix * pPostmatrix)
+    /* [in] */ IColorMatrix* postmatrix)
 {
-    SetConcat(pPostmatrix, this);
-    return NOERROR;
+    return SetConcat(postmatrix, (IColorMatrix*)this);
 }
 
 /**
@@ -186,16 +188,16 @@ ECode CColorMatrix::SetSaturation(
     /* [in] */ Float sat)
 {
     Reset();
-    //AutoPtr< ArrayOf<Float> > m = mArray;
+    ArrayOf<Float>* m = mArray;
 
     Float invSat = 1 - sat;
     Float R = 0.213f * invSat;
     Float G = 0.715f * invSat;
     Float B = 0.072f * invSat;
 
-    (*mArray)[0] = R + sat; (*mArray)[1] = G;       (*mArray)[2] = B;
-    (*mArray)[5] = R;       (*mArray)[6] = G + sat; (*mArray)[7] = B;
-    (*mArray)[10] = R;      (*mArray)[11] = G;      (*mArray)[12] = B + sat;
+    (*m)[0] = R + sat;      (*m)[1] = G;    (*m)[2] = B;
+    (*m)[5] = R;    (*m)[6] = G + sat;  (*m)[7] = B;
+    (*m)[10] = R;   (*m)[11] = G;       (*m)[12] = B + sat;
     return NOERROR;
 }
 
@@ -206,11 +208,11 @@ ECode CColorMatrix::SetSaturation(
 ECode CColorMatrix::SetRGB2YUV()
 {
     Reset();
-    //AutoPtr< ArrayOf<Float> > m = mArray;
+    ArrayOf<Float>* m = mArray;
     // these coefficients match those in libjpeg
-    (*mArray)[0]  = 0.299f;    (*mArray)[1]  = 0.587f;    (*mArray)[2]  = 0.114f;
-    (*mArray)[5]  = -0.16874f; (*mArray)[6]  = -0.33126f; (*mArray)[7]  = 0.5f;
-    (*mArray)[10] = 0.5f;      (*mArray)[11] = -0.41869f; (*mArray)[12] = -0.08131f;
+    (*m)[0]  = 0.299f;    (*m)[1]  = 0.587f;    (*m)[2]  = 0.114f;
+    (*m)[5]  = -0.16874f; (*m)[6]  = -0.33126f; (*m)[7]  = 0.5f;
+    (*m)[10] = 0.5f;      (*m)[11] = -0.41869f; (*m)[12] = -0.08131f;
     return NOERROR;
 }
 
@@ -220,14 +222,13 @@ ECode CColorMatrix::SetRGB2YUV()
 ECode CColorMatrix::SetYUV2RGB()
 {
     Reset();
-    //AutoPtr< ArrayOf<Float> > m = mArray;
+    ArrayOf<Float>* m = mArray;
     // these coefficients match those in libjpeg
-    (*mArray)[2] = 1.402f;
-    (*mArray)[5] = 1;   (*mArray)[6] = -0.34414f;   (*mArray)[7] = -0.71414f;
-    (*mArray)[10] = 1;  (*mArray)[11] = 1.772f;     (*mArray)[12] = 0;
+    (*m)[2] = 1.402f;
+    (*m)[5] = 1;   (*m)[6] = -0.34414f;   (*m)[7] = -0.71414f;
+    (*m)[10] = 1;  (*m)[11] = 1.772f;     (*m)[12] = 0;
     return NOERROR;
 }
-
 
 /**
 *  5x4 matrix for transforming the color+alpha components of a Bitmap.
@@ -246,12 +247,6 @@ ECode CColorMatrix::SetYUV2RGB()
 */
 ECode CColorMatrix::constructor()
 {
-    mArray = NULL;
-    mArray = ArrayOf<Float>::Alloc(20);
-    if (mArray == NULL) {
-        return E_OUT_OF_MEMORY_ERROR;
-    }
-
     Reset();
     return NOERROR;
 }
@@ -259,36 +254,13 @@ ECode CColorMatrix::constructor()
 ECode CColorMatrix::constructor(
     /* [in] */ const ArrayOf<Float> & src)
 {
-    mArray = NULL;
-    mArray = ArrayOf<Float>::Alloc(20);
-    if (mArray == NULL) {
-        return E_OUT_OF_MEMORY_ERROR;
-    }
-
-    //System.arraycopy(src, 0, mArray, 0, 20);
-    memcpy(*mArray, &src, sizeof(Float) * 20);
+    memcpy(mArray->GetPayload(), src.GetPayload(), sizeof(Float) * 20);
     return NOERROR;
 }
 
 ECode CColorMatrix::constructor(
-    /* [in] */ IColorMatrix * pArray)
+    /* [in] */ IColorMatrix* array)
 {
-    mArray = NULL;
-    mArray = ArrayOf<Float>::Alloc(20);
-    if (mArray == NULL) {
-        return E_OUT_OF_MEMORY_ERROR;
-    }
-
-    //System.arraycopy(((CColorMatrix *)pArray)->mArray, 0, mArray, 0, 20)
-    memcpy(*mArray, *((CColorMatrix*)pArray)->mArray, sizeof(Float) * 20);
+    memcpy(mArray->GetPayload(), ((CColorMatrix*)array)->mArray->GetPayload(), sizeof(Float) * 20);
     return NOERROR;
 }
-
-CColorMatrix::~CColorMatrix()
-{
-    if (mArray != NULL) {
-        ArrayOf<Float>::Free(mArray);
-    }
-}
-
-

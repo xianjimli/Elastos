@@ -34,18 +34,18 @@ module
     }
 
     interface IMovieHelper {
-        DecodeFile(
-            [in] String pathName,
-            [out] IMovie ** Movie);
-
         DecodeStream(
-            [in] IInputStream * pIs,
-            [out] IMovie ** Movie);
+            [in] IInputStream* is,
+            [out] IMovie** movie);
 
         DecodeByteArray(
             [in] ArrayOf<Byte> data,
             [in] Int32 offset,
             [in] Int32 length,
-            [out] IMovie ** Movie);
+            [out] IMovie** movie);
+
+        DecodeFile(
+            [in] String pathName,
+            [out] IMovie** movie);
     }
 }

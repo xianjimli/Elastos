@@ -4,19 +4,25 @@
 #include "graphics/CCanvas.h"
 
 
+CCamera::CCamera()
+{
+    NativeConstructor();
+}
+
+CCamera::~CCamera()
+{
+    NativeDestructor();
+}
+
 ECode CCamera::Save()
 {
-   //Sk3DView* v = (Sk3DView*)env->GetIntField(obj, gNativeInstanceFieldID);
-    mView->save();
-
+    mNativeInstance->save();
     return NOERROR;
 }
 
 ECode CCamera::Restore()
 {
-    // Sk3DView* v = (Sk3DView*)env->GetIntField(obj, gNativeInstanceFieldID);
-    mView->restore();
-
+    mNativeInstance->restore();
     return NOERROR;
 }
 
@@ -25,54 +31,42 @@ ECode CCamera::Translate(
     /* [in] */ Float y,
     /* [in] */ Float z)
 {
-    //Sk3DView* v = (Sk3DView*)env->GetIntField(obj, gNativeInstanceFieldID);
-
-    mView->translate(SkFloatToScalar(x), SkFloatToScalar(y), SkFloatToScalar(z));
-
+    mNativeInstance->translate(SkFloatToScalar(x), SkFloatToScalar(y), SkFloatToScalar(z));
     return NOERROR;
 }
 
 ECode CCamera::RotateX(
     /* [in] */ Float deg)
 {
-    //Sk3DView* v = (Sk3DView*)env->GetIntField(obj, gNativeInstanceFieldID);
-
-    mView->rotateX(SkFloatToScalar(deg));
-
+    mNativeInstance->rotateX(SkFloatToScalar(deg));
     return NOERROR;
 }
 
 ECode CCamera::RotateY(
     /* [in] */ Float deg)
 {
-    //Sk3DView* v = (Sk3DView*)env->GetIntField(obj, gNativeInstanceFieldID);
-
-    mView->rotateY(SkFloatToScalar(deg));
-
+    mNativeInstance->rotateY(SkFloatToScalar(deg));
     return NOERROR;
 }
 
 ECode CCamera::RotateZ(
     /* [in] */ Float deg)
 {
-    //Sk3DView* v = (Sk3DView*)env->GetIntField(obj, gNativeInstanceFieldID);
-
-    mView->rotateZ(SkFloatToScalar(deg));
-
+    mNativeInstance->rotateZ(SkFloatToScalar(deg));
     return NOERROR;
 }
 
 ECode CCamera::GetMatrix(
-    /* [in] */ IMatrix * pMatrix)
+    /* [in] */ IMatrix* matrix)
 {
-    NativeGetMatrix((Int32)((CMatrix *)pMatrix)->Ni());
+    NativeGetMatrix(((CMatrix*)matrix)->Ni());
     return NOERROR;
 }
 
 ECode CCamera::ApplyToCanvas(
-    /* [in] */ ICanvas * pCanvas)
+    /* [in] */ ICanvas* canvas)
 {
-    NativeApplyToCanvas((Int32)((CCanvas*)pCanvas)->mNativeCanvas);
+    NativeApplyToCanvas(((Canvas*)canvas->Probe(EIID_Canvas))->mNativeCanvas);
     return NOERROR;
 }
 
@@ -80,62 +74,36 @@ ECode CCamera::DotWithNormal(
     /* [in] */ Float dx,
     /* [in] */ Float dy,
     /* [in] */ Float dz,
-    /* [out] */ Float * pResult)
+    /* [out] */ Float* result)
 {
-    //Sk3DView* v = (Sk3DView*)env->GetIntField(obj, gNativeInstanceFieldID);
+    VALIDATE_NOT_NULL(result);
 
-    SkScalar dot = mView->dotWithNormal(
+    SkScalar dot = mNativeInstance->dotWithNormal(
                             SkFloatToScalar(dx),
                             SkFloatToScalar(dy),
                             SkFloatToScalar(dz));
-
-    *pResult = SkScalarToFloat(dot);
-
+    *result = SkScalarToFloat(dot);
     return NOERROR;
 }
 
-ECode CCamera::NativeConstructor()
+void CCamera::NativeConstructor()
 {
-    mView = new Sk3DView;
-    //env->SetIntField(obj, gNativeInstanceFieldID, (int)view);
-
-    return NOERROR;
+    mNativeInstance = new Sk3DView;
 }
 
-ECode CCamera::NativeDestructor()
+void CCamera::NativeDestructor()
 {
-    delete mView;
-
-    return NOERROR;
+    delete mNativeInstance;
 }
 
-ECode CCamera::NativeGetMatrix(
-    /* [in] */ Int32 native_matrix)
+void CCamera::NativeGetMatrix(
+    /* [in] */ SkMatrix* nativeMatrix)
 {
-    //Sk3DView* v = (Sk3DView*)env->GetIntField(obj, gNativeInstanceFieldID);
-
-    mView->getMatrix((SkMatrix*)native_matrix);
-
-    return NOERROR;
+    mNativeInstance->getMatrix(nativeMatrix);
 }
 
-ECode CCamera::NativeApplyToCanvas(
-    /* [in] */ Int32 native_canvas)
+void CCamera::NativeApplyToCanvas(
+    /* [in] */ SkCanvas* nativeCanvas)
 {
-    //Sk3DView* v = (Sk3DView*)env->GetIntField(obj, gNativeInstanceFieldID);
-
-    mView->applyToCanvas((SkCanvas*)native_canvas);
-
-    return NOERROR;
+    mNativeInstance->applyToCanvas(nativeCanvas);
 }
-
-ECode CCamera::constructor()
-{
-    // TODO: Add your code here
-    native_instance = 0;
-    mView = NULL;
-
-    NativeConstructor();
-    return NOERROR;
-}
-

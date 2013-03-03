@@ -12,6 +12,9 @@ public:
         /* [in] */ Float segmentLength,
         /* [in] */ Float deviation);
 
+    CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
 private:
     static CARAPI_(SkPathEffect*) NativeCreate(
         /* [in] */ Float length,

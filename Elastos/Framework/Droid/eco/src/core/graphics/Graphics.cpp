@@ -2,6 +2,8 @@
 #include "graphics/Graphics.h"
 #include "graphics/CRect.h"
 #include "graphics/CRectF.h"
+#include "graphics/CBitmap.h"
+#include "graphics/CBitmapRegionDecoder.h"
 #include <skia/core/SkDither.h>
 #include <skia/core/SkMallocPixelRef.h>
 #include <Logger.h>
@@ -129,6 +131,32 @@ SkBitmap::Config Graphics::GetNativeBitmapConfig(
         c = SkBitmap::kNo_Config;
     }
     return static_cast<SkBitmap::Config>(c);
+}
+
+ECode Graphics::CreateBitmap(
+    /* [in] */ SkBitmap* nativeBitmap,
+    /* [in] */ Boolean isMutable,
+    /* [in] */ ArrayOf<Byte>* ninePatch,
+    /* [in] */ Int32 density,
+    /* [out] */ IBitmap** bitmap)
+{
+    VALIDATE_NOT_NULL(bitmap);
+
+    SkASSERT(nativeBitmap != NULL);
+    SkASSERT(NULL != nativeBitmap->pixelRef());
+
+    return CBitmap::New((Handle32)nativeBitmap, isMutable, ninePatch, density, bitmap);
+}
+
+ECode Graphics::CreateBitmapRegionDecoder(
+    /* [in] */ SkBitmapRegionDecoder* bitmap,
+    /* [out] */ IBitmapRegionDecoder** decoder)
+{
+    VALIDATE_NOT_NULL(decoder);
+
+    SkASSERT(bitmap != NULL);
+
+    return CBitmapRegionDecoder::New((Handle32)bitmap, decoder);
 }
 
 ECode Graphics::SetPixelRef(

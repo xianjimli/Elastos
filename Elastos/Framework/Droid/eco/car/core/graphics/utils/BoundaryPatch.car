@@ -25,7 +25,5 @@ module
 
         Draw(
             [in] ICanvas* canvas);
-
-        BuildCache();
     }
 }

@@ -4,77 +4,77 @@
 #include <skia/core/SkComposeShader.h>
 #include <skia/effects/SkPorterDuff.h>
 
-ECode CComposeShader::GetLocalMatrix(
-    /* [in] */ IMatrix * pLocalM,
-    /* [out] */ Boolean * pResult)
+
+PInterface CComposeShader::Probe(
+    /* [in]  */ REIID riid)
 {
-    // TODO: Add your code here
-    VALIDATE_NOT_NULL(pResult);
+    if (riid == EIID_Shader) {
+        return reinterpret_cast<PInterface>((Shader*)this);
+    }
+    return _CComposeShader::Probe(riid);
+}
 
-    *pResult = Shader::GetLocalMatrix(pLocalM);
+ECode CComposeShader::GetLocalMatrix(
+    /* [in] */ IMatrix* localM,
+    /* [out] */ Boolean* result)
+{
+    VALIDATE_NOT_NULL(result);
 
+    *result = Shader::GetLocalMatrix(localM);
     return NOERROR;
 }
 
 ECode CComposeShader::SetLocalMatrix(
-    /* [in] */ IMatrix * pLocalM)
+    /* [in] */ IMatrix* localM)
 {
-    // TODO: Add your code here
-    Shader::SetLocalMatrix(pLocalM);
-
+    Shader::SetLocalMatrix(localM);
     return NOERROR;
 }
 
 ECode CComposeShader::constructor(
-    /* [in] */ IShader * pShaderA,
-    /* [in] */ IShader * pShaderB,
-    /* [in] */ IXfermode * pMode)
+    /* [in] */ IShader* shaderA,
+    /* [in] */ IShader* shaderB,
+    /* [in] */ IXfermode* mode)
 {
-    // TODO: Add your code here
     mNative = NativeCreate1(
-                ((Shader*)pShaderA)->Ni(),
-                ((Shader*)pShaderB)->Ni(),
-                (pMode != NULL) ? ((Xfermode*)pMode)->mNativeInstance : 0);
-
+                ((Shader*)shaderA->Probe(EIID_Shader))->Ni(),
+                ((Shader*)shaderB->Probe(EIID_Shader))->Ni(),
+                (mode != NULL) ? ((Xfermode*)mode->Probe(EIID_Xfermode))->mNativeInstance : 0);
     return NOERROR;
 }
 
 ECode CComposeShader::constructor(
-    /* [in] */ IShader * pShaderA,
-    /* [in] */ IShader * pShaderB,
+    /* [in] */ IShader* shaderA,
+    /* [in] */ IShader* shaderB,
     /* [in] */ PorterDuffMode mode)
 {
-    // TODO: Add your code here
-
     mNative = NativeCreate2(
-                ((Shader*)pShaderA)->Ni(),
-                ((Shader*)pShaderB)->Ni(),
+                ((Shader*)shaderA->Probe(EIID_Shader))->Ni(),
+                ((Shader*)shaderB->Probe(EIID_Shader))->Ni(),
                 mode);
-
     return NOERROR;
 }
 
 SkShader* CComposeShader::NativeCreate1(
-    /* [in] */ SkShader * native_shaderA,
-    /* [in] */ SkShader * native_shaderB,
-    /* [in] */ SkXfermode * native_mode)
+    /* [in] */ SkShader* nativeShaderA,
+    /* [in] */ SkShader * nativeShaderB,
+    /* [in] */ SkXfermode * nativeMode)
 {
     return new SkComposeShader(
-                native_shaderA,
-                native_shaderB,
-                native_mode);
+                nativeShaderA,
+                nativeShaderB,
+                nativeMode);
 }
 
 SkShader* CComposeShader::NativeCreate2(
-    /* [in] */ SkShader * native_shaderA,
-    /* [in] */ SkShader * native_shaderB,
+    /* [in] */ SkShader* nativeShaderA,
+    /* [in] */ SkShader* nativeShaderB,
     /* [in] */ Int32 porterDuffMode)
 {
     SkAutoUnref au(SkPorterDuff::CreateXfermode((SkPorterDuff::Mode)porterDuffMode));
-
     return new SkComposeShader(
-                native_shaderA,
-                native_shaderB,
+                nativeShaderA,
+                nativeShaderB,
                 (SkXfermode*)au.get());
 }
 

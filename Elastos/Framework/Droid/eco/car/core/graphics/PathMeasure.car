@@ -16,8 +16,8 @@ module
 
         GetPosTan(
             [in] Float distance,
-            [out, callee] ArrayOf<Float>* pos,
-            [out, callee] ArrayOf<Float>* tan,
+            [out] ArrayOf<Float> pos,
+            [out] ArrayOf<Float> tan,
             [out] Boolean* result);
 
         GetMatrix(

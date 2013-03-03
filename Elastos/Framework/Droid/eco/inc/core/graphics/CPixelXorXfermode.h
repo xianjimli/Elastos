@@ -11,8 +11,11 @@ public:
     CARAPI constructor(
         /* [in] */ Int32 opColor);
 
+    CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
 private:
-    static SkXfermode* NativeCreate(
+    static CARAPI_(SkXfermode*) NativeCreate(
         /* [in] */ Int32 opColor);
 };
 

@@ -1,15 +1,25 @@
 
 #include "graphics/CLightingColorFilter.h"
 
+
 ECode CLightingColorFilter::constructor(
     /* [in] */ Int32 mul,
     /* [in] */ Int32 add)
 {
-    mNativeInstance = Native_CreateLightingFilter(mul, add);
+    mNativeInstance = NativeCreateLightingFilter(mul, add);
     return NOERROR;
 }
 
-SkColorFilter* CLightingColorFilter::Native_CreateLightingFilter(
+PInterface CLightingColorFilter::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_ColorFilter) {
+        return reinterpret_cast<PInterface>((ColorFilter*)this);
+    }
+    return _CLightingColorFilter::Probe(riid);
+}
+
+SkColorFilter* CLightingColorFilter::NativeCreateLightingFilter(
     /* [in] */ Int32 mul,
     /* [in] */ Int32 add)
 {

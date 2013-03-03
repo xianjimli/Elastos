@@ -2,70 +2,60 @@
 #include "graphics/CRegionIterator.h"
 #include "graphics/CRegion.h"
 #include "graphics/CRect.h"
+#include "graphics/Graphics.h"
 
 
-ECode CRegionIterator::Next(
-    /* [in] */ IRect * pR,
-    /* [out] */ Boolean * pResult)
-{
-    if (pR == NULL) {
-        return E_NULL_POINTER_EXCEPTION;
-    }
-
-    *pResult = NativeNext(mNativeIter, pR);
-
-    return NOERROR;
-}
-
-ECode CRegionIterator::Finalize()
+CRegionIterator::~CRegionIterator()
 {
     NativeDestructor(mNativeIter);
-
-    return NOERROR;
 }
 
 ECode CRegionIterator::constructor(
-    /* [in] */ IRegion * pRegion)
+    /* [in] */ IRegion* region)
 {
-    mNativeIter = NativeConstructor(((CRegion*)pRegion)->Ni());
-
+    mNativeIter = NativeConstructor(((CRegion*)region)->Ni());
     return NOERROR;
 }
 
-RgnIterPair* CRegionIterator::NativeConstructor(
-    /* [in] */ SkRegion* native_region)
+ECode CRegionIterator::Next(
+    /* [in] */ IRect* r,
+    /* [out] */ Boolean* result)
 {
-    SkASSERT(native_region);
-    return new RgnIterPair(*native_region);
+    if (r == NULL) {
+        // throw new NullPointerException("The Rect must be provided");
+        return E_NULL_POINTER_EXCEPTION;
+    }
+    *result = NativeNext(mNativeIter, r);
+    return NOERROR;
+}
+
+CRegionIterator::RgnIterPair* CRegionIterator::NativeConstructor(
+    /* [in] */ SkRegion* nativeRegion)
+{
+    SkASSERT(nativeRegion);
+    return new RgnIterPair(*nativeRegion);
 }
 
 void CRegionIterator::NativeDestructor(
-    /* [in] */ RgnIterPair* native_iter)
+    /* [in] */ RgnIterPair* nativeIter)
 {
-    SkASSERT(native_iter);
-    delete native_iter;
+    SkASSERT(nativeIter);
+    delete nativeIter;
 }
 
 Boolean CRegionIterator::NativeNext(
-    /* [in] */ RgnIterPair* native_iter,
+    /* [in] */ RgnIterPair* nativeIter,
     /* [in] */ IRect* r)
 {
     // the caller has checked that rectObject is not nul
-    SkASSERT(native_iter);
+    SkASSERT(nativeIter);
     SkASSERT(r);
 
-    RgnIterPair* pair = native_iter;
-
+    RgnIterPair* pair = nativeIter;
     if (!pair->fIter.done()) {
-        const SkIRect  Rect = pair->fIter.rect();
-
-        ((CRect*)r)->mLeft = Rect.fLeft;
-        ((CRect*)r)->mTop = Rect.fTop;
-        ((CRect*)r)->mRight = Rect.fRight;
-        ((CRect*)r)->mBottom = Rect.fBottom;
-
+        Graphics::SkIRect2IRect(pair->fIter.rect(), r);
         pair->fIter.next();
-        return true;
+        return TRUE;
     }
-    return false;
+    return FALSE;
 }
