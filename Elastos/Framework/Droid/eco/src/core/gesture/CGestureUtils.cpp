@@ -62,6 +62,8 @@ ECode CGestureUtils::SpatialSampling(
     /* [in] */ Int32 bitmapSize,
     /* [out, callee] */ ArrayOf<Float> ** ret)
 {
+    VALIDATE_NOT_NULL(gesture);
+    VALIDATE_NOT_NULL(ret);
     return SpatialSampling(gesture, bitmapSize, FALSE, ret);
 }
 
@@ -84,6 +86,8 @@ ECode CGestureUtils::SpatialSampling(
     /* [in] */ Boolean keepAspectRatio,
     /* [out, callee] */ ArrayOf<Float> ** ret)
 {
+    VALIDATE_NOT_NULL(gesture);
+    VALIDATE_NOT_NULL(ret);
     Float targetPatchSize = bitmapSize - 1;
     ArrayOf<Float>* sample = ArrayOf<Float>::Alloc(bitmapSize * bitmapSize);
 
@@ -244,6 +248,7 @@ void CGestureUtils::Plot(
     /* [out] */ ArrayOf<Float>* sample,  //sample will be modified
     /* [in] */ Int32 sampleSize)
 {
+    assert(sample != NULL);
     x = x < 0 ? 0 : x;
     y = y < 0 ? 0 : y;
     Int32 xFloor = (Int32) Math::Floor(x);
@@ -306,6 +311,8 @@ ECode CGestureUtils::TemporalSampling(
    /* [in] */ Int32 numPoints,
    /* [out, callee] */ ArrayOf<Float> ** ret)
 {
+    VALIDATE_NOT_NULL(stroke);
+    VALIDATE_NOT_NULL(ret);
     Float strokeLength;
     stroke->GetLength(&strokeLength);
     Float increment = strokeLength / (numPoints - 1);
@@ -376,6 +383,7 @@ ECode CGestureUtils::ComputeCentroid(
     /* [in] */ const ArrayOf<Float>& points,
     /* [out, callee] */ ArrayOf<Float> ** ret)
 {
+    VALIDATE_NOT_NULL(ret);
     Float centerX = 0;
     Float centerY = 0;
     Int32 count = points.GetLength();
@@ -543,6 +551,7 @@ Float CGestureUtils::MinimumCosineDistance(
 IOrientedBoundingBox* CGestureUtils::ComputeOrientedBoundingBox(
     /* [in] */ IObjectContainer * originalPoints)
 {
+    assert(originalPoints != NULL);
     Int32 count = 0;
     originalPoints->GetObjectCount(&count);
     ArrayOf<Float>* points = ArrayOf<Float>::Alloc(count * 2);
@@ -600,6 +609,7 @@ IOrientedBoundingBox* CGestureUtils::ComputeOrientedBoundingBox(
     /* [out] */ ArrayOf<Float>* points,
     /* [in] */ const ArrayOf<Float>& centroid)
 {
+    assert(points != NULL);
     Translate(points, -centroid[0], -centroid[1]);
 
     ArrayOf<ArrayOf_<Float,2> > *array = ComputeCoVariance(*points);
@@ -679,6 +689,7 @@ ArrayOf<Float> * CGestureUtils::Rotate(
     /* [out] */ ArrayOf<Float>* points,
     /* [in] */ Float angle)
 {
+    assert(points != NULL);
     Float cos = (Float) Math::Cos(angle);
     Float sin = (Float) Math::Sin(angle);
     Int32 size = points->GetLength();
@@ -696,6 +707,7 @@ ArrayOf<Float> * CGestureUtils::Translate(
     /* [in] */ Float dx,
     /* [in] */ Float dy)
 {
+    assert(points != NULL);
     Int32 size = points->GetLength();
     for (Int32 i = 0; i < size; i += 2) {
         (*points)[i] += dx;
@@ -709,6 +721,7 @@ ArrayOf<Float> * CGestureUtils::Scale(
     /* [in] */ Float sx,
     /* [in] */ Float sy)
 {
+    assert(points != NULL);
     Int32 size = points->GetLength();
     for (Int32 i = 0; i < size; i += 2) {
         (*points)[i] *= sx;

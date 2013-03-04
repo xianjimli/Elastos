@@ -16,6 +16,7 @@ ECode CGesturePoint::Deserialize(
     /* [in] */ IDataInputStream* in,
     /* [out] */ IGesturePoint** obj)
 {
+    VALIDATE_NOT_NULL(in);
     VALIDATE_NOT_NULL(obj);
 
     // Read X and Y
@@ -35,6 +36,7 @@ ECode CGesturePoint::DeserializeEx(
     /* [in] */ IParcel* in,
     /* [out] */ IGesturePoint** obj)
 {
+    VALIDATE_NOT_NULL(in);
     VALIDATE_NOT_NULL(obj);
 
     // Read X and Y
@@ -52,6 +54,7 @@ ECode CGesturePoint::DeserializeEx(
 ECode CGesturePoint::Clone(
     /* [out] */ IGesturePoint ** gesturePoint)
 {
+    VALIDATE_NOT_NULL(gesturePoint);
     return CGesturePoint::New(mX, mY, mTimestamp, gesturePoint);
 }
 

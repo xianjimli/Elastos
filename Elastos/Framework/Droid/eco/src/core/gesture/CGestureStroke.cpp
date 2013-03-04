@@ -87,6 +87,7 @@ ECode CGestureStroke::constructor(
     /* [in] */ const ArrayOf<Float>& pts,
     /* [in] */ const ArrayOf<Int64>& times)
 {
+    VALIDATE_NOT_NULL(bbx);
     CRectF::New(bbx, &mBoundingBox);
     mLength = len;
     mPoints = pts.Clone();
@@ -98,6 +99,7 @@ ECode CGestureStroke::constructor(
 ECode CGestureStroke::Clone(
     /* [out] */ IGestureStroke ** obj)
 {
+    VALIDATE_NOT_NULL(obj);
     return CGestureStroke::New(mBoundingBox, mLength, *mPoints, *mTimestamps, obj);
 }
     
@@ -111,6 +113,7 @@ ECode CGestureStroke::Draw(
     /* [in] */ IPaint* paint)
 {
     VALIDATE_NOT_NULL(canvas);
+    VALIDATE_NOT_NULL(paint);
     if (mCachedPath == NULL) {
         MakePath();
      }
@@ -121,6 +124,7 @@ ECode CGestureStroke::Draw(
 ECode CGestureStroke::GetPath(
     /* [out] */ IPath ** path)
 {
+    VALIDATE_NOT_NULL(path);
     if (mCachedPath == NULL) {
         MakePath();
      }
@@ -177,6 +181,7 @@ ECode CGestureStroke::ToPath(
     /* [out] */ IPath ** path)
 
 {
+    VALIDATE_NOT_NULL(path);
     IGestureStroke* obj = NULL;
     Clone(&obj);
     ArrayOf<Float>* pts = NULL;
@@ -320,6 +325,7 @@ ECode CGestureStroke::ClearPath()
 ECode CGestureStroke::ComputeOrientedBoundingBox(
     /* [out] */ IOrientedBoundingBox ** orientedBoundingBox)
 {
+    VALIDATE_NOT_NULL(orientedBoundingBox);
     *orientedBoundingBox = CGestureUtils::ComputeOrientedBoundingBox(*mPoints);
     return NOERROR;
 }
@@ -328,6 +334,7 @@ ECode CGestureStroke::ComputeOrientedBoundingBox(
 ECode CGestureStroke::GetBoundingBox(
     /* [out] */ IRectF** boundingBox)
 {
+    VALIDATE_NOT_NULL(boundingBox);
     return CRectF::New(mBoundingBox,boundingBox);
 }
 
@@ -335,6 +342,7 @@ ECode CGestureStroke::GetBoundingBox(
 ECode CGestureStroke::GetLength(
     /* [out] */ Float* length)
 {
+    VALIDATE_NOT_NULL(length);
     *length = mLength;
     return NOERROR;
 }
@@ -343,6 +351,7 @@ ECode CGestureStroke::GetLength(
 ECode CGestureStroke::GetPoints(
     /* [out, callee] */ ArrayOf<Float> ** points)
 {
+    VALIDATE_NOT_NULL(points);
     *points = mPoints->Clone();
     return NOERROR;
 }

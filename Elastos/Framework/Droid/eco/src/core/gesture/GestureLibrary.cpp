@@ -12,6 +12,7 @@ ECode GestureLibrary::IsReadOnly(
 ECode GestureLibrary::GetLearner(
     /* [out] */ ILearner ** learner)
 {
+    VALIDATE_NOT_NULL(learner);
     return mStore.GetLearner(learner);
 }
 
@@ -24,6 +25,7 @@ ECode GestureLibrary::SetOrientationStyle(
 ECode GestureLibrary::GetOrientationStyle(
     /* [out] */ Int32 * orientationStyle)
 {
+    VALIDATE_NOT_NULL(orientationStyle);
     return mStore.GetOrientationStyle(orientationStyle);
 }
 
@@ -37,6 +39,7 @@ ECode GestureLibrary::SetSequenceType(
 ECode GestureLibrary::GetSequenceType(
     /* [out] */ Int32 * sequenceType)
 {
+    VALIDATE_NOT_NULL(sequenceType);
     return mStore.GetSequenceType(sequenceType);
 }
 
@@ -44,6 +47,7 @@ ECode GestureLibrary::GetSequenceType(
 ECode GestureLibrary::GetGestureEntries(
     /* [out, callee] */ ArrayOf<String> **ret)
 {
+    VALIDATE_NOT_NULL(ret);
     return mStore.GetGestureEntries(ret);
 }
 
@@ -52,6 +56,8 @@ ECode GestureLibrary::Recognize(
     /* [in] */ IGesture* gesture,
     /* [out] */ IObjectContainer ** ret)
 {
+    VALIDATE_NOT_NULL(gesture);
+    VALIDATE_NOT_NULL(ret);
     return mStore.Recognize(gesture, ret);
 }
 
@@ -59,6 +65,7 @@ ECode GestureLibrary::AddGesture(
     /* [in] */ const String& entryName,
     /* [in] */ IGesture* gesture)
 {
+    VALIDATE_NOT_NULL(gesture);
     return mStore.AddGesture(entryName, gesture);
 }
 
@@ -66,6 +73,7 @@ ECode GestureLibrary::RemoveGesture(
     /* [in] */ const String& entryName,
     /* [in] */ IGesture* gesture)
 {
+    VALIDATE_NOT_NULL(gesture);
     return mStore.RemoveGesture(entryName, gesture);
 }
 
@@ -80,6 +88,7 @@ ECode GestureLibrary::GetGestures(
     /* [in] */ const String& entryName,
     /* [out] */ IObjectContainer ** ret)
 {
+    VALIDATE_NOT_NULL(ret);
     return mStore.GetGestures(entryName, ret);
 }
 

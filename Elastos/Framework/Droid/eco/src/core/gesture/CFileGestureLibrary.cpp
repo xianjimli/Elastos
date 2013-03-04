@@ -13,6 +13,7 @@ const CString CFileGestureLibrary::LOG_TAG = GestureConstants_LOG_TAG;
 ECode CFileGestureLibrary::constructor(
     /* [in] */ IFile * path)
 {
+    VALIDATE_NOT_NULL(path);
     mPath = path;
     return NOERROR;
 }
@@ -20,6 +21,7 @@ ECode CFileGestureLibrary::constructor(
 ECode CFileGestureLibrary::IsReadOnly(
     /* [out] */ Boolean * readOnly)
 {
+    VALIDATE_NOT_NULL(readOnly);
     return mPath->CanWrite(readOnly);
 }
 
@@ -27,7 +29,8 @@ ECode CFileGestureLibrary::Save(
     /* [out] */ Boolean * ret)
 {
     VALIDATE_NOT_NULL(ret);
-    if (!mStore.HasChanged(ret)) {
+    mStore.HasChanged(ret);
+    if (!(*ret)) {
         return NOERROR;
     }
     ECode ec = NOERROR;
@@ -46,7 +49,8 @@ ECode CFileGestureLibrary::Save(
         return ec;
     }
 
-    Boolean isExist;
+
+    Boolean isExist = FALSE;
     ec = parentFile->Exists(&isExist);
     if (!isExist) {
         Boolean succeeded;
@@ -54,6 +58,7 @@ ECode CFileGestureLibrary::Save(
         if (!succeeded) {
             Logger::D(LOG_TAG, clog);
             *ret = FALSE;
+            parentFile->Release();
             return ec;
         }
     }
@@ -66,6 +71,7 @@ ECode CFileGestureLibrary::Save(
     if (!succeeded) {
         Logger::D(LOG_TAG, clog);
         *ret = FALSE;
+        parentFile->Release();
          return ec;
     }
     IFileOutputStream *fos = NULL;
@@ -74,6 +80,7 @@ ECode CFileGestureLibrary::Save(
     {
         Logger::D(LOG_TAG, clog);
         *ret = FALSE;
+        parentFile->Release();
         return ec;
     }
     ec = mStore.SaveEx((IOutputStream *)fos, TRUE);
@@ -81,10 +88,14 @@ ECode CFileGestureLibrary::Save(
     {
         Logger::D(LOG_TAG, clog);
         *ret = FALSE;
+        parentFile->Release();
+        fos->Release();
         return ec;
     }
 
     *ret = TRUE;
+    parentFile->Release();
+    fos->Release();
     return NOERROR;
 
 }
@@ -100,8 +111,8 @@ ECode CFileGestureLibrary::Load(
     file->GetAbsolutePath(&path);
     String log = String("Could not load the gesture library in ")+path;
     CString clog= log.string();
-    Boolean isExist;
-    Boolean isCanRead;
+    Boolean isExist = FALSE;
+    Boolean isCanRead = FALSE;
     ec = file->Exists(&isExist);
     ec = file->CanRead(&isCanRead);
 
@@ -119,10 +130,11 @@ ECode CFileGestureLibrary::Load(
         {
             Logger::D(LOG_TAG, clog);
             *ret=result;
+            fis->Release();
             return ec;
         }
-        result = true;
-
+        result = TRUE;
+        fis->Release();
     }
     Logger::D(LOG_TAG, clog);
     *ret=result;
@@ -138,6 +150,7 @@ ECode CFileGestureLibrary::SetOrientationStyle(
 ECode CFileGestureLibrary::GetOrientationStyle(
     /* [out] */ Int32 * orientationStyle)
 {
+    VALIDATE_NOT_NULL(orientationStyle);
     return GestureLibrary::GetOrientationStyle(orientationStyle);
 }
 
@@ -150,12 +163,14 @@ ECode CFileGestureLibrary::SetSequenceType(
 ECode CFileGestureLibrary::GetSequenceType(
     /* [out] */ Int32 * sequenceType)
 {
+    VALIDATE_NOT_NULL(sequenceType);
     return GestureLibrary::GetSequenceType(sequenceType);
 }
 
 ECode CFileGestureLibrary::GetGestureEntries(
     /* [out, callee] */ ArrayOf<String> ** gestureEntries)
 {
+    VALIDATE_NOT_NULL(gestureEntries);
     return GestureLibrary::GetGestureEntries(gestureEntries);
 }
 
@@ -163,6 +178,7 @@ ECode CFileGestureLibrary::Recognize(
     /* [in] */ IGesture * gesture,
     /* [out] */ IObjectContainer ** arrayList)
 {
+    VALIDATE_NOT_NULL(arrayList);
     return GestureLibrary::Recognize(gesture, arrayList);
 }
 
@@ -170,6 +186,7 @@ ECode CFileGestureLibrary::AddGesture(
     /* [in] */ const String& entryName,
     /* [in] */ IGesture * gesture)
 {
+    VALIDATE_NOT_NULL(gesture);
     return GestureLibrary::AddGesture(entryName, gesture);
 }
 
@@ -177,6 +194,7 @@ ECode CFileGestureLibrary::RemoveGesture(
     /* [in] */ const String& entryName,
     /* [in] */ IGesture * gesture)
 {
+    VALIDATE_NOT_NULL(gesture);
     return GestureLibrary::RemoveGesture(entryName, gesture);
 }
 
@@ -190,5 +208,6 @@ ECode CFileGestureLibrary::GetGestures(
     /* [in] */ const String& entryName,
     /* [out] */ IObjectContainer ** gestures)
 {
+    VALIDATE_NOT_NULL(gestures);
     return GestureLibrary::GetGestures(entryName, gestures);
 }

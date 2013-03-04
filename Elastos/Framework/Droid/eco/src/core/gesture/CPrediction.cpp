@@ -30,6 +30,7 @@ ECode CPrediction::SetScore(
 ECode CPrediction::ToString(
     /* [out] */ String* ret)
 {
+    VALIDATE_NOT_NULL(ret);
     *ret=mName;
     return NOERROR;
 }

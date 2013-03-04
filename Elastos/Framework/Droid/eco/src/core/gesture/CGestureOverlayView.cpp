@@ -87,6 +87,7 @@ ECode CGestureOverlayView::GetConsiderGoneChildrenWhenMeasuring(
 ECode CGestureOverlayView::constructor(
     /* [in] */ IContext * context)
 {
+    VALIDATE_NOT_NULL(context);
     return GestureOverlayView::Init(context);
 }
 
@@ -94,6 +95,8 @@ ECode CGestureOverlayView::constructor(
     /* [in] */ IContext * context,
     /* [in] */ IAttributeSet * attrs)
 {
+    VALIDATE_NOT_NULL(context);
+    VALIDATE_NOT_NULL(attrs);
     return GestureOverlayView::Init(context, attrs,
          0x010102ce /*com.android.internal.R.attr.gestureOverlayViewStyle*/);
 }
@@ -103,6 +106,8 @@ ECode CGestureOverlayView::constructor(
     /* [in] */ IAttributeSet * attrs,
     /* [in] */ Int32 defStyle)
 {
+    VALIDATE_NOT_NULL(context);
+    VALIDATE_NOT_NULL(attrs);
     return GestureOverlayView::Init(context, attrs, defStyle);
 }
 
@@ -110,12 +115,14 @@ ECode CGestureOverlayView::constructor(
 ECode CGestureOverlayView::GetCurrentStroke(
     /* [out] */ IObjectContainer ** stroke)
 {
+    VALIDATE_NOT_NULL(stroke);
     return GestureOverlayView::GetCurrentStroke(stroke);
 }
 
 ECode CGestureOverlayView::GetOrientation(
     /* [out] */ Int32 * orientation)
 {
+    VALIDATE_NOT_NULL(orientation);
     return CGestureOverlayView::GetOrientation(orientation);
 }
 
@@ -140,18 +147,21 @@ ECode CGestureOverlayView::SetUncertainGestureColor(
 ECode CGestureOverlayView::GetUncertainGestureColor(
     /* [out] */ Int32 * uncertainGestureColor)
 {
+    VALIDATE_NOT_NULL(uncertainGestureColor);
     return GestureOverlayView::GetUncertainGestureColor(uncertainGestureColor);
 }
 
 ECode CGestureOverlayView::GetGestureColor(
     /* [out] */ Int32 * gestureColor)
 {
+    VALIDATE_NOT_NULL(gestureColor);
     return GestureOverlayView::GetGestureColor(gestureColor);
 }
 
 ECode CGestureOverlayView::GetGestureStrokeWidth(
     /* [out] */ Float * gestureStrokeWidth)
 {
+    VALIDATE_NOT_NULL(gestureStrokeWidth);
     return GestureOverlayView::GetGestureStrokeWidth(gestureStrokeWidth);
 }
 
@@ -164,6 +174,7 @@ ECode CGestureOverlayView::SetGestureStrokeWidth(
 ECode CGestureOverlayView::GetGestureStrokeType(
     /* [out] */ Int32 * gestureStrokeType)
 {
+    VALIDATE_NOT_NULL(gestureStrokeType);
     return GestureOverlayView::GetGestureStrokeType(gestureStrokeType);
 }
 
@@ -176,6 +187,7 @@ ECode CGestureOverlayView::SetGestureStrokeType(
 ECode CGestureOverlayView::GetGestureStrokeLengthThreshold(
     /* [out] */ Float * gestureStrokeLengthThreshold)
 {
+    VALIDATE_NOT_NULL(gestureStrokeLengthThreshold);
     return GestureOverlayView::GetGestureStrokeLengthThreshold(
         gestureStrokeLengthThreshold);
 }
@@ -190,6 +202,7 @@ ECode CGestureOverlayView::SetGestureStrokeLengthThreshold(
 ECode CGestureOverlayView::GetGestureStrokeSquarenessTreshold(
     /* [out] */ Float * gestureStrokeSquarenessTreshold)
 {
+    VALIDATE_NOT_NULL(gestureStrokeSquarenessTreshold);
     return GestureOverlayView::GetGestureStrokeSquarenessTreshold(
         gestureStrokeSquarenessTreshold);
 }
@@ -204,6 +217,7 @@ ECode CGestureOverlayView::SetGestureStrokeSquarenessTreshold(
 ECode CGestureOverlayView::GetGestureStrokeAngleThreshold(
     /* [out] */ Float * gestureStrokeAngleThreshold)
 {
+    VALIDATE_NOT_NULL(gestureStrokeAngleThreshold);
     return GestureOverlayView::GetGestureStrokeAngleThreshold(
         gestureStrokeAngleThreshold);
 }
@@ -218,6 +232,7 @@ ECode CGestureOverlayView::SetGestureStrokeAngleThreshold(
 ECode CGestureOverlayView::IsEventsInterceptionEnabled(
     /* [out] */ Boolean * eventsInterceptionEnabled)
 {
+    VALIDATE_NOT_NULL(eventsInterceptionEnabled);
     return GestureOverlayView::IsEventsInterceptionEnabled(eventsInterceptionEnabled);
 }
 
@@ -230,6 +245,7 @@ ECode CGestureOverlayView::SetEventsInterceptionEnabled(
 ECode CGestureOverlayView::IsFadeEnabled(
     /* [out] */ Boolean * fadeEnabled)
 {
+    VALIDATE_NOT_NULL(fadeEnabled);
     return GestureOverlayView::IsFadeEnabled(fadeEnabled);
 }
 
@@ -242,18 +258,21 @@ ECode CGestureOverlayView::SetFadeEnabled(
 ECode CGestureOverlayView::GetGesture(
     /* [out] */ IGesture ** gesture)
 {
+    VALIDATE_NOT_NULL(gesture);
     return GestureOverlayView::GetGesture(gesture);
 }
 
 ECode CGestureOverlayView::SetGesture(
     /* [in] */ IGesture * gesture)
 {
+    VALIDATE_NOT_NULL(gesture);
     return GestureOverlayView::SetGesture(gesture);
 }
 
 ECode CGestureOverlayView::GetGesturePath(
     /* [out] */ IPath ** path)
 {
+    VALIDATE_NOT_NULL(path);
     return GestureOverlayView::GetGesturePath(path);
 }
 
@@ -261,12 +280,15 @@ ECode CGestureOverlayView::GetGesturePathEx(
     /* [in] */ IPath * path,
     /* [out] */ IPath ** pathret)
 {
+    VALIDATE_NOT_NULL(path);
+    VALIDATE_NOT_NULL(pathret);
     return GestureOverlayView::GetGesturePathEx(path,pathret);
 }
 
 ECode CGestureOverlayView::IsGestureVisible(
     /* [out] */ Boolean * gestureVisible)
 {
+    VALIDATE_NOT_NULL(gestureVisible);
     return GestureOverlayView::IsGestureVisible(gestureVisible);
 }
 
@@ -279,6 +301,7 @@ ECode CGestureOverlayView::SetGestureVisible(
 ECode CGestureOverlayView::GetFadeOffset(
     /* [out] */ Int64 * fadeOffset)
 {
+    VALIDATE_NOT_NULL(fadeOffset);
     return GestureOverlayView::GetFadeOffset(fadeOffset);
 }
 
@@ -291,12 +314,14 @@ ECode CGestureOverlayView::SetFadeOffset(
 ECode CGestureOverlayView::AddOnGestureListener(
     /* [in] */ IOnGestureListener * listener)
 {
+    VALIDATE_NOT_NULL(listener);
     return GestureOverlayView::AddOnGestureListener(listener);
 }
 
 ECode CGestureOverlayView::RemoveOnGestureListener(
     /* [in] */ IOnGestureListener * listener)
 {
+    VALIDATE_NOT_NULL(listener);
     return GestureOverlayView::RemoveOnGestureListener(listener);
 }
 
@@ -308,12 +333,14 @@ ECode CGestureOverlayView::RemoveAllOnGestureListeners()
 ECode CGestureOverlayView::AddOnGesturePerformedListener(
     /* [in] */ IOnGesturePerformedListener * listener)
 {
+    VALIDATE_NOT_NULL(listener);
     return GestureOverlayView::AddOnGesturePerformedListener(listener);
 }
 
 ECode CGestureOverlayView::RemoveOnGesturePerformedListener(
     /* [in] */ IOnGesturePerformedListener * listener)
 {
+    VALIDATE_NOT_NULL(listener);
     return GestureOverlayView::RemoveOnGesturePerformedListener(listener);
 }
 
@@ -325,12 +352,14 @@ ECode CGestureOverlayView::RemoveAllOnGesturePerformedListeners()
 ECode CGestureOverlayView::AddOnGesturingListener(
     /* [in] */ IOnGesturingListener * listener)
 {
+    VALIDATE_NOT_NULL(listener);
     return GestureOverlayView::AddOnGesturingListener(listener);
 }
 
 ECode CGestureOverlayView::RemoveOnGesturingListener(
     /* [in] */ IOnGesturingListener * listener)
 {
+    VALIDATE_NOT_NULL(listener);
     return GestureOverlayView::RemoveOnGesturingListener(listener);
 }
 
@@ -342,6 +371,7 @@ ECode CGestureOverlayView::RemoveAllOnGesturingListeners()
 ECode CGestureOverlayView::IsGesturing(
     /* [out] */ Boolean * gesturing)
 {
+    VALIDATE_NOT_NULL(gesturing);
     return GestureOverlayView::IsGesturing(gesturing);
 }
 
@@ -351,6 +381,7 @@ ECode CGestureOverlayView::IsGesturing(
 ECode CGestureOverlayView::GetGesturePaint(
     /* [out] */ IPaint ** paint)
 {
+    VALIDATE_NOT_NULL(paint);
     return GestureOverlayView::GetGesturePaint(paint);
 }
 

@@ -13,7 +13,11 @@ ECode CResourceGestureLibrary::constructor(
     /* [in] */ IContext * context,
     /* [in] */ Int32 resourceId)
 {
+    VALIDATE_NOT_NULL(context);
     mContext = context;
+    //AuotoPtr  = opertor will call AddRef in the rhs side object,
+    //so it need to call Release.
+    context->Release();
     mResourceId = resourceId;
     return NOERROR;
 }
@@ -21,6 +25,7 @@ ECode CResourceGestureLibrary::constructor(
 ECode CResourceGestureLibrary::IsReadOnly(
     /* [out] */ Boolean * readOnly)
 {
+    VALIDATE_NOT_NULL(readOnly);
     *readOnly = TRUE;
     return NOERROR;
 }
@@ -28,6 +33,7 @@ ECode CResourceGestureLibrary::IsReadOnly(
 ECode CResourceGestureLibrary::Save(
     /* [out] */ Boolean * ret)
 {
+    VALIDATE_NOT_NULL(ret);
     *ret=FALSE;
     return NOERROR;
 }
@@ -35,6 +41,7 @@ ECode CResourceGestureLibrary::Save(
 ECode CResourceGestureLibrary::Load(
     /* [out] */ Boolean * ret)
 {
+    VALIDATE_NOT_NULL(ret);
     Boolean result = FALSE;
     ECode ec = NOERROR;
 
@@ -48,6 +55,7 @@ ECode CResourceGestureLibrary::Load(
     ec = res->OpenRawResource(mResourceId, &in);
     if (FAILED(ec)) {
         *ret = result;
+        res->Release();
         return ec;
     }
     ec = mStore.LoadEx(in, TRUE);
@@ -64,6 +72,8 @@ ECode CResourceGestureLibrary::Load(
     }
 
     *ret = result;
+    res->Release();
+    in->Release();
     return ec;
 }
 
@@ -76,6 +86,7 @@ ECode CResourceGestureLibrary::SetOrientationStyle(
 ECode CResourceGestureLibrary::GetOrientationStyle(
     /* [out] */ Int32 * orientationStyle)
 {
+    VALIDATE_NOT_NULL(orientationStyle);
     return GestureLibrary::GetOrientationStyle(orientationStyle);
 }
 
@@ -88,12 +99,14 @@ ECode CResourceGestureLibrary::SetSequenceType(
 ECode CResourceGestureLibrary::GetSequenceType(
     /* [out] */ Int32 * sequenceType)
 {
+    VALIDATE_NOT_NULL(sequenceType);
     return GestureLibrary::GetSequenceType(sequenceType);
 }
 
 ECode CResourceGestureLibrary::GetGestureEntries(
     /* [out, callee] */ ArrayOf<String> ** gestureEntries)
 {
+    VALIDATE_NOT_NULL(gestureEntries);
     return GestureLibrary::GetGestureEntries(gestureEntries);
 }
 
@@ -101,6 +114,8 @@ ECode CResourceGestureLibrary::Recognize(
     /* [in] */ IGesture * gesture,
     /* [out] */ IObjectContainer ** arrayList)
 {
+    VALIDATE_NOT_NULL(gesture);
+    VALIDATE_NOT_NULL(arrayList);
     return GestureLibrary::Recognize(gesture, arrayList);
 }
 
@@ -108,6 +123,7 @@ ECode CResourceGestureLibrary::AddGesture(
     /* [in] */ const String& entryName,
     /* [in] */ IGesture * gesture)
 {
+    VALIDATE_NOT_NULL(gesture);
     return GestureLibrary::AddGesture(entryName, gesture);
 }
 
@@ -115,6 +131,7 @@ ECode CResourceGestureLibrary::RemoveGesture(
     /* [in] */ const String& entryName,
     /* [in] */ IGesture * gesture)
 {
+    VALIDATE_NOT_NULL(gesture);
     return GestureLibrary::RemoveGesture(entryName, gesture);
 }
 
@@ -128,5 +145,6 @@ ECode CResourceGestureLibrary::GetGestures(
     /* [in] */ const String& entryName,
     /* [out] */ IObjectContainer ** gestures)
 {
+    VALIDATE_NOT_NULL(gestures);
     return GestureLibrary::GetGestures(entryName, gestures);
 }

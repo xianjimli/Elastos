@@ -32,24 +32,12 @@ const Float CInstance::ORIENTATIONS[Instance_ORIENTATIONS_LENGTH]={
 
 CInstance::CInstance()
 {
-	/*
-    ORIENTATIONS=new Float[Instance_ORIENTATIONS_LENGTH];
-	Float param[Instance_ORIENTATIONS_LENGTH]={
-	    0, (Float) (Math::DOUBLE_PI / 4), (Float) (Math::DOUBLE_PI  / 2), (Float) (Math::DOUBLE_PI  * 3 / 4),
-	    (Float) Math::DOUBLE_PI , -0, (Float) (-Math::DOUBLE_PI  / 4), (Float) (-Math::DOUBLE_PI  / 2),
-	    (Float) (-Math::DOUBLE_PI  * 3 / 4), (Float) -Math::DOUBLE_PI
-	};
-	for (Int32 i=0;i<Instance_ORIENTATIONS_LENGTH;i++)
-	{
-	     ORIENTATIONS[i]=param[i];
-	}
-    */
+
 }
 
 CInstance::~CInstance()
 {
-//	delete []ORIENTATIONS;
-	ArrayOf<Float>::Free(mVector);
+    ArrayOf<Float>::Free(mVector);
 }
 
 ECode CInstance::constructor(
@@ -99,6 +87,7 @@ ECode CInstance::CreateInstance(
     /* [out] */ IInstance ** instance)
 {
     VALIDATE_NOT_NULL(gesture);
+    VALIDATE_NOT_NULL(instance);
     Int64 id;
     gesture->GetID(&id);
     ArrayOf<Float>* pts =NULL;
@@ -118,42 +107,43 @@ ECode CInstance::CreateInstance(
 ArrayOf<Float>* CInstance::SpatialSampler(
     /* [in] */ IGesture* gesture)
 {
-	ArrayOf<Float> * ret = NULL;
-	CGestureUtils::SpatialSampling(gesture, PATCH_SAMPLE_SIZE, FALSE, &ret);
-	return ret;
+    assert(gesture != NULL);
+    ArrayOf<Float> * ret = NULL;
+    CGestureUtils::SpatialSampling(gesture, PATCH_SAMPLE_SIZE, FALSE, &ret);
+    return ret;
 }
 
 ArrayOf<Float>* CInstance::TemporalSampler(
    /* [in] */ Int32 orientationType,
    /* [in] */ IGesture* gesture)
 {
-	ArrayOf<Float>* pts = NULL;
-	IObjectContainer *gestureStrokes = NULL;
-   gesture->GetStrokes(&gestureStrokes); //need to be Released
-   AutoPtr<IObjectEnumerator> iter;
-   gestureStrokes->GetObjectEnumerator((IObjectEnumerator**)&iter);
-   Int32 strokeCount = 0;
-   gestureStrokes->GetObjectCount(&strokeCount);
-   if (strokeCount > 0) {
-       IGestureStroke *gestureStroke = NULL;
-       Boolean hasNext = FALSE;
-       iter->MoveNext(&hasNext);
-       if (hasNext) {
-           iter->Current((IInterface **)&gestureStroke);
+    assert(gesture != NULL);
+    ArrayOf<Float>* pts = NULL;
+    IObjectContainer *gestureStrokes = NULL;
+    gesture->GetStrokes(&gestureStrokes); //need to be Released
+    AutoPtr<IObjectEnumerator> iter;
+    gestureStrokes->GetObjectEnumerator((IObjectEnumerator**)&iter);
+    Int32 strokeCount = 0;
+    gestureStrokes->GetObjectCount(&strokeCount);
+    if (strokeCount > 0) {
+        IGestureStroke *gestureStroke = NULL;
+        Boolean hasNext = FALSE;
+        iter->MoveNext(&hasNext);
+        if (hasNext) {
+            iter->Current((IInterface **)&gestureStroke);
 
-           CGestureUtils::TemporalSampling(gestureStroke,SEQUENCE_SAMPLE_SIZE, &pts);
-           ArrayOf<Float>* center = NULL;
-           CGestureUtils::ComputeCentroid(*pts, &center);
-           Float orientation = (Float)Math::Atan2(pts[1] - center[1], pts[0] - center[0]);
+            CGestureUtils::TemporalSampling(gestureStroke,SEQUENCE_SAMPLE_SIZE, &pts);
+            ArrayOf<Float>* center = NULL;
+            CGestureUtils::ComputeCentroid(*pts, &center);
+            Float orientation = (Float)Math::Atan2(pts[1] - center[1], pts[0] - center[0]);
 
-           Float adjustment = -orientation;
-           if (orientationType != GestureStore_ORIENTATION_INVARIANT) {
-               Int32 count = Instance_ORIENTATIONS_LENGTH;
-               for (Int32 i = 0; i < count; i++)
-                {
-                  Float delta = ORIENTATIONS[i] - orientation;
-                  if (Math::Abs(delta) < Math::Abs(adjustment)) {
-                      adjustment = delta;
+            Float adjustment = -orientation;
+            if (orientationType != GestureStore_ORIENTATION_INVARIANT) {
+                Int32 count = Instance_ORIENTATIONS_LENGTH;
+                for (Int32 i = 0; i < count; i++) {
+                    Float delta = ORIENTATIONS[i] - orientation;
+                    if (Math::Abs(delta) < Math::Abs(adjustment)) {
+                        adjustment = delta;
                     }//end if (Math::Abs(delta) < Math::Abs(adjustment))
                 }// end for (Int32 i = 0; i < count; i++)
             }// end if (orientationType != CGestureStore::ORIENTATION_INVARIANT)
@@ -162,11 +152,10 @@ ArrayOf<Float>* CInstance::TemporalSampler(
             CGestureUtils::Rotate(pts, adjustment);
 
             ArrayOf<Float>::Free(center);
-       } //end if (hasNext)
-   }//end if (strokeCount > 0)
-   gestureStrokes->Release();
+        } //end if (hasNext)
+    }//end if (strokeCount > 0)
+    gestureStrokes->Release();
     return pts;
-
 }
 
 //the feature vector
@@ -174,6 +163,7 @@ ArrayOf<Float>* CInstance::TemporalSampler(
 ECode CInstance::GetVector(
     /* [out, callee] */ ArrayOf<Float> ** featureVector)
 {
+    VALIDATE_NOT_NULL(featureVector);
     *featureVector = mVector->Clone();
     return NOERROR;
 }

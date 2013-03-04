@@ -59,6 +59,7 @@ ECode CGesture::constructor()
 ECode CGesture::Clone(
     /* [out] */ IGesture ** gesture)
 {
+    VALIDATE_NOT_NULL(gesture);
     CGesture::New(gesture);
     Int32 count = mStrokes->GetSize();
     for (int i = 0; i < count; i++) {
@@ -86,6 +87,7 @@ List<IGestureStroke* >* CGesture::GetStrokes()
 ECode CGesture::GetStrokes(
     /* [out] */ IObjectContainer ** strokes)
 {
+    VALIDATE_NOT_NULL(strokes);
     //return mStrokes;
     IObjectContainer* ret=NULL;
     CObjectContainer::New(&ret);
@@ -117,6 +119,7 @@ ECode CGesture::GetStrokesCount(
 ECode CGesture::AddStroke(
     /* [in] */ IGestureStroke* stroke)
 {
+    VALIDATE_NOT_NULL(stroke);
     mStrokes->PushBack(stroke);
     IRectF* boundingBox = NULL;
     stroke->GetBoundingBox(&boundingBox);
@@ -154,6 +157,7 @@ ECode CGesture::GetLength(
 ECode CGesture::GetBoundingBox(
     /* [out] */ IRectF** boundingBox)
 {
+    VALIDATE_NOT_NULL(boundingBox);
     *boundingBox = mBoundingBox;
     return NOERROR;
 }
@@ -161,6 +165,7 @@ ECode CGesture::GetBoundingBox(
 ECode CGesture::ToPath(
     /* [out] */ IPath ** path)
 {
+    VALIDATE_NOT_NULL(path);
     return ToPathEx(NULL, path);
 }
 
@@ -168,6 +173,7 @@ ECode CGesture::ToPathEx(
     /* [in] */ IPath* path,
     /* [out] */ IPath ** pathret)
 {
+    VALIDATE_NOT_NULL(pathret);
     if (path == NULL) {
         CPath::New(&path);
     }
@@ -191,6 +197,7 @@ ECode CGesture::ToPathEx2(
     /* [in] */ Int32 numSample,
     /* [out] */ IPath ** path)
 {
+    VALIDATE_NOT_NULL(path);
     return ToPathEx3(NULL, width, height, edge, numSample, path);
 }
 
@@ -202,6 +209,7 @@ ECode CGesture::ToPathEx3(
     /* [in] */ Int32 numSample,
     /* [out] */ IPath ** pathret)
 {
+    VALIDATE_NOT_NULL(pathret);
     if (path == NULL) {
         CPath::New(&path);
     }
@@ -259,6 +267,7 @@ ECode CGesture::ToBitmap(
     /* [in] */ Int32 color,
     /* [out] */ IBitmap ** bmp )
 {
+    VALIDATE_NOT_NULL(bmp);
     IBitmap* bitmap=NULL;
     CBitmapFactory bmpfactory;
     bmpfactory.CreateBitmapEx3(width, height, BitmapConfig_ARGB_8888,&bitmap);
@@ -310,6 +319,7 @@ ECode CGesture::ToBitmapEx(
     /* [in] */ Int32 color,
     /* [out] */ IBitmap ** bmp)
 {
+    VALIDATE_NOT_NULL(bmp);
     IBitmap* bitmap=NULL;
     CBitmapFactory bmpfactory;
     bmpfactory.CreateBitmapEx3(width, height, BitmapConfig_ARGB_8888,&bitmap);
@@ -363,6 +373,7 @@ ECode CGesture::ToBitmapEx(
 ECode CGesture::Serialize(
     /* [in] */ IDataOutputStream* out)
 {
+    VALIDATE_NOT_NULL(out);
     List<IGestureStroke* >* strokes = mStrokes;
     Int32 count = strokes->GetSize();
 
@@ -382,6 +393,8 @@ ECode CGesture::Deserialize(
     /* [in] */ IDataInputStream* in,
     /* [out] */ IGesture **gesture)
 {
+    VALIDATE_NOT_NULL(in);
+    VALIDATE_NOT_NULL(gesture);
     IGesture* gestureRet;
     CGesture::New(&gestureRet);
 
@@ -436,6 +449,7 @@ ECode CGesture::Deserialize(
 ECode CGesture::WriteToParcel(
     /* [in] */ IParcel* out)
 {
+    VALIDATE_NOT_NULL(out);
     out->WriteInt64(mGestureID);
 
     IByteArrayOutputStream* byteStream=NULL;
@@ -466,6 +480,7 @@ ECode CGesture::WriteToParcel(
 ECode CGesture::DescribeContents(
     /* [out] */ Int32 * ret)
 {
+    VALIDATE_NOT_NULL(ret);
     *ret = 0;
     return NOERROR;
 }
@@ -473,6 +488,7 @@ ECode CGesture::DescribeContents(
 ECode CGesture::ReadFromParcel(
     /* [in] */ IParcel * in)
 {
+    VALIDATE_NOT_NULL(in);
     Int64 gestureID;
     in->ReadInt64(&gestureID);
 
@@ -490,7 +506,7 @@ ECode CGesture::ReadFromParcel(
             IGestureStroke* stroke = (*(gesture->mStrokes))[i];
             IGestureStroke *obj = NULL;
             stroke->Clone(&obj);
-            gesture->AddStroke(obj);
+            AddStroke(obj);
         }
 
         IRectF* bbx = NULL;
@@ -524,6 +540,8 @@ ECode CGesture::DeserializeEx(
     /* [in] */ IParcel* in,
     /* [out] */ CGesture **gesture)
 {
+    VALIDATE_NOT_NULL(in);
+    VALIDATE_NOT_NULL(gesture);
     CGesture* gestureRet = new CGesture();
 
     // Gesture ID

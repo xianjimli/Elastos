@@ -142,6 +142,7 @@ GestureOverlayView::~GestureOverlayView()
 ECode GestureOverlayView::Init(
     /* [in] */ IContext * context)
 {
+    VALIDATE_NOT_NULL(context);
     ECode ec = FrameLayout::Init(context);
     Init();
     return ec;
@@ -151,6 +152,8 @@ ECode GestureOverlayView::Init(
     /* [in] */ IContext * context,
     /* [in] */ IAttributeSet * attrs)
 {
+    VALIDATE_NOT_NULL(context);
+    VALIDATE_NOT_NULL(attrs);
     return Init(context, attrs,
          0x010102ce /*com.android.internal.R.attr.gestureOverlayViewStyle*/);
 }
@@ -160,6 +163,8 @@ ECode GestureOverlayView::Init(
     /* [in] */ IAttributeSet * attrs,
     /* [in] */ Int32 defStyle)
 {
+    VALIDATE_NOT_NULL(context);
+    VALIDATE_NOT_NULL(attrs);
     ECode ec = FrameLayout::Init(context, attrs, defStyle);
 
     ITypedArray *a = NULL;
@@ -247,6 +252,7 @@ void GestureOverlayView::Init()
 ECode GestureOverlayView::GetCurrentStroke(
     /* [out] */ IObjectContainer ** stroke)
 {
+    VALIDATE_NOT_NULL(stroke);
     IObjectContainer * ret = NULL;
     CObjectContainer::New(&ret);
     Int32 count=mStrokeBuffer->GetSize();
@@ -413,6 +419,7 @@ ECode GestureOverlayView::SetFadeEnabled(
 ECode GestureOverlayView::GetGesture(
     /* [out] */ IGesture ** gesture)
 {
+    VALIDATE_NOT_NULL(gesture);
     mCurrentGesture->Clone(gesture);
     return NOERROR;
 }
@@ -420,6 +427,7 @@ ECode GestureOverlayView::GetGesture(
 ECode GestureOverlayView::SetGesture(
     /* [in] */ IGesture * gesture)
 {
+    VALIDATE_NOT_NULL(gesture);
     if (mCurrentGesture != NULL) {
         Clear(FALSE);
     }
@@ -454,6 +462,7 @@ ECode GestureOverlayView::SetGesture(
 ECode GestureOverlayView::GetGesturePath(
     /* [out] */ IPath ** path)
 {
+    VALIDATE_NOT_NULL(path);
     (*path) = mPath;
     return NOERROR;
 }
@@ -463,6 +472,7 @@ ECode GestureOverlayView::GetGesturePathEx(
     /* [out] */ IPath ** pathret)
 {
     VALIDATE_NOT_NULL(path);
+    VALIDATE_NOT_NULL(pathret);
     path->Set(mPath);
     *pathret = path;
     return NOERROR;
@@ -471,6 +481,7 @@ ECode GestureOverlayView::GetGesturePathEx(
 ECode GestureOverlayView::IsGestureVisible(
     /* [out] */ Boolean * gestureVisible)
 {
+    VALIDATE_NOT_NULL(gestureVisible);
     *gestureVisible = mGestureVisible;
     return NOERROR;
 }
@@ -508,6 +519,7 @@ ECode GestureOverlayView::AddOnGestureListener(
 ECode GestureOverlayView::RemoveOnGestureListener(
     /* [in] */ IOnGestureListener * listener)
 {
+    VALIDATE_NOT_NULL(listener);
     mOnGestureListeners->Remove(listener);
     return NOERROR;
 }
@@ -533,6 +545,7 @@ ECode GestureOverlayView::AddOnGesturePerformedListener(
 ECode GestureOverlayView::RemoveOnGesturePerformedListener(
     /* [in] */ IOnGesturePerformedListener * listener)
 {
+    VALIDATE_NOT_NULL(listener);
     mOnGesturePerformedListeners->Remove(listener);
     Int32 count = mOnGesturePerformedListeners->GetSize();
     if ( count <= 0) {
@@ -559,6 +572,7 @@ ECode GestureOverlayView::AddOnGesturingListener(
 ECode GestureOverlayView::RemoveOnGesturingListener(
     /* [in] */ IOnGesturingListener * listener)
 {
+    VALIDATE_NOT_NULL(listener);
     mOnGesturingListeners->Remove(listener);
     return NOERROR;
 }
@@ -596,6 +610,7 @@ void GestureOverlayView::SetCurrentColor(
 ECode GestureOverlayView::GetGesturePaint(
     /* [out] */ IPaint ** paint)
 {
+    VALIDATE_NOT_NULL(paint);
     *paint = mGesturePaint;
     return NOERROR;
 }
@@ -604,6 +619,7 @@ ECode GestureOverlayView::GetGesturePaint(
 ECode GestureOverlayView::Draw(
     /* [in] */ ICanvas * canvas)
 {
+    VALIDATE_NOT_NULL(canvas);
     FrameLayout::Draw(canvas);
 
     if (mCurrentGesture != NULL && mGestureVisible) {
@@ -744,6 +760,7 @@ Boolean GestureOverlayView::DispatchTouchEvent(
     /* [in] */ IMotionEvent * event)
 //    /* [out] */ Boolean * ret)
 {
+    assert(event != NULL);
     if (View::IsEnabled()) {
         Int32 strokesCount = 0;
         mCurrentGesture->GetStrokesCount(&strokesCount);
@@ -769,6 +786,7 @@ Boolean GestureOverlayView::DispatchTouchEvent(
 Boolean GestureOverlayView::ProcessEvent(
     /* [in] */ IMotionEvent * event)
 {
+    assert(event != NULL);
     Int32 action;
     event->GetAction(&action);
 
@@ -808,6 +826,7 @@ Boolean GestureOverlayView::ProcessEvent(
 void GestureOverlayView::TouchDown(
     /* [in] */ IMotionEvent * event)
 {
+    assert(event != NULL);
     mIsListeningForGestures = TRUE;
 
     Float x;
@@ -881,6 +900,7 @@ void GestureOverlayView::TouchDown(
 IRect * GestureOverlayView::TouchMove(
     /* [in] */ IMotionEvent * event)
 {
+    assert(event != NULL);
     IRect * areaToRefresh = NULL;
 
     Float x;
@@ -978,6 +998,7 @@ void GestureOverlayView::TouchUp(
     /* [in] */ IMotionEvent * event,
     /* [in] */ Boolean cancel)
 {
+    assert(event != NULL);
     mIsListeningForGestures = FALSE;
 
     // A gesture wasn't started or was cancelled
@@ -1023,6 +1044,7 @@ void GestureOverlayView::TouchUp(
 void GestureOverlayView::CancelGesture(
     /* [in] */ IMotionEvent * event)
 {
+    assert(event != NULL);
     // pass the event to handlers
     List<IOnGestureListener*> * listeners = mOnGestureListeners;
     Int32 count = listeners->GetSize();
@@ -1096,6 +1118,7 @@ ECode GestureOverlayView::FadeOutRunnableRun(
 GestureOverlayView::FadeOutRunnable::FadeOutRunnable(
     /* [in] */ GestureOverlayView* obj)
 {
+    assert(obj != NULL);
     gestureOverlayView = obj;
 }
 

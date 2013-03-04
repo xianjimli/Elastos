@@ -14,7 +14,7 @@ ECode GestureLibraries::FromFile(
     /* [in] */ const String& path,
     /* [out] */ IGestureLibrary ** gestureLibrary)
 {
-
+    VALIDATE_NOT_NULL(gestureLibrary);
     IFile *file = NULL;
     CFile::New(path, &file);
     ECode ec = FromFileEx(file, gestureLibrary);
@@ -28,7 +28,8 @@ ECode GestureLibraries::FromFileEx(
     /* [in] */ IFile * path,
     /* [out] */ IGestureLibrary ** gestureLibrary)
 {
-
+    VALIDATE_NOT_NULL(path);
+    VALIDATE_NOT_NULL(gestureLibrary);
     IGestureLibrary *l = NULL;
     ECode ec = CFileGestureLibrary::New(path, &l);
     *gestureLibrary =(IGestureLibrary *) l;
@@ -53,7 +54,8 @@ ECode GestureLibraries::FromRawResource(
     /* [in] */ Int32 resourceId,
     /* [out] */ IGestureLibrary ** gestureLibrary)
 {
-
+    VALIDATE_NOT_NULL(context);
+    VALIDATE_NOT_NULL(gestureLibrary);
     IGestureLibrary *l = NULL;
     ECode ec = CResourceGestureLibrary::New(context, resourceId, &l);
     *gestureLibrary = (IGestureLibrary *)l;

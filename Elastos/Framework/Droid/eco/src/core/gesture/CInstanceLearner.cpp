@@ -29,6 +29,8 @@ Int32 CInstanceLearner::ComparatorPrediction::Compare(
     /* [in] */ IPrediction * object1,
     /* [in] */ IPrediction * object2)
 {
+    VALIDATE_NOT_NULL(object1);
+    VALIDATE_NOT_NULL(object2);
     Double score1 = ((CPrediction *)object1)->mScore;//GetScore(); //??
     Double score2 = ((CPrediction *)object2)->mScore;//GetScore(); //??
     if (score1 > score2) {
@@ -48,7 +50,7 @@ ECode CInstanceLearner::Classify(
     /* [in] */ const ArrayOf<Float> & vectorParam,
     /* [out] */ IObjectContainer ** ret)
 {
-
+    VALIDATE_NOT_NULL(ret);
     List<IPrediction *>* predictions = new List<IPrediction*>();
     List<IInstance *>* instances = GetInstances();
     Int32 count = instances->GetSize();
@@ -139,12 +141,14 @@ ECode CInstanceLearner::Classify(
 ECode CInstanceLearner::AddInstance(
     /* [in] */ IInstance * instance)
 {
+    VALIDATE_NOT_NULL(instance);
     return Learner::AddInstance(instance);
 }
 
 ECode CInstanceLearner::GetInstances(
     /* [out] */ IObjectContainer ** ret)
 {
+    VALIDATE_NOT_NULL(ret);
     return Learner::GetInstances(ret);
 }
 

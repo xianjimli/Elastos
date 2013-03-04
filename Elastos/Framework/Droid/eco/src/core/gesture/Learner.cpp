@@ -17,6 +17,7 @@ Learner::~Learner()
  */
 ECode Learner::AddInstance(IInstance* instance)
 {
+    VALIDATE_NOT_NULL(instance);
     mInstances.PushBack(instance);
     return NOERROR;
 }
@@ -30,6 +31,7 @@ ECode Learner::AddInstance(IInstance* instance)
 ECode Learner::GetInstances(
     /* [out] */ IObjectContainer ** ret)
 {
+    VALIDATE_NOT_NULL(ret);
     //return (&mInstances);
 	//return CloneInstances();
     IObjectContainer* objc = NULL;

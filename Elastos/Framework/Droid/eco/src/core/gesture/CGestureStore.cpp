@@ -85,6 +85,7 @@ ECode CGestureStore::SetOrientationStyle(
 ECode CGestureStore::GetOrientationStyle(
     /* [out] */ Int32 * orientationStyle)
 {
+    VALIDATE_NOT_NULL(orientationStyle);
     *orientationStyle = mOrientationStyle;
     return NOERROR;
 }
@@ -119,6 +120,7 @@ ECode CGestureStore::GetSequenceType(
 ECode CGestureStore::GetGestureEntries(
     /* [out, callee] */ ArrayOf<String> ** gestureEntries)
 {
+    VALIDATE_NOT_NULL(gestureEntries);
     //return mNamedGestures.keySet();
     ArrayOf<String> * ret = NULL;
     //HashMap<String, List<IGesture*> *>::Iterator iter;
@@ -145,6 +147,8 @@ ECode CGestureStore::Recognize(
     /* [in] */ IGesture *gesture,
     /* [out] */ IObjectContainer ** arrayList)
 {
+    VALIDATE_NOT_NULL(gesture);
+    VALIDATE_NOT_NULL(arrayList);
     ECode ec = NOERROR;
     IInstance * instance = NULL;
     String nulstr=String("");
@@ -171,6 +175,7 @@ ECode CGestureStore::AddGesture(
     /* [in] */ const String & entryName,
     /* [in] */ IGesture *gesture)
 {
+    VALIDATE_NOT_NULL(gesture);
     if (entryName.IsNull() || entryName.GetLength() == 0) {
         return NOERROR;
     }
@@ -206,6 +211,7 @@ ECode CGestureStore::RemoveGesture(
     /* [in] */ const String & entryName,
     /* [in] */ IGesture *gesture)
 {
+    VALIDATE_NOT_NULL(gesture);
     HashMap<String, List<IGesture*> *>::Iterator it = mNamedGestures->Find(entryName);
     List<IGesture*>* gestures = NULL;
     if (it != mNamedGestures->End())
@@ -255,6 +261,7 @@ ECode CGestureStore::GetGestures(
     /* [in] */ const String & entryName,
     /* [out] */ IObjectContainer ** gestures)
 {
+    VALIDATE_NOT_NULL(gestures);
     IObjectContainer* ret = NULL;
     CObjectContainer::New(&ret);
 
@@ -285,13 +292,15 @@ ECode CGestureStore::HasChanged(
 ECode CGestureStore::Save(
     /* [in] */ IOutputStream * stream)
 {
+    VALIDATE_NOT_NULL(stream);
     return SaveEx(stream, FALSE);
 }
 
 ECode CGestureStore::SaveEx(
-		/* [in] */ IOutputStream * stream,
-		/* [in] */ Boolean closeStream)
+    /* [in] */ IOutputStream * stream,
+    /* [in] */ Boolean closeStream)
 {
+    VALIDATE_NOT_NULL(stream);
     /*
 	AutoPtr<IBufferedOutputStream> outs;
 	if (FAILED(CBufferedOutputStream::New(stream,
@@ -364,6 +373,7 @@ ECode CGestureStore::SaveEx(
 ECode CGestureStore::Load(
     /* [in] */ IInputStream *stream)
 {
+    VALIDATE_NOT_NULL(stream);
     return LoadEx(stream, FALSE);
 }
 
@@ -371,6 +381,7 @@ ECode CGestureStore::LoadEx(
     /* [in] */ IInputStream *stream,
     /* [in] */ Boolean closeStream)
 {
+    VALIDATE_NOT_NULL(stream);
     //CDataInputStream *in = NULL;
     AutoPtr<IDataInputStream> in;
     if (FAILED(CDataInputStream::New(stream,(IDataInputStream **) &in)))
@@ -412,8 +423,9 @@ ECode CGestureStore::LoadEx(
 
 
 ECode CGestureStore::ReadFormatV1(
-		/* [in] */ IDataInputStream *in)
+    /* [in] */ IDataInputStream *in)
 {
+    VALIDATE_NOT_NULL(in);
     //final Learner classifier = mClassifier;
     //final HashMap<String, ArrayList<Gesture>> namedGestures = mNamedGestures;
     //namedGestures.clear();
@@ -453,6 +465,7 @@ ECode CGestureStore::ReadFormatV1(
 ECode CGestureStore::GetLearner(
     /* [out] */ ILearner ** learner)
 {
+    VALIDATE_NOT_NULL(learner);
     *learner = mClassifier;
     return NOERROR;
 }

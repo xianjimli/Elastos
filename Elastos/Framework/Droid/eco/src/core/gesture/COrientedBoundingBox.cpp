@@ -40,6 +40,7 @@ ECode COrientedBoundingBox::constructor(
 ECode COrientedBoundingBox::ToPath(
     /* [out] */ IPath** path )
 {
+    VALIDATE_NOT_NULL(path);
     CPath::New(path);
     ArrayOf<Float> *point = ArrayOf<Float>::Alloc(2);
     (*point)[0] = -mWidth / 2;
