@@ -21,6 +21,7 @@ module
     merge("app/backup/irestoresession.car");
     merge("app/Dialog.car");
     merge("app/AlertDialog.car");
+    merge("app/ProgressDialog.car");
     merge("app/INotificationManager.car");
     merge("app/NotificationManager.car");
     merge("app/ITransientNotification.car");
@@ -80,8 +81,26 @@ module
     }
 
     class CPendingIntent {
+        /*package*/
+        constructor(
+            [in] IIntentSender* target);
+
         interface IPendingIntent;
         interface IParcelable;
+    }
+
+    singleton class CPendingIntentHelper {
+        interface IPendingIntentHelper;
+    }
+
+    class CFinishedDispatcher {
+        constructor(
+            [in] IPendingIntent* pi,
+            [in] IOnFinished* who,
+            [in] IHandler* handler);
+
+        interface IIntentReceiver;
+        interface IRunnable;
     }
 
     class CCrashInfo {
@@ -184,5 +203,23 @@ module
             [in] IContext* context);
 
         interface IAlertDialogBuilder;
+    }
+
+    class CProgressDialog {
+        constructor(
+            [in] IContext* context);
+
+        constructor(
+            [in] IContext* context,
+            [in] Int32 theme);
+
+        interface IProgressDialog;
+        interface IWindowCallback;
+        interface IKeyEventCallback;
+        interface IViewOnCreateContextMenuListener;
+    }
+
+    singleton class CProgressDialogHelper {
+        interface IProgressDialogHelper;
     }
 }

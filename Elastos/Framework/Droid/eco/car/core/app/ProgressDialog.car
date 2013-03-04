@@ -1,0 +1,98 @@
+
+module
+{
+    interface IDialog;
+    interface IAlertDialog;
+    interface IDrawable;
+    interface IContext;
+    interface ICharSequence;
+    interface IDialogInterfaceOnCancelListener;
+
+    /** Creates a ProgressDialog with a ciruclar, spinning progress
+     * bar. This is the default.
+     */
+    const ProgressDialog_STYLE_SPINNER = 0;
+
+    /** Creates a ProgressDialog with a horizontal progress bar.
+     */
+    const ProgressDialog_STYLE_HORIZONTAL = 1;
+
+    interface IProgressDialog extends IAlertDialog {
+
+        SetProgress(
+            [in] Int32 value);
+
+        SetSecondaryProgress(
+            [in] Int32 secondaryProgress);
+
+        GetProgress(
+            [out] Int32* progress);
+
+        GetSecondaryProgress(
+            [out] Int32* secondaryProgress);
+
+        GetMax(
+            [out] Int32* max);
+
+        SetMax(
+            [in] Int32 max);
+
+        IncrementProgressBy(
+            [in] Int32 diff);
+
+        IncrementSecondaryProgressBy(
+            [in] Int32 diff);
+
+        SetProgressDrawable(
+            [in] IDrawable* d);
+
+        SetIndeterminateDrawable(
+            [in] IDrawable* d);
+
+        SetIndeterminate(
+            [in] Boolean indeterminate);
+
+        IsIndeterminate(
+            [out] Boolean* isIndeterminate);
+
+        SetProgressStyle(
+            [in] Int32 style);
+
+        SetProgressNumberFormat(
+            [in] String format);
+    }
+
+    interface IProgressDialogHelper {
+
+        Show(
+            [in] IContext* context,
+            [in] ICharSequence* title,
+            [in] ICharSequence* message,
+            [out] IProgressDialog** dialog);
+
+        Show2(
+            [in] IContext* context,
+            [in] ICharSequence* title,
+            [in] ICharSequence* message,
+            [in] Boolean indeterminate,
+            [out] IProgressDialog** dialog);
+
+        Show3(
+            [in] IContext* context,
+            [in] ICharSequence* title,
+            [in] ICharSequence* message,
+            [in] Boolean indeterminate,
+            [in] Boolean cancelable,
+            [out] IProgressDialog** dialog);
+
+        Show4(
+            [in] IContext* context,
+            [in] ICharSequence* title,
+            [in] ICharSequence* message,
+            [in] Boolean indeterminate,
+            [in] Boolean cancelable,
+            [in] IDialogInterfaceOnCancelListener* cancelListener,
+            [out] IProgressDialog** dialog);
+    }
+}
+

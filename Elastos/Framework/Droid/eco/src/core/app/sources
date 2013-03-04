@@ -47,4 +47,9 @@ SOURCES += CAlertDialog.cpp
 SOURCES += CAlertDialogBuilder.cpp
 SOURCES += StatusBarManager.cpp
 SOURCES += NotificationManager.cpp
+SOURCES += ProgressDialog.cpp
+SOURCES += CProgressDialog.cpp
+SOURCES += CProgressDialogHelper.cpp
+SOURCES += CPendingIntentHelper.cpp
+SOURCES += CFinishedDispatcher.cpp
 

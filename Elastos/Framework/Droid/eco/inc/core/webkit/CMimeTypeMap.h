@@ -9,29 +9,38 @@ CarClass(CMimeTypeMap)
 public:
     CARAPI GetFileExtensionFromUrl(
         /* [in] */ CString inUrl,
-        /* [out] */ String * pOutUrl);
+        /* [out] */ String* outUrl);
 
     CARAPI HasMimeType(
         /* [in] */ CString mimeType,
-        /* [out] */ Boolean * pFlag);
+        /* [out] */ Boolean* flag);
 
     CARAPI GetMimeTypeFromExtension(
         /* [in] */ CString extension,
-        /* [out] */ String * pMimeType);
+        /* [out] */ String* mimeType);
 
     CARAPI HasExtension(
         /* [in] */ CString extension,
-        /* [out] */ Boolean * pFlag);
+        /* [out] */ Boolean* flag);
 
     CARAPI GetExtensionFromMimeType(
         /* [in] */ CString mimeType,
-        /* [out] */ String * pExtensionFrom);
+        /* [out] */ String* extensionFrom);
 
     CARAPI GetSingleton(
-        /* [out] */ IMimeTypeMap ** ppInstance);
+        /* [out] */ IMimeTypeMap** instance);
+
+    CARAPI constructor();
 
 private:
-    // TODO: Add your private member variables here.
+
+    /**
+     * Load an entry into the map. This does not check if the item already
+     * exists, it trusts the caller!
+     */
+    void LoadEntry(
+        /* [in] */ const char * mimeType,
+        /* [in] */ const char * extension);
 };
 
 #endif // __CMIMETYPEMAP_H__

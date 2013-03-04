@@ -5,8 +5,7 @@ module
     interface IContext;
     interface IIntent;
     interface IHandler;
-
-    interface IOnFinished {}
+    interface IOnFinished;
 
     interface IHandler {}
 

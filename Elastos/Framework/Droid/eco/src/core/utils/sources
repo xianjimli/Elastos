@@ -29,3 +29,4 @@ SOURCES += SynchronizedPool.cpp
 SOURCES += Pools.cpp
 SOURCES += Config.cpp
 SOURCES += ReentrantLock.cpp
+SOURCES += CBase64.cpp

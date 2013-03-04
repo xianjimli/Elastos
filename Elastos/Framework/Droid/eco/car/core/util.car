@@ -11,6 +11,7 @@ module
     merge("util/Poolable.car");
     merge("util/PoolableManager.car");
     merge("util/HashMap.car");
+    merge("util/Base64.car");
 
     class CParcelableObjectContainer {
         interface IObjectContainer;
@@ -25,7 +26,7 @@ module
     class CDisplayMetrics {
         interface IDisplayMetrics;
     }
-    
+
     singleton class CDisplayMetricsHelper {
         interface IDisplayMetricsHelper;
     }
@@ -40,5 +41,9 @@ module
 
     class CObjectIntegerMap {
         interface IObjectIntegerMap;
-    }    
+    }
+
+    singleton class CBase64 {
+        interface IBase64;
+    }
 }

@@ -40,6 +40,275 @@ module
      */
     const PendingIntent_FLAG_UPDATE_CURRENT = 0x08000000; //1 << 27;
 
+    interface IIntentSender;
+    interface IContext;
+    interface IIntent;
+    interface IPendingIntent;
+    interface IBundle;
+    interface IParcel;
+
+    interface IOnFinished {
+
+        /**
+         * Called when a send operation as completed.
+         *
+         * @param pendingIntent The PendingIntent this operation was sent through.
+         * @param intent The original Intent that was sent.
+         * @param resultCode The final result code determined by the send.
+         * @param resultData The final data collected by a broadcast.
+         * @param resultExtras The final extras collected by a broadcast.
+         */
+        OnSendFinished(
+            [in] IPendingIntent* pendingIntent,
+            [in] IIntent* intent,
+            [in] Int32 resultCode,
+            [in] String resultData,
+            [in] IBundle* resultExtras);
+    }
+
     interface IPendingIntent {
+
+        /**
+         * Retrieve a IntentSender object that wraps the existing sender of the PendingIntent
+         *
+         * @return Returns a IntentSender object that wraps the sender of PendingIntent
+         *
+         */
+        GetIntentSender(
+            [out] IIntentSender** intentSender);
+
+        /**
+         * Cancel a currently active PendingIntent.  Only the original application
+         * owning an PendingIntent can cancel it.
+         */
+        Cancel();
+
+        /**
+         * Perform the operation associated with this PendingIntent.
+         *
+         * @see #send(Context, int, Intent, android.app.PendingIntent.OnFinished, Handler)
+         *
+         * @throws CanceledException Throws CanceledException if the PendingIntent
+         * is no longer allowing more intents to be sent through it.
+         */
+        Send();
+
+        /**
+         * Perform the operation associated with this PendingIntent.
+         *
+         * @param code Result code to supply back to the PendingIntent's target.
+         *
+         * @see #send(Context, int, Intent, android.app.PendingIntent.OnFinished, Handler)
+         *
+         * @throws CanceledException Throws CanceledException if the PendingIntent
+         * is no longer allowing more intents to be sent through it.
+         */
+        Send2(
+            [in] Int32 code);
+
+        /**
+         * Perform the operation associated with this PendingIntent, allowing the
+         * caller to specify information about the Intent to use.
+         *
+         * @param context The Context of the caller.
+         * @param code Result code to supply back to the PendingIntent's target.
+         * @param intent Additional Intent data.  See {@link Intent#fillIn
+         * Intent.fillIn()} for information on how this is applied to the
+         * original Intent.
+         *
+         * @see #send(Context, int, Intent, android.app.PendingIntent.OnFinished, Handler)
+         *
+         * @throws CanceledException Throws CanceledException if the PendingIntent
+         * is no longer allowing more intents to be sent through it.
+         */
+        Send3(
+            [in] IContext* context,
+            [in] Int32 code,
+            [in] IIntent* intent);
+
+        /**
+         * Perform the operation associated with this PendingIntent, allowing the
+         * caller to be notified when the send has completed.
+         *
+         * @param code Result code to supply back to the PendingIntent's target.
+         * @param onFinished The object to call back on when the send has
+         * completed, or null for no callback.
+         * @param handler Handler identifying the thread on which the callback
+         * should happen.  If null, the callback will happen from the thread
+         * pool of the process.
+         *
+         * @see #send(Context, int, Intent, android.app.PendingIntent.OnFinished, Handler)
+         *
+         * @throws CanceledException Throws CanceledException if the PendingIntent
+         * is no longer allowing more intents to be sent through it.
+         */
+        Send4(
+            [in] Int32 code,
+            [in] IOnFinished* onFinished,
+            [in] IHandler* handler);
+
+        /**
+         * Perform the operation associated with this PendingIntent, allowing the
+         * caller to specify information about the Intent to use and be notified
+         * when the send has completed.
+         *
+         * <p>For the intent parameter, a PendingIntent
+         * often has restrictions on which fields can be supplied here, based on
+         * how the PendingIntent was retrieved in {@link #getActivity},
+         * {@link #getBroadcast}, or {@link #getService}.
+         *
+         * @param context The Context of the caller.  This may be null if
+         * <var>intent</var> is also null.
+         * @param code Result code to supply back to the PendingIntent's target.
+         * @param intent Additional Intent data.  See {@link Intent#fillIn
+         * Intent.fillIn()} for information on how this is applied to the
+         * original Intent.  Use null to not modify the original Intent.
+         * @param onFinished The object to call back on when the send has
+         * completed, or null for no callback.
+         * @param handler Handler identifying the thread on which the callback
+         * should happen.  If null, the callback will happen from the thread
+         * pool of the process.
+         *
+         * @see #send()
+         * @see #send(int)
+         * @see #send(Context, int, Intent)
+         * @see #send(int, android.app.PendingIntent.OnFinished, Handler)
+         *
+         * @throws CanceledException Throws CanceledException if the PendingIntent
+         * is no longer allowing more intents to be sent through it.
+         */
+        Send5(
+            [in] IContext* context,
+            [in] Int32 code,
+            [in] IIntent* intent,
+            [in] IOnFinished* onFinished,
+            [in] IHandler* handler);
+
+        /**
+         * Return the package name of the application that created this
+         * PendingIntent, that is the identity under which you will actually be
+         * sending the Intent.  The returned string is supplied by the system, so
+         * that an application can not spoof its package.
+         *
+         * @return The package name of the PendingIntent, or null if there is
+         * none associated with it.
+         */
+        GetTargetCapsule(
+            [out] String* targetCapsule);
+
+        /** @hide */
+        GetTarget(
+            [out] IIntentSender** target);
+    }
+
+    interface IPendingIntentHelper {
+
+        /**
+         * Retrieve a PendingIntent that will start a new activity, like calling
+         * {@link Context#startActivity(Intent) Context.startActivity(Intent)}.
+         * Note that the activity will be started outside of the context of an
+         * existing activity, so you must use the {@link Intent#FLAG_ACTIVITY_NEW_TASK
+         * Intent.FLAG_ACTIVITY_NEW_TASK} launch flag in the Intent.
+         *
+         * @param context The Context in which this PendingIntent should start
+         * the activity.
+         * @param requestCode Private request code for the sender (currently
+         * not used).
+         * @param intent Intent of the activity to be launched.
+         * @param flags May be {@link #FLAG_ONE_SHOT}, {@link #FLAG_NO_CREATE},
+         * {@link #FLAG_CANCEL_CURRENT}, {@link #FLAG_UPDATE_CURRENT},
+         * or any of the flags as supported by
+         * {@link Intent#fillIn Intent.fillIn()} to control which unspecified parts
+         * of the intent that can be supplied when the actual send happens.
+         *
+         * @return Returns an existing or new PendingIntent matching the given
+         * parameters.  May return null only if {@link #FLAG_NO_CREATE} has been
+         * supplied.
+         */
+        GetActivity(
+            [in] IContext* context,
+            [in] Int32 requestCode,
+            [in] IIntent* intent,
+            [in] Int32 flags,
+            [out] IPendingIntent** activity);
+
+        /**
+         * Retrieve a PendingIntent that will perform a broadcast, like calling
+         * {@link Context#sendBroadcast(Intent) Context.sendBroadcast()}.
+         *
+         * @param context The Context in which this PendingIntent should perform
+         * the broadcast.
+         * @param requestCode Private request code for the sender (currently
+         * not used).
+         * @param intent The Intent to be broadcast.
+         * @param flags May be {@link #FLAG_ONE_SHOT}, {@link #FLAG_NO_CREATE},
+         * {@link #FLAG_CANCEL_CURRENT}, {@link #FLAG_UPDATE_CURRENT},
+         * or any of the flags as supported by
+         * {@link Intent#fillIn Intent.fillIn()} to control which unspecified parts
+         * of the intent that can be supplied when the actual send happens.
+         *
+         * @return Returns an existing or new PendingIntent matching the given
+         * parameters.  May return null only if {@link #FLAG_NO_CREATE} has been
+         * supplied.
+         */
+        GetBroadcast(
+            [in] IContext* context,
+            [in] Int32 requestCode,
+            [in] IIntent* intent,
+            [in] Int32 flags,
+            [out] IPendingIntent** broadcast);
+
+        /**
+         * Retrieve a PendingIntent that will start a service, like calling
+         * {@link Context#startService Context.startService()}.  The start
+         * arguments given to the service will come from the extras of the Intent.
+         *
+         * @param context The Context in which this PendingIntent should start
+         * the service.
+         * @param requestCode Private request code for the sender (currently
+         * not used).
+         * @param intent An Intent describing the service to be started.
+         * @param flags May be {@link #FLAG_ONE_SHOT}, {@link #FLAG_NO_CREATE},
+         * {@link #FLAG_CANCEL_CURRENT}, {@link #FLAG_UPDATE_CURRENT},
+         * or any of the flags as supported by
+         * {@link Intent#fillIn Intent.fillIn()} to control which unspecified parts
+         * of the intent that can be supplied when the actual send happens.
+         *
+         * @return Returns an existing or new PendingIntent matching the given
+         * parameters.  May return null only if {@link #FLAG_NO_CREATE} has been
+         * supplied.
+         */
+        GetService(
+            [in] IContext* context,
+            [in] Int32 requestCode,
+            [in] IIntent* intent,
+            [in] Int32 flags,
+            [out] IPendingIntent** service);
+
+        /**
+         * Convenience function for writing either a PendingIntent or null pointer to
+         * a Parcel.  You must use this with {@link #readPendingIntentOrNullFromParcel}
+         * for later reading it.
+         *
+         * @param sender The PendingIntent to write, or null.
+         * @param out Where to write the PendingIntent.
+         */
+        WritePendingIntentOrNullToParcel(
+            [in] IPendingIntent* sender,
+            [in] IParcel* outParcel);
+
+        /**
+         * Convenience function for reading either a Messenger or null pointer from
+         * a Parcel.  You must have previously written the Messenger with
+         * {@link #writePendingIntentOrNullToParcel}.
+         *
+         * @param in The Parcel containing the written Messenger.
+         *
+         * @return Returns the Messenger read from the Parcel, or null if null had
+         * been written.
+         */
+        ReadPendingIntentOrNullFromParcel(
+            [in] IParcel* inParcel,
+            [out] IPendingIntent** service);
     }
 }
