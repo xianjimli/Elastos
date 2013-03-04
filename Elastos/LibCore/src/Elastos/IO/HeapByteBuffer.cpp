@@ -22,7 +22,7 @@ HeapByteBuffer::HeapByteBuffer(
     , mBackingArray(backingArray)
     , mOffset(offset)
 {
-    assert(offset + capacity < backingArray->GetLength());
+    assert(offset + capacity <= backingArray->GetLength());
 }
 
 ECode HeapByteBuffer::GetBytesEx(

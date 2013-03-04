@@ -425,6 +425,14 @@ ECode CInflater::NeedsInput(
 
     Mutex::Autolock lock(&_m_syncLock);
 
+    return NeedsInputImplLocked(result);
+}
+
+ECode CInflater::NeedsInputImplLocked(
+    /* [out] */ Boolean* result)
+{
+    VALIDATE_NOT_NULL(result);
+
     *result = mInRead == mInLength;
     return NOERROR;
 }
