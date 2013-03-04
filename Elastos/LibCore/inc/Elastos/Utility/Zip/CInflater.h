@@ -312,6 +312,9 @@ private:
         /* [in] */ Int32 nbytes,
         /* [in] */ NativeZipStream* stream);
 
+    CARAPI NeedsInputImplLocked(
+        /* [out] */ Boolean* result);
+
 private:
     Boolean mFinished; // Set by the inflateImpl native
 

@@ -42,6 +42,7 @@ ECode Locale::GetDefault(
 {
     assert(defaultLocale != NULL);
     *defaultLocale = (ILocale*)sDefaultLocale;
+    (*defaultLocale)->AddRef();
 
     return NOERROR;
 }

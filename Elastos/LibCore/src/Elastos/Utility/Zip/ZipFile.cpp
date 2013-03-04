@@ -400,7 +400,7 @@ ECode ZipFile::GetInputStream(
 //        // position of the entry's local header. At position 28 we find the
 //        // length of the extra data. In some cases this length differs from
 //        // the one coming in the central header.
-        RAFStream *rafstrm = new RAFStream(raf, ((CZipEntry*)entry)->mLocalHeaderRelOffset + 28);
+        AutoPtr<RAFStream> rafstrm = new RAFStream(raf, ((CZipEntry*)entry)->mLocalHeaderRelOffset + 28);
         Int32 localExtraLenOrWhatever;
         mLer->ReadInt16LE((IInputStream *) rafstrm->Probe(EIID_IInputStream), &localExtraLenOrWhatever);
         //mLer->ReadShortLE(rafstrm);
@@ -417,12 +417,14 @@ ECode ZipFile::GetInputStream(
             entry->GetSize(&size);
             Int32 bufSize = Math::Max(1024, Math::Min((Int32)size, 65535L));
             AutoPtr<IInflater> inf;
-            CInflater::New(TRUE,(IInflater**)&inf);
-            ZipInflaterInputStream *pInflaterStream = new ZipInflaterInputStream(rafstrm, (IInflater*)inf, bufSize, (CZipEntry *)entry);
+            ECode ec = CInflater::New(TRUE,(IInflater**)&inf);
+            if (FAILED(ec)) return ec;
+            AutoPtr<ZipInflaterInputStream> pInflaterStream = new ZipInflaterInputStream(rafstrm, (IInflater*)inf, bufSize, (CZipEntry *)entry);
             *is = (IInputStream *)pInflaterStream->Probe(EIID_IInputStream);
+            (*is)->AddRef();
         } else {
             *is = (IInputStream *) rafstrm->Probe(EIID_IInputStream);
-            return NOERROR;
+            (*is)->AddRef();
         }
 //    }
     return NOERROR;
@@ -510,7 +512,7 @@ ECode ZipFile::ReadCentralDir()
 
       Int64 offset;
       mRaf->GetFilePointer(&offset);
-      RAFStream *rafs = new RAFStream(mRaf, offset);
+      AutoPtr<RAFStream> rafs = new RAFStream(mRaf, offset);
       AutoPtr<IBufferedInputStream> bin;
       ec = CBufferedInputStream::New((IInputStream *)rafs->Probe(EIID_IInputStream), ZipConstants_ENDHDR, (IBufferedInputStream **)&bin);
       Int32 diskNumber;
@@ -534,8 +536,6 @@ ECode ZipFile::ReadCentralDir()
            return E_ZIP_EXCEPTION;
       }
 
-      delete rafs;
-      rafs = NULL;
       //rafs = new RAFStream(mRaf, centralDirOffset);
       rafs = new RAFStream(mRaf, off);
       AutoPtr<IBufferedInputStream> bin1;
@@ -548,8 +548,7 @@ ECode ZipFile::ReadCentralDir()
           newEntry->GetName(&name);
           mEntries[name] = newEntry;
       }
-      delete rafs;
-      rafs = NULL;
+
       return ec;
 }
 
@@ -585,7 +584,6 @@ ECode ZipFile::Init(
     /* [in] */ IFile* file,
     /* [in] */ Int32 mode)
 {
-    ECode ec = NOERROR;
     file->GetPath(&mFileName);
     if (mode != IZipFile_OPEN_READ &&
         mode != (IZipFile_OPEN_READ | IZipFile_OPEN_DELETE)) {
