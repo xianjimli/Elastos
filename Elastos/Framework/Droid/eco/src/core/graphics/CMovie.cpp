@@ -4,6 +4,7 @@
 #include "graphics/CMovieHelper.h"
 #include "graphics/Canvas.h"
 #include "graphics/Paint.h"
+#include "graphics/CreateOutputStreamAdaptor.h"
 #include <elastos/AutoPtr.h>
 #include <skia/images/SkMovie.h>
 
@@ -114,17 +115,20 @@ ECode CMovie::DecodeStream(
     if (is == NULL) return E_NULL_POINTER_EXCEPTION;
 
     // what is the lifetime of the array? Can the skstream hold onto it?
-    //Byte byteArray[16 * 1024];
-    // SkStream* strm = CreateJavaInputStreamAdaptor(env, istream, byteArray);
-    // if (NULL == strm) {
-    //     return 0;
-    // }
+    ArrayOf<Byte>* pAdaptor = ArrayOf<Byte>::Alloc(16 * 1024);
 
-    // SkMovie* moov = SkMovie::DecodeStream(strm);
-    // strm->unref();
-    // return create_jmovie(env, moov);
-    assert(0);
-    return E_NOT_IMPLEMENTED;
+    SkStream* strm = CreateInputStreamAdaptor(is, pAdaptor);
+
+    if (NULL == strm) {
+        *movie = NULL;
+        return NOERROR;
+    }
+
+    SkMovie* moov = SkMovie::DecodeStream(strm);
+    strm->unref();
+
+    ArrayOf<Byte>::Free(pAdaptor);
+    return CreateMovie(moov, movie);
 }
 
 ECode CMovie::DecodeByteArray(

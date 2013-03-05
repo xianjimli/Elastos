@@ -106,6 +106,11 @@ private:
         /* [in] */ Int32 alpha,
         /* [in] */ const ArrayOf<Float>& hsv);
 
+    CARAPI_(Float) Constrain(
+        /* [in] */ Float amount,
+        /* [in] */ Float low,
+        /* [in] */ Float high);
+
 private:
     static HashMap<String, Int32>* sColorNameMap;
 };

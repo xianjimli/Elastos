@@ -11,17 +11,17 @@ static HashMap<String, Int32>* InitColorNameMap()
 {
     HashMap<String, Int32>* map = new HashMap<String, Int32>(11);
     assert(map != NULL);
-    (*map)[String("black")] = COLOR_BLACK;
-    (*map)[String("darkgray")] = COLOR_DKGRAY;
-    (*map)[String("gray")] = COLOR_GRAY;
-    (*map)[String("lightgray")] = COLOR_LTGRAY;
-    (*map)[String("white")] = COLOR_WHITE;
-    (*map)[String("red")] = COLOR_RED;
-    (*map)[String("green")] = COLOR_GREEN;
-    (*map)[String("blue")] = COLOR_BLUE;
-    (*map)[String("yellow")] = COLOR_YELLOW;
-    (*map)[String("cyan")] = COLOR_CYAN;
-    (*map)[String("magenta")] = COLOR_MAGENTA;
+    (*map)[String("black")] = color_BLACK;
+    (*map)[String("darkgray")] = color_DKGRAY;
+    (*map)[String("gray")] = color_GRAY;
+    (*map)[String("lightgray")] = color_LTGRAY;
+    (*map)[String("white")] = color_WHITE;
+    (*map)[String("red")] = color_RED;
+    (*map)[String("green")] = color_GREEN;
+    (*map)[String("blue")] = color_BLUE;
+    (*map)[String("yellow")] = color_YELLOW;
+    (*map)[String("cyan")] = color_CYAN;
+    (*map)[String("magenta")] = color_MAGENTA;
     return map;
 }
 
@@ -233,24 +233,33 @@ ECode CColor::ParseColor(
     /* [in] */ const String& colorString,
     /* [out] */ Int32* color)
 {
-    // if (colorString.charAt(0) == '#') {
-    //     // Use a long to avoid rollovers on #ffXXXXXX
-    //     long color = Long.parseLong(colorString.substring(1), 16);
-    //     if (colorString.length() == 7) {
-    //         // Set the alpha value
-    //         color |= 0x00000000ff000000;
-    //     } else if (colorString.length() != 9) {
-    //         throw new IllegalArgumentException("Unknown color");
-    //     }
-    //     return (int)color;
-    // } else {
-    //     Integer color = sColorNameMap.get(colorString.toLowerCase(Locale.US));
-    //     if (color != null) {
-    //         return color;
-    //     }
-    // }
+    if (colorString[0] == '#') {
+       // Use a long to avoid rollovers on #ffXXXXXX
+        String subString = colorString.Substring(1, 16);
+
+        long c = 0;//Long.parseLong(subString, 16);
+        if (colorString.GetLength() == 7) {
+            // Set the alpha value
+            c |= 0x00000000ff000000;
+        }
+        else if (colorString.GetLength() != 9) {
+            //throw new IllegalArgumentException("Unknown color");
+            return E_ILLEGAL_ARGUMENT_EXCEPTION;
+        }
+        *color = (Int32)c;
+        return NOERROR;
+    }
+    else {
+        String cstring = colorString;
+        cstring.ToLowerCase();
+        if (sColorNameMap->Find(cstring)//Locale.US
+            != sColorNameMap->End()) {
+            *color = (*sColorNameMap)[cstring];//Locale.US
+            return NOERROR;
+        }
+    }
     // throw new IllegalArgumentException("Unknown color");
-    return E_NOT_IMPLEMENTED;
+    return E_ILLEGAL_ARGUMENT_EXCEPTION;
 }
 
 /**
@@ -290,10 +299,9 @@ ECode CColor::HSBtoColorEx(
     /* [in] */ Float b,
     /* [out] */ Int32* color)
 {
-    //TODO:
-    // h = MathUtils.constrain(h, 0.0f, 1.0f);
-    // s = MathUtils.constrain(s, 0.0f, 1.0f);
-    // b = MathUtils.constrain(b, 0.0f, 1.0f);
+    h = Constrain(h, 0.0f, 1.0f);
+    s = Constrain(s, 0.0f, 1.0f);
+    b = Constrain(b, 0.0f, 1.0f);
 
     Float red = 0.0f;
     Float green = 0.0f;
@@ -461,4 +469,12 @@ Int32 CColor::NativeHSVToColor(
     }
 
     return SkHSVToColor(alpha, hsv);
+}
+
+Float CColor::Constrain(
+    /* [in] */ Float amount,
+    /* [in] */ Float low,
+    /* [in] */ Float high)
+{
+    return amount < low ? low : (amount > high ? high : amount);
 }
