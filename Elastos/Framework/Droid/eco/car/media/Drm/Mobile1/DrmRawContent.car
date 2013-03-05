@@ -1,0 +1,95 @@
+
+module
+{
+    /**
+     * The "application/vnd.oma.drm.message" mime type.
+     */
+    const DRM_MIMETYPE_MESSAGE_STRING = "application/vnd.oma.drm.message";
+
+    /**
+     * The "application/vnd.oma.drm.content" mime type.
+     */
+    const DRM_MIMETYPE_CONTENT_STRING = "application/vnd.oma.drm.content";
+
+     /**
+     * The DRM delivery type: Forward-Lock
+     */
+    const DrmRawContent_DRM_FORWARD_LOCK = 1;
+
+    /**
+     * The DRM delivery type: Combined Delivery
+     */
+    const DrmRawContent_DRM_COMBINED_DELIVERY = 2;
+
+    /**
+     * The DRM delivery type: Separate Delivery
+     */
+    const DrmRawContent_DRM_SEPARATE_DELIVERY = 3;
+
+    /**
+     * The DRM delivery type: Separate Delivery in DRM message
+     */
+    const DrmRawContent_DRM_SEPARATE_DELIVERY_DM = 4;
+
+    /**
+     * The DRM media content length is unknown currently
+     */
+    const DrmRawContent_DRM_UNKNOWN_DATA_LEN = -1;
+
+    interface IDrmRights;
+
+    interface IDrmRawContent {
+
+        /**
+         * Get rights address from raw Seperate Delivery content.
+         *
+         * @return the string of the rights issuer address,
+         *         or null if no rights issuer.
+         */
+        GetRightsAddress(
+            [out] String* rightsIssuer);
+
+        /**
+         * Get the type of the raw DRM content.
+         *
+         * @return one of the following delivery type of this DRM content:
+         *              #DRM_FORWARD_LOCK
+         *              #DRM_COMBINED_DELIVERY
+         *              #DRM_SEPARATE_DELIVERY
+         *              #DRM_SEPARATE_DELIVERY_DM
+         */
+        GetRawType(
+            [out] Int32 *rawType);
+
+        /**
+         * Get one InputStream object to read decrypted content.
+         *
+         * @param rights        the rights object contain decrypted key.
+         *
+         * @return the InputStream object of decrypted media content.
+         */
+        GetContentInputStream(
+            [in] IDrmRights* mRights,
+            [out] IInputStream** rights);
+
+        /**
+         * Get the type of the decrypted media content.
+         *
+         * @return the decrypted media content type of this DRM content.
+         */
+        GetContentType(
+            [out] String* mediaType);
+
+        /**
+         * Get the length of the decrypted media content.
+             *
+         * @param rights        the rights object contain decrypted key.
+         *
+         * @return the length of the decrypted media content.
+         *         #DRM_UNKNOWN_DATA_LEN if the length is unknown currently.
+         */
+        GetContentLength(
+            [in] IDrmRights* mRights,
+            [out] Int32* len);
+    }
+}
