@@ -1,0 +1,208 @@
+
+module
+{
+    interface IMediaRecorder;
+
+    /**
+     * Interface definition for a callback to be invoked when an error
+     * occurs while recording.
+     */
+    interface IMediaRecorderOnErrorListener
+    {
+        /**
+         * Called when an error occurs while recording.
+         *
+         * @param mr the MediaRecorder that encountered the error
+         * @param what    the type of error that has occurred:
+         * <ul>
+         * <li>{@link #MEDIA_RECORDER_ERROR_UNKNOWN}
+         * </ul>
+         * @param extra   an extra code, specific to the error type
+         */
+        OnError(
+            [in] IMediaRecorder* mr, 
+            [in] Int32 what, 
+            [in] Int32 extra);
+    }
+
+    /**
+     * Interface definition for a callback to be invoked when an error
+     * occurs while recording.
+     */
+    interface IMediaRecorderOnInfoListener
+    {
+        /**
+         * Called when an error occurs while recording.
+         *
+         * @param mr the MediaRecorder that encountered the error
+         * @param what    the type of error that has occurred:
+         * <ul>
+         * <li>{@link #MEDIA_RECORDER_INFO_UNKNOWN}
+         * <li>{@link #MEDIA_RECORDER_INFO_MAX_DURATION_REACHED}
+         * <li>{@link #MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED}
+         * </ul>
+         * @param extra   an extra code, specific to the error type
+         */
+        OnInfo(
+            [in] IMediaRecorder* mr, 
+            [in] Int32 what, 
+            [in] Int32 extra);
+    }
+
+
+    interface IMediaRecorder
+    {
+        /**
+         * Sets a Surface to show a preview of recorded media (video). Calls this
+         * before prepare() to make sure that the desirable preview display is
+         * set.
+         *
+         * @param sv the Surface to use for the preview
+         */
+        SetPreviewDisplay(
+            [in] ISurface* sv);
+
+        /**
+         * Gets the maximum value for audio sources.
+         * @see android.media.MediaRecorder.AudioSource
+         */
+        GetAudioSourceMax(
+            [out] Int32* maximun);
+
+        /**
+         * Uses the settings from a CamcorderProfile object for recording. This method should
+         * be called after the video AND audio sources are set, and before setOutputFile().
+         *
+         * @param profile the CamcorderProfile to use
+         * @see android.media.CamcorderProfile
+         */
+        SetProfile(
+            [in] ICamcorderProfile* profile);
+
+        /**
+         * Sets the orientation hint for output video playback.
+         * This method should be called before prepare(). This method will not
+         * trigger the source video frame to rotate during video recording, but to
+         * add a composition matrix containing the rotation angle in the output
+         * video if the output format is OutputFormat.THREE_GPP or
+         * OutputFormat.MPEG_4 so that a video player can choose the proper
+         * orientation for playback. Note that some video players may choose
+         * to ignore the compostion matrix in a video during playback.
+         *
+         * @param degrees the angle to be rotated clockwise in degrees.
+         * The supported angles are 0, 90, 180, and 270 degrees.
+         * @throws IllegalArgumentException if the angle is not supported.
+         *
+         */
+        SetOrientationHint(
+            [in] Int32 degrees);
+
+        /**
+         * Sets the audio sampling rate for recording. Call this method before prepare().
+         * Prepare() may perform additional checks on the parameter to make sure whether
+         * the specified audio sampling rate is applicable. The sampling rate really depends
+         * on the format for the audio recording, as well as the capabilities of the platform.
+         * For instance, the sampling rate supported by AAC audio coding standard ranges
+         * from 8 to 96 kHz. Please consult with the related audio coding standard for the
+         * supported audio sampling rate.
+         *
+         * @param samplingRate the sampling rate for audio in samples per second.
+         */
+        SetAudioSamplingRate(
+            [in] Int32 samplingRate);
+
+        /**
+         * Sets the number of audio channels for recording. Call this method before prepare().
+         * Prepare() may perform additional checks on the parameter to make sure whether the
+         * specified number of audio channels are applicable.
+         *
+         * @param numChannels the number of audio channels. Usually it is either 1 (mono) or 2
+         * (stereo).
+         */
+        SetAudioChannels(
+            [in] Int32 numChannels);
+
+        /**
+         * Sets the audio encoding bit rate for recording. Call this method before prepare().
+         * Prepare() may perform additional checks on the parameter to make sure whether the
+         * specified bit rate is applicable, and sometimes the passed bitRate will be clipped
+         * internally to ensure the audio recording can proceed smoothly based on the
+         * capabilities of the platform.
+         *
+         * @param bitRate the audio encoding bit rate in bits per second.
+         */
+        SetAudioEncodingBitRate(
+            [in] Int32 bitRate);
+
+        /**
+         * Sets the video encoding bit rate for recording. Call this method before prepare().
+         * Prepare() may perform additional checks on the parameter to make sure whether the
+         * specified bit rate is applicable, and sometimes the passed bitRate will be
+         * clipped internally to ensure the video recording can proceed smoothly based on
+         * the capabilities of the platform.
+         *
+         * @param bitRate the video encoding bit rate in bits per second.
+         */
+        SetVideoEncodingBitRate(
+            [in] Int32 bitRate);
+
+        /**
+         * Pass in the file descriptor of the file to be written. Call this after
+         * setOutputFormat() but before prepare().
+         *
+         * @param fd an open file descriptor to be written into.
+         * @throws IllegalStateException if it is called before
+         * setOutputFormat() or after prepare()
+         */
+        SetOutputFile(
+            [in] IFileDescriptor* fd);
+
+        /**
+         * Sets the path of the output file to be produced. Call this after
+         * setOutputFormat() but before prepare().
+         *
+         * @param path The pathname to use.
+         * @throws IllegalStateException if it is called before
+         * setOutputFormat() or after prepare()
+         */
+        SetOutputFileEx(
+            [in] String path);
+
+        /**
+         * Prepares the recorder to begin capturing and encoding data. This method
+         * must be called after setting up the desired audio and video sources,
+         * encoders, file format, etc., but before start().
+         *
+         * @throws IllegalStateException if it is called after
+         * start() or before setOutputFormat().
+         * @throws IOException if prepare fails otherwise.
+         */
+        Prepare();
+
+        /**
+         * Restarts the MediaRecorder to its idle state. After calling
+         * this method, you will have to configure it again as if it had just been
+         * constructed.
+         */
+        Reset();
+
+        /**
+         * Register a callback to be invoked when an error occurs while
+         * recording.
+         *
+         * @param l the callback that will be run
+         */
+        SetOnErrorListener(
+            [in] IMediaRecorderOnErrorListener* l);
+
+        /**
+         * Register a callback to be invoked when an informational event occurs while
+         * recording.
+         *
+         * @param listener the callback that will be run
+         */
+        SetOnInfoListener(
+            [in] IMediaRecorderOnInfoListener* listener);
+
+    }
+}

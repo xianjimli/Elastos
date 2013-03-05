@@ -13,6 +13,9 @@ module
     merge("Drm/Mobile1/DrmRights.car");
     merge("media/Metadata.car");
     merge("media/MediaPlayer.car");
+    merge("media/CamcorderProfile.car");
+    merge("media/MediaRecorder.car");
+    merge("media/AudioRecord.car");
 
     class CAudioTrack {
         constructor(
@@ -69,5 +72,30 @@ module
         constructor();
 
         interface IMediaPlayer;
+    }
+
+    class CCamcorderProfile {
+        constructor();
+
+        interface ICamcorderProfile;
+    }
+
+    class CMediaRecorder {
+
+        constructor();
+
+        interface IMediaRecorder;
+    }
+
+    class CAudioRecord {
+
+        constructor(
+            [in] Int32 audioSource, 
+            [in] Int32 sampleRateInHz, 
+            [in] Int32 channelConfig, 
+            [in] Int32 audioFormat, 
+            [in] Int32 bufferSizeInBytes);
+
+        interface IAudioRecord;
     }
 }
