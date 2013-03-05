@@ -11,6 +11,8 @@ module
     merge("media/AudioManager.car");
     merge("Drm/Mobile1/DrmConstraintInfo.car");
     merge("Drm/Mobile1/DrmRights.car");
+    merge("Drm/Mobile1/DrmRawContent.car");
+    merge("Drm/Mobile1/DrmRightsManager.car");
     merge("media/Metadata.car");
     merge("media/MediaPlayer.car");
 
@@ -57,6 +59,14 @@ module
     class CDrmRights {
         constructor();  
         interface IDrmRights;
+    }
+
+    class CDrmRawContent {
+        constructor(
+            [in] IInputStream* inRawdata,
+            [in] Int32 len,
+            [in] String mimeTypeStr);
+            interface IDrmRawContent;
     }
 
     class CMetadata {
