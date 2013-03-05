@@ -1,0 +1,28 @@
+
+module
+{
+    interface ICamcorderProfile
+    {
+        /**
+         * Returns the camcorder profile for the first back-facing camera on the
+         * device at the given quality level. If the device has no back-facing
+         * camera, this returns null.
+         * @param quality the target quality level for the camcorder profile
+         */
+        Get(
+            [in] Int32 quality,
+            [out] ICamcorderProfile** camcordProfile);
+
+        /**
+         * Returns the camcorder profile for the given camera at the given
+         * quality level.
+         * @param cameraId the id for the camera
+         * @param quality the target quality level for the camcorder profile
+         */
+        GetEx(
+            [in] Int32 cameraId, 
+            [in] Int32 quality,
+            [out] ICamcorderProfile** camcordProfile);
+
+    }
+}
