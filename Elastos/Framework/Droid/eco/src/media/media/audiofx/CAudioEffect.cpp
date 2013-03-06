@@ -239,7 +239,7 @@ ECode CAudioEffect::GetParameter(
 }
 
 ECode CAudioEffect::GetParameterEx(
-    /* [in] */ const ArrayOf<Int32>& param,
+    /* [in] */ const Int32 param,
     /* [in] */ const ArrayOf<Byte>& value,
     /* [out] */ Int32* status)
 {
@@ -253,7 +253,7 @@ ECode CAudioEffect::GetParameterEx(
 
 ECode CAudioEffect::GetParameterEx2(
     /* [in] */ Int32 param,
-    /* [in] */ ArrayOf<Int32>* value,
+    /* [out] */ ArrayOf<Int32>* value,
     /* [out] */ Int32* status)
 {
     if ((*value).GetLength() > 2) {

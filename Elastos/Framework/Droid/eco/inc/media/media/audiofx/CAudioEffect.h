@@ -199,7 +199,7 @@ public:
      * @hide
      */
     CARAPI GetParameterEx(
-        /* [in] */ const ArrayOf<Int32>& param,
+        /* [in] */ Int32 param,
         /* [in] */ const ArrayOf<Byte>& value,
         /* [out] */ Int32* status);
 

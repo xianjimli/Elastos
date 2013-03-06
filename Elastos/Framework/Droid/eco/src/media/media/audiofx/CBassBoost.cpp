@@ -3,12 +3,14 @@
 #include "media/audiofx/CAudioEffect.h"
 #include <elastos/System.h>
 #include <Logger.h>
+#include <stdlib.h>
 using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
 CBassBoost::CBassBoost()
 {
     mStrengthSupported = FALSE;
+    CAudioEffect::New(0,0,(IAudioEffect**)&obj);
 }
 
 PInterface CBassBoost::BaseParameterListener::Probe(
@@ -55,10 +57,7 @@ ECode CBassBoost::constructor(
 {
     ArrayOf_<Int32,1> value;
     Int32 status;
-    AutoPtr<IAudioEffect> obj;
-    CAudioEffect::New(0,0,(IAudioEffect**)&obj);
     obj->CheckStatus(obj->GetParameterEx2(BassBoost_PARAM_STRENGTH_SUPPORTED, &value, &status));
-    obj->Release();
     mStrengthSupported = (value[0] != 0);
     return NOERROR;
 }
@@ -75,22 +74,17 @@ ECode CBassBoost::SetStrength(
     /* [in] */ Int16 strength)
 {
     Int32 status;
-    AutoPtr<IAudioEffect> obj;
-    CAudioEffect::New(0,0,(IAudioEffect**)&obj);
     obj->CheckStatus(obj->SetParameterEx2(BassBoost_PARAM_STRENGTH, strength, &status));
-    obj->Release();
     return NOERROR;
 }
 
 ECode CBassBoost::GetRoundedStrength(
     /* [out] */ Int16* strength)
 {
+    VALIDATE_NOT_NULL(strength);
     ArrayOf_<Int16,1> value;
     Int32 status;
-    AutoPtr<IAudioEffect> obj;
-    CAudioEffect::New(0,0,(IAudioEffect**)&obj);
     obj->CheckStatus(obj->GetParameterEx3(BassBoost_PARAM_STRENGTH_SUPPORTED, &value, &status));
-    obj->Release();
     mStrengthSupported = (value[0] != 0);
     return NOERROR;
 }
@@ -154,7 +148,7 @@ ECode CBassBoost::Settings::constructor(
     }
     String key = st.NextToken();
     if (!key.Equals("BassBoost")) {
-//        throw new IllegalArgumentException("invalid key name: " + key);
+//        throw new IllegalArgumentException("invalid settings for BassBoost: " + key);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 /*
@@ -165,38 +159,33 @@ ECode CBassBoost::Settings::constructor(
 //        throw new IllegalArgumentException("invalid key name: " + key);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
-    //strength = Short.parseShort(st.nextToken());
+    strength = st.NextToken().ToInt32();
 /*
      } catch (NumberFormatException nfe) {
         throw new IllegalArgumentException("invalid value for key: " + key);
      }
 */
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CBassBoost::Settings::toString(
     /* [out] */ String* result)
 {
-/*
-        String str = new String (
-                "BassBoost"+
-                ";strength="+Short.toString(strength)
-                );
-        return str;
- */
-    return E_NOT_IMPLEMENTED;
+    *result = String("BassBoost") +
+            String(";strength=") + String::FromInt32(strength);
+    return NOERROR;
 }
 
 ECode CBassBoost::Settings::GetStrength(
-    /* [out] */  Int16* strength)
+    /* [out] */  Int16* result)
 {
-    *strength = mStrength;
+    *result = strength;
 }
 
 ECode CBassBoost::Settings::SetStrength(
-    /* [in] */ Int16 strength)
+    /* [in] */ Int16 result)
 {
-    mStrength = strength;
+    strength = result;
 }
 
 ECode CBassBoost::GetProperties(
@@ -204,8 +193,6 @@ ECode CBassBoost::GetProperties(
 {
     AutoPtr<IBassBoostSettings> settings;
     ArrayOf_<Int16, 1> value;
-    AutoPtr<IAudioEffect> obj;
-    CAudioEffect::New(0,0,(IAudioEffect**)&obj);
     Int32 status;
     obj->CheckStatus(obj->GetParameterEx3(BassBoost_PARAM_STRENGTH,&value,&status));
     settings->SetStrength(value[0]);
@@ -216,8 +203,6 @@ ECode CBassBoost::GetProperties(
 ECode CBassBoost::SetProperties(
     /* in */ IBassBoostSettings* settings)
 {
-    AutoPtr<IAudioEffect> obj;
-    CAudioEffect::New(0,0,(IAudioEffect**)&obj);
     Int16 temp;
     settings->GetStrength(&temp);
     Int32 result;

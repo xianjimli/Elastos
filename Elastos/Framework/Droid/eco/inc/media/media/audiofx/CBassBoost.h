@@ -40,12 +40,12 @@ public:
             /* [out] */ String* result);
 
         CARAPI GetStrength(
-            /* [out] */  Int16* strength);
+            /* [out] */  Int16* result);
 
         CARAPI SetStrength(
-            /* [in] */ Int16 strength);
+            /* [in] */ Int16 result);
     public:
-        Int16 mStrength;
+        Int16 strength;
     };
 private:
     /**
@@ -183,6 +183,7 @@ private:
      * Lock for access to mParamListener
      */
     Mutex mParamListenerLock;
+    AutoPtr<IAudioEffect> obj;
 };
 
 #endif //__CBASSBOOST_H__

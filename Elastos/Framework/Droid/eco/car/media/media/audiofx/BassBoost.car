@@ -37,13 +37,13 @@ module
 
     interface IBassBoostSettings {
         GetStrength(
-            [out] Int16* strength);
+            [out] Int16* result);
 
         SetStrength(
-            [in] Int16 strength);
+            [in] Int16 result);
     }
 
-    interface IBaseBoost extends IAudioEffect {
+    interface IBassBoost /* extends IAudioEffect */ {
         /**
          * Indicates whether setting strength is supported. If this method returns false, only one
          * strength is supported and the setStrength() method always rounds to that value.

@@ -14,4 +14,7 @@ INCLUDES += $(PREBUILD_INC)/skia/core
 C_DEFINES += -D_FRAMEWORK_MEDIA
 
 SOURCES = CAudioEffect.cpp
+#SOURCES += AudioEffect.cpp
 SOURCES += CBassBoost.cpp
+SOURCES += CEnvironmentalReverb.cpp
+SOURCES += CEqualizer.cpp

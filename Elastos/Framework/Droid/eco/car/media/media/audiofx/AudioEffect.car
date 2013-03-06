@@ -502,7 +502,7 @@ module
          * @hide
          */
         GetParameterEx(
-            [in] ArrayOf<Int32> param,
+            [in] Int32 param,
             [in] ArrayOf<Byte> value,
             [out] Int32* status);
 

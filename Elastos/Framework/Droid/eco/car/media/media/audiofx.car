@@ -3,6 +3,8 @@ module
 {
     merge("audiofx/AudioEffect.car");
     merge("audiofx/BassBoost.car");
+    merge("audiofx/EnvironmentalReverb.car");
+    merge("audiofx/Equalizer.car");
 
     class CAudioEffect {
         constructor(
@@ -13,7 +15,7 @@ module
 
         interface IAudioEffect;
     }
-    
+
     class CBassBoost {
         constructor(
             [in] Int32 priority,
@@ -22,4 +24,19 @@ module
         interface IBassBoost;
     }
 
+    class CEnvironmentalReverb {
+        constructor(
+            [in] Int32 priority,
+            [in] Int32 audioSession);
+
+        interface IEnvironmentalReverb;
+    }
+
+    class CEqualizer {
+        constructor(
+            [in] Int32 priority,
+            [in] Int32 audioSession);
+
+        interface IEqualizer;
+    }
 }
