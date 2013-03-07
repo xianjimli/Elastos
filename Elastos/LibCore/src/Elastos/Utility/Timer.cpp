@@ -2,6 +2,9 @@
 #include <elastos/System.h>
 #include <StringBuffer.h>
 
+
+#define E_TIMER_SCHEDULED_ALREADY 0x
+
 Timer::TimerImpl::TimerHeap::TimerHeap()
 {
     mTimers = ArrayOf<TimerTask*>::Alloc(256);
@@ -146,99 +149,139 @@ Timer::TimerImpl::TimerImpl(
     mThread->Start();
 }
 
+PInterface Timer::TimerImpl::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (PInterface)this;
+    }
+    else if (riid == EIID_IRunnable) {
+        return (IRunnable*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 Timer::TimerImpl::AddRef()
+{
+//    return ElRefBase::AddRef();
+}
+
+UInt32 Timer::TimerImpl::Release()
+{
+//    return ElRefBase::Release();
+}
+
+ECode Timer::TimerImpl::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    if (pIID == NULL) {
+        return E_INVALID_ARGUMENT;
+    }
+
+    if (pObject == (IInterface*)(IRunnable*)this) {
+        *pIID = EIID_IRunnable;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+
+    return NOERROR;
+}
+
 ECode Timer::TimerImpl::Run()
 {
-//    while (TRUE) {
-//        TimerTask* task;
-//        Mutex::Autolock lock(&mLock);
-//        {
-//            // need to check cancelled inside the synchronized block
-//            if (mCancelled) {
-//                //return E_TIMER_CANCELLED;
-//            }
-//            if (mTasks->IsEmpty()) {
-//                if (mFinished) {
-//                    //return E_TIMER_FINISHED;;
-//                }
-//                // no tasks scheduled -- sleep until any task appear
-//                mThread->Wait();
-//                continue;
-//            }
-//
-//            Int64 currentTime = System::GetCurrentTimeMillis();
-//
-//            task = mTasks->Minimum();
-//            Int64 timeToSleep;
-//
-//            Mutex::Autolock lock(&task->mLock); {
-//                if (task.cancelled) {
-//                    tasks.delete(0);
-//                    continue;
-//                }
-//
-//                // check the time to sleep for the first task scheduled
-//                timeToSleep = task.when - currentTime;
-//            }
-//
-//            if (timeToSleep > 0) {
-//                // sleep!
-//                try {
-//                    this.wait(timeToSleep);
-//                } catch (InterruptedException ignored) {
-//                }
-//                continue;
-//            }
-//
-//            // no sleep is necessary before launching the task
-//
-//            synchronized (task.lock) {
-//                int pos = 0;
-//                if (tasks.minimum().when != task.when) {
-//                    pos = tasks.getTask(task);
-//                }
-//                if (task.cancelled) {
-//                    tasks.delete(tasks.getTask(task));
-//                    continue;
-//                }
-//
-//                // set time to schedule
-//                task.setScheduledTime(task.when);
-//
-//                // remove task from queue
-//                tasks.delete(pos);
-//
-//                // set when the next task should be launched
-//                if (task.period >= 0) {
-//                    // this is a repeating task,
-//                    if (task.fixedRate) {
-//                        // task is scheduled at fixed rate
-//                        task.when = task.when + task.period;
-//                    } else {
-//                        // task is scheduled at fixed delay
-//                        task.when = System.currentTimeMillis()
-//                                + task.period;
-//                    }
-//
-//                    // insert this task into queue
-//                    insertTask(task);
-//                } else {
-//                    task.when = 0;
-//                }
-//            }
-//        }
-//
-//        boolean taskCompletedNormally = false;
-//        try {
-//            task.run();
-//            taskCompletedNormally = true;
-//        } finally {
-//            if (!taskCompletedNormally) {
-//                synchronized (this) {
-//                    cancelled = true;
-//                }
-//            }
-//        }
-//    }
+    while (TRUE) {
+        TimerTask* task;
+        Mutex::Autolock lock(&mLock);
+        {
+            // need to check cancelled inside the synchronized block
+            if (mCancelled) {
+                //return E_TIMER_CANCELLED;
+            }
+            if (mTasks->IsEmpty()) {
+                if (mFinished) {
+                    //return E_TIMER_FINISHED;;
+                }
+                // no tasks scheduled -- sleep until any task appear
+                mThread->Wait(0, 0);
+                continue;
+            }
+
+            Int64 currentTime = System::GetCurrentTimeMillis();
+
+            task = mTasks->Minimum();
+            Int64 timeToSleep;
+
+            Mutex::Autolock lock(&task->mLock);
+            {
+                if (task->mCancelled) {
+                    mTasks->Delete(0);
+                    continue;
+                }
+
+                // check the time to sleep for the first task scheduled
+                timeToSleep = task->mWhen - currentTime;
+            }
+
+            if (timeToSleep > 0) {
+                // sleep!
+                mThread->Wait(timeToSleep, 0);
+                continue;
+            }
+
+            // no sleep is necessary before launching the task
+
+            //synchronized (task.lock)
+            {
+                Int32 pos = 0;
+                if (mTasks->Minimum()->mWhen != task->mWhen) {
+                    pos = mTasks->GetTask(task);
+                }
+                if (task->mCancelled) {
+                    mTasks->Delete(mTasks->GetTask(task));
+                    continue;
+                }
+
+                // set time to schedule
+                task->SetScheduledTime(task->mWhen);
+
+                // remove task from queue
+                mTasks->Delete(pos);
+
+                // set when the next task should be launched
+                if (task->mPeriod >= 0) {
+                    // this is a repeating task,
+                    if (task->mFixedRate) {
+                        // task is scheduled at fixed rate
+                        task->mWhen = task->mWhen + task->mPeriod;
+                    } else {
+                        // task is scheduled at fixed delay
+                        task->mWhen = System::GetCurrentTimeMillis()
+                                + task->mPeriod;
+                    }
+
+                    // insert this task into queue
+                    InsertTask(task);
+                } else {
+                    task->mWhen = 0;
+                }
+            }
+        }
+
+        Boolean taskCompletedNormally = FALSE;
+        ECode ec = task->Run();
+        if (ec == NOERROR) {
+            taskCompletedNormally = TRUE;
+        }
+        if (!taskCompletedNormally) {
+            //synchronized (this) {
+                mCancelled = TRUE;
+            //}
+        }
+    }
+    return NOERROR;
 }
 
 ECode Timer::TimerImpl::Cancel()

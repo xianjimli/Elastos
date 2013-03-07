@@ -20,7 +20,7 @@ using namespace Elastos::Core::Threading;
 
 class Timer
 {
-    class TimerImpl
+    class TimerImpl : public IRunnable
     {
             class TimerHeap {
             private:
@@ -83,6 +83,17 @@ class Timer
             TimerImpl(
                 /* [in] */ String name,
                 /* [in] */ Boolean isDaemon);
+
+            CARAPI_(PInterface) Probe(
+                /* [in] */ REIID riid);
+
+            CARAPI_(UInt32) AddRef();
+
+            CARAPI_(UInt32) Release();
+
+            CARAPI GetInterfaceID(
+                /* [in] */ IInterface *pObject,
+                /* [out] */ InterfaceID *pIID);
 
             CARAPI Run();
 
