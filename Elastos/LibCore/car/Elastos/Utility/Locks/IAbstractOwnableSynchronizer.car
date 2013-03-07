@@ -1,0 +1,26 @@
+
+module
+{
+    interface IThread;
+
+    interface IAbstractOwnableSynchronizer{
+    /**
+     * Sets the thread that currently owns exclusive access. A
+     * <tt>null</tt> argument indicates that no thread owns access.
+     * This method does not otherwise impose any synchronization or
+     * <tt>volatile</tt> field accesses.
+     */
+        SetExclusiveOwnerThread(
+            [in] IThread* thread);
+
+    /**
+     * Returns the thread last set by
+     * <tt>setExclusiveOwnerThread</tt>, or <tt>null</tt> if never
+     * set.  This method does not otherwise impose any synchronization
+     * or <tt>volatile</tt> field accesses.
+     * @return the owner thread
+     */
+        GetExclusiveOwnerThread(
+            [out] IThread** thread);
+    }
+}

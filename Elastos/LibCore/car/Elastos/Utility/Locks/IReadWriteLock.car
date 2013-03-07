@@ -1,0 +1,22 @@
+
+module
+{
+    interface ILock;
+    interface IReadWriteLock {
+        /**
+         * Returns the lock used for reading.
+         *
+         * @return the lock used for reading.
+         */
+        ReadLock(
+            [out] ILock** lock);
+
+        /**
+         * Returns the lock used for writing.
+         *
+         * @return the lock used for writing.
+         */
+        WriteLock(
+            [out] ILock** lock);
+    }
+}

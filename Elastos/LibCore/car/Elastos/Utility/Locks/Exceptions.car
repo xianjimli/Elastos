@@ -1,0 +1,6 @@
+
+
+module
+{
+    const E_INTERRUPTED                       = 0xA4120000;
+}

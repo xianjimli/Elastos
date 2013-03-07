@@ -1,0 +1,12 @@
+TARGET_NAME= Elastos.Utility.Locks
+TARGET_TYPE= eco
+
+SOURCES = Elastos.Utility.Locks.car
+SOURCES += CReentrantLock.cpp
+SOURCES += CAbstractQueuedSynchronizer.cpp
+SOURCES += CCountDownLatch.cpp
+
+LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco

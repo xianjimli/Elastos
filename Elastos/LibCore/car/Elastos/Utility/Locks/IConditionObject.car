@@ -1,0 +1,11 @@
+
+
+
+module
+{
+    interface ICondition;
+    interface IConditionObject extends ICondition
+    {
+        ConditionInit();
+    }
+}
