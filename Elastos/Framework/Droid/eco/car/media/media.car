@@ -19,6 +19,7 @@ module
     merge("media/MediaRecorder.car");
     merge("media/AudioRecord.car");
     merge("media/MediaScanner.car");
+    merge("media/ToneGenerator.car");
 
     class CAudioTrack {
         constructor(
@@ -116,6 +117,15 @@ module
             [in] IContext* c);
 
         interface IMediaScanner;
+    }
+
+    class CToneGenerator {
+
+        constructor(
+            [in] Int32 streamType, 
+            [in] Int32 volume);
+
+        interface IToneGenerator;
     }
 
 }

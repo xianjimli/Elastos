@@ -1,0 +1,10 @@
+
+module
+{
+    interface IToneGenerator
+    {
+        StartTone(
+            [in] Int32 toneType,
+            [out] Boolean* res);
+    }
+}
