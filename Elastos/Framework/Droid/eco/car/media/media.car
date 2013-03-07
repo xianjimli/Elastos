@@ -6,6 +6,7 @@ module
     merge("media/AudioService.car");
     merge("media/MediaScannerListener.car");
     merge("media/MediaScannerService.car");
+    merge("media/MediaScannerClient.car");
     merge("media/AudioTrack.car");
     merge("media/AudioSystem.car");
     merge("media/AudioManager.car");
@@ -17,6 +18,7 @@ module
     merge("media/CamcorderProfile.car");
     merge("media/MediaRecorder.car");
     merge("media/AudioRecord.car");
+    merge("media/MediaScanner.car");
 
     class CAudioTrack {
         constructor(
@@ -52,14 +54,14 @@ module
 
         interface IAudioService;
     }
-    
+
     class CDrmConstraintInfo {
-        constructor(); 
+        constructor();
         interface IDrmConstraintInfo;
     }
 
     class CDrmRights {
-        constructor();  
+        constructor();
         interface IDrmRights;
     }
 
@@ -99,12 +101,21 @@ module
     class CAudioRecord {
 
         constructor(
-            [in] Int32 audioSource, 
-            [in] Int32 sampleRateInHz, 
-            [in] Int32 channelConfig, 
-            [in] Int32 audioFormat, 
+            [in] Int32 audioSource,
+            [in] Int32 sampleRateInHz,
+            [in] Int32 channelConfig,
+            [in] Int32 audioFormat,
             [in] Int32 bufferSizeInBytes);
 
         interface IAudioRecord;
     }
+
+    class CMediaScanner {
+
+        constructor(
+            [in] IContext* c);
+
+        interface IMediaScanner;
+    }
+
 }

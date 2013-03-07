@@ -1,0 +1,34 @@
+
+module
+{
+    interface IMediaScannerClient
+    {
+        ScanFile(
+            [in] String path, 
+            [in] Int64 lastModified, 
+            [in] Int64 fileSize);
+
+        ScanFileEx(
+            [in] String path, 
+            [in] String mimeType, 
+            [in] Int64 lastModified, 
+            [in] Int64 fileSize);
+
+        AddNoMediaFolder(
+            [in] String path);
+
+        /**
+         * Called by native code to return metadata extracted from media files.
+         */
+        HandleStringTag(
+            [in] String name, 
+            [in] String value);
+
+        /**
+         * Called by native code to return mime type extracted from DRM content.
+         */
+        SetMimeType(
+            [in] String mimeType);
+    }
+
+}

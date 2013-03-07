@@ -29,5 +29,7 @@ SOURCES += MediaRecorder.cpp
 SOURCES += CMediaRecorder.cpp
 SOURCES += AudioRecord.cpp
 SOURCES += CAudioRecord.cpp
-
+SOURCES += MediaFile.cpp
+SOURCES += MediaScanner.cpp
+SOURCES += CMediaScanner.cpp
 
