@@ -3,29 +3,31 @@
 ECode CPluginData::GetInputStream(
     /* [out] */ IInputStream ** ppStream)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    *ppStream = mStream;
+    mStream -> AddRef();
+    return NOERROR;
 }
 
 ECode CPluginData::GetContentLength(
     /* [out] */ Int64 * pLength)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    *pLength = mContentLength;
+    return NOERROR;
 }
 
 ECode CPluginData::GetHeaders(
     /* [out] */ IObjectStringMap ** ppHeaders)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    *ppHeaders = mHeaders;
+    mHeaders -> AddRef();
+    return NOERROR;
 }
 
 ECode CPluginData::GetStatusCode(
     /* [out] */ Int32 * pStatusCode)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    *pStatusCode = mStatusCode;
+    return NOERROR;
 }
 
 ECode CPluginData::constructor(
@@ -34,7 +36,18 @@ ECode CPluginData::constructor(
     /* [in] */ IObjectStringMap * pHeaders,
     /* [in] */ Int32 code)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mStream = pStream;
+    mStream -> AddRef();
+    mContentLength = length;
+    mHeaders = pHeaders;
+    mHeaders ->AddRef();
+    mStatusCode = code;
+    return NOERROR;
+}
+
+CPluginData::~CPluginData()
+{
+    mStream -> Release();
+    mHeaders -> Release();
 }
 

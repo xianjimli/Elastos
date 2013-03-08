@@ -3,41 +3,65 @@
 ECode CPluginList::GetList(
     /* [out] */ IObjectContainer ** ppList)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    *ppList = (IObjectContainer *)mPlugins;
+    return NOERROR;
 }
 
 ECode CPluginList::AddPlugin(
     /* [in] */ IPlugin * pPlugin)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mPlugins -> PushBack(pPlugin);
+    return NOERROR;
 }
 
 ECode CPluginList::RemovePlugin(
     /* [in] */ IPlugin * pPlugin)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mPlugins -> Remove(pPlugin);
+    return NOERROR;
 }
 
 ECode CPluginList::Clear()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mPlugins -> Clear();
+    return NOERROR;
 }
 
 ECode CPluginList::PluginClicked(
     /* [in] */ IContext * pContext,
     /* [in] */ Int32 position)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    List<AutoPtr<IPlugin> >::Iterator iterT;
+    List<AutoPtr<IPlugin> >::Iterator iterE;
+    iterT = mPlugins -> Begin();
+    iterE = mPlugins -> End();
+    for(int n = 0; n < position ; n ++ )
+    {
+        if(iterE == iterT )
+        {
+            return E_INFLATE_EXCEPTION;
+        }            
+        iterT ++;
+    }
+    ECode ec = (*iterT) -> DispatchClickEvent(pContext);
+    if(FAILED(ec))
+    {
+        //JAVA: catch(IIndexOutOfBoundsException e)
+        // This can happen if the list of plugins
+        // gets changed while the pref menu is up.  
+    }
+    return NOERROR;
 }
 
 ECode CPluginList::constructor()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mPlugins = new List<AutoPtr<IPlugin> >; 
+    return NOERROR;
+}
+
+CPluginList::~CPluginList()
+{
+    mPlugins -> Clear();
+    delete mPlugins;
 }
 

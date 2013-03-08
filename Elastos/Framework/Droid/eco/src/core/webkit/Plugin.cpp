@@ -1,8 +1,7 @@
-
-#include "webkit/CPlugin.h"
+#include "webkit/Plugin.h"
 #include "../../../res/gen/R.h"
 
-PInterface CPlugin::DefaultClickHandler::Probe(
+PInterface Plugin::DefaultClickHandler::Probe(
     /* [in] */ REIID riid)
 {
     if (riid == EIID_IInterface) {
@@ -17,17 +16,17 @@ PInterface CPlugin::DefaultClickHandler::Probe(
     return NULL;
 }
 
-UInt32 CPlugin::DefaultClickHandler::AddRef()
+UInt32 Plugin::DefaultClickHandler::AddRef()
 {
     return ElRefBase::AddRef();
 }
 
-UInt32 CPlugin::DefaultClickHandler::Release()
+UInt32 Plugin::DefaultClickHandler::Release()
 {
     return ElRefBase::Release();
 }
 
-ECode CPlugin::DefaultClickHandler::GetInterfaceID(
+ECode Plugin::DefaultClickHandler::GetInterfaceID(
     /* [in] */ IInterface *pObject,
     /* [out] */ InterfaceID *pIID)
 {
@@ -47,11 +46,11 @@ ECode CPlugin::DefaultClickHandler::GetInterfaceID(
     return NOERROR;
 }
 
-ECode CPlugin::DefaultClickHandler::HandleClickEvent(
-    /* [in] */ IContext* context)
+CARAPI Plugin::DefaultClickHandler::HandleClickEvent(
+            /* [in] */ IContext* context)
 {
     // Show a simple popup dialog containing the description
-    // string of the plugin.
+    // string of the plugin.    
     if (mDialog == NULL) 
     {
         IAlertDialogBuilder * builder;        
@@ -75,113 +74,94 @@ ECode CPlugin::DefaultClickHandler::HandleClickEvent(
     return NOERROR;
 }
 
-ECode CPlugin::DefaultClickHandler::OnClick(
+ECode Plugin::DefaultClickHandler::OnClick(
     /* [in] */ IDialogInterface* dialog, 
     /* [in] */ Int32 which)
-{
+{	
     mDialog -> Dismiss();
     mDialog -> Release();
     mDialog = NULL;
     return NOERROR;
 }
 
-ECode CPlugin::ToString(
-    /* [out] */ String * pName)
-{
-    *pName = mName;
-    return NOERROR;
+Plugin::Plugin(
+	/* [in] */ String name,
+	/* [in] */ String path,
+	/* [in] */ String fileName,
+	/* [in] */ String description)
+{	
+    mName = name;
+    mPath = path;
+    mFileName = fileName;
+    mDescription = description;    
+
+    Plugin::DefaultClickHandler * pDch = new Plugin::DefaultClickHandler();
+    mHandler = (IPluginPreferencesClickHandler*)pDch;    
+    pDch -> pName = (ICharSequence *)&name;
+    pDch -> pDescription = (ICharSequence *)&description;
+    pDch -> pRStringOk = (ICharSequence *)(R::id::ok);     //RStringOK = JAVA: R.string.ok
 }
 
-ECode CPlugin::GetName(
-    /* [out] */ String * pName)
+String Plugin::ToString()
 {
-    *pName = mName;
-    return NOERROR;
+    return mName;
 }
 
-ECode CPlugin::GetPath(
-    /* [out] */ String * pPath)
+String Plugin::GetName()
 {
-    *pPath = mPath;
-    return NOERROR;
+    return mName;
 }
 
-ECode CPlugin::GetFileName(
-    /* [out] */ String * pFileName)
+String Plugin::GetPath()
 {
-    *pFileName = mFileName;
-    return NOERROR;
+    return mPath;
 }
 
-ECode CPlugin::GetDescription(
-    /* [out] */ String * pDescription)
+String Plugin::GetFileName()
 {
-    *pDescription = mDescription;
-    return NOERROR;
+    return mFileName;
 }
 
-ECode CPlugin::SetName(
+String Plugin::GetDescription()
+{
+    return mDescription;
+}
+
+void Plugin::SetName(
     /* [in] */ String name)
 {
     mName = name;
-    return NOERROR;
 }
 
-ECode CPlugin::SetPath(
+void Plugin::SetPath(
     /* [in] */ String path)
 {
     mPath = path;
-    return NOERROR;
 }
 
-ECode CPlugin::SetFileName(
+void Plugin::SetFileName(
     /* [in] */ String fileName)
 {
     mFileName = fileName;
-    return NOERROR;
 }
 
-ECode CPlugin::SetDescription(
+void Plugin::SetDescription(
     /* [in] */ String description)
 {
     mDescription = description;
-    return NOERROR;
 }
 
-ECode CPlugin::SetClickHandler(
+void Plugin::SetClickHandler(
     /* [in] */ IPluginPreferencesClickHandler * pHandler)
 {
     mHandler = pHandler;
-    return NOERROR;
 }
 
-ECode CPlugin::DispatchClickEvent(
+void Plugin::DispatchClickEvent(
     /* [in] */ IContext * pContext)
 {
     if(mHandler != NULL)
     {
         mHandler -> HandleClickEvent(pContext);
     }
-    return NOERROR;
 }
-
-ECode CPlugin::constructor(
-    /* [in] */ String name,
-    /* [in] */ String path,
-    /* [in] */ String fileName,
-    /* [in] */ String description)
-{
-    mName = name;
-    mPath = path;
-    mFileName = fileName;
-    mDescription = description;    
-
-    CPlugin::DefaultClickHandler * pDch = new CPlugin::DefaultClickHandler();
-    mHandler = (IPluginPreferencesClickHandler*)pDch;    
-    pDch -> pName = (ICharSequence *)&name;
-    pDch -> pDescription = (ICharSequence *)&description;
-    pDch -> pRStringOk = (ICharSequence *)(R::id::ok);     //RStringOK = JAVA: R.string.ok
-
-    return NOERROR;
-}
-

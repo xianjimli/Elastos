@@ -33,3 +33,5 @@ SOURCES += CWebStorage.cpp
 SOURCES += CWebView.cpp
 SOURCES += CWebViewClient.cpp
 SOURCES += CWebViewDatabase.cpp
+SOURCES += Plugin.cpp
+SOURCES += PluginFullScreenHolder.cpp
