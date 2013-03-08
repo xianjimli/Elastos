@@ -3,6 +3,10 @@
 #define __CPLUGINLIST_H__
 
 #include "_CPluginList.h"
+//#include "Plugin.h"
+#include "ext/frameworkext.h"
+#include <elastos/List.h>
+#include <elastos/AutoPtr.h>
 
 CarClass(CPluginList)
 {
@@ -24,8 +28,10 @@ public:
 
     CARAPI constructor();
 
+    ~CPluginList();
+
 private:
-    // TODO: Add your private member variables here.
+    List< AutoPtr< IPlugin > > * mPlugins;
 };
 
 #endif // __CPLUGINLIST_H__

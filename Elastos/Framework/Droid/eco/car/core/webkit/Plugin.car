@@ -1,6 +1,10 @@
 
 module
 {
+    interface IDialogInterface;
+    interface IDialogInterfaceOnClickListener;    
+    interface ICharSequence;
+
     interface IPluginPreferencesClickHandler {
         HandleClickEvent(
            [in] IContext* context);
@@ -37,7 +41,7 @@ module
          * deprecated, so is this class.
          */
         //@Deprecated
-        getFileName(
+        GetFileName(
            [out] String* fileName);
 
         /**
@@ -54,7 +58,7 @@ module
          */
         //@Deprecated
         SetName(
-           [in] CString name);
+           [in] String name);
 
         /**
          * @deprecated This interface was intended to be used by Gears. Since Gears was
@@ -62,7 +66,7 @@ module
          */
         //@Deprecated
         SetPath(
-           [in] CString path);
+           [in] String path);
 
         /**
          * @deprecated This interface was intended to be used by Gears. Since Gears was
@@ -70,7 +74,7 @@ module
          */
         //@Deprecated
         SetFileName(
-           [in] CString fileName);
+           [in] String fileName);
 
         /**
          * @deprecated This interface was intended to be used by Gears. Since Gears was
@@ -78,7 +82,7 @@ module
          */
         //@Deprecated
         SetDescription(
-           [in] CString description);
+           [in] String description);
 
         /**
          * @deprecated This interface was intended to be used by Gears. Since Gears was

@@ -1,6 +1,8 @@
 #ifndef __PLUGIN_H__
 #define __PLUGIN_H__
 
+#include "../app/CAlertDialogBuilder.h"
+#include <elastos/ElRefBase.h>
 /**
  * Represents a plugin (Java equivalent of the PluginPackageAndroid
  * C++ class in libs/WebKitLib/WebKit/WebCore/plugins/android/)
@@ -11,11 +13,55 @@
 //@Deprecated
 class Plugin {
 
-public:
-	class PreferencesClickHandler {
-	public:
-		virtual CARAPI_(void) handleClickEvent(
-			/* [in] */ IContext* context) = 0;
+//public:
+//	class PreferencesClickHandler {
+//	public:
+//		virtual CARAPI_(void) handleClickEvent(
+//			/* [in] */ IContext* context) = 0;
+//    };
+
+private:
+   /**
+    * Default click handler. The plugins should implement their own.
+    *
+    * @deprecated This interface was intended to be used by Gears. Since Gears was
+    * deprecated, so is this class.
+    */
+    //@Deprecated
+    class DefaultClickHandler : public ElRefBase, public IPluginPreferencesClickHandler, public IDialogInterfaceOnClickListener
+    {
+    public:        
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        //@Deprecated
+        CARAPI HandleClickEvent(
+            /* [in] */ IContext* context);
+
+        /**
+         * @deprecated This interface was intended to be used by Gears. Since Gears was
+         * deprecated, so is this class.
+         */
+        //@Deprecated
+        CARAPI OnClick(
+            /* [in] */ IDialogInterface* dialog, 
+            /* [in] */ Int32 which);
+
+    public:
+        AutoPtr<ICharSequence> pName;
+        AutoPtr<ICharSequence> pDescription;
+        AutoPtr<ICharSequence> pRStringOk;
+
+    private:
+        AutoPtr<IAlertDialog> mDialog;
     };
 
     /**
@@ -24,7 +70,7 @@ public:
      */
     //@Deprecated
 	Plugin(
-		/* [in] */ CString name,
+		/* [in] */ String name,
 		/* [in] */ String path,
 		/* [in] */ String fileName,
 		/* [in] */ String description);
@@ -34,35 +80,35 @@ public:
      * deprecated, so is this class.
      */
     //@Deprecated
-	virtual CARAPI_(CString) ToString();
+	virtual CARAPI_(String) ToString();
 
     /**
      * @deprecated This interface was intended to be used by Gears. Since Gears was
      * deprecated, so is this class.
      */
     //@Deprecated
-	virtual CARAPI_(CString) GetName();
+	virtual CARAPI_(String) GetName();
 
     /**
      * @deprecated This interface was intended to be used by Gears. Since Gears was
      * deprecated, so is this class.
      */
     //@Deprecated
-	virtual CARAPI_(CString) GetPath();
+	virtual CARAPI_(String) GetPath();
 
     /**
      * @deprecated This interface was intended to be used by Gears. Since Gears was
      * deprecated, so is this class.
      */
     //@Deprecated
-	virtual CARAPI_(CString) GetFileName();
+	virtual CARAPI_(String) GetFileName();
 
     /**
      * @deprecated This interface was intended to be used by Gears. Since Gears was
      * deprecated, so is this class.
      */
     //@Deprecated
-	virtual CARAPI_(CString) GetDescription();
+	virtual CARAPI_(String) GetDescription();
 
     /**
      * @deprecated This interface was intended to be used by Gears. Since Gears was
@@ -70,7 +116,7 @@ public:
      */
     //@Deprecated
 	virtual CARAPI_(void) SetName(
-		/* [in] */ CString name);
+		/* [in] */ String name);
 
     /**
      * @deprecated This interface was intended to be used by Gears. Since Gears was
@@ -78,7 +124,7 @@ public:
      */
     //@Deprecated
 	virtual CARAPI_(void) SetPath(
-		/* [in] */ CString path);
+		/* [in] */ String path);
 
     /**
      * @deprecated This interface was intended to be used by Gears. Since Gears was
@@ -86,7 +132,7 @@ public:
      */
     //@Deprecated
 	virtual CARAPI_(void) SetFileName(
-		/* [in] */ CString fileName);
+		/* [in] */ String fileName);
 
     /**
      * @deprecated This interface was intended to be used by Gears. Since Gears was
@@ -94,7 +140,7 @@ public:
      */
     //@Deprecated
 	virtual CARAPI_(void) SetDescription(
-		/* [in] */ CString description);
+		/* [in] */ String description);
 
     /**
      * @deprecated This interface was intended to be used by Gears. Since Gears was
@@ -102,7 +148,7 @@ public:
      */
     //@Deprecated
 	virtual CARAPI_(void) SetClickHandler(
-		/* [in] */ PreferencesClickHandler* handler);
+		/* [in] */ IPluginPreferencesClickHandler* handler);
 
    /**
     * Invokes the click handler for this plugin.
@@ -115,40 +161,11 @@ public:
 		/* [in] */ IContext* context);
 
 private:
-   /**
-    * Default click handler. The plugins should implement their own.
-    *
-    * @deprecated This interface was intended to be used by Gears. Since Gears was
-    * deprecated, so is this class.
-    */
-    //@Deprecated
-    class DefaultClickHandler : public PreferencesClickHandler//,
-                             //   public DialogInterface::OnClickListener 
-	{
-	public:       
-        //@Deprecated
-		virtual CARAPI_(void) HandleClickEvent(
-			/* [in] */ IContext* context);
-
-        /**
-         * @deprecated This interface was intended to be used by Gears. Since Gears was
-         * deprecated, so is this class.
-         */
-        //@Deprecated
-		virtual CARAPI_(void) OnClick(
-			/* [in] */ IDialogInterface* dialog, 
-			/* [in] */ Int32 which);
-
-    private:
-		IAlertDialog* mDialog;
-    };
-
-private:
-	CString mName;
-	CString mPath;
-	CString mFileName;
-	CString mDescription;
-	PreferencesClickHandler* mHandler;
+	String mName;
+	String mPath;
+	String mFileName;
+	String mDescription;
+    AutoPtr<IPluginPreferencesClickHandler> mHandler;
 };
 
 #endif //__PLUGIN_H__

@@ -7,13 +7,13 @@ module
          * Cleans up (if possible) user-entered web addresses
          */
         GuessUrl(
-           [in] CString inUrl,
+           [in] String inUrl,
            [out] String* outUrl);
 
         ComposeSearchUrl(
-           [in] CString inQuery, 
-           [in] CString strTemplate,
-           [in] CString queryPlaceHolder,
+           [in] String inQuery, 
+           [in] String strTemplate,
+           [in] String queryPlaceHolder,
            [out] String* url);
 
         Decode(
@@ -24,7 +24,7 @@ module
          * @return True iff the url is an asset file.
          */
         IsAssetUrl(
-           [in] CString url,
+           [in] String url,
            [out] Boolean* flag);
 
         /**
@@ -32,7 +32,7 @@ module
          * @hide
          */
         IsResourceUrl(
-           [in] CString url,
+           [in] String url,
            [out] Boolean* flag);
 
         /**
@@ -41,49 +41,49 @@ module
          * @deprecated Cookieless proxy is no longer supported.
          */
         IsCookielessProxyUrl(
-           [in] CString url,
+           [in] String url,
            [out] Boolean* flag);
 
         /**
          * @return True iff the url is a local file.
          */
         IsFileUrl(
-           [in] CString url,
+           [in] String url,
            [out] Boolean* flag);
 
         /**
          * @return True iff the url is an about: url.
          */
         IsAboutUrl(
-           [in] CString url,
+           [in] String url,
            [out] Boolean* flag);
 
         /**
          * @return True iff the url is a data: url.
          */
         IsDataUrl(
-           [in] CString url,
+           [in] String url,
            [out] Boolean* flag);
 
         /**
          * @return True iff the url is a javascript: url.
          */
         IsJavaScriptUrl(
-           [in] CString url,
+           [in] String url,
            [out] Boolean* flag);
 
         /**
          * @return True iff the url is an http: url.
          */
         IsHttpUrl(
-           [in] CString url,
+           [in] String url,
            [out] Boolean* flag);
 
         /**
          * @return True iff the url is an https: url.
          */
         IsHttpsUrl(
-           [in] CString url,
+           [in] String url,
            [out] Boolean* flag);
 
         /**
@@ -97,14 +97,14 @@ module
          * @return True iff the url is a content: url.
          */
         IsContentUrl(
-           [in] CString url,
+           [in] String url,
            [out] Boolean* flag);
 
         /**
          * @return True iff the url is valid.
          */
         IsValidUrl(
-           [in] CString url,
+           [in] String url,
            [out] Boolean* flag);
 
         /**
@@ -125,9 +125,9 @@ module
          * @return suggested filename
          */
         GuessFileName(
-           [in] CString url,
-           [in] CString contentDisposition,
-           [in] CString mimeType,
+           [in] String url,
+           [in] String contentDisposition,
+           [in] String mimeType,
            [out] String* name);
     }
 }

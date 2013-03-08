@@ -4,6 +4,15 @@
 
 #include "_CUrlInterceptRegistry.h"
 
+#include "webkit/IUrlInterceptHandler.h"
+
+#include "ext/frameworkext.h"
+#include <elastos.h>
+#include <elastos/Mutex.h>
+#include <elastos/List.h>
+
+
+
 CarClass(CUrlInterceptRegistry)
 {
 public:
@@ -32,7 +41,15 @@ public:
         /* [out] */ IPluginData ** ppData);
 
 private:
-    // TODO: Add your private member variables here.
+    /*static*/ CARAPI GetHandlers(
+        /* [out] */ List< IUrlInterceptHandler* > ** pLinkedList );
+
+private:
+    const static char* LOGTAG; // = "intercept";
+
+    static Boolean sDisabled;   // = false;
+
+    static List< IUrlInterceptHandler* > * sHandlerList;
 };
 
 #endif // __CURLINTERCEPTREGISTRY_H__

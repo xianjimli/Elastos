@@ -3,9 +3,56 @@
 #define __CPLUGIN_H__
 
 #include "_CPlugin.h"
+#include "../app/CAlertDialogBuilder.h"
+#include <elastos/ElRefBase.h>
 
 CarClass(CPlugin)
 {
+    /**
+    * Default click handler. The plugins should implement their own.
+    *
+    * @deprecated This interface was intended to be used by Gears. Since Gears was
+    * deprecated, so is this class.
+    */
+    //@Deprecated  
+    class DefaultClickHandler: public ElRefBase, public IPluginPreferencesClickHandler, public IDialogInterfaceOnClickListener
+    {
+    public:
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        //@Deprecated    
+        CARAPI HandleClickEvent(
+            /* [in] */ IContext* context);
+        
+        /**
+         * @deprecated This interface was intended to be used by Gears. Since Gears was
+         * deprecated, so is this class.
+         */
+        //@Deprecated
+        CARAPI OnClick(
+            /* [in] */ IDialogInterface* dialog, 
+            /* [in] */ Int32 which);
+
+    public:
+        AutoPtr<ICharSequence> pName;
+        AutoPtr<ICharSequence> pDescription;
+        AutoPtr<ICharSequence> pRStringOk;
+        
+    private:
+        AutoPtr<IAlertDialog> mDialog;
+
+    };
+
+    //friend class DefaultClickHandler;
 public:
     CARAPI ToString(
         /* [out] */ String * pName);
@@ -16,23 +63,23 @@ public:
     CARAPI GetPath(
         /* [out] */ String * pPath);
 
-    CARAPI getFileName(
+    CARAPI GetFileName(
         /* [out] */ String * pFileName);
 
     CARAPI GetDescription(
         /* [out] */ String * pDescription);
 
     CARAPI SetName(
-        /* [in] */ CString name);
+        /* [in] */ String name);
 
     CARAPI SetPath(
-        /* [in] */ CString path);
+        /* [in] */ String path);
 
     CARAPI SetFileName(
-        /* [in] */ CString fileName);
+        /* [in] */ String fileName);
 
     CARAPI SetDescription(
-        /* [in] */ CString description);
+        /* [in] */ String description);
 
     CARAPI SetClickHandler(
         /* [in] */ IPluginPreferencesClickHandler * pHandler);
@@ -41,13 +88,18 @@ public:
         /* [in] */ IContext * pContext);
 
     CARAPI constructor(
-        /* [in] */ CString name,
-        /* [in] */ CString path,
-        /* [in] */ CString fileName,
-        /* [in] */ CString description);
+        /* [in] */ String name,
+        /* [in] */ String path,
+        /* [in] */ String fileName,
+        /* [in] */ String description);
 
 private:
-    // TODO: Add your private member variables here.
+    String mName;
+    String mPath;
+    String mFileName;
+    String mDescription;
+    AutoPtr<IPluginPreferencesClickHandler> mHandler;
+
 };
 
 #endif // __CPLUGIN_H__

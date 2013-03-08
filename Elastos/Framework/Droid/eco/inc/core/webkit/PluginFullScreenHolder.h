@@ -6,44 +6,47 @@
 class PluginFullScreenHolder : public Dialog {
 
 public:
-	PluginFullScreenHolder(
-		/* [in] */ IWebView* webView, 
-		/* [in] */ Int32 npp);
+    PluginFullScreenHolder(
+        /* [in] */ IWebView* webView, 
+        /* [in] */ Int32 npp);
 
 public:
     //@Override
-	virtual CARAPI SetContentView(
-		/* [in] */ IView* contentView);
+    virtual CARAPI SetContentView(
+        /* [in] */ IView* contentView);
 
     //@Override
-	virtual CARAPI OnBackPressed();
+    virtual CARAPI OnBackPressed();
 
     //@Override
-	virtual CARAPI_(Boolean) OnKeyDown(
-		/* [in] */ Int32 keyCode, 
-		/* [in] */ IKeyEvent* event);
+    virtual CARAPI_(Boolean) OnKeyDown(
+        /* [in] */ Int32 keyCode, 
+        /* [in] */ IKeyEvent* event);
 
     //@Override
-	virtual CARAPI_(Boolean) OnKeyUp(
-		/* [in] */ Int32 keyCode, 
-		/* [in] */ IKeyEvent* event);
+    virtual CARAPI_(Boolean) OnKeyUp(
+        /* [in] */ Int32 keyCode, 
+        /* [in] */ IKeyEvent* event);
 
     //@Override
-	virtual CARAPI_(Boolean) OnTouchEvent(
-		/* [in] */ IMotionEvent* event);
+    virtual CARAPI_(Boolean) OnTouchEvent(
+        /* [in] */ IMotionEvent* event);
 
     //@Override
-	virtual CARAPI_(Boolean) OnTrackballEvent(
-		/* [in] */ IMotionEvent* event);
+    virtual CARAPI_(Boolean) OnTrackballEvent(
+        /* [in] */ IMotionEvent* event);
+
+    virtual CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid);
 
 protected:
     //@Override
-	virtual CARAPI_(void) OnStop();
+    virtual CARAPI_(void) OnStop();
 
 private:
-	const IWebView* mWebView;
-	const Int32 mNpp;
-	IView* mContentView;
+    const IWebView* mWebView;
+    Int32 mNpp;
+    IView* mContentView;
 
 };
 
