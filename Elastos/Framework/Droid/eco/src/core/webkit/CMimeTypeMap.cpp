@@ -4,12 +4,13 @@
 
 CMimeTypeMap* CMimeTypeMap::sMimeTypeMap = NULL;
 
-#if 0
+
 
 ECode CMimeTypeMap::GetFileExtensionFromUrl(
     /* [in] */ CString inUrl,
     /* [out] */ String * pOutUrl)
 {
+    #if 0
     if (pOutUrl == NULL)
     {
         return E_INVALID_ARGUMENT;
@@ -43,7 +44,7 @@ ECode CMimeTypeMap::GetFileExtensionFromUrl(
     }
 
     *pOutUrl = "";
-
+#endif
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
@@ -52,7 +53,7 @@ ECode CMimeTypeMap::HasMimeType(
     /* [in] */ CString mimeType,
     /* [out] */ Boolean* flag)
 {
-
+#if 0
     VALIDATE_NOT_NULL(flag);
 
     if (!mimeType.IsNullOrEmpty()) {
@@ -69,6 +70,7 @@ ECode CMimeTypeMap::HasMimeType(
     }
 
     *flag = FALSE;
+    #endif
 
     return NOERROR;
 }
@@ -77,6 +79,7 @@ ECode CMimeTypeMap::GetMimeTypeFromExtension(
     /* [in] */ CString extension,
     /* [out] */ String* mimeType)
 {
+    #if 0
     VALIDATE_NOT_NULL(mimeType);
 
     if (!extension.IsNullOrEmpty()) {
@@ -93,6 +96,7 @@ ECode CMimeTypeMap::GetMimeTypeFromExtension(
     }
 
     mimeType->SetTo(NULL);
+    #endif
 
     return NOERROR;
 }
@@ -101,6 +105,7 @@ ECode CMimeTypeMap::HasExtension(
     /* [in] */ CString extension,
     /* [out] */ Boolean* flag)
 {
+    #if 0
     VALIDATE_NOT_NULL(flag);
 
     if (!extension.IsNullOrEmpty()) {
@@ -117,6 +122,7 @@ ECode CMimeTypeMap::HasExtension(
     }
 
     *flag = FALSE;
+    #endif
 
     return NOERROR;
 }
@@ -125,6 +131,7 @@ ECode CMimeTypeMap::GetExtensionFromMimeType(
     /* [in] */ CString mimeType,
     /* [out] */ String* extensionFrom)
 {
+    #if 0
     VALIDATE_NOT_NULL(extensionFrom);
 
     if (!mimeType.IsNullOrEmpty()) {
@@ -141,6 +148,7 @@ ECode CMimeTypeMap::GetExtensionFromMimeType(
     }
 
     extensionFrom->SetTo(NULL);
+    #endif
 
     return NOERROR;
 }
@@ -158,6 +166,7 @@ ECode CMimeTypeMap::GetSingleton(
 
 ECode CMimeTypeMap::constructor()
 {
+    #if 0
     // The following table is based on /etc/mime.types data minus
     // chemical/* MIME types and MIME types that don't map to any
     // file extensions. We also exclude top-level domain names to
@@ -507,7 +516,7 @@ ECode CMimeTypeMap::constructor()
     LoadEntry("video/x-sgi-movie", "movie");
     LoadEntry("x-conference/x-cooltalk", "ice");
     LoadEntry("x-epoc/x-sisx-app", "sisx");
-
+#endif
     return NOERROR;
 }
 
@@ -515,6 +524,7 @@ void CMimeTypeMap::LoadEntry(
     /* [in] */ const char * mimeType,
     /* [in] */ const char * extension)
 {
+    #if 0
     //
     // if we have an existing x --> y mapping, we do not want to
     // override it with another mapping x --> ?
@@ -529,5 +539,5 @@ void CMimeTypeMap::LoadEntry(
     }
 
     mExtensionToMimeTypeMap[String(extension)] = String(mimeType);
+    #endif
 }
-#endif

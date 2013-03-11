@@ -20,9 +20,7 @@ const char* CURLUtil::PROXY_BASE = "file:///cookieless_proxy/";
 const char* CURLUtil::LOGTAG = "webkit";
 
 //const AutoPtr<CPattern> CURLUtil::CONTENT_DISPOSITION_PATTERN = CPattern::Compile("attachment;\\s*filename\\s*=\\s*(\"?)([^\"]*)\\1\\s*$",CPattern::CASE_INSENSITIVE);
-
 #if 0
-
 ECode CURLUtil::ParseHex(
         /* [in] */ Byte b,
         /* [out] */ Int32* retVal)
@@ -44,13 +42,16 @@ ECode CURLUtil::ParseHex(
     }
 
     Utility::Logging::Logger::E(LOGTAG, String("Invalid hex char '") + b + String("'") );
+    
     return E_ILLEGAL_ARGUMENT_EXCEPTION;
 }
+#endif
 
 ECode CURLUtil::GuessUrl(
     /* [in] */ const String& inUrl,
     /* [out] */ String * pOutUrl)
 {    
+    #if 0
     String retVal = inUrl;
     //IWebAddress * webAddress;
 
@@ -113,7 +114,7 @@ ECode CURLUtil::GuessUrl(
     }
     webAddress -> ToString(pOutUrl);
     */
-
+#endif
     return NOERROR;
 }
 
@@ -123,6 +124,7 @@ ECode CURLUtil::ComposeSearchUrl(
     /* [in] */ const String& queryPlaceHolder,
     /* [out] */ String * pUrl)
 {
+    #if 0
     Int32 placeHolderIndex = strTemplate.IndexOf(queryPlaceHolder);
     if (placeHolderIndex < 0) 
     {
@@ -148,7 +150,7 @@ ECode CURLUtil::ComposeSearchUrl(
     buffer += strTemplate.Substring(placeHolderIndex + queryPlaceHolder.GetLength());
 
     *pUrl = (const char*)buffer;
-
+#endif
     return NOERROR;
 }
 
@@ -156,6 +158,7 @@ ECode CURLUtil::Decode(
     /* [in] */ const ArrayOf<Byte> & url,
     /* [out] */ ArrayOf<Byte> * pOutUrl)
 {
+    #if 0
     if(url.GetLength() == 0)
     {
         pOutUrl = NULL;
@@ -203,7 +206,7 @@ ECode CURLUtil::Decode(
         (*pOutUrl)[i] = (*tempData)[i];
     }
     ArrayOf<Byte>::Free(tempData);
-
+#endif
     return NOERROR;
 }
 
@@ -356,6 +359,7 @@ ECode CURLUtil::GuessFileName(
     /* [in] */ const String& mimeType,
     /* [out] */ String * pName)
 {
+    #if 0
     String filename(NULL);
     String extension(NULL);
 
@@ -461,10 +465,10 @@ ECode CURLUtil::GuessFileName(
     }
 
     *pName = filename + extension;    
-
+#endif
     return NOERROR;
 }
-
+#if 0
 ECode CURLUtil::VerifyURLEncoding(
         /* [in] */ String url,
         /* [out] */ Boolean * retVal)
@@ -530,5 +534,4 @@ ECode CURLUtil::ParseContentDisposition(
     */
     return NOERROR;
 }
-
 #endif

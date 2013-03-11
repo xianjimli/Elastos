@@ -70,16 +70,16 @@ public:
         /* [out] */ String * pDescription);
 
     CARAPI SetName(
-        /* [in] */ String name);
+        /* [in] */ const String& name);
 
     CARAPI SetPath(
-        /* [in] */ String path);
+        /* [in] */ const String& path);
 
     CARAPI SetFileName(
-        /* [in] */ String fileName);
+        /* [in] */ const String& fileName);
 
     CARAPI SetDescription(
-        /* [in] */ String description);
+        /* [in] */ const String& description);
 
     CARAPI SetClickHandler(
         /* [in] */ IPluginPreferencesClickHandler * pHandler);
@@ -88,10 +88,10 @@ public:
         /* [in] */ IContext * pContext);
 
     CARAPI constructor(
-        /* [in] */ String name,
-        /* [in] */ String path,
-        /* [in] */ String fileName,
-        /* [in] */ String description);
+        /* [in] */ const String& name,
+        /* [in] */ const String& path,
+        /* [in] */ const String& fileName,
+        /* [in] */ const String& description);
 
 private:
     String mName;
