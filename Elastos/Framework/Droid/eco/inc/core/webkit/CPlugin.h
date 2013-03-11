@@ -70,16 +70,16 @@ public:
         /* [out] */ String* description);
 
     CARAPI SetName(
-        /* [in] */ const String& name);
+        /* [in] */ String name);
 
     CARAPI SetPath(
-        /* [in] */ const String& path);
+        /* [in] */ String path);
 
     CARAPI SetFileName(
-        /* [in] */ const String& fileName);
+        /* [in] */ String fileName);
 
     CARAPI SetDescription(
-        /* [in] */ const String& description);
+        /* [in] */ String description);
 
     CARAPI SetClickHandler(
         /* [in] */ IPluginPreferencesClickHandler* handler);
