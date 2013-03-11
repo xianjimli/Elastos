@@ -94,6 +94,14 @@ ECode CProgressDialog::SetProgressNumberFormat(
     return ProgressDialog::SetProgressNumberFormat(format);
 }
 
+ECode CProgressDialog::OnCreateContextMenu(
+    /* [in] */ IContextMenu* menu,
+    /* [in] */ IView* v,
+    /* [in] */ IContextMenuInfo* menuInfo)
+{
+    return ProgressDialog::OnCreateContextMenu(menu, v, menuInfo);
+}
+
 ECode CProgressDialog::constructor(
     /* [in] */ IContext* context)
 {

@@ -71,6 +71,11 @@ public:
     CARAPI SetProgressNumberFormat(
         /* [in] */ const String& format);
 
+    CARAPI OnCreateContextMenu(
+        /* [in] */ IContextMenu* menu,
+        /* [in] */ IView* v,
+        /* [in] */ IContextMenuInfo* menuInfo);
+
     CARAPI constructor(
         /* [in] */ IContext* context);
 
