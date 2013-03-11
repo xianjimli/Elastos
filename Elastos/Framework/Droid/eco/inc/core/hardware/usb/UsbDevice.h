@@ -7,13 +7,11 @@
 class UsbDevice
 {
 public:
-    static CARAPI GetDeviceId(
-        /* [in] */ const String& name,
-        /* [out] */ Int32* id);
+    static CARAPI_(Int32) NativeGetDeviceId(
+        /* [in] */ const String& name);
 
-    static CARAPI GetDeviceName(
-        /* [in] */ Int32 id,
-        /* [out] */ String* name);
+    static CARAPI_(String) NativeGetDeviceName(
+        /* [in] */ Int32 id);
 };
 
 #endif // __USBDEVICE_H__

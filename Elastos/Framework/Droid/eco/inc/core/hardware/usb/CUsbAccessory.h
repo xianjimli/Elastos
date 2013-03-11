@@ -122,7 +122,7 @@ public:
         /* [out] */ IParcel* dest);
 
 private:
-    static Boolean Compare(
+    static CARAPI_(Boolean) Compare(
         /* [in] */ const String& s1,
         /* [in] */ const String& s2);
 

@@ -123,7 +123,8 @@ ECode CUsbInterface::ReadFromParcel(
     source->ReadInt32(&subCls);
     source->ReadInt32(&protocol);
 
-    /* Parcelable[] endpoints = in.readParcelableArray(UsbEndpoint.class.getClassLoader()); */
+    // RYAN
+    // Parcelable[] endpoints = in.readParcelableArray(UsbEndpoint.class.getClassLoader());
     ArrayOf<IParcelable*>* endpoints;
 
     AutoPtr<CUsbInterface> usbInterface;
@@ -135,12 +136,15 @@ ECode CUsbInterface::ReadFromParcel(
 ECode CUsbInterface::WriteToParcel(
     /* [out] */ IParcel* dest)
 {
+    VALIDATE_NOT_NULL(dest);
+
     dest->WriteInt32(mId);
     dest->WriteInt32(mClass);
     dest->WriteInt32(mSubclass);
     dest->WriteInt32(mProtocol);
 
-    /* parcel.writeParcelableArray(mEndpoints, 0); */
+    // RYAN
+    // parcel.writeParcelableArray(mEndpoints, 0);
 
     return NOERROR;
 }
