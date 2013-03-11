@@ -272,12 +272,13 @@ ECode JDBCResultSet::FillRowbuf()
 
 ECode JDBCResultSet::Next(
     /* [out] */Boolean* result)
-{/*
-    if (tr == null) {
-        return false;
+{
+    if (mTr == NULL) {
+        *result = FALSE;
+        return NOERROR;
     }
-    row++;
-    return row < tr.nrows;*/
+    mRow++;
+    *result = (mRow < mTr.mNrows);
     return NOERROR;
 }
 
@@ -292,68 +293,74 @@ ECode JDBCResultSet::FindColumn(
 
 ECode JDBCResultSet::GetRow(
     /* [out] */Int32* row)
-{/*
-    if (tr == null) {
-        throw new SQLException("no rows");
+{
+    if (mTr == NULL) {
+        //throw new SQLException("no rows");
+        return E_SQL_EXCEPTION;
     }
-    return row + 1;*/
+    *row = mRow + 1;
     return NOERROR;
 }
 
 ECode JDBCResultSet::Previous(
     /* [out] */Boolean* result)
-{/*
-    if (tr == null) {
-        throw new SQLException("result set already closed.");
+{
+    if (mTr == NULL) {
+        //throw new SQLException("result set already closed.");
+        return E_SQL_EXCEPTION;
     }
-    if (row >= 0) {
-        row--;
+    if (mRow >= 0) {
+        mRow--;
     }
-    return row >= 0;*/
+    *result = (mRow >= 0);
     return NOERROR;
 }
 
 ECode JDBCResultSet::Absolute(
     /* [in] */Int32 row,
     /* [out] */Boolean* result)
-{/*
-    if (tr == null) {
-        return false;
+{
+    if (mTr == NULL) {
+        *result = FALSE;
+        return NOERROR;
     }
     if (row < 0) {
-        row = tr.nrows + 1 + row;
+        row = mTr.mNrows + 1 + row;
     }
     row--;
-    if (row < 0 || row > tr.nrows) {
-        return false;
+    if (row < 0 || row > mTr.mNrows) {
+        *result = FALSE;
+        return NOERROR;
     }
-    this.row = row;
-    return true;*/
+    mRow = row;
+    *result = TRUE;
     return NOERROR;
-
 }
 
 ECode JDBCResultSet::Relative(
     /* [in] */Int32 row,
     /* [out] */Boolean* result)
-{/*
-    if (tr == null) {
-        return false;
+{
+    if (mTr == NULL) {
+        *result = FALSE;
+        return NOERROR;
     }
-    if (this.row + row < 0 || this.row + row >= tr.nrows) {
-        return false;
+    if (mRow + row < 0 || mRow + row >= mTr.mNrows) {
+        *result = FALSE;
+        return NOERROR;
     }
-    this.row += row;
-    return true;*/
+    mRow += row;
+    *result = TRUE;
     return NOERROR;
 }
 
 ECode JDBCResultSet::SetFetchDirection(
     /* [in] */Int32 dir)
-{/*
-    if (dir != ResultSet.FETCH_FORWARD) {
-        throw new SQLException("only forward fetch direction supported");
-    }*/
+{
+    if (dir != ResultSet.IResultSet_FETCH_FORWARD) {
+        //throw new SQLException("only forward fetch direction supported");
+        return E_SQL_EXCEPTION;
+    }
     return NOERROR;
 }
 
@@ -400,9 +407,10 @@ ECode JDBCResultSet::GetString(
 ECode JDBCResultSet::GetStringEx(
     /* [in] */String columnName,
     /* [out] */String* str)
-{/*
-    int col = findColumn(columnName);
-    return getString(col);*/
+{
+    Int32 col;
+    FindColumn(columnName,&col);
+    GetString(col, str);
     return NOERROR;
 }
 
@@ -410,7 +418,7 @@ ECode JDBCResultSet::GetInt(
     /* [in] */Int32 columnIndex,
     /* [out] */Int32* result)
 {/*
-    Integer i = internalGetInt(columnIndex);
+    Integer i = InternalGetInt(columnIndex);
     if (i != null) {
         return i.intValue();
     }
@@ -421,9 +429,10 @@ ECode JDBCResultSet::GetInt(
 ECode JDBCResultSet::GetIntEx(
     /* [in] */String columnName,
     /* [out] */Int32* result)
-{/*
-    int col = findColumn(columnName);
-    return getInt(col);*/
+{
+    Int32 col;
+    FindColumn(columnName,&col);
+    GetInt(col, result);
     return NOERROR;
 }
 
@@ -439,9 +448,10 @@ ECode JDBCResultSet::GetBoolean(
 ECode JDBCResultSet::GetBooleanEx(
     /* [in] */String columnName,
     /* [out] */Boolean* result)
-{/*
-    int col = findColumn(columnName);
-    return getBoolean(col);*/
+{
+    Int32 col;
+    FindColumn(columnName,&col);
+    GetBoolean(col, result);
     return NOERROR;
 }
 
@@ -459,7 +469,7 @@ ECode JDBCResultSet::GetShort(
     /* [in] */Int32 columnIndex,
     /* [out] */Int16* result)
 {/*
-    Short sh = internalGetShort(columnIndex);
+    Short sh = InternalGetShort(columnIndex);
     if (sh != null) {
         return sh.shortValue();
     }
@@ -470,9 +480,10 @@ ECode JDBCResultSet::GetShort(
 ECode JDBCResultSet::GetShortEx(
     /* [in] */String columnName,
     /* [out] */Int16* result)
-{/*
-    int col = findColumn(columnName);
-    return getShort(col);*/
+{
+    Int32 col;
+    FindColumn(columnName,&col);
+    GetShort(col, result);
     return NOERROR;
 }
 
@@ -480,16 +491,17 @@ ECode JDBCResultSet::GetTime(
     /* [in] */Int32 columnIndex,
     /* [out] */ITime** time)
 {
-    //return internalGetTime(columnIndex, null);
+    InternalGetTime(columnIndex, NULL, time);
     return NOERROR;
 }
 
 ECode JDBCResultSet::GetTimeEx(
     /* [in] */String columnName,
     /* [out] */ITime** time)
-{/*
-    int col = findColumn(columnName);
-    return getTime(col);*/
+{
+    Int32 col;
+    FindColumn(columnName,&col);
+    GetTime(col, time);
     return NOERROR;
 }
 
@@ -498,7 +510,7 @@ ECode JDBCResultSet::GetTimeEx2(
     /* [in] */ICalendar* cal,
     /* [out] */ITime** time)
 {
-    //return internalGetTime(columnIndex, cal);
+    InternalGetTime(columnIndex, cal, time);
     return NOERROR;
 }
 
@@ -506,9 +518,10 @@ ECode JDBCResultSet::GetTimeEx3(
     /* [in] */String columnName, 
     /* [in] */ICalendar* cal,
     /* [out] */ITime** time)
-{/*
-    int col = findColumn(columnName);
-    return getTime(col, cal);*/
+{
+    Int32 col;
+    FindColumn(columnName,&col);
+    GetTimeEx2(col, cal, time);
     return NOERROR;
 }
 
@@ -516,16 +529,17 @@ ECode JDBCResultSet::GetTimestamp(
     /* [in] */Int32 columnIndex,
     /* [out] */ITimestamp** stamp)
 {
-    //return internalGetTimestamp(columnIndex, null);
+    InternalGetTimestamp(columnIndex, null, stamp);
     return NOERROR;
 }
 
 ECode JDBCResultSet::GetTimestampEx(
     /* [in] */String columnName,
     /* [out] */ITimestamp** stamp)
-{/*
-    int col = findColumn(columnName);
-    return getTimestamp(col);*/
+{
+    Int32 col;
+    FindColumn(columnName,&col);
+    GetTimestamp(col, stamp);
     return NOERROR;
 }
 
@@ -534,7 +548,7 @@ ECode JDBCResultSet::GetTimestampEx2(
     /* [in] */ICalendar* cal,
     /* [out] */ITimestamp** stamp)
 {
-    //return internalGetTimestamp(columnIndex, cal);
+    InternalGetTimestamp(columnIndex, cal, stamp);
     return NOERROR;
 }
 
@@ -542,9 +556,10 @@ ECode JDBCResultSet::GetTimestampEx3(
     /* [in] */String columnName,
     /* [in] */ICalendar* cal,
     /* [out] */ITimestamp** stamp)
-{/*
-    int col = findColumn(columnName);
-    return getTimestamp(col, cal);*/
+{
+    Int32 col;
+    FindColumn(columnName,&col);
+    GetTimestampEx2(col, cal, stamp);
     return NOERROR;
 }
 
@@ -552,16 +567,17 @@ ECode JDBCResultSet::GetDate(
     /* [in] */Int32 columnIndex,
     /* [out] */IDate** date)
 {
-    //return internalGetDate(columnIndex, null);
+    InternalGetDate(columnIndex, NULL, date);
     return NOERROR;
 }
 
 ECode JDBCResultSet::GetDateEx(
     /* [in] */String columnName,
     /* [out] */IDate** date)
-{/*
-    int col = findColumn(columnName);
-    return getDate(col);*/
+{
+    Int32 col;
+    FindColumn(columnName,&col);
+    GetDate(col, date);
     return NOERROR;
 }
 
@@ -570,7 +586,7 @@ ECode JDBCResultSet::GetDateEx2(
     /* [in] */ICalendar* cal,
     /* [out] */IDate** date)
 {
-    //return internalGetDate(columnIndex, cal);
+    InternalGetDate(columnIndex, cal, date);
     return NOERROR;
 }
 
@@ -578,9 +594,10 @@ ECode JDBCResultSet::GetDateEx3(
     /* [in] */String columnName, 
     /* [in] */ICalendar* cal,
     /* [out] */IDate** date)
-{/*
-    int col = findColumn(columnName);
-    return getDate(col, cal);*/
+{
+    Int32 col;
+    FindColumn(columnName,&col);
+    GetDateEx2(col, cal, date);
     return NOERROR;
 }
 
@@ -599,9 +616,10 @@ ECode JDBCResultSet::GetDouble(
 ECode JDBCResultSet::GetDoubleEx(
     /* [in] */String columnName,
     /* [out] */Int64* result)
-{/*
-    int col = findColumn(columnName);
-    return getDouble(col);*/
+{
+    Int32 col;
+    FindColumn(columnName,&col);
+    GetDouble(col, result);
     return NOERROR;
 }
 
@@ -620,9 +638,10 @@ ECode JDBCResultSet::GetFloat(
 ECode JDBCResultSet::GetFloatEx(
     /* [in] */String columnName,
     /* [out] */Float* result)
-{/*
-    int col = findColumn(columnName);
-    return getFloat(col);*/
+{
+    Int32 col;
+    FindColumn(columnName,&col);
+    GetFloat(col, result);
     return NOERROR;
 }
 
@@ -641,9 +660,10 @@ ECode JDBCResultSet::GetLong(
 ECode JDBCResultSet::GetLongEx(
     /* [in] */String columnName,
     /* [out] */Int64* result)
-{/*
-    int col = findColumn(columnName);
-    return getLong(col);*/
+{
+    Int32 col;
+    FindColumn(columnName,&col);
+    GetLong(col, result);
     return NOERROR;
 }
 
@@ -652,26 +672,27 @@ ECode JDBCResultSet::GetUnicodeStream(
     /* [in] */Int32 columnIndex,
     /* [out] */IInputStream** stream)
 {
-    //throw new SQLFeatureNotSupportedException();
-    return NOERROR;
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 //@Deprecated
 ECode JDBCResultSet::GetUnicodeStreamEx(
     /* [in] */String columnName,
     /* [out] */IInputStream** stream)
-{/*
-    int col = findColumn(columnName);
-    return getUnicodeStream(col);*/
+{
+    Int32 col;
+    FindColumn(columnName,&col);
+    GetUnicodeStream(col, stream);
     return NOERROR;
 }
 
 ECode JDBCResultSet::GetAsciiStream(
     /* [in] */String columnName,
     /* [out] */IInputStream** stream)
-{/*
-    int col = findColumn(columnName);
-    return getAsciiStream(col);*/
+{
+    Int32 col;
+    FindColumn(columnName,&col);
+    GetAsciiStreamEx(col, stream);
     return NOERROR;
 }
 
@@ -685,9 +706,10 @@ ECode JDBCResultSet::GetAsciiStreamEx(
 ECode JDBCResultSet::GetBigDecimal(
     /* [in] */String columnName,
     /* [out] */IBigDecimal** result)
-{/*
-    int col = findColumn(columnName);
-    return getBigDecimal(col);*/
+{
+    Int32 col;
+    FindColumn(columnName,&col);
+    GetBigDecimalEx2(col, result);
     return NOERROR;
 }
 
@@ -696,9 +718,10 @@ ECode JDBCResultSet::GetBigDecimalEx(
     /* [in] */String columnName, 
     /* [in] */Int32 scale,
     /* [out] */IBigDecimal** result)
-{/*
-    int col = findColumn(columnName);
-    return getBigDecimal(col, scale);*/
+{
+    Int32 col;
+    FindColumn(columnName,&col);
+    SetBigDecimalEx3(col, scale, result);
     return NOERROR;
 }
 
@@ -706,8 +729,7 @@ ECode JDBCResultSet::GetBigDecimalEx2(
     /* [in] */Int32 columnIndex,
     /* [out] */IBigDecimal** result)
 {
-    //throw new SQLFeatureNotSupportedException();
-    return NOERROR;
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 //@Deprecated
@@ -716,8 +738,7 @@ ECode JDBCResultSet::SetBigDecimalEx3(
     /* [in] */Int32 scale,
     /* [out] */IBigDecimal** result)
 {
-    //throw new SQLFeatureNotSupportedException();
-    return NOERROR;
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::GetBinaryStream(
@@ -754,9 +775,10 @@ ECode JDBCResultSet::GetByte(
 ECode JDBCResultSet::GetByteEx(
     /* [in] */String columnName,
     /* [out] */Byte* result)
-{/*
-    int col = findColumn(columnName);
-    return getByte(col);*/
+{
+    Int32 col;
+    FindColumn(columnName,&col);
+    getByte(col, result);
     return NOERROR;
 }
 
@@ -780,9 +802,10 @@ ECode JDBCResultSet::GetBytes(
 ECode JDBCResultSet::GetBytesEx(
     /* [in] */String columnName,
     /* [out,callee] */ArrayOf<Byte>* bt)
-{/*
-    int col = findColumn(columnName);
-    return getBytes(col);*/
+{
+    Int32 col;
+    FindColumn(columnName,&col);
+    GetBytes(col, bt);
     return NOERROR;
 }
 
@@ -807,10 +830,10 @@ ECode JDBCResultSet::GetObject(
     if (tr instanceof TableResultX) {
         switch (((TableResultX) tr).sql_type[columnIndex - 1]) {
         case Types.SMALLINT:
-        ret = internalGetShort(columnIndex);
+        ret = InternalGetShort(columnIndex);
         break;
         case Types.INTEGER:
-        ret = internalGetInt(columnIndex);
+        ret = InternalGetInt(columnIndex);
         break;
         case Types.DOUBLE:
         ret = internalGetDouble(columnIndex);
@@ -839,9 +862,10 @@ ECode JDBCResultSet::GetObject(
 ECode JDBCResultSet::GetObjectEx(
     /* [in] */String columnName,
     /* [out] */IInterface** obj)
-{/*
-    int col = findColumn(columnName);
-    return getObject(col);*/
+{
+    Int32 col;
+    FindColumn(columnName,&col);
+    getObject(col, obj);
     return NOERROR;
 }
 
@@ -850,17 +874,17 @@ ECode JDBCResultSet::GetObjectEx2(
     /* [in] */java.util.Map map, ////////////////////////////////////
     /* [out] */IInterface** obj)
 {
-    //throw new SQLFeatureNotSupportedException();
-    return NOERROR;
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::GetObjectEx3(
     /* [in] */String columnName, 
     /* [in] */java.util.Map map, /////////////////////////////
     /* [out] */IInterface** obj)
-{/*
-    int col = findColumn(columnName);
-    return getObject(col, map);*/
+{
+    Int32 col;
+    FindColumn(columnName,&col);
+    GetObjectEx2(col, map, obj);
     return NOERROR;
 }
 
@@ -868,15 +892,16 @@ ECode JDBCResultSet::GetRef(
     /* [in] */Int32 columnIndex,
     /* [out] */IRef** ref)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::GetRefEx(
     /* [in] */String columnName,
     /* [out] */IRef** ref)
-{/*
-    int col = findColumn(columnName);
-    return getRef(col);*/
+{
+    Int32 col;
+    FindColumn(columnName,&col);
+    GetRef(col,ref);
     return NOERROR;
 }
 
@@ -884,15 +909,16 @@ ECode JDBCResultSet::GetBlob(
     /* [in] */Int32 columnIndex,
     /* [out] */IBlob** blob)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::GetBlobEx(
     /* [in] */String columnName,
     /* [out] */IBlob** blob)
-{/*
-    int col = findColumn(columnName);
-    return getBlob(col);*/
+{
+    Int32 col;
+    FindColumn(columnName,&col);
+    GetBlob(col,blob);
     return NOERROR;
 }
 
@@ -900,15 +926,16 @@ ECode JDBCResultSet::GetClob(
     /* [in] */Int32 columnIndex,
     /* [out] */IClob** clob)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::GetClobEx(
     /* [in] */String columnName,
     /* [out] */IClob** clob)
-{/*
-    int col = findColumn(columnName);
-    return getClob(col);*/
+{
+    Int32 col;
+    FindColumn(columnName,&col);
+    GetClob(col,clob);
     return NOERROR;
 }
 
@@ -916,15 +943,17 @@ ECode JDBCResultSet::GetArray(
     /* [in] */Int32 columnIndex,
     /* [out] */IArray** array)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::GetArrayEx(
     /* [in] */String columnName,
     /* [out] */IArray** array)
-{/*
-    int col = findColumn(columnName);
-    return getArray(col);*/
+{
+    Int32 col;
+    FindColumn(columnName,&col);
+    GetArray(col,array);
+    return NOERROE;
 }
 
 ECode JDBCResultSet::GetCharacterStream(
@@ -982,71 +1011,76 @@ ECode JDBCResultSet::IsFirst(
 
 ECode JDBCResultSet::IsBeforeFirst(
     /* [out] */Boolean* result)
-{/*
-    if (tr == null || tr.nrows <= 0) {
-        return false;
+{
+    if (mTr == NULL || mTr.mNrows <= 0) {
+        *result = FALSE;
+        return NOERROR;
     }
-    return row < 0;*/
+    *result = (mRow < 0);
     return NOERROR;
 }
 
 ECode JDBCResultSet::BeforeFirst()
-{/*
-    if (tr == null) {
-        return;
+{
+    if (mTr == NULL) {
+        return NOERROR;
     }
-    row = -1;*/
+    mRow = -1;
     return NOERROR;
 }
 
 ECode JDBCResultSet::First(
     /* [out] */Boolean* result)
-{/*
-    if (tr == null || tr.nrows <= 0) {
-        return false;
+{
+    if (mTr == NULL || mTr.mNrows <= 0) {
+        *result = FALSE;
+        return NOERROR;
     }
-    row = 0;
-    return true;*/
+    mRow = 0;
+    *result = TRUE;
     return NOERROR;
 }
 
 ECode JDBCResultSet::IsAfterLast(
     /* [out] */Boolean* result)
-{/*
-    if (tr == null || tr.nrows <= 0) {
-        return false;
+{
+    if (mTr == NULL || mTr.mNrows <= 0) {
+        *result = FALSE;
+        return NOERROR;
     }
-    return row >= tr.nrows;*/
+    *result = (mRow >= mTr.mNrows);
     return NOERROR;
 }
 
 ECode JDBCResultSet::AfterLast()
-{/*
-    if (tr == null) {
-        return;
+{
+    if (mTr == NULL) {
+        return NOERROR;
     }
-    row = tr.nrows;*/
+    mRow = mTr.mNrows;
     return NOERROR;
 }
 
 ECode JDBCResultSet::IsLast(
     /* [out] */Boolean* result)
-{/*
-    if (tr == null) {
-        return true;
+{
+    if (mTr == NULL) {
+        *result = TRUE;
+        return NOERROR;
     }
-    return row == tr.nrows - 1;*/
+    *result = (mRow == mTr.mNrows - 1);
     return NOERROR;
 }
 
 ECode JDBCResultSet::Last(
     /* [out] */Boolean* result)
-{/*
-    if (tr == null || tr.nrows <= 0) {
-        return false;
+{
+    if (mTr == NULL || mTr.mNrows <= 0) {
+        *result = FALSE;
+        return NOERROR;
     }
-    row = tr.nrows -1;
-    return true;*/
+    mRow = mTr.mNrows -1;
+    *result = TRUE;
     return NOERROR;
 }
 
@@ -1092,7 +1126,8 @@ ECode JDBCResultSet::RowDeleted(
 
 ECode JDBCResultSet::InsertRow()
 {/*
-    isUpdatable();
+    Boolean result;
+    FAIL_RETURN(IsUpdatable(&result));
     if (!oninsrow || rowbuf == null) {
         throw new SQLException("no insert data provided");
     }
@@ -1129,7 +1164,8 @@ ECode JDBCResultSet::InsertRow()
 
 ECode JDBCResultSet::UpdateRow()
 {/*
-    isUpdatable();
+    Boolean result;
+    FAIL_RETURN(IsUpdatable(&result));
     if (rowbuf == null) {
         throw new SQLException("no update data provided");
     }
@@ -1176,14 +1212,15 @@ ECode JDBCResultSet::UpdateRow()
 
 ECode JDBCResultSet::DeleteRow()
 {/*
-    isUpdatable();
+    Boolean result;
+    FAIL_RETURN(IsUpdatable(&result));
     if (oninsrow) {
         throw new SQLException("cursor on insert row");
     }
     if (updatable < UPD_INSUPDDEL) {
         throw new SQLException("no primary key on table defined");
     }
-    fillRowbuf();
+    FillRowbuf();
     StringBuffer sb = new StringBuffer();
     sb.append("DELETE FROM ");
     sb.append(SQLite.Shell.sql_quote_dbl(uptable));
@@ -1208,7 +1245,8 @@ ECode JDBCResultSet::DeleteRow()
 
 ECode JDBCResultSet::RefreshRow()
 {/*
-    isUpdatable();
+    Boolean result;
+    FAIL_RETURN(IsUpdatable(&result));
     if (oninsrow) {
         throw new SQLException("cursor on insert row");
     }
@@ -1258,33 +1296,36 @@ ECode JDBCResultSet::CancelRowUpdates()
 }
 
 ECode JDBCResultSet::MoveToInsertRow()
-{/*
-    isUpdatable();
-    if (!oninsrow) {
-        oninsrow = true;
-        rowbuf = new String[tr.nrows];
-    }*/
+{
+    Boolean result;
+    FAIL_RETURN(IsUpdatable(&result));
+    if (!mOninsrow) {
+        mOninsrow = TRUE;
+        mRowbuf = ArrayOf<String>::Alloc(mTr.mNrows);
+    }
     return NOERROR;
 }
 
 ECode JDBCResultSet::MoveToCurrentRow()
-{/*
-    if (oninsrow) {
-        oninsrow = false;
-        rowbuf = null;
-    }*/
+{
+    if (mOninsrow) {
+        mOninsrow = FALSE;
+        mRowbuf = NULL;
+    }
     return NOERROR;
 }
 
 ECode JDBCResultSet::UpdateNull(
     /* [in] */Int32 colIndex)
-{/*
-    isUpdatable();
-    if (tr == null || colIndex < 1 || colIndex > tr.ncolumns) {
-        throw new SQLException("column " + colIndex + " not found");
+{
+    Boolean result;
+    FAIL_RETURN(IsUpdatable(&result));
+    if (mTr == NULL || colIndex < 1 || colIndex > mTr.mNcolumns) {
+        //throw new SQLException("column " + colIndex + " not found");
+        return E_SQL_EXCEPTION;
     }
-    fillRowbuf();
-    rowbuf[colIndex - 1] = null;*/
+    FillRowbuf();
+    mRowbuf[colIndex - 1] = NULL;
     return NOERROR;
 }
 
@@ -1292,7 +1333,7 @@ ECode JDBCResultSet::UpdateBoolean(
     /* [in] */Int32 colIndex, 
     /* [in] */Boolean b)
 {
-    //updateString(colIndex, b ? "1" : "0");
+    UpdateString(colIndex, b ? "1" : "0");
     return NOERROR;
 }
 
@@ -1300,72 +1341,81 @@ ECode JDBCResultSet::UpdateByte(
     /* [in] */Int32 colIndex, 
     /* [in] */Byte b)
 {
-    //throw new SQLFeatureNotSupportedException();
-    return NOERROR;
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::UpdateShort(
    /* [in] */Int32 colIndex, 
    /* [in] */Int16 b)
-{/*
-    isUpdatable();
-    if (tr == null || colIndex < 1 || colIndex > tr.ncolumns) {
-        throw new SQLException("column " + colIndex + " not found");
+{
+    Boolean result;
+    FAIL_RETURN(IsUpdatable(&result));
+    if (mTr == NULL || colIndex < 1 || colIndex > mTr.mNcolumns) {
+        //throw new SQLException("column " + colIndex + " not found");
+        return E_SQL_EXCEPTION;
     }
-    fillRowbuf();
-    rowbuf[colIndex - 1] = Short.toString(b);*/
+    FillRowbuf();
+    mRowbuf[colIndex - 1] = Short.toString(b);//Short.toString(b)////
     return NOERROR;
 }
 
 ECode JDBCResultSet::UpdateInt(
     /* [in] */Int32 colIndex, 
     /* [in] */Int32 b)
-{/*
-    isUpdatable();
-    if (tr == null || colIndex < 1 || colIndex > tr.ncolumns) {
-        throw new SQLException("column " + colIndex + " not found");
+{
+    Boolean result;
+    FAIL_RETURN(IsUpdatable(&result));
+    if (mTr == NULL || colIndex < 1 || colIndex > mTr.mNcolumns) {
+        //throw new SQLException("column " + colIndex + " not found");
+        return E_SQL_EXCEPTION;
     }
-    fillRowbuf();
-    rowbuf[colIndex - 1] = Integer.toString(b);*/
+    FillRowbuf();
+    mRowbuf[colIndex - 1] = Integer.toString(b);///Integer.toString(b)////
     return NOERROR;
 }
 
 ECode JDBCResultSet::UpdateLong(
     /* [in] */Int32 colIndex, 
     /* [in] */Int64 b)
-{/*
-    isUpdatable();
-    if (tr == null || colIndex < 1 || colIndex > tr.ncolumns) {
-        throw new SQLException("column " + colIndex + " not found");
+{
+    Boolean result;
+    FAIL_RETURN(IsUpdatable(&result));
+    if (mTr == NULL || colIndex < 1 || colIndex > mTr.mNcolumns) {
+        //throw new SQLException("column " + colIndex + " not found");
+        return E_SQL_EXCEPTION;
     }
-    fillRowbuf();
-    rowbuf[colIndex - 1] = Long.toString(b);*/
+    FillRowbuf();
+    mRowbuf[colIndex - 1] = Long.toString(b);//Long.toString(b)/////
     return NOERROR;
 }
 
 ECode JDBCResultSet::UpdateFloat(
     /* [in] */Int32 colIndex, 
     /* [in] */Float f)
-{/*
-    isUpdatable();
-    if (tr == null || colIndex < 1 || colIndex > tr.ncolumns) {
-        throw new SQLException("column " + colIndex + " not found");
+{
+    Boolean result;
+    FAIL_RETURN(IsUpdatable(&result));
+    if (mTr == NULL || colIndex < 1 || colIndex > mTr.mNcolumns) {
+        //throw new SQLException("column " + colIndex + " not found");
+        return E_SQL_EXCEPTION;
     }
-    fillRowbuf();
-    rowbuf[colIndex - 1] = Float.toString(f);*/
+    FillRowbuf();
+    mRowbuf[colIndex - 1] = Float.toString(f);////Float.toString(f)////
     return NOERROR;
 }
 
 ECode JDBCResultSet::UpdateDouble(
     /* [in] */Int32 colIndex, 
     /* [in] */Int64 f)
-{/*
-    isUpdatable();
-    if (tr == null || colIndex < 1 || colIndex > tr.ncolumns) {
-        throw new SQLException("column " + colIndex + " not found");
+{
+    Boolean result;
+    FAIL_RETURN(IsUpdatable(&result));
+    if (mTr == NULL || colIndex < 1 || colIndex > mTr.mNcolumns) {
+        //throw new SQLException("column " + colIndex + " not found");
+        return E_SQL_EXCEPTION;
     }
-    fillRowbuf();
-    rowbuf[colIndex - 1] = Double.toString(f);*/
+    FillRowbuf();
+    mRowbuf[colIndex - 1] = Double.toString(f);///Double.toString(f)////
     return NOERROR;
 }
 
@@ -1373,76 +1423,85 @@ ECode JDBCResultSet::UpdateBigDecimal(
     /* [in] */Int32 colIndex, 
     /* [in] */IBigDecimal** f)
 {
-    //throw new SQLFeatureNotSupportedException();
-    return NOERROR;
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::UpdateString(
     /* [in] */Int32 colIndex, 
     /* [in] */String s)
-{/*
-    isUpdatable();
-    if (tr == null || colIndex < 1 || colIndex > tr.ncolumns) {
-        throw new SQLException("column " + colIndex + " not found");
+{
+    Boolean result;
+    FAIL_RETURN(IsUpdatable(&result));
+    if (mTr == NULL || colIndex < 1 || colIndex > mTr.mNcolumns) {
+        //throw new SQLException("column " + colIndex + " not found");
+        return E_SQL_EXCEPTION;
     }
-    fillRowbuf();
-    rowbuf[colIndex - 1] = s;*/
+    FillRowbuf();
+    mRowbuf[colIndex - 1] = s;
     return NOERROR;
 }
 
 ECode JDBCResultSet::UpdateBytes(
     /* [in] */Int32 colIndex,
     /* [in] */ArrayOf<byte> s)
-{/*
-    isUpdatable();
-    if (tr == null || colIndex < 1 || colIndex > tr.ncolumns) {
-        throw new SQLException("column " + colIndex + " not found");
+{
+    Boolean result;
+    FAIL_RETURN(IsUpdatable(&result));
+    if (mTr == NULL || colIndex < 1 || colIndex > mTr.mNcolumns) {
+        //throw new SQLException("column " + colIndex + " not found");
+        return E_SQL_EXCEPTION;
     }
-    fillRowbuf();
+    FillRowbuf();
     if (this.s.conn.db.is3()) {
         rowbuf[colIndex - 1] = SQLite.StringEncoder.encodeX(s);
     } else {
         rowbuf[colIndex - 1] = SQLite.StringEncoder.encode(s);
-    }*/
+    }
     return NOERROR; 
 }
 
 ECode JDBCResultSet::UpdateDate(
     /* [in] */Int32 colIndex, 
     /* [in] */IDate* d)
-{/*
-    isUpdatable();
-    if (tr == null || colIndex < 1 || colIndex > tr.ncolumns) {
-        throw new SQLException("column " + colIndex + " not found");
+{
+    Boolean result;
+    FAIL_RETURN(IsUpdatable(&result));
+    if (mTr == NULL || colIndex < 1 || colIndex > mTr.mNcolumns) {
+        //throw new SQLException("column " + colIndex + " not found");
+        return E_SQL_EXCEPTION;
     }
-    fillRowbuf();
-    rowbuf[colIndex - 1] = d.toString();*/
+    FillRowbuf();
+    mRowbuf[colIndex - 1] = d.toString();/////d.toString()//////////
     return NOERROR; 
 }
 
 ECode JDBCResultSet::UpdateTime(
     /* [in] */Int32 colIndex, 
     /* [in] */ITime* t)
-{/*
-    isUpdatable();
-    if (tr == null || colIndex < 1 || colIndex > tr.ncolumns) {
-        throw new SQLException("column " + colIndex + " not found");
+{
+    Boolean result;
+    FAIL_RETURN(IsUpdatable(&result));
+    if (mTr == NULL || colIndex < 1 || colIndex > mTr.mNcolumns) {
+        //throw new SQLException("column " + colIndex + " not found");
+        return E_SQL_EXCEPTION;
     }
-    fillRowbuf();
-    rowbuf[colIndex - 1] = t.toString();*/
+    FillRowbuf();
+    mRowbuf[colIndex - 1] = t.toString();/////t.toString()//////////
     return NOERROR; 
 }
 
 ECode JDBCResultSet::UpdateTimestamp(
     /* [in] */Int32 colIndex, 
     /* [in] */ITimestamp* t)
-{/*
-    isUpdatable();
-    if (tr == null || colIndex < 1 || colIndex > tr.ncolumns) {
-        throw new SQLException("column " + colIndex + " not found");
+{
+    Boolean result;
+    FAIL_RETURN(IsUpdatable(&result));
+    if (mTr == NULL || colIndex < 1 || colIndex > mTr.mNcolumns) {
+        //throw new SQLException("column " + colIndex + " not found");
+        return E_SQL_EXCEPTION;
     }
-    fillRowbuf();
-    rowbuf[colIndex - 1] = t.toString();*/
+    FillRowbuf();
+    mRowbuf[colIndex - 1] = t.toString();//////////t.toString()///////////
     return NOERROR; 
 }
 
@@ -1451,8 +1510,7 @@ ECode JDBCResultSet::UpdateAsciiStream(
     /* [in] */IInputStream* in, 
     /* [in] */Int32 s)
 {
-    //throw new SQLFeatureNotSupportedException();
-    return NOERROR; 
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION; 
 }
 
 ECode JDBCResultSet::UpdateBinaryStream(
@@ -1460,8 +1518,7 @@ ECode JDBCResultSet::UpdateBinaryStream(
     /* [in] */IInputStream* in, 
     /* [in] */Int32 s)
 {
-    //throw new SQLFeatureNotSupportedException();
-    return NOERROR; 
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION; 
 }
 
 ECode JDBCResultSet::UpdateCharacterStream(
@@ -1469,15 +1526,14 @@ ECode JDBCResultSet::UpdateCharacterStream(
    /* [in] */IReader* in, 
    /* [in] */Int32 s)
 {
-    //throw new SQLFeatureNotSupportedException();
-    return NOERROR; 
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION; 
 }
 
 ECode JDBCResultSet::UpdateObject(
     /* [in] */Int32 colIndex, 
     /* [in] */IInterface* obj)
 {
-    //updateString(colIndex, obj.toString());
+    UpdateString(colIndex, obj.toString());///obj.toString()//
     return NOERROR; 
 }
 
@@ -1486,132 +1542,146 @@ ECode JDBCResultSet::UpdateObjectEx(
     /* [in] */IInterface* obj, 
     /* [in] */Int32 s)
 {
-    //updateString(colIndex, obj.toString());
+    UpdateString(colIndex, obj.toString());///obj.toString()//
     return NOERROR; 
 }
 
 ECode JDBCResultSet::UpdateNullEx(
     /* [in] */String colName)
-{/*
-    int col = findColumn(colName);
-    updateNull(col);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateNull(col);
     return NOERROR; 
 }
 
 ECode JDBCResultSet::UpdateBooleanEx(
     /* [in] */String colName, 
     /* [in] */Boolean b)
-{/*
-    int col = findColumn(colName);
-    updateBoolean(col, b);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateBoolean(col, b);
     return NOERROR; 
 }
 
 ECode JDBCResultSet::UpdateByteEx(
     /* [in] */String colName, 
     /* [in] */Byte b)
-{/*
-    int col = findColumn(colName);
-    updateByte(col, b);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateByte(col, b);
     return NOERROR; 
 }
 
 ECode JDBCResultSet::UpdateShortEx(
     /* [in] */String colName, 
     /* [in] */Int16 b)
-{/*
-    int col = findColumn(colName);
-    updateShort(col, b);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateShort(col, b);
     return NOERROR; 
 }
 
 ECode JDBCResultSet::UpdateIntEx(
     /* [in] */String colName, 
     /* [in] */Int32 b)
-{/*
-    int col = findColumn(colName);
-    updateInt(col, b);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateInt(col, b);
     return NOERROR; 
 }
 
 ECode JDBCResultSet::UpdateLongEx(
     /* [in] */String colName, 
     /* [in] */Int64 b)
-{/*
-    int col = findColumn(colName);
-    updateLong(col, b);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateLong(col, b);
     return NOERROR; 
 }
 
 ECode JDBCResultSet::UpdateFloatEx(
     /* [in] */String colName, 
     /* [in] */Float f)
-{/*
-    int col = findColumn(colName);
-    updateFloat(col, f);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateFloat(col, f);
     return NOERROR; 
 }
 
 ECode JDBCResultSet::UpdateDoubleEx(
     /* [in] */String colName, 
     /* [in] */Double f)
-{/*
-    int col = findColumn(colName);
-    updateDouble(col, f);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateDouble(col, f);
     return NOERROR; 
 }
 
 ECode JDBCResultSet::UpdateBigDecimalEx(
     /* [in] */String colName, 
     /* [in] */IBigDecimal* f)
-{/*
-    int col = findColumn(colName);
-    updateBigDecimal(col, f);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateBigDecimal(col, f);
     return NOERROR; 
 }
 
 ECode JDBCResultSet::UpdateStringEx(
     /* [in] */String colName, 
     /* [in] */String s)
-{/*
-    int col = findColumn(colName);
-    updateString(col, s);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateString(col, s);
     return NOERROR; 
 }
 
 ECode JDBCResultSet::UpdateBytesEx(
     /* [in] */String colName, 
     /* [in] */ArrayOf<Byte> s)
-{/*
-    int col = findColumn(colName);
-    updateBytes(col, s);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateBytes(col, s);
     return NOERROR; 
 }
 
 ECode JDBCResultSet::UpdateDateEx(
     /* [in] */String colName, 
     /* [in] */IDate* d)
-{/*
-    int col = findColumn(colName);
-    updateDate(col, d);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateDate(col, d);
     return NOERROR; 
 }
 
 ECode JDBCResultSet::UpdateTimeEx(
     /* [in] */String colName, 
     /* [in] */ITime* t)
-{/*
-    int col = findColumn(colName);
-    updateTime(col, t);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateTime(col, t);
     return NOERROR; 
 }
 
 ECode JDBCResultSet::UpdateTimestampEx(
     /* [in] */String colName, 
     /* [in] */ITimestamp* t)
-{/*
-    int col = findColumn(colName);
-    updateTimestamp(col, t);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateTimestamp(col, t);
     return NOERROR; 
 }
 
@@ -1619,9 +1689,10 @@ ECode JDBCResultSet::UpdateAsciiStreamEx(
     /* [in] */String colName, 
     /* [in] */IInputStream* in,
     /* [in] */Int32 s)
-{/*
-    int col = findColumn(colName);
-    updateAsciiStream(col, in, s);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateAsciiStream(col, in, s);
     return NOERROR; 
 }
 
@@ -1629,9 +1700,10 @@ ECode JDBCResultSet::UpdateBinaryStreamEx(
     /* [in] */String colName, 
     /* [in] */IInputStream* in,
     /* [in] */Int32 s)
-{/*
-    int col = findColumn(colName);
-    updateBinaryStream(col, in, s);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateBinaryStream(col, in, s);
     return NOERROR; 
 }
 
@@ -1639,18 +1711,20 @@ ECode JDBCResultSet::UpdateCharacterStreamEx(
     /* [in] */String colName, 
     /* [in] */IReader* in,
     /* [in] */Int32 s)
-{/*
-    int col = findColumn(colName);
-    updateCharacterStream(col, in, s);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateCharacterStream(col, in, s);
     return NOERROR; 
 }
 
 ECode JDBCResultSet::UpdateObjectEx2(
     /* [in] */String colName, 
     /* [in] */IInterface* obj)
-{/*
-    int col = findColumn(colName);
-    updateObject(col, obj);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateObject(col, obj);
     return NOERROR; 
 }
 
@@ -1658,30 +1732,32 @@ ECode JDBCResultSet::UpdateObjectEx3(
     /* [in] */String colName, 
     /* [in] */IInterface* obj, 
     /* [out] */Int32 s)
-{/*
-    int col = findColumn(colName);
-    updateObject(col, obj, s);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateObjectEx(col, obj, s);
     return NOERROR; 
 }
 
 ECode JDBCResultSet::GetStatement(
     /* [out] */IStatement* result)
-{/*
-    if (s == null) {
-        throw new SQLException("stale result set");
+{
+    if (ms == NULL) {
+//      throw new SQLException("stale result set");
+        return E_SQL_EXCEPTION;
     }
-    return s;*/
+    result = (IStatement**)&s;
     return NOERROR; 
 }
 
 ECode JDBCResultSet::Close()
-{/*
-    s = null;
-    tr = null;
-    lastg = null;
-    oninsrow = false;
-    rowbuf = null;
-    row = -1;*/
+{
+    ms = NULL;
+    mTr = NULL;
+    mLastg = NULL;
+    mOninsrow = FALSE;
+    mRowbuf = NULL;
+    mRow = -1;
     return NOERROR; 
 }
 
@@ -1710,9 +1786,10 @@ ECode JDBCResultSet::GetURL(
 ECode JDBCResultSet::GetURLEx(
     /* [in] */String colName,
      /* [out] */IURL** url)
-{/*
-    int col = findColumn(colName);
-    return getURL(col);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    GetURL(col,url);
     return NOERROR; 
 }
 
@@ -1720,16 +1797,16 @@ ECode JDBCResultSet::UpdateRef(
     /* [in] */Int32 colIndex, 
     /* [in] */IRef* x)
 {
-    //throw new SQLFeatureNotSupportedException();
-    return NOERROR; 
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::UpdateRefEx(
     /* [in] */String colName, 
     /* [in] */IRef* x)
-{/*
-    int col = findColumn(colName);
-    updateRef(col, x);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateRef(col, x);
     return NOERROR; 
 }
 
@@ -1737,15 +1814,16 @@ ECode JDBCResultSet::UpdateBlob(
     /* [in] */Int32 colIndex, 
     /* [in] */IBlob* x)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::UpdateBlobEx(
     /* [in] */String colName, 
     /* [in] */IBlob* x)
-{/*
-    int col = findColumn(colName);
-    updateBlob(col, x);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateBlob(col, x);
     return NOERROR; 
 }
 
@@ -1753,15 +1831,16 @@ ECode JDBCResultSet::UpdateClob(
     /* [in] */Int32 colIndex, 
     /* [in] */IClob* x)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::UpdateClobEx(
     /* [in] */String colName, 
     /* [in] */IClob* x)
-{/*
-    int col = findColumn(colName);
-    updateClob(col, x);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateClob(col, x);
     return NOERROR; 
 }
 
@@ -1769,15 +1848,16 @@ ECode JDBCResultSet::UpdateArray(
     /* [in] */Int32 colIndex, 
     /* [in] */IArray* x)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::UpdateArrayEx(
     /* [in] */String colName, 
     /* [in] */IArray* x)
-{/*
-    int col = findColumn(colName);
-    updateArray(col, x);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateArray(col, x);
     return NOERROR; 
 }
 
@@ -1785,15 +1865,16 @@ ECode JDBCResultSet::GetRowId(
     /* [in] */Int32 colIndex,
     /* [out] */IRowId** id)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::GetRowIdEx(
     /* [in] */String colName,
     /* [out] */IRowId** id)
-{/*
-    int col = findColumn(colName);
-    return getRowId(col);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    GetRowId(col,id);
     return NOERROR; 
 }
 
@@ -1801,15 +1882,16 @@ ECode JDBCResultSet::UpdateRowId(
     /* [in] */Int32 colIndex, 
     /* [in] */IRowId* x)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::UpdateRowIdEx(
     /* [in] */String colName, 
     /* [in] */IRowId* x)
-{/*
-    int col = findColumn(colName);
-    updateRowId(col, x);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateRowId(col, x);
     return NOERROR; 
 }
 
@@ -1817,7 +1899,7 @@ ECode JDBCResultSet::GetHoldability(
     /* [out] */Int32* result)
 {
     assert(result != NULL);
-    *result = ResultSet.CLOSE_CURSORS_AT_COMMIT;
+    *result = ResultSet.IResultSet_CLOSE_CURSORS_AT_COMMIT;
     return NOERROR; 
 }
 
@@ -1825,7 +1907,7 @@ ECode JDBCResultSet::IsClosed(
     /* [out] */Boolean* result)
 {
     assert(result != NULL);
-    *result = tr == NULL;
+    *result = (mTr == NULL);
     return NOERROR;
 }
 
@@ -1833,15 +1915,16 @@ ECode JDBCResultSet::UpdateNString(
     /* [in] */Int32 colIndex, 
     /* [in] */String nString)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::UpdateNStringEx(
     /* [in] */String colName, 
     /* [in] */String nString)
-{/*
-    int col = findColumn(colName);
-    updateNString(col, nString);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateNString(col, nString);
     return NOERROR;
 }
 
@@ -1849,15 +1932,16 @@ ECode JDBCResultSet::UpdateNClob(
     /* [in] */Int32 colIndex, 
     /* [in] */INClob* nclob)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::UpdateNClobEx(
     /* [in] */String colName,
     /* [in] */ INClob* nclob)
-{/*
-    int col = findColumn(colName);
-    updateNClob(col, nclob);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateNClob(col, nclob);
     return NOERROR;
 }
 
@@ -1865,15 +1949,16 @@ ECode JDBCResultSet::GetNClob(
     /* [in] */Int32 colIndex,
     /* [out] */INClob** clob)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::GetNClobEx(
     /* [in] */String colName,
     /* [out] */INClob** clob)
-{/*
-    int col = findColumn(colName);
-    return getNClob(col);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    GetNClob(col,clob);
     return NOERROR;
 }
 
@@ -1881,15 +1966,16 @@ ECode JDBCResultSet::GetSQLXML(
     /* [in] */Int32 colIndex,
     /* [out] */ISQLXML** xml)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
-ECode JDBCResultSet::SQLXML GetSQLXMLEx(
+ECode JDBCResultSet::GetSQLXMLEx(
     /* [in] */String colName,
     /* [out] */ISQLXML** xml)
-{/*
-    int col = findColumn(colName);
-    return getSQLXML(col);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    GetSQLXML(col,xml);
     return NOERROR;
 }
 
@@ -1897,15 +1983,16 @@ ECode JDBCResultSet::UpdateSQLXML(
     /* [in] */Int32 colIndex, 
     /* [in] */ISQLXML* xml)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::UpdateSQLXMLEx(
     /* [in] */String colName, 
     /* [in] */ISQLXML* xml)
-{/*
-    int col = findColumn(colName);
-    updateSQLXML(col, xml);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateSQLXML(col, xml);
     return NOERROR;
 }
 
@@ -1913,15 +2000,16 @@ ECode JDBCResultSet::GetNString(
     /* [in] */Int32 colIndex,
     /* [out] */String* str)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::String GetNStringEx(
     /* [in] */String colName,
     /* [out] */String* str)
-{/*
-    int col = findColumn(colName);
-    return getNString(col);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    GetNString(col,str);
     return NOERROR;
 }
 
@@ -1929,15 +2017,16 @@ ECode JDBCResultSet::GetNCharacterStream(
     /* [in] */Int32 colIndex,
     /* [out] */IReader** read)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::GetNCharacterStreamEx(
     /* [in] */String colName,
     /* [out] */IReader** read)
-{/*
-    int col = findColumn(colName);
-    return getNCharacterStream(col);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    GetNCharacterStream(col,read);
     return NOERROR;
 }
 
@@ -1946,16 +2035,17 @@ ECode JDBCResultSet::UpdateNCharacterStream(
     /* [in] */IReader* x,
     /* [in] */Int64 len)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::UpdateNCharacterStreamEx(
     /* [in] */String colName, 
     /* [in] */IReader* x,
     /* [in] */Int64 len)
-{/*
-    int col = findColumn(colName);
-    updateNCharacterStream(col, x, len);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateNCharacterStream(col, x, len);
     return NOERROR;
 }
 
@@ -1964,16 +2054,17 @@ ECode JDBCResultSet::UpdateAsciiStreamEx2(
     /* [in] */IInputStream* x,
     /* [in] */Int64 len)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::UpdateAsciiStreamEx3(
     /* [in] */String colName, 
     /* [in] */IInputStream* x,
     /* [in] */Int64 len)
-{/*
-    int col = findColumn(colName);
-    updateAsciiStream(col, x, len);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateAsciiStreamEx2(col, x, len);
     return NOERROR;
 }
 
@@ -1982,16 +2073,17 @@ ECode JDBCResultSet::UpdateBinaryStreamEx2(
     /* [in] */IInputStream* x,
     /* [in] */Int64 len)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::UpdateBinaryStreamEx3(
     /* [in] */String colName, 
     /* [in] */IInputStream* x,
     /* [in] */Int64 len)
-{/*
-    int col = findColumn(colName);
-    updateBinaryStream(col, x, len);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateBinaryStreamEx2(col, x, len);
     return NOERROR;
 }
 
@@ -2000,16 +2092,17 @@ ECode JDBCResultSet::UpdateCharacterStreamEx2(
     /* [in] */IReader* x,
     /* [in] */Int64 len)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::UpdateCharacterStreamEx3(
     /* [in] */String colName, 
     /* [in] */IReader* x,
     /* [in] */Int64 len)
-{/*
-    int col = findColumn(colName);
-    updateCharacterStream(col, x, len);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateCharacterStreamEx2(col, x, len);
     return NOERROR;
 }
 
@@ -2018,16 +2111,17 @@ ECode JDBCResultSet::UpdateBlobEx2(
     /* [in] */IInputStream* x,
     /* [in] */Int64 len)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::UpdateBlobEx3(
     /* [in] */String colName, 
     /* [in] */IInputStream* x,
     /* [in] */Int64 len)
-{/*
-    int col = findColumn(colName);
-    updateBlob(col, x, len);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateBlobEx2(col, x, len);
     return NOERROR;
 }
 
@@ -2036,16 +2130,17 @@ ECode JDBCResultSet::UpdateClobEx2(
     /* [in] */IReader* x,
     /* [in] */Int64 len)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::UpdateClobEx3(
     /* [in] */String colName, 
     /* [in] */IReader* x,
     /* [in] */Int64 len)
-{/*
-    int col = findColumn(colName);
-    updateClob(col, x, len);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateClobEx2(col, x, len);
     return NOERROR;
 }
 
@@ -2054,16 +2149,17 @@ ECode JDBCResultSet::UpdateNClobEx2(
     /* [in] */IReader* x,
     /* [in] */Int64 len)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::UpdateNClobEx3(
     /* [in] */String colName, 
     /* [in] */IReader* x,
     /* [in] */Int64 len)
-{/*
-    int col = findColumn(colName);
-    updateNClob(col, x, len);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateNClobEx2(col, x, len);
     return NOERROR;
 }
 
@@ -2071,15 +2167,16 @@ ECode JDBCResultSet::UpdateNCharacterStreamEx2(
     /* [in] */Int32 colIndex, 
     /* [in] */IReader* x)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::UpdateNCharacterStreamEx3(
     /* [in] */String colName, 
     /* [in] */IReader* x)
-{/*
-    int col = findColumn(colName);
-    updateNCharacterStream(col, x);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateNCharacterStreamEx2(col, x);
     return NOERROR;
 }
 
@@ -2087,15 +2184,16 @@ ECode JDBCResultSet::UpdateAsciiStreamEx3(
     /* [in] */Int32 colIndex, 
     /* [in] */IInputStream* x)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::UpdateAsciiStreamEx4(
     /* [in] */String colName, 
     /* [in] */IInputStream* x)
-{/*
-    int col = findColumn(colName);
-    updateAsciiStream(col, x);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateAsciiStreamEx3(col, x);
     return NOERROR;
 }
 
@@ -2103,15 +2201,16 @@ ECode JDBCResultSet::UpdateBinaryStreamEx3(
     /* [in] */Int32 colIndex, 
     /* [in] */IInputStream* x)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::UpdateBinaryStreamEx4(
     /* [in] */String colName, 
     /* [in] */IInputStream* x)
-{/*
-    nt col = findColumn(colName);
-    updateBinaryStream(col, x);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateBinaryStreamEx3(col, x);
     return NOERROR;
 }
 
@@ -2119,15 +2218,16 @@ ECode JDBCResultSet::UpdateCharacterStreamEx3(
     /* [in] */Int32 colIndex, 
     /* [in] */IReader* x)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::UpdateCharacterStreamEx4(
     /* [in] */String colName, 
     /* [in] */IReader* x)
-{/*
-    int col = findColumn(colName);
-    updateCharacterStream(col, x);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateCharacterStreamEx3(col, x);
     return NOERROR;
 }
 
@@ -2135,15 +2235,16 @@ ECode JDBCResultSet::UpdateBlobEx3(
     /* [in] */Int32 colIndex, 
     /* [in] */IInputStream* x)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::UpdateBlobEx4(
     /* [in] */String colName, 
     /* [in] */IInputStream* x)
-{/*
-    int col = findColumn(colName);
-    updateBlob(col, x);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateBlobEx3(col, x);
     return NOERROR;
 }
 
@@ -2151,15 +2252,16 @@ ECode JDBCResultSet::UpdateClobEx3(
     /* [in] */Int32 colIndex, 
     /* [in] */IReader* x)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::UpdateClobEx4(
     /* [in] */String colName, 
     /* [in] */IReader* x)
-{/*
-    int col = findColumn(colName);
-    updateClob(col, x);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateClobEx3(col, x);
     return NOERROR;
 }
 
@@ -2167,14 +2269,15 @@ ECode JDBCResultSet::UpdateNClobEx3(
     /* [in] */Int32 colIndex, 
     /* [in] */IReader* x)
 {
-    //throw new SQLFeatureNotSupportedException();
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
 ECode JDBCResultSet::UpdateNClobEx4(
     /* [in] */String colName, 
     /* [in] */IReader* x)
-{/*
-    int col = findColumn(colName);
-    updateNClob(col, x);*/
+{
+    Int32 col;
+    FindColumn(colName,&col);
+    UpdateNClobEx3(col, x);
     return NOERROR;
 }

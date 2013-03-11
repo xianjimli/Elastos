@@ -4,7 +4,7 @@
 #include <elastos.h>
 #include <Elastos.SQL_server.h>
 #include <elastos/AutoPtr.h>
-#include "JDBCConnection.h"
+#include "CJDBCConnection.h"
 #include "Statement.h"
 
 using namespace Elastos;

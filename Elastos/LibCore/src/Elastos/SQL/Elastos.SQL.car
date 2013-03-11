@@ -7,6 +7,24 @@ module
     importlib("Elastos.Utility.eco");
 
     merge("../../../car/Elastos/SQL/Exceptions.car");
+    
+    merge("../../../car/Elastos/SQL/IAuthorizer.car");
+    merge("../../../car/Elastos/SQL/IBlob2.car");
+    merge("../../../car/Elastos/SQL/IBusyHandler.car");
+    merge("../../../car/Elastos/SQL/ICallback.car");
+    merge("../../../car/Elastos/SQL/IConstants.car");
+    merge("../../../car/Elastos/SQL/IFunctionContext.car");
+    merge("../../../car/Elastos/SQL/IFunction.car");
+    merge("../../../car/Elastos/SQL/IDriver.car");
+    merge("../../../car/Elastos/SQL/IJDBCDriver.car");
+    merge("../../../car/Elastos/SQL/IProgressHandler.car");
+    merge("../../../car/Elastos/SQL/IShell.car");
+    merge("../../../car/Elastos/SQL/IStmt.car");
+    merge("../../../car/Elastos/SQL/ITableResult.car");
+    merge("../../../car/Elastos/SQL/ITrace.car");
+    merge("../../../car/Elastos/SQL/IVm.car");
+    merge("../../../car/Elastos/SQL/IDatabase.car");
+
     merge("../../../car/Elastos/SQL/IArray.car");
     merge("../../../car/Elastos/SQL/IBlob.car");
     merge("../../../car/Elastos/SQL/IClob.car");
@@ -43,6 +61,14 @@ module
     merge("../../../car/Elastos/Utility/ICalendar.car");
     merge("../../../car/Elastos/SQL/ICallableStatement.car");
 
+
+    class CDatabase {
+        constructor();
+
+        interface IDatabase;
+    }
+
+/*
     class CJDBCConnection {
         constructor(
             [in] String url,
@@ -52,12 +78,12 @@ module
             [in] String vfs);
 
         interface IJDBCConnection;
-    }
-
+    }*/
+/*
     class CJDBCStatement {
         constructor(
             [in] IConnection* conn);
 
         interface IStatement;
-    }
+    }*/
 }

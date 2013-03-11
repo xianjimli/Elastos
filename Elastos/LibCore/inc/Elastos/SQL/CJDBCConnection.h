@@ -1,16 +1,19 @@
-#ifndef _JDBCCONNECTION_H_
-#define _JDBCCONNECTION_H_
+#ifndef _CJDBCCONNECTION_H_
+#define _CJDBCCONNECTION_H_
 
 #include <elastos.h>
 #include <elastos/AutoPtr.h>
 #include "Connection.h"
+#include "_CJDBCConnection.h"
+//#include "Database.h"
 
 using namespace Elastos;
 
-//class DatabaseX : public Database 
+//class DatabaseX : public Database
 //{
 
     //static Object lock = new Object();
+    //Mutex mSyncLock;
 
 //    DatabaseX();
 
@@ -20,33 +23,32 @@ using namespace Elastos;
 //        /* [in] */Int32 ms);
 
 //    CARAPI Exec(
-//        /* [in] */String sql, 
-//        /* [in] */SQLite.Callback cb);
+ //       /* [in] */String sql, 
+ //       /* [in] */SQLite.Callback cb);
 
 //    CARAPI ExecEx(
 //        /* [in] */String sql, 
 //        /* [in] */SQLite.Callback cb, 
 //        /* [in] */ArrayOf<String> args);
 
-//    CARAPI Get_table(
+//    CARAPI Get_tableEx3(
 //        /* [in] */String sql, 
 //        /* [in] */ArrayOf<String> args,
 //        /* [out] */ITableResult** result);
 
-//    CARAPI Get_table(
+//    CARAPI Get_tableEx4(
 //        /* [in] */String sql, 
-//       /* [in] */ArrayOf<String> args, 
+//        /* [in] */ArrayOf<String> args, 
 //        /* [in] */ITableResult* tbl);
 //};
 
-
-class JDBCConnection : public Connection
+CarClass(CJDBCConnection), public Connection
 {
 protected:
     /**
      * Open database.
      */
-//    AutoPtr<IDatabaseX> mDb;
+ //   AutoPtr<DatabaseX> mDb;
 
     /**
      * Database URL.
@@ -126,21 +128,19 @@ protected:
 
 
 public:
-    JDBCConnection();
+    CJDBCConnection();
 
-    ~JDBCConnection();
+    CARAPI constructor(
+        /* [in] */ String url,
+        /* [in] */ String enc,
+        /* [in] */ String pwd,
+        /* [in] */ String drep,
+        /* [in] */ String vfs);
 
     CARAPI Busy(
         /* [in] */String table, 
         /* [in] */Int32 count,
         /* [out] */Boolean* result);
-
-    CARAPI Init(
-        /* [in] */String url, 
-        /* [in] */String enc, 
-        /* [in] */String pwd, 
-        /* [in] */String drep,
-        /* [in] */String vfs);
 
     /* non-standard */
 //    CARAPI GetSQLiteDatabase(
@@ -323,5 +323,4 @@ public:
 //        /* [in] */java.lang.Class iface);
 
 };
-
 #endif //_JDBCCONNECTION_H_

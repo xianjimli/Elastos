@@ -1,0 +1,16 @@
+
+module
+{
+    /**
+	 * Callback interface for SQLite's trace function.
+	 */
+    interface ITrace {
+
+        /**
+	     * Callback to trace (ie log) one SQL statement.
+	     *
+	     * @param stmt SQL statement string
+	     */
+	    //Trace(String stmt);
+    }
+}

@@ -10,7 +10,9 @@ IMPORTS += Droid.System.eco
 IMPORTS += Com.Kortide.Platform.eco
 
 SOURCES = Elastos.SQL.car
-SOURCES += JDBCConnection.cpp
+SOURCES += Database.cpp
+SOURCES += CDatabase.cpp
+#SOURCES += CJDBCConnection.cpp
 
 
 
@@ -23,4 +25,5 @@ else
 LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
 LIBRARIES += $(XDK_TARGETS)/Elastos.Core.eco
 LIBRARIES += $(XDK_USER_LIB)/crt0.lib
+LIBRARIES += -lsqlite
 endif

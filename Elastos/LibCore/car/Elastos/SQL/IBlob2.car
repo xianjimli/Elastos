@@ -1,0 +1,33 @@
+
+module
+{
+    /**
+     * Class to represent SQLite3 3.4.0 incremental blob I/O interface.
+     *
+     * Note, that all native methods of this class are
+     * not synchronized, i.e. it is up to the caller
+     * to ensure that only one thread is in these
+     * methods at any one time.
+     */
+    interface IBlob2 {
+
+        /**
+         * Return InputStream for this blob
+         * @return InputStream
+         */
+        GetInputStream(
+            [out] IInputStream** stream);
+
+        /**
+         * Return OutputStream for this blob
+         * @return OutputStream
+         */
+        GetOutputStream(
+            [out] IOutputStream** stream);
+
+        /**
+         * Close blob.
+         */
+        Close();
+    }
+}

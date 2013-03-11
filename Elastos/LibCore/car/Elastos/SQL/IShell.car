@@ -1,0 +1,8 @@
+
+module
+{
+    interface ICallback;
+
+    interface IShell extends ICallback{
+    }
+}

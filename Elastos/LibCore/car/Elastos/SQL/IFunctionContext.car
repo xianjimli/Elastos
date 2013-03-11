@@ -1,0 +1,67 @@
+
+module
+{
+    /**
+	 * Context for execution of SQLite's user defined functions.
+	 * A reference to an instance of this class is passed to
+	 * user defined functions.
+	 */
+    interface IFunctionContext {
+
+        /**
+	     * Set function result from string.
+	     *
+	     * @param r result string
+	     */
+	    Set_result(
+	        [in] String r);
+
+	    /**
+	     * Set function result from integer.
+	     *
+	     * @param r result integer
+	     */
+	    Set_resultEx(
+	        [in] Int32 r);
+
+	    /**
+	     * Set function result from double.
+	     *
+	     * @param r result double
+	     */
+	    Set_resultEx2(
+	        [in] Double r);
+
+	    /**
+	     * Set function result from error message.
+	     *
+	     * @param r result string (error message)
+	     */
+	    Set_error(
+	        [in] String r);
+
+	    /**
+	     * Set function result from byte array.
+	     * Only provided by SQLite3 databases.
+	     *
+	     * @param r result byte array
+	     */
+	    Set_resultEx3(
+	        [in] ArrayOf<Byte> r);
+
+	    /**
+	     * Set function result as empty blob given size.
+	     * Only provided by SQLite3 databases.
+	     *
+	     * @param n size for empty blob
+	     */
+	    Set_result_zeroblob(
+	        [in] Int32 n);
+
+	    /**
+	     * Retrieve number of rows for aggregate function.
+	     */
+	    Count(
+	        [out] Int32* result);
+    }
+}

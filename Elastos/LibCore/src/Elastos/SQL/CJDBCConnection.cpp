@@ -1,4 +1,5 @@
 #include "JDBCStatement.h"
+#include "CJDBCConnection.h"
 #include "cmdef.h"
 
 //DatabaseX::DatabaseX()
@@ -41,7 +42,7 @@
 //{
 //}
 
-//Boolean JDBCConnection::Busy0(
+//Boolean CJDBCConnection::Busy0(
 //        /* [in] */DatabaseX db, 
 //        /* [in] */Int32 count)
 //{
@@ -61,7 +62,7 @@
 //    return NOERROR;
 //}
 
-//Boolean JDBCConnection::Busy3(
+//Boolean CJDBCConnection::Busy3(
 //    /* [in] */DatabaseX db, 
 //    /* [in] */Int32 count)
 //{
@@ -80,7 +81,7 @@
 //    return NOERROR;
 //}
 
-//JDBCConnection::Open(
+//CJDBCConnection::Open(
 //    /* [in] */Boolean readonly,
 //    /* [out] */IDatabaseX** result)
 //{
@@ -121,7 +122,7 @@
 //    return NOERROR;
 //}
 
-JDBCConnection::JDBCConnection()
+CJDBCConnection::CJDBCConnection()
     :mAutocommit(TRUE)
     ,mIntrans(FALSE)
     ,mTimeout(1000000)
@@ -131,28 +132,15 @@ JDBCConnection::JDBCConnection()
 {
 
 }
-
-JDBCConnection::~JDBCConnection()
+ECode CJDBCConnection::constructor(
+    /* [in] */ String url,
+    /* [in] */ String enc,
+    /* [in] */ String pwd,
+    /* [in] */ String drep,
+    /* [in] */ String vfs)
+    
 {
-
-}
-
-ECode JDBCConnection::Busy(
-    /* [in] */String table, 
-    /* [in] */Int32 count,
-    /* [out] */Boolean* result)
-{
-    //return busy0(db, count);
-    return NOERROR;
-}
-
-ECode JDBCConnection::Init(
-    /* [in] */String url, 
-    /* [in] */String enc, 
-    /* [in] */String pwd, 
-    /* [in] */String drep,
-    /* [in] */String vfs)
-{/*
+    /*
     if (url.startsWith("sqlite:/")) {
         dbfile = url.substring(8);
     } else if (url.startsWith("jdbc:sqlite:/")) {
@@ -187,15 +175,25 @@ ECode JDBCConnection::Init(
     return NOERROR;
 }
 
+
+ECode CJDBCConnection::Busy(
+    /* [in] */String table, 
+    /* [in] */Int32 count,
+    /* [out] */Boolean* result)
+{
+    //return busy0(db, count);
+    return NOERROR;
+}
+
 /* non-standard */
-//ECode JDBCConnection::GetSQLiteDatabase(
+//ECode CJDBCConnection::GetSQLiteDatabase(
 //    /* [out] */IDatabase** result)
 //{
     //return (SQLite.Database) db;
 //    return NOERROR;
 //}
 
-ECode JDBCConnection::CreateStatement(
+ECode CJDBCConnection::CreateStatement(
     /* [out] */IStatement** result)
 {/*
     JDBCStatement s = new JDBCStatement(this);
@@ -203,7 +201,7 @@ ECode JDBCConnection::CreateStatement(
     return NOERROR;
 }
 
-ECode JDBCConnection::CreateStatementEx(
+ECode CJDBCConnection::CreateStatementEx(
     /* [in] */Int32 resultSetType,
     /* [in] */Int32 resultSetConcurrency,
     /* [out] */IStatement** result)
@@ -222,7 +220,7 @@ ECode JDBCConnection::CreateStatementEx(
     return NOERROR;
 }
 
-ECode JDBCConnection::GetMetaData(
+ECode CJDBCConnection::GetMetaData(
     /* [out] */IDatabaseMetaData** result)
 {/*
     if (meta == null) {
@@ -232,7 +230,7 @@ ECode JDBCConnection::GetMetaData(
     return NOERROR;
 }
 
-ECode JDBCConnection::Close()
+ECode CJDBCConnection::Close()
 {/*
     try {
         rollback();
@@ -251,7 +249,7 @@ ECode JDBCConnection::Close()
     return NOERROR;
 }
 
-ECode JDBCConnection::IsClosed(
+ECode CJDBCConnection::IsClosed(
     /* [out] */Boolean* result)
 {
     assert(result!=NULL);
@@ -259,7 +257,7 @@ ECode JDBCConnection::IsClosed(
     return NOERROR;
 }
 
-ECode JDBCConnection::IsReadOnly(
+ECode CJDBCConnection::IsReadOnly(
     /* [out] */Boolean* result)
 {
     assert(result!=NULL);
@@ -267,12 +265,12 @@ ECode JDBCConnection::IsReadOnly(
     return NOERROR;
 }
 
-ECode JDBCConnection::ClearWarnings()
+ECode CJDBCConnection::ClearWarnings()
 {
     return NOERROR;
 }
 
-ECode JDBCConnection::Commit()
+ECode CJDBCConnection::Commit()
 {/*
     if (db == null) {
         throw new SQLException("stale connection");
@@ -289,7 +287,7 @@ ECode JDBCConnection::Commit()
     return NOERROR;
 }
 
-ECode JDBCConnection::GetAutoCommit(
+ECode CJDBCConnection::GetAutoCommit(
     /* [out] */Boolean* result)
 {
     assert(result!=NULL);
@@ -297,7 +295,7 @@ ECode JDBCConnection::GetAutoCommit(
     return NOERROR;
 }
 
-ECode JDBCConnection::GetCatalog(
+ECode CJDBCConnection::GetCatalog(
     /* [out] */String* result)
 {
     assert(result!=NULL);
@@ -305,7 +303,7 @@ ECode JDBCConnection::GetCatalog(
     return NOERROR;
 }
 
-ECode JDBCConnection::GetTransactionIsolation(
+ECode CJDBCConnection::GetTransactionIsolation(
     /* [out] */Int32* result)
 {
     assert(result!=NULL);
@@ -313,23 +311,23 @@ ECode JDBCConnection::GetTransactionIsolation(
     return NOERROR;
 }
 
-//    ECode JDBCConnection::SQLWarning getWarnings(){}
+//    ECode CJDBCConnection::SQLWarning getWarnings(){}
 
-ECode JDBCConnection::NativeSQL(
+ECode CJDBCConnection::NativeSQL(
     /* [in] */String sql,
     /* [out] */String* result)
 {
     return E_SQL_EXCEPTION;
 }
 
-ECode JDBCConnection::PrepareCall(
+ECode CJDBCConnection::PrepareCall(
     /* [in] */String sql,
     /* [out] */ICallableStatement** result)
 {
     return E_SQL_EXCEPTION;
 }
 
-ECode JDBCConnection::PrepareCallx(
+ECode CJDBCConnection::PrepareCallx(
     /* [in] */String sql, 
     /* [in] */Int32 x, 
     /* [in] */Int32 y,
@@ -338,7 +336,7 @@ ECode JDBCConnection::PrepareCallx(
     return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
-ECode JDBCConnection::PrepareStatement(
+ECode CJDBCConnection::PrepareStatement(
     /* [in] */String sql,
     /* [out] */IPreparedStatement** result)
 {/*
@@ -347,7 +345,7 @@ ECode JDBCConnection::PrepareStatement(
     return NOERROR;
 }
 
-ECode JDBCConnection::PrepareStatementEx(
+ECode CJDBCConnection::PrepareStatementEx(
     /* [in] */String sql, 
     /* [in] */Int32 resultSetType,
     /* [in] */Int32 resultSetConcurrency,
@@ -367,7 +365,7 @@ ECode JDBCConnection::PrepareStatementEx(
     return NOERROR;
 }
 
-ECode JDBCConnection::Rollback()
+ECode CJDBCConnection::Rollback()
 {/*
     if (db == null) {
         throw new SQLException("stale connection");
@@ -384,7 +382,7 @@ ECode JDBCConnection::Rollback()
     return NOERROR;
 }
 
-ECode JDBCConnection::SetAutoCommit(
+ECode CJDBCConnection::SetAutoCommit(
     /* [in] */Boolean ac)
 {/*
     if (ac && intrans && db != null) {
@@ -400,13 +398,13 @@ ECode JDBCConnection::SetAutoCommit(
     return NOERROR;
 }
 
-ECode JDBCConnection::SetCatalog(
+ECode CJDBCConnection::SetCatalog(
     /* [in] */String catalog)
 {
     return NOERROR;
 }
 
-ECode JDBCConnection::SetReadOnly(
+ECode CJDBCConnection::SetReadOnly(
     /* [in] */Boolean ro)
 {/*
     if (intrans) {
@@ -435,7 +433,7 @@ ECode JDBCConnection::SetReadOnly(
     return NOERROR;
 }
 
-ECode JDBCConnection::SetTransactionIsolation(
+ECode CJDBCConnection::SetTransactionIsolation(
     /* [in] */Int32 level)
 {/*
     if (db.is3() && SQLite.JDBCDriver.sharedCache) {
@@ -461,22 +459,22 @@ ECode JDBCConnection::SetTransactionIsolation(
     return NOERROR;
 }
 
-//    ECode JDBCConnection::java.util.Map<String, Class<?>> getTypeMap(){}
+//    ECode CJDBCConnection::java.util.Map<String, Class<?>> getTypeMap(){}
 
-//ECode JDBCConnection::SetTypeMap(
+//ECode CJDBCConnection::SetTypeMap(
 //    /* [in] */java.util.Map map)
 //{
 //    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 //}
 
-ECode JDBCConnection::GetHoldability(
+ECode CJDBCConnection::GetHoldability(
     /* [out] */Int32* result)
 {
     //return ResultSet.HOLD_CURSORS_OVER_COMMIT;
     return NOERROR;
 }
 
-ECode JDBCConnection::SetHoldability(
+ECode CJDBCConnection::SetHoldability(
     /* [in] */Int32 holdability)
 {/*
     if (holdability == ResultSet.HOLD_CURSORS_OVER_COMMIT) {
@@ -486,32 +484,32 @@ ECode JDBCConnection::SetHoldability(
     return NOERROR;
 }
 
-ECode JDBCConnection::SetSavepoint(
+ECode CJDBCConnection::SetSavepoint(
      /* [out] */ISavepoint** result)
 {
     return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
-ECode JDBCConnection::SetSavepointEx(
+ECode CJDBCConnection::SetSavepointEx(
     /* [in] */String name,
     /* [out] */ISavepoint** result)
 {
     return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
-ECode JDBCConnection::Rollback(
+ECode CJDBCConnection::Rollback(
     /* [in] */ISavepoint* x)
 {
     return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
-ECode JDBCConnection::ReleaseSavepoint(
+ECode CJDBCConnection::ReleaseSavepoint(
     /* [in] */ISavepoint* x)
 {
     return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
-ECode JDBCConnection::CreateStatementEx2(
+ECode CJDBCConnection::CreateStatementEx2(
     /* [in] */Int32 resultSetType,
     /* [in] */Int32 resultSetConcurrency,
     /* [in] */Int32 resultSetHoldability,
@@ -524,7 +522,7 @@ ECode JDBCConnection::CreateStatementEx2(
     return NOERROR;
 }
 
-ECode JDBCConnection::PrepareStatementEx2(
+ECode CJDBCConnection::PrepareStatementEx2(
     /* [in] */String sql, 
     /* [in] */Int32 resultSetType,
     /* [in] */Int32 resultSetConcurrency,
@@ -538,7 +536,7 @@ ECode JDBCConnection::PrepareStatementEx2(
     return NOERROR;
 }
 
-ECode JDBCConnection::PrepareCallEx(
+ECode CJDBCConnection::PrepareCallEx(
     /* [in] */String sql, 
     /* [in] */Int32 x, 
     /* [in] */Int32 y, 
@@ -548,7 +546,7 @@ ECode JDBCConnection::PrepareCallEx(
     return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
-ECode JDBCConnection::PrepareStatementEx3(
+ECode CJDBCConnection::PrepareStatementEx3(
     /* [in] */String sql, 
     /* [in] */Int32 autokeys,
     /* [out] */IPreparedStatement** result)
@@ -560,7 +558,7 @@ ECode JDBCConnection::PrepareStatementEx3(
     return NOERROR;
 }
 
-ECode JDBCConnection::PrepareStatementEx4(
+ECode CJDBCConnection::PrepareStatementEx4(
     /* [in] */String sql, 
     /* [in] */ArrayOf<Int32> colIndexes,
     /* [out] */IPreparedStatement** result)
@@ -568,7 +566,7 @@ ECode JDBCConnection::PrepareStatementEx4(
     return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
-ECode JDBCConnection::PrepareStatementEx5(
+ECode CJDBCConnection::PrepareStatementEx5(
     /* [in] */String sql, 
     /* [in] */ArrayOf<String> columns,
     /* [out] */IPreparedStatement** result)
@@ -576,31 +574,31 @@ ECode JDBCConnection::PrepareStatementEx5(
     return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
-ECode JDBCConnection::CreateClob(
+ECode CJDBCConnection::CreateClob(
     /* [out] */IClob** result)
 {
     return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
-ECode JDBCConnection::CreateBlob(
+ECode CJDBCConnection::CreateBlob(
     /* [out] */IBlob** result)
 {
     return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
-ECode JDBCConnection::CreateNClob(
+ECode CJDBCConnection::CreateNClob(
     /* [out] */INClob** result)
 {
     return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
-ECode JDBCConnection::CreateSQLXML(
+ECode CJDBCConnection::CreateSQLXML(
     /* [out] */ISQLXML** result)
 {
     return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 }
 
-ECode JDBCConnection::IsValid(
+ECode CJDBCConnection::IsValid(
     /* [in] */Int32 timeout,
     /* [out] */Boolean* result)
 {
@@ -609,34 +607,34 @@ ECode JDBCConnection::IsValid(
     return NOERROR;
 }
 
-ECode JDBCConnection::SetClientInfo(
+ECode CJDBCConnection::SetClientInfo(
     /* [in] */String name, 
     /* [in] */String value)
 {
     return E_SQL_CLIENT_INFO_EXCEPTION;
 }
 
-//ECode JDBCConnection::SetClientInfoEx(
+//ECode CJDBCConnection::SetClientInfoEx(
 //    /* [in] */Properties prop)
 //{
  //   return E_SQL_CLIENT_INFO_EXCEPTION;
 //}
 
-ECode JDBCConnection::GetClientInfo(
+ECode CJDBCConnection::GetClientInfo(
     /* [in] */String name,
     /* [out] */String* str)
 {
     return E_SQL_EXCEPTION;
 }
 
-//ECode JDBCConnection::GetClientInfo(
+//ECode CJDBCConnection::GetClientInfo(
 //    /* [out] */IProperties** info)
 //{
 //    //return new Properties();
 //    return NOERROR;
 //}
 
-ECode JDBCConnection::CreateArrayOf(
+ECode CJDBCConnection::CreateArrayOf(
     /* [in] */String type, 
     /* [in] */ArrayOf<IInterface*> elems,
     /* [out] */IArray** result)

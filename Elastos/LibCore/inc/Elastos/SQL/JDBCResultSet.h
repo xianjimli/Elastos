@@ -48,13 +48,13 @@ private:
      * When updatable these are the PK column names of uptable.
      */
     //String pkcols[];
-    ArrayOf<String> mPkcols;
+    ArrayOf<String>* mPkcols;
 
     /**
      * When updatable these are the PK column indices (0-based) of uptable.
      */
     // /Int32 pkcoli[];
-    ArrayOf<Int32> mPkcoli;
+    ArrayOf<Int32>* mPkcoli;
 
     /*
      * Constants to reflect updateability.
@@ -73,7 +73,7 @@ private:
      * Row buffer for insert/update row.
      */
     //String rowbuf[];
-    ArrayOf<String> mRowbuf;
+    ArrayOf<String>* mRowbuf;
 
     static const Boolean mNullrepl;// =SQLite.Database.version().compareTo("2.5.0") < 0;
 private:

@@ -1,0 +1,475 @@
+
+module
+{
+    interface ICallback;
+    interface IBusyHandler;
+    interface ITableResult;
+    interface IFunction;
+    interface IAuthorizer;
+    interface ITrace;
+    interface IVm;
+    interface IStmt;
+    interface IBlob;
+    interface IProgressHandler;
+
+    /**
+     * Main class wrapping an SQLite database.
+     */
+    interface IDatabase {
+
+        /**
+         * Open an SQLite database file.
+         *
+         * @param filename the name of the database file
+         * @param mode open mode (e.g. SQLITE_OPEN_READONLY)
+         */
+        Open(
+            [in] String filename, 
+            [in] Int32 mode);
+
+                /**
+         * Open an SQLite database file.
+         *
+         * @param filename the name of the database file
+         * @param mode open mode (e.g. SQLITE_OPEN_READONLY)
+         * @param vfs VFS name (for SQLite >= 3.5)
+         */
+        OpenEx(
+            [in] String filename, 
+            [in] Int32 mode, 
+            [in] String vfs);
+
+        /**
+         * Open an SQLite database file.
+         *
+         * @param filename the name of the database file
+         * @param mode open mode (e.g. SQLITE_OPEN_READONLY)
+         * @param vfs VFS name (for SQLite >= 3.5)
+         * @param ver2 flag to force version on create (false = SQLite3, true = SQLite2)
+         */
+        OpenEx2(
+            [in] String filename, 
+            [in] Int32 mode, 
+            [in] String vfs, 
+            [in] Boolean ver2);
+
+        /**
+         * Open SQLite auxiliary database file for temporary
+         * tables.
+         *
+         * @param filename the name of the auxiliary file or null
+         */
+        Open_aux_file(
+            [in] String filename);
+
+        /**
+         * Close the underlying SQLite database file.
+         */
+        Close();
+
+        /**
+         * Execute an SQL statement and invoke callback methods
+         * for each row of the result set.<P>
+         *
+         * It the method fails, an SQLite.Exception is thrown and
+         * an error code is set, which later can be retrieved by
+         * the last_error() method.
+         *
+         * @param sql the SQL statement to be executed
+         * @param cb the object implementing the callback methods
+         */
+        Exec(
+            [in] String sql, 
+            [in] ICallback* cb);
+
+        /**
+         * Execute an SQL statement and invoke callback methods
+         * for each row of the result set. Each '%q' or %Q in the
+         * statement string is substituted by its corresponding
+         * element in the argument vector.
+         * <BR><BR>
+         * Example:<BR>
+         * <PRE>
+         *   String args[] = new String[1];
+         *   args[0] = "tab%";
+         *   db.exec("select * from sqlite_master where type like '%q'",
+         *           null, args);
+         * </PRE>
+         *
+         * It the method fails, an SQLite.Exception is thrown and
+         * an error code is set, which later can be retrieved by
+         * the last_error() method.
+         *
+         * @param sql the SQL statement to be executed
+         * @param cb the object implementing the callback methods
+         * @param args arguments for the SQL statement, '%q' substitution
+         */
+
+        ExecEx(
+            [in] String sql, 
+            [in] ICallback* cb,
+            [in] ArrayOf<String> args);
+
+        Last_insert_rowid(
+            [out] Int64* id);
+
+        /**
+         * Abort the current SQLite operation.
+         */
+        Interrupt();
+
+        /**
+         * Return the number of changed rows for the last statement.
+         */
+        Changes(
+            [out] Int64* id);
+
+        /**
+         * Establish a busy callback method which gets called when
+         * an SQLite table is locked.
+         *
+         * @param bh the object implementing the busy callback method
+         */
+
+        Busy_handler(
+            [in] IBusyHandler* bh);
+
+        /**
+         * Set the timeout for waiting for an SQLite table to become
+         * unlocked.
+         *
+         * @param ms number of millisecond to wait
+         */
+
+        Busy_timeout(
+            [in] Int32 ms);
+
+        /**
+         * Convenience method to retrieve an entire result
+         * set into memory.
+         *
+         * @param sql the SQL statement to be executed
+         * @param maxrows the max. number of rows to retrieve
+         * @return result set
+         */
+
+        Get_table(
+            [in] String sql, 
+            [in] Int32 maxrows,
+            [out] ITableResult** result);
+
+        /**
+         * Convenience method to retrieve an entire result
+         * set into memory.
+         *
+         * @param sql the SQL statement to be executed
+         * @return result set
+         */
+        Get_tableEx(
+            [in] String sql,
+            [out] ITableResult** result);
+
+        /**
+         * Convenience method to retrieve an entire result
+         * set into memory.
+         *
+         * @param sql the SQL statement to be executed
+         * @param maxrows the max. number of rows to retrieve
+         * @param args arguments for the SQL statement, '%q' substitution
+         * @return result set
+         */
+        Get_tableEx2(
+            [in] String sql, 
+            [in] Int32 maxrows, 
+            [in] ArrayOf<String> args,
+            [out] ITableResult** result);
+
+        /**
+         * Convenience method to retrieve an entire result
+         * set into memory.
+         *
+         * @param sql the SQL statement to be executed
+         * @param args arguments for the SQL statement, '%q' substitution
+         * @return result set
+         */
+        Get_tableEx3(
+            [in] String sql, 
+            [in] ArrayOf<String> args,
+            [out] ITableResult** result);
+
+        /**
+         * Convenience method to retrieve an entire result
+         * set into memory.
+         *
+         * @param sql the SQL statement to be executed
+         * @param args arguments for the SQL statement, '%q' substitution
+         * @param tbl TableResult to receive result set
+         * @return result set
+         */
+        Get_tableEx4(
+            [in] String sql, 
+            [in] ArrayOf<String> args, 
+            [in] ITableResult* tbl);
+
+        /**
+         * See if an SQL statement is complete.
+         * Returns true if the input string comprises
+         * one or more complete SQL statements.
+         *
+         * @param sql the SQL statement to be checked
+         */
+        // synchronized//////////////////////////////////
+        Complete(
+            [in] String sql,
+            [out] Boolean* resukt);
+
+        /**
+         * Return SQLite version number as string.
+         * Don't rely on this when both SQLite 2 and 3 are compiled
+         * into the native part. Use the class method in this case.
+         */
+         //native
+        Version(
+            [out] String* str);
+
+        /**
+         * Return SQLite version number as string.
+         * If the database is not open, <tt>unknown</tt> is returned.
+         */
+        //native
+        Dbversion(
+            [out] String* str);
+
+        /**
+         * Create regular function.
+         *
+         * @param name the name of the new function
+         * @param nargs number of arguments to function
+         * @param f interface of function
+         */
+        Create_function(
+            [in] String name, 
+            [in] Int32 nargs, 
+            [in] IFunction* f);
+
+        /**
+         * Create aggregate function.
+         *
+         * @param name the name of the new function
+         * @param nargs number of arguments to function
+         * @param f interface of function
+         */
+        Create_aggregate(
+            [in] String name, 
+            [in] Int32 nargs, 
+            [in] IFunction* f);
+
+        /**
+         * Set function return type. Only available in SQLite 2.6.0 and
+         * above, otherwise a no-op.
+         *
+         * @param name the name of the function whose return type is to be set
+         * @param type return type code, e.g. SQLite.Constants.SQLITE_NUMERIC
+         */
+        Function_type(
+            [in] String name, 
+            [in] Int32 type);
+
+        /**
+         * Return the code of the last error occured in
+         * any of the exec() methods. The value is valid
+         * after an Exception has been reported by one of
+         * these methods. See the <A HREF="Constants.html">Constants</A>
+         * class for possible values.
+         *
+         * @return SQLite error code
+         */
+        Last_error(
+            [out] Int32* num);
+
+        /**
+         * Return last error message of SQLite3 engine.
+         *
+         * @return error string or null
+         */
+        Error_message(
+            [out] String* str);
+
+        /**
+         * Return error string given SQLite error code (SQLite2).
+         *
+         * @param error_code the error code
+         * @return error string
+         */
+        //native
+        Error_string(
+            [in] Int32 error_code,
+            [out] String* str);
+
+        /**
+         * Set character encoding.
+         * @param enc name of encoding
+         */
+        Set_encoding(
+            [in] String enc);
+
+        /**
+         * Set authorizer function. Only available in SQLite 2.7.6 and
+         * above, otherwise a no-op.
+         *
+         * @param auth the authorizer function
+         */
+        Set_authorizer(
+            [in] IAuthorizer* auth);
+
+        /**
+         * Set trace function. Only available in SQLite 2.7.6 and above,
+         * otherwise a no-op.
+         *
+         * @param tr the trace function
+         */
+        Trace(
+            [in] ITrace* tr);
+
+        /**
+         * Compile and return SQLite VM for SQL statement. Only available
+         * in SQLite 2.8.0 and above, otherwise a no-op.
+         *
+         * @param sql SQL statement to be compiled
+         * @return a Vm object
+         */
+        Compile(
+            [in] String sql,
+            [out] IVm** vm);
+
+        /**
+         * Compile and return SQLite VM for SQL statement. Only available
+         * in SQLite 3.0 and above, otherwise a no-op.
+         *
+         * @param sql SQL statement to be compiled
+         * @param args arguments for the SQL statement, '%q' substitution
+         * @return a Vm object
+         */
+        CompileEx(
+            [in] String sql, 
+            [in] ArrayOf<String> args,
+            [out] IVm** vm);
+
+        /**
+         * Prepare and return SQLite3 statement for SQL. Only available
+         * in SQLite 3.0 and above, otherwise a no-op.
+         *
+         * @param sql SQL statement to be prepared
+         * @return a Stmt object
+         */
+        Prepare(
+            [in] String sql,
+            [out] IStmt** tmt);
+
+        /**
+         * Open an SQLite3 blob. Only available in SQLite 3.4.0 and above.
+         * @param db database name
+         * @param table table name
+         * @param column column name
+         * @param row row identifier
+         * @param rw if true, open for read-write, else read-only
+         * @return a Blob object
+         */
+        Open_blob(
+            [in] String db, 
+            [in] String table, 
+            [in] String column,
+            [in] Int64 row, 
+            [in] Boolean rw,
+            [out] IBlob** blob);
+
+        /**
+         * Check type of open database.
+         * @return true if SQLite3 database
+         */
+        //native
+        Is3(
+            [out] Boolean* result);
+
+        /**
+         * Establish a progress callback method which gets called after
+         * N SQLite VM opcodes.
+         *
+         * @param n number of SQLite VM opcodes until callback is invoked
+         * @param p the object implementing the progress callback method
+         */
+        Progress_handler(
+            [in] Int32 n, 
+            [in] IProgressHandler* p);
+
+        /**
+         * Specify key for encrypted database. To be called
+         * right after open() on SQLite3 databases.
+         * Not available in public releases of SQLite.
+         *
+         * @param ekey the key as byte array
+         */
+        Key(
+            [in] ArrayOf<Byte> ekey);
+
+        /**
+         * Specify key for encrypted database. To be called
+         * right after open() on SQLite3 databases.
+         * Not available in public releases of SQLite.
+         *
+         * @param skey the key as String
+         */
+        KeyEx(
+            [in] String skey);
+
+        /**
+         * Change the key of a encrypted database. The
+         * SQLite3 database must have been open()ed.
+         * Not available in public releases of SQLite.
+         *
+         * @param ekey the key as byte array
+         */
+        Rekey(
+            [in] ArrayOf<Byte> ekey);
+
+        /**
+         * Change the key of a encrypted database. The
+         * SQLite3 database must have been open()ed.
+         * Not available in public releases of SQLite.
+         *
+         * @param skey the key as String
+         */
+        RekeyEx(
+            [in] String skey);
+
+        /**
+         * Make long value from julian date for java.lang.Date
+         *
+         * @param d double value (julian date in SQLite3 format)
+         * @return long
+         */
+        Long_from_julian(
+            [in] Double d,
+            [out] Int64* result);
+
+        /**
+         * Make long value from julian date for java.lang.Date
+         *
+         * @param s string (double value) (julian date in SQLite3 format)
+         * @return long
+         */
+        Long_from_julianEx(
+            [in] String s,
+            [out] Int64* result);
+
+        /**
+         * Make julian date value from java.lang.Date
+         *
+         * @param ms millisecond value of java.lang.Date
+         * @return double
+         */
+        Julian_from_long(
+            [in] Int64 ms,
+            [out] Double* result);
+    }
+}

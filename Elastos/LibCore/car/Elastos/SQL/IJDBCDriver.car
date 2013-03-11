@@ -1,0 +1,9 @@
+
+module
+{
+    interface IDriver;
+
+    interface IJDBCDriver extends  IDriver{
+    
+    }
+}

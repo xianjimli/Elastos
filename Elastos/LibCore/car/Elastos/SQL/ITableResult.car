@@ -1,0 +1,42 @@
+
+module
+{
+    interface ICallback;
+    /**
+	 * Class representing an SQLite result set as
+	 * returned by the
+	 * <A HREF="Database.html#get_table(java.lang.String)">Database.get_table</A>
+	 * convenience method.
+	 * <BR><BR>
+	 * Example:<BR>
+	 *
+	 * <PRE>
+	 *   ...
+	 *   SQLite.Database db = new SQLite.Database();
+	 *   db.open("db", 0);
+	 *   System.out.print(db.get_table("select * from TEST"));
+	 *   ...
+	 * </PRE>
+	 * Example output:<BR>
+	 *
+	 * <PRE>
+	 *   id|firstname|lastname|
+	 *   0|John|Doe|
+	 *   1|Speedy|Gonzales|
+	 *   ...
+	 * </PRE>
+	 */
+    interface ITableResult extends ICallback {
+
+        /**
+	     * Clear result set.
+	     */
+	    Clear();
+
+	    /**
+	     * Make String representation of result set.
+	     */
+	    ToString(
+	        [out] String* str);
+    }
+}
