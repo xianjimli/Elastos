@@ -13,6 +13,7 @@ class DrawFilter
 public:
     virtual ~DrawFilter();
 
+    CARAPI_(SkDrawFilter*) Ni();
 private:
     static CARAPI_(void) NativeDestructor(
         /* [in] */ SkDrawFilter* nativeDrawFilter);

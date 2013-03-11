@@ -81,11 +81,23 @@ public:
 
     CARAPI ClearAbortBroadcast();
 
+    CARAPI IsOrderedBroadcast(
+        /* [out] */ Boolean* isOrdered);
+
+    CARAPI IsInitialStickyBroadcast(
+        /* [out] */ Boolean* isInitialSticky);
+
     CARAPI SetOrderedHint(
         /* [in] */ Boolean isOrdered);
 
     CARAPI SetInitialStickyHint(
         /* [in] */ Boolean isInitialSticky);
+
+    CARAPI SetDebugUnregister(
+        /* [in] */ Boolean debug);
+
+    CARAPI GetDebugUnregister(
+        /* [out] */ Boolean* debugUnregister);
 
 protected:
     virtual CARAPI OnReceive(

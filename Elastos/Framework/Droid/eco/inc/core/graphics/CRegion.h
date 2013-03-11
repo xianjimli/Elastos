@@ -4,10 +4,30 @@
 
 #include "_CRegion.h"
 #include <skia/core/SkRegion.h>
+#include <skia/core/SkPath.h>
 
 CarClass(CRegion)
 {
 public:
+
+    CARAPI constructor();
+
+    CARAPI constructor(
+        /* [in] */ IRegion* region);
+
+    CARAPI constructor(
+        /* [in] */ IRect* r);
+
+    CARAPI constructor(
+        /* [in] */ Int32 left,
+        /* [in] */ Int32 top,
+        /* [in] */ Int32 right,
+        /* [in] */ Int32 bottom);
+
+    CARAPI constructor(
+        /* [in] */ Int32 ni);
+
+    ~CRegion();
     /** Set the region to the empty region
      */
     CARAPI SetEmpty();
@@ -254,25 +274,81 @@ public:
     CARAPI WriteToParcel(
         /* [in] */ IParcel* dest);
 
-    CARAPI constructor();
+public:
+    /*package*/ CARAPI_(SkRegion*) Ni();
 
-    CARAPI constructor(
-        /* [in] */ IRegion* region);
+private:
+    static CARAPI_(SkRegion*) NativeConstructor();
 
-    CARAPI constructor(
-        /* [in] */ IRect* r);
+    static CARAPI_(void) NativeDestructor(
+        /* [in] */ SkRegion* region);
 
-    CARAPI constructor(
+    static CARAPI_(Boolean) NativeSetRegion(
+        /* [out] */ SkRegion* dst,
+        /* [in] */ SkRegion* src);
+
+    static CARAPI_(Boolean) NativeSetRect(
+        /* [in] */ SkRegion* dst,
         /* [in] */ Int32 left,
         /* [in] */ Int32 top,
         /* [in] */ Int32 right,
         /* [in] */ Int32 bottom);
 
-    CARAPI constructor(
-        /* [in] */ Int32 ni);
+    static CARAPI_(Boolean) NativeSetPath(
+        /* [in] */ SkRegion* dst,
+        /* [in] */ SkPath* path,
+        /* [in] */ SkRegion* clip);
 
-public:
-    /*package*/ CARAPI_(SkRegion*) Ni();
+    static CARAPI_(Boolean) NativeGetBounds(
+        /* [in] */ SkRegion* region,
+        /* [out] */ IRect* rect);
+
+    static CARAPI_(Boolean) NativeGetBoundaryPath(
+        /* [in] */ SkRegion* region,
+        /* [out] */ SkPath* path);
+
+    static CARAPI_(Boolean) NativeOp(
+        /* [in] */ SkRegion* dst,
+        /* [in] */ Int32 left,
+        /* [in] */ Int32 top,
+        /* [in] */ Int32 right,
+        /* [in] */ Int32 bottom,
+        /* [in] */ RegionOp op);
+
+    static CARAPI_(Boolean) NativeOp(
+        /* [in] */ SkRegion* dst,
+        /* [in] */ IRect* rect,
+        /* [in] */ SkRegion* region,
+        /* [in] */ RegionOp op);
+
+    static CARAPI_(Boolean) NativeOp(
+        /* [in] */ SkRegion* dst,
+        /* [in] */ SkRegion* region1,
+        /* [in] */ SkRegion* region2,
+        /* [in] */ RegionOp op);
+
+    static CARAPI_(SkRegion*) NativeCreateFromParcel(
+        /* [in] */ IParcel* parcel);
+
+    static CARAPI_(Boolean) NativeWriteToParcel(
+        /* [in] */ SkRegion* region,
+        /* [out] */ IParcel* parcel);
+
+    static CARAPI_(Boolean) NativeEquals(
+        /* [in] */ SkRegion* region1,
+        /* [in] */ SkRegion* region2);
+
+    static CARAPI_(void) ScaleRect(
+        /* [in] */ SkIRect* dst,
+        /* [in] */ const SkIRect& src,
+        /* [in] */ Float scale);
+
+    // Scale the region by given scale and set the reuslt to the dst.
+    // dest and src can be the same region instance.
+    static CARAPI_(void) ScaleRgn(
+        /* [in] */ SkRegion* dst,
+        /* [in] */ const SkRegion& src,
+        /* [in] */ Float scale);
 
 private:
     SkRegion* mNativeRegion;

@@ -24,6 +24,10 @@ public:
         /* [in] */ IRect* obj,
         /* [in] */ SkRect* r);
 
+    static CARAPI_(SkIRect*) IRect2SkIRect(
+    /* [in] */ IRect* obj,
+    /* [in] */ SkIRect* sr);
+
     static CARAPI_(void) SkIRect2IRect(
         /* [in] */ const SkIRect& ir,
         /* [in] */ IRect* obj);

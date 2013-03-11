@@ -59,37 +59,22 @@ public:
     size_t doSkip(
         /* [in] */ size_t size)
     {
-//	        JNIEnv* env = fEnv;
-//
-//	        jlong skipped = env->CallLongMethod(fJavaInputStream,
-//	                                            gInputStream_skipMethodID, (jlong)size);
-//	        if (env->ExceptionCheck()) {
-//	            env->ExceptionDescribe();
-//	            env->ExceptionClear();
-//	            SkDebugf("------- skip threw an exception\n");
-//	            return 0;
-//	        }
-//	        if (skipped < 0) {
-//	            skipped = 0;
-//	        }
-//
-//	        return (size_t)skipped;
-        return 0;
+        Int64 skipped;
+        mInputStream->Skip((Int64)size, (Int64*)&skipped);
+
+        if (skipped < 0) {
+            skipped = 0;
+        }
+
+        return (size_t)skipped;
     }
 
     size_t doSize()
     {
-//	        JNIEnv* env = fEnv;
-//	        jint avail = env->CallIntMethod(fJavaInputStream,
-//	                                        gInputStream_availableMethodID);
-//	        if (env->ExceptionCheck()) {
-//	            env->ExceptionDescribe();
-//	            env->ExceptionClear();
-//	            SkDebugf("------- available threw an exception\n");
-//	            avail = 0;
-//	        }
-//	        return avail;
-        return 0;
+        Int32 avail;
+        mInputStream->Available(&avail);
+
+        return (size_t)avail;
     }
 
     virtual size_t read(

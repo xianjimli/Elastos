@@ -303,6 +303,34 @@ ECode BroadcastReceiver::ClearAbortBroadcast()
 }
 
 /**
+ * @param isOrdered: true if the receiver is currently processing an ordered
+ * broadcast.
+ */
+ECode BroadcastReceiver::IsOrderedBroadcast(
+    /* [out] */ Boolean* isOrdered)
+{
+    if (NULL == isOrdered) return E_INVALID_ARGUMENT;
+
+    *isOrdered = mOrderedHint;
+    return NOERROR;
+}
+
+/**
+ * @param isInitialSticky: true if the receiver is currently processing the initial
+ * value of a sticky broadcast -- that is, the value that was last
+ * broadcast and is currently held in the sticky cache, so this is
+ * not directly the result of a broadcast right now.
+ */
+ECode BroadcastReceiver::IsInitialStickyBroadcast(
+    /* [out] */ Boolean* isInitialSticky)
+{
+    if (NULL == isInitialSticky) return E_INVALID_ARGUMENT;
+
+    *isInitialSticky = mInitialStickyHint;
+    return NOERROR;
+}
+
+/**
  * For internal use, sets the hint about whether this BroadcastReceiver is
  * running in ordered mode.
  */
@@ -328,6 +356,36 @@ ECode BroadcastReceiver::OnReceive(
     /* [in] */ IContext *pContext,
     /* [in] */ IIntent *pIntent)
 {
+    return NOERROR;
+}
+
+/**
+ * Control inclusion of debugging help for mismatched
+ * calls to {@ Context#registerReceiver(BroadcastReceiver, IntentFilter)
+ * Context.registerReceiver()}.
+ * If called with true, before given to registerReceiver(), then the
+ * callstack of the following {@link Context#unregisterReceiver(BroadcastReceiver)
+ * Context.unregisterReceiver()} call is retained, to be printed if a later
+ * incorrect unregister call is made.  Note that doing this requires retaining
+ * information about the BroadcastReceiver for the lifetime of the app,
+ * resulting in a leak -- this should only be used for debugging.
+ */
+ECode BroadcastReceiver::SetDebugUnregister(
+    /* [in] */ Boolean debug)
+{
+    mDebugUnregister = debug;
+    return NOERROR;
+}
+
+/**
+ * @param debugUnregister: the last value given to {@link #setDebugUnregister}.
+ */
+ECode BroadcastReceiver::GetDebugUnregister(
+    /* [out] */ Boolean* debugUnregister)
+{
+    if (NULL == debugUnregister) return E_INVALID_ARGUMENT;
+
+    *debugUnregister = mDebugUnregister;
     return NOERROR;
 }
 
