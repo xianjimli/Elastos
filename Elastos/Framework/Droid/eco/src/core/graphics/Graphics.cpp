@@ -87,6 +87,16 @@ SkRect* Graphics::IRect2SkRect(
     return sr;
 }
 
+SkIRect* Graphics::IRect2SkIRect(
+    /* [in] */ IRect* obj,
+    /* [in] */ SkIRect* sr)
+{
+    CRect* r = (CRect*)obj;
+    sr->set(r->mLeft, r->mTop,
+           r->mRight, r->mBottom);
+    return sr;
+}
+
 void Graphics::SkIRect2IRect(
         /* [in] */ const SkIRect& ir,
         /* [in] */ IRect* obj)

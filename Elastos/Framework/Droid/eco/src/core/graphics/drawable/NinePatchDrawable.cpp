@@ -7,6 +7,7 @@
 #include "graphics/CNinePatch.h"
 #include "graphics/CBitmapFactoryOptions.h"
 #include "graphics/CBitmapFactory.h"
+#include "graphics/ElPixelFormat.h"
 #include "utils/CDisplayMetrics.h"
 #include "utils/CTypedValue.h"
 
@@ -431,9 +432,14 @@ Int32 NinePatchDrawable::GetMinimumHeight()
 //@Override
 Int32 NinePatchDrawable::GetOpacity()
 {
-//    return mNinePatch.hasAlpha() || (mPaint != null && mPaint.getAlpha() < 255) ?
-//                PixelFormat.TRANSLUCENT : PixelFormat.OPAQUE;
-    return -1;
+    Boolean hasAlpha;
+    Int32 alpha;
+
+    mNinePatch->HasAlpha(&hasAlpha);
+    mPaint->GetAlpha(&alpha);
+
+    return  (hasAlpha || (mPaint != NULL && alpha < 255) ?
+               ElPixelFormat::TRANSLUCENT : ElPixelFormat::OPAQUE);
 }
 
 //@Override

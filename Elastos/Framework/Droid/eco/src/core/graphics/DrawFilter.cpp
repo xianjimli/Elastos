@@ -16,3 +16,8 @@ void DrawFilter::NativeDestructor(
 {
     nObj->safeUnref();
 }
+
+SkDrawFilter* DrawFilter::Ni()
+{
+    return nativeDrawFilter;
+}

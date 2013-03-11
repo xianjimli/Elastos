@@ -8,6 +8,7 @@
 #include "graphics/CMatrix.h"
 #include "graphics/CPath.h"
 #include "graphics/CRegion.h"
+#include "graphics/DrawFilter.h"
 #include <skia/core/SkDevice.h>
 #include <skia/core/SkScalar.h>
 #include <skia/core/SkMatrix.h>
@@ -34,7 +35,7 @@ Canvas::Canvas()
     , mScreenDensity(Bitmap_DENSITY_NONE)
 {
     // 0 means no native bitmap
-//    mNativeCanvas = initRaster(0);
+    mNativeCanvas = InitRaster(0);
 }
 
 Canvas::~Canvas()
@@ -636,13 +637,14 @@ ECode Canvas::GetDrawFilter(
 ECode Canvas::SetDrawFilter(
     /* [in] */ IDrawFilter* filter)
 {
-//	    int nativeFilter = 0;
-//	    if (filter != null) {
-//	        nativeFilter = filter.mNativeInt;
-//	    }
-//	    mDrawFilter = filter;
-//	    nativeSetDrawFilter(mNativeCanvas, nativeFilter);
-    return E_NOT_IMPLEMENTED;
+    SkDrawFilter* nativeFilter = 0;
+    if (filter != NULL) {
+        nativeFilter = ((DrawFilter*)filter)->Ni();
+    }
+    mDrawFilter = filter;
+    NativeSetDrawFilter(mNativeCanvas, nativeFilter);
+
+    return NOERROR;
 }
 
 ECode Canvas::QuickRejectWithRectF(
@@ -2111,24 +2113,25 @@ void Canvas::NativeDrawPosText(
     /* [in] */ const ArrayOf<Float>& pos,
     /* [in] */ SkPaint* nativePaint)
 {
-//    jchar* textArray = text ? env->GetCharArrayElements(text, NULL) : NULL;
-//    jsize textCount = text ? env->GetArrayLength(text) : NULL;
-//    float* posArray = pos ? env->GetFloatArrayElements(pos, NULL) : NULL;
-//    int posCount = pos ? env->GetArrayLength(pos) >> 1: 0;
-//    SkPoint* posPtr = posCount > 0 ? new SkPoint[posCount] : NULL;
-//    int indx;
-//    for (indx = 0; indx < posCount; indx++) {
-//        posPtr[indx].fX = SkFloatToScalar(posArray[indx << 1]);
-//        posPtr[indx].fY = SkFloatToScalar(posArray[(indx << 1) + 1]);
-//    }
-//    canvas->drawPosText(textArray + index, count << 1, posPtr, *paint);
-//    if (text) {
-//        env->ReleaseCharArrayElements(text, textArray, 0);
-//    }
-//    if (pos) {
-//        env->ReleaseFloatArrayElements(pos, posArray, 0);
-//    }
-//    delete[] posPtr;
+   char* textArray = text.GetPayload();
+   //no use
+   //Int32 textCount = text.GetLength();
+   Float* posArray = pos.GetPayload();
+   Int32 posCount = pos.GetLength() >> 1;
+   SkPoint* posPtr = posCount > 0 ? new SkPoint[posCount] : NULL;
+   Int32 indx;
+   for (indx = 0; indx < posCount; indx++) {
+       posPtr[indx].fX = SkFloatToScalar(posArray[indx << 1]);
+       posPtr[indx].fY = SkFloatToScalar(posArray[(indx << 1) + 1]);
+   }
+   nativeCanvas->drawPosText(textArray + index, count << 1, posPtr, *nativePaint);
+   // if (text) {
+   //     env->ReleaseCharArrayElements(text, textArray, 0);
+   // }
+   // if (pos) {
+   //     env->ReleaseFloatArrayElements(pos, posArray, 0);
+   // }
+   delete[] posPtr;
 }
 
 void Canvas::NativeDrawPosText(
@@ -2137,24 +2140,24 @@ void Canvas::NativeDrawPosText(
     /* [in] */ const ArrayOf<Float>& pos,
     /* [in] */ SkPaint* nativePaint)
 {
-//    const void* text_ = text ? env->GetStringChars(text, NULL) : NULL;
-//    int byteLength = text ? env->GetStringLength(text) : 0;
-//    float* posArray = pos ? env->GetFloatArrayElements(pos, NULL) : NULL;
-//    int posCount = pos ? env->GetArrayLength(pos) >> 1: 0;
-//    SkPoint* posPtr = posCount > 0 ? new SkPoint[posCount] : NULL;
-//
-//    for (int indx = 0; indx < posCount; indx++) {
-//        posPtr[indx].fX = SkFloatToScalar(posArray[indx << 1]);
-//        posPtr[indx].fY = SkFloatToScalar(posArray[(indx << 1) + 1]);
-//    }
-//    canvas->drawPosText(text_, byteLength << 1, posPtr, *paint);
-//    if (text) {
-//        env->ReleaseStringChars(text, (const jchar*) text_);
-//    }
-//    if (pos) {
-//        env->ReleaseFloatArrayElements(pos, posArray, 0);
-//    }
-//    delete[] posPtr;
+   const void* text_ = text.string();
+   Int32 byteLength = text.GetLength();
+   Float* posArray = pos.GetPayload();
+   Int32 posCount = pos.GetLength();
+   SkPoint* posPtr = posCount > 0 ? new SkPoint[posCount] : NULL;
+
+   for (Int32 indx = 0; indx < posCount; indx++) {
+       posPtr[indx].fX = SkFloatToScalar(posArray[indx << 1]);
+       posPtr[indx].fY = SkFloatToScalar(posArray[(indx << 1) + 1]);
+   }
+   nativeCanvas->drawPosText(text_, byteLength << 1, posPtr, *nativePaint);
+   // if (text) {
+   //     env->ReleaseStringChars(text, (const jchar*) text_);
+   // }
+   // if (pos) {
+   //     env->ReleaseFloatArrayElements(pos, posArray, 0);
+   // }
+   delete[] posPtr;
 }
 
 void Canvas::NativeDrawTextOnPath(
@@ -2167,10 +2170,9 @@ void Canvas::NativeDrawTextOnPath(
     /* [in] */ Float vOffset,
     /* [in] */ SkPaint* nativePaint)
 {
-//    jchar* textArray = env->GetCharArrayElements(text, NULL);
-//    canvas->drawTextOnPathHV(textArray + index, count << 1, *path,
-//                SkFloatToScalar(hOffset), SkFloatToScalar(vOffset), *paint);
-//    env->ReleaseCharArrayElements(text, textArray, 0);
+   char* textArray = text.GetPayload();
+   nativeCanvas->drawTextOnPathHV(textArray + index, count << 1, *nativePath,
+               SkFloatToScalar(hOffset), SkFloatToScalar(vOffset), *nativePaint);
 }
 
 void Canvas::NativeDrawTextOnPath(
@@ -2181,11 +2183,10 @@ void Canvas::NativeDrawTextOnPath(
     /* [in] */ Float vOffset,
     /* [in] */ SkPaint* nativePaint)
 {
-//    const jchar* text_ = env->GetStringChars(text, NULL);
-//    int byteLength = env->GetStringLength(text) << 1;
-//    canvas->drawTextOnPathHV(text_, byteLength, *path,
-//                SkFloatToScalar(hOffset), SkFloatToScalar(vOffset), *paint);
-//    env->ReleaseStringChars(text, text_);
+   const char* text_ = text.string();
+   Int32 byteLength = text.GetLength() << 1;
+   nativeCanvas->drawTextOnPathHV(text_, byteLength, *nativePath,
+               SkFloatToScalar(hOffset), SkFloatToScalar(vOffset), *nativePaint);
 }
 
 void Canvas::NativeDrawPicture(
