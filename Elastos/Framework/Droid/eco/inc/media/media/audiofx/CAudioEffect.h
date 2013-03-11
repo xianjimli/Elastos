@@ -7,6 +7,36 @@
 #include <elastos/AutoPtr.h>
 using namespace Elastos::Core::Threading;
 
+/**
+ * AudioEffect is the base class for controlling audio effects provided by the android audio
+ * framework.
+ * <p>Applications should not use the AudioEffect class directly but one of its derived classes to
+ * control specific effects:
+ * <ul>
+ *   <li> {@link android.media.audiofx.Equalizer}</li>
+ *   <li> {@link android.media.audiofx.Virtualizer}</li>
+ *   <li> {@link android.media.audiofx.BassBoost}</li>
+ *   <li> {@link android.media.audiofx.PresetReverb}</li>
+ *   <li> {@link android.media.audiofx.EnvironmentalReverb}</li>
+ * </ul>
+ * <p>If the audio effect is to be applied to a specific AudioTrack or MediaPlayer instance,
+ * the application must specify the audio session ID of that instance when creating the AudioEffect.
+ * (see {@link android.media.MediaPlayer#getAudioSessionId()} for details on audio sessions).
+ * To apply an effect to the global audio output mix, session 0 must be specified when creating the
+ * AudioEffect.
+ * <p>Creating an effect on the output mix (audio session 0) requires permission
+ * {@link android.Manifest.permission#MODIFY_AUDIO_SETTINGS}
+ * <p>Creating an AudioEffect object will create the corresponding effect engine in the audio
+ * framework if no instance of the same effect type exists in the specified audio session.
+ * If one exists, this instance will be used.
+ * <p>The application creating the AudioEffect object (or a derived class) will either receive
+ * control of the effect engine or not depending on the priority parameter. If priority is higher
+ * than the priority used by the current effect engine owner, the control will be transfered to the
+ * new object. Otherwise control will remain with the previous object. In this case, the new
+ * application will be notified of changes in effect engine state or control ownership by the
+ * appropiate listener.
+ */
+
 CarClass(CAudioEffect)
 {
 private:

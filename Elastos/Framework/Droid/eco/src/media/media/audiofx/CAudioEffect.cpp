@@ -88,6 +88,8 @@ ECode CAudioEffect::GetDescriptor(
 ECode CAudioEffect::QueryEffects(
     /* [out, callee] */ ArrayOf<IAudioEffectDescriptor>** descriptor)
 {
+    VALIDATE_NOT_NULL(descriptor);
+
     /*
     return (Descriptor[]) native_query_effects();
     */
@@ -98,6 +100,8 @@ ECode CAudioEffect::SetEnabled(
     /* [in]  */ Boolean enabled,
     /* [out] */ Int32* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     CheckState("SetEnabled()");
     return Native_SetEnabled(enabled);
 }
@@ -107,6 +111,8 @@ ECode CAudioEffect::SetParameter(
     /* [in] */ const ArrayOf<Byte>& value,
     /* [out] */ Int32* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     CheckState("SetParameter()");
     /*
     return native_setParameter(param.length, param, value.length, value);
@@ -119,6 +125,8 @@ ECode CAudioEffect::SetParameterEx(
     /* [in] */ Int32 value,
     /* [out] */ Int32* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     ArrayOf<Byte>* p;
     Int32ToByteArray(param, p);
     ArrayOf<Byte>* v;
@@ -132,6 +140,8 @@ ECode CAudioEffect::SetParameterEx2(
     /* [in] */ Int16 value,
     /* [out] */ Int32* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     ArrayOf<Byte>* p;
     Int32ToByteArray(param, p);
     ArrayOf<Byte>* v;
@@ -145,6 +155,8 @@ ECode CAudioEffect::SetParameterEx3(
     /* [in] */ const ArrayOf<Byte>& value,
     /* [out] */ Int32* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     ArrayOf<Byte>* p;
     Int32ToByteArray(param, p);
     SetParameter(*p, value, result);
@@ -156,6 +168,8 @@ ECode CAudioEffect::SetParameterEx4(
     /* [in] */ const ArrayOf<Int32>& value,
     /* [out] */ Int32* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     if (param.GetLength() > 2 || value.GetLength() > 2) {
         return AudioEffect_ERROR_BAD_VALUE;
     }
@@ -180,6 +194,8 @@ ECode CAudioEffect::SetParameterEx5(
     /* [in] */ const ArrayOf<Int16>& value,
     /* [out] */ Int32* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     if (param.GetLength() > 2 || value.GetLength() > 2) {
         return AudioEffect_ERROR_BAD_VALUE;
     }
@@ -204,6 +220,8 @@ ECode CAudioEffect::SetParameterEx6(
         /* [in] */ const ArrayOf<Byte>& value,
         /* [out] */ Int32* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     if (param.GetLength()> 2) {
         return AudioEffect_ERROR_BAD_VALUE;
     }
@@ -223,6 +241,9 @@ ECode CAudioEffect::GetParameter(
     /* [out] */ ArrayOf<Byte>* value,
     /* [out] */ Int32* status)
 {
+    VALIDATE_NOT_NULL(value);
+    VALIDATE_NOT_NULL(status);
+
     CheckState("GetParameter()");
     ArrayOf_<Int32, 1> vSize;
     vSize[0] = (*value).GetLength();
@@ -243,6 +264,8 @@ ECode CAudioEffect::GetParameterEx(
     /* [in] */ const ArrayOf<Byte>& value,
     /* [out] */ Int32* status)
 {
+    VALIDATE_NOT_NULL(status);
+
     /*
         byte[] p = intToByteArray(param);
 
@@ -256,6 +279,9 @@ ECode CAudioEffect::GetParameterEx2(
     /* [out] */ ArrayOf<Int32>* value,
     /* [out] */ Int32* status)
 {
+    VALIDATE_NOT_NULL(value);
+    VALIDATE_NOT_NULL(status);
+
     if ((*value).GetLength() > 2) {
         return AudioEffect_ERROR_BAD_VALUE;
     }
@@ -280,6 +306,9 @@ ECode CAudioEffect::GetParameterEx3(
     /* [out] */ ArrayOf<Int16>* value,
     /* [out] */ Int32* status)
 {
+    VALIDATE_NOT_NULL(value);
+    VALIDATE_NOT_NULL(status);
+
     if ((*value).GetLength() > 2) {
         return AudioEffect_ERROR_BAD_VALUE;
     }
@@ -304,6 +333,8 @@ ECode CAudioEffect::GetParameterEx4(
     /* [in] */ ArrayOf<Int32>* value,
     /* [out] */ Int32* status)
 {
+    VALIDATE_NOT_NULL(status);
+
     if (param.GetLength() > 2 || (*value).GetLength() > 2) {
         return AudioEffect_ERROR_BAD_VALUE;
     }
@@ -331,6 +362,9 @@ ECode CAudioEffect::GetParameterEx5(
     /* [out] */ ArrayOf<Int16>* value,
     /* [out] */ Int32* status)
 {
+    VALIDATE_NOT_NULL(value);
+    VALIDATE_NOT_NULL(status);
+
     if (param.GetLength() > 2 || (*value).GetLength() > 2) {
         return AudioEffect_ERROR_BAD_VALUE;
     }
@@ -358,6 +392,8 @@ ECode CAudioEffect::GetParameterEx6(
     /* [in] */ const ArrayOf<Byte>& value,
     /* [out] */ Int32* status)
 {
+    VALIDATE_NOT_NULL(status);
+
     if (param.GetLength() > 2) {
         return AudioEffect_ERROR_BAD_VALUE;
     }
@@ -379,6 +415,9 @@ ECode CAudioEffect::Command(
     /* [out] */ ArrayOf<Byte>* reply,
     /* [out] */ Int32* status)
 {
+    VALIDATE_NOT_NULL(reply);
+    VALIDATE_NOT_NULL(status);
+
     CheckState("Command()");
     ArrayOf<Int32>* replySize = ArrayOf<Int32>::Alloc(1);
     (*replySize)[0] = (*reply).GetLength();
@@ -401,6 +440,8 @@ ECode CAudioEffect::Command(
 ECode CAudioEffect::GetId(
     /* [out] */ Int32* Id)
 {
+    VALIDATE_NOT_NULL(Id);
+
     CheckState("GetId()");
     return mId;
 }
@@ -408,6 +449,8 @@ ECode CAudioEffect::GetId(
 ECode CAudioEffect::GetEnabled(
     /* [out] */ Boolean* getenable)
 {
+    VALIDATE_NOT_NULL(getenable);
+
     CheckState("GetEnabled()");
     /*
         return native_getEnabled();
@@ -418,6 +461,8 @@ ECode CAudioEffect::GetEnabled(
 ECode CAudioEffect::HasControl(
     /* [out] */ Boolean* control)
 {
+    VALIDATE_NOT_NULL(control);
+
     CheckState("HasControl()");
     /*
         return native_hasControl();
@@ -609,6 +654,8 @@ ECode CAudioEffect::ByteArrayToInt32(
     /* [in] */ const ArrayOf<Byte>& valueBuf,
     /* [out] */ Int32* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     return ByteArrayToInt32Ex(valueBuf, 0, result);
 }
 
@@ -617,6 +664,8 @@ ECode CAudioEffect::ByteArrayToInt32Ex(
     /* [in] */ Int32 offset,
     /* [out] */ Int32* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     /*
         ByteBuffer converter = ByteBuffer.wrap(valueBuf);
         converter.order(ByteOrder.nativeOrder());
@@ -629,6 +678,8 @@ ECode CAudioEffect::Int32ToByteArray(
     /* [in] */ Int32 value,
     /* [out] */ ArrayOf<Byte>* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     /*
         ByteBuffer converter = ByteBuffer.allocate(4);
         converter.order(ByteOrder.nativeOrder());
@@ -642,6 +693,8 @@ ECode CAudioEffect::ByteArrayToInt16(
     /* [in] */ const ArrayOf<Byte>& valueBuf,
     /* [out] */ Int16* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     return ByteArrayToInt16Ex(valueBuf, 0, result);
 }
 
@@ -650,6 +703,8 @@ ECode CAudioEffect::ByteArrayToInt16Ex(
     /* [in] */ Int32 offset,
     /* [out] */ Int16* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     /*
         ByteBuffer converter = ByteBuffer.wrap(valueBuf);
         converter.order(ByteOrder.nativeOrder());
@@ -662,6 +717,8 @@ ECode CAudioEffect::Int16ToByteArray(
     /* [in] */ Int16 value,
     /* [out] */ ArrayOf<Byte>* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     /*
         ByteBuffer converter = ByteBuffer.allocate(2);
         converter.order(ByteOrder.nativeOrder());
@@ -677,6 +734,8 @@ ECode CAudioEffect::ConcatArrays(
     /* [in] */ const ArrayOf<byte>& array2,
     /* [out, callee] */ ArrayOf<Byte>** result)
 {
+    VALIDATE_NOT_NULL(result);
+
     /*
         int len = 0;
         for (byte[] a : arrays) {
