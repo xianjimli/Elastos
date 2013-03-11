@@ -1,6 +1,24 @@
 
 module
 {
+    /** @hide */
+    const UsbAccessory_MANUFACTURER_STRING = 0;
+
+    /** @hide */
+    const UsbAccessory_MODEL_STRING = 1;
+
+    /** @hide */
+    const UsbAccessory_DESCRIPTION_STRING = 2;
+
+    /** @hide */
+    const UsbAccessory_VERSION_STRING = 3;
+
+    /** @hide */
+    const UsbAccessory_URI_STRING = 4;
+
+    /** @hide */
+    const UsbAccessory_SERIAL_STRING = 5;
+
     interface IUsbAccessory {
         /**
          * Returns the manufacturer of the accessory.

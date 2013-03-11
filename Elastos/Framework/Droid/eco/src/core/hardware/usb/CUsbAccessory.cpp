@@ -29,12 +29,12 @@ ECode CUsbAccessory::constructor(
 ECode CUsbAccessory::constructor(
     /* [in] */ const ArrayOf<String>& strings)
 {
-    mManufacturer = strings[0];
-    mModel = strings[1];
-    mDescription = strings[2];
-    mVersion = strings[3];
-    mUri = strings[4];
-    mSerial = strings[5];
+    mManufacturer = strings[UsbAccessory_MANUFACTURER_STRING];
+    mModel = strings[UsbAccessory_MODEL_STRING];
+    mDescription = strings[UsbAccessory_DESCRIPTION_STRING];
+    mVersion = strings[UsbAccessory_VERSION_STRING];
+    mUri = strings[UsbAccessory_URI_STRING];
+    mSerial = strings[UsbAccessory_SERIAL_STRING];
 
     return NOERROR;
 }
@@ -225,6 +225,8 @@ ECode CUsbAccessory::ReadFromParcel(
 ECode CUsbAccessory::WriteToParcel(
     /* [out] */ IParcel* dest)
 {
+    VALIDATE_NOT_NULL(dest);
+
     dest->WriteString(mManufacturer);
     dest->WriteString(mModel);
     dest->WriteString(mDescription);

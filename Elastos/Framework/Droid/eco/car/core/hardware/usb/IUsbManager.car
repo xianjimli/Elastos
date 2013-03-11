@@ -1,0 +1,97 @@
+
+module
+{
+    interface IUsbManager {
+        /* Returns a list of all currently attached USB devices */
+        GetDeviceList(
+            [out] IBundle** devices);
+
+        /* Returns a file descriptor for communicating with the USB device.
+         * The native fd can be passed to usb_device_new() in libusbhost.
+         */
+        OpenDevice(
+            [in] String deviceName,
+            [out] IParcelFileDescriptor** descriptor);
+
+        /* Returns the currently attached USB accessory */
+        GetCurrentAccessory(
+            [out] IUsbAccessory** accessory);
+
+        /* Returns a file descriptor for communicating with the USB accessory.
+         * This file descriptor can be used with standard Java file operations.
+         */
+        OpenAccessory(
+            [in] IUsbAccessory* accessory,
+            [out] IParcelFileDescriptor** descriptor);
+
+        /* Sets the default package for a USB device
+         * (or clears it if the package name is null)
+         */
+        SetDevicePackage(
+            [in] IUsbDevice* device,
+            [in] String packageName);
+
+        /* Sets the default package for a USB accessory
+         * (or clears it if the package name is null)
+         */
+        SetAccessoryPackage(
+            [in] IUsbAccessory* accessory,
+            [in] String packageName);
+
+        /* Returns true if the caller has permission to access the device. */
+        HasDevicePermission(
+            [in] IUsbDevice* device,
+            [out] Boolean* result);
+
+        /* Returns true if the caller has permission to access the accessory. */
+        HasAccessoryPermission(
+            [in] IUsbAccessory* accessory,
+            [out] Boolean* result);
+
+        /* Requests permission for the given package to access the device.
+         * Will display a system dialog to query the user if permission
+         * had not already been given.
+         */
+        RequestDevicePermission(
+            [in] IUsbDevice* device,
+            [in] String packageName,
+            [in] IPendingIntent* pi);
+
+        /* Requests permission for the given package to access the accessory.
+         * Will display a system dialog to query the user if permission
+         * had not already been given. Result is returned via pi.
+         */
+        RequestAccessoryPermission(
+            [in] IUsbAccessory* accessory,
+            [in] String packageName,
+            [in] IPendingIntent* pi);
+
+        /* Grants permission for the given UID to access the device */
+        GrantDevicePermission(
+            [in] IUsbDevice* device,
+            [in] Int32 uid);
+
+        /* Grants permission for the given UID to access the accessory */
+        GrantAccessoryPermission(
+            [in] IUsbAccessory* accessory,
+            [in] Int32 uid);
+
+        /* Returns true if the USB manager has default preferences or permissions for the package */
+        HasDefaults(
+            [in] String packageName,
+            [out] Boolean* result);
+
+        /* Clears default preferences and permissions for the package */
+        ClearDefaults(
+            [in] String packageName);
+
+        /* Sets the current USB function. */
+        SetCurrentFunction(
+            [in] String function,
+            [in] Boolean makeDefault);
+
+        /* Sets the file path for USB mass storage backing file. */
+        SetMassStorageBackingFile(
+            [in] String path);
+    }
+}

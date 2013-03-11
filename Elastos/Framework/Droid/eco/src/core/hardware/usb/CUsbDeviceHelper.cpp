@@ -6,12 +6,16 @@ ECode CUsbDeviceHelper::GetDeviceId(
     /* [in] */ const String& name,
     /* [out] */ Int32* id)
 {
-    return UsbDevice::GetDeviceId(name, id);
+    VALIDATE_NOT_NULL(id);
+    *id = UsbDevice::NativeGetDeviceId(name);
+    return NOERROR;
 }
 
 ECode CUsbDeviceHelper::GetDeviceName(
     /* [in] */ Int32 id,
     /* [out] */ String* name)
 {
-    return UsbDevice::GetDeviceName(id, name);
+    VALIDATE_NOT_NULL(name);
+    *name = UsbDevice::NativeGetDeviceName(id);
+    return NOERROR;
 }

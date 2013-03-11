@@ -135,6 +135,8 @@ ECode CUsbEndpoint::ReadFromParcel(
 ECode CUsbEndpoint::WriteToParcel(
     /* [out] */ IParcel* dest)
 {
+    VALIDATE_NOT_NULL(dest);
+
     dest->WriteInt32(mAddress);
     dest->WriteInt32(mAttributes);
     dest->WriteInt32(mMaxPacketSize);

@@ -1,18 +1,27 @@
 
 #include "hardware/usb/UsbDevice.h"
+/* #include <usbhost/usbhost.h> */
 
-ECode UsbDevice::GetDeviceId(
-    /* [in] */ const String& name,
-    /* [out] */ Int32* id)
+Int32 UsbDevice::NativeGetDeviceId(
+    /* [in] */ const String& name)
 {
-    // NOT IMPLEMETED
-    return NOERROR;
+    /*
+    const char *nameStr = name.string();
+    return usb_device_get_unique_id_from_name(nameStr);
+    */
+    // NOT IMPLEMENTED
+    return -1;
 }
 
-ECode UsbDevice::GetDeviceName(
-    /* [in] */ Int32 id,
-    /* [out] */ String* name)
+String UsbDevice::NativeGetDeviceName(
+    /* [in] */ Int32 id)
 {
-    // NOT IMPLEMETED
-    return NOERROR;
+    /*
+    char* name = usb_device_get_name_from_unique_id(id);
+    String result = String(name);
+    free(name);
+    return result;
+    */
+    // NOT IMPLEMENTED
+    return String("");
 }

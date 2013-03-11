@@ -19,3 +19,6 @@ SOURCES += CUsbInterface.cpp
 SOURCES += CUsbDevice.cpp
 SOURCES += CUsbDeviceHelper.cpp
 SOURCES += UsbDevice.cpp
+SOURCES += CUsbRequest.cpp
+SOURCES += CUsbDeviceConnection.cpp
+SOURCES += CLocalUsbManager.cpp

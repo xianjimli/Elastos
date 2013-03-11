@@ -40,7 +40,7 @@ ECode CUsbDevice::GetDeviceId(
     /* [out] */ Int32* id)
 {
     VALIDATE_NOT_NULL(id);
-    UsbDevice::GetDeviceId(mName, id);
+    *id = UsbDevice::NativeGetDeviceId(mName);
 
     return NOERROR;
 }
@@ -100,7 +100,7 @@ ECode CUsbDevice::GetInterfaceCount(
 }
 
 ECode CUsbDevice::GetInterface(
-    /* [out] */ Int32 index,
+    /* [in] */ Int32 index,
     /* [out] */ IUsbInterface** usbInterface)
 {
     VALIDATE_NOT_NULL(usbInterface);
@@ -113,7 +113,7 @@ ECode CUsbDevice::Equals(
     /* [in] */ IInterface* obj,
     /* [out] */ Boolean* result)
 {
-    /*
+    /* RYAN
     if (o instanceof UsbDevice) {
         return ((UsbDevice)o).mName.equals(mName);
     } else if (o instanceof String) {
@@ -204,6 +204,7 @@ ECode CUsbDevice::ReadFromParcel(
     source->ReadInt32(&subCls);
     source->ReadInt32(&protocol);
 
+    // RYAN
     // Parcelable[] interfaces = in.readParcelableArray(UsbInterface.class.getClassLoader());
     ArrayOf<IParcelable*>* interfaces;
 
@@ -216,12 +217,15 @@ ECode CUsbDevice::ReadFromParcel(
 ECode CUsbDevice::WriteToParcel(
     /* [out] */ IParcel* dest)
 {
+    VALIDATE_NOT_NULL(dest);
+
     dest->WriteString(mName);
     dest->WriteInt32(mVendorId);
     dest->WriteInt32(mProductId);
     dest->WriteInt32(mClass);
     dest->WriteInt32(mSubclass);
     dest->WriteInt32(mProtocol);
+    // RYAN
     // parcel.writeParcelableArray(mInterfaces, 0);
     
     return NOERROR;
