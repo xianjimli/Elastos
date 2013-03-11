@@ -5,6 +5,8 @@ module
     merge("audiofx/BassBoost.car");
     merge("audiofx/EnvironmentalReverb.car");
     merge("audiofx/Equalizer.car");
+    merge("audiofx/PresetReverb.car");
+    merge("audiofx/Virtualizer.car");
 
     class CAudioEffect {
         constructor(
@@ -38,5 +40,21 @@ module
             [in] Int32 audioSession);
 
         interface IEqualizer;
+    }
+
+    class CPresetReverb {
+        constructor(
+            [in] Int32 priority,
+            [in] Int32 audioSession);
+
+        interface IPresetReverb;
+    }
+
+    class CVirtualizer {
+        constructor(
+            [in] Int32 priority,
+            [in] Int32 audioSession);
+
+        interface IVirtualizer;
     }
 }

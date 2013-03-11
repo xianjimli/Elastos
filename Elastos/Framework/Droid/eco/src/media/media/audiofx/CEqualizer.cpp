@@ -12,6 +12,7 @@ CEqualizer::CEqualizer()
     mNumBands = 0;
     CAudioEffect::New(0,0,(IAudioEffect**)&obj);
 }
+
 PInterface CEqualizer::BaseParameterListener::Probe(
     /* [in]  */ REIID riid)
 {
@@ -62,31 +63,40 @@ ECode CEqualizer::constructor(
     Int16 tempInt16;
     GetNumberOfPresets(&tempInt16);
     mNumPresets = (Int32) tempInt16;
-    /*
-
-        if (mNumPresets != 0) {
-            mPresetNames = new String[mNumPresets];
-            byte[] value = new byte[PARAM_STRING_SIZE_MAX];
-            int[] param = new int[2];
-            param[0] = PARAM_GET_PRESET_NAME;
-            for (int i = 0; i < mNumPresets; i++) {
-                param[1] = i;
-                checkStatus(getParameter(param, value));
-                int length = 0;
-                while (value[length] != 0) length++;
-                try {
-                    mPresetNames[i] = new String(value, 0, length, "ISO-8859-1");
-                } catch (java.io.UnsupportedEncodingException e) {
-                    Log.e(TAG, "preset name decode error");
-                }
+    if (mNumPresets != 0) {
+        mPresetNames = ArrayOf<String>::Alloc(mNumPresets);
+        ArrayOf<Byte>* value = ArrayOf<Byte>::Alloc(Equalizer_PARAM_STRING_SIZE_MAX);
+        ArrayOf_<Int32,2> param;
+        param[0] = Equalizer_PARAM_GET_PRESET_NAME;
+        for (int i = 0; i < mNumPresets; i++) {
+            param[1] = i;
+            AutoPtr<IAudioEffect> obj1;
+            CAudioEffect::New(0,0,(IAudioEffect**)&obj1);
+            Int32 status;
+            obj1->CheckStatus(obj1->GetParameterEx6(param, *value, &status));
+            obj1->Release();
+            Int32 length = 0 ;
+            while (value[length] != 0 ) length++;
+            /*
+            try {
+            */
+            //mPresetNames[i] = new String(value, 0, length, "ISO-8859-1");
+            /*
+            } catch (java.io.UnsupportedEncodingException e) {
+                Log.e(TAG, "preset name decode error");
             }
+            */
         }
-    */
+        ArrayOf<Byte>::Free(value);
+    }
+    return E_NOT_IMPLEMENTED;
 }
 
 ECode CEqualizer::GetNumberOfBands(
     /* [out] */ Int16* numBands)
 {
+    VALIDATE_NOT_NULL(numBands);
+
     if (mNumBands != 0) {
         *numBands = mNumBands;
     }
@@ -103,6 +113,8 @@ ECode CEqualizer::GetNumberOfBands(
 ECode CEqualizer::GetBandLevelRange(
     /* [out] */ ArrayOf<Int16>* bandLevelRange)
 {
+    VALIDATE_NOT_NULL(bandLevelRange);
+
     ArrayOf_<Int16,2> result;
     Int32 status;
     obj->CheckStatus(obj->GetParameterEx3(Equalizer_PARAM_LEVEL_RANGE, &result, &status));
@@ -129,6 +141,8 @@ ECode CEqualizer::GetBandLevel(
     /* [in] */ Int16 band,
     /* [out] */ Int16* bandLevel)
 {
+    VALIDATE_NOT_NULL(bandLevel);
+
     ArrayOf_<Int32,2> param;
     ArrayOf_<Int16,1> result;
 
@@ -144,6 +158,8 @@ ECode CEqualizer::GetCenterFreq(
     /* [in] */ Int16 band,
     /* [out] */ Int32* centerFreq)
 {
+    VALIDATE_NOT_NULL(centerFreq);
+
     ArrayOf_<Int32,2> param;
     ArrayOf_<Int32,1> result;
 
@@ -159,6 +175,8 @@ ECode CEqualizer::GetBandFreqRange(
     /* [in] */ Int16 band,
     /* [out] */ ArrayOf<Int32>* bandFreqRange)
 {
+    VALIDATE_NOT_NULL(bandFreqRange);
+
     ArrayOf_<Int32,2> param;
     ArrayOf_<Int32,2> result;
 
@@ -174,6 +192,8 @@ ECode CEqualizer::GetBand(
     /* [in] */ Int32 frequency,
     /* [out] */ Int16* band)
 {
+    VALIDATE_NOT_NULL(band);
+
     ArrayOf_<Int32,2> param;
     ArrayOf_<Int16,1> result;
 
@@ -188,6 +208,8 @@ ECode CEqualizer::GetBand(
 ECode CEqualizer::GetCurrentPreset(
         /* [out] */ Int16* preset)
 {
+    VALIDATE_NOT_NULL(preset);
+
     ArrayOf_<Int16,1> result;
     Int32 status;
     obj->CheckStatus(obj->GetParameterEx3(Equalizer_PARAM_CURRENT_PRESET, &result, &status));
@@ -206,6 +228,8 @@ ECode CEqualizer::UsePreset(
 ECode CEqualizer::GetNumberOfPresets(
     /* [out] */ Int16* numPresets)
 {
+    VALIDATE_NOT_NULL(numPresets);
+
     ArrayOf_<Int16,1> result;
     Int32 status;
     obj->CheckStatus(obj->GetParameterEx3(Equalizer_PARAM_GET_NUM_OF_PRESETS, &result, &status));
@@ -217,6 +241,8 @@ ECode CEqualizer::GetPresetName(
     /* [in] */ Int16 preset,
     /* [out] */ String* presetName)
 {
+    VALIDATE_NOT_NULL(presetName);
+
     if (preset >= 0 && preset < mNumPresets) {
         *presetName = (*mPresetNames)[preset];
     } else {
@@ -320,26 +346,32 @@ ECode CEqualizer::Settings::constructor(
 //        throw new IllegalArgumentException("settings: " + settings);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
+
 /*
-            try {
-                bandLevels = new short[numBands];
-                for (int i = 0; i < numBands; i++) {
-                    key = st.nextToken();
-                    if (!key.equals("band"+(i+1)+"Level")) {
-                        throw new IllegalArgumentException("invalid key name: " + key);
-                    }
-                    bandLevels[i] = Short.parseShort(st.nextToken());
-                }
-             } catch (NumberFormatException nfe) {
-                throw new IllegalArgumentException("invalid value for key: " + key);
-            }
+    try {
 */
-    return E_NOT_IMPLEMENTED;
+    bandLevels = ArrayOf<Int16>::Alloc(numBands);
+    for (int i = 0; i < numBands; i++) {
+        key = st.NextToken();
+        if (!key.Equals(String("band") + String::FromInt32(i+1) + String("Level"))) {
+//            throw new IllegalArgumentException("invalid key name: " + key);
+            return E_ILLEGAL_ARGUMENT_EXCEPTION;
+        }
+        (*bandLevels)[i] = st.NextToken().ToInt32();
+    }
+/*
+    } catch (NumberFormatException nfe) {
+        throw new IllegalArgumentException("invalid value for key: " + key);
+    }
+*/
+    return NOERROR;
 }
 
 ECode CEqualizer::Settings::toString(
     /* [out] */ String* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     *result = String("Equalizer") +
             String(";curPreset=") + String::FromInt32(curPreset) +
             String(";numBands=") + String::FromInt32(numBands);
@@ -354,6 +386,8 @@ ECode CEqualizer::Settings::GetParameterInt16(
     /* [in] */ String param,
     /* [out] */  Int16* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     if (param.Equals("curPreset")) {
         *result = curPreset;
     }
@@ -382,6 +416,8 @@ ECode CEqualizer::Settings::GetParameterInt16Array(
     /* [in] */ String param,
     /* [out,callee] */  ArrayOf<Int16>* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     if (param.Equals("bandLevels")) {
         bandLevels = result;
     }
@@ -399,19 +435,27 @@ ECode CEqualizer::Settings::SetParameterInt16Array(
 ECode CEqualizer::GetProperties(
     /* [out] */ IEqualizerSettings** properties)
 {
-/*
-        byte[] param = new byte[4 + mNumBands * 2];
-        checkStatus(getParameter(PARAM_PROPERTIES, param));
-        Settings settings = new Settings();
-        settings.curPreset = byteArrayToShort(param, 0);
-        settings.numBands = byteArrayToShort(param, 2);
-        settings.bandLevels = new short[mNumBands];
-        for (int i = 0; i < mNumBands; i++) {
-            settings.bandLevels[i] = byteArrayToShort(param, 4 + 2*i);
-        }
-        return settings;
-*/
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(properties);
+
+    ArrayOf<Byte>* param = ArrayOf<Byte>::Alloc(4 + mNumBands * 2);
+    Int32 status;
+    obj->CheckStatus(obj->GetParameterEx(Equalizer_PARAM_PROPERTIES,*param,&status));
+    AutoPtr<IEqualizerSettings> settings;
+    Int16 statusInt16;
+    obj->ByteArrayToInt16Ex(*param, 0, &statusInt16);
+    settings->SetParameterInt16(String("curPreset"), statusInt16);
+    obj->ByteArrayToInt16Ex(*param, 2, &statusInt16);
+    settings->SetParameterInt16(String("numBands"), statusInt16);
+    ArrayOf<Int16>* tempInt16Array1 = ArrayOf<Int16>::Alloc(mNumBands);
+    for (int i = 0; i < mNumBands; i++) {
+        obj->ByteArrayToInt16Ex(*param, 4 + 2*i, &statusInt16);
+        (*tempInt16Array1)[i] = statusInt16;
+    }
+    settings->SetParameterInt16Array(String("bandLevels"), *tempInt16Array1);
+    *properties = settings;
+    ArrayOf<Byte>::Free(param);
+    ArrayOf<Int16>::Free(tempInt16Array1);
+    return NOERROR;
 }
 
 ECode CEqualizer::SetProperties(

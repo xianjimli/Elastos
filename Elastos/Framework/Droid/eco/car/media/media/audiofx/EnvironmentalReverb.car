@@ -43,9 +43,7 @@ module
     const EnvironmentalReverb_PARAM_DENSITY = 9;
 
 
-    interface IEnvironmentalReverb {
-
-    }
+    interface IEnvironmentalReverb;
 
     /**
      * The OnParameterChangeListener interface defines a method called by the EnvironmentalReverb

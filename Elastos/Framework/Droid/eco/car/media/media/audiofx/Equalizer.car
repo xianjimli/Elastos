@@ -45,9 +45,7 @@ module
      */
     const Equalizer_PARAM_STRING_SIZE_MAX = 32;
 
-    interface IEqualizer {
-
-    }
+    interface IEqualizer;
 
     /**
      * The OnParameterChangeListener interface defines a method called by the Equalizer when a

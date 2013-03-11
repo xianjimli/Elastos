@@ -1,5 +1,4 @@
-
-#include "media/audiofx/CBassBoost.h"
+#include "media/audiofx/CVirtualizer.h"
 #include "media/audiofx/CAudioEffect.h"
 #include <elastos/System.h>
 #include <Logger.h>
@@ -7,13 +6,13 @@
 using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
-CBassBoost::CBassBoost()
+CVirtualizer::CVirtualizer()
 {
-    mStrengthSupported = FALSE;
+    mStrengthSupported = false;
     CAudioEffect::New(0,0,(IAudioEffect**)&obj);
 }
 
-PInterface CBassBoost::BaseParameterListener::Probe(
+PInterface CVirtualizer::BaseParameterListener::Probe(
     /* [in]  */ REIID riid)
 {
     if (riid == EIID_IInterface) {
@@ -26,17 +25,17 @@ PInterface CBassBoost::BaseParameterListener::Probe(
     return NULL;
 }
 
-UInt32 CBassBoost::BaseParameterListener::AddRef()
+UInt32 CVirtualizer::BaseParameterListener::AddRef()
 {
     return ElRefBase::AddRef();
 }
 
-UInt32 CBassBoost::BaseParameterListener::Release()
+UInt32 CVirtualizer::BaseParameterListener::Release()
 {
     return ElRefBase::Release();
 }
 
-ECode CBassBoost::BaseParameterListener::GetInterfaceID(
+ECode CVirtualizer::BaseParameterListener::GetInterfaceID(
     /* [in] */ IInterface *pObject,
     /* [out] */ InterfaceID *pIID)
 {
@@ -51,53 +50,55 @@ ECode CBassBoost::BaseParameterListener::GetInterfaceID(
     return NOERROR;
 }
 
-ECode CBassBoost::constructor(
+ECode CVirtualizer::constructor(
     /* [in] */ Int32 priority,
     /* [in] */ Int32 audioSession)
 {
+    /*
+        super(EFFECT_TYPE_VIRTUALIZER, EFFECT_TYPE_NULL, priority, audioSession);
+    */
     ArrayOf_<Int32,1> value;
     Int32 status;
-    obj->CheckStatus(obj->GetParameterEx2(BassBoost_PARAM_STRENGTH_SUPPORTED, &value, &status));
+    obj->CheckStatus(obj->GetParameterEx2(Virtualizer_PARAM_STRENGTH_SUPPORTED, &value, &status));
     mStrengthSupported = (value[0] != 0);
-    return NOERROR;
+    return E_NOT_IMPLEMENTED;
 }
 
-ECode CBassBoost::GetStrengthSupported(
-    /* [out] */ Boolean* isSupported)
+ECode CVirtualizer::GetStrengthSupported(
+    /* [out] */ Boolean* strengthSupported)
 {
-    VALIDATE_NOT_NULL(isSupported);
-
-    *isSupported = mStrengthSupported;
+    VALIDATE_NOT_NULL(strengthSupported);
+    *strengthSupported = mStrengthSupported;
     return NOERROR;
 }
 
-ECode CBassBoost::SetStrength(
+ECode CVirtualizer::SetStrength(
     /* [in] */ Int16 strength)
 {
     Int32 status;
-    obj->CheckStatus(obj->SetParameterEx2(BassBoost_PARAM_STRENGTH, strength, &status));
+    obj->CheckStatus(obj->SetParameterEx2(Virtualizer_PARAM_STRENGTH, strength, &status));
     return NOERROR;
 }
 
-ECode CBassBoost::GetRoundedStrength(
-    /* [out] */ Int16* strength)
+ECode CVirtualizer::GetRoundedStrength(
+    /* [out] */ Boolean* result)
 {
-    VALIDATE_NOT_NULL(strength);
-
+    VALIDATE_NOT_NULL(result);
     ArrayOf_<Int16,1> value;
     Int32 status;
-    obj->CheckStatus(obj->GetParameterEx3(BassBoost_PARAM_STRENGTH_SUPPORTED, &value, &status));
-    mStrengthSupported = (value[0] != 0);
+    obj->CheckStatus(obj->GetParameterEx3(Virtualizer_PARAM_STRENGTH, &value, &status));
+    *result = value[0];
     return NOERROR;
 }
 
-ECode CBassBoost::BaseParameterListener::OnParameterChange(
+ECode CVirtualizer::BaseParameterListener::OnParameterChange(
     /* [in] */ IAudioEffect* effect,
     /* [in] */ Int32 status,
     /* [in] */ const ArrayOf<Byte>& param,
     /* [in] */ const ArrayOf<Byte>& value)
 {
-    AutoPtr<IBassBoostOnParameterChangeListener> l;
+    AutoPtr<IVirtualizerOnParameterChangeListener> l;
+
     Mutex::Autolock lock(mHost->mParamListenerLock);
     if (mHost->mParamListener != NULL) {
         l = mHost->mParamListener;
@@ -105,6 +106,7 @@ ECode CBassBoost::BaseParameterListener::OnParameterChange(
     if (l != NULL) {
         Int32 p = -1;
         Int16 v = -1;
+
         if (param.GetLength() == 4) {
             AutoPtr<IAudioEffect> obj;
             CAudioEffect::New(0,0,(IAudioEffect**)&obj);
@@ -118,14 +120,14 @@ ECode CBassBoost::BaseParameterListener::OnParameterChange(
             obj->Release();
         }
         if (p != -1 && v != -1) {
-            l->OnParameterChange((IBassBoost*) this->Probe(EIID_IBassBoost), status, p, v);
+            l->OnParameterChange((IVirtualizer*) this->Probe(EIID_IVirtualizer), status, p, v);
         }
     }
     return NOERROR;
 }
 
-ECode CBassBoost::SetParameterListenerEx(
-    /* [in] */ IBassBoostOnParameterChangeListener* listener)
+ECode CVirtualizer::SetParameterListenerEx5(
+    /* [in] */ IVirtualizerOnParameterChangeListener* listener)
 {
     Mutex::Autolock lock(mParamListenerLock);
     if (mParamListener != NULL) {
@@ -139,18 +141,18 @@ ECode CBassBoost::SetParameterListenerEx(
     return NOERROR;
 }
 
-ECode CBassBoost::Settings::constructor(
+ECode CVirtualizer::Settings::constructor(
     /* [in] */ String* settings)
 {
     StringTokenizer st(*settings, String("=;"));
-    Int32 tokesn = st.GetCount();
+    Int32 tokens = st.GetCount();
     if (st.GetCount() != 3) {
 //        throw new IllegalArgumentException("settings: " + settings);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
     String key = st.NextToken();
-    if (!key.Equals("BassBoost")) {
-//        throw new IllegalArgumentException("invalid settings for BassBoost: " + key);
+    if (!key.Equals("Virtualizer")) {
+//        throw new IllegalArgumentException("invalid settings for Virtualizer: " + key);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 /*
@@ -170,54 +172,54 @@ ECode CBassBoost::Settings::constructor(
     return NOERROR;
 }
 
-ECode CBassBoost::Settings::toString(
+ECode CVirtualizer::Settings::toString(
     /* [out] */ String* result)
 {
     VALIDATE_NOT_NULL(result);
 
-    *result = String("BassBoost") +
+    *result = String("Virtualizer") +
             String(";strength=") + String::FromInt32(strength);
     return NOERROR;
 }
 
-ECode CBassBoost::Settings::GetStrength(
+ECode CVirtualizer::Settings::GetStrength(
     /* [out] */  Int16* result)
 {
     VALIDATE_NOT_NULL(result);
 
     *result = strength;
+    return NOERROR;
 }
 
-ECode CBassBoost::Settings::SetStrength(
+ECode CVirtualizer::Settings::SetStrength(
     /* [in] */ Int16 result)
 {
     strength = result;
+    return NOERROR;
 }
 
-ECode CBassBoost::GetProperties(
-    /* [out] */ IBassBoostSettings** properties)
+ECode CVirtualizer::GetProperties(
+    /* [out] */ IVirtualizerSettings** properties)
 {
     VALIDATE_NOT_NULL(properties);
 
-    AutoPtr<IBassBoostSettings> settings;
-    ArrayOf_<Int16, 1> value;
+    AutoPtr<IVirtualizerSettings> settings;
+    ArrayOf_<Int16,1> value;
     Int32 status;
-    obj->CheckStatus(obj->GetParameterEx3(BassBoost_PARAM_STRENGTH,&value,&status));
+    obj->CheckStatus(obj->GetParameterEx3(Virtualizer_PARAM_STRENGTH, &value, &status));
     settings->SetStrength(value[0]);
     *properties = settings;
     return NOERROR;
 }
 
-ECode CBassBoost::SetProperties(
-    /* in */ IBassBoostSettings* settings)
+ECode CVirtualizer::SetProperties(
+    /* [in] */ IVirtualizerSettings* settings)
 {
-    Int16 temp;
-    settings->GetStrength(&temp);
-    Int32 result;
-    obj->CheckStatus(obj->SetParameterEx2(BassBoost_PARAM_STRENGTH,temp,&result));
+    Int16 tempInt16;
+    settings->GetStrength(&tempInt16);
+    Int32 status;
+    obj->CheckStatus(obj->SetParameterEx2(Virtualizer_PARAM_STRENGTH, tempInt16, &status));
     return NOERROR;
 }
 
-const CString CBassBoost::TAG = "BassBoost";
-
-
+const CString CVirtualizer::TAG = "Virtualizer";

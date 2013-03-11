@@ -18,3 +18,5 @@ SOURCES = CAudioEffect.cpp
 SOURCES += CBassBoost.cpp
 SOURCES += CEnvironmentalReverb.cpp
 SOURCES += CEqualizer.cpp
+SOURCES += CPresetReverb.cpp
+SOURCES += CVirtualizer.cpp

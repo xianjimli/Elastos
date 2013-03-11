@@ -9,21 +9,33 @@
 using namespace Elastos::Core::Threading;
 
 /**
- * Bass boost is an audio effect to boost or amplify low frequencies of the sound. It is comparable
- * to a simple equalizer but limited to one band amplification in the low frequency range.
- * <p>An application creates a BassBoost object to instantiate and control a bass boost engine in
- * the audio framework.
- * <p>The methods, parameter types and units exposed by the BassBoost implementation are directly
- * mapping those defined by the OpenSL ES 1.0.1 Specification (http://www.khronos.org/opensles/)
- * for the SLBassBoostItf interface. Please refer to this specification for more details.
- * <p>To attach the BassBoost to a particular AudioTrack or MediaPlayer, specify the audio session
- * ID of this AudioTrack or MediaPlayer when constructing the BassBoost.
- * If the audio session ID 0 is specified, the BassBoost applies to the main audio output mix.
- * <p>Creating a BassBoost on the output mix (audio session 0) requires permission
+ * A sound generated within a room travels in many directions. The listener first hears the direct
+ * sound from the source itself. Later, he or she hears discrete echoes caused by sound bouncing off
+ * nearby walls, the ceiling and the floor. As sound waves arrive after undergoing more and more
+ * reflections, individual reflections become indistinguishable and the listener hears continuous
+ * reverberation that decays over time.
+ * Reverb is vital for modeling a listener's environment. It can be used in music applications
+ * to simulate music being played back in various environments, or in games to immerse the
+ * listener within the game's environment.
+ * The EnvironmentalReverb class allows an application to control each reverb engine property in a
+ * global reverb environment and is more suitable for games. For basic control, more suitable for
+ * music applications, it is recommended to use the
+ * {@link android.media.audiofx.PresetReverb} class.
+ * <p>An application creates a EnvironmentalReverb object to instantiate and control a reverb engine
+ * in the audio framework.
+ * <p>The methods, parameter types and units exposed by the EnvironmentalReverb implementation are
+ * directly mapping those defined by the OpenSL ES 1.0.1 Specification
+ * (http://www.khronos.org/opensles/) for the SLEnvironmentalReverbItf interface.
+ * Please refer to this specification for more details.
+ * <p>The EnvironmentalReverb is an output mix auxiliary effect and should be created on
+ * Audio session 0. In order for a MediaPlayer or AudioTrack to be fed into this effect,
+ * they must be explicitely attached to it and a send level must be specified. Use the effect ID
+ * returned by getId() method to designate this particular effect when attaching it to the
+ * MediaPlayer or AudioTrack.
+ * <p>Creating a reverb on the output mix (audio session 0) requires permission
  * {@link android.Manifest.permission#MODIFY_AUDIO_SETTINGS}
- * <p>See {@link android.media.MediaPlayer#getAudioSessionId()} for details on audio sessions.
- * <p>See {@link android.media.audiofx.AudioEffect} class for more details on
- * controlling audio effects.
+ * <p>See {@link android.media.audiofx.AudioEffect} class for more details on controlling
+ * audio effects.
  */
 
 CarClass(CEnvironmentalReverb)
