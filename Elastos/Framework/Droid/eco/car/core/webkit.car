@@ -108,10 +108,10 @@ module
 
   class CPlugin {
     constructor(
-       [in] CString name,
-       [in] CString path,
-       [in] CString fileName,
-       [in] CString description);
+       [in] String name,
+       [in] String path,
+       [in] String fileName,
+       [in] String description);
 
     interface IPlugin;
   }
