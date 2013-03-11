@@ -1,5 +1,6 @@
 
 #include "webkit/CWebView.h"
+
 ECode CWebView::GetVerticalFadingEdgeLength(
     /* [out] */ Int32 * pLength)
 {

@@ -1,6 +1,9 @@
 #ifndef __WEBSETTING_H__
 #define __WEBSETTING_H__
 
+#include "ext/frameworkext.h"
+#include <elastos/ElRefBase.h>
+
 /**
  * Manages settings state for a WebView. When a WebView is first created, it
  * obtains a set of default settings. These default settings will be returned
@@ -9,7 +12,8 @@
  * been destroyed, any method call on WebSettings will throw an
  * IllegalStateException.
  */
-class WebSettings {
+class WebSettings : public ElRefBase
+{
 
 public:
     WebSettings();

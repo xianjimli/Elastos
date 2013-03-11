@@ -71,7 +71,7 @@ module
          * side will post a message to call this method.
          */
         UiOverrideUrlLoading(
-           [in] CString overrideUrl,
+           [in] String overrideUrl,
            [out] Boolean* flag);
 
         /**
@@ -92,11 +92,11 @@ module
            [out] Int32* progress);
 
         OnPageStarted(
-           [in] CString url, 
+           [in] String url, 
            [in] IBitmap* favicon);
 
         OnPageFinished(
-           [in] CString url);
+           [in] String url);
 
         // Because this method is public and because CallbackProxy is mistakenly
         // party of the public classes, we cannot remove this method.
@@ -106,8 +106,8 @@ module
 
         OnReceivedError(
            [in] Int32 errorCode, 
-           [in] CString description,
-           [in] CString failingUrl);
+           [in] String description,
+           [in] String failingUrl);
 
         OnFormResubmission(
            [in] IMessage* dontResend,
@@ -117,13 +117,13 @@ module
          * Called by the WebCore side
          */
         ShouldOverrideUrlLoading(
-           [in] CString url,
+           [in] String url,
            [out] Boolean* flag);
 
         OnReceivedHttpAuthRequest(
            [in] IHttpAuthHandler* handler,
-           [in] CString hostName, 
-           [in] CString realmName);
+           [in] String hostName, 
+           [in] String realmName);
 
         /**
          * @hide - hide this because it contains a parameter of type SslError.
@@ -142,11 +142,11 @@ module
            [in] ISslCertificate* certificate);
 
         DoUpdateVisitedHistory(
-           [in] CString url, 
+           [in] String url, 
            [in] Boolean isReload);
 
         OnLoadResource(
-           [in] CString url);
+           [in] String url);
 
         OnUnhandledKeyEvent(
            [in] IKeyEvent* event);
@@ -164,10 +164,10 @@ module
          * return false.
          */
         OnDownloadStart(
-           [in] CString url, 
-           [in] CString userAgent,
-           [in] CString contentDisposition, 
-           [in] CString mimetype, 
+           [in] String url, 
+           [in] String userAgent,
+           [in] String contentDisposition, 
+           [in] String mimetype, 
            [in] Int64 contentLength,
            [out] Boolean* flag);
 
@@ -178,17 +178,17 @@ module
         //--------------------------------------------------------------------------
 
         OnSavePassword(
-           [in] CString schemePlusHost, 
-           [in] CString username,
+           [in] String schemePlusHost, 
+           [in] String username,
            [in] String password, 
            [in] IMessage* resumeMsg,
            [out] Boolean* flag);
 
         OnReceivedHttpAuthCredentials(
-           [in] CString host, 
-           [in] CString realm,
-           [in] CString username, 
-           [in] CString password);
+           [in] String host, 
+           [in] String realm,
+           [in] String username, 
+           [in] String password);
 
         //--------------------------------------------------------------------------
         // WebChromeClient methods
@@ -211,26 +211,26 @@ module
            [in] IBitmap* icon);
 
         OnReceivedTitle(
-           [in] CString title);
+           [in] String title);
 
         OnJsAlert(
-           [in] CString url, 
-           [in] CString message);
+           [in] String url, 
+           [in] String message);
 
         OnJsConfirm(
-           [in] CString url, 
-           [in] CString message,
+           [in] String url, 
+           [in] String message,
            [out] Boolean* flag);
 
         OnJsPrompt(
-           [in] CString url, 
-           [in] CString message, 
-           [in] CString defaultValue,
+           [in] String url, 
+           [in] String message, 
+           [in] String defaultValue,
            [out] String* result);
 
         OnJsBeforeUnload(
-           [in] CString url, 
-           [in] CString message,
+           [in] String url, 
+           [in] String message,
            [out] Boolean* result);
 
         /**
@@ -250,8 +250,8 @@ module
          *     quota has been made.
          */
         OnExceededDatabaseQuota(
-           [in] CString url, 
-           [in] CString databaseIdentifier, 
+           [in] String url, 
+           [in] String databaseIdentifier, 
            [in] Int64 currentQuota,
            [in] Int64 estimatedSize, 
            [in] Int64 totalUsedQuota,
@@ -280,7 +280,7 @@ module
          *     obtained.
          */
         OnGeolocationPermissionsShowPrompt(
-           [in] CString origin, 
+           [in] String origin, 
            [in] IGeolocationPermissionsCallback* callBack);
 
         /**
@@ -301,9 +301,9 @@ module
          *     WebCore/page/Console.h
          */
         AddMessageToConsole(
-           [in] CString message, 
+           [in] String message, 
            [in] Int32 lineNumber, 
-           [in] CString sourceID, 
+           [in] String sourceID, 
            [in] Int32 msgLevel);
 
         OnJsTimeout(
@@ -315,9 +315,6 @@ module
         /**
          * Called by WebViewCore to open a file chooser.
          */
-        /* package */
-        OpenFileChooser();
-
         OnNewHistoryItem(
            [in] IWebHistoryItem* item);
 

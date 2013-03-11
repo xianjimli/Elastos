@@ -311,7 +311,8 @@ module
          *
          * @return View The View to be displayed whilst the video is loading.
          */
-        GetVideoLoadingProgressView();
+        GetVideoLoadingProgressView(
+           [out] IView** pView);
 
         /** Obtains a list of all visited history items, used for link coloring
          */

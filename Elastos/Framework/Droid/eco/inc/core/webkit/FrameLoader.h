@@ -2,37 +2,39 @@
 #define __FRAMELOADER_H__
 
 #include "WebSettings.h"
+#include <elastos/AutoPtr.h>
+#include <elastos/Vector.h>
 
 class LoadListener;
 
 class FrameLoader {
 
 public:
-    static const CString HEADER_STR;// = "text/xml, text/html, " +
+    static const char* HEADER_STR;// = "text/xml, text/html, " +
         //"application/xhtml+xml, image/png, text/plain, */*;q=0.8";
 
 public:
     FrameLoader(
     	/* [in] */ LoadListener* listener, 
-    	/* [in] */ WebSettings* settings,
-    	/* [in] */ CString method);
+    	/* [in] */ const WebSettings* settings,
+    	/* [in] */ const String& method);
 
 	virtual CARAPI_(void) SetReferrer(
-		/* [in] */ CString ref);
+		/* [in] */ const String& ref);
 
 	virtual CARAPI_(void) SetPostData(
-		/* [in] */ ArrayOf<Byte> postData);
+		/* [in] */ Vector<Byte>& postData);
 
 	virtual CARAPI_(void) SetContentTypeForPost(
-		/* [in] */ CString postContentType);
+		/* [in] */ const String& postContentType);
 
 	virtual CARAPI_(void) SetCacheMode(
 		/* [in] */ Int32 cacheMode);
 
 	virtual CARAPI_(void) SetHeaders(
-		/* [in] */ IHashMap* headers);
+		/* [in] */ /*IHashMap*/IObjectStringMap* headers);
 
-	virtual CARAPI_(LoadListener*) GetLoadListener();
+	virtual CARAPI_(LoadListener*) GetLoadListener() const;
 
     /**
      * Issues the load request.
@@ -46,9 +48,9 @@ public:
 
     /* package */
     static CARAPI_(Boolean) HandleLocalFile(
-    	/* [in] */ CString url, 
-    	/* [in] */ LoadListener* loadListener,
-    	/* [in] */ WebSettings* settings);
+    	/* [in] */ const String& url, 
+    	/* [in] */ const LoadListener* loadListener,
+    	/* [in] */ const WebSettings* settings);
 
     virtual CARAPI_(Boolean) HandleHTTPLoad();
 
@@ -58,7 +60,7 @@ private:
      * setup a load from the byte stream in a CacheResult.
      */
     CARAPI_(void) StartCacheLoad(
-    	/* [in] */ ICacheManagerCacheResult* result);
+    	/* [in] */ const ICacheManagerCacheResult* result);
 
     /*
      * This function is used by the handleHTTPLoad to setup the cache headers
@@ -79,26 +81,26 @@ private:
 	CARAPI_(void) PopulateHeaders();
 
 private:
-	const LoadListener* mListener;
-	const CString mMethod;
-	const WebSettings mSettings;
+	/*const*/ LoadListener* mListener;
+	/*const*/ String mMethod;
+	const WebSettings* mSettings;
 	IObjectStringMap* mHeaders;
-	ArrayOf<Byte> mPostData;
-	INetworkInfo* mNetwork;
+	Vector<Byte> mPostData;
+	AutoPtr<INetworkInfo> mNetwork;
 	Int32 mCacheMode;
-	CString mReferrer;
-	CString mContentType;
+	String mReferrer;
+	String mContentType;
 
 	static const Int32 URI_PROTOCOL = 0x100;
 
-	static const CString CONTENT_TYPE;// = "content-type";
+	static const char* CONTENT_TYPE;// = "content-type";
 
     // Contents of an about:blank page
-	static const CString mAboutBlank;// =
+	static const char* mAboutBlank;// =
             //"<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EB\">" +
             //"<html><head><title>about:blank</title></head><body></body></html>";
 
-	static const CString LOGTAG;// = "webkit";
+	static const char* LOGTAG;// = "webkit";
 };
 
 #endif //__FRAMELOADER_H__

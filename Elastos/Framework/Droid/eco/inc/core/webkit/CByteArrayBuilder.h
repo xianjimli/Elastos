@@ -3,6 +3,10 @@
 #define __CBYTEARRAYBUILDER_H__
 
 #include "_CByteArrayBuilder.h"
+#include "ext/frameworkext.h"
+#include <elastos/AutoPtr.h>
+#include <elastos/Vector.h>
+#include <elastos/ElRefBase.h>
 
 CarClass(CByteArrayBuilder)
 {
@@ -25,8 +29,41 @@ public:
 
     CARAPI constructor();
 
+public:
+    class Chunk : //public ElRefBase, 
+                  public IByteArrayBuilderChunk
+    {
+    public:
+        Chunk(
+            /* [in] */ Int32 length);
+
+        /**
+         * Release the chunk and make it available for reuse.
+         */
+        virtual CARAPI ChunkRelease();
+
+    public:
+        Byte*     mArray;
+        Int32     mLength;
+    };
+
 private:
-    // TODO: Add your private member variables here.
+    // Must be called with lock held on sPool.
+    CARAPI_(void) ProcessPoolLocked();
+
+    CARAPI_(Chunk*) ObtainChunk(
+        /* [in] */ Int32 length);
+
+private:
+    static const Int32 DEFAULT_CAPACITY = 8192;
+
+    // Global pool of chunks to be used by other ByteArrayBuilders.
+    static const Vector< AutoPtr<Chunk> > sPool;
+
+    // Reference queue for processing gc'd entries.
+    static const Vector<AutoPtr<Chunk> > sQueue;
+
+    Vector<AutoPtr<Chunk> > mChunks;
 };
 
 #endif // __CBYTEARRAYBUILDER_H__

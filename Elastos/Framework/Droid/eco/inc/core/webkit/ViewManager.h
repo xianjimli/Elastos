@@ -1,6 +1,8 @@
 #ifndef __VIEWMANAGER_H__
 #define __VIEWMANAGER_H__
 
+#include "ext/frameworkext.h"
+
 class ViewManager {
 
 public:

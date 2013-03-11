@@ -20,7 +20,19 @@ public:
         /* [out] */ IMockGeolocation ** ppInstance);
 
 private:
-    // TODO: Add your private member variables here.
+    // Native functions
+    static CARAPI_(void) NativeSetPosition(
+        /* [in] */ Double latitude,
+        /* [in] */ Double longitude,
+        /* [in] */ Double accuracy);
+
+    static CARAPI_(void) NativeSetError(
+        /* [in] */ Int32 code,
+        /* [in] */ const String& message);
+
+private:
+    // Global instance of a MockGeolocation
+    static CMockGeolocation* sMockGeolocation;
 };
 
 #endif // __CMOCKGEOLOCATION_H__

@@ -23,7 +23,19 @@ public:
         /* [in] */ IContext * pContext);
 
 private:
-    // TODO: Add your private member variables here.
+    static const char* LOGTAG;// = "webkit";
+    static const Int32 NUM_DAYS_AGO = 7;
+
+    Int64 mBins[];
+    String mLabels[];   
+    
+#if 0
+    /**
+     * Calcuate 12:00am by zeroing out hour, minute, second, millisecond
+     */
+    CARAPI_(void) BeginningOfDay(
+        /* [in] */ ICalendar* c);
+#endif
 };
 
 #endif // __CDATESORTER_H__

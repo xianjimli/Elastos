@@ -1,10 +1,18 @@
 
 #include "webkit/CWebViewClient.h"
+
 ECode CWebViewClient::ShouldOverrideUrlLoading(
     /* [in] */ IWebView * pView,
-    /* [in] */ CString url,
+    /* [in] */ const String& url,
     /* [out] */ Boolean * pFlag)
 {
+    if (pFlag == NULL)
+    {
+        return E_INVALID_ARGUMENT;
+    }
+
+    *pFlag = false;
+
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
@@ -20,7 +28,7 @@ ECode CWebViewClient::OnPageStarted(
 
 ECode CWebViewClient::OnPageFinished(
     /* [in] */ IWebView * pView,
-    /* [in] */ CString url)
+    /* [in] */ const String& url)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -28,7 +36,7 @@ ECode CWebViewClient::OnPageFinished(
 
 ECode CWebViewClient::OnLoadResource(
     /* [in] */ IWebView * pView,
-    /* [in] */ CString url)
+    /* [in] */ const String& url)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -39,6 +47,13 @@ ECode CWebViewClient::OnTooManyRedirects(
     /* [in] */ IMessage * pCancelMsg,
     /* [in] */ IMessage * pContinueMsg)
 {
+    if (pCancelMsg == NULL)
+    {
+        return E_INVALID_ARGUMENT;
+    }
+
+//    pCancelMsg->SendToTarget();
+
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
@@ -46,8 +61,8 @@ ECode CWebViewClient::OnTooManyRedirects(
 ECode CWebViewClient::OnReceivedError(
     /* [in] */ IWebView * pView,
     /* [in] */ Int32 errorCode,
-    /* [in] */ CString description,
-    /* [in] */ CString failingUrl)
+    /* [in] */ const String& description,
+    /* [in] */ const String& failingUrl)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -58,13 +73,20 @@ ECode CWebViewClient::OnFormResubmission(
     /* [in] */ IMessage * pDontResend,
     /* [in] */ IMessage * pResend)
 {
+    if (pDontResend == NULL)
+    {
+        return E_INVALID_ARGUMENT;
+    }
+
+//    pDontResend->SendToTarget();
+
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CWebViewClient::DoUpdateVisitedHistory(
     /* [in] */ IWebView * pView,
-    /* [in] */ CString url,
+    /* [in] */ const String& url,
     /* [in] */ Boolean isReload)
 {
     // TODO: Add your code here
@@ -76,6 +98,13 @@ ECode CWebViewClient::OnReceivedSslError(
     /* [in] */ ISslErrorHandler * pHandler,
     /* [in] */ ISslError * pError)
 {
+    if (pHandler == NULL)
+    {
+        return E_INVALID_ARGUMENT;
+    }
+
+    pHandler->Cancel();
+
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
@@ -83,9 +112,16 @@ ECode CWebViewClient::OnReceivedSslError(
 ECode CWebViewClient::OnReceivedHttpAuthRequest(
     /* [in] */ IWebView * pView,
     /* [in] */ IHttpAuthHandler * pHandler,
-    /* [in] */ CString host,
-    /* [in] */ CString realm)
+    /* [in] */ const String& host,
+    /* [in] */ const String& realm)
 {
+    if (pHandler == NULL)
+    {
+        return E_INVALID_ARGUMENT;
+    }
+
+    pHandler->Cancel();
+
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
@@ -95,6 +131,13 @@ ECode CWebViewClient::ShouldOverrideKeyEvent(
     /* [in] */ IKeyEvent * pEvent,
     /* [out] */ Boolean * pFlag)
 {
+    if (pFlag == NULL)
+    {
+        return E_INVALID_ARGUMENT;
+    }
+
+    *pFlag = false;
+
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }

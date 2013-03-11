@@ -1,10 +1,6 @@
 
 module
 {
-    const HEADER_KEY_IFMODIFIEDSINCE = "if-modified-since";
-    
-    const HEADER_KEY_IFNONEMATCH = "if-none-match";
-
     interface IObjectStringMap;
     interface IInputStream;
     interface IOutputStream;
@@ -58,19 +54,11 @@ module
                [in] IInputStream* stream);
 
         SetEncoding(
-               [in] CString encoding);
+               [in] String encoding);
     }
 
     interface ICacheManager {
-        
-        /**
-         * initialize the CacheManager. WebView should handle this for each process.
-         * 
-         * @param context The application context.
-         */
-        Init(
-           [in] IContext* context);
-        
+                
         /**
          * get the base directory of the cache. With localPath of the CacheResult,
          * it identifies the cache file.
@@ -115,13 +103,7 @@ module
          * @return the CacheResult for a given url
          */
         GetCacheFile(
-              [in] CString url,
-              [in] IObjectStringMap* headers,
-              [out] ICacheManagerCacheResult** result);
-
-        GetCacheFileEx(
-              [in] CString url, 
-              [in] Int64 postIdentifier,
+              [in] String url,
               [in] IObjectStringMap* headers,
               [out] ICacheManagerCacheResult** result);
 
@@ -138,10 +120,10 @@ module
          * in a hidden package.
          */
         CreateCacheFile(
-              [in] CString url, 
+              [in] String url, 
               [in] Int32 statusCode,
               [in] IHeaders* headers, 
-              [in] CString mimeType, 
+              [in] String mimeType, 
               [in] Boolean forceCache,
               [out] ICacheManagerCacheResult** result);
 
@@ -150,7 +132,7 @@ module
          * can be reused later
          */
         SaveCacheFile(
-              [in] CString url, 
+              [in] String url,
               [in] ICacheManagerCacheResult* cacheRet);
     }
 }
