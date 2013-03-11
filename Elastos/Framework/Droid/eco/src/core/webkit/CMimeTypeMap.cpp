@@ -4,6 +4,8 @@
 
 CMimeTypeMap* CMimeTypeMap::sMimeTypeMap = NULL;
 
+#if 0
+
 ECode CMimeTypeMap::GetFileExtensionFromUrl(
     /* [in] */ CString inUrl,
     /* [out] */ String * pOutUrl)
@@ -528,3 +530,4 @@ void CMimeTypeMap::LoadEntry(
 
     mExtensionToMimeTypeMap[String(extension)] = String(mimeType);
 }
+#endif

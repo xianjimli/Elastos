@@ -31,7 +31,7 @@ ECode CBrowserFrame::LoadUrl(
     IURLUtil* pURLUtil = NULL;
     CURLUtil::AcquireSingleton(&pURLUtil);
     Boolean flag = false;
-    pURLUtil->IsJavaScriptUrl((const char*)url, &flag);
+    pURLUtil->IsJavaScriptUrl(url, &flag);
 
     if (flag) 
     {
@@ -340,7 +340,7 @@ ECode CBrowserFrame::constructor(
         // create CookieSyncManager with current Context
         CookieSyncManager::CreateInstance(appContext);
         // create PluginManager with current Context
-        CPluginManager::CreateInstance(appContext, NULL);
+//        CPluginManager::CreateInstance(appContext, NULL);
     }
 
     if (sConfigCallback == NULL)

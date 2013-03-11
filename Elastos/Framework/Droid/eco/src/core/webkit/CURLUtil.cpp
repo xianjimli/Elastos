@@ -21,6 +21,7 @@ const char* CURLUtil::LOGTAG = "webkit";
 
 //const AutoPtr<CPattern> CURLUtil::CONTENT_DISPOSITION_PATTERN = CPattern::Compile("attachment;\\s*filename\\s*=\\s*(\"?)([^\"]*)\\1\\s*$",CPattern::CASE_INSENSITIVE);
 
+#if 0
 
 ECode CURLUtil::ParseHex(
         /* [in] */ Byte b,
@@ -530,3 +531,4 @@ ECode CURLUtil::ParseContentDisposition(
     return NOERROR;
 }
 
+#endif

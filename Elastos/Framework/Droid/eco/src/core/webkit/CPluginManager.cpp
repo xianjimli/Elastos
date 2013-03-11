@@ -354,8 +354,9 @@ ECode CPluginManager::constructor(
     return NOERROR;
 }
 
-
+#if 0
 ECode CPluginManager::CreateInstance(
     /* [in] */ IContext * pContext,
     /* [out] */ IPluginManager ** ppInstance)
 {}
+#endif
