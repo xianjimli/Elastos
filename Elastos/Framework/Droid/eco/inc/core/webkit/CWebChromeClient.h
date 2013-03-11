@@ -106,7 +106,8 @@ public:
     CARAPI GetDefaultVideoPoster(
         /* [out] */ IBitmap ** ppBitmap);
 
-    CARAPI GetVideoLoadingProgressView();
+    CARAPI GetVideoLoadingProgressView(
+        /* [out] */ IView** pView);
 
     CARAPI GetVisitedHistory(
         /* [in] */ IValueCallback * pCallBack);

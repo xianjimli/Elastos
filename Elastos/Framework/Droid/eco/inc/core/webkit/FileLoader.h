@@ -3,6 +3,8 @@
 
 #include "StreamLoader.h"
 
+#include "ext/frameworkext.h"
+
 class LoadListener;
 
 /**
@@ -32,8 +34,8 @@ public:
      *                        on the file system.
      */
     FileLoader(
-    	/* [in] */ CString url, 
-    	/* [in] */ LoadListener* loadListener, 
+    	/* [in] */ const String& url, 
+    	/* [in] */ const LoadListener* loadListener, 
     	/* [in] */ Int32 type,
     	/* [in] */ Boolean allowFileAccess);
 
@@ -43,18 +45,18 @@ protected:
 
     //@Override
     virtual CARAPI_(void) BuildHeaders(
-        /* [in] */ IHeaders* headers);
+        /* [in] */ const IHeaders* headers);
 
 private:
 //    CString ErrString(
 //    	/* [in] */ Exception ex);
 
 private:
-	CString mPath;  // Full path to the file to load
+	String mPath;  // Full path to the file to load
 	Int32 mType;  // Indicates the type of the load
 	Boolean mAllowFileAccess; // Allow/block file system access
 
-	static const CString LOGTAG;// = "webkit";
+	static const char* LOGTAG;// = "webkit";
 };
 
 #endif //__FILELOADER_H__

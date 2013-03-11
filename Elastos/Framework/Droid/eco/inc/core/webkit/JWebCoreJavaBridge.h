@@ -1,7 +1,11 @@
 #ifndef __JWEBCOREJAVABRIDGE_H_
 #define __JWEBCOREJAVABRIDGE_H_
 
-class JWebCoreJavaBridge //: public Handler 
+#include <elastos/ElRefBase.h>
+
+#include "CWebView.h"
+
+class JWebCoreJavaBridge : public ElRefBase//: public Handler 
 {
 
 public:
@@ -59,8 +63,8 @@ public:
 
 	/* native */	
 	virtual CARAPI_(void) SetNetworkType(
-		/* [in] */ CString type, 
-		/* [in] */ CString subtype);
+		/* [in] */ const String& type, 
+		/* [in] */ const String& subtype);
 
 	/* native */
 	virtual CARAPI_(void) AddPackageNames(
@@ -68,10 +72,10 @@ public:
 
 	/* native */
 	virtual CARAPI_(void) AddPackageName(
-		/* [in] */ CString packageName);
+		/* [in] */ const String& packageName);
 
 	virtual CARAPI_(void) RemovePackageName(
-		/* [in] */ CString packageName);
+		/* [in] */ const String& packageName);
 
 protected:
 	//@Override
@@ -94,8 +98,8 @@ private:
      * @param value The cookie string to be stored.
      */
 	CARAPI_(void) SetCookies(
-		/* [in] */ CString url, 
-		/* [in] */ String value);
+		/* [in] */ const String& url, 
+		/* [in] */ const String& value);
 
     /**
      * Retrieve the cookie string for the given url.
@@ -103,7 +107,7 @@ private:
      * @return A String representing the cookies for the given resource url.
      */
 	CARAPI_(CString) Cookies(
-		/* [in] */ CString url);
+		/* [in] */ const String& url);
 
     /**
      * Returns whether cookies are enabled or not.
@@ -113,12 +117,14 @@ private:
     /**
      * Returns an array of plugin directoies
      */
-	CARAPI_(String*) GetPluginDirectories();
+	CARAPI_(void) GetPluginDirectories(
+        /* [out] */ String& str) const;
 
     /**
      * Returns the path of the plugin data directory
      */
-	CARAPI_(CString) GetPluginSharedDataDirectory();
+	CARAPI_(void) GetPluginSharedDataDirectory(
+        /* [out] */ String& str) const;
 
     /**
      * setSharedTimer
@@ -132,13 +138,15 @@ private:
      */
 	CARAPI_(void) StopSharedTimer();
 
-	CARAPI_(String) GetKeyStrengthList();
+	CARAPI_(void) GetKeyStrengthList(
+        /* [out] */ String& str) const;
 
     /*synchronized*/ 
-    CARAPI_(String) GetSignedPublicKey(
+    CARAPI_(void) GetSignedPublicKey(
     	/* [in] */ Int32 index, 
-    	/* [in] */ CString challenge,
-    	/* [in] */ String url);
+    	/* [in] */ const String& challenge,
+    	/* [in] */ const String& url,
+        /* [out] */ String& str);
 
 	/*native*/
     CARAPI_(void) NativeConstructor();
@@ -151,7 +159,7 @@ private:
 
     /*native*/
     CARAPI_(void) NativeUpdatePluginDirectories(
-    	/* [in] */ ArrayOf<String> directories, 
+    	/* [in] */ Vector<String>& directories, 
     	/* [in] */ Boolean reload);
 
 private:
@@ -160,7 +168,7 @@ private:
     // ID for servicing functionptr queue
 	static const Int32 FUNCPTR_MESSAGE = 2;
     // Log system identifier.
-	static const CString LOGTAG;// = "webkit-timers";
+	static const char* LOGTAG;// = "webkit-timers";
 
     // Native object pointer for interacting in native code.
 	Int32 mNativeBridge;

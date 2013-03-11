@@ -12,17 +12,20 @@ module
          * 
          * @return CookieSyncManager
          */
-        GetInstance(
-           [out] ICookieSyncManager** cookieSyncManager);
+//        GetInstance(
+//           [out] ICookieSyncManager** cookieSyncManager);
 
         /**
          * Create a singleton CookieSyncManager within a context
          * @param context
          * @return CookieSyncManager
          */
-        CreateInstance(
-           [in] IContext* context,
-           [out] ICookieSyncManager** cookieSyncManager);
+//        CreateInstance(
+//           [in] IContext* context,
+//           [out] ICookieSyncManager** cookieSyncManager);
+
+        InitInstance(
+             [in] IContext* context);
     }
 
 }

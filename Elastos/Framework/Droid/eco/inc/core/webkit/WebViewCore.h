@@ -1,11 +1,13 @@
 #ifndef __WEBVIEWCORE_H__
 #define __WEBVIEWCORE_H__
 
+#include <elastos/ElRefBase.h>
+
 #include "ViewManager.h"
 #include "WebSettings.h"
 
-class WebViewCore {
-
+class WebViewCore : public ElRefBase
+{
 public:
 	struct BaseUrlData 
 	{
@@ -329,7 +331,7 @@ public:
     // The thread name used to identify the WebCore thread and for use in
     // debugging other classes that require operation within the WebCore thread.
     /* package */ 
-	static const CString THREAD_NAME;// = "WebViewCoreThread";
+	static const char* THREAD_NAME;// = "WebViewCoreThread";
 
 	WebViewCore(
 		/* [in] */ IContext* context, 

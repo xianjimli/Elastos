@@ -1,17 +1,6 @@
 
 module
 {
-    // Message ids
-    const GET_ORIGINS_GP = 0;
-    const GET_ALLOWED = 1;
-    const CLEAR = 2;
-    const ALLOW = 3;
-    const CLEAR_ALL = 4;
-
-    // Message ids on the UI thread
-    const RETURN_ORIGINS_GP = 0;
-    const RETURN_ALLOWED = 1;
-
     interface IValueCallback;
 
     interface IGeolocationPermissionsCallback {

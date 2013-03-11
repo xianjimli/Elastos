@@ -1,6 +1,8 @@
 #ifndef __WEBSYNCMANAGER_H__
 #define __WEBSYNCMANAGER_H__
 
+#include "ext/frameworkext.h"
+
 class WebSyncManager// : public Runnable 
 {    
 
@@ -33,10 +35,10 @@ public:
 protected:
 	WebSyncManager(
 		/* [in] */ IContext* context, 
-		/* [in] */ CString name);
+		/* [in] */ const String& name);
 
 	virtual CARAPI_(void) onSyncInit();
-	virtual CARAPI_(IInterface*) clone();
+	virtual CARAPI_(IInterface*) Clone();
 
 protected:
 	// handler of the sync thread
@@ -45,7 +47,7 @@ protected:
 	IWebViewDatabase* mDataBase;
 
 	// log tag
-	static const CString LOGTAG;// = "websync";
+	static const char* LOGTAG;// = "websync";
 
 private:
 	class SyncHandler// : public IHandler 

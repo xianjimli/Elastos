@@ -1,26 +1,6 @@
 
 module
 {
-
-    // message ids
-    // a message posted when a frame loading is completed
-    const FRAME_COMPLETED = 1001;
-    // orientation change message
-    const ORIENTATION_CHANGED = 1002;
-    // a message posted when the user decides the policy
-    const POLICY_FUNCTION = 1003;
-
-    // Note: need to keep these in sync with FrameLoaderTypes.h in native
-    const FRAME_LOADTYPE_STANDARD = 0;
-    const FRAME_LOADTYPE_BACK = 1;
-    const FRAME_LOADTYPE_FORWARD = 2;
-    const FRAME_LOADTYPE_INDEXEDBACKFORWARD = 3;
-    const FRAME_LOADTYPE_RELOAD = 4;
-    const FRAME_LOADTYPE_RELOADALLOWINGSTALEDATA = 5;
-    const FRAME_LOADTYPE_SAME = 6;
-    const FRAME_LOADTYPE_REDIRECT = 7;
-    const FRAME_LOADTYPE_REPLACE = 8;
-
     interface IHandler;
     interface ISslCertificate;
     interface IMessage;
@@ -37,7 +17,7 @@ module
          *            will be replaced by the intrinsic value of the WebView.
          */
         LoadUrl(
-            [in] CString url, 
+            [in] String url, 
             [in] IObjectStringMap*  extraHeaders);
 
         /**
@@ -60,11 +40,11 @@ module
          * @param historyUrl URL to use as the history entry.
          */
         LoadData(
-            [in] CString baseUrl, 
-            [in] CString data, 
-            [in] CString mimeType,
-            [in] CString encoding, 
-            [in] CString historyUrl);
+            [in] String baseUrl, 
+            [in] String data, 
+            [in] String mimeType,
+            [in] String encoding, 
+            [in] String historyUrl);
 
         /**
          * Go back or forward the number of steps given.
@@ -108,12 +88,12 @@ module
          * wants to hijack url loading
          */
         HandleUrl(
-            [in] CString url,
+            [in] String url,
             [out] Boolean* flag);
 
         AddJavascriptInterface(
             [in] IInterface* obj, 
-            [in] CString interfaceName);
+            [in] String interfaceName);
 
         //==========================================================================
         // native functions
@@ -140,7 +120,7 @@ module
          * @return string result of execution or null
          */
         StringByEvaluatingJavaScriptFromString(
-           [in] CString script,
+           [in] String script,
            [out] String* scriptString);
 
         CacheDisabled(

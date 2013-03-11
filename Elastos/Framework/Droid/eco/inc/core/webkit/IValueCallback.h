@@ -9,7 +9,7 @@ class ValueCallback {
     /**
      * Invoked when we have the result
      */
-	virtual CARAPI_(void) onReceiveValue(
+	virtual CARAPI_(void) OnReceiveValue(
 		/* [in] */ T value) = 0;
 };
 

@@ -1,22 +1,47 @@
 
 #include "ext/frameworkext.h"
 #include "webkit/CMimeTypeMap.h"
-#include <elastos/HashMap.h>
 
-/**
- * MIME-type to file extension mapping:
- */
-static HashMap<String, String> mMimeTypeToExtensionMap;
-
-/**
- * File extension to MIME type mapping:
- */
-static HashMap<String, String> mExtensionToMimeTypeMap;
+CMimeTypeMap* CMimeTypeMap::sMimeTypeMap = NULL;
 
 ECode CMimeTypeMap::GetFileExtensionFromUrl(
     /* [in] */ CString inUrl,
     /* [out] */ String * pOutUrl)
 {
+    if (pOutUrl == NULL)
+    {
+        return E_INVALID_ARGUMENT;
+    }
+
+    String url((const char*)inUrl);
+
+    if (url.GetLength() > 0)
+    {
+        int query = url.LastIndexOf('?');
+        if (query > 0)
+        {
+            url = url.Substring(0, query);
+        }
+        int filenamePos = url.LastIndexOf('/');
+        String filename =
+            0 <= filenamePos ? url.Substring(filenamePos + 1) : url;
+
+        // if the filename contains special characters, we don't
+        // consider it valid for our matching purposes:
+        if (filename.GetLength() > 0 /*&&
+            Pattern.matches("[a-zA-Z_0-9\\.\\-\\(\\)\\%]+", filename)*/)
+        {
+            int dotPos = filename.LastIndexOf('.');
+            if (0 <= dotPos)
+            {
+                *pOutUrl = filename.Substring(dotPos + 1);
+                return E_NOT_IMPLEMENTED;
+            }
+        }
+    }
+
+    *pOutUrl = "";
+
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
@@ -25,6 +50,7 @@ ECode CMimeTypeMap::HasMimeType(
     /* [in] */ CString mimeType,
     /* [out] */ Boolean* flag)
 {
+
     VALIDATE_NOT_NULL(flag);
 
     if (!mimeType.IsNullOrEmpty()) {

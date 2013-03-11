@@ -1,6 +1,8 @@
 #ifndef __STREAMLOADER_H__
 #define __STREAMLOADER_H__
 
+#include "ext/frameworkext.h"
+
 class LoadListener;
 
 /**
@@ -21,7 +23,8 @@ class LoadListener;
  * that indicates the content should not be cached.
  *
  */
-class StreamLoader : public IHandlerCallback {
+class StreamLoader //: public IHandlerCallback
+{
 public:
     /**
      * Constructor. Although this class calls the LoadListener, it only calls
@@ -31,7 +34,7 @@ public:
      * @param loadlistener The LoadListener to call with the data.
      */
     StreamLoader(
-    	/* [in] */ LoadListener* loadListener);
+    	/* [in] */ const LoadListener* loadListener);
 
     /**
      * Calling this method starts the load of the content for this StreamLoader.
@@ -39,15 +42,15 @@ public:
      * message to send the status and returns immediately.
      */
     /*final*/
-    CARAPI_(void) load();
+    CARAPI_(void) Load();
 
     virtual CARAPI_(Boolean) HandleMessage(
-    	/* [in] */ IMessage* msg);
+    	/* [in] */ const IMessage* msg);
 
 protected:
-	const IContext* mContext;
-	const LoadListener* mLoadListener; // loader class
-	const IInputStream* mDataStream; // stream to read data from
+	/*const*/ IContext* mContext;
+	/*const*/ LoadListener* mLoadListener; // loader class
+	/*const*/ IInputStream* mDataStream; // stream to read data from
 	long mContentLength; // content length of data
 
 	/**
@@ -67,7 +70,7 @@ protected:
      * @param headers Map of HTTP headers that will be sent to the loader.
      */
     virtual CARAPI_(void) buildHeaders(
-    	/* [in] */ IHeaders* headers);
+    	/* [in] */ const IHeaders* headers);
 
 private:
 	/**

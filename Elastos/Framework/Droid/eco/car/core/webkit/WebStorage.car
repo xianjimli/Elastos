@@ -41,12 +41,6 @@ module
            [in] IValueCallback* callBack);
 
         /**
-         * Returns a list of origins having a database
-         * should only be called from WebViewCore.
-         */
-        GetOriginsSync();
-
-        /**
          * Returns the use for a given origin
          */
         GetUsageForOrigin(

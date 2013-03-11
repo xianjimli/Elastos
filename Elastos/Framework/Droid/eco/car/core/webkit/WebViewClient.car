@@ -73,7 +73,7 @@ module
          */
         ShouldOverrideUrlLoading(
            [in] IWebView* view, 
-           [in] CString url,
+           [in] String url,
            [out] Boolean* flag);
 
         /**
@@ -104,7 +104,7 @@ module
          */
         OnPageFinished(
            [in] IWebView* view, 
-           [in] CString url);
+           [in] String url);
 
         /**
          * Notify the host application that the WebView will load the resource
@@ -115,7 +115,7 @@ module
          */
         OnLoadResource(
            [in] IWebView* view, 
-           [in] CString url);
+           [in] String url);
 
         /**
          * Notify the host application that there have been an excessive number of
@@ -146,8 +146,8 @@ module
         OnReceivedError(
            [in] IWebView* view, 
            [in] Int32 errorCode,
-           [in] CString description, 
-           [in] CString failingUrl);
+           [in] String description, 
+           [in] String failingUrl);
 
         /**
          * As the host application if the browser should resend data as the
@@ -172,7 +172,7 @@ module
          */
         DoUpdateVisitedHistory(
            [in] IWebView* view, 
-           [in] CString url,
+           [in] String url,
            [in] Boolean isReload);
 
         /**
@@ -205,8 +205,8 @@ module
         OnReceivedHttpAuthRequest(
            [in] IWebView* view,
            [in] IHttpAuthHandler* handler, 
-           [in] CString host, 
-           [in] CString realm);
+           [in] String host, 
+           [in] String realm);
 
         /**
          * Give the host application a chance to handle the key event synchronously.

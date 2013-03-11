@@ -9,7 +9,7 @@ CarClass(CWebViewClient)
 public:
     CARAPI ShouldOverrideUrlLoading(
         /* [in] */ IWebView * pView,
-        /* [in] */ CString url,
+        /* [in] */ const String& url,
         /* [out] */ Boolean * pFlag);
 
     CARAPI OnPageStarted(
@@ -19,11 +19,11 @@ public:
 
     CARAPI OnPageFinished(
         /* [in] */ IWebView * pView,
-        /* [in] */ CString url);
+        /* [in] */ const String& url);
 
     CARAPI OnLoadResource(
         /* [in] */ IWebView * pView,
-        /* [in] */ CString url);
+        /* [in] */ const String& url);
 
     CARAPI OnTooManyRedirects(
         /* [in] */ IWebView * pView,
@@ -33,8 +33,8 @@ public:
     CARAPI OnReceivedError(
         /* [in] */ IWebView * pView,
         /* [in] */ Int32 errorCode,
-        /* [in] */ CString description,
-        /* [in] */ CString failingUrl);
+        /* [in] */ const String& description,
+        /* [in] */ const String& failingUrl);
 
     CARAPI OnFormResubmission(
         /* [in] */ IWebView * pView,
@@ -43,7 +43,7 @@ public:
 
     CARAPI DoUpdateVisitedHistory(
         /* [in] */ IWebView * pView,
-        /* [in] */ CString url,
+        /* [in] */ const String& url,
         /* [in] */ Boolean isReload);
 
     CARAPI OnReceivedSslError(
@@ -54,8 +54,8 @@ public:
     CARAPI OnReceivedHttpAuthRequest(
         /* [in] */ IWebView * pView,
         /* [in] */ IHttpAuthHandler * pHandler,
-        /* [in] */ CString host,
-        /* [in] */ CString realm);
+        /* [in] */ const String& host,
+        /* [in] */ const String& realm);
 
     CARAPI ShouldOverrideKeyEvent(
         /* [in] */ IWebView * pView,

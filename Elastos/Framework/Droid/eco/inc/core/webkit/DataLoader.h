@@ -20,7 +20,7 @@ public:
      * @param loadListener LoadListener to pass the content to
      */
     DataLoader(
-    	/* [in] */ CString dataUrl, 
+    	/* [in] */ const String& dataUrl, 
     	/* [in] */ LoadListener* loadListener);
 
 protected:

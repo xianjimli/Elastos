@@ -1,6 +1,10 @@
 #ifndef __NETWORK_H__
 #define __NETWORK_H__
 
+#include "ext/frameworkext.h"
+#include <elastos/AutoPtr.h>
+#include <elastos/Vector.h>
+
 class HttpAuthHandler;
 class LoadListener;
 
@@ -13,7 +17,7 @@ public:
      * synchronized
      */
 	static CARAPI_(Network*) GetInstance(
-		/* [in] */ IContext* context);
+		/* [in] */ const IContext* context);
 
     /**
      * Enables data state and proxy tracking
@@ -36,10 +40,10 @@ public:
      * @return True if the request was successfully queued.
      */
 	virtual CARAPI_(Boolean) RequestURL(
-		/* [in] */ CString method,
-		/* [in] */ IObjectStringMap* headers,
-		/* [in] */ ArrayOf<Byte> postData,
-		/* [in] */ LoadListener* loader);
+		/* [in] */ const String& method,
+		/* [in] */ const IObjectStringMap* headers,
+		/* [in] */ Vector<Byte>& postData,
+		/* [in] */ const LoadListener* loader);
 
     /**
      * @return True iff there is a valid proxy set.
@@ -51,14 +55,16 @@ public:
      * @return The proxy hostname obtained from the network queue and proxy
      *         settings.
      */
-	virtual CARAPI_(CString) GetProxyHostname();
+	virtual CARAPI_(void) GetProxyHostname(
+        /* [out] */ String& str) const;
 
     /**
      * @return The proxy username or null if none.
      *
      * synchronized
      */
-	virtual CARAPI_(CString) GetProxyUsername();
+	virtual CARAPI_(void) GetProxyUsername(
+        /* [out] */ String& str) const;
 
     /**
      * Sets the proxy username.
@@ -68,14 +74,15 @@ public:
      * synchronized
      */
 	virtual CARAPI_(void) SetProxyUsername(
-		/* [in] */ CString proxyUsername);
+		/* [in] */ const String& proxyUsername);
 
     /**
      * @return The proxy password or null if none.
      *
      * synchronized
      */
-	virtual CARAPI_(CString) GetProxyPassword();
+	virtual CARAPI_(void) GetProxyPassword(
+        /* [out] */ String& str) const;
 
     /**
      * Sets the proxy password.
@@ -85,7 +92,7 @@ public:
      * synchronized
      */
 	virtual CARAPI_(void) SetProxyPassword(
-		/* [in] */ CString proxyPassword);
+		/* [in] */ const String& proxyPassword);
 
     /**
      * Saves the state of network handlers (user SSL and HTTP-authentication
@@ -94,7 +101,7 @@ public:
      * @return True iff succeeds.
      */
 	virtual CARAPI_(Boolean) SaveState(
-		/* [in] */ IBundle* outState);
+		/* [in] */ const IBundle* outState);
 
     /**
      * Restores the state of network handlers (user SSL and HTTP-authentication
@@ -103,7 +110,7 @@ public:
      * @return True iff succeeds.
      */
 	virtual CARAPI_(Boolean) RestoreState(
-		/* [in] */ IBundle* inState);
+		/* [in] */ const IBundle* inState);
 
     /**
      * Clears user SSL-error preference table.
@@ -116,12 +123,12 @@ public:
      * @param loader The loader that resulted in SSL errors.
      */
 	virtual CARAPI_(void) HandleSslErrorRequest(
-		/* [in] */ LoadListener* loader);
+		/* [in] */ const LoadListener* loader);
 
     /* package */ 
 	virtual CARAPI_(Boolean) CheckSslPrefTable(
-		/* [in] */ LoadListener* loader,
-		/* [in] */ ISslError* error);
+		/* [in] */ const LoadListener* loader,
+		/* [in] */ const ISslError* error);
 
     /**
      * Handles authentication requests on their way up to the user (the user
@@ -130,7 +137,7 @@ public:
      * authentication request.
      */
 	virtual CARAPI_(void) HandleAuthRequest(
-		/* [in] */ LoadListener* loader);
+		/* [in] */ const LoadListener* loader);
 
     // Performance probe
 	virtual CARAPI_(void) StartTiming();
@@ -138,16 +145,16 @@ public:
 	virtual CARAPI_(void) StopTiming();
 
 private:
-	    /**
+    /**
      * Creates a new Network object.
      * XXX: Must be created in the same thread as WebCore!!!!!
      */
 	Network(
-		/* [in] */ IContext* context);
+		/* [in] */ const IContext* context);
 
 private:
 
-	static const CString LOGTAG;// = "network";
+	static const char* LOGTAG;// = "network";
 
     /**
      * Static instance of a Network object.
@@ -170,12 +177,12 @@ private:
     /**
      * Proxy username if known (used for pre-emptive proxy authentication).
      */
-	CString mProxyUsername;
+	String mProxyUsername;
 
     /**
      * Proxy password if known (used for pre-emptive proxy authentication).
      */
-	CString mProxyPassword;
+	String mProxyPassword;
 
     /**
      * Network request queue (requests are added from the browser thread).
@@ -186,7 +193,7 @@ private:
      * SSL error handler: takes care of synchronization of multiple async
      * loaders with SSL-related problems.
      */
-	ISslErrorHandler* mSslErrorHandler;
+	AutoPtr<ISslErrorHandler> mSslErrorHandler;
 
     /**
      * HTTP authentication handler: takes care of synchronization of HTTP

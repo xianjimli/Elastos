@@ -38,6 +38,7 @@ module
   merge("webkit/MockGeolocation.car");
   merge("webkit/MimeTypeMap.car");
   merge("webkit/WebBackForwardList.car");
+  
 
   class CBrowserFrame {
 
@@ -57,7 +58,7 @@ module
    interface IByteArrayBuilder;
   }
 
-  class CCacheManager {
+  singleton class CCacheManager {
   	interface ICacheManager;
   }
 
@@ -136,7 +137,7 @@ module
     interface IPluginManager;
   }
 
-  class CURLUtil {
+  singleton class CURLUtil {
     interface IURLUtil;
   }
 
