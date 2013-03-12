@@ -175,7 +175,9 @@ ECode CLocalUsbManager::RequestDevicePermission(
     }
     */
 
-    // NOT IMPLEMENTED
+    String name;
+    mContext->GetCapsuleName(&name);
+    mService->RequestDevicePermission(device, name, pi);
     return NOERROR;
 }
 
@@ -191,7 +193,9 @@ ECode CLocalUsbManager::RequestAccessoryPermission(
     }
     */
 
-    // NOT IMPLEMENTED
+    String name;
+    mContext->GetCapsuleName(&name);
+    mService->RequestAccessoryPermission(accessory, name, pi);
     return NOERROR;
 }
 
