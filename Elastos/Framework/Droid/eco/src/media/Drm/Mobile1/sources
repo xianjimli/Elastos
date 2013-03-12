@@ -9,3 +9,4 @@ INCLUDES += ../../
 SOURCES += CDrmConstraintInfo.cpp
 SOURCES += CDrmRights.cpp
 SOURCES += CDrmRawContent.cpp
+SOURCES += CDrmRightsManager.cpp
