@@ -11,9 +11,6 @@ module
     merge("../../../../car/Elastos/Utility/Locks/IAbstractQueuedSynchronizer.car");
     merge("../../../../car/Elastos/Utility/Locks/IConditionObject.car");
     merge("../../../../car/Elastos/Utility/Locks/ICountDownLatch.car");
-    merge("../../../../car/Elastos/Utility/IDate.car");
-    merge("../../../../car/Elastos/Core/IThread.car");
-    merge("../../../../car/Elastos/Core/IThreadGroup.car");
 
     class CReentrantLock {
         constructor();
@@ -35,5 +32,9 @@ module
             [in] Int32 count);
 
         interface ICountDownLatch;
+    }
+
+    class CConditionObject {
+        interface IConditionObject;
     }
 }

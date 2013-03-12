@@ -2,8 +2,8 @@
 
 module
 {
-    interface ILock;
-    interface IThread;
+    importlib("Elastos.Core.eco");
+
     interface IReentrantLock extends ILock
     {
         /**

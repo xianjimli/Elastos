@@ -1,12 +1,33 @@
 TARGET_NAME= Elastos.Utility.Locks
 TARGET_TYPE= eco
 
+IMPORTS = Elastos.Core.eco
+
+INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/Utility/Locks
+INCLUDES += $(MAKEDIR)/../../../inc/Elastos/common;
+
+
+
 SOURCES = Elastos.Utility.Locks.car
 SOURCES += CReentrantLock.cpp
+SOURCES += Node.cpp
+SOURCES += AbstractQueuedSynchronizer.cpp
 SOURCES += CAbstractQueuedSynchronizer.cpp
 SOURCES += CCountDownLatch.cpp
+SOURCES += CConditionObject.cpp
+
+
+#LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
+#LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
+#LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
+#LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
-LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Core.lib
+ifeq "$(XDK_TARGET_PLATFORM)" "win32"
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Runtime.lib
+else
 LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
-LIBRARIES += $(XDK_TARGETS)/Elastos.Utility.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Core.eco
+LIBRARIES += $(XDK_USER_LIB)/crt0.lib
+endif

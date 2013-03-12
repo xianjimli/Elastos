@@ -2,7 +2,6 @@
 module
 {
     interface IConditionObject;
-    interface IThread;
 
     interface IAbstractQueuedSynchronizer {
     /**
