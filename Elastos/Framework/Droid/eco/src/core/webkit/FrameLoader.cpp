@@ -1,6 +1,16 @@
 
 #include "webkit/FrameLoader.h"
 #include "webkit/CURLUtil.h"
+#include "webkit/LoadListener.h"
+#include "webkit/Network.h"
+#include "webkit/FileLoader.h"
+#include "webkit/ContentLoader.h"
+#include "webkit/DataLoader.h"
+#include "webkit/CCacheManager.h"
+#include "webkit/CacheLoader.h"
+#include "webkit/CCookieManager.h"
+
+#include <elastos/Thread.h>
 
 const char* FrameLoader::HEADER_STR = "text/xml, text/html, application/xhtml+xml, image/png, text/plain, */*;q=0.8";
 const char* FrameLoader::CONTENT_TYPE = "content-type";
@@ -14,7 +24,7 @@ const char* FrameLoader::LOGTAG = "webkit";
 
 FrameLoader::FrameLoader(
 	/* [in] */ LoadListener* listener, 
-	/* [in] */ const WebSettings* settings,
+	/* [in] */ WebSettings* settings,
 	/* [in] */ const String& method)
 {
 	mListener = listener;
@@ -78,8 +88,8 @@ CARAPI_(LoadListener*) FrameLoader::GetLoadListener() const
  */
 CARAPI_(Boolean) FrameLoader::ExecuteLoad()
 {
-#if 0
-	String url = mListener->Url();
+	String url;
+    mListener->Url(url);
 
 	IURLUtil* pURL = NULL;
 	Boolean bFlag = false;
@@ -96,114 +106,187 @@ CARAPI_(Boolean) FrameLoader::ExecuteLoad()
         }
         // Make sure the host part of the url is correctly
         // encoded before sending the request
-        if (!URLUtil->VerifyURLEncoding(mListener->Host())) {
-            mListener->Error(EventHandler.ERROR_BAD_URL,
-                    mListener.getContext().getString(
-                    com.android.internal.R.string.httpErrorBadUrl));
-            return false;
+//        if (!pURL->VerifyURLEncoding(mListener->Host())) {
+//            mListener->Error(EventHandler.ERROR_BAD_URL,
+//                    mListener.getContext().getString(
+//                    com.android.internal.R.string.httpErrorBadUrl));
+//            return false;
+//        }
+        mNetwork = Network::GetInstance(mListener->GetContext());
+        if (mListener->IsSynchronous())
+        {
+            return HandleHTTPLoad();
         }
-        mNetwork = Network.getInstance(mListener.getContext());
-        if (mListener.isSynchronous()) {
-            return handleHTTPLoad();
-        }
-        WebViewWorker.getHandler().obtainMessage(
-                WebViewWorker.MSG_ADD_HTTPLOADER, this).sendToTarget();
+
+//        WebViewWorker.getHandler().obtainMessage(
+//                WebViewWorker.MSG_ADD_HTTPLOADER, this).sendToTarget();
+
         return true;
     }
-    else if (handleLocalFile(url, mListener, mSettings))
+    else if (HandleLocalFile(url, mListener, mSettings))
     {
         return true;
     }
 
-    if (DebugFlags.FRAME_LOADER) {
-        Log.v(LOGTAG, "FrameLoader.executeLoad: url protocol not supported:"
-                + mListener.url());
-    }
+//    if (DebugFlags.FRAME_LOADER) {
+//        Log.v(LOGTAG, "FrameLoader.executeLoad: url protocol not supported:"
+//                + mListener.url());
+//    }
 
-    mListener.error(EventHandler.ERROR_UNSUPPORTED_SCHEME,
-            mListener.getContext().getText(
-                    com.android.internal.R.string.httpErrorUnsupportedScheme).toString());
-#endif
+//    mListener.error(EventHandler.ERROR_UNSUPPORTED_SCHEME,
+//            mListener.getContext().getText(
+//                    com.android.internal.R.string.httpErrorUnsupportedScheme).toString());
 
     return false;
 }
 
 /* package */
 CARAPI_(Boolean) FrameLoader::HandleLocalFile(
-	/* [in] */ const String& url, 
-	/* [in] */ const LoadListener* loadListener,
-	/* [in] */ const WebSettings* settings)
+	/* [in] */ const String& _url, 
+	/* [in] */ LoadListener* loadListener,
+	/* [in] */ WebSettings* settings)
 {
-#if 0
+
     // Attempt to decode the percent-encoded url before passing to the
     // local loaders.
-    url = new String(URLUtil.decode(url.getBytes()));
+    String url/*(URLUtil.decode(url.getBytes()))*/;
+    IURLUtil* pURL = NULL;
     
-    if (URLUtil.isAssetUrl(url)) {
-        if (loadListener.isSynchronous()) {
-            new FileLoader(url, loadListener, FileLoader.TYPE_ASSET,
-                    true).load();
-        } else {
+    CURLUtil::AcquireSingleton(&pURL);
+    
+    Boolean bFlag = false;
+    pURL->IsAssetUrl(url, &bFlag);
+    if (bFlag)
+    {
+        if (loadListener->IsSynchronous())
+        {
+            FileLoader fileLoader(url, loadListener, FileLoader::TYPE_ASSET, true);
+            fileLoader.Load();
+        }
+        else
+        {
             // load asset in a separate thread as it involves IO
-            WebViewWorker.getHandler().obtainMessage(
-                    WebViewWorker.MSG_ADD_STREAMLOADER,
-                    new FileLoader(url, loadListener, FileLoader.TYPE_ASSET,
-                            true)).sendToTarget();
+//            WebViewWorker.getHandler().obtainMessage(
+//                    WebViewWorker.MSG_ADD_STREAMLOADER,
+//                    new FileLoader(url, loadListener, FileLoader.TYPE_ASSET,
+//                            true)).sendToTarget();
         }
-        return true;
-    } else if (URLUtil.isResourceUrl(url)) {
-        if (loadListener.isSynchronous()) {
-            new FileLoader(url, loadListener, FileLoader.TYPE_RES,
-                    true).load();
-        } else {
-            // load resource in a separate thread as it involves IO
-            WebViewWorker.getHandler().obtainMessage(
-                    WebViewWorker.MSG_ADD_STREAMLOADER,
-                    new FileLoader(url, loadListener, FileLoader.TYPE_RES,
-                            true)).sendToTarget();
-        }
-        return true;
-    } else if (URLUtil.isFileUrl(url)) {
-        if (loadListener.isSynchronous()) {
-            new FileLoader(url, loadListener, FileLoader.TYPE_FILE,
-                    settings.getAllowFileAccess()).load();
-        } else {
-            // load file in a separate thread as it involves IO
-            WebViewWorker.getHandler().obtainMessage(
-                    WebViewWorker.MSG_ADD_STREAMLOADER,
-                    new FileLoader(url, loadListener, FileLoader.TYPE_FILE,
-                            settings.getAllowFileAccess())).sendToTarget();
-        }
-        return true;
-    } else if (settings.getAllowContentAccess() &&
-               URLUtil.isContentUrl(url)) {
-        // Send the raw url to the ContentLoader because it will do a
-        // permission check and the url has to match.
-        if (loadListener.isSynchronous()) {
-            new ContentLoader(loadListener.url(), loadListener).load();
-        } else {
-            // load content in a separate thread as it involves IO
-            WebViewWorker.getHandler().obtainMessage(
-                    WebViewWorker.MSG_ADD_STREAMLOADER,
-                    new ContentLoader(loadListener.url(), loadListener))
-                    .sendToTarget();
-        }
-        return true;
-    } else if (URLUtil.isDataUrl(url)) {
-        // load data in the current thread to reduce the latency
-        new DataLoader(url, loadListener).load();
-        return true;
-    } else if (URLUtil.isAboutUrl(url)) {
-        loadListener.data(mAboutBlank.getBytes(), mAboutBlank.length());
-        loadListener.endData();
         return true;
     }
-#endif
+    else if (pURL->IsResourceUrl(url, &bFlag), bFlag)
+    {
+        if (loadListener->IsSynchronous())
+        {
+            FileLoader fileLoader(url, loadListener, FileLoader::TYPE_RES, true);
+            fileLoader.Load();
+        }
+        else
+        {
+            // load resource in a separate thread as it involves IO
+//            WebViewWorker.getHandler().obtainMessage(
+//                    WebViewWorker.MSG_ADD_STREAMLOADER,
+//                    new FileLoader(url, loadListener, FileLoader.TYPE_RES,
+//                            true)).sendToTarget();
+        }
+        return true;
+    }
+    else if (pURL->IsFileUrl(url, &bFlag), bFlag)
+    {
+        if (loadListener->IsSynchronous())
+        {
+            FileLoader fileLoader(url, loadListener, FileLoader::TYPE_FILE,
+                    settings->GetAllowFileAccess());
+            fileLoader.Load();
+        }
+        else
+        {
+            // load file in a separate thread as it involves IO
+//            WebViewWorker.getHandler().obtainMessage(
+//                    WebViewWorker.MSG_ADD_STREAMLOADER,
+//                    new FileLoader(url, loadListener, FileLoader.TYPE_FILE,
+//                            settings.getAllowFileAccess())).sendToTarget();
+        }
+        return true;
+    } else if (settings->GetAllowContentAccess() &&
+               (pURL->IsContentUrl(url, &bFlag), &bFlag) )
+    {
+        // Send the raw url to the ContentLoader because it will do a
+        // permission check and the url has to match.
+        if (loadListener->IsSynchronous())
+        {
+            String str;
+            loadListener->Url(str);
+            ContentLoader contentLoader(str, loadListener);
+            contentLoader.Load();
+        }
+        else
+        {
+            // load content in a separate thread as it involves IO
+//            WebViewWorker.getHandler().obtainMessage(
+//                    WebViewWorker.MSG_ADD_STREAMLOADER,
+//                    new ContentLoader(loadListener.url(), loadListener))
+//                    .sendToTarget();
+        }
+        return true;
+    }
+    else if (pURL->IsDataUrl(url, &bFlag), bFlag)
+    {
+        // load data in the current thread to reduce the latency
+        DataLoader dataLoader(url, loadListener);
+        dataLoader.Load();
+
+        return true;
+    }
+    else if (pURL->IsAboutUrl(url, &bFlag), bFlag)
+    {
+//        loadListener.data(mAboutBlank.getBytes(), mAboutBlank.length());
+        loadListener->EndData();
+        return true;
+    }
+
     return false;
 }
 
 CARAPI_(Boolean) FrameLoader::HandleHTTPLoad()
-{}
+{
+    if (mHeaders == NULL)
+    {
+        IObjectStringMap* _mHeaders = NULL;
+        CObjectStringMap::New(&_mHeaders);
+        mHeaders = _mHeaders;
+    }
+
+    PopulateStaticHeaders();
+    PopulateHeaders();
+
+    // response was handled by Cache, don't issue HTTP request
+    if (HandleCache())
+    {
+        // push the request data down to the LoadListener
+        // as response from the cache could be a redirect
+        // and we may need to initiate a network request if the cache
+        // can't satisfy redirect URL
+        mListener->SetRequestData(mMethod, mHeaders, mPostData);
+        return true;
+    }
+
+//    if (DebugFlags.FRAME_LOADER) {
+//        Log.v(LOGTAG, "FrameLoader: http " + mMethod + " load for: "
+//                + mListener.url());
+//    }
+
+    Boolean ret = false;
+    Int32 error;// = EventHandler.ERROR_UNSUPPORTED_SCHEME;
+    
+    ret = mNetwork->RequestURL(mMethod, mHeaders, mPostData, mListener);
+
+    if (!ret) {
+//        mListener.error(error, mListener.getContext().getText(
+//                EventHandler.errorStringResources[Math.abs(error)]).toString());
+        return false;
+    }
+    return true;
+}
 
 /*
  * This function is used by handleCache to
@@ -211,7 +294,25 @@ CARAPI_(Boolean) FrameLoader::HandleHTTPLoad()
  */
 CARAPI_(void) FrameLoader::StartCacheLoad(
 	/* [in] */ const ICacheManagerCacheResult* result)
-{}
+{
+//    if (DebugFlags.FRAME_LOADER) {
+//        Log.v(LOGTAG, "FrameLoader: loading from cache: "
+//              + mListener.url());
+//    }
+    // Tell the Listener respond with the cache file
+    CacheLoader* cacheLoader = new CacheLoader(mListener, (CCacheManager::CacheResult*)result);
+    mListener->SetCacheLoader(cacheLoader);
+    if (mListener->IsSynchronous())
+    {
+        cacheLoader->Load();
+    }
+    else
+    {
+        // Load the cached file in a separate thread
+//        WebViewWorker.getHandler().obtainMessage(
+//                WebViewWorker.MSG_ADD_STREAMLOADER, cacheLoader).sendToTarget();
+    }
+}
 
 /*
  * This function is used by the handleHTTPLoad to setup the cache headers
@@ -219,17 +320,149 @@ CARAPI_(void) FrameLoader::StartCacheLoad(
  * Returns true if the response was handled from the cache
  */
 CARAPI_(Boolean) FrameLoader::HandleCache()
-{}
+{
+    switch (mCacheMode)
+    {
+        // This mode is normally used for a reload, it instructs the http
+        // loader to not use the cached content.
+        case WebSettings::WS_LOAD_NO_CACHE:
+            break;            
+            
+        // This mode is used when the content should only be loaded from
+        // the cache. If it is not there, then fail the load. This is used
+        // to load POST content in a history navigation.
+        case WebSettings::WS_LOAD_CACHE_ONLY:
+        {
+            String strUrl;
+            mListener->Url(strUrl);
+            AutoPtr<ICacheManagerCacheResult> result = CCacheManager::GetCacheFile(strUrl, mListener->PostIdentifier(), NULL);
+            if (result != NULL)
+            {
+                StartCacheLoad(result);
+            }
+            else
+            {
+                // This happens if WebCore was first told that the POST
+                // response was in the cache, then when we try to use it
+                // it has gone.
+                // Generate a file not found error
+//                int err = EventHandler.FILE_NOT_FOUND_ERROR;
+//                mListener.error(err, mListener.getContext().getText(
+//                        EventHandler.errorStringResources[Math.abs(err)])
+//                        .toString());
+            }
+            return true;
+        }
+
+        // This mode is for when the user is doing a history navigation
+        // in the browser and should returned cached content regardless
+        // of it's state. If it is not in the cache, then go to the 
+        // network.
+        case WebSettings::WS_LOAD_CACHE_ELSE_NETWORK:
+        {
+//            if (DebugFlags.FRAME_LOADER) {
+//                Log.v(LOGTAG, "FrameLoader: checking cache: "
+//                        + mListener.url());
+//            }
+            // Get the cache file name for the current URL, passing null for
+            // the validation headers causes no validation to occur
+            String strUrl;
+            mListener->Url(strUrl);
+            AutoPtr<ICacheManagerCacheResult> result = CCacheManager::GetCacheFile(strUrl,
+                    mListener->PostIdentifier(), NULL);
+            if (result != NULL)
+            {
+                StartCacheLoad(result);
+                return true;
+            }
+            break;
+        }
+
+        // This is the default case, which is to check to see if the
+        // content in the cache can be used. If it can be used, then
+        // use it. If it needs revalidation then the relevant headers
+        // are added to the request.
+        default:
+        case WebSettings::WS_LOAD_NORMAL:
+            return mListener->CheckCache(mHeaders);
+    }// end of switch
+
+    return false;
+}
 
 /**
  * Add the static headers that don't change with each request.
  */
 CARAPI_(void) FrameLoader::PopulateStaticHeaders()
-{}
+{
+    // Accept header should already be there as they are built by WebCore,
+    // but in the case they are missing, add some.
+    String* accept = NULL;
+    mHeaders->Get((String)"Accept", (IInterface**)&accept);
+    if (accept == NULL || accept->GetLength() == 0)
+    {
+        mHeaders->Put((String)"Accept", (IInterface*)HEADER_STR);
+    }
+
+    mHeaders->Put((String)"Accept-Charset", (IInterface*)"utf-8, iso-8859-1, utf-16, *;q=0.7");
+
+    String* acceptLanguage = mSettings->GetAcceptLanguage();
+
+    if (acceptLanguage->GetLength() > 0)
+    {
+        mHeaders->Put((String)"Accept-Language", (IInterface*)acceptLanguage);
+    }
+    
+    mHeaders->Put((String)"User-Agent", (IInterface*)(mSettings->GetUserAgentString()));
+}
 
 /**
  * Add the content related headers. These headers contain user private data
  * and is not used when we are proxying an untrusted request.
  */
 CARAPI_(void) FrameLoader::PopulateHeaders()
-{}
+{
+    if (mReferrer.GetLength() != 0)
+    {
+        mHeaders->Put((String)"Referer", (IInterface*)&mReferrer);
+    }
+
+    if (mContentType.GetLength() != 0)
+    {
+        mHeaders->Put((String)CONTENT_TYPE, (IInterface*)&mContentType);
+    }
+
+    // if we have an active proxy and have proxy credentials, do pre-emptive
+    // authentication to avoid an extra round-trip:
+    if (mNetwork->IsValidProxySet())
+    {
+        const String* username;
+        const String* password;
+        /* The proxy credentials can be set in the Network thread */
+        {
+            Mutex mutex;
+            Mutex::Autolock lock(mutex);
+            username = mNetwork->GetProxyUsername();
+            password = mNetwork->GetProxyPassword();
+        }
+
+        if (username != NULL && password != NULL)
+        {
+            // we collect credentials ONLY if the proxy scheme is BASIC!!!
+//            String proxyHeader = RequestHandle.authorizationHeader(true);
+//            mHeaders.put(proxyHeader,
+//                    "Basic " + RequestHandle.computeBasicAuthResponse(
+//                            username, password));
+        }
+    }
+
+    // Set cookie header
+    ICookieManager* pCookieManager = NULL;
+    CCookieManager::AcquireSingleton(&pCookieManager);
+//    String cookie;
+//    pCookieManager->GetCookieEx(mListener->GetWebAddress());
+//    if (cookie != null && cookie.length() > 0)
+//    {
+//        mHeaders->Put("Cookie", cookie);
+//    }
+}

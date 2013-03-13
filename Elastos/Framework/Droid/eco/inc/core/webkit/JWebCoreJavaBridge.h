@@ -106,8 +106,9 @@ private:
      * @param url The resource's url.
      * @return A String representing the cookies for the given resource url.
      */
-	CARAPI_(CString) Cookies(
-		/* [in] */ const String& url);
+	CARAPI_(void) Cookies(
+		/* [in] */ const String& url,
+        /* [out] */ String& str);
 
     /**
      * Returns whether cookies are enabled or not.
@@ -118,13 +119,13 @@ private:
      * Returns an array of plugin directoies
      */
 	CARAPI_(void) GetPluginDirectories(
-        /* [out] */ String& str) const;
+        /* [out] */ ArrayOf<String>* list) const;
 
     /**
      * Returns the path of the plugin data directory
      */
 	CARAPI_(void) GetPluginSharedDataDirectory(
-        /* [out] */ String& str) const;
+        /* [out] */ String* str) const;
 
     /**
      * setSharedTimer
@@ -185,6 +186,7 @@ private:
     // keep track of the main WebView attached to the current window so that we
     // can get the proper Context.
 //	static WeakReference<WebView> sCurrentMainWebView;
+    static AutoPtr<IWebView> sCurrentMainWebView;
 };
 
 #endif //__JWEBCOREJAVABRIDGE_H_

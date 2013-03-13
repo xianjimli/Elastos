@@ -41,7 +41,7 @@ CARAPI_(Boolean) DataLoader::SetupStreamAndSendStatus()
 {
 	if (mDataStream != NULL)
 	{
-        mLoadListener->Status(1, 1, 200, "OK");
+        mLoadListener->Status(1, 1, 200, (String)"OK");
         return true;
     }
     else

@@ -1,22 +1,45 @@
 
 #include "webkit/JWebCoreJavaBridge.h"
+#include "webkit/PerfChecker.h"
+#include "webkit/CCookieManager.h"
+#include "webkit/CPluginManager.h"
 
 const char* JWebCoreJavaBridge::LOGTAG = "webkit-timers";
+AutoPtr<IWebView> JWebCoreJavaBridge::sCurrentMainWebView = NULL;
 
 JWebCoreJavaBridge::JWebCoreJavaBridge()
-{	
-	
+{
+	NativeConstructor();
 }
 
 /* synchronized */
 CARAPI_(void) JWebCoreJavaBridge::SetActiveWebView(
 	/* [in] */ IWebView* webview)
-{}
+{
+	assert(webview != NULL);
+
+	if (sCurrentMainWebView.Get() != NULL)
+	{
+        // it is possible if there is a sub-WebView. Do nothing.
+        return;
+    }
+    //sCurrentMainWebView = new WeakReference<WebView>(webview);
+    sCurrentMainWebView = webview;
+}
 
 /* synchronized */
 CARAPI_(void) JWebCoreJavaBridge::RemoveActiveWebView(
 	/* [in] */ IWebView* webview)
-{}
+{
+	assert(webview != NULL);
+
+	if (sCurrentMainWebView.Get() != webview)
+	{
+        // it is possible if there is a sub-WebView. Do nothing.
+        return;
+    }
+    sCurrentMainWebView.Clear();
+}
 
 /**
  * handleMessage
@@ -27,19 +50,63 @@ CARAPI_(void) JWebCoreJavaBridge::RemoveActiveWebView(
 //@Override
 CARAPI_(void) JWebCoreJavaBridge::HandleMessage(
 	/* [in] */ IMessage* msg)
-{}
+{
+	assert(msg != NULL);
+
+	switch (0/*msg.what*/)
+	{
+        case TIMER_MESSAGE:
+	        {
+	            if (mTimerPaused)
+	            {
+	                mHasDeferredTimers = true;
+	            }
+	            else
+	            {
+	                FireSharedTimer();
+	            }
+	            break;
+	        }
+
+        case FUNCPTR_MESSAGE:
+            NativeServiceFuncPtrQueue();
+            break;
+
+        case REFRESH_PLUGINS:
+//            nativeUpdatePluginDirectories(PluginManager.getInstance(null)
+//                    .getPluginDirectories(), ((Boolean) msg.obj)
+//                    .booleanValue());
+            break;
+    }
+}
 
 /**
  * Pause all timers.
  */
 CARAPI_(void) JWebCoreJavaBridge::Pause()
-{}
+{
+	if (--mPauseTimerRefCount == 0)
+	{
+        mTimerPaused = true;
+        mHasDeferredTimers = false;
+    }
+}
 
 /**
  * Resume all timers.
  */
 CARAPI_(void) JWebCoreJavaBridge::Resume()
-{}
+{
+	if (++mPauseTimerRefCount == 1)
+	{
+       mTimerPaused = false;
+       if (mHasDeferredTimers)
+       {
+           mHasDeferredTimers = false;
+           FireSharedTimer();
+       }
+    }
+}
 
 /**
  * Set WebCore cache size.
@@ -78,15 +145,23 @@ CARAPI_(void) JWebCoreJavaBridge::RemovePackageName(
 
 //@Override
 CARAPI_(void) JWebCoreJavaBridge::Finalize()
-{}
+{
+	NativeFinalize();
+}
 
 /**
  * Call native timer callbacks.
  */
 CARAPI_(void) JWebCoreJavaBridge::FireSharedTimer()
-{}
+{
+	PerfChecker checker;// = new PerfChecker();
+    // clear the flag so that sharedTimerFired() can set a new timer
+    mHasInstantTimer = false;
+    SharedTimerFired();
+    checker.ResponseAlert("sharedTimer");
+}
 
-    // called from JNI side
+// called from JNI side
 CARAPI_(void) JWebCoreJavaBridge::SignalServiceFuncPtrQueue()
 {}
 
@@ -101,36 +176,88 @@ CARAPI_(void) JWebCoreJavaBridge::NativeServiceFuncPtrQueue()
 CARAPI_(void) JWebCoreJavaBridge::SetCookies(
 	/* [in] */ const String& url, 
 	/* [in] */ const String& value)
-{}
+{
+	String buffer;
+
+	if (value.Contains("\r") || value.Contains("\n"))
+	{
+        // for security reason, filter out '\r' and '\n' from the cookie
+        Int32 size = value.GetLength();
+        //StringBuilder buffer = new StringBuilder(size);
+        
+        Int32 i = 0;
+        while (i != -1 && i < size)
+        {
+            Int32 ir = value.IndexOf('\r', i);
+            Int32 in = value.IndexOf('\n', i);
+            Int32 newi = (ir == -1) ? in : (in == -1 ? ir : (ir < in ? ir
+                    : in));
+            if (newi > i)
+            {
+                buffer.Append(value.Substring(i, newi));
+            }
+            else if (newi == -1)
+            {
+                buffer.Append(value.Substring(i, size));
+                break;
+            }
+            i = newi + 1;
+        }
+        //value = buffer.toString();
+    }
+
+    ICookieManager* pCookieManager = NULL;
+    CCookieManager::AcquireSingleton(&pCookieManager);
+    pCookieManager->SetCookie(url, /*value*/buffer);
+}
 
 /**
  * Retrieve the cookie string for the given url.
  * @param url The resource's url.
  * @return A String representing the cookies for the given resource url.
  */
-CARAPI_(CString) JWebCoreJavaBridge::Cookies(
-	/* [in] */ const String& url)
-{}
+CARAPI_(void) JWebCoreJavaBridge::Cookies(
+	/* [in] */ const String& url,
+	/* [out] */ String& str)
+{
+	ICookieManager* pCookieManager = NULL;
+	CCookieManager::AcquireSingleton(&pCookieManager);
+	pCookieManager->GetCookie(url, &str);
+}
 
 /**
  * Returns whether cookies are enabled or not.
  */
 CARAPI_(Boolean) JWebCoreJavaBridge::CookiesEnabled()
-{}
+{
+	ICookieManager* pCookieManager = NULL;
+	CCookieManager::AcquireSingleton(&pCookieManager);
+	Boolean bRet = false;
+	pCookieManager->AcceptCookie(&bRet);
+}
 
 /**
  * Returns an array of plugin directoies
  */
 CARAPI_(void) JWebCoreJavaBridge::GetPluginDirectories(
-    /* [out] */ String& str) const
-{}
+    /* [out] */ ArrayOf<String>* list) const
+{
+	IPluginManager* p = NULL;
+	CPluginManager::AcquireSingleton(&p);
+	p->GetPluginDirectories(list);
+	//return PluginManager.getInstance(null).getPluginDirectories();
+}
 
 /**
  * Returns the path of the plugin data directory
  */
 CARAPI_(void) JWebCoreJavaBridge::GetPluginSharedDataDirectory(
-    /* [out] */ String& str) const
-{}
+    /* [out] */ String* str) const
+{
+	CPluginManager* p = NULL;
+	CPluginManager::AcquireSingletonByFriend(&p);
+	p->GetPluginSharedDataDirectory(str);
+}
 
 /**
  * setSharedTimer
@@ -144,7 +271,14 @@ CARAPI_(void) JWebCoreJavaBridge::SetSharedTimer(
  * Stop the shared timer.
  */
 CARAPI_(void) JWebCoreJavaBridge::StopSharedTimer()
-{}
+{
+//	if (DebugFlags.J_WEB_CORE_JAVA_BRIDGE) {
+//        Log.v(LOGTAG, "stopSharedTimer removing all timers");
+//    }
+//    RemoveMessages(TIMER_MESSAGE);
+    mHasInstantTimer = false;
+    mHasDeferredTimers = false;
+}
 
 CARAPI_(void) JWebCoreJavaBridge::GetKeyStrengthList(
     /* [out] */ String& str) const

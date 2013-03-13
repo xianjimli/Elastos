@@ -66,6 +66,8 @@ public:
 	virtual CARAPI_(void) GetProxyUsername(
         /* [out] */ String& str) const;
 
+    virtual CARAPI_(const String*) GetProxyUsername() const;
+
     /**
      * Sets the proxy username.
      * @param proxyUsername Username to use when
@@ -83,6 +85,8 @@ public:
      */
 	virtual CARAPI_(void) GetProxyPassword(
         /* [out] */ String& str) const;
+
+    virtual CARAPI_(const String*) GetProxyPassword() const;
 
     /**
      * Sets the proxy password.

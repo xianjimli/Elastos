@@ -1,19 +1,21 @@
 #ifndef __HTML5AUDIO_H__
 #define __HTML5AUDIO_H__
 
-//#include "../media/media/MediaPlayer.h"
+#include "ext/frameworkext.h"
+
+#include <utils/Timers.h>
 
 class MediaPlayer;
 
 /**
  * <p>HTML5 support class for Audio.
  */
-class HTML5Audio /*public: Handler,
-                 public: MediaPlayer::OnBufferingUpdateListener,
-                 public: MediaPlayer::OnCompletionListener,
-                 public: MediaPlayer::OnErrorListener,
-                 public: MediaPlayer::OnPreparedListener,
-                 public: MediaPlayer::OnSeekCompleteListener */
+class HTML5Audio //: public IHandler,
+                 //         IOnBufferingUpdateListener,
+                 //         IOnCompletionListener,
+                 //         IOnErrorListener,
+                 //         IOnPreparedListener,
+                 //         IOnSeekCompleteListener
 {
 public:
 

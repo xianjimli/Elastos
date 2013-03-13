@@ -763,11 +763,11 @@ public:
     /**
      * Return the WebView's user-agent string.
      */
-	virtual CARAPI_(String) GetUserAgentString();
+	virtual CARAPI_(String*) GetUserAgentString();
 
     /* package api to grab the Accept Language string. */
     /*package*/ 
-	virtual CARAPI_(String) GetAcceptLanguage();
+	virtual CARAPI_(String*) GetAcceptLanguage();
     
     /**
      * Tell the WebView whether it needs to set a node to have focus when

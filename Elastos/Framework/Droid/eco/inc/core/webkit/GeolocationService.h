@@ -1,10 +1,13 @@
 #ifndef __GEOLOCATIONSERVICE_H__
 #define __GEOLOCATIONSERVICE_H__
 
+#include "ext/frameworkext.h"
+#include <elastos/AutoPtr.h>
+
 /**
  * Implements the Java side of GeolocationServiceAndroid.
  */
-class GeolocationService //: public LocationListener 
+class GeolocationService : public ILocalLocationListener 
 {
 
 public:
@@ -38,7 +41,7 @@ public:
      * Called when the location has changed.
      * @param location The new location, as a Location object.
      */
-	virtual CARAPI_(void) OnLocationChanged(
+	virtual CARAPI OnLocationChanged(
 		/* [in] */ ILocation* location);
 
     /**
@@ -48,8 +51,8 @@ public:
      * @param status The new status of the provider.
      * @param extras an optional Bundle with provider specific data.
      */
-	virtual CARAPI_(void) OnStatusChanged(
-		/* [in] */ CString providerName, 
+	virtual CARAPI OnStatusChanged(
+		/* [in] */ const String& providerName, 
 		/* [in] */ Int32 status, 
 		/* [in] */ IBundle* extras);
 
@@ -58,16 +61,16 @@ public:
      * Called when the provider is enabled.
      * @param provider The name of the location provider that is now enabled.
      */
-	virtual CARAPI_(void) OnProviderEnabled(
-		/* [in] */ CString providerName);
+	virtual CARAPI OnProviderEnabled(
+		/* [in] */ const String& providerName);
 
     /**
      * LocationListener implementation.
      * Called when the provider is disabled.
      * @param provider The name of the location provider that is now disabled.
      */
-	virtual CARAPI_(void) OnProviderDisabled(
-		/* [in] */ CString providerName);
+	virtual CARAPI OnProviderDisabled(
+		/* [in] */ const String& providerName);
 
 private:
     /**
@@ -84,7 +87,7 @@ private:
      * Reports an error if neither the network nor the GPS provider is available.
      */
 	CARAPI_(void) MaybeReportError(
-		/* [in] */ CString message);
+		/* [in] */ const String& message);
 
     // Native functions
 	static CARAPI_(void) NativeNewLocationAvailable(
@@ -93,14 +96,14 @@ private:
 
 	static CARAPI_(void) NativeNewErrorAvailable(
 		/* [in] */ Int64 nativeObject, 
-		/* [in] */ String message);
+		/* [in] */ const String& message);
 
 private:
 	// Log tag
-    static const CString TAG;// = "geolocationService";
+    static const char* TAG;// = "geolocationService";
 
 	Int64 mNativeObject;
-	ILocationManager* mLocationManager;
+	AutoPtr<ILocalLocationManager> mLocationManager;
 	Boolean mIsGpsEnabled;
 	Boolean mIsRunning;
 	Boolean mIsNetworkProviderAvailable;

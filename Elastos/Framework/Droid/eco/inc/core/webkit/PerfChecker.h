@@ -1,6 +1,8 @@
 #ifndef __PERFCHECKER_H__
 #define __PERFCHECKER_H__
 
+#include "ext/frameworkext.h"
+
 class PerfChecker
 {
 public:

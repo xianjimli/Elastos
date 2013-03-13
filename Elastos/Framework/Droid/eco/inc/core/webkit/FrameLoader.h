@@ -6,6 +6,7 @@
 #include <elastos/Vector.h>
 
 class LoadListener;
+class Network;
 
 class FrameLoader {
 
@@ -16,7 +17,7 @@ public:
 public:
     FrameLoader(
     	/* [in] */ LoadListener* listener, 
-    	/* [in] */ const WebSettings* settings,
+    	/* [in] */ WebSettings* settings,
     	/* [in] */ const String& method);
 
 	virtual CARAPI_(void) SetReferrer(
@@ -49,8 +50,8 @@ public:
     /* package */
     static CARAPI_(Boolean) HandleLocalFile(
     	/* [in] */ const String& url, 
-    	/* [in] */ const LoadListener* loadListener,
-    	/* [in] */ const WebSettings* settings);
+    	/* [in] */ LoadListener* loadListener,
+    	/* [in] */ WebSettings* settings);
 
     virtual CARAPI_(Boolean) HandleHTTPLoad();
 
@@ -83,10 +84,10 @@ private:
 private:
 	/*const*/ LoadListener* mListener;
 	/*const*/ String mMethod;
-	const WebSettings* mSettings;
-	IObjectStringMap* mHeaders;
+	/*const*/ WebSettings* mSettings;
+	AutoPtr<IObjectStringMap> mHeaders;
 	Vector<Byte> mPostData;
-	AutoPtr<INetworkInfo> mNetwork;
+	Network*  mNetwork;
 	Int32 mCacheMode;
 	String mReferrer;
 	String mContentType;

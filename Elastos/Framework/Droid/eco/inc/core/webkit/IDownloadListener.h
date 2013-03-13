@@ -13,10 +13,10 @@ class DownloadListener {
      * @param contentLength The file size reported by the server
      */
 	virtual CARAPI_(void) onDownloadStart(
-		/* [in] */ CString url, 
-		/* [in] */ CString userAgent,
-		/* [in] */ CString contentDisposition, 
-		/* [in] */ CString mimetype, 
+		/* [in] */ const String& url, 
+		/* [in] */ const String& userAgent,
+		/* [in] */ const String& contentDisposition, 
+		/* [in] */ const String& mimetype, 
 		/* [in] */ Int64 contentLength) = 0;
 
 };

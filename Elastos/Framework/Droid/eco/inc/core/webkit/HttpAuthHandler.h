@@ -2,6 +2,10 @@
 #define __HTTPAUTHHANDLER_H__
 
 #include "Network.h"
+#include "ext/frameworkext.h"
+#include <elastos/Mutex.h>
+#include <elastos/List.h>
+#include <elastos/AutoPtr.h>
 
 class LoadListener;
 
@@ -23,7 +27,7 @@ public:
      */
     /* package */
 	HttpAuthHandler(
-		/* [in] */ INetworkInfo* network);
+		/* [in] */ Network* network);
 
 public:
     // Use to synchronize when making synchronous calls to
@@ -50,8 +54,8 @@ public:
      * been unblocked
      */
 	virtual CARAPI_(Boolean) HandleResponseForSynchronousRequest(
-		/* [in] */ String username, 
-		/* [in] */ String password);
+		/* [in] */ const String& username, 
+		/* [in] */ const String& password);
 
 
 
@@ -64,8 +68,8 @@ public:
      * @param password The password to use for authentication
      */
 	virtual CARAPI_(void) Proceed(
-		/* [in] */ CString username, 
-		/* [in] */ CString password);
+		/* [in] */ const String& username, 
+		/* [in] */ const String& password);
 
     /**
      * Cancel the authorization request
@@ -98,10 +102,10 @@ public:
      */
 	static CARAPI_(void) OnReceivedCredentials(
 		/* [in] */ LoadListener* loader,
-		/* [in] */ CString host, 
-		/* [in] */ CString realm, 
-		/* [in] */ CString username, 
-		/* [in] */ CString password);
+		/* [in] */ const String& host, 
+		/* [in] */ const String& realm, 
+		/* [in] */ const String& username, 
+		/* [in] */ const String& password);
 
 private:
 
@@ -123,18 +127,19 @@ private:
      * (like our subwindow and the main window).
      */
 
-	static const String LOGTAG;// = "network";
+	static const char* LOGTAG;// = "network";
 
     /**
      * Network.
      */
-	Network mNetwork;
+	Network* mNetwork;
 
     /**
      * Loader queue.
      */
 //	LinkedList<LoadListener> mLoaderQueue;
-
+    List<AutoPtr<LoadListener> > mLoaderQueue;
+    Core::Threading::Mutex        mLoaderQueueMutex;
 
     // Message id for handling the user response
 	static const int AUTH_PROCEED = 100;
