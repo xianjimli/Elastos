@@ -3311,8 +3311,8 @@ AutoPtr<IBundle> CapsuleParser::ParseMetaData(
         (ITypedArray**)&sa));
 
     if (!data) {
-        assert(data != NULL);
         FAIL_RETURN_NULL(CBundle::New(&data));
+        assert(data != NULL);
     }
 
     String name;

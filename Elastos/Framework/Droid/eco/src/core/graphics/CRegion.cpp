@@ -7,14 +7,14 @@
 
 ECode CRegion::constructor()
 {
-    NativeConstructor();
+    mNativeRegion = NativeConstructor();
     return NOERROR;
 }
 
 ECode CRegion::constructor(
     /* [in] */ IRegion* region)
 {
-    NativeConstructor();
+    mNativeRegion = NativeConstructor();
     NativeSetRegion(mNativeRegion, ((CRegion*)region)->mNativeRegion);
     return NOERROR;
 }

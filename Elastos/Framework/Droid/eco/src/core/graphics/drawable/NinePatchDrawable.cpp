@@ -434,12 +434,10 @@ Int32 NinePatchDrawable::GetOpacity()
 {
     Boolean hasAlpha;
     Int32 alpha;
-
+    assert(mNinePatch != NULL);
     mNinePatch->HasAlpha(&hasAlpha);
-    mPaint->GetAlpha(&alpha);
-
-    return  (hasAlpha || (mPaint != NULL && alpha < 255) ?
-               ElPixelFormat::TRANSLUCENT : ElPixelFormat::OPAQUE);
+    return (hasAlpha || (mPaint != NULL && (mPaint->GetAlpha(&alpha), alpha < 255))) ?
+               ElPixelFormat::TRANSLUCENT : ElPixelFormat::OPAQUE;
 }
 
 //@Override
