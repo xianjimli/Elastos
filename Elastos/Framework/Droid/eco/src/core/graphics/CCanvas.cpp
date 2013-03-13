@@ -429,7 +429,6 @@ ECode CCanvas::DrawColorEx(
 ECode CCanvas::DrawPaint(
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawPaint(paint);
 }
 
@@ -439,7 +438,6 @@ ECode CCanvas::DrawPoints(
     /* [in] */ Int32 count,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawPoints(pts, offset, count, paint);
 }
 
@@ -447,7 +445,6 @@ ECode CCanvas::DrawPointsEx(
     /* [in] */ const ArrayOf<Float>& pts,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawPointsEx(pts, paint);
 }
 
@@ -456,7 +453,6 @@ ECode CCanvas::DrawPoint(
     /* [in] */ Float y,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawPoint(x, y, paint);
 }
 
@@ -467,7 +463,6 @@ ECode CCanvas::DrawLine(
     /* [in] */ Float stopY,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawLine(startX, startY, stopX, stopY, paint);
 }
 
@@ -477,7 +472,6 @@ ECode CCanvas::DrawLines(
     /* [in] */ Int32 count,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawLines(pts, offset, count, paint);
 }
 
@@ -485,7 +479,6 @@ ECode CCanvas::DrawLinesEx(
     /* [in] */ const ArrayOf<Float>& pts,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawLinesEx(pts, paint);
 }
 
@@ -493,7 +486,6 @@ ECode CCanvas::DrawRect(
     /* [in] */ IRectF* rect,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(rect && paint);
     return Canvas::DrawRect(rect, paint);
 }
 
@@ -501,7 +493,6 @@ ECode CCanvas::DrawRectEx(
     /* [in] */ IRect* r,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(r && paint);
     return Canvas::DrawRectEx(r, paint);
 }
 
@@ -512,7 +503,6 @@ ECode CCanvas::DrawRectEx2(
     /* [in] */ Float bottom,
     /* [in] */ IPaint * paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawRectEx2(left, top, right, bottom, paint);
 }
 
@@ -520,7 +510,6 @@ ECode CCanvas::DrawOval(
     /* [in] */ IRectF* oval,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawOval(oval, paint);
 }
 
@@ -530,7 +519,6 @@ ECode CCanvas::DrawCircle(
     /* [in] */ Float radius,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawCircle(cx, cy, radius, paint);
 }
 
@@ -541,7 +529,6 @@ ECode CCanvas::DrawArc(
     /* [in] */ Boolean useCenter,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawArc(oval, startAngle, sweepAngle, useCenter, paint);
 }
 
@@ -551,7 +538,6 @@ ECode CCanvas::DrawRoundRect(
     /* [in] */ Float ry,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawRoundRect(rect, rx, ry, paint);
 }
 
@@ -559,7 +545,6 @@ ECode CCanvas::DrawPath(
     /* [in] */ IPath* path,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(path && paint);
     return Canvas::DrawPath(path, paint);
 }
 
@@ -569,7 +554,6 @@ ECode CCanvas::DrawBitmap(
     /* [in] */ Float top,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(bitmap && paint);
     return Canvas::DrawBitmap(bitmap, left, top, paint);
 }
 
@@ -579,7 +563,6 @@ ECode CCanvas::DrawBitmapEx(
     /* [in] */ IRectF* dst,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(bitmap && paint);
     return Canvas::DrawBitmapEx(bitmap, src, dst, paint);
 }
 
@@ -589,7 +572,6 @@ ECode CCanvas::DrawBitmapEx2(
     /* [in] */ IRect* dst,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(bitmap && paint);
     return Canvas::DrawBitmapEx2(bitmap, src, dst, paint);
 }
 
@@ -604,7 +586,6 @@ ECode CCanvas::DrawBitmapEx3(
     /* [in] */ Boolean hasAlpha,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawBitmapEx3(
         colors, offset, stride, x, y, width, height, hasAlpha, paint);
 }
@@ -620,7 +601,6 @@ ECode CCanvas::DrawBitmapEx4(
     /* [in] */ Boolean hasAlpha,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawBitmapEx4(
         colors, offset, stride, x, y, width, height, hasAlpha, paint);
 }
@@ -630,7 +610,6 @@ ECode CCanvas::DrawBitmapEx5(
     /* [in] */ IMatrix* matrix,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(bitmap && matrix);
     return Canvas::DrawBitmapEx5(bitmap, matrix, paint);
 }
 
@@ -644,7 +623,6 @@ ECode CCanvas::DrawBitmapMesh(
     /* [in] */ Int32 colorOffset,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(bitmap && paint);
     return Canvas::DrawBitmapMesh(
         bitmap, meshWidth, meshHeight, verts, vertOffset, colors, colorOffset, paint);
 }
@@ -663,7 +641,6 @@ ECode CCanvas::DrawVertices(
     /* [in] */ Int32 indexCount,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawVertices(
         mode, vertexCount, verts, vertOffset, texs, texOffset, colors, colorOffset,
         indices, indexOffset, indexCount, paint);
@@ -677,7 +654,6 @@ ECode CCanvas::DrawTextInBuffer(
     /* [in] */ Float y,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawTextInBuffer(text, index, count, x, y, paint);
 }
 
@@ -687,7 +663,6 @@ ECode CCanvas::DrawTextInString(
     /* [in] */ Float y,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawTextInString(text, x, y, paint);
 }
 
@@ -699,7 +674,6 @@ ECode CCanvas::DrawTextInStringEx(
     /* [in] */ Float y,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawTextInStringEx(text, start, end, x, y, paint);
 }
 
@@ -711,7 +685,6 @@ ECode CCanvas::DrawTextInCharSequence(
     /* [in] */ Float y,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(text && paint);
     return Canvas::DrawTextInCharSequence(text, start, end, x, y, paint);
 }
 
@@ -722,7 +695,6 @@ ECode CCanvas::DrawPosTextInBuffer(
     /* [in] */ const ArrayOf<Float>& pos,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawPosTextInBuffer(text, index, count, pos, paint);
 }
 
@@ -732,7 +704,6 @@ ECode CCanvas::DrawPosTextInString(
     /* [in] */ IPaint* paint)
 {
     VALIDATE_STRING_NOT_NULL(text);
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawPosTextInString(text, pos, paint);
 }
 
@@ -745,7 +716,6 @@ ECode CCanvas::DrawTextOnPathInBuffer(
     /* [in] */ Float vOffset,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(path && paint);
     return Canvas::DrawTextOnPathInBuffer(text, index, count, path, hOffset, vOffset, paint);
 }
 
@@ -756,7 +726,6 @@ ECode CCanvas::DrawTextOnPathInString(
     /* [in] */ Float vOffset,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(path && paint);
     return Canvas::DrawTextOnPathInString(text, path, hOffset, vOffset, paint);
 }
 

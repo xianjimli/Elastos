@@ -513,7 +513,6 @@ ECode CSurface::CompatibleCanvas::DrawColorEx(
 ECode CSurface::CompatibleCanvas::DrawPaint(
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawPaint(paint);
 }
 
@@ -523,7 +522,6 @@ ECode CSurface::CompatibleCanvas::DrawPoints(
     /* [in] */ Int32 count,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawPoints(pts, offset, count, paint);
 }
 
@@ -531,7 +529,6 @@ ECode CSurface::CompatibleCanvas::DrawPointsEx(
     /* [in] */ const ArrayOf<Float>& pts,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawPointsEx(pts, paint);
 }
 
@@ -540,7 +537,6 @@ ECode CSurface::CompatibleCanvas::DrawPoint(
     /* [in] */ Float y,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawPoint(x, y, paint);
 }
 
@@ -551,7 +547,6 @@ ECode CSurface::CompatibleCanvas::DrawLine(
     /* [in] */ Float stopY,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawLine(startX, startY, stopX, stopY, paint);
 }
 
@@ -561,7 +556,6 @@ ECode CSurface::CompatibleCanvas::DrawLines(
     /* [in] */ Int32 count,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawLines(pts, offset, count, paint);
 }
 
@@ -569,7 +563,6 @@ ECode CSurface::CompatibleCanvas::DrawLinesEx(
     /* [in] */ const ArrayOf<Float>& pts,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawLinesEx(pts, paint);
 }
 
@@ -577,7 +570,6 @@ ECode CSurface::CompatibleCanvas::DrawRect(
     /* [in] */ IRectF* rect,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(rect && paint);
     return Canvas::DrawRect(rect, paint);
 }
 
@@ -585,7 +577,6 @@ ECode CSurface::CompatibleCanvas::DrawRectEx(
     /* [in] */ IRect* r,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(r && paint);
     return Canvas::DrawRectEx(r, paint);
 }
 
@@ -596,7 +587,6 @@ ECode CSurface::CompatibleCanvas::DrawRectEx2(
     /* [in] */ Float bottom,
     /* [in] */ IPaint * paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawRectEx2(left, top, right, bottom, paint);
 }
 
@@ -604,7 +594,6 @@ ECode CSurface::CompatibleCanvas::DrawOval(
     /* [in] */ IRectF* oval,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawOval(oval, paint);
 }
 
@@ -614,7 +603,6 @@ ECode CSurface::CompatibleCanvas::DrawCircle(
     /* [in] */ Float radius,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawCircle(cx, cy, radius, paint);
 }
 
@@ -625,7 +613,6 @@ ECode CSurface::CompatibleCanvas::DrawArc(
     /* [in] */ Boolean useCenter,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawArc(oval, startAngle, sweepAngle, useCenter, paint);
 }
 
@@ -635,7 +622,6 @@ ECode CSurface::CompatibleCanvas::DrawRoundRect(
     /* [in] */ Float ry,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawRoundRect(rect, rx, ry, paint);
 }
 
@@ -643,7 +629,6 @@ ECode CSurface::CompatibleCanvas::DrawPath(
     /* [in] */ IPath* path,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(path && paint);
     return Canvas::DrawPath(path, paint);
 }
 
@@ -653,7 +638,6 @@ ECode CSurface::CompatibleCanvas::DrawBitmap(
     /* [in] */ Float top,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(bitmap && paint);
     return Canvas::DrawBitmap(bitmap, left, top, paint);
 }
 
@@ -663,7 +647,6 @@ ECode CSurface::CompatibleCanvas::DrawBitmapEx(
     /* [in] */ IRectF* dst,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(bitmap && paint);
     return Canvas::DrawBitmapEx(bitmap, src, dst, paint);
 }
 
@@ -673,7 +656,6 @@ ECode CSurface::CompatibleCanvas::DrawBitmapEx2(
     /* [in] */ IRect* dst,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(bitmap && paint);
     return Canvas::DrawBitmapEx2(bitmap, src, dst, paint);
 }
 
@@ -688,7 +670,6 @@ ECode CSurface::CompatibleCanvas::DrawBitmapEx3(
     /* [in] */ Boolean hasAlpha,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawBitmapEx3(
         colors, offset, stride, x, y, width, height, hasAlpha, paint);
 }
@@ -704,7 +685,6 @@ ECode CSurface::CompatibleCanvas::DrawBitmapEx4(
     /* [in] */ Boolean hasAlpha,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawBitmapEx4(
         colors, offset, stride, x, y, width, height, hasAlpha, paint);
 }
@@ -714,7 +694,6 @@ ECode CSurface::CompatibleCanvas::DrawBitmapEx5(
     /* [in] */ IMatrix* matrix,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(bitmap && matrix);
     return Canvas::DrawBitmapEx5(bitmap, matrix, paint);
 }
 
@@ -728,7 +707,6 @@ ECode CSurface::CompatibleCanvas::DrawBitmapMesh(
     /* [in] */ Int32 colorOffset,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(bitmap && paint);
     return Canvas::DrawBitmapMesh(
         bitmap, meshWidth, meshHeight, verts, vertOffset, colors, colorOffset, paint);
 }
@@ -747,7 +725,6 @@ ECode CSurface::CompatibleCanvas::DrawVertices(
     /* [in] */ Int32 indexCount,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawVertices(
         mode, vertexCount, verts, vertOffset, texs, texOffset, colors, colorOffset,
         indices, indexOffset, indexCount, paint);
@@ -761,7 +738,6 @@ ECode CSurface::CompatibleCanvas::DrawTextInBuffer(
     /* [in] */ Float y,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawTextInBuffer(text, index, count, x, y, paint);
 }
 
@@ -771,7 +747,6 @@ ECode CSurface::CompatibleCanvas::DrawTextInString(
     /* [in] */ Float y,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawTextInString(text, x, y, paint);
 }
 
@@ -783,7 +758,6 @@ ECode CSurface::CompatibleCanvas::DrawTextInStringEx(
     /* [in] */ Float y,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawTextInStringEx(text, start, end, x, y, paint);
 }
 
@@ -795,7 +769,6 @@ ECode CSurface::CompatibleCanvas::DrawTextInCharSequence(
     /* [in] */ Float y,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(text && paint);
     return Canvas::DrawTextInCharSequence(text, start, end, x, y, paint);
 }
 
@@ -806,7 +779,6 @@ ECode CSurface::CompatibleCanvas::DrawPosTextInBuffer(
     /* [in] */ const ArrayOf<Float>& pos,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawPosTextInBuffer(text, index, count, pos, paint);
 }
 
@@ -816,7 +788,6 @@ ECode CSurface::CompatibleCanvas::DrawPosTextInString(
     /* [in] */ IPaint* paint)
 {
     VALIDATE_STRING_NOT_NULL(text);
-    VALIDATE_NOT_NULL(paint);
     return Canvas::DrawPosTextInString(text, pos, paint);
 }
 
@@ -829,7 +800,6 @@ ECode CSurface::CompatibleCanvas::DrawTextOnPathInBuffer(
     /* [in] */ Float vOffset,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(path && paint);
     return Canvas::DrawTextOnPathInBuffer(text, index, count, path, hOffset, vOffset, paint);
 }
 
@@ -840,7 +810,6 @@ ECode CSurface::CompatibleCanvas::DrawTextOnPathInString(
     /* [in] */ Float vOffset,
     /* [in] */ IPaint* paint)
 {
-    VALIDATE_NOT_NULL(path && paint);
     return Canvas::DrawTextOnPathInString(text, path, hOffset, vOffset, paint);
 }
 
