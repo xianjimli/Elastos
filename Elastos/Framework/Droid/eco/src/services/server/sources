@@ -54,3 +54,4 @@ SOURCES += CLocationManagerService.cpp
 SOURCES += CInputMethodManagerService.cpp
 
 LIBRARIES += location/location.lib
+LIBRARIES += usb/usb.lib
