@@ -3,21 +3,15 @@ module
 {
     interface IWrapper;
     interface IArray;
-    interface IInputStream;
     interface IBigDecimal;
-    interface IReader;
     interface IClob;
-    interface IDate;
     interface IResultSetMetaData;
     interface IRef;
     interface IStatement;
     interface ITime;
     interface ITimestamp;
-    interface IURL;
     interface IRowId;
-    interface INClob;
     interface ISQLXML;
-    interface ICalendar;
 
     /**
      * An interface for an object which represents a database table entry, returned

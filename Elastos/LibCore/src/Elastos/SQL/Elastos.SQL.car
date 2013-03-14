@@ -5,6 +5,7 @@ module
     importlib("Elastos.IO.eco");
     importlib("Elastos.Net.eco");
     importlib("Elastos.Utility.eco");
+    importlib("Elastos.Core.eco");
 
     merge("../../../car/Elastos/SQL/Exceptions.car");
     
@@ -24,7 +25,17 @@ module
     merge("../../../car/Elastos/SQL/ITrace.car");
     merge("../../../car/Elastos/SQL/IVm.car");
     merge("../../../car/Elastos/SQL/IDatabase.car");
+/*
+    merge("../../../car/Elastos/Core/INumber.car");
+    merge("../../../car/Elastos/Utility/IRandom.car");
 
+    merge("../../../car/Elastos/Math/IRoundingMode.car");
+    merge("../../../car/Elastos/Math/IMathContext.car");
+    merge("../../../car/Elastos/Math/IBigInt.car");
+    merge("../../../car/Elastos/Math/IBigInteger.car");
+    merge("../../../car/Elastos/Math/IBigDecimal.car"); 
+
+    
     merge("../../../car/Elastos/SQL/IArray.car");
     merge("../../../car/Elastos/SQL/IBlob.car");
     merge("../../../car/Elastos/SQL/IClob.car");
@@ -48,19 +59,10 @@ module
     merge("../../../car/Elastos/SQL/IRef.car");
     merge("../../../car/Elastos/SQL/IRowId.car");
     merge("../../../car/Elastos/SQL/IRowIdLifetime.car");
-    merge("../../../car/Elastos/Utility/IDate.car");
     merge("../../../car/Elastos/SQL/ITime.car");
     merge("../../../car/Elastos/SQL/ITimestamp.car");
-    merge("../../../car/Elastos/Core/INumber.car");
-    merge("../../../car/Elastos/Math/IRoundingMode.car");
-    merge("../../../car/Elastos/Math/IMathContext.car");
-    merge("../../../car/Elastos/Utility/IRandom.car");
-    merge("../../../car/Elastos/Math/IBigInt.car");
-    merge("../../../car/Elastos/Math/IBigInteger.car");
-    merge("../../../car/Elastos/Math/IBigDecimal.car");
-    merge("../../../car/Elastos/Utility/ICalendar.car");
     merge("../../../car/Elastos/SQL/ICallableStatement.car");
-
+*/
 
     class CDatabase {
         constructor();
@@ -68,22 +70,5 @@ module
         interface IDatabase;
     }
 
-/*
-    class CJDBCConnection {
-        constructor(
-            [in] String url,
-            [in] String enc,
-            [in] String pwd,
-            [in] String drep,
-            [in] String vfs);
 
-        interface IJDBCConnection;
-    }*/
-/*
-    class CJDBCStatement {
-        constructor(
-            [in] IConnection* conn);
-
-        interface IStatement;
-    }*/
 }

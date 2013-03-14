@@ -2,16 +2,12 @@
 module
 {
     interface IBigDecimal;
-    interface IDate;
     interface ITime;
     interface ITimestamp;
-    interface IReader;
-    interface IInputStream;
     interface IRef;
     interface IBlob;
     interface IClob;
     interface IArray;
-    interface IURL;
     interface INClob;
     interface ISQLXML;
     interface IRowId;

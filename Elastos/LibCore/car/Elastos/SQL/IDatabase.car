@@ -9,12 +9,13 @@ module
     interface ITrace;
     interface IVm;
     interface IStmt;
-    interface IBlob;
+    interface IBlob2;
     interface IProgressHandler;
 
     /**
      * Main class wrapping an SQLite database.
      */
+    [deprecated]
     interface IDatabase {
 
         /**
@@ -104,11 +105,10 @@ module
          * @param cb the object implementing the callback methods
          * @param args arguments for the SQL statement, '%q' substitution
          */
-
         ExecEx(
             [in] String sql, 
             [in] ICallback* cb,
-            [in] ArrayOf<String> args);
+            [in] ArrayOf<String>* args);
 
         Last_insert_rowid(
             [out] Int64* id);
@@ -181,7 +181,7 @@ module
         Get_tableEx2(
             [in] String sql, 
             [in] Int32 maxrows, 
-            [in] ArrayOf<String> args,
+            [in] ArrayOf<String>* args,
             [out] ITableResult** result);
 
         /**
@@ -194,7 +194,7 @@ module
          */
         Get_tableEx3(
             [in] String sql, 
-            [in] ArrayOf<String> args,
+            [in] ArrayOf<String>* args,
             [out] ITableResult** result);
 
         /**
@@ -208,7 +208,7 @@ module
          */
         Get_tableEx4(
             [in] String sql, 
-            [in] ArrayOf<String> args, 
+            [in] ArrayOf<String>* args, 
             [in] ITableResult* tbl);
 
         /**
@@ -352,7 +352,7 @@ module
          */
         CompileEx(
             [in] String sql, 
-            [in] ArrayOf<String> args,
+            [in] ArrayOf<String>* args,
             [out] IVm** vm);
 
         /**
@@ -381,7 +381,7 @@ module
             [in] String column,
             [in] Int64 row, 
             [in] Boolean rw,
-            [out] IBlob** blob);
+            [out] IBlob2** blob);
 
         /**
          * Check type of open database.
@@ -410,7 +410,7 @@ module
          * @param ekey the key as byte array
          */
         Key(
-            [in] ArrayOf<Byte> ekey);
+            [in] ArrayOf<Byte>* ekey);
 
         /**
          * Specify key for encrypted database. To be called
@@ -430,7 +430,7 @@ module
          * @param ekey the key as byte array
          */
         Rekey(
-            [in] ArrayOf<Byte> ekey);
+            [in] ArrayOf<Byte>* ekey);
 
         /**
          * Change the key of a encrypted database. The

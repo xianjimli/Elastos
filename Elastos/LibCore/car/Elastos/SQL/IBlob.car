@@ -1,10 +1,6 @@
 
 module
 {
-    interface IInputStream;
-    interface IOutputStream;
-
-
     /**
      * A Java interface representing the SQL {@code BLOB} type.
      * <p>

@@ -4,11 +4,7 @@ module
     interface IPreparedStatement;
     interface IArray;
     interface IClob;
-    interface IDate;
-    interface ICalendar;
-    interface IReader;
     interface IRowId;
-    interface INClob;
     interface ISQLXML;
     interface IBlob;
 

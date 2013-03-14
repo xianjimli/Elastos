@@ -7,35 +7,36 @@
 CarClass(CDatabase), public Database
 {
 public:
+    CARAPI constructor();
 
     CARAPI Open(
-        /** [in] **/String filename, 
+        /** [in] **/const String &filename, 
         /** [in] **/Int32 mode);
 
     CARAPI OpenEx(
-        /** [in] **/String filename, 
+        /** [in] **/const String &filename, 
         /** [in] **/Int32 mode, 
-        /** [in] **/String vfs);
+        /** [in] **/const String &vfs);
 
     CARAPI OpenEx2(
-        /** [in] **/String filename, 
+        /** [in] **/const String &filename, 
         /** [in] **/Int32 mode, 
-        /** [in] **/String vfs, 
+        /** [in] **/const String &vfs, 
         /** [in] **/Boolean ver2);
 
     CARAPI Open_aux_file(
-        /** [in] **/String filename);
+        /** [in] **/const String &filename);
 
     CARAPI Close();
 
     CARAPI Exec(
-        /** [in] **/String sql, 
+        /** [in] **/const String &sql, 
         /** [in] **/ICallback* cb);
 
     CARAPI ExecEx(
-        /** [in] **/String sql, 
+        /** [in] **/const String &sql, 
         /** [in] **/ICallback* cb,
-        /** [in] **/ArrayOf<String> args);
+        /** [in] **/ArrayOf<String>* args);
 
     CARAPI Last_insert_rowid(
         /** [out] **/Int64* id);
@@ -52,32 +53,32 @@ public:
         /** [in] **/Int32 ms);
 
     CARAPI Get_table(
-        /** [in] **/String sql, 
+        /** [in] **/const String &sql, 
         /** [in] **/Int32 maxrows,
         /** [out] **/ITableResult** result);
 
     CARAPI Get_tableEx(
-        /** [in] **/String sql,
+        /** [in] **/const String &sql,
         /** [out] **/ITableResult** result);
 
     CARAPI Get_tableEx2(
-        /** [in] **/String sql, 
+        /** [in] **/const String &sql, 
         /** [in] **/Int32 maxrows, 
-        /** [in] **/ArrayOf<String> args,
+        /** [in] **/ArrayOf<String>* args,
         /** [out] **/ITableResult** result);
 
     CARAPI Get_tableEx3(
-        /** [in] **/String sql, 
-        /** [in] **/ArrayOf<String> args,
+        /** [in] **/const String &sql, 
+        /** [in] **/ArrayOf<String>* args,
         /** [out] **/ITableResult** result);
 
     CARAPI Get_tableEx4(
-        /** [in] **/String sql, 
-        /** [in] **/ArrayOf<String> args, 
+        /** [in] **/const String &sql, 
+        /** [in] **/ArrayOf<String>* args, 
         /** [in] **/ITableResult* tbl);
 
     CARAPI Complete(
-        /** [in] **/String sql,
+        /** [in] **/const String &sql,
         /** [out] **/Boolean* resukt);
 
     CARAPI Version(
@@ -87,17 +88,17 @@ public:
         /** [out] **/String* str);
 
     CARAPI Create_function(
-        /** [in] **/String name, 
+        /** [in] **/const String &name, 
         /** [in] **/Int32 nargs, 
         /** [in] **/IFunction* f);
 
     CARAPI Create_aggregate(
-        /** [in] **/String name, 
+        /** [in] **/const String &name, 
         /** [in] **/Int32 nargs, 
         /** [in] **/IFunction* f);
 
     CARAPI Function_type(
-        /** [in] **/String name, 
+        /** [in] **/const String &name, 
         /** [in] **/Int32 type);
 
     CARAPI Last_error(
@@ -111,7 +112,7 @@ public:
         /** [out] **/String* str);
 
     CARAPI Set_encoding(
-        /** [in] **/String enc);
+        /** [in] **/const String &enc);
 
     CARAPI Set_authorizer(
         /** [in] **/IAuthorizer* auth);
@@ -120,22 +121,22 @@ public:
         /** [in] **/ITrace* tr);
 
     CARAPI Compile(
-        /** [in] **/String sql,
+        /** [in] **/const String &sql,
         /** [out] **/IVm** vm);
 
     CARAPI CompileEx(
-        /** [in] **/String sql, 
-        /** [in] **/ArrayOf<String> args,
+        /** [in] **/const String &sql, 
+        /** [in] **/ArrayOf<String>* args,
         /** [out] **/IVm** vm);
 
     CARAPI Prepare(
-        /** [in] **/String sql,
+        /** [in] **/const String &sql,
         /** [out] **/IStmt** tmt);
 
     CARAPI Open_blob(
-        /** [in] **/String db, 
-        /** [in] **/String table, 
-        /** [in] **/String column,
+        /** [in] **/const String &db, 
+        /** [in] **/const String &table, 
+        /** [in] **/const String &column,
         /** [in] **/Int64 row, 
         /** [in] **/Boolean rw,
         /** [out] **/IBlob2** blob);
@@ -148,23 +149,23 @@ public:
         /** [in] **/IProgressHandler* p);
 
     CARAPI Key(
-        /** [in] **/ArrayOf<Byte> ekey);
+        /** [in] **/ArrayOf<Byte>* ekey);
 
     CARAPI KeyEx(
-        /** [in] **/String skey);
+        /** [in] **/const String &skey);
 
     CARAPI Rekey(
-        /** [in] **/ArrayOf<Byte> ekey);
+        /** [in] **/ArrayOf<Byte>* ekey);
 
     CARAPI RekeyEx(
-        /** [in] **/String skey);
+        /** [in] **/const String &skey);
 
     CARAPI Long_from_julian(
         /** [in] **/Double d,
         /** [out] **/Int64* result);
 
     CARAPI Long_from_julianEx(
-        /** [in] **/String s,
+        /** [in] **/const String &s,
         /** [out] **/Int64* result);
 
     CARAPI Julian_from_long(

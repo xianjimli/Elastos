@@ -1,4 +1,4 @@
-#include "JDBCStatement.h"
+//#include "JDBCStatement.h"
 #include "CJDBCConnection.h"
 #include "cmdef.h"
 
@@ -13,19 +13,22 @@
 //ECode DatabaseX::Wait(
 //        /* [in] */Int32 ms)
 //{
+//    return E_NOT_IMPLEMENTED;
 //}
 
 //ECode DatabaseX::Exec(
 //    /* [in] */String sql, 
-//    /* [in] */SQLite.Callback cb)
+//    /* [in] */ICallback* cb)
 //{
+//    return E_NOT_IMPLEMENTED;
 //}
 
 //ECode DatabaseX::ExecEx(
 //    /* [in] */String sql, 
-//    /* [in] */SQLite.Callback cb, 
+//    /* [in] */ICallback* cb, 
 //    /* [in] */ArrayOf<String> args)
 //{
+//    return E_NOT_IMPLEMENTED;
 //}
 
 //ECode DatabaseX::Get_table(
@@ -33,6 +36,7 @@
 //    /* [in] */ArrayOf<String> args,
 //    /* [out] */ITableResult** result)
 //{
+//    return E_NOT_IMPLEMENTED;
 //}
 
 //ECode DatabaseX::Get_table(
@@ -40,6 +44,7 @@
 //    /* [in] */ArrayOf<String> args, 
 //    /* [in] */ITableResult* tbl)
 //{
+//    return E_NOT_IMPLEMENTED;
 //}
 
 //Boolean CJDBCConnection::Busy0(
