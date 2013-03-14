@@ -37,6 +37,7 @@ INCLUDES += $(MAKEDIR)/../../inc/core/systemui/statusbar
 INCLUDES += $(MAKEDIR)/../../inc/services
 INCLUDES += $(MAKEDIR)/../../inc/services/server
 INCLUDES += $(MAKEDIR)/../../inc/services/server/location
+INCLUDES += $(MAKEDIR)/../../inc/services/server/usb
 ifeq "$(XDK_TARGET_PLATFORM)" "linux"
 INCLUDES += $(PREBUILD_INC)/skia/utils
 INCLUDES += $(PREBUILD_INC)/skia/core

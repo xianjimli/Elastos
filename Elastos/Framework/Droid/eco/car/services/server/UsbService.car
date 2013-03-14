@@ -1,0 +1,73 @@
+
+module
+{
+    interface IUsbService {
+        SystemReady();
+
+        /* Returns a list of all currently attached USB devices (host mdoe) */
+        GetDeviceList(
+            [in] IBundle* devices);
+
+        /* Opens the specified USB device (host mode) */
+        OpenDevice(
+            [in] String deviceName,
+            [out] IParcelFileDescriptor** pfd);
+
+        /* returns the currently attached USB accessory (device mode) */
+        GetCurrentAccessory(
+            [out] IUsbAccessory** accessory);
+
+        /* opens the currently attached USB accessory (device mode) */
+        OpenAccessory(
+            [in] IUsbAccessory* accessory,
+            [out] IParcelFileDescriptor** pfd);
+
+        SetDevicePackage(
+            [in] IUsbDevice* device,
+            [in] String packageName);
+
+        SetAccessoryPackage(
+            [in] IUsbAccessory* accessory,
+            [in] String packageName);
+
+        HasDevicePermission(
+            [in] IUsbDevice* device,
+            [out] Boolean* result);
+
+        HasAccessoryPermission(
+            [in] IUsbAccessory* accessory,
+            [out] Boolean* result);
+
+        RequestDevicePermission(
+            [in] IUsbDevice* device,
+            [in] String packageName,
+            [in] IPendingIntent* pi);
+
+        RequestAccessoryPermission(
+            [in] IUsbAccessory* accessory,
+            [in] String packageName,
+            [in] IPendingIntent* pi);
+
+        GrantDevicePermission(
+            [in] IUsbDevice* device,
+            [in] Int32 uid);
+
+        GrantAccessoryPermission(
+            [in] IUsbAccessory* accessory,
+            [in] Int32 uid);
+
+        HasDefaults(
+            [in] String packageName,
+            [out] Boolean* result);
+
+        ClearDefaults(
+            [in] String packageName);
+
+        SetCurrentFunction(
+            [in] String function,
+            [in] Boolean makeDefault);
+
+        SetMassStorageBackingFile(
+            [in] String path);
+    }
+}

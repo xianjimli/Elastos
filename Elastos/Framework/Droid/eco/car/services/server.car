@@ -3,6 +3,7 @@ module
 {
     merge("server/am.car");
     merge("server/LightsService.car");
+    merge("server/UsbService.car");
 
     class CWindowSession {
         constructor(
@@ -65,5 +66,12 @@ module
 
         interface IInputMethodManagerStub;
         interface IServiceConnection;
+    }
+
+    class CUsbService {
+        constructor(
+            [in] IContext* context);
+
+        interface IUsbService;
     }
 }
