@@ -3,10 +3,13 @@
 #define __CPARCELFILEDESCRIPTOR_H__
 
 #include "_CParcelFileDescriptor.h"
+#include <elastos/AutoPtr.h>
 
 CarClass(CParcelFileDescriptor)
 {
 public:
+    CParcelFileDescriptor();
+
     /**
      * Create a new ParcelFileDescriptor accessing a given file.
      *
@@ -37,6 +40,9 @@ public:
      */
     CARAPI Close();
 
+    CARAPI GetFileDescriptor(
+        /* [out] */ IFileDescriptor** des);
+
     CARAPI ReadFromParcel(
         /* [in] */ IParcel* source);
 
@@ -50,7 +56,14 @@ public:
         /* [in] */ IFileDescriptor* descriptor);
 
 private:
-    // TODO: Add your private member variables here.
+    AutoPtr<IFileDescriptor> mFileDescriptor;
+    Boolean mClosed;
+
+    //this field is to create wrapper for ParcelFileDescriptor using another
+    //PartialFileDescriptor but avoid invoking close twice
+    //consider ParcelFileDescriptor A(fileDescriptor fd),  ParcelFileDescriptor B(A)
+    //in this particular case fd.close might be invoked twice.
+    AutoPtr<IParcelFileDescriptor> mParcelDescriptor;
 };
 
 #endif // __CPARCELFILEDESCRIPTOR_H__

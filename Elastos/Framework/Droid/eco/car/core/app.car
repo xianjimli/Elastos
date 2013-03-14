@@ -16,9 +16,6 @@ module
     merge("app/activitymanager.car");
     merge("app/IBatteryStats.car");
     merge("app/IMediaContainerService.car");
-    merge("app/backup/ibackupmanager.car");
-    merge("app/backup/irestoreobserver.car");
-    merge("app/backup/irestoresession.car");
     merge("app/Dialog.car");
     merge("app/AlertDialog.car");
     merge("app/ProgressDialog.car");

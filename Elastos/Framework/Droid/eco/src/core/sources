@@ -5,6 +5,7 @@ include $(MAKEDIR)/../../../sources.inc
 
 INCLUDES += $(MAKEDIR)/../../inc/core
 INCLUDES += $(MAKEDIR)/../../inc/core/app
+INCLUDES += $(MAKEDIR)/../../inc/core/app/backup
 INCLUDES += $(MAKEDIR)/../../inc/core/capsule
 INCLUDES += $(MAKEDIR)/../../inc/core/content
 INCLUDES += $(MAKEDIR)/../../inc/core/content/cm
@@ -59,6 +60,7 @@ LIBRARIES += net/net.lib
 LIBRARIES += content/content.lib
 LIBRARIES += provider/provider.lib
 LIBRARIES += app/application.lib
+LIBRARIES += app/backup/backup.lib
 LIBRARIES += utils/utils.lib
 LIBRARIES += ext/ext.lib
 LIBRARIES += os/os.lib

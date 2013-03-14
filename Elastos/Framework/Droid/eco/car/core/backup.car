@@ -1,0 +1,61 @@
+
+module {
+    merge("app/backup/RestoreSet.car");
+    merge("app/backup/BackupManager.car");
+    merge("app/backup/RestoreObserver.car");
+    merge("app/backup/RestoreSession.car");
+    merge("app/backup/BackupTransport.car");
+    merge("app/backup/BackupAgent.car");
+    merge("app/backup/BackupDataInput.car");
+    merge("app/backup/BackupDataInputStream.car");
+    merge("app/backup/BackupDataOutput.car");
+    merge("app/backup/BackupHelper.car");
+
+    class CLocalTransport {
+        constructor(
+            [in] IContext* ctx);
+
+        interface IBackupTransport;
+    }
+
+    class CRestoreSet {
+        constructor();
+
+        constructor(
+            [in] String name,
+            [in] String dev,
+            [in] Int64 token);
+
+        interface IRestoreSet;
+        interface IParcelable;
+    }
+
+    class CRestoreObserverWrapper {
+        constructor(
+            [in] IContext* ctx,
+            [in] IRestoreObserver* appObserver);
+
+        interface IRestoreObserverStub;
+    }
+
+    class CBackupDataInput {
+    	constructor(
+    		[in] IFileDescriptor* fd);
+
+    	interface IBackupDataInput;
+    }
+
+    class CBackupDataOutput {
+    	constructor(
+    		[in] IFileDescriptor* fd);
+
+    	interface IBackupDataOutput;
+    }
+
+    class CBackupDataInputStream {
+    	constructor(
+    		[in] IBackupDataInput* data);
+
+    	interface IBackupDataInputStream;
+    }
+}

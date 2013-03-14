@@ -1,7 +1,7 @@
 
 module
 {
-    interface IRestoreObserver;
+    interface IRestoreObserverStub;
 
     /**
      * Binder interface used by clients who wish to manage a restore operation.  Every
@@ -9,7 +9,7 @@ module
      *
      * {@hide}
      */
-    interface IRestoreSession {
+    interface IRestoreSessionStub {
         /**
          * Ask the current transport what the available restore sets are.
          *
@@ -19,7 +19,8 @@ module
          *   result callback if this method returned zero.
          */
         GetAvailableRestoreSets(
-            [in] IRestoreObserver* observer);
+            [in] IRestoreObserverStub* observer,
+            [out] Int32* error);
 
         /**
          * Restore the given set onto the device, replacing the current data of any app
@@ -36,7 +37,8 @@ module
          */
         RestoreAll(
             [in] Int64 token,
-            [in] IRestoreObserver* observer);
+            [in] IRestoreObserverStub* observer,
+            [out] Int32* error);
 
         /**
          * Restore a single application from backup.  The data will be restored from the
@@ -55,7 +57,8 @@ module
          */
         RestoreCapsule(
             [in] String capsuleName,
-            [in] IRestoreObserver* observer);
+            [in] IRestoreObserverStub* observer,
+            [out] Int32* error);
 
         /**
          * End this restore session.  After this method is called, the IRestoreSession binder
