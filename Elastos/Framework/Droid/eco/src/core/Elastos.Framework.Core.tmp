@@ -3,7 +3,7 @@ module Elastos.Framework.Core.eco
     importlib("Elastos.Core.eco");
     importlib("Elastos.Utility.eco");
     importlib("Elastos.IO.eco");
-    importlib("Elastos.Xml.eco"); 
+    importlib("Elastos.Xml.eco");
 
     interface IDescribable;
     interface IComparable;

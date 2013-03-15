@@ -31,4 +31,5 @@ module
     merge("../../car/core/hardware.car");
     merge("../../car/core/webkit.car");
     merge("../../car/core/gesture.car");
+    merge("../../car/core/backup.car");
 }

@@ -2,7 +2,7 @@
 module
 {
     interface IBinder;
-    interface IRestoreSession;
+    interface IRestoreSessionStub;
 
     /**
      * Direct interface to the Backup Manager Service that applications invoke on.  The only
@@ -166,7 +166,7 @@ module
         BeginRestoreSession(
             [in] String capsuleName,
             [in] String transportID,
-            [out] IRestoreSession** session);
+            [out] IRestoreSessionStub** session);
 
         /**
          * Notify the backup manager that a BackupAgent has completed the operation

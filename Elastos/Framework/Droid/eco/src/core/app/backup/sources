@@ -1,0 +1,23 @@
+
+TARGET_NAME= backup
+TARGET_TYPE= lib
+
+include $(MAKEDIR)/../../../../../sources.inc
+INCLUDES += $(MAKEDIR)/../../../../inc/core
+INCLUDES += ../../
+
+C_DEFINES += -D_FRAMEWORK_CORE
+
+SOURCES += CLocalTransport.cpp
+SOURCES += CRestoreSet.cpp
+SOURCES += CRestoreObserverWrapper.cpp
+SOURCES += RestoreObserver.cpp
+SOURCES += RestoreSession.cpp
+SOURCES += BackupAgent.cpp
+SOURCES += BackupAgentHelper.cpp
+SOURCES += BackupHelperDispatcher.cpp
+SOURCES += CBackupDataInput.cpp
+SOURCES += CBackupDataInputStream.cpp
+SOURCES += CBackupDataOutput.cpp
+SOURCES += FileBackupHelperBase.cpp
+SOURCES += FileBackupHelper.cpp

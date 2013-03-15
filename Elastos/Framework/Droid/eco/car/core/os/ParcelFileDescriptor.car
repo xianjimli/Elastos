@@ -56,6 +56,14 @@ module
          *             If an error occurs attempting to close this ParcelFileDescriptor.
          */
         Close();
+
+        /**
+         * Retrieve the actual FileDescriptor associated with this object.
+         *
+         * @return Returns the FileDescriptor associated with this object.
+         */
+        GetFileDescriptor(
+            [out] IFileDescriptor** des);
     }
 
     interface IParcelFileDescriptorHelper {

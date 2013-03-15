@@ -43,7 +43,7 @@ ECode CRegion::constructor(
 ECode CRegion::constructor(
     /* [in] */ Int32 ni)
 {
-    if (ni == NULL) {
+    if ((SkRegion*)ni == NULL) {
         //throw new RuntimeException();
         return E_RUNTIME_EXCEPTION;
     }
@@ -197,7 +197,7 @@ ECode CRegion::Contains(
 {
     VALIDATE_NOT_NULL(result);
 
-    mNativeRegion->contains(x, y);
+    *result = mNativeRegion->contains(x, y);
     return NOERROR;
 }
 
