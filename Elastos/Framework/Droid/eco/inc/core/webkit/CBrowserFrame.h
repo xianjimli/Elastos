@@ -159,14 +159,14 @@ private:
 
     private:
         Vector<AutoPtr<IHandler> > mHandlers;
-        AutoPtr<IWindowManager> mWindowManager;   
+        AutoPtr<IWindowManager> mWindowManager;
     };
 
 public:
     // This is a field accessed by native code as well as package classes.
     /*package*/
     Int32 mNativeFrame;
-    /* package */ 
+    /* package */
     Boolean mLoadInitFromJava;
 
     // Static instance of a JWebCoreJavaBridge to handle timer and cookie
@@ -208,7 +208,7 @@ private:
      * interface.
      */
     CARAPI_(void) ReportError(
-        /* [in] */ const Int32 errorCode, 
+        /* [in] */ const Int32 errorCode,
         /* [in] */ const String description,
         /* [in] */ const String failingUrl);
 
@@ -220,7 +220,7 @@ private:
      * This method will be called once for the main frame.
      */
     CARAPI_(void) LoadStarted(
-        /* [in] */ const String& url, 
+        /* [in] */ const String& url,
         /* [in] */ IBitmap* favicon,
         /* [in] */ Int32 loadType,
         /* [in] */ Boolean isMainFrame);
@@ -240,7 +240,7 @@ private:
      * This method will be called once for the main frame.
      */
     CARAPI_(void) LoadFinished(
-        /* [in] */ const String& url, 
+        /* [in] */ const String& url,
         /* [in] */ Int32 loadType,
         /* [in] */ Boolean isMainFrame);
 
@@ -290,7 +290,7 @@ private:
      * @return int The size of the given file, or zero if it fails.
      */
     CARAPI_(Int32) GetFile(
-        /* [in] */ const String& uri, 
+        /* [in] */ const String& uri,
         /* [in] */ Byte buffer[],
         /* [in] */ Int32 offset,
         /* [in] */ Int32 expectedSize) const;
@@ -440,7 +440,7 @@ private:
      * Returns false if the url is bad.
      */
     CARAPI_(void) NativeLoadUrl(
-        /* [in] */ CString url, 
+        /* [in] */ CString url,
         /* [in] */ IObjectStringMap* headers)
     {
 

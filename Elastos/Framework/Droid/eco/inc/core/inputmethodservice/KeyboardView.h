@@ -317,8 +317,7 @@ private:
     CARAPI_(void) ComputeProximityThreshold(
         /* [in] */ IKeyboard* keyboard);
 
-    CARAPI_(void) OnBufferDraw(
-        /* [in] */ ICanvas* canvas);
+    CARAPI_(void) OnBufferDraw();
 
     CARAPI_(Int32) GetKeyIndices(
         /* [in] */ Int32 x,

@@ -149,9 +149,6 @@ private:
         /* [in] */ Int32 sampleSize,
         /* [in] */ Boolean ditherImage);
 
-    static CARAPI_(CString) GetMimeTypeString(
-        /* [in] */ SkImageDecoder::Format format);
-
     /*  make a deep copy of the asset, and return it as a stream, or NULL if there
         was an error.
      */

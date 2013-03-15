@@ -1192,6 +1192,44 @@ ECode CSoftKeyboard::OnKeyMultiple(
     return InputMethodService::OnKeyMultiple(keyCode, count, event, result);
 }
 
+ECode CSoftKeyboard::StopSelf()
+{
+    return InputMethodService::StopSelf();
+}
+
+ECode CSoftKeyboard::StopSelfEx(
+    /* [in] */ Int32 startId)
+{
+    return InputMethodService::StopSelfEx(startId);
+}
+
+ECode CSoftKeyboard::StopSelfResult(
+    /* [in] */ Int32 startId,
+    /* [out] */ Boolean* res)
+{
+    VALIDATE_NOT_NULL(res);
+    return InputMethodService::StopSelfResult(startId, res);
+}
+
+ECode CSoftKeyboard::SetForeground(
+    /* [in] */ Boolean isForeground)
+{
+    return InputMethodService::SetForeground(isForeground);
+}
+
+ECode CSoftKeyboard::StartForeground(
+    /* [in] */ Int32 id,
+    /* [in] */ INotification* notification)
+{
+    return InputMethodService::StartForeground(id, notification);
+}
+
+ECode CSoftKeyboard::StopForeground(
+    /* [in] */ Boolean removeNotification)
+{
+    return InputMethodService::StopForeground(removeNotification);
+}
+
 ECode CSoftKeyboard::constructor()
 {
     return NOERROR;

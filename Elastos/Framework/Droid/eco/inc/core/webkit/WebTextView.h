@@ -8,7 +8,7 @@
  * to overlay html textfields (and textareas) to use our standard
  * text editing.
  */
-/* package */ 
+/* package */
  class WebTextView : public AutoCompleteTextView {
 
  public:
@@ -18,20 +18,20 @@
      *  This is a special version of ArrayAdapter which changes its text size
      *  to match the text size of its host TextView.
      */
-    class AutoCompleteAdapter// : public ArrayAdapter<String> 
+    class AutoCompleteAdapter// : public ArrayAdapter<String>
     {
     public:
 
         AutoCompleteAdapter(
-            /* [in] */ IContext* context//, 
+            /* [in] */ IContext* context//,
             /* [in] */ /*ArrayList<String> entries*/);
 
         /**
          * {@inheritDoc}
          */
         virtual CARAPI_(IView*) GetView(
-            /* [in] */ Int32 position, 
-            /* [in] */ IView* convertView, 
+            /* [in] */ Int32 position,
+            /* [in] */ IView* convertView,
             /* [in] */ IViewGroup* parent);
 
     private:
@@ -49,9 +49,9 @@
      * @param   context The Context for this WebTextView.
      * @param   webView The WebView that created this.
      */
-    /* package */ 
+    /* package */
 	WebTextView(
-		/* [in] */ IContext* context, 
+		/* [in] */ IContext* context,
 		/* [in] */ IWebView* webView);
 
     //@Override
@@ -65,19 +65,19 @@
      *  @return boolean Whether this WebTextView already represents the node
      *          pointed to by ptr.
      */
-    /* package */ 
+    /* package */
 	virtual CARAPI_(Boolean) IsSameTextField(
 		/* [in] */ Int32 ptr);
 
-    //@Override 
-	virtual CARAPI_(IInputConnection*) OnCreateInputConnection(
+    //@Override
+	virtual CARAPI_(AutoPtr<IInputConnection>) OnCreateInputConnection(
 		/* [in] */ IEditorInfo* outAttrs);
 
 	virtual CARAPI_(void) OnDrawSubstitute();
 
     //@Override
 	virtual CARAPI OnEditorAction(
-		/* [in] */ Int32 actionCode);    
+		/* [in] */ Int32 actionCode);
 
     //@Override
 	virtual CARAPI_(Boolean) OnTouchEvent(
@@ -94,10 +94,10 @@
      * Remove this WebTextView from its host WebView, and return
      * focus to the host.
      */
-    /* package */ 
+    /* package */
 	virtual CARAPI_(void) Remove();
 
-    /* package */ 
+    /* package */
 	virtual CARAPI_(void) BringIntoView();
 
     /**
@@ -112,7 +112,7 @@
      * the trackball or center key, or starts typing into it without clicking on
      * it.
      */
-    /* package */ 
+    /* package */
 	virtual CARAPI_(void) SetDefaultSelection();
 
     /**
@@ -120,7 +120,7 @@
      * or to use none.
      * @param   inPassword  True if the textfield is a password field.
      */
-    /* package */ 
+    /* package */
 	virtual CARAPI_(void) SetInPassword(
 		CARAPI_(Boolean) inPassword);
 
@@ -136,7 +136,7 @@
      *  @param  ptr Integer representing the pointer to the node which this
      *          WebTextView represents.
      */
-    /* package */ 
+    /* package */
     virtual void setNodePointer(
         /* [in] */ Int32 ptr);
 
@@ -150,19 +150,19 @@
      * @param width     width of the textfield.
      * @param height    height of the textfield.
      */
-    /* package */ 
+    /* package */
 	virtual CARAPI_(void) SetRect(
-		/* [in] */ Int32 x, 
-		/* [in] */ Int32 y, 
-		/* [in] */ Int32 width, 
+		/* [in] */ Int32 x,
+		/* [in] */ Int32 y,
+		/* [in] */ Int32 width,
 		/* [in] */ Int32 height);
 
     /**
      * Set the selection, and disable our onSelectionChanged action.
      */
-    /* package */ 
+    /* package */
 	virtual CARAPI_(void) SetSelectionFromWebKit(
-		/* [in] */ Int32 start, 
+		/* [in] */ Int32 start,
 		/* [in] */ Int32 end);
 
     /**
@@ -170,7 +170,7 @@
      * to keep it within the new string.
      * @param   text    The new text to place in the textfield.
      */
-    /* package */ 
+    /* package */
 	virtual CARAPI_(void) SetTextAndKeepSelection(
 		/* [in] */ CString text);
 
@@ -182,14 +182,14 @@
      *              is unaffected if that changes, and also because that has no
      *              type corresponding to textarea (which is its own tag).
      */
-    /* package */ 
+    /* package */
 	virtual CARAPI_(void) SetType(
 		/* [in] */ Int32 type);
 
     /**
      *  Update the cache to reflect the current text.
      */
-    /* package */ 
+    /* package */
 	virtual CARAPI_(void) UpdateCachedTextfield();
 
     //@Override
@@ -203,20 +203,20 @@ protected:
 
 	//@Override
 	virtual CARAPI_(void) OnFocusChanged(
-		/* [in] */ Boolean focused, 
+		/* [in] */ Boolean focused,
 		/* [in] */ Int32 direction,
 		/* [in] */ IRect* previouslyFocusedRect);
 
     //@Override
 	virtual CARAPI_(void) OnScrollChanged(
-		/* [in] */ Int32 l, 
-		/* [in] */ Int32 t, 
-		/* [in] */ Int32 oldl, 
+		/* [in] */ Int32 l,
+		/* [in] */ Int32 t,
+		/* [in] */ Int32 oldl,
 		/* [in] */ Int32 oldt);
 
     //@Override
 	virtual CARAPI_(void) OnSelectionChanged(
-		/* [in] */ Int32 selStart, 
+		/* [in] */ Int32 selStart,
 		/* [in] */ Int32 selEnd);
 
     //@Override
@@ -242,7 +242,7 @@ private:
     /**
      * Private class used for the background of a password textfield.
      */
-    class OutlineDrawable //: public Drawable 
+    class OutlineDrawable //: public Drawable
 	{
 	public:
 		virtual CARAPI_(void) Draw(

@@ -417,6 +417,25 @@ public:
         /* [in] */ IKeyEvent* event,
         /* [out] */ Boolean* result);
 
+    CARAPI StopSelf();
+
+    CARAPI StopSelfEx(
+        /* [in] */ Int32 startId);
+
+    CARAPI StopSelfResult(
+        /* [in] */ Int32 startId,
+        /* [out] */ Boolean* res);
+
+    CARAPI SetForeground(
+        /* [in] */ Boolean isForeground);
+
+    CARAPI StartForeground(
+        /* [in] */ Int32 id,
+        /* [in] */ INotification* notification);
+
+    CARAPI StopForeground(
+        /* [in] */ Boolean removeNotification);
+
     CARAPI constructor();
 
     CARAPI_(void) SetSuggestions(

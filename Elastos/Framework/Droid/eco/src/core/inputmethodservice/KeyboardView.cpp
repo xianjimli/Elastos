@@ -930,17 +930,14 @@ void KeyboardView::OnDraw(
     /* [in] */ ICanvas* canvas)
 {
     View::OnDraw(canvas);
-    // if (mDrawPending || mBuffer == NULL || mKeyboardChanged) {
-        OnBufferDraw(canvas);
-    // }
-    // canvas->DrawBitmap(mBuffer, 0, 0, NULL);
+    if (mDrawPending || mBuffer == NULL || mKeyboardChanged) {
+        OnBufferDraw();
+    }
+    canvas->DrawBitmap(mBuffer, 0, 0, NULL);
 }
 
-void KeyboardView::OnBufferDraw(
-    /* [in] */ ICanvas* canvas)
+void KeyboardView::OnBufferDraw()
 {
-    //todo:
-    mCanvas = canvas;
     if (mBuffer == NULL || mKeyboardChanged) {
         Int32 bufferW = 0, bufferH = 0;
         if (mBuffer != NULL) {
@@ -956,13 +953,13 @@ void KeyboardView::OnBufferDraw(
             CBitmapFactory::AcquireSingleton((IBitmapFactory**)&bmFactory);
             bmFactory->CreateBitmapEx3(width, height,
                     BitmapConfig_ARGB_8888, (IBitmap**)&mBuffer);
-            // CCanvas::New(mBuffer, (ICanvas**)&mCanvas);
+            CCanvas::New(mBuffer, (ICanvas**)&mCanvas);
         }
         InvalidateAllKeys();
         mKeyboardChanged = FALSE;
     }
     Boolean isNotEmpty = FALSE;
-    // mCanvas->ClipRect(mDirtyRect, RegionOp_REPLACE, &isNotEmpty);
+    mCanvas->ClipRect(mDirtyRect, RegionOp_REPLACE, &isNotEmpty);
 
     if (mKeyboard == NULL) return;
 
@@ -1417,7 +1414,7 @@ ECode KeyboardView::InvalidateKey(
     key->GetHeight(&keyH);
     mDirtyRect->Union(keyX + mPaddingLeft, keyY + mPaddingTop,
             keyX + keyW + mPaddingLeft, keyY + keyH + mPaddingTop);
-    // OnBufferDraw();
+    OnBufferDraw();
     Invalidate(keyX + mPaddingLeft, keyY + mPaddingTop,
             keyX + keyW + mPaddingLeft, keyY + keyH + mPaddingTop);
     return NOERROR;

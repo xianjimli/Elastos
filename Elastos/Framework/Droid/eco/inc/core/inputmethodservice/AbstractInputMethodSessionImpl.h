@@ -2,17 +2,12 @@
 #ifndef  __ABSTRACTINPUTMETHODSESSIONIMPL_H__
 #define  __ABSTRACTINPUTMETHODSESSIONIMPL_H__
 
-<<<<<<< HEAD
-#include <elastos/ElRefBase.h>
-#include "inputmethodservice/AbstractInputMethodService.h"
-=======
 #ifdef _FRAMEWORK_CORE
 #include "inputmethodservice/AbstractInputMethodService.h"
 #else
 #include "Elastos.Framework.Core.h"
 #include "AbstractInputMethodService.h"
 #endif
->>>>>>> review input method implementation
 
 #include <elastos/ElRefBase.h>
 
