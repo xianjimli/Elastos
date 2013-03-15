@@ -1,8 +1,8 @@
 
 module
 {
-    interface IInputMethodClientStub;
-    interface IInputContextStub;
+    interface IInputMethodClient;
+    interface IInputContext;
     interface IWindowSession;
     interface IKeyEvent;
     interface IMotionEvent;
@@ -29,12 +29,12 @@ module
             [out] Boolean* result);
 
         OpenSession(
-            [in] IInputMethodClientStub* client,
-            [in] IInputContextStub* inputContext,
+            [in] IInputMethodClient* client,
+            [in] IInputContext* inputContext,
             [out] IWindowSession** session);
 
         InputMethodClientHasFocus(
-            [in] IInputMethodClientStub* client,
+            [in] IInputMethodClient* client,
             [out] Boolean* result);
 
         // These can only be called when injecting events to your own window,

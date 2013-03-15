@@ -676,7 +676,7 @@ module
          * @param charCode The UTF-16 character code to send.
          */
         SendKeyChar(
-            [in] Char16 charCode);
+            [in] Char32 charCode);
         /**
          * This is called when the user has moved the cursor in the extracted
          * text view, when running in fullsreen mode.  The default implementation

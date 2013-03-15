@@ -9,7 +9,13 @@
 CarClass(CExtractedText)
 {
 public:
-	CExtractedText();
+    CExtractedText();
+
+    CARAPI GetStartOffset(
+        /* [out] */ Int32* startOffset);
+
+    CARAPI SetStartOffset(
+        /* [in] */ Int32 startOffset);
 
     CARAPI ReadFromParcel(
         /* [in] */ IParcel *source);

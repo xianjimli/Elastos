@@ -1,31 +1,29 @@
 
-#ifndef  _CINPUTMETHODINFO_H__
-#define  _CINPUTMETHODINFO_H__
+#ifndef  __CINPUTMETHODINFO_H__
+#define  __CINPUTMETHODINFO_H__
 
-#include "ext/frameworkext.h"
+
 #include "_CInputMethodInfo.h"
+#include "content/CResolveInfo.h"
 #include <elastos/AutoPtr.h>
 
 
 CarClass(CInputMethodInfo)
 {
 public:
-	CInputMethodInfo();
+    CInputMethodInfo();
 
-	~CInputMethodInfo();
+    CARAPI constructor();
 
     CARAPI constructor(
         /* [in] */ IContext* ctx,
         /* [in] */ IResolveInfo* service);
 
-	CARAPI constructor(
-        /* [in] */ IParcel* source);
-
     CARAPI constructor(
-        /* [in] */ String packageName,
-        /* [in] */ String className,
+        /* [in] */ const String& packageName,
+        /* [in] */ const String& className,
         /* [in] */ ICharSequence* label,
-        /* [in] */ String settingsActivity);
+        /* [in] */ const String& settingsActivity);
 
     CARAPI ReadFromParcel(
         /* [in] */ IParcel *source);
@@ -49,11 +47,11 @@ public:
         /* [out] */ IComponentName** name);
 
     CARAPI LoadLabel(
-        /* [in] */ ICapsuleManager* pm,
+        /* [in] */ ILocalCapsuleManager* pm,
         /* [out] */ ICharSequence** str);
 
     CARAPI LoadIcon(
-        /* [in] */ ICapsuleManager* pm,
+        /* [in] */ ILocalCapsuleManager* pm,
         /* [out] */ IDrawable** drawable);
 
     CARAPI GetSettingsActivity(
@@ -68,7 +66,7 @@ private:
     /**
      * The Service that implements this input method component.
      */
-    AutoPtr<IResolveInfo> mService;
+    AutoPtr<CResolveInfo> mService;
 
     /**
      * The unique string Id to identify the input method.  This is generated
@@ -91,4 +89,4 @@ private:
     Int32 mIsDefaultResId;
 };
 
-#endif  //_CINPUTMETHODINFO_H__
+#endif  //__CINPUTMETHODINFO_H__

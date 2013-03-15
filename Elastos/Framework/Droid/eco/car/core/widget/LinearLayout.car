@@ -9,6 +9,9 @@ module
         GetWeight(
             [out] Float* weight);
 
+        SetWeight(
+            [in] Float weight);
+
         GetGravity(
             [out] Int32* gravity);
     }

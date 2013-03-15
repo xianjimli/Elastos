@@ -5,6 +5,7 @@
 #include "graphics/CRect.h"
 #include <elastos/Algorithm.h>
 
+
 CIntent::FilterComparison::FilterComparison(
     /* [in] */ IIntent* intent)
 {

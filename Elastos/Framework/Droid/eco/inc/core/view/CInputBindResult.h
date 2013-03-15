@@ -8,12 +8,15 @@
 CarClass(CInputBindResult)
 {
 public:
-	CInputBindResult();
+    CARAPI constructor();
 
     CARAPI constructor(
-    	/* [in] */ IInputMethodSessionStub* _method,
-    	/* [in] */ const String& _id,
-    	/* [in] */ Int32 _sequence);
+        /* [in] */ IInputMethodSession* _method,
+        /* [in] */ const String& _id,
+        /* [in] */ Int32 _sequence);
+
+    CARAPI GetIIMSession(
+        /* [out] */ IInputMethodSession** session);
 
     CARAPI ReadFromParcel(
         /* [in] */ IParcel *source);
@@ -21,18 +24,11 @@ public:
     CARAPI WriteToParcel(
         /* [in] */ IParcel *dest);
 
-    CARAPI constructor(
-    	/* [in] */ IParcel* source);
-
-    CARAPI GetIIMSessionStub(
-        /* [out] */ IInputMethodSessionStub** stub);
-
 public:
     /**
      * The input method service.
      */
-    // public final IInputMethodSession method;
-    AutoPtr<IInputMethodSessionStub> mMethod;
+    AutoPtr<IInputMethodSession> mMethod;
 
     /**
      * The ID for this input method, as found in InputMethodInfo; null if

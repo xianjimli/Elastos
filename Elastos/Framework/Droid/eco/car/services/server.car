@@ -1,14 +1,15 @@
 
 module
 {
-    merge("server/am.car");
     merge("server/LightsService.car");
+    merge("server/InputMethodManagerService.car");
+    merge("server/am.car");
 
     class CWindowSession {
         constructor(
             [in] IWindowManagerStub* wmService,
-            [in] IInputMethodClientStub* client,
-            [in] IInputContextStub* inputContext);
+            [in] IInputMethodClient* client,
+            [in] IInputContext* inputContext);
 
         interface IWindowSession;
     }
@@ -63,7 +64,16 @@ module
             [in] IContext* context,
             [in] IStatusBarService* statusBar);
 
-        interface IInputMethodManagerStub;
+        interface IInputMethodManagerService;
+        interface IInputMethodManager;
         interface IServiceConnection;
+    }
+
+    class CInputMethodManagerServiceMethodCallback {
+        constructor(
+            [in] IInputMethod* method,
+            [in] Handle32 host);
+
+        interface IInputMethodCallback;
     }
 }

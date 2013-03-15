@@ -2,10 +2,16 @@
 #ifndef  _KEYBOARD_H__
 #define  _KEYBOARD_H__
 
+#ifdef _FRAMEWORK_CORE
 #include "ext/frameworkext.h"
+#else
+#define __USE_MALLOC
+#include "Elastos.Framework.Core.h"
+#endif
+
+#include <elastos/List.h>
 #include <elastos/AutoPtr.h>
 #include <elastos/ElRefBase.h>
-#include <elastos/List.h>
 
 
 /**
@@ -30,8 +36,9 @@
  * @attr ref android.R.styleable#Keyboard_horizontalGap
  * @attr ref android.R.styleable#Keyboard_verticalGap
  */
-class Keyboard:
-    public ElRefBase
+class Keyboard
+    : public ElRefBase
+    , public IKeyboard
 {
 public:
     /**
@@ -45,8 +52,9 @@ public:
      * @attr ref android.R.styleable#Keyboard_Row_rowEdgeFlags
      * @attr ref android.R.styleable#Keyboard_Row_keyboardMode
      */
-    class Row:
-        public ElRefBase
+    class Row
+        : public ElRefBase
+        , public IKeyboardRow
     {
     public:
         Row(
@@ -57,9 +65,52 @@ public:
             /* [in] */ Keyboard* parent,
             /* [in] */ IXmlResourceParser* parser);
 
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
         CARAPI_(UInt32) AddRef();
 
         CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI GetDefaultWidth(
+            /* [out] */ Int32* value);
+
+        CARAPI SetDefaultWidth(
+            /* [in] */ Int32 value);
+
+        CARAPI GetDefaultHeight(
+            /* [out] */ Int32* value);
+
+        CARAPI SetDefaultHeight(
+            /* [in] */ Int32 value);
+
+        CARAPI GetDefaultHorizontalGap(
+            /* [out] */ Int32* value);
+
+        CARAPI SetDefaultHorizontalGap(
+            /* [in] */ Int32 value);
+
+        CARAPI GetVerticalGap(
+            /* [out] */ Int32* value);
+
+        CARAPI SetVerticalGap(
+            /* [in] */ Int32 value);
+
+        CARAPI GetRowEdgeFlags(
+            /* [out] */ Int32* value);
+
+        CARAPI SetRowEdgeFlags(
+            /* [in] */ Int32 value);
+
+        CARAPI GetMode(
+            /* [out] */ Int32* value);
+
+        CARAPI SetMode(
+            /* [in] */ Int32 value);
 
     public:
         /** Default width of a key in this row. */
@@ -70,6 +121,7 @@ public:
         Int32 mDefaultHorizontalGap;
         /** Vertical gap following this row. */
         Int32 mVerticalGap;
+
         /**
          * Edge flags for this row of keys. Possible values that can be assigned are
          * {@link Keyboard#EDGE_TOP EDGE_TOP} and {@link Keyboard#EDGE_BOTTOM EDGE_BOTTOM}
@@ -79,9 +131,7 @@ public:
         /** The keyboard mode for this row */
         Int32 mMode;
 
-    private:
-        AutoPtr<Keyboard> mParent;
-        friend class Keyboard;
+        Keyboard* mParent;
     };
 
     /**
@@ -102,8 +152,9 @@ public:
      * @attr ref android.R.styleable#Keyboard_Key_keyOutputText
      * @attr ref android.R.styleable#Keyboard_Key_keyEdgeFlags
      */
-    class Key:
-        public ElRefBase
+    class Key
+        : public ElRefBase
+        , public IKeyboardKey
     {
     public:
         /** Create an empty key with no attributes. */
@@ -126,18 +177,25 @@ public:
             /* [in] */ Int32 y,
             /* [in] */ IXmlResourceParser* parser);
 
-        ~Key();
+        virtual ~Key();
+
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
 
         CARAPI_(UInt32) AddRef();
 
         CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
 
         /**
          * Informs the key that it has been pressed, in case it needs to change its appearance or
          * state.
          * @see #onReleased(Boolean)
          */
-        CARAPI_(void) OnPressed();
+        CARAPI OnPressed();
 
         /**
          * Changes the pressed state of the key. If it is a sticky key, it will also change the
@@ -145,11 +203,8 @@ public:
          * @param inside whether the finger was released inside the key
          * @see #onPressed()
          */
-        CARAPI_(void) OnReleased(
+        CARAPI OnReleased(
             /* [in] */ Boolean inside);
-
-        CARAPI_(ArrayOf<Int32>*) ParseCSV(
-            /* [in] */ const String& value);
 
         /**
          * Detects if a point falls inside this key.
@@ -159,9 +214,10 @@ public:
          * it will assume that all points between the key and the edge are considered to be inside
          * the key.
          */
-        CARAPI_(Boolean) IsInside(
+        CARAPI IsInside(
             /* [in] */ Int32 x,
-            /* [in] */ Int32 y);
+            /* [in] */ Int32 y,
+            /* [out] */ Boolean* isInside);
 
         /**
          * Returns the square of the distance between the center of the key and the given point.
@@ -169,20 +225,94 @@ public:
          * @param y the y-coordinate of the point
          * @return the square of the distance of the point from the center of the key
          */
-        CARAPI_(Int32) SquaredDistanceFrom(
+        CARAPI SquaredDistanceFrom(
             /* [in] */ Int32 x,
-            /* [in] */ Int32 y);
+            /* [in] */ Int32 y,
+            /* [out] */ Int32* dis);
 
         /**
          * Returns the drawable state for the key, based on the current state and type of the key.
          * @return the drawable state of the key.
          * @see android.graphics.drawable.StateListDrawable#setState(Int32[])
          */
-        CARAPI_(ArrayOf<Int32>*) GetCurrentDrawableState();
+        CARAPI GetCurrentDrawableState(
+            /* [out, callee] */ ArrayOf<Int32>** drawableStates);
 
-    private:
-        CARAPI_(void) Init(
-            /* [in] */ Row* parent);
+        CARAPI GetCodes(
+            /* [out, callee] */ ArrayOf<Int32>** codes);
+
+        CARAPI SetCodes(
+            /* [in] */ ArrayOf<Int32>* codes);
+
+        CARAPI GetLabel(
+            /* [in] */ ICharSequence** label);
+
+        CARAPI SetLabel(
+            /* [in] */ ICharSequence* label);
+
+        CARAPI GetIcon(
+            /* [out] */ IDrawable** icon);
+
+        CARAPI SetIcon(
+            /* [in] */ IDrawable* icon);
+
+        CARAPI GetIconPreview(
+            /* [out] */ IDrawable** preView);
+
+        CARAPI SetIconPreview(
+            /* [in] */ IDrawable* preView);
+
+        CARAPI GetWidth(
+            /* [out] */ Int32* value);
+
+        CARAPI SetWidth(
+            /* [in] */ Int32 value);
+
+        CARAPI GetHeight(
+            /* [out] */ Int32* value);
+
+        CARAPI SetHeight(
+            /* [in] */ Int32 value);
+
+        CARAPI GetGap(
+            /* [out] */ Int32* value);
+
+        CARAPI SetGap(
+            /* [in] */ Int32 value);
+
+        CARAPI IsSticky(
+            /* [out] */ Boolean* value);
+
+        CARAPI SetSticky(
+            /* [in] */ Boolean value);
+
+        CARAPI GetX(
+            /* [out] */ Int32* value);
+
+        CARAPI SetX(
+            /* [in] */ Int32 value);
+
+        CARAPI GetY(
+            /* [out] */ Int32* value);
+
+        CARAPI SetY(
+            /* [in] */ Int32 value);
+
+        CARAPI GetText(
+            /* [out] */ ICharSequence** text);
+
+        CARAPI GetPopupCharacters(
+            /* [out] */ ICharSequence** popupCharacters);
+
+        CARAPI GetPopupResId(
+            /* [out] */ Int32* popupResId);
+
+        CARAPI IsRepeatable(
+            /* [out] */ Boolean* repeatable);
+
+    protected:
+        /* package */ virtual CARAPI_(ArrayOf<Int32>*) ParseCSV(
+            /* [in] */ const String& value);
 
     public:
         /**
@@ -238,16 +368,17 @@ public:
 
     private:
         /** The keyboard that this key belongs to */
-        AutoPtr<Keyboard> mKeyboard;
+        Keyboard* mKeyboard;
 
         static Int32 KEY_STATE_NORMAL_ON[];
         static Int32 KEY_STATE_PRESSED_ON[];
         static Int32 KEY_STATE_NORMAL_OFF[];
         static Int32 KEY_STATE_PRESSED_OFF[];
-        static ArrayOf<Int32>* KEY_STATE_NORMAL;
+        static Int32 KEY_STATE_NORMAL[];
         static Int32 KEY_STATE_PRESSED[];
     };
 
+public:
     /**
      * Creates a keyboard from the given xml key layout file.
      * @param context the application or service context
@@ -290,30 +421,44 @@ public:
         /* [in] */ Int32 columns,
         /* [in] */ Int32 horizontalPadding);
 
-    ~Keyboard();
+    virtual ~Keyboard();
+
+    CARAPI_(PInterface) Probe(
+        /* [in]  */ REIID riid);
 
     CARAPI_(UInt32) AddRef();
 
     CARAPI_(UInt32) Release();
 
-    CARAPI_(List<AutoPtr<Keyboard::Key> >) GetKeys();
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface *pObject,
+        /* [out] */ InterfaceID *pIID);
 
-    CARAPI_(List<AutoPtr<Keyboard::Key> >) GetModifierKeys();
+    CARAPI GetKeys(
+        /* [out] */ IObjectContainer** keys);
+
+    CARAPI GetModifierKeys(
+        /* [out] */ IObjectContainer** keys);
 
     /**
      * Returns the total height of the keyboard
      * @return the total height of the keyboard
      */
-    CARAPI_(Int32) GetHeight();
+    CARAPI GetHeight(
+        /* [out] */ Int32* h);
 
-    CARAPI_(Int32) GetMinWidth();
+    CARAPI GetMinWidth(
+        /* [out] */ Int32* minW);
 
-    CARAPI_(Boolean) SetShifted(
-        /* [in] */ Boolean shiftState);
+    CARAPI SetShifted(
+        /* [in] */ Boolean shiftState,
+        /* [out] */ Boolean* res);
 
-    CARAPI_(Boolean) IsShifted();
+    CARAPI IsShifted(
+        /* [out] */ Boolean* res);
 
-    CARAPI_(Int32) GetShiftKeyIndex();
+    CARAPI GetShiftKeyIndex(
+        /* [out] */ Int32* index);
 
     /**
      * Returns the indices of the keys that are closest to the given point.
@@ -322,9 +467,11 @@ public:
      * @return the array of integer indices for the nearest keys to the given point. If the given
      * point is out of range, then an array of size zero is returned.
      */
-    CARAPI_(ArrayOf<Int32>*) GetNearestKeys(
+    CARAPI GetNearestKeys(
         /* [in] */ Int32 x,
-        /* [in] */ Int32 y);
+        /* [in] */ Int32 y,
+        /* [out, callee] */ ArrayOf<Int32>** nearestKeys,
+        /* [in] */ Int32* count);
 
     static CARAPI_(Int32) GetDimensionOrFraction(
         /* [in] */ ITypedArray* a,
@@ -333,24 +480,28 @@ public:
         /* [in] */ Int32 defValue);
 
 protected:
-    CARAPI_(Int32) GetHorizontalGap();
+    CARAPI GetHorizontalGap(
+        /* [out] */ Int32* hGap);
 
-    CARAPI_(void) SetHorizontalGap(
+    CARAPI SetHorizontalGap(
         /* [in] */ Int32 gap);
 
-    CARAPI_(Int32) GetVerticalGap();
+    CARAPI GetVerticalGap(
+        /* [out] */ Int32* vGap);
 
-    CARAPI_(void) SetVerticalGap(
+    CARAPI SetVerticalGap(
         /* [in] */ Int32 gap);
 
-    CARAPI_(Int32) GetKeyHeight();
+    CARAPI GetKeyHeight(
+        /* [out] */ Int32* h);
 
-    CARAPI_(void) SetKeyHeight(
+    CARAPI SetKeyHeight(
         /* [in] */ Int32 height);
 
-    CARAPI_(Int32) GetKeyWidth();
+    CARAPI GetKeyWidth(
+        /* [out] */ Int32* w);
 
-    CARAPI_(void) SetKeyWidth(
+    CARAPI SetKeyWidth(
         /* [in] */ Int32 width);
 
     CARAPI_(AutoPtr<Row>) CreateRowFromXml(
@@ -364,6 +515,12 @@ protected:
         /* [in] */ Int32 y,
         /* [in] */ IXmlResourceParser* parser);
 
+protected:
+    CARAPI Init(
+        /* [in] */ IContext* context,
+        /* [in] */ Int32 xmlLayoutResId,
+        /* [in] */ Int32 modeId = 0);
+
 private:
     CARAPI_(void) ComputeNearestNeighbors();
 
@@ -371,6 +528,7 @@ private:
         /* [in] */ IContext* context,
         /* [in] */ IXmlResourceParser* parser);
 
+    //throws XmlPullParserException, IOException
     CARAPI_(void) SkipToEndOfRow(
         /* [in] */ IXmlResourceParser* parser);
 
@@ -378,26 +536,32 @@ private:
         /* [in] */ IResources* res,
         /* [in] */ IXmlResourceParser* parser);
 
-    CARAPI_(void) Init(
-        /* [in] */ IContext* context,
-        /* [in] */ Int32 xmlLayoutResId,
-        /* [in] */ Int32 modeId = 0);
-
 public:
     static const Int32 EDGE_LEFT = 0x01;
     static const Int32 EDGE_RIGHT = 0x02;
     static const Int32 EDGE_TOP = 0x04;
     static const Int32 EDGE_BOTTOM = 0x08;
 
-    static const Int32 KEYCODE_SHIFT = -1;
-    static const Int32 KEYCODE_MODE_CHANGE = -2;
-    static const Int32 KEYCODE_CANCEL = -3;
-    static const Int32 KEYCODE_DONE = -4;
-    static const Int32 KEYCODE_DELETE = -5;
-    static const Int32 KEYCODE_ALT = -6;
+public:
+    /** Width of the screen available to fit the keyboard */
+    Int32 mDisplayWidth;
+
+    /** Height of the screen */
+    Int32 mDisplayHeight;
+
+    /** Default key width */
+    Int32 mDefaultWidth;
+
+    /** Default key height */
+    Int32 mDefaultHeight;
+
+    /** Horizontal gap default for all rows */
+    Int32 mDefaultHorizontalGap;
+
+    /** Default gap between rows */
+    Int32 mDefaultVerticalGap;
 
 private:
-
     static CString TAG;
 
     // Keyboard XML Tags
@@ -408,23 +572,11 @@ private:
     /** Keyboard label **/
     AutoPtr<ICharSequence> mLabel;
 
-    /** Horizontal gap default for all rows */
-    Int32 mDefaultHorizontalGap;
-
-    /** Default key width */
-    Int32 mDefaultWidth;
-
-    /** Default key height */
-    Int32 mDefaultHeight;
-
-    /** Default gap between rows */
-    Int32 mDefaultVerticalGap;
-
     /** Is the keyboard in the shifted state */
     Boolean mShifted;
 
     /** Key instance for the shift key, if present */
-    AutoPtr<Key> mShiftKey;
+    AutoPtr<IKeyboardKey> mShiftKey;
 
     /** Key index for the shift key, if present */
     Int32 mShiftKeyIndex;// = -1;
@@ -445,16 +597,10 @@ private:
     Int32 mTotalWidth;
 
     /** List of keys in this keyboard */
-    List<AutoPtr<Key> > mKeys;
+    List< AutoPtr<Key> > mKeys;
 
     /** List of modifier keys such as Shift & Alt, if any */
-    List<AutoPtr<Key> > mModifierKeys;
-
-    /** Width of the screen available to fit the keyboard */
-    Int32 mDisplayWidth;
-
-    /** Height of the screen */
-    Int32 mDisplayHeight;
+    List< AutoPtr<Key> > mModifierKeys;
 
     /** Keyboard mode, or zero, if none.  */
     Int32 mKeyboardMode;
@@ -467,7 +613,6 @@ private:
     Int32 mCellWidth;
     Int32 mCellHeight;
 
-    //Int32[][] mGridNeighbors;
     ArrayOf<ArrayOf<Int32>*>* mGridNeighbors;
     Int32 mProximityThreshold;
     /** Number of key widths from current touch point to search for nearest keys. */

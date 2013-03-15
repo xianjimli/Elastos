@@ -18,7 +18,7 @@ public:
         /* [in]*/ Boolean handled);
 
     CARAPI SessionCreated(
-        /* [in] */ IInputMethodSessionStub* session);
+        /* [in] */ IInputMethodSession* session);
 
     CARAPI GetDescription(
         /* [out] */ String* description);

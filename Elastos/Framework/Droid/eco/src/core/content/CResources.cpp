@@ -564,9 +564,10 @@ ECode CResources::GetValue(
     Boolean found = mAssets->GetResourceValue(
             id, outValue, resolveRefs);
     if (found) {
+// printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
         return NOERROR;
     }
-
+// printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
     Logger::E(TAG, StringBuffer("Resource ID #0x") + id);
     return E_NOT_FOUND_EXCEPTION;
 }
@@ -663,7 +664,8 @@ ECode CResources::UpdateConfiguration(
         if (mMetrics->mWidthPixels >= mMetrics->mHeightPixels) {
             width = mMetrics->mWidthPixels;
             height = mMetrics->mHeightPixels;
-        } else {
+        }
+        else {
             //noinspection SuspiciousNameCombination
             width = mMetrics->mHeightPixels;
             //noinspection SuspiciousNameCombination
@@ -675,6 +677,7 @@ ECode CResources::UpdateConfiguration(
                         == Configuration_HARDKEYBOARDHIDDEN_YES) {
             keyboardHidden = Configuration_KEYBOARDHIDDEN_SOFT;
         }
+
         mAssets->SetConfiguration(mConfiguration->mMcc, mConfiguration->mMnc,
                 String((const char *)locale), mConfiguration->mOrientation,
                 mConfiguration->mTouchscreen,
@@ -721,6 +724,7 @@ ECode CResources::UpdateConfiguration(
             mPluralRule = PluralRules::RuleForLocale(((CConfiguration*)config)->mLocale);
         }
     }
+
     return NOERROR;
 }
 
@@ -1277,14 +1281,17 @@ ECode CResources::LoadXmlResourceParser(
     /* [out] */ IXmlResourceParser** parser)
 {
     Mutex::Autolock lock(mTmpValueLock);
-
+// printf("==== File: %s, Line: %d, id: 0x%08x ====\n", __FILE__, __LINE__, id);
     GetValue(id, mTmpValue.Get(), TRUE);
+// printf("==== File: %s, Line: %d, type: 0x%08x ====\n", __FILE__, __LINE__, CTYPEDVALUE(mTmpValue)->mType);
     if (CTYPEDVALUE(mTmpValue)->mType == TypedValue_TYPE_STRING) {
         String str;
         CTYPEDVALUE(mTmpValue)->mString->ToString(&str);
+        // printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
         return LoadXmlResourceParser(str, id,
                 CTYPEDVALUE(mTmpValue)->mAssetCookie, type, parser);
     }
+// printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
 //    throw new NotFoundException(
 //            "Resource ID #0x" + Integer.toHexString(id) + " type #0x"
 //            + Integer.toHexString(value.type) + " is not valid");

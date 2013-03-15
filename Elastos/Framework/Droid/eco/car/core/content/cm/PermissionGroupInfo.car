@@ -14,7 +14,7 @@ module
          * If there is no description, null is returned.
          */
         LoadDescription(
-            [in] ICapsuleManager* cm,
+            [in] ILocalCapsuleManager* cm,
             [out] ICharSequence** des);
 
         GetDescription(

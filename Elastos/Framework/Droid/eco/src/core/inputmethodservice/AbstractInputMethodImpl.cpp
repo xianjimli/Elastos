@@ -1,130 +1,68 @@
 
+#ifdef _FRAMEWORK_CORE
 #include "inputmethodservice/AbstractInputMethodImpl.h"
 #include "inputmethodservice/AbstractInputMethodSessionImpl.h"
+#else
+#include "AbstractInputMethodImpl.h"
+#include "AbstractInputMethodSessionImpl.h"
+#endif
 
 
 AbstractInputMethodImpl::AbstractInputMethodImpl(
-	/* [in] */ AbstractInputMethodService* host):
-	mHost(host)
-{}
-
-AbstractInputMethodImpl::~AbstractInputMethodImpl()
+    /* [in] */ AbstractInputMethodService* host)
+    : mHost(host)
 {}
 
 PInterface AbstractInputMethodImpl::Probe(
     /* [in] */ REIID riid)
 {
-    if (EIID_IAbstractInputMethodImpl == riid) {
-        return (IAbstractInputMethodImpl *)this;
+    if (riid == EIID_ILocalInputMethod) {
+        return (ILocalInputMethod*)this;
     }
-    if (EIID_ILocalInputMethod == riid) {
-        return (ILocalInputMethod *)this;
+    else if (riid == EIID_IAbstractInputMethodImpl) {
+        return (IAbstractInputMethodImpl*)this;
     }
 
     return NULL;
-}
-
-UInt32 AbstractInputMethodImpl::AddRef()
-{
-    return ElRefBase::AddRef();
-}
-
-UInt32 AbstractInputMethodImpl::Release()
-{
-    return ElRefBase::Release();
 }
 
 ECode AbstractInputMethodImpl::GetInterfaceID(
     /* [in] */ IInterface *pObject,
     /* [out] */ InterfaceID *pIID)
 {
-    if (pIID == NULL) return E_INVALID_ARGUMENT;
-
-    if (pObject == (IInterface*)(ILocalInputMethod*)this) {
-        *pIID = EIID_ILocalInputMethod;
+    if (pIID == NULL) {
+        return E_INVALID_ARGUMENT;
     }
-    else if (pObject == (IInterface*)(IAbstractInputMethodImpl*)this) {
+
+    if (pObject == (IInterface*)(IAbstractInputMethodImpl*)this) {
         *pIID = EIID_IAbstractInputMethodImpl;
     }
     else {
         return E_INVALID_ARGUMENT;
     }
+
     return NOERROR;
-}
-
-
-ECode AbstractInputMethodImpl::AttachToken(
-    /* [in] */ IBinder* token)
-{
-	assert(0);
-	return NOERROR;
-}
-
-ECode AbstractInputMethodImpl::BindInput(
-    /* [in] */ IInputBinding* binding)
-{
-	assert(0);
-	return NOERROR;
-}
-
-ECode AbstractInputMethodImpl::UnbindInput()
-{
-	assert(0);
-	return NOERROR;
-}
-
-ECode AbstractInputMethodImpl::StartInput(
-    /* [in] */ IInputConnection* inputConnection,
-    /* [in] */ IEditorInfo* attribute)
-{
-	assert(0);
-	return NOERROR;
-}
-
-ECode AbstractInputMethodImpl::RestartInput(
-    /* [in] */ IInputConnection* inputConnection,
-    /* [in] */ IEditorInfo* attribute)
-{
-	assert(0);
-	return NOERROR;
 }
 
 ECode AbstractInputMethodImpl::CreateSession(
     /* [in] */ ILocalInputMethodSessionCallback* callback)
 {
-	assert(mHost != NULL);
-	AutoPtr<AbstractInputMethodSessionImpl> impl;
-	mHost->OnCreateInputMethodSessionInterface((IAbstractInputMethodSessionImpl**) &impl);
-
-	return callback->SessionCreated(
-			(ILocalInputMethodSession*)impl->Probe(EIID_ILocalInputMethodSession));
+    assert(mHost != NULL);
+    AutoPtr<IAbstractInputMethodSessionImpl> impl;
+    mHost->OnCreateInputMethodSessionInterface((IAbstractInputMethodSessionImpl**)&impl);
+    return callback->SessionCreated(
+            (ILocalInputMethodSession*)impl->Probe(EIID_ILocalInputMethodSession));
 }
 
 ECode AbstractInputMethodImpl::SetSessionEnabled(
     /* [in] */ ILocalInputMethodSession* session,
     /* [in] */ Boolean enabled)
 {
-	return ((AbstractInputMethodSessionImpl*)session)->SetEnabled(enabled);
+    return ((AbstractInputMethodSessionImpl*)session)->SetEnabled(enabled);
 }
 
 ECode AbstractInputMethodImpl::RevokeSession(
     /* [in] */ ILocalInputMethodSession* session)
 {
-	return ((AbstractInputMethodSessionImpl*)session)->RevokeSelf();
-}
-
-ECode AbstractInputMethodImpl::ShowSoftInput(
-    /* [in] */ Int32 flags,
-    /* [in] */ IResultReceiver* resultReceiver)
-{
-	assert(0);
-	return NOERROR;
-}
-
-ECode AbstractInputMethodImpl::HideSoftInput(
-    /* [in] */ Int32 flags,
-    /* [in] */ IResultReceiver* resultReceiver)
-{
-	assert(0);
-	return NOERROR;
+    return ((AbstractInputMethodSessionImpl*)session)->RevokeSelf();
 }

@@ -4,20 +4,20 @@
 #include "view/ViewConfiguration.h"
 #include "view/CInputDevice.h"
 #include "view/FocusFinder.h"
+#include "view/inputmethod/CLocalInputMethodManager.h"
 #include "impl/CPhoneWindow.h"
 #include "utils/CDisplayMetrics.h"
 #include "graphics/ElPixelFormat.h"
 #include "graphics/CCanvas.h"
+#include "graphics/CPaint.h"
 #include "content/CompatibilityInfo.h"
 #include "widget/Scroller.h"
 #include "os/CApartment.h"
 #include "os/SystemClock.h"
 #include <Logger.h>
 #include <StringBuffer.h>
-#include <graphics/CPaint.h>
-#include <stdio.h>
-#include <assert.h>
 #include <elastos/Math.h>
+
 
 using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
@@ -26,10 +26,9 @@ extern "C" const InterfaceID EIID_ViewRoot =
         {0xcccccccc,0xcccc,0xcccc,{0xcc,0xcc,0xcc,0xcc,0xcc,0xcc,0xcc,0xcc}};
 
 ViewRoot::CSurfaceHolder::CSurfaceHolder(
-    /* [in] */ ViewRoot* viewRoot) :
-    mViewRoot(viewRoot)
-{
-}
+    /* [in] */ ViewRoot* viewRoot)
+    : mViewRoot(viewRoot)
+{}
 
 PInterface ViewRoot::CSurfaceHolder::Probe(
     /* [in] */ REIID riid)
@@ -581,7 +580,7 @@ ViewRoot::ViewRoot(
     // Initialize the statics when this class is first instantiated. This is
     // done here instead of in the static block because Zygote does not
     // allow the spawning of threads.
-    GetWindowSession(/*context.getMainLooper()*/);
+    GetWindowSession(mApartment/*context.getMainLooper()*/);
 
     mThreadID = pthread_self();
 
@@ -686,27 +685,25 @@ ViewRoot::RunQueue* ViewRoot::GetRunQueue()
 }
 
 IWindowSession* ViewRoot::GetWindowSession(
-    /* [in] */ /*Looper mainLooper*/)
+    /* [in] */ IApartment* mainLooper)
 {
     Mutex::Autolock lock(sStaticInitLock);
 
     if (!sInitialized) {
-        //InputMethodManager imm = InputMethodManager.getInstance(mainLooper);
-
+        AutoPtr<ILocalInputMethodManager> imm = CLocalInputMethodManager::GetInstance(mainLooper);
+        assert(imm != NULL);
         AutoPtr<IServiceManager> sm;
         GetServiceManager((IServiceManager**)&sm);
-
         AutoPtr<IWindowManagerStub> wm;
         sm->GetService(String("window"), (IInterface**)(IWindowManagerStub**)&wm);
 
-        IInputMethodClientStub* client = NULL; // imm.getClient()
-        IInputContextStub* ctx = NULL; // imm.getInputContext()
-
+        AutoPtr<IInputMethodClient> client;
+        imm->GetClient((IInputMethodClient**)&client);
+        AutoPtr<IInputContext> ctx;
+        imm->GetInputContext((IInputContext**)&ctx);
         wm->OpenSession(client, ctx, (IWindowSession**)&sWindowSession);
-
         sInitialized = TRUE;
     }
-
     return sWindowSession;
 }
 
@@ -1974,13 +1971,15 @@ void ViewRoot::PerformTraversals()
             CWindowManagerLayoutParams::MayUseInputMethod(mWindowAttributes->mFlags);
         if (imTarget != mLastWasImTarget) {
             mLastWasImTarget = imTarget;
-            //InputMethodManager imm = InputMethodManager.peekInstance();
-            //if (imm != NULL && imTarget) {
-            //    imm.startGettingWindowFocus(mView);
-            //    imm.onWindowFocus(mView, mView.findFocus(),
-            //        mWindowAttributes.softInputMode,
-            //        !mHasHadWindowFocus, mWindowAttributes.flags);
-            //}
+            AutoPtr<ILocalInputMethodManager> imm = CLocalInputMethodManager::PeekInstance();
+            if (imm != NULL && imTarget) {
+               imm->StartGettingWindowFocus(mView);
+               AutoPtr<IView> focView;
+               mView->FindFocus((IView**) &focView);
+               imm->OnWindowFocus(mView, focView,
+                   mWindowAttributes->mSoftInputMode,
+                   !mHasHadWindowFocus, mWindowAttributes->mFlags);
+            }
         }
     }
 
@@ -3544,15 +3543,17 @@ void ViewRoot::DeliverKeyEvent(
     // method window, then we want to first dispatch our key events
     // to the input method.
     if (mLastWasImTarget) {
-        //InputMethodManager imm = InputMethodManager.peekInstance();
-        //if (imm != NULL && mView != NULL) {
-        //    Int32 seq = enqueuePendingEvent(event, sendDone);
-        //    if (DEBUG_IMF) Log.v(TAG, "Sending key event to IME: seq="
-        //        + seq + " event=" + event);
-        //    imm.dispatchKeyEvent(mView.getContext(), seq, event,
-        //        mInputMethodCallback);
-        //    return;
-        //}
+        AutoPtr<ILocalInputMethodManager> imm = CLocalInputMethodManager::PeekInstance();
+        if (imm != NULL && mView != NULL) {
+            Int32 seq = EnqueuePendingEvent(event, sendDone);
+            // if (DEBUG_IMF) Log.v(TAG, "Sending key event to IME: seq="
+            //     + seq + " event=" + event);
+            AutoPtr<IContext> ctx;
+            mView->GetContext((IContext**)&ctx);
+            imm->DispatchKeyEvent(ctx, seq, event,
+                mInputMethodCallback);
+            return;
+        }
     }
 
     DeliverKeyEventToViewHierarchy(event, sendDone);
@@ -4363,14 +4364,15 @@ ECode ViewRoot::HandleWindowFocusChanged(
             //}
         }
 
-        mLastWasImTarget = CWindowManagerLayoutParams
-            ::MayUseInputMethod(mWindowAttributes->mFlags);
+        mLastWasImTarget = CWindowManagerLayoutParams::MayUseInputMethod(
+                mWindowAttributes->mFlags);
 
-        //InputMethodManager imm = InputMethodManager.peekInstance();
+        AutoPtr<ILocalInputMethodManager> imm = CLocalInputMethodManager::PeekInstance();
         if (mView != NULL) {
-        //    if (hasFocus && imm != NULL && mLastWasImTarget) {
-        //        imm.startGettingWindowFocus(mView);
-        //    }
+            if (hasFocus && imm != NULL && mLastWasImTarget) {
+                imm->StartGettingWindowFocus(mView);
+            }
+
             mAttachInfo->mKeyDispatchState->Reset();
             mView->DispatchWindowFocusChanged(hasFocus);
         }

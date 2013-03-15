@@ -427,6 +427,7 @@ module
     interface IComponentName;
     interface IServiceConnection;
     interface IUri;
+    interface IApplicationApartment;
 
     /*
      * context related
@@ -439,6 +440,10 @@ module
         /** Return a Resources instance for your application's package. */
         GetResources(
             [out] IResources** resources);
+
+        /** Return PackageManager instance to find global package information. */
+        GetCapsuleManager(
+            [out] ILocalCapsuleManager** capsuleManager);
 
         GetContentResolver(
             [out] IContentResolver** resolver);
@@ -734,6 +739,11 @@ module
             [in] String toCapsule,
             [in] IUri* uri,
             [in] Int32 modeFlags);
+    }
+
+    interface IContextImpl {
+        GetApplicationApartment(
+            [out] IApplicationApartment** apartment);
     }
 }
 

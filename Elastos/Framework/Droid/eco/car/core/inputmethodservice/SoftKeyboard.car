@@ -1,0 +1,25 @@
+
+module
+{
+    //todo: for SoftKeyboard app
+
+    const  KEYCODE_OPTIONS = -100;
+
+    interface ISoftKeyboard {
+        PickSuggestionManually(
+            [in] Int32 index);
+    }
+
+    [deprecated]
+    interface ICandidateView extends IView {
+        SetService(
+            [in] ISoftKeyboard* listener);
+
+        SetSuggestions(
+            [in] ArrayOf<ICharSequence*>* suggestions,
+            [in] Boolean completions,
+            [in] Boolean typedWordValid);
+
+        Clear();
+    }
+}

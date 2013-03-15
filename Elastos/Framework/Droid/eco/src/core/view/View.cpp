@@ -25,6 +25,8 @@
 #include <elastos/Math.h>
 #include <Logger.h>
 #include <StringBuffer.h>
+#include "view/inputmethod/CLocalInputMethodManager.h"
+
 
 using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
@@ -1187,23 +1189,23 @@ void View::OnFocusChanged(
         SendAccessibilityEvent(AccessibilityEvent_TYPE_VIEW_FOCUSED);
     }
 
-    //InputMethodManager imm = InputMethodManager.peekInstance();
+    AutoPtr<ILocalInputMethodManager> imm = CLocalInputMethodManager::PeekInstance();
     if (!gainFocus) {
         if (IsPressed()) {
             SetPressed(FALSE);
         }
 
-        //if (imm != NULL && mAttachInfo != NULL
-        //        && mAttachInfo->mHasWindowFocus) {
-        //    imm.focusOut(this);
-        //}
+        if (imm != NULL && mAttachInfo != NULL
+               && mAttachInfo->mHasWindowFocus) {
+            imm->FocusOut((IView*)this->Probe(EIID_IView));
+        }
 
         OnFocusLost();
     }
-    //else if (imm != NULL && mAttachInfo != NULL
-    //        && mAttachInfo->mHasWindowFocus) {
-    //    imm.focusIn(this);
-    //}
+    else if (imm != NULL && mAttachInfo != NULL
+           && mAttachInfo->mHasWindowFocus) {
+       imm->FocusIn((IView*)this->Probe(EIID_IView));
+    }
 
     Invalidate();
     if (mOnFocusChangeListener != NULL) {
@@ -2622,22 +2624,23 @@ ECode View::DispatchWindowFocusChanged(
 ECode View::OnWindowFocusChanged(
     /* [in] */ Boolean hasWindowFocus)
 {
-    //InputMethodManager imm = InputMethodManager->PeekInstance();
+    AutoPtr<ILocalInputMethodManager> imm = CLocalInputMethodManager::PeekInstance();
     if (!hasWindowFocus) {
         if (IsPressed()) {
             SetPressed(FALSE);
         }
 
-        //if (imm != NULL && (mPrivateFlags & FOCUSED) != 0) {
-        //    imm->FocusOut(this);
-        //}
+        if (imm != NULL && (mPrivateFlags & FOCUSED) != 0) {
+            imm->FocusOut((IView*)this->Probe(EIID_IView));
+        }
 
         RemoveLongPressCallback();
         OnFocusLost();
     }
-    //else if (imm != NULL && (mPrivateFlags & FOCUSED) != 0) {
-    //    imm->FocusIn(this);
-    //}
+    else if (imm != NULL && (mPrivateFlags & FOCUSED) != 0) {
+       imm->FocusIn((IView*)this->Probe(EIID_IView));
+    }
+
     RefreshDrawableState();
 
     return NOERROR;
@@ -3088,7 +3091,7 @@ Boolean View::OnCheckIsTextEditor()
  *
  * @param outAttrs Fill in with attribute information about the connection.
  */
-IInputConnection* View::OnCreateInputConnection(
+AutoPtr<IInputConnection> View::OnCreateInputConnection(
    /* [in] */ IEditorInfo* outAttrs)
 {
    return NULL;

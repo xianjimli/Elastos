@@ -34,7 +34,9 @@ SOURCES += FileUtils.cpp
 SOURCES += CVibrator.cpp
 SOURCES += CWorkSource.cpp
 SOURCES += Binder.cpp
+SOURCES += CBinder.cpp
 SOURCES += ElObject.cpp
+SOURCES += ResultReceiver.cpp
 SOURCES += CResultReceiver.cpp
 SOURCES += CRemoteCallbackList.cpp
 

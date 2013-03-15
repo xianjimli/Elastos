@@ -1,8 +1,7 @@
 
-#ifndef  _CKEYBOARDVIEW_H__
-#define  _CKEYBOARDVIEW_H__
+#ifndef  __CKEYBOARDVIEW_H__
+#define  __CKEYBOARDVIEW_H__
 
-#include "ext/frameworkext.h"
 #include "_CKeyboardView.h"
 #include "inputmethodservice/KeyboardView.h"
 #include "view/ViewMacro.h"
@@ -31,13 +30,6 @@ public:
 
     IAccessibilityEventSource_METHODS_DECL();
 
-    CKeyboardView();
-
-    ~CKeyboardView();
-
-    CARAPI_(PInterface) Probe(
-        /* [in] */ REIID riid);
-
     CARAPI constructor(
         /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs);
@@ -47,17 +39,62 @@ public:
         /* [in] */ IAttributeSet* attrs,
         /* [in] */ Int32 defStyle);
 
+    CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid);
+
     CARAPI OnClick(
         /* [in] */ IView* v);
 
     CARAPI SetOnKeyboardActionListener(
         /* [in] */ IOnKeyboardActionListener* listener);
 
-private:
-    CARAPI Init(
-        /* [in] */ IContext* context,
-        /* [in] */ IAttributeSet* attrs,
-        /* [in] */ Int32 defStyle);
+    CARAPI GetOnKeyboardActionListener(
+        /* [out] */ IOnKeyboardActionListener** listener);
+
+    CARAPI Closing();
+
+    CARAPI HandleBack(
+        /* [out] */ Boolean* res);
+
+    CARAPI SetKeyboard(
+        /* [in] */ IKeyboard* keyboard);
+
+    CARAPI GetKeyboard(
+        /* [out] */ IKeyboard** keyboard);
+
+    CARAPI SetShifted(
+        /* [in] */ Boolean shifted,
+        /* [out] */ Boolean* res);
+
+    CARAPI IsShifted(
+        /* [out] */ Boolean* shifted);
+
+    CARAPI SetPreviewEnabled(
+        /* [in] */ Boolean previewEnabled);
+
+    CARAPI IsPreviewEnabled(
+        /* [out] */ Boolean* res);
+
+    CARAPI SetVerticalCorrection(
+        /* [in] */ Int32 verticalOffset);
+
+    CARAPI SetPopupParent(
+        /* [in] */ IView* v);
+
+    CARAPI SetPopupOffset(
+        /* [in] */ Int32 x,
+        /* [in] */ Int32 y);
+
+    CARAPI SetProximityCorrectionEnabled(
+        /* [in] */ Boolean enabled);
+
+    CARAPI IsProximityCorrectionEnabled(
+        /* [out] */ Boolean* res);
+
+    CARAPI InvalidateAllKeys();
+
+    CARAPI InvalidateKey(
+        /* [in] */ Int32 keyIndex);
 };
 
-#endif  //_KEYBOARDVIEW_H__
+#endif  //__KEYBOARDVIEW_H__

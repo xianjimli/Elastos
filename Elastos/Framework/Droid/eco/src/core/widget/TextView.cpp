@@ -112,18 +112,29 @@
 #include "view/CViewGroupLayoutParams.h"
 #include "view/CWindowManagerLayoutParams.h"
 #include "view/animation/AnimationUtils.h"
+#include "view/inputmethod/CLocalInputMethodManager.h"
+#include "view/inputmethod/CExtractedTextRequest.h"
+#include "view/inputmethod/CEditorInfo.h"
+#include "view/inputmethod/BaseInputConnection.h"
 #include "graphics/CPaint.h"
 #include "graphics/Typeface.h"
 #include "graphics/CPath.h"
 #include "widget/CTextViewSavedState.h"
 #include "widget/CPopupWindow.h"
+#include "widget/CEditableInputConnection.h"
 #include <elastos/Math.h>
 #include <elastos/Character.h>
 #include <Logger.h>
 
+
 using namespace Elastos::Utility::Logging;
 using namespace Elastos::Core;
 
+
+TextView::Drawables::Drawables()
+{
+    CRect::NewByFriend((CRect**)&mCompoundRect);
+}
 
 TextView::CharWrapper::CharWrapper(
     /* [in] */ const ArrayOf<Char8>& chars,
@@ -1105,6 +1116,102 @@ ECode TextView::ChangeWatcher::OnSpanRemoved(
 }
 
 
+TextView::CommitSelectionReceiver::CommitSelectionReceiver(
+    /* [in] */ Int32 prevStart,
+    /* [in] */ Int32 prevEnd,
+    /* [in] */ TextView* host)
+    : ResultReceiver(host->GetHandler())
+    , mPrevStart(prevStart)
+    , mPrevEnd(prevEnd)
+    , mHost(host)
+{}
+
+PInterface TextView::CommitSelectionReceiver::Probe(
+    /* [in] */ REIID riid)
+{
+    if (EIID_IResultReceiver == riid) {
+        return (IResultReceiver *)this;
+    }
+    else if (EIID_IParcelable == riid) {
+        return (IParcelable *)this;
+    }
+
+    return NULL;
+}
+
+UInt32 TextView::CommitSelectionReceiver::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 TextView::CommitSelectionReceiver::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode TextView::CommitSelectionReceiver::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    VALIDATE_NOT_NULL(pIID);
+
+    if (pObject == (IInterface*)(IResultReceiver*)this) {
+        *pIID = EIID_IResultReceiver;
+    }
+    else if (pObject == (IInterface*)(IParcelable*)this) {
+        *pIID = EIID_IParcelable;
+    }
+
+    return NOERROR;
+}
+
+ECode TextView::CommitSelectionReceiver::Send(
+    /* [in] */ Int32 resultCode,
+    /* [in] */ IBundle* resultData)
+{
+    return ResultReceiver::Send(resultCode, resultData);
+}
+
+ECode TextView::CommitSelectionReceiver::DescribeContents(
+    /* [out] */ Int32* contents)
+{
+    return ResultReceiver::DescribeContents(contents);
+}
+
+ECode TextView::CommitSelectionReceiver::ReadFromParcel(
+    /* [in] */ IParcel *dest)
+{
+    return ResultReceiver::ReadFromParcel(dest);
+}
+
+ECode TextView::CommitSelectionReceiver::WriteToParcel(
+    /* [in] */ IParcel* out)
+{
+    return ResultReceiver::WriteToParcel(out);
+}
+
+ECode TextView::CommitSelectionReceiver::OnReceiveResult(
+    /* [in] */ Int32 resultCode,
+    /* [in] */ IBundle* resultData)
+{
+    // If this tap was actually used to show the IMM, leave cursor or selection unchanged
+    // by restoring its previous position.
+    if (resultCode == InputMethodManager_RESULT_SHOWN) {
+        Int32 len = 0;
+        mHost->mText->GetLength(&len);
+        Int32 start = Math::Min(len, mPrevStart);
+        Int32 end = Math::Min(len, mPrevEnd);
+        Selection::SetSelection(ISpannable::Probe(mHost->mText), start, end);
+
+        Boolean selectAllGotFocus = mHost->mSelectAllOnFocus && mHost->mTouchFocusSelected;
+        if (mHost->HasSelection() && !selectAllGotFocus) {
+            mHost->StartTextSelectionMode();
+        }
+    }
+    return NOERROR;
+}
+
+
 TextView::Blink::Blink(
     /* [in] */ TextView* v)
     : mView(v)
@@ -1574,8 +1681,10 @@ ECode TextView::SetKeyListener(
          mInputType = InputType_TYPE_NULL;
      }
 
-    //InputMethodManager imm = InputMethodManager.peekInstance();
-    //if (imm != NULL) imm.restartInput(this);
+    AutoPtr<ILocalInputMethodManager> imm = CLocalInputMethodManager::PeekInstance();
+    if (imm != NULL) {
+        imm->RestartInput((IView*)this->Probe(EIID_IView));
+    }
 
     return NOERROR;
 }
@@ -3331,8 +3440,10 @@ ECode TextView::SetText(
         mEditableFactory->NewEditable(text, (IEditable**)&t);
         text = t;
         //setFilters(t, mFilters);
-        //InputMethodManager imm = InputMethodManager.peekInstance();
-        //if (imm != NULL) imm.restartInput(this);
+        AutoPtr<ILocalInputMethodManager> imm = CLocalInputMethodManager::PeekInstance();
+        if (imm != NULL) {
+            imm->RestartInput((IView*)this->Probe(EIID_IView));
+        }
     }
     else if (type == BufferType_SPANNABLE || mMovement != NULL) {
         AutoPtr<ISpannable> t;
@@ -3609,44 +3720,51 @@ AutoPtr<ICharSequence> TextView::GetHint()
 ECode TextView::SetInputType(
     /* [in] */ Int32 type)
 {
-    //final Boolean wasPassword = isPasswordInputType(mInputType);
-    //final Boolean wasVisiblePassword = isVisiblePasswordInputType(mInputType);
-    //setInputType(type, FALSE);
-    //final Boolean isPassword = isPasswordInputType(type);
-    //final Boolean isVisiblePassword = isVisiblePasswordInputType(type);
-    //Boolean forceUpdate = FALSE;
-    //if (isPassword) {
-    //    setTransformationMethod(PasswordTransformationMethod.getInstance());
-    //    setTypefaceByIndex(MONOSPACE, 0);
-    //} else if (isVisiblePassword) {
-    //    if (mTransformation == PasswordTransformationMethod.getInstance()) {
-    //        forceUpdate = TRUE;
-    //    }
-    //    setTypefaceByIndex(MONOSPACE, 0);
-    //} else if (wasPassword || wasVisiblePassword) {
-    //    // not in password mode, clean up typeface and transformation
-    //    setTypefaceByIndex(-1, -1);
-    //    if (mTransformation == PasswordTransformationMethod.getInstance()) {
-    //        forceUpdate = TRUE;
-    //    }
-    //}
-    //
-    //Boolean multiLine = (type&(InputType_TYPE_MASK_CLASS
-    //                | InputType_TYPE_TEXT_FLAG_MULTI_LINE)) ==
-    //        (InputType_TYPE_CLASS_TEXT
-    //                | InputType_TYPE_TEXT_FLAG_MULTI_LINE);
-    //
-    //// We need to update the single line mode if it has changed or we
-    //// were previously in password mode.
-    //if (mSingleLine == multiLine || forceUpdate) {
-    //    // Change single line mode, but only change the transformation if
-    //    // we are not in password mode.
-    //    applySingleLine(!multiLine, !isPassword);
-    //}
-    //
-    //InputMethodManager imm = InputMethodManager.peekInstance();
-    //if (imm != NULL) imm.restartInput(this);
-    return E_NOT_IMPLEMENTED;
+    const Boolean wasPassword = IsPasswordInputType(mInputType);
+    const Boolean wasVisiblePassword = IsVisiblePasswordInputType(mInputType);
+    SetInputType(type, FALSE);
+    const Boolean isPassword = IsPasswordInputType(type);
+    const Boolean isVisiblePassword = IsVisiblePasswordInputType(type);
+    Boolean forceUpdate = FALSE;
+    if (isPassword) {
+        assert(0);
+        // SetTransformationMethod(PasswordTransformationMethod.getInstance());
+        // SetTypefaceByIndex(MONOSPACE, 0);
+    }
+    else if (isVisiblePassword) {
+        assert(0);
+        // if (mTransformation == PasswordTransformationMethod.getInstance()) {
+        //     forceUpdate = TRUE;
+        // }
+        SetTypefaceByIndex(MONOSPACE, 0);
+    }
+    else if (wasPassword || wasVisiblePassword) {
+        assert(0);
+        // not in password mode, clean up typeface and transformation
+        // SetTypefaceByIndex(-1, -1);
+        // if (mTransformation == PasswordTransformationMethod.getInstance()) {
+        //     forceUpdate = TRUE;
+        // }
+    }
+
+    Boolean multiLine = (type& (InputType_TYPE_MASK_CLASS
+                   | InputType_TYPE_TEXT_FLAG_MULTI_LINE)) ==
+           (InputType_TYPE_CLASS_TEXT
+                   | InputType_TYPE_TEXT_FLAG_MULTI_LINE);
+
+    // We need to update the single line mode if it has changed or we
+    // were previously in password mode.
+    if (mSingleLine == multiLine || forceUpdate) {
+       // Change single line mode, but only change the transformation if
+       // we are not in password mode.
+       ApplySingleLine(!multiLine, !isPassword);
+    }
+
+    AutoPtr<ILocalInputMethodManager> imm = CLocalInputMethodManager::PeekInstance();
+    if (imm != NULL) {
+        imm->RestartInput((IView*)this->Probe(EIID_IView));
+    }
+    return NOERROR;
 }
 
 /**
@@ -3888,42 +4006,46 @@ Int32 TextView::GetImeActionId()
 ECode TextView::OnEditorAction(
     /* [in] */ Int32 actionCode)
 {
-    //final InputContentType ict = mInputContentType;
-    //if (ict != NULL) {
-    //    if (ict.onEditorActionListener != NULL) {
-    //        if (ict.onEditorActionListener.onEditorAction(this,
-    //                actionCode, NULL)) {
-    //            return;
-    //        }
-    //    }
-    //
-    //    // This is the handling for some default action.
-    //    // Note that for backwards compatibility we don't do this
-    //    // default handling if explicit ime options have not been given,
-    //    // instead turning this into the normal enter key codes that an
-    //    // app may be expecting.
-    //    if (actionCode == InputType_IME_ACTION_NEXT) {
-    //        View v = focusSearch(FOCUS_DOWN);
-    //        if (v != NULL) {
-    //            if (!v.requestFocus(FOCUS_DOWN)) {
-    //                throw new IllegalStateException("focus search returned a view " +
-    //                        "that wasn't able to take focus!");
-    //            }
-    //        }
-    //        return;
-    //
-    //    } else if (actionCode == InputType_IME_ACTION_DONE) {
-    //        InputMethodManager imm = InputMethodManager.peekInstance();
-    //        if (imm != NULL) {
-    //            imm.hideSoftInputFromWindow(getWindowToken(), 0);
-    //        }
-    //        return;
-    //    }
-    //}
-    //
-    //Handler h = getHandler();
-    //if (h != NULL) {
-    //    Int64 eventTime = SystemClock.uptimeMillis();
+    if (mInputContentType != NULL) {
+        if (mInputContentType->mOnEditorActionListener != NULL) {
+            Boolean state = FALSE;
+            mInputContentType->mOnEditorActionListener->OnEditorAction(
+                 (ITextView*)this->Probe(EIID_ITextView), actionCode, NULL, &state);
+            if (state) {
+                return NOERROR;
+            }
+        }
+
+        // This is the handling for some default action.
+        // Note that for backwards compatibility we don't do this
+        // default handling if explicit ime options have not been given,
+        // instead turning this into the normal enter key codes that an
+        // app may be expecting.
+        if (actionCode == EditorInfo_IME_ACTION_NEXT) {
+            AutoPtr<IView> v = FocusSearch(FOCUS_DOWN);
+            if (v != NULL) {
+                Boolean focus = FALSE;
+                if (v->RequestFocusEx(FOCUS_DOWN, &focus), !focus) {
+                    // throw new IllegalStateException("focus search returned a view " +
+                    //         "that wasn't able to take focus!");
+                    return E_ILLEGAL_STATE_EXCEPTION;
+                }
+            }
+            return NOERROR;
+        }
+        else if (actionCode == EditorInfo_IME_ACTION_DONE) {
+            AutoPtr<ILocalInputMethodManager> imm = CLocalInputMethodManager::PeekInstance();
+            if (imm != NULL) {
+                Boolean ret = FALSE;
+                imm->HideSoftInputFromWindow(GetWindowToken(), 0, &ret);
+            }
+            return NOERROR;
+        }
+    }
+
+    // Handler h = getHandler();
+    // if (h != NULL) {
+    //    Int64 eventTime = SystemClock::UptimeMillis();
     //    h.sendMessage(h.obtainMessage(ViewRoot.DISPATCH_KEY_FROM_IME,
     //            new KeyEvent(eventTime, eventTime,
     //            KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER, 0, 0, 0, 0,
@@ -3935,7 +4057,7 @@ ECode TextView::OnEditorAction(
     //            KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE
     //            | KeyEvent.FLAG_EDITOR_ACTION)));
     //}
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 /**
@@ -4920,47 +5042,56 @@ void TextView::OnDraw(
 
     InputMethodState* ims = mInputMethodState;
     if (ims != NULL && ims->mBatchEditNesting == 0) {
-    //    InputMethodManager imm = InputMethodManager.peekInstance();
-    //    if (imm != NULL) {
-    //        if (imm.isActive(this)) {
-    //            Boolean reported = FALSE;
-    //            if (ims->mContentChanged || ims->mSelectionModeChanged) {
-    //                // We are in extract mode and the content has changed
-    //                // in some way... just report complete new text to the
-    //                // input method.
-    //                reported = reportExtractedText();
-    //            }
-    //            if (!reported && highlight != NULL) {
-    //                Int32 candStart = -1;
-    //                Int32 candEnd = -1;
-    //                if (ISpannable::Probe(mText)) {
-    //                    Spannable sp = ISpannable::Probe(mText);
-    //                    candStart = EditableInputConnection.getComposingSpanStart(sp);
-    //                    candEnd = EditableInputConnection.getComposingSpanEnd(sp);
-    //                }
-    //                imm.updateSelection(this, selStart, selEnd, candStart, candEnd);
-    //            }
-    //        }
-    //
-    //        if (imm.isWatchingCursor(this) && highlight != NULL) {
-    //            highlight.computeBounds(ims->mTmpRectF, TRUE);
-    //            ims->mTmpOffset[0] = ims->mTmpOffset[1] = 0;
-    //
-    //            canvas.getMatrix().mapPoints(ims->mTmpOffset);
-    //            ims->mTmpRectF.offset(ims->mTmpOffset[0], ims->mTmpOffset[1]);
-    //
-    //            ims->mTmpRectF.offset(0, voffsetCursor - voffsetText);
-    //
-    //            ims->mCursorRectInWindow.set((Int32)(ims->mTmpRectF.left + 0.5),
-    //                    (Int32)(ims->mTmpRectF.top + 0.5),
-    //                    (Int32)(ims->mTmpRectF.right + 0.5),
-    //                    (Int32)(ims->mTmpRectF.bottom + 0.5));
-    //
-    //            imm.updateCursor(this,
-    //                    ims->mCursorRectInWindow.left, ims->mCursorRectInWindow.top,
-    //                    ims->mCursorRectInWindow.right, ims->mCursorRectInWindow.bottom);
-    //        }
-    //    }
+        AutoPtr<ILocalInputMethodManager> imm = CLocalInputMethodManager::PeekInstance();
+        if (imm != NULL) {
+            Boolean ret = FALSE;
+            imm->IsActive((IView*)this->Probe(EIID_IView), &ret);
+            if (ret) {
+                Boolean reported = FALSE;
+                if (ims->mContentChanged || ims->mSelectionModeChanged) {
+                    // We are in extract mode and the content has changed
+                    // in some way... just report complete new text to the
+                    // input method.
+                    reported = ReportExtractedText();
+                }
+                if (!reported && highlight != NULL) {
+                    Int32 candStart = -1;
+                    Int32 candEnd = -1;
+                    if (ISpannable::Probe(mText)) {
+                       AutoPtr<ISpannable> sp = ISpannable::Probe(mText);
+                       candStart = BaseInputConnection::GetComposingSpanStart(sp);
+                       candEnd = BaseInputConnection::GetComposingSpanEnd(sp);
+                    }
+                    imm->UpdateSelection((IView*)this->Probe(EIID_IView),
+                            selStart, selEnd, candStart, candEnd);
+                }
+            }
+
+            Boolean isWatching = FALSE;
+            imm->IsWatchingCursor((IView*)this->Probe(EIID_IView), &isWatching);
+            if (isWatching && highlight != NULL) {
+                highlight->ComputeBounds(ims->mTmpRectF, TRUE);
+                (*ims->mTmpOffset)[0] = (*ims->mTmpOffset)[1] = 0;
+
+                AutoPtr<IMatrix> mtx;
+                canvas->GetMatrixEx((IMatrix**)&mtx);
+                mtx->MapPointsEx2(*ims->mTmpOffset);
+                ims->mTmpRectF->Offset((*ims->mTmpOffset)[0], (*ims->mTmpOffset)[1]);
+
+                ims->mTmpRectF->Offset(0, voffsetCursor - voffsetText);
+
+                CRectF* tmpRectF = (CRectF*)ims->mTmpRectF.Get();
+                ims->mCursorRectInWindow->Set((Int32)(tmpRectF->mLeft + 0.5),
+                       (Int32)(tmpRectF->mTop + 0.5),
+                       (Int32)(tmpRectF->mRight + 0.5),
+                       (Int32)(tmpRectF->mBottom + 0.5));
+
+                CRect* tmpRect = (CRect*)ims->mCursorRectInWindow.Get();
+                imm->UpdateCursor((IView*)this->Probe(EIID_IView),
+                       tmpRect->mLeft, tmpRect->mTop,
+                       tmpRect->mRight, tmpRect->mBottom);
+            }
+        }
     }
 
     layout->DrawEx(canvas, highlight, mHighlightPaint, voffsetCursor - voffsetText);
@@ -5363,14 +5494,16 @@ Boolean TextView::OnKeyUp(
                 * call performClick(), but that won't do anything in
                 * this case.)
                 */
-            /*if (mOnClickListener == NULL) {
-                if (mMovement != NULL && mText instanceof Editable
-                        && mLayout != NULL && onCheckIsTextEditor()) {
-                    InputMethodManager imm = (InputMethodManager)
-                            getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.showSoftInput(this, 0);
+            if (mOnClickListener == NULL) {
+                if (mMovement != NULL && IEditable::Probe(mText) != NULL
+                        && mLayout != NULL && OnCheckIsTextEditor()) {
+                    AutoPtr<ILocalInputMethodManager> imm;
+                    GetContext()->GetSystemService(Context_INPUT_METHOD_SERVICE,
+                            (IInterface**)&imm);
+                    Boolean ret = FALSE;
+                    imm->ShowSoftInput((IView*)this->Probe(EIID_IView), 0, &ret);
                 }
-            }*/
+            }
             return View::OnKeyUp(keyCode, event);
 
         case KeyEvent_KEYCODE_ENTER:
@@ -5399,32 +5532,37 @@ Boolean TextView::OnKeyUp(
                     * call performClick(), but that won't do anything in
                     * this case.)
                     */
-                //if (mOnClickListener == NULL) {
-                //    View v = focusSearch(FOCUS_DOWN);
+                if (mOnClickListener == NULL) {
+                    AutoPtr<IView> v = FocusSearch(FOCUS_DOWN);
 
-                //    if (v != NULL) {
-                //        if (!v.requestFocus(FOCUS_DOWN)) {
-                //            throw new IllegalStateException("focus search returned a view " +
-                //                    "that wasn't able to take focus!");
-                //        }
+                    if (v != NULL) {
+                        Boolean focus = FALSE;
+                        v->RequestFocusEx(FOCUS_DOWN, &focus);
+                        if (!focus) {
+                            assert(0);
+                            // throw new IllegalStateException("focus search returned a view " +
+                            //         "that wasn't able to take focus!");
+                        }
 
-                //        /*
-                //            * Return TRUE because we handled the key; super
-                //            * will return FALSE because there was no click
-                //            * listener.
-                //            */
-                //        super.onKeyUp(keyCode, event);
-                //        return TRUE;
-                //    } else if ((event.getFlags()
-                //            & KeyEvent.FLAG_EDITOR_ACTION) != 0) {
-                //        // No target for next focus, but make sure the IME
-                //        // if this came from it.
-                //        InputMethodManager imm = InputMethodManager.peekInstance();
-                //        if (imm != NULL) {
-                //            imm.hideSoftInputFromWindow(getWindowToken(), 0);
-                //        }
-                //    }
-                //}
+                        /*
+                           * Return TRUE because we handled the key; super
+                           * will return FALSE because there was no click
+                           * listener.
+                           */
+                        View::OnKeyUp(keyCode, event);
+                        return TRUE;
+                    }
+                    else if ((flags & KeyEvent_FLAG_EDITOR_ACTION) != 0) {
+                        // No target for next focus, but make sure the IME
+                        // if this came from it.
+                        AutoPtr<ILocalInputMethodManager> imm =
+                                CLocalInputMethodManager::PeekInstance();
+                        if (imm != NULL) {
+                            Boolean ret = FALSE;
+                            imm->HideSoftInputFromWindow(GetWindowToken(), 0, &ret);
+                        }
+                    }
+                }
 
                 return View::OnKeyUp(keyCode, event);
             }
@@ -5457,56 +5595,59 @@ Boolean TextView::OnCheckIsTextEditor()
     return mInputType != InputType_TYPE_NULL;
 }
 
-IInputConnection* TextView::OnCreateInputConnection(
-   /* [in] */ IEditorInfo* outAttrs)
+AutoPtr<IInputConnection> TextView::OnCreateInputConnection(
+   /* [in] */ IEditorInfo* outEditorInfoAttrs)
 {
-//    if (onCheckIsTextEditor()) {
-//        if (mInputMethodState == NULL) {
-//            mInputMethodState = new InputMethodState();
-//        }
-//        outAttrs.inputType = mInputType;
-//        if (mInputContentType != NULL) {
-//            outAttrs.imeOptions = mInputContentType.imeOptions;
-//            outAttrs.privateImeOptions = mInputContentType.privateImeOptions;
-//            outAttrs.actionLabel = mInputContentType.imeActionLabel;
-//            outAttrs.actionId = mInputContentType.imeActionId;
-//            outAttrs.extras = mInputContentType.extras;
-//        } else {
-//            outAttrs.imeOptions = EditorInfo_IME_NULL;
-//        }
-//        if ((outAttrs.imeOptions&InputType_IME_MASK_ACTION)
-//                == InputType_IME_ACTION_UNSPECIFIED) {
-//            if (focusSearch(FOCUS_DOWN) != NULL) {
-//                // An action has not been set, but the enter key will move to
-//                // the next focus, so set the action to that.
-//                outAttrs.imeOptions |= InputType_IME_ACTION_NEXT;
-//            } else {
-//                // An action has not been set, and there is no focus to move
-//                // to, so let's just supply a "done" action.
-//                outAttrs.imeOptions |= InputType_IME_ACTION_DONE;
-//            }
-//            if (!shouldAdvanceFocusOnEnter()) {
-//                outAttrs.imeOptions |= InputType_IME_FLAG_NO_ENTER_ACTION;
-//            }
-//        }
-//        if ((outAttrs.inputType & (InputType.TYPE_MASK_CLASS
-//                | InputType.TYPE_TEXT_FLAG_MULTI_LINE))
-//                == (InputType.TYPE_CLASS_TEXT
-//                        | InputType.TYPE_TEXT_FLAG_MULTI_LINE)) {
-//            // Multi-line text editors should always show an enter key.
-//            outAttrs.imeOptions |= InputType_IME_FLAG_NO_ENTER_ACTION;
-//        }
-//        outAttrs.hintText = mHint;
-//        if (mText instanceof Editable) {
-//            InputConnection ic = new EditableInputConnection(this);
-//            outAttrs.initialSelStart = getSelectionStart();
-//            outAttrs.initialSelEnd = getSelectionEnd();
-//            outAttrs.initialCapsMode = ic.getCursorCapsMode(mInputType);
-//            return ic;
-//        }
-//    }
-
-    assert(0);
+    if (OnCheckIsTextEditor()) {
+        CEditorInfo* outAttrs = (CEditorInfo*)outEditorInfoAttrs;
+        assert(outAttrs != NULL);
+        if (mInputMethodState == NULL) {
+            mInputMethodState = new InputMethodState();
+        }
+        outAttrs->mInputType = mInputType;
+        if (mInputContentType != NULL) {
+           outAttrs->mImeOptions = mInputContentType->mImeOptions;
+           outAttrs->mPrivateImeOptions = mInputContentType->mPrivateImeOptions;
+           outAttrs->mActionLabel = mInputContentType->mImeActionLabel;
+           outAttrs->mActionId = mInputContentType->mImeActionId;
+           outAttrs->mExtras = mInputContentType->mExtras;
+        }
+        else {
+            outAttrs->mImeOptions = EditorInfo_IME_NULL;
+        }
+        if ((outAttrs->mImeOptions & EditorInfo_IME_MASK_ACTION)
+               == EditorInfo_IME_ACTION_UNSPECIFIED) {
+            if (FocusSearch(FOCUS_DOWN) != NULL) {
+               // An action has not been set, but the enter key will move to
+               // the next focus, so set the action to that.
+               outAttrs->mImeOptions |= EditorInfo_IME_ACTION_NEXT;
+            }
+            else {
+               // An action has not been set, and there is no focus to move
+               // to, so let's just supply a "done" action.
+               outAttrs->mImeOptions |= EditorInfo_IME_ACTION_DONE;
+            }
+            if (!ShouldAdvanceFocusOnEnter()) {
+               outAttrs->mImeOptions |= EditorInfo_IME_FLAG_NO_ENTER_ACTION;
+            }
+        }
+        if ((outAttrs->mInputType & (InputType_TYPE_MASK_CLASS
+               | InputType_TYPE_TEXT_FLAG_MULTI_LINE))
+               == (InputType_TYPE_CLASS_TEXT
+                       | InputType_TYPE_TEXT_FLAG_MULTI_LINE)) {
+            // Multi-line text editors should always show an enter key.
+            outAttrs->mImeOptions |= EditorInfo_IME_FLAG_NO_ENTER_ACTION;
+        }
+        outAttrs->mHintText = mHint;
+        if (IEditable::Probe(mText) != NULL) {
+            AutoPtr<IInputConnection> ic;
+            CEditableInputConnection::New((ITextView*)this->Probe(EIID_ITextView), (IEditableInputConnection**)&ic);
+            outAttrs->mInitialSelStart = GetSelectionStart();
+            outAttrs->mInitialSelEnd = GetSelectionEnd();
+            ic->GetCursorCapsMode(mInputType, &outAttrs->mInitialCapsMode);
+            return ic;
+        }
+    }
     return NULL;
 }
 
@@ -5611,28 +5752,29 @@ Boolean TextView::ReportExtractedText()
             ims->mSelectionModeChanged = FALSE;
             AutoPtr<IExtractedTextRequest> req = ims->mExtracting;
            if (req != NULL) {
-               // InputMethodManager imm = InputMethodManager.peekInstance();
-               // if (imm != NULL) {
-               //     if (DEBUG_EXTRACT) Log.v(LOG_TAG, "Retrieving extracted start="
-               //             + ims->mChangedStart + " end=" + ims->mChangedEnd
-               //             + " delta=" + ims->mChangedDelta);
-               //     if (ims->mChangedStart < 0 && !contentChanged) {
-               //         ims->mChangedStart = EXTRACT_NOTHING;
-               //     }
-               //     if (extractTextInternal(req, ims->mChangedStart, ims->mChangedEnd,
-               //             ims->mChangedDelta, ims->mTmpExtracted)) {
-               //         if (DEBUG_EXTRACT) Log.v(LOG_TAG, "Reporting extracted start="
-               //                 + ims->mTmpExtracted.partialStartOffset
-               //                 + " end=" + ims->mTmpExtracted.partialEndOffset
-               //                 + ": " + ims->mTmpExtracted.text);
-               //         imm.updateExtractedText(this, req.token,
-               //                 mInputMethodState.mTmpExtracted);
-               //         return TRUE;
-               //     }
-               // }
-           }
-       }
-   }
+                AutoPtr<ILocalInputMethodManager> imm = CLocalInputMethodManager::PeekInstance();
+                if (imm != NULL) {
+                    // if (DEBUG_EXTRACT) Log.v(LOG_TAG, "Retrieving extracted start="
+                    //        + ims->mChangedStart + " end=" + ims->mChangedEnd
+                    //        + " delta=" + ims->mChangedDelta);
+                    if (ims->mChangedStart < 0 && !contentChanged) {
+                        ims->mChangedStart = EXTRACT_NOTHING;
+                    }
+                    if (ExtractTextInternal(req, ims->mChangedStart, ims->mChangedEnd,
+                           ims->mChangedDelta, ims->mTmpExtracted)) {
+                        // if (DEBUG_EXTRACT) Log.v(LOG_TAG, "Reporting extracted start="
+                        //        + ims->mTmpExtracted.partialStartOffset
+                        //        + " end=" + ims->mTmpExtracted.partialEndOffset
+                        //        + ": " + ims->mTmpExtracted.text);
+                        imm->UpdateExtractedText((IView*)this->Probe(EIID_IView),
+                               ((CExtractedTextRequest*)req.Get())->mToken,
+                               mInputMethodState->mTmpExtracted);
+                        return TRUE;
+                    }
+                }
+            }
+        }
+    }
     return FALSE;
 }
 
@@ -7823,16 +7965,19 @@ Boolean TextView::OnTouchEvent(
                 }
             }
             if (action == MotionEvent_ACTION_UP && IsFocused() && !mScrolled) {
-                // InputMethodManager imm = (InputMethodManager)
-                //         getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                AutoPtr<ILocalInputMethodManager> imm;
+                GetContext()->GetSystemService(Context_INPUT_METHOD_SERVICE, (IInterface**)&imm);
 
-                // CommitSelectionReceiver csr = NULL;
-                // if (getSelectionStart() != oldSelStart || getSelectionEnd() != oldSelEnd ||
-                //         didTouchFocusSelect()) {
-                //     csr = new CommitSelectionReceiver(oldSelStart, oldSelEnd);
-                // }
+                AutoPtr<CommitSelectionReceiver> csr;
+                if (GetSelectionStart() != oldSelStart || GetSelectionEnd() != oldSelEnd ||
+                        DidTouchFocusSelect()) {
+                    csr = new CommitSelectionReceiver(oldSelStart, oldSelEnd, this);
+                }
 
-                // handled |= imm.showSoftInput(this, 0, csr) && (csr != NULL);
+                Boolean ret = FALSE;
+                imm->ShowSoftInputEx((IView*)this->Probe(EIID_IView), 0,
+                        (IResultReceiver*)csr.Get(), &ret);
+                handled |= ret && (csr != NULL);
 
                 // Cannot be done by CommitSelectionReceiver, which might not always be called,
                 // for instance when dealing with an ExtractEditText.
@@ -7840,8 +7985,7 @@ Boolean TextView::OnTouchEvent(
             }
         }
 
-        if (handled)
-            result = TRUE;
+        if (handled) result = TRUE;
     }
 
     if (action == MotionEvent_ACTION_UP || action == MotionEvent_ACTION_CANCEL) {
@@ -8505,9 +8649,10 @@ void TextView::OnCreateContextMenu(
  */
 Boolean TextView::IsInputMethodTarget()
 {
-    //InputMethodManager imm = InputMethodManager.peekInstance();
-    //return imm != NULL && imm.isActive(this);
-    return FALSE;
+    AutoPtr<ILocalInputMethodManager> imm = CLocalInputMethodManager::PeekInstance();
+    Boolean isTarget = FALSE;
+    imm->IsActive((IView*)this->Probe(EIID_IView), &isTarget);
+    return imm != NULL && isTarget;
 }
 
 /**
@@ -8538,7 +8683,7 @@ Boolean TextView::OnTextContextMenuItem(
     // ClipboardManager clip = (ClipboardManager)getContext()
     //         .getSystemService(Context.CLIPBOARD_SERVICE);
 
-    // switch (id) {
+    switch (id) {
     //     case ID_SELECT_ALL:
     //         Selection::SetSelection(ISpannable::Probe(mText), 0, mText.length());
     //         startTextSelectionMode();
@@ -8581,12 +8726,13 @@ Boolean TextView::OnTextContextMenuItem(
     //         }
     //         return TRUE;
 
-    //     case ID_SWITCH_INPUT_METHOD:
-    //         InputMethodManager imm = InputMethodManager.peekInstance();
-    //         if (imm != NULL) {
-    //             imm.showInputMethodPicker();
-    //         }
-    //         return TRUE;
+            case ID_SWITCH_INPUT_METHOD: {
+                AutoPtr<ILocalInputMethodManager> imm = CLocalInputMethodManager::PeekInstance();
+                if (imm != NULL) {
+                    imm->ShowInputMethodPicker();
+                }
+                return TRUE;
+            }
 
     //     case ID_ADD_TO_DICTIONARY:
     //         String word = getWordForDictionary();
@@ -8597,7 +8743,7 @@ Boolean TextView::OnTextContextMenuItem(
     //             getContext().startActivity(i);
     //         }
     //         return TRUE;
-    //     }
+         }
 
     return FALSE;
 }
@@ -8674,9 +8820,11 @@ void TextView::StartTextSelectionMode()
 
         SelectCurrentWord();
         GetSelectionController()->Show();
-        //final InputMethodManager imm = (InputMethodManager)
-        //        getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-        //imm.showSoftInput(this, 0, NULL);
+        AutoPtr<ILocalInputMethodManager> imm;
+        GetContext()->GetSystemService(Context_INPUT_METHOD_SERVICE,
+                (IInterface**)&imm);
+        Boolean ret = FALSE;
+        imm->ShowSoftInputEx((IView*)this->Probe(EIID_IView), 0, NULL, &ret);
         mIsInTextSelectionMode = TRUE;
     }
 }

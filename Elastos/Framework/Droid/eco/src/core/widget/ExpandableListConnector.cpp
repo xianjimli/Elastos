@@ -19,7 +19,7 @@ ExpandableListConnector::ExpandableListConnector()
  * Constructs the connector
  */
 ExpandableListConnector::ExpandableListConnector(
-    /* [in] */ IExpandableListAdapter* expandableListAdapter) 
+    /* [in] */ IExpandableListAdapter* expandableListAdapter)
 {
     //mExpGroupMetadataList = new ArrayList<GroupMetadata>();
     mExpGroupMetadataList = ArrayOf<IGroupMetadata*>::Alloc(1);
@@ -29,18 +29,18 @@ ExpandableListConnector::ExpandableListConnector(
 
 /**
  * Point to the {@link ExpandableListAdapter} that will give us data/Views
- * 
+ *
  * @param expandableListAdapter the adapter that supplies us with data/Views
  */
 ECode ExpandableListConnector::SetExpandableListAdapter(
     /* [in] */ IExpandableListAdapter* expandableListAdapter)
 {
     if (mExpandableListAdapter.Get() != NULL) {
-        mExpandableListAdapter->UnregisterDataSetObserver(mDataSetObserver);
+        FAIL_RETURN(mExpandableListAdapter->UnregisterDataSetObserver(mDataSetObserver));
     }
-    
+
     mExpandableListAdapter = expandableListAdapter;
-    expandableListAdapter->RegisterDataSetObserver(mDataSetObserver);
+    return expandableListAdapter->RegisterDataSetObserver(mDataSetObserver);
 }
 
 /**
@@ -49,25 +49,25 @@ ECode ExpandableListConnector::SetExpandableListAdapter(
  * corresponds to a child.  Performs a binary search on the expanded
  * groups list to find the flat list pos if it is an exp group, otherwise
  * finds where the flat list pos fits in between the exp groups.
- * 
+ *
  * @param flPos the flat list position to be translated
  * @return the group position or child position of the specified flat list
  *         position encompassed in a {@link PositionMetadata} object
  *         that contains additional useful info for insertion, etc.
  */
 AutoPtr<IPositionMetadata> ExpandableListConnector::GetUnflattenedPos(
-    /* [in] */ Int32 flPos) 
+    /* [in] */ Int32 flPos)
 {
     /* Keep locally since frequent use */
     ArrayOf<IGroupMetadata*>* egml = mExpGroupMetadataList;
     Int32 numExpGroups = egml->GetLength();
-    
+
     /* Binary search variables */
     Int32 leftExpGroupIndex = 0;
     Int32 rightExpGroupIndex = numExpGroups - 1;
     Int32 midExpGroupIndex = 0;
-    AutoPtr<IGroupMetadata> midExpGm; 
-    
+    AutoPtr<IGroupMetadata> midExpGm;
+
     if (numExpGroups == 0) {
         /*
          * There aren't any expanded groups (hence no visible children
@@ -95,43 +95,43 @@ AutoPtr<IPositionMetadata> ExpandableListConnector::GetUnflattenedPos(
                 (rightExpGroupIndex - leftExpGroupIndex) / 2
                         + leftExpGroupIndex;
         midExpGm = (*egml)[midExpGroupIndex];
-        
-        if (flPos > ((CGroupMetadata*)midExpGm.Get())->lastChildFlPos) {
+
+        if (flPos > ((CGroupMetadata*)midExpGm.Get())->mLastChildFlPos) {
             /*
              * The flat list position is after the current middle group's
              * last child's flat list position, so search right
              */
             leftExpGroupIndex = midExpGroupIndex + 1;
-        } else if (flPos < ((CGroupMetadata*)midExpGm.Get())->flPos) {
+        } else if (flPos < ((CGroupMetadata*)midExpGm.Get())->mFlPos) {
             /*
              * The flat list position is before the current middle group's
              * flat list position, so search left
              */
             rightExpGroupIndex = midExpGroupIndex - 1;
-        } else if (flPos == ((CGroupMetadata*)midExpGm.Get())->flPos) {
+        } else if (flPos == ((CGroupMetadata*)midExpGm.Get())->mFlPos) {
             /*
              * The flat list position is this middle group's flat list
              * position, so we've found an exact hit
              */
             return PositionMetadata::Obtain(flPos, ExpandableListPosition::GROUP,
-                    ((CGroupMetadata*)midExpGm.Get())->gPos, -1, midExpGm, midExpGroupIndex);
-        } else if (flPos <= ((CGroupMetadata*)midExpGm.Get())->lastChildFlPos
+                    ((CGroupMetadata*)midExpGm.Get())->mGPos, -1, midExpGm, midExpGroupIndex);
+        } else if (flPos <= ((CGroupMetadata*)midExpGm.Get())->mLastChildFlPos
                 /* && flPos > midGm.flPos as deduced from previous
                  * conditions */) {
             /* The flat list position is a child of the middle group */
-            
-            /* 
+
+            /*
              * Subtract the first child's flat list position from the
              * specified flat list pos to get the child's position within
              * the group
              */
-            Int32 childPos = flPos - (((CGroupMetadata*)midExpGm.Get())->flPos + 1);
+            Int32 childPos = flPos - (((CGroupMetadata*)midExpGm.Get())->mFlPos + 1);
             return PositionMetadata::Obtain(flPos, ExpandableListPosition::CHILD,
-                    ((CGroupMetadata*)midExpGm.Get())->gPos, childPos, midExpGm, midExpGroupIndex);
-        } 
+                    ((CGroupMetadata*)midExpGm.Get())->mGPos, childPos, midExpGm, midExpGroupIndex);
+        }
     }
 
-    /* 
+    /*
      * If we've reached here, it means the flat list position must be a
      * group that is not expanded, since otherwise we would have hit it
      * in the above search.
@@ -143,24 +143,24 @@ AutoPtr<IPositionMetadata> ExpandableListConnector::GetUnflattenedPos(
      * mExpGroupMetadataList ?
      */
     Int32 insertPosition = 0;
-    
+
     /** What is its group position in the list of all groups? */
     Int32 groupPos = 0;
-    
+
     /*
      * To figure out exact insertion and prior group positions, we need to
      * determine how we broke out of the binary search.  We backtrack
      * to see this.
-     */ 
+     */
     if (leftExpGroupIndex > midExpGroupIndex) {
-        
+
         /*
          * This would occur in the first conditional, so the flat list
          * insertion position is after the left group. Also, the
          * leftGroupPos is one more than it should be (since that broke out
          * of our binary search), so we decrement it.
-         */  
-        AutoPtr<IGroupMetadata> leftExpGm = (*egml)[leftExpGroupIndex-1];            
+         */
+        AutoPtr<IGroupMetadata> leftExpGm = (*egml)[leftExpGroupIndex-1];
 
         insertPosition = leftExpGroupIndex;
 
@@ -169,7 +169,7 @@ AutoPtr<IPositionMetadata> ExpandableListConnector::GetUnflattenedPos(
          * one, and then adds it to the prior group's group pos
          */
         groupPos =
-            (flPos - ((CGroupMetadata*)leftExpGm.Get())->lastChildFlPos) + ((CGroupMetadata*)leftExpGm.Get())->gPos;            
+            (flPos - ((CGroupMetadata*)leftExpGm.Get())->mLastChildFlPos) + ((CGroupMetadata*)leftExpGm.Get())->mGPos;
     } else if (rightExpGroupIndex < midExpGroupIndex) {
 
         /*
@@ -177,22 +177,22 @@ AutoPtr<IPositionMetadata> ExpandableListConnector::GetUnflattenedPos(
          * insertion position is before the right group. Also, the
          * rightGroupPos is one less than it should be, so increment it.
          */
-        AutoPtr<IGroupMetadata> rightExpGm = (*egml)[++rightExpGroupIndex];            
+        AutoPtr<IGroupMetadata> rightExpGm = (*egml)[++rightExpGroupIndex];
 
         insertPosition = rightExpGroupIndex;
-        
+
         /*
          * Subtracts this group's flat list pos from the group after's flat
          * list position to find out how many groups are in between the two
          * groups. Then, subtracts that number from the group after's group
          * pos to get this group's pos.
          */
-        groupPos = ((CGroupMetadata*)rightExpGm.Get())->gPos - (((CGroupMetadata*)rightExpGm.Get())->flPos - flPos);
+        groupPos = ((CGroupMetadata*)rightExpGm.Get())->mGPos - (((CGroupMetadata*)rightExpGm.Get())->mFlPos - flPos);
     } else {
         // TODO: clean exit
         //throw new RuntimeException("Unknown state");
     }
-    
+
     return PositionMetadata::Obtain(flPos, ExpandableListPosition::GROUP, groupPos, -1,
             NULL, insertPosition);
 }
@@ -202,14 +202,14 @@ AutoPtr<IPositionMetadata> ExpandableListConnector::GetUnflattenedPos(
  * flat list position.  If searching for a child and its group is not expanded, this will
  * return NULL since the child isn't being shown in the ListView, and hence it has no
  * position.
- * 
+ *
  * @param pos a {@link ExpandableListPosition} representing either a group position
  *        or child position
  * @return the flat list position encompassed in a {@link PositionMetadata}
  *         object that contains additional useful info for insertion, etc., or NULL.
  */
 AutoPtr<IPositionMetadata> ExpandableListConnector::GetFlattenedPos(
-    /* [in] */ IExpandableListPosition* pos) 
+    /* [in] */ IExpandableListPosition* pos)
 {
     ArrayOf<IGroupMetadata*>* egml = mExpGroupMetadataList;
     Int32 numExpGroups = egml->GetLength();
@@ -218,8 +218,8 @@ AutoPtr<IPositionMetadata> ExpandableListConnector::GetFlattenedPos(
     Int32 leftExpGroupIndex = 0;
     Int32 rightExpGroupIndex = numExpGroups - 1;
     Int32 midExpGroupIndex = 0;
-    AutoPtr<IGroupMetadata> midExpGm; 
-    
+    AutoPtr<IGroupMetadata> midExpGm;
+
     if (numExpGroups == 0) {
         /*
          * There aren't any expanded groups, so flPos must be a group and
@@ -238,38 +238,38 @@ AutoPtr<IPositionMetadata> ExpandableListConnector::GetFlattenedPos(
     while (leftExpGroupIndex <= rightExpGroupIndex) {
         midExpGroupIndex = (rightExpGroupIndex - leftExpGroupIndex)/2 + leftExpGroupIndex;
         midExpGm = (*egml)[midExpGroupIndex];
-        
-        if (((CExpandableListPosition*)pos)->groupPos > ((CGroupMetadata*)midExpGm.Get())->gPos) {
+
+        if (((CExpandableListPosition*)pos)->groupPos > ((CGroupMetadata*)midExpGm.Get())->mGPos) {
             /*
              * It's after the current middle group, so search right
              */
             leftExpGroupIndex = midExpGroupIndex + 1;
-        } else if (((CExpandableListPosition*)pos)->groupPos < ((CGroupMetadata*)midExpGm.Get())->gPos) {
+        } else if (((CExpandableListPosition*)pos)->groupPos < ((CGroupMetadata*)midExpGm.Get())->mGPos) {
             /*
              * It's before the current middle group, so search left
              */
             rightExpGroupIndex = midExpGroupIndex - 1;
-        } else if (((CExpandableListPosition*)pos)->groupPos == ((CGroupMetadata*)midExpGm.Get())->gPos) {
+        } else if (((CExpandableListPosition*)pos)->groupPos == ((CGroupMetadata*)midExpGm.Get())->mGPos) {
             /*
              * It's this middle group, exact hit
              */
-            
+
             if (((CExpandableListPosition*)pos)->type == ExpandableListPosition::GROUP) {
                 /* If it's a group, give them this matched group's flPos */
-                return PositionMetadata::Obtain(((CGroupMetadata*)midExpGm.Get())->flPos, ((CExpandableListPosition*)pos)->type,
+                return PositionMetadata::Obtain(((CGroupMetadata*)midExpGm.Get())->mFlPos, ((CExpandableListPosition*)pos)->type,
                         ((CExpandableListPosition*)pos)->groupPos, ((CExpandableListPosition*)pos)->childPos, midExpGm, midExpGroupIndex);
             } else if (((CExpandableListPosition*)pos)->type == ExpandableListPosition::CHILD) {
                 /* If it's a child, calculate the flat list pos */
-                return PositionMetadata::Obtain(((CGroupMetadata*)midExpGm.Get())->flPos + ((CExpandableListPosition*)pos)->childPos
+                return PositionMetadata::Obtain(((CGroupMetadata*)midExpGm.Get())->mFlPos + ((CExpandableListPosition*)pos)->childPos
                         + 1, ((CExpandableListPosition*)pos)->type, ((CExpandableListPosition*)pos)->groupPos, ((CExpandableListPosition*)pos)->childPos,
                         midExpGm, midExpGroupIndex);
             } else {
                 return NULL;
             }
-        } 
+        }
     }
 
-    /* 
+    /*
      * If we've reached here, it means there was no match in the expanded
      * groups, so it must be a collapsed group that they're search for
      */
@@ -277,27 +277,27 @@ AutoPtr<IPositionMetadata> ExpandableListConnector::GetFlattenedPos(
         /* If it isn't a group, return NULL */
         return NULL;
     }
-    
+
     /*
      * To figure out exact insertion and prior group positions, we need to
      * determine how we broke out of the binary search. We backtrack to see
      * this.
-     */ 
+     */
     if (leftExpGroupIndex > midExpGroupIndex) {
-        
+
         /*
          * This would occur in the first conditional, so the flat list
          * insertion position is after the left group.
-         * 
+         *
          * The leftGroupPos is one more than it should be (from the binary
          * search loop) so we subtract 1 to get the actual left group.  Since
          * the insertion point is AFTER the left group, we keep this +1
          * value as the insertion point
-         */  
-        AutoPtr<IGroupMetadata> leftExpGm = (*egml)[leftExpGroupIndex-1];            
+         */
+        AutoPtr<IGroupMetadata> leftExpGm = (*egml)[leftExpGroupIndex-1];
         Int32 flPos =
-                ((CGroupMetadata*)leftExpGm.Get())->lastChildFlPos
-                        + (((CExpandableListPosition*)pos)->groupPos - ((CGroupMetadata*)leftExpGm.Get())->gPos);
+                ((CGroupMetadata*)leftExpGm.Get())->mLastChildFlPos
+                        + (((CExpandableListPosition*)pos)->groupPos - ((CGroupMetadata*)leftExpGm.Get())->mGPos);
 
         return PositionMetadata::Obtain(flPos, ((CExpandableListPosition*)pos)->type, ((CExpandableListPosition*)pos)->groupPos,
                 ((CExpandableListPosition*)pos)->childPos, NULL, leftExpGroupIndex);
@@ -309,10 +309,10 @@ AutoPtr<IPositionMetadata> ExpandableListConnector::GetFlattenedPos(
          * rightGroupPos is one less than it should be (from binary search
          * loop), so we increment to it.
          */
-        AutoPtr<IGroupMetadata> rightExpGm = (*egml)[++rightExpGroupIndex];            
+        AutoPtr<IGroupMetadata> rightExpGm = (*egml)[++rightExpGroupIndex];
         Int32 flPos =
-                ((CGroupMetadata*)rightExpGm.Get())->flPos
-                        - (((CGroupMetadata*)rightExpGm.Get())->gPos - ((CExpandableListPosition*)pos)->groupPos);
+                ((CGroupMetadata*)rightExpGm.Get())->mFlPos
+                        - (((CGroupMetadata*)rightExpGm.Get())->mGPos - ((CExpandableListPosition*)pos)->groupPos);
         return PositionMetadata::Obtain(flPos, ((CExpandableListPosition*)pos)->type, ((CExpandableListPosition*)pos)->groupPos,
                 ((CExpandableListPosition*)pos)->childPos, NULL, rightExpGroupIndex);
     } else {
@@ -330,8 +330,8 @@ Boolean ExpandableListConnector::AreAllItemsEnabled()
 Boolean ExpandableListConnector::IsEnabled(
     /* [in] */ Int32 flatListPos)
 {
-    AutoPtr<IExpandableListPosition> pos = ((CPositionMetadata*)GetUnflattenedPos(flatListPos).Get())->position;
-    
+    AutoPtr<IExpandableListPosition> pos = ((CPositionMetadata*)GetUnflattenedPos(flatListPos).Get())->mPosition;
+
     Boolean retValue;
     if (((CExpandableListPosition*)pos.Get())->type == ExpandableListPosition::CHILD) {
         mExpandableListAdapter->IsChildSelectable(((CExpandableListPosition*)pos.Get())->groupPos, ((CExpandableListPosition*)pos.Get())->childPos, &retValue);
@@ -339,19 +339,19 @@ Boolean ExpandableListConnector::IsEnabled(
         // Groups are always selectable
         retValue = TRUE;
     }
-    
+
     pos->Recycle();
-    
+
     return retValue;
 }
 
-Int32 ExpandableListConnector::GetCount() 
+Int32 ExpandableListConnector::GetCount()
 {
     /*
-     * Total count for the list view is the number groups plus the 
+     * Total count for the list view is the number groups plus the
      * number of children from currently expanded groups (a value we keep
      * cached in this class)
-     */ 
+     */
     Int32 count;
     mExpandableListAdapter->GetGroupCount(&count);
 
@@ -364,77 +364,77 @@ AutoPtr<IInterface> ExpandableListConnector::GetItem(
     AutoPtr<IPositionMetadata> posMetadata = GetUnflattenedPos(flatListPos);
 
     AutoPtr<IInterface> retValue;
-    if (((CExpandableListPosition*)((CPositionMetadata*)posMetadata.Get())->position.Get())->type == ExpandableListPosition::GROUP) {
-        mExpandableListAdapter->GetGroup(((CExpandableListPosition*)((CPositionMetadata*)posMetadata.Get())->position.Get())->groupPos, (IInterface**)&retValue);
-    } else if (((CExpandableListPosition*)((CPositionMetadata*)posMetadata.Get())->position.Get())->type == ExpandableListPosition::CHILD) {
-        mExpandableListAdapter->GetChild(((CExpandableListPosition*)((CPositionMetadata*)posMetadata.Get())->position.Get())->groupPos,
-                ((CExpandableListPosition*)(((CPositionMetadata*)posMetadata.Get())->position.Get()))->childPos, (IInterface**)&retValue);
+    if (((CExpandableListPosition*)((CPositionMetadata*)posMetadata.Get())->mPosition.Get())->type == ExpandableListPosition::GROUP) {
+        mExpandableListAdapter->GetGroup(((CExpandableListPosition*)((CPositionMetadata*)posMetadata.Get())->mPosition.Get())->groupPos, (IInterface**)&retValue);
+    } else if (((CExpandableListPosition*)((CPositionMetadata*)posMetadata.Get())->mPosition.Get())->type == ExpandableListPosition::CHILD) {
+        mExpandableListAdapter->GetChild(((CExpandableListPosition*)((CPositionMetadata*)posMetadata.Get())->mPosition.Get())->groupPos,
+                ((CExpandableListPosition*)(((CPositionMetadata*)posMetadata.Get())->mPosition.Get()))->childPos, (IInterface**)&retValue);
     } else {
         // TODO: clean exit
         //throw new RuntimeException("Flat list position is of unknown type");
     }
-    
+
     posMetadata->Recycle();
-    
+
     return retValue;
 }
 
 Int64 ExpandableListConnector::GetItemId(
-    /* [in] */ Int32 flatListPos) 
+    /* [in] */ Int32 flatListPos)
 {
     AutoPtr<IPositionMetadata> posMetadata = GetUnflattenedPos(flatListPos);
     Int64 groupId;
-    mExpandableListAdapter->GetGroupId(((CExpandableListPosition*)((CPositionMetadata*)posMetadata.Get())->position.Get())->groupPos, &groupId);
-    
+    mExpandableListAdapter->GetGroupId(((CExpandableListPosition*)((CPositionMetadata*)posMetadata.Get())->mPosition.Get())->groupPos, &groupId);
+
     Int64 retValue;
-    if (((CExpandableListPosition*)((CPositionMetadata*)posMetadata.Get())->position.Get())->type == ExpandableListPosition::GROUP) {
+    if (((CExpandableListPosition*)((CPositionMetadata*)posMetadata.Get())->mPosition.Get())->type == ExpandableListPosition::GROUP) {
         mExpandableListAdapter->GetCombinedGroupId(groupId, &retValue);
-    } else if (((CExpandableListPosition*)((CPositionMetadata*)posMetadata.Get())->position.Get())->type == ExpandableListPosition::CHILD) {
+    } else if (((CExpandableListPosition*)((CPositionMetadata*)posMetadata.Get())->mPosition.Get())->type == ExpandableListPosition::CHILD) {
         Int64 childId;
-        mExpandableListAdapter->GetChildId(((CExpandableListPosition*)((CPositionMetadata*)posMetadata.Get())->position.Get())->groupPos,
-                ((CExpandableListPosition*)(((CPositionMetadata*)posMetadata.Get())->position.Get()))->childPos, &childId);
+        mExpandableListAdapter->GetChildId(((CExpandableListPosition*)((CPositionMetadata*)posMetadata.Get())->mPosition.Get())->groupPos,
+                ((CExpandableListPosition*)(((CPositionMetadata*)posMetadata.Get())->mPosition.Get()))->childPos, &childId);
         mExpandableListAdapter->GetCombinedChildId(groupId, childId, &retValue);
     } else {
         // TODO: clean exit
         //throw new RuntimeException("Flat list position is of unknown type");
     }
-    
+
     posMetadata->Recycle();
-    
+
     return retValue;
 }
 
 AutoPtr<IView> ExpandableListConnector::GetView(
-    /* [in] */ Int32 flatListPos, 
-    /* [in] */ IView* convertView, 
+    /* [in] */ Int32 flatListPos,
+    /* [in] */ IView* convertView,
     /* [in] */ IViewGroup* parent)
 {
     AutoPtr<IPositionMetadata> posMetadata = GetUnflattenedPos(flatListPos);
 
     AutoPtr<IView> retValue;
     Boolean expanded;
-    if (((CExpandableListPosition*)((CPositionMetadata*)posMetadata.Get())->position.Get())->type == ExpandableListPosition::GROUP) {
-        mExpandableListAdapter->GetGroupView(((CExpandableListPosition*)((CPositionMetadata*)posMetadata.Get())->position.Get())->groupPos,
+    if (((CExpandableListPosition*)((CPositionMetadata*)posMetadata.Get())->mPosition.Get())->type == ExpandableListPosition::GROUP) {
+        mExpandableListAdapter->GetGroupView(((CExpandableListPosition*)((CPositionMetadata*)posMetadata.Get())->mPosition.Get())->groupPos,
                 (((CPositionMetadata*)posMetadata.Get())->IsExpanded(&expanded), expanded), convertView, parent, (IView**)&retValue);
-    } else if (((CExpandableListPosition*)((CPositionMetadata*)posMetadata.Get())->position.Get())->type == ExpandableListPosition::CHILD) {
-        Boolean isLastChild = ((CGroupMetadata*)(((CPositionMetadata*)posMetadata.Get())->groupMetadata.Get()))->lastChildFlPos == flatListPos;
-        
-        mExpandableListAdapter->GetChildView(((CExpandableListPosition*)((CPositionMetadata*)posMetadata.Get())->position.Get())->groupPos,
-                ((CExpandableListPosition*)((CPositionMetadata*)posMetadata.Get())->position.Get())->childPos, isLastChild, convertView, parent, (IView**)&retValue);
+    } else if (((CExpandableListPosition*)((CPositionMetadata*)posMetadata.Get())->mPosition.Get())->type == ExpandableListPosition::CHILD) {
+        Boolean isLastChild = ((CGroupMetadata*)(((CPositionMetadata*)posMetadata.Get())->mGroupMetadata.Get()))->mLastChildFlPos == flatListPos;
+
+        mExpandableListAdapter->GetChildView(((CExpandableListPosition*)((CPositionMetadata*)posMetadata.Get())->mPosition.Get())->groupPos,
+                ((CExpandableListPosition*)((CPositionMetadata*)posMetadata.Get())->mPosition.Get())->childPos, isLastChild, convertView, parent, (IView**)&retValue);
     } else {
         // TODO: clean exit
         //throw new RuntimeException("Flat list position is of unknown type");
     }
-    
+
     posMetadata->Recycle();
-    
+
     return retValue;
 }
 
 Int32 ExpandableListConnector::GetItemViewType(
     /* [in] */ Int32 flatListPos)
 {
-    AutoPtr<IExpandableListPosition> pos = ((CPositionMetadata*)GetUnflattenedPos(flatListPos).Get())->position;
+    AutoPtr<IExpandableListPosition> pos = ((CPositionMetadata*)GetUnflattenedPos(flatListPos).Get())->mPosition;
 
     Int32 retValue;
     if (mExpandableListAdapter->Probe(EIID_IHeterogeneousExpandableList)) {
@@ -455,13 +455,13 @@ Int32 ExpandableListConnector::GetItemViewType(
             retValue = 1;
         }
     }
-    
+
     pos->Recycle();
-    
+
     return retValue;
 }
 
-Int32 ExpandableListConnector::GetViewTypeCount() 
+Int32 ExpandableListConnector::GetViewTypeCount()
 {
     if (mExpandableListAdapter->Probe(EIID_IHeterogeneousExpandableList)) {
         AutoPtr<IHeterogeneousExpandableList> adapter =
@@ -485,7 +485,7 @@ Boolean ExpandableListConnector::HasStableIds()
 /**
  * Traverses the expanded group metadata list and fills in the flat list
  * positions.
- * 
+ *
  * @param forceChildrenCountRefresh Forces refreshing of the children count
  *        for all expanded groups.
  * @param syncGroupPositions Whether to search for the group positions
@@ -494,89 +494,89 @@ Boolean ExpandableListConnector::HasStableIds()
  */
 void ExpandableListConnector::RefreshExpGroupMetadataList(
     /* [in] */ Boolean forceChildrenCountRefresh,
-    /* [in] */ Boolean syncGroupPositions) 
+    /* [in] */ Boolean syncGroupPositions)
 {
     ArrayOf<IGroupMetadata*>* egml = mExpGroupMetadataList;
     Int32 egmlSize = egml->GetLength();
     Int32 curFlPos = 0;
-    
+
     /* Update child count as we go through */
     mTotalExpChildrenCount = 0;
-    
+
     if (syncGroupPositions) {
         // We need to check whether any groups have moved positions
         Boolean positionsChanged = FALSE;
-        
+
         for (Int32 i = egmlSize - 1; i >= 0; i--) {
             AutoPtr<IGroupMetadata> curGm = (*egml)[i];
-            Int32 newGPos = FindGroupPosition(((CGroupMetadata*)curGm.Get())->gId, ((CGroupMetadata*)curGm.Get())->gPos);
-            if (newGPos != ((CGroupMetadata*)curGm.Get())->gPos) {
+            Int32 newGPos = FindGroupPosition(((CGroupMetadata*)curGm.Get())->mGId, ((CGroupMetadata*)curGm.Get())->mGPos);
+            if (newGPos != ((CGroupMetadata*)curGm.Get())->mGPos) {
                 if (newGPos == AdapterView_INVALID_POSITION) {
                     // Doh, just remove it from the list of expanded groups
                     //egml->Remove(i);
                     egmlSize--;
                 }
-                
-                ((CGroupMetadata*)curGm.Get())->gPos = newGPos;
+
+                ((CGroupMetadata*)curGm.Get())->mGPos = newGPos;
                 if (!positionsChanged) positionsChanged = TRUE;
             }
         }
-        
+
         if (positionsChanged) {
             // At least one group changed positions, so re-sort
             //Collections.sort(egml);
         }
     }
-    
+
     Int32 gChildrenCount;
     Int32 lastGPos = 0;
     for (Int32 i = 0; i < egmlSize; i++) {
         /* Store in local variable since we'll access freq */
         AutoPtr<IGroupMetadata> curGm = (*egml)[i];
-        
+
         /*
          * Get the number of children, try to refrain from calling
          * another class's method unless we have to (so do a subtraction)
          */
-        if ((((CGroupMetadata*)curGm.Get())->lastChildFlPos == GroupMetadata::REFRESH) || forceChildrenCountRefresh) {
-            mExpandableListAdapter->GetChildrenCount(((CGroupMetadata*)curGm.Get())->gPos, &gChildrenCount);
+        if ((((CGroupMetadata*)curGm.Get())->mLastChildFlPos == GroupMetadata::REFRESH) || forceChildrenCountRefresh) {
+            mExpandableListAdapter->GetChildrenCount(((CGroupMetadata*)curGm.Get())->mGPos, &gChildrenCount);
         } else {
             /* Num children for this group is its last child's fl pos minus
              * the group's fl pos
              */
-            gChildrenCount = ((CGroupMetadata*)curGm.Get())->lastChildFlPos - ((CGroupMetadata*)curGm.Get())->flPos;
+            gChildrenCount = ((CGroupMetadata*)curGm.Get())->mLastChildFlPos - ((CGroupMetadata*)curGm.Get())->mFlPos;
         }
-        
+
         /* Update */
         mTotalExpChildrenCount += gChildrenCount;
-        
+
         /*
          * This skips the collapsed groups and increments the flat list
          * position (for subsequent exp groups) by accounting for the collapsed
          * groups
          */
-        curFlPos += (((CGroupMetadata*)curGm.Get())->gPos - lastGPos);
-        lastGPos = ((CGroupMetadata*)curGm.Get())->gPos;
-        
+        curFlPos += (((CGroupMetadata*)curGm.Get())->mGPos - lastGPos);
+        lastGPos = ((CGroupMetadata*)curGm.Get())->mGPos;
+
         /* Update the flat list positions, and the current flat list pos */
-        ((CGroupMetadata*)curGm.Get())->flPos = curFlPos;
-        curFlPos += gChildrenCount; 
-        ((CGroupMetadata*)curGm.Get())->lastChildFlPos = curFlPos; 
+        ((CGroupMetadata*)curGm.Get())->mFlPos = curFlPos;
+        curFlPos += gChildrenCount;
+        ((CGroupMetadata*)curGm.Get())->mLastChildFlPos = curFlPos;
     }
 }
 
 /**
  * Collapse a group in the grouped list view
- * 
+ *
  * @param groupPos position of the group to collapse
  */
 Boolean ExpandableListConnector::CollapseGroup(
     /* [in] */ Int32 groupPos)
 {
     AutoPtr<IPositionMetadata> pm = GetFlattenedPos(ExpandableListPosition::Obtain(
-        ExpandableListPosition::GROUP, groupPos, -1, -1)); 
+        ExpandableListPosition::GROUP, groupPos, -1, -1));
     if (pm == NULL) return FALSE;
-    
+
     Boolean retValue = CollapseGroup(pm);
     pm->Recycle();
     return retValue;
@@ -586,28 +586,28 @@ Boolean ExpandableListConnector::CollapseGroup(
     /* [in] */ IPositionMetadata* posMetadata)
 {
     /*
-     * Collapsing requires removal from mExpGroupMetadataList 
+     * Collapsing requires removal from mExpGroupMetadataList
      */
-    
+
     /*
      * If it is NULL, it must be already collapsed. This group metadata
      * object should have been set from the search that returned the
      * position metadata object.
      */
-    if (((CPositionMetadata*)posMetadata)->groupMetadata == NULL) return FALSE;
-    
-    // Remove the group from the list of expanded groups 
+    if (((CPositionMetadata*)posMetadata)->mGroupMetadata == NULL) return FALSE;
+
+    // Remove the group from the list of expanded groups
     //mExpGroupMetadataList->Remove(((CPositionMetadata*)posMetadata)->groupMetadata);
 
     // Refresh the metadata
     RefreshExpGroupMetadataList(FALSE, FALSE);
-    
+
     // Notify of change
     //NotifyDataSetChanged();
-    
+
     // Give the callback
-    mExpandableListAdapter->OnGroupCollapsed(((CGroupMetadata*)((CPositionMetadata*)posMetadata)->groupMetadata.Get())->gPos);
-    
+    mExpandableListAdapter->OnGroupCollapsed(((CGroupMetadata*)((CPositionMetadata*)posMetadata)->mGroupMetadata.Get())->mGPos);
+
     return TRUE;
 }
 
@@ -629,54 +629,54 @@ Boolean ExpandableListConnector::ExpandGroup(
     /* [in] */ IPositionMetadata* posMetadata)
 {
     /*
-     * Expanding requires insertion into the mExpGroupMetadataList 
+     * Expanding requires insertion into the mExpGroupMetadataList
      */
 
-    if (((CExpandableListPosition*)((CPositionMetadata*)posMetadata)->position.Get())->groupPos < 0) {
+    if (((CExpandableListPosition*)((CPositionMetadata*)posMetadata)->mPosition.Get())->groupPos < 0) {
         // TODO clean exit
         //throw new RuntimeException("Need group");
     }
 
     if (mMaxExpGroupCount == 0) return FALSE;
-    
+
     // Check to see if it's already expanded
-    if (((CPositionMetadata*)posMetadata)->groupMetadata != NULL) return FALSE;
-    
+    if (((CPositionMetadata*)posMetadata)->mGroupMetadata != NULL) return FALSE;
+
     /* Restrict number of expanded groups to mMaxExpGroupCount */
     if (mExpGroupMetadataList->GetLength() >= mMaxExpGroupCount) {
         /* Collapse a group */
         // TODO: Collapse something not on the screen instead of the first one?
         // TODO: Could write overloaded function to take GroupMetadata to collapse
         AutoPtr<IGroupMetadata> collapsedGm = (*mExpGroupMetadataList)[0];
-        
+
         Int32 collapsedIndex;// = mExpGroupMetadataList->IndexOf(collapsedGm.Get());
-        
-        CollapseGroup(((CGroupMetadata*)collapsedGm.Get())->gPos);
+
+        CollapseGroup(((CGroupMetadata*)collapsedGm.Get())->mGPos);
 
         /* Decrement index if it is after the group we removed */
-        if (((CPositionMetadata*)posMetadata)->groupInsertIndex > collapsedIndex) {
-            ((CPositionMetadata*)posMetadata)->groupInsertIndex--;
+        if (((CPositionMetadata*)posMetadata)->mGroupInsertIndex > collapsedIndex) {
+            ((CPositionMetadata*)posMetadata)->mGroupInsertIndex--;
         }
     }
 
     Int64 id;
-    
+
     AutoPtr<IGroupMetadata> expandedGm = GroupMetadata::Obtain(
         GroupMetadata::REFRESH,
         GroupMetadata::REFRESH,
-            ((CExpandableListPosition*)((CPositionMetadata*)posMetadata)->position.Get())->groupPos,
-            (mExpandableListAdapter->GetGroupId(((CExpandableListPosition*)((CPositionMetadata*)posMetadata)->position.Get())->groupPos, &id),id));
-    
+            ((CExpandableListPosition*)((CPositionMetadata*)posMetadata)->mPosition.Get())->groupPos,
+            (mExpandableListAdapter->GetGroupId(((CExpandableListPosition*)((CPositionMetadata*)posMetadata)->mPosition.Get())->groupPos, &id),id));
+
     //mExpGroupMetadataList->Add(((CPositionMetadata*)posMetadata)->groupInsertIndex, expandedGm);
 
     // Refresh the metadata
     RefreshExpGroupMetadataList(FALSE, FALSE);
-    
+
     // Notify of change
     //NotifyDataSetChanged();
-    
+
     // Give the callback
-    mExpandableListAdapter->OnGroupExpanded(((CGroupMetadata*)expandedGm.Get())->gPos);
+    mExpandableListAdapter->OnGroupExpanded(((CGroupMetadata*)expandedGm.Get())->mGPos);
 
     return TRUE;
 }
@@ -692,12 +692,12 @@ Boolean ExpandableListConnector::IsGroupExpanded(
     AutoPtr<IGroupMetadata> groupMetadata;
     for (Int32 i = mExpGroupMetadataList->GetLength() - 1; i >= 0; i--) {
         groupMetadata = (*mExpGroupMetadataList)[i];
-        
-        if (((CGroupMetadata*)groupMetadata.Get())->gPos == groupPosition) {
+
+        if (((CGroupMetadata*)groupMetadata.Get())->mGPos == groupPosition) {
             return TRUE;
         }
     }
-    
+
     return FALSE;
 }
 
@@ -705,12 +705,12 @@ Boolean ExpandableListConnector::IsGroupExpanded(
  * Set the maximum number of groups that can be expanded at any given time
  */
 ECode ExpandableListConnector::SetMaxExpGroupCount(
-    /* [in] */ Int32 maxExpGroupCount) 
+    /* [in] */ Int32 maxExpGroupCount)
 {
     mMaxExpGroupCount = maxExpGroupCount;
 
     return NOERROR;
-}    
+}
 
 AutoPtr<IExpandableListAdapter> ExpandableListConnector::GetAdapter()
 {
@@ -738,22 +738,22 @@ ArrayOf<IGroupMetadata*>* ExpandableListConnector::GetExpandedGroupMetadataList(
 ECode ExpandableListConnector::SetExpandedGroupMetadataList(
     /* [in] */ ArrayOf<IGroupMetadata*>* expandedGroupMetadataList)
 {
-    
+
     if ((expandedGroupMetadataList == NULL) || (mExpandableListAdapter.Get() == NULL)) {
         return NOERROR;
     }
-    
+
     // Make sure our current data set is big enough for the previously
     // expanded groups, if not, ignore this request
     Int32 numGroups;
     mExpandableListAdapter->GetGroupCount(&numGroups);
     for (Int32 i = expandedGroupMetadataList->GetLength() - 1; i >= 0; i--) {
-        if (((CGroupMetadata*)(*expandedGroupMetadataList)[i])->gPos >= numGroups) {
+        if (((CGroupMetadata*)(*expandedGroupMetadataList)[i])->mGPos >= numGroups) {
             // Doh, for some reason the client doesn't have some of the groups
             return NOERROR;
         }
     }
-    
+
     mExpGroupMetadataList = expandedGroupMetadataList;
     RefreshExpGroupMetadataList(TRUE, FALSE);
 }
@@ -777,14 +777,14 @@ Boolean ExpandableListConnector::IsEmpty()
  * alternates between moving up and moving down until 1) we find the right
  * position, or 2) we run out of time, or 3) we have looked at every
  * position
- * 
+ *
  * @return Position of the row that matches the given row ID, or
  *         {@link AdapterView#INVALID_POSITION} if it can't be found
  * @see AdapterView#findSyncPosition()
  */
 Int32 ExpandableListConnector::FindGroupPosition(
-    /* [in] */ Int64 groupIdToMatch, 
-    /* [in] */ Int32 seedGroupPosition) 
+    /* [in] */ Int64 groupIdToMatch,
+    /* [in] */ Int32 seedGroupPosition)
 {
     Int32 count;
     mExpandableListAdapter->GetGroupCount(&count);
@@ -828,7 +828,7 @@ Int32 ExpandableListConnector::FindGroupPosition(
         return AdapterView_INVALID_POSITION;
     }
 
-    while (SystemClock::UptimeMillis() <= endTime) {
+    while (SystemClock::GetUptimeMillis() <= endTime) {
         adapter->GetGroupId(seedGroupPosition, &rowId);
         if (rowId == groupIdToMatch) {
             // Found it!
@@ -865,7 +865,7 @@ Int32 ExpandableListConnector::FindGroupPosition(
 ExpandableListConnector::MyDataSetObserver::MyDataSetObserver(
     /* [in] */ ExpandableListConnector* owner)
 {
-    this->owner = owner;
+    mOwner = owner;
 }
 PInterface ExpandableListConnector::MyDataSetObserver::Probe(
     /* [in] */ REIID riid)
@@ -890,47 +890,49 @@ ECode ExpandableListConnector::MyDataSetObserver::GetInterfaceID(
     return E_NOT_IMPLEMENTED;
 }
 
-ECode ExpandableListConnector::MyDataSetObserver::OnChanged() 
+ECode ExpandableListConnector::MyDataSetObserver::OnChanged()
 {
-    owner->RefreshExpGroupMetadataList(TRUE, TRUE);
-        
+    mOwner->RefreshExpGroupMetadataList(TRUE, TRUE);
+
     //NotifyDataSetChanged();
+    return NOERROR;
 }
 
-ECode ExpandableListConnector::MyDataSetObserver::OnInvalidated() 
+ECode ExpandableListConnector::MyDataSetObserver::OnInvalidated()
 {
-    owner->RefreshExpGroupMetadataList(TRUE, TRUE);
-        
+    mOwner->RefreshExpGroupMetadataList(TRUE, TRUE);
+
     //NotifyDataSetInvalidated();
+    return NOERROR;
 }
-    
-ExpandableListConnector::GroupMetadata::GroupMetadata() 
+
+ExpandableListConnector::GroupMetadata::GroupMetadata()
 {
 }
 
 AutoPtr<IGroupMetadata> ExpandableListConnector::GroupMetadata::Obtain(
-    /* [in] */ Int32 flPos, 
-    /* [in] */ Int32 lastChildFlPos, 
-    /* [in] */ Int32 gPos, 
-    /* [in] */ Int64 gId) 
+    /* [in] */ Int32 flPos,
+    /* [in] */ Int32 lastChildFlPos,
+    /* [in] */ Int32 gPos,
+    /* [in] */ Int64 gId)
 {
     AutoPtr<IGroupMetadata> gm;
     CGroupMetadata::New((IGroupMetadata**)&gm);
-    ((CGroupMetadata*)gm.Get())->flPos = flPos;
-    ((CGroupMetadata*)gm.Get())->lastChildFlPos = lastChildFlPos;
-    ((CGroupMetadata*)gm.Get())->gPos = gPos;
-    ((CGroupMetadata*)gm.Get())->gId = gId;
+    ((CGroupMetadata*)gm.Get())->mFlPos = flPos;
+    ((CGroupMetadata*)gm.Get())->mLastChildFlPos = lastChildFlPos;
+    ((CGroupMetadata*)gm.Get())->mGPos = gPos;
+    ((CGroupMetadata*)gm.Get())->mGId = gId;
     return gm;
 }
 
 Int32 ExpandableListConnector::GroupMetadata::CompareTo(
-    /* [in] */ IGroupMetadata* another) 
+    /* [in] */ IGroupMetadata* another)
 {
     if (another == NULL) {
         //throw new IllegalArgumentException();
     }
-    
-    return gPos - ((CGroupMetadata*)another)->gPos;
+
+    return mGPos - ((CGroupMetadata*)another)->mGPos;
 }
 
 Int32 ExpandableListConnector::GroupMetadata::DescribeContents()
@@ -939,41 +941,42 @@ Int32 ExpandableListConnector::GroupMetadata::DescribeContents()
 }
 
 ECode ExpandableListConnector::GroupMetadata::WriteToParcel(
-    /* [in] */ IParcel* dest, 
+    /* [in] */ IParcel* dest,
     /* [in] */ Int32 flags)
 {
-    dest->WriteInt32(flPos);
-    dest->WriteInt32(lastChildFlPos);
-    dest->WriteInt32(gPos);
-    dest->WriteInt64(gId);
+    dest->WriteInt32(mFlPos);
+    dest->WriteInt32(mLastChildFlPos);
+    dest->WriteInt32(mGPos);
+    dest->WriteInt64(mGId);
+    return NOERROR;
 }
-    
-void ExpandableListConnector::PositionMetadata::ResetState() 
+
+void ExpandableListConnector::PositionMetadata::ResetState()
 {
-    position = NULL;
-    groupMetadata = NULL;
-    groupInsertIndex = 0;
+    mPosition = NULL;
+    mGroupMetadata = NULL;
+    mGroupInsertIndex = 0;
 }
 
 /**
  * Use {@link #obtain(Int32, Int32, Int32, Int32, GroupMetadata, Int32)}
  */
-ExpandableListConnector::PositionMetadata::PositionMetadata() 
+ExpandableListConnector::PositionMetadata::PositionMetadata()
 {
 }
 
 AutoPtr<IPositionMetadata> ExpandableListConnector::PositionMetadata::Obtain(
-    /* [in] */ Int32 flatListPos, 
-    /* [in] */ Int32 type, 
+    /* [in] */ Int32 flatListPos,
+    /* [in] */ Int32 type,
     /* [in] */ Int32 groupPos,
-    /* [in] */ Int32 childPos, 
-    /* [in] */ IGroupMetadata* groupMetadata, 
-    /* [in] */ Int32 groupInsertIndex) 
+    /* [in] */ Int32 childPos,
+    /* [in] */ IGroupMetadata* groupMetadata,
+    /* [in] */ Int32 groupInsertIndex)
 {
     AutoPtr<IPositionMetadata> pm = GetRecycledOrCreate();
-    ((CPositionMetadata*)pm.Get())->position = ExpandableListPosition::Obtain(type, groupPos, childPos, flatListPos);
-    ((CPositionMetadata*)pm.Get())->groupMetadata = groupMetadata;
-    ((CPositionMetadata*)pm.Get())->groupInsertIndex = groupInsertIndex;
+    ((CPositionMetadata*)pm.Get())->mPosition = ExpandableListPosition::Obtain(type, groupPos, childPos, flatListPos);
+    ((CPositionMetadata*)pm.Get())->mGroupMetadata = groupMetadata;
+    ((CPositionMetadata*)pm.Get())->mGroupInsertIndex = groupInsertIndex;
     return pm;
 }
 
@@ -1004,10 +1007,10 @@ void ExpandableListConnector::PositionMetadata::Recycle()
 /**
  * Checks whether the group referred to in this object is expanded,
  * or not (at the time this object was created)
- * 
+ *
  * @return whether the group at groupPos is expanded or not
  */
-Boolean ExpandableListConnector::PositionMetadata::IsExpanded() 
+Boolean ExpandableListConnector::PositionMetadata::IsExpanded()
 {
-    return groupMetadata != NULL;
+    return mGroupMetadata != NULL;
 }

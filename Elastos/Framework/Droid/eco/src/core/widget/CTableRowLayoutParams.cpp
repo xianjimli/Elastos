@@ -77,6 +77,13 @@ ECode CTableRowLayoutParams::GetWeight(
     return NOERROR;
 }
 
+ECode CTableRowLayoutParams::SetWeight(
+    /* [in] */ Float weight)
+{
+    mWeight = weight;
+    return NOERROR;
+}
+
 ECode CTableRowLayoutParams::GetGravity(
     /* [out] */ Int32* gravity)
 {

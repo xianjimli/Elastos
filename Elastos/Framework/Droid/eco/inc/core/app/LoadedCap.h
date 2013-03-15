@@ -3,12 +3,13 @@
 #define __LOADEDCAP_H__
 
 #include "ext/frameworkext.h"
-#include <elastos/AutoPtr.h>
-#include <elastos/Map.h>
+
 #include "app/CApplicationApartment.h"
 #include "content/CApplicationInfo.h"
 #include "content/CCompatibilityInfo.h"
+#include <elastos/HashMap.h>
 #include <elastos/Mutex.h>
+#include <elastos/AutoPtr.h>
 
 using namespace Elastos::Core::Threading;
 
@@ -86,32 +87,16 @@ public:
 //                IBinder.DeathRecipient deathMonitor;
         };
 
-        class RunConnection
+        class RunConnection /*: public IRunnable */
         {
         public:
             RunConnection(
                /* [in] */ ServiceDispatcher* serviceDispatcher,
                /* [in] */ IComponentName* name,
                /* [in] */ IBinder* service,
-               /* [in] */ Int32 command):
-                mServiceDispatcher(serviceDispatcher),
-                mName(name),
-                mService(service)
-            {
-            }
+               /* [in] */ Int32 command);
 
-            CARAPI Run()
-            {
-                ECode ec = NOERROR;
-
-                if (mCommand == 0) {
-                    ec = mServiceDispatcher->DoConnected(mName, mService);
-                } else if (mCommand == 1) {
-                    ec = mServiceDispatcher->DoDeath(mName, mService);
-                }
-
-                return ec;
-            }
+            CARAPI Run();
 
         private:
             ServiceDispatcher* mServiceDispatcher;
@@ -129,103 +114,25 @@ public:
 
         CARAPI Validate(
            /* [in] */ IContext* context,
-           /* [in] */ IApplicationApartment* apartment)
-        {
-//                if (mContext != context) {
-//                    throw new RuntimeException(
-//                        "ServiceConnection " + mConnection +
-//                        " registered with differing Context (was " +
-//                        mContext + " now " + context + ")");
-//                }
-//                if (mActivityThread != activityThread) {
-//                    throw new RuntimeException(
-//                        "ServiceConnection " + mConnection +
-//                        " registered with differing handler (was " +
-//                        mActivityThread + " now " + activityThread + ")");
-//                }
-            return E_NOT_IMPLEMENTED;
-        }
+           /* [in] */ IApplicationApartment* apartment);
 
-        CARAPI_(void) DoForget()
-        {
-//                synchronized(this) {
-//                    Iterator<ConnectionInfo> it = mActiveConnections.values().iterator();
-//                    while (it.hasNext()) {
-//                        ConnectionInfo ci = it.next();
-//                        ci.binder.unlinkToDeath(ci.deathMonitor, 0);
-//                    }
-//                    mActiveConnections.clear();
-//                }
-        }
+        CARAPI_(void) DoForget();
 
         CARAPI_(IServiceConnectionInner*) GetIServiceConnection();
 
-        CARAPI_(Int32) GetFlags()
-        {
-            return mFlags;
-        }
+        CARAPI_(Int32) GetFlags();
 
         CARAPI_(void) Connected(
             /* [in] */ IComponentName* name,
-            /* [in] */ IBinder* service)
-        {
-            if (mAppApartment != NULL) {
-                RunConnection* con = new RunConnection(this, name, service, 0);
-                PerformServiceConnected(con);
-            } else {
-                DoConnected(name, service);
-            }
-        }
+            /* [in] */ IBinder* service);
 
         CARAPI DoConnected(
             /* [in] */ IComponentName* name,
-            /* [in] */ IBinder* service)
-        {
-            ConnectionInfo* old;
-            ConnectionInfo* info;
-            ECode ec = NOERROR;
-
-            old = mActiveConnections[name];
-            if (old != NULL && (IBinder*)old->mBinder == service) {
-                // Huh, already have this one.  Oh well!
-                return NOERROR;
-            }
-
-            if (service != NULL) {
-                // A new service is being connected... set it all up.
-                mDied = FALSE;
-                info = new ConnectionInfo();
-                info->mBinder = service;
-//                info.deathMonitor = new DeathMonitor(name, service);
-//                service.linkToDeath(info.deathMonitor, 0);
-                mActiveConnections[name] = info;
-            } else {
-                // The named service is being disconnected... clean up.
-                mActiveConnections.Erase(name);
-            }
-
-//            if (old != null) {
-//                old.binder.unlinkToDeath(old.deathMonitor, 0);
-//            }
-
-            // If there was an old service, it is not disconnected.
-            if (old != NULL) {
-                ec = mConnection->OnServiceDisconnected(name);
-            }
-            // If there is a new service, it is now connected.
-            if (service != NULL) {
-                ec = mConnection->OnServiceConnected(name, service);
-            }
-            return ec;
-        }
+            /* [in] */ IBinder* service);
 
         CARAPI DoDeath(
             /* [in] */ IComponentName* name,
-            /* [in] */ IBinder* service)
-        {
-//            mConnection.onServiceDisconnected(name);
-            return E_NOT_IMPLEMENTED;
-        }
+            /* [in] */ IBinder* service);
 
         CARAPI PerformServiceConnected(
             /* [in] */ RunConnection* con);
@@ -241,10 +148,16 @@ public:
 //            private final ServiceConnectionLeaked mLocation;
         Int32 mFlags;
         Boolean mDied;
-        Map<AutoPtr<IComponentName>, ConnectionInfo*> mActiveConnections;
+        HashMap<AutoPtr<IComponentName>, ConnectionInfo*> mActiveConnections;
     };
 
 public:
+    LoadedCap(
+        /* [in] */ CApplicationApartment* appApartment,
+        /* [in] */ const String& name,
+        /* [in] */ IContext* systemContext,
+        /* [in] */ CApplicationInfo* info);
+
     LoadedCap(
         /* [in] */ CApplicationApartment* appApartment,
         /* [in] */ CApplicationInfo* aInfo,

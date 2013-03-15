@@ -15,19 +15,19 @@ public:
 
 public:
     CARAPI LoadLabel(
-        /* [in] */ ICapsuleManager* pm,
+        /* [in] */ ILocalCapsuleManager* pm,
         /* [out] */ ICharSequence** label);
 
     CARAPI LoadIcon(
-        /* [in] */ ICapsuleManager* pm,
+        /* [in] */ ILocalCapsuleManager* pm,
         /* [out] */ IDrawable** icon);
 
     CARAPI LoadLogo(
-        /* [in] */ ICapsuleManager* pm,
+        /* [in] */ ILocalCapsuleManager* pm,
         /* [out] */ IDrawable** icon);
 
     CARAPI LoadXmlMetaData(
-        /* [in] */ ICapsuleManager* pm,
+        /* [in] */ ILocalCapsuleManager* pm,
         /* [in] */ const String& name,
         /* [out] */ IXmlResourceParser** resource);
 
@@ -74,7 +74,7 @@ public:
         /* [in] */ IBundle* metaData);
 
     CARAPI LoadDescription(
-        /* [in] */ ICapsuleManager* cm,
+        /* [in] */ ILocalCapsuleManager* cm,
         /* [out] */ ICharSequence** des);
 
     CARAPI GetDescription(

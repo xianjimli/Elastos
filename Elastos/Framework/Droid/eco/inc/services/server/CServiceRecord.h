@@ -10,8 +10,42 @@
 #include "server/AppBindRecord.h"
 #include "server/ProcessRecord.h"
 #include "server/UriPermissionOwner.h"
+#include <elastos/HashMap.h>
 #include <elastos/List.h>
 #include <elastos/AutoPtr.h>
+
+
+_ELASTOS_NAMESPACE_BEGIN
+
+#ifndef _IINTENTFILTERCOMPARISON_HASH_EQUALTO
+#define _IINTENTFILTERCOMPARISON_HASH_EQUALTO
+
+template<> struct Hash< AutoPtr<IIntentFilterComparison> >
+{
+    size_t operator()(AutoPtr<IIntentFilterComparison> filter) const
+    {
+        assert(filter != NULL);
+        Int32 hashCode;
+        filter->GetHashCode(&hashCode);
+        return (size_t)hashCode;
+    }
+};
+
+template<> struct EqualTo< AutoPtr<IIntentFilterComparison> >
+{
+    Boolean operator()(const AutoPtr<IIntentFilterComparison>& x,
+                       const AutoPtr<IIntentFilterComparison>& y) const
+    {
+        assert(x != NULL);
+        Boolean isEqual;
+        x->Equals(y, &isEqual);
+        return isEqual;
+    }
+};
+
+#endif //_IINTENTFILTERCOMPARISON_HASH_EQUALTO
+
+_ELASTOS_NAMESPACE_END
 
 using namespace Elastos;
 
@@ -102,7 +136,7 @@ public:
     Boolean mExported; // from ServiceInfo.exported
     AutoPtr<IRunnable> mRestarter; // used to schedule retries of starting the service
     Millisecond64 mCreateTime;  // when this service was created
-    Map<AutoPtr<IIntentFilterComparison>, IntentBindRecord*> mBindings; // All active bindings to the service.
+    HashMap<AutoPtr<IIntentFilterComparison>, IntentBindRecord*> mBindings; // All active bindings to the service.
     Map<AutoPtr<IServiceConnectionInner>, List<ConnectionRecord*>*> mConnections; // IBinder -> ConnectionRecord of all bound clients
 
     ProcessRecord* mApp;  // where this service is running or null.

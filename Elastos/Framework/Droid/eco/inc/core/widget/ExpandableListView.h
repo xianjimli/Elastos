@@ -39,7 +39,7 @@
  * wrap_content since it also can be any length. However, you can use
  * wrap_content if the ExpandableListView parent has a specific size, such as
  * 100 pixels.
- * 
+ *
  * @attr ref android.R.styleable#ExpandableListView_groupIndicator
  * @attr ref android.R.styleable#ExpandableListView_indicatorLeft
  * @attr ref android.R.styleable#ExpandableListView_indicatorRight
@@ -58,27 +58,27 @@ public:
         /* [in] */ IContext* context);
 
     ExpandableListView(
-        /* [in] */ IContext* context, 
+        /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs);
 
     ExpandableListView(
-        /* [in] */ IContext* context, 
-        /* [in] */ IAttributeSet* attrs, 
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs,
         /* [in] */ Int32 defStyle);
-    
+
     /**
      * Sets the drawable that will be drawn adjacent to every child in the list. This will
      * be drawn using the same height as the normal divider ({@link #setDivider(Drawable)}) or
      * if it does not have an intrinsic height, the height set by {@link #setDividerHeight(Int32)}.
-     * 
+     *
      * @param childDivider The drawable to use.
      */
     virtual CARAPI SetChildDivider(
         /* [in] */ IDrawable* childDivider);
 
     virtual CARAPI_(void) DrawDivider(
-        /* [in] */ ICanvas* canvas, 
-        /* [in] */ IRect* bounds, 
+        /* [in] */ ICanvas* canvas,
+        /* [in] */ IRect* bounds,
         /* [in] */ Int32 childIndex);
 
     /**
@@ -112,7 +112,7 @@ public:
      */
     virtual CARAPI SetAdapter(
         /* [in] */ IExpandableListAdapter* adapter);
-    
+
     /**
      * Gets the adapter that provides data to this view.
      * @return The adapter that provides data to this view.
@@ -120,21 +120,21 @@ public:
     virtual CARAPI_(AutoPtr<IExpandableListAdapter>) GetExpandableListAdapter();
 
     virtual CARAPI_(Boolean) PerformItemClick(
-        /* [in] */ IView* v, 
-        /* [in] */ Int32 position, 
+        /* [in] */ IView* v,
+        /* [in] */ Int32 position,
         /* [in] */ Int64 id);
-    
+
     /**
      * This will either expand/collapse groups (if a group was clicked) or pass
      * on the click to the proper child (if a child was clicked)
-     * 
+     *
      * @param position The flat list position. This has already been factored to
      *            remove the header/footer.
      * @param id The ListAdapter ID, not the group or child ID.
      */
     virtual CARAPI_(Boolean) HandleItemClick(
-        /* [in] */ IView* v, 
-        /* [in] */ Int32 position, 
+        /* [in] */ IView* v,
+        /* [in] */ Int32 position,
         /* [in] */ Int64 id);
 
     /**
@@ -146,20 +146,20 @@ public:
      */
     virtual CARAPI_(Boolean) ExpandGroup(
         /* [in] */ Int32 groupPos);
-    
+
     /**
      * Collapse a group in the grouped list view
-     * 
+     *
      * @param groupPos position of the group to collapse
      * @return True if the group was collapsed, false otherwise (if the group
      *         was already collapsed, this will return false)
      */
     virtual CARAPI_(Boolean) CollapseGroup(
-        /* [in] */ Int32 groupPos);   
-    
+        /* [in] */ Int32 groupPos);
+
     virtual CARAPI SetOnGroupCollapseListener(
         /* [in] */ IOnGroupCollapseListener* onGroupCollapseListener);
-    
+
     virtual CARAPI SetOnGroupExpandListener(
         /* [in] */ IOnGroupExpandListener* onGroupExpandListener);
 
@@ -168,7 +168,7 @@ public:
 
     virtual CARAPI SetOnChildClickListener(
         /* [in] */ IOnChildClickListener* onChildClickListener);
-    
+
     /**
      * Converts a flat list position (the raw position of an item (child or group)
      * in the list) to an group and/or child position (represented in a
@@ -177,7 +177,7 @@ public:
      * {@link ExpandableListView#getPackedPositionType} ,
      * {@link ExpandableListView#getPackedPositionChild},
      * {@link ExpandableListView#getPackedPositionGroup} to unpack.
-     * 
+     *
      * @param flatListPosition The flat list position to be converted.
      * @return The group and/or child position for the given flat list position
      *         in packed position representation. #PACKED_POSITION_VALUE_NULL if
@@ -185,12 +185,12 @@ public:
      */
     virtual CARAPI_(Int64) GetExpandableListPosition(
         /* [in] */ Int32 flatListPosition);
-    
+
     /**
      * Converts a group and/or child position to a flat list position. This is
      * useful in situations where the caller needs to use the underlying
      * {@link ListView}'s methods.
-     * 
+     *
      * @param packedPosition The group and/or child positions to be converted in
      *            packed position representation. Use
      *            {@link #getPackedPositionForChild(Int32, Int32)} or
@@ -203,34 +203,34 @@ public:
     /**
      * Gets the position of the currently selected group or child (along with
      * its type). Can return {@link #PACKED_POSITION_VALUE_NULL} if no selection.
-     * 
+     *
      * @return A packed position containing the currently selected group or
      *         child's position and type. #PACKED_POSITION_VALUE_NULL if no selection
      *         or if selection is on a header or a footer item.
      */
     virtual CARAPI_(Int64) GetSelectedPosition();
-    
+
     /**
      * Gets the ID of the currently selected group or child. Can return -1 if no
      * selection.
-     * 
+     *
      * @return The ID of the currently selected group or child. -1 if no
      *         selection.
      */
     virtual CARAPI_(Int64) GetSelectedId();
-    
+
     /**
      * Sets the selection to the specified group.
      * @param groupPosition The position of the group that should be selected.
      */
     virtual CARAPI SetSelectedGroup(
         /* [in] */ Int32 groupPosition);
-    
+
     /**
      * Sets the selection to the specified child. If the child is in a collapsed
      * group, the group will only be expanded and child subsequently selected if
      * shouldExpandGroup is set to true, otherwise the method will return false.
-     * 
+     *
      * @param groupPosition The position of the group that contains the child.
      * @param childPosition The position of the child within the group.
      * @param shouldExpandGroup Whether the child's group should be expanded if
@@ -238,23 +238,23 @@ public:
      * @return Whether the selection was successfully set on the child.
      */
     virtual CARAPI_(Boolean) SetSelectedChild(
-        /* [in] */ Int32 groupPosition, 
-        /* [in] */ Int32 childPosition, 
+        /* [in] */ Int32 groupPosition,
+        /* [in] */ Int32 childPosition,
         /* [in] */ Boolean shouldExpandGroup);
 
     /**
      * Whether the given group is currently expanded.
-     * 
+     *
      * @param groupPosition The group to check.
      * @return Whether the group is currently expanded.
      */
     virtual CARAPI_(Boolean) IsGroupExpanded(
         /* [in] */ Int32 groupPosition);
-    
+
     /**
      * Gets the type of a packed position. See
      * {@link #getPackedPositionForChild(Int32, Int32)}.
-     * 
+     *
      * @param packedPosition The packed position for which to return the type.
      * @return The type of the position contained within the packed position,
      *         either {@link #PACKED_POSITION_TYPE_CHILD}, {@link #PACKED_POSITION_TYPE_GROUP}, or
@@ -266,7 +266,7 @@ public:
     /**
      * Gets the group position from a packed position. See
      * {@link #getPackedPositionForChild(Int32, Int32)}.
-     * 
+     *
      * @param packedPosition The packed position from which the group position
      *            will be returned.
      * @return The group position portion of the packed position. If this does
@@ -281,7 +281,7 @@ public:
      * To get the group that this child belongs to, use
      * {@link #getPackedPositionGroup(Int64)}. See
      * {@link #getPackedPositionForChild(Int32, Int32)}.
-     * 
+     *
      * @param packedPosition The packed position from which the child position
      *            will be returned.
      * @return The child position portion of the packed position. If this does
@@ -301,19 +301,19 @@ public:
      * {@link #getPackedPositionChild(Int64)},
      * {@link #getPackedPositionGroup(Int64)}, and
      * {@link #getPackedPositionType(Int64)}.
-     * 
+     *
      * @param groupPosition The child's parent group's position.
      * @param childPosition The child position within the group.
      * @return The packed position representation of the child (and parent group).
      */
     static CARAPI_(Int64) GetPackedPositionForChild(
-        /* [in] */ Int32 groupPosition, 
+        /* [in] */ Int32 groupPosition,
         /* [in] */ Int32 childPosition);
 
     /**
      * Returns the packed position representation of a group's position. See
      * {@link #getPackedPositionForChild(Int32, Int32)}.
-     * 
+     *
      * @param groupPosition The child's parent group's position.
      * @return The packed position representation of the group.
      */
@@ -321,20 +321,20 @@ public:
         /* [in] */ Int32 groupPosition);
 
     virtual CARAPI_(AutoPtr<IContextMenuInfo>) CreateContextMenuInfo(
-        /* [in] */ IView* view, 
-        /* [in] */ Int32 flatListPosition, 
+        /* [in] */ IView* view,
+        /* [in] */ Int32 flatListPosition,
         /* [in] */ Int64 id);
 
      /**
      * Sets the indicator to be drawn next to a child.
-     * 
+     *
      * @param childIndicator The drawable to be used as an indicator. If the
      *            child is the last child for a group, the state
      *            {@link android.R.attr#state_last} will be set.
      */
     virtual CARAPI SetChildIndicator(
         /* [in] */ IDrawable* childIndicator);
-    
+
     /**
      * Sets the drawing bounds for the child indicator. For either, you can
      * specify {@link #CHILD_INDICATOR_INHERIT} to use inherit from the general
@@ -347,12 +347,12 @@ public:
      *            View) to end the drawing of the indicator.
      */
     virtual CARAPI SetChildIndicatorBounds(
-        /* [in] */ Int32 left, 
+        /* [in] */ Int32 left,
         /* [in] */ Int32 right);
-    
+
     /**
      * Sets the indicator to be drawn next to a group.
-     * 
+     *
      * @param groupIndicator The drawable to be used as an indicator. If the
      *            group is empty, the state {@link android.R.attr#state_empty} will be
      *            set. If the group is expanded, the state
@@ -360,27 +360,27 @@ public:
      */
     virtual CARAPI SetGroupIndicator(
         /* [in] */ IDrawable* groupIndicator);
-    
+
     /**
      * Sets the drawing bounds for the indicators (at minimum, the group indicator
      * is affected by this; the child indicator is affected by this if the
      * child indicator bounds are set to inherit).
-     * 
-     * @see #setChildIndicatorBounds(Int32, Int32) 
+     *
+     * @see #setChildIndicatorBounds(Int32, Int32)
      * @param left The left position (relative to the left bounds of this View)
      *            to start drawing the indicator.
      * @param right The right position (relative to the left bounds of this
      *            View) to end the drawing of the indicator.
      */
     virtual CARAPI SetIndicatorBounds(
-        /* [in] */ Int32 left, 
+        /* [in] */ Int32 left,
         /* [in] */ Int32 right);
 
     virtual CARAPI_(AutoPtr<IParcelable>) OnSaveInstanceState();
 
     virtual CARAPI_(void) OnRestoreInstanceState(
         /* [in] */ IParcelable* state);
-    
+
 protected:
     virtual CARAPI_(void) DispatchDraw(
         /* [in] */ ICanvas* canvas);
@@ -389,7 +389,7 @@ private:
     /**
      * Gets the indicator for the item at the given position. If the indicator
      * is stateful, the state will be given to the indicator.
-     * 
+     *
      * @param pos The flat list position of the item whose indicator
      *            should be returned.
      * @return The indicator in the proper state.
@@ -407,7 +407,7 @@ private:
     /**
      * Converts an absolute item flat position into a group/child flat position, shifting according
      * to the number of header items.
-     * 
+     *
      * @param flatListPosition The absolute flat position
      * @return A group/child flat position as expected by the connector.
      */
@@ -417,7 +417,7 @@ private:
     /**
      * Converts a group/child flat position into an absolute flat position, that takes into account
      * the possible headers.
-     * 
+     *
      * @param flatListPosition The child/group flat position
      * @return An absolute flat position.
      */
@@ -428,13 +428,13 @@ private:
      * Gets the ID of the group or child at the given <code>position</code>.
      * This is useful since there is no ListAdapter ID -> ExpandableListAdapter
      * ID conversion mechanism (in some cases, it isn't possible).
-     * 
+     *
      * @param position The position of the child or group whose ID should be
      *            returned.
      */
     virtual CARAPI_(Int64) GetChildOrGroupId(
         /* [in] */ IExpandableListPosition* position);
-    
+
     /**
      * Extra menu information specific to an {@link ExpandableListView} provided
      * to the
@@ -445,8 +445,8 @@ private:
     {
     public:
         ExpandableListContextMenuInfo(
-            /* [in] */ IView* targetView, 
-            /* [in] */ Int64 packedPosition, 
+            /* [in] */ IView* targetView,
+            /* [in] */ Int64 packedPosition,
             /* [in] */ Int64 id);
 
         CARAPI_(PInterface) Probe(
@@ -459,7 +459,7 @@ private:
         CARAPI GetInterfaceID(
             /* [in] */ IInterface *pObject,
             /* [out] */ InterfaceID *pIID);
-        
+
         /**
          * The view for which the context menu is being displayed. This
          * will be one of the children Views of this {@link ExpandableListView}.
@@ -487,7 +487,7 @@ public:
      * The packed position represents a group.
      */
     static const Int32 PACKED_POSITION_TYPE_GROUP = 0;
-    
+
     /**
      * The packed position represents a child.
      */
@@ -497,7 +497,7 @@ public:
      * The packed position represents a neither/null/no preference.
      */
     static const Int32 PACKED_POSITION_TYPE_NULL = 2;
-    
+
     /**
      * The value for a packed position that represents neither/null/no
      * preference. This value is not otherwise possible since a group type
@@ -510,7 +510,7 @@ public:
      * indicator bounds
      */
     static const Int32 CHILD_INDICATOR_INHERIT = -1;
-  
+
 private:
     AutoPtr<IOnGroupCollapseListener> mOnGroupCollapseListener;
 
@@ -522,13 +522,13 @@ private:
 
 
     /** The mask (in packed position representation) for the child */
-    static const Int64 PACKED_POSITION_MASK_CHILD = 0x00000000FFFFFFFF;
+    static const Int64 PACKED_POSITION_MASK_CHILD = 0x00000000FFFFFFFFll;
 
     /** The mask (in packed position representation) for the group */
-    static const Int64 PACKED_POSITION_MASK_GROUP = 0x7FFFFFFF00000000;
+    static const Int64 PACKED_POSITION_MASK_GROUP = 0x7FFFFFFF00000000ll;
 
     /** The mask (in packed position representation) for the type */
-    static const Int64 PACKED_POSITION_MASK_TYPE  = 0x8000000000000000;
+    static const Int64 PACKED_POSITION_MASK_TYPE  = 0x8000000000000000ll;
 
     /** The shift amount (in packed position representation) for the group */
     static const Int64 PACKED_POSITION_SHIFT_GROUP = 32;
@@ -541,13 +541,13 @@ private:
 
     /** The mask (in integer group position representation) for the group */
     static const Int64 PACKED_POSITION_INT_MASK_GROUP = 0x7FFFFFFF;
-    
+
     /** Serves as the glue/translator between a ListView and an ExpandableListView */
     AutoPtr<IExpandableListConnector> mConnector;
-    
-    /** Gives us Views through group+child positions */ 
+
+    /** Gives us Views through group+child positions */
     AutoPtr<IExpandableListAdapter> mAdapter;
-    
+
     /** Left bound for drawing the indicator. */
     Int32 mIndicatorLeft;
 
@@ -565,7 +565,7 @@ private:
      * {@link #CHILD_INDICATOR_INHERIT} means use mIndicatorRight.
      */
     Int32 mChildIndicatorRight;
-    
+
     /** The indicator drawn next to a group. */
     AutoPtr<IDrawable> mGroupIndicator;
 
@@ -597,7 +597,7 @@ private:
     /** State indicating the child is the last within its group. */
     static Int32 CHILD_LAST_STATE_SET[];/* =
             {R.attr.state_last};*/
-    
+
     /** Drawable to be used as a divider when it is adjacent to any children */
     AutoPtr<IDrawable> mChildDivider;
     Boolean mClipChildDivider;

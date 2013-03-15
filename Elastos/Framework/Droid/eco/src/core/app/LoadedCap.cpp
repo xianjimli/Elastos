@@ -139,7 +139,7 @@ ECode LoadedCap::ReceiverDispatcher::HandleReceive(
         if (mRegistered && args->mCurOrdered) {
             if (CApplicationApartment::DEBUG_BROADCAST) {
                 Slogger::I(CApplicationApartment::TAG,
-                        StringBuffer("Finishing null broadcast to ") +
+                        StringBuffer("Finishing NULL broadcast to ") +
                         (Int32)(IBroadcastReceiver*)mReceiver);
             }
             ec = mgr->FinishReceiver((IIntentReceiver*)mIIntentReceiver,
@@ -187,6 +187,206 @@ ECode LoadedCap::ReceiverDispatcher::HandleReceive(
                 rcode, rdata, rextras, abort);
     }
     return ec;
+}
+
+
+LoadedCap::ServiceDispatcher::RunConnection::RunConnection(
+   /* [in] */ ServiceDispatcher* serviceDispatcher,
+   /* [in] */ IComponentName* name,
+   /* [in] */ IBinder* service,
+   /* [in] */ Int32 command)
+    : mServiceDispatcher(serviceDispatcher)
+    , mName(name)
+    , mService(service)
+{}
+
+ECode LoadedCap::ServiceDispatcher::RunConnection::Run()
+{
+    if (mCommand == 0) {
+        return mServiceDispatcher->DoConnected(mName, mService);
+    }
+    else if (mCommand == 1) {
+        return mServiceDispatcher->DoDeath(mName, mService);
+    }
+}
+
+
+LoadedCap::ServiceDispatcher::ServiceDispatcher(
+    /* [in] */ IServiceConnection* conn,
+    /* [in] */ IContext* context,
+    /* [in] */ IApplicationApartment* apartment,
+    /* [in] */ Int32 flags)
+{
+    CInnerConnection::NewByFriend((CInnerConnection**)&mIServiceConnection);
+    mIServiceConnection->Init(this);
+    mConnection = conn;
+    mContext = context;
+    mAppApartment = apartment;
+//                mLocation = new ServiceConnectionLeaked(null);
+//                mLocation.fillInStackTrace();
+    mFlags = flags;
+}
+
+ECode LoadedCap::ServiceDispatcher::Validate(
+   /* [in] */ IContext* context,
+   /* [in] */ IApplicationApartment* apartment)
+{
+//                if (mContext != context) {
+//                    throw new RuntimeException(
+//                        "ServiceConnection " + mConnection +
+//                        " registered with differing Context (was " +
+//                        mContext + " now " + context + ")");
+//                }
+//                if (mActivityThread != activityThread) {
+//                    throw new RuntimeException(
+//                        "ServiceConnection " + mConnection +
+//                        " registered with differing handler (was " +
+//                        mActivityThread + " now " + activityThread + ")");
+//                }
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+}
+
+void LoadedCap::ServiceDispatcher::DoForget()
+{
+//                synchronized(this) {
+//                    Iterator<ConnectionInfo> it = mActiveConnections.values().iterator();
+//                    while (it.hasNext()) {
+//                        ConnectionInfo ci = it.next();
+//                        ci.binder.unlinkToDeath(ci.deathMonitor, 0);
+//                    }
+//                    mActiveConnections.clear();
+//                }
+}
+
+IServiceConnectionInner*
+LoadedCap::ServiceDispatcher::GetIServiceConnection()
+{
+   return mIServiceConnection;
+}
+
+Int32 LoadedCap::ServiceDispatcher::GetFlags()
+{
+    return mFlags;
+}
+
+void LoadedCap::ServiceDispatcher::Connected(
+    /* [in] */ IComponentName* name,
+    /* [in] */ IBinder* service)
+{
+    // if (mAppApartment != NULL) {
+    //     RunConnection* con = new RunConnection(this, name, service, 0);
+    //     PerformServiceConnected(con);
+    // }
+    // else {
+        DoConnected(name, service);
+    // }
+}
+
+ECode LoadedCap::ServiceDispatcher::DoConnected(
+    /* [in] */ IComponentName* name,
+    /* [in] */ IBinder* service)
+{
+    ConnectionInfo* old = NULL;
+    ConnectionInfo* info;
+
+    HashMap<AutoPtr<IComponentName>, ConnectionInfo*>::Iterator it =
+            mActiveConnections.Find(name);
+    if (it != mActiveConnections.End()) {
+        old = it->mSecond;
+    }
+    if (old != NULL && (IBinder*)old->mBinder == service) {
+        // Huh, already have this one.  Oh well!
+        return NOERROR;
+    }
+
+    if (service != NULL) {
+        // A new service is being connected... set it all up.
+        mDied = FALSE;
+        info = new ConnectionInfo();
+        info->mBinder = service;
+//                info.deathMonitor = new DeathMonitor(name, service);
+//                service.linkToDeath(info.deathMonitor, 0);
+        mActiveConnections[name] = info;
+    }
+    else {
+        // The named service is being disconnected... clean up.
+        mActiveConnections.Erase(name);
+    }
+
+//            if (old != null) {
+//                old.binder.unlinkToDeath(old.deathMonitor, 0);
+//            }
+
+    // If there was an old service, it is not disconnected.
+    if (old != NULL) {
+        FAIL_RETURN(mConnection->OnServiceDisconnected(name));
+    }
+    // If there is a new service, it is now connected.
+    if (service != NULL) {
+        FAIL_RETURN(mConnection->OnServiceConnected(name, service));
+    }
+}
+
+ECode LoadedCap::ServiceDispatcher::DoDeath(
+    /* [in] */ IComponentName* name,
+    /* [in] */ IBinder* service)
+{
+    return mConnection->OnServiceDisconnected(name);
+}
+
+ECode LoadedCap::ServiceDispatcher::PerformServiceConnected(
+    /* [in] */ RunConnection* con)
+{
+    ECode (STDCALL LoadedCap::ServiceDispatcher::*pHandlerFunc)(
+            RunConnection* com);
+    pHandlerFunc = &LoadedCap::ServiceDispatcher::HandleServiceConnected;
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    params->WriteInt32((Handle32)con);
+    return ((CApplicationApartment*)mAppApartment.Get())->mApartment->PostCppCallback(
+            (Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
+}
+
+ECode LoadedCap::ServiceDispatcher::HandleServiceConnected(
+    /* [in] */ RunConnection* con)
+{
+    if (con != NULL) {
+        return con->Run();
+    }
+    return NOERROR;
+}
+
+
+LoadedCap::LoadedCap(
+    /* [in] */ CApplicationApartment* appApartment,
+    /* [in] */ const String& name,
+    /* [in] */ IContext* systemContext,
+    /* [in] */ CApplicationInfo* info)
+{
+    mAppApartment = appApartment;
+    mApplicationInfo = info;
+    if (info == NULL) {
+        CApplicationInfo::NewByFriend((CApplicationInfo**)&mApplicationInfo);
+    }
+    mApplicationInfo->mCapsuleName = name;
+    //TODO: Add
+    mApplicationInfo->mProcessName = name;
+    mCapsuleName = name;
+    mAppDir = NULL;
+    mResDir = NULL;
+    //mSharedLibraries = NULL;
+    //mDataDir = NULL;
+    //mDataDirFile = NULL;
+    //mLibDir = NULL;
+    //mBaseClassLoader = NULL;
+    mSecurityViolation = FALSE;
+    mIncludeCode = TRUE;
+    //systemContext->GetClassLoader((IClassLoader**) &mClassLoader);
+    GetClassLoader((IClassLoader**)&mClassLoader);
+    systemContext->GetResources((IResources**) &mResources);
+    CCompatibilityInfo::NewByFriend((IApplicationInfo*)mApplicationInfo,
+            (CCompatibilityInfo**)&mCompatibilityInfo);
 }
 
 LoadedCap::LoadedCap(
@@ -306,6 +506,7 @@ ECode LoadedCap::GetClassLoader(
 //        } else {
 //            mClassLoader = mBaseClassLoader;
 //        }
+//        return mClassLoader;
 //    }
     //todo:
     ASSERT_SUCCEEDED(CClassLoader::New((IClassLoader**)&mClassLoader));
@@ -317,7 +518,7 @@ ECode LoadedCap::GetClassLoader(
 ECode LoadedCap::GetAppDir(
     /* [out] */ String* appDir)
 {
-    if (appDir == NULL) return E_INVALID_ARGUMENT;
+    VALIDATE_NOT_NULL(appDir);
     *appDir = mAppDir;
     return NOERROR;
 }
@@ -332,9 +533,8 @@ ECode LoadedCap::GetResources(
     if (mResources == NULL) {
         // TODO: delete this line.
         String resPath = mResDir + "/hello.apk";
-        ECode ec = apartment->GetTopLevelResources(
-            resPath/*mResDir*/, this, (CResources**)&mResources);
-        if (FAILED(ec)) return ec;
+        FAIL_RETURN(apartment->GetTopLevelResources(
+            resPath/*mResDir*/, this, (CResources**)&mResources));
     }
     *res = mResources.Get();
     (*res)->AddRef();
@@ -527,49 +727,3 @@ IServiceConnectionInner* LoadedCap::ForgetServiceDispatcher(
     }
 }
 
-LoadedCap::ServiceDispatcher::ServiceDispatcher(
-    /* [in] */ IServiceConnection* conn,
-    /* [in] */ IContext* context,
-    /* [in] */ IApplicationApartment* apartment,
-    /* [in] */ Int32 flags)
-{
-    CInnerConnection::NewByFriend((CInnerConnection**)&mIServiceConnection);
-    mIServiceConnection->Init(this);
-    mConnection = conn;
-    mContext = context;
-    mAppApartment = apartment;
-//                mLocation = new ServiceConnectionLeaked(null);
-//                mLocation.fillInStackTrace();
-    mFlags = flags;
-}
-
-IServiceConnectionInner*
-LoadedCap::ServiceDispatcher::GetIServiceConnection()
-{
-   return mIServiceConnection;
-}
-
-ECode LoadedCap::ServiceDispatcher::PerformServiceConnected(
-    /* [in] */ RunConnection* con)
-{
-    ECode (STDCALL LoadedCap::ServiceDispatcher::*pHandlerFunc)(
-        RunConnection* com);
-    pHandlerFunc = &LoadedCap::ServiceDispatcher::HandleServiceConnected;
-    AutoPtr<IParcel> params;
-    CCallbackParcel::New((IParcel**)&params);
-    params->WriteInt32((Handle32)con);
-    return ((CApplicationApartment*)mAppApartment.Get())->mApartment->PostCppCallback(
-            (Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
-}
-
-ECode LoadedCap::ServiceDispatcher::HandleServiceConnected(
-    /* [in] */ RunConnection* con)
-{
-    ECode ec = NOERROR;
-
-    if (con) {
-        ec = con->Run();
-    }
-
-    return ec;
-}

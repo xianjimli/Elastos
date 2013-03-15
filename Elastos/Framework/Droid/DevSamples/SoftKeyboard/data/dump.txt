@@ -1,0 +1,114 @@
+Package Groups (1)
+Package Group 0 id=127 packageCount=1 name=SoftKeyboard
+  Package 0 id=127 name=SoftKeyboard typeCount=8
+    type 0 configCount=0 entryCount=0
+    type 1 configCount=3 entryCount=7
+      spec resource 0x7f020000 SoftKeyboard:drawable/icon: flags=0x00000100
+      spec resource 0x7f020001 SoftKeyboard:drawable/sym_keyboard_delete: flags=0x00000100
+      spec resource 0x7f020002 SoftKeyboard:drawable/sym_keyboard_done: flags=0x00000100
+      spec resource 0x7f020003 SoftKeyboard:drawable/sym_keyboard_return: flags=0x00000100
+      spec resource 0x7f020004 SoftKeyboard:drawable/sym_keyboard_search: flags=0x00000100
+      spec resource 0x7f020005 SoftKeyboard:drawable/sym_keyboard_shift: flags=0x00000100
+      spec resource 0x7f020006 SoftKeyboard:drawable/sym_keyboard_space: flags=0x00000100
+      config 0 density=120 sdk=4
+        resource 0x7f020000 SoftKeyboard:drawable/icon: t=0x03 d=0x00000000 (s=0x0008 r=0x00)
+          (string16) "res/drawable-ldpi/icon.png"
+      config 1 density=160 sdk=4
+        resource 0x7f020000 SoftKeyboard:drawable/icon: t=0x03 d=0x00000001 (s=0x0008 r=0x00)
+          (string16) "res/drawable-mdpi/icon.png"
+        resource 0x7f020001 SoftKeyboard:drawable/sym_keyboard_delete: t=0x03 d=0x00000003 (s=0x0008 r=0x00)
+          (string16) "res/drawable-mdpi/sym_keyboard_delete.png"
+        resource 0x7f020002 SoftKeyboard:drawable/sym_keyboard_done: t=0x03 d=0x00000005 (s=0x0008 r=0x00)
+          (string16) "res/drawable-mdpi/sym_keyboard_done.png"
+        resource 0x7f020003 SoftKeyboard:drawable/sym_keyboard_return: t=0x03 d=0x00000007 (s=0x0008 r=0x00)
+          (string16) "res/drawable-mdpi/sym_keyboard_return.png"
+        resource 0x7f020004 SoftKeyboard:drawable/sym_keyboard_search: t=0x03 d=0x00000009 (s=0x0008 r=0x00)
+          (string16) "res/drawable-mdpi/sym_keyboard_search.png"
+        resource 0x7f020005 SoftKeyboard:drawable/sym_keyboard_shift: t=0x03 d=0x0000000b (s=0x0008 r=0x00)
+          (string16) "res/drawable-mdpi/sym_keyboard_shift.png"
+        resource 0x7f020006 SoftKeyboard:drawable/sym_keyboard_space: t=0x03 d=0x0000000d (s=0x0008 r=0x00)
+          (string16) "res/drawable-mdpi/sym_keyboard_space.png"
+      config 2 density=240 sdk=4
+        resource 0x7f020000 SoftKeyboard:drawable/icon: t=0x03 d=0x00000002 (s=0x0008 r=0x00)
+          (string16) "res/drawable-hdpi/icon.png"
+        resource 0x7f020001 SoftKeyboard:drawable/sym_keyboard_delete: t=0x03 d=0x00000004 (s=0x0008 r=0x00)
+          (string16) "res/drawable-hdpi/sym_keyboard_delete.png"
+        resource 0x7f020002 SoftKeyboard:drawable/sym_keyboard_done: t=0x03 d=0x00000006 (s=0x0008 r=0x00)
+          (string16) "res/drawable-hdpi/sym_keyboard_done.png"
+        resource 0x7f020003 SoftKeyboard:drawable/sym_keyboard_return: t=0x03 d=0x00000008 (s=0x0008 r=0x00)
+          (string16) "res/drawable-hdpi/sym_keyboard_return.png"
+        resource 0x7f020004 SoftKeyboard:drawable/sym_keyboard_search: t=0x03 d=0x0000000a (s=0x0008 r=0x00)
+          (string16) "res/drawable-hdpi/sym_keyboard_search.png"
+        resource 0x7f020005 SoftKeyboard:drawable/sym_keyboard_shift: t=0x03 d=0x0000000c (s=0x0008 r=0x00)
+          (string16) "res/drawable-hdpi/sym_keyboard_shift.png"
+        resource 0x7f020006 SoftKeyboard:drawable/sym_keyboard_space: t=0x03 d=0x0000000e (s=0x0008 r=0x00)
+          (string16) "res/drawable-hdpi/sym_keyboard_space.png"
+    type 2 configCount=1 entryCount=1
+      spec resource 0x7f030000 SoftKeyboard:layout/input: flags=0x00000000
+      config 0
+        resource 0x7f030000 SoftKeyboard:layout/input: t=0x03 d=0x0000000f (s=0x0008 r=0x00)
+          (string16) "res/layout/input.xml"
+    type 3 configCount=1 entryCount=4
+      spec resource 0x7f040000 SoftKeyboard:xml/method: flags=0x00000000
+      spec resource 0x7f040001 SoftKeyboard:xml/qwerty: flags=0x00000000
+      spec resource 0x7f040002 SoftKeyboard:xml/symbols: flags=0x00000000
+      spec resource 0x7f040003 SoftKeyboard:xml/symbols_shift: flags=0x00000000
+      config 0
+        resource 0x7f040000 SoftKeyboard:xml/method: t=0x03 d=0x00000010 (s=0x0008 r=0x00)
+          (string16) "res/xml/method.xml"
+        resource 0x7f040001 SoftKeyboard:xml/qwerty: t=0x03 d=0x00000011 (s=0x0008 r=0x00)
+          (string16) "res/xml/qwerty.xml"
+        resource 0x7f040002 SoftKeyboard:xml/symbols: t=0x03 d=0x00000012 (s=0x0008 r=0x00)
+          (string16) "res/xml/symbols.xml"
+        resource 0x7f040003 SoftKeyboard:xml/symbols_shift: t=0x03 d=0x00000013 (s=0x0008 r=0x00)
+          (string16) "res/xml/symbols_shift.xml"
+    type 4 configCount=1 entryCount=4
+      spec resource 0x7f050000 SoftKeyboard:color/candidate_normal: flags=0x00000000
+      spec resource 0x7f050001 SoftKeyboard:color/candidate_recommended: flags=0x00000000
+      spec resource 0x7f050002 SoftKeyboard:color/candidate_other: flags=0x00000000
+      spec resource 0x7f050003 SoftKeyboard:color/candidate_background: flags=0x00000000
+      config 0
+        resource 0x7f050000 SoftKeyboard:color/candidate_normal: t=0x1c d=0xff000000 (s=0x0008 r=0x00)
+          (color) #ff000000
+        resource 0x7f050001 SoftKeyboard:color/candidate_recommended: t=0x1c d=0xffe35900 (s=0x0008 r=0x00)
+          (color) #ffe35900
+        resource 0x7f050002 SoftKeyboard:color/candidate_other: t=0x1c d=0xff808080 (s=0x0008 r=0x00)
+          (color) #ff808080
+        resource 0x7f050003 SoftKeyboard:color/candidate_background: t=0x1c d=0xbbffffff (s=0x0008 r=0x00)
+          (color) #bbffffff
+    type 5 configCount=2 entryCount=3
+      spec resource 0x7f060000 SoftKeyboard:dimen/key_height: flags=0x00000080
+      spec resource 0x7f060001 SoftKeyboard:dimen/candidate_font_height: flags=0x00000000
+      spec resource 0x7f060002 SoftKeyboard:dimen/candidate_vertical_padding: flags=0x00000000
+      config 0
+        resource 0x7f060000 SoftKeyboard:dimen/key_height: t=0x05 d=0x00003201 (s=0x0008 r=0x00)
+          (dimension) 50.000000dp
+        resource 0x7f060001 SoftKeyboard:dimen/candidate_font_height: t=0x05 d=0x00001002 (s=0x0008 r=0x00)
+          (dimension) 16.000000sp
+        resource 0x7f060002 SoftKeyboard:dimen/candidate_vertical_padding: t=0x05 d=0x00000602 (s=0x0008 r=0x00)
+          (dimension) 6.000000sp
+      config 1 orient=2 (land)
+        resource 0x7f060000 SoftKeyboard:dimen/key_height: t=0x05 d=0x00002e01 (s=0x0008 r=0x00)
+          (dimension) 46.000000dp
+    type 6 configCount=1 entryCount=5
+      spec resource 0x7f070000 SoftKeyboard:string/ime_name: flags=0x00000000
+      spec resource 0x7f070001 SoftKeyboard:string/word_separators: flags=0x00000000
+      spec resource 0x7f070002 SoftKeyboard:string/label_go_key: flags=0x00000000
+      spec resource 0x7f070003 SoftKeyboard:string/label_next_key: flags=0x00000000
+      spec resource 0x7f070004 SoftKeyboard:string/label_send_key: flags=0x00000000
+      config 0
+        resource 0x7f070000 SoftKeyboard:string/ime_name: t=0x03 d=0x00000014 (s=0x0008 r=0x00)
+          (string16) "Sample Soft Keyboard"
+        resource 0x7f070001 SoftKeyboard:string/word_separators: t=0x03 d=0x00000015 (s=0x0008 r=0x00)
+          (string16) " .,;:!?\n()[]*&@{}/<>_+=|"
+        resource 0x7f070002 SoftKeyboard:string/label_go_key: t=0x03 d=0x00000016 (s=0x0008 r=0x00)
+          (string16) "Go"
+        resource 0x7f070003 SoftKeyboard:string/label_next_key: t=0x03 d=0x00000017 (s=0x0008 r=0x00)
+          (string16) "Next"
+        resource 0x7f070004 SoftKeyboard:string/label_send_key: t=0x03 d=0x00000018 (s=0x0008 r=0x00)
+          (string16) "Send"
+    type 7 configCount=1 entryCount=1
+      spec resource 0x7f080000 SoftKeyboard:id/keyboard: flags=0x00000000
+      config 0
+        resource 0x7f080000 SoftKeyboard:id/keyboard: t=0x12 d=0x00000000 (s=0x0008 r=0x00)
+          (color) #00000000

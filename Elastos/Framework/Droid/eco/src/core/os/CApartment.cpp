@@ -3,8 +3,8 @@
 #include "os/SystemClock.h"
 #include <new>
 
-Boolean CApartment::sHaveKey = FALSE;
-pthread_key_t CApartment::sKey;
+
+AutoPtr<CApartment> CApartment::sDefaultApartment;
 
 // --- InputDispatcherThread ---
 
@@ -52,14 +52,9 @@ ECode CApartment::constructor(
     assert(mCallbackContext != NULL);
     assert(SUCCEEDED(mCallbackContext->Initialize()));
 
-    if (!sHaveKey) {
-        assert(pthread_key_create(&sKey, NULL) == 0);
-        assert(pthread_setspecific(sKey, this) == 0);
-        //todo:
-        this->AddRef();
-        sHaveKey = TRUE;
+    if (sDefaultApartment == NULL) {
+        sDefaultApartment = this;
     }
-
     return NOERROR;
 }
 
@@ -227,15 +222,14 @@ ECode CApartment::GetDefaultApartment(
 {
     if (apartment == NULL) return E_INVALID_ARGUMENT;
 
-    *apartment = (CApartment*)pthread_getspecific(sKey);
+    *apartment = sDefaultApartment;
     if (*apartment != NULL) (*apartment)->AddRef();
-
     return NOERROR;
 }
 
 NativeMessageQueue* CApartment::GetNativeMessageQueue()
 {
-    AutoPtr<CApartment> apartment = (CApartment*)pthread_getspecific(sKey);
+    AutoPtr<CApartment> apartment = sDefaultApartment;
     if (apartment != NULL) {
         return apartment->mMessageQueue;
     }

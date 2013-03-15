@@ -1518,7 +1518,9 @@ ECode className::OnCreateInputConnection(                               \
     /* [out] */ IInputConnection** inputConnection)                     \
 {                                                                       \
     VALIDATE_NOT_NULL(inputConnection);                                 \
-    *inputConnection = superClass::OnCreateInputConnection(outAttrs);   \
+    AutoPtr<IInputConnection> ic = superClass::OnCreateInputConnection(outAttrs);   \
+    *inputConnection = ic.Get(); \
+    if (*inputConnection != NULL) (*inputConnection)->AddRef(); \
                                                                         \
     return NOERROR;                                                     \
 }                                                                       \

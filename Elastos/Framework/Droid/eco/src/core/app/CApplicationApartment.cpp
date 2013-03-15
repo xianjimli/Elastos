@@ -87,7 +87,7 @@ CApplicationApartment::~CApplicationApartment()
     mActivities.Clear();
 }
 
-ICapsuleManager* CApplicationApartment::GetCapsuleManager()
+AutoPtr<ICapsuleManager> CApplicationApartment::GetCapsuleManager()
 {
     AutoPtr<IServiceManager> serviceManager;
     AutoPtr<ICapsuleManager> capsuleManager;
@@ -1899,18 +1899,26 @@ ECode CApplicationApartment::HandleCreateService(
     LoadedCap* capsuleInfo = GetCapsuleInfoNoCheck(
             data->mInfo->mApplicationInfo);
 
-    String path = data->mInfo->mCapsuleName + ".eco";
+    char path[256];
+    strcpy(path, "/data/data/com.elastos.runtime/elastos/");
+    strcat(path, data->mInfo->mCapsuleName);
+    strcat(path, "/");
+    strcat(path, data->mInfo->mCapsuleName);
+    strcat(path, ".eco");
 
     AutoPtr<IModuleInfo> moduleInfo;
     ECode ec = CReflector::AcquireModuleInfo(path, (IModuleInfo**)&moduleInfo);
     if (FAILED(ec)) {
         Slogger::D(TAG, StringBuffer("Cann't Find the path is ") + path);
+        return E_RUNTIME_EXCEPTION;
     }
-
+    printf("==== File: %s, Line: %d ====, pid: %d, FUNC : %s.\n", __FILE__, __LINE__, getpid(), __FUNCTION__);
     AutoPtr<IClassInfo> classInfo;
     moduleInfo->GetClassInfo(data->mInfo->mName, (IClassInfo**)&classInfo);
+    assert(classInfo != NULL);
     AutoPtr<IInterface> object;
     classInfo->CreateObject((IInterface**)&object);
+    assert(object != NULL);
     AutoPtr<IService> service;
     service = (IService*)object->Probe(EIID_IService);
 
@@ -2114,7 +2122,7 @@ ECode CApplicationApartment::GetTopLevelResources(
     /* [out] */ CResources** res)
 {
     assert(res != NULL);
-
+    assert(compInfo != NULL);
     ResourcesKey* key = new ResourcesKey(resDir, compInfo->mApplicationScale);
     AutoPtr<CResources> r;
     {

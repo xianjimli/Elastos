@@ -5,9 +5,7 @@
 
 CInputConnectionWrapper::CInputConnectionWrapper()
     : mMutable(FALSE)
-{
-
-}
+{}
 
 ECode CInputConnectionWrapper::constructor(
     /* [in] */ IInputConnection* target,

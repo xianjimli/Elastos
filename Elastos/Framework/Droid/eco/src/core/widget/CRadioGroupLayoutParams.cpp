@@ -81,6 +81,13 @@ ECode CRadioGroupLayoutParams::GetWeight(
     return NOERROR;
 }
 
+ECode CRadioGroupLayoutParams::SetWeight(
+    /* [in] */ Float weight)
+{
+    mWeight = weight;
+    return NOERROR;
+}
+
 ECode CRadioGroupLayoutParams::GetGravity(
     /* [out] */ Int32* gravity)
 {

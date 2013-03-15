@@ -64,6 +64,7 @@ module
     merge("widget/NumberPicker.car");
     merge("widget/NumberPickerButton.car");
     merge("widget/DatePicker.car");
+    merge("widget/EditableInputConnection.car");
 
     class CScrollBarDrawable {
         interface IScrollBarDrawable;
@@ -1295,10 +1296,10 @@ module
 
     class CNumberPicker {
         constructor(
-            [in] IContext* context);
+            [in] IContext* ctx);
 
         constructor(
-            [in] IContext* context, 
+            [in] IContext* ctx,
             [in] IAttributeSet* attrs);
 
         interface INumberPicker;
@@ -1325,18 +1326,25 @@ module
 
     class CDatePicker {
         constructor(
-            [in] IContext* context);
-    
+            [in] IContext* ctx);
+
         constructor(
-            [in] IContext* context, 
+            [in] IContext* ctx,
             [in] IAttributeSet* attrs);
 
         constructor(
-            [in] IContext* context, 
-            [in] IAttributeSet* attrs, 
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs,
             [in] Int32 defStyle);
 
         interface IDatePicker;
+    }
+
+    class CEditableInputConnection {
+        constructor(
+            [in] ITextView* textview);
+
+        interface IEditableInputConnection;
     }
 }
 

@@ -64,6 +64,18 @@ module
 
         SetDensity(
             [in] Float density);
+
+        GetWidthPixels(
+            [out] Int32* value);
+
+        SetWidthPixels(
+            [in] Int32 value);
+
+        GetHeightPixels(
+            [out] Int32* value);
+
+        SetHeightPixels(
+            [in] Int32 value);
     }
 
     interface IDisplayMetricsHelper {

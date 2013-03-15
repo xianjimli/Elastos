@@ -3,6 +3,7 @@
 #include "view/CDisplay.h"
 #include <Logger.h>
 #include <StringBuffer.h>
+#include "view/inputmethod/CLocalInputMethodManager.h"
 
 using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
@@ -102,10 +103,16 @@ IView* CWindowManagerImpl::RemoveViewLocked(
         return view;
     }
 
-    //InputMethodManager imm = InputMethodManager.getInstance(view.getContext());
-    //if (imm != NULL) {
-    //    imm.windowDismissed(mViews[index].getWindowToken());
-    //}
+    AutoPtr<IContext> ctx;
+    view->GetContext((IContext**)&ctx);
+    AutoPtr<ILocalInputMethodManager> imm = CLocalInputMethodManager::GetInstance(ctx);
+    if (imm != NULL) {
+        IView* v = mViews[index];
+        assert(v != NULL);
+        AutoPtr<IBinder> binder;
+        v->GetWindowToken((IBinder**)&binder);
+        imm->WindowDismissed(binder);
+    }
     root->Die(FALSE);
     FinishRemoveViewLocked(view, index);
 
@@ -137,8 +144,7 @@ ECode CWindowManagerImpl::CloseAll(
     Vector<AutoPtr<IView> >::Iterator vwit = mViews.Begin();
     Vector<AutoPtr<ViewRoot> >::Iterator rtit = mRoots.Begin();
     Vector<AutoPtr<IWindowManagerLayoutParams> >::Iterator pmit = mParams.Begin();
-
-    for (;vwit!= mViews.End(); ++vwit, ++rtit, ++pmit) {
+    for (Int32 index = 0; vwit!= mViews.End(); ++vwit, ++rtit, ++pmit, ++index) {
         AutoPtr<IBinder> paramToken =
             ((CWindowManagerLayoutParams*)(*pmit).Get())->mToken;
 
@@ -164,16 +170,24 @@ ECode CWindowManagerImpl::CloseAll(
                 continue;
             }
 
-            //InputMethodManager imm = InputMethodManager.getInstance(view.getContext());
-            //if (imm != NULL) {
-            //    imm.windowDismissed(mViews[index].getWindowToken());
-            //}
+            AutoPtr<IContext> ctx;
+            view->GetContext((IContext**)&ctx);
+            AutoPtr<ILocalInputMethodManager> imm = CLocalInputMethodManager::GetInstance(ctx);
+            if (imm != NULL) {
+                IView* v = mViews[index];
+                assert(v != NULL);
+                AutoPtr<IBinder> binder;
+                v->GetWindowToken((IBinder**)&binder);
+                imm->WindowDismissed(binder);
+            }
+
             root->Die(FALSE);
             view->AssignParent(NULL);
 
             vwit = mViews.Erase(vwit); --vwit;
             rtit = mRoots.Erase(rtit); --rtit;
             pmit = mParams.Erase(pmit); --pmit;
+            index--;
         }
     }
 

@@ -183,6 +183,36 @@ ECode CDisplayMetrics::SetDensity(
     return NOERROR;
 }
 
+ECode CDisplayMetrics::GetWidthPixels(
+    /* [out] */ Int32* value)
+{
+    VALIDATE_NOT_NULL(value);
+    *value = mWidthPixels;
+    return NOERROR;
+}
+
+ECode CDisplayMetrics::SetWidthPixels(
+    /* [in] */ Int32 value)
+{
+    mWidthPixels = value;
+    return NOERROR;
+}
+
+ECode CDisplayMetrics::GetHeightPixels(
+    /* [out] */ Int32* value)
+{
+    VALIDATE_NOT_NULL(value);
+    *value = mHeightPixels;
+    return NOERROR;
+}
+
+ECode CDisplayMetrics::SetHeightPixels(
+    /* [in] */ Int32 value)
+{
+    mHeightPixels = value;
+    return NOERROR;
+}
+
 Int32 CDisplayMetrics::GetDeviceDensity()
 {
     // qemu.sf.lcd_density can be used to override ro.sf.lcd_density

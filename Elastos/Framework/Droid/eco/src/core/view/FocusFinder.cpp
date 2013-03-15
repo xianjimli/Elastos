@@ -127,6 +127,7 @@ AutoPtr<IView> FocusFinder::FindNextFocus(
 {
     AutoPtr<IObjectContainer> focusables;
     root->GetFocusables(direction, (IObjectContainer**)&focusables);
+    assert(focusables != NULL);
 
     // initialize the best candidate to something impossible
     // (so the first plausible view will become the best choice)
@@ -157,10 +158,10 @@ AutoPtr<IView> FocusFinder::FindNextFocus(
 
     AutoPtr<IObjectEnumerator> objEmu;
     focusables->GetObjectEnumerator((IObjectEnumerator**)&objEmu);
+    assert(objEmu != NULL);
 
-    Boolean isSucceeded;
-    objEmu->MoveNext(&isSucceeded);
-    while (isSucceeded) {
+    Boolean isSucceeded = FALSE;
+    while (objEmu->MoveNext(&isSucceeded), isSucceeded) {
         AutoPtr<IInterface> obj;
         objEmu->Current((IInterface**)&obj);
         IView* focusable = (IView*)obj->Probe(EIID_IView);
@@ -178,8 +179,6 @@ AutoPtr<IView> FocusFinder::FindNextFocus(
             mBestCandidateRect->SetEx(mOtherRect);
             closest = focusable;
         }
-
-        objEmu->MoveNext(&isSucceeded);
     }
 
     return closest;
@@ -547,9 +546,8 @@ AutoPtr<IView> FocusFinder::FindNearestTouchable(
     AutoPtr<IObjectEnumerator> objEmu;
     touchables->GetObjectEnumerator((IObjectEnumerator**)&objEmu);
 
-    Boolean isSucceeded;
-    objEmu->MoveNext(&isSucceeded);
-    while (isSucceeded) {
+    Boolean isSucceeded = FALSE;
+    while (objEmu->MoveNext(&isSucceeded), isSucceeded) {
         AutoPtr<IInterface> obj;
         objEmu->Current((IInterface**)&obj);
         IView* touchable = (IView*)obj->Probe(EIID_IView);
@@ -606,8 +604,6 @@ AutoPtr<IView> FocusFinder::FindNearestTouchable(
                 }
             }
         }
-
-        objEmu->MoveNext(&isSucceeded);
     }
 
     return closest;

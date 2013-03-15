@@ -14,14 +14,16 @@ endif
 C_DEFINES += -D_FRAMEWORK_CORE
 
 SOURCES += CExtractButton.cpp
-SOURCES += SoftInputWindow.cpp
+SOURCES += CSoftInputWindow.cpp
 SOURCES += AbstractInputMethodImpl.cpp
 SOURCES += AbstractInputMethodSessionImpl.cpp
 SOURCES += AbstractInputMethodService.cpp
 SOURCES += CExtractEditText.cpp
-SOURCES += CInputMethodService.cpp
-SOURCES += IInputMethodWrapper.cpp
-SOURCES += IInputMethodSessionWrapper.cpp
+SOURCES += InputMethodService.cpp
+SOURCES += CIInputMethodWrapper.cpp
+SOURCES += CIInputMethodSessionWrapper.cpp
 SOURCES += Keyboard.cpp
 SOURCES += KeyboardView.cpp
 SOURCES += CKeyboardView.cpp
+SOURCES += CCandidateView.cpp
+SOURCES += CLatinKeyboardView.cpp

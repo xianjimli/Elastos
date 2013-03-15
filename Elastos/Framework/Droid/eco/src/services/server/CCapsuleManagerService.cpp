@@ -7,7 +7,7 @@
 #include "utils/XmlUtils.h"
 #include "app/ActivityManagerNative.h"
 #include "net/Uri.h"
-#include "content/CapsuleManager.h"
+#include "content/cm/CapsuleManager.h"
 #include "content/CapsuleHelper.h"
 #include "content/NativeLibraryHelper.h"
 #include "os/Environment.h"
@@ -25,6 +25,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
+
 
 using namespace Elastos;
 using namespace Elastos::Core;
@@ -1361,7 +1362,7 @@ ECode CCapsuleManagerService::ActivityIntentResolver::NewResult(
 /*
     if (!mOwner->mSettings->IsEnabledLP(info->mActivity->mInfo, mFlags)) {
         *res = NULL;
-        return E_FAIL;
+        return NOERROR;
     }
 */
     CapsuleParser::Activity* activity = info->mActivity;
@@ -1369,7 +1370,7 @@ ECode CCapsuleManagerService::ActivityIntentResolver::NewResult(
     if (mOwner->mSafeMode && (activity->mInfo->mApplicationInfo->mFlags
         & ApplicationInfo_FLAG_SYSTEM) == 0) {
         *res = NULL;
-        return E_FAIL;
+        return NOERROR;
     }
 */
     AutoPtr<IResolveInfo> rinfo;
@@ -1552,17 +1553,18 @@ ECode CCapsuleManagerService::ServiceIntentResolver::NewResult(
 {
     assert(info);
     assert(res != NULL);
-    if (!mOwner->mSettings->IsEnabledLP(info->mService->mInfo, mFlags)) {
-        *res = NULL;
-        return E_FAIL;
-    }
+    // if (!mOwner->mSettings->IsEnabledLP(info->mService->mInfo, mFlags)) {
+    //     *res = NULL;
+    //     return NOERROR;
+    // }
     CapsuleParser::Service* service = info->mService;
     AutoPtr<IApplicationInfo> srvAppInfo;
     service->mInfo->GetApplicationInfo((IApplicationInfo**)&srvAppInfo);
     Int32 srvFlags;
     srvAppInfo->GetFlags(&srvFlags);
     if (mOwner->mSafeMode && (srvFlags & ApplicationInfo_FLAG_SYSTEM) == 0) {
-        return NULL;
+        *res = NULL;
+        return NOERROR;
     }
     AutoPtr<IResolveInfo> rinfo;
     CResolveInfo::New((IResolveInfo**)&rinfo);
@@ -4832,7 +4834,9 @@ Boolean CCapsuleManagerService::Settings::IsEnabledLP(
     componentInfo->GetCapsuleName(&capStr);
     CapsuleSetting* capsuleSettings = NULL;
     HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it = mCapsules.Find(capStr);
-    if (it != mCapsules.End()) capsuleSettings = it->mSecond;
+    if (it != mCapsules.End()) {
+        capsuleSettings = it->mSecond;
+    }
 //    if (Config.LOGV) {
 //        Log.v(TAG, "isEnabledLock - packageName = " + componentInfo.packageName
 //                   + " componentName = " + componentInfo.name);
@@ -5148,7 +5152,7 @@ ECode CCapsuleManagerService::constructor(
         ReadPermissions();
 
         mRestoredSettings = mSettings->ReadLP();
-        Int64 startTime = SystemClock::UptimeMillis();
+        Int64 startTime = SystemClock::GetUptimeMillis();
 
 //	        EventLog.writeEvent(EventLogTags.BOOT_PROGRESS_PMS_SYSTEM_SCAN_START,
 //	                startTime);
@@ -5369,7 +5373,7 @@ ECode CCapsuleManagerService::constructor(
 //	        EventLog.writeEvent(EventLogTags.BOOT_PROGRESS_PMS_SCAN_END,
 //	                SystemClock.uptimeMillis());
         Slogger::I(TAG, StringBuffer("Time to scan capsules: ")
-                + (Int32)(((SystemClock::UptimeMillis() - startTime) / 1000.0f))
+                + (Int32)(((SystemClock::GetUptimeMillis() - startTime) / 1000.0f))
                 + " seconds");
 
         // If the platform SDK has changed since the last time we booted,
@@ -6328,15 +6332,15 @@ ECode CCapsuleManagerService::GetServiceInfo(
         Slogger::V(TAG, StringBuffer("getServiceInfo ") + component + ": " + s);
     }
 
-    if (s != NULL && mSettings->IsEnabledLP(
-            (IComponentInfo*)(IServiceInfo*)s->mInfo.Get(), flags)) {
+    if (s != NULL && TRUE /*mSettings->IsEnabledLP(
+            (IComponentInfo*)(IServiceInfo*)s->mInfo.Get(), flags)*/) {
         AutoPtr<IServiceInfo> info = CapsuleParser::GenerateServiceInfo(s, flags);
         *si = info;
         if (*si != NULL) (*si)->AddRef();
         return NOERROR;
     }
     *si = NULL;
-    return E_DOES_NOT_EXIST;
+    return NOERROR;
 }
 
 ECode CCapsuleManagerService::GetContentProviderInfo(
@@ -13057,6 +13061,9 @@ ECode CCapsuleManagerService::constructor()
 {
     FAIL_RETURN(CApartment::New(FALSE, (IApartment**)&mApartment));
     mApartment->Start(ApartmentAttr_New);
+    mSettings = new Settings(this);
+    assert(mSettings != NULL);
+
     return NOERROR;
 }
 
@@ -13242,7 +13249,6 @@ CapsuleParser::Capsule* CCapsuleManagerService::ScanCapsule(
 //            if (Config.LOGD) Slog.d(TAG, "  Activities: " + r);
 //        }
 
-#ifdef _HAS_PARSED_MORE // TODO: temporary comment.
         //Service
         List<CapsuleParser::Service*>::Iterator sit1 = capsule->mServices.Begin();
         List<CapsuleParser::Service*>::Iterator sit2 = capsule->mServices.End();
@@ -13265,7 +13271,6 @@ CapsuleParser::Capsule* CCapsuleManagerService::ScanCapsule(
 //        if (r != null) {
 //            if (Config.LOGD) Log.d(TAG, "  Receivers: " + r);
 //        }
-#endif
 
         return capsule;
     }

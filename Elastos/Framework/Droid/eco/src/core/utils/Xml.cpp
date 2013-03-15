@@ -1,5 +1,9 @@
 
+#ifdef _FRAMEWORK_CORE
 #include "utils/Xml.h"
+#else
+#include "Xml.h"
+#endif
 
 AutoPtr<IAttributeSet> Xml::AsAttributeSet(
     /* [in] */ IXmlPullParser* parser)

@@ -3,7 +3,7 @@ module
 {
     interface IServiceInfo;
     interface IComponentName;
-    interface ICapsuleManager;
+    interface ILocalCapsuleManager;
 
     interface IInputMethodInfo {
         /**
@@ -47,7 +47,7 @@ module
          * resources.
          */
         LoadLabel(
-            [in] ICapsuleManager* pm,
+            [in] ILocalCapsuleManager* pm,
             [out] ICharSequence** str);
 
         /**
@@ -57,7 +57,7 @@ module
          * resources.
          */
         LoadIcon(
-            [in] ICapsuleManager* pm,
+            [in] ILocalCapsuleManager* pm,
             [out] IDrawable** drawable);
 
         /**

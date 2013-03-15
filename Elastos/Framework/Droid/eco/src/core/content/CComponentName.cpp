@@ -2,6 +2,7 @@
 #include "content/CComponentName.h"
 #include <StringBuffer.h>
 
+
 using namespace Elastos::Core;
 
 CComponentName::CComponentName()
@@ -117,8 +118,8 @@ ECode CComponentName::Equals(
 
     *isEqual = FALSE;
     if (other != NULL) {
-        *isEqual = (!mCapsule.Compare(((CComponentName*)other)->mCapsule) &&
-                    !mClass.Compare(((CComponentName*)other)->mClass));
+        *isEqual = (mCapsule.Equals(((CComponentName*)other)->mCapsule) &&
+                    mClass.Equals(((CComponentName*)other)->mClass));
     }
 
     return NOERROR;
@@ -129,8 +130,14 @@ ECode CComponentName::GetHashCode(
 {
     if (hashCode == NULL) return E_INVALID_ARGUMENT;
 
-    *hashCode = (Int32)HashString(mCapsule) * 5 +
-            (Int32)HashString(mClass);
+    *hashCode = 0;
+    if (!mCapsule.IsNull()) {
+        *hashCode += (Int32)HashString(mCapsule) * 5;
+    }
+
+    if (!mClass.IsNull()) {
+        *hashCode += (Int32)HashString(mClass);
+    }
     return NOERROR;
 }
 

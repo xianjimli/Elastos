@@ -54,7 +54,17 @@ module
     interface IContext;
 
     class CContextImpl {
+        constructor();
+
+        constructor(
+            [in] Boolean isSysCtx);
+
+        constructor(
+            [in] IResources* res,
+            [in] IBinder* binder);
+
         interface IContext;
+        interface IContextImpl;
     }
 
     class CApplication {

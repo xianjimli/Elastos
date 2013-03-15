@@ -1,0 +1,58 @@
+
+module
+{
+    interface IExtractedText;
+    interface IRect;
+    interface ICompletionInfo;
+    interface IKeyEvent;
+    interface IMotionEvent;
+    interface IInputMethodCallback;
+
+
+    /**
+     * Sub-interface of IInputMethod which is safe to give to client applications.
+     * {@hide}
+     */
+    [deprecated]
+    /* oneway */ interface IInputMethodSession /*extends IBinder*/ {
+        FinishInput();
+
+        UpdateExtractedText(
+            [in] Int32 token,
+            [in] IExtractedText* text);
+
+        UpdateSelection(
+            [in] Int32 oldSelStart,
+            [in] Int32 oldSelEnd,
+            [in] Int32 newSelStart,
+            [in] Int32 newSelEnd,
+            [in] Int32 candidatesStart,
+            [in] Int32 candidatesEnd);
+
+        UpdateCursor(
+                 [in] IRect* newCursor);
+
+        DisplayCompletions(
+            [in] ArrayOf<ICompletionInfo*>* completions);
+
+        DispatchKeyEvent(
+            [in] Int32 seq,
+            [in] IKeyEvent* event,
+            [in] IInputMethodCallback* eventCallback);
+
+        DispatchTrackballEvent(
+            [in] Int32 seq,
+            [in] IMotionEvent* event,
+            [in] IInputMethodCallback* eventCallback);
+
+        AppPrivateCommand(
+            [in] String action,
+            [in] IBundle* data);
+
+        ToggleSoftInput(
+            [in] Int32 showFlags,
+            [in] Int32 hideFlags);
+
+        FinishSession();
+    }
+}

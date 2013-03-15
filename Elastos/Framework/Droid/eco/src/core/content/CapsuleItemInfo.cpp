@@ -20,7 +20,7 @@ ECode CapsuleItemInfo::constructor(
 }
 
 ECode CapsuleItemInfo::LoadLabel(
-    /* [in] */ ICapsuleManager* pm,
+    /* [in] */ ILocalCapsuleManager* pm,
     /* [out] */ ICharSequence** label)
 {
     if (mNonLocalizedLabel != NULL) {
@@ -42,7 +42,7 @@ ECode CapsuleItemInfo::LoadLabel(
 }
 
 ECode CapsuleItemInfo::LoadIcon(
-    /* [in] */ ICapsuleManager* pm,
+    /* [in] */ ILocalCapsuleManager* pm,
     /* [out] */ IDrawable** icon)
 {
 //    if (icon != 0) {
@@ -56,7 +56,7 @@ ECode CapsuleItemInfo::LoadIcon(
 }
 
 ECode CapsuleItemInfo::LoadLogo(
-    /* [in] */ ICapsuleManager* pm,
+    /* [in] */ ILocalCapsuleManager* pm,
     /* [out] */ IDrawable** icon)
 {
 //    if (logo != 0) {
@@ -70,18 +70,21 @@ ECode CapsuleItemInfo::LoadLogo(
 }
 
 ECode CapsuleItemInfo::LoadXmlMetaData(
-    /* [in] */ ICapsuleManager* pm,
+    /* [in] */ ILocalCapsuleManager* pm,
     /* [in] */ const String& name,
     /* [out] */ IXmlResourceParser** resource)
 {
-//    if (metaData != null) {
-//        int resid = metaData.getInt(name);
-//        if (resid != 0) {
-//            return pm.getXml(packageName, resid, getApplicationInfo());
-//        }
-//    }
-//    return null;
-    return E_NOT_IMPLEMENTED;
+    assert(resource != NULL);
+    if (mMetaData != NULL) {
+        Int32 resid = 0;
+        mMetaData->GetInt32(name, &resid);
+        if (resid != 0) {
+            return pm->GetXml(mCapsuleName, resid, GetApplicationInfo(), resource);
+        }
+    }
+
+    *resource = NULL;
+    return NOERROR;
 }
 
 String CapsuleItemInfo::GetCapsuleName()
@@ -108,4 +111,9 @@ ECode CapsuleItemInfo::WriteToParcel(
     dest->WriteString(mName);
     dest->WriteString(mCapsuleName);
     return NOERROR;
+}
+
+AutoPtr<IApplicationInfo> CapsuleItemInfo::GetApplicationInfo()
+{
+    return NULL;
 }

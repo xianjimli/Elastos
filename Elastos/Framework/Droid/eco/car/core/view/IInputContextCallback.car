@@ -1,0 +1,28 @@
+
+module
+{
+    interface IExtractedText;
+    interface ICharSequence;
+
+    /* oneway */ interface IInputContextCallback/* extends IBinder*/ {
+        SetTextBeforeCursor(
+            [in] ICharSequence* textBeforeCursor,
+            [in] Int32 seq);
+
+        SetTextAfterCursor(
+            [in] ICharSequence* textAfterCursor,
+            [in] Int32 seq);
+
+        SetCursorCapsMode(
+            [in] Int32 capsMode,
+            [in] Int32 seq);
+
+        SetExtractedText(
+            [in] IExtractedText* extractedText,
+            [in] Int32 seq);
+
+        SetSelectedText(
+            [in] ICharSequence* selectedText,
+            [in] Int32 seq);
+    }
+}

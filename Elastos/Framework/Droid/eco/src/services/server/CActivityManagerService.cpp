@@ -93,6 +93,7 @@ Int32 CActivityManagerService::VISIBLE_APP_ADJ;
 Int32 CActivityManagerService::FOREGROUND_APP_ADJ;
 
 const Int32 CActivityManagerService::CORE_SERVER_ADJ;
+const Int32 CActivityManagerService::SYSTEM_ADJ;
 const Int32 CActivityManagerService::PAGE_SIZE;
 
 // Corresponding memory levels for above adjustments.
@@ -132,6 +133,7 @@ const Int32 CActivityManagerService::CHECK_EXCESSIVE_WAKE_LOCKS_MSG;
 const Int32 CActivityManagerService::BROADCAST_SUCCESS;
 const Int32 CActivityManagerService::BROADCAST_STICKY_CANT_HAVE_PERMISSION;
 const Int32 CActivityManagerService::MAX_BROADCAST_HISTORY;
+AutoPtr<IContext> CActivityManagerService::sSystemContext;
 
 #define FAIL_RETURN_FALSE(expr) \
     do { \
@@ -276,6 +278,80 @@ ECode CActivityManagerService::constructor(
 {
     assert(wm != NULL);
     mWindowManager = (CWindowManagerService*)wm;
+    return NOERROR;
+}
+
+ECode CActivityManagerService::GetSystemContext(
+    /* [out] */ IContext** ctx)
+{
+    assert(ctx != NULL);
+
+    if (sSystemContext == NULL) {
+        CContextImpl::New(TRUE, (IContext**)&sSystemContext);
+    }
+    *ctx = sSystemContext;
+    (*ctx)->AddRef();
+
+    return NOERROR;
+}
+
+ECode CActivityManagerService::SetSystemProcess()
+{
+    // try {
+    //     ActivityManagerService m = mSelf;
+
+    //     ServiceManager.addService("activity", m);
+    //     ServiceManager.addService("meminfo", new MemBinder(m));
+    //     if (MONITOR_CPU_USAGE) {
+    //         ServiceManager.addService("cpuinfo", new CpuBinder(m));
+    //     }
+    //     ServiceManager.addService("permission", new PermissionController(m));
+
+    //     ApplicationInfo info =
+    //         mSelf.mContext.getPackageManager().getApplicationInfo(
+    //                 "android", STOCK_PM_FLAGS);
+    //     mSystemThread.installSystemApplicationInfo(info);
+
+    //     synchronized (mSelf) {
+    //         ProcessRecord app = mSelf.newProcessRecordLocked(
+    //                 mSystemThread.getApplicationThread(), info,
+    //                 info.processName);
+    //         app.persistent = true;
+    //         app.pid = MY_PID;
+    //         app.maxAdj = SYSTEM_ADJ;
+    //         mSelf.mProcessNames.put(app.processName, app.info.uid, app);
+    //         synchronized (mSelf.mPidsSelfLocked) {
+    //             mSelf.mPidsSelfLocked.put(app.pid, app);
+    //         }
+    //         mSelf.updateLruProcessLocked(app, true, true);
+    //     }
+    // } catch (PackageManager.NameNotFoundException e) {
+    //     throw new RuntimeException(
+    //             "Unable to find android system package", e);
+    // }
+    assert(sSystemContext != NULL);
+    AutoPtr<IApplicationInfo> info;
+    ASSERT_SUCCEEDED(sSystemContext->GetApplicationInfo((IApplicationInfo**)&info));
+    String processName;
+    info->GetProcessName(&processName);
+
+    // ProcessRecord* app = mSelf.NewProcessRecordLocked(
+    //         mSystemThread.getApplicationThread(), info,
+    //         info.processName);
+    AutoPtr<IApplicationApartment> apartment;
+    ASSERT_SUCCEEDED(IContextImpl::Probe(sSystemContext)->GetApplicationApartment((IApplicationApartment**)&apartment));
+    ProcessRecord* app = NewProcessRecordLocked(apartment, info, processName);
+    assert(app != NULL);
+    app->mPersistent = TRUE;
+    app->mPid = mMyPid;
+    app->mMaxAdj = SYSTEM_ADJ;
+
+    Int32 appUid = 0;
+    app->mInfo->GetUid(&appUid);
+    mProcessNames->Put(app->mProcessName, appUid, app);
+    mPidsSelfLocked[app->mPid] = app;
+
+    UpdateLRUProcessLocked(app, TRUE, TRUE);
     return NOERROR;
 }
 
@@ -6989,7 +7065,7 @@ void CActivityManagerService::KillServicesLocked(
 
             Boolean hasClients = sr->mBindings.GetSize() > 0;
             if (hasClients) {
-                Map<AutoPtr<IIntentFilterComparison>, IntentBindRecord*>::Iterator it = \
+                HashMap<AutoPtr<IIntentFilterComparison>, IntentBindRecord*>::Iterator it = \
                         sr->mBindings.Begin();
                 for (; it != sr->mBindings.End(); ++it) {
                     IntentBindRecord* b = it->mSecond;
@@ -7492,62 +7568,81 @@ CActivityManagerService::RetrieveServiceLocked(
     /* [in] */ Int32 callingUid)
 {
     AutoPtr<CServiceRecord> r;
-    AutoPtr<IIntentFilterComparison> filter;
-    CIntentFilterComparison::New(service, (IIntentFilterComparison**)&filter);
-    r = mServicesByIntent[filter];
+    AutoPtr<IComponentName> name;
+    service->GetComponent((IComponentName**)&name);
+    if (name != NULL) {
+        HashMap<AutoPtr<IComponentName>, AutoPtr<CServiceRecord> >::Iterator it =
+                mServices.Find(name);
+        if (it != mServices.End()) {
+            r = it->mSecond;
+        }
+    }
     if (r == NULL) {
-        AutoPtr<IResolveInfo> rInfo;
-        GetCapsuleManager()->ResolveService(service, resolvedType,
-                STOCK_PM_FLAGS, (IResolveInfo**)&rInfo);
-        AutoPtr<IServiceInfo> sInfo;
-        if (rInfo != NULL) {
-            rInfo->GetServiceInfo((IServiceInfo**)&sInfo);
+        AutoPtr<IIntentFilterComparison> filter;
+        CIntentFilterComparison::New(service, (IIntentFilterComparison**)&filter);
+        HashMap<AutoPtr<IIntentFilterComparison>, AutoPtr<CServiceRecord> >::Iterator it =
+                mServicesByIntent.Find(filter);
+        if (it != mServicesByIntent.End()) {
+            r = it->mSecond;
         }
-        if (sInfo == NULL) {
-            String intDes;
-            service->GetDescription(&intDes);
-            Slogger::W(TAG, StringBuffer("Unable to start service ") + intDes +
-                  ": not found");
-            return NULL;
-        }
-
-        AutoPtr<IApplicationInfo> appInfo;
-        sInfo->GetApplicationInfo((IApplicationInfo**)&appInfo);
-        String scname, sname;
-        appInfo->GetCapsuleName(&scname);
-        sInfo->GetName(&sname);
-        AutoPtr<IComponentName> name;
-        CComponentName::New(scname, sname, (IComponentName**)&name);
-        r = mServices[name];
         if (r == NULL) {
-            AutoPtr<IIntent> ci;
-            service->CloneFilter((IIntent**)&ci);
-            filter = NULL;
-            CIntentFilterComparison::New(ci, (IIntentFilterComparison**)&filter);
-            ServiceRestarter* res = new ServiceRestarter();
-            AutoPtr<BatteryStatsImpl::Uid::Cap::Serv> ss;
-//            AutoPtr<BatteryStatsImpl> stats = mBatteryStatsService->GetActiveStatistics();
-//            stats->Lock();
-//            ss = stats->GetServiceStatsLocked(
-//                    ((CServiceInfo*)(IServiceInfo*)sInfo)->mApplicationInfo->mUid,
-//                    ((CServiceInfo*)(IServiceInfo*)sInfo)->mCapsuleName,
-//                    ((CServiceInfo*)(IServiceInfo*)sInfo)->mName);
-//            stats->Unlock();
-            CServiceRecord::NewByFriend((CServiceRecord**)&r);
-            r->Init(this, ss, name, filter, sInfo, res);
-            res->SetService(r);
-            mServices[name] = r;
-            mServicesByIntent[filter] = r;
+            AutoPtr<IResolveInfo> rInfo;
+            GetCapsuleManager()->ResolveService(service, resolvedType,
+                    STOCK_PM_FLAGS, (IResolveInfo**)&rInfo);
+            AutoPtr<IServiceInfo> sInfo;
+            if (rInfo != NULL) {
+                rInfo->GetServiceInfo((IServiceInfo**)&sInfo);
+            }
+            if (sInfo == NULL) {
+                String intDes;
+                service->GetDescription(&intDes);
+                Slogger::W(TAG, StringBuffer("Unable to start service ") + intDes +
+                      ": not found");
+                return NULL;
+            }
 
-            // Make sure this component isn't in the pending list.
-            List<AutoPtr<CServiceRecord> >::Iterator it = mPendingServices.Begin();
-            while (it != mPendingServices.End()) {
-                AutoPtr<CServiceRecord> pr = *it;
-                Boolean isEqual;
-                if (pr->mName->Equals(name, &isEqual), isEqual) {
-                    it = mPendingServices.Erase(it);
+            AutoPtr<IApplicationInfo> appInfo;
+            sInfo->GetApplicationInfo((IApplicationInfo**)&appInfo);
+            String scname, sname;
+            appInfo->GetCapsuleName(&scname);
+            sInfo->GetName(&sname);
+            AutoPtr<IComponentName> name;
+            CComponentName::New(scname, sname, (IComponentName**)&name);
+            HashMap<AutoPtr<IComponentName>, AutoPtr<CServiceRecord> >::Iterator it =
+                    mServices.Find(name);
+            if (it != mServices.End()) {
+                r = it->mSecond;
+            }
+            if (r == NULL) {
+                AutoPtr<IIntent> ci;
+                service->CloneFilter((IIntent**)&ci);
+                filter = NULL;
+                CIntentFilterComparison::New(ci, (IIntentFilterComparison**)&filter);
+                ServiceRestarter* res = new ServiceRestarter();
+                AutoPtr<BatteryStatsImpl::Uid::Cap::Serv> ss;
+    //            AutoPtr<BatteryStatsImpl> stats = mBatteryStatsService->GetActiveStatistics();
+    //            stats->Lock();
+    //            ss = stats->GetServiceStatsLocked(
+    //                    ((CServiceInfo*)(IServiceInfo*)sInfo)->mApplicationInfo->mUid,
+    //                    ((CServiceInfo*)(IServiceInfo*)sInfo)->mCapsuleName,
+    //                    ((CServiceInfo*)(IServiceInfo*)sInfo)->mName);
+    //            stats->Unlock();
+                CServiceRecord::NewByFriend((CServiceRecord**)&r);
+                r->Init(this, ss, name, filter, sInfo, res);
+                res->SetService(r);
+                mServices[name] = r;
+                mServicesByIntent[filter] = r;
+
+                // Make sure this component isn't in the pending list.
+                List<AutoPtr<CServiceRecord> >::Iterator it = mPendingServices.Begin();
+                while (it != mPendingServices.End()) {
+                    AutoPtr<CServiceRecord> pr = *it;
+                    Boolean isEqual;
+                    if (pr->mName->Equals(name, &isEqual), isEqual) {
+                        it = mPendingServices.Erase(it);
+                    }
+                    else ++it;
                 }
-                else ++it;
             }
         }
     }
@@ -7698,7 +7793,7 @@ Boolean CActivityManagerService::RequestServiceBindingLocked(
 void CActivityManagerService::RequestServiceBindingsLocked(
     /* [in] */ CServiceRecord* r)
 {
-    Map<AutoPtr<IIntentFilterComparison>, IntentBindRecord*>::Iterator it;
+    HashMap<AutoPtr<IIntentFilterComparison>, IntentBindRecord*>::Iterator it;
     for (it = r->mBindings.Begin(); it != r->mBindings.End(); ++it) {
         IntentBindRecord* i = it->mSecond;
         if (!RequestServiceBindingLocked(r, i, FALSE)) {
@@ -8006,7 +8101,7 @@ ECode CActivityManagerService::BringDownServiceLocked(
 
     // Tell the service that it has been unbound.
     if (r->mBindings.GetSize() > 0 && r->mApp != NULL && r->mApp->mAppApartment != NULL) {
-        Map<AutoPtr<IIntentFilterComparison>, IntentBindRecord*>::Iterator it;
+        HashMap<AutoPtr<IIntentFilterComparison>, IntentBindRecord*>::Iterator it;
         for (it = r->mBindings.Begin(); it != r->mBindings.End(); ++it) {
             IntentBindRecord* ibr = it->mSecond;
             if (DEBUG_SERVICE) {
@@ -8110,14 +8205,12 @@ ECode CActivityManagerService::BringDownServiceLocked(
         r->mBindings.Clear();
     }
 
-    ClassID clsid;
-    AutoPtr<IObject> obj = (IObject*)r->mRestarter->Probe(EIID_IObject);
-    obj->GetClassID(&clsid);
-
-    if (clsid == ECLSID_CServiceRestarter) {
-       ((CServiceRestarter*)(IRunnable*)(r->mRestarter))->SetService(NULL);
-    }
-
+    // ClassID clsid;
+    // AutoPtr<IObject> obj = (IObject*)r->mRestarter->Probe(EIID_IObject);
+    // obj->GetClassID(&clsid);
+    // if (clsid == ECLSID_CServiceRestarter) {
+    //    ((CServiceRestarter*)(IRunnable*)(r->mRestarter))->SetService(NULL);
+    // }
     return NOERROR;
 }
 
@@ -8644,7 +8737,8 @@ ECode CActivityManagerService::BindService(
         if (b->mIntent->mApps.GetSize() == 1 && b->mIntent->mDoRebind) {
             RequestServiceBindingLocked(s, b->mIntent, TRUE);
         }
-    } else if (!b->mIntent->mRequested) {
+    }
+    else if (!b->mIntent->mRequested) {
         RequestServiceBindingLocked(s, b->mIntent, FALSE);
     }
 
@@ -8795,7 +8889,12 @@ ECode CActivityManagerService::PublishService(
     if (r != NULL) {
         AutoPtr<IIntentFilterComparison> filter;
         CIntentFilterComparison::New(intent, (IIntentFilterComparison**)&filter);
-        IntentBindRecord* b = (r->mBindings)[filter];
+        IntentBindRecord* b = NULL;
+        HashMap<AutoPtr<IIntentFilterComparison>, IntentBindRecord*>::Iterator it =
+                r->mBindings.Find(filter);
+        if (it != r->mBindings.End()) {
+            b = it->mSecond;
+        }
         if (b != NULL && !b->mReceived) {
             b->mBinder = service;
             b->mRequested = TRUE;

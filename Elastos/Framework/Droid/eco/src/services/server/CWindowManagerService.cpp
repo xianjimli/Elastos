@@ -9,6 +9,7 @@
 #include <elastos/Math.h>
 #include <Logger.h>
 
+
 using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
@@ -1425,8 +1426,8 @@ CWindowManagerService::FindWindow(
 }
 
 ECode CWindowManagerService::OpenSession(
-    /* [in] */ IInputMethodClientStub* client,
-    /* [in] */ IInputContextStub* inputContext,
+    /* [in] */ IInputMethodClient* client,
+    /* [in] */ IInputContext* inputContext,
     /* [out] */ IWindowSession** session)
 {
     assert(session != NULL);
@@ -1437,7 +1438,7 @@ ECode CWindowManagerService::OpenSession(
 }
 
 ECode CWindowManagerService::InputMethodClientHasFocus(
-    /* [in] */ IInputMethodClientStub* client,
+    /* [in] */ IInputMethodClient* client,
     /* [out] */ Boolean* result)
 {
     VALIDATE_NOT_NULL(result);
@@ -8032,7 +8033,7 @@ void CWindowManagerService::InputMonitor::UpdateInputWindowsLw()
 
         switch (child->mTouchableInsets) {
             default:
-            case ViewTreeObserver::InternalInsetsInfo::TOUCHABLE_INSETS_FRAME:
+            case ViewTreeObserver_InternalInsetsInfo_TOUCHABLE_INSETS_FRAME:
             {
                 inputWindow->mTouchableAreaLeft = frameLeft;
                 inputWindow->mTouchableAreaTop = frameTop;
@@ -8041,7 +8042,7 @@ void CWindowManagerService::InputMonitor::UpdateInputWindowsLw()
                 break;
             }
 
-            case ViewTreeObserver::InternalInsetsInfo::TOUCHABLE_INSETS_CONTENT:
+            case ViewTreeObserver_InternalInsetsInfo_TOUCHABLE_INSETS_CONTENT:
             {
                 IRect* inset = child->mGivenContentInsets;
                 Int32 insetLeft, insetTop, insetRight, insetBottom;
@@ -8056,7 +8057,7 @@ void CWindowManagerService::InputMonitor::UpdateInputWindowsLw()
                 break;
             }
 
-            case ViewTreeObserver::InternalInsetsInfo::TOUCHABLE_INSETS_VISIBLE:
+            case ViewTreeObserver_InternalInsetsInfo_TOUCHABLE_INSETS_VISIBLE:
             {
                 IRect* inset = child->mGivenVisibleInsets;
                 Int32 insetLeft, insetTop, insetRight, insetBottom;
@@ -8597,6 +8598,8 @@ CWindowManagerService::WindowState::WindowState(
     assert(SUCCEEDED(CRect::New((IRect**)&mLastVisibleInsets)));
     assert(SUCCEEDED(CRect::New((IRect**)&mContentInsets)));
     assert(SUCCEEDED(CRect::New((IRect**)&mLastContentInsets)));
+    assert(SUCCEEDED(CRect::New((IRect**)&mGivenContentInsets)));
+    assert(SUCCEEDED(CRect::New((IRect**)&mGivenVisibleInsets)));
     assert(SUCCEEDED(CRect::New((IRect**)&mFrame)));
     assert(SUCCEEDED(CRect::New((IRect**)&mLastFrame)));
     assert(SUCCEEDED(CRect::New((IRect**)&mContainingFrame)));

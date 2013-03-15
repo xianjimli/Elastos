@@ -1,0 +1,15 @@
+
+module
+{
+    importlib("Elastos.Framework.Core.eco");
+
+    class CSoftKeyboard {
+        constructor();
+
+        interface IInputMethodService;
+        interface IOnKeyboardActionListener;
+        interface IComponentCallbacks;
+        interface IKeyEventCallback;
+        interface ISoftKeyboard;
+    }
+}

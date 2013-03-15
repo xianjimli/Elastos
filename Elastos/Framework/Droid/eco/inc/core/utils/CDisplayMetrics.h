@@ -65,6 +65,18 @@ public:
     CARAPI SetDensity(
         /* [in] */ Float density);
 
+    CARAPI GetWidthPixels(
+        /* [out] */ Int32* value);
+
+    CARAPI SetWidthPixels(
+        /* [in] */ Int32 value);
+
+    CARAPI GetHeightPixels(
+        /* [out] */ Int32* value);
+
+    CARAPI SetHeightPixels(
+        /* [in] */ Int32 value);
+
 public:
     static CARAPI_(Int32) GetDeviceDensity();
 

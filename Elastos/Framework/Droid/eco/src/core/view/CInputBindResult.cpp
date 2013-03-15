@@ -1,57 +1,54 @@
 
+#include "ext/frameworkdef.h"
 #include "view/CInputBindResult.h"
 
 
-CInputBindResult::CInputBindResult()
+ECode CInputBindResult::constructor()
 {
-
+    return NOERROR;
 }
 
 ECode CInputBindResult::constructor(
-	/* [in] */ IInputMethodSessionStub* _method,
+	/* [in] */ IInputMethodSession* _method,
 	/* [in] */ const String& _id,
 	/* [in] */ Int32 _sequence)
 {
     mMethod = _method;
     mId = _id;
     mSequence = _sequence;
-
     return NOERROR;
 }
 
 ECode CInputBindResult::ReadFromParcel(
     /* [in] */ IParcel *source)
 {
-    return E_NOT_IMPLEMENTED;
+    AutoPtr<IInterface> obj;
+    source->ReadInterfacePtr((Handle32*)&obj);
+    if (obj != NULL) {
+        mMethod = IInputMethodSession::Probe(obj);
+    }
+    source->ReadString(&mId);
+    source->ReadInt32(&mSequence);
+    return NOERROR;
 }
 
 ECode CInputBindResult::WriteToParcel(
     /* [in] */ IParcel *dest)
 {
-    return E_NOT_IMPLEMENTED;
+    dest->WriteInterfacePtr((IInterface*)mMethod.Get());
+    dest->WriteString(mId);
+    dest->WriteInt32(mSequence);
+    return NOERROR;
 }
 
-ECode CInputBindResult::constructor(
-	/* [in] */ IParcel* source)
+ECode CInputBindResult::GetIIMSession(
+    /* [out] */ IInputMethodSession** session)
 {
-	//TODO
-    // mMethod = IInputMethodSession.Stub.asInterface(source.readStrongBinder());
-    // mId = source.readString();
-    // mSequence = source.readInt();
+    VALIDATE_NOT_NULL(session);
 
-    assert(0);
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CInputBindResult::GetIIMSessionStub(
-    /* [out] */ IInputMethodSessionStub** stub)
-{
-    assert(stub != NULL);
-
-    *stub = mMethod;
-    if (*stub != NULL) {
-        (*stub)->AddRef();
+    *session = mMethod;
+    if (*session != NULL) {
+        (*session)->AddRef();
     }
-
     return NOERROR;
 }

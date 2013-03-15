@@ -1,14 +1,14 @@
 
 module {
-	interface IView;
-	interface ICharSequence;
+    interface IView;
+    interface ICharSequence;
+    interface IKeyboardKey;
 
     /**
      * Listener for virtual keyboard events.
      */
     [deprecated]
-    interface IOnKeyboardActionListener
-    {
+    interface IOnKeyboardActionListener {
 
         /**
          * Called when the user presses a key. This is sent before the {@link #onKey} is called.
@@ -69,9 +69,53 @@ module {
         SwipeUp();
     }
 
+    interface IKeyboardView extends IView {
+        SetOnKeyboardActionListener(
+            [in] IOnKeyboardActionListener* listener);
 
-	interface IKeyboardView extends IView {
-		SetOnKeyboardActionListener(
-			[in] IOnKeyboardActionListener* listener);
-	}
+        SetKeyboard(
+            [in] IKeyboard* keyboard);
+
+        GetKeyboard(
+            [out] IKeyboard** keyboard);
+
+        SetShifted(
+            [in] Boolean shifted,
+            [out] Boolean* res);
+
+        IsShifted(
+            [out] Boolean* shifted);
+
+        SetPreviewEnabled(
+            [in] Boolean previewEnabled);
+
+        IsPreviewEnabled(
+            [out] Boolean* res);
+
+        SetVerticalCorrection(
+            [in] Int32 verticalOffset);
+
+        SetPopupParent(
+            [in] IView* v);
+
+        SetPopupOffset(
+            [in] Int32 x,
+            [in] Int32 y);
+
+        SetProximityCorrectionEnabled(
+            [in] Boolean enabled);
+
+        IsProximityCorrectionEnabled(
+            [out] Boolean* res);
+
+        InvalidateAllKeys();
+
+        InvalidateKey(
+            [in] Int32 keyIndex);
+
+        Closing();
+
+        HandleBack(
+            [out] Boolean* res);
+    }
 }

@@ -203,6 +203,12 @@ ECode Activity::GetResources(
     return mBase->GetResources(resources);
 }
 
+ECode Activity::GetCapsuleManager(
+    /* [out] */ ILocalCapsuleManager** capsuleManager)
+{
+    return mBase->GetCapsuleManager(capsuleManager);
+}
+
 ECode Activity::GetContentResolver(
     /* [out] */ IContentResolver** resolver)
 {

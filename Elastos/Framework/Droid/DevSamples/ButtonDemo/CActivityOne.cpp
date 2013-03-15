@@ -69,21 +69,21 @@ ECode CActivityOne::MyListener::GetInterfaceID(
 ECode CActivityOne::MyListener::OnClick(
     /* [in] */ IView* v)
 {
-    printf("OnClick\n");
-    AutoPtr<IServiceManager> sm;
-    AutoPtr<IActivityManager> am;
-    CServiceManager::AcquireSingleton((IServiceManager**)&sm);
-    sm->GetService(String("ActivityManagerService"), (IInterface**)&am);
+    printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+    AutoPtr<IServiceManager> serviceManager;
+    AutoPtr<IActivityManager> activityManagerService;
 
+    CServiceManager::AcquireSingleton((IServiceManager**)&serviceManager);
+    serviceManager->GetService(String("ActivityManagerService"), (IInterface**)&activityManagerService);
+    printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
     AutoPtr<IIntent> intent;
     CIntent::New((IIntent**)&intent);
-    intent->SetCapsule(String("TextViewDemo"));
+    intent->SetCapsule(String("TabDemo"));
     intent->SetAction(String("elastos.intent.action.MAIN"));
-
     Int32 status;
-    am->StartActivity(NULL, intent, String(NULL),
+    activityManagerService->StartActivity(NULL, (IIntent*)intent, String(NULL),
             NULL, 0, NULL, String(NULL), -1, FALSE, FALSE, &status);
-
+    printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
     return NOERROR;
 }
 

@@ -8,7 +8,7 @@ ECode CApartmentHelper::GetDefaultApartment(
 {
     VALIDATE_NOT_NULL(apartment);
 
-    *apartment = (CApartment*)pthread_getspecific(CApartment::sKey);
+    *apartment = CApartment::sDefaultApartment; //(CApartment*)pthread_getspecific(CApartment::sKey);
     if (*apartment != NULL) (*apartment)->AddRef();
 
     return NOERROR;
@@ -19,7 +19,7 @@ ECode CApartmentHelper::GetNativeMessageQueue(
 {
     VALIDATE_NOT_NULL(messageQueue);
 
-    CApartment* apartment = (CApartment*)pthread_getspecific(CApartment::sKey);
+    CApartment* apartment = CApartment::sDefaultApartment; //(CApartment*)pthread_getspecific(CApartment::sKey);
     if (apartment != NULL) {
         *messageQueue = (Handle32)apartment->mMessageQueue;
     }

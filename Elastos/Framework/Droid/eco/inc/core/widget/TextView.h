@@ -7,12 +7,26 @@
 #include "view/ViewMacro.h"
 #include "view/inputmethod/CExtractedText.h"
 #include "widget/Scroller.h"
+#include "os/ResultReceiver.h"
 
 using namespace Elastos;
 
 class TextView : public View
 {
 protected:
+    class Drawables
+    {
+    public:
+        Drawables();
+
+    public:
+        AutoPtr<CRect> mCompoundRect;
+        AutoPtr<IDrawable> mDrawableTop, mDrawableBottom, mDrawableLeft, mDrawableRight;
+        Int32 mDrawableSizeTop, mDrawableSizeBottom, mDrawableSizeLeft, mDrawableSizeRight;
+        Int32 mDrawableWidthTop, mDrawableWidthBottom, mDrawableHeightLeft, mDrawableHeightRight;
+        Int32 mDrawablePadding;
+    };
+
     class InputContentType : public ElRefBase
     {
     public:
@@ -39,11 +53,19 @@ protected:
             ASSERT_SUCCEEDED(CRect::NewByFriend((CRect**)&mCursorRectInWindow));
             ASSERT_SUCCEEDED(CRectF::NewByFriend((CRectF**)&mTmpRectF));
             ASSERT_SUCCEEDED(CExtractedText::New((IExtractedText**)&mTmpExtracted));
+            mTmpOffset = ArrayOf<Float>::Alloc(2);
+        }
+
+        ~InputMethodState() {
+            if (mTmpOffset != NULL) {
+                ArrayOf<Float>::Free(mTmpOffset);
+                mTmpOffset = NULL;
+            }
         }
 
         AutoPtr<IRect> mCursorRectInWindow;
         AutoPtr<IRectF> mTmpRectF;
-        Float mTmpOffset[2];
+        ArrayOf<Float>* mTmpOffset;
         AutoPtr<IExtractedTextRequest> mExtracting;
         AutoPtr<IExtractedText> mTmpExtracted;
         Int32 mBatchEditNesting;
@@ -55,9 +77,9 @@ protected:
         Int32 mChangedDelta;
     };
 private:
-    class CharWrapper:
-        public ElRefBase,
-        public IGetChars
+    class CharWrapper
+        : public ElRefBase
+        , public IGetChars
     {
         friend class TextView;
 
@@ -461,6 +483,54 @@ private:
     private:
         AutoPtr<ICharSequence> mBeforeText;
         TextView* mHost;
+    };
+
+    class CommitSelectionReceiver
+        : public ElRefBase
+        , public IResultReceiver
+        , public IParcelable
+        , public ResultReceiver
+    {
+    public:
+        CommitSelectionReceiver(
+            /* [in] */ Int32 prevStart,
+            /* [in] */ Int32 prevEnd,
+            /* [in] */ TextView* host);
+
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI Send(
+            /* [in] */ Int32 resultCode,
+            /* [in] */ IBundle* resultData);
+
+        CARAPI DescribeContents(
+                /* [out] */ Int32* contents);
+
+        CARAPI ReadFromParcel(
+            /* [in] */ IParcel *source);
+
+        CARAPI WriteToParcel(
+            /* [in] */ IParcel *dest);
+
+    protected:
+        //@Override
+        CARAPI OnReceiveResult(
+            /* [in] */ Int32 resultCode,
+            /* [in] */ IBundle* resultData);
+
+    private:
+        const Int32 mPrevStart;
+        const Int32 mPrevEnd;
+        TextView*   mHost;
     };
 
     class Blink : public Runnable
@@ -1592,7 +1662,7 @@ public:
 
     CARAPI_(Boolean) OnCheckIsTextEditor();
 
-    virtual CARAPI_(IInputConnection*) OnCreateInputConnection(
+    virtual CARAPI_(AutoPtr<IInputConnection>) OnCreateInputConnection(
         /* [in] */ IEditorInfo* outAttrs);
 
     /**
@@ -2436,16 +2506,6 @@ private:
     static const Int32 SIGNED;
     static const Int32 DECIMAL;
 
-    class Drawables
-    {
-    public:
-        AutoPtr<CRect> mCompoundRect;
-        AutoPtr<IDrawable> mDrawableTop, mDrawableBottom, mDrawableLeft, mDrawableRight;
-        Int32 mDrawableSizeTop, mDrawableSizeBottom, mDrawableSizeLeft, mDrawableSizeRight;
-        Int32 mDrawableWidthTop, mDrawableWidthBottom, mDrawableHeightLeft, mDrawableHeightRight;
-        Int32 mDrawablePadding;
-    };
-
     Drawables* mDrawables;
 
     AutoPtr<ICharSequence> mError;
@@ -2763,32 +2823,7 @@ private:
     //    }
     //}
 
-    //class CommitSelectionReceiver extends ResultReceiver {
-    //    private final Int32 mPrevStart, mPrevEnd;
-    //
-    //    public CommitSelectionReceiver(Int32 prevStart, Int32 prevEnd) {
-    //        super(getHandler());
-    //        mPrevStart = prevStart;
-    //        mPrevEnd = prevEnd;
-    //    }
-    //
-    //    @Override
-    //    protected void onReceiveResult(Int32 resultCode, Bundle resultData) {
-    //        // If this tap was actually used to show the IMM, leave cursor or selection unchanged
-    //        // by restoring its previous position.
-    //        if (resultCode == InputMethodManager.RESULT_SHOWN) {
-    //            final Int32 len = mText.length();
-    //            Int32 start = Math.min(len, mPrevStart);
-    //            Int32 end = Math.min(len, mPrevEnd);
-    //            Selection.setSelection((Spannable)mText, start, end);
-
-    //            Boolean selectAllGotFocus = mSelectAllOnFocus && mTouchFocusSelected;
-    //            if (hasSelection() && !selectAllGotFocus) {
-    //                startTextSelectionMode();
-    //            }
-    //        }
-    //    }
-    //}
+    friend class CommitSelectionReceiver;
 };
 
 #endif //__TEXTVIEW_H__

@@ -100,12 +100,11 @@ private:
     static void* EntryRoutine(void *arg);
 
 private:
-    static Boolean sHaveKey;
-    static pthread_key_t sKey;
+    static AutoPtr<CApartment> sDefaultApartment;
 
 private:
-    pthread_t   mThread;
-    Boolean     mFinished;
+    pthread_t mThread;
+    Boolean mFinished;
     AutoPtr<CCallbackContextEx> mCallbackContext;
     Boolean mUsingNativeMessageQueue;
     NativeMessageQueue* mMessageQueue;

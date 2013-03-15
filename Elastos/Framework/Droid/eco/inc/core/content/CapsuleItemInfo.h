@@ -39,7 +39,7 @@ public:
      * item does not have a label, its name is returned.
      */
     virtual CARAPI LoadLabel(
-        /* [in] */ ICapsuleManager* pm,
+        /* [in] */ ILocalCapsuleManager* pm,
         /* [out] */ ICharSequence** label);
 
     /**
@@ -55,7 +55,7 @@ public:
      * such as the default activity icon.
      */
     virtual CARAPI LoadIcon(
-        /* [in] */ ICapsuleManager* pm,
+        /* [in] */ ILocalCapsuleManager* pm,
         /* [out] */ IDrawable** icon);
 
     /**
@@ -70,7 +70,7 @@ public:
      * does not have a logo, this method will return null.
      */
     virtual CARAPI LoadLogo(
-        /* [in] */ ICapsuleManager* pm,
+        /* [in] */ ILocalCapsuleManager* pm,
         /* [out] */ IDrawable** icon);
 
     /**
@@ -87,7 +87,7 @@ public:
      * or the XML resource could not be found, null is returned.
      */
     virtual CARAPI LoadXmlMetaData(
-        /* [in] */ ICapsuleManager* pm,
+        /* [in] */ ILocalCapsuleManager* pm,
         /* [in] */ const String& name,
         /* [out] */ IXmlResourceParser** resource);
 
@@ -100,6 +100,17 @@ public:
 
     CARAPI WriteToParcel(
         /* [in] */ IParcel* dest);
+
+protected:
+    /**
+     * Get the ApplicationInfo for the application to which this item belongs,
+     * if available, otherwise returns null.
+     *
+     * @return Returns the ApplicationInfo of this item, or null if not known.
+     *
+     * @hide
+     */
+    virtual CARAPI_(AutoPtr<IApplicationInfo>) GetApplicationInfo();
 
 public:
     /**

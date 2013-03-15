@@ -1,7 +1,7 @@
 
 module
 {
-    interface ICapsuleManager;
+    interface ILocalCapsuleManager;
     interface ICharSequence;
     interface IDrawable;
     interface IXmlResourceParser;
@@ -28,7 +28,7 @@ module
          * item does not have a label, its name is returned.
          */
         LoadLabel(
-            [in] ICapsuleManager* pm,
+            [in] ILocalCapsuleManager* pm,
             [out] ICharSequence** label);
 
         /**
@@ -44,7 +44,7 @@ module
          * such as the default activity icon.
          */
         LoadIcon(
-            [in] ICapsuleManager* pm,
+            [in] ILocalCapsuleManager* pm,
             [out] IDrawable** icon);
 
         /**
@@ -59,7 +59,7 @@ module
          * does not have a logo, this method will return null.
          */
         LoadLogo(
-            [in] ICapsuleManager* pm,
+            [in] ILocalCapsuleManager* pm,
             [out] IDrawable** icon);
 
         /**
@@ -76,7 +76,7 @@ module
          * or the XML resource could not be found, null is returned.
          */
         LoadXmlMetaData(
-            [in] ICapsuleManager* pm,
+            [in] ILocalCapsuleManager* pm,
             [in] String name,
             [out] IXmlResourceParser** resource);
 

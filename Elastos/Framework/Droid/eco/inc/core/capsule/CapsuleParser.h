@@ -234,7 +234,7 @@ public:
     {
     public:
         ServiceIntentInfo(
-            /* [in] */ Service* service) {}
+            /* [in] */ Service* service): mService(service) {}
 
     public:
         Service* mService;
@@ -259,6 +259,10 @@ public:
         Service(
             /* [in] */ ParseComponentArgs* args,
             /* [in] */ IServiceInfo* info);
+
+        CARAPI_(void) SetCapsuleName(
+            /* [in] */ const String& capName);
+
     public:
         AutoPtr<IServiceInfo> mInfo;
     };
@@ -389,7 +393,8 @@ public:
             , mOperationPending(FALSE)
             , mInstallLocation(0)
         {
-            CApplicationInfo::New((IApplicationInfo**)&mApplicationInfo);
+            ASSERT_SUCCEEDED(CApplicationInfo::New((IApplicationInfo**)&mApplicationInfo));
+            mApplicationInfo->SetUid(-1);
         }
 
         Capsule(
@@ -407,7 +412,11 @@ public:
             , mExtras(NULL)
             , mOperationPending(FALSE)
             , mInstallLocation(0)
-        {}
+        {
+            ASSERT_SUCCEEDED(CApplicationInfo::New((IApplicationInfo**)&mApplicationInfo));
+            mApplicationInfo->SetCapsuleName(mCapsuleName);
+            mApplicationInfo->SetUid(-1);
+        }
 
         ~Capsule()
         {

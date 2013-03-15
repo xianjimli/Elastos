@@ -1,10 +1,10 @@
 
 module
 {
-	interface IInputMethodSessionStub;
+    interface IInputMethodSession;
 
     interface IInputBindResult {
-    	GetIIMSessionStub(
-    		[out] IInputMethodSessionStub** stub);
+        GetIIMSession(
+            [out] IInputMethodSession** session);
     }
 }

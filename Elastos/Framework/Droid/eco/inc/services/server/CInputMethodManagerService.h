@@ -1,16 +1,16 @@
 
-#ifndef  _CINPUTMETHODMANAGERSERVICE_H__
-#define  _CINPUTMETHODMANAGERSERVICE_H__
+#ifndef  __CINPUTMETHODMANAGERSERVICE_H__
+#define  __CINPUTMETHODMANAGERSERVICE_H__
 
-#include "ext/frameworkdef.h"
 #include "ext/frameworkext.h"
 #include "_CInputMethodManagerService.h"
+#include "text/TextUtils.h"
 #include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>
 #include <elastos/HashMap.h>
 #include <elastos/List.h>
 #include <elastos/Mutex.h>
-#include "text/TextUtils.h"
+
 
 #ifdef _FRAMEWORK_CORE
 #include "content/BroadcastReceiver.h"
@@ -23,7 +23,7 @@ using namespace Elastos::Core;
 
 _ELASTOS_NAMESPACE_BEGIN
 
-template<> struct Hash<AutoPtr<IBinder> >
+template<> struct Hash< AutoPtr<IBinder> >
 {
     size_t operator()(AutoPtr<IBinder> name) const
     {
@@ -32,10 +32,10 @@ template<> struct Hash<AutoPtr<IBinder> >
     }
 };
 
-template<> struct EqualTo<AutoPtr<IBinder> >
+template<> struct EqualTo< AutoPtr<IBinder> >
 {
     Boolean operator()(const AutoPtr<IBinder>& x,
-                       const AutoPtr<IBinder>& y) const
+                         const AutoPtr<IBinder>& y) const
     {
         assert(x != NULL && y != NULL);
         return x.Get() == y.Get();
@@ -50,17 +50,18 @@ _ELASTOS_NAMESPACE_END
  */
 CarClass(CInputMethodManagerService)
 {
+    friend class CInputMethodManagerServiceMethodCallback;
+
 private:
     class ClientState;
 
-    class SessionState:
-        public ElRefBase
+    class SessionState : public ElRefBase
     {
     public:
         SessionState(
-            /* [in] */ ClientState* _client,
-            /* [in] */ IInputMethodStub* _method,
-            /* [in] */ IInputMethodSessionStub* _session);
+            /* [in] */ ClientState* client,
+            /* [in] */ IInputMethod* method,
+            /* [in] */ IInputMethodSession* session);
 
         CARAPI_(UInt32) AddRef();
 
@@ -68,27 +69,26 @@ private:
 
     public:
         AutoPtr<ClientState> mClient;
-        AutoPtr<IInputMethodStub> mMethod;
-        AutoPtr<IInputMethodSessionStub> mSession;
+        AutoPtr<IInputMethod> mMethod;
+        AutoPtr<IInputMethodSession> mSession;
     };
 
-    class ClientState:
-        public ElRefBase
+    class ClientState : public ElRefBase
     {
     public:
         ClientState(
-            /* [in] */ IInputMethodClientStub* _client,
-            /* [in] */ IInputContextStub* _inputContext,
-            /* [in] */ Int32 _uid,
-            /* [in] */ Int32 _pid);
+            /* [in] */ IInputMethodClient* client,
+            /* [in] */ IInputContext* inputContext,
+            /* [in] */ Int32 uid,
+            /* [in] */ Int32 pid);
 
         CARAPI_(UInt32) AddRef();
 
         CARAPI_(UInt32) Release();
 
     public:
-        AutoPtr<IInputMethodClientStub> mClient;
-        AutoPtr<IInputContextStub> mInputContext;
+        AutoPtr<IInputMethodClient> mClient;
+        AutoPtr<IInputContext> mInputContext;
         const Int32 mUid;
         const Int32 mPid;
         AutoPtr<IInputBinding> mBinding;
@@ -113,23 +113,20 @@ private:
     //     }
     // };
 
-    class ScreenOnOffReceiver:
-        public BroadcastReceiver
+    class ScreenOnOffReceiver : public BroadcastReceiver
     {
     public:
         ScreenOnOffReceiver(
             /* [in] */ CInputMethodManagerService* host);
 
-        ~ScreenOnOffReceiver();
-
     protected:
         //@Override
         virtual CARAPI OnReceive(
-            /* [in] */ IContext *pContext,
-            /* [in] */ IIntent *pIntent);
+            /* [in] */ IContext* context,
+            /* [in] */ IIntent* intent);
 
     private:
-        CInputMethodManagerService*    mHost;
+        CInputMethodManagerService* mHost;
     };
 
     // class MyPackageMonitor extends PackageMonitor {
@@ -230,41 +227,6 @@ private:
     //     }
     // };
 
-    class MethodCallback:
-        public ElRefBase,
-        public IInputMethodCallbackStub
-    {
-    public:
-        MethodCallback(
-            /* [in] */ IInputMethodStub* method,
-            /* [in] */ CInputMethodManagerService* host);
-
-        CARAPI_(UInt32) AddRef();
-
-        CARAPI_(UInt32) Release();
-
-        CARAPI_(PInterface) Probe(
-            /* [in] */ REIID riid);
-
-        CARAPI GetInterfaceID(
-            /* [in] */ IInterface *pObject,
-            /* [out] */ InterfaceID *pIID);
-
-        CARAPI FinishedEvent(
-            /* [in] */ Int32 seq,
-            /* [in] */ Boolean handled);
-
-        CARAPI SessionCreated(
-            /* [in] */ IInputMethodSessionStub* session);
-
-        CARAPI GetDescription(
-                /* [out] */ String* description);
-
-    private:
-        AutoPtr<IInputMethodStub> mMethod;
-        CInputMethodManagerService* mHost;
-    };
-
 public:
     CInputMethodManagerService();
 
@@ -277,14 +239,6 @@ public:
     CARAPI GetDescription(
             /* [out] */ String* description);
 
-    //@Override
-    CARAPI OnTransact(
-        /* [in] */ Int32 code,
-        /* [in] */ IParcel* data,
-        /* [in] */ IParcel* reply,
-        /* [in] */ Int32 flags,
-        /* [out] */ Boolean* state);
-
     CARAPI SystemReady();
 
     CARAPI GetInputMethodList(
@@ -293,28 +247,25 @@ public:
     CARAPI GetEnabledInputMethodList(
         /* [out] */ IObjectContainer** list);
 
-    CARAPI GetEnabledInputMethodListLocked(
-        /* [out] */ IObjectContainer** list);
-
     CARAPI AddClient(
-        /* [in] */ IInputMethodClientStub* client,
-        /* [in] */ IInputContextStub* inputContext,
+        /* [in] */ IInputMethodClient* client,
+        /* [in] */ IInputContext* inputContext,
         /* [in] */ Int32 uid,
         /* [in] */ Int32 pid);
 
     CARAPI RemoveClient(
-        /* [in] */ IInputMethodClientStub* client);
+        /* [in] */ IInputMethodClient* client);
 
     CARAPI StartInput(
-        /* [in] */ IInputMethodClientStub* client,
-        /* [in] */ IInputContextStub* inputContext,
+        /* [in] */ IInputMethodClient* client,
+        /* [in] */ IInputContext* inputContext,
         /* [in] */ IEditorInfo* attribute,
         /* [in] */ Boolean initial,
         /* [in] */ Boolean needResult,
         /* [out] */ IInputBindResult** res);
 
     CARAPI FinishInput(
-        /* [in] */ IInputMethodClientStub* client);
+        /* [in] */ IInputMethodClient* client);
 
     CARAPI OnServiceConnected(
         /* [in] */ IComponentName* name,
@@ -328,25 +279,20 @@ public:
         /* [in] */ const String& packageName,
         /* [in] */ Int32 iconId);
 
-    CARAPI_(void) UpdateFromSettingsLocked();
-
-    CARAPI SetInputMethodLocked(
-        /* [in] */ const String& id);
-
     CARAPI ShowSoftInput(
-        /* [in] */ IInputMethodClientStub* client,
+        /* [in] */ IInputMethodClient* client,
         /* [in] */ Int32 flags,
         /* [in] */ IResultReceiver* resultReceiver,
         /* [out] */ Boolean* state);
 
     CARAPI HideSoftInput(
-        /* [in] */ IInputMethodClientStub* client,
+        /* [in] */ IInputMethodClient* client,
         /* [in] */ Int32 flags,
         /* [in] */ IResultReceiver* resultReceiver,
         /* [out] */ Boolean* state);
 
     CARAPI WindowGainedFocus(
-        /* [in] */ IInputMethodClientStub* client,
+        /* [in] */ IInputMethodClient* client,
         /* [in] */ IBinder* windowToken,
         /* [in] */ Boolean viewHasFocus,
         /* [in] */ Boolean isTextEditor,
@@ -355,7 +301,7 @@ public:
         /* [in] */ Int32 windowFlags);
 
     CARAPI ShowInputMethodPickerFromClient(
-        /* [in] */ IInputMethodClientStub* client);
+        /* [in] */ IInputMethodClient* client);
 
     CARAPI SetInputMethod(
         /* [in] */ IBinder* token,
@@ -374,67 +320,75 @@ public:
         /* [in] */ Boolean enabled,
         /* [out] */ Boolean* state);
 
-    CARAPI_(Boolean) SetInputMethodEnabledLocked(
-        /* [in] */ const String& id,
-        /* [in] */ Boolean enabled);
-
 protected:
-    CARAPI_(Boolean) ShowCurrentInputLocked(
+    /* packaged */ CARAPI GetEnabledInputMethodListLocked(
+        /* [out] */ IObjectContainer** list);
+
+    /* packaged */ CARAPI_(void) UnbindCurrentClientLocked();
+
+    /* packaged */ CARAPI_(AutoPtr<IInputBindResult>) AttachNewInputLocked(
+        /* [in] */ Boolean initial,
+        /* [in] */ Boolean needResult);
+
+    /* packaged */ CARAPI_(AutoPtr<IInputBindResult>) StartInputLocked(
+        /* [in] */ IInputMethodClient* client,
+        /* [in] */ IInputContext* inputContext,
+        /* [in] */ IEditorInfo* attribute,
+        /* [in] */ Boolean initial,
+        /* [in] */ Boolean needResult);
+
+    /* packaged */ CARAPI_(AutoPtr<IInputBindResult>) StartInputInnerLocked();
+
+    /* packaged */ CARAPI_(void) OnSessionCreated(
+        /* [in] */ IInputMethod* method,
+        /* [in] */ IInputMethodSession* session);
+
+    /* packaged */ CARAPI_(void) UnbindCurrentMethodLocked(
+        /* [in] */ Boolean reportToClient);
+
+    /* packaged */ CARAPI_(void) ClearCurMethodLocked();
+
+    /* packaged */ CARAPI_(void) UpdateFromSettingsLocked();
+
+    /* packaged */ CARAPI SetInputMethodLocked(
+        /* [in] */ const String& id);
+
+    /* packaged */ CARAPI_(Boolean) ShowCurrentInputLocked(
         /* [in] */ Int32 flags,
         /* [in] */ IResultReceiver* resultReceiver);
 
-    CARAPI_(Boolean) HideCurrentInputLocked(
+    /* packaged */ CARAPI_(Boolean) HideCurrentInputLocked(
         /* [in] */ Int32 flags,
         /* [in] */ IResultReceiver* resultReceiver);
 
-    CARAPI_(void) SetEnabledSessionInMainThread(
+    /* packaged */ CARAPI_(void) SetEnabledSessionInMainThread(
         /* [in] */ SessionState* session);
 
-    CARAPI_(void) BuildInputMethodListLocked(
+    /* packaged */ CARAPI_(void) BuildInputMethodListLocked(
         /* [in] */ List<AutoPtr<IInputMethodInfo> >& list,
         /* [in] */ HashMap<String, AutoPtr<IInputMethodInfo> >& map);
 
-    CARAPI_(void) ShowInputMethodMenu();
+    /* packaged */ CARAPI_(void) ShowInputMethodMenu();
 
-    CARAPI_(void) HideInputMethodMenu();
+    /* packaged */ CARAPI_(void) HideInputMethodMenu();
 
-    CARAPI_(void) HideInputMethodMenuLocked();
+    /* packaged */ CARAPI_(void) HideInputMethodMenuLocked();
+
+    /* packaged */ CARAPI_(Boolean) SetInputMethodEnabledLocked(
+        /* [in] */ const String& id,
+        /* [in] */ Boolean enabled);
 
 private:
     // CARAPI_(void) ExecuteOrSendMessage(
     //     /* [in] */ IInterface* target,
     //     /* [in] */ Message msg);
 
-    CARAPI_(void) UnbindCurrentClientLocked();
-
     CARAPI_(Int32) GetImeShowFlags();
 
     CARAPI_(Int32) GetAppShowFlags();
 
-    CARAPI_(AutoPtr<IInputBindResult>) AttachNewInputLocked(
-        /* [in] */ Boolean initial,
-        /* [in] */ Boolean needResult);
-
-    CARAPI_(AutoPtr<IInputBindResult>) StartInputLocked(
-        /* [in] */ IInputMethodClientStub* client,
-        /* [in] */ IInputContextStub* inputContext,
-        /* [in] */ IEditorInfo* attribute,
-        /* [in] */ Boolean initial,
-        /* [in] */ Boolean needResult);
-
-    CARAPI_(AutoPtr<IInputBindResult>) StartInputInnerLocked();
-
-    CARAPI_(void) OnSessionCreated(
-        /* [in] */ IInputMethodStub* method,
-        /* [in] */ IInputMethodSessionStub* session);
-
-    CARAPI_(void) UnbindCurrentMethodLocked(
-        /* [in] */ Boolean reportToClient);
-
     CARAPI_(void) FinishSession(
         /* [in] */ SessionState* sessionState);
-
-    CARAPI_(void) ClearCurMethodLocked();
 
     CARAPI_(Boolean) IsSystemIme(
         /* [in] */ IInputMethodInfo* inputMethod);
@@ -446,59 +400,60 @@ private:
 
     // Handle MSG_UNBIND_INPUT
     CARAPI_(void) HandleUnbindInput(
-        /* [in] */ IInputMethodStub* inputMethod);
+        /* [in] */ IInputMethod* inputMethod);
 
     // Handle MSG_BIND_INPUT
     CARAPI_(void) HandleBindInput(
-        /* [in] */ IInputMethodStub* inputMethod,
+        /* [in] */ IInputMethod* inputMethod,
         /* [in] */ IInputBinding* binding);
 
     //Handle MSG_SHOW_SOFT_INPUT
     CARAPI_(void) HandleShowSoftInput(
-        /* [in] */ IInputMethodStub* inputMethod,
+        /* [in] */ IInputMethod* inputMethod,
         /* [in] */ Int32 flags,
         /* [in] */ IResultReceiver* resultReceiver);
 
     //Handle MSG_HIDE_SOFT_INPUT
     CARAPI_(void) HandleHideSoftInput(
-        /* [in] */ IInputMethodStub* inputMethod,
+        /* [in] */ IInputMethod* inputMethod,
         /* [in] */ IResultReceiver* resultReceiver);
 
     //Handle MSG_ATTACH_TOKEN
     CARAPI_(void) HandleAttachToken(
-        /* [in] */ IInputMethodStub* inputMethod,
+        /* [in] */ IInputMethod* inputMethod,
         /* [in] */ IBinder* binder);
 
     //Handle MSG_CREATE_SESSION
     CARAPI_(void) HandleCreateSession(
-        /* [in] */ IInputMethodStub* inputMethod,
-        /* [in] */ IInputMethodCallbackStub* methodcallback);
+        /* [in] */ IInputMethod* inputMethod,
+        /* [in] */ IInputMethodCallback* methodcallback);
 
     //Handle MSG_START_INPUT
     CARAPI_(void) HandleStartInput(
         /* [in] */ SessionState* state,
-        /* [in] */ IInputContextStub* inputContext,
+        /* [in] */ IInputContext* inputContext,
         /* [in] */ IEditorInfo* info);
 
     //Handle MSG_RESTART_INPUT
     CARAPI_(void) HandleRestartInput(
         /* [in] */ SessionState* state,
-        /* [in] */ IInputContextStub* inputContext,
+        /* [in] */ IInputContext* inputContext,
         /* [in] */ IEditorInfo* info);
 
     //Handle MSG_UNBIND_METHOD
     CARAPI_(void) HandleUnbindMethod(
-        /* [in] */ IInputMethodClientStub* inputMethod,
+        /* [in] */ IInputMethodClient* inputMethod,
         /* [in] */ Int32 flags);
 
     //Handle MSG_BIND_METHOD
     CARAPI_(void) HandleBindMethod(
-        /* [in] */ IInputMethodClientStub* inputMethod,
+        /* [in] */ IInputMethodClient* inputMethod,
         /* [in] */ IInputBindResult* bindRes);
 
 private:
     // static final Boolean DEBUG = false;
     static CString TAG;
+    //TODO:
     static CString ENABLED_STR;
     static CString DEFAULT_INPUT_METHOD;
 
@@ -517,16 +472,15 @@ private:
     static const Int32 MSG_UNBIND_METHOD = 3000;
     static const Int32 MSG_BIND_METHOD = 3010;
 
-    static const long TIME_TO_RECONNECT = 10*1000;
+    static const Int64 TIME_TO_RECONNECT = 10*1000;
 
     AutoPtr<IContext> mContext;
     AutoPtr<IApartment> mHandler;
 
-    //TODO
     //final SettingsObserver mSettingsObserver;
+    //final StatusBarManagerService mStatusBar;
     AutoPtr<IStatusBarService> mStatusBar;
     AutoPtr<IWindowManagerStub> mIWindowManager;
-
     //TODO
     //final HandlerCaller mCaller;
     AutoPtr<IApartment> mCaller;
@@ -535,13 +489,13 @@ private:
 
     // All known input methods.  mMethodMap also serves as the global
     // lock for this class.
-    List<AutoPtr<IInputMethodInfo> > mMethodList/* = new ArrayList<IInputMethodInfo>()*/;
-    HashMap<String, AutoPtr<IInputMethodInfo> > mMethodMap/* = new HashMap<String, IInputMethodInfo>()*/;
-    Mutex   mMethodMapLock;
+    List< AutoPtr<IInputMethodInfo> > mMethodList;
+    HashMap<String, AutoPtr<IInputMethodInfo> > mMethodMap;
+    Mutex mMethodMapLock;
 
     TextUtils::SimpleStringSplitter* mStringColonSplitter;
 
-    HashMap<AutoPtr<IBinder>, AutoPtr<ClientState> >    mClients/* = new HashMap<IBinder, ClientState>()*/;
+    HashMap<AutoPtr<IBinder>, AutoPtr<ClientState> > mClients;
 
     /**
      * Set once the system is ready to run third party code.
@@ -572,7 +526,7 @@ private:
     /**
      * The input context last provided by the current client.
      */
-    AutoPtr<IInputContextStub> mCurInputContext;
+    AutoPtr<IInputContext> mCurInputContext;
 
     /**
      * The attributes last provided by the current client.
@@ -626,13 +580,13 @@ private:
      * If non-NULL, this is the input method service we are currently connected
      * to.
      */
-    AutoPtr<IInputMethodStub> mCurMethod;
+    AutoPtr<IInputMethod> mCurMethod;
 
     /**
      * Time that we last initiated a bind to the input method, to determine
      * if we should try to disconnect and reconnect to it.
      */
-    long mLastBindTime;
+    Int64 mLastBindTime;
 
     /**
      * Have we called mCurMethod.bindInput()?
@@ -650,13 +604,13 @@ private:
      */
     Boolean mScreenOn;
 
-    AutoPtr<IAlertDialogBuilder>     mDialogBuilder;
-    AutoPtr<IAlertDialog>       mSwitchingDialog;
+    AutoPtr<IAlertDialogBuilder> mDialogBuilder;
+    AutoPtr<IAlertDialog> mSwitchingDialog;
 
-    ArrayOf<AutoPtr<IInputMethodInfo> >*    mIms;
-    ArrayOf<AutoPtr<ICharSequence> >*  mItems;
+    ArrayOf< AutoPtr<IInputMethodInfo> >* mIms;
+    ArrayOf< AutoPtr<ICharSequence> >* mItems;
 
-friend class ScreenOnOffReceiver;
+    friend class ScreenOnOffReceiver;
 };
 
-#endif  //_CINPUTMETHODMANAGERSERVICE_H__
+#endif  //__CINPUTMETHODMANAGERSERVICE_H__

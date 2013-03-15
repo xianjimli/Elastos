@@ -49,6 +49,11 @@ Dialog::Dialog()
 Dialog::Dialog(
     /* [in] */ IContext* context,
     /* [in] */ Int32 theme)
+    : mCancelable(TRUE)
+    , mCanceledOnTouchOutside(FALSE)
+    , mCreated(FALSE)
+    , mShowing(FALSE)
+    , mUiThread(0)
 {
     Init(context, theme);
 }
@@ -57,6 +62,11 @@ Dialog::Dialog(
     /* [in] */ IContext* context,
     /* [in] */ Boolean cancelable,
     /* [in] */ IDialogInterfaceOnCancelListener* cancelListener)
+    : mCancelable(TRUE)
+    , mCanceledOnTouchOutside(FALSE)
+    , mCreated(FALSE)
+    , mShowing(FALSE)
+    , mUiThread(0)
 {
     Init(context, cancelable, cancelListener);
 }

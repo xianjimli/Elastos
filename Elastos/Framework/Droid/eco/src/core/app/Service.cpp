@@ -344,6 +344,12 @@ ECode Service::GetResources(
     return mBase->GetResources(resources);
 }
 
+ECode Service::GetCapsuleManager(
+    /* [out] */ ILocalCapsuleManager** capsuleManager)
+{
+    return mBase->GetCapsuleManager(capsuleManager);
+}
+
 ECode Service::GetContentResolver(
     /* [out] */ IContentResolver** resolver)
 {
@@ -367,7 +373,11 @@ ECode Service::GetString(
     /* [in] */ Int32 resId,
     /* [out] */ String* str)
 {
-    return mBase->GetString(resId, str);
+    if (str == NULL) return E_ILLEGAL_ARGUMENT_EXCEPTION;
+
+    AutoPtr<IResources> resources;
+    GetResources((IResources**)&resources);
+    return resources->GetString(resId, str);
 }
 
 ECode Service::SetTheme(
@@ -518,7 +528,7 @@ ECode Service::InitializeTheme()
 /**
  * Stop the service, if it was previously started.  This is the same as
  * calling {@link android.content.Context#stopService} for this particular service.
- *  
+ *
  * @see #stopSelfResult(int)
  */
 ECode Service::StopSelf()
@@ -528,7 +538,7 @@ ECode Service::StopSelf()
 
 /**
  * Old version of {@link #stopSelfResult} that doesn't return a result.
- *  
+ *
  * @see #stopSelfResult
  */
 ECode Service::StopSelfEx(
@@ -549,24 +559,24 @@ ECode Service::StopSelfEx(
 }
 
 /**
- * Stop the service if the most recent time it was started was 
- * <var>startId</var>.  This is the same as calling {@link 
- * android.content.Context#stopService} for this particular service but allows you to 
- * safely avoid stopping if there is a start request from a client that you 
- * haven't yet seen in {@link #onStart}. 
- * 
+ * Stop the service if the most recent time it was started was
+ * <var>startId</var>.  This is the same as calling {@link
+ * android.content.Context#stopService} for this particular service but allows you to
+ * safely avoid stopping if there is a start request from a client that you
+ * haven't yet seen in {@link #onStart}.
+ *
  * <p><em>Be careful about ordering of your calls to this function.</em>.
  * If you call this function with the most-recently received ID before
  * you have called it for previously received IDs, the service will be
  * immediately stopped anyway.  If you may end up processing IDs out
  * of order (such as by dispatching them on separate threads), then you
  * are responsible for stopping them in the same order you received them.</p>
- * 
- * @param startId The most recent start identifier received in {@link 
+ *
+ * @param startId The most recent start identifier received in {@link
  *                #onStart}.
  * @return Returns true if the startId matches the last start request
  * and the service will be stopped, else false.
- *  
+ *
  * @see #stopSelf()
  */
 ECode Service::StopSelfResult(
@@ -616,19 +626,19 @@ ECode Service::SetForeground(
  * flag if killing your service would be disruptive to the user, such as
  * if your service is performing background music playback, so the user
  * would notice if their music stopped playing.
- * 
+ *
  * <p>If you need your application to run on platform versions prior to API
  * level 5, you can use the following model to call the the older {@link #setForeground}
  * or this modern method as appropriate:
- * 
+ *
  * {@sample development/samples/ApiDemos/src/com/example/android/apis/app/ForegroundService.java
  *   foreground_compatibility}
- * 
+ *
  * @param id The identifier for this notification as per
  * {@link NotificationManager#notify(int, Notification)
  * NotificationManager.notify(int, Notification)}.
  * @param notification The Notification to be displayed.
- * 
+ *
  * @see #stopForeground(boolean)
  */
 ECode Service::StartForeground(

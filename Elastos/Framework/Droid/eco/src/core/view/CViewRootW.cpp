@@ -110,7 +110,7 @@ ECode CViewRootW::DispatchWallpaperOffsets(
     /* [in] */ Boolean sync)
 {
     if (sync) {
-        return ViewRoot::GetWindowSession()->WallpaperOffsetsComplete(
+        return ViewRoot::sWindowSession->WallpaperOffsetsComplete(
             (IBinder*)this);
     }
 
@@ -126,7 +126,7 @@ ECode CViewRootW::DispatchWallpaperCommand(
     /* [in] */ Boolean sync)
 {
     if (sync) {
-        return ViewRoot::GetWindowSession()->WallpaperCommandComplete(
+        return ViewRoot::sWindowSession->WallpaperCommandComplete(
             (IBinder*)this, NULL);
     }
 

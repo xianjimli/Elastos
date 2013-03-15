@@ -2,7 +2,12 @@
 #ifndef __XML_H__
 #define __XML_H__
 
+#ifdef _FRAMEWORK_CORE
 #include "ext/frameworkext.h"
+#else
+#include "Elastos.Framework.Core.h"
+#endif
+
 #include <elastos/AutoPtr.h>
 
 using namespace Elastos;

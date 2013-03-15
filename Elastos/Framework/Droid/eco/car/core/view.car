@@ -44,16 +44,16 @@ module
     merge("view/inputmethod/InputMethodSession.car");
     merge("view/inputmethod/InputMethodManager.car");
     merge("view/InputBindResult.car");
-    merge("view/IInputMethodClientStub.car");
-    merge("view/IInputContextCallbackStub.car");
-    merge("view/IInputContextStub.car");
+    merge("view/IInputMethodClient.car");
+    merge("view/IInputContextCallback.car");
+    merge("view/IInputContext.car");
     merge("view/InputChannel.car");
     merge("view/InputQueue.car");
     merge("view/InputDevice.car");
-    merge("view/IInputMethodSessionStub.car");
-    merge("view/IInputMethodCallbackStub.car");
-    merge("view/IInputMethodStub.car");
-    merge("view/IInputMethodManagerStub.car");
+    merge("view/IInputMethodSession.car");
+    merge("view/IInputMethodCallback.car");
+    merge("view/IInputMethod.car");
+    merge("view/IInputMethodManager.car");
     merge("view/IOnKeyguardExitResult.car");
     merge("view/IRotationWatcher.car");
     merge("view/IInnerWindow.car");
@@ -446,7 +446,20 @@ module
     }
 
     class CCompletionInfo {
-        interface IEditorInfo;
+        constructor();
+
+        constructor(
+            [in] Int64 id,
+            [in] Int32 index,
+            [in] ICharSequence* text);
+
+        constructor(
+            [in] Int64 id,
+            [in] Int32 index,
+            [in] ICharSequence* text,
+            [in] ICharSequence* label);
+
+        interface ICompletionInfo;
         interface IParcelable;
     }
 
@@ -459,10 +472,30 @@ module
 
     class CLocalInputMethodManager {
         constructor(
-            [in] IInputMethodManagerStub* service,
+            [in] IInputMethodManager* service,
             [in] IApartment* looper);
 
         interface ILocalInputMethodManager;
+    }
+
+    class CControlledInputConnectionWrapper {
+        constructor(
+            [in] IApartment* mainLooper,
+            [in] IInputConnection* conn,
+            [in] ILocalInputMethodManager* agmer);
+
+        interface IInputContext;
+    }
+
+    class CIInputMethodClient {
+        constructor(
+            [in] ILocalInputMethodManager* agmer);
+
+        interface IInputMethodClient;
+    }
+
+    class CInputContextCallback {
+        interface IInputContextCallback;
     }
 
     class CBaseInputConnection {
@@ -478,11 +511,10 @@ module
     }
 
     class CInputBindResult {
-        constructor(
-            [in] IParcel* source);
+        constructor();
 
         constructor(
-            [in] IInputMethodSessionStub* _method,
+            [in] IInputMethodSession* _method,
             [in] String id,
             [in] Int32 sequence);
 
@@ -501,8 +533,7 @@ module
             [in] IInputConnection* conn,
             [in] IInputBinding* binding);
 
-        constructor(
-            [in] IParcel* source);
+        constructor();
 
         interface IInputBinding;
         interface IParcelable;
@@ -517,15 +548,14 @@ module
     }
 
     class CInputMethodInfo {
+        constructor();
+
         constructor(
             [in] IContext* ctx,
             [in] IResolveInfo* service);
 
         constructor(
-            [in] IParcel* source);
-
-        constructor(
-            [in] String packageName,
+            [in] String capsuelName,
             [in] String className,
             [in] ICharSequence* label,
             [in] String settingsActivity);
@@ -559,7 +589,7 @@ module
         constructor(
             [in] Handle32 viewRoot);
 
-        interface IInputMethodCallbackStub;
+        interface IInputMethodCallback;
     }
 
     class CTouchDelegate {
@@ -960,14 +990,14 @@ module
 
     class CSurfaceView {
         constructor(
-            [in] IContext* context);
+            [in] IContext* ctx);
 
         constructor(
-            [in] IContext* context,
+            [in] IContext* ctx,
             [in] IAttributeSet* attrs);
 
         constructor(
-            [in] IContext* context,
+            [in] IContext* ctx,
             [in] IAttributeSet* attrs,
             [in] Int32 defStyle);
 

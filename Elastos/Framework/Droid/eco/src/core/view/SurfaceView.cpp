@@ -273,18 +273,18 @@ AutoPtr<ICanvas> SurfaceView::_SurfaceHolder::InternalLockCanvas(
     }
 
     if (c != NULL) {
-        mHost->mLastLockTime = SystemClock::UptimeMillis();
+        mHost->mLastLockTime = SystemClock::GetUptimeMillis();
         return c;
     }
 
     // If the Surface is not ready to be drawn, then return NULL,
     // but throttle calls to this function so it isn't called more
     // than every 100ms.
-    Int64 now = SystemClock::UptimeMillis();
+    Int64 now = SystemClock::GetUptimeMillis();
     Int64 nextTime = mHost->mLastLockTime + 100;
     if (nextTime > now) {
         usleep(nextTime-now);
-        now = SystemClock::UptimeMillis();
+        now = SystemClock::GetUptimeMillis();
     }
 
     mHost->mLastLockTime = now;

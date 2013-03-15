@@ -9,6 +9,9 @@
     CARAPI GetResources(                                                    \
         /* [out] */ IResources** resources);                                \
                                                                             \
+    CARAPI GetCapsuleManager(                                               \
+        /* [out] */ ILocalCapsuleManager** capsuleManager);            \
+                                                                            \
     CARAPI GetContentResolver(                                              \
         /* [out] */ IContentResolver** resolver);                           \
                                                                             \
@@ -123,6 +126,12 @@ ECode className::GetResources(                                              \
     /* [out] */ IResources** resources)                                     \
 {                                                                           \
     return superClass::GetResources(resources);                             \
+}                                                                           \
+                                                                            \
+ECode className::GetCapsuleManager(                                         \
+    /* [out] */ ILocalCapsuleManager** capsuleManager)                      \
+{                                                                           \
+    return superClass::GetCapsuleManager(capsuleManager);                  \
 }                                                                           \
                                                                             \
 ECode className::GetContentResolver(                                        \

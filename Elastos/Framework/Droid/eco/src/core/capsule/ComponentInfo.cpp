@@ -22,7 +22,7 @@ ECode ComponentInfo::constructor(
 }
 
 ECode ComponentInfo::LoadLabel(
-    /* [in] */ ICapsuleManager* pm,
+    /* [in] */ ILocalCapsuleManager* pm,
     /* [out] */ ICharSequence** label)
 {
     if (mNonLocalizedLabel != NULL) {
@@ -73,4 +73,9 @@ ECode ComponentInfo::WriteToParcel(
             (IApplicationInfo*)(CApplicationInfo*)mApplicationInfo);
     dest->WriteString(mProcessName);
     return NOERROR;
+}
+
+AutoPtr<IApplicationInfo> ComponentInfo::GetApplicationInfo()
+{
+    return (IApplicationInfo*)mApplicationInfo.Get();
 }

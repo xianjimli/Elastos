@@ -1570,12 +1570,12 @@ public:
     // -------------------------------------------------------------
 
     CARAPI OpenSession(
-        /* [in] */ IInputMethodClientStub* client,
-        /* [in] */ IInputContextStub* inputContext,
+        /* [in] */ IInputMethodClient* client,
+        /* [in] */ IInputContext* inputContext,
         /* [out] */ IWindowSession** session);
 
     CARAPI InputMethodClientHasFocus(
-        /* [in] */ IInputMethodClientStub* client,
+        /* [in] */ IInputMethodClient* client,
         /* [out] */ Boolean* result);
 
     // -------------------------------------------------------------
@@ -1999,6 +1999,8 @@ private:
      * list or contain windows that need to be force removed.
      */
     List<AutoPtr<WindowState> >* mForceRemoves;
+
+    AutoPtr<IInputMethodManager> mInputMethodManager;
 
     AutoPtr<ISurfaceSession> mFxSession;
     DimAnimator* mDimAnimator;

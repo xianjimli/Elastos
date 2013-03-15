@@ -17,7 +17,7 @@ public:
 
     //@override
     CARAPI LoadLabel(
-        /* [in] */ ICapsuleManager* pm,
+        /* [in] */ ILocalCapsuleManager* pm,
         /* [out] */ ICharSequence** label);
 
     CARAPI ReadFromParcel(
@@ -25,6 +25,12 @@ public:
 
     CARAPI WriteToParcel(
         /* [in] */ IParcel* dest);
+
+protected:
+    /**
+     * @hide
+     */
+    CARAPI_(AutoPtr<IApplicationInfo>) GetApplicationInfo();
 
 public:
     /**

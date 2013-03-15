@@ -30,6 +30,9 @@ ProcessRecord::~ProcessRecord()
 void ProcessRecord::SetPid(
     /* [in] */ Int32 pid)
 {
+    mPid = pid;
+    mShortStringName = NULL;
+    mStringName = NULL;
 }
 
 /*

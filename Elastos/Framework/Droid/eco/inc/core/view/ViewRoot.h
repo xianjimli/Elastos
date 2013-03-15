@@ -33,6 +33,7 @@ class ViewRoot :
 {
     friend class View;
     friend class CWindowManagerImpl;
+    friend class CViewRootW;
 
 private:
     static const char* TAG;
@@ -306,7 +307,7 @@ private:
     };
 public:
     static CARAPI_(IWindowSession*) GetWindowSession(
-        /* [in] */ /*Looper mainLooper*/);
+        /* [in] */ IApartment* mainLooper);
 
     static CARAPI_(Int64) GetInstanceCount();
 

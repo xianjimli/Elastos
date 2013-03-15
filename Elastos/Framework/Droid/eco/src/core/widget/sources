@@ -144,3 +144,5 @@ SOURCES += NumberPickerButton.cpp
 SOURCES += CNumberPickerButton.cpp
 SOURCES += DatePicker.cpp
 SOURCES += CDatePicker.cpp
+SOURCES += EditableInputConnection.cpp
+SOURCES += CEditableInputConnection.cpp

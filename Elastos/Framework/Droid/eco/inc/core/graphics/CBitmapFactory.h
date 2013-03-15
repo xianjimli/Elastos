@@ -1,6 +1,6 @@
 
-#ifndef _CBITMAPFACTORY_H__
-#define _CBITMAPFACTORY_H__
+#ifndef __CBITMAPFACTORY_H__
+#define __CBITMAPFACTORY_H__
 
 #include "_CBitmapFactory.h"
 #include <skia/core/SkStream.h>
@@ -149,6 +149,9 @@ private:
         /* [in] */ Int32 sampleSize,
         /* [in] */ Boolean ditherImage);
 
+    static CARAPI_(CString) GetMimeTypeString(
+        /* [in] */ SkImageDecoder::Format format);
+
     /*  make a deep copy of the asset, and return it as a stream, or NULL if there
         was an error.
      */
@@ -183,8 +186,8 @@ private:
         /* [in] */ IRect* padding);
 
 private:
-    static const char* TAG;
+    static const CString TAG;
 };
 
-#endif //_CBITMAPFACTORY_H__
+#endif //__CBITMAPFACTORY_H__
 

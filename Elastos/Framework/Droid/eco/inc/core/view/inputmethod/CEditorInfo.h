@@ -1,6 +1,6 @@
 
-#ifndef  _CEDITORINFO_H__
-#define  _CEDITORINFO_H__
+#ifndef  __CEDITORINFO_H__
+#define  __CEDITORINFO_H__
 
 #include "_CEditorInfo.h"
 #include <elastos/AutoPtr.h>
@@ -9,9 +9,9 @@
 CarClass(CEditorInfo)
 {
 public:
-	CEditorInfo();
+    CEditorInfo();
 
-	CARAPI constructor();
+    CARAPI constructor();
 
     CARAPI ReadFromParcel(
         /* [in] */ IParcel *source);
@@ -19,6 +19,20 @@ public:
     CARAPI WriteToParcel(
         /* [in] */ IParcel *dest);
 
+    CARAPI GetInputType(
+        /* [out] */ Int32* type);
+
+    CARAPI GetImeOptions(
+        /* [out] */ Int32* options);
+
+    CARAPI GetActionLabel(
+        /* [out] */ ICharSequence** actionLabel);
+
+    CARAPI GetActionId(
+        /* [out] */ Int32* actionId);
+
+    CARAPI GetHintText(
+        /* [out] */ ICharSequence** hintText);
 
 public:
     /**
@@ -103,7 +117,7 @@ public:
     /**
      * Name of the package that owns this editor.
      */
-    String mPackageName;
+    String mCapsuleName;
 
     /**
      * Identifier for the editor's field.  This is optional, and may be
@@ -128,8 +142,8 @@ public:
      * filled in from the {@link android.R.attr#editorExtras}
      * attribute of a TextView.
      */
-    AutoPtr<IBundle> extras;
+    AutoPtr<IBundle> mExtras;
 };
 
 
-#endif  //_CEDITORINFO_H__
+#endif  //__CEDITORINFO_H__

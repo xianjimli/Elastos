@@ -36,6 +36,7 @@ SOURCES += CViewRootW.cpp
 SOURCES += CInputMethodCallback.cpp
 SOURCES += IInputConnectionWrapper.cpp
 SOURCES += LocalInputConnectionWrapper.cpp
+SOURCES += CInputContextCallback.cpp
 SOURCES += ViewConfiguration.cpp
 SOURCES += BaseSurfaceHolder.cpp
 SOURCES += CInputQueue.cpp

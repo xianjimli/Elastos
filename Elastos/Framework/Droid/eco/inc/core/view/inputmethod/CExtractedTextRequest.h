@@ -7,6 +7,30 @@
 CarClass(CExtractedTextRequest)
 {
 public:
+    CARAPI GetToken(
+        /* [out] */ Int32* token);
+
+    CARAPI SetToken(
+        /* [in] */ Int32 token);
+
+    CARAPI GetFlags(
+        /* [out] */ Int32* flags);
+
+    CARAPI SetFlags(
+        /* [in] */ Int32 flags);
+
+    CARAPI GetHintMaxLines(
+        /* [out] */ Int32* hintMaxLines);
+
+    CARAPI SetHintMaxLines(
+        /* [in] */ Int32 hintMaxLines);
+
+    CARAPI GetHintMaxChars(
+        /* [out] */ Int32* hintMaxChars);
+
+    CARAPI SetHintMaxChars(
+        /* [in] */ Int32 hintMaxChars);
+
     CARAPI ReadFromParcel(
         /* [in] */ IParcel *source);
 

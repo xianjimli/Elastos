@@ -12,7 +12,7 @@
 CarClass(CInputBinding)
 {
 public:
-    CInputBinding();
+    CARAPI constructor();
 
     /**
      * Constructor.
@@ -38,9 +38,6 @@ public:
     CARAPI constructor(
         /* [in] */ IInputConnection* conn,
         /* [in] */ IInputBinding* binding);
-
-    CARAPI constructor(
-        /* [in] */ IParcel* source);
 
     /**
      * Return the connection for interacting back with the application.

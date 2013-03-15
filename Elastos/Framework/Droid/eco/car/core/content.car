@@ -30,7 +30,8 @@ module
     merge("content/cm/ICapsuleStatsObserver.car");
     merge("content/cm/FeatureInfo.car");
     merge("content/cm/ICapsuleMoveObserver.car");
-    merge("content/cm/capsulemanager.car");
+    merge("content/cm/ICapsuleManager.car");
+    merge("content/cm/CapsuleManager.car");
     merge("content/cm/CapsuleStats.car");
     merge("content/cm/Signature.car");
     merge("content/context.car");

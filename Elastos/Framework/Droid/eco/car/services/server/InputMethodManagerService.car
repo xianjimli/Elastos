@@ -1,0 +1,10 @@
+
+module
+{
+	interface IContext;
+
+    //TODO: should be delete
+    interface IInputMethodManagerService {
+        SystemReady();
+	}
+}

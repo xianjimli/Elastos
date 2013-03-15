@@ -1,0 +1,6 @@
+
+EXPORT_HEADERS += AbstractInputMethodService.h
+EXPORT_HEADERS += InputMethodService.h
+EXPORT_HEADERS += AbstractInputMethodImpl.h
+EXPORT_HEADERS += AbstractInputMethodSessionImpl.h
+EXPORT_HEADERS += Keyboard.h

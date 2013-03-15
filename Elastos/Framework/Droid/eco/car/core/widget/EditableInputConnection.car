@@ -1,0 +1,10 @@
+
+module
+{
+    interface IEditable;
+
+    interface IEditableInputConnection extends IInputConnection {
+        GetEditable(
+            [out] IEditable** editable);
+    }
+}

@@ -1,0 +1,10 @@
+
+module
+{
+    interface IActivityManagerService {
+        GetSystemContext(
+            [out] IContext** ctx);
+
+        SetSystemProcess();
+    }
+}

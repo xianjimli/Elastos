@@ -9,7 +9,7 @@
 #include "os/CPatternMatcher.h"
 #include "utils/CTypedValue.h"
 #endif
-#include "content/CapsuleManager.h"
+#include "content/cm/CapsuleManager.h"
 #include "os/Build.h"
 #include "utils/AutoStringArray.h"
 #include "utils/XmlUtils.h"
@@ -274,6 +274,14 @@ CapsuleParser::Service::Service(
     mInfo->SetApplicationInfo(args->mOwner->mApplicationInfo);
 }
 
+void CapsuleParser::Service::SetCapsuleName(
+    /* [in] */ const String& capName)
+{
+    assert(mInfo != NULL);
+    Component<ServiceIntentInfo>::SetCapsuleName(capName);
+    mInfo->SetCapsuleName(capName);
+}
+
 CapsuleParser::ContentProvider::ContentProvider(
     /* [in] */ ContentProvider* existingProvider)
     : Component<IntentInfo>(existingProvider)
@@ -341,18 +349,24 @@ void CapsuleParser::Capsule::SetCapsuleName(
 //        for (int i=permissionGroups.size()-1; i>=0; i--) {
 //            permissionGroups.get(i).setPackageName(newName);
 //        }
-//        for (int i=activities.size()-1; i>=0; i--) {
-//            activities.get(i).setPackageName(newName);
-//        }
+    List<Activity*>::ReverseIterator arit;
+    for (arit = mActivities.RBegin(); arit != mActivities.REnd(); ++arit) {
+        Activity* s = *arit;
+        assert(s != NULL);
+        s->SetCapsuleName(newName);
+    }
 //        for (int i=receivers.size()-1; i>=0; i--) {
 //            receivers.get(i).setPackageName(newName);
 //        }
 //        for (int i=providers.size()-1; i>=0; i--) {
 //            providers.get(i).setPackageName(newName);
 //        }
-//        for (int i=services.size()-1; i>=0; i--) {
-//            services.get(i).setPackageName(newName);
-//        }
+    List<Service*>::ReverseIterator brit;
+    for (brit = mServices.RBegin(); brit != mServices.REnd(); ++brit) {
+        Service* s = *brit;
+        assert(s != NULL);
+        s->SetCapsuleName(newName);
+    }
 //        for (int i=instrumentation.size()-1; i>=0; i--) {
 //            instrumentation.get(i).setPackageName(newName);
 //        }
@@ -702,7 +716,99 @@ CapsuleParser::Capsule* CapsuleParser::ParseCapsule(
     /* [in] */ IDisplayMetrics* metrics,
     /* [in] */ Int32 flags)
 {
-    return NULL; // E_NOT_IMPLEMENTED
+    mParseError = CapsuleManager::INSTALL_SUCCEEDED;
+
+    sourceFile->GetPath(&mArchiveSourcePath);
+    Boolean isFile = FALSE;
+    if (sourceFile->IsFile(&isFile), !isFile) {
+        // Log.w(TAG, "Skipping dir: " + mArchiveSourcePath);
+        Logger::W(TAG, StringBuffer("Skipping dir: ") + (String)mArchiveSourcePath);
+        mParseError = CapsuleManager::INSTALL_PARSE_FAILED_NOT_APK;
+        return NULL;
+    }
+    String name;
+    sourceFile->GetName(&name);
+    if (!IsCapsuleFilename(name)
+            && (flags & PARSE_MUST_BE_APK) != 0) {
+        if ((flags & PARSE_IS_SYSTEM) == 0) {
+            // We expect to have non-.apk files in the system dir,
+            // so don't warn about them.
+            Logger::W(TAG, StringBuffer("SSkipping non-package file: ") + (String)mArchiveSourcePath);
+        }
+        mParseError = CapsuleManager::INSTALL_PARSE_FAILED_NOT_APK;
+        return NULL;
+    }
+
+    // if ((flags&PARSE_CHATTY) != 0 && Config.LOGD) Log.d(
+    //     TAG, "Scanning package: " + mArchiveSourcePath);
+
+    AutoPtr<IXmlResourceParser> parser;
+    AutoPtr<IAssetManager> assmgr;
+    Boolean assetError = TRUE;
+    // try {
+    CAssetManager::New((IAssetManager**)&assmgr);
+    Int32 cookie = 0;
+    assmgr->AddAssetPath(mArchiveSourcePath, &cookie);
+    if(cookie != 0) {
+        assmgr->OpenXmlResourceParserEx(cookie, String("AndroidManifest.xml"),
+            (IXmlResourceParser**)&parser);
+        assetError = FALSE;
+    }
+    else {
+        Logger::W(TAG, StringBuffer("Failed adding asset path: ") + (String)mArchiveSourcePath);
+    }
+    // } catch (Exception e) {
+    //     Log.w(TAG, "Unable to read AndroidManifest.xml of "
+    //             + mArchiveSourcePath, e);
+    // }
+    if(assetError) {
+        if (assmgr != NULL) assmgr->Close();
+        mParseError = CapsuleManager::INSTALL_PARSE_FAILED_BAD_MANIFEST;
+        return NULL;
+    }
+    AutoStringArray errorText = ArrayOf<String>::Alloc(1);
+    CapsuleParser::Capsule* cap = NULL;
+    // Exception errorException = NULL;
+    // try {
+    // XXXX todo: need to figure out correct configuration.
+    AutoPtr<IResources> res;
+    CResources::New(assmgr, metrics, NULL, (IResources**)&res);
+    ECode ec = ParseCapsule(cap, res.Get(), parser.Get(), flags, errorText);
+    if (FAILED(ec)) {
+        mParseError = CapsuleManager::INSTALL_PARSE_FAILED_UNEXPECTED_EXCEPTION;
+    }
+    // } catch (Exception e) {
+    //     errorException = e;
+    //     mParseError = PackageManager.INSTALL_PARSE_FAILED_UNEXPECTED_EXCEPTION;
+    // }
+
+    if (cap == NULL) {
+        // if (errorException != NULL) {
+        //     Log.w(TAG, mArchiveSourcePath, errorException);
+        // } else {
+        //     Log.w(TAG, mArchiveSourcePath + " (at "
+        //             + parser.getPositionDescription()
+        //             + "): " + errorText[0]);
+        // }
+        parser->Close();
+        assmgr->Close();
+        if (mParseError == CapsuleManager::INSTALL_SUCCEEDED) {
+            mParseError = CapsuleManager::INSTALL_PARSE_FAILED_MANIFEST_MALFORMED;
+        }
+        return NULL;
+    }
+
+    parser->Close();
+    assmgr->Close();
+
+    // Set code and resource paths
+    cap->mPath = destCodePath;
+    cap->mScanPath = mArchiveSourcePath;
+    //pkg.applicationInfo.sourceDir = destCodePath;
+    //pkg.applicationInfo.publicSourceDir = destRes;
+    cap->mSignatures = NULL;
+
+    return cap;
 }
 
 ECode CapsuleParser::BuildClassName(
@@ -1510,6 +1616,9 @@ ECode CapsuleParser::ParseCapsule(
         capFlags |= ApplicationInfo_FLAG_SUPPORTS_SCREEN_DENSITIES;
         cap->mApplicationInfo->SetFlags(capFlags);
     }
+
+    //Todo: add code
+    cap->SetCapsuleName(capName);
 
     return NOERROR;
 }

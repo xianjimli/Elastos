@@ -4,10 +4,6 @@
 
 #include "ext/frameworkext.h"
 #include "_CApplicationApartment.h"
-#include <elastos/AutoPtr.h>
-#include <elastos/HashMap.h>
-#include <elastos/List.h>
-#include <elastos/Map.h>
 #include "content/CApplicationInfo.h"
 #include "content/CCompatibilityInfo.h"
 #include "content/CResources.h"
@@ -16,6 +12,10 @@
 #include "app/CResultInfo.h"
 #include "os/CBundle.h"
 #include <elastos/Mutex.h>
+#include <elastos/AutoPtr.h>
+#include <elastos/HashMap.h>
+#include <elastos/List.h>
+#include <elastos/Map.h>
 
 using namespace Elastos::Core::Threading;
 
@@ -403,6 +403,8 @@ public:
         /* [in] */ const String& who,
         /* [in] */ const String& what);
 
+    static CARAPI_(AutoPtr<ICapsuleManager>) GetCapsuleManager();
+
 private:
     CARAPI HandleBindApplication(
         /* [in] */ AppBindData* data);
@@ -562,8 +564,6 @@ private:
 
     CARAPI HandleContextCleanup(
         /* [in] */ ContextCleanupInfo* cci);
-
-    CARAPI_(ICapsuleManager*) GetCapsuleManager();
 
 public:
     AutoPtr<IApplication> mInitialApplication;

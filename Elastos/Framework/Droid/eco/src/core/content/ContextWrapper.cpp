@@ -1,6 +1,7 @@
 
 #include "content/ContextWrapper.h"
 
+
 ContextWrapper::ContextWrapper()
 {}
 
@@ -19,6 +20,12 @@ ECode ContextWrapper::GetResources(
     /* [out] */ IResources** resources)
 {
     return mBase->GetResources(resources);
+}
+
+ECode ContextWrapper::GetCapsuleManager(
+    /* [out] */ ILocalCapsuleManager** capsuleManager)
+{
+    return mBase->GetCapsuleManager(capsuleManager);
 }
 
 ECode ContextWrapper::GetContentResolver(
@@ -170,7 +177,6 @@ ECode ContextWrapper::AttachBaseContext(
         return E_ILLEGAL_STATE_EXCEPTION;
     }
     mBase = base;
-
     return NOERROR;
 }
 
@@ -185,7 +191,6 @@ ECode ContextWrapper::GetBaseContext(
     if (*context) {
         (*context)->AddRef();
     }
-
     return NOERROR;
 }
 

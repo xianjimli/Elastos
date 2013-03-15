@@ -22,7 +22,7 @@ ECode CServiceInfo::constructor(
 }
 
 ECode CServiceInfo::LoadLabel(
-    /* [in] */ ICapsuleManager* pm,
+    /* [in] */ ILocalCapsuleManager* pm,
     /* [out] */ ICharSequence** label)
 {
     VALIDATE_NOT_NULL(label);
@@ -30,7 +30,7 @@ ECode CServiceInfo::LoadLabel(
 }
 
 ECode CServiceInfo::LoadIcon(
-    /* [in] */ ICapsuleManager* pm,
+    /* [in] */ ILocalCapsuleManager* pm,
     /* [out] */ IDrawable** icon)
 {
     VALIDATE_NOT_NULL(icon);
@@ -38,7 +38,7 @@ ECode CServiceInfo::LoadIcon(
 }
 
 ECode CServiceInfo::LoadLogo(
-    /* [in] */ ICapsuleManager* pm,
+    /* [in] */ ILocalCapsuleManager* pm,
     /* [out] */ IDrawable** icon)
 {
     VALIDATE_NOT_NULL(icon);
@@ -46,7 +46,7 @@ ECode CServiceInfo::LoadLogo(
 }
 
 ECode CServiceInfo::LoadXmlMetaData(
-    /* [in] */ ICapsuleManager* pm,
+    /* [in] */ ILocalCapsuleManager* pm,
     /* [in] */ const String& name,
     /* [out] */ IXmlResourceParser** resource)
 {

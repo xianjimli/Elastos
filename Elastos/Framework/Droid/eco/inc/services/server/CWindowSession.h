@@ -11,8 +11,8 @@ CarClass(CWindowSession)
 public:
     CARAPI constructor(
         /* [in] */ IWindowManagerStub* wmService,
-        /* [in] */ IInputMethodClientStub* client,
-        /* [in] */ IInputContextStub* inputContext);
+        /* [in] */ IInputMethodClient* client,
+        /* [in] */ IInputContext* inputContext);
 
     CARAPI Add(
         /* [in] */ IInnerWindow* window,
@@ -111,8 +111,8 @@ public:
 
 public:
     AutoPtr<CWindowManagerService> mWMService;
-    AutoPtr<IInputMethodClientStub> mClient;
-    AutoPtr<IInputContextStub> mInputContext;
+    AutoPtr<IInputMethodClient> mClient;
+    AutoPtr<IInputContext> mInputContext;
     Int32 mUid;
     Int32 mPid;
     AutoPtr<ISurfaceSession> mSurfaceSession;

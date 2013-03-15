@@ -132,4 +132,10 @@ module
         interface IResultReceiver;
         interface IParcelable;
     }
+
+    class CBinder {
+        constructor();
+
+        interface IBinder;
+    }
 }

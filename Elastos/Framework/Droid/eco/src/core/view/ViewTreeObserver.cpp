@@ -4,9 +4,6 @@
 #include "graphics/CRect.h"
 #endif
 
-const Int32 ViewTreeObserver::InternalInsetsInfo::TOUCHABLE_INSETS_FRAME;
-const Int32 ViewTreeObserver::InternalInsetsInfo::TOUCHABLE_INSETS_CONTENT;
-const Int32 ViewTreeObserver::InternalInsetsInfo::TOUCHABLE_INSETS_VISIBLE;
 
 ViewTreeObserver::InternalInsetsInfo::InternalInsetsInfo()
 {
@@ -57,7 +54,7 @@ ECode ViewTreeObserver::InternalInsetsInfo::SetTouchableInsets(
 }
 
 ECode ViewTreeObserver::InternalInsetsInfo::GetTouchableInsets(
-    /* [in] */ Int32* val)
+    /* [out] */ Int32* val)
 {
     assert(val != NULL);
     *val = mTouchableInsets;
@@ -89,11 +86,31 @@ ECode ViewTreeObserver::InternalInsetsInfo::Equals(
     return NOERROR;
 }
 
+ECode ViewTreeObserver::InternalInsetsInfo::GetContentInsets(
+    /* [out] */ IRect** contentInsets)
+{
+    if (contentInsets == NULL) return E_ILLEGAL_ARGUMENT_EXCEPTION;
+
+    *contentInsets = mContentInsets;
+    (*contentInsets)->AddRef();
+    return NOERROR;
+}
+
+ECode ViewTreeObserver::InternalInsetsInfo::GetVisibleInsets(
+    /* [out] */ IRect** visibleInsets)
+{
+    if (visibleInsets == NULL) return E_ILLEGAL_ARGUMENT_EXCEPTION;
+
+    *visibleInsets = mVisibleInsets;
+    (*visibleInsets)->AddRef();
+    return NOERROR;
+}
+
 void ViewTreeObserver::InternalInsetsInfo::Reset()
 {
     mContentInsets->Set(0, 0, 0, 0);
     mVisibleInsets->Set(0, 0, 0, 0);
-    mTouchableInsets = TOUCHABLE_INSETS_FRAME;
+    mTouchableInsets = ViewTreeObserver_InternalInsetsInfo_TOUCHABLE_INSETS_FRAME;
 }
 
 void ViewTreeObserver::InternalInsetsInfo::Set(
@@ -273,11 +290,27 @@ ECode ViewTreeObserver::RemoveGlobalOnLayoutListener(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode ViewTreeObserver:: CheckIsAlive()
+{
+    if (!mAlive) {
+        // throw new IllegalStateException("This ViewTreeObserver is not alive, call "
+        //         + "getViewTreeObserver() again");
+        // return E_ILLEGAL_STATE_EXCEPTION;
+        assert(0);
+    }
+    return NOERROR;
+}
+
 ECode ViewTreeObserver::IsAlive(
     /* [out] */ Boolean* alive)
 {
     CheckIsAlive();
     return E_NOT_IMPLEMENTED;
+}
+
+void ViewTreeObserver::Kill()
+{
+    mAlive = FALSE;
 }
 
 ECode ViewTreeObserver::DispatchOnGlobalFocusChange(

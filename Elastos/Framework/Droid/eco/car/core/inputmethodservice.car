@@ -1,74 +1,127 @@
 
 module
 {
-	merge("inputmethodservice/ExtractEditText.car");
-	merge("inputmethodservice/AbstractInputMethodService.car");
-	merge("inputmethodservice/InputMethodService.car");
-	merge("inputmethodservice/KeyboardView.car");
+    merge("inputmethodservice/ExtractEditText.car");
+    merge("inputmethodservice/AbstractInputMethodService.car");
+    merge("inputmethodservice/InputMethodService.car");
+    merge("inputmethodservice/Keyboard.car");
+    merge("inputmethodservice/KeyboardView.car");
+    merge("inputmethodservice/SoftInputWindow.car");
 
+    //For SoftKeyboard.
+    merge("inputmethodservice/SoftKeyboard.car");
 
-	class CExtractButton {
-	    constructor(
-	        [in] IContext* ctx);
+    class CExtractButton {
+        constructor(
+            [in] IContext* ctx);
 
-	    constructor(
-	        [in] IContext* ctx,
-	        [in] IAttributeSet* attrs);
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
 
-	    constructor(
-	        [in] IContext* ctx,
-	        [in] IAttributeSet* attrs,
-	        [in] Int32 defStyle);
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
 
-		interface IButton;
+        interface IButton;
         interface IOnPreDrawListener;
         interface IDrawableCallback;
         interface IKeyEventCallback;
         interface IAccessibilityEventSource;
-	}
+    }
 
-	class CExtractEditText {
-	    constructor(
-	        [in] IContext* ctx);
+    class CExtractEditText {
+        constructor(
+            [in] IContext* ctx);
 
-	    constructor(
-	        [in] IContext* ctx,
-	        [in] IAttributeSet* attrs);
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
 
-	    constructor(
-	        [in] IContext* ctx,
-	        [in] IAttributeSet* attrs,
-	        [in] Int32 defStyle);
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
 
         interface IExtractEditText;
         interface IOnPreDrawListener;
         interface IDrawableCallback;
         interface IKeyEventCallback;
         interface IAccessibilityEventSource;
-	}
+    }
 
-	class CInputMethodService {
-		constructor();
+    class CSoftInputWindow {
+        constructor(
+            [in] IContext* context,
+            [in] Int32 theme,
+            [in] IDispatcherState* dispatcherState);
 
-		interface IInputMethodService;
-		interface IComponentCallbacks;
-		interface IKeyEventCallback;
-	}
+        interface ISoftInputWindow;
+        interface IWindowCallback;
+        interface IKeyEventCallback;
+        interface IViewOnCreateContextMenuListener;
+    }
 
-	class CKeyboardView {
-	    constructor(
-	        [in] IContext* ctx,
-	        [in] IAttributeSet* attrs);
+    class CKeyboardView {
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
 
-	    constructor(
-	        [in] IContext* ctx,
-	        [in] IAttributeSet* attrs,
-	        [in] Int32 defStyle);
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
 
-	    interface IKeyboardView;
-	    interface IViewOnClickListener;
+        interface IKeyboardView;
+        interface IViewOnClickListener;
         interface IDrawableCallback;
         interface IKeyEventCallback;
         interface IAccessibilityEventSource;
-	}
+    }
+
+    class CIInputMethodWrapper {
+        constructor(
+            [in] IAbstractInputMethodService* context,
+            [in] ILocalInputMethod* inputMethod);
+
+        interface IInputMethod;
+    }
+
+    class CIInputMethodSessionWrapper {
+        constructor(
+            [in] IContext* context,
+            [in] ILocalInputMethodSession* inputMethodSession);
+
+        interface IInputMethodSession;
+    }
+
+    //For SoftKeyboard.
+    class CLatinKeyboardView {
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* ctx,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
+
+        interface IKeyboardView;
+        interface IViewOnClickListener;
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
+    }
+
+    //For SoftKeyboard.
+    class CCandidateView {
+        constructor(
+            [in] IContext* ctx);
+
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
+        interface ICandidateView;
+    }
 }

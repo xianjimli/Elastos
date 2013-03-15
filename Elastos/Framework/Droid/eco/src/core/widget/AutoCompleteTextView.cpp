@@ -1,12 +1,14 @@
 
 #include "widget/AutoCompleteTextView.h"
 #include "widget/CPopupWindow.h"
-#include <elastos/Math.h>
-#include "text/TextUtils.h"
-#include "text/Selection.h"
 #include "widget/CLinearLayout.h"
 #include "widget/CLinearLayoutLayoutParams.h"
 #include "view/LayoutInflater.h"
+#include "view/inputmethod/CLocalInputMethodManager.h"
+#include "view/inputmethod/CCompletionInfo.h"
+#include "text/TextUtils.h"
+#include "text/Selection.h"
+#include <elastos/Math.h>
 
 
 const Boolean AutoCompleteTextView::DEBUG;
@@ -1172,14 +1174,13 @@ void AutoCompleteTextView::OnDetachedFromWindow()
  */
 ECode AutoCompleteTextView::DismissDropDown()
 {
-    /*InputMethodManager imm = InputMethodManager.peekInstance();
-    if (imm != NULL) {
-        imm->DisplayCompletions(this, NULL);
-    }*/
+    // AutoPtr<ILocalInputMethodManager> imm = CLocalInputMethodManager::PeekInstance();
+    // if (imm != NULL) {
+    //     imm->DisplayCompletions((IView*)this->Probe(EIID_IView), NULL);
+    // }
     mPopup->Dismiss();
     mPopup->SetContentView(NULL);
     mDropDownList = NULL;
-
     return NOERROR;
 }
 
@@ -1378,30 +1379,45 @@ Int32 AutoCompleteTextView::BuildDropDown()
 
     AutoPtr<IListAdapter> adapter = mAdapter;
     if (adapter != NULL) {
-       // InputMethodManager imm = InputMethodManager.peekInstance();
-       // if (imm != NULL) {
-       //     final Int32 count = Math::Min(adapter.getCount(), 20);
-       //     CompletionInfo[] completions = new CompletionInfo[count];
-       //     Int32 realCount = 0;
+        AutoPtr<ILocalInputMethodManager> imm = CLocalInputMethodManager::PeekInstance();
+        if (imm != NULL) {
+            Int32 count = 0;
+            adapter->GetCount(&count);
+            count = Math::Min(count, 20);
+            ArrayOf< AutoPtr<ICompletionInfo> >* completions = ArrayOf< AutoPtr<ICompletionInfo> >::Alloc(count);
+            Int32 realCount = 0;
 
-       //     for (Int32 i = 0; i < count; i++) {
-       //         if (adapter.isEnabled(i)) {
-       //             realCount++;
-       //             Object item = adapter.getItem(i);
-       //             long id = adapter.getItemId(i);
-       //             completions[i] = new CompletionInfo(id, i,
-       //                     convertSelectionToString(item));
-       //         }
-       //     }
+            for (Int32 i = 0; i < count; i++) {
+                Boolean enabled = FALSE;
+                adapter->IsEnabled(i, &enabled);
+                if (enabled) {
+                    realCount++;
+                    AutoPtr<IInterface> item;
+                    adapter->GetItem(i, (IInterface**)&item);
+                    Int64 id = 0;
+                    adapter->GetItemId(i, &id);
+                    AutoPtr<ICompletionInfo> tmpInfo;
+                    CCompletionInfo::New(id, i,
+                           ConvertSelectionToString(item), (ICompletionInfo**)&tmpInfo);
+                    (*completions)[i] = tmpInfo.Get();
+                }
+            }
 
-       //     if (realCount != count) {
-       //         CompletionInfo[] tmp = new CompletionInfo[realCount];
-       //         System.arraycopy(completions, 0, tmp, 0, realCount);
-       //         completions = tmp;
-       //     }
+            if (realCount != count) {
+                ArrayOf< AutoPtr<ICompletionInfo> >* tmp = ArrayOf< AutoPtr<ICompletionInfo> >::Alloc(realCount);
+                //System.arraycopy(completions, 0, tmp, 0, realCount);
+                memcpy(tmp->GetPayload(), completions->GetPayload(), realCount * sizeof(AutoPtr<ICompletionInfo>));
+                ArrayOf< AutoPtr<ICompletionInfo> >::Free(completions);
+                completions = tmp;
+            }
 
-       //     imm.displayCompletions(this, completions);
-       // }
+            imm->DisplayCompletions((IView*)this->Probe(EIID_IView), (ArrayOf<ICompletionInfo*>*)completions);
+
+            for (Int32 i = 0; i < completions->GetLength(); ++i) {
+                (*completions)[i] = NULL;
+            }
+            ArrayOf< AutoPtr<ICompletionInfo> >::Free(completions);
+        }
     }
 
     if (mDropDownList == NULL) {

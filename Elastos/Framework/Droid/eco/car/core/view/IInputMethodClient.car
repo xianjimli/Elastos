@@ -1,0 +1,19 @@
+
+module
+{
+    interface IInputBindResult;
+
+    /* oneway */ interface IInputMethodClient extends IBinder {
+        SetUsingInputMethod(
+            [in] Boolean state);
+
+        OnBindMethod(
+            [in] IInputBindResult* res);
+
+        OnUnbindMethod(
+            [in] Int32 sequence);
+
+        SetActive(
+            [in] Boolean active);
+    }
+}

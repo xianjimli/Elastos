@@ -20,6 +20,9 @@ public:
     CARAPI GetResources(
         /* [out] */ IResources** resources);
 
+    CARAPI GetCapsuleManager(
+        /* [out] */ ILocalCapsuleManager** capsuleManager);
+
     CARAPI GetContentResolver(
         /* [out] */ IContentResolver** resolver);
 

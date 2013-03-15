@@ -1,17 +1,61 @@
 
 #include "server/CWindowSession.h"
+#include "os/ServiceManager.h"
+#include "os/Binder.h"
 
 ECode CWindowSession::constructor(
     /* [in] */ IWindowManagerStub* wmService,
-    /* [in] */ IInputMethodClientStub* client,
-    /* [in] */ IInputContextStub* inputContext)
+    /* [in] */ IInputMethodClient* client,
+    /* [in] */ IInputContext* inputContext)
 {
     mWMService = (CWindowManagerService*)wmService;
     mNumWindow = 0;
     mClient = client;
     mInputContext = inputContext;
+    mUid = Binder::GetCallingUid();
+    mPid = Binder::GetCallingPid();
 
-    return NOERROR;
+    {
+        Mutex::Autolock lock(mWMService->mWindowMapLock);
+        if (mWMService->mInputMethodManager == NULL && TRUE /*mWMService->mHaveInputMethods*/) {
+            mWMService->mInputMethodManager = IInputMethodManager::Probe(
+                ServiceManager::GetService(String(Context_INPUT_METHOD_SERVICE)).Get());
+            assert(mWMService->mInputMethodManager != NULL);
+        }
+    }
+    Int64 ident = Binder::ClearCallingIdentity();
+    ECode ec = NOERROR;
+    // try {
+    // Note: it is safe to call in to the input method manager
+    // here because we are not holding our lock.
+    if (mWMService->mInputMethodManager != NULL) {
+        ec = mWMService->mInputMethodManager->AddClient(client, inputContext,
+                mUid, mPid);
+    }
+    else {
+        ec = client->SetUsingInputMethod(FALSE);
+    }
+    // client.asBinder().LinkToDeath(this, 0);
+    // } catch (RemoteException e) {
+    //     // The caller has died, so we can just forget about this.
+    //     try {
+    //         if (mWMService->mInputMethodManager != null) {
+    //             mWMService->mInputMethodManager.removeClient(client);
+    //         }
+    //     } catch (RemoteException ee) {
+    //     }
+    // } finally {
+    //     Binder.restoreCallingIdentity(ident);
+    // }
+
+    if (ec == E_REMOTE_EXCEPTION) {
+        if (mWMService->mInputMethodManager != NULL) {
+            mWMService->mInputMethodManager->RemoveClient(client);
+        }
+    }
+
+    Binder::RestoreCallingIdentity(ident);
+    return ec;
 }
 
 ECode CWindowSession::Add(
@@ -74,11 +118,10 @@ ECode CWindowSession::Relayout(
 {
     //Log.d(TAG, ">>>>>> ENTERED relayout from " + Binder.getCallingPid());
     assert(mWMService);
-   *result = mWMService->RelayoutWindow(this, window, attrs,
+    *result = mWMService->RelayoutWindow(this, window, attrs,
             requestedWidth, requestedHeight, viewFlags, insetsPending,
             inFrame, inContentInsets, inVisibleInsets, inConfig, inSurface,
             outFrame, outContentInsets, outVisibleInsets, outConfig, outSurface);
-
     //Log.d(TAG, "<<<<<< EXITING relayout to " + Binder.getCallingPid());
     return NOERROR;
 }

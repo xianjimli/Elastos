@@ -3,6 +3,7 @@
 #include <Elastos.Framework.Server.h>
 #include <elastos/AutoPtr.h>
 
+
 using namespace Elastos;
 
 ECode SystemServer::Init()
@@ -12,6 +13,7 @@ ECode SystemServer::Init()
     AutoPtr<IActivityManager> activityManagerService;
     AutoPtr<ICapsuleManager> capsuleManager;
     AutoPtr<IWindowManagerStub> windowManager;
+    AutoPtr<IInputMethodManager> inputmethodService;
 
     AutoPtr<IApartment> apartment;
     CApartment::New(FALSE, (IApartment**)&apartment);
@@ -28,5 +30,15 @@ ECode SystemServer::Init()
     if (FAILED(ec)) return ec;
 
     CActivityManagerService::New(windowManager.Get(), (IActivityManager**)&activityManagerService);
-    return serviceManager->AddService(String("ActivityManagerService"), activityManagerService.Get());
+    ec = serviceManager->AddService(String("ActivityManagerService"), activityManagerService.Get());
+    if (FAILED(ec)) return ec;
+
+    AutoPtr<IContext> ctx;
+    IActivityManagerService::Probe(activityManagerService)->GetSystemContext((IContext**)&ctx);
+    IActivityManagerService::Probe(activityManagerService)->SetSystemProcess();
+
+    CInputMethodManagerService::New(ctx, NULL, (IInputMethodManager**)&inputmethodService);
+    IInputMethodManagerService::Probe(inputmethodService)->SystemReady();
+
+    return serviceManager->AddService(String(Context_INPUT_METHOD_SERVICE), inputmethodService.Get());
 }

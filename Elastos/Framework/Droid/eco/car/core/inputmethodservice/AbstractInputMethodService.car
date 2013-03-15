@@ -1,8 +1,8 @@
 
 module
 {
-    interface IInputMethodStub;
-    interface IInputMethodSessionStub;
+    interface IInputMethod;
+    interface IInputMethodSession;
     interface ILocalInputMethodSessionCallback;
 
     /**
@@ -10,7 +10,7 @@ module
      * interface.  This takes care of basic maintenance of the input method,
      * but most behavior must be implemented in a derived class.
      */
-    interface IAbstractInputMethodImpl{
+    interface IAbstractInputMethodImpl extends ILocalInputMethod {
     }
 
    /**
@@ -18,7 +18,7 @@ module
      * interface.  This takes care of basic maintenance of the session,
      * but most behavior must be implemented in a derived class.
      */
-    interface IAbstractInputMethodSessionImpl {
+    interface IAbstractInputMethodSessionImpl extends ILocalInputMethodSession {
         /**
          * Check whether this session has been enabled by the system.  If not
          * enabled, you should not execute any calls on to it.

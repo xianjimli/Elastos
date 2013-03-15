@@ -1,7 +1,7 @@
 
 module
 {
-    interface IInputMethodClientStub;
+    interface IInputMethodClient;
     interface IContext;
     interface IInputMethodInfo;
     interface IApartment;
@@ -12,9 +12,9 @@ module
     interface IExtractedText;
     interface IBundle;
     interface IKeyEvent;
-    interface IInputMethodCallbackStub;
+    interface IInputMethodCallback;
     interface IResultReceiver;
-    interface IInputContextStub;
+    interface IInputContext;
 
 
     /**
@@ -82,11 +82,11 @@ module
     interface ILocalInputMethodManager {
         /** @hide */
         GetClient(
-            [out] IInputMethodClientStub** client);
+            [out] IInputMethodClient** client);
 
         /** @hide */
         GetInputContext(
-            [out] IInputContextStub** context);
+            [out] IInputContext** context);
 
         GetInputMethodList(
             [out] IObjectContainer** infos);
@@ -413,7 +413,7 @@ module
             [in] IContext* context,
             [in] Int32 seq,
             [in] IKeyEvent* key,
-            [in] IInputMethodCallbackStub* cback);
+            [in] IInputMethodCallback* cback);
 
         ShowInputMethodPicker();
     }

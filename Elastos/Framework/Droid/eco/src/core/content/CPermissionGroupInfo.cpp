@@ -2,7 +2,7 @@
 #include "content/CPermissionGroupInfo.h"
 
 ECode CPermissionGroupInfo::LoadLabel(
-    /* [in] */ ICapsuleManager* pm,
+    /* [in] */ ILocalCapsuleManager* pm,
     /* [out] */ ICharSequence** label)
 {
     VALIDATE_NOT_NULL(label);
@@ -10,7 +10,7 @@ ECode CPermissionGroupInfo::LoadLabel(
 }
 
 ECode CPermissionGroupInfo::LoadIcon(
-    /* [in] */ ICapsuleManager* pm,
+    /* [in] */ ILocalCapsuleManager* pm,
     /* [out] */ IDrawable** icon)
 {
     VALIDATE_NOT_NULL(icon);
@@ -18,7 +18,7 @@ ECode CPermissionGroupInfo::LoadIcon(
 }
 
 ECode CPermissionGroupInfo::LoadLogo(
-    /* [in] */ ICapsuleManager* pm,
+    /* [in] */ ILocalCapsuleManager* pm,
     /* [out] */ IDrawable** icon)
 {
     VALIDATE_NOT_NULL(icon);
@@ -26,7 +26,7 @@ ECode CPermissionGroupInfo::LoadLogo(
 }
 
 ECode CPermissionGroupInfo::LoadXmlMetaData(
-    /* [in] */ ICapsuleManager* pm,
+    /* [in] */ ILocalCapsuleManager* pm,
     /* [in] */ const String& name,
     /* [out] */ IXmlResourceParser** resource)
 {
@@ -142,7 +142,7 @@ ECode CPermissionGroupInfo::SetMetaData(
 }
 
 ECode CPermissionGroupInfo::LoadDescription(
-    /* [in] */ ICapsuleManager* cm,
+    /* [in] */ ILocalCapsuleManager* cm,
     /* [out] */ ICharSequence** des)
 {
     // TODO: Add your code here

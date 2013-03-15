@@ -14,7 +14,7 @@ CPermissionInfo::~CPermissionInfo()
 }
 
 ECode CPermissionInfo::LoadLabel(
-    /* [in] */ ICapsuleManager* pm,
+    /* [in] */ ILocalCapsuleManager* pm,
     /* [out] */ ICharSequence** label)
 {
     VALIDATE_NOT_NULL(label);
@@ -22,7 +22,7 @@ ECode CPermissionInfo::LoadLabel(
 }
 
 ECode CPermissionInfo::LoadIcon(
-    /* [in] */ ICapsuleManager* pm,
+    /* [in] */ ILocalCapsuleManager* pm,
     /* [out] */ IDrawable** icon)
 {
     VALIDATE_NOT_NULL(icon);
@@ -30,7 +30,7 @@ ECode CPermissionInfo::LoadIcon(
 }
 
 ECode CPermissionInfo::LoadLogo(
-    /* [in] */ ICapsuleManager* pm,
+    /* [in] */ ILocalCapsuleManager* pm,
     /* [out] */ IDrawable** icon)
 {
     VALIDATE_NOT_NULL(icon);
@@ -38,7 +38,7 @@ ECode CPermissionInfo::LoadLogo(
 }
 
 ECode CPermissionInfo::LoadXmlMetaData(
-    /* [in] */ ICapsuleManager* pm,
+    /* [in] */ ILocalCapsuleManager* pm,
     /* [in] */ const String& name,
     /* [out] */ IXmlResourceParser** resource)
 {
@@ -154,7 +154,7 @@ ECode CPermissionInfo::SetMetaData(
 }
 
 ECode CPermissionInfo::LoadDescription(
-    /* [in] */ ICapsuleManager* cm,
+    /* [in] */ ILocalCapsuleManager* cm,
     /* [out, callee] */ ArrayOf<Char8>** des)
 {
     VALIDATE_NOT_NULL(cm);

@@ -1,33 +1,36 @@
 
-#ifndef  _ABSTRACTINPUTMETHODSESSIONIMPL_H__
-#define  _ABSTRACTINPUTMETHODSESSIONIMPL_H__
+#ifndef  __ABSTRACTINPUTMETHODSESSIONIMPL_H__
+#define  __ABSTRACTINPUTMETHODSESSIONIMPL_H__
 
+<<<<<<< HEAD
 #include <elastos/ElRefBase.h>
 #include "inputmethodservice/AbstractInputMethodService.h"
+=======
+#ifdef _FRAMEWORK_CORE
+#include "inputmethodservice/AbstractInputMethodService.h"
+#else
+#include "Elastos.Framework.Core.h"
+#include "AbstractInputMethodService.h"
+#endif
+>>>>>>> review input method implementation
 
+#include <elastos/ElRefBase.h>
 
 /**
  * Base class for derived classes to implement their {@link InputMethodSession}
  * interface.  This takes care of basic maintenance of the session,
  * but most behavior must be implemented in a derived class.
  */
-class AbstractInputMethodSessionImpl:
-	public ElRefBase,
-    public IAbstractInputMethodSessionImpl,
-	public ILocalInputMethodSession
+class AbstractInputMethodSessionImpl
+    : public ElRefBase
+    , public IAbstractInputMethodSessionImpl
 {
 public:
-	AbstractInputMethodSessionImpl(
-		/* [in] */ AbstractInputMethodService* host);
-
-	~AbstractInputMethodSessionImpl();
+    AbstractInputMethodSessionImpl(
+        /* [in] */ AbstractInputMethodService* host);
 
     CARAPI_(PInterface) Probe(
         /* [in] */ REIID riid);
-
-    CARAPI_(UInt32) AddRef();
-
-    CARAPI_(UInt32) Release();
 
     CARAPI GetInterfaceID(
         /* [in] */ IInterface *pObject,
@@ -38,7 +41,7 @@ public:
      * enabled, you should not execute any calls on to it.
      */
     CARAPI IsEnabled(
-    	/* [out] */ Boolean* enabled);
+        /* [out] */ Boolean* enabled);
 
     /**
      * Check whether this session has been revoked by the system.  Revoked
@@ -46,14 +49,14 @@ public:
      * explicitly check for this.
      */
     CARAPI IsRevoked(
-    	/* [out] */ Boolean* revoked);
+        /* [out] */ Boolean* revoked);
 
     /**
      * Change the enabled state of the session.  This only works if the
      * session has not been revoked.
      */
     CARAPI SetEnabled(
-    	/* [in] */ Boolean enabled);
+        /* [in] */ Boolean enabled);
 
     /**
      * Revoke the session from the client.  This disabled the session, and
@@ -66,58 +69,24 @@ public:
      * callbacks on the service, and tell the client when this is done.
      */
     CARAPI DispatchKeyEvent(
-    	/* [in] */ Int32 seq,
-    	/* [in] */ IKeyEvent* event,
-    	/* [in] */ ILocalInputMethodSessionEventCallback* callback);
+        /* [in] */ Int32 seq,
+        /* [in] */ IKeyEvent* event,
+        /* [in] */ ILocalInputMethodSessionEventCallback* callback);
 
     /**
      * Take care of dispatching incoming trackball events to the appropriate
      * callbacks on the service, and tell the client when this is done.
      */
     CARAPI DispatchTrackballEvent(
-    	/* [in] */ Int32 seq,
-    	/* [in] */ IMotionEvent* event,
-    	/* [in] */ ILocalInputMethodSessionEventCallback* callback);
-
-    CARAPI FinishInput();
-
-    CARAPI UpdateExtractedText(
-        /* [in] */ Int32 token,
-        /* [in] */ IExtractedText* text);
-
-    CARAPI UpdateSelection(
-        /* [in] */ Int32 oldSelStart,
-        /* [in] */ Int32 oldSelEnd,
-        /* [in] */ Int32 newSelStart,
-        /* [in] */ Int32 newSelEnd,
-        /* [in] */ Int32 candidatesStart,
-        /* [in] */ Int32 candidatesEnd);
-
-    CARAPI UpdateCursor(
-        /* [in] */ IRect* newCursor);
-
-    CARAPI DisplayCompletions(
-        /* [in] */ ArrayOf<ICompletionInfo*>* completions);
-
-    CARAPI AppPrivateCommand(
-        /* [in] */ const String& action,
-        /* [in] */ IBundle* data);
-
-    CARAPI ToggleSoftInput(
-        /* [in] */ Int32 showFlags,
-        /* [in] */ Int32 hideFlags);
-
-    CARAPI FinishSession();
-
+        /* [in] */ Int32 seq,
+        /* [in] */ IMotionEvent* event,
+        /* [in] */ ILocalInputMethodSessionEventCallback* callback);
 private:
     Boolean mEnabled;
     Boolean mRevoked;
 
 protected:
-    AbstractInputMethodService* mHost;
+    AbstractInputMethodService* mAbstractHost;
 };
 
-
-
-
-#endif  //_ABSTRACTINPUTMETHODSESSIONIMPL_H__
+#endif  //__ABSTRACTINPUTMETHODSESSIONIMPL_H__

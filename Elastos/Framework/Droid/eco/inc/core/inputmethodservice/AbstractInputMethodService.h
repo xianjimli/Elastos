@@ -1,11 +1,7 @@
 
-#ifndef  _ABSTRACTINPUTMETHODSERVICE_H__
-#define  _ABSTRACTINPUTMETHODSERVICE_H__
+#ifndef  __ABSTRACTINPUTMETHODSERVICE_H__
+#define  __ABSTRACTINPUTMETHODSERVICE_H__
 
-#include <elastos/AutoPtr.h>
-#include <elastos/ElRefBase.h>
-
-#include "content/ContextMacro.h"
 
 #ifdef _FRAMEWORK_CORE
 #include "app/Service.h"
@@ -13,11 +9,22 @@
 #include "Service.h"
 #endif
 
-class AbstractInputMethodService:
-    public Service
+#include <elastos/AutoPtr.h>
+#include <elastos/ElRefBase.h>
+
+class AbstractInputMethodService
+    : public Service
+    , public IKeyEventCallback
 {
 public:
     AbstractInputMethodService();
+
+    CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid);
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface *pObject,
+        /* [out] */ InterfaceID *pIID);
 
     /**
      * Return the global {@link KeyEvent.DispatcherState KeyEvent.DispatcherState}
@@ -60,8 +67,8 @@ public:
 public:
     AutoPtr<IDispatcherState> mDispatcherState;
 
-protected:
+private:
     AutoPtr<ILocalInputMethod> mInputMethod;
 };
 
-#endif  //_ABSTRACTINPUTMETHODSERVICE_H__
+#endif  //__ABSTRACTINPUTMETHODSERVICE_H__

@@ -45,7 +45,6 @@ SOURCES += CAssetFileDescriptor.cpp
 SOURCES += XmlBlock.cpp
 SOURCES += CPermissionInfo.cpp
 SOURCES += CPermissionGroupInfo.cpp
-SOURCES += CapsuleManager.cpp
 SOURCES += CConfigurationInfo.cpp
 SOURCES += CFeatureInfo.cpp
 SOURCES += NativeLibraryHelper.cpp

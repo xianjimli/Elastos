@@ -101,7 +101,7 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 // CBitmapFactory
 
-const char* CBitmapFactory::TAG = "CBitmapFactory";
+const CString CBitmapFactory::TAG = "CBitmapFactory";
 
 ECode CBitmapFactory::CreateBitmap(
     /* [in] */ IBitmap* source,
@@ -770,7 +770,7 @@ CString CBitmapFactory::GetMimeTypeString(
         }
     }
 
-    return cstr;
+    return CString(cstr);
 }
 
 SkStream* CBitmapFactory::CopyAssetToStream(

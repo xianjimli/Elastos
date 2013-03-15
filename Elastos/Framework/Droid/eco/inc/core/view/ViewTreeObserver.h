@@ -19,9 +19,9 @@
 class ViewTreeObserver : public ElRefBase, public IViewTreeObserver
 {
 public:
-    class InternalInsetsInfo:
-        public ElRefBase,
-        public IInternalInsetsInfo
+    class InternalInsetsInfo
+        : public ElRefBase
+        , public IInternalInsetsInfo
     {
     public:
         /**
@@ -41,12 +41,6 @@ public:
          * the visible insets can be touched.
          */
         static const Int32 TOUCHABLE_INSETS_VISIBLE = 2;
-
-        /**
-         * Option for {@link #setTouchableInsets(int)}: the area inside of
-         * the provided touchable region in {@link #touchableRegion} can be tou
-         */
-        static const Int32 TOUCHABLE_INSETS_REGION = 3;
 
     public:
         InternalInsetsInfo();
@@ -76,6 +70,12 @@ public:
         CARAPI Equals(
             /* [in] */ IInternalInsetsInfo* o,
             /* [out] */ Boolean* equal);
+
+        CARAPI GetContentInsets(
+            /* [out] */ IRect** contentInsets);
+
+        CARAPI GetVisibleInsets(
+            /* [out] */ IRect** visibleInsets);
 
         CARAPI_(void) Reset();
 
@@ -319,13 +319,7 @@ public:
         /* [in] */ IInternalInsetsInfo* inoutInfo);
 
 private:
-    void CheckIsAlive() {
-        if (!mAlive) {
-            // throw new IllegalStateException("This ViewTreeObserver is not alive, call "
-            //         + "getViewTreeObserver() again");
-            assert(0);
-        }
-    }
+    CARAPI CheckIsAlive();
 
     /**
      * Marks this ViewTreeObserver as not alive. After invoking this method, invoking
@@ -333,9 +327,7 @@ private:
      *
      * @hide
      */
-    void Kill() {
-        mAlive = FALSE;
-    }
+    CARAPI_(void) Kill();
 
 private:
     //TODO: CopyOnWriteArrayList ----Thread-safe; List---Don't know.

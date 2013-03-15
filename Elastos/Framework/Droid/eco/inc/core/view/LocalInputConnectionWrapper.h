@@ -1,6 +1,6 @@
 
-#ifndef  _LOCALINPUTCONNECTIONWRAPPER_H__
-#define  _LOCALINPUTCONNECTIONWRAPPER_H__
+#ifndef  __LOCALINPUTCONNECTIONWRAPPER_H__
+#define  __LOCALINPUTCONNECTIONWRAPPER_H__
 
 #include "ext/frameworkext.h"
 #include <elastos/ElRefBase.h>
@@ -9,99 +9,15 @@
 
 using namespace Elastos::Core::Threading;
 
-class LocalInputConnectionWrapper:
-    public ElRefBase,
-    public IInputConnection
+class LocalInputConnectionWrapper
+    : public ElRefBase
+    , public IInputConnection
 {
-protected:
-    class InputContextCallback:
-        public ElRefBase,
-        public IInputContextCallbackStub
-    {
-    public:
-        InputContextCallback();
-
-        ~InputContextCallback();
-
-        CARAPI_(PInterface) Probe(
-            /* [in] */ REIID riid);
-
-        CARAPI_(UInt32) AddRef();
-
-        CARAPI_(UInt32) Release();
-
-        CARAPI GetInterfaceID(
-            /* [in] */ IInterface *pObject,
-            /* [out] */ InterfaceID *pIID);
-
-        CARAPI SetTextBeforeCursor(
-            /* [in] */ ICharSequence* textBeforeCursor,
-            /* [in] */ Int32 seq);
-
-        CARAPI SetTextAfterCursor(
-            /* [in] */ ICharSequence* textAfterCursor,
-            /* [in] */ Int32 seq);
-
-        CARAPI SetSelectedText(
-            /* [in] */ ICharSequence* selectedText,
-            /* [in] */ Int32 seq);
-
-        CARAPI SetCursorCapsMode(
-            /* [in] */ Int32 capsMode,
-            /* [in] */ Int32 seq);
-
-        CARAPI SetExtractedText(
-            /* [in] */ IExtractedText* extractedText,
-            /* [in] */ Int32 seq);
-
-        CARAPI GetDescription(
-            /* [out] */ String* str);
-
-       /**
-         * Returns an InputContextCallback object that is guaranteed not to be in use by
-         * any other thread.  The returned object's 'have value' flag is cleared and its expected
-         * sequence number is set to a new integer.  We use a sequence number so that replies that
-         * occur after a timeout has expired are not interpreted as replies to a later request.
-         */
-        static CARAPI_(AutoPtr<InputContextCallback>) GetInstance(
-            /* [in] */ LocalInputConnectionWrapper* host);
-
-        /**
-         * Waits for a result for up to {@link #MAX_WAIT_TIME_MILLIS} milliseconds.
-         *
-         * <p>The caller must be synchronized on this callback object.
-         */
-        CARAPI_(void) WaitForResultLocked();
-
-        /**
-         * Makes the given InputContextCallback available for use in the future.
-         */
-        CARAPI_(void) Dispose();
-
-    public:
-        Int32 mSeq;
-        Boolean mHaveValue;
-        AutoPtr<ICharSequence> mTextBeforeCursor;
-        AutoPtr<ICharSequence> mTextAfterCursor;
-        AutoPtr<ICharSequence> mSelectedText;
-        AutoPtr<IExtractedText> mExtractedText;
-        Int32 mCursorCapsMode;
-        static Mutex mPriLock;
-
-    private:
-        //static CString TAG = "LocalInputConnectionWrapper.ICC";
-        // A 'pool' of one InputContextCallback.  Each ICW request will attempt to gain
-        // exclusive access to this object.
-        static AutoPtr<InputContextCallback> sInstance;
-        static Int32 sSequenceNumber;
-        static LocalInputConnectionWrapper* mHost;
-    };
+    friend class CInputContextCallback;
 
 public:
     LocalInputConnectionWrapper(
-        /* [in] */ IInputContextStub* inputContext);
-
-    ~LocalInputConnectionWrapper();
+        /* [in] */ IInputContext* inputContext);
 
     CARAPI_(PInterface) Probe(
         /* [in] */ REIID riid);
@@ -205,7 +121,7 @@ public:
 
 private:
     static const Int32 MAX_WAIT_TIME_MILLIS = 2000;
-    AutoPtr<IInputContextStub> mIInputContext;
+    AutoPtr<IInputContext> mIInputContext;
 };
 
-#endif //_LOCALINPUTCONNECTIONWRAPPER_H__
+#endif //__LOCALINPUTCONNECTIONWRAPPER_H__

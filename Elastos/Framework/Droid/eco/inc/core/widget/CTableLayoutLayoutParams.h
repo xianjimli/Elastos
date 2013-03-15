@@ -38,6 +38,9 @@ public:
     CARAPI GetWeight(
         /* [out] */ Float* weight);
 
+    CARAPI SetWeight(
+        /* [in] */ Float weight);
+
     CARAPI GetGravity(
         /* [out] */ Int32* gravity);
 

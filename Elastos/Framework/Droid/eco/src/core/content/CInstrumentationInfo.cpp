@@ -13,7 +13,7 @@ ECode CInstrumentationInfo::constructor(
 }
 
 ECode CInstrumentationInfo::LoadLabel(
-    /* [in] */ ICapsuleManager* pm,
+    /* [in] */ ILocalCapsuleManager* pm,
     /* [out] */ ICharSequence** label)
 {
     VALIDATE_NOT_NULL(label);
@@ -21,7 +21,7 @@ ECode CInstrumentationInfo::LoadLabel(
 }
 
 ECode CInstrumentationInfo::LoadIcon(
-    /* [in] */ ICapsuleManager* pm,
+    /* [in] */ ILocalCapsuleManager* pm,
     /* [out] */ IDrawable** icon)
 {
     VALIDATE_NOT_NULL(icon);
@@ -29,7 +29,7 @@ ECode CInstrumentationInfo::LoadIcon(
 }
 
 ECode CInstrumentationInfo::LoadLogo(
-    /* [in] */ ICapsuleManager* pm,
+    /* [in] */ ILocalCapsuleManager* pm,
     /* [out] */ IDrawable** icon)
 {
     VALIDATE_NOT_NULL(icon);
@@ -37,7 +37,7 @@ ECode CInstrumentationInfo::LoadLogo(
 }
 
 ECode CInstrumentationInfo::LoadXmlMetaData(
-    /* [in] */ ICapsuleManager* pm,
+    /* [in] */ ILocalCapsuleManager* pm,
     /* [in] */ const String& name,
     /* [out] */ IXmlResourceParser** resource)
 {

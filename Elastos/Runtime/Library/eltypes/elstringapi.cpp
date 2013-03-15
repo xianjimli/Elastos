@@ -307,13 +307,13 @@ Double __cdecl _String_ToDouble(const char *string)
 Boolean __cdecl _String_Contains(const char *string, const char *substr,
             StringCase stringCase)
 {
-   if (!string || !substr) return FALSE;
+   if (!string || !substr || substr[0] == 0) return FALSE;
 
     if (stringCase == StringCase_Sensitive) {
-        return !!strstr(string, substr);
+        return strstr(string, substr) != NULL ? TRUE : FALSE;
     }
     else {
-        return !!_getStringCaseStrstr(string, substr);
+        return _getStringCaseStrstr(string, substr) != NULL ? TRUE : FALSE;
     }
 }
 

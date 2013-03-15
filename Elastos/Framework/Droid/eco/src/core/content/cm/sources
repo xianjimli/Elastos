@@ -10,3 +10,4 @@ C_DEFINES += -D_FRAMEWORK_CORE
 
 SOURCES = CCapsuleInfoLite.cpp
 SOURCES += CSignature.cpp
+SOURCES += CapsuleManager.cpp

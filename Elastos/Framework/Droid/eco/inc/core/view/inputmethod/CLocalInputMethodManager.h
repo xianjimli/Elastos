@@ -1,89 +1,22 @@
 
-#ifndef  _CINPUTMETHODMANAGER_H__
-#define  _CINPUTMETHODMANAGER_H__
+#ifndef  __CLOCALINPUTMETHODMANAGER_H__
+#define  __CLOCALINPUTMETHODMANAGER_H__
 
 #include "ext/frameworkext.h"
 #include "_CLocalInputMethodManager.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/List.h>
-#include "view/IInputConnectionWrapper.h"
 
 CarClass(CLocalInputMethodManager)
 {
-private:
-    class ControlledInputConnectionWrapper:
-        public IInputConnectionWrapper
-    {
-    public:
-        ControlledInputConnectionWrapper(
-            /* [in] */ IApartment* mainLooper,
-            /* [in] */ IInputConnection* conn,
-            /* [in] */ CLocalInputMethodManager* host);
-
-        CARAPI_(Boolean) IsActive();
-
-        CARAPI_(PInterface) Probe(
-            /* [in] */ REIID riid);
-
-        CARAPI_(UInt32) AddRef();
-
-        CARAPI_(UInt32) Release();
-
-        CARAPI GetInterfaceID(
-            /* [in] */ IInterface *pObject,
-            /* [out] */ InterfaceID *pIID);
-
-    private:
-        CLocalInputMethodManager* mHost;
-    };
-
-    class _InputMethodClientStub:
-        public ElRefBase,
-        public IInputMethodClientStub
-    {
-    public:
-        _InputMethodClientStub(
-            /* [in] */ CLocalInputMethodManager* host);
-
-        ~_InputMethodClientStub();
-
-        CARAPI SetUsingInputMethod(
-            /* [in] */ Boolean state);
-
-        CARAPI OnBindMethod(
-            /* [in] */ IInputBindResult* res);
-
-        CARAPI OnUnbindMethod(
-            /* [in] */ Int32 sequence);
-
-        CARAPI SetActive(
-            /* [in] */ Boolean active);
-
-        CARAPI_(PInterface) Probe(
-            /* [in] */ REIID riid);
-
-        CARAPI_(UInt32) AddRef();
-
-        CARAPI_(UInt32) Release();
-
-        CARAPI GetInterfaceID(
-            /* [in] */ IInterface *pObject,
-            /* [out] */ InterfaceID *pIID);
-
-        CARAPI GetDescription(
-            /* [out] */ String* str);
-
-    private:
-        CLocalInputMethodManager* mHost;
-    };
-
+    friend class CIInputMethodClient;
 
 public:
     CLocalInputMethodManager();
 
     //TODO: will delete. Because LocalInputMethodManager is private in java code.
     CARAPI constructor(
-        /* [in] */ IInputMethodManagerStub* service,
+        /* [in] */ IInputMethodManager* service,
         /* [in] */ IApartment* looper);
 
     /**
@@ -91,7 +24,7 @@ public:
      * doesn't already exist.
      * @hide
      */
-    static CARAPI_(ILocalInputMethodManager*) GetInstance(
+    static CARAPI_(AutoPtr<ILocalInputMethodManager>) GetInstance(
         /* [in] */ IContext* context);
 
     /**
@@ -99,7 +32,7 @@ public:
      * we have this here for the places that need it.
      * @hide
      */
-    static CARAPI_(ILocalInputMethodManager*) GetInstanceEx(
+    static CARAPI_(AutoPtr<ILocalInputMethodManager>) GetInstance(
         /* [in] */ IApartment* mainLooper);
 
     /**
@@ -107,15 +40,15 @@ public:
      * if it exists.
      * @hide
      */
-    static CARAPI_(ILocalInputMethodManager*) PeekInstance();
+    static CARAPI_(AutoPtr<ILocalInputMethodManager>) PeekInstance();
 
     /** @hide */
     CARAPI GetClient(
-        /* [out] */ IInputMethodClientStub** client);
+        /* [out] */ IInputMethodClient** client);
 
     /** @hide */
     CARAPI GetInputContext(
-        /* [out] */ IInputContextStub** context);
+        /* [out] */ IInputContext** context);
 
     CARAPI GetInputMethodList(
         /* [out] */ IObjectContainer** infos);
@@ -163,11 +96,6 @@ public:
      */
     CARAPI IsAcceptingText(
         /* [out] */ Boolean* isAccepting);
-
-    /**
-     * Reset all of the state associated with being bound to an input method.
-     */
-    CARAPI ClearBindingLocked();
 
     /**
      * Called from the FINISH_INPUT_CONNECTION message above.
@@ -446,21 +374,34 @@ public:
         /* [in] */ IContext* context,
         /* [in] */ Int32 seq,
         /* [in] */ IKeyEvent* key,
-        /* [in] */ IInputMethodCallbackStub* callback);
+        /* [in] */ IInputMethodCallback* callback);
 
     CARAPI ShowInputMethodPicker();
 
-private:
-    // CARAPI constructor(
-    //     /* [in] */ IInputMethodManagerStub* service,
-    //     /* [in] */ IApartment* looper);
+    //For callback
+    CARAPI_(void) HandleMsgBind(
+        /* [in] */ IInputBindResult* res);
+
+    CARAPI_(void) HandleMsgUnBind(
+        /* [in] */ Int32 sequence);
+
+    CARAPI_(void) HandleMsgSetActive(
+        /* [in] */ Boolean active);
+
+protected:
+    /**
+     * Reset all of the state associated with being bound to an input method.
+     */
+    /* package */ CARAPI_(void) ClearBindingLocked();
 
     /**
      * Reset all of the state associated with a served view being connected
      * to an input method
      */
-    CARAPI_(void) ClearConnectionLocked();
+    /* package */ CARAPI_(void) ClearConnectionLocked();
 
+
+private:
     /**
      * Disconnect any existing input connection, clearing the served view.
      */
@@ -483,16 +424,7 @@ private:
         /* [in] */ IContext* context,
         /* [in] */ Int32 seq,
         /* [in] */ IMotionEvent* motion,
-        /* [in] */ IInputMethodCallbackStub* callback);
-
-    CARAPI_(void) HandleMsgBind(
-        /* [in] */ IInputBindResult* res);
-
-    CARAPI_(void) HandleMsgUnBind(
-        /* [in] */ Int32 sequence);
-
-    CARAPI_(void) HandleMsgSetActive(
-        /* [in] */ Int32 flag);
+        /* [in] */ IInputMethodCallback* callback);
 
 public:
     /**
@@ -501,28 +433,24 @@ public:
      */
     AutoPtr<IView> mServedView;
 
-    // For scheduling work on the main thread.  This also serves as our
-    // global lock.
-    AutoPtr<IApartment> mH;
-
     static Mutex sStaticHandlerLock;
-
-private:
-    // static final boolean DEBUG = false;
-    static CString TAG;
-
-    static AutoPtr<ILocalInputMethodManager> mInstance;
-
-    AutoPtr<IInputMethodManagerStub> mService;
-    AutoPtr<IApartment> mMainLooper;
-
-    // Our generic input connection if the current target does not have its own.
-    AutoPtr<IInputContextStub> mIInputContext;
 
     /**
      * True if this input method client is active, initially false.
      */
     Boolean mActive;
+
+private:
+    // static final boolean DEBUG = false;
+    static CString TAG;
+
+    static AutoPtr<ILocalInputMethodManager> sInstance;
+
+    AutoPtr<IInputMethodManager> mService;
+    AutoPtr<IApartment> mMainLooper;
+
+    // Our generic input connection if the current target does not have its own.
+    AutoPtr<IInputContext> mIInputContext;
 
     /**
      * Set whenever this client becomes inactive, to know we need to reset
@@ -571,7 +499,7 @@ private:
     /**
      * The completions that were last provided by the served view.
      */
-    ArrayOf<ICompletionInfo*>* mCompletions;
+    ArrayOf< AutoPtr<ICompletionInfo> >* mCompletions;
 
     // Cursor position on the screen.
     AutoPtr<IRect> mTmpCursorRect;
@@ -594,7 +522,7 @@ private:
     /**
      * The actual instance of the method to make calls on it.
      */
-    AutoPtr<IInputMethodSessionStub> mCurMethod;
+    AutoPtr<IInputMethodSession> mCurMethod;
 
     // -----------------------------------------------------------
 
@@ -603,7 +531,7 @@ private:
     static const Int32 MSG_UNBIND = 3;
     static const Int32 MSG_SET_ACTIVE = 4;
 
-    AutoPtr<IInputMethodClientStub> mClient;
+    AutoPtr<IInputMethodClient> mClient;
 
     AutoPtr<IInputConnection> mDummyInputConnection;
 
@@ -611,4 +539,4 @@ private:
 };
 
 
-#endif   //_CINPUTMETHODMANAGER_H__
+#endif   //__CLOCALINPUTMETHODMANAGER_H__

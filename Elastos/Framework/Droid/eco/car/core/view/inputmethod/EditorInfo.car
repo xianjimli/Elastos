@@ -104,5 +104,19 @@ module
 
 
     interface IEditorInfo {
+        GetInputType(
+            [out] Int32* type);
+
+        GetImeOptions(
+            [out] Int32* options);
+
+        GetActionLabel(
+            [out] ICharSequence** actionLabel);
+
+        GetActionId(
+            [out] Int32* actionId);
+
+        GetHintText(
+            [out] ICharSequence** hintText);
     }
 }

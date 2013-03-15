@@ -160,7 +160,7 @@ private:
 */
     Mutex& operator = (const Mutex&);
 
-private:
+public:
 /*!
    @brief a mutual exclusion thread.
 */
@@ -169,7 +169,11 @@ private:
 
 inline Mutex::Mutex()
 {
-    pthread_mutex_init(&mMutex, NULL);
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK_NP);
+    pthread_mutex_init(&mMutex, &attr);
+    pthread_mutexattr_destroy(&attr);
 }
 
 inline Mutex::Mutex(const char* name)
@@ -179,15 +183,14 @@ inline Mutex::Mutex(const char* name)
 
 inline Mutex::Mutex(Int32 type, const char* name)
 {
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK_NP);
     if (type == SHARED) {
-        pthread_mutexattr_t attr;
-        pthread_mutexattr_init(&attr);
         pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED);
-        pthread_mutex_init(&mMutex, &attr);
-        pthread_mutexattr_destroy(&attr);
-    } else {
-        pthread_mutex_init(&mMutex, NULL);
     }
+    pthread_mutex_init(&mMutex, &attr);
+    pthread_mutexattr_destroy(&attr);
 }
 
 inline Mutex::~Mutex()

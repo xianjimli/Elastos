@@ -1,64 +1,73 @@
 
-
-#ifndef  _IINPUTCONNECTIONWRQPPER_H__
-#define  _IINPUTCONNECTIONWRQPPER_H__
+#ifndef  __IINPUTCONNECTIONWRQPPER_H__
+#define  __IINPUTCONNECTIONWRQPPER_H__
 
 #include "ext/frameworkext.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/ElRefBase.h>
 
-class IInputConnectionWrapper:
-    public ElRefBase,
-    public IInputContextStub {
+class IInputConnectionWrapper
+{
 private:
-    class SomeArgs {
+    class SomeArgs
+    {
     public:
         SomeArgs(
             /* [in] */ IInterface* arg1 = NULL,
             /* [in] */ IInterface* arg2 = NULL,
-            /* [in] */ IInputContextCallbackStub* clback = NULL,
+            /* [in] */ IInputContextCallback* clback = NULL,
             /* [in] */ Int32 seq = 0);
 
-        ~SomeArgs();
-
+    public:
         AutoPtr<IInterface> mArg1;
         AutoPtr<IInterface> mArg2;
-        AutoPtr<IInputContextCallbackStub> mCallback;
+        AutoPtr<IInputContextCallback> mCallback;
         Int32 mSeq;
     };
 
-    class Message {
+    class Message
+    {
     public:
         Message(
             /* [in] */ Int32 what,
             /* [in] */ Int32 arg1 = 0,
             /* [in] */ Int32 arg2 = 0,
-            /* [in] */ SomeArgs* someArg = NULL);
-
-        ~Message();
+            /* [in] */ const SomeArgs* someArg = NULL);
 
     public:
         Int32 mWhat;
         Int32 mArg1;
         Int32 mArg2;
-        SomeArgs* mArgObj;
+        SomeArgs mArgObj;
+    };
+
+private:
+    class AutoMessage
+    {
+    public:
+        AutoMessage(
+            /* [in] */ Message* msg)
+            : mMessage(msg)
+        {}
+
+        ~AutoMessage()
+        {
+            if (mMessage != NULL) delete mMessage;
+        }
+
+        inline  Message* operator-> () const
+        { return mMessage;  }
+
+    private:
+        Message* mMessage;
     };
 
 public:
-    IInputConnectionWrapper(
+    IInputConnectionWrapper();
+
+    CARAPI Init(
         /* [in] */ IApartment* mainLooper,
         /* [in] */ IInputConnection* conn);
-
-    CARAPI_(PInterface) Probe(
-        /* [in] */ REIID riid);
-
-    CARAPI_(UInt32) AddRef();
-
-    CARAPI_(UInt32) Release();
-
-    CARAPI GetInterfaceID(
-        /* [in] */ IInterface *pObject,
-        /* [out] */ InterfaceID *pIID);
 
     CARAPI_(Boolean) IsActive();
 
@@ -66,29 +75,29 @@ public:
         /* [in] */ Int32 length,
         /* [in] */ Int32 flags,
         /* [in] */ Int32 seq,
-        /* [in] */ IInputContextCallbackStub* callback);
+        /* [in] */ IInputContextCallback* callback);
 
     CARAPI GetTextBeforeCursor(
         /* [in] */ Int32 length,
         /* [in] */ Int32 flags,
         /* [in] */ Int32 seq,
-        /* [in] */ IInputContextCallbackStub* callback);
+        /* [in] */ IInputContextCallback* callback);
 
     CARAPI GetSelectedText(
         /* [in] */ Int32 flags,
         /* [in] */ Int32 seq,
-        /* [in] */ IInputContextCallbackStub* callback);
+        /* [in] */ IInputContextCallback* callback);
 
     CARAPI GetCursorCapsMode(
         /* [in] */ Int32 reqModes,
         /* [in] */ Int32 seq,
-        /* [in] */ IInputContextCallbackStub* callback);
+        /* [in] */ IInputContextCallback* callback);
 
     CARAPI GetExtractedText(
         /* [in] */ IExtractedTextRequest* request,
         /* [in] */ Int32 flags,
         /* [in] */ Int32 seq,
-        /* [in] */ IInputContextCallbackStub* callback);
+        /* [in] */ IInputContextCallback* callback);
 
     CARAPI CommitText(
         /* [in] */ ICharSequence* text,
@@ -148,44 +157,44 @@ private:
     CARAPI ExecuteMessage(
         /* [in] */ Message* msg);
 
-    Message* ObtainMessage(
+    CARAPI_(Message*) ObtainMessage(
         /* [in] */ Int32 what);
 
-    Message* ObtainMessageII(
+    CARAPI_(Message*) ObtainMessageII(
         /* [in] */ Int32 what,
         /* [in] */ Int32 arg1,
         /* [in] */ Int32 arg2);
 
-    Message* ObtainMessageO(
+    CARAPI_(Message*) ObtainMessageO(
         /* [in] */ Int32 what,
         /* [in] */ IInterface* arg1);
 
-    Message* ObtainMessageISC(
+    CARAPI_(Message*) ObtainMessageISC(
         /* [in] */ Int32 what,
         /* [in] */ Int32 arg1,
         /* [in] */ Int32 seq,
-        /* [in] */ IInputContextCallbackStub* callback);
+        /* [in] */ IInputContextCallback* callback);
 
-    Message* ObtainMessageIISC(
+    CARAPI_(Message*) ObtainMessageIISC(
         /* [in] */ Int32 what,
         /* [in] */ Int32 arg1,
         /* [in] */ Int32 arg2,
         /* [in] */ Int32 seq,
-        /* [in] */ IInputContextCallbackStub* callback);
+        /* [in] */ IInputContextCallback* callback);
 
-    Message* ObtainMessageIOSC(
+    CARAPI_(Message*) ObtainMessageIOSC(
         /* [in] */ Int32 what,
         /* [in] */ Int32 arg1,
         /* [in] */ IInterface* arg2,
         /* [in] */ Int32 seq,
-        /* [in] */ IInputContextCallbackStub* callback);
+        /* [in] */ IInputContextCallback* callback);
 
-    Message* ObtainMessageIO(
+    CARAPI_(Message*) ObtainMessageIO(
         /* [in] */ Int32 what,
         /* [in] */ Int32 arg1,
         /* [in] */ IInterface* arg2);
 
-    Message* ObtainMessageOO(
+    CARAPI_(Message*) ObtainMessageOO(
         /* [in] */ Int32 what,
         /* [in] */ const String& arg1,
         /* [in] */ IInterface* arg2);
@@ -218,8 +227,6 @@ private:
     AutoPtr<IInputConnection> mInputConnection;
 
     AutoPtr<IApartment> mMainLooper;
-
-    AutoPtr<IApartment> mH;
 };
 
-#endif  //_IINPUTCONNECTIONWRQPPER_H__
+#endif  //__IINPUTCONNECTIONWRQPPER_H__

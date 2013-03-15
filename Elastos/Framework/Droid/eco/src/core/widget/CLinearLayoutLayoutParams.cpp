@@ -81,6 +81,13 @@ ECode CLinearLayoutLayoutParams::GetWeight(
     return NOERROR;
 }
 
+ECode CLinearLayoutLayoutParams::SetWeight(
+    /* [in] */ Float weight)
+{
+    mWeight = weight;
+    return NOERROR;
+}
+
 ECode CLinearLayoutLayoutParams::GetGravity(
     /* [out] */ Int32* gravity)
 {

@@ -32,6 +32,7 @@
 #include <elastos/Mutex.h>
 #include <StringBuffer.h>
 
+
 using namespace Elastos;
 using namespace Elastos::Core;
 using namespace Elastos::Core::Threading;
@@ -61,6 +62,9 @@ template<> struct EqualTo<AutoPtr<IComponentName> >
     }
 };
 
+#ifndef _IINTENTFILTERCOMPARISON_HASH_EQUALTO
+#define _IINTENTFILTERCOMPARISON_HASH_EQUALTO
+
 template<> struct Hash< AutoPtr<IIntentFilterComparison> >
 {
     size_t operator()(AutoPtr<IIntentFilterComparison> filter) const
@@ -83,6 +87,8 @@ template<> struct EqualTo< AutoPtr<IIntentFilterComparison> >
         return isEqual;
     }
 };
+
+#endif //_IINTENTFILTERCOMPARISON_HASH_EQUALTO
 
 template<> struct Hash<IUri*>
 {
@@ -230,6 +236,9 @@ public:
     // This is a process running a core server, such as telephony.  Definitely
     // don't want to kill it, but doing so is not completely fatal.
     static const Int32 CORE_SERVER_ADJ = -12;
+
+    // The system process runs at the default adjustment.
+    static const Int32 SYSTEM_ADJ = -16;
 
     // Memory pages are 4K.
     static const Int32 PAGE_SIZE = 4 * 1024;
@@ -876,6 +885,11 @@ public:
     CARAPI constructor(
         /* [in] */ IWindowManagerStub* wm);
 
+    CARAPI GetSystemContext(
+        /* [out] */ IContext** ctx);
+
+    CARAPI SetSystemProcess();
+
 private:
     CARAPI_(void) UpdateCpuStats();
 
@@ -1460,6 +1474,8 @@ private:
     CARAPI_(void) Unlock();
 
 private:
+    //todo: sSystemContext maybe not its memeber
+    static AutoPtr<IContext> sSystemContext;
     friend class ActivityStack;
     friend class CActivityRecord;
 

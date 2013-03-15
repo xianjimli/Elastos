@@ -242,7 +242,7 @@ private:
     AutoPtr<IView> mTargetView;
     Boolean mDummyMode;
 
-    ArrayOf<IInterface*>* mDefaultComposingSpans;
+    ArrayOf< AutoPtr<IInterface> >* mDefaultComposingSpans;
 
     AutoPtr<IEditable> mEditable;
     AutoPtr<ElKeyCharacterMap> mKeyCharacterMap;

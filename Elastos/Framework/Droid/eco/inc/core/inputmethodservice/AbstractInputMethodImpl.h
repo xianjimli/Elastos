@@ -1,50 +1,32 @@
 
-#ifndef  _ABSTRACTINPUTMETHODIMPL_H__
-#define  _ABSTRACTINPUTMETHODIMPL_H__
+#ifndef  __ABSTRACTINPUTMETHODIMPL_H__
+#define  __ABSTRACTINPUTMETHODIMPL_H__
 
+#ifdef _FRAMEWORK_CORE
 #include "ext/frameworkext.h"
+#include "inputmethodservice/AbstractInputMethodService.h"
+#else
+#include "Elastos.Framework.Core.h"
+#include "AbstractInputMethodService.h"
+#endif
+
 #include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>
-#include "inputmethodservice/AbstractInputMethodService.h"
 
-
-class AbstractInputMethodImpl:
-    public ElRefBase,
-    public IAbstractInputMethodImpl,
-    public ILocalInputMethod
+class AbstractInputMethodImpl
+    : public ElRefBase
+    , public IAbstractInputMethodImpl
 {
 public:
     AbstractInputMethodImpl(
         /* [in] */ AbstractInputMethodService* host);
 
-    ~AbstractInputMethodImpl();
-
     CARAPI_(PInterface) Probe(
         /* [in] */ REIID riid);
-
-    CARAPI_(UInt32) AddRef();
-
-    CARAPI_(UInt32) Release();
 
     CARAPI GetInterfaceID(
         /* [in] */ IInterface *pObject,
         /* [out] */ InterfaceID *pIID);
-
-    CARAPI AttachToken(
-        /* [in] */ IBinder* token);
-
-    CARAPI BindInput(
-        /* [in] */ IInputBinding* binding);
-
-    CARAPI UnbindInput();
-
-    CARAPI StartInput(
-        /* [in] */ IInputConnection* inputConnection,
-        /* [in] */ IEditorInfo* attribute);
-
-    CARAPI RestartInput(
-        /* [in] */ IInputConnection* inputConnection,
-        /* [in] */ IEditorInfo* attribute);
 
     CARAPI CreateSession(
         /* [in] */ ILocalInputMethodSessionCallback* callback);
@@ -56,16 +38,8 @@ public:
     CARAPI RevokeSession(
         /* [in] */ ILocalInputMethodSession* session);
 
-    CARAPI ShowSoftInput(
-        /* [in] */ Int32 flags,
-        /* [in] */ IResultReceiver* resultReceiver);
-
-    CARAPI HideSoftInput(
-        /* [in] */ Int32 flags,
-        /* [in] */ IResultReceiver* resultReceiver);
-
 private:
 	AbstractInputMethodService* mHost;
 };
 
-#endif  //_ABSTRACTINPUTMETHODIMPL_H__
+#endif  //__ABSTRACTINPUTMETHODIMPL_H__

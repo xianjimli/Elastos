@@ -1,15 +1,15 @@
 
 #include "view/inputmethod/BaseInputConnection.h"
+#include "view/CKeyEvent.h"
+#include "view/inputmethod/CLocalInputMethodManager.h"
+#include "view/ViewRoot.h"
 #include "text/Selection.h"
 #include "text/CEditableFactory.h"
 #include "text/method/MetaKeyKeyListener.h"
 #include "text/TextUtils.h"
-#include "os/SystemClock.h"
-#include "view/CKeyEvent.h"
-#include "utils/ArrayUtils.h"
 #include "text/CSpannableStringBuilder.h"
-#include "view/inputmethod/CLocalInputMethodManager.h"
-#include "view/ViewRoot.h"
+#include "os/SystemClock.h"
+#include "utils/ArrayUtils.h"
 
 
 BaseInputConnection::ComposingText::ComposingText()
@@ -86,11 +86,9 @@ BaseInputConnection::~BaseInputConnection()
 {
     if (mDefaultComposingSpans != NULL) {
         for (Int32 i = 0; i < mDefaultComposingSpans->GetLength(); i++) {
-            if ((*mDefaultComposingSpans)[i] != NULL) {
-                (*mDefaultComposingSpans)[i]->Release();
-            }
+            (*mDefaultComposingSpans)[i] = NULL;
         }
-        ArrayOf<IInterface*>::Free(mDefaultComposingSpans);
+        ArrayOf< AutoPtr<IInterface> >::Free(mDefaultComposingSpans);
         mDefaultComposingSpans = NULL;
     }
 }
@@ -100,12 +98,10 @@ ECode BaseInputConnection::RemoveComposingSpans(
 {
     assert(text != NULL);
     text->RemoveSpan(COMPOSING);
-
     Int32 len = 0;
     text->GetLength(&len);
-
-    ArrayOf<IInterface*>* sps;
-    text->GetSpans(0, len, EIID_IInterface, &sps);
+    ArrayOf< AutoPtr<IInterface> >* sps = NULL;
+    text->GetSpans(0, len, EIID_IInterface, (ArrayOf<IInterface*>**)&sps);
     if (sps != NULL) {
         for (Int32 i = sps->GetLength() - 1; i >= 0; i--) {
             IInterface* o = (*sps)[i];
@@ -117,13 +113,10 @@ ECode BaseInputConnection::RemoveComposingSpans(
         }
 
         for (Int32 i = 0; i < sps->GetLength(); i++) {
-            if ((*sps)[i] != NULL) {
-                (*sps)[i]->Release();
-            }
+            (*sps)[i] = NULL;
         }
-        ArrayOf<IInterface*>::Free(sps);
+        ArrayOf< AutoPtr<IInterface> >::Free(sps);
     }
-
     return NOERROR;
 }
 
@@ -133,7 +126,6 @@ ECode BaseInputConnection::SetComposingSpans(
     assert(text != NULL);
     Int32 len = 0;
     text->GetLength(&len);
-
     return SetComposingSpans(text, 0, len);
 }
 
@@ -143,8 +135,8 @@ ECode BaseInputConnection::SetComposingSpans(
     /* [in] */ Int32 end)
 {
     assert(text != NULL);
-    ArrayOf<IInterface*>* sps;
-    text->GetSpans(0, end, EIID_IInterface, &sps);
+    ArrayOf< AutoPtr<IInterface> >* sps = NULL;
+    text->GetSpans(0, end, EIID_IInterface, (ArrayOf<IInterface*>**)&sps);
     if (sps != NULL) {
         for (int i = sps->GetLength() - 1; i >= 0; i--) {
             IInterface* o = (*sps)[i];
@@ -168,11 +160,9 @@ ECode BaseInputConnection::SetComposingSpans(
         }
 
         for (Int32 i = 0; i < sps->GetLength(); i++) {
-            if ((*sps)[i] != NULL) {
-                (*sps)[i]->Release();
-            }
+            (*sps)[i] != NULL;
         }
-        ArrayOf<IInterface*>::Free(sps);
+        ArrayOf< AutoPtr<IInterface> >::Free(sps);
     }
 
     return text->SetSpan(COMPOSING, start, end,
@@ -203,7 +193,6 @@ AutoPtr<IEditable> BaseInputConnection::GetEditable()
         AutoPtr<IEditableFactory> editableFactory;
         ASSERT_SUCCEEDED(CEditableFactory::AcquireSingleton(
             (IEditableFactory**)&editableFactory));
-
         AutoPtr<ICharSequence> tmpStr;
         CStringWrapper::New(String(""), (ICharSequence**)&tmpStr);
         editableFactory->NewEditable(tmpStr, (IEditable**)&mEditable);
@@ -270,7 +259,6 @@ Boolean BaseInputConnection::DeleteSurroundingText(
     // ignore the composing text.
     Int32 ca = GetComposingSpanStart(content);
     Int32 cb = GetComposingSpanEnd(content);
-
     if (cb < ca) {
         Int32 tmp = ca;
         ca = cb;
@@ -462,7 +450,7 @@ AutoPtr<ICharSequence> BaseInputConnection::GetTextAfterCursor(
 Boolean BaseInputConnection::PerformEditorAction(
     /* [in] */ Int32 actionCode)
 {
-    Int64 eventTime = SystemClock::UptimeMillis();
+    Int64 eventTime = SystemClock::GetUptimeMillis();
 
     AutoPtr<IKeyEvent> event;
     ASSERT_SUCCEEDED(CKeyEvent::New(eventTime, eventTime,
@@ -472,7 +460,7 @@ Boolean BaseInputConnection::PerformEditorAction(
     SendKeyEvent(event);
 
     event = NULL;
-    ASSERT_SUCCEEDED(CKeyEvent::New(SystemClock::UptimeMillis(), eventTime,
+    ASSERT_SUCCEEDED(CKeyEvent::New(SystemClock::GetUptimeMillis(), eventTime,
                 KeyEvent_ACTION_UP, KeyEvent_KEYCODE_ENTER, 0, 0, 0, 0,
                 KeyEvent_FLAG_SOFT_KEYBOARD | KeyEvent_FLAG_KEEP_TOUCH_MODE
                 | KeyEvent_FLAG_EDITOR_ACTION, (IKeyEvent**)&event));
@@ -578,16 +566,16 @@ Boolean BaseInputConnection::SendKeyEvent(
 
         AutoPtr<IApartment> h;
         if (mTargetView != NULL) {
-            mTargetView->GetHandler((IApartment**) &h);
+            mTargetView->GetHandler((IApartment**)&h);
         }
-
         if (h == NULL) {
             if (((CLocalInputMethodManager*)mIMM.Get())->mServedView != NULL) {
-                ((CLocalInputMethodManager*)mIMM.Get())->mServedView->GetHandler((IApartment**) &h);
+                ((CLocalInputMethodManager*)mIMM.Get())->mServedView->GetHandler((IApartment**)&h);
             }
         }
 
         if (h != NULL) {
+            // Todo: the following implement is wrong
             // h.sendMessage(h.obtainMessage(ViewRoot.DISPATCH_KEY_FROM_IME,
             //         event));
             void (STDCALL ViewRoot::*pHandlerFunc)(IKeyEvent*);
@@ -595,13 +583,11 @@ Boolean BaseInputConnection::SendKeyEvent(
 
             AutoPtr<IParcel> params;
             CCallbackParcel::New((IParcel**)&params);
-            params->WriteInterfacePtr((IInterface*) event);
-
+            params->WriteInterfacePtr((IInterface*)event);
             h->PostCppCallbackDelayed((Handle32)this, *(Handle32*)&pHandlerFunc,
                     params, 0, 0);
         }
     }
-
     return FALSE;
 }
 
@@ -632,19 +618,17 @@ void BaseInputConnection::SendCurrentText()
                 mKeyCharacterMap = ElKeyCharacterMap::Load(ElKeyCharacterMap::BUILT_IN_KEYBOARD);
             }
             ArrayOf_<Char8, 4> chars;
-
             assert(IGetChars::Probe(content) != NULL);
             IGetChars::Probe(content)->GetChars(0, 1, &chars, 0);
             //todo: error
             Char16 tmpChars[1];
             tmpChars[0] = chars[0];
-
-            Elastos::Vector<AutoPtr<IKeyEvent> >* events = NULL;
+            Vector< AutoPtr<IKeyEvent> >* events = NULL;
             mKeyCharacterMap->GetEvents(tmpChars, 1, &events);
             if (events != NULL) {
-                for (Int32 i = 0; i < (Int32)events->GetSize(); i++) {
-                    // if (DEBUG) Log.v(TAG, "Sending: " + events[i]);
-                    SendKeyEvent((*events)[i]);
+                Vector< AutoPtr<IKeyEvent> >::Iterator it;
+                for (it = events->Begin(); it != events->End(); ++it) {
+                    SendKeyEvent(*it);
                 }
                 content->Clear();
                 delete events;
@@ -657,7 +641,7 @@ void BaseInputConnection::SendCurrentText()
         String contentStr;
         content->ToString(&contentStr);
         AutoPtr<IKeyEvent> event;
-        CKeyEvent::New(SystemClock::UptimeMillis(), contentStr,
+        CKeyEvent::New(SystemClock::GetUptimeMillis(), contentStr,
             ElKeyCharacterMap::BUILT_IN_KEYBOARD, 0, (IKeyEvent**)&event);
         SendKeyEvent(event);
         content->Clear();
@@ -681,14 +665,13 @@ void BaseInputConnection::EnsureDefaultComposingSpans()
             attrs[0] = 0x01010230 /*com.android.internal.R.attr.candidatesTextStyleSpans*/;
             AutoPtr<ITypedArray> ta;
             theme->ObtainStyledAttributes(attrs, (ITypedArray**)&ta);
-
             AutoPtr<ICharSequence> style;
             ta->GetText(0, (ICharSequence**)&style);
             ta->Recycle();
             if (style != NULL && ISpanned::Probe(style) != NULL) {
                 Int32 len = 0;
                 style->GetLength(&len);
-                ISpanned::Probe(style)->GetSpans(0, len, EIID_IInterface, &mDefaultComposingSpans);
+                ISpanned::Probe(style)->GetSpans(0, len, EIID_IInterface, (ArrayOf<IInterface*>**)&mDefaultComposingSpans);
             }
         }
     }
@@ -807,7 +790,6 @@ ECode BaseInputConnection::Init(
 {
     mIMM = mgr;
     mDummyMode = !fullEditor;
-
     return NOERROR;
 }
 
@@ -823,6 +805,5 @@ ECode BaseInputConnection::Init(
     assert(context != NULL);
     context->GetSystemService(Context_INPUT_METHOD_SERVICE, (IInterface**)&mIMM);
     assert(mIMM != NULL);
-
     return NOERROR;
 }

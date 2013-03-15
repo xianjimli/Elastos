@@ -24,15 +24,6 @@ public:
      * @return elapsed milliseconds since boot.
      */
     static Millisecond64 GetElapsedRealtime();
-
-    /**
-     * Returns milliseconds since boot, not counting time spent in deep sleep.
-     * <b>Note:</b> This value may get reset occasionally (before it would
-     * otherwise wrap around).
-     *
-     * @return milliseconds of non-sleep uptime since boot.
-     */
-    static Int64 UptimeMillis() { return 0; }
 };
 
 #endif //__SYSTEMCLOCK_H__

@@ -1,19 +1,20 @@
 
-#ifndef  _KEYBOARDVIEW_H__
-#define  _KEYBOARDVIEW_H__
+#ifndef  __KEYBOARDVIEW_H__
+#define  __KEYBOARDVIEW_H__
 
 #include "ext/frameworkext.h"
-#include <elastos/Map.h>
+
 #include "view/GestureDetector.h"
 #include "view/View.h"
 #include "inputmethodservice/Keyboard.h"
+#include <elastos/Map.h>
 
-class KeyboardView: public View
+class KeyboardView : public View
 {
 public:
-    class _OnKeyboardActionListener:
-        public ElRefBase,
-        public IOnKeyboardActionListener
+    class _OnKeyboardActionListener
+        : public ElRefBase
+        , public IOnKeyboardActionListener
     {
     public:
         _OnKeyboardActionListener(
@@ -54,11 +55,11 @@ public:
         CARAPI SwipeUp();
 
     private:
-        KeyboardView*      mHost;
+        KeyboardView* mHost;
     };
 
 private:
-    class SwipeTracker: public ElRefBase
+    class SwipeTracker : public ElRefBase
     {
     public:
         SwipeTracker();
@@ -102,9 +103,9 @@ private:
         Float mXVelocity;
     };
 
-    class _SimpleOnGestureListener:
-        public ElRefBase,
-        public GestureDetector::SimpleOnGestureListener
+    class _SimpleOnGestureListener
+        : public ElRefBase
+        , public GestureDetector::SimpleOnGestureListener
     {
     public:
         _SimpleOnGestureListener(
@@ -123,7 +124,7 @@ private:
             /* [in] */ Float velocityY);
 
     private:
-        KeyboardView*   mHost;
+        KeyboardView* mHost;
     };
 
 public:
@@ -131,26 +132,36 @@ public:
 
     ~KeyboardView();
 
+    CARAPI_(PInterface) Probe(
+        /* [in]  */ REIID riid);
 
-    CARAPI SetOnKeyboardActionListener(
+    virtual CARAPI SetOnKeyboardActionListener(
         /* [in] */ IOnKeyboardActionListener* listener);
+
+    /**
+     * Returns the {@link IOnKeyboardActionListener} object.
+     * @return the listener attached to this keyboard
+     */
+    virtual CARAPI GetOnKeyboardActionListener(
+        /* [out] */ IOnKeyboardActionListener** listener);
 
     /**
      * Attaches a keyboard to this view. The keyboard can be switched at any time and the
      * view will re-layout itself to accommodate the keyboard.
-     * @see Keyboard
+     * @see IKeyboard
      * @see #getKeyboard()
      * @param keyboard the keyboard to display in this view
      */
-    CARAPI_(void) SetKeyboard(
-        /* [in] */ Keyboard* keyboard);
+    virtual CARAPI SetKeyboard(
+        /* [in] */ IKeyboard* keyboard);
 
     /**
      * Returns the current keyboard being displayed by this view.
      * @return the currently attached keyboard
-     * @see #setKeyboard(Keyboard)
+     * @see #setKeyboard(IKeyboard)
      */
-    CARAPI_(AutoPtr<Keyboard>) GetKeyboard();
+    virtual CARAPI GetKeyboard(
+        /* [out] */ IKeyboard** keyboard);
 
     /**
      * Sets the state of the shift key of the keyboard, if any.
@@ -158,8 +169,9 @@ public:
      * @return TRUE if the shift key state changed, FALSE if there was no change
      * @see KeyboardView#isShifted()
      */
-    CARAPI_(Boolean) SetShifted(
-        /* [in] */ Boolean shifted);
+    virtual CARAPI SetShifted(
+        /* [in] */ Boolean shifted,
+        /* [out] */ Boolean* res);
 
     /**
      * Returns the state of the shift key of the keyboard, if any.
@@ -167,7 +179,8 @@ public:
      * no shift key on the keyboard or there is no keyboard attached, it returns FALSE.
      * @see KeyboardView#setShifted(Boolean)
      */
-    CARAPI_(Boolean) IsShifted();
+    virtual CARAPI IsShifted(
+        /* [out] */ Boolean* shifted);
 
     /**
      * Enables or disables the key feedback popup. This is a popup that shows a magnified
@@ -175,7 +188,7 @@ public:
      * @param previewEnabled whether or not to enable the key feedback popup
      * @see #isPreviewEnabled()
      */
-    CARAPI_(void) SetPreviewEnabled(
+    virtual CARAPI SetPreviewEnabled(
         /* [in] */ Boolean previewEnabled);
 
     /**
@@ -183,15 +196,16 @@ public:
      * @return whether or not the key feedback popup is enabled
      * @see #setPreviewEnabled(Boolean)
      */
-    CARAPI_(Boolean) IsPreviewEnabled();
+    virtual CARAPI IsPreviewEnabled(
+        /* [out] */ Boolean* res);
 
-    CARAPI_(void) SetVerticalCorrection(
+    virtual CARAPI SetVerticalCorrection(
         /* [in] */ Int32 verticalOffset);
 
-    CARAPI_(void) SetPopupParent(
+    virtual CARAPI SetPopupParent(
         /* [in] */ IView* v);
 
-    CARAPI_(void) SetPopupOffset(
+    virtual CARAPI SetPopupOffset(
         /* [in] */ Int32 x,
         /* [in] */ Int32 y);
 
@@ -201,19 +215,20 @@ public:
      * reported.
      * @param enabled whether or not the proximity correction is enabled
      */
-    CARAPI_(void) SetProximityCorrectionEnabled(
+    virtual CARAPI SetProximityCorrectionEnabled(
         /* [in] */ Boolean enabled);
 
     /**
      * Returns TRUE if proximity correction is enabled.
      */
-    CARAPI_(Boolean) IsProximityCorrectionEnabled();
+    virtual CARAPI IsProximityCorrectionEnabled(
+        /* [out] */ Boolean* res);
 
     /**
      * Popup keyboard close button clicked.
      * @hide
      */
-    CARAPI OnClick(
+    virtual CARAPI OnClick(
         /* [in] */ IView* v);
 
     //@Override
@@ -238,36 +253,31 @@ public:
      * draws the cached buffer.
      * @see #invalidateKey(Int32)
      */
-    CARAPI_(void) InvalidateAllKeys();
+    virtual CARAPI InvalidateAllKeys();
 
     /**
      * Invalidates a key so that it will be redrawn on the next repaint. Use this method if only
      * one key is changing it's content. Any changes that affect the position or size of the key
      * may not be honored.
-     * @param keyIndex the index of the key in the attached {@link Keyboard}.
+     * @param keyIndex the index of the key in the attached {@link IKeyboard}.
      * @see #invalidateAllKeys
      */
-    CARAPI_(void) InvalidateKey(
+    virtual CARAPI InvalidateKey(
         /* [in] */ Int32 keyIndex);
 
     //@Override
     CARAPI_(Boolean) OnTouchEvent(
         /* [in] */ IMotionEvent* me);
 
-    CARAPI_(void) Closing();
+    virtual CARAPI Closing();
 
     //@Override
     CARAPI_(void) OnDetachedFromWindow();
 
-    CARAPI_(Boolean) HandleBack();
+    virtual CARAPI HandleBack(
+        /* [out] */ Boolean* res);
 
 protected:
-    /**
-     * Returns the {@link IOnKeyboardActionListener} object.
-     * @return the listener attached to this keyboard
-     */
-    CARAPI_(AutoPtr<IOnKeyboardActionListener>) GetOnKeyboardActionListener();
-
     /**
      * Called when a key is Int64 pressed. By default this will open any popup keyboard associated
      * with this key through the attributes popupLayout and popupCharacters.
@@ -275,19 +285,24 @@ protected:
      * @return TRUE if the Int64 press is handled, FALSE otherwise. Subclasses should call the
      * method on the base class if the subclass doesn't wish to handle the call.
      */
-    CARAPI_(Boolean) OnLongPress(
-        /* [in] */ Keyboard::Key* popupKey);
+    virtual CARAPI OnLongPress(
+        /* [in] */ IKeyboardKey* popupKey,
+        /* [out] */ Boolean* res);
 
-    CARAPI_(void) SwipeRight();
+    virtual CARAPI_(void) SwipeRight();
 
-    CARAPI_(void) SwipeLeft();
+    virtual CARAPI_(void) SwipeLeft();
 
-    CARAPI_(void) SwipeUp();
+    virtual CARAPI_(void) SwipeUp();
 
-    CARAPI_(void) SwipeDown();
+    virtual CARAPI_(void) SwipeDown();
 
+    CARAPI Init(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs,
+        /* [in] */ Int32 defStyle = 0x010102d9 /*com.android.internal.R.attr.keyboardViewStyle*/);
 
-protected:
+private:
     CARAPI_(void) InitGestureDetector();
 
     CARAPI_(AutoPtr<ICharSequence>) AdjustCase(
@@ -300,9 +315,10 @@ protected:
      * @param keyboard
      */
     CARAPI_(void) ComputeProximityThreshold(
-        /* [in] */ Keyboard* keyboard);
+        /* [in] */ IKeyboard* keyboard);
 
-    CARAPI_(void) OnBufferDraw();
+    CARAPI_(void) OnBufferDraw(
+        /* [in] */ ICanvas* canvas);
 
     CARAPI_(Int32) GetKeyIndices(
         /* [in] */ Int32 x,
@@ -319,7 +335,7 @@ protected:
      * Handle multi-tap keys by producing the key label for the current multi-tap state.
      */
     CARAPI_(AutoPtr<ICharSequence>) GetPreviewText(
-        /* [in] */ Keyboard::Key* key);
+        /* [in] */ IKeyboardKey* key);
 
     CARAPI_(void) ShowPreview(
         Int32 keyIndex);
@@ -346,24 +362,23 @@ protected:
         /* [in] */ Int64 eventTime,
         /* [in] */ Int32 keyIndex);
 
-    CARAPI_(void) HandleShowPreView(
+    CARAPI_(void) HandleShowPreview(
         /* [in] */ Int32 keyIndex);
 
-    CARAPI_(void) HandleRemovePreView();
+    CARAPI_(void) HandleRemovePreview();
 
     CARAPI_(void) HandleRepeat();
 
     CARAPI_(void) HandleLongPress(
         /* [in] */ IMotionEvent* obj);
 
-
 protected:
     static const Boolean DEBUG = FALSE;
     static const Int32 NOT_A_KEY = -1;
-    static Int32 KEY_DELETE[];// = { Keyboard::KEYCODE_DELETE };
+    static Int32 KEY_DELETE[];// = { Keyboard_KEYCODE_DELETE };
     static Int32 LONG_PRESSABLE_STATE_SET[];// = { 0x0101023c /*R.attr.state_long_pressable*/ };
 
-    AutoPtr<Keyboard> mKeyboard;
+    AutoPtr<IKeyboard> mKeyboard;
     Int32 mCurrentKeyIndex;
     Int32 mLabelTextSize;
     Int32 mKeyTextSize;
@@ -386,9 +401,9 @@ protected:
     AutoPtr<IView> mPopupParent;
     Int32 mMiniKeyboardOffsetX;
     Int32 mMiniKeyboardOffsetY;
-    Map<AutoPtr<Keyboard::Key>, AutoPtr<IView> > mMiniKeyboardCache;
+    Map<AutoPtr<IKeyboardKey>, AutoPtr<IView> > mMiniKeyboardCache;
     ArrayOf<Int32>* mWindowOffset;
-    ArrayOf<AutoPtr<Keyboard::Key> >* mKeys;
+    ArrayOf< AutoPtr<IKeyboardKey> >* mKeys;
 
     /** Listener for {@link IOnKeyboardActionListener}. */
     AutoPtr<IOnKeyboardActionListener> mKeyboardActionListener;
@@ -438,7 +453,7 @@ protected:
     Int32 mRepeatKeyIndex;
     Int32 mPopupLayout;
     Boolean mAbortKey;
-    AutoPtr<Keyboard::Key> mInvalidatedKey;
+    AutoPtr<IKeyboardKey> mInvalidatedKey;
     AutoPtr<IRect> mClipRegion;
     Boolean mPossiblePoly;
     AutoPtr<SwipeTracker> mSwipeTracker;;
@@ -456,7 +471,7 @@ protected:
     static const Int32 REPEAT_START_DELAY = 400;
     static const Int32 LONGPRESS_TIMEOUT;
 
-    static Int32 MAX_NEARBY_KEYS;
+    static const Int32 MAX_NEARBY_KEYS;
     ArrayOf<Int32>* mDistances;
 
     // For multi-tap
@@ -466,9 +481,7 @@ protected:
     Boolean mInMultiTap;
     static const Int32 MULTITAP_INTERVAL = 800; // milliseconds
 
-    //TODO
-    //StringBuilder mPreviewLabel = new StringBuilder(1);
-    StringBuf_<1> mPreviewLabel;// = new StringBuilder(1);
+    StringBuffer mPreviewLabel;
 
     /** Whether the keyboard bitmap needs to be redrawn before it's blitted. **/
     Boolean mDrawPending;
@@ -508,8 +521,8 @@ protected:
     Int64 mOldEventTime;
     Boolean mUsedVelocity;
 
-friend class _OnKeyboardActionListener;
-friend class _SimpleOnGestureListener;
+    friend class _OnKeyboardActionListener;
+    friend class _SimpleOnGestureListener;
 };
 
 #endif  //_KEYBOARDVIEW_H__
