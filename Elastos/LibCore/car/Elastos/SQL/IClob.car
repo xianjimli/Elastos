@@ -1,12 +1,6 @@
 
 module
 {
-    interface IInputStream;
-    interface IReader;
-    interface IOutputStream;
-    interface IWriter;
-
-
     /**
      * A Java interface mapping for the SQL CLOB type.
      * <p>

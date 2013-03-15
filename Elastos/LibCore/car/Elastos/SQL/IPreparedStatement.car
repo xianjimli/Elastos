@@ -4,15 +4,10 @@ module
     interface IStatement;
     interface IResultSet;
     interface IResultSetMetaData;
-    interface IInputStream;
     interface IBigDecimal;
-    interface IReader;
     interface IClob;
-    interface IDate;
-    interface ICalendar;
     interface ITime;
     interface ITimestamp;
-    interface IURL;
     interface IRowId;
     interface INClob;
 

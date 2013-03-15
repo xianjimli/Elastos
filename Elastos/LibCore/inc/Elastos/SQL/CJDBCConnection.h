@@ -5,6 +5,7 @@
 #include <elastos/AutoPtr.h>
 #include "Connection.h"
 #include "_CJDBCConnection.h"
+#include <Elastos.SQL_server.h>
 //#include "Database.h"
 
 using namespace Elastos;
@@ -23,15 +24,15 @@ using namespace Elastos;
 //        /* [in] */Int32 ms);
 
 //    CARAPI Exec(
- //       /* [in] */String sql, 
- //       /* [in] */SQLite.Callback cb);
+//        /* [in] */String sql, 
+//        /* [in] */ICallback* cb);
 
 //    CARAPI ExecEx(
 //        /* [in] */String sql, 
-//        /* [in] */SQLite.Callback cb, 
+//        /* [in] */ICallback* cb, 
 //        /* [in] */ArrayOf<String> args);
 
-//    CARAPI Get_tableEx3(
+ //   CARAPI Get_tableEx3(
 //        /* [in] */String sql, 
 //        /* [in] */ArrayOf<String> args,
 //        /* [out] */ITableResult** result);

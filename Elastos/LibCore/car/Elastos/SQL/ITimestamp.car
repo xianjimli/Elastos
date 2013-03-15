@@ -1,8 +1,6 @@
 
 module
 {
-    interface IDate;
-
     interface ITimestamp extends IDate {
         /**
          * Tests to see if this timestamp is equal to a supplied timestamp.

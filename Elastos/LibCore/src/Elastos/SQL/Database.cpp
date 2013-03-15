@@ -10,8 +10,8 @@ Database::Database()
 
 ECode Database::Finalize()
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return FinalizeLocked();
 }
@@ -36,16 +36,16 @@ ECode Database::_enable_shared_cache(
 {
     assert(result != NULL);
 #if HAVE_SQLITE3_SHARED_CACHE
-    *result = (sqlite3_enable_shared_cache(onoff == JNI_TRUE) == SQLITE_OK) ? 
-        JNI_TRUE : JNI_FALSE;
+    *result = (sqlite3_enable_shared_cache(onoff == TRUE) == SQLITE_OK) ? 
+        TRUE : FALSE;
 #else
-    *result = JNI_FALSE;
+    *result = FALSE;
 #endif
     return NOERROR;
 }
 
 ECode Database::Open(
-    /** [in] **/String filename, 
+    /** [in] **/const String &filename, 
     /** [in] **/Int32 mode)
 {
     if ((mode & 0200) != 0) {
@@ -55,14 +55,14 @@ ECode Database::Open(
         mode = IConstants_SQLITE_OPEN_READONLY;
     }
     
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return OpenLocked(filename, mode);
 }
 
 ECode Database::OpenLocked(
-    /** [in] **/String filename, 
+    /** [in] **/const String &filename, 
     /** [in] **/Int32 mode)
 {/*
     try {
@@ -78,9 +78,9 @@ ECode Database::OpenLocked(
 }
 
 ECode Database::OpenEx(
-    /** [in] **/String filename, 
+    /** [in] **/const String &filename, 
     /** [in] **/Int32 mode, 
-    /** [in] **/String vfs)
+    /** [in] **/const String &vfs)
 {
     if ((mode & 0200) != 0) {
         mode = IConstants_SQLITE_OPEN_READWRITE |
@@ -89,16 +89,16 @@ ECode Database::OpenEx(
         mode = IConstants_SQLITE_OPEN_READONLY;
     }
 
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return OpenExLocked(filename, mode, vfs);
 }
 
 ECode Database::OpenExLocked(
-    /** [in] **/String filename, 
+    /** [in] **/const String &filename, 
     /** [in] **/Int32 mode, 
-    /** [in] **/String vfs)
+    /** [in] **/const String &vfs)
 {/*
     try {
     _open4(filename, mode, vfs, false);
@@ -113,9 +113,9 @@ ECode Database::OpenExLocked(
 }
 
 ECode Database::OpenEx2(
-    /** [in] **/String filename, 
+    /** [in] **/const String &filename, 
     /** [in] **/Int32 mode, 
-    /** [in] **/String vfs, 
+    /** [in] **/const String &vfs, 
     /** [in] **/Boolean ver2)
 {
     if ((mode & 0200) != 0) {
@@ -125,16 +125,16 @@ ECode Database::OpenEx2(
         mode = IConstants_SQLITE_OPEN_READONLY;
     }
 
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return OpenEx2Locked(filename, mode, vfs, ver2);
 }
 
 ECode Database::OpenEx2Locked(
-    /** [in] **/String filename, 
+    /** [in] **/const String &filename, 
     /** [in] **/Int32 mode, 
-    /** [in] **/String vfs, 
+    /** [in] **/const String &vfs, 
     /** [in] **/Boolean ver2)
 {/*
     try {
@@ -151,24 +151,24 @@ ECode Database::OpenEx2Locked(
 }
 
 ECode Database::Open_aux_file(
-    /** [in] **/String filename)
+    /** [in] **/const String &filename)
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return Open_aux_fileLocked(filename);
 }
 
 ECode Database::Open_aux_fileLocked(
-    /** [in] **/String filename)
+    /** [in] **/const String &filename)
 {
     return _open_aux_file(filename);
 }
 
 ECode Database::Close()
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return CloseLocked();
 }
@@ -179,37 +179,37 @@ ECode Database::CloseLocked()
 }
 
 ECode Database::Exec(
-    /** [in] **/String sql, 
+    /** [in] **/const String &sql, 
     /** [in] **/ICallback* cb)
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return ExecLocked(sql, cb);
 }
 
 ECode Database::ExecLocked(
-    /** [in] **/String sql, 
+    /** [in] **/const String &sql, 
     /** [in] **/ICallback* cb)
 {
     return _exec(sql, cb);
 }
 
 ECode Database::ExecEx(
-    /** [in] **/String sql, 
+    /** [in] **/const String &sql, 
     /** [in] **/ICallback* cb,
-    /** [in] **/ArrayOf<String> args)
+    /** [in] **/ArrayOf<String>* args)
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return ExecExLocked(sql, cb, args);
 }
 
 ECode Database::ExecExLocked(
-    /** [in] **/String sql, 
+    /** [in] **/const String &sql, 
     /** [in] **/ICallback* cb,
-    /** [in] **/ArrayOf<String> args)
+    /** [in] **/ArrayOf<String>* args)
 {
     return _execEx(sql, cb, args);
 }
@@ -217,8 +217,8 @@ ECode Database::ExecExLocked(
 ECode Database::Last_insert_rowid(
     /** [out] **/Int64* id)
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return Last_insert_rowidLocked(id);
 }
@@ -233,8 +233,8 @@ ECode Database::Last_insert_rowidLocked(
 
 ECode Database::Interrupt()
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return InterruptLocked();
 }
@@ -247,8 +247,8 @@ ECode Database::InterruptLocked()
 ECode Database::Changes(
     /** [out] **/Int64* id)
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return ChangesLocked(id);
 }
@@ -264,8 +264,8 @@ ECode Database::ChangesLocked(
 ECode Database::Busy_handler(
     /** [in] **/IBusyHandler* bh)
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return Busy_handlerLocked(bh);
 }
@@ -279,8 +279,8 @@ ECode Database::Busy_handlerLocked(
 ECode Database::Busy_timeout(
     /** [in] **/Int32 ms)
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return Busy_timeoutLocked(ms);
 }
@@ -292,7 +292,7 @@ ECode Database::Busy_timeoutLocked(
 }
 
 ECode Database::Get_table(
-    /** [in] **/String sql, 
+    /** [in] **/const String &sql, 
     /** [in] **/Int32 maxrows,
     /** [out] **/ITableResult** result)
 {/*
@@ -327,16 +327,16 @@ ECode Database::Get_table(
 }
 
 ECode Database::Get_tableEx(
-    /** [in] **/String sql,
+    /** [in] **/const String &sql,
     /** [out] **/ITableResult** result)
 {
     return Get_table(sql, 0, result);
 }
 
 ECode Database::Get_tableEx2(
-    /** [in] **/String sql, 
+    /** [in] **/const String &sql, 
     /** [in] **/Int32 maxrows, 
-    /** [in] **/ArrayOf<String> args,
+    /** [in] **/ArrayOf<String>* args,
     /** [out] **/ITableResult** result)
 {/*
     TableResult ret = new TableResult(maxrows);
@@ -370,16 +370,16 @@ ECode Database::Get_tableEx2(
 }
 
 ECode Database::Get_tableEx3(
-    /** [in] **/String sql, 
-    /** [in] **/ArrayOf<String> args,
+    /** [in] **/const String &sql, 
+    /** [in] **/ArrayOf<String>* args,
     /** [out] **/ITableResult** result)
 {
     return Get_tableEx2(sql, 0, args, result);
 }
 
 ECode Database::Get_tableEx4(
-    /** [in] **/String sql, 
-    /** [in] **/ArrayOf<String> args, 
+    /** [in] **/const String &sql, 
+    /** [in] **/ArrayOf<String>* args, 
     /** [in] **/ITableResult* tbl)
 {/*
     tbl.clear();
@@ -411,17 +411,17 @@ ECode Database::Get_tableEx4(
 }
 
 ECode Database::Complete(
-    /** [in] **/String sql,
+    /** [in] **/const String &sql,
     /** [out] **/Boolean* result)
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return CompleteLocked(sql, result);
 }
 
 ECode Database::CompleteLocked(
-    /** [in] **/String sql,
+    /** [in] **/const String &sql,
     /** [out] **/Boolean* result)
 {
     assert(result != NULL);
@@ -442,18 +442,18 @@ ECode Database::Dbversion(
 }
 
 ECode Database::Create_function(
-    /** [in] **/String name, 
+    /** [in] **/const String &name, 
     /** [in] **/Int32 nargs, 
     /** [in] **/IFunction* f)
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return Create_functionLocked(name, nargs, f);
 }
 
 ECode Database::Create_functionLocked(
-    /** [in] **/String name, 
+    /** [in] **/const String &name, 
     /** [in] **/Int32 nargs, 
     /** [in] **/IFunction* f)
 {
@@ -461,18 +461,18 @@ ECode Database::Create_functionLocked(
 }
 
 ECode Database::Create_aggregate(
-    /** [in] **/String name, 
+    /** [in] **/const String &name, 
     /** [in] **/Int32 nargs, 
     /** [in] **/IFunction* f)
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return Create_aggregateLocked(name, nargs, f);
 }
 
 ECode Database::Create_aggregateLocked(
-    /** [in] **/String name, 
+    /** [in] **/const String &name, 
     /** [in] **/Int32 nargs, 
     /** [in] **/IFunction* f)
 {
@@ -480,17 +480,17 @@ ECode Database::Create_aggregateLocked(
 }
 
 ECode Database::Function_type(
-    /** [in] **/String name, 
+    /** [in] **/const String &name, 
     /** [in] **/Int32 type)
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return Function_typeLocked(name, type);
 }
 
 ECode Database::Function_typeLocked(
-    /** [in] **/String name, 
+    /** [in] **/const String &name, 
     /** [in] **/Int32 type)
 {
     return _function_type(name, type);
@@ -507,8 +507,8 @@ ECode Database::Last_error(
 ECode Database::Error_message(
     /** [out] **/String* str)
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return Error_messageLocked(str);
 }
@@ -529,16 +529,16 @@ ECode Database::Error_string(
 }
 
 ECode Database::Set_encoding(
-    /** [in] **/String enc)
+    /** [in] **/const String &enc)
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return Set_encodingLocked(enc);
 }
 
 ECode Database::Set_encodingLocked(
-    /** [in] **/String enc)
+    /** [in] **/const String &enc)
 {
     return _set_encoding(enc);
 }
@@ -546,8 +546,8 @@ ECode Database::Set_encodingLocked(
 ECode Database::Set_authorizer(
     /** [in] **/IAuthorizer* auth)
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return Set_authorizerLocked(auth);
 }
@@ -561,8 +561,8 @@ ECode Database::Set_authorizerLocked(
 ECode Database::Trace(
     /** [in] **/ITrace* tr)
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return TraceLocked(tr);
 }
@@ -574,17 +574,17 @@ ECode Database::TraceLocked(
 }
 
 ECode Database::Compile(
-    /** [in] **/String sql,
+    /** [in] **/const String &sql,
     /** [out] **/IVm** vm)
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return CompileLocked(sql, vm);
 }
 
 ECode Database::CompileLocked(
-    /** [in] **/String sql,
+    /** [in] **/const String &sql,
     /** [out] **/IVm** vm)
 {/*
     Vm vm = new Vm();
@@ -594,19 +594,19 @@ ECode Database::CompileLocked(
 }
 
 ECode Database::CompileEx(
-    /** [in] **/String sql, 
-    /** [in] **/ArrayOf<String> args,
+    /** [in] **/const String &sql, 
+    /** [in] **/ArrayOf<String>* args,
     /** [out] **/IVm** vm)
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return CompileExLocked(sql, args, vm);
 }
 
 ECode Database::CompileExLocked(
-    /** [in] **/String sql, 
-    /** [in] **/ArrayOf<String> args,
+    /** [in] **/const String &sql, 
+    /** [in] **/ArrayOf<String>* args,
     /** [out] **/IVm** vm)
 {/*
      vm = new Vm();
@@ -616,17 +616,17 @@ ECode Database::CompileExLocked(
 }
 
 ECode Database::Prepare(
-    /** [in] **/String sql,
+    /** [in] **/const String &sql,
     /** [out] **/IStmt** tmt)
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return PrepareLocked(sql, tmt);
 }
 
 ECode Database::PrepareLocked(
-    /** [in] **/String sql,
+    /** [in] **/const String &sql,
     /** [out] **/IStmt** tmt)
 {/*
     Stmt stmt = new Stmt();
@@ -636,23 +636,23 @@ ECode Database::PrepareLocked(
 }
 
 ECode Database::Open_blob(
-    /** [in] **/String db, 
-    /** [in] **/String table, 
-    /** [in] **/String column,
+    /** [in] **/const String &db, 
+    /** [in] **/const String &table, 
+    /** [in] **/const String &column,
     /** [in] **/Int64 row, 
     /** [in] **/Boolean rw,
     /** [out] **/IBlob2** blob)
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return Open_blobLocked(db, table, column, row, rw, blob);
 }
 
 ECode Database::Open_blobLocked(
-    /** [in] **/String db, 
-    /** [in] **/String table, 
-    /** [in] **/String column,
+    /** [in] **/const String &db, 
+    /** [in] **/const String &table, 
+    /** [in] **/const String &column,
     /** [in] **/Int64 row, 
     /** [in] **/Boolean rw,
     /** [out] **/IBlob2** blob)
@@ -673,8 +673,8 @@ ECode Database::Progress_handler(
     /** [in] **/Int32 n, 
     /** [in] **/IProgressHandler* p)
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return Progress_handlerLocked(n, p);
 }
@@ -687,33 +687,33 @@ ECode Database::Progress_handlerLocked(
 }
 
 ECode Database::Key(
-    /** [in] **/ArrayOf<Byte> ekey)
+    /** [in] **/ArrayOf<Byte>* ekey)
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return KeyLocked(ekey);
 }
 
 ECode Database::KeyLocked(
-    /** [in] **/ArrayOf<Byte> ekey)
+    /** [in] **/ArrayOf<Byte>* ekey)
 {
     return _key(ekey);
 }
 
 
 ECode Database::KeyEx(
-    /** [in] **/String skey)
+    /** [in] **/const String &skey)
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return KeyExLocked(skey);
 }
 
 ECode Database::KeyExLocked(
-    /** [in] **/String skey)
-    {/*
+    /** [in] **/const String &skey)
+{/*
     byte ekey[] = null;
     if (skey != null && skey.length() > 0) {
     ekey = new byte[skey.length()];
@@ -727,31 +727,31 @@ ECode Database::KeyExLocked(
 }
 
 ECode Database::Rekey(
-    /** [in] **/ArrayOf<Byte> ekey)
+    /** [in] **/ArrayOf<Byte>* ekey)
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return RekeyLocked(ekey);
 }
 
 ECode Database::RekeyLocked(
-    /** [in] **/ArrayOf<Byte> ekey)
+    /** [in] **/ArrayOf<Byte>* ekey)
 {
     return _rekey(ekey);
 }
 
 ECode Database::RekeyEx(
-    /** [in] **/String skey)
+    /** [in] **/const String &skey)
 {
-    Mutex* selfLock = GetSelfLock();
-    Mutex::Autolock lock(*selfLock);
+    //Mutex* selfLock = GetSelfLock();
+    //Mutex::Autolock lock(*selfLock);
 
     return RekeyExLocked(skey);
 }
 
 ECode Database::RekeyExLocked(
-    /** [in] **/String skey)
+    /** [in] **/const String &skey)
 {/*
     byte ekey[] = null;
     if (skey != null && skey.length() > 0) {
@@ -777,7 +777,7 @@ ECode Database::Long_from_julian(
 }
 
 ECode Database::Long_from_julianEx(
-    /** [in] **/String s,
+    /** [in] **/const String &s,
     /** [out] **/Int64* result)
 {/*
     try {
@@ -843,7 +843,7 @@ ECode Database::_exec(
 ECode Database::_execEx(
     /** [in] **/String sql, 
     /** [in] **/ICallback* cb, 
-    /** [in] **/ArrayOf<String> args)
+    /** [in] **/ArrayOf<String>* args)
 {
     return E_NOT_IMPLEMENTED;
 }
@@ -939,7 +939,7 @@ ECode Database::vm_compile(
 ECode Database::vm_compile_args(
     /** [in] **/String sql, 
     /** [in] **/IVm* vm, 
-    /** [in] **/ArrayOf<String> args)
+    /** [in] **/ArrayOf<String>* args)
 {
     return E_NOT_IMPLEMENTED;
 }
@@ -970,13 +970,13 @@ ECode Database::_progress_handler(
 }
 
 ECode Database::_key(
-    /** [in] **/ArrayOf<Byte> ekey)
+    /** [in] **/ArrayOf<Byte>* ekey)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 ECode Database::_rekey(
-    /** [in] **/ArrayOf<Byte> ekey)
+    /** [in] **/ArrayOf<Byte>* ekey)
 {
     return E_NOT_IMPLEMENTED;
 }

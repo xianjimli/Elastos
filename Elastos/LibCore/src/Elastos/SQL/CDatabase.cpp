@@ -2,34 +2,33 @@
 #include "cmdef.h"
 #include "CDatabase.h"
 
-ECode CDatabase::Available(
 
 ECode CDatabase::Open(
-        /** [in] **/String filename, 
+        /** [in] **/const String &filename, 
         /** [in] **/Int32 mode)
 {
 	return Database::Open(filename, mode);
 }
 
 ECode CDatabase::OpenEx(
-        /** [in] **/String filename, 
-        /** [in] **/Int32 mode, 
-        /** [in] **/String vfs)
+        /** [in] **/const String &filename, 
+        /** [in] **/Int32 mode,
+        /** [in] **/const String &vfs)
 {
     return Database::OpenEx(filename,mode,vfs);
 }
 
 ECode CDatabase::OpenEx2(
-        /** [in] **/String filename, 
+        /** [in] **/const String &filename, 
         /** [in] **/Int32 mode, 
-        /** [in] **/String vfs, 
+        /** [in] **/const String &vfs, 
         /** [in] **/Boolean ver2)
 {
     return Database::OpenEx2(filename,mode,vfs,ver2);
 }
 
 ECode CDatabase::Open_aux_file(
-        /** [in] **/String filename)
+        /** [in] **/const String &filename)
 {
     return Database::Open_aux_file(filename);
 }
@@ -40,16 +39,16 @@ ECode CDatabase::Close()
 }
 
 ECode CDatabase::Exec(
-        /** [in] **/String sql, 
+        /** [in] **/const String &sql, 
         /** [in] **/ICallback* cb)
 {
     return Database::Exec(sql, cb);
 }
 
 ECode CDatabase::ExecEx(
-        /** [in] **/String sql, 
+        /** [in] **/const String &sql, 
         /** [in] **/ICallback* cb,
-        /** [in] **/ArrayOf<String> args)
+        /** [in] **/ArrayOf<String>* args)
 {
     return Database::ExecEx(sql, cb, args);
 }
@@ -88,7 +87,7 @@ ECode CDatabase::Busy_timeout(
 }
 
 ECode CDatabase::Get_table(
-        /** [in] **/String sql, 
+        /** [in] **/const String &sql, 
         /** [in] **/Int32 maxrows,
         /** [out] **/ITableResult** result)
 {
@@ -96,39 +95,39 @@ ECode CDatabase::Get_table(
 }
 
 ECode CDatabase::Get_tableEx(
-        /** [in] **/String sql,
+        /** [in] **/const String &sql,
         /** [out] **/ITableResult** result)
 {
     return Database::Get_tableEx(sql, result);
 }
 
 ECode CDatabase::Get_tableEx2(
-        /** [in] **/String sql, 
+        /** [in] **/const String &sql, 
         /** [in] **/Int32 maxrows, 
-        /** [in] **/ArrayOf<String> args,
+        /** [in] **/ArrayOf<String>* args,
         /** [out] **/ITableResult** result)
 {
     return Database::Get_tableEx2(sql, maxrows, args, result);
 }
 
 ECode CDatabase::Get_tableEx3(
-        /** [in] **/String sql, 
-        /** [in] **/ArrayOf<String> args,
+        /** [in] **/const String &sql, 
+        /** [in] **/ArrayOf<String>* args,
         /** [out] **/ITableResult** result)
 {
     return Database::Get_tableEx3(sql, args, result);
 }
 
 ECode CDatabase::Get_tableEx4(
-        /** [in] **/String sql, 
-        /** [in] **/ArrayOf<String> args, 
+        /** [in] **/const String &sql, 
+        /** [in] **/ArrayOf<String>* args, 
         /** [in] **/ITableResult* tbl)
 {
     return Database::Get_tableEx4(sql, args, tbl);
 }
 
 ECode CDatabase::Complete(
-        /** [in] **/String sql,
+        /** [in] **/const String &sql,
         /** [out] **/Boolean* result)
 {
     VALIDATE_NOT_NULL(result);
@@ -153,7 +152,7 @@ ECode CDatabase::Dbversion(
 }
 
 ECode CDatabase::Create_function(
-        /** [in] **/String name, 
+        /** [in] **/const String &name, 
         /** [in] **/Int32 nargs, 
         /** [in] **/IFunction* f)
 {
@@ -161,7 +160,7 @@ ECode CDatabase::Create_function(
 }
 
 ECode CDatabase::Create_aggregate(
-        /** [in] **/String name, 
+        /** [in] **/const String &name, 
         /** [in] **/Int32 nargs, 
         /** [in] **/IFunction* f)
 {
@@ -169,7 +168,7 @@ ECode CDatabase::Create_aggregate(
 }
 
 ECode CDatabase::Function_type(
-        /** [in] **/String name, 
+        /** [in] **/const String &name, 
         /** [in] **/Int32 type)
 {
     return Database::Function_type(name, type);
@@ -188,7 +187,7 @@ ECode CDatabase::Error_message(
 {
     VALIDATE_NOT_NULL(str);
 
-    return Database::Error_message(str)
+    return Database::Error_message(str);
 }
 
 ECode CDatabase::Error_string(
@@ -201,7 +200,7 @@ ECode CDatabase::Error_string(
 }
 
 ECode CDatabase::Set_encoding(
-        /** [in] **/String enc)
+        /** [in] **/const String &enc)
 {
     return Database::Set_encoding(enc);
 }
@@ -219,31 +218,31 @@ ECode CDatabase::Trace(
 }
 
 ECode CDatabase::Compile(
-        /** [in] **/String sql,
+        /** [in] **/const String &sql,
         /** [out] **/IVm** vm)
 {
     return Database::Compile(sql, vm);
 }
 
 ECode CDatabase::CompileEx(
-        /** [in] **/String sql, 
-        /** [in] **/ArrayOf<String> args,
+        /** [in] **/const String &sql, 
+        /** [in] **/ArrayOf<String>* args,
         /** [out] **/IVm** vm)
 {
     return Database::CompileEx(sql, args, vm);
 }
 
 ECode CDatabase::Prepare(
-        /** [in] **/String sql,
+        /** [in] **/const String &sql,
         /** [out] **/IStmt** tmt)
 {
     return Database::Prepare(sql, tmt);
 }
 
 ECode CDatabase::Open_blob(
-        /** [in] **/String db, 
-        /** [in] **/String table, 
-        /** [in] **/String column,
+        /** [in] **/const String &db, 
+        /** [in] **/const String &table, 
+        /** [in] **/const String &column,
         /** [in] **/Int64 row, 
         /** [in] **/Boolean rw,
         /** [out] **/IBlob2** blob)
@@ -267,25 +266,25 @@ ECode CDatabase::Progress_handler(
 }
 
 ECode CDatabase::Key(
-        /** [in] **/ArrayOf<Byte> ekey)
+        /** [in] **/ArrayOf<Byte>* ekey)
 {
     return Database::Key(ekey);
 }
 
 ECode CDatabase::KeyEx(
-        /** [in] **/String skey)
+        /** [in] **/const String &skey)
 {
     return Database::KeyEx(skey);
 }
 
 ECode CDatabase::Rekey(
-        /** [in] **/ArrayOf<Byte> ekey)
+        /** [in] **/ArrayOf<Byte>* ekey)
 {
     return Database::Rekey(ekey);
 }
 
 ECode CDatabase::RekeyEx(
-        /** [in] **/String skey)
+        /** [in] **/const String &skey)
 {
     return Database::RekeyEx(skey);
 }
@@ -300,7 +299,7 @@ ECode CDatabase::Long_from_julian(
 }
 
 ECode CDatabase::Long_from_julianEx(
-        /** [in] **/String s,
+        /** [in] **/const String &s,
         /** [out] **/Int64* result)
 {
     VALIDATE_NOT_NULL(result);

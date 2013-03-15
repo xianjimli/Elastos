@@ -1,12 +1,6 @@
 
 module
 {
-    interface IInputStream;
-    interface IOutputStream;
-    interface IReader;
-    interface IWriter;
-
-
     /**
      * Maps SQL's XML type into Java.
      */

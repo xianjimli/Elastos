@@ -1,9 +1,6 @@
 
 module
 {
-    interface IConnection;
-
-
     /**
      * An interface to a JDBC driver.
      * <p>

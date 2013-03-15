@@ -3,8 +3,6 @@ module
 {
     interface IDriver;
     interface IConnection;
-    interface IPrintStream;
-    interface IPrintWriter;
 
     interface IDriverManager {
         /**
