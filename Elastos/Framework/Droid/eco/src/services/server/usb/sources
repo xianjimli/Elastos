@@ -13,4 +13,4 @@ INCLUDES += $(PREBUILD_INC)/skia/effects
 
 C_DEFINES += -D_FRAMEWORK_SERVER
 
-SOURCES += CUsbService.cpp
+SOURCES += UsbService.cpp
