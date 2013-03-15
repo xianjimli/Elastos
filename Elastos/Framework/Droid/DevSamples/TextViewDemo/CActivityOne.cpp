@@ -165,8 +165,8 @@ ECode CActivityOne::MyListener::OnClick(
         AutoPtr<IServiceManager> sm;
         CServiceManager::AcquireSingleton((IServiceManager**)&sm);
 
-        AutoPtr<IWindowManagerStub> wm;
-        sm->GetService(String("window"), (IInterface**)(IWindowManagerStub**)&wm);
+        AutoPtr<IWindowManager> wm;
+        sm->GetService(String("window"), (IInterface**)(IWindowManager**)&wm);
         Boolean res;
         wm->InjectInputEventNoWait(ev.Get(), &res);
     }
@@ -294,7 +294,7 @@ ECode CActivityOne::OnCreate(
     mTranslateAnimation->SetDuration(3000);
 
     CreateNavigationBar();
-    
+
     return NOERROR;
 }
 
@@ -486,8 +486,8 @@ ECode CActivityOne::CreateNavigationBar()
     assert(mMenu != NULL);
     mMenu->SetOnClickListener((IViewOnClickListener*)l.Get());
 
-    AutoPtr<IWindowManager> wm;
-    CWindowManagerImpl::AcquireSingleton((IWindowManager**)&wm);
+    AutoPtr<ILocalWindowManager> wm;
+    CWindowManagerImpl::AcquireSingleton((ILocalWindowManager**)&wm);
     wm->AddViewEx5(navigationBar, lp);
 
     return NOERROR;

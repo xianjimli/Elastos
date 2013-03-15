@@ -16,7 +16,7 @@ module
     interface IInputDevice;
     interface IRotationWatcher;
 
-    interface IWindowManagerStub {
+    interface IWindowManager {
         // This is used for debugging
         StartViewServer(
             [in] Int32 port,

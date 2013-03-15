@@ -147,7 +147,7 @@ private:
     {
     public:
         ConfigCallback(
-            /* [in] */ IWindowManager* wm);
+            /* [in] */ ILocalWindowManager* wm);
 
         CARAPI_(void) AddHandler(
             /* [in] */ IHandler* h);
@@ -159,7 +159,7 @@ private:
 
     private:
         Vector<AutoPtr<IHandler> > mHandlers;
-        AutoPtr<IWindowManager> mWindowManager;
+        AutoPtr<ILocalWindowManager> mWindowManager;
     };
 
 public:

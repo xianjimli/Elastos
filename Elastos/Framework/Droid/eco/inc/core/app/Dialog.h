@@ -284,7 +284,7 @@ private:
 
 protected:
     AutoPtr<IContext> mContext;
-    AutoPtr<IWindowManager> mWindowManager;
+    AutoPtr<ILocalWindowManager> mWindowManager;
     AutoPtr<IWindow> mWindow;
     AutoPtr<IView> mDecor;
     /**

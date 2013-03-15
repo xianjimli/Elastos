@@ -10,7 +10,7 @@ CarClass(CWindowSession)
 {
 public:
     CARAPI constructor(
-        /* [in] */ IWindowManagerStub* wmService,
+        /* [in] */ IWindowManager* wmService,
         /* [in] */ IInputMethodClient* client,
         /* [in] */ IInputContext* inputContext);
 

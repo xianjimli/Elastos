@@ -157,7 +157,7 @@ ECode CInputMethodManagerService::constructor(
     AutoPtr<IApartmentHelper> helper;
     ASSERT_SUCCEEDED(CApartmentHelper::AcquireSingleton((IApartmentHelper**)&helper));
     ASSERT_SUCCEEDED(helper->GetDefaultApartment((IApartment**)&mHandler));
-    mIWindowManager = IWindowManagerStub::Probe(
+    mIWindowManager = IWindowManager::Probe(
             ServiceManager::GetService(String(Context_WINDOW_SERVICE)).Get());
     // mCaller = new HandlerCaller(context, new HandlerCaller.Callback() {
     //     public void executeMessage(Message msg) {

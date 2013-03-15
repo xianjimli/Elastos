@@ -1413,8 +1413,8 @@ void CPhoneWindow::OpenPanel(
         return;
     }
 
-    AutoPtr<IWindowManager> wm;
-    GetWindowManager((IWindowManager**) &wm);
+    AutoPtr<ILocalWindowManager> wm;
+    GetWindowManager((ILocalWindowManager**)&wm);
     if (wm == NULL) {
         return;
     }
@@ -1532,8 +1532,8 @@ ECode CPhoneWindow::ClosePanel(
     /* [in] */ PanelFeatureState* st,
     /* [in] */ Boolean doCallback)
 {
-    AutoPtr<IWindowManager> wm;
-    GetWindowManager((IWindowManager**)&wm);
+    AutoPtr<ILocalWindowManager> wm;
+    GetWindowManager((ILocalWindowManager**)&wm);
     if ((wm != NULL) && st->mIsOpen) {
         if (st->mDecorView != NULL) {
             wm->RemoveView((IView*)st->mDecorView.Get());
@@ -2420,7 +2420,7 @@ ECode CPhoneWindow::HasChildren(
 }
 
 ECode CPhoneWindow::SetWindowManager(
-    /* [in] */ IWindowManager* wm,
+    /* [in] */ ILocalWindowManager* wm,
     /* [in] */ IBinder* appToken,
     /* [in] */ const String& appName)
 {
@@ -2428,7 +2428,7 @@ ECode CPhoneWindow::SetWindowManager(
 }
 
 ECode CPhoneWindow::GetWindowManager(
-    /* [out] */ IWindowManager** wm)
+    /* [out] */ ILocalWindowManager** wm)
 {
     return Window::GetWindowManager(wm);
 }

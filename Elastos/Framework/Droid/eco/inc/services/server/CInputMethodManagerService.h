@@ -480,7 +480,7 @@ private:
     //final SettingsObserver mSettingsObserver;
     //final StatusBarManagerService mStatusBar;
     AutoPtr<IStatusBarService> mStatusBar;
-    AutoPtr<IWindowManagerStub> mIWindowManager;
+    AutoPtr<IWindowManager> mIWindowManager;
     //TODO
     //final HandlerCaller mCaller;
     AutoPtr<IApartment> mCaller;

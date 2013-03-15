@@ -24,12 +24,12 @@ protected:
                                           (1 << Window_FEATURE_CONTEXT_MENU);
 
 public:
-    class LocalWindowManager : public ElRefBase, public IWindowManager
+    class LocalWindowManager : public ElRefBase, public ILocalWindowManager
     {
     public:
         LocalWindowManager(
             /* [in] */ Window* w,
-            /* [in] */ IWindowManager* wm);
+            /* [in] */ ILocalWindowManager* wm);
 
         CARAPI_(PInterface) Probe(
             /* [in] */ REIID riid);
@@ -61,7 +61,7 @@ public:
 
     private:
         AutoPtr<Window> mWindow;
-        AutoPtr<IWindowManager> mWindowManager;
+        AutoPtr<ILocalWindowManager> mWindowManager;
         AutoPtr<IDisplay> mDefaultDisplay;
     };
 
@@ -117,7 +117,7 @@ public:
      * @param wm The ViewManager for adding new windows.
      */
     CARAPI SetWindowManager(
-        /* [in] */ IWindowManager* wm,
+        /* [in] */ ILocalWindowManager* wm,
         /* [in] */ IBinder* appToken,
         /* [in] */ const String& appName);
 
@@ -128,7 +128,7 @@ public:
      * @return WindowManager The ViewManager.
      */
     CARAPI GetWindowManager(
-        /* [out] */ IWindowManager** wm);
+        /* [out] */ ILocalWindowManager** wm);
 
     CARAPI SetCallback(
         /* [in] */ IWindowCallback* cb);
@@ -630,7 +630,7 @@ protected:
 
     AutoPtr<ITypedArray> mWindowStyle;
     AutoPtr<IWindowCallback> mCallback;
-    AutoPtr<IWindowManager> mWindowManager;
+    AutoPtr<ILocalWindowManager> mWindowManager;
     AutoPtr<IBinder> mAppToken;
     String mAppName;
     AutoPtr<Window> mContainer;

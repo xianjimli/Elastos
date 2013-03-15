@@ -1938,8 +1938,8 @@ ECode CContextImpl::GetSystemService(
 {
     ECode ec = NOERROR;
     if (!CString(Context_WINDOW_SERVICE).Compare(name)) {
-        AutoPtr<IWindowManager> wm;
-        CWindowManagerImpl::AcquireSingleton((IWindowManager**)&wm);
+        AutoPtr<ILocalWindowManager> wm;
+        CWindowManagerImpl::AcquireSingleton((ILocalWindowManager**)&wm);
         *object = (IInterface*)wm.Get();
         (*object)->AddRef();
         return NOERROR;

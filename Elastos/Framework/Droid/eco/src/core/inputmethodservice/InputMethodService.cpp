@@ -960,9 +960,9 @@ ECode InputMethodService::GetMaxWidth(
     /* [out] */ Int32* maxWidth)
 {
     assert(maxWidth != NULL);
-    AutoPtr<IWindowManager> wm;
+    AutoPtr<ILocalWindowManager> wm;
     AbstractInputMethodService::GetSystemService(
-            String(Context_WINDOW_SERVICE), (IInterface**) &wm);
+            String(Context_WINDOW_SERVICE), (IInterface**)&wm);
     assert(wm != NULL);
     AutoPtr<IDisplay> display;
     wm->GetDefaultDisplay((IDisplay**)&display);

@@ -694,8 +694,8 @@ IWindowSession* ViewRoot::GetWindowSession(
         assert(imm != NULL);
         AutoPtr<IServiceManager> sm;
         GetServiceManager((IServiceManager**)&sm);
-        AutoPtr<IWindowManagerStub> wm;
-        sm->GetService(String("window"), (IInterface**)(IWindowManagerStub**)&wm);
+        AutoPtr<IWindowManager> wm;
+        sm->GetService(String("window"), (IInterface**)(IWindowManager**)&wm);
 
         AutoPtr<IInputMethodClient> client;
         imm->GetClient((IInputMethodClient**)&client);

@@ -27,13 +27,13 @@ ECode CBrowserFrame::LoadUrl(
     }
 
     mLoadInitFromJava = true;
-    
+
     IURLUtil* pURLUtil = NULL;
     CURLUtil::AcquireSingleton(&pURLUtil);
     Boolean flag = false;
     pURLUtil->IsJavaScriptUrl(url, &flag);
 
-    if (flag) 
+    if (flag)
     {
         // strip off the scheme and evaluate the string
         StringByEvaluatingJavaScriptFromString(
@@ -83,7 +83,7 @@ ECode CBrowserFrame::LoadData(
     {
         _data = "";
     }
-    
+
     // Setup defaults for missing values. These defaults where taken from
     // WebKit's WebFrame.mm
     if (_baseUrl == NULL || _baseUrl.GetLength() == 0)
@@ -130,27 +130,27 @@ ECode CBrowserFrame::HandleMessage(
         return E_INVALID_ARGUMENT;
     }
 
-    if (mBlockMessages) 
+    if (mBlockMessages)
     {
             return E_NOT_IMPLEMENTED;
     }
-    switch (/*pMsg.what*/1) 
+    switch (/*pMsg.what*/1)
     {
-        case FRAME_COMPLETED: 
+        case FRAME_COMPLETED:
         {
-            if (mSettings->GetSavePassword() && HasPasswordField()) 
+            if (mSettings->GetSavePassword() && HasPasswordField())
             {
                 WebHistoryItem* item = NULL;
-                IWebBackForwardList* pWFL = NULL;                
-                
+                IWebBackForwardList* pWFL = NULL;
+
                 mCallbackProxy->GetBackForwardList(&pWFL);
                // item = pWFL->GetCurrentItem();
-                if (item != NULL) 
+                if (item != NULL)
                 {
                  //   WebAddress uri = new WebAddress(item.getUrl());
                  //   String schemePlusHost = uri.mScheme + uri.mHost;
                  //   ArrayOf<String> up = mDatabase->GetUsernamePassword(schemePlusHost);
-                 //   if (/*up != NULL &&*/ up[0] != NULL) 
+                 //   if (/*up != NULL &&*/ up[0] != NULL)
                     {
                  //       SetUsernamePassword((const char*)up[0], (const char*)up[1]);
                     }
@@ -160,15 +160,15 @@ ECode CBrowserFrame::HandleMessage(
             break;
         }
 
-        case POLICY_FUNCTION: 
+        case POLICY_FUNCTION:
         {
         //    NativeCallPolicyFunction(pMsg->arg1, pMsg->arg2);
             break;
         }
 
-        case ORIENTATION_CHANGED: 
+        case ORIENTATION_CHANGED:
         {
-           /* if (mOrientation != pMsg->arg1) 
+           /* if (mOrientation != pMsg->arg1)
             {
                 mOrientation = pMsg->arg1;
                 NativeOrientationChanged(pMsg->arg1);
@@ -207,7 +207,7 @@ ECode CBrowserFrame::HandleUrl(
         return E_INVALID_ARGUMENT;
     }
 
-    if (mLoadInitFromJava == true) 
+    if (mLoadInitFromJava == true)
     {
         *pFlag = false;
         return E_NOT_IMPLEMENTED;
@@ -224,7 +224,7 @@ ECode CBrowserFrame::HandleUrl(
         return E_NOT_IMPLEMENTED;
     }
     else
-    {        
+    {
         *pFlag = false;
         return E_NOT_IMPLEMENTED;
     }
@@ -237,12 +237,12 @@ ECode CBrowserFrame::AddJavascriptInterface(
     /* [in] */ IInterface * pObj,
     /* [in] */ const String& interfaceName)
 {
-/*    if (mJSInterfaceMap == NULL) 
+/*    if (mJSInterfaceMap == NULL)
     {
         mJSInterfaceMap = new HashMap<String, Object>();
     }
 
-    if (mJSInterfaceMap.containsKey(interfaceName)) 
+    if (mJSInterfaceMap.containsKey(interfaceName))
     {
         mJSInterfaceMap.remove(interfaceName);
     }
@@ -307,7 +307,7 @@ ECode CBrowserFrame::constructor(
     /* [in] */ Handle32 settings,
     /* [in] */ IObjectStringMap * pJavascriptInterfaces)
 {
-    if (pContext == NULL || webViewCore == 0 
+    if (pContext == NULL || webViewCore == 0
         || pProxy == NULL || settings == 0 || pJavascriptInterfaces == NULL)
     {
         return E_INVALID_ARGUMENT;
@@ -318,7 +318,7 @@ ECode CBrowserFrame::constructor(
 
     // Create a global JWebCoreJavaBridge to handle timers and
     // cookies in the WebCore thread.
-    if (sJavaBridge == NULL) 
+    if (sJavaBridge == NULL)
     {
         sJavaBridge = new JWebCoreJavaBridge();
         // set WebCore native cache size
@@ -345,7 +345,7 @@ ECode CBrowserFrame::constructor(
 
     if (sConfigCallback == NULL)
     {
-        IWindowManager* pWindowManager;
+        ILocalWindowManager* pWindowManager;
         pContext->GetSystemService(Context_WINDOW_SERVICE, (IInterface**)&pWindowManager);
 
 //        sConfigCallback = new ConfigCallback(pWindowManager);
@@ -447,7 +447,7 @@ CARAPI_(void) CBrowserFrame::GetRawResFilename(
 /******************************ConfigCallback**********************************/
 
 CBrowserFrame::ConfigCallback::ConfigCallback(
-    /* [in] */ IWindowManager* wm)
+    /* [in] */ ILocalWindowManager* wm)
 {
     mWindowManager = wm;
 }

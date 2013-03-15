@@ -883,7 +883,7 @@ public:
         /* [in] */ IConfiguration* values);
 
     CARAPI constructor(
-        /* [in] */ IWindowManagerStub* wm);
+        /* [in] */ IWindowManager* wm);
 
     CARAPI GetSystemContext(
         /* [out] */ IContext** ctx);

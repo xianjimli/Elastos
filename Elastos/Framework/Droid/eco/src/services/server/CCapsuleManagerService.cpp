@@ -5117,7 +5117,7 @@ ECode CCapsuleManagerService::constructor(
         delete installer;
     }
 
-    AutoPtr<IWindowManager> wm;
+    AutoPtr<ILocalWindowManager> wm;
     AutoPtr<IDisplay> d;
 
     context->GetSystemService(Context_WINDOW_SERVICE, (IInterface**)&wm);

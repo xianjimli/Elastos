@@ -143,8 +143,8 @@ AutoPtr<CInputDevice> CInputDevice::GetDevice(
     AutoPtr<IServiceManager> sm;
     GetServiceManager((IServiceManager**)&sm);
 
-    AutoPtr<IWindowManagerStub> wm;
-    sm->GetService(String("window"), (IInterface**)(IWindowManagerStub**)&wm);
+    AutoPtr<IWindowManager> wm;
+    sm->GetService(String("window"), (IInterface**)(IWindowManager**)&wm);
 
     AutoPtr<CInputDevice> inputDevice;
     if (FAILED(wm->GetInputDevice(id, (IInputDevice**)&inputDevice))) {

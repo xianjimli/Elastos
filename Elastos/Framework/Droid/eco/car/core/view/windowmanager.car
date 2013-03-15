@@ -707,7 +707,7 @@ module
             [out] Boolean* mayUse);
     }
 
-    interface IWindowManager extends IViewManager {
+    interface ILocalWindowManager extends IViewManager {
         /**
          * Use this method to get the default Display object.
          *

@@ -45,7 +45,7 @@ module
     interface IMotionEvent;
     interface IAccessibilityEvent;
     interface IContext;
-    interface IWindowManager;
+    interface ILocalWindowManager;
     interface IBinder;
     interface IWindowManagerLayoutParams;
     interface IViewGroupLayoutParams;
@@ -309,7 +309,7 @@ module
          * @param wm The ViewManager for adding new windows.
          */
         SetWindowManager(
-            [in] IWindowManager* wm,
+            [in] ILocalWindowManager* wm,
             [in] IBinder* appToken,
             [in] String appName);
 
@@ -320,7 +320,7 @@ module
          * @return WindowManager The ViewManager.
          */
         GetWindowManager(
-            [out] IWindowManager** wm);
+            [out] ILocalWindowManager** wm);
 
         /**
          * Set the Callback interface for this window, used to intercept key

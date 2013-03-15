@@ -33,6 +33,7 @@ ECode AbstractInputMethodService::GetInterfaceID(
 
     if (pObject == (IInterface*)(IKeyEventCallback*)this) {
         *pIID = EIID_IKeyEventCallback;
+        return NOERROR;
     }
     else return Service::GetInterfaceID(pObject, pIID);
 }

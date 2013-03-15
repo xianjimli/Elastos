@@ -1839,7 +1839,7 @@ ECode GeckoAppShell::GetDpi(
     ECode ec = CDisplayMetrics::New(&pMetrics);
     if (FAILED(ec)) return ec;
 
-    IWindowManager* pIWinManager;
+    ILocalWindowManager* pIWinManager;
     ec = GeckoApp::sAppContext->GetWindowManagerEx(&pIWinManager);
     if (FAILED(ec)) goto exit;
 

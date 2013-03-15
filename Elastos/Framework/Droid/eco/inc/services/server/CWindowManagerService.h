@@ -1566,7 +1566,7 @@ public:
     CARAPI_(void) SystemReady();
 
     // -------------------------------------------------------------
-    // IWindowManager API
+    // ILocalWindowManager API
     // -------------------------------------------------------------
 
     CARAPI OpenSession(

@@ -21,7 +21,7 @@ module
 
     class CActivityManagerService {
         constructor(
-            [in] IWindowManagerStub* wm);
+            [in] IWindowManager* wm);
 
         interface IActivityManager;
         interface IActivityManagerService;

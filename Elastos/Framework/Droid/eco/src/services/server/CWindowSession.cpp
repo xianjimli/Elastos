@@ -4,7 +4,7 @@
 #include "os/Binder.h"
 
 ECode CWindowSession::constructor(
-    /* [in] */ IWindowManagerStub* wmService,
+    /* [in] */ IWindowManager* wmService,
     /* [in] */ IInputMethodClient* client,
     /* [in] */ IInputContext* inputContext)
 {

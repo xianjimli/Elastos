@@ -404,12 +404,12 @@ public:
         /* [out] */  Boolean* hasChildren);
 
     CARAPI SetWindowManager(
-        /* [in] */ IWindowManager* wm,
+        /* [in] */ ILocalWindowManager* wm,
         /* [in] */ IBinder* appToken,
         /* [in] */ const String& appName);
 
     CARAPI GetWindowManager(
-        /* [out] */ IWindowManager** wm);
+        /* [out] */ ILocalWindowManager** wm);
 
     CARAPI SetCallback(
         /* [in] */ IWindowCallback* cb);

@@ -295,7 +295,7 @@ public:
         /* [in] */ Boolean added);
 
     CARAPI GetWindowManagerEx(
-        /* [out] */ IWindowManager** mgr);
+        /* [out] */ ILocalWindowManager** mgr);
 
     /**
      * Returns complete component name of this activity.
@@ -526,7 +526,7 @@ public:
         /* [in] */ IViewGroupLayoutParams* params);
 
     /** Retrieve the window manager for showing custom windows. */
-    CARAPI_(AutoPtr<IWindowManager>) GetWindowManager();
+    CARAPI_(AutoPtr<ILocalWindowManager>) GetWindowManager();
 
     /**
      * Retrieve the current {@link android.view.Window} for the activity.
@@ -665,7 +665,7 @@ private:
     Boolean mFinished;
     Boolean mStartedActivity;
     AutoPtr<IWindow> mWindow;
-    AutoPtr<IWindowManager> mWindowManager;
+    AutoPtr<ILocalWindowManager> mWindowManager;
     AutoPtr<IView> mDecor;
     // frome ContextThemeWrapper.java
     AutoPtr<ILayoutInflater> mInflater;

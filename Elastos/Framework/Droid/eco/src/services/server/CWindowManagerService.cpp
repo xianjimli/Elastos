@@ -1434,7 +1434,7 @@ ECode CWindowManagerService::OpenSession(
 //    if (client == NULL) throw new IllegalArgumentException("NULL client");
 //    if (inputContext == NULL) throw new IllegalArgumentException("NULL inputContext");
     return CWindowSession::NewByFriend(
-        (IWindowManagerStub*)this, client, inputContext, (CWindowSession**)session);
+        (IWindowManager*)this, client, inputContext, (CWindowSession**)session);
 }
 
 ECode CWindowManagerService::InputMethodClientHasFocus(
@@ -3397,11 +3397,11 @@ Int32 CWindowManagerService::AddWindow(
         // so don't do it until we know the system is mostly up and
         // running.
         if (mDisplay == NULL) {
-            AutoPtr<IWindowManager> wm;
+            AutoPtr<ILocalWindowManager> wm;
 //            assert(SUCCEEDED(mContext->GetSystemService(
 //                    Context_WINDOW_SERVICE, (IInterface**)&wm)));
             //todo:
-            CWindowManagerImpl::AcquireSingleton((IWindowManager**)&wm);
+            CWindowManagerImpl::AcquireSingleton((ILocalWindowManager**)&wm);
 
             AutoPtr<IDisplay> display;
             assert(SUCCEEDED(wm->GetDefaultDisplay((IDisplay**)&display)));
@@ -6657,7 +6657,7 @@ void CWindowManagerService::AddWindowToListInOrderLocked(
                             break;
                         }
                     }
-                    
+
                     if (pos != NULL) {
                         // Move in front of any windows attached to this
                         // one.

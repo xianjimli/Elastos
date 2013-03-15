@@ -270,7 +270,7 @@ void CPhoneWindowManager::ShowRecentAppsDialog()
 /** {@inheritDoc} */
 ECode CPhoneWindowManager::Init(
     /* [in] */ IContext* context,
-    /* [in] */ IWindowManagerStub* windowManager
+    /* [in] */ IWindowManager* windowManager
     /* [in] */ /*LocalPowerManager powerManager*/)
 {
     mContext = context;
@@ -840,7 +840,7 @@ ECode CPhoneWindowManager::AddStartingWindow(
         CStringWrapper::New(String("Starting ") + capsuleName, (ICharSequence**)&tl);
         params->SetTitle(tl);
 
-        AutoPtr<IWindowManager> wm;
+        AutoPtr<ILocalWindowManager> wm;
         context->GetSystemService(Context_WINDOW_SERVICE, (IInterface**)&wm);
 
         AutoPtr<IView> view;
@@ -897,7 +897,7 @@ ECode CPhoneWindowManager::RemoveStartingWindow(
     //    TAG, "Removing starting window for " + appToken + ": " + window);
 
     if (window != NULL) {
-        AutoPtr<IWindowManager> wm;
+        AutoPtr<ILocalWindowManager> wm;
         mContext->GetSystemService(Context_WINDOW_SERVICE, (IInterface**)&wm);
         wm->RemoveView(window);
     }

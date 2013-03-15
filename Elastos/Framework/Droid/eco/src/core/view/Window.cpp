@@ -15,7 +15,7 @@ const Int32 Window::DEFAULT_FEATURES;
 
 Window::LocalWindowManager::LocalWindowManager(
     /* [in] */ Window* w,
-    /* [in] */ IWindowManager* wm) :
+    /* [in] */ ILocalWindowManager* wm) :
     mWindow(w),
     mWindowManager(wm)
 {
@@ -27,10 +27,10 @@ PInterface Window::LocalWindowManager::Probe(
     /* [in] */ REIID riid)
 {
     if (riid == EIID_IInterface) {
-        return (IInterface*)(IWindowManager*)this;
+        return (IInterface*)(ILocalWindowManager*)this;
     }
-    else if (riid == EIID_IWindowManager) {
-        return (IWindowManager*)this;
+    else if (riid == EIID_ILocalWindowManager) {
+        return (ILocalWindowManager*)this;
     }
     return NULL;
 }
@@ -255,14 +255,14 @@ ECode Window::HasChildren(
  * @param wm The ViewManager for adding new windows.
  */
 ECode Window::SetWindowManager(
-    /* [in] */ IWindowManager* wm,
+    /* [in] */ ILocalWindowManager* wm,
     /* [in] */ IBinder* appToken,
     /* [in] */ const String& appName)
 {
     mAppToken = appToken;
     mAppName = appName;
     if (wm == NULL) {
-        CWindowManagerImpl::AcquireSingleton((IWindowManager**)&wm);
+        CWindowManagerImpl::AcquireSingleton((ILocalWindowManager**)&wm);
     }
     else {
         wm->AddRef();
@@ -279,7 +279,7 @@ ECode Window::SetWindowManager(
  * @return WindowManager The ViewManager.
  */
 ECode Window::GetWindowManager(
-    /* [out] */ IWindowManager** wm)
+    /* [out] */ ILocalWindowManager** wm)
 {
     *wm = mWindowManager.Get();
     if (*wm != NULL) (*wm)->AddRef();

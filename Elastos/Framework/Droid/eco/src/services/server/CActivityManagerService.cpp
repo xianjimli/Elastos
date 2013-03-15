@@ -274,7 +274,7 @@ CActivityManagerService::~CActivityManagerService()
 }
 
 ECode CActivityManagerService::constructor(
-    /* [in] */ IWindowManagerStub* wm)
+    /* [in] */ IWindowManager* wm)
 {
     assert(wm != NULL);
     mWindowManager = (CWindowManagerService*)wm;

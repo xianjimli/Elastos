@@ -386,7 +386,7 @@ ECode Activity::SetWindowAdded(
 }
 
 ECode Activity::GetWindowManagerEx(
-    /* [out] */ IWindowManager** mgr)
+    /* [out] */ ILocalWindowManager** mgr)
 {
     if (!mgr) {
         return E_INVALID_ARGUMENT;
@@ -577,7 +577,7 @@ ECode Activity::SetContentView(
     return GetWindow()->SetContentViewEx2(view, params);
 }
 
-AutoPtr<IWindowManager> Activity::GetWindowManager()
+AutoPtr<ILocalWindowManager> Activity::GetWindowManager()
 {
     return mWindowManager;
 }
@@ -653,7 +653,7 @@ ECode Activity::AttachEx(
         mWindow->SetContainer(pWindow);
     }
 
-    mWindow->GetWindowManager((IWindowManager**)&mWindowManager);
+    mWindow->GetWindowManager((ILocalWindowManager**)&mWindowManager);
 
     return NOERROR;
 }
@@ -1784,8 +1784,8 @@ ECode Activity::OnWindowAttributesChanged(
             AutoPtr<IViewParent> parent;
             decor->GetParent((IViewParent**) &parent);
             if (parent != NULL) {
-                AutoPtr<IWindowManager> winmanager;
-                GetWindowManagerEx((IWindowManager**) &winmanager);
+                AutoPtr<ILocalWindowManager> winmanager;
+                GetWindowManagerEx((ILocalWindowManager**)&winmanager);
                 winmanager->UpdateViewLayout(decor, attrs);
             }
         }

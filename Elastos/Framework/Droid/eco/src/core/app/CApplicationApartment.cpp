@@ -1137,7 +1137,7 @@ ECode CApplicationApartment::HandleResumeActivity(
             r->mWindow->GetDecorView((IView**)&decor);
             decor->SetVisibility(View_INVISIBLE);
             AutoPtr<IViewManager> wm;
-            a->GetWindowManagerEx((IWindowManager**)&wm);
+            a->GetWindowManagerEx((ILocalWindowManager**)&wm);
             AutoPtr<IWindowManagerLayoutParams> l;
             r->mWindow->GetAttributes((IWindowManagerLayoutParams**)&l);
 //	            WindowManager.LayoutParams l = r.window.getAttributes();
@@ -2102,7 +2102,7 @@ ECode CApplicationApartment::GetDisplayMetricsLocked(
         return NOERROR;
     }
     if (mDisplay == NULL) {
-        AutoPtr<IWindowManager> wm = (IWindowManager*)CWindowManagerImpl::GetDefault();
+        AutoPtr<ILocalWindowManager> wm = (ILocalWindowManager*)CWindowManagerImpl::GetDefault();
         wm->GetDefaultDisplay((IDisplay**)&mDisplay);
     }
     CDisplayMetrics::New((IDisplayMetrics**)&mDisplayMetrics);

@@ -59,7 +59,7 @@ module
     merge("view/IInnerWindow.car");
     merge("view/IWindowSession.car");
     merge("view/IApplicationToken.car");
-    merge("view/IWindowManagerStub.car");
+    merge("view/IWindowManager.car");
     merge("view/TouchDelegate.car");
     merge("view/SoundEffectConstants.car");
     merge("view/HapticFeedbackConstants.car");
@@ -205,7 +205,7 @@ module
     }
 
     singleton class CWindowManagerImpl {
-        interface IWindowManager;
+        interface ILocalWindowManager;
     }
 
     singleton class CGravity {
@@ -422,7 +422,7 @@ module
 
     class CMotionEvent {
         constructor();
-        
+
         constructor(
             [in] Int32 pointerCount,
             [in] Int32 sampleCount);

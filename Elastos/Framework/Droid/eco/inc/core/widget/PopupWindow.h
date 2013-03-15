@@ -886,7 +886,7 @@ private:
 
 private:
     AutoPtr<IContext> mContext;
-    AutoPtr<IWindowManager> mWindowManager;
+    AutoPtr<ILocalWindowManager> mWindowManager;
 
     Boolean mIsShowing;
     Boolean mIsDropdown;

@@ -84,7 +84,7 @@ module
 
 
     interface IContext;
-    interface IWindowManagerStub;
+    interface IWindowManager;
     interface IWindowManagerLayoutParams;
     interface IConfiguration;
     interface IWindowState;
@@ -316,7 +316,7 @@ module
          */
         Init(
             [in] IContext* ctx,
-            [in] IWindowManagerStub* windowManager
+            [in] IWindowManager* windowManager
             /*[in] LocalPowerManager powerManager*/);
 
         /**
