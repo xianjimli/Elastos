@@ -34,4 +34,8 @@ SOURCES += MediaScanner.cpp
 SOURCES += CMediaScanner.cpp
 SOURCES += ToneGenerator.cpp
 SOURCES += CToneGenerator.cpp
+SOURCES += Ringtone.cpp
+SOURCES += CRingtone.cpp
+SOURCES += RingtoneManager.cpp
+SOURCES += CRingtoneManager.cpp
 
