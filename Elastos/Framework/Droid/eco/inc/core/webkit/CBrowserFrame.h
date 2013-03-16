@@ -20,11 +20,11 @@ CarClass(CBrowserFrame)
 public:
     CARAPI LoadUrl(
         /* [in] */ const String& url,
-        /* [in] */ IObjectStringMap * pExtraHeaders);
+        /* [in] */ IObjectStringMap * extraHeaders);
 
     CARAPI PostUrl(
         /* [in] */ const String& url,
-        /* [in] */ const ArrayOf<Byte> & data);
+        /* [in] */ const ArrayOf<Byte>& data);
 
     CARAPI LoadData(
         /* [in] */ const String& baseUrl,
@@ -39,20 +39,20 @@ public:
     CARAPI Destroy();
 
     CARAPI HandleMessage(
-        /* [in] */ IMessage * pMsg);
+        /* [in] */ IMessage* msg);
 
     CARAPI ExternalRepresentation(
-        /* [in] */ IMessage * pCallBack);
+        /* [in] */ IMessage* callBack);
 
     CARAPI DocumentAsText(
-        /* [in] */ IMessage * pCallBack);
+        /* [in] */ IMessage* callBack);
 
     CARAPI HandleUrl(
         /* [in] */ const String& url,
-        /* [out] */ Boolean * pFlag);
+        /* [out] */ Boolean* flag);
 
     CARAPI AddJavascriptInterface(
-        /* [in] */ IInterface * pObj,
+        /* [in] */ IInterface* obj,
         /* [in] */ const String& interfaceName);
 
     CARAPI NativeDestroyFrame();
@@ -62,24 +62,24 @@ public:
 
     CARAPI StringByEvaluatingJavaScriptFromString(
         /* [in] */ const String& script,
-        /* [out] */ String * pScriptString);
+        /* [out] */ String* scriptString);
 
     CARAPI CacheDisabled(
-        /* [out] */ Boolean * pFlag);
+        /* [out] */ Boolean* flag);
 
     CARAPI ClearCache();
 
     CARAPI StopLoading();
 
     CARAPI DocumentHasImages(
-        /* [out] */ Boolean * pFlag);
+        /* [out] */ Boolean* flag);
 
     CARAPI constructor(
-        /* [in] */ IContext * pContext,
+        /* [in] */ IContext* context,
         /* [in] */ Handle32 webViewCore,
-        /* [in] */ ICallbackProxy * pProxy,
+        /* [in] */ ICallbackProxy* proxy,
         /* [in] */ Handle32 settings,
-        /* [in] */ IObjectStringMap * pJavascriptInterfaces);
+        /* [in] */ IObjectStringMap* javascriptInterfaces);
 
 public:
     // message ids
@@ -176,7 +176,7 @@ public:
     static AutoPtr<ConfigCallback> sConfigCallback;
 
 private:
-    static const char* LOGTAG;// = "webkit";
+    static const CString LOGTAG;// = "webkit";
 
     /**
      * Cap the number of LoadListeners that will be instantiated, so

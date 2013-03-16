@@ -12,18 +12,18 @@ CarClass(CByteArrayBuilder)
 {
 public:
     CARAPI Append(
-        /* [in] */ const ArrayOf<Byte> & array,
+        /* [in] */ const ArrayOf<Byte>& array,
         /* [in] */ Int32 offset,
         /* [in] */ Int32 length);
 
     CARAPI GetFirstChunk(
-        /* [out] */ IByteArrayBuilderChunk ** ppChunk);
+        /* [out] */ IByteArrayBuilderChunk** chunk);
 
     CARAPI IsEmpty(
-        /* [out] */ Boolean * pFlag);
+        /* [out] */ Boolean* flag);
 
     CARAPI GetByteSize(
-        /* [out] */ Int32 * pSize);
+        /* [out] */ Int32* size);
 
     CARAPI Clear();
 

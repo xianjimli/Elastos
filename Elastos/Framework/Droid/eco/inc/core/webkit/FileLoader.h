@@ -56,7 +56,7 @@ private:
 	Int32 mType;  // Indicates the type of the load
 	Boolean mAllowFileAccess; // Allow/block file system access
 
-	static const char* LOGTAG;// = "webkit";
+	static const CString LOGTAG;// = "webkit";
 };
 
 #endif //__FILELOADER_H__

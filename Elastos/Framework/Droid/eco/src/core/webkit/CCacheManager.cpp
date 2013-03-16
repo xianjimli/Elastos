@@ -6,15 +6,15 @@
 #include "webkit/CWebViewDatabase.h"
 #include "webkit/CCacheManager.h"
 
-const char* CCacheManager::HEADER_KEY_IFMODIFIEDSINCE = "if-modified-since";
-const char* CCacheManager::HEADER_KEY_IFNONEMATCH = "if-none-match";
+const CString CCacheManager::HEADER_KEY_IFMODIFIEDSINCE = "if-modified-since";
+const CString CCacheManager::HEADER_KEY_IFNONEMATCH = "if-none-match";
 
-const char* CCacheManager::LOGTAG = "cache";
+const CString CCacheManager::LOGTAG = "cache";
 
-const char* CCacheManager::NO_STORE = "no-store";
-const char* CCacheManager::NO_CACHE = "no-cache";
-const char* CCacheManager::MAX_AGE = "max-age";
-const char* CCacheManager::MANIFEST_MIME = "text/cache-manifest";
+const CString CCacheManager::NO_STORE = "no-store";
+const CString CCacheManager::NO_CACHE = "no-cache";
+const CString CCacheManager::MAX_AGE = "max-age";
+const CString CCacheManager::MANIFEST_MIME = "text/cache-manifest";
 
 AutoPtr<CWebViewDatabase> CCacheManager::mDataBase;
 AutoPtr<IFile> CCacheManager::mBaseDir;
@@ -32,133 +32,103 @@ Int32 CCacheManager::mTrimCacheCount;
 Boolean CCacheManager::mClearCacheOnInit;
 
 ECode CCacheManager::GetCacheFileBaseDir(
-    /* [out] */ IFile ** ppDir)
+    /* [out] */ IFile** dir)
 {
-    if (ppDir == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(dir);
 
-    *ppDir = mBaseDir;
+    *dir = mBaseDir;
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CCacheManager::CacheDisabled(
-    /* [out] */ Boolean * pDisabled)
+    /* [out] */ Boolean* disabled)
 {
-    if (pDisabled == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(disabled);
 
-    *pDisabled = mDisabled;
+    *disabled = mDisabled;
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CCacheManager::StartCacheTransaction(
-    /* [out] */ Boolean * pFlag)
+    /* [out] */ Boolean* flag)
 {
-    if (pFlag == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(flag);
 
-    *pFlag = false;
+    *flag = FALSE;
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CCacheManager::EndCacheTransaction(
-    /* [out] */ Boolean * pFlag)
+    /* [out] */ Boolean* flag)
 {
-    if (pFlag == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(flag);
 
-    *pFlag = false;
+    *flag = FALSE;
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CCacheManager::GetCacheFile(
     /* [in] */ const String& url,
-    /* [in] */ IObjectStringMap * pHeaders,
-    /* [out] */ ICacheManagerCacheResult ** ppResult)
+    /* [in] */ IObjectStringMap* headers,
+    /* [out] */ ICacheManagerCacheResult** result)
 {
-    if (pHeaders == NULL || ppResult == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(headers);
+    VALIDATE_NOT_NULL(result);
 
-    *ppResult = GetCacheFile(url, 0, pHeaders);
+    *result = GetCacheFile(url, 0, headers);
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CCacheManager::CreateCacheFile(
     /* [in] */ const String& url,
     /* [in] */ Int32 statusCode,
-    /* [in] */ IHeaders * pHeaders,
+    /* [in] */ IHeaders* headers,
     /* [in] */ const String& mimeType,
     /* [in] */ Boolean forceCache,
-    /* [out] */ ICacheManagerCacheResult ** ppResult)
+    /* [out] */ ICacheManagerCacheResult** result)
 {
-    if (pHeaders == NULL || ppResult == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(headers);
+    VALIDATE_NOT_NULL(result);
 
-    *ppResult = CreateCacheFile(url, statusCode, pHeaders, mimeType, 0,
+    *result = CreateCacheFile(url, statusCode, headers, mimeType, 0,
                 forceCache);
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CCacheManager::SaveCacheFile(
     /* [in] */ const String& url,
-    /* [in] */ ICacheManagerCacheResult * pCacheRet)
+    /* [in] */ ICacheManagerCacheResult* cacheRet)
 {
-    if (pCacheRet == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(cacheRet);
 
-    SaveCacheFile(url, 0, (CCacheManager::CacheResult*)pCacheRet);
+    SaveCacheFile(url, 0, (CCacheManager::CacheResult*)cacheRet);
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 
 CARAPI_(void) CCacheManager::Init(
-        /* [in] */ IContext* context)
+        /* [in] */ IContext* inContext)
 {
-    if (context == NULL)
-    {
-        return;
-    }
+    assert(inContext != NULL);
 
     IContext* pContext = NULL;
-    context->GetApplicationContext(&pContext);
+    inContext->GetApplicationContext(&pContext);
 
     CWebViewDatabase::CreateInstance(pContext, (CWebViewDatabase**)&mDataBase);
     String fileName/*(pContext->GetCacheDir())*/;
     fileName.Append("webviewCache");
 //    mBaseDir = new File(pContext->GetCacheDir(), "webviewCache");
     CFile::New(fileName, (IFile**)&mBaseDir);
-    if (CreateCacheDirectory() && mClearCacheOnInit)
-    {
+    if (CreateCacheDirectory() && mClearCacheOnInit) {
         RemoveAllCacheFiles();
-        mClearCacheOnInit = false;
+        mClearCacheOnInit = FALSE;
     }
 }
 
@@ -170,13 +140,12 @@ CARAPI_(void) CCacheManager::Init(
 CARAPI_(void) CCacheManager::SetCacheDisabled(
     /* [in] */ Boolean disabled)
 {
-    if (disabled == mDisabled)
-    {
+    if (disabled == mDisabled) {
         return;
     }
+
     mDisabled = disabled;
-    if (mDisabled)
-    {
+    if (mDisabled) {
         RemoveAllCacheFiles();
     }
 }
@@ -185,24 +154,24 @@ CARAPI_(void) CCacheManager::SetCacheDisabled(
 // make sure to call enableTransaction/disableTransaction in pair
 CARAPI_(Boolean) CCacheManager::EnableTransaction()
 {
-    if (++mRefCount == 1) 
-    {
+    if (++mRefCount == 1) {
         mDataBase->StartCacheTransaction();
-        return true;
+        return TRUE;
     }
-    return false;
+
+    return FALSE;
 }
 
 // only called from WebViewWorkerThread
 // make sure to call enableTransaction/disableTransaction in pair
 CARAPI_(Boolean) CCacheManager::DisableTransaction()
 {
-    if (--mRefCount == 0) 
-    {
+    if (--mRefCount == 0) {
         mDataBase->EndCacheTransaction();
-        return true;
+        return TRUE;
     }
-    return false;
+
+    return FALSE;
 }
 
 // only called from WebViewWorkerThread
@@ -217,11 +186,11 @@ CARAPI_(Boolean) CCacheManager::StartTransaction()
 CARAPI_(Boolean) CCacheManager::EndTransaction()
 {
     Boolean ret = mDataBase->EndCacheTransaction();
-    if (++mTrimCacheCount >= TRIM_CACHE_INTERVAL) 
-    {
+    if (++mTrimCacheCount >= TRIM_CACHE_INTERVAL) {
         mTrimCacheCount = 0;
         TrimCacheIfNeeded();
     }
+
     return ret;
 }
 
@@ -230,13 +199,9 @@ CARAPI_(AutoPtr<ICacheManagerCacheResult>) CCacheManager::GetCacheFile(
     /* [in] */ Int64 postIdentifier,
     /* [in] */ IObjectStringMap* headers)
 {
-    if (headers == NULL)
-    {
-        return NULL;
-    }
+    assert(headers == NULL);
 
-    if (mDisabled)
-    {
+    if (mDisabled) {
         return NULL;
     }
 
@@ -244,19 +209,14 @@ CARAPI_(AutoPtr<ICacheManagerCacheResult>) CCacheManager::GetCacheFile(
     GetDatabaseKey(url, postIdentifier, databaseKey);
 
     CCacheManager::CacheResult* result = (CCacheManager::CacheResult*)mDataBase->GetCache(databaseKey);
-    if (result != NULL)
-    {
-        if (result->contentLength == 0)
-        {
-            if (!CheckCacheRedirect(result->httpStatusCode))
-            {
+    if (result != NULL) {
+        if (result->contentLength == 0) {
+            if (!CheckCacheRedirect(result->httpStatusCode)) {
                 // this should not happen. If it does, remove it.
                 mDataBase->RemoveCache(databaseKey);
                 return NULL;
             }
-        }
-        else
-        {
+        } else {
             String path;
             mBaseDir->GetPath(&path);
             path.Append(result->localPath);
@@ -277,9 +237,7 @@ CARAPI_(AutoPtr<ICacheManagerCacheResult>) CCacheManager::GetCacheFile(
           //      return null;
           //  }
         }
-    }
-    else
-    {
+    } else {
         return NULL;
     }
 
@@ -287,18 +245,17 @@ CARAPI_(AutoPtr<ICacheManagerCacheResult>) CCacheManager::GetCacheFile(
     // which implies that it needs cache even it is expired.
     // negative expires means time in the far future.
     if (headers != NULL && result->expires >= 0
-            /*&& result->expires <= System.currentTimeMillis()*/)
-    {
-        if (result->lastModified == NULL && result->etag == NULL)
-        {
+            /*&& result->expires <= System.currentTimeMillis()*/) {
+        if (result->lastModified == NULL && result->etag == NULL) {
             return NULL;
         }
+
         // return HEADER_KEY_IFNONEMATCH or HEADER_KEY_IFMODIFIEDSINCE
         // for requesting validation
-        if (result->etag != NULL)
-        {
+        if (result->etag != NULL) {
             headers->Put((const String)HEADER_KEY_IFNONEMATCH, (IInterface*)&(result->etag));
         }
+
         if (result->lastModified != NULL) {
             headers->Put((const String)HEADER_KEY_IFMODIFIEDSINCE, (IInterface*)&(result->lastModified));
         }
@@ -319,13 +276,9 @@ CARAPI_(AutoPtr<ICacheManagerCacheResult>) CCacheManager::CreateCacheFile(
     /* [in] */ Int64 postIdentifier,
     /* [in] */ Boolean forceCache)
 {
-    if (headers == NULL)
-    {
-        return NULL;
-    }
+    assert(headers != NULL);
 
-    if (!forceCache && mDisabled)
-    {
+    if (!forceCache && mDisabled) {
         return NULL;
     }
 
@@ -333,8 +286,7 @@ CARAPI_(AutoPtr<ICacheManagerCacheResult>) CCacheManager::CreateCacheFile(
     GetDatabaseKey(url, postIdentifier, databaseKey);
 
     // according to the rfc 2616, the 303 response MUST NOT be cached.
-    if (statusCode == 303)
-    {
+    if (statusCode == 303) {
         // remove the saved cache if there is any
         mDataBase->RemoveCache(databaseKey);
         return NULL;
@@ -342,22 +294,18 @@ CARAPI_(AutoPtr<ICacheManagerCacheResult>) CCacheManager::CreateCacheFile(
 
     // like the other browsers, do not cache redirects containing a cookie
     // header.
-    if (CheckCacheRedirect(statusCode)/* && !headers->GetSetCookie()->IsEmpty()*/)
-    {
+    if (CheckCacheRedirect(statusCode)/* && !headers->GetSetCookie()->IsEmpty()*/) {
         // remove the saved cache if there is any
         mDataBase->RemoveCache(databaseKey);
         return NULL;
     }
 
     ICacheManagerCacheResult* ret = ParseHeaders(statusCode, headers, mimeType);
-    if (ret == NULL) 
-    {
+    if (ret == NULL) {
         // this should only happen if the headers has "no-store" in the
         // cache-control. remove the saved cache if there is any
         mDataBase->RemoveCache(databaseKey);
-    }
-    else
-    {
+    } else {
         SetupFiles(databaseKey, ret);
         //try{
             IFileOutputStream* pFileOStream = NULL;
@@ -391,10 +339,7 @@ CARAPI_(void) CCacheManager::SaveCacheFile(
     /* [in] */ Int64 postIdentifier,
     /* [in] */ CCacheManager::CacheResult* cacheRet)
 {
-    if (cacheRet == NULL)
-    {
-        return;
-    }
+    assert(cacheRet != NULL);
 
     //try {
         cacheRet->outStream->Close();
@@ -402,31 +347,27 @@ CARAPI_(void) CCacheManager::SaveCacheFile(
     //    return;
     //}
 
-    Boolean bExists = false;
+    Boolean bExists = FALSE;
     cacheRet->outFile->Exists(&bExists);
-    if (!bExists) 
-    {
+    if (!bExists) {
         // the file in the cache directory can be removed by the system
         return;
     }
 
     Boolean redirect = CheckCacheRedirect(cacheRet->httpStatusCode);
-    if (redirect) 
-    {
+    if (redirect) {
         // location is in database, no need to keep the file
         cacheRet->contentLength = 0;
         cacheRet->localPath = "";
     }
 
-    Boolean bDelete = false;
+    Boolean bDelete = FALSE;
     cacheRet->outFile->Delete(&bDelete);
-    if ((redirect || cacheRet->contentLength == 0)
-            && !bDelete) 
-    {
+    if ((redirect || cacheRet->contentLength == 0) && !bDelete) {
         //Log.e(LOGTAG, cacheRet.outFile.getPath() + " delete failed.");
     }
-    if (cacheRet->contentLength == 0) 
-    {
+
+    if (cacheRet->contentLength == 0) {
         return;
     }
 
@@ -442,12 +383,9 @@ CARAPI_(void) CCacheManager::SaveCacheFile(
 CARAPI_(Boolean) CCacheManager::CleanupCacheFile(
     /* [in] */ ICacheManagerCacheResult* cacheRet)
 {
-    if (cacheRet == NULL)
-    {
-        return false;
-    }
+    assert(cacheRet != NULL);
 
-    Boolean bRet = false;
+    Boolean bRet = FALSE;
 
     //try {
         ((CacheResult*)cacheRet)->outStream->Close();
@@ -469,12 +407,11 @@ CARAPI_(Boolean) CCacheManager::RemoveAllCacheFiles()
 {
     // Note, this is called before init() when the database is
     // created or upgraded.
-    if (mBaseDir == NULL)
-    {
+    if (mBaseDir == NULL) {
         // Init() has not been called yet, so just flag that
         // we need to clear the cache when init() is called.
-        mClearCacheOnInit = true;
-        return true;
+        mClearCacheOnInit = TRUE;
+        return TRUE;
     }
     // delete rows in the cache database
 /*    WebViewWorker.getHandler().sendEmptyMessage(
@@ -500,7 +437,7 @@ CARAPI_(Boolean) CCacheManager::RemoveAllCacheFiles()
         }
     };
     new Thread(clearCache).start();*/
-    return true;
+    return TRUE;
 }
 
 /**
@@ -513,20 +450,17 @@ CARAPI_(Boolean) CCacheManager::CacheEmpty()
 
 CARAPI_(void) CCacheManager::TrimCacheIfNeeded()
 {
-    if (mDataBase->GetCacheTotalSize() > CACHE_THRESHOLD) 
-    {
+    if (mDataBase->GetCacheTotalSize() > CACHE_THRESHOLD) {
         Vector<String> pathList;
         mDataBase->TrimCache(CACHE_TRIM_AMOUNT, pathList);
         Int32 size = pathList.GetSize();
-        for (Int32 i = 0; i < size; i++)
-        {
-            IFile* f = NULL;
+        for (Int32 i = 0; i < size; i++) {
+            AutoPtr<IFile> f;
             CFile::New(mBaseDir, pathList[i], (IFile**)&f);
 
-            Boolean bDelete = false;
+            Boolean bDelete = FALSE;
             f->Delete(&bDelete);
-            if (!bDelete)
-            {
+            if (!bDelete) {
             //    Log.e(LOGTAG, f.getPath() + " delete failed.");
             }
         }
@@ -568,16 +502,14 @@ CARAPI_(void) CCacheManager::ClearCache()
  */
 CARAPI_(Boolean) CCacheManager::CreateCacheDirectory()
 {
-    Boolean bExists = false;
+    Boolean bExists = FALSE;
     mBaseDir->Exists(&bExists);
-    if (!bExists)
-    {
-        Boolean bMkDir = false;
+    if (!bExists) {
+        Boolean bMkDir = FALSE;
         mBaseDir->Mkdirs(&bMkDir);
-        if(!bMkDir)
-        {
+        if(!bMkDir) {
             //Log.w(LOGTAG, "Unable to create webviewCache directory");
-            return false;
+            return FALSE;
         }
       /*  FileUtils.setPermissions(
                 mBaseDir.toString(),
@@ -590,22 +522,19 @@ CARAPI_(Boolean) CCacheManager::CreateCacheDirectory()
         // delete rows in the cache database
     /*    WebViewWorker.getHandler().sendEmptyMessage(
                 WebViewWorker.MSG_CLEAR_CACHE);*/
-        return true;
+        return TRUE;
     }
-    return false;
+    return FALSE;
 }
 
 CARAPI_(Boolean) CCacheManager::CheckCacheRedirect(
     /* [in] */ Int32 statusCode)
 {
-    if (statusCode == 301 || statusCode == 302 || statusCode == 307)
-    {
+    if (statusCode == 301 || statusCode == 302 || statusCode == 307) {
         // as 303 can't be cached, we do not return true
-        return true;
-    }
-    else
-    {
-        return false;
+        return TRUE;
+    } else {
+        return FALSE;
     }
 }
 
@@ -623,13 +552,9 @@ CARAPI_(void) CCacheManager::SetupFiles(
     /* [in] */ const String& url,
     /* [in] */ ICacheManagerCacheResult* cacheRet)
 {
-    if (cacheRet == NULL)
-    {
-        return;
-    }
+    assert(cacheRet != NULL);
 
-    if (true) 
-    {
+    if (TRUE) {
         // Note: SHA1 is much stronger hash. But the cost of setupFiles() is
         // 3.2% cpu time for a fresh load of nytimes.com. While a simple
         // String.hashCode() is only 0.6%. If adding the collision resolving
@@ -637,39 +562,34 @@ CARAPI_(void) CCacheManager::SetupFiles(
         // fresh load, but 5.3% for the worst case where all the files 
         // already exist in the file system, but database is gone. So it
         // needs to resolve collision for every file at least once.
-        int hashCode = (const_cast<String&>(url)).GetHashCode();
+        Int32 hashCode = (const_cast<String&>(url)).GetHashCode();
         StringBuffer* ret = new StringBuffer(8);
         AppendAsHex(hashCode, (StringBuffer*)ret);
         String path((const char*)(StringBuffer*)ret);//.toString();
-        IFile* file = NULL;
-        CFile::New(mBaseDir, path, &file);
-        if (true)
-        {
-            Boolean checkOldPath = true;
+        AutoPtr<IFile> file;
+        CFile::New(mBaseDir, path, (IFile**)&file);
+        if (TRUE) {
+            Boolean checkOldPath = TRUE;
             // Check hash collision. If the hash file doesn't exist, just
             // continue. There is a chance that the old cache file is not
             // same as the hash file. As mDataBase.getCache() is more 
             // expansive than "leak" a file until clear cache, don't bother.
             // If the hash file exists, make sure that it is same as the 
             // cache file. If it is not, resolve the collision.
-            Boolean bExists = false;
+            Boolean bExists = FALSE;
             file->Exists(&bExists);
             while (bExists)
             {
-                if (checkOldPath)
-                {
+                if (checkOldPath) {
                     CacheResult* oldResult = (CacheResult*)mDataBase->GetCache(url);
-                    if (oldResult != NULL && oldResult->contentLength > 0)
-                    {
-                        if (path.Equals(oldResult->localPath))
-                        {
+                    if (oldResult != NULL && oldResult->contentLength > 0) {
+                        if (path.Equals(oldResult->localPath)) {
                             path = oldResult->localPath;
                         }
-                        else
-                        {
+                        else {
                             path = oldResult->localPath;
                             if (file) delete file;
-                            CFile::New(mBaseDir, path, &file);
+                            CFile::New(mBaseDir, path, (IFile**)&file);
                         }
                         break;
                     }
@@ -679,16 +599,14 @@ CARAPI_(void) CCacheManager::SetupFiles(
                 AppendAsHex(++hashCode, ret);
                 path = (const char*)(StringBuffer*)ret;//.toString();
                 if (file) delete file;
-                CFile::New(mBaseDir, path, &file);
+                CFile::New(mBaseDir, path, (IFile**)&file);
 
                 file->Exists(&bExists);
             }
         }
         ((CacheResult*)cacheRet)->localPath = path;
         ((CacheResult*)cacheRet)->outFile = file;
-    }
-    else
-    {
+    } else {
         // get hash in byte[]
 /*        Digest digest = new SHA1Digest();
         int digestLen = digest.getDigestSize();
@@ -715,10 +633,7 @@ CARAPI_(void) CCacheManager::AppendAsHex(
     /* [in] */ Int32 i,
     /* [in] */ StringBuffer* ret)
 {
-    if (ret == NULL)
-    {
-        return;
-    }
+    assert(ret != NULL);
 
     String hex;// = Integer.toHexString(i);
     switch (hex.GetLength())
@@ -754,10 +669,7 @@ CARAPI_(AutoPtr<ICacheManagerCacheResult>) CCacheManager::ParseHeaders(
     /* [in] */ IHeaders* headers,
     /* [in] */ const String& mimeType)
 {
-    if (headers == NULL)
-    {
-        return NULL;
-    }
+    assert(headers != NULL);
 
     // if the contentLength is already larger than CACHE_MAX_SIZE, skip it
 //    if (headers->GetContentLength() > CACHE_MAX_SIZE) return NULL;
@@ -780,8 +692,7 @@ CARAPI_(AutoPtr<ICacheManagerCacheResult>) CCacheManager::ParseHeaders(
 
     ret->expires = -1;
 //    ret.expiresString = headers.getExpires();
-    if (ret->expiresString.GetSize() != 0)
-    {
+    if (ret->expiresString.GetSize() != 0) {
         //try {
 //            ret.expires = AndroidHttpClient.parseDate(ret.expiresString);
         //} catch (IllegalArgumentException ex) {
@@ -797,14 +708,12 @@ CARAPI_(AutoPtr<ICacheManagerCacheResult>) CCacheManager::ParseHeaders(
     }
 
     String contentDisposition;// = headers.getContentDisposition();
-    if (contentDisposition.GetSize() != 0)
-    {
+    if (contentDisposition.GetSize() != 0) {
         ret->contentdisposition = contentDisposition;
     }
 
     String crossDomain;// = headers.getXPermittedCrossDomainPolicies();
-    if (crossDomain.GetSize() != 0)
-    {
+    if (crossDomain.GetSize() != 0) {
         ret->crossDomain = crossDomain;
     }
 
@@ -819,37 +728,29 @@ CARAPI_(AutoPtr<ICacheManagerCacheResult>) CCacheManager::ParseHeaders(
     if (etag.GetSize() != 0 && etag.GetLength() > 0) ret->etag = etag;
 
     String cacheControl;// = headers.getCacheControl();
-    if (cacheControl.GetSize() != 0)
-    {
+    if (cacheControl.GetSize() != 0) {
         Vector<String> controls;// = cacheControl.toLowerCase().split("[ ,;]");
-        for (Int32 i = 0; i < (Int32)controls.GetSize(); i++)
-        {
-            if (controls[i].Equals(NO_STORE))
-            {
+        for (Int32 i = 0; i < (Int32)controls.GetSize(); i++) {
+            if (controls[i].Equals(NO_STORE)) {
                 return NULL;
             }
             // According to the spec, 'no-cache' means that the content
             // must be re-validated on every load. It does not mean that
             // the content can not be cached. set to expire 0 means it
             // can only be used in CACHE_MODE_CACHE_ONLY case
-            if (controls[i].Equals(NO_CACHE))
-            {
+            if (controls[i].Equals(NO_CACHE)) {
                 ret->expires = 0;
-            }
-            else if (controls[i].StartWith(MAX_AGE))
-            {
+            } else if (controls[i].StartWith(MAX_AGE)) {
                 Int32 separator = controls[i].IndexOf('=');
-                if (separator < 0)
-                {
+                if (separator < 0) {
                     separator = controls[i].IndexOf(':');
                 }
-                if (separator > 0)
-                {
+
+                if (separator > 0) {
                     String s = controls[i].Substring(separator + 1);
                     //try {
                         Int64 sec;// = Long.parseLong(s);
-                        if (sec >= 0)
-                        {
+                        if (sec >= 0) {
                             ret->expires;// = System.currentTimeMillis() + 1000 * sec;
                         }
                     //} catch (NumberFormatException ex) {
@@ -878,38 +779,29 @@ CARAPI_(AutoPtr<ICacheManagerCacheResult>) CCacheManager::ParseHeaders(
 
     // According to RFC 2616 section 13.2.4, if an expiration has not been
     // explicitly defined a heuristic to set an expiration may be used.
-    if (ret->expires == -1)
-    {
-        if (ret->httpStatusCode == 301)
-        {
+    if (ret->expires == -1) {
+        if (ret->httpStatusCode == 301) {
             // If it is a permanent redirect, and it did not have an
             // explicit cache directive, then it never expires
             ret->expires;// = Long.MAX_VALUE;
-        }
-        else if (ret->httpStatusCode == 302 || ret->httpStatusCode == 307)
-        {
+        } else if (ret->httpStatusCode == 302 || ret->httpStatusCode == 307) {
             // If it is temporary redirect, expires
             ret->expires = 0;
-        } else if (ret->lastModified.GetSize() != 0)
-        {
+        } else if (ret->lastModified.GetSize() != 0) {
             // When we have no last-modified, then expire the content with
             // in 24hrs as, according to the RFC, longer time requires a
             // warning 113 to be added to the response.
 
             // Only add the default expiration for non-html markup. Some
             // sites like news.google.com have no cache directives.
-            if (!mimeType.StartWith("text/html"))
-            {
+            if (!mimeType.StartWith("text/html")) {
                 ret->expires;// = System.currentTimeMillis() + 86400000; // 24*60*60*1000
-            } else 
-            {
+            } else {
                 // Setting a expires as zero will cache the result for
                 // forward/back nav.
                 ret->expires = 0;
             }
-        } 
-        else
-        {
+        } else {
             // If we have a last-modified value, we could use it to set the
             // expiration. Suggestion from RFC is 10% of time since
             // last-modified. As we are on mobile, loads are expensive,
@@ -923,12 +815,9 @@ CARAPI_(AutoPtr<ICacheManagerCacheResult>) CCacheManager::ParseHeaders(
             //    Log.e(LOGTAG, "illegal lastModified: " + ret.lastModified);
             //}
             Int64 difference;// = System.currentTimeMillis() - lastmod;
-            if (difference > 0)
-            {
+            if (difference > 0) {
                 ret->expires;// = System.currentTimeMillis() + difference / 5;
-            }
-            else
-            {
+            } else {
                 // last modified is in the future, expire the content
                 // on the last modified
                 ret->expires = lastmod;

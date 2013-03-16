@@ -3,27 +3,28 @@
 #define __CDATESORTER_H__
 
 #include "_CDateSorter.h"
+#include "ext/frameworkext.h"
 
 CarClass(CDateSorter)
 {
 public:
     CARAPI GetIndex(
         /* [in] */ Int64 time,
-        /* [out] */ Int32 * pLastDay);
+        /* [out] */ Int32* lastDay);
 
     CARAPI GetLabel(
         /* [in] */ Int32 index,
-        /* [out] */ String * pLabel);
+        /* [out] */ String* label);
 
     CARAPI GetBoundary(
         /* [in] */ Int32 index,
-        /* [out] */ Int64 * pBoundary);
+        /* [out] */ Int64* boundary);
 
     CARAPI constructor(
-        /* [in] */ IContext * pContext);
+        /* [in] */ IContext* context);
 
 private:
-    static const char* LOGTAG;// = "webkit";
+    static const CString LOGTAG;// = "webkit";
     static const Int32 NUM_DAYS_AGO = 7;
 
     Int64 mBins[];

@@ -12,14 +12,14 @@
 
 #include <elastos/Thread.h>
 
-const char* FrameLoader::HEADER_STR = "text/xml, text/html, application/xhtml+xml, image/png, text/plain, */*;q=0.8";
-const char* FrameLoader::CONTENT_TYPE = "content-type";
+const CString FrameLoader::HEADER_STR = "text/xml, text/html, application/xhtml+xml, image/png, text/plain, */*;q=0.8";
+const CString FrameLoader::CONTENT_TYPE = "content-type";
 
 // Contents of an about:blank page
-const char* FrameLoader::mAboutBlank =
+const CString FrameLoader::mAboutBlank =
         "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EB\"><html><head><title>about:blank</title></head><body></body></html>";
 
-const char* FrameLoader::LOGTAG = "webkit";
+const CString FrameLoader::LOGTAG = "webkit";
 
 
 FrameLoader::FrameLoader(
@@ -39,12 +39,11 @@ CARAPI_(void) FrameLoader::SetReferrer(
 {
 	// only set referrer for http or https
 	IURLUtil* pURL = NULL;
-	Boolean bFlag = false;
+	Boolean bFlag = FALSE;
 	CURLUtil::AcquireSingleton(&pURL);
 	pURL->IsNetworkUrl(ref, &bFlag);
 
-	if (bFlag)
-	{
+	if (bFlag) {
 		mReferrer = ref;
 	}
 }
@@ -92,14 +91,12 @@ CARAPI_(Boolean) FrameLoader::ExecuteLoad()
     mListener->Url(url);
 
 	IURLUtil* pURL = NULL;
-	Boolean bFlag = false;
+	Boolean bFlag = FALSE;
 	CURLUtil::AcquireSingleton(&pURL);
 	pURL->IsNetworkUrl(url, &bFlag);
 
-    if (bFlag)
-    {
-        if (mSettings->GetBlockNetworkLoads())
-        {
+    if (bFlag) {
+        if (mSettings->GetBlockNetworkLoads()) {
 //            mListener->Error(EventHandler::ERROR_BAD_URL,
 //                    mListener.getContext().getString(com.android.internal.R.string.httpErrorBadUrl));
             return false;
@@ -113,19 +110,16 @@ CARAPI_(Boolean) FrameLoader::ExecuteLoad()
 //            return false;
 //        }
         mNetwork = Network::GetInstance(mListener->GetContext());
-        if (mListener->IsSynchronous())
-        {
+        if (mListener->IsSynchronous()) {
             return HandleHTTPLoad();
         }
 
 //        WebViewWorker.getHandler().obtainMessage(
 //                WebViewWorker.MSG_ADD_HTTPLOADER, this).sendToTarget();
 
-        return true;
-    }
-    else if (HandleLocalFile(url, mListener, mSettings))
-    {
-        return true;
+        return TRUE;
+    } else if (HandleLocalFile(url, mListener, mSettings)) {
+        return TRUE;
     }
 
 //    if (DebugFlags.FRAME_LOADER) {
@@ -137,7 +131,7 @@ CARAPI_(Boolean) FrameLoader::ExecuteLoad()
 //            mListener.getContext().getText(
 //                    com.android.internal.R.string.httpErrorUnsupportedScheme).toString());
 
-    return false;
+    return FALSE;
 }
 
 /* package */
@@ -150,124 +144,98 @@ CARAPI_(Boolean) FrameLoader::HandleLocalFile(
     // Attempt to decode the percent-encoded url before passing to the
     // local loaders.
     String url/*(URLUtil.decode(url.getBytes()))*/;
-    IURLUtil* pURL = NULL;
+    AutoPtr<IURLUtil> URL;
     
-    CURLUtil::AcquireSingleton(&pURL);
+    CURLUtil::AcquireSingleton((IURLUtil**)&URL);
     
-    Boolean bFlag = false;
-    pURL->IsAssetUrl(url, &bFlag);
-    if (bFlag)
-    {
-        if (loadListener->IsSynchronous())
-        {
-            FileLoader fileLoader(url, loadListener, FileLoader::TYPE_ASSET, true);
+    Boolean bFlag = FALSE;
+    URL->IsAssetUrl(url, &bFlag);
+    if (bFlag) {
+        if (loadListener->IsSynchronous()) {
+            FileLoader fileLoader(url, loadListener, FileLoader::TYPE_ASSET, TRUE);
             fileLoader.Load();
-        }
-        else
-        {
+        } else {
             // load asset in a separate thread as it involves IO
 //            WebViewWorker.getHandler().obtainMessage(
 //                    WebViewWorker.MSG_ADD_STREAMLOADER,
 //                    new FileLoader(url, loadListener, FileLoader.TYPE_ASSET,
 //                            true)).sendToTarget();
         }
-        return true;
-    }
-    else if (pURL->IsResourceUrl(url, &bFlag), bFlag)
-    {
-        if (loadListener->IsSynchronous())
-        {
-            FileLoader fileLoader(url, loadListener, FileLoader::TYPE_RES, true);
+        return TRUE;
+    } else if (URL->IsResourceUrl(url, &bFlag), bFlag) {
+        if (loadListener->IsSynchronous()) {
+            FileLoader fileLoader(url, loadListener, FileLoader::TYPE_RES, TRUE);
             fileLoader.Load();
-        }
-        else
-        {
+        } else {
             // load resource in a separate thread as it involves IO
 //            WebViewWorker.getHandler().obtainMessage(
 //                    WebViewWorker.MSG_ADD_STREAMLOADER,
 //                    new FileLoader(url, loadListener, FileLoader.TYPE_RES,
 //                            true)).sendToTarget();
         }
-        return true;
-    }
-    else if (pURL->IsFileUrl(url, &bFlag), bFlag)
-    {
-        if (loadListener->IsSynchronous())
-        {
+        return TRUE;
+    } else if (URL->IsFileUrl(url, &bFlag), bFlag) {
+        if (loadListener->IsSynchronous()) {
             FileLoader fileLoader(url, loadListener, FileLoader::TYPE_FILE,
                     settings->GetAllowFileAccess());
             fileLoader.Load();
-        }
-        else
-        {
+        } else {
             // load file in a separate thread as it involves IO
 //            WebViewWorker.getHandler().obtainMessage(
 //                    WebViewWorker.MSG_ADD_STREAMLOADER,
 //                    new FileLoader(url, loadListener, FileLoader.TYPE_FILE,
 //                            settings.getAllowFileAccess())).sendToTarget();
         }
-        return true;
+        return TRUE;
     } else if (settings->GetAllowContentAccess() &&
-               (pURL->IsContentUrl(url, &bFlag), &bFlag) )
-    {
+               (URL->IsContentUrl(url, &bFlag), &bFlag) ) {
         // Send the raw url to the ContentLoader because it will do a
         // permission check and the url has to match.
-        if (loadListener->IsSynchronous())
-        {
+        if (loadListener->IsSynchronous()) {
             String str;
             loadListener->Url(str);
             ContentLoader contentLoader(str, loadListener);
             contentLoader.Load();
-        }
-        else
-        {
+        } else {
             // load content in a separate thread as it involves IO
 //            WebViewWorker.getHandler().obtainMessage(
 //                    WebViewWorker.MSG_ADD_STREAMLOADER,
 //                    new ContentLoader(loadListener.url(), loadListener))
 //                    .sendToTarget();
         }
-        return true;
-    }
-    else if (pURL->IsDataUrl(url, &bFlag), bFlag)
-    {
+        return TRUE;
+    } else if (URL->IsDataUrl(url, &bFlag), bFlag) {
         // load data in the current thread to reduce the latency
         DataLoader dataLoader(url, loadListener);
         dataLoader.Load();
 
-        return true;
-    }
-    else if (pURL->IsAboutUrl(url, &bFlag), bFlag)
-    {
+        return TRUE;
+    } else if (URL->IsAboutUrl(url, &bFlag), bFlag) {
 //        loadListener.data(mAboutBlank.getBytes(), mAboutBlank.length());
         loadListener->EndData();
-        return true;
+        return TRUE;
     }
 
-    return false;
+    return FALSE;
 }
 
 CARAPI_(Boolean) FrameLoader::HandleHTTPLoad()
 {
-    if (mHeaders == NULL)
-    {
-        IObjectStringMap* _mHeaders = NULL;
-        CObjectStringMap::New(&_mHeaders);
-        mHeaders = _mHeaders;
+    if (mHeaders == NULL) {
+        CObjectStringMap::New((IObjectStringMap**)&mHeaders);
     }
 
     PopulateStaticHeaders();
     PopulateHeaders();
 
     // response was handled by Cache, don't issue HTTP request
-    if (HandleCache())
-    {
+    if (HandleCache()) {
         // push the request data down to the LoadListener
         // as response from the cache could be a redirect
         // and we may need to initiate a network request if the cache
         // can't satisfy redirect URL
         mListener->SetRequestData(mMethod, mHeaders, mPostData);
-        return true;
+        return TRUE;
     }
 
 //    if (DebugFlags.FRAME_LOADER) {
@@ -275,7 +243,7 @@ CARAPI_(Boolean) FrameLoader::HandleHTTPLoad()
 //                + mListener.url());
 //    }
 
-    Boolean ret = false;
+    Boolean ret = FALSE;
     Int32 error;// = EventHandler.ERROR_UNSUPPORTED_SCHEME;
     
     ret = mNetwork->RequestURL(mMethod, mHeaders, mPostData, mListener);
@@ -283,9 +251,10 @@ CARAPI_(Boolean) FrameLoader::HandleHTTPLoad()
     if (!ret) {
 //        mListener.error(error, mListener.getContext().getText(
 //                EventHandler.errorStringResources[Math.abs(error)]).toString());
-        return false;
+        return FALSE;
     }
-    return true;
+
+    return TRUE;
 }
 
 /*
@@ -302,12 +271,9 @@ CARAPI_(void) FrameLoader::StartCacheLoad(
     // Tell the Listener respond with the cache file
     CacheLoader* cacheLoader = new CacheLoader(mListener, (CCacheManager::CacheResult*)result);
     mListener->SetCacheLoader(cacheLoader);
-    if (mListener->IsSynchronous())
-    {
+    if (mListener->IsSynchronous()) {
         cacheLoader->Load();
-    }
-    else
-    {
+    } else {
         // Load the cached file in a separate thread
 //        WebViewWorker.getHandler().obtainMessage(
 //                WebViewWorker.MSG_ADD_STREAMLOADER, cacheLoader).sendToTarget();
@@ -351,7 +317,7 @@ CARAPI_(Boolean) FrameLoader::HandleCache()
 //                        EventHandler.errorStringResources[Math.abs(err)])
 //                        .toString());
             }
-            return true;
+            return TRUE;
         }
 
         // This mode is for when the user is doing a history navigation
@@ -373,7 +339,7 @@ CARAPI_(Boolean) FrameLoader::HandleCache()
             if (result != NULL)
             {
                 StartCacheLoad(result);
-                return true;
+                return TRUE;
             }
             break;
         }
@@ -387,7 +353,7 @@ CARAPI_(Boolean) FrameLoader::HandleCache()
             return mListener->CheckCache(mHeaders);
     }// end of switch
 
-    return false;
+    return FALSE;
 }
 
 /**
@@ -399,17 +365,15 @@ CARAPI_(void) FrameLoader::PopulateStaticHeaders()
     // but in the case they are missing, add some.
     String* accept = NULL;
     mHeaders->Get((String)"Accept", (IInterface**)&accept);
-    if (accept == NULL || accept->GetLength() == 0)
-    {
-        mHeaders->Put((String)"Accept", (IInterface*)HEADER_STR);
+    if (accept == NULL || accept->GetLength() == 0) {
+        mHeaders->Put((String)"Accept", (IInterface*)&HEADER_STR);
     }
 
     mHeaders->Put((String)"Accept-Charset", (IInterface*)"utf-8, iso-8859-1, utf-16, *;q=0.7");
 
     String* acceptLanguage = mSettings->GetAcceptLanguage();
 
-    if (acceptLanguage->GetLength() > 0)
-    {
+    if (acceptLanguage->GetLength() > 0) {
         mHeaders->Put((String)"Accept-Language", (IInterface*)acceptLanguage);
     }
     
@@ -422,20 +386,17 @@ CARAPI_(void) FrameLoader::PopulateStaticHeaders()
  */
 CARAPI_(void) FrameLoader::PopulateHeaders()
 {
-    if (mReferrer.GetLength() != 0)
-    {
+    if (mReferrer.GetLength() != 0) {
         mHeaders->Put((String)"Referer", (IInterface*)&mReferrer);
     }
 
-    if (mContentType.GetLength() != 0)
-    {
+    if (mContentType.GetLength() != 0) {
         mHeaders->Put((String)CONTENT_TYPE, (IInterface*)&mContentType);
     }
 
     // if we have an active proxy and have proxy credentials, do pre-emptive
     // authentication to avoid an extra round-trip:
-    if (mNetwork->IsValidProxySet())
-    {
+    if (mNetwork->IsValidProxySet()) {
         const String* username;
         const String* password;
         /* The proxy credentials can be set in the Network thread */
@@ -446,8 +407,7 @@ CARAPI_(void) FrameLoader::PopulateHeaders()
             password = mNetwork->GetProxyPassword();
         }
 
-        if (username != NULL && password != NULL)
-        {
+        if (username != NULL && password != NULL) {
             // we collect credentials ONLY if the proxy scheme is BASIC!!!
 //            String proxyHeader = RequestHandle.authorizationHeader(true);
 //            mHeaders.put(proxyHeader,

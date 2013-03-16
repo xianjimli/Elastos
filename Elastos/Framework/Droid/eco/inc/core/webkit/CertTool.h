@@ -6,12 +6,12 @@
 
 class CertTool {
 public:
-	static const String CERT;// = Credentials.CERTIFICATE;
-    static const String PKCS12;// = Credentials.PKCS12;
+	static const CString CERT;// = Credentials.CERTIFICATE;
+    static const CString PKCS12;// = Credentials.PKCS12;
 
 public:
     static CARAPI_(void) GetKeyStrengthList(
-    	/* [in] */ Vector<String> list);
+    	/* [in] */ Vector<String>& list);
 
     static CARAPI_(void) GetSignedPublicKey(
     	/* [in] */ IContext* context,
@@ -22,10 +22,10 @@ public:
     static CARAPI_(void) AddCertificate(
     	/* [in] */ IContext* context,
     	/* [in] */ const String& type,
-    	/* [in] */ Vector<Byte>& value);
+    	/* [in] */ ArrayOf<Byte>& value);
 
 private:
-	static const char* LOGTAG;// = "CertTool";
+	static const CString LOGTAG;// = "CertTool";
 
 //	static const AlgorithmIdentifier MD5_WITH_RSA =
 //            new AlgorithmIdentifier(PKCSObjectIdentifiers.md5WithRSAEncryption);

@@ -11,54 +11,47 @@
 #include "webkit/WebBackForwardList.h"
 #include "view/ViewRoot.h"
 
-const char* CBrowserFrame::LOGTAG = "webkit";
+const CString CBrowserFrame::LOGTAG = "webkit";
 
-AutoPtr<JWebCoreJavaBridge> CBrowserFrame::sJavaBridge = NULL;
+AutoPtr<JWebCoreJavaBridge> CBrowserFrame::sJavaBridge;
 
-AutoPtr<CBrowserFrame::ConfigCallback> CBrowserFrame::sConfigCallback = NULL;
+AutoPtr<CBrowserFrame::ConfigCallback> CBrowserFrame::sConfigCallback;
 
 ECode CBrowserFrame::LoadUrl(
     /* [in] */ const String& url,
-    /* [in] */ IObjectStringMap * pExtraHeaders)
+    /* [in] */ IObjectStringMap* extraHeaders)
 {
-    if (pExtraHeaders == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(extraHeaders);
 
-    mLoadInitFromJava = true;
+    mLoadInitFromJava = TRUE;
+    
+    AutoPtr<IURLUtil> urlUtil;
+    CURLUtil::AcquireSingleton((IURLUtil**)&urlUtil);
+    Boolean flag = FALSE;
+    urlUtil->IsJavaScriptUrl(url, &flag);
 
-    IURLUtil* pURLUtil = NULL;
-    CURLUtil::AcquireSingleton(&pURLUtil);
-    Boolean flag = false;
-    pURLUtil->IsJavaScriptUrl(url, &flag);
-
-    if (flag)
-    {
+    if (flag) {
         // strip off the scheme and evaluate the string
         StringByEvaluatingJavaScriptFromString(
-                url.Substring(strlen("javascript:")), NULL);
+                url.Substring(CString("javascript:").GetLength()), NULL);
     }
-    else
-    {
-        NativeLoadUrl((const char*)url, pExtraHeaders);
+    else {
+        NativeLoadUrl((const char*)url, extraHeaders);
     }
-    mLoadInitFromJava = false;
+    mLoadInitFromJava = FALSE;
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CBrowserFrame::PostUrl(
     /* [in] */ const String& url,
-    /* [in] */ const ArrayOf<Byte> & data)
+    /* [in] */ const ArrayOf<Byte>& data)
 {
-    mLoadInitFromJava = true;
+    mLoadInitFromJava = TRUE;
     NativePostUrl((const char*)url, data);
-    mLoadInitFromJava = false;
+    mLoadInitFromJava = FALSE;
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CBrowserFrame::LoadData(
@@ -74,79 +67,69 @@ ECode CBrowserFrame::LoadData(
     String _encoding   = const_cast<String&>(encoding);
     String _historyUrl = const_cast<String&>(historyUrl);
 
-    mLoadInitFromJava = true;
-    if (_historyUrl == NULL || _historyUrl.GetLength() == 0)
-    {
+    mLoadInitFromJava = TRUE;
+    if (_historyUrl == NULL || _historyUrl.GetLength() == 0) {
         _historyUrl = "about:blank";
     }
-    if (_data == NULL)
-    {
+
+    if (_data == NULL) {
         _data = "";
     }
 
     // Setup defaults for missing values. These defaults where taken from
     // WebKit's WebFrame.mm
-    if (_baseUrl == NULL || _baseUrl.GetLength() == 0)
-    {
+    if (_baseUrl == NULL || _baseUrl.GetLength() == 0) {
         _baseUrl = "about:blank";
     }
-    if (_mimeType == NULL || _mimeType.GetLength() == 0)
-    {
+
+    if (_mimeType == NULL || _mimeType.GetLength() == 0) {
         _mimeType = "text/html";
     }
-    NativeLoadData(_baseUrl, _data, _mimeType, _encoding, _historyUrl);
-    mLoadInitFromJava = false;
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    NativeLoadData(_baseUrl, _data, _mimeType, _encoding, _historyUrl);
+    mLoadInitFromJava = FALSE;
+
+    return NOERROR;
 }
 
 ECode CBrowserFrame::GoBackOrForward(
     /* [in] */ Int32 steps)
 {
-    mLoadInitFromJava = true;
+    mLoadInitFromJava = TRUE;
     NativeGoBackOrForward(steps);
-    mLoadInitFromJava = false;
+    mLoadInitFromJava = FALSE;
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CBrowserFrame::Destroy()
 {
     NativeDestroyFrame();
-    mBlockMessages = true;
+    mBlockMessages = TRUE;
 //    RemoveCallbacksAndMessages(NULL);
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CBrowserFrame::HandleMessage(
-    /* [in] */ IMessage * pMsg)
+    /* [in] */ IMessage* msg)
 {
-    if (pMsg == NULL)
-    {
-        return E_INVALID_ARGUMENT;
+    VALIDATE_NOT_NULL(msg);
+
+    if (mBlockMessages) {
+        return NOERROR;
     }
 
-    if (mBlockMessages)
-    {
-            return E_NOT_IMPLEMENTED;
-    }
-    switch (/*pMsg.what*/1)
-    {
+    switch (/*pMsg.what*/1) {
         case FRAME_COMPLETED:
         {
-            if (mSettings->GetSavePassword() && HasPasswordField())
-            {
+            if (mSettings->GetSavePassword() && HasPasswordField()) {
                 WebHistoryItem* item = NULL;
-                IWebBackForwardList* pWFL = NULL;
-
-                mCallbackProxy->GetBackForwardList(&pWFL);
+                AutoPtr<IWebBackForwardList> wfl = NULL;                
+                
+                mCallbackProxy->GetBackForwardList((IWebBackForwardList**)&wfl);
                // item = pWFL->GetCurrentItem();
-                if (item != NULL)
-                {
+                if (item != NULL) {
                  //   WebAddress uri = new WebAddress(item.getUrl());
                  //   String schemePlusHost = uri.mScheme + uri.mHost;
                  //   ArrayOf<String> up = mDatabase->GetUsernamePassword(schemePlusHost);
@@ -185,7 +168,7 @@ ECode CBrowserFrame::HandleMessage(
 }
 
 ECode CBrowserFrame::ExternalRepresentation(
-    /* [in] */ IMessage * pCallBack)
+    /* [in] */ IMessage* callBack)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -200,41 +183,33 @@ ECode CBrowserFrame::DocumentAsText(
 
 ECode CBrowserFrame::HandleUrl(
     /* [in] */ const String& url,
-    /* [out] */ Boolean * pFlag)
+    /* [out] */ Boolean* outFlag)
 {
-    if (pFlag == NULL)
-    {
-        return E_INVALID_ARGUMENT;
+    VALIDATE_NOT_NULL(outFlag);
+
+    if (mLoadInitFromJava == TRUE) {
+        *outFlag = FALSE;
+        return NOERROR;
     }
 
-    if (mLoadInitFromJava == true)
-    {
-        *pFlag = false;
-        return E_NOT_IMPLEMENTED;
-    }
-
-    Boolean flag = false;
+    Boolean flag = FALSE;
     mCallbackProxy->ShouldOverrideUrlLoading(url, &flag);
-    if (flag)
-    {
+    if (flag) {
         // if the url is hijacked, reset the state of the BrowserFrame
         DidFirstLayout();
 
-        *pFlag = true;
-        return E_NOT_IMPLEMENTED;
-    }
-    else
-    {
-        *pFlag = false;
-        return E_NOT_IMPLEMENTED;
+        *outFlag = TRUE;
+        return NOERROR;
+    } else {        
+        *outFlag = FALSE;
+        return NOERROR;
     }
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CBrowserFrame::AddJavascriptInterface(
-    /* [in] */ IInterface * pObj,
+    /* [in] */ IInterface* obj,
     /* [in] */ const String& interfaceName)
 {
 /*    if (mJSInterfaceMap == NULL)
@@ -268,14 +243,14 @@ ECode CBrowserFrame::Reload(
 
 ECode CBrowserFrame::StringByEvaluatingJavaScriptFromString(
     /* [in] */ const String& script,
-    /* [out] */ String * pScriptString)
+    /* [out] */ String* scriptString)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CBrowserFrame::CacheDisabled(
-    /* [out] */ Boolean * pFlag)
+    /* [out] */ Boolean* outFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -294,36 +269,34 @@ ECode CBrowserFrame::StopLoading()
 }
 
 ECode CBrowserFrame::DocumentHasImages(
-    /* [out] */ Boolean * pFlag)
+    /* [out] */ Boolean* outFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CBrowserFrame::constructor(
-    /* [in] */ IContext * pContext,
+    /* [in] */ IContext* context,
     /* [in] */ Handle32 webViewCore,
-    /* [in] */ ICallbackProxy * pProxy,
+    /* [in] */ ICallbackProxy* proxy,
     /* [in] */ Handle32 settings,
-    /* [in] */ IObjectStringMap * pJavascriptInterfaces)
+    /* [in] */ IObjectStringMap* javascriptInterfaces)
 {
-    if (pContext == NULL || webViewCore == 0
-        || pProxy == NULL || settings == 0 || pJavascriptInterfaces == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(context);
+    VALIDATE_NOT_NULL(webViewCore);
+    VALIDATE_NOT_NULL(proxy);
+    VALIDATE_NOT_NULL(javascriptInterfaces);
 
-    IContext* appContext;
-    pContext->GetApplicationContext((IContext**)&appContext);
+    AutoPtr<IContext> appContext;
+    context->GetApplicationContext((IContext**)&appContext);
 
     // Create a global JWebCoreJavaBridge to handle timers and
     // cookies in the WebCore thread.
-    if (sJavaBridge == NULL)
-    {
+    if (sJavaBridge == NULL) {
         sJavaBridge = new JWebCoreJavaBridge();
         // set WebCore native cache size
-        IActivityManager* am;
-        pContext->GetSystemService(Context_ACTIVITY_SERVICE, (IInterface**)&am);
+        AutoPtr<IActivityManager> am;
+        context->GetSystemService(Context_ACTIVITY_SERVICE, (IInterface**)&am);
 
      /*   if (am.getMemoryClass() > 16) {
             sJavaBridge.setCacheSize(8 * 1024 * 1024);
@@ -332,65 +305,63 @@ ECode CBrowserFrame::constructor(
         }*/
 
         // initialize CacheManager
-        CCacheManager* pCacheManager;
-        ECode ec = CCacheManager::AcquireSingletonByFriend(&pCacheManager);
+        CCacheManager* cacheManager;
+        ECode ec = CCacheManager::AcquireSingletonByFriend(&cacheManager);
         assert(!FAILED(ec));
 
-        pCacheManager->Init(appContext);
+        cacheManager->Init(appContext);
         // create CookieSyncManager with current Context
         CookieSyncManager::CreateInstance(appContext);
         // create PluginManager with current Context
 //        CPluginManager::CreateInstance(appContext, NULL);
     }
 
-    if (sConfigCallback == NULL)
-    {
-        ILocalWindowManager* pWindowManager;
-        pContext->GetSystemService(Context_WINDOW_SERVICE, (IInterface**)&pWindowManager);
+    if (sConfigCallback == NULL) {
+        AutoPtr<IWindowManager> windowManager;
+        context->GetSystemService(Context_WINDOW_SERVICE, (IInterface**)&windowManager);
 
 //        sConfigCallback = new ConfigCallback(pWindowManager);
         ViewRoot::AddConfigCallback(sConfigCallback);
     }
     sConfigCallback->AddHandler(this);
 
-    mJSInterfaceMap = pJavascriptInterfaces;
+    mJSInterfaceMap = javascriptInterfaces;
 
     mSettings = (WebSettings*)settings;
-    mContext = pContext;
-    mCallbackProxy = pProxy;
+    mContext = context;
+    mCallbackProxy = proxy;
 
     //CWebViewDatabase::CreateInstance((IContext*)appContext, (IWebViewDatabase**)&mDatabase);
-    IWebViewDatabase* pDatabase = NULL;
-    CWebViewDatabase::AcquireSingleton((IWebViewDatabase**)&pDatabase);
-    pDatabase->GetInstance((IContext*)appContext, (IWebViewDatabase**)&mDatabase);
+    AutoPtr<IWebViewDatabase> database;
+    CWebViewDatabase::AcquireSingleton((IWebViewDatabase**)&database);
+    database->GetInstance((IContext*)appContext, (IWebViewDatabase**)&mDatabase);
 
     mWebViewCore = (WebViewCore*)webViewCore;
 
-    IAssetManager* am = NULL;
-    pContext->GetAssets(&am);
-    IWebBackForwardList* pList = NULL;
-    pProxy->GetBackForwardList(&pList);
-    NativeCreateFrame((WebViewCore*)webViewCore, am, pList);
+    AutoPtr<IAssetManager> am;
+    context->GetAssets((IAssetManager**)&am);
+    AutoPtr<IWebBackForwardList> list;
+    proxy->GetBackForwardList((IWebBackForwardList**)&list);
+    NativeCreateFrame((WebViewCore*)webViewCore, am, list);
 
 /*    if (DebugFlags.BROWSER_FRAME) {
         Log.v(LOGTAG, "BrowserFrame constructor: this=" + this);
     }*/
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 /*********************************Packet*************************************/
 /* package */
 CARAPI_(Boolean) CBrowserFrame::Committed()
 {
-    return false;
+    return FALSE;
 }
 
 /* package */
 CARAPI_(Boolean) CBrowserFrame::FirstLayoutDone()
 {
-    return false;
+    return FALSE;
 }
 
 /* package */
@@ -449,6 +420,7 @@ CARAPI_(void) CBrowserFrame::GetRawResFilename(
 CBrowserFrame::ConfigCallback::ConfigCallback(
     /* [in] */ ILocalWindowManager* wm)
 {
+    assert(wm != NULL);
     mWindowManager = wm;
 }
 

@@ -3,74 +3,75 @@
 #define __CWEBCHROMECLIENT_H__
 
 #include "_CWebChromeClient.h"
+#include "ext/frameworkext.h"
 
 CarClass(CWebChromeClient)
 {
 public:
     CARAPI OnProgressChanged(
-        /* [in] */ IWebView * pView,
+        /* [in] */ IWebView* view,
         /* [in] */ Int32 newProgress);
 
     CARAPI OnReceivedTitle(
-        /* [in] */ IWebView * pView,
+        /* [in] */ IWebView* view,
         /* [in] */ CString title);
 
     CARAPI OnReceivedIcon(
-        /* [in] */ IWebView * pView,
-        /* [in] */ IBitmap * pIcon);
+        /* [in] */ IWebView* view,
+        /* [in] */ IBitmap* icon);
 
     CARAPI OnReceivedTouchIconUrl(
-        /* [in] */ IWebView * pView,
+        /* [in] */ IWebView* view,
         /* [in] */ CString url,
         /* [in] */ Boolean precomposed);
 
     CARAPI OnShowCustomView(
-        /* [in] */ IView * pView,
-        /* [in] */ IWebChromeClientCustomViewCallback * pCallBack);
+        /* [in] */ IView* view,
+        /* [in] */ IWebChromeClientCustomViewCallback* callBack);
 
     CARAPI OnHideCustomView();
 
     CARAPI OnCreateWindow(
-        /* [in] */ IWebView * pView,
+        /* [in] */ IWebView* view,
         /* [in] */ Boolean dialog,
         /* [in] */ Boolean userGesture,
-        /* [in] */ IMessage * pResultMsg,
-        /* [out] */ Boolean * pFlag);
+        /* [in] */ IMessage* resultMsg,
+        /* [out] */ Boolean* flag);
 
     CARAPI OnRequestFocus(
-        /* [in] */ IWebView * pView);
+        /* [in] */ IWebView* view);
 
     CARAPI OnCloseWindow(
-        /* [in] */ IWebView * pWindow);
+        /* [in] */ IWebView* window);
 
     CARAPI OnJsAlert(
-        /* [in] */ IWebView * pView,
+        /* [in] */ IWebView* view,
         /* [in] */ CString url,
         /* [in] */ CString message,
-        /* [in] */ IJsResult * pResult,
-        /* [out] */ Boolean * pFlag);
+        /* [in] */ IJsResult* result,
+        /* [out] */ Boolean* flag);
 
     CARAPI OnJsConfirm(
-        /* [in] */ IWebView * pView,
+        /* [in] */ IWebView* view,
         /* [in] */ CString url,
         /* [in] */ const String& message,
-        /* [in] */ IJsResult * pResult,
-        /* [out] */ Boolean * pFlag);
+        /* [in] */ IJsResult* result,
+        /* [out] */ Boolean* flag);
 
     CARAPI OnJsPrompt(
-        /* [in] */ IWebView * pView,
+        /* [in] */ IWebView* view,
         /* [in] */ CString url,
         /* [in] */ CString message,
         /* [in] */ CString defaultValue,
-        /* [in] */ IJsPromptResult * pResult,
-        /* [out] */ Boolean * pFlag);
+        /* [in] */ IJsPromptResult* result,
+        /* [out] */ Boolean* flag);
 
     CARAPI OnJsBeforeUnload(
-        /* [in] */ IWebView * pView,
+        /* [in] */ IWebView* view,
         /* [in] */ CString url,
         /* [in] */ CString message,
-        /* [in] */ IJsResult * pResult,
-        /* [out] */ Boolean * pFlag);
+        /* [in] */ IJsResult* result,
+        /* [out] */ Boolean* flag);
 
     CARAPI OnExceededDatabaseQuota(
         /* [in] */ CString url,
@@ -78,21 +79,21 @@ public:
         /* [in] */ Int64 currentQuota,
         /* [in] */ Int64 estimatedSize,
         /* [in] */ Int64 totalUsedQuota,
-        /* [in] */ IWebStorageQuotaUpdater * pQuotaUpdater);
+        /* [in] */ IWebStorageQuotaUpdater* quotaUpdater);
 
     CARAPI OnReachedMaxAppCacheSize(
         /* [in] */ Int64 spaceNeeded,
         /* [in] */ Int64 totalUsedQuota,
-        /* [in] */ IWebStorageQuotaUpdater * pQuotaUpdater);
+        /* [in] */ IWebStorageQuotaUpdater* quotaUpdater);
 
     CARAPI OnGeolocationPermissionsShowPrompt(
         /* [in] */ CString origin,
-        /* [in] */ IGeolocationPermissionsCallback * pCallBack);
+        /* [in] */ IGeolocationPermissionsCallback* callBack);
 
     CARAPI OnGeolocationPermissionsHidePrompt();
 
     CARAPI OnJsTimeout(
-        /* [out] */ Boolean * pFlag);
+        /* [out] */ Boolean* flag);
 
     CARAPI OnConsoleMessage(
         /* [in] */ CString message,
@@ -100,26 +101,26 @@ public:
         /* [in] */ CString sourceID);
 
     CARAPI OnConsoleMessageEx(
-        /* [in] */ IConsoleMessage * pConsoleMessage,
-        /* [out] */ Boolean * pFlag);
+        /* [in] */ IConsoleMessage* consoleMessage,
+        /* [out] */ Boolean* flag);
 
     CARAPI GetDefaultVideoPoster(
-        /* [out] */ IBitmap ** ppBitmap);
+        /* [out] */ IBitmap** bitmap);
 
     CARAPI GetVideoLoadingProgressView(
-        /* [out] */ IView** pView);
+        /* [out] */ IView** view);
 
     CARAPI GetVisitedHistory(
-        /* [in] */ IValueCallback * pCallBack);
+        /* [in] */ IValueCallback* callBack);
 
     CARAPI OpenFileChooser(
-        /* [in] */ IValueCallback * pUploadFile);
+        /* [in] */ IValueCallback* uploadFile);
 
     CARAPI OnSelectionStart(
-        /* [in] */ IWebView * pView);
+        /* [in] */ IWebView* view);
 
     CARAPI OnSelectionDone(
-        /* [in] */ IWebView * pView);
+        /* [in] */ IWebView* view);
 
 private:
     // TODO: Add your private member variables here.

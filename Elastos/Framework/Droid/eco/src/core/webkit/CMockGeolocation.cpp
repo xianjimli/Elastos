@@ -11,8 +11,7 @@ ECode CMockGeolocation::SetPosition(
     // Global instance of a MockGeolocation
     NativeSetPosition(latitude, longitude, accuracy);
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CMockGeolocation::SetError(
@@ -22,12 +21,11 @@ ECode CMockGeolocation::SetError(
     // This should only ever be called on the WebKit thread.
     NativeSetError(code, (String)message);
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CMockGeolocation::GetInstance(
-    /* [out] */ IMockGeolocation ** ppInstance)
+    /* [out] */ IMockGeolocation** instance)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;

@@ -5,6 +5,7 @@
 #include <elastos/AutoPtr.h>
 #include <elastos/Vector.h>
 #include <elastos/ElRefBase.h>
+#include <elastos/Mutex.h>
 
 class CacheLoader;
 
@@ -54,9 +55,9 @@ public:
     /**
      * @return The loader's BrowserFrame.
      */
-    virtual CARAPI_(AutoPtr<IBrowserFrame>) GetFrame();
+    virtual CARAPI_(AutoPtr<IBrowserFrame>) GetFrame() const;
 
-    virtual CARAPI_(AutoPtr<IContext>) GetContext();
+    virtual CARAPI_(AutoPtr<IContext>) GetContext() const;
 
     /* package */ 
     virtual CARAPI_(Boolean) IsSynchronous();
@@ -133,7 +134,7 @@ public:
      * work of decoding the data and appending it to the data builder.
      */
 	virtual CARAPI_(void) Data(
-		/* [in] */ Vector<Byte>& data, 
+		/* [in] */ ArrayOf<Byte>& data, 
 		/* [in] */ Int32 length);
 
     /**
@@ -284,7 +285,7 @@ public:
      *
      * @ return full content size
      */
-    virtual CARAPI_(Int64) ContentLength();
+    virtual CARAPI_(Int64) ContentLength() const;
 
         /**
      * Tear down the load. Subclasses should clean up any mess because of
@@ -376,7 +377,7 @@ private:
      * Helper for getting the error ID.
      * @return errorID.
      */
-    CARAPI_(Int32) GetErrorID();
+    CARAPI_(Int32) GetErrorID() const;
 
     /**
      * Return the error description.
@@ -548,7 +549,7 @@ private:
     // between the network and the cache.
 	Int32 mCacheRedirectCount;
 
-	static const CString LOGTAG;// = "webkit";
+	static const char* LOGTAG;// = "webkit";
 
     // Messages used internally to communicate state between the
     // Network thread and the WebCore thread.
@@ -574,7 +575,7 @@ private:
 	static const Int32 HTTP_NOT_FOUND = 404;
 	static const Int32 HTTP_PROXY_AUTH = 407;
 
-	static IHashMap* sCertificateTypeMap;
+	static /*IHashMap*/AutoPtr<IObjectStringMap> sCertificateTypeMap;
     /*static {
         sCertificateTypeMap = new HashMap<String, String>();
         sCertificateTypeMap.put("application/x-x509-ca-cert", CertTool.CERT);
@@ -584,7 +585,8 @@ private:
 
 	static Int32 sNativeLoaderCount;
 
-	const IByteArrayBuilder* mDataBuilder;
+	/*const*/ IByteArrayBuilder* mDataBuilder;
+    Core::Threading::Mutex       mDataBuilderMutex;
 
 	String                 mUrl;
 	AutoPtr<IWebAddress>   mUri;
@@ -623,8 +625,8 @@ private:
     // Does this loader correspond to the main-frame top-level page?
 	Boolean mIsMainPageLoader;
     // Does this loader correspond to the main content (as opposed to a supporting resource)
-	const Boolean mIsMainResourceLoader;
-	const Boolean mUserGesture;
+	/*const*/ Boolean mIsMainResourceLoader;
+	/*const*/ Boolean mUserGesture;
 
 	AutoPtr<IHeaders> mHeaders;
 

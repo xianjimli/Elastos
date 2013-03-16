@@ -3,7 +3,7 @@
 #include "location/CLocationManager.h"
 #include "location/LocationProvider.h"
 
-const char* GeolocationService::TAG = "geolocationService";
+const CString GeolocationService::TAG = "geolocationService";
 
 GeolocationService::GeolocationService(
 	/* [in] */ Int64 nativeObject)
@@ -26,7 +26,7 @@ GeolocationService::GeolocationService(
 CARAPI_(void) GeolocationService::Start()
 {
 	RegisterForLocationUpdates();
-    mIsRunning = true;
+    mIsRunning = TRUE;
 }
 
 /**
@@ -35,7 +35,7 @@ CARAPI_(void) GeolocationService::Start()
 CARAPI_(void) GeolocationService::Stop()
 {
 	UnregisterFromLocationUpdates();
-    mIsRunning = false;
+    mIsRunning = FALSE;
 }
 
 /**
@@ -45,11 +45,9 @@ CARAPI_(void) GeolocationService::Stop()
 CARAPI_(void) GeolocationService::SetEnableGps(
 	/* [in] */ Boolean enable)
 {
-	if (mIsGpsEnabled != enable)
-	{
+	if (mIsGpsEnabled != enable) {
         mIsGpsEnabled = enable;
-        if (mIsRunning)
-        {
+        if (mIsRunning) {
             // There's no way to unregister from a single provider, so we can
             // only unregister from all, then reregister with all but the GPS.
             UnregisterFromLocationUpdates();
@@ -66,16 +64,16 @@ CARAPI_(void) GeolocationService::SetEnableGps(
 ECode GeolocationService::OnLocationChanged(
 	/* [in] */ ILocation* location)
 {
+    VALIDATE_NOT_NULL(location);
+
 	// Callbacks from the system location sevice are queued to this thread, so it's possible
     // that we receive callbacks after unregistering. At this point, the native object will no
     // longer exist.
-    if (mIsRunning)
-    {
+    if (mIsRunning) {
         NativeNewLocationAvailable(mNativeObject, location);
     }
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 /**
@@ -90,20 +88,18 @@ ECode GeolocationService::OnStatusChanged(
 	/* [in] */ Int32 status, 
 	/* [in] */ IBundle* extras)
 {
+    VALIDATE_NOT_NULL(extras);
+
 	Boolean isAvailable = (status == LocationProvider_AVAILABLE);
-    if (providerName.Equals(LocationManager_NETWORK_PROVIDER))
-    {
+    if (providerName.Equals(LocationManager_NETWORK_PROVIDER)) {
         mIsNetworkProviderAvailable = isAvailable;
-    }
-    else if (providerName.Equals(LocationManager_GPS_PROVIDER))
-    {
+    } else if (providerName.Equals(LocationManager_GPS_PROVIDER)) {
         mIsGpsProviderAvailable = isAvailable;
     }
 
     MaybeReportError((String)"The last location provider is no longer available");
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 /**
@@ -116,17 +112,13 @@ ECode GeolocationService::OnProviderEnabled(
 {
 	// No need to notify the native side. It's enough to start sending
     // valid position fixes again.
-    if (providerName.Equals(LocationManager_NETWORK_PROVIDER))
-    {
-        mIsNetworkProviderAvailable = true;
-    }
-    else if (providerName.Equals(LocationManager_GPS_PROVIDER))
-    {
-        mIsGpsProviderAvailable = true;
+    if (providerName.Equals(LocationManager_NETWORK_PROVIDER)) {
+        mIsNetworkProviderAvailable = TRUE;
+    } else if (providerName.Equals(LocationManager_GPS_PROVIDER)) {
+        mIsGpsProviderAvailable = TRUE;
     }
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 /**
@@ -137,19 +129,15 @@ ECode GeolocationService::OnProviderEnabled(
 ECode GeolocationService::OnProviderDisabled(
 	/* [in] */ const String& providerName)
 {
-	if (providerName.Equals(LocationManager_NETWORK_PROVIDER))
-	{
-        mIsNetworkProviderAvailable = false;
-    }
-    else if (providerName.Equals(LocationManager_GPS_PROVIDER))
-    {
-        mIsGpsProviderAvailable = false;
+	if (providerName.Equals(LocationManager_NETWORK_PROVIDER)) {
+        mIsNetworkProviderAvailable = FALSE;
+    } else if (providerName.Equals(LocationManager_GPS_PROVIDER)) {
+        mIsGpsProviderAvailable = FALSE;
     }
 
     MaybeReportError((String)"The last location provider was disabled");
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 /**
@@ -158,11 +146,10 @@ ECode GeolocationService::OnProviderDisabled(
 CARAPI_(void) GeolocationService::RegisterForLocationUpdates()
 {
     mLocationManager->RequestLocationUpdates((String)LocationManager_NETWORK_PROVIDER, (Int64)0, (Float)0, this);
-    mIsNetworkProviderAvailable = true;
-    if (mIsGpsEnabled)
-    {
+    mIsNetworkProviderAvailable = TRUE;
+    if (mIsGpsEnabled) {
         mLocationManager->RequestLocationUpdates((String)LocationManager_GPS_PROVIDER, 0, 0, this);
-        mIsGpsProviderAvailable = true;
+        mIsGpsProviderAvailable = TRUE;
     }
 }
 
@@ -183,8 +170,7 @@ CARAPI_(void) GeolocationService::MaybeReportError(
 	// Callbacks from the system location sevice are queued to this thread, so it's possible
     // that we receive callbacks after unregistering. At this point, the native object will no
     // longer exist.
-    if (mIsRunning && !mIsNetworkProviderAvailable && !mIsGpsProviderAvailable)
-    {
+    if (mIsRunning && !mIsNetworkProviderAvailable && !mIsGpsProviderAvailable) {
         NativeNewErrorAvailable(mNativeObject, message);
     }
 }

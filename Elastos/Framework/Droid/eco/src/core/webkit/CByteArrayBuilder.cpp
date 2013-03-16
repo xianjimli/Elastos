@@ -8,7 +8,7 @@ const Vector< AutoPtr<CByteArrayBuilder::Chunk> > CByteArrayBuilder::sPool;
 const Vector<AutoPtr<CByteArrayBuilder::Chunk> > CByteArrayBuilder::sQueue;
 
 ECode CByteArrayBuilder::Append(
-    /* [in] */ const ArrayOf<Byte> & array,
+    /* [in] */ const ArrayOf<Byte>& array,
     /* [in] */ Int32 offset,
     /* [in] */ Int32 length)
 {
@@ -43,21 +43,21 @@ ECode CByteArrayBuilder::Append(
 }
 
 ECode CByteArrayBuilder::GetFirstChunk(
-    /* [out] */ IByteArrayBuilderChunk ** ppChunk)
+    /* [out] */ IByteArrayBuilderChunk** chunk)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CByteArrayBuilder::IsEmpty(
-    /* [out] */ Boolean * pFlag)
+    /* [out] */ Boolean* flag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CByteArrayBuilder::GetByteSize(
-    /* [out] */ Int32 * pSize)
+    /* [out] */ Int32* size)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;

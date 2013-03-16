@@ -17,47 +17,47 @@ CarClass(CCallbackProxy)
 {
 public:
     CARAPI SetWebViewClient(
-        /* [in] */ IWebViewClient * pClient);
+        /* [in] */ IWebViewClient* client);
 
     CARAPI GetWebViewClient(
-        /* [out] */ IWebViewClient ** ppClient);
+        /* [out] */ IWebViewClient** client);
 
     CARAPI SetWebChromeClient(
-        /* [in] */ IWebChromeClient * pClient);
+        /* [in] */ IWebChromeClient* client);
 
     CARAPI GetWebChromeClient(
-        /* [out] */ IWebChromeClient ** ppClient);
+        /* [out] */ IWebChromeClient** client);
 
     CARAPI SetDownloadListener(
-        /* [in] */ IDownloadListener * pClient);
+        /* [in] */ IDownloadListener* client);
 
     CARAPI GetBackForwardList(
-        /* [out] */ IWebBackForwardList ** ppList);
+        /* [out] */ IWebBackForwardList** list);
 
     CARAPI UiOverrideUrlLoading(
         /* [in] */ const String& overrideUrl,
-        /* [out] */ Boolean * pFlag);
+        /* [out] */ Boolean* flag);
 
     CARAPI UiOverrideKeyEvent(
-        /* [in] */ IKeyEvent * pEvent,
-        /* [out] */ Boolean * pFlag);
+        /* [in] */ IKeyEvent* event,
+        /* [out] */ Boolean* flag);
 
     CARAPI HandleMessage(
-        /* [in] */ IMessage * pMsg);
+        /* [in] */ IMessage* msg);
 
     CARAPI GetProgress(
-        /* [out] */ Int32 * pProgress);
+        /* [out] */ Int32* progress);
 
     CARAPI OnPageStarted(
         /* [in] */ const String& url,
-        /* [in] */ IBitmap * pFavicon);
+        /* [in] */ IBitmap* favicon);
 
     CARAPI OnPageFinished(
         /* [in] */ const String& url);
 
     CARAPI OnTooManyRedirects(
-        /* [in] */ IMessage * pCancelMsg,
-        /* [in] */ IMessage * pContinueMsg);
+        /* [in] */ IMessage* cancelMsg,
+        /* [in] */ IMessage* continueMsg);
 
     CARAPI OnReceivedError(
         /* [in] */ Int32 errorCode,
@@ -65,24 +65,24 @@ public:
         /* [in] */ const String& failingUrl);
 
     CARAPI OnFormResubmission(
-        /* [in] */ IMessage * pDontResend,
-        /* [in] */ IMessage * pResend);
+        /* [in] */ IMessage* dontResend,
+        /* [in] */ IMessage* resend);
 
     CARAPI ShouldOverrideUrlLoading(
         /* [in] */ const String& url,
-        /* [out] */ Boolean * pFlag);
+        /* [out] */ Boolean* flag);
 
     CARAPI OnReceivedHttpAuthRequest(
-        /* [in] */ IHttpAuthHandler * pHandler,
+        /* [in] */ IHttpAuthHandler* handler,
         /* [in] */ const String& hostName,
         /* [in] */ const String& realmName);
 
     CARAPI OnReceivedSslError(
-        /* [in] */ ISslErrorHandler * pHandler,
-        /* [in] */ ISslError * pError);
+        /* [in] */ ISslErrorHandler* handler,
+        /* [in] */ ISslError* error);
 
     CARAPI OnReceivedCertificate(
-        /* [in] */ ISslCertificate * pCertificate);
+        /* [in] */ ISslCertificate* certificate);
 
     CARAPI DoUpdateVisitedHistory(
         /* [in] */ const String& url,
@@ -92,7 +92,7 @@ public:
         /* [in] */ const String& url);
 
     CARAPI OnUnhandledKeyEvent(
-        /* [in] */ IKeyEvent * pEvent);
+        /* [in] */ IKeyEvent* event);
 
     CARAPI OnScaleChanged(
         /* [in] */ Float oldScale,
@@ -104,14 +104,14 @@ public:
         /* [in] */ const String& contentDisposition,
         /* [in] */ const String& mimetype,
         /* [in] */ Int64 contentLength,
-        /* [out] */ Boolean * pFlag);
+        /* [out] */ Boolean* flag);
 
     CARAPI OnSavePassword(
         /* [in] */ const String& schemePlusHost,
         /* [in] */ const String& username,
         /* [in] */ const String& password,
-        /* [in] */ IMessage * pResumeMsg,
-        /* [out] */ Boolean * pFlag);
+        /* [in] */ IMessage* resumeMsg,
+        /* [out] */ Boolean* flag);
 
     CARAPI OnReceivedHttpAuthCredentials(
         /* [in] */ const String& host,
@@ -125,15 +125,15 @@ public:
     CARAPI CreateWindow(
         /* [in] */ Boolean dialog,
         /* [in] */ Boolean userGesture,
-        /* [out] */ IBrowserFrame ** ppBrowseFrame);
+        /* [out] */ IBrowserFrame** browseFrame);
 
     CARAPI OnRequestFocus();
 
     CARAPI OnCloseWindow(
-        /* [in] */ IWebView * pWindow);
+        /* [in] */ IWebView* window);
 
     CARAPI OnReceivedIcon(
-        /* [in] */ IBitmap * pIcon);
+        /* [in] */ IBitmap* icon);
 
     CARAPI OnReceivedTitle(
         /* [in] */ const String& title);
@@ -145,18 +145,18 @@ public:
     CARAPI OnJsConfirm(
         /* [in] */ const String& url,
         /* [in] */ const String& message,
-        /* [out] */ Boolean * pFlag);
+        /* [out] */ Boolean * flag);
 
     CARAPI OnJsPrompt(
         /* [in] */ const String& url,
         /* [in] */ const String& message,
         /* [in] */ const String& defaultValue,
-        /* [out] */ String * pResult);
+        /* [out] */ String* result);
 
     CARAPI OnJsBeforeUnload(
         /* [in] */ const String& url,
         /* [in] */ const String& message,
-        /* [out] */ Boolean * pResult);
+        /* [out] */ Boolean* result);
 
     CARAPI OnExceededDatabaseQuota(
         /* [in] */ const String& url,
@@ -164,16 +164,16 @@ public:
         /* [in] */ Int64 currentQuota,
         /* [in] */ Int64 estimatedSize,
         /* [in] */ Int64 totalUsedQuota,
-        /* [in] */ IWebStorageQuotaUpdater * pQuotaUpdater);
+        /* [in] */ IWebStorageQuotaUpdater* quotaUpdater);
 
     CARAPI OnReachedMaxAppCacheSize(
         /* [in] */ Int64 spaceNeeded,
         /* [in] */ Int64 totalUsedQuota,
-        /* [in] */ IWebStorageQuotaUpdater * pQuotaUpdater);
+        /* [in] */ IWebStorageQuotaUpdater* quotaUpdater);
 
     CARAPI OnGeolocationPermissionsShowPrompt(
         /* [in] */ const String& origin,
-        /* [in] */ IGeolocationPermissionsCallback * pCallBack);
+        /* [in] */ IGeolocationPermissionsCallback* callBack);
 
     CARAPI OnGeolocationPermissionsHidePrompt();
 
@@ -184,21 +184,21 @@ public:
         /* [in] */ Int32 msgLevel);
 
     CARAPI OnJsTimeout(
-        /* [out] */ Boolean * pFlag);
+        /* [out] */ Boolean* flag);
 
     CARAPI GetVisitedHistory(
-        /* [in] */ IValueCallback * pCallBack);
+        /* [in] */ IValueCallback* callBack);
 
     CARAPI OnNewHistoryItem(
-        /* [in] */ IWebHistoryItem * pItem);
+        /* [in] */ IWebHistoryItem* item);
 
     CARAPI OnIndexChanged(
-        /* [in] */ IWebHistoryItem * pItem,
+        /* [in] */ IWebHistoryItem* item,
         /* [in] */ Int32 index);
 
     CARAPI constructor(
-        /* [in] */ IContext * pContext,
-        /* [in] */ IWebView * pW);
+        /* [in] */ IContext* context,
+        /* [in] */ IWebView* w);
 
 public:
     CARAPI_(void) SetWebBackForwardListClient(
@@ -313,7 +313,7 @@ private:
 private:
 
     // Logging tag
-    static const char* LOGTAG;// = "CallbackProxy";
+    static const CString LOGTAG;// = "CallbackProxy";
     // Instance of WebViewClient that is the client callback.
     volatile IWebViewClient* mWebViewClient;
     // Instance of WebChromeClient for handling all chrome functions.
@@ -341,7 +341,7 @@ private:
     //--------------------------------------------------------------------------
 
     // Performance probe
-    static const Boolean PERF_PROBE = false;
+    static const Boolean PERF_PROBE = FALSE;
     Int64 mWebCoreThreadTime;
     Int64 mWebCoreIdleTime;
 };

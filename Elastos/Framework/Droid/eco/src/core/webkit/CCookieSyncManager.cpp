@@ -28,14 +28,14 @@ CCookieSyncManager::CCookieSyncManager()
 }
 
 CCookieSyncManager::CCookieSyncManager(
-    /* [in] */ IContext * pContext) : WebSyncManager(pContext, (String)"CCookieSyncManager")
+    /* [in] */ IContext* context) : WebSyncManager(context, (String)"CCookieSyncManager")
 {
 
 }
 
 
 ECode CCookieSyncManager::InitInstance(
-    /* [in] */ IContext * pContext)
+    /* [in] */ IContext* context)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -47,8 +47,7 @@ CARAPI_(void) CCookieSyncManager::GetCookiesForDomain(
 {
     // null mDataBase implies that the host application doesn't support
     // persistent cookie. No sync needed.
-    if (mDataBase == NULL)
-    {
+    if (mDataBase == NULL) {
         return;
     }
 
@@ -59,8 +58,7 @@ CARAPI_(void) CCookieSyncManager::ClearAllCookies()
 {
     // null mDataBase implies that the host application doesn't support
     // persistent cookie.
-    if (mDataBase == NULL)
-    {
+    if (mDataBase == NULL) {
         return;
     }
 
@@ -71,9 +69,8 @@ CARAPI_(Boolean) CCookieSyncManager::HasCookies()
 {    
     // null mDataBase implies that the host application doesn't support
     // persistent cookie.
-    if (mDataBase == NULL)
-    {
-        return false;
+    if (mDataBase == NULL) {
+        return FALSE;
     }
 
     return ((CWebViewDatabase*)mDataBase)->HasCookies();
@@ -87,8 +84,7 @@ CARAPI_(void) CCookieSyncManager::ClearSessionCookies()
 {
     // null mDataBase implies that the host application doesn't support
     // persistent cookie.
-    if (mDataBase == NULL)
-    {
+    if (mDataBase == NULL) {
         return;
     }
 
@@ -104,8 +100,7 @@ CARAPI_(void) CCookieSyncManager::ClearExpiredCookies(
 {
     // null mDataBase implies that the host application doesn't support
     // persistent cookie.
-    if (mDataBase == NULL)
-    {
+    if (mDataBase == NULL) {
         return;
     }
 
@@ -121,10 +116,9 @@ CARAPI_(void) CCookieSyncManager::SyncFromRamToFlash()
     CCookieManager* cookieManager = NULL;
     CCookieManager::AcquireSingletonByFriend(&cookieManager);
 
-    Boolean bFlag = false;
+    Boolean bFlag = FALSE;
     cookieManager->AcceptCookie(&bFlag);
-    if (!bFlag)
-    {
+    if (!bFlag) {
         return;
     }
 
@@ -149,26 +143,20 @@ CARAPI_(void) CCookieSyncManager::SyncFromRamToFlash(
     CCookieManager::AcquireSingletonByFriend(&cookieManager);
 
     //Iterator<Cookie> iter = list.iterator();
-    int size = list.GetSize();
+    Int32 size = list.GetSize();
     //while (iter.hasNext())
-    for (int i = 0; i < size; i++)
-    {
+    for (Int32 i = 0; i < size; i++) {
         AutoPtr<CCookieManager::Cookie> cookie = list[i];
-        if (cookie->mode != CCookieManager::Cookie::MODE_NORMAL)
-        {
-            if (cookie->mode != CCookieManager::Cookie::MODE_NEW)
-            {
+        if (cookie->mode != CCookieManager::Cookie::MODE_NORMAL) {
+            if (cookie->mode != CCookieManager::Cookie::MODE_NEW) {
                 ((CWebViewDatabase*)mDataBase)->DeleteCookies(cookie->domain, cookie->path,
                         cookie->name);
             }
 
-            if (cookie->mode != CCookieManager::Cookie::MODE_DELETED)
-            {
+            if (cookie->mode != CCookieManager::Cookie::MODE_DELETED) {
                 ((CWebViewDatabase*)mDataBase)->AddCookie(*cookie);
                 cookieManager->SyncedACookie(*cookie);
-            }
-            else
-            {
+            } else {
                 cookieManager->DeleteACookie(*cookie);
             }
         }

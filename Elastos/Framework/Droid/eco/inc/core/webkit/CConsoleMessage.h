@@ -3,21 +3,22 @@
 #define __CCONSOLEMESSAGE_H__
 
 #include "_CConsoleMessage.h"
+#include "ext/frameworkext.h"
 
 CarClass(CConsoleMessage)
 {
 public:
     CARAPI MessageLevel(
-        /* [out] */ Int32 * pMessageLevel);
+        /* [out] */ Int32* messageLevel);
 
     CARAPI Message(
-        /* [out] */ String * pMessage);
+        /* [out] */ String* message);
 
     CARAPI SourceId(
-        /* [out] */ String * pSourceId);
+        /* [out] */ String* sourceId);
 
     CARAPI LineNumber(
-        /* [out] */ Int32 * pLineNumber);
+        /* [out] */ Int32* lineNumber);
 
     CARAPI constructor(
         /* [in] */ CString message,

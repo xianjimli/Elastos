@@ -15,29 +15,29 @@ CarClass(CWebViewDatabase)
 {
 public:
     CARAPI GetInstance(
-        /* [in] */ IContext * pContext,
-        /* [out] */ IWebViewDatabase ** ppInstance);
+        /* [in] */ IContext* context,
+        /* [out] */ IWebViewDatabase** instance);
 
     CARAPI HasUsernamePassword(
-        /* [out] */ Boolean * pFlag);
+        /* [out] */ Boolean* flag);
 
     CARAPI ClearUsernamePassword();
 
     CARAPI HasHttpAuthUsernamePassword(
-        /* [out] */ Boolean * pFlag);
+        /* [out] */ Boolean* flag);
 
     CARAPI ClearHttpAuthUsernamePassword();
 
     CARAPI HasFormData(
-        /* [out] */ Boolean * pFlag);
+        /* [out] */ Boolean* flag);
 
     CARAPI ClearFormData();
 
 public:
 
     static CARAPI CreateInstance(
-        /* [in] */ IContext * pContext,
-        /* [out] */ CWebViewDatabase ** ppInstance);
+        /* [in] */ IContext* context,
+        /* [out] */ CWebViewDatabase** instance);
 #if 0
     /**
       * @return: CCacheManager::CacheResult*
@@ -298,12 +298,12 @@ public:
 
 protected:
     // log tag
-    static const char* LOGTAG;// = "webviewdatabase";
+    static const CString LOGTAG;// = "webviewdatabase";
 
 private:
 
-    static const char* DATABASE_FILE;// = "webview.db";
-    static const char* CACHE_DATABASE_FILE;// = "webviewCache.db";
+    static const CString DATABASE_FILE;// = "webview.db";
+    static const CString CACHE_DATABASE_FILE;// = "webviewCache.db";
 
     static const Int32 DATABASE_VERSION = 10;
     // 2 -> 3 Modified Cache table to allow cache of redirects
@@ -333,75 +333,75 @@ private:
     static const Int32 TABLE_HTTPAUTH_ID = 4;
 
     // column id strings for "_id" which can be used by any table
-    static const char* ID_COL;// = "_id";
+    static const CString ID_COL;// = "_id";
 
-    static const char* ID_PROJECTION[];
+    static const CString ID_PROJECTION[];
 
     // column id strings for "cookies" table
-    static const char* COOKIES_NAME_COL;// = "name";
+    static const CString COOKIES_NAME_COL;// = "name";
 
-    static const char* COOKIES_VALUE_COL;// = "value";
+    static const CString COOKIES_VALUE_COL;// = "value";
 
-    static const char* COOKIES_DOMAIN_COL;// = "domain";
+    static const CString COOKIES_DOMAIN_COL;// = "domain";
 
-    static const char* COOKIES_PATH_COL;// = "path";
+    static const CString COOKIES_PATH_COL;// = "path";
 
-    static const char* COOKIES_EXPIRES_COL;// = "expires";
+    static const CString COOKIES_EXPIRES_COL;// = "expires";
 
-    static const char* COOKIES_SECURE_COL;// = "secure";
+    static const CString COOKIES_SECURE_COL;// = "secure";
 
     // column id strings for "cache" table
-    static const char* CACHE_URL_COL;// = "url";
+    static const CString CACHE_URL_COL;// = "url";
 
-    static const char* CACHE_FILE_PATH_COL;// = "filepath";
+    static const CString CACHE_FILE_PATH_COL;// = "filepath";
 
-    static const char* CACHE_LAST_MODIFY_COL;// = "lastmodify";
+    static const CString CACHE_LAST_MODIFY_COL;// = "lastmodify";
 
-    static const char* CACHE_ETAG_COL;// = "etag";
+    static const CString CACHE_ETAG_COL;// = "etag";
 
-    static const char* CACHE_EXPIRES_COL;// = "expires";
+    static const CString CACHE_EXPIRES_COL;// = "expires";
 
-    static const char* CACHE_EXPIRES_STRING_COL;// = "expiresstring";
+    static const CString CACHE_EXPIRES_STRING_COL;// = "expiresstring";
 
-    static const char* CACHE_MIMETYPE_COL;// = "mimetype";
+    static const CString CACHE_MIMETYPE_COL;// = "mimetype";
 
-    static const char* CACHE_ENCODING_COL;// = "encoding";
+    static const CString CACHE_ENCODING_COL;// = "encoding";
 
-    static const char* CACHE_HTTP_STATUS_COL;// = "httpstatus";
+    static const CString CACHE_HTTP_STATUS_COL;// = "httpstatus";
 
-    static const char* CACHE_LOCATION_COL;// = "location";
+    static const CString CACHE_LOCATION_COL;// = "location";
 
-    static const char* CACHE_CONTENTLENGTH_COL;// = "contentlength";
+    static const CString CACHE_CONTENTLENGTH_COL;// = "contentlength";
 
-    static const char* CACHE_CONTENTDISPOSITION_COL;// = "contentdisposition";
+    static const CString CACHE_CONTENTDISPOSITION_COL;// = "contentdisposition";
 
-    static const char* CACHE_CROSSDOMAIN_COL;// = "crossdomain";
+    static const CString CACHE_CROSSDOMAIN_COL;// = "crossdomain";
 
     // column id strings for "password" table
-    static const char* PASSWORD_HOST_COL;// = "host";
+    static const CString PASSWORD_HOST_COL;// = "host";
 
-    static const char* PASSWORD_USERNAME_COL;// = "username";
+    static const CString PASSWORD_USERNAME_COL;// = "username";
 
-    static const char* PASSWORD_PASSWORD_COL;// = "password";
+    static const CString PASSWORD_PASSWORD_COL;// = "password";
 
     // column id strings for "formurl" table
-    static const char* FORMURL_URL_COL;// = "url";
+    static const CString FORMURL_URL_COL;// = "url";
 
     // column id strings for "formdata" table
-    static const char* FORMDATA_URLID_COL;// = "urlid";
+    static const CString FORMDATA_URLID_COL;// = "urlid";
 
-    static const char* FORMDATA_NAME_COL;// = "name";
+    static const CString FORMDATA_NAME_COL;// = "name";
 
-    static const char* FORMDATA_VALUE_COL;// = "value";
+    static const CString FORMDATA_VALUE_COL;// = "value";
 
     // column id strings for "httpauth" table
-    static const char* HTTPAUTH_HOST_COL;// = "host";
+    static const CString HTTPAUTH_HOST_COL;// = "host";
 
-    static const char* HTTPAUTH_REALM_COL;// = "realm";
+    static const CString HTTPAUTH_REALM_COL;// = "realm";
 
-    static const char* HTTPAUTH_USERNAME_COL;// = "username";
+    static const CString HTTPAUTH_USERNAME_COL;// = "username";
 
-    static const char* HTTPAUTH_PASSWORD_COL;// = "password";
+    static const CString HTTPAUTH_PASSWORD_COL;// = "password";
 
 private:
     WebViewDatabase();

@@ -3,102 +3,82 @@
 #include "webkit/Network.h"
 #include "webkit/WebBackForwardList.h"
 
-const char* CCallbackProxy::LOGTAG = "CallbackProxy";
+const CString CCallbackProxy::LOGTAG = "CallbackProxy";
 
 ECode CCallbackProxy::SetWebViewClient(
-    /* [in] */ IWebViewClient * pClient)
+    /* [in] */ IWebViewClient* client)
 {
-    mWebViewClient = pClient;
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(client);
+    mWebViewClient = client;
+
+    return NOERROR;
 }
 
 ECode CCallbackProxy::GetWebViewClient(
-    /* [out] */ IWebViewClient ** ppClient)
+    /* [out] */ IWebViewClient** client)
 {
-    if (ppClient == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(client);
 
-    *ppClient = (IWebViewClient*)mWebViewClient;    
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    *client = (IWebViewClient*)mWebViewClient;    
+    
+    return NOERROR;
 }
 
 ECode CCallbackProxy::SetWebChromeClient(
-    /* [in] */ IWebChromeClient * pClient)
+    /* [in] */ IWebChromeClient* client)
 {
-    if (pClient == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(client);
 
-    mWebChromeClient = pClient;
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mWebChromeClient = client;
+
+    return NOERROR;
 }
 
 ECode CCallbackProxy::GetWebChromeClient(
-    /* [out] */ IWebChromeClient ** ppClient)
+    /* [out] */ IWebChromeClient** client)
 {
-    if (ppClient == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(client);
 
-    *ppClient = (IWebChromeClient*)mWebChromeClient;
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    *client = (IWebChromeClient*)mWebChromeClient;
+    
+    return NOERROR;    
 }
 
 ECode CCallbackProxy::SetDownloadListener(
-    /* [in] */ IDownloadListener * pClient)
+    /* [in] */ IDownloadListener* client)
 {
-    if (pClient == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(client);
 
-    mDownloadListener = pClient;
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mDownloadListener = client;
+
+    return NOERROR;
 }
 
 ECode CCallbackProxy::GetBackForwardList(
-    /* [out] */ IWebBackForwardList ** ppList)
+    /* [out] */ IWebBackForwardList** list)
 {
-    if (ppList == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(list);
 
-    *ppList = const_cast<IWebBackForwardList*>(mBackForwardList);
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    *list = const_cast<IWebBackForwardList*>(mBackForwardList);
+   
+    return NOERROR;
 }
 
 ECode CCallbackProxy::UiOverrideUrlLoading(
     /* [in] */ const String& overrideUrl,
-    /* [out] */ Boolean * pFlag)
+    /* [out] */ Boolean* flag)
 {
-    if (pFlag == NULL)
-    {
-        return E_INVALID_ARGUMENT;
+    VALIDATE_NOT_NULL(flag);
+
+    if (overrideUrl.GetLength() == 0) {
+        return FALSE;
     }
 
-    if (overrideUrl.GetLength() == 0)
-    {
-        return false;
-    }
-    Boolean override = false;
-    if (mWebViewClient != NULL)
-    {
+    Boolean override = FALSE;
+    if (mWebViewClient != NULL) {
         ((IWebViewClient*)mWebViewClient)->ShouldOverrideUrlLoading((IWebView*)mWebView,
                 overrideUrl, &override);
-    }
-    else
-    {
+    } else {
         IIntent* intent = NULL;
         IUri* pUrl = NULL;
         Uri::Parse(overrideUrl, &pUrl);
@@ -111,43 +91,36 @@ ECode CCallbackProxy::UiOverrideUrlLoading(
 //                mContext->GetPackageName());
         //try {
             (const_cast<IContext*>(mContext))->StartActivity(intent);
-            override = true;
+            override = TRUE;
         //} catch (ActivityNotFoundException ex) {
             // If no application can handle the URL, assume that the
             // browser can handle it.
         //}
     }
 
-    *pFlag = override;
+    *flag = override;
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CCallbackProxy::UiOverrideKeyEvent(
-    /* [in] */ IKeyEvent * pEvent,
-    /* [out] */ Boolean * pFlag)
+    /* [in] */ IKeyEvent* event,
+    /* [out] */ Boolean* flag)
 {
-    if (pEvent == NULL || pFlag == NULL)
-    {
-        return E_INVALID_ARGUMENT;
+    VALIDATE_NOT_NULL(event);
+    VALIDATE_NOT_NULL(flag);
+
+    if (mWebViewClient != NULL) {
+        ((IWebViewClient*)mWebViewClient)->ShouldOverrideKeyEvent((IWebView*)mWebView, event, flag);
+    } else {
+        *flag = false;
     }
 
-    if (mWebViewClient != NULL)
-    {
-        ((IWebViewClient*)mWebViewClient)->ShouldOverrideKeyEvent((IWebView*)mWebView, pEvent, pFlag);
-    }
-    else
-    {
-        *pFlag = false;
-    }
-
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CCallbackProxy::HandleMessage(
-    /* [in] */ IMessage * pMsg)
+    /* [in] */ IMessage* msg)
 {
 #if 0
     // We don't have to do synchronization because this function operates
@@ -660,36 +633,29 @@ ECode CCallbackProxy::HandleMessage(
 }
 
 ECode CCallbackProxy::GetProgress(
-    /* [out] */ Int32 * pProgress)
+    /* [out] */ Int32* progress)
 {
-    if (pProgress == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(progress);
 
-    *pProgress = mLatestProgress;
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    *progress = mLatestProgress;
+    
+    return NOERROR;
 }
 
 ECode CCallbackProxy::OnPageStarted(
     /* [in] */ const String& url,
-    /* [in] */ IBitmap * pFavicon)
+    /* [in] */ IBitmap* favicon)
 {
-    if (pFavicon == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(favicon);
 
     // Do an unsynchronized quick check to avoid posting if no callback has
     // been set.
-    if (mWebViewClient == NULL)
-    {
+    if (mWebViewClient == NULL) {
         return E_NOT_IMPLEMENTED;
     }
+
     // Performance probe
-    if (PERF_PROBE)
-    {
+    if (PERF_PROBE) {
         mWebCoreThreadTime = 0;//SystemClock.currentThreadTimeMillis();
         mWebCoreIdleTime = 0;
         Network::GetInstance((IContext*)mContext)->StartTiming();
@@ -699,16 +665,14 @@ ECode CCallbackProxy::OnPageStarted(
 //    msg.getData().putString("url", url);
 //    sendMessage(msg);
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CCallbackProxy::OnPageFinished(
     /* [in] */ const String& url)
 {
     // Performance probe
-    if (PERF_PROBE)
-    {
+    if (PERF_PROBE) {
         // un-comment this if PERF_PROBE is true
 //        Log.d("WebCore", "WebCore thread used " + 
 //                (SystemClock.currentThreadTimeMillis() - mWebCoreThreadTime)
@@ -718,13 +682,12 @@ ECode CCallbackProxy::OnPageFinished(
 //    Message msg = obtainMessage(PAGE_FINISHED, url);
 //    sendMessage(msg);
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CCallbackProxy::OnTooManyRedirects(
-    /* [in] */ IMessage * pCancelMsg,
-    /* [in] */ IMessage * pContinueMsg)
+    /* [in] */ IMessage* cancelMsg,
+    /* [in] */ IMessage* continueMsg)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -740,8 +703,8 @@ ECode CCallbackProxy::OnReceivedError(
 }
 
 ECode CCallbackProxy::OnFormResubmission(
-    /* [in] */ IMessage * pDontResend,
-    /* [in] */ IMessage * pResend)
+    /* [in] */ IMessage* dontResend,
+    /* [in] */ IMessage* resend)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -749,14 +712,14 @@ ECode CCallbackProxy::OnFormResubmission(
 
 ECode CCallbackProxy::ShouldOverrideUrlLoading(
     /* [in] */ const String& url,
-    /* [out] */ Boolean * pFlag)
+    /* [out] */ Boolean* flag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CCallbackProxy::OnReceivedHttpAuthRequest(
-    /* [in] */ IHttpAuthHandler * pHandler,
+    /* [in] */ IHttpAuthHandler* handler,
     /* [in] */ const String& hostName,
     /* [in] */ const String& realmName)
 {
@@ -765,15 +728,15 @@ ECode CCallbackProxy::OnReceivedHttpAuthRequest(
 }
 
 ECode CCallbackProxy::OnReceivedSslError(
-    /* [in] */ ISslErrorHandler * pHandler,
-    /* [in] */ ISslError * pError)
+    /* [in] */ ISslErrorHandler* handler,
+    /* [in] */ ISslError* error)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CCallbackProxy::OnReceivedCertificate(
-    /* [in] */ ISslCertificate * pCertificate)
+    /* [in] */ ISslCertificate* certificate)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -795,7 +758,7 @@ ECode CCallbackProxy::OnLoadResource(
 }
 
 ECode CCallbackProxy::OnUnhandledKeyEvent(
-    /* [in] */ IKeyEvent * pEvent)
+    /* [in] */ IKeyEvent* event)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -815,7 +778,7 @@ ECode CCallbackProxy::OnDownloadStart(
     /* [in] */ const String& contentDisposition,
     /* [in] */ const String& mimetype,
     /* [in] */ Int64 contentLength,
-    /* [out] */ Boolean * pFlag)
+    /* [out] */ Boolean* flag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -825,8 +788,8 @@ ECode CCallbackProxy::OnSavePassword(
     /* [in] */ const String& schemePlusHost,
     /* [in] */ const String& username,
     /* [in] */ const String& password,
-    /* [in] */ IMessage * pResumeMsg,
-    /* [out] */ Boolean * pFlag)
+    /* [in] */ IMessage* resumeMsg,
+    /* [out] */ Boolean* flag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -852,7 +815,7 @@ ECode CCallbackProxy::OnProgressChanged(
 ECode CCallbackProxy::CreateWindow(
     /* [in] */ Boolean dialog,
     /* [in] */ Boolean userGesture,
-    /* [out] */ IBrowserFrame ** ppBrowseFrame)
+    /* [out] */ IBrowserFrame** browseFrame)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -865,14 +828,14 @@ ECode CCallbackProxy::OnRequestFocus()
 }
 
 ECode CCallbackProxy::OnCloseWindow(
-    /* [in] */ IWebView * pWindow)
+    /* [in] */ IWebView* window)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CCallbackProxy::OnReceivedIcon(
-    /* [in] */ IBitmap * pIcon)
+    /* [in] */ IBitmap* icon)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -896,7 +859,7 @@ ECode CCallbackProxy::OnJsAlert(
 ECode CCallbackProxy::OnJsConfirm(
     /* [in] */ const String& url,
     /* [in] */ const String& message,
-    /* [out] */ Boolean * pFlag)
+    /* [out] */ Boolean* flag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -906,7 +869,7 @@ ECode CCallbackProxy::OnJsPrompt(
     /* [in] */ const String& url,
     /* [in] */ const String& message,
     /* [in] */ const String& defaultValue,
-    /* [out] */ String * pResult)
+    /* [out] */ String* result)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -915,7 +878,7 @@ ECode CCallbackProxy::OnJsPrompt(
 ECode CCallbackProxy::OnJsBeforeUnload(
     /* [in] */ const String& url,
     /* [in] */ const String& message,
-    /* [out] */ Boolean * pResult)
+    /* [out] */ Boolean* result)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -927,7 +890,7 @@ ECode CCallbackProxy::OnExceededDatabaseQuota(
     /* [in] */ Int64 currentQuota,
     /* [in] */ Int64 estimatedSize,
     /* [in] */ Int64 totalUsedQuota,
-    /* [in] */ IWebStorageQuotaUpdater * pQuotaUpdater)
+    /* [in] */ IWebStorageQuotaUpdater* quotaUpdater)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -936,7 +899,7 @@ ECode CCallbackProxy::OnExceededDatabaseQuota(
 ECode CCallbackProxy::OnReachedMaxAppCacheSize(
     /* [in] */ Int64 spaceNeeded,
     /* [in] */ Int64 totalUsedQuota,
-    /* [in] */ IWebStorageQuotaUpdater * pQuotaUpdater)
+    /* [in] */ IWebStorageQuotaUpdater* quotaUpdater)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -944,7 +907,7 @@ ECode CCallbackProxy::OnReachedMaxAppCacheSize(
 
 ECode CCallbackProxy::OnGeolocationPermissionsShowPrompt(
     /* [in] */ const String& origin,
-    /* [in] */ IGeolocationPermissionsCallback * pCallBack)
+    /* [in] */ IGeolocationPermissionsCallback* callBack)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -967,28 +930,28 @@ ECode CCallbackProxy::AddMessageToConsole(
 }
 
 ECode CCallbackProxy::OnJsTimeout(
-    /* [out] */ Boolean * pFlag)
+    /* [out] */ Boolean* flag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CCallbackProxy::GetVisitedHistory(
-    /* [in] */ IValueCallback * pCallBack)
+    /* [in] */ IValueCallback* callBack)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CCallbackProxy::OnNewHistoryItem(
-    /* [in] */ IWebHistoryItem * pItem)
+    /* [in] */ IWebHistoryItem* item)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CCallbackProxy::OnIndexChanged(
-    /* [in] */ IWebHistoryItem * pItem,
+    /* [in] */ IWebHistoryItem* item,
     /* [in] */ Int32 index)
 {
     // TODO: Add your code here
@@ -996,20 +959,17 @@ ECode CCallbackProxy::OnIndexChanged(
 }
 
 ECode CCallbackProxy::constructor(
-    /* [in] */ IContext * pContext,
-    /* [in] */ IWebView * pW)
+    /* [in] */ IContext* context,
+    /* [in] */ IWebView* w)
 {
-    if (pContext == NULL || pW == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(context);
+    VALIDATE_NOT_NULL(w);
 
     // Used to start a default activity.
-    mContext = pContext;
-    mWebView = pW;
+    mContext = context;
+    mWebView = w;
 //    mBackForwardList = new WebBackForwardList(this);
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 

@@ -2,55 +2,43 @@
 #include "webkit/CConsoleMessage.h"
 
 ECode CConsoleMessage::MessageLevel(
-    /* [out] */ Int32 * pMessageLevel)
+    /* [out] */ Int32* messageLevel)
 {
-    if (pMessageLevel == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(messageLevel);
 
-    *pMessageLevel = mLevel;
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    *messageLevel = mLevel;
+    
+    return NOERROR;
 }
 
 ECode CConsoleMessage::Message(
-    /* [out] */ String * pMessage)
+    /* [out] */ String* message)
 {
-    if (pMessage == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(message);
 
-    *pMessage = mMessage;
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    *message = mMessage;
+    
+    return NOERROR;
 }
 
 ECode CConsoleMessage::SourceId(
-    /* [out] */ String * pSourceId)
+    /* [out] */ String* sourceId)
 {
-    if (pSourceId == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(sourceId);
 
-    *pSourceId = mSourceId;
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    *sourceId = mSourceId;
+    
+    return NOERROR;
 }
 
 ECode CConsoleMessage::LineNumber(
-    /* [out] */ Int32 * pLineNumber)
+    /* [out] */ Int32* lineNumber)
 {
-    if (pLineNumber == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(lineNumber);
 
-    *pLineNumber = mLineNumber;
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    *lineNumber = mLineNumber;
+
+    return NOERROR;
 }
 
 ECode CConsoleMessage::constructor(
@@ -63,7 +51,7 @@ ECode CConsoleMessage::constructor(
     mSourceId = sourceId;
     mLineNumber = lineNumber;
     mLevel = msgLevel;
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+
+    return NOERROR;
 }
 

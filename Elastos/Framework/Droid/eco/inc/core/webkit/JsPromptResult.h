@@ -23,11 +23,12 @@ public:
      * Handle a confirmation response from the user.
      */
 	virtual CARAPI_(void) Confirm(
-		/* [in] */ CString result);
+		/* [in] */ const String& result);
 
 
     /*package*/ 
-	virtual CARAPI_(CString) GetStringResult();
+	virtual CARAPI_(void) GetStringResult(
+        /* [in] */ String& strOut);
 
     //@Override
     /*package*/ 
@@ -35,7 +36,7 @@ public:
 
 private:
 	// String result of the prompt
-	CString mStringResult;
+	String mStringResult;
 
 };
 

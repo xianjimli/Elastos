@@ -64,7 +64,7 @@ CARAPI_(Boolean) HTML5Audio::OnError(
     ResetMediaPlayer();
     mState = IDLE;
 
-    return false;
+    return FALSE;
 }
 
 // MediaPlayer.OnPreparedListener

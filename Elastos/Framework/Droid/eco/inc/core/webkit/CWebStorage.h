@@ -15,15 +15,15 @@ public:
     CARAPI CreateHandler();
 
     CARAPI GetOrigins(
-        /* [in] */ IValueCallback * pCallBack);
+        /* [in] */ IValueCallback* callBack);
 
     CARAPI GetUsageForOrigin(
         /* [in] */ CString origin,
-        /* [in] */ IValueCallback * pCallBack);
+        /* [in] */ IValueCallback* callBack);
 
     CARAPI GetQuotaForOrigin(
         /* [in] */ CString origin,
-        /* [in] */ IValueCallback * pCallBack);
+        /* [in] */ IValueCallback* callBack);
 
     CARAPI SetQuotaForOrigin(
         /* [in] */ CString origin,
@@ -38,7 +38,7 @@ public:
         /* [in] */ Int64 size);
 
     CARAPI GetInstance(
-        /* [out] */ IWebStorage ** ppInstance);
+        /* [out] */ IWebStorage** instance);
 
     CARAPI Update();
 
@@ -96,13 +96,13 @@ public:
 
 private:
     // Log tag
-    static const char* TAG;// = "webstorage";
+    static const CString TAG;// = "webstorage";
 
-    static const char* ORIGINS;// = "origins";
-    static const char* ORIGIN;// = "origin";
-    static const char* CALLBACK;// = "callback";
-    static const char* USAGE;// = "usage";
-    static const char* QUOTA;// = "quota";
+    static const CString ORIGINS;// = "origins";
+    static const CString ORIGIN;// = "origin";
+    static const CString CALLBACK;// = "callback";
+    static const CString USAGE;// = "usage";
+    static const CString QUOTA;// = "quota";
 
 private:
     /**

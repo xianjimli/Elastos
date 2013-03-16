@@ -11,7 +11,7 @@ class Network;
 class FrameLoader {
 
 public:
-    static const char* HEADER_STR;// = "text/xml, text/html, " +
+    static const CString HEADER_STR;// = "text/xml, text/html, " +
         //"application/xhtml+xml, image/png, text/plain, */*;q=0.8";
 
 public:
@@ -94,14 +94,14 @@ private:
 
 	static const Int32 URI_PROTOCOL = 0x100;
 
-	static const char* CONTENT_TYPE;// = "content-type";
+	static const CString CONTENT_TYPE;// = "content-type";
 
     // Contents of an about:blank page
-	static const char* mAboutBlank;// =
+	static const CString mAboutBlank;// =
             //"<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EB\">" +
             //"<html><head><title>about:blank</title></head><body></body></html>";
 
-	static const char* LOGTAG;// = "webkit";
+	static const CString LOGTAG;// = "webkit";
 };
 
 #endif //__FRAMELOADER_H__

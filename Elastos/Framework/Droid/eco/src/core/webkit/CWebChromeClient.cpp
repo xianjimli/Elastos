@@ -2,7 +2,7 @@
 #include "webkit/CWebChromeClient.h"
 
 ECode CWebChromeClient::OnProgressChanged(
-    /* [in] */ IWebView * pView,
+    /* [in] */ IWebView* view,
     /* [in] */ Int32 newProgress)
 {
     // TODO: Add your code here
@@ -10,7 +10,7 @@ ECode CWebChromeClient::OnProgressChanged(
 }
 
 ECode CWebChromeClient::OnReceivedTitle(
-    /* [in] */ IWebView * pView,
+    /* [in] */ IWebView* view,
     /* [in] */ CString title)
 {
     // TODO: Add your code here
@@ -18,15 +18,15 @@ ECode CWebChromeClient::OnReceivedTitle(
 }
 
 ECode CWebChromeClient::OnReceivedIcon(
-    /* [in] */ IWebView * pView,
-    /* [in] */ IBitmap * pIcon)
+    /* [in] */ IWebView* view,
+    /* [in] */ IBitmap* icon)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CWebChromeClient::OnReceivedTouchIconUrl(
-    /* [in] */ IWebView * pView,
+    /* [in] */ IWebView* View,
     /* [in] */ CString url,
     /* [in] */ Boolean precomposed)
 {
@@ -35,8 +35,8 @@ ECode CWebChromeClient::OnReceivedTouchIconUrl(
 }
 
 ECode CWebChromeClient::OnShowCustomView(
-    /* [in] */ IView * pView,
-    /* [in] */ IWebChromeClientCustomViewCallback * pCallBack)
+    /* [in] */ IView* view,
+    /* [in] */ IWebChromeClientCustomViewCallback* callBack)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -49,108 +49,88 @@ ECode CWebChromeClient::OnHideCustomView()
 }
 
 ECode CWebChromeClient::OnCreateWindow(
-    /* [in] */ IWebView * pView,
+    /* [in] */ IWebView* view,
     /* [in] */ Boolean dialog,
     /* [in] */ Boolean userGesture,
-    /* [in] */ IMessage * pResultMsg,
-    /* [out] */ Boolean * pFlag)
+    /* [in] */ IMessage* resultMsg,
+    /* [out] */ Boolean* flag)
 {
-    if (pFlag == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(flag);
 
-    *pFlag = false;
+    *flag = FALSE;
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebChromeClient::OnRequestFocus(
-    /* [in] */ IWebView * pView)
+    /* [in] */ IWebView* view)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CWebChromeClient::OnCloseWindow(
-    /* [in] */ IWebView * pWindow)
+    /* [in] */ IWebView* window)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CWebChromeClient::OnJsAlert(
-    /* [in] */ IWebView * pView,
+    /* [in] */ IWebView* view,
     /* [in] */ CString url,
     /* [in] */ CString message,
-    /* [in] */ IJsResult * pResult,
-    /* [out] */ Boolean * pFlag)
+    /* [in] */ IJsResult* result,
+    /* [out] */ Boolean* flag)
 {
-    if (pFlag == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(flag);
 
-    *pFlag = false;
+    *flag = FALSE;
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebChromeClient::OnJsConfirm(
-    /* [in] */ IWebView * pView,
+    /* [in] */ IWebView* view,
     /* [in] */ CString url,
     /* [in] */ const String& message,
-    /* [in] */ IJsResult * pResult,
-    /* [out] */ Boolean * pFlag)
+    /* [in] */ IJsResult* result,
+    /* [out] */ Boolean* flag)
 {
-    if (pFlag == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(flag);
 
-    *pFlag = false;
+    *flag = FALSE;
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebChromeClient::OnJsPrompt(
-    /* [in] */ IWebView * pView,
+    /* [in] */ IWebView* view,
     /* [in] */ CString url,
     /* [in] */ CString message,
     /* [in] */ CString defaultValue,
-    /* [in] */ IJsPromptResult * pResult,
-    /* [out] */ Boolean * pFlag)
+    /* [in] */ IJsPromptResult* result,
+    /* [out] */ Boolean* flag)
 {
-    if (pFlag == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(flag);
 
-    *pFlag = false;
+    *flag = FALSE;
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebChromeClient::OnJsBeforeUnload(
-    /* [in] */ IWebView * pView,
+    /* [in] */ IWebView* view,
     /* [in] */ CString url,
     /* [in] */ CString message,
-    /* [in] */ IJsResult * pResult,
-    /* [out] */ Boolean * pFlag)
+    /* [in] */ IJsResult* result,
+    /* [out] */ Boolean* flag)
 {
-    if (pFlag == NULL)
-    {
-        return E_INVALID_ARGUMENT;        
-    }
+    VALIDATE_NOT_NULL(flag);
 
-    *pFlag = false;
+    *flag = FALSE;
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebChromeClient::OnExceededDatabaseQuota(
@@ -159,38 +139,30 @@ ECode CWebChromeClient::OnExceededDatabaseQuota(
     /* [in] */ Int64 currentQuota,
     /* [in] */ Int64 estimatedSize,
     /* [in] */ Int64 totalUsedQuota,
-    /* [in] */ IWebStorageQuotaUpdater * pQuotaUpdater)
+    /* [in] */ IWebStorageQuotaUpdater* quotaUpdater)
 {
-    if (pQuotaUpdater == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(quotaUpdater);
 
-    pQuotaUpdater->UpdateQuota(currentQuota);
+    quotaUpdater->UpdateQuota(currentQuota);
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebChromeClient::OnReachedMaxAppCacheSize(
     /* [in] */ Int64 spaceNeeded,
     /* [in] */ Int64 totalUsedQuota,
-    /* [in] */ IWebStorageQuotaUpdater * pQuotaUpdater)
+    /* [in] */ IWebStorageQuotaUpdater* quotaUpdater)
 {
-    if (pQuotaUpdater == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(quotaUpdater);
 
   //  QuotaUpdater->UpdateQuota(0);
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebChromeClient::OnGeolocationPermissionsShowPrompt(
     /* [in] */ CString origin,
-    /* [in] */ IGeolocationPermissionsCallback * pCallBack)
+    /* [in] */ IGeolocationPermissionsCallback* callBack)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -203,17 +175,13 @@ ECode CWebChromeClient::OnGeolocationPermissionsHidePrompt()
 }
 
 ECode CWebChromeClient::OnJsTimeout(
-    /* [out] */ Boolean * pFlag)
+    /* [out] */ Boolean* flag)
 {
-    if (pFlag == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(flag);
 
-    *pFlag = false;
+    *flag = FALSE;
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebChromeClient::OnConsoleMessage(
@@ -226,96 +194,77 @@ ECode CWebChromeClient::OnConsoleMessage(
 }
 
 ECode CWebChromeClient::OnConsoleMessageEx(
-    /* [in] */ IConsoleMessage * pConsoleMessage,
-    /* [out] */ Boolean * pFlag)
+    /* [in] */ IConsoleMessage* consoleMessage,
+    /* [out] */ Boolean* flag)
 {
-    if (pConsoleMessage == NULL || pFlag == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(consoleMessage);
+    VALIDATE_NOT_NULL(flag);
 
     // Call the old version of this function for backwards compatability.
     String message;
     Int32 lineNumber;
     String sourceId;
 
-    pConsoleMessage->Message(&message);
-    pConsoleMessage->LineNumber(&lineNumber);
-    pConsoleMessage->SourceId(&sourceId);
+    consoleMessage->Message(&message);
+    consoleMessage->LineNumber(&lineNumber);
+    consoleMessage->SourceId(&sourceId);
 
     OnConsoleMessage(message, lineNumber, sourceId);
     
-    *pFlag = false;
+    *flag = FALSE;
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebChromeClient::GetDefaultVideoPoster(
-    /* [out] */ IBitmap ** ppBitmap)
+    /* [out] */ IBitmap** bitmap)
 {
-    if (ppBitmap == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(bitmap);
 
-    *ppBitmap = NULL;
+    *bitmap = NULL;
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebChromeClient::GetVideoLoadingProgressView(
-    /* [out] */ IView** pView)
+    /* [out] */ IView** view)
 {
-    if (pView == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(view);
 
-    *pView = NULL;
+    *view = NULL;
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebChromeClient::GetVisitedHistory(
-    /* [in] */ IValueCallback * pCallBack)
+    /* [in] */ IValueCallback* callBack)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CWebChromeClient::OpenFileChooser(
-    /* [in] */ IValueCallback * pUploadFile)
+    /* [in] */ IValueCallback* uploadFile)
 {
-    if (pUploadFile == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(uploadFile);
 
-    pUploadFile->OnReceiveValue(NULL);
+    uploadFile->OnReceiveValue(NULL);
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebChromeClient::OnSelectionStart(
-    /* [in] */ IWebView * pView)
+    /* [in] */ IWebView* view)
 {
-    if (pView == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(view);
 
-    pView->NotifySelectDialogDismissed();
+    view->NotifySelectDialogDismissed();
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebChromeClient::OnSelectionDone(
-    /* [in] */ IWebView * pView)
+    /* [in] */ IWebView* view)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;

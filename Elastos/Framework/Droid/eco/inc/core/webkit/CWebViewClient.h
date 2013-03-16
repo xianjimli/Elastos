@@ -3,71 +3,72 @@
 #define __CWEBVIEWCLIENT_H__
 
 #include "_CWebViewClient.h"
+#include "ext/frameworkext.h"
 
 CarClass(CWebViewClient)
 {
 public:
     CARAPI ShouldOverrideUrlLoading(
-        /* [in] */ IWebView * pView,
+        /* [in] */ IWebView* view,
         /* [in] */ const String& url,
-        /* [out] */ Boolean * pFlag);
+        /* [out] */ Boolean* flag);
 
     CARAPI OnPageStarted(
-        /* [in] */ IWebView * pView,
+        /* [in] */ IWebView* view,
         /* [in] */ const String& url,
-        /* [in] */ IBitmap * pFavicon);
+        /* [in] */ IBitmap* favicon);
 
     CARAPI OnPageFinished(
-        /* [in] */ IWebView * pView,
+        /* [in] */ IWebView* view,
         /* [in] */ const String& url);
 
     CARAPI OnLoadResource(
-        /* [in] */ IWebView * pView,
+        /* [in] */ IWebView* view,
         /* [in] */ const String& url);
 
     CARAPI OnTooManyRedirects(
-        /* [in] */ IWebView * pView,
-        /* [in] */ IMessage * pCancelMsg,
-        /* [in] */ IMessage * pContinueMsg);
+        /* [in] */ IWebView* view,
+        /* [in] */ IMessage* cancelMsg,
+        /* [in] */ IMessage* continueMsg);
 
     CARAPI OnReceivedError(
-        /* [in] */ IWebView * pView,
+        /* [in] */ IWebView* view,
         /* [in] */ Int32 errorCode,
         /* [in] */ const String& description,
         /* [in] */ const String& failingUrl);
 
     CARAPI OnFormResubmission(
-        /* [in] */ IWebView * pView,
-        /* [in] */ IMessage * pDontResend,
-        /* [in] */ IMessage * pResend);
+        /* [in] */ IWebView* view,
+        /* [in] */ IMessage* dontResend,
+        /* [in] */ IMessage* resend);
 
     CARAPI DoUpdateVisitedHistory(
-        /* [in] */ IWebView * pView,
+        /* [in] */ IWebView* view,
         /* [in] */ const String& url,
         /* [in] */ Boolean isReload);
 
     CARAPI OnReceivedSslError(
-        /* [in] */ IWebView * pView,
-        /* [in] */ ISslErrorHandler * pHandler,
-        /* [in] */ ISslError * pError);
+        /* [in] */ IWebView* view,
+        /* [in] */ ISslErrorHandler* handler,
+        /* [in] */ ISslError* error);
 
     CARAPI OnReceivedHttpAuthRequest(
-        /* [in] */ IWebView * pView,
-        /* [in] */ IHttpAuthHandler * pHandler,
+        /* [in] */ IWebView* view,
+        /* [in] */ IHttpAuthHandler* handler,
         /* [in] */ const String& host,
         /* [in] */ const String& realm);
 
     CARAPI ShouldOverrideKeyEvent(
-        /* [in] */ IWebView * pView,
-        /* [in] */ IKeyEvent * pEvent,
-        /* [out] */ Boolean * pFlag);
+        /* [in] */ IWebView* view,
+        /* [in] */ IKeyEvent* event,
+        /* [out] */ Boolean* flag);
 
     CARAPI OnUnhandledKeyEvent(
-        /* [in] */ IWebView * pView,
-        /* [in] */ IKeyEvent * pEvent);
+        /* [in] */ IWebView* view,
+        /* [in] */ IKeyEvent* event);
 
     CARAPI OnScaleChanged(
-        /* [in] */ IWebView * pView,
+        /* [in] */ IWebView* view,
         /* [in] */ Float oldScale,
         /* [in] */ Float newScale);
 

@@ -12,36 +12,36 @@ CarClass(CCookieManager)
 {
 public:
     CARAPI GetInstance(
-        /* [out] */ ICookieManager ** ppInstance);
+        /* [out] */ ICookieManager** instance);
 
     CARAPI SetAcceptCookie(
         /* [in] */ Boolean accept);
 
     CARAPI AcceptCookie(
-        /* [out] */ Boolean * pAcceptCookie);
+        /* [out] */ Boolean* acceptCookie);
 
     CARAPI SetCookie(
         /* [in] */ CString url,
         /* [in] */ CString value);
 
     CARAPI SetCookieEx(
-        /* [in] */ IWebAddress * pUri,
+        /* [in] */ IWebAddress* uri,
         /* [in] */ CString value);
 
     CARAPI GetCookie(
         /* [in] */ CString url,
-        /* [out] */ String * pCookie);
+        /* [out] */ String* cookie);
 
     CARAPI GetCookieEx(
-        /* [in] */ IWebAddress * pUri,
-        /* [out] */ String * pCookie);
+        /* [in] */ IWebAddress* uri,
+        /* [out] */ String* cookie);
 
     CARAPI RemoveSessionCookie();
 
     CARAPI RemoveAllCookie();
 
     CARAPI HasCookies(
-        /* [out] */ Boolean * pFlag);
+        /* [out] */ Boolean* flag);
 
     CARAPI RemoveExpiredCookie();
 
@@ -154,37 +154,37 @@ private:
 
     static ICookieManager* sRef;
 
-    static const char* LOGTAG;// = "webkit";
+    static const CString LOGTAG;// = "webkit";
 
-    static const char* DOMAIN;// = "domain";
+    static const CString DOMAIN;// = "domain";
 
-    static const char* PATH;// = "path";
+    static const CString PATH;// = "path";
 
-    static const char* EXPIRES;// = "expires";
+    static const CString EXPIRES;// = "expires";
 
-    static const char* SECURE;// = "secure";
+    static const CString SECURE;// = "secure";
 
-    static const char* MAX_AGE;// = "max-age";
+    static const CString MAX_AGE;// = "max-age";
 
-    static const char* HTTP_ONLY;// = "httponly";
+    static const CString HTTP_ONLY;// = "httponly";
 
-    static const char* HTTPS;// = "https";
+    static const CString HTTPS;// = "https";
 
-    static const char PERIOD;// = '.';
+    static const Byte PERIOD;// = '.';
 
-    static const char COMMA;// = ',';
+    static const Byte COMMA;// = ',';
 
-    static const char SEMICOLON;// = ';';
+    static const Byte SEMICOLON;// = ';';
 
-    static const char EQUAL;// = '=';
+    static const Byte EQUAL;// = '=';
 
-    static const char PATH_DELIM;// = '/';
+    static const Byte PATH_DELIM;// = '/';
 
-    static const char QUESTION_MARK;// = '?';
+    static const Byte QUESTION_MARK;// = '?';
 
-    static const char WHITE_SPACE;// = ' ';
+    static const Byte WHITE_SPACE;// = ' ';
 
-    static const char QUOTATION;// = '\"';
+    static const Byte QUOTATION;// = '\"';
 
     static const Int32 SECURE_LENGTH;// = SECURE.length();
 
@@ -208,7 +208,7 @@ private:
     //  max domain count to limit RAM cookie takes less than 100k,
     static const Int32 MAX_RAM_DOMAIN_COUNT = 15;
 
-    IObjectStringMap* mCookieMap;// = new LinkedHashMap
+    AutoPtr<IObjectStringMap> mCookieMap;// = new LinkedHashMap
             //<String, ArrayList<Cookie>>(MAX_DOMAIN_COUNT, 0.75f, true);
 
     Boolean mAcceptCookie;// = true;

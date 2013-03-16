@@ -3,8 +3,10 @@
 #include "webkit/PerfChecker.h"
 #include "webkit/CCookieManager.h"
 #include "webkit/CPluginManager.h"
+#include "webkit/CertTool.h"
+#include "content/Context.h"
 
-const char* JWebCoreJavaBridge::LOGTAG = "webkit-timers";
+const CString JWebCoreJavaBridge::LOGTAG = "webkit-timers";
 AutoPtr<IWebView> JWebCoreJavaBridge::sCurrentMainWebView = NULL;
 
 JWebCoreJavaBridge::JWebCoreJavaBridge()
@@ -18,8 +20,7 @@ CARAPI_(void) JWebCoreJavaBridge::SetActiveWebView(
 {
 	assert(webview != NULL);
 
-	if (sCurrentMainWebView.Get() != NULL)
-	{
+	if (sCurrentMainWebView.Get() != NULL) {
         // it is possible if there is a sub-WebView. Do nothing.
         return;
     }
@@ -33,8 +34,7 @@ CARAPI_(void) JWebCoreJavaBridge::RemoveActiveWebView(
 {
 	assert(webview != NULL);
 
-	if (sCurrentMainWebView.Get() != webview)
-	{
+	if (sCurrentMainWebView.Get() != webview) {
         // it is possible if there is a sub-WebView. Do nothing.
         return;
     }
@@ -57,12 +57,9 @@ CARAPI_(void) JWebCoreJavaBridge::HandleMessage(
 	{
         case TIMER_MESSAGE:
 	        {
-	            if (mTimerPaused)
-	            {
-	                mHasDeferredTimers = true;
-	            }
-	            else
-	            {
+	            if (mTimerPaused) {
+	                mHasDeferredTimers = TRUE;
+	            } else {
 	                FireSharedTimer();
 	            }
 	            break;
@@ -85,10 +82,9 @@ CARAPI_(void) JWebCoreJavaBridge::HandleMessage(
  */
 CARAPI_(void) JWebCoreJavaBridge::Pause()
 {
-	if (--mPauseTimerRefCount == 0)
-	{
-        mTimerPaused = true;
-        mHasDeferredTimers = false;
+	if (--mPauseTimerRefCount == 0)	{
+        mTimerPaused = TRUE;
+        mHasDeferredTimers = FALSE;
     }
 }
 
@@ -97,12 +93,10 @@ CARAPI_(void) JWebCoreJavaBridge::Pause()
  */
 CARAPI_(void) JWebCoreJavaBridge::Resume()
 {
-	if (++mPauseTimerRefCount == 1)
-	{
-       mTimerPaused = false;
-       if (mHasDeferredTimers)
-       {
-           mHasDeferredTimers = false;
+	if (++mPauseTimerRefCount == 1)	{
+       mTimerPaused = FALSE;
+       if (mHasDeferredTimers) {
+           mHasDeferredTimers = FALSE;
            FireSharedTimer();
        }
     }
@@ -156,7 +150,7 @@ CARAPI_(void) JWebCoreJavaBridge::FireSharedTimer()
 {
 	PerfChecker checker;// = new PerfChecker();
     // clear the flag so that sharedTimerFired() can set a new timer
-    mHasInstantTimer = false;
+    mHasInstantTimer = FALSE;
     SharedTimerFired();
     checker.ResponseAlert("sharedTimer");
 }
@@ -179,25 +173,20 @@ CARAPI_(void) JWebCoreJavaBridge::SetCookies(
 {
 	String buffer;
 
-	if (value.Contains("\r") || value.Contains("\n"))
-	{
+	if (value.Contains("\r") || value.Contains("\n")) {
         // for security reason, filter out '\r' and '\n' from the cookie
         Int32 size = value.GetLength();
         //StringBuilder buffer = new StringBuilder(size);
         
         Int32 i = 0;
-        while (i != -1 && i < size)
-        {
+        while (i != -1 && i < size) {
             Int32 ir = value.IndexOf('\r', i);
             Int32 in = value.IndexOf('\n', i);
             Int32 newi = (ir == -1) ? in : (in == -1 ? ir : (ir < in ? ir
                     : in));
-            if (newi > i)
-            {
+            if (newi > i) {
                 buffer.Append(value.Substring(i, newi));
-            }
-            else if (newi == -1)
-            {
+            } else if (newi == -1) {
                 buffer.Append(value.Substring(i, size));
                 break;
             }
@@ -276,21 +265,36 @@ CARAPI_(void) JWebCoreJavaBridge::StopSharedTimer()
 //        Log.v(LOGTAG, "stopSharedTimer removing all timers");
 //    }
 //    RemoveMessages(TIMER_MESSAGE);
-    mHasInstantTimer = false;
-    mHasDeferredTimers = false;
+    mHasInstantTimer = FALSE;
+    mHasDeferredTimers = FALSE;
 }
 
 CARAPI_(void) JWebCoreJavaBridge::GetKeyStrengthList(
-    /* [out] */ String& str) const
-{}
+    /* [out] */ Vector<String>& list) const
+{
+	CertTool::GetKeyStrengthList(list);
+}
 
 /*synchronized*/ 
 CARAPI_(void) JWebCoreJavaBridge::GetSignedPublicKey(
 	/* [in] */ Int32 index, 
 	/* [in] */ const String& challenge,
 	/* [in] */ const String& url,
-    /* [out] */ String& str)
-{}
+    /* [out] */ String& strOut)
+{
+	//WebView current = sCurrentMainWebView.get();
+    if (sCurrentMainWebView != NULL) {
+        // generateKeyPair expects organizations which we don't have. Ignore
+        // url.
+        IContext* pContext = NULL;
+        sCurrentMainWebView->GetContext(&pContext);
+        assert(pContext != NULL);
+        CertTool::GetSignedPublicKey(pContext, index, challenge, strOut);
+    } else {
+//        Log.e(LOGTAG, "There is no active WebView for getSignedPublicKey");
+        strOut = "";
+    }
+}
 
 /*native*/
 CARAPI_(void) JWebCoreJavaBridge::NativeConstructor()

@@ -1,6 +1,8 @@
 #ifndef __JSRESULT_H__
 #define __JSRESULT_H__
 
+#include "ext/frameworkext.h"
+
 class JsResult {
 
 public:

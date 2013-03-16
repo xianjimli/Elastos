@@ -1,7 +1,7 @@
 
 #include "webkit/Network.h"
 
-const char* Network::LOGTAG = "network";
+const CString Network::LOGTAG = "network";
 
 /**
  * Creates a new Network object.
@@ -56,7 +56,7 @@ CARAPI_(Boolean) Network::RequestURL(
  */
 CARAPI_(Boolean) IsValidProxySet()
 {
-	return false;
+	return FALSE;
 }
 
 /**
@@ -117,7 +117,7 @@ CARAPI_(void) Network::SetProxyPassword(
 CARAPI_(Boolean) Network::SaveState(
 	/* [in] */ const IBundle* outState)
 {
-	return false;
+	return FALSE;
 }
 
 /**
@@ -129,7 +129,7 @@ CARAPI_(Boolean) Network::SaveState(
 CARAPI_(Boolean) Network::RestoreState(
 	/* [in] */ const IBundle* inState)
 {
-	return false;
+	return FALSE;
 }
 
 /**
@@ -152,7 +152,7 @@ CARAPI_(Boolean) Network::CheckSslPrefTable(
 	/* [in] */ const LoadListener* loader,
 	/* [in] */ const ISslError* error)
 {
-	return false;
+	return FALSE;
 }
 
 /**

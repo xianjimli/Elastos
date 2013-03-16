@@ -33,7 +33,7 @@ public:
 	struct CacheSaveData 
 	{
         LoadListener* mListener;
-        CString mUrl;
+        String mUrl;
         Int64 mPostId;
     };
 

@@ -3,7 +3,7 @@
 #include "webkit/CURLUtil.h"
 #include "utils/CTypedValue.h"
 
-const char* FileLoader::LOGTAG = "webkit";
+const CString FileLoader::LOGTAG = "webkit";
 
 /**
  * Construct a FileLoader with the file URL specified as the content
@@ -31,20 +31,15 @@ FileLoader::FileLoader(
     String str1, str2;
     // clean the Url
     int index = url.IndexOf('?');
-    if (mType == TYPE_ASSET)
-    {
+    if (mType == TYPE_ASSET) {
     	pURL->StripAnchor(url.Substring(strlen(CURLUtil::ASSET_BASE), index), &str1);
     	pURL->StripAnchor(url.Substring(strlen(CURLUtil::ASSET_BASE)), &str2);
         mPath = index > 0 ? str1 : str2;
-    }
-    else if (mType == TYPE_RES)
-    {
+    } else if (mType == TYPE_RES) {
     	pURL->StripAnchor(url.Substring(strlen(CURLUtil::RESOURCE_BASE), index), &str1);
     	pURL->StripAnchor(url.Substring(strlen(CURLUtil::RESOURCE_BASE)), &str2);
         mPath = index > 0 ? str1 : str2;
-    }
-    else
-    {
+    } else {
     	pURL->StripAnchor(url.Substring(strlen(CURLUtil::FILE_BASE), index), &str1);
     	pURL->StripAnchor(url.Substring(strlen(CURLUtil::FILE_BASE)), &str2);
         mPath = index > 0 ? str1 : str2;
@@ -54,32 +49,28 @@ FileLoader::FileLoader(
 //@Override
 CARAPI_(Boolean) FileLoader::SetupStreamAndSendStatus()
 {
-	if (mType == TYPE_ASSET)
-	{
+	if (mType == TYPE_ASSET) {
 		IAssetManager* assetManager = NULL;
 //        mContext->GetAssets(&assetManager)
         assetManager->Open(mPath, &mDataStream);
-    }
-    else if(mType == TYPE_RES)
-    {
+    } else if(mType == TYPE_RES) {
         // get the resource id from the path. e.g. for the path like
         // drawable/foo.png, the id is located at field "foo" of class
         // "<package>.R$drawable"
-        if (mPath.GetLength() == 0)
-        {
+        if (mPath.GetLength() == 0) {
 //            Log.e(LOGTAG, "Need a path to resolve the res file");
 //            mLoadListener.error(EventHandler.FILE_ERROR, mContext
 //                    .getString(R.string.httpErrorFileNotFound));
-            return false;
+            return FALSE;
 
         }
-        int slash = mPath.IndexOf('/');
-        int dot = mPath.IndexOf('.', slash);
+        Int32 slash = mPath.IndexOf('/');
+        Int32 dot = mPath.IndexOf('.', slash);
         if (slash == -1 || dot == -1) {
 //            Log.e(LOGTAG, "Incorrect res path: " + mPath);
 //            mLoadListener.error(EventHandler.FILE_ERROR, mContext
 //                    .getString(R.string.httpErrorFileNotFound));
-            return false;
+            return FALSE;
         }
         String subClassName = mPath.Substring(0, slash);
         String fieldName = mPath.Substring(slash + 1, dot);
@@ -101,12 +92,9 @@ CARAPI_(Boolean) FileLoader::SetupStreamAndSendStatus()
 
 //        final Field field = d.getField(fieldName);
 //        final int id = field.getInt(null);
-        AutoPtr<ITypedValue> value = NULL;
-        ITypedValue* _value = NULL;
-        CTypedValue::New(&_value);
-        assert(_value);
-
-        value = _value;
+        AutoPtr<ITypedValue> value;
+        CTypedValue::New((ITypedValue**)&value);
+        assert(value);
 
 //        mContext.getResources().getValue(id, value, true);
 //        if (((CTypedValue*)(ITypedValue*)value)->mType == CTypedValue::TypedValue_TYPE_STRING)
@@ -124,7 +112,7 @@ CARAPI_(Boolean) FileLoader::SetupStreamAndSendStatus()
         {
 //            mLoadListener.error(EventHandler.FILE_ERROR, mContext
 //                    .getString(R.string.httpErrorFileNotFound));
-            return false;
+            return FALSE;
         }
     }
     else
@@ -133,7 +121,7 @@ CARAPI_(Boolean) FileLoader::SetupStreamAndSendStatus()
         {
 //            mLoadListener.error(EventHandler.FILE_ERROR,
 //                    mContext.getString(R.string.httpErrorFileNotFound));
-            return false;
+            return FALSE;
         }
 
 //        mDataStream = new FileInputStream(mPath);
@@ -141,7 +129,7 @@ CARAPI_(Boolean) FileLoader::SetupStreamAndSendStatus()
     }
 //    mLoadListener->Status(1, 1, 200, "OK");
 
-    return true;
+    return TRUE;
 }
 
 //@Override

@@ -3,7 +3,7 @@
 #include "webkit/LoadListener.h"
 #include "webkit/CBrowserFrame.h"
 
-const char* HttpAuthHandler::LOGTAG = "network";
+const CString HttpAuthHandler::LOGTAG = "network";
 
 /**
  * Creates a new HTTP authentication handler with an empty
@@ -36,7 +36,7 @@ CARAPI_(void) HttpAuthHandler::HandleMessage(
 	}
     mLoaderQueueMutex.Unlock();
 
-    assert(loader->IsSynchronous() == false);
+    assert(loader->IsSynchronous() == FALSE);
 
     switch (0/*msg->what*/)
     {
@@ -77,14 +77,13 @@ CARAPI_(Boolean) HttpAuthHandler::HandleResponseForSynchronousRequest(
 	loader = mLoaderQueue.GetFront();
 	mLoaderQueueMutex.Unlock();
 
-    if (loader->IsSynchronous())
-    {
+    if (loader->IsSynchronous()) {
         mUsername = username;
         mPassword = password;
-        return true;
+        return TRUE;
     }
 
-    return false;
+    return FALSE;
 }
 
 /**
@@ -99,8 +98,7 @@ CARAPI_(void) HttpAuthHandler::Proceed(
 	/* [in] */ const String& username, 
 	/* [in] */ const String& password)
 {
-	if (HandleResponseForSynchronousRequest(username, password))
-	{
+	if (HandleResponseForSynchronousRequest(username, password)) {
         SignalRequestComplete();
         return;
     }
@@ -121,8 +119,7 @@ CARAPI_(void) HttpAuthHandler::Proceed(
  */
 CARAPI_(void) HttpAuthHandler::Cancel()
 {
-	if (HandleResponseForSynchronousRequest((String)"", (String)""))
-	{
+	if (HandleResponseForSynchronousRequest((String)"", (String)"")) {
         SignalRequestComplete();
         return;
     }
@@ -137,18 +134,17 @@ CARAPI_(void) HttpAuthHandler::Cancel()
  */
 CARAPI_(Boolean) HttpAuthHandler::UseHttpAuthUsernamePassword()
 {
-	AutoPtr<LoadListener> loader = NULL;
+	AutoPtr<LoadListener> loader;
 
     mLoaderQueueMutex.Lock();
 	loader = mLoaderQueue.GetFront();
 	mLoaderQueueMutex.Unlock();
 
-    if (loader != NULL)
-    {
+    if (loader != NULL) {
         return !loader->AuthCredentialsInvalid();
     }
 
-    return false;
+    return FALSE;
 }
 
 /**
@@ -167,8 +163,7 @@ CARAPI_(void) HttpAuthHandler::HandleAuthRequest(
 	// The call to proxy.onReceivedHttpAuthRequest() may be asynchronous. If
     // the request is synchronous, we must block here until we have a
     // response.
-    if (loader->IsSynchronous())
-    {
+    if (loader->IsSynchronous()) {
         // If there's a request in flight, wait for it to complete. The
         // response will queue a message on this thread.
         WaitForRequestToComplete();
@@ -198,7 +193,7 @@ CARAPI_(void) HttpAuthHandler::HandleAuthRequest(
         return;
     }
 
-    Boolean processNext = false;
+    Boolean processNext = FALSE;
 
     mLoaderQueueMutex.Lock();
     {
@@ -207,8 +202,7 @@ CARAPI_(void) HttpAuthHandler::HandleAuthRequest(
     }
     mLoaderQueueMutex.Unlock();
 
-    if (processNext)
-    {
+    if (processNext) {
         ProcessNextLoader();
     }
 }

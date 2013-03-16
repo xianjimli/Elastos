@@ -16,29 +16,29 @@ CarClass(CCacheManager)
 public:
 
     CARAPI GetCacheFileBaseDir(
-        /* [out] */ IFile ** ppDir);
+        /* [out] */ IFile** dir);
 
     CARAPI CacheDisabled(
-        /* [out] */ Boolean * pDisabled);
+        /* [out] */ Boolean* disabled);
 
     CARAPI StartCacheTransaction(
-        /* [out] */ Boolean * pFlag);
+        /* [out] */ Boolean* flag);
 
     CARAPI EndCacheTransaction(
-        /* [out] */ Boolean * pFlag);
+        /* [out] */ Boolean* flag);
 
     CARAPI GetCacheFile(
         /* [in] */ const String& url,
-        /* [in] */ IObjectStringMap * pHeaders,
-        /* [out] */ ICacheManagerCacheResult ** ppResult);
+        /* [in] */ IObjectStringMap* headers,
+        /* [out] */ ICacheManagerCacheResult** result);
 
     CARAPI CreateCacheFile(
         /* [in] */ const String& url,
         /* [in] */ Int32 statusCode,
-        /* [in] */ IHeaders * pHeaders,
+        /* [in] */ IHeaders* headers,
         /* [in] */ const String& mimeType,
         /* [in] */ Boolean forceCache,
-        /* [out] */ ICacheManagerCacheResult ** ppResult);
+        /* [out] */ ICacheManagerCacheResult** result);
 
     /**
      * Save the info of a cache file for a given url to the CacheMap so that it
@@ -120,8 +120,8 @@ public:
     };
 
 public:
-    static const char* HEADER_KEY_IFMODIFIEDSINCE;// = "if-modified-since";
-    static const char* HEADER_KEY_IFNONEMATCH;// = "if-none-match";
+    static const CString HEADER_KEY_IFMODIFIEDSINCE;// = "if-modified-since";
+    static const CString HEADER_KEY_IFNONEMATCH;// = "if-none-match";
 
 public:
     /**
@@ -230,12 +230,12 @@ private:
 
 private:
 
-    static const char* LOGTAG;// = "cache";
+    static const CString LOGTAG;// = "cache";
 
-    static const char* NO_STORE;// = "no-store";
-    static const char* NO_CACHE;// = "no-cache";
-    static const char* MAX_AGE;// = "max-age";
-    static const char* MANIFEST_MIME;// = "text/cache-manifest";
+    static const CString NO_STORE;// = "no-store";
+    static const CString NO_CACHE;// = "no-cache";
+    static const CString MAX_AGE;// = "max-age";
+    static const CString MANIFEST_MIME;// = "text/cache-manifest";
 
     static Int64 CACHE_THRESHOLD;
     static Int64 CACHE_TRIM_AMOUNT;

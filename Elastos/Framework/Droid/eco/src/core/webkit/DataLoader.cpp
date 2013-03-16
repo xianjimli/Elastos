@@ -14,18 +14,15 @@ DataLoader::DataLoader(
     String url = dataUrl.Substring(strlen("data:"));
     
     Byte* data = NULL;
-    int commaIndex = url.IndexOf(',');
-    if (commaIndex != -1)
-    {
+    Int32 commaIndex = url.IndexOf(',');
+    if (commaIndex != -1) {
         String contentType = url.Substring(0, commaIndex);
 //        data = url.Substring(commaIndex + 1).GetBytes();
 //        loadListener->ParseContentTypeHeader(contentType);
 //        if ("base64".equals(loadListener.transferEncoding())) {
 //            data = Base64.decode(data);
 //        }
-    }
-    else
-    {
+    } else {
 //        data = url.getBytes();
     }
 
@@ -39,16 +36,13 @@ DataLoader::DataLoader(
 //@Override
 CARAPI_(Boolean) DataLoader::SetupStreamAndSendStatus()
 {
-	if (mDataStream != NULL)
-	{
+	if (mDataStream != NULL) {
         mLoadListener->Status(1, 1, 200, (String)"OK");
-        return true;
-    }
-    else
-    {
+        return TRUE;
+    } else {
 //        mLoadListener->Error(EventHandler.ERROR,
 //                mContext->GetString(R.string.httpError));
-        return false;
+        return FALSE;
     }
 }
 

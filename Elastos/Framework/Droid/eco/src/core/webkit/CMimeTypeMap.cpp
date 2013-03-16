@@ -2,13 +2,11 @@
 #include "ext/frameworkext.h"
 #include "webkit/CMimeTypeMap.h"
 
-CMimeTypeMap* CMimeTypeMap::sMimeTypeMap = NULL;
-
-
+CMimeTypeMap* CMimeTypeMap::sMimeTypeMap;
 
 ECode CMimeTypeMap::GetFileExtensionFromUrl(
     /* [in] */ CString inUrl,
-    /* [out] */ String * pOutUrl)
+    /* [out] */ String* outUrl)
 {
     #if 0
     if (pOutUrl == NULL)
@@ -521,8 +519,8 @@ ECode CMimeTypeMap::constructor()
 }
 
 void CMimeTypeMap::LoadEntry(
-    /* [in] */ const char * mimeType,
-    /* [in] */ const char * extension)
+    /* [in] */ const char* mimeType,
+    /* [in] */ const char* extension)
 {
     #if 0
     //

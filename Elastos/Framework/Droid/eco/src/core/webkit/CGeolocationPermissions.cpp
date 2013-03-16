@@ -2,15 +2,15 @@
 #include "webkit/CGeolocationPermissions.h"
 
 // Log tag
-const char* CGeolocationPermissions::TAG = "geolocationPermissions";
+const CString CGeolocationPermissions::TAG = "geolocationPermissions";
 
-const char* CGeolocationPermissions::ORIGINS = "origins";
-const char* CGeolocationPermissions::ORIGIN = "origin";
-const char* CGeolocationPermissions::CALLBACK = "callback";
-const char* CGeolocationPermissions::ALLOWED = "allowed";
+const CString CGeolocationPermissions::ORIGINS = "origins";
+const CString CGeolocationPermissions::ORIGIN = "origin";
+const CString CGeolocationPermissions::CALLBACK = "callback";
+const CString CGeolocationPermissions::ALLOWED = "allowed";
 
 ECode CGeolocationPermissions::GetInstance(
-    /* [out] */ IGeolocationPermissions ** ppInstance)
+    /* [out] */ IGeolocationPermissions** instance)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -29,7 +29,7 @@ ECode CGeolocationPermissions::CreateHandler()
 }
 
 ECode CGeolocationPermissions::GetOrigins(
-    /* [in] */ IValueCallback * pCallBack)
+    /* [in] */ IValueCallback* callBack)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -37,16 +37,12 @@ ECode CGeolocationPermissions::GetOrigins(
 
 ECode CGeolocationPermissions::GetAllowed(
     /* [in] */ CString origin,
-    /* [in] */ IValueCallback * pCallBack)
+    /* [in] */ IValueCallback* callBack)
 {
-    if (pCallBack == NULL)
-    {
-        return E_NOT_IMPLEMENTED;
-    }
+    VALIDATE_NOT_NULL(callBack)
 
-    if (origin.GetLength() == 0)
-    {
-        pCallBack->OnReceiveValue(NULL);
+    if (origin.GetLength() == 0) {
+        callBack->OnReceiveValue(NULL);
         return E_NOT_IMPLEMENTED;
     }
 
@@ -60,12 +56,11 @@ ECode CGeolocationPermissions::GetAllowed(
         IObjectStringMap* values = NULL;
         CObjectStringMap::New(&values);
         values->Put((String)ORIGIN, (IInterface*)&origin);
-        values->Put((String)CALLBACK, (IInterface*)pCallBack);
+        values->Put((String)CALLBACK, (IInterface*)callBack);
 //        PostMessage(Message.obtain(null, GET_ALLOWED, values));
     }
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CGeolocationPermissions::Clear(
@@ -94,7 +89,7 @@ ECode CGeolocationPermissions::ClearAll()
 CARAPI_(Boolean) CGeolocationPermissions::NativeGetAllowed(
     /* [in] */ const String& origin)
 {
-    return false;
+    return FALSE;
 }
 
 CARAPI_(void) CGeolocationPermissions::NativeClear(

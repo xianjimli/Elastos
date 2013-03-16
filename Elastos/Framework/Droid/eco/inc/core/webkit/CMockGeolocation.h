@@ -3,6 +3,7 @@
 #define __CMOCKGEOLOCATION_H__
 
 #include "_CMockGeolocation.h"
+#include "ext/frameworkext.h"
 
 CarClass(CMockGeolocation)
 {
@@ -17,7 +18,7 @@ public:
         /* [in] */ CString message);
 
     CARAPI GetInstance(
-        /* [out] */ IMockGeolocation ** ppInstance);
+        /* [out] */ IMockGeolocation** instance);
 
 private:
     // Native functions

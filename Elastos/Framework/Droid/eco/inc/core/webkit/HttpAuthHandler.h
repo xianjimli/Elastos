@@ -127,7 +127,7 @@ private:
      * (like our subwindow and the main window).
      */
 
-	static const char* LOGTAG;// = "network";
+	static const CString LOGTAG;// = "network";
 
     /**
      * Network.

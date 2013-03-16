@@ -158,7 +158,7 @@ private:
 
 private:
 
-	static const char* LOGTAG;// = "network";
+	static const CString LOGTAG;// = "network";
 
     /**
      * Static instance of a Network object.

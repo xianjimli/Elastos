@@ -19,12 +19,12 @@ public:
 
     CARAPI RequestIconForPageUrl(
         /* [in] */ CString url,
-        /* [in] */ IWebIconDatabaseIconListener * pListener);
+        /* [in] */ IWebIconDatabaseIconListener* listener);
 
     CARAPI BulkRequestIconForPageUrl(
-        /* [in] */ IContentResolver * pCr,
+        /* [in] */ IContentResolver* cr,
         /* [in] */ CString where,
-        /* [in] */ IWebIconDatabaseIconListener * pListener);
+        /* [in] */ IWebIconDatabaseIconListener* listener);
 
     CARAPI RetainIconForPageUrl(
         /* [in] */ CString url);
@@ -33,7 +33,7 @@ public:
         /* [in] */ CString url);
 
     CARAPI GetInstance(
-        /* [out] */ IWebIconDatabase ** ppInstance);
+        /* [out] */ IWebIconDatabase** instance);
 
 public:
     /**
@@ -45,7 +45,7 @@ public:
 
 private:
 
-    static const char* LOGTAG;// = "WebIconDatabase";
+    static const CString LOGTAG;// = "WebIconDatabase";
 
 private:
     // Class to handle messages before WebCore is ready

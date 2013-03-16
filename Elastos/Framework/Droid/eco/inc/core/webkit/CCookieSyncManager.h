@@ -30,7 +30,7 @@ protected:
     CCookieSyncManager();
 
     CCookieSyncManager(
-        /* [in] */ IContext * pContext);
+        /* [in] */ IContext * context);
 
 public:
     /**

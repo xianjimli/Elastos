@@ -7,13 +7,13 @@
 #include "webkit/WebViewCore.h"
 
 // Log tag
-const char* CWebStorage::TAG = "webstorage";
+const CString CWebStorage::TAG = "webstorage";
 
-const char* CWebStorage::ORIGINS = "origins";
-const char* CWebStorage::ORIGIN = "origin";
-const char* CWebStorage::CALLBACK = "callback";
-const char* CWebStorage::USAGE = "usage";
-const char* CWebStorage::QUOTA = "quota";
+const CString CWebStorage::ORIGINS = "origins";
+const CString CWebStorage::ORIGIN = "origin";
+const CString CWebStorage::CALLBACK = "callback";
+const CString CWebStorage::USAGE = "usage";
+const CString CWebStorage::QUOTA = "quota";
 
 CWebStorage::CWebStorage* sWebStorage = NULL;
 
@@ -163,42 +163,33 @@ ECode CWebStorage::CreateHandler()
 }
 
 ECode CWebStorage::GetOrigins(
-    /* [in] */ IValueCallback * pCallBack)
+    /* [in] */ IValueCallback* callBack)
 {
-    if (pCallBack != NULL)
-    {
+    if (callBack != NULL) {
         AutoPtr<IThread> pthread = Thread::GetCurrentThread();
         String name;
 
         pthread->GetName(&name);
 
-        if (name.Equals(WebViewCore::THREAD_NAME))
-        {
+        if (name.Equals(WebViewCore::THREAD_NAME)) {
             SyncValues();
-            pCallBack->OnReceiveValue(mOrigins);
-        }
-        else
-        {
+            callBack->OnReceiveValue(mOrigins);
+        } else {
 //            PostMessage(Message.obtain(null, GET_ORIGINS, callback));
         }
     }
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebStorage::GetUsageForOrigin(
     /* [in] */ CString origin,
-    /* [in] */ IValueCallback * pCallBack)
+    /* [in] */ IValueCallback* callBack)
 {
-    if (pCallBack == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(callBack);
 
-    if (origin.GetLength() == 0)
-    {
-        pCallBack->OnReceiveValue(NULL);
+    if (origin.GetLength() == 0) {
+        callBack->OnReceiveValue(NULL);
         return E_NOT_IMPLEMENTED;
     }
 
@@ -207,8 +198,7 @@ ECode CWebStorage::GetUsageForOrigin(
 
     pthread->GetName(&name);
 
-    if (name.Equals(WebViewCore::THREAD_NAME))
-    {
+    if (name.Equals(WebViewCore::THREAD_NAME)) {
         SyncValues();
         Origin* website = NULL;
         mOrigins->Get((String)origin, (IInterface**)&website);
@@ -224,22 +214,17 @@ ECode CWebStorage::GetUsageForOrigin(
 #endif
     }
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebStorage::GetQuotaForOrigin(
     /* [in] */ CString origin,
-    /* [in] */ IValueCallback * pCallBack)
+    /* [in] */ IValueCallback* callBack)
 {
-    if (pCallBack == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(callBack);
 
-    if (origin.GetLength() == 0)
-    {
-        pCallBack->OnReceiveValue(NULL);
+    if (origin.GetLength() == 0) {
+        callBack->OnReceiveValue(NULL);
         return E_NOT_IMPLEMENTED;
     }
 
@@ -248,15 +233,12 @@ ECode CWebStorage::GetQuotaForOrigin(
 
     pthread->GetName(&name);
 
-    if (name.Equals(WebViewCore::THREAD_NAME))
-    {
+    if (name.Equals(WebViewCore::THREAD_NAME)) {
         SyncValues();
         Origin* website = NULL;
         mOrigins->Get((String)origin, (IInterface**)&website);
 //        pCallBack->OnReceiveValue(website->GetUsage()));
-    }
-    else
-    {
+    } else {
 #if 0
         HashMap values = new HashMap<String, Object>();
         values.put(ORIGIN, origin);
@@ -265,57 +247,46 @@ ECode CWebStorage::GetQuotaForOrigin(
 #endif
     }
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebStorage::SetQuotaForOrigin(
     /* [in] */ CString origin,
     /* [in] */ Int64 quota)
 {
-    if (origin.GetLength() != 0)
-    {
+    if (origin.GetLength() != 0) {
         AutoPtr<IThread> pthread = Thread::GetCurrentThread();
         String name;
 
         pthread->GetName(&name);
 
-        if (name.Equals(WebViewCore::THREAD_NAME))
-        {
+        if (name.Equals(WebViewCore::THREAD_NAME)) {
             NativeSetQuotaForOrigin((const String)origin, quota);
-        }
-        else
-        {
+        } else {
 //            PostMessage(Message.obtain(null, SET_QUOTA_ORIGIN, new Origin(origin, quota)));
         }
     }
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebStorage::DeleteOrigin(
     /* [in] */ CString origin)
 {
-    if (origin.GetLength() != 0)
-    {
+    if (origin.GetLength() != 0) {
         AutoPtr<IThread> pthread = Thread::GetCurrentThread();
         String name;
 
         pthread->GetName(&name);
 
-        if (name.Equals(WebViewCore::THREAD_NAME))
-        {
+        if (name.Equals(WebViewCore::THREAD_NAME)) {
             NativeDeleteOrigin((const String)origin);
-        }
-        else
-        {
+        } else {
 //            PostMessage(Message.obtain(null, DELETE_ORIGIN, new Origin(origin)));
         }
     }
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebStorage::DeleteAllData()
@@ -325,17 +296,13 @@ ECode CWebStorage::DeleteAllData()
 
     pthread->GetName(&name);
 
-    if (name.Equals(WebViewCore::THREAD_NAME))
-    {
+    if (name.Equals(WebViewCore::THREAD_NAME)) {
         NativeDeleteAllData();
-    }
-    else
-    {
+    } else {
 //        PostMessage(Message.obtain(null, DELETE_ALL));
     }
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebStorage::SetAppCacheMaximumSize(
@@ -343,12 +310,11 @@ ECode CWebStorage::SetAppCacheMaximumSize(
 {
     NativeSetAppCacheMaximumSize(size);
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebStorage::GetInstance(
-    /* [out] */ IWebStorage ** ppInstance)
+    /* [out] */ IWebStorage** instance)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -361,17 +327,13 @@ ECode CWebStorage::Update()
 
     pthread->GetName(&name);
 
-    if (name.Equals(WebViewCore::THREAD_NAME))
-    {
+    if (name.Equals(WebViewCore::THREAD_NAME)) {
         SyncValues();
-    }
-    else
-    {
+    } else {
 //        PostMessage(Message.obtain(null, UPDATE));
     }
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 
@@ -385,8 +347,7 @@ CARAPI_(void) CWebStorage::PostMessage(
     Mutex mutex;
     Mutex::Autolock lock(mutex);
 
-    if (mHandler != NULL && msg != NULL)
-    {
+    if (mHandler != NULL && msg != NULL) {
 //        mHandler->SendMessage(msg);
     }
 }
@@ -397,8 +358,7 @@ CARAPI_(void) CWebStorage::PostMessage(
 CARAPI_(void) CWebStorage::PostUIMessage(
     /* [in] */ IMessage* msg)
 {
-    if (mUIHandler != NULL && msg != 0)
-    {
+    if (mUIHandler != NULL && msg != 0) {
 //        mUIHandler->SendMessage(msg);
     }
 }
@@ -446,25 +406,19 @@ CARAPI_(void) CWebStorage::NativeSetAppCacheMaximumSize(
 CWebStorage::Origin::Origin(
     /* [in] */ const String& origin,
     /* [in] */ Int64 quota,
-    /* [in] */ Int64 usage)
+    /* [in] */ Int64 usage) : mOrigin(origin), mQuota(quota), mUsage(usage)
 {
-    mOrigin = origin;
-    mQuota = quota;
-    mUsage = usage;
 }
 
 CWebStorage::Origin::Origin(
     /* [in] */ const String& origin,
-    /* [in] */ Int64 quota)
+    /* [in] */ Int64 quota) : mOrigin(origin), mQuota(quota)
 {
-    mOrigin = origin;
-    mQuota = quota;
 }
 
 CWebStorage::Origin::Origin(
-    /* [in] */ const String& origin)
+    /* [in] */ const String& origin) : mOrigin(origin)
 {
-    mOrigin = origin;
 }
 
 CARAPI_(void) CWebStorage::Origin::GetOrigin(

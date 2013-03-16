@@ -1,82 +1,66 @@
 
 #include "webkit/CDateSorter.h"
 
-const char* CDateSorter::LOGTAG = "webkit";
+const CString CDateSorter::LOGTAG = "webkit";
 
 ECode CDateSorter::GetIndex(
     /* [in] */ Int64 time,
-    /* [out] */ Int32 * pLastDay)
+    /* [out] */ Int32* outLastDay)
 {
-    if (pLastDay == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(outLastDay);
 
-    int lastDay = DAY_COUNT - 1;
-    for (int i = 0; i < lastDay; i++)
-    {
-        if (time > mBins[i])
-        {
-            *pLastDay = i;
+    Int32 lastDay = DAY_COUNT - 1;
+    for (Int32 i = 0; i < lastDay; i++) {
+        if (time > mBins[i]) {
+            *outLastDay = i;
             return E_NOT_IMPLEMENTED;
         }
     }
 
-    *pLastDay = lastDay;
+    *outLastDay = lastDay;
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CDateSorter::GetLabel(
     /* [in] */ Int32 index,
-    /* [out] */ String * pLabel)
+    /* [out] */ String* label)
 {
-    if (pLabel == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(label);
 
-    if (index < 0 || index >= DAY_COUNT)
-    {
-        *pLabel = "";
+    if (index < 0 || index >= DAY_COUNT) {
+        *label = "";
         return E_NOT_IMPLEMENTED;
     }
         
-    *pLabel = mLabels[index];
+    *label = mLabels[index];
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CDateSorter::GetBoundary(
     /* [in] */ Int32 index,
-    /* [out] */ Int64 * pBoundary)
+    /* [out] */ Int64* boundary)
 {
-    if (pBoundary == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(boundary);
 
-    int lastDay = DAY_COUNT - 1;
+    Int32 lastDay = DAY_COUNT - 1;
     // Error case
     if (index < 0 || index > lastDay) index = 0;
     // Since this provides a lower boundary on dates that will be included
     // in the given bin, provide the smallest value
-    if (index == lastDay)
-    {
+    if (index == lastDay) {
 //        *pBoundary = Long.MIN_VALUE;
         return E_NOT_IMPLEMENTED;
     }
 
-    *pBoundary = mBins[index];
+    *boundary = mBins[index];
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CDateSorter::constructor(
-    /* [in] */ IContext * pContext)
+    /* [in] */ IContext * context)
 {
 #if 0
     Resources resources = context.getResources();

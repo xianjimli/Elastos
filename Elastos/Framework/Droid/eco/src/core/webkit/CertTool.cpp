@@ -1,13 +1,13 @@
 
 #include "webkit/CertTool.h"
 
-const String CertTool::CERT;// = Credentials.CERTIFICATE;
-const String CertTool::PKCS12;// = Credentials.PKCS12;
+const CString CertTool::CERT;// = Credentials.CERTIFICATE;
+const CString CertTool::PKCS12;// = Credentials.PKCS12;
 
-const char* CertTool::LOGTAG = "CertTool";
+const CString CertTool::LOGTAG = "CertTool";
 
 CARAPI_(void) CertTool::GetKeyStrengthList(
-	/* [in] */ Vector<String> list)
+	/* [in] */ Vector<String>& list)
 {}
 
 CARAPI_(void) CertTool::GetSignedPublicKey(
@@ -20,5 +20,5 @@ CARAPI_(void) CertTool::GetSignedPublicKey(
 CARAPI_(void) CertTool::AddCertificate(
 	/* [in] */ IContext* context,
 	/* [in] */ const String& type,
-	/* [in] */ Vector<Byte>& value)
+	/* [in] */ ArrayOf<Byte>& value)
 {}

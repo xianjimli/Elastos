@@ -19,8 +19,7 @@ CARAPI_(CookieSyncManager*) CookieSyncManager::GetInstance()
 	Mutex mutex;
 	Mutex::Autolock lock(mutex);
 
-	if (sRef == NULL)
-	{
+	if (sRef == NULL) {
 //        throw new IllegalStateException(
 //                "CookieSyncManager::createInstance() needs to be called "
 //                        + "before CookieSyncManager::getInstance()");
@@ -40,17 +39,14 @@ CARAPI_(CookieSyncManager*) CookieSyncManager::CreateInstance(
 	Mutex mutex;
 	Mutex::Autolock lock(mutex);
 
-	if (context == NULL)
-	{
+	if (context == NULL) {
 		return NULL;
 	}
 
-	if (sRef == NULL)
-	{
+	if (sRef == NULL) {
 		IContext* pContext = NULL;
 		context->GetApplicationContext(&pContext);
-		if (pContext == NULL)
-		{
+		if (pContext == NULL) {
 			return NULL;
 		}
 
@@ -87,8 +83,7 @@ CARAPI_(void) CookieSyncManager::ClearAllCookies()
 {
 	// null mDataBase implies that the host application doesn't support
     // persistent cookie.
-    if (mDataBase == NULL)
-    {
+    if (mDataBase == NULL) {
         return;
     }
 
@@ -102,9 +97,8 @@ CARAPI_(Boolean) CookieSyncManager::HasCookies()
 {
 	// null mDataBase implies that the host application doesn't support
     // persistent cookie.
-    if (mDataBase == NULL)
-    {
-        return false;
+    if (mDataBase == NULL) {
+        return FALSE;
     }
 
     return ((CWebViewDatabase*)mDataBase)->HasCookies();
@@ -118,8 +112,7 @@ CARAPI_(void) CookieSyncManager::ClearSessionCookies()
 {
 	// null mDataBase implies that the host application doesn't support
     // persistent cookie.
-    if (mDataBase == NULL)
-    {
+    if (mDataBase == NULL) {
         return;
     }
 
@@ -135,8 +128,7 @@ CARAPI_(void) CookieSyncManager::ClearExpiredCookies(
 {
 	// null mDataBase implies that the host application doesn't support
     // persistent cookie.
-    if (mDataBase == NULL)
-    {
+    if (mDataBase == NULL) {
         return;
     }
 
@@ -151,10 +143,9 @@ CARAPI_(void) CookieSyncManager::SyncFromRamToFlash()
 
 	ICookieManager* cookieManager = NULL;
 	///////////////////////   new  //////////////////////////////
-	Boolean bFlag = false;
+	Boolean bFlag = FALSE;
 	cookieManager->AcceptCookie(&bFlag);
-    if (!bFlag)
-    {
+    if (!bFlag) {
         return;
     }
 
@@ -183,25 +174,18 @@ CARAPI_(void) CookieSyncManager::SyncFromRamToFlash(
 	ICookieManager* cookieManager = NULL;
 	//Iterator<Cookie> iter = list.iterator();
 	Int32 size = list.GetSize();
-	for (Int32 i = 0; i < size; i++)
-    //while (iter.hasNext())
-    {
+	for (Int32 i = 0; i < size; i++) {
         CCookieManager::Cookie* cookie = list[i];
-        if (cookie->mode != CCookieManager::Cookie::MODE_NORMAL)
-        {
-            if (cookie->mode != CCookieManager::Cookie::MODE_NEW)
-            {
+        if (cookie->mode != CCookieManager::Cookie::MODE_NORMAL) {
+            if (cookie->mode != CCookieManager::Cookie::MODE_NEW) {
                 ((CWebViewDatabase*)mDataBase)->DeleteCookies(cookie->domain,
                 	           cookie->path, cookie->name);
             }
 
-            if (cookie->mode != CCookieManager::Cookie::MODE_DELETED)
-            {
+            if (cookie->mode != CCookieManager::Cookie::MODE_DELETED) {
                 ((CWebViewDatabase*)mDataBase)->AddCookie(*cookie);
                 ((CCookieManager*)cookieManager)->SyncedACookie(*cookie);
-            }
-            else
-            {
+            } else {
                 ((CCookieManager*)cookieManager)->DeleteACookie(*cookie);
             }
         }

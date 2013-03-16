@@ -3,91 +3,91 @@
 #include "content/CContentValues.h"
 #include <elastos/Thread.h>
 
-const char* CWebViewDatabase::LOGTAG = "webviewdatabase";
+const CString CWebViewDatabase::LOGTAG = "webviewdatabase";
 
-const char* CWebViewDatabase::DATABASE_FILE = "webview.db";
-const char* CWebViewDatabase::CACHE_DATABASE_FILE = "webviewCache.db";
+const CString CWebViewDatabase::DATABASE_FILE = "webview.db";
+const CString CWebViewDatabase::CACHE_DATABASE_FILE = "webviewCache.db";
 
 // column id strings for "_id" which can be used by any table
-const char* CWebViewDatabase::ID_COL = "_id";
+const CString CWebViewDatabase::ID_COL = "_id";
 
 //static const char* ID_PROJECTION[];
 
 // column id strings for "cookies" table
-const char* CWebViewDatabase::COOKIES_NAME_COL = "name";
+const CString CWebViewDatabase::COOKIES_NAME_COL = "name";
 
-const char* CWebViewDatabase::COOKIES_VALUE_COL = "value";
+const CString CWebViewDatabase::COOKIES_VALUE_COL = "value";
 
-const char* CWebViewDatabase::COOKIES_DOMAIN_COL = "domain";
+const CString CWebViewDatabase::COOKIES_DOMAIN_COL = "domain";
 
-const char* CWebViewDatabase::COOKIES_PATH_COL = "path";
+const CString CWebViewDatabase::COOKIES_PATH_COL = "path";
 
-const char* CWebViewDatabase::COOKIES_EXPIRES_COL = "expires";
+const CString CWebViewDatabase::COOKIES_EXPIRES_COL = "expires";
 
-const char* CWebViewDatabase::COOKIES_SECURE_COL = "secure";
+const CString CWebViewDatabase::COOKIES_SECURE_COL = "secure";
 
 // column id strings for "cache" table
-const char* CWebViewDatabase::CACHE_URL_COL = "url";
+const CString CWebViewDatabase::CACHE_URL_COL = "url";
 
-const char* CWebViewDatabase::CACHE_FILE_PATH_COL = "filepath";
+const CString CWebViewDatabase::CACHE_FILE_PATH_COL = "filepath";
 
-const char* CWebViewDatabase::CACHE_LAST_MODIFY_COL = "lastmodify";
+const CString CWebViewDatabase::CACHE_LAST_MODIFY_COL = "lastmodify";
 
-const char* CWebViewDatabase::CACHE_ETAG_COL = "etag";
+const CString CWebViewDatabase::CACHE_ETAG_COL = "etag";
 
-const char* CWebViewDatabase::CACHE_EXPIRES_COL = "expires";
+const CString CWebViewDatabase::CACHE_EXPIRES_COL = "expires";
 
-const char* CWebViewDatabase::CACHE_EXPIRES_STRING_COL = "expiresstring";
+const CString CWebViewDatabase::CACHE_EXPIRES_STRING_COL = "expiresstring";
 
-const char* CWebViewDatabase::CACHE_MIMETYPE_COL = "mimetype";
+const CString CWebViewDatabase::CACHE_MIMETYPE_COL = "mimetype";
 
-const char* CWebViewDatabase::CACHE_ENCODING_COL = "encoding";
+const CString CWebViewDatabase::CACHE_ENCODING_COL = "encoding";
 
-const char* CWebViewDatabase::CACHE_HTTP_STATUS_COL = "httpstatus";
+const CString CWebViewDatabase::CACHE_HTTP_STATUS_COL = "httpstatus";
 
-const char* CWebViewDatabase::CACHE_LOCATION_COL = "location";
+const CString CWebViewDatabase::CACHE_LOCATION_COL = "location";
 
-const char* CWebViewDatabase::CACHE_CONTENTLENGTH_COL = "contentlength";
+const CString CWebViewDatabase::CACHE_CONTENTLENGTH_COL = "contentlength";
 
-const char* CWebViewDatabase::CACHE_CONTENTDISPOSITION_COL = "contentdisposition";
+const CString CWebViewDatabase::CACHE_CONTENTDISPOSITION_COL = "contentdisposition";
 
-const char* CWebViewDatabase::CACHE_CROSSDOMAIN_COL = "crossdomain";
+const CString CWebViewDatabase::CACHE_CROSSDOMAIN_COL = "crossdomain";
 
 // column id strings for "password" table
-const char* CWebViewDatabase::PASSWORD_HOST_COL = "host";
+const CString CWebViewDatabase::PASSWORD_HOST_COL = "host";
 
-const char* CWebViewDatabase::PASSWORD_USERNAME_COL = "username";
+const CString CWebViewDatabase::PASSWORD_USERNAME_COL = "username";
 
-const char* CWebViewDatabase::PASSWORD_PASSWORD_COL = "password";
+const CString CWebViewDatabase::PASSWORD_PASSWORD_COL = "password";
 
 // column id strings for "formurl" table
-const char* CWebViewDatabase::FORMURL_URL_COL = "url";
+const CString CWebViewDatabase::FORMURL_URL_COL = "url";
 
 // column id strings for "formdata" table
-const char* CWebViewDatabase::FORMDATA_URLID_COL = "urlid";
+const CString CWebViewDatabase::FORMDATA_URLID_COL = "urlid";
 
-const char* CWebViewDatabase::FORMDATA_NAME_COL = "name";
+const CString CWebViewDatabase::FORMDATA_NAME_COL = "name";
 
-const char* CWebViewDatabase::FORMDATA_VALUE_COL = "value";
+const CString CWebViewDatabase::FORMDATA_VALUE_COL = "value";
 
 // column id strings for "httpauth" table
-const char* CWebViewDatabase::HTTPAUTH_HOST_COL = "host";
+const CString CWebViewDatabase::HTTPAUTH_HOST_COL = "host";
 
-const char* CWebViewDatabase::HTTPAUTH_REALM_COL = "realm";
+const CString CWebViewDatabase::HTTPAUTH_REALM_COL = "realm";
 
-const char* CWebViewDatabase::HTTPAUTH_USERNAME_COL = "username";
+const CString CWebViewDatabase::HTTPAUTH_USERNAME_COL = "username";
 
-const char* CWebViewDatabase::HTTPAUTH_PASSWORD_COL = "password";
+const CString CWebViewDatabase::HTTPAUTH_PASSWORD_COL = "password";
 
 // log tag
-const char* LOGTAG;// = "webviewdatabase";
+const CString LOGTAG = "webviewdatabase";
 
-const char* DATABASE_FILE;// = "webview.db";
-const char* CACHE_DATABASE_FILE;// = "webviewCache.db";
+const CString DATABASE_FILE = "webview.db";
+const CString CACHE_DATABASE_FILE = "webviewCache.db";
 
-    // 1 -> 2 Add expires String
-    // 2 -> 3 Add content-disposition
-    // 3 -> 4 Add crossdomain (For x-permitted-cross-domain-policies header)
+// 1 -> 2 Add expires String
+// 2 -> 3 Add content-disposition
+// 3 -> 4 Add crossdomain (For x-permitted-cross-domain-policies header)
     
 CWebViewDatabase* CWebViewDatabase::mInstance = NULL;
 ISQLiteDatabase* CWebViewDatabase::mDatabase = NULL;
@@ -112,38 +112,31 @@ Int32 CWebViewDatabase::mCacheCrossDomainColIndex;
 Int32 CWebViewDatabase::mCacheTransactionRefcount;
 
 ECode CWebViewDatabase::GetInstance(
-    /* [in] */ IContext * pContext,
-    /* [out] */ IWebViewDatabase ** ppInstance)
+    /* [in] */ IContext* context,
+    /* [out] */ IWebViewDatabase** instance)
 {
-    if (mInstance == NULL)
-    {
+    if (mInstance == NULL) {
         AcquireSingletonByFriend(&mInstance);
     }
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebViewDatabase::HasUsernamePassword(
-    /* [out] */ Boolean * pFlag)
+    /* [out] */ Boolean* flag)
 {
-    if (pFlag == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(flag);
 
     mPasswordLock.Lock();
-    *pFlag = HasEntries(TABLE_PASSWORD_ID);
+    *flag = HasEntries(TABLE_PASSWORD_ID);
     mPasswordLock.Unlock();
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebViewDatabase::ClearUsernamePassword()
 {
-    if (mDatabase == NULL)
-    {
+    if (mDatabase == NULL) {
         return E_NOT_IMPLEMENTED;
     }
 
@@ -151,30 +144,24 @@ ECode CWebViewDatabase::ClearUsernamePassword()
 //    mDatabase->Delete(mTableNames[TABLE_PASSWORD_ID], NULL, NULL);
     mHttpAuthLock.Unlock();
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebViewDatabase::HasHttpAuthUsernamePassword(
-    /* [out] */ Boolean * pFlag)
+    /* [out] */ Boolean* flag)
 {
-    if (pFlag == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(flag);
 
     mPasswordLock.Lock();
-    *pFlag = HasEntries(TABLE_HTTPAUTH_ID);
+    *flag = HasEntries(TABLE_HTTPAUTH_ID);
     mPasswordLock.Unlock();
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebViewDatabase::ClearHttpAuthUsernamePassword()
 {
-    if (mDatabase == NULL)
-    {
+    if (mDatabase == NULL) {
         return E_NOT_IMPLEMENTED;
     }
 
@@ -182,30 +169,24 @@ ECode CWebViewDatabase::ClearHttpAuthUsernamePassword()
 //    mDatabase->Delete(mTableNames[TABLE_HTTPAUTH_ID], NULL, NULL);
     mHttpAuthLock.Unlock();
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebViewDatabase::HasFormData(
-    /* [out] */ Boolean * pFlag)
+    /* [out] */ Boolean* flag)
 {
-    if (pFlag == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(flag);
 
     mFormLock.Lock();
-    *pFlag = HasEntries(TABLE_FORMURL_ID);
+    *flag = HasEntries(TABLE_FORMURL_ID);
     mFormLock.Unlock();
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebViewDatabase::ClearFormData()
 {
-    if (mDatabase == NULL)
-    {
+    if (mDatabase == NULL) {
         return E_NOT_IMPLEMENTED;
     }
 
@@ -214,23 +195,20 @@ ECode CWebViewDatabase::ClearFormData()
 //    mDatabase->Delete(mTableNames[TABLE_FORMDATA_ID], NULL, NULL);
     mFormLock.Unlock();
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebViewDatabase::CreateInstance(
-    /* [in] */ IContext * pContext,
-    /* [out] */ CWebViewDatabase **ppParam0)
+    /* [in] */ IContext* context,
+    /* [out] */ CWebViewDatabase** param0)
 {
-    if (mInstance == NULL)
-    {
+    if (mInstance == NULL) {
         AcquireSingletonByFriend(&mInstance);
     }
 
-    *ppParam0 = mInstance;
+    *param0 = mInstance;
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 CARAPI_(void) CWebViewDatabase::GetCookiesForDomain(
@@ -238,8 +216,7 @@ CARAPI_(void) CWebViewDatabase::GetCookiesForDomain(
     /* [out] */ Vector<AutoPtr<CCookieManager::Cookie> >& list)
 {
     //ArrayList<Cookie> list = new ArrayList<Cookie>();
-    if (domain.GetLength() == 0 || mDatabase == NULL)
-    {
+    if (domain.GetLength() == 0 || mDatabase == NULL) {
         return;
     }
 
@@ -261,17 +238,16 @@ CARAPI_(void) CWebViewDatabase::GetCookiesForDomain(
         cursor = mDatabase->Query(mTableNames[TABLE_COOKIES_ID],
                 columns, selection, new String[] { domain }, null, null,
                 null);*/
-        Boolean bFlag = false;
+        Boolean bFlag = FALSE;
         cursor->MoveToFirst(&bFlag);
-        if (bFlag)
-        {
-            int domainCol;
-            int pathCol;
-            int nameCol;
-            int valueCol;
-            int expiresCol;
-            int secureCol;
-            Boolean moveToNext = false;
+        if (bFlag) {
+            Int32 domainCol;
+            Int32 pathCol;
+            Int32 nameCol;
+            Int32 valueCol;
+            Int32 expiresCol;
+            Int32 secureCol;
+            Boolean moveToNext = FALSE;
 
             cursor->GetColumnIndex((String)COOKIES_DOMAIN_COL, &domainCol);
             cursor->GetColumnIndex((String)COOKIES_PATH_COL, &pathCol);
@@ -279,21 +255,17 @@ CARAPI_(void) CWebViewDatabase::GetCookiesForDomain(
             cursor->GetColumnIndex((String)COOKIES_VALUE_COL, &valueCol);
             cursor->GetColumnIndex((String)COOKIES_EXPIRES_COL, &expiresCol);
             cursor->GetColumnIndex((String)COOKIES_SECURE_COL, &secureCol);
-            do
-            {
+            do {
                 AutoPtr<CCookieManager::Cookie> cookie;// = new Cookie();
                 cursor->GetString(domainCol, &(cookie->domain));
                 cursor->GetString(pathCol, &(cookie->path));
                 cursor->GetString(nameCol, &(cookie->name));
                 cursor->GetString(valueCol, &(cookie->value));
-                Boolean isNull = false;
+                Boolean isNull = FALSE;
                 cursor->IsNull(expiresCol, &isNull);
-                if (isNull)
-                {
+                if (isNull) {
                     cookie->expires = -1;
-                }
-                else
-                {
+                } else {
 //                    cookie->expires = cursor->GetLong(expiresCol);
                 }
 //                cookie->secure = cursor->GetShort(secureCol) != 0;
@@ -311,8 +283,7 @@ CARAPI_(void) CWebViewDatabase::DeleteCookies(
     /* [in] */ const String& path,
     /* [in] */ const String& name)
 {
-    if (domain.GetLength() == 0 || mDatabase == NULL)
-    {
+    if (domain.GetLength() == 0 || mDatabase == NULL) {
         return;
     }
 
@@ -336,8 +307,7 @@ CARAPI_(void) CWebViewDatabase::AddCookie(
     /* [in] */ const CCookieManager::Cookie& cookie)
 {
     if (cookie.domain.GetLength() == 0 || cookie.path.GetLength() == 0
-      || cookie.name.GetLength() == 0 || mDatabase == NULL)
-    {
+      || cookie.name.GetLength() == 0 || mDatabase == NULL) {
         return;
     }
 
@@ -351,8 +321,7 @@ CARAPI_(void) CWebViewDatabase::AddCookie(
         cookieVal->PutString((String)COOKIES_PATH_COL, cookie.path);
         cookieVal->PutString((String)COOKIES_NAME_COL, cookie.name);
         cookieVal->PutString((String)COOKIES_VALUE_COL, cookie.value);
-        if (cookie.expires != -1)
-        {
+        if (cookie.expires != -1) {
             cookieVal->PutInt32((String)COOKIES_EXPIRES_COL, cookie.expires);
         }
         cookieVal->PutInt32((String)COOKIES_SECURE_COL, cookie.secure);
@@ -364,9 +333,8 @@ CARAPI_(void) CWebViewDatabase::AddCookie(
 
 CARAPI_(Boolean) CWebViewDatabase::HasCookies()
 {
-    if (mDatabase == NULL)
-    {
-        return false;
+    if (mDatabase == NULL) {
+        return FALSE;
     }
 
     mCookieLock.Lock();
@@ -376,8 +344,7 @@ CARAPI_(Boolean) CWebViewDatabase::HasCookies()
 
 CARAPI_(void) CWebViewDatabase::ClearCookies()
 {
-    if (mDatabase == NULL)
-    {
+    if (mDatabase == NULL) {
         return;
     }
 
@@ -388,8 +355,7 @@ CARAPI_(void) CWebViewDatabase::ClearCookies()
 
 CARAPI_(void) CWebViewDatabase::ClearSessionCookies()
 {
-    if (mDatabase == NULL)
-    {
+    if (mDatabase == NULL) {
         return;
     }
 
@@ -404,8 +370,7 @@ CARAPI_(void) CWebViewDatabase::ClearSessionCookies()
 CARAPI_(void) CWebViewDatabase::ClearExpiredCookies(
     /* [in] */ Int64 now)
 {
-    if (mDatabase == NULL)
-    {
+    if (mDatabase == NULL) {
         return;
     }
 
@@ -424,20 +389,19 @@ CARAPI_(void) CWebViewDatabase::ClearExpiredCookies(
 // only called from WebViewWorkerThread
 CARAPI_(Boolean) CWebViewDatabase::StartCacheTransaction()
 {
-    return false;
+    return FALSE;
 }
 
 // only called from WebViewWorkerThread
 CARAPI_(Boolean) CWebViewDatabase::EndCacheTransaction()
 {
-    return false;
+    return FALSE;
 }
 
 CARAPI_(CCacheManager::CacheResult*) CWebViewDatabase::GetCache(
     /* [in] */ const String& url)
 {
-    if (url.GetLength() == 0 || mCacheDatabase == NULL)
-    {
+    if (url.GetLength() == 0 || mCacheDatabase == NULL) {
         return NULL;
     }
 
@@ -447,10 +411,9 @@ CARAPI_(CCacheManager::CacheResult*) CWebViewDatabase::GetCache(
     query += "contentdisposition, crossdomain FROM cache WHERE url = ?";
     
 //    cursor = mCacheDatabase.rawQuery(query, new String[] { url });
-    Boolean bFlag = false;
+    Boolean bFlag = FALSE;
     cursor->MoveToFirst(&bFlag);
-    if (bFlag)
-    {
+    if (bFlag) {
         CCacheManager::CacheResult* ret;// = new CCacheManager::CacheResult();
         cursor->GetString(0, &(ret->localPath));
         cursor->GetString(1, &(ret->lastModified));
@@ -473,8 +436,7 @@ CARAPI_(CCacheManager::CacheResult*) CWebViewDatabase::GetCache(
 CARAPI_(void) CWebViewDatabase::RemoveCache(
     /* [in] */ const String& url)
 {
-    if (url.GetLength() == 0 || mCacheDatabase == NULL)
-    {
+    if (url.GetLength() == 0 || mCacheDatabase == NULL) {
         return;
     }
 
@@ -486,8 +448,7 @@ CARAPI_(void) CWebViewDatabase::AddCache(
     /* [in] */ ICacheManagerCacheResult* cacheResult)
 {
     if (url.GetLength() == 0 || mCacheDatabase == NULL
-        || cacheResult == NULL)
-    {
+        || cacheResult == NULL) {
         return;
     }
 
@@ -512,8 +473,7 @@ CARAPI_(void) CWebViewDatabase::AddCache(
 
 CARAPI_(void) CWebViewDatabase::ClearCache()
 {
-    if (mCacheDatabase == NULL)
-    {
+    if (mCacheDatabase == NULL) {
         return;
     }
 
@@ -522,13 +482,12 @@ CARAPI_(void) CWebViewDatabase::ClearCache()
 
 CARAPI_(Boolean) CWebViewDatabase::HasCache()
 {
-    if (mCacheDatabase == NULL)
-    {
-        return false;
+    if (mCacheDatabase == NULL) {
+        return FALSE;
     }
 
     AutoPtr<ICursor> cursor = NULL;
-    Boolean ret = false;
+    Boolean ret = FALSE;
 //    cursor = mCacheDatabase->Query("cache", ID_PROJECTION, 
 //        NULL, NULL, NULL, NULL, NULL);
     cursor->MoveToFirst(&ret);
@@ -538,19 +497,17 @@ CARAPI_(Boolean) CWebViewDatabase::HasCache()
 
 CARAPI_(Int64) CWebViewDatabase::GetCacheTotalSize()
 {
-    if (mCacheDatabase == NULL)
-    {
+    if (mCacheDatabase == NULL) {
         return 0;
     }
 
-    long size = 0;
+    Int64 size = 0;
     AutoPtr<ICursor> cursor = NULL;
     String query("SELECT SUM(contentlength) as sum FROM cache");
 //    cursor = mCacheDatabase.rawQuery(query, null);
-    Boolean bFlag = false;
+    Boolean bFlag = FALSE;
     cursor->MoveToFirst(&bFlag);
-    if (bFlag)
-    {
+    if (bFlag) {
 //        cursor->GetLong(0, &size);
     }
 
@@ -566,17 +523,15 @@ CARAPI_(void) CWebViewDatabase::TrimCache(
     String query("SELECT contentlength, filepath FROM cache ORDER BY expires ASC");
 
 //    cursor = mCacheDatabase.rawQuery(query, null);
-    Boolean bMoveToFirst = false;
+    Boolean bMoveToFirst = FALSE;
     cursor->MoveToFirst(&bMoveToFirst);
-    if (bMoveToFirst)
-    {
-        int batchSize = 100;
+    if (bMoveToFirst) {
+        Int32 batchSize = 100;
         //StringBuilder pathStr = new StringBuilder(20 + 16 * batchSize);
         //pathStr.append("DELETE FROM cache WHERE filepath IN (?");
         String pathStr("DELETE FROM cache WHERE filepath IN (?");
 
-        for (int i = 1; i < batchSize; i++)
-        {
+        for (Int32 i = 1; i < batchSize; i++) {
             pathStr.Append(", ?");
         }
 
@@ -585,14 +540,12 @@ CARAPI_(void) CWebViewDatabase::TrimCache(
         
 //        statement = mCacheDatabase.compileStatement(pathStr.toString());
         // as bindString() uses 1-based index, initialize index to 1
-        int index = 1;
-        Boolean bFlag = false;
-        do
-        {
-            long length = 0;
+        Int32 index = 1;
+        Boolean bFlag = FALSE;
+        do {
+            Int64 length = 0;
 //            cursor->GetLong(0, &length);
-            if (length == 0)
-            {
+            if (length == 0) {
                 continue;
             }
             amount -= length;
@@ -600,8 +553,7 @@ CARAPI_(void) CWebViewDatabase::TrimCache(
             cursor->GetString(1, &filePath);
             statement->BindString(index, filePath);
             pathList.PushBack(filePath);
-            if (index++ == batchSize)
-            {
+            if (index++ == batchSize) {
                 statement->Execute();
                 statement->ClearBindings();
                 index = 1;
@@ -610,8 +562,7 @@ CARAPI_(void) CWebViewDatabase::TrimCache(
             cursor->MoveToNext(&bFlag);
         } while (bFlag && amount > 0);
 
-        if (index > 1)
-        {
+        if (index > 1) {
             // there may be old bindings from the previous statement
             // if index is less than batchSize, which is Ok.
             statement->Execute();
@@ -625,16 +576,14 @@ CARAPI_(void) CWebViewDatabase::GetAllCacheFileNames(
     AutoPtr<ICursor> cursor = NULL;
 
 //    cursor = mCacheDatabase.rawQuery("SELECT filepath FROM cache", null);
-    Boolean bMoveToFirst = false;
+    Boolean bMoveToFirst = FALSE;
     cursor->MoveToFirst(&bMoveToFirst);
-    if (cursor != NULL && bMoveToFirst)
-    {
-        Boolean bMoveToNext = false;
+    if (cursor != NULL && bMoveToFirst) {
+        Boolean bMoveToNext = FALSE;
         String str;
 
         //pathList = new ArrayList<String>(cursor.getCount());
-        do
-        {
+        do {
             cursor->GetString(0, &str);
             pathList.PushBack(str);
             cursor->MoveToNext(&bMoveToNext);
@@ -651,19 +600,16 @@ CARAPI_(void) CWebViewDatabase::SetUsernamePassword(
     /* [in] */ const String& username,
     /* [in] */ const String& password)
 {
-    if (schemePlusHost.GetLength() == 0 || mDatabase == NULL)
-    {
+    if (schemePlusHost.GetLength() == 0 || mDatabase == NULL) {
         return;
     }
 
     mPasswordLock.Lock();
     {
         AutoPtr<IContentValues> c = NULL;
-        IContentValues* _c = NULL;
         
-        CContentValues::New(&_c);
-        assert(_c);
-        c = _c;
+        CContentValues::New((IContentValues**)&c);
+        assert(c);
 
         c->PutString((String)PASSWORD_HOST_COL, schemePlusHost);
         c->PutString((String)PASSWORD_USERNAME_COL, username);
@@ -677,8 +623,7 @@ CARAPI_(void) CWebViewDatabase::GetUsernamePassword(
     /* [in] */ const String& schemePlusHost,
     /* [out] */ Vector<String>& ret)
 {
-    if (schemePlusHost.GetLength() == 0 || mDatabase == NULL)
-    {
+    if (schemePlusHost.GetLength() == 0 || mDatabase == NULL) {
             return;
     }
 
@@ -698,10 +643,9 @@ CARAPI_(void) CWebViewDatabase::GetUsernamePassword(
 //        cursor = mDatabase.query(mTableNames[TABLE_PASSWORD_ID],
 //                columns, selection, new String[] { schemePlusHost }, null,
 //                null, null);
-        Boolean bMoveToFirst = false;
+        Boolean bMoveToFirst = FALSE;
         cursor->MoveToFirst(&bMoveToFirst);
-        if (bMoveToFirst)
-        {
+        if (bMoveToFirst) {
             Int32 columnIndex = 0;
 
             cursor->GetColumnIndex((String)PASSWORD_USERNAME_COL, &columnIndex);
@@ -723,20 +667,17 @@ CARAPI_(void) CWebViewDatabase::SetHttpAuthUsernamePassword(
     /* [in] */ const String username,
     /* [in] */ const String password)
 {
-    if (host.GetLength() == NULL || realm.GetLength() == 0
-       || mDatabase == NULL)
-    {
+    if (host.GetLength() == 0 || realm.GetLength() == 0
+       || mDatabase == NULL) {
         return;
     }
 
     mHttpAuthLock.Lock();
     {
         AutoPtr<IContentValues> c = NULL;
-        IContentValues* _c = NULL;
 
-        CContentValues::New(&_c);
-        assert(_c);
-        c = _c;
+        CContentValues::New((IContentValues**)&c);
+        assert(c);
 
         c->PutString((String)HTTPAUTH_HOST_COL, host);
         c->PutString((String)HTTPAUTH_REALM_COL, realm);
@@ -753,8 +694,7 @@ CARAPI_(void) CWebViewDatabase::GetHttpAuthUsernamePassword(
     /* [out] */ Vector<String>& ret)
 {
     if (host.GetLength() == 0 || realm.GetLength() == 0
-       || mDatabase == NULL)
-    {
+       || mDatabase == NULL) {
         return;
     }
 
@@ -778,10 +718,9 @@ CARAPI_(void) CWebViewDatabase::GetHttpAuthUsernamePassword(
 //                columns, selection, new String[] { host, realm }, null,
 //                null, null);
 
-        Boolean bMoveToFirst = false;
+        Boolean bMoveToFirst = FALSE;
         cursor->MoveToFirst(&bMoveToFirst);
-        if (bMoveToFirst)
-        {
+        if (bMoveToFirst) {
             Int32 columnIndex = 0;
 
             cursor->GetColumnIndex((String)HTTPAUTH_USERNAME_COL, &columnIndex);
@@ -797,8 +736,7 @@ CARAPI_(void) CWebViewDatabase::SetFormData(
     /* [in] */ const String& url,
     /* [in] */ IObjectStringMap* formdata)
 {
-    if (url.GetLength() == NULL || formdata == NULL || mDatabase == NULL)
-    {
+    if (url.GetLength() == 0 || formdata == NULL || mDatabase == NULL) {
         return;
     }
 
@@ -846,9 +784,8 @@ CARAPI_(void) CWebViewDatabase::GetFormData(
     /* [in] */ const String& name,
     /* [out] */ Vector<String>& values)
 {
-    if (url.GetLength() == NULL || name.GetLength() == NULL 
-        || mDatabase == NULL)
-    {
+    if (url.GetLength() == 0 || name.GetLength() == 0 
+        || mDatabase == NULL) {
         return;
     }
 
@@ -869,10 +806,9 @@ CARAPI_(void) CWebViewDatabase::GetFormData(
 //        cursor = mDatabase.query(mTableNames[TABLE_FORMURL_ID],
 //                ID_PROJECTION, urlSelection, new String[] { url }, null,
 //                null, null);
-        Boolean bMoveToFirst = false;
+        Boolean bMoveToFirst = FALSE;
         cursor->MoveToFirst(&bMoveToFirst);
-        if (bMoveToFirst)
-        {
+        if (bMoveToFirst) {
             long urlid = 0;//cursor.getLong(cursor.getColumnIndex(ID_COL));
             AutoPtr<ICursor> dataCursor = NULL;
 
@@ -883,16 +819,14 @@ CARAPI_(void) CWebViewDatabase::GetFormData(
 //                    new String[] { Long.toString(urlid), name },
 //                    null, null, null);
 
-            Boolean bFlag = false;
+            Boolean bFlag = FALSE;
             dataCursor->MoveToFirst(&bFlag);
-            if (bFlag)
-            {
+            if (bFlag) {
                 int valueCol = 0;
                 String str;
-                Boolean bMoveToNext = false;
+                Boolean bMoveToNext = FALSE;
                 dataCursor->GetColumnIndex((String)FORMDATA_VALUE_COL, &valueCol);
-                do
-                {
+                do {
                     dataCursor->GetString(valueCol, &str);
                     values.PushBack(str);
                     dataCursor->MoveToNext(&bMoveToNext);
@@ -996,13 +930,12 @@ CARAPI_(void) CWebViewDatabase::BootstrapCacheDatabase()
 CARAPI_(Boolean) CWebViewDatabase::HasEntries(
     /* [in] */ Int32 tableId)
 {
-    if (mDatabase == NULL)
-    {
-        return false;
+    if (mDatabase == NULL) {
+        return FALSE;
     }
 
     AutoPtr<ICursor> cursor = NULL;
-    Boolean ret = false;
+    Boolean ret = FALSE;
     
 //    cursor = mDatabase.query(mTableNames[tableId], ID_PROJECTION,
 //            null, null, null, null, null);

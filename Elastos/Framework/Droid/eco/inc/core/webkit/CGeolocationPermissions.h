@@ -11,18 +11,18 @@ CarClass(CGeolocationPermissions)
 {
 public:
     CARAPI GetInstance(
-        /* [out] */ IGeolocationPermissions ** ppInstance);
+        /* [out] */ IGeolocationPermissions** instance);
 
     CARAPI CreateUIHandler();
 
     CARAPI CreateHandler();
 
     CARAPI GetOrigins(
-        /* [in] */ IValueCallback * pCallBack);
+        /* [in] */ IValueCallback* callBack);
 
     CARAPI GetAllowed(
         /* [in] */ CString origin,
-        /* [in] */ IValueCallback * pCallBack);
+        /* [in] */ IValueCallback* callBack);
 
     CARAPI Clear(
         /* [in] */ CString origin);
@@ -47,12 +47,12 @@ public:
 private:
 
     // Log tag
-    static const char* TAG;// = "geolocationPermissions";
+    static const CString TAG;// = "geolocationPermissions";
 
-    static const char* ORIGINS;// = "origins";
-    static const char* ORIGIN;// = "origin";
-    static const char* CALLBACK;// = "callback";
-    static const char* ALLOWED;// = "allowed";
+    static const CString ORIGINS;// = "origins";
+    static const CString ORIGIN;// = "origin";
+    static const CString CALLBACK;// = "callback";
+    static const CString ALLOWED;// = "allowed";
 
 private:
     /**

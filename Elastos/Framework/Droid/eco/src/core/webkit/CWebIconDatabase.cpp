@@ -3,34 +3,29 @@
 
 #include <elastos/Mutex.h>
 
-const char* CWebIconDatabase::LOGTAG = "WebIconDatabase";
+const CString CWebIconDatabase::LOGTAG = "WebIconDatabase";
 
 CWebIconDatabase* CWebIconDatabase::sIconDatabase = NULL;
 
 ECode CWebIconDatabase::Open(
     /* [in] */ CString path)
 {
-    if (path.GetLength() != 0)
-    {
+    if (path.GetLength() != 0) {
         // Make the directories and parents if they don't exist
         AutoPtr<IFile> db = NULL;
-        IFile* _db = NULL;
         
-        CFile::New((String)path, &_db);
-        db = _db;
+        CFile::New((String)path, (IFile**)&db);
 
-        Boolean bExists = false;
+        Boolean bExists = FALSE;
         db->Exists(&bExists);
-        if (!bExists)
-        {
-            Boolean bMkdirs = false;
+        if (!bExists) {
+            Boolean bMkdirs = FALSE;
             db->Mkdirs(&bMkdirs);
         }
 //        mEventHandler.postMessage(Message.obtain(null, EventHandler.OPEN, db.getAbsolutePath()));
     }
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebIconDatabase::Close()
@@ -51,10 +46,11 @@ ECode CWebIconDatabase::RemoveAllIcons()
 
 ECode CWebIconDatabase::RequestIconForPageUrl(
     /* [in] */ CString url,
-    /* [in] */ IWebIconDatabaseIconListener * pListener)
+    /* [in] */ IWebIconDatabaseIconListener* listener)
 {
-    if (pListener == NULL || url.GetLength() == 0)
-    {
+    VALIDATE_NOT_NULL(listener);
+
+    if (url.GetLength() == 0) {
         return E_INVALID_ARGUMENT;
     }
 
@@ -62,19 +58,16 @@ ECode CWebIconDatabase::RequestIconForPageUrl(
 //    msg.getData().putString("url", url);
 //    mEventHandler.postMessage(msg);
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebIconDatabase::BulkRequestIconForPageUrl(
-    /* [in] */ IContentResolver * pCr,
+    /* [in] */ IContentResolver* cr,
     /* [in] */ CString where,
-    /* [in] */ IWebIconDatabaseIconListener * pListener)
+    /* [in] */ IWebIconDatabaseIconListener* listener)
 {
-    if (pListener == NULL || pCr == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(cr);
+    VALIDATE_NOT_NULL(listener);
 
     // Special case situation: we don't want to add this message to the
     // queue if there is no handler because we may never have a real
@@ -92,36 +85,31 @@ ECode CWebIconDatabase::BulkRequestIconForPageUrl(
         mEventHandler.postMessage(msg);
     }*/
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebIconDatabase::RetainIconForPageUrl(
     /* [in] */ CString url)
 {
-    if (url.GetLength() != 0)
-    {
+    if (url.GetLength() != 0) {
 //        mEventHandler.postMessage(Message.obtain(null, EventHandler.RETAIN_ICON, url));
     }
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebIconDatabase::ReleaseIconForPageUrl(
     /* [in] */ CString url)
 {
-    if (url.GetLength() != 0)
-    {
+    if (url.GetLength() != 0) {
 //        mEventHandler.postMessage(Message.obtain(null, EventHandler.RELEASE_ICON, url));
     }
 
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebIconDatabase::GetInstance(
-    /* [out] */ IWebIconDatabase ** ppInstance)
+    /* [out] */ IWebIconDatabase** instance)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -142,8 +130,7 @@ CARAPI_(void) CWebIconDatabase::CreateHandler()
 CARAPI_(void) CWebIconDatabase::EventHandler::HandleMessage(
     /* [in] */ IMessage* msg)
 {
-    if (msg == NULL)
-    {
+    if (msg == NULL) {
         return;
     }
 
@@ -165,8 +152,7 @@ CARAPI_(void) CWebIconDatabase::EventHandler::CreateHandler()
     Mutex mutex;
     Mutex::Autolock lock(mutex);
 
-    if (mHandler == NULL)
-    {
+    if (mHandler == NULL) {
 //        mHandler = new Handler();
 
         class newHandler : public IHandler
@@ -250,11 +236,8 @@ CARAPI_(void) CWebIconDatabase::EventHandler::RequestIconAndSendResult(
 CWebIconDatabase::EventHandler::IconResult::IconResult(
     /* [in] */ const String& url,
     /* [in] */ IBitmap* icon,
-    /* [in] */ IWebIconDatabaseIconListener* l)
+    /* [in] */ IWebIconDatabaseIconListener* l) : mUrl(url), mIcon(icon), mListener(l)
 {
-    mUrl = url;
-    mIcon = icon;
-    mListener = l;
 }
 
 void CWebIconDatabase::EventHandler::IconResult::dispatch()

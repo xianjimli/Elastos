@@ -140,7 +140,7 @@ private:
 	CARAPI_(void) StopSharedTimer();
 
 	CARAPI_(void) GetKeyStrengthList(
-        /* [out] */ String& str) const;
+        /* [out] */ Vector<String>& list) const;
 
     /*synchronized*/ 
     CARAPI_(void) GetSignedPublicKey(
@@ -169,7 +169,7 @@ private:
     // ID for servicing functionptr queue
 	static const Int32 FUNCPTR_MESSAGE = 2;
     // Log system identifier.
-	static const char* LOGTAG;// = "webkit-timers";
+	static const CString LOGTAG;// = "webkit-timers";
 
     // Native object pointer for interacting in native code.
 	Int32 mNativeBridge;

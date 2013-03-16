@@ -100,7 +100,7 @@ private:
 
 private:
 	// Log tag
-    static const char* TAG;// = "geolocationService";
+    static const CString TAG;// = "geolocationService";
 
 	Int64 mNativeObject;
 	AutoPtr<ILocalLocationManager> mLocationManager;
