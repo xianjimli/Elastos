@@ -2,10 +2,10 @@
 #define __CSETTINGSSECURE_H__
 
 #include "_CSettingsSecure.h"
-#include "provider/SettingsNameValueTable.h"
-#include "Elastos.Framework.Core.h"
+#include "Settings.h"
 
-CarClass(CSettingsSecure), public SettingsNameValueTable
+
+CarClass(CSettingsSecure), public Settings::Secure
 {
 public:
     /**
@@ -15,9 +15,9 @@ public:
      * @return the corresponding value, or null if not present
      */
     CARAPI GetString(
-        /*[in]*/ IContentResolver* resolver,
-        /*[in]*/ const String& name,
-        /*[out]*/ String* value);
+        /* [in] */ IContentResolver* resolver,
+        /* [in] */ const String& name,
+        /* [out] */ String* value);
 
     /**
      * Store a name/value pair into the database.
@@ -27,10 +27,10 @@ public:
      * @return true if the value was set, false on database errors
      */
     CARAPI PutString(
-        /*[in]*/ IContentResolver* resolver,
-        /*[in]*/ const String& name,
-        /*[in]*/ const String& value,
-        /*[out]*/ Boolean* result);
+        /* [in] */ IContentResolver* resolver,
+        /* [in] */ const String& name,
+        /* [in] */ const String& value,
+        /* [out] */ Boolean* result);
 
     /**
      * Construct the content URI for a particular name/value pair,
@@ -39,8 +39,8 @@ public:
      * @return the corresponding content URI, or null if not present
      */
     CARAPI GetUriFor(
-        /*[in]*/ const String& name,
-        /*[out]*/ IUri** uri);
+        /* [in] */ const String& name,
+        /* [out] */ IUri** uri);
 
     /**
      * Convenience function for retrieving a single secure settings value
@@ -56,11 +56,11 @@ public:
      * @return The setting's current value, or 'def' if it is not defined
      * or not a valid integer.
      */
-    CARAPI GetInt(
-        /*[in]*/ IContentResolver* cr,
-        /*[in]*/ const String& name,
-        /*[in]*/ Int32 def,
-        /*[out]*/ Int32* value);
+    CARAPI GetInt32(
+        /* [in] */ IContentResolver* cr,
+        /* [in] */ const String& name,
+        /* [in] */ Int32 def,
+        /* [out] */ Int32* value);
 
     /**
      * Convenience function for retrieving a single secure settings value
@@ -80,10 +80,10 @@ public:
      *
      * @return The setting's current value.
      */
-    CARAPI GetIntExtra(
-        /*[in]*/ IContentResolver* cr,
-        /*[in]*/ const String& name,
-        /*[out]*/ Int32* value);
+    CARAPI GetInt32Ex(
+        /* [in] */ IContentResolver* cr,
+        /* [in] */ const String& name,
+        /* [out] */ Int32* value);
 
     /**
      * Convenience function for updating a single settings value as an
@@ -98,11 +98,11 @@ public:
      * @param value The new value for the setting.
      * @return true if the value was set, false on database errors
      */
-    CARAPI PutInt(
-        /*[in]*/ IContentResolver* cr,
-        /*[in]*/ const String& name,
-        /*[in]*/ Int32 value,
-        /*[out]*/ Boolean* result);
+    CARAPI PutInt32(
+        /* [in] */ IContentResolver* cr,
+        /* [in] */ const String& name,
+        /* [in] */ Int32 value,
+        /* [out] */ Boolean* result);
 
     /**
      * Convenience function for retrieving a single secure settings value
@@ -118,11 +118,11 @@ public:
      * @return The setting's current value, or 'def' if it is not defined
      * or not a valid {@code long}.
      */
-    CARAPI GetLong(
-        /*[in]*/ IContentResolver* cr,
-        /*[in]*/ const String& name,
-        /*[in]*/ Int64 def,
-        /*[out]*/ Int64* value);
+    CARAPI GetInt64(
+        /* [in] */ IContentResolver* cr,
+        /* [in] */ const String& name,
+        /* [in] */ Int64 def,
+        /* [out] */ Int64* value);
 
     /**
      * Convenience function for retrieving a single secure settings value
@@ -141,10 +141,10 @@ public:
      * @throws SettingNotFoundException Thrown if a setting by the given
      * name can't be found or the setting value is not an integer.
      */
-    CARAPI GetLongExtra(
-        /*[in]*/ IContentResolver* cr,
-        /*[in]*/ const String& name,
-        /*[out]*/ Int64* value);
+    CARAPI GetInt64Ex(
+        /* [in] */ IContentResolver* cr,
+        /* [in] */ const String& name,
+        /* [out] */ Int64* value);
 
     /**
      * Convenience function for updating a secure settings value as a long
@@ -159,11 +159,11 @@ public:
      * @param value The new value for the setting.
      * @return true if the value was set, false on database errors
      */
-    CARAPI PutLong(
-        /*[in]*/ IContentResolver* cr,
-        /*[in]*/ const String& name,
-        /*[in]*/ Int64 value,
-        /*[out]*/ Boolean* result);
+    CARAPI PutInt64(
+        /* [in] */ IContentResolver* cr,
+        /* [in] */ const String& name,
+        /* [in] */ Int64 value,
+        /* [out] */ Boolean* result);
 
     /**
      * Convenience function for retrieving a single secure settings value
@@ -180,10 +180,10 @@ public:
      * or not a valid float.
      */
     CARAPI GetFloat(
-        /*[in]*/ IContentResolver* cr,
-        /*[in]*/ const String& name,
-        /*[in]*/ Float def,
-        /*[out]*/ Float* value);
+        /* [in] */ IContentResolver* cr,
+        /* [in] */ const String& name,
+        /* [in] */ Float def,
+        /* [out] */ Float* value);
 
     /**
      * Convenience function for retrieving a single secure settings value
@@ -203,10 +203,10 @@ public:
      *
      * @return The setting's current value.
      */
-    CARAPI GetFloatExtra(
-        /*[in]*/ IContentResolver* cr,
-        /*[in]*/ const String& name,
-        /*[out]*/ Float* value);
+    CARAPI GetFloatEx(
+        /* [in] */ IContentResolver* cr,
+        /* [in] */ const String& name,
+        /* [out] */ Float* value);
 
     /**
      * Convenience function for updating a single settings value as a
@@ -222,10 +222,10 @@ public:
      * @return true if the value was set, false on database errors
      */
     CARAPI PutFloat(
-        /*[in]*/ IContentResolver* cr,
-        /*[in]*/ const String& name,
-        /*[in]*/ Float value,
-        /*[out]*/ Boolean* result);
+        /* [in] */ IContentResolver* cr,
+        /* [in] */ const String& name,
+        /* [in] */ Float value,
+        /* [out] */ Boolean* result);
 
 
     /**
@@ -233,16 +233,16 @@ public:
      * @hide
      */
     CARAPI GetBluetoothHeadsetPriorityKey(
-        /*[in]*/ const String& address,
-        /*[out]*/ String* key);
+        /* [in] */ const String& address,
+        /* [out] */ String* key);
 
     /**
      * Get the key that retrieves a bluetooth a2dp sink's priority.
      * @hide
      */
     CARAPI GetBluetoothA2dpSinkPriorityKey(
-        /*[in]*/ const String& address,
-        /*[out]*/ String* key);
+        /* [in] */ const String& address,
+        /* [out] */ String* key);
 
     /**
      * Helper method for determining if a location provider is enabled.
@@ -251,9 +251,9 @@ public:
      * @return true if the provider is enabled
      */
     CARAPI IsLocationProviderEnabled(
-        /*[in]*/ IContentResolver* cr,
-        /*[in]*/ const String& provider,
-        /*[out]*/ Boolean* result);
+        /* [in] */ IContentResolver* cr,
+        /* [in] */ const String& provider,
+        /* [out] */ Boolean* result);
 
     /**
      * Thread-safe method for enabling or disabling a single location provider.
@@ -262,13 +262,9 @@ public:
      * @param enabled true if the provider should be enabled
      */
     CARAPI SetLocationProviderEnabled(
-        /*[in]*/ IContentResolver* cr,
-        /*[in]*/ const String& provider,
-        /*[in]*/ Boolean enabled);
-
-private:
-    /*// Populated lazily, guarded by class object:
-    static NameValueCache* sNameValueCache = NULL;*/
-
+        /* [in] */ IContentResolver* cr,
+        /* [in] */ const String& provider,
+        /* [in] */ Boolean enabled);
 };
+
 #endif //__CSETTINGSSECURE_H__

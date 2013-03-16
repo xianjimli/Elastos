@@ -145,11 +145,11 @@ public:
     CARAPI_(CActivityRecord*) MoveActivityToFrontLocked(
         /* [in] */ Int32 where);
 
-	CARAPI_(void) ReportActivityLaunchedLocked(
-	    /* [in] */ Boolean timeout,
-	    /* [in] */ CActivityRecord* r,
-	    /* [in] */ Int64 thisTime,
-	    /* [in] */ Int64 totalTime);
+    CARAPI_(void) ReportActivityLaunchedLocked(
+		/* [in] */ Boolean timeout,
+		/* [in] */ CActivityRecord* r,
+		/* [in] */ Int64 thisTime,
+		/* [in] */ Int64 totalTime);
 
     CARAPI StartActivityLocked(
         /* [in] */ IApplicationApartment* caller,

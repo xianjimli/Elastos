@@ -2,11 +2,10 @@
 #define __CSETTINGSBOOKMARKS_H__
 
 #include "_CSettingsBookmarks.h"
-#include "Elastos.Framework.Core.h"
+#include "Settings.h"
 
-using namespace Elastos;
 
-CarClass(CSettingsBookmarks)
+CarClass(CSettingsBookmarks), public Settings::Bookmarks
 {
 public:
     /**
@@ -20,9 +19,9 @@ public:
      *         matching the given shortcut.
      */
     CARAPI GetIntentForShortcut(
-        /*[in]*/ IContentResolver* cr,
-        /*[in]*/ Char32 shortcut,
-        /*[out]*/ IIntent** intent);
+        /* [in] */ IContentResolver* cr,
+        /* [in] */ Char32 shortcut,
+        /* [out] */ IIntent** intent);
 
     /**
      * Add a new bookmark to the system.
@@ -39,13 +38,13 @@ public:
      * @return The unique content URL for the new bookmark entry.
      */
     CARAPI Add(
-        /*[in]*/ IContentResolver* cr,
-        /*[in]*/ IIntent* intent,
-        /*[in]*/ const String& title,
-        /*[in]*/ const String& folder,
-        /*[in]*/ Char32 shortcut,
-        /*[in]*/ Int32 ordering,
-        /*[out]*/ IUri** uri);
+        /* [in] */ IContentResolver* cr,
+        /* [in] */ IIntent* intent,
+        /* [in] */ const String& title,
+        /* [in] */ const String& folder,
+        /* [in] */ Char32 shortcut,
+        /* [in] */ Int32 ordering,
+        /* [out] */ IUri** uri);
 
     /**
      * Return the folder name as it should be displayed to the user.  This
@@ -59,9 +58,9 @@ public:
      *         to the user.
      */
     CARAPI GetLabelForFolder(
-        /*[in]*/ IResources* r,
-        /*[in]*/ const String& folder,
-        /*[out]*/ ICharSequence** fName);
+        /* [in] */ IResources* r,
+        /* [in] */ const String& folder,
+        /* [out] */ ICharSequence** fName);
 
     /**
      * Return the title as it should be displayed to the user. This takes
@@ -75,19 +74,9 @@ public:
      *         or the empty string if one could not be found.
      */
     CARAPI GetTitle(
-        /*[in]*/ IContext* context,
-        /*[in]*/ ICursor* cursor,
-        /*[out]*/ ICharSequence** title);
-
-
-
-private:
-    static const String TAG;
-
-    static const String sIntentProjection[];
-    static const String sShortcutProjection[];
-    static const String sShortcutSelection;
-
+        /* [in] */ IContext* context,
+        /* [in] */ ICursor* cursor,
+        /* [out] */ ICharSequence** title);
 };
 
 #endif //__CSETTINGSBOOKMARKS_H__
