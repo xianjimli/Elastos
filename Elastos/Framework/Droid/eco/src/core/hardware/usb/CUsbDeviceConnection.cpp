@@ -22,11 +22,9 @@ ECode CUsbDeviceConnection::Open(
     VALIDATE_NOT_NULL(result);
 
     AutoPtr<IFileDescriptor> fd = NULL;
-    /*
-    RYAN
-    pfd->GetFileDescriptor(&fd);
-    */
+    pfd->GetFileDescriptor((IFileDescriptor**)&fd);
     *result = NativeOpen(name, fd);
+
     return NOERROR;
 }
 
