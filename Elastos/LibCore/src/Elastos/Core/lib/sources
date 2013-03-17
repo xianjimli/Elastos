@@ -18,6 +18,7 @@ SOURCES = System.cpp
 SOURCES += Math.cpp
 SOURCES += Character.cpp
 SOURCES += StringBuffer.cpp
+SOURCES += Object.cpp
 SOURCES += Thread.cpp
 SOURCES += ThreadGroup.cpp
 
