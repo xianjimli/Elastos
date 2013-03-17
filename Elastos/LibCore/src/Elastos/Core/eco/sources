@@ -22,6 +22,7 @@ SOURCES += CStringWrapper.cpp
 SOURCES += CBoolean.cpp
 SOURCES += CInteger32.cpp
 SOURCES += Init.cpp
+SOURCES += Object.cpp
 SOURCES += NativeThread.cpp
 SOURCES += Thread.cpp
 SOURCES += ThreadGroup.cpp

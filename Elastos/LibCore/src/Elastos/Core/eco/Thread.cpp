@@ -29,9 +29,7 @@ const ThreadState Thread::STATE_MAP[] = {
 Thread::Thread()
     : mDaemon(FALSE)
     , mHasBeenStarted(FALSE)
-{
-
-}
+{}
 
 Thread::~Thread()
 {}
@@ -355,9 +353,7 @@ ECode Thread::Create(
     //     return E_ILLEGAL_THREAD_STATE_EXCEPTION;
     // }
     //mGroup = (ThreadGroup*)group->Probe(EIID_ThreadGroup);
-    // synchronized (Thread.class) {
-    //     id = ++Thread.count;
-    // }
+
     mId = NativeGetCount();
 
     if (threadName.IsNull()) {
@@ -1364,10 +1360,3 @@ void Thread::Yield()
  *         object; false otherwise
  */
 //static CARAPI_(Boolean) HoldsLock(Object object);
-
-ECode Thread::Wait(
-    /* [in] */ Int64 time,
-    /* [in] */ Int32 frac)
-{
-    return NativeThreadWait(NativeThreadSelf(), this, time, frac, TRUE);
-}

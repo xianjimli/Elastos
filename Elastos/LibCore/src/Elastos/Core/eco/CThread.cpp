@@ -652,16 +652,47 @@ ECode CThread::Suspend()
     return Thread::Suspend();
 }
 
-ECode CThread::Wait(
-    /* [in] */ Int64 time,
-    /* [in] */ Int32 frac)
-{
-    return Thread::Wait(time, frac);
-}
-
 ECode CThread::Run()
 {
     return Thread::Run();
+}
+
+ECode CThread::Lock()
+{
+    return Thread::Lock();
+}
+
+ECode CThread::Unlock()
+{
+    return Thread::Unlock();
+}
+
+ECode CThread::Notify()
+{
+    return Thread::Notify();
+}
+
+ECode CThread::NotifyAll()
+{
+    return Thread::NotifyAll();
+}
+
+ECode CThread::Wait()
+{
+    return Thread::Wait();
+}
+
+ECode CThread::WaitEx(
+    /* [in] */ Int64 millis)
+{
+    return Thread::Wait(millis);
+}
+
+ECode CThread::WaitEx2(
+    /* [in] */ Int64 millis,
+    /* [in] */ Int32 nanos)
+{
+    return Thread::Wait(millis, nanos);
 }
 
 Mutex* CThread::GetSelfLock()

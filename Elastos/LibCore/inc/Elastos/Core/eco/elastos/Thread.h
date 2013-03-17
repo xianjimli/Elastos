@@ -10,6 +10,7 @@
 #include <Elastos.Core.h>
 #endif
 #include "NativeThread.h"
+#include "Object.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/Mutex.h>
 
@@ -69,7 +70,7 @@ enum {
 struct NativeThread;
 class ThreadGroup;
 
-class Thread
+class Thread : public Object
 {
 public:
     /**
@@ -597,10 +598,6 @@ public:
      *         object; false otherwise
      */
     //static CARAPI_(Boolean) HoldsLock(Object object);
-
-    virtual CARAPI Wait(
-        /* [in] */ Int64 time,
-        /* [in] */ Int32 frac);
 
     /**
      * Calls the <code>run()</code> method of the Runnable object the receiver

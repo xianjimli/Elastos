@@ -8,6 +8,18 @@
 
 using namespace Elastos;
 
+class Object;
+
+typedef struct NativeObject
+{
+    /*
+     * A word containing either a "thin" lock or a "fat" monitor.  See
+     * the comments in Sync.c for a description of its layout.
+     */
+    UInt32      mLock;
+    Object*     mObjectObj;
+} NativeObject;
+
 struct Monitor;
 
 /*
@@ -339,30 +351,49 @@ ELAPI_(void) NativeChangeThreadPriority(
 ELAPI_(Int32) NativeGetCount();
 
 
-//sync
-/*
- * Create and initialize a monitor.
- */
-ELAPI_(Monitor*) NativeCreateMonitor(
-    /* [in] */ IInterface* obj);
+// //sync
+ELAPI_(NativeObject*) NativeCreateObject();
+
+ELAPI_(void) NativeDestroyObject(
+    /* [in] */ NativeObject* obj);
 
 /*
- * Converts the given relative waiting time into an absolute time.
+ * Implements monitorenter for "synchronized" stuff.
+ *
+ * This does not fail or throw an exception (unless deadlock prediction
+ * is enabled and set to "err" mode).
  */
-ELAPI_(void) AbsoluteTime(
-    /* [in] */ Int64 msec,
-    /* [in] */ Int32 nsec,
-    /* [in] */ struct timespec* ts);
+ELAPI NativeLockObject(
+    /* [in] */ NativeObject *obj);
+
+/*
+ * Implements monitorexit for "synchronized" stuff.
+ *
+ * On failure, throws an exception and returns "false".
+ */
+ELAPI NativeUnlockObject(
+    /* [in] */ NativeObject *obj);
 
 /*
  * Object.wait().  Also called for class init.
  */
-ELAPI_(ECode) NativeThreadWait(
-    /* [in] */ NativeThread* self,
-    /* [in] */ Thread* t,
+ELAPI NativeObjectWait(
+    /* [in] */ NativeObject* obj,
     /* [in] */ Int64 msec,
     /* [in] */ Int32 nsec,
     /* [in] */ Boolean interruptShouldThrow);
+
+/*
+ * Object.notify().
+ */
+ELAPI NativeObjectNotify(
+    /* [in] */ NativeObject *obj);
+
+/*
+ * Object.notifyAll().
+ */
+ELAPI NativeObjectNotifyAll(
+    /* [in] */ NativeObject *obj);
 
 /*
  * Implement java.lang.Thread.interrupt().
@@ -384,25 +415,8 @@ ELAPI_(void) NativeThreadInterrupt(
  * It appears that we want sleep(0,0) to go through the motions of sleeping
  * for a very short duration, rather than just returning.
  */
-ELAPI_(ECode) NativeThreadSleep(
+ELAPI NativeThreadSleep(
     /* [in] */ Int64 msec,
     /* [in] */ Int32 nsec);
-
-//misc
-/*
- * Get the current time, in nanoseconds.  This is "relative" time, meaning
- * it could be wall-clock time or a monotonic counter, and is only suitable
- * for computing time deltas.
- */
-ELAPI_(UInt64) NativeGetRelativeTimeNsec();
-
-/*
- * Get the current time, in microseconds.  This is "relative" time, meaning
- * it could be wall-clock time or a monotonic counter, and is only suitable
- * for computing time deltas.
- */
-inline UInt64 NativeGetRelativeTimeUsec() {
-    return NativeGetRelativeTimeNsec() / 1000;
-}
 
 #endif //__NATIVETHREAD_H__

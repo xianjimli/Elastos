@@ -1,6 +1,7 @@
 #include "Timer.h"
 #include <elastos/System.h>
 #include <StringBuffer.h>
+#include <elastos/Autolock.h>
 
 
 #define E_TIMER_SCHEDULED_ALREADY 0x
@@ -194,7 +195,7 @@ ECode Timer::TimerImpl::Run()
 {
     while (TRUE) {
         TimerTask* task;
-        Mutex::Autolock lock(&mLock);
+        Autolock lock(mThread);
         {
             // need to check cancelled inside the synchronized block
             if (mCancelled) {
@@ -205,7 +206,7 @@ ECode Timer::TimerImpl::Run()
                     //return E_TIMER_FINISHED;;
                 }
                 // no tasks scheduled -- sleep until any task appear
-                mThread->Wait(0, 0);
+                mThread->WaitEx2(0, 0);
                 continue;
             }
 
@@ -227,7 +228,7 @@ ECode Timer::TimerImpl::Run()
 
             if (timeToSleep > 0) {
                 // sleep!
-                mThread->Wait(timeToSleep, 0);
+                mThread->WaitEx2(timeToSleep, 0);
                 continue;
             }
 

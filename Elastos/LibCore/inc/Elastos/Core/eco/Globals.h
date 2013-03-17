@@ -21,7 +21,8 @@ using namespace Elastos;
  *
  * TODO: the various members of monitor are not SMP-safe.
  */
-struct Monitor {
+struct Monitor
+{
     NativeThread*     mOwner;          /* which thread currently owns the lock? */
     Int32             mLockCount;     /* owner's recursive lock depth */
     //Object*     obj;            /* what object are we part of [debug only] */

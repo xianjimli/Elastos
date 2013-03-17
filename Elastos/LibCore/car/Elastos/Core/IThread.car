@@ -70,7 +70,7 @@ module
             [in] ECode ec);
     }
 
-    interface IThread {
+    interface IThread extends ISynchronize {
         /**
          * Is used for operations that require approval from a SecurityManager. If
          * there's none installed, this method is a no-op. If there's a
@@ -448,9 +448,5 @@ module
          */
         //@Deprecated
         Suspend();
-
-        Wait(
-            [in] Int64 time,
-            [in] Int32 frac);
     }
 }
