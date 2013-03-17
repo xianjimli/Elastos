@@ -10,12 +10,69 @@
 #include <errno.h>
 #include "stdio.h"
 
+/*
+ * Monitor shape field.  Used to distinguish immediate thin locks from
+ * indirecting fat locks.
+ */
+#define LW_SHAPE_THIN 0
+#define LW_SHAPE_FAT 1
+#define LW_SHAPE_MASK 0x1
+#define LW_SHAPE(x) ((x) & LW_SHAPE_MASK)
+
+/*
+ * Hash state field.  Used to signify that an object has had its
+ * identity hash code exposed or relocated.
+ */
+#define LW_HASH_STATE_UNHASHED 0
+#define LW_HASH_STATE_HASHED 1
+#define LW_HASH_STATE_HASHED_AND_MOVED 3
+#define LW_HASH_STATE_MASK 0x3
+#define LW_HASH_STATE_SHIFT 1
+#define LW_HASH_STATE(x) (((x) >> LW_HASH_STATE_SHIFT) & LW_HASH_STATE_MASK)
+
+/*
+ * Monitor accessor.  Extracts a monitor structure pointer from a fat
+ * lock.  Performs no error checking.
+ */
+#define LW_MONITOR(x) \
+  ((Monitor*)((x) & ~((LW_HASH_STATE_MASK << LW_HASH_STATE_SHIFT) | \
+                      LW_SHAPE_MASK)))
+
+/*
+ * Lock owner field.  Contains the thread id of the thread currently
+ * holding the lock.
+ */
+#define LW_LOCK_OWNER_MASK 0xffff
+#define LW_LOCK_OWNER_SHIFT 3
+#define LW_LOCK_OWNER(x) (((x) >> LW_LOCK_OWNER_SHIFT) & LW_LOCK_OWNER_MASK)
+
+/*
+ * Lock recursion count field.  Contains a count of the numer of times
+ * a lock has been recursively acquired.
+ */
+#define LW_LOCK_COUNT_MASK 0x1fff
+#define LW_LOCK_COUNT_SHIFT 19
+#define LW_LOCK_COUNT(x) (((x) >> LW_LOCK_COUNT_SHIFT) & LW_LOCK_COUNT_MASK)
+
+/*
+ * Initialize a Lock to the proper starting value.
+ * This is necessary for thin locking.
+ */
+#define NATIVE_LOCK_INITIAL_THIN_VALUE (0)
+
+#define NATIVE_LOCK_INIT(lock) \
+    do { *(lock) = NATIVE_LOCK_INITIAL_THIN_VALUE; } while (0)
+
+
 static NativeThread* AllocThread(Int32 stackSize);
 static void SetThreadSelf(NativeThread* thread);
 static void AssignThreadId(NativeThread* thread);
 static void* ThreadEntry(void* arg);
 static void ThreadExitCheck(void* arg);
 static Boolean PrepareThread(NativeThread* thread);
+static Monitor* NativeCreateMonitor(NativeObject* obj);
+static UInt64 NativeGetRelativeTimeNsec();
+static UInt64 NativeGetRelativeTimeUsec();
 
 /*
  * Initialize thread list and main thread's environment.  We need to set
@@ -219,7 +276,7 @@ static NativeThread* AllocThread(
     NativeThread* thread;
     // u1* stackBottom;
 
-    thread = (NativeThread*)calloc(1, sizeof(Thread));
+    thread = (NativeThread*)calloc(1, sizeof(NativeThread));
     if (thread == NULL) {
         return NULL;
     }
@@ -1352,9 +1409,9 @@ void NativeChangeThreadPriority(
 
 Int32 NativeGetCount()
 {
-    NativeLockMutex(&gCore.mThreadListLock);
+    NativeLockMutex(&gCore.mThreadCountLock);
     Int32 count = gCore.mThreadCount++;
-    NativeUnlockMutex(&gCore.mThreadListLock);
+    NativeUnlockMutex(&gCore.mThreadCountLock);
     return count;
 }
 
@@ -1362,8 +1419,8 @@ Int32 NativeGetCount()
 /*
  * Create and initialize a monitor.
  */
-Monitor* NativeCreateMonitor(
-    /* [in] */ IInterface* obj)
+static Monitor* NativeCreateMonitor(
+    /* [in] */ NativeObject* obj)
 {
     Monitor* mon;
 
@@ -1380,13 +1437,121 @@ Monitor* NativeCreateMonitor(
     NativeInitMutex(&mon->mLock);
 
     /* replace the head of the list with the new monitor */
-    //do {
+    do {
         mon->mNext = gCore.mMonitorList;
-    //}
-    //while (android_atomic_release_cas((int32_t)mon->next, (int32_t)mon,
-    //        (int32_t*)(void*)&gDvm.monitorList) != 0);
+    } while (android_atomic_release_cas((int32_t)mon->mNext, (int32_t)mon,
+           (int32_t*)(void*)&gCore.mMonitorList) != 0);
 
     return mon;
+}
+
+/*
+ * Lock a monitor.
+ */
+static void LockMonitor(
+    /* [in] */ NativeThread* self,
+    /* [in] */ Monitor* mon)
+{
+    NativeThreadStatus oldStatus;
+    UInt32 waitThreshold, samplePercent;
+    UInt64 waitStart, waitEnd, waitMs;
+
+    if (mon->mOwner == self) {
+        mon->mLockCount++;
+        return;
+    }
+    if (NativeTryLockMutex(&mon->mLock) != 0) {
+        oldStatus = NativeChangeStatus(self, NTHREAD_MONITOR);
+        // waitThreshold = gCore.mLockProfThreshold;
+        // if (waitThreshold) {
+        //     waitStart = NativeGetRelativeTimeUsec();
+        // }
+        //const char* currentOwnerFileName = mon->mOwnerFileName;
+        //UInt32 currentOwnerLineNumber = mon->mOwnerLineNumber;
+
+        NativeLockMutex(&mon->mLock);
+        // if (waitThreshold) {
+        //     waitEnd = NativeGetRelativeTimeUsec();
+        // }
+        NativeChangeStatus(self, oldStatus);
+        // if (waitThreshold) {
+        //     waitMs = (waitEnd - waitStart) / 1000;
+        //     if (waitMs >= waitThreshold) {
+        //         samplePercent = 100;
+        //     }
+        //     else {
+        //         samplePercent = 100 * waitMs / waitThreshold;
+        //     }
+        //     if (samplePercent != 0 && ((UInt32)rand() % 100 < samplePercent)) {
+        //         logContentionEvent(self, waitMs, samplePercent,
+        //                            currentOwnerFileName, currentOwnerLineNumber);
+        //     }
+        // }
+    }
+    mon->mOwner = self;
+    assert(mon->mLockCount == 0);
+
+    // When debugging, save the current monitor holder for future
+    // acquisition failures to use in sampled logging.
+    // if (gCore.mLockProfThreshold > 0) {
+    //     const StackSaveArea *saveArea;
+    //     const Method *meth;
+    //     mon->mOwnerLineNumber = 0;
+    //     if (self->curFrame == NULL) {
+    //     mon->mOwnerFileName = String("no_frame");
+    //     } else if ((saveArea = SAVEAREA_FROM_FP(self->curFrame)) == NULL) {
+    //         mon->ownerFileName = "no_save_area";
+    //     } else if ((meth = saveArea->method) == NULL) {
+    //         mon->ownerFileName = "no_method";
+    //     } else {
+    //         u4 relativePc = saveArea->xtra.currentPc - saveArea->method->insns;
+    //         mon->ownerFileName = (char*) dvmGetMethodSourceFile(meth);
+    //         if (mon->ownerFileName == NULL) {
+    //             mon->ownerFileName = "no_method_file";
+    //         } else {
+    //             mon->ownerLineNumber = dvmLineNumFromPC(meth, relativePc);
+    //         }
+    //     }
+    // }
+}
+
+/*
+ * Unlock a monitor.
+ *
+ * Returns true if the unlock succeeded.
+ * If the unlock failed, an exception will be pending.
+ */
+static ECode UnlockMonitor(
+    /* [in] */ NativeThread* self,
+    /* [in] */ Monitor* mon)
+{
+    assert(self != NULL);
+    assert(mon != NULL);
+    if (mon->mOwner == self) {
+        /*
+         * We own the monitor, so nobody else can be in here.
+         */
+        if (mon->mLockCount == 0) {
+            mon->mOwner = NULL;
+            mon->mOwnerFileName = "unlocked";
+            mon->mOwnerLineNumber = 0;
+            NativeUnlockMutex(&mon->mLock);
+        }
+        else {
+            mon->mLockCount--;
+        }
+    }
+    else {
+        /*
+         * We don't own this, so we're not allowed to unlock it.
+         * The JNI spec says that we should throw IllegalMonitorStateException
+         * in this case.
+         */
+        //dvmThrowException("Ljava/lang/IllegalMonitorStateException;",
+        //                  "unlock of unowned monitor");
+        return E_ILLEGAL_MONITOR_STATE_EXCEPTION;
+    }
+    return NOERROR;
 }
 
 /*
@@ -1509,195 +1674,6 @@ void AbsoluteTime(
 }
 
 /*
- * Object.wait().  Also called for class init.
- */
-ECode NativeThreadWait(
-    /* [in] */ NativeThread* self,
-    /* [in] */ Thread* t,
-    /* [in] */ Int64 msec,
-    /* [in] */ Int32 nsec,
-    /* [in] */ Boolean interruptShouldThrow)
-{
-    // Monitor* mon;
-    // UInt32 thin = t->m_lock;
-
-    /* If the lock is still thin, we need to fatten it.
-     */
-    // if (LW_SHAPE(thin) == LW_SHAPE_THIN) {
-    //     /* Make sure that 'self' holds the lock.
-    //      */
-    //     if (LW_LOCK_OWNER(thin) != self->threadId) {
-    //         dvmThrowException("Ljava/lang/IllegalMonitorStateException;",
-    //             "object not locked by thread before wait()");
-    //         return;
-    //     }
-
-        /* This thread holds the lock.  We need to fatten the lock
-         * so 'self' can block on it.  Don't update the object lock
-         * field yet, because 'self' needs to acquire the lock before
-         * any other thread gets a chance.
-         */
-    //     inflateMonitor(self, obj);
-    //     LOG_THIN("(%d) lock %p fattened by wait() to count %d",
-    //              self->threadId, &obj->lock, mon->lockCount);
-    // }
-    // mon = LW_MONITOR(obj->lock);
-    // waitMonitor(self, mon, msec, nsec, interruptShouldThrow);
-    return E_NOT_IMPLEMENTED;
-}
-
-/*
- * Implement java.lang.Thread.interrupt().
- */
-void NativeThreadInterrupt(
-    /* [in] */ NativeThread* thread)
-{
-    assert(thread != NULL);
-
-    NativeLockMutex(&thread->mWaitMutex);
-
-    /*
-     * If the interrupted flag is already set no additional action is
-     * required.
-     */
-    if (thread->mInterrupted == TRUE) {
-        NativeUnlockMutex(&thread->mWaitMutex);
-        return;
-    }
-
-    /*
-     * Raise the "interrupted" flag.  This will cause it to bail early out
-     * of the next wait() attempt, if it's not currently waiting on
-     * something.
-     */
-    thread->mInterrupted = TRUE;
-
-    /*
-     * Is the thread waiting?
-     *
-     * Note that fat vs. thin doesn't matter here;  waitMonitor
-     * is only set when a thread actually waits on a monitor,
-     * which implies that the monitor has already been fattened.
-     */
-    if (thread->mWaitMonitor != NULL) {
-        pthread_cond_signal(&thread->mWaitCond);
-    }
-
-    NativeUnlockMutex(&thread->mWaitMutex);
-}
-
-/*
- * Lock a monitor.
- */
-static void LockMonitor(
-    /* [in] */ NativeThread* self,
-    /* [in] */ Monitor* mon)
-{
-    NativeThreadStatus oldStatus;
-    UInt32 waitThreshold, samplePercent;
-    UInt64 waitStart, waitEnd, waitMs;
-
-    if (mon->mOwner == self) {
-        mon->mLockCount++;
-        return;
-    }
-
-    if (NativeTryLockMutex(&mon->mLock) != 0) {
-        printf("======function: %s, line: %d======\n", __FUNCTION__, __LINE__);
-        oldStatus = NativeChangeStatus(self, NTHREAD_MONITOR);
-        waitThreshold = gCore.mLockProfThreshold;
-        if (waitThreshold) {
-            waitStart = NativeGetRelativeTimeUsec();
-        }
-        //const char* currentOwnerFileName = mon->mOwnerFileName;
-        //UInt32 currentOwnerLineNumber = mon->mOwnerLineNumber;
-
-        NativeLockMutex(&mon->mLock);
-        if (waitThreshold) {
-            waitEnd = NativeGetRelativeTimeUsec();
-        }
-        NativeChangeStatus(self, oldStatus);
-        if (waitThreshold) {
-            waitMs = (waitEnd - waitStart) / 1000;
-            if (waitMs >= waitThreshold) {
-                samplePercent = 100;
-            }
-            else {
-                samplePercent = 100 * waitMs / waitThreshold;
-            }
-            // if (samplePercent != 0 && ((UInt32)rand() % 100 < samplePercent)) {
-            //     logContentionEvent(self, waitMs, samplePercent,
-            //                        currentOwnerFileName, currentOwnerLineNumber);
-            // }
-        }
-    }
-    mon->mOwner = self;
-    assert(mon->mLockCount == 0);
-
-    // When debugging, save the current monitor holder for future
-    // acquisition failures to use in sampled logging.
-    if (gCore.mLockProfThreshold > 0) {
-        //const StackSaveArea *saveArea;
-        //const Method *meth;
-        mon->mOwnerLineNumber = 0;
-        //if (self->curFrame == NULL) {
-        mon->mOwnerFileName = String("no_frame");
-        //} else if ((saveArea = SAVEAREA_FROM_FP(self->curFrame)) == NULL) {
-        //     mon->ownerFileName = "no_save_area";
-        // } else if ((meth = saveArea->method) == NULL) {
-        //     mon->ownerFileName = "no_method";
-        // } else {
-        //     u4 relativePc = saveArea->xtra.currentPc - saveArea->method->insns;
-        //     mon->ownerFileName = (char*) dvmGetMethodSourceFile(meth);
-        //     if (mon->ownerFileName == NULL) {
-        //         mon->ownerFileName = "no_method_file";
-        //     } else {
-        //         mon->ownerLineNumber = dvmLineNumFromPC(meth, relativePc);
-        //     }
-        // }
-    }
-}
-
-/*
- * Unlock a monitor.
- *
- * Returns true if the unlock succeeded.
- * If the unlock failed, an exception will be pending.
- */
-static Boolean UnlockMonitor(
-    /* [in] */ NativeThread* self,
-    /* [in] */ Monitor* mon)
-{
-    assert(self != NULL);
-    assert(mon != NULL);
-    if (mon->mOwner == self) {
-        /*
-         * We own the monitor, so nobody else can be in here.
-         */
-        if (mon->mLockCount == 0) {
-            mon->mOwner = NULL;
-            mon->mOwnerFileName = String("unlocked");
-            mon->mOwnerLineNumber = 0;
-            NativeUnlockMutex(&mon->mLock);
-        }
-        else {
-            mon->mLockCount--;
-        }
-    }
-    else {
-        /*
-         * We don't own this, so we're not allowed to unlock it.
-         * The JNI spec says that we should throw IllegalMonitorStateException
-         * in this case.
-         */
-        //dvmThrowException("Ljava/lang/IllegalMonitorStateException;",
-        //                  "unlock of unowned monitor");
-        return FALSE;
-    }
-    return TRUE;
-}
-
-/*
  * Wait on a monitor until timeout, interrupt, or notification.  Used for
  * Object.wait() and (somewhat indirectly) Thread.sleep() and Thread.join().
  *
@@ -1779,7 +1755,7 @@ static ECode WaitMonitor(
     mon->mLockCount = 0;
     mon->mOwner = NULL;
     savedFileName = mon->mOwnerFileName;
-    mon->mOwnerFileName = String(NULL);
+    mon->mOwnerFileName = NULL;
     savedLineNumber = mon->mOwnerLineNumber;
     mon->mOwnerLineNumber = 0;
 
@@ -1788,10 +1764,12 @@ static ECode WaitMonitor(
      * that we won't touch any references in this state, and we'll check
      * our suspend mode before we transition out.
      */
-    if (timed)
+    if (timed) {
         NativeChangeStatus(self, NTHREAD_TIMED_WAIT);
-    else
+    }
+    else {
         NativeChangeStatus(self, NTHREAD_WAIT);
+    }
 
     NativeLockMutex(&self->mWaitMutex);
 
@@ -1869,10 +1847,543 @@ done:
          * cleared when this exception is thrown."
          */
         self->mInterrupted = FALSE;
-        if (interruptShouldThrow)
+        if (interruptShouldThrow) {
             //dvmThrowException("Ljava/lang/InterruptedException;", NULL);
             return E_INTERRUPTED_EXCEPTION;
+        }
     }
+    return NOERROR;
+}
+
+/*
+ * Notify one thread waiting on this monitor.
+ */
+static ECode NotifyMonitor(
+    /* [in] */ NativeThread* self,
+    /* [in] */ Monitor* mon)
+{
+    NativeThread* thread;
+
+    assert(self != NULL);
+    assert(mon != NULL);
+
+    /* Make sure that we hold the lock. */
+    if (mon->mOwner != self) {
+        // dvmThrowException("Ljava/lang/IllegalMonitorStateException;",
+        //     "object not locked by thread before notify()");
+        return E_ILLEGAL_MONITOR_STATE_EXCEPTION;
+    }
+    /* Signal the first waiting thread in the wait set. */
+    while (mon->mWaitSet != NULL) {
+        thread = mon->mWaitSet;
+        mon->mWaitSet = thread->mWaitNext;
+        thread->mWaitNext = NULL;
+        NativeLockMutex(&thread->mWaitMutex);
+        /* Check to see if the thread is still waiting. */
+        if (thread->mWaitMonitor != NULL) {
+            pthread_cond_signal(&thread->mWaitCond);
+            NativeUnlockMutex(&thread->mWaitMutex);
+            return NOERROR;
+        }
+        NativeUnlockMutex(&thread->mWaitMutex);
+    }
+    return NOERROR;
+}
+
+/*
+ * Notify all threads waiting on this monitor.
+ */
+static ECode NotifyAllMonitor(
+    /* [in] */ NativeThread* self,
+    /* [in] */ Monitor* mon)
+{
+    NativeThread* thread;
+
+    assert(self != NULL);
+    assert(mon != NULL);
+
+    /* Make sure that we hold the lock. */
+    if (mon->mOwner != self) {
+        // dvmThrowException("Ljava/lang/IllegalMonitorStateException;",
+        //     "object not locked by thread before notifyAll()");
+        return E_ILLEGAL_MONITOR_STATE_EXCEPTION;
+    }
+    /* Signal all threads in the wait set. */
+    while (mon->mWaitSet != NULL) {
+        thread = mon->mWaitSet;
+        mon->mWaitSet = thread->mWaitNext;
+        thread->mWaitNext = NULL;
+        NativeLockMutex(&thread->mWaitMutex);
+        /* Check to see if the thread is still waiting. */
+        if (thread->mWaitMonitor != NULL) {
+            pthread_cond_signal(&thread->mWaitCond);
+        }
+        NativeUnlockMutex(&thread->mWaitMutex);
+    }
+    return NOERROR;
+}
+
+/*
+ * Changes the shape of a monitor from thin to fat, preserving the
+ * internal lock state.  The calling thread must own the lock.
+ */
+static void InflateMonitor(
+    /* [in] */ NativeThread *self,
+    /* [in] */ NativeObject *obj)
+{
+    Monitor *mon;
+    UInt32 thin;
+
+    assert(self != NULL);
+    assert(obj != NULL);
+    assert(LW_SHAPE(obj->mLock) == LW_SHAPE_THIN);
+    assert(LW_LOCK_OWNER(obj->mLock) == self->mThreadId);
+    /* Allocate and acquire a new monitor. */
+    mon = NativeCreateMonitor(obj);
+    LockMonitor(self, mon);
+    /* Propagate the lock state. */
+    thin = obj->mLock;
+    mon->mLockCount = LW_LOCK_COUNT(thin);
+    thin &= LW_HASH_STATE_MASK << LW_HASH_STATE_SHIFT;
+    thin |= (UInt32)mon | LW_SHAPE_FAT;
+    /* Publish the updated lock word. */
+    android_atomic_release_store(thin, (int32_t *)&obj->mLock);
+}
+
+NativeObject* NativeCreateObject()
+{
+    NativeObject* obj = (NativeObject*)calloc(1, sizeof(NativeObject));
+    if (obj == NULL) {
+        return NULL;
+    }
+    NATIVE_LOCK_INIT(&(obj)->mLock);
+    return obj;
+}
+
+void NativeDestroyObject(
+    /* [in] */ NativeObject* obj)
+{
+    free(obj);
+}
+
+/*
+ * Implements monitorenter for "synchronized" stuff.
+ *
+ * This does not fail or throw an exception (unless deadlock prediction
+ * is enabled and set to "err" mode).
+ */
+ECode NativeLockObject(
+    /* [in] */ NativeObject *obj)
+{
+    volatile UInt32* thinp;
+    NativeThreadStatus oldStatus;
+    useconds_t sleepDelay;
+    const useconds_t maxSleepDelay = 1 << 20;
+    UInt32 thin, newThin, threadId;
+
+    NativeThread* self = NativeThreadSelf();
+    assert(self != NULL);
+    assert(obj != NULL);
+    threadId = self->mThreadId;
+    thinp = &obj->mLock;
+retry:
+    thin = *thinp;
+    if (LW_SHAPE(thin) == LW_SHAPE_THIN) {
+        /*
+         * The lock is a thin lock.  The owner field is used to
+         * determine the acquire method, ordered by cost.
+         */
+        if (LW_LOCK_OWNER(thin) == threadId) {
+            /*
+             * The calling thread owns the lock.  Increment the
+             * value of the recursion count field.
+             */
+            obj->mLock += 1 << LW_LOCK_COUNT_SHIFT;
+            if (LW_LOCK_COUNT(obj->mLock) == LW_LOCK_COUNT_MASK) {
+                /*
+                 * The reacquisition limit has been reached.  Inflate
+                 * the lock so the next acquire will not overflow the
+                 * recursion count field.
+                 */
+                InflateMonitor(self, obj);
+            }
+        }
+        else if (LW_LOCK_OWNER(thin) == 0) {
+            /*
+             * The lock is unowned.  Install the thread id of the
+             * calling thread into the owner field.  This is the
+             * common case.  In performance critical code the JIT
+             * will have tried this before calling out to the VM.
+             */
+            newThin = thin | (threadId << LW_LOCK_OWNER_SHIFT);
+            if (android_atomic_acquire_cas(thin, newThin,
+                    (int32_t*)thinp) != 0) {
+                /*
+                 * The acquire failed.  Try again.
+                 */
+                goto retry;
+            }
+        }
+        else {
+            // LOG_THIN("(%d) spin on lock %p: %#x (%#x) %#x",
+            //          threadId, &obj->lock, 0, *thinp, thin);
+            /*
+             * The lock is owned by another thread.  Notify the VM
+             * that we are about to wait.
+             */
+            oldStatus = NativeChangeStatus(self, NTHREAD_MONITOR);
+            /*
+             * Spin until the thin lock is released or inflated.
+             */
+            sleepDelay = 0;
+            for (;;) {
+                thin = *thinp;
+                /*
+                 * Check the shape of the lock word.  Another thread
+                 * may have inflated the lock while we were waiting.
+                 */
+                if (LW_SHAPE(thin) == LW_SHAPE_THIN) {
+                    if (LW_LOCK_OWNER(thin) == 0) {
+                        /*
+                         * The lock has been released.  Install the
+                         * thread id of the calling thread into the
+                         * owner field.
+                         */
+                        newThin = thin | (threadId << LW_LOCK_OWNER_SHIFT);
+                        if (android_atomic_acquire_cas(thin, newThin,
+                                (int32_t *)thinp) == 0) {
+                            /*
+                             * The acquire succeed.  Break out of the
+                             * loop and proceed to inflate the lock.
+                             */
+                            break;
+                        }
+                    }
+                    else {
+                        /*
+                         * The lock has not been released.  Yield so
+                         * the owning thread can run.
+                         */
+                        if (sleepDelay == 0) {
+                            sched_yield();
+                            sleepDelay = 1000;
+                        }
+                        else {
+                            usleep(sleepDelay);
+                            if (sleepDelay < maxSleepDelay / 2) {
+                                sleepDelay *= 2;
+                            }
+                        }
+                    }
+                }
+                else {
+                    /*
+                     * The thin lock was inflated by another thread.
+                     * Let the VM know we are no longer waiting and
+                     * try again.
+                     */
+                    // LOG_THIN("(%d) lock %p surprise-fattened",
+                    //          threadId, &obj->lock);
+                    NativeChangeStatus(self, oldStatus);
+                    goto retry;
+                }
+            }
+            // LOG_THIN("(%d) spin on lock done %p: %#x (%#x) %#x",
+            //          threadId, &obj->lock, 0, *thinp, thin);
+            /*
+             * We have acquired the thin lock.  Let the VM know that
+             * we are no longer waiting.
+             */
+            NativeChangeStatus(self, oldStatus);
+            /*
+             * Fatten the lock.
+             */
+            InflateMonitor(self, obj);
+            // LOG_THIN("(%d) lock %p fattened", threadId, &obj->lock);
+        }
+    }
+    else {
+        /*
+         * The lock is a fat lock.
+         */
+        assert(LW_MONITOR(obj->mLock) != NULL);
+        LockMonitor(self, LW_MONITOR(obj->mLock));
+    }
+//#ifdef WITH_DEADLOCK_PREDICTION
+//    /*
+//     * See if we were allowed to grab the lock at this time.  We do it
+//     * *after* acquiring the lock, rather than before, so that we can
+//     * freely update the Monitor struct.  This seems counter-intuitive,
+//     * but our goal is deadlock *prediction* not deadlock *prevention*.
+//     * (If we actually deadlock, the situation is easy to diagnose from
+//     * a thread dump, so there's no point making a special effort to do
+//     * the checks before the lock is held.)
+//     *
+//     * This needs to happen before we add the object to the thread's
+//     * monitor list, so we can tell the difference between first-lock and
+//     * re-lock.
+//     *
+//     * It's also important that we do this while in THREAD_RUNNING, so
+//     * that we don't interfere with cleanup operations in the GC.
+//     */
+//    if (gDvm.deadlockPredictMode != kDPOff) {
+//        if (self->status != NTHREAD_RUNNING) {
+//            LOGE("Bad thread status (%d) in DP\n", self->status);
+//            dvmDumpThread(self, false);
+//            dvmAbort();
+//        }
+//        assert(!dvmCheckException(self));
+//        updateDeadlockPrediction(self, obj);
+//        if (dvmCheckException(self)) {
+//            /*
+//             * If we're throwing an exception here, we need to free the
+//             * lock.  We add the object to the thread's monitor list so the
+//             * "unlock" code can remove it.
+//             */
+//            dvmAddToMonitorList(self, obj, false);
+//            dvmUnlockObject(self, obj);
+//            LOGV("--- unlocked, pending is '%s'\n",
+//                dvmGetException(self)->clazz->descriptor);
+//        }
+//    }
+//
+//    /*
+//     * Add the locked object, and the current stack trace, to the list
+//     * held by the Thread object.  If deadlock prediction isn't on,
+//     * don't capture the stack trace.
+//     */
+//    dvmAddToMonitorList(self, obj, gDvm.deadlockPredictMode != kDPOff);
+//#elif defined(WITH_MONITOR_TRACKING)
+//    /*
+//     * Add the locked object to the list held by the Thread object.
+//     */
+//    dvmAddToMonitorList(self, obj, false);
+//#endif
+}
+
+/*
+ * Implements monitorexit for "synchronized" stuff.
+ *
+ * On failure, throws an exception and returns "false".
+ */
+ECode NativeUnlockObject(
+    /* [in] */ NativeObject *obj)
+{
+    UInt32 thin;
+
+    NativeThread* self = NativeThreadSelf();
+    assert(self != NULL);
+    assert(self->mStatus == NTHREAD_RUNNING);
+    assert(obj != NULL);
+    /*
+     * Cache the lock word as its value can change while we are
+     * examining its state.
+     */
+    thin = obj->mLock;
+    if (LW_SHAPE(thin) == LW_SHAPE_THIN) {
+        /*
+         * The lock is thin.  We must ensure that the lock is owned
+         * by the given thread before unlocking it.
+         */
+        if (LW_LOCK_OWNER(thin) == self->mThreadId) {
+            /*
+             * We are the lock owner.  It is safe to update the lock
+             * without CAS as lock ownership guards the lock itself.
+             */
+            if (LW_LOCK_COUNT(thin) == 0) {
+                /*
+                 * The lock was not recursively acquired, the common
+                 * case.  Unlock by clearing all bits except for the
+                 * hash state.
+                 */
+                obj->mLock &= (LW_HASH_STATE_MASK << LW_HASH_STATE_SHIFT);
+            }
+            else {
+                /*
+                 * The object was recursively acquired.  Decrement the
+                 * lock recursion count field.
+                 */
+                obj->mLock -= 1 << LW_LOCK_COUNT_SHIFT;
+            }
+        }
+        else {
+            /*
+             * We do not own the lock.  The JVM spec requires that we
+             * throw an exception in this case.
+             */
+            // dvmThrowException("Ljava/lang/IllegalMonitorStateException;",
+            //                   "unlock of unowned monitor");
+            return E_ILLEGAL_MONITOR_STATE_EXCEPTION;
+        }
+    }
+    else {
+        /*
+         * The lock is fat.  We must check to see if unlockMonitor has
+         * raised any exceptions before continuing.
+         */
+        assert(LW_MONITOR(obj->mLock) != NULL);
+        ECode ec = UnlockMonitor(self, LW_MONITOR(obj->mLock));
+        if (FAILED(ec)) {
+            /*
+             * An exception has been raised.  Do not fall through.
+             */
+            return ec;
+        }
+    }
+
+//#ifdef WITH_MONITOR_TRACKING
+//    /*
+//     * Remove the object from the Thread's list.
+//     */
+//    dvmRemoveFromMonitorList(self, obj);
+//#endif
+
+    return NOERROR;
+}
+
+/*
+ * Object.wait().  Also called for class init.
+ */
+ECode NativeObjectWait(
+    /* [in] */ NativeObject* obj,
+    /* [in] */ Int64 msec,
+    /* [in] */ Int32 nsec,
+    /* [in] */ Boolean interruptShouldThrow)
+{
+    NativeThread* self = NativeThreadSelf();
+    assert(self != NULL);
+
+    Monitor* mon;
+    UInt32 thin = obj->mLock;
+
+    /* If the lock is still thin, we need to fatten it.
+     */
+    if (LW_SHAPE(thin) == LW_SHAPE_THIN) {
+        /* Make sure that 'self' holds the lock.
+         */
+        if (LW_LOCK_OWNER(thin) != self->mThreadId) {
+            // dvmThrowException("Ljava/lang/IllegalMonitorStateException;",
+            //     "object not locked by thread before wait()");
+            return E_ILLEGAL_MONITOR_STATE_EXCEPTION;
+        }
+
+        /* This thread holds the lock.  We need to fatten the lock
+         * so 'self' can block on it.  Don't update the object lock
+         * field yet, because 'self' needs to acquire the lock before
+         * any other thread gets a chance.
+         */
+        InflateMonitor(self, obj);
+        // LOG_THIN("(%d) lock %p fattened by wait() to count %d",
+        //          self->threadId, &obj->lock, mon->lockCount);
+    }
+    mon = LW_MONITOR(obj->mLock);
+    return WaitMonitor(self, mon, msec, nsec, interruptShouldThrow);
+}
+
+/*
+ * Object.notify().
+ */
+ELAPI NativeObjectNotify(
+    /* [in] */ NativeObject *obj)
+{
+    NativeThread* self = NativeThreadSelf();
+    assert(self != NULL);
+
+    UInt32 thin = obj->mLock;
+
+    /* If the lock is still thin, there aren't any waiters;
+     * waiting on an object forces lock fattening.
+     */
+    if (LW_SHAPE(thin) == LW_SHAPE_THIN) {
+        /* Make sure that 'self' holds the lock.
+         */
+        if (LW_LOCK_OWNER(thin) != self->mThreadId) {
+            // dvmThrowException("Ljava/lang/IllegalMonitorStateException;",
+            //     "object not locked by thread before notify()");
+            return E_ILLEGAL_MONITOR_STATE_EXCEPTION;
+        }
+
+        /* no-op;  there are no waiters to notify.
+         */
+        return NOERROR;
+    } else {
+        /* It's a fat lock.
+         */
+        return NotifyMonitor(self, LW_MONITOR(thin));
+    }
+}
+
+/*
+ * Object.notifyAll().
+ */
+ELAPI NativeObjectNotifyAll(
+    /* [in] */ NativeObject *obj)
+{
+    NativeThread* self = NativeThreadSelf();
+    assert(self != NULL);
+
+    UInt32 thin = obj->mLock;
+
+    /* If the lock is still thin, there aren't any waiters;
+     * waiting on an object forces lock fattening.
+     */
+    if (LW_SHAPE(thin) == LW_SHAPE_THIN) {
+        /* Make sure that 'self' holds the lock.
+         */
+        if (LW_LOCK_OWNER(thin) != self->mThreadId) {
+            // dvmThrowException("Ljava/lang/IllegalMonitorStateException;",
+            //     "object not locked by thread before notifyAll()");
+            return E_ILLEGAL_MONITOR_STATE_EXCEPTION;
+        }
+
+        /* no-op;  there are no waiters to notify.
+         */
+        return NOERROR;
+    } else {
+        /* It's a fat lock.
+         */
+        return NotifyAllMonitor(self, LW_MONITOR(thin));
+    }
+}
+
+/*
+ * Implement java.lang.Thread.interrupt().
+ */
+void NativeThreadInterrupt(
+    /* [in] */ NativeThread* thread)
+{
+    assert(thread != NULL);
+
+    NativeLockMutex(&thread->mWaitMutex);
+
+    /*
+     * If the interrupted flag is already set no additional action is
+     * required.
+     */
+    if (thread->mInterrupted == TRUE) {
+        NativeUnlockMutex(&thread->mWaitMutex);
+        return;
+    }
+
+    /*
+     * Raise the "interrupted" flag.  This will cause it to bail early out
+     * of the next wait() attempt, if it's not currently waiting on
+     * something.
+     */
+    thread->mInterrupted = TRUE;
+
+    /*
+     * Is the thread waiting?
+     *
+     * Note that fat vs. thin doesn't matter here;  waitMonitor
+     * is only set when a thread actually waits on a monitor,
+     * which implies that the monitor has already been fattened.
+     */
+    if (thread->mWaitMonitor != NULL) {
+        pthread_cond_signal(&thread->mWaitCond);
+    }
+
+    NativeUnlockMutex(&thread->mWaitMutex);
 }
 
 /*
@@ -1897,12 +2408,17 @@ ECode NativeThreadSleep(
     Monitor* mon = gCore.mThreadSleepMon;
 
     /* sleep(0,0) wakes up immediately, wait(0,0) means wait forever; adjust */
-    if (msec == 0 && nsec == 0)
+    if (msec == 0 && nsec == 0) {
         nsec++;
+    }
 
+    ECode ec, ec1;
     LockMonitor(self, mon);
-    ECode ec = WaitMonitor(self, mon, msec, nsec, TRUE);
-    UnlockMonitor(self, mon);
+    ec = WaitMonitor(self, mon, msec, nsec, TRUE);
+    ec1 = UnlockMonitor(self, mon);
+    if (FAILED(ec1)) {
+        ec = ec1;
+    }
     return ec;
 }
 
@@ -1914,13 +2430,23 @@ ECode NativeThreadSleep(
  */
 UInt64 NativeGetRelativeTimeNsec()
 {
-// #ifdef HAVE_POSIX_CLOCKS
-//     struct timespec now;
-//     clock_gettime(CLOCK_MONOTONIC, &now);
-//     return (u8)now.tv_sec*1000000000LL + now.tv_nsec;
-// #else
+#ifdef HAVE_POSIX_CLOCKS
+    struct timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    return (u8)now.tv_sec*1000000000LL + now.tv_nsec;
+#else
     struct timeval now;
     gettimeofday(&now, NULL);
     return (UInt64)now.tv_sec*1000000000LL + now.tv_usec * 1000LL;
-//#endif
+#endif
+}
+
+/*
+ * Get the current time, in microseconds.  This is "relative" time, meaning
+ * it could be wall-clock time or a monotonic counter, and is only suitable
+ * for computing time deltas.
+ */
+static UInt64 NativeGetRelativeTimeUsec()
+{
+    return NativeGetRelativeTimeNsec() / 1000;
 }

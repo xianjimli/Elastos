@@ -60,10 +60,16 @@ EXPORTS
     NativeThreadSelf
     NativeCreateThread
     NativeGetThreadFromThreadObject
-    NativeThreadInterrupt
     NativeLockThreadList
     NativeUnlockThreadList
     NativeChangeThreadPriority
     NativeGetCount
+    NativeCreateObject
+    NativeDestroyObject
+    NativeLockObject
+    NativeUnlockObject
+    NativeObjectWait
+    NativeObjectNotify
+    NativeObjectNotifyAll
     NativeThreadSleep
-    NativeThreadWait
+    NativeThreadInterrupt
