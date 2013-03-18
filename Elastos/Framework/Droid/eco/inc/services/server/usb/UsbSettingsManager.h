@@ -3,6 +3,7 @@
 #define __USBSETTINGSMANAGER_H__
 
 #include "ext/frameworkext.h"
+#include <elastos/ElRefBase.h>
 
 class UsbSettingsManager : public ElRefBase
 {
