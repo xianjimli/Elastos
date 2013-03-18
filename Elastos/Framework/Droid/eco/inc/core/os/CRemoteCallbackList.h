@@ -4,12 +4,20 @@
 #include "_CRemoteCallbackList.h"
 #include "ext/frameworkext.h"
 #include <elastos/HashMap.h>
-//#include "Elastos.Framework.Core.h"
+#include <elastos/AutoPtr.h>
+#include <elastos/ElRefBase.h>
 
-using namespace Elastos;
 
 CarClass(CRemoteCallbackList)
 {
+private:
+    class Callback //implements IBinder.DeathRecipient
+    {
+    public:
+        AutoPtr<IInterface> mCallback;
+        AutoPtr<IInterface> mCookie;
+    };
+
 public:
     CRemoteCallbackList();
 
@@ -21,7 +29,7 @@ public:
      */
     CARAPI Register(
         /* [in] */ IInterface* callback,
-        /* [out] */ Boolean* outBoolean);
+        /* [out] */ Boolean* result);
 
     /**
      * Add a new callback to the list.  This callback will remain in the list
@@ -49,10 +57,10 @@ public:
      * @see #kill
      * @see #onCallbackDied
      */
-    CARAPI RegisterExtra(
+    CARAPI RegisterEx(
         /* [in] */ IInterface* callback,
         /* [in] */ IInterface* cookie,
-        /* [out] */ Boolean* outBoolean);
+        /* [out] */ Boolean* result);
 
     /**
      * Remove from the list a callback that was previously added with
@@ -73,7 +81,7 @@ public:
      */
     CARAPI Unregister(
         /* [in] */ IInterface* callback,
-        /* [out] */ Boolean* outBoolean);
+        /* [out] */ Boolean* result);
 
     /**
      * Disable this callback list.  All registered callbacks are unregistered,
@@ -106,7 +114,7 @@ public:
      *
      * @see #register
      */
-    CARAPI OnCallbackDiedExtra(
+    CARAPI OnCallbackDiedEx(
         /* [in] */ IInterface* callback,
         /* [in] */ IInterface* cookie);
 
@@ -142,7 +150,7 @@ public:
      * @see #finishBroadcast
      */
     CARAPI BeginBroadcast(
-        /* [out] */ Int32* outInt);
+        /* [out] */ Int32* number);
 
     /**
      * Retrieve an item in the active broadcast that was previously started
@@ -167,7 +175,7 @@ public:
      */
     CARAPI GetBroadcastItem(
         /* [in] */ Int32 index,
-        /* [out] */ IInterface** outIInterface);
+        /* [out] */ IInterface** callback);
 
     /**
      * Retrieve the cookie associated with the item
@@ -177,7 +185,7 @@ public:
      */
     CARAPI GetBroadcastCookie(
         /* [in] */ Int32 index,
-        /* [out] */ IInterface** outObject);
+        /* [out] */ IInterface** cookie);
 
     /**
      * Clean up the state of a broadcast previously initiated by calling
@@ -188,25 +196,13 @@ public:
      */
     CARAPI FinishBroadcast();
 
-
-
-private:
-    IInterface* mActiveBroadcast[];
-    Int32 mBroadcastCount;
-    Boolean mKilled;
-
-
-
-private:
-    class Callback //implements IBinder.DeathRecipient
-    {
-    public:
-        IInterface* mCallback;
-        IInterface* mCookie;
-    };
-
 public:
     HashMap<IBinder*, Callback*> mCallbacks;
+
+private:
+    ArrayOf<AutoPtr<IInterface> >* mActiveBroadcast;
+    Int32 mBroadcastCount;
+    Boolean mKilled;
 };
 
 #endif //__CREMOTECALLBACKLIST_H__

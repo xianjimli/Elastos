@@ -2,37 +2,37 @@ module
 {
     interface IRemoteCallbackList {
         Register(
-            [in] IInterface* mcallback,
-            [out] Boolean* outBoolean);
+            [in] IInterface* cb,
+            [out] Boolean* result);
 
-        RegisterExtra(
-            [in] IInterface* mcallback,
+        RegisterEx(
+            [in] IInterface* cb,
             [in] IInterface* cookie,
-            [out] Boolean* outBoolean);
+            [out] Boolean* result);
 
         Unregister(
-            [in] IInterface* mcallback,
-            [out] Boolean* outBoolean);
+            [in] IInterface* cb,
+            [out] Boolean* result);
 
         Kill();
 
         OnCallbackDied(
-            [in] IInterface* mcallback);
+            [in] IInterface* cb);
 
-        OnCallbackDiedExtra(
-            [in] IInterface* mcallback,
+        OnCallbackDiedEx(
+            [in] IInterface* cb,
             [in] IInterface* cookie);
 
         BeginBroadcast(
-            [out] Int32* outInt);
+            [out] Int32* number);
 
         GetBroadcastItem(
             [in] Int32 index,
-            [out] IInterface** outIInterface);
+            [out] IInterface** cb);
 
         GetBroadcastCookie(
             [in] Int32 index,
-            [out] IInterface** outObject);
+            [out] IInterface** cookie);
 
         FinishBroadcast();
     }
