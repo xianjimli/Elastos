@@ -1,180 +1,158 @@
+
+#include "ext/frameworkdef.h"
 #include "provider/CSettingsSystem.h"
 
-using namespace Elastos::Core;
-
-HashSet<String>* const CSettingsSystem::MOVED_TO_SECURE = new HashSet<String>(30);
-
-//CSettings::System::MOVED_TO_SECURE.Insert(CSettings::Secure::ADB_ENABLED);
-/*CSettings::System::MOVED_TO_SECURE.add(Secure.ANDROID_ID);
-CSettings::System::MOVED_TO_SECURE.add(Secure.BLUETOOTH_ON);
-CSettings::System::MOVED_TO_SECURE.add(Secure.DATA_ROAMING);
-CSettings::System::MOVED_TO_SECURE.add(Secure.HTTP_PROXY);
-CSettings::System::MOVED_TO_SECURE.add(Secure.INSTALL_NON_MARKET_APPS);
-CSettings::System::MOVED_TO_SECURE.add(Secure.LOCATION_PROVIDERS_ALLOWED);
-CSettings::System::MOVED_TO_SECURE.add(Secure.LOCK_PATTERN_ENABLED);
-CSettings::System::MOVED_TO_SECURE.add(Secure.LOCK_PATTERN_VISIBLE);
-CSettings::System::MOVED_TO_SECURE.add(Secure.LOCK_PATTERN_TACTILE_FEEDBACK_ENABLED);
-CSettings::System::MOVED_TO_SECURE.add(Secure.LOGGING_ID);
-CSettings::System::MOVED_TO_SECURE.add(Secure.PARENTAL_CONTROL_ENABLED);
-CSettings::System::MOVED_TO_SECURE.add(Secure.PARENTAL_CONTROL_LAST_UPDATE);
-CSettings::System::MOVED_TO_SECURE.add(Secure.PARENTAL_CONTROL_REDIRECT_URL);
-CSettings::System::MOVED_TO_SECURE.add(Secure.SETTINGS_CLASSNAME);
-CSettings::System::MOVED_TO_SECURE.add(Secure.USB_MASS_STORAGE_ENABLED);
-CSettings::System::MOVED_TO_SECURE.add(Secure.USE_GOOGLE_MAIL);
-CSettings::System::MOVED_TO_SECURE.add(Secure.WIFI_NETWORKS_AVAILABLE_NOTIFICATION_ON);
-CSettings::System::MOVED_TO_SECURE.add(Secure.WIFI_NETWORKS_AVAILABLE_REPEAT_DELAY);
-CSettings::System::MOVED_TO_SECURE.add(Secure.WIFI_NUM_OPEN_NETWORKS_KEPT);
-CSettings::System::MOVED_TO_SECURE.add(Secure.WIFI_ON);
-CSettings::System::MOVED_TO_SECURE.add(Secure.WIFI_WATCHDOG_ACCEPTABLE_PACKET_LOSS_PERCENTAGE);
-CSettings::System::MOVED_TO_SECURE.add(Secure.WIFI_WATCHDOG_AP_COUNT);
-CSettings::System::MOVED_TO_SECURE.add(Secure.WIFI_WATCHDOG_BACKGROUND_CHECK_DELAY_MS);
-CSettings::System::MOVED_TO_SECURE.add(Secure.WIFI_WATCHDOG_BACKGROUND_CHECK_ENABLED);
-CSettings::System::MOVED_TO_SECURE.add(Secure.WIFI_WATCHDOG_BACKGROUND_CHECK_TIMEOUT_MS);
-CSettings::System::MOVED_TO_SECURE.add(Secure.WIFI_WATCHDOG_INITIAL_IGNORED_PING_COUNT);
-CSettings::System::MOVED_TO_SECURE.add(Secure.WIFI_WATCHDOG_MAX_AP_CHECKS);
-CSettings::System::MOVED_TO_SECURE.add(Secure.WIFI_WATCHDOG_ON);
-CSettings::System::MOVED_TO_SECURE.add(Secure.WIFI_WATCHDOG_PING_COUNT);
-CSettings::System::MOVED_TO_SECURE.add(Secure.WIFI_WATCHDOG_PING_DELAY_MS);
-CSettings::System::MOVED_TO_SECURE.add(Secure.WIFI_WATCHDOG_PING_TIMEOUT_MS);
-*/
 
 ECode CSettingsSystem::GetString(
-    /*[in]*/ IContentResolver* resolver,
-    /*[in]*/ const String& name,
-    /*[out]*/ String* value)
+    /* [in] */ IContentResolver* resolver,
+    /* [in] */ const String& name,
+    /* [out] */ String* value)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(value);
+    return Settings::System::GetString(resolver, name, value);
 }
 
 ECode CSettingsSystem::PutString(
-    /*[in]*/ IContentResolver* resolver,
-    /*[in]*/ const String& name,
-    /*[in]*/ const String& value,
-    /*[out]*/ Boolean* result)
+    /* [in] */ IContentResolver* resolver,
+    /* [in] */ const String& name,
+    /* [in] */ const String& value,
+    /* [out] */ Boolean* result)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(result);
+    return Settings::System::PutString(resolver, name, value, result);
 }
-
 
 ECode CSettingsSystem::GetUriFor(
-    /*[in]*/ const String& name,
-    /*[out]*/ IUri** uri)
+    /* [in] */ const String& name,
+    /* [out] */ IUri** uri)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(uri);
+    return Settings::System::GetUriFor(name, uri);
 }
 
-ECode CSettingsSystem::GetInt(
-    /*[in]*/ IContentResolver* cr,
-    /*[in]*/ const String& name,
-    /*[in]*/ Int32 def,
-    /*[out]*/ Int32* value)
+ECode CSettingsSystem::GetInt32(
+    /* [in] */ IContentResolver* cr,
+    /* [in] */ const String& name,
+    /* [in] */ Int32 def,
+    /* [out] */ Int32* value)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(value);
+    return Settings::System::GetInt32(cr, name, def, value);
 }
 
-ECode CSettingsSystem::GetIntExtra(
-    /*[in]*/ IContentResolver* cr,
-    /*[in]*/ const String& name,
-    /*[out]*/ Int32* value)
+ECode CSettingsSystem::GetInt32Ex(
+    /* [in] */ IContentResolver* cr,
+    /* [in] */ const String& name,
+    /* [out] */ Int32* value)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(value);
+    return Settings::System::GetInt32Ex(cr, name, value);
 }
 
-ECode CSettingsSystem::PutInt(
-    /*[in]*/ IContentResolver* cr,
-    /*[in]*/ const String& name,
-    /*[in]*/ Int32 value,
-    /*[out]*/ Boolean* result)
+ECode CSettingsSystem::PutInt32(
+    /* [in] */ IContentResolver* cr,
+    /* [in] */ const String& name,
+    /* [in] */ Int32 value,
+    /* [out] */ Boolean* result)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(result);
+    return Settings::System::PutInt32(cr, name, value, result);
 }
 
-ECode CSettingsSystem::GetLong(
-    /*[in]*/ IContentResolver* cr,
-    /*[in]*/ const String& name,
-    /*[in]*/ Int64 def,
-    /*[out]*/ Int64* value)
+ECode CSettingsSystem::GetInt64(
+    /* [in] */ IContentResolver* cr,
+    /* [in] */ const String& name,
+    /* [in] */ Int64 def,
+    /* [out] */ Int64* value)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(value);
+    return Settings::System::GetInt64(cr, name, def, value);
 }
 
-ECode CSettingsSystem::GetLongExtra(
-    /*[in]*/ IContentResolver* cr,
-    /*[in]*/ const String& name,
-    /*[out]*/ Int64* value)
+ECode CSettingsSystem::GetInt64Ex(
+    /* [in] */ IContentResolver* cr,
+    /* [in] */ const String& name,
+    /* [out] */ Int64* value)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(value);
+    return Settings::System::GetInt64Ex(cr, name, value);
 }
 
-ECode CSettingsSystem::PutLong(
-    /*[in]*/ IContentResolver* cr,
-    /*[in]*/ const String& name,
-    /*[in]*/ Int64 value,
-    /*[out]*/ Boolean* result)
+ECode CSettingsSystem::PutInt64(
+    /* [in] */ IContentResolver* cr,
+    /* [in] */ const String& name,
+    /* [in] */ Int64 value,
+    /* [out] */ Boolean* result)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(result);
+    return Settings::System::PutInt64(cr, name, value, result);
 }
 
 ECode CSettingsSystem::GetFloat(
-    /*[in]*/ IContentResolver* cr,
-    /*[in]*/ const String& name,
-    /*[in]*/ Float def,
-    /*[out]*/ Float* value)
+    /* [in] */ IContentResolver* cr,
+    /* [in] */ const String& name,
+    /* [in] */ Float def,
+    /* [out] */ Float* value)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(value);
+    return Settings::System::GetFloat(cr, name, def, value);
 }
 
-ECode CSettingsSystem::GetFloatExtra(
-    /*[in]*/ IContentResolver* cr,
-    /*[in]*/ const String& name,
-    /*[out]*/ Float* value)
+ECode CSettingsSystem::GetFloatEx(
+    /* [in] */ IContentResolver* cr,
+    /* [in] */ const String& name,
+    /* [out] */ Float* value)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(value);
+    return Settings::System::GetFloatEx(cr, name, value);
 }
 
 ECode CSettingsSystem::PutFloat(
-    /*[in]*/ IContentResolver* cr,
-    /*[in]*/ const String& name,
-    /*[in]*/ Float value,
-    /*[out]*/ Boolean* result)
+    /* [in] */ IContentResolver* cr,
+    /* [in] */ const String& name,
+    /* [in] */ Float value,
+    /* [out] */ Boolean* result)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(result);
+    return Settings::System::PutFloat(cr, name, value, result);
 }
 
 ECode CSettingsSystem::GetConfiguration(
-    /*[in]*/ IContentResolver* cr,
-    /*[in]*/ IConfiguration* outConfig)
+    /* [in] */ IContentResolver* cr,
+    /* [in] */ IConfiguration* outConfig)
 {
-    return E_NOT_IMPLEMENTED;
+    return Settings::System::GetConfiguration(cr, outConfig);
 }
 
 ECode CSettingsSystem::PutConfiguration(
-    /*[in]*/ IContentResolver* cr,
-    /*[in]*/ IConfiguration* config,
-    /*[out]*/ Boolean* result)
+    /* [in] */ IContentResolver* cr,
+    /* [in] */ IConfiguration* config,
+    /* [out] */ Boolean* result)
 {
-    return E_NOT_IMPLEMENTED;
-
+    VALIDATE_NOT_NULL(result);
+    return Settings::System::PutConfiguration(cr, config, result);
 }
 
-    /** @hide */
+/** @hide */
 ECode CSettingsSystem::HasInterestingConfigurationChanges(
-    /*[in]*/ Int32 changes,
-    /*[out]*/ Boolean* result)
+    /* [in] */ Int32 changes,
+    /* [out] */ Boolean* result)
  {
-     return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(result);
+    return Settings::System::HasInterestingConfigurationChanges(changes, result);
  }
 
 ECode CSettingsSystem::GetShowGTalkServiceStatus(
-    /*[in]*/ IContentResolver* cr,
-    /*[out]*/ Boolean* result)
+    /* [in] */ IContentResolver* cr,
+    /* [out] */ Boolean* result)
 {
-     return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(result);
+    return Settings::System::GetShowGTalkServiceStatus(cr, result);
 }
 
 ECode CSettingsSystem::SetShowGTalkServiceStatus(
-    /*[in]*/ IContentResolver* cr,
-    /*[in]*/ Boolean flag)
+    /* [in] */ IContentResolver* cr,
+    /* [in] */ Boolean flag)
 {
-     return E_NOT_IMPLEMENTED;
+    return Settings::System::SetShowGTalkServiceStatus(cr, flag);
 }

@@ -1,16 +1,13 @@
-#include "provider/CSettingsNameValueTable.h"
-#include "provider/SettingsNameValueTable.h"
-#include "content/CContentValues.h"
-#include "net/Uri.h"
-#include <elastos/AutoPtr.h>
 
-using namespace Elastos::Core;
+#include "ext/frameworkdef.h"
+#include "provider/CSettingsNameValueTable.h"
+
 
 ECode CSettingsNameValueTable::GetUriFor(
-    /*[in]*/ IUri* uri,
-    /*[in]*/ const String& name,
-    /*[out]*/ IUri** value)
+    /* [in] */ IUri* uri,
+    /* [in] */ const String& name,
+    /* [out] */ IUri** value)
 {
-    return SettingsNameValueTable::GetUriFor(uri,name,value);
+    VALIDATE_NOT_NULL(value);
+    return Settings::NameValueTable::GetUriFor(uri, name, value);
 }
-
