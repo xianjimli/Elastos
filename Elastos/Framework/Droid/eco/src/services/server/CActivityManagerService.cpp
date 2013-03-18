@@ -1261,10 +1261,9 @@ ECode CActivityManagerService::StartNextMatchingActivity(
         //         AppGlobals.getPackageManager().queryIntentActivities(
         //                 intent, r.resolvedType,
         //                 PackageManager.MATCH_DEFAULT_ONLY | STOCK_PM_FLAGS);
-        AutoPtr<ICapsuleManager> mCapslManager;
+        AutoPtr<ICapsuleManager> cm;
         AutoPtr<IObjectContainer> resolves;
-        CParcelableObjectContainer::New((IObjectContainer**)&resolves);
-        mCapslManager->QueryIntentActivities(
+        cm->QueryIntentActivities(
                     newIntent, r->mResolvedType,
                     CapsuleManager_MATCH_DEFAULT_ONLY | STOCK_PM_FLAGS,
                     (IObjectContainer**)&resolves);
@@ -1273,7 +1272,7 @@ ECode CActivityManagerService::StartNextMatchingActivity(
         AutoPtr<IObjectEnumerator> enumerator;
         resolves->GetObjectEnumerator((IObjectEnumerator**)&enumerator);
         Boolean hasNext = FALSE;
-        while(enumerator->MoveNext(&hasNext),hasNext){
+        while(enumerator->MoveNext(&hasNext), hasNext){
             AutoPtr<IResolveInfo> rInfo;
             enumerator->Current((IInterface**)&rInfo);
             aInfo = NULL;
@@ -1379,7 +1378,6 @@ ECode CActivityManagerService::StartActivityInCapsule(
 
     AutoPtr<IComponentName> component;
     intent->GetComponent((IComponentName**)&component);
-
     const Boolean componentSpecified = component != NULL;
 
     // Don't modify the client's object!
@@ -3063,7 +3061,8 @@ ECode CActivityManagerService::GetCallingActivity(
     AutoPtr<CActivityRecord> r = GetCallingRecordLocked(token);
     if (r != NULL){
         return r->mIntent->GetComponent(activity);
-    } else {
+    }
+    else {
         *activity = NULL;
         return NOERROR;
     }

@@ -240,8 +240,8 @@ public:
 
     CARAPI ScheduleExit();
 
-	CARAPI RequestThumbnail(
-		/* [in] */ IBinder* token);
+    CARAPI RequestThumbnail(
+        /* [in] */ IBinder* token);
 
     CARAPI ScheduleLaunchActivity(
         /* [in] */ IIntent *pIntent,

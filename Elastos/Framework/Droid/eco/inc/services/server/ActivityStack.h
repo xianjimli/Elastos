@@ -146,10 +146,10 @@ public:
         /* [in] */ Int32 where);
 
     CARAPI_(void) ReportActivityLaunchedLocked(
-		/* [in] */ Boolean timeout,
-		/* [in] */ CActivityRecord* r,
-		/* [in] */ Int64 thisTime,
-		/* [in] */ Int64 totalTime);
+        /* [in] */ Boolean timeout,
+        /* [in] */ CActivityRecord* r,
+        /* [in] */ Int64 thisTime,
+        /* [in] */ Int64 totalTime);
 
     CARAPI StartActivityLocked(
         /* [in] */ IApplicationApartment* caller,
@@ -199,14 +199,14 @@ public:
         /* [in] */ Int32 resultCode,
         /* [in] */ IIntent* data);
 
-	CARAPI_(List<AutoPtr<CActivityRecord> >*)
-		ProcessStoppingActivitiesLocked(
-		/* [in] */ Boolean remove);
+    CARAPI_(List<AutoPtr<CActivityRecord> >*)
+        ProcessStoppingActivitiesLocked(
+        /* [in] */ Boolean remove);
 
-	CARAPI_(void)ActivityIdleInternal(
-		IBinder* token,
-	    Boolean fromTimeout,
-	    IConfiguration* config);
+    CARAPI_(void)ActivityIdleInternal(
+        IBinder* token,
+        Boolean fromTimeout,
+        IConfiguration* config);
 
     CARAPI_(Boolean) RequestFinishActivityLocked(
         /* [in] */ IBinder* token,
@@ -254,8 +254,8 @@ public:
         /* [in] */ CActivityRecord* reason);
 
     CARAPI_(Boolean) MoveTaskToBackLocked(
-		/* [in] */ Int32 task,
-		/* [in] */ CActivityRecord* reason);
+        /* [in] */ Int32 task,
+        /* [in] */ CActivityRecord* reason);
 
     CARAPI_(void) FinishTaskMoveLocked(
         /* [in] */ Int32 task);
