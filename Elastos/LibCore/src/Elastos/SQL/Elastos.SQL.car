@@ -35,7 +35,8 @@ module
     merge("../../../car/Elastos/Math/IBigInteger.car");
     merge("../../../car/Elastos/Math/IBigDecimal.car"); 
 
-    
+
+    merge("../../../car/Elastos/SQL/IResultSet.car");
     merge("../../../car/Elastos/SQL/IArray.car");
     merge("../../../car/Elastos/SQL/IBlob.car");
     merge("../../../car/Elastos/SQL/IClob.car");
@@ -44,7 +45,6 @@ module
     merge("../../../car/Elastos/SQL/IClientInfoStatus.car");
     merge("../../../car/Elastos/SQL/IDatabaseMetaData.car");
     merge("../../../car/Elastos/SQL/IDataTruncation.car");
-    merge("../../../car/Elastos/SQL/IResultSet.car");
     merge("../../../car/Elastos/SQL/IResultSetMetaData.car");
     merge("../../../car/Elastos/SQL/IJDBCResultSet.car");
     merge("../../../car/Elastos/SQL/IJDBCDatabaseMetaData.car");
@@ -68,6 +68,48 @@ module
         constructor();
 
         interface IDatabase;
+    }
+
+    class CFunctionContext {
+        constructor();
+
+        interface IFunctionContext;
+    }
+
+    class CJDBCDriver {
+        constructor();
+
+        interface IJDBCDriver;
+    }
+
+    class CShell {
+        constructor();
+
+        interface IShell;
+    }
+
+    class CBlob2 {
+        constructor();
+
+        interface IBlob2;
+    }
+
+    class CStmt {
+        constructor();
+
+        interface IStmt;
+    }
+
+    class CVm {
+        constructor();
+
+        interface IVm;
+    }
+
+    class CTableResult {
+        constructor();
+
+        interface ITableResult;
     }
 
 

@@ -29,5 +29,40 @@ module
          * Close blob.
          */
         Close();
+
+        /**
+         * Internal blob write method.
+         * @param b byte array to be written
+         * @param off offset into byte array
+         * @param pos offset into blob
+         * @param len length to be written
+         * @return number of bytes written to blob
+         */
+        Write( 
+            [in] Int32 off, 
+            [in] Int32 pos, 
+            [in] Int32 len,
+            [in] ArrayOf<Byte> b, 
+            [out] Int32* result);
+
+        /**
+         * Internal blob read method.
+         * @param b byte array to be written
+         * @param off offset into byte array
+         * @param pos offset into blob
+         * @param len length to be written
+         * @return number of bytes written to blob
+         */
+        Read(
+            [in] Int32 off, 
+            [in] Int32 pos, 
+            [in] Int32 len,
+            [out] ArrayOf<Byte> b, 
+            [out] Int32* result);
+
+        /**
+         * Destructor for object.
+         */
+        Finalize();
     }
 }

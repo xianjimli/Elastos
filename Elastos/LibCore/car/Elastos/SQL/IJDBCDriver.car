@@ -3,6 +3,7 @@ module
 {
     interface IDriver;
 
+    const IJDBCDriver_MAJORVERSION = 1;
     interface IJDBCDriver extends  IDriver{
     
     }

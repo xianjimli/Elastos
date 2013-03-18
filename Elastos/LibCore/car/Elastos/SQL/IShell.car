@@ -3,6 +3,32 @@ module
 {
     interface ICallback;
 
+    const IShell_MODE_Line = 0;
+    const IShell_MODE_Column = 1;
+    const IShell_MODE_List = 2;
+    const IShell_MODE_Semi = 3;
+    const IShell_MODE_Html = 4;
+    const IShell_MODE_Insert = 5;
+    const IShell_MODE_Insert2 = 6;
+
     interface IShell extends ICallback{
+
+        Set_table_name(
+            [in] String str);
+
+        Do_meta(
+            [in] String line);
+
+        Read_line(
+            [in] IBufferedReader* is, 
+            [in] String prompt,
+            [out] String* str);
+
+        Do_input(
+            [in] IBufferedReader* is);
+
+        Do_cmd(
+            [in] String sql);
+
     }
 }
