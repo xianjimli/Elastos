@@ -9,10 +9,13 @@ INCLUDES += $(MAKEDIR)/../../../inc/Elastos/common;
 
 
 SOURCES = Elastos.Utility.Locks.car
+SOURCES += ReentrantLock.cpp
 SOURCES += CReentrantLock.cpp
 SOURCES += Node.cpp
+SOURCES += AbstractOwnableSynchronizer.cpp
 SOURCES += AbstractQueuedSynchronizer.cpp
 SOURCES += CAbstractQueuedSynchronizer.cpp
+SOURCES += CountDownLatch.cpp
 SOURCES += CCountDownLatch.cpp
 SOURCES += CConditionObject.cpp
 

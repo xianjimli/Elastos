@@ -3,8 +3,9 @@
 #define __CCOUNTDOWNLATCH_H__
 
 #include "_CCountDownLatch.h"
+#include "CountDownLatch.h"
 
-CarClass(CCountDownLatch)
+CarClass(CCountDownLatch), public CountDownLatch
 {
 public:
     CARAPI AWait();
@@ -25,6 +26,8 @@ public:
         /* [in] */ Int32 count);
 
 private:
+//    CCountDownLatch(
+//        /* [in] */ Int32 arg);
     // TODO: Add your private member variables here.
 };
 

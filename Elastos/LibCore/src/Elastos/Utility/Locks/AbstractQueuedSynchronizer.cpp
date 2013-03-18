@@ -791,3 +791,8 @@ Boolean AbstractQueuedSynchronizer::CompareAndSetTail(
 {
     return NOERROR;
 }
+
+ECode AbstractQueuedSynchronizer::Acquire(
+    /* [in] */ Int32 arg)
+{
+}

@@ -1,6 +1,7 @@
 
 module
 {
+
     merge("../../../car/Elastos/Utility/IComparator.car");
     merge("../../../car/Elastos/Utility/IDate.car");
     merge("../../../car/Elastos/Utility/ILocale.car");
@@ -10,6 +11,9 @@ module
     merge("../../../car/Elastos/Utility/IObjectStringMap.car");
     merge("../../../car/Elastos/Utility/ITimeZone.car");
     merge("../../../car/Elastos/Utility/ISimpleTimeZone.car");
+    merge("../../../car/Elastos/Utility/ITimerTask.car");
+    merge("../../../car/Elastos/Utility/ITimer.car");
+
 
     class CObjectContainer {
         interface IObjectContainer;
@@ -123,5 +127,27 @@ module
             [in] String name);
 
         interface ISimpleTimeZone;
+    }
+
+    class CTimerTask {
+        constructor();
+
+        interface ITimerTask;
+    }
+
+    class CTimer {
+        constructor(
+            [in] String name,
+            [in] Boolean isDaemon);
+
+        constructor(
+            [in] String name);
+
+        constructor(
+            [in] Boolean isDaemon);
+
+        constructor();
+
+        interface ITimer;
     }
 }

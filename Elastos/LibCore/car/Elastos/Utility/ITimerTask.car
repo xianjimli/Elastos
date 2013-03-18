@@ -2,7 +2,13 @@
 
 module
 {
-    ITimerTask extends IRunnable{
-        
+    importlib("Elastos.Core.eco");
+
+    interface ITimerTask extends IRunnable{
+        Cancel(
+            [out] Boolean* value);
+
+        ScheduledExecutionTime(
+            [out] Int64* value);
     }
 }

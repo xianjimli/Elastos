@@ -4,11 +4,11 @@
 #include <elastos/Autolock.h>
 
 
-#define E_TIMER_SCHEDULED_ALREADY 0x
+#define E_TIMER_SCHEDULED_ALREADY 0x80160001
 
 Timer::TimerImpl::TimerHeap::TimerHeap()
 {
-    mTimers = ArrayOf<TimerTask*>::Alloc(256);
+    mTimers = ArrayOf<ITimerTask*>::Alloc(256);
 //    TimerTask a;
 }
 
@@ -17,9 +17,9 @@ ECode Timer::TimerImpl::TimerHeap::UpHeap()
     Int32 current = mSize - 1;
     Int32 parent = (current - 1) / 2;
 
-    while ((*mTimers)[current]->mWhen < (*mTimers)[parent]->mWhen) {
+    while (((CTimerTask *)(*mTimers)[current])->mWhen < ((CTimerTask *)(*mTimers)[parent])->mWhen) {
         // swap the two
-        TimerTask* tmp = (*mTimers)[current];
+        ITimerTask* tmp = (*mTimers)[current];
         (*mTimers)[current] = (*mTimers)[parent];
         (*mTimers)[parent] = tmp;
 
@@ -39,17 +39,17 @@ ECode Timer::TimerImpl::TimerHeap::DownHeap(
     while (child < mSize && mSize > 0) {
         // compare the children if they exist
         if (child + 1 < mSize
-                && (*mTimers)[child + 1]->mWhen < (*mTimers)[child]->mWhen) {
+                && ((CTimerTask *)(*mTimers)[child + 1])->mWhen < ((CTimerTask *)(*mTimers)[child])->mWhen) {
             child++;
         }
 
         // compare selected child with parent
-        if ((*mTimers)[current]->mWhen < (*mTimers)[child]->mWhen) {
+        if (((CTimerTask *)(*mTimers)[current])->mWhen < ((CTimerTask *)(*mTimers)[child])->mWhen) {
             break;
         }
 
         // swap the two
-        TimerTask* tmp = (*mTimers)[current];
+        ITimerTask* tmp = (*mTimers)[current];
         (*mTimers)[current] = (*mTimers)[child];
         (*mTimers)[child] = tmp;
 
@@ -61,7 +61,7 @@ ECode Timer::TimerImpl::TimerHeap::DownHeap(
     return NOERROR;
 }
 
-TimerTask* Timer::TimerImpl::TimerHeap::Minimum()
+ITimerTask* Timer::TimerImpl::TimerHeap::Minimum()
 {
     return (*mTimers)[0];
 }
@@ -72,16 +72,16 @@ Boolean Timer::TimerImpl::TimerHeap::IsEmpty()
 }
 
 ECode Timer::TimerImpl::TimerHeap::Insert(
-    /* [in] */ TimerTask* task)
+    /* [in] */ ITimerTask* task)
 {
     if (mTimers->GetLength() == mSize) {
-        ArrayOf<TimerTask*> *appendedTimers = ArrayOf<TimerTask*>::Alloc(mSize * 2);
+        ArrayOf<ITimerTask*> *appendedTimers = ArrayOf<ITimerTask*>::Alloc(mSize * 2);
         //System.arraycopy(timers, 0, appendedTimers, 0, size);
         Int32 count = 0;
         for(; count < mSize; count++) {
             (*appendedTimers)[count] = (*mTimers)[count];
         }
-        ArrayOf<TimerTask*>::Free(mTimers);
+        ArrayOf<ITimerTask*>::Free(mTimers);
         mTimers = appendedTimers;
 
     }
@@ -103,8 +103,8 @@ ECode Timer::TimerImpl::TimerHeap::Delete(
 
 ECode Timer::TimerImpl::TimerHeap::Reset()
 {
-    ArrayOf<TimerTask*>::Free(mTimers);
-    mTimers = ArrayOf<TimerTask*>::Alloc(256);;
+    ArrayOf<ITimerTask*>::Free(mTimers);
+    mTimers = ArrayOf<ITimerTask*>::Alloc(256);;
     mSize = 0;
     return NOERROR;
 }
@@ -118,7 +118,7 @@ ECode Timer::TimerImpl::TimerHeap::AdjustMinimum()
 ECode Timer::TimerImpl::TimerHeap::DeleteIfCancelled()
 {
     for (Int32 i = 0; i < mSize; i++) {
-        if ((*mTimers)[i]->mCancelled) {
+        if (((CTimerTask *)(*mTimers)[i])->mCancelled) {
             mDeletedCancelledNumber++;
             Delete(i);
             // re-try this point
@@ -129,7 +129,7 @@ ECode Timer::TimerImpl::TimerHeap::DeleteIfCancelled()
 }
 
 ECode Timer::TimerImpl::TimerHeap::GetTask(
-    /* [in] */ TimerTask* task)
+    /* [in] */ ITimerTask* task)
 {
     for (Int32 i = 0; i < mTimers->GetLength(); i++) {
         if ((*mTimers)[i] == task) {
@@ -145,6 +145,7 @@ Timer::TimerImpl::TimerImpl(
     /* [in] */ String name,
     /* [in] */ Boolean isDaemon)
 {
+//    CThread::New((IRunnable*)this, (IThread**)&mThread);
     mThread->SetName(name);
     mThread->SetDaemon(isDaemon);
     mThread->Start();
@@ -194,7 +195,7 @@ ECode Timer::TimerImpl::GetInterfaceID(
 ECode Timer::TimerImpl::Run()
 {
     while (TRUE) {
-        TimerTask* task;
+        ITimerTask* task;
         Autolock lock(mThread);
         {
             // need to check cancelled inside the synchronized block
@@ -215,15 +216,15 @@ ECode Timer::TimerImpl::Run()
             task = mTasks->Minimum();
             Int64 timeToSleep;
 
-            Mutex::Autolock lock(&task->mLock);
+            Mutex::Autolock lock(&((CTimerTask *)task)->mLock);
             {
-                if (task->mCancelled) {
+                if (((CTimerTask *)task)->mCancelled) {
                     mTasks->Delete(0);
                     continue;
                 }
 
                 // check the time to sleep for the first task scheduled
-                timeToSleep = task->mWhen - currentTime;
+                timeToSleep = ((CTimerTask *)task)->mWhen - currentTime;
             }
 
             if (timeToSleep > 0) {
@@ -237,36 +238,36 @@ ECode Timer::TimerImpl::Run()
             //synchronized (task.lock)
             {
                 Int32 pos = 0;
-                if (mTasks->Minimum()->mWhen != task->mWhen) {
+                if (((CTimerTask *)mTasks->Minimum())->mWhen != ((CTimerTask *)task)->mWhen) {
                     pos = mTasks->GetTask(task);
                 }
-                if (task->mCancelled) {
+                if (((CTimerTask *)task)->mCancelled) {
                     mTasks->Delete(mTasks->GetTask(task));
                     continue;
                 }
 
                 // set time to schedule
-                task->SetScheduledTime(task->mWhen);
+                ((CTimerTask *)task)->SetScheduledTime(((CTimerTask *)task)->mWhen);
 
                 // remove task from queue
                 mTasks->Delete(pos);
 
                 // set when the next task should be launched
-                if (task->mPeriod >= 0) {
+                if (((CTimerTask *)task)->mPeriod >= 0) {
                     // this is a repeating task,
-                    if (task->mFixedRate) {
+                    if (((CTimerTask *)task)->mFixedRate) {
                         // task is scheduled at fixed rate
-                        task->mWhen = task->mWhen + task->mPeriod;
+                        ((CTimerTask *)task)->mWhen = ((CTimerTask *)task)->mWhen + ((CTimerTask *)task)->mPeriod;
                     } else {
                         // task is scheduled at fixed delay
-                        task->mWhen = System::GetCurrentTimeMillis()
-                                + task->mPeriod;
+                        ((CTimerTask *)task)->mWhen = System::GetCurrentTimeMillis()
+                                + ((CTimerTask *)task)->mPeriod;
                     }
 
                     // insert this task into queue
                     InsertTask(task);
                 } else {
-                    task->mWhen = 0;
+                    ((CTimerTask *)task)->mWhen = 0;
                 }
             }
         }
@@ -296,10 +297,10 @@ Int32 Timer::TimerImpl::Purge()
 }
 
 Int32 Timer::TimerImpl::InsertTask(
-    /* [in] */ TimerTask* newTask)
+    /* [in] */ ITimerTask* newTask)
 {
     mTasks->Insert(newTask);
-    //mThread->Notify();
+    mThread->Notify();
     return NOERROR;
 }
 
@@ -366,7 +367,7 @@ Int32 Timer::Purge()
 }
 
 ECode Timer::Schedule(
-    /* [in] */ TimerTask* task,
+    /* [in] */ ITimerTask* task,
     /* [in] */ IDate* when)
 {
     Int64 wTime;
@@ -382,7 +383,7 @@ ECode Timer::Schedule(
 
 
 ECode Timer::Schedule(
-    /* [in] */ TimerTask* task,
+    /* [in] */ ITimerTask* task,
     /* [in] */ Int64 delay)
 {
     if (delay < 0) {
@@ -393,7 +394,7 @@ ECode Timer::Schedule(
 
 
 ECode Timer::Schedule(
-    /* [in] */ TimerTask* task,
+    /* [in] */ ITimerTask* task,
     /* [in] */ Int64 delay,
     /* [in] */ Int64 period)
 {
@@ -404,7 +405,7 @@ ECode Timer::Schedule(
 }
 
 ECode Timer::Schedule(
-        /* [in] */ TimerTask* task,
+        /* [in] */ ITimerTask* task,
         /* [in] */ IDate* when,
         /* [in] */ Int64 period)
 {
@@ -419,7 +420,7 @@ ECode Timer::Schedule(
 }
 
 ECode Timer::ScheduleAtFixedRate(
-    /* [in] */ TimerTask* task,
+    /* [in] */ ITimerTask* task,
     /* [in] */ Int64 delay,
     /* [in] */ Int64 period)
 {
@@ -430,7 +431,7 @@ ECode Timer::ScheduleAtFixedRate(
 }
 
 ECode Timer::ScheduleAtFixedRate(
-    /* [in] */ TimerTask* task,
+    /* [in] */ ITimerTask* task,
     /* [in] */ IDate* when,
     /* [in] */ Int64 period)
 {
@@ -446,7 +447,7 @@ ECode Timer::ScheduleAtFixedRate(
 }
 
 ECode Timer::ScheduleImpl(
-    /* [in] */ TimerTask* task,
+    /* [in] */ ITimerTask* task,
     /* [in] */ Int64 delay,
     /* [in] */ Int64 period,
     /* [in] */ Boolean fixed)
@@ -463,19 +464,19 @@ ECode Timer::ScheduleImpl(
         // return E_TIMER_DELAY;
     }
 
-    Mutex::Autolock lock1(&task->mLock);
+    Mutex::Autolock lock1(&((CTimerTask *)task)->mLock);
     {
-        if (task->IsScheduled()) {
+        if (((CTimerTask *)task)->IsScheduled()) {
             //return E_TIMER_SCHEDULED_ALREADY;
         }
 
-        if (task->mCancelled) {
+        if (((CTimerTask *)task)->mCancelled) {
             //return E_TIMER_CANCEL;
         }
 
-        task->mWhen = when;
-        task->mPeriod = period;
-        task->mFixedRate = fixed;
+        ((CTimerTask *)task)->mWhen = when;
+        ((CTimerTask *)task)->mPeriod = period;
+        ((CTimerTask *)task)->mFixedRate = fixed;
     }
 
     // insert the newTask into queue

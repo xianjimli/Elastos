@@ -8,11 +8,12 @@
 #include "CConditionObject.h"
 #include "Node.h"
 #include <elastos/AutoPtr.h>
+#include "AbstractOwnableSynchronizer.h"
 
 using namespace Elastos;
 using namespace Elastos::Core::Threading;
 
-class AbstractQueuedSynchronizer
+class AbstractQueuedSynchronizer : public AbstractOwnableSynchronizer
 {
 public:
     ECode AcquireQueued(
@@ -93,6 +94,9 @@ public:
     ECode GetWaitingThreads(
         /* [in] */ IConditionObject* condition,
         /* [out] */ IObjectEnumerator** ppEmu);
+
+    ECode Acquire(
+        /* [in] */ Int32 arg);
 
 protected:
     Int64 GetState();

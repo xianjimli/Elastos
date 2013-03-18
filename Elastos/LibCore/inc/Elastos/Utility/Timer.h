@@ -1,7 +1,7 @@
 #ifndef __TIMER_H__
 #define __TIMER_H__
 
-#include "TimerTask.h"
+#include "CTimerTask.h"
 #include "CDate.h"
 #include <elastos/Mutex.h>
 #include "Elastos.Core.h"
@@ -33,19 +33,19 @@ class Timer
 
             private:
                 Int32 DEFAULT_HEAP_SIZE;
-                ArrayOf<TimerTask*>* mTimers;
+                ArrayOf<ITimerTask*>* mTimers;
                 Int32 mSize;
                 Int32 mDeletedCancelledNumber;
 
             public:
                 TimerHeap();
 
-                TimerTask* Minimum();
+                ITimerTask* Minimum();
 
                 Boolean IsEmpty();
 
                 CARAPI Insert(
-                    /* [in] */ TimerTask* task);
+                    /* [in] */ ITimerTask* task);
 
                 CARAPI Delete(
                     /* [in] */ Int32 pos);
@@ -57,7 +57,7 @@ class Timer
                 CARAPI DeleteIfCancelled();
 
                 CARAPI GetTask(
-                    /* [in] */ TimerTask* task);
+                    /* [in] */ ITimerTask* task);
 
         };
 
@@ -102,7 +102,7 @@ class Timer
             CARAPI_(Int32) Purge();
 
             CARAPI InsertTask(
-                /* [in] */ TimerTask* newTask);
+                /* [in] */ ITimerTask* newTask);
 
 //            virtual IInterface* Probe(
 //                /* [in] */ const InterfaceID & id) {};
@@ -148,7 +148,7 @@ private:
 public:
      Timer(
         /* [in] */ String name,
-        /* [in] */Boolean isDaemon);
+        /* [in] */ Boolean isDaemon);
 
     /**
      * Creates a new named {@code Timer} which does not run as a daemon thread.
@@ -165,7 +165,7 @@ public:
      * @param isDaemon {@code true} if the {@code Timer}'s thread should be a daemon thread.
      */
     Timer(
-        /* [in] */Boolean isDaemon);
+        /* [in] */ Boolean isDaemon);
 
     /**
      * Creates a new non-daemon {@code Timer}.
@@ -203,7 +203,7 @@ public:
      *                scheduled or canceled.
      */
     CARAPI Schedule(
-        /* [in] */ TimerTask* task,
+        /* [in] */ ITimerTask* task,
         /* [in] */ IDate* when);
 
     /**
@@ -220,7 +220,7 @@ public:
      *                scheduled or canceled.
      */
     CARAPI Schedule(
-        /* [in] */ TimerTask* task,
+        /* [in] */ ITimerTask* task,
         /* [in] */ Int64 delay);
 
     /**
@@ -239,7 +239,7 @@ public:
      *                scheduled or canceled.
      */
     CARAPI Schedule(
-        /* [in] */ TimerTask* task,
+        /* [in] */ ITimerTask* task,
         /* [in] */ Int64 delay,
         /* [in] */ Int64 period);
 
@@ -260,7 +260,7 @@ public:
      *                scheduled or canceled.
      */
     CARAPI Schedule(
-        /* [in] */ TimerTask* task,
+        /* [in] */ ITimerTask* task,
         /* [in] */ IDate* when,
         /* [in] */ Int64 period);
 
@@ -281,7 +281,7 @@ public:
      *                scheduled or canceled.
      */
     CARAPI ScheduleAtFixedRate(
-        /* [in] */ TimerTask* task,
+        /* [in] */ ITimerTask* task,
         /* [in] */ Int64 delay,
         /* [in] */ Int64 period);
 
@@ -302,7 +302,7 @@ public:
      *                scheduled or canceled.
      */
     CARAPI ScheduleAtFixedRate(
-        /* [in] */ TimerTask* task,
+        /* [in] */ ITimerTask* task,
         /* [in] */ IDate* when,
         /* [in] */ Int64 period);
 
@@ -310,7 +310,7 @@ public:
      * Schedule a task.
      */
     CARAPI ScheduleImpl(
-        /* [in] */ TimerTask* task,
+        /* [in] */ ITimerTask* task,
         /* [in] */ Int64 delay,
         /* [in] */ Int64 period,
         /* [in] */ Boolean fixed);
