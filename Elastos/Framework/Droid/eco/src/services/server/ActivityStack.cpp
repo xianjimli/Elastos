@@ -2845,7 +2845,7 @@ void ActivityStack::ReportActivityLaunchedLocked(
 {
     List<AutoPtr<IWaitResult> >::ReverseIterator it;
     for(it = mWaitingActivityLaunched.RBegin(); it != mWaitingActivityLaunched.REnd();
-        it++) {
+        ++it) {
         AutoPtr<IWaitResult> w = *it;
         if (r != NULL) {
             AutoPtr<IComponentName> component;
@@ -2956,8 +2956,7 @@ List<AutoPtr<CActivityRecord> >*
     ActivityStack::ProcessStoppingActivitiesLocked(
         /* [in] */ Boolean remove)
 {
-    Int32 N = mStoppingActivities.GetSize();
-    if (N <= 0) return NULL;
+    if (mStoppingActivities.Begin() == mStoppingActivities.End()) return NULL;
 
     List<AutoPtr<CActivityRecord> >* stops = NULL;
 
@@ -2965,7 +2964,7 @@ List<AutoPtr<CActivityRecord> >*
             && mResumedActivity->mNowVisible
             && !mResumedActivity->mWaitingVisible;
     List<AutoPtr<CActivityRecord> >::Iterator it;
-    for(it = mStoppingActivities.Begin(); it != mStoppingActivities.End(); it++) {
+    for(it = mStoppingActivities.Begin(); it != mStoppingActivities.End(); ++it) {
         AutoPtr<CActivityRecord> s = *it;
         if (localLOGV) Slogger::V(TAG, StringBuffer("Stopping ") + s + StringBuffer(": nowVisible=")
                 + nowVisible + StringBuffer(" waitingVisible=") + s->mWaitingVisible
@@ -2997,9 +2996,9 @@ List<AutoPtr<CActivityRecord> >*
 }
 
 void ActivityStack::ActivityIdleInternal(
-    /*[in]*/ IBinder* token,
-    /*[in]*/ Boolean fromTimeout,
-    /*[in]*/ IConfiguration* config)
+    /* [in] */ IBinder* token,
+    /* [in] */ Boolean fromTimeout,
+    /* [in] */ IConfiguration* config)
 {
      if (localLOGV) Slogger::V(TAG, StringBuffer("Activity idle: ") + token);
 
@@ -3103,7 +3102,7 @@ void ActivityStack::ActivityIdleInternal(
      // Stop any activities that are scheduled to do so but have been
      // waiting for the next one to start.
      List<AutoPtr<CActivityRecord> >::Iterator it;
-     for(it = stops->Begin(); it != stops->End(); it++) {
+     for(it = stops->Begin(); it != stops->End(); ++it) {
         AutoPtr<CActivityRecord> r = *it;
          {
             Mutex::Autolock lock(mService->_m_syncLock);
@@ -3118,7 +3117,7 @@ void ActivityStack::ActivityIdleInternal(
 
      // Finish any activities that are scheduled to do so but have been
      // waiting for the next one to start.
-     for(it = finishes->Begin(); it != finishes->End(); it++) {
+     for(it = finishes->Begin(); it != finishes->End(); ++it) {
         AutoPtr<CActivityRecord> r = *it;
          {
             Mutex::Autolock lock(mService->_m_syncLock);
@@ -3127,7 +3126,7 @@ void ActivityStack::ActivityIdleInternal(
      }
 
      // Report back to any thumbnail receivers.
-     for(it = thumbnails->Begin(); it != thumbnails->End(); it++) {
+     for(it = thumbnails->Begin(); it != thumbnails->End(); ++it) {
         AutoPtr<CActivityRecord> r = *it;
          mService->SendPendingThumbnail(r, NULL, NULL, NULL, TRUE);
      }
