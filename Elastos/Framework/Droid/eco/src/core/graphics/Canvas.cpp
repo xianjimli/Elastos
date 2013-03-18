@@ -2148,12 +2148,8 @@ void Canvas::NativeDrawPosText(
        posPtr[i].fY = SkFloatToScalar(posArray[(i << 1) + 1]);
     }
 
-    Int32 startOff, endOff;
-    Character::GetOffsetByChars(text, 0, text.GetLength(), 0, index, &startOff);
-    Character::GetOffsetByChars(text, 0, text.GetLength(), 0, index + count, &endOff);
-    nativeCanvas->drawPosText(text_ + startOff, endOff - startOff , posPtr, *nativePaint);
-
-   delete[] posPtr;
+    nativeCanvas->drawPosText(text_, byteLength, posPtr, *nativePaint);
+    delete[] posPtr;
 }
 
 void Canvas::NativeDrawTextOnPath(
@@ -2167,7 +2163,10 @@ void Canvas::NativeDrawTextOnPath(
     /* [in] */ SkPaint* nativePaint)
 {
     char* textArray = text.GetPayload();
-    nativeCanvas->drawTextOnPathHV(textArray + index, count << 1, *nativePath,
+    Int32 startOff, endOff;
+    Character::GetOffsetByChars(text, 0, text.GetLength(), 0, index, &startOff);
+    Character::GetOffsetByChars(text, 0, text.GetLength(), 0, index + count, &endOff);
+    nativeCanvas->drawTextOnPathHV(textArray + startOff, endOff - startOff, *nativePath,
                SkFloatToScalar(hOffset), SkFloatToScalar(vOffset), *nativePaint);
 }
 
@@ -2180,7 +2179,7 @@ void Canvas::NativeDrawTextOnPath(
     /* [in] */ SkPaint* nativePaint)
 {
     const char* text_ = text.string();
-    Int32 byteLength = text.GetLength() << 1;
+    Int32 byteLength = text.GetLength();
     nativeCanvas->drawTextOnPathHV(text_, byteLength, *nativePath,
                SkFloatToScalar(hOffset), SkFloatToScalar(vOffset), *nativePaint);
 }

@@ -399,7 +399,7 @@ ECode CRegion::Equals(
 {
     VALIDATE_NOT_NULL(result);
 
-    if ((r == NULL) {
+    if (r == NULL) {
         *result = FALSE;
         return NOERROR;
     }
