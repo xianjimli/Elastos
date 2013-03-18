@@ -120,7 +120,7 @@ ECode CLocalUsbManager::OpenAccessory(
         Log.e(TAG, "RemoteException in openAccessory", e);
         return null;
     }
-    */
+    //*/
 
     VALIDATE_NOT_NULL(descriptor);
     mService->OpenAccessory(accessory, descriptor);
@@ -138,7 +138,7 @@ ECode CLocalUsbManager::HasDevicePermission(
         Log.e(TAG, "RemoteException in hasPermission", e);
         return false;
     }
-    */
+    //*/
 
     VALIDATE_NOT_NULL(result);
     mService->HasDevicePermission(device, result);
@@ -156,7 +156,7 @@ ECode CLocalUsbManager::HasAccessoryPermission(
         Log.e(TAG, "RemoteException in hasPermission", e);
         return false;
     }
-    */
+    //*/
 
     VALIDATE_NOT_NULL(result);
     mService->HasAccessoryPermission(accessory, result);
@@ -173,7 +173,7 @@ ECode CLocalUsbManager::RequestDevicePermission(
     } catch (RemoteException e) {
         Log.e(TAG, "RemoteException in requestPermission", e);
     }
-    */
+    //*/
 
     String name;
     mContext->GetCapsuleName(&name);
@@ -191,7 +191,7 @@ ECode CLocalUsbManager::RequestAccessoryPermission(
     } catch (RemoteException e) {
         Log.e(TAG, "RemoteException in requestPermission", e);
     }
-    */
+    //*/
 
     String name;
     mContext->GetCapsuleName(&name);
@@ -239,7 +239,7 @@ ECode CLocalUsbManager::SetCurrentFunction(
     } catch (RemoteException e) {
         Log.e(TAG, "RemoteException in setCurrentFunction", e);
     }
-    */
+    //*/
 
     mService->SetCurrentFunction(function, makeDefault);
     return NOERROR;
@@ -254,7 +254,7 @@ ECode CLocalUsbManager::SetMassStorageBackingFile(
     } catch (RemoteException e) {
         Log.e(TAG, "RemoteException in setDefaultFunction", e);
     }
-    */
+    //*/
 
     mService->SetMassStorageBackingFile(path);
     return NOERROR;
