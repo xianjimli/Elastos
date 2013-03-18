@@ -1,19 +1,18 @@
+
+#include "ext/frameworkdef.h"
 #include "os/CRemoteCallbackList.h"
 
-using namespace Elastos;
 
-CRemoteCallbackList::CRemoteCallbackList():
-mBroadcastCount(-1),
-mKilled(FALSE)
-{
-
-}
+CRemoteCallbackList::CRemoteCallbackList()
+    : mCallbacks(5)
+    , mBroadcastCount(-1)
+    , mKilled(FALSE)
+{}
 
 ECode CRemoteCallbackList::constructor()
 {
     return NOERROR;
 }
-
 
 //private final class Callback implements IBinder.DeathRecipient {
 //    final E mCallback;
@@ -34,16 +33,16 @@ ECode CRemoteCallbackList::constructor()
 
 ECode CRemoteCallbackList::Register(
     /* [in] */ IInterface* callback,
-    /* [out] */ Boolean* outBoolean)
+    /* [out] */ Boolean* result)
 {
-    RegisterExtra(callback, NULL, outBoolean);
-    return NOERROR;
+    VALIDATE_NOT_NULL(result);
+    return RegisterEx(callback, NULL, result);
 }
 
-ECode CRemoteCallbackList::RegisterExtra(
+ECode CRemoteCallbackList::RegisterEx(
     /* [in] */ IInterface* callback,
     /* [in] */ IInterface* cookie,
-    /* [out] */ Boolean* outBoolean)
+    /* [out] */ Boolean* result)
 {
 //    synchronized (mCallbacks) {
 //        if (mKilled) {
@@ -64,7 +63,7 @@ ECode CRemoteCallbackList::RegisterExtra(
 
 ECode CRemoteCallbackList::Unregister(
     /* [in] */ IInterface* callback,
-    /* [out] */ Boolean* outBoolean)
+    /* [out] */ Boolean* result)
 {
 //    synchronized (mCallbacks) {
 //        Callback cb = mCallbacks.remove(callback.asBinder());
@@ -95,16 +94,15 @@ ECode CRemoteCallbackList::OnCallbackDied(
     return NOERROR;
 }
 
-ECode CRemoteCallbackList::OnCallbackDiedExtra(
+ECode CRemoteCallbackList::OnCallbackDiedEx(
     /* [in] */ IInterface* callback,
     /* [in] */ IInterface* cookie)
 {
-    OnCallbackDied(callback);
-	return NOERROR;
+    return OnCallbackDied(callback);
 }
 
 ECode CRemoteCallbackList::BeginBroadcast(
-        /* [out] */ Int32* outInt)
+        /* [out] */ Int32* number)
 {
 //    synchronized (mCallbacks) {
 //        if (mBroadcastCount > 0) {
@@ -131,43 +129,36 @@ ECode CRemoteCallbackList::BeginBroadcast(
 
 ECode CRemoteCallbackList::GetBroadcastItem(
     /* [in] */ Int32 index,
-    /* [out] */ IInterface** outIInterface)
+    /* [out] */ IInterface** callback)
 {
 //    return ((Callback)mActiveBroadcast[index]).mCallback;
     return E_NOT_IMPLEMENTED;
-
 }
 
 ECode CRemoteCallbackList::GetBroadcastCookie(
     /* [in] */ Int32 index,
-    /* [out] */ IInterface** outObject)
+    /* [out] */ IInterface** cookie)
 {
 //    return ((Callback)mActiveBroadcast[index]).mCookie;
     return E_NOT_IMPLEMENTED;
-
 }
 
 ECode CRemoteCallbackList::FinishBroadcast()
 {
     if (mBroadcastCount < 0) {
+        // throw new IllegalStateException(
+            // "finishBroadcast() called outside of a broadcast");
         return E_ILLEGAL_STATE_EXCEPTION;
     }
 
-    Int32 mSize;
-    mSize = sizeof(mActiveBroadcast)/sizeof(mActiveBroadcast[0]);
-    IInterface* active[mSize];
-    for(Int32 i = 0; i < mSize; i++){
-        active[i] = mActiveBroadcast[i];
-    }
-    if (active != NULL) {
+    ArrayOf< AutoPtr<IInterface> >* active = mActiveBroadcast;
+    if (active != NULL){
         const Int32 N = mBroadcastCount;
-        for (Int32 i=0; i<N; i++) {
-            active[i] = NULL;
+        for (Int32 i = 0; i < N; i++){
+            (*active)[i] = NULL;
         }
     }
-
     mBroadcastCount = -1;
+
     return NOERROR;
 }
-
-
