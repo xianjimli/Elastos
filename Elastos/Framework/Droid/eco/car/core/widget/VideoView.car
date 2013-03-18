@@ -1,0 +1,55 @@
+
+module
+{
+    interface IVideoView extends ISurfaceView
+    {
+        ResolveAdjustedSize(
+            [in] Int32 desiredSize,
+            [in] Int32 measureSpec,
+            [out] Int32* size);
+
+        SetVideoPath(
+            [in] String path);
+
+        SetVideoURI(
+            [in] IUri* uri);
+
+        StopPlayback();
+
+        SetMediaController(
+            [in] IMediaController* controller);
+
+        /**
+         * Register a callback to be invoked when the media file
+         * is loaded and ready to go.
+         *
+         * @param l The callback that will be run
+         */
+        //SetOnPreparedListener(
+        //    [in] IOnPreparedListener* l);
+
+         /**
+         * Register a callback to be invoked when the end of a media file
+         * has been reached during playback.
+         *
+         * @param l The callback that will be run
+         */
+        //SetOnCompletionListener(
+        //    [in] IOnCompletionListener* l);
+
+        /**
+         * Register a callback to be invoked when an error occurs
+         * during playback or setup.  If no listener is specified,
+         * or if the listener returned false, VideoView will inform
+         * the user of any errors.
+         *
+         * @param l The callback that will be run
+         */
+        //SetOnErrorListener(
+        //    [in] IOnErrorListener* l);
+
+        Suspend();
+
+        Resume();
+    }
+}

@@ -1,0 +1,75 @@
+
+module
+{
+	interface IMediaPlayerControl
+    {
+        Start();
+
+        Pause();
+
+        GetDuration(
+            [out] Int32* duration);
+
+        GetCurrentPosition(
+            [out] Int32* position);
+
+        SeekTo(
+            [in] Int32 position);
+
+        IsPlaying(
+            [out] Boolean* isPlaying);
+
+        GetBufferPercentage(
+            [out] Int32* percentage);
+
+        CanPause(
+            [out] Boolean* canPause);
+
+        CanSeekBackward(
+            [out] Boolean* canSeekBackward);
+
+        CanSeekForward(
+            [out] Boolean* canSeekForward);
+	}
+
+	interface IMediaController extends IFrameLayout
+    {
+        SetMediaPlayer(
+            [in] IMediaPlayerControl* player);
+
+        /**
+         * Set the view that acts as the anchor for the control view.
+         * This can for example be a VideoView, or your Activity's main view.
+         * @param view The view to which to anchor the controller when it is visible.
+         */
+        SetAnchorView(
+            [in] IView* view);
+
+        /**
+         * Show the controller on screen. It will go away
+         * automatically after 3 seconds of inactivity.
+         */
+        Show();
+
+        /**
+         * Show the controller on screen. It will go away
+         * automatically after 'timeout' milliseconds of inactivity.
+         * @param timeout The timeout in milliseconds. Use 0 to show
+         * the controller until hide() is called.
+         */
+        ShowEx(
+            [in] Int32 timeout);
+
+        IsShowing(
+            [out] Boolean* isShowing);
+
+        /**
+         * Remove the controller from the screen.
+         */
+        Hide();
+
+        SetPrevNextListeners(
+            [in] IViewOnClickListener* next,
+            [in] IViewOnClickListener* prev);
+    }
+}
