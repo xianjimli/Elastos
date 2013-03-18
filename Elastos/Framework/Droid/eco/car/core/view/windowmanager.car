@@ -699,6 +699,12 @@ module
 
         SetScreenOrientation(
             [in] Int32 orientation);
+
+        GetWindowAnimations(
+            [out] Int32* animations);
+
+        SetWindowAnimations(
+            [in] Int32 animations);
     }
 
     interface IWindowManagerLayoutParamsHelper {

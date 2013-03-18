@@ -65,6 +65,9 @@ module
     merge("widget/NumberPickerButton.car");
     merge("widget/DatePicker.car");
     merge("widget/EditableInputConnection.car");
+    merge("widget/MediaController.car");
+    merge("widget/VideoView.car");
+    merge("widget/SeekBar.car");
 
     class CScrollBarDrawable {
         interface IScrollBarDrawable;
@@ -1345,6 +1348,54 @@ module
             [in] ITextView* textview);
 
         interface IEditableInputConnection;
+    }
+
+    class CMediaController {
+        constructor(
+            [in] IContext* context);
+
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* context,
+            [in] Boolean useFastForward);
+
+        interface IMediaController;
+    }
+
+    class CVideoView {
+        constructor(
+            [in] IContext* context);
+
+        constructor(
+           [in] IContext* context,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
+
+        interface IVideoView;
+        interface IMediaPlayerControl;
+    }
+
+    class CSeekBar {
+        constructor(
+            [in] IContext* context);
+
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs);
+
+        constructor(
+            [in] IContext* context,
+            [in] IAttributeSet* attrs,
+            [in] Int32 defStyle);
+
+        interface ISeekBar;
     }
 }
 

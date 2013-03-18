@@ -10,8 +10,8 @@ static Int32 R_Styleable_SeekBar[] = {
     0x01010142, 0x01010143
 };
 
-static const Int32 R_Styleable_SeekBar_thumb = 0;
-static const Int32 R_Styleable_SeekBar_thumbOffset = 1;
+static const Int32 R_Styleable_SeekBar_thumb = 0; //com.android.internal.R.styleable.SeekBar_thumb
+static const Int32 R_Styleable_SeekBar_thumbOffset = 1; //com.android.internal.R.styleable.SeekBar_thumbOffset
 
 static Int32 R_Styleable_Theme[] = {
     0x01010030, 0x01010031, 0x01010032, 0x01010033,
@@ -61,36 +61,24 @@ AbsSeekBar::AbsSeekBar(
     /* [in] */ IContext* context) : ProgressBar(context)
 {
     Init();
+    Init(context);
 }
 
 AbsSeekBar::AbsSeekBar(
-    /* [in] */ IContext* context, 
+    /* [in] */ IContext* context,
     /* [in] */ IAttributeSet* attrs) : ProgressBar(context, attrs)
 {
     Init();
+    Init(context, attrs);
 }
 
 AbsSeekBar::AbsSeekBar(
-    /* [in] */ IContext* context, 
-    /* [in] */ IAttributeSet* attrs, 
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs,
     /* [in] */ Int32 defStyle) : ProgressBar(context, attrs, defStyle)
 {
-    AutoPtr<ITypedArray> a;
-    context->ObtainStyledAttributesEx3(attrs,
-            ArrayOf<Int32>(R_Styleable_SeekBar, 2), defStyle, 0, (ITypedArray**)&a);
-    AutoPtr<IDrawable> thumb;
-    a->GetDrawable(R_Styleable_SeekBar_thumb, (IDrawable**)&thumb);
-    SetThumb(thumb); // will guess mThumbOffset if thumb != NULL...
-    // ...but allow layout to override this
-    Int32 thumbOffset;
-    a->GetDimensionPixelOffset(R_Styleable_SeekBar_thumbOffset, GetThumbOffset(), &thumbOffset);
-    SetThumbOffset(thumbOffset);
-    a->Recycle();
-
-    context->ObtainStyledAttributesEx3(attrs,
-            ArrayOf<Int32>(R_Styleable_Theme, sizeof(R_Styleable_Theme) / sizeof(Int32)), 0, 0, (ITypedArray**)&a);
-    a->GetFloat(R_Styleable_Theme_disabledAlpha, 0.5f, &mDisabledAlpha);
-    a->Recycle();
+    Init();
+    Init(context, attrs, defStyle);
 }
 
 void AbsSeekBar::Init()
@@ -99,12 +87,55 @@ void AbsSeekBar::Init()
     mKeyProgressIncrement = 1;
 }
 
+ECode AbsSeekBar::Init(
+    /* [in] */ IContext* context)
+{
+    return ProgressBar::Init(context);
+}
+
+ECode AbsSeekBar::Init(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs)
+{
+    return ProgressBar::Init(context, attrs);
+}
+
+ECode AbsSeekBar::Init(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs,
+    /* [in] */ Int32 defStyle)
+{
+    FAIL_RETURN(ProgressBar::Init(context, attrs, defStyle));
+
+    AutoPtr<ITypedArray> a;
+    FAIL_RETURN(context->ObtainStyledAttributesEx3(attrs,
+                ArrayOf<Int32>(R_Styleable_SeekBar, 2),
+                defStyle, 0, (ITypedArray**)&a));
+    AutoPtr<IDrawable> thumb;
+    FAIL_RETURN(a->GetDrawable(R_Styleable_SeekBar_thumb, (IDrawable**)&thumb));
+    FAIL_RETURN(SetThumb(thumb)); // will guess mThumbOffset if thumb != NULL...
+    // ...but allow layout to override this
+    Int32 thumbOffset;
+    FAIL_RETURN(a->GetDimensionPixelOffset(
+            R_Styleable_SeekBar_thumbOffset, GetThumbOffset(), &thumbOffset));
+    FAIL_RETURN(SetThumbOffset(thumbOffset));
+    FAIL_RETURN(a->Recycle());
+
+    FAIL_RETURN(context->ObtainStyledAttributesEx3(attrs,
+                ArrayOf<Int32>(R_Styleable_Theme,
+                sizeof(R_Styleable_Theme) / sizeof(Int32)),
+                0, 0, (ITypedArray**)&a));
+    FAIL_RETURN(a->GetFloat(
+            R_Styleable_Theme_disabledAlpha, 0.5f, &mDisabledAlpha));
+    return a->Recycle();
+}
+
 /**
  * Sets the thumb that will be drawn at the end of the progress meter within the SeekBar.
  * <p>
  * If the thumb is a valid drawable (i.e. not NULL), half its width will be
  * used as the new thumb offset (@see #setThumbOffset(Int32)).
- * 
+ *
  * @param thumb Drawable representing the thumb
  */
 ECode AbsSeekBar::SetThumb(
@@ -137,7 +168,7 @@ Int32 AbsSeekBar::GetThumbOffset()
 /**
  * Sets the thumb offset that allows the thumb to extend out of the range of
  * the track.
- * 
+ *
  * @param thumbOffset The offset amount in pixels.
  */
 ECode AbsSeekBar::SetThumbOffset(
@@ -151,7 +182,7 @@ ECode AbsSeekBar::SetThumbOffset(
 
 /**
  * Sets the amount of progress changed via the arrow keys.
- * 
+ *
  * @param increment The amount to increment or decrement when the user
  *            presses the arrow keys.
  */
@@ -167,11 +198,11 @@ ECode AbsSeekBar::SetKeyProgressIncrement(
  * Returns the amount of progress changed via the arrow keys.
  * <p>
  * By default, this will be a value that is derived from the max progress.
- * 
+ *
  * @return The amount to increment or decrement when the user presses the
  *         arrow keys. This will be positive.
  */
-Int32 AbsSeekBar::GetKeyProgressIncrement() 
+Int32 AbsSeekBar::GetKeyProgressIncrement()
 {
     return mKeyProgressIncrement;
 }
@@ -191,7 +222,7 @@ ECode AbsSeekBar::SetMax(
 }
 
 Boolean AbsSeekBar::VerifyDrawable(
-    /* [in] */ IDrawable* who) 
+    /* [in] */ IDrawable* who)
 {
     return who == mThumb || ProgressBar::VerifyDrawable(who);
 }
@@ -199,12 +230,12 @@ Boolean AbsSeekBar::VerifyDrawable(
 ECode AbsSeekBar::DrawableStateChanged()
 {
     ProgressBar::DrawableStateChanged();
-    
+
     AutoPtr<IDrawable> progressDrawable = GetProgressDrawable();
     if (progressDrawable != NULL) {
         progressDrawable->SetAlpha(IsEnabled() ? NO_ALPHA : (Int32) (NO_ALPHA * mDisabledAlpha));
     }
-    
+
     Boolean stateful;
     mThumb->IsStateful(&stateful);
 
@@ -219,9 +250,9 @@ ECode AbsSeekBar::DrawableStateChanged()
 }
 
 void AbsSeekBar::OnProgressRefresh(
-    /* [in] */ Float scale, 
-    /* [in] */ Boolean fromUser) 
-{ 
+    /* [in] */ Float scale,
+    /* [in] */ Boolean fromUser)
+{
     AutoPtr<IDrawable> thumb = mThumb;
     if (thumb != NULL) {
         SetThumbPos(GetWidth(), thumb, scale, Math::INT32_MIN_VALUE);
@@ -235,9 +266,9 @@ void AbsSeekBar::OnProgressRefresh(
 }
 
 void AbsSeekBar::OnSizeChanged(
-    /* [in] */ Int32 w, 
-    /* [in] */ Int32 h, 
-    /* [in] */ Int32 oldw, 
+    /* [in] */ Int32 w,
+    /* [in] */ Int32 h,
+    /* [in] */ Int32 oldw,
     /* [in] */ Int32 oldh)
 {
     AutoPtr<IDrawable> d = GetCurrentDrawable();
@@ -248,10 +279,10 @@ void AbsSeekBar::OnSizeChanged(
     // The max height does not incorporate padding, whereas the height
     // parameter does
     Int32 trackHeight = Math::Min(mMaxHeight, h - mPaddingTop - mPaddingBottom);
-    
+
     Int32 max = GetMax();
     Float scale = max > 0 ? (Float) GetProgress() / (Float) max : 0;
-    
+
     if (thumbHeight > trackHeight) {
         if (thumb != NULL) {
             SetThumbPos(w, thumb, scale, 0);
@@ -259,7 +290,7 @@ void AbsSeekBar::OnSizeChanged(
         Int32 gapForCenteringTrack = (thumbHeight - trackHeight) / 2;
         if (d != NULL) {
             // Canvas will be translated by the padding, so 0,0 is where we start drawing
-            d->SetBounds(0, gapForCenteringTrack, 
+            d->SetBounds(0, gapForCenteringTrack,
                     w - mPaddingRight - mPaddingLeft, h - mPaddingBottom - gapForCenteringTrack
                     - mPaddingTop);
         }
@@ -280,9 +311,9 @@ void AbsSeekBar::OnSizeChanged(
  * @param gap If set to {@link Integer#MIN_VALUE}, this will be ignored and
  */
 void AbsSeekBar::SetThumbPos(
-    /* [in] */ Int32 w, 
-    /* [in] */ IDrawable* thumb, 
-    /* [in] */ Float scale, 
+    /* [in] */ Int32 w,
+    /* [in] */ IDrawable* thumb,
+    /* [in] */ Float scale,
     /* [in] */ Int32 gap)
 {
     Int32 available = w - mPaddingLeft - mPaddingRight;
@@ -307,7 +338,7 @@ void AbsSeekBar::SetThumbPos(
         topBound = gap;
         bottomBound = gap + thumbHeight;
     }
-    
+
     // Canvas will be translated, so 0,0 is where we start drawing
     thumb->SetBounds(thumbPos, topBound, thumbPos + thumbWidth, bottomBound);
 }
@@ -329,7 +360,7 @@ void AbsSeekBar::OnDraw(
 }
 
 void AbsSeekBar::OnMeasure(
-    /* [in] */ Int32 widthMeasureSpec, 
+    /* [in] */ Int32 widthMeasureSpec,
     /* [in] */ Int32 heightMeasureSpec)
 {
     AutoPtr<IDrawable> d = GetCurrentDrawable();
@@ -345,7 +376,7 @@ void AbsSeekBar::OnMeasure(
     }
     dw += mPaddingLeft + mPaddingRight;
     dh += mPaddingTop + mPaddingBottom;
-    
+
     SetMeasuredDimension(ResolveSize(dw, widthMeasureSpec),
             ResolveSize(dh, heightMeasureSpec));
 }
@@ -356,7 +387,7 @@ Boolean AbsSeekBar::OnTouchEvent(
     if (!mIsUserSeekable || !IsEnabled()) {
         return FALSE;
     }
-    
+
     Int32 action;
     switch (event->GetAction(&action), action) {
         case MotionEvent_ACTION_DOWN:
@@ -364,12 +395,12 @@ Boolean AbsSeekBar::OnTouchEvent(
             OnStartTrackingTouch();
             TrackTouchEvent(event);
             break;
-            
+
         case MotionEvent_ACTION_MOVE:
             TrackTouchEvent(event);
             AttemptClaimDrag();
             break;
-            
+
         case MotionEvent_ACTION_UP:
             TrackTouchEvent(event);
             OnStopTrackingTouch();
@@ -379,7 +410,7 @@ Boolean AbsSeekBar::OnTouchEvent(
             // value has not apparently changed)
             Invalidate();
             break;
-            
+
         case MotionEvent_ACTION_CANCEL:
             OnStopTrackingTouch();
             SetPressed(FALSE);
@@ -406,10 +437,10 @@ void AbsSeekBar::TrackTouchEvent(
         scale = (Float)(x - mPaddingLeft) / (Float)available;
         progress = mTouchProgressOffset;
     }
-    
+
     Int32 max = GetMax();
     progress += scale * max;
-    
+
     SetProgress((Int32) progress, TRUE);
 }
 
@@ -442,12 +473,12 @@ void AbsSeekBar::OnStopTrackingTouch()
 /**
  * Called when the user changes the seekbar's progress by using a key event.
  */
-void AbsSeekBar::OnKeyChange() 
+void AbsSeekBar::OnKeyChange()
 {
 }
 
 Boolean AbsSeekBar::OnKeyDown(
-    /* [in] */ Int32 keyCode, 
+    /* [in] */ Int32 keyCode,
     /* [in] */ IKeyEvent* event)
 {
     if (IsEnabled()) {
@@ -458,7 +489,7 @@ Boolean AbsSeekBar::OnKeyDown(
                 SetProgress(progress - mKeyProgressIncrement, TRUE);
                 OnKeyChange();
                 return TRUE;
-        
+
             case KeyEvent_KEYCODE_DPAD_RIGHT:
                 if (progress >= GetMax()) break;
                 SetProgress(progress + mKeyProgressIncrement, TRUE);

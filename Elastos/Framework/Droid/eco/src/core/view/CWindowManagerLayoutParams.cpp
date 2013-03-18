@@ -509,6 +509,22 @@ ECode CWindowManagerLayoutParams::GetHeight(
     return NOERROR;
 }
 
+ECode CWindowManagerLayoutParams::GetWindowAnimations(
+     /* [out] */ Int32* animations)
+{
+    VALIDATE_NOT_NULL(animations);
+
+    *animations = mWindowAnimations;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::SetWindowAnimations(
+    /* [in] */ Int32 animations)
+{
+    mWindowAnimations = animations;
+    return NOERROR;
+}
+
 ECode CWindowManagerLayoutParams::ReadFromParcel(
     /* [in] */ IParcel *source)
 {

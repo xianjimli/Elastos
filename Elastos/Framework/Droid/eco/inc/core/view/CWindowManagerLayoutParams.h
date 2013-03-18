@@ -153,6 +153,12 @@ public:
     CARAPI GetHeight(
         /* [out] */ Int32* height);
 
+    CARAPI GetWindowAnimations(
+        /* [out] */ Int32* animations);
+
+    CARAPI SetWindowAnimations(
+        /* [in] */ Int32 animations);
+
     CARAPI ReadFromParcel(
         /* [in] */ IParcel *source);
 
