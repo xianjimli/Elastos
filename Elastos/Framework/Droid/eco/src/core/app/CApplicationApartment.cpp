@@ -2612,7 +2612,6 @@ ECode CApplicationApartment::RequestThumbnail(
     return E_NOT_IMPLEMENTED;
 }
 
-
 ECode CApplicationApartment::HandleContextCleanup(
     /* [in] */ ContextCleanupInfo* cci)
 {

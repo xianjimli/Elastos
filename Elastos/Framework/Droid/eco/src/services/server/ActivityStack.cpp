@@ -53,10 +53,10 @@ ICapsuleManager* ActivityStack::GetCapsuleManager()
     AutoPtr<ICapsuleManager> capsuleManager;
     Elastos::GetServiceManager((IServiceManager**)&serviceManager);
     assert(serviceManager != NULL);
-	serviceManager->GetService(String("capsule"),
-	        (IInterface**)(ICapsuleManager**)&capsuleManager);
+    serviceManager->GetService(String("capsule"),
+            (IInterface**)(ICapsuleManager**)&capsuleManager);
     assert(capsuleManager != NULL);
-	return capsuleManager;
+    return capsuleManager;
 }
 
 CActivityRecord* ActivityStack::GetTopRunningActivityLocked(
@@ -624,10 +624,10 @@ ECode ActivityStack::ActivityPaused(
             r->mState = ActivityState_PAUSED;
             CompletePauseLocked();
         } else {
-//        	EventLog.writeEvent(EventLogTags.AM_FAILED_TO_PAUSE,
-//        	        System.identityHashCode(r), r.shortComponentName,
-//        			mPausingActivity != null
-//        			    ? mPausingActivity.shortComponentName : "(none)");
+//            EventLog.writeEvent(EventLogTags.AM_FAILED_TO_PAUSE,
+//                    System.identityHashCode(r), r.shortComponentName,
+//                    mPausingActivity != null
+//                        ? mPausingActivity.shortComponentName : "(none)");
         }
     }
     mService->Unlock();
@@ -2838,28 +2838,28 @@ ECode ActivityStack::StartActivityMayWait(
 }
 
 void ActivityStack::ReportActivityLaunchedLocked(
-	/* [in] */ Boolean timeout,
-	/* [in] */ CActivityRecord* r,
-	/* [in] */ Int64 thisTime,
-	/* [in] */ Int64 totalTime)
+    /* [in] */ Boolean timeout,
+    /* [in] */ CActivityRecord* r,
+    /* [in] */ Int64 thisTime,
+    /* [in] */ Int64 totalTime)
 {
-	for (Int32 i=mWaitingActivityLaunched.GetSize()-1; i>=0; i--) {
-		AutoPtr<IWaitResult> w = mWaitingActivityLaunched[i];
-		w->SetTimeout(timeout);
-		if (r != NULL) {
-            AutoPtr<IComponentName> mCName;
-            String mCapsuleName,mName;
-            r->mInfo->GetCapsuleName(&mCapsuleName);
-            r->mInfo->GetName(&mName);
-            CComponentName::New(mCapsuleName, mName, (IComponentName**)&mCName);
-			w->SetWho(mCName);
-		}
-		w->SetThisTime(thisTime);
-		w->SetTotalTime(totalTime);
-	}
-//	mService.notifyAll();
+    List<AutoPtr<IWaitResult> >::ReverseIterator it;
+    for(it = mWaitingActivityLaunched.RBegin(); it != mWaitingActivityLaunched.REnd();
+        it++) {
+        AutoPtr<IWaitResult> w = *it;
+        if (r != NULL) {
+            AutoPtr<IComponentName> component;
+            String cName,name;
+            r->mInfo->GetCapsuleName(&cName);
+            r->mInfo->GetName(&name);
+            CComponentName::New(cName, name, (IComponentName**)&component);
+            w->SetWho(component);
+        }
+        w->SetThisTime(thisTime);
+        w->SetTotalTime(totalTime);
+    }
+//    mService.notifyAll();
 }
-
 
 ECode ActivityStack::SendActivityResultLocked(
     /* [in] */ Int32 callingUid,
@@ -2910,11 +2910,11 @@ void ActivityStack::StopActivityLocked(
     /* [in] */ CActivityRecord* r)
 {
     if (DEBUG_SWITCH) Slogger::D(TAG, StringBuffer("Stopping: ") + r);
-    Int32 intent_Flags, info_Flags;
-    r->mIntent->GetFlags(&intent_Flags);
-    r->mInfo->GetFlags(&info_Flags);
-    if ((intent_Flags & Intent_FLAG_ACTIVITY_NO_HISTORY) != 0
-            || (info_Flags & ActivityInfo_FLAG_NO_HISTORY) != 0) {
+    Int32 intentFlags, infoFlags;
+    r->mIntent->GetFlags(&intentFlags);
+    r->mInfo->GetFlags(&infoFlags);
+    if ((intentFlags & Intent_FLAG_ACTIVITY_NO_HISTORY) != 0
+            || (infoFlags & ActivityInfo_FLAG_NO_HISTORY) != 0) {
         if (!r->mFinishing) {
             RequestFinishActivityLocked(r, Activity_RESULT_CANCELED, NULL,
                     "no-history");
@@ -2953,200 +2953,197 @@ void ActivityStack::StopActivityLocked(
 }
 
 List<AutoPtr<CActivityRecord> >*
-	ActivityStack::ProcessStoppingActivitiesLocked(
-		/* [in] */ Boolean remove)
+    ActivityStack::ProcessStoppingActivitiesLocked(
+        /* [in] */ Boolean remove)
 {
-	Int32 N = mStoppingActivities.GetSize();
-	if (N <= 0) return NULL;
+    Int32 N = mStoppingActivities.GetSize();
+    if (N <= 0) return NULL;
 
-	List<AutoPtr<CActivityRecord> >* stops = NULL;
+    List<AutoPtr<CActivityRecord> >* stops = NULL;
 
-	const Boolean nowVisible = mResumedActivity != NULL
-			&& mResumedActivity->mNowVisible
-			&& !mResumedActivity->mWaitingVisible;
-	for (Int32 i=0; i<N; i++) {
-		AutoPtr<CActivityRecord> s = mStoppingActivities[i];
-		if (localLOGV) Slogger::V(TAG, StringBuffer("Stopping ") + s + StringBuffer(": nowVisible=")
-				+ nowVisible + StringBuffer(" waitingVisible=") + s->mWaitingVisible
-				+ StringBuffer(" finishing=") + s->mFinishing);
-		if (s->mWaitingVisible && nowVisible) {
-			mWaitingVisibleActivities.Remove(s);
-			s->mWaitingVisible = FALSE;
-			if (s->mFinishing) {
-				// If this activity is finishing, it is sitting on top of
-				// everyone else but we now know it is no longer needed...
-				// so get rid of it.  Otherwise, we need to go through the
-				// normal flow and hide it once we determine that it is
-				// hidden by the activities in front of it.
-				if (localLOGV) Slogger::V(TAG, StringBuffer("Before stopping, can hide: ") + s);
-				mService->mWindowManager->SetAppVisibility(s, FALSE);
-			}
-		}
-		if (!s->mWaitingVisible && remove) {
-			if (localLOGV) Slogger::V(TAG, StringBuffer("Ready to stop: ") + s);
-			if (stops == NULL) {
-				stops = new List<AutoPtr<CActivityRecord> >();
-			}
-			stops->PushBack(s);
-			mStoppingActivities.Remove(i);
-			N--;
-			i--;
-		}
-	}
+    const Boolean nowVisible = mResumedActivity != NULL
+            && mResumedActivity->mNowVisible
+            && !mResumedActivity->mWaitingVisible;
+    List<AutoPtr<CActivityRecord> >::Iterator it;
+    for(it = mStoppingActivities.Begin(); it != mStoppingActivities.End(); it++) {
+        AutoPtr<CActivityRecord> s = *it;
+        if (localLOGV) Slogger::V(TAG, StringBuffer("Stopping ") + s + StringBuffer(": nowVisible=")
+                + nowVisible + StringBuffer(" waitingVisible=") + s->mWaitingVisible
+                + StringBuffer(" finishing=") + s->mFinishing);
+        if (s->mWaitingVisible && nowVisible) {
+            mWaitingVisibleActivities.Remove(s);
+            s->mWaitingVisible = FALSE;
+            if (s->mFinishing) {
+                // If this activity is finishing, it is sitting on top of
+                // everyone else but we now know it is no longer needed...
+                // so get rid of it.  Otherwise, we need to go through the
+                // normal flow and hide it once we determine that it is
+                // hidden by the activities in front of it.
+                if (localLOGV) Slogger::V(TAG, StringBuffer("Before stopping, can hide: ") + s);
+                mService->mWindowManager->SetAppVisibility(s, FALSE);
+            }
+        }
+        if (!s->mWaitingVisible && remove) {
+            if (localLOGV) Slogger::V(TAG, StringBuffer("Ready to stop: ") + s);
+            if (stops == NULL) {
+                stops = new List<AutoPtr<CActivityRecord> >();
+            }
+            stops->PushBack(s);
+            mStoppingActivities.Remove(s);
+        }
+    }
 
-	return stops;
+    return stops;
 }
-
 
 void ActivityStack::ActivityIdleInternal(
-	/*[in]*/ IBinder* token,
-	/*[in]*/ Boolean fromTimeout,
-	/*[in]*/ IConfiguration* config)
+    /*[in]*/ IBinder* token,
+    /*[in]*/ Boolean fromTimeout,
+    /*[in]*/ IConfiguration* config)
 {
-	 if (localLOGV) Slogger::V(TAG, StringBuffer("Activity idle: ") + token);
+     if (localLOGV) Slogger::V(TAG, StringBuffer("Activity idle: ") + token);
 
-	 List<AutoPtr<CActivityRecord> >* stops = NULL;
-	 List<AutoPtr<CActivityRecord> >* finishes = NULL;
-	 List<AutoPtr<CActivityRecord> >* thumbnails = NULL;
-	 Int32 NS = 0;
-	 Int32 NF = 0;
-	 Int32 NT = 0;
-	 AutoPtr<IApplicationApartment> sendThumbnail = NULL;
-	 Boolean booting = FALSE;
-	 Boolean enableScreen = FALSE;
+     List<AutoPtr<CActivityRecord> >* stops = NULL;
+     List<AutoPtr<CActivityRecord> >* finishes = NULL;
+     List<AutoPtr<CActivityRecord> >* thumbnails = NULL;
+     Int32 NS = 0;
+     Int32 NF = 0;
+     Int32 NT = 0;
+     AutoPtr<IApplicationApartment> sendThumbnail = NULL;
+     Boolean booting = FALSE;
+     Boolean enableScreen = FALSE;
 
-	 {
+     {
         Mutex::Autolock lock(mService->_m_syncLock);
-	 	if (token != NULL) {
-	// 		mHandler.removeMessages(IDLE_TIMEOUT_MSG, token);
-	 	}
+         if (token != NULL) {
+    //         mHandler.removeMessages(IDLE_TIMEOUT_MSG, token);
+         }
 
-	 	// Get the activity record.
-	 	Int32 index = GetIndexOfTokenLocked(token);
-	 	if (index >= 0) {
-	 		AutoPtr<CActivityRecord> r = (CActivityRecord*)mHistory[index];
+         // Get the activity record.
+         Int32 index = GetIndexOfTokenLocked(token);
+         if (index >= 0) {
+             AutoPtr<CActivityRecord> r = (CActivityRecord*)mHistory[index];
 
-	 		if (fromTimeout) {
-	 			ReportActivityLaunchedLocked(fromTimeout, r, -1, -1);
-	 		}
+             if (fromTimeout) {
+                 ReportActivityLaunchedLocked(fromTimeout, r, -1, -1);
+             }
 
-	 		// This is a hack to semi-deal with a race condition
-	 		// in the client where it can be constructed with a
-	 		// newer configuration from when we asked it to launch.
-	 		// We'll update with whatever configuration it now says
-	 		// it used to launch.
-	 		if (config != NULL) {
-	 			r->mConfiguration = config;
-	 		}
+             // This is a hack to semi-deal with a race condition
+             // in the client where it can be constructed with a
+             // newer configuration from when we asked it to launch.
+             // We'll update with whatever configuration it now says
+             // it used to launch.
+             if (config != NULL) {
+                 r->mConfiguration = config;
+             }
 
-	 		// No longer need to keep the device awake.
-	 	//	if (mResumedActivity == r && mLaunchingActivity.isHeld()) {
-	 	//		mHandler.removeMessages(LAUNCH_TIMEOUT_MSG);
-	 	//		mLaunchingActivity.release();
-	 	//	}
+             // No longer need to keep the device awake.
+         //    if (mResumedActivity == r && mLaunchingActivity.isHeld()) {
+         //        mHandler.removeMessages(LAUNCH_TIMEOUT_MSG);
+         //        mLaunchingActivity.release();
+         //    }
 
-	 		// We are now idle.  If someone is waiting for a thumbnail from
-	 		// us, we can now deliver.
-	 		r->mIdle = TRUE;
-	 		mService->ScheduleAppGcsLocked();
-	 		if (r->mThumbnailNeeded && r->mApp != NULL && r->mApp->mAppApartment != NULL) {
-	 			sendThumbnail = r->mApp->mAppApartment;
-	 			r->mThumbnailNeeded = FALSE;
-	 		}
+             // We are now idle.  If someone is waiting for a thumbnail from
+             // us, we can now deliver.
+             r->mIdle = TRUE;
+             mService->ScheduleAppGcsLocked();
+             if (r->mThumbnailNeeded && r->mApp != NULL && r->mApp->mAppApartment != NULL) {
+                 sendThumbnail = r->mApp->mAppApartment;
+                 r->mThumbnailNeeded = FALSE;
+             }
 
-	 		// If this activity is fullscreen, set up to hide those under it.
+             // If this activity is fullscreen, set up to hide those under it.
 
-	 		if (DEBUG_VISBILITY) Slogger::V(TAG, StringBuffer("Idle activity for ") + r);
-	 		EnsureActivitiesVisibleLocked(NULL, 0);
+             if (DEBUG_VISBILITY) Slogger::V(TAG, StringBuffer("Idle activity for ") + r);
+             EnsureActivitiesVisibleLocked(NULL, 0);
 
-	 		//Slogger::I(TAG, StringBuffer("IDLE: mBooted=") + mBooted + StringBuffer(", fromTimeout=") + fromTimeout);
-	 		if (mMainStack) {
-	 			if (!mService->mBooted && !fromTimeout) {
-	 				mService->mBooted = TRUE;
-	 				enableScreen = TRUE;
-	 			}
-	 		}
+             //Slogger::I(TAG, StringBuffer("IDLE: mBooted=") + mBooted + StringBuffer(", fromTimeout=") + fromTimeout);
+             if (mMainStack) {
+                 if (!mService->mBooted && !fromTimeout) {
+                     mService->mBooted = TRUE;
+                     enableScreen = TRUE;
+                 }
+             }
 
-	 	} else if (fromTimeout) {
-	 		ReportActivityLaunchedLocked(fromTimeout, NULL, -1, -1);
-	 	}
+         } else if (fromTimeout) {
+             ReportActivityLaunchedLocked(fromTimeout, NULL, -1, -1);
+         }
 
-	 	// Atomically retrieve all of the other things to do.
-	 	stops = ProcessStoppingActivitiesLocked(TRUE);
-	 	NS = stops != NULL ? stops->GetSize() : 0;
-	 	if ((NF=mFinishingActivities.GetSize()) > 0) {
-	 		finishes = &mFinishingActivities;
-	 		mFinishingActivities.Clear();
-	 	}
-	 	if ((NT=mService->mCancelledThumbnails.GetSize()) > 0) {
-	 		thumbnails = &(mService->mCancelledThumbnails);
-	 		mService->mCancelledThumbnails.Clear();
-	 	}
+         // Atomically retrieve all of the other things to do.
+         stops = ProcessStoppingActivitiesLocked(TRUE);
+         NS = stops != NULL ? stops->GetSize() : 0;
+         if ((NF=mFinishingActivities.GetSize()) > 0) {
+             finishes = &mFinishingActivities;
+             mFinishingActivities.Clear();
+         }
+         if ((NT=mService->mCancelledThumbnails.GetSize()) > 0) {
+             thumbnails = &(mService->mCancelledThumbnails);
+             mService->mCancelledThumbnails.Clear();
+         }
 
-	 	if (mMainStack) {
-	 		booting = mService->mBooting;
-	 		mService->mBooting = FALSE;
-	 	}
-	 }
+         if (mMainStack) {
+             booting = mService->mBooting;
+             mService->mBooting = FALSE;
+         }
+     }
 
-	 Int32 i;
+     Int32 i;
 
-	 // Send thumbnail if requested.
-	 if (sendThumbnail != NULL) {
-	// 	try {
-	 	ECode res = sendThumbnail->RequestThumbnail(token);
-	// 	} catch (Exception e) {
+     // Send thumbnail if requested.
+     if (sendThumbnail != NULL) {
+    //     try {
+         ECode res = sendThumbnail->RequestThumbnail(token);
+    //     } catch (Exception e) {
         if(res != NOERROR){
-	 		Slogger::W(TAG, StringBuffer("Exception thrown when requesting thumbnail") + res);
-	 		mService->SendPendingThumbnail(NULL, token, NULL, NULL, TRUE);
-	 	}
-	 }
+             Slogger::W(TAG, StringBuffer("Exception thrown when requesting thumbnail") + res);
+             mService->SendPendingThumbnail(NULL, token, NULL, NULL, TRUE);
+         }
+     }
 
-	 // Stop any activities that are scheduled to do so but have been
-	 // waiting for the next one to start.
-	 for (i=0; i<NS; i++) {
-	 	AutoPtr<CActivityRecord> r = (CActivityRecord*)(*stops)[i];
-	 	{
-			Mutex::Autolock lock(mService->_m_syncLock);
-	 		if (r->mFinishing) {
-				AutoPtr<CActivityRecord> outR;
-	 			FinishCurrentActivityLocked(r, FINISH_IMMEDIATELY, (CActivityRecord**)&outR);
-	 		} else {
-	 			StopActivityLocked(r);
-	 		}
-	 	}
-	 }
-
-	 // Finish any activities that are scheduled to do so but have been
-	 // waiting for the next one to start.
-	 for (i=0; i<NF; i++) {
-	 	AutoPtr<CActivityRecord> r = (CActivityRecord*)(*finishes)[i];
-	 	{
+     // Stop any activities that are scheduled to do so but have been
+     // waiting for the next one to start.
+     List<AutoPtr<CActivityRecord> >::Iterator it;
+     for(it = stops->Begin(); it != stops->End(); it++) {
+        AutoPtr<CActivityRecord> r = *it;
+         {
             Mutex::Autolock lock(mService->_m_syncLock);
-	 		DestroyActivityLocked(r, TRUE);
-	 	}
-	 }
+             if (r->mFinishing) {
+                AutoPtr<CActivityRecord> outR;
+                 FinishCurrentActivityLocked(r, FINISH_IMMEDIATELY, (CActivityRecord**)&outR);
+             } else {
+                 StopActivityLocked(r);
+             }
+         }
+     }
 
-	 // Report back to any thumbnail receivers.
-	 for (i=0; i<NT; i++) {
-	 	AutoPtr<CActivityRecord> r = (CActivityRecord*)(*thumbnails)[i];
-	 	mService->SendPendingThumbnail(r, NULL, NULL, NULL, TRUE);
-	 }
+     // Finish any activities that are scheduled to do so but have been
+     // waiting for the next one to start.
+     for(it = finishes->Begin(); it != finishes->End(); it++) {
+        AutoPtr<CActivityRecord> r = *it;
+         {
+            Mutex::Autolock lock(mService->_m_syncLock);
+             DestroyActivityLocked(r, TRUE);
+         }
+     }
 
-	 if (booting) {
-	 	mService->FinishBooting();
-	 }
+     // Report back to any thumbnail receivers.
+     for(it = thumbnails->Begin(); it != thumbnails->End(); it++) {
+        AutoPtr<CActivityRecord> r = *it;
+         mService->SendPendingThumbnail(r, NULL, NULL, NULL, TRUE);
+     }
 
-	 mService->TrimApplications();
-	 //dump();
-	 //mWindowManager.dump();
+     if (booting) {
+         mService->FinishBooting();
+     }
 
-	 if (enableScreen) {
-	 	mService->EnableScreenAfterBoot();
-	 }
+     mService->TrimApplications();
+     //dump();
+     //mWindowManager.dump();
+
+     if (enableScreen) {
+         mService->EnableScreenAfterBoot();
+     }
 }
-
-
 
 /**
  * @return Returns true if the activity is being finished, false if for
@@ -3777,78 +3774,78 @@ void ActivityStack::FinishTaskMoveLocked(
 }
 
 Boolean ActivityStack::MoveTaskToBackLocked(
-	/* [in] */ Int32 task,
-	/* [in] */ CActivityRecord* reason)
+    /* [in] */ Int32 task,
+    /* [in] */ CActivityRecord* reason)
 {
-	Slogger::I(TAG, StringBuffer("moveTaskToBack: ") + task);
+    Slogger::I(TAG, StringBuffer("moveTaskToBack: ") + task);
 
-	// If we have a watcher, preflight the move before committing to it.  First check
-	// for *other* available tasks, but if none are available, then try again allowing the
-	// current task to be selected.
-	if (mMainStack && mService->mController != NULL) {
-		AutoPtr<CActivityRecord> next = GetTopRunningActivityLocked(NULL, task);
-		if (next == NULL) {
-			next = GetTopRunningActivityLocked(NULL, 0);
-		}
-		if (next != NULL) {
-			// ask watcher if this is allowed
-			Boolean moveOK = TRUE;
-//			try {
-				mService->mController->ActivityResuming(next->mCapsuleName,&moveOK);
-//			} catch (RemoteException e) {
-//				mService.mController = null;
-//			}
-			if (!moveOK) {
+    // If we have a watcher, preflight the move before committing to it.  First check
+    // for *other* available tasks, but if none are available, then try again allowing the
+    // current task to be selected.
+    if (mMainStack && mService->mController != NULL) {
+        AutoPtr<CActivityRecord> next = GetTopRunningActivityLocked(NULL, task);
+        if (next == NULL) {
+            next = GetTopRunningActivityLocked(NULL, 0);
+        }
+        if (next != NULL) {
+            // ask watcher if this is allowed
+            Boolean moveOK = TRUE;
+//            try {
+                mService->mController->ActivityResuming(next->mCapsuleName,&moveOK);
+//            } catch (RemoteException e) {
+//                mService.mController = null;
+//            }
+            if (!moveOK) {
                 mService->mController = NULL;
-				return FALSE;
-			}
-		}
-	}
+                return FALSE;
+            }
+        }
+    }
 
-	AutoPtr<IObjectContainer> moved;
+    AutoPtr<IObjectContainer> moved;
 
-	if (DEBUG_TRANSITION) Slogger::V(TAG,
-			StringBuffer("Prepare to back transition: task=") + task);
+    if (DEBUG_TRANSITION) Slogger::V(TAG,
+            StringBuffer("Prepare to back transition: task=") + task);
 
-	const Int32 N = mHistory.GetSize();
-	Int32 bottom = 0;
-	Int32 pos = 0;
+    const Int32 N = mHistory.GetSize();
+    Int32 bottom = 0;
+    Int32 pos = 0;
 
-	// Shift all activities with this task down to the bottom
-	// of the stack, keeping them in the same internal order.
-	while (pos < N) {
-		AutoPtr<CActivityRecord> r = (CActivityRecord*)mHistory[pos];
-		if (localLOGV) Slogger::V(
-			TAG, StringBuffer("At ") + pos + StringBuffer(" ckp ") + r->mTask + StringBuffer(": ") + r);
-		if (r->mTask->mTaskId == task) {
-			if (localLOGV) Slogger::V(TAG, StringBuffer("Removing and adding at ") + (N-1));
-			mHistory.Remove(pos);
-			mHistory.Insert(bottom, r);
-			moved->Add((IBinder*)r);
-			bottom++;
-		}
-		pos++;
-	}
+    // Shift all activities with this task down to the bottom
+    // of the stack, keeping them in the same internal order.
+    while (pos < N) {
+        AutoPtr<CActivityRecord> r = (CActivityRecord*)mHistory[pos];
+        if (localLOGV) Slogger::V(
+            TAG, StringBuffer("At ") + pos + StringBuffer(" ckp ") + r->mTask + StringBuffer(": ") + r);
+        if (r->mTask->mTaskId == task) {
+            if (localLOGV) Slogger::V(TAG, StringBuffer("Removing and adding at ") + (N-1));
+            mHistory.Remove(pos);
+            mHistory.Insert(bottom, r);
+            moved->Add((IBinder*)r);
+            bottom++;
+        }
+        pos++;
+    }
 
     Int32 gFlags;
     reason->mIntent->GetFlags(&gFlags);
-	if (reason != NULL &&
-			(gFlags & Intent_FLAG_ACTIVITY_NO_ANIMATION) != 0) {
-		mService->mWindowManager->PrepareAppTransition(WindowManagerPolicy_TRANSIT_NONE);
-		AutoPtr<CActivityRecord> r = GetTopRunningActivityLocked(NULL);
-		if (r != NULL) {
-			mNoAnimActivities.PushBack(r);
-		}
-	} else {
-		mService->mWindowManager->PrepareAppTransition(WindowManagerPolicy_TRANSIT_TASK_TO_BACK);
-	}
-	mService->mWindowManager->MoveAppTokensToBottom(moved);
-	if (VALIDATE_TOKENS) {
-		mService->mWindowManager->ValidateAppTokens(mHistory);
-	}
+    if (reason != NULL &&
+            (gFlags & Intent_FLAG_ACTIVITY_NO_ANIMATION) != 0) {
+        mService->mWindowManager->PrepareAppTransition(WindowManagerPolicy_TRANSIT_NONE);
+        AutoPtr<CActivityRecord> r = GetTopRunningActivityLocked(NULL);
+        if (r != NULL) {
+            mNoAnimActivities.PushBack(r);
+        }
+    } else {
+        mService->mWindowManager->PrepareAppTransition(WindowManagerPolicy_TRANSIT_TASK_TO_BACK);
+    }
+    mService->mWindowManager->MoveAppTokensToBottom(moved);
+    if (VALIDATE_TOKENS) {
+        mService->mWindowManager->ValidateAppTokens(mHistory);
+    }
 
-	FinishTaskMoveLocked(task);
-	return TRUE;
+    FinishTaskMoveLocked(task);
+    return TRUE;
 }
 
 
