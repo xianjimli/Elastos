@@ -233,7 +233,7 @@ ECode CColor::ParseColor(
     /* [in] */ const String& colorString,
     /* [out] */ Int32* color)
 {
-    if (colorString.GetCharAt(0) == '#') {
+    if (colorString.GetChar(0) == '#') {
        // Use a long to avoid rollovers on #ffXXXXXX
         Int64 c = colorString.Substring(1).ToInt64(16);
         if (colorString.GetCharCount() == 7) {
@@ -252,7 +252,7 @@ ECode CColor::ParseColor(
         cstr.ToLowerCase(/*Locale.US*/);
         HashMap<String, Int32>::Iterator it = sColorNameMap->Find(cstr);
         if (it != sColorNameMap->End()) {
-            *color = it->mSecond;//Locale.US
+            *color = it->mSecond;
             return NOERROR;
         }
     }
