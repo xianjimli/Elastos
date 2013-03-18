@@ -22,9 +22,8 @@ ECode CRegion::constructor(
 ECode CRegion::constructor(
     /* [in] */ IRect* r)
 {
-    CRect* rect = (CRect*)r;
-
     mNativeRegion = NativeConstructor();
+    CRect* rect = (CRect*)r;
     NativeSetRect(mNativeRegion, rect->mLeft, rect->mTop, rect->mRight, rect->mBottom);
     return NOERROR;
 }
@@ -41,7 +40,7 @@ ECode CRegion::constructor(
 }
 
 ECode CRegion::constructor(
-    /* [in] */ Int32 ni)
+    /* [in] */ Handle32 ni)
 {
     if ((SkRegion*)ni == NULL) {
         //throw new RuntimeException();
@@ -80,7 +79,6 @@ ECode CRegion::SetEx(
     VALIDATE_NOT_NULL(result);
 
     CRect* rect = (CRect*)r;
-
     *result = NativeSetRect(mNativeRegion, rect->mLeft, rect->mTop, rect->mRight, rect->mBottom);
     return NOERROR;
 }
@@ -171,7 +169,6 @@ ECode CRegion::GetBoundaryPath(
     /* [out] */ IPath** path)
 {
     CPath::New(path);
-
     NativeGetBoundaryPath(mNativeRegion, ((CPath*)*path)->Ni());
     return NOERROR;
 }
@@ -206,7 +203,6 @@ ECode CRegion::QuickContains(
     /* [out] */ Boolean* result)
 {
     CRect* rect = (CRect*)r;
-
     return QuickContainsEx(rect->mLeft, rect->mTop, rect->mRight, rect->mBottom, result);
 }
 
@@ -228,7 +224,6 @@ ECode CRegion::QuickReject(
     /* [out] */ Boolean* result)
 {
     CRect* rect = (CRect*)r;
-
     return QuickRejectEx(rect->mLeft, rect->mTop, rect->mRight, rect->mBottom, result);
 }
 
@@ -242,7 +237,6 @@ ECode CRegion::QuickRejectEx(
     VALIDATE_NOT_NULL(result);
 
     SkIRect ir;
-
     ir.set(left, top, right, bottom);
     *result = mNativeRegion->quickReject(ir);
     return NOERROR;
@@ -287,7 +281,7 @@ ECode CRegion::Scale(
 }
 
 // Scale the rectangle by given scale and set the reuslt to the dst.
-void CRegion::ScaleRect(
+static void ScaleRect(
     /* [in] */ SkIRect* dst,
     /* [in] */ const SkIRect& src,
     /* [in] */ Float scale)
@@ -300,7 +294,7 @@ void CRegion::ScaleRect(
 
 // Scale the region by given scale and set the reuslt to the dst.
 // dest and src can be the same region instance.
-void CRegion::ScaleRgn(
+static void ScaleRgn(
     /* [in] */ SkRegion* dst,
     /* [in] */ const SkRegion& src,
     /* [in] */ Float scale)
@@ -320,10 +314,12 @@ ECode CRegion::ScaleEx(
     /* [in] */ Float scale,
     /* [in] */ IRegion* dst)
 {
-    if (dst)
+    if (dst) {
         ScaleRgn(((CRegion*)dst)->mNativeRegion, *mNativeRegion, scale);
-    else
+    }
+    else {
         ScaleRgn(mNativeRegion, *mNativeRegion, scale);
+    }
 
     return NOERROR;
 }
@@ -341,8 +337,8 @@ ECode CRegion::Op(
     /* [out] */ Boolean* result)
 {
     VALIDATE_NOT_NULL(result);
-    CRect* rect = (CRect*)r;
 
+    CRect* rect = (CRect*)r;
     *result = NativeOp(mNativeRegion, rect->mLeft, rect->mTop, rect->mRight, rect->mBottom, op);
     return NOERROR;
 }
@@ -366,7 +362,7 @@ ECode CRegion::OpEx2(
     /* [in] */ RegionOp op,
     /* [out] */ Boolean* result)
 {
-    return OpEx4((IRegion*)Probe(EIID_IRegion), region, op, result);
+    return OpEx4((IRegion*)this, region, op, result);
 }
 
 ECode CRegion::OpEx3(
@@ -394,7 +390,6 @@ ECode CRegion::OpEx4(
                 ((CRegion*)region1)->mNativeRegion,
                 ((CRegion*)region2)->mNativeRegion,
                 op);
-
     return NOERROR;
 }
 
@@ -404,7 +399,7 @@ ECode CRegion::Equals(
 {
     VALIDATE_NOT_NULL(result);
 
-    if ((r == NULL) || (IRegion::Probe(r) == NULL)) {
+    if ((r == NULL) {
         *result = FALSE;
         return NOERROR;
     }
@@ -448,12 +443,11 @@ void CRegion::NativeDestructor(
 }
 
 Boolean CRegion::NativeSetRegion(
-    /* [out] */ SkRegion* dst,
+    /* [in] */ SkRegion* dst,
     /* [in] */ SkRegion* src)
 {
     SkASSERT(dst && src);
     *dst = *src;
-
     return TRUE;
 }
 
@@ -500,7 +494,6 @@ Boolean CRegion::NativeOp(
     /* [in] */ RegionOp op)
 {
     SkIRect ir;
-
     ir.set(left, top, right, bottom);
     return dst->op(ir, (SkRegion::Op)op);
 }
@@ -512,7 +505,6 @@ Boolean CRegion::NativeOp(
     /* [in] */ RegionOp op)
 {
     SkIRect ir;
-
     Graphics::IRect2SkIRect(rect, &ir);
     return dst->op(ir, *region, (SkRegion::Op)op);
 }
