@@ -1,18 +1,18 @@
 
 module
 {
-    const color_BLACK       = 0xFF000000;
-    const color_DKGRAY      = 0xFF444444;
-    const color_GRAY        = 0xFF888888;
-    const color_LTGRAY      = 0xFFCCCCCC;
-    const color_WHITE       = 0xFFFFFFFF;
-    const color_RED         = 0xFFFF0000;
-    const color_GREEN       = 0xFF00FF00;
-    const color_BLUE        = 0xFF0000FF;
-    const color_YELLOW      = 0xFFFFFF00;
-    const color_CYAN        = 0xFF00FFFF;
-    const color_MAGENTA     = 0xFFFF00FF;
-    const color_TRANSPARENT = 0;
+    const Color_BLACK       = 0xFF000000;
+    const Color_DKGRAY      = 0xFF444444;
+    const Color_GRAY        = 0xFF888888;
+    const Color_LTGRAY      = 0xFFCCCCCC;
+    const Color_WHITE       = 0xFFFFFFFF;
+    const Color_RED         = 0xFFFF0000;
+    const Color_GREEN       = 0xFF00FF00;
+    const Color_BLUE        = 0xFF0000FF;
+    const Color_YELLOW      = 0xFFFFFF00;
+    const Color_CYAN        = 0xFF00FFFF;
+    const Color_MAGENTA     = 0xFFFF00FF;
+    const Color_TRANSPARENT = 0;
 
     interface IColor {
         Alpha(

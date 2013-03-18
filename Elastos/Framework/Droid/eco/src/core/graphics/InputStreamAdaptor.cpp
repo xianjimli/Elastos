@@ -60,8 +60,11 @@ public:
         /* [in] */ size_t size)
     {
         Int64 skipped;
-        mInputStream->Skip((Int64)size, (Int64*)&skipped);
+        ECode ec = mInputStream->Skip((Int64)size, (Int64*)&skipped);
 
+        if (FAILED(ec)) {
+            return 0;
+        }
         if (skipped < 0) {
             skipped = 0;
         }
@@ -72,8 +75,11 @@ public:
     size_t doSize()
     {
         Int32 avail;
-        mInputStream->Available(&avail);
+        ECode ec = mInputStream->Available(&avail);
 
+        if (FAILED(ec)) {
+            avail = 0;
+        }
         return (size_t)avail;
     }
 

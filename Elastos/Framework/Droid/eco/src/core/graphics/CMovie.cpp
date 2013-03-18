@@ -6,6 +6,7 @@
 #include "graphics/Paint.h"
 #include "graphics/CreateOutputStreamAdaptor.h"
 #include <elastos/AutoPtr.h>
+#include <elastos/AutoFree.h>
 #include <skia/images/SkMovie.h>
 
 ECode CMovie::constructor(
@@ -112,12 +113,12 @@ ECode CMovie::DecodeStream(
 {
     VALIDATE_NOT_NULL(movie);
 
-    if (is == NULL) return E_NULL_POINTER_EXCEPTION;
-
+    if (is == NULL) {
+        return E_NULL_POINTER_EXCEPTION;
+    }
     // what is the lifetime of the array? Can the skstream hold onto it?
-    ArrayOf<Byte>* pAdaptor = ArrayOf<Byte>::Alloc(16 * 1024);
-
-    SkStream* strm = CreateInputStreamAdaptor(is, pAdaptor);
+    AutoFree< ArrayOf<Byte> > adaptor = ArrayOf<Byte>::Alloc(16 * 1024);
+    SkStream* strm = CreateInputStreamAdaptor(is, adaptor.Get());
 
     if (NULL == strm) {
         *movie = NULL;
@@ -126,8 +127,6 @@ ECode CMovie::DecodeStream(
 
     SkMovie* moov = SkMovie::DecodeStream(strm);
     strm->unref();
-
-    ArrayOf<Byte>::Free(pAdaptor);
     return CreateMovie(moov, movie);
 }
 

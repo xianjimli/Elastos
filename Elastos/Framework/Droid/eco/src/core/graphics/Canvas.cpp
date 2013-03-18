@@ -639,7 +639,7 @@ ECode Canvas::SetDrawFilter(
 {
     SkDrawFilter* nativeFilter = 0;
     if (filter != NULL) {
-        nativeFilter = ((DrawFilter*)filter)->Ni();
+        nativeFilter = ((DrawFilter*)filter->Probe(EIID_DrawFilter))->Ni();
     }
     mDrawFilter = filter;
     NativeSetDrawFilter(mNativeCanvas, nativeFilter);
@@ -2113,25 +2113,22 @@ void Canvas::NativeDrawPosText(
     /* [in] */ const ArrayOf<Float>& pos,
     /* [in] */ SkPaint* nativePaint)
 {
-   char* textArray = text.GetPayload();
-   //no use
-   //Int32 textCount = text.GetLength();
-   Float* posArray = pos.GetPayload();
-   Int32 posCount = pos.GetLength() >> 1;
-   SkPoint* posPtr = posCount > 0 ? new SkPoint[posCount] : NULL;
-   Int32 indx;
-   for (indx = 0; indx < posCount; indx++) {
-       posPtr[indx].fX = SkFloatToScalar(posArray[indx << 1]);
-       posPtr[indx].fY = SkFloatToScalar(posArray[(indx << 1) + 1]);
-   }
-   nativeCanvas->drawPosText(textArray + index, count << 1, posPtr, *nativePaint);
-   // if (text) {
-   //     env->ReleaseCharArrayElements(text, textArray, 0);
-   // }
-   // if (pos) {
-   //     env->ReleaseFloatArrayElements(pos, posArray, 0);
-   // }
-   delete[] posPtr;
+    char* textArray = text.GetPayload();
+    Float* posArray = pos.GetPayload();
+    Int32 posCount = pos.GetLength() >> 1;
+    SkPoint* posPtr = posCount > 0 ? new SkPoint[posCount] : NULL;
+
+    for (Int32 i = 0; i < posCount; i++) {
+        posPtr[i].fX = SkFloatToScalar(posArray[i << 1]);
+        posPtr[i].fY = SkFloatToScalar(posArray[(i << 1) + 1]);
+    }
+
+    Int32 startOff, endOff;
+    Character::GetOffsetByChars(text, 0, text.GetLength(), 0, index, &startOff);
+    Character::GetOffsetByChars(text, 0, text.GetLength(), 0, index + count, &endOff);
+    nativeCanvas->drawPosText(textArray + startOff, endOff - startOff , posPtr, *nativePaint);
+
+    delete[] posPtr;
 }
 
 void Canvas::NativeDrawPosText(
@@ -2140,23 +2137,22 @@ void Canvas::NativeDrawPosText(
     /* [in] */ const ArrayOf<Float>& pos,
     /* [in] */ SkPaint* nativePaint)
 {
-   const void* text_ = text.string();
-   Int32 byteLength = text.GetLength();
-   Float* posArray = pos.GetPayload();
-   Int32 posCount = pos.GetLength();
-   SkPoint* posPtr = posCount > 0 ? new SkPoint[posCount] : NULL;
+    const void* text_ = text.string();
+    Int32 byteLength = text.GetLength();
+    Float* posArray = pos.GetPayload();
+    Int32 posCount = pos.GetLength();
+    SkPoint* posPtr = posCount > 0 ? new SkPoint[posCount] : NULL;
 
-   for (Int32 indx = 0; indx < posCount; indx++) {
-       posPtr[indx].fX = SkFloatToScalar(posArray[indx << 1]);
-       posPtr[indx].fY = SkFloatToScalar(posArray[(indx << 1) + 1]);
-   }
-   nativeCanvas->drawPosText(text_, byteLength << 1, posPtr, *nativePaint);
-   // if (text) {
-   //     env->ReleaseStringChars(text, (const jchar*) text_);
-   // }
-   // if (pos) {
-   //     env->ReleaseFloatArrayElements(pos, posArray, 0);
-   // }
+    for (Int32 i = 0; i < posCount; i++) {
+       posPtr[i].fX = SkFloatToScalar(posArray[i << 1]);
+       posPtr[i].fY = SkFloatToScalar(posArray[(i << 1) + 1]);
+    }
+
+    Int32 startOff, endOff;
+    Character::GetOffsetByChars(text, 0, text.GetLength(), 0, index, &startOff);
+    Character::GetOffsetByChars(text, 0, text.GetLength(), 0, index + count, &endOff);
+    nativeCanvas->drawPosText(text_ + startOff, endOff - startOff , posPtr, *nativePaint);
+
    delete[] posPtr;
 }
 
@@ -2170,8 +2166,8 @@ void Canvas::NativeDrawTextOnPath(
     /* [in] */ Float vOffset,
     /* [in] */ SkPaint* nativePaint)
 {
-   char* textArray = text.GetPayload();
-   nativeCanvas->drawTextOnPathHV(textArray + index, count << 1, *nativePath,
+    char* textArray = text.GetPayload();
+    nativeCanvas->drawTextOnPathHV(textArray + index, count << 1, *nativePath,
                SkFloatToScalar(hOffset), SkFloatToScalar(vOffset), *nativePaint);
 }
 
@@ -2183,9 +2179,9 @@ void Canvas::NativeDrawTextOnPath(
     /* [in] */ Float vOffset,
     /* [in] */ SkPaint* nativePaint)
 {
-   const char* text_ = text.string();
-   Int32 byteLength = text.GetLength() << 1;
-   nativeCanvas->drawTextOnPathHV(text_, byteLength, *nativePath,
+    const char* text_ = text.string();
+    Int32 byteLength = text.GetLength() << 1;
+    nativeCanvas->drawTextOnPathHV(text_, byteLength, *nativePath,
                SkFloatToScalar(hOffset), SkFloatToScalar(vOffset), *nativePaint);
 }
 

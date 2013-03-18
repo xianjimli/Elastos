@@ -11,17 +11,17 @@ static HashMap<String, Int32>* InitColorNameMap()
 {
     HashMap<String, Int32>* map = new HashMap<String, Int32>(11);
     assert(map != NULL);
-    (*map)[String("black")] = color_BLACK;
-    (*map)[String("darkgray")] = color_DKGRAY;
-    (*map)[String("gray")] = color_GRAY;
-    (*map)[String("lightgray")] = color_LTGRAY;
-    (*map)[String("white")] = color_WHITE;
-    (*map)[String("red")] = color_RED;
-    (*map)[String("green")] = color_GREEN;
-    (*map)[String("blue")] = color_BLUE;
-    (*map)[String("yellow")] = color_YELLOW;
-    (*map)[String("cyan")] = color_CYAN;
-    (*map)[String("magenta")] = color_MAGENTA;
+    (*map)[String("black")] = Color_BLACK;
+    (*map)[String("darkgray")] = Color_DKGRAY;
+    (*map)[String("gray")] = Color_GRAY;
+    (*map)[String("lightgray")] = Color_LTGRAY;
+    (*map)[String("white")] = Color_WHITE;
+    (*map)[String("red")] = Color_RED;
+    (*map)[String("green")] = Color_GREEN;
+    (*map)[String("blue")] = Color_BLUE;
+    (*map)[String("yellow")] = Color_YELLOW;
+    (*map)[String("cyan")] = Color_CYAN;
+    (*map)[String("magenta")] = Color_MAGENTA;
     return map;
 }
 
@@ -233,16 +233,14 @@ ECode CColor::ParseColor(
     /* [in] */ const String& colorString,
     /* [out] */ Int32* color)
 {
-    if (colorString[0] == '#') {
+    if (colorString.GetCharAt(0) == '#') {
        // Use a long to avoid rollovers on #ffXXXXXX
-        String subString = colorString.Substring(1, 16);
-
-        long c = 0;//Long.parseLong(subString, 16);
-        if (colorString.GetLength() == 7) {
+        Int64 c = colorString.Substring(1).ToInt64(16);
+        if (colorString.GetCharCount() == 7) {
             // Set the alpha value
             c |= 0x00000000ff000000;
         }
-        else if (colorString.GetLength() != 9) {
+        else if (colorString.GetCharCount() != 9) {
             //throw new IllegalArgumentException("Unknown color");
             return E_ILLEGAL_ARGUMENT_EXCEPTION;
         }
@@ -250,11 +248,11 @@ ECode CColor::ParseColor(
         return NOERROR;
     }
     else {
-        String cstring = colorString;
-        cstring.ToLowerCase();
-        if (sColorNameMap->Find(cstring)//Locale.US
-            != sColorNameMap->End()) {
-            *color = (*sColorNameMap)[cstring];//Locale.US
+        String cstr = colorString;
+        cstr.ToLowerCase(/*Locale.US*/);
+        HashMap<String, Int32>::Iterator it = sColorNameMap->Find(cstr);
+        if (it != sColorNameMap->End()) {
+            *color = it->mSecond;//Locale.US
             return NOERROR;
         }
     }

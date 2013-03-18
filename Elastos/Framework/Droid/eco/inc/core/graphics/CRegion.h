@@ -25,7 +25,7 @@ public:
         /* [in] */ Int32 bottom);
 
     CARAPI constructor(
-        /* [in] */ Int32 ni);
+        /* [in] */ Handle32 ni);
 
     ~CRegion();
     /** Set the region to the empty region
@@ -284,7 +284,7 @@ private:
         /* [in] */ SkRegion* region);
 
     static CARAPI_(Boolean) NativeSetRegion(
-        /* [out] */ SkRegion* dst,
+        /* [in] */ SkRegion* dst,
         /* [in] */ SkRegion* src);
 
     static CARAPI_(Boolean) NativeSetRect(
@@ -337,18 +337,6 @@ private:
     static CARAPI_(Boolean) NativeEquals(
         /* [in] */ SkRegion* region1,
         /* [in] */ SkRegion* region2);
-
-    static CARAPI_(void) ScaleRect(
-        /* [in] */ SkIRect* dst,
-        /* [in] */ const SkIRect& src,
-        /* [in] */ Float scale);
-
-    // Scale the region by given scale and set the reuslt to the dst.
-    // dest and src can be the same region instance.
-    static CARAPI_(void) ScaleRgn(
-        /* [in] */ SkRegion* dst,
-        /* [in] */ const SkRegion& src,
-        /* [in] */ Float scale);
 
 private:
     SkRegion* mNativeRegion;

@@ -253,7 +253,6 @@ Boolean CYuvImage::NativeCompressToJpeg(
     /* [in] */ IOutputStream* stream,
     /* [out] */ ArrayOf<Byte> & tempStorage)
 {
-
     Byte* yuv = oriYuv.GetPayload();
     Int32* imgOffsets = offsets.GetPayload();
     Int32* imgStrides = strides.GetPayload();
