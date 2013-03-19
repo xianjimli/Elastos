@@ -1811,6 +1811,7 @@ ECode className::GetHandler(                                            \
 {                                                                       \
     VALIDATE_NOT_NULL(apartment);                                       \
     *apartment = superClass::GetHandler();                              \
+    if (*apartment != NULL) (*apartment)->AddRef();                 \
                                                                         \
     return NOERROR;                                                     \
 }                                                                       \
