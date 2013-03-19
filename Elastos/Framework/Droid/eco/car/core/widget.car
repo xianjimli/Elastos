@@ -18,7 +18,6 @@ module
     merge("widget/AbsListView.car");
     merge("widget/SectionIndexer.car");
     merge("widget/Filter.car");
-    merge("widget/TextWatcher.car");
     merge("widget/Button.car");
     merge("widget/ImageButton.car");
     merge("widget/CompoundButton.car");
