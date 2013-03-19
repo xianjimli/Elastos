@@ -62,6 +62,7 @@ ECode AcquireClassObjectFromLocalModule(
     if(NULL == pIModule){
         ec = E_FILE_NOT_FOUND;
         printf("<%s, %d> dlopen '%s' failed.\n", __FILE__, __LINE__, path);
+        printf("error: %s\n", dlerror());
         goto ErrorExit;
     }
 

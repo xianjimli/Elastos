@@ -3,9 +3,56 @@
 #define __CDISPLAY_H__
 
 #include "_CDisplay.h"
+#include <elastos/AutoPtr.h>
+#include <elastos/ElRefBase.h>;
 
 CarClass(CDisplay)
 {
+private:
+    class CompatibleDisplay : public ElRefBase, public IDisplay
+    {
+    public:
+        CompatibleDisplay(
+            /* [in] */ Int32 displayId,
+            /* [in] */ IDisplayMetrics* metrics);
+
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetDisplayId(
+            /* [out] */ Int32* id);
+
+        CARAPI GetWidth(
+             /* [out] */ Int32 *width);
+
+        CARAPI GetHeight(
+            /* [out] */ Int32 *height);
+
+        CARAPI GetRotation(
+            /* [out] */ Int32* rotation);
+
+        CARAPI GetPixelFormat(
+            /* [out] */ Int32* pixelFormat);
+
+        CARAPI GetRefreshRate(
+            /* [out] */ Float* refreshRate);
+
+        CARAPI GetMetrics(
+            /* [in, out] */ IDisplayMetrics* outMetrics);
+
+    private:
+        AutoPtr<IDisplayMetrics> mMetrics;
+        AutoPtr<IDisplay> mDisplay;
+    };
+
 public:
     /**
      * Specify the default Display

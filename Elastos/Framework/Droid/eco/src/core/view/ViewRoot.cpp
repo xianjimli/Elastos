@@ -3014,11 +3014,11 @@ void ViewRoot::DeliverPointerEvent(
         event->GetPressure(&pressure);
         event->GetSize(&size);
         event->GetOrientation(&orientation);
-        //printf("event = 0x%08x, downtime = %d, eventtime = %d,\n",
-        //    event, downTime, eventTime);
+        printf("event = 0x%08x, downtime = %d, eventtime = %d,\n",
+           event, downTime, eventTime);
 
-        //printf("x = %f, y = %f, pressure = %f, size = %f, orientation = %f\n",
-        //    x, y, pressure, size, orientation);
+        printf("x = %f, y = %f, pressure = %f, size = %f, orientation = %f\n",
+           x, y, pressure, size, orientation);
 
         printf("\n");
     }

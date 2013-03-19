@@ -76,7 +76,7 @@ LIBRARIES += statusbar/statusbar.lib
 LIBRARIES += location/location.lib
 LIBRARIES += systemui/systemui.lib
 LIBRARIES += webkit/webkit.lib
-LIBRARIES += hardware/hardware.lib
+#LIBRARIES += hardware/hardware.lib
 LIBRARIES += webkit/webkit.lib
 LIBRARIES += gesture/gesture.lib
 
@@ -93,5 +93,5 @@ else
 LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
 LIBRARIES += $(XDK_TARGETS)/Elastos.Core.eco
 LIBRARIES += $(XDK_USER_LIB)/crt0.lib
-LIBRARIES += -lexpat -llog -lutils -lbinder -lskia -lskiagl -lsurfaceflinger_client -lui -lcutils -lsqlite -lusbhost
+LIBRARIES += -lexpat -llog -lutils -lbinder -lskia -lskiagl -lsurfaceflinger_client -lui -lcutils -lsqlite
 endif

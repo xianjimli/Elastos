@@ -7,6 +7,95 @@
 
 const Int32 CDisplay::DEFAULT_DISPLAY;
 
+CDisplay::CompatibleDisplay::CompatibleDisplay(
+    /* [in] */ Int32 displayId,
+    /* [in] */ IDisplayMetrics* metrics)
+{
+    ASSERT_SUCCEEDED(CDisplay::New(displayId, (IDisplay**)&mDisplay));
+    mMetrics = metrics;
+}
+
+PInterface CDisplay::CompatibleDisplay::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (PInterface)(IDisplay*)this;
+    }
+    else if (riid == EIID_IDisplay) {
+        return (IDisplay*)this;
+    }
+
+    return NULL;
+}
+
+ECode CDisplay::CompatibleDisplay::GetInterfaceID(
+    /* [in] */ IInterface* pObject,
+    /* [in] */ InterfaceID* pIID)
+{
+    if (pIID == NULL) {
+        return E_INVALID_ARGUMENT;
+    }
+    if (pObject == (IInterface*)(IDisplay*)this) {
+        *pIID = EIID_IDisplay;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
+}
+
+UInt32 CDisplay::CompatibleDisplay::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CDisplay::CompatibleDisplay::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode CDisplay::CompatibleDisplay::GetDisplayId(
+    /* [out] */ Int32* id)
+{
+    return mDisplay->GetDisplayId(id);
+}
+
+ECode CDisplay::CompatibleDisplay::GetWidth(
+     /* [out] */ Int32 *width)
+{
+    return mMetrics->GetWidthPixels(width);
+}
+
+ECode CDisplay::CompatibleDisplay::GetHeight(
+    /* [out] */ Int32 *height)
+{
+    return mMetrics->GetHeightPixels(height);
+}
+
+ECode CDisplay::CompatibleDisplay::GetRotation(
+    /* [out] */ Int32* rotation)
+{
+    return mDisplay->GetRotation(rotation);
+}
+
+ECode CDisplay::CompatibleDisplay::GetPixelFormat(
+    /* [out] */ Int32* pixelFormat)
+{
+    return mDisplay->GetPixelFormat(pixelFormat);
+}
+
+ECode CDisplay::CompatibleDisplay::GetRefreshRate(
+    /* [out] */ Float* refreshRate)
+{
+    return mDisplay->GetRefreshRate(refreshRate);
+}
+
+ECode CDisplay::CompatibleDisplay::GetMetrics(
+    /* [in, out] */ IDisplayMetrics* outMetrics)
+{
+    return mDisplay->GetMetrics(outMetrics);
+}
+
 ECode CDisplay::constructor(
     /* [in] */ Int32 display)
 {
@@ -178,6 +267,11 @@ ECode CDisplay::CreateMetricsBasedDisplay(
     /* [in] */ IDisplayMetrics* metrics,
     /* [out] */ IDisplay** display)
 {
-//	    return new CompatibleDisplay(displayId, metrics, &display);
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(display);
+    *display = new CompatibleDisplay(displayId, metrics);
+    if (*display != NULL) {
+        (*display)->AddRef();
+    }
+
+    return NOERROR;
 }

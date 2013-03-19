@@ -13086,11 +13086,11 @@ void CCapsuleManagerService::ScanDir(
 
     do {
         if ((dp = readdir(dir)) != NULL) {
-            stat(dp->d_name, &fs);
+            strcpy(fname, path);
+            strcat(fname, "/");
+            strcat(fname, dp->d_name);
+            stat(fname, &fs);
             if (S_ISDIR(fs.st_mode)) {
-                strcpy(fname, path);
-                strcat(fname, "/");
-                strcat(fname, dp->d_name);
                 strcat(fname, "/data/");
                 strcat(fname, (const char*)DEFAULT_RESOURCES_FILE_NAME);
                 if (!access(fname, R_OK)) {
