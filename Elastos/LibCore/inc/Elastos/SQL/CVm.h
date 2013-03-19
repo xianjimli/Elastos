@@ -6,6 +6,9 @@
 
 CarClass(CVm), public Vm
 {
+public:
+	CARAPI constructor();
+	
     CARAPI Step(
         /** [in] **/ICallback* cb,
         /** [out] **/Boolean* result);

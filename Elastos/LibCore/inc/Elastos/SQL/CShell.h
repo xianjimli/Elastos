@@ -6,21 +6,37 @@
 
 CarClass(CShell), public Shell
 {
+public:
+    CARAPI constructor();
+
+    CARAPI Clone(
+        /* [out] */IInterface** obj);
+
     CARAPI Set_table_name(
-        /* [in] */ String str);
+        /* [in] */ const String& str);
+
+    CARAPI Columns(
+        /* [in] */ArrayOf<String>* args);
+
+    CARAPI Types(
+        /* [in] */ArrayOf<String>* args);
+
+    CARAPI Newrow(
+        /* [in] */ArrayOf<String>* args,
+        /* [out] */Boolean* result);
 
     CARAPI Do_meta(
-        /* [in] */ String line);
+        /* [in] */ const String& line);
 
     CARAPI Read_line(
         /* [in] */ IBufferedReader* is, 
-        /* [in] */ String prompt,
+        /* [in] */ const String& prompt,
         /* [out] */ String* str);
 
     CARAPI Do_input(
         /* [in] */IBufferedReader* is);
 
     CARAPI Do_cmd(
-        /* [in] */ String sql);
+        /* [in] */ const String& sql);
 };
 #endif //_CSHELL_H_

@@ -6,6 +6,7 @@
 
 CarClass(CStmt), public Stmt
 {
+public:
     CARAPI constructor();
 
     CARAPI Prepare(
@@ -34,11 +35,11 @@ CarClass(CStmt), public Stmt
 
     CARAPI BindEx3(
         /** [in] **/Int32 pos, 
-        /** [in] **/ArrayOf<Byte>& value);
+        /** [in] **/const ArrayOf<Byte>& value);
 
     CARAPI BindEx4(
         /** [in] **/Int32 pos, 
-        /** [in] **/ArrayOf<String>& value);
+        /** [in] **/const String& value);
 
     CARAPI BindEx5(
         /** [in] **/Int32 pos);
@@ -55,7 +56,7 @@ CarClass(CStmt), public Stmt
         /** [out] **/String* str);
 
     CARAPI Bind_parameter_index(
-        /** [in] **/String name,
+        /** [in] **/const String& name,
         /** [out] **/Int32* index);
 
     CARAPI Column_int(
@@ -72,7 +73,7 @@ CarClass(CStmt), public Stmt
 
     CARAPI Column_bytes(
         /** [in] **/Int32 col,
-        /** [out] **/ArrayOf<Byte>* bt);
+        /** [out] **/ArrayOf<Byte>** bt);
 
     CARAPI Column_string(
         /** [in] **/Int32 col,

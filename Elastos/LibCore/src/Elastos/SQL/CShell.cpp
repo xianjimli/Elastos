@@ -1,21 +1,53 @@
 #include "cmdef.h"
 #include "CShell.h"
 
+ECode CShell::constructor()
+{
+    return NOERROR;
+}
+
+ECode CShell::Clone(
+    /* [out] */IInterface** obj)
+{
+    return Shell::Clone(obj);
+}
+
 ECode CShell::Set_table_name(
-    /* [in] */ String str)
+    /* [in] */ const String& str)
 {
     return Shell::Set_table_name(str);
 }
 
+ECode CShell::Columns(
+    /* [in] */ArrayOf<String>* args)
+{
+    return Shell::Columns(args);
+}
+
+ECode CShell::Types(
+    /* [in] */ArrayOf<String>* args)
+{
+    return Shell::Types(args);
+}
+
+ECode CShell::Newrow(
+    /* [in] */ArrayOf<String>* args,
+    /* [out] */Boolean* result)
+{
+    VALIDATE_NOT_NULL(result);
+
+    return Shell::Newrow(args, result);
+}
+
 ECode CShell::Do_meta(
-    /* [in] */ String line)
+    /* [in] */ const String& line)
 {
     return Shell::Do_meta(line);
 }
 
 ECode CShell::Read_line(
     /* [in] */ IBufferedReader* is, 
-    /* [in] */ String prompt,
+    /* [in] */ const String& prompt,
     /* [out] */ String* str)
 {
     VALIDATE_NOT_NULL(str);
@@ -30,7 +62,7 @@ ECode CShell::Do_input(
 }
 
 ECode CShell::Do_cmd(
-    /* [in] */ String sql)
+    /* [in] */ const String& sql)
 {
     return Shell::Do_cmd(sql);
 }

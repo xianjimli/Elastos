@@ -8,7 +8,7 @@
 
 using namespace Elastos;
 
-class JDBCDriver : public IDriver
+class JDBCDriver// : public IDriver
 {
 public:
     static Boolean mSharedCache;// = FALSE;

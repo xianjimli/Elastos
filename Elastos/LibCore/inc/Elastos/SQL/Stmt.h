@@ -119,7 +119,7 @@ public:
      */
     CARAPI BindEx3(
         /** [in] **/Int32 pos, 
-        /** [in] **/ArrayOf<Byte>& value);
+        /** [in] **/const ArrayOf<Byte>& value);
 
     /**
      * Bind positional String to compiled SQLite3 statement.
@@ -128,7 +128,7 @@ public:
      */
     CARAPI BindEx4(
         /** [in] **/Int32 pos, 
-        /** [in] **/ArrayOf<String>& value);
+        /** [in] **/const String& value);
 
     /**
      * Bind positional SQL null to compiled SQLite3 statement.
@@ -169,7 +169,7 @@ public:
      */
 
     CARAPI Bind_parameter_index(
-        /** [in] **/String name,
+        /** [in] **/const String& name,
         /** [out] **/Int32* index);
 
 
@@ -208,7 +208,7 @@ public:
      */
     CARAPI Column_bytes(
         /** [in] **/Int32 col,
-        /** [out] **/ArrayOf<Byte>* bt);
+        /** [out] **/ArrayOf<Byte>** bt);
 
     /**
      * Retrieve string column from exec'ed SQLite3 statement.

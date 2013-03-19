@@ -6,6 +6,7 @@
 
 CarClass(CBlob2), public Blob2
 {
+public:
     CARAPI constructor();
 
     CARAPI GetInputStream(

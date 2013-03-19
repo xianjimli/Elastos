@@ -2,6 +2,10 @@
 #include "cmdef.h"
 #include "CVm.h"
 
+ECode CVm::constructor()
+{
+	return NOERROR;
+}
 ECode CVm::Step(
     /** [in] **/ICallback* cb,
     /** [out] **/Boolean* result)

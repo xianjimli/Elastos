@@ -60,14 +60,14 @@ ECode CStmt::BindEx2(
 
 ECode CStmt::BindEx3(
     /** [in] **/Int32 pos, 
-    /** [in] **/ArrayOf<Byte>& value)
+    /** [in] **/const ArrayOf<Byte>& value)
 {
     return Stmt::BindEx3(pos, value);
 }
 
 ECode CStmt::BindEx4(
     /** [in] **/Int32 pos, 
-    /** [in] **/ArrayOf<String>& value)
+    /** [in] **/const String& value)
 {
     return Stmt::BindEx4(pos, value);
 }
@@ -103,7 +103,7 @@ ECode CStmt::Bind_parameter_name(
 }
 
 ECode CStmt::Bind_parameter_index(
-    /** [in] **/String name,
+    /** [in] **/const String& name,
     /** [out] **/Int32* index)
 {
     VALIDATE_NOT_NULL(index);
@@ -140,7 +140,7 @@ ECode CStmt::Column_double(
 
 ECode CStmt::Column_bytes(
     /** [in] **/Int32 col,
-    /** [out] **/ArrayOf<Byte>* bt)
+    /** [out] **/ArrayOf<Byte>** bt)
 {
     return Stmt::Column_bytes(col, bt);
 }

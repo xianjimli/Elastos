@@ -7,7 +7,7 @@
 
 using namespace Elastos;
 
-class Shell : public ICallback
+class Shell// : public ICallback
 {
     AutoPtr<IDatabase> mDb;
 
@@ -52,13 +52,13 @@ public:
         /* [out] */String* result);
 
     CARAPI Columns(
-        /* [in] */const ArrayOf<String>& args);
+        /* [in] */ArrayOf<String>* args);
 
     CARAPI Types(
-        /* [in] */const ArrayOf<String>& args);
+        /* [in] */ArrayOf<String>* args);
 
     CARAPI Newrow(
-        /* [in] */const ArrayOf<String>& args,
+        /* [in] */ArrayOf<String>* args,
         /* [out] */Boolean* result);
 
     //public static void main(String args[]);
@@ -76,21 +76,21 @@ protected:
         /* [out] */Boolean* result);
 
     CARAPI Set_table_name(
-        /* [in] */String str);
+        /* [in] */const String& str);
 
     CARAPI Do_meta(
-        /* [in] */String line);
+        /* [in] */const String& line);
 
     CARAPI Read_line(
         /* [in] */IBufferedReader* is, 
-        /* [in] */String prompt,
+        /* [in] */const String& prompt,
         /* [out] */String* str);
 
     CARAPI Do_input(
         /* [in] */IBufferedReader* is);
 
     CARAPI Do_cmd(
-        /* [in] */String sql);
+        /* [in] */const String& sql);
 };
 
 /**
@@ -100,23 +100,23 @@ protected:
  * and for the data insert SQL statements.
  */
 
-class DBDump : public ICallback 
+class DBDump// : public ICallback 
 {
-    AutoPtr<Shell> ms;
+  //  AutoPtr<Shell> ms;
 
 public:
     DBDump(
-        /* [in] */AutoPtr<Shell> s, 
+ //       /* [in] */AutoPtr<Shell> s, 
         /* [in] */const ArrayOf<String>& tables);
 
     CARAPI Columns(
-        /* [in] */const ArrayOf<String>& args);
+        /* [in] */ArrayOf<String>* args);
 
     CARAPI Types(
-        /* [in] */const ArrayOf<String>& args);
+        /* [in] */ArrayOf<String>* args);
 
     CARAPI Newrow(
-        /* [in] */const ArrayOf<String>& args,
+        /* [in] */ArrayOf<String>* args,
         /* [out] */Boolean* result);
 };
 

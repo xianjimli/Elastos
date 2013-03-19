@@ -1,8 +1,15 @@
+#include "cmdef.h"
 #include "CTableResult.h"
 
 ECode CTableResult::constructor()
 {
-    return NOERROR;
+    return TableResult::Init();
+}
+
+ECode CTableResult::constructor(
+    /** [in] **/Int32 maxrows)
+{
+    return TableResult::Init(maxrows);
 }
     
 ECode CTableResult::Clear()
@@ -11,26 +18,30 @@ ECode CTableResult::Clear()
 }
 
 ECode CTableResult::Columns(
-    /** [in] **/const ArrayOf<String>& coldata)
+    /** [in] **/ArrayOf<String>* coldata)
 {
     return TableResult::Columns(coldata);
 }
 
 ECode CTableResult::Types(
-    /** [in] **/const ArrayOf<String>& types)
+    /** [in] **/ArrayOf<String>* types)
 {
     return TableResult::Types(types);
 }
 
 ECode CTableResult::Newrow(
-    /** [in] **/const ArrayOf<String>& rowdata,
+    /** [in] **/ArrayOf<String>* rowdata,
     /** [out] **/Boolean* row)
 {
+    VALIDATE_NOT_NULL(row);
+
     return TableResult::Newrow(rowdata, row);
 }
 
 ECode CTableResult::ToString(
     /** [out] **/String* str)
 {
+    VALIDATE_NOT_NULL(str);
+    
     return TableResult::ToString(str);
 }

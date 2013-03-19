@@ -8,7 +8,7 @@
 
 using namespace Elastos;
 
-class TableResult : public ICallback
+class TableResult
 {
 public:
     /**
@@ -34,7 +34,7 @@ public:
     /**
      * Rows of the result set. Each row is stored as a String array.
      */
- //   Vector mRows;
+ //   Elastos::Vector<ArrayOf<String>*> *mRows;
 
     /**
      * Maximum number of rows to hold in the table.
@@ -58,6 +58,11 @@ public:
     TableResult(
         /** [in] **/Int32 maxrows);
 
+    CARAPI Init();
+
+    CARAPI Init(
+        /** [in] **/Int32 maxrows);
+
     /**
      * Clear result set.
      */
@@ -67,19 +72,19 @@ public:
      * Callback method used while the query is executed.
      */
     CARAPI Columns(
-        /** [in] **/const ArrayOf<String>& coldata);
+        /** [in] **/ArrayOf<String>* coldata);
 
     /**
      * Callback method used while the query is executed.
      */
     CARAPI Types(
-        /** [in] **/const ArrayOf<String>& types);
+        /** [in] **/ArrayOf<String>* types);
 
     /**
      * Callback method used while the query is executed.
      */
     CARAPI Newrow(
-        /** [in] **/const ArrayOf<String>& rowdata,
+        /** [in] **/ArrayOf<String>* rowdata,
         /** [out] **/Boolean* row);
 
     /**

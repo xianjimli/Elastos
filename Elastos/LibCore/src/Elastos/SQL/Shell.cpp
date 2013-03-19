@@ -33,19 +33,19 @@ ECode Shell::Sql_quote(
 }
 
 ECode Shell::Columns(
-    /* [in] */const ArrayOf<String>& args)
+    /* [in] */ArrayOf<String>* args)
 {
     return NOERROR;
 }
 
 ECode Shell::Types(
-    /* [in] */const ArrayOf<String>& args)
+    /* [in] */ArrayOf<String>* args)
 {
     return NOERROR;
 }
 
 ECode Shell::Newrow(
-    /* [in] */const ArrayOf<String>& args,
+    /* [in] */ArrayOf<String>* args,
     /* [out] */Boolean* result)
 {
     assert(result != NULL);
@@ -75,20 +75,20 @@ ECode Shell::Is_numeric(
 }
 
 ECode Shell::Set_table_name(
-    /* [in] */String str)
+    /* [in] */const String& str)
 {
     return NOERROR;
 }
 
 ECode Shell::Do_meta(
-    /* [in] */String line)
+    /* [in] */const String& line)
 {
     return NOERROR;
 }
 
 ECode Shell::Read_line(
     /* [in] */IBufferedReader* is, 
-    /* [in] */String prompt,
+    /* [in] */const String& prompt,
     /* [out] */String* str)
 {
     assert(str != NULL);
@@ -102,31 +102,31 @@ ECode Shell::Do_input(
 }
 
 ECode Shell::Do_cmd(
-    /* [in] */String sql)
+    /* [in] */const String& sql)
 {
     return NOERROR;
 }
 
 DBDump::DBDump(
-    /* [in] */AutoPtr<Shell> s, 
+//    /* [in] */AutoPtr<Shell> s, 
     /* [in] */const ArrayOf<String>& tables)
 {
 }
 
 ECode DBDump::Columns(
-    /* [in] */const ArrayOf<String>& args)
+    /* [in] */ArrayOf<String>* args)
 {
     return NOERROR;
 }
 
 ECode DBDump::Types(
-    /* [in] */const ArrayOf<String>& args)
+    /* [in] */ArrayOf<String>* args)
 {
     return NOERROR;
 }
 
 ECode DBDump::Newrow(
-    /* [in] */const ArrayOf<String>& args,
+    /* [in] */ArrayOf<String>* args,
     /* [out] */Boolean* result)
 {
     assert(result != NULL);

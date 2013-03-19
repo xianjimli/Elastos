@@ -109,6 +109,9 @@ module
     class CTableResult {
         constructor();
 
+        constructor(
+            [in] Int32 maxrows);
+
         interface ITableResult;
     }
 

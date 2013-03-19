@@ -32,6 +32,7 @@ module
      *   ...
      * </PRE>
      */
+    [deprecated]
     interface ICallback {
 
         /**
@@ -42,7 +43,7 @@ module
          * @param coldata string array holding the column names
          */
         Columns(
-            [in] ArrayOf<String> coldata);
+            [in] ArrayOf<String>* coldata);
 
         /**
          * Reports type names of the columns of the query result.
@@ -52,7 +53,7 @@ module
          * @param types string array holding column types
          */
         Types(
-            [in] ArrayOf<String> types);
+            [in] ArrayOf<String>* types);
 
         /**
          * Reports row data of the query result.
@@ -63,7 +64,7 @@ module
          * @param rowdata string array holding the column values of the row
          */
         Newrow(
-            [in] ArrayOf<String> rowdata,
+            [in] ArrayOf<String>* rowdata,
             [out] Boolean* result);
     }
 }

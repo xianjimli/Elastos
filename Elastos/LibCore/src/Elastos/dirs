@@ -7,4 +7,5 @@ DIRS += IO
 DIRS += Security
 DIRS += Xml
 DIRS += Net
+DIRS += SQL
 DIRS += Test
