@@ -16,6 +16,8 @@ module
     merge("text/Editable.car");
     merge("text/SpannableStringBuilder.car");
     merge("text/InputType.car");
+    merge("text/TextWatcher.car");
+    merge("text/ClipboardManager.car");
     merge("text/style/ParagraphStyle.car");
     merge("text/style/LineBackgroundSpan.car");
     merge("text/style/AlignmentSpan.car");
@@ -39,7 +41,7 @@ module
     merge("text/method/MovementMethod.car");
     merge("text/method/TextKeyListener.car");
     merge("text/method/QwertyKeyListener.car");
-    merge("text/ClipboardManager.car");
+
 
     class CTextPaint {
 
