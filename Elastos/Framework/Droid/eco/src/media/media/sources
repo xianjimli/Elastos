@@ -38,4 +38,6 @@ SOURCES += Ringtone.cpp
 SOURCES += CRingtone.cpp
 SOURCES += RingtoneManager.cpp
 SOURCES += CRingtoneManager.cpp
+SOURCES += JetPlayer.cpp
+SOURCES += CJetPlayer.cpp
 

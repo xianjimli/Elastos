@@ -23,6 +23,7 @@ module
     merge("media/ToneGenerator.car");
     merge("media/Ringtone.car");
     merge("media/RingtoneManager.car");
+    merge("media/JetPlayer.car");
 
     class CAudioTrack {
         constructor(
@@ -130,7 +131,7 @@ module
     class CToneGenerator {
 
         constructor(
-            [in] Int32 streamType, 
+            [in] Int32 streamType,
             [in] Int32 volume);
 
         interface IToneGenerator;
@@ -141,7 +142,7 @@ module
         /**
          * Constructs a RingtoneManager. This constructor is recommended as its
          * constructed instance manages cursor(s).
-         * 
+         *
          * @param activity The activity used to get a managed cursor.
          */
         constructor(
@@ -151,7 +152,7 @@ module
          * Constructs a RingtoneManager. The instance constructed by this
          * constructor will not manage the cursor(s), so the client should handle
          * this itself.
-         * 
+         *
          * @param context The context to used to get a cursor.
          */
         constructor(
@@ -167,6 +168,13 @@ module
 
         interface IRingtone;
 
+    }
+
+    class CJetPlayer {
+
+        constructor();
+
+        interface IJetPlayer;
     }
 
 }
