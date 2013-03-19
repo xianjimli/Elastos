@@ -2,7 +2,11 @@
 #include "webkit/PerfChecker.h"
 
 PerfChecker::PerfChecker()
-{}
+{
+	if (FALSE) {
+//        mTime = SystemClock.uptimeMillis();
+    }
+}
 
 /**
  * @param what log string
@@ -11,4 +15,14 @@ PerfChecker::PerfChecker()
  */
 CARAPI_(void) PerfChecker::ResponseAlert(
 	/* [in] */ CString what)
-{}
+{
+	if (FALSE) {
+        Int64 upTime;// = SystemClock.uptimeMillis();
+        Int64 time =  upTime - mTime;
+        if (time > mResponseThreshold) {
+//            Log.w("webkit", what + " used " + time + " ms");
+        }
+        // Reset mTime, to permit reuse
+        mTime = upTime;
+    }
+}

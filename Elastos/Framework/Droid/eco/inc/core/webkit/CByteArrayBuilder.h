@@ -7,6 +7,7 @@
 #include <elastos/AutoPtr.h>
 #include <elastos/Vector.h>
 #include <elastos/ElRefBase.h>
+#include <elastos/AutoFree.h>
 
 CarClass(CByteArrayBuilder)
 {
@@ -43,7 +44,7 @@ public:
         virtual CARAPI ChunkRelease();
 
     public:
-        Byte*     mArray;
+        AutoFree<ArrayOf<Byte> >     mArray;
         Int32     mLength;
     };
 

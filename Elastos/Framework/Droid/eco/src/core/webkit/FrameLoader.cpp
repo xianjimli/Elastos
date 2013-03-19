@@ -49,9 +49,9 @@ CARAPI_(void) FrameLoader::SetReferrer(
 }
 
 CARAPI_(void) FrameLoader::SetPostData(
-	/* [in] */ Vector<Byte>& postData)
+	/* [in] */ ArrayOf<Byte>& postData)
 {
-	mPostData = postData;
+	mPostData = &postData;
 }
 
 CARAPI_(void) FrameLoader::SetContentTypeForPost(
@@ -234,7 +234,7 @@ CARAPI_(Boolean) FrameLoader::HandleHTTPLoad()
         // as response from the cache could be a redirect
         // and we may need to initiate a network request if the cache
         // can't satisfy redirect URL
-        mListener->SetRequestData(mMethod, mHeaders, mPostData);
+        mListener->SetRequestData(mMethod, mHeaders, *mPostData.Get());
         return TRUE;
     }
 
@@ -246,7 +246,7 @@ CARAPI_(Boolean) FrameLoader::HandleHTTPLoad()
     Boolean ret = FALSE;
     Int32 error;// = EventHandler.ERROR_UNSUPPORTED_SCHEME;
     
-    ret = mNetwork->RequestURL(mMethod, mHeaders, mPostData, mListener);
+    ret = mNetwork->RequestURL(mMethod, mHeaders, *mPostData.Get(), mListener);
 
     if (!ret) {
 //        mListener.error(error, mListener.getContext().getText(

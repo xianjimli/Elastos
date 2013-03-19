@@ -69,7 +69,7 @@ private:
 	// thread for syncing
 //	Thread mSyncThread;
 	// Name of thread
-	CString mThreadName;
+	String mThreadName;
 	// Ref count for calls to start/stop sync
 	Int32 mStartSyncRefCount;
 };

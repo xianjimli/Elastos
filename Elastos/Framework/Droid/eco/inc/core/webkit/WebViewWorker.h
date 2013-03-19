@@ -1,9 +1,13 @@
 #ifndef __WEBVIEWWORKER_H__
 #define __WEBVIEWWORKER_H__
 
+#include "ext/frameworkext.h"
 #include <utils/Looper.h>
+#include <elastos/Map.h>
+#include <elastos/AutoPtr.h>
 
-class LoadListener;
+#include "CCacheManager.h"
+#include "LoadListener.h"
 
 /**
  * WebViewWorker executes in a separate thread other than UI and WebViewCore. To
@@ -19,9 +23,9 @@ public:
      */
 	struct CacheCreateData 
 	{
-        LoadListener* mListener;
-        CString mUrl;
-        CString mMimeType;
+        AutoPtr<LoadListener> mListener;
+        String mUrl;
+        String mMimeType;
         Int32 mStatusCode;
         Int64 mPostId;
         IHeaders* mHeaders;
@@ -32,7 +36,7 @@ public:
      */
 	struct CacheSaveData 
 	{
-        LoadListener* mListener;
+        AutoPtr<LoadListener> mListener;
         String mUrl;
         Int64 mPostId;
     };
@@ -42,8 +46,8 @@ public:
      */
 	struct CacheEncoding 
 	{
-        LoadListener* mListener;
-        CString mEncoding;
+        AutoPtr<LoadListener> mListener;
+        String mEncoding;
     };
 
     /**
@@ -51,8 +55,8 @@ public:
      */
 	struct CacheData 
 	{
-        LoadListener* mListener;
-        IByteArrayBuilderChunk* mChunk;
+        AutoPtr<LoadListener> mListener;
+        AutoPtr<IByteArrayBuilderChunk> mChunk;
     };
 
 public:
@@ -90,7 +94,7 @@ private:
 
 	static WebViewWorker* sWorkerHandler;
 
-//	static Map<LoadListener, CacheManager.CacheResult> mCacheResultMap;
+	static Map<AutoPtr<LoadListener>, AutoPtr<ICacheManagerCacheResult> > mCacheResultMap;
 };
 
 #endif //__WEBVIEWWORKER_H__

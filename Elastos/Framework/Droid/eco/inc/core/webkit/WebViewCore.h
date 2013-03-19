@@ -2,20 +2,23 @@
 #define __WEBVIEWCORE_H__
 
 #include <elastos/ElRefBase.h>
+#include <elastos/AutoPtr.h>
 
 #include "ViewManager.h"
 #include "WebSettings.h"
+
+#include <elastos/Mutex.h>
 
 class WebViewCore : public ElRefBase
 {
 public:
 	struct BaseUrlData 
 	{
-        CString mBaseUrl;
-        CString mData;
-        CString mMimeType;
-        CString mEncoding;
-        CString mHistoryUrl;
+        String mBaseUrl;
+        String mData;
+        String mMimeType;
+        String mEncoding;
+        String mHistoryUrl;
     };
 
 	struct CursorData 
@@ -37,13 +40,13 @@ public:
 	struct JSInterfaceData 
 	{
         IInterface* mObject;
-        CString mInterfaceName;
+        String mInterfaceName;
     };
 
 	struct JSKeyData 
 	{
-        CString mCurrentText;
-        IKeyEvent* mEvent;
+        String mCurrentText;
+        AutoPtr<IKeyEvent> mEvent;
     };
 
 	struct MotionUpData 
@@ -57,19 +60,19 @@ public:
 
 	struct GetUrlData 
 	{
-        CString mUrl;
+        String mUrl;
         IObjectStringMap* mExtraHeaders;
     };
 
 	struct PostUrlData 
 	{
-        CString mUrl;
+        String mUrl;
         byte mPostData[];
     };
 
 	struct ReplaceTextData 
 	{
-        CString mReplace;
+        String mReplace;
         Int32 mNewStart;
         Int32 mNewEnd;
         Int32 mTextGeneration;
@@ -107,7 +110,7 @@ public:
 
 	struct GeolocationPermissionsData 
 	{
-        CString mOrigin;
+        String mOrigin;
         Boolean mAllow;
         Boolean mRemember;
     };
@@ -155,6 +158,7 @@ public:
 
     class EventHub 
     {
+        friend class WebViewCore;
     public:
         // Message Ids
         static const Int32 REQUEST_LABEL = 97;
@@ -253,7 +257,7 @@ public:
 		static const Int32 DESTROY =     200;
 
         // Private handler for WebCore messages.
-		IHandler* mHandler;
+		AutoPtr<IHandler> mHandler;
         // Message queue for containing messages before the WebCore thread is
         // ready.
 //		ArrayList<Message> mMessages;
@@ -263,6 +267,8 @@ public:
 
 		Int32 mTid;
 		Int32 mSavedPriority;
+
+        Core::Threading::Mutex mutexThis;
 
 	private:
 
@@ -331,7 +337,7 @@ public:
     // The thread name used to identify the WebCore thread and for use in
     // debugging other classes that require operation within the WebCore thread.
     /* package */ 
-	static const char* THREAD_NAME;// = "WebViewCoreThread";
+	static const CString THREAD_NAME;// = "WebViewCoreThread";
 
 	WebViewCore(
 		/* [in] */ IContext* context, 
@@ -353,7 +359,7 @@ public:
     /* Get the BrowserFrame component. This is used for subwindow creation and
      * is called only from BrowserFrame in the WebCore thread. */
     /* package */ 
-    virtual CARAPI_(IBrowserFrame*) GetBrowserFrame();
+    virtual CARAPI_(AutoPtr<IBrowserFrame>) GetBrowserFrame();
 
     //-------------------------------------------------------------------------
     // Common methods
@@ -378,7 +384,7 @@ public:
      */
     /* package */
 	static CARAPI_(Boolean) SupportsMimeType(
-		/* [in] */ CString mimeType);
+		/* [in] */ const String& mimeType);
 
 
 
@@ -388,7 +394,7 @@ public:
 
 	/* native*/
     static CARAPI_(CString) NativeFindAddress(
-    	/* [in] */ CString addr, 
+    	/* [in] */ const String& addr, 
     	/* [in] */ Boolean caseInsensitive);
 
 
@@ -400,7 +406,7 @@ public:
     static const Int32 ACTION_LONGPRESS = 0x100;
     static const Int32 ACTION_DOUBLETAP = 0x200;
 
-    static const String HandlerDebugString[];/* = {
+    static const CString HandlerDebugString[];/* = {
         "REQUEST_LABEL", // 97
         "UPDATE_FRAME_CACHE_IF_LOADING", // = 98
         "SCROLL_TEXT_INPUT", // = 99
@@ -528,9 +534,9 @@ public:
     static const Int32 SCROLL_BITS;/* = Paint.FILTER_BITMAP_FLAG |
                                            Paint.DITHER_FLAG;*/
 
-    const IDrawFilter* mZoomFilter;
+    const AutoPtr<IDrawFilter> mZoomFilter;
     // If we need to trade better quality for speed, set mScrollFilter to null
-    const IDrawFilter* mScrollFilter;
+    const AutoPtr<IDrawFilter> mScrollFilter;
 
     /* package */ 
 	virtual CARAPI_(void) DrawContentPicture(
@@ -545,7 +551,7 @@ public:
 
     /*package*/ 
     /*synchronized*/
-	virtual CARAPI_(IPicture*) CopyContentPicture();
+	virtual CARAPI_(AutoPtr<IPicture>) CopyContentPicture();
 
     static CARAPI_(void) ReducePriority();
 
@@ -572,8 +578,7 @@ public:
 	virtual CARAPI_(void) SignalRepaintDone();
 
     /* package */
-	virtual CARAPI_(IWebView*) GetWebView();
-
+	virtual CARAPI_(AutoPtr<IWebView>) GetWebView();
 
 protected:
     /**
@@ -585,9 +590,9 @@ protected:
      *     from WebCore::MessageLevel in WebCore/page/Console.h.
      */
 	virtual CARAPI_(void) AddMessageToConsole(
-		/* [in] */ CString message, 
+		/* [in] */ const String& message, 
 		/* [in] */ Int32 lineNumber, 
-		/* [in] */ CString sourceID,
+		/* [in] */ const String& sourceID,
 		/* [in] */ Int32 msgLevel);
 
     /**
@@ -595,8 +600,8 @@ protected:
      * @param message The message displayed in the alert.
      */
 	virtual CARAPI_(void) JsAlert(
-		/* [in] */ CString url, 
-		/* [in] */ CString message);
+		/* [in] */ const String& url, 
+		/* [in] */ const String& message);
 
     /**
      * Notify the browser that the origin has exceeded it's database quota.
@@ -606,8 +611,8 @@ protected:
      * @param estimatedSize The estimated size of the database.
      */
 	virtual CARAPI_(void) ExceededDatabaseQuota(
-		/* [in] */ CString url, 
-		/* [in] */ CString databaseIdentifier,
+		/* [in] */ const String& url, 
+		/* [in] */ const String& databaseIdentifier,
 		/* [in] */ Int64 currentQuota,
 		/* [in] */ Int64 estimatedSize);
 
@@ -617,7 +622,7 @@ protected:
      * in order for the last appcache operation to succeed.
      */
 	virtual CARAPI_(void) ReachedMaxAppCacheSize(
-		/* [in] */ long spaceNeeded);
+		/* [in] */ Int64 spaceNeeded);
 
 	virtual CARAPI_(void) PopulateVisitedLinks();
 
@@ -628,7 +633,7 @@ protected:
      *     requested.
      */
 	virtual CARAPI_(void) GeolocationPermissionsShowPrompt(
-		/* [in] */ CString origin);
+		/* [in] */ const String& origin);
 
     /**
      * Hides the Geolocation permissions prompt.
@@ -641,8 +646,8 @@ protected:
      * @return True if the user confirmed or false if the user cancelled.
      */
 	virtual CARAPI_(Boolean) JsConfirm(
-		/* [in] */ CString url, 
-		/* [in] */ CString message);
+		/* [in] */ const String& url, 
+		/* [in] */ const String& message);
 
     /**
      * Invoke a javascript prompt dialog.
@@ -652,9 +657,9 @@ protected:
      *         the dialog.
      */
 	virtual CARAPI_(CString) JsPrompt(
-		/* [in] */ CString url, 
-		/* [in] */ String message, 
-		/* [in] */ String defaultValue);
+		/* [in] */ const String& url, 
+		/* [in] */ const String& message, 
+		/* [in] */ const String& defaultValue);
 
     /**
      * Invoke a javascript before unload dialog.
@@ -664,8 +669,8 @@ protected:
      *         will cancel the navigation.
      */
 	virtual CARAPI_(Boolean) JsUnload(
-		/* [in] */ CString url, 
-		/* [in] */ CString message);
+		/* [in] */ const String& url, 
+		/* [in] */ const String& message);
 
     /**
      *
@@ -686,7 +691,7 @@ private:
 		/* [in] */ Boolean includeDiskFiles);
 
 	CARAPI_(void) LoadUrl(
-		/* [in] */ CString url, 
+		/* [in] */ const String& url, 
 		/* [in] */ IObjectStringMap* extraHeaders);
 
 	CARAPI_(void) Key(
@@ -796,7 +801,7 @@ private:
 
     /*native*/
 	CARAPI_(void) NativeSendListBoxChoices(
-		/* [in] */ Boolean choices[], 
+		/* [in] */ ArrayOf<Boolean> choices, 
 		/* [in] */ Int32 size);
 
     /*native*/
@@ -831,7 +836,7 @@ private:
 	CARAPI_(void) NativeReplaceTextfieldText(
 		/* [in] */ Int32 oldStart, 
 		/* [in] */ Int32 oldEnd, 
-		/* [in] */ CString replace, 
+		/* [in] */ const String& replace, 
 		/* [in] */ Int32 newStart, 
 		/* [in] */ Int32 newEnd,
 		/* [in] */ Int32 textGeneration);
@@ -839,7 +844,7 @@ private:
     /*native*/
 	CARAPI_(void) PassToJs(
 		/* [in] */ Int32 gen,
-		/* [in] */ CString currentText, 
+		/* [in] */ const String& currentText, 
 		/* [in] */ Int32 keyCode, 
 		/* [in] */ Int32 keyValue, 
 		/* [in] */ Boolean down,
@@ -856,7 +861,7 @@ private:
 		/* [in] */ Int32 frame);
 
     /*native*/
-	CARAPI_(void) nativeMoveFocus(
+	CARAPI_(void) NativeMoveFocus(
 		/* [in] */ Int32 framePtr, 
 		/* [in] */ Int32 nodePointer);
 
@@ -921,7 +926,7 @@ private:
 
     /*native*/
 	CARAPI_(void) NativeSetJsFlags(
-		/* [in] */ CString flags);
+		/* [in] */ const String& flags);
 
     /**
      *  Delete text from start to end in the focused textfield. If there is no
@@ -952,7 +957,7 @@ private:
     // local asset files for resources
     /*native*/
 	CARAPI_(void) NativeRegisterURLSchemeAsLocal(
-		/* [in] */ CString scheme);
+		/* [in] */ const String& scheme);
 
     /*
      * Inform webcore that the user has decided whether to allow or deny new
@@ -974,7 +979,7 @@ private:
      */
     /*native*/
 	CARAPI_(void) NativeGeolocationPermissionsProvide(
-		/* [in] */ CString origin, 
+		/* [in] */ const String& origin, 
 		/* [in] */ Boolean allow, 
 		/* [in] */ Boolean remember);
 
@@ -983,13 +988,13 @@ private:
      */
     /* native */
 	CARAPI_(void) NativeProvideVisitedHistory(
-		/* [in] */ CString history[]);
+		/* [in] */ ArrayOf<String>& history);
 
 
     // EventHub for processing messages
-	const EventHub mEventHub;
+	/*const*/ EventHub mEventHub;
     // WebCore thread handler
-	static IHandler* sWebCoreHandler;
+	static AutoPtr<IHandler> sWebCoreHandler;
     // Class for providing Handler creation inside the WebCore thread.
     class WebCoreThread// : public Runnable 
     {
@@ -1103,7 +1108,7 @@ private:
 	CARAPI_(void) NativeUpdateFrameCacheIfLoading();
 
     /*native*/
-	CARAPI_(CString) NativeRequestLabel(
+	CARAPI_(String&) NativeRequestLabel(
 		/* [in] */ Int32 framePtr, 
 		/* [in] */ Int32 nodePtr);
 
@@ -1131,15 +1136,15 @@ private:
 
     // called by JNI
 	CARAPI_(void) RequestListBox(
-		/* [in] */ CString array[], 
-		/* [in] */ int enabledArray[],
-		/* [in] */ int selectedArray[]);
+		/* [in] */ ArrayOf<String>& array, 
+		/* [in] */ ArrayOf<Int32> enabledArray,
+		/* [in] */ ArrayOf<Int32> selectedArray);
 
     // called by JNI
 	CARAPI_(void) RequestListBox(
-		/* [in] */ CString array[], 
-		/* [in] */ int enabledArray[],
-		/* [in] */ int selection);
+		/* [in] */ ArrayOf<String> array, 
+		/* [in] */ ArrayOf<Int32> enabledArray,
+		/* [in] */ Int32 selection);
 
     // called by JNI
 	CARAPI_(void) RequestKeyboardWithSelection(
@@ -1153,12 +1158,12 @@ private:
 		/* [in] */ Boolean showKeyboard);
 
     // called by JNI
-	CARAPI_(IContext*) GetContext();
+	CARAPI_(AutoPtr<IContext>) GetContext();
 
     // called by JNI
 	CARAPI_(IInterface*) GetPluginClass(
-		/* [in] */ CString libName, 
-		/* [in] */ CString clsName);
+		/* [in] */ const String& libName, 
+		/* [in] */ const String& clsName);
 
     // called by JNI. PluginWidget function to launch a full-screen view using a
     // View object provided by the plugin class.
@@ -1244,19 +1249,19 @@ private:
      */
 
     // The WebView that corresponds to this WebViewCore.
-	IWebView* mWebView;
+	AutoPtr<IWebView> mWebView;
     // Proxy for handling callbacks from native code
-	const ICallbackProxy* mCallbackProxy;
+	const AutoPtr<ICallbackProxy> mCallbackProxy;
     // Settings object for maintaining all settings
 	const WebSettings mSettings;
     // Context for initializing the BrowserFrame with the proper assets.
-	const IContext* mContext;
+	const AutoPtr<IContext> mContext;
     // The pointer to a native view object.
 	Int32 mNativeClass;
     // The BrowserFrame is an interface to the native Frame component.
-	IBrowserFrame* mBrowserFrame;
+	AutoPtr<IBrowserFrame> mBrowserFrame;
     // Custom JS interfaces to add during the initialization.
-	IObjectStringMap* mJavascriptInterfaces;
+	AutoPtr<IObjectStringMap> mJavascriptInterfaces;
     /*
      * range is from 200 to 10,000. 0 is a special value means device-width. -1
      * means undefined.
@@ -1302,6 +1307,8 @@ private:
 
 	Int32 mWebkitScrollX;
 	Int32 mWebkitScrollY;
+
+    static Core::Threading::Mutex mutexThis;
 };
 
 #endif //__WEBVIEWCORE_H__

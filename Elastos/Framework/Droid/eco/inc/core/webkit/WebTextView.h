@@ -3,6 +3,9 @@
 
 #include "widget/AutoCompleteTextView.h"
 
+#include <elastos/AutoPtr.h>
+#include <elastos/AutoFree.h>
+
 /**
  * WebTextView is a specialized version of EditText used by WebView
  * to overlay html textfields (and textareas) to use our standard
@@ -29,7 +32,7 @@
         /**
          * {@inheritDoc}
          */
-        virtual CARAPI_(IView*) GetView(
+        virtual CARAPI_(AutoPtr<IView>) GetView(
             /* [in] */ Int32 position,
             /* [in] */ IView* convertView,
             /* [in] */ IViewGroup* parent);
@@ -41,7 +44,7 @@
         CARAPI_(void) SetTextView(
             /* [in] */ ITextView* tv);
 
-        ITextView* mTextView;
+        AutoPtr<ITextView> mTextView;
     };
 
     /**
@@ -137,7 +140,7 @@
      *          WebTextView represents.
      */
     /* package */
-    virtual void setNodePointer(
+    virtual CARAPI_(void) setNodePointer(
         /* [in] */ Int32 ptr);
 
     /**
@@ -172,7 +175,7 @@
      */
     /* package */
 	virtual CARAPI_(void) SetTextAndKeepSelection(
-		/* [in] */ CString text);
+		/* [in] */ const String& text);
 
     /**
      * Called by WebView.rebuildWebTextView().  Based on the type of the <input>
@@ -271,7 +274,7 @@ private:
 		/* [in] */ Int32 maxLength);
 
 private:
-	IWebView*       mWebView;
+	AutoPtr<IWebView>       mWebView;
 	Boolean         mSingle;
 	Int32           mWidthSpec;
 	Int32           mHeightSpec;
@@ -283,7 +286,7 @@ private:
 	Int32           mMaxLength;
     // Keep track of the text before the change so we know whether we actually
     // need to send down the DOM events.
-	CString         mPreChange;
+	String          mPreChange;
 //	Drawable        mBackground;
     // Variables for keeping track of the touch down, to send to the WebView
     // when a drag starts
@@ -313,7 +316,7 @@ private:
 	Boolean         mInSetTextAndKeepSelection;
     // Array to store the final character added in onTextChanged, so that its
     // KeyEvents may be determined.
-	Byte            mCharacter[];
+	AutoFree<ArrayOf<Byte> >      mCharacter;
     // This is used to reset the length filter when on a textfield
     // with no max length.
     // FIXME: This can be replaced with TextView.NO_FILTERS if that

@@ -5,8 +5,9 @@
 #include <elastos/AutoPtr.h>
 #include <elastos/Vector.h>
 
+#include "LoadListener.h"
+
 class HttpAuthHandler;
-class LoadListener;
 
 class Network {
 
@@ -17,7 +18,7 @@ public:
      * synchronized
      */
 	static CARAPI_(Network*) GetInstance(
-		/* [in] */ const IContext* context);
+		/* [in] */ IContext* context);
 
     /**
      * Enables data state and proxy tracking
@@ -42,7 +43,7 @@ public:
 	virtual CARAPI_(Boolean) RequestURL(
 		/* [in] */ const String& method,
 		/* [in] */ const IObjectStringMap* headers,
-		/* [in] */ Vector<Byte>& postData,
+		/* [in] */ ArrayOf<Byte>& postData,
 		/* [in] */ const LoadListener* loader);
 
     /**
@@ -141,7 +142,7 @@ public:
      * authentication request.
      */
 	virtual CARAPI_(void) HandleAuthRequest(
-		/* [in] */ const LoadListener* loader);
+		/* [in] */ LoadListener* loader);
 
     // Performance probe
 	virtual CARAPI_(void) StartTiming();
@@ -154,7 +155,7 @@ private:
      * XXX: Must be created in the same thread as WebCore!!!!!
      */
 	Network(
-		/* [in] */ const IContext* context);
+		/* [in] */ IContext* context);
 
 private:
 

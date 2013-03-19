@@ -6,6 +6,7 @@
 #include <elastos/Vector.h>
 #include <elastos/ElRefBase.h>
 #include <elastos/Mutex.h>
+#include <elastos/AutoFree.h>
 
 class CacheLoader;
 
@@ -216,7 +217,7 @@ public:
     virtual CARAPI_(void) SetRequestData(
     	/* [in] */ const String& method, 
     	/* [in] */ IObjectStringMap* headers, 
-    	/* [in] */ Vector<Byte>& postData);
+    	/* [in] */ ArrayOf<Byte>& postData);
 
     /**
      * @return The current URL associated with this load.
@@ -496,7 +497,7 @@ private:
      * @param length Number of objects in data.
      */
     CARAPI_(void) NativeAddData(
-		/* [in] */ Vector<Byte>& data, 
+		/* [in] */ const ArrayOf<Byte>& data, 
 		/* [in] */ Int32 length);
 
     /**
@@ -533,7 +534,7 @@ private:
 	// This is the same regex that DOMImplementation uses to check for xml
     // content. Use this to check if another Activity wants to handle the
     // content before giving it to webkit.
-	static const String XML_MIME_TYPE;// =
+	static const CString XML_MIME_TYPE;// =
        //     "^[\\w_\\-+~!$\\^{}|.%'`#&*]+/" +
        //     "[\\w_\\-+~!$\\^{}|.%'`#&*]+\\+xml$";
 
@@ -549,7 +550,7 @@ private:
     // between the network and the cache.
 	Int32 mCacheRedirectCount;
 
-	static const char* LOGTAG;// = "webkit";
+	static const CString LOGTAG;// = "webkit";
 
     // Messages used internally to communicate state between the
     // Network thread and the WebCore thread.
@@ -617,7 +618,7 @@ private:
     // cache. It is needed if the cache returns a redirect
 	String mMethod;
 	AutoPtr<IObjectStringMap> mRequestHeaders;
-	Vector<Byte> mPostData;
+	AutoFree<ArrayOf<Byte> > mPostData;
     // Flag to indicate that this load is synchronous.
 	Boolean mSynchronous;
 //	Vector<Message> mMessageQueue;

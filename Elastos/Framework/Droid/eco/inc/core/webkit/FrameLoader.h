@@ -4,6 +4,7 @@
 #include "WebSettings.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/Vector.h>
+#include <elastos/AutoFree.h>
 
 class LoadListener;
 class Network;
@@ -24,7 +25,7 @@ public:
 		/* [in] */ const String& ref);
 
 	virtual CARAPI_(void) SetPostData(
-		/* [in] */ Vector<Byte>& postData);
+		/* [in] */ ArrayOf<Byte>& postData);
 
 	virtual CARAPI_(void) SetContentTypeForPost(
 		/* [in] */ const String& postContentType);
@@ -86,7 +87,7 @@ private:
 	/*const*/ String mMethod;
 	/*const*/ WebSettings* mSettings;
 	AutoPtr<IObjectStringMap> mHeaders;
-	Vector<Byte> mPostData;
+	AutoFree<ArrayOf<Byte> > mPostData;
 	Network*  mNetwork;
 	Int32 mCacheMode;
 	String mReferrer;

@@ -9,11 +9,17 @@
 #include "webkit/CURLUtil.h"
 #include "webkit/CBrowserFrame.h"
 #include "webkit/CertTool.h"
+#include "webkit/CByteArrayBuilder.h"
 
 #include <elastos/HashMap.h>
 #include <elastos/AutoFree.h>
 
-const char* LoadListener::LOGTAG = "webkit";
+// This is the same regex that DOMImplementation uses to check for xml
+// content. Use this to check if another Activity wants to handle the
+// content before giving it to webkit.
+const CString XML_MIME_TYPE = "^[\\w_\\-+~!$\\^{}|.%'`#&*]+/[\\w_\\-+~!$\\^{}|.%'`#&*]+\\+xml$";
+
+const CString LoadListener::LOGTAG = "webkit";
 
 CARAPI_(LoadListener*) LoadListener::GetLoadListener(
 	/* [in] */ IContext* context,
@@ -80,8 +86,7 @@ CARAPI_(void) LoadListener::HandleMessage(
 {
 	assert(msg != NULL);
 
-	switch (0/*msg.what*/)
-	{
+	switch (0/*msg.what*/) {
         case MSG_CONTENT_HEADERS:
             /*
              * This message is sent when the LoadListener has headers
@@ -546,13 +551,13 @@ CARAPI_(void) LoadListener::MakeAuthResponse(
 CARAPI_(void) LoadListener::SetRequestData(
 	/* [in] */ const String& method, 
 	/* [in] */ IObjectStringMap* headers, 
-	/* [in] */ Vector<Byte>& postData)
+	/* [in] */ ArrayOf<Byte>& postData)
 {
 	assert(headers != NULL);
 
 	mMethod = method;
     mRequestHeaders = headers;
-    mPostData = postData;
+    mPostData = &postData;
 }
 
 /**
@@ -932,12 +937,12 @@ CARAPI_(Int32) LoadListener::CreateNativeResponse()
     // CacheManager sends it, mCacheLoader is not null. In this case, if the
     // server responds with a 304, then we treat it like it was a 200 code 
     // and proceed with loading the file from the cache.
-    int statusCode = (mStatusCode == HTTP_NOT_MODIFIED &&
+    Int32 statusCode = (mStatusCode == HTTP_NOT_MODIFIED &&
             mCacheLoader != NULL) ? HTTP_OK : mStatusCode;
     // pass content-type content-length and content-encoding
     String strUrl;
     OriginalUrl(strUrl);
-    const int nativeResponse = NativeCreateResponse(
+    const Int32 nativeResponse = NativeCreateResponse(
             strUrl, statusCode, mStatusText,
             mMimeType, mContentLength, mEncoding);
     
@@ -974,7 +979,7 @@ CARAPI_(void) LoadListener::CommitLoad()
                 Int32 byteSize = 0;
                 mDataBuilder->GetByteSize(&byteSize);
                 AutoFree<ArrayOf<Byte> > cert = ArrayOf<Byte>::Alloc(byteSize);
-                int offset = 0;
+                Int32 offset = 0;
                 while (TRUE) {
                     //ByteArrayBuilder.Chunk c = mDataBuilder.getFirstChunk();
                     IByteArrayBuilderChunk* c = NULL;
@@ -994,30 +999,31 @@ CARAPI_(void) LoadListener::CommitLoad()
             mDataBuilderMutex.Unlock();
         }
     }
-#if 0
+
     // Give the data to WebKit now. We don't have to synchronize on
     // mDataBuilder here because pulling each chunk removes it from the
     // internal list so it cannot be modified.
-    PerfChecker checker = new PerfChecker();
-    ByteArrayBuilder.Chunk c;
-    while (true)
-    {
-        c = mDataBuilder.getFirstChunk();
-        if (c == null) break;
+    PerfChecker* checker = new PerfChecker();
+    AutoPtr<IByteArrayBuilderChunk> ic;
+    CByteArrayBuilder::Chunk* c = NULL;
+    while (TRUE) {
+        mDataBuilder->GetFirstChunk((IByteArrayBuilderChunk**)&ic);
+        if (ic == NULL) break;
 
-        if (c.mLength != 0) {
-            nativeAddData(c.mArray, c.mLength);
-            WebViewWorker.CacheData data = new WebViewWorker.CacheData();
-            data.mListener = this;
-            data.mChunk = c;
-            WebViewWorker.getHandler().obtainMessage(
-                    WebViewWorker.MSG_APPEND_CACHE, data).sendToTarget();
+        c = (CByteArrayBuilder::Chunk*)(ic.Get());
+
+        if (c->mLength != 0) {
+            NativeAddData(*c->mArray.Get(), c->mLength);
+            WebViewWorker::CacheData* data = new WebViewWorker::CacheData();
+            data->mListener = this;
+            data->mChunk = c;
+//            WebViewWorker.getHandler().obtainMessage(
+//                    WebViewWorker.MSG_APPEND_CACHE, data).sendToTarget();
         } else {
-            c.release();
+            c->ChunkRelease();
         }
-        checker.responseAlert("res nativeAddData");
+        checker->ResponseAlert("res nativeAddData");
     }
-#endif
 }
 
 /**
@@ -1025,7 +1031,9 @@ CARAPI_(void) LoadListener::CommitLoad()
  * @return errorID.
  */
 CARAPI_(Int32) LoadListener::GetErrorID() const
-{}
+{
+    return mErrorID;
+}
 
 /**
  * Return the error description.
@@ -1033,7 +1041,9 @@ CARAPI_(Int32) LoadListener::GetErrorID() const
  */
 CARAPI_(void) LoadListener::GetErrorDescription(
     /* [out] */ String& strOut)
-{}
+{
+    strOut = mErrorDescription;
+}
 
 /**
  * Cancel a request.
@@ -1050,7 +1060,120 @@ CARAPI_(void) LoadListener::Cancel()
  * informing WebCore and then telling the Network to start loading again.
  */
 CARAPI_(void) LoadListener::DoRedirect()
-{}
+{
+    // as cancel() can cancel the load before doRedirect() is
+    // called through handleMessage, needs to check to see if we
+    // are canceled before proceed
+    if (mCancelled) {
+        return;
+    }
+
+    // Do the same check for a redirect loop that
+    // RequestHandle.setupRedirect does.
+//    if (mCacheRedirectCount >= RequestHandle.MAX_REDIRECT_COUNT) {
+//        handleError(EventHandler.ERROR_REDIRECT_LOOP, mContext.getString(
+//                R.string.httpErrorRedirectLoop));
+//        return;
+//    }
+
+    String redirectTo;// = mHeaders.getLocation();
+    if (redirectTo.GetLength() != 0) {
+        Int32 nativeResponse = CreateNativeResponse();
+        NativeRedirectedToUrl(mUrl, redirectTo, nativeResponse, redirectTo);
+        // nativeRedirectedToUrl() may call cancel(), e.g. when redirect
+        // from a https site to a http site, check mCancelled again
+        if (mCancelled) {
+            return;
+        }
+
+        IURLUtil* URL = NULL;
+        CURLUtil::AcquireSingleton(&URL);
+        Boolean bFlag = FALSE;
+
+        if (redirectTo.GetLength() == 0) {
+//            Log.d(LOGTAG, "Redirection failed for "
+//                    + mHeaders.getLocation());
+            Cancel();
+            return;
+        } else if (URL->IsNetworkUrl(redirectTo, &bFlag), !bFlag) {
+            const String text;// = mContext->GetString(R.string.open_permission_deny) + "\n" + redirectTo;
+            ArrayOf<Byte>* textArray = ArrayOf<Byte>::Alloc((Byte*)(const char*)text, text.GetLength());
+            NativeAddData(*textArray, text.GetLength());
+            NativeFinished();
+            ClearNativeLoader();
+            return;
+        }
+
+        // Cache the redirect response
+        if (GetErrorID() == /*OK*/0) {
+            WebViewWorker::CacheSaveData* data = new WebViewWorker::CacheSaveData();
+            data->mListener = this;
+            data->mUrl = mUrl;
+            data->mPostId = mPostIdentifier;
+//            WebViewWorker.getHandler().obtainMessage(
+//                    WebViewWorker.MSG_SAVE_CACHE, data).sendToTarget();
+        } else {
+//            WebViewWorker.getHandler().obtainMessage(
+//                    WebViewWorker.MSG_REMOVE_CACHE, this).sendToTarget();
+        }
+
+        // Saving a copy of the unstripped url for the response
+        mOriginalUrl = redirectTo;
+        // This will strip the anchor
+        SetUrl(redirectTo);
+
+        // Redirect may be in the cache
+        if (mRequestHeaders == NULL) {
+            CObjectStringMap::New((IObjectStringMap**)&mRequestHeaders);
+        }
+        Boolean fromCache = FALSE;
+        if (mCacheLoader != NULL) {
+            // This is a redirect from the cache loader. Increment the
+            // redirect count to avoid redirect loops.
+            mCacheRedirectCount++;
+            fromCache = TRUE;
+        }
+        if (!CheckCache(mRequestHeaders)) {
+            // mRequestHandle can be null when the request was satisfied
+            // by the cache, and the cache returned a redirect
+            if (/*mRequestHandle != null*/1) {
+//                mRequestHandle.setupRedirect(mUrl, mStatusCode,
+//                        mRequestHeaders);
+            } else {
+                // If the original request came from the cache, there is no
+                // RequestHandle, we have to create a new one through
+                // Network.requestURL.
+                Network* network = Network::GetInstance(GetContext());
+                if (!network->RequestURL(mMethod, mRequestHeaders, *mPostData.Get(), this)) {
+                    // Signal a bad url error if we could not load the
+                    // redirection.
+//                    HandleError(EventHandler.ERROR_BAD_URL, mContext.getString(R.string.httpErrorBadUrl));
+                    return;
+                }
+            }
+            if (fromCache) {
+                // If we are coming from a cache load, we need to transfer
+                // the redirect count to the new (or old) RequestHandle to
+                // keep the redirect count in sync.
+//                mRequestHandle.setRedirectCount(mCacheRedirectCount);
+            }
+        } else if (!fromCache) {
+            // Switching from network to cache means we need to grab the
+            // redirect count from the RequestHandle to keep the count in
+            // sync. Add 1 to account for the current redirect.
+//            mCacheRedirectCount = mRequestHandle.getRedirectCount() + 1;
+        }
+    } else {
+        CommitHeaders();
+        CommitLoad();
+        TearDown();
+    }
+
+//    if (DebugFlags.LOAD_LISTENER) {
+//        Log.v(LOGTAG, "LoadListener.onRedirect(): redirect to: " +
+//                redirectTo);
+//    }
+}
 
 /**
  * @return The HTTP-authentication object or null if there
@@ -1070,14 +1193,21 @@ CARAPI_(void) LoadListener::DoRedirect()
  * @return True iff the callback should be ignored.
  */
 CARAPI_(Boolean) LoadListener::IgnoreCallbacks()
-{}
+{
+    return (mCancelled || /*mAuthHeader != NULL ||*/
+                // Allow 305 (Use Proxy) to call through.
+                (mStatusCode > 300 && mStatusCode < 400 && mStatusCode != 305));
+}
 
 /**
  * We keep a count of refs to the nativeLoader so we do not create
  * so many LoadListeners that the GREFs blow up
  */
 CARAPI_(void) LoadListener::ClearNativeLoader()
-{}
+{
+    sNativeLoaderCount -= 1;
+    mNativeLoader = 0;
+}
 
 /**
  * Guesses MIME type if one was not specified. Defaults to 'text/html'. In
@@ -1085,7 +1215,30 @@ CARAPI_(void) LoadListener::ClearNativeLoader()
  *
  */
 CARAPI_(void) LoadListener::GuessMimeType()
-{}
+{
+    // Data urls must have a valid mime type or a blank string for the mime
+    // type (implying text/plain).
+    IURLUtil* URL = NULL;
+    CURLUtil::AcquireSingleton(&URL);
+    Boolean bFlag = FALSE;
+    URL->IsDataUrl(mUrl, &bFlag);
+    if (bFlag && mMimeType.GetLength() != 0) {
+        Cancel();
+        const String text;
+//        mContext->GetString(R.string.httpErrorBadUrl, text);
+//        HandleError(EventHandler::ERROR_BAD_URL, text);
+    } else {
+        // Note: This is ok because this is used only for the main content
+        // of frames. If no content-type was specified, it is fine to
+        // default to text/html.
+        mMimeType = "text/html";
+        String newMimeType;
+        GuessMimeTypeFromExtension(mUrl, newMimeType);
+        if (newMimeType.GetLength() != 0) {
+            mMimeType = newMimeType;
+        }
+    }
+}
 
 /**
  * guess MIME type based on the file extension.
@@ -1153,7 +1306,7 @@ CARAPI_(void) LoadListener::NativeReceivedResponse(
  * @param length Number of objects in data.
  */
 CARAPI_(void) LoadListener::NativeAddData(
-	/* [in] */ Vector<Byte>& data, 
+	/* [in] */ const ArrayOf<Byte>& data, 
 	/* [in] */ Int32 length)
 {}
 

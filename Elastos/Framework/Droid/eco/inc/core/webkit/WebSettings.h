@@ -3,6 +3,8 @@
 
 #include "ext/frameworkext.h"
 #include <elastos/ElRefBase.h>
+#include <elastos/AutoPtr.h>
+#include <elastos/Mutex.h>
 
 /**
  * Manages settings state for a WebView. When a WebView is first created, it
@@ -377,7 +379,7 @@ public:
      * @param font A font family name.
      */
 	virtual CARAPI_(void) SetStandardFontFamily(
-		/* [in] */ CString font);
+		/* [in] */ const String& font);
 
     /**
      * Get the standard font family name. The default is "sans-serif".
@@ -390,7 +392,7 @@ public:
      * @param font A font family name.
      */
 	virtual CARAPI_(void) SetFixedFontFamily(
-		/* [in] */ CString font);
+		/* [in] */ const String& font);
 
     /**
      * Get the fixed font family name. The default is "monospace".
@@ -403,7 +405,7 @@ public:
      * @param font A font family name.
      */
 	virtual CARAPI_(void) SetSansSerifFontFamily(
-		/* [in] */ CString font);
+		/* [in] */ const String& font);
 
     /**
      * Get the sans-serif font family name.
@@ -416,7 +418,7 @@ public:
      * @param font A font family name.
      */
 	virtual CARAPI_(void) SetSerifFontFamily(
-		/* [in] */ CString font);
+		/* [in] */ const String& font);
 
     /**
      * Get the serif font family name. The default is "serif".
@@ -429,7 +431,7 @@ public:
      * @param font A font family name.
      */
 	virtual CARAPI_(void) SetCursiveFontFamily(
-		/* [in] */ CString font);
+		/* [in] */ const String& font);
 
     /**
      * Get the cursive font family name. The default is "cursive".
@@ -442,7 +444,7 @@ public:
      * @param font A font family name.
      */
 	virtual CARAPI_(void) SetFantasyFontFamily(
-		/* [in] */ String font);
+		/* [in] */ const String& font);
 
     /**
      * Get the fantasy font family name. The default is "fantasy".
@@ -598,7 +600,7 @@ public:
      * their own APK via the system's package manager.
      */
 	virtual CARAPI_(void) SetPluginsPath(
-		/* [in] */ CString pluginsPath);
+		/* [in] */ const String& pluginsPath);
 
     /**
      * Set the path to where database storage API databases should be saved.
@@ -608,7 +610,7 @@ public:
      *     be saved. May be the empty string but should never be null.
      */
 	virtual CARAPI_(void) SetDatabasePath(
-		/* [in] */ CString databasePath);
+		/* [in] */ const String& databasePath);
 
     /**
      * Set the path where the Geolocation permissions database should be saved.
@@ -618,7 +620,7 @@ public:
      *     should never be null.
      */
 	virtual CARAPI_(void) SetGeolocationDatabasePath(
-		/* [in] */ CString databasePath);
+		/* [in] */ const String& databasePath);
 
     /**
      * Tell the WebView to enable Application Caches API.
@@ -635,7 +637,7 @@ public:
      * be null. Passing null for this parameter will result in a no-op.
      */
 	virtual CARAPI_(void) SetAppCachePath(
-		/* [in] */ CString appCachePath);
+		/* [in] */ const String& appCachePath);
 
     /**
      * Set the maximum size for the Application Caches content.
@@ -745,7 +747,7 @@ public:
      * @param encoding The text encoding name.
      */
 	virtual CARAPI_(void) SetDefaultTextEncodingName(
-		/* [in] */ CString encoding);
+		/* [in] */ const String& encoding);
 
     /**
      * Get the default text encoding name. The default is "Latin-1".
@@ -758,7 +760,7 @@ public:
      * it will use the system default user-agent string.
      */
 	virtual CARAPI_(void) SetUserAgentString(
-		/* [in] */ CString ua);
+		/* [in] */ String ua);
 
     /**
      * Return the WebView's user-agent string.
@@ -839,7 +841,7 @@ public:
 
 private:
     // Class to handle messages before WebCore is ready.
-	class WS_EventHandler {
+	class EventHandler {
 	public:
         // Message id for syncing
         static const Int32 SYNC = 0;
@@ -850,7 +852,7 @@ private:
 
     private:
         // Actual WebCore thread handler
-        IHandler* mHandler;
+        AutoPtr<IHandler> mHandler;
 
     private:
 		CARAPI_(void) CreateHandler();
@@ -873,19 +875,20 @@ private:
             "Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us)"
             + " AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0"
             + " Mobile/7A341 Safari/528.16";*/
-	static ILocale* sLocale;
-	static IInterface* sLockForLocaleSettings;
+	static AutoPtr<ILocale> sLocale;
+	//static AutoPtr<IInterface> sLockForLocaleSettings;
+    static Core::Threading::Mutex sLockForLocaleSettings;
 
 private:
 
     // WebView associated with this WebSettings.
-    IWebView* mWebView;
+    AutoPtr<IWebView> mWebView;
     // BrowserFrame used to access the native frame pointer.
-    IBrowserFrame* mBrowserFrame;
+    AutoPtr<IBrowserFrame> mBrowserFrame;
     // Flag to prevent multiple SYNC messages at one time.
     Boolean mSyncPending;
     // Custom handler that queues messages until the WebCore thread is active.
-    const WS_EventHandler mEventHandler;
+    /*const*/ EventHandler* mEventHandler;
 
     // Private settings so we don't have to go into native code to
     // retrieve the values. After setXXX, postSync() needs to be called.
@@ -894,8 +897,8 @@ private:
     // If the defaults change, please also update the JavaDocs so developers
     // know what they are.
     LayoutAlgorithm mLayoutAlgorithm;
-    IContext*       mContext;
-    TextSize        mTextSize;
+    AutoPtr<IContext>       mContext;
+    TextSize*       mTextSize;
     String          mStandardFontFamily;
     String          mFixedFontFamily;
     String          mSansSerifFontFamily;
@@ -938,7 +941,7 @@ private:
     // Don't need to synchronize the get/set methods as they
     // are basic types, also none of these values are used in
     // native WebCore code.
-    ZoomDensity     mDefaultZoom;
+    ZoomDensity*     mDefaultZoom;
     RenderPriority  mRenderPriority;
     Int32           mOverrideCacheMode;
     Boolean         mSaveFormData;
