@@ -8,39 +8,6 @@
 CarClass(CTimer), public Timer
 {
 public:
-    CARAPI Cancel();
-
-    CARAPI Purge(
-        /* [out] */ Int32 * pValue);
-
-    CARAPI Schedule(
-        /* [in] */ ITimerTask * pTask,
-        /* [in] */ IDate * pWhen);
-
-    CARAPI ScheduleEx(
-        /* [in] */ ITimerTask * pTask,
-        /* [in] */ Int64 delay);
-
-    CARAPI ScheduleEx1(
-        /* [in] */ ITimerTask * pTask,
-        /* [in] */ Int64 delay,
-        /* [in] */ Int64 period);
-
-    CARAPI ScheduleEx2(
-        /* [in] */ ITimerTask * pTask,
-        /* [in] */ IDate * pWhen,
-        /* [in] */ Int64 period);
-
-    CARAPI ScheduleAtFixedRate(
-        /* [in] */ ITimerTask * pTask,
-        /* [in] */ Int64 delay,
-        /* [in] */ Int64 period);
-
-    CARAPI scheduleAtFixedRateEx(
-        /* [in] */ ITimerTask * pTask,
-        /* [in] */ IDate * pWhen,
-        /* [in] */ Int64 period);
-
     CARAPI constructor(
         /* [in] */ const String& name,
         /* [in] */ Boolean isDaemon);
@@ -53,9 +20,38 @@ public:
 
     CARAPI constructor();
 
-private:
-    Timer* m_Timer;
-    // TODO: Add your private member variables here.
+    CARAPI Cancel();
+
+    CARAPI Purge(
+        /* [out] */ Int32* value);
+
+    CARAPI Schedule(
+        /* [in] */ ITimerTask* task,
+        /* [in] */ IDate* when);
+
+    CARAPI ScheduleEx(
+        /* [in] */ ITimerTask* task,
+        /* [in] */ Int64 delay);
+
+    CARAPI ScheduleEx2(
+        /* [in] */ ITimerTask* task,
+        /* [in] */ Int64 delay,
+        /* [in] */ Int64 period);
+
+    CARAPI ScheduleEx3(
+        /* [in] */ ITimerTask* task,
+        /* [in] */ IDate* when,
+        /* [in] */ Int64 period);
+
+    CARAPI ScheduleAtFixedRate(
+        /* [in] */ ITimerTask* task,
+        /* [in] */ Int64 delay,
+        /* [in] */ Int64 period);
+
+    CARAPI scheduleAtFixedRateEx(
+        /* [in] */ ITimerTask* task,
+        /* [in] */ IDate* when,
+        /* [in] */ Int64 period);
 };
 
 #endif // __CTIMER_H__

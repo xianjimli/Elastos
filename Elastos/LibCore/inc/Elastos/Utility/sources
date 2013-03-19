@@ -38,3 +38,4 @@ EXPORT_HEADERS += elastos/Map.h
 EXPORT_HEADERS += elastos/Set.h
 EXPORT_HEADERS += elastos/Vector.h
 EXPORT_HEADERS += elastos/Locale.h
+EXPORT_HEADERS += elastos/TimerTask.h
