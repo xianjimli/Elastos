@@ -7,6 +7,7 @@ module
     merge("audiofx/Equalizer.car");
     merge("audiofx/PresetReverb.car");
     merge("audiofx/Virtualizer.car");
+    merge("audiofx/Visualizer.car");
 
     class CAudioEffect {
         constructor(
@@ -56,5 +57,12 @@ module
             [in] Int32 audioSession);
 
         interface IVirtualizer;
+    }
+
+    class CVisualizer {
+        constructor(
+            [in] Int32 audioSession);
+
+        interface IVisualizer;
     }
 }
