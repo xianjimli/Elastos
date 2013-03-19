@@ -1,113 +1,111 @@
 #ifndef __TIMER_H__
 #define __TIMER_H__
 
-#include "CTimerTask.h"
 #include "CDate.h"
+#include <Elastos.Core.h>
 #include <elastos/Mutex.h>
-#include "Elastos.Core.h"
 #include <elastos/AutoPtr.h>
-//#include <elastos.h>
-//
-using namespace Elastos;
+#include <elastos/ElRefBase.h>
+
+
 using namespace Elastos::Core;
 using namespace Elastos::Core::Threading;
 
-//class TimerImplA : public CThread
-//{
-//public:
-//    void SetX( const String& name) { SetName(name);}
-//};
 
 class Timer
 {
-    class TimerImpl : public IRunnable
+private:
+    class TimerImpl : public ElRefBase, public IRunnable
     {
-            class TimerHeap {
-            private:
-                CARAPI UpHeap();
+        friend class Timer;
+    private:
+        class TimerHeap
+        {
+            friend class Timer;
+        public:
+            TimerHeap();
 
-                CARAPI DownHeap(
-                    /* [in] */ Int32 pos);
+            ~TimerHeap();
 
+            CARAPI_(AutoPtr<ITimerTask>) Minimum();
 
+            CARAPI_(Boolean) IsEmpty();
 
-            private:
-                Int32 DEFAULT_HEAP_SIZE;
-                ArrayOf<ITimerTask*>* mTimers;
-                Int32 mSize;
-                Int32 mDeletedCancelledNumber;
+            CARAPI_(void) Insert(
+                /* [in] */ ITimerTask* task);
 
-            public:
-                TimerHeap();
+            CARAPI_(void) Delete(
+                /* [in] */ Int32 pos);
 
-                ITimerTask* Minimum();
+            CARAPI_(void) Reset();
 
-                Boolean IsEmpty();
+            CARAPI_(void) AdjustMinimum();
 
-                CARAPI Insert(
-                    /* [in] */ ITimerTask* task);
+            CARAPI_(void) DeleteIfCancelled();
 
-                CARAPI Delete(
-                    /* [in] */ Int32 pos);
+        private:
+            CARAPI_(void) UpHeap();
 
-                CARAPI Reset();
+            CARAPI_(void) DownHeap(
+                /* [in] */ Int32 pos);
 
-                CARAPI AdjustMinimum();
+            CARAPI_(Int32) GetTask(
+                /* [in] */ ITimerTask* task);
 
-                CARAPI DeleteIfCancelled();
-
-                CARAPI GetTask(
-                    /* [in] */ ITimerTask* task);
-
+        private:
+            Int32 DEFAULT_HEAP_SIZE;
+            ArrayOf< AutoPtr<ITimerTask> >* mTimers;
+            Int32 mSize;
+            Int32 mDeletedCancelledNumber;
         };
 
-        public:
-            Boolean mCancelled;
+    public:
+        TimerImpl(
+            /* [in] */ String name,
+            /* [in] */ Boolean isDaemon);
 
-            Mutex mLock;
+        ~TimerImpl();
+
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI Run();
+
+        CARAPI_(void) Cancel();
+
+        CARAPI_(Int32) Purge();
+
+    private:
+        CARAPI_(void) InsertTask(
+            /* [in] */ ITimerTask* newTask);
+
+    public:
+        /**
+         * True if the method cancel() of the Timer was called or the !!!stop()
+         * method was invoked
+         */
+        Boolean mCancelled;
 
         /**
          * True if the Timer has become garbage
          */
-            Boolean mFinished;
+        Boolean mFinished;
 
         /**
          * Vector consists of scheduled events, sorted according to
          * {@code when} field of TaskScheduled object.
          */
-            TimerHeap* mTasks;
+        TimerHeap* mTasks;
 
-            AutoPtr<IThread> mThread;
-
-        public:
-            TimerImpl(
-                /* [in] */ String name,
-                /* [in] */ Boolean isDaemon);
-
-            CARAPI_(PInterface) Probe(
-                /* [in] */ REIID riid);
-
-            CARAPI_(UInt32) AddRef();
-
-            CARAPI_(UInt32) Release();
-
-            CARAPI GetInterfaceID(
-                /* [in] */ IInterface *pObject,
-                /* [out] */ InterfaceID *pIID);
-
-            CARAPI Run();
-
-            CARAPI Cancel();
-
-            CARAPI_(Int32) Purge();
-
-            CARAPI InsertTask(
-                /* [in] */ ITimerTask* newTask);
-
-//            virtual IInterface* Probe(
-//                /* [in] */ const InterfaceID & id) {};
-//
-//            virtual Mutex* GetSelfLock() {};
+        AutoPtr<IThread> mThread;
     };
 
     class FinalizerHelper
@@ -116,27 +114,13 @@ class Timer
         FinalizerHelper(
             /* [in] */ TimerImpl* impl);
 
-    private:
-        TimerImpl* mImpl;
-        Mutex mLock;
+        ~FinalizerHelper();
 
-    protected:
-         CARAPI Finalize();
+    private:
+        AutoPtr<TimerImpl> mImpl;
     };
 
-private:
-    static Int64 mTimerId;
-
-    static Int64 NextId();
-
-    /* This object will be used in synchronization purposes */
-    TimerImpl* mImpl;
-
-    Mutex mImplLock;
-
-    // Used to finalize thread
-    FinalizerHelper* mFinalizer;
-
+public:
     /**
      * Creates a new named {@code Timer} which may be specified to be run as a
      * daemon thread.
@@ -145,7 +129,6 @@ private:
      * @param isDaemon true if {@code Timer}'s thread should be a daemon thread.
      * @throws NullPointerException is {@code name} is {@code null}
      */
-public:
      Timer(
         /* [in] */ String name,
         /* [in] */ Boolean isDaemon);
@@ -171,6 +154,9 @@ public:
      * Creates a new non-daemon {@code Timer}.
      */
     Timer();
+
+    virtual ~Timer();
+
     /**
      * Cancels the {@code Timer} and all scheduled tasks. If there is a
      * currently running task it is not affected. No more tasks may be scheduled
@@ -186,7 +172,8 @@ public:
      * @return the number of canceled tasks that were removed from the task
      *         queue.
      */
-    CARAPI_(Int32) Purge();
+    CARAPI Purge(
+        /* [out] */ Int32* number);
 
     /**
      * Schedule a task for single execution. If {@code when} is less than the
@@ -306,6 +293,35 @@ public:
         /* [in] */ IDate* when,
         /* [in] */ Int64 period);
 
+protected:
+    /**
+     * Creates a new named {@code Timer} which may be specified to be run as a
+     * daemon thread.
+     *
+     * @param name the name of the {@code Timer}.
+     * @param isDaemon true if {@code Timer}'s thread should be a daemon thread.
+     * @throws NullPointerException is {@code name} is {@code null}
+     */
+    CARAPI Init(
+        /* [in] */ String name,
+        /* [in] */ Boolean isDaemon = FALSE);
+
+    /**
+     * Creates a new {@code Timer} which may be specified to be run as a daemon thread.
+     *
+     * @param isDaemon {@code true} if the {@code Timer}'s thread should be a daemon thread.
+     */
+    CARAPI Init(
+        /* [in] */ Boolean isDaemon);
+
+    /**
+     * Creates a new non-daemon {@code Timer}.
+     */
+    CARAPI Init();
+
+private:
+    static CARAPI_(Int64) NextId();
+
     /*
      * Schedule a task.
      */
@@ -314,5 +330,15 @@ public:
         /* [in] */ Int64 delay,
         /* [in] */ Int64 period,
         /* [in] */ Boolean fixed);
+
+private:
+    static Int64 sTimerId;
+    static Mutex sTimerIdLock;
+
+    /* This object will be used in synchronization purposes */
+    AutoPtr<TimerImpl> mImpl;
+
+    // Used to finalize thread
+    FinalizerHelper* mFinalizer;
 };
 #endif //__TIMER_H__

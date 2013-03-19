@@ -129,12 +129,6 @@ module
         interface ISimpleTimeZone;
     }
 
-    class CTimerTask {
-        constructor();
-
-        interface ITimerTask;
-    }
-
     class CTimer {
         constructor(
             [in] String name,

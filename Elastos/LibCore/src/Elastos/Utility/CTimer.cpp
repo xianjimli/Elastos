@@ -1,96 +1,86 @@
 
+#include "cmdef.h"
 #include "CTimer.h"
-ECode CTimer::Cancel()
-{
-    // TODO: Add your code here
-    return m_Timer->Cancel();
-}
 
-ECode CTimer::Purge(
-    /* [out] */ Int32 * pValue)
-{
-    // TODO: Add your code here
-    *pValue = m_Timer->Purge();
-    return NOERROR;
-}
-
-ECode CTimer::Schedule(
-    /* [in] */ ITimerTask * pTask,
-    /* [in] */ IDate * pWhen)
-{
-    // TODO: Add your code here
-    return m_Timer->Schedule(pTask, pWhen);
-}
-
-ECode CTimer::ScheduleEx(
-    /* [in] */ ITimerTask * pTask,
-    /* [in] */ Int64 delay)
-{
-    // TODO: Add your code here
-    return m_Timer->Schedule(pTask, delay);
-}
-
-ECode CTimer::ScheduleEx1(
-    /* [in] */ ITimerTask * pTask,
-    /* [in] */ Int64 delay,
-    /* [in] */ Int64 period)
-{
-    // TODO: Add your code here
-    return m_Timer->Schedule(pTask, delay, period);
-}
-
-ECode CTimer::ScheduleEx2(
-    /* [in] */ ITimerTask * pTask,
-    /* [in] */ IDate * pWhen,
-    /* [in] */ Int64 period)
-{
-    // TODO: Add your code here
-    return m_Timer->Schedule(pTask, pWhen, period);
-}
-
-ECode CTimer::ScheduleAtFixedRate(
-    /* [in] */ ITimerTask * pTask,
-    /* [in] */ Int64 delay,
-    /* [in] */ Int64 period)
-{
-    // TODO: Add your code here
-    return m_Timer->ScheduleAtFixedRate(pTask, delay, period);
-}
-
-ECode CTimer::scheduleAtFixedRateEx(
-    /* [in] */ ITimerTask * pTask,
-    /* [in] */ IDate * pWhen,
-    /* [in] */ Int64 period)
-{
-    // TODO: Add your code here
-    return m_Timer->ScheduleAtFixedRate(pTask, pWhen, period);
-}
 
 ECode CTimer::constructor(
     /* [in] */ const String& name,
     /* [in] */ Boolean isDaemon)
 {
-    // TODO: Add your code here
-    m_Timer = new Timer(name, isDaemon);
+    return Timer::Init(name, isDaemon);
 }
 
 ECode CTimer::constructor(
     /* [in] */ const String& name)
 {
-    // TODO: Add your code here
-    m_Timer = new Timer(name);
+    return Timer::Init(name);
 }
 
 ECode CTimer::constructor(
     /* [in] */ Boolean isDaemon)
 {
-    // TODO: Add your code here
-    m_Timer = new Timer(isDaemon);
+    return Timer::Init(isDaemon);
 }
 
 ECode CTimer::constructor()
 {
-    // TODO: Add your code here
-    m_Timer = new Timer();
+    return NOERROR;
 }
 
+ECode CTimer::Cancel()
+{
+    return Timer::Cancel();
+}
+
+ECode CTimer::Purge(
+    /* [out] */ Int32* value)
+{
+    VALIDATE_NOT_NULL(value);
+    return Timer::Purge(value);
+}
+
+ECode CTimer::Schedule(
+    /* [in] */ ITimerTask* task,
+    /* [in] */ IDate* when)
+{
+    return Timer::Schedule(task, when);
+}
+
+ECode CTimer::ScheduleEx(
+    /* [in] */ ITimerTask* task,
+    /* [in] */ Int64 delay)
+{
+    return Timer::Schedule(task, delay);
+}
+
+ECode CTimer::ScheduleEx2(
+    /* [in] */ ITimerTask* task,
+    /* [in] */ Int64 delay,
+    /* [in] */ Int64 period)
+{
+    return Timer::Schedule(task, delay, period);
+}
+
+ECode CTimer::ScheduleEx3(
+    /* [in] */ ITimerTask* task,
+    /* [in] */ IDate* when,
+    /* [in] */ Int64 period)
+{
+    return Timer::Schedule(task, when, period);
+}
+
+ECode CTimer::ScheduleAtFixedRate(
+    /* [in] */ ITimerTask* task,
+    /* [in] */ Int64 delay,
+    /* [in] */ Int64 period)
+{
+    return Timer::ScheduleAtFixedRate(task, delay, period);
+}
+
+ECode CTimer::scheduleAtFixedRateEx(
+    /* [in] */ ITimerTask* task,
+    /* [in] */ IDate* when,
+    /* [in] */ Int64 period)
+{
+    return Timer::ScheduleAtFixedRate(task, when, period);
+}
