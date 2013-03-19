@@ -8,6 +8,11 @@ using namespace Elastos::Utility::Logging;
 
 const String CUsbRequest::TAG("UsbRequest");
 
+CUsbRequest::~CUsbRequest()
+{
+    Finalize();
+}
+
 ECode CUsbRequest::constructor()
 {
     return NOERROR;
@@ -74,25 +79,28 @@ ECode CUsbRequest::Queue(
 {
     VALIDATE_NOT_NULL(result);
 
-    /*
+    Boolean isDirectSpecified;
+    buffer->IsDirect(&isDirectSpecified);
+
+    Boolean hasArraySpecified;
+    buffer->HasArray(&hasArraySpecified);
+
     Int32 direction;
     mEndpoint->GetDirection(&direction);
-    Boolean out = (direction == UsbConstants_USB_DIR_OUT);
+    Boolean endpointOutDirection = (direction == UsbConstants_USB_DIR_OUT);
 
-    Boolean tempResult = FALSE;
-
-    if (buffer->IsDirect()) {
-        tempResult = NativeQueueDirect(buffer, length, out);
-    } else if (buffer->HasArray()) {
+    if (isDirectSpecified == TRUE) {
+        *result = NativeQueueDirect(buffer, length, endpointOutDirection);
+    } else if (hasArraySpecified == TRUE) {
         ArrayOf<Byte>* array;
         buffer->Array(&array);
-        tempResult = NativeQueueArray(array, length, out);
+        *result = NativeQueueArray(array, length, endpointOutDirection);
     } else {
         Logger::E(CUsbRequest::TAG,"buffer is not direct and has no array");
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
-    if (tempResult == TRUE) {
+    if (*result == TRUE) {
         // save our buffer for when the request has completed
         mBuffer = buffer;
         buffer->Release();
@@ -100,32 +108,30 @@ ECode CUsbRequest::Queue(
         mLength = length;
     }
 
-    *result = tempResult;
-    */
-    // NOT IMPLEMENTED
     return NOERROR;
 }
 
 ECode CUsbRequest::Dequeue()
 {
-    /*
-    Int32 direction;
-    mEndpoint->GetDirection(&direction);
-    Boolean out = (direction == UsbConstants_USB_DIR_OUT);
+    Boolean isOutDirect;
+    ((IBuffer*)mBuffer)->IsDirect(&isOutDirect);
 
-    if (mBuffer->IsDirect()) {
+    if (isOutDirect == TRUE) {
         NativeDequeueDirect();
     } else {
         ArrayOf<Byte>* array;
         mBuffer->Array(&array);
-        NativeDequeueArray(array, mLength, out);
+
+        Int32 direction;
+        mEndpoint->GetDirection(&direction);
+        Boolean endpointOutDirection = (direction == UsbConstants_USB_DIR_OUT);
+
+        NativeDequeueArray(array, mLength, endpointOutDirection);
     }
 
     mBuffer->Release();
     mLength = 0;
-    */
 
-    // NOT IMPLEMENTED
     return NOERROR;
 }
 
@@ -137,20 +143,18 @@ ECode CUsbRequest::Cancel(
     return NOERROR;
 }
 
-ECode CUsbRequest::Finalize()
+void CUsbRequest::Finalize()
 {
-    /*
-    try {
-        if (mEndpoint != null) {
-            Log.v(TAG, "endpoint still open in finalize(): " + this);
-            close();
-        }
-    } finally {
-        super.finalize();
+    if (mEndpoint == NULL) {
+        return;
     }
-    */
-    // NOT IMPLEMENTED
-    return NOERROR;
+
+    /*
+     * Log.v(TAG, "endpoint still open in finalize(): " + this);
+     * close();
+     */
+    Logger::V(CUsbRequest::TAG, "endpoint still open in finalize().");
+    Close();
 }
 
 Boolean CUsbRequest::NativeInit(
@@ -203,7 +207,7 @@ void CUsbRequest::NativeClose()
 Boolean CUsbRequest::NativeQueueArray(
     /* [in] */ ArrayOf<Byte>* buffer,
     /* [in] */ Int32 length,
-    /* [in] */ Boolean out)
+    /* [in] */ Boolean isOutDirect)
 {
     /*
     struct usb_request* request = get_request_from_object(env, thiz);
@@ -245,7 +249,7 @@ Boolean CUsbRequest::NativeQueueArray(
 void CUsbRequest::NativeDequeueArray(
     /* [in] */ ArrayOf<Byte>* buffer,
     /* [in] */ Int32 length,
-    /* [in] */ Boolean out)
+    /* [in] */ Boolean isOutDirect)
 {
     /*
     struct usb_request* request = get_request_from_object(env, thiz);
@@ -267,7 +271,7 @@ void CUsbRequest::NativeDequeueArray(
 Boolean CUsbRequest::NativeQueueDirect(
     /* [in] */ IByteBuffer* buffer,
     /* [in] */ Int32 length,
-    /* [in] */ Boolean out)
+    /* [in] */ Boolean isOutDirect)
 {
     /*
     struct usb_request* request = get_request_from_object(env, thiz);

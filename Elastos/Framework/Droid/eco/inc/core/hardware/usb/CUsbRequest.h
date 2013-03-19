@@ -21,6 +21,8 @@
 CarClass(CUsbRequest)
 {
 public:
+    ~CUsbRequest();
+
     CARAPI constructor();
 
     /**
@@ -101,7 +103,7 @@ public:
         /* [out] */ Boolean* result);
 
 protected:
-    CARAPI Finalize();
+    CARAPI_(void) Finalize();
 
 private:
     CARAPI_(Boolean) NativeInit(
