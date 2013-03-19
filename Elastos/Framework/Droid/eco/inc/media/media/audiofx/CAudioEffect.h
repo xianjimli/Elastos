@@ -39,23 +39,141 @@ using namespace Elastos::Core::Threading;
 
 CarClass(CAudioEffect)
 {
+public:
+    /**
+     * The effect descriptor contains information on a particular effect implemented in the
+     * audio framework:<br>
+     * <ul>
+     *  <li>type: UUID corresponding to the OpenSL ES interface implemented by this effect</li>
+     *  <li>uuid: UUID for this particular implementation</li>
+     *  <li>connectMode: {@link #EFFECT_INSERT} or {@link #EFFECT_AUXILIARY}</li>
+     *  <li>name: human readable effect name</li>
+     *  <li>implementor: human readable effect implementor name</li>
+     * </ul>
+     * The method {@link #queryEffects()} returns an array of Descriptors to facilitate effects
+     * enumeration.
+     */
+    class Descriptor{
+    public:
+        CARAPI constructor(
+            /* [in] */ String type1,
+            /* [in] */ String uuid1,
+            /* [in] */ String connectMode1,
+            /* [in] */ String name1,
+            /* [in] */ String implementor1);
+
+        CARAPI GetParameterString(
+            /* [in] */ String param,
+            /* [out] */  String* result);
+
+        CARAPI SetParameterString(
+            /* [in] */ String param,
+            /* [in] */ String result);
+
+        CARAPI GetParameterUUID(
+            /* [in] */ String param);
+            ///* [out] */  UUID* result);
+
+        CARAPI SetParameterUUID(
+            /* [in] */ String param);
+            ///* [in] */ UUID result);
+    public:
+        /**
+         *  Indicates the generic type of the effect (Equalizer, Bass boost ...). The UUID
+         *  corresponds to the OpenSL ES Interface ID for this type of effect.
+         */
+        //public UUID type;
+        /**
+         *  Indicates the particular implementation of the effect in that type. Several effects
+         *  can have the same type but this uuid is unique to a given implementation.
+         */
+        //public UUID uuid;
+        /**
+         *  Indicates if the effect is of insert category {@link #EFFECT_INSERT} or auxiliary
+         *  category {@link #EFFECT_AUXILIARY}. Insert effects (Typically an Equalizer) are applied
+         *  to the entire audio source and usually not shared by several sources. Auxiliary effects
+         *  (typically a reverberator) are applied to part of the signal (wet) and the effect output
+         *  is added to the original signal (dry).
+         */
+        String connectMode;
+        /**
+         * Human readable effect name
+         */
+        String name;
+        /**
+         * Human readable effect implementor name
+         */
+        String implementor;
+    };
 private:
-    class NativeEventHandler : public Runnable
+    /**
+     * Helper class to handle the forwarding of native events to the appropriate
+     * listeners
+     */
+    class NativeEventHandler
+        : public ElRefBase
     {
-        public:
-        /*
-        public NativeEventHandler(AudioEffect ae, Looper looper)
+    public:
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
 
-        public void handleMessage(Message msg)
-         */
-        private:
+        CARAPI_(UInt32) AddRef();
 
-        /*
-        private AudioEffect mAudioEffect;
-         */
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI constructor(
+            /* [in] */ IAudioEffect* ae,
+            /* [in] */ IApartment* looper);
+
+        CARAPI HandleMessage(
+            /* [in] */ IMessage* msg);
+    private:
+        IAudioEffect* mAudioEffect;
+        CAudioEffect* mHost;
     };
 public:
     CAudioEffect();
+
+    // --------------------------------------------------------------------------
+    // Constructor, Finalize
+    // --------------------
+    /**
+     * Class constructor.
+     *
+     * @param type type of effect engine created. See {@link #EFFECT_TYPE_ENV_REVERB},
+     *            {@link #EFFECT_TYPE_EQUALIZER} ... Types corresponding to
+     *            built-in effects are defined by AudioEffect class. Other types
+     *            can be specified provided they correspond an existing OpenSL
+     *            ES interface ID and the corresponsing effect is available on
+     *            the platform. If an unspecified effect type is requested, the
+     *            constructor with throw the IllegalArgumentException. This
+     *            parameter can be set to {@link #EFFECT_TYPE_NULL} in which
+     *            case only the uuid will be used to select the effect.
+     * @param uuid unique identifier of a particular effect implementation.
+     *            Must be specified if the caller wants to use a particular
+     *            implementation of an effect type. This parameter can be set to
+     *            {@link #EFFECT_TYPE_NULL} in which case only the type will
+     *            be used to select the effect.
+     * @param priority the priority level requested by the application for
+     *            controlling the effect engine. As the same effect engine can
+     *            be shared by several applications, this parameter indicates
+     *            how much the requesting application needs control of effect
+     *            parameters. The normal priority is 0, above normal is a
+     *            positive number, below normal a negative number.
+     * @param audioSession system wide unique audio session identifier. If audioSession
+     *            is not 0, the effect will be attached to the MediaPlayer or
+     *            AudioTrack in the same audio session. Otherwise, the effect
+     *            will apply to the output mix.
+     *
+     * @throws java.lang.IllegalArgumentException
+     * @throws java.lang.UnsupportedOperationException
+     * @throws java.lang.RuntimeException
+     * @hide
+     */
     CARAPI constructor(
         /* [in] */ //IUUID* type,
         /* [in] */ //IUUID* uuid,
@@ -303,7 +421,7 @@ public:
         /* [in] */ Int32 cmdCode,
         /* [in] */ const ArrayOf<Byte>& command,
         /* [out] */ ArrayOf<Byte>* reply,
-        /* [out] */ Int32* status);
+        /* [out] */ Int32* result);
 
     /**
      * Returns effect unique identifier. This system wide unique identifier can
@@ -431,16 +549,6 @@ public:
         /* [in] */ const ArrayOf<Byte>& array1,
         /* [in] */ const ArrayOf<Byte>& array2,
         /* [out, callee] */ ArrayOf<Byte>** result);
-    /*
-    public NativeEventHandler(AudioEffect ae, Looper looper) {
-        super(looper);
-        mAudioEffect = ae;
-    }
-
-    @Override
-    public void handleMessage(Message msg) {
-
-    */
 protected:
     CARAPI_(void) Finalize();
 
@@ -473,7 +581,7 @@ private:
         /* [in] */ String uuid,
         /* [in] */ Int32 priority,
         /* [in] */ Int32 audioSession,
-        /* [in] */ ArrayOf<Int32> id,
+        /* [in] */ ArrayOf<Int32>* id,
         /* [in] */ ArrayOf<IObject>* desc);
 
     CARAPI_(void) Native_Finalize();
@@ -489,24 +597,24 @@ private:
 
     CARAPI_(Int32) Native_SetParameter(
         /* [in] */ Int32 psize,
-        /* [in] */ ArrayOf<Byte> param,
+        /* [in] */ ArrayOf<Byte>* param,
         /* [in] */ Int32 vsize,
-        /* [in] */ ArrayOf<Byte> value);
+        /* [in] */ ArrayOf<Byte>* value);
 
     CARAPI_(Int32) Native_GetParameter(
         /* [in] */ Int32 psize,
-        /* [in] */ ArrayOf<Byte> param,
-        /* [in] */ ArrayOf<Int32> vsize,
-        /* [in] */ ArrayOf<Byte> value);
+        /* [in] */ ArrayOf<Byte>* param,
+        /* [in] */ ArrayOf<Int32>* vsize,
+        /* [in] */ ArrayOf<Byte>* value);
 
     CARAPI_(Int32) Native_Command(
         /* [in] */ Int32 cmdCode,
         /* [in] */ Int32 cmdSize,
-        /* [in] */ ArrayOf<Byte> cmdData,
-        /* [in] */ ArrayOf<Int32> repSize,
-        /* [in] */ ArrayOf<Byte> repData);
+        /* [in] */ ArrayOf<Byte>* cmdData,
+        /* [in] */ ArrayOf<Int32>* repSize,
+        /* [in] */ ArrayOf<Byte>* repData);
 
-    CARAPI_(ArrayOf<IObject*>) Native_Query_Effects();
+    CARAPI_(ArrayOf<IAudioEffectDescriptor>*) Native_Query_Effects();
 
 public:
     /**
@@ -520,7 +628,7 @@ public:
      * Handler for events coming from the native code
      * @hide
      */
-     //NativeEventHandler mNativeEventHandler;
+     AutoPtr<NativeEventHandler> mNativeEventHandler;
 
 private:
     static const CString TAG;

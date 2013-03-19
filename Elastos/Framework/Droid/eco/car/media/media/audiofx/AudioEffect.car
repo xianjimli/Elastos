@@ -266,6 +266,19 @@ module
 
     interface IAudioEffect;
 
+    /**
+     * The effect descriptor contains information on a particular effect implemented in the
+     * audio framework:<br>
+     * <ul>
+     *  <li>type: UUID corresponding to the OpenSL ES interface implemented by this effect</li>
+     *  <li>uuid: UUID for this particular implementation</li>
+     *  <li>connectMode: {@link #EFFECT_INSERT} or {@link #EFFECT_AUXILIARY}</li>
+     *  <li>name: human readable effect name</li>
+     *  <li>implementor: human readable effect implementor name</li>
+     * </ul>
+     * The method {@link #queryEffects()} returns an array of Descriptors to facilitate effects
+     * enumeration.
+     */
     interface IAudioEffectDescriptor {
 
     }
@@ -279,13 +292,13 @@ module
      */
     interface IAudioEffectOnEnableStatusChangeListener
     {
-           /**
-            * Called on the listener to notify it that the effect engine has been
-            * enabled or disabled.
-            * @param effect the effect on which the interface is registered.
-            * @param enabled new effect state.
-            */
-           OnEnableStatusChange(
+        /**
+        * Called on the listener to notify it that the effect engine has been
+        * enabled or disabled.
+        * @param effect the effect on which the interface is registered.
+        * @param enabled new effect state.
+        */
+        OnEnableStatusChange(
             [in] IAudioEffect* effect,
             [in] Boolean enabled);
     }
@@ -576,7 +589,7 @@ module
             [in] Int32 cmdCode,
             [in] ArrayOf<Byte> command,
             [out] ArrayOf<Byte> reply,
-            [out] Int32* status);
+            [out] Int32* result);
 
         /**
          * Returns effect unique identifier. This system wide unique identifier can

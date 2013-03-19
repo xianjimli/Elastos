@@ -20,3 +20,4 @@ SOURCES += CEnvironmentalReverb.cpp
 SOURCES += CEqualizer.cpp
 SOURCES += CPresetReverb.cpp
 SOURCES += CVirtualizer.cpp
+SOURCES += CVisualizer.cpp
