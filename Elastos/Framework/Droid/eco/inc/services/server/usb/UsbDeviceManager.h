@@ -3,6 +3,8 @@
 #define __USBDEVICEMANAGER_H__
 
 #include "ext/frameworkext.h"
+#include <elastos/ElRefBase.h>
+#include "server/usb/UsbSettingsManager.h"
 
 /**
  * UsbDeviceManager manages USB state in device mode.

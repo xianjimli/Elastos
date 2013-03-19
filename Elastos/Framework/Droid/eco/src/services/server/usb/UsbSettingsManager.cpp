@@ -37,7 +37,7 @@ Boolean UsbSettingsManager::HasDevicePermission(
     /* [in] */ IUsbDevice* device)
 {
     // NOT IMPLEMENTED
-    return FALSE:
+    return FALSE;
 }
 
 Boolean UsbSettingsManager::HasAccessoryPermission(
