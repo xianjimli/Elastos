@@ -122,28 +122,28 @@ ECode CPlugin::GetDescription(
 }
 
 ECode CPlugin::SetName(
-    /* [in] */ String name)
+    /* [in] */ const String& name)
 {
     mName = name;
     return NOERROR;
 }
 
 ECode CPlugin::SetPath(
-    /* [in] */ String path)
+    /* [in] */ const String& path)
 {
     mPath = path;
     return NOERROR;
 }
 
 ECode CPlugin::SetFileName(
-    /* [in] */ String fileName)
+    /* [in] */ const String& fileName)
 {
     mFileName = fileName;
     return NOERROR;
 }
 
 ECode CPlugin::SetDescription(
-    /* [in] */ String description)
+    /* [in] */ const String& description)
 {
     mDescription = description;
     return NOERROR;
