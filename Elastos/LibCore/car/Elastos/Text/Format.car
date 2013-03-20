@@ -1,0 +1,68 @@
+module
+{
+    interface IAttributedCharacterIterator;
+    interface IAttributedCharacterIterator_Attribute;
+    interface IParsePosition;
+    interface IFieldPosition;
+
+    interface IFormat_Field extends IAttributedCharacterIterator_Attribute{
+    }
+
+    /**
+     * The base class for all formats.
+     */
+    [deprecated]
+    interface IFormat {
+
+        /**
+         * Formats the specified object using the rules of this format.
+         */
+        format(
+            [in] IInterface* object,
+            [out] String* value);
+
+        /**
+         * Appends the specified object to the specified string buffer using the
+         * rules of this format.
+         * <p>
+         * {@code field} is an input/output parameter. If its {@code field}
+         * member contains an enum value specifying a field on input, then its
+         * {@code beginIndex} and {@code endIndex} members will be updated with the
+         * text offset of the first occurrence of this field in the formatted text.
+         */
+        //formatEx(
+        //    [in] IInterface* object,
+        //    [in] StringBuffer* buffer,
+        //    [in] IFieldPosition* field,
+        //    [out] StringBuffer* value);
+
+        /**
+         * Formats the specified object using the rules of this format and returns
+         * an {@code AttributedCharacterIterator} with the formatted string and no
+         * attributes.
+         */
+        FormatToCharacterIterator(
+            [in] IInterface* object,
+            [out] IAttributedCharacterIterator** charactorIterator);
+
+        /**
+         * Parses the specified string using the rules of this format.
+         */
+        ParseObject(
+            [in] String string,
+            [out] IInterface** object);
+
+        /**
+         * Parses the specified string starting at the index specified by
+         * {@code position}. If the string is successfully parsed then the index of
+         * the {@code ParsePosition} is updated to the index following the parsed
+         * text. On error, the index is unchanged and the error index of
+         * {@code ParsePosition} is set to the index where the error occurred.
+         */
+        ParseObjectEx(
+            [in] String string,
+            [in] IParsePosition* position,
+            [out] IInterface** object);
+    }
+
+}

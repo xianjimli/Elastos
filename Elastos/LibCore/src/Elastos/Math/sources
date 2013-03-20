@@ -1,0 +1,28 @@
+
+TARGET_NAME= Elastos.Math
+TARGET_TYPE= eco
+
+INCLUDES += $(MAKEDIR)/../../../inc/Elastos/common;
+INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Lang;
+INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Math;
+
+IMPORTS = Elastos.Core.eco
+IMPORTS += Elastos.Utility.eco
+IMPORTS += Com.Kortide.Platform.eco
+
+SOURCES = Elastos.Math.car
+SOURCES += RoundingMode.cpp
+SOURCES += CRoundingMode.cpp
+
+
+
+LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Core.lib
+ifeq "$(XDK_TARGET_PLATFORM)" "win32"
+LIBRARIES += $(XDK_LIB_PATH)/Elastos.Runtime.lib
+else
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Core.eco
+LIBRARIES += $(XDK_USER_LIB)/crt0.lib
+endif

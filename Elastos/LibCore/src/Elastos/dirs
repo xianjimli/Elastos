@@ -9,3 +9,7 @@ DIRS += Xml
 DIRS += Net
 DIRS += SQL
 DIRS += Test
+
+DIRS += Math
+DIRS += Lang
+DIRS += Text

@@ -1,0 +1,10 @@
+module {
+    interface IStringCharacterIterator {
+        /**
+         * Sets the source string to iterate over. The begin and end positions are
+         * set to the start and end of this string.
+         */
+        SetText(
+            [in] String value);   
+    }
+}

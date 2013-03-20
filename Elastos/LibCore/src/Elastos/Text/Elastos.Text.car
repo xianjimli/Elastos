@@ -1,0 +1,281 @@
+module
+{
+    importlib("Elastos.Core.eco");
+    importlib("Elastos.Utility.eco");
+    importlib("Elastos.Lang.eco");
+    importlib("Elastos.Math.eco");
+
+    merge("../../../car/Elastos/Text/CharacterIterator.car");
+    merge("../../../car/Elastos/Text/AttributedCharacterIterator.car");
+    merge("../../../car/Elastos/Text/ParsePosition.car");
+    merge("../../../car/Elastos/Text/Format.car");
+    merge("../../../car/Elastos/Text/FieldPosition.car");
+    merge("../../../car/Elastos/Text/DateFormat.car");
+    merge("../../../car/Elastos/Text/DateFormatSymbols.car");
+    merge("../../../car/Elastos/Text/NumberFormat.car");
+    merge("../../../car/Elastos/Text/MessageFormat.car");
+    merge("../../../car/Elastos/Text/ChoiceFormat.car");
+    merge("../../../car/Elastos/Text/DecimalFormatSymbols.car");
+    merge("../../../car/Elastos/Text/NativeDecimalFormat.car");
+    merge("../../../car/Elastos/Text/CollationAttribute.car");
+    merge("../../../car/Elastos/Text/ICUCollationElementIterator.car");
+    merge("../../../car/Elastos/Text/DecimalFormat.car");
+    merge("../../../car/Elastos/Text/SimpleDateFormat.car");
+    merge("../../../car/Elastos/Text/BreakIterator.car");
+    merge("../../../car/Elastos/Text/RuleBasedBreakIterator.car");
+    merge("../../../car/Elastos/Text/CollationKey.car");
+    merge("../../../car/Elastos/Text/Collator.car");
+    merge("../../../car/Elastos/Text/Annotation.car");
+    merge("../../../car/Elastos/Text/StringCharacterIterator.car");
+    merge("../../../car/Elastos/Text/ICUCollationKey.car");
+    merge("../../../car/Elastos/Text/ICUCollator.car");
+    merge("../../../car/Elastos/Text/ICURuleBasedCollator.car");
+    merge("../../../car/Elastos/Text/CollationElementIterator.car");
+    merge("../../../car/Elastos/Text/RuleBasedCollator.car");
+    merge("../../../car/Elastos/Text/AttributedString.car");
+    //merge("../../../car/Elastos/Text/Bidi.car");
+
+    class CAttributedCharacterIterator_Attribute {
+        constructor(
+            [in] String name);
+
+        interface IAttributedCharacterIterator_Attribute;
+    }
+
+    class CParsePosition {
+        constructor(
+            [in] Int32 index);
+
+        interface IParsePosition;
+    }
+
+    class CFieldPosition {
+        constructor(
+            [in] Int32 field);
+
+        constructor(
+            [in] IFormat_Field* attribute);
+
+        constructor(
+            [in] IFormat_Field* attribute,
+            [in] Int32 field);
+
+        interface IFieldPosition;
+    }
+
+    class CMessageFormat {
+
+        constructor(
+            [in] String tem,
+            [in] ILocale* locale);
+
+        constructor(
+            [in] String tem);
+
+        interface IMessageFormat;
+    }
+
+    [deprecated]
+    class CChoiceFormat {
+        constructor(
+            [in] ArrayOf<Double>* limits,
+            [in] ArrayOf<String>* formats);
+
+        constructor(
+            [in] String tem);
+
+        interface IChoiceFormat;
+    }
+
+    class CDateFormatSymbols {
+        constructor();
+
+        constructor(
+            [in] ILocale* locale);
+
+        interface IDateFormatSymbols;
+    }
+
+    class CDecimalFormatSymbols {
+        constructor();
+
+        constructor(
+            [in] ILocale* locale);
+
+        interface IDecimalFormatSymbols;
+    }
+
+    class CNativeDecimalFormat {
+        constructor(
+            [in] String pattern, 
+            [in] IDecimalFormatSymbols* dfs);
+
+        // Used so java.util.Formatter doesn't need to allocate DecimalFormatSymbols instances.
+//        constructor(
+//            [in] String pattern,
+//            [in] LocaleData* data);
+
+        interface INativeDecimalFormat;
+    }
+
+    class CDecimalFormat {
+        constructor();
+
+        constructor(
+            [in] String pattern);
+
+        constructor(
+            [in] String pattern, 
+            [in] IDecimalFormatSymbols* value);
+
+        constructor(
+            [in] String pattern,
+            [in] ILocale* locale);
+
+        interface IDecimalFormat;
+    }
+
+    class CSimpleDateFormat {
+        constructor();
+
+        constructor(
+            [in] String pattern);
+
+        constructor(
+            [in] String template,
+            [in] IDateFormatSymbols* value);
+
+        constructor(
+            [in] String template,
+            [in] ILocale* locale);
+
+        interface ISimpleDateFormat;
+    }
+
+    class CRuleBasedBreakIterator {
+        constructor();
+
+        interface IRuleBasedBreakIterator;
+    }
+
+    class CAnnotation {
+        constructor(
+            [in] IInterface* attribute);
+
+        interface IAnnotation;
+    }
+
+    class CStringCharacterIterator {
+        constructor(
+            [in] String value);
+
+        constructor(
+            [in] String value,
+            [in] Int32 location);
+
+        constructor(
+            [in] String value,
+            [in] Int32 start,
+            [in] Int32 end,
+            [in] Int32 location);
+
+        interface ICharacterIterator;
+
+        interface IStringCharacterIterator;
+    }
+
+    class CICUCollationElementIterator {
+        constructor(
+            [in] Int32 collelemiteratoraddress);
+
+        interface IICUCollationElementIterator;
+    }
+
+    [deprecated]
+    class CICUCollationKey {
+        constructor(
+            [in] String source,
+            [in] ArrayOf<Byte>* bytes);
+
+        interface IICUCollationKey;
+    }
+
+    class CICURuleBasedCollator {
+        constructor(
+            [in] String rules);
+
+        constructor(
+            [in] String rules,
+            [in] Int32 strength);
+
+        constructor(
+            [in] String rules, 
+            [in] Int32 normalizationMode, 
+            [in] Int32 strength);
+
+        constructor(
+            [in] ILocale* locale);
+
+        interface IICURuleBasedCollator;
+    }
+
+    class CCollationElementIterator {
+        constructor(
+            [in] IICUCollationElementIterator* iterator);
+
+        interface ICollationElementIterator;
+    }
+
+    class CRuleBasedCollator {
+        constructor(
+            [in] IICUCollator* wrapper);
+
+        constructor(
+            [in] String rules);
+
+        interface IRuleBasedCollator;
+    }
+
+//    [deprecated]
+//    class CAttributedString {
+//        constructor(
+//            [in] IAttributedCharacterIterator* iterator,
+//            [in] Int32 start,
+//            [in] Int32 end);
+
+//        constructor(
+//            [in] IAttributedCharacterIterator* iterator, 
+//            [in] Int32 start,
+//            [in] Int32 end, 
+//            [in] ArrayOf<IAttributedCharacterIterator_Attribute*>* attributes);
+
+//        constructor(
+//            [in] String value);
+
+        //constructor(String value,
+        //    Map<? extends AttributedCharacterIterator.Attribute, ?> attributes);
+
+//        interface IAttributedString;
+//    }
+
+//    [deprecated]
+//    class CBidi {
+//        constructor(
+//            [in] IAttributedCharacterIterator* paragraph);
+
+//        constructor(
+//            [in] ArrayOf<Char32>* text,
+//            [in] Int32 textStart,
+//            [in] ArrayOf<Byte>* embeddings,
+//            [in] Int32 embStart,
+//            [in] Int32 paragraphLength,
+//            [in] Int32 flags);
+
+//        constructor(
+//            [in] String paragraph,
+//            [in] Int32 flags);
+
+//        interface IBidi;
+//    }
+
+}

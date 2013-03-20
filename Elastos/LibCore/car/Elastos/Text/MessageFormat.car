@@ -1,0 +1,116 @@
+module
+{
+    interface ILocale;
+    interface IParsePosition;
+
+    interface IMessageFormat_Field extends IFormat_Field {
+    
+    }
+    [deprecated]
+    interface IMessageFormat extends IFormat {
+        /**
+         * Changes this {@code MessageFormat} to use the specified pattern.
+         */
+        ApplyPattern(
+            [in] String template);
+
+        /**
+         * Converts the specified objects into a string which it appends to the
+         * specified string buffer using the pattern of this message format.
+         * <p>
+         * If the {@code field} member of the specified {@code FieldPosition} is
+         * {@code MessageFormat.Field.ARGUMENT}, then the begin and end index of
+         * this field position is set to the location of the first occurrence of a
+         * message format argument. Otherwise, the {@code FieldPosition} is ignored.
+         */
+        //formatEx2(
+        //    [in] ArrayOf<IInterface*>* objects,
+        //    [in] StringBuffer* buffer,
+        //    [in] IFieldPosition* field,
+        //    [out] StringBuffer* outBuffer);
+
+        /**
+         * Returns the {@code Format} instances used by this message format.
+         */
+        GetFormats(
+            [out, callee] ArrayOf<IFormat*>* formats); 
+
+        /**
+         * Returns the formats used for each argument index. If an argument is
+         * placed more than once in the pattern string, then this returns the format
+         * of the last one.
+         */
+        GetFormatsByArgumentIndex(
+            [out, callee] ArrayOf<IFormat*>* formatsByArgumentIndex);
+
+        /**
+         * Sets the format used for the argument at index {@code argIndex} to
+         * {@code format}.
+         */
+        SetFormatByArgumentIndex(
+            [in] Int32 argIndex,
+            [in] IFormat* format);
+
+        /**
+         * Sets the formats used for each argument. The {@code formats} array
+         * elements should be in the order of the argument indices.
+         */
+        SetFormatsByArgumentIndexEx(
+            [in] ArrayOf<IFormat*>* formats);
+
+        /**
+         * Returns the locale used when creating formats.
+         */
+        GetLocale(
+            [out] ILocale** locale);
+
+        /**
+         * Parses the message arguments from the specified string using the rules of
+         * this message format.
+         */
+        Parse(
+            [in] String string,
+            [out, callee] ArrayOf<IInterface*>* result);
+
+        /**
+         * Parses the message argument from the specified string starting at the
+         * index specified by {@code position}. If the string is successfully
+         * parsed then the index of the {@code ParsePosition} is updated to the
+         * index following the parsed text. On error, the index is unchanged and the
+         * error index of {@code ParsePosition} is set to the index where the error
+         * occurred.
+         */
+        ParseEx(
+            [in] String string,
+            [in] IParsePosition* position,
+            [out, callee] ArrayOf<IInterface*>* result);
+
+        /**
+         * Sets the specified format used by this message format.
+         */
+        SetFormat(
+            [in] Int32 offset,
+            [in] IFormat* format);
+
+        /**
+         * Sets the formats used by this message format.
+         */
+        SetFormats(
+            [in] ArrayOf<IFormat*>* formats);
+
+        /**
+         * Sets the locale to use when creating {@code Format} instances. Changing
+         * the locale may change the behavior of {@code applyPattern},
+         * {@code toPattern}, {@code format} and {@code formatToCharacterIterator}.
+         */
+        SetLocale(
+            [in] ILocale* locale);
+
+        /**
+         * Returns the pattern of this message format.
+         */
+        ToPattern(
+            [out] String* pattern);
+
+    }
+}

@@ -1,0 +1,47 @@
+module
+{
+    /**
+     * This class represents a currency as identified in the ISO 4217 currency
+     * codes.
+     */
+    interface ICurrency {
+        /**
+         * Returns this currency's ISO 4217 currency code.
+         */
+        GetCurrencyCode(
+            [out] String* currencyCode);
+
+        /**
+         * Returns the localized currency symbol for this currency in the user's default locale.
+         * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
+         */
+        GetSymbol(
+            [out] String* symbol);
+
+        /**
+         * Returns the localized currency symbol for this currency in {@code locale}.
+         * That is, given "USD" and Locale.US, you'd get "$", but given "USD" and a non-US locale,
+         * you'd get "US$".
+         *
+         * <p>If the locale only specifies a language rather than a language and a country (such as
+         * {@code Locale.JAPANESE} or {new Locale("en", "")} rather than {@code Locale.JAPAN} or
+         * {new Locale("en", "US")}), the ISO 4217 currency code is returned.
+         *
+         * <p>If there is no locale-specific currency symbol, the ISO 4217 currency code is returned.
+         */
+        GetSymbolEx(
+            [in] ILocale* locale,
+            [out] String* symbol);
+
+        /**
+         * Returns the default number of fraction digits for this currency. For
+         * instance, the default number of fraction digits for the US dollar is 2.
+         * For the Japanese Yen the number is 0. In the case of pseudo-currencies,
+         * such as IMF Special Drawing Rights, -1 is returned.
+         *
+         * @return the default number of fraction digits for this currency.
+         */
+        GetDefaultFractionDigits(
+            [out] Int32* defaultFractionDigits);
+    }
+}

@@ -1,0 +1,57 @@
+module {
+    [deprecated]
+    interface IAttributedString {
+        /**
+         * Applies a given attribute to this string.
+         */
+        AddAttribute(
+            [in] IAttributedCharacterIterator_Attribute* attribute,
+            [in] IInterface* value);
+
+        /**
+         * Applies a given attribute to the given range of this string.
+         */
+        AddAttributeEx(
+            [in] IAttributedCharacterIterator_Attribute* attribute,
+            [in] IInterface* value,
+            [in] Int32 start,
+            [in] Int32 end);
+
+        /**
+         * Applies a given set of attributes to the given range of the string.
+         */
+//        public void addAttributes(
+//                Map<? extends AttributedCharacterIterator.Attribute, ?> attributes,
+//                int start, int end);
+
+        /**
+         * Returns an {@code AttributedCharacterIterator} that gives access to the
+         * complete content of this attributed string.
+         */
+        GetIterator(
+            [out] IAttributedCharacterIterator** iterator);
+
+        /**
+         * Returns an {@code AttributedCharacterIterator} that gives access to the
+         * complete content of this attributed string. Only attributes contained in
+         * {@code attributes} are available from this iterator if they are defined
+         * for this text.
+         */
+        GetIteratorEx(
+            [in] ArrayOf<IAttributedCharacterIterator_Attribute*>* attributes,
+            [out] IAttributedCharacterIterator** iterator);
+
+        /**
+         * Returns an {@code AttributedCharacterIterator} that gives access to the
+         * contents of this attributed string starting at index {@code start} up to
+         * index {@code end}. Only attributes contained in {@code attributes} are
+         * available from this iterator if they are defined for this text.
+         */
+
+        GetIteratorEx2(
+            [in] ArrayOf<IAttributedCharacterIterator_Attribute*>* attributes,
+            [in] Int32 start,
+            [in] Int32 end,
+            [out] IAttributedCharacterIterator** iterator);
+    }
+}

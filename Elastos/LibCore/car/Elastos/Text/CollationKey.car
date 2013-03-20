@@ -1,0 +1,22 @@
+module {
+    interface ICollationKey {
+        /**
+         * Compares this collation key to the given collation key.
+         */
+        CompareTo(
+            [in] ICollationKey* value,
+            [out] Int32* result);
+
+        /**
+         * Returns the string from which this collation key was created.
+         */
+        GetSourceString(
+            [out] String* sourceString);
+
+        /**
+         * Returns this collation key as a byte array.
+         */
+        ToByteArray(
+            [out, callee] ArrayOf<Byte>* array);
+    }
+}

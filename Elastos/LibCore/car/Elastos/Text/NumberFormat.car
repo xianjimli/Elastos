@@ -1,0 +1,220 @@
+module
+{
+    interface IFieldPosition;
+    interface IParsePosition;
+    interface INumber;
+//    interface IRoundingMode;
+//    interface ICurrency;
+
+    interface INumberFormat_Field extends IFormat_Field {
+
+    }
+
+    /**
+     * Field constant identifying the integer part of a number.
+     */
+    const INumberFormat_INTEGER_FIELD = 0;
+
+    /**
+     * Field constant identifying the fractional part of a number.
+     */
+    const INumberFormat_FRACTION_FIELD = 1;
+
+    interface INumberFormat extends IFormat {
+        /**
+         * Formats the specified double using the rules of this number format.
+         */
+        formatEx2(
+            [in] Double value,
+            [out] String* format);
+
+        /**
+         * Formats the specified double value as a string using the pattern of this
+         * number format and appends the string to the specified string buffer.
+         * <p>
+         * If the {@code field} member of {@code position} contains a value
+         * specifying a format field, then its {@code beginIndex} and
+         * {@code endIndex} members will be updated with the position of the first
+         * occurrence of this field in the formatted text.
+         */
+        //formatEx3(
+        //    [in] Double value,
+        //    [in] StringBuffer* buffer,
+        //    [in] IFieldPosition* field,
+        //    [out] StringBuffer* format);
+
+        /**
+         * Formats the specified long using the rules of this number format.
+         */
+        formatEx4(
+            [in] Int64 value,
+            [out] String* format);
+
+        /**
+         * Formats the specified long value as a string using the pattern of this
+         * number format and appends the string to the specified string buffer.
+         * <p>
+         * If the {@code field} member of {@code position} contains a value
+         * specifying a format field, then its {@code beginIndex} and
+         * {@code endIndex} members will be updated with the position of the first
+         * occurrence of this field in the formatted text.
+         */
+        //formatEx5(
+        //    [in] Int64 value,
+        //    [in] StringBuffer* buffer,
+        //    [in] IFieldPosition* field,
+        //    [out] StringBuffer* format);
+
+        /**
+         * Returns the currency used by this number format.
+         * <p>
+         * This implementation throws {@code UnsupportedOperationException},
+         * concrete subclasses should override this method if they support currency
+         * formatting.
+         */
+//        GetCurrency(
+//            [out] ICurrency** currency);
+
+        /**
+         * Returns the maximum number of fraction digits that are printed when
+         * formatting. If the maximum is less than the number of fraction digits,
+         * the least significant digits are truncated.
+         */
+        GetMaximumFractionDigits(
+            [out] Int32* maximumFractionDigits);
+
+        /**
+         * Returns the maximum number of integer digits that are printed when
+         * formatting. If the maximum is less than the number of integer digits, the
+         * most significant digits are truncated.
+         */
+        GetMaximumIntegerDigits(
+            [out] Int32* maximumIntegerDigits);
+
+        /**
+         * Returns the minimum number of fraction digits that are printed when
+         * formatting.
+         */
+        GetMinimumFractionDigits(
+            [out] Int32* minimumFractionDigits);
+
+        /**
+         * Returns the minimum number of integer digits that are printed when
+         * formatting.
+         */
+        GetMinimumIntegerDigits(
+            [out] Int32* minimumIntegerDigits);
+
+        /**
+         * Indicates whether this number format formats and parses numbers using a
+         * grouping separator.
+         */
+        IsGroupingUsed(
+            [out] Boolean* isGroupingUsed);
+
+        /**
+         * Indicates whether this number format only parses integer numbers. Parsing
+         * stops if a decimal separator is encountered.
+         */
+        IsParseIntegerOnly(
+            [out] Boolean* isParseIntegerOnly);
+
+        /**
+         * Parses a {@code Number} from the specified string using the rules of this
+         * number format.
+         */
+        Parse(
+            [in] String string,
+            [out] INumber** value);
+
+        /**
+         * Parses a {@code Number} from the specified string starting at the index
+         * specified by {@code position}. If the string is successfully parsed then
+         * the index of the {@code ParsePosition} is updated to the index following
+         * the parsed text. On error, the index is unchanged and the error index of
+         * {@code ParsePosition} is set to the index where the error occurred.
+         */
+        ParseEx(
+            [in] String string,
+            [in] IParsePosition* position,
+            [out] INumber** value);
+
+        /**
+         * Sets the currency used by this number format when formatting currency
+         * values. The min and max fraction digits remain the same.
+         * <p>
+         * This implementation throws {@code UnsupportedOperationException},
+         * concrete subclasses should override this method if they support currency
+         * formatting.
+         */
+//        SetCurrency(
+//            [in] ICurrency* currency);
+
+        /**
+         * Sets whether this number format formats and parses numbers using a
+         * grouping separator.
+         */
+        SetGroupingUsed(
+            [in] Boolean value);
+
+        /**
+         * Sets the maximum number of fraction digits that are printed when
+         * formatting. If the maximum is less than the number of fraction digits,
+         * the least significant digits are truncated.
+         */
+        SetMaximumFractionDigits(
+            [in] Int32 value);
+
+        /**
+         * Sets the new maximum count of integer digits that are printed when
+         * formatting. If the maximum is less than the number of integer digits, the
+         * most significant digits are truncated.
+         */
+        SetMaximumIntegerDigits(
+            [in] Int32 value);
+
+        /**
+         * Sets the minimum number of fraction digits that are printed when
+         * formatting.
+         *
+         * @param value
+         *            the minimum number of fraction digits.
+         */
+        SetMinimumFractionDigits(
+            [in] Int32 value);
+
+        /**
+         * Sets the minimum number of integer digits that are printed when
+         * formatting.
+         */
+        SetMinimumIntegerDigits(
+            [in] Int32 value);
+
+        /**
+         * Specifies if this number format should parse numbers only as integers or
+         * else as any kind of number. If this method is called with a {@code true}
+         * value then subsequent parsing attempts will stop if a decimal separator
+         * is encountered.
+         */
+        SetParseIntegerOnly(
+            [in] Boolean value);
+
+        /**
+         * Returns the {@code RoundingMode} used by this {@code NumberFormat}. The default
+         * implementation in {@code NumberFormat} throws {@code UnsupportedOperationException}.
+         * Subclasses for which a rounding mode is meaningful are expected to override this method.
+         * @since 1.6
+         */
+//        GetRoundingMode(
+//            [out] IRoundingMode** roundingMode);
+
+        /**
+         * Sets the {@code RoundingMode} used by this {@code NumberFormat}. The default
+         * implementation in {@code NumberFormat} throws {@code UnsupportedOperationException}.
+         * Subclasses for which a rounding mode is meaningful are expected to override this method.
+         * @since 1.6
+         */
+//        SetRoundingMode(
+//            [in] IRoundingMode* roundingMode);
+    }
+}

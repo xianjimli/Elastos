@@ -1,0 +1,99 @@
+module {
+    /**
+     * This constant is returned by the iterator in the methods
+     * {@code next()} and {@code previous()} when the end or the
+     * beginning of the source string has been reached, and there are no more
+     * valid collation elements to return.
+     */
+    const ICollationElementIterator_NULLORDER = -1;
+
+    interface ICollationElementIterator {
+        /**
+         * Obtains the maximum length of any expansion sequence that ends with the
+         * specified collation element. Returns {@code 1} if there is no expansion
+         * with this collation element as the last element.
+         */
+        GetMaxExpansion(
+            [in] Int32 order,
+            [out] Int32* maxExpansion);
+
+        /**
+         * Obtains the character offset in the source string corresponding to the
+         * next collation element. This value could be any of:
+         * <ul>
+         * <li>The index of the first character in the source string that matches
+         * the value of the next collation element. This means that if
+         * {@code setOffset(offset)} sets the index in the middle of a contraction,
+         * {@code getOffset()} returns the index of the first character in the
+         * contraction, which may not be equal to the original offset that was set.
+         * Hence calling {@code getOffset()} immediately after
+         * {@code setOffset(offset)} does not guarantee that the original offset set
+         * will be returned.</li>
+         * <li>If normalization is on, the index of the immediate subsequent
+         * character, or composite character with the first character, having a
+         * combining class of 0.</li>
+         * <li>The length of the source string, if iteration has reached the end.
+         * </li>
+         * </ul>
+         */
+        GetOffset(
+            [out] Int32* offset);
+
+        /**
+         * Obtains the next collation element in the source string.
+         */
+        Next(
+            [out] Int32* nextValue);
+
+        /**
+         * Obtains the previous collation element in the source string.
+         */
+        Previous(
+            [out] Int32* previousValue);
+
+        /**
+         * Repositions the cursor to point at the first element of the current
+         * string. The next call to {@link #next()} or {@link #previous()} will
+         * return the first and last collation element in the string, respectively.
+         * <p>
+         * If the {@code RuleBasedCollator} used by this iterator has had its
+         * attributes changed, calling {@code reset()} reinitializes the iterator to
+         * use the new attributes.
+         */
+        Reset();
+
+        /**
+         * Points the iterator at the collation element associated with the
+         * character in the source string which is found at the supplied offset.
+         * After this call completes, an invocation of the {@link #next()} method
+         * will return this collation element.
+         * <p>
+         * If {@code newOffset} corresponds to a character which is part of a
+         * sequence that maps to a single collation element then the iterator is
+         * adjusted to the start of that sequence. As a result of this, any
+         * subsequent call made to {@code getOffset()} may not return the same value
+         * set by this method.
+         * <p>
+         * If the decomposition mode is on, and offset is in the middle of a
+         * decomposable range of source text, the iterator may not return a correct
+         * result for the next forwards or backwards iteration. The user must ensure
+         * that the offset is not in the middle of a decomposable range.
+         */
+        SetOffset(
+            [in] Int32 newOffset);
+
+        /**
+         * Sets a new source string iterator for iteration, and resets the offset to
+         * the beginning of the text.
+         */
+        SetTextEx(
+            [in] ICharacterIterator* source);
+
+        /**
+         * Sets a new source string for iteration, and resets the offset to the
+         * beginning of the text.
+         */
+        SetText(
+            [in] String source);
+    }
+}

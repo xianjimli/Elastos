@@ -13,3 +13,8 @@ DIRS += Elastos/Utility/Regex
 DIRS += Elastos/Process
 DIRS += Elastos/SQL
 DIRS += Elastos/Test
+
+
+DIRS += Elastos/Math
+DIRS += Elastos/Lang
+DIRS += Elastos/Text

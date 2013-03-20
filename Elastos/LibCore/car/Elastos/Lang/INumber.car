@@ -1,0 +1,50 @@
+
+module
+{
+    /**
+     * The abstract superclass of the classes which represent numeric base types
+     * (that is {@link Byte}, {@link Short}, {@link Integer}, {@link Long},
+     * {@link Float}, and {@link Double}.
+     */
+    interface INumber {
+        /**
+         * Returns this object's value as a byte. Might involve rounding and/or
+         * truncating the value, so it fits into a byte.
+         */
+        ByteValue(
+            [out] Byte* value);
+
+        /**
+         * Returns this object's value as a double. Might involve rounding.
+         */
+        DoubleValue(
+            [out] Double* value);
+
+        /**
+         * Returns this object's value as a float. Might involve rounding.
+         */
+        FloatValue(
+            [out] Float* value);
+
+        /**
+         * Returns this object's value as an int. Might involve rounding and/or
+         * truncating the value, so it fits into an int.
+         */
+        Int32Value(
+            [out] Int32* value);
+
+        /**
+         * Returns this object's value as a long. Might involve rounding and/or
+         * truncating the value, so it fits into a long.
+         */
+        Int64Value(
+            [out] Int64* value);
+
+        /**
+         * Returns this object's value as a short. Might involve rounding and/or
+         * truncating the value, so it fits into a short.
+         */
+        Int16Value(
+            [out] Int16* value);
+	}
+}

@@ -1,0 +1,79 @@
+TARGET_NAME= Elastos.Text
+TARGET_TYPE= eco
+
+INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Core/lib/elastos;
+INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Core/lib;
+INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Core;
+INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Utility;
+INCLUDES += $(MAKEDIR)/../../../inc/Elastos/common;
+INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Math;
+INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Text;
+
+IMPORTS = Elastos.Core.eco
+IMPORTS += Elastos.Utility.eco
+IMPORTS += Elastos.Lang.eco
+IMPORTS += Elastos.Math.eco
+IMPORTS += Com.Kortide.Platform.eco
+
+SOURCES = Elastos.Text.car
+SOURCES += AttributedCharacterIterator_Attribute.cpp
+SOURCES += CAttributedCharacterIterator_Attribute.cpp
+SOURCES += Format.cpp
+SOURCES += ParsePosition.cpp
+SOURCES += CParsePosition.cpp
+SOURCES += FieldPosition.cpp
+SOURCES += CFieldPosition.cpp
+SOURCES += DateFormat.cpp
+SOURCES += NumberFormat.cpp
+SOURCES += MessageFormat.cpp
+SOURCES += CMessageFormat.cpp
+SOURCES += ChoiceFormat.cpp
+SOURCES += CChoiceFormat.cpp
+SOURCES += DateFormatSymbols.cpp
+SOURCES += CDateFormatSymbols.cpp
+SOURCES += NativeDecimalFormat.cpp
+SOURCES += CNativeDecimalFormat.cpp
+SOURCES += NativeBreakIterator.cpp
+SOURCES += BreakIterator.cpp
+SOURCES += RuleBasedBreakIterator.cpp
+SOURCES += CRuleBasedBreakIterator.cpp
+SOURCES += DecimalFormatSymbols.cpp
+SOURCES += CDecimalFormatSymbols.cpp
+SOURCES += DecimalFormat.cpp
+SOURCES += CDecimalFormat.cpp
+SOURCES += SimpleDateFormat.cpp
+SOURCES += CSimpleDateFormat.cpp
+SOURCES += CollationKey.cpp
+SOURCES += Collator.cpp
+SOURCES += Annotation.cpp
+SOURCES += CAnnotation.cpp
+SOURCES += StringCharacterIterator.cpp
+SOURCES += CStringCharacterIterator.cpp
+SOURCES += NativeCollation.cpp
+SOURCES += ICUCollationElementIterator.cpp
+SOURCES += CICUCollationElementIterator.cpp
+SOURCES += ICUCollator.cpp
+SOURCES += ICUCollationKey.cpp
+SOURCES += CICUCollationKey.cpp
+SOURCES += ICURuleBasedCollator.cpp
+SOURCES += CICURuleBasedCollator.cpp
+SOURCES += CollationElementIterator.cpp
+SOURCES += CCollationElementIterator.cpp
+SOURCES += RuleBasedCollator.cpp
+SOURCES += CRuleBasedCollator.cpp
+SOURCES += Normalizer.cpp
+#SOURCES += AttributedString.cpp
+#SOURCES += CAttributedString.cpp
+#SOURCES += Bidi.cpp
+#SOURCES += CBidi.cpp
+
+LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
+LIBRARIES += $(XDK_USER_LIB)/Elastos.Core.lib
+ifeq "$(XDK_TARGET_PLATFORM)" "win32"
+LIBRARIES += $(XDK_LIB_PATH)/Elastos.Runtime.lib
+else
+LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
+LIBRARIES += $(XDK_TARGETS)/Elastos.Core.eco
+LIBRARIES += $(XDK_USER_LIB)/crt0.lib
+endif

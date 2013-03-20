@@ -1,0 +1,23 @@
+module {
+    interface IICURuleBasedCollator extends IICUCollator{
+        /**
+         * Get the collation rules of this Collation object
+         * The rules will follow the rule syntax.
+         */
+        GetRules(
+            [out] String* rules);
+
+        /**
+         * Create a CollationElementIterator object that will iterator over the
+         * elements in a string, using the collation rules defined in this
+         * RuleBasedCollator
+         */
+        GetCollationElementIterator(
+            [in] String source,
+            [out] IICUCollationElementIterator** collationElementIterator);
+
+        GetCollationElementIteratorEx(
+            [in] ICharacterIterator* it,
+            [out] IICUCollationElementIterator** collationElementIterator);
+    }
+}

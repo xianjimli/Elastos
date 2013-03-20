@@ -1,0 +1,94 @@
+module {
+        /**
+         * Strongest collator strength value. Typically used to denote differences
+         * between base characters. See class documentation for more explanation.
+         */
+        const ICUCollator_PRIMARY = 0;
+
+        /**
+         * Second level collator strength value.
+         * Accents in the characters are considered secondary differences.
+         * Other differences between letters can also be considered secondary
+         * differences, depending on the language.
+         */
+        const ICUCollator_SECONDARY = 1;
+
+        /**
+         * Third level collator strength value.
+         * Upper and lower case differences in characters are distinguished at this
+         * strength level. In addition, a variant of a letter differs from the base
+         * form on the tertiary level.
+         */
+        const ICUCollator_TERTIARY = 2;
+
+        /**
+         * Fourth level collator strength value.
+         * When punctuation is ignored
+         */
+        const ICUCollator_QUATERNARY = 3;
+
+        /**
+         * <p>
+         * Smallest Collator strength value. When all other strengths are equal,
+         * the IDENTICAL strength is used as a tiebreaker. The Unicode code point
+         * values of the NFD form of each string are compared, just in case there
+         * is no difference.
+         */
+        const ICUCollator_IDENTICAL = 15;
+
+        /**
+         * <p>Decomposition mode value. With NO_DECOMPOSITION set, Strings
+         * will not be decomposed for collation. This is the default
+         * decomposition setting unless otherwise specified by the locale
+         * used to create the Collator.</p>
+         */
+        const ICUCollator_NO_DECOMPOSITION = 16; 
+
+    interface IICUCollator {
+
+        Equals(
+            [in] String source,
+            [in] String target,
+            [out] Boolean* result);
+
+        EqualsEx(
+            [in] IInterface* target,
+            [out] Boolean* result);
+
+        Clone(
+            [out] IInterface** instance); 
+
+        Compare(
+            [in] String source,
+            [in] String target,
+            [out] Int32* value);
+
+
+        GetDecomposition(
+            [out] Int32* decomposition);
+
+        SetDecomposition(
+            [in] Int32 mode);
+
+        GetStrength(
+            [out] Int32* strength);
+
+        GetAttribute(
+            [in] Int32 type,
+            [out] Int32* attribute);
+
+        SetStrength(
+            [in] Int32 strength);
+
+        SetAttribute(
+            [in] Int32 type,
+            [in] Int32 value);
+
+        GetCollationKey(
+            [in] String source,
+            [out] IICUCollationKey** instance);
+
+        HashCode(
+            [out] Int32* value); 
+    }
+}

@@ -1,0 +1,11 @@
+module
+{
+    //importlib("Elastos.Core.eco");
+    merge("../../../car/Elastos/Lang/INumber.car");
+
+    class CNumber {
+        constructor();
+
+        interface INumber;
+    }
+}

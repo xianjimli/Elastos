@@ -1,0 +1,32 @@
+module {
+
+    // Values from the native UColAttributeValue enum.
+    const ICollationAttribute_VALUE_DEFAULT = -1;
+    const ICollationAttribute_VALUE_PRIMARY = 0;
+    const ICollationAttribute_VALUE_SECONDARY = 1;
+    const ICollationAttribute_VALUE_TERTIARY = 2;
+    const ICollationAttribute_VALUE_DEFAULT_STRENGTH = 2;
+    const ICollationAttribute_VALUE_QUATERNARY = 3;
+    const ICollationAttribute_VALUE_IDENTICAL = 15;
+    const ICollationAttribute_VALUE_OFF = 16;
+    const ICollationAttribute_VALUE_ON = 17;
+    const ICollationAttribute_VALUE_SHIFTED = 20;
+    const ICollationAttribute_VALUE_NON_IGNORABLE = 21;
+    const ICollationAttribute_VALUE_LOWER_FIRST = 24;
+    const ICollationAttribute_VALUE_UPPER_FIRST = 25;
+    const ICollationAttribute_VALUE_ON_WITHOUT_HANGUL = 28;
+    const ICollationAttribute_VALUE_ATTRIBUTE_VALUE_COUNT = 29;
+
+    // Values from the UColAttribute enum.
+    const ICollationAttribute_FRENCH_COLLATION = 0;
+    const ICollationAttribute_ALTERNATE_HANDLING = 1;
+    const ICollationAttribute_CASE_FIRST = 2;
+    const ICollationAttribute_CASE_LEVEL = 3;
+    const ICollationAttribute_NORMALIZATION_MODE = 4;
+    const ICollationAttribute_DECOMPOSITION_MODE = 4;
+    const ICollationAttribute_STRENGTH = 5;
+
+    interface ICollationAttribute {
+
+    }
+}

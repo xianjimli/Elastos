@@ -1,0 +1,106 @@
+module {
+    /**
+     * Constant that indicates the default base level. If there is no strong
+     * character, then set the paragraph level to 0 (left-to-right).
+     */
+    const Bidi_DIRECTION_DEFAULT_LEFT_TO_RIGHT = -2;
+
+    /**
+     * Constant that indicates the default base level. If there is no strong
+     * character, then set the paragraph level to 1 (right-to-left).
+     */
+    const Bidi_DIRECTION_DEFAULT_RIGHT_TO_LEFT = -1;
+
+    /**
+     * Constant that specifies the default base level as 0 (left-to-right).
+     */
+    const Bidi_DIRECTION_LEFT_TO_RIGHT = 0;
+
+    /**
+     * Constant that specifies the default base level as 1 (right-to-left).
+     */
+    const Bidi_DIRECTION_RIGHT_TO_LEFT = 1;
+
+    interface IBidi {
+        /**
+         * Returns whether the base level is from left to right.
+         */
+        BaseIsLeftToRight(
+            [out] Boolean* baseLevel);
+
+        /**
+         * Creates a new {@code Bidi} object containing the information of one line
+         * from this object.
+         */
+        CreateLineBidi(
+            [in] Int32 lineStart,
+            [in] Int32 lineLimit,
+            [out] IBidi** object);
+
+        /**
+         * Returns the base level.
+         */
+        GetBaseLevel(
+            [out] Int32* baseLevel);
+
+        /**
+         * Returns the length of the text in the {@code Bidi} object.
+         */
+        GetLength(
+            [out] Int32* length);
+
+        /**
+         * Returns the level of a specified character.
+         */
+        GetLevelAt(
+            [in] Int32 offset,
+            [out] Int32* level);
+
+        /**
+         * Returns the number of runs in the bidirectional text.
+         */
+        GetRunCount(
+            [out] Int32* runCount);
+
+        /**
+         * Returns the level of the specified run.
+         */
+        GetRunLevel(
+            [in] Int32 run,
+            [out] Int32* runLevel);
+
+        /**
+         * Returns the limit offset of the specified run.
+         */
+        GetRunLimit(
+            [in] Int32 run,
+            [out] Int32* runLimit);
+
+        /**
+         * Returns the start offset of the specified run.
+         */
+        GetRunStart(
+            [in] Int32 run,
+            [out] Int32* runStart);
+
+        /**
+         * Indicates whether the text is from left to right, that is, both the base
+         * direction and the text direction is from left to right.
+         */
+        IsLeftToRight(
+            [out] Boolean* isLefttoRight);
+
+        /**
+         * Indicates whether the text direction is mixed.
+         */
+        IsMixed(
+            [out] Boolean* isMixed);
+
+        /**
+         * Indicates whether the text is from right to left, that is, both the base
+         * direction and the text direction is from right to left.
+         */
+        IsRightToLeft(
+            [out] Boolean* isRightToLeft);
+    }
+}

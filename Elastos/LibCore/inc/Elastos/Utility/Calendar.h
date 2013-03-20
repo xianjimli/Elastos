@@ -11,10 +11,11 @@ protected:
         /* [in] */ ILocale* locale);
 
 public:
-    CARAPI constructor(ITimeZone* timezone);
+    CARAPI constructor(
+        /* [in] */ ITimeZone* timezone);
 
 
-    CARAPI_(void) SetTimeZone(
+    virtual CARAPI SetTimeZone(
         /* [in] */ ITimeZone* timezone);
 
     virtual CARAPI Add(
@@ -59,7 +60,7 @@ public:
     CARAPI GetTime(
          /* [out] */ IDate** ppDate);
 
-    CARAPI GetTimeZone(
+    virtual CARAPI GetTimeZone(
          /* [out] */ ITimeZone** ppZone);
 
     CARAPI IsLenient(

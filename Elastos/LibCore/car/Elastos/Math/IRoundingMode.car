@@ -5,14 +5,17 @@ module
 	 * Specifies the rounding behavior for operations whose results cannot be
 	 * represented exactly.
 	 */
-    enum RoundingMode {
+    enum RRoundingMode {
+
+    	RoundingMode_UP = 0,
+  
 		/**
 		 * Rounding mode where the values are rounded towards zero.
 		 * <br>
 		 * Rule: {@code x.round().abs() <= x.abs()}
 		 */
 //		RoundingMode_DOWN = BigDecimal_ROUND_DOWN,
-        RoundingMode_DOWN = 0,
+        RoundingMode_DOWN = 1,
 
 		/**
 		 * Rounding mode to round towards positive infinity. For positive values
@@ -22,7 +25,7 @@ module
 		 * Rule: {@code x.round() >= x}
 		 */
 //		RoundingMode_CEILING = BigDecimal_ROUND_CEILING,
-		RoundingMode_CEILING = 1,
+		RoundingMode_CEILING = 2,
 		
 		/**
 		 * Rounding mode to round towards negative infinity. For positive values
@@ -32,28 +35,28 @@ module
 		 * Rule: {@code x.round() <= x}
 		 */
 //		RoundingMode_FLOOR = BigDecimal_ROUND_FLOOR,
-		RoundingMode_FLOOR = 2,
+		RoundingMode_FLOOR = 3,
 		
 		/**
 		 * Rounding mode where values are rounded towards the nearest neighbor. Ties
 		 * are broken by rounding up.
 		 */
 //		RoundingMode_HALF_UP = BigDecimal_ROUND_HALF_UP,
-		RoundingMode_HALF_UP = 3,
+		RoundingMode_HALF_UP = 4,
 
 		/**
 		 * Rounding mode where values are rounded towards the nearest neighbor. Ties
 		 * are broken by rounding down.
 		 */
 //		RoundingMode_HALF_DOWN = BigDecimal_ROUND_HALF_DOWN,
-		RoundingMode_HALF_DOWN = 4,
+		RoundingMode_HALF_DOWN = 5,
 
 		/**
 		 * Rounding mode where values are rounded towards the nearest neighbor. Ties
 		 * are broken by rounding to the even neighbor.
 		 */
 //		RoundingMode_HALF_EVEN = BigDecimal_ROUND_HALF_EVEN,
-		RoundingMode_HALF_EVEN = 5,
+		RoundingMode_HALF_EVEN = 6,
 
 		/**
 		 * Rounding mode where the rounding operations throws an ArithmeticException
@@ -61,8 +64,8 @@ module
 		 * cannot be represented exactly.
 		 */
 //		RoundingMode_UNNECESSARY = BigDecimal_ROUND_UNNECESSARY,
-		RoundingMode_UNNECESSARY = 6,			
-	}
+		RoundingMode_UNNECESSARY = 7,			
+    }
     interface IRoundingMode
 	{
 		/**
@@ -75,9 +78,9 @@ module
 		 */
 		ValueOf(
             [in] Int32 mode,
-            [out] IRoundingMode** newObj);
+            [out] RRoundingMode* newObj);
 		
-        Func(
-            [in] RoundingMode roundingModeEnum);
+//        Func(
+//            [in] RRoundingMode roundingModeEnum);
 	}
 }

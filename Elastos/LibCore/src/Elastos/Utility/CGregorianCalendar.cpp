@@ -910,6 +910,18 @@ ECode CGregorianCalendar::constructor(
     return NOERROR;
 }
 
+ECode CGregorianCalendar::GetTimeZone(
+    /* [out] */ ITimeZone** tz)
+{
+    return Calendar::GetTimeZone(tz);
+}
+
+ECode CGregorianCalendar::SetTimeZone(
+        /* [in] */ ITimeZone* tz)
+{
+    return Calendar::SetTimeZone(tz);
+}
+
 void CGregorianCalendar::ComputeFields()
 {
     ITimeZone *timeZone;

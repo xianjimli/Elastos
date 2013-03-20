@@ -1,0 +1,32 @@
+module {
+    interface IRuleBasedCollator extends ICollator {
+        /**
+         * Obtains a {@code CollationElementIterator} for the given
+         * {@code CharacterIterator}. The source iterator's integrity will be
+         * preserved since a new copy will be created for use.
+         */
+        GetCollationElementIteratorEx(
+            [in] ICharacterIterator* source,
+            [out] ICollationElementIterator** collationElementIterator);
+
+        /**
+         * Obtains a {@code CollationElementIterator} for the given string.
+         */
+        GetCollationElementIterator(
+            [in] String source,
+            [out] ICollationElementIterator** collationElementIterator);
+
+        /**
+         * Returns the collation rules of this collator. These {@code rules} can be
+         * fed into the {@code RuleBasedCollator(String)} constructor.
+         * <p>
+         * Note that the {@code rules} are actually interpreted as a delta to the
+         * standard Unicode Collation Algorithm (UCA). Hence, an empty {@code rules}
+         * string results in the default UCA rules being applied. This differs
+         * slightly from other implementations which work with full {@code rules}
+         * specifications and may result in different behavior.
+         */
+        GetRules(
+            [out] String* rules);
+    }
+}

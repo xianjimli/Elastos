@@ -1,0 +1,124 @@
+module
+{
+    /**
+     * Defines keys for text attributes.
+     */
+    interface IAttributedCharacterIterator_Attribute {
+        /**
+         * Resolves a deserialized instance to the correct constant attribute.
+         */
+        ReadResolve(
+            [out] IInterface** resolve);
+
+        /**
+         * Returns the name of this attribute.
+         *
+         * @return the name of this attribute.
+         */
+        GetName(
+            [out] String* name);
+    }
+
+    /**
+     * Extends the
+     * {@link CharacterIterator} interface, adding support for iterating over
+     * attributes and not only characters. An
+     * {@code AttributedCharacterIterator} also allows the user to find runs and
+     * their limits. Runs are defined as ranges of characters that all have the same
+     * attributes with the same values.
+     */
+    interface IAttributedCharacterIterator extends ICharacterIterator {
+        /**
+         * Returns a set of attributes present in the {@code
+         * AttributedCharacterIterator}. An empty set is returned if no attributes
+         * were defined.
+         *
+         * @return a set of attribute keys; may be empty.
+         */
+        //public Set<Attribute> getAllAttributeKeys();
+
+        /**
+         * Returns the value stored in the attribute for the current character. If
+         * the attribute was not defined then {@code null} is returned.
+         *
+         * @param attribute the attribute for which the value should be returned.
+         * @return the value of the requested attribute for the current character or
+         *         {@code null} if it was not defined.
+         */
+        GetAttribute(
+            [in] IAttributedCharacterIterator_Attribute* attribute,
+            [out] IInterface** value);
+
+        /**
+         * Returns a map of all attributes of the current character. If no
+         * attributes were defined for the current character then an empty map is
+         * returned.
+         *
+         * @return a map of all attributes for the current character or an empty
+         *         map.
+         */
+        //public Map<Attribute, Object> getAttributes();
+
+        /**
+         * Returns the index of the last character in the run having the same
+         * attributes as the current character.
+         *
+         * @return the index of the last character of the current run.
+         */
+        GetRunLimit(
+            [out] Int32* index);
+
+        /**
+         * Returns the index of the last character in the run that has the same
+         * attribute value for the given attribute as the current character.
+         *
+         * @param attribute
+         *            the attribute which the run is based on.
+         * @return the index of the last character of the current run.
+         */
+        GetRunLimitEx(
+            [in] IAttributedCharacterIterator_Attribute* attribute,
+            [out] Int32* index);
+
+        /**
+         * Returns the index of the last character in the run that has the same
+         * attribute values for the attributes in the set as the current character.
+         *
+         * @param attributes
+         *            the set of attributes which the run is based on.
+         * @return the index of the last character of the current run.
+         */
+        //public int getRunLimit(Set<? extends Attribute> attributes);
+
+        /**
+         * Returns the index of the first character in the run that has the same
+         * attributes as the current character.
+         *
+         * @return the index of the last character of the current run.
+         */
+        GetRunStart(
+            [out] Int32* index);
+
+        /**
+         * Returns the index of the first character in the run that has the same
+         * attribute value for the given attribute as the current character.
+         *
+         * @param attribute
+         *            the attribute which the run is based on.
+         * @return the index of the last character of the current run.
+         */
+        GetRunStartEx(
+            [in] IAttributedCharacterIterator_Attribute* attribute,
+            [out] Int32* index);
+
+        /**
+         * Returns the index of the first character in the run that has the same
+         * attribute values for the attributes in the set as the current character.
+         *
+         * @param attributes
+         *            the set of attributes which the run is based on.
+         * @return the index of the last character of the current run.
+         */
+        //public int getRunStart(Set<? extends Attribute> attributes);
+    }
+}

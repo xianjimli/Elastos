@@ -1,0 +1,9 @@
+module {
+    interface IAnnotation {
+        /**
+         * Returns the value of this annotation. The value may be {@code null}.
+         */
+        GetValue(
+            [out] IInterface** value);
+    }
+}

@@ -604,7 +604,7 @@ module
 		 *                if the time is not set and the time cannot be computed
 		 *                from the current field values.
 		 */
-		GetTimeInMillis(
+        GetTimeInMillis(
             [out] Int64* time);
 
 		/**
@@ -612,9 +612,8 @@ module
 		 *
 		 * @return the {@code TimeZone} used by this {@code Calendar}.
 		 */
-//		public TimeZone getTimeZone() {
-//			return zone;
-//		}
+        GetTimeZone(
+            [out] ITimeZone** timezone);
 
 		/**
 		 * Returns if this {@code Calendar} accepts field values which are outside the valid
@@ -802,10 +801,8 @@ module
 		 * @param timezone
 		 *            a {@code TimeZone}.
 		 */
-//		public void setTimeZone(TimeZone timezone) {
-//			zone = timezone;
-//			areFieldsSet = false;
-//		}
+        SetTimeZone(
+            [in] ITimeZone* timezone);
 
 		/**
 		 * Compares the times of the two {@code Calendar}, which represent the milliseconds

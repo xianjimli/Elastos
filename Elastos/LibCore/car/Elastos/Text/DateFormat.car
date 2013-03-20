@@ -1,0 +1,262 @@
+module
+{
+    interface IDate;
+    interface IFieldPosition;
+    interface ICalendar;
+    interface ITimeZone;
+    interface IParsePosition;
+    //interface INumberFormat;
+    interface IFormat_Field;
+
+    /**
+     * The format style constant defining the default format style. The default
+     * is MEDIUM.
+     */
+    const IDateFormat_DEFAULT = 2;
+
+    /**
+     * The format style constant defining the full style.
+     */
+    const IDateFormat_FULL = 0;
+
+    /**
+     * The format style constant defining the long style.
+     */
+    const IDateFormat_LONG = 1;
+
+    /**
+     * The format style constant defining the medium style.
+     */
+    const IDateFormat_MEDIUM = 2;
+
+    /**
+     * The format style constant defining the short style.
+     */
+    const IDateFormat_SHORT = 3;
+
+    /**
+     * The {@code FieldPosition} selector for 'G' field alignment, corresponds
+     * to the {@link Calendar#ERA} field.
+     */
+    const IDateFormat_ERA_FIELD = 0;
+
+    /**
+     * The {@code FieldPosition} selector for 'y' field alignment, corresponds
+     * to the {@link Calendar#YEAR} field.
+     */
+    const IDateFormat_YEAR_FIELD = 1;
+
+    /**
+     * The {@code FieldPosition} selector for 'M' field alignment, corresponds
+     * to the {@link Calendar#MONTH} field.
+     */
+    const IDateFormat_MONTH_FIELD = 2;
+
+    /**
+     * The {@code FieldPosition} selector for 'd' field alignment, corresponds
+     * to the {@link Calendar#DATE} field.
+     */
+    const IDateFormat_DATE_FIELD = 3;
+
+    /**
+     * The {@code FieldPosition} selector for 'k' field alignment, corresponds
+     * to the {@link Calendar#HOUR_OF_DAY} field. {@code HOUR_OF_DAY1_FIELD} is
+     * used for the one-based 24-hour clock. For example, 23:59 + 01:00 results
+     * in 24:59.
+     */
+    const IDateFormat_HOUR_OF_DAY1_FIELD = 4;
+
+    /**
+     * The {@code FieldPosition} selector for 'H' field alignment, corresponds
+     * to the {@link Calendar#HOUR_OF_DAY} field. {@code HOUR_OF_DAY0_FIELD} is
+     * used for the zero-based 24-hour clock. For example, 23:59 + 01:00 results
+     * in 00:59.
+     */
+    const IDateFormat_HOUR_OF_DAY0_FIELD = 5;
+
+    /**
+     * FieldPosition selector for 'm' field alignment, corresponds to the
+     * {@link Calendar#MINUTE} field.
+     */
+    const IDateFormat_MINUTE_FIELD = 6;
+
+    /**
+     * FieldPosition selector for 's' field alignment, corresponds to the
+     * {@link Calendar#SECOND} field.
+     */
+    const IDateFormat_SECOND_FIELD = 7;
+
+    /**
+     * FieldPosition selector for 'S' field alignment, corresponds to the
+     * {@link Calendar#MILLISECOND} field.
+     */
+    const IDateFormat_MILLISECOND_FIELD = 8;
+
+    /**
+     * FieldPosition selector for 'E' field alignment, corresponds to the
+     * {@link Calendar#DAY_OF_WEEK} field.
+     */
+    const IDateFormat_DAY_OF_WEEK_FIELD = 9;
+
+    /**
+     * FieldPosition selector for 'D' field alignment, corresponds to the
+     * {@link Calendar#DAY_OF_YEAR} field.
+     */
+    const IDateFormat_DAY_OF_YEAR_FIELD = 10;
+
+    /**
+     * FieldPosition selector for 'F' field alignment, corresponds to the
+     * {@link Calendar#DAY_OF_WEEK_IN_MONTH} field.
+     */
+    const IDateFormat_DAY_OF_WEEK_IN_MONTH_FIELD = 11;
+
+    /**
+     * FieldPosition selector for 'w' field alignment, corresponds to the
+     * {@link Calendar#WEEK_OF_YEAR} field.
+     */
+    const IDateFormat_WEEK_OF_YEAR_FIELD = 12;
+
+    /**
+     * FieldPosition selector for 'W' field alignment, corresponds to the
+     * {@link Calendar#WEEK_OF_MONTH} field.
+     */
+    const IDateFormat_WEEK_OF_MONTH_FIELD = 13;
+
+    /**
+     * FieldPosition selector for 'a' field alignment, corresponds to the
+     * {@link Calendar#AM_PM} field.
+     */
+    const IDateFormat_AM_PM_FIELD = 14;
+
+    /**
+     * FieldPosition selector for 'h' field alignment, corresponding to the
+     * {@link Calendar#HOUR} field.
+     */
+    const IDateFormat_HOUR1_FIELD = 15;
+
+    /**
+     * The {@code FieldPosition} selector for 'K' field alignment, corresponding to the
+     * {@link Calendar#HOUR} field.
+     */
+    const IDateFormat_HOUR0_FIELD = 16;
+
+    /**
+     * The {@code FieldPosition} selector for 'z' field alignment, corresponds
+     * to the {@link Calendar#ZONE_OFFSET} and {@link Calendar#DST_OFFSET}
+     * fields.
+     */
+    const IDateFormat_TIMEZONE_FIELD = 17;
+
+    interface IDateFormat_Field extends IFormat_Field {
+        /**
+         * Returns the Calendar field that this field represents.
+         */
+        GetCalendarField(
+            [out] Int32* calendarField);
+    }
+
+    [deprecated]
+    interface IDateFormat extends IFormat{
+        /**
+         * Formats the specified date using the rules of this date format.
+         */
+        formatEx2(
+            [in] IDate* date,
+            [out] String* formatString);
+
+        /**
+         * Formats the specified date as a string using the pattern of this date
+         * format and appends the string to the specified string buffer.
+         * <p>
+         * If the {@code field} member of {@code field} contains a value specifying
+         * a format field, then its {@code beginIndex} and {@code endIndex} members
+         * will be updated with the position of the first occurrence of this field
+         * in the formatted text.
+         */
+        //formatEx3(
+        //    [in] IDate* date,
+        //    [in] StringBuffer* buffer,
+        //    [in] IFieldPosition* field,
+        //    [out] StringBuffer* formatString);
+
+        /**
+         * Returns the calendar used by this {@code DateFormat}.
+         *
+         * @return the calendar used by this date format.
+         */
+        GetCalendar(
+            [out] ICalendar** calendar);
+
+        /**
+         * Returns the {@code NumberFormat} used by this {@code DateFormat}.
+         *
+         * @return the {@code NumberFormat} used by this date format.
+         */
+//        GetNumberFormat(
+//            [out] INumberFormat** numberFormat);
+
+        /**
+         * Returns the time zone of this date format's calendar.
+         */
+        GetTimeZone(
+            [out] ITimeZone** timezone);
+
+        /**
+         * Indicates whether the calendar used by this date format is lenient.
+         */
+        IsLenient(
+            [out] Boolean* isLenient);
+
+        /**
+         * Parses a date from the specified string using the rules of this date
+         * format.
+         */
+        Parse(
+            [in] String string,
+            [out] IDate** date);
+
+        /**
+         * Parses a date from the specified string starting at the index specified
+         * by {@code position}. If the string is successfully parsed then the index
+         * of the {@code ParsePosition} is updated to the index following the parsed
+         * text. On error, the index is unchanged and the error index of {@code
+         * ParsePosition} is set to the index where the error occurred.
+         * <p>
+         * By default, parsing is lenient: If the input is not in the form used by
+         * this object's format method but can still be parsed as a date, then the
+         * parse succeeds. Clients may insist on strict adherence to the format by
+         * calling {@code setLenient(false)}.
+         */
+        ParseEx(
+            [in] String string,
+            [in] IParsePosition* position,
+            [out] IDate** date);
+
+        /**
+         * Sets the calendar used by this date format.
+         */
+        SetCalendar(
+            [in] ICalendar* cal);
+
+        /**
+         * Specifies whether or not date/time parsing shall be lenient. With lenient
+         * parsing, the parser may use heuristics to interpret inputs that do not
+         * precisely match this object's format. With strict parsing, inputs must
+         * match this object's format.
+         */
+        SetLenient(
+            [in] Boolean value);
+
+        /**
+         * Sets the {@code NumberFormat} used by this date format.
+         */
+//        SetNumberFormat(
+//            [in] INumberFormat* format);
+
+        /**
+         * Sets the time zone of the calendar used by this date format.
+         */
+        SetTimeZone(
+            [in] ITimeZone* timezone);
+    }
+}

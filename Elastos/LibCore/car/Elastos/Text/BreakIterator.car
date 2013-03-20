@@ -1,0 +1,112 @@
+module {
+    /**
+     * This constant is returned by iterate methods like {@code previous()} or
+     * {@code next()} if they have returned all valid boundaries.
+     */
+    const DONE = -1;
+
+    interface IBreakIterator {
+        /**
+         * Indicates whether the given offset is a boundary position. If this method
+         * returns true, the current iteration position is set to the given
+         * position; if the function returns false, the current iteration position
+         * is set as though {@link #following(int)} had been called.
+         */
+        IsBoundary(
+            [in] Int32 offset,
+            [out] Boolean* isBoundary);
+
+        /**
+         * Returns the position of last boundary preceding the given offset, and
+         * sets the current position to the returned value, or {@code DONE} if the
+         * given offset specifies the starting position.
+         */
+        Preceding(
+            [in] Int32 offset,
+            [out] Int32* precedingValue);
+
+        /**
+         * Sets the new text string to be analyzed, the current position will be
+         * reset to the beginning of this new string, and the old string will be
+         * lost.
+         */
+        SetText(
+            [in] String newText);
+
+        /**
+         * Returns this iterator's current position.
+         */
+        Current(
+            [out] Int32* currentValue);
+
+        /**
+         * Sets this iterator's current position to the first boundary and returns
+         * that position.
+         */
+        First(
+            [out] Int32* firstValue);
+
+        /**
+         * Sets the position of the first boundary to the one following the given
+         * offset and returns this position. Returns {@code DONE} if there is no
+         * boundary after the given offset.
+         */
+        Following(
+            [in] Int32 offset,
+            [out] Int32* followingValue);
+
+        /**
+         * Returns a {@code CharacterIterator} which represents the text being
+         * analyzed. Please note that the returned value is probably the internal
+         * iterator used by this object. If the invoker wants to modify the status
+         * of the returned iterator, it is recommended to first create a clone of
+         * the iterator returned.
+         */
+        GetText(
+            [out] ICharacterIterator** text);
+
+        /**
+         * Sets this iterator's current position to the last boundary and returns
+         * that position.
+         */
+        Last(
+            [out] Int32* lastValue);
+
+        /**
+         * Sets this iterator's current position to the next boundary after the
+         * current position, and returns this position. Returns {@code DONE} if no
+         * boundary was found after the current position.
+         *
+         * @return the position of last boundary.
+         */
+        Next(
+            [out] Int32* nextValue);
+
+        /**
+         * Sets this iterator's current position to the next boundary after the
+         * given position, and returns that position. Returns {@code DONE} if no
+         * boundary was found after the given position.
+         */
+        NextEx(
+            [in] Int32 n,
+            [out] Int32* nextValue);
+
+        /**
+         * Sets this iterator's current position to the previous boundary before the
+         * current position and returns that position. Returns {@code DONE} if
+         * no boundary was found before the current position.
+         *
+         * @return the position of last boundary.
+         */
+        Previous(
+            [out] Int32* previousValue);
+
+        /**
+         * Sets the new text to be analyzed by the given {@code CharacterIterator}.
+         * The position will be reset to the beginning of the new text, and other
+         * status information of this iterator will be kept.
+         */
+        SetTextEx(
+            [in] ICharacterIterator* newText);
+    }
+}

@@ -1,0 +1,12 @@
+module
+{
+    //importlib("Elastos.Core.eco");
+    merge("../../../car/Elastos/Math/IRoundingMode.car");
+
+    class CRoundingMode {
+        constructor(
+            [in] Int32 rm);
+
+        interface IRoundingMode;
+    }
+}

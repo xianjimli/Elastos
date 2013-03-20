@@ -17,7 +17,8 @@ ECode Calendar::constructor(
     return NOERROR;
 }
 
-ECode Calendar::constructor(ITimeZone* timezone)
+ECode Calendar::constructor(
+        /* [in] */ ITimeZone* timezone)
 {
     mFields = ArrayOf<Int32>::Alloc(Calendar_FIELD_COUNT);
     mIsSet = ArrayOf<Boolean>::Alloc(Calendar_FIELD_COUNT);
@@ -383,14 +384,14 @@ ECode Calendar::SetLenient(
     return NOERROR;
 }
 
-void Calendar::SetTimeZone(
+ECode Calendar::SetTimeZone(
     /* [in] */ ITimeZone* timezone)
 {
     mZone = timezone;
     Int32 offset;
     timezone->GetRawOffsetVir(&offset);
     mAreFieldsSet = FALSE;
-    return;
+    return NOERROR;
 }
 
 

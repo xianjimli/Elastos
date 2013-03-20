@@ -1,0 +1,163 @@
+module
+{
+    interface IDecimalFormatSymbols;
+
+    interface IDecimalFormat extends INumberFormat {
+        /**
+         * Changes the pattern of this decimal format to the specified pattern which
+         * uses localized pattern characters.
+         */
+        ApplyLocalizedPattern(
+            [in] String pattern);
+
+        /**
+         * Changes the pattern of this decimal format to the specified pattern which
+         * uses non-localized pattern characters.
+         */
+        ApplyPattern(
+            [in] String pattern);
+
+        /**
+         * Returns the {@code DecimalFormatSymbols} used by this decimal format.
+         */
+        GetDecimalFormatSymbols(
+            [out] IDecimalFormatSymbols** decimalFormatSymbols);
+
+        /**
+         * Returns the number of digits grouped together by the grouping separator.
+         * This only allows to get the primary grouping size. There is no API to get
+         * the secondary grouping size.
+         */
+        GetGroupingSize(
+            [out] Int32* groupingSize);
+
+        /**
+         * Returns the multiplier which is applied to the number before formatting
+         * or after parsing.
+         */
+        GetMultiplier(
+            [out] Int32* multiplier);
+
+        /**
+         * Returns the prefix which is formatted or parsed before a negative number.
+         */
+        GetNegativePrefix(
+            [out] String* negativePrefix);
+
+        /**
+         * Returns the suffix which is formatted or parsed after a negative number.
+         */
+        GetNegativeSuffix(
+            [out] String* negativeSuffix);
+
+        /**
+         * Returns the prefix which is formatted or parsed before a positive number.
+         */
+        GetPositivePrefix(
+            [out] String* positivePrefix);
+
+
+        /**
+         * Returns the suffix which is formatted or parsed after a positive number.
+         */
+        GetPositiveSuffix(
+            [out] String* positiveSuffix);
+
+        /**
+         * Indicates whether the decimal separator is shown when there are no
+         * fractional digits.
+         */
+        IsDecimalSeparatorAlwaysShown(
+            [out] Boolean* isDecimalSeparatorAlwaysShown);
+
+        /**
+         * This value indicates whether the return object of the parse operation is
+         * of type {@code BigDecimal}. This value defaults to {@code false}.
+         *
+         * @return {@code true} if parse always returns {@code BigDecimals},
+         *         {@code false} if the type of the result is {@code Long} or
+         *         {@code Double}.
+         */
+        IsParseBigDecimal(
+            [out] Boolean* isParseBigDecimal);
+
+        /**
+         * Sets the {@code DecimalFormatSymbols} used by this decimal format.
+         */
+        SetDecimalFormatSymbols(
+            [in] IDecimalFormatSymbols* value);
+
+        /**
+         * Sets whether the decimal separator is shown when there are no fractional
+         * digits.
+         */
+        SetDecimalSeparatorAlwaysShown(
+            [in] Boolean value);
+
+        /**
+         * Sets the number of digits grouped together by the grouping separator.
+         * This only allows to set the primary grouping size; the secondary grouping
+         * size can only be set with a pattern.
+         */
+        SetGroupingSize(
+            [in] Int32 value);
+
+        /**
+         * Sets the multiplier which is applied to the number before formatting or
+         * after parsing.
+         */
+        SetMultiplier(
+            [in] Int32 value);
+
+        /**
+         * Sets the prefix which is formatted or parsed before a negative number.
+         */
+        SetNegativePrefix(
+            [in] String value);
+
+        /**
+         * Sets the suffix which is formatted or parsed after a negative number.
+         */
+        SetNegativeSuffix(
+            [in] String value);
+
+        /**
+         * Sets the prefix which is formatted or parsed before a positive number.
+         */
+        SetPositivePrefix(
+            [in] String value);
+
+        /**
+         * Sets the suffix which is formatted or parsed after a positive number.
+         */
+        SetPositiveSuffix(
+            [in] String value);
+
+        /**
+         * Sets the behaviour of the parse method. If set to {@code true} then all
+         * the returned objects will be of type {@code BigDecimal}.
+         */
+        SetParseBigDecimal(
+            [in] Boolean newValue);
+
+        /**
+         * Returns the pattern of this decimal format using localized pattern
+         * characters.
+         */
+        ToLocalizedPattern(
+            [out] String* localizedPattern);
+
+        /**
+         * Returns the pattern of this decimal format using non-localized pattern
+         * characters.
+         */
+        ToPattern(
+            [out] String* pattern);
+
+        GetRoundingMode(
+            [out] RRoundingMode* roundingMode);
+
+        SetRoundingMode(
+            [in] RRoundingMode roundingMode);
+    }
+}

@@ -1,0 +1,109 @@
+module
+{
+    /**
+     * A constant which indicates that there is no character at the current
+     * index.
+     */
+    // Char32 ICharacterIterator_DONE = '0xffff';
+
+
+    /**
+     * An interface for the bidirectional iteration over a group of characters. The
+     * iteration starts at the begin index in the group of characters and continues
+     * to one index before the end index.
+     */
+    interface ICharacterIterator {
+        /**
+         * Returns a new {@code CharacterIterator} with the same properties.
+         *
+         * @return a shallow copy of this character iterator.
+         */
+        Clone(
+            [out] IInterface** shallowCopy);
+
+        /**
+         * Returns the character at the current index.
+         *
+         * @return the current character, or {@code DONE} if the current index is
+         *         past the beginning or end of the sequence.
+         */
+        Current(
+            [out] Char32* currentCharacter);
+
+        /**
+         * Sets the current position to the begin index and returns the character at
+         * the new position.
+         *
+         * @return the character at the begin index.
+         */
+        First(
+            [out] Char32* firstCharacter);
+
+        /**
+         * Returns the begin index.
+         *
+         * @return the index of the first character of the iteration.
+         */
+        GetBeginIndex(
+            [out] Int32* beginIndex);
+
+        /**
+         * Returns the end index.
+         *
+         * @return the index one past the last character of the iteration.
+         */
+        GetEndIndex(
+            [out] Int32* endIndex);
+
+        /**
+         * Returns the current index.
+         *
+         * @return the current index.
+         */
+        GetIndex(
+            [out] Int32* currentIndex);
+
+        /**
+         * Sets the current position to the end index - 1 and returns the character
+         * at the new position.
+         *
+         * @return the character before the end index.
+         */
+        Last(
+            [out] Char32* lastCharacter);
+
+        /**
+         * Increments the current index and returns the character at the new index.
+         *
+         * @return the character at the next index, or {@code DONE} if the next
+         *         index would be past the end.
+         */
+        Next(
+            [out] Char32* nextCharacter);
+
+        /**
+         * Decrements the current index and returns the character at the new index.
+         *
+         * @return the character at the previous index, or {@code DONE} if the
+         *         previous index would be past the beginning.
+         */
+        Previous(
+            [out] Char32* previousCharacter);
+
+        /**
+         * Sets the current index to a new position and returns the character at the
+         * new index.
+         *
+         * @param location
+         *            the new index that this character iterator is set to.
+         * @return the character at the new index, or {@code DONE} if the index is
+         *         past the end.
+         * @throws IllegalArgumentException
+         *         if {@code location} is less than the begin index or greater than
+         *         the end index.
+         */
+        SetIndex(
+            [in] Int32 location,
+            [out] Char32* character);
+    }
+}

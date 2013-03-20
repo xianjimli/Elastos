@@ -1,0 +1,61 @@
+module
+{
+    interface IDateFormatSymbols;
+    interface IDate;
+    interface IDateFormat;
+
+    interface ISimpleDateFormat extends IDateFormat {
+        /**
+         * Changes the pattern of this simple date format to the specified pattern
+         * which uses localized pattern characters.
+         */
+        ApplyLocalizedPattern(
+            [in] String tem);
+
+        /**
+         * Changes the pattern of this simple date format to the specified pattern
+         * which uses non-localized pattern characters.
+         */
+        ApplyPattern(
+            [in] String tem);
+
+        /**
+         * Returns the date which is the start of the one hundred year period for two-digit year values.
+         * See {@link #set2DigitYearStart} for details.
+         */
+        Get2DigitYearStart(
+            [out] IDate** date); 
+
+        /**
+         * Returns the {@code DateFormatSymbols} used by this simple date format.
+         */
+        GetDateFormatSymbols(
+            [out] IDateFormatSymbols** dateFormatSymbols);
+
+        /**
+         * Sets the date which is the start of the one hundred year period for two-digit year values.
+         */
+        Set2DigitYearStart(
+            [in] IDate* date);
+
+        /**
+         * Sets the {@code DateFormatSymbols} used by this simple date format.
+         */
+        SetDateFormatSymbols(
+            [in] IDateFormatSymbols* value);
+
+        /**
+         * Returns the pattern of this simple date format using localized pattern
+         * characters.
+         */
+        ToLocalizedPattern(
+            [out] String* pattern);
+
+        /**
+         * Returns the pattern of this simple date format using non-localized
+         * pattern characters.
+         */
+        ToPattern(
+            [out] String* pattern);
+    }
+}

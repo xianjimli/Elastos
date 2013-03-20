@@ -33,6 +33,11 @@ public:
 
     CARAPI Clear();
 
+    CARAPI GetTimeZone(
+        /* [out] */ ITimeZone** tz);
+
+    CARAPI SetTimeZone(
+        /* [in] */ ITimeZone* tz);
     CARAPI ClearEx(
         /* [in] */ Int32 field);
 

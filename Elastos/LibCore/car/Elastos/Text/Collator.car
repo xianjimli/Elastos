@@ -1,0 +1,97 @@
+module {
+    /**
+     * Constant used to specify the decomposition rule.
+     */
+    const Collator_NO_DECOMPOSITION = 0;
+
+    /**
+     * Constant used to specify the decomposition rule.
+     */
+    const Collator_CANONICAL_DECOMPOSITION = 1;
+
+    /**
+     * Constant used to specify the decomposition rule. This value for
+     * decomposition is not supported.
+     */
+    const Collator_FULL_DECOMPOSITION = 2;
+
+    /**
+     * Constant used to specify the collation strength.
+     */
+    const Collator_PRIMARY = 0;
+
+    /**
+     * Constant used to specify the collation strength.
+     */
+    const Collator_SECONDARY = 1;
+
+    /**
+     * Constant used to specify the collation strength.
+     */
+    const Collator_TERTIARY = 2;
+
+    /**
+     * Constant used to specify the collation strength.
+     */
+    const Collator_IDENTICAL = 3;
+
+    interface ICollator {
+        /**
+         * Compares two objects to determine their relative order. The objects must
+         * be strings.
+         */
+        Compare(
+            [in] IInterface* object1,
+            [in] IInterface* object2,
+            [out] Int32* result);
+
+        /**
+         * Compares two strings to determine their relative order.
+         */
+        CompareEx(
+            [in] String string1,
+            [in] String string2,
+            [out] Int32* value);
+
+        /**
+         * Compares two strings using the collation rules to determine if they are
+         * equal.
+         */
+        Equals(
+            [in] String string1,
+            [in] String string2,
+            [out] Boolean* recult);
+
+        /**
+         * Returns a {@link CollationKey} for the specified string for this collator
+         * with the current decomposition rule and strength value.
+         */
+        GetCollationKey(
+            [in] String string,
+            [out] ICollationKey** collationKey);
+
+        /**
+         * Returns the decomposition rule for this collator.
+         */
+        GetDecomposition(
+            [out] Int32* decomposition);
+
+        /**
+         * Returns the strength value for this collator.
+         */
+        GetStrength(
+            [out] Int32* strength);
+
+        /**
+         * Sets the decomposition rule for this collator.
+         */
+        SetDecomposition(
+            [in] Int32 value);
+
+        /**
+         * Sets the strength value for this collator.
+         */
+        SetStrength(
+            [in] Int32 value);
+    }
+}

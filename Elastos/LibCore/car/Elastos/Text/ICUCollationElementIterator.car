@@ -1,0 +1,62 @@
+module {
+
+    const NULLORDER = 0xFFFFFFFF;
+
+    interface IICUCollationElementIterator {
+        // public methods -----------------------------------------------
+
+        /**
+         * Reset the collation elements to their initial state.
+         * This will move the 'cursor' to the beginning of the text.
+         */
+        Reset();
+
+        /**
+         * Get the ordering priority of the next collation element in the text.
+         * A single character may contain more than one collation element.
+         */
+        Next(
+            [out] Int32* nextValue);
+
+        /**
+         * Get the ordering priority of the previous collation element in the text.
+         * A single character may contain more than one collation element.
+         */
+        Previous(
+            [out] Int32* previousValue);
+
+        /**
+         * Get the maximum length of any expansion sequences that end with the
+         * specified comparison order.
+         */
+        GetMaxExpansion(
+            [in] Int32 order,
+            [out] Int32* maxExpansion);
+
+        /**
+         * Set the text containing the collation elements.
+         */
+        SetText(
+            [in] String source);
+
+        // BEGIN android-added
+        SetTextEx(
+            [in] ICharacterIterator* source);
+        // END android-added
+
+        /**
+         * Get the offset of the current source character.
+         * This is an offset into the text of the character containing the current
+         * collation elements.
+         */
+        GetOffset(
+            [out] Int32* offset);
+
+        /**
+         * Set the offset of the current source character.
+         * This is an offset into the text of the character to be processed.
+         */
+        SetOffset(
+            [in] Int32 offset);
+    }
+}

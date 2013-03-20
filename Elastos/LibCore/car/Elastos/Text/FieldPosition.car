@@ -1,0 +1,49 @@
+module
+{
+    interface IFormat_Field;
+
+    /**
+     * Identifies fields in formatted strings. If a {@code FieldPosition} is passed
+     * to the format method with such a parameter, then the indices will be set to
+     * the start and end indices of the field in the formatted string.
+     */
+    interface IFieldPosition {
+        Clear();
+
+        /**
+         * Returns the index of the beginning of the field.
+         */
+        GetBeginIndex(
+            [out] Int32* beginIndex);
+
+        /**
+         * Returns the index one past the end of the field.
+         */
+        GetEndIndex(
+            [out] Int32* endIndex);
+
+        /**
+         * Returns the field which is being identified.
+         */
+        GetField(
+            [out] Int32* field);
+
+        /**
+         * Returns the attribute which is being identified.
+         */
+        GetFieldAttribute(
+            [out] IFormat_Field** fieldAttribute);
+
+        /**
+         * Sets the index of the beginning of the field.
+         */
+        SetBeginIndex(
+            [in] Int32 index);
+
+        /**
+         * Sets the index of the end of the field.
+         */
+        SetEndIndex(
+            [in] Int32 index);
+    }
+}
