@@ -17,7 +17,7 @@ const CString FileLoader::LOGTAG = "webkit";
  */
 FileLoader::FileLoader(
 	/* [in] */ const String& url, 
-	/* [in] */ const LoadListener* loadListener, 
+	/* [in] */ /*const*/ LoadListener* loadListener, 
 	/* [in] */ Int32 type,
 	/* [in] */ Boolean allowFileAccess) : StreamLoader(loadListener)
 {	
@@ -52,7 +52,7 @@ CARAPI_(Boolean) FileLoader::SetupStreamAndSendStatus()
 	if (mType == TYPE_ASSET) {
 		IAssetManager* assetManager = NULL;
 //        mContext->GetAssets(&assetManager)
-        assetManager->Open(mPath, &mDataStream);
+        assetManager->Open(mPath, (IInputStream**)&mDataStream);
     } else if(mType == TYPE_RES) {
         // get the resource id from the path. e.g. for the path like
         // drawable/foo.png, the id is located at field "foo" of class
