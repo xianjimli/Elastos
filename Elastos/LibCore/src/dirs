@@ -1,15 +1,15 @@
 
 DIRS = Elastos/Core
-DIRS += Elastos/Utility
+DIRS += Elastos/Utility/eco
 DIRS += Droid
 DIRS += Com
-DIRS += Elastos/UtilityLib
+DIRS += Elastos/Utility/lib
 DIRS += Elastos/Security
 DIRS += Elastos/IO
 DIRS += Elastos/Xml
 DIRS += Elastos/Net
-DIRS += Elastos/Utility/Zip
-DIRS += Elastos/Utility/Regex
+DIRS += Elastos/Utility/eco/Zip
+DIRS += Elastos/Utility/eco/Regex
 DIRS += Elastos/Process
 DIRS += Elastos/SQL
 DIRS += Elastos/Test

@@ -10,7 +10,7 @@ EXPORT_LIBRARY = 1
 C_FLAGS += -DHAVE_PTHREADS
 
 INCLUDESTEMP := $(INCLUDES);
-INCLUDES := $(MAKEDIR)/../../../../inc/Elastos/Utility/Logging;
+INCLUDES := $(MAKEDIR)/../../../../../inc/Elastos/Utility/Logging;
 INCLUDES += $(INCLUDESTEMP);
 
 SOURCES = Logger.cpp

@@ -2,8 +2,8 @@
 TARGET_NAME = Elastos.Utility.Regex
 TARGET_TYPE = eco
 
-INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/Utility/Regex
-INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/common
+INCLUDES += $(MAKEDIR)/../../../../../inc/Elastos/Utility/Regex
+INCLUDES += $(MAKEDIR)/../../../../../inc/Elastos/common
 
 IMPORTS = Elastos.Core.eco
 

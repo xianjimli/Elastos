@@ -3,8 +3,8 @@ TARGET_TYPE= eco
 
 IMPORTS = Elastos.Core.eco
 
-INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/Utility/Locks
-INCLUDES += $(MAKEDIR)/../../../inc/Elastos/common;
+INCLUDES += $(MAKEDIR)/../../../../../inc/Elastos/Utility/Locks
+INCLUDES += $(MAKEDIR)/../../../../../inc/Elastos/common;
 
 
 

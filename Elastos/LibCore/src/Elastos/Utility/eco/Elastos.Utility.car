@@ -2,20 +2,18 @@
 module
 {
 
-    merge("../../../car/Elastos/Utility/IComparator.car");
-    merge("../../../car/Elastos/Utility/IDate.car");
-    merge("../../../car/Elastos/Utility/ILocale.car");
-    merge("../../../car/Elastos/Utility/ICalendar.car");
-    merge("../../../car/Elastos/Utility/IGregorianCalendar.car");
-    merge("../../../car/Elastos/Utility/IICUHelper.car");
-    merge("../../../car/Elastos/Utility/IObjectStringMap.car");
-    merge("../../../car/Elastos/Utility/ITimeZone.car");
-    merge("../../../car/Elastos/Utility/ISimpleTimeZone.car");
-    merge("../../../car/Elastos/Utility/ITimerTask.car");
-    merge("../../../car/Elastos/Utility/ITimer.car");
-
-
-    merge("../../../car/Elastos/Utility/ICurrency.car");
+    merge("../../../../car/Elastos/Utility/IComparator.car");
+    merge("../../../../car/Elastos/Utility/IDate.car");
+    merge("../../../../car/Elastos/Utility/ILocale.car");
+    merge("../../../../car/Elastos/Utility/ICalendar.car");
+    merge("../../../../car/Elastos/Utility/IGregorianCalendar.car");
+    merge("../../../../car/Elastos/Utility/IICUHelper.car");
+    merge("../../../../car/Elastos/Utility/IObjectStringMap.car");
+    merge("../../../../car/Elastos/Utility/ITimeZone.car");
+    merge("../../../../car/Elastos/Utility/ISimpleTimeZone.car");
+    merge("../../../../car/Elastos/Utility/ITimerTask.car");
+    merge("../../../../car/Elastos/Utility/ITimer.car");
+    merge("../../../../car/Elastos/Utility/ICurrency.car");
 
     class CObjectContainer {
         interface IObjectContainer;

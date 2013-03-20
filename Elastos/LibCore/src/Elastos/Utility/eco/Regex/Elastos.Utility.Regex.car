@@ -3,10 +3,10 @@ module
 {
     importlib("Elastos.Core.eco");
 
-    merge("../../../../car/Elastos/Utility/Regex/Exceptions.car");
-    merge("../../../../car/Elastos/Utility/Regex/IMatchResult.car");
-    merge("../../../../car/Elastos/Utility/Regex/IMatcher.car");
-    merge("../../../../car/Elastos/Utility/Regex/IPattern.car");
+    merge("../../../../../car/Elastos/Utility/Regex/Exceptions.car");
+    merge("../../../../../car/Elastos/Utility/Regex/IMatchResult.car");
+    merge("../../../../../car/Elastos/Utility/Regex/IMatcher.car");
+    merge("../../../../../car/Elastos/Utility/Regex/IPattern.car");
 
     class CMatcher {
         /**
