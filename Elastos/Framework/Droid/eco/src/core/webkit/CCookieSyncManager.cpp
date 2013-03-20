@@ -2,7 +2,7 @@
 #include "webkit/CCookieSyncManager.h"
 #include "webkit/CWebViewDatabase.h"
 
-CCookieSyncManager::CCookieSyncManager* sRef;
+CCookieSyncManager* CCookieSyncManager::sRef;
 
 #if 0
 ECode CCookieSyncManager::GetInstance(
@@ -21,7 +21,7 @@ ECode CCookieSyncManager::CreateInstance(
 }
 #endif
 
-CCookieSyncManager::CCookieSyncManager() 
+CCookieSyncManager::CCookieSyncManager()
                 : WebSyncManager(NULL, (String)"CCookieSyncManager")
 {
 
@@ -66,7 +66,7 @@ CARAPI_(void) CCookieSyncManager::ClearAllCookies()
 }
 
 CARAPI_(Boolean) CCookieSyncManager::HasCookies()
-{    
+{
     // null mDataBase implies that the host application doesn't support
     // persistent cookie.
     if (mDataBase == NULL) {

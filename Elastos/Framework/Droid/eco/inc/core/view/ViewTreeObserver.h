@@ -24,25 +24,6 @@ public:
         , public IInternalInsetsInfo
     {
     public:
-        /**
-         * Option for {@link #setTouchableInsets(Int32)}: the entire window frame
-         * can be touched.
-         */
-        static const Int32 TOUCHABLE_INSETS_FRAME = 0;
-
-        /**
-         * Option for {@link #setTouchableInsets(Int32)}: the area inside of
-         * the content insets can be touched.
-         */
-        static const Int32 TOUCHABLE_INSETS_CONTENT = 1;
-
-        /**
-         * Option for {@link #setTouchableInsets(Int32)}: the area inside of
-         * the visible insets can be touched.
-         */
-        static const Int32 TOUCHABLE_INSETS_VISIBLE = 2;
-
-    public:
         InternalInsetsInfo();
 
         CARAPI_(PInterface) Probe(

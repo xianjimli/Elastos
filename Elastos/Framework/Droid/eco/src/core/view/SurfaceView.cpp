@@ -716,7 +716,7 @@ void SurfaceView::UpdateWindow(
 
             //TODO
             //if (!GetContext()->GetResources()->GetCompatibilityInfo()->SupportsScreen()) {
-            ((CWindowManagerLayoutParams*)mLayout.Get())->mFlags |= WindowManagerLayoutParams_FLAG_COMPATIBLE_WINDOW;
+            // ((CWindowManagerLayoutParams*)mLayout.Get())->mFlags |= WindowManagerLayoutParams_FLAG_COMPATIBLE_WINDOW;
             //}
 
             ((CWindowManagerLayoutParams*)mLayout.Get())->mMemoryType = mRequestedType;

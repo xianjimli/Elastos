@@ -15,7 +15,7 @@ const CString CWebStorage::CALLBACK = "callback";
 const CString CWebStorage::USAGE = "usage";
 const CString CWebStorage::QUOTA = "quota";
 
-CWebStorage::CWebStorage* sWebStorage = NULL;
+CWebStorage* CWebStorage::sWebStorage = NULL;
 
 ECode CWebStorage::CreateUIHandler()
 {
@@ -71,7 +71,7 @@ ECode CWebStorage::CreateHandler()
 {
     if (mHandler == NULL)
     {
-        
+
         class newHandler : public IHandler
         {
         public:

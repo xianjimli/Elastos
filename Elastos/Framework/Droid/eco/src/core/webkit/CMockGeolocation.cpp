@@ -1,7 +1,7 @@
 
 #include "webkit/CMockGeolocation.h"
 
-CMockGeolocation::CMockGeolocation* sMockGeolocation;
+CMockGeolocation* CMockGeolocation::sMockGeolocation;
 
 ECode CMockGeolocation::SetPosition(
     /* [in] */ Double latitude,
