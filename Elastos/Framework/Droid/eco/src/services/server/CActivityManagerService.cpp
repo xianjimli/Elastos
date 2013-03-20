@@ -1455,41 +1455,43 @@ ECode CActivityManagerService::SetRequestedOrientation(
     /* [in] */ IBinder* token,
     /* [in] */ Int32 requestedOrientation)
 {
-//    synchronized (this) {
-//        int index = mMainStack.indexOfTokenLocked(token);
-//        if (index < 0) {
-//            return;
-//        }
-//        ActivityRecord r = (ActivityRecord)mMainStack.mHistory.get(index);
-//        final long origId = Binder.clearCallingIdentity();
-//        mWindowManager.setAppOrientation(r, requestedOrientation);
-//        Configuration config = mWindowManager.updateOrientationFromAppTokens(
-//                mConfiguration,
-//                r.mayFreezeScreenLocked(r.app) ? r : null);
-//        if (config != null) {
-//            r.frozenBeforeDestroy = true;
-//            if (!updateConfigurationLocked(config, r)) {
-//                mMainStack.resumeTopActivityLocked(null);
-//            }
-//        }
-//        Binder.restoreCallingIdentity(origId);
-//    }
-    return E_NOT_IMPLEMENTED;
+    Mutex::Autolock lock(_m_syncLock);
+    Int32 index = mMainStack->GetIndexOfTokenLocked(token);
+    if (index < 0) {
+        return NOERROR;;
+    }
+    AutoPtr<CActivityRecord> r = mMainStack->mHistory[index];
+    const Int64 origId = Binder::ClearCallingIdentity();
+    mWindowManager->SetAppOrientation(r, requestedOrientation);
+    AutoPtr<IConfiguration> config;
+    mWindowManager->UpdateOrientationFromAppTokens(
+            mConfiguration,
+            r->MayFreezeScreenLocked(r->mApp) ? r : NULL,
+            (IConfiguration**)&config);
+    if (config != NULL) {
+        r->mFrozenBeforeDestroy = TRUE;
+        if (!UpdateConfigurationLocked(config, r)) {
+            mMainStack->ResumeTopActivityLocked(NULL);
+        }
+    }
+    Binder::RestoreCallingIdentity(origId);
+
+    return NOERROR;
 }
 
 ECode CActivityManagerService::GetRequestedOrientation(
     /* [in] */ IBinder* token,
     /* [out] */ Int32* requestedOrientation)
 {
-//    synchronized (this) {
-//        int index = mMainStack.indexOfTokenLocked(token);
-//        if (index < 0) {
-//            return ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
-//        }
-//        ActivityRecord r = (ActivityRecord)mMainStack.mHistory.get(index);
-//        return mWindowManager.getAppOrientation(r);
-//    }
-    return E_NOT_IMPLEMENTED;
+    Mutex::Autolock lock(_m_syncLock);
+    Int32 index = mMainStack->GetIndexOfTokenLocked(token);
+    if (index < 0) {
+        *requestedOrientation = ActivityInfo_SCREEN_ORIENTATION_UNSPECIFIED;
+        return NOERROR;
+    }
+    AutoPtr<CActivityRecord> r = mMainStack->mHistory[index];
+    mWindowManager->GetAppOrientation(r, requestedOrientation);
+    return NOERROR;
 }
 
 /**
@@ -4512,11 +4514,14 @@ ECode CActivityManagerService::MoveActivityTaskToBack(
         const Int64 origId = Binder::ClearCallingIdentity();
         Int32 taskId = GetTaskForActivityLocked(token, !nonRoot);
         if (taskId >= 0) {
-            return mMainStack->MoveTaskToBackLocked(taskId, NULL);
+            *result = mMainStack->MoveTaskToBackLocked(taskId, NULL);
+            return NOERROR;
         }
         Binder::RestoreCallingIdentity(origId);
     }
-    return FALSE;
+    *result = FALSE;
+
+    return NOERROR;
 }
 
 ECode CActivityManagerService::MoveTaskBackwards(

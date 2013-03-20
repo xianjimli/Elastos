@@ -60,6 +60,12 @@ public:
     CARAPI IsChild(
         /* [out] */ Boolean* isChild);
 
+    CARAPI GetIntent(
+        /* [out] */ IIntent** intent);
+
+    CARAPI SetIntent(
+        /* [in] */ IIntent* newIntent);
+
     CARAPI GetID(
         /* [out] */ String* id);
 
@@ -117,6 +123,11 @@ public:
         /* [in] */ IObjectStringMap* lastNonConfigurationChildInstances,
         /* [in] */ IConfiguration* config);
 
+    CARAPI OnConfigurationChanged(
+        /* [in] */ IConfiguration* newConfig);
+
+    CARAPI OnLowMemory();
+
     CARAPI DispatchNewIntent(
         /* [in] */ IIntent *intent);
 
@@ -126,11 +137,21 @@ public:
     CARAPI IsCalled(
         /* [out] */ Boolean* called);
 
-    CARAPI SetFinished(
+    CARAPI SetFinishing(
         /* [in] */ Boolean finished);
 
-    CARAPI IsFinished(
+    CARAPI IsFinishing(
         /* [out] */ Boolean* finished);
+
+    CARAPI MoveTaskToBack(
+        /* [in] */ Boolean nonRoot,
+        /* [out] */ Boolean* succeed);
+
+    CARAPI SetRequestedOrientation(
+        /* [int] */ Int32 requestedOrientation);
+
+    CARAPI GetRequestedOrientation(
+        /* [out] */ Int32* orientation);
 
     CARAPI MakeVisible();
 
@@ -331,6 +352,9 @@ public:
 
     CARAPI GetTitleColor(
         /* [out] */ Int32* textColor);
+
+    CARAPI RunOnUiThread(
+        /* [in] */ IRunnable* action);
 
     CARAPI OnCreateOptionsMenu(
         /* [in] */ IMenu* menu,
@@ -600,8 +624,6 @@ protected:
         /* [in] */ Int32 resultCode,
         /* [in] */ IIntent *pResultData);
 
-    CARAPI_(AutoPtr<IIntent>) GetIntent();
-
     /*protected*/
     virtual CARAPI OnTitleChanged(
         /* [in] */ ICharSequence* title,
@@ -681,6 +703,7 @@ private:
 
     Int32 mThemeResource;
     AutoPtr<ITheme> mTheme;
+    AutoPtr<IThread> mUiThread;
 };
 
 #endif //__ACTIVITY_H__
