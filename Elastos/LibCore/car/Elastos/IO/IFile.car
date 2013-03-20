@@ -667,4 +667,56 @@ module
         GetFreeSpace(
             [out] Int64* space);
     }
+
+    interface IFileHelper {
+
+        /**
+         * Creates an empty temporary file using the given prefix and suffix as part
+         * of the file name. If {@code suffix} is null, {@code .tmp} is used. This
+         * method is a convenience method that calls
+         * {@link #createTempFile(String, String, File)} with the third argument
+         * being {@code null}.
+         *
+         * @param prefix
+         *            the prefix to the temp file name.
+         * @param suffix
+         *            the suffix to the temp file name.
+         * @return the temporary file.
+         * @throws IOException
+         *             if an error occurs when writing the file.
+         */
+        CreateTempFile(
+            [in] String prefix,
+            [in] String suffix,
+            [out] IFile** file);
+
+        /**
+         * Creates an empty temporary file in the given directory using the given
+         * prefix and suffix as part of the file name. If {@code suffix} is null, {@code .tmp} is used.
+         *
+         * <p>Note that this method does <i>not</i> call {@link #deleteOnExit}.
+         *
+         * @param prefix
+         *            the prefix to the temp file name.
+         * @param suffix
+         *            the suffix to the temp file name.
+         * @param directory
+         *            the location to which the temp file is to be written, or
+         *            {@code null} for the default location for temporary files,
+         *            which is taken from the "java.io.tmpdir" system property. It
+         *            may be necessary to set this property to an existing, writable
+         *            directory for this method to work properly.
+         * @return the temporary file.
+         * @throws IllegalArgumentException
+         *             if the length of {@code prefix} is less than 3.
+         * @throws IOException
+         *             if an error occurs when writing the file.
+         */
+        //@SuppressWarnings("nls")
+        CreateTempFileEx(
+            [in] String prefix,
+            [in] String suffix,
+            [in] IFile* directory,
+            [out] IFile** file);
+    }
 }

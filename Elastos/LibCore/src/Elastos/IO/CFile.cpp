@@ -330,6 +330,24 @@ ECode CFile::CreateNewFile(
     return File::CreateNewFile(succeeded);
 }
 
+ECode CFile::CreateTempFile(
+    /* [in] */ const String& prefix,
+    /* [in] */ const String& suffix,
+    /* [out] */ IFile** file)
+{
+    return File::CreateTempFile(prefix, suffix, file);
+}
+
+ECode CFile::CreateTempFileEx(
+    /* [in] */ const String& prefix,
+    /* [in] */ const String& suffix,
+    /* [in] */ IFile* directory,
+    /* [out] */ IFile** file)
+{
+    return File::CreateTempFileEx(prefix, suffix, directory, file);
+}
+
+
 ECode CFile::RenameTo(
     /* [in] */ IFile* newPath,
     /* [out] */ Boolean* succeeded)

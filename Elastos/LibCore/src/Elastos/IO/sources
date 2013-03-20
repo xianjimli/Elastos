@@ -41,6 +41,7 @@ SOURCES += CByteArrayOutputStream.cpp
 SOURCES += CFileDescriptor.cpp
 SOURCES += File.cpp
 SOURCES += CFile.cpp
+SOURCES += CFileHelper.cpp
 SOURCES += FileInputStream.cpp
 SOURCES += CFileInputStream.cpp
 SOURCES += FileOutputStream.cpp

@@ -140,6 +140,17 @@ public:
     CARAPI CreateNewFile(
         /* [out] */ Boolean* succeeded);
 
+    CARAPI CreateTempFile(
+            /* [in] */ const String& prefix,
+            /* [in] */ const String& suffix,
+            /* [out] */ IFile** file);
+
+    CARAPI CreateTempFileEx(
+            /* [in] */ const String& prefix,
+            /* [in] */ const String& suffix,
+            /* [in] */ IFile* directory,
+            /* [out] */ IFile** file);
+
     CARAPI RenameTo(
         /* [in] */ IFile* newPath,
         /* [out] */ Boolean* succeeded);

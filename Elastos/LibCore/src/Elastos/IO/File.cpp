@@ -1333,7 +1333,7 @@ ECode File::CreateNewFile(
 ECode File::CreateTempFile(
     /* [in] */ const String& prefix,
     /* [in] */ const String& suffix,
-    /* [out] */ IFile* file)
+    /* [out] */ IFile** file)
 {
     assert(file != NULL);
     return CreateTempFileEx(prefix, suffix, NULL, file);
@@ -1343,27 +1343,34 @@ ECode File::CreateTempFileEx(
     /* [in] */ const String& prefix,
     /* [in] */ const String& suffix,
     /* [in] */ IFile* directory,
-    /* [out] */ IFile* file)
+    /* [out] */ IFile** file)
 {
-//    // Force a prefix null check first
-//    if (prefix.length() < 3) {
-//        throw new IllegalArgumentException("prefix must be at least 3 characters");
-//    }
-//    if (suffix == null) {
-//        suffix = ".tmp";
-//    }
-//    File tmpDirFile = directory;
-//    if (tmpDirFile == null) {
-//        String tmpDir = AccessController.doPrivileged(
-//            new PriviAction<String>("java.io.tmpdir", "."));
-//        tmpDirFile = new File(tmpDir);
-//    }
-//    File result;
-//    do {
-//        result = new File(tmpDirFile, prefix + new Random().nextInt() + suffix);
-//    } while (!result.createNewFile());
-//    return result;
-    return E_NOT_IMPLEMENTED;
+    // Force a prefix null check first
+    String tmpStr;
+    if (prefix.GetLength() < 3) {
+        //throw new IllegalArgumentException("prefix must be at least 3 characters");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+    if (suffix.IsNull()) {
+        tmpStr = String(".tmp");
+    } else {
+        tmpStr = suffix;
+    }
+    AutoPtr<IFile> tmpDirFile = directory;
+    if (tmpDirFile == NULL) {
+        //String tmpDir = AccessController.doPrivileged(
+        //    new PriviAction<String>("java.io.tmpdir", "."));
+        String tmpDir = String("");
+        CFile::New(tmpDir, (IFile**)&tmpDirFile);
+    }
+    AutoPtr<IFile> result;
+    Boolean ret;
+    do {
+        CFile::New((IFile*)tmpDirFile, prefix +/* new Random().nextInt() + */tmpStr, (IFile**)&result);
+        result->CreateNewFile(&ret);
+    } while (!ret);
+    *file = result;
+    return NOERROR;
 }
 
 ECode File::RenameTo(

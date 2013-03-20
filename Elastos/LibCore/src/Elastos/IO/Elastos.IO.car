@@ -294,6 +294,10 @@ module
         interface IFile;
     }
 
+    singleton class CFileHelper {
+        interface IFileHelper;
+    }
+
     class CFileDescriptor {
         interface IFileDescriptor;
     }

@@ -669,7 +669,7 @@ public:
     static CARAPI CreateTempFile(
         /* [in] */ const String& prefix,
         /* [in] */ const String& suffix,
-        /* [out] */ IFile* file);
+        /* [out] */ IFile** file);
 
     /**
      * Creates an empty temporary file in the given directory using the given
@@ -697,7 +697,7 @@ public:
         /* [in] */ const String& prefix,
         /* [in] */ const String& suffix,
         /* [in] */ IFile* directory,
-        /* [out] */ IFile* file);
+        /* [out] */ IFile** file);
 
     /**
      * Renames this file to {@code newPath}. This operation is supported for both
