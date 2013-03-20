@@ -40,4 +40,6 @@ SOURCES += RingtoneManager.cpp
 SOURCES += CRingtoneManager.cpp
 SOURCES += JetPlayer.cpp
 SOURCES += CJetPlayer.cpp
+SOURCES += MediaScannerConnection.cpp
+SOURCES += CMediaScannerConnection.cpp
 

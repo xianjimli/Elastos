@@ -24,6 +24,7 @@ module
     merge("media/Ringtone.car");
     merge("media/RingtoneManager.car");
     merge("media/JetPlayer.car");
+    merge("media/MediaScannerConnection.car");
 
     class CAudioTrack {
         constructor(
@@ -177,4 +178,12 @@ module
         interface IJetPlayer;
     }
 
+    class CMediaScannerConnection {
+
+        constructor(
+            [in] IContext* context, 
+            [in] IMediaScannerConnectionClient* client);
+
+        interface IMediaScannerConnection;
+    }
 }
