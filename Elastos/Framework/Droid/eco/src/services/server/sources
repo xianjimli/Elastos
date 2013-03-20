@@ -55,4 +55,4 @@ SOURCES += CInputMethodManagerService.cpp
 SOURCES += CInputMethodManagerServiceMethodCallback.cpp
 
 LIBRARIES += location/location.lib
-LIBRARIES += usb/usb.lib
+#LIBRARIES += usb/usb.lib
