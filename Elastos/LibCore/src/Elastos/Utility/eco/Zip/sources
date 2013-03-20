@@ -8,8 +8,8 @@ TARGET_TYPE = eco
 
 IMPORTS += Elastos.Utility.eco
 
-INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/Utility/Zip
-INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/common
+INCLUDES += $(MAKEDIR)/../../../../../inc/Elastos/Utility/Zip
+INCLUDES += $(MAKEDIR)/../../../../../inc/Elastos/common
 
 SOURCES = Elastos.Utility.Zip.car
 SOURCES += CAdler32.cpp

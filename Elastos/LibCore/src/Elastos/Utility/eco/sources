@@ -7,8 +7,8 @@ TARGET_TYPE = eco
 
 SPECIAL_TARGET= cpfile
 
-INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Utility
-INCLUDES += $(MAKEDIR)/../../../inc/Elastos/common;
+INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/Utility/
+INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/common;
 
 IMPORTS = Elastos.Core.eco
 #IMPORTS += Elastos.IO.eco

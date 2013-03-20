@@ -5,7 +5,7 @@
 TARGET_NAME= Elastos.Utility
 TARGET_TYPE= lib
 
-VPATH := $(MAKEDIR)/../Utility
+VPATH := $(MAKEDIR)/../eco
 
 EXPORT_LIBRARY= 1
 

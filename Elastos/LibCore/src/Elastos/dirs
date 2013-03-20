@@ -1,8 +1,8 @@
 
 
-DIRS = Utility
+DIRS = Utility/eco
 DIRS += Core
-DIRS += UtilityLib
+DIRS += Utility/lib
 DIRS += IO
 DIRS += Security
 DIRS += Xml
