@@ -108,7 +108,7 @@ Boolean StreamLoader::SendData()
             mLoadListener -> Error(/*IEventHandler::FILE_ERROR*/0, String::FromInt32(ec) );
         }
         if (amount > 0)  {
-            mLoadListener -> Data(mData.Get(), amount);
+            mLoadListener -> Data(/*mData.Get()*/(*mData), amount);
             return FALSE;
         }
     }
