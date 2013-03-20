@@ -28,18 +28,19 @@ UInt32 CPlugin::DefaultClickHandler::Release()
 }
 
 ECode CPlugin::DefaultClickHandler::GetInterfaceID(
-    /* [in] */ IInterface *pObject,
-    /* [out] */ InterfaceID *pIID)
+    /* [in] */ IInterface* Object,
+    /* [out] */ InterfaceID* iID)
 {
-    if (pIID == NULL) {
+    VALIDATE_NOT_NULL(iID);
+    if (iID == NULL) {
         return E_INVALID_ARGUMENT;
     }
 
-    if (pObject == (IInterface*)(IPluginPreferencesClickHandler*)this) {
-        *pIID = EIID_IPluginPreferencesClickHandler;
+    if (Object == (IInterface*)(IPluginPreferencesClickHandler*)this) {
+        *iID = EIID_IPluginPreferencesClickHandler;
     }
-    if (pObject == (IInterface*)(IDialogInterfaceOnClickListener*)this) {
-        *pIID = EIID_IDialogInterfaceOnClickListener;
+    if (Object == (IInterface*)(IDialogInterfaceOnClickListener*)this) {
+        *iID = EIID_IDialogInterfaceOnClickListener;
     }
     else {
         return E_INVALID_ARGUMENT;
@@ -52,25 +53,20 @@ ECode CPlugin::DefaultClickHandler::HandleClickEvent(
 {
     // Show a simple popup dialog containing the description
     // string of the plugin.
-    if (mDialog == NULL) 
-    {
-        IAlertDialogBuilder * builder;        
+    if (mDialog == NULL) {
+        AutoPtr<IAlertDialogBuilder> builder;        
         ECode ec = CAlertDialogBuilder::New(context, (IAlertDialogBuilder**)&builder);
-        if(FAILED(ec))
-        {
+        if(FAILED(ec)){
             return ec;
         }
-        builder -> SetTitleEx(pName.Get());
-        builder -> SetMessageEx(pDescription.Get());
-        builder -> SetPositiveButtonEx(pRStringOk.Get(), this);
+        builder -> SetTitleEx(mName.Get());
+        builder -> SetMessageEx(mDescription.Get());
+        builder -> SetPositiveButtonEx(mRStringOk.Get(), this);
         builder -> SetCancelable(false); 
 
-        IAlertDialog* tDialog = NULL;    
-        builder -> Show(&tDialog);
+        AutoPtr<IAlertDialog> tDialog;
+        builder -> Show( (IAlertDialog**)&tDialog );
         mDialog = tDialog;
-        tDialog -> Release();
-
-        builder -> Release();
     }
     return NOERROR;
 }
@@ -86,37 +82,42 @@ ECode CPlugin::DefaultClickHandler::OnClick(
 }
 
 ECode CPlugin::ToString(
-    /* [out] */ String * pName)
+    /* [out] */ String* name)
 {
-    *pName = mName;
+    VALIDATE_NOT_NULL(name);
+    *name = mName;
     return NOERROR;
 }
 
 ECode CPlugin::GetName(
-    /* [out] */ String * pName)
+    /* [out] */ String* name)
 {
-    *pName = mName;
+    VALIDATE_NOT_NULL(name);
+    *name = mName;
     return NOERROR;
 }
 
 ECode CPlugin::GetPath(
-    /* [out] */ String * pPath)
+    /* [out] */ String* path)
 {
-    *pPath = mPath;
+    VALIDATE_NOT_NULL(path);
+    *path = mPath;
     return NOERROR;
 }
 
 ECode CPlugin::GetFileName(
-    /* [out] */ String * pFileName)
+    /* [out] */ String* fileName)
 {
-    *pFileName = mFileName;
+    VALIDATE_NOT_NULL(fileName);
+    *fileName = mFileName;
     return NOERROR;
 }
 
 ECode CPlugin::GetDescription(
-    /* [out] */ String * pDescription)
+    /* [out] */ String* description)
 {
-    *pDescription = mDescription;
+    VALIDATE_NOT_NULL(description);
+    *description = mDescription;
     return NOERROR;
 }
 
@@ -149,18 +150,17 @@ ECode CPlugin::SetDescription(
 }
 
 ECode CPlugin::SetClickHandler(
-    /* [in] */ IPluginPreferencesClickHandler * pHandler)
+    /* [in] */ IPluginPreferencesClickHandler* handler)
 {
-    mHandler = pHandler;
+    mHandler = handler;
     return NOERROR;
 }
 
 ECode CPlugin::DispatchClickEvent(
-    /* [in] */ IContext * pContext)
+    /* [in] */ IContext* context)
 {
-    if(mHandler != NULL)
-    {
-        mHandler -> HandleClickEvent(pContext);
+    if(mHandler != NULL){
+        mHandler -> HandleClickEvent(context);
     }
     return NOERROR;
 }
@@ -178,9 +178,9 @@ ECode CPlugin::constructor(
 
     CPlugin::DefaultClickHandler * pDch = new CPlugin::DefaultClickHandler();
     mHandler = (IPluginPreferencesClickHandler*)pDch;    
-    pDch -> pName = (ICharSequence *)&name;
-    pDch -> pDescription = (ICharSequence *)&description;
-    pDch -> pRStringOk = (ICharSequence *)(R::id::ok);     //RStringOK = JAVA: R.string.ok
+    pDch -> mName = (ICharSequence *)&name;
+    pDch -> mDescription = (ICharSequence *)&description;
+    pDch -> mRStringOk = (ICharSequence *)(R::id::ok);     //RStringOK = JAVA: R.string.ok
 
     return NOERROR;
 }

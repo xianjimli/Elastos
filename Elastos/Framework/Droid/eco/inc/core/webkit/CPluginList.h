@@ -12,18 +12,18 @@ CarClass(CPluginList)
 {
 public:
     CARAPI GetList(
-        /* [out] */ IObjectContainer ** ppList);
+        /* [out] */ IObjectContainer ** list);
 
     CARAPI AddPlugin(
-        /* [in] */ IPlugin * pPlugin);
+        /* [in] */ IPlugin * plugin);
 
     CARAPI RemovePlugin(
-        /* [in] */ IPlugin * pPlugin);
+        /* [in] */ IPlugin * plugin);
 
     CARAPI Clear();
 
     CARAPI PluginClicked(
-        /* [in] */ IContext * pContext,
+        /* [in] */ IContext * context,
         /* [in] */ Int32 position);
 
     CARAPI constructor();

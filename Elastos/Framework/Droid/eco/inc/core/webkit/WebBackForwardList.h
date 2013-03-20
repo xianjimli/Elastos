@@ -1,15 +1,19 @@
 #ifndef __WEBBACKFORWARDLIST_H__
 #define __WEBBACKFORWARDLIST_H__
 
-class WebHistoryItem;
-class CallbackProxy;
+
+#include "ext/frameworkext.h"
+#include <elastos/List.h>
+#include <elastos/AutoPtr.h>
+#include <elastos/Mutex.h>
+#include <elastos/ElRefBase.h>
 
 /**
  * This class contains the back/forward list for a WebView.
  * WebView.copyBackForwardList() will return a copy of this class used to
  * inspect the entries in the list.
  */
-class WebBackForwardList //: public Cloneable, public Serializable 
+class WebBackForwardList: public ElRefBase //: public Cloneable, public Serializable 
 {
 
 public:
@@ -18,7 +22,7 @@ public:
      */
     /*package*/ 
      WebBackForwardList(
-     	/* [in] */ ICallbackProxy* proxy);
+         /* [in] */ ICallbackProxy* proxy);
 
     /**
      * Return the current history item. This method returns null if the list is
@@ -27,7 +31,7 @@ public:
      *
      * synchronized
      */
-	virtual CARAPI_(WebHistoryItem*) GetCurrentItem();
+    virtual CARAPI_(IWebHistoryItem*) GetCurrentItem();
 
     /**
      * Get the index of the current history item. This index can be used to
@@ -36,7 +40,7 @@ public:
      *
      * synchronized
      */
-	virtual CARAPI_(Int32) GetCurrentIndex();
+    virtual CARAPI_(Int32) GetCurrentIndex();
 
     /**
      * Get the history item at the given index. The index range is from 0...n
@@ -45,8 +49,8 @@ public:
      *
      * synchronized
      */
-	virtual CARAPI_(WebHistoryItem*) GetItemAtIndex(
-		/* [in] */ Int32 index);
+    virtual CARAPI_(IWebHistoryItem*) GetItemAtIndex(
+        /* [in] */ Int32 index);
 
     /**
      * Get the total size of the back/forward list.
@@ -54,7 +58,7 @@ public:
      *
      * synchronized
      */
-	virtual CARAPI_(Int32) GetSize();
+    virtual CARAPI_(Int32) GetSize();
 
     /**
      * Mark the back/forward list as having a pending clear. This is used on the
@@ -63,7 +67,7 @@ public:
      * synchronized
      */
     /*package*/ 
-	virtual CARAPI_(void) SetClearPending();
+    virtual CARAPI_(void) SetClearPending();
 
     /**
      * Return the status of the clear flag. This is used on the UI side to
@@ -72,7 +76,7 @@ public:
      * synchronized
      */
     /*package*/ 
-	virtual CARAPI_(Boolean) GetClearPending();
+    virtual CARAPI_(Boolean) GetClearPending();
 
     /**
      * Add a new history item to the list. This will remove all items after the
@@ -85,7 +89,7 @@ public:
      */
     /*package*/ 
      virtual CARAPI_(void) AddHistoryItem(
-     	/* [in] */ WebHistoryItem item);
+         /* [in] */ IWebHistoryItem* item);
 
     /**
      * Clear the back/forward list. Called from the WebCore thread.
@@ -93,8 +97,8 @@ public:
      * synchronized
      */
     /*package*/ 
-	virtual CARAPI_(void) Close(
-		/* [in] */ Int32 nativeFrame);
+    virtual CARAPI_(void) Close(
+        /* [in] */ Int32 nativeFrame);
 
 
 
@@ -105,19 +109,19 @@ public:
      * synchronized
      */
     /*package*/  
-	virtual CARAPI_(void) SetCurrentIndex(
-		/* [in] */ Int32 newIndex);
+    virtual CARAPI_(void) SetCurrentIndex(
+        /* [in] */ Int32 newIndex);
 
-	    /**
+        /**
      * Restore the history index.
      *
      * synchronized
      * native
      */
     /*package*/ 
-	static CARAPI_(void) RestoreIndex(
-		/* [in] */ Int32 nativeFrame,
-		/* [in] */ Int32 index);
+    static CARAPI_(void) RestoreIndex(
+        /* [in] */ Int32 nativeFrame,
+        /* [in] */ Int32 index);
 
 protected:
     /**
@@ -127,27 +131,29 @@ protected:
      *
      * synchronized
      */
-	virtual CARAPI_(WebBackForwardList*) Clone();
+    virtual CARAPI_(IWebBackForwardList*) Clone();
 
 private:
     /* Remove the item at the given index. Called by JNI only. */
     /* synchronized */
-	CARAPI_(void) RemoveHistoryItem(
-		/* [in] */ Int32 index);
+    CARAPI_(void) RemoveHistoryItem(
+        /* [in] */ Int32 index);
 
-	// Current position in the list.
-	Int32 mCurrentIndex;
+    // Current position in the list.
+    Int32 mCurrentIndex;
     // ArrayList of WebHistoryItems for maintaining our copy.
-//	ArrayList<WebHistoryItem> mArray;
+    List< AutoPtr<IWebHistoryItem> > mArray;
     // Flag to indicate that the list is invalid
-	Boolean mClearPending;
+    Boolean mClearPending;
     // CallbackProxy to issue client callbacks.
-	const CallbackProxy* mCallbackProxy;
+    /*const*/ AutoPtr<ICallbackProxy> mCallbackProxy;
 
     /* Close the native list. */
     /* native */
-	static CARAPI_(void) NativeClose(
-		/* [in] */ Int32 nativeFrame);
+    static CARAPI_(void) NativeClose(
+        /* [in] */ Int32 nativeFrame);
+
+    Elastos::Core::Threading::Mutex mLock;
 };
 
 #endif //__WEBBACKFORWARDLIST_H__

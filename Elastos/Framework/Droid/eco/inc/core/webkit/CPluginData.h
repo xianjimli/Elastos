@@ -3,7 +3,7 @@
 #define __CPLUGINDATA_H__
 
 #include "_CPluginData.h" 
-//#include "ext/frameworkext.h"
+#include "ext/frameworkext.h"
 //#include <elastos/Map.h>
 //#include <elastos/Vector.h>
 
@@ -13,21 +13,21 @@ CarClass(CPluginData)
 {
 public:
     CARAPI GetInputStream(
-        /* [out] */ IInputStream ** ppStream);
+        /* [out] */ IInputStream ** stream);
 
     CARAPI GetContentLength(
-        /* [out] */ Int64 * pLength);
+        /* [out] */ Int64 * length);
 
     CARAPI GetHeaders(
-        /* [out] */ IObjectStringMap ** ppHeaders);
+        /* [out] */ IObjectStringMap ** headers);
 
     CARAPI GetStatusCode(
-        /* [out] */ Int32 * pStatusCode);
+        /* [out] */ Int32 * statusCode);
 
     CARAPI constructor(
-        /* [in] */ IInputStream * pStream,
+        /* [in] */ IInputStream * stream,
         /* [in] */ Int64 length,
-        /* [in] */ IObjectStringMap * pHeaders,
+        /* [in] */ IObjectStringMap * headers,
         /* [in] */ Int32 code);
 
     ~CPluginData();
