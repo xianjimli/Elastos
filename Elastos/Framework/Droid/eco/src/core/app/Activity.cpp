@@ -11,6 +11,7 @@
 #endif
 
 #include <stdio.h>
+#include <elastos/Thread.h>
 
 
 Activity::Activity()
@@ -652,6 +653,23 @@ ECode Activity::AttachEx(
     return NOERROR;
 }
 
+ECode Activity::OnConfigurationChanged(
+    /* [in] */ IConfiguration* newConfig)
+{
+    mCalled = TRUE;
+
+    if (mWindow != NULL) {
+        // Pass the configuration changed event to the window
+        return mWindow->OnConfigurationChanged(newConfig);
+    }
+}
+
+ECode Activity::OnLowMemory()
+{
+    mCalled = TRUE;
+    return NOERROR;
+}
+
 ECode Activity::DispatchNewIntent(
     /* [in] */ IIntent *intent)
 {
@@ -673,18 +691,87 @@ ECode Activity::IsCalled(
     return NOERROR;
 }
 
-ECode Activity::SetFinished(
+ECode Activity::SetFinishing(
     /* [in] */ Boolean finished)
 {
     mFinished = finished;
     return NOERROR;
 }
 
-ECode Activity::IsFinished(
+ECode Activity::IsFinishing(
     /* [out] */ Boolean* finished)
 {
     if (finished == NULL) return E_INVALID_ARGUMENT;
     *finished = mFinished;
+    return NOERROR;
+}
+
+ECode Activity::MoveTaskToBack(
+    /* [in] */ Boolean nonRoot,
+    /* [out] */ Boolean* succeed)
+{
+    if (succeed == NULL) return E_INVALID_ARGUMENT;
+    //try {
+    AutoPtr<IServiceManager> serviceManager;
+    AutoPtr<IActivityManager> activityManager;
+
+    CServiceManager::AcquireSingleton((IServiceManager**)&serviceManager);
+    serviceManager->GetService(String("ActivityManagerService"),
+        (IInterface**)&activityManager);
+    ECode ec = activityManager->MoveActivityTaskToBack(
+            mToken, nonRoot, succeed);
+    if (SUCCEEDED(ec)) return NOERROR;
+    //} catch (RemoteException e) {
+        // Empty
+    //}
+    *succeed = FALSE;
+    return NOERROR;
+}
+
+ECode Activity::SetRequestedOrientation(
+    /* [int] */ Int32 requestedOrientation)
+{
+    if (mParent == NULL) {
+        //try {
+        AutoPtr<IServiceManager> serviceManager;
+        AutoPtr<IActivityManager> activityManager;
+
+        CServiceManager::AcquireSingleton((IServiceManager**)&serviceManager);
+        serviceManager->GetService(String("ActivityManagerService"),
+            (IInterface**)&activityManager);
+        return activityManager->SetRequestedOrientation(
+                    mToken, requestedOrientation);
+        //} catch (RemoteException e) {
+            // Empty
+        //}
+    } else {
+        return mParent->SetRequestedOrientation(requestedOrientation);
+    }
+}
+
+ECode Activity::GetRequestedOrientation(
+    /* [out] */ Int32* orientation)
+{
+    if (orientation == NULL) return E_INVALID_ARGUMENT;
+
+    if (mParent == NULL) {
+        //try {
+        AutoPtr<IServiceManager> serviceManager;
+        AutoPtr<IActivityManager> activityManager;
+
+        CServiceManager::AcquireSingleton((IServiceManager**)&serviceManager);
+        serviceManager->GetService(String("ActivityManagerService"),
+            (IInterface**)&activityManager);
+        ECode ec = activityManager->GetRequestedOrientation(mToken, orientation);
+        if (SUCCEEDED(ec)) return NOERROR;
+        //} catch (RemoteException e) {
+                // Empty
+        //}
+    }
+    else {
+        return mParent->GetRequestedOrientation(orientation);
+    }
+    *orientation = ActivityInfo_SCREEN_ORIENTATION_UNSPECIFIED;
     return NOERROR;
 }
 
@@ -944,6 +1031,18 @@ ECode Activity::GetTitleColor(
     return NOERROR;
 }
 
+ECode Activity::RunOnUiThread(
+    /* [in] */ IRunnable* action)
+{
+    if (Thread::GetCurrentThread() != mUiThread) {
+        //mHandler.post(action);
+    }
+    else {
+        action->Run();
+    }
+    return NOERROR;
+}
+
 /*protected*/
 ECode Activity::OnTitleChanged(
     /* [in] */ ICharSequence* title,
@@ -994,9 +1093,20 @@ ECode Activity::SetResult(
     return NOERROR;
 }
 
-AutoPtr<IIntent> Activity::GetIntent()
+ECode Activity::GetIntent(
+    /* [out] */ IIntent** intent)
 {
-    return mIntent;
+    if (intent == NULL) return E_INVALID_ARGUMENT;
+    *intent = mIntent;
+    if (*intent) (*intent)->AddRef();
+    return NOERROR;
+}
+
+ECode Activity::SetIntent(
+    /* [in] */ IIntent* newIntent)
+{
+    mIntent = newIntent;
+    return NOERROR;
 }
 
 ECode Activity::MakeVisible()

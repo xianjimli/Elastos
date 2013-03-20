@@ -74,8 +74,15 @@ module
     interface IConfiguration;
     interface IMenu;
     interface IMenuItem;
+    interface IRunnable;
 
     interface IActivity extends IContextThemeWrapper {
+        GetIntent(
+            [out] IIntent** intent);
+
+        SetIntent(
+            [in] IIntent* newIntent);
+
         GetID(
             [out] String* id);
 
@@ -148,6 +155,27 @@ module
             [in] IObjectStringMap* lastNonConfigurationChildInstances,
             [in] IConfiguration* config);
 
+        /**
+         * Called by the system when the device configuration changes while your
+         * activity is running.  Note that this will <em>only</em> be called if
+         * you have selected configurations you would like to handle with the
+         * {@link android.R.attr#configChanges} attribute in your manifest.  If
+         * any configuration change occurs that is not selected to be reported
+         * by that attribute, then instead of reporting it the system will stop
+         * and restart the activity (to have it launched with the new
+         * configuration).
+         *
+         * <p>At the time that this function has been called, your Resources
+         * object will have been updated to return resource values matching the
+         * new configuration.
+         *
+         * @param newConfig The new device configuration.
+         */
+        OnConfigurationChanged(
+            [in] IConfiguration* newConfig);
+
+        OnLowMemory();
+
         DispatchNewIntent(
             [in] IIntent* intent);
 
@@ -157,11 +185,51 @@ module
         IsCalled(
             [out] Boolean* called);
 
-        SetFinished(
+        SetFinishing(
             [in] Boolean finished);
 
-        IsFinished(
+        IsFinishing(
             [out] Boolean* finished);
+
+        /**
+         * Change the desired orientation of this activity.  If the activity
+         * is currently in the foreground or otherwise impacting the screen
+         * orientation, the screen will immediately be changed (possibly causing
+         * the activity to be restarted). Otherwise, this will be used the next
+         * time the activity is visible.
+         *
+         * @param requestedOrientation An orientation constant as used in
+         * {@link ActivityInfo#screenOrientation ActivityInfo.screenOrientation}.
+         */
+        SetRequestedOrientation(
+            [in] Int32 requestedOrientation);
+
+        /**
+         * Return the current requested orientation of the activity.  This will
+         * either be the orientation requested in its component's manifest, or
+         * the last requested orientation given to
+         * {@link #setRequestedOrientation(int)}.
+         *
+         * @return Returns an orientation constant as used in
+         * {@link ActivityInfo#screenOrientation ActivityInfo.screenOrientation}.
+         */
+        GetRequestedOrientation(
+            [out] Int32* orientation);
+
+        /**
+         * Move the task containing this activity to the back of the activity
+         * stack.  The activity's order within the task is unchanged.
+         *
+         * @param nonRoot If false then this only works if the activity is the root
+         *                of a task; if true it will work for any activity in
+         *                a task.
+         *
+         * @return If the task was moved (or it was already at the
+         *         back) true is returned, else false.
+         */
+        MoveTaskToBack(
+            [in] Boolean nonRoot,
+            [out] Boolean* succeed);
 
         MakeVisible();
 
@@ -244,6 +312,16 @@ module
 
         GetTitleColor(
             [out] Int32* textColor);
+
+        /**
+         * Runs the specified action on the UI thread. If the current thread is the UI
+         * thread, then the action is executed immediately. If the current thread is
+         * not the UI thread, the action is posted to the event queue of the UI thread.
+         *
+         * @param action the action to run on the UI thread
+         */
+        RunOnUiThread(
+            [in] IRunnable* action);
 
         ShowDialog(
             [in] Int32 id);

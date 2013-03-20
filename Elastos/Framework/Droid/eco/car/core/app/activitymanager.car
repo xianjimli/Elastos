@@ -166,6 +166,14 @@ module
             [in] Int32 flagsValues,
             [out] Int32* status);
 
+        SetRequestedOrientation(
+            [in] IBinder* token,
+            [in] Int32 requestedOrientation);
+
+        GetRequestedOrientation(
+            [in] IBinder* token,
+            [out] Int32* requestedOrientation);
+
         FinishActivity(
             [in] IBinder* token,
             [in] Int32 resultCode,
@@ -270,6 +278,11 @@ module
         PublishContentProviders(
             [in] IApplicationApartment* caller,
             [in] IObjectContainer* providers);
+
+        MoveActivityTaskToBack(
+            [in] IBinder* token,
+            [in] Boolean nonRoot,
+            [out] Boolean* result);
 
         GetProviderMimeType(
             [in] IUri* uri,

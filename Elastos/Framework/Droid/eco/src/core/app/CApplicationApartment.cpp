@@ -805,7 +805,7 @@ ECode CApplicationApartment::HandleLaunchActivity(
         HandleResumeActivity(r->mToken, FALSE, r->mIsForward);
 
         Boolean finished;
-        if ((r->mActivity->IsFinished(&finished), !finished) && r->mStartsNotResumed) {
+        if ((r->mActivity->IsFinishing(&finished), !finished) && r->mStartsNotResumed) {
             // The activity manager actually wants this one to start out
             // paused, because it needs to be visible but isn't in the
             // foreground.  We accomplish this by going through the
@@ -952,17 +952,17 @@ ECode CApplicationApartment::PerformLaunchActivity(
         r->mActivity = a;
         r->mStopped = TRUE;
         Boolean finished;
-        if (r->mActivity->IsFinished(&finished), !finished) {
+        if (r->mActivity->IsFinishing(&finished), !finished) {
             a->PerformStart();
             r->mStopped = FALSE;
         }
-        r->mActivity->IsFinished(&finished);
+        r->mActivity->IsFinishing(&finished);
         if (!finished) {
             if (r->mState != NULL) {
 //                mInstrumentation.callActivityOnRestoreInstanceState(activity, r.state);
             }
         }
-        r->mActivity->IsFinished(&finished);
+        r->mActivity->IsFinishing(&finished);
         if (!finished) {
             a->SetCalled(FALSE);
             mInstrumentation->CallActivityOnPostCreate(a, r->mState);
@@ -1130,7 +1130,7 @@ ECode CApplicationApartment::HandleResumeActivity(
                 service->WillActivityBeVisible(t.Get(), &willBeVisible);
         }
         Boolean finished = FALSE;
-        a->IsFinished(&finished);
+        a->IsFinishing(&finished);
         if (r->mWindow == NULL && !finished && willBeVisible) {
             r->mActivity->GetWindowEx((IWindow**)&r->mWindow);
             AutoPtr<IView> decor;
@@ -1163,7 +1163,7 @@ ECode CApplicationApartment::HandleResumeActivity(
 
         // The window is now visible if it has been added, we are not
         // simply finishing, and we are not starting another activity.
-        r->mActivity->IsFinished(&finished);
+        r->mActivity->IsFinishing(&finished);
         AutoPtr<IView> decor;
         r->mActivity->GetDecorView((IView**)&decor);
         if (!finished && willBeVisible
@@ -1223,7 +1223,7 @@ CApplicationApartment::PerformResumeActivity(
 //    if (localLOGV) Slog.v(TAG, "Performing resume of " + r
 //            + " finished=" + r.activity.mFinished);
     Boolean finished;
-    if (r != NULL && (r->mActivity->IsFinished(&finished), !finished)) {
+    if (r != NULL && (r->mActivity->IsFinishing(&finished), !finished)) {
 //        if (clearHide) {
 //            r.hideForNow = false;
 //            r.activity.mStartedActivity = false;
@@ -1317,7 +1317,7 @@ ECode CApplicationApartment::PerformPauseActivity(
 {
     Boolean isFinished;
     if (r->mPaused) {
-        if (r->mActivity->IsFinished(&isFinished), isFinished) {
+        if (r->mActivity->IsFinishing(&isFinished), isFinished) {
             // If we are finishing, we won't call onResume() in certain cases.
             // So here we likewise don't want to call onPause() if the activity
             // isn't resumed.
@@ -1331,11 +1331,11 @@ ECode CApplicationApartment::PerformPauseActivity(
     }
     AutoPtr<CBundle> st;
     if (finished) {
-        r->mActivity->SetFinished(TRUE);
+        r->mActivity->SetFinishing(TRUE);
     }
 //    try {
     // Next have the activity save its current state and managed dialogs...
-    if ((r->mActivity->IsFinished(&isFinished), !isFinished) && saveState) {
+    if ((r->mActivity->IsFinishing(&isFinished), !isFinished) && saveState) {
         CBundle::NewByFriend((CBundle**)&st);
         mInstrumentation->CallActivityOnSaveInstanceState(
                 r->mActivity, (IBundle*)(CBundle*)st);
@@ -1426,7 +1426,7 @@ ECode CApplicationApartment::PerformStopActivityInner(
     if (r != NULL) {
         if (!keepShown && r->mStopped) {
             Boolean finished;
-            if (r->mActivity->IsFinished(&finished), finished) {
+            if (r->mActivity->IsFinishing(&finished), finished) {
                 // If we are finishing, we won't call onResume() in certain
                 // cases.  So here we likewise don't want to call onStop()
                 // if the activity isn't resumed.
@@ -1512,7 +1512,7 @@ CApplicationApartment::PerformDestroyActivity(
     if (r != NULL) {
 //        r.activity.mConfigChangeFlags |= configChanges;
         if (finishing) {
-            r->mActivity->SetFinished(TRUE);
+            r->mActivity->SetFinishing(TRUE);
         }
         if (!r->mPaused) {
 //            try {
