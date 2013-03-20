@@ -35,7 +35,7 @@ public:
      */
     FileLoader(
     	/* [in] */ const String& url, 
-    	/* [in] */ const LoadListener* loadListener, 
+    	/* [in] */ /*const*/ LoadListener* loadListener, 
     	/* [in] */ Int32 type,
     	/* [in] */ Boolean allowFileAccess);
 
