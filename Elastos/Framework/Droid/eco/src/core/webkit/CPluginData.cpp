@@ -1,53 +1,51 @@
 
 #include "webkit/CPluginData.h"
 ECode CPluginData::GetInputStream(
-    /* [out] */ IInputStream ** ppStream)
+    /* [out] */ IInputStream ** stream)
 {
-    *ppStream = mStream;
-    mStream -> AddRef();
+    VALIDATE_NOT_NULL(stream);
+    *stream = mStream;
     return NOERROR;
 }
 
 ECode CPluginData::GetContentLength(
-    /* [out] */ Int64 * pLength)
+    /* [out] */ Int64 * length)
 {
-    *pLength = mContentLength;
+    VALIDATE_NOT_NULL(length);
+    *length = mContentLength;
     return NOERROR;
 }
 
 ECode CPluginData::GetHeaders(
-    /* [out] */ IObjectStringMap ** ppHeaders)
+    /* [out] */ IObjectStringMap ** headers)
 {
-    *ppHeaders = mHeaders;
-    mHeaders -> AddRef();
+    VALIDATE_NOT_NULL(headers);
+    *headers = mHeaders;
     return NOERROR;
 }
 
 ECode CPluginData::GetStatusCode(
-    /* [out] */ Int32 * pStatusCode)
+    /* [out] */ Int32 * statusCode)
 {
-    *pStatusCode = mStatusCode;
+    VALIDATE_NOT_NULL(statusCode);
+    *statusCode = mStatusCode;
     return NOERROR;
 }
 
 ECode CPluginData::constructor(
-    /* [in] */ IInputStream * pStream,
+    /* [in] */ IInputStream * stream,
     /* [in] */ Int64 length,
-    /* [in] */ IObjectStringMap * pHeaders,
+    /* [in] */ IObjectStringMap * headers,
     /* [in] */ Int32 code)
 {
-    mStream = pStream;
-    mStream -> AddRef();
+    mStream = stream;
     mContentLength = length;
-    mHeaders = pHeaders;
-    mHeaders ->AddRef();
+    mHeaders = headers;
     mStatusCode = code;
     return NOERROR;
 }
 
 CPluginData::~CPluginData()
 {
-    mStream -> Release();
-    mHeaders -> Release();
 }
 

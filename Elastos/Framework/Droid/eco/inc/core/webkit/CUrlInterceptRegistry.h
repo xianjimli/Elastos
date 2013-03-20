@@ -10,6 +10,7 @@
 #include <elastos.h>
 #include <elastos/Mutex.h>
 #include <elastos/List.h>
+#include <elastos/AutoPtr.h>
 
 
 
@@ -20,36 +21,36 @@ public:
         /* [in] */ Boolean disabled);
 
     CARAPI UrlInterceptDisabled(
-        /* [out] */ Boolean * pFlag);
+        /* [out] */ Boolean * flag);
 
     CARAPI RegisterHandler(
-        /* [in] */ IUrlInterceptHandler * pHandler,
-        /* [out] */ Boolean * pFlag);
+        /* [in] */ IUrlInterceptHandler * handler,
+        /* [out] */ Boolean *flag);
 
     CARAPI UnregisterHandler(
-        /* [in] */ IUrlInterceptHandler * pHandler,
-        /* [out] */ Boolean * pFlag);
+        /* [in] */ IUrlInterceptHandler * handler,
+        /* [out] */ Boolean * flag);
 
     CARAPI GetSurrogate(
         /* [in] */ CString url,
-        /* [in] */ IObjectStringMap * pHeaders,
-        /* [out] */ ICacheManagerCacheResult ** ppResult);
+        /* [in] */ IObjectStringMap * headers,
+        /* [out] */ ICacheManagerCacheResult ** result);
 
     CARAPI GetPluginData(
         /* [in] */ CString url,
-        /* [in] */ IObjectStringMap * pHeaders,
-        /* [out] */ IPluginData ** ppData);
+        /* [in] */ IObjectStringMap * headers,
+        /* [out] */ IPluginData ** data);
 
 private:
     /*static*/ CARAPI GetHandlers(
-        /* [out] */ List< IUrlInterceptHandler* > ** pLinkedList );
+        /* [out] */ List< AutoPtr<IUrlInterceptHandler> > ** linkedList );
 
 private:
-    const static char* LOGTAG; // = "intercept";
+    const static CString LOGTAG; // = "intercept";
 
     static Boolean sDisabled;   // = false;
 
-    static List< IUrlInterceptHandler* > * sHandlerList;
+    static List< AutoPtr<IUrlInterceptHandler> > * sHandlerList;
 };
 
 #endif // __CURLINTERCEPTREGISTRY_H__

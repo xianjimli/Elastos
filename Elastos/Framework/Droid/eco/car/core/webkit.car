@@ -137,12 +137,24 @@ module
     interface IPluginManager;
   }
 
+  class CSslErrorHandler {
+    interface ISslErrorHandler;
+  }
+
   singleton class CURLUtil {
     interface IURLUtil;
   }
 
   class CUrlInterceptRegistry {
     interface IUrlInterceptRegistry;
+  }
+
+  class CWebBackForwardList {
+    interface IWebBackForwardList;
+  }
+
+  class CWebHistoryItem {
+    interface IWebHistoryItem;
   }
 
   class CWebChromeClient {

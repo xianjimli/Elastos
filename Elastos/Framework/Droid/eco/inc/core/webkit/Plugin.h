@@ -39,8 +39,8 @@ private:
         CARAPI_(UInt32) Release();
 
         CARAPI GetInterfaceID(
-            /* [in] */ IInterface *pObject,
-            /* [out] */ InterfaceID *pIID);
+            /* [in] */ IInterface* Object,
+            /* [out] */ InterfaceID* iID);
 
         //@Deprecated
         CARAPI HandleClickEvent(
@@ -56,9 +56,9 @@ private:
             /* [in] */ Int32 which);
 
     public:
-        AutoPtr<ICharSequence> pName;
-        AutoPtr<ICharSequence> pDescription;
-        AutoPtr<ICharSequence> pRStringOk;
+        AutoPtr<ICharSequence> mName;
+        AutoPtr<ICharSequence> mDescription;
+        AutoPtr<ICharSequence> mRStringOk;
 
     private:
         AutoPtr<IAlertDialog> mDialog;

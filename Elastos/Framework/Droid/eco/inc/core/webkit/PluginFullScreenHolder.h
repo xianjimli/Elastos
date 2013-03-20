@@ -3,6 +3,9 @@
 
 #include "app/Dialog.h"
 
+#include "ext/frameworkext.h"
+#include <elastos/AutoPtr.h>
+
 class PluginFullScreenHolder : public Dialog {
 
 public:
@@ -44,9 +47,9 @@ protected:
     virtual CARAPI_(void) OnStop();
 
 private:
-    const IWebView* mWebView;
+    /*const*/ AutoPtr<IWebView> mWebView;
     Int32 mNpp;
-    IView* mContentView;
+    AutoPtr<IView> mContentView;
 
 };
 

@@ -27,18 +27,19 @@ UInt32 Plugin::DefaultClickHandler::Release()
 }
 
 ECode Plugin::DefaultClickHandler::GetInterfaceID(
-    /* [in] */ IInterface *pObject,
-    /* [out] */ InterfaceID *pIID)
+    /* [in] */ IInterface* Object,
+    /* [out] */ InterfaceID* iID)
 {
-    if (pIID == NULL) {
+    VALIDATE_NOT_NULL(iID);
+    if (iID == NULL) {
         return E_INVALID_ARGUMENT;
     }
 
-    if (pObject == (IInterface*)(IPluginPreferencesClickHandler*)this) {
-        *pIID = EIID_IPluginPreferencesClickHandler;
+    if (Object == (IInterface*)(IPluginPreferencesClickHandler*)this) {
+        *iID = EIID_IPluginPreferencesClickHandler;
     }
-    if (pObject == (IInterface*)(IDialogInterfaceOnClickListener*)this) {
-        *pIID = EIID_IDialogInterfaceOnClickListener;
+    if (Object == (IInterface*)(IDialogInterfaceOnClickListener*)this) {
+        *iID = EIID_IDialogInterfaceOnClickListener;
     }
     else {
         return E_INVALID_ARGUMENT;
@@ -51,25 +52,20 @@ CARAPI Plugin::DefaultClickHandler::HandleClickEvent(
 {
     // Show a simple popup dialog containing the description
     // string of the plugin.    
-    if (mDialog == NULL) 
-    {
-        IAlertDialogBuilder * builder;        
+    if (mDialog == NULL) {
+        AutoPtr<IAlertDialogBuilder> builder;        
         ECode ec = CAlertDialogBuilder::New(context, (IAlertDialogBuilder**)&builder);
-        if(FAILED(ec))
-        {
+        if(FAILED(ec)) {
             return ec;
         }
-        builder -> SetTitleEx(pName.Get());
-        builder -> SetMessageEx(pDescription.Get());
-        builder -> SetPositiveButtonEx(pRStringOk.Get(), this);
+        builder -> SetTitleEx(mName.Get());
+        builder -> SetMessageEx(mDescription.Get());
+        builder -> SetPositiveButtonEx(mRStringOk.Get(), this);
         builder -> SetCancelable(false); 
 
-        IAlertDialog* tDialog = NULL;    
-        builder -> Show(&tDialog);
+        AutoPtr<IAlertDialog> tDialog;    
+        builder -> Show((IAlertDialog**)&tDialog);
         mDialog = tDialog;
-        tDialog -> Release();
-
-        builder -> Release();
     }
     return NOERROR;
 }
@@ -95,11 +91,11 @@ Plugin::Plugin(
     mFileName = fileName;
     mDescription = description;    
 
-    Plugin::DefaultClickHandler * pDch = new Plugin::DefaultClickHandler();
-    mHandler = (IPluginPreferencesClickHandler*)pDch;    
-    pDch -> pName = (ICharSequence *)&name;
-    pDch -> pDescription = (ICharSequence *)&description;
-    pDch -> pRStringOk = (ICharSequence *)(R::id::ok);     //RStringOK = JAVA: R.string.ok
+    AutoPtr<Plugin::DefaultClickHandler> pDch = new Plugin::DefaultClickHandler();
+    mHandler = (IPluginPreferencesClickHandler*)(pDch.Get());    
+    pDch -> mName = (ICharSequence *)&name;
+    pDch -> mDescription = (ICharSequence *)&description;
+    pDch -> mRStringOk = (ICharSequence *)(R::id::ok);     //RStringOK = JAVA: R.string.ok
 }
 
 String Plugin::ToString()
@@ -152,16 +148,15 @@ void Plugin::SetDescription(
 }
 
 void Plugin::SetClickHandler(
-    /* [in] */ IPluginPreferencesClickHandler * pHandler)
+    /* [in] */ IPluginPreferencesClickHandler * handler)
 {
-    mHandler = pHandler;
+    mHandler = handler;
 }
 
 void Plugin::DispatchClickEvent(
-    /* [in] */ IContext * pContext)
+    /* [in] */ IContext * context)
 {
-    if(mHandler != NULL)
-    {
-        mHandler -> HandleClickEvent(pContext);
+    if(mHandler != NULL) {
+        mHandler -> HandleClickEvent(context);
     }
 }

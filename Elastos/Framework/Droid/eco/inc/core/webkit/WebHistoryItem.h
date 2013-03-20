@@ -1,6 +1,7 @@
 #ifndef __WEBHISTORYITEM_H__
 #define __WEBHISTORYITEM_H__
 
+#include "ext/frameworkext.h"
 /**
  * A convenience class for accessing fields in an entry in the back/forward list
  * of a WebView. Each WebHistoryItem is a snapshot of the requested history
@@ -16,8 +17,8 @@ public:
      * @param data The pre-flattened data coming from restoreState.
      */
     /*package*/ 
-	WebHistoryItem(
-		/* [in] */ Byte data[]);
+    WebHistoryItem(
+        /* [in] */ Byte data[]);
 
 public:
     /**
@@ -26,7 +27,7 @@ public:
      * same object.
      * @return The id for this item.
      */
-	virtual CARAPI_(Int32) GetId();
+    virtual CARAPI_(Int32) GetId();
 
     /**
      * Return the url of this history item. The url is the base url of this
@@ -36,7 +37,7 @@ public:
      * Note: The VM ensures 32-bit atomic read/write operations so we don't have
      * to synchronize this method.
      */
-	virtual CARAPI_(String) GetUrl();
+    virtual CARAPI_(String) GetUrl();
 
     /**
      * Return the original url of this history item. This was the requested
@@ -44,7 +45,7 @@ public:
      * redirects while loading the site.
      * @return The original url of this history item.
      */
-	virtual CARAPI_(String) GetOriginalUrl();
+    virtual CARAPI_(String) GetOriginalUrl();
     
     /**
      * Return the document title of this history item.
@@ -52,7 +53,7 @@ public:
      * Note: The VM ensures 32-bit atomic read/write operations so we don't have
      * to synchronize this method.
      */
-	virtual CARAPI_(String) GetTitle();
+    virtual CARAPI_(String) GetTitle();
 
     /**
      * Return the favicon of this history item or null if no favicon was found.
@@ -60,19 +61,19 @@ public:
      * Note: The VM ensures 32-bit atomic read/write operations so we don't have
      * to synchronize this method.
      */
-	virtual CARAPI_(IBitmap*) GetFavicon();
+    virtual CARAPI_(IBitmap*) GetFavicon();
 
     /**
      * Return the touch icon url.
      * @hide
      */
-	virtual CARAPI_(String) GetTouchIconUrl();
+    virtual CARAPI_(String) GetTouchIconUrl();
 
     /**
      * Return the custom data provided by the client.
      * @hide
      */
-	virtual CARAPI_(IInterface*) GetCustomData();
+    virtual CARAPI_(IInterface*) GetCustomData();
 
     /**
      * Set the custom data field.
@@ -80,8 +81,8 @@ public:
      *             with the item.
      * @hide
      */
-	virtual CARAPI_(void) SetCustomData(
-		/* [in] */ IInterface* data);
+    virtual CARAPI_(void) SetCustomData(
+        /* [in] */ IInterface* data);
 
     /**
      * Set the favicon.
@@ -90,8 +91,8 @@ public:
      * to synchronize this method.
      */
     /*package*/ 
-	virtual CARAPI_(void) SetFavicon(
-		/* [in] */ IBitmap* icon);
+    virtual CARAPI_(void) SetFavicon(
+        /* [in] */ IBitmap* icon);
 
     /**
      * Set the touch icon url.
@@ -99,7 +100,7 @@ public:
      */
     /*package*/ 
     virtual CARAPI_(void) SetTouchIconUrl(
-    	/* [in] */ CString url);
+        /* [in] */ CString url);
 
     /**
      * Get the pre-flattened data.
@@ -116,62 +117,62 @@ public:
      */
     /*package*/ 
     virtual CARAPI_(void) Inflate(
-    	/* [in] */ Int32 nativeFrame);
+        /* [in] */ Int32 nativeFrame);
 
 protected:
     /**
      * Clone the history item for use by clients of WebView.
      */
-	virtual CARAPI_(WebHistoryItem*) clone();
+    virtual CARAPI_(WebHistoryItem*) clone();
 
 private:
-	// Global identifier count.
-	static Int32 sNextId;
+    // Global identifier count.
+    static Int32 sNextId;
     // Unique identifier.
-	const Int32 mId;
+    const Int32 mId;
     // The title of this item's document.
-	String mTitle;
+    String mTitle;
     // The base url of this item.
-	String mUrl;
+    String mUrl;
     // The original requested url of this item.
-	String mOriginalUrl;
+    String mOriginalUrl;
     // The favicon for this item.
-	IBitmap* mFavicon;
+    IBitmap* mFavicon;
     // The pre-flattened data used for saving the state.
-	Byte mFlattenedData;
+    Byte mFlattenedData;
     // The apple-touch-icon url for use when adding the site to the home screen
-	String mTouchIconUrl;
+    String mTouchIconUrl;
     // Custom client data that is not flattened or read by native code.
-	IInterface* mCustomData;
+    IInterface* mCustomData;
 
 private:
 
     /* Natively inflate this item, this method is called in the WebCore thread.
      */
-	CARAPI_(void) Inflate(
-		/* [in] */ Int32 nativeFrame, 
-		/* [in] */ Byte data[]);
+    CARAPI_(void) Inflate(
+        /* [in] */ Int32 nativeFrame, 
+        /* [in] */ Byte data[]);
 
     /* Called by jni when the item is updated */
-	CARAPI_(void) Update(
-		/* [in] */ CString url, 
-		/* [in] */ CString originalUrl, 
-		/* [in] */ String title,
-		/* [in] */ IBitmap* favicon,
+    CARAPI_(void) Update(
+        /* [in] */ CString url, 
+        /* [in] */ CString originalUrl, 
+        /* [in] */ String title,
+        /* [in] */ IBitmap* favicon,
         /* [in] */ Byte data[]);
 
     /**
      * Basic constructor that assigns a unique id to the item. Called by JNI
      * only.
      */
-	WebHistoryItem();
+    WebHistoryItem();
 
     /**
      * Construct a clone of a WebHistoryItem from the given item.
      * @param item The history item to clone.
      */
-	WebHistoryItem(
-		/* [in] */ WebHistoryItem* item);
+    WebHistoryItem(
+        /* [in] */ WebHistoryItem* item);
 };
 
 #endif //__WEBHISTORYITEM_H__

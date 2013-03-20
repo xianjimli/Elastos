@@ -2,8 +2,12 @@
 #define __STREAMLOADER_H__
 
 #include "ext/frameworkext.h"
+#include <elastos/AutoPtr.h>
+#include "webkit/LoadListener.h"
+#include <elastos/Mutex.h>
+#include <elastos/AutoFree.h>
 
-class LoadListener;
+//class LoadListener;
 
 /**
  * This abstract class is used for all content loaders that rely on streaming
@@ -34,7 +38,7 @@ public:
      * @param loadlistener The LoadListener to call with the data.
      */
     StreamLoader(
-    	/* [in] */ const LoadListener* loadListener);
+        /* [in] */ /*const*/ LoadListener * loadListener);
 
     /**
      * Calling this method starts the load of the content for this StreamLoader.
@@ -45,22 +49,22 @@ public:
     CARAPI_(void) Load();
 
     virtual CARAPI_(Boolean) HandleMessage(
-    	/* [in] */ const IMessage* msg);
+        /* [in] */ const IMessage* msg);
 
 protected:
-	/*const*/ IContext* mContext;
-	/*const*/ LoadListener* mLoadListener; // loader class
-	/*const*/ IInputStream* mDataStream; // stream to read data from
-	long mContentLength; // content length of data
+    /*const*/ AutoPtr<IContext>  mContext;
+    /*const*/ AutoPtr<LoadListener>  mLoadListener; // loader class
+    /*const*/ AutoPtr<IInputStream>  mDataStream; // stream to read data from
+    long mContentLength; // content length of data
 
-	/**
+    /**
      * This method is called when the derived class should setup mDataStream,
      * and call mLoadListener.status() to indicate that the load can occur. If it
      * fails to setup, it should still call status() with the error code.
      *
      * @return true if stream was successfully setup
      */
-    virtual CARAPI_(Boolean) setupStreamAndSendStatus();
+    virtual CARAPI_(Boolean) SetupStreamAndSendStatus();
 
     /**
      * This method is called when the headers are about to be sent to the
@@ -69,11 +73,11 @@ protected:
      *
      * @param headers Map of HTTP headers that will be sent to the loader.
      */
-    virtual CARAPI_(void) buildHeaders(
-    	/* [in] */ const IHeaders* headers);
+    virtual CARAPI_(void) BuildHeaders(
+        /* [in] */ const IHeaders* headers);
 
 private:
-	/**
+    /**
      * Construct the headers and pass them to the EventHandler.
      */
     CARAPI_(void) SendHeaders();
@@ -93,15 +97,17 @@ private:
     CARAPI_(void) CloseStreamAndSendEndData();
 
 private:
-	static const Int32 MSG_STATUS = 100;  // Send status to loader
-	static const Int32 MSG_HEADERS = 101; // Send headers to loader
-	static const Int32 MSG_DATA = 102;  // Send data to loader
-	static const Int32 MSG_END = 103;  // Send endData to loader
+    static const Int32 MSG_STATUS = 100;  // Send status to loader
+    static const Int32 MSG_HEADERS = 101; // Send headers to loader
+    static const Int32 MSG_DATA = 102;  // Send data to loader
+    static const Int32 MSG_END = 103;  // Send endData to loader
 
-	ArrayOf<Byte> mData; // buffer to pass data to loader with.
+    AutoFree < ArrayOf<Byte> > mData; // buffer to pass data to loader with.
 
-	// Handler which will be initialized in the thread where load() is called.
-	IHandlerCallback* mHandler;
+    // Handler which will be initialized in the thread where load() is called.
+    AutoPtr<IHandler> mHandler;
+
+    Elastos::Core::Threading::Mutex mLock;
 };
 
 #endif //__STREAMLOADER_H__

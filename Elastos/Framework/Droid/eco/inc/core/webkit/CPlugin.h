@@ -26,8 +26,8 @@ CarClass(CPlugin)
         CARAPI_(UInt32) Release();
 
         CARAPI GetInterfaceID(
-            /* [in] */ IInterface *pObject,
-            /* [out] */ InterfaceID *pIID);
+            /* [in] */ IInterface* Object,
+            /* [out] */ InterfaceID* iID);
 
         //@Deprecated    
         CARAPI HandleClickEvent(
@@ -43,9 +43,9 @@ CarClass(CPlugin)
             /* [in] */ Int32 which);
 
     public:
-        AutoPtr<ICharSequence> pName;
-        AutoPtr<ICharSequence> pDescription;
-        AutoPtr<ICharSequence> pRStringOk;
+        AutoPtr<ICharSequence> mName;
+        AutoPtr<ICharSequence> mDescription;
+        AutoPtr<ICharSequence> mRStringOk;
         
     private:
         AutoPtr<IAlertDialog> mDialog;
@@ -55,19 +55,19 @@ CarClass(CPlugin)
     //friend class DefaultClickHandler;
 public:
     CARAPI ToString(
-        /* [out] */ String * pName);
+        /* [out] */ String* name);
 
     CARAPI GetName(
-        /* [out] */ String * pName);
+        /* [out] */ String* name);
 
     CARAPI GetPath(
-        /* [out] */ String * pPath);
+        /* [out] */ String* path);
 
     CARAPI GetFileName(
-        /* [out] */ String * pFileName);
+        /* [out] */ String* fileName);
 
     CARAPI GetDescription(
-        /* [out] */ String * pDescription);
+        /* [out] */ String* description);
 
     CARAPI SetName(
         /* [in] */ String name);
@@ -82,10 +82,10 @@ public:
         /* [in] */ String description);
 
     CARAPI SetClickHandler(
-        /* [in] */ IPluginPreferencesClickHandler * pHandler);
+        /* [in] */ IPluginPreferencesClickHandler* handler);
 
     CARAPI DispatchClickEvent(
-        /* [in] */ IContext * pContext);
+        /* [in] */ IContext* context);
 
     CARAPI constructor(
         /* [in] */ const String& name,

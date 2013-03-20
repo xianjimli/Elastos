@@ -14,46 +14,46 @@
 CarClass(CPluginManager)
 {
 public:
-	CARAPI GetInstance(
-        /* [in] */ IContext * pContext,
-        /* [out] */ IPluginManager ** ppInstance);
+    CARAPI GetInstance(
+        /* [in] */ IContext * context,
+        /* [out] */ IPluginManager ** instance);
 
     CARAPI RefreshPlugins(
         /* [in] */ Boolean reloadOpenPages);
 
-	CARAPI GetPluginDirectories(
-        /* [out] */ ArrayOf<String> * pPluginDirectories);
+    CARAPI GetPluginDirectories(
+        /* [out] */ ArrayOf<String> * pluginDirectories);
 
     /* package */
     CARAPI GetPluginsAPKName(
         /* [in] */ String pluginLib,
-        /* [out] */ String * pPluginsAPKName);
+        /* [out] */ String * pluginsAPKName);
 
     CARAPI GetPluginSharedDataDirectory(
-        /* [out] */ String * pPluginSharedDataDirectory);
+        /* [out] */ String * pluginSharedDataDirectory);
 
     /* package */
     CARAPI GetPluginClass(
         /* [in] */ String packageName, 
         /* [in] */ String className,
-        /* [out] */ Handle32 * hPluginClass);
+        /* [out] */ Handle32 * pluginClass);
 
     /*added for function GetInstance to init 'mInstance'  */
     CARAPI InitInstance(
-        /* [in] */ IContext * pContext);
+        /* [in] */ IContext * context);
 
 private:
     CARAPI constructor(
         /* [in] */ IContext * context); 
 
 private:
-	static const char* LOGTAG;
+	static const CString sLOGTAG;
 
-    static const char* PLUGIN_SYSTEM_LIB;
+    static const CString sPLUGIN_SYSTEM_LIB;
 
-    static const char* PLUGIN_TYPE;
+    static const CString sPLUGIN_TYPE;
     
-    static const char* TYPE_NATIVE;
+    static const CString sTYPE_NATIVE;
 
     static IPluginManager * sInstance;
 
@@ -63,9 +63,9 @@ private:
 
     // Only plugin matches one of the signatures in the list can be loaded
     // inside the WebView process
-    static const char* SIGNATURE_1;
+    static const CString sSIGNATURE_1;
 
-    static const AutoFree < ArrayOf < AutoPtr <ISignature> > > SIGNATURES;
+    static const AutoFree < ArrayOf < AutoPtr <ISignature> > > sSIGNATURES;
 };
 
 #endif // __CPLUGINMANAGER_H__

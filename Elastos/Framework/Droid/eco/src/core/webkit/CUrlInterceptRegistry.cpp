@@ -3,23 +3,23 @@
 #include "webkit/CCacheManager.h"
 #include "webkit/CPluginData.h"
 
-const char* CUrlInterceptRegistry::LOGTAG = "intercept";
+const CString CUrlInterceptRegistry::LOGTAG = "intercept";
 
 Boolean CUrlInterceptRegistry::sDisabled = FALSE;
 
-List< IUrlInterceptHandler * > * CUrlInterceptRegistry::sHandlerList;
+List< AutoPtr<IUrlInterceptHandler> > * CUrlInterceptRegistry::sHandlerList;
 
 
 ECode CUrlInterceptRegistry::GetHandlers(
-        /* [out] */ List< IUrlInterceptHandler * > ** pLinkedList )
+        /* [out] */ List< AutoPtr<IUrlInterceptHandler> > ** linkedList )
 {
+    VALIDATE_NOT_NULL(linkedList);
     Mutex::Autolock lock(_m_syncLock);    
 
-    if(sHandlerList == NULL)
-    {
-        sHandlerList = new List< IUrlInterceptHandler * >;
+    if(sHandlerList == NULL) {
+        sHandlerList = new List< AutoPtr<IUrlInterceptHandler> >;
     }
-    *pLinkedList = sHandlerList;
+    *linkedList = sHandlerList;
     return NOERROR;
 }
 
@@ -31,88 +31,84 @@ ECode CUrlInterceptRegistry::SetUrlInterceptDisabled(
 }
 
 ECode CUrlInterceptRegistry::UrlInterceptDisabled(
-    /* [out] */ Boolean * pFlag)
+    /* [out] */ Boolean* flag)
 {
-    *pFlag = sDisabled;
+    VALIDATE_NOT_NULL(flag);
+    *flag = sDisabled;
     return NOERROR;
 }
 
 ECode CUrlInterceptRegistry::RegisterHandler(
-    /* [in] */ IUrlInterceptHandler * pHandler,
-    /* [out] */ Boolean * pFlag)
+    /* [in] */ IUrlInterceptHandler * handler,
+    /* [out] */ Boolean * flag)
 {
-    List< IUrlInterceptHandler * > * tHandlerList = NULL;
+    VALIDATE_NOT_NULL(flag);
+    List< AutoPtr<IUrlInterceptHandler> > * tHandlerList = NULL;
     GetHandlers(&tHandlerList);
 
     Boolean bContains = FALSE;
     Int32 nT = tHandlerList -> GetSize();
-    List< IUrlInterceptHandler * >::Iterator iterT;
-    List< IUrlInterceptHandler * >::Iterator iterE;
+    List< AutoPtr<IUrlInterceptHandler> >::Iterator iterT;
+    List< AutoPtr<IUrlInterceptHandler> >::Iterator iterE;
     iterT = tHandlerList -> Begin();
     iterE = tHandlerList -> End();
-    for(int n = 0; n < nT ; n ++ )
-    {
-        if(pHandler == (*iterT) )
-        {
+    for(int n = 0; n < nT ; n ++ ) {
+        if(handler == (*iterT) ) {
             bContains = TRUE;
             break;
         }            
         iterT ++;
     }
-    if(!bContains)
-    {
-        pHandler -> AddRef();
-        tHandlerList -> PushFront(pHandler);
-        *pFlag = TRUE;
+    if(!bContains) {
+        tHandlerList -> PushFront(handler);
+        *flag = TRUE;
     }
-    else
-    {
-        *pFlag = FALSE;
+    else {
+        *flag = FALSE;
     }
     return NOERROR;
 }
 
 ECode CUrlInterceptRegistry::UnregisterHandler(
-    /* [in] */ IUrlInterceptHandler * pHandler,
-    /* [out] */ Boolean * pFlag)
+    /* [in] */ IUrlInterceptHandler * handler,
+    /* [out] */ Boolean * flag)
 {
-    List< IUrlInterceptHandler * > * tHandlerList = NULL;
+    VALIDATE_NOT_NULL(flag);
+    List< AutoPtr<IUrlInterceptHandler> > * tHandlerList = NULL;
     GetHandlers(&tHandlerList);
-    pHandler ->Release();
-    tHandlerList -> Remove(pHandler);
+    tHandlerList -> Remove(handler);
+    *flag = TRUE;
     return NOERROR;
 }
 
 ECode CUrlInterceptRegistry::GetSurrogate(
     /* [in] */ CString url,
-    /* [in] */ IObjectStringMap * pHeaders,
-    /* [out] */ ICacheManagerCacheResult ** ppResult)
+    /* [in] */ IObjectStringMap * headers,
+    /* [out] */ ICacheManagerCacheResult ** result)
 {
+    VALIDATE_NOT_NULL(result);
     Boolean bUrlInterceptDisabled;
     UrlInterceptDisabled(&bUrlInterceptDisabled);
-    if(bUrlInterceptDisabled)
-    {
-        *ppResult = NULL;
+    if(bUrlInterceptDisabled) {
+        *result = NULL;
         return NOERROR;
     }
 
-    List< IUrlInterceptHandler * > * tHandlerList = NULL;
+    List< AutoPtr<IUrlInterceptHandler> > * tHandlerList = NULL;
     GetHandlers(&tHandlerList);
 
     Int32 nT = tHandlerList -> GetSize();
-    List< IUrlInterceptHandler * >::Iterator iterT;
-    List< IUrlInterceptHandler * >::Iterator iterE;
+    List< AutoPtr<IUrlInterceptHandler> >::Iterator iterT;
+    List< AutoPtr<IUrlInterceptHandler> >::Iterator iterE;
     iterT = tHandlerList -> Begin();
     iterE = tHandlerList -> End();
-    for(int n = 0; n < nT ; n ++ )
-    {
+    for(int n = 0; n < nT ; n ++ ) {
         /*
-        IUrlInterceptHandler * handler = (IUrlInterceptHandler * ) (*iterT);        
-        CCacheManager::CCacheResult * result = NULL;
-        handler -> Service(url,pHeaders,&result);
-        if(result != NULL)
-        {
-            *ppResult = result;
+        IUrlInterceptHandler * handler = (IUrlInterceptHandler * ) (*iterT).Get();        
+        AutoPtr<CCacheManager::CCacheResult> resultT;
+        handler -> Service(url,headers,((CCacheManager::CCacheResult)**)&resultT);
+        if(resultT.Get() != NULL) {
+            *result = resultT.Get();
             break;
         }
         */
@@ -123,33 +119,31 @@ ECode CUrlInterceptRegistry::GetSurrogate(
 
 ECode CUrlInterceptRegistry::GetPluginData(
     /* [in] */ CString url,
-    /* [in] */ IObjectStringMap * pHeaders,
-    /* [out] */ IPluginData ** ppData)
+    /* [in] */ IObjectStringMap * headers,
+    /* [out] */ IPluginData ** data)
 {
+    VALIDATE_NOT_NULL(data);
     Boolean bUrlInterceptDisabled;
     UrlInterceptDisabled(&bUrlInterceptDisabled);
-    if(bUrlInterceptDisabled)
-    {
-        *ppData = NULL;
+    if(bUrlInterceptDisabled) {
+        *data = NULL;
         return NOERROR;
     }
 
-    List< IUrlInterceptHandler * > * tHandlerList = NULL;
+    List< AutoPtr<IUrlInterceptHandler> > * tHandlerList = NULL;
     GetHandlers(&tHandlerList);
 
     Int32 nT = tHandlerList -> GetSize();
-    List< IUrlInterceptHandler * >::Iterator iterT;
-    List< IUrlInterceptHandler * >::Iterator iterE;
+    List< AutoPtr<IUrlInterceptHandler> >::Iterator iterT;
+    List< AutoPtr<IUrlInterceptHandler> >::Iterator iterE;
     iterT = tHandlerList -> Begin();
     iterE = tHandlerList -> End();
-    for(int n = 0; n < nT ; n ++ )
-    {
+    for(int n = 0; n < nT ; n ++ ) {
         IUrlInterceptHandler * handler = (IUrlInterceptHandler * ) (*iterT);  
-        IPluginData * data = NULL;
-        handler -> GetPluginData(url, pHeaders,&data);
-        if (data != NULL) 
-        {
-            *ppData = data;
+        AutoPtr<IPluginData> dataT = NULL;
+        handler -> GetPluginData(url, headers,(IPluginData**)&dataT);
+        if (dataT.Get() != NULL) {
+            *data = dataT.Get();
             break;
         }        
         iterT ++;
