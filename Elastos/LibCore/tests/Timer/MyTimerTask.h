@@ -6,15 +6,16 @@
 #include <Elastos.Utility.h>
 #include <elastos/ElRefBase.h>
 #include <elastos/Mutex.h>
+#include <elastos/TimerTask.h>
 
 using namespace Elastos::Core::Threading;
 
 class MyTimerTask
-     : public ElRefBase ,public ITimerTask
+     : public ElRefBase
+     , public TimerTask
+     , public ITimerTask
 {
 public:
-    MyTimerTask();
-
     CARAPI_(PInterface) Probe(
        /* [in]  */ REIID riid);
 
@@ -69,19 +70,8 @@ private:
     CARAPI_(Mutex*) GetSelfLock();
 
 private:
+    static Int32 sCount;
     Mutex mLock;
-    Boolean mCancelled;
-    Int64 mWhen;
-
-    Int64 mPeriod;
-
-    Boolean mFixedRate;
-
-    /*
-     * The time when task will be executed, or the time when task was launched
-     * if this is task in progress.
-     */
-    Int64 mScheduledTime;
 };
 
 #endif //__MyTimerTask_H__
