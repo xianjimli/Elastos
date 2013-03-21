@@ -4,6 +4,7 @@
 
 #include "_CBidi.h"
 #include "Bidi.h"
+
 CarClass(CBidi), public Bidi
 {
 public:
@@ -35,6 +36,18 @@ public:
 
     CARAPI GetLength(
         /* [out] */ Int32 * pLength);
+
+    CARAPI SetLength(
+        /* [in] */ Int32 length);
+
+    CARAPI GetOffsetLevel(
+        /* [out] */ ArrayOf<Byte>** ppOffsetLevel);
+
+    CARAPI SetOffsetLevel(
+        /* [in] */ ArrayOf<Byte>* pOffsetLevel);
+
+    CARAPI SetUnidirectional(
+        /* [in] */ Boolean unidirectional);
 
     CARAPI GetLevelAt(
         /* [in] */ Int32 offset,

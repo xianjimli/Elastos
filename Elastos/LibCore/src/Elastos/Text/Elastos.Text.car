@@ -32,8 +32,9 @@ module
     merge("../../../car/Elastos/Text/ICURuleBasedCollator.car");
     merge("../../../car/Elastos/Text/CollationElementIterator.car");
     merge("../../../car/Elastos/Text/RuleBasedCollator.car");
+    merge("../../../car/Elastos/Text/TextAttribute.car");
+    merge("../../../car/Elastos/Text/Bidi.car");
     merge("../../../car/Elastos/Text/AttributedString.car");
-    //merge("../../../car/Elastos/Text/Bidi.car");
 
     class CAttributedCharacterIterator_Attribute {
         constructor(
@@ -236,6 +237,34 @@ module
         interface IRuleBasedCollator;
     }
 
+    class CTextAttribute {
+        constructor(
+            [in] String name);
+
+        interface ITextAttribute;
+    }
+
+    [deprecated]
+    class CBidi {
+        constructor(
+            [in] IAttributedCharacterIterator* paragraph);
+
+        constructor(
+            [in] ArrayOf<Char32>* text,
+            [in] Int32 textStart,
+            [in] ArrayOf<Byte>* embeddings,
+            [in] Int32 embStart,
+            [in] Int32 paragraphLength,
+            [in] Int32 flags);
+
+        constructor(
+            [in] String paragraph,
+            [in] Int32 flags);
+
+        interface IBidi;
+    }
+
+
 //    [deprecated]
 //    class CAttributedString {
 //        constructor(
@@ -256,26 +285,6 @@ module
         //    Map<? extends AttributedCharacterIterator.Attribute, ?> attributes);
 
 //        interface IAttributedString;
-//    }
-
-//    [deprecated]
-//    class CBidi {
-//        constructor(
-//            [in] IAttributedCharacterIterator* paragraph);
-
-//        constructor(
-//            [in] ArrayOf<Char32>* text,
-//            [in] Int32 textStart,
-//            [in] ArrayOf<Byte>* embeddings,
-//            [in] Int32 embStart,
-//            [in] Int32 paragraphLength,
-//            [in] Int32 flags);
-
-//        constructor(
-//            [in] String paragraph,
-//            [in] Int32 flags);
-
-//        interface IBidi;
 //    }
 
 }
