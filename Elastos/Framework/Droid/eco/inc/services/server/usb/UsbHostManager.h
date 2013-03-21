@@ -17,6 +17,14 @@ public:
         /* [in] */ IContext* context,
         /* [in] */ UsbSettingsManager* settingsManager);
 
+    CARAPI_(UInt32) AddRef();
+
+    CARAPI_(UInt32) Release();
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface *pObject,
+        /* [out] */ InterfaceID *pIID);
+
     CARAPI_(void) SystemReady();
 
     /* Returns a list of all currently attached USB devices */

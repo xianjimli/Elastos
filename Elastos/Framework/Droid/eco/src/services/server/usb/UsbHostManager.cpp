@@ -12,6 +12,23 @@ UsbHostManager::UsbHostManager(
     // NOT IMPLEMENTED
 }
 
+UInt32 UsbHostManager::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 UsbHostManager::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode UsbHostManager::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
 void UsbHostManager::SystemReady()
 {
     // NOT IMPLEMENTED

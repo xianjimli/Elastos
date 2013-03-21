@@ -7,7 +7,7 @@
 
 using namespace Elastos::Core;
 
-const String CLocalUsbManager::TAG("UsbManager");
+const String CLocalUsbManager::TAG = String("UsbManager");
 
 ECode CLocalUsbManager::constructor(
     /* [in] */ IContext* context,

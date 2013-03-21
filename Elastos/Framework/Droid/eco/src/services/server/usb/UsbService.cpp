@@ -9,6 +9,23 @@ UsbService::UsbService(
     // NOT IMPLEMENTED
 }
 
+UInt32 UsbService::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 UsbService::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode UsbService::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
 /* Returns a list of all currently attached USB devices */
 ECode UsbService::GetDeviceList(
     /* [out] */ IBundle** devices)

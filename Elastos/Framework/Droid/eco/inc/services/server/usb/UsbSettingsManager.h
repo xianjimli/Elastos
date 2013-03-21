@@ -11,6 +11,14 @@ public:
     UsbSettingsManager(
         /* [in] */ IContext* context);
 
+    CARAPI_(UInt32) AddRef();
+
+    CARAPI_(UInt32) Release();
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface *pObject,
+        /* [out] */ InterfaceID *pIID);
+
     CARAPI_(void) DeviceAttached(
         /* [in] */ IUsbDevice* device);
 
