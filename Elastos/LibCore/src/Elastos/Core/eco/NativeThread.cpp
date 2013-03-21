@@ -859,7 +859,7 @@ Boolean NativeCreateThread(
     NativeUnlockThreadList();
 
     /* change status back to RUNNING, self-suspending if necessary */
-    //NativeChangeStatus(self, NTHREAD_RUNNING);
+    NativeChangeStatus(self, NTHREAD_RUNNING);
 
     /*
      * Tell the new thread to start.

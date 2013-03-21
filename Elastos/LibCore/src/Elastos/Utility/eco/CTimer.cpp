@@ -1,7 +1,7 @@
 
 #include "cmdef.h"
 #include "CTimer.h"
-#include <stdio.h>
+
 
 ECode CTimer::constructor(
     /* [in] */ const String& name,
