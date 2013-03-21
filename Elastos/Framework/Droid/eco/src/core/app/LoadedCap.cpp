@@ -375,6 +375,14 @@ LoadedCap::LoadedCap(
     mCapsuleName = name;
     mAppDir = NULL;
     mResDir = NULL;
+    mDataDir = info->mDataDir;
+    if (!mDataDir.IsNull()) {
+        CFile::New(mDataDir, (IFile**)&mDataDirFile);
+    }
+    else {
+        mDataDirFile = NULL;
+    }
+
     //mSharedLibraries = NULL;
     //mDataDir = NULL;
     //mDataDirFile = NULL;
@@ -522,6 +530,23 @@ ECode LoadedCap::GetAppDir(
     *appDir = mAppDir;
     return NOERROR;
 }
+
+ECode LoadedCap::GetResDir(
+    /* [out] */ String* resDir)
+{
+    VALIDATE_NOT_NULL(resDir);
+    *resDir = mResDir;
+    return NOERROR;
+}
+
+ECode LoadedCap::GetDataDirFile(
+    /* [out] */ IFile** dirFile)
+{
+    VALIDATE_NOT_NULL(dirFile);
+    *dirFile = mDataDirFile;
+    return NOERROR;
+}
+
 
 ECode LoadedCap::GetResources(
     /* [in] */ CApplicationApartment* apartment,

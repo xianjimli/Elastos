@@ -8,6 +8,8 @@
 #include "view/CWindowManagerImpl.h"
 #include "view/inputmethod/CLocalInputMethodManager.h"
 #include "os/Process.h"
+#include "os/FileUtils.h"
+#include "os/Environment.h"
 #include <unistd.h>
 #include <assert.h>
 #include <Slogger.h>
@@ -1763,6 +1765,199 @@ ECode CContextImpl::GetApplicationInfo(
     }
 //    throw new RuntimeException("Not supported in system context");
     return E_RUNTIME_EXCEPTION;
+}
+
+ECode CContextImpl::GetCapsuleResourcePath(
+    /* [out] */ String* path)
+{
+    if (mCapsuleInfo != NULL) {
+        return mCapsuleInfo->GetResDir(path);
+    }
+    //throw new RuntimeException("Not supported in system context");
+    return E_RUNTIME_EXCEPTION;
+}
+
+ECode CContextImpl::GetFilesDir(
+    /* [out] */ IFile** filesDir)
+{
+    VALIDATE_NOT_NULL(filesDir);
+
+    Mutex::Autolock lock(mSync);
+    if (mFilesDir == NULL) {
+        AutoPtr<IFile> dirFile;
+        GetDataDirFile((IFile**)&dirFile);
+        CFile::New(dirFile, String("files"), (IFile**)&mFilesDir);
+    }
+    Boolean isExists;
+    mFilesDir->Exists(&isExists);
+    if (!isExists) {
+        Boolean succeeded;
+        mFilesDir->Mkdir(&succeeded);
+        if(!succeeded) {
+            //Log.w(TAG, "Unable to create files directory");
+            *filesDir = NULL;
+            return NOERROR;
+        }
+        String path;
+        mFilesDir->GetPath(&path);
+        FileUtils::SetPermissions(
+                path, FileUtils::IRWXU | FileUtils::IRWXG | FileUtils::IXOTH,
+                -1, -1);
+    }
+    *filesDir = mFilesDir;
+    return NOERROR;
+}
+
+ECode CContextImpl::GetDataDirFile(
+    /* [out] */ IFile** dirFile)
+{
+    if (mCapsuleInfo != NULL) {
+        return mCapsuleInfo->GetDataDirFile(dirFile);
+    }
+    return E_RUNTIME_EXCEPTION;
+    //throw new RuntimeException("Not supported in system context");
+}
+
+ECode CContextImpl::GetExternalFilesDir(
+    /* [in] */ const String& type,
+    /* [out] */ IFile** filesDir)
+{
+    VALIDATE_NOT_NULL(filesDir);
+
+    Mutex::Autolock lock(mSync);
+    if (mExternalFilesDir == NULL) {
+        String name;
+        GetCapsuleName(&name);
+        mExternalFilesDir = Environment::GetExternalStorageAppFilesDirectory(name);
+    }
+    Boolean isExists;
+    mExternalFilesDir->Exists(&isExists);
+    if (!isExists) {
+        //try {
+        AutoPtr<IFile> f;
+        CFile::New(Environment::GetExternalStorageElastosDataDir()
+                , String(".nomedia"), (IFile**)&f);
+        Boolean result;
+        f->CreateNewFile(&result);
+        // } catch (IOException e) {
+        // }
+        Boolean succeeded;
+        mExternalFilesDir->Mkdirs(&succeeded);
+        if (!succeeded) {
+            //Log.w(TAG, "Unable to create external files directory");
+            *filesDir = NULL;
+            return NOERROR;
+        }
+    }
+    if (type.IsNull()) {
+        *filesDir = mExternalFilesDir;
+        return NOERROR;
+    }
+    AutoPtr<IFile> dir;
+    CFile::New(mExternalFilesDir, type, (IFile**)&dir);
+    dir->Exists(&isExists);
+    if (!isExists) {
+        Boolean succeeded;
+        dir->Mkdirs(&succeeded);
+        if (!succeeded) {
+            //Log.w(TAG, "Unable to create external media directory " + dir);
+            *filesDir = NULL;
+            return NOERROR;
+        }
+    }
+    *filesDir = dir;
+    return NOERROR;
+}
+
+ECode CContextImpl::GetCacheDir(
+    /* [out] */ IFile** cacheDir)
+{
+    VALIDATE_NOT_NULL(cacheDir);
+
+    Mutex::Autolock lock(mSync);
+    if (mCacheDir == NULL) {
+        AutoPtr<IFile> dirFile;
+        GetDataDirFile((IFile**)&dirFile);
+        CFile::New(dirFile, String("cache"), (IFile**)&mCacheDir);
+    }
+    Boolean isExists;
+    mCacheDir->Exists(&isExists);
+    if (!isExists) {
+        Boolean succeeded;
+        mCacheDir->Mkdirs(&succeeded);
+        if(!succeeded) {
+            //Log.w(TAG, "Unable to create cache directory");
+            *cacheDir = NULL;
+            return NOERROR;
+        }
+        String path;
+        mCacheDir->GetPath(&path);
+        FileUtils::SetPermissions(path,
+                FileUtils::IRWXU | FileUtils::IRWXG | FileUtils::IXOTH,
+                -1, -1);
+    }
+    *cacheDir = mCacheDir;
+    return NOERROR;
+}
+
+ECode CContextImpl::GetDir(
+    /* [in] */ const String& name,
+    /* [in] */ Int32 mode,
+    /* [out] */ IFile** dir)
+{
+    VALIDATE_NOT_NULL(dir);
+
+    String s = String("app_") + name;
+    AutoPtr<IFile> dirFile;
+    GetDataDirFile((IFile**)&dirFile);
+    AutoPtr<IFile> file;
+    MakeFilename(dirFile, name, (IFile**)&file);
+    Boolean isExists;
+    file->Exists(&isExists);
+    if (!isExists) {
+        Boolean succeeded;
+        file->Mkdir(&succeeded);
+        String path;
+        file->GetPath(&path);
+        SetFilePermissionsFromMode(path, mode,
+                FileUtils::IRWXU | FileUtils::IRWXG | FileUtils::IXOTH);
+    }
+    *dir = file;
+    return NOERROR;
+}
+
+void CContextImpl::SetFilePermissionsFromMode(
+    /* [in] */ const String& name,
+    /* [in] */ Int32 mode,
+    /* [in] */ Int32 extraPermissions)
+{
+    Int32 perms = FileUtils::IRUSR | FileUtils::IWUSR
+        | FileUtils::IRGRP | FileUtils::IWGRP
+        | extraPermissions;
+    if ((mode & Context_MODE_WORLD_READABLE) != 0) {
+        perms |= FileUtils::IROTH;
+    }
+    if ((mode & Context_MODE_WORLD_WRITEABLE) != 0) {
+        perms |= FileUtils::IWOTH;
+    }
+    // if (DEBUG) {
+    //     Log.i(TAG, "File " + name + ": mode=0x" + Integer.toHexString(mode)
+    //           + ", perms=0x" + Integer.toHexString(perms));
+    // }
+    FileUtils::SetPermissions(name, perms, -1, -1);
+}
+
+ECode CContextImpl::MakeFilename(
+    /* [in] */ IFile* base,
+    /* [in] */ const String& name,
+    /* [out] */ IFile** file)
+{
+    if (name.IndexOf('/'/*File.separatorChar*/) < 0) {
+        return CFile::New(base, name, file);
+    }
+    return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    // throw new IllegalArgumentException(
+    //         "File " + name + " contains a path separator");
 }
 
 ECode CContextImpl::StartActivity(

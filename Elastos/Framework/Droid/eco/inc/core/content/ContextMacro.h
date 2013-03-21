@@ -10,7 +10,7 @@
         /* [out] */ IResources** resources);                                \
                                                                             \
     CARAPI GetCapsuleManager(                                               \
-        /* [out] */ ILocalCapsuleManager** capsuleManager);            \
+        /* [out] */ ILocalCapsuleManager** capsuleManager);                 \
                                                                             \
     CARAPI GetContentResolver(                                              \
         /* [out] */ IContentResolver** resolver);                           \
@@ -61,6 +61,24 @@
                                                                             \
     CARAPI GetApplicationInfo(                                              \
         /* [out] */ IApplicationInfo** info);                               \
+                                                                            \
+    CARAPI GetCapsuleResourcePath(                                          \
+        /* [out] */ String* path);                                          \
+                                                                            \
+    CARAPI GetFilesDir(                                                     \
+        /* [out] */ IFile** filesDir);                                      \
+                                                                            \
+    CARAPI GetExternalFilesDir(                                             \
+    /* [in] */ const String& type,                                          \
+    /* [out] */ IFile** filesDir);                                          \
+                                                                            \
+    CARAPI GetCacheDir(                                                     \
+        /* [out] */ IFile** cacheDir);                                      \
+                                                                            \
+    CARAPI GetDir(                                                          \
+    /* [in] */ const String& name,                                          \
+    /* [in] */ Int32 mode,                                                  \
+    /* [out] */ IFile** dir);                                               \
                                                                             \
     CARAPI StartActivity(                                                   \
         /* [in] */ IIntent *intent);                                        \
@@ -131,7 +149,7 @@ ECode className::GetResources(                                              \
 ECode className::GetCapsuleManager(                                         \
     /* [out] */ ILocalCapsuleManager** capsuleManager)                      \
 {                                                                           \
-    return superClass::GetCapsuleManager(capsuleManager);                  \
+    return superClass::GetCapsuleManager(capsuleManager);                   \
 }                                                                           \
                                                                             \
 ECode className::GetContentResolver(                                        \
@@ -222,6 +240,39 @@ ECode className::GetApplicationInfo(                                        \
     /* [out] */ IApplicationInfo** info)                                    \
 {                                                                           \
     return superClass::GetApplicationInfo(info);                            \
+}                                                                           \
+                                                                            \
+ECode className::GetCapsuleResourcePath(                                    \
+    /* [out] */ String* path)                                               \
+{                                                                           \
+    return superClass::GetCapsuleResourcePath(path);                        \
+}                                                                           \
+                                                                            \
+ECode className::GetFilesDir(                                               \
+    /* [out] */ IFile** filesDir)                                           \
+{                                                                           \
+    return superClass::GetFilesDir(filesDir);                               \
+}                                                                           \
+                                                                            \
+ECode className::GetExternalFilesDir(                                       \
+    /* [in] */ const String& type,                                          \
+    /* [out] */ IFile** filesDir)                                           \
+{                                                                           \
+    return superClass::GetExternalFilesDir(type, filesDir);                 \
+}                                                                           \
+                                                                            \
+ECode className::GetCacheDir(                                               \
+    /* [out] */ IFile** cacheDir)                                           \
+{                                                                           \
+    return superClass::GetCacheDir(cacheDir);                               \
+}                                                                           \
+                                                                            \
+ECode className::GetDir(                                                    \
+    /* [in] */ const String& name,                                          \
+    /* [in] */ Int32 mode,                                                  \
+    /* [out] */ IFile** dir)                                                \
+{                                                                           \
+    return superClass::GetDir(name, mode, dir);                             \
 }                                                                           \
                                                                             \
 ECode className::SendBroadcast(                                             \

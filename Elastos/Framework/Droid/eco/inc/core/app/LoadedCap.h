@@ -183,6 +183,12 @@ public:
     CARAPI GetAppDir(
         /* [out] */ String* appDir);
 
+    CARAPI GetResDir(
+        /* [out] */ String* resDir);
+
+    CARAPI GetDataDirFile(
+        /* [out] */ IFile** dirFile);
+
     CARAPI GetResources(
         /* [in] */ CApplicationApartment* apartment,
         /* [out] */ CResources** res);
@@ -219,6 +225,8 @@ private:
     String mCapsuleName;
     String mAppDir;
     String mResDir;
+    String mDataDir;
+    AutoPtr<IFile> mDataDirFile;
     Boolean mSecurityViolation;
     Boolean mIncludeCode;
     AutoPtr<IClassLoader> mClassLoader;
