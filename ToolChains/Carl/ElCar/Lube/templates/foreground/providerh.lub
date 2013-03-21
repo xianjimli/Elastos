@@ -9,43 +9,43 @@ $
 #ifndef __${Upper(name)}_H__
 #define __${Upper(name)}_H__
 
-#include "CContentProvider.h"
 #include "_${name}.h"
+#include "ContentProvider.h"
 
-class ${name} : public CContentProvider
+CarClass(${name}), public ContentProvider
 {
 public:
     CARAPI Delete(
-        /* [in] */ IUri* uri, 
-        /* [in] */ String selection, 
+        /* [in] */ IUri* uri,
+        /* [in] */ String selection,
         /* [in] */ ArrayOf<String> selectionArgs,
-        /* [out] */ Int32* rowsAffected); 
-    
+        /* [out] */ Int32* rowsAffected);
+
     CARAPI GetType(
         /* [in] */ IUri* uri,
         /* [out] */ String* type);
-     
+
     CARAPI Insert(
-        /* [in] */ IUri* uri, 
+        /* [in] */ IUri* uri,
         /* [in] */ IContentValues* values,
-        /* [out] */ IUri** insertedItemUri); 
-    
+        /* [out] */ IUri** insertedItemUri);
+
     CARAPI Query(
-        /* [in] */ IUri* uri, 
-        /* [in] */ ArrayOf<String> projection, 
-        /* [in] */ String selection, 
-        /* [in] */ ArrayOf<String> selectionArgs, 
+        /* [in] */ IUri* uri,
+        /* [in] */ ArrayOf<String> projection,
+        /* [in] */ String selection,
+        /* [in] */ ArrayOf<String> selectionArgs,
         /* [in] */ String sortOrder,
         /* [out] */ ICursor** cursor);
-    
+
     CARAPI Update(
-        /* [in] */ IUri* uri, 
-        /* [in] */ IContentValues* values, 
-        /* [in] */ String selection, 
+        /* [in] */ IUri* uri,
+        /* [in] */ IContentValues* values,
+        /* [in] */ String selection,
         /* [in] */ ArrayOf<String> selectionArgs,
         /* [out] */ Int32* rowsAffected);
-    
-    CARAPI OnCreate();    
+
+    CARAPI OnCreate();
 
 private:
     // TODO: Add your private member variables here.

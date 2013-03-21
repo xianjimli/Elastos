@@ -9,27 +9,27 @@ $
 #ifndef __${Upper(name)}_H__
 #define __${Upper(name)}_H__
 
-#include "CActivity.h"
 #include "_${name}.h"
+#include "Activity.h"
 
-class ${name} : public CActivity
+CarClass(${name}), public Activity
 {
 public:
 
 protected:
     CARAPI OnCreate(
         /* [in] */ IBundle* savedInstanceState);
-    
+
     CARAPI OnStart();
-    
+
     CARAPI OnRestart();
-    
+
     CARAPI OnResume();
-    
+
     CARAPI OnPause();
-    
+
     CARAPI OnStop();
-    
+
     CARAPI OnDestroy();
 
 private:

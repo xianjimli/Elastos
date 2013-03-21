@@ -9,27 +9,27 @@ $
 #ifndef __${Upper(name)}_H__
 #define __${Upper(name)}_H__
 
-#include "CService.h"
 #include "_${name}.h"
+#include "Service.h"
 
-class ${name} : public CService
+CarClass(${name}), public Service
 {
 public:
 
 protected:
     CARAPI OnCreate();
-        
+
     CARAPI OnStart(
         /* [in] */ IIntent* intent,
         /* [in] */ Int32 startId);
-        
+
     CARAPI OnBind(
         /* [in] */ IIntent* intent,
-        /* [out] */ IBinder** binder); 
-    
+        /* [out] */ IBinder** binder);
+
     CARAPI OnUnbind(
         /* [in] */ IIntent* intent,
-        /* [out] */ Boolean* succeeded);  
+        /* [out] */ Boolean* succeeded);
 
 private:
     // TODO: Add your private member variables here.

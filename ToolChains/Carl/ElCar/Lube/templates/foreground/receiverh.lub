@@ -9,16 +9,16 @@ $
 #ifndef __${Upper(name)}_H__
 #define __${Upper(name)}_H__
 
-#include "CBroadcastReceiver.h"
 #include "_${name}.h"
+#include "BroadcastReceiver.h"
 
-class ${name} : public CBroadcastReceiver
+CarClass(${name}), public BroadcastReceiver
 {
 public:
 
 protected:
-    CARAPI OnReciever(
-        /* [in] */ IIntent *pIntent);
+    CARAPI OnReceiver(
+        /* [in] */ IIntent* intent);
 
 private:
     // TODO: Add your private member variables here.

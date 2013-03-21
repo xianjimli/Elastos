@@ -24,6 +24,8 @@ CARAPI _${class.name}CreateObject(IInterface **ppObj)
     if (FAILED(ec)) goto Exit;
 
     *ppObj = pObj->Probe(EIID_IInterface);
+    assert(*ppObj != NULL);
+    (*ppObj)->AddRef();
 
 Exit:
     if (FAILED(ec) && pObj) {

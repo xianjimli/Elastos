@@ -7,8 +7,8 @@ $OUTPUT "${name}.cpp"
 
 #include "${name}.h"
 
-ECode ${name}::OnReciever(
-    /* [in] */ IIntent *pIntent)
+ECode ${name}::OnReceiver(
+    /* [in] */ IIntent* intent)
 {
     // TODO: Add your code here
     return NOERROR;
