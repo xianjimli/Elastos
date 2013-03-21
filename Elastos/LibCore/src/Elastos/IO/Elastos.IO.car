@@ -294,10 +294,6 @@ module
         interface IFile;
     }
 
-    singleton class CFileHelper {
-        interface IFileHelper;
-    }
-
     class CFileDescriptor {
         interface IFileDescriptor;
     }
@@ -1044,5 +1040,9 @@ module
             [in] Int32 initialSize);
 
         interface IStringWriter;
+    }
+
+    singleton class CByteBufferHelper {
+        interface IByteBufferHelper;
     }
 }

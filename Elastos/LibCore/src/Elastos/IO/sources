@@ -41,7 +41,6 @@ SOURCES += CByteArrayOutputStream.cpp
 SOURCES += CFileDescriptor.cpp
 SOURCES += File.cpp
 SOURCES += CFile.cpp
-SOURCES += CFileHelper.cpp
 SOURCES += FileInputStream.cpp
 SOURCES += CFileInputStream.cpp
 SOURCES += FileOutputStream.cpp
@@ -120,6 +119,7 @@ SOURCES += DoubleToByteBufferAdapter.cpp
 SOURCES += Int64ToByteBufferAdapter.cpp
 SOURCES += CharToByteBufferAdapter.cpp
 SOURCES += NIOAccess.cpp
+SOURCES += CByteBufferHelper.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
