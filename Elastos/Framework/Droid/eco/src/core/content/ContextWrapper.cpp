@@ -1,7 +1,6 @@
 
 #include "content/ContextWrapper.h"
 
-
 ContextWrapper::ContextWrapper()
 {}
 
@@ -68,6 +67,39 @@ ECode ContextWrapper::GetApplicationInfo(
     /* [out] */ IApplicationInfo** info)
 {
     return mBase->GetApplicationInfo(info);
+}
+
+ECode ContextWrapper::GetCapsuleResourcePath(
+    /* [out] */ String* path)
+{
+    return mBase->GetCapsuleResourcePath(path);
+}
+
+ECode ContextWrapper::GetFilesDir(
+    /* [out] */ IFile** filesDir)
+{
+    return mBase->GetFilesDir(filesDir);
+}
+
+ECode ContextWrapper::GetExternalFilesDir(
+    /* [in] */ const String& type,
+    /* [out] */ IFile** filesDir)
+{
+    return mBase->GetExternalFilesDir(type, filesDir);
+}
+
+ECode ContextWrapper::GetCacheDir(
+    /* [out] */ IFile** cacheDir)
+{
+    return mBase->GetCacheDir(cacheDir);
+}
+
+ECode ContextWrapper::GetDir(
+    /* [in] */ const String& name,
+    /* [in] */ Int32 mode,
+    /* [out] */ IFile** dir)
+{
+    return mBase->GetDir(name, mode, dir);
 }
 
 ECode ContextWrapper::SendBroadcast(
@@ -177,6 +209,7 @@ ECode ContextWrapper::AttachBaseContext(
         return E_ILLEGAL_STATE_EXCEPTION;
     }
     mBase = base;
+
     return NOERROR;
 }
 
@@ -191,6 +224,7 @@ ECode ContextWrapper::GetBaseContext(
     if (*context) {
         (*context)->AddRef();
     }
+
     return NOERROR;
 }
 

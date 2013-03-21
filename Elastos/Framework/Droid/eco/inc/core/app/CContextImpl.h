@@ -604,6 +604,24 @@ public:
     CARAPI GetApplicationInfo(
         /* [out] */ IApplicationInfo** info);
 
+    CARAPI GetCapsuleResourcePath(
+        /* [out] */ String* path);
+
+    CARAPI GetFilesDir(
+        /* [out] */ IFile** filesDir);
+
+    CARAPI GetExternalFilesDir(
+        /* [in] */ const String& type,
+        /* [out] */ IFile** filesDir);
+
+    CARAPI GetCacheDir(
+        /* [out] */ IFile** cacheDir);
+
+    CARAPI GetDir(
+        /* [in] */ const String& name,
+        /* [in] */ Int32 mode,
+        /* [out] */ IFile** dir);
+
     CARAPI StartActivity(
         /* [in] */ IIntent *intent);
 
@@ -693,6 +711,20 @@ public:
         /* [in] */ const String& what);
 
 private:
+    CARAPI GetDataDirFile(
+        /* [out] */ IFile** dirFile);
+
+    static CARAPI_(void) SetFilePermissionsFromMode(
+        /* [in] */ const String& name,
+        /* [in] */ Int32 mode,
+        /* [in] */ Int32 extraPermissions);
+
+    CARAPI MakeFilename(
+        /* [in] */ IFile* base,
+        /* [in] */ const String& name,
+        /* [out] */ IFile** file);
+
+private:
     static const char* TAG;
 
     LoadedCap* mCapsuleInfo;
@@ -708,6 +740,10 @@ private:
     AutoPtr<ILayoutInflater> mLayoutInflater;
 
     Mutex mSync;
+
+    AutoPtr<IFile> mFilesDir;
+    AutoPtr<IFile> mCacheDir;
+    AutoPtr<IFile> mExternalFilesDir;
 };
 
 #endif // __CCONTEXTIMPL_H__

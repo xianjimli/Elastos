@@ -160,6 +160,21 @@ public:
     virtual CARAPI GetCapsuleName(
         /* [out] */ String* capsuleName) = 0;
 
+    virtual CARAPI GetCapsuleResourcePath(
+        /* [out] */ String* path) = 0;
+
+    virtual CARAPI GetFilesDir(
+        /* [out] */ IFile** filesDir) = 0;
+
+    virtual CARAPI GetExternalFilesDir(
+        /* [in] */ const String& type,
+        /* [out] */ IFile** filesDir) = 0;
+
+    virtual CARAPI GetDir(
+        /* [in] */ const String& name,
+        /* [in] */ Int32 mode,
+        /* [out] */ IFile** dir) = 0;
+
     /**
      * Launch a new activity.  You will not receive any information about when
      * the activity exits.

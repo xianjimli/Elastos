@@ -455,6 +455,39 @@ ECode Service::GetApplicationInfo(
     return mBase->GetApplicationInfo(info);
 }
 
+ECode Service::GetCapsuleResourcePath(
+    /* [out] */ String* path)
+{
+    return mBase->GetCapsuleResourcePath(path);
+}
+
+ECode Service::GetFilesDir(
+    /* [out] */ IFile** filesDir)
+{
+    return mBase->GetFilesDir(filesDir);
+}
+
+ECode Service::GetExternalFilesDir(
+    /* [in] */ const String& type,
+    /* [out] */ IFile** filesDir)
+{
+    return mBase->GetExternalFilesDir(type, filesDir);
+}
+
+ECode Service::GetCacheDir(
+    /* [out] */ IFile** cacheDir)
+{
+    return mBase->GetCacheDir(cacheDir);
+}
+
+ECode Service::GetDir(
+    /* [in] */ const String& name,
+    /* [in] */ Int32 mode,
+    /* [out] */ IFile** dir)
+{
+    return mBase->GetDir(name, mode, dir);
+}
+
 /**
  * @return the base context as set by the constructor or setBaseContext
  */
