@@ -9,7 +9,6 @@ VPATH := $(MAKEDIR)/../eco
 
 EXPORT_LIBRARY= 1
 
-SOURCES += Locale.cpp
 SOURCES += TimerTask.cpp
 
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Core.lib

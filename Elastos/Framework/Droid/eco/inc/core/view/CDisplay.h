@@ -4,7 +4,7 @@
 
 #include "_CDisplay.h"
 #include <elastos/AutoPtr.h>
-#include <elastos/ElRefBase.h>;
+#include <elastos/ElRefBase.h>
 
 CarClass(CDisplay)
 {
