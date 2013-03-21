@@ -20,6 +20,14 @@ public:
     UsbService(
         /* [in] */ IContext* context);
 
+    CARAPI_(UInt32) AddRef();
+
+    CARAPI_(UInt32) Release();
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface *pObject,
+        /* [out] */ InterfaceID *pIID);
+
     /* Returns a list of all currently attached USB devices */
     CARAPI GetDeviceList(
         /* [out] */ IBundle** devices);

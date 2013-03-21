@@ -9,6 +9,23 @@ UsbSettingsManager::UsbSettingsManager(
     // NOT IMPLEMENTED
 }
 
+UInt32 UsbSettingsManager::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 UsbSettingsManager::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode UsbSettingsManager::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
 void UsbSettingsManager::DeviceAttached(
     /* [in] */ IUsbDevice* device)
 {

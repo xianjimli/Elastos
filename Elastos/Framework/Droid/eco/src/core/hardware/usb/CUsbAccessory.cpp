@@ -6,7 +6,7 @@
 
 using namespace Elastos::Core;
 
-const String CUsbAccessory::TAG("UsbAccessory");
+const String CUsbAccessory::TAG = String("UsbAccessory");
 
 ECode CUsbAccessory::constructor(
     /* [in] */ const String& manufacturer,
