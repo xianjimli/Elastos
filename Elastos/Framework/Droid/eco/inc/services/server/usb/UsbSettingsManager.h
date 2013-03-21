@@ -238,10 +238,6 @@ public:
     CARAPI_(void) ClearDefaults(
         /* [in] */ const String& packageName);
 
-    CARAPI_(void) Dump(
-        /* [in] */ IFileDescriptor* fd,
-        /* [in] */ IPrintWriter* pw);
-
 private:
     /*
      * private void readPreference(XmlPullParser parser) throws XmlPullParserException, IOException {...}

@@ -35,10 +35,6 @@ public:
     CARAPI_(IParcelFileDescriptor*) OpenDevice(
         /* [in] */ const String& deviceName);
 
-    CARAPI_(void) Dump(
-        /* [in] */ IFileDescriptor* fd,
-        /* [in] */ IPrintWriter* pw);
-
 private:
     CARAPI_(Boolean) IsBlackListedByName(
         /* [in] */ const String& deviceName);

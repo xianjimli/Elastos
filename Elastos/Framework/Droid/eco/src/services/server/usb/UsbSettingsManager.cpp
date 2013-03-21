@@ -314,13 +314,6 @@ void UsbSettingsManager::ClearDefaults(
     // NOT IMPLEMENTED
 }
 
-void UsbSettingsManager::Dump(
-    /* [in] */ IFileDescriptor* fd,
-    /* [in] */ IPrintWriter* pw)
-{
-    // NOT IMPLEMENTED
-}
-
 ECode UsbSettingsManager::ReadPreference(
     /* [in] */ IXmlPullParser* parser)
 {

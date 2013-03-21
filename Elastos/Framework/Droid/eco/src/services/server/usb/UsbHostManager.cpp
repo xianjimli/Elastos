@@ -1,5 +1,6 @@
 
 #include "server/usb/UsbHostManager.h"
+#include <elastos/Mutex.h>
 
 using namespace Elastos;
 
@@ -45,13 +46,6 @@ IParcelFileDescriptor* UsbHostManager::OpenDevice(
 {
     // NOT IMPLEMENTED
     return NULL;
-}
-
-void UsbHostManager::Dump(
-    /* [in] */ IFileDescriptor* fd,
-    /* [in] */ IPrintWriter* pw)
-{
-    // NOT IMPLEMENTED
 }
 
 Boolean UsbHostManager::IsBlackListedByName(

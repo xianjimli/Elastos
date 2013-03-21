@@ -117,13 +117,6 @@ IUsbAccessory* UsbDeviceManager::UsbHandler::GetCurrentAccessory()
     return NULL;
 }
 
-void UsbDeviceManager::UsbHandler::Dump(
-    /* [in] */ IFileDescriptor* fd,
-    /* [in] */ IPrintWriter* pw)
-{
-    // NOT IMPLEMENTED
-}
-
 Boolean UsbDeviceManager::UsbHandler::WaitForState(
     /* [in] */ const String& state)
 {
@@ -269,13 +262,6 @@ void UsbDeviceManager::SetCurrentFunctions(
 
 void UsbDeviceManager::SetMassStorageBackingFile(
     /* [in] */ const String& path)
-{
-    // NOT IMPLEMENTED
-}
-
-void UsbDeviceManager::Dump(
-    /* [in] */ IFileDescriptor* fd,
-    /* [in] */ IPrintWriter* pw)
 {
     // NOT IMPLEMENTED
 }
