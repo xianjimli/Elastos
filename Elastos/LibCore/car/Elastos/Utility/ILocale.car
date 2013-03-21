@@ -117,6 +117,9 @@ module
          */
         GetVariant(
             [out] String* variant);
+            
+        ToString(
+            [out] String* str);
     }
 
     interface ILocaleHelper {

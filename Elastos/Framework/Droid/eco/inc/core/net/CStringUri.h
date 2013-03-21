@@ -91,6 +91,9 @@ public:
     CARAPI GetHashCode(
         /* [out] */ Int32* hashCode);
 
+    CARAPI ToString(
+        /* [out] */ String* uriString);
+
     CARAPI constructor(
         /* [in] */ const String& uriString);
 

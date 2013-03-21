@@ -473,6 +473,7 @@ ECode CApplicationInfo::ReadFromParcel(
     CapsuleItemInfo::ReadFromParcel(source);
     source->ReadString(&mProcessName);
     source->ReadString(&mSourceDir);
+    source->ReadString(&mDataDir);
 
     return NOERROR;
 }
@@ -483,6 +484,7 @@ ECode CApplicationInfo::WriteToParcel(
     CapsuleItemInfo::WriteToParcel(dest);
     dest->WriteString(mProcessName);
     dest->WriteString(mSourceDir);
+    dest->WriteString(mDataDir);
 
     return NOERROR;
 }

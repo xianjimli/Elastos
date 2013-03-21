@@ -142,6 +142,9 @@ public:
     //@Override
     CARAPI_(String) ToString();
 
+    CARAPI ToString(
+        /* [out] */ String* str);
+
     CARAPI constructor();
 
     /**

@@ -216,5 +216,8 @@ module
         CompareTo(
             [in] IUri* other,
             [out] Int32* result);
+            
+        ToString(
+            [out] String* uriString);
     }
 }

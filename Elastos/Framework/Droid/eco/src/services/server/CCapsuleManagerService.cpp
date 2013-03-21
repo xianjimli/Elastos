@@ -13117,6 +13117,8 @@ CapsuleParser::Capsule* CCapsuleManagerService::ScanCapsule(
     capsule = new CapsuleParser::Capsule();
     assert(capsule != NULL);
     capsule->mApplicationInfo->SetSourceDir(dir);
+    capsule->mApplicationInfo->SetDataDir(dir);
+
     if (SUCCEEDED(p.ParseCapsule(capfile, capsule, &err))) {
         String capCName, capPName;
         capsule->mApplicationInfo->GetCapsuleName(&capCName);

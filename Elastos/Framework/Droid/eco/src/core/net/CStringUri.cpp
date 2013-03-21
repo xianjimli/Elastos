@@ -274,6 +274,16 @@ ECode CStringUri::GetDescription(
     return NOERROR;
 }
 
+ECode CStringUri::ToString(
+    /* [out] */ String* uriString){
+
+    VALIDATE_NOT_NULL(uriString);
+
+    *uriString = mUriString;
+
+    return NOERROR;
+}
+
 ECode CStringUri::GetHashCode(
     /* [out] */ Int32* hashCode)
 {

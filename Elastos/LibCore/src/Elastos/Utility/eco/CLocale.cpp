@@ -367,6 +367,14 @@ String CLocale::ToString()
     return (result.IsNull()) ? (mCachedToStringResult = ToNewString()) : result;
 }
 
+ECode CLocale::ToString(
+        /* [out] */ String* str){
+    VALIDATE_NOT_NULL(str);
+
+    *str = ToString();
+    return NOERROR;
+}
+
 String CLocale::ToNewString()
 {
     // // The string form of a locale that only has a variant is the empty string.
