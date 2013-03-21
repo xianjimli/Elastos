@@ -1,7 +1,7 @@
 
 #include "cmdef.h"
 #include "CTimer.h"
-
+#include <stdio.h>
 
 ECode CTimer::constructor(
     /* [in] */ const String& name,
@@ -24,7 +24,7 @@ ECode CTimer::constructor(
 
 ECode CTimer::constructor()
 {
-    return NOERROR;
+    return Timer::Init(FALSE);
 }
 
 ECode CTimer::Cancel()

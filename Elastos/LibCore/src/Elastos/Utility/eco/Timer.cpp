@@ -4,6 +4,7 @@
 #include <elastos/System.h>
 #include <StringBuffer.h>
 #include <elastos/Autolock.h>
+#include <stdio.h>
 
 
 Timer::TimerImpl::TimerHeap::TimerHeap()
@@ -216,8 +217,8 @@ ECode Timer::TimerImpl::Run()
 {
     while (TRUE) {
         AutoPtr<ITimerTask> task;
-        Autolock lock(mThread);
         {
+            Autolock lock(mThread);
             // need to check cancelled inside the synchronized block
             if (mCancelled) {
                 return NOERROR;
@@ -226,11 +227,7 @@ ECode Timer::TimerImpl::Run()
                 if (mFinished) {
                     return NOERROR;
                 }
-                // no tasks scheduled -- sleep until any task appear
-                // try {
                 mThread->Wait();
-                // } catch (InterruptedException ignored) {
-                // }
                 continue;
             }
 
@@ -315,6 +312,7 @@ ECode Timer::TimerImpl::Run()
         }
 
         Boolean taskCompletedNormally = FALSE;
+
         if (SUCCEEDED(task->Run())) {
             taskCompletedNormally = TRUE;
         }
@@ -330,6 +328,7 @@ void Timer::TimerImpl::InsertTask(
     /* [in] */ ITimerTask* newTask)
 {
     mTasks->Insert(newTask);
+    Autolock lock(mThread);
     mThread->Notify();
 }
 
@@ -457,6 +456,7 @@ ECode Timer::Schedule(
         // throw new IllegalArgumentException();
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
+
     Int64 delay = time - System::GetCurrentTimeMillis();
     return ScheduleImpl(task, delay < 0 ? 0 : delay, -1, FALSE);
 }
@@ -469,6 +469,7 @@ ECode Timer::Schedule(
         // throw new IllegalArgumentException();
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
+
     return ScheduleImpl(task, delay, -1, FALSE);
 }
 
@@ -533,41 +534,34 @@ ECode Timer::ScheduleImpl(
     /* [in] */ Boolean fixed)
 {
     Autolock lock(mImpl->mThread);
-
     if (mImpl->mCancelled) {
         // throw new IllegalStateException("Timer was canceled");
         return E_ILLEGAL_STATE_EXCEPTION;
     }
 
     Int64 when = delay + System::GetCurrentTimeMillis();
-
     if (when < 0) {
         // throw new IllegalArgumentException("Illegal delay to start the TimerTask: " + when);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
-
     task->Lock();
     {
         Boolean scheduled;
         if (task->IsScheduled(&scheduled), scheduled) {
-            // throw new IllegalStateException("TimerTask is scheduled already");
             task->Unlock();
             return E_ILLEGAL_STATE_EXCEPTION;
         }
-
         Boolean cancelled;
         if (task->IsCancelled(&cancelled), cancelled) {
             // throw new IllegalStateException("TimerTask is canceled");
             task->Unlock();
             return E_ILLEGAL_STATE_EXCEPTION;
         }
-
         task->SetWhen(when);
         task->SetPeriod(period);
         task->SetFixedRate(fixed);
     }
     task->Unlock();
-
     // insert the newTask into queue
     mImpl->InsertTask(task);
     return NOERROR;
