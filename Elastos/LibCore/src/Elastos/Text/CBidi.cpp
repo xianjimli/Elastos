@@ -4,8 +4,7 @@
 ECode CBidi::constructor(
     /* [in] */ IAttributedCharacterIterator * pParagraph)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return Bidi::Init(pParagraph);
 }
 
 ECode CBidi::constructor(
@@ -16,23 +15,20 @@ ECode CBidi::constructor(
     /* [in] */ Int32 paragraphLength,
     /* [in] */ Int32 flags)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return Bidi::Init(pTexts, textStart, pEmbeddings, embStart, paragraphLength, flags);
 }
 
 ECode CBidi::constructor(
     /* [in] */ const String& paragraph,
     /* [in] */ Int32 flags)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return Bidi::Init(paragraph, flags);
 }
 
 ECode CBidi::BaseIsLeftToRight(
     /* [out] */ Boolean * pBaseLevel)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return Bidi::BaseIsLeftToRight(pBaseLevel);
 }
 
 ECode CBidi::CreateLineBidi(
@@ -40,82 +36,93 @@ ECode CBidi::CreateLineBidi(
     /* [in] */ Int32 lineLimit,
     /* [out] */ IBidi ** ppObject)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return Bidi::CreateLineBidi(lineStart, lineLimit, ppObject);
 }
 
 ECode CBidi::GetBaseLevel(
     /* [out] */ Int32 * pBaseLevel)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return Bidi::GetBaseLevel(pBaseLevel);
 }
 
 ECode CBidi::GetLength(
     /* [out] */ Int32 * pLength)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return Bidi::GetLength(pLength);
+}
+
+ECode CBidi::SetLength(
+        /* [in] */ Int32 length)
+{
+    return Bidi::SetLength(length);    
+}
+
+ECode CBidi::GetOffsetLevel(
+    /* [out] */ ArrayOf<Byte>** ppOffsetLevel)
+{
+    return Bidi::GetOffsetLevel(ppOffsetLevel);    
+}
+
+ECode CBidi::SetOffsetLevel(
+    /* [in] */ ArrayOf<Byte>* pOffsetLevel)
+{
+    return Bidi::SetOffsetLevel(pOffsetLevel);    
+}
+
+ECode CBidi::SetUnidirectional(
+    /* [in] */ Boolean unidirectional)
+{
+    return Bidi::SetUnidirectional(unidirectional);    
 }
 
 ECode CBidi::GetLevelAt(
     /* [in] */ Int32 offset,
     /* [out] */ Int32 * pLevel)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return Bidi::GetLevelAt(offset, pLevel);
 }
 
 ECode CBidi::GetRunCount(
     /* [out] */ Int32 * pRunCount)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return Bidi::GetRunCount(pRunCount);
 }
 
 ECode CBidi::GetRunLevel(
     /* [in] */ Int32 run,
     /* [out] */ Int32 * pRunLevel)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return Bidi::GetRunLevel(run, pRunLevel);
 }
 
 ECode CBidi::GetRunLimit(
     /* [in] */ Int32 run,
     /* [out] */ Int32 * pRunLimit)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return Bidi::GetRunLimit(run, pRunLimit);
 }
 
 ECode CBidi::GetRunStart(
     /* [in] */ Int32 run,
     /* [out] */ Int32 * pRunStart)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return Bidi::GetRunStart(run, pRunStart);
 }
 
 ECode CBidi::IsLeftToRight(
     /* [out] */ Boolean * pIsLefttoRight)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return Bidi::IsLeftToRight(pIsLefttoRight);
 }
 
 ECode CBidi::IsMixed(
     /* [out] */ Boolean * pIsMixed)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return Bidi::IsMixed(pIsMixed);
 }
 
 ECode CBidi::IsRightToLeft(
     /* [out] */ Boolean * pIsRightToLeft)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return Bidi::IsRightToLeft(pIsRightToLeft);
 }
-
-

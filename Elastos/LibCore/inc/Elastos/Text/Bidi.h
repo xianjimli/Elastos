@@ -4,11 +4,14 @@
 #include "cmdef.h"
 #include "Elastos.Text_server.h"
 #include <elastos.h>
-
+#include "TextAttribute.h"
+//#include "CBidi.h"
+#include <elastos/List.h>
 using namespace Elastos;
 
 class Bidi {
 public:
+    Bidi();
     /**
      * Creates a {@code Bidi} object from the {@code
      * AttributedCharacterIterator} of a paragraph text. The RUN_DIRECTION
@@ -140,6 +143,18 @@ public:
      */
     CARAPI GetLength(
         /* [out] */ Int32* length);
+
+    CARAPI SetLength(
+        /* [in] */ Int32 length);
+
+    CARAPI GetOffsetLevel(
+        /* [out] */ ArrayOf<Byte>** offsetLevel);
+
+    CARAPI SetOffsetLevel(
+        /* [in] */ ArrayOf<Byte>* offsetLevel);
+
+    CARAPI SetUnidirectional(
+        /* [in] */ Boolean unidirectional);
 
     /**
      * Returns the level of a specified character.
@@ -306,7 +321,7 @@ private:
 
     CARAPI CreateEmptyLineBidi(
         /* [in] */ Int64 parent,
-        /* [out] */ IBidi* lineBidi);
+        /* [out] */ IBidi** lineBidi);
 
 private:
     Int32 mBaseLevel;
