@@ -44,9 +44,16 @@ IInputConnectionWrapper::Message::Message(
     : mWhat(what)
     , mArg1(arg1)
     , mArg2(arg2)
-    , mArgObj(*someArg)
+    , mArgObj(someArg)
 {}
 
+IInputConnectionWrapper::Message::~Message()
+{
+    if (mArgObj != NULL) {
+        delete mArgObj;
+        mArgObj = NULL;
+    }
+}
 
 IInputConnectionWrapper::IInputConnectionWrapper()
 {}
@@ -224,10 +231,8 @@ ECode IInputConnectionWrapper::DispatchMessage(
     // if (apartment == mMainLooper) {
     //     return ExecuteMessage(msg);
     // }
-
     ECode (STDCALL IInputConnectionWrapper::*pHandlerFunc)(Message* msg);
     pHandlerFunc = &IInputConnectionWrapper::ExecuteMessage;
-
     AutoPtr<IParcel> params;
     CCallbackParcel::New((IParcel**)&params);
     params->WriteInt32((Handle32)msg);
@@ -239,7 +244,7 @@ ECode IInputConnectionWrapper::ExecuteMessage(
     AutoMessage msg(_msg);
     switch (msg->mWhat) {
         case DO_GET_TEXT_AFTER_CURSOR: {
-            const SomeArgs* args = &msg->mArgObj;
+            const SomeArgs* args = msg->mArgObj;
             // try {
             IInputConnection* ic = mInputConnection;
             if (ic == NULL || !IsActive()) {
@@ -254,7 +259,7 @@ ECode IInputConnectionWrapper::ExecuteMessage(
             // }
         }
         case DO_GET_TEXT_BEFORE_CURSOR: {
-            const SomeArgs* args = &msg->mArgObj;
+            const SomeArgs* args = msg->mArgObj;
             // try {
             IInputConnection* ic = mInputConnection;
             if (ic == NULL || !IsActive()) {
@@ -269,7 +274,7 @@ ECode IInputConnectionWrapper::ExecuteMessage(
             // }
         }
         case DO_GET_SELECTED_TEXT: {
-            const SomeArgs* args = &msg->mArgObj;
+            const SomeArgs* args = msg->mArgObj;
             // try {
             IInputConnection* ic = mInputConnection;
             if (ic == NULL || !IsActive()) {
@@ -284,7 +289,7 @@ ECode IInputConnectionWrapper::ExecuteMessage(
             // }
         }
         case DO_GET_CURSOR_CAPS_MODE: {
-            const SomeArgs* args = &msg->mArgObj;
+            const SomeArgs* args = msg->mArgObj;
             // try {
             IInputConnection* ic = mInputConnection;
             if (ic == NULL || !IsActive()) {
@@ -299,7 +304,7 @@ ECode IInputConnectionWrapper::ExecuteMessage(
             // }
         }
         case DO_GET_EXTRACTED_TEXT: {
-            const SomeArgs* args = &msg->mArgObj;
+            const SomeArgs* args = msg->mArgObj;
             // try {
             IInputConnection* ic = mInputConnection;
             if (ic == NULL || !IsActive()) {
@@ -315,7 +320,7 @@ ECode IInputConnectionWrapper::ExecuteMessage(
             // }
         }
         case DO_COMMIT_TEXT: {
-            const SomeArgs* args = &msg->mArgObj;
+            const SomeArgs* args = msg->mArgObj;
             IInputConnection* ic = mInputConnection;
             if (ic == NULL || !IsActive()) {
                 //Log.w(TAG, "commitText on inactive InputConnection");
@@ -352,7 +357,7 @@ ECode IInputConnectionWrapper::ExecuteMessage(
             return ic->PerformContextMenuAction(msg->mArg1, &ret);
         }
         case DO_COMMIT_COMPLETION: {
-            const SomeArgs* args = &msg->mArgObj;
+            const SomeArgs* args = msg->mArgObj;
             IInputConnection* ic = mInputConnection;
             if (ic == NULL || !IsActive()) {
                 //Log.w(TAG, "commitCompletion on inactive InputConnection");
@@ -362,7 +367,7 @@ ECode IInputConnectionWrapper::ExecuteMessage(
             return ic->CommitCompletion(ICompletionInfo::Probe(args->mArg1), &ret);
         }
         case DO_SET_COMPOSING_TEXT: {
-            const SomeArgs* args = &msg->mArgObj;
+            const SomeArgs* args = msg->mArgObj;
             IInputConnection* ic = mInputConnection;
             if (ic == NULL || !IsActive()) {
                 //Log.w(TAG, "setComposingText on inactive InputConnection");
@@ -394,7 +399,7 @@ ECode IInputConnectionWrapper::ExecuteMessage(
             return ic->FinishComposingText(&ret);
         }
         case DO_SEND_KEY_EVENT: {
-            const SomeArgs* args = &msg->mArgObj;
+            const SomeArgs* args = msg->mArgObj;
             IInputConnection* ic = mInputConnection;
             if (ic == NULL || !IsActive()) {
                 //Log.w(TAG, "sendKeyEvent on inactive InputConnection");
@@ -454,7 +459,7 @@ ECode IInputConnectionWrapper::ExecuteMessage(
                 //Log.w(TAG, "performPrivateCommand on inactive InputConnection");
                 return NOERROR;
             }
-            const SomeArgs* args = &msg->mArgObj;
+            const SomeArgs* args = msg->mArgObj;
             String text;
             ICharSequence::Probe(args->mArg1)->ToString(&text);
             Boolean ret = FALSE;
@@ -462,6 +467,8 @@ ECode IInputConnectionWrapper::ExecuteMessage(
         }
     }
     //Log.w(TAG, "Unhandled message code: " + msg.what);
+
+    return NOERROR;
 }
 
 IInputConnectionWrapper::Message* IInputConnectionWrapper::ObtainMessage(
@@ -482,8 +489,7 @@ IInputConnectionWrapper::Message* IInputConnectionWrapper::ObtainMessageO(
     /* [in] */ Int32 what,
     /* [in] */ IInterface* arg1)
 {
-    SomeArgs argObj(arg1);
-    return new Message(what, 0, 0, &argObj);
+    return new Message(what, 0, 0, new SomeArgs(arg1));
 }
 
 IInputConnectionWrapper::Message* IInputConnectionWrapper::ObtainMessageISC(
@@ -492,8 +498,7 @@ IInputConnectionWrapper::Message* IInputConnectionWrapper::ObtainMessageISC(
     /* [in] */ Int32 seq,
     /* [in] */ IInputContextCallback* callback)
 {
-    SomeArgs argObj(NULL, NULL, callback, seq);
-    return new Message(what, arg1, 0, &argObj);
+    return new Message(what, arg1, 0, new SomeArgs(NULL, NULL, callback, seq));
 }
 
 IInputConnectionWrapper::Message* IInputConnectionWrapper::ObtainMessageIISC(
@@ -503,8 +508,7 @@ IInputConnectionWrapper::Message* IInputConnectionWrapper::ObtainMessageIISC(
     /* [in] */ Int32 seq,
     /* [in] */ IInputContextCallback* callback)
 {
-    SomeArgs argObj(NULL, NULL, callback, seq);
-    return new Message(what, arg1, arg2, &argObj);
+    return new Message(what, arg1, arg2, new SomeArgs(NULL, NULL, callback, seq));
 }
 
 IInputConnectionWrapper::Message* IInputConnectionWrapper::ObtainMessageIOSC(
@@ -514,8 +518,7 @@ IInputConnectionWrapper::Message* IInputConnectionWrapper::ObtainMessageIOSC(
     /* [in] */ Int32 seq,
     /* [in] */ IInputContextCallback* callback)
 {
-    SomeArgs argObj(arg2, NULL, callback, seq);
-    return new Message(what, arg1, 0, &argObj);
+    return new Message(what, arg1, 0, new SomeArgs(arg2, NULL, callback, seq));
 }
 
 IInputConnectionWrapper::Message* IInputConnectionWrapper::ObtainMessageIO(
@@ -523,8 +526,7 @@ IInputConnectionWrapper::Message* IInputConnectionWrapper::ObtainMessageIO(
     /* [in] */ Int32 arg1,
     /* [in] */ IInterface* arg2)
 {
-    SomeArgs argObj(arg2);
-    return new Message(what, arg1, 0, &argObj);
+    return new Message(what, arg1, 0, new SomeArgs(arg2));
 }
 
 IInputConnectionWrapper::Message* IInputConnectionWrapper::ObtainMessageOO(
@@ -534,6 +536,5 @@ IInputConnectionWrapper::Message* IInputConnectionWrapper::ObtainMessageOO(
 {
     AutoPtr<ICharSequence> text;
     CStringWrapper::New(arg1, (ICharSequence**)&text);
-    SomeArgs argObj(text, arg2);
-    return new Message(what, 0, 0, &argObj);
+    return new Message(what, 0, 0, new SomeArgs(text, arg2));
 }

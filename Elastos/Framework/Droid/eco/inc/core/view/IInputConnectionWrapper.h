@@ -34,11 +34,13 @@ private:
             /* [in] */ Int32 arg2 = 0,
             /* [in] */ const SomeArgs* someArg = NULL);
 
+        ~Message();
+
     public:
         Int32 mWhat;
         Int32 mArg1;
         Int32 mArg2;
-        SomeArgs mArgObj;
+        const SomeArgs* mArgObj;
     };
 
 private:

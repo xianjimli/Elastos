@@ -2,6 +2,7 @@
 #include "ext/frameworkdef.h"
 #include "utils/CDisplayMetrics.h"
 #include "content/CCompatibilityInfo.h"
+#include "os/SystemProperties.h"
 
 const Int32 CDisplayMetrics::DENSITY_DEVICE = CDisplayMetrics::GetDeviceDensity();
 const Int32 CDisplayMetrics::DENSITY_LOW;
@@ -221,5 +222,6 @@ Int32 CDisplayMetrics::GetDeviceDensity()
     // set by the init process when it parses build.prop before anything else.
     //return SystemProperties.getInt("qemu.sf.lcd_density",
     //    SystemProperties.getInt("ro.sf.lcd_density", DENSITY_DEFAULT));
-    return DENSITY_DEFAULT;
+    return SystemProperties::GetInt32("qemu.sf.lcd_density",
+            SystemProperties::GetInt32("ro.sf.lcd_density", DENSITY_DEFAULT));
 }

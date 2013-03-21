@@ -16,6 +16,7 @@
 #include <skia/core/SkColorPriv.h>
 #include <skia/images/SkImageEncoder.h>
 #include <skia/core/SkDither.h>
+#include "utils/CDisplayMetrics.h"
 
 using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
@@ -27,7 +28,7 @@ Int32 CBitmap::sDefaultDensity = -1;
 Int32 CBitmap::WORKING_COMPRESS_STORAGE = 4096;
 
 CBitmap::CBitmap()
-    : mDensity(-1)
+    : mDensity(CDisplayMetrics::DENSITY_DEVICE)
     , mNativeBitmap(NULL)
     , mIsMutable(FALSE)
     , mNinePatchChunk(NULL)

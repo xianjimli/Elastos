@@ -1648,13 +1648,11 @@ ECode InputMethodService::HideWindow()
 {
     if (mInputViewStarted) {
         // if (DEBUG) Log.v(TAG, "CALL: onFinishInputView");
-        // Todo:
-        // OnFinishInputView(FALSE);
+        OnFinishInputView(FALSE);
     }
     else if (mCandidatesViewStarted) {
         // if (DEBUG) Log.v(TAG, "CALL: onFinishCandidatesView");
-        // Todo:
-        // OnFinishCandidatesView(FALSE);
+        OnFinishCandidatesView(FALSE);
     }
     mInputViewStarted = FALSE;
     mCandidatesViewStarted = FALSE;
