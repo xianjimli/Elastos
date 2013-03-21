@@ -14,7 +14,6 @@
 #include "graphics/CMovie.h"
 #include "graphics/drawable/CColorDrawable.h"
 #include <Logger.h>
-#include <elastos/Locale.h>
 #include <StringBuffer.h>
 #include <assert.h>
 
