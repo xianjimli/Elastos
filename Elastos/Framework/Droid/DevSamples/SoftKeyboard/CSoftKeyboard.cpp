@@ -164,6 +164,44 @@ ECode CSoftKeyboard::GetApplicationInfo(
     return InputMethodService::GetApplicationInfo(info);
 }
 
+ECode CSoftKeyboard::GetCapsuleResourcePath(
+    /* [out] */ String* path)
+{
+    VALIDATE_NOT_NULL(path);
+    return InputMethodService::GetCapsuleResourcePath(path);
+}
+
+ECode CSoftKeyboard::GetFilesDir(
+    /* [out] */ IFile** filesDir)
+{
+    VALIDATE_NOT_NULL(filesDir);
+    return InputMethodService::GetFilesDir(filesDir);
+}
+
+ECode CSoftKeyboard::GetExternalFilesDir(
+    /* [in] */ const String& type,
+    /* [out] */ IFile** filesDir)
+{
+    VALIDATE_NOT_NULL(filesDir);
+    return InputMethodService::GetExternalFilesDir(type, filesDir);
+}
+
+ECode CSoftKeyboard::GetCacheDir(
+    /* [out] */ IFile** cacheDir)
+{
+    VALIDATE_NOT_NULL(cacheDir);
+    return InputMethodService::GetCacheDir(cacheDir);
+}
+
+ECode CSoftKeyboard::GetDir(
+    /* [in] */ const String& name,
+    /* [in] */ Int32 mode,
+    /* [out] */ IFile** dir)
+{
+    VALIDATE_NOT_NULL(dir);
+    return InputMethodService::GetDir(name, mode, dir);
+}
+
 ECode CSoftKeyboard::StartActivity(
     /* [in] */ IIntent* intent)
 {

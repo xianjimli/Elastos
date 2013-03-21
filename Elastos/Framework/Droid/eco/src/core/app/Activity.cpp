@@ -315,6 +315,39 @@ ECode Activity::GetApplicationInfo(
     return mBase->GetApplicationInfo(info);
 }
 
+ECode Activity::GetCapsuleResourcePath(
+    /* [out] */ String* path)
+{
+    return mBase->GetCapsuleResourcePath(path);
+}
+
+ECode Activity::GetFilesDir(
+    /* [out] */ IFile** filesDir)
+{
+    return mBase->GetFilesDir(filesDir);
+}
+
+ECode Activity::GetExternalFilesDir(
+    /* [in] */ const String& type,
+    /* [out] */ IFile** filesDir)
+{
+    return mBase->GetExternalFilesDir(type, filesDir);
+}
+
+ECode Activity::GetCacheDir(
+    /* [out] */ IFile** cacheDir)
+{
+    return mBase->GetCacheDir(cacheDir);
+}
+
+ECode Activity::GetDir(
+    /* [in] */ const String& name,
+    /* [in] */ Int32 mode,
+    /* [out] */ IFile** dir)
+{
+    return mBase->GetDir(name, mode, dir);
+}
+
 ECode Activity::GetBaseContext(
     /* [out] */ IContext** ctx)
 {

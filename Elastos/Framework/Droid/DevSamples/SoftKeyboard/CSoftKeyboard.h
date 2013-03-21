@@ -80,6 +80,24 @@ public:
     CARAPI GetApplicationInfo(
         /* [out] */ IApplicationInfo** info);
 
+    CARAPI GetCapsuleResourcePath(
+        /* [out] */ String* path);
+
+    CARAPI GetFilesDir(
+        /* [out] */ IFile** filesDir);
+
+    CARAPI GetExternalFilesDir(
+        /* [in] */ const String& type,
+        /* [out] */ IFile** filesDir);
+
+    CARAPI GetCacheDir(
+        /* [out] */ IFile** cacheDir);
+
+    CARAPI GetDir(
+        /* [in] */ const String& name,
+        /* [in] */ Int32 mode,
+        /* [out] */ IFile** dir);
+
     CARAPI StartActivity(
         /* [in] */ IIntent* intent);
 
