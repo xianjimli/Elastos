@@ -65,7 +65,7 @@ Boolean PluginFullScreenHolder::OnKeyDown(
     if(bIsSystem) {
         return Dialog::OnKeyDown(keyCode, event);
     }
-    mWebView -> OnKeyDown(keyCode, event);
+//    mWebView -> OnKeyDown(keyCode, event);
     // always return true as we are the handler
     return TRUE;
 }
