@@ -66,8 +66,8 @@ SOURCES += TextAttribute.cpp
 SOURCES += CTextAttribute.cpp
 SOURCES += Bidi.cpp
 SOURCES += CBidi.cpp
-#SOURCES += AttributedString.cpp
-#SOURCES += CAttributedString.cpp
+SOURCES += AttributedString.cpp
+SOURCES += CAttributedString.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
