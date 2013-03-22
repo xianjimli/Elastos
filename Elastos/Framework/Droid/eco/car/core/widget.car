@@ -67,6 +67,7 @@ module
     merge("widget/MediaController.car");
     merge("widget/VideoView.car");
     merge("widget/SeekBar.car");
+    merge("widget/Toast.car");
 
     class CScrollBarDrawable {
         interface IScrollBarDrawable;
@@ -1395,6 +1396,17 @@ module
             [in] Int32 defStyle);
 
         interface ISeekBar;
+    }
+
+    class CToast {
+        constructor(
+            [in] IContext* context);
+
+        interface IToast;    
+    }
+
+    singleton class CToastHelper {
+        interface IToastHelper;
     }
 }
 

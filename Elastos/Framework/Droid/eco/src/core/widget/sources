@@ -151,3 +151,6 @@ SOURCES += CMediaController.cpp
 SOURCES += VideoView.cpp
 SOURCES += CVideoView.cpp
 SOURCES += CSeekBar.cpp
+SOURCES += Toast.cpp
+SOURCES += CToast.cpp
+SOURCES += CToastHelper.cpp
