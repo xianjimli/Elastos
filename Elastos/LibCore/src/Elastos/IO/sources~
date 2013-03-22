@@ -119,10 +119,13 @@ SOURCES += DoubleToByteBufferAdapter.cpp
 SOURCES += Int64ToByteBufferAdapter.cpp
 SOURCES += CharToByteBufferAdapter.cpp
 SOURCES += NIOAccess.cpp
+<<<<<<< HEAD
 SOURCES += CByteBufferHelper.cpp
+=======
 SOURCES += Channels.cpp
 SOURCES += CChannels.cpp
 SOURCES += AbstractInterruptibleChannel.cpp
+>>>>>>> Provided IChannels::NewChannel() interface
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib

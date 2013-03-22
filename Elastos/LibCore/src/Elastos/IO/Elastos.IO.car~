@@ -1044,14 +1044,17 @@ module
 
         interface IStringWriter;
     }
+<<<<<<< HEAD
 
     singleton class CByteBufferHelper {
         interface IByteBufferHelper;
     }
+=======
 	
 	singleton class CChannels {
 		constructor();
 		
 		interface IChannels;
 	}
+>>>>>>> Provided IChannels::NewChannel() interface
 }
