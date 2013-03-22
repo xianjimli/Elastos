@@ -1,42 +1,85 @@
 
 #include "os/Process.h"
+#include <elastos/Thread.h>
+#include <elastos/Vector.h>
+#include <Elastos.IO.h>
+#include <Elastos.Core.h>
+#include <unistd.h>
+#include <sys/resource.h>
+#include <pwd.h>
+#include <grp.h>
+#include <pthread.h>
+#include <utils/Errors.h>
+#include "utils/threads.h"
+#include <errno.h>
+#include <binder/ProcessState.h>
+#include <fcntl.h>
+#include <utils/String8.h>
+#include <dirent.h>
 
+#ifdef _FRAMEWORK_CORE
+#include "net/CLocalSocket.h"
+#include "net/CLocalSocketAddress.h"
+#endif
 
-const Int32 Process::SYSTEM_UID;
-const Int32 Process::PHONE_UID;
-const Int32 Process::SHELL_UID;
-const Int32 Process::LOG_UID;
-const Int32 Process::WIFI_UID;
-const Int32 Process::NFC_UID;
-const Int32 Process::FIRST_APPLICATION_UID;
-const Int32 Process::LAST_APPLICATION_UID;
-const Int32 Process::BLUETOOTH_GID;
-const Int32 Process::THREAD_PRIORITY_DEFAULT;
-const Int32 Process::THREAD_PRIORITY_LOWEST;
-const Int32 Process::THREAD_PRIORITY_BACKGROUND;
-const Int32 Process::THREAD_PRIORITY_FOREGROUND;
-const Int32 Process::THREAD_PRIORITY_DISPLAY;
-const Int32 Process::THREAD_PRIORITY_URGENT_DISPLAY;
-const Int32 Process::THREAD_PRIORITY_AUDIO;
-const Int32 Process::THREAD_PRIORITY_URGENT_AUDIO;
-const Int32 Process::THREAD_PRIORITY_MORE_FAVORABLE;
-const Int32 Process::THREAD_PRIORITY_LESS_FAVORABLE;
-const Int32 Process::THREAD_GROUP_DEFAULT;
-const Int32 Process::THREAD_GROUP_BG_NONINTERACTIVE;
-const Int32 Process::THREAD_GROUP_FG_BOOST;
-const Int32 Process::SIGNAL_QUIT;
-const Int32 Process::SIGNAL_KILL;
-const Int32 Process::SIGNAL_USR1;
-const Int32 Process::ZYGOTE_RETRY_MILLIS;
-const Int32 Process::PROC_TERM_MASK;
-const Int32 Process::PROC_ZERO_TERM;
-const Int32 Process::PROC_SPACE_TERM;
-const Int32 Process::PROC_TAB_TERM;
-const Int32 Process::PROC_COMBINE;
-const Int32 Process::PROC_PARENS;
-const Int32 Process::PROC_OUT_STRING;
-const Int32 Process::PROC_OUT_LONG;
-const Int32 Process::PROC_OUT_FLOAT;
+static ILocalSocket* sZygoteSocket;
+static IDataInputStream* sZygoteInputStream;
+static IBufferedWriter* sZygoteWriter;
+
+/** true if previous zygote open failed */
+static Boolean sPreviousZygoteOpenFailed;
+
+static Mutex mProcessClassLock;
+
+#define GUARD_THREAD_PRIORITY 0
+
+#if GUARD_THREAD_PRIORITY
+Mutex gKeyCreateMutex;
+static pthread_key_t gBgKey = -1;
+#endif
+
+Process::ProcessRunnable::ProcessRunnable(
+    /* [in] */ String processClass)
+{
+    mProcessClass = processClass;
+}
+
+UInt32 Process::ProcessRunnable::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 Process::ProcessRunnable::Release()
+{
+    return ElRefBase::Release();
+}
+
+PInterface Process::ProcessRunnable::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (PInterface)(IRunnable*)this;
+    }
+    else if (riid == EIID_IRunnable) {
+        return (IRunnable*)this;
+    }
+
+    return NULL;
+}
+
+CARAPI Process::ProcessRunnable::GetInterfaceID(
+    /* [in] */ IInterface* pObject,
+    /* [in] */ InterfaceID* pIID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode Process::ProcessRunnable::Run()
+{
+    Process::InvokeStaticMain(mProcessClass);
+    return NOERROR;
+}
+
 
 Int32 Process::GetCallingPid()
 {
@@ -80,66 +123,85 @@ Int32 Process::GetCallingUid()
 * {@hide}
 */
 
-Int32 Process::Start(
+ECode Process::Start(
     /* [in] */ const String processClass,
     /* [in] */ const String niceName,
     /* [in] */ Int32 uid,
     /* [in] */ Int32 gid,
     /* [in] */ const ArrayOf<Int32> & gids,
     /* [in] */ Int32 debugFlags,
-    /* [in] */ const ArrayOf<String> & zygoteArgs)
+    /* [in] */ const ArrayOf<String> & zygoteArgs,
+    /* [out] */ Int32* pid)
 {
-    // if (supportsProcesses()) {
-    //     try {
-    //         return startViaZygote(processClass, niceName, uid, gid, gids,
-    //                 debugFlags, zygoteArgs);
-    //     } catch (ZygoteStartFailedEx ex) {
-    //         Log.e(LOG_TAG,
-    //                 "Starting VM process through Zygote failed");
-    //         throw new RuntimeException(
-    //                 "Starting VM process through Zygote failed", ex);
-    //     }
-    // } else {
-    //     // Running in single-process mode
+    if (SupportsProcesses()) {
+        ECode ec = StartViaZygote(
+                    processClass,
+                    niceName,
+                    uid,
+                    gid,
+                    gids,
+                    debugFlags,
+                    zygoteArgs,
+                    pid);
 
-    //     Runnable runnable = new Runnable() {
-    //                 public void run() {
-    //                     Process.invokeStaticMain(processClass);
-    //                 }
-    //     };
+        if (FAILED(ec))
+        {
+            // Log.e(LOG_TAG,
+            //         "Starting VM process through Zygote failed");
+            // throw new RuntimeException(
+            //         "Starting VM process through Zygote failed", ex);
+            return E_RUNTIME_EXCEPTION;
+        }
+    }
+    else {
+        //Running in single-process mode
+        ProcessRunnable* runnable = new ProcessRunnable(processClass);
 
-    //     // Thread constructors must not be called with null names (see spec).
-    //     if (niceName != null) {
-    //         new Thread(runnable, niceName).start();
-    //     } else {
-    //         new Thread(runnable).start();
-    //     }
+        // Thread constructors must not be called with null names (see spec).
+        IThread* thread;
+        if (niceName.GetCharCount() != 0) {
+            CThread::New(runnable, niceName, &thread);
+            thread->Start();
+        } else {
+            CThread::New(runnable, &thread);
+            thread->Start();
+        }
 
-    //     return 0;
-    // }
-    return -1;
+        *pid = 0;
+        delete runnable;
+    }
+
+    return NOERROR;
 }
 
 /**
 * Start a new process.  Don't supply a custom nice name.
 * {@hide}
 */
-Int32 Process::Start(
+ECode Process::Start(
     /* [in] */ String processClass,
     /* [in] */ Int32 uid,
     /* [in] */ Int32 gid,
     /* [in] */ const ArrayOf<Int32> & gids,
     /* [in] */ Int32 debugFlags,
-    /* [in] */ const ArrayOf<String> & zygoteArgs)
+    /* [in] */ const ArrayOf<String> & zygoteArgs,
+    /* [in] */ Int32* pid)
 {
-    // return start(processClass, "", uid, gid, gids,
-    //     debugFlags, zygoteArgs);
-    return -1;
+    return Start(
+            processClass,
+            String(""),
+            uid,
+            gid,
+            gids,
+            debugFlags,
+            zygoteArgs,
+            pid);
 }
 
 ECode Process::InvokeStaticMain(
     /* [in] */ String className)
 {
+    //TODO:
     // Class cl;
     // Object args[] = new Object[1];
 
@@ -171,74 +233,97 @@ ECode Process::InvokeStaticMain(
  */
 ECode Process::OpenZygoteSocketIfNeeded()
 {
-//     int retryCount;
+    Int32 retryCount;
 
-//     if (sPreviousZygoteOpenFailed) {
-//         /*
-//          * If we've failed before, expect that we'll fail again and
-//          * don't pause for retries.
-//          */
-//         retryCount = 0;
-//     } else {
-//         retryCount = 10;
-//     }
+    if (sPreviousZygoteOpenFailed) {
+        /*
+         * If we've failed before, expect that we'll fail again and
+         * don't pause for retries.
+         */
+        retryCount = 0;
+    } else {
+        retryCount = 10;
+    }
 
-//     /*
-//      * See bug #811181: Sometimes runtime can make it up before zygote.
-//      * Really, we'd like to do something better to avoid this condition,
-//      * but for now just wait a bit...
-//      */
-//     for (int retry = 0
-//             ; (sZygoteSocket == null) && (retry < (retryCount + 1))
-//             ; retry++ ) {
+    /*
+     * See bug #811181: Sometimes runtime can make it up before zygote.
+     * Really, we'd like to do something better to avoid this condition,
+     * but for now just wait a bit...
+     */
+    for (Int32 retry = 0
+            ; (sZygoteSocket == NULL) && (retry < (retryCount + 1))
+            ; retry++ ) {
 
-//         if (retry > 0) {
-//             try {
-//                 Log.i("Zygote", "Zygote not up yet, sleeping...");
-//                 Thread.sleep(ZYGOTE_RETRY_MILLIS);
-//             } catch (InterruptedException ex) {
-//                 // should never happen
-//             }
-//         }
+        if (retry > 0) {
+            // try {
+            //     Log.i("Zygote", "Zygote not up yet, sleeping...");
+                Thread::Sleep(ZYGOTE_RETRY_MILLIS);
+            // } catch (InterruptedException ex) {
+            //     // should never happen
+            // }
+        }
 
-//         try {
-//             sZygoteSocket = new LocalSocket();
+    // try {
+        ECode ec = CLocalSocket::New(&sZygoteSocket);
+        if (FAILED(ec)) {
+            return ec;
+        }
 
-//             sZygoteSocket.connect(new LocalSocketAddress(ZYGOTE_SOCKET,
-//                     LocalSocketAddress.Namespace.RESERVED));
+        ILocalSocketAddress* socketAddress;
+        ec = CLocalSocketAddress::New(String("zygote"), LocalSocketAddressNamespace_RESERVED, &socketAddress);
+        if (FAILED(ec)) {
+            return ec;
+        }
 
-//             sZygoteInputStream
-//                     = new DataInputStream(sZygoteSocket.getInputStream());
+        sZygoteSocket->Connect(socketAddress);
 
-//             sZygoteWriter =
-//                 new BufferedWriter(
-//                         new OutputStreamWriter(
-//                                 sZygoteSocket.getOutputStream()),
-//                         256);
+        IInputStream* inputStream;
+        sZygoteSocket->GetInputStream(&inputStream);
 
-//             Log.i("Zygote", "Process: zygote socket opened");
+        ec = CDataInputStream::New(inputStream, &sZygoteInputStream);
+        if (FAILED(ec)) {
+            return ec;
+        }
 
-//             sPreviousZygoteOpenFailed = false;
-//             break;
-//         } catch (IOException ex) {
-//             if (sZygoteSocket != null) {
-//                 try {
-//                     sZygoteSocket.close();
-//                 } catch (IOException ex2) {
-//                     Log.e(LOG_TAG,"I/O exception on close after exception",
-//                             ex2);
-//                 }
-//             }
+        IOutputStream* outputStream;
+        sZygoteSocket->GetOutputStream(&outputStream);
 
-//             sZygoteSocket = null;
-//         }
-//     }
+        IOutputStreamWriter* streamWrite;
+        ec = COutputStreamWriter::New(outputStream, &streamWrite);
 
-//     if (sZygoteSocket == null) {
-//         sPreviousZygoteOpenFailed = true;
-//         throw new ZygoteStartFailedEx("connect failed");
-//     }
-    return E_NOT_IMPLEMENTED;
+        if (FAILED(ec)) {
+            return ec;
+        }
+
+        ec = CBufferedWriter::New(streamWrite, 256, &sZygoteWriter);
+
+        if (FAILED(ec)) {
+            return ec;
+        }
+
+        //Log.i("Zygote", "Process: zygote socket opened");
+        sPreviousZygoteOpenFailed = FALSE;
+        break;
+    // } catch (IOException ex) {
+    //     if (sZygoteSocket != null) {
+    //         try {
+    //             sZygoteSocket.close();
+    //         } catch (IOException ex2) {
+    //             Log.e(LOG_TAG,"I/O exception on close after exception",
+    //                     ex2);
+    //         }
+    //     }
+
+    //     sZygoteSocket = null;
+    // }
+    }
+
+    if (sZygoteSocket == NULL) {
+        sPreviousZygoteOpenFailed = TRUE;
+        //throw new ZygoteStartFailedEx("connect failed");
+        return E_FAIL;
+    }
+    return NOERROR;
 }
 
 /**
@@ -250,62 +335,64 @@ ECode Process::OpenZygoteSocketIfNeeded()
  * @throws ZygoteStartFailedEx if process start failed for any reason
  */
 Int32 Process::ZygoteSendArgsAndGetPid(
-    /* [in] */ List<String> args)
+    /* [in] */ List<String>* args)
 {
-    // int pid;
+    Int32 pid;
 
-    // openZygoteSocketIfNeeded();
+    OpenZygoteSocketIfNeeded();
 
     // try {
-    //     /**
-    //      * See com.android.internal.os.ZygoteInit.readArgumentList()
-    //      * Presently the wire format to the zygote process is:
-    //      * a) a count of arguments (argc, in essence)
-    //      * b) a number of newline-separated argument strings equal to count
-    //      *
-    //      * After the zygote process reads these it will write the pid of
-    //      * the child or -1 on failure.
-    //      */
+        /**
+         * See com.android.internal.os.ZygoteInit.readArgumentList()
+         * Presently the wire format to the zygote process is:
+         * a) a count of arguments (argc, in essence)
+         * b) a number of newline-separated argument strings equal to count
+         *
+         * After the zygote process reads these it will write the pid of
+         * the child or -1 on failure.
+         */
+        Int32 sz = args->GetSize();
+        sZygoteWriter->Write(sz/*String::FromInt32(sz)*/);
+        sZygoteWriter->NewLine();
 
-    //     sZygoteWriter.write(Integer.toString(args.size()));
-    //     sZygoteWriter.newLine();
+        List<String>::Iterator it;
+        for (it = args->Begin(); it != args->End(); it++) {
+            String arg = *it;
+            const char argChar = '\n';
+            if (arg.Find(String(&argChar).string()) >= 0) {
+                // throw new ZygoteStartFailedEx(
+                //         "embedded newlines not allowed");
+                return 0;
+            }
+            sZygoteWriter->Write(arg.ToInt32());
+            sZygoteWriter->NewLine();
+        }
 
-    //     int sz = args.size();
-    //     for (int i = 0; i < sz; i++) {
-    //         String arg = args.get(i);
-    //         if (arg.indexOf('\n') >= 0) {
-    //             throw new ZygoteStartFailedEx(
-    //                     "embedded newlines not allowed");
-    //         }
-    //         sZygoteWriter.write(arg);
-    //         sZygoteWriter.newLine();
-    //     }
+        sZygoteWriter->Flush();
 
-    //     sZygoteWriter.flush();
+        // Should there be a timeout on this?
+        ((IInputStream*)sZygoteInputStream)->Read(&pid);
 
-    //     // Should there be a timeout on this?
-    //     pid = sZygoteInputStream.readInt();
-
-    //     if (pid < 0) {
-    //         throw new ZygoteStartFailedEx("fork() failed");
-    //     }
+        if (pid < 0) {
+            //throw new ZygoteStartFailedEx("fork() failed");
+            return 0;
+        }
     // } catch (IOException ex) {
     //     try {
-    //         if (sZygoteSocket != null) {
-    //             sZygoteSocket.close();
+    //         if (sZygoteSocket != NULL) {
+    //             sZygoteSocket->Close();
     //         }
     //     } catch (IOException ex2) {
     //         // we're going to fail anyway
     //         Log.e(LOG_TAG,"I/O exception on routine close", ex2);
     //     }
 
-    //     sZygoteSocket = null;
+    //     sZygoteSocket = NULL;
 
     //     throw new ZygoteStartFailedEx(ex);
     // }
 
-    // return pid;
-    return -1;
+    return pid;
 }
 
 /**
@@ -322,78 +409,77 @@ Int32 Process::ZygoteSendArgsAndGetPid(
  * @return PID
  * @throws ZygoteStartFailedEx if process start failed for any reason
  */
-Int32 Process::StartViaZygote(
+ECode Process::StartViaZygote(
     /* [in] */ const String processClass,
     /* [in] */ const String niceName,
     /* [in] */ const Int32 uid,
     /* [in] */ const Int32 gid,
     /* [in] */ const ArrayOf<Int32> & gids,
     /* [in] */ Int32 debugFlags,
-    /* [in] */ const ArrayOf<String> & extraArgs)
+    /* [in] */ const ArrayOf<String> & extraArgs,
+    /* [out] */ Int32* pid)
 {
-    // int pid;
+    Mutex::Autolock lock(mProcessClassLock);
+    List<String>* argsForZygote = new List<String>();
+    // --runtime-init, --setuid=, --setgid=,
+    // and --setgroups= must go first
+    argsForZygote->PushBack(String("--runtime-init"));
+    argsForZygote->PushBack(String("--setuid=" + uid));
+    argsForZygote->PushBack(String("--setgid=" + gid));
+    if ((debugFlags & (1)/*Zygote.DEBUG_ENABLE_SAFEMODE*/) != 0) {
+        argsForZygote->PushBack(String("--enable-safemode"));
+    }
+    if ((debugFlags & (1 << 1)/*Zygote.DEBUG_ENABLE_DEBUGGER*/) != 0) {
+        argsForZygote->PushBack(String("--enable-debugger"));
+    }
+    if ((debugFlags & (1 << 2)/*Zygote.DEBUG_ENABLE_CHECKJNI*/) != 0) {
+        argsForZygote->PushBack(String("--enable-checkjni"));
+    }
+    if ((debugFlags & (1 << 3)/*Zygote.DEBUG_ENABLE_ASSERT*/) != 0) {
+        argsForZygote->PushBack(String("--enable-assert"));
+    }
 
-    // synchronized(Process.class) {
-    //     ArrayList<String> argsForZygote = new ArrayList<String>();
+    //TODO optionally enable debuger
+    //argsForZygote.add("--enable-debugger");
 
-    //     // --runtime-init, --setuid=, --setgid=,
-    //     // and --setgroups= must go first
-    //     argsForZygote.add("--runtime-init");
-    //     argsForZygote.add("--setuid=" + uid);
-    //     argsForZygote.add("--setgid=" + gid);
-    //     if ((debugFlags & Zygote.DEBUG_ENABLE_SAFEMODE) != 0) {
-    //         argsForZygote.add("--enable-safemode");
-    //     }
-    //     if ((debugFlags & Zygote.DEBUG_ENABLE_DEBUGGER) != 0) {
-    //         argsForZygote.add("--enable-debugger");
-    //     }
-    //     if ((debugFlags & Zygote.DEBUG_ENABLE_CHECKJNI) != 0) {
-    //         argsForZygote.add("--enable-checkjni");
-    //     }
-    //     if ((debugFlags & Zygote.DEBUG_ENABLE_ASSERT) != 0) {
-    //         argsForZygote.add("--enable-assert");
-    //     }
+    // --setgroups is a comma-separated list
+    Int32 sz = gids.GetLength();
+    if (sz > 0) {
+        StringBuf* sb = StringBuf::Alloc(0);
+        sb->Append("--setgroups=");
 
-    //     //TODO optionally enable debuger
-    //     //argsForZygote.add("--enable-debugger");
+        for (Int32 i = 0; i < sz; i++) {
+            if (i != 0) {
+                sb->Append(',');
+            }
+            sb->Append(gids[i]);
+        }
 
-    //     // --setgroups is a comma-separated list
-    //     if (gids != null && gids.length > 0) {
-    //         StringBuilder sb = new StringBuilder();
-    //         sb.append("--setgroups=");
+        argsForZygote->PushBack(String(sb->GetPayload()));
+        StringBuf::Free(sb);
+    }
 
-    //         int sz = gids.length;
-    //         for (int i = 0; i < sz; i++) {
-    //             if (i != 0) {
-    //                 sb.append(',');
-    //             }
-    //             sb.append(gids[i]);
-    //         }
+    if (niceName != NULL) {
+        argsForZygote->PushBack(String("--nice-name=") + niceName);
+    }
 
-    //         argsForZygote.add(sb.toString());
-    //     }
+    argsForZygote->PushBack(processClass);
 
-    //     if (niceName != null) {
-    //         argsForZygote.add("--nice-name=" + niceName);
-    //     }
+    sz = extraArgs.GetLength();
+    for (Int32 i = 0; i < sz; i++) {
+        String arg = extraArgs[i];
+        argsForZygote->PushBack(arg);
+    }
 
-    //     argsForZygote.add(processClass);
+    *pid = ZygoteSendArgsAndGetPid(argsForZygote);
+    delete argsForZygote;
 
-    //     if (extraArgs != null) {
-    //         for (String arg : extraArgs) {
-    //             argsForZygote.add(arg);
-    //         }
-    //     }
+    if (*pid <= 0) {
+        //throw new ZygoteStartFailedEx("zygote start failed:" + pid);
+        return E_FAIL;
+    }
 
-    //     pid = zygoteSendArgsAndGetPid(argsForZygote);
-    // }
-
-    // if (pid <= 0) {
-    //     throw new ZygoteStartFailedEx("zygote start failed:" + pid);
-    // }
-
-    // return pid;
-    return -1;
+    return NOERROR;
 }
 
 /**
@@ -402,7 +488,14 @@ Int32 Process::StartViaZygote(
  */
 Int64 Process::GetElapsedCpuTime()
 {
-    return -1;
+    struct timespec ts;
+    Int32 res = clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
+    if (res != 0) {
+        return (Int64) 0;
+    }
+
+    nsecs_t when = seconds_to_nanoseconds(ts.tv_sec) + ts.tv_nsec;
+    return (Int64) nanoseconds_to_milliseconds(when);
 }
 
 /**
@@ -411,7 +504,7 @@ Int64 Process::GetElapsedCpuTime()
  */
 Int32 Process::MyPid()
 {
-    return -1;
+    return getpid();
 }
 
 /**
@@ -420,7 +513,8 @@ Int32 Process::MyPid()
  */
 Int32 Process::MyTid()
 {
-    return -1;
+    //TODO:
+    return androidGetTid();
 }
 
 /**
@@ -428,7 +522,7 @@ Int32 Process::MyTid()
  */
 Int32 Process::MyUid()
 {
-    return -1;
+    return getuid();
 }
 
 /**
@@ -439,7 +533,34 @@ Int32 Process::MyUid()
 Int32 Process::GetUidForName(
     /* [in] */ String name)
 {
+    if (name == NULL) {
+        //jniThrowException(env, "java/lang/NullPointerException", NULL);
+        return E_NULL_POINTER_EXCEPTION;
+    }
+
+    //const jchar* str16 = env->GetStringCritical(name, 0);
+    android::String8 name8(name.string());
+    // if (str16) {
+    //     name8 = String8(str16, env->GetStringLength(name));
+    //     env->ReleaseStringCritical(name, str16);
+    // }
+
+    const size_t N = name8.size();
+    if (N > 0) {
+        const char* str = name8.string();
+        for (size_t i = 0; i < N; i++) {
+            if (str[i] < '0' || str[i] > '9') {
+                struct passwd* pwd = getpwnam(str);
+                if (pwd == NULL) {
+                    return -1;
+                }
+                return pwd->pw_uid;
+            }
+        }
+        return atoi(str);
+    }
     return -1;
+
 }
 
 /**
@@ -450,6 +571,32 @@ Int32 Process::GetUidForName(
 Int32 Process::GetGidForName(
     /* [in] */ String name)
 {
+    if (name == NULL) {
+        //jniThrowException(env, "java/lang/NullPointerException", NULL);
+        return E_NULL_POINTER_EXCEPTION;
+    }
+
+    // const jchar* str16 = env->GetStringCritical(name, 0);
+    android::String8 name8(name.string());
+    // if (str16) {
+    //     name8 = String8(str16, env->GetStringLength(name));
+    //     env->ReleaseStringCritical(name, str16);
+    // }
+
+    const size_t N = name8.size();
+    if (N > 0) {
+        const char* str = name8.string();
+        for (size_t i = 0; i < N; i++) {
+            if (str[i] < '0' || str[i] > '9') {
+                struct group* grp = getgrnam(str);
+                if (grp == NULL) {
+                    return -1;
+                }
+                return grp->gr_gid;
+            }
+        }
+        return atoi(str);
+    }
     return -1;
 }
 
@@ -462,13 +609,64 @@ Int32 Process::GetGidForName(
 Int32 Process::GetUidForPid(
     /* [in] */ Int32 pid)
 {
-    // String[] procStatusLabels = { "Uid:" };
-    // long[] procStatusValues = new long[1];
-    // procStatusValues[0] = -1;
-    // Process.readProcLines("/proc/" + pid + "/status", procStatusLabels, procStatusValues);
-    // return (int) procStatusValues[0];
+    ArrayOf<String>* procStatusLabels = ArrayOf<String>::Alloc(1);
+    procStatusLabels->GetPayload()[0] = "Uid";
+    ArrayOf<Int64>* procStatusValues = ArrayOf<Int64>::Alloc(1);
+    procStatusValues->GetPayload()[0] = -1;
 
-    return -1;
+    StringBuf* sbuf = StringBuf::Alloc(0);
+    sbuf->Append("/proc/");
+    sbuf->Append(pid);
+    sbuf->Append("/status");
+    ReadProcLines(String(sbuf->GetPayload()), *procStatusLabels, *procStatusValues);
+
+    Int32 value = procStatusValues->GetPayload()[0];
+    StringBuf::Free(sbuf);
+    ArrayOf<String>::Free(procStatusLabels);
+    ArrayOf<Int64>::Free(procStatusValues);
+    return value;
+}
+
+static ECode SignalExceptionForPriorityError(Int32 err)
+{
+    switch (err) {
+        case EINVAL:
+            //jniThrowException(env, "java/lang/IllegalArgumentException", NULL);
+            return E_ILLEGAL_ARGUMENT_EXCEPTION;
+        case ESRCH:
+            //jniThrowException(env, "java/lang/IllegalArgumentException", "Given thread does not exist");
+            return E_ILLEGAL_ARGUMENT_EXCEPTION;
+        case EPERM:
+            //jniThrowException(env, "java/lang/SecurityException", "No permission to modify given thread");
+            return E_SECURITY_EXCEPTION;
+        case EACCES:
+            //jniThrowException(env, "java/lang/SecurityException", "No permission to set to given priority");
+            return E_SECURITY_EXCEPTION;
+        default:
+            //jniThrowException(env, "java/lang/RuntimeException", "Unknown error");
+            return E_RUNTIME_EXCEPTION;
+    }
+}
+
+static ECode SignalExceptionForGroupError(Int32 err)
+{
+    switch (err) {
+        case EINVAL:
+            //jniThrowException(env, "java/lang/IllegalArgumentException", NULL);
+            return E_ILLEGAL_ARGUMENT_EXCEPTION;
+        case ESRCH:
+            //jniThrowException(env, "java/lang/IllegalArgumentException", "Given thread does not exist");
+            return E_ILLEGAL_ARGUMENT_EXCEPTION;
+        case EPERM:
+            //jniThrowException(env, "java/lang/SecurityException", "No permission to modify given thread");
+            return E_SECURITY_EXCEPTION;
+        case EACCES:
+            //jniThrowException(env, "java/lang/SecurityException", "No permission to set to given group");
+            return E_SECURITY_EXCEPTION;
+        default:
+            //jniThrowException(env, "java/lang/RuntimeException", "Unknown error");
+            return E_RUNTIME_EXCEPTION;
+    }
 }
 
 /**
@@ -488,7 +686,32 @@ ECode Process::SetThreadPriority(
     /* [in] */ Int32 tid,
     /* [in] */ Int32 priority)
 {
-    return E_NOT_IMPLEMENTED;
+#if GUARD_THREAD_PRIORITY
+    // if we're putting the current thread into the background, check the TLS
+    // to make sure this thread isn't guarded.  If it is, raise an exception.
+    if (priority >= ANDROID_PRIORITY_BACKGROUND) {
+        if (tid == androidGetTid()) {
+            void* bgOk = pthread_getspecific(gBgKey);
+            if (bgOk == ((void*)0xbaad)) {
+                //LOGE("Thread marked fg-only put self in background!");
+                //jniThrowException(env, "java/lang/SecurityException", "May not put this thread into background");
+                return E_SECURITY_EXCEPTION;
+            }
+        }
+    }
+#endif
+
+    Int32 rc = androidSetThreadPriority(tid, priority);
+    if (rc != 0) {
+        if (rc == android::INVALID_OPERATION) {
+            return SignalExceptionForPriorityError(errno);
+        } else {
+            return SignalExceptionForGroupError(errno);
+        }
+    }
+    //LOGI("Setting priority of %d: %d, getpriority returns %d\n",
+    //     pid, pri, getpriority(PRIO_PROCESS, pid));
+    return NOERROR;
 }
 /**
  * Call with 'false' to cause future calls to {@link #setThreadPriority(int)} to
@@ -500,20 +723,38 @@ ECode Process::SetThreadPriority(
 ECode Process::SetCanSelfBackground(
     /* [in] */ Boolean backgroundOk)
 {
-    return E_NOT_IMPLEMENTED;
+#if GUARD_THREAD_PRIORITY
+    //LOGV("Process.setCanSelfBackground(%d) : tid=%d", bgOk, androidGetTid());
+    {
+        Mutex::Autolock _l(gKeyCreateMutex);
+        if (gBgKey == -1) {
+            pthread_key_create(&gBgKey, NULL);
+        }
+    }
+
+    // inverted:  not-okay, we set a sentinel value
+    pthread_setspecific(gBgKey, (void*)(backgroundOk ? 0 : 0xbaad));
+#endif
+    return NOERROR;
 }
 
 ECode Process::SetThreadPriority(
     /* [in] */ Int32 priority)
 {
-    return E_NOT_IMPLEMENTED;
+    Int32 tid = MyTid();
+    return SetThreadPriority(tid, priority);
 }
 
 ECode Process::SetProcessGroup(
     /* [in] */ Int32 pid,
     /* [in] */ Int32 group)
 {
-    return E_NOT_IMPLEMENTED;
+    Int32 res = androidSetThreadSchedulingGroup(pid, group);
+    if (res != android::NO_ERROR) {
+        return SignalExceptionForGroupError(res == android::BAD_VALUE ? EINVAL : errno);
+    }
+
+    return NOERROR;
 }
 
 /**
@@ -531,21 +772,38 @@ ECode Process::SetProcessGroup(
 Int32 Process::GetThreadPriority(
     /* [in] */ Int32 tid)
 {
-    return -1;
+    errno = 0;
+    Int32 pri = getpriority(PRIO_PROCESS, tid);
+    if (errno != 0) {
+        SignalExceptionForPriorityError(errno);
+    }
+    //LOGI("Returning priority of %d: %d\n", pid, pri);
+    return pri;
 }
 
 Boolean Process::SupportsProcesses()
 {
-    //not implemented;
-    return TRUE;
+    return android::ProcessState::self()->supportsProcesses();
 }
 
 Boolean Process::SetOomAdj(
     /* [in] */ Int32 pid,
     /* [in] */ Int32 amt)
 {
-    //not implemented;
-    return TRUE;
+#ifdef HAVE_OOM_ADJ
+    if (SupportsProcesses()) {
+        char text[64];
+        sprintf(text, "/proc/%d/oom_adj", pid);
+        Int32 fd = open(text, O_WRONLY);
+        if (fd >= 0) {
+            sprintf(text, "%d", amt);
+            write(fd, text, strlen(text));
+            close(fd);
+        }
+        return TRUE;
+    }
+#endif
+    return FALSE;
 }
 
 /**
@@ -557,29 +815,53 @@ Boolean Process::SetOomAdj(
  * {@hide}
  */
 ECode Process::SetArgV0(
-    /* [in] */ String text)
+    /* [in] */ String name)
 {
-    return E_NOT_IMPLEMENTED;
+    if (name == NULL) {
+        //jniThrowException(env, "java/lang/NullPointerException", NULL);
+        return E_NULL_POINTER_EXCEPTION;
+    }
+
+    // const jchar* str = env->GetStringCritical(name, 0);
+    android::String8 name8;
+    // if (str) {
+    //     name8 = String8(str, env->GetStringLength(name));
+    //     env->ReleaseStringCritical(name, str);
+    // }
+
+    if (name8.size() > 0) {
+        android::ProcessState::self()->setArgV0(name8.string());
+    }
+
+    return NOERROR;
 }
 
 ECode Process::KillProcess(
     /* [in] */ Int32 pid)
 {
-    return E_NOT_IMPLEMENTED;
+    return SendSignal(pid, SIGNAL_KILL);
 }
 
 /** @hide */
 Int32 Process::SetUid(
     /* [in] */ Int32 uid)
 {
-    return -1;
+#if HAVE_ANDROID_OS
+    return setuid(uid) == 0 ? 0 : errno;
+#else
+    return ENOSYS;
+#endif
 }
 
 /** @hide */
 Int32 Process::SetGid(
     /* [in] */ Int32 uid)
 {
-    return -1;
+#if HAVE_ANDROID_OS
+    return setgid(uid) == 0 ? 0 : errno;
+#else
+    return ENOSYS;
+#endif
 }
 
 /**
@@ -592,13 +874,19 @@ ECode Process::SendSignal(
     /* [in] */ Int32 pid,
     /* [in] */ Int32 signal)
 {
-    return E_NOT_IMPLEMENTED;
+    if (pid > 0) {
+        //LOGI("Sending signal. PID: %d SIG: %d", pid, sig);
+        kill(pid, signal);
+        return NOERROR;
+    }
+
+    return E_FAIL;
 }
 
 ECode Process::KillProcessQuiet(
     /* [in] */ Int32 pid)
 {
-    return E_NOT_IMPLEMENTED;
+    return SendSignalQuiet(pid, SIGNAL_KILL);;
 }
 
 /**
@@ -611,13 +899,63 @@ ECode Process::SendSignalQuiet(
     /* [in] */ Int32 pid,
     /* [in] */ Int32 signal)
 {
-    return E_NOT_IMPLEMENTED;
+    if (pid > 0) {
+        kill(pid, signal);
+        return NOERROR;
+    }
+
+    return E_FAIL;
 }
 
 /** @hide */
 Int64 Process::GetFreeMemory()
 {
-    return -1;
+    Int32 fd = open("/proc/meminfo", O_RDONLY);
+    if (fd < 0) {
+        //LOGW("Unable to open /proc/meminfo");
+        return -1;
+    }
+
+    char buffer[256];
+    const Int32 len = read(fd, buffer, sizeof(buffer)-1);
+    close(fd);
+
+    if (len < 0) {
+        //LOGW("Unable to read /proc/meminfo");
+        return -1;
+    }
+    buffer[len] = 0;
+
+    Int32 numFound = 0;
+    Int64 mem = 0;
+
+    static const char* const sums[] = { "MemFree:", "Cached:", NULL };
+    static const Int32 sumsLen[] = { strlen("MemFree:"), strlen("Cached:"), NULL };
+
+    char* p = buffer;
+    while (*p && numFound < 2) {
+        Int32 i = 0;
+        while (sums[i]) {
+            if (strncmp(p, sums[i], sumsLen[i]) == 0) {
+                p += sumsLen[i];
+                while (*p == ' ') p++;
+                char* num = p;
+                while (*p >= '0' && *p <= '9') p++;
+                if (*p != 0) {
+                    *p = 0;
+                    p++;
+                    if (*p == 0) p--;
+                }
+                mem += atoll(num) * 1024;
+                numFound++;
+                break;
+            }
+            i++;
+        }
+        p++;
+    }
+
+    return numFound > 0 ? mem : -1;
 }
 
 /** @hide */
@@ -626,26 +964,345 @@ ECode Process::ReadProcLines(
     /* [in] */ const ArrayOf<String> & reqFields,
     /* [in] */ const ArrayOf<Int64> & outSizes)
 {
-    return E_NOT_IMPLEMENTED;
+    //LOGI("getMemInfo: %p %p", reqFields, outFields);
+
+    if (path == NULL) {// || reqFields == NULL || outFields == NULL) {
+        //jniThrowException(env, "java/lang/NullPointerException", NULL);
+        return E_NULL_POINTER_EXCEPTION;
+    }
+
+    const char* file8 = (const char *)path;
+    android::String8 file(file8);
+
+    Int32 count = reqFields.GetLength();
+    if (count > outSizes.GetLength()) {
+        //jniThrowException(env, "java/lang/IllegalArgumentException", "Array lengths differ");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+
+    android::Vector<android::String8> fields;
+    Int32 i;
+    for (i = 0; i < count; i++) {
+        String obj = reqFields.GetPayload()[i];
+        if (obj != NULL) {
+            const char* str8 = (const char*)obj;
+            //LOGI("String at %d: %p = %s", i, obj, str8);
+            if (str8 == NULL) {
+                //jniThrowException(env, "java/lang/NullPointerException", "Element in reqFields");
+                return E_NULL_POINTER_EXCEPTION;
+            }
+            fields.add(android::String8(str8));
+        } else {
+            //jniThrowException(env, "java/lang/NullPointerException", "Element in reqFields");
+            return E_NULL_POINTER_EXCEPTION;
+        }
+    }
+
+    Int64* sizesArray = outSizes.GetPayload();
+    if (sizesArray == NULL) {
+        return E_NULL_POINTER_EXCEPTION;
+    }
+
+    //LOGI("Clearing %d sizes", count);
+    for (i = 0; i < count; i++) {
+        sizesArray[i] = 0;
+    }
+
+    Int32 fd = open(file.string(), O_RDONLY);
+
+    if (fd >= 0) {
+        const size_t BUFFER_SIZE = 2048;
+        char* buffer = (char*)malloc(BUFFER_SIZE);
+        Int32 len = read(fd, buffer, BUFFER_SIZE-1);
+        close(fd);
+
+        if (len < 0) {
+            //LOGW("Unable to read %s", file.string());
+            len = 0;
+        }
+        buffer[len] = 0;
+
+        Int32 foundCount = 0;
+
+        char* p = buffer;
+        while (*p && foundCount < count) {
+            Boolean skipToEol = TRUE;
+            //LOGI("Parsing at: %s", p);
+            for (i = 0; i < count; i++) {
+                const android::String8& field = fields[i];
+                if (strncmp(p, field.string(), field.length()) == 0) {
+                    p += field.length();
+                    while (*p == ' ' || *p == '\t') p++;
+                    char* num = p;
+                    while (*p >= '0' && *p <= '9') p++;
+                    skipToEol = *p != '\n';
+                    if (*p != 0) {
+                        *p = 0;
+                        p++;
+                    }
+                    char* end;
+                    sizesArray[i] = strtoll(num, &end, 10);
+                    //LOGI("Field %s = %d", field.string(), sizesArray[i]);
+                    foundCount++;
+                    break;
+                }
+            }
+            if (skipToEol) {
+                while (*p && *p != '\n') {
+                    p++;
+                }
+                if (*p == '\n') {
+                    p++;
+                }
+            }
+        }
+        free(buffer);
+    } else {
+        //LOGW("Unable to open %s", file.string());
+        return E_FAIL;
+    }
+    //LOGI("Done!");
+    //env->ReleaseLongArrayElements(outFields, sizesArray, 0);
+
+    return NOERROR;
 }
 
-/** @hide */
-ArrayOf<Int32>* Process::GetPids(
-    /* [in] */ String path,
-    /* [in] */ const ArrayOf<Int32> & lastArray)
+static Int32 pid_compare(const void* v1, const void* v2)
 {
-    return NULL;
+    //LOGI("Compare %d vs %d\n", *((const jint*)v1), *((const jint*)v2));
+    return *((const Int32*)v1) - *((const Int32*)v2);
 }
 
 /** @hide */
-Boolean Process::ReadProcFile(
+ECode Process::GetPids(
+    /* [in] */ String path,
+    /* [in] */ const ArrayOf<Int32> & lastArray,
+    /* [out] */ ArrayOf<Int32>** newArray)
+{
+    if (path == NULL) {
+        //jniThrowException(env, "java/lang/NullPointerException", NULL);
+        return E_NULL_POINTER_EXCEPTION;
+    }
+
+    const char* file8 = (const char*)path;
+    if (file8 == NULL) {
+        //jniThrowException(env, "java/lang/OutOfMemoryError", NULL);
+        return E_NULL_POINTER_EXCEPTION;
+    }
+
+    DIR* dirp = opendir(file8);
+
+    if(dirp == NULL) {
+        return E_FAIL;
+    }
+
+    Int32 curCount = 0;
+    Int32* curData = NULL;
+    curCount = lastArray.GetLength();
+    curData = lastArray.GetPayload();
+    Int32 curPos = 0;
+    struct dirent* entry;
+    while ((entry = readdir(dirp)) != NULL) {
+        const char* p = entry->d_name;
+        while (*p) {
+            if (*p < '0' || *p > '9') {
+                break;
+            }
+            p++;
+        }
+
+        if (*p != 0) {
+            continue;
+        }
+
+        char* end;
+        Int32 pid = strtol(entry->d_name, &end, 10);
+        //LOGI("File %s pid=%d\n", entry->d_name, pid);
+        if (curPos >= curCount) {
+            Int32 newCount = (curCount == 0) ? 10 : (curCount*2);
+            *newArray = ArrayOf<Int32>::Alloc(newCount);
+            if (*newArray == NULL) {
+                closedir(dirp);
+                //jniThrowException(env, "java/lang/OutOfMemoryError", NULL);
+                return E_OUT_OF_MEMORY_ERROR;
+            }
+            Int32* newData = (*newArray)->GetPayload();
+            if (curData != NULL) {
+                memcpy(newData, curData, sizeof(Int32) * curCount);
+                //ArrayOf<Int32>::Free(lastArray);
+            }
+            //lastArray = newArray;
+            curCount = newCount;
+            curData = newData;
+        }
+
+        curData[curPos] = pid;
+        curPos++;
+    }
+
+    closedir(dirp);
+
+    if (curData != NULL && curPos > 0) {
+        qsort(curData, curPos, sizeof(Int32), pid_compare);
+    }
+
+    while (curPos < curCount) {
+        curData[curPos] = -1;
+        curPos++;
+    }
+
+    return NOERROR;
+}
+
+enum {
+    PROC_TERM_MASK = 0xff,
+    PROC_ZERO_TERM = 0,
+    PROC_SPACE_TERM = ' ',
+    PROC_COMBINE = 0x100,
+    PROC_PARENS = 0x200,
+    PROC_OUT_STRING = 0x1000,
+    PROC_OUT_LONG = 0x2000,
+    PROC_OUT_FLOAT = 0x4000,
+};
+
+Boolean ParseProcLineArray(
+    /* [in] */ char* buffer,
+    /* [in] */ Int32 startIndex,
+    /* [in] */ Int32 endIndex,
+    /* [in] */ const ArrayOf<Int32> & format,
+    /* [in] */ const ArrayOf<String> & outStrings,
+    /* [in] */ const ArrayOf<Int64> & outLongs,
+    /* [in] */ const ArrayOf<Float> & outFloats)
+{
+
+    const Int32 NF = format.GetLength();
+    const Int32 NS = outStrings.GetLength();
+    const Int32 NL = outLongs.GetLength();
+    const Int32 NR = outFloats.GetLength();
+
+    Int32* formatData = format.GetPayload();
+    Int64* longsData = outLongs.GetPayload();
+    Float* floatsData = outFloats.GetPayload();
+    if (formatData == NULL || (NL > 0 && longsData == NULL)
+            || (NR > 0 && floatsData == NULL)) {
+        //jniThrowException(env, "java/lang/OutOfMemoryError", NULL);
+        return FALSE;
+    }
+
+    Int32 i = startIndex;
+    Int32 di = 0;
+    Boolean res = TRUE;
+    for (Int32 fi = 0; fi < NF; fi++) {
+        const Int32 mode = formatData[fi];
+        if ((mode&PROC_PARENS) != 0) {
+            i++;
+        }
+        const char term = (char)(mode & PROC_TERM_MASK);
+        const Int32 start = i;
+        if (i >= endIndex) {
+            res = FALSE;
+            break;
+        }
+
+        Int32 end = -1;
+        if ((mode & PROC_PARENS) != 0) {
+            while (buffer[i] != ')' && i < endIndex) {
+                i++;
+            }
+            end = i;
+            i++;
+        }
+        while (buffer[i] != term && i < endIndex) {
+            i++;
+        }
+        if (end < 0) {
+            end = i;
+        }
+
+        if (i < endIndex) {
+            i++;
+            if ((mode&PROC_COMBINE) != 0) {
+                while (buffer[i] == term && i < endIndex) {
+                    i++;
+                }
+            }
+        }
+
+        //LOGI("Field %d: %d-%d dest=%d mode=0x%x\n", i, start, end, di, mode);
+        if ((mode & (PROC_OUT_FLOAT|PROC_OUT_LONG | PROC_OUT_STRING)) != 0) {
+            char c = buffer[end];
+            buffer[end] = 0;
+            if ((mode & PROC_OUT_FLOAT) != 0 && di < NR) {
+                char* end;
+                floatsData[di] = strtof(buffer + start, &end);
+            }
+            if ((mode & PROC_OUT_LONG) != 0 && di < NL) {
+                char* end;
+                longsData[di] = strtoll(buffer + start, &end, 10);
+            }
+            if ((mode & PROC_OUT_STRING) != 0 && di < NS) {
+                String str(buffer + start);
+                outStrings.GetPayload()[di] = str;
+            }
+            buffer[end] = c;
+            di++;
+        }
+    }
+
+    return res;
+}
+
+/** @hide */
+ECode Process::ReadProcFile(
     /* [in] */ String file,
     /* [in] */ const ArrayOf<Int32> & format,
     /* [in] */ const ArrayOf<String> & outStrings,
     /* [in] */ const ArrayOf<Int64> & outLongs,
-    /* [in] */ const ArrayOf<Float> outFloats)
+    /* [in] */ const ArrayOf<Float> outFloats,
+    /* [out] */ Boolean* result)
 {
-    return FALSE;
+    if (file == NULL) {
+        //jniThrowException(env, "java/lang/NullPointerException", NULL);
+        *result = FALSE;
+        return E_NULL_POINTER_EXCEPTION;
+    }
+
+    const char* file8 = (const char*)file;
+    if (file8 == NULL) {
+        //jniThrowException(env, "java/lang/OutOfMemoryError", NULL);
+        *result = FALSE;
+        return E_OUT_OF_MEMORY_ERROR;
+    }
+
+    Int32 fd = open(file8, O_RDONLY);
+
+    if (fd < 0) {
+        //LOGW("Unable to open process file: %s\n", file8);
+        *result = FALSE;
+        return E_FAIL;
+    }
+
+    char buffer[256];
+    const Int32 len = read(fd, buffer, sizeof(buffer)-1);
+    close(fd);
+
+    if (len < 0) {
+        //LOGW("Unable to open process file: %s fd=%d\n", file8, fd);
+        *result = FALSE;
+        return E_FAIL;
+    }
+    buffer[len] = 0;
+
+    *result = ParseProcLineArray(
+                buffer,
+                0,
+                len,
+                format,
+                outStrings,
+                outLongs,
+                outFloats);
+
+    return NOERROR;
 }
 
 /** @hide */
@@ -658,7 +1315,16 @@ Boolean Process::ParseProcLine(
     /* [in] */ const ArrayOf<Int64> & outLongs,
     /* [in] */ const ArrayOf<Float> & outFloats)
 {
-    return FALSE;
+    Byte* bufferArray = buffer.GetPayload();
+
+    return ParseProcLineArray(
+            (char*)bufferArray,
+            startIndex,
+            endIndex,
+            format,
+            outStrings,
+            outLongs,
+            outFloats);
 }
 
 /**
@@ -672,6 +1338,27 @@ Boolean Process::ParseProcLine(
 Int64 Process::GetPss(
     /* [in] */ Int32 pid)
 {
-    return -1;
+    char filename[64];
+    snprintf(filename, sizeof(filename), "/proc/%d/smaps", pid);
+
+    FILE * file = fopen(filename, "r");
+    if (!file) {
+        return (Int64) -1;
+    }
+
+    // Tally up all of the Pss from the various maps
+    char line[256];
+    Int64 pss = 0;
+    while (fgets(line, sizeof(line), file)) {
+        Int64 v;
+        if (sscanf(line, "Pss: %lld kB", &v) == 1) {
+            pss += v;
+        }
+    }
+
+    fclose(file);
+
+    // Return the Pss value in bytes, not kilobytes
+    return pss * 1024;
 }
 
