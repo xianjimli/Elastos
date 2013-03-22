@@ -26,7 +26,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-
 using namespace Elastos;
 using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
@@ -367,7 +366,8 @@ CCapsuleManagerService::MoveParams::MoveParams(
     if (srcArgs != NULL) {
         AutoPtr<IFile> file;
         CFile::New(srcArgs->GetCodePath(), (IFile**)&file);
-        AutoPtr<IUri> capsuleUri = Uri::FromFile(file);
+        AutoPtr<IUri> capsuleUri;
+        Uri::FromFile(file, (IUri**)&capsuleUri);
         mTargetArgs = mOwner->CreateInstallArgs(capsuleUri, flags, capsuleName, dataDir);
     }
 }

@@ -8,8 +8,16 @@ INCLUDES += ../
 
 C_DEFINES += -D_FRAMEWORK_CORE
 
-SOURCES = Uri.cpp
+SOURCES = CPathSegments.cpp
+SOURCES += CPathSegmentsBuilder.cpp
+SOURCES += CPart.cpp
+SOURCES += CEmptyPart.cpp
+SOURCES += CPathPart.cpp
+SOURCES += Uri.cpp
+SOURCES += CUriBuilder.cpp
 SOURCES += CStringUri.cpp
+SOURCES += CHierarchicalUri.cpp
+SOURCES += COpaqueUri.cpp
 SOURCES += CCredentials.cpp
 SOURCES += CLocalSocketAddress.cpp
 SOURCES += CLocalSocket.cpp

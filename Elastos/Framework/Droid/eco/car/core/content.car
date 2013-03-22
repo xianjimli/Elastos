@@ -50,6 +50,7 @@ module
     merge("content/DialogInterface.car");
     merge("content/ContextThemeWrapper.car");
     merge("content/PathPermission.car");
+    merge("content/SharedPreferences.car");
 
     interface ICursor;
 

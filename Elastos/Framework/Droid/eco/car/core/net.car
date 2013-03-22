@@ -15,6 +15,44 @@ module
     merge("net/http/SslError.car");
     merge("net/WebAddress.car");
 
+    class CPathSegments {
+        constructor(
+            [in] ArrayOf<String> segments,
+            [in] Int32 size);
+
+        interface IPathSegments;
+    }
+
+    class CPathSegmentsBuilder {
+        interface IPathSegmentsBuilder;
+    }
+
+    class CPart {
+        constructor(
+            [in] String encoded,
+            [in] String decoded);
+
+        interface IPart;
+        interface IParcelable;
+    }
+
+    class CEmptyPart {
+        constructor(
+            [in] String value);
+
+        interface IPart;
+        interface IParcelable;
+    }
+
+    class CPathPart {
+        constructor(
+            [in] String encoded,
+            [in] String decoded);
+
+        interface IPathPart;
+        interface IParcelable;
+    }
+
     class CStringUri {
         constructor(
             [in] String uriString);
@@ -23,6 +61,33 @@ module
             [in] Handle32 uri);
 
         interface IUri;
+        interface IParcelable;
+    }
+
+    class CHierarchicalUri {
+        constructor(
+            [in] String scheme,
+            [in] IPart* authority,
+            [in] IPathPart* path,
+            [in] IPart* query,
+            [in] IPart* fragment);
+
+        interface IUri;
+        interface IParcelable;
+    }
+
+    class COpaqueUri {
+        constructor(
+            [in] String scheme,
+            [in] IPart* ssp,
+            [in] IPart* fragment);
+
+        interface IUri;
+        interface IParcelable;
+    }
+
+    class CUriBuilder {
+        interface IUriBuilder;
     }
 
     class CCredentials {

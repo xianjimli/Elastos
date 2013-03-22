@@ -1,7 +1,82 @@
 
 module
 {
+    const AbstractPart_Representation_BOTH = 0;
+    const AbstractPart_Representation_ENCODED = 1;
+    const AbstractPart_Representation_DECODED = 2;
+
     interface IComparable;
+    interface IUriBuilder;
+
+    /**
+     * Wrapper for path segment array.
+     */
+    interface IPathSegments {
+
+        Get(
+            [in] Int32 index,
+            [out] String* value);
+
+        Size(
+            [out] Int32* size);
+    }
+
+    /**
+     * Builds PathSegments.
+     */
+    interface IPathSegmentsBuilder {
+
+        Add(
+            [in] String segment);
+
+        Build(
+            [out] IPathSegments** pathSegments);
+    }
+
+    /**
+     * Support for part implementations.
+     */
+    interface IAbstractPart {
+
+        /**
+         * Enum which indicates which representation of a given part we have.
+         */
+        // static class Representation {
+        //     static final int BOTH = 0;
+        //     static final int ENCODED = 1;
+        //     static final int DECODED = 2;
+        // }
+
+        GetEncoded(
+            [out] String* encoded);
+
+        GetDecoded(
+            [out] String* decoded);
+    }
+
+    /**
+     * Immutable wrapper of encoded and decoded versions of a URI part. Lazily
+     * creates the encoded or decoded version from the other.
+     */
+    interface IPart extends IAbstractPart {
+        IsEmpty(
+            [out] Boolean* isEmpty);
+    }
+
+    /**
+     * Immutable wrapper of encoded and decoded versions of a path part. Lazily
+     * creates the encoded or decoded version from the other.
+     */
+    interface IPathPart extends IAbstractPart {
+        /**
+         * Gets the individual path segments. Parses them if necessary.
+         *
+         * @return parsed path segments or null if this isn't a hierarchical
+         *  URI
+         */
+        GetPathSegments(
+            [out] IPathSegments** pathSegments);
+    }
 
     interface IUri extends IComparable {
         /**
@@ -210,14 +285,162 @@ module
             [out] Boolean* isEqual);
 
         /**
+         * Hashes the encoded string represention of this Uri consistently with
+         * {@link #equals(Object)}.
+         */
+        HashCode(
+            [out] Int32* hashCode);
+
+        /**
          * Compares the string representation of this Uri with that of
          * another.
          */
         CompareTo(
             [in] IUri* other,
             [out] Int32* result);
-            
+
+        /**
+         * Returns the encoded string representation of this URI.
+         * Example: "http://google.com/"
+         */
         ToString(
-            [out] String* uriString);
+            [out] String* result);
+
+        /**
+         * Constructs a new builder, copying the attributes from this Uri.
+         */
+        BuildUpon(
+            [out] IUriBuilder** result);
+    }
+
+    interface IUriBuilder {
+
+        /**
+         * Sets the scheme.
+         *
+         * @param scheme name or {@code null} if this is a relative Uri
+         */
+        Scheme(
+            [in] String scheme);
+
+        OpaquePart(
+            [in] IPart* opaquePart);
+
+        /**
+         * Encodes and sets the given opaque scheme-specific-part.
+         *
+         * @param opaquePart decoded opaque part
+         */
+        OpaquePart2(
+            [in] String opaquePart);
+
+        /**
+         * Sets the previously encoded opaque scheme-specific-part.
+         *
+         * @param opaquePart encoded opaque part
+         */
+        EncodedOpaquePart(
+            [in] String opaquePart);
+
+        Authority(
+            [in] IPart* authority);
+
+        /**
+         * Encodes and sets the authority.
+         */
+        Authority2(
+            [in] String authority);
+
+        /**
+         * Sets the previously encoded authority.
+         */
+        EncodedAuthority(
+            [in] String authority);
+
+        Path(
+            [in] IPathPart* path);
+
+        /**
+         * Sets the path. Leaves '/' characters intact but encodes others as
+         * necessary.
+         *
+         * <p>If the path is not null and doesn't start with a '/', and if
+         * you specify a scheme and/or authority, the builder will prepend the
+         * given path with a '/'.
+         */
+        Path2(
+            [in] String path);
+
+        /**
+         * Sets the previously encoded path.
+         *
+         * <p>If the path is not null and doesn't start with a '/', and if
+         * you specify a scheme and/or authority, the builder will prepend the
+         * given path with a '/'.
+         */
+        EncodedPath(
+            [in] String path);
+
+        /**
+         * Encodes the given segment and appends it to the path.
+         */
+        AppendPath(
+            [in] String newSegment);
+
+        /**
+         * Appends the given segment to the path.
+         */
+        AppendEncodedPath(
+            [in] String newSegment);
+
+        Query(
+            [in] IPart* query);
+
+        /**
+         * Encodes and sets the query.
+         */
+        Query2(
+            [in] String query);
+
+        /**
+         * Sets the previously encoded query.
+         */
+        EncodedQuery(
+            [in] String query);
+
+        Fragment(
+            [in] IPart* fragment);
+
+        /**
+         * Encodes and sets the fragment.
+         */
+        Fragment2(
+            [in] String fragment);
+
+        /**
+         * Sets the previously encoded fragment.
+         */
+        EncodedFragment(
+            [in] String fragment);
+
+        /**
+         * Encodes the key and value and then appends the parameter to the
+         * query string.
+         *
+         * @param key which will be encoded
+         * @param value which will be encoded
+         */
+        AppendQueryParameter(
+            [in] String key,
+            [in] String value);
+
+        /**
+         * Constructs a Uri with the current attributes.
+         *
+         * @throws UnsupportedOperationException if the URI is opaque and the
+         *  scheme is null
+         */
+        Build(
+            [out] IUri** uri);
     }
 }

@@ -2,20 +2,81 @@
 #include "net/CStringUri.h"
 #include <StringBuffer.h>
 #include <elastos/etl_hash_fun.h>
+#include "net/CUriBuilder.h"
 
 using namespace Elastos::Core;
 
-CStringUri::CStringUri() :
-    mScheme(Uri::NOT_CACHED),
-    mCachedSsi(Uri::NOT_CALCULATED)
-{}
+ECode StringUri::ReadFrom(
+    /* [in] */ IParcel* parcel,
+    /* [out] */ IUri** result)
+{
+    String str;
+    FAIL_RETURN(parcel->ReadString(&str));
 
-CStringUri::~CStringUri()
-{}
+    return CStringUri::New(str, result);
+}
+
+ECode StringUri::BuildUpon(
+    /* [out] */ IUriBuilder** result)
+{
+    VALIDATE_NOT_NULL(result);
+
+    Boolean isHierarchical;
+    FAIL_RETURN(IsHierarchical(&isHierarchical));
+
+    if (isHierarchical) {
+        String str;
+        FAIL_RETURN(GetScheme(&str));
+
+        AutoPtr<IPart> part1;
+        FAIL_RETURN(GetAuthorityPart((IPart**)&part1));
+
+        AutoPtr<IPathPart> pathPart1;
+        FAIL_RETURN(GetPathPart((IPathPart**)&pathPart1));
+
+        AutoPtr<IPart> part2;
+        FAIL_RETURN(GetQueryPart((IPart**)&part2));
+
+        AutoPtr<IPart> part3;
+        FAIL_RETURN(GetFragmentPart((IPart**)&part3));
+
+        FAIL_RETURN(CUriBuilder::New(result));
+
+        FAIL_RETURN((*result)->Scheme(str));
+        FAIL_RETURN((*result)->Authority(part1));
+        FAIL_RETURN((*result)->Path(pathPart1));
+        FAIL_RETURN((*result)->Query(part2));
+        FAIL_RETURN((*result)->Fragment(part3));
+
+        return NOERROR;
+    } else {
+        String str;
+        FAIL_RETURN(GetScheme(&str));
+
+        AutoPtr<IPart> part1;
+        FAIL_RETURN(GetSsp((IPart**)&part1));
+
+        AutoPtr<IPart> part2;
+        FAIL_RETURN(GetFragmentPart((IPart**)&part2));
+
+        FAIL_RETURN(CUriBuilder::New(result));
+
+        FAIL_RETURN((*result)->Scheme(str));
+        FAIL_RETURN((*result)->OpaquePart(part1));
+        FAIL_RETURN((*result)->Fragment(part2));
+
+        return NOERROR;
+    }
+}
+
 
 ECode CStringUri::constructor(
     /* [in] */ const String& uriString)
 {
+    if (uriString.IsNull()) {
+        return E_NULL_POINTER_EXCEPTION;
+    }
+
     mUriString = uriString;
 
     return NOERROR;
@@ -27,243 +88,162 @@ ECode CStringUri::constructor(
     return NOERROR;
 }
 
-Int32 CStringUri::FindSchemeSeparator()
-{
-    return mCachedSsi == Uri::NOT_CALCULATED
-        ? mCachedSsi = mUriString.IndexOf(":")
-        : mCachedSsi;
-}
-
 ECode CStringUri::IsHierarchical(
     /* [out] */ Boolean* isHierarchical)
 {
-    return E_NOT_IMPLEMENTED;
+    return StringUri::IsHierarchical(isHierarchical);
 }
 
 ECode CStringUri::IsOpaque(
     /* [out] */ Boolean* isOpaque)
 {
-    return E_NOT_IMPLEMENTED;
+    return StringUri::IsOpaque(isOpaque);
 }
 
 ECode CStringUri::IsRelative(
     /* [out] */ Boolean* isRelative)
 {
-    return E_NOT_IMPLEMENTED;
+    return StringUri::IsRelative(isRelative);
 }
 
 ECode CStringUri::IsAbsolute(
     /* [out] */ Boolean* isAbsolute)
 {
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CStringUri::ParseAuthority(
-    /* [in] */ const String& uriString,
-    /* [in] */ Int32 ssi,
-    /* [out] */ String * authority)
-{
-    if (authority == NULL) return E_INVALID_ARGUMENT;
-
-    Int32 count = uriString.GetCharCount();
-
-    if (count > ssi + 2
-            && uriString.GetChar(ssi + 1) == '/'
-            && uriString.GetChar(ssi + 2) == '/') {
-        Int32 end = ssi + 3;
-        while (end < count) {
-            switch (uriString.GetChar(end)) {
-                case '/': // Start of path
-                case '?': // Start of query
-                case '#': // Start of fragment
-                    break;
-                default:
-                    end++;
-            }
-        }
-
-        StringBuffer strBuf(uriString);
-        *authority = strBuf.Substring(ssi + 3, end);
-    }
-    else {
-        *authority = NULL;
-    }
-
-    return NOERROR;
+    return StringUri::IsAbsolute(isAbsolute);
 }
 
 ECode CStringUri::GetScheme(
     /* [out] */ String* scheme)
 {
-    if (scheme == NULL) return E_INVALID_ARGUMENT;
-
-    if (!mScheme.Compare(Uri::NOT_CACHED)) {
-        return ParseScheme(scheme);
-    }
-    else {
-        *scheme = mScheme;
-    }
-
-    return NOERROR;
-}
-
-ECode CStringUri::ParseScheme(
-    /* [out] */ String* scheme)
-{
-    if (scheme == NULL) return E_INVALID_ARGUMENT;
-
-    Int32 ssi = FindSchemeSeparator();
-    if (ssi == -1) {
-        scheme = NULL;
-    }
-    else {
-        *scheme = mUriString.Substring(0, ssi);
-    }
-
-    return NOERROR;
+    return StringUri::GetScheme(scheme);
 }
 
 ECode CStringUri::GetSchemeSpecificPart(
     /* [out] */ String* ssp)
 {
-    return E_NOT_IMPLEMENTED;
+    return StringUri::GetSchemeSpecificPart(ssp);
 }
 
 ECode CStringUri::GetEncodedSchemeSpecificPart(
     /* [out] */ String* essp)
 {
-    return E_NOT_IMPLEMENTED;
-}
-
-Uri::Part* CStringUri::GetAuthorityPart()
-{
-    if (mAuthority == NULL) {
-        String encodedAuthority;
-        ECode ec = ParseAuthority(this->mUriString,
-            FindSchemeSeparator(), &encodedAuthority);
-        if (FAILED(ec)) {
-            return NULL;
-        }
-
-        mAuthority = Uri::Part::FromEncoded(encodedAuthority);
-        return mAuthority;
-    }
-
-    return mAuthority;
+    return StringUri::GetEncodedSchemeSpecificPart(essp);
 }
 
 ECode CStringUri::GetAuthority(
     /* [out] */ String* authority)
 {
-    if (authority == NULL) return E_INVALID_ARGUMENT;
-
-    return GetAuthorityPart()->GetDecoded(authority);
-
+    return StringUri::GetAuthority(authority);
 }
 
 ECode CStringUri::GetEncodedAuthority(
     /* [out] */ String* authority)
 {
-    return E_NOT_IMPLEMENTED;
+    return StringUri::GetEncodedAuthority(authority);
 }
 
 ECode CStringUri::GetUserInfo(
     /* [out] */ String* userInfo)
 {
-    return E_NOT_IMPLEMENTED;
+    return StringUri::GetUserInfo(userInfo);
 }
 
 ECode CStringUri::GetEncodedUserInfo(
     /* [out] */ String* userInfo)
 {
-    return E_NOT_IMPLEMENTED;
+    return StringUri::GetEncodedUserInfo(userInfo);
 }
 
 ECode CStringUri::GetHost(
     /* [out] */ String* host)
 {
-    return E_NOT_IMPLEMENTED;
+    return StringUri::GetHost(host);
 }
 
 ECode CStringUri::GetPort(
     /* [out] */ Int32* port)
 {
-    return E_NOT_IMPLEMENTED;
+    return StringUri::GetPort(port);
 }
 
 ECode CStringUri::GetPath(
     /* [out] */ String* path)
 {
-    return E_NOT_IMPLEMENTED;
+    return StringUri::GetPath(path);
 }
 
 ECode CStringUri::GetEncodedPath(
     /* [out] */ String* path)
 {
-    return E_NOT_IMPLEMENTED;
+    return StringUri::GetEncodedPath(path);
 }
 
 ECode CStringUri::GetQuery(
     /* [out] */ String* query)
 {
-    return E_NOT_IMPLEMENTED;
+    return StringUri::GetQuery(query);
 }
 
 ECode CStringUri::GetEncodedQuery(
     /* [out] */ String* query)
 {
-    return E_NOT_IMPLEMENTED;
+    return StringUri::GetEncodedQuery(query);
 }
 
 ECode CStringUri::GetFragment(
     /* [out] */ String* fragment)
 {
-    return E_NOT_IMPLEMENTED;
+    return StringUri::GetFragment(fragment);
 }
 
 ECode CStringUri::GetEncodedFragment(
     /* [out] */ String* fragment)
 {
-    return E_NOT_IMPLEMENTED;
+    return StringUri::GetEncodedFragment(fragment);
 }
 
 ECode CStringUri::GetPathSegments(
     /* [out, callee] */ ArrayOf<String>** pathSegments)
 {
-    return E_NOT_IMPLEMENTED;
+    return StringUri::GetPathSegments(pathSegments);
 }
 
 ECode CStringUri::GetLastPathSegment(
     /* [out] */ String* pathSegment)
 {
-    return E_NOT_IMPLEMENTED;
+    return StringUri::GetLastPathSegment(pathSegment);
 }
 
 ECode CStringUri::Equals(
     /* [in] */ IUri* other,
     /* [out] */ Boolean* isEqual)
 {
-    if (isEqual == NULL) return E_INVALID_ARGUMENT;
+    return StringUri::Equals(other, isEqual);
+}
 
-    *isEqual = FALSE;
-    if (other != NULL) {
-        String selfSig;
-        String otherSig;
-        GetDescription(&selfSig);
-        other->GetDescription(&otherSig);
-        if (!selfSig.Compare(otherSig)) {
-            *isEqual = TRUE;
-        }
-    }
-
-    return NOERROR;
+ECode CStringUri::HashCode(
+    /* [out] */ Int32* hashCode)
+{
+    return StringUri::HashCode(hashCode);
 }
 
 ECode CStringUri::CompareTo(
     /* [in] */ IUri* other,
     /* [out] */ Int32* result)
 {
-    return E_NOT_IMPLEMENTED;
+    return StringUri::CompareTo(other, result);
+}
+
+ECode CStringUri::ToString(
+    /* [out] */ String* result)
+{
+    return StringUri::ToString(result);
+}
+
+ECode CStringUri::BuildUpon(
+    /* [out] */ IUriBuilder** result)
+{
+    return StringUri::BuildUpon(result);
 }
 
 ECode CStringUri::GetDescription(
@@ -274,21 +254,26 @@ ECode CStringUri::GetDescription(
     return NOERROR;
 }
 
-ECode CStringUri::ToString(
-    /* [out] */ String* uriString){
+ECode CStringUri::GetHashCode(
+    /* [out] */ Int32* hashCode)
+{
+    return StringUri::HashCode(hashCode);
+}
 
-    VALIDATE_NOT_NULL(uriString);
-
-    *uriString = mUriString;
+ECode CStringUri::ReadFromParcel(
+    /* [in] */ IParcel* source)
+{
+    Int32 typeId;
+    FAIL_RETURN(source->ReadInt32(&typeId));
+    FAIL_RETURN(source->ReadString(&mUriString));
 
     return NOERROR;
 }
 
-ECode CStringUri::GetHashCode(
-    /* [out] */ Int32* hashCode)
+ECode CStringUri::WriteToParcel(
+    /* [in] */ IParcel* dest)
 {
-    if (hashCode == NULL) return E_INVALID_ARGUMENT;
+    StringUri::WriteToParcel(dest, 0);
 
-    *hashCode = (Int32)HashString(mUriString);
     return NOERROR;
 }
