@@ -2,6 +2,7 @@
 #include "InputStreamReader.h"
 #include "ByteBuffer.h"
 #include "CharBuffer.h"
+#include "CCharsetHelper.h"
 
 InputStreamReader::InputStreamReader()
     : mEndOfInput(FALSE)
@@ -12,8 +13,13 @@ InputStreamReader::InputStreamReader()
 ECode InputStreamReader::Init(
     /* [in] */ IInputStream *in)
 {
-//    this(in, Charset.defaultCharset());
-    return E_NOT_IMPLEMENTED;
+    AutoPtr<ICharset> ch;
+    AutoPtr<ICharsetHelper> helper;
+
+    CCharsetHelper::AcquireSingleton((ICharsetHelper**)&helper);
+    helper->DefaultCharset((ICharset**)&ch);
+
+    return Init(in, (ICharset*)ch);
 }
 
 ECode InputStreamReader::Init(
@@ -35,6 +41,19 @@ ECode InputStreamReader::Init(
     //     throw (UnsupportedEncodingException)
     //             new UnsupportedEncodingException(enc).initCause(e);
     // }
+    return mBytes->SetLimit(0);
+}
+
+ECode InputStreamReader::Init(
+    /* [in] */ IInputStream* in,
+    /* [in] */ ICharset* charset)
+{
+    Reader::Init(&mInLock);
+    //super(in);
+    mIn = in;
+    /*decoder = charset.newDecoder().onMalformedInput(
+            CodingErrorAction.REPLACE).onUnmappableCharacter(
+            CodingErrorAction.REPLACE);*/
     return mBytes->SetLimit(0);
 }
 

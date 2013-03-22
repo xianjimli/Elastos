@@ -39,6 +39,7 @@ module
     merge("../../../car/Elastos/IO/IPushbackReader.car");
     merge("../../../car/Elastos/IO/IFilePermission.car");
     merge("../../../car/Elastos/IO/IFilePermissionCollection.car");
+    merge("../../../car/Elastos/IO/ICharset.car");
     merge("../../../car/Elastos/IO/IInputStreamReader.car");
     merge("../../../car/Elastos/IO/IOutputStreamWriter.car");
     merge("../../../car/Elastos/IO/IPrintWriter.car");
@@ -783,6 +784,31 @@ module
         interface IInputStream;
     }
 
+    class CCharset {
+        /**
+         * Constructs a <code>Charset</code> object. Duplicated aliases are
+         * ignored.
+         *
+         * @param canonicalName
+         *            the canonical name of the charset.
+         * @param aliases
+         *            an array containing all aliases of the charset. May be null.
+         * @throws IllegalCharsetNameException
+         *             on an illegal value being supplied for either
+         *             <code>canonicalName</code> or for any element of
+         *             <code>aliases</code>.
+         */
+        constructor(
+            [in] String canonicalName, 
+            [in] ArrayOf<String> aliases);
+
+        interface ICharset;
+    }
+
+    singleton class CCharsetHelper {
+        interface ICharsetHelper;
+    }
+
     class CInputStreamReader {
         /**
          * Constructs a new {@code InputStreamReader} on the {@link InputStream}
@@ -828,18 +854,19 @@ module
 //            [in] IInputStream* in,
 //            [in] CharsetDecoder dec);
 //
-//        /**
-//         * Constructs a new InputStreamReader on the InputStream {@code in} and
-//         * Charset {@code charset}.
-//         *
-//         * @param in
-//         *            the source InputStream from which to read characters.
-//         * @param charset
-//         *            the Charset that defines the character converter
-//         */
-//        constructor(
-//            [in] IInputStream* in,
-//            [in] Charset charset);
+        /**
+         * Constructs a new InputStreamReader on the InputStream {@code in} and
+         * Charset {@code charset}.
+         *
+         * @param in
+         *            the source InputStream from which to read characters.
+         * @param charset
+         *            the Charset that defines the character converter
+         */
+        constructor(
+            [in] IInputStream* ins,
+            [in] ICharset* charset);
+
 
         interface IInputStreamReader;
     }
