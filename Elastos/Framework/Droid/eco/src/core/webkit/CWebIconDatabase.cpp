@@ -1,8 +1,6 @@
 
 #include "webkit/CWebIconDatabase.h"
 
-#include <elastos/Mutex.h>
-
 const CString CWebIconDatabase::LOGTAG = "WebIconDatabase";
 
 CWebIconDatabase* CWebIconDatabase::sIconDatabase = NULL;
@@ -149,8 +147,7 @@ CARAPI_(void) CWebIconDatabase::EventHandler::HandleMessage(
 /*synchronized*/
 CARAPI_(void) CWebIconDatabase::EventHandler::CreateHandler()
 {
-    Mutex mutex;
-    Mutex::Autolock lock(mutex);
+    Mutex::Autolock lock(_m_syncLock);
 
     if (mHandler == NULL) {
 //        mHandler = new Handler();
@@ -212,8 +209,7 @@ CARAPI_(void) CWebIconDatabase::EventHandler::CreateHandler()
 /*synchronized*/
 CARAPI_(Boolean) CWebIconDatabase::EventHandler::HasHandler()
 {
-    Mutex mutex;
-    Mutex::Autolock lock(mutex);
+    Mutex::Autolock lock(_m_syncLock);
 
     return mHandler != NULL;
 }

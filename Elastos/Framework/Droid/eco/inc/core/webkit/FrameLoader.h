@@ -5,6 +5,7 @@
 #include <elastos/AutoPtr.h>
 #include <elastos/Vector.h>
 #include <elastos/AutoFree.h>
+#include <elastos/Mutex.h>
 
 class LoadListener;
 class Network;
@@ -55,6 +56,9 @@ public:
     	/* [in] */ WebSettings* settings);
 
     virtual CARAPI_(Boolean) HandleHTTPLoad();
+
+protected:
+    Core::Threading::Mutex mSyncLock;
 
 private:
     /*

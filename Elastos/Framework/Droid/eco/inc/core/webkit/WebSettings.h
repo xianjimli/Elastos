@@ -6,6 +6,9 @@
 #include <elastos/AutoPtr.h>
 #include <elastos/Mutex.h>
 
+using namespace Core;
+using namespace Threading;
+
 /**
  * Manages settings state for a WebView. When a WebView is first created, it
  * obtains a set of default settings. These default settings will be returned
@@ -838,6 +841,9 @@ public:
      */
     /*package*/
 	virtual CARAPI_(void) OnDestroyed();
+
+protected:
+    Mutex mMutex;
 
 private:
     // Class to handle messages before WebCore is ready.

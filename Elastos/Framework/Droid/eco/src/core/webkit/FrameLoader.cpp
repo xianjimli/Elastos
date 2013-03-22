@@ -10,8 +10,6 @@
 #include "webkit/CacheLoader.h"
 #include "webkit/CCookieManager.h"
 
-#include <elastos/Thread.h>
-
 const CString FrameLoader::HEADER_STR = "text/xml, text/html, application/xhtml+xml, image/png, text/plain, */*;q=0.8";
 const CString FrameLoader::CONTENT_TYPE = "content-type";
 
@@ -401,8 +399,7 @@ CARAPI_(void) FrameLoader::PopulateHeaders()
         const String* password;
         /* The proxy credentials can be set in the Network thread */
         {
-            Mutex mutex;
-            Mutex::Autolock lock(mutex);
+            Mutex::Autolock lock(mSyncLock);
             username = mNetwork->GetProxyUsername();
             password = mNetwork->GetProxyPassword();
         }

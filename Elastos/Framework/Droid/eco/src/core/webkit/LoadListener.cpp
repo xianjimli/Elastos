@@ -971,32 +971,31 @@ CARAPI_(void) LoadListener::CommitLoad()
         if (type != NULL) {
             // This must be synchronized so that no more data can be added
             // after getByteSize returns.
-            mDataBuilderMutex.Lock();
-            {
-                // In the case of downloading certificate, we will save it
-                // to the KeyStore and stop the current loading so that it
-                // will not generate a new history page
-                Int32 byteSize = 0;
-                mDataBuilder->GetByteSize(&byteSize);
-                AutoFree<ArrayOf<Byte> > cert = ArrayOf<Byte>::Alloc(byteSize);
-                Int32 offset = 0;
-                while (TRUE) {
-                    //ByteArrayBuilder.Chunk c = mDataBuilder.getFirstChunk();
-                    IByteArrayBuilderChunk* c = NULL;
-                    mDataBuilder->GetFirstChunk(&c);
-                    if (c == NULL) break;
+            
+            Core::Threading::Mutex::Autolock lock(mDataBuilderMutex);
+
+            // In the case of downloading certificate, we will save it
+            // to the KeyStore and stop the current loading so that it
+            // will not generate a new history page
+            Int32 byteSize = 0;
+            mDataBuilder->GetByteSize(&byteSize);
+            AutoFree<ArrayOf<Byte> > cert = ArrayOf<Byte>::Alloc(byteSize);
+            Int32 offset = 0;
+            while (TRUE) {
+                //ByteArrayBuilder.Chunk c = mDataBuilder.getFirstChunk();
+                IByteArrayBuilderChunk* c = NULL;
+                mDataBuilder->GetFirstChunk(&c);
+                if (c == NULL) break;
 
 //                    if (c.mLength != 0) {
 //                        System.arraycopy(c.mArray, 0, cert, offset, c.mLength);
 //                        offset += c.mLength;
 //                    }
-                    c->ChunkRelease();
-                }
-//                CertTool::AddCertificate(mContext.Get(), (const String)(*type), *cert.Get());
-                mBrowserFrame->StopLoading();
-                return;
+                c->ChunkRelease();
             }
-            mDataBuilderMutex.Unlock();
+//                CertTool::AddCertificate(mContext.Get(), (const String)(*type), *cert.Get());
+            mBrowserFrame->StopLoading();
+            return;
         }
     }
 

@@ -101,6 +101,9 @@ public:
 protected:
     CARAPI_(void) SyncFromRamToFlash();
 
+protected:
+    static Mutex sSyncLock;
+
 private:
     CookieSyncManager(
         /* [in] */ IContext* context);

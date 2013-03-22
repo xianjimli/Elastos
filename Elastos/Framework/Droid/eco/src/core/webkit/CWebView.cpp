@@ -1876,13 +1876,6 @@ ECode CWebView::SetLayoutAnimationListener(
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::UpdateMultiTouchSupport(
-    /* [in] */ IContext * pContext)
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
 ECode CWebView::SetHorizontalScrollbarOverlay(
     /* [in] */ Boolean overlay)
 {
@@ -1897,19 +1890,22 @@ ECode CWebView::SetVerticalScrollbarOverlay(
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::OverlayHorizontalScrollbar()
+ECode CWebView::OverlayHorizontalScrollbar(
+    /* [out] */ Boolean * pBFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::OverlayVerticalScrollbar()
+ECode CWebView::OverlayVerticalScrollbar(
+    /* [out] */ Boolean * pBFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::GetCertificate()
+ECode CWebView::GetCertificate(
+    /* [out] */ ISslCertificate ** ppSc)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -1923,27 +1919,28 @@ ECode CWebView::SetCertificate(
 }
 
 ECode CWebView::SavePassword(
-    /* [in] */ CString host,
-    /* [in] */ CString username,
-    /* [in] */ CString password)
+    /* [in] */ const String& host,
+    /* [in] */ const String& username,
+    /* [in] */ const String& password)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CWebView::SetHttpAuthUsernamePassword(
-    /* [in] */ CString host,
-    /* [in] */ CString realm,
-    /* [in] */ CString username,
-    /* [in] */ CString password)
+    /* [in] */ const String& host,
+    /* [in] */ const String& realm,
+    /* [in] */ const String& username,
+    /* [in] */ const String& password)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CWebView::GetHttpAuthUsernamePassword(
-    /* [in] */ CString host,
-    /* [in] */ CString realm)
+    /* [in] */ const String& host,
+    /* [in] */ const String& realm,
+    /* [out, callee] */ ArrayOf<String> ** ppStrlist)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -1968,7 +1965,7 @@ ECode CWebView::DisablePlatformNotifications()
 }
 
 ECode CWebView::SetJsFlags(
-    /* [in] */ CString flags)
+    /* [in] */ const String& flags)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -1982,15 +1979,16 @@ ECode CWebView::SetNetworkAvailable(
 }
 
 ECode CWebView::SetNetworkType(
-    /* [in] */ CString type,
-    /* [in] */ CString subtype)
+    /* [in] */ const String& type,
+    /* [in] */ const String& subtype)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CWebView::SaveState(
-    /* [in] */ IBundle * pOutState)
+    /* [in] */ IBundle * pOutState,
+    /* [out] */ IWebBackForwardList ** ppWfl)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -1998,7 +1996,8 @@ ECode CWebView::SaveState(
 
 ECode CWebView::SavePicture(
     /* [in] */ IBundle * pB,
-    /* [in] */ IFile * pDest)
+    /* [in] */ IFile * pDest,
+    /* [out] */ Boolean * pBFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -2006,21 +2005,23 @@ ECode CWebView::SavePicture(
 
 ECode CWebView::RestorePicture(
     /* [in] */ IBundle * pB,
-    /* [in] */ IFile * pSrc)
+    /* [in] */ IFile * pSrc,
+    /* [out] */ Boolean * pBFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CWebView::RestoreState(
-    /* [in] */ IBundle * pInState)
+    /* [in] */ IBundle * pInState,
+    /* [out] */ IWebBackForwardList ** ppWfl)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CWebView::LoadUrlEx(
-    /* [in] */ CString url,
+    /* [in] */ const String& url,
     /* [in] */ IObjectStringMap * pExtraHeaders)
 {
     // TODO: Add your code here
@@ -2028,14 +2029,14 @@ ECode CWebView::LoadUrlEx(
 }
 
 ECode CWebView::LoadUrl(
-    /* [in] */ CString url)
+    /* [in] */ const String& url)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CWebView::PostUrl(
-    /* [in] */ CString url,
+    /* [in] */ const String& url,
     /* [in] */ const ArrayOf<Byte> & postData)
 {
     // TODO: Add your code here
@@ -2043,20 +2044,20 @@ ECode CWebView::PostUrl(
 }
 
 ECode CWebView::LoadData(
-    /* [in] */ CString data,
-    /* [in] */ CString mimeType,
-    /* [in] */ CString encoding)
+    /* [in] */ const String& data,
+    /* [in] */ const String& mimeType,
+    /* [in] */ const String& encoding)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CWebView::LoadDataWithBaseURL(
-    /* [in] */ CString baseUrl,
-    /* [in] */ CString data,
-    /* [in] */ CString mimeType,
-    /* [in] */ CString encoding,
-    /* [in] */ CString historyUrl)
+    /* [in] */ const String& baseUrl,
+    /* [in] */ const String& data,
+    /* [in] */ const String& mimeType,
+    /* [in] */ const String& encoding,
+    /* [in] */ const String& historyUrl)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -2074,7 +2075,8 @@ ECode CWebView::Reload()
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::CanGoBack()
+ECode CWebView::CanGoBack(
+    /* [out] */ Boolean * pBFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -2086,7 +2088,8 @@ ECode CWebView::GoBack()
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::CanGoForward()
+ECode CWebView::CanGoForward(
+    /* [out] */ Boolean * pBFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -2099,7 +2102,8 @@ ECode CWebView::GoForward()
 }
 
 ECode CWebView::CanGoBackOrForward(
-    /* [in] */ Int32 steps)
+    /* [in] */ Int32 steps,
+    /* [out] */ Boolean * pBFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -2113,14 +2117,16 @@ ECode CWebView::GoBackOrForward(
 }
 
 ECode CWebView::PageUp(
-    /* [in] */ Boolean top)
+    /* [in] */ Boolean top,
+    /* [out] */ Boolean * pBFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CWebView::PageDown(
-    /* [in] */ Boolean bottom)
+    /* [in] */ Boolean bottom,
+    /* [out] */ Boolean * pBFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -2132,13 +2138,15 @@ ECode CWebView::ClearView()
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::CapturePicture()
+ECode CWebView::CapturePicture(
+    /* [out] */ IPicture ** ppPic)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::GetScale()
+ECode CWebView::GetScale(
+    /* [out] */ Float * pScale)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -2157,7 +2165,8 @@ ECode CWebView::InvokeZoomPicker()
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::GetHitTestResult()
+ECode CWebView::GetHitTestResult(
+    /* [out] */ IHitTestResult ** ppResult)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -2184,49 +2193,57 @@ ECode CWebView::SetEmbeddedTitleBar(
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::GetUrl()
+ECode CWebView::GetUrl(
+    /* [out] */ String * pStr)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::GetOriginalUrl()
+ECode CWebView::GetOriginalUrl(
+    /* [out] */ String * pStr)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::GetTitle()
+ECode CWebView::GetTitle(
+    /* [out] */ String * pStr)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::GetFavicon()
+ECode CWebView::GetFavicon(
+    /* [out] */ IBitmap ** ppBm)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::GetTouchIconUrl()
+ECode CWebView::GetTouchIconUrl(
+    /* [out] */ String * pStr)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::GetProgress()
+ECode CWebView::GetProgress(
+    /* [out] */ Int32 * pProgress)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::GetContentHeight()
+ECode CWebView::GetContentHeight(
+    /* [out] */ Int32 * pProgress)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::GetContentWidth()
+ECode CWebView::GetContentWidth(
+    /* [out] */ Int32 * pWidth)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -2256,7 +2273,8 @@ ECode CWebView::OnResume()
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::IsPaused()
+ECode CWebView::IsPaused(
+    /* [out] */ Boolean * pBFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -2293,7 +2311,8 @@ ECode CWebView::ClearSslPreferences()
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::CopyBackForwardList()
+ECode CWebView::CopyBackForwardList(
+    /* [out] */ IWebBackForwardList ** ppWfl)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -2307,7 +2326,8 @@ ECode CWebView::FindNext(
 }
 
 ECode CWebView::FindAll(
-    /* [in] */ CString find)
+    /* [in] */ const String& find,
+    /* [out] */ Int32 * pF)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -2320,22 +2340,25 @@ ECode CWebView::SetFindIsUp(
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::FindIndex()
+ECode CWebView::FindIndex(
+    /* [out] */ Int32 * pIndex)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CWebView::FindAddress(
-    /* [in] */ CString addr)
+    /* [in] */ const String& addr,
+    /* [out] */ String * pAddress)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CWebView::FindAddressEx(
-    /* [in] */ CString addr,
-    /* [in] */ Boolean caseInsensitive)
+    /* [in] */ const String& addr,
+    /* [in] */ Boolean caseInsensitive,
+    /* [out] */ String * pAddress)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -2374,7 +2397,8 @@ ECode CWebView::SetWebViewClient(
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::GetWebViewClient()
+ECode CWebView::GetWebViewClient(
+    /* [out] */ IWebViewClient ** ppWc)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -2394,7 +2418,8 @@ ECode CWebView::SetWebChromeClient(
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::GetWebChromeClient()
+ECode CWebView::GetWebChromeClient(
+    /* [out] */ IWebChromeClient ** ppWcc)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -2407,14 +2432,15 @@ ECode CWebView::SetWebBackForwardListClient(
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::GetWebBackForwardListClient()
+ECode CWebView::GetWebBackForwardListClient(
+    /* [out] */ IWebBackForwardListClient ** ppWfl)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CWebView::SetPictureListener(
-    /* [in] */ IWebViewPictureListener * pListener)
+    /* [in] */ IPictureListener * pListener)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -2436,13 +2462,14 @@ ECode CWebView::DocumentAsText(
 
 ECode CWebView::AddJavascriptInterface(
     /* [in] */ IInterface * pObj,
-    /* [in] */ CString interfaceName)
+    /* [in] */ const String& interfaceName)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::GetSettings()
+ECode CWebView::GetSettings(
+    /* [out] */ IWebSettings ** ppWs)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -2456,20 +2483,21 @@ ECode CWebView::AddPackageNames(
 }
 
 ECode CWebView::AddPackageName(
-    /* [in] */ CString packageName)
+    /* [in] */ const String& packageName)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CWebView::RemovePackageName(
-    /* [in] */ CString packageName)
+    /* [in] */ const String& packageName)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::GetPluginList()
+ECode CWebView::GetPluginList(
+    /* [out] */ IPluginList ** ppPl)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -2508,31 +2536,6 @@ ECode CWebView::DumpV8Counters()
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::OnKeyMultiple(
-    /* [in] */ Int32 keyCode,
-    /* [in] */ Int32 repeatCount,
-    /* [in] */ IKeyEvent * pEvent)
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CWebView::OnKeyDown(
-    /* [in] */ Int32 keyCode,
-    /* [in] */ IKeyEvent * pEvent)
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CWebView::OnKeyUp(
-    /* [in] */ Int32 keyCode,
-    /* [in] */ IKeyEvent * pEvent)
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
 ECode CWebView::SetUpSelect()
 {
     // TODO: Add your code here
@@ -2551,7 +2554,8 @@ ECode CWebView::SelectAll()
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::SelectDialogIsUp()
+ECode CWebView::SelectDialogIsUp(
+    /* [out] */ Boolean * pBFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -2569,13 +2573,15 @@ ECode CWebView::SelectionDone()
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::CopySelection()
+ECode CWebView::CopySelection(
+    /* [out] */ Boolean * pBFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::GetSelection()
+ECode CWebView::GetSelection(
+    /* [out] */ String * pSelection)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -2605,14 +2611,15 @@ ECode CWebView::OnGlobalFocusChanged(
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::GetDragTracker()
+ECode CWebView::GetDragTracker(
+    /* [out] */ IDragTracker ** ppDragTracker)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CWebView::SetDragTracker(
-    /* [in] */ IWebViewDragTracker * pTracker)
+    /* [in] */ IDragTracker * pTracker)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -2633,34 +2640,29 @@ ECode CWebView::FlingScroll(
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::GetZoomControls()
+ECode CWebView::GetZoomControls(
+    /* [out] */ IView ** ppView)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::GetZoomButtonsController()
+ECode CWebView::GetZoomButtonsController(
+    /* [out] */ Handle32 * pZoom)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::ZoomIn()
+ECode CWebView::ZoomIn(
+    /* [out] */ Boolean * pBFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CWebView::ZoomOut()
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CWebView::RequestChildRectangleOnScreen(
-    /* [in] */ IView * pChild,
-    /* [in] */ IRect * pRect,
-    /* [in] */ Boolean immediate)
+ECode CWebView::ZoomOut(
+    /* [out] */ Boolean * pBFlag)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;

@@ -68,6 +68,9 @@ private:
         CARAPI_(void) HandleMessage(
             /* [in] */ IMessage* msg);
 
+    protected:
+        Mutex _m_syncLock;
+
     private:
         // Message for dispatching icon request results
         static const Int32 ICON_RESULT = 10;

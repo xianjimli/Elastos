@@ -3,9 +3,8 @@
 #include "webkit/CWebViewDatabase.h"
 #include "webkit/CCookieManager.h"
 
-#include <elastos/Mutex.h>
-
 CookieSyncManager* CookieSyncManager::sRef = NULL;
+Mutex CookieSyncManager::sSyncLock;
 
 /**
  * Singleton access to a {@link CookieSyncManager}. An
@@ -16,8 +15,7 @@ CookieSyncManager* CookieSyncManager::sRef = NULL;
  */
 CARAPI_(CookieSyncManager*) CookieSyncManager::GetInstance()
 {
-	Mutex mutex;
-	Mutex::Autolock lock(mutex);
+	Mutex::Autolock lock(sSyncLock);
 
 	if (sRef == NULL) {
 //        throw new IllegalStateException(
@@ -36,8 +34,7 @@ CARAPI_(CookieSyncManager*) CookieSyncManager::GetInstance()
 CARAPI_(CookieSyncManager*) CookieSyncManager::CreateInstance(
     /* [in] */ IContext* context)
 {
-	Mutex mutex;
-	Mutex::Autolock lock(mutex);
+	Mutex::Autolock lock(sSyncLock);
 
 	if (context == NULL) {
 		return NULL;
