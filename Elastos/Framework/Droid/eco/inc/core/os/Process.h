@@ -2,21 +2,14 @@
 #ifndef __PROCESS_H__
 #define __PROCESS_H__
 
-#if 0
-#ifdef _FRAMEWORK_CORE
-#include "ext/frameworkext.h"
-#include <elastos/List.h>
-#else
-#include "Elastos.Framework.Core.h"
-#endif
-#include <elastos.h>
-#else
 #include "ext/frameworkext.h"
 #include <elastos.h>
 #include <elastos/List.h>
-#endif
+#include <elastos/ElRefBase.h>
+#include <elastos/Mutex.h>
 
 using namespace Elastos;
+using namespace Elastos::Core::Threading;
 
 class Process
 {
@@ -185,7 +178,9 @@ public:
     static const Int32 THREAD_GROUP_FG_BOOST = 2;
 
     static const Int32 SIGNAL_QUIT = 3;
+
     static const Int32 SIGNAL_KILL = 9;
+
     static const Int32 SIGNAL_USR1 = 10;
 
     /** retry interval for opening a zygote socket */
@@ -193,22 +188,54 @@ public:
 
     /** @hide */
     static const Int32 PROC_TERM_MASK = 0xff;
+
     /** @hide */
     static const Int32 PROC_ZERO_TERM = 0;
+
     /** @hide */
     static const Int32 PROC_SPACE_TERM = (Int32)' ';
+
     /** @hide */
     static const Int32 PROC_TAB_TERM = (Int32)'\t';
+
     /** @hide */
     static const Int32 PROC_COMBINE = 0x100;
+
     /** @hide */
     static const Int32 PROC_PARENS = 0x200;
+
     /** @hide */
     static const Int32 PROC_OUT_STRING = 0x1000;
+
     /** @hide */
     static const Int32 PROC_OUT_LONG = 0x2000;
+
     /** @hide */
     static const Int32 PROC_OUT_FLOAT = 0x4000;
+
+public:
+    class ProcessRunnable : public ElRefBase, public IRunnable
+        {
+        public:
+            ProcessRunnable(
+                /* [in] */ String processClass);
+
+            UInt32 AddRef();
+
+            UInt32 Release();
+
+            PInterface Probe(
+                /* [in] */ REIID riid);
+
+            CARAPI GetInterfaceID(
+                /* [in] */ IInterface* pObject,
+                /* [in] */ InterfaceID* pIID);
+
+            ECode Run();
+
+        protected:
+            String mProcessClass;
+        };
 
 public:
     /**
@@ -260,26 +287,28 @@ public:
     * {@hide}
     */
 
-    static CARAPI_(Int32) Start(
+    static CARAPI Start(
         /* [in] */ const String processClass,
         /* [in] */ const String niceName,
         /* [in] */ Int32 uid,
         /* [in] */ Int32 gid,
         /* [in] */ const ArrayOf<Int32> & gids,
         /* [in] */ Int32 debugFlags,
-        /* [in] */ const ArrayOf<String> & zygoteArgs);
+        /* [in] */ const ArrayOf<String> & zygoteArgs,
+        /* [out] */ Int32* pid);
 
     /**
     * Start a new process.  Don't supply a custom nice name.
     * {@hide}
     */
-    static CARAPI_(Int32) Start(
+    static CARAPI Start(
         /* [in] */ String processClass,
         /* [in] */ Int32 uid,
         /* [in] */ Int32 gid,
         /* [in] */ const ArrayOf<Int32> & gids,
         /* [in] */ Int32 debugFlags,
-        /* [in] */ const ArrayOf<String> & zygoteArgs);
+        /* [in] */ const ArrayOf<String> & zygoteArgs,
+        /* [in] */ Int32* pid);
 
     /**
      * Returns elapsed milliseconds of the time this process has run.
@@ -298,7 +327,6 @@ public:
      * {@link #setThreadPriority(int, int)}.
      */
     static CARAPI_(Int32) MyTid();
-
 
     /**
      * Returns the identifier of this process's user.
@@ -394,7 +422,7 @@ public:
      * {@hide}
      */
     static CARAPI SetArgV0(
-        /* [in] */ String text);
+        /* [in] */ String name);
 
     static CARAPI KillProcess(
         /* [in] */ Int32 pid);
@@ -438,17 +466,19 @@ public:
         /* [in] */ const ArrayOf<Int64> & outSizes);
 
     /** @hide */
-    static CARAPI_(ArrayOf<Int32>*) GetPids(
+    static CARAPI GetPids(
         /* [in] */ String path,
-        /* [in] */ const ArrayOf<Int32> & lastArray);
+        /* [in] */ const ArrayOf<Int32> & lastArray,
+        /* [out] */ ArrayOf<Int32>** newArray);
 
     /** @hide */
-    static CARAPI_(Boolean) ReadProcFile(
+    static CARAPI ReadProcFile(
         /* [in] */ String file,
         /* [in] */ const ArrayOf<Int32> & format,
         /* [in] */ const ArrayOf<String> & outStrings,
         /* [in] */ const ArrayOf<Int64> & outLongs,
-        /* [in] */ const ArrayOf<Float> outFloats);
+        /* [in] */ const ArrayOf<Float> outFloats,
+        /* [out] */ Boolean* result);
 
     /** @hide */
     static CARAPI_(Boolean) ParseProcLine(
@@ -490,7 +520,7 @@ private:
      * @throws ZygoteStartFailedEx if process start failed for any reason
      */
     static CARAPI_(Int32) ZygoteSendArgsAndGetPid(
-        /* [in] */ List<String> args);
+        /* [in] */ List<String>* args);
 
     /**
      * Starts a new process via the zygote mechanism.
@@ -506,14 +536,15 @@ private:
      * @return PID
      * @throws ZygoteStartFailedEx if process start failed for any reason
      */
-    static CARAPI_(Int32) StartViaZygote(
+    static CARAPI StartViaZygote(
         /* [in] */ const String processClass,
         /* [in] */ const String niceName,
         /* [in] */ const Int32 uid,
         /* [in] */ const Int32 gid,
         /* [in] */ const ArrayOf<Int32> & gids,
         /* [in] */ Int32 debugFlags,
-        /* [in] */ const ArrayOf<String> & extraArgs);
+        /* [in] */ const ArrayOf<String> & extraArgs,
+        /* [out] */ Int32* pid);
 
 // public:
 //     /**
@@ -528,20 +559,10 @@ private:
 //      */
 //     static const String GOOGLE_SHARED_APP_CONTENT = "com.google.process.content";
 
-protected:
-    // State for communicating with zygote process
+ private:
 
-    static ILocalSocket* sZygoteSocket;
-    static IDataInputStream* sZygoteInputStream;
-    static IBufferedWriter* sZygoteWriter;
-
-    /** true if previous zygote open failed */
-    static Boolean sPreviousZygoteOpenFailed;
-
-// private:
 //     const String LOG_TAG = "Process";
 
-//     const String ZYGOTE_SOCKET = "zygote";
-};
 
+};
 #endif // __PROCESS_H__
