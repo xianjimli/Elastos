@@ -5,6 +5,7 @@
 
 #include <elastos/AutoPtr.h>
 #include <elastos/AutoFree.h>
+#include <elastos/ElRefBase.h>
 
 /**
  * WebTextView is a specialized version of EditText used by WebView
@@ -12,7 +13,7 @@
  * text editing.
  */
 /* package */
- class WebTextView : public AutoCompleteTextView {
+ class WebTextView : public ElRefBase, AutoCompleteTextView {
 
  public:
     static const CString LOGTAG;// = "webtextview";

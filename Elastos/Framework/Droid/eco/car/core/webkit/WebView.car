@@ -1,62 +1,6 @@
 
 module
 {
-
-    /**
-     * URI scheme for telephone number
-     */
-    const SCHEME_TEL = "tel:";
-    /**
-     * URI scheme for email address
-     */
-    const SCHEME_MAILTO = "mailto:";
-    /**
-     * URI scheme for map address
-     */
-    const SCHEME_GEO = "geo:0,0?q=";
-
-
-    /**
-     * Default HitTestResult, where the target is unknown
-     */
-    const UNKNOWN_TYPE = 0;
-    /**
-     * HitTestResult for hitting a HTML::a tag
-     */
-    const ANCHOR_TYPE = 1;
-    /**
-     * HitTestResult for hitting a phone number
-     */
-    const PHONE_TYPE = 2;
-    /**
-     * HitTestResult for hitting a map address
-     */
-    const GEO_TYPE = 3;
-    /**
-     * HitTestResult for hitting an email address
-     */
-    const EMAIL_TYPE = 4;
-    /**
-     * HitTestResult for hitting an HTML::img tag
-     */
-    const IMAGE_TYPE = 5;
-    /**
-     * HitTestResult for hitting a HTML::a tag which contains HTML::img
-     */
-    const IMAGE_ANCHOR_TYPE = 6;
-    /**
-     * HitTestResult for hitting a HTML::a tag with src=http
-     */
-    const SRC_ANCHOR_TYPE = 7;
-    /**
-     * HitTestResult for hitting a HTML::a tag with src=http + HTML::img
-     */
-    const SRC_IMAGE_ANCHOR_TYPE = 8;
-    /**
-     * HitTestResult for hitting an edit text area
-     */
-    const EDIT_TEXT_TYPE = 9;
-
     interface IAbsoluteLayout;
     interface IWebView;
     interface IPicture;
@@ -68,6 +12,8 @@ module
     interface IWebViewClient;
     interface IDownloadListener;
     interface IWebChromeClient;
+    interface IWebSettings;
+    interface IWebBackForwardList;
     interface IWebBackForwardListClient;
     interface ICanvas;
     interface IViewGroupLayoutParams;
@@ -75,62 +21,124 @@ module
     interface IKeyEvent;
     interface IMotionEvent;
     interface IRect;
+    interface IBitmap;
+    interface IPluginList;
 
+    /**
+     * URI scheme for telephone number
+     */
+    const SCHEME_TEL = "tel:";
+
+    /**
+     * URI scheme for email address
+     */
+    const SCHEME_MAILTO = "mailto:";
+
+    /**
+     * URI scheme for map address
+     */
+    const SCHEME_GEO = "geo:0,0?q=";
+
+
+    /**
+     * Default HitTestResult, where the target is unknown
+     */
+    const HitTestResult_UNKNOWN_TYPE = 0;
+    /**
+     * HitTestResult for hitting a HTML::a tag
+     */
+    const HitTestResult_ANCHOR_TYPE = 1;
+    /**
+     * HitTestResult for hitting a phone number
+     */
+    const HitTestResult_PHONE_TYPE = 2;
+    /**
+     * HitTestResult for hitting a map address
+     */
+    const HitTestResult_GEO_TYPE = 3;
+    /**
+     * HitTestResult for hitting an email address
+     */
+    const HitTestResult_EMAIL_TYPE = 4;
+    /**
+     * HitTestResult for hitting an HTML::img tag
+     */
+    const HitTestResult_IMAGE_TYPE = 5;
+    /**
+     * HitTestResult for hitting a HTML::a tag which contains HTML::img
+     */
+    const HitTestResult_IMAGE_ANCHOR_TYPE = 6;
+    /**
+     * HitTestResult for hitting a HTML::a tag with src=http
+     */
+    const HitTestResult_SRC_ANCHOR_TYPE = 7;
+    /**
+     * HitTestResult for hitting a HTML::a tag with src=http + HTML::img
+     */
+    const HitTestResult_SRC_IMAGE_ANCHOR_TYPE = 8;
+    /**
+     * HitTestResult for hitting an edit text area
+     */
+    const HitTestResult_EDIT_TEXT_TYPE = 9;
+
+
+    /**
+     *  Transportation object for returning WebView across thread boundaries.
+     */
     interface IWebViewTransport {
-        
         /**
          * Set the WebView to the transportation object.
          * @param webview The WebView to transport.
-         *
-         * synchronized
          */
+        /*synchronized*/
         SetWebView(
            [in] IWebView* webview);
 
         /**
          * Return the WebView object.
          * @return WebView The transported WebView object.
-         *
-         * synchronized
          */
-        GetWebView();
+        /*synchronized*/
+        GetWebView(
+           [out] IWebView** webView);
     }
 
     /**
      * Interface to listen for new pictures as they change.
      */
-    interface IWebViewPictureListener {
+    interface IPictureListener {
         /**
          * Notify the listener that the picture has changed.
          * @param view The WebView that owns the picture.
          * @param picture The new picture.
          */
         OnNewPicture(
-           [in] IWebView* view, 
+           [in] IWebView* view,
            [in] IPicture* picture);
     }
 
     // FIXME: Want to make this public, but need to change the API file.
-    interface IWebViewHitTestResult {
+    interface IHitTestResult {
 
-        GetType();
+        GetType(
+           [out] Int32* type);
 
-        GetExtra();
+        GetExtra(
+           [out] String* extra);
     }
 
     /** @hide */
-    interface IWebViewDragTracker {
-
+    interface IDragTracker {
         OnStartDrag(
-           [in] Float x, 
+           [in] Float x,
            [in] Float y);
 
         OnStretchChange(
-           [in] Float sx, 
-           [in] Float sy);
+           [in] Float sx,
+           [in] Float sy,
+           [out] Boolean* bFlag);
 
         OnStopDrag();
-
         OnBitmapChange(
            [in] IBitmap* bm);
 
@@ -138,19 +146,7 @@ module
            [in] ICanvas* canvas);
     }
 
-    interface IWebView extends IAbsoluteLayout
-    {
-
-        UpdateMultiTouchSupport(
-           [in] IContext* context);
-
-        //@Override
-/*        SetOverScrollMode(
-           [in] Int32 mode);*/
-
-        //@Override
-/*        SetScrollBarStyle(
-           [in] Int32 style);*/
+    interface IWebView extends IAbsoluteLayout {
 
         /**
          * Specify whether the horizontal scrollbar has overlay style.
@@ -170,19 +166,22 @@ module
          * Return whether horizontal scrollbar has overlay style
          * @return TRUE if horizontal scrollbar has overlay style.
          */
-        OverlayHorizontalScrollbar();
+        OverlayHorizontalScrollbar(
+           [out] Boolean* bFlag);
 
         /**
          * Return whether vertical scrollbar has overlay style
          * @return TRUE if vertical scrollbar has overlay style.
          */
-        OverlayVerticalScrollbar();
+        OverlayVerticalScrollbar(
+           [out] Boolean* bFlag);
 
         /**
          * @return The SSL certificate for the main top-level page or null if
          * there is no certificate (the site is not secure).
          */
-        GetCertificate();
+        GetCertificate(
+           [out] ISslCertificate** sc);
 
         /**
          * Sets the SSL certificate for the main top-level page.
@@ -202,9 +201,9 @@ module
          * @param password The password for the given host.
          */
         SavePassword(
-           [in] CString host, 
-           [in] CString username, 
-           [in] CString password);
+           [in] String host,
+           [in] String username,
+           [in] String password);
 
         /**
          * Set the HTTP authentication credentials for a given host and realm.
@@ -216,10 +215,10 @@ module
          * @param password The password
          */
         SetHttpAuthUsernamePassword(
-           [in] CString host, 
-           [in] CString realm,
-           [in] CString username, 
-           [in] CString password);
+           [in] String host,
+           [in] String realm,
+           [in] String username,
+           [in] String password);
 
         /**
          * Retrieve the HTTP authentication username and password for a given
@@ -231,8 +230,9 @@ module
          *         String[1] is password. Return null if it can't find anything.
          */
         GetHttpAuthUsernamePassword(
-           [in] CString host, 
-           [in] CString realm);
+           [in] String host,
+           [in] String realm,
+           [out, callee] ArrayOf<String>* strlist);
 
         /**
          * Destroy the internal state of the WebView. This method should be called
@@ -260,7 +260,7 @@ module
          * @hide pending API solidification
          */
         SetJsFlags(
-           [in] CString flags);
+           [in] String flags);
 
         /**
          * Inform WebView of the network state. This is used to set
@@ -276,8 +276,8 @@ module
          * {@hide}
          */
         SetNetworkType(
-           [in] CString type, 
-           [in] CString subtype);
+           [in] String type,
+           [in] String subtype);
 
         /**
          * Save the state of this WebView used in
@@ -293,7 +293,8 @@ module
          * @see #restorePicture
          */
         SaveState(
-           [in] IBundle* outState);
+           [in] IBundle* outState,
+           [out] IWebBackForwardList** wfl);
 
         /**
          * Save the current display data to the Bundle given. Used in conjunction
@@ -304,8 +305,9 @@ module
          * @return True if the picture was successfully saved.
          */
         SavePicture(
-           [in] IBundle* b, 
-           [in] IFile* dest);
+           [in] IBundle* b,
+           [in] IFile* dest,
+           [out] Boolean* bFlag);
 
         /**
          * Restore the display data that was save in {@link #savePicture}. Used in
@@ -315,8 +317,9 @@ module
          * @return True if the picture was successfully restored.
          */
         RestorePicture(
-           [in] IBundle* b, 
-           [in] IFile* src);
+           [in] IBundle* b,
+           [in] IFile* src,
+           [out] Boolean* bFlag);
 
         /**
          * Restore the state of this WebView from the given map used in
@@ -333,7 +336,8 @@ module
          * @see #restorePicture
          */
         RestoreState(
-           [in] IBundle* inState);
+           [in] IBundle* inState,
+           [out] IWebBackForwardList** wfl);
 
         /**
          * Load the given url with the extra headers.
@@ -343,7 +347,7 @@ module
          *            will be replaced by the intrinsic value of the WebView.
          */
         LoadUrlEx(
-           [in] CString url, 
+           [in] String url,
            [in] IObjectStringMap* extraHeaders);
 
         /**
@@ -351,7 +355,7 @@ module
          * @param url The url of the resource to load.
          */
         LoadUrl(
-           [in] CString url);
+           [in] String url);
 
         /**
          * Load the url with postData using "POST" method into the WebView. If url
@@ -362,7 +366,7 @@ module
          * @param postData The data will be passed to "POST" request.
          */
         PostUrl(
-           [in] CString url, 
+           [in] String url,
            [in] ArrayOf<Byte> postData);
 
         /**
@@ -376,9 +380,9 @@ module
          * @param encoding The encoding of the data. i.e. utf-8, base64
          */
         LoadData(
-           [in] CString data, 
-           [in] CString mimeType, 
-           [in] CString encoding);
+           [in] String data,
+           [in] String mimeType,
+           [in] String encoding);
 
         /**
          * Load the given data into the WebView, use the provided URL as the base
@@ -402,11 +406,11 @@ module
          * @param historyUrl URL to use as the history entry.  Can be null.
          */
         LoadDataWithBaseURL(
-           [in] CString baseUrl, 
-           [in] CString data,
-           [in] CString mimeType, 
-           [in] CString encoding, 
-           [in] CString historyUrl);
+           [in] String baseUrl,
+           [in] String data,
+           [in] String mimeType,
+           [in] String encoding,
+           [in] String historyUrl);
 
         /**
          * Stop the current load.
@@ -422,7 +426,8 @@ module
          * Return true if this WebView has a back history item.
          * @return True iff this WebView has a back history item.
          */
-        CanGoBack();
+        CanGoBack(
+           [out] Boolean* bFlag);
 
         /**
          * Go back in the history of this WebView.
@@ -433,7 +438,8 @@ module
          * Return true if this WebView has a forward history item.
          * @return True iff this Webview has a forward history item.
          */
-        CanGoForward();
+        CanGoForward(
+           [out] Boolean* bFlag);
 
         /**
          * Go forward in the history of this WebView.
@@ -447,7 +453,8 @@ module
          *              history.
          */
         CanGoBackOrForward(
-           [in] Int32 steps);
+           [in] Int32 steps,
+           [out] Boolean* bFlag);
 
         /**
          * Go to the history item that is the number of steps away from
@@ -457,7 +464,7 @@ module
          *              forward list.
          */
         GoBackOrForward(
-           [in] Int32 steps);
+	  [in] Int32 steps);
 
         /**
          * Scroll the contents of the view up by half the view size
@@ -465,7 +472,8 @@ module
          * @return true if the page was scrolled
          */
         PageUp(
-           [in] Boolean top);
+           [in] Boolean top,
+           [out] Boolean* bFlag);
 
         /**
          * Scroll the contents of the view down by half the page size
@@ -473,7 +481,8 @@ module
          * @return true if the page was scrolled
          */
         PageDown(
-           [in] Boolean bottom);
+           [in] Boolean bottom,
+           [out] Boolean* bFlag);
 
         /**
          * Clear the view so that onDraw() will draw nothing but white background,
@@ -490,13 +499,15 @@ module
          *         picture is of the entire document, and is not restricted to the
          *         bounds of the view.
          */
-        CapturePicture();
+        CapturePicture(
+           [out] IPicture** pic);
 
         /**
          * Return the current scale of the WebView
          * @return The current scale.
          */
-        GetScale();
+        GetScale(
+           [out] Float* scale);
 
         /**
          * Set the initial scale for the WebView. 0 means default. If
@@ -534,7 +545,8 @@ module
          * and the email is set in the "extra" field of HitTestResult. Otherwise,
          * HitTestResult type is set to UNKNOWN_TYPE.
          */
-        GetHitTestResult();
+        GetHitTestResult(
+           [out] IHitTestResult** result);
 
         /**
          * Request the href of an anchor element due to getFocusNodePath returning
@@ -577,7 +589,8 @@ module
          * that url has begun, the current page may not have changed.
          * @return The url for the current page.
          */
-        GetUrl();
+        GetUrl(
+           [out] String* str);
 
         /**
          * Get the original url for the current page. This is not always the same
@@ -587,44 +600,51 @@ module
          * originally requested.
          * @return The url that was originally requested for the current page.
          */
-        GetOriginalUrl();
+        GetOriginalUrl(
+           [out] String* str);
 
         /**
          * Get the title for the current page. This is the title of the current page
          * until WebViewClient.onReceivedTitle is called.
          * @return The title for the current page.
          */
-        GetTitle();
+        GetTitle(
+           [out] String* str);
 
         /**
          * Get the favicon for the current page. This is the favicon of the current
          * page until WebViewClient.onReceivedIcon is called.
          * @return The favicon for the current page.
          */
-        GetFavicon();
+        GetFavicon(
+           [out] IBitmap** bm);
 
         /**
          * Get the touch icon url for the apple-touch-icon <link> element.
          * @hide
          */
-        GetTouchIconUrl();
+        GetTouchIconUrl(
+           [out] String* str);
 
         /**
          * Get the progress for the current page.
          * @return The progress for the current page between 0 and 100.
          */
-        GetProgress();
+        GetProgress(
+           [out] Int32* progress);
 
         /**
          * @return the height of the HTML content.
          */
-        GetContentHeight();
+        GetContentHeight(
+           [out] Int32* progress);
 
         /**
          * @return the width of the HTML content.
          * @hide
          */
-        GetContentWidth();
+        GetContentWidth(
+           [out] Int32* width);
 
         /**
          * Pause all layout, parsing, and javascript timers for all webviews. This
@@ -661,7 +681,8 @@ module
          * onResume() sets the paused state back to false.
          * @hide
          */
-        IsPaused();
+        IsPaused(
+           [out] Boolean* bFlag);
 
         /**
          * Call this to inform the view that memory is low so that it can
@@ -703,7 +724,8 @@ module
          * different objects. The object returned from this method will not be
          * updated to reflect any new state.
          */
-        CopyBackForwardList();
+        CopyBackForwardList(
+           [out] IWebBackForwardList** wfl);
 
         /*
          * Highlight and scroll to the next occurance of String in findAll.
@@ -722,7 +744,8 @@ module
          *              that were found.
          */
         FindAll(
-           [in] CString find);
+           [in] String find,
+           [out] Int32* f);
 
         /**
          * @hide
@@ -733,7 +756,8 @@ module
         /**
          * @hide
          */
-        FindIndex();
+        FindIndex(
+           [out] Int32* index);
 
         /**
          * Return the first substring consisting of the address of a physical
@@ -756,7 +780,8 @@ module
          * @return the address, or if no address is found, return null.
          */
         FindAddress(
-           [in] CString addr);
+           [in] String addr,
+           [out] String* address);
 
         /**
          * @hide
@@ -781,14 +806,14 @@ module
          * @return the address, or if no address is found, return null.
          */
         FindAddressEx(
-           [in] CString addr, 
-           [in] Boolean caseInsensitive);
+           [in] String addr,
+           [in] Boolean caseInsensitive,
+           [out] String* address);
 
         /*
          * Clear the highlighting surrounding text matches created by findAll.
          */
         ClearMatches();
-
         /**
          * @hide
          */
@@ -809,9 +834,6 @@ module
         DocumentHasImages(
            [in] IMessage* response);
 
-        //@Override
-//        ComputeScroll();
-
         /**
          * Set the WebViewClient that will receive various notifications and
          * requests. This will replace the current handler.
@@ -826,7 +848,8 @@ module
          *
          *@hide pending API council approval.
          */
-        GetWebViewClient();
+        GetWebViewClient(
+           [out] IWebViewClient** wc);
 
         /**
          * Register the interface to be used when content can not be handled by
@@ -852,7 +875,8 @@ module
          *
          * @hide API council approval.
          */
-        GetWebChromeClient();
+        GetWebChromeClient(
+           [out] IWebChromeClient** wcc);
 
         /**
          * Set the back/forward list client. This is an implementation of
@@ -868,7 +892,8 @@ module
          * Gets the WebBackForwardListClient.
          * {@hide}
          */
-        GetWebBackForwardListClient();
+        GetWebBackForwardListClient(
+           [out] IWebBackForwardListClient** wfl);
 
         /**
          * Set the Picture listener. This is an interface used to receive
@@ -876,7 +901,7 @@ module
          * @param listener An implementation of WebView.PictureListener.
          */
         SetPictureListener(
-           [in] IWebViewPictureListener* listener);
+           [in] IPictureListener* listener);
 
         /**
          * {@hide}
@@ -912,8 +937,8 @@ module
          * @param interfaceName The name to used to expose the class in Javascript
          */
         AddJavascriptInterface(
-           [in] IInterface* obj, 
-           [in] CString interfaceName);
+           [in] IInterface* obj,
+           [in] String interfaceName);
 
         /**
          * Return the WebSettings object used to control the settings for this
@@ -921,7 +946,8 @@ module
          * @return A WebSettings object that can be used to control this WebView's
          *         settings.
          */
-        GetSettings();
+        GetSettings(
+           [out] IWebSettings** ws);
 
         /**
          * Use this method to inform the webview about packages that are installed
@@ -945,7 +971,7 @@ module
          * @hide not a public API
          */
         AddPackageName(
-           [in] CString packageName);
+           [in] String packageName);
 
         /**
          * Use this method to inform the webview about packages that are uninstalled
@@ -957,41 +983,24 @@ module
          * @hide not a public API
          */
         RemovePackageName(
-           [in] CString packageName);
+           [in] String packageName);
 
        /**
         * Return the list of currently loaded plugins.
         * @return The list of currently loaded plugins.
         *
         * @deprecated This was used for Gears, which has been deprecated.
-        * synchronized
         */
-        GetPluginList();
+        //@Deprecated
+        GetPluginList(
+           [out] IPluginList** pl);
 
        /**
         * @deprecated This was used for Gears, which has been deprecated.
         */
+        //@Deprecated
         RefreshPlugins(
            [in] Boolean reloadOpenPages);
-
-        //-------------------------------------------------------------------------
-        // Override View methods
-        //-------------------------------------------------------------------------
-
-        //@Override
-/*        Draw(
-           [in] ICanvas* canvas);*/
-
-        //@Override
-/*        SetLayoutParams(
-           [in] IViewGroupLayoutParams* params);*/
-
-        //@Override
-//        PerformLongClick();
-
-        //@Override
-/*        OnCreateInputConnection(
-           [in] IEditorInfo* outAttrs);*/
 
         /**
          * Dump the display tree to "/sdcard/displayTree.txt"
@@ -1027,22 +1036,6 @@ module
          */
         DumpV8Counters();
 
-        //@Override
-        OnKeyMultiple(
-           [in] Int32 keyCode, 
-           [in] Int32 repeatCount, 
-           [in] IKeyEvent* event);
-
-        //@Override
-        OnKeyDown(
-           [in] Int32 keyCode, 
-           [in] IKeyEvent* event);
-
-        //@Override
-        OnKeyUp(
-           [in] Int32 keyCode, 
-           [in] IKeyEvent* event);
-
         /**
          * @hide pending API council approval.
          */
@@ -1062,7 +1055,8 @@ module
         /**
          * @hide pending API council approval.
          */
-        SelectDialogIsUp();
+        SelectDialogIsUp(
+           [out] Boolean* bFlag);
 
         /**
          * @hide pending API council approval.
@@ -1077,27 +1071,31 @@ module
         /**
          * @hide pending API council approval.
          */
-        CopySelection();
+        CopySelection(
+           [out] Boolean* bFlag);
 
         /**
          * @hide pending API council approval.
          */
-        GetSelection();
+        GetSelection(
+           [out] String* selection);
 
         /**
          * @deprecated WebView no longer needs to implement
          * ViewGroup.OnHierarchyChangeListener.  This method does nothing now.
          */
+        //@Deprecated
         OnChildViewAdded(
-           [in] IView* parent, 
+           [in] IView* parent,
            [in] IView* child);
 
         /**
          * @deprecated WebView no longer needs to implement
          * ViewGroup.OnHierarchyChangeListener.  This method does nothing now.
          */
+        //@Deprecated
         OnChildViewRemoved(
-           [in] IView* p, 
+           [in] IView* p,
            [in] IView* child);
 
         /**
@@ -1105,40 +1103,24 @@ module
          * ViewTreeObserver.OnGlobalFocusChangeListener.  This method
          * does nothing now.
          */
+        //@Deprecated
         OnGlobalFocusChanged(
-           [in] IView* oldFocus, 
+           [in] IView* oldFocus,
            [in] IView* newFocus);
 
-        // To avoid drawing the cursor ring, and remove the TextView when our window
-        // loses focus.
-        //@Override
-/*        OnWindowFocusChanged(
-           [in] Boolean hasWindowFocus);*/
-
-        //@Override
-/*        DispatchKeyEvent(
-           [in] IKeyEvent* event);*/
-
         /** @hide */
-        GetDragTracker();
+        GetDragTracker(
+           [out] IDragTracker** dragTracker);
 
         /** @hide */
         SetDragTracker(
-           [in] IWebViewDragTracker* tracker);
-
-        //@Override
-/*        OnTouchEvent(
-           [in] IMotionEvent* ev);*/
+           [in] IDragTracker* tracker);
 
         SetMapTrackballToArrowKeys(
            [in] Boolean setMap);
 
-        //@Override
-/*        OnTrackballEvent(
-           [in] IMotionEvent* ev);*/
-
         FlingScroll(
-           [in] Int32 vx, 
+           [in] Int32 vx,
            [in] Int32 vy);
 
         /**
@@ -1154,7 +1136,9 @@ module
          * @deprecated The built-in zoom mechanism is preferred, see
          *             {@link WebSettings#setBuiltInZoomControls(boolean)}.
          */
-        GetZoomControls();
+        //@Deprecated
+        GetZoomControls(
+           [out] IView** view);
 
         /**
          * Gets the {@link ZoomButtonsController} which can be used to add
@@ -1164,37 +1148,28 @@ module
          *         or null if it is unavailable.
          * @hide
          */
-        GetZoomButtonsController();
+        GetZoomButtonsController(
+            [out] Handle32* zoom);
 
         /**
          * Perform zoom in in the webview
          * @return TRUE if zoom in succeeds. FALSE if no zoom changes.
          */
-        ZoomIn();
-
+        ZoomIn(
+           [out] Boolean* bFlag);
         /**
          * Perform zoom out in the webview
          * @return TRUE if zoom out succeeds. FALSE if no zoom changes.
          */
-        ZoomOut();
-
-/*        //@Override
-        RequestFocus(
-           [in] Int32 direction, 
-           [in] IRect* previouslyFocusedRect);*/
-
-        //@Override
-        RequestChildRectangleOnScreen(
-           [in] IView* child,
-           [in] IRect* rect,
-           [in] Boolean immediate);
+        ZoomOut(
+           [out] Boolean* bFlag);
 
         /**
          * Set the background color. It's white by default. Pass
          * zero to make the view transparent.
          * @param color   the ARGB color described by Color.java
          */
-/*        SetBackgroundColor(
+       /* SetBackGroundColor(
            [in] Int32 color);*/
 
         DebugDump();

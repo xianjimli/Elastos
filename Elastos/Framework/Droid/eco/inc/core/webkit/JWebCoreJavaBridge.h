@@ -1,7 +1,11 @@
 #ifndef __JWEBCOREJAVABRIDGE_H_
 #define __JWEBCOREJAVABRIDGE_H_
 
+#include "ext/frameworkext.h"
+
 #include <elastos/ElRefBase.h>
+#include <elastos/AutoPtr.h>
+#include <elastos/Vector.h>
 
 #include "CWebView.h"
 

@@ -10,6 +10,8 @@ const CString WebViewWorker::THREAD_NAME = "WebViewWorkerThread";
 WebViewWorker* WebViewWorker::sWorkerHandler;
 //Map<LoadListener*, CCacheManager::CacheResult*> WebViewWorker::mCacheResultMap;
 
+Mutex WebViewWorker::mMutex;
+
 WebViewWorker::WebViewWorker(
 	/* [in] */ /*Looper* looper*/)
 {}
@@ -17,8 +19,7 @@ WebViewWorker::WebViewWorker(
 /* synchronized */
 CARAPI_(WebViewWorker*) WebViewWorker::GetHandler()
 {
-	Core::Threading::Mutex mutex;
-	Core::Threading::Mutex::Autolock lock(mutex);
+	Mutex::Autolock lock(mMutex);
 
 #if 0
 	if (sWorkerHandler == NULL) {

@@ -5,9 +5,13 @@
 #include <utils/Looper.h>
 #include <elastos/Map.h>
 #include <elastos/AutoPtr.h>
+#include <elastos/Mutex.h>
 
 #include "CCacheManager.h"
 #include "LoadListener.h"
+
+using namespace Core;
+using namespace Core::Threading;
 
 /**
  * WebViewWorker executes in a separate thread other than UI and WebViewCore. To
@@ -80,6 +84,9 @@ public:
     //@Override
 	virtual CARAPI_(void) HandleMessage(
 		/* [in] */ IMessage* msg);
+
+protected:
+    static Mutex mMutex;
 
 private:
 	WebViewWorker(

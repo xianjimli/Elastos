@@ -2,7 +2,6 @@
 #include "webkit/CWebStorage.h"
 #include <elastos/Thread.h>
 #include <elastos/HashMap.h>
-#include <elastos/Mutex.h>
 
 #include "webkit/WebViewCore.h"
 
@@ -344,8 +343,7 @@ ECode CWebStorage::Update()
 CARAPI_(void) CWebStorage::PostMessage(
     /* [in] */ IMessage* msg)
 {
-    Mutex mutex;
-    Mutex::Autolock lock(mutex);
+    Mutex::Autolock lock(_m_syncLock);
 
     if (mHandler != NULL && msg != NULL) {
 //        mHandler->SendMessage(msg);

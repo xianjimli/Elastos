@@ -1,11 +1,6 @@
 
 #include "webkit/WebSettings.h"
 
-#define AUTOLOCK() do {\
-		Core::Threading::Mutex mutex;\
-		Core::Threading::Mutex::Autolock lock(mutex);\
-	}while(0)
-
 // User agent strings.
 const CString WebSettings::DESKTOP_USERAGENT =
         "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_5_7; en-us) AppleWebKit/530.17 (KHTML, like Gecko) Version/4.0 Safari/530.17";
@@ -18,7 +13,7 @@ const CString WebSettings::DOUBLE_TAP_TOAST_COUNT = "double_tap_toast_count";
 Int32 WebSettings::mDoubleTapToastCount;
 
 AutoPtr<ILocale> WebSettings::sLocale;
-Core::Threading::Mutex WebSettings::sLockForLocaleSettings;
+Mutex WebSettings::sLockForLocaleSettings;
 
 WebSettings::WebSettings()
 {}
@@ -72,7 +67,7 @@ CARAPI_(void) WebSettings::SetSupportZoom(
 	/* [in] */ Boolean support)
 {
 	mSupportZoom = support;
-	mWebView->UpdateMultiTouchSupport(mContext);
+//	mWebView->UpdateMultiTouchSupport(mContext);
 }
 
 /**
@@ -90,7 +85,7 @@ CARAPI_(void) WebSettings::SetBuiltInZoomControls(
 	/* [in] */ Boolean enabled)
 {
 	mBuiltInZoomControls = enabled;
-	mWebView->UpdateMultiTouchSupport(mContext);
+//	mWebView->UpdateMultiTouchSupport(mContext);
 }
 
 /**
@@ -346,7 +341,7 @@ CARAPI_(void) WebSettings::SetUserAgent(
  */
 CARAPI_(Int32) WebSettings::GetUserAgent()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (mUserAgent.Equals(DESKTOP_USERAGENT)) {
         return 1;
@@ -365,7 +360,7 @@ CARAPI_(Int32) WebSettings::GetUserAgent()
 CARAPI_(void) WebSettings::SetUseWideViewPort(
 	/* [in] */ Boolean use)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (mUseWideViewport != use) {
         mUseWideViewport = use;
@@ -378,7 +373,7 @@ CARAPI_(void) WebSettings::SetUseWideViewPort(
  */
 CARAPI_(Boolean) WebSettings::GetUseWideViewPort()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	return mUseWideViewport;
 }
@@ -391,7 +386,7 @@ CARAPI_(Boolean) WebSettings::GetUseWideViewPort()
 CARAPI_(void) WebSettings::SetSupportMultipleWindows(
 	/* [in] */ Boolean support)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (mSupportMultipleWindows != support) {
         mSupportMultipleWindows = support;
@@ -406,7 +401,7 @@ CARAPI_(void) WebSettings::SetSupportMultipleWindows(
  */
 CARAPI_(Boolean) WebSettings::SupportMultipleWindows()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	return mSupportMultipleWindows;
 }
@@ -420,7 +415,7 @@ CARAPI_(Boolean) WebSettings::SupportMultipleWindows()
 CARAPI_(void) WebSettings::SetLayoutAlgorithm(
 	/* [in] */ WebSettings::LayoutAlgorithm l)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	// XXX: This will only be affective if libwebcore was built with
     // ANDROID_LAYOUT defined.
@@ -438,7 +433,7 @@ CARAPI_(void) WebSettings::SetLayoutAlgorithm(
  */
 CARAPI_(WebSettings::LayoutAlgorithm) WebSettings::GetLayoutAlgorithm()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	return mLayoutAlgorithm;
 }
@@ -450,7 +445,7 @@ CARAPI_(WebSettings::LayoutAlgorithm) WebSettings::GetLayoutAlgorithm()
 CARAPI_(void) WebSettings::SetStandardFontFamily(
 	/* [in] */ const String& font)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (font.GetLength() != 0 && !font.Equals(mStandardFontFamily)) {
         mStandardFontFamily = font;
@@ -464,7 +459,7 @@ CARAPI_(void) WebSettings::SetStandardFontFamily(
  */
 CARAPI_(CString) WebSettings::GetStandardFontFamily()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	return mStandardFontFamily;
 }
@@ -476,7 +471,7 @@ CARAPI_(CString) WebSettings::GetStandardFontFamily()
 CARAPI_(void) WebSettings::SetFixedFontFamily(
 	/* [in] */ const String& font)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (font.GetLength() != 0 && !font.Equals(mFixedFontFamily)) {
         mFixedFontFamily = font;
@@ -490,7 +485,7 @@ CARAPI_(void) WebSettings::SetFixedFontFamily(
  */
 CARAPI_(CString) WebSettings::GetFixedFontFamily()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	return mFixedFontFamily;
 }
@@ -502,7 +497,7 @@ CARAPI_(CString) WebSettings::GetFixedFontFamily()
 CARAPI_(void) WebSettings::SetSansSerifFontFamily(
 	/* [in] */ const String& font)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (font.GetLength() != 0 && !font.Equals(mSansSerifFontFamily)) {
         mSansSerifFontFamily = font;
@@ -516,7 +511,7 @@ CARAPI_(void) WebSettings::SetSansSerifFontFamily(
  */
 CARAPI_(CString) WebSettings::GetSansSerifFontFamily()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	return mSansSerifFontFamily;
 }
@@ -528,7 +523,7 @@ CARAPI_(CString) WebSettings::GetSansSerifFontFamily()
 CARAPI_(void) WebSettings::SetSerifFontFamily(
 	/* [in] */ const String& font)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (font.GetLength() != 0 && !font.Equals(mSerifFontFamily)) {
         mSerifFontFamily = font;
@@ -542,7 +537,7 @@ CARAPI_(void) WebSettings::SetSerifFontFamily(
  */
 CARAPI_(String) WebSettings::GetSerifFontFamily()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	return mSerifFontFamily;
 }
@@ -554,7 +549,7 @@ CARAPI_(String) WebSettings::GetSerifFontFamily()
 CARAPI_(void) WebSettings::SetCursiveFontFamily(
 	/* [in] */ const String& font)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (font.GetLength() != 0 && !font.Equals(mCursiveFontFamily)) {
         mCursiveFontFamily = font;
@@ -568,7 +563,7 @@ CARAPI_(void) WebSettings::SetCursiveFontFamily(
  */
 CARAPI_(String) WebSettings::GetCursiveFontFamily()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	return mCursiveFontFamily;
 }
@@ -580,7 +575,7 @@ CARAPI_(String) WebSettings::GetCursiveFontFamily()
 CARAPI_(void) WebSettings::SetFantasyFontFamily(
 	/* [in] */ const String& font)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (font.GetLength() != 0 && !font.Equals(mFantasyFontFamily)) {
         mFantasyFontFamily = font;
@@ -594,7 +589,7 @@ CARAPI_(void) WebSettings::SetFantasyFontFamily(
  */
 CARAPI_(String) WebSettings::GetFantasyFontFamily()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	return mFantasyFontFamily;
 }
@@ -607,7 +602,7 @@ CARAPI_(String) WebSettings::GetFantasyFontFamily()
 CARAPI_(void) WebSettings::SetMinimumFontSize(
 	/* [in] */ Int32 size)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	size = Pin(size);
     if (mMinimumFontSize != size) {
@@ -622,7 +617,7 @@ CARAPI_(void) WebSettings::SetMinimumFontSize(
  */
 CARAPI_(Int32) WebSettings::GetMinimumFontSize()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	return mMinimumFontSize;
 }
@@ -635,7 +630,7 @@ CARAPI_(Int32) WebSettings::GetMinimumFontSize()
 CARAPI_(void) WebSettings::SetMinimumLogicalFontSize(
 	/* [in] */ Int32 size)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	size = Pin(size);
     if (mMinimumLogicalFontSize != size) {
@@ -650,7 +645,7 @@ CARAPI_(void) WebSettings::SetMinimumLogicalFontSize(
  */
 CARAPI_(Int32) WebSettings::GetMinimumLogicalFontSize()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	return mMinimumLogicalFontSize;
 }
@@ -663,7 +658,7 @@ CARAPI_(Int32) WebSettings::GetMinimumLogicalFontSize()
 CARAPI_(void) WebSettings::SetDefaultFontSize(
 	/* [in] */ Int32 size)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	size = Pin(size);
     if (mDefaultFontSize != size) {
@@ -678,7 +673,7 @@ CARAPI_(void) WebSettings::SetDefaultFontSize(
  */
 CARAPI_(Int32) WebSettings::GetDefaultFontSize()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	return mDefaultFontSize;
 }
@@ -691,7 +686,7 @@ CARAPI_(Int32) WebSettings::GetDefaultFontSize()
 CARAPI_(void) WebSettings::SetDefaultFixedFontSize(
 	/* [in] */ Int32 size)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	size = Pin(size);
     if (mDefaultFixedFontSize != size) {
@@ -706,7 +701,7 @@ CARAPI_(void) WebSettings::SetDefaultFixedFontSize(
  */
 CARAPI_(Int32) WebSettings::GetDefaultFixedFontSize()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	return mDefaultFixedFontSize;
 }
@@ -719,7 +714,7 @@ CARAPI_(Int32) WebSettings::GetDefaultFixedFontSize()
 CARAPI_(void) WebSettings::SetPageCacheCapacity(
 	/* [in] */ Int32 size)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (size < 0) size = 0;
     if (size > 20) size = 20;
@@ -736,7 +731,7 @@ CARAPI_(void) WebSettings::SetPageCacheCapacity(
 CARAPI_(void) WebSettings::SetLoadsImagesAutomatically(
 	/* [in] */ Boolean flag)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (mLoadsImagesAutomatically != flag) {
         mLoadsImagesAutomatically = flag;
@@ -751,7 +746,7 @@ CARAPI_(void) WebSettings::SetLoadsImagesAutomatically(
  */
 CARAPI_(Boolean) WebSettings::GetLoadsImagesAutomatically()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	return mLoadsImagesAutomatically;
 }
@@ -767,7 +762,7 @@ CARAPI_(Boolean) WebSettings::GetLoadsImagesAutomatically()
 CARAPI_(void) WebSettings::SetBlockNetworkImage(
 	/* [in] */ Boolean flag)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (mBlockNetworkImage != flag) {
         mBlockNetworkImage = flag;
@@ -782,7 +777,7 @@ CARAPI_(void) WebSettings::SetBlockNetworkImage(
  */
 CARAPI_(Boolean) WebSettings::GetBlockNetworkImage()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	return mBlockNetworkImage;;
 }
@@ -798,7 +793,7 @@ CARAPI_(Boolean) WebSettings::GetBlockNetworkImage()
 CARAPI_(void) WebSettings::SetBlockNetworkLoads(
 	/* [in] */ Boolean flag)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (mBlockNetworkImage != flag) {
         mBlockNetworkImage = flag;
@@ -813,7 +808,7 @@ CARAPI_(void) WebSettings::SetBlockNetworkLoads(
  */
 CARAPI_(Boolean) WebSettings::GetBlockNetworkLoads()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	return mBlockNetworkLoads;
 }
@@ -825,7 +820,7 @@ CARAPI_(Boolean) WebSettings::GetBlockNetworkLoads()
 CARAPI_(void) WebSettings::SetJavaScriptEnabled(
 	/* [in] */ Boolean flag)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (mJavaScriptEnabled != flag) {
         mJavaScriptEnabled = flag;
@@ -842,7 +837,7 @@ CARAPI_(void) WebSettings::SetJavaScriptEnabled(
 CARAPI_(void) WebSettings::SetPluginsEnabled(
 	/* [in] */ Boolean flag)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	SetPluginState(ON);
 }
@@ -857,7 +852,7 @@ CARAPI_(void) WebSettings::SetPluginsEnabled(
 CARAPI_(void) WebSettings::SetPluginState(
 	/* [in] */ PluginState state)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (mPluginState != state) {
         mPluginState = state;
@@ -875,7 +870,7 @@ CARAPI_(void) WebSettings::SetPluginState(
 CARAPI_(void) WebSettings::SetPluginsPath(
 	/* [in] */ const String& pluginsPath)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 }
 
 /**
@@ -888,7 +883,7 @@ CARAPI_(void) WebSettings::SetPluginsPath(
 CARAPI_(void) WebSettings::SetDatabasePath(
 	/* [in] */ const String& databasePath)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (databasePath.GetLength() != 0 && !mDatabasePathHasBeenSet) {
         mDatabasePath = databasePath;
@@ -907,7 +902,7 @@ CARAPI_(void) WebSettings::SetDatabasePath(
 CARAPI_(void) WebSettings::SetGeolocationDatabasePath(
 	/* [in] */ const String& databasePath)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (databasePath.GetLength() != 0
             && !databasePath.Equals(mGeolocationDatabasePath)) {
@@ -923,7 +918,7 @@ CARAPI_(void) WebSettings::SetGeolocationDatabasePath(
 CARAPI_(void) WebSettings::SetAppCacheEnabled(
 	/* [in] */ Boolean flag)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (mAppCacheEnabled != flag) {
         mAppCacheEnabled = flag;
@@ -941,7 +936,7 @@ CARAPI_(void) WebSettings::SetAppCacheEnabled(
 CARAPI_(void) WebSettings::SetAppCachePath(
 	/* [in] */ const String& appCachePath)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (appCachePath.GetLength() != 0 && !appCachePath.Equals(mAppCachePath)) {
         mAppCachePath = appCachePath;
@@ -956,7 +951,7 @@ CARAPI_(void) WebSettings::SetAppCachePath(
 CARAPI_(void) WebSettings::SetAppCacheMaxSize(
 	/* [in] */ Int64 appCacheMaxSize)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (appCacheMaxSize != mAppCacheMaxSize) {
         mAppCacheMaxSize = appCacheMaxSize;
@@ -972,7 +967,7 @@ CARAPI_(void) WebSettings::SetAppCacheMaxSize(
 CARAPI_(void) WebSettings::SetDatabaseEnabled(
 	/* [in] */ Boolean flag)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (mDatabaseEnabled != flag) {
        mDatabaseEnabled = flag;
@@ -988,7 +983,7 @@ CARAPI_(void) WebSettings::SetDatabaseEnabled(
 CARAPI_(void) WebSettings::SetDomStorageEnabled(
 	/* [in] */ Boolean flag)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (mDomStorageEnabled != flag) {
        mDomStorageEnabled = flag;
@@ -1002,7 +997,7 @@ CARAPI_(void) WebSettings::SetDomStorageEnabled(
  */
 CARAPI_(Boolean) WebSettings::GetDomStorageEnabled()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	return mDomStorageEnabled;
 }
@@ -1014,7 +1009,7 @@ CARAPI_(Boolean) WebSettings::GetDomStorageEnabled()
  */
 CARAPI_(String) WebSettings::GetDatabasePath()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	return mDatabasePath;
 }
@@ -1025,7 +1020,7 @@ CARAPI_(String) WebSettings::GetDatabasePath()
  */
 CARAPI_(Boolean) WebSettings::GetDatabaseEnabled()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	return mDatabaseEnabled;
 }
@@ -1040,7 +1035,7 @@ CARAPI_(Boolean) WebSettings::GetDatabaseEnabled()
 CARAPI_(void) WebSettings::SetWorkersEnabled(
 	/* [in] */ Boolean flag)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (mWorkersEnabled != flag) {
         mWorkersEnabled = flag;
@@ -1055,7 +1050,7 @@ CARAPI_(void) WebSettings::SetWorkersEnabled(
 CARAPI_(void) WebSettings::SetGeolocationEnabled(
 	/* [in] */ Boolean flag)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (mGeolocationEnabled != flag) {
         mGeolocationEnabled = flag;
@@ -1069,7 +1064,7 @@ CARAPI_(void) WebSettings::SetGeolocationEnabled(
  */
 CARAPI_(Boolean) WebSettings::GetJavaScriptEnabled()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	return mJavaScriptEnabled;
 }
@@ -1081,7 +1076,7 @@ CARAPI_(Boolean) WebSettings::GetJavaScriptEnabled()
  */
 CARAPI_(Boolean) WebSettings::GetPluginsEnabled()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	return mPluginState == ON;
 }
@@ -1092,7 +1087,7 @@ CARAPI_(Boolean) WebSettings::GetPluginsEnabled()
  */
 CARAPI_(WebSettings::PluginState) WebSettings::GetPluginState()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	return mPluginState;
 }
@@ -1106,7 +1101,7 @@ CARAPI_(WebSettings::PluginState) WebSettings::GetPluginState()
  */
 CARAPI_(String) WebSettings::GetPluginsPath()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	return (String)"";
 }
@@ -1119,7 +1114,7 @@ CARAPI_(String) WebSettings::GetPluginsPath()
 CARAPI_(void) WebSettings::SetJavaScriptCanOpenWindowsAutomatically(
 	/* [in] */ Boolean flag)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (mJavaScriptCanOpenWindowsAutomatically != flag) {
         mJavaScriptCanOpenWindowsAutomatically = flag;
@@ -1135,7 +1130,7 @@ CARAPI_(void) WebSettings::SetJavaScriptCanOpenWindowsAutomatically(
  */
 CARAPI_(Boolean) WebSettings::GetJavaScriptCanOpenWindowsAutomatically()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	return mJavaScriptCanOpenWindowsAutomatically;
 }
@@ -1147,7 +1142,7 @@ CARAPI_(Boolean) WebSettings::GetJavaScriptCanOpenWindowsAutomatically()
 CARAPI_(void) WebSettings::SetDefaultTextEncodingName(
 	/* [in] */ const String& encoding)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (encoding.GetLength() != 0 && !encoding.Equals(mDefaultTextEncoding)) {
         mDefaultTextEncoding = encoding;
@@ -1161,7 +1156,7 @@ CARAPI_(void) WebSettings::SetDefaultTextEncodingName(
  */
 CARAPI_(String) WebSettings::GetDefaultTextEncodingName()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	return mDefaultTextEncoding;
 }
@@ -1201,7 +1196,7 @@ CARAPI_(void) WebSettings::SetUserAgentString(
  */
 CARAPI_(String*) WebSettings::GetUserAgentString()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (mUserAgent.Equals(DESKTOP_USERAGENT) ||
             mUserAgent.Equals(IPHONE_USERAGENT) ||
@@ -1234,7 +1229,7 @@ CARAPI_(String*) WebSettings::GetUserAgentString()
 /*package*/ 
 CARAPI_(String*) WebSettings::GetAcceptLanguage()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	sLockForLocaleSettings.Lock();
 	{
@@ -1279,7 +1274,7 @@ CARAPI_(Boolean) WebSettings::GetNeedInitialFocus()
 CARAPI_(void) WebSettings::SetRenderPriority(
 	/* [in] */ RenderPriority priority)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (mRenderPriority != priority) {
         mRenderPriority = priority;
@@ -1375,7 +1370,7 @@ CARAPI_(void) WebSettings::SyncSettingsAndCreateHandler(
 /*package*/
 CARAPI_(void) WebSettings::OnDestroyed()
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 }
 
 /**
@@ -1415,7 +1410,7 @@ CARAPI_(void) WebSettings::PostSync()
 CARAPI_(void) WebSettings::NativeSync(
 	/* [in] */ Int32 nativeFrame)
 {
-	AUTOLOCK();
+	Mutex::Autolock lock(mMutex);
 
 	if (!mSyncPending) {
 //        mSyncPending = mEventHandler.sendMessage(Message.obtain(null, EventHandler.SYNC));

@@ -29,13 +29,12 @@ CARAPI_(void) HttpAuthHandler::HandleMessage(
 
 	AutoPtr<LoadListener> loader = NULL;
 
-	mLoaderQueueMutex.Lock();
 	{
+        Core::Threading::Mutex::Autolock lock(mLoaderQueueMutex);
 		loader = mLoaderQueue.GetFront();
 		mLoaderQueue.PopFront();
 	}
-    mLoaderQueueMutex.Unlock();
-
+    
     assert(loader->IsSynchronous() == FALSE);
 
     switch (0/*msg->what*/)

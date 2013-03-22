@@ -4,6 +4,7 @@
 #include "ext/frameworkext.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/Vector.h>
+#include <elastos/Mutex.h>
 
 #include "LoadListener.h"
 
@@ -148,6 +149,9 @@ public:
 	virtual CARAPI_(void) StartTiming();
 
 	virtual CARAPI_(void) StopTiming();
+
+protected:
+    static Core::Threading::Mutex mSyncLock;
 
 private:
     /**

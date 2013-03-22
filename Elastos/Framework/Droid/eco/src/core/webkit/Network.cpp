@@ -2,9 +2,9 @@
 #include "webkit/Network.h"
 #include "webkit/HttpAuthHandler.h"
 
-#include <elastos/Mutex.h>
-
 const CString Network::LOGTAG = "network";
+
+Core::Threading::Mutex Network::mSyncLock;
 
 /**
  * Creates a new Network object.
@@ -22,8 +22,7 @@ Network::Network(
 CARAPI_(Network*) Network::GetInstance(
 	/* [in] */ IContext* context)
 {
-	Core::Threading::Mutex mutex;
-	Core::Threading::Mutex::Autolock lock(mutex);
+	Core::Threading::Mutex::Autolock lock(mSyncLock);
 
 	if (sNetwork == NULL) {
         // Note Context of the Application is used here, rather than
