@@ -14,6 +14,13 @@ ECode CInputStreamReader::constructor(
     return InputStreamReader::Init(in, enc);
 }
 
+ECode CInputStreamReader::constructor(
+    /* [in] */ IInputStream* in,
+    /* [in] */ ICharset* charset)
+{
+    return InputStreamReader::Init(in, charset);
+}
+
 ECode CInputStreamReader::Close()
 {
     return InputStreamReader::Close();

@@ -42,6 +42,19 @@ protected:
     CARAPI Init(
         /* [in] */ IInputStream *in,
         /* [in] */ const String &enc);
+
+    /**
+     * Constructs a new InputStreamReader on the InputStream {@code in} and
+     * Charset {@code charset}.
+     *
+     * @param in
+     *            the source InputStream from which to read characters.
+     * @param charset
+     *            the Charset that defines the character converter
+     */
+    CARAPI Init(
+        /* [in] */ IInputStream* in,
+        /* [in] */ ICharset* charset);
 public:
     /**
      * Closes this reader. This implementation closes the source InputStream and

@@ -1,0 +1,24 @@
+module
+{
+    interface ICharset {
+        /**
+         * Gets the name of this charset for the default locale.
+         *
+         * <p>The default implementation returns the canonical name of this charset.
+         * Subclasses may return a localized display name.
+         *
+         * @return the name of this charset for the default locale.
+         */
+        DisplayName(
+            [out] String* name);
+    }
+
+    interface ICharsetHelper {
+        /**
+         * Returns the system's default charset. This is determined during VM startup, and will not
+         * change thereafter. On Android, the default charset is UTF-8.
+         */
+        DefaultCharset(
+            [out] ICharset** charset);
+    }
+}

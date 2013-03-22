@@ -40,6 +40,20 @@ public:
         /* [in] */ const String& enc);
 
     /**
+     * Constructs a new InputStreamReader on the InputStream {@code in} and
+     * Charset {@code charset}.
+     *
+     * @param in
+     *            the source InputStream from which to read characters.
+     * @param charset
+     *            the Charset that defines the character converter
+     */
+    CARAPI constructor(
+        /* [in] */ IInputStream* in,
+        /* [in] */ ICharset* charset);
+
+
+    /**
      * Closes this reader. This implementation closes the source InputStream and
      * releases all local storage.
      *
