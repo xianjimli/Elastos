@@ -1,4 +1,14 @@
 #include "AttributedString.h"
+namespace Elastos
+{
+    const RBTreeColorType S_RBTreeRed = FALSE;
+    const RBTreeColorType S_RBTreeBlack = TRUE;
+}
+
+extern "C"
+{
+    void * __dso_handle = 0;
+}
 
 AttributedString::Range::Range(
         /* [in] */ Int32 s,

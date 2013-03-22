@@ -11,7 +11,6 @@
 #include <elastos/Set.h>
 #include <elastos/HashSet.h>
 #include <StringBuffer.h>
-#include "ext/frameworkext.h"
 
 extern "C" const InterfaceID EIID_Range;
 
