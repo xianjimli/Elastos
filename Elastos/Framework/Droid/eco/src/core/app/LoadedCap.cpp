@@ -375,7 +375,7 @@ LoadedCap::LoadedCap(
     mCapsuleName = name;
     mAppDir = NULL;
     mResDir = NULL;
-    mDataDir = info->mDataDir;
+    mDataDir = mApplicationInfo->mDataDir;
     if (!mDataDir.IsNull()) {
         CFile::New(mDataDir, (IFile**)&mDataDirFile);
     }
