@@ -90,10 +90,6 @@ private:
 
         CARAPI_(IUsbAccessory*) GetCurrentAccessory();
 
-        CARAPI_(void) Dump(
-            /* [in] */ IFileDescriptor* fd,
-            /* [in] */ IPrintWriter* pw);
-
     private:
         CARAPI_(Boolean) WaitForState(
             /* [in] */ const String& state);
@@ -186,10 +182,6 @@ public:
     CARAPI_(void) SetMassStorageBackingFile(
         /* [in] */ const String& path);
 
-    CARAPI_(void) Dump(
-        /* [in] */ IFileDescriptor* fd,
-        /* [in] */ IPrintWriter* pw);
-
 private:
 
     static CARAPI_(void) InitRndisAddress();
@@ -263,8 +255,7 @@ private:
     Boolean mAdbEnabled;
     Boolean mAudioSourceEnabled;
 
-    //private Map<String, List<Pair<String, String>>> mOemModeMap;
-    // HashMap<String, List<Pair<const String, String>>> mOemModeMap;
+    HashMap< String, List< Pair<String, String> > > mOemModeMap;
     ArrayOf<String>* mAccessoryStrings;
 };
 

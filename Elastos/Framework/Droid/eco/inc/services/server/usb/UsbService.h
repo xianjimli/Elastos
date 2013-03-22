@@ -118,11 +118,14 @@ public:
 
     /* Sets the file path for USB mass storage backing file. */
     CARAPI SetMassStorageBackingFile(
-        /* [in] */ const String* path);
+        /* [in] */ const String& path);
 
     CARAPI_(void) SystemReady();
 
 private:
+    static const String PACKAGE_MANAGER_FEATURE_USB_HOST;
+    static const String MANIFEST_PERMISSION_MANAGE_USB;
+
     AutoPtr<IContext> mContext;
     AutoPtr<UsbDeviceManager> mDeviceManager;
     AutoPtr<UsbHostManager> mHostManager;

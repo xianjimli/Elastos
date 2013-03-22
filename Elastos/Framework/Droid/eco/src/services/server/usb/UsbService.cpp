@@ -3,10 +3,34 @@
 
 using namespace Elastos;
 
+const String UsbService::PACKAGE_MANAGER_FEATURE_USB_HOST = String("android.hardware.usb.host");
+const String UsbService::MANIFEST_PERMISSION_MANAGE_USB = String("android.permission.MANAGE_USB");
+
 UsbService::UsbService(
     /* [in] */ IContext* context)
 {
-    // NOT IMPLEMENTED
+    mContext = context;
+    mSettingsManager = new UsbSettingsManager(context);
+
+    AutoPtr<ILocalCapsuleManager> cm;
+    mContext->GetCapsuleManager((ILocalCapsuleManager**)&cm);
+
+    Boolean hasFeature = FALSE;
+    cm->HasSystemFeature(PACKAGE_MANAGER_FEATURE_USB_HOST, &hasFeature);
+
+    if (hasFeature == TRUE) {
+        mHostManager = new UsbHostManager(context, mSettingsManager);
+    }
+
+    AutoPtr<IFile> file;
+    CFile::New(String("/sys/class/android_usb"), (IFile**)&file);
+
+    Boolean isExist = FALSE;
+    file->Exists(&isExist);
+
+    if (isExist == TRUE) {
+        mDeviceManager = new UsbDeviceManager(context, mSettingsManager);
+    }
 }
 
 UInt32 UsbService::AddRef()
@@ -26,170 +50,200 @@ ECode UsbService::GetInterfaceID(
     return E_NOT_IMPLEMENTED;
 }
 
-/* Returns a list of all currently attached USB devices */
 ECode UsbService::GetDeviceList(
     /* [out] */ IBundle** devices)
 {
     VALIDATE_NOT_NULL(devices);
-    // NOT IMPLEMENTED
+
+    if (mHostManager == NULL) {
+        return NOERROR;
+    }
+
+    mHostManager->GetDeviceList(*devices);
     return NOERROR;
 }
 
-/* Returns a file descriptor for communicating with the USB device.
- * The native fd can be passed to usb_device_new() in libusbhost.
- */
 ECode UsbService::OpenDevice(
     /* [in] */ const String& deviceName,
     /* [out] */ IParcelFileDescriptor** descriptor)
 {
     VALIDATE_NOT_NULL(descriptor);
-    // NOT IMPLEMENTED
+
+    if (mHostManager == NULL) {
+        *descriptor = NULL;
+        return NOERROR;
+    }
+
+    *descriptor = mHostManager->OpenDevice(deviceName);
     return NOERROR;
 }
 
-/* Returns the currently attached USB accessory */
 ECode UsbService::GetCurrentAccessory(
     /* [out] */ IUsbAccessory** accessory)
 {
     VALIDATE_NOT_NULL(accessory);
-    // NOT IMPLEMENTED
+
+    if (mDeviceManager == NULL) {
+        *accessory = NULL;
+        return NOERROR;
+    }
+
+    *accessory = mDeviceManager->GetCurrentAccessory();
     return NOERROR;
 }
 
-/* Returns a file descriptor for communicating with the USB accessory.
- * This file descriptor can be used with standard Java file operations.
- */
 ECode UsbService::OpenAccessory(
     /* [in] */ IUsbAccessory* accessory,
     /* [out] */ IParcelFileDescriptor** descriptor)
 {
     VALIDATE_NOT_NULL(descriptor);
-    // NOT IMPLEMENTED
+
+    if (mDeviceManager == NULL) {
+        *descriptor = NULL;
+        return NOERROR;
+    }
+
+    *descriptor = mDeviceManager->OpenAccessory(accessory);
     return NOERROR;
 }
 
-/* Sets the default package for a USB device
- * (or clears it if the package name is null)
- */
 ECode UsbService::SetDevicePackage(
     /* [in] */ IUsbDevice* device,
     /* [in] */ const String& packageName)
 {
-    // NOT IMPLEMENTED
+    mContext->EnforceCallingOrSelfPermission(MANIFEST_PERMISSION_MANAGE_USB, NULL);
+    mSettingsManager->SetDevicePackage(device, packageName);
+
     return NOERROR;
 }
 
-/* Sets the default package for a USB accessory
- * (or clears it if the package name is null)
- */
 ECode UsbService::SetAccessoryPackage(
     /* [in] */ IUsbAccessory* accessory,
     /* [in] */ const String& packageName)
 {
-    // NOT IMPLEMENTED
+    mContext->EnforceCallingOrSelfPermission(MANIFEST_PERMISSION_MANAGE_USB, NULL);
+    mSettingsManager->SetAccessoryPackage(accessory, packageName);
+
     return NOERROR;
 }
 
-/* Returns true if the caller has permission to access the device. */
 ECode UsbService::HasDevicePermission(
     /* [in] */ IUsbDevice* device,
     /* [out] */ Boolean* result)
 {
     VALIDATE_NOT_NULL(result);
-    // NOT IMPLEMENTED
+    *result = mSettingsManager->HasPermission(device);
+
     return NOERROR;
 }
 
-/* Returns true if the caller has permission to access the accessory. */
 ECode UsbService::HasAccessoryPermission(
     /* [in] */ IUsbAccessory* accessory,
     /* [out] */ Boolean* result)
 {
     VALIDATE_NOT_NULL(result);
-    // NOT IMPLEMENTED
+    *result = mSettingsManager->HasPermission(accessory);
+
     return NOERROR;
 }
 
-/* Requests permission for the given package to access the device.
- * Will display a system dialog to query the user if permission
- * had not already been given.
- */
 ECode UsbService::RequestDevicePermission(
     /* [in] */ IUsbDevice* device,
     /* [in] */ const String& packageName,
     /* [in] */ IPendingIntent* pi)
 {
-    // NOT IMPLEMENTED
+    mSettingsManager->RequestPermission(device, packageName, pi);
+
     return NOERROR;
 }
 
-/* Requests permission for the given package to access the accessory.
- * Will display a system dialog to query the user if permission
- * had not already been given. Result is returned via pi.
- */
 ECode UsbService::RequestAccessoryPermission(
     /* [in] */ IUsbAccessory* accessory,
     /* [in] */ const String& packageName,
     /* [in] */ IPendingIntent* pi)
 {
-    // NOT IMPLEMENTED
+    mSettingsManager->RequestPermission(accessory, packageName, pi);
+
     return NOERROR;
 }
 
-/* Grants permission for the given UID to access the device */
 ECode UsbService::GrantDevicePermission(
     /* [in] */ IUsbDevice* device,
     /* [in] */ Int32 uid)
 {
-    // NOT IMPLEMENTED
+    mContext->EnforceCallingOrSelfPermission(MANIFEST_PERMISSION_MANAGE_USB, NULL);
+    mSettingsManager->GrantDevicePermission(device, uid);
+
     return NOERROR;
 }
 
-/* Grants permission for the given UID to access the accessory */
 ECode UsbService::GrantAccessoryPermission(
     /* [in] */ IUsbAccessory* accessory,
     /* [in] */ Int32 uid)
 {
-    // NOT IMPLEMENTED
+    mContext->EnforceCallingOrSelfPermission(MANIFEST_PERMISSION_MANAGE_USB, NULL);
+    mSettingsManager->GrantAccessoryPermission(accessory, uid);
+
     return NOERROR;
 }
 
-/* Returns true if the USB manager has default preferences or permissions for the package */
 ECode UsbService::HasDefaults(
     /* [in] */ const String& packageName,
     /* [out] */ Boolean* result)
 {
     VALIDATE_NOT_NULL(result);
-    // NOT IMPLEMENTED
+
+    mContext->EnforceCallingOrSelfPermission(MANIFEST_PERMISSION_MANAGE_USB, NULL);
+    *result = mSettingsManager->HasDefaults(packageName);
+
     return NOERROR;
 }
 
-/* Clears default preferences and permissions for the package */
 ECode UsbService::ClearDefaults(
     /* [in] */ const String& packageName)
 {
-    // NOT IMPLEMENTED
+    mContext->EnforceCallingOrSelfPermission(MANIFEST_PERMISSION_MANAGE_USB, NULL);
+    mSettingsManager->ClearDefaults(packageName);
+
     return NOERROR;
 }
 
-/* Sets the current USB function. */
 ECode UsbService::SetCurrentFunction(
     /* [in] */ const String& function,
     /* [in] */ Boolean makeDefault)
 {
-    // NOT IMPLEMENTED
+    mContext->EnforceCallingOrSelfPermission(MANIFEST_PERMISSION_MANAGE_USB, NULL);
+
+    if (mDeviceManager == NULL) {
+        // throw new IllegalStateException("USB device mode not supported");
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+
+    mDeviceManager->SetCurrentFunctions(function, makeDefault);
     return NOERROR;
 }
 
-/* Sets the file path for USB mass storage backing file. */
 ECode UsbService::SetMassStorageBackingFile(
-    /* [in] */ const String* path)
+    /* [in] */ const String& path)
 {
-    // NOT IMPLEMENTED
+    mContext->EnforceCallingOrSelfPermission(MANIFEST_PERMISSION_MANAGE_USB, NULL);
+
+    if (mDeviceManager == NULL) {
+        // throw new IllegalStateException("USB device mode not supported");
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+
+    mDeviceManager->SetMassStorageBackingFile(path);
     return NOERROR;
 }
 
 void UsbService::SystemReady()
 {
-    // NOT IMPLEMENTED
+    if (mDeviceManager != NULL) {
+        mDeviceManager->SystemReady();
+    }
+
+    if (mHostManager != NULL) {
+        mHostManager->SystemReady();
+    }
 }
