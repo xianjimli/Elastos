@@ -375,17 +375,10 @@ LoadedCap::LoadedCap(
     mCapsuleName = name;
     mAppDir = NULL;
     mResDir = NULL;
-    mDataDir = mApplicationInfo->mDataDir;
-    if (!mDataDir.IsNull()) {
-        CFile::New(mDataDir, (IFile**)&mDataDirFile);
-    }
-    else {
-        mDataDirFile = NULL;
-    }
 
     //mSharedLibraries = NULL;
-    //mDataDir = NULL;
-    //mDataDirFile = NULL;
+    mDataDir = NULL;
+    mDataDirFile = NULL;
     //mLibDir = NULL;
     //mBaseClassLoader = NULL;
     mSecurityViolation = FALSE;
@@ -409,6 +402,13 @@ LoadedCap::LoadedCap(
     mCapsuleName = aInfo->mCapsuleName;
 //    mResDir = aInfo.uid == Process.myUid() ? aInfo.sourceDir
 //                : aInfo.publicSourceDir;
+    mDataDir = aInfo->mDataDir;
+    if (!mDataDir.IsNull()) {
+        CFile::New(mDataDir, (IFile**)&mDataDirFile);
+    }
+    else {
+        mDataDirFile = NULL;
+    }
     mResDir = aInfo->mSourceDir;
     mSecurityViolation = securityViolation;
     mIncludeCode = includeCode;
