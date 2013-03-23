@@ -105,6 +105,8 @@ public:
 private:
     // Class to handle messages before WebCore is ready.
     class WsEventHandler {
+    public:
+        friend class WebSettings;
     private:
         class WsEhHandler: public ElRefBase,public IHandler
         {
@@ -413,7 +415,7 @@ public:
      * Get the standard font family name. The default is "sans-serif".
      * @return The standard font family name as a string.
      */
-	virtual CARAPI_(CString) GetStandardFontFamily();
+	virtual CARAPI_(String) GetStandardFontFamily();
 
     /**
      * Set the fixed font family name.
@@ -426,7 +428,7 @@ public:
      * Get the fixed font family name. The default is "monospace".
      * @return The fixed font family name as a string.
      */
-	virtual CARAPI_(CString) GetFixedFontFamily();
+	virtual CARAPI_(String) GetFixedFontFamily();
 
     /**
      * Set the sans-serif font family name.
@@ -439,7 +441,7 @@ public:
      * Get the sans-serif font family name.
      * @return The sans-serif font family name as a string.
      */
-	virtual CARAPI_(CString) GetSansSerifFontFamily();
+	virtual CARAPI_(String) GetSansSerifFontFamily();
 
     /**
      * Set the serif font family name. The default is "sans-serif".
@@ -949,7 +951,7 @@ private:
     // Flag to prevent multiple SYNC messages at one time.
     Boolean mSyncPending;
     // Custom handler that queues messages until the WebCore thread is active.
-    /*const*/ EventHandler* mEventHandler;
+    /*const*/ WsEventHandler* mEventHandler;
 
     // Private settings so we don't have to go into native code to
     // retrieve the values. After setXXX, postSync() needs to be called.

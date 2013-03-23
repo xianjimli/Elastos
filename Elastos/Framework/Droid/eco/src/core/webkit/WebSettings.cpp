@@ -6,11 +6,16 @@
 #include "os/Process.h"
 #include "../../../res/gen/R.h"
 #include <StringBuffer.h>
+//#include <elastos/CLocale.h>
+#include "os/Build.h"
+#include "webkit/CWebView.h"
+#include "webkit/DebugFlags.h" 
+#include <Logger.h>
 
 // User agent strings.
 const CString WebSettings::DESKTOP_USERAGENT =
         "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_5_7; en-us) AppleWebKit/530.17 (KHTML, like Gecko) Version/4.0 Safari/530.17";
-const CString WebSettings::IPHONE_USERAGENT =
+const CString WebSettings::IPHONE_USERAGENT = 
         "Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16";
 
 // private WebSettings, not accessible by the host activity
@@ -89,7 +94,7 @@ void WebSettings::WsEventHandler::WsEhHandler::HandleMessage(
             break;
         }
         case (WsEventHandler::SET_DOUBLE_TAP_TOAST_COUNT): {
-            /*
+            /*            
             AutoPtr<ISharedPreferences> sharedPreferencesT;    //JAVA:    content/SharedPreferences(Interface)
             mContext -> GetSharedPreferences(PREF_FILE,Context_MODE_PRIVATE,(ISharedPreferences**)&sharedPreferencesT);
             AutoPtr<ISharedPreferencesEditor> editor;        //JAVA:    content/SharedPreferences(Interface)::Editor(Interface)
@@ -126,10 +131,10 @@ void WebSettings::WsEventHandler::SetRenderPriority()
     Core::Threading::Mutex::Autolock lock(mWebSettings -> mMutex);
     if ((mWebSettings -> mRenderPriority) == RP_NORMAL) {
         Process::SetThreadPriority(Process::THREAD_PRIORITY_DEFAULT);    //JAVA:    android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_DEFAULT);
-    }
+    } 
     else if ((mWebSettings -> mRenderPriority) == RP_HIGH) {
         Process::SetThreadPriority(Process::THREAD_PRIORITY_FOREGROUND + Process::THREAD_PRIORITY_LESS_FAVORABLE);    //JAVA:    android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_FOREGROUND + android.os.Process.THREAD_PRIORITY_LESS_FAVORABLE);
-    }
+    } 
     else if ((mWebSettings -> mRenderPriority) == RP_LOW) {
         Process::SetThreadPriority(Process::THREAD_PRIORITY_BACKGROUND);
     }
@@ -146,7 +151,7 @@ Boolean WebSettings::WsEventHandler::SendMessage(
         //Boolean bSdMsg;
         //mHandler -> SendMessage(msg,&bSdMsg);
         return TRUE;
-    }
+    } 
     else {
         return FALSE;
     }
@@ -227,16 +232,16 @@ WebSettings::WebSettings()
  * instance.
  */
 WebSettings::WebSettings(
-    /* [in] */ IContext* context,
+    /* [in] */ IContext* context, 
     /* [in] */ IWebView* webview)
 {
     InitPara();
-    mEventHandler = new EventHandler();
+    mEventHandler = new WebSettings::WsEventHandler::WsEventHandler(this);
     mContext = context;
     mWebView = webview;
     context -> GetString(R::string::default_text_encoding,&mDefaultTextEncoding);
 
-    if(sLocale.Get() == NULL){
+    if(sLocale.Get() == NULL){        
         AutoPtr<ILocaleHelper> localeHelper;
         CLocaleHelper::AcquireSingleton((ILocaleHelper**)&localeHelper);
         localeHelper->GetDefault((ILocale**)&sLocale);
@@ -265,7 +270,7 @@ String WebSettings::GetCurrentAcceptLanguage()
     /*const*/ String country;
     locale -> GetLanguage(&language);
     if(language.IsNullOrEmpty()){
-        buffer += language;
+        buffer += language;        
         locale -> GetCountry(&country);
         if (country.IsNullOrEmpty()) {
             buffer += String("-");
@@ -286,16 +291,67 @@ String WebSettings::GetCurrentAcceptLanguage()
  * Looks at sLocale and mContext and returns current UserAgent String.
  * @return Current UserAgent String.
  */
-CARAPI_(String) WebSettings::GetCurrentUserAgent()
+String WebSettings::GetCurrentUserAgent()
 {
     Core::Threading::Mutex::Autolock lock(mMutex);
+    AutoPtr<ILocale> locale;
+    sLockForLocaleSettings.Lock();
+    locale = sLocale;
+    sLockForLocaleSettings.Unlock();
 
+    StringBuffer buffer;
+    // Add version
+    /*const*/ String version;// = Build::VERSION::RELEASE;    //JAVA:    Build.VERSION.RELEASE;
+    if (version.GetLength() > 0) {
+        buffer += version;
+    } 
+    else { // default to "1.0"
+        buffer += String("1.0");
+    }  
+    buffer += String("; ");
+    /*const*/ String language;
+    locale -> GetLanguage(&language);
+    if (language.IsNullOrEmpty()) {
+        language.ToLowerCase();
+        buffer += language;
+        /*const*/ String country;
+        locale -> GetCountry(&country);
+        if (country.IsNullOrEmpty()) {
+            buffer += String("-");
+            country.ToLowerCase();
+            buffer += country;
+        }
+    }
+    else {
+        // default to "en"
+        buffer += String("en");
+    }
+    // add the model for the release build
+    if (String("REL").Equals(Build::VERSION::CODENAME)) {
+        /*const*/ String model = Build::MODEL;
+        if (model.GetLength() > 0) {
+            buffer += String("; ");
+            buffer += model;
+        }
+    }
+    /*const*/ String id = Build::ID;
+    if (id.GetLength() > 0) {
+        buffer += String(" Build/");
+        buffer += String(id);
+    }
+    AutoPtr<IResources> resT;
+    mContext -> GetResources((IResources**)&resT);
+    AutoPtr<ICharSequence> base;
+    resT -> GetText(R::string::web_user_agent,(ICharSequence**)&base);
+    String retVal;
+    retVal.AppendFormat((char*)(base.Get()),buffer);
+    return retVal;
 }
 
 /**
  * Enables dumping the pages navigation cache to a text file.
  */
-CARAPI_(void) WebSettings::SetNavDump(
+void WebSettings::SetNavDump(
     /* [in] */ Boolean enabled)
 {
     mNavDump = enabled;
@@ -304,7 +360,7 @@ CARAPI_(void) WebSettings::SetNavDump(
 /**
  * Returns true if dumping the navigation cache is enabled.
  */
-CARAPI_(Boolean) WebSettings::GetNavDump()
+Boolean WebSettings::GetNavDump()
 {
     return mNavDump;
 }
@@ -312,18 +368,17 @@ CARAPI_(Boolean) WebSettings::GetNavDump()
 /**
  * Set whether the WebView supports zoom
  */
-CARAPI_(void) WebSettings::SetSupportZoom(
+void WebSettings::SetSupportZoom(
     /* [in] */ Boolean support)
 {
     mSupportZoom = support;
-//    mWebView->UpdateMultiTouchSupport(mContext);
-
+    //((CWebView*)(mWebView.Get()))-> UpdateMultiTouchSupport(mContext.Get());
 }
 
 /**
  * Returns whether the WebView supports zoom
  */
-CARAPI_(Boolean) WebSettings::SupportZoom()
+Boolean WebSettings::SupportZoom()
 {
     return mSupportZoom;
 }
@@ -331,17 +386,17 @@ CARAPI_(Boolean) WebSettings::SupportZoom()
 /**
  * Sets whether the zoom mechanism built into WebView is used.
  */
-CARAPI_(void) WebSettings::SetBuiltInZoomControls(
+void WebSettings::SetBuiltInZoomControls(
     /* [in] */ Boolean enabled)
 {
     mBuiltInZoomControls = enabled;
-//    mWebView->UpdateMultiTouchSupport(mContext);
+    //((CWebView*)(mWebView.Get()))-> UpdateMultiTouchSupport(mContext.Get());
 }
 
 /**
  * Returns true if the zoom mechanism built into WebView is being used.
  */
-CARAPI_(Boolean) WebSettings::GetBuiltInZoomControls()
+Boolean WebSettings::GetBuiltInZoomControls()
 {
     return mBuiltInZoomControls;
 }
@@ -352,7 +407,7 @@ CARAPI_(Boolean) WebSettings::GetBuiltInZoomControls()
  * Assets and resources are still accessible using file:///android_asset and
  * file:///android_res.
  */
-CARAPI_(void) WebSettings::SetAllowFileAccess(
+void WebSettings::SetAllowFileAccess(
     /* [in] */ Boolean allow)
 {
     mAllowFileAccess = allow;
@@ -361,7 +416,7 @@ CARAPI_(void) WebSettings::SetAllowFileAccess(
 /**
  * Returns true if this WebView supports file access.
  */
-CARAPI_(Boolean) WebSettings::GetAllowFileAccess()
+Boolean WebSettings::GetAllowFileAccess()
 {
     return mAllowFileAccess;
 }
@@ -372,7 +427,7 @@ CARAPI_(Boolean) WebSettings::GetAllowFileAccess()
  * system.  The default is enabled.
  * @hide
  */
-CARAPI_(void) WebSettings::SetAllowContentAccess(
+void WebSettings::SetAllowContentAccess(
     /* [in] */ Boolean allow)
 {
     mAllowContentAccess = allow;
@@ -382,7 +437,7 @@ CARAPI_(void) WebSettings::SetAllowContentAccess(
  * Returns true if this WebView supports content url access.
  * @hide
  */
-CARAPI_(Boolean) WebSettings::GetAllowContentAccess()
+Boolean WebSettings::GetAllowContentAccess()
 {
     return mAllowContentAccess;
 }
@@ -390,7 +445,7 @@ CARAPI_(Boolean) WebSettings::GetAllowContentAccess()
 /**
  * Set whether the WebView loads a page with overview mode.
  */
-CARAPI_(void) WebSettings::SetLoadWithOverviewMode(
+void WebSettings::SetLoadWithOverviewMode(
     /* [in] */ Boolean overview)
 {
     mLoadWithOverviewMode = overview;
@@ -399,7 +454,7 @@ CARAPI_(void) WebSettings::SetLoadWithOverviewMode(
 /**
  * Returns true if this WebView loads page with overview mode
  */
-CARAPI_(Boolean) WebSettings::GetLoadWithOverviewMode()
+Boolean WebSettings::GetLoadWithOverviewMode()
 {
     return mLoadWithOverviewMode;
 }
@@ -409,7 +464,7 @@ CARAPI_(Boolean) WebSettings::GetLoadWithOverviewMode()
  * If true, it will use the WebView's background. If false, it will use an
  * internal pattern. Default is true.
  */
-CARAPI_(void) WebSettings::SetUseWebViewBackgroundForOverscrollBackground(
+void WebSettings::SetUseWebViewBackgroundForOverscrollBackground(
     /* [in] */ Boolean view)
 {
     mUseWebViewBackgroundOverscrollBackground = view;
@@ -419,7 +474,7 @@ CARAPI_(void) WebSettings::SetUseWebViewBackgroundForOverscrollBackground(
  * Returns true if this WebView uses WebView's background instead of
  * internal pattern for over scroll background.
  */
-CARAPI_(Boolean) WebSettings::GetUseWebViewBackgroundForOverscrollBackground()
+Boolean WebSettings::GetUseWebViewBackgroundForOverscrollBackground()
 {
     return mUseWebViewBackgroundOverscrollBackground;
 }
@@ -427,7 +482,7 @@ CARAPI_(Boolean) WebSettings::GetUseWebViewBackgroundForOverscrollBackground()
 /**
  * Store whether the WebView is saving form data.
  */
-CARAPI_(void) WebSettings::SetSaveFormData(
+void WebSettings::SetSaveFormData(
     /* [in] */ Boolean save)
 {
     mSaveFormData = save;
@@ -436,7 +491,7 @@ CARAPI_(void) WebSettings::SetSaveFormData(
 /**
  *  Return whether the WebView is saving form data.
  */
-CARAPI_(Boolean) WebSettings::GetSaveFormData()
+Boolean WebSettings::GetSaveFormData()
 {
     return mSaveFormData;
 }
@@ -444,7 +499,7 @@ CARAPI_(Boolean) WebSettings::GetSaveFormData()
 /**
  *  Store whether the WebView is saving password.
  */
-CARAPI_(void) WebSettings::SetSavePassword(
+void WebSettings::SetSavePassword(
     /* [in] */ Boolean save)
 {
     mSavePassword = save;
@@ -453,7 +508,7 @@ CARAPI_(void) WebSettings::SetSavePassword(
 /**
  *  Return whether the WebView is saving password.
  */
-CARAPI_(Boolean) WebSettings::GetSavePassword()
+Boolean WebSettings::GetSavePassword()
 {
     return mSavePassword;
 }
@@ -463,16 +518,13 @@ CARAPI_(Boolean) WebSettings::GetSavePassword()
  * @param t A TextSize value for increasing or decreasing the text.
  * @see WebSettings.TextSize
  */
-CARAPI_(void) WebSettings::SetTextSize(
+void WebSettings::SetTextSize(
     /* [in] */ TextSize* t)
 {
-    assert(t != NULL);
-#if 0
-    if (WebView.mLogEvent && mTextSize != t ) {
-        EventLog.WriteEvent(EventLogTags::BROWSER_TEXT_SIZE_CHANGE,
-                mTextSize->value, t->value);
+    Core::Threading::Mutex::Autolock lock(mMutex);
+    if (/*CWebView::mLogEvent &&*/ mTextSize != t ) {
+        //JAVA:    EventLog.WriteEvent(EventLogTags::BROWSER_TEXT_SIZE_CHANGE,mTextSize.value, t.value);
     }
-#endif
     mTextSize = t;
     PostSync();
 }
@@ -482,8 +534,9 @@ CARAPI_(void) WebSettings::SetTextSize(
  * @return A TextSize enum value describing the text size.
  * @see WebSettings.TextSize
  */
-CARAPI_(WebSettings::TextSize*) WebSettings::GetTextSize()
+WebSettings::TextSize* WebSettings::GetTextSize()
 {
+    Core::Threading::Mutex::Autolock lock(mMutex);
     return mTextSize;
 }
 
@@ -493,14 +546,13 @@ CARAPI_(WebSettings::TextSize*) WebSettings::GetTextSize()
  * @param zoom A ZoomDensity value
  * @see WebSettings.ZoomDensity
  */
-CARAPI_(void) WebSettings::SetDefaultZoom(
+void WebSettings::SetDefaultZoom(
     /* [in] */ WebSettings::ZoomDensity* zoom)
 {
     assert(zoom != NULL);
-
     if (mDefaultZoom != zoom) {
         mDefaultZoom = zoom;
-//        mWebView->UpdateDefaultZoomDensity(zoom->value);
+        //((CWebView*)(mWebView.Get()))->UpdateDefaultZoomDensity(zoom->value);
     }
 }
 
@@ -510,7 +562,7 @@ CARAPI_(void) WebSettings::SetDefaultZoom(
  * @return A ZoomDensity value
  * @see WebSettings.ZoomDensity
  */
-CARAPI_(WebSettings::ZoomDensity*) WebSettings::GetDefaultZoom()
+WebSettings::ZoomDensity* WebSettings::GetDefaultZoom()
 {
     return mDefaultZoom;
 }
@@ -518,7 +570,7 @@ CARAPI_(WebSettings::ZoomDensity*) WebSettings::GetDefaultZoom()
 /**
  * Enables using light touches to make a selection and activate mouseovers.
  */
-CARAPI_(void) WebSettings::SetLightTouchEnabled(
+void WebSettings::SetLightTouchEnabled(
     /* [in] */ Boolean enabled)
 {
     mLightTouchEnabled = enabled;
@@ -527,7 +579,7 @@ CARAPI_(void) WebSettings::SetLightTouchEnabled(
 /**
  * Returns true if light touches are enabled.
  */
-CARAPI_(Boolean) WebSettings::GetLightTouchEnabled()
+Boolean WebSettings::GetLightTouchEnabled()
 {
     return mLightTouchEnabled;
 }
@@ -536,9 +588,10 @@ CARAPI_(Boolean) WebSettings::GetLightTouchEnabled()
  * @deprecated This setting controlled a rendering optimization
  * that is no longer present. Setting it now has no effect.
  */
-CARAPI_(void) WebSettings::SetUseDoubleTree(
+void WebSettings::SetUseDoubleTree(
     /* [in] */ Boolean use)
 {
+    Core::Threading::Mutex::Autolock lock(mMutex);
     return;
 }
 
@@ -546,8 +599,9 @@ CARAPI_(void) WebSettings::SetUseDoubleTree(
  * @deprecated This setting controlled a rendering optimization
  * that is no longer present. Setting it now has no effect.
  */
-CARAPI_(Boolean) WebSettings::GetUseDoubleTree()
+Boolean WebSettings::GetUseDoubleTree()
 {
+    Core::Threading::Mutex::Autolock lock(mMutex);
     return FALSE;
 }
 
@@ -558,26 +612,29 @@ CARAPI_(Boolean) WebSettings::GetUseDoubleTree()
  *
  * @deprecated Please use setUserAgentString instead.
  */
-CARAPI_(void) WebSettings::SetUserAgent(
+void WebSettings::SetUserAgent(
     /* [in] */ Int32 ua)
 {
+    Core::Threading::Mutex::Autolock lock(mMutex);
     String uaString;
     if (ua == 1) {
         if (mUserAgent.Equals(DESKTOP_USERAGENT)) {
             return; // do nothing
-        } else {
+        } 
+        else {
             uaString = DESKTOP_USERAGENT;
         }
-    } else if (ua == 2) {
+    } 
+    else if (ua == 2) {
         if (mUserAgent.Equals(IPHONE_USERAGENT)) {
             return; // do nothing
-        } else {
+        } 
+        else {
             uaString = IPHONE_USERAGENT;
         }
     } else if (ua != 0) {
         return; // do nothing
     }
-
     SetUserAgentString(uaString);
 }
 
@@ -589,25 +646,26 @@ CARAPI_(void) WebSettings::SetUserAgent(
  *
  * @deprecated Please use getUserAgentString instead.
  */
-CARAPI_(Int32) WebSettings::GetUserAgent()
+Int32 WebSettings::GetUserAgent()
 {
     Mutex::Autolock lock(mMutex);
 
     if (mUserAgent.Equals(DESKTOP_USERAGENT)) {
         return 1;
-    } else if (mUserAgent.Equals(IPHONE_USERAGENT)) {
+    } 
+    else if (mUserAgent.Equals(IPHONE_USERAGENT)) {
         return 2;
-    } else if (mUseDefaultUserAgent) {
+    } 
+    else if (mUseDefaultUserAgent) {
         return 0;
     }
-
     return -1;
 }
 
 /**
  * Tell the WebView to use the wide viewport
  */
-CARAPI_(void) WebSettings::SetUseWideViewPort(
+void WebSettings::SetUseWideViewPort(
     /* [in] */ Boolean use)
 {
     Mutex::Autolock lock(mMutex);
@@ -621,7 +679,7 @@ CARAPI_(void) WebSettings::SetUseWideViewPort(
 /**
  * @return True if the WebView is using a wide viewport
  */
-CARAPI_(Boolean) WebSettings::GetUseWideViewPort()
+Boolean WebSettings::GetUseWideViewPort()
 {
     Mutex::Autolock lock(mMutex);
 
@@ -633,7 +691,7 @@ CARAPI_(Boolean) WebSettings::GetUseWideViewPort()
  *         that {@link WebChromeClient#onCreateWindow(WebView, boolean,
  *         boolean, Message)} is implemented by the host application.
  */
-CARAPI_(void) WebSettings::SetSupportMultipleWindows(
+void WebSettings::SetSupportMultipleWindows(
     /* [in] */ Boolean support)
 {
     Mutex::Autolock lock(mMutex);
@@ -649,7 +707,7 @@ CARAPI_(void) WebSettings::SetSupportMultipleWindows(
  *         that {@link WebChromeClient#onCreateWindow(WebView, boolean,
  *         boolean, Message)} is implemented by the host application.
  */
-CARAPI_(Boolean) WebSettings::SupportMultipleWindows()
+Boolean WebSettings::SupportMultipleWindows()
 {
     Mutex::Autolock lock(mMutex);
 
@@ -662,7 +720,7 @@ CARAPI_(Boolean) WebSettings::SupportMultipleWindows()
  * @param l A LayoutAlgorithm enum specifying the algorithm to use.
  * @see WebSettings.LayoutAlgorithm
  */
-CARAPI_(void) WebSettings::SetLayoutAlgorithm(
+void WebSettings::SetLayoutAlgorithm(
     /* [in] */ WebSettings::LayoutAlgorithm l)
 {
     Mutex::Autolock lock(mMutex);
@@ -681,7 +739,7 @@ CARAPI_(void) WebSettings::SetLayoutAlgorithm(
  *         being used.
  * @see WebSettings.LayoutAlgorithm
  */
-CARAPI_(WebSettings::LayoutAlgorithm) WebSettings::GetLayoutAlgorithm()
+WebSettings::LayoutAlgorithm WebSettings::GetLayoutAlgorithm()
 {
     Mutex::Autolock lock(mMutex);
 
@@ -692,7 +750,7 @@ CARAPI_(WebSettings::LayoutAlgorithm) WebSettings::GetLayoutAlgorithm()
  * Set the standard font family name.
  * @param font A font family name.
  */
-CARAPI_(void) WebSettings::SetStandardFontFamily(
+void WebSettings::SetStandardFontFamily(
     /* [in] */ const String& font)
 {
     Mutex::Autolock lock(mMutex);
@@ -707,7 +765,7 @@ CARAPI_(void) WebSettings::SetStandardFontFamily(
  * Get the standard font family name. The default is "sans-serif".
  * @return The standard font family name as a string.
  */
-CARAPI_(CString) WebSettings::GetStandardFontFamily()
+String WebSettings::GetStandardFontFamily()
 {
     Mutex::Autolock lock(mMutex);
 
@@ -718,7 +776,7 @@ CARAPI_(CString) WebSettings::GetStandardFontFamily()
  * Set the fixed font family name.
  * @param font A font family name.
  */
-CARAPI_(void) WebSettings::SetFixedFontFamily(
+void WebSettings::SetFixedFontFamily(
     /* [in] */ const String& font)
 {
     Mutex::Autolock lock(mMutex);
@@ -733,7 +791,7 @@ CARAPI_(void) WebSettings::SetFixedFontFamily(
  * Get the fixed font family name. The default is "monospace".
  * @return The fixed font family name as a string.
  */
-CARAPI_(CString) WebSettings::GetFixedFontFamily()
+String WebSettings::GetFixedFontFamily()
 {
     Mutex::Autolock lock(mMutex);
 
@@ -744,7 +802,7 @@ CARAPI_(CString) WebSettings::GetFixedFontFamily()
  * Set the sans-serif font family name.
  * @param font A font family name.
  */
-CARAPI_(void) WebSettings::SetSansSerifFontFamily(
+void WebSettings::SetSansSerifFontFamily(
     /* [in] */ const String& font)
 {
     Mutex::Autolock lock(mMutex);
@@ -759,7 +817,7 @@ CARAPI_(void) WebSettings::SetSansSerifFontFamily(
  * Get the sans-serif font family name.
  * @return The sans-serif font family name as a string.
  */
-CARAPI_(CString) WebSettings::GetSansSerifFontFamily()
+String WebSettings::GetSansSerifFontFamily()
 {
     Mutex::Autolock lock(mMutex);
 
@@ -770,7 +828,7 @@ CARAPI_(CString) WebSettings::GetSansSerifFontFamily()
  * Set the serif font family name. The default is "sans-serif".
  * @param font A font family name.
  */
-CARAPI_(void) WebSettings::SetSerifFontFamily(
+void WebSettings::SetSerifFontFamily(
     /* [in] */ const String& font)
 {
     Mutex::Autolock lock(mMutex);
@@ -785,7 +843,7 @@ CARAPI_(void) WebSettings::SetSerifFontFamily(
  * Get the serif font family name. The default is "serif".
  * @return The serif font family name as a string.
  */
-CARAPI_(String) WebSettings::GetSerifFontFamily()
+String WebSettings::GetSerifFontFamily()
 {
     Mutex::Autolock lock(mMutex);
 
@@ -796,7 +854,7 @@ CARAPI_(String) WebSettings::GetSerifFontFamily()
  * Set the cursive font family name.
  * @param font A font family name.
  */
-CARAPI_(void) WebSettings::SetCursiveFontFamily(
+void WebSettings::SetCursiveFontFamily(
     /* [in] */ const String& font)
 {
     Mutex::Autolock lock(mMutex);
@@ -811,7 +869,7 @@ CARAPI_(void) WebSettings::SetCursiveFontFamily(
  * Get the cursive font family name. The default is "cursive".
  * @return The cursive font family name as a string.
  */
-CARAPI_(String) WebSettings::GetCursiveFontFamily()
+String WebSettings::GetCursiveFontFamily()
 {
     Mutex::Autolock lock(mMutex);
 
@@ -822,7 +880,7 @@ CARAPI_(String) WebSettings::GetCursiveFontFamily()
  * Set the fantasy font family name.
  * @param font A font family name.
  */
-CARAPI_(void) WebSettings::SetFantasyFontFamily(
+void WebSettings::SetFantasyFontFamily(
     /* [in] */ const String& font)
 {
     Mutex::Autolock lock(mMutex);
@@ -837,7 +895,7 @@ CARAPI_(void) WebSettings::SetFantasyFontFamily(
  * Get the fantasy font family name. The default is "fantasy".
  * @return The fantasy font family name as a string.
  */
-CARAPI_(String) WebSettings::GetFantasyFontFamily()
+ String WebSettings::GetFantasyFontFamily()
 {
     Mutex::Autolock lock(mMutex);
 
@@ -849,7 +907,7 @@ CARAPI_(String) WebSettings::GetFantasyFontFamily()
  * @param size A non-negative integer between 1 and 72.
  * Any number outside the specified range will be pinned.
  */
-CARAPI_(void) WebSettings::SetMinimumFontSize(
+void WebSettings::SetMinimumFontSize(
     /* [in] */ Int32 size)
 {
     Mutex::Autolock lock(mMutex);
@@ -865,7 +923,7 @@ CARAPI_(void) WebSettings::SetMinimumFontSize(
  * Get the minimum font size. The default is 8.
  * @return A non-negative integer between 1 and 72.
  */
-CARAPI_(Int32) WebSettings::GetMinimumFontSize()
+Int32 WebSettings::GetMinimumFontSize()
 {
     Mutex::Autolock lock(mMutex);
 
@@ -877,7 +935,7 @@ CARAPI_(Int32) WebSettings::GetMinimumFontSize()
  * @param size A non-negative integer between 1 and 72.
  * Any number outside the specified range will be pinned.
  */
-CARAPI_(void) WebSettings::SetMinimumLogicalFontSize(
+void WebSettings::SetMinimumLogicalFontSize(
     /* [in] */ Int32 size)
 {
     Mutex::Autolock lock(mMutex);
@@ -893,7 +951,7 @@ CARAPI_(void) WebSettings::SetMinimumLogicalFontSize(
  * Get the minimum logical font size. The default is 8.
  * @return A non-negative integer between 1 and 72.
  */
-CARAPI_(Int32) WebSettings::GetMinimumLogicalFontSize()
+Int32 WebSettings::GetMinimumLogicalFontSize()
 {
     Mutex::Autolock lock(mMutex);
 
@@ -905,7 +963,7 @@ CARAPI_(Int32) WebSettings::GetMinimumLogicalFontSize()
  * @param size A non-negative integer between 1 and 72.
  * Any number outside the specified range will be pinned.
  */
-CARAPI_(void) WebSettings::SetDefaultFontSize(
+void WebSettings::SetDefaultFontSize(
     /* [in] */ Int32 size)
 {
     Mutex::Autolock lock(mMutex);
@@ -921,7 +979,7 @@ CARAPI_(void) WebSettings::SetDefaultFontSize(
  * Get the default font size. The default is 16.
  * @return A non-negative integer between 1 and 72.
  */
-CARAPI_(Int32) WebSettings::GetDefaultFontSize()
+Int32 WebSettings::GetDefaultFontSize()
 {
     Mutex::Autolock lock(mMutex);
 
@@ -933,7 +991,7 @@ CARAPI_(Int32) WebSettings::GetDefaultFontSize()
  * @param size A non-negative integer between 1 and 72.
  * Any number outside the specified range will be pinned.
  */
-CARAPI_(void) WebSettings::SetDefaultFixedFontSize(
+void WebSettings::SetDefaultFixedFontSize(
     /* [in] */ Int32 size)
 {
     Mutex::Autolock lock(mMutex);
@@ -949,7 +1007,7 @@ CARAPI_(void) WebSettings::SetDefaultFixedFontSize(
  * Get the default fixed font size. The default is 16.
  * @return A non-negative integer between 1 and 72.
  */
-CARAPI_(Int32) WebSettings::GetDefaultFixedFontSize()
+Int32 WebSettings::GetDefaultFixedFontSize()
 {
     Mutex::Autolock lock(mMutex);
 
@@ -961,7 +1019,7 @@ CARAPI_(Int32) WebSettings::GetDefaultFixedFontSize()
  * @param size A non-negative integer between 0 (no cache) and 20 (max).
  * @hide
  */
-CARAPI_(void) WebSettings::SetPageCacheCapacity(
+void WebSettings::SetPageCacheCapacity(
     /* [in] */ Int32 size)
 {
     Mutex::Autolock lock(mMutex);
@@ -978,7 +1036,7 @@ CARAPI_(void) WebSettings::SetPageCacheCapacity(
  * Tell the WebView to load image resources automatically.
  * @param flag True if the WebView should load images automatically.
  */
-CARAPI_(void) WebSettings::SetLoadsImagesAutomatically(
+void WebSettings::SetLoadsImagesAutomatically(
     /* [in] */ Boolean flag)
 {
     Mutex::Autolock lock(mMutex);
@@ -994,7 +1052,7 @@ CARAPI_(void) WebSettings::SetLoadsImagesAutomatically(
  * The default is true.
  * @return True if the WebView loads images automatically.
  */
-CARAPI_(Boolean) WebSettings::GetLoadsImagesAutomatically()
+Boolean WebSettings::GetLoadsImagesAutomatically()
 {
     Mutex::Autolock lock(mMutex);
 
@@ -1009,7 +1067,7 @@ CARAPI_(Boolean) WebSettings::GetLoadsImagesAutomatically()
  * @param flag True if the WebView should block network images.
  * @see #setBlockNetworkLoads
  */
-CARAPI_(void) WebSettings::SetBlockNetworkImage(
+void WebSettings::SetBlockNetworkImage(
     /* [in] */ Boolean flag)
 {
     Mutex::Autolock lock(mMutex);
@@ -1025,7 +1083,7 @@ CARAPI_(void) WebSettings::SetBlockNetworkImage(
  * false.
  * @return True if the WebView blocks network images.
  */
-CARAPI_(Boolean) WebSettings::GetBlockNetworkImage()
+Boolean WebSettings::GetBlockNetworkImage()
 {
     Mutex::Autolock lock(mMutex);
 
@@ -1040,7 +1098,7 @@ CARAPI_(Boolean) WebSettings::GetBlockNetworkImage()
  * @param flag True if the WebView should block all network loads.
  * @see android.webkit.WebView#reload
  */
-CARAPI_(void) WebSettings::SetBlockNetworkLoads(
+void WebSettings::SetBlockNetworkLoads(
     /* [in] */ Boolean flag)
 {
     Mutex::Autolock lock(mMutex);
@@ -1056,18 +1114,30 @@ CARAPI_(void) WebSettings::SetBlockNetworkLoads(
  * false.
  * @return True if the WebView blocks all network loads.
  */
-CARAPI_(Boolean) WebSettings::GetBlockNetworkLoads()
+Boolean WebSettings::GetBlockNetworkLoads()
 {
     Mutex::Autolock lock(mMutex);
 
     return mBlockNetworkLoads;
 }
 
-    /**
+void WebSettings::VerifyNetworkAccess()
+{
+	if (!mBlockNetworkLoads) {
+		Int32 nCheckPermission = 0;
+		//mContext -> CheckPermission(String("android.permission.INTERNET"),Process::MyPid(),Process::MyUid(),&nCheckPermission);
+		if(/*nCheckPermission != CPackageManager_PERMISSION_GRANTED*/FALSE) {
+			Utility::Logging::Logger::W(String("WebSettings"), String("Permission denied - application missing INTERNET permission\n") );
+			//return E_SECURITY_EXCEPTION;
+        }
+    }
+}
+
+/**
  * Tell the WebView to enable javascript execution.
  * @param flag True if the WebView should execute javascript.
  */
-CARAPI_(void) WebSettings::SetJavaScriptEnabled(
+void WebSettings::SetJavaScriptEnabled(
     /* [in] */ Boolean flag)
 {
     Mutex::Autolock lock(mMutex);
@@ -1084,7 +1154,7 @@ CARAPI_(void) WebSettings::SetJavaScriptEnabled(
  * @deprecated This method has been deprecated in favor of
  *             {@link #setPluginState}
  */
-CARAPI_(void) WebSettings::SetPluginsEnabled(
+void WebSettings::SetPluginsEnabled(
     /* [in] */ Boolean flag)
 {
     Mutex::Autolock lock(mMutex);
@@ -1099,7 +1169,7 @@ CARAPI_(void) WebSettings::SetPluginsEnabled(
  * the placeholder is clicked, the plugin will be enabled.
  * @param state One of the PluginState values.
  */
-CARAPI_(void) WebSettings::SetPluginState(
+void WebSettings::SetPluginState(
     /* [in] */ PluginState state)
 {
     Mutex::Autolock lock(mMutex);
@@ -1117,7 +1187,7 @@ CARAPI_(void) WebSettings::SetPluginState(
  * @deprecated This method is no longer used as plugins are loaded from
  * their own APK via the system's package manager.
  */
-CARAPI_(void) WebSettings::SetPluginsPath(
+void WebSettings::SetPluginsPath(
     /* [in] */ const String& pluginsPath)
 {
     Mutex::Autolock lock(mMutex);
@@ -1130,7 +1200,7 @@ CARAPI_(void) WebSettings::SetPluginsPath(
  * @param databasePath String path to the directory where databases should
  *     be saved. May be the empty string but should never be null.
  */
-CARAPI_(void) WebSettings::SetDatabasePath(
+void WebSettings::SetDatabasePath(
     /* [in] */ const String& databasePath)
 {
     Mutex::Autolock lock(mMutex);
@@ -1149,7 +1219,7 @@ CARAPI_(void) WebSettings::SetDatabasePath(
  *     permissions database should be saved. May be the empty string but
  *     should never be null.
  */
-CARAPI_(void) WebSettings::SetGeolocationDatabasePath(
+void WebSettings::SetGeolocationDatabasePath(
     /* [in] */ const String& databasePath)
 {
     Mutex::Autolock lock(mMutex);
@@ -1165,7 +1235,7 @@ CARAPI_(void) WebSettings::SetGeolocationDatabasePath(
  * Tell the WebView to enable Application Caches API.
  * @param flag True if the WebView should enable Application Caches.
  */
-CARAPI_(void) WebSettings::SetAppCacheEnabled(
+void WebSettings::SetAppCacheEnabled(
     /* [in] */ Boolean flag)
 {
     Mutex::Autolock lock(mMutex);
@@ -1183,7 +1253,7 @@ CARAPI_(void) WebSettings::SetAppCacheEnabled(
  * Caches files. The appCache path can be the empty string but should not
  * be null. Passing null for this parameter will result in a no-op.
  */
-CARAPI_(void) WebSettings::SetAppCachePath(
+void WebSettings::SetAppCachePath(
     /* [in] */ const String& appCachePath)
 {
     Mutex::Autolock lock(mMutex);
@@ -1198,7 +1268,7 @@ CARAPI_(void) WebSettings::SetAppCachePath(
  * Set the maximum size for the Application Caches content.
  * @param appCacheMaxSize the maximum size in bytes.
  */
-CARAPI_(void) WebSettings::SetAppCacheMaxSize(
+void WebSettings::SetAppCacheMaxSize(
     /* [in] */ Int64 appCacheMaxSize)
 {
     Mutex::Autolock lock(mMutex);
@@ -1214,7 +1284,7 @@ CARAPI_(void) WebSettings::SetAppCacheMaxSize(
  * @param flag boolean True if the WebView should use the database storage
  *     API.
  */
-CARAPI_(void) WebSettings::SetDatabaseEnabled(
+void WebSettings::SetDatabaseEnabled(
     /* [in] */ Boolean flag)
 {
     Mutex::Autolock lock(mMutex);
@@ -1230,7 +1300,7 @@ CARAPI_(void) WebSettings::SetDatabaseEnabled(
  * @param flag boolean True if the WebView should use the DOM storage
  *     API.
  */
-CARAPI_(void) WebSettings::SetDomStorageEnabled(
+void WebSettings::SetDomStorageEnabled(
     /* [in] */ Boolean flag)
 {
     Mutex::Autolock lock(mMutex);
@@ -1245,7 +1315,7 @@ CARAPI_(void) WebSettings::SetDomStorageEnabled(
  * Returns true if the DOM Storage API's are enabled.
  * @return True if the DOM Storage API's are enabled.
  */
-CARAPI_(Boolean) WebSettings::GetDomStorageEnabled()
+Boolean WebSettings::GetDomStorageEnabled()
 {
     Mutex::Autolock lock(mMutex);
 
@@ -1257,7 +1327,7 @@ CARAPI_(Boolean) WebSettings::GetDomStorageEnabled()
  * the current WebView.
  * @return the String path to the database storage API databases.
  */
-CARAPI_(String) WebSettings::GetDatabasePath()
+String WebSettings::GetDatabasePath()
 {
     Mutex::Autolock lock(mMutex);
 
@@ -1268,7 +1338,7 @@ CARAPI_(String) WebSettings::GetDatabasePath()
  * Returns true if database storage API is enabled.
  * @return True if the database storage API is enabled.
  */
-CARAPI_(Boolean) WebSettings::GetDatabaseEnabled()
+Boolean WebSettings::GetDatabaseEnabled()
 {
     Mutex::Autolock lock(mMutex);
 
@@ -1282,7 +1352,7 @@ CARAPI_(Boolean) WebSettings::GetDatabaseEnabled()
  * an equivalent setting.
  * @hide pending api council approval
  */
-CARAPI_(void) WebSettings::SetWorkersEnabled(
+void WebSettings::SetWorkersEnabled(
     /* [in] */ Boolean flag)
 {
     Mutex::Autolock lock(mMutex);
@@ -1297,7 +1367,7 @@ CARAPI_(void) WebSettings::SetWorkersEnabled(
  * Sets whether Geolocation is enabled.
  * @param flag Whether Geolocation should be enabled.
  */
-CARAPI_(void) WebSettings::SetGeolocationEnabled(
+void WebSettings::SetGeolocationEnabled(
     /* [in] */ Boolean flag)
 {
     Mutex::Autolock lock(mMutex);
@@ -1312,7 +1382,7 @@ CARAPI_(void) WebSettings::SetGeolocationEnabled(
  * Return true if javascript is enabled. <b>Note: The default is false.</b>
  * @return True if javascript is enabled.
  */
-CARAPI_(Boolean) WebSettings::GetJavaScriptEnabled()
+Boolean WebSettings::GetJavaScriptEnabled()
 {
     Mutex::Autolock lock(mMutex);
 
@@ -1324,7 +1394,7 @@ CARAPI_(Boolean) WebSettings::GetJavaScriptEnabled()
  * @return True if plugins are enabled.
  * @deprecated This method has been replaced by {@link #getPluginState}
  */
-CARAPI_(Boolean) WebSettings::GetPluginsEnabled()
+Boolean WebSettings::GetPluginsEnabled()
 {
     Mutex::Autolock lock(mMutex);
 
@@ -1335,7 +1405,7 @@ CARAPI_(Boolean) WebSettings::GetPluginsEnabled()
  * Return the current plugin state.
  * @return A value corresponding to the enum PluginState.
  */
-CARAPI_(WebSettings::PluginState) WebSettings::GetPluginState()
+WebSettings::PluginState WebSettings::GetPluginState()
 {
     Mutex::Autolock lock(mMutex);
 
@@ -1349,7 +1419,7 @@ CARAPI_(WebSettings::PluginState) WebSettings::GetPluginState()
  * @deprecated This method is no longer used as plugins are loaded from
  * their own APK via the system's package manager.
  */
-CARAPI_(String) WebSettings::GetPluginsPath()
+String WebSettings::GetPluginsPath()
 {
     Mutex::Autolock lock(mMutex);
 
@@ -1361,7 +1431,7 @@ CARAPI_(String) WebSettings::GetPluginsPath()
  * javascript function window.open().
  * @param flag True if javascript can open windows automatically.
  */
-CARAPI_(void) WebSettings::SetJavaScriptCanOpenWindowsAutomatically(
+void WebSettings::SetJavaScriptCanOpenWindowsAutomatically(
     /* [in] */ Boolean flag)
 {
     Mutex::Autolock lock(mMutex);
@@ -1378,7 +1448,7 @@ CARAPI_(void) WebSettings::SetJavaScriptCanOpenWindowsAutomatically(
  * @return True if javascript can open windows automatically during
  *         window.open().
  */
-CARAPI_(Boolean) WebSettings::GetJavaScriptCanOpenWindowsAutomatically()
+Boolean WebSettings::GetJavaScriptCanOpenWindowsAutomatically()
 {
     Mutex::Autolock lock(mMutex);
 
@@ -1389,7 +1459,7 @@ CARAPI_(Boolean) WebSettings::GetJavaScriptCanOpenWindowsAutomatically()
  * Set the default text encoding name to use when decoding html pages.
  * @param encoding The text encoding name.
  */
-CARAPI_(void) WebSettings::SetDefaultTextEncodingName(
+void WebSettings::SetDefaultTextEncodingName(
     /* [in] */ const String& encoding)
 {
     Mutex::Autolock lock(mMutex);
@@ -1404,7 +1474,7 @@ CARAPI_(void) WebSettings::SetDefaultTextEncodingName(
  * Get the default text encoding name. The default is "Latin-1".
  * @return The default text encoding name as a string.
  */
-CARAPI_(String) WebSettings::GetDefaultTextEncodingName()
+String WebSettings::GetDefaultTextEncodingName()
 {
     Mutex::Autolock lock(mMutex);
 
@@ -1415,10 +1485,10 @@ CARAPI_(String) WebSettings::GetDefaultTextEncodingName()
  * Set the WebView's user-agent string. If the string "ua" is null or empty,
  * it will use the system default user-agent string.
  */
-CARAPI_(void) WebSettings::SetUserAgentString(
+void WebSettings::SetUserAgentString(
     /* [in] */ String ua)
 {
-    if (/*ua == null || */ua.GetLength() == 0) {
+    if (ua.IsNullOrEmpty()) {
         sLockForLocaleSettings.Lock();
         {
             AutoPtr<ILocale> currentLocale;// = Locale.GetDefault();
@@ -1444,7 +1514,7 @@ CARAPI_(void) WebSettings::SetUserAgentString(
 /**
  * Return the WebView's user-agent string.
  */
-CARAPI_(String*) WebSettings::GetUserAgentString()
+String* WebSettings::GetUserAgentString()
 {
     Mutex::Autolock lock(mMutex);
 
@@ -1455,7 +1525,7 @@ CARAPI_(String*) WebSettings::GetUserAgentString()
     }
 
     Boolean doPostSync = FALSE;
-
+    
     sLockForLocaleSettings.Lock();
     {
         AutoPtr<ILocale> currentLocale;// = Locale.GetDefault();
@@ -1476,8 +1546,8 @@ CARAPI_(String*) WebSettings::GetUserAgentString()
 }
 
 /* package api to grab the Accept Language string. */
-/*package*/
-CARAPI_(String*) WebSettings::GetAcceptLanguage()
+/*package*/ 
+String* WebSettings::GetAcceptLanguage()
 {
     Mutex::Autolock lock(mMutex);
 
@@ -1497,10 +1567,10 @@ CARAPI_(String*) WebSettings::GetAcceptLanguage()
 /**
  * Tell the WebView whether it needs to set a node to have focus when
  * {@link WebView#requestFocus(int, android.graphics.Rect)} is called.
- *
+ * 
  * @param flag
  */
-CARAPI_(void) WebSettings::SetNeedInitialFocus(
+void WebSettings::SetNeedInitialFocus(
     /* [in] */ Boolean flag)
 {
     if (mNeedInitialFocus != flag) {
@@ -1509,8 +1579,8 @@ CARAPI_(void) WebSettings::SetNeedInitialFocus(
 }
 
 /* Package api to get the choice whether it needs to set initial focus. */
-/* package */
-CARAPI_(Boolean) WebSettings::GetNeedInitialFocus()
+/* package */ 
+Boolean WebSettings::GetNeedInitialFocus()
 {
     return mNeedInitialFocus;
 }
@@ -1521,14 +1591,16 @@ CARAPI_(Boolean) WebSettings::GetNeedInitialFocus()
  *
  * @param priority RenderPriority, can be normal, high or low.
  */
-CARAPI_(void) WebSettings::SetRenderPriority(
+void WebSettings::SetRenderPriority(
     /* [in] */ RenderPriority priority)
 {
     Mutex::Autolock lock(mMutex);
 
     if (mRenderPriority != priority) {
         mRenderPriority = priority;
-//        mEventHandler.sendMessage(Message.obtain(null, EventHandler.PRIORITY));
+        AutoPtr<IMessage> messageT;
+        //CMessage::Obtain(NULL, WsEventHandler::PRIORITY,(IMessage**)&messageT);
+        mEventHandler -> SendMessage(messageT.Get());
     }
 }
 
@@ -1540,7 +1612,7 @@ CARAPI_(void) WebSettings::SetRenderPriority(
  * This function allows the client to override this behavior.
  * @param mode One of the LOAD_ values.
  */
-CARAPI_(void) WebSettings::SetCacheMode(
+void WebSettings::SetCacheMode(
     /* [in] */ Int32 mode)
 {
     if (mode != mOverrideCacheMode) {
@@ -1552,7 +1624,7 @@ CARAPI_(void) WebSettings::SetCacheMode(
  * Return the current setting for overriding the cache mode. For a full
  * description, see the {@link #setCacheMode(int)} function.
  */
-CARAPI_(Int32) WebSettings::GetCacheMode()
+Int32 WebSettings::GetCacheMode()
 {
     return mOverrideCacheMode;
 }
@@ -1564,7 +1636,7 @@ CARAPI_(Int32) WebSettings::GetCacheMode()
  * @param shrink Set true to let webkit shrink the standalone image to fit.
  * {@hide}
  */
-CARAPI_(void) WebSettings::SetShrinksStandaloneImagesToFit(
+void WebSettings::SetShrinksStandaloneImagesToFit(
     /* [in] */ Boolean shrink)
 {
     if (mShrinksStandaloneImagesToFit != shrink) {
@@ -1573,18 +1645,21 @@ CARAPI_(void) WebSettings::SetShrinksStandaloneImagesToFit(
     }
 }
 
-CARAPI_(Int32) WebSettings::GetDoubleTapToastCount()
+Int32 WebSettings::GetDoubleTapToastCount()
 {
     return mDoubleTapToastCount;
 }
 
-CARAPI_(void) WebSettings::SetDoubleTapToastCount(
+void WebSettings::SetDoubleTapToastCount(
     /* [in] */ Int32 count)
 {
     if (mDoubleTapToastCount != count) {
         mDoubleTapToastCount = count;
         // write the settings in the non-UI thread
-//        mEventHandler.sendMessage(Message.obtain(null, EventHandler.SET_DOUBLE_TAP_TOAST_COUNT));
+        //JAVA:    mEventHandler.sendMessage(Message.obtain(null, EventHandler.SET_DOUBLE_TAP_TOAST_COUNT));
+        AutoPtr<IMessage> messageT;
+        //CMessage::Obtain(NULL, WsEventHandler::SET_DOUBLE_TAP_TOAST_COUNT,(IMessage**)&messageT);
+        mEventHandler -> SendMessage(messageT.Get());
     }
 }
 
@@ -1596,37 +1671,35 @@ CARAPI_(void) WebSettings::SetDoubleTapToastCount(
 CARAPI_(void) WebSettings::SyncSettingsAndCreateHandler(
     /* [in] */ IBrowserFrame* frame)
 {
-#if 0
+	Mutex::Autolock lock(mMutex);
     mBrowserFrame = frame;
-    if (DebugFlags.WEB_SETTINGS) {
-        junit.framework.Assert.assertTrue(frame.mNativeFrame != 0);
+    if (DebugFlags::sWEB_SETTINGS) {
+        //JAVA:    junit.framework.Assert.assertTrue(frame.mNativeFrame != 0);
+        assert( (((CBrowserFrame*)frame) -> mNativeFrame) != 0 );
     }
 
-    SharedPreferences sp = mContext.getSharedPreferences(PREF_FILE,
-            Context.MODE_PRIVATE);
+    /*
+    AutoPtr<ISharedPreferences> sp ;	//SharedPreferences sp = mContext.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE);
+    mContext -> GetSharedPreferences(PREF_FILE, Context.MODE_PRIVATE, (ISharedPreferences**)&sp);
     if (mDoubleTapToastCount > 0) {
-        mDoubleTapToastCount = sp.getInt(DOUBLE_TAP_TOAST_COUNT,
-                mDoubleTapToastCount);
+        sp -> GetInt(DOUBLE_TAP_TOAST_COUNT, mDoubleTapToastCount ,&mDoubleTapToastCount);
     }
-    nativeSync(frame.mNativeFrame);
+    */
+    NativeSync( (((CBrowserFrame*)frame) -> mNativeFrame) );
     mSyncPending = false;
-    mEventHandler.createHandler();
-#endif
+    mEventHandler -> CreateHandler();
 }
 
 /**
  * Let the Settings object know that our owner is being destroyed.
  */
 /*package*/
-CARAPI_(void) WebSettings::OnDestroyed()
+void WebSettings::OnDestroyed()
 {
     Mutex::Autolock lock(mMutex);
 }
 
-CARAPI_(void) WebSettings::VerifyNetworkAccess()
-{}
-
-CARAPI_(Int32) WebSettings::Pin(
+Int32 WebSettings::Pin(
     /* [in] */ Int32 size)
 {
     // FIXME: 72 is just an arbitrary max text size value.
@@ -1640,16 +1713,21 @@ CARAPI_(Int32) WebSettings::Pin(
 
 /* Post a SYNC message to handle syncing the native settings. */
 CARAPI_(void) WebSettings::PostSync()
-{}
+{
+	Mutex::Autolock lock(mMutex);
+
+    if (!mSyncPending) {
+    	//JAVA:    mSyncPending = mEventHandler.sendMessage(Message.obtain(null, EventHandler.SYNC));
+    	AutoPtr<IMessage> messageT;
+    	//CMessage::Obtain(NULL, WsEventHandler::SYNC,(IMessage**)&messageT);
+    	mSyncPending = mEventHandler -> SendMessage(messageT.Get());		
+    }
+}
 
 // Synchronize the native and java settings.
 CARAPI_(void) WebSettings::NativeSync(
     /* [in] */ Int32 nativeFrame)
 {
-    Mutex::Autolock lock(mMutex);
-
-    if (!mSyncPending) {
-//        mSyncPending = mEventHandler.sendMessage(Message.obtain(null, EventHandler.SYNC));
-    }
+    
 }
 
