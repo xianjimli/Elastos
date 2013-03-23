@@ -27,7 +27,7 @@ ECode CWebHistoryItem::constructor(
 }
 
 //ECode CWebHistoryItem::constructor(IWebHistoryItem* item)
-CWebHistoryItem::CWebHistoryItem(
+ECode CWebHistoryItem::constructor(
     /* [in] */ IWebHistoryItem* item)
 {
     if(item != NULL){
@@ -38,7 +38,7 @@ CWebHistoryItem::CWebHistoryItem(
         itemC -> GetFavicon((IBitmap**)&mFavicon);
         itemC -> GetId(&mId);
     }
-    //return NOERROR;
+    return NOERROR;
 }
 
 ECode CWebHistoryItem::GetId(
@@ -138,7 +138,21 @@ ECode CWebHistoryItem::Clone(
 {
     VALIDATE_NOT_NULL(item);
     Mutex::Autolock lock(_m_syncLock);
-    *item = new CWebHistoryItem(this);
+
+    CWebHistoryItem::New(item);    
+    String url;
+    String title;
+    ArrayOf<byte>* data;
+    IBitmap* favicon;
+    Int32 id;    
+    GetUrl(&url);
+    GetTitle(&title);
+    GetFlattenedData(&data);
+    GetFavicon((IBitmap**)&favicon);
+    GetId(&id);
+    ( (CWebHistoryItem*)(*item) ) -> Update(url,String(""),title,favicon,data);
+    ( (CWebHistoryItem*)(*item) ) -> SetId(id);
+
     return NOERROR;
 }
 
@@ -161,5 +175,12 @@ ECode CWebHistoryItem::Update(
     mTitle = title;
     mFavicon = favicon;
     mFlattenedData = data;
+    return NOERROR;
+}
+
+ECode CWebHistoryItem::SetId(
+    /* [in] */ Int32 id)
+{
+    mId = id;
     return NOERROR;
 }

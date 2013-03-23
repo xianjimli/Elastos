@@ -157,7 +157,7 @@ private:
         AutoPtr<IHandler> mHandler;
     private:
         WebSettings* mWebSettings;
-        static Core::Threading::Mutex mMutexWsEhThis;
+        Core::Threading::Mutex mMutexWsEhThis;
     };
 
 public:

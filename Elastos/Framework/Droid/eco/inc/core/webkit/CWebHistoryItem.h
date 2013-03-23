@@ -11,6 +11,8 @@
 CarClass(CWebHistoryItem)
 {
 public:
+    friend class CWebHistoryItem;
+
     CARAPI GetId(
         /* [out] */ Int32 * id);
 
@@ -79,7 +81,6 @@ public:
     CARAPI Inflate(
         /* [in] */ Int32 nativeFrame);
 
-
 protected:
     /**
      * Clone the history item for use by clients of WebView.
@@ -100,7 +101,7 @@ private:
      * @param item The history item to clone.
      */
     //CARAPI constructor(IWebHistoryItem* item);
-    CWebHistoryItem(
+    CARAPI constructor(
         /* [in] */ IWebHistoryItem* item);
 
     /* Natively inflate this item, this method is called in the WebCore thread.
@@ -117,6 +118,9 @@ private:
         /* [in] */ String title,
         /* [in] */ IBitmap* favicon,
         /* [in] */ ArrayOf<byte>* data);
+
+    CARAPI SetId(
+        /* [in] */ Int32 id);
 
 private:
     // Global identifier count.    

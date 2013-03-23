@@ -77,7 +77,7 @@ void WebSettings::WsEventHandler::WsEhHandler::HandleMessage(
     switch (/*msg -> what*/0) {
         case (WsEventHandler::SYNC):
             if(TRUE){
-                Core::Threading::Mutex::Autolock lock(mWebSettings -> mMutexWsThis);
+                Core::Threading::Mutex::Autolock lock(mWebSettings -> mMutex);
                 Int32 nativeFrameT = ( (CBrowserFrame*)((mWebSettings -> mBrowserFrame).Get()) ) -> mNativeFrame;
                 if (nativeFrameT != 0) {
                     mWebSettings -> NativeSync(nativeFrameT);
@@ -111,7 +111,6 @@ WebSettings::WsEventHandler::WsEventHandler(
     mWebSettings = webSettings;
 }
 
-
 void WebSettings::WsEventHandler::CreateHandler()
 {
     Core::Threading::Mutex::Autolock lock(mMutexWsEhThis);
@@ -125,7 +124,7 @@ void WebSettings::WsEventHandler::CreateHandler()
 
 void WebSettings::WsEventHandler::SetRenderPriority()
 {
-    Core::Threading::Mutex::Autolock lock(mWebSettings -> mMutexWsThis);
+    Core::Threading::Mutex::Autolock lock(mWebSettings -> mMutex);
     if ((mWebSettings -> mRenderPriority) == RP_NORMAL) {
         Process::SetThreadPriority(Process::THREAD_PRIORITY_DEFAULT);    //JAVA:    android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_DEFAULT);
     } 
@@ -290,7 +289,7 @@ String WebSettings::GetCurrentAcceptLanguage()
  */
 CARAPI_(String) WebSettings::GetCurrentUserAgent()
 {
-    Core::Threading::Mutex::Autolock lock(mMutexWsThis);
+    Core::Threading::Mutex::Autolock lock(mMutex);
 
 }
 
