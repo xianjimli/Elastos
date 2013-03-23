@@ -50,6 +50,8 @@ endif
 
 C_DEFINES += -D_FRAMEWORK_CORE
 
+IMPORTS = Elastos.Net.eco
+
 SOURCES = Elastos.Framework.Core.car
 SOURCES += utils.cpp
 

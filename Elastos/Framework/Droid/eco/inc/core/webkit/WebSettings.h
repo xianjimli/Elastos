@@ -18,19 +18,7 @@ using namespace Threading;
  * IllegalStateException.
  */
 class WebSettings : public ElRefBase
-{
-
-public:
-    WebSettings();
-
-    /**
-     * Package constructor to prevent clients from creating a new settings
-     * instance.
-     */
-    WebSettings(
-    	/* [in] */ IContext* context, 
-    	/* [in] */ IWebView* webview);
-
+{    
 public:
     /**
      * Enum for controlling the layout of html.
@@ -40,8 +28,8 @@ public:
      * NARROW_COLUMNS makes all columns no wider than the screen if possible.
      */
     // XXX: These must match LayoutAlgorithm in Settings.h in WebCore.
-	enum LayoutAlgorithm 
-	{
+    enum LayoutAlgorithm 
+    {
         NORMAL,
         SINGLE_COLUMN,
         NARROW_COLUMNS
@@ -55,21 +43,19 @@ public:
      * LARGER is 150%
      * LARGEST is 200%
      */
-	struct TextSize 
-	{
-		enum 
-		{
-	        SMALLEST = 50,
-	        SMALLER  = 75,
-	        NORMAL   = 100,
-	        LARGER   = 150,
-	        LARGEST  = 200
-    	};
-
+    struct TextSize
+    {
+        enum 
+        {
+            SMALLEST = 50,
+            SMALLER  = 75,
+            NORMAL   = 100,
+            LARGER   = 150,
+            LARGEST  = 200
+        };
         TextSize(Int32 size) {
             value = size;
         }
-
         Int32 value;
     };
 
@@ -79,53 +65,22 @@ public:
      * MEDIUM makes 100% looking like in 160dpi
      * CLOSE makes 100% looking like in 120dpi
      */
-	struct ZoomDensity 
-	{
-		enum 
-		{
-	        FAR    = 150,  // 240dpi
-	        MEDIUM = 100,  // 160dpi
-	        CLOSE  = 75    // 120dpi
-    	};
-
+    struct ZoomDensity
+    {
+        enum 
+        {
+            FAR    = 150,  // 240dpi
+            MEDIUM = 100,  // 160dpi
+            CLOSE  = 75    // 120dpi
+        };
         ZoomDensity(Int32 size) {
             value = size;
         }
         Int32 value;
     };
 
-public:
-    /**
-     * Default cache usage pattern  Use with {@link #setCacheMode}.
-     */
-	static const Int32 WS_LOAD_DEFAULT = -1;
-
-    /**
-     * Normal cache usage pattern  Use with {@link #setCacheMode}.
-     */
-	static const Int32 WS_LOAD_NORMAL = 0;
-
-    /**
-     * Use cache if content is there, even if expired (eg, history nav)
-     * If it is not in the cache, load from network.
-     * Use with {@link #setCacheMode}.
-     */
-	static const Int32 WS_LOAD_CACHE_ELSE_NETWORK = 1;
-
-    /**
-     * Don't use the cache, load from network
-     * Use with {@link #setCacheMode}.
-     */
-	static const Int32 WS_LOAD_NO_CACHE = 2;
-    
-    /**
-     * Don't use the network, load from cache only.
-     * Use with {@link #setCacheMode}.
-     */
-	static const Int32 WS_LOAD_CACHE_ONLY = 3;
-
-	enum RenderPriority 
-	{
+    enum RenderPriority 
+    {
         RP_NORMAL,
         RP_HIGH,
         RP_LOW
@@ -140,15 +95,85 @@ public:
      * OFF means that all plugins will be turned off and any fallback content
      * will be used.
      */
-	enum PluginState 
-	{
+    enum PluginState 
+    {
         ON,
         ON_DEMAND,
         OFF
     };
 
-public:
+private:
+    // Class to handle messages before WebCore is ready.
+    class WsEventHandler {
+    private:
+        class WsEhHandler: public ElRefBase,public IHandler
+        {
+        public:
+            CARAPI_(PInterface) Probe(
+                /* [in] */ REIID riid);
 
+            CARAPI_(UInt32) AddRef();
+
+            CARAPI_(UInt32) Release();
+
+            CARAPI GetInterfaceID(
+                /* [in] */ IInterface* Object,
+                /* [out] */ InterfaceID* iID);
+
+            WsEhHandler(
+                /* [in] */ WsEventHandler* eventHandler,
+                /* [in] */ WebSettings* webSettings);
+        public:
+            //@Override
+            CARAPI_(void) HandleMessage(
+                /* [in] */ IMessage* msg);
+        private:
+            WsEventHandler* mEventHandler;
+            WebSettings* mWebSettings;
+        };
+    public:
+        WsEventHandler(
+            /* [in] */ WebSettings* webSettings);
+    private:
+        CARAPI_(void) CreateHandler();
+
+        CARAPI_(void) SetRenderPriority();
+
+        /**
+         * Send a message to the private queue or handler.
+         */
+        CARAPI_(Boolean) SendMessage(
+            /* [in] */ IMessage* msg);
+
+    public:
+        // Message id for syncing
+        static const Int32 SYNC = 0;
+        // Message id for setting priority
+        static const Int32 PRIORITY = 1;
+        // Message id for writing double-tap toast count
+        static const Int32 SET_DOUBLE_TAP_TOAST_COUNT = 2;
+    private:
+        // Actual WebCore thread handler
+        AutoPtr<IHandler> mHandler;
+    private:
+        WebSettings* mWebSettings;
+        static Core::Threading::Mutex mMutexWsEhThis;
+    };
+
+public:
+    friend class WsEhHandler;
+
+    WebSettings();
+
+    /**
+     * Package constructor to prevent clients from creating a new settings
+     * instance.
+     */
+    WebSettings(
+    	/* [in] */ IContext* context, 
+    	/* [in] */ IWebView* webview);
+
+public:
     /**
      * Enables dumping the pages navigation cache to a text file.
      */
@@ -842,36 +867,66 @@ public:
     /*package*/
 	virtual CARAPI_(void) OnDestroyed();
 
-protected:
-    Mutex mMutex;
+private:
+    /**
+     * Looks at sLocale and returns current AcceptLanguage String.
+     * @return Current AcceptLanguage String.
+     */
+    CARAPI_(String) GetCurrentAcceptLanguage();
+    
+    /**
+     * Looks at sLocale and mContext and returns current UserAgent String.
+     * @return Current UserAgent String.
+     */
+    CARAPI_(String) GetCurrentUserAgent();
+
+    CARAPI_(void) VerifyNetworkAccess();
+
+    CARAPI_(Int32) Pin(
+        /* [in] */ Int32 size);
+
+    /* Post a SYNC message to handle syncing the native settings. */
+    CARAPI_(void) PostSync();
+
+    // Synchronize the native and java settings.
+    CARAPI_(void) NativeSync(
+        /* [in] */ Int32 nativeFrame);
+
+    //Own added     For Init
+    CARAPI_(void) InitPara();
+
+public:
+    /**
+     * Default cache usage pattern  Use with {@link #setCacheMode}.
+     */
+    static const Int32 WS_LOAD_DEFAULT = -1;
+
+    /**
+     * Normal cache usage pattern  Use with {@link #setCacheMode}.
+     */
+    static const Int32 WS_LOAD_NORMAL = 0;
+
+    /**
+     * Use cache if content is there, even if expired (eg, history nav)
+     * If it is not in the cache, load from network.
+     * Use with {@link #setCacheMode}.
+     */
+    static const Int32 WS_LOAD_CACHE_ELSE_NETWORK = 1;
+
+    /**
+     * Don't use the cache, load from network
+     * Use with {@link #setCacheMode}.
+     */
+    static const Int32 WS_LOAD_NO_CACHE = 2;
+    
+    /**
+     * Don't use the network, load from cache only.
+     * Use with {@link #setCacheMode}.
+     */
+    static const Int32 WS_LOAD_CACHE_ONLY = 3;
+
 
 private:
-    // Class to handle messages before WebCore is ready.
-	class EventHandler {
-	public:
-        // Message id for syncing
-        static const Int32 SYNC = 0;
-        // Message id for setting priority
-        static const Int32 PRIORITY = 1;
-        // Message id for writing double-tap toast count
-        static const Int32 SET_DOUBLE_TAP_TOAST_COUNT = 2;
-
-    private:
-        // Actual WebCore thread handler
-        AutoPtr<IHandler> mHandler;
-
-    private:
-		CARAPI_(void) CreateHandler();
-
-		CARAPI_(void) SetRenderPriority();
-
-        /**
-         * Send a message to the private queue or handler.
-         */
-		CARAPI_(Boolean) SendMessage(
-			/* [in] */ IMessage* msg);
-    };
-
     // User agent strings.
 	static const CString DESKTOP_USERAGENT;/* =
             "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_5_7; en-us)"
@@ -903,7 +958,7 @@ private:
     // If the defaults change, please also update the JavaDocs so developers
     // know what they are.
     LayoutAlgorithm mLayoutAlgorithm;
-    AutoPtr<IContext>       mContext;
+    AutoPtr<IContext> mContext;
     TextSize*       mTextSize;
     String          mStandardFontFamily;
     String          mFixedFontFamily;
@@ -947,7 +1002,7 @@ private:
     // Don't need to synchronize the get/set methods as they
     // are basic types, also none of these values are used in
     // native WebCore code.
-    ZoomDensity*     mDefaultZoom;
+    ZoomDensity*    mDefaultZoom;
     RenderPriority  mRenderPriority;
     Int32           mOverrideCacheMode;
     Boolean         mSaveFormData;
@@ -967,31 +1022,9 @@ private:
 
     static const CString PREF_FILE;// = "WebViewSettings";
     static const CString DOUBLE_TAP_TOAST_COUNT;// = "double_tap_toast_count";
-    
-private:
-    /**
-     * Looks at sLocale and returns current AcceptLanguage String.
-     * @return Current AcceptLanguage String.
-     */
-	CARAPI_(String) GetCurrentAcceptLanguage();
-    
-    /**
-     * Looks at sLocale and mContext and returns current UserAgent String.
-     * @return Current UserAgent String.
-     */
-	CARAPI_(String) GetCurrentUserAgent();
-
-	CARAPI_(void) VerifyNetworkAccess();
-
-	CARAPI_(Int32) Pin(
-		/* [in] */ Int32 size);
-
-    /* Post a SYNC message to handle syncing the native settings. */
-	CARAPI_(void) PostSync();
-
-    // Synchronize the native and java settings.
-	CARAPI_(void) NativeSync(
-		/* [in] */ Int32 nativeFrame);
+ 
+protected:
+    Core::Threading::Mutex mMutex;
 };
 
 #endif //__WEBSETTING_H__

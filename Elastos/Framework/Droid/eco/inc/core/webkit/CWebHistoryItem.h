@@ -4,35 +4,140 @@
 
 #include "_CWebHistoryItem.h"
 
+#include "ext/frameworkext.h"
+#include <elastos/AutoPtr.h>
+#include <elastos/AutoFree.h>
+
 CarClass(CWebHistoryItem)
 {
 public:
     CARAPI GetId(
-        /* [out] */ Int32 * pId);
+        /* [out] */ Int32 * id);
 
     CARAPI GetUrl(
-        /* [out] */ CString * pUrl);
+        /* [out] */ String * url);
 
     CARAPI GetOriginalUrl(
-        /* [out] */ String * pOriginalUrl);
+        /* [out] */ String * originalUrl);
 
     CARAPI GetTitle(
-        /* [out] */ String * pTitle);
+        /* [out] */ String * title);
 
     CARAPI GetFavicon(
-        /* [out] */ IBitmap ** ppFavicon);
+        /* [out] */ IBitmap ** favicon);
 
     CARAPI GetTouchIconUrl(
-        /* [out] */ String * pTouchIconUrl);
+        /* [out] */ String * touchIconUrl);
 
     CARAPI GetCustomData(
-        /* [out] */ IInterface ** ppCustomData);
+        /* [out] */ IInterface ** customData);
 
     CARAPI SetCustomData(
-        /* [in] */ IInterface * pData);
+        /* [in] */ IInterface * data);
+
+    /**
+     * Construct a new WebHistoryItem with initial flattened data.
+     * @param data The pre-flattened data coming from restoreState.
+     */
+    /*package*/
+    CARAPI constructor(
+        /* [in] */ ArrayOf<byte>* data);
+
+    /**
+     * Set the favicon.
+     * @param icon A Bitmap containing the favicon for this history item.
+     * Note: The VM ensures 32-bit atomic read/write operations so we don't have
+     * to synchronize this method.
+     */
+    /*package*/ 
+    CARAPI SetFavicon(
+        /* [in] */ IBitmap* icon);
+
+    /**
+     * Set the touch icon url.
+     * @hide
+     */
+    /*package*/ 
+    CARAPI SetTouchIconUrl(
+        /* [in] */ String url);
+
+    /**
+     * Get the pre-flattened data.
+     * Note: The VM ensures 32-bit atomic read/write operations so we don't have
+     * to synchronize this method.
+     */
+    /*package*/ 
+    CARAPI GetFlattenedData(
+        /* [out] */ ArrayOf<byte>** data);
+
+    /**
+     * Inflate this item.
+     * Note: The VM ensures 32-bit atomic read/write operations so we don't have
+     * to synchronize this method.
+     */
+    /*package*/
+    CARAPI Inflate(
+        /* [in] */ Int32 nativeFrame);
+
+
+protected:
+    /**
+     * Clone the history item for use by clients of WebView.
+     */
+    //synchronized
+    CARAPI Clone(
+        /* [out] */ IWebHistoryItem** item);
+        
+private:
+    /**
+     * Basic constructor that assigns a unique id to the item. Called by JNI
+     * only.
+     */
+    CARAPI constructor();
+
+    /**
+     * Construct a clone of a WebHistoryItem from the given item.
+     * @param item The history item to clone.
+     */
+    //CARAPI constructor(IWebHistoryItem* item);
+    CWebHistoryItem(
+        /* [in] */ IWebHistoryItem* item);
+
+    /* Natively inflate this item, this method is called in the WebCore thread.
+     */
+    //native 
+    virtual CARAPI Inflate(
+        /* [in] */ Int32 nativeFrame, 
+        /* [in] */ ArrayOf<byte>* data);//=0;
+
+    /* Called by jni when the item is updated */
+    CARAPI Update(
+        /* [in] */ String url, 
+        /* [in] */ String originalUrl, 
+        /* [in] */ String title,
+        /* [in] */ IBitmap* favicon,
+        /* [in] */ ArrayOf<byte>* data);
 
 private:
-    // TODO: Add your private member variables here.
+    // Global identifier count.    
+    static Int32 sNextId;// = 0;
+    // Unique identifier.
+    /*const*/ Int32 mId;
+    // The title of this item's document.
+    String mTitle;
+    // The base url of this item.
+    String mUrl;
+    // The original requested url of this item.
+    String mOriginalUrl;
+    // The favicon for this item.
+    AutoPtr<IBitmap> mFavicon;
+    // The pre-flattened data used for saving the state.
+    AutoFree < ArrayOf<byte> > mFlattenedData;
+    // The apple-touch-icon url for use when adding the site to the home screen
+    String mTouchIconUrl;
+    // Custom client data that is not flattened or read by native code.
+    IInterface* mCustomData;
+
 };
 
 #endif // __CWEBHISTORYITEM_H__

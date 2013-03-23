@@ -23,7 +23,7 @@ module
          * to synchronize this method.
          */
         GetUrl(
-           [out] CString* url);
+           [out] String* url);
 
         /**
          * Return the original url of this history item. This was the requested

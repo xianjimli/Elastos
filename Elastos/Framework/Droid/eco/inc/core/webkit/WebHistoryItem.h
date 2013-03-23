@@ -2,6 +2,9 @@
 #define __WEBHISTORYITEM_H__
 
 #include "ext/frameworkext.h"
+#include <elastos/AutoPtr.h>
+#include <elastos/AutoFree.h>
+#include <elastos/Mutex.h>
 /**
  * A convenience class for accessing fields in an entry in the back/forward list
  * of a WebView. Each WebHistoryItem is a snapshot of the requested history
@@ -18,7 +21,7 @@ public:
      */
     /*package*/ 
     WebHistoryItem(
-        /* [in] */ Byte data[]);
+        /* [in] */ ArrayOf<Byte>* data);
 
 public:
     /**
@@ -108,7 +111,7 @@ public:
      * to synchronize this method.
      */
     /*package*/ 
-    virtual CARAPI_(Byte*) GetFlattenedData();
+    virtual CARAPI_(ArrayOf<Byte>*) GetFlattenedData();
 
     /**
      * Inflate this item.
@@ -123,27 +126,8 @@ protected:
     /**
      * Clone the history item for use by clients of WebView.
      */
-    virtual CARAPI_(WebHistoryItem*) clone();
+    virtual CARAPI_(WebHistoryItem*) Clone();
 
-private:
-    // Global identifier count.
-    static Int32 sNextId;
-    // Unique identifier.
-    const Int32 mId;
-    // The title of this item's document.
-    String mTitle;
-    // The base url of this item.
-    String mUrl;
-    // The original requested url of this item.
-    String mOriginalUrl;
-    // The favicon for this item.
-    IBitmap* mFavicon;
-    // The pre-flattened data used for saving the state.
-    Byte mFlattenedData;
-    // The apple-touch-icon url for use when adding the site to the home screen
-    String mTouchIconUrl;
-    // Custom client data that is not flattened or read by native code.
-    IInterface* mCustomData;
 
 private:
 
@@ -151,7 +135,7 @@ private:
      */
     CARAPI_(void) Inflate(
         /* [in] */ Int32 nativeFrame, 
-        /* [in] */ Byte data[]);
+        /* [in] */ ArrayOf<Byte>* data);
 
     /* Called by jni when the item is updated */
     CARAPI_(void) Update(
@@ -159,7 +143,7 @@ private:
         /* [in] */ CString originalUrl, 
         /* [in] */ String title,
         /* [in] */ IBitmap* favicon,
-        /* [in] */ Byte data[]);
+        /* [in] */ ArrayOf<Byte>* data);
 
     /**
      * Basic constructor that assigns a unique id to the item. Called by JNI
@@ -173,6 +157,29 @@ private:
      */
     WebHistoryItem(
         /* [in] */ WebHistoryItem* item);
+
+private:
+    // Global identifier count.
+    static Int32 sNextId;
+    // Unique identifier.
+    /*const*/ Int32 mId;
+    // The title of this item's document.
+    String mTitle;
+    // The base url of this item.
+    String mUrl;
+    // The original requested url of this item.
+    String mOriginalUrl;
+    // The favicon for this item.
+    AutoPtr<IBitmap> mFavicon;
+    // The pre-flattened data used for saving the state.
+    AutoFree < ArrayOf<Byte> > mFlattenedData;
+    // The apple-touch-icon url for use when adding the site to the home screen
+    String mTouchIconUrl;
+    // Custom client data that is not flattened or read by native code.
+    IInterface* mCustomData;
+
+    Elastos::Core::Threading::Mutex mLock;
+
 };
 
 #endif //__WEBHISTORYITEM_H__
