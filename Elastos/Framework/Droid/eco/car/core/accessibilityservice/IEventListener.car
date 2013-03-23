@@ -1,0 +1,13 @@
+
+module
+{
+    interface IEventListener {
+        SetConnection(
+            [in] IAccessibilityServiceConnection* connection);
+
+        OnAccessibilityEvent(
+            [in] IAccessibilityEvent* event);
+
+        OnInterrupt();
+    }
+}

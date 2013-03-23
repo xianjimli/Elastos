@@ -32,4 +32,5 @@ module
     merge("../../car/core/webkit.car");
     merge("../../car/core/gesture.car");
     merge("../../car/core/backup.car");
+    merge("../../car/core/accessibilityservice.car");
 }

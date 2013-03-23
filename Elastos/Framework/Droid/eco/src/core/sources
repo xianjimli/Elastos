@@ -23,6 +23,7 @@ INCLUDES += $(MAKEDIR)/../../inc/core/view
 INCLUDES += $(MAKEDIR)/../../inc/core/view/inputmethod
 INCLUDES += $(MAKEDIR)/../../inc/core/view/animation
 INCLUDES += $(MAKEDIR)/../../inc/core/view/menu
+INCLUDES += $(MAKEDIR)/../../inc/core/view/accessibility
 INCLUDES += $(MAKEDIR)/../../inc/core/impl
 INCLUDES += $(MAKEDIR)/../../inc/core/widget
 INCLUDES += $(MAKEDIR)/../../inc/core/text

@@ -1,0 +1,41 @@
+
+module
+{
+    merge("accessibilityservice/AccessibilityServiceInfo.car");
+    merge("accessibilityservice/IAccessibilityServiceConnection.car");
+    merge("accessibilityservice/IEventListener.car");
+
+    /**
+     * The {@link Intent} that must be declared as handled by the service.
+     */
+    const AccessibilityService_SERVICE_INTERFACE = "elastos.accessibilityservice.AccessibilityService";
+
+    interface IAccessibilityService extends IService {
+        GetServiceInfo(
+            [out] IAccessibilityServiceInfo** types);
+
+        /**
+         * Callback for {@link android.view.accessibility.AccessibilityEvent}s.
+         *
+         * @param event An event.
+         */
+        OnAccessibilityEvent(
+            [in] IAccessibilityEvent* event);
+
+        /**
+         * Callback for interrupting the accessibility feedback.
+         */
+        OnInterrupt();
+
+        /**
+         * Sets the {@link AccessibilityServiceInfo} that describes this service.
+         * <p>
+         * Note: You can call this method any time but the info will be picked up after
+         *       the system has bound to this service and when this method is called thereafter.
+         *
+         * @param info The info.
+         */
+        SetServiceInfo(
+            [in] IAccessibilityServiceInfo* info);
+    }
+}

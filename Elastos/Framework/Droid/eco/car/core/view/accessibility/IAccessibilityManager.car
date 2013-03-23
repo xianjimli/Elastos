@@ -1,0 +1,19 @@
+
+module
+{
+    interface IAccessibilityManagerClient;
+
+    interface IAccessibilityManager {
+        AddClient(
+            [in] IAccessibilityManagerClient* client);
+
+        SendAccessibilityEvent(
+            [in] IAccessibilityEvent* uiEvent,
+            [out] Boolean* result);
+
+        GetAccessibilityServiceList(
+            [out] IObjectContainer** serviceInfos);
+
+        Interrupt();
+    }
+}

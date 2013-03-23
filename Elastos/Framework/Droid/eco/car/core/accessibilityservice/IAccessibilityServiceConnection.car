@@ -1,0 +1,8 @@
+
+module
+{
+    interface IAccessibilityServiceConnection {
+        SetServiceInfo(
+            [in] IAccessibilityServiceInfo* info);
+    }
+}

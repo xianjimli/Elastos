@@ -1,0 +1,44 @@
+
+module
+{
+    interface ILocalAccessibilityManager {
+        /**
+         * Returns if the {@link AccessibilityManager} is enabled.
+         *
+         * @return True if this {@link AccessibilityManager} is enabled, false otherwise.
+         */
+        IsEnabled(
+            [out] Boolean* isEnabled);
+
+        /**
+         * Sends an {@link AccessibilityEvent}. If this {@link AccessibilityManager} is not
+         * enabled the call is a NOOP.
+         *
+         * @param event The {@link AccessibilityEvent}.
+         *
+         * @throws IllegalStateException if a client tries to send an {@link AccessibilityEvent}
+         *         while accessibility is not enabled.
+         */
+        SendAccessibilityEvent(
+            [in] IAccessibilityEvent* event);
+
+        /**
+         * Requests interruption of the accessibility feedback from all accessibility services.
+         */
+        Interrupt();
+
+        /**
+         * Returns the {@link ServiceInfo}s of the installed accessibility services.
+         *
+         * @return An unmodifiable list with {@link ServiceInfo}s.
+         */
+        GetAccessibilityServiceList(
+            [out] IObjectContainer** container);
+    }
+
+    interface ILocalAccessibilityManagerHelper {
+        GetInstance(
+            [in] IContext* context,
+            [out] ILocalAccessibilityManager** localAccessibilityManager);
+    }
+}

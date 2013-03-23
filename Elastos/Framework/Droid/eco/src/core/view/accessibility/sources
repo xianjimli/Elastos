@@ -1,0 +1,14 @@
+
+TARGET_NAME= accessibility
+TARGET_TYPE= lib
+
+include $(MAKEDIR)/../../../../../sources.inc
+
+INCLUDES += $(MAKEDIR)/../../../../inc/core
+INCLUDES += ../../
+
+SOURCES = CAccessibilityEvent.cpp
+SOURCES += CAccessibilityEventHelper.cpp
+SOURCES += CAccessibilityManager.cpp
+SOURCES += CAccessibilityManagerHelper.cpp
+SOURCES += CAccessibilityManagerClient.cpp

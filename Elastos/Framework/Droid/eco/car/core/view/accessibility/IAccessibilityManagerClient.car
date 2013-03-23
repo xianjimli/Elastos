@@ -1,0 +1,8 @@
+
+module
+{
+    interface IAccessibilityManagerClient {
+        SetEnabled(
+            [in] Boolean enabled);
+    }
+}

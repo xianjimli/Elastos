@@ -53,6 +53,8 @@ SOURCES += CNotificationManagerService.cpp
 SOURCES += CLocationManagerService.cpp
 SOURCES += CInputMethodManagerService.cpp
 SOURCES += CInputMethodManagerServiceMethodCallback.cpp
+SOURCES += CAccessibilityManagerService.cpp
+SOURCES += CAccessibilityServiceConnection.cpp
 
 LIBRARIES += location/location.lib
 #LIBRARIES += usb/usb.lib

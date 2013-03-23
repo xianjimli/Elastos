@@ -33,6 +33,9 @@ module
     merge("view/MotionEvent.car");
     merge("view/accessibility/AccessibilityEvent.car");
     merge("view/accessibility/AccessibilityEventSource.car");
+    merge("view/accessibility/IAccessibilityManagerClient.car");
+    merge("view/accessibility/IAccessibilityManager.car");
+    merge("view/accessibility/AccessibilityManager.car");
     merge("view/inputmethod/ExtractedText.car");
     merge("view/inputmethod/ExtractedTextRequest.car");
     merge("view/inputmethod/CompletionInfo.car");
@@ -1009,5 +1012,32 @@ module
             [in] ISurfaceView* surfaceView);
 
         interface IInnerWindow;
+    }
+
+    class CAccessibilityEvent {
+        interface IAccessibilityEvent;
+        interface IParcelable;
+    }
+
+    singleton class CAccessibilityEventHelper {
+        interface IAccessibilityEventHelper;
+    }
+
+    class CAccessibilityManager {
+        constructor(
+            [in] IContext* context);
+
+        interface ILocalAccessibilityManager;
+    }
+
+    singleton class CAccessibilityManagerHelper {
+        interface ILocalAccessibilityManagerHelper;
+    }
+
+    class CAccessibilityManagerClient {
+        constructor(
+            [in] ILocalAccessibilityManager* host);
+
+        interface IAccessibilityManagerClient;
     }
 }

@@ -76,4 +76,33 @@ module
 
         interface IInputMethodCallback;
     }
+
+    class CAccessibilityManagerService {
+        /**
+         * Creates a new instance.
+         *
+         * @param context A {@link Context} instance.
+         */
+        constructor(
+            [in] IContext* context);
+
+        interface IAccessibilityManager;
+    }
+
+    /**
+     * This class represents an accessibility service. It stores all per service
+     * data required for the service management, provides API for starting/stopping the
+     * service and is responsible for adding/removing the service in the data structures
+     * for service management. The class also exposes configuration interface that is
+     * passed to the service it represents as soon it is bound. It also serves as the
+     * connection for the service.
+     */
+    class CAccessibilityServiceConnection {
+        constructor(
+            [in] IAccessibilityManager* manager,
+            [in] IComponentName* componentName);
+
+        interface IAccessibilityServiceConnection;
+        interface IServiceConnection;
+    }
 }

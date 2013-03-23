@@ -2,3 +2,4 @@
 DIRS += inputmethod
 DIRS += menu
 DIRS += animation
+DIRS += accessibility

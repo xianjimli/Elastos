@@ -1,0 +1,52 @@
+
+module
+{
+    /**
+     * Denotes spoken feedback.
+     */
+    const AccessibilityServiceInfo_FEEDBACK_SPOKEN = 0x0000001;
+
+    /**
+     * Denotes haptic feedback.
+     */
+    const AccessibilityServiceInfo_FEEDBACK_HAPTIC =  0x0000002;
+
+    /**
+     * Denotes audible (not spoken) feedback.
+     */
+    const AccessibilityServiceInfo_FEEDBACK_AUDIBLE = 0x0000004;
+
+    /**
+     * Denotes visual feedback.
+     */
+    const AccessibilityServiceInfo_FEEDBACK_VISUAL = 0x0000008;
+
+    /**
+     * Denotes generic feedback.
+     */
+    const AccessibilityServiceInfo_FEEDBACK_GENERIC = 0x0000010;
+
+    /**
+     * If an {@link AccessibilityService} is the default for a given type.
+     * Default service is invoked only if no package specific one exists. In case of
+     * more than one package specific service only the earlier registered is notified.
+     */
+    const AccessibilityServiceInfo_DEFAULT = 0x0000001;
+
+    interface IAccessibilityServiceInfo {
+        GetEventTypes (
+            [out] Int32* types);
+
+        GetPackageNames (
+            [out] IObjectContainer** container);
+
+        GetFeedbackType (
+            [out] Int32* type);
+
+        GetNotificationTimeout (
+            [out] Int64* timeout);
+
+        GetFlags (
+            [out] Int32* flags);
+    }
+}
