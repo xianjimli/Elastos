@@ -1,15 +1,10 @@
 
 #include "CBroadcastReceiverOne.h"
-#include<elastos/AutoPtr.h>
 
-ECode CBroadcastReceiverOne::OnReceive(
-    /* [in] */ IContext *pContext,
-    /* [in] */ IIntent *pIntent)
+ECode CBroadcastReceiverOne::OnReceiver(
+    /* [in] */ IIntent* intent)
 {
-    AutoPtr<IIntent> intent;
-    CIntent::New((IIntent**)&intent);
-    intent->SetClassName(String("ActivityDemo"), String("CActivityThree"));
-    ECode ec = pContext->StartActivity(intent);
-
-    return ec;
+    // TODO: Add your code here
+    return NOERROR;
 }
+

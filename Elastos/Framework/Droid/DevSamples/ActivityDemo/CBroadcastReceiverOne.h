@@ -2,17 +2,16 @@
 #ifndef __CBROADCASTRECEIVERONE_H__
 #define __CBROADCASTRECEIVERONE_H__
 
-#include "BroadcastReceiver.h"
 #include "_CBroadcastReceiverOne.h"
+#include "BroadcastReceiver.h"
 
-class CBroadcastReceiverOne : public BroadcastReceiver
+CarClass(CBroadcastReceiverOne), public BroadcastReceiver
 {
 public:
 
 protected:
-    CARAPI OnReceive(
-        /* [in] */ IContext *pContext,
-        /* [in] */ IIntent *pIntent);
+    CARAPI OnReceiver(
+        /* [in] */ IIntent* intent);
 
 private:
     // TODO: Add your private member variables here.
