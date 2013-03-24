@@ -5,14 +5,14 @@ module {
          * Applies a given attribute to this string.
          */
         AddAttribute(
-            [in] IAttributedCharacterIterator_Attribute* attribute,
+            [in] IAttributedCharacterIteratorAttribute* attribute,
             [in] IInterface* value);
 
         /**
          * Applies a given attribute to the given range of this string.
          */
         AddAttributeEx(
-            [in] IAttributedCharacterIterator_Attribute* attribute,
+            [in] IAttributedCharacterIteratorAttribute* attribute,
             [in] IInterface* value,
             [in] Int32 start,
             [in] Int32 end);
@@ -38,7 +38,7 @@ module {
          * for this text.
          */
         GetIteratorEx(
-            [in] ArrayOf<IAttributedCharacterIterator_Attribute*>* attributes,
+            [in] ArrayOf<IAttributedCharacterIteratorAttribute*>* attributes,
             [out] IAttributedCharacterIterator** iterator);
 
         /**
@@ -49,7 +49,7 @@ module {
          */
 
         GetIteratorEx2(
-            [in] ArrayOf<IAttributedCharacterIterator_Attribute*>* attributes,
+            [in] ArrayOf<IAttributedCharacterIteratorAttribute*>* attributes,
             [in] Int32 start,
             [in] Int32 end,
             [out] IAttributedCharacterIterator** iterator);

@@ -4,13 +4,14 @@
 #include "cmdef.h"
 #include "Elastos.Text_server.h"
 #include <elastos.h>
-#include "AttributedCharacterIterator_Attribute.h"
+#include "AttributedCharacterIteratorAttribute.h"
 #include <elastos/Map.h>
 #include <elastos/AutoPtr.h>
 
 using namespace Elastos;
 
-class TextAttribute : public AttributedCharacterIterator_Attribute {
+class TextAttribute : public AttributedCharacterIteratorAttribute
+{
 protected:
     /**
      * Instantiates a new TextAttribute with the specified name.

@@ -26,11 +26,20 @@ ECode CDecimalFormat::constructor(
     return DecimalFormat::Init(pattern, pLocale);
 }
 
-ECode CDecimalFormat::format(
+ECode CDecimalFormat::FormatObject(
     /* [in] */ IInterface * pObject,
     /* [out] */ String * pValue)
 {
-    return DecimalFormat::format(pObject, pValue);
+    return DecimalFormat::FormatObject(pObject, pValue);
+}
+
+ECode CDecimalFormat::FormatObjectEx(
+    /* [in] */ IInterface* object,
+    /* [in] */ const String& buffer,
+    /* [in] */ IFieldPosition* field,
+    /* [out] */ String* value)
+{
+    return E_NOT_IMPLEMENTED;
 }
 
 ECode CDecimalFormat::FormatToCharacterIterator(
@@ -55,18 +64,36 @@ ECode CDecimalFormat::ParseObjectEx(
     return DecimalFormat::ParseObjectEx(string, pPosition, ppObject);
 }
 
-ECode CDecimalFormat::formatEx2(
+ECode CDecimalFormat::FormatDouble(
     /* [in] */ Double value,
     /* [out] */ String * pFormat)
 {
-    return DecimalFormat::formatEx2(value, pFormat);
+    return DecimalFormat::FormatDouble(value, pFormat);
 }
 
-ECode CDecimalFormat::formatEx4(
+ECode CDecimalFormat::FormatDoubleEx(
+    /* [in] */ Double value,
+    /* [in] */ const String& buffer,
+    /* [in] */ IFieldPosition* field,
+    /* [out] */ String* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CDecimalFormat::FormatInt64(
     /* [in] */ Int64 value,
     /* [out] */ String * pFormat)
 {
-    return DecimalFormat::formatEx4(value, pFormat);
+    return DecimalFormat::FormatInt64(value, pFormat);
+}
+
+ECode CDecimalFormat::FormatInt64Ex(
+    /* [in] */ Int64 value,
+    /* [in] */ const String& buffer,
+    /* [in] */ IFieldPosition* field,
+    /* [out] */ String* result)
+{
+    return E_NOT_IMPLEMENTED;
 }
 
 ECode CDecimalFormat::GetMaximumFractionDigits(
@@ -288,14 +315,26 @@ ECode CDecimalFormat::ToPattern(
     return DecimalFormat::ToPattern(pPattern);
 }
 
+ECode CDecimalFormat::GetCurrency(
+    /* [out] */ ICurrency** currency)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CDecimalFormat::SetCurrency(
+    /* [in] */ ICurrency* currency)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
 ECode CDecimalFormat::GetRoundingMode(
-    /* [out] */ RRoundingMode* pRoundingMode)
+    /* [out] */ RoundingMode* pRoundingMode)
 {
     return DecimalFormat::GetRoundingMode(pRoundingMode);
 }
 
 ECode CDecimalFormat::SetRoundingMode(
-    /* [in] */ RRoundingMode roundingMode)
+    /* [in] */ RoundingMode roundingMode)
 {
-    return DecimalFormat::SetRoundingMode(roundingMode);    
+    return DecimalFormat::SetRoundingMode(roundingMode);
 }

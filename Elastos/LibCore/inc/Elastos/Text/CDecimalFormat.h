@@ -21,9 +21,15 @@ public:
         /* [in] */ const String& pattern,
         /* [in] */ ILocale * pLocale);
 
-    CARAPI format(
+    CARAPI FormatObject(
         /* [in] */ IInterface * pObject,
         /* [out] */ String * pValue);
+
+    CARAPI FormatObjectEx(
+        /* [in] */ IInterface* object,
+        /* [in] */ const String& buffer,
+        /* [in] */ IFieldPosition* field,
+        /* [out] */ String* value);
 
     CARAPI FormatToCharacterIterator(
         /* [in] */ IInterface * pObject,
@@ -38,13 +44,25 @@ public:
         /* [in] */ IParsePosition * pPosition,
         /* [out] */ IInterface ** ppObject);
 
-    CARAPI formatEx2(
+    CARAPI FormatDouble(
         /* [in] */ Double value,
         /* [out] */ String * pFormat);
 
-    CARAPI formatEx4(
+    CARAPI FormatDoubleEx(
+        /* [in] */ Double value,
+        /* [in] */ const String& buffer,
+        /* [in] */ IFieldPosition* field,
+        /* [out] */ String* result);
+
+    CARAPI FormatInt64(
         /* [in] */ Int64 value,
         /* [out] */ String * pFormat);
+
+    CARAPI FormatInt64Ex(
+        /* [in] */ Int64 value,
+        /* [in] */ const String& buffer,
+        /* [in] */ IFieldPosition* field,
+        /* [out] */ String* result);
 
     CARAPI GetMaximumFractionDigits(
         /* [out] */ Int32 * pMaximumFractionDigits);
@@ -157,11 +175,18 @@ public:
     CARAPI ToPattern(
         /* [out] */ String * pPattern);
 
+    CARAPI GetCurrency(
+        /* [out] */ ICurrency** currency);
+
+    CARAPI SetCurrency(
+        /* [in] */ ICurrency* currency);
+
     CARAPI GetRoundingMode(
-        /* [out] */ RRoundingMode* pRoundingMode);
+        /* [out] */ RoundingMode* mode);
 
     CARAPI SetRoundingMode(
-        /* [in] */ RRoundingMode roundingMode);
+        /* [in] */ RoundingMode mode);
+
 private:
     // TODO: Add your private member variables here.
 };

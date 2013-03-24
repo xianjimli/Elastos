@@ -100,20 +100,20 @@ public:
          * @return a set of attribute keys that may be empty.
          */
         CARAPI GetAllAttributeKeys(
-            /* [out] */ Set<IAttributedCharacterIterator_Attribute* >* allAttributedKeys);
+            /* [out] */ Set<IAttributedCharacterIteratorAttribute* >* allAttributedKeys);
 
         CARAPI GetAttribute(
-                /* [in] */ IAttributedCharacterIterator_Attribute* attribute,
+                /* [in] */ IAttributedCharacterIteratorAttribute* attribute,
                 /* [out] */ IInterface** instance);
 
         CARAPI GetAttributes(
-                /* [out] */ Map<IAttributedCharacterIterator_Attribute*, IInterface*>* attributes);
+                /* [out] */ Map<IAttributedCharacterIteratorAttribute*, IInterface*>* attributes);
 
         CARAPI GetRunLimit(
                 /* [out] */ Int32* runLimit);
 
         CARAPI GetRunLimit(
-                /* [in] */ IAttributedCharacterIterator_Attribute* attribute,
+                /* [in] */ IAttributedCharacterIteratorAttribute* attribute,
                 /* [out] */ Int32* runLimit);
 /*
         public int getRunLimit(Set<? extends Attribute> attributes) {
@@ -133,7 +133,7 @@ public:
             /* [out] */ Int32* runStart);
 
         CARAPI GetRunStart(
-            /* [in] */ IAttributedCharacterIterator_Attribute* attribute,
+            /* [in] */ IAttributedCharacterIteratorAttribute* attribute,
             /* [out] */ Int32* runStart);
 /*
         public int getRunStart(Set<? extends Attribute> attributes) {
@@ -168,7 +168,7 @@ public:
 
         AttributedIterator(
             /* [in] */ AttributedString* attrString,
-            /* [in] */ ArrayOf<IAttributedCharacterIterator_Attribute*>* attributes,
+            /* [in] */ ArrayOf<IAttributedCharacterIteratorAttribute*>* attributes,
             /* [in] */ Int32 begin,
             /* [in] */ Int32 end);
 
@@ -198,7 +198,7 @@ public:
 
         AttributedString* attrString;
 
-        HashSet<IAttributedCharacterIterator_Attribute*>* attributesAllowed;
+        HashSet<IAttributedCharacterIteratorAttribute*>* attributesAllowed;
 
     };
 
@@ -264,8 +264,8 @@ public:
     CARAPI Init(
         /* [in] */ IAttributedCharacterIterator* iterator,
         /* [in] */ Int32 start,
-        /* [in] */ Int32 end, 
-        /* [in] */ ArrayOf<IAttributedCharacterIterator_Attribute*>* attributes);
+        /* [in] */ Int32 end,
+        /* [in] */ ArrayOf<IAttributedCharacterIteratorAttribute*>* attributes);
 
     /**
      * Creates an {@code AttributedString} from the given text.
@@ -325,7 +325,7 @@ public:
      *             if {@code attribute} is {@code null}.
      */
     virtual CARAPI AddAttribute(
-        /* [in] */ IAttributedCharacterIterator_Attribute* attribute,
+        /* [in] */ IAttributedCharacterIteratorAttribute* attribute,
         /* [in] */ IInterface* value);
 
     /**
@@ -347,7 +347,7 @@ public:
      *             if {@code attribute} is {@code null}.
      */
     virtual CARAPI AddAttributeEx(
-        /* [in] */ IAttributedCharacterIterator_Attribute* attribute,
+        /* [in] */ IAttributedCharacterIteratorAttribute* attribute,
         /* [in] */ IInterface* value,
         /* [in] */ Int32 start,
         /* [in] */ Int32 end);
@@ -398,7 +398,7 @@ public:
      * @return the newly created {@code AttributedCharacterIterator}.
      */
     virtual CARAPI GetIteratorEx(
-            /* [in] */ ArrayOf<IAttributedCharacterIterator_Attribute*>* attributes,
+            /* [in] */ ArrayOf<IAttributedCharacterIteratorAttribute*>* attributes,
             /* [out] */ IAttributedCharacterIterator** iterator);
 
     /**
@@ -417,21 +417,21 @@ public:
      * @return the newly created {@code AttributedCharacterIterator}.
      */
     virtual CARAPI GetIteratorEx2(
-            /* [in] */ ArrayOf<IAttributedCharacterIterator_Attribute*>* attributes,
+            /* [in] */ ArrayOf<IAttributedCharacterIteratorAttribute*>* attributes,
             /* [in] */ Int32 start,
             /* [in] */ Int32 end,
             /* [out] */ IAttributedCharacterIterator** iterator);
 
 private:
     AttributedString(
-        /* [in] */ IAttributedCharacterIterator* iterator, 
+        /* [in] */ IAttributedCharacterIterator* iterator,
         /* [in] */ Int32 start,
-        /* [in] */ Int32 end, 
-        /* [in] */ Set<IAttributedCharacterIterator_Attribute* >* attributes);
+        /* [in] */ Int32 end,
+        /* [in] */ Set<IAttributedCharacterIteratorAttribute* >* attributes);
 
 public:
     String text;
 
-    Map<IAttributedCharacterIterator_Attribute*, List<Range*>* >* attributeMap;
+    Map<IAttributedCharacterIteratorAttribute*, List<Range*>* >* attributeMap;
 };
 #endif //__ATTRIBUTEDSTRING_H__

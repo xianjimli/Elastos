@@ -17,3 +17,4 @@ EXPORT_HEADERS += elastos/Object.h
 EXPORT_HEADERS += elastos/Thread.h
 EXPORT_HEADERS += elastos/NativeThread.h
 EXPORT_HEADERS += elastos/ThreadGroup.h
+EXPORT_HEADERS += elastos/Number.h

@@ -21,7 +21,7 @@ module
          * Returns the {@code DecimalFormatSymbols} used by this decimal format.
          */
         GetDecimalFormatSymbols(
-            [out] IDecimalFormatSymbols** decimalFormatSymbols);
+            [out] IDecimalFormatSymbols** symbols);
 
         /**
          * Returns the number of digits grouped together by the grouping separator.
@@ -29,7 +29,7 @@ module
          * the secondary grouping size.
          */
         GetGroupingSize(
-            [out] Int32* groupingSize);
+            [out] Int32* size);
 
         /**
          * Returns the multiplier which is applied to the number before formatting
@@ -42,33 +42,33 @@ module
          * Returns the prefix which is formatted or parsed before a negative number.
          */
         GetNegativePrefix(
-            [out] String* negativePrefix);
+            [out] String* prefix);
 
         /**
          * Returns the suffix which is formatted or parsed after a negative number.
          */
         GetNegativeSuffix(
-            [out] String* negativeSuffix);
+            [out] String* suffix);
 
         /**
          * Returns the prefix which is formatted or parsed before a positive number.
          */
         GetPositivePrefix(
-            [out] String* positivePrefix);
+            [out] String* prefix);
 
 
         /**
          * Returns the suffix which is formatted or parsed after a positive number.
          */
         GetPositiveSuffix(
-            [out] String* positiveSuffix);
+            [out] String* suffix);
 
         /**
          * Indicates whether the decimal separator is shown when there are no
          * fractional digits.
          */
         IsDecimalSeparatorAlwaysShown(
-            [out] Boolean* isDecimalSeparatorAlwaysShown);
+            [out] Boolean* shown);
 
         /**
          * This value indicates whether the return object of the parse operation is
@@ -79,7 +79,7 @@ module
          *         {@code Double}.
          */
         IsParseBigDecimal(
-            [out] Boolean* isParseBigDecimal);
+            [out] Boolean* isBigDecimal);
 
         /**
          * Sets the {@code DecimalFormatSymbols} used by this decimal format.
@@ -153,11 +153,5 @@ module
          */
         ToPattern(
             [out] String* pattern);
-
-        GetRoundingMode(
-            [out] RRoundingMode* roundingMode);
-
-        SetRoundingMode(
-            [in] RRoundingMode roundingMode);
     }
 }

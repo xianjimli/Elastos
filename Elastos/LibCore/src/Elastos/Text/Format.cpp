@@ -1,99 +1,96 @@
+
 #include "cmdef.h"
 #include "Format.h"
-#include <StringBuffer.h>
 #include "CFieldPosition.h"
 #include "CParsePosition.h"
+
 
 Format::Format()
 {}
 
-ECode Format::format(
-        /* [in] */ IInterface* object,
-        /* [out] */ String* value)
+ECode Format::FormatObject(
+    /* [in] */ IInterface* object,
+    /* [out] */ String* value)
 {
-    VALIDATE_NOT_NULL(value);
-
     AutoPtr<IFieldPosition> field;
-    CFieldPosition::New(0, (IFieldPosition**)&field);
-    StringBuffer* buffer = new StringBuffer(NULL);
-    StringBuffer* sb = new StringBuffer(NULL);
-    formatEx(object, buffer, field, sb);
-    *value = sb->Substring(0, sb->GetLength());
-    return NOERROR;
+    FAIL_RETURN(CFieldPosition::New(0, (IFieldPosition**)&field));
+    return FormatObjectEx(object, String(NULL), field, value);
 }
 
 ECode Format::FormatToCharacterIterator(
     /* [in] */ IInterface* object,
     /* [out] */ IAttributedCharacterIterator** characterIterator)
 {
+    assert(0);
     //return new AttributedString(format(object)).getIterator();
     return NOERROR;
 }
 
 ECode Format::ParseObject(
-        /* [in] */ String string,
+        /* [in] */ const String& string,
         /* [out] */ IInterface** object)
 {
     AutoPtr<IParsePosition> position;
     CParsePosition::New(0, (IParsePosition**)&position);
-    AutoPtr<IInterface> result;
-    ParseObjectEx(string, (IParsePosition*)position, (IInterface**)&result);
+    FAIL_RETURN(ParseObjectEx(string, position, object));
     Int32 index;
     position->GetIndex(&index);
     if (index == 0) {
         //throw new ParseException("parse failure", position.getErrorIndex());
-        return NOERROR;
+        return E_PARSE_EXCEPTION;
     }
-    object = (IInterface**)&result;
     return NOERROR;
 }
 
-Boolean Format::UpTo(
-        /* [in] */ String string,
-        /* [in] */ IParsePosition* position,
-        /* [in] */ StringBuffer* buffer,
-        /* [in] */ Char32 stop)
+ECode Format::UpTo(
+    /* [in] */ const String& string,
+    /* [in] */ IParsePosition* position,
+    /* [in] */ StringBuffer& buffer,
+    /* [in] */ Char32 stop,
+    /* [out] */ Boolean* succeeded)
 {
-    Int32 index, length = string.GetLength();
+    Int32 index, length;
     position->GetIndex(&index);
+    length = string.GetCharCount();
     Boolean lastQuote = FALSE, quote = FALSE;
-
     while (index < length) {
-        //char ch = string.charAt(index++);
-        Int32 i = string.GetChar(index++);
-        Char32 ch = (Char32)i;
+        Char32 ch = string.GetChar(index++);
         if (ch == '\'') {
             if (lastQuote) {
-                *buffer += '\'';
+                buffer += '\'';
             }
             quote = !quote;
             lastQuote = TRUE;
-        } else if (ch == stop && !quote) {
+        }
+        else if (ch == stop && !quote) {
             position->SetIndex(index);
-            return TRUE;
-        } else {
+            *succeeded = TRUE;
+            return NOERROR;
+        }
+        else {
             lastQuote = FALSE;
-            *buffer += ch;
+            buffer += ch;
         }
     }
     position->SetIndex(index);
-    return FALSE;
+    *succeeded = FALSE;
+    return NOERROR;
 }
 
-Boolean Format::UpToWithQuotes(
-        /* [in] */ String string,
-        /* [in] */ IParsePosition* position,
-        /* [in] */ StringBuffer* buffer,
-        /* [in] */ Char32 stop,
-        /* [in] */ Char32 start)
+ECode Format::UpToWithQuotes(
+    /* [in] */ const String& string,
+    /* [in] */ IParsePosition* position,
+    /* [in] */ StringBuffer& buffer,
+    /* [in] */ Char32 stop,
+    /* [in] */ Char32 start,
+    /* [out] */ Boolean* succeeded)
 {
-    Int32 index, length = string.GetLength(), count = 1;
+    Int32 index, length, count = 1;
     position->GetIndex(&index);
-
+    length = string.GetCharCount();
     Boolean quote = FALSE;
     while (index < length) {
-        Int32 i = string.GetChar(index++);
-        Char32 ch = (Char32)i;
+        Char32 ch = string.GetChar(index++);
         if (ch == '\'') {
             quote = !quote;
         }
@@ -103,20 +100,15 @@ Boolean Format::UpToWithQuotes(
             }
             if (count == 0) {
                 position->SetIndex(index);
-                return TRUE;
+                *succeeded = TRUE;
+                return NOERROR;
             }
             if (ch == start) {
                 count++;
             }
         }
-        *buffer += ch;
+        buffer += ch;
     }
     //throw new IllegalArgumentException("Unmatched braces in the pattern");
-    return quote;
-}
-
-Format::Format_Field::Format_Field(
-        /* [in] */ String fn)
-{
-    AttributedCharacterIterator_Attribute::Init(fn);
+    return E_ILLEGAL_ARGUMENT_EXCEPTION;
 }

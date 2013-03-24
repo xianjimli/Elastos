@@ -5,8 +5,7 @@ module
     interface ICalendar;
     interface ITimeZone;
     interface IParsePosition;
-    //interface INumberFormat;
-    interface IFormat_Field;
+    interface INumberFormat;
 
     /**
      * The format style constant defining the default format style. The default
@@ -147,22 +146,22 @@ module
      */
     const IDateFormat_TIMEZONE_FIELD = 17;
 
-    interface IDateFormat_Field extends IFormat_Field {
+    interface IDateFormatField extends IFormatField {
         /**
          * Returns the Calendar field that this field represents.
          */
         GetCalendarField(
-            [out] Int32* calendarField);
+            [out] Int32* field);
     }
 
     [deprecated]
-    interface IDateFormat extends IFormat{
+    interface IDateFormat extends IFormat {
         /**
          * Formats the specified date using the rules of this date format.
          */
-        formatEx2(
+        FormatDate(
             [in] IDate* date,
-            [out] String* formatString);
+            [out] String* result);
 
         /**
          * Formats the specified date as a string using the pattern of this date
@@ -173,11 +172,11 @@ module
          * will be updated with the position of the first occurrence of this field
          * in the formatted text.
          */
-        //formatEx3(
-        //    [in] IDate* date,
-        //    [in] StringBuffer* buffer,
-        //    [in] IFieldPosition* field,
-        //    [out] StringBuffer* formatString);
+        FormatDateEx(
+            [in] IDate* date,
+            [in] String buffer,
+            [in] IFieldPosition* field,
+            [out] String* result);
 
         /**
          * Returns the calendar used by this {@code DateFormat}.
@@ -192,8 +191,8 @@ module
          *
          * @return the {@code NumberFormat} used by this date format.
          */
-//        GetNumberFormat(
-//            [out] INumberFormat** numberFormat);
+        GetNumberFormat(
+            [out] INumberFormat** format);
 
         /**
          * Returns the time zone of this date format's calendar.
@@ -250,8 +249,8 @@ module
         /**
          * Sets the {@code NumberFormat} used by this date format.
          */
-//        SetNumberFormat(
-//            [in] INumberFormat* format);
+        SetNumberFormat(
+            [in] INumberFormat* format);
 
         /**
          * Sets the time zone of the calendar used by this date format.

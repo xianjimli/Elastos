@@ -12,7 +12,7 @@ module {
 //            [in] LocaleData* ld);
 
 //        FormatBigDecimal(
-//            [in] IBigDecimal* value, 
+//            [in] IBigDecimal* value,
 //            [in] FieldPosition field,
 //            [out, callee] ArrayOf<Char32>* array);
 
@@ -142,7 +142,7 @@ module {
             [in] Boolean value);
 
         SetRoundingMode(
-            [in] RRoundingMode roundingMode,
+            [in] RoundingMode roundingMode,
             [in] Double roundingIncrement);
 
         GetAddr(
@@ -161,6 +161,6 @@ module {
             [out] Boolean* value);
 
         GetPosSuffNull(
-            [out] Boolean* value);        
+            [out] Boolean* value);
     }
 }

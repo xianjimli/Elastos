@@ -1,13 +1,13 @@
 module
 {
     interface IFieldPosition;
+    interface ICurrency;
     interface IParsePosition;
     interface INumber;
-//    interface IRoundingMode;
-//    interface ICurrency;
+    enum RoundingMode;
 
-    interface INumberFormat_Field extends IFormat_Field {
 
+    interface INumberFormatField extends IFormatField {
     }
 
     /**
@@ -24,7 +24,7 @@ module
         /**
          * Formats the specified double using the rules of this number format.
          */
-        formatEx2(
+        FormatDouble(
             [in] Double value,
             [out] String* format);
 
@@ -37,16 +37,16 @@ module
          * {@code endIndex} members will be updated with the position of the first
          * occurrence of this field in the formatted text.
          */
-        //formatEx3(
-        //    [in] Double value,
-        //    [in] StringBuffer* buffer,
-        //    [in] IFieldPosition* field,
-        //    [out] StringBuffer* format);
+        FormatDoubleEx(
+            [in] Double value,
+            [in] String buffer,
+            [in] IFieldPosition* field,
+            [out] String* result);
 
         /**
          * Formats the specified long using the rules of this number format.
          */
-        formatEx4(
+        FormatInt64(
             [in] Int64 value,
             [out] String* format);
 
@@ -59,11 +59,11 @@ module
          * {@code endIndex} members will be updated with the position of the first
          * occurrence of this field in the formatted text.
          */
-        //formatEx5(
-        //    [in] Int64 value,
-        //    [in] StringBuffer* buffer,
-        //    [in] IFieldPosition* field,
-        //    [out] StringBuffer* format);
+        FormatInt64Ex(
+            [in] Int64 value,
+            [in] String buffer,
+            [in] IFieldPosition* field,
+            [out] String* result);
 
         /**
          * Returns the currency used by this number format.
@@ -72,8 +72,8 @@ module
          * concrete subclasses should override this method if they support currency
          * formatting.
          */
-//        GetCurrency(
-//            [out] ICurrency** currency);
+        GetCurrency(
+            [out] ICurrency** currency);
 
         /**
          * Returns the maximum number of fraction digits that are printed when
@@ -81,7 +81,7 @@ module
          * the least significant digits are truncated.
          */
         GetMaximumFractionDigits(
-            [out] Int32* maximumFractionDigits);
+            [out] Int32* max);
 
         /**
          * Returns the maximum number of integer digits that are printed when
@@ -89,35 +89,35 @@ module
          * most significant digits are truncated.
          */
         GetMaximumIntegerDigits(
-            [out] Int32* maximumIntegerDigits);
+            [out] Int32* max);
 
         /**
          * Returns the minimum number of fraction digits that are printed when
          * formatting.
          */
         GetMinimumFractionDigits(
-            [out] Int32* minimumFractionDigits);
+            [out] Int32* min);
 
         /**
          * Returns the minimum number of integer digits that are printed when
          * formatting.
          */
         GetMinimumIntegerDigits(
-            [out] Int32* minimumIntegerDigits);
+            [out] Int32* min);
 
         /**
          * Indicates whether this number format formats and parses numbers using a
          * grouping separator.
          */
         IsGroupingUsed(
-            [out] Boolean* isGroupingUsed);
+            [out] Boolean* groupingUsed);
 
         /**
          * Indicates whether this number format only parses integer numbers. Parsing
          * stops if a decimal separator is encountered.
          */
         IsParseIntegerOnly(
-            [out] Boolean* isParseIntegerOnly);
+            [out] Boolean* parseIntegerOnly);
 
         /**
          * Parses a {@code Number} from the specified string using the rules of this
@@ -147,8 +147,8 @@ module
          * concrete subclasses should override this method if they support currency
          * formatting.
          */
-//        SetCurrency(
-//            [in] ICurrency* currency);
+        SetCurrency(
+            [in] ICurrency* currency);
 
         /**
          * Sets whether this number format formats and parses numbers using a
@@ -205,8 +205,8 @@ module
          * Subclasses for which a rounding mode is meaningful are expected to override this method.
          * @since 1.6
          */
-//        GetRoundingMode(
-//            [out] IRoundingMode** roundingMode);
+        GetRoundingMode(
+            [out] RoundingMode* roundingMode);
 
         /**
          * Sets the {@code RoundingMode} used by this {@code NumberFormat}. The default
@@ -214,7 +214,7 @@ module
          * Subclasses for which a rounding mode is meaningful are expected to override this method.
          * @since 1.6
          */
-//        SetRoundingMode(
-//            [in] IRoundingMode* roundingMode);
+        SetRoundingMode(
+            [in] RoundingMode roundingMode);
     }
 }

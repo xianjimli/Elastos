@@ -13,7 +13,7 @@ ECode CAttributedString::constructor(
     /* [in] */ IAttributedCharacterIterator * pIterator,
     /* [in] */ Int32 start,
     /* [in] */ Int32 end,
-    /* [in] */ ArrayOf<IAttributedCharacterIterator_Attribute * > * pAttributes)
+    /* [in] */ ArrayOf<IAttributedCharacterIteratorAttribute * > * pAttributes)
 {
     return AttributedString::Init(pIterator, start, end, pAttributes);
 }
@@ -25,14 +25,14 @@ ECode CAttributedString::constructor(
 }
 
 ECode CAttributedString::AddAttribute(
-    /* [in] */ IAttributedCharacterIterator_Attribute * pAttribute,
+    /* [in] */ IAttributedCharacterIteratorAttribute * pAttribute,
     /* [in] */ IInterface * pValue)
 {
     return AttributedString::AddAttribute(pAttribute, pValue);
 }
 
 ECode CAttributedString::AddAttributeEx(
-    /* [in] */ IAttributedCharacterIterator_Attribute * pAttribute,
+    /* [in] */ IAttributedCharacterIteratorAttribute * pAttribute,
     /* [in] */ IInterface * pValue,
     /* [in] */ Int32 start,
     /* [in] */ Int32 end)
@@ -47,14 +47,14 @@ ECode CAttributedString::GetIterator(
 }
 
 ECode CAttributedString::GetIteratorEx(
-    /* [in] */ ArrayOf<IAttributedCharacterIterator_Attribute *> * pAttributes,
+    /* [in] */ ArrayOf<IAttributedCharacterIteratorAttribute *> * pAttributes,
     /* [out] */ IAttributedCharacterIterator ** ppIterator)
 {
     return AttributedString::GetIteratorEx(pAttributes, ppIterator);
 }
 
 ECode CAttributedString::GetIteratorEx2(
-    /* [in] */ ArrayOf<IAttributedCharacterIterator_Attribute *> * pAttributes,
+    /* [in] */ ArrayOf<IAttributedCharacterIteratorAttribute *> * pAttributes,
     /* [in] */ Int32 start,
     /* [in] */ Int32 end,
     /* [out] */ IAttributedCharacterIterator ** ppIterator)

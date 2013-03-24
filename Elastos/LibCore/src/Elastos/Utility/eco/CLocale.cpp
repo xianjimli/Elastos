@@ -368,7 +368,8 @@ String CLocale::ToString()
 }
 
 ECode CLocale::ToString(
-        /* [out] */ String* str){
+        /* [out] */ String* str)
+{
     VALIDATE_NOT_NULL(str);
 
     *str = ToString();

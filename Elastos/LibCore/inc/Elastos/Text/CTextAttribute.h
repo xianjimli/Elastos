@@ -7,6 +7,9 @@
 CarClass(CTextAttribute), public TextAttribute
 {
 public:
+    CARAPI GetClassID(
+         /* [out] */ ClassID* clsid);
+
     CARAPI ReadResolve(
         /* [out] */ IInterface ** ppResolve);
 

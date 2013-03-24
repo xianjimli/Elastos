@@ -1,26 +1,125 @@
 #ifndef __NUMBERFORMAT_H__
 #define __NUMBERFORMAT_H__
 
-#include <elastos.h>
-#include <StringBuffer.h>
-#include <elastos/AutoPtr.h>
 
 #include "Elastos.Text_server.h"
-#include "cmdef.h"
 #include "Format.h"
 #include "CFieldPosition.h"
 #include "CParsePosition.h"
+#include <StringBuffer.h>
+#include <elastos/AutoPtr.h>
 
 using namespace Elastos;
 
-class NumberFormat : public Format {
-protected:
+class NumberFormat : public Format
+{
+public:
     /**
-     * Used by subclasses. This was public in Java 5.
+     * The instances of this inner class are used as attribute keys and values
+     * in {@code AttributedCharacterIterator} that the
+     * {@link NumberFormat#formatToCharacterIterator(Object)} method returns.
+     * <p>
+     * There is no public constructor in this class, the only instances are the
+     * constants defined here.
+     * <p>
      */
-    NumberFormat();
+    class Field : public Format::Field
+    {
+    protected:
+        /**
+         * Constructs a new instance of {@code NumberFormat.Field} with the
+         * given field name.
+         *
+         * @param fieldName
+         *            the field name.
+         */
+        CARAPI Init(
+            /* [in] */ const String& fn);
 
-    virtual ~NumberFormat();
+        virtual CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid) = 0;
+
+        /**
+         * Resolves instances that are deserialized to the constant
+         * {@code NumberFormat.Field} values.
+         *
+         * @return the resolved field object.
+         * @throws InvalidObjectException
+         *             if an error occurs while resolving the field object.
+         */
+        //@Override
+        CARAPI ReadResolve(
+            /* [out] */ IInterface** object);
+
+    public:
+        /**
+         * This constant stands for the number sign.
+         */
+        //public static final Field SIGN = new Field("sign");
+        const static AutoPtr<INumberFormatField> SIGN;
+
+        /**
+         * This constant stands for the integer part of the number.
+         */
+        //public static final Field INTEGER = new Field("integer");
+        const static AutoPtr<INumberFormatField> INTEGER;
+
+        /**
+         * This constant stands for the fraction part of the number.
+         */
+        //public static final Field FRACTION = new Field("fraction");
+        const static AutoPtr<INumberFormatField> FRACTION;
+
+        /**
+         * This constant stands for the exponent part of the number.
+         */
+        //public static final Field EXPONENT = new Field("exponent");
+        const static AutoPtr<INumberFormatField> EXPONENT;
+
+        /**
+         * This constant stands for the exponent sign symbol.
+         */
+        //public static final Field EXPONENT_SIGN = new Field("exponent sign");
+        const static AutoPtr<INumberFormatField> EXPONENT_SIGN;
+
+        /**
+         * This constant stands for the exponent symbol.
+         */
+        //public static final Field EXPONENT_SYMBOL = new Field("exponent symbol");
+        const static AutoPtr<INumberFormatField> EXPONENT_SYMBOL;
+
+        /**
+         * This constant stands for the decimal separator.
+         */
+        //public static final Field DECIMAL_SEPARATOR = new Field("decimal separator");
+        const static AutoPtr<INumberFormatField> DECIMAL_SEPARATOR;
+
+        /**
+         * This constant stands for the grouping separator.
+         */
+        //public static final Field GROUPING_SEPARATOR = new Field("grouping separator");
+        const static AutoPtr<INumberFormatField> GROUPING_SEPARATOR;
+
+        /**
+         * This constant stands for the percent symbol.
+         */
+        //public static final Field PERCENT = new Field("percent");
+        const static AutoPtr<INumberFormatField> PERCENT;
+
+        /**
+         * This constant stands for the permille symbol.
+         */
+        //public static final Field PERMILLE = new Field("per mille");
+        const static AutoPtr<INumberFormatField> PERMILLE;
+
+        /**
+         * This constant stands for the currency symbol.
+         */
+        //public static final Field CURRENCY = new Field("currency");
+        const static AutoPtr<INumberFormatField> CURRENCY;
+
+    private:
+    };
 
 public:
     /**
@@ -70,9 +169,9 @@ public:
      *            the double to format.
      * @return the formatted string.
      */
-    CARAPI formatEx2(
+    CARAPI FormatDouble(
         /* [in] */ Double value,
-        /* [out] */ String* formattedString);
+        /* [out] */ String* result);
 
     /**
      * Formats the specified double value as a string using the pattern of this
@@ -93,11 +192,11 @@ public:
      *            of the alignment field in the formatted text.
      * @return the string buffer.
      */
-    virtual CARAPI formatEx3(
+    virtual CARAPI FormatDoubleEx(
         /* [in] */ Double value,
-        /* [in] */ StringBuffer* buffer,
+        /* [in] */ const String& buffer,
         /* [in] */ IFieldPosition* field,
-        /* [out] */ StringBuffer* result) = 0;
+        /* [out] */ String* result) = 0;
 
     /**
      * Formats the specified long using the rules of this number format.
@@ -106,9 +205,9 @@ public:
      *            the long to format.
      * @return the formatted string.
      */
-    CARAPI formatEx4(
+    CARAPI FormatInt64(
         /* [in] */ Int64 value,
-        /* [out] */ String* formattedString);
+        /* [out] */ String* result);
 
     /**
      * Formats the specified long value as a string using the pattern of this
@@ -129,11 +228,11 @@ public:
      *            of the alignment field in the formatted text.
      * @return the string buffer.
      */
-    virtual CARAPI formatEx5(
-        /* [in] */ Int64 value, 
-        /* [in] */ StringBuffer* buffer, 
+    virtual CARAPI FormatInt64Ex(
+        /* [in] */ Int64 value,
+        /* [in] */ const String& buffer,
         /* [in] */ IFieldPosition* field,
-        /* [out] */ StringBuffer* formattedString) = 0;
+        /* [out] */ String* result) = 0;
 
     /**
      * Formats a number into a supplied buffer.
@@ -160,11 +259,11 @@ public:
      *             if {@code object} is not an instance of {@code Number}.
      */
     //@Override
-    CARAPI formatEx(
+    CARAPI FormatObjectEx(
             /* [in] */ IInterface* object,
-            /* [in] */ StringBuffer* buffer,
+            /* [in] */ const String& buffer,
             /* [in] */ IFieldPosition* field,
-            /* [out] */ StringBuffer* value);
+            /* [out] */ String* value);
 
     /**
      * Returns an array of locales for which custom {@code NumberFormat} instances
@@ -172,7 +271,7 @@ public:
      * <p>Note that Android does not support user-supplied locale service providers.
      */
     static CARAPI GetAvailableLocales(
-        /* [out] */ ArrayOf<ILocale*>** locales);
+        /* [out, callee] */ ArrayOf<ILocale*>** locales);
 
     /**
      * Returns the currency used by this number format.
@@ -186,8 +285,8 @@ public:
      *         or {@code null}.
      * @throws UnsupportedOperationException
      */
-//    virtual CARAPI GetCurrency(
-//        /* [out] */ ICurrency** currency);
+    virtual CARAPI GetCurrency(
+        /* [out] */ ICurrency** currency);
 
     /**
      * Returns a {@code NumberFormat} for formatting and parsing currency values
@@ -378,7 +477,7 @@ public:
      *            if an error occurs during parsing.
      */
     virtual CARAPI Parse(
-        /* [in] */ String string,
+        /* [in] */ const String& string,
         /* [out] */ INumber** value);
 
     /**
@@ -400,13 +499,13 @@ public:
      *         there is an error.
      */
     virtual CARAPI ParseEx(
-        /* [in] */ String string, 
+        /* [in] */ const String& string,
         /* [in] */ IParsePosition* position,
         /* [out] */ INumber** value) = 0;
 
     //@Override
     CARAPI ParseObjectEx(
-        /* [in] */ String string,
+        /* [in] */ const String& string,
         /* [in] */ IParsePosition* position,
         /* [out] */ IInterface** object);
 
@@ -422,8 +521,8 @@ public:
      *            the new currency.
      * @throws UnsupportedOperationException
      */
-//    virtual CARAPI SetCurrency(
-//        /* [in] */ ICurrency* currency);
+    virtual CARAPI SetCurrency(
+        /* [in] */ ICurrency* currency);
 
     /**
      * Sets whether this number format formats and parses numbers using a
@@ -497,8 +596,8 @@ public:
      * Subclasses for which a rounding mode is meaningful are expected to override this method.
      * @since 1.6
      */
-//    virtual CARAPI GetRoundingMode(
-//        /* [out] */ IRoundingMode** roundingMode);
+    virtual CARAPI GetRoundingMode(
+        /* [out] */ RoundingMode* roundingMode);
 
     /**
      * Sets the {@code RoundingMode} used by this {@code NumberFormat}. The default
@@ -506,13 +605,19 @@ public:
      * Subclasses for which a rounding mode is meaningful are expected to override this method.
      * @since 1.6
      */
-//    virtual CARAPI SetRoundingMode(
-//        /* [in] */ IRoundingMode* roundingMode);
+    virtual CARAPI SetRoundingMode(
+        /* [in] */ RoundingMode roundingMode);
+
+protected:
+    /**
+     * Used by subclasses. This was public in Java 5.
+     */
+    NumberFormat();
 
 private:
     // BEGIN android-added
     static CARAPI GetInstance(
-        /* [in] */ String pattern,
+        /* [in] */ const String& pattern,
         /* [in] */ ILocale* locale,
         /* [out] */ INumberFormat** instance);
     // END android-added
@@ -579,119 +684,14 @@ private:
 //        }
 //    }
 
-    /**
-     * The instances of this inner class are used as attribute keys and values
-     * in {@code AttributedCharacterIterator} that the
-     * {@link NumberFormat#formatToCharacterIterator(Object)} method returns.
-     * <p>
-     * There is no public constructor in this class, the only instances are the
-     * constants defined here.
-     * <p>
-     */
-    class NumberFormat_Field : public Format::Format_Field {
-    protected:
-        /**
-         * Constructs a new instance of {@code NumberFormat.Field} with the
-         * given field name.
-         *
-         * @param fieldName
-         *            the field name.
-         */
-        NumberFormat_Field(
-            /* [in] */ String fn);
-
-        /**
-         * Resolves instances that are deserialized to the constant
-         * {@code NumberFormat.Field} values.
-         *
-         * @return the resolved field object.
-         * @throws InvalidObjectException
-         *             if an error occurs while resolving the field object.
-         */
-        //@Override
-        CARAPI ReadResolve(
-            /* [out] */ IInterface** resolvedObject);
-    public:
-        /**
-         * This constant stands for the number sign.
-         */
-        //public static final Field SIGN = new Field("sign");
-        const static AutoPtr<INumberFormat_Field> SIGN;
-
-        /**
-         * This constant stands for the integer part of the number.
-         */
-        //public static final Field INTEGER = new Field("integer");
-        const static AutoPtr<INumberFormat_Field> INTEGER;
-
-        /**
-         * This constant stands for the fraction part of the number.
-         */
-        //public static final Field FRACTION = new Field("fraction");
-        const static AutoPtr<INumberFormat_Field> FRACTION;
-
-        /**
-         * This constant stands for the exponent part of the number.
-         */
-        //public static final Field EXPONENT = new Field("exponent");
-        const static AutoPtr<INumberFormat_Field> EXPONENT;
-
-        /**
-         * This constant stands for the exponent sign symbol.
-         */
-        //public static final Field EXPONENT_SIGN = new Field("exponent sign");
-        const static AutoPtr<INumberFormat_Field> EXPONENT_SIGN;
-
-        /**
-         * This constant stands for the exponent symbol.
-         */
-        //public static final Field EXPONENT_SYMBOL = new Field("exponent symbol");
-        const static AutoPtr<INumberFormat_Field> EXPONENT_SYMBOL;
-
-        /**
-         * This constant stands for the decimal separator.
-         */
-        //public static final Field DECIMAL_SEPARATOR = new Field("decimal separator");
-        const static AutoPtr<INumberFormat_Field> DECIMAL_SEPARATOR;
-
-        /**
-         * This constant stands for the grouping separator.
-         */
-        //public static final Field GROUPING_SEPARATOR = new Field("grouping separator");
-        const static AutoPtr<INumberFormat_Field> GROUPING_SEPARATOR;
-
-        /**
-         * This constant stands for the percent symbol.
-         */
-        //public static final Field PERCENT = new Field("percent");
-        const static AutoPtr<INumberFormat_Field> PERCENT;
-
-        /**
-         * This constant stands for the permille symbol.
-         */
-        //public static final Field PERMILLE = new Field("per mille");
-        const static AutoPtr<INumberFormat_Field> PERMILLE;
-
-        /**
-         * This constant stands for the currency symbol.
-         */
-        //public static final Field CURRENCY = new Field("currency");
-        const static AutoPtr<INumberFormat_Field> CURRENCY;
-    private:
-
-        //const static Int64 serialVersionUID = 7494728892700160890L;
-    };
-
 private:
-    //const static Int64 serialVersionUID = -2308460125733713944L;
+    Boolean mGroupingUsed;
+    Boolean mParseIntegerOnly;
 
-    Boolean groupingUsed;
-    Boolean parseIntegerOnly;
-
-    Int32 maximumIntegerDigits;
-    Int32 minimumIntegerDigits;
-    Int32 maximumFractionDigits;
-    Int32 minimumFractionDigits;
-
+    Int32 mMaximumIntegerDigits;
+    Int32 mMinimumIntegerDigits;
+    Int32 mMaximumFractionDigits;
+    Int32 mMinimumFractionDigits;
 };
+
 #endif //__NUMBERFORMAT_H__

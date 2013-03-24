@@ -3,8 +3,8 @@ module
     interface ILocale;
     interface IParsePosition;
 
-    interface IMessageFormat_Field extends IFormat_Field {
-    
+    interface IMessageFormat_Field extends IFormatField {
+
     }
     [deprecated]
     interface IMessageFormat extends IFormat {
@@ -33,7 +33,7 @@ module
          * Returns the {@code Format} instances used by this message format.
          */
         GetFormats(
-            [out, callee] ArrayOf<IFormat*>* formats); 
+            [out, callee] ArrayOf<IFormat*>* formats);
 
         /**
          * Returns the formats used for each argument index. If an argument is

@@ -1,5 +1,7 @@
 module
 {
+    interface ICurrency;
+
     interface IDecimalFormatSymbols {
         /**
          * Returns the currency.
@@ -11,19 +13,19 @@ module
          * Returns the international currency symbol.
          */
         GetInternationalCurrencySymbol(
-            [out] String* internationalCurrencySymbol);
+            [out] String* symbol);
 
         /**
          * Returns the currency symbol.
          */
         GetCurrencySymbol(
-            [out] String* currencySymbol);
+            [out] String* symbol);
 
         /**
          * Returns the character which represents the decimal point in a number.
          */
         GetDecimalSeparator(
-            [out] Char32* decimalSeparator);
+            [out] Char32* separator);
 
         /**
          * Returns the character which represents a single digit in a format
@@ -36,7 +38,7 @@ module
          * Returns the character used as the thousands separator in a number.
          */
         GetGroupingSeparator(
-            [out] Char32* groupingSeparator);
+            [out] Char32* separator);
 
         /**
          * Returns the string which represents infinity.
@@ -48,27 +50,27 @@ module
          * Returns the minus sign character.
          */
         GetMinusSign(
-            [out] Char32* minusSign);
+            [out] Char32* sign);
 
         /**
          * Returns the character which represents the decimal point in a monetary
          * value.
          */
         GetMonetaryDecimalSeparator(
-            [out] Char32* monetaryDecimalSeparator);
+            [out] Char32* separator);
 
         /**
          * Returns the string which represents NaN.
          */
         GetNaN(
-            [out] String* naN);
+            [out] String* NaN);
 
         /**
          * Returns the character which separates the positive and negative patterns
          * in a format pattern.
          */
         GetPatternSeparator(
-            [out] Char32* patternSeparator);
+            [out] Char32* separator);
 
         /**
          * Returns the percent character.
@@ -92,7 +94,7 @@ module
          * Returns the string used to separate mantissa and exponent. Typically "E", as in "1.2E3".
          */
         GetExponentSeparator(
-            [out] String* exponentSeparator);
+            [out] String* separator);
 
         SetCurrency(
             [in] ICurrency* currency);

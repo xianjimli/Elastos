@@ -101,9 +101,9 @@ const Float TextAttribute::WIDTH_SEMI_EXTENDED = 1.25F;
 const Float TextAttribute::WIDTH_EXTENDED = 1.5F;
 
 ECode TextAttribute::Init(
-        /* [in] */ String name) 
+        /* [in] */ String name)
 {
-    AttributedCharacterIterator_Attribute::Init(name);
+    AttributedCharacterIteratorAttribute::Init(name);
     //Pair<String, IAutoPtr<ITextAttribute> > value(name, this);
     //attrMap->Insert(value);
     return NOERROR;

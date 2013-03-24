@@ -82,7 +82,7 @@ ECode DecimalFormat::FormatToCharacterIterator(
         //throw new NullPointerException();
         return E_NULL_POINTER_EXCEPTION;
     }
-    return mDform->FormatToCharacterIterator(object, characterIterator); 
+    return mDform->FormatToCharacterIterator(object, characterIterator);
 }
 
 ECode DecimalFormat::CheckBufferAndFieldPosition(
@@ -113,7 +113,7 @@ ECode DecimalFormat::formatEx3(
         // ICU4C doesn't support this rounding mode, so we have to fake it.
         //try {
             SetRoundingMode(RoundingMode_UP);
-            
+
             AutoPtr<IFieldPosition> fp;
             CFieldPosition::New(0, (IFieldPosition**)&fp);
             formatEx3(value, new StringBuffer(NULL), (IFieldPosition*)fp, result);
@@ -124,7 +124,7 @@ ECode DecimalFormat::formatEx3(
             AutoPtr<IFieldPosition> fpx;
             CFieldPosition::New(0, (IFieldPosition**)&fpx);
             formatEx3(value, new StringBuffer(NULL), (IFieldPosition*)fp, result);
-            String downResult = String(result->Substring(0, result->GetLength()));          
+            String downResult = String(result->Substring(0, result->GetLength()));
             if (!upResult.Equals(downResult)) {
                 //throw new ArithmeticException("rounding mode UNNECESSARY but rounding required");
                 return NOERROR;
@@ -456,14 +456,14 @@ ECode DecimalFormat::ToPattern(
 }
 
 ECode DecimalFormat::GetRoundingMode(
-        /* [out] */ RRoundingMode* roundingMode)
+        /* [out] */ RoundingMode* roundingMode)
 {
     *roundingMode = mRoundingMode;
     return NOERROR;
 }
 
 ECode DecimalFormat::SetRoundingMode(
-        /* [in] */ RRoundingMode roundingMode)
+        /* [in] */ RoundingMode roundingMode)
 {
     if (roundingMode == NULL) {
         //throw new NullPointerException();

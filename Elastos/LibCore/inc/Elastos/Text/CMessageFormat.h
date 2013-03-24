@@ -15,9 +15,15 @@ public:
     CARAPI constructor(
         /* [in] */ const String& tem);
 
-    CARAPI format(
+    CARAPI FormatObject(
         /* [in] */ IInterface * pObject,
         /* [out] */ String * pValue);
+
+    CARAPI FormatObjectEx(
+        /* [in] */ IInterface* object,
+        /* [in] */ const String& buffer,
+        /* [in] */ IFieldPosition* field,
+        /* [out] */ String* value);
 
     CARAPI FormatToCharacterIterator(
         /* [in] */ IInterface * pObject,

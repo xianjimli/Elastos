@@ -11,7 +11,7 @@ ChoiceFormat::~ChoiceFormat()
 }
 
 ECode ChoiceFormat::Init(
-        /* [in] */ ArrayOf<Double>* limits, 
+        /* [in] */ ArrayOf<Double>* limits,
         /* [in] */ ArrayOf<String>* formats)
 {
     return SetChoices(limits, formats);
@@ -31,7 +31,7 @@ ECode ChoiceFormat::ApplyPattern(
     Int32 length = (Int32)(tem.GetLength());
     Int32 limitCount = 0;
     Int32 index = 0;
-    StringBuffer* buffer = new StringBuffer("");
+    StringBuffer buffer("");
 
     AutoPtr<ILocale> locale_US;
 //    CLocale::New(String("en"), String("US"), (ILocale**)&locale_US);
@@ -55,7 +55,7 @@ ECode ChoiceFormat::ApplyPattern(
             mChoiceFormats = ArrayOf<String>::Alloc(formats->GetSize());
             List<String>::Iterator it = formats->Begin();
 
-            for (Int32 i = 0; 
+            for (Int32 i = 0;
                     i < (Int32)(formats->GetSize()), it != formats->End(); ++i, ++it) {
                 (*mChoiceFormats)[i] = *it;
             }
@@ -105,12 +105,13 @@ ECode ChoiceFormat::ApplyPattern(
             return E_ILLEGAL_ARGUMENT_EXCEPTION;
         }
         //buffer.setLength(0);
-        *buffer = String("");
+        buffer = String("");
         position->SetIndex(index);
-        UpTo(tem, position, buffer, '|');
+        Boolean succeeded;
+        UpTo(tem, position, buffer, '|', &succeeded);
         position->GetIndex(&index);
         (*limits)[limitCount++] = next;
-        formats->PushBack(buffer->Substring(0, buffer->GetLength()));
+        formats->PushBack(buffer.Substring(0, buffer.GetLength()));
     }
     ArrayOf<Double>::Free(limits);
     return NOERROR;
@@ -139,8 +140,8 @@ ECode ChoiceFormat::formatEx3(
 }
 
 ECode ChoiceFormat::formatEx5(
-        /* [in] */ Int64 value, 
-        /* [in] */ StringBuffer* buffer, 
+        /* [in] */ Int64 value,
+        /* [in] */ StringBuffer* buffer,
         /* [in] */ IFieldPosition* field,
         /* [out] */ StringBuffer* formattedString)
 {
@@ -199,14 +200,14 @@ Double ChoiceFormat::NextDouble(
 }
 
 Double ChoiceFormat::NextDouble(
-        /* [in] */ Double value, 
+        /* [in] */ Double value,
         /* [in] */ Boolean increment)
 {
     return increment ? NextDouble(value) : PreviousDouble(value);
 }
 
 ECode ChoiceFormat::ParseEx(
-        /* [in] */ String string, 
+        /* [in] */ String string,
         /* [in] */ IParsePosition* position,
         /* [out] */ INumber** value)
 {
@@ -244,7 +245,7 @@ Double ChoiceFormat::PreviousDouble(
 }
 
 ECode ChoiceFormat::SetChoices(
-        /* [in] */ ArrayOf<Double>* limits, 
+        /* [in] */ ArrayOf<Double>* limits,
         /* [in] */ ArrayOf<String>* formats)
 {
     if (limits->GetLength() != formats->GetLength()) {
@@ -257,7 +258,7 @@ ECode ChoiceFormat::SetChoices(
 }
 
 Int32 ChoiceFormat::SkipWhitespace(
-        /* [in] */ String string, 
+        /* [in] */ String string,
         /* [in] */ Int32 index)
 {
     Int32 length = (Int32)(string.GetLength());

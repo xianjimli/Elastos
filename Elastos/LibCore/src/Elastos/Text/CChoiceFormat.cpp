@@ -13,11 +13,20 @@ ECode CChoiceFormat::constructor(
     return ChoiceFormat::Init(tem);
 }
 
-ECode CChoiceFormat::format(
+ECode CChoiceFormat::FormatObject(
     /* [in] */ IInterface * pObject,
     /* [out] */ String * pValue)
 {
-    return ChoiceFormat::format(pObject, pValue);
+    return ChoiceFormat::FormatObject(pObject, pValue);
+}
+
+ECode CChoiceFormat::FormatObjectEx(
+    /* [in] */ IInterface* object,
+    /* [in] */ const String& buffer,
+    /* [in] */ IFieldPosition* field,
+    /* [out] */ String* value)
+{
+    return E_NOT_IMPLEMENTED;
 }
 
 ECode CChoiceFormat::FormatToCharacterIterator(
@@ -42,18 +51,36 @@ ECode CChoiceFormat::ParseObjectEx(
     return ChoiceFormat::ParseObjectEx(string, pPosition, ppObject);
 }
 
-ECode CChoiceFormat::formatEx2(
+ECode CChoiceFormat::FormatDouble(
     /* [in] */ Double value,
     /* [out] */ String * pFormat)
 {
-    return ChoiceFormat::formatEx2(value, pFormat);
+    return ChoiceFormat::FormatDouble(value, pFormat);
 }
 
-ECode CChoiceFormat::formatEx4(
+ECode CChoiceFormat::FormatDoubleEx(
+    /* [in] */ Double value,
+    /* [in] */ const String& buffer,
+    /* [in] */ IFieldPosition* field,
+    /* [out] */ String* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CChoiceFormat::FormatInt64(
     /* [in] */ Int64 value,
     /* [out] */ String * pFormat)
 {
-    return ChoiceFormat::formatEx4(value, pFormat);
+    return ChoiceFormat::FormatInt64(value, pFormat);
+}
+
+ECode CChoiceFormat::FormatInt64Ex(
+    /* [in] */ Int64 value,
+    /* [in] */ const String& buffer,
+    /* [in] */ IFieldPosition* field,
+    /* [out] */ String* result)
+{
+    return E_NOT_IMPLEMENTED;
 }
 
 ECode CChoiceFormat::GetMaximumFractionDigits(
@@ -174,4 +201,26 @@ ECode CChoiceFormat::ToPattern(
     return ChoiceFormat::ToPattern(pPattern);
 }
 
+ECode CChoiceFormat::GetCurrency(
+    /* [out] */ ICurrency** currency)
+{
+    return E_NOT_IMPLEMENTED;
+}
 
+ECode CChoiceFormat::SetCurrency(
+    /* [in] */ ICurrency* currency)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CChoiceFormat::GetRoundingMode(
+    /* [out] */ RoundingMode* mode)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CChoiceFormat::SetRoundingMode(
+    /* [in] */ RoundingMode mode)
+{
+    return E_NOT_IMPLEMENTED;
+}

@@ -145,8 +145,8 @@ public:
 
     //@Override
     CARAPI formatEx5(
-            /* [in] */ Int64 value, 
-            /* [in] */ StringBuffer* buffer, 
+            /* [in] */ Int64 value,
+            /* [in] */ StringBuffer* buffer,
             /* [in] */ IFieldPosition* field,
             /* [out] */ StringBuffer* formattedString);
 
@@ -307,7 +307,7 @@ public:
      */
     //@Override
     CARAPI ParseEx(
-            /* [in] */ String string, 
+            /* [in] */ String string,
             /* [in] */ IParsePosition* position,
             /* [out] */ INumber** value);
 
@@ -502,14 +502,14 @@ public:
      * @since 1.6
      */
     virtual CARAPI GetRoundingMode(
-        /* [out] */ RRoundingMode* roundingMode);
+        /* [out] */ RoundingMode* roundingMode);
 
     /**
      * Sets the {@code RoundingMode} used by this {@code NumberFormat}.
      * @since 1.6
      */
     virtual CARAPI SetRoundingMode(
-        /* [in] */ RRoundingMode roundingMode);
+        /* [in] */ RoundingMode roundingMode);
 
     // the fields list to be serialized
 /*
@@ -654,8 +654,6 @@ private:
         /* [in] */ IFieldPosition* position);
 
 private:
-    //const static Int64 serialVersionUID = 864413376551465018L;
-
     mutable AutoPtr<IDecimalFormatSymbols> mSymbols;
 
     mutable AutoPtr<INativeDecimalFormat> mDform;
@@ -671,8 +669,9 @@ private:
     };
     */
 
-    mutable RRoundingMode mRoundingMode;// = RoundingMode_HALF_EVEN;
+    mutable RoundingMode mRoundingMode;// = RoundingMode_HALF_EVEN;
 
     static const Double NEGATIVE_ZERO_DOUBLE = -0.0;//new Double(-0.0);
 };
+
 #endif //__DECIMALFORMAT__

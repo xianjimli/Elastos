@@ -3,13 +3,13 @@ module
     /**
      * Defines keys for text attributes.
      */
-    interface IAttributedCharacterIterator_Attribute {
-        /**
-         * Resolves a deserialized instance to the correct constant attribute.
-         */
-        ReadResolve(
-            [out] IInterface** resolve);
-
+    interface IAttributedCharacterIteratorAttribute {
+//        /**
+//         * Resolves a deserialized instance to the correct constant attribute.
+//         */
+//        ReadResolve(
+//            [out] IInterface** resolve);
+//
         /**
          * Returns the name of this attribute.
          *
@@ -46,7 +46,7 @@ module
          *         {@code null} if it was not defined.
          */
         GetAttribute(
-            [in] IAttributedCharacterIterator_Attribute* attribute,
+            [in] IAttributedCharacterIteratorAttribute* attribute,
             [out] IInterface** value);
 
         /**
@@ -77,7 +77,7 @@ module
          * @return the index of the last character of the current run.
          */
         GetRunLimitEx(
-            [in] IAttributedCharacterIterator_Attribute* attribute,
+            [in] IAttributedCharacterIteratorAttribute* attribute,
             [out] Int32* index);
 
         /**
@@ -108,7 +108,7 @@ module
          * @return the index of the last character of the current run.
          */
         GetRunStartEx(
-            [in] IAttributedCharacterIterator_Attribute* attribute,
+            [in] IAttributedCharacterIteratorAttribute* attribute,
             [out] Int32* index);
 
         /**

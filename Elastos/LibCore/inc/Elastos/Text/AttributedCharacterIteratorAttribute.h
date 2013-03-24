@@ -1,12 +1,13 @@
-#ifndef __ATTRIBUTEDCHARACTERITERATOR_ATTRIBUTE_H__
-#define __ATTRIBUTEDCHARACTERITERATOR_ATTRIBUTE_H__
 
-#include <elastos.h>
+#ifndef __ATTRIBUTEDCHARACTERITERATORATTRIBUTE_H__
+#define __ATTRIBUTEDCHARACTERITERATORATTRIBUTE_H__
+
 #include "Elastos.Text_server.h"
 #include <elastos/AutoPtr.h>
-using namespace Elastos;
 
-class AttributedCharacterIterator_Attribute {
+
+class AttributedCharacterIteratorAttribute
+{
 public:
     //CARAPI_(void) Init();
 
@@ -47,6 +48,7 @@ public:
     //public String toString() {
     //    return getClass().getName() + '(' + getName() + ')';
     //}
+
 protected:
     /**
      * The constructor for an {@code Attribute} with the name passed.
@@ -54,8 +56,11 @@ protected:
      * @param name
      *            the name of the new {@code Attribute}.
      */
-    CARAPI_(void) Init(
-        /* [in] */ String name);
+    CARAPI Init(
+        /* [in] */ const String& name);
+
+    virtual CARAPI GetClassID(
+         /* [out] */ ClassID* clsid) = 0;
 
     /**
      * Returns the name of this attribute.
@@ -84,24 +89,23 @@ public:
      * The value objects are of the type {@code Annotation} which contain
      * {@code null}.
      */
-    const static AutoPtr<IAttributedCharacterIterator_Attribute> INPUT_METHOD_SEGMENT;
+    const static AutoPtr<IAttributedCharacterIteratorAttribute> INPUT_METHOD_SEGMENT;
 
     /**
      * The attribute describing the language of a character. The value
      * objects are of type {@code Locale} or a subtype of it.
      */
-    const static AutoPtr<IAttributedCharacterIterator_Attribute> LANGUAGE;
+    const static AutoPtr<IAttributedCharacterIteratorAttribute> LANGUAGE;
     /**
      * For languages that have different reading directions of text (like
      * Japanese), this attribute allows to define which reading should be
      * used. The value objects are of type {@code Annotation} which
      * contain a {@code String}.
      */
-    const static AutoPtr<IAttributedCharacterIterator_Attribute> READING;
+    const static AutoPtr<IAttributedCharacterIteratorAttribute> READING;
 
 private:
-    //const static Int64 serialVersionUID = -9142742483513960612L;
-
     String mName;
 };
-#endif //__ATTRIBUTEDCHARACTERITERATOR_ATTRIBUTE_H__
+
+#endif //__ATTRIBUTEDCHARACTERITERATORATTRIBUTE_H__

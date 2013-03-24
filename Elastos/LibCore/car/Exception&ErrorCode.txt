@@ -11,3 +11,4 @@ Elastos.SQL.Exceptions                              0x28
 Com.Kortide.Platform.Exceptions                     0x2A
 Elastos.Net.Exceptions                              0x2B
 Elastos.Security.Exceptions                         0x2C
+Elastos.Text.Exceptions                              0x2D

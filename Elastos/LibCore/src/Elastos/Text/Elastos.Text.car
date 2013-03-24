@@ -2,24 +2,24 @@ module
 {
     importlib("Elastos.Core.eco");
     importlib("Elastos.Utility.eco");
-    importlib("Elastos.Lang.eco");
     importlib("Elastos.Math.eco");
 
-    merge("../../../car/Elastos/Text/CharacterIterator.car");
-    merge("../../../car/Elastos/Text/AttributedCharacterIterator.car");
-    merge("../../../car/Elastos/Text/ParsePosition.car");
-    merge("../../../car/Elastos/Text/Format.car");
-    merge("../../../car/Elastos/Text/FieldPosition.car");
-    merge("../../../car/Elastos/Text/DateFormat.car");
+    merge("../../../car/Elastos/Text/Exceptions.car");
+    merge("../../../car/Elastos/Text/ICharacterIterator.car");
+    merge("../../../car/Elastos/Text/IAttributedCharacterIterator.car");
+    merge("../../../car/Elastos/Text/IParsePosition.car");
+    merge("../../../car/Elastos/Text/IFormat.car");
+    merge("../../../car/Elastos/Text/IFieldPosition.car");
+    merge("../../../car/Elastos/Text/IDateFormat.car");
     merge("../../../car/Elastos/Text/DateFormatSymbols.car");
-    merge("../../../car/Elastos/Text/NumberFormat.car");
+    merge("../../../car/Elastos/Text/INumberFormat.car");
     merge("../../../car/Elastos/Text/MessageFormat.car");
     merge("../../../car/Elastos/Text/ChoiceFormat.car");
-    merge("../../../car/Elastos/Text/DecimalFormatSymbols.car");
-    merge("../../../car/Elastos/Text/NativeDecimalFormat.car");
+    merge("../../../car/Elastos/Text/IDecimalFormatSymbols.car");
+    merge("../../../car/Elastos/Text/INativeDecimalFormat.car");
     merge("../../../car/Elastos/Text/CollationAttribute.car");
     merge("../../../car/Elastos/Text/ICUCollationElementIterator.car");
-    merge("../../../car/Elastos/Text/DecimalFormat.car");
+    merge("../../../car/Elastos/Text/IDecimalFormat.car");
     merge("../../../car/Elastos/Text/SimpleDateFormat.car");
     merge("../../../car/Elastos/Text/BreakIterator.car");
     merge("../../../car/Elastos/Text/RuleBasedBreakIterator.car");
@@ -36,11 +36,11 @@ module
     merge("../../../car/Elastos/Text/Bidi.car");
     merge("../../../car/Elastos/Text/AttributedString.car");
 
-    class CAttributedCharacterIterator_Attribute {
+    class CAttributedCharacterIteratorAttribute {
         constructor(
             [in] String name);
 
-        interface IAttributedCharacterIterator_Attribute;
+        interface IAttributedCharacterIteratorAttribute;
     }
 
     class CParsePosition {
@@ -55,10 +55,10 @@ module
             [in] Int32 field);
 
         constructor(
-            [in] IFormat_Field* attribute);
+            [in] IFormatField* attribute);
 
         constructor(
-            [in] IFormat_Field* attribute,
+            [in] IFormatField* attribute,
             [in] Int32 field);
 
         interface IFieldPosition;
@@ -88,6 +88,23 @@ module
         interface IChoiceFormat;
     }
 
+    class CDateFormatField {
+        /**
+         * Constructs a new instance of {@code DateFormat.Field} with the given
+         * fieldName and calendar field.
+         *
+         * @param fieldName
+         *            the field name.
+         * @param calendarField
+         *            the calendar field type of the field.
+         */
+        constructor(
+            [in] String fieldName,
+            [in] Int32 calendarField);
+
+        interface IDateFormatField;
+    }
+
     class CDateFormatSymbols {
         constructor();
 
@@ -108,7 +125,7 @@ module
 
     class CNativeDecimalFormat {
         constructor(
-            [in] String pattern, 
+            [in] String pattern,
             [in] IDecimalFormatSymbols* dfs);
 
         // Used so java.util.Formatter doesn't need to allocate DecimalFormatSymbols instances.
@@ -126,7 +143,7 @@ module
             [in] String pattern);
 
         constructor(
-            [in] String pattern, 
+            [in] String pattern,
             [in] IDecimalFormatSymbols* value);
 
         constructor(
@@ -210,8 +227,8 @@ module
             [in] Int32 strength);
 
         constructor(
-            [in] String rules, 
-            [in] Int32 normalizationMode, 
+            [in] String rules,
+            [in] Int32 normalizationMode,
             [in] Int32 strength);
 
         constructor(
@@ -272,11 +289,11 @@ module
             [in] Int32 start,
             [in] Int32 end);
 
-        constructor(
-            [in] IAttributedCharacterIterator* iterator, 
-            [in] Int32 start,
-            [in] Int32 end, 
-            [in] ArrayOf<IAttributedCharacterIterator_Attribute*>* attributes);
+//        constructor(
+//            [in] IAttributedCharacterIterator* iterator,
+//            [in] Int32 start,
+//            [in] Int32 end,
+//            [in] ArrayOf<IAttributedCharacterIterator_Attribute*>* attributes);
 
         constructor(
             [in] String value);

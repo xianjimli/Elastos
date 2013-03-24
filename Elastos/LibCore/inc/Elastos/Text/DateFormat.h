@@ -2,25 +2,210 @@
 #ifndef __DATEFORMAT_H__
 #define __DATEFORMAT_H__
 
-#include <elastos.h>
-#include <elastos/AutoPtr.h>
-//#include <elastos/HashTable.h>
-#include <StringBuffer.h>
+
 #include "Elastos.Text_server.h"
 #include "Format.h"
 #include "CFieldPosition.h"
 #include "CParsePosition.h"
+#include <elastos/AutoPtr.h>
+#include <elastos/HashMap.h>
+#include <StringBuffer.h>
 
 using namespace Elastos;
 
 extern "C" const InterfaceID EIID_DateFormat;
 
-class DateFormat : public Format {
+class DateFormat : public Format
+{
 public:
-    virtual ~DateFormat();
+    /**
+     * The instances of this inner class are used as attribute keys and values
+     * in {@code AttributedCharacterIterator} that the
+     * {@link SimpleDateFormat#formatToCharacterIterator(Object)} method returns.
+     * <p>
+     * There is no public constructor in this class, the only instances are the
+     * constants defined here.
+     */
+    class Field : public Format::Field
+    {
+    public:
+        Field();
 
-    virtual CARAPI_(PInterface) Probe(
+        /**
+         * Returns the Calendar field that this field represents.
+         *
+         * @return the calendar field.
+         */
+        virtual CARAPI GetCalendarField(
+            /* [out] */ Int32* field);
+
+        /**
+         * Returns the {@code DateFormat.Field} instance for the given calendar
+         * field.
+         *
+         * @param calendarField
+         *            a calendar field constant.
+         * @return the {@code DateFormat.Field} corresponding to
+         *         {@code calendarField}.
+         * @throws IllegalArgumentException
+         *             if {@code calendarField} is negative or greater than the
+         *             field count of {@code Calendar}.
+         */
+        static CARAPI OfCalendarField(
+            /* [in] */ Int32 calendarField,
+            /* [out] */ IDateFormatField** field);
+
+    protected:
+        /**
+         * Constructs a new instance of {@code DateFormat.Field} with the given
+         * fieldName and calendar field.
+         *
+         * @param fieldName
+         *            the field name.
+         * @param calendarField
+         *            the calendar field type of the field.
+         */
+        CARAPI Init(
+            /* [in] */ const String& fieldName,
+            /* [in] */ Int32 calendarField);
+
+        virtual CARAPI_(PInterface) Probe(
             /* [in] */ REIID riid) = 0;
+
+        /**
+         * Resolves instances that are deserialized to the constant
+         * {@code DateFormat.Field} values.
+         *
+         * @return the resolved field object.
+         * @throws InvalidObjectException
+         *             if an error occurs while resolving the field object.
+         */
+        //@Override
+        CARAPI ReadResolve(
+            /* [out] */ IInterface** resolvedField);
+
+    public:
+        /**
+         * Marks the era part of a date.
+         */
+        //public final static Field ERA = new Field("era", Calendar.ERA);
+        const static AutoPtr<IDateFormatField> ERA;
+
+        /**
+         * Marks the year part of a date.
+         */
+        //public final static Field YEAR = new Field("year", Calendar.YEAR);
+        const static AutoPtr<IDateFormatField> YEAR;
+
+        /**
+         * Marks the month part of a date.
+         */
+        //public final static Field MONTH = new Field("month", Calendar.MONTH);
+        const static AutoPtr<IDateFormatField> MONTH;
+
+        /**
+         * Marks the hour of the day part of a date (0-11).
+         */
+        //public final static Field HOUR_OF_DAY0 = new Field("hour of day", Calendar.HOUR_OF_DAY);
+        const static AutoPtr<IDateFormatField> HOUR_OF_DAY0;
+
+        /**
+         * Marks the hour of the day part of a date (1-12).
+         */
+        //public final static Field HOUR_OF_DAY1 = new Field("hour of day 1", -1);
+        const static AutoPtr<IDateFormatField> HOUR_OF_DAY1;
+
+        /**
+         * Marks the minute part of a time.
+         */
+        //public final static Field MINUTE = new Field("minute", Calendar.MINUTE);
+        const static AutoPtr<IDateFormatField> MINUTE;
+
+        /**
+         * Marks the second part of a time.
+         */
+        //public final static Field SECOND = new Field("second", Calendar.SECOND);
+        const static AutoPtr<IDateFormatField> SECOND;
+
+        /**
+         * Marks the millisecond part of a time.
+         */
+        //public final static Field MILLISECOND = new Field("millisecond", Calendar.MILLISECOND);
+        const static AutoPtr<IDateFormatField> MILLISECOND;
+
+        /**
+         * Marks the day of the week part of a date.
+         */
+        //public final static Field DAY_OF_WEEK = new Field("day of week", Calendar.DAY_OF_WEEK);
+        const static AutoPtr<IDateFormatField> DAY_OF_WEEK;
+
+        /**
+         * Marks the day of the month part of a date.
+         */
+        //public final static Field DAY_OF_MONTH = new Field("day of month", Calendar.DAY_OF_MONTH);
+        const static AutoPtr<IDateFormatField> DAY_OF_MONTH;
+
+        /**
+         * Marks the day of the year part of a date.
+         */
+        //public final static Field DAY_OF_YEAR = new Field("day of year", Calendar.DAY_OF_YEAR);
+        const static AutoPtr<IDateFormatField> DAY_OF_YEAR;
+
+        /**
+         * Marks the day of the week in the month part of a date.
+         */
+        //public final static Field DAY_OF_WEEK_IN_MONTH = new Field("day of week in month",
+        //        Calendar.DAY_OF_WEEK_IN_MONTH);
+        const static AutoPtr<IDateFormatField> DAY_OF_WEEK_IN_MONTH;
+
+        /**
+         * Marks the week of the year part of a date.
+         */
+        //public final static Field WEEK_OF_YEAR = new Field("week of year",
+        //        Calendar.WEEK_OF_YEAR);
+        const static AutoPtr<IDateFormatField> WEEK_OF_YEAR;
+
+        /**
+         * Marks the week of the month part of a date.
+         */
+        //public final static Field WEEK_OF_MONTH = new Field("week of month",
+        //        Calendar.WEEK_OF_MONTH);
+        const static AutoPtr<IDateFormatField> WEEK_OF_MONTH;
+
+        /**
+         * Marks the time indicator part of a date.
+         */
+        //public final static Field AM_PM = new Field("am pm", Calendar.AM_PM);
+        const static AutoPtr<IDateFormatField> AM_PM;
+
+        /**
+         * Marks the hour part of a date (0-11).
+         */
+        //public final static Field HOUR0 = new Field("hour", Calendar.HOUR);
+        const static AutoPtr<IDateFormatField> HOUR0;
+
+        /**
+         * Marks the hour part of a date (1-12).
+         */
+        ///public final static Field HOUR1 = new Field("hour 1", -1);
+        const static AutoPtr<IDateFormatField> HOUR1;
+
+        /**
+         * Marks the time zone part of a date.
+         */
+        //public final static Field TIME_ZONE = new Field("time zone", -1);
+        const static AutoPtr<IDateFormatField> TIME_ZONE;
+
+    private:
+        static HashMap<Int32, AutoPtr<IDateFormatField> > sTable;
+
+        /**
+         * The calendar field that this field represents.
+         */
+        Int32 mCalendarField;
+    };
+
+public:
     /**
      * Formats the specified object as a string using the pattern of this date
      * format and appends the string to the specified string buffer.
@@ -45,11 +230,11 @@ public:
      *            {@code Number} instance.
      */
     //@Override
-    CARAPI formatEx(
+    CARAPI FormatObjectEx(
         /* [in] */ IInterface* object,
-        /* [in] */ StringBuffer* buffer,
+        /* [in] */ const String& buffer,
         /* [in] */ IFieldPosition* field,
-        /* [out] */ StringBuffer* value);
+        /* [out] */ String* value);
 
     /**
      * Formats the specified date using the rules of this date format.
@@ -58,9 +243,9 @@ public:
      *            the date to format.
      * @return the formatted string.
      */
-    CARAPI formatEx2(
+    CARAPI FormatDate(
         /* [in] */ IDate* date,
-        /* [out] */ String* formatString);
+        /* [out] */ String* result);
 
     /**
      * Formats the specified date as a string using the pattern of this date
@@ -80,11 +265,11 @@ public:
      *            of the alignment field in the formatted text.
      * @return the string buffer.
      */
-    virtual CARAPI formatEx3(
+    virtual CARAPI FormatDateEx(
         /* [in] */ IDate* date,
-        /* [in] */ StringBuffer* buffer,
+        /* [in] */ const String& buffer,
         /* [in] */ IFieldPosition* field,
-        /* [out] */ StringBuffer* formatString) = 0;
+        /* [out] */ String* result) = 0;
 
     /**
      * Returns an array of locales for which custom {@code DateFormat} instances
@@ -211,8 +396,8 @@ public:
      *
      * @return the {@code NumberFormat} used by this date format.
      */
-//    virtual CARAPI GetNumberFormat(
-//        /* [out] */ INumberFormat** numberFormat);
+    virtual CARAPI GetNumberFormat(
+        /* [out] */ INumberFormat** numberFormat);
 
     /**
      * Returns a {@code DateFormat} instance for formatting and parsing time
@@ -294,7 +479,7 @@ public:
      *         if an error occurs during parsing.
      */
     virtual CARAPI Parse(
-        /* [in] */ String string,
+        /* [in] */ const String& string,
         /* [out] */ IDate** date);
 
     /**
@@ -321,7 +506,7 @@ public:
      *         error.
      */
     virtual CARAPI ParseEx(
-        /* [in] */ String string,
+        /* [in] */ const String& string,
         /* [in] */ IParsePosition* position,
         /* [out] */ IDate** date) = 0;
 
@@ -350,7 +535,7 @@ public:
      */
     //@Override
     CARAPI ParseObjectEx(
-        /* [in] */ String string,
+        /* [in] */ const String& string,
         /* [in] */ IParsePosition* position,
         /* [out] */ IInterface** object);
 
@@ -382,8 +567,8 @@ public:
      * @param format
      *            the new number format.
      */
-//    virtual CARAPI SetNumberFormat(
-//        /* [in] */ INumberFormat* format);
+   virtual CARAPI SetNumberFormat(
+       /* [in] */ INumberFormat* format);
 
     /**
      * Sets the time zone of the calendar used by this date format.
@@ -393,197 +578,6 @@ public:
      */
     virtual CARAPI SetTimeZone(
         /* [in] */ ITimeZone* timezone);
-
-    /**
-     * The instances of this inner class are used as attribute keys and values
-     * in {@code AttributedCharacterIterator} that the
-     * {@link SimpleDateFormat#formatToCharacterIterator(Object)} method returns.
-     * <p>
-     * There is no public constructor in this class, the only instances are the
-     * constants defined here.
-     */
-    class DateFormat_Field : public Format::Format_Field {
-    public:
-        virtual CARAPI_(PInterface) Probe(
-                /* [in] */ REIID riid) = 0;
-        /**
-         * Returns the Calendar field that this field represents.
-         *
-         * @return the calendar field.
-         */
-        virtual CARAPI GetCalendarField(
-            /* [out] */ Int32* calendarField);
-
-        /**
-         * Returns the {@code DateFormat.Field} instance for the given calendar
-         * field.
-         *
-         * @param calendarField
-         *            a calendar field constant.
-         * @return the {@code DateFormat.Field} corresponding to
-         *         {@code calendarField}.
-         * @throws IllegalArgumentException
-         *             if {@code calendarField} is negative or greater than the
-         *             field count of {@code Calendar}.
-         */
-        static CARAPI OfCalendarField(
-            /* [in] */ Int32 calendarField,
-            /* [out] */ IDateFormat_Field** dff);
-
-    protected:
-        /**
-         * Constructs a new instance of {@code DateFormat.Field} with the given
-         * fieldName and calendar field.
-         *
-         * @param fieldName
-         *            the field name.
-         * @param calendarField
-         *            the calendar field type of the field.
-         */
-        DateFormat_Field(
-            /* [in] */ String fieldName,
-            /* [in] */ Int32 calendarField);
-
-        /**
-         * Resolves instances that are deserialized to the constant
-         * {@code DateFormat.Field} values.
-         *
-         * @return the resolved field object.
-         * @throws InvalidObjectException
-         *             if an error occurs while resolving the field object.
-         */
-        //@Override
-        CARAPI ReadResolve(
-            /* [out] */ IInterface** resolvedField);
-
-    public:
-        /**
-         * Marks the era part of a date.
-         */
-        //public final static Field ERA = new Field("era", Calendar.ERA);
-        const static AutoPtr<IDateFormat_Field> ERA;
-
-        /**
-         * Marks the year part of a date.
-         */
-        //public final static Field YEAR = new Field("year", Calendar.YEAR);
-        const static AutoPtr<IDateFormat_Field> YEAR;
-
-        /**
-         * Marks the month part of a date.
-         */
-        //public final static Field MONTH = new Field("month", Calendar.MONTH);
-        const static AutoPtr<IDateFormat_Field> MONTH;
-
-        /**
-         * Marks the hour of the day part of a date (0-11).
-         */
-        //public final static Field HOUR_OF_DAY0 = new Field("hour of day", Calendar.HOUR_OF_DAY);
-        const static AutoPtr<IDateFormat_Field> HOUR_OF_DAY0;
-
-        /**
-         * Marks the hour of the day part of a date (1-12).
-         */
-        //public final static Field HOUR_OF_DAY1 = new Field("hour of day 1", -1);
-        const static AutoPtr<IDateFormat_Field> HOUR_OF_DAY1;
-
-        /**
-         * Marks the minute part of a time.
-         */
-        //public final static Field MINUTE = new Field("minute", Calendar.MINUTE);
-        const static AutoPtr<IDateFormat_Field> MINUTE;
-
-        /**
-         * Marks the second part of a time.
-         */
-        //public final static Field SECOND = new Field("second", Calendar.SECOND);
-        const static AutoPtr<IDateFormat_Field> SECOND;
-
-        /**
-         * Marks the millisecond part of a time.
-         */
-        //public final static Field MILLISECOND = new Field("millisecond", Calendar.MILLISECOND);
-        const static AutoPtr<IDateFormat_Field> MILLISECOND;
-
-        /**
-         * Marks the day of the week part of a date.
-         */
-        //public final static Field DAY_OF_WEEK = new Field("day of week", Calendar.DAY_OF_WEEK);
-        const static AutoPtr<IDateFormat_Field> DAY_OF_WEEK;
-
-        /**
-         * Marks the day of the month part of a date.
-         */
-        //public final static Field DAY_OF_MONTH = new Field("day of month", Calendar.DAY_OF_MONTH);
-        const static AutoPtr<IDateFormat_Field> DAY_OF_MONTH;
-
-        /**
-         * Marks the day of the year part of a date.
-         */
-        //public final static Field DAY_OF_YEAR = new Field("day of year", Calendar.DAY_OF_YEAR);
-        const static AutoPtr<IDateFormat_Field> DAY_OF_YEAR;
-
-        /**
-         * Marks the day of the week in the month part of a date.
-         */
-        //public final static Field DAY_OF_WEEK_IN_MONTH = new Field("day of week in month",
-        //        Calendar.DAY_OF_WEEK_IN_MONTH);
-        const static AutoPtr<IDateFormat_Field> DAY_OF_WEEK_IN_MONTH;
-
-        /**
-         * Marks the week of the year part of a date.
-         */
-        //public final static Field WEEK_OF_YEAR = new Field("week of year",
-        //        Calendar.WEEK_OF_YEAR);
-        const static AutoPtr<IDateFormat_Field> WEEK_OF_YEAR;
-
-        /**
-         * Marks the week of the month part of a date.
-         */
-        //public final static Field WEEK_OF_MONTH = new Field("week of month",
-        //        Calendar.WEEK_OF_MONTH);
-        const static AutoPtr<IDateFormat_Field> WEEK_OF_MONTH;
-
-        /**
-         * Marks the time indicator part of a date.
-         */
-        //public final static Field AM_PM = new Field("am pm", Calendar.AM_PM);
-        const static AutoPtr<IDateFormat_Field> AM_PM;
-
-        /**
-         * Marks the hour part of a date (0-11).
-         */
-        //public final static Field HOUR0 = new Field("hour", Calendar.HOUR);
-        const static AutoPtr<IDateFormat_Field> HOUR0;
-
-        /**
-         * Marks the hour part of a date (1-12).
-         */
-        ///public final static Field HOUR1 = new Field("hour 1", -1);
-        const static AutoPtr<IDateFormat_Field> HOUR1;
-
-        /**
-         * Marks the time zone part of a date.
-         */
-        //public final static Field TIME_ZONE = new Field("time zone", -1);
-        const static AutoPtr<IDateFormat_Field> TIME_ZONE;
-
-
-    private:
-        //const static Int64 serialVersionUID = 7441350119349544720L;
-
-        //private static Hashtable<Integer, Field> table = new Hashtable<Integer, Field>();
-        /*HashTable<Int32, 
-            AutoPtr<IDateFormat_Field>, 
-            Hash<Int32>,
-            Identity<Int32>,
-            EqualTo<AutoPtr<IDateFormat_Field> > > table(50, Hash<Int32>(), EqualTo<AutoPtr<IDateFormat_Field> >());*/
-
-        /**
-         * The calendar field that this field represents.
-         */
-        Int32 calendarField;
-    };
 
 protected:
     /**
@@ -636,6 +630,9 @@ protected:
     //            && calendar.isLenient() == dateFormat.calendar.isLenient();
     //}
 
+    virtual CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid) = 0;
+
 private:
     static CARAPI CheckDateStyle(
         /* [in] */ Int32 style);
@@ -654,8 +651,6 @@ protected:
      * The number format used to format a number.
      */
     AutoPtr<INumberFormat> mNumberFormat;
-
-//private:
-//    const static Int64 serialVersionUID = 7218322306649953788L;
 };
+
 #endif //__DATEFORMAT_H__

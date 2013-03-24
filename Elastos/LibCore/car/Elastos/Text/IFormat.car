@@ -1,11 +1,11 @@
 module
 {
     interface IAttributedCharacterIterator;
-    interface IAttributedCharacterIterator_Attribute;
+    interface IAttributedCharacterIteratorAttribute;
     interface IParsePosition;
     interface IFieldPosition;
 
-    interface IFormat_Field extends IAttributedCharacterIterator_Attribute{
+    interface IFormatField extends IAttributedCharacterIteratorAttribute {
     }
 
     /**
@@ -13,11 +13,16 @@ module
      */
     [deprecated]
     interface IFormat {
-
         /**
          * Formats the specified object using the rules of this format.
+         *
+         * @param object
+         *         the object to format.
+         * @return the formatted string.
+         * @throws IllegalArgumentException
+         *         if the object cannot be formatted by this format.
          */
-        format(
+        FormatObject(
             [in] IInterface* object,
             [out] String* value);
 
@@ -29,12 +34,23 @@ module
          * member contains an enum value specifying a field on input, then its
          * {@code beginIndex} and {@code endIndex} members will be updated with the
          * text offset of the first occurrence of this field in the formatted text.
+         *
+         * @param object
+         *            the object to format.
+         * @param buffer
+         *            the string buffer where the formatted string is appended to.
+         * @param field
+         *            on input: an optional alignment field; on output: the offsets
+         *            of the alignment field in the formatted text.
+         * @return the string buffer.
+         * @throws IllegalArgumentException
+         *            if the object cannot be formatted by this format.
          */
-        //formatEx(
-        //    [in] IInterface* object,
-        //    [in] StringBuffer* buffer,
-        //    [in] IFieldPosition* field,
-        //    [out] StringBuffer* value);
+        FormatObjectEx(
+            [in] IInterface* object,
+            [in] String buffer,
+            [in] IFieldPosition* field,
+            [out] String* value);
 
         /**
          * Formats the specified object using the rules of this format and returns

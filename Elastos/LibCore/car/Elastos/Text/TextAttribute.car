@@ -1,5 +1,5 @@
 module {
-    interface ITextAttribute extends IAttributedCharacterIterator_Attribute {
+    interface ITextAttribute extends IAttributedCharacterIteratorAttribute {
 
     }
 }

@@ -1,42 +1,47 @@
 
 #include "cmdef.h"
 #include "CParsePosition.h"
+
+CParsePosition::CParsePosition()
+    : mCurrentPosition(0)
+    , mErrorIndex(-1)
+{}
+
 ECode CParsePosition::constructor(
     /* [in] */ Int32 index)
 {
-    ParsePosition::Init(index);
+    mCurrentPosition = index;
     return NOERROR;
 }
 
 ECode CParsePosition::GetErrorIndex(
-    /* [out] */ Int32 * pErrorIndex)
+    /* [out] */ Int32* index)
 {
-    VALIDATE_NOT_NULL(pErrorIndex);
+    VALIDATE_NOT_NULL(index);
 
-    *pErrorIndex = ParsePosition::GetErrorIndex();
+    *index = mErrorIndex;
     return NOERROR;
 }
 
 ECode CParsePosition::GetIndex(
-    /* [out] */ Int32 * pIndex)
+    /* [out] */ Int32* index)
 {
-    VALIDATE_NOT_NULL(pIndex);
+    VALIDATE_NOT_NULL(index);
 
-    *pIndex = ParsePosition::GetIndex();
+    *index = mCurrentPosition;
     return NOERROR;
 }
 
 ECode CParsePosition::SetErrorIndex(
     /* [in] */ Int32 index)
 {
-    return ParsePosition::SetErrorIndex(index);
+    mErrorIndex = index;
+    return NOERROR;
 }
 
 ECode CParsePosition::SetIndex(
     /* [in] */ Int32 index)
 {
-    return ParsePosition::SetIndex(index);
+    mCurrentPosition = index;
+    return NOERROR;
 }
-
-
-

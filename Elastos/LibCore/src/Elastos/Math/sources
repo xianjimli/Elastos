@@ -6,13 +6,10 @@ INCLUDES += $(MAKEDIR)/../../../inc/Elastos/common;
 INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Lang;
 INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Math;
 
-IMPORTS = Elastos.Core.eco
-IMPORTS += Elastos.Utility.eco
-IMPORTS += Com.Kortide.Platform.eco
+#IMPORTS = Elastos.Core.eco
 
 SOURCES = Elastos.Math.car
-SOURCES += RoundingMode.cpp
-SOURCES += CRoundingMode.cpp
+SOURCES += CDummy.cpp
 
 
 

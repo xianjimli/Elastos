@@ -25,7 +25,7 @@ public:
      * There is no public constructor in this class, the only instances are the
      * constants defined here.
      */
-    /* static */ class MessageFormat_Field : public IFormat_Field {
+    /* static */ class MessageFormat_Field : public IFormatField {
         protected:
         /**
          * Constructs a new instance of {@code MessageFormat.Field} with the
@@ -73,16 +73,16 @@ private:
     public:
 
         FieldContainer(
-            /* [in] */ Int32 start, 
+            /* [in] */ Int32 start,
             /* [in] */ Int32 end,
-            /* [in] */ IAttributedCharacterIterator_Attribute* attribute, 
+            /* [in] */ IAttributedCharacterIteratorAttribute* attribute,
             /* [in] */ IInterface* value);
 
     protected:
 
         Int32 mStart, mEnd;
 
-        AutoPtr<IAttributedCharacterIterator_Attribute> mAttribute;
+        AutoPtr<IAttributedCharacterIteratorAttribute> mAttribute;
 
         AutoPtr<IInterface> mValue;
     };
@@ -222,9 +222,9 @@ public:
      */
     CARAPI formatEx2(
         /* [in] */ ArrayOf< IInterface* >* objects,
-        /* [in] */ StringBuffer* buffer,
+        /* [in] */ const String& buffer,
         /* [in] */ IFieldPosition* field,
-        /* [out] */ StringBuffer* value);
+        /* [out] */ String* value);
 
     /**
      * Converts the specified objects into a string which it appends to the
@@ -256,11 +256,11 @@ public:
      *             if {@code object} is not an array of {@code Object}.
      */
     //@Override
-    CARAPI formatEx(
-        /* [in] */ IInterface* object, 
-        /* [in] */ StringBuffer* buffer,
+    CARAPI FormatObjectEx(
+        /* [in] */ IInterface* object,
+        /* [in] */ const String& buffer,
         /* [in] */ IFieldPosition* field,
-        /* [out] */ StringBuffer* value);
+        /* [out] */ String* value);
 
     /**
      * Formats the supplied objects using the specified message format pattern.
@@ -313,7 +313,7 @@ public:
      *            the format that will be set at index {@code argIndex}.
      */
     virtual CARAPI SetFormatByArgumentIndex(
-        /* [in] */ Int32 argIndex, 
+        /* [in] */ Int32 argIndex,
         /* [in] */ IFormat* format);
 
     /**
@@ -411,7 +411,7 @@ public:
      */
     //@Override
     CARAPI ParseObjectEx(
-        /* [in] */ String string, 
+        /* [in] */ String string,
         /* [in] */ IParsePosition* position,
         /* [out] */ IInterface** arrayOfObjects);
 
@@ -424,7 +424,7 @@ public:
      *            the {@code Format} that replaces the old format.
      */
     virtual CARAPI SetFormat(
-        /* [in] */ Int32 offset, 
+        /* [in] */ Int32 offset,
         /* [in] */ IFormat* format);
 
     /**
@@ -471,10 +471,10 @@ private:
      * its field attribute.
      */
     CARAPI HandleArgumentField(
-        /* [in] */ Int32 begin, 
-        /* [in] */ Int32 end, 
+        /* [in] */ Int32 begin,
+        /* [in] */ Int32 end,
         /* [in] */ Int32 argIndex,
-        /* [in] */ IFieldPosition* position, 
+        /* [in] */ IFieldPosition* position,
         /* [in] */ Vector<FieldContainer*>* fields);
 
     /**
@@ -492,35 +492,35 @@ private:
      *            FieldContainer.
      */
     CARAPI Handleformat(
-        /* [in] */ IFormat* format, 
-        /* [in] */ IInterface* arg, 
+        /* [in] */ IFormat* format,
+        /* [in] */ IInterface* arg,
         /* [in] */ Int32 begin,
         /* [in] */ Vector<FieldContainer*>* fields);
 
     CARAPI Match(
-        /* [in] */ String string, 
-        /* [in] */ IParsePosition* position, 
+        /* [in] */ String string,
+        /* [in] */ IParsePosition* position,
         /* [in] */ Boolean last,
         /* [in] */ ArrayOf<String>* tokens,
         /* [out] */ Int32* value);
 
     CARAPI ParseVariable(
-        /* [in] */ String string, 
+        /* [in] */ String string,
         /* [in] */ IParsePosition* position,
         /* [out] */ IFormat** value);
 
     CARAPI DecodeDecimalFormat(
-        /* [in] */ StringBuffer* buffer, 
+        /* [in] */ StringBuffer* buffer,
         /* [in] */ IFormat* format,
         /* [out] */ String* value);
 
     CARAPI DecodeSimpleDateFormat(
-        /* [in] */ StringBuffer* buffer, 
+        /* [in] */ StringBuffer* buffer,
         /* [in] */ IFormat* format,
         /* [out] */ String* value);
 
     CARAPI AppendQuoted(
-        /* [in] */ StringBuffer* buffer, 
+        /* [in] */ StringBuffer* buffer,
         /* [in] */ String string);
 
 /*    private static final ObjectStreamField[] serialPersistentFields = {

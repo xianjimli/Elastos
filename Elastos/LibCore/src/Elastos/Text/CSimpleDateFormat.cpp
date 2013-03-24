@@ -26,11 +26,20 @@ ECode CSimpleDateFormat::constructor(
     return SimpleDateFormat::Init(tem, pLocale);
 }
 
-ECode CSimpleDateFormat::format(
+ECode CSimpleDateFormat::FormatObject(
     /* [in] */ IInterface * pObject,
     /* [out] */ String * pValue)
 {
-    return SimpleDateFormat::format(pObject, pValue);
+    return SimpleDateFormat::FormatObject(pObject, pValue);
+}
+
+ECode CSimpleDateFormat::FormatObjectEx(
+    /* [in] */ IInterface* object,
+    /* [in] */ const String& buffer,
+    /* [in] */ IFieldPosition* field,
+    /* [out] */ String* value)
+{
+    return E_NOT_IMPLEMENTED;
 }
 
 ECode CSimpleDateFormat::FormatToCharacterIterator(
@@ -55,17 +64,32 @@ ECode CSimpleDateFormat::ParseObjectEx(
     return SimpleDateFormat::ParseObjectEx(string, pPosition, ppObject);
 }
 
-ECode CSimpleDateFormat::formatEx2(
+ECode CSimpleDateFormat::FormatDate(
     /* [in] */ IDate * pDate,
     /* [out] */ String * pFormatString)
 {
-    return SimpleDateFormat::formatEx2(pDate, pFormatString);
+    return SimpleDateFormat::FormatDate(pDate, pFormatString);
+}
+
+ECode CSimpleDateFormat::FormatDateEx(
+    /* [in] */ IDate* date,
+    /* [in] */ const String& buffer,
+    /* [in] */ IFieldPosition* field,
+    /* [out] */ String* result)
+{
+    return E_NOT_IMPLEMENTED;
 }
 
 ECode CSimpleDateFormat::GetCalendar(
     /* [out] */ ICalendar ** ppCalendar)
 {
     return SimpleDateFormat::GetCalendar(ppCalendar);
+}
+
+ECode CSimpleDateFormat::GetNumberFormat(
+    /* [out] */ INumberFormat** numberFormat)
+{
+    return E_NOT_IMPLEMENTED;
 }
 
 ECode CSimpleDateFormat::GetTimeZone(
@@ -105,6 +129,12 @@ ECode CSimpleDateFormat::SetLenient(
     /* [in] */ Boolean value)
 {
     return SimpleDateFormat::SetLenient(value);
+}
+
+ECode CSimpleDateFormat::SetNumberFormat(
+    /* [in] */ INumberFormat* format)
+{
+    return E_NOT_IMPLEMENTED;
 }
 
 ECode CSimpleDateFormat::SetTimeZone(

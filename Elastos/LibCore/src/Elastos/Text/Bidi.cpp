@@ -27,7 +27,7 @@ ECode Bidi::Init(
     Int32 flags = Bidi_DIRECTION_DEFAULT_LEFT_TO_RIGHT;
     AutoPtr<IInterface> direction;
     paragraph->GetAttribute(
-        (IAttributedCharacterIterator_Attribute*)(TextAttribute::RUN_DIRECTION),
+        (IAttributedCharacterIteratorAttribute*)(TextAttribute::RUN_DIRECTION),
         (IInterface**)&direction);
     if (direction != NULL /*&& direction instanceof Boolean*/) {
         //if (direction == TextAttribute::RUN_DIRECTION_LTR) {
@@ -43,7 +43,7 @@ ECode Bidi::Init(
     while (i < length) {
         AutoPtr<IInterface> embedding;
         paragraph->GetAttribute(
-            (IAttributedCharacterIterator_Attribute*)(TextAttribute::BIDI_EMBEDDING), 
+            (IAttributedCharacterIteratorAttribute*)(TextAttribute::BIDI_EMBEDDING),
             (IInterface**)&embedding);
         if (embedding != NULL /*&& embedding instanceof Integer*/) {
             Int32 embLevel /*= (Int32)embedding*/;
@@ -62,7 +62,7 @@ ECode Bidi::Init(
             }
         }
         paragraph->GetRunLimitEx(
-            (IAttributedCharacterIterator_Attribute*)(TextAttribute::BIDI_EMBEDDING), 
+            (IAttributedCharacterIteratorAttribute*)(TextAttribute::BIDI_EMBEDDING),
             &textLimit);
         textLimit = textLimit - begin + 1;
     }
@@ -70,7 +70,7 @@ ECode Bidi::Init(
     // Apply NumericShaper to the text
     AutoPtr<IInterface> numericShaper;
     paragraph->GetAttribute(
-        (IAttributedCharacterIterator_Attribute*)(TextAttribute::NUMERIC_SHAPING),
+        (IAttributedCharacterIteratorAttribute*)(TextAttribute::NUMERIC_SHAPING),
         (IInterface**)&numericShaper);
     if (numericShaper != NULL /*&& numericShaper instanceof NumericShaper*/) {
         //((NumericShaper) numericShaper).shape(text, 0, length);
@@ -216,7 +216,7 @@ Bidi::Bidi(
 }
 
 void Bidi::ReadBidiInfo(
-        /* [in] */ Int64 pBidi) 
+        /* [in] */ Int64 pBidi)
 {
     //mLength = NativeBidi.ubidi_getLength(pBidi);
 
@@ -327,21 +327,21 @@ ECode Bidi::GetOffsetLevel(
     /* [out] */ ArrayOf<Byte>** offsetLevel)
 {
     *offsetLevel = mOffsetLevel->Clone();
-    return NOERROR;    
+    return NOERROR;
 }
 
 ECode Bidi::SetOffsetLevel(
     /* [in] */ ArrayOf<Byte>* offsetLevel)
 {
     mOffsetLevel = offsetLevel->Clone();
-    return NOERROR;    
+    return NOERROR;
 }
 
 ECode Bidi::SetUnidirectional(
     /* [in] */ Boolean unidirectional)
 {
     mUnidirectional = unidirectional;
-    return NOERROR;    
+    return NOERROR;
 }
 
 ECode Bidi::GetLevelAt(

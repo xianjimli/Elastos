@@ -1,75 +1,90 @@
+
 #include "cmdef.h"
 #include "CFieldPosition.h"
+
+
+CFieldPosition::CFieldPosition()
+    : mMyField(0)
+    , mBeginIndex(0)
+    , mEndIndex(0)
+{}
+
 ECode CFieldPosition::constructor(
     /* [in] */ Int32 field)
 {
-    FieldPosition::Init(field);
+    mMyField = field;
     return NOERROR;
 }
 
 ECode CFieldPosition::constructor(
-    /* [in] */ IFormat_Field * pAttribute)
+    /* [in] */ IFormatField* attribute)
 {
-    FieldPosition::Init(pAttribute);
+    mMyAttribute = attribute;
+    mMyField = -1;
     return NOERROR;
 }
 
 ECode CFieldPosition::constructor(
-    /* [in] */ IFormat_Field * pAttribute,
+    /* [in] */ IFormatField* attribute,
     /* [in] */ Int32 field)
 {
-    FieldPosition::Init(pAttribute, field);
+    mMyAttribute = attribute;
+    mMyField = field;
     return NOERROR;
 }
 
-ECode CFieldPosition::Clear()
+void CFieldPosition::Clear()
 {
-    return FieldPosition::Clear();
+    mBeginIndex = mEndIndex = 0;
 }
 
 ECode CFieldPosition::GetBeginIndex(
-    /* [out] */ Int32 * pBeginIndex)
+    /* [out] */ Int32* index)
 {
-    VALIDATE_NOT_NULL(pBeginIndex);
+    VALIDATE_NOT_NULL(index);
 
-    return FieldPosition::GetBeginIndex(pBeginIndex);
+    *index = mBeginIndex;
+    return NOERROR;
 }
 
 ECode CFieldPosition::GetEndIndex(
-    /* [out] */ Int32 * pEndIndex)
+    /* [out] */ Int32* index)
 {
-    VALIDATE_NOT_NULL(pEndIndex);
+    VALIDATE_NOT_NULL(index);
 
-    return FieldPosition::GetEndIndex(pEndIndex);;
+    *index = mEndIndex;
+    return NOERROR;
 }
 
 ECode CFieldPosition::GetField(
-    /* [out] */ Int32 * pField)
+    /* [out] */ Int32* field)
 {
-    VALIDATE_NOT_NULL(pField);
+    VALIDATE_NOT_NULL(field);
 
-    return FieldPosition::GetField(pField);
+    *field = mMyField;
+    return NOERROR;
 }
 
 ECode CFieldPosition::GetFieldAttribute(
-    /* [out] */ IFormat_Field ** ppFieldAttribute)
+    /* [out] */ IFormatField** attribute)
 {
+    VALIDATE_NOT_NULL(attribute);
 
-    return FieldPosition::GetFieldAttribute(ppFieldAttribute);
+    *attribute = mMyAttribute;
+    if (*attribute != NULL) (*attribute)->AddRef();
+    return NOERROR;
 }
 
 ECode CFieldPosition::SetBeginIndex(
     /* [in] */ Int32 index)
 {
-    
-    return FieldPosition::SetBeginIndex(index);
+    mBeginIndex = index;
+    return NOERROR;
 }
 
 ECode CFieldPosition::SetEndIndex(
     /* [in] */ Int32 index)
 {
-    
-    return FieldPosition::SetEndIndex(index);
+    mEndIndex = index;
+    return NOERROR;
 }
-
-

@@ -1,6 +1,6 @@
 #include "NativeDecimalFormat.h"
 
-ArrayOf<IFormat_Field*>* NativeDecimalFormat::FieldPositionIterator::fields;
+ArrayOf<IFormatField*>* NativeDecimalFormat::FieldPositionIterator::fields;
 
 NativeDecimalFormat::NativeDecimalFormat(){}
 
@@ -160,7 +160,7 @@ ECode NativeDecimalFormat::FormatLong(
 }
 
 ECode NativeDecimalFormat::FormatDouble(
-        /* [in] */ Double value, 
+        /* [in] */ Double value,
         /* [in] */ IFieldPosition* field,
         /* [out, callee] */ ArrayOf<Char32>** array)
 {
@@ -277,7 +277,7 @@ ECode NativeDecimalFormat::GetMaximumFractionDigits(
 }
 
 ECode NativeDecimalFormat::GetMaximumIntegerDigits(
-        /* [out] */ Int32* maximumIntegerDigits) 
+        /* [out] */ Int32* maximumIntegerDigits)
 {
     VALIDATE_NOT_NULL(maximumIntegerDigits);
     *maximumIntegerDigits = GetAttribute(this->addr, UNUM_MAX_INTEGER_DIGITS);
@@ -438,7 +438,7 @@ ECode NativeDecimalFormat::SetMaximumFractionDigits(
 }
 
 ECode NativeDecimalFormat::SetMaximumIntegerDigits(
-        /* [in] */ Int32 value) 
+        /* [in] */ Int32 value)
 {
     SetAttribute(this->addr, UNUM_MAX_INTEGER_DIGITS, value);
     return NOERROR;
@@ -523,7 +523,7 @@ ECode NativeDecimalFormat::SetParseIntegerOnly(
 }
 
 ECode NativeDecimalFormat::SetRoundingMode(
-        /* [in] */ RRoundingMode roundingMode,
+        /* [in] */ RoundingMode roundingMode,
         /* [in] */ Double roundingIncrement)
 {
     Int32 nativeRoundingMode;
@@ -664,88 +664,88 @@ String NativeDecimalFormat::GetTextAttribute(
 }
 
 Int32 NativeDecimalFormat::Open(
-    /* [in] */ String pattern, 
+    /* [in] */ String pattern,
     /* [in] */ String currencySymbol,
-    /* [in] */ Char32 decimalSeparator, 
-    /* [in] */ Char32 digit, 
-    /* [in] */ String exponentSeparator, 
+    /* [in] */ Char32 decimalSeparator,
+    /* [in] */ Char32 digit,
+    /* [in] */ String exponentSeparator,
     /* [in] */ Char32 groupingSeparator,
-    /* [in] */ String infinity, 
-    /* [in] */ String internationalCurrencySymbol, 
+    /* [in] */ String infinity,
+    /* [in] */ String internationalCurrencySymbol,
     /* [in] */ Char32 minusSign,
-    /* [in] */ Char32 monetaryDecimalSeparator, 
-    /* [in] */ String nan, 
-    /* [in] */ Char32 patternSeparator, 
+    /* [in] */ Char32 monetaryDecimalSeparator,
+    /* [in] */ String nan,
+    /* [in] */ Char32 patternSeparator,
     /* [in] */ Char32 percent,
-    /* [in] */ Char32 perMill, 
+    /* [in] */ Char32 perMill,
     /* [in] */ Char32 zeroDigit)
 {
     return 0;
 }
 
 INumber* NativeDecimalFormat::Parse(
-    /* [in] */ Int32 addr, 
-    /* [in] */ String string, 
-    /* [in] */ IParsePosition* position, 
+    /* [in] */ Int32 addr,
+    /* [in] */ String string,
+    /* [in] */ IParsePosition* position,
     /* [in] */ Boolean parseBigDecimal)
 {
     return NULL;
 }
 
 void NativeDecimalFormat::SetDecimalFormatSymbols(
-    /* [in] */ Int32 addr, 
+    /* [in] */ Int32 addr,
     /* [in] */ String currencySymbol,
-    /* [in] */ Char32 decimalSeparator, 
-    /* [in] */ Char32 digit, 
-    /* [in] */ String exponentSeparator, 
+    /* [in] */ Char32 decimalSeparator,
+    /* [in] */ Char32 digit,
+    /* [in] */ String exponentSeparator,
     /* [in] */ Char32 groupingSeparator,
-    /* [in] */ String infinity, 
-    /* [in] */ String internationalCurrencySymbol, 
+    /* [in] */ String infinity,
+    /* [in] */ String internationalCurrencySymbol,
     /* [in] */ Char32 minusSign,
-    /* [in] */ Char32 monetaryDecimalSeparator, 
-    /* [in] */ String nan, 
-    /* [in] */ Char32 patternSeparator, 
+    /* [in] */ Char32 monetaryDecimalSeparator,
+    /* [in] */ String nan,
+    /* [in] */ Char32 patternSeparator,
     /* [in] */ Char32 percent,
-    /* [in] */ Char32 perMill, 
+    /* [in] */ Char32 perMill,
     /* [in] */ Char32 zeroDigit)
 {
     return;
 }
 
 void NativeDecimalFormat::SetSymbol(
-    /* [in] */ Int32 addr, 
-    /* [in] */ Int32 symbol, 
+    /* [in] */ Int32 addr,
+    /* [in] */ Int32 symbol,
     /* [in] */ String str)
 {
     return;
 }
 
 void NativeDecimalFormat::SetAttribute(
-    /* [in] */ Int32 addr, 
-    /* [in] */ Int32 symbol, 
+    /* [in] */ Int32 addr,
+    /* [in] */ Int32 symbol,
     /* [in] */ Int32 i)
 {
     return;
 }
 
 void NativeDecimalFormat::SetRoundingMode(
-    /* [in] */ Int32 addr, 
-    /* [in] */ Int32 roundingMode, 
+    /* [in] */ Int32 addr,
+    /* [in] */ Int32 roundingMode,
     /* [in] */ Double roundingIncrement)
 {
     return;
 }
 
 void NativeDecimalFormat::SetTextAttribute(
-    /* [in] */ Int32 addr, 
-    /* [in] */ Int32 symbol, 
+    /* [in] */ Int32 addr,
+    /* [in] */ Int32 symbol,
     /* [in] */ String str)
 {
     return;
 }
 
 String NativeDecimalFormat::ToPatternImpl(
-    /* [in] */ Int32 addr, 
+    /* [in] */ Int32 addr,
     /* [in] */ Boolean localized)
 {
     return String(NULL);
@@ -785,8 +785,8 @@ ECode NativeDecimalFormat::FieldPositionIterator::GetNativeFieldPositionId(
         id = -1;
     }
     if (id == -1) {
-        AutoPtr<IFormat_Field> attr;
-        fp->GetFieldAttribute((IFormat_Field**)&attr);
+        AutoPtr<IFormatField> attr;
+        fp->GetFieldAttribute((IFormatField**)&attr);
         if (attr != NULL) {
             for (Int32 i = 0; i < fields->GetLength(); ++i) {
                 if ((*fields)[i] == attr) {
@@ -856,7 +856,7 @@ ECode NativeDecimalFormat::FieldPositionIterator::FieldId(
 }
 
 ECode NativeDecimalFormat::FieldPositionIterator::Field(
-        /* [out] */ IFormat_Field** ff)
+        /* [out] */ IFormatField** ff)
 {
     CheckValid();
     *ff = (*fields)[(*data)[pos]];

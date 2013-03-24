@@ -250,7 +250,7 @@ ECode CNativeDecimalFormat::SetParseIntegerOnly(
 }
 
 ECode CNativeDecimalFormat::SetRoundingMode(
-    /* [in] */ RRoundingMode roundingMode,
+    /* [in] */ RoundingMode roundingMode,
     /* [in] */ Double roundingIncrement)
 {
     return NativeDecimalFormat::SetRoundingMode(roundingMode, roundingIncrement);

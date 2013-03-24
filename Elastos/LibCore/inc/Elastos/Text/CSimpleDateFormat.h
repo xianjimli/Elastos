@@ -3,8 +3,8 @@
 #define __CSIMPLEDATEFORMAT_H__
 
 #include "_CSimpleDateFormat.h"
-#include "DateFormat.h"
 #include "SimpleDateFormat.h"
+
 CarClass(CSimpleDateFormat), public SimpleDateFormat
 {
 public:
@@ -21,9 +21,15 @@ public:
         /* [in] */ const String& tem,
         /* [in] */ ILocale * pLocale);
 
-    CARAPI format(
+    CARAPI FormatObject(
         /* [in] */ IInterface * pObject,
         /* [out] */ String * pValue);
+
+    CARAPI FormatObjectEx(
+        /* [in] */ IInterface* object,
+        /* [in] */ const String& buffer,
+        /* [in] */ IFieldPosition* field,
+        /* [out] */ String* value);
 
     CARAPI FormatToCharacterIterator(
         /* [in] */ IInterface * pObject,
@@ -38,12 +44,21 @@ public:
         /* [in] */ IParsePosition * pPosition,
         /* [out] */ IInterface ** ppObject);
 
-    CARAPI formatEx2(
+    CARAPI FormatDate(
         /* [in] */ IDate * pDate,
         /* [out] */ String * pFormatString);
 
+    CARAPI FormatDateEx(
+        /* [in] */ IDate* date,
+        /* [in] */ const String& buffer,
+        /* [in] */ IFieldPosition* field,
+        /* [out] */ String* result);
+
     CARAPI GetCalendar(
         /* [out] */ ICalendar ** ppCalendar);
+
+    CARAPI GetNumberFormat(
+        /* [out] */ INumberFormat** numberFormat);
 
     CARAPI GetTimeZone(
         /* [out] */ ITimeZone ** ppTimezone);
@@ -65,6 +80,9 @@ public:
 
     CARAPI SetLenient(
         /* [in] */ Boolean value);
+
+    CARAPI SetNumberFormat(
+       /* [in] */ INumberFormat* format);
 
     CARAPI SetTimeZone(
         /* [in] */ ITimeZone * pTimezone);

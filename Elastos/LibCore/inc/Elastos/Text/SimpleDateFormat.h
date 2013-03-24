@@ -81,7 +81,7 @@ public:
      *            if the pattern is invalid.
      */
     CARAPI Init(
-        /* [in] */ String tem, 
+        /* [in] */ String tem,
         /* [in] */ ILocale* locale);
 
     /**
@@ -369,58 +369,58 @@ private:
         /* [out] */ IDate** date);
 
     CARAPI Parse(
-        /* [in] */ String string, 
-        /* [in] */ Int32 offset, 
-        /* [in] */ Char32 format, 
+        /* [in] */ String string,
+        /* [in] */ Int32 offset,
+        /* [in] */ Char32 format,
         /* [in] */ Int32 count,
         /* [out] */ Int32* value);
 
     CARAPI ParseDayOfWeek(
-        /* [in] */ String string, 
-        /* [in] */ Int32 offset, 
-        /* [in] */ ArrayOf<String>* longs, 
+        /* [in] */ String string,
+        /* [in] */ Int32 offset,
+        /* [in] */ ArrayOf<String>* longs,
         /* [in] */ ArrayOf<String>* shorts,
         /* [out] */ Int32* value);
 
     CARAPI ParseMonth(
-        /* [in] */ String string, 
-        /* [in] */ Int32 offset,  
-        /* [in] */ Int32 count, 
-        /* [in] */ Int32 absolute, 
-        /* [in] */ ArrayOf<String>* longs, 
+        /* [in] */ String string,
+        /* [in] */ Int32 offset,
+        /* [in] */ Int32 count,
+        /* [in] */ Int32 absolute,
+        /* [in] */ ArrayOf<String>* longs,
         /* [in] */ ArrayOf<String>* shorts,
         /* [out] */ Int32* value);
 
     CARAPI ParseNumber(
-        /* [in] */ Int32 max, 
-        /* [in] */ String string, 
+        /* [in] */ Int32 max,
+        /* [in] */ String string,
         /* [in] */ IParsePosition* position,
         /* [out] */ INumber** number);
 
     CARAPI ParseNumber(
-        /* [in] */ Int32 max, 
-        /* [in] */ String string, 
-        /* [in] */ Int32 offset, 
-        /* [in] */ Int32 field, 
+        /* [in] */ Int32 max,
+        /* [in] */ String string,
+        /* [in] */ Int32 offset,
+        /* [in] */ Int32 field,
         /* [in] */ Int32 skew,
         /* [out] */ Int32* value);
 
     CARAPI ParseText(
-        /* [in] */ String string, 
-        /* [in] */ Int32 offset, 
-        /* [in] */ ArrayOf<String>* text, 
-        /* [in] */ Int32 field, 
+        /* [in] */ String string,
+        /* [in] */ Int32 offset,
+        /* [in] */ ArrayOf<String>* text,
+        /* [in] */ Int32 field,
         /* [out] */ Int32* value);
 
     CARAPI ParseTimeZone(
-        /* [in] */ String string, 
-        /* [in] */ Int32 offset, 
+        /* [in] */ String string,
+        /* [in] */ Int32 offset,
         /* [out] */ Int32* value);
 
     static CARAPI ConvertPattern(
-        /* [in] */ String tem, 
-        /* [in] */ String fromChars, 
-        /* [in] */ String toChars, 
+        /* [in] */ String tem,
+        /* [in] */ String fromChars,
+        /* [in] */ String toChars,
         /* [in] */ Boolean check,
         /* [out] */ String* pattern);
 

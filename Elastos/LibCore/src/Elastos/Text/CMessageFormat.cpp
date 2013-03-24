@@ -16,11 +16,20 @@ ECode CMessageFormat::constructor(
     return NOERROR;
 }
 
-ECode CMessageFormat::format(
+ECode CMessageFormat::FormatObject(
     /* [in] */ IInterface * pObject,
     /* [out] */ String * pValue)
 {
-    return MessageFormat::format(pObject, pValue);
+    return MessageFormat::FormatObject(pObject, pValue);
+}
+
+ECode CMessageFormat::FormatObjectEx(
+    /* [in] */ IInterface* object,
+    /* [in] */ const String& buffer,
+    /* [in] */ IFieldPosition* field,
+    /* [out] */ String* value)
+{
+    return MessageFormat::FormatObjectEx(object, buffer, field, value);
 }
 
 ECode CMessageFormat::FormatToCharacterIterator(

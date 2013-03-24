@@ -135,7 +135,7 @@ public:
         /* [in] */ Boolean value);
 
     CARAPI SetRoundingMode(
-        /* [in] */ RRoundingMode roundingMode,
+        /* [in] */ RoundingMode roundingMode,
         /* [in] */ Double roundingIncrement);
 
     CARAPI GetAddr(

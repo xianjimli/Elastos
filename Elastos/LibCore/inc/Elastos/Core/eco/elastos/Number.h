@@ -4,6 +4,7 @@
 #include <elastos.h>
 
 using namespace Elastos;
+
 /**
  * The abstract superclass of the classes which represent numeric base types
  * (that is {@link Byte}, {@link Short}, {@link Integer}, {@link Long},
@@ -15,7 +16,7 @@ public:
     /**
      * Empty default constructor.
      */
-    Number();
+    Number() {}
 
     /**
      * Returns this object's value as a byte. Might involve rounding and/or
@@ -23,23 +24,22 @@ public:
      *
      * @return the primitive byte value of this object.
      */
-    virtual CARAPI_(Byte) ByteValue();
+    virtual CARAPI_(Byte) ByteValue()
+    { return (Byte)Int32Value(); }
 
     /**
      * Returns this object's value as a double. Might involve rounding.
      *
      * @return the primitive double value of this object.
      */
-    //virtual CARAPI_(Double) DoubleValue() = 0;
-    virtual CARAPI_(Double) DoubleValue();
+    virtual CARAPI_(Double) DoubleValue() = 0;
 
     /**
      * Returns this object's value as a float. Might involve rounding.
      *
      * @return the primitive float value of this object.
      */
-    //virtual CARAPI_(Float) FloatValue() = 0;
-    virtual CARAPI_(Float) FloatValue();
+    virtual CARAPI_(Float) FloatValue() = 0;
 
     /**
      * Returns this object's value as an int. Might involve rounding and/or
@@ -47,8 +47,7 @@ public:
      *
      * @return the primitive int value of this object.
      */
-    //virtual CARAPI_(Int32) Int32Value() = 0;
-    virtual CARAPI_(Int32) Int32Value();
+    virtual CARAPI_(Int32) Int32Value() = 0;
 
     /**
      * Returns this object's value as a long. Might involve rounding and/or
@@ -56,8 +55,7 @@ public:
      *
      * @return the primitive long value of this object.
      */
-    //virtual CARAPI_(Int64) Int64Value() = 0;
-    virtual CARAPI_(Int64) Int64Value();
+    virtual CARAPI_(Int64) Int64Value() = 0;
 
     /**
      * Returns this object's value as a short. Might involve rounding and/or
@@ -65,9 +63,8 @@ public:
      *
      * @return the primitive short value of this object.
      */
-    virtual CARAPI_(Int16) Int16Value();
-
-private:
-    const static Int64 serialVersionUID = -8742448824652078965L;
+    virtual CARAPI_(Int16) Int16Value()
+    { return (Int16)Int32Value() }
 };
+
 #endif //__NUMBER_H__

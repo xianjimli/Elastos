@@ -1,11 +1,10 @@
 #ifndef __FORMAT_H_
 #define __FORMAT_H_
 
-#include <elastos.h>
+#include "Elastos.Text_server.h"
+#include "AttributedCharacterIteratorAttribute.h"
 #include <elastos/AutoPtr.h>
 #include <StringBuffer.h>
-#include "Elastos.Text_server.h"
-#include "AttributedCharacterIterator_Attribute.h"
 
 using namespace Elastos;
 
@@ -47,7 +46,27 @@ using namespace Elastos;
 class Format
 {
 public:
+    /**
+     * Inner class used to represent {@code Format} attributes in the
+     * {@code AttributedCharacterIterator} that the
+     * {@code formatToCharacterIterator()} method returns in {@code Format}
+     * subclasses.
+     */
+    class Field : public AttributedCharacterIteratorAttribute
+    {
+    protected:
+        /**
+         * Constructs a new instance of {@code Field} with the given field name.
+         *
+         * @param fieldName
+         *            the field name.
+         */
+        CARAPI Init(
+            /* [in] */ const String& fieldName)
+        { return AttributedCharacterIteratorAttribute::Init(fieldName); }
+    };
 
+public:
     /**
      * Returns a copy of this {@code Format} instance.
      *
@@ -73,7 +92,7 @@ public:
      * @throws IllegalArgumentException
      *         if the object cannot be formatted by this format.
      */
-    CARAPI format(
+    CARAPI FormatObject(
         /* [in] */ IInterface* object,
         /* [out] */ String* value);
 
@@ -97,11 +116,11 @@ public:
      * @throws IllegalArgumentException
      *            if the object cannot be formatted by this format.
      */
-    virtual CARAPI formatEx(
+    virtual CARAPI FormatObjectEx(
         /* [in] */ IInterface* object,
-        /* [in] */ StringBuffer* buffer,
+        /* [in] */ const String& buffer,
         /* [in] */ IFieldPosition* field,
-        /* [out] */ StringBuffer* value) = 0;
+        /* [out] */ String* value) = 0;
 
     /**
      * Formats the specified object using the rules of this format and returns
@@ -132,7 +151,7 @@ public:
      *            if an error occurs during parsing.
      */
     virtual CARAPI ParseObject(
-        /* [in] */ String string,
+        /* [in] */ const String& string,
         /* [out] */ IInterface** object);
 
     /**
@@ -154,24 +173,9 @@ public:
      *         an error.
      */
     virtual CARAPI ParseObjectEx(
-        /* [in] */ String string,
+        /* [in] */ const String& string,
         /* [in] */ IParsePosition* position,
         /* [out] */ IInterface** object) = 0;
-
-    /**
-     * Inner class used to represent {@code Format} attributes in the
-     * {@code AttributedCharacterIterator} that the
-     * {@code formatToCharacterIterator()} method returns in {@code Format}
-     * subclasses.
-     */
-    /*static*/class Format_Field : public AttributedCharacterIterator_Attribute {
-    protected:
-        Format_Field(
-            /* [in] */ String fn);
-
-    private:
-//        const static Int64 serialVersionUID = 276966692217360283L;
-    };
 
 protected:
     /**
@@ -179,21 +183,20 @@ protected:
      */
     Format();
 
-    static CARAPI_(Boolean) UpTo(
-        /* [in] */ String string,
+    static CARAPI UpTo(
+        /* [in] */ const String& string,
         /* [in] */ IParsePosition* position,
-        /* [in] */ StringBuffer* buffer,
-        /* [in] */ Char32 stop);
-
-    static CARAPI_(Boolean) UpToWithQuotes(
-        /* [in] */ String string,
-        /* [in] */ IParsePosition* position,
-        /* [in] */ StringBuffer* buffer,
+        /* [in] */ StringBuffer& buffer,
         /* [in] */ Char32 stop,
-        /* [in] */ Char32 start);
+        /* [out] */ Boolean* succeeded);
 
-private:
-    //const static Int64 serialVersionUID = -299282585814624189L;
-
+    static CARAPI UpToWithQuotes(
+        /* [in] */ const String& string,
+        /* [in] */ IParsePosition* position,
+        /* [in] */ StringBuffer& buffer,
+        /* [in] */ Char32 stop,
+        /* [in] */ Char32 start,
+        /* [out] */ Boolean* succeeded);
 };
+
 #endif //__FORMAT_H_

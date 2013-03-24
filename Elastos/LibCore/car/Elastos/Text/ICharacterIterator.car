@@ -4,8 +4,7 @@ module
      * A constant which indicates that there is no character at the current
      * index.
      */
-    // Char32 ICharacterIterator_DONE = '0xffff';
-
+    const ICharacterIterator_DONE = 0xffffffff;
 
     /**
      * An interface for the bidirectional iteration over a group of characters. The
@@ -19,7 +18,7 @@ module
          * @return a shallow copy of this character iterator.
          */
         Clone(
-            [out] IInterface** shallowCopy);
+            [out] IInterface** copy);
 
         /**
          * Returns the character at the current index.
@@ -28,7 +27,7 @@ module
          *         past the beginning or end of the sequence.
          */
         Current(
-            [out] Char32* currentCharacter);
+            [out] Char32* character);
 
         /**
          * Sets the current position to the begin index and returns the character at
@@ -37,7 +36,7 @@ module
          * @return the character at the begin index.
          */
         First(
-            [out] Char32* firstCharacter);
+            [out] Char32* character);
 
         /**
          * Returns the begin index.
@@ -45,7 +44,7 @@ module
          * @return the index of the first character of the iteration.
          */
         GetBeginIndex(
-            [out] Int32* beginIndex);
+            [out] Int32* index);
 
         /**
          * Returns the end index.
@@ -53,7 +52,7 @@ module
          * @return the index one past the last character of the iteration.
          */
         GetEndIndex(
-            [out] Int32* endIndex);
+            [out] Int32* index);
 
         /**
          * Returns the current index.
@@ -61,7 +60,7 @@ module
          * @return the current index.
          */
         GetIndex(
-            [out] Int32* currentIndex);
+            [out] Int32* index);
 
         /**
          * Sets the current position to the end index - 1 and returns the character
@@ -70,7 +69,7 @@ module
          * @return the character before the end index.
          */
         Last(
-            [out] Char32* lastCharacter);
+            [out] Char32* character);
 
         /**
          * Increments the current index and returns the character at the new index.
@@ -79,7 +78,7 @@ module
          *         index would be past the end.
          */
         Next(
-            [out] Char32* nextCharacter);
+            [out] Char32* character);
 
         /**
          * Decrements the current index and returns the character at the new index.
@@ -88,7 +87,7 @@ module
          *         previous index would be past the beginning.
          */
         Previous(
-            [out] Char32* previousCharacter);
+            [out] Char32* character);
 
         /**
          * Sets the current index to a new position and returns the character at the

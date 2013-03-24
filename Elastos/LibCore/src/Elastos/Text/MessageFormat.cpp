@@ -39,7 +39,7 @@ ECode MessageFormat::ApplyPattern(
     /* [in] */ String tem)
 {
     Int32 length = (Int32)(tem.GetLength());
-    StringBuffer* buffer = new StringBuffer("");
+    StringBuffer buffer("");
     AutoPtr<IParsePosition> position;
     CParsePosition::New(0, (IParsePosition**)&position);
     Vector<String>* localStrings = new Vector<String>();
@@ -50,7 +50,8 @@ ECode MessageFormat::ApplyPattern(
     Int32 index;
     position->GetIndex(&index);
     while (index < length) {
-        if (Format::UpTo(tem, position, buffer, '{')) {
+        Boolean succeeded;
+        if (Format::UpTo(tem, position, buffer, '{', &succeeded), succeeded) {
             Int32 arg = 0;
             Int32 offset;
             position->GetIndex(&offset);
@@ -91,9 +92,9 @@ ECode MessageFormat::ApplyPattern(
                 maxArg = arg;
             }
         }
-        localStrings->PushBack(buffer->Substring(0, buffer->GetLength()));
+        localStrings->PushBack(buffer.Substring(0, buffer.GetLength()));
         //buffer.setLength(0);
-        *buffer = String("");
+        buffer = String("");
     }
     mStrings = ArrayOf<String>::Alloc(localStrings->GetSize());
     for (Int32 i = 0; i < (Int32)(localStrings->GetSize()); i++) {
@@ -144,11 +145,13 @@ ECode MessageFormat::FormatToCharacterIterator(
 
 ECode MessageFormat::formatEx2(
         /* [in] */ ArrayOf< IInterface* >* objects,
-        /* [in] */ StringBuffer* buffer,
+        /* [in] */ const String& buffer,
         /* [in] */ IFieldPosition* field,
-        /* [out] */ StringBuffer* value)
+        /* [out] */ String* value)
 {
-    return FormatImpl(objects, buffer, field, NULL, value);
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+    // return FormatImpl(objects, buffer, field, NULL, value);
 }
 
 ECode MessageFormat::FormatImpl(
@@ -211,22 +214,22 @@ ECode MessageFormat::FormatImpl(
 }
 
 ECode MessageFormat::HandleArgumentField(
-        /* [in] */ Int32 begin, 
-        /* [in] */ Int32 end, 
+        /* [in] */ Int32 begin,
+        /* [in] */ Int32 end,
         /* [in] */ Int32 argIndex,
-        /* [in] */ IFieldPosition* position, 
+        /* [in] */ IFieldPosition* position,
         /* [in] */ Vector<FieldContainer*>* fields)
 {
     if (fields != NULL) {
-        FieldContainer* fc = new FieldContainer(begin, end, 
-            (IAttributedCharacterIterator_Attribute*)MessageFormat_Field::ARGUMENT, 
+        FieldContainer* fc = new FieldContainer(begin, end,
+            (IAttributedCharacterIteratorAttribute*)MessageFormat_Field::ARGUMENT,
             (IInterface*)argIndex);
         fields->PushBack(fc);
     } else {
         Int32 endIndex;
         position->GetEndIndex(&endIndex);
-        AutoPtr<IFormat_Field> fa;
-        position->GetFieldAttribute((IFormat_Field**)&fa);
+        AutoPtr<IFormatField> fa;
+        position->GetFieldAttribute((IFormatField**)&fa);
         if (position != NULL
                 && fa == MessageFormat_Field::ARGUMENT
                 && endIndex == 0) {
@@ -238,9 +241,9 @@ ECode MessageFormat::HandleArgumentField(
 }
 
 MessageFormat::FieldContainer::FieldContainer(
-        /* [in] */ Int32 start, 
+        /* [in] */ Int32 start,
         /* [in] */ Int32 end,
-        /* [in] */ IAttributedCharacterIterator_Attribute* attribute, 
+        /* [in] */ IAttributedCharacterIteratorAttribute* attribute,
         /* [in] */ IInterface* value)
 {
     mStart = start;
@@ -250,8 +253,8 @@ MessageFormat::FieldContainer::FieldContainer(
 }
 
 ECode MessageFormat::Handleformat(
-        /* [in] */ IFormat* format, 
-        /* [in] */ IInterface* arg, 
+        /* [in] */ IFormat* format,
+        /* [in] */ IInterface* arg,
         /* [in] */ Int32 begin,
         /* [in] */ Vector<FieldContainer*>* fields)
 {
@@ -282,11 +285,11 @@ ECode MessageFormat::Handleformat(
     return NOERROR;
 }
 
-ECode MessageFormat::formatEx(
-        /* [in] */ IInterface* object, 
-        /* [in] */ StringBuffer* buffer,
+ECode MessageFormat::FormatObjectEx(
+        /* [in] */ IInterface* object,
+        /* [in] */ const String& buffer,
         /* [in] */ IFieldPosition* field,
-        /* [out] */ StringBuffer* value)
+        /* [out] */ String* value)
 {
     VALIDATE_NOT_NULL(value);
     return formatEx2((ArrayOf< IInterface* >*) object, buffer, field, value);
@@ -311,7 +314,7 @@ ECode MessageFormat::GetFormatsByArgumentIndex(
 }
 
 ECode MessageFormat::SetFormatByArgumentIndex(
-        /* [in] */ Int32 argIndex, 
+        /* [in] */ Int32 argIndex,
         /* [in] */ IFormat* format)
 {
     for (Int32 i = 0; i < mMaxOffset + 1; i++) {
@@ -431,7 +434,7 @@ ECode MessageFormat::ParseEx(
 }
 
 ECode MessageFormat::ParseObjectEx(
-        /* [in] */ String string, 
+        /* [in] */ String string,
         /* [in] */ IParsePosition* position,
         /* [out] */ IInterface** arrayOfObjects)
 {
@@ -439,8 +442,8 @@ ECode MessageFormat::ParseObjectEx(
 }
 
 ECode MessageFormat::Match(
-        /* [in] */ String string, 
-        /* [in] */ IParsePosition* position, 
+        /* [in] */ String string,
+        /* [in] */ IParsePosition* position,
         /* [in] */ Boolean last,
         /* [in] */ ArrayOf<String>* tokens,
         /* [out] */ Int32* value)
@@ -481,7 +484,7 @@ ECode MessageFormat::Match(
 }
 
 ECode MessageFormat::ParseVariable(
-        /* [in] */ String string, 
+        /* [in] */ String string,
         /* [in] */ IParsePosition* position,
         /* [out] */ IFormat** value)
 {
@@ -511,15 +514,15 @@ ECode MessageFormat::ParseVariable(
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
     ArrayOf<String>::Free(tokens1);
-    StringBuffer* buffer = new StringBuffer("");
+    StringBuffer buffer("");
     Int32 index;
     position->GetIndex(&index);
     ch = (Char32)(string.GetChar(index - 1));
 
     AutoPtr<IDateFormat> v1, v2;
     switch (type) {
-        case 0: // time 
-        case 1: // date           
+        case 0: // time
+        case 1: // date
             if (ch == '}') {
                 DateFormat::GetDateInstance(
                         IDateFormat_DEFAULT, (ILocale*)mLocale, (IDateFormat**)&v1);
@@ -535,7 +538,8 @@ ECode MessageFormat::ParseVariable(
             Int32 dateStyle;
             Match(string, position, TRUE, tokens2, &dateStyle);
             if (dateStyle == -1) {
-                Format::UpToWithQuotes(string, position, buffer, '}', '{');
+                Boolean succeeded;
+                Format::UpToWithQuotes(string, position, buffer, '}', '{', &succeeded);
 //                return new SimpleDateFormat(buffer.toString(), locale);
                 return NOERROR;
             }
@@ -573,7 +577,8 @@ ECode MessageFormat::ParseVariable(
             (*tokens3)[2] = String("integer");
             Match(string, position, TRUE, tokens3, &numberStyle);
             if (numberStyle == -1) {
-                Format::UpToWithQuotes(string, position, buffer, '}', '{');
+                Boolean succeeded;
+                Format::UpToWithQuotes(string, position, buffer, '}', '{', &succeeded);
 //                return new DecimalFormat(buffer.toString(),
 //                        new DecimalFormatSymbols(locale));
                 return NOERROR;
@@ -592,7 +597,8 @@ ECode MessageFormat::ParseVariable(
     }
     // choice
 //    try {
-        Format::UpToWithQuotes(string, position, buffer, '}', '{');
+        Boolean succeeded;
+        Format::UpToWithQuotes(string, position, buffer, '}', '{', &succeeded);
 //    } catch (IllegalArgumentException e) {
         // ignored
 //    }
@@ -604,7 +610,7 @@ ECode MessageFormat::ParseVariable(
 }
 
 ECode MessageFormat::SetFormat(
-        /* [in] */ Int32 offset, 
+        /* [in] */ Int32 offset,
         /* [in] */ IFormat* format)
 {
     (*mFormats)[offset] = format;
@@ -663,7 +669,7 @@ ECode MessageFormat::SetLocale(
 }
 
 ECode MessageFormat::DecodeDecimalFormat(
-        /* [in] */ StringBuffer* buffer, 
+        /* [in] */ StringBuffer* buffer,
         /* [in] */ IFormat* format,
         /* [out] */ String* value)
 {
@@ -686,7 +692,7 @@ ECode MessageFormat::DecodeDecimalFormat(
 }
 
 ECode MessageFormat::DecodeSimpleDateFormat(
-        /* [in] */ StringBuffer* buffer, 
+        /* [in] */ StringBuffer* buffer,
         /* [in] */ IFormat* format,
         /* [out] */ String* value)
 {
@@ -780,7 +786,7 @@ ECode MessageFormat::ToPattern(
 }
 
 ECode MessageFormat::AppendQuoted(
-        /* [in] */ StringBuffer* buffer, 
+        /* [in] */ StringBuffer* buffer,
         /* [in] */ String string)
 {
     Int32 length = string.GetLength();

@@ -11,5 +11,4 @@ DIRS += SQL
 DIRS += Test
 
 DIRS += Math
-DIRS += Lang
 DIRS += Text

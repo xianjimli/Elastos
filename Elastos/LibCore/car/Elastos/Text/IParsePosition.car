@@ -10,7 +10,7 @@ module
          * Returns the index at which the parse could not continue.
          */
         GetErrorIndex(
-            [out] Int32* errorIndex);
+            [out] Int32* index);
 
         /**
          * Returns the current parse position.
