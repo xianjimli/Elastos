@@ -97,3 +97,25 @@ ECode CEditorInfo::GetHintText(
     if (*hintText != NULL) (*hintText)->AddRef();
     return NOERROR;
 }
+
+ECode CEditorInfo::SetInputType(
+	/* [in] */ Int32 type)
+{
+	mInputType = type;
+	return NOERROR;
+}
+
+ECode CEditorInfo::SetImeOptions(
+	/* [in] */ Int32 options)
+{
+	mImeOptions = options;
+	return NOERROR;	
+}
+
+ECode CEditorInfo::SetActionLabel(
+	/*[in]  */ ICharSequence* actionLabel)
+{
+	mActionLabel = actionLabel;
+	return NOERROR;
+}
+

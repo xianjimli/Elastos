@@ -34,6 +34,15 @@ public:
     CARAPI GetHintText(
         /* [out] */ ICharSequence** hintText);
 
+	CARAPI SetInputType(
+		/* [in] */ Int32 type);
+
+	CARAPI  SetImeOptions(
+		/* [in] */ Int32 options);
+  
+	CARAPI  SetActionLabel(
+		/*[in]  */ ICharSequence* actionLabel);
+
 public:
     /**
      * The content type of the text box, whose bits are defined by
