@@ -18,11 +18,16 @@ public:
     ContentResolver(
         /* [in] */ IContext* context = NULL);
 
+    static ModeToMode(
+        /* [in] */ IUri* uri,
+        /* [in] */ String mode,
+        /* [in] */ Int32* result);
+
     virtual IContentProvider* ProbeIContentProvider() = 0;
 
     virtual CARAPI ReleaseProvider(
-		/* [in] */ IContentProvider* icp,
-		/* [out] */ Boolean* result) = 0;
+        /* [in] */ IContentProvider* icp,
+        /* [out] */ Boolean* result) = 0;
 
     virtual CARAPI AcquireProvider(
         /* [in] */ IContext* context,

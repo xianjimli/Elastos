@@ -296,6 +296,49 @@ ECode Service::CreateCapsuleContext(
     return mBase->CreateCapsuleContext(capsuleName, flags, ctx);
 }
 
+ECode Service::CheckPermissionEx(
+    /* [in] */ const String& permName,
+    /* [in] */ const String& pkgName,
+    /* [out] */ Int32 * result)
+{
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode Service::CheckPermission(
+    /* [in] */ const String& permission,
+    /* [in] */ Int32 pid,
+    /* [in] */ Int32 uid,
+    /* [out] */ Int32 * result)
+{
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode Service::CheckUriPermission(
+    /* [in] */ IUri * uri,
+    /* [in] */ const String& readPermission,
+    /* [in] */ const String& writePermission,
+    /* [in] */ Int32 pid,
+    /* [in] */ Int32 uid,
+    /* [in] */ Int32 modeFlags,
+    /* [out] */ Int32 * result)
+{
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode Service::CheckUriPermissionEx(
+    /* [in] */ IUri * uri,
+    /* [in] */ Int32 pid,
+    /* [in] */ Int32 uid,
+    /* [in] */ Int32 modeFlags,
+    /* [out] */ Int32 * result)
+{
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
 ECode Service::CheckCallingPermission(
     /* [in] */ const String& permission,
     /* [out] */ Int32* value)

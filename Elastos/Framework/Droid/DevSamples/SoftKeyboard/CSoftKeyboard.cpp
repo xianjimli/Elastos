@@ -293,6 +293,57 @@ ECode CSoftKeyboard::CheckCallingOrSelfPermission(
     return InputMethodService::CheckCallingOrSelfPermission(permission, perm);
 }
 
+ECode CSoftKeyboard::CheckPermissionEx(
+	/* [in] */ const String& permName,
+	/* [in] */ const String& pkgName,
+	/* [out] */ Int32 * result)
+{
+	return InputMethodService::CheckPermissionEx(permName, pkgName, result);
+}
+
+ECode CSoftKeyboard::CheckPermission(
+	/* [in] */ const String& permission,
+	/* [in] */ Int32 pid,
+	/* [in] */ Int32 uid,
+	/* [out] */ Int32 * result)
+{
+	return InputMethodService::CheckPermission(permission, pid, uid, result);
+}
+
+ECode CSoftKeyboard::CheckUriPermission(
+	/* [in] */ IUri * uri,
+	/* [in] */ const String& readPermission,
+	/* [in] */ const String& writePermission,
+	/* [in] */ Int32 pid,
+	/* [in] */ Int32 uid,
+	/* [in] */ Int32 modeFlags,
+	/* [out] */ Int32 * result)
+{
+	return InputMethodService::CheckUriPermission(
+            uri,
+            readPermission,
+            writePermission,
+            pid,
+            uid,
+            modeFlags,
+            result);
+}
+
+ECode CSoftKeyboard::CheckUriPermissionEx(
+	/* [in] */ IUri * uri,
+	/* [in] */ Int32 pid,
+	/* [in] */ Int32 uid,
+	/* [in] */ Int32 modeFlags,
+	/* [out] */ Int32 * result)
+{
+	return InputMethodService::CheckUriPermissionEx(
+            uri,
+            pid,
+            uid,
+            modeFlags,
+            result);
+}
+
 ECode CSoftKeyboard::GrantUriPermission(
     /* [in] */ const String& toCapsule,
     /* [in] */ IUri* uri,

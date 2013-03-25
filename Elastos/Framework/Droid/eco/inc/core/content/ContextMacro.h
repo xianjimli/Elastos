@@ -131,7 +131,35 @@
     CARAPI GrantUriPermission(                                              \
         /* [in] */ const String& toCapsule,                                 \
         /* [in] */ IUri* uri,                                               \
-        /* [in] */ Int32 modeFlags);
+        /* [in] */ Int32 modeFlags);                                        \
+                                                                            \
+    CARAPI CheckPermissionEx(                                               \
+        /* [in] */ const String& permName,                                  \
+        /* [in] */ const String& pkgName,                                   \
+        /* [out] */ Int32 * result);                                        \
+                                                                            \
+    CARAPI CheckPermission(                                                 \
+        /* [in] */ const String& permission,                                \
+        /* [in] */ Int32 pid,                                               \
+        /* [in] */ Int32 uid,                                               \
+        /* [out] */ Int32 * result);                                        \
+                                                                            \
+    CARAPI CheckUriPermission(                                              \
+        /* [in] */ IUri * uri,                                              \
+        /* [in] */ const String& readPermission,                            \
+        /* [in] */ const String& writePermission,                           \
+        /* [in] */ Int32 pid,                                               \
+        /* [in] */ Int32 uid,                                               \
+        /* [in] */ Int32 modeFlags,                                         \
+        /* [out] */ Int32 * result);                                        \
+                                                                            \
+    CARAPI CheckUriPermissionEx(                                            \
+        /* [in] */ IUri * uri,                                              \
+        /* [in] */ Int32 pid,                                               \
+        /* [in] */ Int32 uid,                                               \
+        /* [in] */ Int32 modeFlags,                                         \
+        /* [out] */ Int32 * result);
+
 
 #define ICONTEXT_METHODS_IMPL(className, superClass, overRideClass)         \
 ECode className::GetAssets(                                                 \
@@ -365,6 +393,57 @@ ECode className::GrantUriPermission(                                        \
     /* [in] */ Int32 modeFlags)                                             \
 {                                                                           \
     return superClass::GrantUriPermission(toCapsule, uri, modeFlags);       \
+}                                                                           \
+                                                                            \
+ECode className::CheckPermissionEx(                                         \
+    /* [in] */ const String& permName,                                      \
+    /* [in] */ const String& pkgName,                                       \
+    /* [out] */ Int32 * result)                                             \
+{                                                                           \
+    return superClass::CheckPermissionEx(permName, pkgName, result);        \
+}                                                                           \
+                                                                            \
+ECode className::CheckPermission(                                           \
+    /* [in] */ const String& permission,                                    \
+    /* [in] */ Int32 pid,                                                   \
+    /* [in] */ Int32 uid,                                                   \
+    /* [out] */ Int32 * result)                                             \
+{                                                                           \
+    return superClass::CheckPermission(permission, pid, uid, result);       \
+}                                                                           \
+                                                                            \
+ECode className::CheckUriPermission(                                        \
+    /* [in] */ IUri * uri,                                                  \
+    /* [in] */ const String& readPermission,                                \
+    /* [in] */ const String& writePermission,                               \
+    /* [in] */ Int32 pid,                                                   \
+    /* [in] */ Int32 uid,                                                   \
+    /* [in] */ Int32 modeFlags,                                             \
+    /* [out] */ Int32 * result)                                             \
+{                                                                           \
+    return superClass::CheckUriPermission(                                  \
+            uri,                                                            \
+            readPermission,                                                 \
+            writePermission,                                                \
+            pid,                                                            \
+            uid,                                                            \
+            modeFlags,                                                      \
+            result);                                                        \
+}                                                                           \
+                                                                            \
+ECode className::CheckUriPermissionEx(                                      \
+    /* [in] */ IUri * uri,                                                  \
+    /* [in] */ Int32 pid,                                                   \
+    /* [in] */ Int32 uid,                                                   \
+    /* [in] */ Int32 modeFlags,                                             \
+    /* [out] */ Int32 * result)                                             \
+{                                                                           \
+    return superClass::CheckUriPermissionEx(                                \
+            uri,                                                            \
+            pid,                                                            \
+            uid,                                                            \
+            modeFlags,                                                      \
+            result);                                                        \
 }
 
 #endif //__CONTEXTMACRO_H__

@@ -22,7 +22,7 @@ const char* ContentResolver::SCHEME_FILE  = "file";
 const Int32 ContentResolver_SLOW_THRESHOLD_MILLIS = 500;
 
 /** @hide */
-static ECode ModeToMode(IUri* uri, String mode, Int32* result)
+ECode ContentResolver::ModeToMode(IUri* uri, String mode, Int32* result)
 {
     assert(result);
 
