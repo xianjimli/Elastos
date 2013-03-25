@@ -227,6 +227,14 @@ ECode CApartment::HasCppCallbacksEx(
     return NOERROR;
 }
 
+ECode CApartment::SendMessage(
+    /* [in] */ Int32 message,
+    /* [in] */ IParcel* params)
+{
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+}
+
 ECode CApartment::Prepare()
 {
     if (pthread_getspecific(sKey) != NULL) {

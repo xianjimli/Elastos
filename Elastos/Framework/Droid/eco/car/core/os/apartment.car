@@ -57,6 +57,10 @@ module
             [in] Handle32 func,
             [in] Int32 id,
             [out] Boolean* result);
+
+        SendMessage(
+            [in] Int32 message,
+            [in] IParcel* params);
     }
 
     interface IApartmentHelper {

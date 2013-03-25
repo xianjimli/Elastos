@@ -575,17 +575,12 @@ Boolean BaseInputConnection::SendKeyEvent(
         }
 
         if (h != NULL) {
-            // Todo: the following implement is wrong
             // h.sendMessage(h.obtainMessage(ViewRoot.DISPATCH_KEY_FROM_IME,
             //         event));
-            void (STDCALL ViewRoot::*pHandlerFunc)(IKeyEvent*);
-            pHandlerFunc = &ViewRoot::DispatchKeyFromIme;
-
             AutoPtr<IParcel> params;
             CCallbackParcel::New((IParcel**)&params);
             params->WriteInterfacePtr((IInterface*)event);
-            h->PostCppCallbackDelayed((Handle32)this, *(Handle32*)&pHandlerFunc,
-                    params, 0, 0);
+            h->SendMessage(ViewRoot::DISPATCH_KEY_FROM_IME, params);
         }
     }
     return FALSE;

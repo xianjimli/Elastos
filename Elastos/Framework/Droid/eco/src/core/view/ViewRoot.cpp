@@ -513,6 +513,7 @@ const Boolean ViewRoot::DEBUG_CONFIGURATION;
 const Boolean ViewRoot::WATCH_POINTER;
 const Boolean ViewRoot::MEASURE_LATENCY;
 const Int32 ViewRoot::MAX_TRACKBALL_DELAY;
+const Int32 ViewRoot::DISPATCH_KEY_FROM_IME;
 
 Int64 ViewRoot::sInstanceCount = 0;
 Boolean ViewRoot::sInitialized = FALSE;
@@ -604,7 +605,7 @@ ViewRoot::ViewRoot(
 
     mAttachInfo = new View::AttachInfo(
         sWindowSession, (IInnerWindow*)mWindow->Probe(EIID_IInnerWindow),
-        mApartment, this);
+        this, this);
 
     mViewConfiguration = ViewConfiguration::Get(context);
 
@@ -4415,4 +4416,107 @@ ECode ViewRoot::HandleCloseSystemDialogs(
     }
 
     return NOERROR;
+}
+
+ECode ViewRoot::Start(
+    /* [in] */ ApartmentAttr attr)
+{
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode ViewRoot::Finish()
+{
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode ViewRoot::PostCppCallback(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallback(target, func, params, id);
+}
+
+ECode ViewRoot::PostCppCallbackAtTime(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id,
+    /* [in] */ Millisecond64 uptimeMillis)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackAtTime(target, func, params, id, uptimeMillis);
+}
+
+ECode ViewRoot::PostCppCallbackDelayed(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id,
+    /* [in] */ Millisecond64 delayMillis)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackDelayed(target, func, params, id, delayMillis);
+}
+
+ECode ViewRoot::PostCppCallbackAtFrontOfQueue(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackAtFrontOfQueue(target, func, params, id);
+}
+
+ECode ViewRoot::RemoveCppCallbacks(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func)
+{
+    assert(mApartment != NULL);
+    return mApartment->RemoveCppCallbacks(target, func);
+}
+
+ECode ViewRoot::RemoveCppCallbacksEx(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->RemoveCppCallbacksEx(target, func, id);
+}
+
+ECode ViewRoot::HasCppCallbacks(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [out] */ Boolean* result)
+{
+    assert(mApartment != NULL);
+    return mApartment->HasCppCallbacks(target, func, result);
+}
+
+ECode ViewRoot::HasCppCallbacksEx(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ Int32 id,
+    /* [out] */ Boolean* result)
+{
+    assert(mApartment != NULL);
+    return mApartment->HasCppCallbacksEx(target, func, id, result);
+}
+
+ECode ViewRoot::SendMessage(
+    /* [in] */ Int32 message,
+    /* [in] */ IParcel* params)
+{
+    if (message == DISPATCH_KEY_FROM_IME) {
+        void (STDCALL ViewRoot::*pHandlerFunc)(IKeyEvent*);
+        pHandlerFunc = &ViewRoot::DispatchKeyFromIme;
+        return SendMessage(*(Handle32*)&pHandlerFunc, params);
+    }
+    return E_ILLEGAL_ARGUMENT_EXCEPTION;
 }

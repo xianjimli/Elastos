@@ -93,6 +93,10 @@ public:
         /* [in] */ Int32 id,
         /* [out] */ Boolean* result);
 
+    CARAPI SendMessage(
+        /* [in] */ Int32 message,
+        /* [in] */ IParcel* params);
+
 public:
     /** Initialize the current thread as a looper.
       * This gives you a chance to create handlers that then reference

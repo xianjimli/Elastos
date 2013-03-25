@@ -2324,7 +2324,8 @@ ECode ViewGroup::InvalidateChild(
                     view->mPrivateFlags |= DRAW_ANIMATION;
                 }
                 else if (parent->Probe(EIID_ViewRoot) != NULL) {
-                    ((ViewRoot*)parent->Probe(EIID_ViewRoot))->mIsAnimating = TRUE;
+                    ViewRoot* vr = reinterpret_cast<ViewRoot*>(parent->Probe(EIID_ViewRoot));
+                    vr->mIsAnimating = TRUE;
                 }
             }
 
