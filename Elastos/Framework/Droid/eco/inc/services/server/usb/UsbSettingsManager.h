@@ -5,6 +5,7 @@
 #include "ext/frameworkext.h"
 #include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>
+#include <elastos/HashMap.h>
 
 class UsbSettingsManager : public ElRefBase
 {
@@ -314,10 +315,10 @@ private:
     //private final HashMap<UsbAccessory, SparseBooleanArray> mAccessoryPermissionMap = new HashMap<UsbAccessory, SparseBooleanArray>();
 
     // Maps DeviceFilter to user preferred application package
-    //private final HashMap<DeviceFilter, String> mDevicePreferenceMap = new HashMap<DeviceFilter, String>();
+    HashMap< AutoPtr<DeviceFilter>, String > mDevicePreferenceMap;
 
     // Maps AccessoryFilter to user preferred application package
-    //private final HashMap<AccessoryFilter, String> mAccessoryPreferenceMap = new HashMap<AccessoryFilter, String>();
+    HashMap< AutoPtr<AccessoryFilter>, String > mAccessoryPreferenceMap;
 
     AutoPtr<IInterface> mLock;
 

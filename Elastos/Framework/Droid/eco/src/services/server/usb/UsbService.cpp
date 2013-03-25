@@ -74,7 +74,7 @@ ECode UsbService::OpenDevice(
         return NOERROR;
     }
 
-    *descriptor = mHostManager->OpenDevice(deviceName);
+    mHostManager->OpenDevice(deviceName, descriptor);
     return NOERROR;
 }
 
