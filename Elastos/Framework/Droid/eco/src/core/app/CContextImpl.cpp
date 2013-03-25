@@ -2367,6 +2367,49 @@ ECode CContextImpl::EnforceCallingOrSelfPermission(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode CContextImpl::CheckPermissionEx(
+    /* [in] */ const String& permName,
+    /* [in] */ const String& pkgName,
+    /* [out] */ Int32 * result)
+{
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CContextImpl::CheckPermission(
+    /* [in] */ const String& permission,
+    /* [in] */ Int32 pid,
+    /* [in] */ Int32 uid,
+    /* [out] */ Int32 * result)
+{
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CContextImpl::CheckUriPermission(
+    /* [in] */ IUri * uri,
+    /* [in] */ const String& readPermission,
+    /* [in] */ const String& writePermission,
+    /* [in] */ Int32 pid,
+    /* [in] */ Int32 uid,
+    /* [in] */ Int32 modeFlags,
+    /* [out] */ Int32 * result)
+{
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CContextImpl::CheckUriPermissionEx(
+    /* [in] */ IUri * uri,
+    /* [in] */ Int32 pid,
+    /* [in] */ Int32 uid,
+    /* [in] */ Int32 modeFlags,
+    /* [out] */ Int32 * result)
+{
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
 ECode CContextImpl::RevokeUriPermission(
     /* [in] */ IUri* uri,
     /* [in] */ Int32 modeFlags)

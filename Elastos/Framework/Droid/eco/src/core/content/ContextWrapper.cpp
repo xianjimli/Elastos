@@ -194,6 +194,57 @@ ECode ContextWrapper::GrantUriPermission(
     return mBase->GrantUriPermission(toCapsule, uri, modeFlags);
 }
 
+ECode ContextWrapper::CheckPermissionEx(
+    /* [in] */ const String& permName,
+    /* [in] */ const String& pkgName,
+    /* [out] */ Int32 * result)
+{
+    return mBase->CheckPermissionEx(permName, pkgName, result);
+}
+
+ECode ContextWrapper::CheckPermission(
+    /* [in] */ const String& permission,
+    /* [in] */ Int32 pid,
+    /* [in] */ Int32 uid,
+    /* [out] */ Int32 * result)
+{
+    return mBase->CheckPermission(permission, pid, uid, result);
+}
+
+ECode ContextWrapper::CheckUriPermission(
+/* [in] */ IUri * uri,
+    /* [in] */ const String& readPermission,
+    /* [in] */ const String& writePermission,
+    /* [in] */ Int32 pid,
+    /* [in] */ Int32 uid,
+    /* [in] */ Int32 modeFlags,
+    /* [out] */ Int32 * result)
+{
+    return mBase->CheckUriPermission(
+            uri,
+            readPermission,
+            writePermission,
+            pid,
+            uid,
+            modeFlags,
+            result);
+}
+
+ECode ContextWrapper::CheckUriPermissionEx(
+    /* [in] */ IUri * uri,
+    /* [in] */ Int32 pid,
+    /* [in] */ Int32 uid,
+    /* [in] */ Int32 modeFlags,
+    /* [out] */ Int32 * result)
+{
+    return mBase->CheckUriPermissionEx(
+            uri,
+            pid,
+            uid,
+            modeFlags,
+            result);
+}
+
 /**
  * Set the base context for this ContextWrapper.  All calls will then be
  * delegated to the base context.  Throws
