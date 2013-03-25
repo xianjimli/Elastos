@@ -147,7 +147,7 @@ ECode ReentrantLock::LockInterruptibly()
 ECode ReentrantLock::TryLock(
     /* [out] */ Boolean* pValue)
 {
-    return m_Sync->nonfairTryAcquire(1, pValue);
+    return m_Sync->NonfairTryAcquire(1, pValue);
 }
 
 ECode ReentrantLock::TryLock(
@@ -165,49 +165,78 @@ void ReentrantLock::Unlock()
 
 ICondition* ReentrantLock::NewCondition()
 {
+    IConditionObject *pCondition;
+    CConditionObject::New((IConditionObject**)&pCondition);
+    return (ICondition *)pCondition;
 }
 
 Int32 ReentrantLock::GetHoldCount()
 {
+    return m_Sync->GetHoldCount();
 }
 
 Boolean ReentrantLock::IsHeldByCurrentThread()
 {
+    return m_Sync->IsHeldExclusively();
 }
 
 Boolean ReentrantLock::IsLocked()
 {
+    return m_Sync->IsLocked();
 }
 
 Boolean ReentrantLock::IsFair()
 {
+    return TRUE;
 }
 
 IThread* ReentrantLock::GetOwner()
 {
+    return m_Sync->GetOwner();
 }
 
 Boolean ReentrantLock::HasQueuedThreads()
 {
+    Boolean has;
+    m_Sync->HasQueuedThreads(&has);
+    return has;
 }
 
 Boolean ReentrantLock::HasQueuedThread(
         /* [in] */ IThread* pThread)
 {
+    Boolean has;
+    m_Sync->IsQueued(pThread, &has);
+    return has;
 }
 
 Int32 ReentrantLock::GetQueueLength()
 {
+    Int32 len;
+    m_Sync->GetQueueLength(&len);
+    return len;
 }
 
-Int32 ReentrantLock::GetWaitQueueLength(
-        /* [in] */ ICondition* condition)
+ECode ReentrantLock::GetWaitQueueLength(
+        /* [in] */ ICondition* condition,
+        /* [out] */ Int32* pValue)
 {
+    if (condition == NULL) {
+        return E_INVALID_ARGUMENT;
+    }
+
+    return m_Sync->GetWaitQueueLength((IConditionObject *)condition, pValue);
 }
 
-Boolean ReentrantLock::HasWaiters(
-        /* [in] */ ICondition* condition)
+ECode ReentrantLock::HasWaiters(
+        /* [in] */ ICondition* condition,
+        /* [out] */ Boolean* pValue)
 {
+    if (condition == NULL) {
+        return E_INVALID_ARGUMENT;
+    }
+
+    return m_Sync->HasWaiters((IConditionObject *)condition, pValue);
 }
 
 String ReentrantLock::ToString()
@@ -217,10 +246,12 @@ String ReentrantLock::ToString()
 ECode ReentrantLock::GetQueuedThreads(
         /* [out] */ IObjectEnumerator **ppEmu)
 {
+    return m_Sync->GetQueuedThreads(ppEmu);
 }
 
 ECode ReentrantLock::GetWaitingThreads(
         /* [in] */ ICondition* condition,
         /* [out] */ IObjectEnumerator **ppEmu)
 {
+    return m_Sync->GetWaitingThreads((IConditionObject*)condition, ppEmu);
 }

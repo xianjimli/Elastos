@@ -14,7 +14,7 @@ module
             [in] Int32 dayOfWeek,
             [in] Int32 time);
 
-        SetEndRuleEx1(
+        SetEndRuleEx2(
             [in] Int32 month,
             [in] Int32 day,
             [in] Int32 dayOfWeek,
@@ -32,7 +32,7 @@ module
             [in] Int32 dayOfWeek,
             [in] Int32 time);
 
-        SetStartRuleEx1(
+        SetStartRuleEx2(
             [in] Int32 month,
             [in] Int32 day,
             [in] Int32 dayOfWeek,

@@ -126,6 +126,31 @@ module
             [in] Int32 offset,
             [in] String name);
 
+        constructor(
+            [in] Int32 offset,
+            [in] String name,
+            [in] Int32 startMonth,
+            [in] Int32 startDay,
+            [in] Int32 startDayOfWeek,
+            [in] Int32 startTime,
+            [in] Int32 endMonth,
+            [in] Int32 endDay,
+            [in] Int32 endDayOfWeek,
+            [in] Int32 endTime);
+
+        constructor(
+            [in] Int32 offset,
+            [in] String name,
+            [in] Int32 startMonth,
+            [in] Int32 startDay,
+            [in] Int32 startDayOfWeek,
+            [in] Int32 startTime,
+            [in] Int32 endMonth,
+            [in] Int32 endDay,
+            [in] Int32 endDayOfWeek,
+            [in] Int32 endTime,
+            [in] Int32 daylightSavings);
+
         interface ISimpleTimeZone;
     }
 

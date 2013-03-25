@@ -14,7 +14,7 @@ ECode CSimpleTimeZone::GetDisplayName(
     /* [out] */ String * pName)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TimeZone::GetDisplayName(pName);
 }
 
 ECode CSimpleTimeZone::GetDisplayNameEx(
@@ -22,33 +22,33 @@ ECode CSimpleTimeZone::GetDisplayNameEx(
     /* [out] */ String * pName)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TimeZone::GetDisplayNameEx(pLocale, pName);
 }
 
-ECode CSimpleTimeZone::GetDisplayNameEx1(
+ECode CSimpleTimeZone::GetDisplayNameEx2(
     /* [in] */ Boolean daylightTime,
     /* [in] */ Int32 style,
     /* [out] */ String * pName)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TimeZone::GetDisplayNameEx2(daylightTime, style, pName);
 }
 
-ECode CSimpleTimeZone::GetDisplayNameEx2(
+ECode CSimpleTimeZone::GetDisplayNameEx3(
     /* [in] */ Boolean daylightTime,
     /* [in] */ Int32 style,
     /* [in] */ ILocale * pLocale,
     /* [out] */ String * pName)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TimeZone::GetDisplayNameEx3(daylightTime, style, pLocale, pName);
 }
 
 ECode CSimpleTimeZone::GetID(
     /* [out] */ String * pId)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TimeZone::GetID(pId);
 }
 
 ECode CSimpleTimeZone::GetDSTSavings(
@@ -67,17 +67,17 @@ ECode CSimpleTimeZone::GetOffset(
     /* [out] */ Int32 * pOffset)
 {
     Boolean isUsed;
-    UseDaylightTimeVir(&isUsed);
+    UseDaylightTime(&isUsed);
     if (!isUsed) {
         return mRawOffset;
     }
     ArrayOf<Int32> *fields;
     fields = Grego::TimeToFields(time + mRawOffset, NULL);
-    return GetOffsetVir(Calendar_AD, (*fields)[0], (*fields)[1], (*fields)[2],
+    return GetOffsetEx(Calendar_AD, (*fields)[0], (*fields)[1], (*fields)[2],
             (*fields)[3], (*fields)[5], pOffset);
 }
 
-ECode CSimpleTimeZone::GetOffsetVir(
+ECode CSimpleTimeZone::GetOffsetEx(
     /* [in] */ Int32 era,
     /* [in] */ Int32 year,
     /* [in] */ Int32 month,
@@ -100,7 +100,7 @@ ECode CSimpleTimeZone::GetOffsetVir(
     // BEGIN android-changed
     // return icuTZ.getOffset(era, year, month, day, dayOfWeek, time);
     Boolean isUsed;
-    UseDaylightTimeVir(&isUsed);
+    UseDaylightTime(&isUsed);
     if (!isUsed || era != Calendar_AD || year < mStartYear) {
         *pOffset = mRawOffset;
         return NOERROR;
@@ -161,8 +161,8 @@ ECode CSimpleTimeZone::GetOffsetVir(
         }
     }
 
-    int ruleTime = mEndTime - mDstSavings;
-    int nextMonth = (month + 1) % 12;
+    Int32 ruleTime = mEndTime - mDstSavings;
+    Int32 nextMonth = (month + 1) % 12;
     if (month == mEndMonth || (ruleTime < 0 && nextMonth == mEndMonth)) {
         switch (mEndMode) {
             case DOM_MODE:
@@ -199,7 +199,7 @@ ECode CSimpleTimeZone::GetOffsetVir(
                 break;
         }
 
-        int ruleMonth = mEndMonth;
+        Int32 ruleMonth = mEndMonth;
         if (ruleTime < 0) {
             int changeDays = 1 - (ruleTime / 86400000);
             ruleTime = (ruleTime % 86400000) + 86400000;
@@ -231,7 +231,7 @@ ECode CSimpleTimeZone::GetOffsetVir(
     // END android-changed
 }
 
-ECode CSimpleTimeZone::GetRawOffsetVir(
+ECode CSimpleTimeZone::GetRawOffset(
     /* [out] */ Int32 * pRawOffset)
 {
     // TODO: Add your code here
@@ -261,12 +261,12 @@ ECode CSimpleTimeZone::HasSameRules(
     return NOERROR;
 }
 
-ECode CSimpleTimeZone::InDaylightTimeVir(
+ECode CSimpleTimeZone::InDaylightTime(
     /* [in] */ IDate * pTime,
     /* [out] */ Boolean * pIsIn)
 {
     Boolean isUsed;
-    UseDaylightTimeVir(&isUsed);
+    UseDaylightTime(&isUsed);
 
     Int64 ti;
     pTime->GetTime(&ti);
@@ -283,10 +283,10 @@ ECode CSimpleTimeZone::SetID(
     /* [in] */ const String& id)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return TimeZone::SetID(id);
 }
 
-ECode CSimpleTimeZone::SetRawOffsetVir(
+ECode CSimpleTimeZone::SetRawOffset(
     /* [in] */ Int32 offsetMillis)
 {
     // TODO: Add your code here
@@ -294,7 +294,7 @@ ECode CSimpleTimeZone::SetRawOffsetVir(
     return NOERROR;
 }
 
-ECode CSimpleTimeZone::UseDaylightTimeVir(
+ECode CSimpleTimeZone::UseDaylightTime(
     /* [out] */ Boolean * pIsUsed)
 {
     // TODO: Add your code here
@@ -331,7 +331,7 @@ ECode CSimpleTimeZone::SetEndRuleEx(
     return NOERROR;
 }
 
-ECode CSimpleTimeZone::SetEndRuleEx1(
+ECode CSimpleTimeZone::SetEndRuleEx2(
     /* [in] */ Int32 month,
     /* [in] */ Int32 day,
     /* [in] */ Int32 dayOfWeek,
@@ -375,7 +375,7 @@ ECode CSimpleTimeZone::SetStartRuleEx(
     return NOERROR;
 }
 
-ECode CSimpleTimeZone::SetStartRuleEx1(
+ECode CSimpleTimeZone::SetStartRuleEx2(
     /* [in] */ Int32 month,
     /* [in] */ Int32 day,
     /* [in] */ Int32 dayOfWeek,
@@ -510,4 +510,48 @@ ECode CSimpleTimeZone::constructor(
     /* [in] */ Int32 offset,
     /* [in] */ const String& name)
 {
+    SetID(name);
+    mRawOffset = offset;
+}
+
+ECode CSimpleTimeZone::constructor(
+    /* [in] */ Int32 offset,
+    /* [in] */ const String& name,
+    /* [in] */ Int32 startMonth,
+    /* [in] */ Int32 startDay,
+    /* [in] */ Int32 startDayOfWeek,
+    /* [in] */ Int32 startTime,
+    /* [in] */ Int32 endMonth,
+    /* [in] */ Int32 endDay,
+    /* [in] */ Int32 endDayOfWeek,
+    /* [in] */ Int32 endTime)
+{
+    return this->constructor(offset, name, startMonth, startDay, startDayOfWeek,
+                startTime, endMonth, endDay, endDayOfWeek, endTime, 360000);
+
+}
+
+ECode CSimpleTimeZone::constructor(
+    /* [in] */ Int32 offset,
+    /* [in] */ const String& name,
+    /* [in] */ Int32 startMonth,
+    /* [in] */ Int32 startDay,
+    /* [in] */ Int32 startDayOfWeek,
+    /* [in] */ Int32 startTime,
+    /* [in] */ Int32 endMonth,
+    /* [in] */ Int32 endDay,
+    /* [in] */ Int32 endDayOfWeek,
+    /* [in] */ Int32 endTime,
+    /* [in] */ Int32 daylightSavings)
+{
+    this->constructor(offset, name);
+
+    if (daylightSavings <= 0) {
+        return E_INVALID_ARGUMENT;
+    }
+
+    mDstSavings = daylightSavings;
+
+    SetStartRuleEx(startMonth, startDay, startDayOfWeek, startTime);
+    SetEndRuleEx(endMonth, endDay, endDayOfWeek, endTime);
 }

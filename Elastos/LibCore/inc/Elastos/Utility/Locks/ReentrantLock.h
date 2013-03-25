@@ -62,7 +62,8 @@ public:
 
     ECode LockInterruptibly();
 
-    Boolean TryLock();
+    ECode TryLock(
+        /* [out] */ Boolean* pValue);
 
     ECode TryLock(
         /* [in] */ Int64 timeout,
@@ -90,11 +91,13 @@ public:
 
     Int32 GetQueueLength();
 
-    Int32 GetWaitQueueLength(
-        /* [in] */ ICondition* condition);
+    ECode GetWaitQueueLength(
+        /* [in] */ ICondition* condition,
+        /* [out] */ Int32* pValue);
 
-    Boolean HasWaiters(
-        /* [in] */ ICondition* condition);
+    ECode HasWaiters(
+        /* [in] */ ICondition* condition,
+        /* [out] */ Boolean* pValue);
 
     String ToString();
 protected:

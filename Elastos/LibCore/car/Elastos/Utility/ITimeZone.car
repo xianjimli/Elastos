@@ -11,12 +11,12 @@ module
             [in] ILocale* locale,
             [out] String* name);
 
-        GetDisplayNameEx1(
+        GetDisplayNameEx2(
             [in] Boolean daylightTime,
             [in] Int32 style,
             [out] String* name);
 
-        GetDisplayNameEx2(
+        GetDisplayNameEx3(
             [in] Boolean daylightTime,
             [in] Int32 style,
             [in] ILocale* locale,
@@ -32,7 +32,7 @@ module
             [in] Int64 time,
             [out] Int32* offset);
 
-        GetOffsetVir(
+        GetOffsetEx(
             [in] Int32 era,
             [in] Int32 year,
             [in] Int32 month,
@@ -41,24 +41,24 @@ module
             [in] Int32 timeOfDayMillis,
             [out] Int32* offset);
 
-        GetRawOffsetVir(
+        GetRawOffset(
             [out] Int32* rawOffset);
 
         HasSameRules(
             [in] ITimeZone* timeZone,
             [out] Boolean *hasRules);
 
-        InDaylightTimeVir(
+        InDaylightTime(
             [in] IDate* time,
             [out] Boolean* isIn);
 
         SetID(
             [in] String id);
 
-        SetRawOffsetVir(
+        SetRawOffset(
             [in] Int32 offsetMillis);
 
-        UseDaylightTimeVir(
+        UseDaylightTime(
             [out] Boolean* isUsed);
     }
 

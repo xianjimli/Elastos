@@ -1,7 +1,7 @@
 
 #include "CGregorianCalendar.h"
 #include <elastos/System.h>
-#include <stdio.h>
+//#include <stdio.h>
 
 const Byte CGregorianCalendar::mDaysInMonth[] = { 31, 28, 31, 30, 31, 30, 31, 31,
             30, 31, 30, 31 };
@@ -133,7 +133,7 @@ ECode CGregorianCalendar::Add(
         ITimeZone  *timezone;
         GetTimeZone((ITimeZone**)&timezone);
         Int32 rawOffset;
-        timezone->GetRawOffsetVir(&rawOffset);
+        timezone->GetRawOffset(&rawOffset);
 
         Int32 zoneOffset = rawOffset;
         Int32 offset;
@@ -825,7 +825,9 @@ ECode CGregorianCalendar::ComputeTime()
 
     Int32 rawOffset;
 
-    tz->GetRawOffsetVir(&rawOffset);
+    tz->GetRawOffset(&rawOffset);
+
+    rawOffset = 0;
 
     Int64 timeValWithoutDST = timeVal - GetOffset(timeVal)
             + rawOffset;
@@ -933,7 +935,7 @@ void CGregorianCalendar::ComputeFields()
     ec = CDate::New(mTime, (IDate **) &date);
 
     Boolean isIn;
-    timeZone->InDaylightTimeVir((IDate*) date, &isIn);
+    timeZone->InDaylightTime((IDate*) date, &isIn);
     Int32 dstOffset = 0;
 
     if (isIn) {
@@ -943,7 +945,7 @@ void CGregorianCalendar::ComputeFields()
     }
 
     Int32 zoneOffset;
-    timeZone->GetRawOffsetVir(&zoneOffset);
+    timeZone->GetRawOffset(&zoneOffset);
 
     (*mFields)[Calendar_DST_OFFSET] = dstOffset;
     (*mFields)[Calendar_ZONE_OFFSET] = zoneOffset;
@@ -990,7 +992,7 @@ void CGregorianCalendar::ComputeFields()
 
         // FIXME: this has to be wrong; useDaylightTime doesn't mean what they think it means!
         Int64 newTimeAdjusted = newTime;
-        timeZone->UseDaylightTimeVir(&isUsed);
+        timeZone->UseDaylightTime(&isUsed);
         if (isUsed) {
             // BEGIN android-changed: removed unnecessary cast
             Int32 dstSavings;
@@ -1016,7 +1018,7 @@ void CGregorianCalendar::ComputeFields()
     }
 
     // Caching
-    timeZone->UseDaylightTimeVir(&isUsed);
+    timeZone->UseDaylightTime(&isUsed);
     if (!mIsCached
             && newTime != 0x7fffffffffffffffL
             && newTime != 0x8000000000000000L
@@ -1065,10 +1067,10 @@ Int32 CGregorianCalendar::GetOffset(
     Int32 rawOffset;
 
     Boolean isUsed;
-    timeZone->UseDaylightTimeVir(&isUsed);
+    timeZone->UseDaylightTime(&isUsed);
 
     if (!isUsed) {
-        timeZone->GetRawOffsetVir(&rawOffset);
+        timeZone->GetRawOffset(&rawOffset);
         return rawOffset;
     }
 
@@ -1098,7 +1100,7 @@ Int32 CGregorianCalendar::GetOffset(
         }
     }
     if (year <= 0) {
-        timeZone->GetRawOffsetVir(&rawOffset);
+        timeZone->GetRawOffset(&rawOffset);
         return rawOffset;
     }
     Int32 dayOfYear = (int) days + 1;
@@ -1112,7 +1114,7 @@ Int32 CGregorianCalendar::GetOffset(
     }
     Int32 dayOfWeek = Mod7(dayCount - 3) + 1;
     Int32 offset;
-    timeZone->GetOffsetVir(Calendar_AD, year, month, date, dayOfWeek,
+    timeZone->GetOffsetEx(Calendar_AD, year, month, date, dayOfWeek,
             millis, &offset);
     return offset;
 }
@@ -1303,7 +1305,7 @@ void CGregorianCalendar::FullFieldsCalc(
     } else {
         ITimeZone *tz;
         GetTimeZone((ITimeZone**)&tz);
-        tz->GetOffsetVir(Calendar_AD,(*mFields)[Calendar_YEAR], month, date,
+        tz->GetOffsetEx(Calendar_AD,(*mFields)[Calendar_YEAR], month, date,
                 (*mFields)[Calendar_DAY_OF_WEEK], millis, &dstOffset);
     }
     if ((*mFields)[Calendar_YEAR] > 0) {

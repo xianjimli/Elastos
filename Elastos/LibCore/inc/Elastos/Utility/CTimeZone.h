@@ -68,6 +68,7 @@ public:
 
     virtual CARAPI UseDaylightTimeVir(
         /* [out] */ Boolean * pIsUsed) = 0;
+
 private:
     void AppendNumber(
         /* [out] */ StringBuffer* buffer,

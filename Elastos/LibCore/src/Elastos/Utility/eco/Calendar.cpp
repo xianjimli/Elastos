@@ -389,7 +389,7 @@ ECode Calendar::SetTimeZone(
 {
     mZone = timezone;
     Int32 offset;
-    timezone->GetRawOffsetVir(&offset);
+    timezone->GetRawOffset(&offset);
     mAreFieldsSet = FALSE;
     return NOERROR;
 }
