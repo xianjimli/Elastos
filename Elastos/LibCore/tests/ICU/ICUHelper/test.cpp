@@ -135,6 +135,44 @@ int CTest::test6(int argc, char* argv[])
     return 0;
 }
 
+int CTest::test8(int argc, char* argv[])
+{
+    Int64 millis =  System::GetCurrentTimeMillis();
+    printf("the init millis is  %lld\n", millis);
+    AutoPtr<IGregorianCalendar> cal;
+    CGregorianCalendar::New((IGregorianCalendar**)&cal);
+    //cal->SetTimeInMillis(millis);
+    AutoPtr<IDate> date;
+    AutoPtr<IDate> pdate;
+    Int32 year = 0, day = 0, month = 0, hour=0, minute = 0 ,second = 0;
+    Int32 year1 = 0, day1 = 0, month1 = 0, hour1=0, minute1 = 0 ,second1 = 0;
+    CDate::New(millis, (IDate**)&pdate);
+
+    pdate->GetYear(&year);
+    pdate->GetMonth(&month);
+    pdate->GetDay(&day);
+    pdate->GetHours(&hour);
+    pdate->GetMinutes(&minute);
+    pdate->GetSeconds(&second);
+    printf("before cal%d %d %d %d %d %d\n\n",year,month,day,hour,minute,second);
+    cal->SetEx3(year,month,day,hour,minute,second);
+    cal->GetTime((IDate**)&date);
+
+    date->GetYear(&year1);
+    date->GetMonth(&month1);
+    date->GetDay(&day1);
+    date->GetHours(&hour1);
+    date->GetMinutes(&minute1);
+    date->GetSeconds(&second1);
+    printf(" after cal%d %d %d %d %d %d\n\n",year1,month1,day1,hour1,minute1,second1);
+
+    Int64 ti;
+    cal->GetTimeInMillis(&ti);
+    printf("the cal millis is  %lld\n", ti);
+//    cal->SetEx3(year1,month,day,hour,minute,second);
+    return 0;
+}
+
 class A
 {
 public:

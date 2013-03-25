@@ -498,7 +498,7 @@ ECode SimpleDateFormat::AppendTimeZone(
             String *name = new String(NULL);
             AutoPtr<ILocale> locale;
             formatData->GetLocale((ILocale**)&locale);
-            tz->GetDisplayNameEx2(daylight, style, (ILocale*)locale, name);
+            tz->GetDisplayNameEx3(daylight, style, (ILocale*)locale, name);
             (*buffer) += (*name);
             return NULL;
         }

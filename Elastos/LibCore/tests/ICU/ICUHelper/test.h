@@ -20,7 +20,7 @@ public:
     int test5(int argc, char* argv[]);
     int test6(int argc, char* argv[]);
     int test7(int argc, char* argv[]);
-
+    int test8(int argc, char* argv[]);
 private:
 };
 

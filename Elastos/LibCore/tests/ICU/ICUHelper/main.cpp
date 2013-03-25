@@ -14,6 +14,7 @@ PTestEntry TestEntry[] =
     &CTest::test5,
     &CTest::test6,
     &CTest::test7,
+    &CTest::test8,
 };
 
 int main(int argc, char* argv[])
