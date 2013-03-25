@@ -5,13 +5,44 @@
 #include "ext/frameworkext.h"
 #include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>
+#include <elastos/Mutex.h>
+#include <elastos/HashMap.h>
+#include <Logger.h>
 #include "server/usb/UsbSettingsManager.h"
+
+using namespace Elastos;
+using namespace Elastos::Core::Threading;
+using namespace Elastos::Utility::Logging;
 
 /**
  * UsbHostManager manages USB state in host mode.
  */
 class UsbHostManager : public ElRefBase
 {
+private:
+    class SRRunnable : public ElRefBase, public IRunnable
+    {
+    public:
+        SRRunnable(
+            /* [in] */ UsbHostManager* host);
+
+        CARAPI Run();
+
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+    private:
+        AutoPtr<UsbHostManager> mHost;
+    };
+
 public:
     UsbHostManager(
         /* [in] */ IContext* context,
@@ -32,20 +63,19 @@ public:
         /* [in] */ IBundle* devices);
 
     /* Opens the specified USB device */
-    CARAPI_(IParcelFileDescriptor*) OpenDevice(
-        /* [in] */ const String& deviceName);
+    CARAPI OpenDevice(
+        /* [in] */ const String& deviceName,
+        /* [out] */ IParcelFileDescriptor** pfd);
 
 private:
-    CARAPI_(Boolean) IsBlackListedByName(
+    CARAPI_(Boolean) IsBlackListed(
         /* [in] */ const String& deviceName);
 
-
     /* returns true if the USB device should not be accessible by applications */
-    CARAPI_(Boolean) IsBlackListedByUSBClass(
+    CARAPI_(Boolean) IsBlackListed(
         /* [in] */ Int32 clazz,
         /* [in] */ Int32 subClass,
         /* [in] */ Int32 protocol);
-
 
     /*
      * Called from JNI in monitorUsbHostBus() to report new USB devices
@@ -60,8 +90,8 @@ private:
         /* [in] */ Int32 deviceClass,
         /* [in] */ Int32 deviceSubclass,
         /* [in] */ Int32 deviceProtocol,
-        /* [in] */ ArrayOf<Int32>* interfaceValues,
-        /* [in] */ ArrayOf<Int32>* endpointValues);
+        /* [in] */ const ArrayOf<Int32>& interfaceValues,
+        /* [in] */ const ArrayOf<Int32>& endpointValues);
 
     /* Called from JNI in monitorUsbHostBus to report USB device removal */
     CARAPI_(void) UsbDeviceRemoved(
@@ -73,17 +103,22 @@ private:
         /* [in] */ const String& deviceName);
 
 private:
+    CARAPI_(Boolean) IsDeviceExists(
+        /* [in] */ const String& deviceName);
+
+private:
     static const String TAG;
+    static const Boolean LOG;
 
     // contains all connected USB devices
-    AutoPtr<IObjectStringMap> mDevices;
+    HashMap< String, AutoPtr<IUsbDevice> > mDevices;
 
     // USB busses to exclude from USB host support
     ArrayOf<String>* mHostBlacklist;
 
     AutoPtr<IContext> mContext;
 
-    AutoPtr<IInterface> mLock;
+    Mutex mLock;
 
     AutoPtr<UsbSettingsManager> mSettingsManager;
 };
