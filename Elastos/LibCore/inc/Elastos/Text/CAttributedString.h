@@ -4,6 +4,7 @@
 
 #include "_CAttributedString.h"
 #include "AttributedString.h"
+
 CarClass(CAttributedString), public AttributedString
 {
 public:

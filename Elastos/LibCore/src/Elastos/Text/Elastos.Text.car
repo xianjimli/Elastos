@@ -282,26 +282,26 @@ module
     }
 
 
-    [deprecated]
-    class CAttributedString {
-        constructor(
-            [in] IAttributedCharacterIterator* iterator,
-            [in] Int32 start,
-            [in] Int32 end);
-
+//    [deprecated]
+//    class CAttributedString {
+//        constructor(
+//            [in] IAttributedCharacterIterator* iterator,
+//            [in] Int32 start,
+//            [in] Int32 end);
+//
 //        constructor(
 //            [in] IAttributedCharacterIterator* iterator,
 //            [in] Int32 start,
 //            [in] Int32 end,
 //            [in] ArrayOf<IAttributedCharacterIterator_Attribute*>* attributes);
-
-        constructor(
-            [in] String value);
-
-        //constructor(String value,
-        //    Map<? extends AttributedCharacterIterator.Attribute, ?> attributes);
-
-        interface IAttributedString;
-    }
+//
+//        constructor(
+//            [in] String value);
+//
+//        //constructor(String value,
+//        //    Map<? extends AttributedCharacterIterator.Attribute, ?> attributes);
+//
+//        interface IAttributedString;
+//    }
 
 }
