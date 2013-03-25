@@ -7,6 +7,7 @@
 #include <elastos/List.h>
 #include <elastos/ElRefBase.h>
 #include <elastos/Mutex.h>
+#include <elastos/AutoPtr.h>
 
 using namespace Elastos;
 using namespace Elastos::Core::Threading;
@@ -560,7 +561,14 @@ private:
 //     static const String GOOGLE_SHARED_APP_CONTENT = "com.google.process.content";
 
  private:
+    static AutoPtr<ILocalSocket> sZygoteSocket;
+    static AutoPtr<IDataInputStream> sZygoteInputStream;
+    static AutoPtr<IBufferedWriter> sZygoteWriter;
 
+    /** true if previous zygote open failed */
+    static Boolean sPreviousZygoteOpenFailed;
+
+    static Mutex mProcessClassLock;
 //     const String LOG_TAG = "Process";
 
 
