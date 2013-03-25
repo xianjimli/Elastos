@@ -118,5 +118,17 @@ module
 
         GetHintText(
             [out] ICharSequence** hintText);
+	
+		SetInputType(
+			[in] Int32 type);
+
+		SetImeOptions(
+			[in] Int32 options);
+
+		SetActionLabel(
+			[in] ICharSequence* actionLabel);		
     }
 }
+
+
+
