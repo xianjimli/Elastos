@@ -22,21 +22,21 @@
 #include "net/CLocalSocketAddress.h"
 #endif
 
-static ILocalSocket* sZygoteSocket;
-static IDataInputStream* sZygoteInputStream;
-static IBufferedWriter* sZygoteWriter;
-
-/** true if previous zygote open failed */
-static Boolean sPreviousZygoteOpenFailed;
-
-static Mutex mProcessClassLock;
-
 #define GUARD_THREAD_PRIORITY 0
 
 #if GUARD_THREAD_PRIORITY
 Mutex gKeyCreateMutex;
 static pthread_key_t gBgKey = -1;
 #endif
+
+AutoPtr<ILocalSocket> Process::sZygoteSocket;
+AutoPtr<IDataInputStream> Process::sZygoteInputStream;
+AutoPtr<IBufferedWriter> Process::sZygoteWriter;
+
+/** true if previous zygote open failed */
+Boolean Process::sPreviousZygoteOpenFailed;
+
+Mutex Process::mProcessClassLock;
 
 Process::ProcessRunnable::ProcessRunnable(
     /* [in] */ String processClass)
@@ -264,7 +264,7 @@ ECode Process::OpenZygoteSocketIfNeeded()
         }
 
     // try {
-        ECode ec = CLocalSocket::New(&sZygoteSocket);
+        ECode ec = CLocalSocket::New((ILocalSocket**)&sZygoteSocket);
         if (FAILED(ec)) {
             return ec;
         }
@@ -280,7 +280,7 @@ ECode Process::OpenZygoteSocketIfNeeded()
         IInputStream* inputStream;
         sZygoteSocket->GetInputStream(&inputStream);
 
-        ec = CDataInputStream::New(inputStream, &sZygoteInputStream);
+        ec = CDataInputStream::New(inputStream, (IDataInputStream**)&sZygoteInputStream);
         if (FAILED(ec)) {
             return ec;
         }
@@ -295,7 +295,7 @@ ECode Process::OpenZygoteSocketIfNeeded()
             return ec;
         }
 
-        ec = CBufferedWriter::New(streamWrite, 256, &sZygoteWriter);
+        ec = CBufferedWriter::New(streamWrite, 256, (IBufferedWriter**)&sZygoteWriter);
 
         if (FAILED(ec)) {
             return ec;
