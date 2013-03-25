@@ -57,7 +57,7 @@ AutoPtr<ILocalInputMethodManager> CLocalInputMethodManager::GetInstance(
 {
     //TODO
     AutoPtr<IApartment> apartment;
-    assert(SUCCEEDED(CApartment::GetDefaultApartment((IApartment**)&apartment))
+    assert(SUCCEEDED(CApartment::GetMainApartment((IApartment**)&apartment))
         && (apartment != NULL));
     return GetInstance(apartment/*context.getMainLooper()*/);
 }
@@ -474,7 +474,7 @@ void CLocalInputMethodManager::StartInputInner()
     //todo: the following implement is wrong
     // if (vh.getLooper() != Looper.myLooper()) {
     AutoPtr<IApartment> tmpLooper;
-    CApartment::GetDefaultApartment((IApartment**)&tmpLooper);
+    CApartment::GetMainApartment((IApartment**)&tmpLooper);
     if (vh != tmpLooper) {
         // The view is running on a different thread than our own, so
         // we need to reschedule our work for over there.

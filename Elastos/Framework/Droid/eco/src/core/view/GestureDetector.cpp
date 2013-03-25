@@ -156,7 +156,7 @@ void GestureDetector::Init(
     /* [in] */ Boolean ignoreMultitouch)
 {
     if (handler == NULL) {
-        ASSERT_SUCCEEDED(CApartment::GetDefaultApartment((IApartment**)&mApartment));
+        ASSERT_SUCCEEDED(CApartment::GetMainApartment((IApartment**)&mApartment));
     }
 
     mListener = listener;

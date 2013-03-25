@@ -140,7 +140,7 @@ void FastScroller::UseThumbDrawable(
 void FastScroller::Init(
     /* [in] */ IContext* context)
 {
-    ASSERT_SUCCEEDED(CApartment::GetDefaultApartment((IApartment**)&mApartment));
+    ASSERT_SUCCEEDED(CApartment::GetMainApartment((IApartment**)&mApartment));
 
     // Get both the scrollbar states drawables
     AutoPtr<IResources> res;

@@ -75,7 +75,7 @@ ECode CIInputMethodSessionWrapper::constructor(
 {
     mInputMethodSession = inputMethodSession;
     //mCaller = new HandlerCaller(context, this);
-    FAIL_RETURN(CApartment::GetDefaultApartment((IApartment**)&mCaller));
+    FAIL_RETURN(CApartment::GetMainApartment((IApartment**)&mCaller));
     return NOERROR;
 }
 

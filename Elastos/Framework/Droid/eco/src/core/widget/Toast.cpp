@@ -51,7 +51,7 @@ Toast::TN::TN(
     params.format = PixelFormat.TRANSLUCENT;
     params.windowAnimations = com.android.internal.R.style.Animation_Toast;
     params.type = WindowManager.LayoutParams.TYPE_TOAST;
-    params.setTitle("Toast");    
+    params.setTitle("Toast");
     */
     mShow = (IRunnable*)new ShowAction(this);
     mHide = (IRunnable*)new HideAction(this);
@@ -179,7 +179,7 @@ ECode Toast::TN::HandleShow()
         else {
             mWM->AddRef();
         }
-        
+
         Int32 gravity = mHost->mGravity;
         ((CWindowManagerLayoutParams*)mParams.Get())->mGravity = gravity;
 
@@ -203,7 +203,7 @@ ECode Toast::TN::HandleShow()
         }
         //if (localLOGV) Log.v(TAG, "ADD! " + mView + " in " + this);
         mWM->AddViewEx5(mHost->mView, mParams);
-    }    
+    }
     return NOERROR;
 }
 
@@ -376,7 +376,7 @@ ECode Toast::SetMargin(
 
 /**
  * Return the horizontal margin.
- */    
+ */
 ECode Toast::GetHorizontalMargin(
     /* [out] */ Float* horizontalMargin)
 {
@@ -405,7 +405,7 @@ ECode Toast::GetVerticalMargin(
  */
 ECode Toast::SetGravity(
     /* [in] */ Int32 gravity,
-    /* [in] */ Int32 xOffset, 
+    /* [in] */ Int32 xOffset,
     /* [in] */ Int32 yOffset)
 {
     mGravity = gravity;
@@ -511,7 +511,7 @@ ECode Toast::Init(
     //public static final int toast_y_offset=0x01050003;
     res->GetDimensionPixelSize(0x01050003, &mY);
 
-    assert(SUCCEEDED(CApartment::GetDefaultApartment((IApartment**)&mApartment))
+    assert(SUCCEEDED(CApartment::GetMainApartment((IApartment**)&mApartment))
         && (mApartment != NULL));
 
     return NOERROR;

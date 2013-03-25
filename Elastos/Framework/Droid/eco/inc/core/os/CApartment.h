@@ -9,6 +9,9 @@
 #include "os/NativeMessageQueue.h"
 #endif
 #include <elastos/AutoPtr.h>
+#include <elastos/Mutex.h>
+
+using namespace Elastos::Core::Threading;
 
 #ifdef _linux
 /* Enqueues and dispatches input events, endlessly. */
@@ -91,7 +94,25 @@ public:
         /* [out] */ Boolean* result);
 
 public:
-    static CARAPI GetDefaultApartment(
+    /** Initialize the current thread as a looper.
+      * This gives you a chance to create handlers that then reference
+      * this looper, before actually starting the loop. Be sure to call
+      * {@link #loop()} after calling this method, and end it by calling
+      * {@link #quit()}.
+      */
+    static CARAPI Prepare();
+
+    /** Initialize the current thread as a looper, marking it as an application's main
+     *  looper. The main looper for your application is created by the Android environment,
+     *  so you should never need to call this function yourself.
+     * {@link #prepare()}
+     */
+    static CARAPI PrepareMainApartment();
+
+    static CARAPI GetMainApartment(
+        /* [out] */ IApartment** apartment);
+
+    static CARAPI GetMyApartment(
         /* [out] */ IApartment** apartment);
 
     static CARAPI_(NativeMessageQueue*) GetNativeMessageQueue();
@@ -99,8 +120,14 @@ public:
 private:
     static void* EntryRoutine(void *arg);
 
+    static CARAPI_(void) SetMainApartment(
+        /* [in] */ IApartment* apartment);
+
 private:
     static AutoPtr<CApartment> sDefaultApartment;
+    static Boolean sHaveKey;
+    static pthread_key_t sKey;
+    static Mutex sLock;
 
 private:
     pthread_t mThread;

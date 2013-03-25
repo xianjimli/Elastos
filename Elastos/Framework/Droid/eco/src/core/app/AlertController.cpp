@@ -561,7 +561,7 @@ AlertController::AlertController(
     , mIconId(-1)
     , mCheckedItem(-1)
 {
-    assert(SUCCEEDED(CApartment::GetDefaultApartment((IApartment**)&mApartment))
+    assert(SUCCEEDED(CApartment::GetMainApartment((IApartment**)&mApartment))
         && (mApartment != NULL));
 
     mButtonHandler = new ButtonOnClickListener(this);

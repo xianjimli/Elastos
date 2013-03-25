@@ -503,7 +503,7 @@ KeyboardView::KeyboardView()
 {
     CRect::New(0, 0, 0, 0, (IRect**) &mClipRegion);
     CRectF::New((IRectF**)&mDirtyRect);
-    CApartment::GetDefaultApartment((IApartment**)&mHandler);
+    CApartment::GetMainApartment((IApartment**)&mHandler);
 }
 
 KeyboardView::~KeyboardView()

@@ -8,6 +8,18 @@
 #include <dlfcn.h>
 #include <stdio.h>
 
+#define DUMP_CLSID(CLSID) \
+    do { \
+        printf("======== DUMP_CLSID ========\n"); \
+        printf("{%p, %p, %p, {%p, %p, %p, %p, %p, %p, %p, %p} }\n", \
+                CLSID.clsid.Data1, CLSID.clsid.Data2, CLSID.clsid.Data3, \
+                CLSID.clsid.Data4[0], CLSID.clsid.Data4[1], \
+                CLSID.clsid.Data4[2], CLSID.clsid.Data4[3], \
+                CLSID.clsid.Data4[4], CLSID.clsid.Data4[5], \
+                CLSID.clsid.Data4[6], CLSID.clsid.Data4[7]); \
+        printf("============================\n"); \
+    } while(0);
+
 EXTERN_C CARAPI DllGetClassObject(REMuid, REIID, PInterface *);
 
 DLinkNode g_LocModList = { &g_LocModList, &g_LocModList };
@@ -58,6 +70,7 @@ ECode AcquireClassObjectFromLocalModule(
 #else
     strcpy(path, pszUunm);
 #endif
+    // DUMP_CLSID(rclsid)
     pIModule = dlopen(path, 0);
     if(NULL == pIModule){
         ec = E_FILE_NOT_FOUND;

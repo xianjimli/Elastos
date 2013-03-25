@@ -5,6 +5,9 @@
 
 
 AutoPtr<CApartment> CApartment::sDefaultApartment;
+Boolean CApartment::sHaveKey = FALSE;
+pthread_key_t CApartment::sKey;
+Mutex CApartment::sLock;
 
 // --- InputDispatcherThread ---
 
@@ -55,6 +58,13 @@ ECode CApartment::constructor(
     if (sDefaultApartment == NULL) {
         sDefaultApartment = this;
     }
+
+    if (!sHaveKey) {
+        assert(pthread_key_create(&sKey, NULL) == 0);
+        sHaveKey = TRUE;
+    }
+    assert(pthread_setspecific(sKey, NULL) == 0);
+
     return NOERROR;
 }
 
@@ -217,9 +227,59 @@ ECode CApartment::HasCppCallbacksEx(
     return NOERROR;
 }
 
-ECode CApartment::GetDefaultApartment(
+ECode CApartment::Prepare()
+{
+    if (pthread_getspecific(sKey) != NULL) {
+        // throw new RuntimeException("Only one Looper may be created per thread");
+        return E_RUNTIME_EXCEPTION;
+    }
+
+    AutoPtr<IApartment> apartment;
+    CApartment::New(FALSE, (IApartment**)&apartment);
+    assert(pthread_setspecific(sKey, apartment.Get()) == 0);
+    //todo: for sKey
+    apartment->AddRef();
+    return NOERROR;
+}
+
+    /** Initialize the current thread as a looper, marking it as an application's main
+ *  looper. The main looper for your application is created by the Android environment,
+ *  so you should never need to call this function yourself.
+ * {@link #prepare()}
+ */
+ECode CApartment::PrepareMainApartment()
+{
+    if (pthread_getspecific(sKey) != NULL) {
+        // throw new RuntimeException("Only one Looper may be created per thread");
+        return E_RUNTIME_EXCEPTION;
+    }
+
+    AutoPtr<IApartment> apartment;
+    CApartment::New(TRUE, (IApartment**)&apartment);
+    assert(pthread_setspecific(sKey, apartment.Get()) == 0);
+    //todo: for sKey
+    apartment->AddRef();
+
+    SetMainApartment(apartment);
+    // if (Process.supportsProcesses()) {
+    //     myLooper().mQueue.mQuitAllowed = false;
+    // }
+    return NOERROR;
+}
+
+void CApartment::SetMainApartment(
+    /* [in] */ IApartment* apartment)
+{
+    Mutex::Autolock lock(&sLock);
+
+    sDefaultApartment = (CApartment*)apartment;
+}
+
+ECode CApartment::GetMainApartment(
     /* [out] */ IApartment** apartment)
 {
+    Mutex::Autolock lock(&sLock);
+
     if (apartment == NULL) return E_INVALID_ARGUMENT;
 
     *apartment = sDefaultApartment;
@@ -227,9 +287,25 @@ ECode CApartment::GetDefaultApartment(
     return NOERROR;
 }
 
+ECode CApartment::GetMyApartment(
+    /* [out] */ IApartment** apartment)
+{
+    if (apartment == NULL) return E_INVALID_ARGUMENT;
+
+    *apartment = (CApartment*)pthread_getspecific(sKey);
+    if (*apartment != NULL) (*apartment)->AddRef();
+
+    return NOERROR;
+}
+
 NativeMessageQueue* CApartment::GetNativeMessageQueue()
 {
-    AutoPtr<CApartment> apartment = sDefaultApartment;
+    AutoPtr<CApartment> apartment;
+    {
+        Mutex::Autolock lock(&sLock);
+
+        apartment = sDefaultApartment;
+    }
     if (apartment != NULL) {
         return apartment->mMessageQueue;
     }

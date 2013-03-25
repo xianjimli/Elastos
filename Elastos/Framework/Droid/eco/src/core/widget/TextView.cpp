@@ -1217,7 +1217,7 @@ TextView::Blink::Blink(
     : mView(v)
 {
     //mView = new WeakReference<TextView>(v);
-    ASSERT_SUCCEEDED(CApartment::GetDefaultApartment((IApartment**)&mApartment));
+    ASSERT_SUCCEEDED(CApartment::GetMainApartment((IApartment**)&mApartment));
 }
 
 ECode TextView::Blink::Run()

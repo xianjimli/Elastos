@@ -52,7 +52,7 @@ ECode Filter::FilterResults::GetInterfaceID(
 Filter::Filter()
     : mRequestApartmentFinished(FALSE)
 {
-    ASSERT_SUCCEEDED(CApartment::GetDefaultApartment(
+    ASSERT_SUCCEEDED(CApartment::GetMainApartment(
         (IApartment**)&mDefaultApartment));
 }
 

@@ -1269,7 +1269,7 @@ ECode Dialog::Init(
     mWindow->SetGravity(Gravity_CENTER);
     mUiThread = pthread_self();
 
-    assert(SUCCEEDED(CApartment::GetDefaultApartment((IApartment**)&mApartment))
+    assert(SUCCEEDED(CApartment::GetMainApartment((IApartment**)&mApartment))
         && (mApartment != NULL));
 
     return NOERROR;

@@ -6,12 +6,11 @@
 #include "os/Process.h"
 #include "../../../res/gen/R.h"
 #include <StringBuffer.h>
-#include <elastos/Locale.h>
 
 // User agent strings.
 const CString WebSettings::DESKTOP_USERAGENT =
         "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_5_7; en-us) AppleWebKit/530.17 (KHTML, like Gecko) Version/4.0 Safari/530.17";
-const CString WebSettings::IPHONE_USERAGENT = 
+const CString WebSettings::IPHONE_USERAGENT =
         "Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16";
 
 // private WebSettings, not accessible by the host activity
@@ -90,7 +89,7 @@ void WebSettings::WsEventHandler::WsEhHandler::HandleMessage(
             break;
         }
         case (WsEventHandler::SET_DOUBLE_TAP_TOAST_COUNT): {
-            /*            
+            /*
             AutoPtr<ISharedPreferences> sharedPreferencesT;    //JAVA:    content/SharedPreferences(Interface)
             mContext -> GetSharedPreferences(PREF_FILE,Context_MODE_PRIVATE,(ISharedPreferences**)&sharedPreferencesT);
             AutoPtr<ISharedPreferencesEditor> editor;        //JAVA:    content/SharedPreferences(Interface)::Editor(Interface)
@@ -127,10 +126,10 @@ void WebSettings::WsEventHandler::SetRenderPriority()
     Core::Threading::Mutex::Autolock lock(mWebSettings -> mMutex);
     if ((mWebSettings -> mRenderPriority) == RP_NORMAL) {
         Process::SetThreadPriority(Process::THREAD_PRIORITY_DEFAULT);    //JAVA:    android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_DEFAULT);
-    } 
+    }
     else if ((mWebSettings -> mRenderPriority) == RP_HIGH) {
         Process::SetThreadPriority(Process::THREAD_PRIORITY_FOREGROUND + Process::THREAD_PRIORITY_LESS_FAVORABLE);    //JAVA:    android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_FOREGROUND + android.os.Process.THREAD_PRIORITY_LESS_FAVORABLE);
-    } 
+    }
     else if ((mWebSettings -> mRenderPriority) == RP_LOW) {
         Process::SetThreadPriority(Process::THREAD_PRIORITY_BACKGROUND);
     }
@@ -147,7 +146,7 @@ Boolean WebSettings::WsEventHandler::SendMessage(
         //Boolean bSdMsg;
         //mHandler -> SendMessage(msg,&bSdMsg);
         return TRUE;
-    } 
+    }
     else {
         return FALSE;
     }
@@ -228,7 +227,7 @@ WebSettings::WebSettings()
  * instance.
  */
 WebSettings::WebSettings(
-    /* [in] */ IContext* context, 
+    /* [in] */ IContext* context,
     /* [in] */ IWebView* webview)
 {
     InitPara();
@@ -237,7 +236,7 @@ WebSettings::WebSettings(
     mWebView = webview;
     context -> GetString(R::string::default_text_encoding,&mDefaultTextEncoding);
 
-    if(sLocale.Get() == NULL){        
+    if(sLocale.Get() == NULL){
         AutoPtr<ILocaleHelper> localeHelper;
         CLocaleHelper::AcquireSingleton((ILocaleHelper**)&localeHelper);
         localeHelper->GetDefault((ILocale**)&sLocale);
@@ -266,7 +265,7 @@ String WebSettings::GetCurrentAcceptLanguage()
     /*const*/ String country;
     locale -> GetLanguage(&language);
     if(language.IsNullOrEmpty()){
-        buffer += language;        
+        buffer += language;
         locale -> GetCountry(&country);
         if (country.IsNullOrEmpty()) {
             buffer += String("-");
@@ -1422,7 +1421,7 @@ CARAPI_(void) WebSettings::SetUserAgentString(
     if (/*ua == null || */ua.GetLength() == 0) {
         sLockForLocaleSettings.Lock();
         {
-            AutoPtr<ILocale> currentLocale;// = Locale.GetDefault(); 
+            AutoPtr<ILocale> currentLocale;// = Locale.GetDefault();
             if (/*!sLocale.Equals(currentLocale)*/FALSE) {
                 sLocale = currentLocale;
                 mAcceptLanguage = GetCurrentAcceptLanguage();
@@ -1456,7 +1455,7 @@ CARAPI_(String*) WebSettings::GetUserAgentString()
     }
 
     Boolean doPostSync = FALSE;
-    
+
     sLockForLocaleSettings.Lock();
     {
         AutoPtr<ILocale> currentLocale;// = Locale.GetDefault();
@@ -1477,7 +1476,7 @@ CARAPI_(String*) WebSettings::GetUserAgentString()
 }
 
 /* package api to grab the Accept Language string. */
-/*package*/ 
+/*package*/
 CARAPI_(String*) WebSettings::GetAcceptLanguage()
 {
     Mutex::Autolock lock(mMutex);
@@ -1498,7 +1497,7 @@ CARAPI_(String*) WebSettings::GetAcceptLanguage()
 /**
  * Tell the WebView whether it needs to set a node to have focus when
  * {@link WebView#requestFocus(int, android.graphics.Rect)} is called.
- * 
+ *
  * @param flag
  */
 CARAPI_(void) WebSettings::SetNeedInitialFocus(
@@ -1510,7 +1509,7 @@ CARAPI_(void) WebSettings::SetNeedInitialFocus(
 }
 
 /* Package api to get the choice whether it needs to set initial focus. */
-/* package */ 
+/* package */
 CARAPI_(Boolean) WebSettings::GetNeedInitialFocus()
 {
     return mNeedInitialFocus;

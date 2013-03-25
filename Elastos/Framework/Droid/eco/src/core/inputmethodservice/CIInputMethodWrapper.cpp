@@ -89,7 +89,7 @@ ECode CIInputMethodWrapper::constructor(
     // mTarget = new WeakReference<AbstractInputMethodService>(context);
     mTarget = context;
     // mCaller = new HandlerCaller(context.getApplicationContext(), this);
-    FAIL_RETURN(CApartment::GetDefaultApartment((IApartment**)&mCaller));
+    FAIL_RETURN(CApartment::GetMainApartment((IApartment**)&mCaller));
     context->GetApplicationContext((IContext**)&mContext);
     // mInputMethod = new WeakReference<ILocalInputMethod>(inputMethod);
     mInputMethod = inputMethod;

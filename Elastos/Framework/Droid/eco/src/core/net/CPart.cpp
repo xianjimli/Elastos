@@ -8,8 +8,8 @@ public:
 
     CStatic()
     {
-        CEmptyPart::New(String(NULL), (IPart**)&Part::PartNULL);
-        CEmptyPart::New(String(""), (IPart**)&Part::EMPTY);
+        // CEmptyPart::NewByFriend(String(NULL), (IPart**)&Part::PartNULL);
+        // CEmptyPart::NewByFriend(String(""), (IPart**)&Part::EMPTY);
     }
 };
 

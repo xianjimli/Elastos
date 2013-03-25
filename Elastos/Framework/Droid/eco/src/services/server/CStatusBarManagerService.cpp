@@ -15,7 +15,7 @@ CStatusBarManagerService::CStatusBarManagerService()
     AutoPtr<IApartmentHelper> apartmentHelper;
     assert(SUCCEEDED(CApartmentHelper::AcquireSingleton(
             (IApartmentHelper**)&apartmentHelper)));
-    assert(SUCCEEDED(apartmentHelper->GetDefaultApartment((IApartment**)&mHandler))
+    assert(SUCCEEDED(apartmentHelper->GetMainApartment((IApartment**)&mHandler))
             && (mHandler != NULL));
     CStatusBarIconList::New((IStatusBarIconList**)&mIcons);
 }

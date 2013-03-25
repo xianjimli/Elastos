@@ -231,7 +231,7 @@ CActivityManagerService::CActivityManagerService() :
     CRemoteCallbackList::New((IRemoteCallbackList**)&mWatchers);
     AutoPtr<IApartmentHelper> helper;
     assert(SUCCEEDED(CApartmentHelper::AcquireSingleton((IApartmentHelper**)&helper)));
-    assert(SUCCEEDED(helper->GetDefaultApartment((IApartment**)&mApartment))
+    assert(SUCCEEDED(helper->GetMainApartment((IApartment**)&mApartment))
             && (mApartment != NULL));
 
     AutoPtr<IServiceManager> serviceManager;

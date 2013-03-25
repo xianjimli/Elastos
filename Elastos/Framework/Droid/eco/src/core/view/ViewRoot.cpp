@@ -567,7 +567,7 @@ ViewRoot::ViewRoot(
 
     mInputHandler = new _InputHandler(this);
 
-    assert(SUCCEEDED(CApartment::GetDefaultApartment((IApartment**)&mApartment))
+    assert(SUCCEEDED(CApartment::GetMainApartment((IApartment**)&mApartment))
         && (mApartment != NULL));
 
     //if (MEASURE_LATENCY && lt == NULL) {

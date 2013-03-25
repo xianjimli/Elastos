@@ -21,7 +21,7 @@ BaseErrorDialog::BaseErrorDialog(
     GetWindow()->SetTitle(String("Error Dialog"));
     SetIcon(0x01080027/*R.drawable.ic_dialog_alert*/);
 
-    assert(SUCCEEDED(CApartment::GetDefaultApartment((IApartment**)&h))
+    assert(SUCCEEDED(CApartment::GetMainApartment((IApartment**)&h))
             && (mApartment != NULL));
 }
 

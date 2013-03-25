@@ -227,7 +227,7 @@ ECode IInputConnectionWrapper::DispatchMessage(
     // main thread.
     // todo:
     // AutoPtr<IApartment> apartment;
-    // CApartment::GetDefaultApartment((IApartment**)&apartment);
+    // CApartment::GetMainApartment((IApartment**)&apartment);
     // if (apartment == mMainLooper) {
     //     return ExecuteMessage(msg);
     // }

@@ -14,7 +14,7 @@ CLocationManager::ListenerTransport::ListenerTransport(
     : mLocalListener(listener)
 {
     if (apartment == NULL) {
-        assert(SUCCEEDED(CApartment::GetDefaultApartment((IApartment**)&mListenerHandler))
+        assert(SUCCEEDED(CApartment::GetMainApartment((IApartment**)&mListenerHandler))
         && (mListenerHandler != NULL));
     }
     else {

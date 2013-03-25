@@ -325,7 +325,7 @@ CWindowManagerService::CWindowManagerService() :
 {
     AutoPtr<IApartmentHelper> helper;
     assert(SUCCEEDED(CApartmentHelper::AcquireSingleton((IApartmentHelper**)&helper)));
-    assert(SUCCEEDED(helper->GetDefaultApartment((IApartment**)&mApartment))
+    assert(SUCCEEDED(helper->GetMainApartment((IApartment**)&mApartment))
             && (mApartment != NULL));
 
 //    WindowManagerPolicy mPolicy = PolicyManager.makeNewWindowManager();

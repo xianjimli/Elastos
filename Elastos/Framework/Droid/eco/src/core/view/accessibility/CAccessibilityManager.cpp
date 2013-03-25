@@ -67,7 +67,7 @@ ECode CAccessibilityManager::constructor(
             (ILocalAccessibilityManager*)this->Probe(EIID_ILocalAccessibilityManager),
             (IAccessibilityManagerClient**)&mClient));
 
-    // ASSERT_SUCCEEDED(CApartment::GetDefaultApartment((IApartment**)&mHandler)
+    // ASSERT_SUCCEEDED(CApartment::GetMainApartment((IApartment**)&mHandler)
     //         && (mHandler != NULL));
 
     // AutoPtr<IServiceManager> serviceManager;
