@@ -28,6 +28,16 @@ module
         OnInterrupt();
 
         /**
+         * This method is a part of the {@link AccessibilityService} lifecycle and is
+         * called after the system has successfully bound to the service. If is
+         * convenient to use this method for setting the {@link AccessibilityServiceInfo}.
+         *
+         * @see AccessibilityServiceInfo
+         * @see #setServiceInfo(AccessibilityServiceInfo)
+         */
+        OnServiceConnected();
+
+        /**
          * Sets the {@link AccessibilityServiceInfo} that describes this service.
          * <p>
          * Note: You can call this method any time but the info will be picked up after
@@ -37,5 +47,33 @@ module
          */
         SetServiceInfo(
             [in] IAccessibilityServiceInfo* info);
+
+        SetConnection(
+            [in] IAccessibilityServiceConnection* connection);
+    }
+
+    /**
+     * Implements the internal {@link IEventListener} interface to convert
+     * incoming calls to it back to calls on an {@link AccessibilityService}.
+     */
+    class CEventListenerWrapper {
+        constructor(
+            [in] IAccessibilityService* context);
+
+        interface IEventListener;
+    }
+
+    /**
+     * This class describes an {@link AccessibilityService}. The system
+     * notifies an {@link AccessibilityService} for
+     * {@link android.view.accessibility.AccessibilityEvent}s
+     * according to the information encapsulated in this class.
+     *
+     * @see AccessibilityService
+     * @see android.view.accessibility.AccessibilityEvent
+     */
+    class CAccessibilityServiceInfo {
+        interface IAccessibilityServiceInfo;
+        interface IParcelable;
     }
 }

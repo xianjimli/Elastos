@@ -341,46 +341,6 @@ ECode CAccessibilityManagerService::Interrupt()
     return NOERROR;
 }
 
-ECode CAccessibilityManagerService::ExecuteMessage(
-    /* [in] */ Int32 msgType,
-    /* [in] */ IAccessibilityServiceInfo* info,
-    /* [in] */ CAccessibilityServiceConnection* service)
-{
-    switch (msgType) {
-        case DO_SET_SERVICE_INFO:
-            // SomeArgs arguments = ((SomeArgs) message.obj);
-
-            // AutoPtr<IAccessibilityServiceInfo> info = (AccessibilityServiceInfo) arguments.arg1;
-            // Service service = (Service) arguments.arg2;
-
-            Mutex::Autolock lock(mLock);
-            info->GetEventTypes(&(service->mEventTypes));
-            info->GetFeedbackType(&(service->mFeedbackType));
-            AutoPtr<IObjectContainer> container;
-            info->GetPackageNames((IObjectContainer**)&container);
-            if (container != NULL) {
-                AutoPtr<IObjectEnumerator> enumerator;
-                container->GetObjectEnumerator((IObjectEnumerator**)&enumerator);
-                Boolean hasNext;
-                while(enumerator->MoveNext(&hasNext), hasNext) {
-                    AutoPtr<ICharSequence> cs;
-                    enumerator->Current((IInterface**)&cs);
-                    String s;
-                    cs->ToString(&s);
-                    service->mCapsuleNames.Insert(s);
-                }
-            }
-            info->GetNotificationTimeout(&(service->mNotificationTimeout));
-            Int32 flags;
-            info->GetFlags(&flags);
-            service->mIsDefault = (flags & AccessibilityServiceInfo_DEFAULT) != 0;
-        //default:
-            //Slog.w(LOG_TAG, "Unknown message type: " + message.what);
-    }
-
-    return NOERROR;
-}
-
 /**
  * Populates the cached list of installed {@link AccessibilityService}s.
  */
@@ -788,4 +748,24 @@ void CAccessibilityManagerService::HandleDelayedEventDispatch(
         service->mPendingEvents.Erase(eventType);
     }
     TryRecycleLocked(oldEvent);
+}
+
+void CAccessibilityManagerService::HandleDoSetServiceInfo(
+    /* [in] */ IAccessibilityServiceInfo* info,
+    /* [in] */ CAccessibilityServiceConnection* service)
+{
+    Mutex::Autolock lock(mLock);
+    info->GetEventTypes(&(service->mEventTypes));
+    info->GetFeedbackType(&(service->mFeedbackType));
+    ArrayOf<String>* names;
+    info->GetPackageNames(&names);
+    if (names != NULL) {
+        for (Int32 i = 0; i < names->GetLength(); ++i) {
+            service->mCapsuleNames.Insert((*names)[i]);
+        }
+    }
+    info->GetNotificationTimeout(&(service->mNotificationTimeout));
+    Int32 flags;
+    info->GetFlags(&flags);
+    service->mIsDefault = (flags & AccessibilityServiceInfo_DEFAULT) != 0;
 }

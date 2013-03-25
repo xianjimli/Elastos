@@ -68,6 +68,7 @@ public:
     AutoPtr<IAccessibilityManager> mService;
 
     AutoPtr<IApartment> mHandler;
+    Mutex mHandlerLock;
 
     Boolean mIsEnabled;
 

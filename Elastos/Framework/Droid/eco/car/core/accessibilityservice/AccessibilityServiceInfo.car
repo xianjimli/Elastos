@@ -34,17 +34,32 @@ module
     const AccessibilityServiceInfo_DEFAULT = 0x0000001;
 
     interface IAccessibilityServiceInfo {
+        SetEventTypes (
+            [in] Int32 types);
+
         GetEventTypes (
             [out] Int32* types);
 
+        SetPackageNames (
+            [in] ArrayOf<String> names);
+
         GetPackageNames (
-            [out] IObjectContainer** container);
+            [out, callee] ArrayOf<String>* names);
+
+        SetFeedbackType (
+            [in] Int32 type);
 
         GetFeedbackType (
             [out] Int32* type);
 
+        SetNotificationTimeout (
+            [in] Int64 timeout);
+
         GetNotificationTimeout (
             [out] Int64* timeout);
+
+        SetFlags (
+            [in] Int32 flags);
 
         GetFlags (
             [out] Int32* flags);

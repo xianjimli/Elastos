@@ -118,11 +118,6 @@ public:
 
     CARAPI Interrupt();
 
-    CARAPI ExecuteMessage(
-        /* [in] */ Int32 msgType,
-        /* [in] */ IAccessibilityServiceInfo* info,
-        /* [in] */ CAccessibilityServiceConnection* service);
-
 private:
     /**
      * Registers a {@link BroadcastReceiver} for the events of
@@ -250,6 +245,10 @@ private:
     CARAPI_(void) HandleDelayedEventDispatch(
         /* [in] */ CAccessibilityServiceConnection* service,
         /* [in] */ Int32 eventType);
+
+    CARAPI_(void) HandleDoSetServiceInfo(
+        /* [in] */ IAccessibilityServiceInfo* info,
+        /* [in] */ CAccessibilityServiceConnection* service);
 
 private:
     static const CString LOG_TAG;

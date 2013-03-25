@@ -1,0 +1,14 @@
+
+TARGET_NAME= accessibilityservice
+TARGET_TYPE= lib
+
+include $(MAKEDIR)/../../../../sources.inc
+
+INCLUDES += $(MAKEDIR)/../../../inc/core
+INCLUDES += ../
+
+C_DEFINES += -D_FRAMEWORK_CORE
+
+SOURCES = AccessibilityService.cpp
+SOURCES += CEventListenerWrapper.cpp
+SOURCES += CAccessibilityServiceInfo.cpp

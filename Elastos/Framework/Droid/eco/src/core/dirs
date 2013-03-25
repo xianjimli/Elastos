@@ -21,3 +21,4 @@ DIRS += systemui
 DIRS += provider
 DIRS += webkit
 DIRS += gesture
+DIRS += accessibilityservice
