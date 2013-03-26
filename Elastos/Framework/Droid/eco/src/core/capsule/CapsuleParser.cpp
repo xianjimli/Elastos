@@ -970,9 +970,7 @@ ECode CapsuleParser::ParseCapsule(
     AutoPtr<IResources> res;
     FAIL_RETURN(CResources::New(assmgr.Get(), metrics, NULL, (IResources**)&res));
 
-    *capsule = NULL;
-    ec = ParseCapsule(res.Get(), parser.Get(), flags, errorText, capsule);
-    if (*capsule == NULL) return ec;
+    FAIL_RETURN(ParseCapsule(res.Get(), parser.Get(), flags, errorText, capsule));
 
     parser->Close();
     assmgr->Close();
@@ -1072,9 +1070,8 @@ ECode CapsuleParser::ParseCapsule(
     }
 
     // final Package pkg = new Package(pkgName);
-    *capsule = new CapsuleParser::Capsule(capName);
-    (*capsule)->SetCapsuleName(capName);
-    Capsule* cap = *capsule;
+    const AutoPtr<Capsule> cap = new Capsule(capName);
+    cap->SetCapsuleName(capName);
     Boolean foundApp = FALSE;
 
     AutoPtr<ITypedArray> sa;
@@ -1101,6 +1098,7 @@ ECode CapsuleParser::ParseCapsule(
                 StringBuffer("<manifest> specifies bad sharedUserId name \"")
                 + str + "\": " + nameError);
             mParseError = CapsuleManager::INSTALL_PARSE_FAILED_BAD_SHARED_USER_ID;
+            *capsule = NULL;
             return E_RUNTIME_EXCEPTION;
         }
         cap->mSharedUserId = str;
@@ -1142,6 +1140,7 @@ ECode CapsuleParser::ParseCapsule(
                 if (RIGID_PARSER) {
                     (*outError)[0] = "<manifest> has more than one <application>";
                     mParseError = CapsuleManager::INSTALL_PARSE_FAILED_MANIFEST_MALFORMED;
+                    *capsule = NULL;
                     return E_RUNTIME_EXCEPTION;
                 }
                 else {
@@ -1153,22 +1152,26 @@ ECode CapsuleParser::ParseCapsule(
 
             foundApp = TRUE;
             if (!ParseApplication(cap, res, (IXmlPullParser*)parser, attrs, flags, outError)) {
+                *capsule = NULL;
                 return E_XML_PULL_PARSER_EXCEPTION;
             }
         }
         else if (tagName.Equals("permission-group")) {
             if (ParsePermissionGroup(cap, res, parser, attrs, outError) == NULL) {
+                *capsule = NULL;
                 return E_XML_PULL_PARSER_EXCEPTION;
             }
         }
         else if (tagName.Equals("permission")) {
             if (ParsePermission(cap, res, parser, attrs, outError) == NULL) {
-                return NULL;
+                *capsule = NULL;
+                return E_XML_PULL_PARSER_EXCEPTION;
             }
         }
         else if (tagName.Equals("permission-tree")) {
             if (ParsePermissionTree(cap, res, parser, attrs, outError) == NULL) {
-                return NULL;
+                *capsule = NULL;
+                return E_XML_PULL_PARSER_EXCEPTION;
             }
         }
         else if (tagName.Equals("uses-permission")) {
@@ -1366,6 +1369,7 @@ ECode CapsuleParser::ParseCapsule(
                                     + " but this is a release platform->m");
                         }
                         mParseError = CapsuleManager::INSTALL_FAILED_OLDER_SDK;
+                        *capsule = NULL;
                         return E_RUNTIME_EXCEPTION;
                     }
                 } else if (minVers > SDK_VERSION) {
@@ -1373,6 +1377,7 @@ ECode CapsuleParser::ParseCapsule(
                         StringBuffer("Requires newer sdk version #") + minVers
                             + " (current version is #" + SDK_VERSION + ")");
                     mParseError = CapsuleManager::INSTALL_FAILED_OLDER_SDK;
+                    *capsule = NULL;
                     return E_RUNTIME_EXCEPTION;
                 }
 
@@ -1388,6 +1393,7 @@ ECode CapsuleParser::ParseCapsule(
                                     + " but this is a release platform->m");
                         }
                         mParseError = CapsuleManager::INSTALL_FAILED_OLDER_SDK;
+                        *capsule = NULL;
                         return E_RUNTIME_EXCEPTION;
                     }
                     // If the code matches, it definitely targets this SDK.
@@ -1467,6 +1473,7 @@ ECode CapsuleParser::ParseCapsule(
         }
         else if (tagName.Equals("instrumentation")) {
             if (ParseInstrumentation(cap, res, parser, attrs, outError) == NULL) {
+                *capsule = NULL;
                 return E_XML_PULL_PARSER_EXCEPTION;
             }
 
@@ -1543,7 +1550,8 @@ ECode CapsuleParser::ParseCapsule(
             (*outError)[0] = (const char*)(
                 StringBuffer("Bad element under <manifest>: ") + tagName);
             mParseError = CapsuleManager::INSTALL_PARSE_FAILED_MANIFEST_MALFORMED;
-            return NULL;
+            *capsule = NULL;
+            return E_XML_PULL_PARSER_EXCEPTION;
 
         }
         else {
@@ -1624,6 +1632,8 @@ ECode CapsuleParser::ParseCapsule(
     //Todo: add code
     cap->SetCapsuleName(capName);
 
+    *capsule = cap;
+    (*capsule)->AddRef();
     return NOERROR;
 }
 
