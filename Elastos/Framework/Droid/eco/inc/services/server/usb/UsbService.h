@@ -9,6 +9,8 @@
 #include "server/usb/UsbDeviceManager.h"
 #include "server/usb/UsbHostManager.h"
 
+using namespace Elastos;
+
 /**
  * UsbService manages all USB related state, including both host and device support.
  * Host related events and calls are delegated to UsbHostManager, and device related

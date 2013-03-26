@@ -7,7 +7,14 @@
 #include <elastos/AutoPtr.h>
 #include <elastos/HashMap.h>
 #include <elastos/List.h>
+#include <StringBuffer.h>
+#include <Logger.h>
+#include "os/SystemProperties.h"
+#include "BroadcastReceiver.h"
 #include "server/usb/UsbSettingsManager.h"
+
+using namespace Elastos;
+using namespace Elastos::Utility::Logging;
 
 /**
  * UsbDeviceManager manages USB state in device mode.
@@ -20,7 +27,8 @@ private:
     class AdbSettingsObserver : public ElRefBase, public IContentObserver
     {
     public:
-        AdbSettingsObserver();
+        AdbSettingsObserver(
+            /* [in] */ UsbDeviceManager* host);
 
         CARAPI_(UInt32) AddRef();
 
@@ -32,11 +40,32 @@ private:
 
         CARAPI OnChange(
             /* [in] */ Boolean selfChange);
+
+    private:
+        AutoPtr<UsbDeviceManager> mHost;
     };
 
     /*
      * Listens for uevent messages from the kernel to monitor the USB state
      */
+    class UDMUEventObserver : public ElRefBase
+    {
+    public:
+        UDMUEventObserver(
+            /* [in] */ UsbDeviceManager* host);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+    private:
+        AutoPtr<UsbDeviceManager> mHost;
+    };
+
     /*
     private final UEventObserver mUEventObserver = new UEventObserver() {
         @Override
@@ -58,7 +87,8 @@ private:
     class UsbHandler : public ElRefBase, public IHandler
     {
     public:
-        UsbHandler();
+        UsbHandler(
+            /* [in] */ UsbDeviceManager* host);
             ///* [in] */ ILooper* looper);
 
         CARAPI_(UInt32) AddRef();
@@ -119,6 +149,36 @@ private:
         CARAPI_(void) UpdateAdbNotification();
 
     private:
+        CARAPI_(void) PerformAccessoryAttachedRef(
+            /* [in] */ IUsbAccessory* accessory);
+
+        CARAPI_(void) PerformAccessoryDetachedRef(
+            /* [in] */ IUsbAccessory* accessory);
+
+        CARAPI_(void) PerformAdbNotificationShownRef(
+            /* [in] */ Int32 id);
+
+        CARAPI_(void) CancelAdbNotificationShownRef(
+            /* [in] */ Int32 id);
+
+        CARAPI_(Int32) RetrieveNotificationIdRef();
+
+        CARAPI_(void) ClearOldNotificationRef();
+
+        CARAPI_(void) SendNewNotificationRef();
+
+        CARAPI_(void) EnableFunctionsWithBootModeRef(
+            /* [in] */ const String& functions,
+            /* [in] */ Boolean makeDefault);
+
+        CARAPI_(void) EnableFunctionsWithOemSpecificModeRef(
+            /* [in] */ const String& functions,
+            /* [in] */ Boolean makeDefault);
+
+        CARAPI_(String) AddOrRemoveAdbFunctionRef(
+            /* [in] */ const String& functions);
+
+    private:
         // current USB state
         Boolean mConnected;
         Boolean mConfigured;
@@ -130,27 +190,23 @@ private:
         Int32 mUsbNotificationId;
 
         AutoPtr<IUsbAccessory> mCurrentAccessory;
-        AutoPtr<UsbDeviceManager::UsbBootCompletedReceiver> mBootCompletedReceiver;
+        AutoPtr<UsbBootCompletedReceiver> mBootCompletedReceiver;
+        AutoPtr<UsbDeviceManager> mHost;
     };
 
-    class UsbBootCompletedReceiver : public ElRefBase, public IBroadcastReceiver
+    class UsbBootCompletedReceiver : public BroadcastReceiver
     {
     public:
         UsbBootCompletedReceiver(
             /* [in] */ UsbHandler* host);
 
-        CARAPI_(UInt32) AddRef();
-
-        CARAPI_(UInt32) Release();
-
-        CARAPI GetInterfaceID(
-            /* [in] */ IInterface *pObject,
-            /* [out] */ InterfaceID *pIID);
-
     protected:
         CARAPI OnReceive(
             /* [in] */ IContext* context,
             /* [in] */ IIntent* intent);
+
+    private:
+        AutoPtr<UsbHandler> mHost;
     };
 
 public:
@@ -172,8 +228,9 @@ public:
     CARAPI_(IUsbAccessory*) GetCurrentAccessory();
 
     /* opens the currently attached USB accessory */
-    CARAPI_(IParcelFileDescriptor*) OpenAccessory(
-        /* [in] */ IUsbAccessory* accessory);
+    CARAPI OpenAccessory(
+        /* [in] */ IUsbAccessory* accessory,
+        /* [out] */ IParcelFileDescriptor** pfd);
 
     CARAPI_(void) SetCurrentFunctions(
         /* [in] */ const String& functions,
@@ -183,7 +240,6 @@ public:
         /* [in] */ const String& path);
 
 private:
-
     static CARAPI_(void) InitRndisAddress();
 
     static CARAPI_(String) AddFunction(
@@ -199,7 +255,6 @@ private:
         /* [in] */ const String& function);
 
 private:
-
     CARAPI_(void) StartAccessoryMode();
 
     CARAPI_(void) ReadOemUsbOverrideConfig();
@@ -216,6 +271,28 @@ private:
     CARAPI_(Boolean) NativeIsStartRequested();
 
     CARAPI_(Int32) NativeGetAudioMode();
+
+private:
+    CARAPI_(Boolean) IsBootCompletedRef();
+
+    CARAPI_(Boolean) HasUsbAccessoryRef();
+
+    CARAPI_(Boolean) IsUsbNotificationUsedRef();
+
+    CARAPI_(void) SetAdbEnabledRef(
+        /* [in] */ Boolean enabled);
+
+    CARAPI_(Boolean) IsAdbEnabledRef();
+
+    CARAPI_(void) ResetAccessoryStringsRef();
+
+    CARAPI_(ArrayOf<String>*) GetAccessoryStringsRef();
+
+    CARAPI_(void) GetOemModeListRef(
+        /* [in] */ const String& mode);
+
+    CARAPI_(Boolean) IsOemModeExistsRef(
+        /* [in] */ const String& mode);
 
 private:
     static const Boolean DEBUG;
@@ -243,11 +320,12 @@ private:
     // which need debouncing.
     static const Int32 UPDATE_DELAY;
 
-    AutoPtr<UsbDeviceManager::UsbHandler> mHandler;
+    AutoPtr<UsbHandler> mHandler;
     AutoPtr<IContext> mContext;
     AutoPtr<IContentResolver> mContentResolver;
     AutoPtr<UsbSettingsManager> mSettingsManager;
     AutoPtr<INotificationManager> mNotificationManager;
+    AutoPtr<UDMUEventObserver> mUEventObserver;
 
     Boolean mBootCompleted;
     Boolean mHasUsbAccessory;
@@ -255,8 +333,8 @@ private:
     Boolean mAdbEnabled;
     Boolean mAudioSourceEnabled;
 
-    HashMap< String, List< Pair<String, String> > > mOemModeMap;
     ArrayOf<String>* mAccessoryStrings;
+    HashMap< String, List< Pair<String, String> > > mOemModeMap;
 };
 
 #endif // __USBDEVICEMANAGER_H__

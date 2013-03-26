@@ -1,13 +1,11 @@
 
 #include "server/usb/UsbSettingsManager.h"
 
-using namespace Elastos;
-
 const Boolean UsbSettingsManager::DEBUG = FALSE;
 
 const String UsbSettingsManager::TAG = String("UsbSettingsManager");
-const String UsbSettingsManager::USB_AUDIO_SOURCE_PATH = String("/proc/asound/usb_audio_info");
 const String UsbSettingsManager::SETTINGS_FILE_PATH = String("/data/system/usb_device_manager.xml");
+const String UsbSettingsManager::USB_AUDIO_SOURCE_PATH = String("/proc/asound/usb_audio_info");
 
 UsbSettingsManager::DeviceFilter::DeviceFilter(
     /* [in] */ Int32 vid,
@@ -46,6 +44,8 @@ ECode UsbSettingsManager::DeviceFilter::Read(
     /* [in] */ IXmlPullParser* parser,
     /* [out] */ DeviceFilter** filter)
 {
+    VALIDATE_NOT_NULL(filter);
+
     // NOT IMPLEMENTED
     return NOERROR;
 }
@@ -75,6 +75,8 @@ ECode UsbSettingsManager::DeviceFilter::Equals(
     /* [in] */ IInterface* obj,
     /* [out] */ Boolean* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     // NOT IMPLEMENTED
     return NOERROR;
 }
@@ -82,6 +84,8 @@ ECode UsbSettingsManager::DeviceFilter::Equals(
 ECode UsbSettingsManager::DeviceFilter::HashCode(
     /* [out] */ Int32* value)
 {
+    VALIDATE_NOT_NULL(value);
+
     // NOT IMPLEMENTED
     return NOERROR;
 }
@@ -89,6 +93,8 @@ ECode UsbSettingsManager::DeviceFilter::HashCode(
 ECode UsbSettingsManager::DeviceFilter::ToString(
     /* [out] */ String* str)
 {
+    VALIDATE_NOT_NULL(str);
+
     // NOT IMPLEMENTED
     return NOERROR;
 }
@@ -137,6 +143,8 @@ ECode UsbSettingsManager::AccessoryFilter::Read(
     /* [in] */ IXmlPullParser* parser,
     /* [out] */ AccessoryFilter** filter)
 {
+    VALIDATE_NOT_NULL(filter);
+
     // NOT IMPLEMENTED
     return NOERROR;
 }
@@ -166,6 +174,8 @@ ECode UsbSettingsManager::AccessoryFilter::Equals(
     /* [in] */ IInterface* obj,
     /* [out] */ Boolean* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     // NOT IMPLEMENTED
     return NOERROR;
 }
@@ -173,6 +183,8 @@ ECode UsbSettingsManager::AccessoryFilter::Equals(
 ECode UsbSettingsManager::AccessoryFilter::HashCode(
     /* [out] */ Int32* value)
 {
+    VALIDATE_NOT_NULL(value);
+
     // NOT IMPLEMENTED
     return NOERROR;
 }
@@ -180,8 +192,49 @@ ECode UsbSettingsManager::AccessoryFilter::HashCode(
 ECode UsbSettingsManager::AccessoryFilter::ToString(
     /* [out] */ String* str)
 {
+    VALIDATE_NOT_NULL(str);
+
     // NOT IMPLEMENTED
     return NOERROR;
+}
+
+UInt32 UsbSettingsManager::MyPackageMonitor::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 UsbSettingsManager::MyPackageMonitor::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode UsbSettingsManager::MyPackageMonitor::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+void UsbSettingsManager::MyPackageMonitor::OnPackageAdded(
+    /* [in] */ const String& packageName,
+    /* [in] */ Int32 uid)
+{
+    // NOT IMPLEMENTED
+}
+
+void UsbSettingsManager::MyPackageMonitor::OnPackageChanged(
+    /* [in] */ const String& packageName,
+    /* [in] */ Int32 uid,
+    /* [in] */ const ArrayOf<String>& components)
+{
+    // NOT IMPLEMENTED
+}
+
+void UsbSettingsManager::MyPackageMonitor::OnPackageRemoved(
+    /* [in] */ const String& packageName,
+    /* [in] */ Int32 uid)
+{
+    // NOT IMPLEMENTED
 }
 
 UsbSettingsManager::UsbSettingsManager(
@@ -245,16 +298,28 @@ Boolean UsbSettingsManager::HasPermission(
     return FALSE;
 }
 
-void UsbSettingsManager::CheckPermission(
+ECode UsbSettingsManager::CheckPermission(
     /* [in] */ IUsbDevice* device)
 {
-    // NOT IMPLEMENTED
+    if (HasPermission (device) == TRUE) {
+        return NOERROR;
+    }
+
+    // throw new SecurityException("User has not given permission to device " + device);
+    Logger::E(UsbSettingsManager::TAG, "User has not given permission to device.");
+    return E_SECURITY_EXCEPTION;
 }
 
-void UsbSettingsManager::CheckPermission(
+ECode UsbSettingsManager::CheckPermission(
     /* [in] */ IUsbAccessory* accessory)
 {
-    // NOT IMPLEMENTED
+    if (HasPermission (accessory) == TRUE) {
+        return NOERROR;
+    }
+
+    // throw new SecurityException("User has not given permission to accessory " + accessory);
+    Logger::E(UsbSettingsManager::TAG, "User has not given permission to accessory.");
+    return E_SECURITY_EXCEPTION;
 }
 
 void UsbSettingsManager::RequestPermission(
@@ -298,20 +363,51 @@ void UsbSettingsManager::GrantAccessoryPermission(
     /* [in] */ IUsbAccessory* accessory,
     /* [in] */ Int32 uid)
 {
+    Mutex::Autolock lock(mLock);
+
+    HashMap< AutoPtr<IUsbAccessory>, HashMap<Int32, Boolean> >::Iterator it;
+
+    //HashMap<Int32, Boolean> uidList =
+
+    /*
+    synchronized (mLock) {
+        SparseBooleanArray uidList = mAccessoryPermissionMap.get(accessory);
+        if (uidList == null) {
+            uidList = new SparseBooleanArray(1);
+            mAccessoryPermissionMap.put(accessory, uidList);
+        }
+        uidList.put(uid, true);
+    }
+    */
     // NOT IMPLEMENTED
 }
 
 Boolean UsbSettingsManager::HasDefaults(
     /* [in] */ const String& packageName)
 {
-    // NOT IMPLEMENTED
+    Mutex::Autolock lock(mLock);
+
+    if (IsDeviceFilterExistsRef(packageName) == TRUE) {
+        return TRUE;
+    }
+
+    if (IsAccessoryFilterExistsRef(packageName) ==TRUE) {
+        return TRUE;
+    }
+
     return FALSE;
 }
 
 void UsbSettingsManager::ClearDefaults(
     /* [in] */ const String& packageName)
 {
-    // NOT IMPLEMENTED
+    Mutex::Autolock lock(mLock);
+
+    if (ClearPackageDefaultsLocked(packageName) == FALSE) {
+        return;
+    }
+
+    WriteSettingsLocked();
 }
 
 ECode UsbSettingsManager::ReadPreference(
@@ -410,5 +506,47 @@ Boolean UsbSettingsManager::ClearPackageDefaultsLocked(
     /* [in] */ const String& packageName)
 {
     // NOT IMPLEMENTED
+    return FALSE;
+}
+
+Boolean UsbSettingsManager::IsDeviceFilterExistsRef(
+    /* [in] */ const String& packageName)
+{
+    HashMap< AutoPtr<DeviceFilter>, String >::Iterator it;
+
+    /*
+    for (it = mDevicePreferenceMap.Begin(); it != mDevicePreferenceMap.End(); ++it)
+    {
+        String name = it->mSecond;
+
+        if (name != packageName) {
+            continue;
+        }
+
+        return TRUE;
+    }
+    //*/
+
+    return FALSE;
+}
+
+Boolean UsbSettingsManager::IsAccessoryFilterExistsRef(
+    /* [in] */ const String& packageName)
+{
+    HashMap< AutoPtr<AccessoryFilter>, String >::Iterator it;
+
+    /*
+    for (it = mAccessoryPreferenceMap.Begin(); it != mAccessoryPreferenceMap.End(); ++it)
+    {
+        String name = it->mSecond;
+
+        if (name != packageName) {
+            continue;
+        }
+
+        return TRUE;
+    }
+    //*/
+
     return FALSE;
 }

@@ -1,8 +1,6 @@
 
 #include "server/usb/UsbService.h"
 
-using namespace Elastos;
-
 const String UsbService::PACKAGE_MANAGER_FEATURE_USB_HOST = String("android.hardware.usb.host");
 const String UsbService::MANIFEST_PERMISSION_MANAGE_USB = String("android.permission.MANAGE_USB");
 

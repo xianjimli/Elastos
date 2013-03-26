@@ -5,7 +5,15 @@
 #include "ext/frameworkext.h"
 #include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>
+#include <elastos/Mutex.h>
 #include <elastos/HashMap.h>
+#include <Logger.h>
+
+using namespace Elastos;
+using namespace Elastos::Core::Threading;
+using namespace Elastos::Utility::Logging;
+
+//_ELASTOS_NAMESPACE_BEGIN
 
 class UsbSettingsManager : public ElRefBase
 {
@@ -154,22 +162,31 @@ private:
         String mVersion;
     };
 
-    /*
-    private class MyPackageMonitor extends PackageMonitor {
+    class MyPackageMonitor : public ElRefBase // private class MyPackageMonitor extends PackageMonitor
+    {
+    public:
+        CARAPI_(UInt32) AddRef();
 
-        public void onPackageAdded(String packageName, int uid) {
-            handlePackageUpdate(packageName);
-        }
+        CARAPI_(UInt32) Release();
 
-        public void onPackageChanged(String packageName, int uid, String[] components) {
-            handlePackageUpdate(packageName);
-        }
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
 
-        public void onPackageRemoved(String packageName, int uid) {
-            clearDefaults(packageName);
-        }
-    }
-    */
+        CARAPI_(void) OnPackageAdded(
+            /* [in] */ const String& packageName,
+            /* [in] */ Int32 uid);
+
+        CARAPI_(void) OnPackageChanged(
+            /* [in] */ const String& packageName,
+            /* [in] */ Int32 uid,
+            /* [in] */ const ArrayOf<String>& components);
+
+        CARAPI_(void) OnPackageRemoved(
+            /* [in] */ const String& packageName,
+            /* [in] */ Int32 uid);
+
+    };
 
 public:
     UsbSettingsManager(
@@ -201,10 +218,10 @@ public:
     CARAPI_(Boolean) HasPermission(
         /* [in] */ IUsbAccessory* accessory);
 
-    CARAPI_(void) CheckPermission(
+    CARAPI CheckPermission(
         /* [in] */ IUsbDevice* device);
 
-    CARAPI_(void) CheckPermission(
+    CARAPI CheckPermission(
         /* [in] */ IUsbAccessory* accessory);
 
     CARAPI_(void) RequestPermission(
@@ -296,23 +313,69 @@ private:
         /* [in] */ const String& packageName);
 
 private:
+    CARAPI_(Boolean) IsDeviceFilterExistsRef(
+        /* [in] */ const String& packageName);
+
+    CARAPI_(Boolean) IsAccessoryFilterExistsRef(
+        /* [in] */ const String& packageName);
+
+private:
+    /*
+    template<> struct Hash<AutoPtr<DeviceFilter> >
+    {
+        size_t operator()(AutoPtr<DeviceFilter> name) const
+        {
+            assert(name != NULL);
+            return (size_t)name.Get();
+        }
+    };
+
+    template<> struct EqualTo<AutoPtr<DeviceFilter> >
+    {
+        Boolean operator()(const AutoPtr<DeviceFilter>& x,
+                           const AutoPtr<DeviceFilter>& y) const
+        {
+            return x.Get() == y.Get();
+        }
+    };
+
+    template<> struct Hash<AutoPtr<AccessoryFilter> >
+    {
+        size_t operator()(AutoPtr<AccessoryFilter> name) const
+        {
+            assert(name != NULL);
+            return (size_t)name.Get();
+        }
+    };
+
+    template<> struct EqualTo<AutoPtr<AccessoryFilter> >
+    {
+        Boolean operator()(const AutoPtr<AccessoryFilter>& x,
+                           const AutoPtr<AccessoryFilter>& y) const
+        {
+            return x.Get() == y.Get();
+        }
+    };
+    */
+
     static const Boolean DEBUG;
 
     static const String TAG;
 
+    static const String SETTINGS_FILE_PATH;
+
     // For usb_audio card and device number
     static const String USB_AUDIO_SOURCE_PATH;
 
-    static const String SETTINGS_FILE_PATH;
-
     AutoPtr<IContext> mContext;
-    AutoPtr<ICapsuleManager> mPackageManager;
+
+    AutoPtr<ILocalCapsuleManager> mPackageManager;
 
     // Temporary mapping USB device name to list of UIDs with permissions for the device
-    //private final HashMap<String, SparseBooleanArray> mDevicePermissionMap = new HashMap<String, SparseBooleanArray>();
+    HashMap< String, HashMap<Int32, Boolean> > mDevicePermissionMap;
 
     // Temporary mapping UsbAccessory to list of UIDs with permissions for the accessory
-    //private final HashMap<UsbAccessory, SparseBooleanArray> mAccessoryPermissionMap = new HashMap<UsbAccessory, SparseBooleanArray>();
+    HashMap< AutoPtr<IUsbAccessory>, HashMap<Int32, Boolean> > mAccessoryPermissionMap;
 
     // Maps DeviceFilter to user preferred application package
     HashMap< AutoPtr<DeviceFilter>, String > mDevicePreferenceMap;
@@ -320,9 +383,11 @@ private:
     // Maps AccessoryFilter to user preferred application package
     HashMap< AutoPtr<AccessoryFilter>, String > mAccessoryPreferenceMap;
 
-    AutoPtr<IInterface> mLock;
+    Mutex mLock;
 
-    //MyPackageMonitor mPackageMonitor = new MyPackageMonitor();;
+    AutoPtr<MyPackageMonitor> mPackageMonitor;
 };
+
+//_ELASTOS_NAMESPACE_END
 
 #endif // __USBSETTINGSMANAGER_H__
