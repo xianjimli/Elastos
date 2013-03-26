@@ -16,10 +16,24 @@ _ELASTOS_NAMESPACE_BEGIN
 
 template<> struct Hash<AutoPtr<IComponentName> >
 {
-    size_t operator()(AutoPtr<IComponentName> s) const
+    size_t operator()(AutoPtr<IComponentName> name) const
     {
-        assert(s != NULL);
-        return (size_t)s.Get();
+        Int32 hashCode;
+        assert(name != NULL);
+        name->GetHashCode(&hashCode);
+        return (size_t)hashCode;
+    }
+};
+
+template<> struct EqualTo<AutoPtr<IComponentName> >
+{
+    Boolean operator()(const AutoPtr<IComponentName>& x,
+                       const AutoPtr<IComponentName>& y) const
+    {
+        Boolean isEqual;
+        assert(x != NULL);
+        x->Equals(y, &isEqual);
+        return isEqual;
     }
 };
 

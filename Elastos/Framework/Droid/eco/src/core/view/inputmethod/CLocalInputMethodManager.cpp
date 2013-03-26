@@ -471,21 +471,22 @@ void CLocalInputMethodManager::StartInputInner()
         // if (DEBUG) Log.v(TAG, "ABORT input: no handler for view!");
         return;
     }
-    //todo: the following implement is wrong
-    // if (vh.getLooper() != Looper.myLooper()) {
-    AutoPtr<IApartment> tmpLooper;
-    CApartment::GetMainApartment((IApartment**)&tmpLooper);
-    if (vh != tmpLooper) {
-        // The view is running on a different thread than our own, so
-        // we need to reschedule our work for over there.
-        // if (DEBUG) Log.v(TAG, "Starting input: reschedule to view thread");
 
-        void (STDCALL CLocalInputMethodManager::*pHandlerFunc)();
-        pHandlerFunc = &CLocalInputMethodManager::StartInputInner;
-        vh->PostCppCallbackDelayed((Handle32)this, *(Handle32*)&pHandlerFunc,
-            NULL, 0, 0);
-        return;
-    }
+    //TODO: the following implement is wrong
+    // if (vh.getLooper() != Looper.myLooper()) {
+    // AutoPtr<IApartment> tmpLooper;
+    // CApartment::GetMainApartment((IApartment**)&tmpLooper);
+    // if (vh != tmpLooper) {
+    //     // The view is running on a different thread than our own, so
+    //     // we need to reschedule our work for over there.
+    //     // if (DEBUG) Log.v(TAG, "Starting input: reschedule to view thread");
+
+    //     void (STDCALL CLocalInputMethodManager::*pHandlerFunc)();
+    //     pHandlerFunc = &CLocalInputMethodManager::StartInputInner;
+    //     vh->PostCppCallbackDelayed((Handle32)this, *(Handle32*)&pHandlerFunc,
+    //         NULL, 0, 0);
+    //     return;
+    // }
 
     // Okay we are now ready to call into the served view and have it
     // do its stuff.
