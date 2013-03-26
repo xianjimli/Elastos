@@ -10102,8 +10102,8 @@ ECode CCapsuleManagerService::InstallCapsuleEx2(
 
     String fname = path + "/capsule.xml";
 
-    CapsuleParser::Capsule* capsule = new CapsuleParser::Capsule();
-    if (SUCCEEDED(p.ParseCapsule(fname, capsule, &err))) {
+    CapsuleParser::Capsule* capsule = NULL;
+    if (SUCCEEDED(p.ParseCapsule(fname, &capsule, &err))) {
         mCapsules[capsule->mCapsuleName] = capsule;
         ec = NOERROR;
     }
@@ -13114,13 +13114,11 @@ CapsuleParser::Capsule* CCapsuleManagerService::ScanCapsule(
 
     len = capfile.GetLength();
     dir = capfile.Substring(0, len - strlen(DEFAULT_RESOURCES_FILE_NAME) - 1);
-    capsule = new CapsuleParser::Capsule();
-    assert(capsule != NULL);
-    capsule->mApplicationInfo->SetSourceDir(dir);
-    capsule->mApplicationInfo->SetDataDir(dir);
 
-    if (SUCCEEDED(p.ParseCapsule(capfile, capsule, &err))) {
+    if (SUCCEEDED(p.ParseCapsule(capfile, &capsule, &err))) {
         String capCName, capPName;
+        capsule->mApplicationInfo->SetSourceDir(dir);
+        capsule->mApplicationInfo->SetDataDir(dir);
         capsule->mApplicationInfo->GetCapsuleName(&capCName);
         capsule->mApplicationInfo->GetProcessName(&capPName);
         mCapsules[capCName] = capsule;

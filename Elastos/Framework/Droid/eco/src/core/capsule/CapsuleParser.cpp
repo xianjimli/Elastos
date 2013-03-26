@@ -773,7 +773,7 @@ CapsuleParser::Capsule* CapsuleParser::ParseCapsule(
     // XXXX todo: need to figure out correct configuration.
     AutoPtr<IResources> res;
     CResources::New(assmgr, metrics, NULL, (IResources**)&res);
-    ECode ec = ParseCapsule(cap, res.Get(), parser.Get(), flags, errorText);
+    ECode ec = ParseCapsule(res.Get(), parser.Get(), flags, errorText, &cap);
     if (FAILED(ec)) {
         mParseError = CapsuleManager::INSTALL_PARSE_FAILED_UNEXPECTED_EXCEPTION;
     }
@@ -889,18 +889,18 @@ ECode CapsuleParser::BuildTaskAffinityName(
 // TODO: replace this by ParseCapsule with four parameters.
 ECode CapsuleParser::ParseCapsule(
     /* [in] */ const String& capPath,
-    /* [in] */ CapsuleParser::Capsule* capsule,
+    /* [out, callee] */ CapsuleParser::Capsule** capsule,
     /* [out] */ String* errMsg)
 {
-    return ParseCapsule(capsule, capPath, String(NULL), NULL, 0);
+    return ParseCapsule(capPath, String(NULL), NULL, 0, capsule);
 }
 
 ECode CapsuleParser::ParseCapsule(
-    /* [in] */ CapsuleParser::Capsule* capsule, // TODO: delete it
     /* [in] */ const String& capPath,
     /* [in] */ const String& destCodePath,
     /* [in] */ IDisplayMetrics* metrics,
-    /* [in] */ Int32 flags)
+    /* [in] */ Int32 flags,
+    /* [out, callee] */ CapsuleParser::Capsule** capsule)
 {
     assert(capsule);
 
@@ -970,7 +970,10 @@ ECode CapsuleParser::ParseCapsule(
     AutoPtr<IResources> res;
     FAIL_RETURN(CResources::New(assmgr.Get(), metrics, NULL, (IResources**)&res));
 
-    ec = ParseCapsule(capsule, res.Get(), parser.Get(), flags, errorText);
+    *capsule = NULL;
+    ec = ParseCapsule(res.Get(), parser.Get(), flags, errorText, capsule);
+    if (*capsule == NULL) return ec;
+
     parser->Close();
     assmgr->Close();
     if (FAILED(ec)) {
@@ -990,11 +993,11 @@ ECode CapsuleParser::ParseCapsule(
     }
 
     // Set code and resource paths
-    capsule->mPath = destCodePath;
-    capsule->mScanPath = mArchiveSourcePath;
-    //capsule.applicationInfo.sourceDir = destCodePath;
-    //capsule.applicationInfo.publicSourceDir = destRes;
-    capsule->mSignatures = NULL;
+    (*capsule)->mPath = destCodePath;
+    (*capsule)->mScanPath = mArchiveSourcePath;
+    //(*capsule).applicationInfo.sourceDir = destCodePath;
+    //(*capsule).applicationInfo.publicSourceDir = destRes;
+    (*capsule)->mSignatures = NULL;
 
     return NOERROR;
 }
@@ -1043,11 +1046,11 @@ Int32 R_Styleable_AndroidManifestOriginalCapsule[] = {
 };
 
 ECode CapsuleParser::ParseCapsule(
-    /* [in] */ CapsuleParser::Capsule* capsule,
     /* [in] */ IResources* res,
     /* [in] */ IXmlResourceParser* parser,
     /* [in] */ Int32 flags,
-    /* [in] */ ArrayOf<String>* outError)
+    /* [in] */ ArrayOf<String>* outError,
+    /* [out, callee] */ CapsuleParser::Capsule** capsule)
 {
     ECode ec = NOERROR;
     AutoPtr<IAttributeSet> attrs = (IAttributeSet*)parser->Probe(EIID_IAttributeSet);
@@ -1069,8 +1072,9 @@ ECode CapsuleParser::ParseCapsule(
     }
 
     // final Package pkg = new Package(pkgName);
-    capsule->SetCapsuleName(capName);
-    Capsule* cap = capsule;
+    *capsule = new CapsuleParser::Capsule(capName);
+    (*capsule)->SetCapsuleName(capName);
+    Capsule* cap = *capsule;
     Boolean foundApp = FALSE;
 
     AutoPtr<ITypedArray> sa;

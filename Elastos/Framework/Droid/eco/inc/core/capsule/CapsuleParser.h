@@ -569,7 +569,7 @@ public:
 
     CARAPI ParseCapsule(
         /* [in] */ const String& capPath,
-        /* [in] */ CapsuleParser::Capsule* capsule,
+        /* [out, callee] */ CapsuleParser::Capsule** capsule,
         /* [out] */ String* errMsg);
 
     static CARAPI_(Boolean) CopyNeeded(
@@ -651,18 +651,18 @@ private:
         /* [out] */ String* name);
 
     CARAPI ParseCapsule(
-        /* [in] */ CapsuleParser::Capsule* capsule,
         /* [in] */ const String& capPath,
         /* [in] */ const String& destCodePath,
         /* [in] */ IDisplayMetrics* metrics,
-        /* [in] */ Int32 flags);
+        /* [in] */ Int32 flags,
+        /* [out, callee] */ CapsuleParser::Capsule** capsule);
 
     CARAPI ParseCapsule(
-        /* [in] */ CapsuleParser::Capsule* capsule,
         /* [in] */ IResources* res,
         /* [in] */ IXmlResourceParser* parser,
         /* [in] */ Int32 flags,
-        /* [in] */ ArrayOf<String>* outError);
+        /* [in] */ ArrayOf<String>* outError,
+        /* [out, callee] */ CapsuleParser::Capsule** capsule);
 
     CARAPI_(PermissionGroup*) ParsePermissionGroup(
         /* [in] */ Capsule* owner,
