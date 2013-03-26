@@ -18,6 +18,9 @@ public:
 
     CARAPI OnInterrupt();
 
+    CARAPI GetDescription(
+        /* [out] */ String* description);
+
     CARAPI constructor(
         /* [in] */ IAccessibilityService* context);
 

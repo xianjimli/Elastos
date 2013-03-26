@@ -43,6 +43,9 @@ using namespace Elastos::Core::Threading;
 
 CarClass(CAccessibilityManagerService)
 {
+public:
+    friend class CAccessibilityServiceConnection;
+
 private:
     class EnabledChangedObserver
         : public ElRefBase
@@ -117,6 +120,10 @@ public:
         /* [out] */ IObjectContainer** serviceInfos);
 
     CARAPI Interrupt();
+
+    CARAPI_(void) HandleDoSetServiceInfo(
+        /* [in] */ IAccessibilityServiceInfo* info,
+        /* [in] */ CAccessibilityServiceConnection* service);
 
 private:
     /**
@@ -245,10 +252,6 @@ private:
     CARAPI_(void) HandleDelayedEventDispatch(
         /* [in] */ CAccessibilityServiceConnection* service,
         /* [in] */ Int32 eventType);
-
-    CARAPI_(void) HandleDoSetServiceInfo(
-        /* [in] */ IAccessibilityServiceInfo* info,
-        /* [in] */ CAccessibilityServiceConnection* service);
 
 private:
     static const CString LOG_TAG;

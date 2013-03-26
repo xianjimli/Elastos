@@ -3,6 +3,7 @@
 #define __CACCESSIBILITYSERVICECONNECTION_H__
 
 #include "_CAccessibilityServiceConnection.h"
+#include "server/CAccessibilityManagerService.h"
 #include "ext/frameworkdef.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/HashSet.h>
@@ -87,6 +88,9 @@ public:
 
     // the events pending events to be dispatched to this service
     HashMap<Int32, AutoPtr<IAccessibilityEvent> > mPendingEvents;
+
+private:
+    AutoPtr<CAccessibilityManagerService> mHost;
 };
 
 #endif //__CACCESSIBILITYSERVICECONNECTION_H__

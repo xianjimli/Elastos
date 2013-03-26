@@ -6,7 +6,7 @@
 
 CEventListenerWrapper::CEventListenerWrapper()
 {
-    ASSERT_SUCCEEDED(CApartment::GetDefaultApartment((IApartment**)&mApartment)
+    ASSERT_SUCCEEDED(CApartment::GetMainApartment((IApartment**)&mApartment)
             && (mApartment != NULL));
 }
 
@@ -49,6 +49,12 @@ ECode CEventListenerWrapper::OnInterrupt()
     mApartment->PostCppCallback(
         (Handle32)this, *(Handle32*)&pHandlerFunc, NULL, 0);
 
+    return NOERROR;
+}
+
+ECode CEventListenerWrapper::GetDescription(
+    /* [out] */ String* description)
+{
     return NOERROR;
 }
 
