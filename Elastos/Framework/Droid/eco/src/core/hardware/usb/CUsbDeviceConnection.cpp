@@ -1,10 +1,15 @@
 
 #include "hardware/usb/CUsbDeviceConnection.h"
 #include <elastos/System.h>
+#include <usbhost/usbhost.h>
+
+#include <fcntl.h>
+#include <Logger.h>
 
 using namespace Elastos::Core;
+using namespace Elastos::Utility::Logging;
 
-const String CUsbDeviceConnection::TAG("UsbDeviceConnection");
+const String CUsbDeviceConnection::TAG = String("UsbDeviceConnection");
 
 ECode CUsbDeviceConnection::constructor(
     /* [in] */ IUsbDevice* device)
@@ -131,125 +136,135 @@ ECode CUsbDeviceConnection::GetSerial(
     return NOERROR;
 }
 
+struct usb_device* CUsbDeviceConnection_Get_device_from_object(IUsbDeviceConnection* connection)
+{
+    return (struct usb_device*)(((CUsbDeviceConnection*)connection)->mNativeContext);
+}
+
+
+Int32 Android_hardware_UsbDeviceConnection_get_fd(IUsbDeviceConnection* thi)
+{
+    struct usb_device* device = CUsbDeviceConnection_Get_device_from_object(thi);
+    if (!device) {
+        //ALOGE("device is closed in native_get_fd");
+        Logger::D(CUsbDeviceConnection::TAG, "device is closed in native_get_fd");
+        return -1;
+    }
+
+    return usb_device_get_fd(device);
+}
+
 Boolean CUsbDeviceConnection::NativeOpen(
         /* [in] */ const String& deviceName,
         /* [in] */ IFileDescriptor* pfd)
 {
-    /*
-    int fd = jniGetFDFromFileDescriptor(env, fileDescriptor);
+    Int32 fd;
+    pfd->GetDescriptor(&fd);
     // duplicate the file descriptor, since ParcelFileDescriptor will eventually close its copy
     fd = dup(fd);
-    if (fd < 0)
+    if (fd < 0){
         return false;
+    }
 
-    const char *deviceNameStr = env->GetStringUTFChars(deviceName, NULL);
+    const char *deviceNameStr = deviceName ;
     struct usb_device* device = usb_device_new(deviceNameStr, fd);
     if (device) {
-        env->SetIntField(thiz, field_context, (int)device);
-    } else {
-        ALOGE("usb_device_open failed for %s", deviceNameStr);
+        this->mNativeContext = (Int32) device ;
+    } 
+
+    else {
+        //ALOGE("usb_device_open failed for %s", deviceNameStr);
+        Logger::D(CUsbDeviceConnection::TAG, "usb_device_open failed for " + *deviceNameStr);
         close(fd);
     }
 
-    env->ReleaseStringUTFChars(deviceName, deviceNameStr);
+    //ReleaseStringUTFChars(deviceName, deviceNameStr);
     return (device != NULL);
-    */
-    // NOT IMPLEMENTED
-    return FALSE;
 }
 
 void CUsbDeviceConnection::NativeClose()
 {
-    /*
-    ALOGD("close\n");
-    struct usb_device* device = get_device_from_object(env, thiz);
+    //ALOGD("close\n");
+    Logger::D(CUsbDeviceConnection::TAG, "close\n");
+    struct usb_device* device = CUsbDeviceConnection_Get_device_from_object(this);
     if (device) {
         usb_device_close(device);
-        env->SetIntField(thiz, field_context, 0);
+        this->mNativeContext = 0;
     }
-    */
-    // NOT IMPLEMENTED
 }
 
 Int32 CUsbDeviceConnection::NativeGetFd()
 {
-    /*
-    struct usb_device* device = get_device_from_object(env, thiz);
+    struct usb_device* device = CUsbDeviceConnection_Get_device_from_object(this);
     if (!device) {
-        ALOGE("device is closed in native_get_fd");
+        //ALOGE("device is closed in native_get_fd");
+        Logger::D(CUsbDeviceConnection::TAG, "device is closed in native_get_fd");
         return -1;
     }
     return usb_device_get_fd(device);
-    */
-    // NOT IMPLEMENTED
-    return -1;
 }
 
 ArrayOf<Byte>* CUsbDeviceConnection::NativeGetDesc()
 {
-    /*
     char buffer[16384];
-    int fd = android_hardware_UsbDeviceConnection_get_fd(env, thiz);
-    if (fd < 0) return NULL;
-    lseek(fd, 0, SEEK_SET);
-    int length = read(fd, buffer, sizeof(buffer));
-    if (length < 0) return NULL;
+    Int32 fd = Android_hardware_UsbDeviceConnection_get_fd(this);
+    if (fd < 0){
+        return NULL;
+    }
 
-    jbyteArray ret = env->NewByteArray(length);
+    lseek(fd, 0, SEEK_SET);
+    Int32 length = read(fd, buffer, sizeof(buffer));
+    if (length < 0){
+        return NULL;
+    }
+
+    //ArrayOf<Byte> ret = NewByteArray(length);
+    ArrayOf<Byte>* ret = ArrayOf<Byte>::Alloc(length);
     if (ret) {
-        jbyte* bytes = (jbyte*)env->GetPrimitiveArrayCritical(ret, 0);
+        Byte* bytes = (Byte*) &ret[0];
         if (bytes) {
             memcpy(bytes, buffer, length);
-            env->ReleasePrimitiveArrayCritical(ret, bytes, 0);
+            //ReleasePrimitiveArrayCritical(ret, bytes, 0);
         }
     }
     return ret;
-    */
-    // NOT IMPLEMENTED
-    return NULL;
 }
 
 Boolean CUsbDeviceConnection::NativeClaimInterface(
     /* [in] */ Int32 interfaceID,
     /* [in] */ Boolean force)
 {
-    /*
-    struct usb_device* device = get_device_from_object(env, thiz);
+    struct usb_device* device = CUsbDeviceConnection_Get_device_from_object(this);
     if (!device) {
-        ALOGE("device is closed in native_claim_interface");
+        //ALOGE("device is closed in native_claim_interface");
+        Logger::D(CUsbDeviceConnection::TAG, "device is closed in native_claim_interface");
         return -1;
     }
 
-    int ret = usb_device_claim_interface(device, interfaceID);
-    if (ret && force && errno == EBUSY) {
+    Int32 ret = usb_device_claim_interface(device, interfaceID);
+    if (ret && force ) {//&& errno == EBUSY
         // disconnect kernel driver and try again
         usb_device_connect_kernel_driver(device, interfaceID, false);
         ret = usb_device_claim_interface(device, interfaceID);
     }
     return ret == 0;
-    */
-    // NOT IMPLEMENTED
-    return FALSE;
 }
 
 Boolean CUsbDeviceConnection::NativeReleaseInterface(
     /* [in] */ Int32 interfaceID)
 {
-    /*
-    struct usb_device* device = get_device_from_object(env, thiz);
+    struct usb_device* device = CUsbDeviceConnection_Get_device_from_object(this);
     if (!device) {
-        ALOGE("device is closed in native_release_interface");
+        //ALOGE("device is closed in native_release_interface");
+        Logger::D(CUsbDeviceConnection::TAG, "device is closed in native_release_interface");
         return -1;
     }
-    int ret = usb_device_release_interface(device, interfaceID);
+    Int32 ret = usb_device_release_interface(device, interfaceID);
     if (ret == 0) {
         // allow kernel to reconnect its driver
         usb_device_connect_kernel_driver(device, interfaceID, true);
     }
     return ret;
-    */
-    // NOT IMPLEMENTED
-    return FALSE;
 }
 
 Int32 CUsbDeviceConnection::NativeControlRequest(
@@ -261,31 +276,28 @@ Int32 CUsbDeviceConnection::NativeControlRequest(
     /* [in] */ Int32 length,
     /* [in] */ Int32 timeout)
 {
-    /*
-    struct usb_device* device = get_device_from_object(env, thiz);
+    struct usb_device* device = CUsbDeviceConnection_Get_device_from_object(this);
     if (!device) {
-        ALOGE("device is closed in native_control_request");
+        //ALOGE("device is closed in native_control_request");
+        Logger::D(CUsbDeviceConnection::TAG, "device is closed in native_control_request");
         return -1;
     }
 
-    jbyte* bufferBytes = NULL;
-    if (buffer) {
-        if (env->GetArrayLength(buffer) < length) {
-            jniThrowException(env, "java/lang/ArrayIndexOutOfBoundsException", NULL);
+    Byte* bufferBytes = NULL;
+    if (&buffer) {
+        if (buffer.GetLength() < length) {
+            //jniThrowException(env, "java/lang/ArrayIndexOutOfBoundsException", NULL);
             return -1;
         }
-        bufferBytes = env->GetByteArrayElements(buffer, 0);
+        bufferBytes = (Byte*)buffer[0];
     }
 
-    jint result = usb_device_control_transfer(device, requestType, request, value, index, bufferBytes, length, timeout);
+    Int32 result = usb_device_control_transfer(device, requestType, request, value, index, bufferBytes, length, timeout);
 
     if (bufferBytes)
-        env->ReleaseByteArrayElements(buffer, bufferBytes, 0);
+        //ReleaseByteArrayElements(buffer, bufferBytes, 0);
 
     return result;
-    */
-    // NOT IMPLEMENTED
-    return -1;
 }
 
 Int32 CUsbDeviceConnection::NativeBulkRequest(
@@ -294,67 +306,64 @@ Int32 CUsbDeviceConnection::NativeBulkRequest(
     /* [in] */ Int32 length,
     /* [in] */ Int32 timeout)
 {
-    /*
-    struct usb_device* device = get_device_from_object(env, thiz);
+    struct usb_device* device = CUsbDeviceConnection_Get_device_from_object(this);
     if (!device) {
-        ALOGE("device is closed in native_control_request");
+        //ALOGE("device is closed in native_control_request");
+        Logger::D(CUsbDeviceConnection::TAG, "device is closed in native_control_request");
         return -1;
     }
 
-    jbyte* bufferBytes = NULL;
-    if (buffer) {
-        if (env->GetArrayLength(buffer) < length) {
-            jniThrowException(env, "java/lang/ArrayIndexOutOfBoundsException", NULL);
+    Byte* bufferBytes = NULL;
+    if (&buffer) {
+        if (buffer.GetLength() < length) {
+            //jniThrowException(env, "java/lang/ArrayIndexOutOfBoundsException", NULL);
             return -1;
         }
-        bufferBytes = env->GetByteArrayElements(buffer, 0);
+        bufferBytes = (Byte*)buffer[0];
     }
 
-    jint result = usb_device_bulk_transfer(device, endpoint, bufferBytes, length, timeout);
+    Int32 result = usb_device_bulk_transfer(device, endpoint, bufferBytes, length, timeout);
 
     if (bufferBytes)
-        env->ReleaseByteArrayElements(buffer, bufferBytes, 0);
+        //ReleaseByteArrayElements(buffer, bufferBytes, 0);
 
     return result;
-    */
-    // NOT IMPLEMENTED
-    return -1;
 }
 
 IUsbRequest* CUsbDeviceConnection::NativeRequestWait()
 {
-    /*
-    struct usb_device* device = get_device_from_object(env, thiz);
+    struct usb_device* device = CUsbDeviceConnection_Get_device_from_object(this);
     if (!device) {
-        ALOGE("device is closed in native_request_wait");
+        //ALOGE("device is closed in native_request_wait");
+        Logger::D(CUsbDeviceConnection::TAG, "device is closed in native_request_wait");
         return NULL;
     }
 
     struct usb_request* request = usb_request_wait(device);
-    if (request)
-        return (jobject)request->client_data;
-    else
+    if (request){
+        return (IUsbRequest*)request->client_data;
+    }
+
+    else{
         return NULL;
-    */
-    // NOT IMPLEMENTED
-    return NULL;
+    }
 }
 
 String CUsbDeviceConnection::NativeGetSerial()
 {
-    /*
-    struct usb_device* device = get_device_from_object(env, thiz);
+    struct usb_device* device = CUsbDeviceConnection_Get_device_from_object(this);
     if (!device) {
-        ALOGE("device is closed in native_request_wait");
-        return NULL;
+        //ALOGE("device is closed in native_request_wait");
+        Logger::D(CUsbDeviceConnection::TAG, "device is closed in native_request_wait");
+        return String("");
     }
+
     char* serial = usb_device_get_serial(device);
-    if (!serial)
-        return NULL;
-    jstring result = env->NewStringUTF(serial);
+    if (!serial){
+        return String("");
+    }
+
+    String result = (String)serial;//NewStringUTF(serial);
     free(serial);
     return result;
-    */
-    // NOT IMPLEMENTED
-    return String("");
 }

@@ -116,7 +116,7 @@ private:
     CARAPI_(void) NativeClose();
 
     CARAPI_(Boolean) NativeQueueArray(
-        /* [in] */ ArrayOf<Byte>* buffer,
+        /* [in] */ ArrayOf<Byte>* buffer, //const ArrayOf<Byte>& buffer
         /* [in] */ Int32 length,
         /* [in] */ Boolean out);
 
@@ -133,12 +133,13 @@ private:
     CARAPI_(void) NativeDequeueDirect();
 
     CARAPI_(Boolean) NativeCancel();
+    
+public:
+    // used by the JNI code
+    Int32 mNativeContext;
 
 private:
     static const String TAG;
-
-    // used by the JNI code
-    Int32 mNativeContext;
 
     AutoPtr<IUsbEndpoint> mEndpoint;
 

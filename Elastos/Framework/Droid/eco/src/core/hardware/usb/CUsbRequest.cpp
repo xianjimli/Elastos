@@ -1,12 +1,14 @@
 
 #include "hardware/usb/CUsbRequest.h"
+#include "hardware/usb/CUsbDeviceConnection.h"
 #include <elastos/System.h>
 #include <Logger.h>
+#include <usbhost/usbhost.h>
 
 using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
-const String CUsbRequest::TAG("UsbRequest");
+const String CUsbRequest::TAG = String("UsbRequest");
 
 CUsbRequest::~CUsbRequest()
 {
@@ -157,6 +159,16 @@ void CUsbRequest::Finalize()
     Close();
 }
 
+struct usb_device* Get_device_from_object(IUsbDeviceConnection* connection)
+{
+    return (struct usb_device*)(((CUsbDeviceConnection*)connection)->mNativeContext);
+}
+
+struct usb_request* Get_request_from_object(IUsbRequest* java_request)
+{
+    return (struct usb_request*)(((CUsbRequest*)java_request)->mNativeContext);
+}
+
 Boolean CUsbRequest::NativeInit(
     /* [in] */ IUsbDeviceConnection* connection,
     /* [in] */ Int32 ep_address,
@@ -164,13 +176,13 @@ Boolean CUsbRequest::NativeInit(
     /* [in] */ Int32 ep_max_packet_size,
     /* [in] */ Int32 ep_interval)
 {
-    /*
-    ALOGD("init\n");
-
-    struct usb_device* device = get_device_from_object(env, java_device);
+    //ALOGD("init\n");
+    Logger::D(CUsbRequest::TAG, "init\n");
+    struct usb_device* device =  Get_device_from_object(connection);
     if (!device) {
-        ALOGE("device null in native_init");
-        return false;
+        //ALOGE("device null in native_init");
+        Logger::D(CUsbRequest::TAG, "device null in native_init");
+        return FALSE;
     }
 
     // construct an endpoint descriptor from the Java object fields
@@ -183,50 +195,57 @@ Boolean CUsbRequest::NativeInit(
     desc.bInterval = ep_interval;
 
     struct usb_request* request = usb_request_new(device, &desc);
-    if (request)
-        env->SetIntField(thiz, field_context, (int)request);
+    if (request){
+        (((CUsbDeviceConnection*)connection)->mNativeContext) = (Int32)request;
+    }
+
     return (request != NULL);
-    */
-    // NOT IMPLEMENTED
-    return FALSE;
 }
 
 void CUsbRequest::NativeClose()
 {
-    /*
-    ALOGD("close\n");
-    struct usb_request* request = get_request_from_object(env, thiz);
+    //ALOGD("close\n");
+    Logger::D(CUsbRequest::TAG, "close\n");
+    struct usb_request* request = Get_request_from_object(this);
     if (request) {
         usb_request_free(request);
-        env->SetIntField(thiz, field_context, 0);
+        this->mNativeContext = 0;
     }
-    */
-    // NOT IMPLEMENTED
 }
 
 Boolean CUsbRequest::NativeQueueArray(
     /* [in] */ ArrayOf<Byte>* buffer,
     /* [in] */ Int32 length,
-    /* [in] */ Boolean isOutDirect)
+    /* [in] */ Boolean out)
 {
-    /*
-    struct usb_request* request = get_request_from_object(env, thiz);
+    struct usb_request* request = Get_request_from_object(this);
     if (!request) {
-        ALOGE("request is closed in native_queue");
-        return false;
+        //ALOGE("request is closed in native_queue");
+        Logger::E(CUsbRequest::TAG, "request is closed in native_queue");
+        return FALSE;
     }
 
     if (buffer && length) {
         request->buffer = malloc(length);
-        if (!request->buffer)
-            return false;
+        if (!request->buffer){
+            return FALSE;
+        }
+
         if (out) {
             // copy data from Java buffer to native buffer
-            env->GetByteArrayRegion(buffer, 0, length, (jbyte *)request->buffer);
+            //GetByteArrayRegion(buffer, 0, length, (Byte *)request->buffer);
+            Byte * tmp = (Byte *)(request->buffer);
+            for (Int32 i=0; i<length ;i++)
+            {
+                tmp[i] = (Byte)(*buffer)[i];    
+            }
         }
-    } else {
+    } 
+
+    else {
         request->buffer = NULL;
     }
+
     request->buffer_length = length;
 
     if (usb_request_queue(request)) {
@@ -235,99 +254,99 @@ Boolean CUsbRequest::NativeQueueArray(
             free(request->buffer);
             request->buffer = NULL;
         }
-        return false;
-    } else {
+        return FALSE;
+    } 
+
+    else {
         // save a reference to ourselves so UsbDeviceConnection.waitRequest() can find us
-        request->client_data = (void *)env->NewGlobalRef(thiz);
-        return true;
+        request->client_data = (void *)this;
+        return TRUE;
     }
-    */
-    // NOT IMPLEMENTED
-    return FALSE;
 }
 
 void CUsbRequest::NativeDequeueArray(
     /* [in] */ ArrayOf<Byte>* buffer,
     /* [in] */ Int32 length,
-    /* [in] */ Boolean isOutDirect)
+    /* [in] */ Boolean out)
 {
-    /*
-    struct usb_request* request = get_request_from_object(env, thiz);
+    struct usb_request* request = Get_request_from_object(this);
     if (!request) {
-        ALOGE("request is closed in native_dequeue");
+        //ALOGE("request is closed in native_dequeue");
+        Logger::E(CUsbRequest::TAG, "request is closed in native_dequeue");
         return;
     }
 
     if (buffer && length && request->buffer && !out) {
         // copy data from native buffer to Java buffer
-        env->SetByteArrayRegion(buffer, 0, length, (jbyte *)request->buffer);
+        //SetByteArrayRegion(buffer, 0, length, (Byte*)request->buffer);
+        Byte * tmp = (Byte *)(request->buffer);
+        for (Int32 i=0; i<length ;i++)
+        {
+            (*buffer)[i] = tmp[i];    
+        }
     }
     free(request->buffer);
-    env->DeleteGlobalRef((jobject)request->client_data);
-    */
-    // NOT IMPLEMENTED
+    free(request->client_data);
 }
 
 Boolean CUsbRequest::NativeQueueDirect(
     /* [in] */ IByteBuffer* buffer,
     /* [in] */ Int32 length,
-    /* [in] */ Boolean isOutDirect)
+    /* [in] */ Boolean out)
 {
-    /*
-    struct usb_request* request = get_request_from_object(env, thiz);
+    struct usb_request* request = Get_request_from_object(this);
     if (!request) {
-        ALOGE("request is closed in native_queue");
-        return false;
+        //ALOGE("request is closed in native_queue");
+        Logger::E(CUsbRequest::TAG, "request is closed in native_queue");
+        return FALSE;
     }
 
     if (buffer && length) {
-        request->buffer = env->GetDirectBufferAddress(buffer);
+        request->buffer = &buffer ;//GetDirectBufferAddress(buffer)
         if (!request->buffer)
-            return false;
-    } else {
+            return FALSE;
+    } 
+
+    else {
         request->buffer = NULL;
     }
+
     request->buffer_length = length;
 
     if (usb_request_queue(request)) {
         request->buffer = NULL;
-        return false;
-    } else {
+        return FALSE;
+    } 
+
+    else {
         // save a reference to ourselves so UsbDeviceConnection.waitRequest() can find us
         // we also need this to make sure our native buffer is not deallocated
         // while IO is active
-        request->client_data = (void *)env->NewGlobalRef(thiz);
-        return true;
+        request->client_data = (void *)this;
+        return TRUE;
     }
-    */
-    // NOT IMPLEMENTED
-    return FALSE;
 }
 
 void CUsbRequest::NativeDequeueDirect()
 {
-    /*
-    struct usb_request* request = get_request_from_object(env, thiz);
+    struct usb_request* request = Get_request_from_object(this);
     if (!request) {
-        ALOGE("request is closed in native_dequeue");
+        //ALOGE("request is closed in native_dequeue");
+        Logger::E(CUsbRequest::TAG, "request is closed in native_dequeue");
         return;
     }
     // all we need to do is delete our global ref
-    env->DeleteGlobalRef((jobject)request->client_data);
-    */
-    // NOT IMPLEMENTED
+    free(request->client_data);
 }
 
 Boolean CUsbRequest::NativeCancel()
 {
-    /*
-    struct usb_request* request = get_request_from_object(env, thiz);
+    struct usb_request* request = Get_request_from_object(this);
     if (!request) {
-        ALOGE("request is closed in native_cancel");
-        return false;
+        //ALOGE("request is closed in native_cancel");
+        Logger::E(CUsbRequest::TAG, "request is closed in native_cancel");
+        return FALSE;
     }
+
     return (usb_request_cancel(request) == 0);
-    */
-    // NOT IMPLEMENTED
-    return FALSE;
 }
