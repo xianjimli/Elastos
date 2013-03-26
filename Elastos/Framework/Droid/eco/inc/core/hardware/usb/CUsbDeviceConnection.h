@@ -183,9 +183,10 @@ private:
     CARAPI_(String) NativeGetSerial();
 
 private:
-    static const String TAG;
-
     AutoPtr<IUsbDevice> mDevice;
+
+public:
+    static const String TAG;
     Int32 mNativeContext; // used by the JNI code
 };
 
