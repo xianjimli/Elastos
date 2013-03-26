@@ -868,4 +868,91 @@ module
             [in] IInterface* target,
             [out] Boolean* result);
     }
+
+    interface IKeyEventHelper {
+        /**
+         * Returns the maximum keycode.
+         */
+        GetMaxKeyCode(
+            [out] Int32* keyCode);
+
+        /**
+         * Get the character that is produced by putting accent on the character
+         * c.
+         * For example, getDeadChar('`', 'e') returns &egrave;.
+         */
+        GetDeadChar(
+            [in] Int32 accent,
+            [in] Int32 c,
+            [out] Int32* deadChar);
+
+        /**
+         * Create a new key event that is the same as the given one, but whose
+         * event time and repeat count are replaced with the given value.
+         *
+         * @param event The existing event to be copied.  This is not modified.
+         * @param eventTime The new event time
+         * (in {@link android.os.SystemClock#uptimeMillis}) of the event.
+         * @param newRepeat The new repeat count of the event.
+         */
+        ChangeTimeRepeat(
+            [in] IKeyEvent* event,
+            [in] Int64 eventTime,
+            [in] Int32 newRepeat,
+            [out] IKeyEvent** newEvent);
+
+        /**
+         * Create a new key event that is the same as the given one, but whose
+         * event time and repeat count are replaced with the given value.
+         *
+         * @param event The existing event to be copied.  This is not modified.
+         * @param eventTime The new event time
+         * (in {@link android.os.SystemClock#uptimeMillis}) of the event.
+         * @param newRepeat The new repeat count of the event.
+         * @param newFlags New flags for the event, replacing the entire value
+         * in the original event.
+         */
+        ChangeTimeRepeatEx(
+            [in] IKeyEvent* event,
+            [in] Int64 eventTime,
+            [in] Int32 newRepeat,
+            [in] Int32 newFlags,
+            [out] IKeyEvent** newEvent);
+
+        /**
+         * Create a new key event that is the same as the given one, but whose
+         * action is replaced with the given value.
+         *
+         * @param event The existing event to be copied.  This is not modified.
+         * @param action The new action code of the event.
+         */
+        ChangeAction(
+            [in] IKeyEvent* event,
+            [in] Int32 action,
+            [out] IKeyEvent** newEvent);
+
+        /**
+         * Create a new key event that is the same as the given one, but whose
+         * flags are replaced with the given value.
+         *
+         * @param event The existing event to be copied.  This is not modified.
+         * @param flags The new flags constant.
+         */
+        ChangeFlags(
+            [in] IKeyEvent* event,
+            [in] Int32 flags,
+            [out] IKeyEvent** newEvent);
+
+        /**
+         * Returns true if this key code is a modifier key.
+         *
+         * @return whether the provided keyCode is one of
+         * {@link #KEYCODE_SHIFT_LEFT} {@link #KEYCODE_SHIFT_RIGHT},
+         * {@link #KEYCODE_ALT_LEFT}, {@link #KEYCODE_ALT_RIGHT}
+         * or {@link #KEYCODE_SYM}.
+         */
+        IsModifierKey(
+            [in] Int32 keyCode,
+            [out] Boolean* res);
+    }
 }

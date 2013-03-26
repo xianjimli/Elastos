@@ -42,6 +42,7 @@ SOURCES += BaseSurfaceHolder.cpp
 SOURCES += CInputQueue.cpp
 SOURCES += NativeInputQueue.cpp
 SOURCES += CKeyEvent.cpp
+SOURCES += CKeyEventHelper.cpp
 SOURCES += CMotionEvent.cpp
 SOURCES += CMotionEventHelper.cpp
 SOURCES += CDisplay.cpp

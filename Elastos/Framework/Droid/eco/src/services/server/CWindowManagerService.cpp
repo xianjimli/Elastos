@@ -3564,15 +3564,15 @@ Int32 CWindowManagerService::AddWindow(
         UNUSED(imMayMove);
 
         if (attrsType == WindowManagerLayoutParams_TYPE_INPUT_METHOD) {
-//            mInputMethodWindow = win;
-//            AddInputMethodWindowToListLocked(win);
-//            imMayMove = FALSE;
+           mInputMethodWindow = win;
+           AddInputMethodWindowToListLocked(win);
+           imMayMove = FALSE;
         }
         else if (attrsType == WindowManagerLayoutParams_TYPE_INPUT_METHOD_DIALOG) {
-//            mInputMethodDialogs->Add(win);
-//            AddWindowToListInOrderLocked(win, TRUE);
-//            AdjustInputMethodDialogsLocked();
-//            imMayMove = FALSE;
+           mInputMethodDialogs.PushBack(win);
+           AddWindowToListInOrderLocked(win, TRUE);
+           AdjustInputMethodDialogsLocked();
+           imMayMove = FALSE;
         }
         else {
             AddWindowToListInOrderLocked(win, TRUE);
@@ -3813,7 +3813,6 @@ Int32 CWindowManagerService::RelayoutWindow(
         win->mRelayoutCalled = TRUE;
         Int32 oldVisibility = win->mViewVisibility;
         win->mViewVisibility = viewVisibility;
-        viewVisibility = View_VISIBLE;
         if (viewVisibility == View_VISIBLE &&
                 (win->mAppToken == NULL || !win->mAppToken->mClientHidden)) {
             displayed = !win->IsVisibleLw();
@@ -4568,7 +4567,10 @@ Boolean CWindowManagerService::MoveInputMethodWindowsIfNeededLocked(
                         break;
                     }
                 }
-                ++posIt;
+
+                if (posIt != mWindows.End())
+                    ++posIt;
+
                 // Now there should be no more input method windows above.
                 for (; posIt != mWindows.End(); ++posIt) {
                     if ((*posIt)->mIsImWindow) {
@@ -6802,7 +6804,7 @@ void CWindowManagerService::RemoveWindowInnerLocked(
     else {
         win->mAttrs->GetType(&winType);
         if (winType == WindowManagerLayoutParams_TYPE_INPUT_METHOD_DIALOG) {
-//            mInputMethodDialogs.Remove(win);
+            mInputMethodDialogs.Remove(win);
         }
     }
 
@@ -9686,6 +9688,10 @@ ECode CWindowManagerService::WindowState::CreateSurfaceLocked(
 //        try {
         AutoPtr<ICharSequence> title;
         mAttrs->GetTitle((ICharSequence**)&title);
+        String strTitle;
+        title->ToString(&strTitle);
+        Int32 format;
+        mAttrs->GetFormat(&format);
 /* TODO:
         ec = CSurface::New(
             mSession->mSurfaceSession,
@@ -9699,8 +9705,8 @@ ECode CWindowManagerService::WindowState::CreateSurfaceLocked(
 //            (ISurfaceSession**)&surfaceSession)));
         assert(SUCCEEDED(CSurface::New(
             mSession->mSurfaceSession,
-            mSession->mPid, String(NULL),
-            0, 240, 320, -2, 0,
+            mSession->mPid, strTitle,
+            0, w, h, format, flags,
             (ISurface**)&mSurface)));
 
         if (FAILED(ec)) {
